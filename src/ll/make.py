@@ -297,7 +297,11 @@ def getoutputs(project, since, infoonly, input):
 				resultdata = nodata
 			return (resultdate, resultchanged)
 	else:
-		raise TypeError("can't handle %r" % type(input))
+		if since is not bigbang:
+			return (nodata, bigbang)
+		if infoonly:
+			input = newdata
+		return (input, bigbang)
 
 
 def _ipipe_type(obj):
@@ -466,7 +470,6 @@ class PipeAction(Action):
 
 	@report
 	def get(self, project, since, infoonly):
-		assert isinstance(self.input, Action)
 		(data, self.changed) = getoutputs(project, since, infoonly, self.input)
 		if data is not nodata and not infoonly:
 			data = self.execute(project, data)
@@ -497,8 +500,6 @@ class CollectAction(PipeAction):
 
 	@report
 	def get(self, project, since, infoonly):
-		assert isinstance(self.input, Action)
-		assert all(isinstance(input, Action) for input in self.inputs)
 		# We don't need the data itself, use infoonly mode for the inputs
 		(data, changedinputs) = getoutputs(project, since, True, self.inputs)
 		if data is not nodata:
@@ -541,7 +542,6 @@ class PhonyAction(Action):
 
 	@report
 	def get(self, project, since, infoonly):
-		assert all(isinstance(input, Action) for input in self.inputs)
 		# Caching the result object of a :class:`PhonyAction` is cheap (it's either :const:`None` or :const:`nodata`),
 		# so we always do the caching as this optimizes away the traversal of a complete subgraph
 		# for subsequent calls to :meth:`get` during the same build round
@@ -693,7 +693,6 @@ class JoinAction(Action):
 
 	@report
 	def get(self, project, since, infoonly):
-		assert all(isinstance(input, Action) for input in self.inputs)
 		(data, self.changed) = getoutputs(project, since, infoonly, self.inputs)
 		if data is newdata:
 			project.writestep(self, "Have new data for join")
@@ -717,7 +716,6 @@ class ExternalAction(PipeAction):
 
 	@report
 	def get(self, project, since, infoonly):
-		assert isinstance(self.input, Action)
 		(data, self.changed) = getoutputs(project, since, infoonly, self.input)
 		if data is not nodata:
 			self.execute(project)
@@ -765,7 +763,6 @@ class CacheAction(PipeAction):
 
 	@report
 	def get(self, project, since, infoonly):
-		assert isinstance(self.input, Action)
 		if self.buildno != project.buildno or (since < self.since and self.data is nodata): # If this is a new build round or we're asked about an earlier date and didn't return data last time
 			(self.data, self.changed) = getoutputs(project, since, False, self.input)
 			self.since = since
@@ -825,7 +822,6 @@ class PoolAction(Action):
 
 	@report
 	def get(self, project, since, infoonly):
-		assert all(isinstance(input, Action) for input in self.inputs)
 		(data, self.changed) = getoutputs(project, since, infoonly, self.inputs)
 
 		if data is not nodata and data is not newdata:
@@ -875,7 +871,6 @@ class XISTParseAction(PipeAction):
 
 	@report
 	def get(self, project, since, infoonly):
-		assert isinstance(self.input, Action)
 		(data, self.changed) = getoutputs(project, since, infoonly, (self.pool, self.input))
 
 		if data is not nodata and data is not newdata:
@@ -1092,6 +1087,38 @@ class EvalAction(PipeAction):
 		return eval(input)
 
 
+class GZipAction(PipeAction):
+	"""
+	This action compresses the input string via gzip and returns the resulting
+	compressed output object.
+	"""
+	def __init__(self, compresslevel=9):
+		PipeAction.__init__(self)
+		self.compresslevel = compresslevel
+
+	def execute(self, project, data):
+		project.writestep(self, "Compressing input with level %d" % self.compresslevel)
+		import gzip, cStringIO
+		stream = cStringIO.StringIO()
+		compressor = gzip.GzipFile(filename="", mode="wb", fileobj=stream, compresslevel=self.compresslevel)
+		compressor.write(data)
+		compressor.close()
+		return stream.getvalue()
+
+
+class GUnzipAction(PipeAction):
+	"""
+	This action uncompresses the input string via gzip and returns the resulting
+	uncompressed output object.
+	"""
+	def execute(self, project, data):
+		project.writestep(self, "Uncompressing input")
+		import gzip, cStringIO
+		stream = cStringIO.StringIO(data)
+		compressor = gzip.GzipFile(filename="", mode="rb", fileobj=stream)
+		return compressor.read(data)
+
+
 class TOXICAction(PipeAction):
 	"""
 	This action transforms an XML string into an Oracle procedure body via the
@@ -1167,8 +1194,6 @@ class XPITAction(PipeAction):
 
 	@report
 	def get(self, project, since, infoonly):
-		assert isinstance(self.nsinput, Action)
-		assert isinstance(self.input, Action)
 		(data, self.changed) = getoutputs(project, since, infoonly, (self.nsinput, self.input))
 		if data is not nodata and data is not newdata:
 			data = self.execute(project, data[1], data[0])
@@ -1326,7 +1351,6 @@ class ModuleAction(PipeAction):
 
 	@report
 	def get(self, project, since, infoonly):
-		assert isinstance(self.input, Action)
 		# Is this module required by another?
 		if project.importstack:
 			if self not in project.importstack[-1].inputs:

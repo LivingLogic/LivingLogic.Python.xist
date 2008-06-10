@@ -10,6 +10,12 @@ Changes in 3.3 (released ??/??/2008)
 
 	__ http://www.djangoproject.com/documentation/templates/
 
+*	:mod:`ll.make` has gained two new actions: :class:`GZipAction` and
+	:class:`GUnzipAction`.
+
+*	All actions in :mod:`ll.make` no longer check whether their inputs are
+	action objects. Non-action objects are simply treated as ancient output data.
+
 *	:func:`ll.misc.xmlescape` now escapes ``'`` as ``&#39;`` for IE compatibility.
 
 *	Functions :func:`ll.misc.xmlescape_text` and :func:`ll.misc.xmlescape_attr`
