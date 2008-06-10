@@ -47,8 +47,8 @@ XIST also includes the following modules:
 *	:mod:`ll.xpit` is a module that makes it possible to embed Python
 	expressions in text (as XML style processing instructions).
 
-*	:mod:`ll.ull` is a templating language with similar capabilities to
-	`Django's templating language`__. ``ull`` templates are compiled to an
+*	:mod:`ll.pull` is a templating language with similar capabilities to
+	`Django's templating language`__. ``pull`` templates are compiled to an
 	internal bytecode format, which makes it possible to implement template
 	renderers in other languages and makes the template code "secure" (i.e.
 	template code can't open or delete files).
