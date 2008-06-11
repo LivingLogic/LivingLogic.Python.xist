@@ -1,9 +1,9 @@
 Changes in 3.3 (released ??/??/2008)
 ------------------------------------
 
-*	XIST has gained its fourth templating language: ``PULL`` the
+*	XIST has gained its fourth templating language: ``ULL`` the
 	"Universal Layout Language". This templating language is similar in
-	capabilities to `Django's templating language`__. However ``PULL`` templates
+	capabilities to `Django's templating language`__. However ``ULL`` templates
 	are compiled to an internal bytecode format, which makes it possible to
 	implement template renderers in other languages and makes the template code
 	"secure" (i.e.template code can't open or delete files).
