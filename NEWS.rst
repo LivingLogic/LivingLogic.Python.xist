@@ -22,8 +22,8 @@ Changes in 3.3 (released ??/??/2008)
 *	Functions :func:`ll.misc.xmlescape_text` and :func:`ll.misc.xmlescape_attr`
 	have been added that implement the functionality from XIST 3.2.5 and earlier.
 
-*	The default parser is expat now. To switch back to sgmlop simply pass an
-	:class:`SGMLOPParser` object to the parsing functions::
+*	The default parser for XIST is expat now. To switch back to sgmlop simply
+	pass an :class:`SGMLOPParser` object to the parsing functions::
 
 		>>> from ll.xist import parsers
 		>>> node = parsers.parsestring("<a>", parser=parsers.SGMLOPParser())
