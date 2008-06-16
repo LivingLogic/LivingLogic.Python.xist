@@ -1272,13 +1272,13 @@ class Template(object):
 			self._pythonfunction = ns["render"]
 		return self._pythonfunction
 
-	def __call__(self, data, templates={}):
+	def __call__(self, data=None, templates={}):
 		return self.pythonfunction()(data, templates)
 
-	def render(self, data, templates={}):
+	def render(self, data=None, templates={}):
 		return self.pythonfunction()(data, templates)
 
-	def renders(self, data, templates={}):
+	def renders(self, data=None, templates={}):
 		return "".join(self.render(data, templates))
 
 	def format(self, indent="\t"):
