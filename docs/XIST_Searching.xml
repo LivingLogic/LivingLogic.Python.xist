@@ -1,3 +1,4 @@
+<wrap>
 <section><h>The <meth>walk</meth> method</h>
 
 <p>There are three related methods available for iterating through an &xml;
@@ -260,3 +261,4 @@ are supported.</p>
 <pyref module="ll.xist.css"><mod>css</mod></pyref> module.</p>
 
 </section>
+</wrap>

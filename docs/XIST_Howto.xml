@@ -1,4 +1,5 @@
-<?xml version='1.0' encoding='iso-8859-1'?>
+<?xml version='1.0' encoding='utf-8'?>
+<wrap>
 <p>&xist; is an extensible &html;/&xml; generator written in Python.
 It was developed as a replacement for an &html; preprocessor named
 <app moreinfo="http://www.linguistik.uni-erlangen.de/~msbethke/hsc/">HSC</app>
@@ -763,7 +764,7 @@ returns the complete 8-bit &xml; string.</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = html.div(u"äöü", html.br(), u"ÄÖÜ")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.div(u"Ã¤Ã¶Ã¼", html.br(), u"Ã„Ã–Ãœ")</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node.write(open("foo.html", "wb"), encoding="ascii")</input>
 </tty>
 
@@ -787,7 +788,7 @@ comments or processing instructions you'll get an exception):</p>
 <prompt>&gt;&gt;&gt; </prompt><input>print node.bytes(encoding="ascii")</input>
 &lt;div&gt;A&amp;#228;&amp;#937;&amp;#35486;&gt;
 <prompt>&gt;&gt;&gt; </prompt><input>print node.bytes(encoding="iso-8859-1")</input>
-&lt;div&gt;Aä&amp;#937;&amp;#35486;&gt;
+&lt;div&gt;AÃ¤&amp;#937;&amp;#35486;&gt;
 <prompt>&gt;&gt;&gt; </prompt><input>print xsc.Comment(s).bytes(encoding="ascii")</input>
 Traceback (most recent call last):
   File "&lt;stdin&gt;", line 1, in &lt;module&gt;
@@ -995,3 +996,4 @@ print e.bytes(prefixes={html: None, xlink: "xl"}, hidexmlns=[html, xlink])
 ]]></prog>
 
 </section>
+</wrap>
