@@ -412,14 +412,14 @@ class PipeAction(Action):
 	A :class:`PipeAction` depends on exactly one input action and transforms
 	the input data into output data.
 	"""
-	def __init__(self):
+	def __init__(self, input=None):
 		Action.__init__(self)
-		self.input = None
+		self.input = input
 
 	def __rdiv__(self, input):
 		"""
 		Register the action :var:`input` as the input action for :var:`self` and
-		return :var:`self` (which enables chaining :class:`PipeAction` objects).
+		return :var:`self` (which enables "chaining" :class:`PipeAction` objects).
 		"""
 		self.input = input
 		return self
@@ -450,21 +450,21 @@ class CollectAction(PipeAction):
 	A :class:`CollectAction` is a :class:`PipeAction` that simply outputs its
 	input data unmodified, but updates a number of other actions in the process.
 	"""
-	def __init__(self, *inputs):
-		PipeAction.__init__(self)
-		self.inputs = list(inputs)
+	def __init__(self, input, *otherinputs):
+		PipeAction.__init__(self, input)
+		self.otherinputs = list(otherinputs)
 
-	def addinputs(self, *inputs):
+	def addinputs(self, *otherinputs):
 		"""
-		Register all actions in :var:`inputs` as additional actions that have
+		Register all actions in :var:`otherinputs` as additional actions that have
 		to be updated before :var:`self` is updated.
 		"""
-		self.inputs.extend(inputs)
+		self.otherinputs.extend(otherinputs)
 		return self
 
 	def __iter__(self):
 		yield self.input
-		for input in self.inputs:
+		for input in self.otherinputs:
 			yield input
 
 	@report
@@ -472,7 +472,7 @@ class CollectAction(PipeAction):
 		# We don't need the data itself, so don't use getoutputs(), which would collect all inputs in a list.
 		havedata = False
 		changedinputs = bigbang
-		for item in self.inputs:
+		for item in self.otherinputs:
 			(data, changed) = getoutputs(project, since, item)
 			changedinputs = max(changedinputs, changed)
 			if data is not nodata: # The first real output
@@ -548,14 +548,15 @@ class FileAction(PipeAction):
 	A :class:`FileAction` is used for reading and writing files (and other
 	objects providing the appropriate interface).
 	"""
-	def __init__(self, key):
+	def __init__(self, input=None, key=None):
 		"""
 		Create a :class:`FileAction` object with :var:`key` as the "filename".
 		:var:`key` must be an object that provides a method :meth:`open` for
-		opening readable and writable streams to the file.
+		opening readable and writable streams to the file. :var:`input` is the
+		data written to the file (or the action producing the data).
 		
 		"""
-		PipeAction.__init__(self)
+		PipeAction.__init__(self, input)
 		self.key = key
 		self.buildno = None
 
@@ -629,25 +630,32 @@ class PickleAction(PipeAction):
 	"""
 	This action pickles the input data into a string.
 	"""
-	def __init__(self, protocol=0):
+	def __init__(self, input=None, protocol=0):
 		"""
 		Create a new :class:`PickleAction` instance. :var:`protocol` is used as
 		the pickle protocol.
 		"""
-		PipeAction.__init__(self)
+		PipeAction.__init__(self, input)
 		self.protocol = protocol
 
-	def execute(self, project, data):
-		project.writestep(self, "Unpickling")
-		return cPickle.dumps(data, self.protocol)
+	@report
+	def get(self, project, since):
+		(data, self.changed) = getoutputs(project, since, (self.input, self.protocol))
+		if data is not nodata:
+			project.writestep(self, "Pickling with protocol %r" % data[1])
+			data = cPickle.dumps(data[0], data[1])
+		return data
 
 	def __repr__(self):
-		return "<%s.%s object with protocol=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.protocol, id(self))
+		if isinstance(self.protocol, Action):
+			return "<%s.%s object at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, id(self))
+		else:
+			return "<%s.%s object with protocol=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.protocol, id(self))
 
 
 class JoinAction(Action):
 	"""
-	This action joins the input of all its input actions.
+	This action joins the input of all its input actions into one string.
 	"""
 	def __init__(self, *inputs):
 		Action.__init__(self)
@@ -668,7 +676,7 @@ class JoinAction(Action):
 	def get(self, project, since):
 		(data, self.changed) = getoutputs(project, since, self.inputs)
 		if data is not nodata:
-			project.writestep(self, "Joining data")
+			project.writestep(self, "Joining data from %d inputs" % len(data))
 			data = "".join(data)
 		return data
 
@@ -706,8 +714,8 @@ class CacheAction(PipeAction):
 	input data, but caches it, so that it can be reused during the same build
 	round.
 	"""
-	def __init__(self):
-		PipeAction.__init__(self)
+	def __init__(self, input=None):
+		PipeAction.__init__(self, input)
 		self.since = bigcrunch
 		self.data = nodata
 		self.buildno = None
@@ -728,16 +736,23 @@ class GetAttrAction(PipeAction):
 	This action gets an attribute from its input object.
 	"""
 
-	def __init__(self, attrname):
-		PipeAction.__init__(self)
+	def __init__(self, input=None, attrname=None):
+		PipeAction.__init__(self, input)
 		self.attrname = attrname
 
-	def execute(self, project, data):
-		project.writestep(self, "Getting attribute ", self.attrname)
-		return getattr(data, self.attrname)
+	@report
+	def get(self, project, since):
+		(data, self.changed) = getoutputs(project, since, (self.input, self.attrname)
+		if data is not nodata:
+			project.writestep(self, "Getting attribute ", self.attrname)
+			data = getattr(data[0], data[1])
+		return data
 
 	def __repr__(self):
-		return "<%s.%s object with attrname=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.attrname, id(self))
+		if isinstance(self.attrname, Action):
+			return "<%s.%s object at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, id(self))
+		else:
+			return "<%s.%s object with attrname=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.attrname, id(self))
 
 
 class PoolAction(Action):
@@ -795,15 +810,15 @@ class XISTParseAction(PipeAction):
 	This action parses the input data (a string) into an XIST node.
 	"""
 
-	def __init__(self, builder=None, pool=None, base=None):
+	def __init__(self, input=None, builder=None, pool=None, base=None):
 		"""
 		Create an :class:`XISTParseAction` object. :var:`builder` must be an
 		instance of :class:`ll.xist.parsers.Builder`. If :var:`builder` is
 		:const:`None` a builder will be created for you. :var:`pool` must be an
-		action that returns an XIST pool object. :var:`base` will be the base
-		URL used for parsing.
+		XIST pool object (or an action returning one). :var:`base` will be the
+		base URL used for parsing.
 		"""
-		PipeAction.__init__(self)
+		PipeAction.__init__(self, input)
 		if builder is None:
 			from ll.xist import parsers
 			builder = parsers.Builder()
@@ -817,20 +832,20 @@ class XISTParseAction(PipeAction):
 
 	@report
 	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.pool, self.input))
+		(data, self.changed) = getoutputs(project, since, (self.input, self.builder, self.pool, self.base))
 
 		if data is not nodata:
 			# We really have to do some work
 			from ll.xist import xsc
-			(pool, data) = data
-			oldpool = self.builder.pool
+			(data, builder, pool, base) = data
+			oldpool = builder.pool
 			try:
-				self.builder.pool = xsc.Pool(pool, oldpool)
+				builder.pool = xsc.Pool(pool, oldpool)
 
-				project.writestep(self, "Parsing XIST input with base ", self.base)
-				data = self.builder.parsestring(data, self.base)
+				project.writestep(self, "Parsing XIST input with base ", base)
+				data = builder.parsestring(data, base)
 			finally:
-				self.builder.pool = oldpool # Restore old pool
+				builder.pool = oldpool # Restore old pool
 		return data
 
 	def __repr__(self):
@@ -842,55 +857,49 @@ class XISTConvertAction(PipeAction):
 	This action transform an XIST node.
 	"""
 
-	def __init__(self, mode=None, target=None, stage=None, lang=None, targetroot=None):
+	def __init__(self, input=None, mode=None, target=None, stage=None, lang=None, targetroot=None):
 		"""
-		Create a new :class:`XISTConvertAction` object. The arguments will be
-		used to create a :class:`ll.xist.converters.Converter` object for each
-		call to :meth:`execute`.
+		Create a new :class:`XISTConvertAction` object. :var:`input` is the input
+		none (or an action producing a node). The other arguments will be used to
+		create a :class:`ll.xist.converters.Converter` object for each call to
+		:meth:`get`.
+		
+		During conversion the :attr:`makeaction` attribute of the converter will
+		be set to :var:`self` and the :attr:`makeproject` attribute will be set
+		to the project.
 		"""
-		PipeAction.__init__(self)
+		PipeAction.__init__(self, input)
 		self.mode = mode
 		self.target = target
 		self.stage = stage
 		self.lang = lang
 		self.targetroot = targetroot
 
-	def converter(self, project):
-		"""
-		Create a new :class:`ll.xist.converters.Converter` object to be used by
-		this action. The attributes of this new converter (:attr:`mode`,
-		:attr:`target`, :attr:`stage`, etc.) will correspond to those specified
-		in the constructor.
+	@report
+	def get(self, project, since):
+		(data, self.changed) = getoutputs(project, since, (self.input, dict(mode=self.mode, target=self.target, stage=self.stage, lang=self.lang, targetroot=self.targetroot))
 
-		The :attr:`makeaction` attribute of the converter will be set to
-		:var:`self` and the :attr:`makeproject` attribute will be set to
-		:var:`project`.
-		"""
-		from ll.xist import converters
-		return converters.Converter(root=self.targetroot, mode=self.mode, stage=self.stage, target=self.target, lang=self.lang, makeaction=self, makeproject=project)
-
-	def execute(self, project, data):
-		"""
-		Convert the XIST node :var:`data` using a converter provided by
-		:meth:`converter` and return the converted node.
-		"""
-		args = []
-		for argname in ("mode", "target", "stage", "lang", "targetroot"):
-			arg = getattr(self, argname, None)
-			if arg is not None:
-				args.append("%s=%r" % (argname, arg))
-		if args:
-			args = " with %s" % ", ".join(args)
-		else:
-			args = ""
-		project.writestep(self, "Converting XIST node", args)
-		return data.convert(self.converter(project))
+		if data is not nodata:
+			from ll.xist import converters
+			args = []
+			for argname in ("mode", "target", "stage", "lang", "targetroot"):
+				arg = data[1][argname]
+				if arg is not None:
+					args.append("%s=%r" % (argname, arg))
+			if args:
+				args = " with %s" % ", ".join(args)
+			else:
+				args = ""
+			project.writestep(self, "Converting XIST node", args)
+			converter = converters.Converter(makeaction=self, makeproject=project, **data[1])
+			data = data[0].convert(converter)
+		return data
 
 	def __repr__(self):
 		args = []
 		for argname in ("mode", "target", "stage", "lang", "targetroot"):
 			arg = getattr(self, argname, None)
-			if arg is not None:
+			if arg is not None and not isinstance(arg, Action):
 				args.append("%s=%r" % (argname, arg))
 		if args:
 			args = " with %s" % ", ".join(args)
@@ -904,45 +913,67 @@ class XISTPublishAction(PipeAction):
 	This action publishes an XIST node as a byte string.
 	"""
 
-	def __init__(self, publisher=None, base=None):
+	def __init__(self, input=None, publisher=None, base=None):
 		"""
 		Create an :class:`XISTPublishAction` object. :var:`publisher` must be an
 		instance of :class:`ll.xist.publishers.Publisher`. If :var:`publisher` is
 		:const:`None` a publisher will be created for you. :var:`base` will be
 		the base URL used for publishing.
 		"""
-		PipeAction.__init__(self)
-		if publisher is None:
-			from ll.xist import publishers
-			publisher = publishers.Publisher()
+		PipeAction.__init__(self, input)
 		self.publisher = publisher
 		self.base = base
 
-	def execute(self, project, data):
-		"""
-		Use the publisher specified in the constructor to publish the input XIST
-		node :var:`data`. The output data is the generated XML string.
-		"""
-		project.writestep(self, "Publishing XIST node with base ", self.base)
-		return "".join(self.publisher.publish(data, self.base))
+	@report
+	def get(self, project, since):
+		(data, self.changed) = getoutputs(project, since, (self.input, self.publisher, self.base)
+
+		if data is not nodata:
+			project.writestep(self, "Publishing XIST node with base ", data[2])
+			publisher = data[1]
+			if publisher is None:
+				from ll.xist import publishers
+				publisher = publishers.Publisher()
+			data = "".join(publisher.publish(data[0], data[2]))
+		return data
 
 	def __repr__(self):
-		return "<%s.%s object with base=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.base, id(self))
+		if isinstance(self.base, Action):
+			return "<%s.%s object at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, id(self))
+		else:
+			return "<%s.%s object with base=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.base, id(self))
 
 
 class XISTTextAction(PipeAction):
 	"""
 	This action creates a plain text version of an HTML XIST node.
 	"""
-	def __init__(self, encoding="iso-8859-1", width=72):
-		PipeAction.__init__(self)
+	def __init__(self, input=None, encoding="iso-8859-1", width=72):
+		PipeAction.__init__(self, input)
 		self.encoding = encoding
 		self.width = width
 
-	def execute(self, project, data):
-		project.writestep(self, "Converting XIST node to text with encoding=%r, width=%r" % (self.encoding, self.width))
-		from ll.xist.ns import html
-		return html.astext(data, encoding=self.encoding, width=self.width)
+	@report
+	def get(self, project, since):
+		(data, self.changed) = getoutputs(project, since, (self.input, self.encoding, self.width)
+
+		if data is not nodata:
+			project.writestep(self, "Converting XIST node to text with encoding=%r, width=%r" % (data[1], data[2]))
+			from ll.xist.ns import html
+			data = html.astext(data[0], encoding=data[1], width=data[2])
+		return data
+
+	def __repr__(self):
+		args = []
+		for argname in ("encoding", "width"):
+			arg = getattr(self, argname, None)
+			if arg is not None and not isinstance(arg, Action):
+				args.append("%s=%r" % (argname, arg))
+		if args:
+			args = " with %s" % ", ".join(args)
+		else:
+			args = ""
+		return "<%s.%s object%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, "".join(args), id(self))
 
 
 class FOPAction(PipeAction):
@@ -978,23 +1009,31 @@ class DecodeAction(PipeAction):
 	:class:`unicode` object.
 	"""
 
-	def __init__(self, encoding=None):
+	def __init__(self, input=None, encoding=None):
 		"""
 		Create a :class:`DecodeAction` object with :var:`encoding` as the name of
 		the encoding. If :var:`encoding` is :const:`None` the system default
 		encoding will be used.
 		"""
-		PipeAction.__init__(self)
+		PipeAction.__init__(self, input)
 		if encoding is None:
 			encoding = sys.getdefaultencoding()
 		self.encoding = encoding
 
-	def execute(self, project, data):
-		project.writestep(self, "Decoding input with encoding ", self.encoding)
-		return data.decode(self.encoding)
+	@report
+	def get(self, project, since):
+		(data, self.changed) = getoutputs(project, since, (self.input, self.encoding)
+
+		if data is not nodata:
+			project.writestep(self, "Decoding input with encoding ", data[1])
+			data = data[0].decode(data[1])
+		return data
 
 	def __repr__(self):
-		return "<%s.%s object encoding=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.encoding, id(self))
+		if isinstance(self.encoding, Action):
+			return "<%s.%s object at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, id(self))
+		else:
+			return "<%s.%s object encoding=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.encoding, id(self))
 
 
 class EncodeAction(PipeAction):
@@ -1003,23 +1042,31 @@ class EncodeAction(PipeAction):
 	:class:`str` object.
 	"""
 
-	def __init__(self, encoding=None):
+	def __init__(self, input=None, encoding=None):
 		"""
 		Create an :class:`EncodeAction` object with :var:`encoding` as the name
 		of the encoding. If :var:`encoding` is :const:`None` the system default
 		encoding will be used.
 		"""
-		PipeAction.__init__(self)
+		PipeAction.__init__(self, input)
 		if encoding is None:
 			encoding = sys.getdefaultencoding()
 		self.encoding = encoding
 
-	def execute(self, project, data):
-		project.writestep(self, "Encoding input with encoding ", self.encoding)
-		return data.encode(self.encoding)
+	@report
+	def get(self, project, since):
+		(data, self.changed) = getoutputs(project, since, (self.input, self.encoding)
+
+		if data is not nodata:
+			project.writestep(self, "Encoding input with encoding ", data[1])
+			data = data[0].encode(data[1])
+		return data
 
 	def __repr__(self):
-		return "<%s.%s object encoding=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.encoding, id(self))
+		if isinstance(self.encoding, Action):
+			return "<%s.%s object at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, id(self))
+		else:
+			return "<%s.%s object encoding=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.encoding, id(self))
 
 
 class EvalAction(PipeAction):
@@ -1038,18 +1085,23 @@ class GZipAction(PipeAction):
 	This action compresses the input string via gzip and returns the resulting
 	compressed output object.
 	"""
-	def __init__(self, compresslevel=9):
-		PipeAction.__init__(self)
+	def __init__(self, input=None, compresslevel=9):
+		PipeAction.__init__(self, input)
 		self.compresslevel = compresslevel
 
-	def execute(self, project, data):
-		project.writestep(self, "Compressing input with level %d" % self.compresslevel)
-		import gzip, cStringIO
-		stream = cStringIO.StringIO()
-		compressor = gzip.GzipFile(filename="", mode="wb", fileobj=stream, compresslevel=self.compresslevel)
-		compressor.write(data)
-		compressor.close()
-		return stream.getvalue()
+	@report
+	def get(self, project, since):
+		(data, self.changed) = getoutputs(project, since, (self.input, self.compresslevel)
+
+		if data is not nodata:
+			project.writestep(self, "Compressing input with level %d" % data[1])
+			import gzip, cStringIO
+			stream = cStringIO.StringIO()
+			compressor = gzip.GzipFile(filename="", mode="wb", fileobj=stream, compresslevel=data[1])
+			compressor.write(data[0])
+			compressor.close()
+			data = stream.getvalue()
+		return data
 
 
 class GUnzipAction(PipeAction):
@@ -1089,8 +1141,8 @@ class CallFuncAction(Action):
 class CallMethAction(Action):
 	"""
 	This action calls a method of an object with a number of arguments. Both
-	positional and keyword arguments are supported and the object, the method name
-	and the arguments can be static objects or actions.
+	positional and keyword arguments are supported and the object, the method
+	name and the arguments can be static objects or actions.
 	"""
 	def __init__(self, obj, methname, *args, **kwargs):
 		Action.__init__(self)
@@ -1201,6 +1253,27 @@ class ULLCompileAction(PipeAction):
 		return ullc.compile(data)
 
 
+class ULLDumpAction(PipeAction):
+	"""
+	This action dumps an :class:`ll.ullc.Template` object into a string.
+	"""
+
+	def execute(self, project, data):
+		project.writestep(self, "Dumping ULL template")
+		return data.dumps()
+
+
+class ULLLoadAction(PipeAction):
+	"""
+	This action loads a :class:`ll.ullc.Template` object from a string.
+	"""
+
+	def execute(self, project, data):
+		project.writestep(self, "Loading ULL template")
+		from ll import ullc
+		return ullcs.loads(data)
+
+
 class CommandAction(PipeAction):
 	"""
 	This action executes a system command (via :func:`os.system`) and passes
@@ -1228,24 +1301,32 @@ class ModeAction(PipeAction):
 	:class:`ModeAction` changes file permissions and passes through the input data.
 	"""
 
-	def __init__(self, mode=0644):
+	def __init__(self, input=None, mode=0644):
 		"""
 		Create an :class:`ModeAction` object. :var:`mode` (which defaults to
 		:const:`0644`) will be use as the permission bit pattern.
 		"""
-		PipeAction.__init__(self)
+		PipeAction.__init__(self, input)
 		self.mode = mode
 
-	def execute(self, project, data):
+	@report
+	def get(self, project, since):
 		"""
 		Change the permission bits of the file ``self.getkey()``.
 		"""
-		key = self.getkey()
-		project.writestep(self, "Changing mode of ", project.strkey(key), " to 0%03o" % self.mode)
-		key.chmod(self.mode)
+		(data, self.changed) = getoutputs(project, since, (self.input, self.mode))
+		if data is not nodata:
+			key = self.getkey()
+			project.writestep(self, "Changing mode of ", project.strkey(key), " to 0%03o" % data[1])
+			key.chmod(data[1])
+			data = data[0]
+		return data
 
 	def __repr__(self):
-		return "<%s.%s object mode=0%03o at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.mode, id(self))
+		if isinstance(self.mode, Action):
+			return "<%s.%s object at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, id(self))
+		else:
+			return "<%s.%s object mode=0%03o at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.mode, id(self))
 
 
 class OwnerAction(PipeAction):
@@ -1265,16 +1346,30 @@ class OwnerAction(PipeAction):
 		self.user = user
 		self.group = group
 
-	def execute(self, project, data):
+	@report
+	def get(self, project, since):
 		"""
 		Change the ownership of the file ``self.getkey()``.
 		"""
-		key = self.getkey()
-		project.writestep(self, "Changing owner of ", project.strkey(key), " to ", self.user, " and group to ", self.user)
-		key.chown(self.user, self.group)
+		(data, self.changed) = getoutputs(project, since, (self.input, self.user, self.group))
+		if data is not nodata:
+			key = self.getkey()
+			project.writestep(self, "Changing owner of ", project.strkey(key), " to ", data[1], " and group to ", data[2])
+			key.chown(data[0], data[1])
+			data = data[0]
+		return data
 
 	def __repr__(self):
-		return "<%s.%s object user=%r group=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.user, self.group, id(self))
+		args = []
+		for argname in ("user", "group"):
+			arg = getattr(self, argname, None)
+			if arg is not None and not isinstance(arg, Action):
+				args.append("%s=%r" % (argname, arg))
+		if args:
+			args = " with %s" % ", ".join(args)
+		else:
+			args = ""
+		return "<%s.%s object%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, "".join(args), id(self))
 
 
 class ModuleAction(PipeAction):

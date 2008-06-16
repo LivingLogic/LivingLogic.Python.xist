@@ -11,11 +11,15 @@ Changes in 3.3 (released ??/??/2008)
 	__ http://www.djangoproject.com/documentation/templates/
 
 *	:mod:`ll.make` has gained new actions: :class:`GZipAction`,
-	:class:`GUnzipAction`, :class:`CallFuncAction`,  :class:`CallMethAction` and
-	:class:`ULLCompileAction`.
+	:class:`GUnzipAction`, :class:`CallFuncAction`,  :class:`CallMethAction`,
+	:class:`ULLCompileAction`, :class:`ULLDumpAction` and :class:`ULLLoadAction`.
 
 *	All actions in :mod:`ll.make` no longer check whether their inputs are
 	action objects. Non-action objects are simply treated as ancient input data.
+
+*	Most attributes of action objects in :mod:`ll.make` can now be action objects
+	themselves, so for example the name of the encoding to be used in an
+	:class:`EncodeAction` can be the output of another action.
 
 *	:func:`ll.misc.xmlescape` now escapes ``'`` as ``&#39;`` for IE compatibility.
 
@@ -46,7 +50,7 @@ Changes in 3.2.6 (released 05/07/2008)
 	:func:`ll.misc.xmlescape`.
 
 *	Python versions of all the functions in the module :mod:`ll.misc` have been
-	added that will be used, in case the C module is not available.
+	added that will be used in case the C module is not available.
 
 
 Changes in 3.2.5 (released 04/11/2008)
