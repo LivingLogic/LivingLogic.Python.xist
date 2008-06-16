@@ -742,7 +742,7 @@ class GetAttrAction(PipeAction):
 
 	@report
 	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, self.attrname)
+		(data, self.changed) = getoutputs(project, since, (self.input, self.attrname))
 		if data is not nodata:
 			project.writestep(self, "Getting attribute ", self.attrname)
 			data = getattr(data[0], data[1])
