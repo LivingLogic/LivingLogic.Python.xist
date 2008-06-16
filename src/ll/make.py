@@ -857,7 +857,7 @@ class XISTConvertAction(PipeAction):
 	This action transform an XIST node.
 	"""
 
-	def __init__(self, input=None, mode=None, target=None, stage=None, lang=None, targetroot=None):
+	def __init__(self, input=None, mode=None, target=None, stage=None, lang=None, root=None):
 		"""
 		Create a new :class:`XISTConvertAction` object. :var:`input` is the input
 		none (or an action producing a node). The other arguments will be used to
@@ -873,16 +873,16 @@ class XISTConvertAction(PipeAction):
 		self.target = target
 		self.stage = stage
 		self.lang = lang
-		self.targetroot = targetroot
+		self.root = root
 
 	@report
 	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, dict(mode=self.mode, target=self.target, stage=self.stage, lang=self.lang, targetroot=self.targetroot)))
+		(data, self.changed) = getoutputs(project, since, (self.input, dict(mode=self.mode, target=self.target, stage=self.stage, lang=self.lang, root=self.root)))
 
 		if data is not nodata:
 			from ll.xist import converters
 			args = []
-			for argname in ("mode", "target", "stage", "lang", "targetroot"):
+			for argname in ("mode", "target", "stage", "lang", "root"):
 				arg = data[1][argname]
 				if arg is not None:
 					args.append("%s=%r" % (argname, arg))
@@ -1271,7 +1271,7 @@ class ULLLoadAction(PipeAction):
 	def execute(self, project, data):
 		project.writestep(self, "Loading ULL template")
 		from ll import ullc
-		return ullcs.loads(data)
+		return ullc.loads(data)
 
 
 class CommandAction(PipeAction):
