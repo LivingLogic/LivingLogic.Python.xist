@@ -450,7 +450,7 @@ class CollectAction(PipeAction):
 	A :class:`CollectAction` is a :class:`PipeAction` that simply outputs its
 	input data unmodified, but updates a number of other actions in the process.
 	"""
-	def __init__(self, input, *otherinputs):
+	def __init__(self, input=None, *otherinputs):
 		PipeAction.__init__(self, input)
 		self.otherinputs = list(otherinputs)
 
@@ -877,7 +877,7 @@ class XISTConvertAction(PipeAction):
 
 	@report
 	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, dict(mode=self.mode, target=self.target, stage=self.stage, lang=self.lang, targetroot=self.targetroot))
+		(data, self.changed) = getoutputs(project, since, (self.input, dict(mode=self.mode, target=self.target, stage=self.stage, lang=self.lang, targetroot=self.targetroot)))
 
 		if data is not nodata:
 			from ll.xist import converters
@@ -926,7 +926,7 @@ class XISTPublishAction(PipeAction):
 
 	@report
 	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, self.publisher, self.base)
+		(data, self.changed) = getoutputs(project, since, (self.input, self.publisher, self.base))
 
 		if data is not nodata:
 			project.writestep(self, "Publishing XIST node with base ", data[2])
@@ -955,7 +955,7 @@ class XISTTextAction(PipeAction):
 
 	@report
 	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, self.encoding, self.width)
+		(data, self.changed) = getoutputs(project, since, (self.input, self.encoding, self.width))
 
 		if data is not nodata:
 			project.writestep(self, "Converting XIST node to text with encoding=%r, width=%r" % (data[1], data[2]))
@@ -1022,7 +1022,7 @@ class DecodeAction(PipeAction):
 
 	@report
 	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, self.encoding)
+		(data, self.changed) = getoutputs(project, since, (self.input, self.encoding))
 
 		if data is not nodata:
 			project.writestep(self, "Decoding input with encoding ", data[1])
@@ -1055,7 +1055,7 @@ class EncodeAction(PipeAction):
 
 	@report
 	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, self.encoding)
+		(data, self.changed) = getoutputs(project, since, (self.input, self.encoding))
 
 		if data is not nodata:
 			project.writestep(self, "Encoding input with encoding ", data[1])
@@ -1091,7 +1091,7 @@ class GZipAction(PipeAction):
 
 	@report
 	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, self.compresslevel)
+		(data, self.changed) = getoutputs(project, since, (self.input, self.compresslevel))
 
 		if data is not nodata:
 			project.writestep(self, "Compressing input with level %d" % data[1])
