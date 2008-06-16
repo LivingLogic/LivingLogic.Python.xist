@@ -372,7 +372,7 @@ class Builder(object):
 	def _begin(self, base=None, encoding=None):
 		# Internal helper: create a parser and initialize the stack
 		if self.parser is None:
-			parser = SGMLOPParser(encoding=encoding)
+			parser = ExpatParser(encoding=encoding)
 		else:
 			parser = self.parser
 		self.base = url.URL(base)
