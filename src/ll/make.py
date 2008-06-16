@@ -248,11 +248,13 @@ def getoutputs(project, since, input):
 				resultdata = [getoutputs(project, since, item)[0] for item in input[:len(resultdata)]] # refetch data from previous inputs
 				havedata = True
 			resultdata.append(data)
-		if havedata:
-			if isinstance(input, tuple):
-				resultdata = tuple(resultdata)
-			return (resultdata, resultchanged)
-		return (nodata, resultchanged)
+		if since is bigbang and not input:
+			resultdata = input.__class__()
+		elif not havedata:
+			resultdata = nodata
+		elif isinstance(input, tuple):
+			resultdata = tuple(resultdata)
+		return (resultdata, resultchanged)
 	elif isinstance(input, dict):
 		resultdata = {}
 		havedata = False
@@ -264,10 +266,12 @@ def getoutputs(project, since, input):
 				since = bigbang # force inputs to produce data for the rest of the loop
 				resultdata = dict((key, getoutputs(project, since, input[key])) for key in resultdata) # refetch data from previous inputs
 				havedata = True
-			resultdata[key] = output
-		if not havedata:
+			resultdata[key] = data
+		if since is bigbang and not input:
+			resultdata = {}
+		elif not havedata:
 			resultdata = nodata
-		return (resultdate, resultchanged)
+		return (resultdata, resultchanged)
 	else:
 		return (input if since is bigbang else nodata, bigbang)
 
@@ -1061,6 +1065,50 @@ class GUnzipAction(PipeAction):
 		return compressor.read(data)
 
 
+class CallFuncAction(Action):
+	"""
+	This action calls a function with a number of arguments. Both positional and
+	keyword arguments are supported and the function and the arguments can be
+	static objects or actions.
+	"""
+	def __init__(self, func, *args, **kwargs):
+		Action.__init__(self)
+		self.func = func
+		self.args = args
+		self.kwargs = kwargs
+
+	@report
+	def get(self, project, since):
+		(data, self.changed) = getoutputs(project, since, (self.func, self.args, self.kwargs))
+		if data is not nodata:
+			project.writestep(self, "Calling function %r" % data[0])
+			data = data[0](*data[1], **data[2])
+		return data
+
+
+class CallMethAction(Action):
+	"""
+	This action calls a method of an object with a number of arguments. Both
+	positional and keyword arguments are supported and the object, the method name
+	and the arguments can be static objects or actions.
+	"""
+	def __init__(self, obj, methname, *args, **kwargs):
+		Action.__init__(self)
+		self.obj = obj
+		self.methname = methname
+		self.args = args
+		self.kwargs = kwargs
+
+	@report
+	def get(self, project, since):
+		(data, self.changed) = getoutputs(project, since, (self.obj, self.methname, self.args, self.kwargs))
+		if data is not nodata:
+			meth = getattr(data[0], data[1])
+			project.writestep(self, "Calling %r" % meth)
+			data = meth(*data[2], **data[3])
+		return data
+
+
 class TOXICAction(PipeAction):
 	"""
 	This action transforms an XML string into an Oracle procedure body via the
@@ -1140,6 +1188,17 @@ class XPITAction(PipeAction):
 		if data is not nodata:
 			data = self.execute(project, data[1], data[0])
 		return data
+
+
+class ULLCompileAction(PipeAction):
+	"""
+	This action compiles a ULL template into a :class:`ll.ullc.Template` object.
+	"""
+
+	def execute(self, project, data):
+		project.writestep(self, "Compiling ULL template")
+		from ll import ullc
+		return ullc.compile(data)
 
 
 class CommandAction(PipeAction):

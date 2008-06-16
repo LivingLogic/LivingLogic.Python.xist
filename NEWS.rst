@@ -10,8 +10,9 @@ Changes in 3.3 (released ??/??/2008)
 
 	__ http://www.djangoproject.com/documentation/templates/
 
-*	:mod:`ll.make` has gained two new actions: :class:`GZipAction` and
-	:class:`GUnzipAction`.
+*	:mod:`ll.make` has gained new actions: :class:`GZipAction`,
+	:class:`GUnzipAction`, :class:`CallFuncAction`,  :class:`CallMethAction` and
+	:class:`ULLCompileAction`.
 
 *	All actions in :mod:`ll.make` no longer check whether their inputs are
 	action objects. Non-action objects are simply treated as ancient output data.
