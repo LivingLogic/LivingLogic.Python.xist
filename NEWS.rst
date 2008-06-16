@@ -22,7 +22,7 @@ Changes in 3.3 (released ??/??/2008)
 	have been added that implement the functionality from XIST 3.2.5 and earlier.
 
 *	The default parser is expat now. To switch back to sgmlop simply pass an
-	:class:`SGMLOPParser` to the parsing functions::
+	:class:`SGMLOPParser` object to the parsing functions::
 
 		>>> from ll.xist import parsers
 		>>> node = parsers.parsestring("<a>", parser=parsers.SGMLOPParser())

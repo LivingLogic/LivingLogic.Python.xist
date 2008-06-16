@@ -70,7 +70,6 @@ __docformat__ = "reStructuredText"
 ###
 
 nodata = misc.Const("nodata") # marker object for "no new data available"
-newdata = misc.Const("newdata") # marker object for "new data available"
 
 bigbang = datetime.datetime(1900, 1, 1) # there can be no timestamp before this one
 bigcrunch = datetime.datetime(3000, 1, 1) # there can be no timestamp after this one
@@ -90,17 +89,16 @@ class Level(object):
 	"""
 	Stores information about the recursive execution of :class:`Action`\s.
 	"""
-	__slots__ = ("action", "since", "infoonly", "reportable", "reported")
+	__slots__ = ("action", "since", "reportable", "reported")
 
-	def __init__(self, action, since, infoonly, reportable, reported=False):
+	def __init__(self, action, since, reportable, reported=False):
 		self.action = action
 		self.since = since
-		self.infoonly = infoonly
 		self.reportable = reportable
 		self.reported = reported
 
 	def __repr__(self):
-		return "<%s.%s object action=%r since=%r infoonly=%r reportable=%r reported=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.action, self.since, self.infoonly, self.reportable, self.reported, id(self))
+		return "<%s.%s object action=%r since=%r reportable=%r reported=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.action, self.since, self.reportable, self.reported, id(self))
 
 
 def report(func):
@@ -111,7 +109,7 @@ def report(func):
 	used, only the output of calls to :meth:`Project.writestep` will be visible
 	to the user.
 	"""
-	def reporter(self, project, since, infoonly):
+	def reporter(self, project, since):
 		reported = False
 		reportable = project.showaction is not None and isinstance(self, project.showaction)
 		if reportable:
@@ -120,15 +118,13 @@ def report(func):
 				if project.showtimestamps:
 					args.append(" since ")
 					args.append(project.strdatetime(since))
-					if infoonly:
-						args.append(" (info only)")
 				project.writestack(*args)
 				reported = True
-		level = Level(self, since, infoonly, reportable, reported)
+		level = Level(self, since, reportable, reported)
 		project.stack.append(level)
 		t1 = datetime.datetime.utcnow()
 		try:
-			data = func(self, project, since, infoonly)
+			data = func(self, project, since)
 		except Exception, exc:
 			project.actionsfailed += 1
 			if project.ignoreerrors: # ignore changes in failed subgraphs
@@ -170,8 +166,6 @@ def report(func):
 						args.append(s4error(text))
 					elif data is nodata:
 						args.append("nodata")
-					elif data is newdata:
-						args.append("newdata")
 					elif isinstance(data, str):
 						args.append(s4data("str (%db)" % len(data)))
 					elif isinstance(data, unicode):
@@ -225,7 +219,7 @@ class UndefinedTargetError(KeyError):
 ### Actions
 ###
 
-def getoutputs(project, since, infoonly, input):
+def getoutputs(project, since, input):
 	"""
 	Recursively iterate through the object :var:`input` (if it's a
 	:class:`tuple`, :class:`list` or :class:`dict`) and return a tuple
@@ -239,69 +233,43 @@ def getoutputs(project, since, infoonly, input):
 
 	*	If none of the actions has any data newer than :var:`since` (i.e. none
 		of the actions produces any new data) :var:`data` will be :const:`nodata`.
-		If :var:`infoonly` is true and some of the actions would return output,
-		:var:`data` will be :const:`newdata`.
 	"""
 	if isinstance(input, Action):
-		return (input.get(project, since, infoonly), input.changed)
+		return (input.get(project, since), input.changed)
 	elif isinstance(input, (list, tuple)):
-		if infoonly:
-			resultdata = nodata
-			resultchanged = bigbang
-			for item in input:
-				(data, changed) = getoutputs(project, since, infoonly, item)
-				resultchanged = max(resultchanged, changed)
-				if data is not nodata:
-					resultdata = data
+		resultdata = []
+		havedata = False
+		resultchanged = bigbang
+		for item in input:
+			(data, changed) = getoutputs(project, since, item)
+			resultchanged = max(resultchanged, changed)
+			if data is not nodata and not havedata: # The first real output
+				since = bigbang # force inputs to produce data for the rest of the loop
+				resultdata = [getoutputs(project, since, item)[0] for item in input[:len(resultdata)]] # refetch data from previous inputs
+				havedata = True
+			resultdata.append(data)
+		if havedata:
+			if isinstance(input, tuple):
+				resultdata = tuple(resultdata)
 			return (resultdata, resultchanged)
-		else:
-			resultdata = []
-			havedata = False
-			resultchanged = bigbang
-			for item in input:
-				(data, changed) = getoutputs(project, since, infoonly, item)
-				resultchanged = max(resultchanged, changed)
-				if data is not nodata and not havedata: # The first real output
-					since = bigbang # force inputs to produce data for the rest of the loop
-					resultdata = [getoutputs(project, since, infoonly, item)[0] for item in input[:len(resultdata)]] # refetch data from previous inputs
-					havedata = True
-				resultdata.append(data)
-			if havedata:
-				if isinstance(input, tuple):
-					resultdata = tuple(resultdata)
-				return (resultdata, resultchanged)
-			return (nodata, resultchanged)
+		return (nodata, resultchanged)
 	elif isinstance(input, dict):
-		if infoonly:
+		resultdata = {}
+		havedata = False
+		resultchanged = bigbang
+		for (key, value) in input.iteritems():
+			(data, changed) = getoutputs(project, since, value)
+			resultchanged = max(resultchanged, changed)
+			if data is not nodata and not havedata: # The first real output
+				since = bigbang # force inputs to produce data for the rest of the loop
+				resultdata = dict((key, getoutputs(project, since, input[key])) for key in resultdata) # refetch data from previous inputs
+				havedata = True
+			resultdata[key] = output
+		if not havedata:
 			resultdata = nodata
-			resultchanged = bigbang
-			for (key, value) in input.iteritems():
-				(data, changed) = getoutputs(project, since, infoonly, value)
-				resultchanged = max(resultchanged, changed)
-				if data is not nodata:
-					resultdata = data
-			return (resultdata, resultchanged)
-		else:
-			resultdata = {}
-			havedata = False
-			resultchanged = bigbang
-			for (key, value) in input.iteritems():
-				(data, changed) = getoutputs(project, since, infoonly, value)
-				resultchanged = max(resultchanged, changed)
-				if data is not nodata and not havedata: # The first real output
-					since = bigbang # force inputs to produce data for the rest of the loop
-					resultdata = dict((key, getoutputs(project, since, infoonly, input[key])) for key in resultdata) # refetch data from previous inputs
-					havedata = True
-				resultdata[key] = output
-			if not havedata:
-				resultdata = nodata
-			return (resultdate, resultchanged)
+		return (resultdate, resultchanged)
 	else:
-		if since is not bigbang:
-			return (nodata, bigbang)
-		if infoonly:
-			input = newdata
-		return (input, bigbang)
+		return (input if since is bigbang else nodata, bigbang)
 
 
 def _ipipe_type(obj):
@@ -334,7 +302,7 @@ class Action(object):
 		return output.__rdiv__(self)
 
 	@misc.notimplemented
-	def get(self, project, since, infoonly):
+	def get(self, project, since):
 		"""
 		This method (i.e. the implementations in subclasses) is the workhorse of
 		:mod:`ll.make`. :meth:`get` must return the output data of the action if
@@ -359,9 +327,6 @@ class Action(object):
 			life. Since there can be no data newer than this, :meth:`get` can
 			only return output data in this case if ensuring internal consistency
 			resulted in new data.
-
-		If :var:`infoonly` is true :meth:`get` must return the constant
-		:const:`newdata` instead of real data, if any new data is available.
 
 		In all cases :meth:`get` must set the instance attribute :attr:`changed`
 		to the timestamp of the last change to the data before returning. In most
@@ -469,9 +434,9 @@ class PipeAction(Action):
 		"""
 
 	@report
-	def get(self, project, since, infoonly):
-		(data, self.changed) = getoutputs(project, since, infoonly, self.input)
-		if data is not nodata and not infoonly:
+	def get(self, project, since):
+		(data, self.changed) = getoutputs(project, since, self.input)
+		if data is not nodata:
 			data = self.execute(project, data)
 		return data
 
@@ -499,12 +464,18 @@ class CollectAction(PipeAction):
 			yield input
 
 	@report
-	def get(self, project, since, infoonly):
-		# We don't need the data itself, use infoonly mode for the inputs
-		(data, changedinputs) = getoutputs(project, since, True, self.inputs)
-		if data is not nodata:
+	def get(self, project, since):
+		# We don't need the data itself, so don't use getoutputs(), which would collect all inputs in a list.
+		havedata = False
+		changedinputs = bigbang
+		for item in self.inputs:
+			(data, changed) = getoutputs(project, since, item)
+			changedinputs = max(changedinputs, changed)
+			if data is not nodata: # The first real output
+				havedata = True
+		if havedata:
 			since = bigbang
-		(data, changedinput) = getoutputs(project, since, infoonly, self.input)
+		(data, changedinput) = getoutputs(project, since, self.input)
 		self.changed = max(changedinputs, changedinput)
 		return data
 
@@ -541,16 +512,24 @@ class PhonyAction(Action):
 		return iter(self.inputs)
 
 	@report
-	def get(self, project, since, infoonly):
+	def get(self, project, since):
 		# Caching the result object of a :class:`PhonyAction` is cheap (it's either :const:`None` or :const:`nodata`),
 		# so we always do the caching as this optimizes away the traversal of a complete subgraph
 		# for subsequent calls to :meth:`get` during the same build round
 		if self.buildno != project.buildno:
-			(data, self.changed) = getoutputs(project, since, True, self.inputs)
+			havedata = False
+			resultchanged = bigbang
+			# We don't need the data itself, so don't use getoutputs(), which would collect all inputs in a list.
+			for item in self.inputs:
+				(data, changed) = getoutputs(project, since, item)
+				resultchanged = max(resultchanged, changed)
+				if data is not nodata: # The first real output
+					havedata = True
 			self.buildno = project.buildno
-		if self.changed > since:
-			return None if not infoonly else newdata
-		return nodata
+			self.changed = resultchanged
+			return None if havedata else nodata
+		else:
+			return None if self.changed > since else nodata
 
 	def __repr__(self):
 		s = "<%s.%s object" % (self.__class__.__module__, self.__class__.__name__)
@@ -597,7 +576,7 @@ class FileAction(PipeAction):
 			return file.read()
 
 	@report
-	def get(self, project, since, infoonly):
+	def get(self, project, since):
 		"""
 		If a :class:`FileAction` object doesn't have an input action it reads the
 		input file and returns the content if the file has changed since
@@ -613,25 +592,15 @@ class FileAction(PipeAction):
 			self.buildno = project.buildno
 
 		if self.input is not None:
-			(data, self.changed) = getoutputs(project, self.changed, False, self.input)
+			(data, self.changed) = getoutputs(project, self.changed, self.input)
 			if data is not nodata: # We've got new data from our input =>
 				self.write(project, data) # write new data to disk
 				self.changed = filechanged(self.key) # update timestamp
-				if infoonly: # no need for the real data
-					data = newdata
 				return data
 		else: # We have no inputs (i.e. this is a "source" file)
 			if self.changed is bigbang:
 				raise ValueError("source file %r doesn't exist" % self.key)
 		if self.changed > since: # We are up to date now and newer than the output action
-			if infoonly:
-				args = ["Have new data for ", project.strkey(self.key)]
-				if project.showtimestamps:
-					args.append(" (changed ")
-					args.append(project.strdatetime(self.changed))
-					args.append(")")
-				project.writestep(self, *args)
-				return newdata
 			return self.read(project) # return file data (to output action or client)
 		# else fail through and return :const:`nodata`
 		return nodata
@@ -692,37 +661,15 @@ class JoinAction(Action):
 		return iter(self.inputs)
 
 	@report
-	def get(self, project, since, infoonly):
-		(data, self.changed) = getoutputs(project, since, infoonly, self.inputs)
-		if data is newdata:
-			project.writestep(self, "Have new data for join")
-		elif data is not nodata:
+	def get(self, project, since):
+		(data, self.changed) = getoutputs(project, since, self.inputs)
+		if data is not nodata:
 			project.writestep(self, "Joining data")
 			data = "".join(data)
 		return data
 
 
-class ExternalAction(PipeAction):
-	"""
-	:class:`ExternalAction` is like its baseclass :class:`PipeAction` except
-	that :meth:`execute` will be called even if :var:`infoonly` is true.
-	"""
-	@misc.notimplemented
-	def execute(self, project):
-		"""
-		Will be called to execute the action (even if :var:`infoonly` is true).
-		:meth:`execute` doesn't get passed the data object.
-		"""
-
-	@report
-	def get(self, project, since, infoonly):
-		(data, self.changed) = getoutputs(project, since, infoonly, self.input)
-		if data is not nodata:
-			self.execute(project)
-		return data
-
-
-class MkDirAction(ExternalAction):
+class MkDirAction(PipeAction):
 	"""
 	This action creates the a directory (passing through its input data).
 	"""
@@ -737,7 +684,7 @@ class MkDirAction(ExternalAction):
 		self.key = key
 		self.mode = mode
 
-	def execute(self, project):
+	def execute(self, project, data):
 		"""
 		Create the directory with the permission bits specified in the
 		constructor.
@@ -762,17 +709,12 @@ class CacheAction(PipeAction):
 		self.buildno = None
 
 	@report
-	def get(self, project, since, infoonly):
+	def get(self, project, since):
 		if self.buildno != project.buildno or (since < self.since and self.data is nodata): # If this is a new build round or we're asked about an earlier date and didn't return data last time
-			(self.data, self.changed) = getoutputs(project, since, False, self.input)
+			(self.data, self.changed) = getoutputs(project, since, self.input)
 			self.since = since
 			self.buildno = project.buildno
-			if infoonly:
-				return newdata
 		elif self.data is not nodata:
-			if infoonly:
-				project.writenote(self, "New data is cached")
-				return newdata
 			project.writenote(self, "Reusing cached data")
 		return self.data
 
@@ -821,10 +763,10 @@ class PoolAction(Action):
 		return misc.Pool(*data)
 
 	@report
-	def get(self, project, since, infoonly):
-		(data, self.changed) = getoutputs(project, since, infoonly, self.inputs)
+	def get(self, project, since):
+		(data, self.changed) = getoutputs(project, since, self.inputs)
 
-		if data is not nodata and data is not newdata:
+		if data is not nodata:
 			data = self._getpool(*data)
 			project.writestep(self, "Created ", data.__class__.__module__, ".", data.__class__.__name__," object")
 		return data
@@ -870,10 +812,10 @@ class XISTParseAction(PipeAction):
 		yield self.input
 
 	@report
-	def get(self, project, since, infoonly):
-		(data, self.changed) = getoutputs(project, since, infoonly, (self.pool, self.input))
+	def get(self, project, since):
+		(data, self.changed) = getoutputs(project, since, (self.pool, self.input))
 
-		if data is not nodata and data is not newdata:
+		if data is not nodata:
 			# We really have to do some work
 			from ll.xist import xsc
 			(pool, data) = data
@@ -1193,14 +1135,14 @@ class XPITAction(PipeAction):
 		return xpit.convert(data, globals, ns)
 
 	@report
-	def get(self, project, since, infoonly):
-		(data, self.changed) = getoutputs(project, since, infoonly, (self.nsinput, self.input))
-		if data is not nodata and data is not newdata:
+	def get(self, project, since):
+		(data, self.changed) = getoutputs(project, since, (self.nsinput, self.input))
+		if data is not nodata:
 			data = self.execute(project, data[1], data[0])
 		return data
 
 
-class CommandAction(ExternalAction):
+class CommandAction(PipeAction):
 	"""
 	This action executes a system command (via :func:`os.system`) and passes
 	through the input data.
@@ -1211,10 +1153,10 @@ class CommandAction(ExternalAction):
 		Create a new :class:`CommandAction` object. :var:`command` is the command
 		that will executed when :meth:`execute` is called.
 		"""
-		ExternalAction.__init__(self)
+		PipeAction.__init__(self)
 		self.command = command
 
-	def execute(self, project):
+	def execute(self, project, data):
 		project.writestep(self, "Executing command ", self.command)
 		os.system(self.command)
 
@@ -1222,7 +1164,7 @@ class CommandAction(ExternalAction):
 		return "<%s.%s object command=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.command, id(self))
 
 
-class ModeAction(ExternalAction):
+class ModeAction(PipeAction):
 	"""
 	:class:`ModeAction` changes file permissions and passes through the input data.
 	"""
@@ -1235,7 +1177,7 @@ class ModeAction(ExternalAction):
 		PipeAction.__init__(self)
 		self.mode = mode
 
-	def execute(self, project):
+	def execute(self, project, data):
 		"""
 		Change the permission bits of the file ``self.getkey()``.
 		"""
@@ -1247,7 +1189,7 @@ class ModeAction(ExternalAction):
 		return "<%s.%s object mode=0%03o at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.mode, id(self))
 
 
-class OwnerAction(ExternalAction):
+class OwnerAction(PipeAction):
 	"""
 	:class:`OwnerAction` changes the user and/or group ownership of a file and
 	passes through the input data.
@@ -1264,7 +1206,7 @@ class OwnerAction(ExternalAction):
 		self.user = user
 		self.group = group
 
-	def execute(self, project):
+	def execute(self, project, data):
 		"""
 		Change the ownership of the file ``self.getkey()``.
 		"""
@@ -1350,7 +1292,7 @@ class ModuleAction(PipeAction):
 		return mod
 
 	@report
-	def get(self, project, since, infoonly):
+	def get(self, project, since):
 		# Is this module required by another?
 		if project.importstack:
 			if self not in project.importstack[-1].inputs:
@@ -1358,16 +1300,16 @@ class ModuleAction(PipeAction):
 
 		# Is this a new build round?
 		if self.buildno != project.buildno:
-			(data, changed) = getoutputs(project, self.changed, False, self.input) # Get the source code
+			(data, changed) = getoutputs(project, self.changed, self.input) # Get the source code
 			if data is not nodata or self.data is nodata: # The file itself has changed or this is the first call
 				needimport = True
 			else: # Only check the required inputs, if ``self.input`` has *not* changed
-				(data2, changed2) = getoutputs(project, self.changed, False, self.inputs)
+				(data2, changed2) = getoutputs(project, self.changed, self.inputs)
 				needimport = data2 is not nodata
 
 			if needimport:
 				if data is nodata:
-					(data, changed) = getoutputs(project, bigbang, infoonly, self.input) # We *really* need the source
+					(data, changed) = getoutputs(project, bigbang, self.input) # We *really* need the source
 				self.data = self.execute(project, data) # This will (re)create dependencies
 				gc.collect() # Make sure classes from the previous module (which have cycles via the :attr:`__mro__`) are gone
 				# Timestamp of import is the timestamp of the newest module file
@@ -1377,15 +1319,11 @@ class ModuleAction(PipeAction):
 				self.changed = changed
 			self.buildno = project.buildno
 			if self.changed > since:
-				if infoonly:
-					return newdata
 				return self.data
 		# Are we newer then the specified date?
 		elif self.changed > since:
 			key = self.getkey()
 			project.writenote(self, "Reusing cached module ", project.strkey(key))
-			if infoonly:
-				return newdata
 			return self.data
 		return nodata
 
@@ -1428,7 +1366,7 @@ class ImportAction(Action):
 			yield None
 
 	@report
-	def get(self, project, since, infoonly):
+	def get(self, project, since):
 		if self.module is None:
 			module = __import__(self.key)
 			for subname in self.key.split(".")[1:]:
@@ -1442,8 +1380,6 @@ class ImportAction(Action):
 				args.append(")")
 			project.writestep(self, *args)
 		if self.changed > since:
-			if infoonly:
-				return newdata
 			return self.module
 		return nodata
 
@@ -1464,9 +1400,7 @@ class AlwaysAction(Action):
 			yield None
 
 	@report
-	def get(self, project, since, infoonly):
-		if infoonly:
-			return newdata
+	def get(self, project, since):
 		project.writestep(self, "Returning None")
 		return None
 alwaysaction = AlwaysAction() # this action can be reused as it has no inputs
@@ -1481,7 +1415,7 @@ class NeverAction(Action):
 			yield None
 
 	@report
-	def get(self, project, since, infoonly):
+	def get(self, project, since):
 		return nodata
 neveraction = NeverAction() # this action can be reused as it has no inputs
 
@@ -2062,11 +1996,11 @@ class Project(dict):
 		self.showdata = options.showdata
 		return (options, args)
 
-	def _get(self, target, since, infoonly):
+	def _get(self, target, since):
 		"""
 		:var:`target` must be an action registered in :var:`self` (or the id of
 		one). For this target the :meth:`Action.get` will be called with
-		:var:`since` and :var:`infoonly` as the arguments.
+		:var:`since` as the argument.
 		"""
 		global currentproject
 
@@ -2076,7 +2010,7 @@ class Project(dict):
 		oldproject = currentproject
 		try:
 			currentproject = self
-			data = target.get(self, since, infoonly)
+			data = target.get(self, since)
 		finally:
 			currentproject = oldproject
 		return data
@@ -2087,7 +2021,7 @@ class Project(dict):
 		an action registered with :var:`self` (or the id of one). During the call
 		the global variable ``currentproject`` will be set to :var:`self`.
 		"""
-		return self._get(target, bigbang, False)
+		return self._get(target, bigbang)
 
 	def build(self, *targets):
 		"""
@@ -2109,7 +2043,7 @@ class Project(dict):
 			self.buildno += 1 # increment build number so that actions that stored the old one can detect a new build round
 	
 			for target in targets:
-				data = self._get(target, bigcrunch, True)
+				data = self._get(target, bigcrunch)
 			now = datetime.datetime.utcnow()
 	
 			if self.showsummary:
@@ -2201,8 +2135,6 @@ class Project(dict):
 				if self.showtimestamps:
 					args.append(" (since ")
 					args.append(self.strdatetime(level.since))
-					if level.infoonly:
-						args.append(" (info only)")
 					args.append(")")
 				self.writestacklevel(i, *args)
 				level.reported = True
