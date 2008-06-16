@@ -1,3 +1,22 @@
+Migrating to version 3.3
+========================
+
+Changes to the make module
+--------------------------
+
+*	:class:`ll.make.ImportAction` has been dropped as now the module object can
+	be used directly (e.g. as the input for an :class:`XISTPoolAction` object).
+
+Changes to XIST
+---------------
+
+*	The default parser for XIST is expat now. To switch back to sgmlop simply
+	pass an :class:`SGMLOPParser` object to the parsing functions::
+
+		>>> from ll.xist import parsers
+		>>> node = parsers.parsestring("<a>", parser=parsers.SGMLOPParser())
+
+
 Migrating to version 3.2.6
 ==========================
 
