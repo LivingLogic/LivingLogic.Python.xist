@@ -1501,46 +1501,6 @@ class ModuleName(str):
 		return "%s.%s(%s)" % (self.__class__.__module__, self.__class__.__name__, str.__repr__(self))
 
 
-class ImportAction(Action):
-	"""
-	This action imports a module specified by module name. It has no inputs.
-	"""
-	def __init__(self, key):
-		"""
-		Create a :class:`ImportAction` object. :var:`key` must be the module name
-		as a :class:`str`.
-		"""
-		Action.__init__(self)
-		self.key = ModuleName(key)
-		self.changed = bigbang
-		self.module = None
-
-	def __iter__(self):
-		if False:
-			yield None
-
-	@report
-	def get(self, project, since):
-		if self.module is None:
-			module = __import__(self.key)
-			for subname in self.key.split(".")[1:]:
-				module = getattr(module, subname)
-			self.changed = filechanged(url.File(module.__file__))
-			self.module = module
-			args = ["Imported module %s" % self.key]
-			if project.showtimestamps:
-				args.append(" (changed ")
-				args.append(project.strdatetime(self.changed))
-				args.append(")")
-			project.writestep(self, *args)
-		if self.changed > since:
-			return self.module
-		return nodata
-
-	def __repr__(self):
-		return "<%s.%s object key=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.key, id(self))
-
-
 class AlwaysAction(Action):
 	"""
 	This action always returns :const:`None` as new data.

@@ -21,6 +21,9 @@ Changes in 3.3 (released ??/??/2008)
 	themselves, so for example the name of the encoding to be used in an
 	:class:`EncodeAction` can be the output of another action.
 
+*	:class:`ll.make.ImportAction` has been dropped as now the module object can
+	be used directly (e.g. as the input for an :class:`XISTPoolAction` object).
+
 *	:func:`ll.misc.xmlescape` now escapes ``'`` as ``&#39;`` for IE compatibility.
 
 *	Functions :func:`ll.misc.xmlescape_text` and :func:`ll.misc.xmlescape_attr`
