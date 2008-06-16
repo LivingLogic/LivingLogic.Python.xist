@@ -15,7 +15,7 @@ Changes in 3.3 (released ??/??/2008)
 	:class:`ULLCompileAction`.
 
 *	All actions in :mod:`ll.make` no longer check whether their inputs are
-	action objects. Non-action objects are simply treated as ancient output data.
+	action objects. Non-action objects are simply treated as ancient input data.
 
 *	:func:`ll.misc.xmlescape` now escapes ``'`` as ``&#39;`` for IE compatibility.
 
