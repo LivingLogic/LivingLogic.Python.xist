@@ -335,6 +335,8 @@ prints:
 
 	``&lt;&apos;foo&apos; &amp; ;&apos;bar&apos&gt;``
 
+If the argument is not a string, it will be converted to a string first.
+
 
 ``sorted``
 ::::::::::

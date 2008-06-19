@@ -774,7 +774,7 @@ class Template(object):
 					raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callfunc1":
 					if opcode.arg == "xmlescape":
-						yield self._code("reg%d = xmlescape(reg%d)" % (opcode.r1, opcode.r2))
+						yield self._code("reg%d = xmlescape(unicode(reg%d)) if reg%d is not None else u''" % (opcode.r1, opcode.r2, opcode.r2))
 					elif opcode.arg == "str":
 						yield self._code("reg%d = unicode(reg%d) if reg%d is not None else u''" % (opcode.r1, opcode.r2, opcode.r2))
 					elif opcode.arg == "int":
