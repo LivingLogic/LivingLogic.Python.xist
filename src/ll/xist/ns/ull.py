@@ -22,6 +22,15 @@ class print_(xsc.ProcInst):
 	xmlname = "print"
 
 
+class printx(xsc.ProcInst):
+	"""
+	Prints the expression in the processing instruction data and escapes
+	the characters ``&``, ``<``, ``>``, ``'`` and ``"``.
+	"""
+
+	def convert(self, converter):
+		return print_("xmlescape(%s)" % self.content)
+
 ###
 ### Processing instruction for statements
 ###
