@@ -603,7 +603,7 @@ class Template(object):
 				if location is None:
 					raise ValueError("no previous location")
 			elif locspec == u"*":
-				location = Location(self.source, _readstr("=", "-"), _readint("("), _readint(")"), _readint("["), _readint("]"))
+				location = Location(self.source, _readstr("=", "-"), _readint("("), _readint(")"), _readint("{"), _readint("}"))
 			else:
 				raise ValueError("invalid location spec %r" % locspec)
 			_readcr()
@@ -653,8 +653,8 @@ class Template(object):
 				for p in _writestr("=", "-", lastlocation.type): yield p
 				for p in _writeint("(", lastlocation.starttag): yield p
 				for p in _writeint(")", lastlocation.endtag): yield p
-				for p in _writeint("[", lastlocation.startcode): yield p
-				for p in _writeint("]", lastlocation.endcode): yield p
+				for p in _writeint("{", lastlocation.startcode): yield p
+				for p in _writeint("}", lastlocation.endcode): yield p
 			else:
 				yield "^"
 			yield "\n"
@@ -1029,6 +1029,9 @@ class Template(object):
 
 	def __unicode__(self):
 		return u"\n".join(self.format())
+
+	def __repr__(self):
+		return "<%s.%s object with %d opcodes at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, len(self.opcodes), id(self))
 
 
 def compile(source, startdelim="<?", enddelim="?>"):
