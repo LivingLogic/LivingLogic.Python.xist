@@ -523,7 +523,6 @@ class Template(object):
 		self.registers = None # using during compilation to keep track of available registers
 		self.location = None # Used during compilation to store the location of the tag in the sourcecode
 		# The following is used for converting the opcodes back to executable Python code
-		self._indent = 0
 		self._pythonfunction = None
 
 	@classmethod
@@ -666,220 +665,229 @@ class Template(object):
 	def dumps(self):
 		return ''.join(self.iterdump())
 
-	def _code(self, code):
-		return "%s%s\n" % ("\t"*self._indent, code)
-
 	def pythonsource(self, function=None):
-		self._indent = 0
-		if function is not None:
-			yield self._code("def %s(data, templates={}):" % function)
-			self._indent += 1
-		yield self._code("import sys")
-		yield self._code("from ll.misc import xmlescape")
-		yield self._code("from ll import ullc")
-		yield self._code("variables = dict(data=data)")
-		yield self._code("source = %r" % self.source)
-		yield self._code("locations = %r" % (tuple((oc.location.type, oc.location.starttag, oc.location.endtag, oc.location.startcode, oc.location.endcode) for oc in self.opcodes),))
-		for i in xrange(10):
-			yield self._code("reg%d = None" % i)
+		indent = 0
+		output = []
 
-		yield self._code("try:")
-		self._indent += 1
-		yield self._code("startline = sys._getframe().f_lineno+1") # The source line of the first opcode
+		def _code(code):
+			output.append("%s%s" % ("\t"*indent, code))
+
+		if function is not None:
+			_code("def %s(data, templates={}):" % function)
+			indent += 1
+		_code("import sys")
+		_code("from ll.misc import xmlescape")
+		_code("from ll import ullc")
+		_code("variables = dict(data=data)")
+		_code("source = %r" % self.source)
+		_code("locations = %r" % (tuple((oc.location.type, oc.location.starttag, oc.location.endtag, oc.location.startcode, oc.location.endcode) for oc in self.opcodes),))
+		_code("".join("reg%d = " % i for i in xrange(10)) + "None")
+
+		_code("try:")
+		indent += 1
+		_code("startline = sys._getframe().f_lineno+1") # The source line of the first opcode
 		try:
+			lastopcode = None
 			for opcode in self.opcodes:
 				# The following code ensures that each opcode outputs exactly one source code line
 				# This makes it possible in case of an error to find out which opcode produced the error
 				if opcode.code is None:
-					yield self._code("yield %r" % opcode.location.code)
+					_code("yield %r" % opcode.location.code)
 				elif opcode.code == "loadstr":
-					yield self._code("reg%d = %r" % (opcode.r1, opcode.arg))
+					_code("reg%d = %r" % (opcode.r1, opcode.arg))
 				elif opcode.code == "loadint":
-					yield self._code("reg%d = %s" % (opcode.r1, opcode.arg))
+					_code("reg%d = %s" % (opcode.r1, opcode.arg))
 				elif opcode.code == "loadfloat":
-					yield self._code("reg%d = %s" % (opcode.r1, opcode.arg))
+					_code("reg%d = %s" % (opcode.r1, opcode.arg))
 				elif opcode.code == "loadnone":
-					yield self._code("reg%d = None" % opcode.r1)
+					_code("reg%d = None" % opcode.r1)
 				elif opcode.code == "loadfalse":
-					yield self._code("reg%d = False" % opcode.r1)
+					_code("reg%d = False" % opcode.r1)
 				elif opcode.code == "loadtrue":
-					yield self._code("reg%d = True" % opcode.r1)
+					_code("reg%d = True" % opcode.r1)
 				elif opcode.code == "loadvar":
-					yield self._code("reg%d = variables[%r]" % (opcode.r1, opcode.arg))
+					_code("reg%d = variables[%r]" % (opcode.r1, opcode.arg))
 				elif opcode.code == "storevar":
-					yield self._code("variables[%r] = reg%d" % (opcode.arg, opcode.r1))
+					_code("variables[%r] = reg%d" % (opcode.arg, opcode.r1))
 				elif opcode.code == "addvar":
-					yield self._code("variables[%r] += reg%d" % (opcode.arg, opcode.r1))
+					_code("variables[%r] += reg%d" % (opcode.arg, opcode.r1))
 				elif opcode.code == "subvar":
-					yield self._code("variables[%r] -= reg%d" % (opcode.arg, opcode.r1))
+					_code("variables[%r] -= reg%d" % (opcode.arg, opcode.r1))
 				elif opcode.code == "mulvar":
-					yield self._code("variables[%r] *= reg%d" % (opcode.arg, opcode.r1))
+					_code("variables[%r] *= reg%d" % (opcode.arg, opcode.r1))
 				elif opcode.code == "truedivvar":
-					yield self._code("variables[%r] /= reg%d" % (opcode.arg, opcode.r1))
+					_code("variables[%r] /= reg%d" % (opcode.arg, opcode.r1))
 				elif opcode.code == "floordivvar":
-					yield self._code("variables[%r] //= reg%d" % (opcode.arg, opcode.r1))
+					_code("variables[%r] //= reg%d" % (opcode.arg, opcode.r1))
 				elif opcode.code == "modvar":
-					yield self._code("variables[%r] %%= reg%d" % (opcode.arg, opcode.r1))
+					_code("variables[%r] %%= reg%d" % (opcode.arg, opcode.r1))
 				elif opcode.code == "delvar":
-					yield self._code("del variables[%r]" % opcode.arg)
+					_code("del variables[%r]" % opcode.arg)
 				elif opcode.code == "getattr":
-					yield self._code("reg%d = reg%d[%r]" % (opcode.r1, opcode.r2, opcode.arg))
+					_code("reg%d = reg%d[%r]" % (opcode.r1, opcode.r2, opcode.arg))
 				elif opcode.code == "getitem":
-					yield self._code("reg%d = reg%d[reg%d]" % (opcode.r1, opcode.r2, opcode.r3))
+					_code("reg%d = reg%d[reg%d]" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "getslice12":
-					yield self._code("reg%d = reg%d[reg%d:reg%d]" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
+					_code("reg%d = reg%d[reg%d:reg%d]" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
 				elif opcode.code == "getslice1":
-					yield self._code("reg%d = reg%d[reg%d:]" % (opcode.r1, opcode.r2, opcode.r3))
+					_code("reg%d = reg%d[reg%d:]" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "getslice2":
-					yield self._code("reg%d = reg%d[:reg%d]" % (opcode.r1, opcode.r2, opcode.r3))
+					_code("reg%d = reg%d[:reg%d]" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "getslice":
-					yield self._code("reg%d = reg%d[:]" % (opcode.r1, opcode.r2))
+					_code("reg%d = reg%d[:]" % (opcode.r1, opcode.r2))
 				elif opcode.code == "print":
-					yield self._code("if reg%d is not None: yield unicode(reg%d)" % (opcode.r1, opcode.r1))
+					_code("if reg%d is not None: yield unicode(reg%d)" % (opcode.r1, opcode.r1))
 				elif opcode.code == "for":
-					yield self._code("for reg%d in reg%d:" % (opcode.r1, opcode.r2))
-					self._indent += 1
+					_code("for reg%d in reg%d:" % (opcode.r1, opcode.r2))
+					indent += 1
 				elif opcode.code == "endfor":
-					self._indent -= 1
-					yield self._code("# end for")
+					# we don't have to check for empty loops here, as a ``<?for?>`` tag always generates at least one ``storevar`` opcode inside the loop
+					indent -= 1
+					_code("# end for")
 				elif opcode.code == "not":
-					yield self._code("reg%d = not reg%d" % (opcode.r1, opcode.r2))
+					_code("reg%d = not reg%d" % (opcode.r1, opcode.r2))
 				elif opcode.code == "neg":
-					yield self._code("reg%d = -reg%d" % (opcode.r1, opcode.r2))
+					_code("reg%d = -reg%d" % (opcode.r1, opcode.r2))
 				elif opcode.code == "contains":
-					yield self._code("reg%d = reg%d in reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+					_code("reg%d = reg%d in reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "notcontains":
-					yield self._code("reg%d = reg%d not in reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+					_code("reg%d = reg%d not in reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "equals":
-					yield self._code("reg%d = reg%d == reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+					_code("reg%d = reg%d == reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "notequals":
-					yield self._code("reg%d = reg%d != reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+					_code("reg%d = reg%d != reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "add":
-					yield self._code("reg%d = reg%d + reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+					_code("reg%d = reg%d + reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "sub":
-					yield self._code("reg%d = reg%d - reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+					_code("reg%d = reg%d - reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "mul":
-					yield self._code("reg%d = reg%d * reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+					_code("reg%d = reg%d * reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "floordiv":
-					yield self._code("reg%d = reg%d // reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+					_code("reg%d = reg%d // reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "truediv":
-					yield self._code("reg%d = reg%d / reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+					_code("reg%d = reg%d / reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "and":
-					yield self._code("reg%d = bool(reg%d and reg%d)" % (opcode.r1, opcode.r2, opcode.r3))
+					_code("reg%d = bool(reg%d and reg%d)" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "or":
-					yield self._code("reg%d = bool(reg%d or reg%d)" % (opcode.r1, opcode.r2, opcode.r3))
+					_code("reg%d = bool(reg%d or reg%d)" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "mod":
-					yield self._code("reg%d = reg%d %% reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+					_code("reg%d = reg%d %% reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "callfunc0":
 					raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callfunc1":
 					if opcode.arg == "xmlescape":
-						yield self._code("reg%d = xmlescape(unicode(reg%d)) if reg%d is not None else u''" % (opcode.r1, opcode.r2, opcode.r2))
+						_code("reg%d = xmlescape(unicode(reg%d)) if reg%d is not None else u''" % (opcode.r1, opcode.r2, opcode.r2))
 					elif opcode.arg == "str":
-						yield self._code("reg%d = unicode(reg%d) if reg%d is not None else u''" % (opcode.r1, opcode.r2, opcode.r2))
+						_code("reg%d = unicode(reg%d) if reg%d is not None else u''" % (opcode.r1, opcode.r2, opcode.r2))
 					elif opcode.arg == "int":
-						yield self._code("reg%d = int(reg%d)" % (opcode.r1, opcode.r2))
+						_code("reg%d = int(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "len":
-						yield self._code("reg%d = len(reg%d)" % (opcode.r1, opcode.r2))
+						_code("reg%d = len(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "enumerate":
-						yield self._code("reg%d = enumerate(reg%d)" % (opcode.r1, opcode.r2))
+						_code("reg%d = enumerate(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "isnone":
-						yield self._code("reg%d = reg%d is None" % (opcode.r1, opcode.r2))
+						_code("reg%d = reg%d is None" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "isstr":
-						yield self._code("reg%d = isinstance(reg%d, basestring)" % (opcode.r1, opcode.r2))
+						_code("reg%d = isinstance(reg%d, basestring)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "isint":
-						yield self._code("reg%d = isinstance(reg%d, (int, long)) and not isinstance(reg%d, bool)" % (opcode.r1, opcode.r2, opcode.r2))
+						_code("reg%d = isinstance(reg%d, (int, long)) and not isinstance(reg%d, bool)" % (opcode.r1, opcode.r2, opcode.r2))
 					elif opcode.arg == "isfloat":
-						yield self._code("reg%d = isinstance(reg%d, float)" % (opcode.r1, opcode.r2))
+						_code("reg%d = isinstance(reg%d, float)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "isbool":
-						yield self._code("reg%d = isinstance(reg%d, bool)" % (opcode.r1, opcode.r2))
+						_code("reg%d = isinstance(reg%d, bool)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "islist":
-						yield self._code("reg%d = isinstance(reg%d, (list, tuple))" % (opcode.r1, opcode.r2))
+						_code("reg%d = isinstance(reg%d, (list, tuple))" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "isdict":
-						yield self._code("reg%d = isinstance(reg%d, dict)" % (opcode.r1, opcode.r2))
+						_code("reg%d = isinstance(reg%d, dict)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "repr":
-						yield self._code("reg%d = unicode(repr(reg%d))" % (opcode.r1, opcode.r2))
+						_code("reg%d = unicode(repr(reg%d))" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "chr":
-						yield self._code("reg%d = unichr(reg%d)" % (opcode.r1, opcode.r2))
+						_code("reg%d = unichr(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "ord":
-						yield self._code("reg%d = ord(reg%d)" % (opcode.r1, opcode.r2))
+						_code("reg%d = ord(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "hex":
-						yield self._code("reg%d = hex(reg%d)" % (opcode.r1, opcode.r2))
+						_code("reg%d = hex(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "oct":
-						yield self._code('reg%d = ullc._oct(reg%d)' % (opcode.r1, opcode.r2))
+						_code('reg%d = ullc._oct(reg%d)' % (opcode.r1, opcode.r2))
 					elif opcode.arg == "bin":
-						yield self._code('reg%d = ullc._bin(reg%d)' % (opcode.r1, opcode.r2))
+						_code('reg%d = ullc._bin(reg%d)' % (opcode.r1, opcode.r2))
 					elif opcode.arg == "sorted":
-						yield self._code("reg%d = sorted(reg%d)" % (opcode.r1, opcode.r2))
+						_code("reg%d = sorted(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "range":
-						yield self._code("reg%d = xrange(reg%d)" % (opcode.r1, opcode.r2))
+						_code("reg%d = xrange(reg%d)" % (opcode.r1, opcode.r2))
 					else:
 						raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callfunc2":
 					if opcode.arg == "range":
-						yield self._code("reg%d = xrange(reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3))
+						_code("reg%d = xrange(reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3))
 					else:
 						raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callfunc3":
 					if opcode.arg == "range":
-						yield self._code("reg%d = xrange(reg%d, reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
+						_code("reg%d = xrange(reg%d, reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
 					else:
 						raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callmeth0":
 					if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower"):
-						yield self._code("reg%d = reg%d.%s()" % (opcode.r1, opcode.r2, opcode.arg))
+						_code("reg%d = reg%d.%s()" % (opcode.r1, opcode.r2, opcode.arg))
 					elif opcode.arg == "items":
-						yield self._code("reg%d = reg%d.iteritems()" % (opcode.r1, opcode.r2))
+						_code("reg%d = reg%d.iteritems()" % (opcode.r1, opcode.r2))
 					else:
 						raise UnknownMethodError(opcode.arg)
 				elif opcode.code == "callmeth1":
 					if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find"):
-						yield self._code("reg%d = reg%d.%s(reg%d)" % (opcode.r1, opcode.r2, opcode.arg, opcode.r3))
+						_code("reg%d = reg%d.%s(reg%d)" % (opcode.r1, opcode.r2, opcode.arg, opcode.r3))
 					else:
 						raise UnknownMethodError(opcode.arg)
 				elif opcode.code == "callmeth2":
 					if opcode.arg in ("split", "rsplit", "find"):
-						yield self._code("reg%d = reg%d.%s(reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.arg, opcode.r3, opcode.r4))
+						_code("reg%d = reg%d.%s(reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.arg, opcode.r3, opcode.r4))
 					else:
 						raise UnknownMethodError(opcode.arg)
 				elif opcode.code == "callmeth3":
 					if opcode.arg == "find":
-						yield self._code("reg%d = reg%d.%s(reg%d, reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.arg, opcode.r3, opcode.r4, opcode.r5))
+						_code("reg%d = reg%d.%s(reg%d, reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.arg, opcode.r3, opcode.r4, opcode.r5))
 					else:
 						raise UnknownMethodError(opcode.arg)
 				elif opcode.code == "if":
-					yield self._code("if reg%d:" % opcode.r1)
-					self._indent += 1
+					_code("if reg%d:" % opcode.r1)
+					indent += 1
 				elif opcode.code == "else":
-					self._indent -= 1
-					yield self._code("else:")
-					self._indent += 1
+					if lastopcode == "if":
+						output[-1] += " pass"
+					indent -= 1
+					_code("else:")
+					indent += 1
 				elif opcode.code == "endif":
-					self._indent -= 1
-					yield self._code("# end if")
+					if lastopcode in ("if", "else"):
+						output[-1] += " pass"
+					indent -= 1
+					_code("# end if")
 				elif opcode.code == "render":
-					yield self._code("for chunk in templates[%r](reg%d, templates): yield chunk" % (opcode.arg, opcode.r1))
+					_code("for chunk in templates[%r](reg%d, templates): yield chunk" % (opcode.arg, opcode.r1))
 				else:
 					raise UnknownOpcodeError(opcode.code)
+				lastopcode = opcode.code
 		except Error, exc:
 			exc.decorate(opcode.location)
 			raise
 		except Exception, exc:
 			raise Error(exc).decorate(opcode.location)
-		self._indent -= 1
+		indent -= 1
 		buildloc = "ullc.Location(source, *locations[sys.exc_info()[2].tb_lineno-startline])"
-		yield self._code("except ullc.Error, exc:")
-		self._indent += 1
-		yield self._code("exc.decorate(%s)" % buildloc)
-		yield self._code("raise")
-		self._indent -= 1
-		yield self._code("except Exception, exc:")
-		self._indent += 1
-		yield self._code("raise ullc.Error(exc).decorate(%s)" % buildloc)
+		_code("except ullc.Error, exc:")
+		indent += 1
+		_code("exc.decorate(%s)" % buildloc)
+		_code("raise")
+		indent -= 1
+		_code("except Exception, exc:")
+		indent += 1
+		_code("raise ullc.Error(exc).decorate(%s)" % buildloc)
+		return "\n".join(output)
 
 	def pythonfunction(self):
 		if self._pythonfunction is None:
-			code = "".join(self.pythonsource("render"))
+			code = self.pythonsource("render")
 			ns = {}
 			exec code.encode("utf-8") in ns
 			self._pythonfunction = ns["render"]
