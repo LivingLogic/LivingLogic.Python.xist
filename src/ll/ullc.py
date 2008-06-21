@@ -14,7 +14,7 @@ from __future__ import division
 """
 
 
-import re, StringIO
+import marshal, re, StringIO
 
 from ll import spark
 
@@ -675,12 +675,14 @@ class Template(object):
 		if function is not None:
 			_code("def %s(data, templates={}):" % function)
 			indent += 1
-		_code("import sys")
+		_code("import sys, marshal")
 		_code("from ll.misc import xmlescape")
 		_code("from ll import ullc")
 		_code("variables = dict(data=data)")
 		_code("source = %r" % self.source)
-		_code("locations = %r" % (tuple((oc.location.type, oc.location.starttag, oc.location.endtag, oc.location.startcode, oc.location.endcode) for oc in self.opcodes),))
+		locations = tuple((oc.location.type, oc.location.starttag, oc.location.endtag, oc.location.startcode, oc.location.endcode) for oc in self.opcodes)
+		locations = marshal.dumps(locations)
+		_code("locations = marshal.loads(%r)" % locations)
 		_code("".join("reg%d = " % i for i in xrange(10)) + "None")
 
 		_code("try:")
