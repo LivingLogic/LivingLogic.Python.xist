@@ -520,8 +520,6 @@ class Template(object):
 		self.enddelim = None
 		self.source = None
 		self.opcodes = None
-		self.registers = None # using during compilation to keep track of available registers
-		self.location = None # Used during compilation to store the location of the tag in the sourcecode
 		# The following is used for converting the opcodes back to executable Python code
 		self._pythonfunction = None
 
@@ -1030,7 +1028,7 @@ class Template(object):
 			except Exception, exc:
 				raise Error(exc).decorate(location)
 			finally:
-				self.location = None
+				del self.location
 		if stack:
 			raise BlockError("unclosed blocks")
 
@@ -1621,7 +1619,7 @@ class ExprParser(spark.GenericParser):
 		except Exception, exc:
 			raise Error(exc).decorate(location)
 		finally:
-			template.registers = None
+			del template.registers
 
 	def typestring(self, token):
 		return token.type
