@@ -1468,22 +1468,16 @@ class Scanner(spark.GenericScanner):
 	def token(self, start, end, s):
 		self.rv.append(Token(start, end, s))
 
-	@spark.token("None", "default")
-	def none(self, start, end, s):
-		self.rv.append(None_(start, end))
-
-	@spark.token("True", "default")
-	def true(self, start, end, s):
-		self.rv.append(True_(start, end))
-
-	@spark.token("False", "default")
-	def false(self, start, end, s):
-		self.rv.append(False_(start, end))
-
 	@spark.token("[a-zA-Z_][\\w]*", "default")
 	def name(self, start, end, s):
 		if s in ("in", "not", "or", "and", "del"):
 			self.rv.append(Token(start, end, s))
+		elif s == "None":
+			self.rv.append(None_(start, end))
+		elif s == "True":
+			self.rv.append(True_(start, end))
+		elif s == "False":
+			self.rv.append(False_(start, end))
 		else:
 			self.rv.append(Name(start, end, s))
 

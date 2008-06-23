@@ -570,3 +570,7 @@ def test_function_range():
 def test_render():
 	t = ullc.compile('(<?print data?>)')
 	check('(f)(o)(o)', '<?for i in data?><?render t(i)?><?end for?>', 'foo', dict(t=t))
+
+
+def test_parse():
+	check('42', '<?print data.Noner?>', dict(Noner=42))
