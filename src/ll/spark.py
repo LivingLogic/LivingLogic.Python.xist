@@ -56,7 +56,7 @@ def _sparknames(cls):
 
 
 class GenericScanner(object):
-	flags = 0
+	reflags = 0
 
 	class __metaclass__(type):
 		def __new__(mcl, name, bases, dict_):
@@ -75,7 +75,7 @@ class GenericScanner(object):
 					res[mode] = []
 				res[mode].append(pattern)
 		for (mode, patterns) in res.iteritems():
-			pattern = re.compile('|'.join(patterns), re.VERBOSE|cls.flags)
+			pattern = re.compile('|'.join(patterns), re.VERBOSE|cls.reflags)
 			index2func = dict((number-1, getattr(cls, name)) for (name, number) in pattern.groupindex.iteritems())
 			res[mode] = (pattern, index2func)
 		cls.res = res

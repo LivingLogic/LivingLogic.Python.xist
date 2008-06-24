@@ -1448,8 +1448,7 @@ class Render(AST):
 ###
 
 class Scanner(spark.GenericScanner):
-	def __init__(self):
-		spark.GenericScanner.__init__(self, re.UNICODE)
+	reflags = re.UNICODE
 
 	def tokenize(self, location):
 		self.collectstr = []
