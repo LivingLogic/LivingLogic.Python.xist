@@ -262,19 +262,19 @@ returned.
 is returned.
 
 ``isfloat``
-::::::::::::
+:::::::::::
 
 ``isfloat(foo)`` returns ``True`` if ``foo`` is a float object, else ``False``
 is returned.
 
 ``isstr``
-::::::::::::
+:::::::::
 
 ``isstr(foo)`` returns ``True`` if ``foo`` is a string object, else ``False``
 is returned.
 
 ``islist``
-::::::::::::
+::::::::::
 
 ``islist(foo)`` returns ``True`` if ``foo`` is a list object, else ``False``
 is returned.
@@ -284,6 +284,11 @@ is returned.
 
 ``isdict(foo)`` returns ``True`` if ``foo`` is a dictionary object, else
 ``False`` is returned.
+
+``bool``
+::::::::
+
+``bool(foo)`` converts ``foo`` to an boolean.
 
 ``int``
 :::::::

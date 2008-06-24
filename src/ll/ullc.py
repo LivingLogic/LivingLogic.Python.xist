@@ -331,13 +331,13 @@ class Opcode(object):
 
 	``"or"``:
 		Check the truth value of two object in registers :attr:`r2` and :attr:`r3`
-		and store ``True`` in the register :attr:`r1` if one of them is true
-		(``False`` otherwise).
+		and store :attr:`r2` in the register :attr:`r1` if it is true, :attr:`r3`
+		otherwise).
 
 	``"and"``:
 		Check the truth value of two object in registers :attr:`r2` and :attr:`r3`
-		and store ``True`` in the register :attr:`r1` if both of them are true
-		(``False`` otherwise).
+		and store :attr:`r3` in the register :attr:`r1` if :attr:`r2` is true,
+		:attr:`r3` otherwise).
 
 	``"mod"``:
 		Does a modulo operation: Calculates :attr:`r2` modulo :attr:`r3` and stores
@@ -767,9 +767,9 @@ class Template(object):
 				elif opcode.code == "truediv":
 					_code("reg%d = reg%d / reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "and":
-					_code("reg%d = bool(reg%d and reg%d)" % (opcode.r1, opcode.r2, opcode.r3))
+					_code("reg%d = reg%d and reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "or":
-					_code("reg%d = bool(reg%d or reg%d)" % (opcode.r1, opcode.r2, opcode.r3))
+					_code("reg%d = reg%d or reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "mod":
 					_code("reg%d = reg%d %% reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "callfunc0":
@@ -781,6 +781,8 @@ class Template(object):
 						_code("reg%d = unicode(reg%d) if reg%d is not None else u''" % (opcode.r1, opcode.r2, opcode.r2))
 					elif opcode.arg == "int":
 						_code("reg%d = int(reg%d)" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "bool":
+						_code("reg%d = bool(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "len":
 						_code("reg%d = len(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "enumerate":
