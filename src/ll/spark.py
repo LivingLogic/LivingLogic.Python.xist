@@ -181,22 +181,12 @@ class GenericParser(object):
 		D['makeSet'] = self.makeSet_fast
 		self.__dict__ = D
 
-	#
-	#  A hook for GenericASTBuilder and GenericASTMatcher.  Mess
-	#  thee not with this; nor shall thee toucheth the _preprocess
-	#  argument to addRule.
-	#
-	def preprocess(self, rule, func):	return rule, func
-
-	def addRule(self, func, _preprocess=1):
+	def addRule(self, func):
 		for rule in func.spark:
 			rule = rule.strip().split()
 			lhs = rule[0]
 			rhs = rule[2:]
 			rule = (lhs, tuple(rhs))
-
-			if _preprocess:
-				rule, fn = self.preprocess(rule, func)
 
 			if lhs in self.rules:
 				self.rules[lhs].append(rule)
@@ -214,7 +204,7 @@ class GenericParser(object):
 		@rule('%s ::= %s %s' % (self._START, self._BOF, start))
 		def _rule(args):
 			return args[1]
-		self.addRule(_rule, 0)
+		self.addRule(_rule)
 
 	def computeNull(self):
 		self.nullable = {}
@@ -674,170 +664,3 @@ class GenericParser(object):
 		#  should effectively resolve in favor of a "shift".
 		#
 		return list[0]
-
-#
-#  GenericASTBuilder automagically constructs a concrete/abstract syntax tree
-#  for a given input.  The extra argument is a class (not an instance!)
-#  which supports the "__setslice__" and "__len__" methods.
-#
-#  XXX - silently overrides any user code in methods.
-#
-
-class GenericASTBuilder(GenericParser):
-	def __init__(self, AST, start):
-		GenericParser.__init__(self, start)
-		self.AST = AST
-
-	def preprocess(self, rule, func):
-		rebind = lambda lhs, self=self: \
-				lambda args, lhs=lhs, self=self: \
-					self.buildASTNode(args, lhs)
-		lhs, rhs = rule
-		return rule, rebind(lhs)
-
-	def buildASTNode(self, args, lhs):
-		children = []
-		for arg in args:
-			if isinstance(arg, self.AST):
-				children.append(arg)
-			else:
-				children.append(self.terminal(arg))
-		return self.nonterminal(lhs, children)
-
-	def terminal(self, token):	return token
-
-	def nonterminal(self, type, args):
-		rv = self.AST(type)
-		rv[:len(args)] = args
-		return rv
-
-#
-#  GenericASTTraversal is a Visitor pattern according to Design Patterns.  For
-#  each node it attempts to invoke the method n_<node type>, falling
-#  back onto the default() method if the n_* can't be found.  The preorder
-#  traversal also looks for an exit hook named n_<node type>_exit (no default
-#  routine is called if it's not found).  To prematurely halt traversal
-#  of a subtree, call the prune() method -- this only makes sense for a
-#  preorder traversal.  Node type is determined via the typestring() method.
-#
-
-class GenericASTTraversalPruningException:
-	pass
-
-class GenericASTTraversal:
-	def __init__(self, ast):
-		self.ast = ast
-
-	def typestring(self, node):
-		return node.type
-
-	def prune(self):
-		raise GenericASTTraversalPruningException
-
-	def preorder(self, node=None):
-		if node is None:
-			node = self.ast
-
-		try:
-			name = 'n_' + self.typestring(node)
-			if hasattr(self, name):
-				func = getattr(self, name)
-				func(node)
-			else:
-				self.default(node)
-		except GenericASTTraversalPruningException:
-			return
-
-		for kid in node:
-			self.preorder(kid)
-
-		name = name + '_exit'
-		if hasattr(self, name):
-			func = getattr(self, name)
-			func(node)
-
-	def postorder(self, node=None):
-		if node is None:
-			node = self.ast
-
-		for kid in node:
-			self.postorder(kid)
-
-		name = 'n_' + self.typestring(node)
-		if hasattr(self, name):
-			func = getattr(self, name)
-			func(node)
-		else:
-			self.default(node)
-
-
-	def default(self, node):
-		pass
-
-#
-#  GenericASTMatcher.  AST nodes must have "__getitem__" and "__cmp__"
-#  implemented.
-#
-#  XXX - makes assumptions about how GenericParser walks the parse tree.
-#
-
-class GenericASTMatcher(GenericParser):
-	def __init__(self, start, ast):
-		GenericParser.__init__(self, start)
-		self.ast = ast
-
-	def preprocess(self, rule, func):
-		rebind = lambda func, self=self: \
-				lambda args, func=func, self=self: \
-					self.foundMatch(args, func)
-		lhs, rhs = rule
-		rhslist = list(rhs)
-		rhslist.reverse()
-
-		return (lhs, tuple(rhslist)), rebind(func)
-
-	def foundMatch(self, args, func):
-		func(args[-1])
-		return args[-1]
-
-	def match_r(self, node):
-		self.input.insert(0, node)
-		children = 0
-
-		for child in node:
-			if children == 0:
-				self.input.insert(0, '(')
-			children += 1
-			self.match_r(child)
-
-		if children > 0:
-			self.input.insert(0, ')')
-
-	def match(self, ast=None):
-		if ast is None:
-			ast = self.ast
-		self.input = []
-
-		self.match_r(ast)
-		self.parse(self.input)
-
-	def resolve(self, list):
-		#
-		#  Resolve ambiguity in favor of the longest RHS.
-		#
-		return list[-1]
-
-def _dump(tokens, sets, states):
-	for i in range(len(sets)):
-		print 'set', i
-		for item in sets[i]:
-			print '\t', item
-			for (lhs, rhs), pos in states[item[0]].items:
-				print '\t\t', lhs, '::=',
-				print ' '.join(rhs[:pos]),
-				print '.',
-				print ' '.join(rhs[pos:])
-		if i < len(tokens):
-			print
-			print 'token', str(tokens[i])
-			print
