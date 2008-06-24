@@ -45,9 +45,9 @@ def rule(pattern):
 	return decorator
 
 
-def _sparknames(instance):
+def _sparknames(cls):
 	names = set()
-	for c in instance.__class__.__mro__:
+	for c in cls.__mro__:
 		for meth in sorted((m for m in c.__dict__.itervalues() if hasattr(m, 'spark')), key=lambda m:m.func_code.co_firstlineno):
 			name = meth.func_name
 			if name not in names:
@@ -56,24 +56,29 @@ def _sparknames(instance):
 
 
 class GenericScanner(object):
-	def __init__(self, flags=0):
-		self.mode = "default"
-		self.res = {}
-		for (mode, patterns) in self.reflect().iteritems():
-			pattern = re.compile('|'.join(patterns), re.VERBOSE|flags)
-			index2func = dict((number-1, getattr(self, name)) for (name, number) in pattern.groupindex.iteritems())
-			self.res[mode] = (pattern, index2func)
+	flags = 0
 
-	def reflect(self):
+	class __metaclass__(type):
+		def __new__(mcl, name, bases, dict_):
+			cls = type.__new__(mcl, name, bases, dict_)
+			cls.reflect()
+			return cls
+
+	@classmethod
+	def reflect(cls):
 		res = {}
-		for name in _sparknames(self):
-			func = getattr(self, name)
+		for name in _sparknames(cls):
+			func = getattr(cls, name)
 			for (mode, patterns) in func.spark.iteritems():
 				pattern = '(?P<%s>%s)' % (name, '|'.join(patterns))
 				if mode not in res:
 					res[mode] = []
 				res[mode].append(pattern)
-		return res
+		for (mode, patterns) in res.iteritems():
+			pattern = re.compile('|'.join(patterns), re.VERBOSE|cls.flags)
+			index2func = dict((number-1, getattr(cls, name)) for (name, number) in pattern.groupindex.iteritems())
+			res[mode] = (pattern, index2func)
+		cls.res = res
 
 	def error(self, s, pos):
 		print "Lexical error at position %s" % pos
@@ -92,7 +97,7 @@ class GenericScanner(object):
 			end = m.end()
 			for (i, group) in enumerate(m.groups()):
 				if group is not None and i in index2func:
-					index2func[i](start, end, group)
+					index2func[i](self, start, end, group)
 			start = end
 
 	@token(r'( . | \n )+')
@@ -132,55 +137,6 @@ class GenericParser(object):
 	_START = 'START'
 	_BOF = '|-'
 
-	#
-	#  When pickling, take the time to generate the full state machine;
-	#  some information is then extraneous, too.  Unfortunately we
-	#  can't save the rule2func map.
-	#
-	def __getstate__(self):
-		if self.ruleschanged:
-			#
-			#  XXX - duplicated from parse()
-			#
-			self.computeNull()
-			self.newrules = {}
-			self.new2old = {}
-			self.makeNewRules()
-			self.ruleschanged = 0
-			self.edges, self.cores = {}, {}
-			self.states = { 0: self.makeState0() }
-			self.makeState(0, self._BOF)
-		#
-		#  XXX - should find a better way to do this..
-		#
-		changes = 1
-		while changes:
-			changes = 0
-			for k, v in self.edges.items():
-				if v is None:
-					state, sym = k
-					if state in self.states:
-						self.goto(state, sym)
-						changes = 1
-		rv = self.__dict__.copy()
-		for s in self.states.values():
-			del s.items
-		del rv['rule2func']
-		del rv['nullable']
-		del rv['cores']
-		return rv
-
-	def __setstate__(self, D):
-		self.rules = {}
-		self.rule2func = {}
-		self.rule2name = {}
-		self.collectRules()
-		start = D['rules'][self._START][0][1][1]	# Blech.
-		self.augment(start)
-		D['rule2func'] = self.rule2func
-		D['makeSet'] = self.makeSet_fast
-		self.__dict__ = D
-
 	def addRule(self, func):
 		for rule in func.spark:
 			rule = rule.strip().split()
@@ -197,7 +153,7 @@ class GenericParser(object):
 		self.ruleschanged = 1
 
 	def collectRules(self):
-		for name in _sparknames(self):
+		for name in _sparknames(self.__class__):
 			self.addRule(getattr(self, name))
 
 	def augment(self, start):
