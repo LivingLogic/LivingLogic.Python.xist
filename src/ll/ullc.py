@@ -1595,9 +1595,10 @@ class Scanner(spark.Scanner):
 
 class ExprParser(spark.Parser):
 	emptyerror = "expression required"
+	start = "expr0"
 
-	def __init__(self, scanner, start="expr0"):
-		spark.Parser.__init__(self, start)
+	def __init__(self, scanner):
+		spark.Parser.__init__(self)
 		self.scanner = scanner
 
 	def compile(self, template):
@@ -1825,10 +1826,8 @@ class ExprParser(spark.Parser):
 
 class ForParser(ExprParser):
 	emptyerror = "loop expression required"
-
-	def __init__(self, scanner, start="for"):
-		ExprParser.__init__(self, scanner, start)
-
+	start = "for"
+	
 	@spark.production('for ::= name in expr0')
 	def for0(self, iter, _0, cont):
 		return For(iter.start, cont.end, iter, cont)
@@ -1848,9 +1847,7 @@ class ForParser(ExprParser):
 
 class StmtParser(ExprParser):
 	emptyerror = "statement required"
-
-	def __init__(self, scanner, start="stmt"):
-		ExprParser.__init__(self, scanner, start)
+	start = "stmt"
 
 	@spark.production('stmt ::= name = expr0')
 	def stmt_assign(self, name, _0, value):
@@ -1887,9 +1884,7 @@ class StmtParser(ExprParser):
 
 class RenderParser(ExprParser):
 	emptyerror = "render statement required"
-
-	def __init__(self, scanner, start="render"):
-		ExprParser.__init__(self, scanner, start)
+	start = "render"
 
 	@spark.production('render ::= name ( expr0 )')
 	def render(self, name, _1, expr, _2):

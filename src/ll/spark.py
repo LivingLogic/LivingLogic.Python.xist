@@ -124,55 +124,59 @@ class Parser(object):
 	#  2001, and J. Aycock and R. N. Horspool, "Practical Earley
 	#  Parsing", unpublished paper, 2001.
 	#
+	start = None
 
-	def __init__(self, start):
-		self.rules = {}
-		self.rule2func = {}
-		self.rule2name = {}
-		self.collectRules()
-		self.augment(start)
-		self.ruleschanged = True
+	class __metaclass__(type):
+		def __new__(mcl, name, bases, dict_):
+			cls = type.__new__(mcl, name, bases, dict_)
+			cls.reflect()
+			return cls
 
 	_NULLABLE = '\e_'
 	_START = 'START'
 	_BOF = '|-'
 
-	def addRule(self, func):
+	@classmethod
+	def addRule(cls, func):
 		for rule in func.spark:
 			rule = rule.strip().split()
 			lhs = rule[0]
 			rhs = rule[2:]
 			rule = (lhs, tuple(rhs))
 
-			if lhs in self.rules:
-				self.rules[lhs].append(rule)
+			if lhs in cls.rules:
+				cls.rules[lhs].append(rule)
 			else:
-				self.rules[lhs] = [ rule ]
-			self.rule2func[rule] = func
-			self.rule2name[rule] = func.__name__
-		self.ruleschanged = False
+				cls.rules[lhs] = [ rule ]
+			cls.rule2func[rule] = func
+			cls.rule2name[rule] = func.__name__
 
-	def collectRules(self):
-		for name in _sparknames(self.__class__):
-			self.addRule(getattr(self, name))
+	@classmethod
+	def reflect(cls):
+		cls.rules = {}
+		cls.rule2func = {}
+		cls.rule2name = {}
 
-	def augment(self, start):
-		@production('%s ::= %s %s' % (self._START, self._BOF, start))
-		def _rule(*args):
+		for name in _sparknames(cls):
+			cls.addRule(getattr(cls, name))
+
+		# augment with start rule
+		@production('%s ::= %s %s' % (cls._START, cls._BOF, cls.start))
+		def _rule(self, *args):
 			return args[1]
-		self.addRule(_rule)
+		cls.addRule(_rule)
 
-	def computeNull(self):
-		self.nullable = {}
+		# compute null
+		cls.nullable = {}
 		tbd = []
 
-		for rulelist in self.rules.values():
+		for rulelist in cls.rules.values():
 			lhs = rulelist[0][0]
-			self.nullable[lhs] = 0
+			cls.nullable[lhs] = 0
 			for rule in rulelist:
 				rhs = rule[1]
 				if len(rhs) == 0:
-					self.nullable[lhs] = 1
+					cls.nullable[lhs] = 1
 					continue
 				#
 				#  We only need to consider rules which
@@ -181,26 +185,67 @@ class Parser(object):
 				#  grammars.
 				#
 				for sym in rhs:
-					if sym not in self.rules:
+					if sym not in cls.rules:
 						break
 				else:
 					tbd.append(rule)
-		changes = 1
+		changes = True
 		while changes:
-			changes = 0
+			changes = False
 			for lhs, rhs in tbd:
-				if self.nullable[lhs]:
+				if cls.nullable[lhs]:
 					continue
 				for sym in rhs:
-					if not self.nullable[sym]:
+					if not cls.nullable[sym]:
 						break
 				else:
-					self.nullable[lhs] = 1
-					changes = 1
+					cls.nullable[lhs] = 1
+					changes = Trye
 
-	def makeState0(self):
+		# make new rules
+		cls.newrules = {}
+		cls.new2old = {}
+
+		worklist = []
+		for rulelist in cls.rules.values():
+			for rule in rulelist:
+				worklist.append((rule, 0, 1, rule))
+
+		for rule, i, candidate, oldrule in worklist:
+			lhs, rhs = rule
+			n = len(rhs)
+			while i < n:
+				sym = rhs[i]
+				if sym not in cls.rules or not cls.nullable[sym]:
+					candidate = 0
+					i += 1
+					continue
+
+				newrhs = list(rhs)
+				newrhs[i] = cls._NULLABLE+sym
+				newrule = (lhs, tuple(newrhs))
+				worklist.append((newrule, i+1, candidate, oldrule))
+				candidate = 0
+				i += 1
+			else:
+				if candidate:
+					lhs = cls._NULLABLE+lhs
+					rule = (lhs, rhs)
+				if lhs in cls.newrules:
+					cls.newrules[lhs].append(rule)
+				else:
+					cls.newrules[lhs] = [ rule ]
+				cls.new2old[rule] = oldrule
+
+		cls.edges = {}
+		cls.cores = {}
+		cls.states = { 0: cls.makeState0() }
+		cls.makeState(0, cls._BOF)
+
+	@classmethod
+	def makeState0(cls):
 		s0 = _State(0, [])
-		for rule in self.newrules[self._START]:
+		for rule in cls.newrules[cls._START]:
 			s0.items.append((rule, 0))
 		return s0
 
@@ -213,39 +258,6 @@ class Parser(object):
 		start = self.rules[self._START][0][1][1]
 		return self.goto(1, start)
 
-	def makeNewRules(self):
-		worklist = []
-		for rulelist in self.rules.values():
-			for rule in rulelist:
-				worklist.append((rule, 0, 1, rule))
-
-		for rule, i, candidate, oldrule in worklist:
-			lhs, rhs = rule
-			n = len(rhs)
-			while i < n:
-				sym = rhs[i]
-				if sym not in self.rules or not self.nullable[sym]:
-					candidate = 0
-					i += 1
-					continue
-
-				newrhs = list(rhs)
-				newrhs[i] = self._NULLABLE+sym
-				newrule = (lhs, tuple(newrhs))
-				worklist.append((newrule, i+1,
-						 candidate, oldrule))
-				candidate = 0
-				i += 1
-			else:
-				if candidate:
-					lhs = self._NULLABLE+lhs
-					rule = (lhs, rhs)
-				if lhs in self.newrules:
-					self.newrules[lhs].append(rule)
-				else:
-					self.newrules[lhs] = [ rule ]
-				self.new2old[rule] = oldrule
-	
 	def typestring(self, token):
 		return None
 
@@ -257,16 +269,6 @@ class Parser(object):
 		sets = [ [(1,0), (2,0)] ]
 		self.links = {}
 		
-		if self.ruleschanged:
-			self.computeNull()
-			self.newrules = {}
-			self.new2old = {}
-			self.makeNewRules()
-			self.ruleschanged = False
-			self.edges, self.cores = {}, {}
-			self.states = { 0: self.makeState0() }
-			self.makeState(0, self._BOF)
-
 		for i in xrange(len(tokens)):
 			sets.append([])
 
@@ -286,46 +288,49 @@ class Parser(object):
 
 		return self.buildTree(self._START, finalitem, tokens, len(sets)-2)
 
-	def isnullable(self, sym):
+	@classmethod
+	def isnullable(cls, sym):
 		#
 		#  For symbols in G_e only.
 		#
-		return sym.startswith(self._NULLABLE)
+		return sym.startswith(cls._NULLABLE)
 
-	def skip(self, (lhs, rhs), pos=0):
+	@classmethod
+	def skip(cls, (lhs, rhs), pos=0):
 		n = len(rhs)
 		while pos < n:
-			if not self.isnullable(rhs[pos]):
+			if not cls.isnullable(rhs[pos]):
 				break
 			pos += 1
 		return pos
 
-	def makeState(self, state, sym):
+	@classmethod
+	def makeState(cls, state, sym):
 		assert sym is not None
 		#
 		#  Compute \epsilon-kernel state's core and see if
 		#  it exists already.
 		#
 		kitems = []
-		for rule, pos in self.states[state].items:
+		for rule, pos in cls.states[state].items:
 			lhs, rhs = rule
 			if rhs[pos:pos+1] == (sym,):
-				kitems.append((rule, self.skip(rule, pos+1)))
+				kitems.append((rule, cls.skip(rule, pos+1)))
 		tcore = tuple(sorted(kitems))
 
-		if tcore in self.cores:
-			return self.cores[tcore]
+		if tcore in cls.cores:
+			return cls.cores[tcore]
 		#
 		#  Nope, doesn't exist.  Compute it and the associated
 		#  \epsilon-nonkernel state together; we'll need it right away.
 		#
-		k = self.cores[tcore] = len(self.states)
+		k = cls.cores[tcore] = len(cls.states)
 		K, NK = _State(k, kitems), _State(k+1, [])
-		self.states[k] = K
+		cls.states[k] = K
 		predicted = set()
 
-		edges = self.edges
-		rules = self.newrules
+		edges = cls.edges
+		rules = cls.newrules
 		for X in K, NK:
 			worklist = X.items
 			for item in worklist:
@@ -346,13 +351,13 @@ class Parser(object):
 					if nextSym not in predicted:
 						predicted.add(nextSym)
 						for prule in rules[nextSym]:
-							ppos = self.skip(prule)
+							ppos = cls.skip(prule)
 							new = (prule, ppos)
 							NK.items.append(new)
 			#
 			#  Problem: we know K needs generating, but we
 			#  don't yet know about NK.  Can't commit anything
-			#  regarding NK to self.edges until we're sure.  Should
+			#  regarding NK to cls.edges until we're sure.  Should
 			#  we delay committing on both K and NK to avoid this
 			#  hacky code?  This creates other problems..
 			#
@@ -368,13 +373,13 @@ class Parser(object):
 		#  to do this without accidentally duplicating states.
 		#
 		tcore = tuple(sorted(predicted))
-		if tcore in self.cores:
-			self.edges[(k, None)] = self.cores[tcore]
+		if tcore in cls.cores:
+			cls.edges[(k, None)] = cls.cores[tcore]
 			return k
 
-		nk = self.cores[tcore] = self.edges[(k, None)] = NK.stateno
-		self.edges.update(edges)
-		self.states[nk] = NK
+		nk = cls.cores[tcore] = cls.edges[(k, None)] = NK.stateno
+		cls.edges.update(edges)
+		cls.states[nk] = NK
 		return k
 
 	def goto(self, state, sym):
@@ -556,7 +561,7 @@ class Parser(object):
 
 		for i in range(len(rhs)-1, -1, -1):
 			attr[i] = self.deriveEpsilon(rhs[i])
-		return self.rule2func[self.new2old[rule]](*attr)
+		return self.rule2func[self.new2old[rule]](self, *attr)
 
 	def buildTree(self, nt, item, tokens, k):
 		state, parent = item
@@ -589,7 +594,7 @@ class Parser(object):
 				attr[i] = self.buildTree(sym, why[0],
 							 tokens, why[1])
 				item, k = self.predecessor(key, why)
-		return self.rule2func[self.new2old[rule]](*attr)
+		return self.rule2func[self.new2old[rule]](self, *attr)
 
 	def ambiguity(self, rules):
 		#
