@@ -587,8 +587,7 @@ class Parser(object):
 			else:
 				key = (item, k)
 				why = self.causal(key)
-				attr[i] = self.buildTree(sym, why[0],
-							 tokens, why[1])
+				attr[i] = self.buildTree(sym, why[0], tokens, why[1])
 				item, k = self.predecessor(key, why)
 		return self.rule2func[self.new2old[rule]](self, *attr)
 
