@@ -277,8 +277,6 @@ class Parser(object):
 			sets.append([])
 			self.makeSet(None, sets, len(tokens))
 
-		#_dump(tokens, sets, self.states)
-
 		finalitem = (self.finalState(tokens), 0)
 		if finalitem not in sets[-2]:
 			if len(tokens) > 0:
