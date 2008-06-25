@@ -131,7 +131,7 @@ class Parser(object):
 		self.rule2name = {}
 		self.collectRules()
 		self.augment(start)
-		self.ruleschanged = 1
+		self.ruleschanged = True
 
 	_NULLABLE = '\e_'
 	_START = 'START'
@@ -150,7 +150,7 @@ class Parser(object):
 				self.rules[lhs] = [ rule ]
 			self.rule2func[rule] = func
 			self.rule2name[rule] = func.__name__
-		self.ruleschanged = 1
+		self.ruleschanged = False
 
 	def collectRules(self):
 		for name in _sparknames(self.__class__):
@@ -262,7 +262,7 @@ class Parser(object):
 			self.newrules = {}
 			self.new2old = {}
 			self.makeNewRules()
-			self.ruleschanged = 0
+			self.ruleschanged = False
 			self.edges, self.cores = {}, {}
 			self.states = { 0: self.makeState0() }
 			self.makeState(0, self._BOF)
