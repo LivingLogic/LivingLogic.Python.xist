@@ -124,7 +124,7 @@ class Parser(object):
 	#  2001, and J. Aycock and R. N. Horspool, "Practical Earley
 	#  Parsing", unpublished paper, 2001.
 	#
-	start = None
+	start = None # Start symbol
 
 	class __metaclass__(type):
 		def __new__(mcl, name, bases, dict_):
