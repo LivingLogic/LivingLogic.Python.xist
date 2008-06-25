@@ -555,7 +555,7 @@ class Parser(object):
 		rhs = rule[1]
 		attr = [None] * len(rhs)
 
-		for i in range(len(rhs)-1, -1, -1):
+		for i in xrange(len(rhs)-1, -1, -1):
 			attr[i] = self.deriveEpsilon(rhs[i])
 		return self.rule2func[self.new2old[rule]](self, *attr)
 
@@ -574,7 +574,7 @@ class Parser(object):
 		rhs = rule[1]
 		attr = [None] * len(rhs)
 
-		for i in range(len(rhs)-1, -1, -1):
+		for i in xrange(len(rhs)-1, -1, -1):
 			sym = rhs[i]
 			if sym not in self.newrules:
 				if sym != self._BOF:
@@ -599,7 +599,7 @@ class Parser(object):
 		#
 		sortlist = []
 		name2index = {}
-		for i in range(len(rules)):
+		for i in xrange(len(rules)):
 			lhs, rhs = rule = rules[i]
 			name = self.rule2name[self.new2old[rule]]
 			sortlist.append((len(rhs), name))
