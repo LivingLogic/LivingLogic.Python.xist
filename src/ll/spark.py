@@ -272,7 +272,7 @@ class Parser(object):
 		for i in xrange(len(tokens)):
 			sets.append([])
 
-			if sets[i] == []:
+			if not sets[i]:
 				break
 			self.makeSet(tokens[i], sets, i)
 		else:
@@ -364,7 +364,7 @@ class Parser(object):
 			if X is K:
 				edges = {}
 
-		if NK.items == []:
+		if not NK.items:
 			return k
 
 		#
