@@ -586,7 +586,7 @@ class Parser(object):
 					key = (item, k)
 					item, k = self.predecessor(key, None)
 			#elif self.isnullable(sym):
-			elif self._NULLABLE == sym[0:len(self._NULLABLE)]:
+			elif sym.startswith(self._NULLABLE):
 				attr[i] = self.deriveEpsilon(sym)
 			else:
 				key = (item, k)
