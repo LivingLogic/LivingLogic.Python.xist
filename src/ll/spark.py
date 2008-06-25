@@ -390,8 +390,7 @@ class Parser(object):
 			#
 			#  Target state isn't generated yet.  Remedy this.
 			#
-			rv = self.makeState(state, sym)
-			self.edges[key] = rv
+			rv = self.edges[key] = self.makeState(state, sym)
 		return rv
 
 	def gotoT(self, state, t):
