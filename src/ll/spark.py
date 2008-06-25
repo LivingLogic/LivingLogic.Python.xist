@@ -284,8 +284,7 @@ class Parser(object):
 			else:
 				self.error(None)
 
-		return self.buildTree(self._START, finalitem,
-				      tokens, len(sets)-2)
+		return self.buildTree(self._START, finalitem, tokens, len(sets)-2)
 
 	def isnullable(self, sym):
 		#
@@ -447,8 +446,7 @@ class Parser(object):
 					if k is not None:
 						why = (item, i, rule)
 						pptr = (pitem, parent)
-						self.add(cur, (k, pparent),
-							 i, pptr, why)
+						self.add(cur, (k, pparent), i, pptr, why)
 						nk = self.goto(k, None)
 						if nk is not None:
 							self.add(cur, (nk, i))
