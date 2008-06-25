@@ -418,7 +418,7 @@ class Parser(object):
 	def makeSet(self, token, sets, i):
 		cur, next = sets[i], sets[i+1]
 
-		ttype = token is not None and self.typestring(token) or None
+		ttype = self.typestring(token) if token is not None else None
 		if ttype is not None:
 			fn, arg = self.gotoT, ttype
 		else:
@@ -459,7 +459,7 @@ class Parser(object):
 		#  cost of extreme ugliness.
 		#
 		cur, next = sets[i], sets[i+1]
-		ttype = token is not None and self.typestring(token) or None
+		ttype = self.typestring(token) if token is not None else None
 
 		for item in cur:
 			ptr = (item, i)
