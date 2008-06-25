@@ -1643,182 +1643,182 @@ class ExprParser(spark.Parser):
 	#    1) Expressions where there's no ambiguity, like the index for a getitem/getslice or function/method arguments;
 	#    2) Brackets, which can be used to boost the precedence of an expression to the level of an atomic expression.
 
-	@spark.rule('expr11 ::= none')
-	@spark.rule('expr11 ::= true')
-	@spark.rule('expr11 ::= false')
-	@spark.rule('expr11 ::= str')
-	@spark.rule('expr11 ::= int')
-	@spark.rule('expr11 ::= float')
-	@spark.rule('expr11 ::= name')
+	@spark.production('expr11 ::= none')
+	@spark.production('expr11 ::= true')
+	@spark.production('expr11 ::= false')
+	@spark.production('expr11 ::= str')
+	@spark.production('expr11 ::= int')
+	@spark.production('expr11 ::= float')
+	@spark.production('expr11 ::= name')
 	def expr_atom(self, (atom,)):
 		return atom
 
-	@spark.rule('expr11 ::= ( expr0 )')
+	@spark.production('expr11 ::= ( expr0 )')
 	def expr_bracket(self, (_0, expr, _1)):
 		return expr
 
-	@spark.rule('expr10 ::= name ( )')
+	@spark.production('expr10 ::= name ( )')
 	def expr_callfunc0(self, (name, _0, _1)):
 		return CallFunc(name.start, _1.end, name, [])
 
-	@spark.rule('expr10 ::= name ( expr0 )')
+	@spark.production('expr10 ::= name ( expr0 )')
 	def expr_callfunc1(self, (name, _0, arg0, _1)):
 		return CallFunc(name.start, _1.end, name, [arg0])
 
-	@spark.rule('expr10 ::= name ( expr0 , expr0 )')
+	@spark.production('expr10 ::= name ( expr0 , expr0 )')
 	def expr_callfunc2(self, (name, _0, arg0, _1, arg1, _2)):
 		return CallFunc(name.start, _2.end, name, [arg0, arg1])
 
-	@spark.rule('expr10 ::= name ( expr0 , expr0 , expr0 )')
+	@spark.production('expr10 ::= name ( expr0 , expr0 , expr0 )')
 	def expr_callfunc3(self, (name, _0, arg0, _1, arg1, _2, arg2, _3)):
 		return CallFunc(name.start, _3.end, name, [arg0, arg1, arg2])
 
-	@spark.rule('expr9 ::= expr9 . name')
+	@spark.production('expr9 ::= expr9 . name')
 	def expr_getattr(self, (expr, _0, name)):
 		return GetAttr(expr.start, name.end, expr, name)
 
-	@spark.rule('expr9 ::= expr9 . name ( )')
+	@spark.production('expr9 ::= expr9 . name ( )')
 	def expr_callmeth0(self, (expr, _0, name, _1, _2)):
 		return CallMeth(expr.start, _2.end, name, expr, [])
 
-	@spark.rule('expr9 ::= expr9 . name ( expr0 )')
+	@spark.production('expr9 ::= expr9 . name ( expr0 )')
 	def expr_callmeth1(self, (expr, _0, name, _1, arg1, _2)):
 		return CallMeth(expr.start, _2.end, name, expr, [arg1])
 
-	@spark.rule('expr9 ::= expr9 . name ( expr0 , expr0 )')
+	@spark.production('expr9 ::= expr9 . name ( expr0 , expr0 )')
 	def expr_callmeth2(self, (expr, _0, name, _1, arg1, _2, arg2, _3)):
 		return CallMeth(expr.start, _3.end, name, expr, [arg1, arg2])
 
-	@spark.rule('expr9 ::= expr9 . name ( expr0 , expr0 , expr0 )')
+	@spark.production('expr9 ::= expr9 . name ( expr0 , expr0 , expr0 )')
 	def expr_callmeth3(self, (expr, _0, name, _1, arg1, _2, arg2, _3, arg3, _4)):
 		return CallMeth(expr.start, _4.end, name, expr, [arg1, arg2, arg3])
 
-	@spark.rule('expr9 ::= expr9 [ expr0 ]')
+	@spark.production('expr9 ::= expr9 [ expr0 ]')
 	def expr_getitem(self, (expr, _0, key, _1)):
 		if isinstance(expr, Const) and isinstance(key, Const): # Constant folding
 			return self.makeconst(expr.start, _1.end, expr.value[key.value])
 		return GetItem(expr.start, _1.end, expr, key)
 
-	@spark.rule('expr8 ::= expr8 [ expr0 : expr0 ]')
+	@spark.production('expr8 ::= expr8 [ expr0 : expr0 ]')
 	def expr_getslice12(self, (expr, _0, index1, _1, index2, _2)):
 		if isinstance(expr, Const) and isinstance(index1, Const) and isinstance(index2, Const): # Constant folding
 			return self.makeconst(expr.start, _2.end, expr.value[index1.value:index1.value])
 		return GetSlice12(expr.start, _2.end, expr, index1, index2)
 
-	@spark.rule('expr8 ::= expr8 [ expr0 : ]')
+	@spark.production('expr8 ::= expr8 [ expr0 : ]')
 	def expr_getslice1(self, (expr, _0, index1, _1, _2)):
 		if isinstance(expr, Const) and isinstance(index1, Const): # Constant folding
 			return self.makeconst(expr.start, _2.end, expr.value[index1.value:])
 		return GetSlice1(expr.start, _2.end, expr, index1)
 
-	@spark.rule('expr8 ::= expr8 [ : expr0 ]')
+	@spark.production('expr8 ::= expr8 [ : expr0 ]')
 	def expr_getslice2(self, (expr, _0, _1, index2, _2)):
 		if isinstance(expr, Const) and isinstance(index2, Const): # Constant folding
 			return self.makeconst(expr.start, _2.end, expr.value[:index2.value])
 		return GetSlice2(expr.start, _2.end, expr, index2)
 
-	@spark.rule('expr8 ::= expr8 [ : ]')
+	@spark.production('expr8 ::= expr8 [ : ]')
 	def expr_getslice(self, (expr, _0, _1, _2)):
 		if isinstance(expr, Const): # Constant folding
 			return self.makeconst(expr.start, _2.end, expr.value[:])
 		return GetSlice(expr.start, _2.end, expr)
 
-	@spark.rule('expr7 ::= - expr7')
+	@spark.production('expr7 ::= - expr7')
 	def expr_neg(self, (_0, expr)):
 		if isinstance(expr, Const): # Constant folding
 			return self.makeconst(_0.start, expr.end, -expr.value)
 		return Neg(_0.start, expr.end, expr)
 
-	@spark.rule('expr6 ::= expr6 * expr6')
+	@spark.production('expr6 ::= expr6 * expr6')
 	def expr_mul(self, (obj1, _0, obj2)):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.start, obj2.end, obj1.value * obj2.value)
 		return Mul(obj1.start, obj2.end, obj1, obj2)
 
-	@spark.rule('expr6 ::= expr6 // expr6')
+	@spark.production('expr6 ::= expr6 // expr6')
 	def expr_floordiv(self, (obj1, _0, obj2)):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.start, obj2.end, obj1.value // obj2.value)
 		return FloorDiv(obj1.start, obj2.end, obj1, obj2)
 
-	@spark.rule('expr6 ::= expr6 / expr6')
+	@spark.production('expr6 ::= expr6 / expr6')
 	def expr_truediv(self, (obj1, _0, obj2)):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.start, obj2.end, obj1.value / obj2.value)
 		return TrueDiv(obj1.start, obj2.end, obj1, obj2)
 
-	@spark.rule('expr6 ::= expr6 % expr6')
+	@spark.production('expr6 ::= expr6 % expr6')
 	def expr_mod(self, (obj1, _0, obj2)):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.start, obj2.end, obj1.value % obj2.value)
 		return Mod(obj1.start, obj2.end, obj1, obj2)
 
-	@spark.rule('expr5 ::= expr5 + expr5')
+	@spark.production('expr5 ::= expr5 + expr5')
 	def expr_add(self, (obj1, _0, obj2)):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.start, obj2.end, obj1.value + obj2.value)
 		return Add(obj1.start, obj2.end, obj1, obj2)
 
-	@spark.rule('expr5 ::= expr5 - expr5')
+	@spark.production('expr5 ::= expr5 - expr5')
 	def expr_sub(self, (obj1, _0, obj2)):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.start, obj2.end, obj1.value - obj2.value)
 		return Sub(obj1.start, obj2.end, obj1, obj2)
 
-	@spark.rule('expr4 ::= expr4 == expr4')
+	@spark.production('expr4 ::= expr4 == expr4')
 	def expr_equal(self, (obj1, _0, obj2)):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.start, obj2.end, obj1.value == obj2.value)
 		return Equal(obj1.start, obj2.end, obj1, obj2)
 
-	@spark.rule('expr4 ::= expr4 != expr4')
+	@spark.production('expr4 ::= expr4 != expr4')
 	def expr_notequal(self, (obj1, _0, obj2)):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.start, obj2.end, obj1.value != obj2.value)
 		return NotEqual(obj1.start, obj2.end, obj1, obj2)
 
-	@spark.rule('expr3 ::= expr3 in expr3')
+	@spark.production('expr3 ::= expr3 in expr3')
 	def expr_contains(self, (obj, _0, container)):
 		if isinstance(obj, Const) and isinstance(container, Const): # Constant folding
 			return self.makeconst(obj.start, container.end, obj.value in container.value)
 		return Contains(obj.start, container.end, obj, container)
 
-	@spark.rule('expr3 ::= expr3 not in expr3')
+	@spark.production('expr3 ::= expr3 not in expr3')
 	def expr_notcontains(self, (obj, _0, _1, container)):
 		if isinstance(obj, Const) and isinstance(container, Const): # Constant folding
 			return self.makeconst(obj.start, container.end, obj.value not in container.value)
 		return NotContains(obj.start, container.end, obj, container)
 
-	@spark.rule('expr2 ::= not expr2')
+	@spark.production('expr2 ::= not expr2')
 	def expr_not(self, (_0, expr)):
 		if isinstance(expr1, Const): # Constant folding
 			return self.makeconst(_0.start, expr.end, not expr.value)
 		return Not(_0.start, expr.end, expr)
 
-	@spark.rule('expr1 ::= expr1 and expr1')
+	@spark.production('expr1 ::= expr1 and expr1')
 	def expr_and(self, (obj1, _0, obj2)):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.start, obj2.end, bool(obj1.value and obj2.value))
 		return And(obj1.start, obj2.end, obj1, obj2)
 
-	@spark.rule('expr0 ::= expr0 or expr0')
+	@spark.production('expr0 ::= expr0 or expr0')
 	def expr_or(self, (obj1, _0, obj2)):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.start, obj2.end, bool(obj1.value or obj2.value))
 		return Or(obj1.start, obj2.end, obj1, obj2)
 
 	# These rules make operators of different precedences interoperable, by allowing an expression to "drop" its precedence.
-	@spark.rule('expr10 ::= expr11')
-	@spark.rule('expr9 ::= expr10')
-	@spark.rule('expr8 ::= expr9')
-	@spark.rule('expr7 ::= expr8')
-	@spark.rule('expr6 ::= expr7')
-	@spark.rule('expr5 ::= expr6')
-	@spark.rule('expr4 ::= expr5')
-	@spark.rule('expr3 ::= expr4')
-	@spark.rule('expr2 ::= expr3')
-	@spark.rule('expr1 ::= expr2')
-	@spark.rule('expr0 ::= expr1')
+	@spark.production('expr10 ::= expr11')
+	@spark.production('expr9 ::= expr10')
+	@spark.production('expr8 ::= expr9')
+	@spark.production('expr7 ::= expr8')
+	@spark.production('expr6 ::= expr7')
+	@spark.production('expr5 ::= expr6')
+	@spark.production('expr4 ::= expr5')
+	@spark.production('expr3 ::= expr4')
+	@spark.production('expr2 ::= expr3')
+	@spark.production('expr1 ::= expr2')
+	@spark.production('expr0 ::= expr1')
 	def expr_dropprecedence(self, (expr, )):
 		return expr
 
@@ -1829,19 +1829,19 @@ class ForParser(ExprParser):
 	def __init__(self, scanner, start="for"):
 		ExprParser.__init__(self, scanner, start)
 
-	@spark.rule('for ::= name in expr0')
+	@spark.production('for ::= name in expr0')
 	def for0(self, (iter, _0, cont)):
 		return For(iter.start, cont.end, iter, cont)
 
-	@spark.rule('for ::= ( name , ) in expr0')
+	@spark.production('for ::= ( name , ) in expr0')
 	def for1(self, (_0, iter, _1, _2, _3, cont)):
 		return For(_0.start, cont.end, [iter], cont)
 
-	@spark.rule('for ::= ( name , name ) in expr0')
+	@spark.production('for ::= ( name , name ) in expr0')
 	def for2a(self, (_0, iter1, _1, iter2, _2, _3, cont)):
 		return For(_0.start, cont.end, [iter1, iter2], cont)
 
-	@spark.rule('for ::= ( name , name , ) in expr0')
+	@spark.production('for ::= ( name , name , ) in expr0')
 	def for2b(self, (_0, iter1, _1, iter2, _2, _3, _4, cont)):
 		return For(_0.start, cont.end, [iter1, iter2], cont)
 
@@ -1852,35 +1852,35 @@ class StmtParser(ExprParser):
 	def __init__(self, scanner, start="stmt"):
 		ExprParser.__init__(self, scanner, start)
 
-	@spark.rule('stmt ::= name = expr0')
+	@spark.production('stmt ::= name = expr0')
 	def stmt_assign(self, (name, _0, value)):
 		return StoreVar(name.start, value.end, name, value)
 
-	@spark.rule('stmt ::= name += expr0')
+	@spark.production('stmt ::= name += expr0')
 	def stmt_iadd(self, (name, _0, value)):
 		return AddVar(name.start, value.end, name, value)
 
-	@spark.rule('stmt ::= name -= expr0')
+	@spark.production('stmt ::= name -= expr0')
 	def stmt_isub(self, (name, _0, value)):
 		return SubVar(name.start, value.end, name, value)
 
-	@spark.rule('stmt ::= name *= expr0')
+	@spark.production('stmt ::= name *= expr0')
 	def stmt_imul(self, (name, _0, value)):
 		return MulVar(name.start, value.end, name, value)
 
-	@spark.rule('stmt ::= name /= expr0')
+	@spark.production('stmt ::= name /= expr0')
 	def stmt_itruediv(self, (name, _0, value)):
 		return TrueDivVar(name.start, value.end, name, value)
 
-	@spark.rule('stmt ::= name //= expr0')
+	@spark.production('stmt ::= name //= expr0')
 	def stmt_ifloordiv(self, (name, _0, value)):
 		return FloorDivVar(name.start, value.end, name, value)
 
-	@spark.rule('stmt ::= name %= expr0')
+	@spark.production('stmt ::= name %= expr0')
 	def stmt_imod(self, (name, _0, value)):
 		return ModVar(name.start, value.end, name, value)
 
-	@spark.rule('stmt ::= del name')
+	@spark.production('stmt ::= del name')
 	def stmt_del(self, (_0, name)):
 		return DelVar(_0.start, name.end, name)
 
@@ -1891,7 +1891,7 @@ class RenderParser(ExprParser):
 	def __init__(self, scanner, start="render"):
 		ExprParser.__init__(self, scanner, start)
 
-	@spark.rule('render ::= name ( expr0 )')
+	@spark.production('render ::= name ( expr0 )')
 	def render(self, (name, _1, expr, _2)):
 		return Render(name.start, _2.end, name, expr)
 

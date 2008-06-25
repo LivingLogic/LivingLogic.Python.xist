@@ -36,7 +36,7 @@ def token(pattern, *modes):
 	return decorator
 
 
-def rule(pattern):
+def production(pattern):
 	def decorator(func):
 		if not hasattr(func, 'spark'):
 			func.spark = []
@@ -157,7 +157,7 @@ class Parser(object):
 			self.addRule(getattr(self, name))
 
 	def augment(self, start):
-		@rule('%s ::= %s %s' % (self._START, self._BOF, start))
+		@production('%s ::= %s %s' % (self._START, self._BOF, start))
 		def _rule(args):
 			return args[1]
 		self.addRule(_rule)
