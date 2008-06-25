@@ -158,7 +158,7 @@ class Parser(object):
 
 	def augment(self, start):
 		@production('%s ::= %s %s' % (self._START, self._BOF, start))
-		def _rule(args):
+		def _rule(*args):
 			return args[1]
 		self.addRule(_rule)
 
@@ -557,7 +557,7 @@ class Parser(object):
 
 		for i in range(len(rhs)-1, -1, -1):
 			attr[i] = self.deriveEpsilon(rhs[i])
-		return self.rule2func[self.new2old[rule]](attr)
+		return self.rule2func[self.new2old[rule]](*attr)
 
 	def buildTree(self, nt, item, tokens, k):
 		state, parent = item
@@ -590,7 +590,7 @@ class Parser(object):
 				attr[i] = self.buildTree(sym, why[0],
 							 tokens, why[1])
 				item, k = self.predecessor(key, why)
-		return self.rule2func[self.new2old[rule]](attr)
+		return self.rule2func[self.new2old[rule]](*attr)
 
 	def ambiguity(self, rules):
 		#
