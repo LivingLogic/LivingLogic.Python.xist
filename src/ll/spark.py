@@ -402,11 +402,7 @@ class Parser(object):
 		return [self.goto(state, t)]
 
 	def gotoST(self, state, st):
-		rv = []
-		for t in self.states[state].T:
-			if st == t:
-				rv.append(self.goto(state, t))
-		return rv
+		return [self.goto(state, t) for t in self.states[state].T if st == t]
 
 	def add(self, set, item, i=None, predecessor=None, causal=None):
 		if predecessor is None:
