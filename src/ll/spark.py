@@ -55,7 +55,7 @@ def _sparknames(cls):
 				names.add(name)
 
 
-class GenericScanner(object):
+class Scanner(object):
 	reflags = 0
 
 	class __metaclass__(type):
@@ -106,14 +106,14 @@ class GenericScanner(object):
 		raise SystemExit
 
 #
-#  Extracted from GenericParser and made global so that [un]picking works.
+#  Extracted from Parser and made global so that [un]picking works.
 #
 class _State:
 	def __init__(self, stateno, items):
 		self.T, self.complete, self.items = [], [], items
 		self.stateno = stateno
 
-class GenericParser(object):
+class Parser(object):
 	#
 	#  An Earley parser, as per J. Earley, "An Efficient Context-Free
 	#  Parsing Algorithm", CACM 13(2), pp. 94-102.  Also J. C. Earley,

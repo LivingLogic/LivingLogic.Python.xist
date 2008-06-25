@@ -1447,7 +1447,7 @@ class Render(AST):
 ### Tokenizer
 ###
 
-class Scanner(spark.GenericScanner):
+class Scanner(spark.Scanner):
 	reflags = re.UNICODE
 
 	def tokenize(self, location):
@@ -1455,7 +1455,7 @@ class Scanner(spark.GenericScanner):
 		self.rv = []
 		self.start = 0
 		try:
-			spark.GenericScanner.tokenize(self, location.code)
+			spark.Scanner.tokenize(self, location.code)
 			if self.mode != "default":
 				raise UnterminatedStringError()
 		except Error, exc:
@@ -1593,11 +1593,11 @@ class Scanner(spark.GenericScanner):
 ### Parsers for different types of code
 ###
 
-class ExprParser(spark.GenericParser):
+class ExprParser(spark.Parser):
 	emptyerror = "expression required"
 
 	def __init__(self, scanner, start="expr0"):
-		spark.GenericParser.__init__(self, start)
+		spark.Parser.__init__(self, start)
 		self.scanner = scanner
 
 	def compile(self, template):
