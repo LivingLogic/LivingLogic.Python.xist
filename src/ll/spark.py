@@ -110,7 +110,9 @@ class Scanner(object):
 #
 class _State:
 	def __init__(self, stateno, items):
-		self.T, self.complete, self.items = [], [], items
+		self.T = []
+		self.complete = []
+		self.items = items
 		self.stateno = stateno
 
 class Parser(object):
@@ -323,7 +325,8 @@ class Parser(object):
 		#  \epsilon-nonkernel state together; we'll need it right away.
 		#
 		k = cls.cores[tcore] = len(cls.states)
-		K, NK = _State(k, kitems), _State(k+1, [])
+		K = _State(k, kitems)
+		NK = _State(k+1, [])
 		cls.states[k] = K
 		predicted = set()
 
@@ -414,13 +417,16 @@ class Parser(object):
 			self.links[key].append((predecessor, causal))
 
 	def makeSet(self, token, sets, i):
-		cur, next = sets[i], sets[i+1]
+		cur = sets[i]
+		next = sets[i+1]
 
 		ttype = self.typestring(token) if token is not None else None
 		if ttype is not None:
-			fn, arg = self.gotoT, ttype
+			fn = self.gotoT
+			arg = ttype
 		else:
-			fn, arg = self.gotoST, token
+			fn = self.gotoST
+			arg = token
 
 		for item in cur:
 			ptr = (item, i)
@@ -456,7 +462,8 @@ class Parser(object):
 		#  then duplicates and inlines code to boost speed at the
 		#  cost of extreme ugliness.
 		#
-		cur, next = sets[i], sets[i+1]
+		cur = sets[i]
+		next = sets[i+1]
 		ttype = self.typestring(token) if token is not None else None
 
 		for item in cur:
@@ -578,7 +585,7 @@ class Parser(object):
 				if sym != self._BOF:
 					attr[i] = tokens[k-1]
 					key = (item, k)
-					item, k = self.predecessor(key, None)
+					(item, k) = self.predecessor(key, None)
 			#elif self.isnullable(sym):
 			elif sym.startswith(self._NULLABLE):
 				attr[i] = self.deriveEpsilon(sym)
@@ -586,7 +593,7 @@ class Parser(object):
 				key = (item, k)
 				why = self.causal(key)
 				attr[i] = self.buildTree(sym, why[0], tokens, why[1])
-				item, k = self.predecessor(key, why)
+				(item, k) = self.predecessor(key, why)
 		return self.rule2func[self.new2old[rule]](self, *attr)
 
 	def ambiguity(self, rules):
