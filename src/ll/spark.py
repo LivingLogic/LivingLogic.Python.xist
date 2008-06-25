@@ -149,13 +149,11 @@ class Parser(object):
 			else:
 				cls.rules[lhs] = [ rule ]
 			cls.rule2func[rule] = func
-			cls.rule2name[rule] = func.__name__
 
 	@classmethod
 	def reflect(cls):
 		cls.rules = {}
 		cls.rule2func = {}
-		cls.rule2name = {}
 
 		for name in _sparknames(cls):
 			cls.addRule(getattr(cls, name))
@@ -601,7 +599,7 @@ class Parser(object):
 		name2index = {}
 		for i in xrange(len(rules)):
 			lhs, rhs = rule = rules[i]
-			name = self.rule2name[self.new2old[rule]]
+			name = self.rule2func[self.new2old[rule]].__name__
 			sortlist.append((len(rhs), name))
 			name2index[name] = i
 		sortlist.sort()
