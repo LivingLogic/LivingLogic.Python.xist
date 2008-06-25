@@ -1507,7 +1507,7 @@ class AlwaysAction(Action):
 	"""
 	def __init__(self):
 		Action.__init__(self)
-		self.changed = bigcrunch
+		self.changed = bigbang
 
 	def __iter__(self):
 		if False:
