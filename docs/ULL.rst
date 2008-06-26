@@ -304,7 +304,7 @@ will be the empty string. For lists and dictionaries the exact format is
 undefined, but should follow Python's repr format.
 
 ``repr``
-:::::::
+::::::::
 
 ``repr(foo)`` converts ``foo`` to a string representation that is useful for
 debugging proposes. The output is the same as for Python's :func:`repr` function.
