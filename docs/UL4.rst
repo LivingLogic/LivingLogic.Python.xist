@@ -308,6 +308,7 @@ Functions
 
 :mod:`ll.ul4c` supports a number of functions.
 
+
 ``isnone``
 ::::::::::
 
@@ -316,11 +317,13 @@ returned::
 
 	data is <?if isnone(data)?>None<?else?>something else<?end if?>!
 
+
 ``isbool``
 ::::::::::
 
 ``isbool(foo)`` returns ``True`` if ``foo`` is ``True`` or ``False``, else
 ``False`` is returned.
+
 
 ``isint``
 :::::::::
@@ -328,11 +331,13 @@ returned::
 ``isint(foo)`` returns ``True`` if ``foo`` is an integer object, else ``False``
 is returned.
 
+
 ``isfloat``
 :::::::::::
 
 ``isfloat(foo)`` returns ``True`` if ``foo`` is a float object, else ``False``
 is returned.
+
 
 ``isstr``
 :::::::::
@@ -340,11 +345,13 @@ is returned.
 ``isstr(foo)`` returns ``True`` if ``foo`` is a string object, else ``False``
 is returned.
 
+
 ``islist``
 ::::::::::
 
 ``islist(foo)`` returns ``True`` if ``foo`` is a list object, else ``False``
 is returned.
+
 
 ``isdict``
 ::::::::::::
@@ -352,17 +359,20 @@ is returned.
 ``isdict(foo)`` returns ``True`` if ``foo`` is a dictionary object, else
 ``False`` is returned.
 
+
 ``bool``
 ::::::::
 
 ``bool(foo)`` converts ``foo`` to an boolean. I.e. ``True`` or ``False`` is
 returned according to the truth value of ``foo``.
 
+
 ``int``
 :::::::
 
 ``int(foo)`` converts ``foo`` to an integer. ``foo`` can be a string, a float,
 a boolean or an integer.
+
 
 ``str``
 :::::::
@@ -371,17 +381,20 @@ a boolean or an integer.
 will be the empty string. For lists and dictionaries the exact format is
 undefined, but should follow Python's repr format.
 
+
 ``repr``
 ::::::::
 
 ``repr(foo)`` converts ``foo`` to a string representation that is useful for
 debugging proposes. The output is the same as for Python's :func:`repr` function.
 
+
 ``len``
 :::::::
 
 ``len(foo)`` returns the length of a string, or the number of items in a list
 or dictionary.
+
 
 ``enumerate``
 :::::::::::::
@@ -460,6 +473,7 @@ For example ``<?print oct(42)?>`` outputs ``0o52``.
 Return the binary representation of the integer argument (with a leading ``0b``).
 For example ``<?print bin(42)?>`` outputs ``0b101010``.
 
+
 ``range``
 ::::::::::
 
@@ -475,6 +489,7 @@ Methods
 Objects in :mod:`ll.ul4c` support some methods too (depending on the type of the
 object).
 
+
 ``upper``
 :::::::::
 
@@ -487,17 +502,20 @@ prints::
 
 	FOO
 
+
 ``lower``
 :::::::::
 
 The ``lower`` method of strings returns an lowercase version of the string for
 which it's called.
 
+
 ``startswith``
 ::::::::::::::
 
 ``x.startswith(y)`` returns ``True`` if the string ``x`` starts with the string
 ``y`` and ``False`` otherwise.
+
 
 ``endswith``
 ::::::::::::::
@@ -506,11 +524,44 @@ which it's called.
 ``y`` and ``False`` otherwise.
 
 
-0 split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower
+``strip``
+:::::::::
 
-1 "split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find"):
+The string method ``strip`` returns a copy of the string with leading and
+trailing whitespace removed. If an argument ``chars`` is given and not ``None``,
+characters in ``chars`` will be removed instead.
 
-2 ("split", "rsplit", "find"):
 
-3 "find":
+``lstrip``
+::::::::::
 
+The string method ``lstrip`` returns a copy of the string with leading
+whitespace removed. If an argument ``chars`` is given and not ``None``,
+characters in ``chars`` will be removed instead.
+
+
+``rstrip``
+::::::::::
+
+The string method ``rstrip`` returns a copy of the string with trailing
+whitespace removed. If an argument ``chars`` is given and not ``None``,
+characters in ``chars`` will be removed instead.
+
+
+``split``
+:::::::::
+The string method ``split`` splits the string into separate "words" and returns
+the resulting list. Without any arguments, the string is split on whitespace
+characters. With one argument the argument specifies the soprator to use. The
+second optional argument specifies the maximum number of splits to do.
+
+
+``rsplit``
+::::::::::
+The string method ``rsplit`` works like ``split``, except that splitting start
+from the end (which is only relevant, when the maximum number of splits is
+given.
+
+
+``find``
+::::::::
