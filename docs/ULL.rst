@@ -10,7 +10,7 @@ to implement renderers for these templates in multiple programming languages.
 Data objects
 ============
 
-To render a template the renderer gets passed a data object. What :mod:`ll.ull`
+To render a template the renderer gets passed a data object. What :mod:`ll.ullc`
 supports in this data object is very similar to what JSON_ supports.
 
 	.. _JSON: http://www.json.org/
@@ -27,7 +27,7 @@ Supported types are:
 
 Note that depending on the implementation language of the renderer additional
 types might be supported, e.g. a Python renderer will probably support tuples
-and lists and anything supporting :meth:`__getitem__` (or :meth:`__iter__ when
+and lists and anything supporting :meth:`__getitem__` (or :meth:`__iter__` when
 the list is used in a loop) for lists, Java might support anything implementing
 the ``List`` interface (or the ``Collection`` interface if the list is used in a
 loop).
@@ -85,7 +85,7 @@ the template with the data object passed in.
 Template code
 =============
 
-:mod:`ll.ull` supports the following tag types:
+:mod:`ll.ullc` supports the following tag types:
 
 
 ``print``
@@ -193,7 +193,7 @@ For example the following template will output ``40``::
 Expressions
 -----------
 
-:mod:`ll.ull` supports many of the operators supported by Python. Getitem style
+:mod:`ll.ullc` supports many of the operators supported by Python. Getitem style
 element access is available, i.e. in the expression ``a[b]`` the following type
 combinations are supported:
 
@@ -241,7 +241,7 @@ The inverted containment test (via ``not in``) is available too.
 Functions
 ---------
 
-:mod:`ll.ull` supports a number of functions.
+:mod:`ll.ullc` supports a number of functions.
 
 ``isnone``
 ::::::::::
