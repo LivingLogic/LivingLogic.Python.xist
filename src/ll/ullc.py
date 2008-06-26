@@ -11,6 +11,13 @@
 from __future__ import division
 
 """
+:mod:`ll.ullc` provides templating for XML/HTML as well as any other text-based
+format. A template defines placeholders for data output and basic logic (like
+loops and conditional blocks), that define how the final rendered output will
+look.
+
+:mod:`ll.ullc` compiles a template to a bytecode format, which makes it possible
+to implement renderers for these templates in multiple programming languages.
 """
 
 __docformat__ = "reStructuredText"
