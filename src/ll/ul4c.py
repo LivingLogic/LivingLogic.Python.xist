@@ -240,7 +240,7 @@ class Opcode(object):
 
 	``"print"``:
 		Print the content of register :attr:`r1`. (If the object in the register
-      is not a string, it will be converted to a string first.)
+		is not a string, it will be converted to a string first.)
 
 	``"loadnone"``:
 		Load the constant :const:`None`.
