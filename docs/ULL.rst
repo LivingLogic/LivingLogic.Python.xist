@@ -7,11 +7,54 @@ look.
 to implement renderers for these templates in multiple programming languages.
 
 
+Embedding
+=========
+
+In the template source any text surrounded by ``<?`` and ``?>`` is a "template
+tag". The first word inside the template is the tag type. It defines what the
+tag does. For example ``<?print foo?>`` is a print tag (it prints the value of
+the variable ``foo``). A complete example template looks like this::
+
+	<?if data?>
+	<ul>
+	<?for lang in data?>
+	<li><?print xmlescape(lang)?></li>
+	<?end for?>
+	</ul>
+	<?end if?>
+
+(For text formats where the delimiters ``<?`` and ``?>`` collide with elements
+that are used often or where using these delimiters is inconvenient it's
+possible to specify a different delimiter pair when compiling the template.)
+
+A complete Python program that compiles a template and renders it might look
+like this::
+
+	from ll import ullc
+
+	code = u'''<?if data?>
+	<ul>
+	<?for lang in data?>
+	<li><?print xmlescape(lang)?></li>
+	<?end for?>
+	</ul>
+	<?end if?>'''
+
+	tmpl = ullc.compile(code)
+
+	print tmpl.renders([u"Python", u"Java", u"PHP"])
+
+The method :meth:`Template.renders` gets passed the data object (which is
+available in the template code under the name ``data``) and returns the rendered
+string.
+
+
 Data objects
 ============
 
-To render a template the renderer gets passed a data object. What :mod:`ll.ullc`
-supports in this data object is very similar to what JSON_ supports.
+The template requires a data object for rendering the final output.
+What :mod:`ll.ullc` supports in this data object is very similar to what JSON_
+supports.
 
 	.. _JSON: http://www.json.org/
 
@@ -35,55 +78,13 @@ loop).
 The data object itself will be available inside the template code under the name
 ``data``.
 
-The template code tries to mimic Python syntax as far as possible, but is
-limited to what is required for templates and does not allow executing arbitrary
-Python statements.
-
-
-Embedding
-=========
-
-In the template any text surrounded by ``<?`` and ``?>`` is a "template tag".
-The first word inside the template is the tag type. It defines what the tag
-does. For example ``<?print foo?>`` is a print tag (it prints the value of the
-variable ``foo``). A complete example template looks like this::
-
-	<?if data?>
-	<ul>
-	<?for lang in data?>
-	<li><?print xmlescape(lang)?></li>
-	<?end for?>
-	</ul>
-	<?end if?>
-
-(For text formats where the delimiters ``<?`` and ``?>`` collide with elements
-that are used often or where using these delimiters is inconvenient it's
-possible to specify a different delimiter pair when compiling the template.)
-
-A complete Python program that renders the template might look like this::
-
-	from ll import ullc
-
-	code = '''<?if data?>
-	<ul>
-	<?for lang in data?>
-	<li><?print xmlescape(lang)?></li>
-	<?end for?>
-	</ul>
-	<?end if?>'''
-
-	tmpl = ullc.compile(code)
-
-	data = [u"Python", u"Java", u"PHP"]
-
-	print u"".join(tmpl(data))
-
-The method :meth:`PythonCode.function` returns a Python generator that renders
-the template with the data object passed in.
-
 
 Template code
 =============
+
+The template code tries to mimic Python syntax as far as possible, but is
+limited to what is required for templates and does not allow executing arbitrary
+Python statements.
 
 :mod:`ll.ullc` supports the following tag types:
 
@@ -190,6 +191,54 @@ For example the following template will output ``40``::
 	<?print x?>
 
 
+``render``
+----------
+
+The render tag allows one template to call other templates. The following Python
+code demonstrates this::
+
+	from ll import ullc
+
+	# Template 1
+	source1 = u"""\
+	<?if data?>\
+	<ul>
+	<?for item in data?><?render itemtmpl(item)?><?end for?>\
+	</ul>
+	<?end if?>\
+	"""
+
+	tmpl1 = ullc.compile(source1)
+
+	# Template 2
+	source2 = u"<li><?print xmlescape(data)?></li>\n"
+
+	tmpl2 = ullc.compile(source2)
+
+	# Data object for the outer template
+	data = [u"Python", u"Java", u"PHP"]
+
+	# Dictionary of subtemplates for the outer template
+	templates = dict(itemtmpl=tmpl2)
+
+	print tmpl1.renders(data, templates)
+
+This will output::
+
+	<ul>
+	<li>Python</li>
+	<li>Java</li>
+	<li>PHP</li>
+	</ul>
+
+I.e. a dictionary of templates can be passed to the :meth:`renders` method as
+a additional argument. The keys in this dictionary are the names of the
+templates, which can be used in the ``<?render?>`` tag.
+``<?render itemtmpl(item)?>`` renders the ``itemtmpl`` template and passed the
+``item`` variable as the data object. All templates available in the outer
+template will be available in the inner template too.
+
+
 Expressions
 -----------
 
@@ -197,32 +246,35 @@ Expressions
 element access is available, i.e. in the expression ``a[b]`` the following type
 combinations are supported:
 
-	*	string, integer: Returns the ``b``th character from the string ``a``. Note
-		that negative ``b`` values are supported and are relative to the end, so
-		``a[-1]`` is the last character.
+	*	string, integer: Returns the ``b``\th character from the string ``a``.
+		Note that negative ``b`` values are supported and are relative to the end,
+		so ``a[-1]`` is the last character.
 
-	*	list, integer: Returns the ``b``th list entry of the list ``a``. Negative
+	*	list, integer: Returns the ``b``\th list entry of the list ``a``. Negative
 		``b`` values are supported too.
 
 	*	dict, string: Return the value from the dictionary ``a`` corresponding to
-		the key ``b``. (Note that some implemenations might support keys other
+		the key ``b``. (Note that some implementations might support keys other
 		than strings too.)
 
 Slices are also supported (for list and string objects). As in Python one or
 both of the indexes may be missing to start at the first or end at the last
 character/item. Negative indexes are relative to the end. Indexes that are out
-of bounds are simply clipped::
+of bounds are simply clipped:
 
 	*	``<?print "Hello, World!"[7:-1]?>`` prints ``World``.
 
-	*	``<?print "Hello, World!"[:-1]?>`` prints ``Hello, World``.
+	*	``<?print "Hello, World!"[:-8]?>`` prints ``Hello``.
 
-The following binary operators are supported: ``+``, ``-``, ``*``, ``/``,
-``//`` (truncating division) and ``&`` (modulo).
+The following binary operators are supported: ``+``, ``-``, ``*``, ``/`` (floor
+division), ``//`` (truncating division) and ``&`` (modulo).
 
 The usual boolean operators ``not``, ``and`` and ``or`` are supported. However
-``and`` and ``or`` don't short-circuit and always return ``True`` or ``False``
-(instead of one of the operators).
+``and`` and ``or`` don't short-circuit (but they always return one of the
+operands). For example, the following code will ouput the ``data.title``
+object if it's true, else ``data.id`` will be output::
+
+	<?print xmlescape(data.title or data.id)?>
 
 The two comparison operators ``==`` and ``!=`` are supported.
 
@@ -288,12 +340,13 @@ is returned.
 ``bool``
 ::::::::
 
-``bool(foo)`` converts ``foo`` to an boolean.
+``bool(foo)`` converts ``foo`` to an boolean. I.e. ``True`` or ``False`` is
+returned according to the truth value of ``foo``.
 
 ``int``
 :::::::
 
-``int(foo)`` converts ``foo`` to an integer. ``foo`` can be a string, a float
+``int(foo)`` converts ``foo`` to an integer. ``foo`` can be a string, a float,
 a boolean or an integer.
 
 ``str``
@@ -325,7 +378,7 @@ a list or dictionary). For example the following code::
 
 prints::
 
-	``0=f;1=o;2=o``
+	0=f;1=o;2=o
 	
 
 ``xmlescape``
@@ -336,9 +389,9 @@ with the appropriate XML entity references in the argument. For example::
 
 	<?print xmlescape("<'foo' & 'bar'>")?>
 
-prints:
+prints::
 
-	``&lt;&apos;foo&apos; &amp; ;&apos;bar&apos&gt;``
+	``&lt;&#39;foo&#39; &amp; ;&#39;bar&#39&gt;``
 
 If the argument is not a string, it will be converted to a string first.
 
@@ -350,18 +403,18 @@ If the argument is not a string, it will be converted to a string first.
 
 	<?for c in sorted('bar')?><?print c?><?end for?>
 
-prints:
+prints::
 
-	``abr``
+	abr
 
-Supported arguments are string, lists and dictionaries.
+Supported arguments are iterable objects, i.e. strings, lists and dictionaries.
 
 
 ``chr``
 :::::::
 
 ``chr(x)`` returns a one-character string with a character with the codepoint
-``x`` which must be an integer.
+``x``. ``x`` must be an integer.
 
 
 ``ord``
@@ -375,20 +428,21 @@ codepoint of that character as an integer.
 :::::::
 
 Return the hexadecimal representation of the integer argument (with a leading
-``0x``).
+``0x``). For example ``<?print hex(42)?>`` outputs ``0x2a``.
 
 
 ``oct``
 :::::::
 
 Return the octal representation of the integer argument (with a leading ``0o``).
+For example ``<?print oct(42)?>`` outputs ``0052``.
 
 
 ``bin``
 :::::::
 
 Return the binary representation of the integer argument (with a leading ``0b``).
-
+For example ``<?print bin(42)?>`` outputs ``0b101010``.
 
 ``range``
 ::::::::::
