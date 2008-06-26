@@ -188,7 +188,7 @@ from ll.xist.ns import html
 
 doc = parsers.parseurl("http://www.python.org/", tidy=True)
 
-for node in doc.walknode((html.a | html.area) & xfind.hasattr("href")):
+for node in doc.walknode((html.a | html.area) &amp; xfind.hasattr("href")):
 	print node.attrs.href
 </prog>
 
