@@ -139,7 +139,8 @@ class SyntaxError(Error):
 
 class UnterminatedStringError(Error):
 	"""
-	Exception that is raised when a string constant is not terminated.
+	Exception that is raised by the parser when a string constant is not
+	terminated.
 	"""
 	def __str__(self):
 		return self.format("Unterminated string")
@@ -147,8 +148,8 @@ class UnterminatedStringError(Error):
 
 class BlockError(Error):
 	"""
-	Exception that is raised when an illegal block structure is detected (e.g.
-	an ``endif`` without a previous ``if``).
+	Exception that is raised by the compiler when an illegal block structure is
+	detected (e.g. an ``endif`` without a previous ``if``).
 	"""
 
 	def __init__(self, message):
@@ -161,9 +162,9 @@ class BlockError(Error):
 
 class UnknownFunctionError(Error):
 	"""
-	Exception that is raised the function to be executed by the ``callfunc0``,
-	``callfunc1``, ``callfunc2`` or ``callfunc3`` opcodes is unknown to the
-	renderer.
+	Exception that is raised by the renderer if the function to be executed by
+	the ``callfunc0``, ``callfunc1``, ``callfunc2`` or ``callfunc3`` opcodes is
+	unknown.
 	"""
 
 	def __init__(self, funcname):
@@ -176,9 +177,9 @@ class UnknownFunctionError(Error):
 
 class UnknownMethodError(Error):
 	"""
-	Exception that is raised the method to be executed by the ``callmeth0``,
-	``callmeth1``, ``callmeth2``  or ``callmeth3`` opcodes is unknown to the
-	renderer.
+	Exception that is raised by the renderer if the method to be executed by the
+	``callmeth0``, ``callmeth1``, ``callmeth2``  or ``callmeth3`` opcodes is
+	unknown.
 	"""
 
 	def __init__(self, methname):
@@ -191,7 +192,7 @@ class UnknownMethodError(Error):
 
 class UnknownOpcodeError(Error):
 	"""
-	Exception that is raised when an unknown opcode is encountered.
+	Exception that is raised when an unknown opcode is encountered by the renderer.
 	"""
 
 	def __init__(self, opcode):
@@ -204,7 +205,8 @@ class UnknownOpcodeError(Error):
 
 class OutOfRegistersError(Error):
 	"""
-	Exception that is raised when there are no more free registers.
+	Exception that is raised by the compiler when there are no more free
+	registers. This might happen with very complex expressions in tag code.
 	"""
 
 	def __str__(self):
