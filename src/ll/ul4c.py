@@ -11,12 +11,12 @@
 from __future__ import division
 
 """
-:mod:`ll.ullc` provides templating for XML/HTML as well as any other text-based
+:mod:`ll.ul4c` provides templating for XML/HTML as well as any other text-based
 format. A template defines placeholders for data output and basic logic (like
 loops and conditional blocks), that define how the final rendered output will
 look.
 
-:mod:`ll.ullc` compiles a template to a bytecode format, which makes it possible
+:mod:`ll.ul4c` compiles a template to a bytecode format, which makes it possible
 to implement renderers for these templates in multiple programming languages.
 """
 
@@ -581,8 +581,8 @@ class Template(object):
 		stream = StringIO.StringIO(data)
 		header = stream.readline()
 		header = header.rstrip()
-		if header != "ull":
-			raise ValueError("invalid header, expected 'ull', got %r" % header)
+		if header != "ul4":
+			raise ValueError("invalid header, expected 'ul4', got %r" % header)
 		version = stream.readline()
 		version = version.rstrip()
 		if version != "1":
@@ -636,7 +636,7 @@ class Template(object):
 				yield term1
 				yield string
 
-		yield "ull\n1\n"
+		yield "ul4\n1\n"
 		for p in _writestr("<", "[", self.startdelim): yield p
 		yield "\n"
 		for p in _writestr(">", "]", self.enddelim): yield p
@@ -685,7 +685,7 @@ class Template(object):
 			indent += 1
 		_code("import sys, marshal")
 		_code("from ll.misc import xmlescape")
-		_code("from ll import ullc")
+		_code("from ll import ul4c")
 		_code("variables = dict(data=data)")
 		_code("source = %r" % self.source)
 		locations = tuple((oc.location.type, oc.location.starttag, oc.location.endtag, oc.location.startcode, oc.location.endcode) for oc in self.opcodes)
@@ -820,9 +820,9 @@ class Template(object):
 					elif opcode.arg == "hex":
 						_code("reg%d = hex(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "oct":
-						_code('reg%d = ullc._oct(reg%d)' % (opcode.r1, opcode.r2))
+						_code('reg%d = ul4c._oct(reg%d)' % (opcode.r1, opcode.r2))
 					elif opcode.arg == "bin":
-						_code('reg%d = ullc._bin(reg%d)' % (opcode.r1, opcode.r2))
+						_code('reg%d = ul4c._bin(reg%d)' % (opcode.r1, opcode.r2))
 					elif opcode.arg == "sorted":
 						_code("reg%d = sorted(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "range":
@@ -886,15 +886,15 @@ class Template(object):
 		except Exception, exc:
 			raise Error(exc).decorate(opcode.location)
 		indent -= 1
-		buildloc = "ullc.Location(source, *locations[sys.exc_info()[2].tb_lineno-startline])"
-		_code("except ullc.Error, exc:")
+		buildloc = "ul4c.Location(source, *locations[sys.exc_info()[2].tb_lineno-startline])"
+		_code("except ul4c.Error, exc:")
 		indent += 1
 		_code("exc.decorate(%s)" % buildloc)
 		_code("raise")
 		indent -= 1
 		_code("except Exception, exc:")
 		indent += 1
-		_code("raise ullc.Error(exc).decorate(%s)" % buildloc)
+		_code("raise ul4c.Error(exc).decorate(%s)" % buildloc)
 		return "\n".join(output)
 
 	def pythonfunction(self):

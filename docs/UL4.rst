@@ -1,9 +1,9 @@
-:mod:`ll.ullc` provides templating for XML/HTML as well as any other text-based
+:mod:`ll.ul4c` provides templating for XML/HTML as well as any other text-based
 format. A template defines placeholders for data output and basic logic (like
 loops and conditional blocks), that define how the final rendered output will
 look.
 
-:mod:`ll.ullc` compiles a template to a bytecode format, which makes it possible
+:mod:`ll.ul4c` compiles a template to a bytecode format, which makes it possible
 to implement renderers for these templates in multiple programming languages.
 
 
@@ -30,7 +30,7 @@ possible to specify a different delimiter pair when compiling the template.)
 A complete Python program that compiles a template and renders it might look
 like this::
 
-	from ll import ullc
+	from ll import ul4c
 
 	code = u'''<?if data?>
 	<ul>
@@ -40,7 +40,7 @@ like this::
 	</ul>
 	<?end if?>'''
 
-	tmpl = ullc.compile(code)
+	tmpl = ul4c.compile(code)
 
 	print tmpl.renders([u"Python", u"Java", u"PHP"])
 
@@ -53,7 +53,7 @@ Data objects
 ============
 
 The template requires a data object for rendering the final output.
-What :mod:`ll.ullc` supports in this data object is very similar to what JSON_
+What :mod:`ll.ul4c` supports in this data object is very similar to what JSON_
 supports.
 
 	.. _JSON: http://www.json.org/
@@ -86,7 +86,7 @@ The template code tries to mimic Python syntax as far as possible, but is
 limited to what is required for templates and does not allow executing arbitrary
 Python statements.
 
-:mod:`ll.ullc` supports the following tag types:
+:mod:`ll.ul4c` supports the following tag types:
 
 
 ``print``
@@ -197,7 +197,7 @@ For example the following template will output ``40``::
 The render tag allows one template to call other templates. The following Python
 code demonstrates this::
 
-	from ll import ullc
+	from ll import ul4c
 
 	# Template 1
 	source1 = u"""\
@@ -208,12 +208,12 @@ code demonstrates this::
 	<?end if?>\
 	"""
 
-	tmpl1 = ullc.compile(source1)
+	tmpl1 = ul4c.compile(source1)
 
 	# Template 2
 	source2 = u"<li><?print xmlescape(data)?></li>\n"
 
-	tmpl2 = ullc.compile(source2)
+	tmpl2 = ul4c.compile(source2)
 
 	# Data object for the outer template
 	data = [u"Python", u"Java", u"PHP"]
@@ -242,7 +242,7 @@ template will be available in the inner template too.
 Expressions
 -----------
 
-:mod:`ll.ullc` supports many of the operators supported by Python. Getitem style
+:mod:`ll.ul4c` supports many of the operators supported by Python. Getitem style
 element access is available, i.e. in the expression ``a[b]`` the following type
 combinations are supported:
 
@@ -271,7 +271,7 @@ division), ``//`` (truncating division) and ``&`` (modulo).
 
 The usual boolean operators ``not``, ``and`` and ``or`` are supported. However
 ``and`` and ``or`` don't short-circuit (but they always return one of the
-operands). For example, the following code will ouput the ``data.title``
+operands). For example, the following code will output the ``data.title``
 object if it's true, else ``data.id`` will be output::
 
 	<?print xmlescape(data.title or data.id)?>
@@ -289,17 +289,32 @@ Containment test via the ``in`` operator can be done, in the expression
 
 The inverted containment test (via ``not in``) is available too.
 
+Attribute access in the template code maps the dictionary style getitem access
+in the data object::
+
+	from ll import ul4c
+	tmpl = ul4c.compile("<?print data.foo?>")
+	print tmpl.renders(dict(foo="bar"))
+
+However getitem style access in the template is still possible::
+
+	from ll import ul4c
+	tmpl = ul4c.compile("<?print data['foo']?>")
+	print tmpl.renders(dict(foo="bar"))
+
 
 Functions
 ---------
 
-:mod:`ll.ullc` supports a number of functions.
+:mod:`ll.ul4c` supports a number of functions.
 
 ``isnone``
 ::::::::::
 
 ``isnone(foo)`` returns ``True`` if ``foo`` is ``None``, else ``False`` is
-returned.
+returned::
+
+	data is <?if isnone(data)?>None<?else?>something else<?end if?>!
 
 ``isbool``
 ::::::::::
@@ -374,7 +389,7 @@ or dictionary.
 Enumerates the items of the argument (which must be iterable, i.e. a string,
 a list or dictionary). For example the following code::
 
-	<?for (i, c) in "foo"?><?print i?>=<?print c?>;<?end for?>
+	<?for (i, c) in enumerate("foo")?><?print i?>=<?print c?>;<?end for?>
 
 prints::
 
@@ -384,8 +399,9 @@ prints::
 ``xmlescape``
 :::::::::::::
 
-``xmlescape`` replaces the characters ``&``, ``<``, ``>``, ``'`` and ``"``
-with the appropriate XML entity references in the argument. For example::
+``xmlescape`` takes a string as an argument. It returns a new string where the
+characters ``&``, ``<``, ``>``, ``'`` and ``"`` are replaced with the
+appropriate XML entity references. For example::
 
 	<?print xmlescape("<'foo' & 'bar'>")?>
 
@@ -435,7 +451,7 @@ Return the hexadecimal representation of the integer argument (with a leading
 :::::::
 
 Return the octal representation of the integer argument (with a leading ``0o``).
-For example ``<?print oct(42)?>`` outputs ``0052``.
+For example ``<?print oct(42)?>`` outputs ``0o52``.
 
 
 ``bin``
@@ -455,4 +471,46 @@ the step size (which can be negative).
 
 Methods
 -------
+
+Objects in :mod:`ll.ul4c` support some methods too (depending on the type of the
+object).
+
+``upper``
+:::::::::
+
+The ``upper`` method of strings returns an uppercase version of the string for
+which it's called::
+
+	<?print 'foo'.upper()?>
+
+prints::
+
+	FOO
+
+``lower``
+:::::::::
+
+The ``lower`` method of strings returns an lowercase version of the string for
+which it's called.
+
+``startswith``
+::::::::::::::
+
+``x.startswith(y)`` returns ``True`` if the string ``x`` starts with the string
+``y`` and ``False`` otherwise.
+
+``endswith``
+::::::::::::::
+
+``x.endswith(y)`` returns ``True`` if the string ``x`` ends with the string
+``y`` and ``False`` otherwise.
+
+
+0 split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower
+
+1 "split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find"):
+
+2 ("split", "rsplit", "find"):
+
+3 "find":
 

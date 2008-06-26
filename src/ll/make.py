@@ -1244,18 +1244,18 @@ class XPITAction(PipeAction):
 
 class ULLCompileAction(PipeAction):
 	"""
-	This action compiles a ULL template into a :class:`ll.ullc.Template` object.
+	This action compiles a ULL template into a :class:`ll.ul4c.Template` object.
 	"""
 
 	def execute(self, project, data):
 		project.writestep(self, "Compiling ULL template")
-		from ll import ullc
-		return ullc.compile(data)
+		from ll import ul4c
+		return ul4c.compile(data)
 
 
 class ULLDumpAction(PipeAction):
 	"""
-	This action dumps an :class:`ll.ullc.Template` object into a string.
+	This action dumps an :class:`ll.ul4c.Template` object into a string.
 	"""
 
 	def execute(self, project, data):
@@ -1265,13 +1265,13 @@ class ULLDumpAction(PipeAction):
 
 class ULLLoadAction(PipeAction):
 	"""
-	This action loads a :class:`ll.ullc.Template` object from a string.
+	This action loads a :class:`ll.ul4c.Template` object from a string.
 	"""
 
 	def execute(self, project, data):
 		project.writestep(self, "Loading ULL template")
-		from ll import ullc
-		return ullc.loads(data)
+		from ll import ul4c
+		return ul4c.loads(data)
 
 
 class CommandAction(PipeAction):

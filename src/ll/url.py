@@ -613,9 +613,9 @@ class LocalConnection(Connection):
 		else:
 			fullname = base
 		for childname in os.listdir(fullname):
-			fullchildname = os.path.join(fullname, childname)
+			ful4childname = os.path.join(fullname, childname)
 			relchildname = os.path.join(name, childname)
-			isdir = os.path.isdir(fullchildname)
+			isdir = os.path.isdir(ful4childname)
 			if (pattern is None or fnmatch.fnmatch(childname, pattern)) and which[isdir]:
 				url = urllib.pathname2url(relchildname)
 				if isdir:
@@ -673,9 +673,9 @@ if py is not None:
 				else:
 					fullname = base
 				for childname in os.listdir(fullname):
-					fullchildname = os.path.join(fullname, childname)
+					ful4childname = os.path.join(fullname, childname)
 					relchildname = os.path.join(name, childname)
-					isdir = os.path.isdir(fullchildname)
+					isdir = os.path.isdir(ful4childname)
 					if (pattern is None or fnmatch.fnmatch(childname, pattern)) and which[isdir]:
 						url = urllib.pathname2url(relchildname)
 						if isdir:
