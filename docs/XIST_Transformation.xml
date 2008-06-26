@@ -1,3 +1,4 @@
+<wrap>
 <p>Apart from the <pyref module="ll.xist.xsc" class="Node" method="convert"><meth>convert</meth></pyref>
 method, &xist; provides many tools for manipulating an &xml; tree.</p>
 
@@ -83,3 +84,4 @@ old node to tell <pyref module="ll.xist.xsc" class="Node" method="mapped"><meth>
 that it should recursively continue with the content of the node.</p>
 
 </section>
+</wrap>
