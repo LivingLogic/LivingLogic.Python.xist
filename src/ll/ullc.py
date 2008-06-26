@@ -13,6 +13,8 @@ from __future__ import division
 """
 """
 
+__docformat__ = "reStructuredText"
+
 
 import marshal, re, StringIO
 
@@ -218,10 +220,10 @@ class Opcode(object):
 	"""
 	An :class:`Opcode` stores an opcode. The type of opcode is stored in the
 	:attr:`code` attribute. Furthermore each opcode has up to five register
-	specifications (for the source or targets of the opcode) in the attributes
-	:attr:`r1`, :attr:`r2`, :attr:`r3`, :attr:`r4` and :attr:`r5`. Furthermore
-	if the opcode requires an additional argument (like a variable name or a
-	string value) this will be stored in the :attr:`arg` attribute.
+	specifications (for the source or targets of the operation) in the attributes
+	:attr:`r1`, :attr:`r2`, :attr:`r3`, :attr:`r4` and :attr:`r5`. If the opcode
+	requires an additional argument (like a variable name or the value of a
+	constant) this will be stored in the :attr:`arg` attribute.
 
 	The following opcodes are available:
 
