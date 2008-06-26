@@ -204,8 +204,7 @@ class UnknownOpcodeError(Error):
 
 class OutOfRegistersError(Error):
 	"""
-	Exception that is raised when there are no more free registers
-	(can't happen)
+	Exception that is raised when there are no more free registers.
 	"""
 
 	def __str__(self):
