@@ -567,6 +567,14 @@ def test_function_range():
 	check("", code, [10, 0, 2])
 
 
+def test_method_upper():
+	check("FOO", "<?print 'foo'.upper()?>")
+
+
+def test_method_lower():
+	check("foo", "<?print 'FOO'.lower()?>")
+
+
 def test_render():
 	t = ul4c.compile('(<?print data?>)')
 	check('(f)(o)(o)', '<?for i in data?><?render t(i)?><?end for?>', 'foo', dict(t=t))
