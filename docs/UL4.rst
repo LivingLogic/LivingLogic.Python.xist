@@ -565,3 +565,9 @@ given).
 
 ``find``
 ::::::::
+
+This string method search for a substring of the object for which it's called
+and returns the position of the first appearance of the substring or -1 if
+the string can't be found. For example ``"foobar".find("foo")`` returns 3.
+The optional second and third argument specify the start and end position for
+the search.
