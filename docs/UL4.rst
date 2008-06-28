@@ -559,8 +559,8 @@ second optional argument specifies the maximum number of splits to do.
 ``rsplit``
 ::::::::::
 The string method ``rsplit`` works like ``split``, except that splitting start
-from the end (which is only relevant, when the maximum number of splits is
-given.
+from the end (which is only relevant when the maximum number of splits is
+given).
 
 
 ``find``
