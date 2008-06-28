@@ -585,6 +585,21 @@ def test_method_endswith():
 	check("False", "<?print 'gurkhurz'.endswith('gurk')?>")
 
 
+def test_method_strip():
+	check("gurk", r"<?print ' \t\r\ngurk \t\r\n'.strip()?>")
+	check("gurk", r"<?print 'xyzzygurkxyzzy'.strip('xyz')?>")
+
+
+def test_method_lstrip():
+	check("gurk \t\r\n", r"<?print ' \t\r\ngurk \t\r\n'.lstrip()?>")
+	check("gurkxyzzy", r"<?print 'xyzzygurkxyzzy'.lstrip('xyz')?>")
+
+
+def test_method_rstrip():
+	check(" \t\r\ngurk", r"<?print ' \t\r\ngurk \t\r\n'.rstrip()?>")
+	check("xyzzygurk", r"<?print 'xyzzygurkxyzzy'.rstrip('xyz')?>")
+
+
 def test_render():
 	t = ul4c.compile('(<?print data?>)')
 	check('(f)(o)(o)', '<?for i in data?><?render t(i)?><?end for?>', 'foo', dict(t=t))
