@@ -568,11 +568,21 @@ def test_function_range():
 
 
 def test_method_upper():
-	check("FOO", "<?print 'foo'.upper()?>")
+	check("GURK", "<?print 'gurk'.upper()?>")
 
 
 def test_method_lower():
-	check("foo", "<?print 'FOO'.lower()?>")
+	check("gurk", "<?print 'GURK'.lower()?>")
+
+
+def test_method_startswith():
+	check("True", "<?print 'gurkhurz'.startswith('gurk')?>")
+	check("False", "<?print 'gurkhurz'.startswith('hurz')?>")
+
+
+def test_method_endswith():
+	check("True", "<?print 'gurkhurz'.endswith('hurz')?>")
+	check("False", "<?print 'gurkhurz'.endswith('gurk')?>")
 
 
 def test_render():
