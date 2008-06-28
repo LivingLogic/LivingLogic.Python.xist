@@ -1436,7 +1436,7 @@ class CallMeth(AST):
 			raise ValueError("%d arguments not supported" % len(self.args))
 		ro = self.obj.compile(template)
 		rs = [arg.compile(template) for arg in self.args]
-		template.opcode("callmeth%d" % len(self.args), r1=ro, r2=ro, *rs, **dict(arg=self.name.name))
+		template.opcode("callmeth%d" % len(self.args), ro, ro, *rs, **dict(arg=self.name.name))
 		for r in rs:
 			template._freereg(r)
 		return ro
