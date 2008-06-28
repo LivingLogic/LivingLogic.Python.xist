@@ -600,6 +600,20 @@ def test_method_rstrip():
 	check("xyzzygurk", r"<?print 'xyzzygurkxyzzy'.rstrip('xyz')?>")
 
 
+def test_method_split():
+	check("(g)(u)(r)(k)", r"<?for item in ' \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n'.split()?>(<?print item?>)<?end for?>")
+	check("(g)(u \t\r\nr \t\r\nk \t\r\n)", r"<?for item in ' \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n'.split(None, 1)?>(<?print item?>)<?end for?>")
+	check("()(g)(u)(r)(k)()", r"<?for item in 'xxgxxuxxrxxkxx'.split('xx')?>(<?print item?>)<?end for?>")
+	check("()(g)(uxxrxxkxx)", r"<?for item in 'xxgxxuxxrxxkxx'.split('xx', 2)?>(<?print item?>)<?end for?>")
+
+
+def test_method_rsplit():
+	check("(g)(u)(r)(k)", r"<?for item in ' \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n'.rsplit()?>(<?print item?>)<?end for?>")
+	check("( \t\r\ng \t\r\nu \t\r\nr)(k)", r"<?for item in ' \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n'.rsplit(None, 1)?>(<?print item?>)<?end for?>")
+	check("()(g)(u)(r)(k)()", r"<?for item in 'xxgxxuxxrxxkxx'.rsplit('xx')?>(<?print item?>)<?end for?>")
+	check("(xxgxxuxxr)(k)()", r"<?for item in 'xxgxxuxxrxxkxx'.rsplit('xx', 2)?>(<?print item?>)<?end for?>")
+
+
 def test_render():
 	t = ul4c.compile('(<?print data?>)')
 	check('(f)(o)(o)', '<?for i in data?><?render t(i)?><?end for?>', 'foo', dict(t=t))
