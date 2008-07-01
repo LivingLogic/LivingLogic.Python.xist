@@ -9,7 +9,7 @@
 ## See ll/__init__.py for the license
 
 
-import re, StringIO
+import re, datetime, StringIO
 
 import py.test
 
@@ -19,18 +19,35 @@ from ll import ul4c
 def check(result, source, data={}, templates={}):
 	# Check with template compiled from source
 	t1 = ul4c.compile(source)
-	assert t1.renders(data, templates) == result
+	assert result == t1.renders(data, templates)
 
 	# Check with template loaded again via the string interface
 	t2 = ul4c.loads(t1.dumps())
-	assert t2.renders(data, templates) == result
+	assert result == t2.renders(data, templates)
 
 	# Check with template loaded again via the stream interface
 	stream = StringIO.StringIO()
 	t1.dump(stream)
 	stream.seek(0)
 	t3 = ul4c.load(stream)
-	assert t3.renders(data, templates) == result
+	assert result == t3.renders(data, templates)
+
+
+def checkle(result, source, data={}, templates={}):
+	# Check with template compiled from source
+	t1 = ul4c.compile(source)
+	assert result <= t1.renders(data, templates)
+
+	# Check with template loaded again via the string interface
+	t2 = ul4c.loads(t1.dumps())
+	assert result <= t2.renders(data, templates)
+
+	# Check with template loaded again via the stream interface
+	stream = StringIO.StringIO()
+	t1.dump(stream)
+	stream.seek(0)
+	t3 = ul4c.load(stream)
+	assert result <= t3.renders(data, templates)
 
 
 def checkcompileerror(msg, source):
@@ -316,6 +333,13 @@ def test_bracket():
 	check("4", '<?code x=4?><?print %s?>' % sv)
 
 
+def test_function_now():
+	checkrunerror("function u?'now' unknown", "<?print now(1)?>")
+	checkrunerror("function u?'now' unknown", "<?print now(1, 2)?>")
+	now = unicode(datetime.datetime.now())
+	checkle(now, "<?print now()?>")
+
+
 def test_function_xmlescape():
 	checkrunerror("function u?'xmlescape' unknown", "<?print xmlescape()?>")
 	checkrunerror("function u?'xmlescape' unknown", "<?print xmlescape(1, 2)?>")
@@ -382,6 +406,7 @@ def test_function_isnone():
 	check("False", code, 42)
 	check("False", code, 4.2)
 	check("False", code, "foo")
+	check("False", code, datetime.datetime.now())
 	check("False", code, ())
 	check("False", code, [])
 	check("False", code, {})
@@ -397,6 +422,7 @@ def test_function_isbool():
 	check("False", code, 42)
 	check("False", code, 4.2)
 	check("False", code, "foo")
+	check("False", code, datetime.datetime.now())
 	check("False", code, ())
 	check("False", code, [])
 	check("False", code, {})
@@ -412,6 +438,7 @@ def test_function_isint():
 	check("True", code, 42)
 	check("False", code, 4.2)
 	check("False", code, "foo")
+	check("False", code, datetime.datetime.now())
 	check("False", code, ())
 	check("False", code, [])
 	check("False", code, {})
@@ -427,6 +454,7 @@ def test_function_isfloat():
 	check("False", code, 42)
 	check("True", code, 4.2)
 	check("False", code, "foo")
+	check("False", code, datetime.datetime.now())
 	check("False", code, ())
 	check("False", code, [])
 	check("False", code, {})
@@ -442,6 +470,23 @@ def test_function_isstr():
 	check("False", code, 42)
 	check("False", code, 4.2)
 	check("True", code, "foo")
+	check("False", code, datetime.datetime.now())
+	check("False", code, ())
+	check("False", code, [])
+	check("False", code, {})
+
+
+def test_function_isdate():
+	checkrunerror("function u?'isdate' unknown", "<?print isdate()?>")
+	checkrunerror("function u?'isdate' unknown", "<?print isdate(1, 2)?>")
+	code = "<?print isdate(data)?>"
+	check("False", code, None)
+	check("False", code, True)
+	check("False", code, False)
+	check("False", code, 42)
+	check("False", code, 4.2)
+	check("False", code, "foo")
+	check("True", code, datetime.datetime.now())
 	check("False", code, ())
 	check("False", code, [])
 	check("False", code, {})
@@ -457,6 +502,7 @@ def test_function_islist():
 	check("False", code, 42)
 	check("False", code, 4.2)
 	check("False", code, "foo")
+	check("False", code, datetime.datetime.now())
 	check("True", code, ())
 	check("True", code, [])
 	check("False", code, {})
@@ -472,6 +518,7 @@ def test_function_isdict():
 	check("False", code, 42)
 	check("False", code, 4.2)
 	check("False", code, "foo")
+	check("False", code, datetime.datetime.now())
 	check("False", code, ())
 	check("False", code, [])
 	check("True", code, {})
@@ -612,6 +659,17 @@ def test_method_rsplit():
 	check("( \t\r\ng \t\r\nu \t\r\nr)(k)", r"<?for item in ' \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n'.rsplit(None, 1)?>(<?print item?>)<?end for?>")
 	check("()(g)(u)(r)(k)()", r"<?for item in 'xxgxxuxxrxxkxx'.rsplit('xx')?>(<?print item?>)<?end for?>")
 	check("(xxgxxuxxr)(k)()", r"<?for item in 'xxgxxuxxrxxkxx'.rsplit('xx', 2)?>(<?print item?>)<?end for?>")
+
+
+def test_method_format():
+	now = datetime.datetime.now()
+	format = "%Y-%m-%d %H:%M:%S"
+	check(now.strftime(format), r"<?print data.format('%s')?>" % format, now)
+
+
+def test_method_isoformat():
+	now = datetime.datetime.now()
+	check(now.isoformat(), r"<?print data.isoformat()?>", now)
 
 
 def test_render():

@@ -63,6 +63,7 @@ Supported types are:
 	*	strings
 	*	integers
 	*	floats
+	*	date objects
 	*	The "null" value (``None``)
 	*	boolean values (``True`` and ``False``)
 	*	lists
@@ -309,6 +310,12 @@ Functions
 :mod:`ll.ul4c` supports a number of functions.
 
 
+``now``
+:::::::
+
+``now()`` returns the current date and time as a data object.
+
+
 ``isnone``
 ::::::::::
 
@@ -343,6 +350,13 @@ is returned.
 :::::::::
 
 ``isstr(foo)`` returns ``True`` if ``foo`` is a string object, else ``False``
+is returned.
+
+
+``isdate``
+::::::::::
+
+``isdate(foo)`` returns ``True`` if ``foo`` is a date object, else ``False``
 is returned.
 
 

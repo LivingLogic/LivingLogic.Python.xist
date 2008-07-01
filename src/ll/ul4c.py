@@ -23,7 +23,7 @@ to implement renderers for these templates in multiple programming languages.
 __docformat__ = "reStructuredText"
 
 
-import marshal, re, StringIO
+import re, datetime, marshal, StringIO
 
 from ll import spark
 
@@ -683,7 +683,7 @@ class Template(object):
 		if function is not None:
 			_code("def %s(data, templates={}):" % function)
 			indent += 1
-		_code("import sys, marshal")
+		_code("import sys, marshal, datetime")
 		_code("from ll.misc import xmlescape")
 		_code("from ll import ul4c")
 		_code("variables = dict(data=data)")
@@ -783,7 +783,10 @@ class Template(object):
 				elif opcode.code == "mod":
 					_code("reg%d = reg%d %% reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "callfunc0":
-					raise UnknownFunctionError(opcode.arg)
+					if opcode.arg == "now":
+						_code("reg%d = datetime.datetime.now()" % (opcode.r1))
+					else:
+						raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callfunc1":
 					if opcode.arg == "xmlescape":
 						_code("reg%d = xmlescape(unicode(reg%d)) if reg%d is not None else u''" % (opcode.r1, opcode.r2, opcode.r2))
@@ -807,6 +810,8 @@ class Template(object):
 						_code("reg%d = isinstance(reg%d, float)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "isbool":
 						_code("reg%d = isinstance(reg%d, bool)" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "isdate":
+						_code("reg%d = isinstance(reg%d, datetime.datetime)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "islist":
 						_code("reg%d = isinstance(reg%d, (list, tuple))" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "isdict":
@@ -840,7 +845,7 @@ class Template(object):
 					else:
 						raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callmeth0":
-					if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower"):
+					if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower", "isoformat"):
 						_code("reg%d = reg%d.%s()" % (opcode.r1, opcode.r2, opcode.arg))
 					elif opcode.arg == "items":
 						_code("reg%d = reg%d.iteritems()" % (opcode.r1, opcode.r2))
@@ -849,6 +854,8 @@ class Template(object):
 				elif opcode.code == "callmeth1":
 					if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find"):
 						_code("reg%d = reg%d.%s(reg%d)" % (opcode.r1, opcode.r2, opcode.arg, opcode.r3))
+					elif opcode.arg == "format":
+						_code("reg%d = ul4c._format(reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3))
 					else:
 						raise UnknownMethodError(opcode.arg)
 				elif opcode.code == "callmeth2":
@@ -1933,3 +1940,13 @@ def _bin(value):
 		v.append(str(value&1))
 		value >>= 1
 	return prefix+"".join(v)[::-1]
+
+
+def _format(obj, format):
+	"""
+	Helper for the ``format`` method.
+	"""
+	if isinstance(obj, datetime.datetime):
+		return obj.strftime(format.encode("utf-8"))
+	else:
+		return obj.format(format) # This will raise a ``AttributeError``
