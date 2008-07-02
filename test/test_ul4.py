@@ -173,6 +173,14 @@ def test_string():
 	check('yes', '<?if "foo"?>yes<?else?>no<?end if?>')
 
 
+def test_date():
+	check('2000-02-29T00:00:00', '<?print 2000-02-29T.isoformat()?>')
+	check('2000-02-29T12:34:00', '<?print 2000-02-29T12:34.isoformat()?>')
+	check('2000-02-29T12:34:56', '<?print 2000-02-29T12:34:56.isoformat()?>')
+	check('2000-02-29T12:34:56.987654', '<?print 2000-02-29T12:34:56.987654.isoformat()?>')
+	check('yes', '<?if 2000-02-29T12:34:56.987654?>yes<?else?>no<?end if?>')
+
+
 def test_code_storevar():
 	check('42', '<?code x = 42?><?print x?>')
 	check('xyzzy', '<?code x = "xyzzy"?><?print x?>')

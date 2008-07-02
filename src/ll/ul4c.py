@@ -28,6 +28,10 @@ import re, datetime, marshal, StringIO
 from ll import spark
 
 
+# Regular expression used for splitting dates
+datesplitter = re.compile("[-T:.]")
+
+
 ###
 ### Location information
 ###
@@ -260,6 +264,10 @@ class Opcode(object):
 	``"loadfloat"``:
 		Load the float value :attr:`arg` into the register :attr:`r1`.
 
+	``"loaddate"``:
+		Load the date value :attr:`arg` into the register :attr:`r1`. :attr:`arg`
+		must be in ISO format (e.g. ``2008-07-02T11:05:55.460464``).
+
 	``"loadvar"``:
 		Load the variable named :attr:`arg` into the register :attr:`r1`.
 
@@ -435,6 +443,8 @@ class Opcode(object):
 		elif self.code == "loadint":
 			return "r%r = %s" % (self.r1, self.arg)
 		elif self.code == "loadfloat":
+			return "r%r = %s" % (self.r1, self.arg)
+		elif self.code == "loaddate":
 			return "r%r = %s" % (self.r1, self.arg)
 		elif self.code == "loadvar":
 			return "r%r = vars[%r]" % (self.r1, self.arg)
@@ -715,6 +725,8 @@ class Template(object):
 					_code("reg%d = False" % opcode.r1)
 				elif opcode.code == "loadtrue":
 					_code("reg%d = True" % opcode.r1)
+				elif opcode.code == "loaddate":
+					_code("reg%d = datetime.datetime(%s)" % (opcode.r1, ", ".join(str(int(p)) for p in datesplitter.split(opcode.arg))))
 				elif opcode.code == "loadvar":
 					_code("reg%d = variables[%r]" % (opcode.r1, opcode.arg))
 				elif opcode.code == "storevar":
@@ -1157,6 +1169,15 @@ class Str(Value):
 	type = "str"
 
 
+class Date(Value):
+	type = "date"
+
+	def compile(self, template):
+		r = template._allocreg()
+		template.opcode("load%s" % self.type, r1=r, arg=self.value.isoformat())
+		return r
+
+
 class Name(AST):
 	type = "name"
 
@@ -1486,6 +1507,11 @@ class Scanner(spark.Scanner):
 			raise Error(exc).decorate(location)
 		return self.rv
 
+	# Must be before the int and float constants
+	@spark.token("\\d{4}-\\d{2}-\\d{2}T(\\d{2}:\\d{2}(:\\d{2}(\\.\\d{6})?)?)?", "default")
+	def date(self, start, end, s):
+		self.rv.append(Date(start, end, datetime.datetime(*map(int, filter(None, datesplitter.split(s))))))
+
 	@spark.token("\\(|\\)|\\[|\\]|\\.|,|==|\\!=|=|\\+=|\\-=|\\*=|//=|/=|%=|%|:|\\+|-|\\*|//|/", "default")
 	def token(self, start, end, s):
 		self.rv.append(Token(start, end, s))
@@ -1671,6 +1697,7 @@ class ExprParser(spark.Parser):
 	@spark.production('expr11 ::= str')
 	@spark.production('expr11 ::= int')
 	@spark.production('expr11 ::= float')
+	@spark.production('expr11 ::= date')
 	@spark.production('expr11 ::= name')
 	def expr_atom(self, atom):
 		return atom

@@ -11,14 +11,14 @@ Embedding
 =========
 
 In the template source any text surrounded by ``<?`` and ``?>`` is a "template
-tag". The first word inside the template is the tag type. It defines what the
-tag does. For example ``<?print foo?>`` is a print tag (it prints the value of
-the variable ``foo``). A complete example template looks like this::
+tag". The first word inside the tag is the tag type. It defines what the tag
+does. For example ``<?print foo?>`` is a print tag (it prints the value of the
+variable ``foo``). A complete example template looks like this::
 
 	<?if data?>
 	<ul>
-	<?for lang in data?>
-	<li><?print xmlescape(lang)?></li>
+	<?for item in data?>
+	<li><?print xmlescape(item)?></li>
 	<?end for?>
 	</ul>
 	<?end if?>
@@ -34,8 +34,8 @@ like this::
 
 	code = u'''<?if data?>
 	<ul>
-	<?for lang in data?>
-	<li><?print xmlescape(lang)?></li>
+	<?for item in data?>
+	<li><?print xmlescape(item)?></li>
 	<?end for?>
 	</ul>
 	<?end if?>'''
@@ -78,6 +78,61 @@ loop).
 
 The data object itself will be available inside the template code under the name
 ``data``.
+
+Constants of these types can be created for all types except lists and
+dictionaries. Most constants look similar to the related Python constant.
+
+
+The "null" constant
+-------------------
+
+The "null" constant can be referred to via ``None``.
+
+
+Boolean constants
+-----------------
+
+The boolean constants can be referred to via ``True`` and ``False``.
+
+
+Integer constants
+-----------------
+
+Integer constants can be written in decimal, hexadecimal, octal and binary:
+``42``, ``0x2a``, ``0o52`` and ``0b101010`` all refer to the integer value 42.
+
+
+Float constants
+---------------
+
+Float constants must contain a decimal point or an exponential specifier,
+e.g. ``42.``, ``4e23``.
+
+
+String constants
+----------------
+
+Strings are delimited with single or double quotes and support all escape
+sequences that Python supports (except ``\N{}``). Strings constants are always
+unicode objects, so ``\uXXXX`` escaping is possible. Examples:
+
+	* ``"abc"`` and ``'abc'``;
+
+	*	``"'"`` and ``'\''`` are single quotes;
+
+	*	``'"'`` and ``"\""`` are double quotes;
+
+	*	``"\n"`` is a line feed and ``"\t"`` is a tab;
+
+	*	``"\x61"`` and ``"\u0061"`` are lowercase "a"s;
+
+
+Date constants
+--------------
+
+Creating date constants
+ 
+
 
 
 Template code
