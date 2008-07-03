@@ -455,7 +455,9 @@ undefined, but should follow Python's repr format.
 ::::::::
 
 ``repr(foo)`` converts ``foo`` to a string representation that is useful for
-debugging proposes. The output is the same as for Python's :func:`repr` function.
+debugging proposes. The output is a constant expression that could be used to
+recreate the object (except for list and dict, where ``repr`` follows the format
+of Python's :func:`repr` function).
 
 
 ``len``

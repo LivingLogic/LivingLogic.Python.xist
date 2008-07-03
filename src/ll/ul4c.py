@@ -829,7 +829,7 @@ class Template(object):
 					elif opcode.arg == "isdict":
 						_code("reg%d = isinstance(reg%d, dict)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "repr":
-						_code("reg%d = unicode(repr(reg%d))" % (opcode.r1, opcode.r2))
+						_code("reg%d = ul4c._repr(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "chr":
 						_code("reg%d = unichr(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "ord":
@@ -1979,3 +1979,15 @@ def _format(obj, format):
 		return obj.strftime(format.encode("utf-8"))
 	else:
 		return obj.format(format) # This will raise a ``AttributeError``
+
+
+def _repr(obj):
+	"""
+	Helper for the ``repr`` function.
+	"""
+	if isinstance(obj, unicode):
+		return unicode(repr(obj)[1:])
+	elif isinstance(obj, datetime.datetime):
+		return unicode(obj.isoformat())
+	else:
+		return unicode(repr(obj))
