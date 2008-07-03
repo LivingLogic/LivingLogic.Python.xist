@@ -23,7 +23,7 @@ to implement renderers for these templates in multiple programming languages.
 __docformat__ = "reStructuredText"
 
 
-import re, datetime, marshal, StringIO
+import re, datetime, marshal, StringIO, locale
 
 from ll import spark
 
@@ -1939,6 +1939,10 @@ class RenderParser(ExprParser):
 		return Render(name.start, _2.end, name, expr)
 
 
+###
+### Helper functions use at template runtime
+###
+
 def _oct(value):
 	"""
 	Helper for the ``oct`` function.
@@ -1969,6 +1973,8 @@ def _bin(value):
 	return prefix+"".join(v)[::-1]
 
 
+_format_int = re.compile("(.??)([<=>^]?)([-+ ])?(0?)(\\d+)([bcdoxXn]?)")
+
 def _format(obj, format):
 	"""
 	Helper for the ``format`` method.
@@ -1977,8 +1983,11 @@ def _format(obj, format):
 		if "%f" in format:
 			format = format.replace("%f", "%06d" % obj.microsecond) # FIXME: This would replace "%%f", which is wrong (wait for Python 2.6?)
 		return obj.strftime(format.encode("utf-8"))
+	elif obj is None or isinstance(obj, (int, long, float, str, unicode)):
+		from ll import stringformat
+		return stringformat.format_builtin_type(obj, format)
 	else:
-		return obj.format(format) # This will raise a ``AttributeError``
+		return obj.format(format) # This will raise an ``AttributeError``
 
 
 def _repr(obj):
