@@ -1974,6 +1974,8 @@ def _format(obj, format):
 	Helper for the ``format`` method.
 	"""
 	if isinstance(obj, datetime.datetime):
+		if "%f" in format:
+			format = format.replace("%f", "%06d" % obj.microsecond) # FIXME: This would replace "%%f", which is wrong (wait for Python 2.6?)
 		return obj.strftime(format.encode("utf-8"))
 	else:
 		return obj.format(format) # This will raise a ``AttributeError``
