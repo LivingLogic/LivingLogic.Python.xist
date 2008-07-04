@@ -195,6 +195,8 @@ def test_dict():
 	check('', '<?for (key, value) in {}.items()?><?print key?>:<?print value?>\n<?end for?>')
 	check('1:2\n', '<?for (key, value) in {1:2}.items()?><?print key?>:<?print value?>\n<?end for?>')
 	check('1:2\n', '<?for (key, value) in {1:2,}.items()?><?print key?>:<?print value?>\n<?end for?>')
+	# With duplicate keys, later ones simply overwrite earlier ones
+	check('1:3\n', '<?for (key, value) in {1:2, 1: 3}.items()?><?print key?>:<?print value?>\n<?end for?>')
 	check('no', '<?if {}?>yes<?else?>no<?end if?>')
 	check('yes', '<?if {1:2}?>yes<?else?>no<?end if?>')
 
