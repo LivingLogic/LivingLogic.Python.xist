@@ -16,38 +16,38 @@ import py.test
 from ll import ul4c
 
 
-def check(result, source, data={}, templates={}):
+def check(result, source, templates={}, **variables):
 	# Check with template compiled from source
 	t1 = ul4c.compile(source)
-	assert result == t1.renders(data, templates)
+	assert result == t1.renders(templates, **variables)
 
 	# Check with template loaded again via the string interface
 	t2 = ul4c.loads(t1.dumps())
-	assert result == t2.renders(data, templates)
+	assert result == t2.renders(templates, **variables)
 
 	# Check with template loaded again via the stream interface
 	stream = StringIO.StringIO()
 	t1.dump(stream)
 	stream.seek(0)
 	t3 = ul4c.load(stream)
-	assert result == t3.renders(data, templates)
+	assert result == t3.renders(templates, **variables)
 
 
-def checkle(result, source, data={}, templates={}):
+def checkle(result, source, templates={}, **variables):
 	# Check with template compiled from source
 	t1 = ul4c.compile(source)
-	assert result <= t1.renders(data, templates)
+	assert result <= t1.renders(templates, **variables)
 
 	# Check with template loaded again via the string interface
 	t2 = ul4c.loads(t1.dumps())
-	assert result <= t2.renders(data, templates)
+	assert result <= t2.renders(templates, **variables)
 
 	# Check with template loaded again via the stream interface
 	stream = StringIO.StringIO()
 	t1.dump(stream)
 	stream.seek(0)
 	t3 = ul4c.load(stream)
-	assert result <= t3.renders(data, templates)
+	assert result <= t3.renders(templates, **variables)
 
 
 def checkcompileerror(msg, source):
@@ -59,11 +59,11 @@ def checkcompileerror(msg, source):
 		py.test.fail("Didn't raise exception")
 
 
-def checkrunerror(msg, source, data={}, templates={}):
+def checkrunerror(msg, source, templates={}, **variables):
 	# Check with template compiled from source
 	t1 = ul4c.compile(source)
 	try:
-		t1.renders(data, templates)
+		t1.renders(templates, **variables)
 	except Exception, exc:
 		assert re.search(msg, "%s.%s: %s" % (exc.__class__.__module__, exc.__class__.__name__, exc)) is not None
 	else:
@@ -72,7 +72,7 @@ def checkrunerror(msg, source, data={}, templates={}):
 	# Check with template loaded again via the string interface
 	t2 = ul4c.loads(t1.dumps())
 	try:
-		t2.renders(data, templates)
+		t2.renders(templates, **variables)
 	except Exception, exc:
 		assert re.search(msg, "%s.%s: %s" % (exc.__class__.__module__, exc.__class__.__name__, exc)) is not None
 	else:
@@ -84,7 +84,7 @@ def checkrunerror(msg, source, data={}, templates={}):
 	stream.seek(0)
 	t3 = ul4c.load(stream)
 	try:
-		t3.renders(data, templates)
+		t3.renders(templates, **variables)
 	except Exception, exc:
 		assert re.search(msg, "%s.%s: %s" % (exc.__class__.__module__, exc.__class__.__name__, exc)) is not None
 	else:
@@ -240,31 +240,31 @@ def test_code_delvar():
 
 
 def test_for_string():
-	check('', '<?for c in data?>(<?print c?>)<?end for?>', "")
-	check('(g)(u)(r)(k)', '<?for c in data?>(<?print c?>)<?end for?>', "gurk")
+	check('', '<?for c in data?>(<?print c?>)<?end for?>', data="")
+	check('(g)(u)(r)(k)', '<?for c in data?>(<?print c?>)<?end for?>', data="gurk")
 
 
 def test_for_list():
-	check('', '<?for c in data?>(<?print c?>)<?end for?>', "")
-	check('(g)(u)(r)(k)', '<?for c in data?>(<?print c?>)<?end for?>', ["g", "u", "r", "k"])
+	check('', '<?for c in data?>(<?print c?>)<?end for?>', data="")
+	check('(g)(u)(r)(k)', '<?for c in data?>(<?print c?>)<?end for?>', data=["g", "u", "r", "k"])
 
 
 def test_for_dict():
-	check('', '<?for c in data?>(<?print c?>)<?end for?>', {})
-	check('(a)(b)(c)', '<?for c in sorted(data)?>(<?print c?>)<?end for?>', dict(a=1, b=2, c=3))
+	check('', '<?for c in data?>(<?print c?>)<?end for?>', data={})
+	check('(a)(b)(c)', '<?for c in sorted(data)?>(<?print c?>)<?end for?>', data=dict(a=1, b=2, c=3))
 
 
 def test_for_nested():
-	check('[(1)(2)][(3)(4)]', '<?for list in data?>[<?for n in list?>(<?print n?>)<?end for?>]<?end for?>', [[1, 2], [3, 4]])
+	check('[(1)(2)][(3)(4)]', '<?for list in data?>[<?for n in list?>(<?print n?>)<?end for?>]<?end for?>', data=[[1, 2], [3, 4]])
 
 
 def test_if():
-	check('42', '<?if data?><?print data?><?end if?>', 42)
+	check('42', '<?if data?><?print data?><?end if?>', data=42)
 
 
 def test_else():
-	check('42', '<?if data?><?print data?><?else?>no<?end if?>', 42)
-	check('no', '<?if data?><?print data?><?else?>no<?end if?>', 0)
+	check('42', '<?if data?><?print data?><?else?>no<?end if?>', data=42)
+	check('no', '<?if data?><?print data?><?else?>no<?end if?>', data=0)
 
 
 def test_block_errors():
@@ -293,7 +293,7 @@ def test_empty():
 def test_add():
 	check('42', '<?code x=21?><?code y=21?><?print x+y?>')
 	check('foobar', '<?code x="foo"?><?code y="bar"?><?print x+y?>')
-	check('(f)(o)(o)(b)(a)(r)', '<?for i in data.foo+data.bar?>(<?print i?>)<?end for?>', dict(foo="foo", bar="bar"))
+	check('(f)(o)(o)(b)(a)(r)', '<?for i in data.foo+data.bar?>(<?print i?>)<?end for?>', data=dict(foo="foo", bar="bar"))
 
 
 def test_sub():
@@ -305,7 +305,7 @@ def test_mul():
 	check(str(17*23), '<?code x=17?><?code y=23?><?print x*y?>')
 	check(17*"foo", '<?code x=17?><?code y="foo"?><?print x*y?>')
 	check("foo"*17, '<?code x="foo"?><?code y=17?><?print x*y?>')
-	check("(foo)(bar)(foo)(bar)(foo)(bar)", '<?for i in 3*data?>(<?print i?>)<?end for?>', ["foo", "bar"])
+	check("(foo)(bar)(foo)(bar)(foo)(bar)", '<?for i in 3*data?>(<?print i?>)<?end for?>', data=["foo", "bar"])
 
 
 def test_truediv():
@@ -342,12 +342,12 @@ def test_precedence():
 	check("10", '<?print -2+-3*-4?>')
 	check("14", '<?print --2+--3*--4?>')
 	check("14", '<?print (-(-2))+(-((-3)*-(-4)))?>')
-	check("42", '<?print 2*data.value?>', dict(value=21))
-	check("42", '<?print data.value[0]?>', dict(value=[42]))
-	check("42", '<?print data[0].value?>', [dict(value=42)])
-	check("42", '<?print data[0][0][0]?>', [[[42]]])
-	check("42", '<?print data.value.value[0]?>', dict(value=dict(value=[42])))
-	check("42", '<?print data.value.value[0].value.value[0]?>', dict(value=dict(value=[dict(value=dict(value=[42]))])))
+	check("42", '<?print 2*data.value?>', data=dict(value=21))
+	check("42", '<?print data.value[0]?>', data=dict(value=[42]))
+	check("42", '<?print data[0].value?>', data=[dict(value=42)])
+	check("42", '<?print data[0][0][0]?>', data=[[[42]]])
+	check("42", '<?print data.value.value[0]?>', data=dict(value=dict(value=[42])))
+	check("42", '<?print data.value.value[0].value.value[0]?>', data=dict(value=dict(value=[dict(value=dict(value=[42]))])))
 
 
 def test_bracket():
@@ -371,197 +371,197 @@ def test_function_now():
 def test_function_xmlescape():
 	checkrunerror("function u?'xmlescape' unknown", "<?print xmlescape()?>")
 	checkrunerror("function u?'xmlescape' unknown", "<?print xmlescape(1, 2)?>")
-	check("&lt;&gt;&amp;&#39;&quot;gurk", "<?print xmlescape(data)?>", '<>&\'"gurk')
+	check("&lt;&gt;&amp;&#39;&quot;gurk", "<?print xmlescape(data)?>", data='<>&\'"gurk')
 
 
 def test_function_str():
 	checkrunerror("function u?'str' unknown", "<?print str()?>")
 	checkrunerror("function u?'str' unknown", "<?print str(1, 2)?>")
-	check("", "<?print str(data)?>", None)
-	check("True", "<?print str(data)?>", True)
-	check("False", "<?print str(data)?>", False)
-	check("42", "<?print str(data)?>", 42)
-	check("4.2", "<?print str(data)?>", 4.2)
-	check("foo", "<?print str(data)?>", "foo")
+	check("", "<?print str(data)?>", data=None)
+	check("True", "<?print str(data)?>", data=True)
+	check("False", "<?print str(data)?>", data=False)
+	check("42", "<?print str(data)?>", data=42)
+	check("4.2", "<?print str(data)?>", data=4.2)
+	check("foo", "<?print str(data)?>", data="foo")
 
 
 def test_function_int():
 	checkrunerror("function u?'int' unknown", "<?print int()?>")
 	checkrunerror("function u?'int' unknown", "<?print int(1, 2)?>")
-	checkrunerror("int\\(\\) argument must be a string or a number, not 'NoneType'", "<?print int(data)?>", None)
-	check("1", "<?print int(data)?>", True)
-	check("0", "<?print int(data)?>", False)
-	check("42", "<?print int(data)?>", 42)
-	check("4", "<?print int(data)?>", 4.2)
-	check("42", "<?print int(data)?>", "42")
-	checkrunerror("invalid literal for int\\(\\) with base 10: 'foo'", "<?print int(data)?>", "foo")
+	checkrunerror("int\\(\\) argument must be a string or a number, not 'NoneType'", "<?print int(data)?>", data=None)
+	check("1", "<?print int(data)?>", data=True)
+	check("0", "<?print int(data)?>", data=False)
+	check("42", "<?print int(data)?>", data=42)
+	check("4", "<?print int(data)?>", data=4.2)
+	check("42", "<?print int(data)?>", data="42")
+	checkrunerror("invalid literal for int\\(\\) with base 10: 'foo'", "<?print int(data)?>", data="foo")
 
 
 def test_function_len():
 	checkrunerror("function u?'len' unknown", "<?print len()?>")
 	checkrunerror("function u?'len' unknown", "<?print len(1, 2)?>")
-	checkrunerror("object of type 'NoneType' has no len", "<?print len(data)?>", None)
-	checkrunerror("object of type 'bool' has no len", "<?print len(data)?>", True)
-	checkrunerror("object of type 'bool' has no len", "<?print len(data)?>", False)
-	checkrunerror("object of type 'int' has no len", "<?print len(data)?>", 42)
-	checkrunerror("object of type 'float' has no len", "<?print len(data)?>", 4.2)
-	check("42", "<?print len(data)?>", 42*"?")
-	check("42", "<?print len(data)?>", 42*[None])
-	check("42", "<?print len(data)?>", dict.fromkeys(xrange(42)))
+	checkrunerror("object of type 'NoneType' has no len", "<?print len(data)?>", data=None)
+	checkrunerror("object of type 'bool' has no len", "<?print len(data)?>", data=True)
+	checkrunerror("object of type 'bool' has no len", "<?print len(data)?>", data=False)
+	checkrunerror("object of type 'int' has no len", "<?print len(data)?>", data=42)
+	checkrunerror("object of type 'float' has no len", "<?print len(data)?>", data=4.2)
+	check("42", "<?print len(data)?>", data=42*"?")
+	check("42", "<?print len(data)?>", data=42*[None])
+	check("42", "<?print len(data)?>", data=dict.fromkeys(xrange(42)))
 
 
 def test_function_enumerate():
 	checkrunerror("function u?'enumerate' unknown", "<?print enumerate()?>")
 	checkrunerror("function u?'enumerate' unknown", "<?print enumerate(1, 2)?>")
 	code = "<?for (i, value) in enumerate(data)?><?print i?>:<?print value?>\n<?end for?>"
-	checkrunerror("'NoneType' object is not iterable", code, None)
-	checkrunerror("'bool' object is not iterable", code, True)
-	checkrunerror("'bool' object is not iterable", code, False)
-	checkrunerror("'int' object is not iterable", code, 42)
-	checkrunerror("'float' object is not iterable", code, 4.2)
-	check("0:f\n1:o\n2:o\n", code, "foo")
-	check("0:foo\n1:bar\n", code, ["foo", "bar"])
-	check("0:foo\n", code, dict(foo=True))
+	checkrunerror("'NoneType' object is not iterable", code, data=None)
+	checkrunerror("'bool' object is not iterable", code, data=True)
+	checkrunerror("'bool' object is not iterable", code, data=False)
+	checkrunerror("'int' object is not iterable", code, data=42)
+	checkrunerror("'float' object is not iterable", code, data=4.2)
+	check("0:f\n1:o\n2:o\n", code, data="foo")
+	check("0:foo\n1:bar\n", code, data=["foo", "bar"])
+	check("0:foo\n", code, data=dict(foo=True))
 
 
 def test_function_isnone():
 	checkrunerror("function u?'isnone' unknown", "<?print isnone()?>")
 	checkrunerror("function u?'isnone' unknown", "<?print isnone(1, 2)?>")
 	code = "<?print isnone(data)?>"
-	check("True", code, None)
-	check("False", code, True)
-	check("False", code, False)
-	check("False", code, 42)
-	check("False", code, 4.2)
-	check("False", code, "foo")
-	check("False", code, datetime.datetime.now())
-	check("False", code, ())
-	check("False", code, [])
-	check("False", code, {})
+	check("True", code, data=None)
+	check("False", code, data=True)
+	check("False", code, data=False)
+	check("False", code, data=42)
+	check("False", code, data=4.2)
+	check("False", code, data="foo")
+	check("False", code, data=datetime.datetime.now())
+	check("False", code, data=())
+	check("False", code, data=[])
+	check("False", code, data={})
 
 
 def test_function_isbool():
 	checkrunerror("function u?'isbool' unknown", "<?print isbool()?>")
 	checkrunerror("function u?'isbool' unknown", "<?print isbool(1, 2)?>")
 	code = "<?print isbool(data)?>"
-	check("False", code, None)
-	check("True", code, True)
-	check("True", code, False)
-	check("False", code, 42)
-	check("False", code, 4.2)
-	check("False", code, "foo")
-	check("False", code, datetime.datetime.now())
-	check("False", code, ())
-	check("False", code, [])
-	check("False", code, {})
+	check("False", code, data=None)
+	check("True", code, data=True)
+	check("True", code, data=False)
+	check("False", code, data=42)
+	check("False", code, data=4.2)
+	check("False", code, data="foo")
+	check("False", code, data=datetime.datetime.now())
+	check("False", code, data=())
+	check("False", code, data=[])
+	check("False", code, data={})
 
 
 def test_function_isint():
 	checkrunerror("function u?'isint' unknown", "<?print isint()?>")
 	checkrunerror("function u?'isint' unknown", "<?print isint(1, 2)?>")
 	code = "<?print isint(data)?>"
-	check("False", code, None)
-	check("False", code, True)
-	check("False", code, False)
-	check("True", code, 42)
-	check("False", code, 4.2)
-	check("False", code, "foo")
-	check("False", code, datetime.datetime.now())
-	check("False", code, ())
-	check("False", code, [])
-	check("False", code, {})
+	check("False", code, data=None)
+	check("False", code, data=True)
+	check("False", code, data=False)
+	check("True", code, data=42)
+	check("False", code, data=4.2)
+	check("False", code, data="foo")
+	check("False", code, data=datetime.datetime.now())
+	check("False", code, data=())
+	check("False", code, data=[])
+	check("False", code, data={})
 
 
 def test_function_isfloat():
 	checkrunerror("function u?'isfloat' unknown", "<?print isfloat()?>")
 	checkrunerror("function u?'isfloat' unknown", "<?print isfloat(1, 2)?>")
 	code = "<?print isfloat(data)?>"
-	check("False", code, None)
-	check("False", code, True)
-	check("False", code, False)
-	check("False", code, 42)
-	check("True", code, 4.2)
-	check("False", code, "foo")
-	check("False", code, datetime.datetime.now())
-	check("False", code, ())
-	check("False", code, [])
-	check("False", code, {})
+	check("False", code, data=None)
+	check("False", code, data=True)
+	check("False", code, data=False)
+	check("False", code, data=42)
+	check("True", code, data=4.2)
+	check("False", code, data="foo")
+	check("False", code, data=datetime.datetime.now())
+	check("False", code, data=())
+	check("False", code, data=[])
+	check("False", code, data={})
 
 
 def test_function_isstr():
 	checkrunerror("function u?'isstr' unknown", "<?print isstr()?>")
 	checkrunerror("function u?'isstr' unknown", "<?print isstr(1, 2)?>")
 	code = "<?print isstr(data)?>"
-	check("False", code, None)
-	check("False", code, True)
-	check("False", code, False)
-	check("False", code, 42)
-	check("False", code, 4.2)
-	check("True", code, "foo")
-	check("False", code, datetime.datetime.now())
-	check("False", code, ())
-	check("False", code, [])
-	check("False", code, {})
+	check("False", code, data=None)
+	check("False", code, data=True)
+	check("False", code, data=False)
+	check("False", code, data=42)
+	check("False", code, data=4.2)
+	check("True", code, data="foo")
+	check("False", code, data=datetime.datetime.now())
+	check("False", code, data=())
+	check("False", code, data=[])
+	check("False", code, data={})
 
 
 def test_function_isdate():
 	checkrunerror("function u?'isdate' unknown", "<?print isdate()?>")
 	checkrunerror("function u?'isdate' unknown", "<?print isdate(1, 2)?>")
 	code = "<?print isdate(data)?>"
-	check("False", code, None)
-	check("False", code, True)
-	check("False", code, False)
-	check("False", code, 42)
-	check("False", code, 4.2)
-	check("False", code, "foo")
-	check("True", code, datetime.datetime.now())
-	check("False", code, ())
-	check("False", code, [])
-	check("False", code, {})
+	check("False", code, data=None)
+	check("False", code, data=True)
+	check("False", code, data=False)
+	check("False", code, data=42)
+	check("False", code, data=4.2)
+	check("False", code, data="foo")
+	check("True", code, data=datetime.datetime.now())
+	check("False", code, data=())
+	check("False", code, data=[])
+	check("False", code, data={})
 
 
 def test_function_islist():
 	checkrunerror("function u?'islist' unknown", "<?print islist()?>")
 	checkrunerror("function u?'islist' unknown", "<?print islist(1, 2)?>")
 	code = "<?print islist(data)?>"
-	check("False", code, None)
-	check("False", code, True)
-	check("False", code, False)
-	check("False", code, 42)
-	check("False", code, 4.2)
-	check("False", code, "foo")
-	check("False", code, datetime.datetime.now())
-	check("True", code, ())
-	check("True", code, [])
-	check("False", code, {})
+	check("False", code, data=None)
+	check("False", code, data=True)
+	check("False", code, data=False)
+	check("False", code, data=42)
+	check("False", code, data=4.2)
+	check("False", code, data="foo")
+	check("False", code, data=datetime.datetime.now())
+	check("True", code, data=())
+	check("True", code, data=[])
+	check("False", code, data={})
 
 
 def test_function_isdict():
 	checkrunerror("function u?'isdict' unknown", "<?print isdict()?>")
 	checkrunerror("function u?'isdict' unknown", "<?print isdict(1, 2)?>")
 	code = "<?print isdict(data)?>"
-	check("False", code, None)
-	check("False", code, True)
-	check("False", code, False)
-	check("False", code, 42)
-	check("False", code, 4.2)
-	check("False", code, "foo")
-	check("False", code, datetime.datetime.now())
-	check("False", code, ())
-	check("False", code, [])
-	check("True", code, {})
+	check("False", code, data=None)
+	check("False", code, data=True)
+	check("False", code, data=False)
+	check("False", code, data=42)
+	check("False", code, data=4.2)
+	check("False", code, data="foo")
+	check("False", code, data=datetime.datetime.now())
+	check("False", code, data=())
+	check("False", code, data=[])
+	check("True", code, data={})
 
 
 def test_function_repr():
 	checkrunerror("function u?'repr' unknown", "<?print repr()?>")
 	checkrunerror("function u?'repr' unknown", "<?print repr(1, 2)?>")
 	code = "<?print repr(data)?>"
-	check("None", code, None)
-	check("True", code, True)
-	check("False", code, False)
-	check("42", code, 42)
+	check("None", code, data=None)
+	check("True", code, data=True)
+	check("False", code, data=False)
+	check("42", code, data=42)
 	# no test for float
-	check("'foo'", code, "foo")
+	check("'foo'", code, data="foo")
 	# no test for tuples, lists and dicts
 
 
@@ -569,77 +569,77 @@ def test_function_chr():
 	checkrunerror("function u?'chr' unknown", "<?print chr()?>")
 	checkrunerror("function u?'chr' unknown", "<?print chr(1, 2)?>")
 	code = "<?print chr(data)?>"
-	check("\x00", code, 0)
-	check("a", code, ord("a"))
-	check(u"\u20ac", code, 0x20ac)
+	check("\x00", code, data=0)
+	check("a", code, data=ord("a"))
+	check(u"\u20ac", code, data=0x20ac)
 
 
 def test_function_ord():
 	checkrunerror("function u?'ord' unknown", "<?print ord()?>")
 	checkrunerror("function u?'ord' unknown", "<?print ord(1, 2)?>")
 	code = "<?print ord(data)?>"
-	check("0", code, "\x00")
-	check(str(ord("a")), code, "a")
-	check(str(0x20ac), code, u"\u20ac")
+	check("0", code, data="\x00")
+	check(str(ord("a")), code, data="a")
+	check(str(0x20ac), code, data=u"\u20ac")
 
 
 def test_function_hex():
 	checkrunerror("function u?'hex' unknown", "<?print hex()?>")
 	checkrunerror("function u?'hex' unknown", "<?print hex(1, 2)?>")
 	code = "<?print hex(data)?>"
-	check("0x0", code, 0)
-	check("0xff", code, 0xff)
-	check("0xffff", code, 0xffff)
-	check("-0xffff", code, -0xffff)
+	check("0x0", code, data=0)
+	check("0xff", code, data=0xff)
+	check("0xffff", code, data=0xffff)
+	check("-0xffff", code, data=-0xffff)
 
 
 def test_function_oct():
 	checkrunerror("function u?'oct' unknown", "<?print oct()?>")
 	checkrunerror("function u?'oct' unknown", "<?print oct(1, 2)?>")
 	code = "<?print oct(data)?>"
-	check("0o0", code, 0)
-	check("0o77", code, 077)
-	check("0o7777", code, 07777)
-	check("-0o7777", code, -07777)
+	check("0o0", code, data=0)
+	check("0o77", code, data=077)
+	check("0o7777", code, data=07777)
+	check("-0o7777", code, data=-07777)
 
 
 def test_function_bin():
 	checkrunerror("function u?'bin' unknown", "<?print bin()?>")
 	checkrunerror("function u?'bin' unknown", "<?print bin(1, 2)?>")
 	code = "<?print bin(data)?>"
-	check("0b0", code, 0)
-	check("0b11", code, 3)
-	check("-0b1111", code, -15)
+	check("0b0", code, data=0)
+	check("0b11", code, data=3)
+	check("-0b1111", code, data=-15)
 
 
 def test_function_sorted():
 	checkrunerror("function u?'sorted' unknown", "<?print sorted()?>")
 	checkrunerror("function u?'sorted' unknown", "<?print sorted(1, 2)?>")
 	code = "<?for i in sorted(data)?><?print i?><?end for?>"
-	check("gkru", code, "gurk")
-	check("24679", code, "92746")
-	check("012", code, {0: "zero", 1: "one", 2: "two"})
+	check("gkru", code, data="gurk")
+	check("24679", code, data="92746")
+	check("012", code, data={0: "zero", 1: "one", 2: "two"})
 
 
 def test_function_range():
 	checkrunerror("function u?'sorted' unknown", "<?print sorted()?>")
 	code = "<?for i in range(data)?><?print i?><?end for?>"
-	check("", code, -10)
-	check("", code, 0)
-	check("0", code, 1)
-	check("01234", code, 5)
+	check("", code, data=-10)
+	check("", code, data=0)
+	check("0", code, data=1)
+	check("01234", code, data=5)
 	code = "<?for i in range(data[0], data[1])?><?print i?><?end for?>"
-	check("", code, [0, -10])
-	check("", code, [0, 0])
-	check("01234", code, [0, 5])
-	check("-5-4-3-2-101234", code, [-5, 5])
+	check("", code, data=[0, -10])
+	check("", code, data=[0, 0])
+	check("01234", code, data=[0, 5])
+	check("-5-4-3-2-101234", code, data=[-5, 5])
 	code = "<?for i in range(data[0], data[1], data[2])?><?print i?><?end for?>"
-	check("", code, [0, -10, 1])
-	check("", code, [0, 0, 1])
-	check("02468", code, [0, 10, 2])
-	check("", code, [0, 10, -2])
-	check("108642", code, [10, 0, -2])
-	check("", code, [10, 0, 2])
+	check("", code, data=[0, -10, 1])
+	check("", code, data=[0, 0, 1])
+	check("02468", code, data=[0, 10, 2])
+	check("", code, data=[0, 10, -2])
+	check("108642", code, data=[10, 0, -2])
+	check("", code, data=[10, 0, 2])
 
 
 def test_method_upper():
@@ -692,18 +692,18 @@ def test_method_rsplit():
 def test_method_format():
 	now = datetime.datetime.now()
 	format = "%Y-%m-%d %H:%M:%S"
-	check(now.strftime(format), r"<?print data.format('%s')?>" % format, now)
+	check(now.strftime(format), r"<?print data.format('%s')?>" % format, data=now)
 
 
 def test_method_isoformat():
 	now = datetime.datetime.now()
-	check(now.isoformat(), r"<?print data.isoformat()?>", now)
+	check(now.isoformat(), r"<?print data.isoformat()?>", data=now)
 
 
 def test_render():
-	t = ul4c.compile('(<?print data?>)')
-	check('(f)(o)(o)', '<?for i in data?><?render t(i)?><?end for?>', 'foo', dict(t=t))
+	t = ul4c.compile('<?print prefix?><?print data?><?print suffix?>')
+	check('(f)(o)(o)', '<?for i in data?><?render t(data=i, prefix="(", suffix=")")?><?end for?>', dict(t=t), data='foo')
 
 
 def test_parse():
-	check('42', '<?print data.Noner?>', dict(Noner=42))
+	check('42', '<?print data.Noner?>', data=dict(Noner=42))

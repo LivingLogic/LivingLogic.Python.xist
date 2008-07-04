@@ -712,13 +712,13 @@ class Template(object):
 			output.append("%s%s" % ("\t"*indent, code))
 
 		if function is not None:
-			_code("def %s(data, templates={}):" % function)
+			_code("def %s(templates={}, **variables):" % function)
 			indent += 1
 		_code("import sys, marshal, datetime")
 		_code("from ll.misc import xmlescape")
 		_code("from ll import ul4c")
-		_code("variables = dict(data=data)")
 		_code("source = %r" % self.source)
+		_code('variables = dict((key.decode("utf-8"), value) for (key, value) in variables.iteritems())') # FIXME: This can be dropped in Python 3.0 where strings are unicode
 		locations = tuple((oc.location.type, oc.location.starttag, oc.location.endtag, oc.location.startcode, oc.location.endcode) for oc in self.opcodes)
 		locations = marshal.dumps(locations)
 		_code("locations = marshal.loads(%r)" % locations)
@@ -924,7 +924,7 @@ class Template(object):
 					indent -= 1
 					_code("# end if")
 				elif opcode.code == "render":
-					_code("for chunk in templates[%r](reg%d, templates): yield chunk" % (opcode.arg, opcode.r1))
+					_code('for chunk in templates[%r](templates, **dict((key.encode("utf-8"), value) for (key, value) in reg%d.iteritems())): yield chunk' % (opcode.arg, opcode.r1))
 				else:
 					raise UnknownOpcodeError(opcode.code)
 				lastopcode = opcode.code
@@ -953,14 +953,14 @@ class Template(object):
 			self._pythonfunction = ns["render"]
 		return self._pythonfunction
 
-	def __call__(self, data=None, templates={}):
-		return self.pythonfunction()(data, templates)
+	def __call__(self, templates={}, **variables):
+		return self.pythonfunction()(templates, **variables)
 
-	def render(self, data=None, templates={}):
-		return self.pythonfunction()(data, templates)
+	def render(self, templates={}, **variables):
+		return self.pythonfunction()(templates, **variables)
 
-	def renders(self, data=None, templates={}):
-		return "".join(self.render(data, templates))
+	def renders(self, templates={}, **variables):
+		return "".join(self.render(templates, **variables))
 
 	def format(self, indent="\t"):
 		"""
@@ -1538,16 +1538,24 @@ class CallMeth(AST):
 
 
 class Render(AST):
-	def __init__(self, start, end, name, value):
+	def __init__(self, start, end, name, *variables):
 		AST.__init__(self, start, end)
 		self.name = name
-		self.value = value
+		self.variables = list(variables)
 
 	def __repr__(self):
-		return "%s(%r, %r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.name, self.value)
+		return "%s(%r, %r, %r, %s)" % (self.__class__.__name__, self.start, self.end, self.name, repr(self.variables)[1:-1])
 
 	def compile(self, template):
-		r = self.value.compile(template)
+		r = template._allocreg()
+		template.opcode("builddict", r1=r)
+		for (key, value) in self.variables:
+			rv = value.compile(template)
+			rk = template._allocreg()
+			template.opcode("loadstr", r1=rk, arg=key.name)
+			template.opcode("adddict", r1=r, r2=rk, r3=rv)
+			template._freereg(rk)
+			template._freereg(rv)
 		template.opcode("render", r1=r, arg=self.name.name)
 		template._freereg(r)
 
@@ -2049,9 +2057,29 @@ class RenderParser(ExprParser):
 	emptyerror = "render statement required"
 	start = "render"
 
-	@spark.production('render ::= name ( expr0 )')
-	def render(self, name, _1, expr, _2):
-		return Render(name.start, _2.end, name, expr)
+	@spark.production('render ::= name ( )')
+	def emptyrender(self, name, _0, _1):
+		return Render(name.start, _1.end, name)
+
+	@spark.production('buildrender ::= name ( name = expr0')
+	def startrender(self, name, _0, argname, _1, argvalue):
+		return Render(name.start, argvalue.end, name, (argname, argvalue))
+
+	@spark.production('buildrender ::= buildrender , name = expr0')
+	def buildrender(self, render, _0, argname, _1, argvalue):
+		render.variables.append((argname, argvalue))
+		render.end = argvalue.end
+		return render
+
+	@spark.production('render ::= buildrender )')
+	def finishrender(self, render, _0):
+		render.end = _0.end
+		return render
+
+	@spark.production('render ::= buildrender , )')
+	def finishrender1(self, render, _0, _1):
+		render.end = _1.end
+		return render
 
 
 ###
