@@ -221,9 +221,9 @@ condition is true. The end of the ``if`` block must be marked with an
 
 For example we can output the person list only if there are any persons::
 
-	<?if data.persons?>
+	<?if persons?>
 	<ul>
-	<?for person in data.persons?>
+	<?for person in persons?>
 	<li><?print person.lastname?>, <?person.firstname?></li>
 	<?end for?>
 	</ul>
@@ -231,9 +231,9 @@ For example we can output the person list only if there are any persons::
 
 ``elif`` and ``else`` are supported too::
 
-	<?if data.persons?>
+	<?if persons?>
 	<ul>
-	<?for person in data.persons?>
+	<?for person in persons?>
 	<li><?print person.lastname?>, <?person.firstname?></li>
 	<?end for?>
 	</ul>
@@ -243,12 +243,12 @@ For example we can output the person list only if there are any persons::
 
 or::
 
-	<?if len(data.persons)==0?>
+	<?if len(persons)==0?>
 	No persons found!
-	<?elif len(data.persons)==1?>
+	<?elif len(persons)==1?>
 	One person found!
 	<?else?>
-	<?print len(data.persons)?> persons found!
+	<?print len(persons)?> persons found!
 	<?end if?>
 
 
@@ -287,7 +287,7 @@ code demonstrates this::
 	source1 = u"""\
 	<?if data?>\
 	<ul>
-	<?for item in data?><?render itemtmpl(item)?><?end for?>\
+	<?for item in data?><?render itemtmpl(item=item)?><?end for?>\
 	</ul>
 	<?end if?>\
 	"""
@@ -295,7 +295,7 @@ code demonstrates this::
 	tmpl1 = ul4c.compile(source1)
 
 	# Template 2
-	source2 = u"<li><?print xmlescape(data)?></li>\n"
+	source2 = u"<li><?print xmlescape(item)?></li>\n"
 
 	tmpl2 = ul4c.compile(source2)
 
@@ -305,7 +305,7 @@ code demonstrates this::
 	# Dictionary of subtemplates for the outer template
 	templates = dict(itemtmpl=tmpl2)
 
-	print tmpl1.renders(data, templates)
+	print tmpl1.renders(templates, data=data)
 
 This will output::
 
@@ -315,12 +315,12 @@ This will output::
 	<li>PHP</li>
 	</ul>
 
-I.e. a dictionary of templates can be passed to the :meth:`renders` method as
-a additional argument. The keys in this dictionary are the names of the
-templates, which can be used in the ``<?render?>`` tag.
-``<?render itemtmpl(item)?>`` renders the ``itemtmpl`` template and passed the
-``item`` variable as the data object. All templates available in the outer
-template will be available in the inner template too.
+I.e. a dictionary of templates can be passed to the render methods as the first
+argument. The keys in this dictionary are the names of the templates, which can
+be used in the ``<?render?>`` tag. ``<?render itemtmpl(item)?>`` renders the
+``itemtmpl`` template and passed the ``item`` variable, which will be available
+in the inner template under the name ``item``. All templates available in the
+outer template will be available in the inner template too.
 
 
 Expressions
