@@ -2116,8 +2116,6 @@ def _bin(value):
 	return prefix+"".join(v)[::-1]
 
 
-_format_int = re.compile("(.??)([<=>^]?)([-+ ])?(0?)(\\d+)([bcdoxXn]?)")
-
 def _format(obj, format):
 	"""
 	Helper for the ``format`` method.
