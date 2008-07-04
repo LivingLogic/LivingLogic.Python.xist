@@ -702,7 +702,7 @@ def test_method_isoformat():
 
 def test_render():
 	t = ul4c.compile('<?print prefix?><?print data?><?print suffix?>')
-	check('(f)(o)(o)', '<?for i in data?><?render t(data=i, prefix="(", suffix=")")?><?end for?>', dict(t=t), data='foo')
+	check('(f)(o)(o)', '<?for c in data?><?render t(data=c, prefix="(", suffix=")")?><?end for?>', dict(t=t), data='foo')
 
 
 def test_parse():
