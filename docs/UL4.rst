@@ -580,7 +580,13 @@ For example ``<?print bin(42)?>`` outputs ``0b101010``.
 ``range`` returns an object that can be iterated and will produce consecutive
 integers up to the specified argument. With two arguments the first is the start
 value and the second is the stop value. With three arguments the third one is
-the step size (which can be negative).
+the step size (which can be negative). For example the following template::
+
+	<?for i in range(2, 10, 2)?>(<?print i?>)<?end for?>
+
+outputs::
+
+	(2)(4)(6)(8)
 
 
 Methods
