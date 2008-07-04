@@ -317,10 +317,10 @@ This will output::
 
 I.e. a dictionary of templates can be passed to the render methods as the first
 argument. The keys in this dictionary are the names of the templates, which can
-be used in the ``<?render?>`` tag. ``<?render itemtmpl(item)?>`` renders the
-``itemtmpl`` template and passed the ``item`` variable, which will be available
-in the inner template under the name ``item``. All templates available in the
-outer template will be available in the inner template too.
+be used in the ``<?render?>`` tag. ``<?render itemtmpl(item=item)?>`` renders
+the ``itemtmpl`` template and passed the ``item`` variable, which will be
+available in the inner template under the name ``item``. All templates available
+in the outer template will be available in the inner template too.
 
 
 Expressions
@@ -484,8 +484,7 @@ undefined, but should follow Python's repr format.
 
 ``repr(foo)`` converts ``foo`` to a string representation that is useful for
 debugging proposes. The output is a constant expression that could be used to
-recreate the object (except for list and dict, where ``repr`` follows the format
-of Python's :func:`repr` function).
+recreate the object.
 
 
 ``len``
