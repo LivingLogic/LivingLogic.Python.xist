@@ -2122,8 +2122,8 @@ def _format(obj, format):
 	"""
 	if isinstance(obj, datetime.datetime):
 		if "%f" in format:
-			format = format.replace("%f", "%06d" % obj.microsecond) # FIXME: This would replace "%%f", which is wrong (wait for Python 2.6?)
-		return obj.strftime(format.encode("utf-8"))
+			format = format.replace("%f", "%06d" % obj.microsecond) # FIXME: This would replace "%%f", which is wrong (wait for Python 2.6)
+		return obj.strftime(format.encode("utf-8")) # FIXME: We shouldn't have to encode the format string (wait for Python 3.0)
 	elif obj is None or isinstance(obj, (int, long, float, str, unicode)):
 		from ll import stringformat
 		return stringformat.format_builtin_type(obj, format)
