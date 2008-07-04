@@ -201,7 +201,7 @@ with an ``<?end for?>`` tag::
 In ``for`` loops tuple unpacking is supported for tuples of length 1 and 2, so
 you can do the following::
 
-	<?for (key, value) in data.items?>
+	<?for (key, value) in items?>
 
 if ``items`` is an iterable containing lists with two elements.
 
