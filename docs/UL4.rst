@@ -400,7 +400,7 @@ Functions
 
 
 ``vars()``
-:::::::
+::::::::::
 
 ``vars()`` returns a dictionary containing all currently defined variables
 (i.e. variables passed to the template, defined via ``<?code?>`` tags or as
