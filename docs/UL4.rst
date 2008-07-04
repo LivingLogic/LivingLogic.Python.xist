@@ -541,14 +541,16 @@ Supported arguments are iterable objects, i.e. strings, lists and dictionaries.
 :::::::
 
 ``chr(x)`` returns a one-character string with a character with the codepoint
-``x``. ``x`` must be an integer.
+``x``. ``x`` must be an integer. For example ``<?print chr(0x61)?>`` outputs
+``a``.
 
 
 ``ord``
 :::::::
 
 The argument for ``ord`` must be a one-character string. ``ord`` returns the
-codepoint of that character as an integer.
+codepoint of that character as an integer. For example ``<?print ord('a')?>``
+outputs ``97``.
 
 
 ``hex``
