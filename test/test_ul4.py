@@ -711,5 +711,10 @@ def test_render():
 	check('(f)(o)(o)', '<?for c in data?><?render t(data=c, prefix="(", suffix=")")?><?end for?>', dict(t=t), data='foo')
 
 
+def test_render_var():
+	t = ul4c.compile('<?code x += 1?><?print x?>')
+	check('42,43,42', '<?print x?>,<?render t(x=x)?>,<?print x?>', dict(t=t), x=42)
+
+
 def test_parse():
 	check('42', '<?print data.Noner?>', data=dict(Noner=42))
