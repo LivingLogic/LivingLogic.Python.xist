@@ -163,8 +163,6 @@ Dictionaries can be created like this:
 	*	``{"foo": 17, "bar": 23}``
 
 
-
-
 Template code
 =============
 
