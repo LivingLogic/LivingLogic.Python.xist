@@ -2141,5 +2141,9 @@ def _repr(obj):
 		return unicode(repr(obj)[1:])
 	elif isinstance(obj, datetime.datetime):
 		return unicode(obj.isoformat())
+	elif isinstance(obj, list):
+		return u"[%s]" % u", ".join(_repr(item) for item in obj)
+	elif isinstance(obj, dict):
+		return u"{%s}" % u", ".join(u"%s: %s" % (_repr(key), _repr(value)) for (key, value) in obj.iteritems())
 	else:
 		return unicode(repr(obj))
