@@ -42,23 +42,19 @@ like this::
 
 	tmpl = ul4c.compile(code)
 
-	print tmpl.renders([u"Python", u"Java", u"PHP"])
+	print tmpl.renders(data=[u"Python", u"Java", u"PHP"])
 
-The method :meth:`Template.renders` gets passed the data object (which is
-available in the template code under the name ``data``) and returns the rendered
-string.
+The variables that should be available to the template code can be passed to the
+method :meth:`Template.renders` as keyword arguments. :meth:`renders` returns
+the final rendered output as a string. Alternatively the method :meth:`render`
+can be used, which is a generator and returns the output piecewise.
 
 
-Data objects
-============
+Supported data types
+====================
 
-The template requires a data object for rendering the final output.
-What :mod:`ll.ul4c` supports in this data object is very similar to what JSON_
-supports.
-
-	.. _JSON: http://www.json.org/
-
-Supported types are:
+The following object types can be passed as variables to be used by the template
+code:
 
 	*	strings
 	*	integers
@@ -69,6 +65,10 @@ Supported types are:
 	*	lists
 	*	dictionaries
 
+This is similar to what JSON_ supports (except for date objects).
+
+	.. _JSON: http://www.json.org/
+
 Note that depending on the implementation language of the renderer additional
 types might be supported, e.g. a Python renderer will probably support tuples
 and lists and anything supporting :meth:`__getitem__` (or :meth:`__iter__` when
@@ -76,11 +76,9 @@ the list is used in a loop) for lists, Java might support anything implementing
 the ``List`` interface (or the ``Collection`` interface if the list is used in a
 loop).
 
-The data object itself will be available inside the template code under the name
-``data``.
-
-Constants of these types can be created for all types. Most constants look
-similar to the related Python constant.
+Objects the these types can either be passed to the template in the call to the
+render function, or the template can create objects of thoses types itself. The
+syntax for creating such a constant is very similar to Python's syntax.
 
 
 The "null" constant
