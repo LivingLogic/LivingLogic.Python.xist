@@ -268,6 +268,19 @@ class Opcode(object):
 		Load the date value :attr:`arg` into the register :attr:`r1`. :attr:`arg`
 		must be in ISO format (e.g. ``2008-07-02T11:05:55.460464``).
 
+	``"buildlist"``:
+		Load an empty list into the register :attr:`r1`.
+
+	``"builddict"``:
+		Load an empty dictionary into the register :attr:`r1`.
+
+	``"addlist"``
+		Append the object in register :attr:`r2` to the list in register :attr:`r1`.
+	
+	``"adddict"``
+		Add a new entry to the dictionary in register :attr:`r1`. The object in
+		:attr:`r2` is the key and the object in register :attr:`r3` is the value.
+	
 	``"loadvar"``:
 		Load the variable named :attr:`arg` into the register :attr:`r1`.
 
@@ -446,6 +459,14 @@ class Opcode(object):
 			return "r%r = %s" % (self.r1, self.arg)
 		elif self.code == "loaddate":
 			return "r%r = %s" % (self.r1, self.arg)
+		elif self.code == "buildlist":
+			return "r%r = []" % (self.r1)
+		elif self.code == "builddict":
+			return "r%r = {}" % (self.r1)
+		elif self.code == "addlist":
+			return "r%r.append(r%r)" % (self.r1, self.r2)
+		elif self.code == "adddict":
+			return "r%r[r%r] = r%r" % (self.r1, self.r2, self.r3)
 		elif self.code == "loadvar":
 			return "r%r = vars[%r]" % (self.r1, self.arg)
 		elif self.code == "storevar":
@@ -727,6 +748,14 @@ class Template(object):
 					_code("reg%d = True" % opcode.r1)
 				elif opcode.code == "loaddate":
 					_code("reg%d = datetime.datetime(%s)" % (opcode.r1, ", ".join(str(int(p)) for p in datesplitter.split(opcode.arg))))
+				elif opcode.code == "buildlist":
+					_code("reg%d = []" % opcode.r1)
+				elif opcode.code == "builddict":
+					_code("reg%d = {}" % opcode.r1)
+				elif opcode.code == "addlist":
+					_code("reg%d.append(reg%d)" % (opcode.r1, opcode.r2))
+				elif opcode.code == "adddict":
+					_code("reg%d[reg%d] = reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "loadvar":
 					_code("reg%d = variables[%r]" % (opcode.r1, opcode.arg))
 				elif opcode.code == "storevar":
@@ -1178,6 +1207,44 @@ class Date(Value):
 		return r
 
 
+class List(AST):
+	def __init__(self, start, end, *items):
+		AST.__init__(self, start, end)
+		self.items = list(items)
+
+	def __repr__(self):
+		return "%s(%r, %r, %s)" % (self.__class__.__name__, self.start, self.end, repr(self.items)[1:-1])
+
+	def compile(self, template):
+		r = template._allocreg()
+		template.opcode("buildlist", r1=r)
+		for item in self.items:
+			ri = item.compile(template)
+			template.opcode("addlist", r1=r, r2=ri)
+			template._freereg(ri)
+		return r
+
+
+class Dict(AST):
+	def __init__(self, start, end, *items):
+		AST.__init__(self, start, end)
+		self.items = list(items)
+
+	def __repr__(self):
+		return "%s(%r, %r, %s)" % (self.__class__.__name__, self.start, self.end, repr(self.items)[1:-1])
+
+	def compile(self, template):
+		r = template._allocreg()
+		template.opcode("builddict", r1=r)
+		for (key, value) in self.items:
+			rk = key.compile(template)
+			rv = value.compile(template)
+			template.opcode("adddict", r1=r, r2=rk, r3=rv)
+			template._freereg(rk)
+			template._freereg(rv)
+		return r
+
+
 class Name(AST):
 	type = "name"
 
@@ -1512,7 +1579,7 @@ class Scanner(spark.Scanner):
 	def date(self, start, end, s):
 		self.rv.append(Date(start, end, datetime.datetime(*map(int, filter(None, datesplitter.split(s))))))
 
-	@spark.token("\\(|\\)|\\[|\\]|\\.|,|==|\\!=|=|\\+=|\\-=|\\*=|//=|/=|%=|%|:|\\+|-|\\*|//|/", "default")
+	@spark.token("\\(|\\)|\\[|\\]|\\{|\\}|\\.|,|==|\\!=|=|\\+=|\\-=|\\*=|//=|/=|%=|%|:|\\+|-|\\*|//|/", "default")
 	def token(self, start, end, s):
 		self.rv.append(Token(start, end, s))
 
@@ -1701,6 +1768,54 @@ class ExprParser(spark.Parser):
 	@spark.production('expr11 ::= name')
 	def expr_atom(self, atom):
 		return atom
+
+	@spark.production('expr11 ::= [ ]')
+	def expr_emptylist(self, _0, _1):
+		return List(_0.start, _1.end)
+
+	@spark.production('buildlist ::= [ expr0')
+	def expr_buildlist(self, _0, expr):
+		return List(_0.start, expr.end, expr)
+
+	@spark.production('buildlist ::= buildlist , expr0')
+	def expr_addlist(self, list, _0, expr):
+		list.items.append(expr)
+		list.end = expr.end
+		return list
+
+	@spark.production('expr11 ::= buildlist ]')
+	def expr_finishlist(self, list, _0):
+		list.end = _0.end
+		return list
+
+	@spark.production('expr11 ::= buildlist , ]')
+	def expr_finishlist1(self, list, _0, _1):
+		list.end = _1.end
+		return list
+
+	@spark.production('expr11 ::= { }')
+	def expr_emptydict(self, _0, _1):
+		return Dict(_0.start, _1.end)
+
+	@spark.production('builddict ::= { expr0 : expr0')
+	def expr_builddict(self, _0, exprkey, _1, exprvalue):
+		return Dict(_0.start, exprvalue.end, (exprkey, exprvalue))
+
+	@spark.production('builddict ::= builddict , expr0 : expr0')
+	def expr_adddict(self, dict, _0, exprkey, _1, exprvalue):
+		dict.items.append((exprkey, exprvalue))
+		dict.end = exprvalue.end
+		return dict
+
+	@spark.production('expr11 ::= builddict }')
+	def expr_finishdict(self, dict, _0):
+		dict.end = _0.end
+		return dict
+
+	@spark.production('expr11 ::= builddict , }')
+	def expr_finishdict1(self, dict, _0, _1):
+		dict.end = _1.end
+		return dict
 
 	@spark.production('expr11 ::= ( expr0 )')
 	def expr_bracket(self, _0, expr, _1):

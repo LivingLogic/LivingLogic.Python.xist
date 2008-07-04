@@ -181,6 +181,24 @@ def test_date():
 	check('yes', '<?if 2000-02-29T12:34:56.987654?>yes<?else?>no<?end if?>')
 
 
+def test_list():
+	check('', '<?for item in []?><?print item?>;<?end for?>')
+	check('1;', '<?for item in [1]?><?print item?>;<?end for?>')
+	check('1;', '<?for item in [1,]?><?print item?>;<?end for?>')
+	check('1;2;', '<?for item in [1, 2]?><?print item?>;<?end for?>')
+	check('1;2;', '<?for item in [1, 2,]?><?print item?>;<?end for?>')
+	check('no', '<?if []?>yes<?else?>no<?end if?>')
+	check('yes', '<?if [1]?>yes<?else?>no<?end if?>')
+
+
+def test_dict():
+	check('', '<?for (key, value) in {}.items()?><?print key?>:<?print value?>\n<?end for?>')
+	check('1:2\n', '<?for (key, value) in {1:2}.items()?><?print key?>:<?print value?>\n<?end for?>')
+	check('1:2\n', '<?for (key, value) in {1:2,}.items()?><?print key?>:<?print value?>\n<?end for?>')
+	check('no', '<?if {}?>yes<?else?>no<?end if?>')
+	check('yes', '<?if {1:2}?>yes<?else?>no<?end if?>')
+
+
 def test_code_storevar():
 	check('42', '<?code x = 42?><?print x?>')
 	check('xyzzy', '<?code x = "xyzzy"?><?print x?>')

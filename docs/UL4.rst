@@ -79,8 +79,8 @@ loop).
 The data object itself will be available inside the template code under the name
 ``data``.
 
-Constants of these types can be created for all types except lists and
-dictionaries. Most constants look similar to the related Python constant.
+Constants of these types can be created for all types. Most constants look
+similar to the related Python constant.
 
 
 The "null" constant
@@ -130,8 +130,40 @@ unicode objects, so ``\uXXXX`` escaping is possible. Examples:
 Date constants
 --------------
 
-Creating date constants
- 
+Date constants can be created like this:
+
+	*	``2008-12-24T``
+
+	*	``2008-12-24T12:34``
+
+	*	``2008-12-24T12:34:56``
+
+	*	``2008-12-24T12:34:56.987654``
+
+
+List constants
+--------------
+
+Lists can be created like this:
+
+	*	``[]``
+
+	*	``[1, 2, 3]``
+
+	*	``[None, 42, "foo", [False, True]]``
+
+
+Dictionary constants
+--------------------
+
+Dictionaries can be created like this:
+
+	*	``{}``
+
+	*	``{1: 2, 3: 4}``
+
+	*	``{"foo": 17, "bar": 23}``
+
 
 
 
