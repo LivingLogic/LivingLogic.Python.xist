@@ -1764,7 +1764,7 @@ class ExprParser(spark.Parser):
 			raise TypeError("can't convert %r" % value)
 
 	# To implement operator precedence, each expression rule has the precedence in its name. The highest precedence is 11 for atomic expressions.
-	# Each expression can have only expressions as parts, which have the some or a higher precedence with two exceptions:
+	# Each expression can have only expressions as parts which have the some or a higher precedence with two exceptions:
 	#    1) Expressions where there's no ambiguity, like the index for a getitem/getslice or function/method arguments;
 	#    2) Brackets, which can be used to boost the precedence of an expression to the level of an atomic expression.
 
