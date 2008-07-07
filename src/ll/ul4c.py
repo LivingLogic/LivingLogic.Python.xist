@@ -556,6 +556,8 @@ class Opcode(object):
 
 
 class Template(object):
+	version = "2"
+
 	def __init__(self):
 		self.startdelim = None
 		self.enddelim = None
@@ -616,8 +618,8 @@ class Template(object):
 			raise ValueError("invalid header, expected 'ul4', got %r" % header)
 		version = stream.readline()
 		version = version.rstrip()
-		if version != "1":
-			raise ValueError("invalid version, expected 1 got, %r" % version)
+		if version != self.version:
+			raise ValueError("invalid version, expected %r got, %r" % (self.version, version))
 		self.startdelim = _readstr(u"<", u"[")
 		_readcr()
 		self.enddelim = _readstr(u">", u"]")
@@ -667,7 +669,7 @@ class Template(object):
 				yield term1
 				yield string
 
-		yield "ul4\n1\n"
+		yield "ul4\n%s\n" % self.version
 		for p in _writestr("<", "[", self.startdelim): yield p
 		yield "\n"
 		for p in _writestr(">", "]", self.enddelim): yield p
