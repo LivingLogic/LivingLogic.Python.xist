@@ -579,18 +579,20 @@ class Template(object):
 				else:
 					raise ValueError("invalid terminator, expected %r, got %r" % (term, c))
 
-		def _readstr(term1, term0):
+		def _readstr(term):
 			i = 0
+			digit = False
 			while True:
 				c = stream.read(1)
 				if c.isdigit():
 					i = 10*i+int(c)
-				elif c == term1:
-					break
-				elif c == term0:
+					digit = True
+				elif c == term:
+					if digit:
+						break
 					return None
 				else:
-					raise ValueError("invalid terminator, expected %r or %r, got %r" % (term1, term0, c))
+					raise ValueError("invalid terminator, expected %r, got %r" % (term, c))
 			s = stream.read(i)
 			if len(s) != i:
 				raise ValueError("short read")
@@ -620,11 +622,11 @@ class Template(object):
 		version = version.rstrip()
 		if version != self.version:
 			raise ValueError("invalid version, expected %r got, %r" % (self.version, version))
-		self.startdelim = _readstr(u"<", u"[")
+		self.startdelim = _readstr(u"<")
 		_readcr()
-		self.enddelim = _readstr(u">", u"]")
+		self.enddelim = _readstr(u">")
 		_readcr()
-		self.source = _readstr("'", '"')
+		self.source = _readstr('"')
 		self.opcodes = []
 		_readcr()
 		count = _readint(u"#")
@@ -636,14 +638,14 @@ class Template(object):
 			r3 = _readspec()
 			r4 = _readspec()
 			r5 = _readspec()
-			code = _readstr(":", ".")
-			arg = _readstr(";", ",")
+			code = _readstr(":")
+			arg = _readstr(".")
 			locspec = stream.read(1)
 			if locspec == u"^":
 				if location is None:
 					raise ValueError("no previous location")
 			elif locspec == u"*":
-				location = Location(self.source, _readstr("=", "-"), _readint("("), _readint(")"), _readint("{"), _readint("}"))
+				location = Location(self.source, _readstr("="), _readint("("), _readint(")"), _readint("{"), _readint("}"))
 			else:
 				raise ValueError("invalid location spec %r" % locspec)
 			_readcr()
@@ -660,21 +662,20 @@ class Template(object):
 			yield unicode(number)
 			yield term
 
-		def _writestr(term1, term0, string):
-			if string:
-				yield str(len(string))
+		def _writestr(term, string):
 			if string is None:
-				yield term0
+				yield term
 			else:
-				yield term1
+				yield str(len(string))
+				yield term
 				yield string
 
 		yield "ul4\n%s\n" % self.version
-		for p in _writestr("<", "[", self.startdelim): yield p
+		for p in _writestr("<", self.startdelim): yield p
 		yield "\n"
-		for p in _writestr(">", "]", self.enddelim): yield p
+		for p in _writestr(">", self.enddelim): yield p
 		yield "\n"
-		for p in _writestr("'", '"', self.source): yield p
+		for p in _writestr('"', self.source): yield p
 		yield "\n"
 		for p in _writeint("#", len(self.opcodes)): yield p
 		yield "\n"
@@ -685,12 +686,12 @@ class Template(object):
 			yield str(opcode.r3) if opcode.r3 is not None else u"-"
 			yield str(opcode.r4) if opcode.r4 is not None else u"-"
 			yield str(opcode.r5) if opcode.r5 is not None else u"-"
-			for p in _writestr(":", ".", opcode.code): yield p
-			for p in _writestr(";", ",", opcode.arg): yield p
+			for p in _writestr(":", opcode.code): yield p
+			for p in _writestr(".", opcode.arg): yield p
 			if opcode.location is not lastlocation:
 				lastlocation = opcode.location
 				yield u"*"
-				for p in _writestr("=", "-", lastlocation.type): yield p
+				for p in _writestr("=", lastlocation.type): yield p
 				for p in _writeint("(", lastlocation.starttag): yield p
 				for p in _writeint(")", lastlocation.endtag): yield p
 				for p in _writeint("{", lastlocation.startcode): yield p
