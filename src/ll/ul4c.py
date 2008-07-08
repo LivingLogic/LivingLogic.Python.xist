@@ -8,8 +8,6 @@
 ## See ll/__init__.py for the license
 
 
-from __future__ import division
-
 """
 :mod:`ll.ul4c` provides templating for XML/HTML as well as any other text-based
 format. A template defines placeholders for data output and basic logic (like
@@ -19,6 +17,8 @@ look.
 :mod:`ll.ul4c` compiles a template to a bytecode format, which makes it possible
 to implement renderers for these templates in multiple programming languages.
 """
+
+from __future__ import division
 
 __docformat__ = "reStructuredText"
 
