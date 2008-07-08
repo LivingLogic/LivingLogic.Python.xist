@@ -91,6 +91,11 @@ def checkrunerror(msg, source, templates={}, **variables):
 		py.test.fail("Didn't raise exception")
 
 
+def test_format():
+	tmpl = ul4c.compile("<?for (i, item) in enumerate(data)?><?print (i+1).format('>3d')?>. <?print item[0].format('.<10')?> <?print item[1]?>\n<?end for?>")
+	assert str(tmpl) == unicode(tmpl)
+
+
 def test_text():
 	check('gurk', 'gurk')
 	check(u'gurk', u'gurk')
