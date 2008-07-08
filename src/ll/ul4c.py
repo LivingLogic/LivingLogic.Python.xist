@@ -217,7 +217,7 @@ class UnknownOpcodeError(Error):
 class OutOfRegistersError(Error):
 	"""
 	Exception that is raised by the compiler when there are no more free
-	registers. This might happen with very complex expressions in tag code.
+	registers. This might happen with complex expressions in tag code.
 	"""
 
 	def __str__(self):
@@ -230,12 +230,21 @@ class OutOfRegistersError(Error):
 
 class Opcode(object):
 	"""
-	An :class:`Opcode` stores an opcode. The type of opcode is stored in the
-	:attr:`code` attribute. Furthermore each opcode has up to five register
-	specifications (for the source or targets of the operation) in the attributes
-	:attr:`r1`, :attr:`r2`, :attr:`r3`, :attr:`r4` and :attr:`r5`. If the opcode
-	requires an additional argument (like a variable name or the value of a
-	constant) this will be stored in the :attr:`arg` attribute.
+	An :class:`Opcode` stores an opcode. An :class:`Opcode` object has the
+	following attributes:
+
+	:attr:`type` : string or :const:`None`
+		The opcode type (see below for a list).
+
+	:attr:`r1`, :attr:`r2`, :attr:`r3`, :attr:`r4`, :attr:`r5` : integer or :const:`None`
+		 Register specifications (for the sources or the target of the opcode)
+
+	:attr:`arg` : string or :const:`None`
+		Used if the opcode requires an additional argument (like a variable name
+		or the value of a constant).
+
+	:attr:`location` : :class:`Location` object
+		The location of the tag to which this opcode belongs.
 
 	The following opcodes are available:
 
@@ -247,32 +256,32 @@ class Opcode(object):
 		is not a string, it will be converted to a string first.)
 
 	``"loadnone"``:
-		Load the constant :const:`None`.
+		Load the constant :const:`None` into register :attr:`r1`.
 
 	``"loadfalse"``:
-		Load the constant :const:`False`.
+		Load the constant :const:`False` into register :attr:`r1`.
 
 	``"loadtrue"``:
-		Load the constant :const:`True`.
+		Load the constant :const:`True` into register :attr:`r1`.
 
 	``"loadstr"``:
-		Load the string :attr:`arg` into the register :attr:`r1`.
+		Load the string :attr:`arg` into register :attr:`r1`.
 
 	``"loadint"``:
-		Load the integer value :attr:`arg` into the register :attr:`r1`.
+		Load the integer value :attr:`arg` into register :attr:`r1`.
 
 	``"loadfloat"``:
-		Load the float value :attr:`arg` into the register :attr:`r1`.
+		Load the float value :attr:`arg` into register :attr:`r1`.
 
 	``"loaddate"``:
-		Load the date value :attr:`arg` into the register :attr:`r1`. :attr:`arg`
-		must be in ISO format (e.g. ``2008-07-02T11:05:55.460464``).
+		Load the date value :attr:`arg` into register :attr:`r1`. :attr:`arg` must
+		be in ISO format (e.g. ``2008-07-02T11:05:55.460464``).
 
 	``"buildlist"``:
-		Load an empty list into the register :attr:`r1`.
+		Load an empty list into register :attr:`r1`.
 
 	``"builddict"``:
-		Load an empty dictionary into the register :attr:`r1`.
+		Load an empty dictionary into register :attr:`r1`.
 
 	``"addlist"``
 		Append the object in register :attr:`r2` to the list in register :attr:`r1`.
@@ -295,10 +304,10 @@ class Opcode(object):
 		object from each loop iteration in the register :attr:`r1`.
 
 	``"endfor"``:
-		Ends the innermost running ``for`` loop.
+		End the innermost running ``for`` loop.
 
 	``"if"``:
-		Starts a conditional block. If the objects in the register :attr:`r1` is
+		Start a conditional block. If the objects in the register :attr:`r1` is
 		true the block will be executed. The "block" consists of all opcodes after
 		the ``if`` upto the matching ``else`` or ``endif`` opcode.
 
@@ -314,15 +323,15 @@ class Opcode(object):
 
 	``"getitem"``:
 		Get an item from the object in register :attr:`r2`. If this object is a
-		list the object in register :attr:`r3` will be used as the index. If it is
-		a dictionary :attr:`r3` will be used as the key. The result will be stored
-		in register :attr:`r1`.
+		list or string the object in register :attr:`r3` will be used as the
+		index. If it is a dictionary :attr:`r3` will be used as the key. The
+		result will be stored in register :attr:`r1`.
 
 	``"getslice12"``:
 		Get an slice from the object in register :attr:`r2`. The object in
 		register :attr:`r3` (which must be an ``int`` or :const:`None`) specifies
-		the start index, If this object in register :attr:`r4` specifies the end
-		index. The result will be stored in register :attr:`r1`.
+		the start index, the object in register :attr:`r4` specifies the end index.
+		The result will be stored in register :attr:`r1`.
 
 	``"getslice1"``:
 		Similar to ``getslice12`` except that the end index is always the length
@@ -350,29 +359,29 @@ class Opcode(object):
 
 	``"contains"``:
 		Test whether the object in register :attr:`r3` contains the object in
-		register :attr:`r2` (either as a key if it's a dictionary or as an item
-		if it's a list or as a substring if it's a string) and store ``True`` into
-		the register :attr:`r1` if it does, ``False`` otherwise.
+		register :attr:`r2` (either as a key if :attr:`r3` is a dictionary or as
+		an item if it's a list or as a substring if it's a string) and store
+		``True`` into the register :attr:`r1` if it does, ``False`` otherwise.
 
 	``"notcontains"``:
 		Test whether the object in register :attr:`r3` contains the object in
-		register :attr:`r2` (either as a key if it's a dictionary or as an item
-		if it's a list or as a substring if it's a string) and store ``False`` into
-		the register :attr:`r1` if it does, ``True`` otherwise.
+		register :attr:`r2` (either as a key if :attr:`r3` is a dictionary or as
+		an item if it's a list or as a substring if it's a string) and store
+		``False`` into the register :attr:`r1` if it does, ``True`` otherwise.
 
 	``"or"``:
-		Check the truth value of two object in registers :attr:`r2` and :attr:`r3`
-		and store :attr:`r2` in the register :attr:`r1` if it is true, :attr:`r3`
-		otherwise).
+		Check the truth value of the two objects in registers :attr:`r2` and
+		:attr:`r3` and store :attr:`r2` in the register :attr:`r1` if it is true,
+		:attr:`r3` otherwise).
 
 	``"and"``:
-		Check the truth value of two object in registers :attr:`r2` and :attr:`r3`
-		and store :attr:`r3` in the register :attr:`r1` if :attr:`r2` is true,
-		:attr:`r3` otherwise).
+		Check the truth value of the two objects in registers :attr:`r2` and
+		:attr:`r3` and store :attr:`r3` in the register :attr:`r1` if :attr:`r2`
+		is true, :attr:`r3` otherwise).
 
 	``"mod"``:
 		Does a modulo operation: Calculates :attr:`r2` modulo :attr:`r3` and stores
-		the result in the register :attr:`r1`.
+		the result in register :attr:`r1`.
 
 	``"callfunc0"``:
 		Call the function named :attr:`arg` without any arguments and store the
@@ -398,7 +407,7 @@ class Opcode(object):
 
 	``"callmeth1"``:
 		Call the method named :attr:`arg` on the object in register :attr:`r2`
-		using the object in register :attr:`r3` as to only argument and store the
+		using the object in register :attr:`r3` as the only argument and store the
 		return value in register :attr:`r1`.
 
 	``"callmeth2"``:
@@ -413,8 +422,8 @@ class Opcode(object):
 
 	``"render"``:
 		Render the template whose name is in the attribute :attr:`arg`. The
-		content of register :attr:`r1` will be passed as the data object to the
-		template.
+		content of register :attr:`r1` (which must be a dictionary) will be passed
+		to the template as the variable dictionary.
 	"""
 	__slots__ = ("code", "r1", "r2", "r3", "r4", "r5", "arg", "location", "jump")
 
