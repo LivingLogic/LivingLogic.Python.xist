@@ -23,7 +23,7 @@ except ImportError:
 	cssutils = None
 else:
 	import logging
-	cssutils.log.setLevel(logging.FATAL)
+	cssutils.log.setloglevel(logging.FATAL)
 
 from ll import misc, url
 from ll.xist import xsc, xfind
@@ -204,9 +204,9 @@ def applystylesheets(node, base=None, media=None, title=None):
 				if sel.matchpath(path):
 					for prop in style.seq:
 						if not isinstance(prop, css.CSSComment):
-							styles[prop.name] = (count, prop.name, prop.cssValue.cssText)
+							styles[prop.value.name] = (count, prop.value.cssText)
 							count += 1
-			style = " ".join("%s: %s;" % (name, value) for (count, name, value) in sorted(styles.itervalues()))
+			style = " ".join("%s;" % value for (count, value) in sorted(styles.itervalues()))
 			if style:
 				path[-1].attrs["style"] = style
 

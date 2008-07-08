@@ -240,10 +240,10 @@ def test_parseattr_sgmlop():
 
 def test_parsestringurl():
 	# Base URLs should end up in the location info of the resulting XML tree
-	node = parsers.parsestring("gurk")
+	node = parsers.parsestring("gurk", parser=parsers.SGMLOPParser())
 	assert str(node[0].startloc.url) == "STRING"
 
-	node = parsers.parsestring("gurk", base="root:gurk.xmlxsc")
+	node = parsers.parsestring("gurk", base="root:gurk.xmlxsc", parser=parsers.SGMLOPParser())
 	assert str(node[0].startloc.url) == "root:gurk.xmlxsc"
 
 

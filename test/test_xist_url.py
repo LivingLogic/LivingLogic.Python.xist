@@ -17,7 +17,7 @@ from ll.xist.ns import specials, html, jsp
 
 
 def test_url():
-	node = parsers.parsestring("<?url root:images/gurk.gif?>")
+	node = parsers.parsestring("<?url root:images/gurk.gif?>", parser=parsers.SGMLOPParser())
 	assert node.bytes(base="root:about/us.html") == "../images/gurk.gif"
 
 	node = parsers.parsestring('<img src="root:images/gurk.gif"/>')
