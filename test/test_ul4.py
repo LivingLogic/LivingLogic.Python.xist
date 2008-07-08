@@ -329,6 +329,56 @@ def test_mod():
 	check(str(42%17), '<?code x=42?><?code y=17?><?print x%y?>')
 
 
+def test_eq():
+	check("False", '<?print 17==23?>')
+	check("True", '<?print 17==17?>')
+	check("False", '<?print x==23?>', x=17)
+	check("True", '<?print x==23?>', x=23)
+
+
+def test_ne():
+	check("True", '<?print 17!=23?>')
+	check("False", '<?print 17!=17?>')
+	check("True", '<?print x!=23?>', x=17)
+	check("False", '<?print x!=23?>', x=23)
+
+
+def test_lt():
+	check("True", '<?print 1<2?>')
+	check("False", '<?print 2<2?>')
+	check("False", '<?print 3<2?>')
+	check("True", '<?print x<2?>', x=1)
+	check("False", '<?print x<2?>', x=2)
+	check("False", '<?print x<2?>', x=3)
+
+
+def test_le():
+	check("True", '<?print 1<=2?>')
+	check("True", '<?print 2<=2?>')
+	check("False", '<?print 3<=2?>')
+	check("True", '<?print x<=2?>', x=1)
+	check("True", '<?print x<=2?>', x=2)
+	check("False", '<?print x<=2?>', x=3)
+
+
+def test_gt():
+	check("False", '<?print 1>2?>')
+	check("False", '<?print 2>2?>')
+	check("True", '<?print 3>2?>')
+	check("False", '<?print x>2?>', x=1)
+	check("False", '<?print x>2?>', x=2)
+	check("True", '<?print x>2?>', x=3)
+
+
+def test_ge():
+	check("False", '<?print 1>=2?>')
+	check("True", '<?print 2>=2?>')
+	check("True", '<?print 3>=2?>')
+	check("False", '<?print x>=2?>', x=1)
+	check("True", '<?print x>=2?>', x=2)
+	check("True", '<?print x>=2?>', x=3)
+
+
 def test_nested():
 	sc = "4"
 	sv = "x"

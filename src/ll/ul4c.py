@@ -349,13 +349,29 @@ class Opcode(object):
 		Invert the truth value of the object in register :attr:`r2` and stores the
 		resulting bool in the register :attr:`r1`.
 
-	``"equals"``:
+	``"eq"``:
 		Compare the objects in register :attr:`r2` and :attr:`r3` and store
 		``True`` in the register :attr:`r1` if they are equal, ``False`` otherwise.
 
-	``"notequals"``:
+	``"ne"``:
 		Compare the objects in register :attr:`r2` and :attr:`r3` and store
 		``False`` in the register :attr:`r1` if they are equal, ``True`` otherwise.
+
+	``"lt"``:
+		Does a "<" comparison of the objects in register :attr:`r2` and :attr:`r3`
+		and stores the result in register :attr:`r1`.
+
+	``"le"``:
+		Does a "<=" comparison of the objects in register :attr:`r2` and :attr:`r3`
+		and stores the result in register :attr:`r1`.
+
+	``"gt"``:
+		Does a ">" comparison of the objects in register :attr:`r2` and :attr:`r3`
+		and stores the result in register :attr:`r1`.
+
+	``"ge"``:
+		Does a ">=" comparison of the objects in register :attr:`r2` and :attr:`r3`
+		and stores the result in register :attr:`r1`.
 
 	``"contains"``:
 		Test whether the object in register :attr:`r3` contains the object in
@@ -518,10 +534,18 @@ class Opcode(object):
 			return "r%r = r%r[r%r:r%r]" % (self.r1, self.r2, self.r3, self.r4)
 		elif self.code == "not":
 			return "r%r = not r%r" % (self.r1, self.r2)
-		elif self.code == "equals":
+		elif self.code == "eq":
 			return "r%r = r%r == r%r" % (self.r1, self.r2, self.r3)
-		elif self.code == "notequals":
+		elif self.code == "ne":
 			return "r%r = r%r != r%r" % (self.r1, self.r2, self.r3)
+		elif self.code == "lt":
+			return "r%r = r%r < r%r" % (self.r1, self.r2, self.r3)
+		elif self.code == "le":
+			return "r%r = r%r <= r%r" % (self.r1, self.r2, self.r3)
+		elif self.code == "gt":
+			return "r%r = r%r > r%r" % (self.r1, self.r2, self.r3)
+		elif self.code == "ge":
+			return "r%r = r%r >= r%r" % (self.r1, self.r2, self.r3)
 		elif self.code == "contains":
 			return "r%r = r%r in r%r" % (self.r1, self.r2, self.r3)
 		elif self.code == "notcontains":
@@ -577,7 +601,7 @@ class Template(object):
 	Rendering the template can be done with the methods :meth:`render` (which
 	returns a generator) or :meth:`renders` (which returns a string).
 	"""
-	version = "2"
+	version = "3"
 
 	def __init__(self):
 		self.startdelim = None
@@ -849,10 +873,18 @@ class Template(object):
 					_code("reg%d = reg%d in reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "notcontains":
 					_code("reg%d = reg%d not in reg%d" % (opcode.r1, opcode.r2, opcode.r3))
-				elif opcode.code == "equals":
+				elif opcode.code == "eq":
 					_code("reg%d = reg%d == reg%d" % (opcode.r1, opcode.r2, opcode.r3))
-				elif opcode.code == "notequals":
+				elif opcode.code == "ne":
 					_code("reg%d = reg%d != reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+				elif opcode.code == "lt":
+					_code("reg%d = reg%d < reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+				elif opcode.code == "le":
+					_code("reg%d = reg%d <= reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+				elif opcode.code == "gt":
+					_code("reg%d = reg%d > reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+				elif opcode.code == "ge":
+					_code("reg%d = reg%d >= reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "add":
 					_code("reg%d = reg%d + reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "sub":
@@ -1466,12 +1498,28 @@ class GetSlice2(Binary):
 	opcode = "getslice2"
 
 
-class Equal(Binary):
-	opcode = "equals"
+class EQ(Binary):
+	opcode = "eq"
 
 
-class NotEqual(Binary):
-	opcode = "notequals"
+class NE(Binary):
+	opcode = "ne"
+
+
+class LT(Binary):
+	opcode = "lt"
+
+
+class LE(Binary):
+	opcode = "le"
+
+
+class GT(Binary):
+	opcode = "gt"
+
+
+class GE(Binary):
+	opcode = "ge"
 
 
 class Contains(Binary):
@@ -1672,7 +1720,7 @@ class Scanner(spark.Scanner):
 	def date(self, start, end, s):
 		self.rv.append(Date(start, end, datetime.datetime(*map(int, filter(None, datesplitter.split(s))))))
 
-	@spark.token("\\(|\\)|\\[|\\]|\\{|\\}|\\.|,|==|\\!=|=|\\+=|\\-=|\\*=|//=|/=|%=|%|:|\\+|-|\\*|//|/", "default")
+	@spark.token("\\(|\\)|\\[|\\]|\\{|\\}|\\.|,|==|\\!=|<=|<|>=|>|=|\\+=|\\-=|\\*=|//=|/=|%=|%|:|\\+|-|\\*|//|/", "default")
 	def token(self, start, end, s):
 		self.rv.append(Token(start, end, s))
 
@@ -2023,16 +2071,40 @@ class ExprParser(spark.Parser):
 		return Sub(obj1.start, obj2.end, obj1, obj2)
 
 	@spark.production('expr4 ::= expr4 == expr4')
-	def expr_equal(self, obj1, _0, obj2):
+	def expr_eq(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.start, obj2.end, obj1.value == obj2.value)
-		return Equal(obj1.start, obj2.end, obj1, obj2)
+		return EQ(obj1.start, obj2.end, obj1, obj2)
 
 	@spark.production('expr4 ::= expr4 != expr4')
-	def expr_notequal(self, obj1, _0, obj2):
+	def expr_ne(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.start, obj2.end, obj1.value != obj2.value)
-		return NotEqual(obj1.start, obj2.end, obj1, obj2)
+		return NE(obj1.start, obj2.end, obj1, obj2)
+
+	@spark.production('expr4 ::= expr4 < expr4')
+	def expr_lt(self, obj1, _0, obj2):
+		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
+			return self.makeconst(obj1.start, obj2.end, obj1.value < obj2.value)
+		return LT(obj1.start, obj2.end, obj1, obj2)
+
+	@spark.production('expr4 ::= expr4 <= expr4')
+	def expr_le(self, obj1, _0, obj2):
+		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
+			return self.makeconst(obj1.start, obj2.end, obj1.value <= obj2.value)
+		return LE(obj1.start, obj2.end, obj1, obj2)
+
+	@spark.production('expr4 ::= expr4 > expr4')
+	def expr_gt(self, obj1, _0, obj2):
+		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
+			return self.makeconst(obj1.start, obj2.end, obj1.value > obj2.value)
+		return GT(obj1.start, obj2.end, obj1, obj2)
+
+	@spark.production('expr4 ::= expr4 >= expr4')
+	def expr_ge(self, obj1, _0, obj2):
+		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
+			return self.makeconst(obj1.start, obj2.end, obj1.value >= obj2.value)
+		return GE(obj1.start, obj2.end, obj1, obj2)
 
 	@spark.production('expr3 ::= expr3 in expr3')
 	def expr_contains(self, obj, _0, container):
