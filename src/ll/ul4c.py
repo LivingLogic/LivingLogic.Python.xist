@@ -233,7 +233,7 @@ class Opcode(object):
 	An :class:`Opcode` stores an opcode. An :class:`Opcode` object has the
 	following attributes:
 
-	:attr:`type` : string or :const:`None`
+	:attr:`code` : string or :const:`None`
 		The opcode type (see below for a list).
 
 	:attr:`r1`, :attr:`r2`, :attr:`r3`, :attr:`r4`, :attr:`r5` : integer or :const:`None`
@@ -246,7 +246,7 @@ class Opcode(object):
 	:attr:`location` : :class:`Location` object
 		The location of the tag to which this opcode belongs.
 
-	The following opcodes are available:
+	The following opcode types are available:
 
 	:const:`None`:
 		Print text. The text is available from ``location.code``.
@@ -565,6 +565,18 @@ class Opcode(object):
 
 
 class Template(object):
+	"""
+	A template object can be compiled via the class method :meth:`compile` from
+	source. It can be loaded from the compiled format via :meth:`load` (from a
+	stream) or :meth:`loads` (from a string).
+	
+	The compiled format can be generated with the methods :meth:`dump` (which
+	dumps the format to a stream) or :meth:`dumps` (which returns a string with
+	the compiled format).
+
+	Rendering the template can be done with the methods :meth:`render` (which
+	returns a generator) or :meth:`renders` (which returns a string).
+	"""
 	version = "2"
 
 	def __init__(self):
@@ -577,6 +589,10 @@ class Template(object):
 
 	@classmethod
 	def loads(cls, data):
+		"""
+		The class method :meth:`loads` loads the template from string :var:`data`.
+		:var:`data` must contain the template in compiled format.
+		"""
 		def _readint(term):
 			i = 0
 			while True:
@@ -664,9 +680,16 @@ class Template(object):
 
 	@classmethod
 	def load(cls, stream):
+		"""
+		The class method :meth:`load` loads the template from the stream
+		:var:`stream`. The stream must contain the template in compiled format.
+		"""
 		return cls.loads(stream.read())
 
 	def iterdump(self):
+		"""
+		This generator outputs the template in compiled format.
+		"""
 		def _writeint(term, number):
 			yield unicode(number)
 			yield term
@@ -710,13 +733,24 @@ class Template(object):
 			yield "\n"
 
 	def dump(self, stream):
+		"""
+		:meth:`dump` dumps the template in compiled format to the stream
+		:var:`stream`.
+		"""
 		for part in self.iterdump():
 			stream.write(part)
 
 	def dumps(self):
-		return ''.join(self.iterdump())
+		"""
+		:meth:`dumps` returns the template in compiled format (as a string).
+		"""
+		return "".join(self.iterdump())
 
 	def pythonsource(self, function=None):
+		"""
+		Return the template as Python source code. If :var:`function` is specified
+		the code will be wrapped in a function with this name.
+		"""
 		indent = 0
 		output = []
 
@@ -960,10 +994,15 @@ class Template(object):
 		return "\n".join(output)
 
 	def pythonfunction(self):
+		"""
+		Return a Python generator that can be called to render the template.
+		The argument signature of the function will be
+		``templates={}, **variables``.
+		"""
 		if self._pythonfunction is None:
 			code = self.pythonsource("render")
 			ns = {}
-			exec code.encode("utf-8") in ns
+			exec code.encode("utf-8") in ns # FIXME: no need to encode in Python 3.0
 			self._pythonfunction = ns["render"]
 		return self._pythonfunction
 
@@ -971,9 +1010,20 @@ class Template(object):
 		return self.pythonfunction()(templates, **variables)
 
 	def render(self, templates={}, **variables):
+		"""
+		Render the template iteratively (i.e. this is a generator).
+		:var:`templates` contains the templates that should be available to the
+		``<?render?>`` tag. :var:`variables` contains the top level variables
+		available to the template code.
+		"""
 		return self.pythonfunction()(templates, **variables)
 
 	def renders(self, templates={}, **variables):
+		"""
+		Render the template as a string. :var:`templates` contains the templates
+		that should be available to the ``<?render?>`` tag. :var:`variables`
+		contains the top level variables available to the template code.
+		"""
 		return "".join(self.render(templates, **variables))
 
 	def format(self, indent="\t"):
@@ -983,7 +1033,7 @@ class Template(object):
 		to indent block (defaulting to ``"\\t"``).
 		"""
 		i = 0
-		for opcode in self:
+		for opcode in self.opcodes:
 			if opcode.code in ("else", "endif", "endfor"):
 				i -= 1
 			if opcode.code in ("endif", "endfor"):
@@ -998,6 +1048,13 @@ class Template(object):
 				i += 1
 
 	def _tokenize(self, source, startdelim, enddelim):
+		"""
+		Tokenize the template source code :var:`source` into tags and non-tag
+		text. :var:`startdelim` and :var:`enddelim` are used as the tag delimiters.
+
+		This is a generator which produces :class:`Location` objects for each tag
+		or non-tag text. It will be called by :meth:`_compile` internally.
+		"""
 		pattern = u"%s(print|code|for|if|elif|else|end|render)(\s*((.|\\n)*?)\s*)?%s" % (re.escape(startdelim), re.escape(enddelim))
 		pos = 0
 		for match in re.finditer(pattern, source):
@@ -1010,18 +1067,32 @@ class Template(object):
 			yield Location(source, None, pos, end, pos, end)
 
 	def _allocreg(self):
+		"""
+		Allocates a free register from the pool of available registers.
+		"""
 		try:
 			return self.registers.pop()
 		except KeyError:
 			raise OutOfRegistersError()
 
 	def _freereg(self, register):
+		"""
+		Returns the register :var:`register` to the pool of available registers.
+		"""
 		self.registers.add(register)
 
-	def opcode(self, name, r1=None, r2=None, r3=None, r4=None, r5=None, arg=None):
-		self.opcodes.append(Opcode(name, r1, r2, r3, r4, r5, arg, self.location))
+	def opcode(self, code, r1=None, r2=None, r3=None, r4=None, r5=None, arg=None):
+		"""
+		Creates an :class:`Opcode` object and appends it to :var:`self`\s list of
+		opcodes.
+		"""
+		self.opcodes.append(Opcode(code, r1, r2, r3, r4, r5, arg, self.location))
 
 	def _compile(self, source, startdelim, enddelim):
+		"""
+		Compile the template source code :var:`source` into opcodes.
+		:var:`startdelim` and :var:`enddelim` are used as the tag delimiters.
+		"""
 		self.startdelim = startdelim
 		self.enddelim = enddelim
 		scanner = Scanner()
