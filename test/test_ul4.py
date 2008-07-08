@@ -296,36 +296,40 @@ def test_empty():
 
 
 def test_add():
+	check('42', '<?print 21+21?>')
 	check('42', '<?code x=21?><?code y=21?><?print x+y?>')
 	check('foobar', '<?code x="foo"?><?code y="bar"?><?print x+y?>')
 	check('(f)(o)(o)(b)(a)(r)', '<?for i in data.foo+data.bar?>(<?print i?>)<?end for?>', data=dict(foo="foo", bar="bar"))
 
 
 def test_sub():
+	check('0', '<?print 21-21?>')
 	check('0', '<?code x=21?><?code y=21?><?print x-y?>')
 
 
 
 def test_mul():
+	check(str(17*23), '<?print 17*23?>')
 	check(str(17*23), '<?code x=17?><?code y=23?><?print x*y?>')
+	check(17*"foo", '<?print 17*"foo"?>')
 	check(17*"foo", '<?code x=17?><?code y="foo"?><?print x*y?>')
 	check("foo"*17, '<?code x="foo"?><?code y=17?><?print x*y?>')
+	check("foo"*17, '<?print "foo"*17?>')
 	check("(foo)(bar)(foo)(bar)(foo)(bar)", '<?for i in 3*data?>(<?print i?>)<?end for?>', data=["foo", "bar"])
 
 
 def test_truediv():
+	check("0.5", '<?print 1/2?>')
 	check("0.5", '<?code x=1?><?code y=2?><?print x/y?>')
 
 
 def test_floordiv():
+	check("0", '<?print 1//2?>')
 	check("0", '<?code x=1?><?code y=2?><?print x//y?>')
 
 
 def test_mod():
-	check(str(42%17), '<?code x=42?><?code y=17?><?print x%y?>')
-
-
-def test_mod():
+	check(str(42%17), '<?print 42%17?>')
 	check(str(42%17), '<?code x=42?><?code y=17?><?print x%y?>')
 
 
