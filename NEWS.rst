@@ -14,7 +14,7 @@ Changes in 3.3 (released ??/??/2008)
 	:class:`GUnzipAction`, :class:`CallFuncAction`,  :class:`CallMethAction`,
 	:class:`ULLCompileAction`, :class:`ULLDumpAction` and :class:`ULLLoadAction`.
 
-*	The version number for :mod:`cssutils` has beedn bumped to 0.9.5b3.
+*	The version number for :mod:`cssutils` has been bumped to 0.9.5rc1.
 
 *	All actions in :mod:`ll.make` no longer check whether their inputs are
 	action objects. Non-action objects are simply treated as ancient input data.
