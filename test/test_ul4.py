@@ -771,7 +771,7 @@ def test_method_rsplit():
 
 
 def test_method_replace():
-	check('gork', r"<?print 'gurk'.replace('u', 'o')?>")
+	check('goork', r"<?print 'gurk'.replace('u', 'oo')?>")
 
 
 def test_method_format():
