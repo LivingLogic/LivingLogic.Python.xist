@@ -2319,6 +2319,6 @@ def _csvescape(obj):
 		return u""
 	elif not isinstance(obj, basestring):
 		obj = _repr(obj)
-	if "," in obj or '"' in obj:
+	if any(c in obj for c in ',"\n'):
 		return u'"%s"' % obj.replace('"', '""')
 	return obj

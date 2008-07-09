@@ -465,7 +465,8 @@ def test_function_csvescape():
 	# no check for float
 	check("abc", "<?print csvescape(data)?>", data="abc")
 	check('"a,b,c"', "<?print csvescape(data)?>", data="a,b,c")
-	check('a""b""c', "<?print csvescape(data)?>", data='a"b"c')
+	check('"a""b""c"', "<?print csvescape(data)?>", data='a"b"c')
+	check('"a\nb\nc"', "<?print csvescape(data)?>", data="a\nb\nc")
 
 
 def test_function_str():
