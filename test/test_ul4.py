@@ -455,6 +455,19 @@ def test_function_xmlescape():
 	check("&lt;&gt;&amp;&#39;&quot;gurk", "<?print xmlescape(data)?>", data='<>&\'"gurk')
 
 
+def test_function_csvescape():
+	checkrunerror("function u?'csvescape' unknown", "<?print csvescape()?>")
+	checkrunerror("function u?'csvescape' unknown", "<?print csvescape(1, 2)?>")
+	check("", "<?print csvescape(data)?>", data=None)
+	check("False", "<?print csvescape(data)?>", data=False)
+	check("True", "<?print csvescape(data)?>", data=True)
+	check("42", "<?print csvescape(data)?>", data=42)
+	# no check for float
+	check("abc", "<?print csvescape(data)?>", data="abc")
+	check('"a,b,c"', "<?print csvescape(data)?>", data="a,b,c")
+	check('a""b""c', "<?print csvescape(data)?>", data='a"b"c')
+
+
 def test_function_str():
 	checkrunerror("function u?'str' unknown", "<?print str()?>")
 	checkrunerror("function u?'str' unknown", "<?print str(1, 2)?>")

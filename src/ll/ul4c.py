@@ -918,6 +918,8 @@ class Template(object):
 				elif opcode.code == "callfunc1":
 					if opcode.arg == "xmlescape":
 						_code("reg%d = xmlescape(unicode(reg%d)) if reg%d is not None else u''" % (opcode.r1, opcode.r2, opcode.r2))
+					elif opcode.arg == "csvescape":
+						_code("reg%d = ul4c._csvescape(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "str":
 						_code("reg%d = unicode(reg%d) if reg%d is not None else u''" % (opcode.r1, opcode.r2, opcode.r2))
 					elif opcode.arg == "int":
@@ -2307,3 +2309,16 @@ def _repr(obj):
 		return u"{%s}" % u", ".join(u"%s: %s" % (_repr(key), _repr(value)) for (key, value) in obj.iteritems())
 	else:
 		return unicode(repr(obj))
+
+
+def _csvescape(obj):
+	"""
+	Helper for the ``repr`` function.
+	"""
+	if obj is None:
+		return u""
+	elif not isinstance(obj, basestring):
+		obj = _repr(obj)
+	if "," in obj or '"' in obj:
+		return u'"%s"' % obj.replace('"', '""')
+	return obj
