@@ -68,3 +68,11 @@ class end(xsc.ProcInst):
 
 class for_(xsc.ProcInst):
 	xmlname = "for"
+
+
+class break_(xsc.ProcInst):
+	xmlname = "break"
+
+
+class continue_(xsc.ProcInst):
+	xmlname = "continue"

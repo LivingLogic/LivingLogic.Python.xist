@@ -263,6 +263,22 @@ def test_for_nested():
 	check('[(1)(2)][(3)(4)]', '<?for list in data?>[<?for n in list?>(<?print n?>)<?end for?>]<?end for?>', data=[[1, 2], [3, 4]])
 
 
+def test_break():
+	check('1, 2, ', '<?for i in [1,2,3]?><?print i?>, <?if i==2?><?break?><?end if?><?end for?>')
+
+
+def test_break_nested():
+	check('1, 1, 2, 1, 2, 3, ', '<?for i in [1,2,3,4]?><?for j in [1,2,3,4]?><?print j?>, <?if j>=i?><?break?><?end if?><?end for?><?if i>=3?><?break?><?end if?><?end for?>')
+
+
+def test_continue():
+	check('1, 3, ', '<?for i in [1,2,3]?><?if i==2?><?continue?><?end if?><?print i?>, <?end for?>')
+
+
+def test_continue_nested():
+	check('1, 3, \n1, 3, \n', '<?for i in [1,2,3]?><?if i==2?><?continue?><?end if?><?for j in [1,2,3]?><?if j==2?><?continue?><?end if?><?print j?>, <?end for?>\n<?end for?>')
+
+
 def test_if():
 	check('42', '<?if data?><?print data?><?end if?>', data=42)
 

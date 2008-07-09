@@ -206,6 +206,19 @@ you can do the following::
 if ``items`` is an iterable containing lists with two elements.
 
 
+``break``
+---------
+
+The ``break`` tag can be used to break out of the innermost running loop.
+
+
+``continue``
+------------
+
+The ``continue`` tag can be used skip the rest of the loop body of the innermost
+running loop.
+
+
 ``if``
 ------
 

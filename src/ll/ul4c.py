@@ -306,6 +306,13 @@ class Opcode(object):
 	``"endfor"``:
 		End the innermost running ``for`` loop.
 
+	``"break"``:
+		Breaks the innermost running ``for`` loop.
+
+	``"continue"``:
+		Continues the innermost running ``for`` loop (i.e. jumps back to the
+		start of the loop body).
+
 	``"if"``:
 		Start a conditional block. If the objects in the register :attr:`r1` is
 		true the block will be executed. The "block" consists of all opcodes after
@@ -510,6 +517,10 @@ class Opcode(object):
 			return "for r%r in r%r" % (self.r1, self.r2)
 		elif self.code == "endfor":
 			return "endfor"
+		elif self.code == "break":
+			return "break"
+		elif self.code == "continue":
+			return "continue"
 		elif self.code == "if":
 			return "if r%r" % self.r1
 		elif self.code == "else":
@@ -595,7 +606,7 @@ class Template(object):
 	Rendering the template can be done with the methods :meth:`render` (which
 	returns a generator) or :meth:`renders` (which returns a string).
 	"""
-	version = "3"
+	version = "4"
 
 	def __init__(self):
 		self.startdelim = None
@@ -857,6 +868,10 @@ class Template(object):
 					# we don't have to check for empty loops here, as a ``<?for?>`` tag always generates at least one ``storevar`` opcode inside the loop
 					indent -= 1
 					_code("# end for")
+				elif opcode.code == "break":
+					_code("break")
+				elif opcode.code == "continue":
+					_code("continue")
 				elif opcode.code == "not":
 					_code("reg%d = not reg%d" % (opcode.r1, opcode.r2))
 				elif opcode.code == "neg":
@@ -1079,7 +1094,7 @@ class Template(object):
 		This is a generator which produces :class:`Location` objects for each tag
 		or non-tag text. It will be called by :meth:`_compile` internally.
 		"""
-		pattern = u"%s(print|code|for|if|elif|else|end|render)(\s*((.|\\n)*?)\s*)?%s" % (re.escape(startdelim), re.escape(enddelim))
+		pattern = u"%s(print|code|for|if|elif|else|end|break|continue|render)(\s*((.|\\n)*?)\s*)?%s" % (re.escape(startdelim), re.escape(enddelim))
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
@@ -1187,6 +1202,14 @@ class Template(object):
 				elif location.type == "for":
 					parsefor(self)
 					stack.append(("for",))
+				elif location.type == "break":
+					if not any(entry[0] == "for" for entry in stack):
+						raise BlockError("break outside of for loop")
+					self.opcode("break")
+				elif location.type == "continue":
+					if not any(entry[0] == "for" for entry in stack):
+						raise BlockError("continue outside of for loop")
+					self.opcode("continue")
 				elif location.type == "render":
 					parserender(self)
 				else: # Can't happen
