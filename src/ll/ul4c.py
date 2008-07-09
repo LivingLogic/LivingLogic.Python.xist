@@ -341,10 +341,6 @@ class Opcode(object):
 		Similar to ``getslice12`` except that the start index is always 0 and the
 		end index is in register :attr:`r3`.
 
-	``"getslice"``:
-		Similar to ``getslice12`` except that the start index is always 0 and the
-		end index alywas the length of the object.
-
 	``"not"``:
 		Invert the truth value of the object in register :attr:`r2` and stores the
 		resulting bool in the register :attr:`r1`.
@@ -524,8 +520,6 @@ class Opcode(object):
 			return "r%r = getattr(r%r, %r)" % (self.r1, self.r2, self.arg)
 		elif self.code == "getitem":
 			return "r%r = r%r[r%r]" % (self.r1, self.r2, self.r3)
-		elif self.code == "getslice":
-			return "r%r = r%r[:]" % (self.r1, self.r2)
 		elif self.code == "getslice1":
 			return "r%r = r%r[r%r:]" % (self.r1, self.r2, self.r3)
 		elif self.code == "getslice2":
@@ -854,8 +848,6 @@ class Template(object):
 					_code("reg%d = reg%d[reg%d:]" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "getslice2":
 					_code("reg%d = reg%d[:reg%d]" % (opcode.r1, opcode.r2, opcode.r3))
-				elif opcode.code == "getslice":
-					_code("reg%d = reg%d[:]" % (opcode.r1, opcode.r2))
 				elif opcode.code == "print":
 					_code("if reg%d is not None: yield unicode(reg%d)" % (opcode.r1, opcode.r1))
 				elif opcode.code == "for":
@@ -1455,10 +1447,6 @@ class Unary(AST):
 		return r
 
 
-class GetSlice(Unary):
-	opcode = "getslice"
-
-
 class Not(Unary):
 	opcode = "not"
 
@@ -2021,12 +2009,6 @@ class ExprParser(spark.Parser):
 		if isinstance(expr, Const) and isinstance(index2, Const): # Constant folding
 			return self.makeconst(expr.start, _2.end, expr.value[:index2.value])
 		return GetSlice2(expr.start, _2.end, expr, index2)
-
-	@spark.production('expr8 ::= expr8 [ : ]')
-	def expr_getslice(self, expr, _0, _1, _2):
-		if isinstance(expr, Const): # Constant folding
-			return self.makeconst(expr.start, _2.end, expr.value[:])
-		return GetSlice(expr.start, _2.end, expr)
 
 	@spark.production('expr7 ::= - expr7')
 	def expr_neg(self, _0, expr):
