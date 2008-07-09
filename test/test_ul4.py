@@ -770,6 +770,10 @@ def test_method_rsplit():
 	check("(xxgxxuxxr)(k)()", r"<?for item in 'xxgxxuxxrxxkxx'.rsplit('xx', 2)?>(<?print item?>)<?end for?>")
 
 
+def test_method_replace():
+	check('gork', r"<?print 'gurk'.replace('u', 'o')?>")
+
+
 def test_method_format():
 	now = datetime.datetime.now()
 	format = "%Y-%m-%d %H:%M:%S"
