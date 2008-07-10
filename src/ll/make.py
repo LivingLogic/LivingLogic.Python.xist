@@ -1167,7 +1167,7 @@ class TOXICAction(PipeAction):
 	function or procedure body via the TOXIC compiler (:mod:`ll.toxicc`).
 	"""
 
-	def __init__(self, input, mode="oracle"):
+	def __init__(self, input=None, mode="oracle"):
 		PipeAction.__init__(self, input)
 		self.mode = mode
 
@@ -1187,7 +1187,7 @@ class TOXICPrettifyAction(PipeAction):
 	:func:`ll.toxicc.prettify` function.
 	"""
 
-	def __init__(self, input, mode="oracle"):
+	def __init__(self, input=None, mode="oracle"):
 		PipeAction.__init__(self, input)
 		self.mode = mode
 
@@ -1206,13 +1206,13 @@ class SplatAction(PipeAction):
 	This action transforms an input string by replacing regular expressions.
 	"""
 
-	def __init__(self, patterns):
+	def __init__(self, input=None, patterns=[]):
 		"""
 		Create a new :class:`SplatAction` object. :var:`patterns` are pattern
 		pairs. Each first entry will be replaced by the corresponding second
 		entry.
 		"""
-		PipeAction.__init__(self)
+		PipeAction.__init__(self, input)
 		self.patterns = patterns
 
 	def execute(self, project, data):
