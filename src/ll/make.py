@@ -1163,26 +1163,42 @@ class CallMethAction(Action):
 
 class TOXICAction(PipeAction):
 	"""
-	This action transforms an XML string into an Oracle procedure body via the
-	:mod:`ll.xist.ns.toxic` namespace module.
+	This action transforms a TOXIC template code into an Oracle or SQL Server
+	function or procedure body via the TOXIC compiler (:mod:`ll.toxicc`).
 	"""
 
-	def execute(self, project, data):
-		project.writestep(self, "Toxifying input")
-		from ll import toxic
-		return toxic.xml2ora(data)
+	def __init__(self, input, mode="oracle"):
+		PipeAction.__init__(self, input)
+		self.mode = mode
+
+	@report
+	def get(self, project, since):
+		(data, self.changed) = getoutputs(project, since, (self.input, self.mode))
+		if data is not nodata:
+			project.writestep(self, "Compiling TOXIC template with mode %r" % data[1])
+			from ll import toxicc
+			return toxicc.compile(data[0], mode=data[1])
+		return data
 
 
 class TOXICPrettifyAction(PipeAction):
 	"""
-	This action tries to fix the indentation of a PL/SQL snippet via the
-	:func:`ll.xist.ns.toxic.prettify` function.
+	This action tries to fix the indentation of a SQL snippet via the
+	:func:`ll.toxicc.prettify` function.
 	"""
 
-	def execute(self, project, data):
-		project.writestep(self, "Prettifying input")
-		from ll import toxic
-		return toxic.prettify(data)
+	def __init__(self, input, mode="oracle"):
+		PipeAction.__init__(self, input)
+		self.mode = mode
+
+	@report
+	def get(self, project, since):
+		(data, self.changed) = getoutputs(project, since, (self.input, self.mode))
+		if data is not nodata:
+			project.writestep(self, "Prettifying SQL code with mode %r" % data[1])
+			from ll import toxicc
+			return toxicc.prettify(data[0], mode=data[1])
+		return data
 
 
 class SplatAction(PipeAction):
