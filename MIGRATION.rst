@@ -7,6 +7,17 @@ Changes to the make module
 *	:class:`ll.make.ImportAction` has been dropped as now the module object can
 	be used directly (e.g. as the input for an :class:`XISTPoolAction` object).
 
+*	The constructor of most action classes now accept the input action as a
+	parameter again. This means that you might have to change the calls.
+	Usually it's safest to use keyword arguments.
+
+Changes to TOXIC
+----------------
+*	TOXIC has been split into a compiler and an XIST namespace module. Instead
+	of calling the function :func:`ll.xist.ns.toxic.xml2ora` you now have to use
+	:func:`ll.toxicc.compile`. (However using TOXIC with :mod:`ll.make` hasn't
+	changed).
+
 Changes to XIST
 ---------------
 

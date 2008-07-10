@@ -18,6 +18,8 @@ Changes in 3.3 (released ??/??/2008)
 
 *	All actions in :mod:`ll.make` no longer check whether their inputs are
 	action objects. Non-action objects are simply treated as ancient input data.
+	This also means that most action classes have an :var:`input` parameter in
+	their constructor again, as this input could now be a constant.
 
 *	Most attributes of action objects in :mod:`ll.make` can now be action objects
 	themselves, so for example the name of the encoding to be used in an
