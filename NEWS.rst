@@ -37,6 +37,11 @@ Changes in 3.3 (released ??/??/2008)
 		>>> from ll.xist import parsers
 		>>> node = parsers.parsestring("<a>", parser=parsers.SGMLOPParser())
 
+*	TOXIC has been split into a compiler module :mod:`ll.toxicc` and an XIST
+	namespace :mod:`ll.xist.ns.toxic`. TOXIC now supports output for
+	SQL Server. The function :func:`xml2ora` as been renamed to :func:`compile`
+	(and has a new :var:`mode` argument for specifying the database type).
+
 
 Changes in 3.2.7 (released 05/16/2008)
 --------------------------------------
