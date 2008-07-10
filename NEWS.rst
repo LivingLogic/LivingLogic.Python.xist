@@ -12,7 +12,7 @@ Changes in 3.3 (released ??/??/2008)
 
 *	:mod:`ll.make` has gained new actions: :class:`GZipAction`,
 	:class:`GUnzipAction`, :class:`CallFuncAction`,  :class:`CallMethAction`,
-	:class:`ULLCompileAction`, :class:`ULLDumpAction` and :class:`ULLLoadAction`.
+	:class:`UL4CompileAction`, :class:`UL4DumpAction` and :class:`UL4LoadAction`.
 
 *	The version number for :mod:`cssutils` has been bumped to 0.9.5rc1.
 
