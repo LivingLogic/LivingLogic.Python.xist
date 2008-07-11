@@ -2313,7 +2313,7 @@ def _repr(obj):
 
 def _csvescape(obj):
 	"""
-	Helper for the ``repr`` function.
+	Helper for the ``csvescape`` function.
 	"""
 	if obj is None:
 		return u""
