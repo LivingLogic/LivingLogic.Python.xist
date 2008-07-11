@@ -567,7 +567,7 @@ class FileAction(PipeAction):
 		"""
 		Write :var:`data` to the file and return it.
 		"""
-		project.writestep(self, "Writing data to ", project.strkey(self.key))
+		project.writestep(self, "Writing ", len(data), " bytes to ", project.strkey(self.key))
 		with contextlib.closing(self.key.open("wb")) as file:
 			file.write(data)
 			project.fileswritten += 1
@@ -642,7 +642,7 @@ class PickleAction(PipeAction):
 	def get(self, project, since):
 		(data, self.changed) = getoutputs(project, since, (self.input, self.protocol))
 		if data is not nodata:
-			project.writestep(self, "Pickling with protocol %r" % data[1])
+			project.writestep(self, "Pickling data with protocol %r" % data[1])
 			data = cPickle.dumps(data[0], data[1])
 		return data
 
@@ -1025,7 +1025,7 @@ class DecodeAction(PipeAction):
 		(data, self.changed) = getoutputs(project, since, (self.input, self.encoding))
 
 		if data is not nodata:
-			project.writestep(self, "Decoding input with encoding ", data[1])
+			project.writestep(self, "Decoding ", len(data[0]), " bytes with encoding ", data[1])
 			data = data[0].decode(data[1])
 		return data
 
@@ -1058,7 +1058,7 @@ class EncodeAction(PipeAction):
 		(data, self.changed) = getoutputs(project, since, (self.input, self.encoding))
 
 		if data is not nodata:
-			project.writestep(self, "Encoding input with encoding ", data[1])
+			project.writestep(self, "Encoding ", len(data[0]), " characters with encoding ", data[1])
 			data = data[0].encode(data[1])
 		return data
 
@@ -1094,7 +1094,7 @@ class GZipAction(PipeAction):
 		(data, self.changed) = getoutputs(project, since, (self.input, self.compresslevel))
 
 		if data is not nodata:
-			project.writestep(self, "Compressing input with level %d" % data[1])
+			project.writestep(self, "Compressing ", len(data), " bytes with level %d" % data[1])
 			import gzip, cStringIO
 			stream = cStringIO.StringIO()
 			compressor = gzip.GzipFile(filename="", mode="wb", fileobj=stream, compresslevel=data[1])
@@ -1110,7 +1110,7 @@ class GUnzipAction(PipeAction):
 	uncompressed output object.
 	"""
 	def execute(self, project, data):
-		project.writestep(self, "Uncompressing input")
+		project.writestep(self, "Uncompressing ", len(data), " bytes")
 		import gzip, cStringIO
 		stream = cStringIO.StringIO(data)
 		compressor = gzip.GzipFile(filename="", mode="rb", fileobj=stream)
