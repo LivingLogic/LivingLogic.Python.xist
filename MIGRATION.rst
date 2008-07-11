@@ -9,7 +9,13 @@ Changes to the make module
 
 *	The constructor of most action classes now accept the input action as a
 	parameter again. This means that you might have to change the calls.
-	Usually it's safest to use keyword arguments.
+	Usually it's safest to use keyword arguments. I.e. change::
+
+		make.FileAction(url.File("foo.txt"))
+
+	to::
+
+		make.FileAction(key=url.File("foo.txt"))
 
 *	The :var:`targetroot` parameter for :meth:`ll.make.XISTConvertAction.__init__`
 	has been renamed to :var:`root`.
