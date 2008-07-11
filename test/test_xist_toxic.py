@@ -154,7 +154,7 @@ def test_sqlserver_varcharfunc():
 def test_sqlserver_clobproc():
 	e = xsc.Frag(
 		toxic.proc(),
-		toxic.args("@c_out out varchar(max)"),
+		toxic.args("@c_out varchar(max) output"),
 		sqlservercode(),
 	)
 	tmpl = e.conv().string(encoding="ascii")
