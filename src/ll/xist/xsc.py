@@ -17,7 +17,7 @@ exception and warning classes and a few helper classes and functions.
 __docformat__ = "reStructuredText"
 
 
-import sys, os, random, copy, warnings, cPickle, threading, weakref, itertools, types, codecs
+import sys, os, random, copy, warnings, cPickle, threading, weakref, types, codecs
 
 import cssutils
 from cssutils import serialize as cssserialize
