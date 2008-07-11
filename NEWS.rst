@@ -47,6 +47,9 @@ Changes in 3.3 (released ??/??/2008)
 	SQL Server. The function :func:`xml2ora` as been renamed to :func:`compile`
 	(and has a new :var:`mode` argument for specifying the database type).
 
+*	The :var:`targetroot` parameter for :meth:`ll.make.XISTConvertAction.__init__`
+	has been renamed to :var:`root`.
+
 
 Changes in 3.2.7 (released 05/16/2008)
 --------------------------------------
