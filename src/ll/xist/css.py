@@ -23,7 +23,7 @@ except ImportError:
 	cssutils = None
 else:
 	import logging
-	cssutils.log.setloglevel(logging.FATAL)
+	cssutils.log.setLevel(logging.FATAL)
 
 from ll import misc, url
 from ll.xist import xsc, xfind
