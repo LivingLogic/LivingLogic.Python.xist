@@ -11,6 +11,9 @@ Changes to the make module
 	parameter again. This means that you might have to change the calls.
 	Usually it's safest to use keyword arguments.
 
+*	The :var:`targetroot` parameter for :meth:`ll.make.XISTConvertAction.__init__`
+	has been renamed to :var:`root`.
+
 Changes to TOXIC
 ----------------
 *	TOXIC has been split into a compiler and an XIST namespace module. Instead
