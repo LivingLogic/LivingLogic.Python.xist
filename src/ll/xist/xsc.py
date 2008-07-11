@@ -378,40 +378,6 @@ class IllegalAttrError(Error, LookupError):
 			return "no global attribute with class %r" % self.name
 
 
-class AmbiguousNodeError(Error, LookupError):
-	"""
-	Exception that is raised, when an node class is ambiguous (most commonly
-	for processing instructions or entities)
-	"""
-
-	type = "node"
-
-	def __init__(self, name, xml=False):
-		self.name = name
-		self.xml = xml
-
-	def __str__(self):
-		return "%s with %s name %s is ambigous" % (self.type, ("Python", "XML")[self.xml], self.name)
-
-
-class AmbiguousProcInstError(AmbiguousNodeError):
-	type = "procinst"
-
-
-class AmbiguousEntityError(AmbiguousNodeError):
-	type = "entity"
-
-
-class AmbiguousCharRefError(AmbiguousNodeError):
-	type = "charref"
-
-	def __str__(self):
-		if isinstance(self.name, (int, long)):
-			return "%s with codepoint %s is ambigous" % (self.type, self.name)
-		else:
-			return AmbiguousNodeError.__str__(self)
-
-
 class MultipleRootsError(Error):
 	def __str__(self):
 		return "can't add namespace attributes: XML tree has multiple roots"
