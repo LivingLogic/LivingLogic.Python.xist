@@ -703,5 +703,5 @@ the search.
 ``replace``
 :::::::::::
 
-This string method replace has two arguments. It returns a new string, where
+This string method replace has two arguments. It returns a new string where
 each occurrence of the first argument is replaced by the second argument.
