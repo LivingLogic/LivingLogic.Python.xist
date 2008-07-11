@@ -16,6 +16,9 @@ Changes in 3.3 (released ??/??/2008)
 
 *	The version number for :mod:`cssutils` has been bumped to 0.9.5rc1.
 
+*	Nodes of type :class:`ll.xist.xsc.Comment` and :class:`ll.xist.xsc.DocType`
+	are now simply ignored when publishing instead of generating an exception.
+
 *	All actions in :mod:`ll.make` no longer check whether their inputs are
 	action objects. Non-action objects are simply treated as ancient input data.
 	This also means that most action classes have an :var:`input` parameter in

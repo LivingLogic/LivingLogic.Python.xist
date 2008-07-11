@@ -397,19 +397,6 @@ class ElementNestingError(Error):
 		return "mismatched element nesting (close tag for %s expected; close tag for %s found)" % (self.expectedelement._str(fullname=True, xml=False, decorate=True), self.foundelement._str(fullname=True, xml=False, decorate=True))
 
 
-class IllegalAttrNodeError(Error):
-	"""
-	Exception that is raised, when something is found in an attribute that
-	doesn't belong there (e.g. an element or a comment).
-	"""
-
-	def __init__(self, node):
-		self.node = node
-
-	def __str__(self):
-		return "illegal node of type %s found inside attribute" % self.node.__class__.__name__
-
-
 class FileNotFoundWarning(Warning):
 	"""
 	Warning that is issued, when a file can't be found.
@@ -1636,14 +1623,13 @@ class Comment(CharacterData):
 		return presenter.presentComment(self)  # return a generator-iterator
 
 	def publish(self, publisher):
-		if publisher.inattr:
-			raise IllegalAttrNodeError(self)
-		content = self.content
-		if u"--" in content or content.endswith(u"-"):
-			warnings.warn(IllegalCommentContentWarning(self))
-		yield publisher.encode(u"<!--")
-		yield publisher.encode(content)
-		yield publisher.encode(u"-->")
+		if not publisher.inattr:
+			content = self.content
+			if u"--" in content or content.endswith(u"-"):
+				warnings.warn(IllegalCommentContentWarning(self))
+			yield publisher.encode(u"<!--")
+			yield publisher.encode(content)
+			yield publisher.encode(u"-->")
 
 
 class _DocType_Meta(Node.__metaclass__):
@@ -1665,11 +1651,10 @@ class DocType(CharacterData):
 		return presenter.presentDocType(self) # return a generator-iterator
 
 	def publish(self, publisher):
-		if publisher.inattr:
-			raise IllegalAttrNodeError(self)
-		yield publisher.encode(u"<!DOCTYPE ")
-		yield publisher.encode(self.content)
-		yield publisher.encode(u">")
+		if not publisher.inattr:
+			yield publisher.encode(u"<!DOCTYPE ")
+			yield publisher.encode(self.content)
+			yield publisher.encode(u">")
 
 	def __unicode__(self):
 		return u""

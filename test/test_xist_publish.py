@@ -163,3 +163,13 @@ def test_publish_forcexmlns():
 	e = html.html()
 	s = e.bytes(prefixes={html: "h", specials: "s"}, showxmlns=[specials])
 	assert 'xmlns:s="%s"' % specials.xmlns in s
+
+
+def test_comment_in_attr():
+	node = html.div(class_=xsc.Comment("gurk"))
+	assert node.bytes() == """<div class=""></div>"""
+
+
+def test_doctype_in_attr():
+	node = html.div(class_=html.DocTypeXHTML11())
+	assert node.bytes() == """<div class=""></div>"""
