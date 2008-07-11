@@ -1,4 +1,4 @@
-Changes in 3.3 (released ??/??/2008)
+Changes in 3.3 (released 07/11/2008)
 ------------------------------------
 
 *	XIST has gained its fourth templating language: ``UL4`` the
