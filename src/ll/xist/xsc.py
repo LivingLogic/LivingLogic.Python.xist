@@ -437,19 +437,6 @@ class IllegalObjectError(TypeError):
 		return "can't convert object %r of type %s to an XIST node" % (self.object, type(self.object).__name__)
 
 
-class AmbiguousNodeError(Warning):
-	"""
-	Exception that is raised when a character reference is malformed
-	(e.g. ``&amp;#foo;``)
-	"""
-
-	def __init__(self, name):
-		self.name = name
-
-	def __str__(self):
-		return "malformed character reference: &%s;" % self.name
-
-
 class IllegalCommentContentWarning(Warning):
 	"""
 	Warning that is issued when there is an illegal comment, i.e. one
