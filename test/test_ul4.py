@@ -289,14 +289,14 @@ def test_else():
 
 
 def test_block_errors():
-	checkcompileerror("unclosed blocks", '<?for x in data?>')
+	checkcompileerror("in .<.for x in data.>..*block unclosed", '<?for x in data?>')
 	checkcompileerror("endif doesn't match any if", '<?for x in data?><?end if?>')
 	checkcompileerror("not in any block", '<?end?>')
 	checkcompileerror("not in any block", '<?end for?>')
 	checkcompileerror("not in any block", '<?end if?>')
 	checkcompileerror("else doesn't match any if", '<?else?>')
-	checkcompileerror("unclosed blocks", '<?if data?>')
-	checkcompileerror("unclosed blocks", '<?if data?><?else?>')
+	checkcompileerror("in .<.if data.>..*block unclosed", '<?if data?>')
+	checkcompileerror("in .<.if data.>..*block unclosed", '<?if data?><?else?>')
 	checkcompileerror("duplicate else", '<?if data?><?else?><?else?>')
 	checkcompileerror("else already seen in elif", '<?if data?><?else?><?elif data?>')
 	checkcompileerror("else already seen in elif", '<?if data?><?elif data?><?elif data?><?else?><?elif data?>')

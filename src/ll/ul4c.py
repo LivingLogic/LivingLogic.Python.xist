@@ -1144,9 +1144,10 @@ class Template(object):
 
 		# This stack stores for each nested for/foritem/if/elif/else the following information:
 		# 1) Which construct we're in (i.e. "if" or "for")
+		# 2) The start location of the construct
 		# For ifs:
-		# 2) How many if's or elif's we have seen (this is used for simulating elif's via nested if's, for each additional elif, we have one more endif to add)
-		# 3) Whether we've already seen the else
+		# 3) How many if's or elif's we have seen (this is used for simulating elif's via nested if's, for each additional elif, we have one more endif to add)
+		# 4) Whether we've already seen the else
 		stack = []
 
 		self.source = source
@@ -1165,23 +1166,23 @@ class Template(object):
 				elif location.type == "if":
 					r = parseexpr(self)
 					self.opcode("if", r1=r)
-					stack.append(("if", 1, False))
+					stack.append(("if", location, 1, False))
 				elif location.type == "elif":
 					if not stack or stack[-1][0] != "if":
 						raise BlockError("elif doesn't match any if")
-					elif stack[-1][2]:
+					elif stack[-1][3]:
 						raise BlockError("else already seen in elif")
 					self.opcode("else")
 					r = parseexpr(self)
 					self.opcode("if", r1=r)
-					stack[-1] = ("if", stack[-1][1]+1, False)
+					stack[-1] = ("if", stack[-1][1], stack[-1][2]+1, False)
 				elif location.type == "else":
 					if not stack or stack[-1][0] != "if":
 						raise BlockError("else doesn't match any if")
-					elif stack[-1][2]:
+					elif stack[-1][3]:
 						raise BlockError("duplicate else")
 					self.opcode("else")
-					stack[-1] = ("if", stack[-1][1], True)
+					stack[-1] = ("if", stack[-1][1], stack[-1][2], True)
 				elif location.type == "end":
 					if not stack:
 						raise BlockError("not in any block")
@@ -1197,13 +1198,13 @@ class Template(object):
 							raise BlockError("illegal end value %r" % code)
 					last = stack.pop()
 					if last[0] == "if":
-						for i in xrange(last[1]):
+						for i in xrange(last[2]):
 							self.opcode("endif")
 					else: # last[0] == "for":
 						self.opcode("endfor")
 				elif location.type == "for":
 					parsefor(self)
-					stack.append(("for",))
+					stack.append(("for", location))
 				elif location.type == "break":
 					if not any(entry[0] == "for" for entry in stack):
 						raise BlockError("break outside of for loop")
@@ -1224,7 +1225,7 @@ class Template(object):
 			finally:
 				del self.location
 		if stack:
-			raise BlockError("unclosed blocks")
+			raise BlockError("block unclosed").decorate(stack[-1][1])
 
 	def __str__(self):
 		return "\n".join(self.format())

@@ -1,3 +1,12 @@
+Changes in 3.3.1 (released 07/14/2008)
+--------------------------------------
+
+*	Fixed a bug in the implementation of the "not" operator in UL4.
+
+*	When the ``UL4`` compiler encounters unclosed blocks, it will now include
+	the start location of the block in the error message.
+
+
 Changes in 3.3 (released 07/11/2008)
 ------------------------------------
 
