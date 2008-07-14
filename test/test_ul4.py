@@ -390,6 +390,23 @@ def test_gt():
 	check("True", '<?print x>2?>', x=3)
 
 
+def test_and():
+	check("False", '<?print x and y?>', x=False, y=False)
+	check("False", '<?print x and y?>', x=False, y=True)
+	check("0", '<?print x and y?>', x=0, y=True)
+
+
+def test_or():
+	check("False", '<?print x or y?>', x=False, y=False)
+	check("True", '<?print x or y?>', x=False, y=True)
+	check("42", '<?print x or y?>', x=42, y=True)
+
+
+def test_not():
+	check("True", '<?print not x?>', x=False)
+	check("False", '<?print not x?>', x=42)
+
+
 def test_ge():
 	check("False", '<?print 1>=2?>')
 	check("True", '<?print 2>=2?>')
