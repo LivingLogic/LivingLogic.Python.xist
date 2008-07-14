@@ -819,6 +819,8 @@ def test_method_isoformat():
 def test_method_get():
 	check("42", "<?print {}.get('foo', 42)?>")
 	check("17", "<?print {'foo': 17}.get('foo', 42)?>")
+	check("", "<?print {}.get('foo')?>")
+	check("17", "<?print {'foo': 17}.get('foo')?>")
 
 
 def test_render():

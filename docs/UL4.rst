@@ -711,4 +711,5 @@ each occurrence of the first argument is replaced by the second argument.
 :::::::
 
 ``get`` is a dictionary method. ``d.get(k, v)`` returns ``d[k]`` if the key
-``k`` is in ``d``, else ``v`` is returned.
+``k`` is in ``d``, else ``v`` is returned. If ``v`` is not given, it defaults
+to ``None``.
