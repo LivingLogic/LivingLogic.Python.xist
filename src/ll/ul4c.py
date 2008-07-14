@@ -989,7 +989,7 @@ class Template(object):
 					else:
 						raise UnknownMethodError(opcode.arg)
 				elif opcode.code == "callmeth2":
-					if opcode.arg in ("split", "rsplit", "find", "replace"):
+					if opcode.arg in ("split", "rsplit", "find", "replace", "get"):
 						_code("reg%d = reg%d.%s(reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.arg, opcode.r3, opcode.r4))
 					else:
 						raise UnknownMethodError(opcode.arg)

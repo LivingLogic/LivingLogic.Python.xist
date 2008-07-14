@@ -1,9 +1,15 @@
+Changes in 3.3.2 (released ??/??/2008)
+--------------------------------------
+
+*	Dictionaries in UL4 have gained a new method ``get``.
+
+
 Changes in 3.3.1 (released 07/14/2008)
 --------------------------------------
 
 *	Fixed a bug in the implementation of the "not" operator in UL4.
 
-*	When the ``UL4`` compiler encounters unclosed blocks, it will now include
+*	When the UL4 compiler encounters unclosed blocks, it will now include
 	the start location of the block in the error message.
 
 

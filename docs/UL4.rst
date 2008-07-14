@@ -705,3 +705,10 @@ the search.
 
 This string method replace has two arguments. It returns a new string where
 each occurrence of the first argument is replaced by the second argument.
+
+
+``get``
+:::::::
+
+``get`` is a dictionary method. ``d.get(k, v)`` returns ``d[k]`` if the key
+``k`` is in ``d``, else ``v`` is returned.

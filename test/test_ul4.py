@@ -816,6 +816,11 @@ def test_method_isoformat():
 	check(now.isoformat(), r"<?print data.isoformat()?>", data=now)
 
 
+def test_method_get():
+	check("42", "<?print {}.get('foo', 42)?>")
+	check("17", "<?print {'foo': 17}.get('foo', 42)?>")
+
+
 def test_render():
 	t = ul4c.compile('<?print prefix?><?print data?><?print suffix?>')
 	check('(f)(o)(o)', '<?for c in data?><?render t(data=c, prefix="(", suffix=")")?><?end for?>', dict(t=t), data='foo')
