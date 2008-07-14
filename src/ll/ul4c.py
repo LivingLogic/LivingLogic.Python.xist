@@ -2127,7 +2127,7 @@ class ExprParser(spark.Parser):
 
 	@spark.production('expr2 ::= not expr2')
 	def expr_not(self, _0, expr):
-		if isinstance(expr1, Const): # Constant folding
+		if isinstance(expr, Const): # Constant folding
 			return self.makeconst(_0.start, expr.end, not expr.value)
 		return Not(_0.start, expr.end, expr)
 
