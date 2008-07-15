@@ -449,6 +449,17 @@ def test_getslice1():
 	check("gurk", "<?print x[-10:]?>", x="gurk")
 
 
+def test_getslice2():
+	check("gur", "<?print 'gurk'[:3]?>")
+	check("gur", "<?print x[:3]?>", x="gurk")
+	check("gur", "<?print 'gurk'[:-1]?>")
+	check("gur", "<?print x[:-1]?>", x="gurk")
+	check("gurk", "<?print 'gurk'[:10]?>")
+	check("gurk", "<?print x[:10]?>", x="gurk")
+	check("", "<?print 'gurk'[:-5]?>")
+	check("", "<?print x[:-5]?>", x="gurk")
+
+
 def test_nested():
 	sc = "4"
 	sv = "x"
