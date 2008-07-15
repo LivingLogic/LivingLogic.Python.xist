@@ -534,7 +534,7 @@ class Opcode(object):
 		elif self.code == "getslice1":
 			return "r%r = r%r[r%r:]" % (self.r1, self.r2, self.r3)
 		elif self.code == "getslice2":
-			return "r%r = r%r[:r%r]" % (self.r1, self.r2, self.r4)
+			return "r%r = r%r[:r%r]" % (self.r1, self.r2, self.r3)
 		elif self.code == "getslice12":
 			return "r%r = r%r[r%r:r%r]" % (self.r1, self.r2, self.r3, self.r4)
 		elif self.code == "not":
