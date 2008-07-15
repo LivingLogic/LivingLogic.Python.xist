@@ -3,6 +3,8 @@ Changes in 3.3.2 (released ??/??/2008)
 
 *	Dictionaries in UL4 have gained a new method ``get``.
 
+*	The version number for :mod:`cssutils` has been bumped again.
+
 
 Changes in 3.3.1 (released 07/14/2008)
 --------------------------------------
