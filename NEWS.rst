@@ -3,7 +3,8 @@ Changes in 3.3.2 (released ??/??/2008)
 
 *	Dictionaries in UL4 have gained a new method ``get``.
 
-*	The version number for :mod:`cssutils` has been bumped again.
+*	The version number for :mod:`cssutils` has been bumped again (to 0.9.5rc2
+	or a later 0.9.5 version).
 
 *	Fixed a bug in the parsing of slice expressions in UL4.
 
