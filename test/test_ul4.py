@@ -416,6 +416,17 @@ def test_ge():
 	check("True", '<?print x>=2?>', x=3)
 
 
+def test_getitem():
+	check("u", "<?print 'gurk'[1]?>")
+	check("u", "<?print x[1]?>", x="gurk")
+	check("u", "<?print 'gurk'[-3]?>")
+	check("u", "<?print x[1]?>", x="gurk")
+	checkcompileerror("IndexError", "<?print 'gurk'[4]?>")
+	checkrunerror("IndexError", "<?print x[4]?>", x="gurk")
+	checkcompileerror("IndexError", "<?print 'gurk'[-5]?>")
+	checkrunerror("IndexError", "<?print x[-5]?>", x="gurk")
+
+
 def test_nested():
 	sc = "4"
 	sv = "x"
