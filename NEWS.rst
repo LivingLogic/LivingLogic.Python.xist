@@ -1,4 +1,4 @@
-Changes in 3.3.2 (released ??/??/2008)
+Changes in 3.3.2 (released 07/15/2008)
 --------------------------------------
 
 *	Dictionaries in UL4 have gained a new method ``get``.
