@@ -5,6 +5,8 @@ Changes in 3.3.2 (released ??/??/2008)
 
 *	The version number for :mod:`cssutils` has been bumped again.
 
+*	Fixed a bug in the parsing of slice expressions in UL4.
+
 
 Changes in 3.3.1 (released 07/14/2008)
 --------------------------------------

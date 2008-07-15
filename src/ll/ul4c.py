@@ -2021,7 +2021,7 @@ class ExprParser(spark.Parser):
 	@spark.production('expr8 ::= expr8 [ expr0 : expr0 ]')
 	def expr_getslice12(self, expr, _0, index1, _1, index2, _2):
 		if isinstance(expr, Const) and isinstance(index1, Const) and isinstance(index2, Const): # Constant folding
-			return self.makeconst(expr.start, _2.end, expr.value[index1.value:index1.value])
+			return self.makeconst(expr.start, _2.end, expr.value[index1.value:index2.value])
 		return GetSlice12(expr.start, _2.end, expr, index1, index2)
 
 	@spark.production('expr8 ::= expr8 [ expr0 : ]')

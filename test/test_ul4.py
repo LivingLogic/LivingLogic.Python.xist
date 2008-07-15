@@ -420,11 +420,22 @@ def test_getitem():
 	check("u", "<?print 'gurk'[1]?>")
 	check("u", "<?print x[1]?>", x="gurk")
 	check("u", "<?print 'gurk'[-3]?>")
-	check("u", "<?print x[1]?>", x="gurk")
+	check("u", "<?print x[-3]?>", x="gurk")
 	checkcompileerror("IndexError", "<?print 'gurk'[4]?>")
 	checkrunerror("IndexError", "<?print x[4]?>", x="gurk")
 	checkcompileerror("IndexError", "<?print 'gurk'[-5]?>")
 	checkrunerror("IndexError", "<?print x[-5]?>", x="gurk")
+
+
+def test_getslice12():
+	check("ur", "<?print 'gurk'[1:3]?>")
+	check("ur", "<?print x[1:3]?>", x="gurk")
+	check("ur", "<?print 'gurk'[-3:-1]?>")
+	check("ur", "<?print x[-3:-1]?>", x="gurk")
+	check("", "<?print 'gurk'[4:10]?>")
+	check("", "<?print x[4:10]?>", x="gurk")
+	check("", "<?print 'gurk'[-10:-5]?>")
+	check("", "<?print x[-10:-5]?>", x="gurk")
 
 
 def test_nested():
