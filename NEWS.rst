@@ -10,6 +10,8 @@ Changes in 3.3.2 (released ??/??/2008)
 
 *	:mod:`ll.make` has gained a new :class:`UL4RenderAction` action.
 
+*	Fixed a bug in the formatting for the ``getslice2`` opcode for UL4.
+
 
 Changes in 3.3.1 (released 07/14/2008)
 --------------------------------------
