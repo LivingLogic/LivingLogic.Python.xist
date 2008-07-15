@@ -1280,7 +1280,7 @@ class UL4RenderAction(PipeAction):
 
 	@report
 	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, self.vars))
+		(data, self.changed) = getoutputs(project, since, (self.input, self.templates, self.vars))
 		if data is not nodata:
 			project.writestep(self, "Rendering UL4 template")
 			data = data[0].renders(data[1], **data[2])
