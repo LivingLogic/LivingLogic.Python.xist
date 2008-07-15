@@ -1269,6 +1269,24 @@ class UL4CompileAction(PipeAction):
 		return ul4c.compile(data)
 
 
+class UL4RenderAction(PipeAction):
+	"""
+	This action renders a UL4 template to a string.
+	"""
+	def __init__(self, input=None, templates={}, **vars):
+		PipeAction.__init__(self, input)
+		self.templates = templates
+		self.vars = vars
+
+	@report
+	def get(self, project, since):
+		(data, self.changed) = getoutputs(project, since, (self.input, self.vars))
+		if data is not nodata:
+			project.writestep(self, "Rendering UL4 template")
+			data = data[0].renders(data[1], **data[2])
+		return data
+
+
 class UL4DumpAction(PipeAction):
 	"""
 	This action dumps an :class:`ll.ul4c.Template` object into a string.
