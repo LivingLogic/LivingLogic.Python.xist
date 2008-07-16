@@ -806,6 +806,10 @@ def test_method_lower():
 	check("gurk", "<?print 'GURK'.lower()?>")
 
 
+def test_method_capitalize():
+	check("Gurk", "<?print 'gURK'.capitalize()?>")
+
+
 def test_method_startswith():
 	check("True", "<?print 'gurkhurz'.startswith('gurk')?>")
 	check("False", "<?print 'gurkhurz'.startswith('hurz')?>")

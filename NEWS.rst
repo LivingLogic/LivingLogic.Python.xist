@@ -1,3 +1,9 @@
+Changes in 3.3.3 (released ??/??/2008)
+--------------------------------------
+
+*	Strings in UL4 have gained a new method ``capitalize`` method.
+
+
 Changes in 3.3.2 (released 07/15/2008)
 --------------------------------------
 

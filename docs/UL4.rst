@@ -637,6 +637,13 @@ The ``lower`` method of strings returns an lowercase version of the string for
 which it's called.
 
 
+``capitalize``
+::::::::::::::
+
+The ``capitalize`` method of strings returns a copy of the string for with its
+first letter capitalized.
+
+
 ``startswith``
 ::::::::::::::
 
