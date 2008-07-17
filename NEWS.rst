@@ -18,6 +18,10 @@ Changes in 3.3.3 (released ??/??/2008)
 	"conditional attributes" (via the new classes :class:`attr_if` and
 	:class:`attr_ifnn`).
 
+*	The UL4 function ``vars`` has been dropped. Instead there's a function
+	``get`` now that works similar to the dictionary method ``get``, but works
+	with global variables.
+
 
 Changes in 3.3.2 (released 07/15/2008)
 --------------------------------------
