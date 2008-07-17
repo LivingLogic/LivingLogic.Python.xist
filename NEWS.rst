@@ -1,7 +1,22 @@
 Changes in 3.3.3 (released ??/??/2008)
 --------------------------------------
 
-*	Strings in UL4 have gained a new method ``capitalize`` method.
+*	Strings in UL4 have gained a new method ``capitalize``.
+
+*	Printing XML escaped strings in UL4 has now gained its own tag and opcode.
+	``<?printx foo?>`` is equivalent to ``<?print xmlescape(foo)?>``.
+
+*	The element :class:`ll.xist.ns.form.memo` has been renamed to ``textarea``
+	and :class:`ll.xist.ns.form.edit` has been renamed to ``text``. Classes
+	:class:`ll.xist.ns.form.button` and :class:`ll.xist.ns.form.file` have been
+	added.
+
+*	A new processing instruction class :class:`ll.xist.AttrProcInst` has been
+	introduced. When an :class:`AttrProcInst` node is the first node in an
+	attribute, it takes over publishing of the attribute. In all other cases
+	the processing instruction disappears completely. UL4 uses this to implement
+	"conditional attributes" (via the new classes :class:`attr_if` and
+	:class:`attr_ifnn`).
 
 
 Changes in 3.3.2 (released 07/15/2008)

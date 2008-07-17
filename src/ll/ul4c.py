@@ -861,6 +861,8 @@ class Template(object):
 					_code("reg%d = reg%d[:reg%d]" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "print":
 					_code("if reg%d is not None: yield unicode(reg%d)" % (opcode.r1, opcode.r1))
+				elif opcode.code == "printx":
+					_code("if reg%d is not None: yield xmlescape(unicode(reg%d))" % (opcode.r1, opcode.r1))
 				elif opcode.code == "for":
 					_code("for reg%d in reg%d:" % (opcode.r1, opcode.r2))
 					indent += 1
@@ -1096,7 +1098,7 @@ class Template(object):
 		This is a generator which produces :class:`Location` objects for each tag
 		or non-tag text. It will be called by :meth:`_compile` internally.
 		"""
-		pattern = u"%s(print|code|for|if|elif|else|end|break|continue|render)(\s*((.|\\n)*?)\s*)?%s" % (re.escape(startdelim), re.escape(enddelim))
+		pattern = u"%s(printx|print|code|for|if|elif|else|end|break|continue|render)(\s*((.|\\n)*?)\s*)?%s" % (re.escape(startdelim), re.escape(enddelim))
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
@@ -1161,6 +1163,9 @@ class Template(object):
 				elif location.type == "print":
 					r = parseexpr(self)
 					self.opcode("print", r1=r)
+				elif location.type == "printx":
+					r = parseexpr(self)
+					self.opcode("printx", r1=r)
 				elif location.type == "code":
 					parsestmt(self)
 				elif location.type == "if":

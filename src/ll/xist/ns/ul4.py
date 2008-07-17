@@ -8,6 +8,7 @@
 ## See ll/__init__.py for the license
 
 
+from ll import misc
 from ll.xist import xsc
 
 
@@ -28,8 +29,6 @@ class printx(xsc.ProcInst):
 	the characters ``&``, ``<``, ``>``, ``'`` and ``"``.
 	"""
 
-	def convert(self, converter):
-		return print_("xmlescape(%s)" % self.content)
 
 ###
 ### Processing instruction for statements
@@ -40,6 +39,54 @@ class code(xsc.ProcInst):
 	A :class:`code` processing instruction contains a statement (such as an
 	assignment or augmented assignment).
 	"""
+
+
+###
+### Processing instructions for conditional attributes
+###
+
+class attr_ifnn(xsc.AttrProcInst):
+	"""
+	Conditional attribute: If this PI is used as the first in an attribute, it's
+	value is treated as an expression. If this expression is not ``None`` it is
+	output as the value of the attribute, otherwise the attribute itself will be
+	skipped.
+	"""
+
+	def publishattr(self, publisher, attr):
+		yield publisher.encode(u'<?if not isnone(%s)?> %s="<?printx %s?>"<?end if?>' % (self.content, attr._publishname(publisher), self.content))
+
+	def publishboolattr(self, publisher, attr):
+		name = attr._publishname(publisher)
+		yield publisher.encode(u"<?if not isnone(%s)?> %s" % (self.content, name))
+		if publisher.xhtml>0:
+			yield publisher.encode(u'="%s"' % name)
+		yield publisher.encode(u'<?end if?>')
+
+
+class attr_if(xsc.AttrProcInst):
+	"""
+	Conditional attribute: If this PI is used as the first in an attribute, it's
+	value is treated as an expression. If this expression is true, the attribute
+	will be output normally, otherwise the attribute itself will be skipped.
+	"""
+
+	def publishattr(self, publisher, attr):
+		publisher.inattr += 1
+		yield publisher.encode(u'<?if %s?> %s="' % (self.content, attr._publishname(publisher)))
+		publisher.pushtextfilter(misc.xmlescape_attr)
+		for part in attr._publishattrvalue(publisher):
+			yield part
+		publisher.poptextfilter()
+		yield publisher.encode(u'"<?end if?>')
+		publisher.inattr -= 1
+
+	def publishboolattr(self, publisher, attr):
+		name = attr._publishname(publisher)
+		yield publisher.encode(u"<?if %s?> %s" % (self.content, name))
+		if publisher.xhtml>0:
+			yield publisher.encode(u'="%s"' % name)
+		yield publisher.encode(u'<?end if?>')
 
 
 ###

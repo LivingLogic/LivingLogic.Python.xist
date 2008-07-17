@@ -1724,6 +1724,37 @@ class ProcInst(CharacterData):
 		return Node.__rmul__(self, n)
 
 
+class AttrProcInst(ProcInst):
+	"""
+	Special subclass of :class:`ProcInst`.
+
+	When an :class:`AttrProcInst` node is the first node in an attribute, it
+	takes over publishing of the attribute (via the methods :meth:publishattr`
+	and :meth:`publishboolattr`). In all other cases the processing instruction
+	disappears completely.
+	"""
+
+	register = None
+
+	def publish(self, publisher):
+		if False:
+			yield ""
+
+	@misc.notimplemented
+	def publishattr(self, publisher, attr):
+		"""
+		Publish the attribute :var:`attr` to the publisher :var:`publisher`.
+		(Note that ``attr[0]`` is :var:`self`).
+		"""
+
+	@misc.notimplemented
+	def publishboolattr(self, publisher, attr):
+		"""
+		Publish the boolean attribute :var:`attr` to the publisher
+		:var:`publisher`. (Note that ``attr[0]`` is :var:`self`).
+		"""
+
+
 class Null(CharacterData):
 	"""
 	node that does not contain anything.
@@ -1837,7 +1868,7 @@ class Attr(Frag):
 		will be done.
 		"""
 		values = self.__class__.values
-		if len(self) and isinstance(values, tuple) and not self.isfancy():
+		if self and isinstance(values, tuple) and not self.isfancy():
 			value = unicode(self)
 			if value not in values:
 				warnings.warn(IllegalAttrValueWarning(self))
@@ -1868,15 +1899,18 @@ class Attr(Frag):
 	def publish(self, publisher):
 		if publisher.validate:
 			self.checkvalid()
-		publisher.inattr += 1
-		yield publisher.encode(self._publishname(publisher)) # publish the XML name, not the Python name
-		yield publisher.encode(u"=\"")
-		publisher.pushtextfilter(misc.xmlescape_attr)
-		for part in self._publishattrvalue(publisher):
-			yield part
-		publisher.poptextfilter()
-		yield publisher.encode(u"\"")
-		publisher.inattr -= 1
+		if self and isinstance(self[0], AttrProcInst):
+			for part in self[0].publishattr(publisher, self):
+				yield part
+		else:
+			publisher.inattr += 1
+			yield publisher.encode(u' %s="' % self._publishname(publisher))
+			publisher.pushtextfilter(misc.xmlescape_attr)
+			for part in self._publishattrvalue(publisher):
+				yield part
+			publisher.poptextfilter()
+			yield publisher.encode(u'"')
+			publisher.inattr -= 1
 
 	def pretty(self, level=0, indent="\t"):
 		return self.clone()
@@ -1936,16 +1970,20 @@ class BoolAttr(Attr):
 	def publish(self, publisher):
 		if publisher.validate:
 			self.checkvalid()
-		publisher.inattr += 1
-		name = self._publishname(publisher)
-		yield publisher.encode(name) # publish the XML name, not the Python name
-		if publisher.xhtml>0:
-			yield publisher.encode(u"=\"")
-			publisher.pushtextfilter(misc.xmlescape)
-			yield publisher.encode(name)
-			publisher.poptextfilter()
-			yield publisher.encode(u"\"")
-		publisher.inattr -= 1
+		if self and isinstance(self[0], AttrProcInst):
+			for part in self[0].publishboolattr(publisher, self):
+				yield part
+		else:
+			publisher.inattr += 1
+			name = self._publishname(publisher)
+			yield publisher.encode(u" %s" % name)
+			if publisher.xhtml>0:
+				yield publisher.encode(u'="')
+				publisher.pushtextfilter(misc.xmlescape)
+				yield publisher.encode(name)
+				publisher.poptextfilter()
+				yield publisher.encode(u'"')
+			publisher.inattr -= 1
 
 
 class ColorAttr(Attr):
@@ -2211,7 +2249,6 @@ class Attrs(Node, dict):
 		if publisher.validate:
 			self.checkvalid()
 		for value in self.values():
-			yield publisher.encode(u" ")
 			for part in value.publish(publisher):
 				yield part
 
@@ -2703,9 +2740,9 @@ class Element(Node):
 
 	def __enter__(self):
 		"""
-		:class:`Element` nodes can be used in with blocks to build XIST trees.
-		Inside a with block ``+`` and :func:`add` can be used to append node to
-		the currently active element in the with block::
+		:class:`Element` nodes can be used in ``with`` blocks to build XIST trees.
+		Inside a ``with`` block ``+`` and :func:`add` can be used to append node
+		to the currently active element in the ``with`` block::
 
 			with html.ul() as node:
 				+html.li("I hear and I forget.")
