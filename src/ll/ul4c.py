@@ -913,8 +913,6 @@ class Template(object):
 				elif opcode.code == "callfunc0":
 					if opcode.arg == "now":
 						_code("reg%d = datetime.datetime.now()" % (opcode.r1))
-					elif opcode.arg == "vars":
-						_code("reg%d = variables" % opcode.r1)
 					else:
 						raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callfunc1":
@@ -950,6 +948,8 @@ class Template(object):
 						_code("reg%d = isinstance(reg%d, dict)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "repr":
 						_code("reg%d = ul4c._repr(reg%d)" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "get":
+						_code("reg%d = variables.get(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "chr":
 						_code("reg%d = unichr(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "ord":
@@ -969,6 +969,8 @@ class Template(object):
 				elif opcode.code == "callfunc2":
 					if opcode.arg == "range":
 						_code("reg%d = xrange(reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3))
+					elif opcode.arg == "get":
+						_code("reg%d = variables.get(reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3))
 					else:
 						raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callfunc3":

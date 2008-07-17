@@ -412,14 +412,6 @@ Functions
 ``now()`` returns the current date and time as a data object.
 
 
-``vars``
-::::::::
-
-``vars()`` returns a dictionary containing all currently defined variables
-(i.e. variables passed to the template, defined via ``<?code?>`` tags or as
-loop variables).
-
-
 ``isnone``
 ::::::::::
 
@@ -508,6 +500,13 @@ debugging proposes. The output is a constant expression that could be used to
 recreate the object.
 
 
+``get``
+:::::::
+
+``get(k, v)`` returns the global variable named ``k`` if it exists, else ``v``
+is returned. If ``v`` is not given, it defaults to ``None``.
+
+
 ``len``
 :::::::
 
@@ -525,7 +524,7 @@ a list or dictionary). For example the following code::
 
 prints::
 
-	0=f;1=o;2=o
+	0=f;1=o;2=o;
 	
 
 ``xmlescape``

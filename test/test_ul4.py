@@ -504,12 +504,6 @@ def test_function_now():
 	checkle(now, "<?print now()?>")
 
 
-def test_function_vars():
-	checkrunerror("function u?'vars' unknown", "<?print vars(1)?>")
-	checkrunerror("function u?'vars' unknown", "<?print vars(1, 2)?>")
-	check("yes", "<?if 'spam' in vars()?>yes<?else?>no<?end if?>", spam="eggs")
-
-
 def test_function_xmlescape():
 	checkrunerror("function u?'xmlescape' unknown", "<?print xmlescape()?>")
 	checkrunerror("function u?'xmlescape' unknown", "<?print xmlescape(1, 2)?>")
@@ -706,6 +700,14 @@ def test_function_isdict():
 	check("False", code, data=())
 	check("False", code, data=[])
 	check("True", code, data={})
+
+
+def test_function_get():
+	checkrunerror("function u?'get' unknown", "<?print get()?>")
+	check("", "<?print get('x')?>")
+	check("42", "<?print get('x')?>", x=42)
+	check("17", "<?print get('x', 17)?>")
+	check("42", "<?print get('x', 17)?>", x=42)
 
 
 def test_function_repr():
