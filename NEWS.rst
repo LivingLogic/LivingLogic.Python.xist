@@ -24,8 +24,11 @@ Changes in 3.3.3 (released ??/??/2008)
 
 *	Iterating through the inputs in :mod:`ll.make` actions has been fixed (i.e.
 	the additional inputs will be output too). :meth:`ll.make.Project.findpaths`
-	has been fixe to work with non-:class:`ll.make.Action` inputs. (This means
+	has been fixed to work with non-:class:`ll.make.Action` inputs. (This means
 	that now you *have* to pass real action to :meth:`findpaths`).
+
+*	The missing processing instruction :class:`render` has been added to
+	:mod:`ll.xist.ns.ul4`.
 
 
 Changes in 3.3.2 (released 07/15/2008)

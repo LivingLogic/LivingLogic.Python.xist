@@ -42,6 +42,16 @@ class code(xsc.ProcInst):
 
 
 ###
+### Processing instruction for calling sub-templates
+###
+
+class render(xsc.ProcInst):
+	"""
+	A :class:`code` processing instruction calls another template.
+	"""
+
+
+###
 ### Processing instructions for conditional attributes
 ###
 
