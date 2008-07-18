@@ -1,5 +1,5 @@
-Changes in 3.3.3 (released ??/??/2008)
---------------------------------------
+Changes in 3.4 (released ??/??/2008)
+------------------------------------
 
 *	Strings in UL4 have gained a new method ``capitalize``.
 
