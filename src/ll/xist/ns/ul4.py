@@ -47,7 +47,7 @@ class code(xsc.ProcInst):
 
 class render(xsc.ProcInst):
 	"""
-	A :class:`code` processing instruction calls another template.
+	A :class:`render` processing instruction calls another template.
 	"""
 
 
