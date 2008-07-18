@@ -22,6 +22,11 @@ Changes in 3.3.3 (released ??/??/2008)
 	``get`` now that works similar to the dictionary method ``get``, but works
 	with global variables.
 
+*	Iterating through the inputs in :mod:`ll.make` actions has been fixed (i.e.
+	the additional inputs will be output too). :meth:`ll.make.Project.findpaths`
+	has been fixe to work with non-:class:`ll.make.Action` inputs. (This means
+	that now you *have* to pass real action to :meth:`findpaths`).
+
 
 Changes in 3.3.2 (released 07/15/2008)
 --------------------------------------

@@ -372,8 +372,12 @@ class Action(object):
 			yield [self]
 		else:
 			for myinput in self:
-				for path in myinput.findpaths(input):
-					yield [self] + path
+				if isinstance(myinput, Action):
+					for path in myinput.findpaths(input):
+						yield [self] + path
+				else:
+					if myinput == input:
+						yield [self, myinput]
 
 	def __xattrs__(self, mode="default"):
 		if mode == "default":
@@ -463,7 +467,8 @@ class CollectAction(PipeAction):
 		return self
 
 	def __iter__(self):
-		yield self.input
+		for input in PipeAction.__iter__(self):
+			yield input
 		for input in self.otherinputs:
 			yield input
 
@@ -638,6 +643,11 @@ class PickleAction(PipeAction):
 		PipeAction.__init__(self, input)
 		self.protocol = protocol
 
+	def __iter__(self):
+		for input in PipeAction.__iter__(self):
+			yield input
+		yield self.protocol
+
 	@report
 	def get(self, project, since):
 		(data, self.changed) = getoutputs(project, since, (self.input, self.protocol))
@@ -740,6 +750,11 @@ class GetAttrAction(PipeAction):
 		PipeAction.__init__(self, input)
 		self.attrname = attrname
 
+	def __iter__(self):
+		for input in PipeAction.__iter__(self):
+			yield input
+		yield self.attrname
+
 	@report
 	def get(self, project, since):
 		(data, self.changed) = getoutputs(project, since, (self.input, self.attrname))
@@ -827,8 +842,11 @@ class XISTParseAction(PipeAction):
 		self.base = base
 
 	def __iter__(self):
+		for input in PipeAction.__iter__(self):
+			yield input
+		yield self.builder
 		yield self.pool
-		yield self.input
+		yield self.base
 
 	@report
 	def get(self, project, since):
@@ -874,6 +892,15 @@ class XISTConvertAction(PipeAction):
 		self.stage = stage
 		self.lang = lang
 		self.root = root
+
+	def __iter__(self):
+		for input in PipeAction.__iter__(self):
+			yield input
+		yield self.mode
+		yield self.target
+		yield self.stage
+		yield self.lang
+		yield self.root
 
 	@report
 	def get(self, project, since):
@@ -924,6 +951,12 @@ class XISTPublishAction(PipeAction):
 		self.publisher = publisher
 		self.base = base
 
+	def __iter__(self):
+		for input in PipeAction.__iter__(self):
+			yield input
+		yield self.publisher
+		yield self.base
+
 	@report
 	def get(self, project, since):
 		(data, self.changed) = getoutputs(project, since, (self.input, self.publisher, self.base))
@@ -952,6 +985,12 @@ class XISTTextAction(PipeAction):
 		PipeAction.__init__(self, input)
 		self.encoding = encoding
 		self.width = width
+
+	def __iter__(self):
+		for input in PipeAction.__iter__(self):
+			yield input
+		yield self.encoding
+		yield self.width
 
 	@report
 	def get(self, project, since):
@@ -1020,6 +1059,11 @@ class DecodeAction(PipeAction):
 			encoding = sys.getdefaultencoding()
 		self.encoding = encoding
 
+	def __iter__(self):
+		for input in PipeAction.__iter__(self):
+			yield input
+		yield self.encoding
+
 	@report
 	def get(self, project, since):
 		(data, self.changed) = getoutputs(project, since, (self.input, self.encoding))
@@ -1052,6 +1096,11 @@ class EncodeAction(PipeAction):
 		if encoding is None:
 			encoding = sys.getdefaultencoding()
 		self.encoding = encoding
+
+	def __iter__(self):
+		for input in PipeAction.__iter__(self):
+			yield input
+		yield self.encoding
 
 	@report
 	def get(self, project, since):
@@ -1088,6 +1137,11 @@ class GZipAction(PipeAction):
 	def __init__(self, input=None, compresslevel=9):
 		PipeAction.__init__(self, input)
 		self.compresslevel = compresslevel
+
+	def __iter__(self):
+		for input in PipeAction.__iter__(self):
+			yield input
+		yield self.compresslevel
 
 	@report
 	def get(self, project, since):
@@ -1129,6 +1183,13 @@ class CallFuncAction(Action):
 		self.args = args
 		self.kwargs = kwargs
 
+	def __iter__(self):
+		yield self.func
+		for input in self.args:
+			yield input
+		for input in self.kwargs.itervalues():
+			yield input
+
 	@report
 	def get(self, project, since):
 		(data, self.changed) = getoutputs(project, since, (self.func, self.args, self.kwargs))
@@ -1150,6 +1211,14 @@ class CallMethAction(Action):
 		self.methname = methname
 		self.args = args
 		self.kwargs = kwargs
+
+	def __iter__(self):
+		yield self.obj
+		yield self.methname
+		for input in self.args:
+			yield input
+		for input in self.kwargs.itervalues():
+			yield input
 
 	@report
 	def get(self, project, since):
@@ -1190,6 +1259,11 @@ class TOXICPrettifyAction(PipeAction):
 	def __init__(self, input=None, mode="oracle"):
 		PipeAction.__init__(self, input)
 		self.mode = mode
+
+	def __iter__(self):
+		for input in PipeAction.__iter__(self):
+			yield input
+		yield self.mode
 
 	@report
 	def get(self, project, since):
@@ -1241,8 +1315,9 @@ class XPITAction(PipeAction):
 		return self
 
 	def __iter__(self):
+		for input in PipeAction.__iter__(self):
+			yield input
 		yield self.nsinput
-		yield self.input
 
 	def execute(self, project, data, ns):
 		from ll import xpit
@@ -1277,6 +1352,14 @@ class UL4RenderAction(PipeAction):
 		PipeAction.__init__(self, input)
 		self.templates = templates
 		self.vars = vars
+
+	def __iter__(self):
+		for input in PipeAction.__iter__(self):
+			yield input
+		for input in self.templates.itervalues():
+			yield input
+		for input in self.vars.itervalues():
+			yield input
 
 	@report
 	def get(self, project, since):
@@ -1343,6 +1426,11 @@ class ModeAction(PipeAction):
 		PipeAction.__init__(self, input)
 		self.mode = mode
 
+	def __iter__(self):
+		for input in PipeAction.__iter__(self):
+			yield input
+		yield self.mode
+
 	@report
 	def get(self, project, since):
 		"""
@@ -1379,6 +1467,12 @@ class OwnerAction(PipeAction):
 		self.id = id
 		self.user = user
 		self.group = group
+
+	def __iter__(self):
+		for input in PipeAction.__iter__(self):
+			yield input
+		yield self.user
+		yield self.group
 
 	@report
 	def get(self, project, since):
@@ -1444,7 +1538,8 @@ class ModuleAction(PipeAction):
 		return self
 
 	def __iter__(self):
-		yield self.input
+		for input in PipeAction.__iter__(self):
+			yield input
 		for input in self.inputs:
 			yield input
 
@@ -1544,8 +1639,7 @@ class AlwaysAction(Action):
 		self.changed = bigbang
 
 	def __iter__(self):
-		if False:
-			yield None
+		yield None
 
 	@report
 	def get(self, project, since):
@@ -1559,8 +1653,7 @@ class NeverAction(Action):
 	This action never returns new data.
 	"""
 	def __iter__(self):
-		if False:
-			yield None
+		yield None
 
 	@report
 	def get(self, project, since):
@@ -2336,14 +2429,9 @@ class Project(dict):
 
 	def findpaths(self, target, source):
 		"""
-		Find dependency paths leading from :var:`target` to :var:`source`.
-		:var:`target` and :var:`source` may be actions or the ids of registered
-		actions. For more info see :meth:`Action.findpaths`.
+		Find dependency paths leading from the action :var:`target` to the action
+		:var:`source`.
 		"""
-		if not isinstance(target, Action):
-			target = self[target]
-		if not isinstance(source, Action):
-			source = self[source]
 		return target.findpaths(source)
 
 
