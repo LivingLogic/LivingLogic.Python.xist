@@ -115,13 +115,14 @@ class Error(Exception):
 
 		exc = self
 		while isinstance(exc, Error):
-			path.append(str(exc.location))
+			if not path or path[-1] is not exc.location:
+				path.append(exc.location)
 			exc = exc.cause
 		name = exc.__class__.__name__
 		module = exc.__class__.__module__
 		if module != "exceptions":
 			name = "%s.%s" % (module, name)
-		return "%s in %s: %s" % (name, ": in ".join(path), exc)
+		return "%s %s %s" % (name, "".join("in %s:" % location for location in path), exc)
 
 
 class LexicalError(Exception):
