@@ -81,6 +81,9 @@ class Location(object):
 	def tag(self):
 		return self.source[self.starttag:self.endtag]
 
+	def __repr__(self):
+		return "<%s.%s %s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self, id(self))
+
 	def __str__(self):
 		lastlinefeed = self.source.rfind("\n", 0, self.starttag)
 		if lastlinefeed >= 0:
@@ -98,80 +101,70 @@ class Location(object):
 
 class Error(Exception):
 	"""
-	base class of all exceptions.
+	Exception class that wraps another exception and provides a location.
 	"""
-	def __init__(self, exception=None):
-		self.location = None
-		self.exception = exception
+	def __init__(self, location, cause):
+		self.location = location
+		self.cause = cause
+
+	def __repr__(self):
+		return "<%s.%s in %s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.location, id(self))
 
 	def __str__(self):
-		return self.format(str(self.exception) if self.exception is not None else "error")
+		path = []
 
-	def decorate(self, location):
-		self.location = location
-		return self
-
-	def format(self, message):
-		if self.exception is not None:
-			name = self.exception.__class__.__name__
-			module = self.exception.__class__.__module__
-			if module != "exceptions":
-				name = "%s.%s" % (module, name)
-			if self.location is not None:
-				return "%s in %s: %s" % (name, self.location, message)
-			else:
-				return "%s: %s" % (name, message)
-		else:
-			if self.location is not None:
-				return "in %s: %s" % (self.location, message)
-			else:
-				return message
+		exc = self
+		while isinstance(exc, Error):
+			path.append(str(exc.location))
+			exc = exc.cause
+		name = exc.__class__.__name__
+		module = exc.__class__.__module__
+		if module != "exceptions":
+			name = "%s.%s" % (module, name)
+		return "%s in %s: %s" % (name, ": in ".join(path), exc)
 
 
-class LexicalError(Error):
+class LexicalError(Exception):
 	def __init__(self, start, end, input):
-		Error.__init__(self)
 		self.start = start
 		self.end = end
 		self.input = input
 
 	def __str__(self):
-		return self.format("Unmatched input %r" % self.input)
+		return "Unmatched input %r" % self.input
 
 
-class SyntaxError(Error):
+class SyntaxError(Exception):
 	def __init__(self, token):
-		Error.__init__(self)
 		self.token = token
 
 	def __str__(self):
-		return self.format("Lexical error near %r" % str(self.token))
+		return "Lexical error near %r" % str(self.token)
 
 
-class UnterminatedStringError(Error):
+class UnterminatedStringError(Exception):
 	"""
 	Exception that is raised by the parser when a string constant is not
 	terminated.
 	"""
 	def __str__(self):
-		return self.format("Unterminated string")
+		return "Unterminated string"
 
 
-class BlockError(Error):
+class BlockError(Exception):
 	"""
 	Exception that is raised by the compiler when an illegal block structure is
 	detected (e.g. an ``endif`` without a previous ``if``).
 	"""
 
 	def __init__(self, message):
-		Error.__init__(self)
 		self.message = message
 
 	def __str__(self):
-		return self.format(self.message)
+		return self.message
 
 
-class UnknownFunctionError(Error):
+class UnknownFunctionError(Exception):
 	"""
 	Exception that is raised by the renderer if the function to be executed by
 	the ``callfunc0``, ``callfunc1``, ``callfunc2`` or ``callfunc3`` opcodes is
@@ -179,14 +172,13 @@ class UnknownFunctionError(Error):
 	"""
 
 	def __init__(self, funcname):
-		Error.__init__(self)
 		self.funcname = funcname
 
 	def __str__(self):
-		return self.format("function %r unknown" % self.funcname)
+		return "function %r unknown" % self.funcname
 
 
-class UnknownMethodError(Error):
+class UnknownMethodError(Exception):
 	"""
 	Exception that is raised by the renderer if the method to be executed by the
 	``callmeth0``, ``callmeth1``, ``callmeth2``  or ``callmeth3`` opcodes is
@@ -194,34 +186,32 @@ class UnknownMethodError(Error):
 	"""
 
 	def __init__(self, methname):
-		Error.__init__(self)
 		self.methname = methname
 
 	def __str__(self):
-		return self.format("method %r unknown" % self.methname)
+		return "method %r unknown" % self.methname
 
 
-class UnknownOpcodeError(Error):
+class UnknownOpcodeError(Exception):
 	"""
 	Exception that is raised when an unknown opcode is encountered by the renderer.
 	"""
 
 	def __init__(self, opcode):
-		Error.__init__(self)
 		self.opcode = opcode
 
 	def __str__(self):
-		return self.format("opcode %r unknown" % self.opcode)
+		return "opcode %r unknown" % self.opcode
 
 
-class OutOfRegistersError(Error):
+class OutOfRegistersError(Exception):
 	"""
 	Exception that is raised by the compiler when there are no more free
 	registers. This might happen with complex expressions in tag code.
 	"""
 
 	def __str__(self):
-		return self.format("out of registers")
+		return "out of registers"
 
 
 ###
@@ -1021,28 +1011,19 @@ class Template(object):
 				else:
 					raise UnknownOpcodeError(opcode.code)
 				lastopcode = opcode.code
-		except Error, exc:
-			exc.decorate(opcode.location)
-			raise
 		except Exception, exc:
-			raise Error(exc).decorate(opcode.location)
+			raise Error(opcode.location, exc)
 		indent -= 1
 		buildloc = "ul4c.Location(source, *locations[sys.exc_info()[2].tb_lineno-startline])"
-		_code("except ul4c.Error, exc:")
-		indent += 1
-		_code("exc.decorate(%s)" % buildloc)
-		_code("raise")
-		indent -= 1
 		_code("except Exception, exc:")
 		indent += 1
-		_code("raise ul4c.Error(exc).decorate(%s)" % buildloc)
+		_code("raise ul4c.Error(%s, exc)" % buildloc)
 		return "\n".join(output)
 
 	def pythonfunction(self):
 		"""
-		Return a Python generator that can be called to render the template.
-		The argument signature of the function will be
-		``templates={}, **variables``.
+		Return a Python generator that can be called to render the template. The
+		argument signature of the function will be ``templates={}, **variables``.
 		"""
 		if self._pythonfunction is None:
 			code = self.pythonsource("render")
@@ -1224,15 +1205,12 @@ class Template(object):
 					parserender(self)
 				else: # Can't happen
 					raise ValueError("unknown tag %r" % location.type)
-			except Error, exc:
-				exc.decorate(location)
-				raise
 			except Exception, exc:
-				raise Error(exc).decorate(location)
+				raise Error(location, exc)
 			finally:
 				del self.location
 		if stack:
-			raise BlockError("block unclosed").decorate(stack[-1][1])
+			raise Error(stack[-1][1], BlockError("block unclosed"))
 
 	def __str__(self):
 		return "\n".join(self.format())
@@ -1729,11 +1707,8 @@ class Scanner(spark.Scanner):
 			spark.Scanner.tokenize(self, location.code)
 			if self.mode != "default":
 				raise UnterminatedStringError()
-		except Error, exc:
-			exc.decorate(location)
-			raise
 		except Exception, exc:
-			raise Error(exc).decorate(location)
+			raise Error(location, exc)
 		return self.rv
 
 	# Must be before the int and float constants
@@ -1885,11 +1860,8 @@ class ExprParser(spark.Parser):
 		try:
 			ast = self.parse(self.scanner.tokenize(location))
 			return ast.compile(template)
-		except Error, exc:
-			exc.decorate(location)
-			raise
 		except Exception, exc:
-			raise Error(exc).decorate(location)
+			raise Error(location, exc)
 		finally:
 			del template.registers
 

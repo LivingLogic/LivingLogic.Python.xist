@@ -885,3 +885,11 @@ def test_render_var():
 
 def test_parse():
 	check('42', '<?print data.Noner?>', data=dict(Noner=42))
+
+
+def test_nested_exceptions():
+	tmpl1 = ul4c.compile("<?print 2*x?>")
+	tmpl2 = ul4c.compile("<?render tmpl1(x=x)?>")
+	tmpl3 = ul4c.compile("<?render tmpl2(x=x)?>")
+
+	checkrunerror(r"TypeError .*render tmpl3.*render tmpl2.*render tmpl1.*print 2.*unsupported operand type", "<?render tmpl3(x=x)?>", dict(tmpl1=tmpl1, tmpl2=tmpl2, tmpl3=tmpl3), x=None)
