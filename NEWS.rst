@@ -34,6 +34,10 @@ Changes in 3.4 (released ??/??/2008)
 *	Exception handling in UL4 has been rewritten to allow proper error reporting
 	when calling nested templates.
 
+*	:mod:`ll.make` has gained a new action: :class:`XISTStringAction` publishes
+	an XIST node as a unicode string. :class:`XISTPublishAction` has been renamed
+	to :class:`XISTBytesAction`.
+
 
 Changes in 3.3.2 (released 07/15/2008)
 --------------------------------------

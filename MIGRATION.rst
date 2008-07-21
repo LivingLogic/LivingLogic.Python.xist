@@ -4,6 +4,15 @@ Migrating to version 3.3
 Changes to the make module
 --------------------------
 
+*	:class:`XISTPublishAction` has been renamed to :class:`XISTBytesAction`.
+
+
+Migrating to version 3.3
+========================
+
+Changes to the make module
+--------------------------
+
 *	:class:`ll.make.ImportAction` has been dropped as now the module object can
 	be used directly (e.g. as the input for an :class:`XISTPoolAction` object).
 

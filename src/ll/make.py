@@ -935,14 +935,14 @@ class XISTConvertAction(PipeAction):
 		return "<%s.%s object%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, "".join(args), id(self))
 
 
-class XISTPublishAction(PipeAction):
+class XISTBytesAction(PipeAction):
 	"""
 	This action publishes an XIST node as a byte string.
 	"""
 
 	def __init__(self, input=None, publisher=None, base=None):
 		"""
-		Create an :class:`XISTPublishAction` object. :var:`publisher` must be an
+		Create an :class:`XISTBytesAction` object. :var:`publisher` must be an
 		instance of :class:`ll.xist.publishers.Publisher`. If :var:`publisher` is
 		:const:`None` a publisher will be created for you. :var:`base` will be
 		the base URL used for publishing.
@@ -962,12 +962,46 @@ class XISTPublishAction(PipeAction):
 		(data, self.changed) = getoutputs(project, since, (self.input, self.publisher, self.base))
 
 		if data is not nodata:
-			project.writestep(self, "Publishing XIST node with base ", data[2])
-			publisher = data[1]
-			if publisher is None:
-				from ll.xist import publishers
-				publisher = publishers.Publisher()
-			data = "".join(publisher.publish(data[0], data[2]))
+			project.writestep(self, "Publishing XIST node as byte string with base ", data[2])
+			data = data[0].bytes(publisher=data[1], base=data[2])
+		return data
+
+	def __repr__(self):
+		if isinstance(self.base, Action):
+			return "<%s.%s object at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, id(self))
+		else:
+			return "<%s.%s object with base=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.base, id(self))
+
+
+class XISTStringAction(PipeAction):
+	"""
+	This action publishes an XIST node as a unicode string.
+	"""
+
+	def __init__(self, input=None, publisher=None, base=None):
+		"""
+		Create an :class:`XISTStringhAction` object. :var:`publisher` must be an
+		instance of :class:`ll.xist.publishers.Publisher`. If :var:`publisher` is
+		:const:`None` a publisher will be created for you. :var:`base` will be
+		the base URL used for publishing.
+		"""
+		PipeAction.__init__(self, input)
+		self.publisher = publisher
+		self.base = base
+
+	def __iter__(self):
+		for input in PipeAction.__iter__(self):
+			yield input
+		yield self.publisher
+		yield self.base
+
+	@report
+	def get(self, project, since):
+		(data, self.changed) = getoutputs(project, since, (self.input, self.publisher, self.base))
+
+		if data is not nodata:
+			project.writestep(self, "Publishing XIST node as unicode string with base ", data[2])
+			data = data[0].string(publisher=data[1], base=data[2])
 		return data
 
 	def __repr__(self):
