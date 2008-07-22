@@ -780,7 +780,7 @@ class Template(object):
 		if function is not None:
 			_code("def %s(templates={}, **variables):" % function)
 			indent += 1
-		_code("import sys, marshal, datetime")
+		_code("import sys, marshal, datetime, itertools")
 		_code("from ll.misc import xmlescape")
 		_code("from ll import ul4c")
 		_code("source = %r" % self.source)
@@ -962,11 +962,15 @@ class Template(object):
 						_code("reg%d = xrange(reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3))
 					elif opcode.arg == "get":
 						_code("reg%d = variables.get(reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3))
+					elif opcode.arg == "zip":
+						_code("reg%d = itertools.izip(reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3))
 					else:
 						raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callfunc3":
 					if opcode.arg == "range":
 						_code("reg%d = xrange(reg%d, reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
+					elif opcode.arg == "zip":
+						_code("reg%d = itertools.izip(reg%d, reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
 					else:
 						raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callmeth0":
@@ -2159,6 +2163,14 @@ class ForParser(ExprParser):
 	@spark.production('for ::= ( name , name , ) in expr0')
 	def for2b(self, _0, iter1, _1, iter2, _2, _3, _4, cont):
 		return For(_0.start, cont.end, [iter1, iter2], cont)
+
+	@spark.production('for ::= ( name , name , name ) in expr0')
+	def for3a(self, _0, iter1, _1, iter2, _2, iter3, _3, _4, cont):
+		return For(_0.start, cont.end, [iter1, iter2, iter3], cont)
+
+	@spark.production('for ::= ( name , name , name , ) in expr0')
+	def for3b(self, _0, iter1, _1, iter2, _2, iter3, _3, _4, _5, cont):
+		return For(_0.start, cont.end, [iter1, iter2, iter3], cont)
 
 
 class StmtParser(ExprParser):

@@ -800,6 +800,19 @@ def test_function_range():
 	check("", code, data=[10, 0, 2])
 
 
+def test_function_zip():
+	checkrunerror("function u?'zip' unknown", "<?print zip()?>")
+	checkrunerror("function u?'zip' unknown", "<?print zip(1)?>")
+	code = "<?for (ix, iy) in zip(x, y)?><?print ix?>-<?print iy?>;<?end for?>"
+	check("", code, x=[], y=[])
+	check("1-3;2-4;", code, x=[1, 2], y=[3, 4])
+	check("1-4;2-5;", code, x=[1, 2, 3], y=[4, 5])
+	code = "<?for (ix, iy, iz) in zip(x, y, z)?><?print ix?>-<?print iy?>+<?print iz?>;<?end for?>"
+	check("", code, x=[], y=[], z=[])
+	check("1-3+5;2-4+6;", code, x=[1, 2], y=[3, 4], z=[5, 6])
+	check("1-4+6;", code, x=[1, 2, 3], y=[4, 5], z=[6])
+
+
 def test_method_upper():
 	check("GURK", "<?print 'gurk'.upper()?>")
 

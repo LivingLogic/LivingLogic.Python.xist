@@ -38,6 +38,11 @@ Changes in 3.4 (released ??/??/2008)
 	an XIST node as a unicode string. :class:`XISTPublishAction` has been renamed
 	to :class:`XISTBytesAction`.
 
+*	UL4 has gained a new function ``zip``. It can be called with two or three
+	arguments and does what :func:`itertools.zip` does.
+
+*	UL4 now supports tuple unpacking in ``<?for?>`` tag with three variables.
+
 
 Changes in 3.3.2 (released 07/15/2008)
 --------------------------------------
