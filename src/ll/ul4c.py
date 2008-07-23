@@ -464,6 +464,8 @@ class Opcode(object):
 			return "print %r" % self.location.code
 		elif self.code == "print":
 			return "print r%r" % self.r1
+		elif self.code == "printx":
+			return "print xmlescape(r%r)" % self.r1
 		elif self.code == "loadnone":
 			return "r%r = None" % self.r1
 		elif self.code == "loadfalse":
