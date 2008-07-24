@@ -1063,7 +1063,7 @@ class Template(object):
 		"""
 		Format the list of opcodes. This is a generator yielding lines to be output
 		(but without trailing newlines). :var:`indent` can be used to specify how
-		to indent block (defaulting to ``"\\t"``).
+		to indent blocks (defaulting to ``"\\t"``).
 		"""
 		i = 0
 		for opcode in self.opcodes:
