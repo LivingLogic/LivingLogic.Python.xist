@@ -581,7 +581,7 @@ class FileAction(PipeAction):
 		"""
 		Read the content from the file and return it.
 		"""
-		project.writestep(self, "Reading data from ", project.strkey(self.key))
+		project.writestep(self, "Reading ", project.strkey(self.key))
 		with contextlib.closing(self.key.open("rb")) as file:
 			return file.read()
 
@@ -1373,7 +1373,7 @@ class UL4CompileAction(PipeAction):
 	"""
 
 	def execute(self, project, data):
-		project.writestep(self, "Compiling UL4 template")
+		project.writestep(self, "Compiling ", len(data), " ", ("bytes" if isinstance(data, str) else "characters"), " to UL4 template")
 		from ll import ul4c
 		return ul4c.compile(data)
 
@@ -1410,7 +1410,7 @@ class UL4DumpAction(PipeAction):
 	"""
 
 	def execute(self, project, data):
-		project.writestep(self, "Dumping UL4 template")
+		project.writestep(self, "Dumping UL4 template with ", len(data.opcodes), " opcodes")
 		return data.dumps()
 
 
