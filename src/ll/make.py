@@ -1652,22 +1652,6 @@ class ModuleAction(PipeAction):
 		return "<%s.%s object key=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.getkey(), id(self))
 
 
-class ModuleName(str):
-	"""
-	:class:`ModuleName` objects are automatically created by
-	:class:`ImportAction` as keys to be able to distinguish those keys from the
-	keys for PhonyActions (which are normally :class:`str` objects).
-	"""
-	def __eq__(self, other):
-		return self.__class__ is other.__class__ and str.__eq__(self, other)
-
-	def __ne__(self, other):
-		return not self == other
-
-	def __repr__(self):
-		return "%s.%s(%s)" % (self.__class__.__module__, self.__class__.__name__, str.__repr__(self))
-
-
 class AlwaysAction(Action):
 	"""
 	This action always returns :const:`None` as new data.
@@ -2165,7 +2149,6 @@ class Project(dict):
 		yield key
 		key2 = key
 		if isinstance(key, basestring):
-			yield ModuleName(key)
 			key2 = url.URL(key)
 			yield key2
 		if isinstance(key2, url.URL):
