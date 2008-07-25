@@ -583,7 +583,9 @@ class FileAction(PipeAction):
 		"""
 		project.writestep(self, "Reading ", project.strkey(self.key))
 		with contextlib.closing(self.key.open("rb")) as file:
-			return file.read()
+			data = file.read()
+			project.filesread += 1
+			return data
 
 	@report
 	def get(self, project, since):
@@ -1911,6 +1913,7 @@ class Project(dict):
 		self.actionscalled = 0
 		self.actionsfailed = 0
 		self.stepsexecuted = 0
+		self.filesread = 0
 		self.fileswritten = 0
 		self.starttime = None
 		self.ignoreerrors = False
@@ -2313,6 +2316,7 @@ class Project(dict):
 			self.actionscalled = 0
 			self.actionsfailed = 0
 			self.stepsexecuted = 0
+			self.filesread = 0
 			self.fileswritten = 0
 	
 			self.buildno += 1 # increment build number so that actions that stored the old one can detect a new build round
@@ -2333,6 +2337,8 @@ class Project(dict):
 					" actions called; ",
 					s4data(str(self.stepsexecuted)),
 					" steps executed; ",
+					s4data(str(self.filesread)),
+					" files read; ",
 					s4data(str(self.fileswritten)),
 					" files written; ",
 					s4data(str(self.actionsfailed)),
