@@ -43,6 +43,8 @@ Changes in 3.4 (released ??/??/2008)
 
 *	UL4 now supports tuple unpacking in ``<?for?>`` tag with three variables.
 
+*	Fixed a bug in the caching logic in :meth:`ll.make.CacheAction`.
+
 
 Changes in 3.3.2 (released 07/15/2008)
 --------------------------------------
