@@ -1206,7 +1206,7 @@ class CallMethAction(Action):
 	def execute(self, project, obj, methname, *args, **kwargs):
 		meth = getattr(obj, methname)
 		project.writestep(self, "Calling %r" % meth)
-		return meth(*args, **kwrags)
+		return meth(*args, **kwargs)
 
 
 class TOXICAction(PipeAction):
