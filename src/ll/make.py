@@ -1178,37 +1178,37 @@ class CallFuncAction(Action):
 		return func(*args **kwargs)
 
 
-class CallMethAction(Action):
+class CallAttrAction(Action):
 	"""
-	This action calls a method of an object with a number of arguments. Both
-	positional and keyword arguments are supported and the object, the method
+	This action calls an attribute of an object with a number of arguments. Both
+	positional and keyword arguments are supported and the object, the atribute
 	name and the arguments can be static objects or actions.
 	"""
-	def __init__(self, obj, methname, *args, **kwargs):
+	def __init__(self, obj, attrname, *args, **kwargs):
 		Action.__init__(self)
 		self.obj = obj
-		self.methname = methname
+		self.attrname = attrname
 		self.args = args
 		self.kwargs = kwargs
 
 	def __iter__(self):
 		yield self.obj
-		yield self.methname
+		yield self.attrname
 		for input in self.args:
 			yield input
 		for input in self.kwargs.itervalues():
 			yield input
 
 	def getargs(self):
-		return (self.obj, self.methname) + self.args
+		return (self.obj, self.attrname) + self.args
 
 	def getkwargs(self):
 		return self.kwargs
 
-	def execute(self, project, obj, methname, *args, **kwargs):
-		meth = getattr(obj, methname)
-		project.writestep(self, "Calling %r" % meth)
-		return meth(*args, **kwargs)
+	def execute(self, project, obj, attrname, *args, **kwargs):
+		func = getattr(obj, attrname)
+		project.writestep(self, "Calling %r" % func)
+		return func(*args, **kwargs)
 
 
 class TOXICAction(PipeAction):

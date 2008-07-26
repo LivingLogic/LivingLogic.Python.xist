@@ -45,6 +45,9 @@ Changes in 3.4 (released ??/??/2008)
 
 *	Fixed a bug in the caching logic in :meth:`ll.make.CacheAction`.
 
+*	:class:`ll.make.CallMethAction` has been renamed to :class:`CallAttrAction`
+	because it can be used to e.g. call functions in a module too.
+
 
 Changes in 3.3.2 (released 07/15/2008)
 --------------------------------------

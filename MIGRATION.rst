@@ -1,8 +1,10 @@
-Migrating to version 3.3
+Migrating to version 3.4
 ========================
 
 Changes to the make module
 --------------------------
+
+*	:class:`CallMethAction` has been renamed to :class:`CallAttrAction`.
 
 *	:class:`XISTPublishAction` has been renamed to :class:`XISTBytesAction`.
 
