@@ -1283,8 +1283,8 @@ class XPITAction(PipeAction):
 	This action transform an input string via :mod:`ll.xpit`.
 	"""
 
-	def __init__(self, nsinput=None):
-		PipeAction.__init__(self)
+	def __init__(self, input=None, nsinput=None):
+		PipeAction.__init__(self, input)
 		self.nsinput = nsinput
 
 	def addnsinput(self, input):
