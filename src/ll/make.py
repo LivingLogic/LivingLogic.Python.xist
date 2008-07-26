@@ -1301,8 +1301,8 @@ class XPITAction(PipeAction):
 			yield input
 		yield self.nsinput
 
-	def getargs(self):
-		return (self.nsinput, self.input)
+	def getkwargs(self):
+		return dict(ns=self.nsinput, data=self.input)
 
 	def execute(self, project, ns, data):
 		from ll import xpit
@@ -1317,7 +1317,7 @@ class UL4CompileAction(PipeAction):
 	"""
 
 	def execute(self, project, data):
-		project.writestep(self, "Compiling ", len(data), " ", ("bytes" if isinstance(data, str) else "characters"), " to UL4 template")
+		project.writestep(self, "Compiling ", len(data), (" bytes" if isinstance(data, str) else " characters"), " to UL4 template")
 		from ll import ul4c
 		return ul4c.compile(data)
 
@@ -1366,7 +1366,7 @@ class UL4LoadAction(PipeAction):
 	"""
 
 	def execute(self, project, data):
-		project.writestep(self, "Loading UL4 template")
+		project.writestep(self, "Loading UL4 template from ", len(data), (" bytes" if isinstance(data, str) else " characters"))
 		from ll import ul4c
 		return ul4c.loads(data)
 
