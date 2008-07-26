@@ -1881,8 +1881,12 @@ class Project(dict):
 				self._showaction = (PhonyAction, FileAction)
 			elif value == "all":
 				self._showaction = Action
-			else:
+			elif isinstance(value, Action):
 				self._showaction = value
+			elif value:
+				self._showaction = Action
+			else:
+				self._showaction = None
 
 	class showstep(misc.propclass):
 		"""
@@ -1903,8 +1907,12 @@ class Project(dict):
 				self._showstep = (PhonyAction, FileAction)
 			elif value == "all":
 				self._showstep = Action
-			else:
+			elif isinstance(value, Action):
 				self._showstep = value
+			elif value:
+				self._showstep = Action
+			else:
+				self._showstep = None
 
 	class shownote(misc.propclass):
 		"""
@@ -1926,8 +1934,12 @@ class Project(dict):
 				self._shownote = (PhonyAction, FileAction)
 			elif value == "all":
 				self._shownote = Action
-			else:
+			elif isinstance(value, Action):
 				self._shownote = value
+			elif value:
+				self._shownote = Action
+			else:
+				self._shownote = None
 
 	class showregistration(misc.propclass):
 		"""

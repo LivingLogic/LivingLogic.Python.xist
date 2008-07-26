@@ -48,6 +48,10 @@ Changes in 3.4 (released ??/??/2008)
 *	:class:`ll.make.CallMethAction` has been renamed to :class:`CallAttrAction`
 	because it can be used to e.g. call functions in a module too.
 
+*	The properties ``showaction``, ``showstep`` and ``shownote`` of
+	:class:`ll.make.Project` object can now be assigned booleans as well (which
+	results in *all* or *no* actions being shown.
+
 
 Changes in 3.3.2 (released 07/15/2008)
 --------------------------------------
