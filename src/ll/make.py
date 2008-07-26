@@ -759,11 +759,13 @@ class CacheAction(PipeAction):
 	def get(self, project, since):
 		if self.buildno != project.buildno or (since < self.since and self.data is nodata): # If this is a new build round or we're asked about an earlier date and didn't return data last time
 			(self.data, self.changed) = getoutputs(project, since, self.input)
+			project.writenote(self, "Caching data")
 			self.since = since
 			self.buildno = project.buildno
-		elif self.data is not nodata:
+		if since < self.changed:
 			project.writenote(self, "Reusing cached data")
-		return self.data
+			return self.data
+		return nodata
 
 
 class GetAttrAction(PipeAction):
