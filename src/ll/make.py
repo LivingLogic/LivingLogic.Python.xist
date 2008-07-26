@@ -264,7 +264,7 @@ def getoutputs(project, since, input):
 			resultchanged = max(resultchanged, changed)
 			if data is not nodata and not havedata: # The first real output
 				since = bigbang # force inputs to produce data for the rest of the loop
-				resultdata = dict((key, getoutputs(project, since, input[key])) for key in resultdata) # refetch data from previous inputs
+				resultdata = dict((key, getoutputs(project, since, input[key])[0]) for key in resultdata) # refetch data from previous inputs
 				havedata = True
 			resultdata[key] = data
 		if since is bigbang and not input:
@@ -305,7 +305,7 @@ class Action(object):
 	def __div__(self, output):
 		return output.__rdiv__(self)
 
-	@misc.notimplemented
+	@report
 	def get(self, project, since):
 		"""
 		This method (i.e. the implementations in subclasses) is the workhorse of
@@ -336,6 +336,19 @@ class Action(object):
 		to the timestamp of the last change to the data before returning. In most
 		cases this if the newest :attr:`changed` timestamp of the input actions.
 		"""
+		input = (self.getargs(), self.getkwargs())
+		(data, self.changed) = getoutputs(project, since, input)
+		if data is not nodata:
+			data = self.execute(project, *data[0], **data[1])
+		return data
+
+	@misc.notimplemented
+	def execute(self, project, *args, **kwargs):
+		"""
+		Execute the action: transform the input data in :var:`args` and
+		:var:`kwargs` and return the resulting output data. This method must be
+		implemented in subclasses.
+		"""
 
 	def getkey(self):
 		"""
@@ -343,6 +356,35 @@ class Action(object):
 		:class:`ModuleAction` for the filename.
 		"""
 		return getattr(self, "key", None)
+
+	def getargs(self):
+		return ()
+
+	def getkwargs(self):
+		return {}
+
+	def __repr__(self):
+		def format(arg):
+			if isinstance(arg, Action):
+				return " from %s.%s" % (arg.__class__.__module__, arg.__class__.__name__)
+			elif isinstance(arg, tuple):
+				return "=(?)"
+			elif isinstance(arg, list):
+				return "=[?]"
+			elif isinstance(arg, dict):
+				return "={?}"
+			else:
+				return "=%r" % (arg,)
+
+		output = ["%d%s" % (i, format(arg)) for (i, arg) in enumerate(self.getargs())]
+		for (argname, arg) in self.getkwargs().iteritems():
+			output.append("%s%s" % (argname, format(arg)))
+			
+		if output:
+			output = " with %s" % ", ".join(output)
+		else:
+			output = ""
+		return "<%s.%s object%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, output, id(self))
 
 	@misc.notimplemented
 	def __iter__(self):
@@ -434,19 +476,8 @@ class PipeAction(Action):
 	def __iter__(self):
 		yield self.input
 
-	@misc.notimplemented
-	def execute(self, project, data):
-		"""
-		Execute the action: transform the input data :var:`data` and return
-		the resulting output data. This method must be implemented in subclasses.
-		"""
-
-	@report
-	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, self.input)
-		if data is not nodata:
-			data = self.execute(project, data)
-		return data
+	def getkwargs(self):
+		return dict(data=self.input)
 
 
 class CollectAction(PipeAction):
@@ -628,11 +659,8 @@ class UnpickleAction(PipeAction):
 	This action unpickles a string.
 	"""
 	def execute(self, project, data):
-		project.writestep(self, "Unpickling")
+		project.writestep(self, "Unpickling ", len(data), " bytes")
 		return cPickle.loads(data)
-
-	def __repr__(self):
-		return "<%s.%s object at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, id(self))
 
 
 class PickleAction(PipeAction):
@@ -652,19 +680,13 @@ class PickleAction(PipeAction):
 			yield input
 		yield self.protocol
 
-	@report
-	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, self.protocol))
-		if data is not nodata:
-			project.writestep(self, "Pickling data with protocol %r" % data[1])
-			data = cPickle.dumps(data[0], data[1])
-		return data
+	def getkwargs(self):
+		return dict(data=self.input, protocol=self.protocol)
 
-	def __repr__(self):
-		if isinstance(self.protocol, Action):
-			return "<%s.%s object at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, id(self))
-		else:
-			return "<%s.%s object with protocol=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.protocol, id(self))
+	def execute(self, data, protocol):
+		project.writestep(self, "Pickling ", len(data), " bytes with protocol %r" % protocol)
+		return cPickle.dumps(data, protocol)
+		return data
 
 
 class JoinAction(Action):
@@ -686,13 +708,12 @@ class JoinAction(Action):
 	def __iter__(self):
 		return iter(self.inputs)
 
-	@report
-	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, self.inputs)
-		if data is not nodata:
-			project.writestep(self, "Joining data from %d inputs" % len(data))
-			data = "".join(data)
-		return data
+	def getargs(self):
+		return (self.inputs,)
+
+	def execute(self, project, inputs):
+		project.writestep(self, "Joining data from ", len(data), " inputs")
+		return "".join(data)
 
 
 class MkDirAction(PipeAction):
@@ -759,19 +780,12 @@ class GetAttrAction(PipeAction):
 			yield input
 		yield self.attrname
 
-	@report
-	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, self.attrname))
-		if data is not nodata:
-			project.writestep(self, "Getting attribute ", self.attrname)
-			data = getattr(data[0], data[1])
-		return data
+	def getkwargs(self):
+		return dict(data=self.input, attrname=self.attrname)
 
-	def __repr__(self):
-		if isinstance(self.attrname, Action):
-			return "<%s.%s object at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, id(self))
-		else:
-			return "<%s.%s object with attrname=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.attrname, id(self))
+	def execute(self, project, data, attrname):
+		project.writestep(self, "Getting attribute ", attrname)
+		return getattr(data, attrname)
 
 
 class PoolAction(Action):
@@ -800,17 +814,13 @@ class PoolAction(Action):
 	def _getpool(self, *data):
 		return misc.Pool(*data)
 
-	@report
-	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, self.inputs)
+	def getargs(self):
+		return (self.inputs,)
 
-		if data is not nodata:
-			data = self._getpool(*data)
-			project.writestep(self, "Created ", data.__class__.__module__, ".", data.__class__.__name__," object")
+	def execute(self, project, data):
+		data = self._getpool(*data)
+		project.writestep(self, "Created ", data.__class__.__module__, ".", data.__class__.__name__," object")
 		return data
-
-	def __repr__(self):
-		return "<%s.%s object at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, id(self))
 
 
 class XISTPoolAction(PoolAction):
@@ -852,26 +862,19 @@ class XISTParseAction(PipeAction):
 		yield self.pool
 		yield self.base
 
-	@report
-	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, self.builder, self.pool, self.base))
+	def getkwargs(self):
+		return dict(data=self.input, builder=self.builder, pool=self.pool, base=self.base)
 
-		if data is not nodata:
-			# We really have to do some work
-			from ll.xist import xsc
-			(data, builder, pool, base) = data
-			oldpool = builder.pool
-			try:
-				builder.pool = xsc.Pool(pool, oldpool)
-
-				project.writestep(self, "Parsing XIST input with base ", base)
-				data = builder.parsestring(data, base)
-			finally:
-				builder.pool = oldpool # Restore old pool
+	def execute(self, project, data, builder, pool, base):
+		from ll.xist import xsc
+		oldpool = builder.pool
+		try:
+			builder.pool = xsc.Pool(pool, oldpool)
+			project.writestep(self, "Parsing XIST input with base ", base)
+			data = builder.parsestring(data, base)
+		finally:
+			builder.pool = oldpool # Restore old pool
 		return data
-
-	def __repr__(self):
-		return "<%s.%s object with base=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.base, id(self))
 
 
 class XISTConvertAction(PipeAction):
@@ -906,37 +909,19 @@ class XISTConvertAction(PipeAction):
 		yield self.lang
 		yield self.root
 
-	@report
-	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, dict(mode=self.mode, target=self.target, stage=self.stage, lang=self.lang, root=self.root)))
+	def getkwargs(self):
+		return dict(data=self.input, mode=self.mode, target=self.target, stage=self.stage, lang=self.lang, root=self.root)
 
-		if data is not nodata:
-			from ll.xist import converters
-			args = []
-			for argname in ("mode", "target", "stage", "lang", "root"):
-				arg = data[1][argname]
-				if arg is not None:
-					args.append("%s=%r" % (argname, arg))
-			if args:
-				args = " with %s" % ", ".join(args)
-			else:
-				args = ""
-			project.writestep(self, "Converting XIST node", args)
-			converter = converters.Converter(makeaction=self, makeproject=project, **data[1])
-			data = data[0].convert(converter)
-		return data
-
-	def __repr__(self):
+	def execute(self, project, data, mode, target, stage, lang, root):
+		from ll.xist import converters
 		args = []
-		for argname in ("mode", "target", "stage", "lang", "targetroot"):
-			arg = getattr(self, argname, None)
-			if arg is not None and not isinstance(arg, Action):
+		for (argname, arg) in (("mode", mode), ("target", target), ("stage", stage), ("lang", lang), ("root", root)):
+			if arg is not None:
 				args.append("%s=%r" % (argname, arg))
-		if args:
-			args = " with %s" % ", ".join(args)
-		else:
-			args = ""
-		return "<%s.%s object%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, "".join(args), id(self))
+		args = " with %s" % ", ".join(args) if args else ""
+		project.writestep(self, "Converting XIST node", args)
+		converter = converters.Converter(makeaction=self, makeproject=project, mode=mode, target=target, stage=stage, lang=lang, root=root)
+		return data.convert(converter)
 
 
 class XISTBytesAction(PipeAction):
@@ -961,20 +946,12 @@ class XISTBytesAction(PipeAction):
 		yield self.publisher
 		yield self.base
 
-	@report
-	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, self.publisher, self.base))
+	def getkwargs(self):
+		return dict(data=self.input, publisher=self.publisher, base=self.base)
 
-		if data is not nodata:
-			project.writestep(self, "Publishing XIST node as byte string with base ", data[2])
-			data = data[0].bytes(publisher=data[1], base=data[2])
-		return data
-
-	def __repr__(self):
-		if isinstance(self.base, Action):
-			return "<%s.%s object at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, id(self))
-		else:
-			return "<%s.%s object with base=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.base, id(self))
+	def execute(self, project, data, publisher, base):
+		project.writestep(self, "Publishing XIST node as byte string with base ", base)
+		return data.bytes(publisher=publisher, base=base)
 
 
 class XISTStringAction(PipeAction):
@@ -999,20 +976,12 @@ class XISTStringAction(PipeAction):
 		yield self.publisher
 		yield self.base
 
-	@report
-	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, self.publisher, self.base))
+	def getkwargs(self):
+		return dict(data=self.input, publisher=self.publisher, base=self.base)
 
-		if data is not nodata:
-			project.writestep(self, "Publishing XIST node as unicode string with base ", data[2])
-			data = data[0].string(publisher=data[1], base=data[2])
-		return data
-
-	def __repr__(self):
-		if isinstance(self.base, Action):
-			return "<%s.%s object at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, id(self))
-		else:
-			return "<%s.%s object with base=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.base, id(self))
+	def execute(self, project, data, publisher, base):
+		project.writestep(self, "Publishing XIST node as unicode string with base ", base)
+		return data.string(publisher=publisher, base=base)
 
 
 class XISTTextAction(PipeAction):
@@ -1030,27 +999,13 @@ class XISTTextAction(PipeAction):
 		yield self.encoding
 		yield self.width
 
-	@report
-	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, self.encoding, self.width))
+	def getkwargs(self):
+		return dict(data=self.input, encoding=self.encoding, width=self.width)
 
-		if data is not nodata:
-			project.writestep(self, "Converting XIST node to text with encoding=%r, width=%r" % (data[1], data[2]))
-			from ll.xist.ns import html
-			data = html.astext(data[0], encoding=data[1], width=data[2])
-		return data
-
-	def __repr__(self):
-		args = []
-		for argname in ("encoding", "width"):
-			arg = getattr(self, argname, None)
-			if arg is not None and not isinstance(arg, Action):
-				args.append("%s=%r" % (argname, arg))
-		if args:
-			args = " with %s" % ", ".join(args)
-		else:
-			args = ""
-		return "<%s.%s object%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, "".join(args), id(self))
+	def execute(self, project, input, encoding, width):
+		project.writestep(self, "Converting XIST node to text with encoding=%r, width=%r" % (encoding, width))
+		from ll.xist.ns import html
+		return html.astext(data, encoding=encoding, width=width)
 
 
 class FOPAction(PipeAction):
@@ -1102,20 +1057,12 @@ class DecodeAction(PipeAction):
 			yield input
 		yield self.encoding
 
-	@report
-	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, self.encoding))
+	def getkwargs(self):
+		return dict(data=self.input, encoding=self.encoding)
 
-		if data is not nodata:
-			project.writestep(self, "Decoding ", len(data[0]), " bytes with encoding ", data[1])
-			data = data[0].decode(data[1])
-		return data
-
-	def __repr__(self):
-		if isinstance(self.encoding, Action):
-			return "<%s.%s object at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, id(self))
-		else:
-			return "<%s.%s object encoding=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.encoding, id(self))
+	def execute(self, project, data, encoding):
+		project.writestep(self, "Decoding ", len(data), " bytes with encoding ", encoding)
+		return data.decode(encoding)
 
 
 class EncodeAction(PipeAction):
@@ -1140,20 +1087,12 @@ class EncodeAction(PipeAction):
 			yield input
 		yield self.encoding
 
-	@report
-	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, self.encoding))
+	def getkwargs(self):
+		return dict(data=self.input, encoding=self.encoding)
 
-		if data is not nodata:
-			project.writestep(self, "Encoding ", len(data[0]), " characters with encoding ", data[1])
-			data = data[0].encode(data[1])
-		return data
-
-	def __repr__(self):
-		if isinstance(self.encoding, Action):
-			return "<%s.%s object at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, id(self))
-		else:
-			return "<%s.%s object encoding=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.encoding, id(self))
+	def execute(self, project, data, encoding):
+		project.writestep(self, "Encoding ", len(data), " characters with encoding ", encoding)
+		return data.encode(encoding)
 
 
 class EvalAction(PipeAction):
@@ -1181,19 +1120,17 @@ class GZipAction(PipeAction):
 			yield input
 		yield self.compresslevel
 
-	@report
-	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, self.compresslevel))
+	def getkwargs(self):
+		return dict(data=self.input, compresslevel=self.compresslevel)
 
-		if data is not nodata:
-			project.writestep(self, "Compressing ", len(data), " bytes with level %d" % data[1])
-			import gzip, cStringIO
-			stream = cStringIO.StringIO()
-			compressor = gzip.GzipFile(filename="", mode="wb", fileobj=stream, compresslevel=data[1])
-			compressor.write(data[0])
-			compressor.close()
-			data = stream.getvalue()
-		return data
+	def execute(self, project, data, compresslevel):
+		project.writestep(self, "Compressing ", len(data), " bytes with level " % compresslevel)
+		import gzip, cStringIO
+		stream = cStringIO.StringIO()
+		compressor = gzip.GzipFile(filename="", mode="wb", fileobj=stream, compresslevel=compresslevel)
+		compressor.write(data)
+		compressor.close()
+		return stream.getvalue()
 
 
 class GUnzipAction(PipeAction):
@@ -1228,13 +1165,15 @@ class CallFuncAction(Action):
 		for input in self.kwargs.itervalues():
 			yield input
 
-	@report
-	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.func, self.args, self.kwargs))
-		if data is not nodata:
-			project.writestep(self, "Calling function %r" % data[0])
-			data = data[0](*data[1], **data[2])
-		return data
+	def getargs(self):
+		return (self.func,) + self.args
+
+	def getkwargs(self):
+		return self.kwargs
+
+	def execute(self, project, func, *args, **kwargs):
+		project.writestep(self, "Calling function %r" % func)
+		return func(*args **kwargs)
 
 
 class CallMethAction(Action):
@@ -1258,14 +1197,16 @@ class CallMethAction(Action):
 		for input in self.kwargs.itervalues():
 			yield input
 
-	@report
-	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.obj, self.methname, self.args, self.kwargs))
-		if data is not nodata:
-			meth = getattr(data[0], data[1])
-			project.writestep(self, "Calling %r" % meth)
-			data = meth(*data[2], **data[3])
-		return data
+	def getargs(self):
+		return (self.obj, self.methname) + self.args
+
+	def getkwargs(self):
+		return self.kwargs
+
+	def execute(self, project, obj, methname, *args, **kwargs):
+		meth = getattr(obj, methname)
+		project.writestep(self, "Calling %r" % meth)
+		return meth(*args, **kwrags)
 
 
 class TOXICAction(PipeAction):
@@ -1278,14 +1219,13 @@ class TOXICAction(PipeAction):
 		PipeAction.__init__(self, input)
 		self.mode = mode
 
-	@report
-	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, self.mode))
-		if data is not nodata:
-			project.writestep(self, "Compiling TOXIC template with mode %r" % data[1])
-			from ll import toxicc
-			return toxicc.compile(data[0], mode=data[1])
-		return data
+	def getkwargs(self):
+		return dict(data=self.input, mode=self.mode)
+
+	def execute(self, project, data, mode):
+		project.writestep(self, "Compiling TOXIC template with mode %r" % mode)
+		from ll import toxicc
+		return toxicc.compile(data, mode=mode)
 
 
 class TOXICPrettifyAction(PipeAction):
@@ -1303,14 +1243,13 @@ class TOXICPrettifyAction(PipeAction):
 			yield input
 		yield self.mode
 
-	@report
-	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, self.mode))
-		if data is not nodata:
-			project.writestep(self, "Prettifying SQL code with mode %r" % data[1])
-			from ll import toxicc
-			return toxicc.prettify(data[0], mode=data[1])
-		return data
+	def getkwargs(self):
+		return dict(data=self.input, mode=self.mode)
+
+	def execute(self, project, data, mode):
+		project.writestep(self, "Prettifying SQL code with mode %r" % mode)
+		from ll import toxicc
+		return toxicc.prettify(data, mode=mode)
 
 
 class SplatAction(PipeAction):
@@ -1327,8 +1266,11 @@ class SplatAction(PipeAction):
 		PipeAction.__init__(self, input)
 		self.patterns = patterns
 
-	def execute(self, project, data):
-		for (search, replace) in self.patterns:
+	def getkwargs(self):
+		return dict(data=self.input, patterns=self.patterns)
+
+	def execute(self, project, data, patterns):
+		for (search, replace) in patterns:
 			project.writestep(self, "Replacing ", search, " with ", replace)
 			data = re.sub(search, replace, data)
 		return data
@@ -1357,18 +1299,14 @@ class XPITAction(PipeAction):
 			yield input
 		yield self.nsinput
 
-	def execute(self, project, data, ns):
+	def getargs(self):
+		return (self.nsinput, self.input)
+
+	def execute(self, project, ns, data):
 		from ll import xpit
 		globals = dict(makeaction=self, makeproject=project)
 		project.writestep(self, "Converting XPIT input")
 		return xpit.convert(data, globals, ns)
-
-	@report
-	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.nsinput, self.input))
-		if data is not nodata:
-			data = self.execute(project, data[1], data[0])
-		return data
 
 
 class UL4CompileAction(PipeAction):
@@ -1399,13 +1337,15 @@ class UL4RenderAction(PipeAction):
 		for input in self.vars.itervalues():
 			yield input
 
-	@report
-	def get(self, project, since):
-		(data, self.changed) = getoutputs(project, since, (self.input, self.templates, self.vars))
-		if data is not nodata:
-			project.writestep(self, "Rendering UL4 template")
-			data = data[0].renders(data[1], **data[2])
-		return data
+	def getargs(self):
+		return (self.input, self.templates)
+
+	def getkwargs(self):
+		return self.vars
+
+	def execute(self, project, data, templates, **vars):
+		project.writestep(self, "Rendering UL4 template with ", len(self.opcodes), " opcodes")
+		return data.renders(templates, **vars)
 
 
 class UL4DumpAction(PipeAction):
@@ -1469,24 +1409,17 @@ class ModeAction(PipeAction):
 			yield input
 		yield self.mode
 
-	@report
-	def get(self, project, since):
+	def getkwargs(self):
+		return dict(data=self.input, mode=self.mode)
+
+	def execute(self, project, data, mode):
 		"""
 		Change the permission bits of the file ``self.getkey()``.
 		"""
-		(data, self.changed) = getoutputs(project, since, (self.input, self.mode))
-		if data is not nodata:
-			key = self.getkey()
-			project.writestep(self, "Changing mode of ", project.strkey(key), " to 0%03o" % data[1])
-			key.chmod(data[1])
-			data = data[0]
+		key = self.getkey()
+		project.writestep(self, "Changing mode of ", project.strkey(key), " to 0%03o" % mode)
+		key.chmod(mode)
 		return data
-
-	def __repr__(self):
-		if isinstance(self.mode, Action):
-			return "<%s.%s object at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, id(self))
-		else:
-			return "<%s.%s object mode=0%03o at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.mode, id(self))
 
 
 class OwnerAction(PipeAction):
@@ -1512,30 +1445,17 @@ class OwnerAction(PipeAction):
 		yield self.user
 		yield self.group
 
-	@report
-	def get(self, project, since):
+	def getkwargs(self):
+		return dict(data=self.input, user=self.user, group=self.group)
+
+	def execute(self, project, data, user, group):
 		"""
 		Change the ownership of the file ``self.getkey()``.
 		"""
-		(data, self.changed) = getoutputs(project, since, (self.input, self.user, self.group))
-		if data is not nodata:
-			key = self.getkey()
-			project.writestep(self, "Changing owner of ", project.strkey(key), " to ", data[1], " and group to ", data[2])
-			key.chown(data[0], data[1])
-			data = data[0]
+		key = self.getkey()
+		project.writestep(self, "Changing owner of ", project.strkey(key), " to ", user, " and group to ", group)
+		key.chown(user, group)
 		return data
-
-	def __repr__(self):
-		args = []
-		for argname in ("user", "group"):
-			arg = getattr(self, argname, None)
-			if arg is not None and not isinstance(arg, Action):
-				args.append("%s=%r" % (argname, arg))
-		if args:
-			args = " with %s" % ", ".join(args)
-		else:
-			args = ""
-		return "<%s.%s object%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, "".join(args), id(self))
 
 
 class ModuleAction(PipeAction):
