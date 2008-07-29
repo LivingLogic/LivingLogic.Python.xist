@@ -556,7 +556,7 @@ class Opcode(object):
 			return "r%r = r%r * r%r" % (self.r1, self.r2, self.r3)
 		elif self.code == "floordiv":
 			return "r%r = r%r // r%r" % (self.r1, self.r2, self.r3)
-		elif self.code == "trueiv":
+		elif self.code == "truediv":
 			return "r%r = r%r / r%r" % (self.r1, self.r2, self.r3)
 		elif self.code == "and":
 			return "r%r = r%r and r%r" % (self.r1, self.r2, self.r3)
