@@ -787,9 +787,19 @@ class Template(object):
 		_code("from ll import ul4c")
 		_code("source = %r" % self.source)
 		_code('variables = dict((key.decode("utf-8"), value) for (key, value) in variables.iteritems())') # FIXME: This can be dropped in Python 3.0 where strings are unicode
-		locations = tuple((oc.location.type, oc.location.starttag, oc.location.endtag, oc.location.startcode, oc.location.endcode) for oc in self.opcodes)
-		locations = marshal.dumps(locations)
+		locations = []
+		lines2locs = []
+		index = -1
+		for oc in self.opcodes:
+			loc = (oc.location.type, oc.location.starttag, oc.location.endtag, oc.location.startcode, oc.location.endcode)
+			if not locations or locations[-1] != loc:
+				locations.append(loc)
+				index += 1
+			lines2locs.append(index)
+		locations = marshal.dumps(tuple(locations))
+		lines2locs = tuple(lines2locs)
 		_code("locations = marshal.loads(%r)" % locations)
+		_code("lines2locs = %r" % (lines2locs,))
 		_code("".join("reg%d = " % i for i in xrange(10)) + "None")
 
 		_code("try:")
@@ -1021,10 +1031,9 @@ class Template(object):
 		except Exception, exc:
 			raise Error(opcode.location, exc)
 		indent -= 1
-		buildloc = "ul4c.Location(source, *locations[sys.exc_info()[2].tb_lineno-startline])"
 		_code("except Exception, exc:")
 		indent += 1
-		_code("raise ul4c.Error(%s, exc)" % buildloc)
+		_code("raise ul4c.Error(ul4c.Location(source, *locations[lines2locs[sys.exc_info()[2].tb_lineno-startline]]), exc)")
 		return "\n".join(output)
 
 	def pythonfunction(self):
