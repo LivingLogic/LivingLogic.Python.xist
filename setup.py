@@ -246,7 +246,7 @@ args = dict(
 		"scripts/xml2xsc.py",
 	],
 	install_requires=[
-		"cssutils >= 0.9.5rc2, <0.9.6",
+		"cssutils == 0.9.5",
 	],
 	namespace_packages=["ll"],
 	zip_safe=False,
