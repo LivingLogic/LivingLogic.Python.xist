@@ -1004,7 +1004,7 @@ class XISTTextAction(PipeAction):
 	def getkwargs(self):
 		return dict(data=self.input, encoding=self.encoding, width=self.width)
 
-	def execute(self, project, input, encoding, width):
+	def execute(self, project, data, encoding, width):
 		project.writestep(self, "Converting XIST node to text with encoding=%r, width=%r" % (encoding, width))
 		from ll.xist.ns import html
 		return html.astext(data, encoding=encoding, width=width)
