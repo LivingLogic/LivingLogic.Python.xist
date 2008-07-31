@@ -15,7 +15,7 @@ static char escape__doc__[] =
 Escape any character not in safe with a %xx sequence.\n\
 If safe is not specified all 7bit characters are considered safe.";
 
-static char hexdigits[16] = "0123456789abcdef";
+static char hexdigits[16] = "0123456789ABCDEF";
 
 static PyObject *escape(PyObject *self, PyObject *args)
 {

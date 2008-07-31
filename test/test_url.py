@@ -21,7 +21,7 @@ def test_fileext():
 	u.file = u"nöx.png"
 	assert u.file == u"nöx.png"
 	assert u.ext == u"png"
-	assert unicode(u.path) == u"/gurk/n%c3%b6x.png"
+	assert unicode(u.path) == u"/gurk/n%C3%B6x.png"
 	u.ext = "gif"
 	assert u.file == u"nöx.gif"
 	assert u.ext == u"gif"
@@ -303,11 +303,11 @@ def test_query():
 	assert u.query_parts == {u"name": u"gurk"}
 
 	u.query_parts["name"] = [u"gürk"]
-	assert u.query == "name=g%c3%bcrk"
+	assert u.query == "name=g%C3%BCrk"
 	assert u.query_parts == {u"name": [u"gürk"]}
 
 	u.query_parts["name"] = u"gürk"
-	assert u.query == "name=g%c3%bcrk"
+	assert u.query == "name=g%C3%BCrk"
 	assert u.query_parts == {u"name": u"gürk"}
 
 
