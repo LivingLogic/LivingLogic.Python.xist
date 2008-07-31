@@ -92,7 +92,37 @@ def httpdate(dt):
 	return "%s, %02d %3s %4d %02d:%02d:%02d GMT" % (weekdayname[dt.weekday()], dt.day, monthname[dt.month], dt.year, dt.hour, dt.minute, dt.second)
 
 
-from _url import escape as _escape, unescape as _unescape, normalizepath as _normalizepath
+try:
+	from _url import escape as _escape, unescape as _unescape, normalizepath as _normalizepath
+except ImportError:
+	def _normalizepath(path_segments):
+		new_path_segments = []
+		l = len(path_segments)
+		for i in xrange(l):
+			segment = path_segments[i]
+			if segment==(".",) or segment==("",):
+				if i==l-1:
+					new_path_segments.append(("",))
+			elif segment==("..",) and len(new_path_segments) and new_path_segments[-1]!=("..",):
+				new_path_segments.pop()
+				if i==l-1:
+					new_path_segments.append(("",))
+			else:
+				new_path_segments.append(segment)
+		return new_path_segments
+
+	def _escape(s, safe=""):
+		if not safe:
+			safe = "".join(chr(c) for c in xrange(128))
+		return urllib.quote_plus(s.encode("utf-8"), safe)
+
+	def _unescape(s):
+		s = urllib.unquote_plus(s)
+		try:
+			return s.decode("utf-8")
+		except UnicodeError:
+			return s.decode("latin-1")
+
 
 alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 alphanum = alpha + "0123456789"
