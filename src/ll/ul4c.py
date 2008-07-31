@@ -23,7 +23,7 @@ from __future__ import division
 __docformat__ = "reStructuredText"
 
 
-import re, datetime, marshal, StringIO, locale
+import re, datetime, StringIO, locale
 
 from ll import spark
 
@@ -782,7 +782,7 @@ class Template(object):
 		if function is not None:
 			_code("def %s(templates={}, **variables):" % function)
 			indent += 1
-		_code("import sys, marshal, datetime, itertools")
+		_code("import sys, datetime, itertools")
 		_code("from ll.misc import xmlescape")
 		_code("from ll import ul4c")
 		_code("source = %r" % self.source)
@@ -796,10 +796,8 @@ class Template(object):
 				locations.append(loc)
 				index += 1
 			lines2locs.append(index)
-		locations = marshal.dumps(tuple(locations))
+		locations = tuple(locations)
 		lines2locs = tuple(lines2locs)
-		_code("locations = marshal.loads(%r)" % locations)
-		_code("lines2locs = %r" % (lines2locs,))
 		_code("".join("reg%d = " % i for i in xrange(10)) + "None")
 
 		_code("try:")
@@ -1033,6 +1031,8 @@ class Template(object):
 		indent -= 1
 		_code("except Exception, exc:")
 		indent += 1
+		_code("locations = %r" % (locations,))
+		_code("lines2locs = %r" % (lines2locs,))
 		_code("raise ul4c.Error(ul4c.Location(source, *locations[lines2locs[sys.exc_info()[2].tb_lineno-startline]]), exc)")
 		return "\n".join(output)
 
