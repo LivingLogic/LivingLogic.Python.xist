@@ -15,7 +15,14 @@ Python Codec for XML decoding
 
 import codecs
 
-from _xml_codec import detectencoding as _detectencoding, fixencoding as _fixencoding
+try:
+	from _xml_codec import detectencoding as _detectencoding, fixencoding as _fixencoding
+except ImportError:
+	def _detectencoding(input, final=False):
+		raise NotImplementedError("C module _xml_codec missing, _detectencoding() not supported")
+
+	def _fixencoding(input, encoding, final=False):
+		raise NotImplementedError("C module _xml_codec missing, _fixencoding() not supported")
 
 
 def decode(input, errors="strict", encoding=None):
