@@ -487,5 +487,8 @@ def test_walk():
 
 
 def test_ssh_identity():
+	identity = os.path.expanduser("~/.ssh/id_rsa")
+	if not os.path.exists(identity):
+		identity = os.path.expanduser("~/.ssh/id_dsa")
 	with context:
-		assert url.URL("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/").isdir(identity="/home/walter/.ssh/id_rsa") is True
+		assert url.URL("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/").isdir(identity=identity) is True
