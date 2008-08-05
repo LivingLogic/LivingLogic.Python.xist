@@ -18,6 +18,9 @@ LivingLogic modules and packages.
 import sys, types, collections, weakref
 
 
+__docformat__ = "reStructuredText"
+
+
 # fetch item, first, last, count and xmlescape
 try:
 	from ll._misc import *
@@ -85,31 +88,23 @@ except ImportError:
 			count += 1
 		return count
 
-	def _xmlescape(string, maps):
-		for (s, r) in maps:
-			string = string.replace(s, r)
-		if isinstance(string, str):
-			chars = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1f\x7f\x80\x81\x82\x83\x84\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f"
-		else:
-			chars = u"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1f\x7f\x80\x81\x82\x83\x84\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f"
-		for c in chars:
-			string = string.replace(c, "&#%d;" % ord(c))
-		return string
-
 	def xmlescape(string):
 		"""
 		Return a copy of the argument string, where every occurrence of ``<``,
 		``>``, ``&``, ``\"``, ``'`` and every restricted character has been
 		replaced with their XML character entity or character reference.
 		"""
-		maps = (
-			("&", "&amp;"),
-			("<", "&lt;"),
-			(">", "&gt;"),
-			("'", "&apos;"),
-			('"', "&quot;"),
-		)
-		return _xmlescape(string, maps)
+		if isinstance(string, unicode):
+			return string.translate({0x00: u'&#0;', 0x01: u'&#1;', 0x02: u'&#2;', 0x03: u'&#3;', 0x04: u'&#4;', 0x05: u'&#5;', 0x06: u'&#6;', 0x07: u'&#7;', 0x08: u'&#8;', 0x0b: u'&#11;', 0x0c: u'&#12;', 0x0e: u'&#14;', 0x0f: u'&#15;', 0x10: u'&#16;', 0x11: u'&#17;', 0x12: u'&#18;', 0x13: u'&#19;', 0x14: u'&#20;', 0x15: u'&#21;', 0x16: u'&#22;', 0x17: u'&#23;', 0x18: u'&#24;', 0x19: u'&#25;', 0x1a: u'&#26;', 0x1b: u'&#27;', 0x1c: u'&#28;', 0x1d: u'&#29;', 0x1e: u'&#30;', 0x1f: u'&#31;', 0x22: u'&quot;', 0x26: u'&amp;', 0x27: u'&#39;', 0x3c: u'&lt;', 0x3e: u'&gt;', 0x7f: u'&#127;', 0x80: u'&#128;', 0x81: u'&#129;', 0x82: u'&#130;', 0x83: u'&#131;', 0x84: u'&#132;', 0x86: u'&#134;', 0x87: u'&#135;', 0x88: u'&#136;', 0x89: u'&#137;', 0x8a: u'&#138;', 0x8b: u'&#139;', 0x8c: u'&#140;', 0x8d: u'&#141;', 0x8e: u'&#142;', 0x8f: u'&#143;', 0x90: u'&#144;', 0x91: u'&#145;', 0x92: u'&#146;', 0x93: u'&#147;', 0x94: u'&#148;', 0x95: u'&#149;', 0x96: u'&#150;', 0x97: u'&#151;', 0x98: u'&#152;', 0x99: u'&#153;', 0x9a: u'&#154;', 0x9b: u'&#155;', 0x9c: u'&#156;', 0x9d: u'&#157;', 0x9e: u'&#158;', 0x9f: u'&#159;'})
+		else:
+			string = string.replace("&", "&amp;")
+			string = string.replace("<", "&lt;")
+			string = string.replace(">", "&gt;")
+			string = string.replace("'", "&#39;")
+			string = string.replace('"', "&quot;")
+			for c in "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1f\x7f\x80\x81\x82\x83\x84\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f":
+				string = string.replace(c, "&#%d;" % ord(c))
+			return string
 
 	def xmlescape_text(string):
 		"""
@@ -117,12 +112,15 @@ except ImportError:
 		``>``, ``&``, and every restricted character has been replaced with their
 		XML character entity or character reference.
 		"""
-		maps = (
-			("&", "&amp;"),
-			("<", "&lt;"),
-			(">", "&gt;"),
-		)
-		return _xmlescape(string, maps)
+		if isinstance(string, unicode):
+			return string.translate({0x00: u'&#0;', 0x01: u'&#1;', 0x02: u'&#2;', 0x03: u'&#3;', 0x04: u'&#4;', 0x05: u'&#5;', 0x06: u'&#6;', 0x07: u'&#7;', 0x08: u'&#8;', 0x0b: u'&#11;', 0x0c: u'&#12;', 0x0e: u'&#14;', 0x0f: u'&#15;', 0x10: u'&#16;', 0x11: u'&#17;', 0x12: u'&#18;', 0x13: u'&#19;', 0x14: u'&#20;', 0x15: u'&#21;', 0x16: u'&#22;', 0x17: u'&#23;', 0x18: u'&#24;', 0x19: u'&#25;', 0x1a: u'&#26;', 0x1b: u'&#27;', 0x1c: u'&#28;', 0x1d: u'&#29;', 0x1e: u'&#30;', 0x1f: u'&#31;', 0x26: u'&amp;', 0x3c: u'&lt;', 0x3e: u'&gt;', 0x7f: u'&#127;', 0x80: u'&#128;', 0x81: u'&#129;', 0x82: u'&#130;', 0x83: u'&#131;', 0x84: u'&#132;', 0x86: u'&#134;', 0x87: u'&#135;', 0x88: u'&#136;', 0x89: u'&#137;', 0x8a: u'&#138;', 0x8b: u'&#139;', 0x8c: u'&#140;', 0x8d: u'&#141;', 0x8e: u'&#142;', 0x8f: u'&#143;', 0x90: u'&#144;', 0x91: u'&#145;', 0x92: u'&#146;', 0x93: u'&#147;', 0x94: u'&#148;', 0x95: u'&#149;', 0x96: u'&#150;', 0x97: u'&#151;', 0x98: u'&#152;', 0x99: u'&#153;', 0x9a: u'&#154;', 0x9b: u'&#155;', 0x9c: u'&#156;', 0x9d: u'&#157;', 0x9e: u'&#158;', 0x9f: u'&#159;'})
+		else:
+			string = string.replace("&", "&amp;")
+			string = string.replace("<", "&lt;")
+			string = string.replace(">", "&gt;")
+			for c in "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1f\x7f\x80\x81\x82\x83\x84\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f":
+				string = string.replace(c, "&#%d;" % ord(c))
+			return string
 
 	def xmlescape_attr(string):
 		"""
@@ -130,16 +128,16 @@ except ImportError:
 		``>``, ``&``, ``"`` and every restricted character has been replaced with
 		their XML character entity or character reference.
 		"""
-		maps = (
-			("&", "&amp;"),
-			("<", "&lt;"),
-			(">", "&gt;"),
-			("'", "&apos;"),
-		)
-		return _xmlescape(string, maps)
-
-
-__docformat__ = "reStructuredText"
+		if isinstance(string, unicode):
+			return string.translate({0x00: u'&#0;', 0x01: u'&#1;', 0x02: u'&#2;', 0x03: u'&#3;', 0x04: u'&#4;', 0x05: u'&#5;', 0x06: u'&#6;', 0x07: u'&#7;', 0x08: u'&#8;', 0x0b: u'&#11;', 0x0c: u'&#12;', 0x0e: u'&#14;', 0x0f: u'&#15;', 0x10: u'&#16;', 0x11: u'&#17;', 0x12: u'&#18;', 0x13: u'&#19;', 0x14: u'&#20;', 0x15: u'&#21;', 0x16: u'&#22;', 0x17: u'&#23;', 0x18: u'&#24;', 0x19: u'&#25;', 0x1a: u'&#26;', 0x1b: u'&#27;', 0x1c: u'&#28;', 0x1d: u'&#29;', 0x1e: u'&#30;', 0x1f: u'&#31;', 0x22: u'&quot;', 0x26: u'&amp;', 0x3c: u'&lt;', 0x3e: u'&gt;', 0x7f: u'&#127;', 0x80: u'&#128;', 0x81: u'&#129;', 0x82: u'&#130;', 0x83: u'&#131;', 0x84: u'&#132;', 0x86: u'&#134;', 0x87: u'&#135;', 0x88: u'&#136;', 0x89: u'&#137;', 0x8a: u'&#138;', 0x8b: u'&#139;', 0x8c: u'&#140;', 0x8d: u'&#141;', 0x8e: u'&#142;', 0x8f: u'&#143;', 0x90: u'&#144;', 0x91: u'&#145;', 0x92: u'&#146;', 0x93: u'&#147;', 0x94: u'&#148;', 0x95: u'&#149;', 0x96: u'&#150;', 0x97: u'&#151;', 0x98: u'&#152;', 0x99: u'&#153;', 0x9a: u'&#154;', 0x9b: u'&#155;', 0x9c: u'&#156;', 0x9d: u'&#157;', 0x9e: u'&#158;', 0x9f: u'&#159;'})
+		else:
+			string = string.replace("&", "&amp;")
+			string = string.replace("<", "&lt;")
+			string = string.replace(">", "&gt;")
+			string = string.replace('"', "&quot;")
+			for c in "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1f\x7f\x80\x81\x82\x83\x84\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f":
+				string = string.replace(c, "&#%d;" % ord(c))
+			return string
 
 
 def notimplemented(function):
