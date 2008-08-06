@@ -52,7 +52,7 @@ this::
 
 from __future__ import with_statement
 
-import sys, os, os.path, optparse, warnings, re, datetime, cStringIO, errno, tempfile, operator, types, cPickle, gc, contextlib
+import sys, os, os.path, optparse, warnings, re, datetime, cStringIO, errno, tempfile, operator, types, cPickle, gc, contextlib, locale
 
 from ll import misc, url
 
@@ -61,6 +61,11 @@ try:
 except ImportError:
 	from ll import astyle
 
+
+try:
+	locale.setlocale(locale.LC_NUMERIC, "en_US")
+except Exception:
+	pass
 
 __docformat__ = "reStructuredText"
 
@@ -2231,6 +2236,9 @@ class Project(dict):
 
 		self.starttime = datetime.datetime.utcnow()
 
+		def format(v):
+			return locale.format("%d", v, True)
+
 		with url.Context():
 			self.stack = []
 			self.importstack = []
@@ -2254,21 +2262,21 @@ class Project(dict):
 					"built ",
 					s4action(self.__class__.__module__, ".", self.__class__.__name__),
 					": ",
-					s4data(str(len(self))),
+					s4data(format(len(self))),
 					" registered targets; ",
-					s4data(str(self.actionscalled)),
+					s4data(format(self.actionscalled)),
 					" actions called; ",
-					s4data(str(self.stepsexecuted)),
+					s4data(format(self.stepsexecuted)),
 					" steps executed; ",
-					s4data(str(self.filesread)),
+					s4data(format(self.filesread)),
 					" files/",
-					s4data(str(self.bytesread)),
+					s4data(format(self.bytesread)),
 					" bytes read; ",
-					s4data(str(self.fileswritten)),
+					s4data(format(self.fileswritten)),
 					" files/",
-					s4data(str(self.byteswritten)),
+					s4data(format(self.byteswritten)),
 					" bytes written; ",
-					s4data(str(self.actionsfailed)),
+					s4data(format(self.actionsfailed)),
 					" actions failed",
 				)
 				if self.showtime:
