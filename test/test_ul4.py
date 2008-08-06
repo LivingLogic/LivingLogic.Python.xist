@@ -594,6 +594,7 @@ def test_function_isnone():
 	check("False", code, data=())
 	check("False", code, data=[])
 	check("False", code, data={})
+	check("False", code, data=ul4c.compile(u""))
 
 
 def test_function_isbool():
@@ -610,6 +611,7 @@ def test_function_isbool():
 	check("False", code, data=())
 	check("False", code, data=[])
 	check("False", code, data={})
+	check("False", code, data=ul4c.compile(u""))
 
 
 def test_function_isint():
@@ -626,6 +628,7 @@ def test_function_isint():
 	check("False", code, data=())
 	check("False", code, data=[])
 	check("False", code, data={})
+	check("False", code, data=ul4c.compile(u""))
 
 
 def test_function_isfloat():
@@ -642,6 +645,7 @@ def test_function_isfloat():
 	check("False", code, data=())
 	check("False", code, data=[])
 	check("False", code, data={})
+	check("False", code, data=ul4c.compile(u""))
 
 
 def test_function_isstr():
@@ -658,6 +662,7 @@ def test_function_isstr():
 	check("False", code, data=())
 	check("False", code, data=[])
 	check("False", code, data={})
+	check("False", code, data=ul4c.compile(u""))
 
 
 def test_function_isdate():
@@ -674,6 +679,7 @@ def test_function_isdate():
 	check("False", code, data=())
 	check("False", code, data=[])
 	check("False", code, data={})
+	check("False", code, data=ul4c.compile(u""))
 
 
 def test_function_islist():
@@ -690,6 +696,7 @@ def test_function_islist():
 	check("True", code, data=())
 	check("True", code, data=[])
 	check("False", code, data={})
+	check("False", code, data=ul4c.compile(u""))
 
 
 def test_function_isdict():
@@ -706,6 +713,24 @@ def test_function_isdict():
 	check("False", code, data=())
 	check("False", code, data=[])
 	check("True", code, data={})
+	check("False", code, data=ul4c.compile(u""))
+
+
+def test_function_istemplate():
+	checkrunerror("function u?'istemplate' unknown", u"<?print istemplate()?>")
+	checkrunerror("function u?'istemplate' unknown", u"<?print istemplate(1, 2)?>")
+	code = u"<?print istemplate(data)?>"
+	check("False", code, data=None)
+	check("False", code, data=True)
+	check("False", code, data=False)
+	check("False", code, data=42)
+	check("False", code, data=4.2)
+	check("False", code, data="foo")
+	check("False", code, data=datetime.datetime.now())
+	check("False", code, data=())
+	check("False", code, data=[])
+	check("False", code, data={})
+	check("True", code, data=ul4c.compile(u""))
 
 
 def test_function_get():
