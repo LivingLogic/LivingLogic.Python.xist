@@ -64,8 +64,9 @@ code:
 	*	boolean values (``True`` and ``False``)
 	*	lists
 	*	dictionaries
+	*	templates
 
-This is similar to what JSON_ supports (except for date objects).
+This is similar to what JSON_ supports (except for date objects and templates).
 
 	.. _JSON: http://www.json.org/
 
@@ -76,7 +77,7 @@ the list is used in a loop) for lists, Java might support anything implementing
 the ``List`` interface (or the ``Collection`` interface if the list is used in a
 loop).
 
-Objects the these types can either be passed to the template in the call to the
+Objects of these types can either be passed to the template in the call to the
 render function, or the template can create objects of thoses types itself. The
 syntax for creating such a constant is very similar to Python's syntax.
 
@@ -315,10 +316,7 @@ code demonstrates this::
 	# Data object for the outer template
 	data = [u"Python", u"Java", u"PHP"]
 
-	# Dictionary of subtemplates for the outer template
-	templates = dict(itemtmpl=tmpl2)
-
-	print tmpl1.renders(templates, data=data)
+	print tmpl1.renders(itemtmpl=tmpl2, data=data)
 
 This will output::
 
@@ -328,12 +326,10 @@ This will output::
 	<li>PHP</li>
 	</ul>
 
-I.e. a dictionary of templates can be passed to the render methods as the first
-argument. The keys in this dictionary are the names of the templates, which can
-be used in the ``<?render?>`` tag. ``<?render itemtmpl(item=item)?>`` renders
-the ``itemtmpl`` template and passed the ``item`` variable, which will be
-available in the inner template under the name ``item``. All templates available
-in the outer template will be available in the inner template too.
+I.e. templates can be passed just like any other object as a variable.
+``<?render itemtmpl(item=item)?>`` renders the ``itemtmpl`` template and passes
+the ``item`` variable, which will be available in the inner template under the
+name ``item``.
 
 
 Expressions

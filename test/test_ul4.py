@@ -16,16 +16,16 @@ import py.test
 from ll import ul4c
 
 
-def check(result, source, templates={}, **variables):
+def check(result, source, **variables):
 	# Check with template compiled from source
 	t1 = ul4c.compile(source)
 	s1 = unicode(t1)
-	assert result == t1.renders(templates, **variables)
+	assert result == t1.renders(**variables)
 
 	# Check with template loaded again via the string interface
 	t2 = ul4c.loads(t1.dumps())
 	s2 = unicode(t2)
-	assert result == t2.renders(templates, **variables)
+	assert result == t2.renders(**variables)
 
 	# Check with template loaded again via the stream interface
 	stream = StringIO.StringIO()
@@ -33,20 +33,20 @@ def check(result, source, templates={}, **variables):
 	stream.seek(0)
 	t3 = ul4c.load(stream)
 	s3 = unicode(t3)
-	assert result == t3.renders(templates, **variables)
+	assert result == t3.renders(**variables)
 	assert s1 == s2 == s3
 
 
-def checkle(result, source, templates={}, **variables):
+def checkle(result, source, **variables):
 	# Check with template compiled from source
 	t1 = ul4c.compile(source)
 	s1 = unicode(t1)
-	assert result <= t1.renders(templates, **variables)
+	assert result <= t1.renders(**variables)
 
 	# Check with template loaded again via the string interface
 	t2 = ul4c.loads(t1.dumps())
 	s2 = unicode(t2)
-	assert result <= t2.renders(templates, **variables)
+	assert result <= t2.renders(**variables)
 
 	# Check with template loaded again via the stream interface
 	stream = StringIO.StringIO()
@@ -54,7 +54,7 @@ def checkle(result, source, templates={}, **variables):
 	stream.seek(0)
 	t3 = ul4c.load(stream)
 	s3 = unicode(t3)
-	assert result <= t3.renders(templates, **variables)
+	assert result <= t3.renders(**variables)
 	assert s1 == s2 == s3
 
 
@@ -67,12 +67,12 @@ def checkcompileerror(msg, source):
 		py.test.fail("Didn't raise exception")
 
 
-def checkrunerror(msg, source, templates={}, **variables):
+def checkrunerror(msg, source, **variables):
 	# Check with template compiled from source
 	t1 = ul4c.compile(source)
 	s1 = unicode(t1)
 	try:
-		t1.renders(templates, **variables)
+		t1.renders(**variables)
 	except Exception, exc:
 		assert re.search(msg, "%s.%s: %s" % (exc.__class__.__module__, exc.__class__.__name__, exc)) is not None
 	else:
@@ -82,7 +82,7 @@ def checkrunerror(msg, source, templates={}, **variables):
 	t2 = ul4c.loads(t1.dumps())
 	s2 = unicode(t2)
 	try:
-		t2.renders(templates, **variables)
+		t2.renders(**variables)
 	except Exception, exc:
 		assert re.search(msg, "%s.%s: %s" % (exc.__class__.__module__, exc.__class__.__name__, exc)) is not None
 	else:
@@ -95,7 +95,7 @@ def checkrunerror(msg, source, templates={}, **variables):
 	t3 = ul4c.load(stream)
 	s3 = unicode(t3)
 	try:
-		t3.renders(templates, **variables)
+		t3.renders(**variables)
 	except Exception, exc:
 		assert re.search(msg, "%s.%s: %s" % (exc.__class__.__module__, exc.__class__.__name__, exc)) is not None
 	else:
@@ -894,12 +894,12 @@ def test_method_get():
 
 def test_render():
 	t = ul4c.compile(u'<?print prefix?><?print data?><?print suffix?>')
-	check('(f)(o)(o)', u'<?for c in data?><?render t(data=c, prefix="(", suffix=")")?><?end for?>', dict(t=t), data='foo')
+	check('(f)(o)(o)', u'<?for c in data?><?render t(data=c, prefix="(", suffix=")")?><?end for?>', t=t, data='foo')
 
 
 def test_render_var():
 	t = ul4c.compile(u'<?code x += 1?><?print x?>')
-	check('42,43,42', u'<?print x?>,<?render t(x=x)?>,<?print x?>', dict(t=t), x=42)
+	check('42,43,42', u'<?print x?>,<?render t(x=x)?>,<?print x?>', t=t, x=42)
 
 
 def test_parse():
@@ -909,6 +909,6 @@ def test_parse():
 def test_nested_exceptions():
 	tmpl1 = ul4c.compile(u"<?print 2*x?>")
 	tmpl2 = ul4c.compile(u"<?render tmpl1(x=x)?>")
-	tmpl3 = ul4c.compile(u"<?render tmpl2(x=x)?>")
+	tmpl3 = ul4c.compile(u"<?render tmpl2(tmpl1=tmpl1, x=x)?>")
 
-	checkrunerror(r"TypeError .*render tmpl3.*render tmpl2.*render tmpl1.*print 2.*unsupported operand type", u"<?render tmpl3(x=x)?>", dict(tmpl1=tmpl1, tmpl2=tmpl2, tmpl3=tmpl3), x=None)
+	checkrunerror(r"TypeError .*render tmpl3.*render tmpl2.*render tmpl1.*print 2.*unsupported operand type", u"<?render tmpl3(tmpl1=tmpl1, tmpl2=tmpl2, x=x)?>", tmpl1=tmpl1, tmpl2=tmpl2, tmpl3=tmpl3, x=None)

@@ -431,9 +431,9 @@ class Opcode(object):
 		arguments and store the return value in register :attr:`r1`.
 
 	``"render"``:
-		Render the template whose name is in the attribute :attr:`arg`. The
-		content of register :attr:`r1` (which must be a dictionary) will be passed
-		to the template as the variable dictionary.
+		Render the template in the attribute :attr:`r1`. The content of register
+		:attr:`r2` (which must be a dictionary) will be passed to the template as
+		the variable dictionary.
 	"""
 	__slots__ = ("code", "r1", "r2", "r3", "r4", "r5", "arg", "location", "jump")
 
@@ -581,7 +581,7 @@ class Opcode(object):
 		elif self.code == "callmeth3":
 			return "r%r = r%r.%s(r%r, r%r, r%r)" % (self.r1, self.r2, self.arg, self.r3, self.r4, self.r5)
 		elif self.code == "render":
-			return "render %s(r%r)" % (self.arg, self.r1)
+			return "render r%r(r%r)" % (self.r1, self.r2)
 		else:
 			raise UnknownOpcodeError(self.code)
 
@@ -1022,7 +1022,7 @@ class Template(object):
 					indent -= 1
 					_code("# end if")
 				elif opcode.code == "render":
-					_code('for chunk in templates[%r](templates, **dict((key.encode("utf-8"), value) for (key, value) in reg%d.iteritems())): yield chunk' % (opcode.arg, opcode.r1))
+					_code('for chunk in reg%d(**dict((key.encode("utf-8"), value) for (key, value) in reg%d.iteritems())): yield chunk' % (opcode.r1, opcode.r2))
 				else:
 					raise UnknownOpcodeError(opcode.code)
 				lastopcode = opcode.code
@@ -1039,7 +1039,7 @@ class Template(object):
 	def pythonfunction(self):
 		"""
 		Return a Python generator that can be called to render the template. The
-		argument signature of the function will be ``templates={}, **variables``.
+		argument signature of the function will be ``**variables``.
 		"""
 		if self._pythonfunction is None:
 			code = self.pythonsource("render")
@@ -1048,25 +1048,23 @@ class Template(object):
 			self._pythonfunction = ns["render"]
 		return self._pythonfunction
 
-	def __call__(self, templates={}, **variables):
-		return self.pythonfunction()(templates, **variables)
+	def __call__(self, **variables):
+		return self.pythonfunction()(**variables)
 
-	def render(self, templates={}, **variables):
+	def render(self, **variables):
 		"""
 		Render the template iteratively (i.e. this is a generator).
-		:var:`templates` contains the templates that should be available to the
-		``<?render?>`` tag. :var:`variables` contains the top level variables
-		available to the template code.
+		:var:`variables` contains the top level variables available to the
+		template code.
 		"""
-		return self.pythonfunction()(templates, **variables)
+		return self.pythonfunction()(**variables)
 
-	def renders(self, templates={}, **variables):
+	def renders(self, **variables):
 		"""
-		Render the template as a string. :var:`templates` contains the templates
-		that should be available to the ``<?render?>`` tag. :var:`variables`
-		contains the top level variables available to the template code.
+		Render the template as a string. :var:`variables` contains the top level
+		variables available to the template code.
 		"""
-		return "".join(self.render(templates, **variables))
+		return "".join(self.render(**variables))
 
 	def format(self, indent="\t"):
 		"""
@@ -1686,26 +1684,28 @@ class CallMeth(AST):
 
 
 class Render(AST):
-	def __init__(self, start, end, name, *variables):
+	def __init__(self, start, end, template, *variables):
 		AST.__init__(self, start, end)
-		self.name = name
+		self.template = template
 		self.variables = list(variables)
 
 	def __repr__(self):
-		return "%s(%r, %r, %r, %s)" % (self.__class__.__name__, self.start, self.end, self.name, repr(self.variables)[1:-1])
+		return "%s(%r, %r, %r, %s)" % (self.__class__.__name__, self.start, self.end, self.template, repr(self.variables)[1:-1])
 
 	def compile(self, template):
-		r = template._allocreg()
-		template.opcode("builddict", r1=r)
+		ra = template._allocreg()
+		template.opcode("builddict", r1=ra)
 		for (key, value) in self.variables:
 			rv = value.compile(template)
 			rk = template._allocreg()
 			template.opcode("loadstr", r1=rk, arg=key.name)
-			template.opcode("adddict", r1=r, r2=rk, r3=rv)
+			template.opcode("adddict", r1=ra, r2=rk, r3=rv)
 			template._freereg(rk)
 			template._freereg(rv)
-		template.opcode("render", r1=r, arg=self.name.name)
-		template._freereg(r)
+		rt = self.template.compile(template)
+		template.opcode("render", r1=rt, r2=ra)
+		template._freereg(rt)
+		template._freereg(ra)
 
 
 ###
@@ -2225,13 +2225,13 @@ class RenderParser(ExprParser):
 	emptyerror = "render statement required"
 	start = "render"
 
-	@spark.production('render ::= name ( )')
-	def emptyrender(self, name, _0, _1):
-		return Render(name.start, _1.end, name)
+	@spark.production('render ::= expr0 ( )')
+	def emptyrender(self, template, _0, _1):
+		return Render(template.start, _1.end, template)
 
-	@spark.production('buildrender ::= name ( name = expr0')
-	def startrender(self, name, _0, argname, _1, argvalue):
-		return Render(name.start, argvalue.end, name, (argname, argvalue))
+	@spark.production('buildrender ::= expr0 ( name = expr0')
+	def startrender(self, template, _0, argname, _1, argvalue):
+		return Render(template.start, argvalue.end, template, (argname, argvalue))
 
 	@spark.production('buildrender ::= buildrender , name = expr0')
 	def buildrender(self, render, _0, argname, _1, argvalue):
