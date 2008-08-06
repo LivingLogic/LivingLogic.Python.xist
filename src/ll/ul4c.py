@@ -15,7 +15,7 @@ loops and conditional blocks), that define how the final rendered output will
 look.
 
 :mod:`ll.ul4c` compiles a template to a bytecode format, which makes it possible
-to implement renderers for these templates in multiple programming languages.
+to implement template renderers in multiple programming languages.
 """
 
 from __future__ import division
