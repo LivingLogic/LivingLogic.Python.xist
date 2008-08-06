@@ -780,7 +780,7 @@ class Template(object):
 			output.append("%s%s" % ("\t"*indent, code))
 
 		if function is not None:
-			_code("def %s(templates={}, **variables):" % function)
+			_code("def %s(**variables):" % function)
 			indent += 1
 		_code("import sys, datetime, itertools")
 		_code("from ll.misc import xmlescape")
