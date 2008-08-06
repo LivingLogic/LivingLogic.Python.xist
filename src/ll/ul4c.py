@@ -947,6 +947,8 @@ class Template(object):
 						_code("reg%d = isinstance(reg%d, (list, tuple))" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "isdict":
 						_code("reg%d = isinstance(reg%d, dict)" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "istemplate":
+						_code("reg%d = hasattr(reg%d, '__call__')" % (opcode.r1, opcode.r2)) # this supports normal generators too.
 					elif opcode.arg == "repr":
 						_code("reg%d = ul4c._repr(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "get":
