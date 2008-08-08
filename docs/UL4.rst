@@ -408,6 +408,14 @@ Functions
 ``now()`` returns the current date and time as a data object.
 
 
+``vars()``
+:::::::
+
+``vars()`` returns a dictionary containing all currently defined variables
+(i.e. variables passed to the template, defined via ``<?code?>`` tags or as
+loop variables).
+
+
 ``isnone``
 ::::::::::
 

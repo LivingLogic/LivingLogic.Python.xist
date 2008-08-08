@@ -23,9 +23,8 @@ Changes in 3.4 (released ??/??/2008)
 	dictionary literals too, i.e. ``{1:2, 3:4}`` and ``{**{1:2}, **{3:4}}`` are
 	equivalent.
 
-*	The UL4 function ``vars`` has been dropped. Instead there's a function
-	``get`` now that works similar to the dictionary method ``get``, but works
-	with global variables.
+*	A new UL4 function ``get`` has beenm added that works similar to the
+	dictionary method ``get``, but works with global variables.
 
 *	The missing processing instruction :class:`render` has been added to
 	:mod:`ll.xist.ns.ul4`.

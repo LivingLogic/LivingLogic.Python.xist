@@ -513,6 +513,12 @@ def test_function_now():
 	checkle(now, u"<?print now()?>")
 
 
+def test_function_vars():
+	checkrunerror("function u?'vars' unknown", "<?print vars(1)?>")
+	checkrunerror("function u?'vars' unknown", "<?print vars(1, 2)?>")
+	check("yes", u"<?if 'spam' in vars()?>yes<?else?>no<?end if?>", spam="eggs")
+
+
 def test_function_xmlescape():
 	checkrunerror("function u?'xmlescape' unknown", u"<?print xmlescape()?>")
 	checkrunerror("function u?'xmlescape' unknown", u"<?print xmlescape(1, 2)?>")

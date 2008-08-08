@@ -921,7 +921,9 @@ class Template(object):
 					_code("reg%d = reg%d %% reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "callfunc0":
 					if opcode.arg == "now":
-						_code("reg%d = datetime.datetime.now()" % (opcode.r1))
+						_code("reg%d = datetime.datetime.now()" % opcode.r1)
+					elif opcode.arg == "vars":
+						_code("reg%d = variables" % opcode.r1)
 					else:
 						raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callfunc1":
