@@ -9,6 +9,21 @@ Changes in 3.4 (released ??/??/2008)
 *	Printing XML escaped strings in UL4 has now gained its own tag and opcode.
 	``<?printx foo?>`` is equivalent to ``<?print xmlescape(foo)?>``.
 
+*	Exception handling in UL4 has been rewritten to allow proper error reporting
+	when calling nested templates.
+
+*	UL4 has gained a new function ``zip``. It can be called with two or three
+	arguments and does what :func:`itertools.zip` does.
+
+*	UL4 now supports tuple unpacking in ``<?for?>`` tag with three variables.
+
+*	The UL4 function ``vars`` has been dropped. Instead there's a function
+	``get`` now that works similar to the dictionary method ``get``, but works
+	with global variables.
+
+*	The missing processing instruction :class:`render` has been added to
+	:mod:`ll.xist.ns.ul4`.
+
 *	The element :class:`ll.xist.ns.form.memo` has been renamed to ``textarea``
 	and :class:`ll.xist.ns.form.edit` has been renamed to ``text``. Classes
 	:class:`ll.xist.ns.form.button` and :class:`ll.xist.ns.form.file` have been
@@ -21,30 +36,15 @@ Changes in 3.4 (released ??/??/2008)
 	"conditional attributes" (via the new classes :class:`attr_if` and
 	:class:`attr_ifnn`).
 
-*	The UL4 function ``vars`` has been dropped. Instead there's a function
-	``get`` now that works similar to the dictionary method ``get``, but works
-	with global variables.
-
 *	Iterating through the inputs in :mod:`ll.make` actions has been fixed (i.e.
 	the additional inputs will be output too). :meth:`ll.make.Project.findpaths`
 	has been fixed to work with non-:class:`ll.make.Action` inputs. (This means
 	that now you *have* to pass a real registered target action to
 	:meth:`findpaths` not just its key).
 
-*	The missing processing instruction :class:`render` has been added to
-	:mod:`ll.xist.ns.ul4`.
-
-*	Exception handling in UL4 has been rewritten to allow proper error reporting
-	when calling nested templates.
-
 *	:mod:`ll.make` has gained a new action: :class:`XISTStringAction` publishes
 	an XIST node as a unicode string. :class:`XISTPublishAction` has been renamed
 	to :class:`XISTBytesAction`.
-
-*	UL4 has gained a new function ``zip``. It can be called with two or three
-	arguments and does what :func:`itertools.zip` does.
-
-*	UL4 now supports tuple unpacking in ``<?for?>`` tag with three variables.
 
 *	Fixed a bug in the caching logic in :meth:`ll.make.CacheAction`.
 
