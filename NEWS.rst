@@ -17,6 +17,12 @@ Changes in 3.4 (released ??/??/2008)
 
 *	UL4 now supports tuple unpacking in ``<?for?>`` tag with three variables.
 
+*	In UL4s ``<?render?>`` tags it's now possible to pass along a complete
+	argument dictionary via the ``**arg`` syntax just like in Python. This syntax
+	can even be used multiple times in the call. This syntax is available in
+	dictionary literals too, i.e. ``{1:2, 3:4}`` and ``{**{1:2}, **{3:4}}`` are
+	equivalent.
+
 *	The UL4 function ``vars`` has been dropped. Instead there's a function
 	``get`` now that works similar to the dictionary method ``get``, but works
 	with global variables.

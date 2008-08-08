@@ -208,6 +208,9 @@ def test_dict():
 	check('1:2\n', u'<?for (key, value) in {1:2,}.items()?><?print key?>:<?print value?>\n<?end for?>')
 	# With duplicate keys, later ones simply overwrite earlier ones
 	check('1:3\n', u'<?for (key, value) in {1:2, 1: 3}.items()?><?print key?>:<?print value?>\n<?end for?>')
+	# Test **
+	check('1:2\n', u'<?for (key, value) in {**{1:2}}.items()?><?print key?>:<?print value?>\n<?end for?>')
+	check('1:4\n', u'<?for (key, value) in {1:1, **{1:2}, 1:3, **{1:4}}.items()?><?print key?>:<?print value?>\n<?end for?>')
 	check('no', u'<?if {}?>yes<?else?>no<?end if?>')
 	check('yes', u'<?if {1:2}?>yes<?else?>no<?end if?>')
 
@@ -920,6 +923,7 @@ def test_method_get():
 def test_render():
 	t = ul4c.compile(u'<?print prefix?><?print data?><?print suffix?>')
 	check('(f)(o)(o)', u'<?for c in data?><?render t(data=c, prefix="(", suffix=")")?><?end for?>', t=t, data='foo')
+	check('(f)(o)(o)', u'<?for c in data?><?render t(data=c, **{"prefix": "(", "suffix": ")"})?><?end for?>', t=t, data='foo')
 
 
 def test_render_var():

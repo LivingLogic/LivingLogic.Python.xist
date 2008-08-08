@@ -281,6 +281,10 @@ class Opcode(object):
 		Add a new entry to the dictionary in register :attr:`r1`. The object in
 		:attr:`r2` is the key and the object in register :attr:`r3` is the value.
 	
+	``"updatedict"``
+		Update the dictionary in register :attr:`r1` with the items from the
+		dictionary in :attr:`r2`.
+	
 	``"loadvar"``:
 		Load the variable named :attr:`arg` into the register :attr:`r1`.
 
@@ -488,6 +492,8 @@ class Opcode(object):
 			return "r%r.append(r%r)" % (self.r1, self.r2)
 		elif self.code == "adddict":
 			return "r%r[r%r] = r%r" % (self.r1, self.r2, self.r3)
+		elif self.code == "updatedict":
+			return "r%r.update(r%r)" % (self.r1, self.r2)
 		elif self.code == "loadvar":
 			return "r%r = vars[%r]" % (self.r1, self.arg)
 		elif self.code == "storevar":
@@ -832,6 +838,8 @@ class Template(object):
 					_code("reg%d.append(reg%d)" % (opcode.r1, opcode.r2))
 				elif opcode.code == "adddict":
 					_code("reg%d[reg%d] = reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+				elif opcode.code == "updatedict":
+					_code("reg%d.update(reg%d)" % (opcode.r1, opcode.r2))
 				elif opcode.code == "loadvar":
 					_code("reg%d = variables[%r]" % (opcode.r1, opcode.arg))
 				elif opcode.code == "storevar":
@@ -1372,12 +1380,18 @@ class Dict(AST):
 	def compile(self, template):
 		r = template._allocreg()
 		template.opcode("builddict", r1=r)
-		for (key, value) in self.items:
-			rk = key.compile(template)
-			rv = value.compile(template)
-			template.opcode("adddict", r1=r, r2=rk, r3=rv)
-			template._freereg(rk)
-			template._freereg(rv)
+		for item in self.items:
+			if len(item) == 1:
+				rd = item[0].compile(template)
+				template.opcode("updatedict", r1=r, r2=rd)
+				template._freereg(rd)
+			else:
+				(key, value) = item
+				rk = key.compile(template)
+				rv = value.compile(template)
+				template.opcode("adddict", r1=r, r2=rk, r3=rv)
+				template._freereg(rk)
+				template._freereg(rv)
 		return r
 
 
@@ -1697,13 +1711,19 @@ class Render(AST):
 	def compile(self, template):
 		ra = template._allocreg()
 		template.opcode("builddict", r1=ra)
-		for (key, value) in self.variables:
-			rv = value.compile(template)
-			rk = template._allocreg()
-			template.opcode("loadstr", r1=rk, arg=key.name)
-			template.opcode("adddict", r1=ra, r2=rk, r3=rv)
-			template._freereg(rk)
-			template._freereg(rv)
+		for item in self.variables:
+			if len(item) == 1:
+				rd = item[0].compile(template)
+				template.opcode("updatedict", r1=ra, r2=rd)
+				template._freereg(rd)
+			else:
+				(key, value) = item
+				rv = value.compile(template)
+				rk = template._allocreg()
+				template.opcode("loadstr", r1=rk, arg=key.name)
+				template.opcode("adddict", r1=ra, r2=rk, r3=rv)
+				template._freereg(rk)
+				template._freereg(rv)
 		rt = self.template.compile(template)
 		template.opcode("render", r1=rt, r2=ra)
 		template._freereg(rt)
@@ -1734,7 +1754,7 @@ class Scanner(spark.Scanner):
 	def date(self, start, end, s):
 		self.rv.append(Date(start, end, datetime.datetime(*map(int, filter(None, datesplitter.split(s))))))
 
-	@spark.token("\\(|\\)|\\[|\\]|\\{|\\}|\\.|,|==|\\!=|<=|<|>=|>|=|\\+=|\\-=|\\*=|//=|/=|%=|%|:|\\+|-|\\*|//|/", "default")
+	@spark.token("\\(|\\)|\\[|\\]|\\{|\\}|\\.|,|==|\\!=|<=|<|>=|>|=|\\+=|\\-=|\\*=|//=|/=|%=|%|:|\\+|-|\\*\\*|\\*|//|/", "default")
 	def token(self, start, end, s):
 		self.rv.append(Token(start, end, s))
 
@@ -1953,10 +1973,20 @@ class ExprParser(spark.Parser):
 	def expr_builddict(self, _0, exprkey, _1, exprvalue):
 		return Dict(_0.start, exprvalue.end, (exprkey, exprvalue))
 
+	@spark.production('builddict ::= { ** expr0')
+	def expr_builddictupdate(self, _0, _1, expr):
+		return Dict(_0.start, expr.end, (expr,))
+
 	@spark.production('builddict ::= builddict , expr0 : expr0')
 	def expr_adddict(self, dict, _0, exprkey, _1, exprvalue):
 		dict.items.append((exprkey, exprvalue))
 		dict.end = exprvalue.end
+		return dict
+
+	@spark.production('builddict ::= builddict , ** expr0')
+	def expr_updatedict(self, dict, _0, _1, expr):
+		dict.items.append((expr,))
+		dict.end = expr.end
 		return dict
 
 	@spark.production('expr11 ::= builddict }')
@@ -2235,10 +2265,20 @@ class RenderParser(ExprParser):
 	def startrender(self, template, _0, argname, _1, argvalue):
 		return Render(template.start, argvalue.end, template, (argname, argvalue))
 
+	@spark.production('buildrender ::= expr0 ( ** expr0')
+	def startrenderupdate(self, template, _0, _1, arg):
+		return Render(template.start, arg.end, template, (arg, ))
+
 	@spark.production('buildrender ::= buildrender , name = expr0')
 	def buildrender(self, render, _0, argname, _1, argvalue):
 		render.variables.append((argname, argvalue))
 		render.end = argvalue.end
+		return render
+
+	@spark.production('buildrender ::= buildrender , ** expr0')
+	def buildrenderupdate(self, render, _0, _1, arg):
+		render.variables.append((arg,))
+		render.end = arg.end
 		return render
 
 	@spark.production('render ::= buildrender )')
