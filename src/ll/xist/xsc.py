@@ -1701,11 +1701,7 @@ class ProcInst(CharacterData):
 		content = self.content
 		if u"?>" in content:
 			raise IllegalProcInstFormatError(self)
-		yield publisher.encode(u"<?")
-		yield publisher.encode(self.xmlname)
-		yield publisher.encode(u" ")
-		yield publisher.encode(content)
-		yield publisher.encode(u"?>")
+		yield publisher.encode(u"<?%s %s?>" % (self.xmlname, content))
 
 	def __unicode__(self):
 		return u""

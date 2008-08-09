@@ -18,11 +18,25 @@ import codecs
 try:
 	from _xml_codec import detectencoding as _detectencoding, fixencoding as _fixencoding
 except ImportError:
+	import re
+
 	def _detectencoding(input, final=False):
 		raise NotImplementedError("C module _xml_codec missing, _detectencoding() not supported")
 
+	_xmlheader = re.compile(u"""(<\\?xml\\s+version\\s*=\\s*['"][^'"]+['"]\\s+encoding\\s*=\\s*['"])([^'"]+)(['"])""")
+
 	def _fixencoding(input, encoding, final=False):
-		raise NotImplementedError("C module _xml_codec missing, _fixencoding() not supported")
+		if final or input.startswith("<?xml"):
+			match = _xmlheader.match(input)
+			if match:
+				return u''.join((match.group(1), encoding, match.group(3), input[match.end(0):]))
+			if "?>" in input or final:
+				return input
+			return None
+		elif "<?xml".startswith(input[:5]):
+			return None
+		else:
+			return input
 
 
 def decode(input, errors="strict", encoding=None):
