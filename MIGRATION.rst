@@ -4,9 +4,9 @@ Migrating to version 3.4
 Changes to the make module
 --------------------------
 
-*	:class:`CallMethAction` has been renamed to :class:`CallAttrAction`.
+*	:class:`ll.make.CallMethAction` has been renamed to :class:`CallAttrAction`.
 
-*	:class:`XISTPublishAction` has been renamed to :class:`XISTBytesAction`.
+*	:class:`ll.make.XISTPublishAction` has been renamed to :class:`XISTBytesAction`.
 
 *	When rendering UL4 templates the templates available to the ``<?render?>``
 	tag are no longer passed as a separate argument, but can be part of the
