@@ -60,6 +60,8 @@ Changes in 3.4 (released ??/??/2008)
 	:class:`ll.make.Project` object can now be assigned booleans as well (which
 	results in *all* or *no* actions being shown.
 
+*	The version number for :mod:`cssutils` has been bumped to 0.9.5.1.
+
 
 Changes in 3.3.2 (released 07/15/2008)
 --------------------------------------
