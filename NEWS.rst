@@ -1,8 +1,8 @@
 Changes in 3.4 (released ??/??/2008)
 ------------------------------------
 
-*	Templates can no longer passed as a separate dictionary to UL4 templates but
-	are passed as variables like other data objects too.
+*	Templates can no longer be passed as a separate dictionary to UL4 templates
+	but are passed as variables like other data objects too.
 
 *	Strings in UL4 have gained a new method ``capitalize``.
 
