@@ -29,10 +29,9 @@ Changes in 3.4 (released ??/??/2008)
 *	The missing processing instruction :class:`render` has been added to
 	:mod:`ll.xist.ns.ul4`.
 
-*	The element :class:`ll.xist.ns.form.memo` has been renamed to ``textarea``
-	and :class:`ll.xist.ns.form.edit` has been renamed to ``text``. Classes
-	:class:`ll.xist.ns.form.button` and :class:`ll.xist.ns.form.file` have been
-	added.
+*	:mod:`xml_codec` now partially works, even if the C module is missing. As
+	long as you explicitely specify an encoding on parsing and publishing, it
+	should work.
 
 *	A new processing instruction class :class:`ll.xist.AttrProcInst` has been
 	introduced. When an :class:`AttrProcInst` node is the first node in an
@@ -40,6 +39,11 @@ Changes in 3.4 (released ??/??/2008)
 	the processing instruction disappears completely. UL4 uses this to implement
 	"conditional attributes" (via the new classes :class:`attr_if` and
 	:class:`attr_ifnn`).
+
+*	The element :class:`ll.xist.ns.form.memo` has been renamed to ``textarea``
+	and :class:`ll.xist.ns.form.edit` has been renamed to ``text``. Classes
+	:class:`ll.xist.ns.form.button` and :class:`ll.xist.ns.form.file` have been
+	added.
 
 *	Iterating through the inputs in :mod:`ll.make` actions has been fixed (i.e.
 	the additional inputs will be output too). :meth:`ll.make.Project.findpaths`
