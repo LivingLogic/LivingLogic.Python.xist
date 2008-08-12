@@ -272,6 +272,17 @@ def test_for_nested():
 	check('[(1)(2)][(3)(4)]', u'<?for list in data?>[<?for n in list?>(<?print n?>)<?end for?>]<?end for?>', data=[[1, 2], [3, 4]])
 
 
+def test_for_unpacking():
+	data = [
+		("spam", "eggs", 17),
+		("gurk", "hurz", 23),
+		("hinz", "kunz", 42)
+	]
+	check('(spam)(gurk)(hinz)', u'<?for (a,) in data?>(<?print a?>)<?end for?>', data=data)
+	check('(spam,eggs)(gurk,hurz)(hinz,kunz)', u'<?for (a, b) in data?>(<?print a?>,<?print b?>)<?end for?>', data=data)
+	check('(spam,eggs,17)(gurk,hurz,23)(hinz,kunz,42)', u'<?for (a, b, c) in data?>(<?print a?>,<?print b?>,<?print c?>)<?end for?>', data=data)
+
+
 def test_break():
 	check('1, 2, ', u'<?for i in [1,2,3]?><?print i?>, <?if i==2?><?break?><?end if?><?end for?>')
 
