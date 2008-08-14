@@ -49,9 +49,22 @@ def sqlite(connectstring):
 	return db
 
 
+def mysql(connectstring):
+	"""
+	Return a MySQL connection for the connectstring :var:`connectstring`.
+	"""
+	import MySQLdb
+	from MySQLdb import cursors
+	(user, host) = connectstring.split("@")
+	(user, passwd) = user.split("/")
+	(host, db) = host.split("/")
+	db = MySQLdb.connect(user=user, passwd=passwd, host=host, db=db, use_unicode=True, cursorclass=cursors.DictCursor)
+	return db
+
+
 def main(args=None):
 	p = optparse.OptionParser(usage="usage: %prog [options] connectstring maintemplate [subtemplate1 subtemplate2 ...]")
-	dbs = dict(oracle=oracle, sqlite=sqlite)
+	dbs = dict(oracle=oracle, sqlite=sqlite, mysql=mysql)
 	p.add_option("-d", "--database", dest="database", help="Database type (%s)" % ", ".join(dbs), choices=dbs.keys(), default="sqlite")
 	p.add_option("-i", "--inputencoding", dest="inputencoding", help="Encoding for template sources", default="utf-8", metavar="ENCODING")
 	p.add_option("-o", "--outputencoding", dest="outputencoding", help="Encoding for output", default="utf-8", metavar="ENCODING")
