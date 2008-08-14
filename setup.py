@@ -232,6 +232,7 @@ args = dict(
 	entry_points=dict(
 		console_scripts=[
 			"ucp = ll.scripts.ucp:main",
+			"db2ul4 = ll.scripts.db2ul4:main",
 			"dtd2xsc = ll.xist.scripts.dtd2xsc:main",
 			"tld2xsc = ll.xist.scripts.tld2xsc:main",
 			"doc2txt = ll.xist.scripts.doc2txt:main",
@@ -240,6 +241,7 @@ args = dict(
 	),
 	scripts=[
 		"scripts/ucp.py",
+		"scripts/db2ul4.py",
 		"scripts/dtd2xsc.py",
 		"scripts/tld2xsc.py",
 		"scripts/doc2txt.py",

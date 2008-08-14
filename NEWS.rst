@@ -22,6 +22,9 @@ Changes in 3.4 (released ??/??/2008)
 
 *	UL4 has a new tag for comments: ``<?note This is comment?>``.
 
+*	A new script ``db2ul4`` has been added that can render UL4 templates with
+	database content.
+
 *	In UL4s ``<?render?>`` tags it's now possible to pass along a complete
 	argument dictionary via the ``**arg`` syntax just like in Python. This syntax
 	can even be used multiple times in the call. This syntax is available in
