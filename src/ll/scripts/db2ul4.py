@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import sys, os, optparse, codecs
 
@@ -48,8 +47,8 @@ def main(args=None):
 	p = optparse.OptionParser(usage="usage: %prog [options] connectstring maintemplate [subtemplate1 subtemplate2 ...]")
 	dbs = dict(oracle=oracle, sqlite=sqlite)
 	p.add_option("-d", "--database", dest="database", help="Database type (%s)" % ", ".join(dbs), choices=dbs.keys(), default="sqlite")
-	p.add_option("-i", "--inputencoding", dest="inputencoding", help="Encoding for template sources", default="utf-8", metavar="ENCODING")
-	p.add_option("-o", "--outputencoding", dest="outputencoding", help="Encoding for output", default="utf-8", metavar="ENCODING")
+	p.add_option("-i", "--inputencoding", dest="inputencoding", help="Encoding for template sources", metavar="ENCODING")
+	p.add_option("-o", "--outputencoding", dest="outputencoding", help="Encoding for output", metavar="ENCODING")
 
 	(options, args) = p.parse_args(args)
 	if len(args) < 2:
@@ -69,13 +68,19 @@ def main(args=None):
 			templatename = os.path.basename(templatename)
 			if os.path.extsep in templatename:
 				templatename = templatename.rpartition(os.extsep)[0]
-		template = ul4c.compile(templatestream.read().decode(options.inputencoding))
+		template = ul4c.compile(templatestream.read())
+		if options.inputencoding is not None:
+			template = template.decode(options.inputencoding)
 		if maintemplate is None:
 			maintemplate = template
 		templates[templatename] = template
 
 	vars = dict(iters=QueryIter(db), lists=QueryList(db), encoding=options.outputencoding, templates=templates)
-	for part in codecs.iterencode(maintemplate.render(**vars), options.outputencoding):
+	
+	output = maintemplate.render(**vars)
+	if options.outputencoding is not None:
+		output = codecs.iterencode(output, options.outputencoding)
+	for part in output:
 		sys.stdout.write(part)
 
 
