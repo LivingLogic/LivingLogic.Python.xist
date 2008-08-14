@@ -78,7 +78,7 @@ class Connect(object):
 		elif type == "sqlite":
 			return SQLite(connectstring)
 		elif type == "mysql":
-			return SQLite(connectstring)
+			return MySQL(connectstring)
 		else:
 			return KeyError(connectstring)
 
