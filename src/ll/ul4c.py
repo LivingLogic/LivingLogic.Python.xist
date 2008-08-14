@@ -1109,12 +1109,14 @@ class Template(object):
 		This is a generator which produces :class:`Location` objects for each tag
 		or non-tag text. It will be called by :meth:`_compile` internally.
 		"""
-		pattern = u"%s(printx|print|code|for|if|elif|else|end|break|continue|render)(\s*((.|\\n)*?)\s*)?%s" % (re.escape(startdelim), re.escape(enddelim))
+		pattern = u"%s(printx|print|code|for|if|elif|else|end|break|continue|render|note)(\s*((.|\\n)*?)\s*)?%s" % (re.escape(startdelim), re.escape(enddelim))
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
 				yield Location(source, None, pos, match.start(), pos, match.start())
-			yield Location(source, source[match.start(1):match.end(1)], match.start(), match.end(), match.start(3), match.end(3))
+			type = source[match.start(1):match.end(1)]
+			if type != "note":
+				yield Location(source, type, match.start(), match.end(), match.start(3), match.end(3))
 			pos = match.end()
 		end = len(source)
 		if pos != end:

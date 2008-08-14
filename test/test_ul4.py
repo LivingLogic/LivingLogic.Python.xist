@@ -979,3 +979,7 @@ def test_nested_exceptions():
 	tmpl3 = ul4c.compile(u"<?render tmpl2(tmpl1=tmpl1, x=x)?>")
 
 	checkrunerror(r"TypeError .*render tmpl3.*render tmpl2.*render tmpl1.*print 2.*unsupported operand type", u"<?render tmpl3(tmpl1=tmpl1, tmpl2=tmpl2, x=x)?>", tmpl1=tmpl1, tmpl2=tmpl2, tmpl3=tmpl3, x=None)
+
+
+def test_note():
+	check("foo", u"f<?note This is?>o<?note a comment?>o")

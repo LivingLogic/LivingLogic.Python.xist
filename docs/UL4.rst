@@ -332,6 +332,12 @@ the ``item`` variable, which will be available in the inner template under the
 name ``item``.
 
 
+``note``
+--------
+
+A note tag is a comment, i.e. the content of the tag will be completely ignored.
+
+
 Expressions
 -----------
 

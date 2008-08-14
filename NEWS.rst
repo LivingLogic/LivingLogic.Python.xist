@@ -20,6 +20,8 @@ Changes in 3.4 (released ??/??/2008)
 
 *	UL4 now supports tuple unpacking in ``<?for?>`` tag with three variables.
 
+*	UL4 has a new tag for comments: ``<?note This is comment?>``.
+
 *	In UL4s ``<?render?>`` tags it's now possible to pass along a complete
 	argument dictionary via the ``**arg`` syntax just like in Python. This syntax
 	can even be used multiple times in the call. This syntax is available in
