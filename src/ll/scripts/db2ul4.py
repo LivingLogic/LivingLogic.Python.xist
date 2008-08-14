@@ -40,7 +40,12 @@ def sqlite(connectstring):
 	"""
 	import sqlite3
 	db = sqlite3.connect(connectstring)
-	db.row_factory = sqlite3.Row
+	class Row(sqlite3.Row):
+		def __getitem__(self, key):
+			if isinstance(key, unicode):
+				key = key.encode("ascii")
+			return sqlite3.Row.__getitem__(self, key)
+	db.row_factory = Row
 	return db
 
 
