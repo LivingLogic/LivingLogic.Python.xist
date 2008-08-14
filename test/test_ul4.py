@@ -864,6 +864,27 @@ def test_function_zip():
 	check("1-4+6;", code, x=[1, 2, 3], y=[4, 5], z=[6])
 
 
+def test_function_type():
+	checkrunerror("function u?'type' unknown", u"<?print type()?>")
+	checkrunerror("function u?'type' unknown", u"<?print type(1, 2)?>")
+	code = u"<?print type(x)?>"
+	check("none", code, x=None)
+	check("bool", code, x=False)
+	check("bool", code, x=True)
+	check("int", code, x=42)
+	check("int", code, x=42L)
+	check("float", code, x=4.2)
+	check("str", code, x="foo")
+	check("str", code, x=u"foo")
+	check("date", code, x=datetime.datetime.now())
+	check("date", code, x=datetime.date.today())
+	check("list", code, x=(1, 2))
+	check("list", code, x=[1, 2])
+	check("dict", code, x={1: 2})
+	check("template", code, x=ul4c.compile(""))
+	check("", code, x=1j)
+
+
 def test_method_upper():
 	check("GURK", u"<?print 'gurk'.upper()?>")
 

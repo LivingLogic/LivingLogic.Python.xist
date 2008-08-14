@@ -977,6 +977,8 @@ class Template(object):
 						_code("reg%d = sorted(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "range":
 						_code("reg%d = xrange(reg%d)" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "type":
+						_code("reg%d = ul4c._type(reg%d)" % (opcode.r1, opcode.r2))
 					else:
 						raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callfunc2":
@@ -2370,3 +2372,28 @@ def _csvescape(obj):
 	if any(c in obj for c in ',"\n'):
 		return u'"%s"' % obj.replace('"', '""')
 	return obj
+
+
+def _type(obj):
+	"""
+	Helper for the ``type`` function.
+	"""
+	if obj is None:
+		return u"none"
+	elif isinstance(obj, basestring):
+		return u"str"
+	elif isinstance(obj, bool):
+		return u"bool"
+	elif isinstance(obj, (int, long)):
+		return u"int"
+	elif isinstance(obj, float):
+		return u"float"
+	elif isinstance(obj, (datetime.datetime, datetime.date)):
+		return u"date"
+	elif isinstance(obj, (list, tuple)):
+		return u"list"
+	elif isinstance(obj, dict):
+		return u"dict"
+	elif hasattr(obj, "__call__"):
+		return u"template"
+	return None

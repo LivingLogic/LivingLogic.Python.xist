@@ -15,6 +15,9 @@ Changes in 3.4 (released ??/??/2008)
 *	UL4 has gained a new function ``zip``. It can be called with two or three
 	arguments and does what :func:`itertools.zip` does.
 
+*	UL4 has gained another new function: ``type`` returns the type of its
+	argument as a string.
+
 *	UL4 now supports tuple unpacking in ``<?for?>`` tag with three variables.
 
 *	In UL4s ``<?render?>`` tags it's now possible to pass along a complete

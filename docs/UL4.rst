@@ -613,6 +613,15 @@ outputs::
 	(2)(4)(6)(8)
 
 
+``type``
+::::::::
+
+``type`` returns the type of the object as a string. Possible return values are
+``"none"``, ``"bool"``, ``"int"``, ``"float"``, ``"str"``, ``"list"``,
+``"dict"`` and ``"template"``. (If the type isn't recognized ``None`` is
+returned.)
+
+
 Methods
 -------
 
