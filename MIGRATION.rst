@@ -11,9 +11,39 @@ Changes to the make module
 Changes to UL4
 --------------
 
-*	When rendering UL4 templates the templates available to the ``<?render?>``
-	tag are no longer passed as a separate argument, but can be part of the
-	normal variables.
+*	The templates available to the ``<?render?>`` tag are no longer passed as a
+	separate argument to the render methods, but can be part of the normal
+	variables.
+
+Changes to XIST
+---------------
+
+*	Building trees with ``with`` blocks has changed slightly. Unchanged code will
+	lead to the following exception::
+
+		File "/usr/local/lib/python2.5/site-packages/ll/xist/xsc.py", line 1285, in __enter__
+			threadlocalnodehandler.handler.enter(self)
+		AttributeError: 'NoneType' object has no attribute 'enter'
+
+	To fix this, change your code from::
+
+		with html.html() as node:
+			with html.head():
+				+html.title("Foo")
+			with html.body():
+				+html.p("The foo page!")
+
+	to::
+
+		with xsc.build():
+			with html.html() as node:
+				with html.head():
+					+html.title("Foo")
+				with html.body():
+					+html.p("The foo page!")
+
+	(i.e. wrap the outermost ``with`` block in another ``with xsc.build()``
+	block.) 
 
 
 Migrating to version 3.3

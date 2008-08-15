@@ -78,7 +78,7 @@ def test_textcomment():
 
 
 def test_defaultpool():
-	r = xsc.defaultpool
+	r = xsc.threadlocalpool.pool
 	assert r.elementclass("a", html) is html.a
 	assert r.elementclass_xml("a", html) is html.a
 	assert r.procinstclass("php") is php.php
@@ -117,8 +117,8 @@ def test_names():
 	py.test.raises(xsc.IllegalElementError, r.elementclass, "-element", "nix")
 	py.test.raises(xsc.IllegalElementError, r.elementclass_xml, "element", "nix")
 	# make sure that the default pool didn't pick up the new class
-	py.test.raises(xsc.IllegalElementError, xsc.defaultpool.elementclass, "element", "nix")
-	py.test.raises(xsc.IllegalElementError, xsc.defaultpool.elementclass_xml, "-element", "nix")
+	py.test.raises(xsc.IllegalElementError, xsc.threadlocalpool.pool.elementclass, "element", "nix")
+	py.test.raises(xsc.IllegalElementError, xsc.threadlocalpool.pool.elementclass_xml, "-element", "nix")
 
 	# procinsts
 	assert r.procinstclass("procinst") is procinst
@@ -128,8 +128,8 @@ def test_names():
 	py.test.raises(xsc.IllegalProcInstError, r.procinstclass, "-procinst")
 	py.test.raises(xsc.IllegalProcInstError, r.procinstclass_xml, "procinst")
 	# make sure that the default pool didn't pick up the new class
-	py.test.raises(xsc.IllegalProcInstError, xsc.defaultpool.procinstclass, "procinst")
-	py.test.raises(xsc.IllegalProcInstError, xsc.defaultpool.procinstclass_xml, "-procinst")
+	py.test.raises(xsc.IllegalProcInstError, xsc.threadlocalpool.pool.procinstclass, "procinst")
+	py.test.raises(xsc.IllegalProcInstError, xsc.threadlocalpool.pool.procinstclass_xml, "-procinst")
 
 	# entities
 	assert r.entityclass("entity") is entity
@@ -139,8 +139,8 @@ def test_names():
 	py.test.raises(xsc.IllegalEntityError, r.entityclass, "-entity")
 	py.test.raises(xsc.IllegalEntityError, r.entityclass_xml, "entity")
 	# make sure that the default pool didn't pick up the new class
-	py.test.raises(xsc.IllegalEntityError, xsc.defaultpool.entityclass, "entity")
-	py.test.raises(xsc.IllegalEntityError, xsc.defaultpool.entityclass_xml, "-entity")
+	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.entityclass, "entity")
+	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.entityclass_xml, "-entity")
 	# the charref is an entity too
 	assert r.entityclass("charref") is charref
 	assert r.entityclass_xml("-charref") is charref
@@ -149,8 +149,8 @@ def test_names():
 	py.test.raises(xsc.IllegalEntityError, r.entityclass, "-charref")
 	py.test.raises(xsc.IllegalEntityError, r.entityclass_xml, "charref")
 	# make sure that the default pool didn't pick up the new class
-	py.test.raises(xsc.IllegalEntityError, xsc.defaultpool.entityclass, "charref")
-	py.test.raises(xsc.IllegalEntityError, xsc.defaultpool.entityclass_xml, "-charref")
+	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.entityclass, "charref")
+	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.entityclass_xml, "-charref")
 
 	# charrefs
 	assert r.charrefclass("charref") is charref
@@ -164,11 +164,11 @@ def test_names():
 	py.test.raises(xsc.IllegalEntityError, r.charrefclass, "-charref")
 	py.test.raises(xsc.IllegalEntityError, r.charrefclass_xml, "charref")
 	# make sure that the default pool didn't pick up the new class
-	py.test.raises(xsc.IllegalEntityError, xsc.defaultpool.charrefclass, "charref")
-	py.test.raises(xsc.IllegalEntityError, xsc.defaultpool.charrefclass_xml, "-charref")
+	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.charrefclass, "charref")
+	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.charrefclass_xml, "-charref")
 	# make sure that entity has not been register as a charref
-	py.test.raises(xsc.IllegalEntityError, xsc.defaultpool.charrefclass, "entity")
-	py.test.raises(xsc.IllegalEntityError, xsc.defaultpool.charrefclass_xml, "-entity")
+	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.charrefclass, "entity")
+	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.charrefclass_xml, "-entity")
 
 	# attributes
 	assert r.attrclass("attr", "nix") is Attrs.attr
@@ -176,8 +176,8 @@ def test_names():
 	py.test.raises(xsc.IllegalAttrError, r.attrclass, "-attr", "nix")
 	py.test.raises(xsc.IllegalAttrError, r.attrclass_xml, "attr", "nix")
 	# make sure that the default pool didn't pick up the new class
-	py.test.raises(xsc.IllegalAttrError, xsc.defaultpool.attrclass, "attr", "nix")
-	py.test.raises(xsc.IllegalAttrError, xsc.defaultpool.attrclass_xml, "-attr", "nix")
+	py.test.raises(xsc.IllegalAttrError, xsc.threadlocalpool.pool.attrclass, "attr", "nix")
+	py.test.raises(xsc.IllegalAttrError, xsc.threadlocalpool.pool.attrclass_xml, "-attr", "nix")
 
 
 def test_names2():

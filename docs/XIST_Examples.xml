@@ -31,8 +31,7 @@ node = xsc.Frag(
 print node.conv().bytes(encoding="us-ascii")
 </prog>
 
-<p> You can also use <lit>with</lit> blocks (and the unary <lit>+</lit> operator)
-to generate the same &html;:</p>
+<p> You can also use <lit>with</lit> blocks (and the unary <lit>+</lit> operator) to generate the same &html;:</p>
 
 <prog>
 from __future__ import with_statement
@@ -40,19 +39,20 @@ from __future__ import with_statement
 from ll.xist import xsc
 from ll.xist.ns import html, xml, meta
 
-with xsc.Frag() as node:
-	+xml.XML()
-	+html.DocTypeXHTML10transitional()
-	with html.html():
-		with html.head():
-			+meta.contenttype()
-			+html.title("Example page")
-		with html.body():
-			+html.h1("Welcome to the example page")
-			with html.p():
-				+xsc.Text("This example page has a link to the ")
-				+html.a("Python home page", href="http://www.python.org/")
-				+xsc.Text(".")
+with xsc.build():
+	with xsc.Frag() as node:
+		+xml.XML()
+		+html.DocTypeXHTML10transitional()
+		with html.html():
+			with html.head():
+				+meta.contenttype()
+				+html.title("Example page")
+			with html.body():
+				+html.h1("Welcome to the example page")
+				with html.p():
+					+xsc.Text("This example page has a link to the ")
+					+html.a("Python home page", href="http://www.python.org/")
+					+xsc.Text(".")
 
 print node.conv().bytes(encoding="us-ascii")
 </prog>
@@ -270,16 +270,17 @@ class section(xsc.Element):
 		context.level -= 1
 		return node
 
-with section(title="Python Tutorial") as document:
-	with section(title="Using the Python Interpreter"):
-		with section(title="Invoking the Interpreter"):
-			+section(title="Argument Passing")
-			+section(title="Interactive Mode")
-		with section(title="The Interpreter and Its Environment"):
-			+section(title="Error Handling")
-			+section(title="Executable Python Scripts")
-			+section(title="Source Code Encoding")
-			+section(title="The Interactive Startup File")
+with xsc.build():
+	with section(title="Python Tutorial") as document:
+		with section(title="Using the Python Interpreter"):
+			with section(title="Invoking the Interpreter"):
+				+section(title="Argument Passing")
+				+section(title="Interactive Mode")
+			with section(title="The Interpreter and Its Environment"):
+				+section(title="Error Handling")
+				+section(title="Executable Python Scripts")
+				+section(title="Source Code Encoding")
+				+section(title="The Interactive Startup File")
 
 print document.conv().bytes()
 </prog>

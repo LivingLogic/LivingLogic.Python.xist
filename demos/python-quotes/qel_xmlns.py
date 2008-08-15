@@ -119,19 +119,20 @@ class quotations(xsc.Element):
 	model = sims.Elements(title, editor, description, quotation)
 
 	def convert(self, converter):
-		with xsc.Frag() as e:
-			+html.DocTypeXHTML10transitional()
-			with html.html():
-				with html.head():
-					+meta.contenttype()
-					+html.title(self[title][0].content)
-					+meta.stylesheet(href=u"root:python-quotes.css")
-				+html.body(
-					self[title],
-					self[editor],
-					self[description],
-					self[quotation]
-				)
+		with xsc.build():
+			with xsc.Frag() as e:
+				+html.DocTypeXHTML10transitional()
+				with html.html():
+					with html.head():
+						+meta.contenttype()
+						+html.title(self[title][0].content)
+						+meta.stylesheet(href=u"root:python-quotes.css")
+					+html.body(
+						self[title],
+						self[editor],
+						self[description],
+						self[quotation]
+					)
 
 		return e.convert(converter)
 

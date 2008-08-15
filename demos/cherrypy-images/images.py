@@ -41,25 +41,26 @@ class Icons(object):
 		collect = xsc.Frag()
 		i = 0
 
-		with xsc.Frag() as e:
-			+xml.XML()
-			+html.DocTypeXHTML10transitional()
-			with html.html():
-				with html.head():
-					+meta.contenttype()
-					+html.title("All images from ", specials.z(self.directory))
-					+html.link(rel="stylesheet", type="text/css", href="images.css")
-				with html.body():
-					with htmlspecials.plaintable():
-						for name in names:
-							collect.append(html.td(htmlspecials.autoimg(src=("/images/", name)), html.br(), name, align="center"))
-							i += 1
-							if i == cols:
+		with xsc.build():
+			with xsc.Frag() as e:
+				+xml.XML()
+				+html.DocTypeXHTML10transitional()
+				with html.html():
+					with html.head():
+						+meta.contenttype()
+						+html.title("All images from ", specials.z(self.directory))
+						+html.link(rel="stylesheet", type="text/css", href="images.css")
+					with html.body():
+						with htmlspecials.plaintable():
+							for name in names:
+								collect.append(html.td(htmlspecials.autoimg(src=("/images/", name)), html.br(), name, align="center"))
+								i += 1
+								if i == cols:
+									+html.tr(collect)
+									collect = xsc.Frag()
+									i = 0
+							if collect:
 								+html.tr(collect)
-								collect = xsc.Frag()
-								i = 0
-						if collect:
-							+html.tr(collect)
 
 		return e.conv().bytes()
 

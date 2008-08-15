@@ -334,15 +334,16 @@ class definition_list(BaseElement):
 
 class definition_list_item(BaseElement):
 	def convert(self, converter):
-		with xsc.Frag() as e:
-			if self[term] or self[classifier]:
-				with doc.dt():
-					+xsc.Frag(self[term])
-					if self[classifier]:
-						+xsc.Text(" (")
-						+xsc.Frag(self[classifier]).withsep(", ")
-						+xsc.Text(")")
-			+xsc.Frag(self[definition])
+		with xsc.build():
+			with xsc.Frag() as e:
+				if self[term] or self[classifier]:
+					with doc.dt():
+						+xsc.Frag(self[term])
+						if self[classifier]:
+							+xsc.Text(" (")
+							+xsc.Frag(self[classifier]).withsep(", ")
+							+xsc.Text(")")
+				+xsc.Frag(self[definition])
 		return e.convert(converter)
 
 

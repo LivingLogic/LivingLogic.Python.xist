@@ -48,6 +48,11 @@ Changes in 3.4 (released ??/??/2008)
 	"conditional attributes" (via the new classes :class:`attr_if` and
 	:class:`attr_ifnn`).
 
+*	Building trees with ``with`` blocks has changed slightly. Nodes used in
+	``with`` blocks and with ``+`` are now passed to a ``with`` handler instead
+	of building the tree directly. This fixes a problem when nested
+	:meth:`convert` calls use ``with`` blocks.
+
 *	The element :class:`ll.xist.ns.form.memo` has been renamed to ``textarea``
 	and :class:`ll.xist.ns.form.edit` has been renamed to ``text``. Classes
 	:class:`ll.xist.ns.form.button` and :class:`ll.xist.ns.form.file` have been

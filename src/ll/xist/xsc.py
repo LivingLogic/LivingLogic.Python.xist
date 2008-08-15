@@ -39,17 +39,6 @@ except ImportError:
 __docformat__ = "reStructuredText"
 
 
-local = threading.local()
-
-def getstack():
-	try:
-		stack = getattr(local, "ll.xist.xsc.nodes")
-	except AttributeError:
-		stack = []
-		setattr(local, "ll.xist.xsc.nodes", stack)
-	return stack
-
-
 xml_xmlns = "http://www.w3.org/XML/1998/namespace"
 
 
@@ -93,12 +82,40 @@ def tonode(value):
 	raise IllegalObjectError(value) # none of the above => bail out
 
 
+threadlocalnodehandler = threading.local()
+threadlocalnodehandler.handler = None
+
+
+class build(object):
+	def __init__(self):
+		self.stack = []
+
+	def __enter__(self):
+		self.prev = threadlocalnodehandler.handler
+		threadlocalnodehandler.handler = self
+
+	def __exit__(self, type, value, traceback):
+		threadlocalnodehandler.handler = self.prev
+		del self.prev
+
+	def enter(self, node):
+		if self.stack:
+			self.stack[-1](node)
+		self.stack.append(node)
+
+	def exit(self):
+		self.stack.pop()
+
+	def add(self, *args, **kwargs):
+		self.stack[-1](*args, **kwargs)
+
+
 def add(*args, **kwargs):
 	"""
 	:func:`add` appends items in :var:`args` and sets attributes in
 	:var:`kwargs` in the currenly active node in the ``with`` stack.
 	"""
-	getstack()[-1](*args, **kwargs)
+	threadlocalnodehandler.handler.add(*args, **kwargs)
 
 
 ###
@@ -580,7 +597,7 @@ class Node(object):
 		return "".join(v)
 
 	def __pos__(self):
-		getstack()[-1].append(self)
+		threadlocalnodehandler.handler.add(self)
 
 	def __div__(self, other):
 		from ll.xist import xfind
@@ -1265,14 +1282,11 @@ class Frag(Node, list):
 				list.append(self, child)
 
 	def __enter__(self):
-		stack = getstack()
-		if stack:
-			stack[-1].append(self)
-		stack.append(self)
+		threadlocalnodehandler.handler.enter(self)
 		return self
 
 	def __exit__(self, type, value, traceback):
-		getstack().pop()
+		threadlocalnodehandler.handler.exit()
 
 	def __call__(self, *content):
 		self.extend(content)
@@ -1663,8 +1677,8 @@ class DocType(CharacterData):
 class _ProcInst_Meta(Node.__metaclass__):
 	def __new__(cls, name, bases, dict):
 		self = super(_ProcInst_Meta, cls).__new__(cls, name, bases, dict)
-		if dict.get("register") is not None: # check here as getpoolstack isn't defined yet
-			getpoolstack()[-1].register(self)
+		if dict.get("register") is not None: # check here as the pool isn't defined yet
+			threadlocalpool.pool.register(self)
 		return self
 
 	def __repr__(self):
@@ -1798,7 +1812,7 @@ class _Attr_Meta(Frag.__metaclass__):
 				dict["values"] = tuple(unicode(entry) for entry in values)
 		self = super(_Attr_Meta, cls).__new__(cls, name, bases, dict)
 		if self.xmlns is not None:
-			getpoolstack()[-1].register(self)
+			threadlocalpool.pool.register(self)
 		return self
 
 	def __repr__(self):
@@ -2651,7 +2665,7 @@ class _Element_Meta(Node.__metaclass__):
 		_patchclassnames(dict, name)
 		self = super(_Element_Meta, cls).__new__(cls, name, bases, dict)
 		if dict.get("register") is not None:
-			getpoolstack()[-1].register(self)
+			threadlocalpool.pool.register(self)
 		return self
 
 	def __repr__(self):
@@ -2740,21 +2754,19 @@ class Element(Node):
 		Inside a ``with`` block ``+`` and :func:`add` can be used to append node
 		to the currently active element in the ``with`` block::
 
-			with html.ul() as node:
-				+html.li("I hear and I forget.")
-				+html.li("I see and I believe.")
-				+html.li("I do and I understand.")
-				xsc.add(class_="quote")
+			with xsc.build():
+				with html.ul() as node:
+					+html.li("I hear and I forget.")
+					+html.li("I see and I believe.")
+					+html.li("I do and I understand.")
+					xsc.add(class_="quote")
 			print node.bytes()
 		"""
-		stack = getstack()
-		if stack:
-			stack[-1].append(self)
-		stack.append(self)
+		threadlocalnodehandler.handler.enter(self)
 		return self
 
 	def __exit__(self, type, value, traceback):
-		getstack().pop()
+		threadlocalnodehandler.handler.exit()
 
 	def __call__(self, *content, **attrs):
 		"""
@@ -3134,7 +3146,7 @@ class _Entity_Meta(Node.__metaclass__):
 	def __new__(cls, name, bases, dict):
 		self = super(_Entity_Meta, cls).__new__(cls, name, bases, dict)
 		if dict.get("register") is not None:
-			getpoolstack()[-1].register(self)
+			threadlocalpool.pool.register(self)
 		return self
 
 	def __repr__(self):
@@ -3274,6 +3286,7 @@ class Pool(misc.Pool):
 	parser. The parser will ask the pool which classes to use when elements,
 	processing instructions etc. have to be instantiated.
 	"""
+
 	def __init__(self, *objects):
 		"""
 		Create a :class:`Pool` object. All items in :var:`objects` will be
@@ -3346,11 +3359,13 @@ class Pool(misc.Pool):
 			super(Pool, self).register(object)
 
 	def __enter__(self):
-		getpoolstack().append(self)
+		self.prev = threadlocalpool.pool
+		threadlocalpool.pool = self
 		return self
 
 	def __exit__(self, type, value, traceback):
-		getpoolstack().pop()
+		threadlocalpool.pool = self.prev
+		del self.prev
 
 	def elements(self):
 		"""
@@ -3744,17 +3759,9 @@ class Pool(misc.Pool):
 		return copy
 
 
-# Default class pool
-defaultpool = Pool()
-
-
-def getpoolstack():
-	try:
-		stack = getattr(local, "ll.xist.xsc.pools")
-	except AttributeError:
-		stack = [defaultpool]
-		setattr(local, "ll.xist.xsc.pools", stack)
-	return stack
+# Default pool (can be temporarily changed via ``with xsc.Pool() as pool:``)
+threadlocalpool = threading.local()
+threadlocalpool.pool = Pool()
 
 
 ###

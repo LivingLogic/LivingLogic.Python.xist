@@ -71,38 +71,42 @@ def test_modulecode():
 
 
 def test_text():
-	with xsc.Frag() as e:
-		+detox.def_("gurk()")
-		+xsc.Text("foo")
-		+detox.end("def")
+	with xsc.build():
+		with xsc.Frag() as e:
+			+detox.def_("gurk()")
+			+xsc.Text("foo")
+			+detox.end("def")
 	assert makeoutput(e, "gurk") == "foo"
 
 
 def test_expr():
-	with xsc.Frag() as e:
-		with defblock(func="gurk(arg)"):
-			+detox.expr("arg")
+	with xsc.build():
+		with xsc.Frag() as e:
+			with defblock(func="gurk(arg)"):
+				+detox.expr("arg")
 
 	assert makeoutput(e, "gurk", "hurz") == "hurz"
 
 
 def test_for():
-	with xsc.Frag() as e:
-		with defblock(func="gurk(arg)"):
-			with forblock(loop="i in xrange(arg)"):
-				+detox.expr("str(i)")
+	with xsc.build():
+		with xsc.Frag() as e:
+			with defblock(func="gurk(arg)"):
+				with forblock(loop="i in xrange(arg)"):
+					+detox.expr("str(i)")
 
 	assert makeoutput(e, "gurk", 3) == "012"
 
 
 def test_if():
-	with xsc.Frag() as e:
-		with defblock(func="gurk(arg)"):
-			+detox.if_("arg>2")
-			+detox.expr("str(2*arg)")
-			+detox.else_()
-			+detox.expr("str(3*arg)")
-			+detox.end("if")
+	with xsc.build():
+		with xsc.Frag() as e:
+			with defblock(func="gurk(arg)"):
+				+detox.if_("arg>2")
+				+detox.expr("str(2*arg)")
+				+detox.else_()
+				+detox.expr("str(3*arg)")
+				+detox.end("if")
 
 	assert makeoutput(e, "gurk", 0) == "0"
 	assert makeoutput(e, "gurk", 1) == "3"
@@ -112,36 +116,40 @@ def test_if():
 
 
 def test_while():
-	with xsc.Frag() as e:
-		with defblock(func="gurk(arg)"):
-			+detox.code("i = 0")
-			with whileblock(loop="i < arg"):
-				+detox.expr("str(i)")
-				+detox.code("i += 1")
+	with xsc.build():
+		with xsc.Frag() as e:
+			with defblock(func="gurk(arg)"):
+				+detox.code("i = 0")
+				with whileblock(loop="i < arg"):
+					+detox.expr("str(i)")
+					+detox.code("i += 1")
 
 	assert makeoutput(e, "gurk", 3) == "012"
 
 
 def test_scopecheck():
-	with xsc.Frag() as e:
-		+detox.def_("gurk()")
-		+xsc.Text("hurz")
-		+detox.end()
+	with xsc.build():
+		with xsc.Frag() as e:
+			+detox.def_("gurk()")
+			+xsc.Text("hurz")
+			+detox.end()
 
 	assert makeoutput(e, "gurk") == "hurz"
 
-	with xsc.Frag() as e:
-		+detox.def_("gurk()")
-		+xsc.Text("hurz")
-		+detox.end("for")
+	with xsc.build():
+		with xsc.Frag() as e:
+			+detox.def_("gurk()")
+			+xsc.Text("hurz")
+			+detox.end("for")
 
 	py.test.raises(SyntaxError, makeoutput, e, "gurk")
 
 
 def test_textexpr():
-	with xsc.Frag() as e:
-		with defblock(func="gurk()"):
-			+detox.code("""s = '"a" < "b" & "b" > "a"'""")
-			+detox.textexpr("s")
+	with xsc.build():
+		with xsc.Frag() as e:
+			with defblock(func="gurk()"):
+				+detox.code("""s = '"a" < "b" & "b" > "a"'""")
+				+detox.textexpr("s")
 
 	assert makeoutput(e, "gurk") == '&quot;a&quot; &lt; &quot;b&quot; &amp; &quot;b&quot; &gt; &quot;a&quot;'

@@ -272,7 +272,7 @@ class Builder(object):
 		"""
 		self.parser = parser
 
-		self.pool = (pool if pool is not None else xsc.getpoolstack()[-1])
+		self.pool = (pool if pool is not None else xsc.threadlocalpool.pool)
 
 		# the currently active prefix mapping (will be replaced once xmlns attributes are encountered)
 		if prefixes is None:

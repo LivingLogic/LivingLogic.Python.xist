@@ -119,16 +119,18 @@ or the <func>add</func> function can be used to add nodes or attributes
 to the current level of the tree:</p>
 <example><h>Using <lit>with</lit> blocks</h>
 <prog>
-with html.div(class_="quote") as node:
-	with html.h1("Confucius (551-479 BC)"):
-		xsc.add(class_="author")
-	with html.ol():
-		+html.li("I hear and I forget.")
-		+html.li("I see and I believe.")
-		+html.li("I do and I understand.")
+with xsc.build():
+	with html.div(class_="quote") as node:
+		with html.h1("Confucius (551-479 BC)"):
+			xsc.add(class_="author")
+		with html.ol():
+			+html.li("I hear and I forget.")
+			+html.li("I see and I believe.")
+			+html.li("I do and I understand.")
 </prog>
 </example>
 
+<p><class>xsc.build</class> must be used as the top level with block, so that &xist; knows what to do with the nodes inside the block.</p>
 </section>
 
 <section><h>Generating &xml; trees from &xml; files</h>
