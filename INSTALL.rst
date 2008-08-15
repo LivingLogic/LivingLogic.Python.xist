@@ -44,7 +44,7 @@ following command::
 __ http://www.livinglogic.de/Python/Download.html#xist
 
 This will copy ``*.py`` files, compile ``*.c`` files and install everything in
-the ``site-packages`` directory as the :mod:`ll` AND :mod:`ll.xist` package.
+the ``site-packages`` directory as the :mod:`ll` and :mod:`ll.xist` package.
 
 For Windows a binary distribution is provided. To install it,
 double click it, and follow the instructions.
