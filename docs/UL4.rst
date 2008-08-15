@@ -6,6 +6,11 @@ look.
 :mod:`ll.ul4c` compiles a template to a bytecode format, which makes it possible
 to implement renderers for these templates in multiple programming languages.
 
+Currently there's a compiler and renderer in Python and a
+`compiler and renderer in Java`__.
+
+__ http://hg.livinglogic.de/LivingLogic.Java.ul4/
+
 
 Embedding
 =========
@@ -42,7 +47,7 @@ like this::
 
 	tmpl = ul4c.compile(code)
 
-	print tmpl.renders(data=[u"Python", u"Java", u"PHP"])
+	print tmpl.renders(data=[u"Python", u"Java", u"PHP", u"C++"])
 
 The variables that should be available to the template code can be passed to the
 method :meth:`Template.renders` as keyword arguments. :meth:`renders` returns
@@ -163,6 +168,15 @@ Dictionaries can be created like this:
 
 	*	``{"foo": 17, "bar": 23}``
 
+Also Python ``**`` syntax for passing keyword arguments is supported for
+creating dictionaries::
+
+	``{"foo": 17, "bar": 23, **{1: 2, 3: 4}}``
+
+With this it's possible to copy the content of one dictionary into another new
+one. Keys are set from left to right, so later values overwrite former ones, so
+``{1: 2, 1: 3}[1]`` and ``{1: 2, **{1: 3}}[1]`` will both return ``3`` not ``2``.
+
 
 Template code
 =============
@@ -186,6 +200,14 @@ output may be produced)::
 	<h1><?print person.lastname?>, <?print person.firstname?></h1>
 
 
+``printx``
+----------
+
+The ``printx`` tag outputs the value of a variable or any other expression and
+escapes the characters ``<``, ``>``, ``&``, ``'`` and ``"`` with the appropriate
+character or entity references for XML or HTML output.
+
+
 ``for``
 -------
 
@@ -199,8 +221,8 @@ with an ``<?end for?>`` tag::
 	<?end for?>
 	</ul>
 
-In ``for`` loops tuple unpacking is supported for tuples of length 1 and 2, so
-you can do the following::
+In ``for`` loops tuple unpacking is supported for tuples of length 1, 2 and 3,
+so you can do the following::
 
 	<?for (key, value) in items?>
 
@@ -301,7 +323,7 @@ code demonstrates this::
 	source1 = u"""\
 	<?if data?>\
 	<ul>
-	<?for item in data?><?render itemtmpl(item=item)?><?end for?>\
+	<?for i in data?><?render itemtmpl(item=i)?><?end for?>\
 	</ul>
 	<?end if?>\
 	"""
@@ -327,9 +349,9 @@ This will output::
 	</ul>
 
 I.e. templates can be passed just like any other object as a variable.
-``<?render itemtmpl(item=item)?>`` renders the ``itemtmpl`` template and passes
-the ``item`` variable, which will be available in the inner template under the
-name ``item``.
+``<?render itemtmpl(item=i)?>`` renders the ``itemtmpl`` template and passes the
+``i`` variable, which will be available in the inner template under the name
+``item``.
 
 
 ``note``
@@ -353,8 +375,8 @@ combinations are supported:
 		``b`` values are supported too.
 
 	*	dict, string: Return the value from the dictionary ``a`` corresponding to
-		the key ``b``. (Note that some implementations might support keys other
-		than strings too.)
+		the key ``b``. Note that some implementations might support keys other
+		than strings too. (The Python and Java renderer do for example.)
 
 Slices are also supported (for list and string objects). As in Python one or
 both of the indexes may be missing to start at the first or end at the last
@@ -365,17 +387,19 @@ of bounds are simply clipped:
 
 	*	``<?print "Hello, World!"[:-8]?>`` prints ``Hello``.
 
-The following binary operators are supported: ``+``, ``-``, ``*``, ``/`` (floor
+The following binary operators are supported: ``+``, ``-``, ``*``, ``/`` (true
 division), ``//`` (truncating division) and ``&`` (modulo).
 
 The usual boolean operators ``not``, ``and`` and ``or`` are supported. However
-``and`` and ``or`` don't short-circuit (but they always return one of the
-operands). For example, the following code will output the ``data.title``
-object if it's true, else ``data.id`` will be output::
+``and`` and ``or`` don't short-circuit, i.e. both operands will be evaluated.
+However both ``and`` and ``or`` always return one of the operands). For example,
+the following code will output the ``data.title`` object if it's true, else
+``data.id`` will be output::
 
 	<?print xmlescape(data.title or data.id)?>
 
-The two comparison operators ``==`` and ``!=`` are supported.
+The comparison operators ``==``, ``!=``, ``<``, ``<=``, ``>`` and ``>=`` are
+supported.
 
 Containment test via the ``in`` operator can be done, in the expression
 ``a in b`` the following type combinations are supported:
@@ -393,13 +417,13 @@ in the data object::
 
 	from ll import ul4c
 	tmpl = ul4c.compile("<?print data.foo?>")
-	print tmpl.renders(dict(foo="bar"))
+	print tmpl.renders(data=dict(foo="bar"))
 
 However getitem style access in the template is still possible::
 
 	from ll import ul4c
 	tmpl = ul4c.compile("<?print data['foo']?>")
-	print tmpl.renders(dict(foo="bar"))
+	print tmpl.renders(data=dict(foo="bar"))
 
 
 Functions
@@ -411,11 +435,11 @@ Functions
 ``now``
 :::::::
 
-``now()`` returns the current date and time as a data object.
+``now()`` returns the current date and time as a date object.
 
 
-``vars()``
-:::::::
+``vars``
+::::::::
 
 ``vars()`` returns a dictionary containing all currently defined variables
 (i.e. variables passed to the template, defined via ``<?code?>`` tags or as
@@ -542,7 +566,7 @@ prints::
 
 ``xmlescape`` takes a string as an argument. It returns a new string where the
 characters ``&``, ``<``, ``>``, ``'`` and ``"`` are replaced with the
-appropriate XML entity references. For example::
+appropriate XML entity or character references. For example::
 
 	<?print xmlescape("<'foo' & 'bar'>")?>
 
@@ -551,6 +575,8 @@ prints::
 	``&lt;&#39;foo&#39; &amp; ;&#39;bar&#39&gt;``
 
 If the argument is not a string, it will be converted to a string first.
+
+``<?printx foo?>`` is a shortcut for ``<?print xmlescape(foo)?>``.
 
 
 ``sorted``
@@ -704,13 +730,13 @@ characters in ``chars`` will be removed instead.
 :::::::::
 The string method ``split`` splits the string into separate "words" and returns
 the resulting list. Without any arguments, the string is split on whitespace
-characters. With one argument the argument specifies the soprator to use. The
+characters. With one argument the argument specifies the separator to use. The
 second optional argument specifies the maximum number of splits to do.
 
 
 ``rsplit``
 ::::::::::
-The string method ``rsplit`` works like ``split``, except that splitting start
+The string method ``rsplit`` works like ``split``, except that splitting starts
 from the end (which is only relevant when the maximum number of splits is
 given).
 
