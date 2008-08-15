@@ -8,6 +8,9 @@ Changes to the make module
 
 *	:class:`ll.make.XISTPublishAction` has been renamed to :class:`XISTBytesAction`.
 
+Changes to UL4
+--------------
+
 *	When rendering UL4 templates the templates available to the ``<?render?>``
 	tag are no longer passed as a separate argument, but can be part of the
 	normal variables.
