@@ -742,7 +742,13 @@ def parseurl(name, base=None, encoding=None, bufsize=8192, headers=None, data=No
 	arguments via :var:`builderargs`.
 	"""
 	builder = Builder(**builderargs)
-	return builder.parseurl(name, base=base, encoding=encoding, headers=headers, data=data)
+	kwargs = dict(base=base, encoding=encoding)
+	if headers is not None:
+		kwargs["headers"] = headers
+	if data is not None:
+		kwargs["data"] = data
+	print kwargs
+	return builder.parseurl(name, **kwargs)
 
 
 def parseetree(tree, base=None, **builderargs):
