@@ -1,4 +1,4 @@
-Changes in 3.4 (released ??/??/2008)
+Changes in 3.4 (released 08/19/2008)
 ------------------------------------
 
 *	Templates can no longer be passed as a separate dictionary to UL4 templates
