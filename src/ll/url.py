@@ -156,8 +156,6 @@ def _urlencode(query_parts):
 		return None
 
 
-contextstack = threading.local()
-
 class Context(object):
 	"""
 	Calling :meth:`URL.open` or :meth:`URL.connect` :class:`Connection` object.
@@ -182,32 +180,24 @@ class Context(object):
 		self.schemes = {}
 
 	def __enter__(self):
-		try:
-			stack  = getattr(contextstack, "ll.url.contexts")
-		except AttributeError:
-			stack = []
-			setattr(contextstack, "ll.url.contexts", stack)
-		stack.append(self)
+		self.prev = threadlocalcontext.context
+		threadlocalcontext.context = self
 
 	def __exit__(self, type, value, traceback):
-		stack = getattr(contextstack, "ll.url.contexts")
-		stack.pop()
+		threadlocalcontext.context = self.prev
+		del self.prev
 		self.closeall()
 
 
-defaultcontext = Context()
+class ThreadLocalContext(threading.local):
+	context = Context()
+
+threadlocalcontext = ThreadLocalContext()
 
 
 def getcontext(context):
 	if context is None:
-		try:
-			stack  = getattr(contextstack, "ll.url.contexts")
-		except AttributeError:
-			return defaultcontext
-		try:
-			return stack[-1]
-		except IndexError:
-			return defaultcontext
+		return threadlocalcontext.context
 	return context
 
 
@@ -1527,8 +1517,7 @@ class SchemeDefinition(object):
 
 
 class LocalSchemeDefinition(SchemeDefinition):
-	# Use a different connection then the base class (but still one single
-	# connection for all URLs)
+	# Use a different connection than the base class (but still one single connection for all URLs)
 	_connection = LocalConnection()
 
 	def open(self, *args, **kwargs):
@@ -1546,7 +1535,7 @@ class SshSchemeDefinition(SchemeDefinition):
 			identity = None
 			
 		context = getcontext(context)
-		if context is defaultcontext:
+		if context is threadlocalcontext.__class__.context:
 			raise ValueError("ssh URLs need a custom context")
 		# Use one :class:`SshConnection` for each user/host/remotepython combination
 		server = url.server

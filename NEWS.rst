@@ -1,3 +1,11 @@
+Changes in 3.4.1 (released 08/29/2008)
+--------------------------------------
+
+*	Bugs with thread local storage have been fixed so now using
+	:class:`xsc.Pool`, :class:`xsc.build` and URL context in with blocks in
+	multithreaded applications should work now.
+
+
 Changes in 3.4 (released 08/19/2008)
 ------------------------------------
 
@@ -22,7 +30,7 @@ Changes in 3.4 (released 08/19/2008)
 
 *	UL4 has a new tag for comments: ``<?note This is comment?>``.
 
-*	A new script ``db2ul4`` has been added that can render UL4 templates with
+*	A new script ``db2ul4.py`` has been added that can render UL4 templates with
 	database content.
 
 *	In UL4s ``<?render?>`` tags it's now possible to pass along a complete

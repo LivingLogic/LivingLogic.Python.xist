@@ -82,8 +82,10 @@ def tonode(value):
 	raise IllegalObjectError(value) # none of the above => bail out
 
 
-threadlocalnodehandler = threading.local()
-threadlocalnodehandler.handler = None
+class ThreadLocalNodeHander(threading.local):
+	handler = None
+
+threadlocalnodehandler = ThreadLocalNodeHander()
 
 
 class build(object):
@@ -3760,8 +3762,10 @@ class Pool(misc.Pool):
 
 
 # Default pool (can be temporarily changed via ``with xsc.Pool() as pool:``)
-threadlocalpool = threading.local()
-threadlocalpool.pool = Pool()
+class ThreadLocalPool(threading.local):
+	pool = Pool()
+
+threadlocalpool = ThreadLocalPool()
 
 
 ###
