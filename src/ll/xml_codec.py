@@ -9,7 +9,26 @@
 
 
 """
-Python Codec for XML decoding
+This module implements a codec that can be used for encoding and decoding XML.
+Once the encoding has been determined the decoding/encoding process falls back
+to using the codec for that particular encoding to do the rest of the work, so
+this XML codec supports all encodings supported by Python itself.
+
+On decoding the XML codec determines the encoding by either inspecting the
+first few bytes of the byte stream/string or by extracting the encoding from
+the XML declaration. If the encoding can't be determined from the first few
+bytes and there is no XML declaration the codec falls back to using UTF-8.
+When the encoding is specified by an external source (e.g. a Content-Type
+header in an HTTP response), this encoding can be passed as an argument to the
+codec, which will then bypass encoding detection. If there's an XML declaration
+in the input, the XML declaration passed to the application then will contain
+the externally specified encoding instead of the original one.
+
+On encoding the XML codec extracts the encoding from the XML declaration and
+will encode the output in that encoding. If there's no XML declaration UTF-8
+will be used. It's possible to pass an external encoding to the encoder too.
+The encoder will then encode the output in that encoding and put the correct
+encoding into the XML declaration (if there is one).
 """
 
 
