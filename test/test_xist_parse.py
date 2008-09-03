@@ -315,3 +315,9 @@ def test_expat_doctype():
 	e = parsers.parsestring('<!DOCTYPE a [<!ELEMENT a EMPTY><!--gurk-->]><a/>', parser=parsers.ExpatParser(doctype=True))
 	assert isinstance(e[0], xsc.DocType)
 	assert e[0].content == u'a' # Internal subset gets dropped
+
+
+def test_htmlparse_base():
+	e = parsers.parsestring("<a href='gurk.gif'/>", base="hurz/index.html", tidy=True)
+	e = e.walknode(html.a)[0]
+	assert unicode(e.attrs.href) == "hurz/gurk.gif"

@@ -360,7 +360,7 @@ class Builder(object):
 				newnode = xsc.Null
 			return newnode
 
-		self.base = base
+		self.base = url.URL(base)
 
 		try:
 			olddefault = libxml2.lineNumbersDefault(1)

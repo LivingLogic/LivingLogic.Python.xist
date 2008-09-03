@@ -1,3 +1,10 @@
+Changes in 3.4.2 (released 09/03/2008)
+--------------------------------------
+
+*	Parsing didn't work when :var:`tidy` was set to true and a :var:`base`
+	argument was given. This has been fixed now.
+
+
 Changes in 3.4.1 (released 08/29/2008)
 --------------------------------------
 
