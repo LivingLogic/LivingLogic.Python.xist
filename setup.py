@@ -211,8 +211,8 @@ else:
 
 args = dict(
 	name="ll-xist",
-	version="3.4.1",
-	description="Extensible HTML/XML generator",
+	version="3.4.2",
+	description="Extensible HTML/XML generator, cross-platform templating language and various other tools",
 	long_description=descr,
 	author="Walter Doerwald",
 	author_email="walter@livinglogic.de",
