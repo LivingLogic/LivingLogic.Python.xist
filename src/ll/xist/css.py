@@ -146,7 +146,7 @@ def iterrules(node, base=None, media=None, title=None):
 	def doiter(node):
 		for cssnode in node.walknode(_isstyle):
 			if isinstance(cssnode, html.style):
-				href = str(self.base) if base is not None else None
+				href = str(base) if base is not None else None
 				if matchstyle(cssnode):
 					stylesheet = cssutils.parseString(unicode(cssnode.content), href=href, media=unicode(cssnode.attrs.media))
 					for rule in _doimport(media, stylesheet, base):
