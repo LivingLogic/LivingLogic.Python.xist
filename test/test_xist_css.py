@@ -12,7 +12,7 @@
 from __future__ import with_statement
 
 from ll import url
-from ll.xist import xsc, css
+from ll.xist import xsc, css, parsers
 from ll.xist.ns import html, specials
 
 
@@ -237,3 +237,9 @@ def test_parse():
 	urls = set(css.geturls(s))
 	assert urls == set([url.URL("root:gurk.gif")])
 
+
+def test_comments():
+	d = '<html><head><style type="text/css">/*nix*/ p{/*nix*/ color: red;}</style></head><body><p>gurk</p></body></html>'
+	node = parsers.parsestring(d)
+	css.applystylesheets(node)
+	assert unicode(node.walknode(html.p)[0].attrs.style) == "color: red;"

@@ -1,3 +1,10 @@
+Changes in 3.4.3 (released 09/08/2008)
+--------------------------------------
+
+*	:func:`css.applystylesheets` could no longer handle style declarations
+	containing comments. This has been fixed now.
+
+
 Changes in 3.4.2 (released 09/03/2008)
 --------------------------------------
 

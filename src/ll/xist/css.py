@@ -202,10 +202,9 @@ def applystylesheets(node, base=None, media=None, title=None):
 			styles = {}
 			for (spec, sel, style) in iterstyles(path[-1], rules):
 				if sel.matchpath(path):
-					for prop in style.seq:
-						if not isinstance(prop, css.CSSComment):
-							styles[prop.value.name] = (count, prop.value.cssText)
-							count += 1
+					for prop in style:
+						styles[prop.name] = (count, prop.cssText)
+						count += 1
 			style = " ".join("%s;" % value for (count, value) in sorted(styles.itervalues()))
 			if style:
 				path[-1].attrs["style"] = style
