@@ -1,4 +1,4 @@
-Changes in 3.4.3 (released 09/08/2008)
+Changes in 3.4.3 (released 09/09/2008)
 --------------------------------------
 
 *	:func:`css.applystylesheets` could no longer handle style declarations
