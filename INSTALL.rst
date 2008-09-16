@@ -30,7 +30,7 @@ To use XIST you need the following software packages:
 Installation
 ============
 
-setuptools is used for installation so you can install this module with the
+setuptools is used for installation so you can install this package with the
 following command::
 
 	$ easy_install ll-xist
@@ -44,7 +44,7 @@ following command::
 __ http://www.livinglogic.de/Python/Download.html#xist
 
 This will copy ``*.py`` files, compile ``*.c`` files and install everything in
-the ``site-packages`` directory as the :mod:`ll` and :mod:`ll.xist` package.
+the ``site-packages`` directory as the :mod:`ll` and :mod:`ll.xist` packages.
 
 For Windows a binary distribution is provided. To install it,
 double click it, and follow the instructions.
