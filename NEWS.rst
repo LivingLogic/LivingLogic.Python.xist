@@ -248,7 +248,7 @@ Changes in 3.2.4 (released 04/02/2008)
 
 	:var:`doctype`
 		If this is true the doctype declaration will appear in the resulting
-		XIST tree (however any interal DTD subset will be dropped).
+		XIST tree (however any internal DTD subset will be dropped).
 
 
 Changes in 3.2.3 (released 03/04/2008)
