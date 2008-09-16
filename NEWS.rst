@@ -22,7 +22,7 @@ Changes in 3.4.1 (released 08/29/2008)
 --------------------------------------
 
 *	Bugs with thread local storage have been fixed so using :class:`xsc.Pool`,
-	:class:`xsc.build` and URL context in with blocks in multithreaded
+	:class:`xsc.build` and URL contexts in with blocks in multithreaded
 	applications should work now.
 
 
