@@ -383,6 +383,10 @@ class base(xsc.Element):
 			)
 
 			self.emattrs = dict(
+				font_style=u"italic",
+			)
+
+			self.strongattrs = dict(
 				font_weight=u"bold",
 			)
 
@@ -1425,6 +1429,29 @@ class em(inline):
 		e = converter.target.inline(
 			self.content,
 			converter[self].emattrs
+		)
+		return e.convert(converter)
+
+
+class strong(inline):
+	"""
+	Emphasized text.
+	"""
+	xmlns = xmlns
+	model = sims.ElementsOrText(inline)
+
+	def convert_docbook(self, converter):
+		e = converter.target.emphasis(self.content)
+		return e.convert(converter)
+
+	def convert_html(self, converter):
+		e = converter.target.strong(self.content)
+		return e.convert(converter)
+
+	def convert_fo(self, converter):
+		e = converter.target.inline(
+			self.content,
+			converter[self].strongattrs
 		)
 		return e.convert(converter)
 
