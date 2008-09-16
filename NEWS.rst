@@ -1,3 +1,10 @@
+Changes in 3.4.5 (released ??/??/2008)
+--------------------------------------
+
+*	A ``strong`` element has been added to the :mod:`ll.xist.ns.doc``
+	namespace.
+
+
 Changes in 3.4.4 (released 09/16/2008)
 --------------------------------------
 
@@ -22,7 +29,7 @@ Changes in 3.4.1 (released 08/29/2008)
 --------------------------------------
 
 *	Bugs with thread local storage have been fixed so using :class:`xsc.Pool`,
-	:class:`xsc.build` and URL contexts in with blocks in multithreaded
+	:class:`xsc.build` and URL contexts in ``with`` blocks in multithreaded
 	applications should work now.
 
 
@@ -46,7 +53,7 @@ Changes in 3.4 (released 08/19/2008)
 *	UL4 has gained another new function: ``type`` returns the type of its
 	argument as a string.
 
-*	UL4 now supports tuple unpacking in ``<?for?>`` tag with three variables.
+*	UL4 now supports tuple unpacking in ``<?for?>`` tags with three variables.
 
 *	UL4 has a new tag for comments: ``<?note This is comment?>``.
 
@@ -59,14 +66,14 @@ Changes in 3.4 (released 08/19/2008)
 	dictionary literals too, i.e. ``{1:2, 3:4}`` and ``{**{1:2}, **{3:4}}`` are
 	equivalent.
 
-*	A new UL4 function ``get`` has beenm added that works similar to the
+*	A new UL4 function ``get`` has been added that works similar to the
 	dictionary method ``get``, but works with global variables.
 
 *	The missing processing instruction :class:`render` has been added to
 	:mod:`ll.xist.ns.ul4`.
 
 *	:mod:`xml_codec` now partially works, even if the C module is missing. As
-	long as you explicitely specify an encoding on parsing and publishing, it
+	long as you explicitly specify an encoding on parsing and publishing it
 	should work.
 
 *	A new processing instruction class :class:`ll.xist.AttrProcInst` has been
@@ -81,10 +88,10 @@ Changes in 3.4 (released 08/19/2008)
 	of building the tree directly. This fixes a problem when nested
 	:meth:`convert` calls use ``with`` blocks.
 
-*	The element :class:`ll.xist.ns.form.memo` has been renamed to ``textarea``
-	and :class:`ll.xist.ns.form.edit` has been renamed to ``text``. Classes
-	:class:`ll.xist.ns.form.button` and :class:`ll.xist.ns.form.file` have been
-	added.
+*	The element :class:`ll.xist.ns.form.memo` has been renamed to
+	:class:`textarea` and :class:`ll.xist.ns.form.edit` has been renamed to
+	:class:`text`. Classes :class:`ll.xist.ns.form.button` and
+	:class:`ll.xist.ns.form.file` have been added.
 
 *	Iterating through the inputs in :mod:`ll.make` actions has been fixed (i.e.
 	the additional inputs will be output too). :meth:`ll.make.Project.findpaths`
@@ -128,8 +135,8 @@ Changes in 3.3.1 (released 07/14/2008)
 
 *	Fixed a bug in the implementation of the "not" operator in UL4.
 
-*	When the UL4 compiler encounters unclosed blocks, it will now include
-	the start location of the block in the error message.
+*	When the UL4 compiler encounters unclosed blocks, it will now include the
+	start location of the block in the error message.
 
 
 Changes in 3.3 (released 07/11/2008)
@@ -151,7 +158,8 @@ Changes in 3.3 (released 07/11/2008)
 *	The version number for :mod:`cssutils` has been bumped to 0.9.5rc1.
 
 *	Nodes of type :class:`ll.xist.xsc.Comment` and :class:`ll.xist.xsc.DocType`
-	are now simply ignored when publishing instead of generating an exception.
+	inside of attributes are now simply ignored when publishing instead of
+	generating an exception.
 
 *	All actions in :mod:`ll.make` no longer check whether their inputs are
 	action objects. Non-action objects are simply treated as ancient input data.
@@ -202,7 +210,7 @@ Changes in 3.2.6 (released 05/07/2008)
 	:func:`ll.misc.xmlescape`.
 
 *	Python versions of all the functions in the module :mod:`ll.misc` have been
-	added that will be used in case the C module is not available.
+	added. Those versions will be used in case the C module is not available.
 
 
 Changes in 3.2.5 (released 04/11/2008)
@@ -225,8 +233,8 @@ Changes in 3.2.4 (released 04/02/2008)
 *	The following functions have been added to :mod:`ll.xist.css`:
 	:func:`parsestring`, :func:`parsestream`, :func:`parsefile`, :func:`parseurl`
 	and :func:`write`. They parse CSS resources and are similar to the XML/HTML
-	parsing function in that they apply the specified base URL to all URLs in the
-	style sheet.
+	parsing functions in that they apply the specified base URL to all URLs in
+	the style sheet.
 
 *	:mod:`cssutils` 0.9.5b2 is required now.
 
@@ -293,7 +301,7 @@ Changes in 3.2 (released 02/01/2008)
 ------------------------------------
 
 *	The core package has been moved into XIST, installing XIST now only requires
-	one package.
+	*one* package.
 
 *	:mod:`ll.toxic` has been moved into XIST and is now available as
 	:mod:`ll.xist.ns.toxic`.

@@ -1062,7 +1062,7 @@ class nthoftype(Selector):
 	the n-th node of a specified type among its siblings. Similar to
 	:class:`nthchild` :class:`nthoftype` supports negative and positive indices
 	as well as ``"even"`` and ``"odd"``. Which types are checked can be passed
-	explicitely. If no types are passed the type of the node itself is used::
+	explicitly. If no types are passed the type of the node itself is used::
 
 		>>> from ll.xist import parsers, xfind
 		>>> from ll.xist.ns import html

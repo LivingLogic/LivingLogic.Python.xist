@@ -1487,7 +1487,7 @@ class ModuleAction(PipeAction):
 		Register all actions in :var:`inputs` as modules used by this module.
 		These actions must be :class:`ModuleAction` objects too.
 
-		Normally it isn't neccessary to call the method explicitely. Instead
+		Normally it isn't neccessary to call the method explicitly. Instead
 		fetch the required module inside your module like this::
 
 			from ll import make

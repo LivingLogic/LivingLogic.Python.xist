@@ -573,7 +573,7 @@ JSP directive page element
 --------------------------
 
 A ``contentType`` attribute is no longer generated for the
-:class:`ll.xist.ns.jsp.directive_page`. You have to explicitely use an attribute
+:class:`ll.xist.ns.jsp.directive_page`. You have to explicitly use an attribute
 ``contentType="text/html"`` to get a ``contentType`` attribute in the resulting
 JSP. The ``charset`` option is generated automatically from the encoding
 specified in the publisher.
