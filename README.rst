@@ -55,7 +55,7 @@ For documentation read the files in the ``docs/`` directory or the
 
 __ http://www.livinglogic.de/Python/xist/
 
-For installation instruction read ``INSTALL.rst`` or the
+For installation instructions read ``INSTALL.rst`` or the
 `installation web page`__.
 
 __ http://www.livinglogic.de/Python/xist/Installation.html
@@ -86,19 +86,12 @@ XIST is available via ftp_, http_ or from the cheeseshop_.
 Mailing lists
 -------------
 
-A discussion mailing list is available. To subscribe send an email
-to xist-discuss-request@livinglogic.de with "subscribe" in the body.
-For more information, send an email to xist-discuss-request@livinglogic.de
-with "help" in the body. Post to the list by sending an email to
-xist-discuss@livinglogic.de.
+A discussion mailing list is available. For more info go to
+https://mail.livinglogic.de/mailman/listinfo/xist-discuss. You can subscribe
+from these webpages as well as read the mailing list archives.
 
-A announcement mailing list is also available. To subscribe send an email
-to xist-announce-request@livinglogic.de with "subscribe" in the body.
-For more information, send an email to xist-announce-request@livinglogic.de
-with "help" in the body.
-
-Archives of both mailing lists is available at
-http://mlarchive.livinglogic.de/
+An announcement mailing list is available too. For info go to
+https://mail.livinglogic.de/mailman/listinfo/xist-announce
 
 
 -- Walter Dörwald <walter@livinglogic.de>
