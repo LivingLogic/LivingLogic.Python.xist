@@ -717,8 +717,8 @@ class JoinAction(Action):
 		return (self.inputs,)
 
 	def execute(self, project, inputs):
-		project.writestep(self, "Joining data from ", len(data), " inputs")
-		return "".join(data)
+		project.writestep(self, "Joining data from ", len(inputs), " inputs")
+		return "".join(inputs)
 
 
 class MkDirAction(PipeAction):

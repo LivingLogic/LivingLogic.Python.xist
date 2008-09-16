@@ -1,3 +1,9 @@
+Changes in 3.4.4 (released 09/16/2008)
+--------------------------------------
+
+*	Fixed a bug in :meth:`ll.make.JoinAction.execute`.
+
+
 Changes in 3.4.3 (released 09/09/2008)
 --------------------------------------
 
