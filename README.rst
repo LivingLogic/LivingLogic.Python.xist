@@ -1,41 +1,50 @@
 Purpose
 -------
 
-XIST is an extensible HTML and XML generator. XIST is also a XML parser with a
-very simple and pythonesque tree API. Every XML element type corresponds to a
-Python class and these Python classes provide a conversion method to transform
-the XML tree (e.g. into HTML). XIST can be considered 'object oriented XSLT'.
+XIST provides an extensible HTML and XML generator. XIST is also a XML parser
+with a very simple and pythonesque tree API. Every XML element type corresponds
+to a Python class and these Python classes provide a conversion method to
+transform the XML tree (e.g. into HTML). XIST can be considered
+'object oriented XSLT'.
 
 XIST also includes the following modules:
 
-*	``astyle`` can be used for colored terminal output (via ANSI escape
+*	:mod:`ll.astyle` can be used for colored terminal output (via ANSI escape
 	sequences).
 
-*	``color`` provides classes and functions for handling RGB color values.
+*	:mod:`ll.color` provides classes and functions for handling RGB color values.
 	This includes the ability to convert between different color models
 	(RGB, HSV, HLS) as well as to and from CSS format, and several functions
 	for modifying and mixing colors.
 
-*	``make`` is an object oriented make replacement. Like make it allows you
-	to specify dependencies between files and actions to be executed
+*	:mod:`ll.make` is an object oriented make replacement. Like make it allows
+	you to specify dependencies between files and actions to be executed
 	when files don't exist or are out of date with respect to one
 	of their sources. But unlike make you can do this in a object oriented
 	way and targets are not only limited to files, but you can implement
 	e.g. dependencies on database records.
 
-*	``misc`` provides several small utility functions and classes.
+*	:mod:`ll.misc` provides several small utility functions and classes.
 
-*	``sisyphus`` provides classes for running Python scripts as cron jobs.
+*	:mod:`ll.sisyphus` provides classes for running Python scripts as cron jobs.
 
-*	``daemon`` can be used on UNIX to fork a daemon process.
+*	:mod:`ll.daemon` can be used on UNIX to fork a daemon process.
 
-*	``url`` provides classes for parsing and constructing RFC 2396
+*	:mod:`ll.url` provides classes for parsing and constructing RFC 2396
 	compliant URLs.
 
-*	``xpit`` is a module that makes it possible to embed Python expressions
-	in text (as XML style processing instructions).
+*	:mod:`ll.xpit` is a module that makes it possible to embed Python
+	expressions in text (as XML style processing instructions).
 
-*	``xml_codec`` contains a complete codec for encoding and decoding XML.
+*	:mod:`ll.ul4c` is compiler for a templating language with similar capabilities
+	to `Django's templating language`__. ``UL4`` templates are compiled to an
+	internal bytecode format, which makes it possible to implement template
+	renderers in other languages and makes the template code "secure" (i.e.
+	template code can't open or delete files).
+
+	__ http://www.djangoproject.com/documentation/templates/
+
+*	:mod:`ll.xml_codec` contains a complete codec for encoding and decoding XML.
 
 
 Documentation
@@ -67,13 +76,11 @@ For the license read ``__init__.py``.
 Download
 --------
 
-XIST is available via ftp_, http_, from the cheeseshop_ or as a
-`debian package`_.
+XIST is available via ftp_, http_ or from the cheeseshop_.
 
 .. _ftp: ftp://ftp.livinglogic.de/pub/livinglogic/xist/
 .. _http: http://ftp.livinglogic.de/xist/
 .. _cheeseshop: http://cheeseshop.python.org/pypi/ll-xist
-.. _debian package: http://packages.debian.org/python-ll-xist
 
 
 Mailing lists
