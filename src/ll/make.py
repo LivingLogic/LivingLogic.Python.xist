@@ -2171,9 +2171,9 @@ class Project(dict):
 		p.add_option("-X", "--noignore", dest="ignoreerrors", help="Don't ignore errors", action="store_false", default=None)
 		p.add_option("-c", "--color", dest="color", help="Use colored output", action="store_true", default=None)
 		p.add_option("-C", "--nocolor", dest="color", help="No colored output", action="store_false", default=None)
-		p.add_option("-a", "--showaction", dest="showaction", help="Show actions?", choices=["all", "file", "filephony", "none"], default="filephony")
-		p.add_option("-s", "--showstep", dest="showstep", help="Show steps?", choices=["all", "file", "filephony", "none"], default="all")
-		p.add_option("-n", "--shownote", dest="shownote", help="Show steps?", choices=["all", "file", "filephony", "none"], default="none")
+		p.add_option("-a", "--showaction", dest="showaction", help="Show actions?", choices=["all", "file", "phony", "filephony", "none"], default="filephony")
+		p.add_option("-s", "--showstep", dest="showstep", help="Show steps?", choices=["all", "file", "phony", "filephony", "none"], default="all")
+		p.add_option("-n", "--shownote", dest="shownote", help="Show steps?", choices=["all", "file", "phony", "filephony", "none"], default="none")
 		p.add_option("-i", "--showidle", dest="showidle", help="Show actions that didn't produce data?", action="store_true", default=False)
 		p.add_option("-d", "--showdata", dest="showdata", help="Show data?", action="store_true", default=False)
 		return p
