@@ -2166,14 +2166,17 @@ class Project(dict):
 		Return an :mod:`optparse` parser for parsing the command line options.
 		This can be overwritten in subclasses to add more options.
 		"""
+
+		actions = ["all", "file", "phony", "filephony", "none"]
 		p = optparse.OptionParser(usage="usage: %prog [options] [targets]")
 		p.add_option("-x", "--ignore", dest="ignoreerrors", help="Ignore errors", action="store_true", default=None)
 		p.add_option("-X", "--noignore", dest="ignoreerrors", help="Don't ignore errors", action="store_false", default=None)
 		p.add_option("-c", "--color", dest="color", help="Use colored output", action="store_true", default=None)
 		p.add_option("-C", "--nocolor", dest="color", help="No colored output", action="store_false", default=None)
-		p.add_option("-a", "--showaction", dest="showaction", help="Show actions?", choices=["all", "file", "phony", "filephony", "none"], default="filephony")
-		p.add_option("-s", "--showstep", dest="showstep", help="Show steps?", choices=["all", "file", "phony", "filephony", "none"], default="all")
-		p.add_option("-n", "--shownote", dest="shownote", help="Show steps?", choices=["all", "file", "phony", "filephony", "none"], default="none")
+		p.add_option("-a", "--showaction", dest="showaction", help="Show actions (%s)?" % ", ".join(actions), choices=actions, default="filephony")
+		p.add_option("-s", "--showstep", dest="showstep", help="Show steps (%s)?" % ", ".join(actions), choices=actions, default="all")
+		p.add_option("-n", "--shownote", dest="shownote", help="Show notes (%s)?" % ", ".join(actions), choices=actions, default="none")
+		p.add_option("-r", "--showregistration", dest="showregistration", help="Show registration (%s)?" % ", ".join(actions), choices=actions, default="none")
 		p.add_option("-i", "--showidle", dest="showidle", help="Show actions that didn't produce data?", action="store_true", default=False)
 		p.add_option("-d", "--showdata", dest="showdata", help="Show data?", action="store_true", default=False)
 		return p
@@ -2196,6 +2199,8 @@ class Project(dict):
 			self.showstep = options.showstep
 		if options.shownote is not None:
 			self.shownote = options.shownote
+		if options.showregistration is not None:
+			self.showregistration = options.showregistration
 		self.showidle = options.showidle
 		self.showdata = options.showdata
 		return (options, args)

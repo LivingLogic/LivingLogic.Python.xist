@@ -4,6 +4,9 @@ Changes in 3.4.5 (released ??/??/2008)
 *	A ``strong`` element has been added to the :mod:`ll.xist.ns.doc``
 	namespace.
 
+*	A new option :option:`--showregistration`/:option:`-r` has been added to
+	make script.
+
 
 Changes in 3.4.4 (released 09/16/2008)
 --------------------------------------
