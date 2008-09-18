@@ -1895,9 +1895,9 @@ class Project(dict):
 
 	class showstep(misc.propclass):
 		"""
-		This property specifies which for which actions tranformation steps
-		should be reported during the build process. For allowed values on
-		setting see :prop:`showaction`.
+		This property specifies for which actions tranformation steps should be
+		reported during the build process. For allowed values on setting see
+		:prop:`showaction`.
 		"""
 		def __get__(self):
 			return self._showstep
