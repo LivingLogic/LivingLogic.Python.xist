@@ -180,7 +180,7 @@ case you can use a <z>decendant selector</z> instead of a <z>child selector</z>
 To do this simply replace <lit>html.a/html.img</lit> with <lit>html.a//html.img</lit>.</p>
 
 <p>Apart from the <lit>/</lit> and <lit>//</lit> operators you can also use
-the <lit>|</lit> and <lit>&amp;</lit> operators to combined xfind expressions:</p>
+the <lit>|</lit> and <lit>&amp;</lit> operators to combine xfind expressions:</p>
 
 <prog>
 from ll.xist import xsc, parsers, xfind
