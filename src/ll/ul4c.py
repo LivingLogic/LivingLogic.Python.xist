@@ -789,6 +789,14 @@ class Template(object):
 			_code("def %s(**variables):" % function)
 			indent += 1
 		_code("import sys, datetime, itertools")
+		_code("try:")
+		indent += 1
+		_code("import json")
+		indent -= 1
+		_code("except ImportError:")
+		indent += 1
+		_code("import simplejson as json")
+		indent -= 1
 		_code("from ll.misc import xmlescape")
 		_code("from ll import ul4c")
 		_code("source = %r" % self.source)
@@ -929,8 +937,10 @@ class Template(object):
 				elif opcode.code == "callfunc1":
 					if opcode.arg == "xmlescape":
 						_code("reg%d = xmlescape(unicode(reg%d)) if reg%d is not None else u''" % (opcode.r1, opcode.r2, opcode.r2))
-					elif opcode.arg == "csvescape":
-						_code("reg%d = ul4c._csvescape(reg%d)" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "csv":
+						_code("reg%d = ul4c._csv(reg%d)" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "json":
+						_code("reg%d = json.dumps(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "str":
 						_code("reg%d = unicode(reg%d) if reg%d is not None else u''" % (opcode.r1, opcode.r2, opcode.r2))
 					elif opcode.arg == "int":
@@ -2363,9 +2373,9 @@ def _repr(obj):
 		return unicode(repr(obj))
 
 
-def _csvescape(obj):
+def _csv(obj):
 	"""
-	Helper for the ``csvescape`` function.
+	Helper for the ``csv`` function.
 	"""
 	if obj is None:
 		return u""

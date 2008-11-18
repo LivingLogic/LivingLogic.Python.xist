@@ -1,11 +1,17 @@
-Changes in 3.4.5 (released ??/??/2008)
---------------------------------------
+Changes in 3.5 (released ??/??/2008)
+------------------------------------
 
 *	A ``strong`` element has been added to the :mod:`ll.xist.ns.doc``
 	namespace.
 
 *	A new option :option:`--showregistration`/:option:`-r` has been added to
 	make script.
+
+*	The UL4 function ``csvescape`` has been renamed to ``csv``.
+
+*	A new function ``json`` has been added to UL4: This function returns a
+	JSON dump of the object passed in (this requires either :mod:`simplejson`
+	or Python 2.6).
 
 
 Changes in 3.4.4 (released 09/16/2008)
