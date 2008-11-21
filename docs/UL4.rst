@@ -171,7 +171,7 @@ Dictionaries can be created like this:
 Also Python ``**`` syntax for passing keyword arguments is supported for
 creating dictionaries::
 
-	``{"foo": 17, "bar": 23, **{1: 2, 3: 4}}``
+	{"foo": 17, "bar": 23, **{1: 2, 3: 4}}
 
 With this it's possible to copy the content of one dictionary into another new
 one. Keys are set from left to right, so later values overwrite former ones, so
