@@ -13,6 +13,12 @@ Changes in 3.5 (released ??/??/2008)
 	JSON dump of the object passed in (this requires either :mod:`simplejson`
 	or Python 2.6).
 
+*	:mod:`ll.make` now supports Growl___ notifications on Mac OS X. To activate
+	it set the ``LL_MAKE_GROWN`` environment variable to ``1`` or use the ``-g``
+	or ``--growl`` options.
+
+	__ http://growl.info/
+
 
 Changes in 3.4.4 (released 09/16/2008)
 --------------------------------------

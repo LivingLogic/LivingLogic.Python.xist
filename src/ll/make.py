@@ -52,7 +52,7 @@ this::
 
 from __future__ import with_statement
 
-import sys, os, os.path, optparse, warnings, re, datetime, cStringIO, errno, tempfile, operator, types, cPickle, gc, contextlib, locale
+import sys, os, os.path, optparse, warnings, re, datetime, cStringIO, StringIO, errno, tempfile, operator, types, cPickle, gc, contextlib, locale
 
 from ll import misc, url
 
@@ -1848,6 +1848,7 @@ class Project(dict):
 		self.showtime = self._getenvbool("LL_MAKE_SHOWTIME", True)
 		self.showtimestamps = self._getenvbool("LL_MAKE_SHOWTIMESTAMPS", False)
 		self.showdata = self._getenvbool("LL_MAKE_SHOWDATA", False)
+		self.growl = self._getenvbool("LL_MAKE_GROWL", False)
 
 	def __repr__(self):
 		return "<%s.%s with %d targets at 0x%x>" % (self.__module__, self.__class__.__name__, len(self), id(self))
@@ -2173,9 +2174,10 @@ class Project(dict):
 		p.add_option("-X", "--noignore", dest="ignoreerrors", help="Don't ignore errors", action="store_false", default=None)
 		p.add_option("-c", "--color", dest="color", help="Use colored output", action="store_true", default=None)
 		p.add_option("-C", "--nocolor", dest="color", help="No colored output", action="store_false", default=None)
+		p.add_option("-g", "--growl", dest="growl", help="Issue growl notification after the build?", action="store_true", default=None)
 		p.add_option("-a", "--showaction", dest="showaction", help="Show actions (%s)?" % ", ".join(actions), choices=actions, default="filephony")
-		p.add_option("-s", "--showstep", dest="showstep", help="Show steps (%s)?" % ", ".join(actions), choices=actions, default="all")
-		p.add_option("-n", "--shownote", dest="shownote", help="Show notes (%s)?" % ", ".join(actions), choices=actions, default="none")
+		p.add_option("-s", "--showstep", dest="showstep", help="Show steps (%s)?" % ", ".join(actions), choices=actions, default=None)
+		p.add_option("-n", "--shownote", dest="shownote", help="Show notes (%s)?" % ", ".join(actions), choices=actions, default=None)
 		p.add_option("-r", "--showregistration", dest="showregistration", help="Show registration (%s)?" % ", ".join(actions), choices=actions, default="none")
 		p.add_option("-i", "--showidle", dest="showidle", help="Show actions that didn't produce data?", action="store_true", default=False)
 		p.add_option("-d", "--showdata", dest="showdata", help="Show data?", action="store_true", default=False)
@@ -2193,6 +2195,8 @@ class Project(dict):
 			self.ignoreerrors = options.ignoreerrors
 		if options.color is not None:
 			self.color = options.color
+		if options.growl is not None:
+			self.growl = options.growl
 		if options.showaction is not None:
 			self.showaction = options.showaction
 		if options.showstep is not None:
@@ -2287,6 +2291,20 @@ class Project(dict):
 				if self.showtime:
 					self.write(" [t+", self.strtimedelta(now-self.starttime), "]")
 				self.writeln()
+			if self.growl:
+				filename = os.path.abspath(sys.modules[self.__class__.__module__].__file__)
+				cmd = "growlnotify -i py -n ll.make 'll.make done in %s'" % self.strtimedelta(now-self.starttime)
+				import subprocess
+				pipe = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE).stdin
+				pipe.write("%s\n" % filename)
+				pipe.write("%s.%s\n" % (self.__class__.__module__, self.__class__.__name__))
+				pipe.write("%d registered targets, " % len(self))
+				pipe.write("%d actions called, " % self.actionscalled)
+				pipe.write("%d steps executed, " % self.stepsexecuted)
+				pipe.write("%d files/%d bytes read, " % (self.filesread, self.bytesread))
+				pipe.write("%d files/%d bytes written, " % (self.fileswritten, self.byteswritten))
+				pipe.write("%d actions failed" % self.actionsfailed)
+				pipe.close()
 
 	def buildwithargs(self, commandline=None):
 		"""
