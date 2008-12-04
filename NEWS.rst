@@ -19,6 +19,9 @@ Changes in 3.5 (released ??/??/2008)
 
 	__ http://growl.info/
 
+*	:mod:`ll.make` has a new action class :class:`JavascriptMinifyAction` for
+	minimizing Javascript source.
+
 
 Changes in 3.4.4 (released 09/16/2008)
 --------------------------------------
