@@ -536,18 +536,31 @@ def test_function_xmlescape():
 	check("&lt;&gt;&amp;&#39;&quot;gurk", u"<?print xmlescape(data)?>", data='<>&\'"gurk')
 
 
-def test_function_csvescape():
-	checkrunerror("function u?'csvescape' unknown", u"<?print csvescape()?>")
-	checkrunerror("function u?'csvescape' unknown", u"<?print csvescape(1, 2)?>")
-	check("", u"<?print csvescape(data)?>", data=None)
-	check("False", u"<?print csvescape(data)?>", data=False)
-	check("True", u"<?print csvescape(data)?>", data=True)
-	check("42", u"<?print csvescape(data)?>", data=42)
+def test_function_csv():
+	checkrunerror("function u?'csv' unknown", u"<?print csv()?>")
+	checkrunerror("function u?'csv' unknown", u"<?print csv(1, 2)?>")
+	check("", u"<?print csv(data)?>", data=None)
+	check("False", u"<?print csv(data)?>", data=False)
+	check("True", u"<?print csv(data)?>", data=True)
+	check("42", u"<?print csv(data)?>", data=42)
 	# no check for float
-	check("abc", u"<?print csvescape(data)?>", data="abc")
-	check('"a,b,c"', u"<?print csvescape(data)?>", data="a,b,c")
-	check('"a""b""c"', u"<?print csvescape(data)?>", data='a"b"c')
-	check('"a\nb\nc"', u"<?print csvescape(data)?>", data="a\nb\nc")
+	check("abc", u"<?print csv(data)?>", data="abc")
+	check('"a,b,c"', u"<?print csv(data)?>", data="a,b,c")
+	check('"a""b""c"', u"<?print csv(data)?>", data='a"b"c')
+	check('"a\nb\nc"', u"<?print csv(data)?>", data="a\nb\nc")
+
+
+def test_function_json():
+	checkrunerror("function u?'json' unknown", u"<?print json()?>")
+	checkrunerror("function u?'json' unknown", u"<?print json(1, 2)?>")
+	check("null", u"<?print json(data)?>", data=None)
+	check("false", u"<?print json(data)?>", data=False)
+	check("true", u"<?print json(data)?>", data=True)
+	check("42", u"<?print json(data)?>", data=42)
+	# no check for float
+	check('"abc"', u"<?print json(data)?>", data="abc")
+	check('[1, 2, 3]', u"<?print json(data)?>", data=[1, 2, 3])
+	check('{"one": 1}', u"<?print json(data)?>", data={"one": 1})
 
 
 def test_function_str():
