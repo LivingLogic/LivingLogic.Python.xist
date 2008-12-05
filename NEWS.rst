@@ -172,7 +172,7 @@ Changes in 3.3 (released 07/11/2008)
 
 *	XIST has gained its fourth templating language: ``UL4`` the
 	"Universal Layout Language". This templating language is similar in
-	capabilities to `Django's templating language`__. However ``UL4`` templates
+	capabilities to `Djangos templating language`__. However ``UL4`` templates
 	are compiled to a bytecode format, which makes it possible to implement
 	template renderers in other languages and makes the template code "secure"
 	(i.e.template code can't open or delete files).
