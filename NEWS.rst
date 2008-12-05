@@ -10,7 +10,7 @@ Changes in 3.5 (released 12/05/2008)
 *	A new option :option:`--showregistration`/:option:`-r` has been added to
 	make script.
 
-*	:mod:`ll.make` now supports Growl___ notifications on Mac OS X. To activate
+*	:mod:`ll.make` now supports Growl__ notifications on Mac OS X. To activate
 	it set the ``LL_MAKE_GROWN`` environment variable to ``1`` or use the ``-g``
 	or ``--growl`` options.
 
