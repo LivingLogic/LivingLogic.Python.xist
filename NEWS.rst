@@ -19,12 +19,6 @@ Changes in 3.5 (released 12/05/2008)
 *	:mod:`ll.make` has a new action class :class:`JavascriptMinifyAction` for
 	minimizing Javascript source.
 
-*	:mod:`ll.make` now supports Growl___ notifications. To activate it set the
-	``LL_MAKE_GROWN`` environment variable to ``1`` or use the ``-g`` or
-	``--growl`` options.
-
-	__ http://growl.info/
-
 *	:class:`ll.color.Color` has been rewritten to create immutable objects
 	with the components being 8 bit values (i.e. 0-255) instead of floating
 	point values between 0 and 1. An alpha component has been added.
