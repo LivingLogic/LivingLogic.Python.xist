@@ -224,7 +224,7 @@ Changes in 1.3 (released 06/28/2006)
 ====================================
 
 *	:mod:`ll.make` has been rewritten. Now there's no longer a distinction
-	between :class:`Target`s and :class:`Action`s. Actions can be chained more
+	between :class:`Target`\s and :class:`Action`\s. Actions can be chained more
 	easily and creating an action and registering it with the project are two
 	separate steps. Actions can no longer be shared, as each action stores its
 	own input actions (but output actions are not stored). "Ids" have been
