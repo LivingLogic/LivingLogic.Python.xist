@@ -6,6 +6,13 @@ Changes to UL4
 
 *	The UL4 function ``csvescape`` has been renamed to ``csv``.
 
+Changes to color module
+-----------------------
+
+*	:class:`ll.color.Color` has been rewritten to create immutable objects
+	with the components being 8 bit values (i.e. 0-255) instead of floating
+	point values between 0 and 1.
+
 
 Migrating to version 3.4
 ========================

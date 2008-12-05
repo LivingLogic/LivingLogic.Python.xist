@@ -1,17 +1,14 @@
-Changes in 3.5 (released ??/??/2008)
+Changes in 3.5 (released 12/05/2008)
 ------------------------------------
-
-*	A ``strong`` element has been added to the :mod:`ll.xist.ns.doc``
-	namespace.
-
-*	A new option :option:`--showregistration`/:option:`-r` has been added to
-	make script.
-
-*	The UL4 function ``csvescape`` has been renamed to ``csv``.
 
 *	A new function ``json`` has been added to UL4: This function returns a
 	JSON dump of the object passed in (this requires either :mod:`simplejson`
 	or Python 2.6).
+
+*	The UL4 function ``csvescape`` has been renamed to ``csv``.
+
+*	A new option :option:`--showregistration`/:option:`-r` has been added to
+	make script.
 
 *	:mod:`ll.make` now supports Growl___ notifications on Mac OS X. To activate
 	it set the ``LL_MAKE_GROWN`` environment variable to ``1`` or use the ``-g``
@@ -21,6 +18,19 @@ Changes in 3.5 (released ??/??/2008)
 
 *	:mod:`ll.make` has a new action class :class:`JavascriptMinifyAction` for
 	minimizing Javascript source.
+
+*	:mod:`ll.make` now supports Growl___ notifications. To activate it set the
+	``LL_MAKE_GROWN`` environment variable to ``1`` or use the ``-g`` or
+	``--growl`` options.
+
+	__ http://growl.info/
+
+*	:class:`ll.color.Color` has been rewritten to create immutable objects
+	with the components being 8 bit values (i.e. 0-255) instead of floating
+	point values between 0 and 1. An alpha component has been added.
+
+*	A ``strong`` element has been added to the :mod:`ll.xist.ns.doc``
+	namespace.
 
 
 Changes in 3.4.4 (released 09/16/2008)

@@ -1,0 +1,127 @@
+#! /usr/bin/env/python
+# -*- coding: utf-8 -*-
+
+## Copyright 2008 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2008 by Walter Dörwald
+##
+## All Rights Reserved
+##
+## See ll/__init__.py for the license
+
+
+import py.test
+
+from ll import color
+
+
+def test_constructor():
+	assert color.Color(10, 20, 30) == (10, 20, 30, 255)
+	assert color.Color(40, 50, 60, 70) == (40, 50, 60, 70)
+
+
+def test_fromrgba():
+	assert color.Color.fromrgba(0, 0, 0, 0) == (0, 0, 0, 0)
+	assert color.Color.fromrgba(4.2, 4.2, 4.2, 4.2) == (255, 255, 255, 255)
+
+
+def test_fromrgba4():
+	assert color.Color.fromrgba4(0x1, 0x2, 0x3, 0x4) == (0x11, 0x22, 0x33, 0x44)
+
+
+def test_fromrgba8():
+	assert color.Color.fromrgba8(0x12, 0x34, 0x56, 0x78) == (0x12, 0x34, 0x56, 0x78)
+
+
+def test_fromint4():
+	assert color.Color.fromint4(0x1234) == (0x11, 0x22, 0x33, 0x44)
+
+
+def test_fromint8():
+	assert color.Color.fromint8(0x12345678) == (0x12, 0x34, 0x56, 0x78)
+
+
+def test_fromcss():
+	assert color.Color.fromcss("red") == (0xff, 0x0, 0x0, 0xff)
+	assert color.Color.fromcss("#123") == (0x11, 0x22, 0x33, 0xff)
+	assert color.Color.fromcss("#123456") == (0x12, 0x34, 0x56, 0xff)
+	assert color.Color.fromcss("#abcdef") == (0xab, 0xcd, 0xef, 0xff)
+	assert color.Color.fromcss("#ABCDEF") == (0xab, 0xcd, 0xef, 0xff)
+	assert color.Color.fromcss("rgb(12, 34, 56)") == (12, 34, 56, 0xff)
+	assert color.Color.fromcss("rgb(20%, 40%, 60%)") == (0x33, 0x66, 0x99, 0xff)
+	assert color.Color.fromcss("rgba(12, 34, 56, 0)") == (12, 34, 56, 0x0)
+	assert color.Color.fromcss("rgba(12, 34, 56, 1)") == (12, 34, 56, 0xff)
+	assert color.Color.fromcss("rgba(20%, 40%, 60%, 0)") == (0x33, 0x66, 0x99, 0x0)
+	assert color.Color.fromcss("rgba(20%, 40%, 60%, 1)") == (0x33, 0x66, 0x99, 0xff)
+
+
+def test_repr():
+	assert repr(color.red) == "Color(0xff, 0x00, 0x00)"
+	assert repr(color.Color(0x12, 0x34, 0x56, 0x78)) == "Color(0x12, 0x34, 0x56, 0x78)"
+
+
+def test_r_g_b():
+	c = color.Color(0x12, 0x34, 0x56, 0x78)
+	assert c.r == 0x12/255.
+	assert c.g == 0x34/255.
+	assert c.b == 0x56/255.
+	assert c.a == 0x78/255.
+
+
+def test_r4_g4_b4():
+	c = color.Color(0x12, 0x34, 0x56, 0x78)
+	assert c.r4 == 0x1
+	assert c.g4 == 0x3
+	assert c.b4 == 0x5
+	assert c.a4 == 0x7
+
+
+def test_r8_g8_b8():
+	c = color.Color(0x12, 0x34, 0x56, 0x78)
+	assert c.r8 == 0x12
+	assert c.g8 == 0x34
+	assert c.b8 == 0x56
+	assert c.a8 == 0x78
+
+
+def test_int4():
+	assert color.Color(0x12, 0x34, 0x56, 0x78).int4 == 0x1357
+
+
+def test_int8():
+	assert color.Color(0x12, 0x34, 0x56, 0x78).int8 == 0x12345678
+
+
+def test_rgb():
+	assert color.Color(0x33, 0x66, 0x99, 0xcc).rgb == (0.2, 0.4, 0.6)
+
+
+def test_rgba():
+	assert color.Color(0x33, 0x66, 0x99, 0xcc).rgba == (0.2, 0.4, 0.6, 0.8)
+
+
+def test_rgb4():
+	assert color.Color(0x12, 0x34, 0x56, 0x78).rgb4 == (0x1, 0x3, 0x5)
+
+
+def test_rgba4():
+	assert color.Color(0x12, 0x34, 0x56, 0x78).rgba4 == (0x1, 0x3, 0x5, 0x7)
+
+
+def test_rgb8():
+	assert color.Color(0x12, 0x34, 0x56, 0x78).rgb8 == (0x12, 0x34, 0x56)
+
+
+def test_rgba8():
+	assert color.Color(0x12, 0x34, 0x56, 0x78).rgba8 == (0x12, 0x34, 0x56, 0x78)
+
+
+def test_css():
+	assert color.Color(0x12, 0x34, 0x56).css == "#123456"
+	assert color.Color(0x12, 0x34, 0x56, 0x78).css == "rgba(18,52,86,0.471)"
+
+
+def test_combine():
+	assert color.Color(0x12, 0x34, 0x56).combine(r8=0x78) == (0x78, 0x34, 0x56, 0xff)
+	assert color.Color(0x12, 0x34, 0x56).combine(g8=0x78) == (0x12, 0x78, 0x56, 0xff)
+	assert color.Color(0x12, 0x34, 0x56).combine(b8=0x78) == (0x12, 0x34, 0x78, 0xff)
+	assert color.Color(0x12, 0x34, 0x56).combine(a8=0x78) == (0x12, 0x34, 0x56, 0x78)
