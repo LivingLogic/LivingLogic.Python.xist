@@ -52,7 +52,7 @@ this::
 
 from __future__ import with_statement
 
-import sys, os, os.path, optparse, warnings, re, datetime, cStringIO, StringIO, errno, tempfile, operator, types, cPickle, gc, contextlib, locale
+import sys, os, os.path, optparse, warnings, re, datetime, cStringIO, errno, tempfile, operator, types, cPickle, gc, contextlib, locale, gzip
 
 from ll import misc, url
 
@@ -1132,7 +1132,6 @@ class GZipAction(PipeAction):
 
 	def execute(self, project, data, compresslevel):
 		project.writestep(self, "Compressing ", len(data), " bytes with level " % compresslevel)
-		import gzip, cStringIO
 		stream = cStringIO.StringIO()
 		compressor = gzip.GzipFile(filename="", mode="wb", fileobj=stream, compresslevel=compresslevel)
 		compressor.write(data)
@@ -1147,7 +1146,6 @@ class GUnzipAction(PipeAction):
 	"""
 	def execute(self, project, data):
 		project.writestep(self, "Uncompressing ", len(data), " bytes")
-		import gzip, cStringIO
 		stream = cStringIO.StringIO(data)
 		compressor = gzip.GzipFile(filename="", mode="rb", fileobj=stream)
 		return compressor.read(data)
@@ -1169,157 +1167,125 @@ class JavascriptMinifyAction(PipeAction):
 	"""
 	def execute(self, project, data):
 		project.writestep(self, "Minimizing ", len(data), " ", ("bytes" if isinstance(data, str) else "characters"), " of Javascript code")
-		ins = StringIO.StringIO(data)
-		outs = StringIO.StringIO()
-		self.minify(ins, outs)
-		data = outs.getvalue()
-		if data.startswith("\n"):
-			data = data[1:]
-		return data
-	
-	def _outA(self):
-		self.outstream.write(self.a)
+		indata = iter(data.replace("\r", "\n"))
 
-	def _outB(self):
-		self.outstream.write(self.b)
+		# Copy the input to the output, deleting the characters which are
+		# insignificant to JavaScript. Comments will be removed. Tabs will be
+		# replaced with spaces. Carriage returns will be replaced with linefeeds.
+		# Most spaces and linefeeds will be removed.
 
-	def _get(self):
-		"""
-		return the next character from stdin. Watch out for lookahead. If
-		the character is a control character, translate it to a space or
-		linefeed.
-		"""
-		c = self.lookahead
-		self.lookahead = None
-		if c is None:
-			c = self.instream.read(1)
-		if c >= " " or c == "\n":
-			return c
-		if c == '': # EOF
-			return "\000"
-		if c == "\r":
-			return "\n"
-		return " "
-
-	def _peek(self):
-		self.lookahead = self._get()
-		return self.lookahead
-
-	def _next(self):
-		"""
-		get the next character, excluding comments. peek() is used to see
-		if an unescaped '/' is followed by a '/' or '*'.
-		"""
-		c = self._get()
-		if c == "/" and self.a != "\\":
-			p = self._peek()
-			if p == "/":
-				c = self._get()
-				while c > "\n":
-					c = self._get()
-				return c
-			if p == "*":
-				c = self._get()
-				while 1:
-					c = self._get()
-					if c == "*":
-						if self._peek() == "/":
-							self._get()
-							return " "
-					if c == "\000":
-						raise JSMinUnterminatedComment()
-		return c
-
-	def _action(self, action):
-		"""
-		do something! What you do is determined by the argument:
-		   1   Output A. Copy B to A. Get the next B.
-		   2   Copy B to A. Get the next B. (Delete A).
-		   3   Get the next B. (Delete B).
-		action treats a string as a single character. Wow!
-		action recognizes a regular expression if it is preceded by ( or , or =.
-		"""
-		if action <= 1:
-			self._outA()
-
-		if action <= 2:
-			self.a = self.b
-			if self.a in "'\"":
-				while True:
-					self._outA()
-					self.a = self._get()
-					if self.a == self.b:
-						break
-					if self.a <= '\n':
-						raise JSMinUnterminatedStringLiteral()
-					if self.a == '\\':
-						self._outA()
-						self.a = self._get()
-
-		if action <= 3:
-			self.b = self._next()
-			if self.b == '/' and self.a in '(,=:[?!&|;{}\n':
-				self._outA()
-				self._outB()
-				while True:
-					self.a = self._get()
-					if self.a == '/':
-						break
-					elif self.a == '\\':
-						self._outA()
-						self.a = self._get()
-					elif self.a <= '\n':
-						raise JSMinUnterminatedRegularExpression()
-					self._outA()
-				self.b = self._next()
-
-	def _jsmin(self):
-		"""
-		Copy the input to the output, deleting the characters which are
-		insignificant to JavaScript. Comments will be removed. Tabs will be
-		replaced with spaces. Carriage returns will be replaced with linefeeds.
-		Most spaces and linefeeds will be removed.
-		"""
 		self.a = "\n"
-		self._action(3)
-
-		while self.a != "\000":
-			if self.a == " ":
-				self._action(1 if self.isalphanum(self.b) else 2)
-			elif self.a == "\n":
-				if self.b in "{[(+-":
-					self._action(1)
-				elif self.b == " ":
-					self._action(3)
-				else:
-					self._action(1 if self.isalphanum(self.b) else 2)
-			else:
-				if self.b == " ":
-					self._action(1 if self.isalphanum(self.a) else 3)
-				elif self.b == "\n":
-					if self.a in "}])+-\"'":
-						self._action(1)
-					else:
-						self._action(1 if self.isalphanum(self.a) else 3)
-				else:
-					self._action(1)
-
-	def minify(self, instream, outstream):
-		self.instream = instream
-		self.outstream = outstream
-		self.a = '\n'
 		self.b = None
 		self.lookahead = None
+		outdata = []
+	
+		def _get():
+			# Return the next character from the input. Watch out for lookahead. If
+			# the character is a control character, translate it to a space or linefeed.
+			c = self.lookahead
+			self.lookahead = None
+			if c is None:
+				try:
+					c = indata.next()
+				except StopIteration:
+					return "" # EOF
+			if c >= " " or c == "\n":
+				return c
+			return " "
 
-		self._jsmin()
-		self.instream.close()
+		def _peek():
+			self.lookahead = _get()
+			return self.lookahead
 
-	def isalphanum(self, c):
-		"""
-		return true if the character is a letter, digit, underscore,
-		dollar sign, or non-ASCII character.
-		"""
-		return ('a' <= c <= 'z') or ('0' <= c <= '9') or ('A' <= c <= 'Z') or c in "_$\\" or (c is not None and ord(c) > 126)
+		def isalphanum(c):
+			# Return true if the character is a letter, digit, underscore, dollar sign, or non-ASCII character.
+			return ('a' <= c <= 'z') or ('0' <= c <= '9') or ('A' <= c <= 'Z') or c in "_$\\" or (c is not None and ord(c) > 126)
+
+		def _next():
+			# Get the next character, excluding comments. peek() is used to see if an unescaped '/' is followed by a '/' or '*'.
+			c = _get()
+			if c == "/" and self.a != "\\":
+				p = _peek()
+				if p == "/":
+					c = _get()
+					while c > "\n":
+						c = _get()
+					return c
+				if p == "*":
+					c = _get()
+					while 1:
+						c = _get()
+						if c == "*":
+							if _peek() == "/":
+								_get()
+								return " "
+						if not c:
+							raise JSMinUnterminatedComment()
+			return c
+
+		def _action(action):
+			"""
+			Do something! What you do is determined by the argument:
+			   1   Output A. Copy B to A. Get the next B.
+			   2   Copy B to A. Get the next B. (Delete A).
+			   3   Get the next B. (Delete B).
+			action treats a string as a single character. Wow!
+			action recognizes a regular expression if it is preceded by ( or , or =.
+			"""
+			if action <= 1:
+				outdata.append(self.a)
+
+			if action <= 2:
+				self.a = self.b
+				if self.a in "'\"":
+					while True:
+						outdata.append(self.a)
+						self.a = _get()
+						if self.a == self.b:
+							break
+						if self.a <= "\n":
+							raise JSMinUnterminatedStringLiteral()
+						if self.a == "\\":
+							outdata.append(self.a)
+							self.a = _get()
+
+			if action <= 3:
+				self.b = _next()
+				if self.b == "/" and self.a in "(,=:[?!&|;{}\n":
+					outdata.append(self.a)
+					outdata.append(self.b)
+					while True:
+						self.a = _get()
+						if self.a == "/":
+							break
+						elif self.a == "\\":
+							outdata.append(self.a)
+							self.a = _get()
+						elif self.a <= "\n":
+							raise JSMinUnterminatedRegularExpression()
+						outdata.append(self.a)
+					self.b = _next()
+
+		_action(3)
+
+		while self.a:
+			if self.a == " ":
+				_action(1 if isalphanum(self.b) else 2)
+			elif self.a == "\n":
+				if self.b in "{[(+-":
+					_action(1)
+				elif self.b == " ":
+					_action(3)
+				else:
+					_action(1 if isalphanum(self.b) else 2)
+			else:
+				if self.b == " ":
+					_action(1 if isalphanum(self.a) else 3)
+				elif self.b == "\n":
+					_action(1 if isalphanum(self.a) or self.a in "}])+-\"'" else 3)
+				else:
+					_action(1)
+		return "".join(outdata).lstrip()
 
 
 class CallFuncAction(Action):
