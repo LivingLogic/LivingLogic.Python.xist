@@ -2309,7 +2309,7 @@ class RenderParser(ExprParser):
 
 
 ###
-### Helper functions use at template runtime
+### Helper functions used at template runtime
 ###
 
 def _oct(value):
