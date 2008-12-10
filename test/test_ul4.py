@@ -957,6 +957,7 @@ def test_method_format():
 	now = datetime.datetime.now()
 	format = "%Y-%m-%d %H:%M:%S"
 	check(now.strftime(format), ur"<?print data.format('%s')?>" % format, data=now)
+	check('987654', u'<?print 2000-02-29T12:34:56.987654.format("%f")?>')
 
 
 def test_method_isoformat():
