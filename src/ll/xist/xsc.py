@@ -104,6 +104,7 @@ class build(object):
 		if self.stack:
 			self.stack[-1](node)
 		self.stack.append(node)
+		return node
 
 	def exit(self):
 		self.stack.pop()
@@ -1284,8 +1285,7 @@ class Frag(Node, list):
 				list.append(self, child)
 
 	def __enter__(self):
-		threadlocalnodehandler.handler.enter(self)
-		return self
+		return threadlocalnodehandler.handler.enter(self)
 
 	def __exit__(self, type, value, traceback):
 		threadlocalnodehandler.handler.exit()
