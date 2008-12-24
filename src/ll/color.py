@@ -70,7 +70,7 @@ class Color(tuple):
 	@classmethod
 	def fromint8(cls, int8):
 		"""
-		Create a :class:`Color` object from the 32 bit RGB integer :var:`int8`.
+		Create a :class:`Color` object from the 32 bit RGBA integer :var:`int8`.
 		See the :prop:`int8` property for more info.
 		"""
 		return cls.fromrgba8(int8>>24 & 0xff, int8>>16 & 0xff, int8>>8 & 0xff, int8 & 0xff)
