@@ -192,6 +192,15 @@ def test_date():
 	check('yes', u'<?if 2000-02-29T12:34:56.987654?>yes<?else?>no<?end if?>')
 
 
+def test_color():
+	check('255,255,255,255', u'<?code c = #fff?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
+	check('255,255,255,255', u'<?code c = #ffffff?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
+	check('18,52,86,255', u'<?code c = #123456?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
+	check('17,34,51,68', u'<?code c = #1234?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
+	check('18,52,86,120', u'<?code c = #12345678?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
+	check('yes', u'<?if #fff?>yes<?else?>no<?end if?>')
+
+
 def test_list():
 	check('', u'<?for item in []?><?print item?>;<?end for?>')
 	check('1;', u'<?for item in [1]?><?print item?>;<?end for?>')
@@ -970,6 +979,39 @@ def test_method_get():
 	check("17", u"<?print {'foo': 17}.get('foo', 42)?>")
 	check("", u"<?print {}.get('foo')?>")
 	check("17", u"<?print {'foo': 17}.get('foo')?>")
+
+
+def test_method_r_g_b_a():
+	check('0x11', u'<?code c = #123?><?print hex(c.r())?>')
+	check('0x22', u'<?code c = #123?><?print hex(c.g())?>')
+	check('0x33', u'<?code c = #123?><?print hex(c.b())?>')
+	check('0xff', u'<?code c = #123?><?print hex(c.a())?>')
+
+
+def test_method_hls():
+	check('0', u'<?code c = #fff?><?print int(c.hls()[0])?>')
+	check('1', u'<?code c = #fff?><?print int(c.hls()[1])?>')
+	check('0', u'<?code c = #fff?><?print int(c.hls()[2])?>')
+
+
+def test_method_hlsa():
+	check('0', u'<?code c = #fff?><?print int(c.hlsa()[0])?>')
+	check('1', u'<?code c = #fff?><?print int(c.hlsa()[1])?>')
+	check('0', u'<?code c = #fff?><?print int(c.hlsa()[2])?>')
+	check('1', u'<?code c = #fff?><?print int(c.hlsa()[3])?>')
+
+
+def test_method_hsv():
+	check('0', u'<?code c = #fff?><?print int(c.hsv()[0])?>')
+	check('0', u'<?code c = #fff?><?print int(c.hsv()[1])?>')
+	check('1', u'<?code c = #fff?><?print int(c.hsv()[2])?>')
+
+
+def test_method_hsva():
+	check('0', u'<?code c = #fff?><?print int(c.hsva()[0])?>')
+	check('0', u'<?code c = #fff?><?print int(c.hsva()[1])?>')
+	check('1', u'<?code c = #fff?><?print int(c.hsva()[2])?>')
+	check('1', u'<?code c = #fff?><?print int(c.hsva()[3])?>')
 
 
 def test_render():

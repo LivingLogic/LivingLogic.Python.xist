@@ -65,13 +65,15 @@ code:
 	*	integers
 	*	floats
 	*	date objects
+	*	color objects
 	*	The "null" value (``None``)
 	*	boolean values (``True`` and ``False``)
 	*	lists
 	*	dictionaries
 	*	templates
 
-This is similar to what JSON_ supports (except for date objects and templates).
+This is similar to what JSON_ supports (except for date objects, color objects
+and templates).
 
 	.. _JSON: http://www.json.org/
 
@@ -134,7 +136,8 @@ unicode objects, so ``\uXXXX`` escaping is possible. Examples:
 Date constants
 --------------
 
-Date constants can be created like this:
+Date objects have a date and time including microseconds. Date constants can be
+created like this:
 
 	*	``2008-12-24T``
 
@@ -143,6 +146,24 @@ Date constants can be created like this:
 	*	``2008-12-24T12:34:56``
 
 	*	``2008-12-24T12:34:56.987654``
+
+
+Color constants
+---------------
+
+Color values are 8 bit red, green, blue and alpha values. Color constants can
+be created like this:
+
+	*	``#fff``
+
+	*	``#fff8``
+
+	*	``#0063a8``
+
+	*	``#0063a880``
+
+The variants with 3 or 6 hex digits will create a color object with an alpha
+value of 255.
 
 
 List constants
@@ -238,8 +259,8 @@ The ``break`` tag can be used to break out of the innermost running loop.
 ``continue``
 ------------
 
-The ``continue`` tag can be used skip the rest of the loop body of the innermost
-running loop.
+The ``continue`` tag can be used to skip the rest of the loop body of the
+innermost running loop.
 
 
 ``if``
@@ -523,7 +544,8 @@ a boolean or an integer.
 
 ``str(foo)`` converts ``foo`` to a string. If ``foo`` is ``None`` the result
 will be the empty string. For lists and dictionaries the exact format is
-undefined, but should follow Python's repr format.
+undefined, but should follow Python's repr format. For color objects the result
+is a CSS expression (e.g. ``"#fff"``).
 
 
 ``repr``
@@ -590,7 +612,8 @@ prints::
 
 	abr
 
-Supported arguments are iterable objects, i.e. strings, lists and dictionaries.
+Supported arguments are iterable objects, i.e. strings, lists, dictionaries
+and colors.
 
 
 ``chr``
@@ -650,8 +673,19 @@ outputs::
 
 ``type`` returns the type of the object as a string. Possible return values are
 ``"none"``, ``"bool"``, ``"int"``, ``"float"``, ``"str"``, ``"list"``,
-``"dict"`` and ``"template"``. (If the type isn't recognized ``None`` is
-returned.)
+``"dict"``, ``"date"``, ``"color"`` and ``"template"``. (If the type isn't
+recognized ``None`` is returned.)
+
+
+``color``
+:::::::::
+
+``color`` returns a color object. It can be called with
+
+	*	one argument, which must be a string in CSS format;
+	*	three arguments, the red, green and blue values. The alpha value will be
+		set to 255;
+	*	four arguments, the red, green, blue and alpha values.
 
 
 Methods

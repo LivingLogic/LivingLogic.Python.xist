@@ -25,7 +25,7 @@ __docformat__ = "reStructuredText"
 
 import re, datetime, StringIO, locale
 
-from ll import spark
+from ll import spark, color
 
 
 # Regular expression used for splitting dates
@@ -168,8 +168,8 @@ class BlockError(Exception):
 class UnknownFunctionError(Exception):
 	"""
 	Exception that is raised by the renderer if the function to be executed by
-	the ``callfunc0``, ``callfunc1``, ``callfunc2`` or ``callfunc3`` opcodes is
-	unknown.
+	the ``callfunc0``, ``callfunc1``, ``callfunc2``, ``callfunc3`` or
+	``callfunc4`` opcodes is unknown.
 	"""
 
 	def __init__(self, funcname):
@@ -267,6 +267,10 @@ class Opcode(object):
 	``"loaddate"``:
 		Load the date value :attr:`arg` into register :attr:`r1`. :attr:`arg` must
 		be in ISO format (e.g. ``2008-07-02T11:05:55.460464``).
+
+	``"loadcolor"``:
+		Load the color value :attr:`arg` into register :attr:`r1`. :attr:`arg` must
+		be in the format ``rrggbbaa``).
 
 	``"buildlist"``:
 		Load an empty list into register :attr:`r1`.
@@ -415,6 +419,11 @@ class Opcode(object):
 		:attr:`r2`, :attr:`r3` and :attr:`r4` as the three arguments and store
 		the return value in register :attr:`r1`.
 
+	``"callfunc4"``:
+		Call the function named :attr:`arg` with the contents of register
+		:attr:`r2`, :attr:`r3`, :attr:`r4` and :attr:`r5` as the four arguments
+		and store the return value in register :attr:`r1`.
+
 	``"callmeth0"``:
 		Call the method named :attr:`arg` on the object in register :attr:`r2`
 		and store the return value in register :attr:`r1`.
@@ -484,6 +493,8 @@ class Opcode(object):
 			return "r%r = %s" % (self.r1, self.arg)
 		elif self.code == "loaddate":
 			return "r%r = %s" % (self.r1, self.arg)
+		elif self.code == "loadcolor":
+			return "r%r = #%s" % (self.r1, self.arg)
 		elif self.code == "buildlist":
 			return "r%r = []" % (self.r1)
 		elif self.code == "builddict":
@@ -578,6 +589,8 @@ class Opcode(object):
 			return "r%r = %s(r%r, r%r)" % (self.r1, self.arg, self.r2, self.r3)
 		elif self.code == "callfunc3":
 			return "r%r = %s(r%r, r%r, r%r)" % (self.r1, self.arg, self.r2, self.r3, self.r4)
+		elif self.code == "callfunc4":
+			return "r%r = %s(r%r, r%r, r%r, r%r)" % (self.r1, self.arg, self.r2, self.r3, self.r4, self.r5)
 		elif self.code == "callmeth0":
 			return "r%r = r%r.%s()" % (self.r1, self.r2, self.arg)
 		elif self.code == "callmeth1":
@@ -605,7 +618,7 @@ class Template(object):
 	Rendering the template can be done with the methods :meth:`render` (which
 	returns a generator) or :meth:`renders` (which returns a string).
 	"""
-	version = "6"
+	version = "7"
 
 	def __init__(self):
 		self.startdelim = None
@@ -798,7 +811,7 @@ class Template(object):
 		_code("import simplejson as json")
 		indent -= 1
 		_code("from ll.misc import xmlescape")
-		_code("from ll import ul4c")
+		_code("from ll import ul4c, color")
 		_code("source = %r" % self.source)
 		_code('variables = dict((key.decode("utf-8"), value) for (key, value) in variables.iteritems())') # FIXME: This can be dropped in Python 3.0 where strings are unicode
 		locations = []
@@ -838,6 +851,8 @@ class Template(object):
 					_code("reg%d = True" % opcode.r1)
 				elif opcode.code == "loaddate":
 					_code("reg%d = datetime.datetime(%s)" % (opcode.r1, ", ".join(str(int(p)) for p in datesplitter.split(opcode.arg))))
+				elif opcode.code == "loadcolor":
+					_code("reg%d = color.Color(0x%s, 0x%s, 0x%s, 0x%s)" % (opcode.r1, opcode.arg[:2], opcode.arg[2:4], opcode.arg[4:6], opcode.arg[6:]))
 				elif opcode.code == "buildlist":
 					_code("reg%d = []" % opcode.r1)
 				elif opcode.code == "builddict":
@@ -989,6 +1004,8 @@ class Template(object):
 						_code("reg%d = xrange(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "type":
 						_code("reg%d = ul4c._type(reg%d)" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "color":
+						_code("reg%d = color.Color.fromcss(reg%d)" % (opcode.r1, opcode.r2))
 					else:
 						raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callfunc2":
@@ -1005,10 +1022,17 @@ class Template(object):
 						_code("reg%d = xrange(reg%d, reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
 					elif opcode.arg == "zip":
 						_code("reg%d = itertools.izip(reg%d, reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
+					elif opcode.arg == "color":
+						_code("reg%d = color.Color(reg%d, reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
+					else:
+						raise UnknownFunctionError(opcode.arg)
+				elif opcode.code == "callfunc4":
+					if opcode.arg == "color":
+						_code("reg%d = color.Color(reg%d, reg%d, reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4, opcode.r5))
 					else:
 						raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callmeth0":
-					if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "isoformat"):
+					if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "isoformat", "r", "g", "b", "a", "hls", "hlsa", "hsv", "hsva"):
 						_code("reg%d = reg%d.%s()" % (opcode.r1, opcode.r2, opcode.arg))
 					elif opcode.arg == "items":
 						_code("reg%d = reg%d.iteritems()" % (opcode.r1, opcode.r2))
@@ -1367,6 +1391,15 @@ class Date(Value):
 		return r
 
 
+class Color(Value):
+	type = "color"
+
+	def compile(self, template):
+		r = template._allocreg()
+		template.opcode("load%s" % self.type, r1=r, arg="%02x%02x%02x%02x" % self.value)
+		return r
+
+
 class List(AST):
 	def __init__(self, start, end, *items):
 		AST.__init__(self, start, end)
@@ -1681,11 +1714,11 @@ class CallFunc(AST):
 			r = template._allocreg()
 			template.opcode("callfunc0", r1=r, arg=self.name.name)
 			return r
-		elif len(self.args) > 3:
-			raise ValueError("%d arguments not supported" % len(self.args))
+		elif len(self.args) > 4:
+			raise ValueError("%d function arguments not supported" % len(self.args))
 		else:
 			rs = [arg.compile(template) for arg in self.args]
-			template.opcode("callfunc%d" % len(self.args), rs[0], *rs, **dict(arg=self.name.name)) # Replace **dict(arg=) with arg= in Python 2.6?
+			template.opcode("callfunc%d" % len(self.args), rs[0], *rs, **dict(arg=self.name.name)) # FIXME: Replace **dict(arg=) with arg= in Python 2.6?
 			for i in xrange(1, len(self.args)):
 				template._freereg(rs[i])
 			return rs[0]
@@ -1706,7 +1739,7 @@ class CallMeth(AST):
 
 	def compile(self, template):
 		if len(self.args) > 3:
-			raise ValueError("%d arguments not supported" % len(self.args))
+			raise ValueError("%d method arguments not supported" % len(self.args))
 		ro = self.obj.compile(template)
 		rs = [arg.compile(template) for arg in self.args]
 		template.opcode("callmeth%d" % len(self.args), ro, ro, *rs, **dict(arg=self.name.name))
@@ -1764,6 +1797,23 @@ class Scanner(spark.Scanner):
 		except Exception, exc:
 			raise Error(location, exc)
 		return self.rv
+
+	# Color tokens must be in the order of decreasing length
+	@spark.token("\\#[0-9a-fA-F]{8}", "default")
+	def color8(self, start, end, s):
+		self.rv.append(Color(start, end, color.Color(int(s[1:3], 16), int(s[3:5], 16), int(s[5:7], 16), int(s[7:], 16))))
+
+	@spark.token("\\#[0-9a-fA-F]{6}", "default")
+	def color6(self, start, end, s):
+		self.rv.append(Color(start, end, color.Color(int(s[1:3], 16), int(s[3:5], 16), int(s[5:], 16))))
+
+	@spark.token("\\#[0-9a-fA-F]{4}", "default")
+	def color4(self, start, end, s):
+		self.rv.append(Color(start, end, color.Color(17*int(s[1], 16), 17*int(s[2], 16), 17*int(s[3], 16), 17*int(s[4], 16))))
+
+	@spark.token("\\#[0-9a-fA-F]{3}", "default")
+	def color3(self, start, end, s):
+		self.rv.append(Color(start, end, color.Color(17*int(s[1], 16), 17*int(s[2], 16), 17*int(s[3], 16))))
 
 	# Must be before the int and float constants
 	@spark.token("\\d{4}-\\d{2}-\\d{2}T(\\d{2}:\\d{2}(:\\d{2}(\\.\\d{6})?)?)?", "default")
@@ -1938,13 +1988,15 @@ class ExprParser(spark.Parser):
 			return Float(start, end, value)
 		elif isinstance(value, basestring):
 			return Str(start, end, value)
+		elif isinstance(value, color.Color):
+			return Color(start, end, value)
 		else:
 			raise TypeError("can't convert %r" % value)
 
 	# To implement operator precedence, each expression rule has the precedence in its name. The highest precedence is 11 for atomic expressions.
 	# Each expression can have only expressions as parts which have the some or a higher precedence with two exceptions:
-	#    1) Expressions where there's no ambiguity, like the index for a getitem/getslice or function/method arguments;
-	#    2) Brackets, which can be used to boost the precedence of an expression to the level of an atomic expression.
+	#    1. Expressions where there's no ambiguity, like the index for a getitem/getslice or function/method arguments;
+	#    2. Brackets, which can be used to boost the precedence of an expression to the level of an atomic expression.
 
 	@spark.production('expr11 ::= none')
 	@spark.production('expr11 ::= true')
@@ -1953,6 +2005,7 @@ class ExprParser(spark.Parser):
 	@spark.production('expr11 ::= int')
 	@spark.production('expr11 ::= float')
 	@spark.production('expr11 ::= date')
+	@spark.production('expr11 ::= color')
 	@spark.production('expr11 ::= name')
 	def expr_atom(self, atom):
 		return atom
@@ -2034,6 +2087,10 @@ class ExprParser(spark.Parser):
 	@spark.production('expr10 ::= name ( expr0 , expr0 , expr0 )')
 	def expr_callfunc3(self, name, _0, arg0, _1, arg1, _2, arg2, _3):
 		return CallFunc(name.start, _3.end, name, [arg0, arg1, arg2])
+
+	@spark.production('expr10 ::= name ( expr0 , expr0 , expr0 , expr0 )')
+	def expr_callfunc4(self, name, _0, arg0, _1, arg1, _2, arg2, _3, arg3, _4):
+		return CallFunc(name.start, _4.end, name, [arg0, arg1, arg2, arg3])
 
 	@spark.production('expr9 ::= expr9 . name')
 	def expr_getattr(self, expr, _0, name):
@@ -2402,6 +2459,8 @@ def _type(obj):
 		return u"float"
 	elif isinstance(obj, (datetime.datetime, datetime.date)):
 		return u"date"
+	elif isinstance(obj, color.Color):
+		return u"color"
 	elif isinstance(obj, (list, tuple)):
 		return u"list"
 	elif isinstance(obj, dict):
