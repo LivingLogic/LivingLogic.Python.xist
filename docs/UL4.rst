@@ -677,12 +677,11 @@ outputs::
 recognized ``None`` is returned.)
 
 
-``color``
-:::::::::
+``rgb``
+:::::::
 
-``color`` returns a color object. It can be called with
+``rgb`` returns a color object. It can be called with
 
-	*	one argument, which must be a string in CSS format;
 	*	three arguments, the red, green and blue values. The alpha value will be
 		set to 255;
 	*	four arguments, the red, green, blue and alpha values.

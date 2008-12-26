@@ -3,7 +3,7 @@ Changes in 3.6 (released ??/??/2009)
 
 *	The module :mod:`ll.color` has been greatly simplified. All methods that
 	treat the components as 4 bit or floating point values have been removed. The
-	rests of the properties have been turned into methods.
+	rest of the properties have been turned into methods.
 
 *	Support for color objects has been added to UL4.
 

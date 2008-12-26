@@ -78,7 +78,16 @@ class Color(tuple):
 		raise ValueError("can't interpret %s as css value" % s)
 
 	@classmethod
-	def fromhsva(cls, h, s, v, a=1.0):
+	def fromrgb(cls, r, g, b, a=1.0):
+		"""
+		Create a :class:`Color` object from the red, green, blue and alpha values
+		:var:`r`, :var:`g`, :var:`b` and :var:`a`. All values will be clipped
+		to the range [0; 1].
+		"""
+		return cls(255*r, 255*g, 255*b, 255*a)
+
+	@classmethod
+	def fromhsv(cls, h, s, v, a=1.0):
 		"""
 		Create a :class:`Color` object from the hue, saturation and value values
 		:var:`h`, :var:`s` and :var:`v` and the alpha value :var:`a`. The hue
@@ -89,7 +98,7 @@ class Color(tuple):
 		return cls.fromrgba(*(rgb + (a,)))
 
 	@classmethod
-	def fromhlsa(cls, h, l, s, a=1.0):
+	def fromhls(cls, h, l, s, a=1.0):
 		"""
 		Create a :class:`Color` object from the hue, luminance and saturation
 		values :var:`h`, :var:`l` and :var:`s` and the alpha value :var:`a`.
@@ -144,16 +153,16 @@ class Color(tuple):
 	def rgb(self):
 		"""
 		The red, green and blue value as a float tuple with values between
-		0 and 255.
+		0.0 and 1.0.
 		"""
-		return (self.r(), self.g(), self.b())
+		return (self[0]/255., self[1]/255., self[2]/255.)
 
 	def rgba(self):
 		"""
 		The red, green, blue and alpha value as a float tuple with values between
-		0 and 255.
+		0.0 and 1.0.
 		"""
-		return (self.r(), self.g(), self.b(), self.a())
+		return (self[0]/255., self[1]/255., self[2]/255., self[3]/255.)
 
 	def hsv(self):
 		"""
