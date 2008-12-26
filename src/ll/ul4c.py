@@ -1022,11 +1022,19 @@ class Template(object):
 						_code("reg%d = itertools.izip(reg%d, reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
 					elif opcode.arg == "rgb":
 						_code("reg%d = color.Color.fromrgb(reg%d, reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
+					elif opcode.arg == "hls":
+						_code("reg%d = color.Color.fromhls(reg%d, reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
+					elif opcode.arg == "hsv":
+						_code("reg%d = color.Color.fromhsv(reg%d, reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
 					else:
 						raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callfunc4":
 					if opcode.arg == "rgb":
 						_code("reg%d = color.Color.fromrgb(reg%d, reg%d, reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4, opcode.r5))
+					if opcode.arg == "hls":
+						_code("reg%d = color.Color.fromhls(reg%d, reg%d, reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4, opcode.r5))
+					if opcode.arg == "hsv":
+						_code("reg%d = color.Color.fromhsv(reg%d, reg%d, reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4, opcode.r5))
 					else:
 						raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callmeth0":
