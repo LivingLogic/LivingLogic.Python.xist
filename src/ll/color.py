@@ -95,7 +95,7 @@ class Color(tuple):
 		to the range [0; 1].
 		"""
 		rgb = colorsys.hsv_to_rgb(h % 1.0, max(0., min(s, 1.)), max(0., min(v, 1.)))
-		return cls.fromrgba(*(rgb + (a,)))
+		return cls.fromrgb(*(rgb + (a,)))
 
 	@classmethod
 	def fromhls(cls, h, l, s, a=1.0):
@@ -106,7 +106,7 @@ class Color(tuple):
 		will be clipped to the range [0; 1].
 		"""
 		rgb = colorsys.hls_to_rgb(h % 1.0, max(0., min(l, 1.)), max(0., min(s, 1.)))
-		return cls.fromrgba(*(rgb + (a,)))
+		return cls.fromrgb(*(rgb + (a,)))
 
 	def __repr__(self):
 		if self[3] != 0xff:
