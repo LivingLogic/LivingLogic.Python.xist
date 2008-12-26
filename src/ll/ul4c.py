@@ -616,7 +616,7 @@ class Template(object):
 	the compiled format).
 
 	Rendering the template can be done with the methods :meth:`render` (which
-	returns a generator) or :meth:`renders` (which returns a string).
+	is a generator) or :meth:`renders` (which returns a string).
 	"""
 	version = "7"
 
