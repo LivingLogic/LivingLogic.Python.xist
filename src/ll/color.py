@@ -215,8 +215,11 @@ class Color(tuple):
 		return self.__class__(*channels)
 
 	def withlum(self, lum):
+		"""
+		Return a copy of :var:`self` with the luminosity replaced with :var:`lum`.
+		"""
 		(h, l, s, a) = self.hlsa()
-		return self.fromhls(h, max(0., min(lum, 1.)), s, a)
+		return self.fromhls(h, lum, s, a)
 
 	def abslum(self, f):
 		"""
