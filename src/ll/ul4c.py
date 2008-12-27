@@ -1038,7 +1038,7 @@ class Template(object):
 					else:
 						raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callmeth0":
-					if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "isoformat", "r", "g", "b", "a", "hls", "hlsa", "hsv", "hsva"):
+					if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "isoformat", "r", "g", "b", "a", "hls", "hlsa", "hsv", "hsva", "lum"):
 						_code("reg%d = reg%d.%s()" % (opcode.r1, opcode.r2, opcode.arg))
 					elif opcode.arg == "items":
 						_code("reg%d = reg%d.iteritems()" % (opcode.r1, opcode.r2))
