@@ -192,10 +192,9 @@ class Color(tuple):
 		"""
 		return self.hls() + (self[3]/255.,)
 
-	@property
 	def lum(self):
 		"""
-		The luminance value from the :prop:`hls` property.
+		The luminance value from :meth:`hls`.
 		"""
 		return colorsys.rgb_to_hls(self[0]/255., self[1]/255., self[2]/255.)[1]
 
