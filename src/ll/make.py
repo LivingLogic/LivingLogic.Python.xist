@@ -230,14 +230,14 @@ def getoutputs(project, since, input):
 	:class:`tuple`, :class:`list` or :class:`dict`) and return a tuple
 	containing:
 
-	*	An object (:var:`data`) of the same structure as :var:`input` where every
+	*	An object (:var:`data`) of the same structure as :var:`input`, where every
 		action object encountered is replacd with the output of that action;
 
 	*	A timestamp (:var:`changed`) which the newest timestamp among all the
 		change timestamps of the actions encountered.
 
-	*	If none of the actions has any data newer than :var:`since` (i.e. none
-		of the actions produces any new data) :var:`data` will be :const:`nodata`.
+	If none of the actions has any data newer than :var:`since` (i.e. none of
+	the actions produces any new data) :var:`data` will be :const:`nodata`.
 	"""
 	if isinstance(input, Action):
 		return (input.get(project, since), input.changed)
