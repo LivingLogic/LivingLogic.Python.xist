@@ -1045,7 +1045,7 @@ class Template(object):
 					else:
 						raise UnknownMethodError(opcode.arg)
 				elif opcode.code == "callmeth1":
-					if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "get"):
+					if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "get", "withlum", "witha"):
 						_code("reg%d = reg%d.%s(reg%d)" % (opcode.r1, opcode.r2, opcode.arg, opcode.r3))
 					elif opcode.arg == "format":
 						_code("reg%d = ul4c._format(reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3))
@@ -2428,6 +2428,17 @@ def _repr(obj):
 		return unicode(repr(obj)[1:])
 	elif isinstance(obj, datetime.datetime):
 		return unicode(obj.isoformat())
+	elif isinstance(obj, color.Color):
+		if obj[3] == 0xff:
+			s = "#%02x%02x%02x" % (obj[0], obj[1], obj[2])
+			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6]:
+				return "#%s%s%s" % (s[1], s[3], s[5])
+			return s
+		else:
+			s = "#%02x%02x%02x%02x" % obj
+			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6] and s[7]==s[8]:
+				return "#%s%s%s%s" % (s[1], s[3], s[5], s[7])
+			return s
 	elif isinstance(obj, list):
 		return u"[%s]" % u", ".join(_repr(item) for item in obj)
 	elif isinstance(obj, dict):
