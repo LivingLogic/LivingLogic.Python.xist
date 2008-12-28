@@ -214,6 +214,13 @@ class Color(tuple):
 			channels[3] = a
 		return self.__class__(*channels)
 
+	def witha(self, a):
+		"""
+		Return a copy of :var:`self` with the alpha value replaced with :var:`a`.
+		"""
+		(r, g, b, olda) = self
+		return self.__class__(r, g, b, a)
+
 	def withlum(self, lum):
 		"""
 		Return a copy of :var:`self` with the luminosity replaced with :var:`lum`.
