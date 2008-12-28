@@ -1014,6 +1014,18 @@ def test_method_hsva():
 	check('1', u'<?code c = #fff?><?print int(c.hsva()[3])?>')
 
 
+def test_method_lum():
+	check('True', u'<?print #fff.lum() == 1?>')
+
+
+def test_method_withlum():
+	check('#fff', u'<?print #000.withlum(1)?>')
+
+
+def test_method_witha():
+	check('#0063a82a', u'<?print repr(#0063a8.witha(42))?>')
+
+
 def test_render():
 	t = ul4c.compile(u'<?print prefix?><?print data?><?print suffix?>')
 	check('(f)(o)(o)', u'<?for c in data?><?render t(data=c, prefix="(", suffix=")")?><?end for?>', t=t, data='foo')
