@@ -381,9 +381,9 @@ class Action(object):
 			else:
 				return "=%r" % (arg,)
 
-		output = ["%d%s" % (i, format(arg)) for (i, arg) in enumerate(self.getargs())]
+		output = ["arg %d%s" % (i, format(arg)) for (i, arg) in enumerate(self.getargs())]
 		for (argname, arg) in self.getkwargs().iteritems():
-			output.append("%s%s" % (argname, format(arg)))
+			output.append("arg %s%s" % (argname, format(arg)))
 			
 		if output:
 			output = " with %s" % ", ".join(output)
