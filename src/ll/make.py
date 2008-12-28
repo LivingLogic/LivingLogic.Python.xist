@@ -767,7 +767,7 @@ class CacheAction(PipeAction):
 			project.writenote(self, "Caching data")
 			self.since = since
 			self.buildno = project.buildno
-		if since < self.changed:
+		if since < self.changed or since is bigbang:
 			project.writenote(self, "Reusing cached data")
 			return self.data
 		return nodata

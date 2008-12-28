@@ -7,6 +7,9 @@ Changes in 3.6 (released ??/??/2009)
 
 *	Support for color objects has been added to UL4.
 
+*	Fixed a bug in :meth:`ll.make.CacheAction.get`: The action must return real
+	data when called with ``bigbang`` as the timestamp.
+
 
 Changes in 3.5 (released 12/05/2008)
 ------------------------------------
