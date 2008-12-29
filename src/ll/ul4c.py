@@ -2426,6 +2426,8 @@ def _repr(obj):
 	"""
 	if isinstance(obj, unicode):
 		return unicode(repr(obj)[1:])
+	elif isinstance(obj, str):
+		return unicode(repr(obj))
 	elif isinstance(obj, datetime.datetime):
 		return unicode(obj.isoformat())
 	elif isinstance(obj, color.Color):
