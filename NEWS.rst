@@ -19,7 +19,6 @@ Changes in 3.6 (released ??/??/2009)
 *	Dividing color now does a scalar division. Blending colors is now done with
 	the modulo operator.
 
-
 *	Support for color objects has been added to UL4.
 
 *	Fixed a bug in :meth:`ll.make.CacheAction.get`: The action must return real
