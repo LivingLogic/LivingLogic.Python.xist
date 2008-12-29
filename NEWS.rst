@@ -1,9 +1,24 @@
 Changes in 3.6 (released ??/??/2009)
 ------------------------------------
 
-*	The module :mod:`ll.color` has been greatly simplified. All methods that
-	treat the components as 4 bit or floating point values have been removed. The
-	rest of the properties have been turned into methods.
+*	The following :class:`Color` class methods have been dropped: ``fromrgba``,
+	``fromrgba4``, ``fromrgba8``, ``fromint4``, ``fromint8``.
+
+*	The following :class:`Color` properties have been dropped: ``r4``, ``g4``,
+	``b4``, ``a4``, ``r8``, ``g8``, ``b8``, ``a8``, ``r``, ``g``, ``b``,  ``a``
+	``int4``, ``int8``, ``rgb4``, ``rgba4``, ``rgb8``, and ``rgba8`` have been
+	dropped. The new methods ``r``, ``g``, ``b`` and ``a`` return the 8 bit
+	component values.
+
+*	The class methods ``fromhsva`` and ``fromhlsa`` have been renamed to
+	``fromhsv`` and ``fromhls``.
+
+*	The property ``css`` has been dropped instead the CSS string is returned
+	by ``__str__``.
+
+*	Dividing color now does a scalar division. Blending colors is now done with
+	the modulo operator.
+
 
 *	Support for color objects has been added to UL4.
 
