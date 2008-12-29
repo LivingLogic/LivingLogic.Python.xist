@@ -21,10 +21,10 @@ Changes in 3.5 (released 12/05/2008)
 *	The UL4 function ``csvescape`` has been renamed to ``csv``.
 
 *	A new option :option:`--showregistration`/:option:`-r` has been added to
-	make script.
+	make scripts.
 
 *	:mod:`ll.make` now supports Growl__ notifications on Mac OS X. To activate
-	it set the ``LL_MAKE_GROWN`` environment variable to ``1`` or use the ``-g``
+	it set the ``LL_MAKE_GROWL`` environment variable to ``1`` or use the ``-g``
 	or ``--growl`` options.
 
 	__ http://growl.info/
