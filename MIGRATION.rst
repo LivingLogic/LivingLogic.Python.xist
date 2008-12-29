@@ -23,9 +23,6 @@ Changes to the color module
 	the modulo operator.
 
 
-
-
-
 Migrating to version 3.5
 ========================
 
