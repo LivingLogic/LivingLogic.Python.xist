@@ -2267,6 +2267,20 @@ class Project(dict):
 		This can be overwritten in subclasses to add more options.
 		"""
 
+		def action2name(action):
+			if action is None:
+				return "none"
+			elif action is Action:
+				return "all"
+			elif issubclass(FileAction, action) and issubclass(PhonyAction, action):
+				return "filephony"
+			elif issubclass(FileAction, action):
+				return "file"
+			elif issubclass(PhonyAction, action):
+				return "phony"
+			else:
+				return "all"
+
 		actions = ["all", "file", "phony", "filephony", "none"]
 		p = optparse.OptionParser(usage="usage: %prog [options] [targets]")
 		p.add_option("-x", "--ignore", dest="ignoreerrors", help="Ignore errors", action="store_true", default=None)
@@ -2274,10 +2288,10 @@ class Project(dict):
 		p.add_option("-c", "--color", dest="color", help="Use colored output", action="store_true", default=None)
 		p.add_option("-C", "--nocolor", dest="color", help="No colored output", action="store_false", default=None)
 		p.add_option("-g", "--growl", dest="growl", help="Issue growl notification after the build?", action="store_true", default=None)
-		p.add_option("-a", "--showaction", dest="showaction", help="Show actions (%s)?" % ", ".join(actions), choices=actions, default=self.showaction)
-		p.add_option("-s", "--showstep", dest="showstep", help="Show steps (%s)?" % ", ".join(actions), choices=actions, default=self.showstep)
-		p.add_option("-n", "--shownote", dest="shownote", help="Show notes (%s)?" % ", ".join(actions), choices=actions, default=self.shownote)
-		p.add_option("-r", "--showregistration", dest="showregistration", help="Show registration (%s)?" % ", ".join(actions), choices=actions, default=self.showregistration)
+		p.add_option("-a", "--showaction", dest="showaction", help="Show actions (%s)?" % ", ".join(actions), choices=actions, default=action2name(self.showaction))
+		p.add_option("-s", "--showstep", dest="showstep", help="Show steps (%s)?" % ", ".join(actions), choices=actions, default=action2name(self.showstep))
+		p.add_option("-n", "--shownote", dest="shownote", help="Show notes (%s)?" % ", ".join(actions), choices=actions, default=action2name(self.shownote))
+		p.add_option("-r", "--showregistration", dest="showregistration", help="Show registration (%s)?" % ", ".join(actions), choices=actions, default=action2name(self.showregistration))
 		p.add_option("-i", "--showidle", dest="showidle", help="Show actions that didn't produce data?", action="store_true", default=self.showidle)
 		p.add_option("-d", "--showdata", dest="showdata", help="Show data?", action="store_true", default=self.showdata)
 		return p
