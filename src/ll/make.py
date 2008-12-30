@@ -1418,39 +1418,6 @@ class SplatAction(PipeAction):
 		return data
 
 
-class XPITAction(PipeAction):
-	"""
-	This action transform an input string via :mod:`ll.xpit`.
-	"""
-
-	def __init__(self, input=None, nsinput=None):
-		PipeAction.__init__(self, input)
-		self.nsinput = nsinput
-
-	def addnsinput(self, input):
-		"""
-		Register :var:`input` as the namespace action. This action must return
-		a namespace to be used in evaluating the input string from the normal
-		input action.
-		"""
-		self.nsinput = input
-		return self
-
-	def __iter__(self):
-		for input in PipeAction.__iter__(self):
-			yield input
-		yield self.nsinput
-
-	def getkwargs(self):
-		return dict(ns=self.nsinput, data=self.input)
-
-	def execute(self, project, ns, data):
-		from ll import xpit
-		globals = dict(makeaction=self, makeproject=project)
-		project.writestep(self, "Converting XPIT input")
-		return xpit.convert(data, globals, ns)
-
-
 class UL4CompileAction(PipeAction):
 	"""
 	This action compiles a UL4 template into a :class:`ll.ul4c.Template` object.
@@ -1466,28 +1433,25 @@ class UL4RenderAction(PipeAction):
 	"""
 	This action renders a UL4 template to a string.
 	"""
-	def __init__(self, input=None, templates={}, **vars):
+	def __init__(self, input=None, **vars):
 		PipeAction.__init__(self, input)
-		self.templates = templates
 		self.vars = vars
 
 	def __iter__(self):
 		for input in PipeAction.__iter__(self):
 			yield input
-		for input in self.templates.itervalues():
-			yield input
 		for input in self.vars.itervalues():
 			yield input
 
 	def getargs(self):
-		return (self.input, self.templates)
+		return (self.input,)
 
 	def getkwargs(self):
 		return self.vars
 
-	def execute(self, project, data, templates, **vars):
+	def execute(self, project, data, **vars):
 		project.writestep(self, "Rendering UL4 template with ", len(self.opcodes), " opcodes")
-		return data.renders(templates, **vars)
+		return data.renders(**vars)
 
 
 class UL4DumpAction(PipeAction):

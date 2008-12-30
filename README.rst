@@ -33,9 +33,6 @@ XIST also includes the following modules:
 *	:mod:`ll.url` provides classes for parsing and constructing RFC 2396
 	compliant URLs.
 
-*	:mod:`ll.xpit` is a module that makes it possible to embed Python
-	expressions in text (as XML style processing instructions).
-
 *	:mod:`ll.ul4c` is compiler for a templating language with similar capabilities
 	to `Django's templating language`__. ``UL4`` templates are compiled to an
 	internal bytecode format, which makes it possible to implement template

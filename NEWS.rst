@@ -21,8 +21,13 @@ Changes in 3.6 (released 12/31/2009)
 
 *	Support for color objects has been added to UL4.
 
+*	The XPIT templating language and :class:`ll.make.XPITAction`` have been
+	removed.
+
 *	Fixed a bug in :meth:`ll.make.CacheAction.get`: The action must return real
 	data when called with ``bigbang`` as the timestamp.
+
+*	:class:`ll.make.UL4RenderAction`` has been fixed.
 
 
 Changes in 3.5 (released 12/05/2008)
