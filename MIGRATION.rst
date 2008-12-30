@@ -22,6 +22,12 @@ Changes to the color module
 *	Dividing color now does a scalar division. Blending colors is now done with
 	the modulo operator.
 
+Removal of XPIT
+---------------
+
+*	The XPIT tamplating language has been removed. You should replace all your
+	XPIT templates with UL4 templates.
+
 
 Migrating to version 3.5
 ========================
