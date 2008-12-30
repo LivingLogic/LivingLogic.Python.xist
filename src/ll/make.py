@@ -1901,8 +1901,8 @@ class OracleResource(url.Resource):
 ###
 
 s4indent = astyle.Style.fromenv("LL_MAKE_REPRANSI_INDENT", "black:black:bold")
-s4key = astyle.Style.fromenv("LL_MAKE_REPRANSI_KEY", "green:black")
-s4action = astyle.Style.fromenv("LL_MAKE_REPRANSI_ACTION", "yellow:black")
+s4key = astyle.Style.fromenv("LL_MAKE_REPRANSI_KEY", "yellow:black")
+s4action = astyle.Style.fromenv("LL_MAKE_REPRANSI_ACTION", "green:black")
 s4time = astyle.Style.fromenv("LL_MAKE_REPRANSI_TIME", "magenta:black")
 s4data = astyle.Style.fromenv("LL_MAKE_REPRANSI_DATA", "cyan:black")
 s4size = astyle.Style.fromenv("LL_MAKE_REPRANSI_SIZE", "magenta:black")
@@ -2274,12 +2274,12 @@ class Project(dict):
 		p.add_option("-c", "--color", dest="color", help="Use colored output", action="store_true", default=None)
 		p.add_option("-C", "--nocolor", dest="color", help="No colored output", action="store_false", default=None)
 		p.add_option("-g", "--growl", dest="growl", help="Issue growl notification after the build?", action="store_true", default=None)
-		p.add_option("-a", "--showaction", dest="showaction", help="Show actions (%s)?" % ", ".join(actions), choices=actions, default="filephony")
-		p.add_option("-s", "--showstep", dest="showstep", help="Show steps (%s)?" % ", ".join(actions), choices=actions, default=None)
-		p.add_option("-n", "--shownote", dest="shownote", help="Show notes (%s)?" % ", ".join(actions), choices=actions, default=None)
-		p.add_option("-r", "--showregistration", dest="showregistration", help="Show registration (%s)?" % ", ".join(actions), choices=actions, default="none")
-		p.add_option("-i", "--showidle", dest="showidle", help="Show actions that didn't produce data?", action="store_true", default=False)
-		p.add_option("-d", "--showdata", dest="showdata", help="Show data?", action="store_true", default=False)
+		p.add_option("-a", "--showaction", dest="showaction", help="Show actions (%s)?" % ", ".join(actions), choices=actions, default=self.showaction)
+		p.add_option("-s", "--showstep", dest="showstep", help="Show steps (%s)?" % ", ".join(actions), choices=actions, default=self.showstep)
+		p.add_option("-n", "--shownote", dest="shownote", help="Show notes (%s)?" % ", ".join(actions), choices=actions, default=self.shownote)
+		p.add_option("-r", "--showregistration", dest="showregistration", help="Show registration (%s)?" % ", ".join(actions), choices=actions, default=self.showregistration)
+		p.add_option("-i", "--showidle", dest="showidle", help="Show actions that didn't produce data?", action="store_true", default=self.showidle)
+		p.add_option("-d", "--showdata", dest="showdata", help="Show data?", action="store_true", default=self.showdata)
 		return p
 
 	def parseoptions(self, commandline=None):
@@ -2294,16 +2294,12 @@ class Project(dict):
 			self.ignoreerrors = options.ignoreerrors
 		if options.color is not None:
 			self.color = options.color
-		if options.growl is not None:
+		if self.growl is not None:
 			self.growl = options.growl
-		if options.showaction is not None:
-			self.showaction = options.showaction
-		if options.showstep is not None:
-			self.showstep = options.showstep
-		if options.shownote is not None:
-			self.shownote = options.shownote
-		if options.showregistration is not None:
-			self.showregistration = options.showregistration
+		self.showaction = options.showaction
+		self.showstep = options.showstep
+		self.shownote = options.shownote
+		self.showregistration = options.showregistration
 		self.showidle = options.showidle
 		self.showdata = options.showdata
 		return (options, args)
