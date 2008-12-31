@@ -1,4 +1,4 @@
-Changes in 3.6 (released 12/31/2009)
+Changes in 3.6 (released 12/31/2008)
 ------------------------------------
 
 *	The following :class:`Color` class methods have been dropped: ``fromrgba``,
