@@ -84,14 +84,15 @@ class Location(object):
 	def __repr__(self):
 		return "<%s.%s %s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self, id(self))
 
-	def __str__(self):
+	def pos(self):
 		lastlinefeed = self.source.rfind("\n", 0, self.starttag)
 		if lastlinefeed >= 0:
-			line = self.source.count("\n", 0, self.starttag)+1
-			col = self.starttag - lastlinefeed
+			return (self.source.count("\n", 0, self.starttag)+1, self.starttag-lastlinefeed)
 		else:
-			line = 1
-			col = self.starttag + 1
+			return (1, self.starttag + 1)
+
+	def __str__(self):
+		(line, col) = self.pos()
 		return "%r at %d (line %d, col %d)" % (self.tag, self.starttag+1, line, col)
 
 
@@ -581,6 +582,8 @@ class Opcode(object):
 			return "r%r = r%r or r%r" % (self.r1, self.r2, self.r3)
 		elif self.code == "mod":
 			return "r%r = r%r %% r%r" % (self.r1, self.r2, self.r3)
+		elif self.code == "neg":
+			return "r%r = -r%r" % (self.r1, self.r2)
 		elif self.code == "callfunc0":
 			return "r%r = %s()" % (self.r1, self.arg)
 		elif self.code == "callfunc1":
