@@ -1051,3 +1051,64 @@ def test_nested_exceptions():
 
 def test_note():
 	check("foo", u"f<?note This is?>o<?note a comment?>o")
+
+
+def test_strtemplate():
+	t = ul4c.compile("""
+		text
+		<?code x = 'gurk'?>
+		<?code x = 42?>
+		<?code x = 4.2?>
+		<?code x = None?>
+		<?code x = False?>
+		<?code x = True?>
+		<?code x = 2009-01-04T?>
+		<?code x = #0063a8?>
+		<?code x = [42]?>
+		<?code x = {"fortytwo": 42}?>
+		<?code x = {**{"fortytwo": 42}}?>
+		<?code x = y?>
+		<?code x += 42?>
+		<?code x -= 42?>
+		<?code x *= 42?>
+		<?code x /= 42?>
+		<?code x //= 42?>
+		<?code x %= 42?>
+		<?code del x?>
+		<?print x.gurk?>
+		<?print x["gurk"]?>
+		<?print x[1:2]?>
+		<?print x[1:]?>
+		<?print x[:2]?>
+		<?printx x?>
+		<?for x in "12"?><?print x?><?break?><?continue?><?end for?>
+		<?print not x?>
+		<?print -x?>
+		<?print x in y?>
+		<?print x not in y?>
+		<?print x==y?>
+		<?print x!=y?>
+		<?print x<y?>
+		<?print x<=y?>
+		<?print x>y?>
+		<?print x>=y?>
+		<?print x+y?>
+		<?print x*y?>
+		<?print x/y?>
+		<?print x//y?>
+		<?print x and y?>
+		<?print x or y?>
+		<?print x % y?>
+		<?print x()?>
+		<?print x(1)?>
+		<?print x(1, 2)?>
+		<?print x(1, 2, 3)?>
+		<?print x(1, 2, 3, 4)?>
+		<?print x.y()?>
+		<?print x.y(1)?>
+		<?print x.y(1, 2)?>
+		<?print x.y(1, 2, 3)?>
+		<?if x?>gurk<?elif y?>hurz<?else?>hinz<?end if?>
+		<?render x(a=1, b=2)?>
+	""")
+	str(t)
