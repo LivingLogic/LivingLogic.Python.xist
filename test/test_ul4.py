@@ -1053,8 +1053,8 @@ def test_note():
 	check("foo", u"f<?note This is?>o<?note a comment?>o")
 
 
-def test_strtemplate():
-	t = ul4c.compile("""
+def universaltemplate():
+	return ul4c.compile("""
 		text
 		<?code x = 'gurk'?>
 		<?code x = 42?>
@@ -1099,16 +1099,31 @@ def test_strtemplate():
 		<?print x and y?>
 		<?print x or y?>
 		<?print x % y?>
-		<?print x()?>
-		<?print x(1)?>
-		<?print x(1, 2)?>
-		<?print x(1, 2, 3)?>
-		<?print x(1, 2, 3, 4)?>
-		<?print x.y()?>
-		<?print x.y(1)?>
-		<?print x.y(1, 2)?>
-		<?print x.y(1, 2, 3)?>
+		<?print now()?>
+		<?print repr(1)?>
+		<?print range(1, 2)?>
+		<?print range(1, 2, 3)?>
+		<?print rgb(1, 2, 3, 4)?>
+		<?print x.r()?>
+		<?print x.find(1)?>
+		<?print x.find(1, 2)?>
+		<?print x.find(1, 2, 3)?>
 		<?if x?>gurk<?elif y?>hurz<?else?>hinz<?end if?>
 		<?render x(a=1, b=2)?>
 	""")
+
+
+def test_strtemplate():
+	t = universaltemplate()
 	str(t)
+
+
+def test_pythonsource():
+	t = universaltemplate()
+	t.pythonsource()
+	t.pythonsource("template")
+
+
+def test_pythonfunction():
+	t = universaltemplate()
+	t.pythonfunction()
