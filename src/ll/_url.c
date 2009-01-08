@@ -120,20 +120,19 @@ static PyObject *unescape(PyObject *self, PyObject *args)
 {
 	char *in;
 	int len;
-	PyObject *res;
+	char *res;
 	int pos = 0;
-	char *start;
 	char *out;
 	PyObject *uni;
 
 	if (!PyArg_ParseTuple(args, "s#:unescape", &in, &len))
 		return NULL;
 
-	res = PyString_FromStringAndSize(NULL, len);
+	res = PyMem_Malloc(len);
 	if (!res)
 		return NULL;
 
-	start = out = PyString_AS_STRING(res);
+	out = res;
 	while (pos<len)
 	{
 		if (in[pos] != '%')
@@ -146,7 +145,7 @@ static PyObject *unescape(PyObject *self, PyObject *args)
 				sprintf(buffer, "truncated escape at position %d", pos);
 				if (PyErr_Warn(PyExc_UserWarning, buffer))
 				{
-					Py_DECREF(res);
+					PyMem_Free(res);
 					return NULL;
 				}
 				/* copy the characters literally */
@@ -162,7 +161,7 @@ static PyObject *unescape(PyObject *self, PyObject *args)
 					sprintf(buffer, "malformed escape at position %d", pos);
 					if (PyErr_Warn(PyExc_UserWarning, buffer) < 0)
 					{
-						Py_DECREF(res);
+						PyMem_Free(res);
 						return NULL;
 					}
 
@@ -188,7 +187,7 @@ static PyObject *unescape(PyObject *self, PyObject *args)
 					sprintf(buffer, "malformed escape at position %d", pos);
 					if (PyErr_Warn(PyExc_UserWarning, buffer) < 0)
 					{
-						Py_DECREF(res);
+						PyMem_Free(res);
 						return NULL;
 					}
 					*out++ = in[pos];
@@ -207,20 +206,20 @@ static PyObject *unescape(PyObject *self, PyObject *args)
 		}
 	}
 
-	uni = PyUnicode_Decode(start, out-start, "utf-8", NULL);
+	uni = PyUnicode_Decode(res, out-res, "utf-8", NULL);
 	if (uni || (!PyErr_ExceptionMatches(PyExc_UnicodeDecodeError)))
 	{
-		Py_DECREF(res);
+		PyMem_Free(res);
 		return uni;
 	}
 	PyErr_Clear();
 	if (PyErr_Warn(PyExc_UserWarning, "malformed utf-8") < 0)
 	{
-		Py_DECREF(res);
+		PyMem_Free(res);
 		return NULL;
 	}
-	uni = PyUnicode_Decode(start, out-start, "latin-1", NULL);
-	Py_DECREF(res);
+	uni = PyUnicode_Decode(res, out-res, "latin-1", NULL);
+	PyMem_Free(res);
 	return uni;
 }
 
