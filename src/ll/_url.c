@@ -171,7 +171,6 @@ static PyObject *unescape(PyObject *self, PyObject *args)
 				}
 				else
 				{
-					char buffer[6];
 					int k;
 					for (k = 0; k < 4; ++k)
 						buffer[k] = in[pos + k + 2];
@@ -184,7 +183,6 @@ static PyObject *unescape(PyObject *self, PyObject *args)
 			}
 			else
 			{
-				char buffer[3];
 				if ((!isxdigit(in[pos+1])) || (!isxdigit(in[pos+2])))
 				{
 					sprintf(buffer, "malformed escape at position %d", pos);
