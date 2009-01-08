@@ -237,7 +237,7 @@ def getoutputs(project, since, input):
 		change timestamps of the actions encountered.
 
 	If none of the actions has any data newer than :var:`since` (i.e. none of
-	the actions produces any new data) :var:`data` will be :const:`nodata`.
+	the actions produced any new data) :var:`data` will be :const:`nodata`.
 	"""
 	if isinstance(input, Action):
 		return (input.get(project, since), input.changed)
