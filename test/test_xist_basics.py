@@ -895,3 +895,17 @@ def test_with():
 		with html.p() as e:
 			xsc.add(xml.Attrs(lang="en"))
 	assert e == html.p(xml.Attrs(lang="en"))
+
+
+def test_with_addattr():
+	with xsc.build():
+		with html.ul() as e:
+			with xsc.addattr("id"):
+				+xsc.Text("gurk")
+	assert e == html.ul(id="gurk")
+
+	with xsc.build():
+		with html.ul() as e:
+			with xsc.addattr(html.ul.Attrs.id):
+				+xsc.Text("gurk")
+	assert e == html.ul(id="gurk")
