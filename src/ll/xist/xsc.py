@@ -121,6 +121,35 @@ def add(*args, **kwargs):
 	threadlocalnodehandler.handler.add(*args, **kwargs)
 
 
+class addattr(object):
+	"""
+	An :class:`addattr` object can be used as a ``with`` block handler to modify
+	an attribute of an element::
+
+		with xsc.build():
+			with html.div() as e:
+				with xsc.addattr("align"):
+					+xsc.Text("right")
+	"""
+	def __init__(self, attrname):
+		"""
+		Create an :class:`addattr` object for adding to the attribute named
+		:var:`attrname` (which can be the Python name of an attribute or an
+		attribute class).
+		"""
+		self.attr = threadlocalnodehandler.handler.stack[-1][attrname]
+
+	def __enter__(self):
+		threadlocalnodehandler.handler.stack.append(self.attr)
+		return self.attr
+
+	def __exit__(self, type, value, traceback):
+		threadlocalnodehandler.handler.stack.pop()
+
+	def add(self, *args):
+		self.attr(*args)
+
+
 ###
 ### Magic constants for tree traversal
 ###
