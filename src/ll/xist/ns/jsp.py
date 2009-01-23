@@ -533,7 +533,7 @@ def fromul4(template, variables="variables", indent=0):
 			indent -= 1
 			make_scriptlet("}")
 		elif opcode.code == "render":
-			make_scriptlet("((com.livinglogic.utils.JSPTemplate)r%d).execute(out, (Map)r%d);" % (opcode.r1, opcode.r2))
+			make_scriptlet("((com.livinglogic.ul4.JSPTemplate)r%d).execute(out, (Map)r%d);" % (opcode.r1, opcode.r2))
 		else:
 			raise ul4c.UnknownOpcodeError(opcode.code)
 	make_scriptlet("//@@@ END template code")
