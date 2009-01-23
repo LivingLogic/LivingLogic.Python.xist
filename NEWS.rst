@@ -8,6 +8,9 @@ Changes in 3.6.1 (released ??/??/2008)
 *	Added a class :class:`addattr` to :mod:`ll.xist.xsc`. This can be used
 	to extend XML attributes via ``with`` blocks.
 
+*	Added the function :func:`ll.xist.ns.jsp.fromul4` which can turn an UL4
+	template into JSP source code.
+
 
 Changes in 3.6 (released 12/31/2008)
 ------------------------------------
