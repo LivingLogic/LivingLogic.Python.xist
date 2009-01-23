@@ -51,7 +51,10 @@ with xsc.build():
 				+html.h1("Welcome to the example page")
 				with html.p():
 					+xsc.Text("This example page has a link to the ")
-					+html.a("Python home page", href="http://www.python.org/")
+					with html.a():
+						with xsc.addattr("href"):
+							+xsc.Text(""http://www.python.org/"")
+						+xsc.Text("Python home page")
 					+xsc.Text(".")
 
 print node.conv().bytes(encoding="us-ascii")
