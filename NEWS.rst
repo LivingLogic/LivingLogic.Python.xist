@@ -24,7 +24,7 @@ Changes in 3.6 (released 12/31/2008)
 *	The class methods ``fromhsva`` and ``fromhlsa`` have been renamed to
 	``fromhsv`` and ``fromhls``.
 
-*	The property ``css`` has been dropped instead the CSS string is returned
+*	The property ``css`` has been dropped. Instead the CSS string is returned
 	by ``__str__``.
 
 *	Dividing color now does a scalar division. Blending colors is now done with
