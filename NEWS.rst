@@ -6,7 +6,7 @@ Changes in 3.6.1 (released ??/??/2008)
 *	Fixed a buffer overrun in the C portions of the url module.
 
 *	Added a class :class:`addattr` to :mod:`ll.xist.xsc`. This can be used
-	to extend XML attribute via ``with`` blocks.
+	to extend XML attributes via ``with`` blocks.
 
 
 Changes in 3.6 (released 12/31/2008)
