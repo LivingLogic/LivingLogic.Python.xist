@@ -35,7 +35,7 @@ Changes in 3.6 (released 12/31/2008)
 
 *	Support for color objects has been added to UL4.
 
-*	The XPIT templating language and :class:`ll.make.XPITAction`` have been
+*	The XPIT templating language and :class:`ll.make.XPITAction` have been
 	removed.
 
 *	Fixed a bug in :meth:`ll.make.CacheAction.get`: The action must return real
