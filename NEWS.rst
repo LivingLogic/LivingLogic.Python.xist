@@ -406,7 +406,7 @@ Changes in 3.1 (released 01/18/2008)
 	conversion targets.
 
 
-Changes in 3.0 (released 01/07/2008)
+Changes in 2.9 (released 01/07/2008)
 ------------------------------------
 
 *	Namespaces have been greatly simplified. There are no namespace modules any
@@ -458,7 +458,7 @@ Changes in 3.0 (released 01/07/2008)
 
 *	The function :func:`applystylesheets` modifies the XIST tree passed in by
 	removing all CSS (from :class:`html.link` and :class:`html.style` elements
-	and their ``@import``ed stylesheets) and putting the styles into ``style``
+	and their ``@import``\ed stylesheets) and putting the styles into ``style``
 	attributes of the affected elements instead.
 
 *	The function :func:`selector` return a tree walk filter from a CSS selector
@@ -849,7 +849,7 @@ Changes in 2.9 (released 04/21/2005)
 	containing the Python and the XML name, but will be the XML name only.
 	You can get the Python name of :class:`foo` from ``foo.__class__.__name__``.
 
-*	:class:`DeprecationWarning`s for :attr:`name` and :attr:`attrHandlers` have
+*	:class:`DeprecationWarning`\s for :attr:`name` and :attr:`attrHandlers` have
 	finally been removed.
 
 *	Instances of :class:`ll.xist.xsc.Entity` subclasses can now be compared.
