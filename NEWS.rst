@@ -1,4 +1,4 @@
-Changes in 3.6.1 (released ??/??/2008)
+Changes in 3.6.1 (released 01/27/2008)
 --------------------------------------
 
 *	Generating the Python source from an UL4 template is now 20-25% faster.
