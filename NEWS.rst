@@ -1090,8 +1090,8 @@ Changes in 2.5 (released 06/30/2004)
 	will automatically generate :mod:`sims` information.
 
 *	:class:`ll.xist.xsc.CharRef` now inherits from :class:`ll.xist.xsc.Text`
-	too, so you don't have to special case :class:`CharRef`s any more. When
-	publishing, :class:`CharRef`s will be handled like :class:`Text` nodes.
+	too, so you don't have to special case :class:`CharRef`\s any more. When
+	publishing, :class:`CharRef`\s will be handled like :class:`Text` nodes.
 
 *	:class:`ll.xist.ns.meta.contenttype` now has an attribute ``mimetype``
 	(defaulting to ``"text/html"``) for specifying the MIME type.
@@ -1193,7 +1193,7 @@ Changes in 2.3 (released 12/08/2003)
 	:mod:`ll.xist.ns.code` have been renamed to :class:`pyexec` and
 	:class:`pyeval` and :class:`import_` has been removed.
 
-*	:class:`CharRef`s from :mod:`ll.xist.ns.html` have been moved to a new
+*	:class:`CharRef`\s from :mod:`ll.xist.ns.html` have been moved to a new
 	module named :mod:`ll.xist.ns.chars`.
 
 *	The method names :meth:`beginPublication`, :meth:`endPublication` and
