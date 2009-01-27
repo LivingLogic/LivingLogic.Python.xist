@@ -69,7 +69,7 @@ Changes in 3.5 (released 12/05/2008)
 	with the components being 8 bit values (i.e. 0-255) instead of floating
 	point values between 0 and 1. An alpha component has been added.
 
-*	A ``strong`` element has been added to the :mod:`ll.xist.ns.doc``
+*	A ``strong`` element has been added to the :mod:`ll.xist.ns.doc`
 	namespace.
 
 
