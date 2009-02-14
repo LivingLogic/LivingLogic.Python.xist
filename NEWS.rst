@@ -1,4 +1,13 @@
-Changes in 3.6.1 (released 01/27/2008)
+Changes in 3.6.2 (released ??/??/2009)
+--------------------------------------
+
+*	Inside UL4 templates rendering other templates can now be done with the new
+	``render`` method. This method returns the template output as a string.
+	Passing parameters can be done via keyword arguments or with the ``**``
+	syntax like when using the ``render`` tag.
+
+
+Changes in 3.6.1 (released 01/27/2009)
 --------------------------------------
 
 *	Generating the Python source from an UL4 template is now 20-25% faster.

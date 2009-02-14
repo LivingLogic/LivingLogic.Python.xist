@@ -962,6 +962,15 @@ def test_method_replace():
 	check('goork', ur"<?print 'gurk'.replace('u', 'oo')?>")
 
 
+def test_method_render():
+	t = ul4c.compile(u'(<?print data?>)')
+	check('(GURK)', u"<?print t.render(data='gurk').upper()?>", t=t)
+	check('(GURK)', u"<?print t.render(**{'data': 'gurk'}).upper()?>", t=t)
+
+	t = ul4c.compile(u'(gurk)')
+	check('(GURK)', u"<?print t.render().upper()?>", t=t)
+
+
 def test_method_format():
 	now = datetime.datetime.now()
 	format = "%Y-%m-%d %H:%M:%S"

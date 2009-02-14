@@ -602,6 +602,8 @@ class Opcode(object):
 			return "r%r = r%r.%s(r%r, r%r)" % (self.r1, self.r2, self.arg, self.r3, self.r4)
 		elif self.code == "callmeth3":
 			return "r%r = r%r.%s(r%r, r%r, r%r)" % (self.r1, self.r2, self.arg, self.r3, self.r4, self.r5)
+		elif self.code == "callmethkw":
+			return "r%r = r%r.%s(**r%r)" % (self.r1, self.r2, self.arg, self.r3)
 		elif self.code == "render":
 			return "render r%r(r%r)" % (self.r1, self.r2)
 		else:
@@ -987,6 +989,8 @@ class Template(object):
 			self.lines.append("%sreg%d = reg%d.%s()" % (self.indent, opcode.r1, opcode.r2, opcode.arg))
 		elif opcode.arg == "items":
 			self.lines.append("%sreg%d = reg%d.iteritems()" % (self.indent, opcode.r1, opcode.r2))
+		elif opcode.arg == "render":
+			self.lines.append('%sreg%d = "".join(reg%d())' % (self.indent, opcode.r1, opcode.r2))
 		else:
 			raise UnknownMethodError(opcode.arg)
 
@@ -1007,6 +1011,12 @@ class Template(object):
 	def _pythonsource_dispatch_callmeth3(self, opcode):
 		if opcode.arg == "find":
 			self.lines.append("%sreg%d = reg%d.%s(reg%d, reg%d, reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.arg, opcode.r3, opcode.r4, opcode.r5))
+		else:
+			raise UnknownMethodError(opcode.arg)
+
+	def _pythonsource_dispatch_callmethkw(self, opcode):
+		if opcode.arg == "render":
+			self.lines.append('%sreg%d = "".join(reg%d(**dict((key.encode("utf-8"), value) for (key, value) in reg%d.iteritems())))' % (self.indent, opcode.r1, opcode.r2, opcode.r3))
 		else:
 			raise UnknownMethodError(opcode.arg)
 
@@ -1168,8 +1178,14 @@ class Template(object):
 		self.indent = self.indent[:-1]
 		self.lines.append("%sexcept ImportError:" % self.indent)
 		self.indent += "\t"
+		self.lines.append("%stry:" % self.indent)
+		self.indent += "\t"
 		self.lines.append("%simport simplejson as json" % self.indent)
 		self.indent = self.indent[:-1]
+		self.lines.append("%sexcept ImportError:" % self.indent)
+		self.indent += "\t"
+		self.lines.append("%spass" % self.indent)
+		self.indent = self.indent[:-2]
 		self.lines.append("%sfrom ll.misc import xmlescape" % self.indent)
 		self.lines.append("%sfrom ll import ul4c, color" % self.indent)
 		self.lines.append("%ssource = %r" % (self.indent, self.source))
@@ -1876,6 +1892,38 @@ class CallMeth(AST):
 		return ro
 
 
+class CallMethKeywords(AST):
+	def __init__(self, start, end, name, obj, args):
+		AST.__init__(self, start, end)
+		self.name = name
+		self.obj = obj
+		self.args = args
+
+	def __repr__(self):
+		return "%s(%r, %r, %r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.name, self.obj, self.args)
+
+	def compile(self, template):
+		ra = template._allocreg()
+		template.opcode("builddict", r1=ra)
+		for item in self.args:
+			if len(item) == 1:
+				rd = item[0].compile(template)
+				template.opcode("updatedict", r1=ra, r2=rd)
+				template._freereg(rd)
+			else:
+				(key, value) = item
+				rv = value.compile(template)
+				rk = template._allocreg()
+				template.opcode("loadstr", r1=rk, arg=key.name)
+				template.opcode("adddict", r1=ra, r2=rk, r3=rv)
+				template._freereg(rk)
+				template._freereg(rv)
+		ro = self.obj.compile(template)
+		template.opcode("callmethkw", r1=ro, r2=ro, r3=ra, arg=self.name.name)
+		template._freereg(ra)
+		return ro
+
+
 class Render(AST):
 	def __init__(self, start, end, template, *variables):
 		AST.__init__(self, start, end)
@@ -2239,6 +2287,31 @@ class ExprParser(spark.Parser):
 	@spark.production('expr9 ::= expr9 . name ( expr0 , expr0 , expr0 )')
 	def expr_callmeth3(self, expr, _0, name, _1, arg1, _2, arg2, _3, arg3, _4):
 		return CallMeth(expr.start, _4.end, name, expr, [arg1, arg2, arg3])
+
+	@spark.production('callmethkw ::= expr9 . name ( name = expr0')
+	def methkw_startname(self, expr, _0, methname, _1, argname, _2, argvalue):
+		return CallMethKeywords(expr.start, argvalue.end, methname, expr, [(argname, argvalue)])
+
+	@spark.production('callmethkw ::= expr9 . name ( ** expr0')
+	def methkw_startdict(self, expr, _0, methname, _1, _2, argvalue):
+		return CallMethKeywords(expr.start, argvalue.end, methname, expr, [(argvalue,)])
+
+	@spark.production('callmethkw ::= callmethkw , name = expr0')
+	def methkw_buildname(self, call, _0, argname, _1, argvalue):
+		call.args.append((argname, argvalue))
+		call.end = argvalue.end
+		return call
+
+	@spark.production('callmethkw ::= callmethkw , ** expr0')
+	def methkw_builddict(self, call, _0, _1, argvalue):
+		call.args.append((argvalue,))
+		call.end = argvalue.end
+		return call
+
+	@spark.production('expr9 ::= callmethkw )')
+	def methkw_finish(self, call, _0):
+		call.end = _0.end
+		return call
 
 	@spark.production('expr9 ::= expr9 [ expr0 ]')
 	def expr_getitem(self, expr, _0, key, _1):
