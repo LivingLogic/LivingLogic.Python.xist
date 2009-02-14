@@ -797,3 +797,15 @@ each occurrence of the first argument is replaced by the second argument.
 ``get`` is a dictionary method. ``d.get(k, v)`` returns ``d[k]`` if the key
 ``k`` is in ``d``, else ``v`` is returned. If ``v`` is not given, it defaults
 to ``None``.
+
+
+``render``
+::::::::::
+
+The ``render`` method of template objects renders the template and returns the
+output as a string. The parameter can be passed via keyword argument or via the
+``**`` syntax::
+
+	<?code output = template.render(a=17, b=23)?>
+	<?code data = {'a': 17, 'b': 23)?>
+	<?code output = template.render(**data)?>
