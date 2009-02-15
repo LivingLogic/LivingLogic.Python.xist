@@ -6,6 +6,10 @@ Changes in 3.6.2 (released ??/??/2009)
 	Passing parameters can be done via keyword arguments or with the ``**``
 	syntax like when using the ``render`` tag.
 
+*	A new version of the ``int`` function has been added to UL4: When called with
+	two arguments, the first must be a string, and the second is treated as the
+	base for the conversion.
+
 
 Changes in 3.6.1 (released 01/27/2009)
 --------------------------------------

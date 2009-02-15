@@ -585,13 +585,14 @@ def test_function_str():
 
 def test_function_int():
 	checkrunerror("function u?'int' unknown", u"<?print int()?>")
-	checkrunerror("function u?'int' unknown", u"<?print int(1, 2)?>")
+	checkrunerror("function u?'int' unknown", u"<?print int(1, 2, 3)?>")
 	checkrunerror("int\\(\\) argument must be a string or a number, not 'NoneType'", u"<?print int(data)?>", data=None)
 	check("1", u"<?print int(data)?>", data=True)
 	check("0", u"<?print int(data)?>", data=False)
 	check("42", u"<?print int(data)?>", data=42)
 	check("4", u"<?print int(data)?>", data=4.2)
 	check("42", u"<?print int(data)?>", data="42")
+	check("66", u"<?print int(data, 16)?>", data="42")
 	checkrunerror("invalid literal for int\\(\\) with base 10: 'foo'", u"<?print int(data)?>", data="foo")
 
 

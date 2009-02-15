@@ -536,7 +536,9 @@ returned according to the truth value of ``foo``.
 :::::::
 
 ``int(foo)`` converts ``foo`` to an integer. ``foo`` can be a string, a float,
-a boolean or an integer.
+a boolean or an integer. ``int`` can also be called with two arguments. In this
+case the first argument must be a string and the second is the number base for
+the conversion.
 
 
 ``str``

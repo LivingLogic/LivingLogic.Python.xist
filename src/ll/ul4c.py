@@ -1136,6 +1136,9 @@ class Template(object):
 	def _pythonsource_dispatch_callfunc2_zip(self, opcode):
 		self.lines.append("%sreg%d = itertools.izip(reg%d, reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
 
+	def _pythonsource_dispatch_callfunc2_int(self, opcode):
+		self.lines.append("%sreg%d = int(reg%d, reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
+
 	def _pythonsource_dispatch_callfunc3_range(self, opcode):
 		self.lines.append("%sreg%d = xrange(reg%d, reg%d, reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.r3, opcode.r4))
 
