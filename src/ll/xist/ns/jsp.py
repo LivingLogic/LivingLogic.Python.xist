@@ -519,6 +519,11 @@ def fromul4(template, variables="variables", indent=0):
 				make_scriptlet("r%d = com.livinglogic.ul4.Utils.find(r%d, r%d, r%d, r%d);" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4, opcode.r5))
 			else:
 				raise ul4c.UnknownMethodError(opcode.arg)
+		elif opcode.code == "callmethkw":
+			if opcode.arg == "render":
+				make_scriptlet("r%d = ((com.livinglogic.ul4.JSPTemplate)r%d)renders((java.util.Map)r%d);" % (opcode.r1, opcode.r2, opcode.r3))
+			else:
+				raise ul4c.UnknownMethodError(opcode.arg)
 		elif opcode.code == "if":
 			make_scriptlet("if (com.livinglogic.ul4.Utils.getBool(r%d))" % opcode.r1)
 			make_scriptlet("{")
