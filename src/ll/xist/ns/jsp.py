@@ -191,9 +191,6 @@ def fromul4(template, variables="variables", indent=0):
 	def make_literal(content):
 		result.append(specials.literal(content))
 
-	def make_expression(content):
-		result.append(expression(content))
-
 	def make_scriptlet(content):
 		line = "%s%s\n" % ("\t"*indent, content)
 		if result and isinstance(result[-1], scriptlet):
@@ -258,10 +255,10 @@ def fromul4(template, variables="variables", indent=0):
 		elif opcode.code == "addvar":
 			name = _string(opcode.arg)
 			make_scriptlet("%s.put(%s, com.livinglogic.ul4.Utils.add(%s.get(%s), r%d));" % (variables, name, variables, name, opcode.r1))
-		elif opcode.code == "addvar":
+		elif opcode.code == "subvar":
 			name = _string(opcode.arg)
 			make_scriptlet("%s.put(%s, com.livinglogic.ul4.Utils.sub(%s.get(%s), r%d));" % (variables, name, variables, name, opcode.r1))
-		elif opcode.code == "addvar":
+		elif opcode.code == "mulvar":
 			name = _string(opcode.arg)
 			make_scriptlet("%s.put(%s, com.livinglogic.ul4.Utils.mul(%s.get(%s), r%d));" % (variables, name, variables, name, opcode.r1))
 		elif opcode.code == "truedivvar":
@@ -286,9 +283,9 @@ def fromul4(template, variables="variables", indent=0):
 		elif opcode.code == "getslice2":
 			make_scriptlet("r%d = com.livinglogic.ul4.Utils.getSlice(r%d, null, r%d);" % (opcode.r1, opcode.r2, opcode.r3))
 		elif opcode.code == "print":
-			make_expression("org.apache.commons.lang.ObjectUtils.toString(r%d)" % opcode.r1)
+			make_scriptlet("out.write(org.apache.commons.lang.ObjectUtils.toString(r%d));" % opcode.r1)
 		elif opcode.code == "printx":
-			make_expression("com.livinglogic.ul4.Utils.xmlescape(org.apache.commons.lang.ObjectUtils.toString(r%d))" % opcode.r1)
+			make_scriptlet("out.write(com.livinglogic.ul4.Utils.xmlescape(org.apache.commons.lang.ObjectUtils.toString(r%d)));" % opcode.r1)
 		elif opcode.code == "for":
 			loopcounter += 1
 			make_scriptlet("for (java.util.Iterator iterator%d = com.livinglogic.ul4.Utils.iterator(r%d); iterator%d.hasNext();)" % (loopcounter, opcode.r2, loopcounter))
