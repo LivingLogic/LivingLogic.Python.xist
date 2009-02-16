@@ -1,4 +1,4 @@
-Changes in 3.6.2 (released ??/??/2009)
+Changes in 3.6.2 (released 02/16/2009)
 --------------------------------------
 
 *	Inside UL4 templates rendering other templates can now be done with the new
