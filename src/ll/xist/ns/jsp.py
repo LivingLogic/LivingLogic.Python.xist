@@ -521,7 +521,7 @@ def fromul4(template, variables="variables", indent=0):
 				raise ul4c.UnknownMethodError(opcode.arg)
 		elif opcode.code == "callmethkw":
 			if opcode.arg == "render":
-				make_scriptlet("r%d = ((com.livinglogic.ul4.JSPTemplate)r%d).renders((java.util.Map)r%d);" % (opcode.r1, opcode.r2, opcode.r3))
+				make_scriptlet("r%d = ((com.livinglogic.ul4.Template)r%d).renders((java.util.Map)r%d);" % (opcode.r1, opcode.r2, opcode.r3))
 			else:
 				raise ul4c.UnknownMethodError(opcode.arg)
 		elif opcode.code == "if":
@@ -538,7 +538,7 @@ def fromul4(template, variables="variables", indent=0):
 			indent -= 1
 			make_scriptlet("}")
 		elif opcode.code == "render":
-			make_scriptlet("((com.livinglogic.ul4.JSPTemplate)r%d).execute(out, (Map)r%d);" % (opcode.r1, opcode.r2))
+			make_scriptlet("((com.livinglogic.ul4.Template)r%d).renderjsp(out, (Map)r%d);" % (opcode.r1, opcode.r2))
 		else:
 			raise ul4c.UnknownOpcodeError(opcode.code)
 	make_scriptlet("//@@@ END template code")
