@@ -186,67 +186,75 @@ def test_hasattr():
 def test_attrhasvalue():
 	node = xfindnode()
 
-	def check(attrname, attrvalue, expected):
+	def check(expected, attrname, *attrvalues):
 		for selector in (xfind.attrhasvalue, xfind.attrhasvalue_xml):
-			got = list(node.walknode(selector(attrname, attrvalue)))
+			got = list(node.walknode(selector(attrname, *attrvalues)))
 			assert len(got) == len(expected)
 			for (gotnode, expectednode) in zip(got, expected):
 				assert gotnode is expectednode
 
-	yield check, "align", "left", [node[0]]
-	yield check, html.div.Attrs.align, "left", [node[0]]
-	yield check, "align", "right", []
-	yield check, "gurk", "hurz", []
+	yield check, [node[0]], "align", "left"
+	yield check, [node[0]], html.div.Attrs.align, "left"
+	yield check, [node[0]], "align", "right", "center", "left"
+	yield check, [], "align", "right", "center"
+	yield check, [], "align", "right"
+	yield check, [], "gurk", "hurz"
 
 
 def test_attrcontains():
 	node = xfindnode()
 
-	def check(attrname, attrvalue, expected):
+	def check(expected, attrname, *attrvalues):
 		for selector in (xfind.attrcontains, xfind.attrcontains_xml):
-			got = list(node.walknode(selector(attrname, attrvalue)))
+			got = list(node.walknode(selector(attrname, *attrvalues)))
 			assert len(got) == len(expected)
 			for (gotnode, expectednode) in zip(got, expected):
 				assert gotnode is expectednode
 
-	yield check, "align", "ef", [node[0]]
-	yield check, html.div.Attrs.align, "ef", [node[0]]
-	yield check, "align", "x", []
-	yield check, "gurk", "", []
+	yield check, [node[0]], "align", "ef"
+	yield check, [node[0]], html.div.Attrs.align, "ef"
+	yield check, [node[0]], "align", "ri", "ef"
+	yield check, [], "align", "ri", "en"
+	yield check, [], "align", "x"
+	yield check, [], "gurk", "", 
 
 
 def test_attrstartswith():
 	node = xfindnode()
 
-	def check(attrname, attrvalue, expected):
+	def check(expected, attrname, *attrvalues):
 		for selector in (xfind.attrstartswith, xfind.attrstartswith_xml):
-			got = list(node.walknode(selector(attrname, attrvalue)))
+			got = list(node.walknode(selector(attrname, *attrvalues)))
 			assert len(got) == len(expected)
 			for (gotnode, expectednode) in zip(got, expected):
 				assert gotnode is expectednode
 
-	yield check, "align", "le", [node[0]]
-	yield check, html.div.Attrs.align, "le", [node[0]]
-	yield check, "align", "eft", []
-	yield check, "gurk", "", []
-	yield check, "src", "root:", [node[1][0][1]]
+	yield check, [node[0]], "align", "le"
+	yield check, [node[0]], html.div.Attrs.align, "le"
+	yield check, [node[0]], "align", "ri", "ce", "le"
+	yield check, [], "align", "ri", "ce"
+	yield check, [], "align", "eft"
+	yield check, [], "gurk", ""
+	yield check, [node[1][0][1]], "src", "root:"
 
 
 def test_attrendswith():
 	node = xfindnode()
 
-	def check(attrname, attrvalue, expected):
+	def check(expected, attrname, *attrvalues):
 		for selector in (xfind.attrendswith, xfind.attrendswith_xml):
-			got = list(node.walknode(selector(attrname, attrvalue)))
+			got = list(node.walknode(selector(attrname, *attrvalues)))
 			assert len(got) == len(expected)
 			for (gotnode, expectednode) in zip(got, expected):
 				assert gotnode is expectednode
 
-	yield check, "align", "ft", [node[0]]
-	yield check, html.div.Attrs.align, "ft", [node[0]]
-	yield check, "align", "lef", []
-	yield check, "gurk", "", []
-	yield check, "src", ".gif", [node[1][0][1]]
+	yield check, [node[0]], "align", "ft"
+	yield check, [node[0]], html.div.Attrs.align, "ft"
+	yield check, [node[0]], "align", "ht", "er", "ft"
+	yield check, [], "align", "ht", "er"
+	yield check, [], "align", "lef"
+	yield check, [], "gurk", ""
+	yield check, [node[1][0][1]], "src", ".gif"
 
 
 def test_hasid():

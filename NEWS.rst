@@ -1,3 +1,13 @@
+Changes in 3.6.3 (released 03/02/2009)
+--------------------------------------
+
+*	The xfind operators ``attrhasvalue``,  ``attrhasvalue_xml``,
+	``attrcontains``, ``attrcontains_xml``, ``attrstartswith``,
+	``attrstartswith_xml``, ``attrendswith``, ``attrendswith_xml``, ``hasid``
+	and ``hasclass`` now support multiple values. The operator matches the
+	node if t matches with any of the given values.
+
+
 Changes in 3.6.2 (released 02/16/2009)
 --------------------------------------
 

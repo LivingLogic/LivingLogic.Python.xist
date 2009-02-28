@@ -386,8 +386,8 @@ class hasattr_xml(Selector):
 class attrhasvalue(Selector):
 	"""
 	Selector that selects all element nodes where an attribute with the
-	specified Python name has the specified value. For global attributes the
-	attribute class can be passed. Note that "fancy" attributes (i.e. those
+	specified Python name has one of the specified values. For global attributes
+	the attribute class can be passed. Note that "fancy" attributes (i.e. those
 	containing non-text) will not be considered::
 
 		>>> from ll.xist import parsers, xfind
@@ -400,9 +400,11 @@ class attrhasvalue(Selector):
 		<a media="print" type="text/css" rel="stylesheet" href="http://www.python.org/styles/print.css" />
 	"""
 
-	def __init__(self, attrname, attrvalue):
+	def __init__(self, attrname, *attrvalues):
 		self.attrname = attrname
-		self.attrvalue = attrvalue
+		if not attrvalues:
+			raise ValueError("need at least one attribute value")
+		self.attrvalues = attrvalues
 
 	def matchpath(self, path):
 		if path:
@@ -410,11 +412,11 @@ class attrhasvalue(Selector):
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
 				attr = node.attrs.get(self.attrname)
 				if not attr.isfancy(): # if there are PIs, say no
-					return unicode(attr) == self.attrvalue
+					return unicode(attr) in self.attrvalues
 		return False
 
 	def __str__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
+		return "%s(%r, %s)" % (self.__class__.__name__, self.attrname, repr(self.attrvalues)[1:-1])
 
 
 class attrhasvalue_xml(Selector):
@@ -423,9 +425,11 @@ class attrhasvalue_xml(Selector):
 	the specified name is treated as an XML name instead of a Python name.
 	"""
 
-	def __init__(self, attrname, attrvalue):
+	def __init__(self, attrname, *attrvalues):
 		self.attrname = attrname
-		self.attrvalue = attrvalue
+		if not attrvalues:
+			raise ValueError("need at least one attribute value")
+		self.attrvalues = attrvalues
 
 	def matchpath(self, path):
 		if path:
@@ -433,7 +437,7 @@ class attrhasvalue_xml(Selector):
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
 				attr = node.attrs.get_xml(self.attrname)
 				if not attr.isfancy(): # if there are PIs, say no
-					return unicode(attr) == self.attrvalue
+					return unicode(attr) in self.attrvalues
 		return False
 
 	def __str__(self):
@@ -443,8 +447,8 @@ class attrhasvalue_xml(Selector):
 class attrcontains(Selector):
 	"""
 	Selector that selects all element nodes where an attribute with the
-	specified Python name contains the specified substring in its value. For
-	global attributes the attribute class can be passed. Note that "fancy"
+	specified Python name contains one of the specified substrings in its value.
+	For global attributes the attribute class can be passed. Note that "fancy"
 	attributes (i.e. those containing non-text) will not be considered::
 
 		>>> from ll.xist import parsers, xfind
@@ -459,9 +463,11 @@ class attrcontains(Selector):
 		<a type="text/css" title="default fonts" media="screen" rel="alternate stylesheet" href="http://www.python.org/styles/defaultfonts.css" />
 	"""
 
-	def __init__(self, attrname, attrvalue):
+	def __init__(self, attrname, *attrvalues):
 		self.attrname = attrname
-		self.attrvalue = attrvalue
+		if not attrvalues:
+			raise ValueError("need at least one attribute value")
+		self.attrvalues = attrvalues
 
 	def matchpath(self, path):
 		if path:
@@ -469,7 +475,7 @@ class attrcontains(Selector):
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
 				attr = node.attrs.get(self.attrname)
 				if not attr.isfancy(): # if there are PIs, say no
-					return self.attrvalue in unicode(attr)
+					return any(attrvalue in unicode(attr) for attrvalue in self.attrvalues)
 		return False
 
 	def __str__(self):
@@ -482,9 +488,11 @@ class attrcontains_xml(Selector):
 	the specified name is treated as an XML name instead of a Python name.
 	"""
 
-	def __init__(self, attrname, attrvalue):
+	def __init__(self, attrname, *attrvalues):
 		self.attrname = attrname
-		self.attrvalue = attrvalue
+		if not attrvalues:
+			raise ValueError("need at least one attribute value")
+		self.attrvalues = attrvalues
 
 	def matchpath(self, path):
 		if path:
@@ -492,7 +500,7 @@ class attrcontains_xml(Selector):
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
 				attr = node.attrs.get_xml(self.attrname)
 				if not attr.isfancy(): # if there are PIs, say no
-					return self.attrvalue in unicode(attr)
+					return any(attrvalue in unicode(attr) for attrvalue in self.attrvalues)
 		return False
 
 	def __str__(self):
@@ -502,7 +510,7 @@ class attrcontains_xml(Selector):
 class attrstartswith(Selector):
 	"""
 	Selector that selects all element nodes where an attribute with the
-	specified Python name starts with the specified string. For global
+	specified Python name starts with any of the specified strings. For global
 	attributes the attribute class can be passed. Note that "fancy" attributes
 	(i.e. those containing non-text) will not be considered::
 
@@ -515,9 +523,11 @@ class attrstartswith(Selector):
 		<input value="search" class="input-button" id="submit" type="submit" name="submit" />
 	"""
 
-	def __init__(self, attrname, attrvalue):
+	def __init__(self, attrname, *attrvalues):
 		self.attrname = attrname
-		self.attrvalue = attrvalue
+		if not attrvalues:
+			raise ValueError("need at least one attribute value")
+		self.attrvalues = attrvalues
 
 	def matchpath(self, path):
 		if path:
@@ -525,7 +535,7 @@ class attrstartswith(Selector):
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
 				attr = node.attrs.get(self.attrname)
 				if not attr.isfancy(): # if there are PIs, say no
-					return unicode(attr).startswith(self.attrvalue)
+					return any(unicode(attr).startswith(attrvalue) for attrvalue in self.attrvalues)
 		return False
 
 	def __str__(self):
@@ -538,9 +548,11 @@ class attrstartswith_xml(Selector):
 	that the specified name is treated as an XML name instead of a Python name.
 	"""
 
-	def __init__(self, attrname, attrvalue):
+	def __init__(self, attrname, *attrvalues):
 		self.attrname = attrname
-		self.attrvalue = attrvalue
+		if not attrvalues:
+			raise ValueError("need at least one attribute value")
+		self.attrvalues = attrvalues
 
 	def matchpath(self, path):
 		if path:
@@ -548,7 +560,7 @@ class attrstartswith_xml(Selector):
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
 				attr = node.attrs.get_xml(self.attrname)
 				if not attr.isfancy(): # if there are PIs, say no
-					return unicode(attr).startswith(self.attrvalue)
+					return any(unicode(attr).startswith(attrvalue) for attrvalue in self.attrvalues)
 		return False
 
 	def __str__(self):
@@ -558,9 +570,9 @@ class attrstartswith_xml(Selector):
 class attrendswith(Selector):
 	"""
 	Selector that selects all element nodes where an attribute with the
-	specified Python name ends with the specified string. For global attributes
-	the attribute class can be passed. Note that "fancy" attributes (i.e. those
-	containing non-text) will not be considered::
+	specified Python name ends with one of the specified strings. For global
+	attributes the attribute class can be passed. Note that "fancy" attributes
+	(i.e. those containing non-text) will not be considered::
 
 		>>> from ll.xist import parsers, xfind
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
@@ -574,9 +586,11 @@ class attrendswith(Selector):
 		<a title="default fonts" type="text/css" rel="alternate stylesheet" href="http://www.python.org/styles/defaultfonts.css" media="screen" />
 	"""
 
-	def __init__(self, attrname, attrvalue):
+	def __init__(self, attrname, *attrvalues):
 		self.attrname = attrname
-		self.attrvalue = attrvalue
+		if not attrvalues:
+			raise ValueError("need at least one attribute value")
+		self.attrvalues = attrvalues
 
 	def matchpath(self, path):
 		if path:
@@ -584,7 +598,7 @@ class attrendswith(Selector):
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
 				attr = node.attrs.get(self.attrname)
 				if not attr.isfancy(): # if there are PIs, say no
-					return unicode(attr).endswith(self.attrvalue)
+					return any(unicode(attr).endswith(attrvalue) for attrvalue in self.attrvalues)
 		return False
 
 	def __str__(self):
@@ -597,9 +611,11 @@ class attrendswith_xml(Selector):
 	the specified name is treated as an XML name instead of a Python name.
 	"""
 
-	def __init__(self, attrname, attrvalue):
+	def __init__(self, attrname, *attrvalues):
 		self.attrname = attrname
-		self.attrvalue = attrvalue
+		if not attrvalues:
+			raise ValueError("need at least one attribute value")
+		self.attrvalues = attrvalues
 
 	def matchpath(self, path):
 		if path:
@@ -607,7 +623,7 @@ class attrendswith_xml(Selector):
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
 				attr = node.attrs.get_xml(self.attrname)
 				if not attr.isfancy(): # if there are PIs, say no
-					return unicode(attr).endswith(self.attrvalue)
+					return any(unicode(attr).endswith(attrvalue) for attrvalue in self.attrvalues)
 		return False
 
 	def __str__(self):
@@ -616,8 +632,8 @@ class attrendswith_xml(Selector):
 
 class hasid(Selector):
 	"""
-	Selector that selects all element nodes where the ``id`` attribute has the
-	specified value::
+	Selector that selects all element nodes where the ``id`` attribute has one
+	if the specified values::
 
 		>>> from ll.xist import parsers, xfind
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
@@ -627,8 +643,10 @@ class hasid(Selector):
 		<img src="http://www.python.org/images/python-logo.gif" id="logo" alt="homepage" border="0" />
 	"""
 
-	def __init__(self, id):
-		self.id = id
+	def __init__(self, *ids):
+		if not ids:
+			raise ValueError("need at least one id")
+		self.ids = ids
 
 	def matchpath(self, path):
 		if path:
@@ -636,7 +654,7 @@ class hasid(Selector):
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml("id"):
 				attr = node.attrs.get_xml("id")
 				if not attr.isfancy():
-					return unicode(attr) == self.id
+					return unicode(attr) in self.ids
 		return False
 
 	def __str__(self):
@@ -645,12 +663,12 @@ class hasid(Selector):
 
 class hasclass(Selector):
 	"""
-	Selector that selects all element nodes where the ``class`` attribute has
-	the specified value::
+	Selector that selects all element nodes where the ``class`` attribute contains
+	one of the specified values::
 
 		>>> from ll.xist import parsers, xfind
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(xfind.hasclass("reference")<):
+		>>> for node in doc.walknode(xfind.hasclass("reference")):
 		... 	print node.bytes()
 		... 
 		<a class="reference" href="http://www.python.org/search">Advanced Search</a>
@@ -660,8 +678,10 @@ class hasclass(Selector):
 		...
 	"""
 
-	def __init__(self, classname):
-		self.classname = classname
+	def __init__(self, *classnames):
+		if not classnames:
+			raise ValueError("need at least one classname")
+		self.classnames = classnames
 
 	def matchpath(self, path):
 		if path:
@@ -669,7 +689,7 @@ class hasclass(Selector):
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml("class"):
 				attr = node.attrs.get_xml("class")
 				if not attr.isfancy():
-					return self.classname in unicode(attr).split()
+					return any(classname in unicode(attr).split() for classname in self.classnames)
 		return False
 
 	def __str__(self):
@@ -687,7 +707,7 @@ class inattr(Selector):
 	... 
 	text/html; charset=utf-8
 	content-type
-	python programming language object oriented web free source	
+	python programming language object oriented web free source
 	...
 	"""
 	def matchpath(self, path):
