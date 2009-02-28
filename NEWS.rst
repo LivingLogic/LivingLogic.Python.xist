@@ -7,6 +7,9 @@ Changes in 3.6.3 (released 03/02/2009)
 	and ``hasclass`` now support multiple values. The operator matches the
 	node if t matches with any of the given values.
 
+*	A new function ``reversed`` is now available in UL4 templates. It returns
+	an iterator that will output the items of any sequence in reverse order.
+
 
 Changes in 3.6.2 (released 02/16/2009)
 --------------------------------------

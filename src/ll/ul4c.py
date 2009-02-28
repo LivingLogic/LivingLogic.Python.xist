@@ -623,7 +623,7 @@ class Template(object):
 	Rendering the template can be done with the methods :meth:`render` (which
 	is a generator) or :meth:`renders` (which returns a string).
 	"""
-	version = "8"
+	version = "9"
 
 	def __init__(self):
 		self.startdelim = None
@@ -1126,6 +1126,9 @@ class Template(object):
 
 	def _pythonsource_dispatch_callfunc1_type(self, opcode):
 		self.lines.append("%sreg%d = ul4c._type(reg%d)" % (self.indent, opcode.r1, opcode.r2))
+
+	def _pythonsource_dispatch_callfunc1_reversed(self, opcode):
+		self.lines.append("%sreg%d = reversed(reg%d)" % (self.indent, opcode.r1, opcode.r2))
 
 	def _pythonsource_dispatch_callfunc2_range(self, opcode):
 		self.lines.append("%sreg%d = xrange(reg%d, reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.r3))

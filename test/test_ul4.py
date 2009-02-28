@@ -908,6 +908,15 @@ def test_function_type():
 	check("", code, x=1j)
 
 
+def test_function_reversed():
+	checkrunerror("function u?'reversed' unknown", u"<?print reversed()?>")
+	checkrunerror("function u?'reversed' unknown", u"<?print reversed(1, 2)?>")
+	code = u"<?for i in reversed(x)?>(<?print i?>)<?end for?>"
+	check("(3)(2)(1)", code, x="123")
+	check("(3)(2)(1)", code, x=[1, 2, 3])
+	check("(3)(2)(1)", code, x=(1, 2, 3))
+
+
 def test_method_upper():
 	check("GURK", u"<?print 'gurk'.upper()?>")
 
