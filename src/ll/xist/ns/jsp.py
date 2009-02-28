@@ -397,6 +397,8 @@ def fromul4(template, variables="variables", indent=0):
 				make_scriptlet("r%d = %s.get(r%d);" % (opcode.r1, variables, opcode.r2))
 			elif opcode.arg == "json":
 				make_scriptlet("r%d = com.livinglogic.ul4.Utils.json(r%d);" % (opcode.r1, opcode.r2))
+			elif opcode.arg == "reversed":
+				make_scriptlet("r%d = com.livinglogic.ul4.Utils.reversed(r%d);" % (opcode.r1, opcode.r2))
 			else:
 				raise ul4c.UnknownFunctionError(opcode.arg)
 		elif opcode.code == "callfunc2":
