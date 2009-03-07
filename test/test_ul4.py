@@ -1045,6 +1045,11 @@ def test_method_witha():
 	check('#0063a82a', u'<?print repr(#0063a8.witha(42))?>')
 
 
+def test_method_join():
+	check('1,2,3,4', u'<?print ",".join("1234")?>')
+	check('1,2,3,4', u'<?print ",".join([1, 2, 3, 4])?>')
+
+
 def test_render():
 	t = ul4c.compile(u'<?print prefix?><?print data?><?print suffix?>')
 	check('(f)(o)(o)', u'<?for c in data?><?render t(data=c, prefix="(", suffix=")")?><?end for?>', t=t, data='foo')

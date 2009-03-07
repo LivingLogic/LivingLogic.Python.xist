@@ -801,6 +801,19 @@ each occurrence of the first argument is replaced by the second argument.
 to ``None``.
 
 
+``join``
+::::::::
+
+``join`` is a string method. It returns a concatentation of the strings in the
+argument sequence with the string itself as the separator, i.e.::
+
+	<?print "+".join([1, 2, 3, 4])?>
+
+outputs::
+
+	1+2+3+4
+
+
 ``render``
 ::::::::::
 

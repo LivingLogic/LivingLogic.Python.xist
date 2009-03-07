@@ -1,3 +1,10 @@
+Changes in 3.6.4 (released ??/??/2009)
+--------------------------------------
+
+*	A new UL4 method ``join`` has been add. It works like the Python string
+	method join.
+
+
 Changes in 3.6.3 (released 03/02/2009)
 --------------------------------------
 

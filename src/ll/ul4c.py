@@ -997,6 +997,8 @@ class Template(object):
 	def _pythonsource_dispatch_callmeth1(self, opcode):
 		if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "get", "withlum", "witha"):
 			self.lines.append("%sreg%d = reg%d.%s(reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.arg, opcode.r3))
+		elif opcode.arg == "join":
+			self.lines.append("%sreg%d = reg%d.join(unicode(x) for x in reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
 		elif opcode.arg == "format":
 			self.lines.append("%sreg%d = ul4c._format(reg%d, reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
 		else:
