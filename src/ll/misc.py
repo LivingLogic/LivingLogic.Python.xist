@@ -15,7 +15,7 @@ LivingLogic modules and packages.
 """
 
 
-import sys, types, collections, weakref
+import sys, types, collections, weakref, cStringIO, gzip
 
 
 __docformat__ = "reStructuredText"
@@ -402,3 +402,161 @@ def tokenizepi(string):
 			data = ""
 		yield (target, data)
 		pos = pos2+2
+
+
+def gzip(input, compresslevel=9):
+	"""
+	Compresses the byte string :var:`input` with gzip using the compression level
+	:var:`compresslevel`.
+	"""
+	stream = cStringIO.StringIO()
+	compressor = gzip.GzipFile(filename="", mode="wb", fileobj=stream, compresslevel=compresslevel)
+	compressor.write(data)
+	compressor.close()
+	return stream.getvalue()
+
+
+def gunzip(input):
+	"""
+	Uncompresses the byte string :var:`input` with gzip.
+	"""
+	stream = cStringIO.StringIO(data)
+	compressor = gzip.GzipFile(filename="", mode="rb", fileobj=stream)
+	return compressor.read(data)
+
+
+class JSMinUnterminatedComment(Exception):
+	pass
+
+class JSMinUnterminatedStringLiteral(Exception):
+	pass
+
+class JSMinUnterminatedRegularExpression(Exception):
+	pass
+
+
+def jsmin(input):
+	"""
+	Minimizes the Javascript source :var:`input`.
+	"""
+
+	indata = iter(input.replace("\r", "\n"))
+
+	# Copy the input to the output, deleting the characters which are
+	# insignificant to JavaScript. Comments will be removed. Tabs will be
+	# replaced with spaces. Carriage returns will be replaced with linefeeds.
+	# Most spaces and linefeeds will be removed.
+
+	class var(object):
+		a = "\n"
+		b = None
+		lookahead = None
+	outdata = []
+
+	def _get():
+		# Return the next character from the input. Watch out for lookahead. If
+		# the character is a control character, translate it to a space or linefeed.
+		c = var.lookahead
+		var.lookahead = None
+		if c is None:
+			try:
+				c = indata.next()
+			except StopIteration:
+				return "" # EOF
+		if c >= " " or c == "\n":
+			return c
+		return " "
+
+	def _peek():
+		var.lookahead = _get()
+		return var.lookahead
+
+	def isalphanum(c):
+		# Return true if the character is a letter, digit, underscore, dollar sign, or non-ASCII character.
+		return ('a' <= c <= 'z') or ('0' <= c <= '9') or ('A' <= c <= 'Z') or c in "_$\\" or (c is not None and ord(c) > 126)
+
+	def _next():
+		# Get the next character, excluding comments. peek() is used to see if an unescaped '/' is followed by a '/' or '*'.
+		c = _get()
+		if c == "/" and var.a != "\\":
+			p = _peek()
+			if p == "/":
+				c = _get()
+				while c > "\n":
+					c = _get()
+				return c
+			if p == "*":
+				c = _get()
+				while 1:
+					c = _get()
+					if c == "*":
+						if _peek() == "/":
+							_get()
+							return " "
+					if not c:
+						raise JSMinUnterminatedComment()
+		return c
+
+	def _action(action):
+		"""
+		Do something! What you do is determined by the argument:
+		   1   Output A. Copy B to A. Get the next B.
+		   2   Copy B to A. Get the next B. (Delete A).
+		   3   Get the next B. (Delete B).
+		action treats a string as a single character. Wow!
+		action recognizes a regular expression if it is preceded by ( or , or =.
+		"""
+		if action <= 1:
+			outdata.append(var.a)
+
+		if action <= 2:
+			var.a = var.b
+			if var.a in "'\"":
+				while True:
+					outdata.append(var.a)
+					var.a = _get()
+					if var.a == var.b:
+						break
+					if var.a <= "\n":
+						raise JSMinUnterminatedStringLiteral()
+					if var.a == "\\":
+						outdata.append(var.a)
+						var.a = _get()
+
+		if action <= 3:
+			var.b = _next()
+			if var.b == "/" and var.a in "(,=:[?!&|;{}\n":
+				outdata.append(var.a)
+				outdata.append(var.b)
+				while True:
+					var.a = _get()
+					if var.a == "/":
+						break
+					elif var.a == "\\":
+						outdata.append(var.a)
+						var.a = _get()
+					elif var.a <= "\n":
+						raise JSMinUnterminatedRegularExpression()
+					outdata.append(var.a)
+				var.b = _next()
+
+	_action(3)
+
+	while var.a:
+		if var.a == " ":
+			_action(1 if isalphanum(var.b) else 2)
+		elif var.a == "\n":
+			if var.b in "{[(+-":
+				_action(1)
+			elif var.b == " ":
+				_action(3)
+			else:
+				_action(1 if isalphanum(var.b) else 2)
+		else:
+			if var.b == " ":
+				_action(1 if isalphanum(var.a) else 3)
+			elif var.b == "\n":
+				_action(1 if isalphanum(var.a) or var.a in "}])+-\"'" else 3)
+			else:
+				_action(1)
+	return "".join(outdata).lstrip()

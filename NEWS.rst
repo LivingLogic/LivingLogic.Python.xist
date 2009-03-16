@@ -1,8 +1,12 @@
 Changes in 3.6.4 (released ??/??/2009)
 --------------------------------------
 
-*	A new UL4 method ``join`` has been add. It works like the Python string
+*	A new UL4 method ``join`` has been added. It works like the Python string
 	method join.
+
+*	:mod:`ll.misc` has three new functions: :func:`gzip` und :func:`gunzip` can
+	be used for compressing and uncompressing byte strings with gzip.
+	:func:`jsmin` can be used to minify Javascript source.
 
 
 Changes in 3.6.3 (released 03/02/2009)
