@@ -15,7 +15,7 @@ LivingLogic modules and packages.
 """
 
 
-import sys, types, collections, weakref, cStringIO, gzip
+import sys, types, collections, weakref, cStringIO, gzip as gzip_
 
 
 __docformat__ = "reStructuredText"
@@ -404,25 +404,25 @@ def tokenizepi(string):
 		pos = pos2+2
 
 
-def gzip(input, compresslevel=9):
+def gzip(data, compresslevel=9):
 	"""
-	Compresses the byte string :var:`input` with gzip using the compression level
+	Compresses the byte string :var:`data` with gzip using the compression level
 	:var:`compresslevel`.
 	"""
 	stream = cStringIO.StringIO()
-	compressor = gzip.GzipFile(filename="", mode="wb", fileobj=stream, compresslevel=compresslevel)
+	compressor = gzip_.GzipFile(filename="", mode="wb", fileobj=stream, compresslevel=compresslevel)
 	compressor.write(data)
 	compressor.close()
 	return stream.getvalue()
 
 
-def gunzip(input):
+def gunzip(data):
 	"""
-	Uncompresses the byte string :var:`input` with gzip.
+	Uncompresses the byte string :var:`data` with gzip.
 	"""
 	stream = cStringIO.StringIO(data)
-	compressor = gzip.GzipFile(filename="", mode="rb", fileobj=stream)
-	return compressor.read(data)
+	compressor = gzip_.GzipFile(filename="", mode="rb", fileobj=stream)
+	return compressor.read()
 
 
 class JSMinUnterminatedComment(Exception):
