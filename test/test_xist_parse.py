@@ -321,3 +321,8 @@ def test_htmlparse_base():
 	e = parsers.parsestring("<a href='gurk.gif'/>", base="hurz/index.html", tidy=True)
 	e = e.walknode(html.a)[0]
 	assert unicode(e.attrs.href) == "hurz/gurk.gif"
+
+
+def test_parse_tidy_empty():
+	e = parsers.parsestring("", tidy=True)
+	assert not e

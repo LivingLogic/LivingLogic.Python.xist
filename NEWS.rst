@@ -1,4 +1,4 @@
-Changes in 3.6.4 (released ??/??/2009)
+Changes in 3.6.4 (released 03/19/2009)
 --------------------------------------
 
 *	A new UL4 method ``join`` has been added. It works like the Python string
@@ -7,6 +7,9 @@ Changes in 3.6.4 (released ??/??/2009)
 *	:mod:`ll.misc` has three new functions: :func:`gzip` und :func:`gunzip` can
 	be used for compressing and uncompressing byte strings with gzip.
 	:func:`jsmin` can be used to minify Javascript source.
+
+*	Parsing an empty string with ``tidy=True`` in
+	:func:`ll.xist.parsers.parsestring` now works again.
 
 
 Changes in 3.6.3 (released 03/02/2009)

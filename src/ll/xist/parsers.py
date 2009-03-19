@@ -362,15 +362,18 @@ class Builder(object):
 
 		self.base = url.URL(base)
 
-		try:
-			olddefault = libxml2.lineNumbersDefault(1)
-			doc = libxml2.htmlReadMemory(data, len(data), sysid, encoding, 0x160)
+		if not data:
+			node = xsc.Frag()
+		else:
 			try:
-				node = toxsc(doc)
+				olddefault = libxml2.lineNumbersDefault(1)
+				doc = libxml2.htmlReadMemory(data, len(data), sysid, encoding, 0x160)
+				try:
+					node = toxsc(doc)
+				finally:
+					doc.freeDoc()
 			finally:
-				doc.freeDoc()
-		finally:
-			libxml2.lineNumbersDefault(olddefault)
+				libxml2.lineNumbersDefault(olddefault)
 		return node
 
 	def _begin(self, base=None, encoding=None):

@@ -1,6 +1,6 @@
 /*
-** Copyright 2002-2007 by LivingLogic AG, Bayreuth, Germany.
-** Copyright 2002-2007 by Walter Dörwald
+** Copyright 2002-2009 by LivingLogic AG, Bayreuth, Germany.
+** Copyright 2002-2009 by Walter Dörwald
 **
 ** All Rights Reserved
 **
