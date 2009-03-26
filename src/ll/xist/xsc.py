@@ -122,14 +122,6 @@ class build(object):
 		self.stack[-1](*args, **kwargs)
 
 
-def add(*args, **kwargs):
-	"""
-	:func:`add` appends items in :var:`args` and sets attributes in
-	:var:`kwargs` in the currenly active node in the ``with`` stack.
-	"""
-	threadlocalnodehandler.handler.add(*args, **kwargs)
-
-
 class addattr(object):
 	"""
 	An :class:`addattr` object can be used as a ``with`` block handler to modify
@@ -157,6 +149,14 @@ class addattr(object):
 
 	def add(self, *args):
 		self.attr(*args)
+
+
+def add(*args, **kwargs):
+	"""
+	:func:`add` appends items in :var:`args` and sets attributes in
+	:var:`kwargs` in the currenly active node in the ``with`` stack.
+	"""
+	threadlocalnodehandler.handler.add(*args, **kwargs)
 
 
 ###
