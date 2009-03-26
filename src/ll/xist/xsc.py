@@ -458,7 +458,7 @@ class FileNotFoundWarning(Warning):
 		return "%s: %r not found (%s)" % (self.message, self.filename, self.exc)
 
 
-class IllegalObjectError(TypeError):
+class IllegalObjectError(Error, TypeError):
 	"""
 	Exception that is raised when an XIST constructor gets passed an
 	unconvertable object.
