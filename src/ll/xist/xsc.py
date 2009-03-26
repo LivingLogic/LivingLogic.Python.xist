@@ -281,8 +281,9 @@ def makewalkfilter(obj):
 class Context(object):
 	"""
 	This is an empty class, that can be used by the :meth:`convert` method to
-	hold element or namespace specific data during the convert call. The method
-	:meth:`Converter.__getitem__` will return a unique instance of this class.
+	hold element or namespace specific data during the :meth:`convert` call.
+	The method :meth:`Converter.__getitem__` will return a unique instance of
+	this class.
 	"""
 	__fullname__ = "Context"
 
