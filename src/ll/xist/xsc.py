@@ -500,35 +500,6 @@ class IllegalProcInstFormatError(Error):
 		return "processing instruction with content %r is illegal, as it contains '?>'." % self.procinst.content
 
 
-class IllegalXMLDeclFormatError(Error):
-	"""
-	Exception that is raised, when there is an illegal XML declaration, i.e.
-	there something wrong in ``<?xml ...?>``. (This can only happen, when the
-	processing instruction is instantiated by the program, not when parsed
-	from an XML file.)
-	"""
-
-	def __init__(self, procinst):
-		self.procinst = procinst
-
-	def __str__(self):
-		return "XML declaration with content %r is malformed." % self.procinst.content
-
-
-class NodeOutsideContextError(Error):
-	"""
-	Error that is raised, when a convert method can't find required context
-	info.
-	"""
-
-	def __init__(self, node, outerclass):
-		self.node = node
-		self.outerclass = outerclass
-
-	def __str__(self):
-		return "node %s outside of %s" % (self.node._str(fullname=True, xml=False, decorate=True), self.outerclass._str(fullname=True, xml=False, decorate=True))
-
-
 ###
 ### The DOM classes
 ###
