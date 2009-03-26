@@ -346,18 +346,6 @@ class IllegalPrefixError(Error, LookupError):
 		return "namespace prefix %s is undefined" % (self.prefix,)
 
 
-class IllegalNamespaceError(Error, LookupError):
-	"""
-	Exception that is raised when a namespace name is undefined
-	i.e. if there is no namespace with this name.
-	"""
-	def __init__(self, name):
-		self.name = name
-
-	def __str__(self):
-		return "namespace name %s is undefined" % (self.name,)
-
-
 class IllegalElementError(Error, LookupError):
 	"""
 	Exception that is raised, when an illegal element class is requested
