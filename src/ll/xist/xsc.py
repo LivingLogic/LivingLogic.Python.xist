@@ -89,6 +89,15 @@ threadlocalnodehandler = ThreadLocalNodeHander()
 
 
 class build(object):
+	"""
+	A :class:`build` object can be used as a ``with`` block handler to create a
+	new XISAT tree::
+
+		with xsc.build():
+			with html.ul() as e:
+				+html.li("gurk")
+				+html.li("hurz")
+	"""
 	def __init__(self):
 		self.stack = []
 
