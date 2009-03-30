@@ -1,3 +1,25 @@
+Migrating to version 3.7
+========================
+
+Changes to the make module
+--------------------------
+
+*	The division operator is no longer implemented, so instead of::
+
+		t1 = make.FileAction(key=url.URL("foo.txt"))
+		t2 = t1 /
+		     make.DecodeAction("iso-8859-1") /
+		     make.EncodeAction("utf-8") /
+		     make.FileAction(key=url.URL("bar.txt"))
+
+	you now have to write something like the following::
+
+		t1 = make.FileAction(key=url.URL("foo.txt"))
+		t2 = make.DecodeAction(encoding="iso-8859-1", input=t1)
+		t2 = make.EncodeAction(encoding="utf-8", input=t2)
+		t2 = make.FileAction(key=url.URL("bar.txt"), input=t2)
+
+
 Migrating to version 3.6
 ========================
 
@@ -38,7 +60,7 @@ Changes to UL4
 *	The UL4 function ``csvescape`` has been renamed to ``csv``.
 
 Changes to the color module
---------------------------
+---------------------------
 
 *	:class:`ll.color.Color` has been rewritten to create immutable objects
 	with the components being 8 bit values (i.e. 0-255) instead of floating

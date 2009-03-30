@@ -301,14 +301,13 @@ class Action(object):
 	transforms the output data of those actions and returns its own output data.
 	"""
 
+	key = None
+
 	def __init__(self):
 		"""
 		Create a new :class:`Action` instance.
 		"""
 		self.changed = bigbang
-
-	def __div__(self, output):
-		return output.__rdiv__(self)
 
 	@report
 	def get(self, project, since):
@@ -437,7 +436,7 @@ class Action(object):
 			if name.endswith("Action"):
 				name = name[:-6]
 			yield (s4action, name)
-			if hasattr(self, "key"):
+			if self.key is not None:
 				yield (astyle.style_default, "(")
 				key = self.key
 				if isinstance(key, url.URL) and key.islocal():
@@ -458,6 +457,20 @@ class Action(object):
 			yield (astyle.style_default, repr(self))
 
 
+class ObjectAction(Action):
+	"""
+	An :class:`ObjectAction` returns an object.
+	"""
+	def __init__(self, object=None):
+		Action.__init__(self)
+		self.object = object
+
+	@report
+	def get(self, project, since):
+		(data, self.changed) = getoutputs(project, since, self.object)
+		return data
+
+
 class PipeAction(Action):
 	"""
 	A :class:`PipeAction` depends on exactly one input action and transforms
@@ -466,14 +479,6 @@ class PipeAction(Action):
 	def __init__(self, input=None):
 		Action.__init__(self)
 		self.input = input
-
-	def __rdiv__(self, input):
-		"""
-		Register the action :var:`input` as the input action for :var:`self` and
-		return :var:`self` (which enables "chaining" :class:`PipeAction` objects).
-		"""
-		self.input = input
-		return self
 
 	def getkey(self):
 		return self.input.getkey()
@@ -535,14 +540,14 @@ class PhonyAction(Action):
 	If there's new data from any of these actions, a :class:`PhonyAction` will
 	return :const:`None` (and :const:`nodata` otherwise as usual).
 	"""
-	def __init__(self, doc=None):
+	def __init__(self, *inputs, **kwargs):
 		"""
 		Create a :class:`PhonyAction` object. :var:`doc` describes the action and
 		is printed by the method :meth:`Project.writephonytargets`.
 		"""
 		Action.__init__(self)
-		self.doc = doc
-		self.inputs = []
+		self.doc = kwargs.get("doc")
+		self.inputs = list(inputs)
 		self.buildno = None
 
 	def addinputs(self, *inputs):
@@ -578,7 +583,7 @@ class PhonyAction(Action):
 
 	def __repr__(self):
 		s = "<%s.%s object" % (self.__class__.__module__, self.__class__.__name__)
-		if hasattr(self, "key"):
+		if self.key is not None:
 			s += " with key=%r" % self.key
 		s += " at 0x%x>" % id(self)
 		return s
@@ -589,13 +594,12 @@ class FileAction(PipeAction):
 	A :class:`FileAction` is used for reading and writing files (and other
 	objects providing the appropriate interface).
 	"""
-	def __init__(self, input=None, key=None):
+	def __init__(self, key, input=None):
 		"""
 		Create a :class:`FileAction` object with :var:`key` as the "filename".
 		:var:`key` must be an object that provides a method :meth:`open` for
 		opening readable and writable streams to the file. :var:`input` is the
 		data written to the file (or the action producing the data).
-		
 		"""
 		PipeAction.__init__(self, input)
 		self.key = key
@@ -1186,6 +1190,50 @@ class CallFuncAction(Action):
 		return func(*args **kwargs)
 
 
+class CallAction(Action):
+	"""
+	This action calls a function or any other callable object with a number of
+	arguments. Both positional and keyword arguments are supported and the
+	function and the arguments can be static objects or actions.
+	"""
+	def __init__(self, func, *args, **kwargs):
+		Action.__init__(self)
+		self.func = func
+		self.args = args
+		self.kwargs = kwargs
+
+	def __iter__(self):
+		yield self.func
+		for input in self.args:
+			yield input
+		for input in self.kwargs.itervalues():
+			yield input
+
+	def getargs(self):
+		return (self.func,) + self.args
+
+	def getkwargs(self):
+		return self.kwargs
+
+	def execute(self, project, func, *args, **kwargs):
+		if args:
+			if len(args) == 1:
+				argsmsg = " with 1 arg"
+			else:
+				argsmsg = " with %d args" % len(args)
+		else:
+			argsmsg = " without args"
+		if kwargs:
+			if len(kwargs) == 1:
+				kwargsmsg = " and keyword %s" % ", ".join(kwargs)
+			else:
+				kwargsmsg = " and keywords %s" % ", ".join(kwargs)
+		else:
+			kwargsmsg = ""
+		project.writestep(self, "Calling %r" % (func, ), argsmsg, kwargsmsg)
+		return func(*args, **kwargs)
+
+
 class CallAttrAction(Action):
 	"""
 	This action calls an attribute of an object with a number of arguments. Both
@@ -1349,12 +1397,12 @@ class CommandAction(PipeAction):
 	through the input data.
 	"""
 
-	def __init__(self, command):
+	def __init__(self, command, input=None):
 		"""
 		Create a new :class:`CommandAction` object. :var:`command` is the command
 		that will executed when :meth:`execute` is called.
 		"""
-		PipeAction.__init__(self)
+		PipeAction.__init__(self, input)
 		self.command = command
 
 	def execute(self, project, data):
@@ -1402,13 +1450,13 @@ class OwnerAction(PipeAction):
 	passes through the input data.
 	"""
 
-	def __init__(self, user=None, group=None):
+	def __init__(self, user=None, group=None, input=None):
 		"""
 		Create a new :class:`OwnerAction` object. :var:`user` can either be a
 		numerical user id or a user name or :const:`None`. If it is :const:`None`
 		no user ownership will be changed. The same applies to :var:`group`.
 		"""
-		PipeAction.__init__(self)
+		PipeAction.__init__(self, input)
 		self.id = id
 		self.user = user
 		self.group = group
@@ -1436,14 +1484,14 @@ class ModuleAction(PipeAction):
 	"""
 	This action will turn the input string into a Python module.
 	"""
-	def __init__(self):
+	def __init__(self, input=None):
 		"""
 		Create an :class:`ModuleAction`.
 
 		This object must have an input action (which might be a :class:`FileAction`
 		that creates the source file).
 		"""
-		PipeAction.__init__(self)
+		PipeAction.__init__(self, input)
 		self.inputs = []
 		self.changed = bigbang
 		self.data = nodata
@@ -1544,6 +1592,61 @@ class ModuleAction(PipeAction):
 
 	def __repr__(self):
 		return "<%s.%s object key=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.getkey(), id(self))
+
+
+class ModuleName(str):
+	"""
+	:class:`ModuleName` objects are automatically created by :class:`ImportAction`
+	as keys to be able to distinguish those keys from the keys for
+	:class:`PhonyAction`\s (which are normally :class:`str` objects).
+	"""
+	def __eq__(self, other):
+		return self.__class__ is other.__class__ and str.__eq__(self, other)
+
+	def __ne__(self, other):
+		return not self == other
+
+	def __repr__(self):
+		return "%s.%s(%s)" % (self.__class__.__module__, self.__class__.__name__, str.__repr__(self))
+
+
+class ImportAction(Action):
+	"""
+	This action imports a module specified by module name.
+	"""
+	def __init__(self, modulename):
+		"""
+		Create a :class:`ImportAction` object. :var:`modulename` must be the
+		module name as a :class:`str`.
+		"""
+		Action.__init__(self)
+		self.key = ModuleName(modulename)
+		self.changed = bigbang
+		self.module = None
+
+	def __iter__(self):
+		yield self.key
+
+	@report
+	def get(self, project, since):
+		if self.module is None:
+			module = __import__(self.key)
+			for subname in self.key.split(".")[1:]:
+				module = getattr(module, subname)
+			self.changed = filechanged(url.File(module.__file__))
+			self.module = module
+			args = ["Imported module %s" % self.key]
+			if project.showtimestamps:
+				args.append(" (changed ")
+				args.append(project.strdatetime(self.changed))
+				args.append(")")
+			project.writestep(self, *args)
+		if self.changed > since:
+			return self.module
+		return nodata
+
+	def __repr__(self):
+		return "ImportAction(%r)" % str(self.key)
 
 
 class AlwaysAction(Action):
@@ -2012,7 +2115,7 @@ class Project(dict):
 		if name.endswith("Action"):
 			name = name[:-6]
 
-		if hasattr(action, "key"):
+		if action.key is not None:
 			return s4action(name, "(", self.strkey(action.key), ")")
 		else:
 			return s4action(name)
@@ -2032,9 +2135,8 @@ class Project(dict):
 	def add(self, target, key=None):
 		"""
 		Add the action :var:`target` as a target to :var:`self`. If :var:`key`
-		is not :const:`None`, :var:`target` will be registered under this key
-		(and ``target.key`` will be set to it), otherwise it will be registered
-		under its own key (i.e. ``target.key``).
+		is not :const:`None`, :var:`target` will be registered under this key,
+		otherwise it will be registered under its own key (i.e. ``target.key``).
 		"""
 		if key is None: # Use the key from the target
 			key = target.getkey()

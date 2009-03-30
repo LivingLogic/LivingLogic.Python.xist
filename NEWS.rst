@@ -1,3 +1,10 @@
+Changes in 3.7 (released ??/??/2009)
+------------------------------------
+
+*	The division operator is no longer implemented for :class:`Action` objects
+	in :mod:`ll.make`.
+
+
 Changes in 3.6.4 (released 03/19/2009)
 --------------------------------------
 
