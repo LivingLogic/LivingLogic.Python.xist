@@ -1106,6 +1106,53 @@ class EncodeAction(PipeAction):
 		return data.encode(encoding)
 
 
+class JSONDecodeAction(PipeAction):
+	"""
+	This action decodes an input :class:`str` object in JSON format into an
+	output :class:`unicode` object.
+	"""
+
+	def __init__(self, input=None):
+		"""
+		Create a :class:`JSONDecodeAction` object.
+		"""
+		PipeAction.__init__(self, input)
+
+	def execute(self, project, data, encoding):
+		project.writestep(self, "Decoding ", len(data), " bytes with encoding ", encoding)
+		return data.decode(encoding)
+
+
+class JSONEncodeAction(PipeAction):
+	"""
+	This action encodes an input :class:`unicode` object into an output
+	:class:`str` object.
+	"""
+
+	def __init__(self, input=None, encoding=None):
+		"""
+		Create an :class:`EncodeAction` object with :var:`encoding` as the name
+		of the encoding. If :var:`encoding` is :const:`None` the system default
+		encoding will be used.
+		"""
+		PipeAction.__init__(self, input)
+		if encoding is None:
+			encoding = sys.getdefaultencoding()
+		self.encoding = encoding
+
+	def __iter__(self):
+		for input in PipeAction.__iter__(self):
+			yield input
+		yield self.encoding
+
+	def getkwargs(self):
+		return dict(data=self.input, encoding=self.encoding)
+
+	def execute(self, project, data, encoding):
+		project.writestep(self, "Encoding ", len(data), " characters with encoding ", encoding)
+		return data.encode(encoding)
+
+
 class EvalAction(PipeAction):
 	"""
 	This action evaluates an input string and returns the resulting output
