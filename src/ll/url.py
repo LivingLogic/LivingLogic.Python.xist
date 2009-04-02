@@ -45,7 +45,7 @@ except ImportError:
 	from email import Utils as emutils
 
 # don't fail when :mod:`pwd` or :mod:`grp` can't be imported, because if this
-# doesn't work, we're probably on Windows and :func:`os.chown` won't work anyway
+# doesn't work, we're probably on Windows and :func:`os.chown` won't work anyway.
 try:
 	import pwd, grp
 except ImportError:
