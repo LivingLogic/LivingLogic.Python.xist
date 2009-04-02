@@ -28,6 +28,9 @@ Changes in 3.7 (released ??/??/2009)
 *	The script ``ucp`` now changes the user and group only if a user or group is
 	given.
 
+*	Fixed a bug in the remote :meth:`stat` method for ssh URLs (it seems that
+	the :class:`posix.stat_result` tuple objects can no longer be pickled).
+
 
 Changes in 3.6.4 (released 03/19/2009)
 --------------------------------------
