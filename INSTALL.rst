@@ -12,17 +12,20 @@ To use XIST you need the following software packages:
 	4.	`elinks`_ (if you want want to use the function
 		:func:`ll.xist.ns.html.astext`);
 
-	5.	`setuptools`_ (if you want to install this package as an egg);
+	5.	`cx_Oracle`_ (if you want to use :mod:`ll.orasql`);
 
-	6.	`py.test`_ (if you want to run the test suite)
+	6.	`setuptools`_ (if you want to install this package as an egg);
 
-	7.	and a C compiler supported by distutils, if you want to install the
+	7.	`py.test`_ (if you want to run the test suite)
+
+	8.	and a C compiler supported by distutils, if you want to install the
 		source distribution.
 
 	.. _Python 2.5: http://www.python.org/
 	.. _Python Imaging Library: http://www.pythonware.com/products/pil/
 	.. _libxml2: http://www.xmlsoft.org/
 	.. _elinks: http://elinks.or.cz/
+	.. _cx_Oracle: http://cx-oracle.sourceforge.net/
 	.. _setuptools: http://peak.telecommunity.com/DevCenter/setuptools
 	.. _py.test: http://codespeak.net/py/current/doc/test.html
 

@@ -100,6 +100,9 @@ Topic :: Text Processing :: Markup :: XML
 
 # TOXIC
 Topic :: Database
+
+# orasql
+Topic :: Database
 """
 
 KEYWORDS = """
@@ -179,6 +182,14 @@ embed
 
 # ul4
 template
+
+# orasql
+database
+Oracle
+cx_Oracle
+record
+procedure
+schema
 """
 
 try:
@@ -200,8 +211,8 @@ else:
 
 args = dict(
 	name="ll-xist",
-	version="3.6.4",
-	description="Extensible HTML/XML generator, cross-platform templating language and various other tools",
+	version="3.7",
+	description="Extensible HTML/XML generator, cross-platform templating language, Oracle utilities and various other tools",
 	long_description=descr,
 	author="Walter Doerwald",
 	author_email="walter@livinglogic.de",
@@ -211,7 +222,7 @@ args = dict(
 	classifiers=sorted(set(c for c in CLASSIFIERS.strip().splitlines() if c.strip() and not c.strip().startswith("#"))),
 	keywords=", ".join(sorted(set(k.strip() for k in KEYWORDS.strip().splitlines() if k.strip() and not k.strip().startswith("#")))),
 	package_dir={"": "src"},
-	packages=["ll", "ll.scripts", "ll.xist", "ll.xist.ns", "ll.xist.scripts"],
+	packages=["ll", "ll.scripts", "ll.xist", "ll.xist.ns", "ll.xist.scripts", "ll.orasql", "ll.orasql.scripts"],
 	ext_modules=[
 		tools.Extension("ll._url", ["src/ll/_url.c"]),
 		tools.Extension("ll._ansistyle", ["src/ll/_ansistyle.c"]),
@@ -227,6 +238,13 @@ args = dict(
 			"tld2xsc = ll.xist.scripts.tld2xsc:main",
 			"doc2txt = ll.xist.scripts.doc2txt:main",
 			"xml2xsc = ll.xist.scripts.xml2xsc:main",
+			"oracreate = ll.orasql.scripts.oracreate:main [oracle]",
+			"oradrop = ll.orasql.scripts.oradrop:main [oracle]",
+			"oradelete = ll.orasql.scripts.oradelete:main [oracle]",
+			"oradiff = ll.orasql.scripts.oradiff:main [oracle]",
+			"oramerge = ll.orasql.scripts.oramerge:main [oracle]",
+			"oragrant = ll.orasql.scripts.oragrant:main [oracle]",
+			"orafind = ll.orasql.scripts.orafind:main [oracle]",
 		]
 	),
 	scripts=[
@@ -236,12 +254,25 @@ args = dict(
 		"scripts/tld2xsc.py",
 		"scripts/doc2txt.py",
 		"scripts/xml2xsc.py",
+		"scripts/oracreate.py",
+		"scripts/oradrop.py",
+		"scripts/oradelete.py",
+		"scripts/oradiff.py",
+		"scripts/oramerge.py",
+		"scripts/oragrant.py",
+		"scripts/orafind.py",
 	],
 	install_requires=[
 		"cssutils == 0.9.5.1",
 	],
+	extras_require = {
+		"oracle":  ["cx_Oracle >= 5.0.1"],
+	},
 	namespace_packages=["ll"],
 	zip_safe=False,
+	dependency_links=[
+		"http://sourceforge.net/project/showfiles.php?group_id=84168", # cx_Oracle
+	],
 )
 
 

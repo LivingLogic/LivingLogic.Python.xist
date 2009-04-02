@@ -30,7 +30,7 @@ These three levels of functionality are implemented in three classes:
 	:class:`Resource`
 		:class:`Resource` objects are file like objects that work with the actual
 		bytes that make up the file data. This functionality lives in the
-		:class:`Resource` class and it's subclasses. Creating a resource is done
+		:class:`Resource` class and its subclasses. Creating a resource is done
 		by calling the :meth:`open` method on a :class:`Connection` or a
 		:class:`URL`.
 """
@@ -736,9 +736,9 @@ if py is not None:
 						files[data] = stream
 					elif cmdname == "stat":
 						if isinstance(filename, basestring):
-							data = os.stat(filename)
+							data = tuple(os.stat(filename))
 						else:
-							data = os.fstat(files[filename].fileno())
+							data = tuple(os.fstat(files[filename].fileno()))
 					elif cmdname == "lstat":
 						data = os.lstat(filename)
 					elif cmdname == "close":

@@ -791,7 +791,7 @@ class Node(object):
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
 
-		return publisher.publish(self, base) # return a generator-iterator
+		return publisher.iterbytes(self, base) # return a generator-iterator
 
 	def bytes(self, base=None, publisher=None, **publishargs):
 		"""
@@ -800,7 +800,10 @@ class Node(object):
 		For the possible parameters see the :class:`ll.xist.publishers.Publisher`
 		constructor.
 		"""
-		return "".join(self.iterbytes(base, publisher, **publishargs))
+		if publisher is None:
+			publisher = publishers.Publisher(**publishargs)
+
+		return publisher.bytes(self, base)
 
 	def iterstring(self, base=None, publisher=None, **publishargs):
 		"""
@@ -811,14 +814,8 @@ class Node(object):
 		"""
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
-		decoder = codecs.getincrementaldecoder("xml")(encoding=publisher.encoding)
-		for part in publisher.publish(self, base):
-			part = decoder.decode(part, False)
-			if part:
-				yield part
-		part = decoder.decode("", True)
-		if part:
-			yield part
+
+		return publisher.iterstring(self, base) # return a generator-iterator
 
 	def string(self, base=None, publisher=None, **publishargs):
 		"""
@@ -829,11 +826,9 @@ class Node(object):
 		"""
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
-		decoder = codecs.getdecoder("xml")
-		result = "".join(publisher.publish(self, base))
-		return decoder(result, encoding=publisher.encoding)[0]
+		return publisher.string(self, base)
 
-	def write(self, stream, *args, **publishargs):
+	def write(self, stream, base=None, publisher=None, **publishargs):
 		"""
 		Write :var:`self` to the file-like object :var:`stream` (which must provide
 		a :meth:`write` method).
@@ -841,8 +836,9 @@ class Node(object):
 		For the rest of the parameters see the :class:`ll.xist.publishers.Publisher`
 		constructor.
 		"""
-		for part in self.bytes(*args, **publishargs):
-			stream.write(part)
+		if publisher is None:
+			publisher = publishers.Publisher(**publishargs)
+		return publisher.write(stream, self, base)
 
 	def _walk(self, walkfilter, path):
 		"""

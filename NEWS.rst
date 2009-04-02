@@ -1,11 +1,32 @@
 Changes in 3.7 (released ??/??/2009)
 ------------------------------------
 
+*	:mod:`ll.make` has a new Action class: :class:`ObjectAction` that simply
+	returns a fixed object.
+
+*	The following classes have been removed from :mod:`ll.make`:
+	:class:`EncodeAction`, :class:`DecodeAction`, :class:`EvalAction`,
+	:class:`GZipAction`, :class:`GUnzipAction`,
+	:class:`JavascriptMinifyAction`, :class:`XISTBytesAction`,
+	:class:`XISTStringAction`, :class:`JoinAction`, :class:`UnpickleAction`,
+	:class:`PickleAction`, :class:`TOXICAction`, :class:`TOXICPrettifyAction`,
+	:class:`SplatAction`, :class:`UL4CompileAction`, :class:`UL4RenderAction`,
+	:class:`UL4DumpAction` and :class:`UL4LoadAction`. All of these actions can
+	be executed by using :class:`CallAction` or :class:`CallAttrAction`.
+
+*	:class:`ll.make.PipeAction` has been renamed to :class:`TransformAction`.
+
+*	The new :class:`ll.make.PipeAction` pipes the input through an external
+	command.
+
+*	:class:`ll.make.FileAction` now automatically wraps the :var:`key` argument
+	into an :class:`URL` object.
+
 *	The division operator is no longer implemented for :class:`Action` objects
 	in :mod:`ll.make`.
 
-*	:mod:`ll.make` has two new action classes: :class:`JSONEncodeAction` and
-	:class:`JSONDecodeAction`.
+*	The script ``ucp`` now changes the user and group only if a user or group is
+	given.
 
 
 Changes in 3.6.4 (released 03/19/2009)
