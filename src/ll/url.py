@@ -736,9 +736,9 @@ if py is not None:
 						files[data] = stream
 					elif cmdname == "stat":
 						if isinstance(filename, basestring):
-							data = os.stat(filename)
+							data = tuple(os.stat(filename))
 						else:
-							data = os.fstat(files[filename].fileno())
+							data = tuple(os.fstat(files[filename].fileno()))
 					elif cmdname == "lstat":
 						data = os.lstat(filename)
 					elif cmdname == "close":
