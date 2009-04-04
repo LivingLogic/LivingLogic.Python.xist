@@ -2,7 +2,7 @@ Changes in 3.7 (released ??/??/2009)
 ------------------------------------
 
 *	:mod:`ll.make` has a new Action class: :class:`ObjectAction` that simply
-	returns a fixed object.
+	returns an existing object.
 
 *	The following classes have been removed from :mod:`ll.make`:
 	:class:`EncodeAction`, :class:`DecodeAction`, :class:`EvalAction`,
