@@ -40,6 +40,23 @@ def lpad(s, l):
 		return astyle.style_default(style_pad("."*(l-len(meas))), s)
 	return s
 
+
+def findcolcount(urls, width, spacing):
+	def width4cols(numcols, spacing):
+		cols = [0]*numcols
+		rows = (len(urls)+numcols-1)//numcols
+		for (i, u) in enumerate(urls):
+			cols[i//rows] = max(cols[i//rows], len(str(u)))
+		return (sum(cols) + (numcols-1)*spacing, rows, cols)
+
+	numcols = len(urls)
+	while True:
+		(s, rows, cols) = width4cols(numcols, spacing)
+		if s <= width or numcols == 1:
+			return (rows, cols)
+		numcols -=1
+
+
 def main(args=None):
 	uids = {}
 	gids = {}
@@ -87,17 +104,41 @@ def main(args=None):
 		else:
 			stdout.writeln(astyle.style_file(str(url)))
 
-	def printall(base, url, one, long, recursive, human):
+	def printblock(urls, width, spacing):
+		(rows, cols) = findcolcount(urls, width, spacing)
+		for i in xrange(rows):
+			for (j, w) in enumerate(cols):
+				index = i+j*rows
+				try:
+					url = urls[index]
+				except IndexError:
+					pass
+				else:
+					if url.isdir():
+						url = astyle.style_dir(str(url))
+					else:
+						url = astyle.style_file(str(url))
+					if index + rows < len(urls):
+						url = rpad(url, w+spacing)
+					stdout.write(url)
+			stdout.writeln()
+
+	def printall(base, url, one, long, recursive, human, spacing):
 		if url.isdir():
 			if url.path.segments[-1][0]:
 				url.path.segments.append(("",))
-			if recursive:
-				for child in url.listdir():
-					printone(url/child, long, human)
-					printall(base, url/child, one, long, recursive, human)
+			if not long and not one:
+				urls = [(url/child).relative(base) for child in url.listdir()]
+				if urls:
+					printblock(urls, width, spacing)
+					if recursive:
+						for child in url.dirs():
+							printall(base, url/child, one, long, recursive, human, spacing)
 			else:
 				for child in url.listdir():
-					printone((url/child).relative(base), long, human)
+					printone(url/child, long, human)
+					if recursive:
+						printall(base, url/child, one, long, recursive, human, spacing)
 		else:
 			printone(url, long, human)
 
@@ -108,6 +149,7 @@ def main(args=None):
 	p.add_option("-l", "--long", dest="long", help="Long format?", action="store_true")
 	p.add_option("-s", "--human-readable-sizes", dest="human", help="Output human readable sizes?", action="store_true")
 	p.add_option("-r", "--recursive", dest="recursive", help="Recursive listing?", action="store_true")
+	p.add_option("-w", "--spacing", dest="spacing", help="Spacing between columns", type="int", default=3)
 	
 	(options, args) = p.parse_args(args)
 
@@ -126,7 +168,7 @@ def main(args=None):
 	with url.Context():
 		for u in args:
 			u = url.URL(u)
-			printall(u, u, options.one, options.long, options.recursive, options.human)
+			printall(u, u, options.one, options.long, options.recursive, options.human, options.spacing)
 
 
 if __name__ == "__main__":
