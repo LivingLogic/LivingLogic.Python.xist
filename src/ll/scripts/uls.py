@@ -45,8 +45,8 @@ def findcolcount(urls, width, spacing):
 	def width4cols(numcols, spacing):
 		cols = [0]*numcols
 		rows = (len(urls)+numcols-1)//numcols
-		for (i, u) in enumerate(urls):
-			cols[i//rows] = max(cols[i//rows], len(str(u)))
+		for (i, (u, su)) in enumerate(urls):
+			cols[i//rows] = max(cols[i//rows], len(su))
 		return (sum(cols) + (numcols-1)*spacing, rows, cols)
 
 	numcols = len(urls)
@@ -105,22 +105,23 @@ def main(args=None):
 			stdout.writeln(astyle.style_file(str(url)))
 
 	def printblock(urls, width, spacing):
+		urls = [(u, str(u)) for u in urls]
 		(rows, cols) = findcolcount(urls, width, spacing)
 		for i in xrange(rows):
 			for (j, w) in enumerate(cols):
 				index = i+j*rows
 				try:
-					url = urls[index]
+					(u, su) = urls[index]
 				except IndexError:
 					pass
 				else:
-					if url.isdir():
-						url = astyle.style_dir(str(url))
+					if u.isdir():
+						su = astyle.style_dir(su)
 					else:
-						url = astyle.style_file(str(url))
+						su = astyle.style_file(su)
 					if index + rows < len(urls):
-						url = rpad(url, w+spacing)
-					stdout.write(url)
+						su = rpad(su, w+spacing)
+					stdout.write(su)
 			stdout.writeln()
 
 	def printall(base, url, one, long, recursive, human, spacing):
