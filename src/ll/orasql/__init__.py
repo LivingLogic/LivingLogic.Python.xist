@@ -21,7 +21,7 @@
 *	The :class:`Connection` class provides methods for iterating through the
 	database metadata.
 
-*	Importing this modules adds support for URLs with the scheme ``oracle`` to
+*	Importing this module adds support for URLs with the scheme ``oracle`` to
 	:mod:`ll.url`.
 
 __ http://cx-oracle.sourceforge.net/
@@ -1073,17 +1073,32 @@ class Object(object):
 	connectstring = property(getconnectstring)
 
 	@classmethod
-	def iterobjects(cls, connection, schema="user"):
+	def iternames(cls, connection, schema="user"):
 		"""
-		Generator that yields all objects of this type in the database schema
-		of :var:`cursor`.
+		Generator that yields the names of all objects of this type in the current
+		users schema (or all users schemas). :var:`schema` specifies from which
+		user tables should be yielded:
+
+		``"user"``
+			Only names of objects belonging to the current user will be yielded.
+
+		``"all"``
+			All names of the objects from all users will be yielded.
 		"""
 		cursor = connection.cursor()
 		if schema=="all":
 			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from all_objects where lower(object_type) = :type", type=cls.type)
 		else:
 			cursor.execute("select null as owner, object_name from user_objects where lower(object_type) = :type", type=cls.type)
-		return (cls(row.object_name, row.owner, connection) for row in cursor)
+		return ((row.object_name, row.owner) for row in cursor)
+
+	@classmethod
+	def iterobjects(cls, connection, schema="user"):
+		"""
+		Generator that yields all objects of this type in the database schema
+		of :var:`cursor`.
+		"""
+		return (cls(name[0], name[1], connection) for name in self.iternames(connection, schema))
 
 	def __iter__(self):
 		return iter(self.createddl().splitlines())
@@ -1291,13 +1306,13 @@ class Table(MixinNormalDates, Object):
 		return self.mview(connection) is not None
 
 	@classmethod
-	def iterobjects(cls, connection, schema="user"):
+	def iternames(cls, connection, schema="user"):
 		cursor = connection.cursor()
 		if schema == "all":
 			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from all_tables")
 		else:
 			cursor.execute("select null as owner, table_name from user_tables")
-		return (cls(row.table_name, row.owner, connection=connection) for row in cursor)
+		return ((row.table_name, row.owner) for row in cursor)
 
 	def itercolumns(self, connection=None):
 		"""
@@ -2576,11 +2591,16 @@ class OracleConnection(url_.Connection):
 	def close(self):
 		self.dbconnection.close()
 
-	def isdir(self, url):
+	def _isroot(self, url):
 		path = url.path
-		if len(path) <= 1 or (len(path) == 2 and not path[1][0]):
-			return True
-		return False
+		return len(path) == 0 or (len(path) == 1 and not path[0][0])
+		
+	def _istype(self, url):
+		path = url.path
+		return len(path) == 1 or (len(path) == 2 and not path[1][0])
+		
+	def isdir(self, url):
+		return self._isroot(url) or self._istype(url)
 
 	def isfile(self, url):
 		return not self.isdir(url)
@@ -2589,6 +2609,11 @@ class OracleConnection(url_.Connection):
 		if self.isdir(url):
 			return "application/octet-stream"
 		return "text/x-oracle-%s" % url.path[0][0]
+
+	def owner(self, url):
+		c = self.dbconnection.cursor()
+		c.execute("select user from dual")
+		return c.fetchone()[0]
 
 	def cdate(self, url):
 		if self.isdir(url):
@@ -2617,24 +2642,23 @@ class OracleConnection(url_.Connection):
 		return row[0]-datetime.timedelta(seconds=60*(row[1]*60+row[2]))
 
 	def _listdir(self, url, pattern=None, files=True, dirs=True):
-		path = url.path
 		result = []
-		if len(path) == 0 or (len(path) == 1 and not path[0][0]): # root
+		if self._isroot(url): # root
 			if dirs:
 				c = self.dbconnection.cursor()
 				c.execute(u"select distinct lower(object_type) from user_objects")
 				for r in c:
 					if r[0] in Object.name2type:
 						result.append(url_.URL(r[0] + "/"))
-		elif len(path) == 1 or (len(path) == 2 and not path[1][0]): # type directory
+		elif self._istype(url): # type directory
 			if files:
+				path = url.path
 				type = path[0][0]
-				c = self.dbconnection.cursor()
-				c.execute(u"select object_name from user_objects where lower(object_type) = :type", type=type)
+				names = (name[0] for name in Object.name2type[type].iternames(self.dbconnection, "user") if name[1] is None)
 				if len(path) == 1:
-					result = [url_.URL("%s/%s" % (type, r[0])) for r in c]
+					result = [url_.URL("%s/%s" % (type, name)) for name in names]
 				else:
-					result = [url_.URL(r[0]) for r in c]
+					result = [url_.URL(name) for name in names]
 		else:
 			raise IOError(errno.ENOTDIR, "Not a directory: %s" % (url,))
 		if pattern is not None:
