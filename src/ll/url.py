@@ -1057,7 +1057,7 @@ def File(name, scheme="file"):
 		>>> url.File("a#b")
 		URL('file:a%23b')
 	"""
-	name = urllib.pathname2url(os.path.expanduser(name.encode("utf-8")))
+	name = urllib.pathname2url(os.path.expanduser(name))
 	if name.startswith("///"):
 		name = name[2:]
 	url = URL(name)
@@ -1073,7 +1073,7 @@ def Dir(name, scheme="file"):
 		>>> url.Dir("a#b")
 		URL('file:a%23b/')
 	"""
-	name = urllib.pathname2url(os.path.expanduser(name.encode("utf-8")))
+	name = urllib.pathname2url(os.path.expanduser(name))
 	if not name.endswith("/"):
 		name += "/"
 	if name.startswith("///"):
