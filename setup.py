@@ -118,19 +118,12 @@ color
 terminal
 
 # color
+color
 RGB
 HSV
 HSB
 HLS
 CSS
-red
-green
-blue
-hue
-saturation
-value
-brightness
-luminance
 
 # make
 make
@@ -156,7 +149,6 @@ py.execnet
 # xml_codec
 XML
 codec
-decoding
 
 # XIST
 XML
@@ -178,10 +170,10 @@ XML
 HTML
 processing instruction
 PI
-embed
 
 # ul4
 template
+templating language
 
 # orasql
 database
