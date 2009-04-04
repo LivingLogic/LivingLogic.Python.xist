@@ -25,6 +25,9 @@ Changes in 3.7 (released ??/??/2009)
 *	The division operator is no longer implemented for :class:`Action` objects
 	in :mod:`ll.make`.
 
+*	A new script ``uls`` has been added. It can be used to list any directory
+	given als an URL.
+
 *	The script ``ucp`` now changes the user and group only if a user or group is
 	given.
 
