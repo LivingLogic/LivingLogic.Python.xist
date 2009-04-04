@@ -16,6 +16,9 @@ XIST also includes the following modules and packages:
 	way and targets are not only limited to files, but you can implement
 	e.g. dependencies on database records.
 
+*	:mod:`ll.url` provides classes for parsing and constructing RFC 2396
+	compliant URLs.
+
 *	:mod:`ll.orasql` provides utilities for working with cx_Oracle_:
 
 	-	It allows calling functions and procedures with keyword arguments.
@@ -26,7 +29,7 @@ XIST also includes the following modules and packages:
 	-	The :class:`Connection` class provides methods for iterating through the
 		database metadata.
 
-	-	Importing the modules adds support for URLs with the scheme ``oracle`` to
+	-	Importing the module adds support for URLs with the scheme ``oracle`` to
 		:mod:`ll.url`.
 
 	.. _cx_Oracle: http://cx-oracle.sourceforge.net/
@@ -38,9 +41,6 @@ XIST also includes the following modules and packages:
 	template code can't open or delete files).
 
 	__ http://www.djangoproject.com/documentation/templates/
-
-*	:mod:`ll.url` provides classes for parsing and constructing RFC 2396
-	compliant URLs.
 
 *	:mod:`ll.astyle` can be used for colored terminal output (via ANSI escape
 	sequences).
