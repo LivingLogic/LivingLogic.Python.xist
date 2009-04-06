@@ -27,6 +27,8 @@ except ImportError:
 	pass
 
 
+style_file = astyle.Style.fromstr("white:black")
+style_dir = astyle.Style.fromstr("yellow:black")
 style_pad = astyle.Style.fromstr("black:black:bold")
 style_sizeunit = astyle.Style.fromstr("yellow:black")
 
@@ -108,13 +110,13 @@ def main(args=None):
 					size /= 1024.
 			stdout.write(mode, sep, rpad(user, 8), sep, rpad(group, 8), sep, lpad(size, 5 if human else 12), sep, lpad(stat.st_nlink, 3), sep, mtime, sep)
 		if url.isdir():
-			stdout.writeln(astyle.style_dir(str(url)))
+			stdout.writeln(style_dir(str(url)))
 		else:
-			stdout.writeln(astyle.style_file(str(url)))
+			stdout.writeln(style_file(str(url)))
 
 	def printblock(url, urls, width, spacing):
 		if url is not None:
-			stdout.writeln(astyle.style_dir(str(url)), ":")
+			stdout.writeln(style_dir(str(url)), ":")
 		(rows, cols) = findcolcount(urls, width, spacing)
 		for i in xrange(rows):
 			for (j, w) in enumerate(cols):
@@ -125,9 +127,9 @@ def main(args=None):
 					pass
 				else:
 					if u.isdir():
-						su = astyle.style_dir(su)
+						su = style_dir(su)
 					else:
-						su = astyle.style_file(su)
+						su = style_file(su)
 					if index + rows < len(urls):
 						su = rpad(su, w+spacing)
 					stdout.write(su)
