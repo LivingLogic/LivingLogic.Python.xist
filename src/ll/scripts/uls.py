@@ -21,8 +21,15 @@ try:
 except ImportError:
 	from ll import astyle
 
+try:
+	from ll import orasql # Activate oracle URLs
+except ImportError:
+	pass
+
+
 style_pad = astyle.Style.fromstr("black:black:bold")
 style_sizeunit = astyle.Style.fromstr("yellow:black")
+
 
 def rpad(s, l):
 	meas = str(s)
@@ -31,6 +38,7 @@ def rpad(s, l):
 	if len(meas) < l:
 		return astyle.style_default(s, style_pad("."*(l-len(meas))))
 	return s
+
 
 def lpad(s, l):
 	meas = str(s)
@@ -105,7 +113,6 @@ def main(args=None):
 			stdout.writeln(astyle.style_file(str(url)))
 
 	def printblock(urls, width, spacing):
-		urls = [(u, str(u)) for u in urls]
 		(rows, cols) = findcolcount(urls, width, spacing)
 		for i in xrange(rows):
 			for (j, w) in enumerate(cols):
@@ -129,7 +136,10 @@ def main(args=None):
 			if url.path.segments[-1][0]:
 				url.path.segments.append(("",))
 			if not long and not one:
-				urls = [(url/child).relative(base) for child in url.listdir()]
+				urls = []
+				for child in url.listdir():
+					u = url/child
+					urls.append((u, str(u.relative(base))))
 				if urls:
 					printblock(urls, width, spacing)
 					if recursive:
