@@ -30,7 +30,7 @@ except ImportError:
 style_file = astyle.Style.fromstr("white:black")
 style_dir = astyle.Style.fromstr("yellow:black")
 style_pad = astyle.Style.fromstr("black:black:bold")
-style_sizeunit = astyle.Style.fromstr("yellow:black")
+style_sizeunit = astyle.Style.fromstr("cyan:black")
 
 
 def rpad(s, l):
