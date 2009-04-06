@@ -113,7 +113,8 @@ def main(args=None):
 			stdout.writeln(astyle.style_file(str(url)))
 
 	def printblock(url, urls, width, spacing):
-		stdout.writeln(astyle.style_dir(str(url)), ":")
+		if url is not None:
+			stdout.writeln(astyle.style_dir(str(url)), ":")
 		(rows, cols) = findcolcount(urls, width, spacing)
 		for i in xrange(rows):
 			for (j, w) in enumerate(cols):
@@ -145,7 +146,7 @@ def main(args=None):
 						printall(base, url/child, one, long, recursive, human, spacing)
 				else:
 					urls = [(url/child, str(child)) for child in url.listdir()]
-					printblock(url, urls, width, spacing)
+					printblock(None, urls, width, spacing)
 			else:
 				for child in url.listdir():
 					printone(url/child, long, human)
