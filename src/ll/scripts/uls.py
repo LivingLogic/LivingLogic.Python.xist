@@ -112,7 +112,8 @@ def main(args=None):
 		else:
 			stdout.writeln(astyle.style_file(str(url)))
 
-	def printblock(urls, width, spacing):
+	def printblock(url, urls, width, spacing):
+		stdout.writeln(astyle.style_dir(str(url)), ":")
 		(rows, cols) = findcolcount(urls, width, spacing)
 		for i in xrange(rows):
 			for (j, w) in enumerate(cols):
@@ -136,15 +137,15 @@ def main(args=None):
 			if url.path.segments[-1][0]:
 				url.path.segments.append(("",))
 			if not long and not one:
-				urls = []
-				for child in url.listdir():
-					u = url/child
-					urls.append((u, str(u.relative(base))))
-				if urls:
-					printblock(urls, width, spacing)
-					if recursive:
-						for child in url.dirs():
-							printall(base, url/child, one, long, recursive, human, spacing)
+				if recursive:
+					urls = [(url/child, str(child)) for child in url.files()]
+					if urls:
+						printblock(url, urls, width, spacing)
+					for child in url.dirs():
+						printall(base, url/child, one, long, recursive, human, spacing)
+				else:
+					urls = [(url/child, str(child)) for child in url.listdir()]
+					printblock(url, urls, width, spacing)
 			else:
 				for child in url.listdir():
 					printone(url/child, long, human)
@@ -174,7 +175,7 @@ def main(args=None):
 	stderr = astyle.Stream(sys.stderr, color)
 
 	if not args:
-		args = ["."]
+		args = [url.here(scheme=None)]
 
 	with url.Context():
 		for u in args:
