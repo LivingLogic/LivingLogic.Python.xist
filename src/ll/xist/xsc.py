@@ -433,7 +433,7 @@ class MultipleRootsError(Error):
 class ElementNestingError(Error):
 	"""
 	Exception that is raised, when an element has an illegal nesting
-	(e.g. ``&lt;a&gt;&lt;b&gt;&lt;/a&gt;&lt;/b&gt;``)
+	(e.g. ``<a><b></a></b>``)
 	"""
 
 	def __init__(self, expectedelement, foundelement):
