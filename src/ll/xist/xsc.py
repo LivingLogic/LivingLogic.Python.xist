@@ -280,7 +280,7 @@ def makewalkfilter(obj):
 
 class Context(object):
 	"""
-	This is an empty class, that can be used by the :meth:`convert` method to
+	This is an empty class that can be used by the :meth:`convert` method to
 	hold element or namespace specific data during the :meth:`convert` call.
 	The method :meth:`Converter.__getitem__` will return a unique instance of
 	this class.
@@ -348,7 +348,7 @@ class IllegalPrefixError(Error, LookupError):
 
 class IllegalElementError(Error, LookupError):
 	"""
-	Exception that is raised, when an illegal element class is requested
+	Exception that is raised when an illegal element class is requested
 	"""
 
 	def __init__(self, name, xmlns, xml=False):
@@ -367,7 +367,7 @@ class IllegalElementError(Error, LookupError):
 
 class IllegalProcInstError(Error, LookupError):
 	"""
-	Exception that is raised, when an illegal procinst class is requested
+	Exception that is raised when an illegal procinst class is requested
 	"""
 
 	def __init__(self, name, xml=False):
@@ -380,7 +380,7 @@ class IllegalProcInstError(Error, LookupError):
 
 class IllegalEntityError(Error, LookupError):
 	"""
-	Exception that is raised, when an illegal entity class is requested
+	Exception that is raised when an illegal entity class is requested
 	"""
 
 	def __init__(self, name, xml=False):
@@ -393,7 +393,7 @@ class IllegalEntityError(Error, LookupError):
 
 class IllegalCharRefError(Error, LookupError):
 	"""
-	Exception that is raised, when an illegal charref class is requested
+	Exception that is raised when an illegal charref class is requested
 	"""
 
 	def __init__(self, name, xml=False):
@@ -408,7 +408,7 @@ class IllegalCharRefError(Error, LookupError):
 
 class IllegalAttrError(Error, LookupError):
 	"""
-	Exception that is raised, when an illegal attribute is requested.
+	Exception that is raised when an illegal attribute is requested.
 	"""
 
 	def __init__(self, name, cls, xml=False):
@@ -432,7 +432,7 @@ class MultipleRootsError(Error):
 
 class ElementNestingError(Error):
 	"""
-	Exception that is raised, when an element has an illegal nesting
+	Exception that is raised when an element has an illegal nesting
 	(e.g. ``<a><b></a></b>``)
 	"""
 
@@ -446,7 +446,7 @@ class ElementNestingError(Error):
 
 class FileNotFoundWarning(Warning):
 	"""
-	Warning that is issued, when a file can't be found.
+	Warning that is issued when a file can't be found.
 	"""
 	def __init__(self, message, filename, exc):
 		Warning.__init__(self, message, filename, exc)
@@ -473,9 +473,9 @@ class IllegalObjectError(Error, TypeError):
 
 class IllegalCommentContentWarning(Warning):
 	"""
-	Warning that is issued when there is an illegal comment, i.e. one
-	containing ``--`` or ending in ``-``. (This can only happen, when the
-	comment is instantiated by the program, not when parsed from an XML file.)
+	Warning that is issued when there is an illegal comment, i.e. one containing
+	``--`` or ending in ``-``. (This can only happen when the comment is
+	instantiated by the program, not when parsed from an XML file.)
 	"""
 
 	def __init__(self, comment):
@@ -487,8 +487,8 @@ class IllegalCommentContentWarning(Warning):
 
 class IllegalProcInstFormatError(Error):
 	"""
-	Exception that is raised, when there is an illegal processing instruction,
-	i.e. one containing ``?>``. (This can only happen, when the processing
+	Exception that is raised when there is an illegal processing instruction,
+	i.e. one containing ``?>``. (This can only happen when the processing
 	instruction is instantiated by the program, not when parsed from an XML
 	file.)
 	"""
