@@ -1089,7 +1089,7 @@ class OwnerAction(TransformAction):
 	passes through the input data.
 	"""
 
-	def __init__(self, user=None, group=None, input=None):
+	def __init__(self, input=None, user=None, group=None):
 		"""
 		Create a new :class:`OwnerAction` object. :var:`user` can either be a
 		numerical user id or a user name or :const:`None`. If it is :const:`None`
