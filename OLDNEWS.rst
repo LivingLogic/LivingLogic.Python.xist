@@ -1603,7 +1603,7 @@ Changes to ll-orasql
 ####################
 
 Changes in ll-orasql 1.27.1 (released 03/31/2009)
--------------------------------------------------
+=================================================
 
 *	Fixed a bug in the dependency checking for :meth:`Connnection.itertables`.
 
@@ -1612,7 +1612,7 @@ Changes in ll-orasql 1.27.1 (released 03/31/2009)
 
 
 Changes in ll-orasql 1.27 (released 03/31/2009)
------------------------------------------------
+===============================================
 
 *	Added a new script ``oradelete`` that can be used to delete all records from
 	all tables and to reset all sequences.
@@ -1624,7 +1624,7 @@ Changes in ll-orasql 1.27 (released 03/31/2009)
 
 
 Changes in ll-orasql 1.26 (released 03/27/2009)
------------------------------------------------
+===============================================
 
 *	:mod:`ll.orasql` now requires cx_Oracle 5.0 compiled in Unicode mode
 	(i.e. with ``WITH_UNICODE=1``). Lots of unicode handling stuff has been
@@ -1640,27 +1640,27 @@ Changes in ll-orasql 1.26 (released 03/27/2009)
 
 
 Changes in ll-orasql 1.25.4 (released 01/21/2009)
--------------------------------------------------
+=================================================
 
 *	Procedures and functions with timestamp arguments can now be called.
 
 
 Changes in ll-orasql 1.25.3 (released 11/07/2008)
--------------------------------------------------
+=================================================
 
 *	Procedures and functions now should handle arguments of type ``BLOB``
 	correctly.
 
 
 Changes in ll-orasql 1.25.2 (released 08/29/2008)
--------------------------------------------------
+=================================================
 
 *	:class:`Record` has a new method :meth:`get` which works like the dictionary
 	method :meth:`get`.
 
 
 Changes in ll-orasql 1.25.1 (released 07/21/2008)
--------------------------------------------------
+=================================================
 
 *	``orafind.py`` now has an additional options :option:`readlobs` (defaulting
 	to false). If this option is set, the value of LOBs in the records found,
@@ -1668,20 +1668,20 @@ Changes in ll-orasql 1.25.1 (released 07/21/2008)
 
 
 Changes in ll-orasql 1.25 (released 06/17/2008)
------------------------------------------------
+===============================================
 
 *	A new script has been added: ``orafind.py`` will search for a specified
 	string in all columns of all tables in a schema.
 
 
 Changes in ll-orasql 1.24.1 (released 05/30/2008)
--------------------------------------------------
+=================================================
 
 *	Fixed two bugs in :meth:`Callable._calcargs` and :meth:`Connection.getobject`.
 
 
 Changes in ll-orasql 1.24 (released 05/20/2008)
------------------------------------------------
+===============================================
 
 *	:meth:`Connection.getobject`, :class:`Procedure` and :class:`Function` now
 	support functions and procedures in packages.
@@ -1690,21 +1690,21 @@ Changes in ll-orasql 1.24 (released 05/20/2008)
 
 
 Changes in ll-orasql 1.23.4 (released 04/04/2008)
--------------------------------------------------
+=================================================
 
 *	All database scripts now have an additional option :option:`encoding` that
 	specifies the encoding for the output script.
 
 
 Changes in ll-orasql 1.23.3 (released 04/03/2008)
--------------------------------------------------
+=================================================
 
 *	Fixed a regression in the scripts ``oracreate.py``, ``oradrop.py`` and
 	``oragrant.py``.
 
 
 Changes in ll-orasql 1.23.2 (released 04/01/2008)
--------------------------------------------------
+=================================================
 
 *	When calling functions/procedures, arguments are now wrapped in variable
 	objects for their real type instead of ones for the type the function or
@@ -1712,14 +1712,14 @@ Changes in ll-orasql 1.23.2 (released 04/01/2008)
 
 
 Changes in ll-orasql 1.23.1 (released 03/25/2008)
--------------------------------------------------
+=================================================
 
 *	Added a :meth:`__contains__` to :class:`Record` for checking the existence
 	of a field.
 
 
 Changes in ll-orasql 1.23 (released 03/25/2008)
------------------------------------------------
+===============================================
 
 *	Calling procedures and functions has been rewritten: :mod:`ll.orasql` will
 	only pass those parameters to the procedure/function that are passed to the
@@ -1738,7 +1738,7 @@ Changes in ll-orasql 1.23 (released 03/25/2008)
 
 
 Changes in ll-orasql 1.22 (released 03/19/2008)
------------------------------------------------
+===============================================
 
 *	Added a new method :meth:`_getobject` to :class:`Connection` that does
 	what :meth:`getobject` does, but is case sensitive (This is used internally
@@ -1754,13 +1754,13 @@ Changes in ll-orasql 1.22 (released 03/19/2008)
 
 
 Changes in ll-orasql 1.21.1 (released 03/17/2008)
--------------------------------------------------
+=================================================
 
 *	Updated the scripts to work with the new execute methods.
 
 
 Changes in ll-orasql 1.21 (released 03/13/2008)
------------------------------------------------
+===============================================
 
 *	:class:`Connection` has a new method :meth:`getobject`, which returns the
 	schema object with a specified name.
@@ -1774,7 +1774,7 @@ Changes in ll-orasql 1.21 (released 03/13/2008)
 
 
 Changes in ll-orasql 1.20 (released 02/07/2008)
------------------------------------------------
+===============================================
 
 *	The fancy fetch methods have been renamed to :meth:`xfetchone`,
 	:meth:`xfetchmany`, :meth:`xfetchall` and :meth:`xfetch`. :meth:`__iter__`
@@ -1784,13 +1784,13 @@ Changes in ll-orasql 1.20 (released 02/07/2008)
 
 
 Changes in ll-orasql 1.19 (released 02/01/2008)
------------------------------------------------
+===============================================
 
 *	All docstrings use ReST now.
 
 
 Changes in ll-orasql 1.18 (released 01/07/2008)
------------------------------------------------
+===============================================
 
 *	Updated the docstrings to XIST 3.0.
 
@@ -1798,42 +1798,42 @@ Changes in ll-orasql 1.18 (released 01/07/2008)
 
 
 Changes in ll-orasql 1.17.5 (released 08/09/2007)
--------------------------------------------------
+=================================================
 
 *	Fixed a bug in the error handling of wrong arguments when calling
 	functions or procedures.
 
 
 Changes in ll-orasql 1.17.4 (released 04/30/2007)
--------------------------------------------------
+=================================================
 
 *	The threshold for string length for procedure and function arguments has
 	been reduced to 4000.
 
 
 Changes in ll-orasql 1.17.3 (released 03/08/2007)
--------------------------------------------------
+=================================================
 
 *	``BLOB`` arguments for procedures and functions are always passed as
 	variables now.
 
 
 Changes in ll-orasql 1.17.2 (released 03/07/2007)
--------------------------------------------------
+=================================================
 
 *	Arguments for procedures and functions that are longer that 32000 characters
 	are passed as variables now (the threshold was 32768 before and didn't work).
 
 
 Changes in ll-orasql 1.17.1 (released 03/02/2007)
--------------------------------------------------
+=================================================
 
 *	Fix an inverted logic bug in :meth:`Record.fromdata` that surfaced in unicode
 	mode: ``BLOB``\s were treated as string and ``CLOB``\s as binary data.
 
 
 Changes in ll-orasql 1.17 (released 02/23/2007)
------------------------------------------------
+===============================================
 
 *	The :var:`readlobs` and :var:`unicode` parameters are now honored when
 	calling procedures and functions via :class:`Procedure` and
@@ -1841,7 +1841,7 @@ Changes in ll-orasql 1.17 (released 02/23/2007)
 
 
 Changes in ll-orasql 1.16 (released 02/21/2007)
------------------------------------------------
+===============================================
 
 *	A parameter :var:`unicode` has been added to various constructors and methods.
 	This parameter can be used to get strings (i.e. ``VARCHAR2`` and ``CLOB``\s)
@@ -1849,7 +1849,7 @@ Changes in ll-orasql 1.16 (released 02/21/2007)
 
 
 Changes in ll-orasql 1.15 (released 02/17/2007)
------------------------------------------------
+===============================================
 
 *	Fixed an output bug in ``oradiff.py`` when running in full output mode.
 
@@ -1859,7 +1859,7 @@ Changes in ll-orasql 1.15 (released 02/17/2007)
 
 
 Changes in ll-orasql 1.14 (released 02/01/2007)
------------------------------------------------
+===============================================
 
 *	A new method :meth:`iterprivileges` has been added to :class:`Connection`.
 
@@ -1867,7 +1867,7 @@ Changes in ll-orasql 1.14 (released 02/01/2007)
 
 
 Changes in ll-orasql 1.13 (released 11/06/2006)
------------------------------------------------
+===============================================
 
 *	Two new methods (:meth:`itertables` and :meth:`iterfks`) have been added to
 	:class:`Connection`. They yield all table definitions or all foreign keys
@@ -1882,33 +1882,33 @@ Changes in ll-orasql 1.13 (released 11/06/2006)
 
 
 Changes in ll-orasql 1.12.2 (released 10/18/2006)
--------------------------------------------------
+=================================================
 
 *	Fixed a bug that showed up when an index and a foreign key of the same name
 	existed.
 
 
 Changes in ll-orasql 1.12.1 (released 09/19/2006)
--------------------------------------------------
+=================================================
 
 *	Fixed a bug in :meth:`Index.__xattrs__`.
 
 
 Changes in ll-orasql 1.12 (released 09/06/2006)
------------------------------------------------
+===============================================
 
 *	:class:`Function` objects are now callable too. They return the return value
 	and a :class:`Record` containing the modified input parameters.
 
 
 Changes in ll-orasql 1.11.1 (released 08/29/2006)
--------------------------------------------------
+=================================================
 
 *	Fixed a bug in :meth:`Column.modifyddl`.
 
 
 Changes in ll-orasql 1.11 (released 08/22/2006)
------------------------------------------------
+===============================================
 
 *	The class :class:`Column` has gained a few new methods: :meth:`datatype`,
 	:meth:`default`, :meth:`nullable` and :meth:`comment`.
@@ -1918,7 +1918,7 @@ Changes in ll-orasql 1.11 (released 08/22/2006)
 
 
 Changes in ll-orasql 1.10 (released 08/11/2006)
------------------------------------------------
+===============================================
 
 *	The classes :class:`Proc` and :class:`LLProc` have been removed. The
 	functionality of :class:`Proc` has been merged into
@@ -1937,31 +1937,31 @@ Changes in ll-orasql 1.10 (released 08/11/2006)
 
 
 Changes in ll-orasql 1.9.4 (released 08/09/2006)
-------------------------------------------------
+================================================
 
 *	Fixed a bug in ``oradiff.py``.
 
 
 Changes in ll-orasql 1.9.3 (released 08/08/2006)
-------------------------------------------------
+================================================
 
 *	Fixed a bug in ``oramerge.py``.
 
 
 Changes in ll-orasql 1.9.2 (released 08/04/2006)
-------------------------------------------------
+================================================
 
 *	Fixed a bug in :meth:`TableDefinition.iterdefinitions`.
 
 
 Changes in ll-orasql 1.9.1 (released 08/02/2006)
-------------------------------------------------
+================================================
 
 *	Fixed a bug in ``oracreate.py``.
 
 
 Changes in ll-orasql 1.9 (released 07/24/2006)
-----------------------------------------------
+==============================================
 
 *	Dependencies involving :class:`MaterializedViewDefinition` and
 	:class:`IndexDefinition` objects generated by constraints work properly now,
@@ -1984,13 +1984,13 @@ Changes in ll-orasql 1.9 (released 07/24/2006)
 
 
 Changes in ll-orasql 1.8.1 (released 07/17/2006)
-------------------------------------------------
+================================================
 
 *	:mod:`ll.orasql` can now handle objects name that are not in uppercase.
 
 
 Changes in ll-orasql 1.8 (released 07/14/2006)
-----------------------------------------------
+==============================================
 
 *	:meth:`Connection.iterobjects` has been renamed to :meth:`iterdefinitions`.
 
@@ -2021,7 +2021,7 @@ Changes in ll-orasql 1.8 (released 07/14/2006)
 
 
 Changes in ll-orasql 1.7.2 (released 07/05/2006)
-------------------------------------------------
+================================================
 
 *	``RAW`` fields in tables are now output properly in
 	:meth:`TableDefinition.createddl`.
@@ -2031,7 +2031,7 @@ Changes in ll-orasql 1.7.2 (released 07/05/2006)
 
 
 Changes in ll-orasql 1.7.1 (released 07/04/2006)
-------------------------------------------------
+================================================
 
 *	Duplicate code in the scripts has been removed.
 
@@ -2040,7 +2040,7 @@ Changes in ll-orasql 1.7.1 (released 07/04/2006)
 
 
 Changes in ll-orasql 1.7 (released 06/29/2006)
-----------------------------------------------
+==============================================
 
 *	The method :meth:`iterobjects` has been moved from :class:`Cursor` to
 	:class:`Connection`.
@@ -2062,7 +2062,7 @@ Changes in ll-orasql 1.7 (released 06/29/2006)
 
 
 Changes in ll-orasql 1.6 (released 04/26/2006)
-----------------------------------------------
+==============================================
 
 *	Added a :class:`SessionPool` (a subclass of :class:`SessionPool` in
 	:mod:`cx_Oracle`) whose :meth:`acquire` method returns
@@ -2070,14 +2070,14 @@ Changes in ll-orasql 1.6 (released 04/26/2006)
 
 
 Changes in ll-orasql 1.5 (released 04/05/2006)
-----------------------------------------------
+==============================================
 
 *	Added a class :class:`IndexDefinition` for indexes. ``oracreate.py`` will
 	now issue create statements for indexes.
 
 
 Changes in ll-orasql 1.4.3 (released 12/07/2005)
-------------------------------------------------
+================================================
 
 *	Fixed a bug with empty lines in procedure sources.
 
@@ -2085,7 +2085,7 @@ Changes in ll-orasql 1.4.3 (released 12/07/2005)
 
 
 Changes in ll-orasql 1.4.2 (released 12/07/2005)
-------------------------------------------------
+================================================
 
 *	Fixed a bug that the DDL output of Java source.
 
@@ -2093,13 +2093,13 @@ Changes in ll-orasql 1.4.2 (released 12/07/2005)
 
 
 Changes in ll-orasql 1.4.1 (released 12/06/2005)
-------------------------------------------------
+================================================
 
 *	Fixed a bug that resulted in omitted field lengths.
 
 
 Changes in ll-orasql 1.4 (released 12/05/2005)
-----------------------------------------------
+==============================================
 
 *	The option :option:`-m`/:option:`--mode` has been dropped from the script
 	``oramerge.py``.
@@ -2113,7 +2113,7 @@ Changes in ll-orasql 1.4 (released 12/05/2005)
 
 
 Changes in ll-orasql 1.3 (released 11/24/2005)
-----------------------------------------------
+==============================================
 
 *	Added an option :option:`-i` to ``oracreate.py`` and ``oradrop.py`` to
 	ignore errors.
@@ -2129,7 +2129,7 @@ Changes in ll-orasql 1.3 (released 11/24/2005)
 
 
 Changes in ll-orasql 1.2 (released 10/24/2005)
-----------------------------------------------
+==============================================
 
 *	Added a argument to :meth:`createddl` and :meth:`dropddl` to specify if
 	terminated or unterminated DDL is wanted (i.e. add ``;`` or ``/`` or not).
@@ -2153,7 +2153,7 @@ Changes in ll-orasql 1.2 (released 10/24/2005)
 
 
 Changes in ll-orasql 1.1 (released 10/20/2005)
-----------------------------------------------
+==============================================
 
 *	A script ``oradiff.py`` has been added which can be used for diffing Oracle
 	schemas.
@@ -2177,7 +2177,7 @@ Changes in ll-orasql 1.1 (released 10/20/2005)
 
 
 Changes in ll-orasql 1.0 (released 10/13/2005)
-----------------------------------------------
+==============================================
 
 *	:mod:`ll.orasql` requires version 1.0 of the core package now.
 
@@ -2193,14 +2193,14 @@ Changes in ll-orasql 1.0 (released 10/13/2005)
 
 
 Changes in ll-orasql 0.7 (released 08/09/2005)
-----------------------------------------------
+==============================================
 
 *	The commands generated by :func:`iterdrop` no longer have a terminating ``;``,
 	as this seems to confuse Oracle/cx_Oracle.
 
 
 Changes in ll-orasql 0.6 (released 06/20/2005)
-----------------------------------------------
+==============================================
 
 *	Two new functions have been added: :func:`iterdrop` is a generator that
 	yields information about how to clear the schema (i.e. drop all table,
@@ -2209,19 +2209,19 @@ Changes in ll-orasql 0.6 (released 06/20/2005)
 
 
 Changes in ll-orasql 0.5 (released 06/07/2005)
-----------------------------------------------
+==============================================
 
 *	Date values are now supported as ``OUT`` parameters.
 
 
 Changes in ll-orasql 0.4.1 (released 03/22/2005)
-------------------------------------------------
+================================================
 
 *	Added a note about the package init file to the installation documentation.
 
 
 Changes in ll-orasql 0.4 (released 01/03/2005)
-----------------------------------------------
+==============================================
 
 *	:mod:`ll.orasql` now requires ll-core.
 
@@ -2235,20 +2235,20 @@ Changes in ll-orasql 0.4 (released 01/03/2005)
 
 
 Changes in ll-orasql 0.3 (released 12/09/2004)
-----------------------------------------------
+==============================================
 
 *	:mod:`ll.orasql` requires cx_Oracle 4.1 now.
 
 
 Changes in ll-orasql 0.2.1 (released 09/09/2004)
-------------------------------------------------
+================================================
 
 *	Fixed a regression bug in :meth:`Proc._calcrealargs` as cursors will now
 	always return :class:`Record` objects.
 
 
 Changes in ll-orasql 0.2 (released 09/08/2004)
-----------------------------------------------
+==============================================
 
 *	Now generating :class:`Record` object is done automatically in a subclass of
 	:class:`cx_Oracle.Cursor`. So now it's possible to use :mod:`ll.orasql` as an
@@ -2256,6 +2256,6 @@ Changes in ll-orasql 0.2 (released 09/08/2004)
 
 
 Changes in ll-orasql 0.1 (released 07/15/2004)
-----------------------------------------------
+==============================================
 
 *	Initial release.
