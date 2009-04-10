@@ -193,7 +193,7 @@ class Job(object):
 			The maximum allowed runtime in seconds for this job;
 
 		:var:`name`: : string or :const:`None`
-			The name to be used for the log files. If :const:`None``, the name of
+			The name to be used for the log files. If :const:`None`, the name of
 			the class will be used;
 
 		:var:`raiseerrors`: : bool
