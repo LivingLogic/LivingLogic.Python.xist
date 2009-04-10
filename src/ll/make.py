@@ -517,7 +517,7 @@ class CollectAction(TransformAction):
 		havedata = False
 		changedinputs = bigbang
 		for item in self.otherinputs:
-			(data, changed) = getoutputs(project, bigcrunch, item) # use ``bigcrunch``, so we don't force data to be loaded
+			(data, changed) = getoutputs(project, since, item)
 			changedinputs = max(changedinputs, changed)
 			if data is not nodata: # The first real output
 				havedata = True
@@ -656,6 +656,12 @@ class FileAction(TransformAction):
 			return self.read(project) # return file data (to output action or client)
 		# else fail through and return :const:`nodata`
 		return nodata
+
+	def chmod(self, mode=0644):
+		return ModeAction(self, mode)
+
+	def chown(self, user=None, group=None):
+		return OwnerAction(self, user, group)
 
 	def __repr__(self):
 		return "<%s.%s object key=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.key, id(self))
