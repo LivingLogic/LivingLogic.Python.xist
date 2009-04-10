@@ -186,9 +186,7 @@ code doesn't contain any illegal tag nesting (i.e. something bad like
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = html.p(html.p(u"foo"))</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print node.bytes()</input>
-/Users/walter/checkouts/LivingLogic.Python.xist/src/ll/xist/sims.py:222: \
-WrongElementWarning: element &lt;ll.xist.ns.html.p element object (1 child/no attrs) at 0x270b30&gt; \
-may not contain element &lt;ll.xist.ns.html.p element object (1 child/no attrs) at 0x69850&gt;
+/Users/walter/checkouts/LivingLogic.Python.xist/src/ll/xist/sims.py:222: WrongElementWarning: element &lt;ll.xist.ns.html.p element object (1 child/no attrs) at 0x270b30&gt; may not contain element &lt;ll.xist.ns.html.p element object (1 child/no attrs) at 0x69850&gt;
   warnings.warn(WrongElementWarning(node, child, self.elements))
 &lt;p&gt;&lt;p&gt;foo&lt;/p&gt;&lt;/p&gt;
 </tty>
