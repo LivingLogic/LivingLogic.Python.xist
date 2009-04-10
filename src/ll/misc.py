@@ -318,7 +318,7 @@ class Iterator(object):
 
 	def get(self, index, default=None):
 		"""
-		Return the :var:`index`th item from the iterator (or :var:`default` if
+		Return the :var:`index`\th item from the iterator (or :var:`default` if
 		there's no such item).
 		"""
 		return item(self, index, default)
