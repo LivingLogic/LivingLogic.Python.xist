@@ -517,7 +517,7 @@ class CollectAction(TransformAction):
 		havedata = False
 		changedinputs = bigbang
 		for item in self.otherinputs:
-			(data, changed) = getoutputs(project, since, item)
+			(data, changed) = getoutputs(project, bigcrunch, item) # use ``bigcrunch``, so we don't force data to be loaded
 			changedinputs = max(changedinputs, changed)
 			if data is not nodata: # The first real output
 				havedata = True
