@@ -91,7 +91,7 @@ threadlocalnodehandler = ThreadLocalNodeHander()
 class build(object):
 	"""
 	A :class:`build` object can be used as a ``with`` block handler to create a
-	new XISAT tree::
+	new XIST tree::
 
 		with xsc.build():
 			with html.ul() as e:
