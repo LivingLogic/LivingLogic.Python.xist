@@ -228,7 +228,7 @@ def getoutputs(project, since, input):
 	containing:
 
 	*	An object (:var:`data`) of the same structure as :var:`input`, where every
-		action object encountered is replacd with the output of that action;
+		action object encountered is replaced with the output of that action;
 
 	*	A timestamp (:var:`changed`) which the newest timestamp among all the
 		change timestamps of the actions encountered.
