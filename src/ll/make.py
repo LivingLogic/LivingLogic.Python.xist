@@ -658,9 +658,17 @@ class FileAction(TransformAction):
 		return nodata
 
 	def chmod(self, mode=0644):
+		"""
+		Return a :class:`ModeAction` that will change the file permissions of
+		:var:`self` to :var:`mode`.
+		"""
 		return ModeAction(self, mode)
 
 	def chown(self, user=None, group=None):
+		"""
+		Return an :class:`OwnerAction` that will change the user and/or group
+		ownership of :var:`self`.
+		"""
 		return OwnerAction(self, user, group)
 
 	def __repr__(self):
