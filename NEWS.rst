@@ -11,9 +11,9 @@ Changes in 3.7 (released ??/??/2009)
 	:class:`XISTStringAction`, :class:`JoinAction`, :class:`UnpickleAction`,
 	:class:`PickleAction`, :class:`TOXICAction`, :class:`TOXICPrettifyAction`,
 	:class:`SplatAction`, :class:`UL4CompileAction`, :class:`UL4RenderAction`,
-	:class:`UL4DumpAction`, :class:`UL4LoadAction` and :class:`XISTTextAction`.
-	All of these actions can be executed by using :class:`CallAction` or
-	:class:`CallAttrAction`.
+	:class:`UL4DumpAction`, :class:`UL4LoadAction`, :class:`XISTTextAction` and
+	:class:`XISTConvertAction`. All of these actions can be executed by using
+	:class:`CallAction` or :class:`CallAttrAction`.
 
 *	:class:`ll.make.PipeAction` has been renamed to :class:`TransformAction`.
 

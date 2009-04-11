@@ -869,53 +869,6 @@ class XISTParseAction(TransformAction):
 		return data
 
 
-class XISTConvertAction(TransformAction):
-	"""
-	This action transform an XIST node.
-	"""
-
-	def __init__(self, input=None, mode=None, target=None, stage=None, lang=None, root=None):
-		"""
-		Create a new :class:`XISTConvertAction` object. :var:`input` is the input
-		none (or an action producing a node). The other arguments will be used to
-		create a :class:`ll.xist.converters.Converter` object for each call to
-		:meth:`get`.
-		
-		During conversion the :attr:`makeaction` attribute of the converter will
-		be set to :var:`self` and the :attr:`makeproject` attribute will be set
-		to the project.
-		"""
-		TransformAction.__init__(self, input)
-		self.mode = mode
-		self.target = target
-		self.stage = stage
-		self.lang = lang
-		self.root = root
-
-	def __iter__(self):
-		for input in TransformAction.__iter__(self):
-			yield input
-		yield self.mode
-		yield self.target
-		yield self.stage
-		yield self.lang
-		yield self.root
-
-	def getkwargs(self):
-		return dict(data=self.input, mode=self.mode, target=self.target, stage=self.stage, lang=self.lang, root=self.root)
-
-	def execute(self, project, data, mode, target, stage, lang, root):
-		from ll.xist import converters
-		args = []
-		for (argname, arg) in (("mode", mode), ("target", target), ("stage", stage), ("lang", lang), ("root", root)):
-			if arg is not None:
-				args.append("%s=%r" % (argname, arg))
-		args = " with %s" % ", ".join(args) if args else ""
-		project.writestep(self, "Converting XIST node", args)
-		converter = converters.Converter(makeaction=self, makeproject=project, mode=mode, target=target, stage=stage, lang=lang, root=root)
-		return data.convert(converter)
-
-
 class FOPAction(TransformAction):
 	"""
 	This action transforms an XML string (containing XSL-FO) into PDF. For it
