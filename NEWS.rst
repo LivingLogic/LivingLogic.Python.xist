@@ -22,6 +22,10 @@ Changes in 3.7 (released ??/??/2009)
 *	:class:`ll.make.FileAction` now automatically wraps the :var:`key` argument
 	into an :class:`URL` object.
 
+*	:class:`ll.make.FileAction` has two new methods :meth:`chmod` and
+	:meth:`chown` that return a :class:`ModeAction` and :class:`OwnerAction`
+	for modifying the :class:`FileAction`.
+
 *	The division operator is no longer implemented for :class:`Action` objects
 	in :mod:`ll.make`.
 
