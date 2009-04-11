@@ -916,30 +916,6 @@ class XISTConvertAction(TransformAction):
 		return data.convert(converter)
 
 
-class XISTTextAction(TransformAction):
-	"""
-	This action creates a plain text version of an HTML XIST node.
-	"""
-	def __init__(self, input=None, encoding="iso-8859-1", width=72):
-		TransformAction.__init__(self, input)
-		self.encoding = encoding
-		self.width = width
-
-	def __iter__(self):
-		for input in TransformAction.__iter__(self):
-			yield input
-		yield self.encoding
-		yield self.width
-
-	def getkwargs(self):
-		return dict(data=self.input, encoding=self.encoding, width=self.width)
-
-	def execute(self, project, data, encoding, width):
-		project.writestep(self, "Converting XIST node to text with encoding=%r, width=%r" % (encoding, width))
-		from ll.xist.ns import html
-		return html.astext(data, encoding=encoding, width=width)
-
-
 class FOPAction(TransformAction):
 	"""
 	This action transforms an XML string (containing XSL-FO) into PDF. For it
