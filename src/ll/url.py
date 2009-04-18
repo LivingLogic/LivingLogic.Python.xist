@@ -211,7 +211,7 @@ class Connection(object):
 	@misc.notimplemented
 	def stat(self, url):
 		"""
-		Return the result of a :func:`stat()` call on the file :var:`url`.
+		Return the result of a :func:`stat` call on the file :var:`url`.
 		"""
 
 	@misc.notimplemented
