@@ -1098,7 +1098,7 @@ class Object(object):
 		Generator that yields all objects of this type in the database schema
 		of :var:`cursor`.
 		"""
-		return (cls(name[0], name[1], connection) for name in self.iternames(connection, schema))
+		return (cls(name[0], name[1], connection) for name in cls.iternames(connection, schema))
 
 	def __iter__(self):
 		return iter(self.createddl().splitlines())
