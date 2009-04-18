@@ -37,7 +37,8 @@ There are three log files:
 
 	:file:`~/log/jobname_loop.log`
 		One log line may be appended to the log after every job execution.
-		:meth:`logLoop` method for this.
+		Call the method :meth:`logLoop` once at the end of :meth:`execute` for
+		this.
 
 	:file:`~/log/jobname_error.log`
 		Here exceptions happening during the execution of a job will be logged.
