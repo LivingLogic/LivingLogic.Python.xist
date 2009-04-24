@@ -1,6 +1,11 @@
 Changes in 3.7 (released ??/??/2009)
 ------------------------------------
 
+*	In UL4 templates it's now possible to define locale templates via
+	``<?def tmpl?>templatecode<?end def?>``.
+
+*	Python 2.6 is required now.
+
 *	:mod:`ll.make` has a new Action class: :class:`ObjectAction` that simply
 	returns an existing object.
 
