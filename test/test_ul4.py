@@ -1061,6 +1061,10 @@ def test_render_var():
 	check('42,43,42', u'<?print x?>,<?render t(x=x)?>,<?print x?>', t=t, x=42)
 
 
+def test_def():
+	check('foo', u'<?def lower?><?print x.lower()?><?end def?><?print lower.render(x="FOO")?>')
+
+
 def test_parse():
 	check('42', u'<?print data.Noner?>', data=dict(Noner=42))
 
@@ -1134,6 +1138,8 @@ def universaltemplate():
 		<?print x.find(1, 2, 3)?>
 		<?if x?>gurk<?elif y?>hurz<?else?>hinz<?end if?>
 		<?render x(a=1, b=2)?>
+		<?def x?>foo<?end def?>
+		<?render x()?>
 	""")
 
 

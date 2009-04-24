@@ -198,7 +198,7 @@ def fromul4(template, variables="variables", indent=0):
 		else:
 			result.append(scriptlet("\n%s%s\n" % ("\t"*indent, content)))
 
-	loopcounter = 0 # Used to number loop iterators
+	varcounter = 0 # Used to number loop iterators and local templates
 	result = xsc.Frag()
 
 	make_scriptlet("//@@@ BEGIN template source")
@@ -213,6 +213,7 @@ def fromul4(template, variables="variables", indent=0):
 	for i in xrange(10):
 		make_scriptlet("Object r%d = null;" % i)
 
+	defs = []
 	lastloc = None
 	for opcode in template.opcodes:
 		if opcode.code is not None and opcode.location is not lastloc:
@@ -287,14 +288,32 @@ def fromul4(template, variables="variables", indent=0):
 		elif opcode.code == "printx":
 			make_scriptlet("out.write(com.livinglogic.ul4.Utils.xmlescape(org.apache.commons.lang.ObjectUtils.toString(r%d)));" % opcode.r1)
 		elif opcode.code == "for":
-			loopcounter += 1
-			make_scriptlet("for (java.util.Iterator iterator%d = com.livinglogic.ul4.Utils.iterator(r%d); iterator%d.hasNext();)" % (loopcounter, opcode.r2, loopcounter))
+			varcounter += 1
+			make_scriptlet("for (java.util.Iterator iterator%d = com.livinglogic.ul4.Utils.iterator(r%d); iterator%d.hasNext();)" % (varcounter, opcode.r2, varcounter))
 			make_scriptlet("{")
 			indent += 1
-			make_scriptlet("r%d = iterator%d.next();" % (opcode.r1, loopcounter))
+			make_scriptlet("r%d = iterator%d.next();" % (opcode.r1, varcounter))
 		elif opcode.code == "endfor":
 			indent -= 1
 			make_scriptlet("}")
+		elif opcode.code == "def":
+			varcounter += 1
+			make_scriptlet("com.livinglogic.ul4.JSPTemplate template%d = new com.livinglogic.ul4.JSPTemplate()" % varcounter)
+			make_scriptlet("{")
+			indent += 1
+			make_scriptlet("public void execute(Writer out, Map variables) throws java.io.IOException")
+			indent += 1
+			make_scriptlet("{")
+			indent += 1
+			defs.append((opcode.arg, variables))
+			variables = "variables"
+		elif opcode.code == "enddef":
+			indent -= 1
+			make_scriptlet("}")
+			indent -= 1
+			make_scriptlet("};")
+			(arg, variables) = defs.pop()
+			make_scriptlet("%s.put(%s, template%d);" % (variables, _string(arg), varcounter))
 		elif opcode.code == "break":
 			make_scriptlet("break;")
 		elif opcode.code == "continue":

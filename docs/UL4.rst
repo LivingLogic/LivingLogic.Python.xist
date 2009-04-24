@@ -375,6 +375,18 @@ I.e. templates can be passed just like any other object as a variable.
 ``item``.
 
 
+``def``
+-------
+The def tag defined a new template as a variable. Usage looks like this::
+
+	<?def quote?>"<?print text?>"<?end def?>
+
+This template can be called like any other template, that has been passed to
+the outermost template::
+
+	<?quote.render(text="foo")?>
+
+
 ``note``
 --------
 
