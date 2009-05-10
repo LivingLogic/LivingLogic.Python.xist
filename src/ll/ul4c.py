@@ -2589,4 +2589,6 @@ def _type(obj):
 		return u"dict"
 	elif hasattr(obj, "__call__"):
 		return u"template"
+	elif isinstance(obj, color.Color):
+		return u"color"
 	return None

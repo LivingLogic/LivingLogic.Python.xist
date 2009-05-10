@@ -943,6 +943,7 @@ def test_function_type():
 	check("list", code, x=[1, 2])
 	check("dict", code, x={1: 2})
 	check("template", code, x=ul4c.compile(""))
+	check("color", code, x=color.red)
 	check("", code, x=1j)
 
 
