@@ -372,6 +372,8 @@ def fromul4(template, variables="variables", indent=0):
 				make_scriptlet("r%d = com.livinglogic.ul4.Utils.repr(r%d);" % (opcode.r1, opcode.r2))
 			elif opcode.arg == "int":
 				make_scriptlet("r%d = com.livinglogic.ul4.Utils.toInteger(r%d);" % (opcode.r1, opcode.r2))
+			elif opcode.arg == "float":
+				make_scriptlet("r%d = com.livinglogic.ul4.Utils.toFloat(r%d);" % (opcode.r1, opcode.r2))
 			elif opcode.arg == "bool":
 				make_scriptlet("r%d = com.livinglogic.ul4.Utils.getBool(r%d) ? Boolean.TRUE : Boolean.FALSE;" % (opcode.r1, opcode.r2))
 			elif opcode.arg == "len":
@@ -395,7 +397,9 @@ def fromul4(template, variables="variables", indent=0):
 			elif opcode.arg == "isdict":
 				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof java.util.Map)) ? Boolean.TRUE : Boolean.FALSE;" % (opcode.r1, opcode.r2, opcode.r2))
 			elif opcode.arg == "istemplate":
-				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof .livinglogic.ul4.Template)) ? Boolean.TRUE : Boolean.FALSE;" % (opcode.r1, opcode.r2, opcode.r2))
+				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof com.livinglogic.ul4.Template)) ? Boolean.TRUE : Boolean.FALSE;" % (opcode.r1, opcode.r2, opcode.r2))
+			elif opcode.arg == "iscolor":
+				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof com.livinglogic.ul4.Color)) ? Boolean.TRUE : Boolean.FALSE;" % (opcode.r1, opcode.r2, opcode.r2))
 			elif opcode.arg == "chr":
 				make_scriptlet("r%d = com.livinglogic.ul4.Utils.chr(r%d);" % (opcode.r1, opcode.r2))
 			elif opcode.arg == "ord":
