@@ -13,7 +13,7 @@ import re, datetime, StringIO
 
 import py.test
 
-from ll import ul4c
+from ll import ul4c, color
 
 
 def check(result, source, **variables):
@@ -596,6 +596,17 @@ def test_function_int():
 	checkrunerror("invalid literal for int\\(\\) with base 10: 'foo'", u"<?print int(data)?>", data="foo")
 
 
+def test_function_float():
+	checkrunerror("function u?'float' unknown", u"<?print float()?>")
+	checkrunerror("function u?'float' unknown", u"<?print float(1, 2, 3)?>")
+	checkrunerror("float\\(\\) argument must be a string or a number", u"<?print float(data)?>", data=None)
+	check("1.0", u"<?print float(data)?>", data=True)
+	check("0.0", u"<?print float(data)?>", data=False)
+	check("42.0", u"<?print float(data)?>", data=42)
+	check("4.2", u"<?print float(data)?>", data=4.2)
+	check("42.0", u"<?print float(data)?>", data="42")
+
+
 def test_function_len():
 	checkrunerror("function u?'len' unknown", u"<?print len()?>")
 	checkrunerror("function u?'len' unknown", u"<?print len(1, 2)?>")
@@ -638,6 +649,7 @@ def test_function_isnone():
 	check("False", code, data=[])
 	check("False", code, data={})
 	check("False", code, data=ul4c.compile(u""))
+	check("False", code, data=color.red)
 
 
 def test_function_isbool():
@@ -655,6 +667,7 @@ def test_function_isbool():
 	check("False", code, data=[])
 	check("False", code, data={})
 	check("False", code, data=ul4c.compile(u""))
+	check("False", code, data=color.red)
 
 
 def test_function_isint():
@@ -672,6 +685,7 @@ def test_function_isint():
 	check("False", code, data=[])
 	check("False", code, data={})
 	check("False", code, data=ul4c.compile(u""))
+	check("False", code, data=color.red)
 
 
 def test_function_isfloat():
@@ -689,6 +703,7 @@ def test_function_isfloat():
 	check("False", code, data=[])
 	check("False", code, data={})
 	check("False", code, data=ul4c.compile(u""))
+	check("False", code, data=color.red)
 
 
 def test_function_isstr():
@@ -706,6 +721,7 @@ def test_function_isstr():
 	check("False", code, data=[])
 	check("False", code, data={})
 	check("False", code, data=ul4c.compile(u""))
+	check("False", code, data=color.red)
 
 
 def test_function_isdate():
@@ -723,6 +739,7 @@ def test_function_isdate():
 	check("False", code, data=[])
 	check("False", code, data={})
 	check("False", code, data=ul4c.compile(u""))
+	check("False", code, data=color.red)
 
 
 def test_function_islist():
@@ -740,6 +757,7 @@ def test_function_islist():
 	check("True", code, data=[])
 	check("False", code, data={})
 	check("False", code, data=ul4c.compile(u""))
+	check("False", code, data=color.red)
 
 
 def test_function_isdict():
@@ -757,6 +775,7 @@ def test_function_isdict():
 	check("False", code, data=[])
 	check("True", code, data={})
 	check("False", code, data=ul4c.compile(u""))
+	check("False", code, data=color.red)
 
 
 def test_function_istemplate():
@@ -774,6 +793,25 @@ def test_function_istemplate():
 	check("False", code, data=[])
 	check("False", code, data={})
 	check("True", code, data=ul4c.compile(u""))
+	check("False", code, data=color.red)
+
+
+def test_function_iscolor():
+	checkrunerror("function u?'iscolor' unknown", u"<?print iscolor()?>")
+	checkrunerror("function u?'iscolor' unknown", u"<?print iscolor(1, 2)?>")
+	code = u"<?print iscolor(data)?>"
+	check("False", code, data=None)
+	check("False", code, data=True)
+	check("False", code, data=False)
+	check("False", code, data=42)
+	check("False", code, data=4.2)
+	check("False", code, data="foo")
+	check("False", code, data=datetime.datetime.now())
+	check("False", code, data=())
+	check("False", code, data=[])
+	check("False", code, data={})
+	check("False", code, data=ul4c.compile(u""))
+	check("True", code, data=color.red)
 
 
 def test_function_get():

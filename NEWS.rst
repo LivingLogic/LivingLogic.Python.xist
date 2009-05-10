@@ -35,6 +35,8 @@ Changes in 3.7 (released ??/??/2009)
 *	The division operator is no longer implemented for :class:`Action` objects
 	in :mod:`ll.make`.
 
+*	Two new UL4 functions have been added: ``float`` and ``iscolor``.
+
 *	A new script ``uls`` has been added. It can be used to list any directory
 	given as an URL.
 

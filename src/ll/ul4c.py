@@ -1027,6 +1027,8 @@ class Template(object):
 		self._pythonsource_line(opcode.location, "r%d = unicode(r%d) if r%d is not None else u''" % (opcode.r1, opcode.r2, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_int(self, opcode):
 		self._pythonsource_line(opcode.location, "r%d = int(r%d)" % (opcode.r1, opcode.r2))
+	def _pythonsource_dispatch_callfunc1_float(self, opcode):
+		self._pythonsource_line(opcode.location, "r%d = float(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_bool(self, opcode):
 		self._pythonsource_line(opcode.location, "r%d = bool(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_len(self, opcode):
@@ -1046,11 +1048,13 @@ class Template(object):
 	def _pythonsource_dispatch_callfunc1_isdate(self, opcode):
 		self._pythonsource_line(opcode.location, "r%d = isinstance(r%d, datetime.datetime)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_islist(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = isinstance(r%d, (list, tuple))" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r%d = isinstance(r%d, (list, tuple)) and not isinstance(r%d, color.Color)" % (opcode.r1, opcode.r2, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_isdict(self, opcode):
 		self._pythonsource_line(opcode.location, "r%d = isinstance(r%d, dict)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_istemplate(self, opcode):
 		self._pythonsource_line(opcode.location, "r%d = hasattr(r%d, '__call__')" % (opcode.r1, opcode.r2)) # this supports normal generators too
+	def _pythonsource_dispatch_callfunc1_iscolor(self, opcode):
+		self._pythonsource_line(opcode.location, "r%d = isinstance(r%d, color.Color)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_repr(self, opcode):
 		self._pythonsource_line(opcode.location, "r%d = ul4c._repr(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_get(self, opcode):
