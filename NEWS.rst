@@ -30,13 +30,13 @@ Changes in 3.7 (released ??/??/2009)
 
 *	:class:`ll.make.FileAction` has two new methods :meth:`chmod` and
 	:meth:`chown` that return a :class:`ModeAction` and :class:`OwnerAction`
-	for modifying the :class:`FileAction`.
+	for modifying the file created by the :class:`FileAction`.
 
 *	The division operator is no longer implemented for :class:`Action` objects
 	in :mod:`ll.make`.
 
 *	A new script ``uls`` has been added. It can be used to list any directory
-	given als an URL.
+	given as an URL.
 
 *	The script ``ucp`` now changes the user and group only if a user or group is
 	given.
