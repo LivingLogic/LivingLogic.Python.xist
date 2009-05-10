@@ -124,7 +124,7 @@ class Error(Exception):
 		module = exc.__class__.__module__
 		if module != "exceptions":
 			name = "%s.%s" % (module, name)
-		return "%s %s %s" % (name, "".join("in %s:" % location for location in path), exc)
+		return "%s %s %s" % (name, " ".join("in %s:" % location for location in path), exc)
 
 
 class LexicalError(Exception):
