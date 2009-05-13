@@ -1735,7 +1735,7 @@ class AttrProcInst(ProcInst):
 	Special subclass of :class:`ProcInst`.
 
 	When an :class:`AttrProcInst` node is the first node in an attribute, it
-	takes over publishing of the attribute (via the methods :meth:publishattr`
+	takes over publishing of the attribute (via the methods :meth:`publishattr`
 	and :meth:`publishboolattr`). In all other cases the processing instruction
 	disappears completely.
 	"""
