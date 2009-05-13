@@ -1087,9 +1087,9 @@ class Object(object):
 		"""
 		cursor = connection.cursor()
 		if schema=="all":
-			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from all_objects where lower(object_type) = :type", type=cls.type)
+			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from all_objects where lower(object_type) = :type order by owner, object_name", type=cls.type)
 		else:
-			cursor.execute("select null as owner, object_name from user_objects where lower(object_type) = :type", type=cls.type)
+			cursor.execute("select null as owner, object_name from user_objects where lower(object_type) = :type order by object_name", type=cls.type)
 		return ((row.object_name, row.owner) for row in cursor)
 
 	@classmethod
@@ -1309,9 +1309,9 @@ class Table(MixinNormalDates, Object):
 	def iternames(cls, connection, schema="user"):
 		cursor = connection.cursor()
 		if schema == "all":
-			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from all_tables")
+			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from all_tables order by owner, table_name")
 		else:
-			cursor.execute("select null as owner, table_name from user_tables")
+			cursor.execute("select null as owner, table_name from user_tables order by table_name")
 		return ((row.table_name, row.owner) for row in cursor)
 
 	def itercolumns(self, connection=None):
