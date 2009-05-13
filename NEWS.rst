@@ -37,8 +37,8 @@ Changes in 3.7 (released ??/??/2009)
 
 *	Two new UL4 functions have been added: ``float`` and ``iscolor``.
 
-*	A new script ``uls`` has been added. It can be used to list any directory
-	given as an URL.
+*	Two new scripts have been added: ``uls`` can be used to list any directory
+	given as an URL. ``ucat`` can be used to output any file or directory.
 
 *	The script ``ucp`` now changes the user and group only if a user or group is
 	given.
