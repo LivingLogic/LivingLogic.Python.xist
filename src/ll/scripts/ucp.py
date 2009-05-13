@@ -29,7 +29,15 @@ except ImportError:
 
 def main(args=None):
 	def copyone(urlread, urlwrite):
-		if urlread.isfile():
+		if urlread.isdir():
+			if options.recursive:
+				for u in urlread.listdir():
+					copyone(urlread/u, urlwrite/u)
+			else:
+				if options.verbose:
+					msg = astyle.style_default("ucp: ", astyle.style_url(str(urlread)), " (directory skipped)")
+					stderr.writeln(msg)
+		else:
 			if options.verbose:
 				msg = astyle.style_default("ucp: ", astyle.style_url(str(urlread)), " -> ")
 				stderr.write(msg)
@@ -58,15 +66,7 @@ def main(args=None):
 					msg = astyle.style_default(astyle.style_url(str(urlwrite)), " (", str(size), " bytes)")
 					stderr.writeln(msg)
 				
-		else:
-			if options.recursive:
-				for u in urlread.listdir():
-					copyone(urlread/u, urlwrite/u)
-			else:
-				if options.verbose:
-					msg = astyle.style_default("ucp: ", astyle.style_url(str(urlread)), " (directory skipped)")
-					stderr.writeln(msg)
-			
+
 
 	colors = ("yes", "no", "auto")
 	p = optparse.OptionParser(usage="usage: %prog [options] source-file-url target-file-url\n   or: %prog [options] source-file-url(s) target-dir-url")
