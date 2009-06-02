@@ -375,6 +375,18 @@ I.e. templates can be passed just like any other object as a variable.
 ``item``.
 
 
+``def``
+-------
+The def tag defined a new template as a variable. Usage looks like this::
+
+	<?def quote?>"<?print text?>"<?end def?>
+
+This template can be called like any other template, that has been passed to
+the outermost template::
+
+	<?quote.render(text="foo")?>
+
+
 ``note``
 --------
 
@@ -519,10 +531,17 @@ is returned.
 
 
 ``isdict``
-::::::::::::
+::::::::::
 
 ``isdict(foo)`` returns ``True`` if ``foo`` is a dictionary object, else
 ``False`` is returned.
+
+
+``iscolor``
+:::::::::::
+
+``iscolor(foo)`` returns ``True`` if ``foo`` is a color object, else ``False``
+is returned.
 
 
 ``bool``
@@ -539,6 +558,13 @@ returned according to the truth value of ``foo``.
 a boolean or an integer. ``int`` can also be called with two arguments. In this
 case the first argument must be a string and the second is the number base for
 the conversion.
+
+
+``float``
+:::::::
+
+``float(foo)`` converts ``foo`` to a float. ``foo`` can be a string, a float,
+a boolean or an integer.
 
 
 ``str``

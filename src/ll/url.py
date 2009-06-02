@@ -30,7 +30,7 @@ These three levels of functionality are implemented in three classes:
 	:class:`Resource`
 		:class:`Resource` objects are file like objects that work with the actual
 		bytes that make up the file data. This functionality lives in the
-		:class:`Resource` class and it's subclasses. Creating a resource is done
+		:class:`Resource` class and its subclasses. Creating a resource is done
 		by calling the :meth:`open` method on a :class:`Connection` or a
 		:class:`URL`.
 """
@@ -45,7 +45,7 @@ except ImportError:
 	from email import Utils as emutils
 
 # don't fail when :mod:`pwd` or :mod:`grp` can't be imported, because if this
-# doesn't work, we're probably on Windows and :func:`os.chown` won't work anyway
+# doesn't work, we're probably on Windows and :func:`os.chown` won't work anyway.
 try:
 	import pwd, grp
 except ImportError:
@@ -211,7 +211,7 @@ class Connection(object):
 	@misc.notimplemented
 	def stat(self, url):
 		"""
-		Return the result of a :func:`stat()` call on the file :var:`url`.
+		Return the result of a :func:`stat` call on the file :var:`url`.
 		"""
 
 	@misc.notimplemented
@@ -736,9 +736,9 @@ if py is not None:
 						files[data] = stream
 					elif cmdname == "stat":
 						if isinstance(filename, basestring):
-							data = os.stat(filename)
+							data = tuple(os.stat(filename))
 						else:
-							data = os.fstat(files[filename].fileno())
+							data = tuple(os.fstat(files[filename].fileno()))
 					elif cmdname == "lstat":
 						data = os.lstat(filename)
 					elif cmdname == "close":
@@ -1057,7 +1057,7 @@ def File(name, scheme="file"):
 		>>> url.File("a#b")
 		URL('file:a%23b')
 	"""
-	name = urllib.pathname2url(os.path.expanduser(name.encode("utf-8")))
+	name = urllib.pathname2url(os.path.expanduser(name))
 	if name.startswith("///"):
 		name = name[2:]
 	url = URL(name)
@@ -1073,7 +1073,7 @@ def Dir(name, scheme="file"):
 		>>> url.Dir("a#b")
 		URL('file:a%23b/')
 	"""
-	name = urllib.pathname2url(os.path.expanduser(name.encode("utf-8")))
+	name = urllib.pathname2url(os.path.expanduser(name))
 	if not name.endswith("/"):
 		name += "/"
 	if name.startswith("///"):

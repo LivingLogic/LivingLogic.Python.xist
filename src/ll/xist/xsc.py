@@ -89,6 +89,15 @@ threadlocalnodehandler = ThreadLocalNodeHander()
 
 
 class build(object):
+	"""
+	A :class:`build` object can be used as a ``with`` block handler to create a
+	new XIST tree::
+
+		with xsc.build():
+			with html.ul() as e:
+				+html.li("gurk")
+				+html.li("hurz")
+	"""
 	def __init__(self):
 		self.stack = []
 
@@ -111,14 +120,6 @@ class build(object):
 
 	def add(self, *args, **kwargs):
 		self.stack[-1](*args, **kwargs)
-
-
-def add(*args, **kwargs):
-	"""
-	:func:`add` appends items in :var:`args` and sets attributes in
-	:var:`kwargs` in the currenly active node in the ``with`` stack.
-	"""
-	threadlocalnodehandler.handler.add(*args, **kwargs)
 
 
 class addattr(object):
@@ -148,6 +149,14 @@ class addattr(object):
 
 	def add(self, *args):
 		self.attr(*args)
+
+
+def add(*args, **kwargs):
+	"""
+	:func:`add` appends items in :var:`args` and sets attributes in
+	:var:`kwargs` in the currenly active node in the ``with`` stack.
+	"""
+	threadlocalnodehandler.handler.add(*args, **kwargs)
 
 
 ###
@@ -271,9 +280,10 @@ def makewalkfilter(obj):
 
 class Context(object):
 	"""
-	This is an empty class, that can be used by the :meth:`convert` method to
-	hold element or namespace specific data during the convert call. The method
-	:meth:`Converter.__getitem__` will return a unique instance of this class.
+	This is an empty class that can be used by the :meth:`convert` method to
+	hold element or namespace specific data during the :meth:`convert` call.
+	The method :meth:`Converter.__getitem__` will return a unique instance of
+	this class.
 	"""
 	__fullname__ = "Context"
 
@@ -336,21 +346,9 @@ class IllegalPrefixError(Error, LookupError):
 		return "namespace prefix %s is undefined" % (self.prefix,)
 
 
-class IllegalNamespaceError(Error, LookupError):
-	"""
-	Exception that is raised when a namespace name is undefined
-	i.e. if there is no namespace with this name.
-	"""
-	def __init__(self, name):
-		self.name = name
-
-	def __str__(self):
-		return "namespace name %s is undefined" % (self.name,)
-
-
 class IllegalElementError(Error, LookupError):
 	"""
-	Exception that is raised, when an illegal element class is requested
+	Exception that is raised when an illegal element class is requested
 	"""
 
 	def __init__(self, name, xmlns, xml=False):
@@ -369,7 +367,7 @@ class IllegalElementError(Error, LookupError):
 
 class IllegalProcInstError(Error, LookupError):
 	"""
-	Exception that is raised, when an illegal procinst class is requested
+	Exception that is raised when an illegal procinst class is requested
 	"""
 
 	def __init__(self, name, xml=False):
@@ -382,7 +380,7 @@ class IllegalProcInstError(Error, LookupError):
 
 class IllegalEntityError(Error, LookupError):
 	"""
-	Exception that is raised, when an illegal entity class is requested
+	Exception that is raised when an illegal entity class is requested
 	"""
 
 	def __init__(self, name, xml=False):
@@ -395,7 +393,7 @@ class IllegalEntityError(Error, LookupError):
 
 class IllegalCharRefError(Error, LookupError):
 	"""
-	Exception that is raised, when an illegal charref class is requested
+	Exception that is raised when an illegal charref class is requested
 	"""
 
 	def __init__(self, name, xml=False):
@@ -410,7 +408,7 @@ class IllegalCharRefError(Error, LookupError):
 
 class IllegalAttrError(Error, LookupError):
 	"""
-	Exception that is raised, when an illegal attribute is requested.
+	Exception that is raised when an illegal attribute is requested.
 	"""
 
 	def __init__(self, name, cls, xml=False):
@@ -434,8 +432,8 @@ class MultipleRootsError(Error):
 
 class ElementNestingError(Error):
 	"""
-	Exception that is raised, when an element has an illegal nesting
-	(e.g. ``&lt;a&gt;&lt;b&gt;&lt;/a&gt;&lt;/b&gt;``)
+	Exception that is raised when an element has an illegal nesting
+	(e.g. ``<a><b></a></b>``)
 	"""
 
 	def __init__(self, expectedelement, foundelement):
@@ -448,7 +446,7 @@ class ElementNestingError(Error):
 
 class FileNotFoundWarning(Warning):
 	"""
-	Warning that is issued, when a file can't be found.
+	Warning that is issued when a file can't be found.
 	"""
 	def __init__(self, message, filename, exc):
 		Warning.__init__(self, message, filename, exc)
@@ -460,7 +458,7 @@ class FileNotFoundWarning(Warning):
 		return "%s: %r not found (%s)" % (self.message, self.filename, self.exc)
 
 
-class IllegalObjectError(TypeError):
+class IllegalObjectError(Error, TypeError):
 	"""
 	Exception that is raised when an XIST constructor gets passed an
 	unconvertable object.
@@ -475,9 +473,9 @@ class IllegalObjectError(TypeError):
 
 class IllegalCommentContentWarning(Warning):
 	"""
-	Warning that is issued when there is an illegal comment, i.e. one
-	containing ``--`` or ending in ``-``. (This can only happen, when the
-	comment is instantiated by the program, not when parsed from an XML file.)
+	Warning that is issued when there is an illegal comment, i.e. one containing
+	``--`` or ending in ``-``. (This can only happen when the comment is
+	instantiated by the program, not when parsed from an XML file.)
 	"""
 
 	def __init__(self, comment):
@@ -489,8 +487,8 @@ class IllegalCommentContentWarning(Warning):
 
 class IllegalProcInstFormatError(Error):
 	"""
-	Exception that is raised, when there is an illegal processing instruction,
-	i.e. one containing ``?>``. (This can only happen, when the processing
+	Exception that is raised when there is an illegal processing instruction,
+	i.e. one containing ``?>``. (This can only happen when the processing
 	instruction is instantiated by the program, not when parsed from an XML
 	file.)
 	"""
@@ -500,35 +498,6 @@ class IllegalProcInstFormatError(Error):
 
 	def __str__(self):
 		return "processing instruction with content %r is illegal, as it contains '?>'." % self.procinst.content
-
-
-class IllegalXMLDeclFormatError(Error):
-	"""
-	Exception that is raised, when there is an illegal XML declaration, i.e.
-	there something wrong in ``<?xml ...?>``. (This can only happen, when the
-	processing instruction is instantiated by the program, not when parsed
-	from an XML file.)
-	"""
-
-	def __init__(self, procinst):
-		self.procinst = procinst
-
-	def __str__(self):
-		return "XML declaration with content %r is malformed." % self.procinst.content
-
-
-class NodeOutsideContextError(Error):
-	"""
-	Error that is raised, when a convert method can't find required context
-	info.
-	"""
-
-	def __init__(self, node, outerclass):
-		self.node = node
-		self.outerclass = outerclass
-
-	def __str__(self):
-		return "node %s outside of %s" % (self.node._str(fullname=True, xml=False, decorate=True), self.outerclass._str(fullname=True, xml=False, decorate=True))
 
 
 ###
@@ -822,7 +791,7 @@ class Node(object):
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
 
-		return publisher.publish(self, base) # return a generator-iterator
+		return publisher.iterbytes(self, base) # return a generator-iterator
 
 	def bytes(self, base=None, publisher=None, **publishargs):
 		"""
@@ -831,7 +800,10 @@ class Node(object):
 		For the possible parameters see the :class:`ll.xist.publishers.Publisher`
 		constructor.
 		"""
-		return "".join(self.iterbytes(base, publisher, **publishargs))
+		if publisher is None:
+			publisher = publishers.Publisher(**publishargs)
+
+		return publisher.bytes(self, base)
 
 	def iterstring(self, base=None, publisher=None, **publishargs):
 		"""
@@ -842,14 +814,8 @@ class Node(object):
 		"""
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
-		decoder = codecs.getincrementaldecoder("xml")(encoding=publisher.encoding)
-		for part in publisher.publish(self, base):
-			part = decoder.decode(part, False)
-			if part:
-				yield part
-		part = decoder.decode("", True)
-		if part:
-			yield part
+
+		return publisher.iterstring(self, base) # return a generator-iterator
 
 	def string(self, base=None, publisher=None, **publishargs):
 		"""
@@ -860,11 +826,9 @@ class Node(object):
 		"""
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
-		decoder = codecs.getdecoder("xml")
-		result = "".join(publisher.publish(self, base))
-		return decoder(result, encoding=publisher.encoding)[0]
+		return publisher.string(self, base)
 
-	def write(self, stream, *args, **publishargs):
+	def write(self, stream, base=None, publisher=None, **publishargs):
 		"""
 		Write :var:`self` to the file-like object :var:`stream` (which must provide
 		a :meth:`write` method).
@@ -872,8 +836,9 @@ class Node(object):
 		For the rest of the parameters see the :class:`ll.xist.publishers.Publisher`
 		constructor.
 		"""
-		for part in self.bytes(*args, **publishargs):
-			stream.write(part)
+		if publisher is None:
+			publisher = publishers.Publisher(**publishargs)
+		return publisher.write(stream, self, base)
 
 	def _walk(self, walkfilter, path):
 		"""
@@ -1770,7 +1735,7 @@ class AttrProcInst(ProcInst):
 	Special subclass of :class:`ProcInst`.
 
 	When an :class:`AttrProcInst` node is the first node in an attribute, it
-	takes over publishing of the attribute (via the methods :meth:publishattr`
+	takes over publishing of the attribute (via the methods :meth:`publishattr`
 	and :meth:`publishboolattr`). In all other cases the processing instruction
 	disappears completely.
 	"""

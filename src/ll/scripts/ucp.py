@@ -21,23 +21,52 @@ try:
 except ImportError:
 	from ll import astyle
 
+try:
+	from ll import orasql # activate the oracle scheme
+except ImportError:
+	pass
+
 
 def main(args=None):
 	def copyone(urlread, urlwrite):
-		with contextlib.closing(urlread.open("rb")) as fileread:
-			with contextlib.closing(urlwrite.open("wb")) as filewrite:
-				size = 0
-				while True:
-					data = fileread.read(81292)
-					if data:
-						filewrite.write(data)
-						size += len(data)
-					else:
-						break
-		urlwrite.chown(user, group)
-		if options.verbose:
-			msg = astyle.style_default("ucp: ", astyle.style_url(str(urlread)), " -> ", astyle.style_url(str(urlwrite)), " (", str(size), " bytes)")
-			stderr.writeln(msg)
+		if urlread.isdir():
+			if options.recursive:
+				for u in urlread.listdir():
+					copyone(urlread/u, urlwrite/u)
+			else:
+				if options.verbose:
+					msg = astyle.style_default("ucp: ", astyle.style_url(str(urlread)), " (directory skipped)")
+					stderr.writeln(msg)
+		else:
+			if options.verbose:
+				msg = astyle.style_default("ucp: ", astyle.style_url(str(urlread)), " -> ")
+				stderr.write(msg)
+			try:
+				with contextlib.closing(urlread.open("rb")) as fileread:
+					with contextlib.closing(urlwrite.open("wb")) as filewrite:
+						size = 0
+						while True:
+							data = fileread.read(262144)
+							if data:
+								filewrite.write(data)
+								size += len(data)
+							else:
+								break
+				if user or group:
+					urlwrite.chown(user, group)
+			except Exception:
+				if options.ignoreerrors:
+					if options.verbose:
+						msg = astyle.style_error(" (failed)")
+						stderr.writeln(msg)
+				else:
+					raise
+			else:
+				if options.verbose:
+					msg = astyle.style_default(astyle.style_url(str(urlwrite)), " (", str(size), " bytes)")
+					stderr.writeln(msg)
+				
+
 
 	colors = ("yes", "no", "auto")
 	p = optparse.OptionParser(usage="usage: %prog [options] source-file-url target-file-url\n   or: %prog [options] source-file-url(s) target-dir-url")
@@ -45,6 +74,8 @@ def main(args=None):
 	p.add_option("-c", "--color", dest="color", help="Color output (%s)" % ", ".join(colors), default="auto", choices=colors)
 	p.add_option("-u", "--user", dest="user", help="user id or name for target files")
 	p.add_option("-g", "--group", dest="group", help="group id or name for target files")
+	p.add_option("-r", "--recursive", dest="recursive", help="Copy stuff recursively?", action="store_true", default=False)
+	p.add_option("-x", "--ignoreerrors", dest="ignoreerrors", help="Ignore errors?", action="store_true", default=False)
 	
 	(options, args) = p.parse_args(args)
 	if len(args) < 2:
