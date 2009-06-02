@@ -1198,6 +1198,8 @@ class Template(object):
 		self.lines.append("%sfrom ll import ul4c, color" % self.indent)
 		self.lines.append("%ssource = %r" % (self.indent, self.source))
 		self.lines.append('%svariables = dict((key.decode("utf-8"), value) for (key, value) in variables.iteritems())' % self.indent) # FIXME: This can be dropped in Python 3.0 where strings are unicode
+		# Make sure that the resulting code is a generator even if the byte codes produces no yield statement
+		self.lines.append("%sif 0: yield ''" % self.indent)
 		locations = []
 		lines2locs = []
 		index = -1

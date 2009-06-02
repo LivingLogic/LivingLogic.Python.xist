@@ -1,3 +1,11 @@
+Changes in 3.6.5 (released 06/02/2009)
+--------------------------------------
+
+*	Fix UL4 templates that produce no output: As the generated Python sourcecode
+	didn't contain any ``yield`` statements, the resulting function was an
+	ordinary function instead of a generator.
+
+
 Changes in 3.6.4 (released 03/19/2009)
 --------------------------------------
 
