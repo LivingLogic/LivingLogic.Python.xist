@@ -425,6 +425,28 @@ def gunzip(data):
 	return compressor.read()
 
 
+def itersplitat(string, positions):
+	"""
+	Split :var:`string` at the positions specified in :var:`positions`.
+
+	This is a generator. For example::
+
+		>>> from ll import misc
+		>>> import datetime
+		>>> datetime.datetime(*map(int, misc.itersplitat("20090609172345", (4, 6, 8, 10, 12))))
+		datetime.datetime(2009, 6, 9, 17, 23, 45)
+	"""
+	curpos = 0
+	for pos in positions:
+		part = string[curpos:pos]
+		if part:
+			yield part
+		curpos = pos
+	part = string[curpos:]
+	if part:
+		yield part
+
+
 class JSMinUnterminatedComment(Exception):
 	pass
 
