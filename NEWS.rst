@@ -46,6 +46,9 @@ Changes in 3.7 (released ??/??/2009)
 *	Fixed a bug in the remote :meth:`stat` method for ssh URLs (it seems that
 	the :class:`posix.stat_result` tuple objects can no longer be pickled).
 
+*	There's a new function :func:`misc.itersplitat` for splitting a string at
+	specified positions.
+
 
 Changes in 3.6.5 (released 06/02/2009)
 --------------------------------------
