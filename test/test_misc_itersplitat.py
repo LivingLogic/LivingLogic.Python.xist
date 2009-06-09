@@ -13,6 +13,6 @@ from ll import misc
 
 
 def test_itersplitat():
-	assert tuple(misc.itersplitat("20090609172345", (4, 6, 8, 10, 12))) == ("2009", "06", "09", "17", "23", "45") 
-	assert tuple(misc.itersplitat("200906091723", (4, 6, 8, 10, 12))) == ("2009", "06", "09", "17", "23") 
-	assert tuple(misc.itersplitat("20090609172345", (-10, -8, -6, -4, -2))) == ("2009", "06", "09", "17", "23", "45") 
+	assert tuple(misc.itersplitat("20090609172345", (4, 6, 8, 10, 12))) == ("2009", "06", "09", "17", "23", "45")
+	assert tuple(misc.itersplitat("200906091723", (4, 6, 8, 10, 12))) == ("2009", "06", "09", "17", "23")
+	assert tuple(misc.itersplitat("20090609172345", (-10, -8, -6, -4, -2))) == ("2009", "06", "09", "17", "23", "45")
