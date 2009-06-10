@@ -6,6 +6,8 @@ Changes in 3.7 (released ??/??/2009)
 
 *	Python 2.6 is required now.
 
+*	:mod:`ll.orasql` and :mod:`ll.nightshade` are now part of the distribution.
+
 *	:mod:`ll.make` has a new Action class: :class:`ObjectAction` that simply
 	returns an existing object.
 

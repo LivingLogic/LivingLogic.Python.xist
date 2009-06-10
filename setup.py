@@ -68,6 +68,11 @@ XIST also includes the following modules and packages:
 *	:mod:`ll.daemon` can be used on UNIX to fork a daemon process.
 
 *	:mod:`ll.xml_codec` contains a complete codec for encoding and decoding XML.
+
+*	:mod:`ll.nightshade` can be used to serve the output of PL/SQL
+	functions/procedures with CherryPy__.
+
+__ http://www.cherrypy.org/
 """
 
 CLASSIFIERS = """
@@ -190,12 +195,17 @@ template
 templating language
 
 # orasql
-database
 Oracle
 cx_Oracle
 record
 procedure
 schema
+
+# nightshade
+CherryPy
+toxic
+Oracle
+PL/SQL
 """
 
 try:
