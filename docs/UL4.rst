@@ -561,7 +561,7 @@ the conversion.
 
 
 ``float``
-:::::::
+:::::::::
 
 ``float(foo)`` converts ``foo`` to a float. ``foo`` can be a string, a float,
 a boolean or an integer.
