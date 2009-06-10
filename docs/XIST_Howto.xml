@@ -902,26 +902,26 @@ different prefix. &xist; will never use the same prefix for different namespaces
 
 <example><h>Publishing global attributes</h>
 <prog>
-from __future__ import with_statement
 from ll.xist import xsc
 from ll.xist.ns import html, xlink
 
-with html.html() as e:
-	with html.head():
-		+html.title("The page")
-	with html.body():
-		+html.h1("The header"),
-		with html.p():
-			+xsc.Text("The "),
-			+html.a(
-				"Python",
-				xlink.Attrs(
-					href="http://www.python.org/",
-					title="Python",
-					type="simple"
-				),
-				href="http://www.python.org/")
-			+xsc.Text(" homepage")
+with xsc.build():
+	with html.html() as e:
+		with html.head():
+			+html.title("The page")
+		with html.body():
+			+html.h1("The header"),
+			with html.p():
+				+xsc.Text("The "),
+				+html.a(
+					"Python",
+					xlink.Attrs(
+						href="http://www.python.org/",
+						title="Python",
+						type="simple"
+					),
+					href="http://www.python.org/")
+				+xsc.Text(" homepage")
 
 print e.bytes(prefixdefault=None)
 </prog>
