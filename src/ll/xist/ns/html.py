@@ -8,8 +8,6 @@
 ## See ll/__init__.py for the license
 
 
-from __future__ import with_statement
-
 """
 An XIST namespace that contains definitions for all the elements in 
 `HTML 4.0 transitional`__.

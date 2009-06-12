@@ -47,8 +47,6 @@ this::
 """
 
 
-from __future__ import with_statement
-
 import sys, os, os.path, optparse, warnings, re, datetime, cStringIO, errno, tempfile, operator, types, cPickle, gc, contextlib, locale, gzip
 
 from ll import misc, url

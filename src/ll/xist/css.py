@@ -12,8 +12,6 @@
 This module contains functions related to the handling of CSS.
 """
 
-from __future__ import with_statement
-
 import os, contextlib
 
 try:

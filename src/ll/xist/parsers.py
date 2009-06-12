@@ -14,8 +14,6 @@ strings, URLs etc.
 """
 
 
-from __future__ import with_statement
-
 import sys, os, os.path, warnings, cStringIO, codecs, pyexpat, contextlib
 
 from xml.parsers import expat

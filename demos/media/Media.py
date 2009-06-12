@@ -1,8 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import with_statement
-
 from ll.xist import xsc, sims, parsers
 from ll.xist.ns import html, htmlspecials, meta, xml, chars
 

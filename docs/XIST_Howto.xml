@@ -585,8 +585,6 @@ class construction time via a <lit>with</lit> block like this:</p>
 
 <example><h>Populating a pool with a <lit>with</lit> block</h>
 <prog>
-from __future__ import with_statement
-
 from ll.xist import xsc, parsers
 from ll.xist.ns import html
 

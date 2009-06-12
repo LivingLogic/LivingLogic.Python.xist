@@ -4,8 +4,6 @@
 # This example requires CherryPy: http://www.cherrypy.org/
 
 
-from __future__ import with_statement
-
 import sys, os, glob
 
 import cherrypy

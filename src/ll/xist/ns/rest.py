@@ -8,8 +8,6 @@
 ## See ll/__init__.py for the license
 
 
-from __future__ import with_statement
-
 __docformat__ = "reStructuredText"
 
 import os, optparse, collections, contextlib

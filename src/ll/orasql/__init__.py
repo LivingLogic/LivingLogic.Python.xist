@@ -2288,7 +2288,6 @@ class JavaSource(MixinNormalDates, Object):
 		return code
 
 
-
 class Privilege(object):
 	"""
 	Models a database object privilege (i.e. a grant).

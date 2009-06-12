@@ -10,8 +10,6 @@
 ## See ll/__init__.py for the license
 
 
-from __future__ import with_statement
-
 import sys, optparse, contextlib, datetime, pwd, grp, stat, curses
 
 from ll import url
