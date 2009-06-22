@@ -2182,7 +2182,7 @@ class Procedure(Callable):
 			name = "%s.%s" % (self.owner, self.name)
 
 		queryargs = self._getargs(cursor, *args, **kwargs)
-	
+
 		query = "begin %s(%s); end;" % (name, ", ".join("%s=>:%s" % (name, name) for name in queryargs))
 
 		cursor.execute(query, queryargs)
