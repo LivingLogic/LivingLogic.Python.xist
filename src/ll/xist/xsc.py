@@ -20,7 +20,6 @@ __docformat__ = "reStructuredText"
 import sys, os, random, copy, warnings, cPickle, threading, weakref, types, codecs
 
 import cssutils
-from cssutils import serialize as cssserialize
 
 from ll import misc, url as url_
 
