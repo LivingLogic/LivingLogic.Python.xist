@@ -19,6 +19,17 @@ Changes to the make module
 		t2 = make.EncodeAction(encoding="utf-8", input=t2)
 		t2 = make.FileAction(key=url.URL("bar.txt"), input=t2)
 
+	Also the following classes have been removed from :mod:`ll.make`:
+	:class:`EncodeAction`, :class:`DecodeAction`, :class:`EvalAction`,
+	:class:`GZipAction`, :class:`GUnzipAction`,
+	:class:`JavascriptMinifyAction`, :class:`XISTBytesAction`,
+	:class:`XISTStringAction`, :class:`JoinAction`, :class:`UnpickleAction`,
+	:class:`PickleAction`, :class:`TOXICAction`, :class:`TOXICPrettifyAction`,
+	:class:`SplatAction`, :class:`UL4CompileAction`, :class:`UL4RenderAction`,
+	:class:`UL4DumpAction`, :class:`UL4LoadAction`, :class:`XISTTextAction` and
+	:class:`XISTConvertAction`. All of these actions can be executed by using
+	:class:`CallAction` or :class:`CallAttrAction`.
+
 
 Migrating to version 3.6
 ========================
