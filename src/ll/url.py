@@ -491,9 +491,8 @@ class Connection(object):
 				Name of the Python interpreter to use on the remote side (used by
 				``ssh`` URLs)
 
-			:var:`identity` : string
-				filename to be used as the identity file (private key) for
-				authentication (used by ``ssh`` URLs)
+			:var:`ssh_config` : string
+				SSH configuration file (used by ``ssh`` URLs)
 		"""
 
 
@@ -848,10 +847,10 @@ if py is not None:
 				else:
 					channel.send((False, data))
 		""")
-		def __init__(self, context, server, remotepython="python", identity=None):
+		def __init__(self, context, server, remotepython="python", ssh_config=None):
 			# We don't have to store the context (this avoids cycles)
 			self.server = server
-			gateway = py.execnet.SshGateway(server, remotepython=remotepython, identity=identity)
+			gateway = py.execnet.SshGateway(server, remotepython=remotepython, ssh_config=ssh_config)
 			self._channel = gateway.remote_exec(self.remote_code)
 
 		def close(self):
@@ -1526,13 +1525,13 @@ class LocalSchemeDefinition(SchemeDefinition):
 
 class SshSchemeDefinition(SchemeDefinition):
 	def _connect(self, url, context=None, **kwargs):
-		if "remotepython" in kwargs or "identity" in kwargs:
+		if "remotepython" in kwargs or "ssh_config" in kwargs:
 			kwargs = kwargs.copy()
 			remotepython = kwargs.pop("remotepython", "python")
-			identity = kwargs.pop("identity", None)
+			ssh_config = kwargs.pop("ssh_config", None)
 		else:
 			remotepython = "python"
-			identity = None
+			ssh_config = None
 			
 		context = getcontext(context)
 		if context is threadlocalcontext.__class__.context:
@@ -1546,11 +1545,11 @@ class SshSchemeDefinition(SchemeDefinition):
 		try:
 			connection = connections[(server, remotepython)]
 		except KeyError:
-			connection = connections[(server, remotepython)] = SshConnection(context, server, remotepython, identity)
+			connection = connections[(server, remotepython)] = SshConnection(context, server, remotepython, ssh_config)
 		return (connection, kwargs)
 
-	def open(self, url, mode="rb", context=None, remotepython="python", identity=None):
-		(connection, kwargs) = self._connect(url, context, remotepython=remotepython, identity=identity)
+	def open(self, url, mode="rb", context=None, remotepython="python", ssh_config=None):
+		(connection, kwargs) = self._connect(url, context, remotepython=remotepython, ssh_config=ssh_config)
 		return RemoteFileResource(connection, url, mode, **kwargs)
 
 	def closeall(self, context):
@@ -2806,9 +2805,8 @@ class URL(object):
 				Name of the Python interpreter to use on the remote side
 				(used by ``ssh`` URLs)
 
-			:var:`identity`
-				Filename to be used as the identity file (private key) for
-				authentication (used by ``ssh`` URLs)
+			:var:`ssh_config`
+				SSH configuration file (used by ``ssh`` URLs)
 		"""
 		(connection, kwargs) = self._connect(context=context, **kwargs)
 		return connection.open(self, mode, *args, **kwargs)

@@ -51,6 +51,11 @@ Changes in 3.7 (released ??/??/2009)
 *	There's a new function :func:`misc.itersplitat` for splitting a string at
 	specified positions.
 
+*	For ssh URLs a keyword argument ``ssh_config`` is supported now instead of
+	``identity`` (This mirrors the corresponding change in the py__ library)
+
+	__ http://codespeak.net/py/dist/
+
 
 Changes in 3.6.5 (released 06/02/2009)
 --------------------------------------
