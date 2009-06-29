@@ -108,8 +108,8 @@ class Publisher(object):
 
 	def encode(self, text):
 		"""
-		Encode :var:`text` with the encoding and error handling currently
-		active and return the resulting byte string.
+		Encode :var:`text` with the encoding and error handling currently active
+		and return the resulting byte string.
 		"""
 		return self.encoder.encode(text)
 
@@ -118,7 +118,7 @@ class Publisher(object):
 		Encode :var:`test` as text data. :var:`text` must be a :class:`unicode`
 		object. The publisher will apply the configured encoding, error handling
 		and the current text filter (which escapes characters that can't appear
-		in text data (like ````` etc.)) and return the resulting :class:`str`
+		in text data (like ``<`` etc.)) and return the resulting :class:`str`
 		object.
 		"""
 		self.encoder.errors = self.__errors[-1]
@@ -183,7 +183,7 @@ class Publisher(object):
 	def getnamespaceprefix(self, xmlns):
 		"""
 		Return (and register) a namespace prefix for the namespace name
-		:var:`xmlns`. This honors the namespace configuration via ``self.prefixes``
+		:var:`xmlns`. This honors the namespace configuration from ``self.prefixes``
 		and ``self.prefixdefault``. Furthermore the same prefix will be returned
 		from now on (except when the empty prefix becomes invalid once global
 		attributes are encountered)
@@ -217,7 +217,7 @@ class Publisher(object):
 		"""
 		Get and register a namespace prefix for the namespace :var:`object` lives
 		in (specified by the :attr:`xmlns` attribute of :var:`object`). Similar
-		to :meth:`getnamespaceprefix` this honors the namespace configuration via
+		to :meth:`getnamespaceprefix` this honors the namespace configuration from
 		``self.prefixes`` and ``self.prefixdefault`` (except when a global
 		attribute requires a non-empty prefix).
 		"""
@@ -340,8 +340,8 @@ class Publisher(object):
 
 	def write(self, stream, node, base=None):
 		"""
-		Write :var:`node` to the file-like object :var:`stream` (which must provide
-		a :meth:`write` method).
+		Write :var:`node` to the file-like object :var:`stream` (which must
+		provide a :meth:`write` method).
 		"""
 		for part in self.iterbytes(node, base):
 			stream.write(part)
