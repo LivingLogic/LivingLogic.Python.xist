@@ -3172,7 +3172,7 @@ class Entity(Node):
 
 	def publish(self, publisher):
 		yield publisher.encode(u"&")
-		yield publisher.encode(self.xmlname)
+		yield publisher.encode(self.xmlname)
 		yield publisher.encode(u";")
 
 	def __repr__(self):
