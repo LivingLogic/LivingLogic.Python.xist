@@ -28,7 +28,7 @@ except ImportError:
 
 from ll import misc, url
 
-import xsc, options
+import xsc
 
 
 __docformat__ = "reStructuredText"
@@ -161,7 +161,9 @@ s4id = astyle.Style.fromenv("LL_XIST_STYLE_ID", "yellow:black")
 
 
 def strtab(count):
-	return s4tab(unicode(options.reprtab)*count)
+	# The environment variable ``LL_XIST_REPR_TAB`` specifies how to represent an indentation in the DOM tree
+	reprtab = os.environ.get("LL_XIST_REPR_TAB", u"  ")
+	return s4tab(unicode(reprtab)*count)
 
 
 def strtext(text):
