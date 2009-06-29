@@ -34,6 +34,10 @@ Changes in 3.7 (released ??/??/2009)
 	:meth:`chown` that return a :class:`ModeAction` and :class:`OwnerAction`
 	for modifying the file created by the :class:`FileAction`.
 
+*	:class:`ll.make.Action` has three new methods: :meth:`call`, :meth:`getattr`
+	and :meth:`callattr` create a :class:`CallAction`, :class:`GetAttrAction`
+	or :class:`CallAttrAction` object respectively.
+
 *	The division operator is no longer implemented for :class:`Action` objects
 	in :mod:`ll.make`.
 

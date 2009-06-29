@@ -34,8 +34,8 @@ this::
 		def create(self):
 			make.Project.create(self)
 			source = self.add(make.FileAction("foo.txt"))
-			temp = make.CallAttrAction(source, "decode", "iso-8859-1")
-			temp = make.CallAttrAction(temp, "encode", "utf-8")
+			temp = source.callattr("decode", "iso-8859-1")
+			temp = temp.callattr("encode", "utf-8")
 			target = self.add(make.FileAction("bar.txt", temp))
 			self.writecreatedone()
 
@@ -362,6 +362,29 @@ class Action(object):
 
 	def getkwargs(self):
 		return {}
+
+	def call(self, *args, **kwargs):
+		"""
+		Return a :class:`CallAction` for calling :var:`self`\s output with
+		positional arguments from :var:`args` and keyword arguments from
+		:var:`kwargs`.
+		"""
+		return CallAction(self, *args, **kwargs)
+
+	def getattr(self, attrname):
+		"""
+		Return a :class:`GetAttrAction` for getting :var:`self`\s attribute
+		named :var:`attrname`.
+		"""
+		return GetAttrAction(self, attrname)
+
+	def callattr(self, attrname, *args, **kwargs):
+		"""
+		Return a :class:`CallAttrAction` for calling :var:`self`\s attribute
+		named :var:`attrname` with positional arguments from :var:`args` and
+		keyword arguments from :var:`kwargs`.
+		"""
+		return CallAttrAction(self, attrname, *args, **kwargs)
 
 	def __repr__(self):
 		def format(arg):
