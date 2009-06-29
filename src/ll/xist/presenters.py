@@ -160,11 +160,11 @@ s4string = astyle.Style.fromenv("LL_XIST_STYLE_STRING", "magenta:black")
 s4id = astyle.Style.fromenv("LL_XIST_STYLE_ID", "yellow:black")
 
 
+# specifies how to represent an indentation in the DOM tree
 reprtab = os.environ.get("LL_XIST_REPR_TAB", u"  ")
 
 
 def strtab(count):
-	# The environment variable ``LL_XIST_REPR_TAB`` specifies how to represent an indentation in the DOM tree
 	return s4tab(unicode(reprtab)*count)
 
 
