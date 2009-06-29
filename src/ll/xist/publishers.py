@@ -10,7 +10,7 @@
 
 """
 This module contains classes that may be used as publishing handlers in
-:meth:`ll.xist.xsc.None.publish`.
+:meth:`ll.xist.xsc.Node.publish`.
 """
 
 
@@ -38,7 +38,7 @@ class Publisher(object):
 		:var:`encoding` : string or :const:`None`
 			Specifies the encoding to be used for the byte sequence. If
 			:const:`None` is used the encoding in the XML declaration will be used.
-			If there is none, UTF-8 will be used.
+			If there is no XML declaration, UTF-8 will be used.
 
 		:var:`xhtml` : int
 			With the parameter :var:`xhtml` you can specify if you want HTML
@@ -53,7 +53,7 @@ class Publisher(object):
 				the default.
 
 			Pure XML (``xhtml==2``)
-				All empty elements will be published as <foo/>.
+				All empty elements will be published as ``<foo/>``.
 
 		:var:`validate` : bool
 			Specifies whether validation should be done before publishing.
@@ -67,11 +67,12 @@ class Publisher(object):
 			:const:`False`
 				Treat elements in this namespace as if they are not in any
 				namespace (if global attributes from this namespace are encountered,
-				a prefix willbe used nonetheless).
+				a non-empty prefix will be used nonetheless).
 
 			:const:`None`
 				Treat the namespace as the default namespaces (i.e. use unprefixed
-				element names). Global attributes will again result in a prefix.
+				element names). Global attributes will again result in a non-empty
+				prefix.
 
 			:const:`True`
 				The publisher uses a unique non-empty prefix for this namespace.
