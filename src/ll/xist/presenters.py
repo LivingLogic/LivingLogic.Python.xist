@@ -272,6 +272,13 @@ class TreePresenter(Presenter):
 	# Outside of attributes Line objects are yielded
 
 	def __init__(self, node, indent=None):
+		"""
+		Create a :class:`TreePresenter` object for the XIST node :var:`node` using
+		:var:`indent` for indenting each tree level. If :var:`indent` is
+		:const:`None` use the value of the environment variable ``LL_XIST_INDENT``
+		is the indent string (falling back to a tab if the environment variable
+		doesn't exist).
+		"""
 		Presenter.__init__(self, node)
 		if indent is None:
 			indent = os.environ.get("LL_XIST_INDENT", "\t")
@@ -528,6 +535,13 @@ class CodePresenter(Presenter):
 	calls.
 	"""
 	def __init__(self, node, indent=None):
+		"""
+		Create a :class:`CodePresenter` object for the XIST node :var:`node` using
+		:var:`indent` for indenting each tree level. If :var:`indent` is
+		:const:`None` use the value of the environment variable ``LL_XIST_INDENT``
+		is the indent string (falling back to a tab if the environment variable
+		doesn't exist).
+		"""
 		Presenter.__init__(self, node)
 		if indent is None:
 			indent = os.environ.get("LL_XIST_INDENT", "\t")
