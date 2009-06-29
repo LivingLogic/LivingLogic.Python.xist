@@ -553,7 +553,7 @@ class CSSTypeSelector(xfind.Selector):
 class CSSAdjacentSiblingCombinator(xfind.BinaryCombinator):
 	"""
 	A :class:`CSSAdjacentSiblingCombinator` work similar to an
-	:class:`AdjacentSiblingCombinator` except that only preceding elements
+	:class:`AdjacentSiblingCombinator` except that only preceding *elements*
 	are considered.
 	"""
 
@@ -577,7 +577,7 @@ class CSSAdjacentSiblingCombinator(xfind.BinaryCombinator):
 class CSSGeneralSiblingCombinator(xfind.BinaryCombinator):
 	"""
 	A :class:`CSSGeneralSiblingCombinator` work similar to an
-	:class:`GeneralSiblingCombinator` except that only preceding elements
+	:class:`GeneralSiblingCombinator` except that only preceding *elements*
 	are considered.
 	"""
 
@@ -772,8 +772,8 @@ def parsefile(filename, base=None, encoding=None):
 def parseurl(name, base=None, encoding=None, *args, **kwargs):
 	"""
 	Parse a :mod:`cssutils` stylesheet from the URL :var:`name`. :var:`base` is
-	the base URL for the parsing process ((defaulting to the final URL of the
-	response (i.e. including redirects), :var:`encoding` can be used to force
+	the base URL for the parsing process (defaulting to the final URL of the
+	response, i.e. including redirects), :var:`encoding` can be used to force
 	the parser to use the specified encoding. :var:`arg` and :var:`kwargs` are
 	passed on to :meth:`URL.openread`, so you can pass POST data and request
 	headers.
