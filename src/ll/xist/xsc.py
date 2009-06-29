@@ -473,8 +473,8 @@ class IllegalObjectError(Error, TypeError):
 class IllegalCommentContentWarning(Warning):
 	"""
 	Warning that is issued when there is an illegal comment, i.e. one containing
-	``--`` or ending in ``-``. (This can only happen when the comment is
-	instantiated by the program, not when parsed from an XML file.)
+	``--`` or ending in ``-``. (This can only happen when the comment was created
+	by code, not when parsed from an XML file.)
 	"""
 
 	def __init__(self, comment):
@@ -488,8 +488,7 @@ class IllegalProcInstFormatError(Error):
 	"""
 	Exception that is raised when there is an illegal processing instruction,
 	i.e. one containing ``?>``. (This can only happen when the processing
-	instruction is instantiated by the program, not when parsed from an XML
-	file.)
+	instruction was created by code, not when parsed from an XML file.)
 	"""
 
 	def __init__(self, procinst):
@@ -693,9 +692,9 @@ class Node(object):
 	@misc.notimplemented
 	def __unicode__(self):
 		"""
-		Return the character content of :var:`self` as a unicode string. This means
-		that comments and processing instructions will be filtered out. For
-		elements you'll get the element content.
+		Return the character content of :var:`self` as a unicode string. This
+		means that comments and processing instructions will be filtered out.
+		For elements you'll get the element content.
 
 		:meth:`__unicode__` can be used everywhere where a plain string
 		representation of the node is required.
@@ -752,7 +751,7 @@ class Node(object):
 		This method will be called by the parser :var:`parser` once after
 		:var:`self` is created by the parser and must return the node that is to
 		be put into the tree (in most cases this is :var:`self`, it's used e.g.
-		by :class:`URLAttr` to incorporate the base URL into the attribute.
+		by :class:`URLAttr` to incorporate the base URL into the attribute).
 
 		For elements :func:`parsed` will be called twice: Once at the beginning
 		(i.e. before the content is parsed) with :var:`start` being :const:`True`
@@ -916,7 +915,7 @@ class Node(object):
 	def compact(self):
 		"""
 		Return a version of :var:`self`, where textnodes or character references
-		that contain only linefeeds are removed, i.e. potentially needless
+		that contain only linefeeds are removed, i.e. potentially useless
 		whitespace is removed.
 		"""
 		return self
@@ -1357,7 +1356,7 @@ class Frag(Node, list):
 
 	def __getitem__(self, index):
 		"""
-		Return the :var:`index`'th node for the content of the fragment. If
+		Return the :var:`index`'th node of the content of the fragment. If
 		:var:`index` is a list :meth:`__getitem__` will work recursively.
 		If :var:`index` is an empty list, :var:`self` will be returned.
 		:meth:`__getitem__` also supports walk filters.
@@ -1420,7 +1419,7 @@ class Frag(Node, list):
 
 	def __delitem__(self, index):
 		"""
-		Remove the :var:`index`'th content node from the fragment If :var:`index`
+		Remove the :var:`index`'th content node from the fragment. If :var:`index`
 		is a list, the innermost index will be deleted, after traversing the rest
 		of :var:`index` recursively. If :var:`index` is an empty list, an
 		exception will be raised. Anything except :class:`list`, :class:`int` and
@@ -1521,7 +1520,7 @@ class Frag(Node, list):
 		Return a version of :var:`self` with a separator node between the nodes of
 		:var:`self`.
 
-		if :var:`clone` is false one node will be inserted several times, if
+		if :var:`clone` is false, one node will be inserted several times, if
 		:var:`clone` is true, clones of this node will be used.
 		"""
 		node = self._create()
@@ -1869,8 +1868,8 @@ class Attr(Frag):
 		in the class attribute ``values``. If the value is not allowed a warning
 		will be issued through the Python warning framework.
 
-		If :var:`self` is "fancy" (i.e. contains non-:class:`Text` nodes), no check
-		will be done.
+		If :var:`self` is "fancy" (i.e. contains non-:class:`Text` nodes), no
+		check will be done.
 		"""
 		values = self.__class__.values
 		if self and isinstance(values, tuple) and not self.isfancy():
@@ -1953,8 +1952,7 @@ class NumberAttr(Attr):
 
 class IntAttr(NumberAttr):
 	"""
-	Attribute class that is used when the attribute value may be an
-	integer.
+	Attribute class that is used when the attribute value may be an integer.
 	"""
 
 
@@ -1971,7 +1969,7 @@ class BoolAttr(Attr):
 	the value will always be the attribute name, regardless of the real value.
 	"""
 
-	# We can't simply overwrite _publishattrvalue(), because for xhtml==0 we don't output a "proper" attribute
+	# We can't simply overwrite :meth:`_publishattrvalue`, because for ``xhtml==0`` we don't output a "proper" attribute
 	def publish(self, publisher):
 		if publisher.validate:
 			self.checkvalid()
@@ -2011,7 +2009,7 @@ class StyleAttr(Attr):
 	def replaceurls(self, replacer):
 		"""
 		Replace each URL in the style. Each URL will be passed to the callable
-		:var:`replacer` and replaced with the return value.
+		:var:`replacer` and replaced with the returned value.
 		"""
 		self[:] = self._transform(replacer)
 
@@ -2518,7 +2516,7 @@ class Attrs(Node, dict):
 
 	def _iterallvalues(self):
 		"""
-		Iterate all values, even the unset ones
+		Iterate through all values, even the unset ones.
 		"""
 		return dict.itervalues(self)
 
@@ -2542,7 +2540,7 @@ class Attrs(Node, dict):
 
 	def filtered(self, function):
 		"""
-		Return a filtered version of the :var:`self`.
+		Return a filtered version of :var:`self`.
 		"""
 		node = self._create()
 		for (name, value) in self.items():
@@ -2797,13 +2795,13 @@ class Element(Node):
 
 	def append(self, *items):
 		"""
-		Append every item in :var:`items` to the element content.
+		Append every item in :var:`items` to the elements content.
 		"""
 		self.content.append(*items)
 
 	def extend(self, items):
 		"""
-		Append all items in :var:`items` to element content.
+		Append all items in :var:`items` to the elements content.
 		"""
 		self.content.extend(items)
 
@@ -2853,7 +2851,6 @@ class Element(Node):
 		attribute is not set already. The same will happen for the height, which
 		will be put into the attribute named :var:`heighattr`.
 		"""
-
 		try:
 			size = url.imagesize()
 		except IOError, exc:
@@ -3175,7 +3172,7 @@ class Entity(Node):
 
 	def publish(self, publisher):
 		yield publisher.encode(u"&")
-		yield publisher.encode(self.xmlname)
+		yield publisher.encode(self.xmlname)
 		yield publisher.encode(u";")
 
 	def __repr__(self):
@@ -3304,17 +3301,17 @@ class Pool(misc.Pool):
 		"""
 		Register :var:`object` in the pool. :var:`object` can be:
 
-		*	A :class:`Element`, :class:`ProcInst`, :class:`Entity`, or
+		*	a :class:`Element`, :class:`ProcInst`, :class:`Entity`, or
 			:class:`CharRef` class;
 
-		*	An :class:`Attr` class for a global attribute;
+		*	an :class:`Attr` class for a global attribute;
 
-		*	An :class:`Attrs` class containing global attributes;
+		*	an :class:`Attrs` class containing global attributes;
 
-		*	A :class:`dict` (all values will be registered, this makes it possible
+		*	a :class:`dict` (all values will be registered, this makes it possible
 			to e.g. register all local variables by passing ``vars()``);
 
-		*	A module (all attributes in the module will be registered).
+		*	a module (all attributes in the module will be registered).
 		"""
 		if isinstance(object, type):
 			if issubclass(object, Element):
@@ -3371,7 +3368,7 @@ class Pool(misc.Pool):
 	def elementclass(self, name, xmlns):
 		"""
 		Return the element class for the element with the Python name :var:`name`
-		and the namespace :var:`xmlns`. If the element can't be found a
+		and the namespace :var:`xmlns`. If the element can't be found an
 		:exc:`IllegalElementError` will be raised.
 		"""
 		if isinstance(xmlns, (list, tuple)):
@@ -3398,7 +3395,7 @@ class Pool(misc.Pool):
 		"""
 		Return the element class for the element type with the XML name
 		:var:`name` and the namespace :var:`xmlns`. If the element can't
-		be found a :exc:`IllegalElementError` will be raised.
+		be found an :exc:`IllegalElementError` will be raised.
 		"""
 		if isinstance(xmlns, (list, tuple)):
 			for xmlns in xmlns:
@@ -3457,8 +3454,8 @@ class Pool(misc.Pool):
 	def procinstclass(self, name):
 		"""
 		Return the processing instruction class for the PI with the Python name
-		:var:`name`. If the element can't be found a :exc:`IllegalProcInstError`
-		will be raised.
+		:var:`name`. If the processing instruction can't be found an
+		:exc:`IllegalProcInstError` will be raised.
 		"""
 		try:
 			return self._procinstsbypyname[name]
@@ -3473,8 +3470,8 @@ class Pool(misc.Pool):
 	def procinstclass_xml(self, name):
 		"""
 		Return the processing instruction class for the PI with the XML name
-		:var:`name`. If the element can't be found a :exc:`IllegalProcInstError`
-		will be raised.
+		:var:`name`. If the processing instruction can't be found an
+		:exc:`IllegalProcInstError` will be raised.
 		"""
 		try:
 			return self._procinstsbyxmlname[name]
@@ -3522,8 +3519,8 @@ class Pool(misc.Pool):
 
 	def entityclass(self, name):
 		"""
-		Return the entity for the entity with the Python name :var:`name`.
-		If the entity can't be found a :exc:`IllegalEntityError` will be raised.
+		Return the entity class for the entity with the Python name :var:`name`.
+		If the entity can't be found an :exc:`IllegalEntityError` will be raised.
 		"""
 		try:
 			return self._entitiesbypyname[name]
@@ -3537,8 +3534,8 @@ class Pool(misc.Pool):
 
 	def entityclass_xml(self, name):
 		"""
-		Return the entity for the entity with the XML name :var:`name`.
-		If the entity can't be found a :exc:`IllegalEntityError` will be raised.
+		Return the entity class for the entity with the XML name :var:`name`.
+		If the entity can't be found an :exc:`IllegalEntityError` will be raised.
 		"""
 		try:
 			return self._entitiesbyxmlname[name]
@@ -3636,8 +3633,8 @@ class Pool(misc.Pool):
 
 	def hascharref(self, name):
 		"""
-		Is there a registered character entity class in :var:`self` with the Python
-		name or codepoint :var:`name`?
+		Is there a registered character entity class in :var:`self` with the
+		Python name or codepoint :var:`name`?
 		"""
 		if isinstance(name, (int, long)):
 			has = name in self._charrefsbycodepoint
@@ -3658,7 +3655,7 @@ class Pool(misc.Pool):
 
 	def attrclass(self, name, xmlns):
 		"""
-		Return the aatribute class for the global attribute with the Python name
+		Return the attribute class for the global attribute with the Python name
 		:var:`name` and the namespace :var:`xmlns`. If the attribute can't
 		be found a :exc:`IllegalAttrError` will be raised.
 		"""
