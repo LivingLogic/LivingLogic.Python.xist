@@ -16,7 +16,7 @@ __ http://www.w3.org/TR/html4/loose.dtd
 """
 
 
-import os, cgi, contextlib, operator
+import os, cgi, contextlib, subprocess
 
 from ll import url, misc
 from ll.xist import xsc, sims, xfind
@@ -1379,12 +1379,11 @@ def astext(node, encoding="iso-8859-1", width=72):
 	text = node.bytes(encoding=encoding)
 
 	cmd = "elinks %s" % " ".join(options)
-	(stdin, stdout) = os.popen2(cmd)
-
-	stdin.write(text)
-	stdin.close()
-	text = stdout.read()
-	stdout.close()
+	p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
+	p.stdin.write(text)
+	p.stdin.close()
+	text = p.stdout.read()
+	p.stdout.close()
 	text = "\n".join(line.rstrip() for line in text.splitlines())
 	return text
 
