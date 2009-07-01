@@ -600,7 +600,7 @@ class CSSTypeSelector(xfind.Selector):
 
 class CSSAdjacentSiblingCombinator(xfind.BinaryCombinator):
 	"""
-	A :class:`CSSAdjacentSiblingCombinator` work similar to an
+	A :class:`CSSAdjacentSiblingCombinator` works similar to an
 	:class:`AdjacentSiblingCombinator` except that only preceding *elements*
 	are considered.
 	"""
@@ -624,7 +624,7 @@ class CSSAdjacentSiblingCombinator(xfind.BinaryCombinator):
 
 class CSSGeneralSiblingCombinator(xfind.BinaryCombinator):
 	"""
-	A :class:`CSSGeneralSiblingCombinator` work similar to an
+	A :class:`CSSGeneralSiblingCombinator` works similar to an
 	:class:`GeneralSiblingCombinator` except that only preceding *elements*
 	are considered.
 	"""
