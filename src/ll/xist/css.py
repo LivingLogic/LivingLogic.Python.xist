@@ -523,7 +523,6 @@ class CSSFunctionSelector(CSSWeightedSelector):
 	"""
 	Base class of all CSS selectors that require an argument.
 	"""
-
 	def __init__(self, value=None):
 		self.value = value
 
@@ -532,6 +531,10 @@ class CSSFunctionSelector(CSSWeightedSelector):
 
 
 class CSSNthChildSelector(CSSFunctionSelector):
+	"""
+	A :class:`CSSNthChildSelector` selector selects all element node that are
+	the n-th element among their siblings.
+	"""
 	def matchpath(self, path):
 		if len(path) >= 2:
 			node = path[-1]
@@ -541,6 +544,10 @@ class CSSNthChildSelector(CSSFunctionSelector):
 
 
 class CSSNthLastChildSelector(CSSFunctionSelector):
+	"""
+	A :class:`CSSNthLastChildSelector` selector selects all element node that are
+	the n-th last element among their siblings.
+	"""
 	def matchpath(self, path):
 		if len(path) >= 2:
 			node = path[-1]
@@ -550,6 +557,10 @@ class CSSNthLastChildSelector(CSSFunctionSelector):
 
 
 class CSSNthOfTypeSelector(CSSFunctionSelector):
+	"""
+	A :class:`CSSNthOfTypeSelector` selector selects all element nodes that are
+	the n-th of its type among their siblings.
+	"""
 	def matchpath(self, path):
 		if len(path) >= 2:
 			node = path[-1]
@@ -559,6 +570,10 @@ class CSSNthOfTypeSelector(CSSFunctionSelector):
 
 
 class CSSNthLastOfTypeSelector(CSSFunctionSelector):
+	"""
+	A :class:`CSSNthOfTypeSelector` selector selects all element nodes that are
+	the n-th last of its type among their siblings.
+	"""
 	def matchpath(self, path):
 		if len(path) >= 2:
 			node = path[-1]
