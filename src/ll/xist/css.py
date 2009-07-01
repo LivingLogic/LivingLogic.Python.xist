@@ -167,7 +167,7 @@ def applystylesheets(node, base=None, media=None, title=None):
 	"""
 	:func:`applystylesheets` modifies the XIST tree :var:`node` by removing all
 	CSS (from :class:`html.link` and :class:`html.style` elements and their
-	``@import``ed stylesheets) and puts the resulting styles properties into
+	``@import``ed stylesheets) and puts the resulting style properties into
 	the ``style`` attribute of every affected element instead.
 	
 	For the meaning of :var:`base`, :var:`media` and :var:`title` see
