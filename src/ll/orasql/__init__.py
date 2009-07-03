@@ -62,6 +62,9 @@ __docformat__ = "reStructuredText"
 style_connection = astyle.style_url
 
 
+bigbang = datetime.datetime(1970, 1, 1, 0, 0, 0)
+
+
 class SQLObjectNotFoundError(IOError):
 	def __init__(self, obj):
 		IOError.__init__(self, errno.ENOENT, "no such %s: %s" % (obj.type, getfullname(obj.name, obj.owner)))
