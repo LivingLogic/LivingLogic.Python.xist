@@ -13,7 +13,7 @@ import sys, os, datetime
 
 import py.test
 
-from ll import orasql
+from ll import orasql, url
 from ll.orasql.scripts import oracreate, oradrop, oradiff, oramerge, oragrant, orafind
 
 
@@ -297,4 +297,22 @@ if dbname:
 				c.readlobs = True
 				c.fetchone()
 				break
-	
+
+
+	def test_url():
+		u = url.URL("oracle://%s/" % dbname.replace("/", ":"))
+		assert u.isdir()
+		assert u.mimetype() == "application/octet-stream"
+		u.owner()
+		u.cdate()
+		u.mdate()
+		u.listdir()
+		u.files()
+		u.dirs()
+
+		u = url.URL("oracle://%s/procedure/orasql_testprocedure" % dbname.replace("/", ":"))
+		assert u.isfile()
+		assert u.mimetype() == "text/x-oracle-procedure"
+		u.owner()
+		u.cdate()
+		u.mdate()
