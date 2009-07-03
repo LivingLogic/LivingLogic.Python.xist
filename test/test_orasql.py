@@ -316,3 +316,5 @@ if dbname:
 		u.owner()
 		u.cdate()
 		u.mdate()
+		assert "orasql_testprocedure" in u.openread().read().lower()
+
