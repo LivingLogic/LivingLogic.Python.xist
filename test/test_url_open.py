@@ -9,8 +9,6 @@
 ## See ll/__init__.py for the license
 
 
-from __future__ import with_statement
-
 import os, warnings, datetime
 
 import py.test
@@ -486,9 +484,9 @@ def test_walk():
 	yield check, "ll/xist/ns/", "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/src/", False
 
 
-def test_ssh_identity():
-	identity = os.path.expanduser("~/.ssh/id_rsa")
-	if not os.path.exists(identity):
-		identity = os.path.expanduser("~/.ssh/id_dsa")
+def test_ssh_config():
+	ssh_config = "/private/etc/ssh_config"
+	if not os.path.exists(ssh_config):
+		ssh_config = "/etc/ssh_config"
 	with context:
-		assert url.URL("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/").isdir(identity=identity) is True
+		assert url.URL("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/").isdir(ssh_config=ssh_config) is True

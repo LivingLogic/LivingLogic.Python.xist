@@ -12,8 +12,6 @@
 This module contains functions related to the handling of CSS.
 """
 
-from __future__ import with_statement
-
 import os, contextlib
 
 try:
@@ -169,7 +167,7 @@ def applystylesheets(node, base=None, media=None, title=None):
 	"""
 	:func:`applystylesheets` modifies the XIST tree :var:`node` by removing all
 	CSS (from :class:`html.link` and :class:`html.style` elements and their
-	``@import``ed stylesheets) and puts the resulting styles properties into
+	``@import``ed stylesheets) and puts the resulting style properties into
 	the ``style`` attribute of every affected element instead.
 	
 	For the meaning of :var:`base`, :var:`media` and :var:`title` see
@@ -308,6 +306,11 @@ class CSSHasAttributeSelector(CSSWeightedSelector):
 
 
 class CSSAttributeListSelector(CSSWeightedSelector):
+	"""
+	A :class:`CSSAttributeListSelector` selector selects all element nodes
+	where an attribute with the specified XML name has the specified word
+	among the white space-separated list of words in the attribute value.
+	"""
 	def __init__(self, attributename, attributevalue):
 		self.attributename = attributename
 		self.attributevalue = attributevalue
@@ -325,6 +328,11 @@ class CSSAttributeListSelector(CSSWeightedSelector):
 
 
 class CSSAttributeLangSelector(CSSWeightedSelector):
+	"""
+	A :class:`CSSAttributeLangSelector` selector selects all element nodes
+	where an attribute with the specified XML name either is exactly the
+	specified value or starts with the specified value followed by ``"-"``.
+	"""
 	def __init__(self, attributename, attributevalue):
 		self.attributename = attributename
 		self.attributevalue = attributevalue
@@ -344,6 +352,10 @@ class CSSAttributeLangSelector(CSSWeightedSelector):
 
 
 class CSSFirstChildSelector(CSSWeightedSelector):
+	"""
+	A :class:`CSSFirstChildSelector` selector selects all element nodes
+	that are the first child of its parent.
+	"""
 	def matchpath(self, path):
 		return len(path) >= 2 and _is_nth_node(path[-2][xsc.Element], path[-1], 1)
 
@@ -352,6 +364,10 @@ class CSSFirstChildSelector(CSSWeightedSelector):
 
 
 class CSSLastChildSelector(CSSWeightedSelector):
+	"""
+	A :class:`CSSLastChildSelector` selector selects all element nodes
+	that are the last child of its parent.
+	"""
 	def matchpath(self, path):
 		return len(path) >= 2 and _is_nth_last_node(path[-2][xsc.Element], path[-1], 1)
 
@@ -360,6 +376,10 @@ class CSSLastChildSelector(CSSWeightedSelector):
 
 
 class CSSFirstOfTypeSelector(CSSWeightedSelector):
+	"""
+	A :class:`CSSLastChildSelector` selector selects all element nodes
+	that are the first of its type among their siblings.
+	"""
 	def matchpath(self, path):
 		if len(path) >= 2:
 			node = path[-1]
@@ -371,6 +391,10 @@ class CSSFirstOfTypeSelector(CSSWeightedSelector):
 
 
 class CSSLastOfTypeSelector(CSSWeightedSelector):
+	"""
+	A :class:`CSSLastChildSelector` selector selects all element nodes
+	that are the last of its type among their siblings.
+	"""
 	def matchpath(self, path):
 		if len(path) >= 2:
 			node = path[-1]
@@ -382,6 +406,10 @@ class CSSLastOfTypeSelector(CSSWeightedSelector):
 
 
 class CSSOnlyChildSelector(CSSWeightedSelector):
+	"""
+	A :class:`CSSOnlyChildSelector` selector selects all element nodes that are
+	the only element among its siblings.
+	"""
 	def matchpath(self, path):
 		if len(path) >= 2:
 			node = path[-1]
@@ -397,6 +425,10 @@ class CSSOnlyChildSelector(CSSWeightedSelector):
 
 
 class CSSOnlyOfTypeSelector(CSSWeightedSelector):
+	"""
+	A :class:`CSSOnlyOfTypeSelector` selector selects all element nodes that are
+	the only element of its type among its siblings.
+	"""
 	def matchpath(self, path):
 		if len(path) >= 2:
 			node = path[-1]
@@ -412,6 +444,10 @@ class CSSOnlyOfTypeSelector(CSSWeightedSelector):
 
 
 class CSSEmptySelector(CSSWeightedSelector):
+	"""
+	A :class:`CSSEmptySelector` selector selects all element nodes that are
+	empty (i.e. they contain no elements or non-whitespace text).
+	"""
 	def matchpath(self, path):
 		if path:
 			node = path[-1]
@@ -427,6 +463,9 @@ class CSSEmptySelector(CSSWeightedSelector):
 
 
 class CSSRootSelector(CSSWeightedSelector):
+	"""
+	A :class:`CSSRootSelector` selector selects the root element.
+	"""
 	def matchpath(self, path):
 		return len(path) == 1 and isinstance(path[-1], xsc.Element)
 
@@ -435,6 +474,9 @@ class CSSRootSelector(CSSWeightedSelector):
 
 
 class CSSLinkSelector(CSSWeightedSelector):
+	"""
+	A :class:`CSSLinkSelector` selector selects all HTML links.
+	"""
 	def matchpath(self, path):
 		if path:
 			node = path[-1]
@@ -478,6 +520,9 @@ class CSSBeforeSelector(CSSInvalidPseudoSelector):
 
 
 class CSSFunctionSelector(CSSWeightedSelector):
+	"""
+	Base class of all CSS selectors that require an argument.
+	"""
 	def __init__(self, value=None):
 		self.value = value
 
@@ -486,6 +531,10 @@ class CSSFunctionSelector(CSSWeightedSelector):
 
 
 class CSSNthChildSelector(CSSFunctionSelector):
+	"""
+	A :class:`CSSNthChildSelector` selector selects all element node that are
+	the n-th element among their siblings.
+	"""
 	def matchpath(self, path):
 		if len(path) >= 2:
 			node = path[-1]
@@ -495,6 +544,10 @@ class CSSNthChildSelector(CSSFunctionSelector):
 
 
 class CSSNthLastChildSelector(CSSFunctionSelector):
+	"""
+	A :class:`CSSNthLastChildSelector` selector selects all element node that are
+	the n-th last element among their siblings.
+	"""
 	def matchpath(self, path):
 		if len(path) >= 2:
 			node = path[-1]
@@ -504,6 +557,10 @@ class CSSNthLastChildSelector(CSSFunctionSelector):
 
 
 class CSSNthOfTypeSelector(CSSFunctionSelector):
+	"""
+	A :class:`CSSNthOfTypeSelector` selector selects all element nodes that are
+	the n-th of its type among their siblings.
+	"""
 	def matchpath(self, path):
 		if len(path) >= 2:
 			node = path[-1]
@@ -513,6 +570,10 @@ class CSSNthOfTypeSelector(CSSFunctionSelector):
 
 
 class CSSNthLastOfTypeSelector(CSSFunctionSelector):
+	"""
+	A :class:`CSSNthOfTypeSelector` selector selects all element nodes that are
+	the n-th last of its type among their siblings.
+	"""
 	def matchpath(self, path):
 		if len(path) >= 2:
 			node = path[-1]
@@ -554,8 +615,8 @@ class CSSTypeSelector(xfind.Selector):
 
 class CSSAdjacentSiblingCombinator(xfind.BinaryCombinator):
 	"""
-	A :class:`CSSAdjacentSiblingCombinator` work similar to an
-	:class:`AdjacentSiblingCombinator` except that only preceding elements
+	A :class:`CSSAdjacentSiblingCombinator` works similar to an
+	:class:`AdjacentSiblingCombinator` except that only preceding *elements*
 	are considered.
 	"""
 
@@ -578,8 +639,8 @@ class CSSAdjacentSiblingCombinator(xfind.BinaryCombinator):
 
 class CSSGeneralSiblingCombinator(xfind.BinaryCombinator):
 	"""
-	A :class:`CSSGeneralSiblingCombinator` work similar to an
-	:class:`GeneralSiblingCombinator` except that only preceding elements
+	A :class:`CSSGeneralSiblingCombinator` works similar to an
+	:class:`GeneralSiblingCombinator` except that only preceding *elements*
 	are considered.
 	"""
 
@@ -774,8 +835,8 @@ def parsefile(filename, base=None, encoding=None):
 def parseurl(name, base=None, encoding=None, *args, **kwargs):
 	"""
 	Parse a :mod:`cssutils` stylesheet from the URL :var:`name`. :var:`base` is
-	the base URL for the parsing process ((defaulting to the final URL of the
-	response (i.e. including redirects), :var:`encoding` can be used to force
+	the base URL for the parsing process (defaulting to the final URL of the
+	response, i.e. including redirects), :var:`encoding` can be used to force
 	the parser to use the specified encoding. :var:`arg` and :var:`kwargs` are
 	passed on to :meth:`URL.openread`, so you can pass POST data and request
 	headers.

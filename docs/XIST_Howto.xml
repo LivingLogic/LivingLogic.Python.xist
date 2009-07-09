@@ -497,7 +497,8 @@ be issued:</p>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>s = '&lt;cool adj="pretty"&gt;&lt;python/&gt;&lt;/cool&gt;'</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parsestring(s)</input>
-/Users/walter/checkouts/LivingLogic.Python.xist/src/ll/xist/xsc.py:2006: IllegalAttrValueWarning: Attribute value u'pretty' not allowed for __main__:cool.Attrs.adj
+/Users/walter/checkouts/LivingLogic.Python.xist/src/ll/xist/xsc.py:2006: \
+IllegalAttrValueWarning: Attribute value u'pretty' not allowed for __main__:cool.Attrs.adj
   warnings.warn(IllegalAttrValueWarning(self))
 </tty>
 
@@ -509,7 +510,8 @@ you can change that with <func>warnings.filterwarnings</func>):</p>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>node = cool(python(), adj=u"pretty")</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print node.bytes()</input>
-/Users/walter/checkouts/LivingLogic.Python.xist/src/ll/xist/xsc.py:2006: IllegalAttrValueWarning: Attribute value u'pretty' not allowed for __main__:cool.Attrs.adj
+/Users/walter/checkouts/LivingLogic.Python.xist/src/ll/xist/xsc.py:2006: \
+IllegalAttrValueWarning: Attribute value u'pretty' not allowed for __main__:cool.Attrs.adj
   warnings.warn(IllegalAttrValueWarning(self))
 &lt;cool adj="very"&gt;&lt;python /&gt;&lt;/cool&gt;
 </tty>
@@ -529,7 +531,8 @@ is such an attribute, so we'll get:</p>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = html.img(src="eggs.png")</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print node.bytes()</input>
-/home/walter/pythonroot/ll/xist/xsc.py:2046: RequiredAttrMissingWarning: Required attribute 'alt' missing in ll.xist.ns.html:img.Attrs.
+/home/walter/pythonroot/ll/xist/xsc.py:2046: \
+RequiredAttrMissingWarning: Required attribute 'alt' missing in ll.xist.ns.html:img.Attrs.
   warnings.warn(errors.RequiredAttrMissingWarning(self, attrs.keys()))
 &lt;img src="eggs.png" /&gt;
 </tty>
@@ -582,8 +585,6 @@ class construction time via a <lit>with</lit> block like this:</p>
 
 <example><h>Populating a pool with a <lit>with</lit> block</h>
 <prog>
-from __future__ import with_statement
-
 from ll.xist import xsc, parsers
 from ll.xist.ns import html
 
@@ -793,17 +794,7 @@ comments or processing instructions you'll get an exception):</p>
 &lt;div&gt;Aä&amp;#937;&amp;#35486;&gt;
 <prompt>&gt;&gt;&gt; </prompt><input>print xsc.Comment(s).bytes(encoding="ascii")</input>
 Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/Users/walter/checkouts/LivingLogic.Python.xist/src/ll/xist/xsc.py", line 934, in bytes
-    return "".join(self.iterbytes(base, publisher, **publishargs))
-  File "/Users/walter/checkouts/LivingLogic.Python.xist/src/ll/xist/publishers.py", line 244, in publish
-    for part in self.node.publish(self):
-  File "/Users/walter/checkouts/LivingLogic.Python.xist/src/ll/xist/xsc.py", line 1798, in publish
-    yield publisher.encode(content)
-  File "/Users/walter/checkouts/LivingLogic.Python.xist/src/ll/xist/publishers.py", line 104, in encode
-    return self.encoder.encode(text)
-  File "/Users/walter/checkouts/LivingLogic.Python.core/src/ll/xml_codec.py", line 142, in encode
-    return self.encoder.encode(input, final)
+<rep>...</rep>
   File "/System/Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/encodings/ascii.py", line 22, in encode
     return codecs.ascii_encode(input, self.errors)[0]
 UnicodeEncodeError: 'ascii' codec can't encode characters in position 4-5: ordinal not in range(128)
@@ -909,26 +900,26 @@ different prefix. &xist; will never use the same prefix for different namespaces
 
 <example><h>Publishing global attributes</h>
 <prog>
-from __future__ import with_statement
 from ll.xist import xsc
 from ll.xist.ns import html, xlink
 
-with html.html() as e:
-	with html.head():
-		+html.title("The page")
-	with html.body():
-		+html.h1("The header"),
-		with html.p():
-			+xsc.Text("The "),
-			+html.a(
-				"Python",
-				xlink.Attrs(
-					href="http://www.python.org/",
-					title="Python",
-					type="simple"
-				),
-				href="http://www.python.org/")
-			+xsc.Text(" homepage")
+with xsc.build():
+	with html.html() as e:
+		with html.head():
+			+html.title("The page")
+		with html.body():
+			+html.h1("The header"),
+			with html.p():
+				+xsc.Text("The "),
+				+html.a(
+					"Python",
+					xlink.Attrs(
+						href="http://www.python.org/",
+						title="Python",
+						type="simple"
+					),
+					href="http://www.python.org/")
+				+xsc.Text(" homepage")
 
 print e.bytes(prefixdefault=None)
 </prog>

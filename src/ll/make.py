@@ -28,18 +28,15 @@ A simple script that copies a file :file:`foo.txt` to :file:`bar.txt`
 reencoding it from ``"latin-1"`` to ``"utf-8"`` in the process looks like
 this::
 
-	from ll import make, url
+	from ll import make
 
 	class MyProject(make.Project):
 		def create(self):
 			make.Project.create(self)
-			source = self.add(make.FileAction(url.File("foo.txt")))
-			target = self.add(
-				source /
-				make.DecodeAction("iso-8859-1") /
-				make.EncodeAction("utf-8") /
-				make.FileAction(url.File("bar.txt"))
-			)
+			source = self.add(make.FileAction("foo.txt"))
+			temp = source.callattr("decode", "iso-8859-1")
+			temp = temp.callattr("encode", "utf-8")
+			target = self.add(make.FileAction("bar.txt", temp))
 			self.writecreatedone()
 
 	p = MyProject()
@@ -49,8 +46,6 @@ this::
 		p.build("bar.txt")
 """
 
-
-from __future__ import with_statement
 
 import sys, os, os.path, optparse, warnings, re, datetime, cStringIO, errno, tempfile, operator, types, cPickle, gc, contextlib, locale, gzip
 
@@ -231,7 +226,7 @@ def getoutputs(project, since, input):
 	containing:
 
 	*	An object (:var:`data`) of the same structure as :var:`input`, where every
-		action object encountered is replacd with the output of that action;
+		action object encountered is replaced with the output of that action;
 
 	*	A timestamp (:var:`changed`) which the newest timestamp among all the
 		change timestamps of the actions encountered.
@@ -297,18 +292,18 @@ _ipipe_key.__xname__ = "key"
 class Action(object):
 	"""
 	An :class:`Action` is responsible for transforming input data into output
-	data. It may have no, one or many input actions. It fetches, combines and
-	transforms the output data of those actions and returns its own output data.
+	data. It may have no, one or many inputs which themselves may be other actions.
+	It fetches, combines and transforms the output data of those actions and
+	returns its own output data.
 	"""
+
+	key = None
 
 	def __init__(self):
 		"""
 		Create a new :class:`Action` instance.
 		"""
 		self.changed = bigbang
-
-	def __div__(self, output):
-		return output.__rdiv__(self)
 
 	@report
 	def get(self, project, since):
@@ -318,7 +313,7 @@ class Action(object):
 		this data has changed since :var:`since` (which is a
 		:class:`datetime.datetime` object in UTC). If the data hasn't changed
 		since :var:`since` the special object :const:`nodata` must be returned.
-		
+
 		In both cases the action must make sure that the data is internally
 		consistent, i.e. if the input data is the output data of other actions
 		:var:`self` has to ensure that those other actions update their data too,
@@ -360,13 +355,36 @@ class Action(object):
 		Get the nearest key from :var:`self` or its inputs. This is used by
 		:class:`ModuleAction` for the filename.
 		"""
-		return getattr(self, "key", None)
+		return self.key
 
 	def getargs(self):
 		return ()
 
 	def getkwargs(self):
 		return {}
+
+	def call(self, *args, **kwargs):
+		"""
+		Return a :class:`CallAction` for calling :var:`self`\s output with
+		positional arguments from :var:`args` and keyword arguments from
+		:var:`kwargs`.
+		"""
+		return CallAction(self, *args, **kwargs)
+
+	def getattr(self, attrname):
+		"""
+		Return a :class:`GetAttrAction` for getting :var:`self`\s attribute
+		named :var:`attrname`.
+		"""
+		return GetAttrAction(self, attrname)
+
+	def callattr(self, attrname, *args, **kwargs):
+		"""
+		Return a :class:`CallAttrAction` for calling :var:`self`\s attribute
+		named :var:`attrname` with positional arguments from :var:`args` and
+		keyword arguments from :var:`kwargs`.
+		"""
+		return CallAttrAction(self, attrname, *args, **kwargs)
 
 	def __repr__(self):
 		def format(arg):
@@ -437,7 +455,7 @@ class Action(object):
 			if name.endswith("Action"):
 				name = name[:-6]
 			yield (s4action, name)
-			if hasattr(self, "key"):
+			if self.key is not None:
 				yield (astyle.style_default, "(")
 				key = self.key
 				if isinstance(key, url.URL) and key.islocal():
@@ -458,22 +476,28 @@ class Action(object):
 			yield (astyle.style_default, repr(self))
 
 
-class PipeAction(Action):
+class ObjectAction(Action):
 	"""
-	A :class:`PipeAction` depends on exactly one input action and transforms
+	An :class:`ObjectAction` returns an object.
+	"""
+	def __init__(self, object=None):
+		Action.__init__(self)
+		self.object = object
+
+	@report
+	def get(self, project, since):
+		(data, self.changed) = getoutputs(project, since, self.object)
+		return data
+
+
+class TransformAction(Action):
+	"""
+	A :class:`TransformAction` depends on exactly one input action and transforms
 	the input data into output data.
 	"""
 	def __init__(self, input=None):
 		Action.__init__(self)
 		self.input = input
-
-	def __rdiv__(self, input):
-		"""
-		Register the action :var:`input` as the input action for :var:`self` and
-		return :var:`self` (which enables "chaining" :class:`PipeAction` objects).
-		"""
-		self.input = input
-		return self
 
 	def getkey(self):
 		return self.input.getkey()
@@ -485,13 +509,13 @@ class PipeAction(Action):
 		return dict(data=self.input)
 
 
-class CollectAction(PipeAction):
+class CollectAction(TransformAction):
 	"""
-	A :class:`CollectAction` is a :class:`PipeAction` that simply outputs its
+	A :class:`CollectAction` is a :class:`TransformAction` that simply outputs its
 	input data unmodified, but updates a number of other actions in the process.
 	"""
 	def __init__(self, input=None, *otherinputs):
-		PipeAction.__init__(self, input)
+		TransformAction.__init__(self, input)
 		self.otherinputs = list(otherinputs)
 
 	def addinputs(self, *otherinputs):
@@ -503,7 +527,7 @@ class CollectAction(PipeAction):
 		return self
 
 	def __iter__(self):
-		for input in PipeAction.__iter__(self):
+		for input in TransformAction.__iter__(self):
 			yield input
 		for input in self.otherinputs:
 			yield input
@@ -535,14 +559,14 @@ class PhonyAction(Action):
 	If there's new data from any of these actions, a :class:`PhonyAction` will
 	return :const:`None` (and :const:`nodata` otherwise as usual).
 	"""
-	def __init__(self, doc=None):
+	def __init__(self, *inputs, **kwargs):
 		"""
 		Create a :class:`PhonyAction` object. :var:`doc` describes the action and
 		is printed by the method :meth:`Project.writephonytargets`.
 		"""
 		Action.__init__(self)
-		self.doc = doc
-		self.inputs = []
+		self.doc = kwargs.get("doc")
+		self.inputs = list(inputs)
 		self.buildno = None
 
 	def addinputs(self, *inputs):
@@ -578,27 +602,26 @@ class PhonyAction(Action):
 
 	def __repr__(self):
 		s = "<%s.%s object" % (self.__class__.__module__, self.__class__.__name__)
-		if hasattr(self, "key"):
+		if self.key is not None:
 			s += " with key=%r" % self.key
 		s += " at 0x%x>" % id(self)
 		return s
 
 
-class FileAction(PipeAction):
+class FileAction(TransformAction):
 	"""
 	A :class:`FileAction` is used for reading and writing files (and other
 	objects providing the appropriate interface).
 	"""
-	def __init__(self, input=None, key=None):
+	def __init__(self, key, input=None):
 		"""
 		Create a :class:`FileAction` object with :var:`key` as the "filename".
 		:var:`key` must be an object that provides a method :meth:`open` for
 		opening readable and writable streams to the file. :var:`input` is the
 		data written to the file (or the action producing the data).
-		
 		"""
-		PipeAction.__init__(self, input)
-		self.key = key
+		TransformAction.__init__(self, input)
+		self.key = url.URL(key)
 		self.buildno = None
 
 	def getkey(self):
@@ -655,73 +678,25 @@ class FileAction(PipeAction):
 		# else fail through and return :const:`nodata`
 		return nodata
 
+	def chmod(self, mode=0644):
+		"""
+		Return a :class:`ModeAction` that will change the file permissions of
+		:var:`self` to :var:`mode`.
+		"""
+		return ModeAction(self, mode)
+
+	def chown(self, user=None, group=None):
+		"""
+		Return an :class:`OwnerAction` that will change the user and/or group
+		ownership of :var:`self`.
+		"""
+		return OwnerAction(self, user, group)
+
 	def __repr__(self):
 		return "<%s.%s object key=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.key, id(self))
 
 
-class UnpickleAction(PipeAction):
-	"""
-	This action unpickles a string.
-	"""
-	def execute(self, project, data):
-		project.writestep(self, "Unpickling ", len(data), " bytes")
-		return cPickle.loads(data)
-
-
-class PickleAction(PipeAction):
-	"""
-	This action pickles the input data into a string.
-	"""
-	def __init__(self, input=None, protocol=0):
-		"""
-		Create a new :class:`PickleAction` instance. :var:`protocol` is used as
-		the pickle protocol.
-		"""
-		PipeAction.__init__(self, input)
-		self.protocol = protocol
-
-	def __iter__(self):
-		for input in PipeAction.__iter__(self):
-			yield input
-		yield self.protocol
-
-	def getkwargs(self):
-		return dict(data=self.input, protocol=self.protocol)
-
-	def execute(self, data, protocol):
-		project.writestep(self, "Pickling ", len(data), " bytes with protocol %r" % protocol)
-		return cPickle.dumps(data, protocol)
-		return data
-
-
-class JoinAction(Action):
-	"""
-	This action joins the input of all its input actions into one string.
-	"""
-	def __init__(self, *inputs):
-		Action.__init__(self)
-		self.inputs = list(inputs)
-
-	def addinputs(self, *inputs):
-		"""
-		Register all actions in :var:`inputs` as input actions, whose data gets
-		joined (in the order in which they have been passed to :meth:`addinputs`).
-		"""
-		self.inputs.extend(inputs)
-		return self
-
-	def __iter__(self):
-		return iter(self.inputs)
-
-	def getargs(self):
-		return (self.inputs,)
-
-	def execute(self, project, inputs):
-		project.writestep(self, "Joining data from ", len(inputs), " inputs")
-		return "".join(inputs)
-
-
-class MkDirAction(PipeAction):
+class MkDirAction(TransformAction):
 	"""
 	This action creates the a directory (passing through its input data).
 	"""
@@ -732,7 +707,7 @@ class MkDirAction(PipeAction):
 		:const:`0777`) will be used as the permission bit pattern for the new
 		directory.
 		"""
-		PipeAction.__init__(self)
+		TransformAction.__init__(self)
 		self.key = key
 		self.mode = mode
 
@@ -748,14 +723,45 @@ class MkDirAction(PipeAction):
 		return "<%s.%s object with mode=0%03o at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.mode, id(self))
 
 
-class CacheAction(PipeAction):
+class PipeAction(TransformAction):
 	"""
-	A :class:`CacheAction` is a :class:`PipeAction` that passes through its
+	This action pipes the input through an external shell command.
+	"""
+
+	def __init__(self, input, command):
+		"""
+		Create a :class:`PipeAction` instance. :var:`command` is the shell command
+		to be executed (which must read it's input from sdtin and write its output
+		to stdout).
+		"""
+		TransformAction.__init__(self, input)
+		self.command = command
+
+	def getkwargs(self):
+		return dict(data=self.input, command=self.command)
+
+	def execute(self, project, data, command):
+		project.writestep(self, "Calling command ", command)
+		(stdin, stdout) = os.popen2(command)
+
+		stdin.write(data)
+		stdin.close()
+		output = stdout.read()
+		stdout.close()
+		return output
+
+	def __repr__(self):
+		return "<%s.%s object with command=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.command, id(self))
+
+
+class CacheAction(TransformAction):
+	"""
+	A :class:`CacheAction` is a :class:`TransformAction` that passes through its
 	input data, but caches it, so that it can be reused during the same build
 	round.
 	"""
 	def __init__(self, input=None):
-		PipeAction.__init__(self, input)
+		TransformAction.__init__(self, input)
 		self.since = bigcrunch
 		self.data = nodata
 		self.buildno = None
@@ -773,17 +779,17 @@ class CacheAction(PipeAction):
 		return nodata
 
 
-class GetAttrAction(PipeAction):
+class GetAttrAction(TransformAction):
 	"""
 	This action gets an attribute from its input object.
 	"""
 
 	def __init__(self, input=None, attrname=None):
-		PipeAction.__init__(self, input)
+		TransformAction.__init__(self, input)
 		self.attrname = attrname
 
 	def __iter__(self):
-		for input in PipeAction.__iter__(self):
+		for input in TransformAction.__iter__(self):
 			yield input
 		yield self.attrname
 
@@ -841,7 +847,7 @@ class XISTPoolAction(PoolAction):
 		return xsc.Pool(*data)
 
 
-class XISTParseAction(PipeAction):
+class XISTParseAction(TransformAction):
 	"""
 	This action parses the input data (a string) into an XIST node.
 	"""
@@ -854,7 +860,7 @@ class XISTParseAction(PipeAction):
 		XIST pool object (or an action returning one). :var:`base` will be the
 		base URL used for parsing.
 		"""
-		PipeAction.__init__(self, input)
+		TransformAction.__init__(self, input)
 		if builder is None:
 			from ll.xist import parsers
 			builder = parsers.Builder()
@@ -863,7 +869,7 @@ class XISTParseAction(PipeAction):
 		self.base = base
 
 	def __iter__(self):
-		for input in PipeAction.__iter__(self):
+		for input in TransformAction.__iter__(self):
 			yield input
 		yield self.builder
 		yield self.pool
@@ -884,138 +890,7 @@ class XISTParseAction(PipeAction):
 		return data
 
 
-class XISTConvertAction(PipeAction):
-	"""
-	This action transform an XIST node.
-	"""
-
-	def __init__(self, input=None, mode=None, target=None, stage=None, lang=None, root=None):
-		"""
-		Create a new :class:`XISTConvertAction` object. :var:`input` is the input
-		none (or an action producing a node). The other arguments will be used to
-		create a :class:`ll.xist.converters.Converter` object for each call to
-		:meth:`get`.
-		
-		During conversion the :attr:`makeaction` attribute of the converter will
-		be set to :var:`self` and the :attr:`makeproject` attribute will be set
-		to the project.
-		"""
-		PipeAction.__init__(self, input)
-		self.mode = mode
-		self.target = target
-		self.stage = stage
-		self.lang = lang
-		self.root = root
-
-	def __iter__(self):
-		for input in PipeAction.__iter__(self):
-			yield input
-		yield self.mode
-		yield self.target
-		yield self.stage
-		yield self.lang
-		yield self.root
-
-	def getkwargs(self):
-		return dict(data=self.input, mode=self.mode, target=self.target, stage=self.stage, lang=self.lang, root=self.root)
-
-	def execute(self, project, data, mode, target, stage, lang, root):
-		from ll.xist import converters
-		args = []
-		for (argname, arg) in (("mode", mode), ("target", target), ("stage", stage), ("lang", lang), ("root", root)):
-			if arg is not None:
-				args.append("%s=%r" % (argname, arg))
-		args = " with %s" % ", ".join(args) if args else ""
-		project.writestep(self, "Converting XIST node", args)
-		converter = converters.Converter(makeaction=self, makeproject=project, mode=mode, target=target, stage=stage, lang=lang, root=root)
-		return data.convert(converter)
-
-
-class XISTBytesAction(PipeAction):
-	"""
-	This action publishes an XIST node as a byte string.
-	"""
-
-	def __init__(self, input=None, publisher=None, base=None):
-		"""
-		Create an :class:`XISTBytesAction` object. :var:`publisher` must be an
-		instance of :class:`ll.xist.publishers.Publisher`. If :var:`publisher` is
-		:const:`None` a publisher will be created for you. :var:`base` will be
-		the base URL used for publishing.
-		"""
-		PipeAction.__init__(self, input)
-		self.publisher = publisher
-		self.base = base
-
-	def __iter__(self):
-		for input in PipeAction.__iter__(self):
-			yield input
-		yield self.publisher
-		yield self.base
-
-	def getkwargs(self):
-		return dict(data=self.input, publisher=self.publisher, base=self.base)
-
-	def execute(self, project, data, publisher, base):
-		project.writestep(self, "Publishing XIST node as byte string with base ", base)
-		return data.bytes(publisher=publisher, base=base)
-
-
-class XISTStringAction(PipeAction):
-	"""
-	This action publishes an XIST node as a unicode string.
-	"""
-
-	def __init__(self, input=None, publisher=None, base=None):
-		"""
-		Create an :class:`XISTStringhAction` object. :var:`publisher` must be an
-		instance of :class:`ll.xist.publishers.Publisher`. If :var:`publisher` is
-		:const:`None` a publisher will be created for you. :var:`base` will be
-		the base URL used for publishing.
-		"""
-		PipeAction.__init__(self, input)
-		self.publisher = publisher
-		self.base = base
-
-	def __iter__(self):
-		for input in PipeAction.__iter__(self):
-			yield input
-		yield self.publisher
-		yield self.base
-
-	def getkwargs(self):
-		return dict(data=self.input, publisher=self.publisher, base=self.base)
-
-	def execute(self, project, data, publisher, base):
-		project.writestep(self, "Publishing XIST node as unicode string with base ", base)
-		return data.string(publisher=publisher, base=base)
-
-
-class XISTTextAction(PipeAction):
-	"""
-	This action creates a plain text version of an HTML XIST node.
-	"""
-	def __init__(self, input=None, encoding="iso-8859-1", width=72):
-		PipeAction.__init__(self, input)
-		self.encoding = encoding
-		self.width = width
-
-	def __iter__(self):
-		for input in PipeAction.__iter__(self):
-			yield input
-		yield self.encoding
-		yield self.width
-
-	def getkwargs(self):
-		return dict(data=self.input, encoding=self.encoding, width=self.width)
-
-	def execute(self, project, data, encoding, width):
-		project.writestep(self, "Converting XIST node to text with encoding=%r, width=%r" % (encoding, width))
-		from ll.xist.ns import html
-		return html.astext(data, encoding=encoding, width=width)
-
-
-class FOPAction(PipeAction):
+class FOPAction(TransformAction):
 	"""
 	This action transforms an XML string (containing XSL-FO) into PDF. For it
 	to work `Apache FOP`__ is required. The command line is hardcoded but it's
@@ -1042,125 +917,11 @@ class FOPAction(PipeAction):
 		return data
 
 
-class DecodeAction(PipeAction):
+class CallAction(Action):
 	"""
-	This action decodes an input :class:`str` object into an output
-	:class:`unicode` object.
-	"""
-
-	def __init__(self, input=None, encoding=None):
-		"""
-		Create a :class:`DecodeAction` object with :var:`encoding` as the name of
-		the encoding. If :var:`encoding` is :const:`None` the system default
-		encoding will be used.
-		"""
-		PipeAction.__init__(self, input)
-		if encoding is None:
-			encoding = sys.getdefaultencoding()
-		self.encoding = encoding
-
-	def __iter__(self):
-		for input in PipeAction.__iter__(self):
-			yield input
-		yield self.encoding
-
-	def getkwargs(self):
-		return dict(data=self.input, encoding=self.encoding)
-
-	def execute(self, project, data, encoding):
-		project.writestep(self, "Decoding ", len(data), " bytes with encoding ", encoding)
-		return data.decode(encoding)
-
-
-class EncodeAction(PipeAction):
-	"""
-	This action encodes an input :class:`unicode` object into an output
-	:class:`str` object.
-	"""
-
-	def __init__(self, input=None, encoding=None):
-		"""
-		Create an :class:`EncodeAction` object with :var:`encoding` as the name
-		of the encoding. If :var:`encoding` is :const:`None` the system default
-		encoding will be used.
-		"""
-		PipeAction.__init__(self, input)
-		if encoding is None:
-			encoding = sys.getdefaultencoding()
-		self.encoding = encoding
-
-	def __iter__(self):
-		for input in PipeAction.__iter__(self):
-			yield input
-		yield self.encoding
-
-	def getkwargs(self):
-		return dict(data=self.input, encoding=self.encoding)
-
-	def execute(self, project, data, encoding):
-		project.writestep(self, "Encoding ", len(data), " characters with encoding ", encoding)
-		return data.encode(encoding)
-
-
-class EvalAction(PipeAction):
-	"""
-	This action evaluates an input string and returns the resulting output
-	object.
-	"""
-
-	def execute(self, project, data):
-		project.writestep(self, "Evaluating input")
-		return eval(input)
-
-
-class GZipAction(PipeAction):
-	"""
-	This action compresses the input string via gzip and returns the resulting
-	compressed output object.
-	"""
-	def __init__(self, input=None, compresslevel=9):
-		PipeAction.__init__(self, input)
-		self.compresslevel = compresslevel
-
-	def __iter__(self):
-		for input in PipeAction.__iter__(self):
-			yield input
-		yield self.compresslevel
-
-	def getkwargs(self):
-		return dict(data=self.input, compresslevel=self.compresslevel)
-
-	def execute(self, project, data, compresslevel):
-		project.writestep(self, "Compressing ", len(data), " bytes with level " % compresslevel)
-		from ll import misc
-		return misc.gzip(data, compresslevel)
-
-
-class GUnzipAction(PipeAction):
-	"""
-	This action uncompresses the input string via gzip and returns the resulting
-	uncompressed output object.
-	"""
-	def execute(self, project, data):
-		project.writestep(self, "Uncompressing ", len(data), " bytes")
-		return misc.gunzip(data)
-
-
-class JavascriptMinifyAction(PipeAction):
-	"""
-	This action minimizes Javascript code.
-	"""
-	def execute(self, project, data):
-		project.writestep(self, "Minimizing ", len(data), " ", ("bytes" if isinstance(data, str) else "characters"), " of Javascript code")
-		from ll import misc
-		return misc.jsmin(data)
-
-
-class CallFuncAction(Action):
-	"""
-	This action calls a function with a number of arguments. Both positional and
-	keyword arguments are supported and the function and the arguments can be
-	static objects or actions.
+	This action calls a function or any other callable object with a number of
+	arguments. Both positional and keyword arguments are supported and the
+	function and the arguments can be static objects or actions.
 	"""
 	def __init__(self, func, *args, **kwargs):
 		Action.__init__(self)
@@ -1182,8 +943,22 @@ class CallFuncAction(Action):
 		return self.kwargs
 
 	def execute(self, project, func, *args, **kwargs):
-		project.writestep(self, "Calling function %r" % func)
-		return func(*args **kwargs)
+		if args:
+			if len(args) == 1:
+				argsmsg = " with 1 arg"
+			else:
+				argsmsg = " with %d args" % len(args)
+		else:
+			argsmsg = " without args"
+		if kwargs:
+			if len(kwargs) == 1:
+				kwargsmsg = " and keyword %s" % ", ".join(kwargs)
+			else:
+				kwargsmsg = " and keywords %s" % ", ".join(kwargs)
+		else:
+			kwargsmsg = ""
+		project.writestep(self, "Calling %r" % (func, ), argsmsg, kwargsmsg)
+		return func(*args, **kwargs)
 
 
 class CallAttrAction(Action):
@@ -1219,142 +994,18 @@ class CallAttrAction(Action):
 		return func(*args, **kwargs)
 
 
-class TOXICAction(PipeAction):
-	"""
-	This action transforms a TOXIC template code into an Oracle or SQL Server
-	function or procedure body via the TOXIC compiler (:mod:`ll.toxicc`).
-	"""
-
-	def __init__(self, input=None, mode="oracle"):
-		PipeAction.__init__(self, input)
-		self.mode = mode
-
-	def getkwargs(self):
-		return dict(data=self.input, mode=self.mode)
-
-	def execute(self, project, data, mode):
-		project.writestep(self, "Compiling TOXIC template with mode %r" % mode)
-		from ll import toxicc
-		return toxicc.compile(data, mode=mode)
-
-
-class TOXICPrettifyAction(PipeAction):
-	"""
-	This action tries to fix the indentation of a SQL snippet via the
-	:func:`ll.toxicc.prettify` function.
-	"""
-
-	def __init__(self, input=None, mode="oracle"):
-		PipeAction.__init__(self, input)
-		self.mode = mode
-
-	def __iter__(self):
-		for input in PipeAction.__iter__(self):
-			yield input
-		yield self.mode
-
-	def getkwargs(self):
-		return dict(data=self.input, mode=self.mode)
-
-	def execute(self, project, data, mode):
-		project.writestep(self, "Prettifying SQL code with mode %r" % mode)
-		from ll import toxicc
-		return toxicc.prettify(data, mode=mode)
-
-
-class SplatAction(PipeAction):
-	"""
-	This action transforms an input string by replacing regular expressions.
-	"""
-
-	def __init__(self, input=None, patterns=[]):
-		"""
-		Create a new :class:`SplatAction` object. :var:`patterns` are pattern
-		pairs. Each first entry will be replaced by the corresponding second
-		entry.
-		"""
-		PipeAction.__init__(self, input)
-		self.patterns = patterns
-
-	def getkwargs(self):
-		return dict(data=self.input, patterns=self.patterns)
-
-	def execute(self, project, data, patterns):
-		for (search, replace) in patterns:
-			project.writestep(self, "Replacing ", search, " with ", replace)
-			data = re.sub(search, replace, data)
-		return data
-
-
-class UL4CompileAction(PipeAction):
-	"""
-	This action compiles a UL4 template into a :class:`ll.ul4c.Template` object.
-	"""
-
-	def execute(self, project, data):
-		project.writestep(self, "Compiling ", len(data), (" bytes" if isinstance(data, str) else " characters"), " to UL4 template")
-		from ll import ul4c
-		return ul4c.compile(data)
-
-
-class UL4RenderAction(PipeAction):
-	"""
-	This action renders a UL4 template to a string.
-	"""
-	def __init__(self, input=None, **vars):
-		PipeAction.__init__(self, input)
-		self.vars = vars
-
-	def __iter__(self):
-		for input in PipeAction.__iter__(self):
-			yield input
-		for input in self.vars.itervalues():
-			yield input
-
-	def getargs(self):
-		return (self.input,)
-
-	def getkwargs(self):
-		return self.vars
-
-	def execute(self, project, data, **vars):
-		project.writestep(self, "Rendering UL4 template with ", len(self.opcodes), " opcodes")
-		return data.renders(**vars)
-
-
-class UL4DumpAction(PipeAction):
-	"""
-	This action dumps an :class:`ll.ul4c.Template` object into a string.
-	"""
-
-	def execute(self, project, data):
-		project.writestep(self, "Dumping UL4 template with ", len(data.opcodes), " opcodes")
-		return data.dumps()
-
-
-class UL4LoadAction(PipeAction):
-	"""
-	This action loads a :class:`ll.ul4c.Template` object from a string.
-	"""
-
-	def execute(self, project, data):
-		project.writestep(self, "Loading UL4 template from ", len(data), (" bytes" if isinstance(data, str) else " characters"))
-		from ll import ul4c
-		return ul4c.loads(data)
-
-
-class CommandAction(PipeAction):
+class CommandAction(TransformAction):
 	"""
 	This action executes a system command (via :func:`os.system`) and passes
 	through the input data.
 	"""
 
-	def __init__(self, command):
+	def __init__(self, command, input=None):
 		"""
 		Create a new :class:`CommandAction` object. :var:`command` is the command
 		that will executed when :meth:`execute` is called.
 		"""
-		PipeAction.__init__(self)
+		TransformAction.__init__(self, input)
 		self.command = command
 
 	def execute(self, project, data):
@@ -1365,7 +1016,7 @@ class CommandAction(PipeAction):
 		return "<%s.%s object command=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.command, id(self))
 
 
-class ModeAction(PipeAction):
+class ModeAction(TransformAction):
 	"""
 	:class:`ModeAction` changes file permissions and passes through the input data.
 	"""
@@ -1375,11 +1026,11 @@ class ModeAction(PipeAction):
 		Create an :class:`ModeAction` object. :var:`mode` (which defaults to
 		:const:`0644`) will be use as the permission bit pattern.
 		"""
-		PipeAction.__init__(self, input)
+		TransformAction.__init__(self, input)
 		self.mode = mode
 
 	def __iter__(self):
-		for input in PipeAction.__iter__(self):
+		for input in TransformAction.__iter__(self):
 			yield input
 		yield self.mode
 
@@ -1396,25 +1047,25 @@ class ModeAction(PipeAction):
 		return data
 
 
-class OwnerAction(PipeAction):
+class OwnerAction(TransformAction):
 	"""
 	:class:`OwnerAction` changes the user and/or group ownership of a file and
 	passes through the input data.
 	"""
 
-	def __init__(self, user=None, group=None):
+	def __init__(self, input=None, user=None, group=None):
 		"""
 		Create a new :class:`OwnerAction` object. :var:`user` can either be a
 		numerical user id or a user name or :const:`None`. If it is :const:`None`
 		no user ownership will be changed. The same applies to :var:`group`.
 		"""
-		PipeAction.__init__(self)
+		TransformAction.__init__(self, input)
 		self.id = id
 		self.user = user
 		self.group = group
 
 	def __iter__(self):
-		for input in PipeAction.__iter__(self):
+		for input in TransformAction.__iter__(self):
 			yield input
 		yield self.user
 		yield self.group
@@ -1432,18 +1083,18 @@ class OwnerAction(PipeAction):
 		return data
 
 
-class ModuleAction(PipeAction):
+class ModuleAction(TransformAction):
 	"""
 	This action will turn the input string into a Python module.
 	"""
-	def __init__(self):
+	def __init__(self, input=None):
 		"""
 		Create an :class:`ModuleAction`.
 
 		This object must have an input action (which might be a :class:`FileAction`
 		that creates the source file).
 		"""
-		PipeAction.__init__(self)
+		TransformAction.__init__(self, input)
 		self.inputs = []
 		self.changed = bigbang
 		self.data = nodata
@@ -1454,7 +1105,7 @@ class ModuleAction(PipeAction):
 		Register all actions in :var:`inputs` as modules used by this module.
 		These actions must be :class:`ModuleAction` objects too.
 
-		Normally it isn't neccessary to call the method explicitly. Instead
+		Normally it isn't neccessary to call the method directly. Instead
 		fetch the required module inside your module like this::
 
 			from ll import make
@@ -1462,7 +1113,7 @@ class ModuleAction(PipeAction):
 			mymodule = make.currentproject.get("mymodule.py")
 
 		This will record your module as depending on :mod:`mymodule`, so if
-		:mod:`mymodule` changes your module will be reloaded too. For this to
+		:mod:`mymodule` changes, your module will be reloaded too. For this to
 		work you need to have an :class:`ModuleAction` added to the project with
 		the key ``"mymodule.py"``.
 		"""
@@ -1470,7 +1121,7 @@ class ModuleAction(PipeAction):
 		return self
 
 	def __iter__(self):
-		for input in PipeAction.__iter__(self):
+		for input in TransformAction.__iter__(self):
 			yield input
 		for input in self.inputs:
 			yield input
@@ -1575,193 +1226,6 @@ class NeverAction(Action):
 	def get(self, project, since):
 		return nodata
 neveraction = NeverAction() # this action can be reused as it has no inputs
-
-
-###
-### Classes for target keys (apart from strings for :const:`PhonyAction` objects and URLs for :class:`FileAction` objects)
-###
-
-class DBKey(object):
-	"""
-	This class provides a unique identifier for database content. This can be
-	used as an key for :class:`FileAction` objects and other actions that are
-	not files, but database records, function, procedures etc.
-	"""
-	name = None
-
-	def __init__(self, connection, type, name, key=None):
-		"""
-		Create a new :class:`DBKey` instance. Arguments are:
-
-		:var:`connection` : string
-			A string that specifies the connection to the database. E.g.
-			``"user/pwd@db.example.com"`` for Oracle.
-
-		:var:`type` : string
-			The type of the object. Values may be ``"table"``, ``"view"``,
-			``"function"``, ``"procedure"`` etc.
-
-		:var:`name` : string
-			The name of the object
-
-		:var:`key` : any object
-			If :var:`name` refers to a table, :var:`key` can be used to specify
-			a row in this table.
-		"""
-		self.connection = connection
-		self.type = type.lower()
-		self.name = name.lower()
-		self.key = key
-
-	def __eq__(self, other):
-		res = self.__class__ == other.__class__
-		if not res:
-			res = self.connection==other.connection and self.type==other.type and self.name==other.name and self.key==other.key
-		return res
-
-	def __hash__(self):
-		return hash(self.connection) ^ hash(self.type) ^ hash(self.name) ^ hash(self.key)
-
-	def __repr__(self):
-		args = []
-		for attrname in ("connection", "type", "name", "key"):
-			attrvalue = getattr(self, attrname)
-			if attrvalue is not None:
-				args.append("%s=%r" % (attrname, attrvalue))
-		return "%s(%s)" % (self.__class__.__name__, ", ".join(args))
-
-	def __str__(self):
-		s = "%s:%s|%s:%s" % (self.__class__.name, self.connection, self.type, self.name)
-		if self.key is not None:
-			s += "|%s" % (self.key,)
-		return s
-
-
-class OracleConnection(url.Connection):
-	def __init__(self, context, connection):
-		self.context = context
-		import cx_Oracle
-		self.cursor = cx_Oracle.connect(connection).cursor()
-
-	def open(self, url, mode="rb"):
-		return OracleResource(self, url, mode)
-
-	def mimetype(self, url):
-		return "text/x-oracle-%s" % url.type
-
-	def cdate(self, url):
-		# FIXME: This isn't the correct time zone, but Oracle doesn't provide anything better
-		self.cursor.execute("select created, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from user_objects where lower(object_type)=:type and lower(object_name)=:name", type=url.type, name=url.name)
-		row = self.cursor.fetchone()
-		if row is None:
-			raise IOError(errno.ENOENT, "no such %s: %s" % (url.type, url.name))
-		return row[0]-datetime.timedelta(seconds=60*(row[1]*60+row[2]))
-
-	def mdate(self, url):
-		# FIXME: This isn't the correct time zone, but Oracle doesn't provide anything better
-		self.cursor.execute("select last_ddl_time, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from user_objects where lower(object_type)=:type and lower(object_name)=:name", type=url.type, name=url.name)
-		row = self.cursor.fetchone()
-		if row is None:
-			raise IOError(errno.ENOENT, "no such %s: %s" % (url.type, url.name))
-		return row[0]-datetime.timedelta(seconds=60*(row[1]*60+row[2]))
-
-	def __repr__(self):
-		return "<%s.%s to %r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.cursor.connection.connectstring(), id(self))
-
-
-class OracleKey(DBKey):
-	name = "oracle"
-
-	def connect(self, context=None):
-		context = url.getcontext(context)
-		if context is url.defaultcontext:
-			raise ValueError("oracle URLs need a custom context")
-
-		# Use one OracleConnection for each connectstring
-		try:
-			connections = context.schemes["oracle"]
-		except KeyError:
-			connections = context.schemes["oracle"] = {}
-		try:
-			connection = connections[self.connection]
-		except KeyError:
-			connection = connections[self.connection] = OracleConnection(context, self.connection)
-		return connection
-
-	def __getattr__(self, name):
-		def realattr(*args, **kwargs):
-			try:
-				context = kwargs["context"]
-			except KeyError:
-				context = None
-			else:
-				kwargs = kwargs.copy()
-				del kwargs["context"]
-			connection = self.connect(context=context)
-			return getattr(connection, name)(self, *args, **kwargs)
-		return realattr
-
-	def mimetype(self):
-		return "text/x-oracle-%s" % self.type
-
-	def open(self, mode="rb", context=None, *args, **kwargs):
-		connection = self.connect(context=context)
-		return connection.open(self, mode, *args, **kwargs)
-
-
-class OracleResource(url.Resource):
-	"""
-	An :class:`OracleResource` wraps a function or procedure in an Oracle
-	database in a file-like API.
-	"""
-	def __init__(self, connection, url, mode="rb"):
-		self.connection = connection
-		self.url = url
-		self.mode = mode
-		self.closed = False
-		self.name = str(self.url)
-
-		if self.url.type not in ("function", "procedure"):
-			raise ValueError("don't know how to handle %r" % self.url)
-		if "w" in self.mode:
-			self.stream = cStringIO.StringIO()
-			self.stream.write("create or replace %s %s\n" % (self.url.type, self.url.name))
-		else:
-			cursor = self.connection.cursor
-			cursor.execute("select text from user_source where lower(name)=lower(:name) and type='%s' order by line" % self.url.type.upper(), name=self.url.name)
-			code = "\n".join((row[0] or "").rstrip() for row in cursor)
-			if not code:
-				raise IOError(errno.ENOENT, "no such %s: %s" % (self.url.type, self.url.name))
-			# drop type
-			code = code.split(None, 1)[1]
-			# skip name
-			for (i, c) in enumerate(code):
-				if not c.isalpha() and c != "_":
-					break
-			code = code[i:]
-			self.stream = cStringIO.StringIO(code)
-
-	def __getattr__(self, name):
-		if self.closed:
-			raise ValueError("I/O operation on closed file")
-		return getattr(self.stream, name)
-
-	def mimetype(self):
-		return "text/x-oracle-%s" % self.url.type
-
-	def cdate(self):
-		return self.connection.cdate(self.url)
-
-	def mdate(self):
-		return self.connection.mdate(self.url)
-
-	def close(self):
-		if not self.closed:
-			if "w" in self.mode:
-				c = self._cursor()
-				c.execute(self.stream.getvalue())
-			self.stream = None
-			self.closed = True
 
 
 ###
@@ -2012,7 +1476,7 @@ class Project(dict):
 		if name.endswith("Action"):
 			name = name[:-6]
 
-		if hasattr(action, "key"):
+		if action.key is not None:
 			return s4action(name, "(", self.strkey(action.key), ")")
 		else:
 			return s4action(name)
@@ -2032,9 +1496,8 @@ class Project(dict):
 	def add(self, target, key=None):
 		"""
 		Add the action :var:`target` as a target to :var:`self`. If :var:`key`
-		is not :const:`None`, :var:`target` will be registered under this key
-		(and ``target.key`` will be set to it), otherwise it will be registered
-		under its own key (i.e. ``target.key``).
+		is not :const:`None`, :var:`target` will be registered under this key,
+		otherwise it will be registered under its own key (i.e. ``target.key``).
 		"""
 		if key is None: # Use the key from the target
 			key = target.getkey()

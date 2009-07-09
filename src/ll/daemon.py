@@ -66,7 +66,7 @@ class Daemon(object):
 		file to kill the daemon.
 
 		:var:`user` can be the name or uid of a user. :meth:`start` will switch
-		to this user for running the service. If :var:`user` is :const:`None` no
+		to this user for running the service. If :var:`user` is ``None`` no
 		user switching will be done.
 
 		In the same way :var:`group` can be the name or gid of a group.

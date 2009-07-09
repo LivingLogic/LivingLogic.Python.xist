@@ -37,7 +37,8 @@ There are three log files:
 
 	:file:`~/log/jobname_loop.log`
 		One log line may be appended to the log after every job execution.
-		:meth:`logLoop` method for this.
+		Call the method :meth:`logLoop` once at the end of :meth:`execute` for
+		this.
 
 	:file:`~/log/jobname_error.log`
 		Here exceptions happening during the execution of a job will be logged.
@@ -192,9 +193,9 @@ class Job(object):
 		:var:`maxruntime`: : integer
 			The maximum allowed runtime in seconds for this job;
 
-		:var:`name`: : string or :const:`None`
-			The name to be used for the log files. If :const:`None``, the name of
-			the class will be used;
+		:var:`name`: : string or ``None``
+			The name to be used for the log files. If ``None``, the name of the
+			class will be used;
 
 		:var:`raiseerrors`: : bool
 			should exceptions that occur during the excution of the job be raised

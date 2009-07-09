@@ -9,8 +9,6 @@
 ## See ll/__init__.py for the license
 
 
-from __future__ import with_statement
-
 import sys, unittest, cStringIO, warnings
 
 from xml.parsers import expat

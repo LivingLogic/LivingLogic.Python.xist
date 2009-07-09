@@ -270,7 +270,7 @@ class onlychild(Selector):
 
 		>>> from ll.xist import parsers, xfind
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(<em>xfind.onlychild & html.a</em>):
+		>>> for node in doc.walknode(xfind.onlychild & html.a):
 		... 	print node.bytes()
 		... 
 		<a accesskey="2" href="http://www.python.org/#left%2dhand%2dnavigation"><img id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" border="0" /></a>
@@ -454,7 +454,7 @@ class attrcontains(Selector):
 		>>> from ll.xist import parsers, xfind
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknode(xfind.attrcontains("rel", "stylesheet")):
-		... \tprint repr(node)
+		... 	print repr(node)
 		... 
 		<a type="text/css" id="screen-switcher-stylesheet" media="screen" rel="stylesheet" href="http://www.python.org/styles/screen-switcher-default.css" />
 		<a type="text/css" media="scReen" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" />

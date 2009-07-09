@@ -34,8 +34,6 @@ print node.conv().bytes(encoding="us-ascii")
 <p> You can also use <lit>with</lit> blocks (and the unary <lit>+</lit> operator) to generate the same &html;:</p>
 
 <prog>
-from __future__ import with_statement
-
 from ll.xist import xsc
 from ll.xist.ns import html, xml, meta
 
@@ -249,7 +247,6 @@ The following example will generate &html; <lit>&lt;h1&gt;</lit>, ..., <lit>&lt;
 elements according to the nesting depth of a <lit>&lt;section&gt;</lit> element.</p>
 
 <prog>
-from __future__ import with_statement
 from ll.xist import xsc
 
 class section(xsc.Element):

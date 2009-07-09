@@ -58,7 +58,7 @@ class Base(object):
 	@classmethod
 	def simplify(cls, value):
 		"""
-		Return a string, whose value can be used as an intializer for an attribute
+		Return a string whose value can be used as an intializer for an attribute
 		value. (If the value is an :class:`int` strip the quotes, if it fits into
 		ASCII drop the ``u`` prefix.)
 		"""

@@ -14,8 +14,6 @@ documentation (in HTML, DocBook and XSL-FO).
 """
 
 
-from __future__ import with_statement
-
 import sys, types, inspect, textwrap, warnings, operator
 
 import ll

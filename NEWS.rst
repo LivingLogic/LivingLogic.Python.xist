@@ -1,3 +1,66 @@
+Changes in 3.7 (released ??/??/2009)
+------------------------------------
+
+*	In UL4 templates it's now possible to define locale templates via
+	``<?def tmpl?>templatecode<?end def?>``.
+
+*	Python 2.6 is required now.
+
+*	:mod:`ll.orasql` and :mod:`ll.nightshade` are now part of the distribution.
+
+*	:mod:`ll.make` has a new Action class: :class:`ObjectAction` simply returns
+	an existing object.
+
+*	The following classes have been removed from :mod:`ll.make`:
+	:class:`EncodeAction`, :class:`DecodeAction`, :class:`EvalAction`,
+	:class:`GZipAction`, :class:`GUnzipAction`,
+	:class:`JavascriptMinifyAction`, :class:`XISTBytesAction`,
+	:class:`XISTStringAction`, :class:`JoinAction`, :class:`UnpickleAction`,
+	:class:`PickleAction`, :class:`TOXICAction`, :class:`TOXICPrettifyAction`,
+	:class:`SplatAction`, :class:`UL4CompileAction`, :class:`UL4RenderAction`,
+	:class:`UL4DumpAction`, :class:`UL4LoadAction`, :class:`XISTTextAction` and
+	:class:`XISTConvertAction`. All of these actions can be executed by using
+	:class:`CallAction` or :class:`CallAttrAction`.
+
+*	:class:`ll.make.PipeAction` has been renamed to :class:`TransformAction`.
+
+*	The new :class:`ll.make.PipeAction` pipes the input through an external
+	command.
+
+*	:class:`ll.make.FileAction` now automatically wraps the :var:`key` argument
+	into an :class:`URL` object.
+
+*	:class:`ll.make.FileAction` has two new methods :meth:`chmod` and
+	:meth:`chown` that return a :class:`ModeAction` and :class:`OwnerAction`
+	for modifying the file created by the :class:`FileAction`.
+
+*	:class:`ll.make.Action` has three new methods: :meth:`call`, :meth:`getattr`
+	and :meth:`callattr` create a :class:`CallAction`, :class:`GetAttrAction`
+	or :class:`CallAttrAction` object respectively.
+
+*	The division operator is no longer implemented for :class:`Action` objects
+	in :mod:`ll.make`.
+
+*	Two new UL4 functions have been added: ``float`` and ``iscolor``.
+
+*	Two new scripts have been added: ``uls`` can be used to list any directory
+	given as an URL. ``ucat`` can be used to output any file or directory.
+
+*	The script ``ucp`` now changes the user and group only if a user or group is
+	given.
+
+*	Fixed a bug in the remote :meth:`stat` method for ssh URLs (it seems that
+	the :class:`posix.stat_result` tuple objects can no longer be pickled).
+
+*	There's a new function :func:`misc.itersplitat` for splitting a string at
+	specified positions.
+
+*	For ssh URLs a keyword argument ``ssh_config`` is supported now instead of
+	``identity`` (This mirrors the corresponding change in the py__ library)
+
+	__ http://codespeak.net/py/dist/
+
+
 Changes in 3.6.6 (released 07/09/2009)
 --------------------------------------
 

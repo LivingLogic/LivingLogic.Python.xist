@@ -52,7 +52,8 @@ class Location(object):
 			The complete source string
 
 		:var:`type`
-			The tag type (i.e. ``"for"``, ``"if"``, etc.)
+			The tag type (i.e. ``"for"``, ``"if"``, etc. or ``None`` for literal
+			text)
 
 		:var:`starttag`
 			The start position of the start delimiter.
@@ -104,9 +105,9 @@ class Error(Exception):
 	"""
 	Exception class that wraps another exception and provides a location.
 	"""
-	def __init__(self, location, cause):
+	def __init__(self, location):
 		self.location = location
-		self.cause = cause
+		self.__cause__ = None
 
 	def __repr__(self):
 		return "<%s.%s in %s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.location, id(self))
@@ -118,12 +119,12 @@ class Error(Exception):
 		while isinstance(exc, Error):
 			if not path or path[-1] is not exc.location:
 				path.append(exc.location)
-			exc = exc.cause
+			exc = exc.__cause__
 		name = exc.__class__.__name__
 		module = exc.__class__.__module__
 		if module != "exceptions":
 			name = "%s.%s" % (module, name)
-		return "%s %s %s" % (name, "".join("in %s:" % location for location in path), exc)
+		return "%s %s %s" % (name, " ".join("in %s:" % location for location in path), exc)
 
 
 class LexicalError(Exception):
@@ -448,6 +449,14 @@ class Opcode(object):
 		Render the template in the attribute :attr:`r1`. The content of register
 		:attr:`r2` (which must be a dictionary) will be passed to the template as
 		the variable dictionary.
+
+	``"def"``
+		Begin the definition of a local template. The template will be stored in
+		the variable named :attr:`arg`.
+
+	``"enddef"``
+		End the definition of a local template.
+
 	"""
 	__slots__ = ("code", "r1", "r2", "r3", "r4", "r5", "arg", "location", "jump")
 
@@ -606,6 +615,10 @@ class Opcode(object):
 			return "r%r = r%r.%s(**r%r)" % (self.r1, self.r2, self.arg, self.r3)
 		elif self.code == "render":
 			return "render r%r(r%r)" % (self.r1, self.r2)
+		elif self.code == "def":
+			return "def %s(vars)" % self.arg
+		elif self.code == "enddef":
+			return "endfor"
 		else:
 			raise UnknownOpcodeError(self.code)
 
@@ -623,7 +636,7 @@ class Template(object):
 	Rendering the template can be done with the methods :meth:`render` (which
 	is a generator) or :meth:`renders` (which returns a string).
 	"""
-	version = "10"
+	version = "11"
 
 	def __init__(self):
 		self.startdelim = None
@@ -632,6 +645,8 @@ class Template(object):
 		self.opcodes = None
 		# The following is used for converting the opcodes back to executable Python code
 		self._pythonfunction = None
+		# Stack for currently open def opcodes
+		self.defs = []
 
 	@classmethod
 	def loads(cls, data):
@@ -792,434 +807,330 @@ class Template(object):
 		"""
 		return "".join(self.iterdump())
 
+	def _pythonsource_line(self, location, line):
+		self.lines.append("%s%s" % ("\t"*self.indent, line))
+		if self.lastlocation is not location or not self.locations:
+			self.locations.append((location.type, location.starttag, location.endtag, location.startcode, location.endcode))
+			self.lastlocation = location
+		self.lines2locs.append(len(self.locations)-1)
+
 	def _pythonsource_dispatch_None(self, opcode):
-		self.lines.append("%syield %r" % (self.indent, opcode.location.code))
-
+		self._pythonsource_line(opcode.location, "yield %r" % opcode.location.code)
 	def _pythonsource_dispatch_loadstr(self, opcode):
-		self.lines.append("%sreg%d = %r" % (self.indent, opcode.r1, opcode.arg))
-
+		self._pythonsource_line(opcode.location, "r%d = %r" % (opcode.r1, opcode.arg))
 	def _pythonsource_dispatch_loadint(self, opcode):
-		self.lines.append("%sreg%d = %s" % (self.indent, opcode.r1, opcode.arg))
-
+		self._pythonsource_line(opcode.location, "r%d = %s" % (opcode.r1, opcode.arg))
 	def _pythonsource_dispatch_loadfloat(self, opcode):
-		self.lines.append("%sreg%d = %s" % (self.indent, opcode.r1, opcode.arg))
-
+		self._pythonsource_line(opcode.location, "r%d = %s" % (opcode.r1, opcode.arg))
 	def _pythonsource_dispatch_loadnone(self, opcode):
-		self.lines.append("%sreg%d = None" % (self.indent, opcode.r1))
-
+		self._pythonsource_line(opcode.location, "r%d = None" % opcode.r1)
 	def _pythonsource_dispatch_loadfalse(self, opcode):
-		self.lines.append("%sreg%d = False" % (self.indent, opcode.r1))
-
+		self._pythonsource_line(opcode.location, "r%d = False" % opcode.r1)
 	def _pythonsource_dispatch_loadtrue(self, opcode):
-		self.lines.append("%sreg%d = True" % (self.indent, opcode.r1))
-
+		self._pythonsource_line(opcode.location, "r%d = True" % opcode.r1)
 	def _pythonsource_dispatch_loaddate(self, opcode):
-		self.lines.append("%sreg%d = datetime.datetime(%s)" % (self.indent, opcode.r1, ", ".join(str(int(p)) for p in datesplitter.split(opcode.arg))))
-
+		self._pythonsource_line(opcode.location, "r%d = datetime.datetime(%s)" % (opcode.r1, ", ".join(str(int(p)) for p in datesplitter.split(opcode.arg))))
 	def _pythonsource_dispatch_loadcolor(self, opcode):
-		self.lines.append("%sreg%d = color.Color(0x%s, 0x%s, 0x%s, 0x%s)" % (self.indent, opcode.r1, opcode.arg[:2], opcode.arg[2:4], opcode.arg[4:6], opcode.arg[6:]))
-
+		self._pythonsource_line(opcode.location, "r%d = color.Color(0x%s, 0x%s, 0x%s, 0x%s)" % (opcode.r1, opcode.arg[:2], opcode.arg[2:4], opcode.arg[4:6], opcode.arg[6:]))
 	def _pythonsource_dispatch_buildlist(self, opcode):
-		self.lines.append("%sreg%d = []" % (self.indent, opcode.r1))
-
+		self._pythonsource_line(opcode.location, "r%d = []" % opcode.r1)
 	def _pythonsource_dispatch_builddict(self, opcode):
-		self.lines.append("%sreg%d = {}" % (self.indent, opcode.r1))
-
+		self._pythonsource_line(opcode.location, "r%d = {}" % opcode.r1)
 	def _pythonsource_dispatch_addlist(self, opcode):
-		self.lines.append("%sreg%d.append(reg%d)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d.append(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_adddict(self, opcode):
-		self.lines.append("%sreg%d[reg%d] = reg%d" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d[r%d] = r%d" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_updatedict(self, opcode):
-		self.lines.append("%sreg%d.update(reg%d)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d.update(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_loadvar(self, opcode):
-		self.lines.append("%sreg%d = variables[%r]" % (self.indent, opcode.r1, opcode.arg))
-
+		self._pythonsource_line(opcode.location, "r%d = variables[%r]" % (opcode.r1, opcode.arg))
 	def _pythonsource_dispatch_storevar(self, opcode):
-		self.lines.append("%svariables[%r] = reg%d" % (self.indent, opcode.arg, opcode.r1))
-
+		self._pythonsource_line(opcode.location, "variables[%r] = r%d" % (opcode.arg, opcode.r1))
 	def _pythonsource_dispatch_addvar(self, opcode):
-		self.lines.append("%svariables[%r] += reg%d" % (self.indent, opcode.arg, opcode.r1))
-
+		self._pythonsource_line(opcode.location, "variables[%r] += r%d" % (opcode.arg, opcode.r1))
 	def _pythonsource_dispatch_subvar(self, opcode):
-		self.lines.append("%svariables[%r] -= reg%d" % (self.indent, opcode.arg, opcode.r1))
-
+		self._pythonsource_line(opcode.location, "variables[%r] -= r%d" % (opcode.arg, opcode.r1))
 	def _pythonsource_dispatch_mulvar(self, opcode):
-		self.lines.append("%svariables[%r] *= reg%d" % (self.indent, opcode.arg, opcode.r1))
-
+		self._pythonsource_line(opcode.location, "variables[%r] *= r%d" % (opcode.arg, opcode.r1))
 	def _pythonsource_dispatch_truedivvar(self, opcode):
-		self.lines.append("%svariables[%r] /= reg%d" % (self.indent, opcode.arg, opcode.r1))
-
+		self._pythonsource_line(opcode.location, "variables[%r] /= r%d" % (opcode.arg, opcode.r1))
 	def _pythonsource_dispatch_floordivvar(self, opcode):
-		self.lines.append("%svariables[%r] //= reg%d" % (self.indent, opcode.arg, opcode.r1))
-
+		self._pythonsource_line(opcode.location, "variables[%r] //= r%d" % (opcode.arg, opcode.r1))
 	def _pythonsource_dispatch_modvar(self, opcode):
-		self.lines.append("%svariables[%r] %%= reg%d" % (self.indent, opcode.arg, opcode.r1))
-
+		self._pythonsource_line(opcode.location, "variables[%r] %%= r%d" % (opcode.arg, opcode.r1))
 	def _pythonsource_dispatch_delvar(self, opcode):
-		self.lines.append("%sdel variables[%r]" % (self.indent, opcode.arg))
-
+		self._pythonsource_line(opcode.location, "del variables[%r]" % opcode.arg)
 	def _pythonsource_dispatch_getattr(self, opcode):
-		self.lines.append("%sreg%d = reg%d[%r]" % (self.indent, opcode.r1, opcode.r2, opcode.arg))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d[%r]" % (opcode.r1, opcode.r2, opcode.arg))
 	def _pythonsource_dispatch_getitem(self, opcode):
-		self.lines.append("%sreg%d = reg%d[reg%d]" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d[r%d]" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_getslice12(self, opcode):
-		self.lines.append("%sreg%d = reg%d[reg%d:reg%d]" % (self.indent, opcode.r1, opcode.r2, opcode.r3, opcode.r4))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d[r%d:r%d]" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
 	def _pythonsource_dispatch_getslice1(self, opcode):
-		self.lines.append("%sreg%d = reg%d[reg%d:]" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d[r%d:]" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_getslice2(self, opcode):
-		self.lines.append("%sreg%d = reg%d[:reg%d]" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d[:r%d]" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_print(self, opcode):
-		self.lines.append("%sif reg%d is not None: yield unicode(reg%d)" % (self.indent, opcode.r1, opcode.r1))
-
+		self._pythonsource_line(opcode.location, "if r%d is not None: yield unicode(r%d)" % (opcode.r1, opcode.r1))
 	def _pythonsource_dispatch_printx(self, opcode):
-		self.lines.append("%sif reg%d is not None: yield xmlescape(unicode(reg%d))" % (self.indent, opcode.r1, opcode.r1))
-
+		self._pythonsource_line(opcode.location, "if r%d is not None: yield xmlescape(unicode(r%d))" % (opcode.r1, opcode.r1))
 	def _pythonsource_dispatch_for(self, opcode):
-		self.lines.append("%sfor reg%d in reg%d:" % (self.indent, opcode.r1, opcode.r2))
-		self.indent += "\t"
-
+		self._pythonsource_line(opcode.location, "for r%d in r%d:" % (opcode.r1, opcode.r2))
+		self.indent += 1
 	def _pythonsource_dispatch_endfor(self, opcode):
 		# we don't have to check for empty loops here, as a ``<?for?>`` tag always generates at least one ``storevar`` opcode inside the loop
-		self.indent = self.indent[:-1]
-		self.lines.append("%s# end for" % self.indent)
-
+		self.indent -= 1
 	def _pythonsource_dispatch_break(self, opcode):
-		self.lines.append("%sbreak" % self.indent)
-
+		self._pythonsource_line(opcode.location, "break")
 	def _pythonsource_dispatch_continue(self, opcode):
-		self.lines.append("%scontinue" % self.indent)
-
+		self._pythonsource_line(opcode.location, "continue")
 	def _pythonsource_dispatch_not(self, opcode):
-		self.lines.append("%sreg%d = not reg%d" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = not r%d" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_neg(self, opcode):
-		self.lines.append("%sreg%d = -reg%d" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = -r%d" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_contains(self, opcode):
-		self.lines.append("%sreg%d = reg%d in reg%d" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d in r%d" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_notcontains(self, opcode):
-		self.lines.append("%sreg%d = reg%d not in reg%d" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d not in r%d" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_eq(self, opcode):
-		self.lines.append("%sreg%d = reg%d == reg%d" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d == r%d" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_ne(self, opcode):
-		self.lines.append("%sreg%d = reg%d != reg%d" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d != r%d" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_lt(self, opcode):
-		self.lines.append("%sreg%d = reg%d < reg%d" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d < r%d" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_le(self, opcode):
-		self.lines.append("%sreg%d = reg%d <= reg%d" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d <= r%d" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_gt(self, opcode):
-		self.lines.append("%sreg%d = reg%d > reg%d" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d > r%d" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_ge(self, opcode):
-		self.lines.append("%sreg%d = reg%d >= reg%d" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d >= r%d" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_add(self, opcode):
-		self.lines.append("%sreg%d = reg%d + reg%d" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d + r%d" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_sub(self, opcode):
-		self.lines.append("%sreg%d = reg%d - reg%d" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d - r%d" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_mul(self, opcode):
-		self.lines.append("%sreg%d = reg%d * reg%d" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d * r%d" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_floordiv(self, opcode):
-		self.lines.append("%sreg%d = reg%d // reg%d" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d // r%d" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_truediv(self, opcode):
-		self.lines.append("%sreg%d = reg%d / reg%d" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d / r%d" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_and(self, opcode):
-		self.lines.append("%sreg%d = reg%d and reg%d" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d and r%d" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_or(self, opcode):
-		self.lines.append("%sreg%d = reg%d or reg%d" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d or r%d" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_mod(self, opcode):
-		self.lines.append("%sreg%d = reg%d %% reg%d" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d %% r%d" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_mod(self, opcode):
-		self.lines.append("%sreg%d = reg%d %% reg%d" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d %% r%d" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_callfunc0(self, opcode):
 		try:
 			getattr(self, "_pythonsource_dispatch_callfunc0_%s" % opcode.arg)(opcode)
 		except AttributeError:
 			raise UnknownFunctionError(opcode.arg)
-
 	def _pythonsource_dispatch_callfunc1(self, opcode):
 		try:
 			getattr(self, "_pythonsource_dispatch_callfunc1_%s" % opcode.arg)(opcode)
 		except AttributeError:
 			raise UnknownFunctionError(opcode.arg)
-
 	def _pythonsource_dispatch_callfunc2(self, opcode):
 		try:
 			getattr(self, "_pythonsource_dispatch_callfunc2_%s" % opcode.arg)(opcode)
 		except AttributeError:
 			raise UnknownFunctionError(opcode.arg)
-
 	def _pythonsource_dispatch_callfunc3(self, opcode):
 		try:
 			getattr(self, "_pythonsource_dispatch_callfunc3_%s" % opcode.arg)(opcode)
 		except AttributeError:
 			raise UnknownFunctionError(opcode.arg)
-
 	def _pythonsource_dispatch_callfunc4(self, opcode):
 		try:
 			getattr(self, "_pythonsource_dispatch_callfunc4_%s" % opcode.arg)(opcode)
 		except AttributeError:
 			raise UnknownFunctionError(opcode.arg)
-
 	def _pythonsource_dispatch_callmeth0(self, opcode):
 		if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "isoformat", "r", "g", "b", "a", "hls", "hlsa", "hsv", "hsva", "lum"):
-			self.lines.append("%sreg%d = reg%d.%s()" % (self.indent, opcode.r1, opcode.r2, opcode.arg))
+			self._pythonsource_line(opcode.location, "r%d = r%d.%s()" % (opcode.r1, opcode.r2, opcode.arg))
 		elif opcode.arg == "items":
-			self.lines.append("%sreg%d = reg%d.iteritems()" % (self.indent, opcode.r1, opcode.r2))
+			self._pythonsource_line(opcode.location, "r%d = r%d.iteritems()" % (opcode.r1, opcode.r2))
 		elif opcode.arg == "render":
-			self.lines.append('%sreg%d = "".join(reg%d())' % (self.indent, opcode.r1, opcode.r2))
+			self._pythonsource_line(opcode.location, 'r%d = "".join(r%d())' % (opcode.r1, opcode.r2))
 		else:
 			raise UnknownMethodError(opcode.arg)
-
 	def _pythonsource_dispatch_callmeth1(self, opcode):
 		if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "get", "withlum", "witha"):
-			self.lines.append("%sreg%d = reg%d.%s(reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.arg, opcode.r3))
+			self._pythonsource_line(opcode.location, "r%d = r%d.%s(r%d)" % (opcode.r1, opcode.r2, opcode.arg, opcode.r3))
 		elif opcode.arg == "join":
-			self.lines.append("%sreg%d = reg%d.join(unicode(x) for x in reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
+			self._pythonsource_line(opcode.location, "r%d = r%d.join(unicode(x) for x in r%d)" % (opcode.r1, opcode.r2, opcode.r3))
 		elif opcode.arg == "format":
-			self.lines.append("%sreg%d = ul4c._format(reg%d, reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
+			self._pythonsource_line(opcode.location, "r%d = r%d.__format__(r%d)" % (opcode.r1, opcode.r2, opcode.r3))
 		else:
 			raise UnknownMethodError(opcode.arg)
-
 	def _pythonsource_dispatch_callmeth2(self, opcode):
 		if opcode.arg in ("split", "rsplit", "find", "replace", "get"):
-			self.lines.append("%sreg%d = reg%d.%s(reg%d, reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.arg, opcode.r3, opcode.r4))
+			self._pythonsource_line(opcode.location, "r%d = r%d.%s(r%d, r%d)" % (opcode.r1, opcode.r2, opcode.arg, opcode.r3, opcode.r4))
 		else:
 			raise UnknownMethodError(opcode.arg)
-
 	def _pythonsource_dispatch_callmeth3(self, opcode):
 		if opcode.arg == "find":
-			self.lines.append("%sreg%d = reg%d.%s(reg%d, reg%d, reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.arg, opcode.r3, opcode.r4, opcode.r5))
+			self._pythonsource_line(opcode.location, "r%d = r%d.%s(r%d, r%d, r%d)" % (opcode.r1, opcode.r2, opcode.arg, opcode.r3, opcode.r4, opcode.r5))
 		else:
 			raise UnknownMethodError(opcode.arg)
-
 	def _pythonsource_dispatch_callmethkw(self, opcode):
 		if opcode.arg == "render":
-			self.lines.append('%sreg%d = "".join(reg%d(**dict((key.encode("utf-8"), value) for (key, value) in reg%d.iteritems())))' % (self.indent, opcode.r1, opcode.r2, opcode.r3))
+			self._pythonsource_line(opcode.location, 'r%d = "".join(r%d(**dict((key.encode("utf-8"), value) for (key, value) in r%d.iteritems())))' % (opcode.r1, opcode.r2, opcode.r3))
 		else:
 			raise UnknownMethodError(opcode.arg)
-
 	def _pythonsource_dispatch_if(self, opcode):
-		self.lines.append("%sif reg%d:" % (self.indent, opcode.r1))
-		self.indent += "\t"
-
+		self._pythonsource_line(opcode.location, "if r%d:" % (opcode.r1))
+		self.indent += 1
 	def _pythonsource_dispatch_else(self, opcode):
 		if self.lastopcode == "if":
 			self.lines[-1] += " pass"
-		self.indent = self.indent[:-1]
-		self.lines.append("%selse:" % self.indent)
-		self.indent += "\t"
-
+		self.indent -= 1
+		self._pythonsource_line(opcode.location, "else:")
+		self.indent += 1
 	def _pythonsource_dispatch_endif(self, opcode):
 		if self.lastopcode in ("if", "else"):
-			self.lines[-1] += " pass"
-		self.indent = self.indent[:-1]
-		self.lines.append("%s# end if" % self.indent)
-
+			lines[-1] += " pass"
+		self.indent -= 1
+	def _pythonsource_dispatch_def(self, opcode):
+		self._pythonsource_line(opcode.location, "def _(**variables):")
+		self.defs.append(opcode)
+		self.indent += 1
+		self._pythonsource_line(opcode.location, 'variables = dict((key.decode("utf-8"), value) for (key, value) in variables.iteritems())') # FIXME: This can be dropped in Python 3.0 where strings are unicode
+		self._pythonsource_line(opcode.location, "r0 = r1 = r2 = r3 = r4 = r5 = r6 = r7 = r8 = r9 = None")
+		self._pythonsource_line(opcode.location, "try:")
+		self.indent += 1
+	def _pythonsource_dispatch_enddef(self, opcode):
+		defopcode = self.defs.pop()
+		self.indent -= 1
+		self._pythonsource_line(opcode.location, "except Exception, exc:")
+		self.indent += 1
+		self._pythonsource_line(opcode.location, "newexc = ul4c.Error(ul4c.Location(source, *locations[lines2locs[sys.exc_info()[2].tb_lineno-startline]]))") # FIXME: Use ``raise ... from`` in Python 3.0
+		self._pythonsource_line(opcode.location, "newexc.__cause__ = exc")
+		self._pythonsource_line(opcode.location, "raise newexc")
+		self.indent -= 2
+		self._pythonsource_line(opcode.location, "variables[%r] = _" % defopcode.arg)
 	def _pythonsource_dispatch_render(self, opcode):
-		self.lines.append('%sfor chunk in reg%d(**dict((key.encode("utf-8"), value) for (key, value) in reg%d.iteritems())): yield chunk' % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, 'for chunk in r%d(**dict((key.encode("utf-8"), value) for (key, value) in r%d.iteritems())): yield chunk' % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc0_now(self, opcode):
-		self.lines.append("%sreg%d = datetime.datetime.now()" % (self.indent, opcode.r1))
-
+		self._pythonsource_line(opcode.location, "r%d = datetime.datetime.now()" % opcode.r1)
 	def _pythonsource_dispatch_callfunc0_vars(self, opcode):
-		self.lines.append("%sreg%d = variables" % (self.indent, opcode.r1))
-
+		self._pythonsource_line(opcode.location, "r%d = variables" % opcode.r1)
 	def _pythonsource_dispatch_callfunc1_xmlescape(self, opcode):
-		self.lines.append("%sreg%d = xmlescape(unicode(reg%d)) if reg%d is not None else u''" % (self.indent, opcode.r1, opcode.r2, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = xmlescape(unicode(r%d)) if r%d is not None else u''" % (opcode.r1, opcode.r2, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_csv(self, opcode):
-		self.lines.append("%sreg%d = ul4c._csv(reg%d)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = ul4c._csv(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_json(self, opcode):
-		self.lines.append("%sreg%d = json.dumps(reg%d)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = json.dumps(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_str(self, opcode):
-		self.lines.append("%sreg%d = unicode(reg%d) if reg%d is not None else u''" % (self.indent, opcode.r1, opcode.r2, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = unicode(r%d) if r%d is not None else u''" % (opcode.r1, opcode.r2, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_int(self, opcode):
-		self.lines.append("%sreg%d = int(reg%d)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = int(r%d)" % (opcode.r1, opcode.r2))
+	def _pythonsource_dispatch_callfunc1_float(self, opcode):
+		self._pythonsource_line(opcode.location, "r%d = float(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_bool(self, opcode):
-		self.lines.append("%sreg%d = bool(reg%d)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = bool(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_len(self, opcode):
-		self.lines.append("%sreg%d = len(reg%d)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = len(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_enumerate(self, opcode):
-		self.lines.append("%sreg%d = enumerate(reg%d)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = enumerate(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_isnone(self, opcode):
-		self.lines.append("%sreg%d = reg%d is None" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = r%d is None" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_isstr(self, opcode):
-		self.lines.append("%sreg%d = isinstance(reg%d, basestring)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = isinstance(r%d, basestring)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_isint(self, opcode):
-		self.lines.append("%sreg%d = isinstance(reg%d, (int, long)) and not isinstance(reg%d, bool)" % (self.indent, opcode.r1, opcode.r2, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = isinstance(r%d, (int, long)) and not isinstance(r%d, bool)" % (opcode.r1, opcode.r2, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_isfloat(self, opcode):
-		self.lines.append("%sreg%d = isinstance(reg%d, float)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = isinstance(r%d, float)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_isbool(self, opcode):
-		self.lines.append("%sreg%d = isinstance(reg%d, bool)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = isinstance(r%d, bool)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_isdate(self, opcode):
-		self.lines.append("%sreg%d = isinstance(reg%d, datetime.datetime)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = isinstance(r%d, datetime.datetime)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_islist(self, opcode):
-		self.lines.append("%sreg%d = isinstance(reg%d, (list, tuple))" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = isinstance(r%d, (list, tuple)) and not isinstance(r%d, color.Color)" % (opcode.r1, opcode.r2, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_isdict(self, opcode):
-		self.lines.append("%sreg%d = isinstance(reg%d, dict)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = isinstance(r%d, dict)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_istemplate(self, opcode):
-		self.lines.append("%sreg%d = hasattr(reg%d, '__call__')" % (self.indent, opcode.r1, opcode.r2)) # this supports normal generators too
-
+		self._pythonsource_line(opcode.location, "r%d = hasattr(r%d, '__call__')" % (opcode.r1, opcode.r2)) # this supports normal generators too
+	def _pythonsource_dispatch_callfunc1_iscolor(self, opcode):
+		self._pythonsource_line(opcode.location, "r%d = isinstance(r%d, color.Color)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_repr(self, opcode):
-		self.lines.append("%sreg%d = ul4c._repr(reg%d)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = ul4c._repr(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_get(self, opcode):
-		self.lines.append("%sreg%d = variables.get(reg%d)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = variables.get(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_chr(self, opcode):
-		self.lines.append("%sreg%d = unichr(reg%d)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = unichr(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_ord(self, opcode):
-		self.lines.append("%sreg%d = ord(reg%d)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = ord(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_hex(self, opcode):
-		self.lines.append("%sreg%d = hex(reg%d)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = hex(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_oct(self, opcode):
-		self.lines.append("%sreg%d = ul4c._oct(reg%d)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = ul4c._oct(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_bin(self, opcode):
-		self.lines.append("%sreg%d = ul4c._bin(reg%d)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = bin(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_sorted(self, opcode):
-		self.lines.append("%sreg%d = sorted(reg%d)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = sorted(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_range(self, opcode):
-		self.lines.append("%sreg%d = xrange(reg%d)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = xrange(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_type(self, opcode):
-		self.lines.append("%sreg%d = ul4c._type(reg%d)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = ul4c._type(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc1_reversed(self, opcode):
-		self.lines.append("%sreg%d = reversed(reg%d)" % (self.indent, opcode.r1, opcode.r2))
-
+		self._pythonsource_line(opcode.location, "r%d = reversed(r%d)" % (opcode.r1, opcode.r2))
 	def _pythonsource_dispatch_callfunc2_range(self, opcode):
-		self.lines.append("%sreg%d = xrange(reg%d, reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = xrange(r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_callfunc2_get(self, opcode):
-		self.lines.append("%sreg%d = variables.get(reg%d, reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = variables.get(r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_callfunc2_zip(self, opcode):
-		self.lines.append("%sreg%d = itertools.izip(reg%d, reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = itertools.izip(r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_callfunc2_int(self, opcode):
-		self.lines.append("%sreg%d = int(reg%d, reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.r3))
-
+		self._pythonsource_line(opcode.location, "r%d = int(r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_callfunc3_range(self, opcode):
-		self.lines.append("%sreg%d = xrange(reg%d, reg%d, reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.r3, opcode.r4))
-
+		self._pythonsource_line(opcode.location, "r%d = xrange(r%d, r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
 	def _pythonsource_dispatch_callfunc3_zip(self, opcode):
-		self.lines.append("%sreg%d = itertools.izip(reg%d, reg%d, reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.r3, opcode.r4))
-
+		self._pythonsource_line(opcode.location, "r%d = itertools.izip(r%d, r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
 	def _pythonsource_dispatch_callfunc3_rgb(self, opcode):
-		self.lines.append("%sreg%d = color.Color.fromrgb(reg%d, reg%d, reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.r3, opcode.r4))
-
+		self._pythonsource_line(opcode.location, "r%d = color.Color.fromrgb(r%d, r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
 	def _pythonsource_dispatch_callfunc3_hls(self, opcode):
-		self.lines.append("%sreg%d = color.Color.fromhls(reg%d, reg%d, reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.r3, opcode.r4))
-
+		self._pythonsource_line(opcode.location, "r%d = color.Color.fromhls(r%d, r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
 	def _pythonsource_dispatch_callfunc3_hsv(self, opcode):
-		self.lines.append("%sreg%d = color.Color.fromhsv(reg%d, reg%d, reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.r3, opcode.r4))
-
+		self._pythonsource_line(opcode.location, "r%d = color.Color.fromhsv(r%d, r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
 	def _pythonsource_dispatch_callfunc4_rgb(self, opcode):
-		self.lines.append("%sreg%d = color.Color.fromrgb(reg%d, reg%d, reg%d, reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.r3, opcode.r4, opcode.r5))
-
+		self._pythonsource_line(opcode.location, "r%d = color.Color.fromrgb(r%d, r%d, r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4, opcode.r5))
 	def _pythonsource_dispatch_callfunc4_hls(self, opcode):
-		self.lines.append("%sreg%d = color.Color.fromhls(reg%d, reg%d, reg%d, reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.r3, opcode.r4, opcode.r5))
-
+		self._pythonsource_line(opcode.location, "r%d = color.Color.fromhls(r%d, r%d, r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4, opcode.r5))
 	def _pythonsource_dispatch_callfunc4_hsv(self, opcode):
-		self.lines.append("%sreg%d = color.Color.fromhsv(reg%d, reg%d, reg%d, reg%d)" % (self.indent, opcode.r1, opcode.r2, opcode.r3, opcode.r4, opcode.r5))
+		self._pythonsource_line(opcode.location, "r%d = color.Color.fromhsv(r%d, r%d, r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4, opcode.r5))
 
 	def pythonsource(self, function=None):
 		"""
 		Return the template as Python source code. If :var:`function` is specified
 		the code will be wrapped in a function with this name.
 		"""
-		self.indent = ""
+
+		self.indent = 0
 		self.lines = []
+		self.locations = []
+		self.lines2locs = []
+		self.lastopcode = None
+		self.lastlocation = Location(self.source, None, 0, 0, 0, 0)
 
 		if function is not None:
-			self.lines.append("%sdef %s(**variables):" % (self.indent, function))
-			self.indent += "\t"
-		self.lines.append("%simport sys, datetime, itertools" % self.indent)
-		self.lines.append("%stry:" % self.indent)
-		self.indent += "\t"
-		self.lines.append("%simport json" % self.indent)
-		self.indent = self.indent[:-1]
-		self.lines.append("%sexcept ImportError:" % self.indent)
-		self.indent += "\t"
-		self.lines.append("%stry:" % self.indent)
-		self.indent += "\t"
-		self.lines.append("%simport simplejson as json" % self.indent)
-		self.indent = self.indent[:-1]
-		self.lines.append("%sexcept ImportError:" % self.indent)
-		self.indent += "\t"
-		self.lines.append("%spass" % self.indent)
-		self.indent = self.indent[:-2]
-		self.lines.append("%sfrom ll.misc import xmlescape" % self.indent)
-		self.lines.append("%sfrom ll import ul4c, color" % self.indent)
-		self.lines.append("%ssource = %r" % (self.indent, self.source))
-		self.lines.append('%svariables = dict((key.decode("utf-8"), value) for (key, value) in variables.iteritems())' % self.indent) # FIXME: This can be dropped in Python 3.0 where strings are unicode
-		# Make sure that the resulting code is a generator even if the byte codes produces no yield statement
-		self.lines.append("%sif 0: yield ''" % self.indent)
-		locations = []
-		lines2locs = []
-		index = -1
-		for oc in self.opcodes:
-			loc = (oc.location.type, oc.location.starttag, oc.location.endtag, oc.location.startcode, oc.location.endcode)
-			if not locations or locations[-1] != loc:
-				locations.append(loc)
-				index += 1
-			lines2locs.append(index)
-		locations = tuple(locations)
-		lines2locs = tuple(lines2locs)
-		self.lines.append("%sreg0 = reg1 = reg2 = reg3 = reg4 = reg5 = reg6 = reg7 = reg8 = reg9 = None" % self.indent)
-		self.lines.append("%stry:" % self.indent)
-		self.indent += "\t"
-		self.lines.append("%sstartline = sys._getframe().f_lineno+1" % self.indent) # The source line of the first opcode
+			self._pythonsource_line(self.lastlocation, "def %s(**variables):" % function)
+			self.indent += 1
+			self.lines2locs = [] # We initialize startline one line below, which restarts the counter
+		self._pythonsource_line(self.lastlocation, "import sys, datetime, itertools, json; from ll.misc import xmlescape; from ll import ul4c, color; startline = sys._getframe().f_lineno") # The line number of this line
+		self._pythonsource_line(self.lastlocation, "__1__")
+		self._pythonsource_line(self.lastlocation, "__2__")
+		self._pythonsource_line(self.lastlocation, "source = %r" % self.source)
+		self._pythonsource_line(self.lastlocation, 'variables = dict((key.decode("utf-8"), value) for (key, value) in variables.iteritems())') # FIXME: This can be dropped in Python 3.0 where strings are unicode
+		self._pythonsource_line(self.lastlocation, "r0 = r1 = r2 = r3 = r4 = r5 = r6 = r7 = r8 = r9 = None")
+		self._pythonsource_line(self.lastlocation, "try:")
+		self.indent += 1
+		# Make sure that the resulting code is a generator even if the byte codes produce no yield statement
+		self._pythonsource_line(self.lastlocation, "if 0: yield ''")
 		try:
-			self.lastopcode = None
 			for opcode in self.opcodes:
-				# The following code ensures that each opcode outputs exactly one source code line
-				# This makes it possible in case of an error to find out which opcode produced the error
 				try:
 					getattr(self, "_pythonsource_dispatch_%s" % opcode.code)(opcode)
 				except AttributeError:
@@ -1227,15 +1138,21 @@ class Template(object):
 				self.lastopcode = opcode.code
 		except Exception, exc:
 			raise #Error(opcode.location, exc)
-		self.indent = self.indent[:-1]
-		self.lines.append("%sexcept Exception, exc:" % self.indent)
-		self.indent += "\t"
-		self.lines.append("%slocations = %r" % (self.indent, locations))
-		self.lines.append("%slines2locs = %r" % (self.indent, lines2locs))
-		self.lines.append("%sraise ul4c.Error(ul4c.Location(source, *locations[lines2locs[sys.exc_info()[2].tb_lineno-startline]]), exc)" % self.indent)
+		self.indent -= 1
+		self._pythonsource_line(self.lastlocation, "except Exception, exc:")
+		self.indent += 1
+		self._pythonsource_line(self.lastlocation, "newexc = ul4c.Error(ul4c.Location(source, *locations[lines2locs[sys.exc_info()[2].tb_lineno-startline]]))") # FIXME: Use ``raise ... from`` in Python 3.0
+		self._pythonsource_line(self.lastlocation, "newexc.__cause__ = exc")
+		self._pythonsource_line(self.lastlocation, "raise newexc")
+		locoffset = 1+int(self.lines[0].strip() != "__1__")
+		self.lines[locoffset] = self.lines[locoffset].replace("__1__", "locations = %r" % (tuple(self.locations),))
+		self.lines[locoffset+1] = self.lines[locoffset+1].replace("__2__", "lines2locs = %r" % (tuple(self.lines2locs),))
 		result = "\n".join(self.lines)
-		del self.lines
+		del self.lastopcode
 		del self.indent
+		del self.lines
+		del self.locations
+		del self.lines2locs
 		return result
 
 	def pythonfunction(self):
@@ -1276,17 +1193,17 @@ class Template(object):
 		"""
 		i = 0
 		for opcode in self.opcodes:
-			if opcode.code in ("else", "endif", "endfor"):
+			if opcode.code in ("else", "endif", "endfor", "enddef"):
 				i -= 1
-			if opcode.code in ("endif", "endfor"):
+			if opcode.code in ("endif", "endfor", "enddef"):
 				yield "%s}" % (i*indent)
-			elif opcode.code in ("for", "if"):
+			elif opcode.code in ("for", "if", "def"):
 				yield "%s%s {" % (i*indent, opcode)
 			elif opcode.code == "else":
 				yield "%s} else {" % (i*indent)
 			else:
 				yield "%s%s" % (i*indent, opcode)
-			if opcode.code in ("for", "if", "else"):
+			if opcode.code in ("for", "if", "else", "def"):
 				i += 1
 
 	def _tokenize(self, source, startdelim, enddelim):
@@ -1297,7 +1214,7 @@ class Template(object):
 		This is a generator which produces :class:`Location` objects for each tag
 		or non-tag text. It will be called by :meth:`_compile` internally.
 		"""
-		pattern = u"%s(printx|print|code|for|if|elif|else|end|break|continue|render|note)(\s*((.|\\n)*?)\s*)?%s" % (re.escape(startdelim), re.escape(enddelim))
+		pattern = u"%s(printx|print|code|for|if|elif|else|end|break|continue|render|def|note)(\s*((.|\\n)*?)\s*)?%s" % (re.escape(startdelim), re.escape(enddelim))
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
@@ -1400,14 +1317,19 @@ class Template(object):
 						elif code == "for":
 							if stack[-1][0] != "for":
 								raise BlockError("endfor doesn't match any for")
+						elif code == "def":
+							if stack[-1][0] != "def":
+								raise BlockError("enddef doesn't match any def")
 						else:
 							raise BlockError("illegal end value %r" % code)
 					last = stack.pop()
 					if last[0] == "if":
 						for i in xrange(last[2]):
 							self.opcode("endif")
-					else: # last[0] == "for":
+					elif last[0] == "for":
 						self.opcode("endfor")
+					else: # last[0] == "def":
+						self.opcode("enddef")
 				elif location.type == "for":
 					parsefor(self)
 					stack.append(("for", location))
@@ -1421,14 +1343,21 @@ class Template(object):
 					self.opcode("continue")
 				elif location.type == "render":
 					parserender(self)
+				elif location.type == "def":
+					self.opcode("def", arg=location.code)
+					stack.append(("def", location))
 				else: # Can't happen
 					raise ValueError("unknown tag %r" % location.type)
 			except Exception, exc:
-				raise Error(location, exc)
+				newexc = Error(location) # FIXME: use ``raise ... from`` in Python 3.0
+				newexc.__cause__ = exc
+				raise newexc
 			finally:
 				del self.location
 		if stack:
-			raise Error(stack[-1][1], BlockError("block unclosed"))
+			newexc = Error(stack[-1][1]) # FIXME: use ``raise ... from`` in Python 3.0
+			newexc.__cause__ = BlockError("block unclosed")
+			raise newexc
 
 	def __str__(self):
 		return "\n".join(self.format())
@@ -1981,7 +1910,9 @@ class Scanner(spark.Scanner):
 			if self.mode != "default":
 				raise UnterminatedStringError()
 		except Exception, exc:
-			raise Error(location, exc)
+			newexc = Error(location) # FIXME: use ``raise ... from`` in Python 3.0
+			newexc.__cause__ = exc
+			raise newexc
 		return self.rv
 
 	# Color tokens must be in the order of decreasing length
@@ -2151,7 +2082,9 @@ class ExprParser(spark.Parser):
 			ast = self.parse(self.scanner.tokenize(location))
 			return ast.compile(template)
 		except Exception, exc:
-			raise Error(location, exc)
+			newexc = Error(location) # FIXME: Use ``raise ... from`` in Python 3.0
+			newexc.__cause__ = exc
+			raise newexc
 		finally:
 			del template.registers
 
@@ -2580,51 +2513,6 @@ class RenderParser(ExprParser):
 ### Helper functions used at template runtime
 ###
 
-def _oct(value):
-	"""
-	Helper for the ``oct`` function.
-	"""
-	if value == 0:
-		return "0o0"
-	elif value < 0:
-		return "-0o" + oct(value)[2:]
-	else:
-		return "0o" + oct(value)[1:]
-
-
-def _bin(value):
-	"""
-	Helper for the ``bin`` function.
-	"""
-	if value == 0:
-		return "0b0"
-	if value < 0:
-		value = -value
-		prefix = "-0b"
-	else:
-		prefix = "0b"
-	v = []
-	while value:
-		v.append(str(value&1))
-		value >>= 1
-	return prefix+"".join(v)[::-1]
-
-
-def _format(obj, format):
-	"""
-	Helper for the ``format`` method.
-	"""
-	if isinstance(obj, datetime.datetime):
-		if "%f" in format:
-			format = format.replace("%f", "%06d" % obj.microsecond) # FIXME: This would replace "%%f", which is wrong (wait for Python 2.6)
-		return obj.strftime(format.encode("utf-8")) # FIXME: We shouldn't have to encode the format string (wait for Python 3.0)
-	elif obj is None or isinstance(obj, (int, long, float, str, unicode)):
-		from ll import stringformat
-		return stringformat.format_builtin_type(obj, format)
-	else:
-		return obj.format(format) # This will raise an ``AttributeError``
-
-
 def _repr(obj):
 	"""
 	Helper for the ``repr`` function.
@@ -2652,6 +2540,18 @@ def _repr(obj):
 		return u"{%s}" % u", ".join(u"%s: %s" % (_repr(key), _repr(value)) for (key, value) in obj.iteritems())
 	else:
 		return unicode(repr(obj))
+
+
+def _oct(value):
+		"""
+		Helper for the ``oct`` function.
+		"""
+		if value == 0:
+			return "0o0"
+		elif value < 0:
+			return "-0o" + oct(value)[2:]
+		else:
+			return "0o" + oct(value)[1:]
 
 
 def _csv(obj):
@@ -2691,4 +2591,6 @@ def _type(obj):
 		return u"dict"
 	elif hasattr(obj, "__call__"):
 		return u"template"
+	elif isinstance(obj, color.Color):
+		return u"color"
 	return None

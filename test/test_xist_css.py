@@ -9,8 +9,6 @@
 ## See ll/__init__.py for the license
 
 
-from __future__ import with_statement
-
 from ll import url
 from ll.xist import xsc, css, parsers
 from ll.xist.ns import html, specials

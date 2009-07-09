@@ -10,7 +10,7 @@
 
 """
 This module contains classes that may be used as publishing handlers in
-:meth:`ll.xist.xsc.None.publish`.
+:meth:`ll.xist.xsc.Node.publish`.
 """
 
 
@@ -38,7 +38,7 @@ class Publisher(object):
 		:var:`encoding` : string or :const:`None`
 			Specifies the encoding to be used for the byte sequence. If
 			:const:`None` is used the encoding in the XML declaration will be used.
-			If there is none, UTF-8 will be used.
+			If there is no XML declaration, UTF-8 will be used.
 
 		:var:`xhtml` : int
 			With the parameter :var:`xhtml` you can specify if you want HTML
@@ -53,7 +53,7 @@ class Publisher(object):
 				the default.
 
 			Pure XML (``xhtml==2``)
-				All empty elements will be published as <foo/>.
+				All empty elements will be published as ``<foo/>``.
 
 		:var:`validate` : bool
 			Specifies whether validation should be done before publishing.
@@ -67,11 +67,12 @@ class Publisher(object):
 			:const:`False`
 				Treat elements in this namespace as if they are not in any
 				namespace (if global attributes from this namespace are encountered,
-				a prefix willbe used nonetheless).
+				a non-empty prefix will be used nonetheless).
 
 			:const:`None`
 				Treat the namespace as the default namespaces (i.e. use unprefixed
-				element names). Global attributes will again result in a prefix.
+				element names). Global attributes will again result in a non-empty
+				prefix.
 
 			:const:`True`
 				The publisher uses a unique non-empty prefix for this namespace.
@@ -107,8 +108,8 @@ class Publisher(object):
 
 	def encode(self, text):
 		"""
-		Encode :var:`text` with the encoding and error handling currently
-		active and return the resulting byte string.
+		Encode :var:`text` with the encoding and error handling currently active
+		and return the resulting byte string.
 		"""
 		return self.encoder.encode(text)
 
@@ -117,7 +118,7 @@ class Publisher(object):
 		Encode :var:`test` as text data. :var:`text` must be a :class:`unicode`
 		object. The publisher will apply the configured encoding, error handling
 		and the current text filter (which escapes characters that can't appear
-		in text data (like ````` etc.)) and return the resulting :class:`str`
+		in text data (like ``<`` etc.)) and return the resulting :class:`str`
 		object.
 		"""
 		self.encoder.errors = self.__errors[-1]
@@ -182,7 +183,7 @@ class Publisher(object):
 	def getnamespaceprefix(self, xmlns):
 		"""
 		Return (and register) a namespace prefix for the namespace name
-		:var:`xmlns`. This honors the namespace configuration via ``self.prefixes``
+		:var:`xmlns`. This honors the namespace configuration from ``self.prefixes``
 		and ``self.prefixdefault``. Furthermore the same prefix will be returned
 		from now on (except when the empty prefix becomes invalid once global
 		attributes are encountered)
@@ -216,7 +217,7 @@ class Publisher(object):
 		"""
 		Get and register a namespace prefix for the namespace :var:`object` lives
 		in (specified by the :attr:`xmlns` attribute of :var:`object`). Similar
-		to :meth:`getnamespaceprefix` this honors the namespace configuration via
+		to :meth:`getnamespaceprefix` this honors the namespace configuration from
 		``self.prefixes`` and ``self.prefixdefault`` (except when a global
 		attribute requires a non-empty prefix).
 		"""
@@ -255,9 +256,9 @@ class Publisher(object):
 					self._prefix2ns[prefix] = xmlns
 		return prefix
 
-	def publish(self, node, base=None):
+	def iterbytes(self, node, base=None):
 		"""
-		Publish the node :var:`node`. This method is a generator that will yield
+		Output the node :var:`node`. This method is a generator that will yield
 		the resulting XML byte sequence in fragments.
 		"""
 		self._ns2prefix.clear()
@@ -308,3 +309,39 @@ class Publisher(object):
 		self._prefix2ns.clear()
 
 		self.encoder = None
+
+	def bytes(self, node, base=None):
+		"""
+		A generator that will produce a serialized byte string in XML format for
+		the XIST node :var:`node`.
+		"""
+		return "".join(self.iterbytes(node, base))
+
+	def iterstring(self, node, base=None):
+		"""
+		A generator that will produce a serialized string of :var:`node`.
+		"""
+		decoder = codecs.getincrementaldecoder("xml")(encoding=self.encoding)
+		for part in self.iterbytes(node, base):
+			part = decoder.decode(part, False)
+			if part:
+				yield part
+		part = decoder.decode("", True)
+		if part:
+			yield part
+
+	def string(self, node, base=None):
+		"""
+		Return a serialized unicode string for :var:`node`.
+		"""
+		decoder = codecs.getdecoder("xml")
+		result = self.bytes(node, base)
+		return decoder(result, encoding=self.encoding)[0]
+
+	def write(self, stream, node, base=None):
+		"""
+		Write :var:`node` to the file-like object :var:`stream` (which must
+		provide a :meth:`write` method).
+		"""
+		for part in self.iterbytes(node, base):
+			stream.write(part)

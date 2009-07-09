@@ -9,8 +9,6 @@
 ## See ll/__init__.py for the license
 
 
-from __future__ import with_statement
-
 import warnings, cStringIO
 
 from xml.etree import cElementTree

@@ -14,8 +14,6 @@ strings, URLs etc.
 """
 
 
-from __future__ import with_statement
-
 import sys, os, os.path, warnings, cStringIO, codecs, pyexpat, contextlib
 
 from xml.parsers import expat
@@ -130,6 +128,9 @@ class SGMLOPParser(Parser):
 
 
 class ExpatParser(Parser):
+	"""
+	A parser using Python builtin :mod:`expat` XML parser.
+	"""
 	def __init__(self, encoding=None, transcode=False, xmldecl=False, doctype=False):
 		Parser.__init__(self)
 		self.encoding = encoding

@@ -20,7 +20,6 @@ __docformat__ = "reStructuredText"
 import sys, os, random, copy, warnings, cPickle, threading, weakref, types, codecs
 
 import cssutils
-from cssutils import serialize as cssserialize
 
 from ll import misc, url as url_
 
@@ -89,6 +88,15 @@ threadlocalnodehandler = ThreadLocalNodeHander()
 
 
 class build(object):
+	"""
+	A :class:`build` object can be used as a ``with`` block handler to create a
+	new XIST tree::
+
+		with xsc.build():
+			with html.ul() as e:
+				+html.li("gurk")
+				+html.li("hurz")
+	"""
 	def __init__(self):
 		self.stack = []
 
@@ -111,14 +119,6 @@ class build(object):
 
 	def add(self, *args, **kwargs):
 		self.stack[-1](*args, **kwargs)
-
-
-def add(*args, **kwargs):
-	"""
-	:func:`add` appends items in :var:`args` and sets attributes in
-	:var:`kwargs` in the currenly active node in the ``with`` stack.
-	"""
-	threadlocalnodehandler.handler.add(*args, **kwargs)
 
 
 class addattr(object):
@@ -148,6 +148,14 @@ class addattr(object):
 
 	def add(self, *args):
 		self.attr(*args)
+
+
+def add(*args, **kwargs):
+	"""
+	:func:`add` appends items in :var:`args` and sets attributes in
+	:var:`kwargs` in the currenly active node in the ``with`` stack.
+	"""
+	threadlocalnodehandler.handler.add(*args, **kwargs)
 
 
 ###
@@ -271,9 +279,10 @@ def makewalkfilter(obj):
 
 class Context(object):
 	"""
-	This is an empty class, that can be used by the :meth:`convert` method to
-	hold element or namespace specific data during the convert call. The method
-	:meth:`Converter.__getitem__` will return a unique instance of this class.
+	This is an empty class that can be used by the :meth:`convert` method to
+	hold element or namespace specific data during the :meth:`convert` call.
+	The method :meth:`Converter.__getitem__` will return a unique instance of
+	this class.
 	"""
 	__fullname__ = "Context"
 
@@ -336,21 +345,9 @@ class IllegalPrefixError(Error, LookupError):
 		return "namespace prefix %s is undefined" % (self.prefix,)
 
 
-class IllegalNamespaceError(Error, LookupError):
-	"""
-	Exception that is raised when a namespace name is undefined
-	i.e. if there is no namespace with this name.
-	"""
-	def __init__(self, name):
-		self.name = name
-
-	def __str__(self):
-		return "namespace name %s is undefined" % (self.name,)
-
-
 class IllegalElementError(Error, LookupError):
 	"""
-	Exception that is raised, when an illegal element class is requested
+	Exception that is raised when an illegal element class is requested
 	"""
 
 	def __init__(self, name, xmlns, xml=False):
@@ -369,7 +366,7 @@ class IllegalElementError(Error, LookupError):
 
 class IllegalProcInstError(Error, LookupError):
 	"""
-	Exception that is raised, when an illegal procinst class is requested
+	Exception that is raised when an illegal procinst class is requested
 	"""
 
 	def __init__(self, name, xml=False):
@@ -382,7 +379,7 @@ class IllegalProcInstError(Error, LookupError):
 
 class IllegalEntityError(Error, LookupError):
 	"""
-	Exception that is raised, when an illegal entity class is requested
+	Exception that is raised when an illegal entity class is requested
 	"""
 
 	def __init__(self, name, xml=False):
@@ -395,7 +392,7 @@ class IllegalEntityError(Error, LookupError):
 
 class IllegalCharRefError(Error, LookupError):
 	"""
-	Exception that is raised, when an illegal charref class is requested
+	Exception that is raised when an illegal charref class is requested
 	"""
 
 	def __init__(self, name, xml=False):
@@ -410,7 +407,7 @@ class IllegalCharRefError(Error, LookupError):
 
 class IllegalAttrError(Error, LookupError):
 	"""
-	Exception that is raised, when an illegal attribute is requested.
+	Exception that is raised when an illegal attribute is requested.
 	"""
 
 	def __init__(self, name, cls, xml=False):
@@ -434,8 +431,8 @@ class MultipleRootsError(Error):
 
 class ElementNestingError(Error):
 	"""
-	Exception that is raised, when an element has an illegal nesting
-	(e.g. ``&lt;a&gt;&lt;b&gt;&lt;/a&gt;&lt;/b&gt;``)
+	Exception that is raised when an element has an illegal nesting
+	(e.g. ``<a><b></a></b>``)
 	"""
 
 	def __init__(self, expectedelement, foundelement):
@@ -448,7 +445,7 @@ class ElementNestingError(Error):
 
 class FileNotFoundWarning(Warning):
 	"""
-	Warning that is issued, when a file can't be found.
+	Warning that is issued when a file can't be found.
 	"""
 	def __init__(self, message, filename, exc):
 		Warning.__init__(self, message, filename, exc)
@@ -460,7 +457,7 @@ class FileNotFoundWarning(Warning):
 		return "%s: %r not found (%s)" % (self.message, self.filename, self.exc)
 
 
-class IllegalObjectError(TypeError):
+class IllegalObjectError(Error, TypeError):
 	"""
 	Exception that is raised when an XIST constructor gets passed an
 	unconvertable object.
@@ -475,9 +472,9 @@ class IllegalObjectError(TypeError):
 
 class IllegalCommentContentWarning(Warning):
 	"""
-	Warning that is issued when there is an illegal comment, i.e. one
-	containing ``--`` or ending in ``-``. (This can only happen, when the
-	comment is instantiated by the program, not when parsed from an XML file.)
+	Warning that is issued when there is an illegal comment, i.e. one containing
+	``--`` or ending in ``-``. (This can only happen when the comment was created
+	by code, not when parsed from an XML file.)
 	"""
 
 	def __init__(self, comment):
@@ -489,10 +486,9 @@ class IllegalCommentContentWarning(Warning):
 
 class IllegalProcInstFormatError(Error):
 	"""
-	Exception that is raised, when there is an illegal processing instruction,
-	i.e. one containing ``?>``. (This can only happen, when the processing
-	instruction is instantiated by the program, not when parsed from an XML
-	file.)
+	Exception that is raised when there is an illegal processing instruction,
+	i.e. one containing ``?>``. (This can only happen when the processing
+	instruction was created by code, not when parsed from an XML file.)
 	"""
 
 	def __init__(self, procinst):
@@ -500,35 +496,6 @@ class IllegalProcInstFormatError(Error):
 
 	def __str__(self):
 		return "processing instruction with content %r is illegal, as it contains '?>'." % self.procinst.content
-
-
-class IllegalXMLDeclFormatError(Error):
-	"""
-	Exception that is raised, when there is an illegal XML declaration, i.e.
-	there something wrong in ``<?xml ...?>``. (This can only happen, when the
-	processing instruction is instantiated by the program, not when parsed
-	from an XML file.)
-	"""
-
-	def __init__(self, procinst):
-		self.procinst = procinst
-
-	def __str__(self):
-		return "XML declaration with content %r is malformed." % self.procinst.content
-
-
-class NodeOutsideContextError(Error):
-	"""
-	Error that is raised, when a convert method can't find required context
-	info.
-	"""
-
-	def __init__(self, node, outerclass):
-		self.node = node
-		self.outerclass = outerclass
-
-	def __str__(self):
-		return "node %s outside of %s" % (self.node._str(fullname=True, xml=False, decorate=True), self.outerclass._str(fullname=True, xml=False, decorate=True))
 
 
 ###
@@ -725,9 +692,9 @@ class Node(object):
 	@misc.notimplemented
 	def __unicode__(self):
 		"""
-		Return the character content of :var:`self` as a unicode string. This means
-		that comments and processing instructions will be filtered out. For
-		elements you'll get the element content.
+		Return the character content of :var:`self` as a unicode string. This
+		means that comments and processing instructions will be filtered out.
+		For elements you'll get the element content.
 
 		:meth:`__unicode__` can be used everywhere where a plain string
 		representation of the node is required.
@@ -784,7 +751,7 @@ class Node(object):
 		This method will be called by the parser :var:`parser` once after
 		:var:`self` is created by the parser and must return the node that is to
 		be put into the tree (in most cases this is :var:`self`, it's used e.g.
-		by :class:`URLAttr` to incorporate the base URL into the attribute.
+		by :class:`URLAttr` to incorporate the base URL into the attribute).
 
 		For elements :func:`parsed` will be called twice: Once at the beginning
 		(i.e. before the content is parsed) with :var:`start` being :const:`True`
@@ -822,7 +789,7 @@ class Node(object):
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
 
-		return publisher.publish(self, base) # return a generator-iterator
+		return publisher.iterbytes(self, base) # return a generator-iterator
 
 	def bytes(self, base=None, publisher=None, **publishargs):
 		"""
@@ -831,7 +798,10 @@ class Node(object):
 		For the possible parameters see the :class:`ll.xist.publishers.Publisher`
 		constructor.
 		"""
-		return "".join(self.iterbytes(base, publisher, **publishargs))
+		if publisher is None:
+			publisher = publishers.Publisher(**publishargs)
+
+		return publisher.bytes(self, base)
 
 	def iterstring(self, base=None, publisher=None, **publishargs):
 		"""
@@ -842,14 +812,8 @@ class Node(object):
 		"""
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
-		decoder = codecs.getincrementaldecoder("xml")(encoding=publisher.encoding)
-		for part in publisher.publish(self, base):
-			part = decoder.decode(part, False)
-			if part:
-				yield part
-		part = decoder.decode("", True)
-		if part:
-			yield part
+
+		return publisher.iterstring(self, base) # return a generator-iterator
 
 	def string(self, base=None, publisher=None, **publishargs):
 		"""
@@ -860,11 +824,9 @@ class Node(object):
 		"""
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
-		decoder = codecs.getdecoder("xml")
-		result = "".join(publisher.publish(self, base))
-		return decoder(result, encoding=publisher.encoding)[0]
+		return publisher.string(self, base)
 
-	def write(self, stream, *args, **publishargs):
+	def write(self, stream, base=None, publisher=None, **publishargs):
 		"""
 		Write :var:`self` to the file-like object :var:`stream` (which must provide
 		a :meth:`write` method).
@@ -872,8 +834,9 @@ class Node(object):
 		For the rest of the parameters see the :class:`ll.xist.publishers.Publisher`
 		constructor.
 		"""
-		for part in self.bytes(*args, **publishargs):
-			stream.write(part)
+		if publisher is None:
+			publisher = publishers.Publisher(**publishargs)
+		return publisher.write(stream, self, base)
 
 	def _walk(self, walkfilter, path):
 		"""
@@ -952,7 +915,7 @@ class Node(object):
 	def compact(self):
 		"""
 		Return a version of :var:`self`, where textnodes or character references
-		that contain only linefeeds are removed, i.e. potentially needless
+		that contain only linefeeds are removed, i.e. potentially useless
 		whitespace is removed.
 		"""
 		return self
@@ -1393,7 +1356,7 @@ class Frag(Node, list):
 
 	def __getitem__(self, index):
 		"""
-		Return the :var:`index`'th node for the content of the fragment. If
+		Return the :var:`index`'th node of the content of the fragment. If
 		:var:`index` is a list :meth:`__getitem__` will work recursively.
 		If :var:`index` is an empty list, :var:`self` will be returned.
 		:meth:`__getitem__` also supports walk filters.
@@ -1456,7 +1419,7 @@ class Frag(Node, list):
 
 	def __delitem__(self, index):
 		"""
-		Remove the :var:`index`'th content node from the fragment If :var:`index`
+		Remove the :var:`index`'th content node from the fragment. If :var:`index`
 		is a list, the innermost index will be deleted, after traversing the rest
 		of :var:`index` recursively. If :var:`index` is an empty list, an
 		exception will be raised. Anything except :class:`list`, :class:`int` and
@@ -1557,7 +1520,7 @@ class Frag(Node, list):
 		Return a version of :var:`self` with a separator node between the nodes of
 		:var:`self`.
 
-		if :var:`clone` is false one node will be inserted several times, if
+		if :var:`clone` is false, one node will be inserted several times, if
 		:var:`clone` is true, clones of this node will be used.
 		"""
 		node = self._create()
@@ -1770,7 +1733,7 @@ class AttrProcInst(ProcInst):
 	Special subclass of :class:`ProcInst`.
 
 	When an :class:`AttrProcInst` node is the first node in an attribute, it
-	takes over publishing of the attribute (via the methods :meth:publishattr`
+	takes over publishing of the attribute (via the methods :meth:`publishattr`
 	and :meth:`publishboolattr`). In all other cases the processing instruction
 	disappears completely.
 	"""
@@ -1905,8 +1868,8 @@ class Attr(Frag):
 		in the class attribute ``values``. If the value is not allowed a warning
 		will be issued through the Python warning framework.
 
-		If :var:`self` is "fancy" (i.e. contains non-:class:`Text` nodes), no check
-		will be done.
+		If :var:`self` is "fancy" (i.e. contains non-:class:`Text` nodes), no
+		check will be done.
 		"""
 		values = self.__class__.values
 		if self and isinstance(values, tuple) and not self.isfancy():
@@ -1989,8 +1952,7 @@ class NumberAttr(Attr):
 
 class IntAttr(NumberAttr):
 	"""
-	Attribute class that is used when the attribute value may be an
-	integer.
+	Attribute class that is used when the attribute value may be an integer.
 	"""
 
 
@@ -2007,7 +1969,7 @@ class BoolAttr(Attr):
 	the value will always be the attribute name, regardless of the real value.
 	"""
 
-	# We can't simply overwrite _publishattrvalue(), because for xhtml==0 we don't output a "proper" attribute
+	# We can't simply overwrite :meth:`_publishattrvalue`, because for ``xhtml==0`` we don't output a "proper" attribute
 	def publish(self, publisher):
 		if publisher.validate:
 			self.checkvalid()
@@ -2047,7 +2009,7 @@ class StyleAttr(Attr):
 	def replaceurls(self, replacer):
 		"""
 		Replace each URL in the style. Each URL will be passed to the callable
-		:var:`replacer` and replaced with the return value.
+		:var:`replacer` and replaced with the returned value.
 		"""
 		self[:] = self._transform(replacer)
 
@@ -2554,7 +2516,7 @@ class Attrs(Node, dict):
 
 	def _iterallvalues(self):
 		"""
-		Iterate all values, even the unset ones
+		Iterate through all values, even the unset ones.
 		"""
 		return dict.itervalues(self)
 
@@ -2578,7 +2540,7 @@ class Attrs(Node, dict):
 
 	def filtered(self, function):
 		"""
-		Return a filtered version of the :var:`self`.
+		Return a filtered version of :var:`self`.
 		"""
 		node = self._create()
 		for (name, value) in self.items():
@@ -2833,13 +2795,13 @@ class Element(Node):
 
 	def append(self, *items):
 		"""
-		Append every item in :var:`items` to the element content.
+		Append every item in :var:`items` to the elements content.
 		"""
 		self.content.append(*items)
 
 	def extend(self, items):
 		"""
-		Append all items in :var:`items` to element content.
+		Append all items in :var:`items` to the elements content.
 		"""
 		self.content.extend(items)
 
@@ -2889,7 +2851,6 @@ class Element(Node):
 		attribute is not set already. The same will happen for the height, which
 		will be put into the attribute named :var:`heighattr`.
 		"""
-
 		try:
 			size = url.imagesize()
 		except IOError, exc:
@@ -3340,17 +3301,17 @@ class Pool(misc.Pool):
 		"""
 		Register :var:`object` in the pool. :var:`object` can be:
 
-		*	A :class:`Element`, :class:`ProcInst`, :class:`Entity`, or
+		*	a :class:`Element`, :class:`ProcInst`, :class:`Entity`, or
 			:class:`CharRef` class;
 
-		*	An :class:`Attr` class for a global attribute;
+		*	an :class:`Attr` class for a global attribute;
 
-		*	An :class:`Attrs` class containing global attributes;
+		*	an :class:`Attrs` class containing global attributes;
 
-		*	A :class:`dict` (all values will be registered, this makes it possible
+		*	a :class:`dict` (all values will be registered, this makes it possible
 			to e.g. register all local variables by passing ``vars()``);
 
-		*	A module (all attributes in the module will be registered).
+		*	a module (all attributes in the module will be registered).
 		"""
 		if isinstance(object, type):
 			if issubclass(object, Element):
@@ -3407,7 +3368,7 @@ class Pool(misc.Pool):
 	def elementclass(self, name, xmlns):
 		"""
 		Return the element class for the element with the Python name :var:`name`
-		and the namespace :var:`xmlns`. If the element can't be found a
+		and the namespace :var:`xmlns`. If the element can't be found an
 		:exc:`IllegalElementError` will be raised.
 		"""
 		if isinstance(xmlns, (list, tuple)):
@@ -3434,7 +3395,7 @@ class Pool(misc.Pool):
 		"""
 		Return the element class for the element type with the XML name
 		:var:`name` and the namespace :var:`xmlns`. If the element can't
-		be found a :exc:`IllegalElementError` will be raised.
+		be found an :exc:`IllegalElementError` will be raised.
 		"""
 		if isinstance(xmlns, (list, tuple)):
 			for xmlns in xmlns:
@@ -3493,8 +3454,8 @@ class Pool(misc.Pool):
 	def procinstclass(self, name):
 		"""
 		Return the processing instruction class for the PI with the Python name
-		:var:`name`. If the element can't be found a :exc:`IllegalProcInstError`
-		will be raised.
+		:var:`name`. If the processing instruction can't be found an
+		:exc:`IllegalProcInstError` will be raised.
 		"""
 		try:
 			return self._procinstsbypyname[name]
@@ -3509,8 +3470,8 @@ class Pool(misc.Pool):
 	def procinstclass_xml(self, name):
 		"""
 		Return the processing instruction class for the PI with the XML name
-		:var:`name`. If the element can't be found a :exc:`IllegalProcInstError`
-		will be raised.
+		:var:`name`. If the processing instruction can't be found an
+		:exc:`IllegalProcInstError` will be raised.
 		"""
 		try:
 			return self._procinstsbyxmlname[name]
@@ -3558,8 +3519,8 @@ class Pool(misc.Pool):
 
 	def entityclass(self, name):
 		"""
-		Return the entity for the entity with the Python name :var:`name`.
-		If the entity can't be found a :exc:`IllegalEntityError` will be raised.
+		Return the entity class for the entity with the Python name :var:`name`.
+		If the entity can't be found an :exc:`IllegalEntityError` will be raised.
 		"""
 		try:
 			return self._entitiesbypyname[name]
@@ -3573,8 +3534,8 @@ class Pool(misc.Pool):
 
 	def entityclass_xml(self, name):
 		"""
-		Return the entity for the entity with the XML name :var:`name`.
-		If the entity can't be found a :exc:`IllegalEntityError` will be raised.
+		Return the entity class for the entity with the XML name :var:`name`.
+		If the entity can't be found an :exc:`IllegalEntityError` will be raised.
 		"""
 		try:
 			return self._entitiesbyxmlname[name]
@@ -3672,8 +3633,8 @@ class Pool(misc.Pool):
 
 	def hascharref(self, name):
 		"""
-		Is there a registered character entity class in :var:`self` with the Python
-		name or codepoint :var:`name`?
+		Is there a registered character entity class in :var:`self` with the
+		Python name or codepoint :var:`name`?
 		"""
 		if isinstance(name, (int, long)):
 			has = name in self._charrefsbycodepoint
@@ -3694,7 +3655,7 @@ class Pool(misc.Pool):
 
 	def attrclass(self, name, xmlns):
 		"""
-		Return the aatribute class for the global attribute with the Python name
+		Return the attribute class for the global attribute with the Python name
 		:var:`name` and the namespace :var:`xmlns`. If the attribute can't
 		be found a :exc:`IllegalAttrError` will be raised.
 		"""

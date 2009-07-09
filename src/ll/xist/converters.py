@@ -131,7 +131,7 @@ class Converter(object):
 
 	class lang(misc.propclass):
 		"""
-		<p>The target language. The default is ``None``.</p>
+		The target language. The default is :const`None`.
 		"""
 		def __get__(self):
 			return self.states[-1].lang
@@ -204,11 +204,11 @@ class Converter(object):
 	def __getitem__(self, obj):
 		"""
 		Return a context object for :var:`obj`, which should be an
-		:class:`ll.xist.xsc.Node`</pyref> instance or subclass. Each of these
-		classes that defines its own :class:`Context` class gets a unique
-		instance of this class. This instance will be created on the first access
-		and the element can store information there that needs to be available
-		across calls to :meth:`convert`.
+		:class:`ll.xist.xsc.Node` instance or subclass. Each of these classes
+		that defines its own :class:`Context` class gets a unique instance of
+		this class. This instance will be created on the first access and the
+		element can store information there that needs to be available across
+		calls to :meth:`convert`.
 		"""
 		contextclass = obj.Context
 		# don't use :meth:`setdefault`, as constructing the context object might involve some overhead
