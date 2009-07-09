@@ -1,3 +1,10 @@
+Changes in 3.6.6 (released 07/09/2009)
+--------------------------------------
+
+*	Fixed handling of empty pid files in :mod:`ll.sisyphus` (Fixes issue #11
+	reported by Jarek Zgoda).
+
+
 Changes in 3.6.5 (released 06/02/2009)
 --------------------------------------
 

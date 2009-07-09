@@ -295,34 +295,40 @@ class Job(object):
 				raise
 		else:
 			lastmodified = datetime.datetime.fromtimestamp(os.fstat(file.fileno()).st_mtime)
-			pid = int(file.read())
-			file.close()
-
-			# Check if this process really exists, if not continue as if the pid file wasn't there
 			try:
-				os.kill(pid, 0)
-			except OSError, exc:
-				if exc[0] != errno.ESRCH:
-					raise
+				pid = int(file.read())
+			except ValueError:
+				# disk may have been full
+				file.close()
 				self.__writepid()
-				msg = "ignoring bogus pid file %s (process with pid %d doesn't exist)" % (self.pidfilename, pid)
-				self.logError(msg)
+				self.logProgress("ignoring bogus pid file %s (invalid content)" % self.pidfilename)
 			else:
-				if self.maxruntime and self.starttime-lastmodified > self.maxruntime: # the job is to old, so it probably hangs => kill it
-					try:
-						os.kill(pid, 9)
-					except OSError, exc:
-						if exc[0] != errno.ESRCH: # there was no process
-							raise
+				file.close()
+				# Check if this process really exists, if not continue as if the pid file wasn't there
+				try:
+					os.kill(pid, 0)
+				except OSError, exc:
+					if exc[0] != errno.ESRCH:
+						raise
 					self.__writepid()
-					msg = "killed previous job running with pid %d (ran %s seconds; %s allowed); here we go" % (pid, _formattimedelta(self.starttime-lastmodified), _formattimedelta(self.maxruntime))
+					msg = "ignoring bogus pid file %s (process with pid %d doesn't exist)" % (self.pidfilename, pid)
 					self.logError(msg)
-					if self.printkills:
-						print msg
 				else:
-					msg = "Job still running (for %s; %s allowed; started on %s) with pid %d (according to %s)" % (_formattimedelta(self.starttime-lastmodified), _formattimedelta(self.maxruntime), _formattime(lastmodified), pid, self.pidfilename)
-					self.logErrorOnly(msg)
-					return # Return without calling :meth:`execute`
+					if self.maxruntime and self.starttime-lastmodified > self.maxruntime: # the job is to old, so it probably hangs => kill it
+						try:
+							os.kill(pid, 9)
+						except OSError, exc:
+							if exc[0] != errno.ESRCH: # there was no process
+								raise
+						self.__writepid()
+						msg = "killed previous job running with pid %d (ran %s seconds; %s allowed); here we go" % (pid, _formattimedelta(self.starttime-lastmodified), _formattimedelta(self.maxruntime))
+						self.logError(msg)
+						if self.printkills:
+							print msg
+					else:
+						msg = "Job still running (for %s; %s allowed; started on %s) with pid %d (according to %s)" % (_formattimedelta(self.starttime-lastmodified), _formattimedelta(self.maxruntime), _formattime(lastmodified), pid, self.pidfilename)
+						self.logErrorOnly(msg)
+						return # Return without calling :meth:`execute`
 
 		try:
 			self.execute()
