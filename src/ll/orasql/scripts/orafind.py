@@ -138,7 +138,6 @@ def main(args=None):
 			if not where:
 				continue # no string columns
 			query = "select * from %s where %s" % (table.name, " or ".join(where))
-			print query
 			c.execute(query, searchstring=searchstring)
 			for r in c:
 				stdout.writeln("orafind.py: in ", df(table), ": ", repr(r))
