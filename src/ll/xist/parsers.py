@@ -418,10 +418,10 @@ class Builder(object):
 
 	def parseiter(self, iterable, base=None, encoding=None):
 		"""
-		Parse the input from the iterable :var:`iterable:var:` (which must
-		produce the input in chunks of bytes) into an XIST tree. :var:`base` is
-		the base URL for the parsing process, :var:`encoding` can be used to
-		force the parser to use the specified encoding.
+		Parse the input from the iterable :var:`var` (which must produce the input
+		in chunks of bytes) into an XIST tree. :var:`base` is the base URL for the
+		parsing process, :var:`encoding` can be used to force the parser to use
+		the specified encoding.
 		"""
 		self.url = url.URL(base if base is not None else "ITER")
 		if self.tidy:
@@ -437,7 +437,7 @@ class Builder(object):
 		Parse XML input from the stream :var:`stream`. :var:`base` is the base
 		URL for the parsing process, :var:`encoding` can be used to force the
 		parser to use the specified encoding. :var:`bufsize` is the buffer size
-		used from reading the stream in blocks.
+		used for reading the stream in blocks.
 		"""
 		self.url = url.URL(base if base is not None else "STREAM")
 		parser = self._begin(base=base, encoding=encoding)
@@ -455,8 +455,8 @@ class Builder(object):
 		Parse XML input from the file named :var:`filename`. :var:`base` is the
 		base URL for the parsing process (defaulting to :var:`filename` if not
 		specified), :var:`encoding` can be used to force the parser to use the
-		specified encoding. :var:`bufsize` is the buffer size used from reading
-		the stream in blocks.
+		specified encoding. :var:`bufsize` is the buffer size used for reading
+		the file in blocks.
 		"""
 		self.url = url.File(filename)
 		if base is None:
@@ -480,7 +480,7 @@ class Builder(object):
 		base URL for the parsing process (defaulting to the final URL of the
 		response (i.e. including redirects)). :var:`encoding` can be used to
 		force the parser to use the specified encoding. :var:`bufsize` is the
-		buffer size used from reading the response in blocks :var:`args` and
+		buffer size used for reading the response in blocks. :var:`args` and
 		:var:`kwargs` will be passed on to the :meth:`open` call.
 		"""
 		name = url.URL(name)
@@ -716,9 +716,9 @@ def parseiter(iterable, base=None, encoding=None, **builderargs):
 def parsestream(stream, base=None, encoding=None, bufsize=8192, **builderargs):
 	"""
 	Parse XML from the stream :var:`stream` into an XIST tree. For the arguments
-	:var:`base`, :var:`encoding` and :var:`bufzise` see the method :meth:`parse`
-	in the :class:`Parser` class. You can pass any other argument that the
-	:class:`Builder` constructor takes as keyword arguments via
+	:var:`base`, :var:`encoding` and :var:`bufzise` see the method
+	:meth:`parsestream` in the :class:`Parser` class. You can pass any other
+	argument that the :class:`Builder` constructor takes as keyword arguments via
 	:var:`builderargs`.
 	"""
 	builder = Builder(**builderargs)
