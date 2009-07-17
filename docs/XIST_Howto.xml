@@ -130,7 +130,8 @@ with xsc.build():
 </prog>
 </example>
 
-<p><class>xsc.build</class> must be used as the top level with block, so that &xist; knows what to do with the nodes inside the block.</p>
+<p><class>xsc.build</class> must be used as the top level with block, so that &xist;
+knows what to do with the nodes inside the block.</p>
 </section>
 
 <section><h>Generating &xml; trees from &xml; files</h>
