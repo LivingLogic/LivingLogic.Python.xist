@@ -420,7 +420,7 @@ class base(xsc.Element):
 
 class block(base):
 	"""
-	Base class for all block level elements
+	Base class for all block level elements.
 	"""
 	xmlns = xmlns
 	register = False
@@ -432,7 +432,7 @@ class block(base):
 
 class inline(base):
 	"""
-	Base class for all inline elements
+	Base class for all inline elements.
 	"""
 	xmlns = xmlns
 	register = False
@@ -443,6 +443,9 @@ class inline(base):
 
 
 class abbr(inline):
+	"""
+	Abbreviation.
+	"""
 	xmlns = xmlns
 	model = sims.NoElements()
 	class Attrs(xsc.Element.Attrs):
@@ -478,7 +481,7 @@ class tab(xsc.Element):
 
 class litblock(block):
 	"""
-	A literal text block (like source code or a shell session)
+	A literal text block (like source code or a shell session).
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(inline)
@@ -638,7 +641,7 @@ class code(inline):
 
 class option(code):
 	"""
-	An option for a software command
+	An option for a software command.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(rep)
@@ -654,7 +657,7 @@ class option(code):
 
 class lit(code):
 	"""
-	Inline text that is some literal value
+	Inline text that is some literal value.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(code, rep)
@@ -670,7 +673,7 @@ class lit(code):
 
 class func(code):
 	"""
-	The name of a function or subroutine, as in a programming language
+	The name of a function or subroutine, as in a programming language.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(rep)
@@ -682,7 +685,7 @@ class func(code):
 
 class meth(code):
 	"""
-	The name of a method or memberfunction in a programming language
+	The name of a method or memberfunction in a programming language.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(rep)
@@ -694,7 +697,7 @@ class meth(code):
 
 class attr(code):
 	"""
-	The name of an attribute of a class/object
+	The name of an attribute of a class/object.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(rep)
@@ -731,7 +734,7 @@ class class_(code):
 
 class exc(code):
 	"""
-	The name of a exception class.
+	The name of an exception class.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(rep)
@@ -743,7 +746,7 @@ class exc(code):
 
 class markup(code):
 	"""
-	A string of formatting markup in text that is to be represented literally
+	A string of formatting markup in text that is to be represented literally.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(rep)
@@ -835,7 +838,7 @@ class mod(code):
 
 class file(code):
 	"""
-	The name of a file
+	The name of a file.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(rep)
@@ -851,7 +854,7 @@ class file(code):
 
 class dir(code):
 	"""
-	The name of a directory
+	The name of a directory.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(rep)
@@ -863,7 +866,7 @@ class dir(code):
 
 class user(code):
 	"""
-	The name of a user account
+	The name of a user account.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(rep)
@@ -875,7 +878,7 @@ class user(code):
 
 class host(code):
 	"""
-	The name of a computer
+	The name of a computer.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(rep)
@@ -887,7 +890,7 @@ class host(code):
 
 class const(code):
 	"""
-	The name of a constant
+	The name of a constant.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(rep)
@@ -899,7 +902,7 @@ class const(code):
 
 class data(code):
 	"""
-	The name of a data object
+	The name of a data object.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(rep)
@@ -911,7 +914,7 @@ class data(code):
 
 class app(inline):
 	"""
-	The name of a software program
+	The name of a software program.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(rep)
@@ -1073,7 +1076,7 @@ class section(block):
 
 class p(block):
 	"""
-	A paragraph
+	A paragraph.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(inline)
