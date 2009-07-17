@@ -62,7 +62,7 @@ class Publisher(object):
 			A dictionary that specifies which namespace prefixes should be used
 			for publishing. Keys in the dictionary are either namespace names or
 			objects that have an ``xmlns`` attribute which is the namespace name.
-			Value can be:
+			Values can be:
 
 			:const:`False`
 				Treat elements in this namespace as if they are not in any
@@ -118,7 +118,7 @@ class Publisher(object):
 		Encode :var:`test` as text data. :var:`text` must be a :class:`unicode`
 		object. The publisher will apply the configured encoding, error handling
 		and the current text filter (which escapes characters that can't appear
-		in text data (like ``<`` etc.)) and return the resulting :class:`str`
+		in text data (like ``<`` etc.)) and returns the resulting :class:`str`
 		object.
 		"""
 		self.encoder.errors = self.__errors[-1]
@@ -128,9 +128,9 @@ class Publisher(object):
 
 	def pushtextfilter(self, filter):
 		"""
-		Pushes a new text filter function on the text filter stack. This function
-		is responsible for escaping characters that can't appear in text data
-		(like ``<``)). This is used to switch on escaping of ``"`` inside
+		Pushes a new text filter function ontp the text filter stack. This
+		function is responsible for escaping characters that can't appear in text
+		data (like ``<``)). This is used to switch on escaping of ``"`` inside
 		attribute values.
 		"""
 		self.__textfilters.append(filter)
@@ -312,8 +312,7 @@ class Publisher(object):
 
 	def bytes(self, node, base=None):
 		"""
-		A generator that will produce a serialized byte string in XML format for
-		the XIST node :var:`node`.
+		Return a byte string in XML format for the XIST node :var:`node`.
 		"""
 		return "".join(self.iterbytes(node, base))
 
@@ -332,7 +331,7 @@ class Publisher(object):
 
 	def string(self, node, base=None):
 		"""
-		Return a serialized unicode string for :var:`node`.
+		Return a unicode string for :var:`node`.
 		"""
 		decoder = codecs.getdecoder("xml")
 		result = self.bytes(node, base)
