@@ -478,7 +478,7 @@ class tab(xsc.Element):
 
 class litblock(block):
 	"""
-	A literal text block (like source code or a shell dump)
+	A literal text block (like source code or a shell session)
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(inline)
