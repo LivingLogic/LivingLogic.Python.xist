@@ -3,7 +3,7 @@ Requirements
 
 To use XIST you need the following software packages:
 
-	1.	`Python 2.5`_;
+	1.	`Python 2.6`_;
 
 	2.	`Python Imaging Library`_;
 
@@ -21,7 +21,7 @@ To use XIST you need the following software packages:
 	8.	and a C compiler supported by distutils, if you want to install the
 		source distribution.
 
-	.. _Python 2.5: http://www.python.org/
+	.. _Python 2.6: http://www.python.org/
 	.. _Python Imaging Library: http://www.pythonware.com/products/pil/
 	.. _libxml2: http://www.xmlsoft.org/
 	.. _elinks: http://elinks.or.cz/
