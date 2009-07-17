@@ -129,7 +129,7 @@ class SGMLOPParser(Parser):
 
 class ExpatParser(Parser):
 	"""
-	A parser using Python builtin :mod:`expat` XML parser.
+	A parser using Pythons builtin :mod:`expat` XML parser.
 	"""
 	def __init__(self, encoding=None, transcode=False, xmldecl=False, doctype=False):
 		Parser.__init__(self)
