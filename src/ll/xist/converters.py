@@ -117,11 +117,7 @@ class Converter(object):
 		similar object.
 		"""
 		def __get__(self):
-			if self.states[-1].target is None:
-				from ll.xist.ns import html
-				return html.xmlns
-			else:
-				return self.states[-1].target
+			return self.states[-1].target
 	
 		def __set__(self, target):
 			self.states[-1].target = target
