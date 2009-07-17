@@ -38,8 +38,8 @@ class ConverterState(object):
 class Converter(object):
 	"""
 	An instance of this class is passed around in calls to the :meth:`convert`
-	method. This object can be used when some element needs to keep state across
-	a nested :meth:`convert` call. A typical example are nested
+	method. A :class:`Converter` object can be used when some element needs to
+	keep state across a nested :meth:`convert` call. A typical example are nested
 	chapter/subchapter elements with automatic numbering. For an example see the
 	element :class:`ll.xist.ns.doc.section`.
 	"""
@@ -81,7 +81,7 @@ class Converter(object):
 
 	class mode(misc.propclass):
 		"""
-		The conversion mode. This corresponds directly to the mode in XSLT
+		The conversion mode. This corresponds directly to the mode in XSLT.
 		The default is :const:`None`.
 		"""
 		def __get__(self):
@@ -131,7 +131,7 @@ class Converter(object):
 
 	class lang(misc.propclass):
 		"""
-		The target language. The default is :const`None`.
+		The target language. The default is :const:`None`.
 		"""
 		def __get__(self):
 			return self.states[-1].lang
