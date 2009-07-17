@@ -88,7 +88,7 @@ class pixel(_pixelbase):
 	Element for single transparent pixel image.
 	
 	You can specify the pixel color via the ``color`` attribute (which will set
-	the background-color in the style attribute.
+	the background-color in the style attribute).
 
 	In addition to that you can specify width and height attributes (and every
 	other allowed attribute for the :class:`img` element) as usual.
