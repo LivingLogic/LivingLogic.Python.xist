@@ -19,7 +19,7 @@ Changes to the make module
 		t2 = t2.callattr("encode", "utf-8")
 		t2 = make.FileAction("file:bar.txt", t2)
 
-	Also the following classes have been removed from :mod:`ll.make`:
+*	Also the following classes have been removed from :mod:`ll.make`:
 	:class:`EncodeAction`, :class:`DecodeAction`, :class:`EvalAction`,
 	:class:`GZipAction`, :class:`GUnzipAction`,
 	:class:`JavascriptMinifyAction`, :class:`XISTBytesAction`,
