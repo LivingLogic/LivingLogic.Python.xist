@@ -100,13 +100,16 @@ class IsInstanceSelector(Selector):
 		>>> from ll.xist.ns import html
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknode(html.a):
-		... 	print node.bytes()
+		... 	print node.attrs.href, node.attrs.title
 		... 
-		<a id="logolink" accesskey="1" href="http://www.python.org/"><img src="http://www.python.org/images/python-logo.gif" id="logo" border="0" alt="homepage" /></a>
-		<a accesskey="2" href="http://www.python.org/#left%2dhand%2dnavigation"><img id="skiptonav" src="http://www.python.org/images/trans.gif" border="0" alt="skip to navigation" /></a>
-		<a accesskey="3" href="http://www.python.org/#content%2dbody"><img id="skiptocontent" src="http://www.python.org/images/trans.gif" border="0" alt="skip to content" /></a>
-		<a class="reference" href="http://www.python.org/search">Advanced Search</a>
-		<a title="About The Python Language" href="http://www.python.org/about/">About</a>
+		http://www.python.org/ 
+		http://www.python.org/#left%2Dhand%2Dnavigation 
+		http://www.python.org/#content%2Dbody 
+		http://www.python.org/search 
+		http://www.python.org/about/ About The Python Language
+		http://www.python.org/news/ Major Happenings Within the Python Community
+		http://www.python.org/doc/ Tutorials, Library Reference, C API
+		http://www.python.org/download/ Start Running Python Under Windows, Mac, Linux and Others
 		...
 	"""
 	def __init__(self, *types):
@@ -393,11 +396,11 @@ class attrhasvalue(Selector):
 		>>> from ll.xist import parsers, xfind
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknode(xfind.attrhasvalue("rel", "stylesheet")):
-		... 	print repr(node)
+		... 	print node.attrs.href
 		... 
-		<a media="screen" type="text/css" href="http://www.python.org/styles/screen-switcher-default.css" rel="stylesheet" id="screen-switcher-stylesheet" />
-		<a media="scReen" type="text/css" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" />
-		<a media="print" type="text/css" rel="stylesheet" href="http://www.python.org/styles/print.css" />
+		http://www.python.org/styles/screen-switcher-default.css
+		http://www.python.org/styles/netscape4.css
+		http://www.python.org/styles/print.css
 	"""
 
 	def __init__(self, attrname, *attrvalues):
@@ -454,13 +457,14 @@ class attrcontains(Selector):
 		>>> from ll.xist import parsers, xfind
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknode(xfind.attrcontains("rel", "stylesheet")):
-		... 	print repr(node)
+		... 	print node.attrs.rel, node.attrs.href
 		... 
-		<a type="text/css" id="screen-switcher-stylesheet" media="screen" rel="stylesheet" href="http://www.python.org/styles/screen-switcher-default.css" />
-		<a type="text/css" media="scReen" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" />
-		<a type="text/css" media="print" rel="stylesheet" href="http://www.python.org/styles/print.css" />
-		<a type="text/css" title="large text" media="screen" rel="alternate stylesheet" href="http://www.python.org/styles/largestyles.css" />
-		<a type="text/css" title="default fonts" media="screen" rel="alternate stylesheet" href="http://www.python.org/styles/defaultfonts.css" />
+
+		stylesheet http://www.python.org/styles/screen-switcher-default.css
+		stylesheet http://www.python.org/styles/netscape4.css
+		stylesheet http://www.python.org/styles/print.css
+		alternate stylesheet http://www.python.org/styles/largestyles.css
+		alternate stylesheet http://www.python.org/styles/defaultfonts.css
 	"""
 
 	def __init__(self, attrname, *attrvalues):
@@ -577,13 +581,13 @@ class attrendswith(Selector):
 		>>> from ll.xist import parsers, xfind
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknode(xfind.attrendswith("href", ".css")):
-		... 	print repr(node)
+		... 	print node.attrs.href
 		... 
-		<a href="http://www.python.org/styles/screen-switcher-default.css" type="text/css" rel="stylesheet" id="screen-switcher-stylesheet" media="screen" />
-		<a type="text/css" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" media="scReen" />
-		<a type="text/css" rel="stylesheet" href="http://www.python.org/styles/print.css" media="print" />
-		<a title="large text" type="text/css" rel="alternate stylesheet" href="http://www.python.org/styles/largestyles.css" media="screen" />
-		<a title="default fonts" type="text/css" rel="alternate stylesheet" href="http://www.python.org/styles/defaultfonts.css" media="screen" />
+		http://www.python.org/styles/screen-switcher-default.css
+		http://www.python.org/styles/netscape4.css
+		http://www.python.org/styles/print.css
+		http://www.python.org/styles/largestyles.css
+		http://www.python.org/styles/defaultfonts.css
 	"""
 
 	def __init__(self, attrname, *attrvalues):
@@ -722,8 +726,8 @@ inattr = inattr()
 
 class Combinator(Selector):
 	"""
-	<p>A :class:`Combinator` is a selector that transforms one or combines
-	two or more other selectors in a certain way.</p>
+	A :class:`Combinator` is a selector that transforms one or combines two or
+	more other selectors in a certain way.
 	"""
 
 
@@ -924,18 +928,22 @@ class OrCombinator(ChainedCombinator):
 		>>> from ll.xist.ns import html
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknode(xfind.hasattr("href") | xfind.hasattr("src")):
-		... 	print node.bytes()
+		... 	print node.attrs.href if "href" in node.Attrs else node.attrs.src
 		... 
-		<a type="application/rss+xml" title="RSS" rel="alternate" href="http://www.python.org/channews.rdf" />
-		<a media="screen" type="text/css" id="screen-switcher-stylesheet" rel="stylesheet" href="http://www.python.org/styles/screen-switcher-default.css" />
-		<a media="scReen" type="text/css" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" />
-		<a media="print" type="text/css" rel="stylesheet" href="http://www.python.org/styles/print.css" />
-		<a media="screen" type="text/css" title="large text" rel="alternate stylesheet" href="http://www.python.org/styles/largestyles.css" />
-		<a media="screen" type="text/css" title="default fonts" rel="alternate stylesheet" href="http://www.python.org/styles/defaultfonts.css" />
-		<script src="http://www.python.org/js/iotbs2-key-directors-load.js" type="text/javascript"></script>
-		<script src="http://www.python.org/js/iotbs2-directors.js" type="text/javascript"></script>
-		<script src="http://www.python.org/js/iotbs2-core.js" type="text/javascript"></script>
-		<a accesskey="1" id="logolink" href="http://www.python.org/"><img alt="homepage" src="http://www.python.org/images/python-logo.gif" id="logo" border="0" /></a>
+		http://www.python.org/channews.rdf
+		http://aspn.activestate.com/ASPN/Cookbook/Python/index_rss
+		http://python-groups.blogspot.com/feeds/posts/default
+		http://www.showmedo.com/latestVideoFeed/rss2.0?tag=python
+		http://www.awaretek.com/python/index.xml
+		http://pyfound.blogspot.com/feeds/posts/default
+		http://www.python.org/dev/peps/peps.rss
+		http://www.python.org/community/jobs/jobs.rss
+		http://www.reddit.com/r/Python/.rss
+		http://www.python.org/styles/screen-switcher-default.css
+		http://www.python.org/styles/netscape4.css
+		http://www.python.org/styles/print.css
+		http://www.python.org/styles/largestyles.css
+		http://www.python.org/styles/defaultfonts.css
 		...
 	"""
 
@@ -1078,7 +1086,7 @@ class nthchild(Selector):
 
 class nthoftype(Selector):
 	"""
-	An :class:`nthchild` object is a selector that selects every node that is
+	An :class:`nthoftype` object is a selector that selects every node that is
 	the n-th node of a specified type among its siblings. Similar to
 	:class:`nthchild` :class:`nthoftype` supports negative and positive indices
 	as well as ``"even"`` and ``"odd"``. Which types are checked can be passed
