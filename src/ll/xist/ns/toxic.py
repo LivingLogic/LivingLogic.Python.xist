@@ -12,7 +12,7 @@
 '''
 This module is an XIST namespace. It provides the processing instruction classes
 needed to create TOXIC functions and procedures via XIST. For more info about
-the TOXIC compiler see the module :mod:``ll.toxicc``.
+the TOXIC compiler see the module :mod:`ll.toxicc`.
 '''
 
 
