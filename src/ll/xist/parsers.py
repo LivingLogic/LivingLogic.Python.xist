@@ -247,7 +247,7 @@ class Builder(object):
 			the appropriate interface).
 
 		:var:`prefixes` : mapping
-			a mapping that maps namespace prefixes to namespace names/modules)
+			a mapping that maps namespace prefixes to namespace names/modules
 			(or lists of namespace names/modules). This is used to preinitialize
 			the namespace prefix mapping.
 
@@ -264,12 +264,12 @@ class Builder(object):
 			Should the parsed XML nodes be validated after parsing?
 
 		:var:`encoding` : string or :const:`None`
-			The default encoding to use, when the source doesn't provide an
+			The default encoding to use when the source doesn't provide an
 			encoding. The default :const:`None` results in the encoding being
 			detected from the XML itself.
 
 		:var:`pool` : :class:`ll.xist.xsc.Pool` object
-			This pool will be used for creates all nodes during parsing.
+			This pool will be used for creating all nodes during parsing.
 		"""
 		self.parser = parser
 
