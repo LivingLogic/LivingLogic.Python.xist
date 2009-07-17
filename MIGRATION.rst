@@ -14,10 +14,10 @@ Changes to the make module
 
 	you now have to write something like the following::
 
-		t1 = make.FileAction(key=url.URL("foo.txt"))
-		t2 = make.DecodeAction(encoding="iso-8859-1", input=t1)
-		t2 = make.EncodeAction(encoding="utf-8", input=t2)
-		t2 = make.FileAction(key=url.URL("bar.txt"), input=t2)
+		t1 = make.FileAction("file:foo.txt")
+		t2 = t1.callattr("decode", "iso-8859-1")
+		t2 = t2.callattr("encode", "utf-8")
+		t2 = make.FileAction("file:bar.txt", t2)
 
 	Also the following classes have been removed from :mod:`ll.make`:
 	:class:`EncodeAction`, :class:`DecodeAction`, :class:`EvalAction`,
