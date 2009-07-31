@@ -1001,6 +1001,8 @@ class Template(object):
 		self._pythonsource_line(opcode.location, "r0 = r1 = r2 = r3 = r4 = r5 = r6 = r7 = r8 = r9 = None")
 		self._pythonsource_line(opcode.location, "try:")
 		self.indent += 1
+		# Make sure that the resulting code is a generator even if the byte codes produce no yield statement
+		self._pythonsource_line(opcode.location, "if 0: yield ''")
 	def _pythonsource_dispatch_enddef(self, opcode):
 		defopcode = self.defs.pop()
 		self.indent -= 1
@@ -1137,7 +1139,7 @@ class Template(object):
 					raise UnknownOpcodeError(opcode.code)
 				self.lastopcode = opcode.code
 		except Exception, exc:
-			raise #Error(opcode.location, exc)
+			raise Error(opcode.location, exc)
 		self.indent -= 1
 		self._pythonsource_line(self.lastlocation, "except Exception, exc:")
 		self.indent += 1
