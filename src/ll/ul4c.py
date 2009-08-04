@@ -1139,7 +1139,9 @@ class Template(object):
 					raise UnknownOpcodeError(opcode.code)
 				self.lastopcode = opcode.code
 		except Exception, exc:
-			raise Error(opcode.location, exc)
+			newexc = Error(opcode.location) # FIXME: Use ``raise ... from`` in Python 3.0
+			newexc.__cause__ = exc
+			raise newexc
 		self.indent -= 1
 		self._pythonsource_line(self.lastlocation, "except Exception, exc:")
 		self.indent += 1
