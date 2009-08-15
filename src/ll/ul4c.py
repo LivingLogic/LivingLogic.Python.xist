@@ -932,8 +932,6 @@ class Template(object):
 		self._pythonsource_line(opcode.location, "r%d = r%d or r%d" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_mod(self, opcode):
 		self._pythonsource_line(opcode.location, "r%d = r%d %% r%d" % (opcode.r1, opcode.r2, opcode.r3))
-	def _pythonsource_dispatch_mod(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d %% r%d" % (opcode.r1, opcode.r2, opcode.r3))
 	def _pythonsource_dispatch_callfunc0(self, opcode):
 		try:
 			getattr(self, "_pythonsource_dispatch_callfunc0_%s" % opcode.arg)(opcode)
