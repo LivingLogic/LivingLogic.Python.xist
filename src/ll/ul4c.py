@@ -458,7 +458,7 @@ class Opcode(object):
 		End the definition of a local template.
 
 	"""
-	__slots__ = ("code", "r1", "r2", "r3", "r4", "r5", "arg", "location", "jump")
+	__slots__ = ("code", "r1", "r2", "r3", "r4", "r5", "arg", "location")
 
 	def __init__(self, code, r1=None, r2=None, r3=None, r4=None, r5=None, arg=None, location=None):
 		self.code = code
@@ -469,7 +469,6 @@ class Opcode(object):
 		self.r5 = r5
 		self.arg = arg
 		self.location = location
-		self.jump = None
 
 	def __repr__(self):
 		v = ["<", self.__class__.__name__, " code=%r" % self.code]
