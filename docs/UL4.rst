@@ -45,7 +45,7 @@ like this::
 	</ul>
 	<?end if?>'''
 
-	tmpl = ul4c.compile(code)
+	tmpl = ul4c.Template(code)
 
 	print tmpl.renders(data=[u"Python", u"Java", u"PHP", u"C++"])
 
@@ -349,12 +349,12 @@ code demonstrates this::
 	<?end if?>\
 	"""
 
-	tmpl1 = ul4c.compile(source1)
+	tmpl1 = ul4c.Template(source1)
 
 	# Template 2
 	source2 = u"<li><?print xmlescape(item)?></li>\n"
 
-	tmpl2 = ul4c.compile(source2)
+	tmpl2 = ul4c.Template(source2)
 
 	# Data object for the outer template
 	data = [u"Python", u"Java", u"PHP"]
@@ -449,13 +449,13 @@ Attribute access in the template code maps the dictionary style getitem access
 in the data object::
 
 	from ll import ul4c
-	tmpl = ul4c.compile("<?print data.foo?>")
+	tmpl = ul4c.Template("<?print data.foo?>")
 	print tmpl.renders(data=dict(foo="bar"))
 
 However getitem style access in the template is still possible::
 
 	from ll import ul4c
-	tmpl = ul4c.compile("<?print data['foo']?>")
+	tmpl = ul4c.Template("<?print data['foo']?>")
 	print tmpl.renders(data=dict(foo="bar"))
 
 

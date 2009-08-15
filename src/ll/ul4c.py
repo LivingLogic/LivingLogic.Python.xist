@@ -627,7 +627,7 @@ class Template(object):
 	A template object can be compiled via the class method :meth:`compile` from
 	source. It can be loaded from the compiled format via :meth:`load` (from a
 	stream) or :meth:`loads` (from a string).
-	
+
 	The compiled format can be generated with the methods :meth:`dump` (which
 	dumps the format to a stream) or :meth:`dumps` (which returns a string with
 	the compiled format).
@@ -637,15 +637,24 @@ class Template(object):
 	"""
 	version = "12"
 
-	def __init__(self):
-		self.startdelim = None
-		self.enddelim = None
+	def __init__(self, source=None, startdelim="<?", enddelim="?>"):
+		"""
+		Create a :class:`Template` object. If :var:`source` is :const:`None`, the
+		:class:`Template` remains uninitialized, otherwise :var:`source` will be
+		compiled (using :var:`startdelim` and :var:`enddelim` as the tag
+		delimiters).
+		
+		"""
+		self.startdelim = startdelim
+		self.enddelim = enddelim
 		self.source = None
 		self.opcodes = None
 		# The following is used for converting the opcodes back to executable Python code
 		self._pythonfunction = None
 		# Stack for currently open def opcodes
 		self.defs = []
+		if source is not None:
+			self._compile(source, startdelim, enddelim)
 
 	@classmethod
 	def loads(cls, data):
@@ -1377,9 +1386,7 @@ class Template(object):
 
 
 def compile(source, startdelim="<?", enddelim="?>"):
-	template = Template()
-	template._compile(source, startdelim, enddelim)
-	return template
+	return Template(source, startdelim, enddelim)
 
 load = Template.load
 loads = Template.loads
