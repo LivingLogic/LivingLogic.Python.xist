@@ -67,8 +67,8 @@ def getdoc(thing, format):
 	if lformat == "plaintext":
 		return xsc.Text(text)
 	elif lformat == "restructuredtext":
-		from ll.xist.ns import rest
-		return rest.fromstring(text, base=base)
+		from ll.xist.ns import rest, doc
+		return rest.fromstring(text, base=base).conv(target=doc)
 	elif lformat == "xist":
 		node = parsers.parsestring(text, base=base, prefixes=xsc.docprefixes(), parser=parsers.SGMLOPParser())
 		if not node[p]: # optimization: one paragraph docstrings don't need a <p> element.
