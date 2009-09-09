@@ -129,7 +129,7 @@ class backrefsattrs(xsc.Attrs):
 class refnameattrs(xsc.Attrs):
 	class refname(xsc.TextAttr):
 		"""
-		Internal reference to the `name` attribute of an element. On a
+		Internal reference to the ``name`` attribute of an element. On a
 		'target' element, 'refname' indicates an indirect target which may
 		resolve to either an internal or external reference.
 		"""
@@ -166,15 +166,15 @@ class BaseElement(xsc.Element):
 	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
 		class ids(xsc.TextAttr):
-			"`id` is a unique identifier, typically assigned by the system."
+			"``id`` is a unique identifier, typically assigned by the system."
 		class names(xsc.TextAttr):
-			"`name` is an identifier assigned in the markup."
+			"``name`` is an identifier assigned in the markup."
 		class dupnames(xsc.TextAttr):
-			"`dupname` is the same as `name`, used when it's a duplicate."
+			"``dupname`` is the same as ``name``, used when it's a duplicate."
 		class source(xsc.TextAttr):
-			"`source` is the name of the source of this document or fragment."
+			"``source`` is the name of the source of this document or fragment."
 		class class_(xsc.TextAttr):
-			"`class` is used to transmit individuality information forward."
+			"``class`` is used to transmit individuality information forward."
 			xmlname = "class"
 	
 # Root Element
@@ -1019,8 +1019,6 @@ def fromstring(string, base=None, **options):
 					e.attrs[attrkey] = attrvalue
 			return e
 
-	global x
-	x = doc
 	return toxist(doc)
 
 
@@ -1029,8 +1027,8 @@ def fromstream(stream, base=None, **options):
 
 
 def fromfile(filename, base=None, **options):
-		filename = os.path.expanduser(filename)
-		if base is None:
-			base = filename
-		with contextlib.closing(open(filename, "rb")) as stream:
-			return fromstream(stream, base, **options)
+	filename = os.path.expanduser(filename)
+	if base is None:
+		base = filename
+	with contextlib.closing(open(filename, "rb")) as stream:
+		return fromstream(stream, base, **options)
