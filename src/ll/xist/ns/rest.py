@@ -842,7 +842,7 @@ PE_bibliographic_elements = (
 
 PE_structure_model = (topic, sidebar, transition) + PE_section_elements
 
-document.model = sims.Elements((title, subtitle, decoration, docinfo, transition) + PE_structure_model)
+document.model = sims.Elements(*(title, subtitle, decoration, docinfo, transition) + PE_structure_model)
 title.model = sims.ElementsOrText(*PE_inline_elements)
 subtitle.model = sims.ElementsOrText(*PE_inline_elements)
 docinfo.model = sims.Elements(*PE_bibliographic_elements)
