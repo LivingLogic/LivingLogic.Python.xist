@@ -425,11 +425,11 @@ _sgmlop_register(FastParserObject* self, PyObject* args)
    possible, and keeps the rest in a local buffer. */
 
 static PyObject*
-feed(FastParserObject* self, CHAR_T* string, Py_ssize_t stringlen, int last)
+feed(FastParserObject* self, CHAR_T* string, int stringlen, int last)
 {
     /* common subroutine for SGMLParser.feed and SGMLParser.close */
 
-    Py_ssize_t length;
+    int length;
 
     if (self->feed) {
         /* dealing with recursive feeds isn't exactly trivial, so
@@ -498,7 +498,7 @@ _sgmlop_feed(FastParserObject* self, PyObject* args)
     /* feed a chunk of data to the parser */
 
     CHAR_T* string;
-    Py_ssize_t stringlen;
+    int stringlen;
     if (!PyArg_ParseTuple(args, PARSEFORMAT ":feed", &string, &stringlen))
         return NULL;
 
@@ -523,7 +523,7 @@ _sgmlop_parse(FastParserObject* self, PyObject* args)
     /* feed a single chunk of data to the parser */
 
     CHAR_T* string;
-    Py_ssize_t stringlen;
+    int stringlen;
     if (!PyArg_ParseTuple(args, PARSEFORMAT ":parse", &string, &stringlen))
         return NULL;
 
