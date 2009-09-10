@@ -26,7 +26,10 @@ __docformat__ = "reStructuredText"
 
 import sys, os.path, optparse
 
-from xml.parsers.xmlproc import dtdparser
+try:
+	from xml.parsers.xmlproc import dtdparser
+except ImportError:
+	from xmlproc import dtdparser
 
 from ll import url
 from ll.xist import xsc, parsers, xnd
