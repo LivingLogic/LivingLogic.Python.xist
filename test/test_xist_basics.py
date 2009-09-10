@@ -16,14 +16,14 @@ from xml.parsers import expat
 import py.test
 
 from ll import url
-from ll.xist import xsc, parsers, css, presenters, converters, options, sims, xnd, xfind
+from ll.xist import xsc, parsers, css, presenters, converters, sims, xnd, xfind
 from ll.xist.ns import wml, ihtml, html, chars, abbr, specials, htmlspecials, meta, form, php, xml, tld, docbook
 
 import xist_common as common
 
 
 # set to something ASCII, so presenters work, even if the system default encoding is ascii
-options.reprtab = "  "
+presenters.reprtab = "  "
 
 
 def check_lenunicode(node, _len, content):
