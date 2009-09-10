@@ -635,7 +635,7 @@ class Template(object):
 	Rendering the template can be done with the methods :meth:`render` (which
 	is a generator) or :meth:`renders` (which returns a string).
 	"""
-	version = "12"
+	version = "11"
 
 	def __init__(self):
 		self.startdelim = None
@@ -707,10 +707,6 @@ class Template(object):
 		version = version.rstrip()
 		if version != self.version:
 			raise ValueError("invalid version, expected %r got, %r" % (self.version, version))
-		type = stream.readline()
-		type = type.rstrip()
-		if type != "template":
-			raise ValueError("invalid type, expected 'template', got %r" % type)
 		self.startdelim = _readstr(u"<")
 		_readcr()
 		self.enddelim = _readstr(u">")
@@ -766,7 +762,7 @@ class Template(object):
 				yield term
 				yield string
 
-		yield "ul4\n%s\ntemplate\n" % self.version
+		yield "ul4\n%s\n" % self.version
 		for p in _writestr("<", self.startdelim): yield p
 		yield "\n"
 		for p in _writestr(">", self.enddelim): yield p
