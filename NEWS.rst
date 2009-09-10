@@ -1,4 +1,4 @@
-Changes in 3.7 (released ??/??/2009)
+Changes in 3.7 (released 09/10/2009)
 ------------------------------------
 
 *	In UL4 templates it's now possible to define locale templates via
