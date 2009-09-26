@@ -20,6 +20,8 @@ __ http://www.w3.org/TR/xpath
 """
 
 
+import collections
+
 from ll import misc
 from ll.xist import xsc
 
@@ -27,7 +29,142 @@ from ll.xist import xsc
 __docformat__ = "reStructuredText"
 
 
-class Selector(xsc.WalkFilter):
+###
+### Magic constants for tree traversal
+###
+
+entercontent = misc.Const("entercontent")
+enterattrs = misc.Const("enterattrs")
+
+
+###
+### Tree traversal filters
+###
+
+class WalkFilter(object):
+	"""
+	A :class:`WalkFilter` can be passed to the :meth:`walk` method of nodes to
+	specify how to traverse the tree and which nodes to output.
+	"""
+
+	@misc.notimplemented
+	def filternode(self, node):
+		pass
+
+	def filterpath(self, path):
+		return self.filternode(path[-1])
+
+	def walk(self, node):
+		return misc.Iterator(self._walk([node]))
+
+	def walknodes(self, node):
+		def iterate(path):
+			for path in self._walk(path):
+				yield path[-1]
+		return misc.Iterator(iterate([node]))
+
+	def walkpaths(self, node):
+		def iterate(path):
+			for path in self._walk(path):
+				yield path[:]
+		return misc.Iterator(iterate([node]))
+
+	def _walk(self, path):
+		node = path[-1]
+		# ``Frag``\s don't get tested
+		if isinstance(node, xsc.Frag) and not isinstance(node, xsc.Attr):
+			path.append(None)
+			for child in node:
+				path[-1] = child
+				for result in self._walk(path):
+					yield result
+			path.pop()
+		else:
+			for option in self.filterpath(path):
+				if option is entercontent:
+					if isinstance(node, (xsc.Frag, xsc.Element)):
+						path.append(None)
+						for child in node:
+							path[-1] = child
+							for result in self._walk(path):
+								yield result
+						path.pop()
+				elif option is enterattrs:
+					if isinstance(node, xsc.Element):
+						path.append(None)
+						for child in node.attrs.values():
+							path[-1] = child
+							for result in self._walk(path):
+								yield result
+						path.pop()
+				elif option:
+					yield path
+
+
+class FindType(WalkFilter):
+	"""
+	Tree traversal filter that finds nodes of a certain type on the first level
+	of the tree without decending further down.
+	"""
+	def __init__(self, *types):
+		self.types = types
+
+	def filternode(self, node):
+		return (isinstance(node, self.types), )
+
+
+class FindTypeAll(WalkFilter):
+	"""
+	Tree traversal filter that finds nodes of a certain type searching the
+	complete tree.
+	"""
+	def __init__(self, *types):
+		self.types = types
+
+	def filternode(self, node):
+		return (isinstance(node, self.types), entercontent)
+
+
+class FindTypeAllAttrs(WalkFilter):
+	"""
+	Tree traversal filter that finds nodes of a certain type searching the
+	complete tree (including attributes).
+	"""
+	def __init__(self, *types):
+		self.types = types
+
+	def filternode(self, node):
+		return (isinstance(node, self.types), entercontent, enterattrs)
+
+
+class FindTypeTop(WalkFilter):
+	"""
+	Tree traversal filter that finds nodes of a certain type searching the
+	complete tree, but traversal of the children of a node is skipped if this
+	node is of the specified type.
+	"""
+	def __init__(self, *types):
+		self.types = types
+
+	def filternode(self, node):
+		if isinstance(node, self.types):
+			return (True,)
+		else:
+			return (entercontent,)
+
+
+class ConstantWalkFilter(WalkFilter):
+	"""
+	Tree traversal filter that returns the same value for all nodes.
+	"""
+	def __init__(self, value):
+		self.value = value
+
+	def filterpath(self, path):
+		return self.value
+
+
+class Selector(WalkFilter):
 	"""
 	Base class for all tree traversal filters that visit the complete tree.
 	Whether a node gets output can be specified by overwriting the
@@ -40,47 +177,47 @@ class Selector(xsc.WalkFilter):
 		pass
 
 	def filterpath(self, path):
-		return (True, xsc.entercontent, xsc.enterattrs) if self.matchpath(path) else (xsc.entercontent, xsc.enterattrs)
+		return (True, entercontent, enterattrs) if self.matchpath(path) else (entercontent, enterattrs)
 
 	def __div__(self, other):
 		"""
 		Create a :class:`ChildCombinator` with :var:`self` as the left hand
 		selector and :var:`other` as the right hand selector.
 		"""
-		return ChildCombinator(self, xsc.makewalkfilter(other))
+		return ChildCombinator(self, makewalkfilter(other))
 
 	def __floordiv__(self, other):
 		"""
 		Create a :class:`DescendantCombinator` with :var:`self` as the left hand
 		selector and :var:`other` as the right hand selector.
 		"""
-		return DescendantCombinator(self, xsc.makewalkfilter(other))
+		return DescendantCombinator(self, makewalkfilter(other))
 
 	def __mul__(self, other):
 		"""
 		Create an :class:`AdjacentSiblingCombinator` with :var:`self` as the left
 		hand selector and :var:`other` as the right hand selector.
 		"""
-		return AdjacentSiblingCombinator(self, xsc.makewalkfilter(other))
+		return AdjacentSiblingCombinator(self, makewalkfilter(other))
 
 	def __pow__(self, other):
 		"""
 		Create a :class:`GeneralSiblingCombinator` with :var:`self` as the left
 		hand selector and :var:`other` as the right hand selector.
 		"""
-		return GeneralSiblingCombinator(self, xsc.makewalkfilter(other))
+		return GeneralSiblingCombinator(self, makewalkfilter(other))
 
 	def __and__(self, other):
 		"""
 		Create an :class:`AndCombinator` from :var:`self` and :var:`other`.
 		"""
-		return AndCombinator(self, xsc.makewalkfilter(other))
+		return AndCombinator(self, makewalkfilter(other))
 
 	def __or__(self, other):
 		"""
 		Create an :class:`OrCombinator` from :var:`self` and :var:`other`.
 		"""
-		return OrCombinator(self, xsc.makewalkfilter(other))
+		return OrCombinator(self, makewalkfilter(other))
 
 	def __invert__(self):
 		"""
@@ -99,7 +236,7 @@ class IsInstanceSelector(Selector):
 		>>> from ll.xist import parsers, xfind
 		>>> from ll.xist.ns import html
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(html.a):
+		>>> for node in doc.walknodes(html.a):
 		... 	print node.attrs.href, node.attrs.title
 		... 
 		http://www.python.org/ 
@@ -151,7 +288,7 @@ class hasname(Selector):
 
 		>>> from ll.xist import parsers, xfind
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(xfind.hasname("img")):
+		>>> for node in doc.walknodes(xfind.hasname("img")):
 		... 	print node.bytes()
 		... 
 		<img border="0" src="http://www.python.org/images/python-logo.gif" alt="homepage" id="logo" />
@@ -208,7 +345,7 @@ class IsSelector(Selector):
 
 		>>> from ll.xist import parsers, xfind
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(doc[0]/xsc.Element):
+		>>> for node in doc.walknodes(doc[0]/xsc.Element):
 		... 	print repr(node)
 		... 
 		<ll.xist.ns.html.head element object (13 children/no attrs) (from http://www.python.org/:6:?) at 0xb6c82f4c>
@@ -241,7 +378,7 @@ class empty(Selector):
 
 		>>> from ll.xist import parsers, xfind
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(xfind.empty):
+		>>> for node in doc.walknodes(xfind.empty):
 		... 	print node.bytes()
 		... 
 		<meta content="text/html; charset=utf-8" http-equiv="content-type" />
@@ -273,7 +410,7 @@ class onlychild(Selector):
 
 		>>> from ll.xist import parsers, xfind
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(xfind.onlychild & html.a):
+		>>> for node in doc.walknodes(xfind.onlychild & html.a):
 		... 	print node.bytes()
 		... 
 		<a accesskey="2" href="http://www.python.org/#left%2dhand%2dnavigation"><img id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" border="0" /></a>
@@ -304,7 +441,7 @@ class onlyoftype(Selector):
 
 		>>> from ll.xist import parsers, xfind
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(xfind.onlyoftype & xsc.Element):
+		>>> for node in doc.walknodes(xfind.onlyoftype & xsc.Element):
 		... 	print repr(node)
 		... 
 		<ll.xist.ns.html.html element object (2 children/1 attr) (from http://www.python.org/:4:?) at 0xb6d6e7ec>
@@ -342,7 +479,7 @@ class hasattr(Selector):
 		>>> from ll.xist import parsers, xfind
 		>>> from ll.xist.ns import html, xml
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(xfind.hasattr(xml.Attrs.lang)):
+		>>> for node in doc.walknodes(xfind.hasattr(xml.Attrs.lang)):
 		... 	print repr(node)
 		... 
 		<ll.xist.ns.html.html element object (2 children/2 attrs) (from http://www.python.org/:4:?) at 0xb6d71d4c>
@@ -395,7 +532,7 @@ class attrhasvalue(Selector):
 
 		>>> from ll.xist import parsers, xfind
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(xfind.attrhasvalue("rel", "stylesheet")):
+		>>> for node in doc.walknodes(xfind.attrhasvalue("rel", "stylesheet")):
 		... 	print node.attrs.href
 		... 
 		http://www.python.org/styles/screen-switcher-default.css
@@ -456,7 +593,7 @@ class attrcontains(Selector):
 
 		>>> from ll.xist import parsers, xfind
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(xfind.attrcontains("rel", "stylesheet")):
+		>>> for node in doc.walknodes(xfind.attrcontains("rel", "stylesheet")):
 		... 	print node.attrs.rel, node.attrs.href
 		... 
 
@@ -520,7 +657,7 @@ class attrstartswith(Selector):
 
 		>>> from ll.xist import parsers, xfind
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(xfind.attrstartswith("class_", "input-")):
+		>>> for node in doc.walknodes(xfind.attrstartswith("class_", "input-")):
 		... 	print repr(node)
 		... 
 		<input class="input-text" id="q" type="text" name="q" />
@@ -580,7 +717,7 @@ class attrendswith(Selector):
 
 		>>> from ll.xist import parsers, xfind
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(xfind.attrendswith("href", ".css")):
+		>>> for node in doc.walknodes(xfind.attrendswith("href", ".css")):
 		... 	print node.attrs.href
 		... 
 		http://www.python.org/styles/screen-switcher-default.css
@@ -641,7 +778,7 @@ class hasid(Selector):
 
 		>>> from ll.xist import parsers, xfind
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(xfind.hasid("logo")):
+		>>> for node in doc.walknodes(xfind.hasid("logo")):
 		... 	print node.bytes()
 		... 
 		<img src="http://www.python.org/images/python-logo.gif" id="logo" alt="homepage" border="0" />
@@ -672,7 +809,7 @@ class hasclass(Selector):
 
 		>>> from ll.xist import parsers, xfind
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(xfind.hasclass("reference")):
+		>>> for node in doc.walknodes(xfind.hasclass("reference")):
 		... 	print node.bytes()
 		... 
 		<a class="reference" href="http://www.python.org/search">Advanced Search</a>
@@ -706,7 +843,7 @@ class inattr(Selector):
 
 	>>> from ll.xist import parsers, xfind
 	>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-	>>> for node in doc.walknode(xfind.inattr & xsc.Text):
+	>>> for node in doc.walknodes(xfind.inattr & xsc.Text):
 	... 	print node.bytes()
 	... 
 	text/html; charset=utf-8
@@ -765,7 +902,7 @@ class ChildCombinator(BinaryCombinator):
 		>>> from ll.xist import parsers, xfind
 		>>> from ll.xist.ns import html
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(html.a/html.img):
+		>>> for node in doc.walknodes(html.a/html.img):
 		... 	print node.bytes()
 		... 
 		<img src="http://www.python.org/images/python-logo.gif" alt="homepage" id="logo" border="0" />
@@ -795,7 +932,7 @@ class DescendantCombinator(BinaryCombinator):
 		>>> from ll.xist import parsers, xfind
 		>>> from ll.xist.ns import html
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(html.div//html.img):
+		>>> for node in doc.walknodes(html.div//html.img):
 		... 	print node.bytes()
 		... 
 		<img id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" border="0" />
@@ -828,7 +965,7 @@ class AdjacentSiblingCombinator(BinaryCombinator):
 		>>> from ll.xist import parsers, xfind
 		>>> from ll.xist.ns import html
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(html.h2*html.p/html.a):
+		>>> for node in doc.walknodes(html.h2*html.p/html.a):
 		... 	print node.bytes()
 		... 
 		<a href="http://www.scipy.org/SciPy2007" class="reference">SciPy Conference</a>
@@ -874,7 +1011,7 @@ class GeneralSiblingCombinator(BinaryCombinator):
 		>>> from ll.xist import parsers, xfind
 		>>> from ll.xist.ns import html
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(html.a**html.a):
+		>>> for node in doc.walknodes(html.a**html.a):
 		... 	print node.bytes()
 		... 
 		<a href="http://www.python.org/about/success/ilm" class="reference">Industrial Light and Magic</a>
@@ -927,7 +1064,7 @@ class OrCombinator(ChainedCombinator):
 		>>> from ll.xist import parsers, xfind
 		>>> from ll.xist.ns import html
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(xfind.hasattr("href") | xfind.hasattr("src")):
+		>>> for node in doc.walknodes(xfind.hasattr("href") | xfind.hasattr("src")):
 		... 	print node.attrs.href if "href" in node.Attrs else node.attrs.src
 		... 
 		http://www.python.org/channews.rdf
@@ -953,7 +1090,7 @@ class OrCombinator(ChainedCombinator):
 	symbol = " | "
 
 	def __or__(self, other):
-		return OrCombinator(*(self.selectors + (xsc.makewalkfilter(other),)))
+		return OrCombinator(*(self.selectors + (makewalkfilter(other),)))
 
 
 class AndCombinator(ChainedCombinator):
@@ -966,7 +1103,7 @@ class AndCombinator(ChainedCombinator):
 		>>> from ll.xist import parsers, xfind
 		>>> from ll.xist.ns import html
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(html.input & xfind.hasattr("id")):
+		>>> for node in doc.walknodes(html.input & xfind.hasattr("id")):
 		... 	print node.bytes()
 		... 
 		<input id="domains" name="domains" value="www.python.org" type="hidden" />
@@ -980,7 +1117,7 @@ class AndCombinator(ChainedCombinator):
 		return all(selector.matchpath(path) for selector in self.selectors)
 
 	def __and__(self, other):
-		return AndCombinator(*(self.selectors + (xsc.makewalkfilter(other),)))
+		return AndCombinator(*(self.selectors + (makewalkfilter(other),)))
 
 	symbol = " & "
 
@@ -998,7 +1135,7 @@ class NotCombinator(Combinator):
 		>>> from ll.xist import parsers, xfind
 		>>> from ll.xist.ns import html
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(html.img & ~xfind.hasattr("border")):
+		>>> for node in doc.walknodes(html.img & ~xfind.hasattr("border")):
 		... 	print node.bytes()
 		... 
 		<img alt="success story photo" class="success" src="http://www.python.org/images/success/nasa.jpg" />
@@ -1034,7 +1171,7 @@ class CallableSelector(Selector):
 		>>> def foreignlink(path):
 		... 	return path and isinstance(path[-1], html.a) and not path[-1].attrs.href.asURL().server.endswith(".python.org")
 		... 
-		>>> for node in doc.walknode(foreignlink):
+		>>> for node in doc.walknodes(foreignlink):
 		... 	print node.bytes()
 		... 
 		<a href="http://youtube.com/" class="reference">YouTube.com</a>
@@ -1095,7 +1232,7 @@ class nthoftype(Selector):
 		>>> from ll.xist import parsers, xfind
 		>>> from ll.xist.ns import html
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-		>>> for node in doc.walknode(xfind.nthoftype(0, html.h2)):
+		>>> for node in doc.walknodes(xfind.nthoftype(0, html.h2)):
 		... 	print node.bytes()
 		... 
 		<h2 class="news">SciPy 2007 - Conference for Scientific Computing</h2>
@@ -1129,3 +1266,20 @@ class nthoftype(Selector):
 			return "%s(%r, %s)" % (self.__class__.__name__, self.index, ", ".join("%s.%s" % (type.__module__, type.__name__) for type in self.types))
 		else:
 			return "%s(%r)" % (self.__class__.__name__, self.index)
+
+
+def makewalkfilter(obj):
+	if not isinstance(obj, WalkFilter):
+		if isinstance(obj, xsc._Node_Meta):
+			obj = IsInstanceSelector(obj)
+		elif isinstance(obj, xsc.Node):
+			obj = IsSelector(obj)
+		elif callable(obj):
+			obj = CallableSelector(obj)
+		elif isinstance(obj, tuple):
+			obj = ConstantWalkFilter(obj)
+		elif walkfilter is None:
+			obj = ConstantWalkFilter((True, xfind.entercontent))
+		else:
+			raise TypeError("can't convert %r to selector" % obj)
+	return obj

@@ -126,7 +126,7 @@ inside links on Python's homepage:</p>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseurl("http://www.python.org/", utidy=True)</input>
-<prompt>&gt;&gt;&gt; </prompt><input>for img in node.walknode(html.a/html.img):</input>
+<prompt>&gt;&gt;&gt; </prompt><input>for img in node.walknodes(html.a/html.img):</input>
 <prompt>... </prompt><input>   print img.atts.src</input>
 <prompt>... </prompt><input></input>
 http://www.python.org/images/python-logo.gif
@@ -142,7 +142,7 @@ following:</p>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers, xfind</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseurl("http://www.python.org/", tidy=True)</input>
-<prompt>&gt;&gt;&gt; </prompt><input>for path in node.walkpath(html.a/html.img):</input>
+<prompt>&gt;&gt;&gt; </prompt><input>for path in node.walkpaths(html.a/html.img):</input>
 <prompt>... </prompt><input>   print path[-2].attrs.href, path[-1].attrs.src</input>
 http://www.python.org/ http://www.python.org/images/python-logo.gif
 http://www.python.org/#left%2dhand%2dnavigation http://www.python.org/images/trans.gif

@@ -19,7 +19,7 @@ from xml import sax
 from xml.parsers import expat
 
 from ll import url
-from ll.xist import xsc, parsers
+from ll.xist import xsc, parsers, xfind
 from ll.xist.ns import xml, chars, html, ihtml, specials, ruby
 
 
@@ -44,7 +44,7 @@ class bar(xsc.CharRef):
 
 def check_parseentities(source, result, **parseargs):
 	node = parsers.parsestring("""<a title="%s">%s</a>""" % (source, source), **parseargs)
-	node = node.walknode(xsc.FindType(xsc.Element))[0]
+	node = node.walknodes(xfind.FindType(xsc.Element))[0]
 	assert unicode(node) == result
 	assert unicode(node["title"]) == result
 
@@ -64,7 +64,7 @@ def test_parsingmethods():
 	b = s.encode("utf-8")
 
 	def check(node):
-		node = node.walknode(a)[0]
+		node = node.walknodes(a)[0]
 		assert unicode(node) == t
 		assert unicode(node["title"]) == t
 
@@ -120,7 +120,7 @@ class Test:
 			)
 		)
 		node = parsers.parsestring(xml, prefixes=dict(x=ihtml))
-		node = node.walknode(xsc.FindType(xsc.Element))[0].compact() # get rid of the Frag and whitespace
+		node = node.walknodes(xfind.FindType(xsc.Element))[0].compact() # get rid of the Frag and whitespace
 		assert node == check
 
 	def test_parseurls(self):
@@ -199,7 +199,7 @@ def test_parseentities_sgmlop():
 	def check(input, output):
 		prefixes = {None: (a.xmlns, chars)}
 		node = parsers.parsestring("""<a title="%s">%s</a>""" % (input, input), parser=parsers.SGMLOPParser(), prefixes=prefixes)
-		node = node.walknode(a)[0]
+		node = node.walknodes(a)[0]
 		assert unicode(node) == output
 		assert unicode(node.attrs.title) == output
 
@@ -224,7 +224,7 @@ def test_parseattr_sgmlop():
 	def check(input, output):
 		prefixes = {None: (a.xmlns, chars)}
 		node = parsers.parsestring(input, parser=parsers.SGMLOPParser(), prefixes=prefixes)
-		node = node.walknode(a)[0]
+		node = node.walknodes(a)[0]
 		assert unicode(node.attrs.title) == output
 
 	yield check, """<a title=x></a>""", "x"
@@ -317,7 +317,7 @@ def test_expat_doctype():
 
 def test_htmlparse_base():
 	e = parsers.parsestring("<a href='gurk.gif'/>", base="hurz/index.html", tidy=True)
-	e = e.walknode(html.a)[0]
+	e = e.walknodes(html.a)[0]
 	assert unicode(e.attrs.href) == "hurz/gurk.gif"
 
 

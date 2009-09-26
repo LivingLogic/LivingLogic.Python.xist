@@ -159,121 +159,6 @@ def add(*args, **kwargs):
 
 
 ###
-### Magic constants for tree traversal
-###
-
-entercontent = misc.Const("entercontent")
-enterattrs = misc.Const("enterattrs")
-
-
-###
-### Common walk filters
-###
-
-class WalkFilter(object):
-	"""
-	A :class:`WalkFilter` can be passed to the :meth:`walk` method of nodes to
-	specify how to traverse the tree and which nodes to output.
-	"""
-	@misc.notimplemented
-	def filternode(self, node):
-		pass
-
-	def filterpath(self, path):
-		return self.filternode(path[-1])
-
-
-class FindType(WalkFilter):
-	"""
-	Tree traversal filter that finds nodes of a certain type on the first level
-	of the tree without decending further down.
-	"""
-	def __init__(self, *types):
-		self.types = types
-
-	def filternode(self, node):
-		return (isinstance(node, self.types), )
-
-
-class FindTypeAll(WalkFilter):
-	"""
-	Tree traversal filter that finds nodes of a certain type searching the
-	complete tree.
-	"""
-	def __init__(self, *types):
-		self.types = types
-
-	def filternode(self, node):
-		return (isinstance(node, self.types), entercontent)
-
-
-class FindTypeAllAttrs(WalkFilter):
-	"""
-	Tree traversal filter that finds nodes of a certain type searching the
-	complete tree (including attributes).
-	"""
-	def __init__(self, *types):
-		self.types = types
-
-	def filternode(self, node):
-		return (isinstance(node, self.types), entercontent, enterattrs)
-
-
-class FindTypeTop(WalkFilter):
-	"""
-	Tree traversal filter that finds nodes of a certain type searching the
-	complete tree, but traversal of the children of a node is skipped if this
-	node is of the specified type.
-	"""
-	def __init__(self, *types):
-		self.types = types
-
-	def filternode(self, node):
-		if isinstance(node, self.types):
-			return (True,)
-		else:
-			return (entercontent,)
-
-
-class CallableWalkFilter(WalkFilter):
-	"""
-	Tree traversal filter that returns the result of a function call.
-	"""
-	def __init__(self, func):
-		self.func = func
-
-	def filterpath(self, path):
-		return self.func(path)
-
-
-class ConstantWalkFilter(WalkFilter):
-	"""
-	Tree traversal filter that returns the same value for all nodes.
-	"""
-	def __init__(self, value):
-		self.value = value
-
-	def filterpath(self, path):
-		return self.value
-
-
-def makewalkfilter(obj):
-	if not isinstance(obj, WalkFilter):
-		from ll.xist import xfind
-		if isinstance(obj, _Node_Meta):
-			obj = xfind.IsInstanceSelector(obj)
-		elif isinstance(obj, Node):
-			obj = xfind.IsSelector(obj)
-		elif callable(obj):
-			obj = xfind.CallableSelector(obj)
-		elif isinstance(obj, tuple):
-			obj = ConstantWalkFilter(obj)
-		else:
-			raise TypeError("can't convert %r to selector" % obj)
-	return obj
-
-
-###
 ### Conversion context
 ###
 
@@ -540,11 +425,11 @@ class _Node_Meta(type):
 
 	def __getitem__(self, index):
 		from ll.xist import xfind
-		return xfind.nthoftype(index, self)
+		return xfind.IsInstanceSelector(self)[index]
 
 	def __invert__(self):
 		from ll.xist import xfind
-		return xfind.NotCombinator(xfind.IsInstanceSelector(self))
+		return ~xfind.IsInstanceSelector(self)
 
 
 class Node(object):
@@ -838,15 +723,7 @@ class Node(object):
 			publisher = publishers.Publisher(**publishargs)
 		return publisher.write(stream, self, base)
 
-	def _walk(self, walkfilter, path):
-		"""
-		Internal helper for :meth:`walk`.
-		"""
-		for option in walkfilter.filterpath(path):
-			if option is not entercontent and option is not enterattrs and option:
-				yield path
-
-	def walk(self, walkfilter=(True, entercontent)):
+	def walk(self, walkfilter=None):
 		"""
 		Return an iterator for traversing the tree rooted at :var:`self`.
 
@@ -867,50 +744,45 @@ class Node(object):
 		:const:`False`
 			Don't yield this node from the iterator.
 
-		:const:`enterattrs`
-			This is a global constant in :mod:`ll.xist.xsc` and tells :meth:`walk`
+		:const:`xfind.enterattrs`
+			This is a global constant in :mod:`ll.xist.xfind` and tells :meth:`walk`
 			to traverse the attributes of this node (if it's an :class:`Element`,
 			otherwise this option will be ignored).
 
-		:const:`entercontent`
-			This is a global constant in :mod:`ll.xist.xsc` and tells :meth:`walk`
+		:const:`xfind.entercontent`
+			This is a global constant in :mod:`ll.xist.xfind` and tells :meth:`walk`
 			to traverse the child nodes of this node (if it's an :class:`Element`,
 			otherwise this option will be ignored).
 
 		These options will be executed in the order they are specified in the
 		sequence, so to get a top down traversal of a tree (without entering
-		attributes), ``(True, xsc.entercontent)`` can be used. For a bottom up
-		traversal ``(xsc.entercontent, True)`` can be used.
+		attributes), ``(True, xfind.entercontent)`` can be used. For a bottom up
+		traversal ``(xfind.entercontent, True)`` can be used.
 
 		Each item produced by the iterator is a path list. :meth:`walk` reuses
 		this list, so you can't rely on the value of the list being the same
 		across calls to :meth:`next`.
 		"""
-		return self._walk(makewalkfilter(walkfilter), [self])
+		from ll.xist import xfind
+		return xfind.makewalkfilter(walkfilter).walk(self)
 
-	def walknode(self, walkfilter=(True, entercontent)):
+	def walknodes(self, walkfilter=None):
 		"""
 		Return an iterator for traversing the tree. :var:`filter` works the same
 		as the :var:`walkfilter` argument for :meth:`walk`. The items produced
 		by the iterator are the nodes themselves.
 		"""
-		walkfilter = makewalkfilter(walkfilter)
-		def iterate(path):
-			for path in self._walk(walkfilter, path):
-				yield path[-1]
-		return misc.Iterator(iterate([self]))
+		from ll.xist import xfind
+		return xfind.makewalkfilter(walkfilter).walknodes(self)
 
-	def walkpath(self, walkfilter=(True, entercontent)):
+	def walkpaths(self, walkfilter=None):
 		"""
 		Return an iterator for traversing the tree. :var:`walkfilter` works
 		the same as the :var:`walkfilter` argument for :meth:`walk`. The items
 		produced by the iterator are copies of the path.
 		"""
-		walkfilter = makewalkfilter(walkfilter)
-		def iterate(path):
-			for path in self._walk(walkfilter, path):
-				yield path[:]
-		return misc.Iterator(iterate([self]))
+		from ll.xist import xfind
+		return xfind.makewalkfilter(walkfilter).walkpaths(self)
 
 	def compact(self):
 		"""
@@ -1371,13 +1243,14 @@ class Frag(Node, list):
 		elif isinstance(index, slice):
 			return self.__class__(list.__getitem__(self, index))
 		else:
+			from ll.xist import xfind
 			def iterate(matcher):
 				path = [self, None]
 				for child in self:
 					path[-1] = child
 					if matcher(path):
 						yield child
-			return misc.Iterator(iterate(makewalkfilter(index).matchpath))
+			return misc.Iterator(iterate(xfind.makewalkfilter(index).matchpath))
 
 	def __setitem__(self, index, value):
 		"""
@@ -1405,7 +1278,8 @@ class Frag(Node, list):
 		elif isinstance(index, slice):
 			list.__setitem__(self, index, Frag(value))
 		else:
-			matcher = makewalkfilter(index).matchpath
+			from ll.xist import xfind
+			matcher = xfind.makewalkfilter(index).matchpath
 			value = Frag(value)
 			newcontent = []
 			path = [self, None]
@@ -1436,7 +1310,8 @@ class Frag(Node, list):
 		elif isinstance(index, (int, long, slice)):
 			list.__delitem__(self, index)
 		else:
-			matcher = makewalkfilter(index).matchpath
+			from ll.xist import xfind
+			matcher = xfind.makewalkfilter(index).matchpath
 			list.__setslice__(self, 0, len(self), [child for child in self if not matcher([self, child])])
 
 	def __getslice__(self, index1, index2):
@@ -1497,14 +1372,6 @@ class Frag(Node, list):
 		"""
 		other = Frag(*others)
 		list.__setslice__(self, index, index, other)
-
-	def _walk(self, filter, path):
-		path.append(None)
-		for child in self:
-			path[-1] = child
-			for result in child._walk(filter, path):
-				yield result
-		path.pop()
 
 	def compact(self):
 		node = self._create()
@@ -1877,16 +1744,6 @@ class Attr(Frag):
 			if value not in values:
 				warnings.warn(IllegalAttrValueWarning(self))
 
-	def _walk(self, walkfilter, path):
-		for option in walkfilter.filterpath(path):
-			if option is entercontent:
-				for result in Frag._walk(self, walkfilter, path):
-					yield result
-			elif option is enterattrs:
-				pass
-			elif option:
-				yield path
-
 	def _publishname(self, publisher):
 		if self.xmlns is not None:
 			prefix = publisher._ns2prefix.get(self.xmlns) if self.xmlns != xml_xmlns else u"xml"
@@ -2222,14 +2079,6 @@ class Attrs(Node, dict):
 			assert isinstance(newvalue, Node), "the normalized method returned the illegal object %r (type %r) when normalizing the attribute %s with the value %r" % (newvalue, type(newvalue), value.__class__.__name__, value)
 			node[value.__class__] = newvalue
 		return node
-
-	def _walk(self, filter, path):
-		path.append(None)
-		for child in self.values():
-			path[-1] = child
-			for result in child._walk(filter, path):
-				yield result
-		path.pop()
 
 	def present(self, presenter):
 		return presenter.presentAttrs(self) # return a generator-iterator
@@ -2940,13 +2789,14 @@ class Element(Node):
 		elif isinstance(index, (list, int, long, slice)):
 			return self.content[index]
 		else:
+			from ll.xist import xfind
 			def iterate(matcher):
 				path = [self, None]
 				for child in self:
 					path[-1] = child
 					if matcher(path):
 						yield child
-			return misc.Iterator(iterate(makewalkfilter(index).matchpath))
+			return misc.Iterator(iterate(xfind.makewalkfilter(index).matchpath))
 
 	def __setitem__(self, index, value):
 		"""
@@ -2958,7 +2808,8 @@ class Element(Node):
 		elif isinstance(index, (list, int, long, slice)):
 			self.content[index] = value
 		else:
-			matcher = makewalkfilter(index).matchpath
+			from ll.xist import xfind
+			matcher = xfind.makewalkfilter(index).matchpath
 			value = Frag(value)
 			newcontent = []
 			path = [self, None]
@@ -2980,7 +2831,8 @@ class Element(Node):
 		elif isinstance(index, (list, int, long, slice)):
 			del self.content[index]
 		else:
-			matcher = makewalkfilter(index).matchpath
+			from ll.xist import xfind
+			matcher = xfind.makewalkfilter(index).matchpath
 			self.content = Frag(child for child in self if not matcher([self, child]))
 
 	def __getslice__(self, index1, index2):
@@ -3019,17 +2871,6 @@ class Element(Node):
 		node.content = self.content.compact()
 		node.attrs = self.attrs.compact()
 		return self._decoratenode(node)
-
-	def _walk(self, walkfilter, path):
-		for option in walkfilter.filterpath(path):
-			if option is entercontent:
-				for result in self.content._walk(walkfilter, path):
-					yield result
-			elif option is enterattrs:
-				for result in self.attrs._walk(walkfilter, path):
-					yield result
-			elif option:
-				yield path
 
 	def withsep(self, separator, clone=False):
 		"""

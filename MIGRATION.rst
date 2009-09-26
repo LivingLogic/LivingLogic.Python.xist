@@ -1,3 +1,14 @@
+Migrating to version 3.8
+========================
+
+Changes to the walk filters
+---------------------------
+
+*	The walk methods :meth:`walknode` and :meth:`walkpath` have been renamed to
+	:meth:`walknodes` and :meth:`walkpaths`. The class :class:`WalkFilter` has
+	been moved to :mod:`ll.xist.xfind`.
+
+
 Migrating to version 3.7
 ========================
 

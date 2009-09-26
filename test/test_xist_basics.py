@@ -127,9 +127,9 @@ def test_standardmethods():
 	for node in common.allnodes():
 		node.compact()
 		node.normalized()
-		list(node.walk((True, xsc.enterattrs, xsc.entercontent)))
-		list(node.walknode((True, xsc.enterattrs, xsc.entercontent)))
-		list(node.walkpath((True, xsc.enterattrs, xsc.entercontent)))
+		list(node.walk((True, xfind.enterattrs, xfind.entercontent)))
+		list(node.walknodes((True, xfind.enterattrs, xfind.entercontent)))
+		list(node.walkpaths((True, xfind.enterattrs, xfind.entercontent)))
 		node.pretty()
 		node.clone()
 		node.conv()

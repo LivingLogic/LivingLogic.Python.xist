@@ -142,7 +142,7 @@ def iterrules(node, base=None, media=None, title=None):
 		return False
 
 	def doiter(node):
-		for cssnode in node.walknode(_isstyle):
+		for cssnode in node.walknodes(_isstyle):
 			if isinstance(cssnode, html.style):
 				href = str(base) if base is not None else None
 				if matchstyle(cssnode):

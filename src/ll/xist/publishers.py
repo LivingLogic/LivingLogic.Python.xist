@@ -264,7 +264,7 @@ class Publisher(object):
 		self._ns2prefix.clear()
 		self._prefix2ns.clear()
 		# iterate through every node in the tree
-		for n in node.walknode(xsc.Node):
+		for n in node.walknodes(xsc.Node):
 			self.getobjectprefix(n)
 		# Add the prefixes forced by ``self.showxmlns``
 		for xmlns in self.showxmlns:
