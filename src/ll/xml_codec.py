@@ -82,7 +82,7 @@ def encode(input, errors="strict", encoding=None):
 class IncrementalDecoder(codecs.IncrementalDecoder):
 	def __init__(self, errors="strict", encoding=None):
 		self.decoder = None
-		self.encoding = encoding
+		self._initial_encoding = self.encoding = encoding
 		codecs.IncrementalDecoder.__init__(self, errors)
 		self._errors = errors # Store ``errors`` somewhere else, because we have to hide it in a property
 		self.buffer = ""
@@ -126,6 +126,7 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
 
 	def reset(self):
 		codecs.IncrementalDecoder.reset(self)
+		self.encoding = self._initial_encoding
 		self.decoder = None
 		self.buffer = ""
 		self.headerfixed = False
@@ -144,7 +145,7 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
 class IncrementalEncoder(codecs.IncrementalEncoder):
 	def __init__(self, errors="strict", encoding=None):
 		self.encoder = None
-		self.encoding = encoding
+		self._initial_encoding = self.encoding = encoding
 		codecs.IncrementalEncoder.__init__(self, errors)
 		self._errors = errors # Store ``errors`` somewhere else, because we have to hide it in a property
 		self.buffer = u""
@@ -184,6 +185,7 @@ class IncrementalEncoder(codecs.IncrementalEncoder):
 
 	def reset(self):
 		codecs.IncrementalEncoder.reset(self)
+		self.encoding = self._initial_encoding
 		self.encoder = None
 		self.buffer = u""
 

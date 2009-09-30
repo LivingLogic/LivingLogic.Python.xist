@@ -162,6 +162,9 @@ def test_decoder():
 		id = codecs.getincrementaldecoder("xml")(encoding)
 		assert "".join(id.iterdecode(input.encode(encoding))) == input.replace("'x'", repr(encoding))
 
+	id = codecs.getincrementaldecoder("xml")(encoding="ascii")
+	assert id.decode("<?xml version='1.0' encoding='utf-16'?>") == "<?xml version='1.0' encoding='ascii'?>"
+
 	# Autodetectable encodings
 	yield checkauto, "utf-8-sig"
 	yield checkauto, "utf-16"
