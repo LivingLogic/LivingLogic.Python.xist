@@ -104,10 +104,11 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
 		# we're implementing buffering ourselves to avoid some overhead.
 		if self.decoder is None:
 			input = self.buffer + input
-			self.encoding = _detectencoding(input, final)
 			if self.encoding is None:
-				self.buffer = input # retry the complete input on the next call
-				return u"" # no encoding determined yet, so no output
+				self.encoding = _detectencoding(input, final)
+				if self.encoding is None:
+					self.buffer = input # retry the complete input on the next call
+					return u"" # no encoding determined yet, so no output
 			if self.encoding == "xml":
 				raise ValueError("xml not allowed as encoding name")
 			self.buffer = "" # isn't needed any more, as the decoder might keep its own buffer
