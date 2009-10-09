@@ -105,7 +105,7 @@ following event are produced:
 		The end of an attribute. The event data is the attribute name.
 		The parser will output events for the attribute value between the
 		``"enterattr"`` and the ``"leaveattr"`` event. (In most cases this is
-		*one* text event)
+		*one* text event).
 
 	``"endtag"``
 		An element end tag. The event data is the element name.
