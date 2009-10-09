@@ -172,6 +172,11 @@ class Pipeline(tuple):
 
 
 class PipelineObject(object):
+	"""
+	A :class:`PipelineObject` is the base class of all object in a
+	:class:`Pipeline`. It provides basic funktionality for creating a pipeline
+	via the or (``|``) operator.
+	"""
 	def __iter__(self):
 		return iter(Pipeline(self))
 
