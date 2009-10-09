@@ -638,7 +638,7 @@ class SGMLOP(EventParser):
 
 
 class Prefixes(PipelineObject):
-	def __init__(self, prefixes=None):
+	def __init__(self, prefixes=None, **kwargs):
 		"""
 		:var:`prefixes` is a mapping that maps namespace prefixes to namespace
 		names/modules (or lists of namespace names/modules). This is used to
@@ -646,8 +646,9 @@ class Prefixes(PipelineObject):
 		"""
 		# the currently active prefix mapping (will be replaced once xmlns attributes are encountered)
 		newprefixes = {}
-		if prefixes is not None:
-			for (prefix, xmlns) in prefixes.iteritems():
+		args = (prefixes, kwargs) if prefixes is not None else (kwargs, )
+		for arg in args:
+			for (prefix, xmlns) in arg.iteritems():
 				if prefix is not None and not isinstance(prefix, basestring):
 					raise TypeError("prefix must be None or string, not %r" % prefix)
 				xmlns = xsc.nsname(xmlns)
