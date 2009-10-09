@@ -18,7 +18,7 @@ URLs, etc.).
 
 The next step in the pipeline is the XML parser. It turns the input source into
 an iterator over parsing events (an "event stream"). Further steps in the
-pipeline might resolve namespace prefixes (:class:`Namespaces`), and instantiate
+pipeline might resolve namespace prefixes (:class:`Prefixes`), and instantiate
 XIST classes.
 
 The final step in the pipeline is either building an XML tree via :func:`tree`
@@ -33,7 +33,7 @@ Parsing a simple HTML string might e.g. look like this::
 	>>> doc = parsers.tree(
 	...         parsers.StringSource(source)
 	...       | parsers.Expat()
-	...       | parsers.Namespaces(prefixes={None: html})
+	...       | parsers.Prefixes(prefixes={None: html})
 	...       | parsers.Instantiate(pool=xsc.Pool(html))
 	... )
 	>>> doc.bytes()
@@ -213,6 +213,10 @@ class StringSource(Source):
 	Provides parser input from a string.
 	"""
 	def __init__(self, data, url=None):
+		"""
+		Create a :class:`StringSource` object. :var:`data` must be an 8-bit string.
+		:var:`url` specifies the url for the source (defaulting to ``"STRING"``).
+		"""
 		self.url = url_.URL(url if url is not None else "STRING")
 		self.data = data
 
@@ -228,6 +232,11 @@ class IterSource(Source):
 	Provides parser input from an iterator over strings.
 	"""
 	def __init__(self, iterable, url=None):
+		"""
+		Create a :class:`IterSource` object. :var:`iterable` must be an iterable
+		object producing 8-bit strings. :var:`url` specifies the url for the
+		source (defaulting to ``"ITER"``).
+		"""
 		self.url = url_.URL(url if url is not None else "ITER")
 		self.iterable = iterable
 
@@ -243,8 +252,8 @@ class StreamSource(Source):
 	def __init__(self, stream, url=None, bufsize=8192):
 		"""
 		Create a :class:`StreamSource` object. :var:`stream` must possess a
-		:meth:`read` method. :var:`url` specifies the url for the stream
-		(defaulting to ``STREAM``). :var:`bufsize` specify the chunksize for
+		:meth:`read` method. :var:`url` specifies the url for the source
+		(defaulting to ``"STREAM"``). :var:`bufsize` specify the chunksize for
 		reads from the stream.
 		"""
 		self.url = url_.URL(url if url is not None else "STREAM")
@@ -628,7 +637,7 @@ class SGMLOP(EventParser):
 		self._buffer.append((self.endtag, name))
 
 
-class Namespaces(PipelineObject):
+class Prefixes(PipelineObject):
 	def __init__(self, prefixes=None):
 		"""
 		:var:`prefixes` is a mapping that maps namespace prefixes to namespace
@@ -1017,7 +1026,7 @@ def _fixpipeline(pipeline, parser=None, prefixes=None, pool=None, base=None, loc
 		if not isinstance(parser, Expat) or not parser.ns:
 			needprefixes = True
 	if needprefixes or prefixes is not None:
-		pipeline |= Namespaces(prefixes=prefixes)
+		pipeline |= Prefixes(prefixes=prefixes)
 		needinstantiate = True
 	if needinstantiate or pool is not None or base is not None or not loc:
 		pipeline |= Instantiate(pool=pool, base=base, loc=loc)
