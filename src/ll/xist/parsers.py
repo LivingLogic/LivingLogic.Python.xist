@@ -147,28 +147,28 @@ html_xmlns = "http://www.w3.org/1999/xhtml"
 ### pipeline
 ###
 
-class Pipeline(object):
+class Pipeline(tuple):
 	"""
 	A :class:`Pipeline` object is a sequence of :class:`PipelineObject` instances.
 	Iterating a pipeline takes the input from the first object in the pipeline
 	(which must be a :class:`Source` object) and passed it to each object in the
 	pipeline.
 	"""
-	def __init__(self, *objects):
-		self.objects = objects
+	def __new__(cls, *objects):
+		return tuple.__new__(cls, objects)
 
 	def __or__(self, other):
-		return Pipeline(*(self.objects + (other,)))
+		return Pipeline(*(self + (other,)))
 
 	def __iter__(self):
-		url = self.objects[0].url
+		url = self[0].url
 		pipe = None
-		for obj in self.objects:
+		for obj in tuple.__iter__(self):
 			pipe = obj.transform(pipe, url)
 		return pipe
 
 	def __repr__(self):
-		return "(%s)" % " | ".join(repr(obj) for obj in self.objects)
+		return "(%s)" % " | ".join(repr(obj) for obj in self)
 
 
 class PipelineObject(object):
