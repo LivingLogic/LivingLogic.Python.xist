@@ -6,6 +6,13 @@ Changes in 3.8 (released ??/??/????)
 	from the nodes classes into :class:`WalkFilter`. :class:`WalkFilter` has been
 	moved to :mod:`ll.xist.xfind`.
 
+*	Fixed two bugs in the XML codecs:
+	-	An externally specified encoding wasn't honored in the incremental decoder.
+
+	-	Fixed reset() for incremental codecs: If encoding has been changed during
+		parsing in the incremental codecs it now gets reset to it's proper initial
+		value.
+
 
 Changes in 3.7 (released 09/10/2009)
 ------------------------------------

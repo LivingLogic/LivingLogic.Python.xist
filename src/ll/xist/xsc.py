@@ -631,20 +631,14 @@ class Node(object):
 		"""
 		return complex(unicode(self))
 
-	def parsed(self, parser, start=None):
+	def parsed(self, parser, event):
 		"""
 		This method will be called by the parser :var:`parser` once after
-		:var:`self` is created by the parser and must return the node that is to
-		be put into the tree (in most cases this is :var:`self`, it's used e.g.
-		by :class:`URLAttr` to incorporate the base URL into the attribute).
+		:var:`self` is created by the parser (This is used e.g. by
+		:class:`URLAttr` to incorporate the base URL into the attribute).
 
-		For elements :func:`parsed` will be called twice: Once at the beginning
-		(i.e. before the content is parsed) with :var:`start` being :const:`True`
-		and once at the end after parsing of the content is finished with
-		:var:`start` being :const:`False`. For the second call the return value
-		will be ignored.
+		:var:`event` is the parser event that initiated the call.
 		"""
-		return self
 
 	def checkvalid(self):
 		"""
@@ -1870,13 +1864,12 @@ class StyleAttr(Attr):
 		"""
 		self[:] = self._transform(replacer)
 
-	def parsed(self, parser, start=None):
-		if not self.isfancy() and parser.base is not None:
+	def parsed(self, parser, event):
+		if event == "leaveattr" and not self.isfancy() and parser.base is not None:
 			from ll.xist import css
 			def prependbase(u):
 				return parser.base/u
-			return self.__class__(self._transform(prependbase))
-		return self
+			self.replaceurls(prependbase)
 
 	def _publishattrvalue(self, publisher):
 		if not self.isfancy() and publisher.base is not None:
@@ -1910,8 +1903,9 @@ class URLAttr(Attr):
 	information about URL handling.
 	"""
 
-	def parsed(self, parser, start=None):
-		return self.__class__(url_.URL(parser.base/unicode(self)))
+	def parsed(self, parser, event):
+		if event == "leaveattr" and not self.isfancy() and parser.base is not None:
+			self[:] = (url_.URL(parser.base/unicode(self)),)
 
 	def _publishattrvalue(self, publisher):
 		if self.isfancy():
@@ -3607,8 +3601,16 @@ def docprefixes():
 	"""
 	Return a prefix mapping suitable for parsing XIST docstrings.
 	"""
+	from ll.xist.ns import html, doc, specials
+	return {None: doc, "sp": specials, "h": html}
+
+
+def docpool():
+	"""
+	Return a pool suitable for parsing XIST docstrings.
+	"""
 	from ll.xist.ns import html, chars, abbr, doc, specials
-	return {None: (doc, specials, html, chars, abbr)}
+	return Pool(doc, specials, html, chars, abbr)
 
 
 def nsname(xmlns):

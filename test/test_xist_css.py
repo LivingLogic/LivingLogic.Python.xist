@@ -238,6 +238,6 @@ def test_parse():
 
 def test_comments():
 	d = '<html><head><style type="text/css">/*nix*/ p{/*nix*/ color: red;}</style></head><body><p>gurk</p></body></html>'
-	node = parsers.parsestring(d)
+	node = parsers.parsestring(d, parser=parsers.Expat, prefixes={None: html})
 	css.applystylesheets(node)
 	assert unicode(node.walknodes(html.p)[0].attrs.style) == "color: red;"

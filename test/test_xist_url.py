@@ -17,10 +17,10 @@ from ll.xist.ns import specials, html, jsp
 
 
 def test_url():
-	node = parsers.parsestring("<?url root:images/gurk.gif?>", parser=parsers.SGMLOPParser())
+	node = parsers.parsestring("<?url root:images/gurk.gif?>", parser=parsers.SGMLOP, prefixes={None: html})
 	assert node.bytes(base="root:about/us.html") == "../images/gurk.gif"
 
-	node = parsers.parsestring('<img src="root:images/gurk.gif"/>')
+	node = parsers.parsestring('<img src="root:images/gurk.gif"/>', parser=parsers.Expat, prefixes={None: html})
 	assert node.bytes(base="root:about/us.html") == '<img src="../images/gurk.gif" />'
 
 
