@@ -715,7 +715,7 @@ class Template(object):
 		version = stream.readline()
 		version = version.rstrip()
 		if version != self.version:
-			raise ValueError("invalid version, expected %r got, %r" % (self.version, version))
+			raise ValueError("invalid version, expected %r, got %r" % (self.version, version))
 		self.startdelim = _readstr(u"<")
 		_readcr()
 		self.enddelim = _readstr(u">")
