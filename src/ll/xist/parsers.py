@@ -641,8 +641,8 @@ class Prefixes(PipelineObject):
 	def __init__(self, prefixes=None, **kwargs):
 		"""
 		:var:`prefixes` is a mapping that maps namespace prefixes to namespace
-		names/modules (or lists of namespace names/modules). This is used to
-		preinitialize the namespace prefix mapping.
+		names/modules. This is used to support namespace handling with a
+		preinitialized prefix mapping.
 		"""
 		# the currently active prefix mapping (will be replaced once xmlns attributes are encountered)
 		newprefixes = {}
