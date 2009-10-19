@@ -695,7 +695,7 @@ class Prefixes(PipelineObject):
 		else:
 			prefixes = oldprefixes
 
-		(prefix, sep, name) = data.rpartition(u":") # If this fails with an AttributeError, you might already have the namespaces resolved (as ``data`` is already a tuple)
+		(prefix, sep, name) = data.rpartition(u":") # If this fails with an ``AttributeError`` for ``tuple``, you might already have the namespaces resolved
 		prefix = prefix or None
 
 		try:
