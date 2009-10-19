@@ -168,7 +168,7 @@ class Pipeline(tuple):
 		return pipe
 
 	def __repr__(self):
-		return "(%s)" % " | ".join(repr(obj) for obj in self)
+		return "(%s)" % " | ".join(repr(obj) for obj in tuple.__iter__(self))
 
 
 class PipelineObject(object):
