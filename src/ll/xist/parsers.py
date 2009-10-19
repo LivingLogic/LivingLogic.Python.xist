@@ -644,6 +644,22 @@ class Prefixes(PipelineObject):
 	namespaces. It replaces the element and attribute names in
 	``"enterstarttag"``, ``"leavestarttag"``, ``"endtag"``, ``"enterattr"`` and
 	``"leaveattr"`` events with ``(name, namespace)`` tuples.
+
+	The output of a :class:`Prefixes` object in the stream looks like this::
+
+		>>> from ll.xist import parsers
+		>>> from ll.xist.ns import html
+		>>> source = "<a href='http://www.python.org/'>Python</a>"
+		>>> list(parsers.StringSource(source) | parsers.Expat() | parsers.Prefixes({None: html}))
+		[('location', (0, 0)),
+		 ('enterstarttag', (u'a', 'http://www.w3.org/1999/xhtml')),
+		 ('enterattr', (u'href', None)),
+		 u'http://www.python.org/',
+		 ('leaveattr', (u'href', None)),
+		 ('leavestarttag', (u'a', 'http://www.w3.org/1999/xhtml')),
+		 ('location', (0, 39)),
+		 ('text', u'Python'),
+		 ('endtag', (u'a', 'http://www.w3.org/1999/xhtml'))]
 	"""
 
 	def __init__(self, prefixes=None, **kwargs):
