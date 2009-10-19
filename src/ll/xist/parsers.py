@@ -642,7 +642,7 @@ class Prefixes(PipelineObject):
 	A :class:`Prefixes` is used in a parsing pipeline to add support for XML
 	namespaces. It replaces the element and attribute names in
 	``"enterstarttag"``, ``"leavestarttag"``, ``"endtag"``, ``"enterattr"`` and
-	``"leaveattr"`` events into with ``(name, namespace)`` tuples.
+	``"leaveattr"`` events with ``(name, namespace)`` tuples.
 	"""
 
 	def __init__(self, prefixes=None, **kwargs):
