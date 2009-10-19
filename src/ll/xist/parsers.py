@@ -638,11 +638,17 @@ class SGMLOP(EventParser):
 
 
 class Prefixes(PipelineObject):
+	"""
+	A :class:`Prefixes` is used in a parsing pipeline to add support for XML
+	namespaces. It replaces the element and attribute names in
+	``"enterstarttag"``, ``"leavestarttag"``, ``"endtag"``, ``"enterattr"`` and
+	``"leaveattr"`` events into with ``(name, namespace)`` tuples.
+	"""
+
 	def __init__(self, prefixes=None, **kwargs):
 		"""
-		:var:`prefixes` is a mapping that maps namespace prefixes to namespace
-		names/modules. This is used to support namespace handling with a
-		preinitialized prefix mapping.
+		Create a :class:`Prefixes` object. The namespace mapping is initialized
+		from the dictionary :var:`prefixes` (if given) and from :var:`kwargs`.
 		"""
 		# the currently active prefix mapping (will be replaced once xmlns attributes are encountered)
 		newprefixes = {}
@@ -689,7 +695,7 @@ class Prefixes(PipelineObject):
 		else:
 			prefixes = oldprefixes
 
-		(prefix, sep, name) = data.rpartition(u":") # If this fails with AttributeError: 'tuple' object has no attribute 'rpartition', you might already have the namespaces resolved
+		(prefix, sep, name) = data.rpartition(u":") # If this fails with an AttributeError, you might already have the namespaces resolved (as ``data`` is already a tuple)
 		prefix = prefix or None
 
 		try:
