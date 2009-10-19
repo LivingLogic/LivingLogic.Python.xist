@@ -663,6 +663,7 @@ class Prefixes(PipelineObject):
 					raise TypeError("xmlns must be string, not %r" % xmlns)
 				newprefixes[prefix] = xmlns
 		self._newprefixes = self._attrs = self._attr = None
+		# A stack entry is an ``((elementname, namespacename), prefixdict)`` tuple
 		self._prefixstack = [(None, newprefixes)]
 
 	def xmldecl(self, data):
