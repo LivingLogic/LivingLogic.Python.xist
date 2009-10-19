@@ -19,10 +19,10 @@ URLs, etc.).
 The next step in the pipeline is the XML parser. It turns the input source into
 an iterator over parsing events (an "event stream"). Further steps in the
 pipeline might resolve namespace prefixes (:class:`Prefixes`), and instantiate
-XIST classes.
+XIST classes (:class:`Instantiate`).
 
 The final step in the pipeline is either building an XML tree via :func:`tree`
-or an iterative parsing step (similar to ElementTree :func:`iterparse`
+or an iterative parsing step (similar to ElementTrees :func:`iterparse`
 function) via :func:`iterparse`.
 
 Parsing a simple HTML string might e.g. look like this::
@@ -42,7 +42,7 @@ Parsing a simple HTML string might e.g. look like this::
 Alternatively the parsing step can be done with a :class:`Tidy` object, which
 parses (potentially ill-formed) HTML into an event stream.
 
-Also it's possible to turn an object that is compatible with the ElemenTree__
+It's also possible to turn an object that is compatible with the ElemenTree__
 API into an event stream via an :class:`ETree` object.
 
 	__ http://effbot.org/zone/element-index.htm
@@ -68,11 +68,12 @@ following event are produced:
 	``"xmldecl"``
 		The XML declaration. The event data is a dictionary containing the keys
 		``"version"``, ``"encoding"`` and ``"standalone"``. Parsers may omit this
-		event. Parsers may omit this event.
+		event.
 
 	``"begindoctype"``
 		The begin of the doctype. The event data is a dictionary containing the
-		keys ``"name"``, ``"publicid"`` and ``"systemid"``.
+		keys ``"name"``, ``"publicid"`` and ``"systemid"``.  Parsers may omit this
+		event.
 
 	``"enddoctype"``
 		The end of the doctype. The event data is :const:`None`. (If there is no
@@ -84,11 +85,11 @@ following event are produced:
 
 	``"text"``
 		A text. The event data is the text content. Parsers should try to avoid
-		outputting multiple text event in sequence.
+		outputting multiple text events in sequence.
 
 	``"cdata"``
 		A CDATA section. The event data is the content of the CDATA section.
-		Parsers *may* report CDATA sections as text events.
+		Parsers may report CDATA sections as text events instead of cdata events.
 
 	``"enterstarttag"``
 		The beginning of an element start tag. The event data is the element name.
@@ -105,7 +106,7 @@ following event are produced:
 		The end of an attribute. The event data is the attribute name.
 		The parser will output events for the attribute value between the
 		``"enterattr"`` and the ``"leaveattr"`` event. (In most cases this is
-		*one* text event).
+		one text event).
 
 	``"endtag"``
 		An element end tag. The event data is the element name.
