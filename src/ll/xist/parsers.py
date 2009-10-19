@@ -664,6 +664,69 @@ class Prefixes(PipelineObject):
 		self._newprefixes = self._attrs = self._attr = None
 		self._prefixstack = [(None, newprefixes)]
 
+	def xmldecl(self, data):
+		data = ("xmldecl", data)
+		if self._attr is not None:
+			self._attr.append(data)
+		else:
+			yield data
+
+	def begindoctype(self, data):
+		data = ("begindoctype", data)
+		if self._attr is not None:
+			self._attr.append(data)
+		else:
+			yield data
+
+	def enddoctype(self, data):
+		data = ("enddoctype", data)
+		if self._attr is not None:
+			self._attr.append(data)
+		else:
+			yield data
+
+	def comment(self, data):
+		data = ("comment", data)
+		if self._attr is not None:
+			self._attr.append(data)
+		else:
+			yield data
+
+	def text(self, data):
+		data = ("text", data)
+		if self._attr is not None:
+			self._attr.append(data)
+		else:
+			yield data
+
+	def cdata(self, data):
+		data = ("cdata", data)
+		if self._attr is not None:
+			self._attr.append(data)
+		else:
+			yield data
+
+	def procinst(self, data):
+		data = ("procinst", data)
+		if self._attr is not None:
+			self._attr.append(data)
+		else:
+			yield data
+
+	def entity(self, data):
+		data = ("entity", data)
+		if self._attr is not None:
+			self._attr.append(data)
+		else:
+			yield data
+
+	def location(self, data):
+		data = ("location", data)
+		if self._attr is not None:
+			self._attr.append(data)
+		else:
+			yield data
+
 	def enterstarttag(self, data):
 		self._newprefixes = {}
 		self._attrs = {}
@@ -730,18 +793,9 @@ class Prefixes(PipelineObject):
 		yield ("endtag", data)
 
 	def transform(self, input, url):
-		buffer = None
 		for event in input:
-			try:
-				func = getattr(self, event[0])
-			except AttributeError:
-				if self._attr is not None:
-					self._attr.append(event)
-				else:
-					yield event
-			else:
-				for event in func(event[1]):
-					yield event
+			for data in getattr(self, event[0])(event[1]):
+				yield data
 
 
 class Instantiate(PipelineObject):
