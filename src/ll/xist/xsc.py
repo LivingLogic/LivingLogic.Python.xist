@@ -97,6 +97,7 @@ class build(object):
 				+html.li("gurk")
 				+html.li("hurz")
 	"""
+
 	def __init__(self):
 		self.stack = []
 
@@ -216,7 +217,7 @@ class RequiredAttrMissingWarning(Warning):
 		self.reqattrs = reqattrs
 
 	def __str__(self):
-		return "Required attribute%s %s missing in %s" % (("s" if len(self.reqattrs)>1 else ""), ", ".join(repr(attr) for attr in self.reqattrs), self.attrs._str(fullname=True, xml=False, decorate=False))
+		return "Required attribute%s %s missing in %s" % (("s" if len(self.reqattrs) > 1 else ""), ", ".join(repr(attr) for attr in self.reqattrs), self.attrs._str(fullname=True, xml=False, decorate=False))
 
 
 class IllegalPrefixError(Error, LookupError):
@@ -458,7 +459,7 @@ class Node(object):
 		return "<%s:%s object at 0x%x>" % (self.__module__, self.__fullname__, id(self))
 
 	def __ne__(self, other):
-		return not self==other
+		return not self == other
 
 	xmlname = None
 	xmlns = None
