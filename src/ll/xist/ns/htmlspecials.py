@@ -86,7 +86,7 @@ class _pixelbase(html.img):
 class pixel(_pixelbase):
 	"""
 	Element for single transparent pixel image.
-	
+
 	You can specify the pixel color via the ``color`` attribute (which will set
 	the background-color in the style attribute).
 
@@ -123,7 +123,7 @@ class pixel(_pixelbase):
 class autoimg(html.img):
 	"""
 	An image were width and height attributes are automatically generated.
-	
+
 	If the attributes are already there, they won't be modified.
 	"""
 	xmlns = xmlns
@@ -141,7 +141,7 @@ class autoimg(html.img):
 class autopixel(_pixelbase):
 	"""
 	A pixel image were width and height attributes are automatically generated.
-	
+
 	This works like :class:`pixel` but the size is "inherited" from the image
 	specified via the ``src`` attribute.
 	"""

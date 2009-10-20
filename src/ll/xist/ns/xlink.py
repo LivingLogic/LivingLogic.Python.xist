@@ -20,7 +20,7 @@ from ll.xist import xsc
 __docformat__ = "reStructuredText"
 
 
-xmlns  = "http://www.w3.org/1999/xlink"
+xmlns = "http://www.w3.org/1999/xlink"
 
 
 class Attrs(xsc.Attrs):

@@ -176,7 +176,8 @@ class BaseElement(xsc.Element):
 		class class_(xsc.TextAttr):
 			"``class`` is used to transmit individuality information forward."
 			xmlname = "class"
-	
+
+
 # Root Element
 class document(BaseElement):
 	class Attrs(BaseElement.Attrs):
@@ -561,7 +562,8 @@ class system_message(BaseElement):
 
 	def convert(self, converter):
 		# A warning has already been issued by docutils, we don't have to do anything
-		return xsc.Null 
+		return xsc.Null
+
 
 class raw(BaseElement):
 	class Attrs(BaseElement.Attrs):

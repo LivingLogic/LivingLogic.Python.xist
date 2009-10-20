@@ -238,11 +238,11 @@ class IsInstanceSelector(Selector):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknodes(html.a):
 		... 	print node.attrs.href, node.attrs.title
-		... 
-		http://www.python.org/ 
-		http://www.python.org/#left%2Dhand%2Dnavigation 
-		http://www.python.org/#content%2Dbody 
-		http://www.python.org/search 
+		...
+		http://www.python.org/
+		http://www.python.org/#left%2Dhand%2Dnavigation
+		http://www.python.org/#content%2Dbody
+		http://www.python.org/search
 		http://www.python.org/about/ About The Python Language
 		http://www.python.org/news/ Major Happenings Within the Python Community
 		http://www.python.org/doc/ Tutorials, Library Reference, C API
@@ -290,7 +290,7 @@ class hasname(Selector):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknodes(xfind.hasname("img")):
 		... 	print node.bytes()
-		... 
+		...
 		<img border="0" src="http://www.python.org/images/python-logo.gif" alt="homepage" id="logo" />
 		<img border="0" id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" />
 		<img border="0" id="skiptocontent" alt="skip to content" src="http://www.python.org/images/trans.gif" />
@@ -347,7 +347,7 @@ class IsSelector(Selector):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknodes(doc[0]/xsc.Element):
 		... 	print repr(node)
-		... 
+		...
 		<ll.xist.ns.html.head element object (13 children/no attrs) (from http://www.python.org/:6:?) at 0xb6c82f4c>
 		<ll.xist.ns.html.body element object (19 children/no attrs) (from http://www.python.org/:26:?) at 0xb6c3154c>
 	"""
@@ -380,7 +380,7 @@ class empty(Selector):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknodes(xfind.empty):
 		... 	print node.bytes()
-		... 
+		...
 		<meta content="text/html; charset=utf-8" http-equiv="content-type" />
 		<meta content="python programming language object oriented web free source" name="keywords" />
 		<meta content="      Home page for Python, an interpreted, interactive, object-oriented, extensible
@@ -412,7 +412,7 @@ class onlychild(Selector):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknodes(xfind.onlychild & html.a):
 		... 	print node.bytes()
-		... 
+		...
 		<a accesskey="2" href="http://www.python.org/#left%2dhand%2dnavigation"><img id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" border="0" /></a>
 		<a accesskey="3" href="http://www.python.org/#content%2dbody"><img id="skiptocontent" alt="skip to content" src="http://www.python.org/images/trans.gif" border="0" /></a>
 		<a href="http://www.python.org/download/releases/2.5.1">Quick Links (2.5.1)</a>
@@ -443,7 +443,7 @@ class onlyoftype(Selector):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknodes(xfind.onlyoftype & xsc.Element):
 		... 	print repr(node)
-		... 
+		...
 		<ll.xist.ns.html.html element object (2 children/1 attr) (from http://www.python.org/:4:?) at 0xb6d6e7ec>
 		<ll.xist.ns.html.head element object (13 children/no attrs) (from http://www.python.org/:6:?) at 0xb6cc1f8c>
 		<ll.xist.ns.html.title element object (1 child/no attrs) (from http://www.python.org/:8:?) at 0xb6d79b8c>
@@ -481,7 +481,7 @@ class hasattr(Selector):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknodes(xfind.hasattr(xml.Attrs.lang)):
 		... 	print repr(node)
-		... 
+		...
 		<ll.xist.ns.html.html element object (2 children/2 attrs) (from http://www.python.org/:4:?) at 0xb6d71d4c>
 	"""
 
@@ -534,7 +534,7 @@ class attrhasvalue(Selector):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknodes(xfind.attrhasvalue("rel", "stylesheet")):
 		... 	print node.attrs.href
-		... 
+		...
 		http://www.python.org/styles/screen-switcher-default.css
 		http://www.python.org/styles/netscape4.css
 		http://www.python.org/styles/print.css
@@ -595,7 +595,7 @@ class attrcontains(Selector):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknodes(xfind.attrcontains("rel", "stylesheet")):
 		... 	print node.attrs.rel, node.attrs.href
-		... 
+		...
 
 		stylesheet http://www.python.org/styles/screen-switcher-default.css
 		stylesheet http://www.python.org/styles/netscape4.css
@@ -659,7 +659,7 @@ class attrstartswith(Selector):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknodes(xfind.attrstartswith("class_", "input-")):
 		... 	print repr(node)
-		... 
+		...
 		<input class="input-text" id="q" type="text" name="q" />
 		<input value="search" class="input-button" id="submit" type="submit" name="submit" />
 	"""
@@ -719,7 +719,7 @@ class attrendswith(Selector):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknodes(xfind.attrendswith("href", ".css")):
 		... 	print node.attrs.href
-		... 
+		...
 		http://www.python.org/styles/screen-switcher-default.css
 		http://www.python.org/styles/netscape4.css
 		http://www.python.org/styles/print.css
@@ -780,7 +780,7 @@ class hasid(Selector):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknodes(xfind.hasid("logo")):
 		... 	print node.bytes()
-		... 
+		...
 		<img src="http://www.python.org/images/python-logo.gif" id="logo" alt="homepage" border="0" />
 	"""
 
@@ -811,7 +811,7 @@ class hasclass(Selector):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknodes(xfind.hasclass("reference")):
 		... 	print node.bytes()
-		... 
+		...
 		<a class="reference" href="http://www.python.org/search">Advanced Search</a>
 		<a href="http://www.python.org/about/success/rackspace" class="reference">Rackspace</a>
 		<a href="http://www.python.org/about/success/ilm" class="reference">Industrial Light and Magic</a>
@@ -845,7 +845,7 @@ class inattr(Selector):
 	>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 	>>> for node in doc.walknodes(xfind.inattr & xsc.Text):
 	... 	print node.bytes()
-	... 
+	...
 	text/html; charset=utf-8
 	content-type
 	python programming language object oriented web free source
@@ -904,7 +904,7 @@ class ChildCombinator(BinaryCombinator):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknodes(html.a/html.img):
 		... 	print node.bytes()
-		... 
+		...
 		<img src="http://www.python.org/images/python-logo.gif" alt="homepage" id="logo" border="0" />
 		<img id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" border="0" />
 		<img id="skiptocontent" alt="skip to content" src="http://www.python.org/images/trans.gif" border="0" />
@@ -934,7 +934,7 @@ class DescendantCombinator(BinaryCombinator):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknodes(html.div//html.img):
 		... 	print node.bytes()
-		... 
+		...
 		<img id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" border="0" />
 		<img id="skiptocontent" alt="skip to content" src="http://www.python.org/images/trans.gif" border="0" />
 		<img alt="success story photo" class="success" src="http://www.python.org/images/success/nasa.jpg" />
@@ -967,7 +967,7 @@ class AdjacentSiblingCombinator(BinaryCombinator):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknodes(html.h2*html.p/html.a):
 		... 	print node.bytes()
-		... 
+		...
 		<a href="http://www.scipy.org/SciPy2007" class="reference">SciPy Conference</a>
 		<a href="https://www.enthought.com/scipy07/" class="reference">early registration</a>
 		<a href="http://www.europython.org/sections/registration_issues/how-to-register" class="reference">Online registration</a>
@@ -1013,7 +1013,7 @@ class GeneralSiblingCombinator(BinaryCombinator):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknodes(html.a**html.a):
 		... 	print node.bytes()
-		... 
+		...
 		<a href="http://www.python.org/about/success/ilm" class="reference">Industrial Light and Magic</a>
 		<a href="http://www.python.org/about/success/astra" class="reference">AstraZeneca</a>
 		<a href="http://www.python.org/about/success/honeywell" class="reference">Honeywell</a>
@@ -1066,7 +1066,7 @@ class OrCombinator(ChainedCombinator):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknodes(xfind.hasattr("href") | xfind.hasattr("src")):
 		... 	print node.attrs.href if "href" in node.Attrs else node.attrs.src
-		... 
+		...
 		http://www.python.org/channews.rdf
 		http://aspn.activestate.com/ASPN/Cookbook/Python/index_rss
 		http://python-groups.blogspot.com/feeds/posts/default
@@ -1105,7 +1105,7 @@ class AndCombinator(ChainedCombinator):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknodes(html.input & xfind.hasattr("id")):
 		... 	print node.bytes()
-		... 
+		...
 		<input id="domains" name="domains" value="www.python.org" type="hidden" />
 		<input id="sitesearch" name="sitesearch" value="www.python.org" type="hidden" />
 		<input id="sourceid" name="sourceid" value="google-search" type="hidden" />
@@ -1137,7 +1137,7 @@ class NotCombinator(Combinator):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknodes(html.img & ~xfind.hasattr("border")):
 		... 	print node.bytes()
-		... 
+		...
 		<img alt="success story photo" class="success" src="http://www.python.org/images/success/nasa.jpg" />
 	"""
 
@@ -1170,10 +1170,10 @@ class CallableSelector(Selector):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> def foreignlink(path):
 		... 	return path and isinstance(path[-1], html.a) and not path[-1].attrs.href.asURL().server.endswith(".python.org")
-		... 
+		...
 		>>> for node in doc.walknodes(foreignlink):
 		... 	print node.bytes()
-		... 
+		...
 		<a href="http://youtube.com/" class="reference">YouTube.com</a>
 		<a href="http://www.zope.org/">Zope</a>
 		<a href="http://www.djangoproject.com/">Django</a>
@@ -1234,7 +1234,7 @@ class nthoftype(Selector):
 		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
 		>>> for node in doc.walknodes(xfind.nthoftype(0, html.h2)):
 		... 	print node.bytes()
-		... 
+		...
 		<h2 class="news">SciPy 2007 - Conference for Scientific Computing</h2>
 	"""
 

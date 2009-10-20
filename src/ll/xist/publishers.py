@@ -298,7 +298,7 @@ class Publisher(object):
 		rest = self.encoder.encode(u"", True) # finish encoding and flush buffers
 		if rest:
 			yield rest
-	
+
 		self.inattr = 0
 		self.__textfilters = [ misc.xmlescape_text ]
 

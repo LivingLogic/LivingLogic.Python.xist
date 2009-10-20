@@ -2086,7 +2086,7 @@ dtd = {
 	table_cell: sims.Elements(*(pe_block + (marker,))),
 	list_block: sims.Elements(list_item, marker),
 	list_item: sims.Elements(list_item_label, list_item_body, marker),
-	list_item_body:sims.Elements(*(pe_block + (marker,))),
+	list_item_body: sims.Elements(*(pe_block + (marker,))),
 	list_item_label: sims.Elements(*(pe_block + (marker,))),
 	basic_link: sims.ElementsOrText(*(pe_inline + pe_block + (marker,))),
 	multi_switch: sims.Elements(multi_case),

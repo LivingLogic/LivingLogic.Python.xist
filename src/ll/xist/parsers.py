@@ -1046,9 +1046,10 @@ class Tidy(PipelineObject):
 class ETree(Source):
 	"""
 	Returns XML events from an object that supports the ElementTree__ API.
-	
+
 	__ http://effbot.org/zone/element-index.htm
 	"""
+
 	def __init__(self, data, url=None, defaultxmlns=None):
 		self.url = url_.URL(url if url is not None else "ETREE")
 		self.data = data
@@ -1478,9 +1479,10 @@ class noBuilder(object):
 		Parse XML input from the object :var:`tree` which must support the
 		ElementTree__ API. :var:`base` is the base URL for the parsing process
 		(i.e. this URL will be prepended to all links in the tree).
-		
+
 		__ http://effbot.org/zone/element-index.htm
 		"""
+
 		def toxsc(node):
 			name = type(node).__name__
 			if "Element" in name:

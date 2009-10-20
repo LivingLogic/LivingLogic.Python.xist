@@ -204,7 +204,7 @@ class tagclass(xsc.Element):
 class taglib(xsc.Element):
 	"""
 	The taglib tag is the document root, it defines:
-	
+
 	``tlibversion``
 		The version of the tag library implementation
 

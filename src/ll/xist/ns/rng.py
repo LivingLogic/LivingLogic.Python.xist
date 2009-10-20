@@ -29,7 +29,7 @@ class base(xsc.Element):
 	"Abstract" basis class, providing common attributes.
 	"""
 	register = False
-	
+
 	class Attrs(xsc.Element.Attrs):
 		class ns(xsc.TextAttr): pass
 		# ns is inherited from the nearest ancestor, where a ns-attribute is defined, else it's ""

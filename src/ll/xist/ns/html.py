@@ -9,7 +9,7 @@
 
 
 """
-An XIST namespace that contains definitions for all the elements in 
+An XIST namespace that contains definitions for all the elements in
 `HTML 4.0 transitional`__.
 
 __ http://www.w3.org/TR/html4/loose.dtd
