@@ -72,7 +72,7 @@ def test_parsingmethods():
 	pool = xsc.Pool(a)
 
 	yield check, parsers.parsestring(b, parser=parsers.Expat, prefixes=prefixes, pool=pool)
-	yield check, parsers.tree(s | parsers.Encoder(encoding="utf-8"), parser=parsers.Expat, prefixes=prefixes, pool=pool)
+	yield check, parsers.tree(s | parsers.Encoder(encoding="utf-8") | parsers.Expat() | parsers.Prefixes(prefixes) | parsers.Instantiate(pool=pool))
 	yield check, parsers.parseiter(b, parser=parsers.Expat, prefixes=prefixes, pool=pool) # parse byte by byte
 	yield check, parsers.parsestream(cStringIO.StringIO(b), bufsize=1, parser=parsers.Expat, prefixes=prefixes, pool=pool)
 	yield check, parsers.parseetree(cElementTree.fromstring(b), defaultxmlns=a.xmlns, pool=pool)
@@ -122,8 +122,8 @@ class Test:
 				)
 			)
 		)
-		node = parsers.parsestring(xml, parser=parsers.Expat, prefixes=dict(x=ihtml))
-		node = node.walknodes(xfind.FindType(xsc.Element))[0].compact() # get rid of the Frag and whitespace
+		node = parsers.tree(xml | parsers.Expat() | parsers.Prefixes(x=ihtml) | parsers.Instantiate())
+		node = node.walknodes(xsc.Element)[0].compact() # get rid of the Frag and whitespace
 		assert node == check
 
 	def test_parseurls(self):
@@ -249,26 +249,26 @@ def test_parsestringurl():
 
 def test_xmlns():
 	s = "<z xmlns=%r><rb xmlns=%r/><z/></z>" % (specials.xmlns, ruby.xmlns)
-	e = parsers.tree(s | parsers.Expat(ns=True), pool=xsc.Pool(specials, ruby))
+	e = parsers.tree(s | parsers.Expat(ns=True) | parsers.Instantiate(pool=xsc.Pool(specials, ruby)))
 
 	assert e[0].xmlns == specials.xmlns
 	assert e[0][0].xmlns == ruby.xmlns
 
 	s = "<a xmlns=%r><a xmlns=%r/></a>" % (html.xmlns, ihtml.xmlns)
-	e = parsers.tree(s | parsers.Expat(ns=True), pool=xsc.Pool(html, ihtml))
+	e = parsers.tree(s | parsers.Expat(ns=True) | parsers.Instantiate(pool=xsc.Pool(html, ihtml)))
 	assert isinstance(e[0], html.a)
 	assert isinstance(e[0][0], ihtml.a)
 
 	s = "<a><a xmlns=%r/></a>" % ihtml.xmlns
 	py.test.raises(xsc.IllegalElementError, parsers.parsestring, s, parser=parsers.Expat, prefixes={None: html}, pool=xsc.Pool(ihtml))
-	e = parsers.tree(s, parser=parsers.Expat, prefixes={None: html}, pool=xsc.Pool(html, ihtml))
+	e = parsers.tree(s | parsers.Expat() | parsers.Prefixes({None: html}) | parsers.Instantiate(pool=xsc.Pool(html, ihtml)))
 	assert isinstance(e[0], html.a)
 	assert isinstance(e[0][0], ihtml.a)
 
 	s = "<z xmlns=%r/>" % specials.xmlns
-	e = parsers.tree(s | parsers.Expat(ns=True), pool=xsc.Pool(specials.z))
+	e = parsers.tree(s | parsers.Expat(ns=True) | parsers.Instantiate(pool=xsc.Pool(specials.z)))
 	assert isinstance(e[0], specials.z)
-	py.test.raises(xsc.IllegalElementError, parsers.tree, s | parsers.Expat(ns=True), pool=xsc.Pool())
+	py.test.raises(xsc.IllegalElementError, parsers.tree, s | parsers.Expat(ns=True) | parsers.Instantiate(pool=xsc.Pool()))
 
 
 def test_parseemptyattribute():

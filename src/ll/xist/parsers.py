@@ -1113,9 +1113,9 @@ def _fixpipeline(pipeline, parser=None, prefixes=None, pool=None, base=None, loc
 	return pipeline
 
 
-def tree(pipeline, validate=True, **kwargs):
+def tree(pipeline, validate=True):
 	stack = [xsc.Frag()]
-	for event in _fixpipeline(pipeline, **kwargs):
+	for event in pipeline:
 		if event[0] == "enterstarttag":
 			stack[-1].append(event[1])
 			stack.append(event[1])
@@ -1128,10 +1128,10 @@ def tree(pipeline, validate=True, **kwargs):
 	return stack[0]
 
 
-def iterparse(input, events=("endtag",), validate=True, filter=None, **kwargs):
+def iterparse(input, events=("endtag",), validate=True, filter=None):
 	filter = xfind.makewalkfilter(filter)
 	path = [xsc.Frag()]
-	for event in _fixpipeline(pipeline, **kwargs):
+	for event in pipeline:
 		if event in events and filter.matchpath(path):
 			yield (event, path)
 		if event == "enterstarttag":
@@ -1542,7 +1542,7 @@ def parsestring(data, url=None, **kwargs):
 	:class:`Builder` constructor takes as keyword arguments
 	via :var:`builderargs`.
 	"""
-	return tree(StringSource(data, url=url), **kwargs)
+	return tree(_fixpipeline(StringSource(data, url=url), **kwargs))
 
 
 def parseiter(iterable, url=None, **kwargs):
@@ -1554,7 +1554,7 @@ def parseiter(iterable, url=None, **kwargs):
 	:class:`Builder` constructor takes as keyword arguments via
 	:var:`builderargs`.
 	"""
-	return tree(IterSource(iterable, url=url), **kwargs)
+	return tree(_fixpipeline(IterSource(iterable, url=url), **kwargs))
 
 
 def parsestream(stream, base=None, bufsize=8192, **kwargs):
@@ -1565,7 +1565,7 @@ def parsestream(stream, base=None, bufsize=8192, **kwargs):
 	argument that the :class:`Builder` constructor takes as keyword arguments via
 	:var:`builderargs`.
 	"""
-	return tree(StreamSource(stream, bufsize=bufsize), **kwargs)
+	return tree(_fixpipeline(StreamSource(stream, bufsize=bufsize), **kwargs))
 
 
 def parsefile(filename, bufsize=8192, **kwargs):
@@ -1576,7 +1576,7 @@ def parsefile(filename, bufsize=8192, **kwargs):
 	argument that the :class:`Builder` constructor takes as keyword arguments
 	via :var:`builderargs`.
 	"""
-	return tree(FileSource(filename, bufsize=bufsize), **kwargs)
+	return tree(_fixpipeline(FileSource(filename, bufsize=bufsize), **kwargs))
 
 
 def parseurl(name, bufsize=8192, headers=None, data=None, **kwargs):
@@ -1587,10 +1587,10 @@ def parseurl(name, bufsize=8192, headers=None, data=None, **kwargs):
 	any other argument that the :class:`Builder` constructor takes as keyword
 	arguments via :var:`builderargs`.
 	"""
-	return tree(URLSource(name, headers=headers, data=data), **kwargs)
+	return tree(_fixpipeline(URLSource(name, headers=headers, data=data), **kwargs))
 
 
-def parseetree(node, defaultxmlns=None, base=None, **kwargs):
+def parseetree(node, defaultxmlns=None, **kwargs):
 	"""
 	Parse XML input from the object :var:`node` which must support the
 	ElementTree__ API. For the argument :var:`base` see the method
@@ -1600,4 +1600,4 @@ def parseetree(node, defaultxmlns=None, base=None, **kwargs):
 
 	__ http://effbot.org/zone/element-index.htm
 	"""
-	return tree(ETree(node, defaultxmlns=defaultxmlns), base=base, **kwargs)
+	return tree(_fixpipeline(ETree(node, defaultxmlns=defaultxmlns), **kwargs))
