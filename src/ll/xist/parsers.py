@@ -33,7 +33,7 @@ Parsing a simple HTML string might e.g. look like this::
 	>>> doc = parsers.tree(
 	...         parsers.StringSource(source)
 	...       | parsers.Expat()
-	...       | parsers.Prefixes(prefixes={None: html})
+	...       | parsers.Prefixes({None: html})
 	...       | parsers.Instantiate(pool=xsc.Pool(html))
 	... )
 	>>> doc.bytes()
@@ -63,7 +63,7 @@ The following code shows an example of an event stream::
 	 ('endtag', u'a')]
 
 An event is a tuple consisting of the event type and the event data. The
-following event are produced:
+following events are produced:
 
 	``"xmldecl"``
 		The XML declaration. The event data is a dictionary containing the keys
@@ -119,9 +119,9 @@ following event are produced:
 		An entity reference. The event data is the entity name.
 
 	``"location"``
-		The line and column information in the source (as a tuple of two integers
-		both starting with 0). All the following events should use this location
-		information until the next location event.
+		The event data is a tuple containing the line and column number in the
+		source (both starting with 0). All the following events should use this
+		location information until the next location event.
 """
 
 
