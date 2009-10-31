@@ -225,7 +225,7 @@ static PyObject *unescape(PyObject *self, PyObject *args)
 
 int appendempty(PyObject *newpath, int *pos)
 {
-	PyObject *newsegment = Py_BuildValue("(u#)", pos, 0); /* pos is ignored */
+	PyObject *newsegment = PyUnicode_FromString("");
 	if (!newsegment)
 	{
 		Py_DECREF(newpath);
@@ -247,13 +247,13 @@ Internal helper function for normalizing a path list";
 	l = len(path_segments)
 	for i in xrange(l):
 		segment = path_segments[i]
-		if segment==(".",) or segment==("",):
+		if segment=="." or segment=="":
 			if i==l-1:
-				new_path_segments.append(("",))
-		elif segment==("..",) and len(new_path_segments) and new_path_segments[-1]!=("..",):
+				new_path_segments.append("")
+		elif segment==".." and len(new_path_segments) and new_path_segments[-1]!="..":
 			new_path_segments.pop()
 			if i==l-1:
-				new_path_segments.append(("",))
+				new_path_segments.append("")
 		else:
 			new_path_segments.append(segment)
 	return new_path_segments
@@ -282,50 +282,36 @@ static PyObject *normalizepath(PyObject *self, PyObject *path)
 	for (in = 0; in < pathsize; ++in)
 	{
 		PyObject *segment = PyList_GET_ITEM(path, in);
-		PyObject *dir;
-		int segmentsize;
+		int seglen;
 
-		if (!PyTuple_CheckExact(segment) || (((segmentsize = PyTuple_GET_SIZE(segment)) != 1) && (segmentsize != 2)))
-		{
-			PyErr_SetString(PyExc_TypeError, "path entries must be tuples with 1 or 2 entries");
-			Py_DECREF(newpath);
-			return NULL;
-		}
-		dir = PyTuple_GET_ITEM(segment, 0);
-		if (!PyUnicode_CheckExact(dir))
+		if (!PyUnicode_CheckExact(segment))
 		{
 			PyErr_SetString(PyExc_TypeError, "path entry directory must be unicode");
 			Py_DECREF(newpath);
 			return NULL;
 		}
-		if (segmentsize == 1) /* we can only optimize it, if it doesn't have params */
+		seglen = PyUnicode_GET_SIZE(segment);
+		if ((seglen==0) || ((seglen==1) && (PyUnicode_AS_UNICODE(segment)[0] == '.'))) /* skip '' and '.' */
 		{
-			int dirlen = PyUnicode_GET_SIZE(dir);
-			if ((dirlen==0) || ((dirlen==1) && (PyUnicode_AS_UNICODE(dir)[0] == '.'))) /* skip '' and '.' */
+			if (in==pathsize-1) /* add empty terminating segment */
+				if (!appendempty(newpath, &out))
+					return NULL;
+			continue; /* skip output */
+		}
+		else if ((seglen == 2) && (PyUnicode_AS_UNICODE(segment)[0] == '.') && (PyUnicode_AS_UNICODE(segment)[1] == '.') && out) /* drop '..' and a previous real directory name */
+		{
+			PyObject *lastnewsegment = PyTuple_GET_ITEM(newpath, out-1);
+
+			if (!((PyUnicode_GET_SIZE(lastnewsegment) == 2) && /* check that previous name is not '..' */
+					(PyUnicode_AS_UNICODE(lastnewsegment)[0] == '.') &&
+					(PyUnicode_AS_UNICODE(lastnewsegment)[1] == '.')))
 			{
+				Py_DECREF(lastnewsegment);
+				PyTuple_SET_ITEM(newpath, --out, NULL); /* drop previous */
 				if (in==pathsize-1) /* add empty terminating segment */
 					if (!appendempty(newpath, &out))
 						return NULL;
 				continue; /* skip output */
-			}
-			else if ((dirlen == 2) && (PyUnicode_AS_UNICODE(dir)[0] == '.') && (PyUnicode_AS_UNICODE(dir)[1] == '.') && out) /* drop '..' and a previous real directory name */
-			{
-				PyObject *lastnewsegment = PyTuple_GET_ITEM(newpath, out-1);
-				int lastnewsegmentsize = PyTuple_GET_SIZE(lastnewsegment);
-				PyObject *lastnewsegmentdir = PyTuple_GET_ITEM(lastnewsegment, 0);
-
-				if (!((lastnewsegmentsize==1) && /* check that previous name is not '..' */
-						(PyUnicode_GET_SIZE(lastnewsegmentdir) == 2) &&
-						(PyUnicode_AS_UNICODE(lastnewsegmentdir)[0] == '.') &&
-						(PyUnicode_AS_UNICODE(lastnewsegmentdir)[1] == '.')))
-				{
-					Py_DECREF(lastnewsegment);
-					PyTuple_SET_ITEM(newpath, --out, NULL); /* drop previous */
-					if (in==pathsize-1) /* add empty terminating segment */
-						if (!appendempty(newpath, &out))
-							return NULL;
-					continue; /* skip output */
-				}
 			}
 		}
 		PyTuple_SET_ITEM(newpath, out++, segment); /* append segment to output */

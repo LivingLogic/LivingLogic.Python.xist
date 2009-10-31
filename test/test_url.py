@@ -124,7 +124,7 @@ def test_parse():
 	assert u.authority == "a"
 	assert u.reg_name is None
 	assert u.path == "/b/c/d;p"
-	assert u.path.segments == [("b",), ("c",), ("d", "p")]
+	assert u.path.segments == ["b", "c", "d;p"]
 	assert u.isabspath is True
 	assert u.query == "q"
 	assert u.query_parts is False
@@ -349,7 +349,7 @@ def test_without():
 def test_relpathauthority():
 	u = url.URL("http://www.foo.com/bar/baz;baz")
 	u2 = u.clone()
-	u2.path = [ map(unicode.upper, seg) for seg in u2.path.segments ]
+	u2.path = [ seg.upper() for seg in u2.path.segments ]
 	assert not u2.path.isabs
 	assert str(u2) == "http://www.foo.com/BAR/BAZ;BAZ"
 

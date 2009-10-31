@@ -16,6 +16,9 @@ Changes in 3.8 (released ??/??/????)
 *	Added a new function :func:`misc.module` that creates a module from source
 	code.
 
+*	:class:`ll.url.Path` has been simplified: Path segments are strings instead
+	of tuples now.
+
 
 Changes in 3.7 (released 09/10/2009)
 ------------------------------------

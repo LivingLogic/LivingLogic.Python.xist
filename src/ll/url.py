@@ -100,13 +100,13 @@ except ImportError:
 		l = len(path_segments)
 		for i in xrange(l):
 			segment = path_segments[i]
-			if segment==(".",) or segment==("",):
+			if not segment:
 				if i==l-1:
-					new_path_segments.append(("",))
-			elif segment==("..",) and len(new_path_segments) and new_path_segments[-1]!=("..",):
+					new_path_segments.append("")
+			elif segment==".." and len(new_path_segments) and new_path_segments[-1] != "..":
 				new_path_segments.pop()
 				if i==l-1:
-					new_path_segments.append(("",))
+					new_path_segments.append("")
 			else:
 				new_path_segments.append(segment)
 		return new_path_segments
@@ -129,7 +129,7 @@ alphanum = alpha + "0123456789"
 mark = "-_.!~*'()"
 additionalsafe = "[]"
 safe = alphanum + mark + additionalsafe
-pathsafe = safe + ":@&=+$," + "|" # add "|" for Windows paths
+pathsafe = safe + ":@&=+$,;" + "|" # add "|" for Windows paths
 querysafe = alphanum
 fragsafe = alphanum
 
@@ -1582,13 +1582,9 @@ class Path(object):
 
 	@classmethod
 	def _fixsegment(cls, segment):
-		if isinstance(segment, basestring):
-			if isinstance(segment, unicode):
-				segment = _escape(segment)
-			return tuple(_unescape(name) for name in segment.split(";", 1))
-		else:
-			assert 1 <= len(segment) <= 2, "path segment %r must have length 1 or 2, not %d" % (segment, len(segment))
-			return tuple(map(unicode, segment))
+		if isinstance(segment, unicode):
+			segment = _escape(segment, pathsafe)
+		return _unescape(segment)
 
 	def _prefix(cls, path):
 		if path.startswith("/"):
@@ -1611,7 +1607,7 @@ class Path(object):
 		segments = prefix.segments
 		if self.isabs != prefix.isabs:
 			return False
-		if segments and segments[-1] == (u"",) and len(self.segments)>len(segments):
+		if segments and not segments[-1] and len(self.segments)>len(segments):
 			return self.segments[:len(segments)-1] == segments[:-1]
 		else:
 			return self.segments[:len(segments)] == segments
@@ -1708,7 +1704,7 @@ class Path(object):
 
 	@classmethod
 	def _segments2path(cls, segments):
-		return "/".join(";".join(_escape(value, pathsafe) for value in segment) for segment in segments)
+		return "/".join(_escape(segment, pathsafe) for segment in segments)
 
 	@classmethod
 	def _path2segments(cls, path):
@@ -1772,7 +1768,7 @@ class Path(object):
 		"""
 		def __get__(self):
 			try:
-				return self[-1][0]
+				return self[-1]
 			except IndexError:
 				return None
 	
@@ -1784,12 +1780,9 @@ class Path(object):
 				del self.file
 			segments = self.segments
 			if segments:
-				if len(segments[-1]) == 1:
-					self[-1] = (file, )
-				else:
-					self[-1] = (file, segments[-1][1])
+				self[-1] = file
 			else:
-				self.segments = [(file,)]
+				self.segments = [file]
 	
 		def __delete__(self):
 			"""
@@ -1797,10 +1790,7 @@ class Path(object):
 			"""
 			segments = self.segments
 			if segments:
-				if len(segments[-1]) == 1:
-					self[-1] = ("", )
-				else:
-					self[-1] = ("", segments[-1][1])
+				self[-1] = ""
 
 	class ext(misc.propclass):
 		"""
@@ -1811,47 +1801,33 @@ class Path(object):
 			ext = None
 			segments = self.segments
 			if segments:
-				name = segments[-1][0]
-				pos = name.rfind(".")
+				segment = segments[-1]
+				pos = segment.rfind(".")
 				if pos != -1:
-					ext = name[pos+1:]
+					ext = segment[pos+1:]
 			return ext
 	
 		def __set__(self, ext):
-			"""
-			Setting the extension preserves the parameter in the last segment.
-			"""
 			if ext is None:
 				del self.ext
 			segments = self.segments
 			if segments:
 				segment = segments[-1]
-				name = segment[0]
-				pos = name.rfind(".")
+				pos = segment.rfind(".")
 				if pos != -1:
-					name = name[:pos+1] + ext
+					segment = segment[:pos+1] + ext
 				else:
-					name = name + "." + ext
-				if len(segment)>1:
-					self[-1] = (name, segment[1])
-				else:
-					self[-1] = (name, )
+					segment = segment + "." + ext
+				self[-1] = segment
 	
 		def __delete__(self):
-			"""
-			Deleting the extension preserves the parameter in the last segment.
-			"""
 			segments = self.segments
 			if segments:
 				segment = segments[-1]
-				name = segment[0]
-				pos = name.rfind(".")
+				pos = segment.rfind(".")
 				if pos != -1:
-					name = name[:pos]
-					if len(segment)>1:
-						self[-1] = (name, segment[1])
-					else:
-						self[-1] = (name, )
+					segment = segment[:pos]
+					self[-1] = segment
 
 	def withext(self, ext):
 		"""
@@ -1958,17 +1934,17 @@ class Path(object):
 			del self_segments[0]
 			del base_segments[0]
 		# build a path from one file to the other
-		self_segments[:0] = [(u"..",)]*(len(base_segments)-1)
-		if not len(self_segments) or self_segments==[(u"",)]:
-			self_segments = [(u".",), (u"",)]
+		self_segments[:0] = [u".."]*(len(base_segments)-1)
+		if not len(self_segments) or self_segments==[u""]:
+			self_segments = [u".", u""]
 		return Path(self._segments2path(self_segments))
 
 	def reverse(self):
 		segments = self.segments
 		segments.reverse()
-		if segments and segments[0] == (u"",):
+		if segments and not segments[0]:
 			del segments[0]
-			segments.append((u"",))
+			segments.append(u"")
 		self.segments = segments
 
 	def normalize(self):
@@ -1984,7 +1960,7 @@ class Path(object):
 		Return :var:`self` converted to a filename using the file naming
 		conventions of the OS. Parameters will be dropped in the resulting string.
 		"""
-		path = Path(self._prefix(self._path) + "/".join(segment[0] for segment in self))
+		path = Path(self._prefix(self._path) + "/".join(segment for segment in self))
 		path = path._path
 		localpath = urllib.url2pathname(path)
 		if path.endswith("/") and not (localpath.endswith(os.sep) or (os.altsep is not None and localpath.endswith(os.altsep))):
@@ -2000,7 +1976,7 @@ class Path(object):
 		if path.startswith("///"):
 			path = path[2:]
 		path = urllib.pathname2url(path.encode("utf-8"))
-		if len(self) and self.segments[-1] == ("",):
+		if len(self) and not self.segments[-1]:
 			path += "/"
 		return Path(path)
 
@@ -2014,7 +1990,7 @@ class Path(object):
 		path = urllib.pathname2url(path.encode("utf-8"))
 		if path.startswith("///"):
 			path = path[2:]
-		if len(self) and self.segments[-1] == ("",):
+		if len(self) and not self.segments[-1]:
 			path += "/"
 		return Path(path)
 
@@ -2632,9 +2608,9 @@ class URL(object):
 			del newurl.query
 		else:
 			# build a path from one file to the other
-			selfpath_segments[:0] = [(u"..",)]*(len(basepath_segments)-1)
-			if not len(selfpath_segments) or selfpath_segments==[(u"",)]:
-				selfpath_segments = [(u".",), (u"",)]
+			selfpath_segments[:0] = [u".."]*(len(basepath_segments)-1)
+			if not len(selfpath_segments) or selfpath_segments==[u""]:
+				selfpath_segments = [u".", u""]
 			newurl._path.segments = selfpath_segments
 			newurl._path = self.path.relative(baseurl.path)
 		newurl._path.isabs = False

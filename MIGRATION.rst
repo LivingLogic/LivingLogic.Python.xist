@@ -1,12 +1,19 @@
 Migrating to version 3.8
 ========================
 
-Changes to the walk filters
----------------------------
+Changes to XISTs walk filters
+-----------------------------
 
 *	The walk methods :meth:`walknode` and :meth:`walkpath` have been renamed to
 	:meth:`walknodes` and :meth:`walkpaths`. The class :class:`WalkFilter` has
 	been moved to :mod:`ll.xist.xfind`.
+
+Changes to :mod:`ll.url`
+------------------------
+
+*	:class:`ll.url.Path` has been simplified: Path segments are strings instead
+	of tuples. If you need the path parameters (i.e. part after ``;`` in a path
+	segment you have to split the segment yourself.
 
 
 Migrating to version 3.7
@@ -17,7 +24,7 @@ Changes to the make module
 
 *	The division operator is no longer implemented, so instead of::
 
-		t1 = make.FileAction(key=url.URL("foo.txt"))
+		t1 = make.FileAction(key=url.URL("file:foo.txt"))
 		t2 = t1 /
 		     make.DecodeAction("iso-8859-1") /
 		     make.EncodeAction("utf-8") /
