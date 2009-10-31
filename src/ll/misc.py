@@ -15,7 +15,7 @@ LivingLogic modules and packages.
 """
 
 
-import sys, types, collections, weakref, cStringIO, gzip as gzip_
+import sys, os, types, collections, weakref, cStringIO, gzip as gzip_
 
 
 __docformat__ = "reStructuredText"
@@ -447,6 +447,22 @@ def itersplitat(string, positions):
 	part = string[curpos:]
 	if part:
 		yield part
+
+
+def module(code, filename="unnamed.py", name=None):
+	"""
+	Create a module from the Python source code :var:`code`. :var:`filename` will
+	be used as the filename for the module and :var:`name` as the module name
+	(defaulting to the filename part of :var:`filename`).
+	"""
+	if name is None:
+		name = os.path.splitext(os.path.basename(filename))[0]
+	mod = types.ModuleType(name)
+	mod.__file__ = filename
+	code = code.replace("\r\n", "\n") # Normalize line feeds, so that :func:`compile` works (normally done by import)
+	code = compile(code, filename, "exec")
+	exec code in mod.__dict__
+	return mod
 
 
 class JSMinUnterminatedComment(Exception):

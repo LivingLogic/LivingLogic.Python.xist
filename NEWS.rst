@@ -13,6 +13,9 @@ Changes in 3.8 (released ??/??/????)
 		parsing in the incremental codecs it now gets reset to it's proper initial
 		value.
 
+*	Added a new function :func:`misc.module` that creates a module from source
+	code.
+
 
 Changes in 3.7 (released 09/10/2009)
 ------------------------------------

@@ -1143,16 +1143,9 @@ class ModuleAction(TransformAction):
 
 		del self.inputs[:] # The module will be reloaded => drop all dependencies (they will be rebuilt during import)
 
-		# Normalize line feeds, so that :func:`compile` works (normally done by import)
-		data = data.replace("\r\n", "\n")
-
-		mod = types.ModuleType(name)
-		mod.__file__ = filename
-
 		try:
 			project.importstack.append(self)
-			code = compile(data, filename, "exec")
-			exec code in mod.__dict__
+			mod = misc.module(data, filename, name)
 		finally:
 			project.importstack.pop(-1)
 		return mod
