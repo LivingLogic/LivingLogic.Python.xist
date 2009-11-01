@@ -15,6 +15,19 @@ Changes to :mod:`ll.url`
 	of tuples. If you need the path parameters (i.e. part after ``;`` in a path
 	segment you have to split the segment yourself.
 
+*	:meth:`ll.url.URL.import_` is gone. As a replacement :func:`misc.module` can
+	be used, i.e. replace::
+
+		>>> from ll import url
+		>>> u = url.File("foo.py")
+		>>> m = u.import_(mode="always")
+
+	with::
+
+		>>> from ll import url, misc
+		>>> u = url.File("foo.py")
+		>>> m = misc.module(u.openread().read(), u.local())
+
 
 Migrating to version 3.7
 ========================

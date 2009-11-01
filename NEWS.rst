@@ -19,6 +19,9 @@ Changes in 3.8 (released ??/??/????)
 *	:class:`ll.url.Path` has been simplified: Path segments are strings instead
 	of tuples now.
 
+*	The old :class:`URL` method :meth:`import_` has been removed. The new
+	function :func:`misc.module` can now be used for that.
+
 
 Changes in 3.7 (released 09/10/2009)
 ------------------------------------

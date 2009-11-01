@@ -1139,33 +1139,6 @@ def firstfile(urls):
 				return url
 
 
-class importcache(dict):
-	def remove(self, mod):
-		try:
-			dict.__delitem__(self, mod.__file__)
-		except KeyError:
-			pass
-
-importcache = importcache()
-
-
-def _import(filename):
-	(path, name) = os.path.split(filename)
-	(name, ext) = os.path.splitext(name)
-
-	if ext != ".py":
-		raise ImportError("Can only import .py files, not %s" % ext)
-
-	oldmod = sys.modules.get(name, None) # get any existing module out of the way
-	sys.modules[name] = mod = types.ModuleType(name) # create module and make sure it can find itself in sys.module
-	mod.__file__ = filename
-	execfile(filename, mod.__dict__)
-	mod = sys.modules.pop(name) # refetch the module if it has replaced itself with a custom object
-	if oldmod is not None: # put old module back
-		sys.modules[name] = oldmod
-	return mod
-
-
 class Resource(object):
 	"""
 	A :class:`Resource` is a base class that provides a file-like interface
@@ -2822,45 +2795,6 @@ class URL(object):
 			(connection, kwargs) = self._connect(context=context, **kwargs)
 			return getattr(connection, name)(self, *args, **kwargs)
 		return realattr
-
-	def import_(self, mode="always"):
-		"""
-		import the file as a Python module. The file extension will be ignored,
-		which means that you might not get exactly the file you specified.
-		:var:`mode` can have the following values:
-
-		``"always"`` (the default)
-			The module will be imported on every call;
-
-		``"once"``
-			The module will be imported only on the first call;
-
-		``"new"``
-			The module will be imported every time it has changed since the
-			last call.
-		"""
-		filename = self.real().local()
-		if mode=="always":
-			mdate = self.mdate()
-		elif mode=="once":
-			try:
-				return importcache[filename][1]
-			except KeyError:
-				mdate = self.mdate()
-		elif mode=="new":
-			mdate = self.mdate()
-			try:
-				(oldmdate, module) = importcache[filename]
-			except KeyError:
-				pass
-			else:
-				if mdate<=oldmdate:
-					return module
-		else:
-			raise ValueError, "mode %r unknown" % mode
-		module = _import(filename)
-		importcache[filename] = (mdate, module)
-		return module
 
 	def __iter__(self):
 		try:
