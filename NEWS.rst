@@ -22,6 +22,9 @@ Changes in 3.8 (released ??/??/????)
 *	The old :class:`URL` method :meth:`import_` has been removed. The new
 	function :func:`misc.module` can now be used for that.
 
+*	:class:`ll.orasql.PrimaryKey` has a new method :meth:`itercolumns` that
+	returns an iterator over the columns this primary key consists of.
+
 
 Changes in 3.7 (released 09/10/2009)
 ------------------------------------

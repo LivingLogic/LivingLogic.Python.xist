@@ -1404,6 +1404,20 @@ class PrimaryKey(Constraint):
 	"""
 	type = u"pk"
 
+	def itercolumns(self, connection=None):
+		"""
+		Return an iterator over the columns this primary key consists of.
+		"""
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name, table_name, r_owner, r_constraint_name from all_constraints where constraint_type='P' and owner=nvl(:owner, user) and constraint_name=:name", owner=self.owner, name=self.name)
+		rec2 = cursor.fetchone()
+		if rec2 is None:
+			raise SQLObjectNotFoundError(self)
+		tablename = getfullname(rec2.table_name, rec2.owner)
+		cursor.execute("select column_name from all_cons_columns where owner=nvl(:owner, user) and constraint_name=:name", owner=self.owner, name=self.name)
+		for r in cursor:
+			yield Column(u"%s.%s" % (tablename, r.column_name))
+
 	def createddl(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name, table_name, r_owner, r_constraint_name from all_constraints where constraint_type='P' and owner=nvl(:owner, user) and constraint_name=:name", owner=self.owner, name=self.name)
