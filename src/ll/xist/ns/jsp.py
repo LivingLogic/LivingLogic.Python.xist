@@ -192,7 +192,6 @@ def fromul4(template, variables="variables", indent=0):
 		result.append(specials.literal(content))
 
 	def make_scriptlet(content):
-		line = "{0}{1}\n".format("\t"*indent, content)
 		if result and isinstance(result[-1], scriptlet):
 			result[-1] += "{0}{1}\n".format("\t"*indent, content)
 		else:
