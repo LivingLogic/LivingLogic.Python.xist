@@ -50,7 +50,7 @@ class Base(object):
 			testname += "_"
 		suffix = 2
 		while testname in names:
-			testname = name + suffix
+			testname = "{0}{1}".format(name, suffix)
 			suffix += 1
 		self.pyname = testname
 		names.append(testname)
