@@ -846,7 +846,7 @@ class Instantiate(PipelineObject):
 			fmt = u'{0[name]} SYSTEM "{0[systemid]}"'
 		else:
 			fmt = u'{0[name]}'
-		node = xsc.DocType(content.format(fmt))
+		node = xsc.DocType(fmt.format(data))
 		if self.loc:
 			node.startloc = xsc.Location(self.url, *self._location)
 		self.doctype = node
@@ -1251,7 +1251,7 @@ class noBuilder(object):
 			fmt = u'{0[name]} SYSTEM "{0[systemid]}"'
 		else:
 			fmt = u'{0[name]}'
-		node = xsc.DocType(content.format(fmt))
+		node = xsc.DocType(fmt.format(data))
 		self._appendNode(node)
 
 	def enddoctype(self, data):
