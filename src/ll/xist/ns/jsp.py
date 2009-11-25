@@ -237,7 +237,7 @@ def fromul4(template, variables="variables", indent=0):
 		elif opcode.code == "loaddate":
 			make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.isoDateFormatter.parse({arg});".format(op=opcode, arg=_string(opcode.arg)))
 		elif opcode.code == "loadcolor":
-			make_scriptlet("r{op.r1} = new com.livinglogic.ul4.Color(0x{r}, 0x{g}, 0x{b}, 0x{b})".format(op=opcode, r=opcode.arg[:2], g=opcode.arg[2:4], b=opcode.arg[4:6], a=opcode.arg[6:]))
+			make_scriptlet("r{op.r1} = new com.livinglogic.ul4.Color(0x{r}, 0x{g}, 0x{b}, 0x{a})".format(op=opcode, r=opcode.arg[:2], g=opcode.arg[2:4], b=opcode.arg[4:6], a=opcode.arg[6:]))
 		elif opcode.code == "buildlist":
 			make_scriptlet("r{op.r1} = new java.util.ArrayList();".format(op=opcode))
 		elif opcode.code == "builddict":
