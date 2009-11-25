@@ -28,6 +28,11 @@ Changes to :mod:`ll.url`
 		>>> u = url.File("foo.py")
 		>>> m = misc.module(u.openread().read(), u.local())
 
+*	ssh URLs now required to standalone :mod:`execnet` package__. The
+	``ssh_config`` parameter for ssh URLs is gone.
+
+	__ http://codespeak.net/execnet/
+
 
 Migrating to version 3.7
 ========================
@@ -35,7 +40,7 @@ Migrating to version 3.7
 Changes to the make module
 --------------------------
 
-*	The division operator is no longer implemented, so instead of::
+*	The division operator for actions is no longer implemented, so instead of::
 
 		t1 = make.FileAction(key=url.URL("file:foo.txt"))
 		t2 = t1 /
