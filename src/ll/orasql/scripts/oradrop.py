@@ -25,8 +25,8 @@ def main(args=None):
 	fks = ("keep", "disable", "drop")
 	p = optparse.OptionParser(usage="usage: %prog [options] connectstring >output.sql")
 	p.add_option("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action="store_true")
-	p.add_option("-c", "--color", dest="color", help="Color output (%s)" % ", ".join(colors), default="auto", choices=colors)
-	p.add_option("-f", "--fks", dest="fks", help="How should foreign keys from other schemas be treated (%s)?" % ", ".join(fks), default="disable", choices=fks)
+	p.add_option("-c", "--color", dest="color", help="Color output ({0})".format(", ".join(colors)), default="auto", choices=colors)
+	p.add_option("-f", "--fks", dest="fks", help="How should foreign keys from other schemas be treated ({0})?".format(", ".join(fks)), default="disable", choices=fks)
 	p.add_option("-x", "--execute", dest="execute", action="store_true", help="immediately execute the commands instead of printing them?")
 	p.add_option("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' in their name?", default=False, action="store_true")
 	p.add_option("-i", "--ignore", dest="ignore", help="Ignore errors?", default=False, action="store_true")
@@ -82,9 +82,9 @@ def main(args=None):
 
 		# Progress report
 		if options.verbose:
-			msg = astyle.style_default("oradrop.py: ", cs, ": fetching #%d " % (i+1), s4object(str(obj)))
+			msg = astyle.style_default("oradrop.py: ", cs, ": fetching #{0} ".format(i+1), s4object(str(obj)))
 			if action is not None:
-				msg = astyle.style_default(msg, " ", s4warning("(%s)" % action))
+				msg = astyle.style_default(msg, " ", s4warning("({0})".format(action)))
 			stderr.writeln(msg)
 
 		if ddl:
@@ -99,13 +99,13 @@ def main(args=None):
 		cursor = connection.cursor()
 		for (i, (obj, ddl)) in enumerate(ddls):
 			if options.verbose:
-				stderr.writeln("oradrop.py: ", cs, ": dropping #%d/%d " % (i+1, len(ddls)), s4object(str(obj)))
+				stderr.writeln("oradrop.py: ", cs, ": dropping #{0}/{1} ".format(i+1, len(ddls)), s4object(str(obj)))
 			try:
 				cursor.execute(ddl)
 			except orasql.DatabaseError, exc:
 				if not options.ignore or "ORA-01013" in str(exc):
 					raise
-				stderr.writeln("oradrop.py: ", s4error("%s: %s" % (exc.__class__, str(exc).strip())))
+				stderr.writeln("oradrop.py: ", s4error("{0}: {1}".format(exc.__class__, str(exc).strip())))
 
 
 if __name__ == "__main__":

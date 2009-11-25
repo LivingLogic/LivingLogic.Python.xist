@@ -274,9 +274,9 @@ class IsInstanceSelector(Selector):
 
 	def __str__(self):
 		if len(self.types) == 1:
-			return "%s.%s" % (self.types[0].__module__, self.types[0].__name__)
+			return "{0.types[0].__module__}.{0.types[0].__name__}".format(self)
 		else:
-			return "(%s)" % " | ".join("%s.%s" % (type.__module__, type.__name__) for type in self.types)
+			return "({0})".format(" | ".join("{0.__module__}.{0.__name__}".format(type) for type in self.types))
 
 
 class hasname(Selector):
@@ -310,7 +310,10 @@ class hasname(Selector):
 		return False
 
 	def __str__(self):
-		return "%s(%r)" % (self.__class__.__name__, self.name)
+		if self.xmlns is not None:
+			return "{0.__class__.__name__}({0.name!r}, {0.xmlns!r})".format(self)
+		else:
+			return "{0.__class__.__name__}({0.name!r})".format(self)
 
 
 class hasname_xml(Selector):
@@ -332,7 +335,10 @@ class hasname_xml(Selector):
 		return False
 
 	def __str__(self):
-		return "%s(%r)" % (self.__class__.__name__, self.name)
+		if self.xmlns is not None:
+			return "{0.__class__.__name__}({0.name!r}, {0.xmlns!r})".format(self)
+		else:
+			return "{0.__class__.__name__}({0.name!r})".format(self)
 
 
 class IsSelector(Selector):
@@ -358,7 +364,7 @@ class IsSelector(Selector):
 		return path and path[-1] is self.node
 
 	def __str__(self):
-		return "%s(%r)" % (self.__class__.__name__, self.node)
+		return "{0.__class__.__name__}({0.node!r})".format(self)
 
 
 class isroot(Selector):
@@ -498,7 +504,7 @@ class hasattr(Selector):
 		return False
 
 	def __str__(self):
-		return "%s(%s)" % (self.__class__.__name__, ", ".join(repr(attrname) for attrname in self.attrnames))
+		return "{0}({1})".format(self.__class__.__name__, ", ".join(repr(attrname) for attrname in self.attrnames))
 
 
 class hasattr_xml(Selector):
@@ -520,7 +526,7 @@ class hasattr_xml(Selector):
 		return False
 
 	def __str__(self):
-		return "%s(%s)" % (self.__class__.__name__, ", ".join(repr(attrname) for attrname in self.attrnames))
+		return "{0.__class__.__name__}({1})".format(self, ", ".join(repr(attrname) for attrname in self.attrnames))
 
 
 class attrhasvalue(Selector):
@@ -556,7 +562,7 @@ class attrhasvalue(Selector):
 		return False
 
 	def __str__(self):
-		return "%s(%r, %s)" % (self.__class__.__name__, self.attrname, repr(self.attrvalues)[1:-1])
+		return "{0.__class__.__name__}({0.attrname!r}, {1})".format(self, repr(self.attrvalues)[1:-1])
 
 
 class attrhasvalue_xml(Selector):
@@ -581,7 +587,7 @@ class attrhasvalue_xml(Selector):
 		return False
 
 	def __str__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
+		return "{0.__class__.__name__}({0.attrname!1}, {0.attrvalue!r})".format(self)
 
 
 class attrcontains(Selector):
@@ -620,7 +626,7 @@ class attrcontains(Selector):
 		return False
 
 	def __str__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
+		return "{0.__class__.__name__}({0.attrname!1}, {0.attrvalue!r})".format(self)
 
 
 class attrcontains_xml(Selector):
@@ -645,7 +651,7 @@ class attrcontains_xml(Selector):
 		return False
 
 	def __str__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
+		return "{0.__class__.__name__}({0.attrname!1}, {0.attrvalue!r})".format(self)
 
 
 class attrstartswith(Selector):
@@ -680,7 +686,7 @@ class attrstartswith(Selector):
 		return False
 
 	def __str__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
+		return "{0.__class__.__name__}({0.attrname!1}, {0.attrvalue!r})".format(self)
 
 
 class attrstartswith_xml(Selector):
@@ -705,7 +711,7 @@ class attrstartswith_xml(Selector):
 		return False
 
 	def __str__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
+		return "{0.__class__.__name__}({0.attrname!1}, {0.attrvalue!r})".format(self)
 
 
 class attrendswith(Selector):
@@ -743,7 +749,7 @@ class attrendswith(Selector):
 		return False
 
 	def __str__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
+		return "{0.__class__.__name__}({0.attrname!1}, {0.attrvalue!r})".format(self)
 
 
 class attrendswith_xml(Selector):
@@ -768,7 +774,7 @@ class attrendswith_xml(Selector):
 		return False
 
 	def __str__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
+		return "{0.__class__.__name__}({0.attrname!1}, {0.attrvalue!r})".format(self)
 
 
 class hasid(Selector):
@@ -799,7 +805,7 @@ class hasid(Selector):
 		return False
 
 	def __str__(self):
-		return "%s(%r)" % (self.__class__.__name__, self.id)
+		return "{0.__class__.__name__}({0.id!r})".format(self)
 
 
 class hasclass(Selector):
@@ -834,7 +840,7 @@ class hasclass(Selector):
 		return False
 
 	def __str__(self):
-		return "%s(%r)" % (self.__class__.__name__, self.classname)
+		return "{0.__class__.__name__}({0.classname!r})".format(self)
 
 
 class inattr(Selector):
@@ -882,11 +888,11 @@ class BinaryCombinator(Combinator):
 	def __str__(self):
 		left = str(self.left)
 		if isinstance(self.left, Combinator) and not isinstance(self.left, self.__class__):
-			left = "(%s)" % left
+			left = "({0})".format(left)
 		right = str(self.right)
 		if isinstance(self.right, Combinator) and not isinstance(self.right, self.__class__):
-			right = "(%s)" % right
-		return "%s%s%s" % (left, self.symbol, right)
+			right = "({0})".format(right)
+		return "{0}{1}{2}".format(left, self.symbol, right)
 
 
 class ChildCombinator(BinaryCombinator):
@@ -1050,7 +1056,7 @@ class ChainedCombinator(Combinator):
 		for selector in self.selectors:
 			s = str(selector)
 			if isinstance(selector, Combinator) and not isinstance(selector, self.__class__):
-				s = "(%s)" % s
+				s = "({0})".format(s)
 			v.append(s)
 		return self.symbol.join(v)
 
@@ -1149,9 +1155,9 @@ class NotCombinator(Combinator):
 
 	def __str__(self):
 		if isinstance(self.selector, Combinator) and not isinstance(self.selector, NotCombinator):
-			return "~(%s)" % self.selector
+			return "~({0})".format(self.selector)
 		else:
-			return "~%s" % self.selector
+			return "~{0}".format(self.selector)
 
 
 class CallableSelector(Selector):
@@ -1189,7 +1195,7 @@ class CallableSelector(Selector):
 		return self.func(path)
 
 	def __str__(self):
-		return "%s(%r)" % (self.__class__.__name__, self.func)
+		return "{0.__class__.__name__}({0.func!r})".format(self)
 
 
 class nthchild(Selector):
@@ -1218,7 +1224,7 @@ class nthchild(Selector):
 		return False
 
 	def __str__(self):
-		return "%s(%r)" % (self.__class__.__name__, self.index)
+		return "{0.__class__.__name__}({0.index!r})".format(self)
 
 
 class nthoftype(Selector):
@@ -1263,9 +1269,9 @@ class nthoftype(Selector):
 
 	def __str__(self):
 		if self.types:
-			return "%s(%r, %s)" % (self.__class__.__name__, self.index, ", ".join("%s.%s" % (type.__module__, type.__name__) for type in self.types))
+			return "{0.__class__.__name__}({0.index!r}, {1})".format(self, ", ".join("{0.__module__}.{0.__name__}".format(type) for type in self.types))
 		else:
-			return "%s(%r)" % (self.__class__.__name__, self.index)
+			return "{0.__class__.__name__}({0.index!r})".format(self)
 
 
 def makewalkfilter(obj):
@@ -1281,5 +1287,5 @@ def makewalkfilter(obj):
 		elif walkfilter is None:
 			obj = ConstantWalkFilter((True, xfind.entercontent))
 		else:
-			raise TypeError("can't convert %r to selector" % obj)
+			raise TypeError("can't convert {0!r} to selector".format(obj))
 	return obj

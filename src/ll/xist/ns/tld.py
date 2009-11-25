@@ -62,7 +62,7 @@ class attribute(xsc.Element):
 			elif value in (u"false", u"no"):
 				isrequired = None
 			else:
-				raise ValueError("value %s not allowed for tag <required>" % value)
+				raise ValueError("value {0} not allowed for tag <required>".format(value))
 		e.required = isrequired
 		return e
 
@@ -177,7 +177,7 @@ class tag(xsc.Element):
 			elif value == u"empty":
 				empty = True
 			else:
-				raise ValueError("value %s is not allowed for tag <bodycontent>" % value)
+				raise ValueError("value {0} is not allowed for tag <bodycontent>".format(value))
 		if empty:
 			e.modeltype = "sims.Empty"
 		else:

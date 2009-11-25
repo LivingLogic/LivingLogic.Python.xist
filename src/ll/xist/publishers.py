@@ -159,7 +159,7 @@ class Publisher(object):
 		while True:
 			if prefix not in self._prefix2ns:
 				return prefix
-			prefix = "ns%d" % suffix
+			prefix = "ns{0}".format(suffix)
 			suffix += 1
 
 	def getencoding(self):

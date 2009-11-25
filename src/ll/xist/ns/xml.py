@@ -44,11 +44,11 @@ class XML(xsc.ProcInst):
 
 	def __init__(self, version="1.0", encoding="utf-8", standalone=None):
 		v = []
-		v.append(u'version="%s"' % version) # According to http://www.w3.org/TR/2000/REC-xml-20001006#NT-XMLDecl version is required
+		v.append(u'version="{0}"'.format(version)) # According to http://www.w3.org/TR/2000/REC-xml-20001006#NT-XMLDecl version is required
 		if encoding is not None:
-			v.append(u'encoding="%s"' % encoding)
+			v.append(u'encoding="{0}"'.format(encoding))
 		if standalone is not None:
-			v.append(u'standalone="%s"' % ("yes" if standalone else "no"))
+			v.append(u'standalone="{0}"'.format("yes" if standalone else "no"))
 		xsc.ProcInst.__init__(self, u" ".join(v))
 
 

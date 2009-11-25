@@ -25,7 +25,7 @@ def main(args=None):
 	fks = ("keep", "disable", "drop")
 	p = optparse.OptionParser(usage="usage: %prog [options] connectstring >output.sql")
 	p.add_option("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action="store_true")
-	p.add_option("-c", "--color", dest="color", help="Color output (%s)" % ", ".join(colors), default="auto", choices=colors)
+	p.add_option("-c", "--color", dest="color", help="Color output ({0})".format(", ".join(colors)), default="auto", choices=colors)
 	p.add_option("-s", "--sequences", dest="sequences", help="Should sequences be reset?", default=False, action="store_true")
 	p.add_option("-x", "--execute", dest="execute", action="store_true", help="immediately execute the commands instead of printing them?")
 	p.add_option("-i", "--ignore", dest="ignore", help="Ignore errors?", default=False, action="store_true")
@@ -56,25 +56,25 @@ def main(args=None):
 		# Progress report
 		if options.verbose:
 			msg = "truncating" if options.truncate else "deleting from"
-			msg = astyle.style_default("oradelete.py: ", cs, ": %s #%d " % (msg, i+1), s4object(str(obj)))
+			msg = astyle.style_default("oradelete.py: ", cs, ": {0} #{1} ".format(msg, i+1), s4object(str(obj)))
 			stderr.writeln(msg)
 
 		# Print or execute SQL
 		if options.execute:
 			try:
 				if options.truncate:
-					cursor.execute(u"truncate table %s" % obj.name)
+					cursor.execute(u"truncate table {0}".format(obj.name))
 				else:
-					cursor.execute(u"delete from %s" % obj.name)
+					cursor.execute(u"delete from {0}".format(obj.name))
 			except orasql.DatabaseError, exc:
 				if not options.ignore or "ORA-01013" in str(exc):
 					raise
-				stderr.writeln("oradelete.py: ", s4error("%s: %s" % (exc.__class__, str(exc).strip())))
+				stderr.writeln("oradelete.py: ", s4error("{0}: {1}".format(exc.__class__, str(exc).strip())))
 		else:
 			if options.truncate:
-				sql = u"truncate table %s;\n" % obj.name
+				sql = u"truncate table {0};\n".format(obj.name)
 			else:
-				sql = u"delete from %s;\n" % obj.name
+				sql = u"delete from {1};\n".format(obj.name)
 			stdout.write(sql.encode(options.encoding))
 	if not options.truncate:
 		connection.commit()
@@ -83,7 +83,7 @@ def main(args=None):
 		for (i, obj) in enumerate(connection.itersequences(schema="user")):
 			# Progress report
 			if options.verbose:
-				msg = astyle.style_default("oradelete.py: ", cs, ": recreating #%d " % (i+1), s4object(str(obj)))
+				msg = astyle.style_default("oradelete.py: ", cs, ": recreating #{0} ".format(i+1), s4object(str(obj)))
 				stderr.writeln(msg)
 
 			# Print or execute SQL
@@ -95,7 +95,7 @@ def main(args=None):
 				except orasql.DatabaseError, exc:
 					if not options.ignore or "ORA-01013" in str(exc):
 						raise
-					stderr.writeln("oradelete.py: ", s4error("%s: %s" % (exc.__class__, str(exc).strip())))
+					stderr.writeln("oradelete.py: ", s4error("{0}: {1}".format(exc.__class__, str(exc).strip())))
 			else:
 				sql = obj.dropddl(term=True) + obj.createddl(term=True)
 				stdout.write(sql.encode(options.encoding))

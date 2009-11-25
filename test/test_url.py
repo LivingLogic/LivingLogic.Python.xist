@@ -145,9 +145,9 @@ def test_join_rfc2396():
 	def check(rel, res):
 		relurl = url.URL(rel)
 		resurl = url.URL(res)
-		assert baseurl/relurl == resurl, "%r/%r is %r, but should be %r" % (baseurl, relurl, baseurl/relurl, resurl)
+		assert baseurl/relurl == resurl, "{0!r}/{1!r} is {2!r}, but should be {3!r}".format(baseurl, relurl, baseurl/relurl, resurl)
 		# This checks rdiv
-		assert str(baseurl)/relurl == resurl, "%r/%r is %r, but should be %r" % (baseurl, relurl, str(baseurl)/relurl, resurl)
+		assert str(baseurl)/relurl == resurl, "{0!r}/{1!r} is {2!r}, but should be {3!r}".format(baseurl, relurl, str(baseurl)/relurl, resurl)
 
 	# RFC2396 Section C.1: Normal Examples
 	yield check, "g:h",           "g:h"
@@ -201,9 +201,9 @@ def test_join():
 		baseurl = url.URL(base)
 		relurl = url.URL(rel)
 		resurl = url.URL(res)
-		assert baseurl/relurl == resurl, "%r/%r is %r, but should be %r" % (baseurl, relurl, baseurl/relurl, resurl)
+		assert baseurl/relurl == resurl, "{0!r}/{1!r} is {2!r}, but should be {3!r}".format(baseurl, relurl, baseurl/relurl, resurl)
 		# This checks rdiv
-		assert str(baseurl)/relurl == resurl, "%r/%r is %r, but should be %r" % (baseurl, relurl, str(baseurl)/relurl, resurl)
+		assert str(baseurl)/relurl == resurl, "{0!r}/{1!r} is {2!r}, but should be {3!r}".format(baseurl, relurl, str(baseurl)/relurl, resurl)
 
 	yield check, "http://test.com/index.html", "impress.html", "http://test.com/impress.html"
 	yield check, "http://test.com/index.html", "", "http://test.com/index.html"
@@ -230,7 +230,7 @@ def test_normalize():
 		u1 = u.clone()
 		u1.path.normalize()
 		u2 = url.URL(u2)
-		assert u1 == u2, "%r normalized is %r, but should be %r" % (u, u1, u2)
+		assert u1 == u2, "{0!r} normalized is {1!r}, but should be {2!r}".format(u, u1, u2)
 
 	yield check, "", ""
 	yield check, "./", ""
@@ -267,7 +267,7 @@ def test_relative():
 		baseurl = url.URL(base)
 		relurl = url.URL(rel)
 		resurl = url.URL(res)
-		assert relurl.relative(baseurl) == resurl, "%r.relative(%r) is %r, but should be %r" % (relurl, baseurl, relurl.relative(baseurl), resurl)
+		assert relurl.relative(baseurl) == resurl, "{0!r}.relative({1!r}) is {2!r}, but should be {3!r}".format(relurl, baseurl, relurl.relative(baseurl), resurl)
 
 	yield check, "./", "./", "./"
 	yield check, "cc.html", "./", "./"

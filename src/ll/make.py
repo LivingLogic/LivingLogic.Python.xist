@@ -98,7 +98,7 @@ class Level(object):
 		self.reported = reported
 
 	def __repr__(self):
-		return "<%s.%s object action=%r since=%r reportable=%r reported=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.action, self.since, self.reportable, self.reported, id(self))
+		return "<{0}.{1} object action={2!r} since={3!r} reportable={4!r} reported={5} at {6:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.action, self.since, self.reportable, self.reported, id(self))
 
 
 def report(func):
@@ -160,22 +160,22 @@ def report(func):
 					args.append(": ")
 					if error is not None:
 						if error.__module__ != "exceptions":
-							text = "%s.%s" % (error.__module__, error.__name__)
+							text = "{0}.{1}".format(error.__module__, error.__name__)
 						else:
 							text = error.__name__
 						args.append(s4error(text))
 					elif data is nodata:
 						args.append("nodata")
 					elif isinstance(data, str):
-						args.append(s4data("str (%db)" % len(data)))
+						args.append(s4data("str ({0}b)".format(len(data))))
 					elif isinstance(data, unicode):
-						args.append(s4data("unicode (%dc)" % len(data)))
+						args.append(s4data("unicode ({0}c)".format(len(data))))
 					else:
 						dataclass = data.__class__
 						if dataclass.__module__ != "__builtin__":
-							text = "%s.%s @ 0x%x" % (dataclass.__module__, dataclass.__name__, id(data))
+							text = "{0}.{1} @ {2:#x}".format(dataclass.__module__, dataclass.__name__, id(data))
 						else:
-							text = "%s @ 0x%x" % (dataclass.__name__, id(data))
+							text = "{0} @ {1:#x}".format(dataclass.__name__, id(data))
 						args.append(s4data(text))
 				project.writestack(*args)
 		return data
@@ -199,7 +199,7 @@ class RedefinedTargetWarning(Warning):
 		self.key = key
 
 	def __str__(self):
-		return "target with key=%r redefined" % self.key
+		return "target with key={0!r} redefined".format(self.key)
 
 
 class UndefinedTargetError(KeyError):
@@ -212,7 +212,7 @@ class UndefinedTargetError(KeyError):
 		self.key = key
 
 	def __str__(self):
-		return "target %r undefined" % self.key
+		return "target {0!r} undefined".format(self.key)
 
 
 ###
@@ -280,7 +280,7 @@ def _ipipe_type(obj):
 	try:
 		return obj.type
 	except AttributeError:
-		return "%s.%s" % (obj.__class__.__module__, obj.__class__.__name__)
+		return "{0}.{1}".format(obj.__class__.__module__, obj.__class__.__name__)
 _ipipe_type.__xname__ = "type"
 
 
@@ -389,7 +389,7 @@ class Action(object):
 	def __repr__(self):
 		def format(arg):
 			if isinstance(arg, Action):
-				return " from %s.%s" % (arg.__class__.__module__, arg.__class__.__name__)
+				return " from {0}.{1}".format(arg.__class__.__module__, arg.__class__.__name__)
 			elif isinstance(arg, tuple):
 				return "=(?)"
 			elif isinstance(arg, list):
@@ -397,17 +397,17 @@ class Action(object):
 			elif isinstance(arg, dict):
 				return "={?}"
 			else:
-				return "=%r" % (arg,)
+				return "={0!r}"/format(arg)
 
-		output = ["arg %d%s" % (i, format(arg)) for (i, arg) in enumerate(self.getargs())]
+		output = ["arg {0}{1}".format(i, format(arg)) for (i, arg) in enumerate(self.getargs())]
 		for (argname, arg) in self.getkwargs().iteritems():
-			output.append("arg %s%s" % (argname, format(arg)))
+			output.append("arg {0}{1}".format(argname, format(arg)))
 			
 		if output:
-			output = " with %s" % ", ".join(output)
+			output = " with {0}".format(", ".join(output))
 		else:
 			output = ""
-		return "<%s.%s object%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, output, id(self))
+		return "<{0}.{1} object{2} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, output, id(self))
 
 	@misc.notimplemented
 	def __iter__(self):
@@ -465,7 +465,7 @@ class Action(object):
 					test = str(key.relative(here))
 					if len(test) < len(s):
 						s = test
-					test = "~/%s" % key.relative(home)
+					test = "~/{0}".format(key.relative(home))
 					if len(test) < len(s):
 						s = test
 				else:
@@ -549,7 +549,7 @@ class CollectAction(TransformAction):
 		return data
 
 	def __repr__(self):
-		return "<%s.%s object at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, id(self))
+		return "<{0}.{1} object at {2:#x}>".format(self.__class__.__module__, self.__class__.__name__, id(self))
 
 
 class PhonyAction(Action):
@@ -601,10 +601,10 @@ class PhonyAction(Action):
 			return None if self.changed > since else nodata
 
 	def __repr__(self):
-		s = "<%s.%s object" % (self.__class__.__module__, self.__class__.__name__)
+		s = "<{0}.{1} object".format(self.__class__.__module__, self.__class__.__name__)
 		if self.key is not None:
-			s += " with key=%r" % self.key
-		s += " at 0x%x>" % id(self)
+			s += " with key={0!r}".format(self.key)
+		s += " at {0:#x}>".format(id(self))
 		return s
 
 
@@ -672,7 +672,7 @@ class FileAction(TransformAction):
 				return data
 		else: # We have no inputs (i.e. this is a "source" file)
 			if self.changed is bigbang:
-				raise ValueError("source file %r doesn't exist" % self.key)
+				raise ValueError("source file {0!r} doesn't exist".format(self.key))
 		if self.changed > since: # We are up to date now and newer than the output action
 			return self.read(project) # return file data (to output action or client)
 		# else fail through and return :const:`nodata`
@@ -693,7 +693,7 @@ class FileAction(TransformAction):
 		return OwnerAction(self, user, group)
 
 	def __repr__(self):
-		return "<%s.%s object key=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.key, id(self))
+		return "<{0}.{1} object key={2!r} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.key, id(self))
 
 
 class MkDirAction(TransformAction):
@@ -720,7 +720,7 @@ class MkDirAction(TransformAction):
 		self.key.makedirs(self.mode)
 
 	def __repr__(self):
-		return "<%s.%s object with mode=0%03o at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.mode, id(self))
+		return "<{0}.{1} object with mode={2:#03o} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.mode, id(self))
 
 
 class PipeAction(TransformAction):
@@ -751,7 +751,7 @@ class PipeAction(TransformAction):
 		return output
 
 	def __repr__(self):
-		return "<%s.%s object with command=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.command, id(self))
+		return "<{0}.{1} object with command={2!r} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.command, id(self))
 
 
 class CacheAction(TransformAction):
@@ -898,7 +898,7 @@ class FOPAction(TransformAction):
 
 	__ http://xmlgraphics.apache.org/fop/
 	"""
-	command = "/usr/local/src/fop-0.20.5/fop.sh -q -c /usr/local/src/fop-0.20.5/conf/userconfig.xml -fo %s -pdf %s"
+	command = "/usr/local/src/fop-0.20.5/fop.sh -q -c /usr/local/src/fop-0.20.5/conf/userconfig.xml -fo {src} -pdf {dst}"
 
 	def execute(self, project, data):
 		project.writestep(self, "FOPping input")
@@ -909,7 +909,7 @@ class FOPAction(TransformAction):
 			os.fdopen(outfd).close()
 			infile.write(data)
 			infile.close()
-			os.system(self.command % (inname, outname))
+			os.system(self.command.format(src=inname, dst=outname))
 			data = open(outname, "rb").read()
 		finally:
 			os.remove(inname)
@@ -947,17 +947,17 @@ class CallAction(Action):
 			if len(args) == 1:
 				argsmsg = " with 1 arg"
 			else:
-				argsmsg = " with %d args" % len(args)
+				argsmsg = " with {0} args".format(len(args))
 		else:
 			argsmsg = " without args"
 		if kwargs:
 			if len(kwargs) == 1:
-				kwargsmsg = " and keyword %s" % ", ".join(kwargs)
+				kwargsmsg = " and keyword {0}".format(", ".join(kwargs))
 			else:
-				kwargsmsg = " and keywords %s" % ", ".join(kwargs)
+				kwargsmsg = " and keywords {0}".format(", ".join(kwargs))
 		else:
 			kwargsmsg = ""
-		project.writestep(self, "Calling %r" % (func, ), argsmsg, kwargsmsg)
+		project.writestep(self, "Calling {0!r}".format(func), argsmsg, kwargsmsg)
 		return func(*args, **kwargs)
 
 
@@ -990,7 +990,7 @@ class CallAttrAction(Action):
 
 	def execute(self, project, obj, attrname, *args, **kwargs):
 		func = getattr(obj, attrname)
-		project.writestep(self, "Calling %r" % func)
+		project.writestep(self, "Calling {0!r}".format(func))
 		return func(*args, **kwargs)
 
 
@@ -1013,7 +1013,7 @@ class CommandAction(TransformAction):
 		os.system(self.command)
 
 	def __repr__(self):
-		return "<%s.%s object command=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.command, id(self))
+		return "<{0}.{1} object command={2!r} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.command, id(self))
 
 
 class ModeAction(TransformAction):
@@ -1042,7 +1042,7 @@ class ModeAction(TransformAction):
 		Change the permission bits of the file ``self.getkey()``.
 		"""
 		key = self.getkey()
-		project.writestep(self, "Changing mode of ", project.strkey(key), " to 0%03o" % mode)
+		project.writestep(self, "Changing mode of ", project.strkey(key), " to {0:#03o}".format(mode))
 		key.chmod(mode)
 		return data
 
@@ -1187,7 +1187,7 @@ class ModuleAction(TransformAction):
 		return nodata
 
 	def __repr__(self):
-		return "<%s.%s object key=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.getkey(), id(self))
+		return "<{0}.{1} object key={2!r} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.getkey(), id(self))
 
 
 class AlwaysAction(Action):
@@ -1275,7 +1275,7 @@ class Project(dict):
 		self.growl = self._getenvbool("LL_MAKE_GROWL", False)
 
 	def __repr__(self):
-		return "<%s.%s with %d targets at 0x%x>" % (self.__module__, self.__class__.__name__, len(self), id(self))
+		return "<{0}.{1} with {2} targets at {3:#x}>".format(self.__module__, self.__class__.__name__, len(self), id(self))
 
 	class showaction(misc.propclass):
 		"""
@@ -1413,11 +1413,11 @@ class Project(dict):
 	
 			secs += delta.microseconds/1000000.
 			if rest:
-				text = "%d:%02d:%06.3fh" % (rest, mins, secs)
+				text = "{0:d}:{1:02d}:{2:06.3f}h".format(rest, mins, secs)
 			elif mins:
-				text = "%02d:%06.3fm" % (mins, secs)
+				text = "{0:02d}:{1:06.3f}m".format(mins, secs)
 			else:
-				text = "%.3fs" % secs
+				text = "{0:.3f}s".format(secs)
 		return s4time(text)
 
 	def strdatetime(self, dt):
@@ -1425,14 +1425,14 @@ class Project(dict):
 		Return a nicely formatted and colored string for the
 		:class:`datetime.datetime` value :var:`dt`.
 		"""
-		return s4time(dt.strftime("%Y-%m-%d %H:%M:%S"), ".%06d" % (dt.microsecond))
+		return s4time(dt.strftime("%Y-%m-%d %H:%M:%S"), "{0:06d}".format(dt.microsecond))
 
 	def strcounter(self, counter):
 		"""
 		Return a nicely formatted and colored string for the counter value
 		:var:`counter`.
 		"""
-		return s4counter("%d." % counter)
+		return s4counter("{0}.".format(counter))
 
 	def strerror(self, text):
 		"""
@@ -1455,7 +1455,7 @@ class Project(dict):
 			test = str(key.relative(self.here))
 			if len(test) < len(s):
 				s = test
-			test = "~/%s" % key.relative(self.home)
+			test = "~/{0}".format(key.relative(self.home))
 			if len(test) < len(s):
 				s = test
 		return s4key(s)
@@ -1612,10 +1612,10 @@ class Project(dict):
 		p.add_option("-c", "--color", dest="color", help="Use colored output", action="store_true", default=None)
 		p.add_option("-C", "--nocolor", dest="color", help="No colored output", action="store_false", default=None)
 		p.add_option("-g", "--growl", dest="growl", help="Issue growl notification after the build?", action="store_true", default=None)
-		p.add_option("-a", "--showaction", dest="showaction", help="Show actions (%s)?" % ", ".join(actions), choices=actions, default=action2name(self.showaction))
-		p.add_option("-s", "--showstep", dest="showstep", help="Show steps (%s)?" % ", ".join(actions), choices=actions, default=action2name(self.showstep))
-		p.add_option("-n", "--shownote", dest="shownote", help="Show notes (%s)?" % ", ".join(actions), choices=actions, default=action2name(self.shownote))
-		p.add_option("-r", "--showregistration", dest="showregistration", help="Show registration (%s)?" % ", ".join(actions), choices=actions, default=action2name(self.showregistration))
+		p.add_option("-a", "--showaction", dest="showaction", help="Show actions ({0})?".format(", ".join(actions)), choices=actions, default=action2name(self.showaction))
+		p.add_option("-s", "--showstep", dest="showstep", help="Show steps ({0})?".format(", ".join(actions)), choices=actions, default=action2name(self.showstep))
+		p.add_option("-n", "--shownote", dest="shownote", help="Show notes ({0})?".format(", ".join(actions)), choices=actions, default=action2name(self.shownote))
+		p.add_option("-r", "--showregistration", dest="showregistration", help="Show registration ({0})?".format(", ".join(actions)), choices=actions, default=action2name(self.showregistration))
 		p.add_option("-i", "--showidle", dest="showidle", help="Show actions that didn't produce data?", action="store_true", default=self.showidle)
 		p.add_option("-d", "--showdata", dest="showdata", help="Show data?", action="store_true", default=self.showdata)
 		return p
@@ -1726,17 +1726,17 @@ class Project(dict):
 				self.writeln()
 			if self.growl:
 				filename = os.path.abspath(sys.modules[self.__class__.__module__].__file__)
-				cmd = "growlnotify -i py -n ll.make 'll.make done in %s'" % self.strtimedelta(now-self.starttime)
+				cmd = "growlnotify -i py -n ll.make 'll.make done in {0}'".format(self.strtimedelta(now-self.starttime))
 				import subprocess
 				pipe = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE).stdin
-				pipe.write("%s\n" % filename)
-				pipe.write("%s.%s\n" % (self.__class__.__module__, self.__class__.__name__))
-				pipe.write("%d registered targets, " % len(self))
-				pipe.write("%d actions called, " % self.actionscalled)
-				pipe.write("%d steps executed, " % self.stepsexecuted)
-				pipe.write("%d files/%d bytes read, " % (self.filesread, self.bytesread))
-				pipe.write("%d files/%d bytes written, " % (self.fileswritten, self.byteswritten))
-				pipe.write("%d actions failed" % self.actionsfailed)
+				pipe.write("{0}\n".format(filename))
+				pipe.write("{0}.{1}\n".format(self.__class__.__module__, self.__class__.__name__))
+				pipe.write("{0} registered targets, ".format(len(self)))
+				pipe.write("{0} actions called, ".format(self.actionscalled))
+				pipe.write("{0} steps executed, ".format(self.stepsexecuted))
+				pipe.write("{0} files/{1} bytes read, ".format(self.filesread, self.bytesread))
+				pipe.write("{0} files/{1} bytes written, ".format(self.fileswritten, self.byteswritten))
+				pipe.write("{0} actions failed".format(self.actionsfailed))
 				pipe.close()
 
 	def buildwithargs(self, commandline=None):

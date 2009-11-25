@@ -259,7 +259,7 @@ class meta(xsc.Element):
 					node = self.__class__(
 						self.attrs,
 						http_equiv=u"Content-Type",
-						content=(contenttype, u"; ", u"; ".join(u"%s=%s" % option for option in options.items()))
+						content=(contenttype, u"; ", u"; ".join(u"{0}={1}".format(*option) for option in options.items()))
 					)
 					return node.publish(publisher) # return a generator-iterator
 		return super(meta, self).publish(publisher) # return a generator-iterator
@@ -1367,8 +1367,8 @@ def astext(node, encoding="iso-8859-1", width=72):
 
 	options = [
 		"-dump 1",
-		"-dump-charset %s" % encoding,
-		"-dump-width %d" % width,
+		"-dump-charset {0}".format(encoding),
+		"-dump-width {0}".format(width),
 		"-force-html",
 		"-no-home",
 		"-no-numbering",
@@ -1378,7 +1378,7 @@ def astext(node, encoding="iso-8859-1", width=72):
 
 	text = node.bytes(encoding=encoding)
 
-	cmd = "elinks %s" % " ".join(options)
+	cmd = "elinks {0}".format(" ".join(options))
 	p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
 	p.stdin.write(text)
 	p.stdin.close()

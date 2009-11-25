@@ -186,7 +186,7 @@ def applystylesheets(node, base=None, media=None, title=None):
 				yield (
 					(1, 0, 0, 0),
 					xfind.IsSelector(node),
-					cssutils.parseString(u"*{%s}" % style).cssRules[0].style # parse the style out of the style attribute
+					cssutils.parseString(u"*{{{0}}}".format(style)).cssRules[0].style # parse the style out of the style attribute
 				)
 
 	rules = []
@@ -204,7 +204,7 @@ def applystylesheets(node, base=None, media=None, title=None):
 					for prop in style:
 						styles[prop.name] = (count, prop.cssText)
 						count += 1
-			style = " ".join("%s;" % value for (count, value) in sorted(styles.itervalues()))
+			style = " ".join("{0};".format(value) for (count, value) in sorted(styles.itervalues()))
 			if style:
 				path[-1].attrs["style"] = style
 
@@ -231,7 +231,7 @@ def _is_nth_node(iterator, node, index):
 			try:
 				index = int(index)
 			except ValueError:
-				raise ValueError("illegal argument %r" % index)
+				raise ValueError("illegal argument {0!r}".format(index))
 			else:
 				if index < 1:
 					return False
@@ -261,7 +261,7 @@ def _is_nth_last_node(iterator, node, index):
 			try:
 				index = int(index)
 			except ValueError:
-				raise ValueError("illegal argument %r" % index)
+				raise ValueError("illegal argument {0!r}".format(index))
 			else:
 				if index < 1:
 					return False
@@ -303,7 +303,7 @@ class CSSHasAttributeSelector(CSSWeightedSelector):
 		return False
 
 	def __str__(self):
-		return "%s(%r)" % (self.__class__.__name__, self.attributename)
+		return "{0}({1!r})".format(self.__class__.__name__, self.attributename)
 
 
 class CSSAttributeListSelector(CSSWeightedSelector):
@@ -325,7 +325,7 @@ class CSSAttributeListSelector(CSSWeightedSelector):
 		return False
 
 	def __str__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.attributename, self.attributevalue)
+		return "{0}({1!r}, {2!r})".format(self.__class__.__name__, self.attributename, self.attributevalue)
 
 
 class CSSAttributeLangSelector(CSSWeightedSelector):
@@ -349,7 +349,7 @@ class CSSAttributeLangSelector(CSSWeightedSelector):
 		return False
 
 	def __str__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.attributename, self.attributevalue)
+		return "{0}({1!r}, {2!r})".format(self.__class__.__name__, self.attributename, self.attributevalue)
 
 
 class CSSFirstChildSelector(CSSWeightedSelector):
@@ -485,7 +485,7 @@ class CSSLinkSelector(CSSWeightedSelector):
 		return False
 
 	def __str__(self):
-		return "%s()" % self.__class__.__name__
+		return "{0}()".format(self.__class__.__name__)
 
 
 class CSSInvalidPseudoSelector(CSSWeightedSelector):
@@ -493,7 +493,7 @@ class CSSInvalidPseudoSelector(CSSWeightedSelector):
 		return False
 
 	def __str__(self):
-		return "%s()" % self.__class__.__name__
+		return "{0}()".format(self.__class__.__name__)
 
 
 class CSSHoverSelector(CSSInvalidPseudoSelector):
@@ -528,7 +528,7 @@ class CSSFunctionSelector(CSSWeightedSelector):
 		self.value = value
 
 	def __str__(self):
-		return "%s(%r)" % (self.__class__.__name__, self.value)
+		return "{0}({1!r})".format(self.__class__.__name__, self.value)
 
 
 class CSSNthChildSelector(CSSFunctionSelector):
@@ -635,7 +635,7 @@ class CSSAdjacentSiblingCombinator(xfind.BinaryCombinator):
 		return False
 
 	def __str__(self):
-		return "%s(%s, %s)" % (self.__class__.__name__, self.left, self.right)
+		return "{0}({1}, {2})".format(self.__class__.__name__, self.left, self.right)
 
 
 class CSSGeneralSiblingCombinator(xfind.BinaryCombinator):
@@ -656,7 +656,7 @@ class CSSGeneralSiblingCombinator(xfind.BinaryCombinator):
 		return False
 
 	def __str__(self):
-		return "%s(%s, %s)" % (self.__class__.__name__, self.left, self.right)
+		return "{0}({1}, {2})".format(self.__class__.__name__, self.left, self.right)
 
 
 _pseudoname2class = {
@@ -696,9 +696,9 @@ def selector(selectors, prefixes=None):
 	if isinstance(selectors, basestring):
 		if prefixes is not None:
 			prefixes = dict((key, xsc.nsname(value)) for (key, value) in prefixes.iteritems())
-			selectors = "%s\n%s{}" % ("\n".join("@namespace %s %r;" % (key if key is not None else "", value) for (key, value) in prefixes.iteritems()), selectors)
+			selectors = "{0}\n{1}{{}}".format("\n".join("@namespace {0} {1!r};".format(key if key is not None else "", value) for (key, value) in prefixes.iteritems()), selectors)
 		else:
-			selectors = "%s{}" % selectors
+			selectors = "{0}{{}}".format(selectors)
 		for rule in cssutils.CSSParser().parseString(selectors).cssRules:
 			if isinstance(rule, css.CSSStyleRule):
 				selectors = rule.selectorList.seq
@@ -710,7 +710,7 @@ def selector(selectors, prefixes=None):
 	elif isinstance(selectors, css.Selector):
 		selectors = [selectors]
 	else:
-		raise TypeError("can't handle %r" % type(selectors))
+		raise TypeError("can't handle {0!r}".format(type(selectors)))
 	orcombinators = []
 	for selector in selectors:
 		rule = root = CSSTypeSelector()
@@ -760,13 +760,13 @@ def selector(selectors, prefixes=None):
 					try:
 						rule.selectors.append(_function2class[v.lstrip(":").rstrip("(")]())
 					except KeyError:
-						raise ValueError("unknown function %s" % v)
+						raise ValueError("unknown function {0}".format(v))
 					rule.function = v
 				else:
 					try:
 						rule.selectors.append(_pseudoname2class[v.lstrip(":")]())
 					except KeyError:
-						raise ValueError("unknown pseudo-class %s" % v)
+						raise ValueError("unknown pseudo-class {0}".format(v))
 			elif t == "NUMBER":
 				# can only appear in a function => set the function value
 				rule.selectors[-1].value = v

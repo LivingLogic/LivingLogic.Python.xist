@@ -40,7 +40,7 @@ def df(obj):
 
 
 def connid(name):
-	return s4connid("[%d]" % name)
+	return s4connid("[{0}]".format(name))
 
 
 def showcomment(out, *texts):
@@ -66,9 +66,9 @@ def showreport(out, type, countcreate, countdrop, countcollision, countmerge, co
 			else:
 				cls = s4action
 			if count > 1:
-				msg = "%d %ss %s" % (count, type, name)
+				msg = "{0} {1}s {2}".format(count, type, name)
 			else:
-				msg = "1 %s %s" % (type, name)
+				msg = "1 {0} {1}".format(type, name)
 			out.write(cls(msg))
 	if first:
 		out.write(" => identical")
@@ -91,7 +91,7 @@ def main(args=None):
 	colors = ("yes", "no", "auto")
 	p = optparse.OptionParser(usage="usage: %prog [options] connectstring searchstring [table] [table] ...")
 	p.add_option("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action="store_true")
-	p.add_option("-c", "--color", dest="color", help="Color output (%s)" % ", ".join(colors), default="auto", choices=colors)
+	p.add_option("-c", "--color", dest="color", help="Color output ({0})".format(", ".join(colors)), default="auto", choices=colors)
 	p.add_option("-i", "--ignore-case", dest="ignorecase", help="Ignore case distinctions?", default=False, action="store_true")
 	p.add_option("-r", "--read-lobs", dest="readlobs", help="Read LOBs when printing records?", default=False, action="store_true")
 	p.add_option("-e", "--encoding", dest="encoding", help="Encoding of the command line arguments", default="utf-8")
@@ -114,7 +114,7 @@ def main(args=None):
 	searchstring = args[1].decode(options.encoding)
 	if options.ignorecase:
 		searchstring = searchstring.lower()
-	searchstring = "%%%s%%" % searchstring.replace("%", "%%")
+	searchstring = "%{0}%".format(searchstring.replace("%", "%%"))
 	tablenames = [name.decode(options.encoding).lower() for name in args[2:]]
 
 	connection = orasql.connect(connectstring, readlobs=options.readlobs)
@@ -132,12 +132,12 @@ def main(args=None):
 				datatype = col.datatype()
 				if datatype == "clob" or datatype.startswith("varchar2"):
 					if options.ignorecase:
-						where.append("lower(%s) like :searchstring" % col.name)
+						where.append("lower({0}) like :searchstring".format(col.name))
 					else:
-						where.append("%s like :searchstring" % col.name)
+						where.append("{0} like :searchstring".format(col.name))
 			if not where:
 				continue # no string columns
-			query = "select * from %s where %s" % (table.name, " or ".join(where))
+			query = "select * from {0} where {1}".format(table.name, " or ".join(where))
 			c.execute(query, searchstring=searchstring)
 			for r in c:
 				stdout.writeln("orafind.py: in ", df(table), ": ", repr(r))

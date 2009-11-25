@@ -135,8 +135,8 @@ def main(args=None):
 
 	def printall(base, url, one, long, recursive, human, spacing):
 		if url.isdir():
-			if url.path.segments[-1][0]:
-				url.path.segments.append(("",))
+			if url.path.segments[-1]:
+				url.path.segments.append("")
 			if not long and not one:
 				if recursive:
 					urls = [(url/child, str(child)) for child in url.files()]
@@ -157,7 +157,7 @@ def main(args=None):
 
 	colors = ("yes", "no", "auto")
 	p = optparse.OptionParser(usage="usage: %prog [options] [url] [url] ...")
-	p.add_option("-c", "--color", dest="color", help="Color output (%s)" % ", ".join(colors), default="auto", choices=colors)
+	p.add_option("-c", "--color", dest="color", help="Color output ([{0}])".format(", ".join(colors)), default="auto", choices=colors)
 	p.add_option("-1", "--one", dest="one", help="One entry per line?", action="store_true")
 	p.add_option("-l", "--long", dest="long", help="Long format?", action="store_true")
 	p.add_option("-s", "--human-readable-sizes", dest="human", help="Output human readable sizes?", action="store_true")

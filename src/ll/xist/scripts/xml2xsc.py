@@ -105,7 +105,7 @@ def etree2xnd(sims, node):
 						entry[0].modeltype = "sims.Elements"
 					entry[0].modelargs = elements
 	else:
-		raise ValueError("unknown sims mode %r" % sims)
+		raise ValueError("unknown sims mode {0!r}".format(sims))
 	return ns
 
 
@@ -117,7 +117,7 @@ def stream2xnd(stream, sims="simple", parser="etree"):
 		from lxml import etree
 		node = etree.parse(stream).getroot()
 	else:
-		raise ValueError("unknown parser %r" % parser)
+		raise ValueError("unknown parser {0!r}".format(parser))
 	
 	return etree2xnd(sims, node)
 
@@ -126,7 +126,7 @@ def main(args=None):
 	p = optparse.OptionParser(usage="usage: %prog [options] <input.xml >output.py")
 	p.add_option("-p", "--parser", dest="parser", help="parser module to use for XML parsing (etree or lxml)", choices=("etree", "lxml"), default="etree")
 	choices = ["none", "simple", "full"]
-	p.add_option("-s", "--sims", dest="sims", help="Create sims info? (%s)" % ", ".join(choices), metavar="MODE", default="simple")
+	p.add_option("-s", "--sims", dest="sims", help="Create sims info? ({0})".format(", ".join(choices)), metavar="MODE", default="simple")
 
 	(options, args) = p.parse_args(args)
 	if len(args) != 0:

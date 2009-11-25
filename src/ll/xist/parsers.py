@@ -169,7 +169,7 @@ class Pipeline(tuple):
 		return pipe
 
 	def __repr__(self):
-		return "(%s)" % " | ".join(repr(obj) for obj in tuple.__iter__(self))
+		return "({0})".format(" | ".join(repr(obj) for obj in tuple.__iter__(self)))
 
 
 class PipelineObject(object):
@@ -190,7 +190,7 @@ class PipelineObject(object):
 			elif hasattr(other, "__iter__"): # Test this last (as ``URL``\s have :meth:`__iter__` too)
 				other = IterSource(other)
 			else:
-				raise TypeError("can't convert %r to a source" % other)
+				raise TypeError("can't convert {0!r} to a source".format(other))
 		return Pipeline(other, self)
 
 
@@ -206,7 +206,7 @@ class Source(PipelineObject):
 		self.url = url
 
 	def __repr__(self):
-		return "<%s.%s object url=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.url, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__name__} object url={0.url!r} at {1:#x}>".format(self, id(self))
 
 
 class StringSource(Source):
@@ -223,9 +223,6 @@ class StringSource(Source):
 
 	def transform(self, input=None, url=None):
 		yield self.data
-
-	def __repr__(self):
-		return "<%s.%s object url=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.url, id(self))
 
 
 class IterSource(Source):
@@ -326,7 +323,7 @@ class Encoder(PipelineObject):
 			yield data
 
 	def __repr__(self):
-		return "<%s.%s object encoding=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.encoding, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
 
 
 class Decoder(PipelineObject):
@@ -344,7 +341,7 @@ class Decoder(PipelineObject):
 			yield data
 
 	def __repr__(self):
-		return "<%s.%s object encoding=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.encoding, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
 
 
 class Transcoder(PipelineObject):
@@ -364,7 +361,7 @@ class Transcoder(PipelineObject):
 			yield data
 
 	def __repr__(self):
-		return "<%s.%s object fromencoding=%r toencoding=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.fromencoding, self.toencoding, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__name__} object fromencoding={0.fromencoding!r} toencoding={0.toencoding!r} at {1:#x}>".format(self, id(self))
 
 
 ###
@@ -480,18 +477,18 @@ class Expat(EventParser):
 	def __repr__(self):
 		v = []
 		if self._encoding is not None:
-			v.append(" encoding=%r" % self._encoding)
+			v.append(" encoding={0!r}".format(self._encoding))
 		if self._xmldecl is not None:
-			v.append(" xmldecl=%r" % self._xmldecl)
+			v.append(" xmldecl={0!r}".format(self._xmldecl))
 		if self._doctype is not None:
-			v.append(" doctype=%r" % self._doctype)
+			v.append(" doctype={0!r}".format(self._doctype))
 		if self._loc is not None:
-			v.append(" loc=%r" % self._loc)
+			v.append(" loc={0!r}".format(self._loc))
 		if self._cdata is not None:
-			v.append(" cdata=%r" % self._cdata)
+			v.append(" cdata={0!r}".format(self._cdata))
 		if self._ns is not None:
-			v.append(" ns=%r" % self._ns)
-		return "<%s.%s object%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, "".join(v), id(self))
+			v.append(" ns={0!r}".format(self._ns))
+		return "<{0.__class__.__module__}.{0.__class__.__name__} object{1} at {2:#x}>".format(self, "".join(v), id(self))
 
 	def feed(self, data, final=False):
 		self._parser.Parse(data, final)
@@ -586,7 +583,7 @@ class SGMLOP(EventParser):
 		self._hadtext = False
 
 	def __repr__(self):
-		return "<%s.%s object encoding=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.encoding, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
 
 	def feed(self, data, final=False):
 		self._parser.feed(self._decoder.decode(data, final))
@@ -673,10 +670,10 @@ class Prefixes(PipelineObject):
 		for arg in args:
 			for (prefix, xmlns) in arg.iteritems():
 				if prefix is not None and not isinstance(prefix, basestring):
-					raise TypeError("prefix must be None or string, not %r" % prefix)
+					raise TypeError("prefix must be None or string, not {0!r}".format(prefix))
 				xmlns = xsc.nsname(xmlns)
 				if not isinstance(xmlns, basestring):
-					raise TypeError("xmlns must be string, not %r" % xmlns)
+					raise TypeError("xmlns must be string, not {0!r}".format(xmlns))
 				newprefixes[prefix] = xmlns
 		self._newprefixes = self._attrs = self._attr = None
 		# A stack entry is an ``((elementname, namespacename), prefixdict)`` tuple
@@ -844,12 +841,12 @@ class Instantiate(PipelineObject):
 
 	def begindoctype(self, data):
 		if data["publicid"]:
-			content = u'%s PUBLIC "%s" "%s"' % (data["name"], data["publicid"], data["systemid"])
+			fmt = u'{0[name]} PUBLIC "{0[publicid]}" "{0[systemid]}"'
 		elif data["systemid"]:
-			content = u'%s SYSTEM "%s"' % (data["name"], data["systemid"])
+			fmt = u'{0[name]} SYSTEM "{0[systemid]}"'
 		else:
-			content = data["name"]
-		node = xsc.DocType(content)
+			fmt = u'{0[name]}'
+		node = xsc.DocType(content.format(fmt))
 		if self.loc:
 			node.startloc = xsc.Location(self.url, *self._location)
 		self.doctype = node
@@ -964,7 +961,7 @@ class Tidy(PipelineObject):
 		self.loc = loc
 
 	def __repr__(self):
-		return "<%s.%s object encoding=%r loc=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.encoding, self.loc, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} loc={0.loc!r} at {1:#x}>".format(self, id(self))
 
 	def transform(self, input, url):
 		import libxml2 # This requires libxml2 (see http://www.xmlsoft.org/)
@@ -1199,7 +1196,7 @@ class noBuilder(object):
 			self.prefixes = {}
 			for (prefix, xmlns) in prefixes.iteritems():
 				if prefix is not None and not isinstance(prefix, basestring):
-					raise TypeError("Prefix must be None or string, not %r" % prefix)
+					raise TypeError("Prefix must be None or string, not {0!r}".format(prefix))
 				if isinstance(xmlns, (list, tuple)):
 					self.prefixes[prefix] = map(xsc.nsname, xmlns)
 				else:
@@ -1249,12 +1246,12 @@ class noBuilder(object):
 
 	def begindoctype(self, data):
 		if data["publicid"]:
-			content = u'%s PUBLIC "%s" "%s"' % (data["name"], data["publicid"], data["systemid"])
+			fmt = u'{0[name]} PUBLIC "{0[publicid]}" "{0[systemid]}"'
 		elif data["systemid"]:
-			content = u'%s SYSTEM "%s"' % (data["name"], data["systemid"])
+			fmt = u'{0[name]} SYSTEM "{0[systemid]}"'
 		else:
-			content = data["name"]
-		node = xsc.DocType(content)
+			fmt = u'{0[name]}'
+		node = xsc.DocType(content.format(fmt))
 		self._appendNode(node)
 
 	def enddoctype(self, data):

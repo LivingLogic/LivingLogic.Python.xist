@@ -64,18 +64,18 @@ The following example illustrates the use of this module::
 		def __init__(self):
 			sisyphus.Job.__init__(self, 180, name="Fetch")
 			self.url = "http://www.python.org/"
-			self.tmpname = "Fetch_Tmp_%d.html" % os.getpid()
+			self.tmpname = "Fetch_Tmp_{0}.html".format(os.getpid())
 			self.officialname = "Python.html"
 
 		def execute(self):
-			self.logProgress("fetching data from %r" % self.url)
+			self.logProgress("fetching data from {0!r}".format(self.url))
 			data = urllib.urlopen(self.url).read()
 			datasize = len(data)
-			self.logProgress("writing file %r (%d bytes)" % (self.tmpname, datasize))
+			self.logProgress("writing file {0!r} ({1} bytes)".format(self.tmpname, datasize))
 			open(self.tmpname, "wb").write(data)
-			self.logProgress("renaming file %r to %r" % (self.tmpname, self.officialname))
+			self.logProgress("renaming file {0!r} to {1!r}".format(self.tmpname, self.officialname))
 			os.rename(self.tmpname, self.officialname)
-			self.logLoop("cached %r as %r (%d bytes)" % (self.url, self.officialname, datasize))
+			self.logLoop("cached {0!r} as {1!r} ({2} bytes)".format(self.url, self.officialname, datasize))
 
 	if __name__=="__main__":
 		sisyphus.execute(Fetch())
@@ -105,7 +105,7 @@ def _formattimedelta(timedelta):
 	(rest, secs) = divmod(rest, 60)
 	(rest, mins) = divmod(rest, 60)
 	rest += timedelta.days*24
-	return "%d:%02d:%06.3f" % (rest, mins, secs+timedelta.microseconds/1000000.)
+	return "{0:d}:{1:02d}:{2:06.3f}".format(rest, mins, secs+timedelta.microseconds/1000000.)
 
 
 class LogFile:
@@ -149,24 +149,23 @@ class LogFile:
 		"""
 		now = datetime.datetime.now()
 		pid = os.getpid()
-		prefix = "[pid=%d][%s]=[t+%s]" % (pid, _formattime(now), _formattimedelta(now-self.starttime))
+		prefix = "[pid={0}][{1}]=[t+{2}]".format(pid, _formattime(now), _formattimedelta(now-self.starttime))
 
 		self.__open()
 		for text in texts:
-			if isinstance(text, str):
-				pass
-			elif isinstance(text, unicode):
-				text = text.encode(self.encoding, "replace")
-			elif isinstance(text, Exception):
+			if isinstance(text, Exception):
 				tb = "\n" + "".join(traceback.format_tb(sys.exc_info()[-1]))
-				text = "%s%s: %s" % (tb, text.__class__.__name__, text)
-			else:
+				text = "{0}{1.__class__.__name__}: {1}".format(tb, text)
+			elif not isinstance(text, basestring):
 				text = pprint.pformat(text)
 			lines = text.splitlines()
 			if lines and not len(lines[-1]):
 				del lines[-1]
 			for line in lines:
-				self.file.write("%s %s\n" % (prefix, line))
+				line = "{0} {1}\n".format(prefix, line))
+				if isinstance(line, unicode):
+					line = line.encode(self.encoding, "replace")
+				self.file.write(line)
 
 
 class Job(object):
@@ -181,10 +180,10 @@ class Job(object):
 	:meth:`execute` method.
 	"""
 
-	pidfilenametemplate = "~/run/%s.pid"
-	loopfilenametemplate = "~/log/%s_loop.log"
-	errorfilenametemplate = "~/log/%s_error.log"
-	progressfilenametemplate = "~/log/%s_progress.log"
+	pidfilenametemplate = "~/run/{name}.pid"
+	loopfilenametemplate = "~/log/{name}_loop.log"
+	errorfilenametemplate = "~/log/{name}_error.log"
+	progressfilenametemplate = "~/log/{name}_progress.log"
 
 	def __init__(self, maxruntime=0, name=None, raiseerrors=False, printkills=False):
 		"""
@@ -214,10 +213,10 @@ class Job(object):
 		self.raiseerrors = raiseerrors
 		self.printkills = printkills
 		self.pidfilewritten = False
-		self.pidfilename = url.File(self.pidfilenametemplate % self.name)
-		self.loopLogfile = LogFile(self.loopfilenametemplate % self.name)
-		self.errorLogfile = LogFile(self.errorfilenametemplate % self.name)
-		self.progressLogfile = LogFile(self.progressfilenametemplate % self.name, mode="w")
+		self.pidfilename = url.File(self.pidfilenametemplate.format(name=self.name))
+		self.loopLogfile = LogFile(self.loopfilenametemplate.format(name=self.name))
+		self.errorLogfile = LogFile(self.errorfilenametemplate.format(name=self.name))
+		self.progressLogfile = LogFile(self.progressfilenametemplate.format(name=self.name), mode="w")
 
 	def __writepid(self):
 		"""
@@ -302,7 +301,7 @@ class Job(object):
 				# disk may have been full
 				file.close()
 				self.__writepid()
-				self.logProgress("ignoring bogus pid file %s (invalid content)" % self.pidfilename)
+				self.logProgress("ignoring bogus pid file {0} (invalid content)".format(self.pidfilename))
 			else:
 				file.close()
 				# Check if this process really exists, if not continue as if the pid file wasn't there
@@ -312,7 +311,7 @@ class Job(object):
 					if exc[0] != errno.ESRCH:
 						raise
 					self.__writepid()
-					msg = "ignoring bogus pid file %s (process with pid %d doesn't exist)" % (self.pidfilename, pid)
+					msg = "ignoring bogus pid file {0} (process with pid {1} doesn't exist)".format(self.pidfilename, pid)
 					self.logError(msg)
 				else:
 					if self.maxruntime and self.starttime-lastmodified > self.maxruntime: # the job is to old, so it probably hangs => kill it
@@ -322,12 +321,12 @@ class Job(object):
 							if exc[0] != errno.ESRCH: # there was no process
 								raise
 						self.__writepid()
-						msg = "killed previous job running with pid %d (ran %s seconds; %s allowed); here we go" % (pid, _formattimedelta(self.starttime-lastmodified), _formattimedelta(self.maxruntime))
+						msg = "killed previous job running with pid {0} (ran {1} seconds; {2} allowed); here we go".format(pid, _formattimedelta(self.starttime-lastmodified), _formattimedelta(self.maxruntime))
 						self.logError(msg)
 						if self.printkills:
 							print msg
 					else:
-						msg = "Job still running (for %s; %s allowed; started on %s) with pid %d (according to %s)" % (_formattimedelta(self.starttime-lastmodified), _formattimedelta(self.maxruntime), _formattime(lastmodified), pid, self.pidfilename)
+						msg = "Job still running (for {0}; {1} allowed; started on {2}) with pid {3} (according to {4})".format(_formattimedelta(self.starttime-lastmodified), _formattimedelta(self.maxruntime), _formattime(lastmodified), pid, self.pidfilename)
 						self.logErrorOnly(msg)
 						return # Return without calling :meth:`execute`
 
@@ -335,7 +334,7 @@ class Job(object):
 			self.execute()
 		except (Exception, KeyboardInterrupt), exc:
 			self.logError(exc) # log the error
-			self.logLoop("failed with %s(%s)" % (exc.__class__.__name__, exc)) # log the error to the loop log too, because the job probably didn't have a chance to do it.
+			self.logLoop("failed with {0.__class__.__name__}({0})".format(exc)) # log the error to the loop log too, because the job probably didn't have a chance to do it.
 			self.failed()
 			if self.raiseerrors or isinstance(exc, KeyboardInterrupt): # Really exit
 				self.__killpid()

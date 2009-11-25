@@ -74,7 +74,7 @@ def checkrunerror(msg, source, **variables):
 	try:
 		t1.renders(**variables)
 	except Exception, exc:
-		assert re.search(msg, "%s.%s: %s" % (exc.__class__.__module__, exc.__class__.__name__, exc)) is not None
+		assert re.search(msg, "{0.__class__.__module__}.{0.__class__.__name__}: {0}".format(exc)) is not None
 	else:
 		py.test.fail("Didn't raise exception")
 
@@ -84,7 +84,7 @@ def checkrunerror(msg, source, **variables):
 	try:
 		t2.renders(**variables)
 	except Exception, exc:
-		assert re.search(msg, "%s.%s: %s" % (exc.__class__.__module__, exc.__class__.__name__, exc)) is not None
+		assert re.search(msg, "{0.__class__.__module__}.{0.__class__.__name__}: {0}".format(exc)) is not None
 	else:
 		py.test.fail("Didn't raise exception")
 
@@ -97,7 +97,7 @@ def checkrunerror(msg, source, **variables):
 	try:
 		t3.renders(**variables)
 	except Exception, exc:
-		assert re.search(msg, "%s.%s: %s" % (exc.__class__.__module__, exc.__class__.__name__, exc)) is not None
+		assert re.search(msg, "{0.__class__.__module__}.{0.__class__.__name__}: {0}".format(exc)) is not None
 	else:
 		py.test.fail("Didn't raise exception")
 	assert s1 == s2 == s3
@@ -494,11 +494,11 @@ def test_nested():
 	sv = u"x"
 	n = 4
 	for i in xrange(8): # when using 10 compiling the variable will run out of registers
-		sc = u"(%s)+(%s)" % (sc, sc)
-		sv = u"(%s)+(%s)" % (sv, sv)
+		sc = u"({0})+({1})".format(sc, sc)
+		sv = u"({0})+({1})".format(sv, sv)
 		n = n+n
-	check(str(n), u'<?print %s?>' % sc)
-	check(str(n), u'<?code x=4?><?print %s?>' % sv)
+	check(str(n), u'<?print {0}?>'.format(sc))
+	check(str(n), u'<?code x=4?><?print {0}?>'.format(sv))
 
 
 def test_precedence():
@@ -519,11 +519,11 @@ def test_bracket():
 	sc = u"4"
 	sv = u"x"
 	for i in xrange(10):
-		sc = u"(%s)" % sc
-		sv = u"(%s)" % sv
+		sc = u"({0})".format(sc)
+		sv = u"({0})".format(sv)
 
-	check("4", u'<?print %s?>' % sc)
-	check("4", u'<?code x=4?><?print %s?>' % sv)
+	check("4", u'<?print {0}?>'.format(sc))
+	check("4", u'<?code x=4?><?print {0}?>'.format(sv))
 
 
 def test_function_now():
@@ -1023,7 +1023,7 @@ def test_method_render():
 def test_method_format():
 	now = datetime.datetime.now()
 	format = "%Y-%m-%d %H:%M:%S"
-	check(now.strftime(format), ur"<?print data.format('%s')?>" % format, data=now)
+	check(now.strftime(format), u"<?print data.format('{0}')?>".format(format), data=now)
 	check('987654', u'<?print 2000-02-29T12:34:56.987654.format("%f")?>')
 
 
