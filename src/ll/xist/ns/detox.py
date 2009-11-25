@@ -223,7 +223,7 @@ def xml2py(source):
 		elif t == "expr":
 			# ignore output outside of functions
 			if stackoutput and stackoutput[-1]:
-				lines.append("{0}yield {1!r}".format(len(stack)*indent, s))
+				lines.append("{0}yield {1}".format(len(stack)*indent, s))
 		elif t == "textexpr":
 			# ignore output outside of functions
 			if stackoutput and stackoutput[-1]:
@@ -271,17 +271,8 @@ def xml2py(source):
 	return "\n".join(lines)
 
 
-def xml2mod(source, name=None, filename="<string>", store=False, loader=None):
-	name = name or "ll.xist.ns.detox.sandbox_{0:x}".format(hash(filename) + sys.maxint + 1)
-	module = types.ModuleType(name)
-	module.__file__ = filename
-	if loader is not None:
-		module.__loader__ = loader
-	if store:
-		sys.modules[name] = module
-	code = compile(xml2py(source), filename, "exec")
-	exec code in module.__dict__
-	return module
+def xml2mod(source, name=None, filename="unnamed.py"):
+	return misc.module(xml2py(source), filename, name)
 
 
 # The following stuff has been copied from Kids import hook
