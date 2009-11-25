@@ -206,7 +206,7 @@ def fromul4(template, variables="variables", indent=0):
 	lines = template.source.splitlines(False)
 	width = len(str(len(lines)+1))
 	for (i, line) in enumerate(lines):
-		make_scriptlet("// %{1:{0}} {2}".format(width, i+1, line))
+		make_scriptlet("// {1:{0}} {2}".format(width, i+1, line))
 
 	make_scriptlet("//@@@ BEGIN template code")
 
