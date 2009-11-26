@@ -9,17 +9,17 @@
 
 
 """
-This file contains everything you need to parse XIST objects from files,
+This module contains everything you need to parse XIST objects from files,
 strings, URLs etc.
 
 Parsing XML is done with a pipelined approach. The first step in the pipeline
 is a :class:`Source` object that provides the XML source (from strings, files,
 URLs, etc.).
 
-The next step in the pipeline is the XML parser. It turns the input source into
-an iterator over parsing events (an "event stream"). Further steps in the
-pipeline might resolve namespace prefixes (:class:`Prefixes`), and instantiate
-XIST classes (:class:`Instantiate`).
+The next step is the XML parser. It turns the input source into an iterator over
+parsing events (an "event stream"). Further steps in the pipeline might resolve
+namespace prefixes (:class:`Prefixes`), and instantiate XIST classes
+(:class:`Instantiate`).
 
 The final step in the pipeline is either building an XML tree via :func:`tree`
 or an iterative parsing step (similar to ElementTrees :func:`iterparse`
