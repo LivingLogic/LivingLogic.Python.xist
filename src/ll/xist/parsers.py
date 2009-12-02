@@ -159,9 +159,16 @@ class Pipeline(tuple):
 		return tuple.__new__(cls, objects)
 
 	def __or__(self, other):
+		"""
+		Return a new :class:`Pipeline` object with :var:`other` appended to
+		:var:`self`.
+		"""
 		return Pipeline(*(self + (other,)))
 
 	def __iter__(self):
+		"""
+		Iterate through the pipeline.
+		"""
 		url = self[0].url
 		pipe = None
 		for obj in tuple.__iter__(self):
@@ -179,9 +186,15 @@ class PipelineObject(object):
 	via the or (``|``) operator.
 	"""
 	def __iter__(self):
+		"""
+		Iterate through the object itself.
+		"""
 		return iter(Pipeline(self))
 
 	def __ror__(self, other):
+		"""
+		Create a new pipeline with the :var:`self` as the last object.
+		"""
 		if not isinstance(other, Source):
 			if isinstance(other, basestring):
 				other = StringSource(other)
@@ -250,9 +263,9 @@ class StreamSource(Source):
 	def __init__(self, stream, url=None, bufsize=8192):
 		"""
 		Create a :class:`StreamSource` object. :var:`stream` must possess a
-		:meth:`read` method. :var:`url` specifies the url for the source
-		(defaulting to ``"STREAM"``). :var:`bufsize` specify the chunksize for
-		reads from the stream.
+		:meth:`read` method (with a ``size`` argument). :var:`url` specifies the
+		url for the source (defaulting to ``"STREAM"``). :var:`bufsize` specifies
+		the chunksize for reads from the stream.
 		"""
 		self.url = url_.URL(url if url is not None else "STREAM")
 		self.stream = stream
@@ -292,7 +305,19 @@ class FileSource(Source):
 
 
 class URLSource(Source):
+	"""
+	Provides parser input from a URL.
+	"""
 	def __init__(self, name, bufsize=8192, *args, **kwargs):
+		"""
+		Create a :class:`URLSource` object. :var:`name` is the URL.
+		:var:`bufsize` specify the chunksize for reads from the URL. :var:`args`
+		and :var:`kwargs` will be passed on to the :meth:`open` method of the URL
+		object.
+
+		The URL for the input will be the final URL for the resource (i.e. it will
+		include redirects).
+		"""
 		u = url_.URL(name)
 		self.stream = u.open("rb", *args, **kwargs)
 		self.url = self.stream.finalurl()
@@ -308,26 +333,17 @@ class URLSource(Source):
 					break
 
 
-class Encoder(PipelineObject):
-	def __init__(self, encoding=None):
-		self.encoding = encoding
-
-	def transform(self, input, url):
-		encoder = codecs.getincrementalencoder("xml")(encoding=self.encoding)
-		for data in input:
-			data = encoder.encode(data, False)
-			if data:
-				yield data
-		data = encoder.encode(u"", True)
-		if data:
-			yield data
-
-	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
-
-
 class Decoder(PipelineObject):
+	"""
+	Decode the 8-bit output of the previous object in the pipeline to unicode.
+
+	This previous object can be a source object or any other pipeline object that
+	produces 8-bit strings.
+	"""
 	def __init__(self, encoding=None):
+		"""
+		Create a :class:`Decoder` object. :var:`encoding` is encoding of the input.
+		"""
 		self.encoding = encoding
 
 	def transform(self, input, url):
@@ -344,8 +360,47 @@ class Decoder(PipelineObject):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
 
 
+class Encoder(PipelineObject):
+	"""
+	Encode the unicode output of the previous object in the pipeline to 8-bit
+	strings.
+
+	This previous object must be a pipeline object that produces unicode output
+	(e.g. a :class:`Decoder` object).
+	"""
+	def __init__(self, encoding=None):
+		"""
+		Create an :class:`Encoder` object. :var:`encoding` will be the encoding of
+		the output.
+		"""
+		self.encoding = encoding
+
+	def transform(self, input, url):
+		encoder = codecs.getincrementalencoder("xml")(encoding=self.encoding)
+		for data in input:
+			data = encoder.encode(data, False)
+			if data:
+				yield data
+		data = encoder.encode(u"", True)
+		if data:
+			yield data
+
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
+
+
 class Transcoder(PipelineObject):
+	"""
+	Transcode the 8-bit output of the previous object into another encoding.
+
+	This previous object can be a source object or any other pipeline object that
+	produces 8-bit strings.
+	"""
 	def __init__(self, fromencoding=None, toencoding=None):
+		"""
+		Create a :class:`Transcoder` object. :var:`fromencoding` is the encoding
+		of the input. :var:`toencoding` is the encoding of the output.
+		"""
 		self.fromencoding = fromencoding
 		self.toencoding = toencoding
 
