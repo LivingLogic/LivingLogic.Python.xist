@@ -420,7 +420,7 @@ class Transcoder(PipelineObject):
 
 
 ###
-### parsers
+### Parsers
 ###
 
 class EventParser(PipelineObject):
