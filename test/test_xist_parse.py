@@ -240,10 +240,10 @@ def test_parseattr_sgmlop():
 
 def test_parsestringurl():
 	# Base URLs should end up in the location info of the resulting XML tree
-	node = parsers.tree("gurk" | parsers.SGMLOP() | parsers.Instantiate()) # we don't need a ``Prefixes`` objects, as we don't have elements
+	node = parsers.tree("gurk" | parsers.SGMLOP() | parsers.Prefixes() | parsers.Instantiate())
 	assert str(node[0].startloc.url) == "STRING"
 
-	node = parsers.tree(parsers.StringSource("gurk", url="root:gurk.xmlxsc") | parsers.SGMLOP() | parsers.Instantiate())
+	node = parsers.tree(parsers.StringSource("gurk", url="root:gurk.xmlxsc") | parsers.SGMLOP() | parsers.Prefixes() | parsers.Instantiate())
 	assert str(node[0].startloc.url) == "root:gurk.xmlxsc"
 
 
@@ -324,5 +324,5 @@ def test_htmlparse_base():
 
 
 def test_parse_tidy_empty():
-	e = parsers.tree("" | parsers.Tidy() | parsers.Instantiate())
+	e = parsers.tree("" | parsers.Tidy() | parsers.Prefixes() | parsers.Instantiate())
 	assert not e
