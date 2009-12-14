@@ -162,7 +162,7 @@ class LogFile:
 			if lines and not len(lines[-1]):
 				del lines[-1]
 			for line in lines:
-				line = "{0} {1}\n".format(prefix, line))
+				line = "{0} {1}\n".format(prefix, line)
 				if isinstance(line, unicode):
 					line = line.encode(self.encoding, "replace")
 				self.file.write(line)
