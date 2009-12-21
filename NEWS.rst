@@ -10,7 +10,7 @@ Changes in 3.8 (released ??/??/????)
 	-	An externally specified encoding wasn't honored in the incremental decoder.
 
 	-	Fixed reset() for incremental codecs: If encoding has been changed during
-		parsing in the incremental codecs it now gets reset to it's proper initial
+		parsing in the incremental codecs it now gets reset to its proper initial
 		value.
 
 *	Added a new function :func:`misc.module` that creates a module from source
