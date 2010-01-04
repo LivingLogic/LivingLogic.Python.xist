@@ -571,7 +571,7 @@ class Template(object):
 	Rendering the template can be done with the methods :meth:`render` (which
 	is a generator) or :meth:`renders` (which returns a string).
 	"""
-	version = "11"
+	version = "12"
 
 	def __init__(self, source=None, startdelim="<?", enddelim="?>"):
 		"""
@@ -977,6 +977,8 @@ class Template(object):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = bool(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_len(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = len(r{op.r2:d})".format(op=opcode))
+	def _pythonsource_dispatch_callfunc1_abs(self, opcode):
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = abs(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_enumerate(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = enumerate(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_isnone(self, opcode):

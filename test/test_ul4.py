@@ -882,6 +882,15 @@ def test_function_bin():
 	check("-0b1111", code, data=-15)
 
 
+def test_function_abs():
+	checkrunerror("function u?'abs' unknown", u"<?print abs()?>")
+	checkrunerror("function u?'abs' unknown", u"<?print abs(1, 2)?>")
+	code = u"<?print abs(data)?>"
+	check("0", code, data=0)
+	check("42", code, data=42)
+	check("42", code, data=-42)
+
+
 def test_function_sorted():
 	checkrunerror("function u?'sorted' unknown", u"<?print sorted()?>")
 	checkrunerror("function u?'sorted' unknown", u"<?print sorted(1, 2)?>")
