@@ -25,6 +25,8 @@ Changes in 3.8 (released ??/??/????)
 *	:class:`ll.orasql.PrimaryKey` has a new method :meth:`itercolumns` that
 	returns an iterator over the columns this primary key consists of.
 
+*	Add new UL4 function ``abs`` has been added.
+
 *	The generated JSP code for the UL4 function ``xmlescape`` no longer calls
 	``ObjectUtils.toString``. This should reduce the code size for the JSP
 	source code of UL4 templates.
