@@ -33,7 +33,7 @@ Parsing a simple HTML string might e.g. look like this::
 	>>> doc = parsers.tree(
 	...         parsers.StringSource(source)
 	...       | parsers.Expat()
-	...       | parsers.Prefixes({None: html})
+	...       | parsers.Prefixes(prefixes={None: html})
 	...       | parsers.Instantiate(pool=xsc.Pool(html))
 	... )
 	>>> doc.bytes()
@@ -145,39 +145,25 @@ html_xmlns = "http://www.w3.org/1999/xhtml"
 
 
 ###
-### pipeline
+### exceptions
 ###
 
-class Pipeline(tuple):
-	"""
-	A :class:`Pipeline` object is a sequence of :class:`PipelineObject` instances.
-	Iterating a pipeline takes the input from the first object in the pipeline
-	(which must be a :class:`Source` object) and passed it to each object in the
-	pipeline.
-	"""
-	def __new__(cls, *objects):
-		return tuple.__new__(cls, objects)
+class PipelineMismatchError(TypeError):
+	def __init__(self, pipe, need, got):
+		self.pipe = pipe
+		self.need = need
+		self.got = got
 
-	def __or__(self, other):
-		"""
-		Return a new :class:`Pipeline` object with :var:`other` appended to
-		:var:`self`.
-		"""
-		return Pipeline(*(self + (other,)))
+	def __str__(self):
+		if self.got.__class__.__module__ == "__builtin__":
+			return "{0.pipe!r} got wrong input from {0.pipe.input!r}: need {0.need}, got {0.got.__class__.__name__}".format(self)
+		else:
+			return "{0.pipe!r} got wrong input from {0.pipe.input!r}: need {0.need}, got {0.got.__class__.__module__}.{0.got.__class__.__name__}".format(self)
 
-	def __iter__(self):
-		"""
-		Iterate through the pipeline.
-		"""
-		url = self[0].url
-		pipe = None
-		for obj in tuple.__iter__(self):
-			pipe = obj.transform(pipe, url)
-		return pipe
 
-	def __repr__(self):
-		return "({0})".format(" | ".join(repr(obj) for obj in tuple.__iter__(self)))
-
+###
+### pipeline
+###
 
 class PipelineObject(object):
 	"""
@@ -185,17 +171,19 @@ class PipelineObject(object):
 	:class:`Pipeline`. It provides basic functionality for creating a pipeline
 	via the or (``|``) operator.
 	"""
-	def __iter__(self):
-		"""
-		Iterate through the object itself.
-		"""
-		return iter(Pipeline(self))
+
+	def __init__(self, input=None):
+		self.input = input
+
+	@property
+	def url(self):
+		return self.input.url if self.input is not None else None
 
 	def __ror__(self, other):
 		"""
-		Create a new pipeline with the :var:`self` as the last object.
+		Set :var:`other` as :var:`self`\s input and return :var:`self`.
 		"""
-		if not isinstance(other, Source):
+		if not isinstance(other, (Source, PipelineObject)):
 			if isinstance(other, basestring):
 				other = StringSource(other)
 			elif isinstance(other, url_.URL):
@@ -204,14 +192,15 @@ class PipelineObject(object):
 				other = IterSource(other)
 			else:
 				raise TypeError("can't convert {0!r} to a source".format(other))
-		return Pipeline(other, self)
+		self.input = other
+		return self
 
 
 ###
 ### sources
 ###
 
-class Source(PipelineObject):
+class Source(object):
 	"""
 	A source object provides the input for a parser.
 	"""
@@ -234,7 +223,7 @@ class StringSource(Source):
 		self.url = url_.URL(url if url is not None else "STRING")
 		self.data = data
 
-	def transform(self, input=None, url=None):
+	def __iter__(self):
 		yield self.data
 
 
@@ -251,7 +240,7 @@ class IterSource(Source):
 		self.url = url_.URL(url if url is not None else "ITER")
 		self.iterable = iterable
 
-	def transform(self, input=None, url=None):
+	def __iter__(self):
 		return iter(self.iterable)
 
 
@@ -271,7 +260,7 @@ class StreamSource(Source):
 		self.stream = stream
 		self.bufsize = bufsize
 
-	def transform(self, input=None, url=None):
+	def __iter__(self):
 		while True:
 			data = self.stream.read(self.bufsize)
 			if data:
@@ -294,7 +283,7 @@ class FileSource(Source):
 		self.url = url_.File(filename)
 		self._filename = os.path.expanduser(filename)
 
-	def transform(self, input=None, url=None):
+	def __iter__(self):
 		with open(self._filename, "rb") as stream:
 			while True:
 				data = stream.read(self.bufsize)
@@ -323,7 +312,7 @@ class URLSource(Source):
 		self.url = self.stream.finalurl()
 		self.bufsize = bufsize
 
-	def transform(self, input=None, url=None):
+	def __iter__(self):
 		with contextlib.closing(self.stream) as stream:
 			while True:
 				data = stream.read(self.bufsize)
@@ -340,15 +329,22 @@ class Decoder(PipelineObject):
 	This previous object can be a source object or any other pipeline object that
 	produces 8-bit strings.
 	"""
-	def __init__(self, encoding=None):
+
+	def __init__(self, input=None, encoding=None):
 		"""
 		Create a :class:`Decoder` object. :var:`encoding` is encoding of the input.
 		"""
+		PipelineObject.__init__(self, input)
 		self.encoding = encoding
 
-	def transform(self, input, url):
+	def _checkinput(self, data):
+		if not isinstance(data, str):
+			raise PipelineMismatchError(self, "bytes", data)
+
+	def __iter__(self):
 		decoder = codecs.getincrementaldecoder("xml")(encoding=self.encoding)
-		for data in input:
+		for data in self.input:
+			self._checkinput(data)
 			data = decoder.decode(data, False)
 			if data:
 				yield data
@@ -368,16 +364,23 @@ class Encoder(PipelineObject):
 	This previous object must be a pipeline object that produces unicode output
 	(e.g. a :class:`Decoder` object).
 	"""
-	def __init__(self, encoding=None):
+
+	def __init__(self, input=None, encoding=None):
 		"""
 		Create an :class:`Encoder` object. :var:`encoding` will be the encoding of
 		the output.
 		"""
+		PipelineObject.__init__(self, input)
 		self.encoding = encoding
 
-	def transform(self, input, url):
+	def _checkinput(self, data):
+		if not isinstance(data, unicode):
+			raise PipelineMismatchError(self, "unicode", data)
+
+	def __iter__(self):
 		encoder = codecs.getincrementalencoder("xml")(encoding=self.encoding)
-		for data in input:
+		for data in self.input:
+			self._checkinput(data)
 			data = encoder.encode(data, False)
 			if data:
 				yield data
@@ -396,18 +399,25 @@ class Transcoder(PipelineObject):
 	This previous object can be a source object or any other pipeline object that
 	produces 8-bit strings.
 	"""
-	def __init__(self, fromencoding=None, toencoding=None):
+
+	def __init__(self, input=None, fromencoding=None, toencoding=None):
 		"""
 		Create a :class:`Transcoder` object. :var:`fromencoding` is the encoding
 		of the input. :var:`toencoding` is the encoding of the output.
 		"""
+		PipelineObject.__init__(self, input)
 		self.fromencoding = fromencoding
 		self.toencoding = toencoding
 
-	def transform(self, input, url):
+	def _checkinput(self, data):
+		if not isinstance(data, str):
+			raise PipelineMismatchError(self, "bytes", data)
+
+	def __iter__(self):
 		decoder = codecs.getincrementaldecoder("xml")(encoding=self.fromencoding)
 		encoder = codecs.getincrementalencoder("xml")(encoding=self.toencoding)
-		for data in input:
+		for data in self.input:
+			self._checkinput(data)
 			data = encoder.encode(decoder.decode(data, False), False)
 			if data:
 				yield data
@@ -451,11 +461,16 @@ class EventParser(PipelineObject):
 		Return an iterator for the events.
 		"""
 
-	def transform(self, input, url):
+	def _checkinput(self, data):
+		if not isinstance(data, str):
+			raise PipelineMismatchError(self, "bytes", data)
+
+	def __iter__(self):
 		"""
 		Return an iterator over events.
 		"""
-		for data in input:
+		for data in self.input:
+			self._checkinput(data)
 			for event in self.feed(data):
 				yield event
 		for event in self.feed("", True):
@@ -466,7 +481,10 @@ class Expat(EventParser):
 	"""
 	A parser using Pythons builtin :mod:`expat` parser.
 	"""
-	def __init__(self, encoding=None, xmldecl=False, doctype=False, loc=True, cdata=False, ns=False):
+
+	intype = "str"
+
+	def __init__(self, input=None, encoding=None, xmldecl=False, doctype=False, loc=True, cdata=False, ns=False):
 		"""
 		Create an :class:`Expat` object. Arguments have the following meaning:
 
@@ -494,6 +512,7 @@ class Expat(EventParser):
 			``"enterattr"`` and ``"leaveattr"`` events will already be
 			``(name, namespace)`` tuples.
 		"""
+		EventParser.__init__(self, input)
 		self._parser = expat.ParserCreate(encoding, "\x01" if ns else None)
 		self._parser.buffer_text = True
 		self._parser.ordered_attributes = True
@@ -528,6 +547,8 @@ class Expat(EventParser):
 
 		# Buffers the events generated during one call to ``feed``
 		self._buffer = []
+
+		self.outtype = "nsevents" if ns else "events"
 
 	def __repr__(self):
 		v = []
@@ -626,10 +647,15 @@ class SGMLOP(EventParser):
 	"""
 	A parser based of :mod:`sgmlop`.
 	"""
-	def __init__(self, encoding=None):
+
+	intype = "str"
+	outtype = "events"
+
+	def __init__(self, input=None, encoding=None):
 		"""
 		Create a new :class:`SGMLOP` object.
 		"""
+		EventParser.__init__(self, input)
 		self.encoding = encoding
 		self._decoder = codecs.getincrementaldecoder("xml")(encoding=encoding)
 		self._parser = sgmlop.XMLParser()
@@ -702,7 +728,7 @@ class Prefixes(PipelineObject):
 		>>> from ll.xist import parsers
 		>>> from ll.xist.ns import html
 		>>> source = "<a href='http://www.python.org/'>Python</a>"
-		>>> list(parsers.StringSource(source) | parsers.Expat() | parsers.Prefixes({None: html}))
+		>>> list(parsers.StringSource(source) | parsers.Expat() | parsers.Prefixes(prefixes={None: html}))
 		[('location', (0, 0)),
 		 ('enterstarttag', (u'a', 'http://www.w3.org/1999/xhtml')),
 		 ('enterattr', (u'href', None)),
@@ -714,11 +740,12 @@ class Prefixes(PipelineObject):
 		 ('endtag', (u'a', 'http://www.w3.org/1999/xhtml'))]
 	"""
 
-	def __init__(self, prefixes=None, **kwargs):
+	def __init__(self, input=None, prefixes=None, **kwargs):
 		"""
 		Create a :class:`Prefixes` object. The namespace mapping is initialized
 		from the dictionary :var:`prefixes` (if given) and from :var:`kwargs`.
 		"""
+		PipelineObject.__init__(self, input)
 		# the currently active prefix mapping (will be replaced once xmlns attributes are encountered)
 		newprefixes = {}
 		args = (prefixes, kwargs) if prefixes is not None else (kwargs, )
@@ -828,7 +855,7 @@ class Prefixes(PipelineObject):
 		else:
 			prefixes = oldprefixes
 
-		(prefix, sep, name) = data.rpartition(u":") # If this fails with an ``AttributeError`` for ``tuple``, you might already have the namespaces resolved
+		(prefix, sep, name) = data.rpartition(u":")
 		prefix = prefix or None
 
 		try:
@@ -862,14 +889,24 @@ class Prefixes(PipelineObject):
 		(data, prefixes) = self._prefixstack.pop()
 		yield ("endtag", data)
 
-	def transform(self, input, url):
-		for event in input:
+	def _checkinput(self, data):
+		if not isinstance(data, tuple) or len(data) != 2:
+			raise PipelineMismatchError(self, "event", data)
+		# FIXME: More checks
+
+	def __iter__(self):
+		for event in self.input:
+			# self._checkinput(event)
 			for data in getattr(self, event[0])(event[1]):
 				yield data
 
 
 class Instantiate(PipelineObject):
-	def __init__(self, pool=None, base=None, loc=True):
+	intype = "nsevents"
+	outtype = "xist"
+
+	def __init__(self, input=None, pool=None, base=None, loc=True):
+		PipelineObject.__init__(self, input)
 		self.pool = (pool if pool is not None else xsc.threadlocalpool.pool)
 		if base is not None:
 			base = url_.URL(base)
@@ -879,12 +916,11 @@ class Instantiate(PipelineObject):
 		self._stack = []
 		self._inattr = False
 
-	def transform(self, input, url):
+	def __iter__(self):
 		if self.base is None:
-			self.base = url
-		self.url = url
-		for event in input:
-			event = getattr(self, event[0])(event[1]) # If this fails with an ``AttributeError`` for ``Instantiate``, the input doesn't have the namespaces resolved
+			self.base = self.url
+		for event in self.input:
+			event = getattr(self, event[0])(event[1])
 			if event is not None:
 				yield event
 
@@ -1011,14 +1047,18 @@ class Tidy(PipelineObject):
 	__ http://xmlsoft.org/
 	"""
 
-	def __init__(self, encoding=None, loc=True):
+	intype = "str"
+	outtype = "events"
+
+	def __init__(self, input=None, encoding=None, loc=True):
+		PipelineObject.__init__(self, input)
 		self.encoding = encoding
 		self.loc = loc
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} loc={0.loc!r} at {1:#x}>".format(self, id(self))
 
-	def transform(self, input, url):
+	def __iter__(self):
 		import libxml2 # This requires libxml2 (see http://www.xmlsoft.org/)
 
 		def decode(s):
@@ -1081,11 +1121,11 @@ class Tidy(PipelineObject):
 				yield ("comment", decode(node.content))
 			# ignore all other types
 
-		data = "".join(input)
+		data = "".join(self.input)
 		if data:
 			try:
 				olddefault = libxml2.lineNumbersDefault(1)
-				doc = libxml2.htmlReadMemory(data, len(data), str(url), self.encoding, 0x160)
+				doc = libxml2.htmlReadMemory(data, len(data), str(self.url), self.encoding, 0x160)
 				try:
 					for event in toxsc(doc):
 						yield event
@@ -1102,12 +1142,15 @@ class ETree(Source):
 	__ http://effbot.org/zone/element-index.htm
 	"""
 
+	intype = "etree"
+	outtype = "nsevents"
+
 	def __init__(self, data, url=None, defaultxmlns=None):
 		self.url = url_.URL(url if url is not None else "ETREE")
 		self.data = data
 		self.defaultxmlns = xsc.nsname(defaultxmlns)
 
-	def transform(self, input=None, url=None):
+	def __iter__(self):
 		def toxsc(node):
 			name = type(node).__name__
 			if "Element" in name:
