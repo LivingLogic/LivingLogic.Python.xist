@@ -319,25 +319,25 @@ def fromul4(template, variables="variables", indent=0):
 		elif opcode.code == "continue":
 			make_scriptlet("continue;")
 		elif opcode.code == "not":
-			make_scriptlet("r%d = com.livinglogic.ul4.Utils.getBool(r%d) ? Boolean.FALSE : Boolean.TRUE;" % (opcode.r1, opcode.r2))
+			make_scriptlet("r%d = !com.livinglogic.ul4.Utils.getBool(r%d);" % (opcode.r1, opcode.r2))
 		elif opcode.code == "neg":
 			make_scriptlet("r%d = com.livinglogic.ul4.Utils.neg(r%d);" % (opcode.r1, opcode.r2))
 		elif opcode.code == "contains":
-			make_scriptlet("r%d = com.livinglogic.ul4.Utils.contains(r%d, r%d) ? Boolean.TRUE : Boolean.FALSE;" % (opcode.r1, opcode.r2, opcode.r3))
+			make_scriptlet("r%d = com.livinglogic.ul4.Utils.contains(r%d, r%d);" % (opcode.r1, opcode.r2, opcode.r3))
 		elif opcode.code == "notcontains":
-			make_scriptlet("r%d = com.livinglogic.ul4.Utils.contains(r%d, r%d) ? Boolean.FALSE : Boolean.TRUE;" % (opcode.r1, opcode.r2, opcode.r3))
+			make_scriptlet("r%d = !com.livinglogic.ul4.Utils.contains(r%d, r%d);" % (opcode.r1, opcode.r2, opcode.r3))
 		elif opcode.code == "eq":
-			make_scriptlet("r%d = org.apache.commons.lang.ObjectUtils.equals(r%d, r%d) ? Boolean.TRUE : Boolean.FALSE;" % (opcode.r1, opcode.r2, opcode.r3))
+			make_scriptlet("r%d = org.apache.commons.lang.ObjectUtils.equals(r%d, r%d);" % (opcode.r1, opcode.r2, opcode.r3))
 		elif opcode.code == "ne":
-			make_scriptlet("r%d = org.apache.commons.lang.ObjectUtils.equals(r%d, r%d) ? Boolean.FALSE : Boolean.TRUE;" % (opcode.r1, opcode.r2, opcode.r3))
+			make_scriptlet("r%d = !org.apache.commons.lang.ObjectUtils.equals(r%d, r%d);" % (opcode.r1, opcode.r2, opcode.r3))
 		elif opcode.code == "lt":
-			make_scriptlet("r%d = com.livinglogic.ul4.Utils.lt(r%d, r%d) ? Boolean.TRUE : Boolean.FALSE;" % (opcode.r1, opcode.r2, opcode.r3))
+			make_scriptlet("r%d = com.livinglogic.ul4.Utils.lt(r%d, r%d);" % (opcode.r1, opcode.r2, opcode.r3))
 		elif opcode.code == "le":
-			make_scriptlet("r%d = com.livinglogic.ul4.Utils.le(r%d, r%d) ? Boolean.TRUE : Boolean.FALSE;" % (opcode.r1, opcode.r2, opcode.r3))
+			make_scriptlet("r%d = com.livinglogic.ul4.Utils.le(r%d, r%d);" % (opcode.r1, opcode.r2, opcode.r3))
 		elif opcode.code == "gt":
-			make_scriptlet("r%d = com.livinglogic.ul4.Utils.le(r%d, r%d) ? Boolean.FALSE : Boolean.TRUE;" % (opcode.r1, opcode.r2, opcode.r3))
+			make_scriptlet("r%d = !com.livinglogic.ul4.Utils.le(r%d, r%d);" % (opcode.r1, opcode.r2, opcode.r3))
 		elif opcode.code == "ge":
-			make_scriptlet("r%d = com.livinglogic.ul4.Utils.lt(r%d, r%d) ? Boolean.FALSE : Boolean.TRUE;" % (opcode.r1, opcode.r2, opcode.r3))
+			make_scriptlet("r%d = !com.livinglogic.ul4.Utils.lt(r%d, r%d);" % (opcode.r1, opcode.r2, opcode.r3))
 		elif opcode.code == "add":
 			make_scriptlet("r%d = com.livinglogic.ul4.Utils.add(r%d, r%d);" % (opcode.r1, opcode.r2, opcode.r3))
 		elif opcode.code == "sub":
@@ -375,31 +375,31 @@ def fromul4(template, variables="variables", indent=0):
 			elif opcode.arg == "float":
 				make_scriptlet("r%d = com.livinglogic.ul4.Utils.toFloat(r%d);" % (opcode.r1, opcode.r2))
 			elif opcode.arg == "bool":
-				make_scriptlet("r%d = com.livinglogic.ul4.Utils.getBool(r%d) ? Boolean.TRUE : Boolean.FALSE;" % (opcode.r1, opcode.r2))
+				make_scriptlet("r%d = com.livinglogic.ul4.Utils.getBool(r%d);" % (opcode.r1, opcode.r2))
 			elif opcode.arg == "len":
 				make_scriptlet("r%d = com.livinglogic.ul4.Utils.length(r%d);" % (opcode.r1, opcode.r2))
 			elif opcode.arg == "enumerate":
 				make_scriptlet("r%d = com.livinglogic.ul4.Utils.enumerate(r%d);" % (opcode.r1, opcode.r2))
 			elif opcode.arg == "isnone":
-				make_scriptlet("r%d = (r%d == null) ? Boolean.TRUE : Boolean.FALSE;" % (opcode.r1, opcode.r2))
+				make_scriptlet("r%d = (r%d == null);" % (opcode.r1, opcode.r2))
 			elif opcode.arg == "isstr":
-				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof String)) ? Boolean.TRUE : Boolean.FALSE;" % (opcode.r1, opcode.r2, opcode.r2))
+				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof String));" % (opcode.r1, opcode.r2, opcode.r2))
 			elif opcode.arg == "isint":
-				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof Integer)) ? Boolean.TRUE : Boolean.FALSE;" % (opcode.r1, opcode.r2, opcode.r2))
+				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof Integer));" % (opcode.r1, opcode.r2, opcode.r2))
 			elif opcode.arg == "isfloat":
-				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof Double)) ? Boolean.TRUE : Boolean.FALSE;" % (opcode.r1, opcode.r2, opcode.r2))
+				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof Double));" % (opcode.r1, opcode.r2, opcode.r2))
 			elif opcode.arg == "isbool":
-				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof Boolean)) ? Boolean.TRUE : Boolean.FALSE;" % (opcode.r1, opcode.r2, opcode.r2))
+				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof Boolean));" % (opcode.r1, opcode.r2, opcode.r2))
 			elif opcode.arg == "isdate":
-				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof java.util.Date)) ? Boolean.TRUE : Boolean.FALSE;" % (opcode.r1, opcode.r2, opcode.r2))
+				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof java.util.Date));" % (opcode.r1, opcode.r2, opcode.r2))
 			elif opcode.arg == "islist":
-				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof java.util.List)) ? Boolean.TRUE : Boolean.FALSE;" % (opcode.r1, opcode.r2, opcode.r2))
+				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof java.util.List));" % (opcode.r1, opcode.r2, opcode.r2))
 			elif opcode.arg == "isdict":
-				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof java.util.Map)) ? Boolean.TRUE : Boolean.FALSE;" % (opcode.r1, opcode.r2, opcode.r2))
+				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof java.util.Map));" % (opcode.r1, opcode.r2, opcode.r2))
 			elif opcode.arg == "istemplate":
-				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof com.livinglogic.ul4.Template)) ? Boolean.TRUE : Boolean.FALSE;" % (opcode.r1, opcode.r2, opcode.r2))
+				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof com.livinglogic.ul4.Template));" % (opcode.r1, opcode.r2, opcode.r2))
 			elif opcode.arg == "iscolor":
-				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof com.livinglogic.ul4.Color)) ? Boolean.TRUE : Boolean.FALSE;" % (opcode.r1, opcode.r2, opcode.r2))
+				make_scriptlet("r%d = ((r%d != null) && (r%d instanceof com.livinglogic.ul4.Color));" % (opcode.r1, opcode.r2, opcode.r2))
 			elif opcode.arg == "chr":
 				make_scriptlet("r%d = com.livinglogic.ul4.Utils.chr(r%d);" % (opcode.r1, opcode.r2))
 			elif opcode.arg == "ord":
