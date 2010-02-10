@@ -508,7 +508,7 @@ def fromul4(template, variables="variables", indent=0):
 			elif opcode.arg == "rfind":
 				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.rfind(r{op.r2}, r{op.r3});".format(op=opcode))
 			elif opcode.arg == "format":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.format(r{op.r2}, r{op.r3}, defaultLocale);".format(op=opcode))
+				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.format(r{op.r2}, r{op.r3});".format(op=opcode))
 			elif opcode.arg == "get":
 				make_scriptlet("r{op.r1} = ((java.util.Map)r{op.r2}).get(r{op.r3});".format(op=opcode))
 			elif opcode.arg == "withlum":

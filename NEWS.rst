@@ -43,6 +43,13 @@ Changes in 3.8 (released ??/??/????)
 *	ssh URLs now support a ``nice`` argument instead of ``ssh_config``.
 
 
+Changes in 3.7.1 (released 02/08/2010)
+--------------------------------------
+
+*	:func:`ll.xist.ns.jsp.fromul4` now outputs the correct code for calling the
+	``format`` method on date objects (This requires version exp-22 of the
+	UL4 Java package).
+
 
 Changes in 3.7 (released 09/10/2009)
 ------------------------------------
