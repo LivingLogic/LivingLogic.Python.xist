@@ -1765,7 +1765,12 @@ class Project(dict):
 					self.write(" [t+", self.strtimedelta(now-self.starttime), "]")
 				self.writeln()
 			if self.growl:
-				filename = os.path.abspath(sys.modules[self.__class__.__module__].__file__)
+				try:
+					module = sys.modules[self.__class__.__module__]
+				except KeyError:
+					filename = "???.py"
+				else:
+					filename = os.path.abspath(module.__file__)
 				cmd = "growlnotify -i py -n ll.make 'll.make done in {0}'".format(self.strtimedelta(now-self.starttime))
 				import subprocess
 				pipe = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE).stdin
