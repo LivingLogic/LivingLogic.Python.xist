@@ -351,6 +351,8 @@ def fromul4(template, variables="variables", indent=0):
 		elif opcode.code == "callfunc0":
 			if opcode.arg == "now":
 				make_scriptlet("r{op.r1} = new java.util.Date();".format(op=opcode))
+			else if opcode.arg == "utcnow":
+				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.utcnow();".format(op=opcode))
 			elif opcode.arg == "vars":
 				make_scriptlet("r{op.r1} = {var};".format(op=opcode, var=variables))
 			else:
@@ -468,6 +470,8 @@ def fromul4(template, variables="variables", indent=0):
 				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.items(r{op.r2});".format(op=opcode))
 			elif opcode.arg == "isoformat":
 				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.isoformat(r{op.r2});".format(op=opcode))
+			elif opcode.arg == "mimeformat":
+				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.mimeformat(r{op.r2});".format(op=opcode))
 			elif opcode.arg == "r":
 				make_scriptlet("r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).r();".format(op=opcode))
 			elif opcode.arg == "g":

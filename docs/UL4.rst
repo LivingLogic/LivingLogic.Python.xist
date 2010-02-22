@@ -471,6 +471,12 @@ Functions
 ``now()`` returns the current date and time as a date object.
 
 
+``utcnow``
+::::::::::
+
+``utcnow()`` returns the current date and time as a date object in UTC.
+
+
 ``vars``
 ::::::::
 
@@ -850,3 +856,29 @@ output as a string. The parameter can be passed via keyword argument or via the
 	<?code output = template.render(a=17, b=23)?>
 	<?code data = {'a': 17, 'b': 23)?>
 	<?code output = template.render(**data)?>
+
+
+``isoformat``
+:::::::::::::
+
+``isoformat`` is a date method. It returns the date object in ISO 8601 format,
+i.e.::
+
+	<?print now().isoformat()?>
+
+might output::
+
+	2010-02-22T18:30:29.569639
+
+
+``mimeformat``
+::::::::::::::
+
+``mimeformat`` is a date method. It returns the date object in MIME format
+(assuming the date object is in UTC), i.e.::
+
+	<?print utcnow().mimeformat()?>
+
+might output::
+
+	Mon, 22 Feb 2010 17:38:40 GMT

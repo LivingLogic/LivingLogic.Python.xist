@@ -896,6 +896,8 @@ class Template(object):
 			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.iteritems()".format(op=opcode))
 		elif opcode.arg == "render":
 			self._pythonsource_line(opcode.location, 'r{op.r1:d} = "".join(r{op.r2:d}())'.format(op=opcode))
+		elif opcode.arg == "mimeformat":
+			self._pythonsource_line(opcode.location, 'r{op.r1:d} = ul4c._mimeformat(r{op.r2:d})'.format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _pythonsource_dispatch_callmeth1(self, opcode):
@@ -959,6 +961,8 @@ class Template(object):
 		self._pythonsource_line(opcode.location, 'for chunk in r{op.r1:d}(**dict((key.encode("utf-8"), value) for (key, value) in r{op.r2:d}.iteritems())): yield chunk'.format(op=opcode))
 	def _pythonsource_dispatch_callfunc0_now(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = datetime.datetime.now()".format(op=opcode))
+	def _pythonsource_dispatch_callfunc0_utcnow(self, opcode):
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = datetime.datetime.utcnow()".format(op=opcode))
 	def _pythonsource_dispatch_callfunc0_vars(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = variables".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_xmlescape(self, opcode):
@@ -2540,3 +2544,12 @@ def _type(obj):
 	elif isinstance(obj, color.Color):
 		return u"color"
 	return None
+
+
+def _mimeformat(obj):
+	"""
+	Helper for the ``mimeformat`` method.
+	"""
+	weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+	monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+	return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(obj, weekdayname[obj.weekday()], monthname[obj.month])

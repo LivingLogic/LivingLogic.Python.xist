@@ -533,6 +533,13 @@ def test_function_now():
 	checkle(now, u"<?print now()?>")
 
 
+def test_function_utcnow():
+	checkrunerror("function u?'utcnow' unknown", u"<?print utcnow(1)?>")
+	checkrunerror("function u?'utcnow' unknown", u"<?print utcnow(1, 2)?>")
+	utcnow = unicode(datetime.datetime.utcnow())
+	checkle(utcnow, u"<?print utcnow()?>")
+
+
 def test_function_vars():
 	checkrunerror("function u?'vars' unknown", "<?print vars(1)?>")
 	checkrunerror("function u?'vars' unknown", "<?print vars(1, 2)?>")
@@ -1039,6 +1046,11 @@ def test_method_format():
 def test_method_isoformat():
 	now = datetime.datetime.now()
 	check(now.isoformat(), ur"<?print data.isoformat()?>", data=now)
+
+
+def test_method_isoformat():
+	now = datetime.datetime(2010, 02, 22, 12, 34, 56)
+	check('Mon, 22 Feb 2010 12:34:56 GMT', ur"<?print data.mimeformat()?>", data=now)
 
 
 def test_method_get():
