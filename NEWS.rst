@@ -11,7 +11,7 @@ Changes in 3.7.2 (released 02/26/2010)
 *	Fixed a bug in the handling of the ``addlist`` opcode in
 	:func:`ll.xist.ns.jsp.fromul4`.
 
-*	Added missing processsing instruction class for the UL4 ``def`` tag.
+*	Added missing processing instruction class for the UL4 ``def`` tag.
 
 
 Changes in 3.7.1 (released 02/08/2010)
