@@ -8,10 +8,15 @@ Changes in 3.7.2 (released 02/26/2010)
 		parsing in the incremental codecs it now gets reset to its proper initial
 		value.
 
-*	Fixed a bug in the handling of the ``addlist`` opcode in
+*	Fixed a bug in the handling of the UL4 opcode ``addlist`` in
 	:func:`ll.xist.ns.jsp.fromul4`.
 
-*	Added missing processing instruction class for the UL4 ``def`` tag.
+*	Added missing processing instruction class for the UL4 ``def`` tag to the
+	:mod:`ll.xist.ns.ul4` namespace module.
+
+*	The generated JSP code for the ``loadvar`` opcode now uses the Java method
+	``Utils.getItem``, so that non-existent variables no longer get treated as
+	``None``/``null``.
 
 
 Changes in 3.7.1 (released 02/08/2010)

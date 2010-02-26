@@ -250,7 +250,7 @@ def fromul4(template, variables="variables", indent=0):
 		elif opcode.code == "updatedict":
 			make_scriptlet("((java.util.Map)r%d).putAll((java.util.Map)r%d);" % (opcode.r1, opcode.r2))
 		elif opcode.code == "loadvar":
-			make_scriptlet("r%d = %s.get(%s);" % (opcode.r1, variables, _string(opcode.arg)))
+			make_scriptlet("r%d = com.livinglogic.ul4.Utils.getItem(%s, %s);" % (opcode.r1, variables, _string(opcode.arg)))
 		elif opcode.code == "storevar":
 			make_scriptlet("%s.put(%s, r%d);" % (variables, _string(opcode.arg), opcode.r1))
 		elif opcode.code == "addvar":
