@@ -1049,19 +1049,6 @@ fastfeed(FastParserObject* self)
         } else if (token == ENTITYREF) {
             CHAR_T ch;
             int charref;
-  entity:
-            if (self->handle_entityref) {
-                PyObject* res;
-                if (self->check && !self->check->entityref(self->check, b, e))
-                    return -1;
-                res = PyObject_CallFunction(
-                    self->handle_entityref, BUILDFORMAT, b, e-b
-                    );
-                if (!res)
-                    return -1;
-                Py_DECREF(res);
-                goto next;
-            }
             /* check for standard entity */
             charref = entity(b, e);
             if (charref > 0) {
@@ -1077,6 +1064,19 @@ fastfeed(FastParserObject* self)
                     Py_DECREF(res);
                     goto next;
                 }
+            }
+  entity:
+            if (self->handle_entityref) {
+                PyObject* res;
+                if (self->check && !self->check->entityref(self->check, b, e))
+                    return -1;
+                res = PyObject_CallFunction(
+                    self->handle_entityref, BUILDFORMAT, b, e-b
+                    );
+                if (!res)
+                    return -1;
+                Py_DECREF(res);
+                goto next;
             }
             if (self->handle_data && self->strict) {
                 /* if the user wants data, but we cannot resolve this
