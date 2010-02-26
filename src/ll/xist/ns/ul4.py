@@ -100,7 +100,7 @@ class attr_if(xsc.AttrProcInst):
 
 
 ###
-### Processing instructions for block structures (if/elif/else and for)
+### Processing instructions for block structures (if/elif/else/for and def)
 ###
 
 class if_(xsc.ProcInst):
@@ -133,3 +133,7 @@ class break_(xsc.ProcInst):
 
 class continue_(xsc.ProcInst):
 	xmlname = "continue"
+
+
+class def_(xsc.ProcInst):
+	xmlname = "def"
