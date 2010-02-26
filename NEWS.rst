@@ -1,6 +1,13 @@
 Changes in 3.7.2 (released 02/26/2010)
 --------------------------------------
 
+*	Fixed two bugs in the XML codecs:
+	-	An externally specified encoding wasn't honored in the incremental decoder.
+
+	-	Fixed reset() for incremental codecs: If encoding has been changed during
+		parsing in the incremental codecs it now gets reset to its proper initial
+		value.
+
 *	Fixed a bug in the handling of the ``addlist`` opcode in
 	:func:`ll.xist.ns.jsp.fromul4`.
 

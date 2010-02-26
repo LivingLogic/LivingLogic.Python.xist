@@ -82,7 +82,7 @@ def encode(input, errors="strict", encoding=None):
 class IncrementalDecoder(codecs.IncrementalDecoder):
 	def __init__(self, errors="strict", encoding=None):
 		self.decoder = None
-		self.encoding = encoding
+		self._initial_encoding = self.encoding = encoding
 		codecs.IncrementalDecoder.__init__(self, errors)
 		self._errors = errors # Store ``errors`` somewhere else, because we have to hide it in a property
 		self.buffer = ""
@@ -104,10 +104,11 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
 		# we're implementing buffering ourselves to avoid some overhead.
 		if self.decoder is None:
 			input = self.buffer + input
-			self.encoding = _detectencoding(input, final)
 			if self.encoding is None:
-				self.buffer = input # retry the complete input on the next call
-				return u"" # no encoding determined yet, so no output
+				self.encoding = _detectencoding(input, final)
+				if self.encoding is None:
+					self.buffer = input # retry the complete input on the next call
+					return u"" # no encoding determined yet, so no output
 			if self.encoding == "xml":
 				raise ValueError("xml not allowed as encoding name")
 			self.buffer = "" # isn't needed any more, as the decoder might keep its own buffer
@@ -125,6 +126,7 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
 
 	def reset(self):
 		codecs.IncrementalDecoder.reset(self)
+		self.encoding = self._initial_encoding
 		self.decoder = None
 		self.buffer = ""
 		self.headerfixed = False
@@ -143,7 +145,7 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
 class IncrementalEncoder(codecs.IncrementalEncoder):
 	def __init__(self, errors="strict", encoding=None):
 		self.encoder = None
-		self.encoding = encoding
+		self._initial_encoding = self.encoding = encoding
 		codecs.IncrementalEncoder.__init__(self, errors)
 		self._errors = errors # Store ``errors`` somewhere else, because we have to hide it in a property
 		self.buffer = u""
@@ -183,6 +185,7 @@ class IncrementalEncoder(codecs.IncrementalEncoder):
 
 	def reset(self):
 		codecs.IncrementalEncoder.reset(self)
+		self.encoding = self._initial_encoding
 		self.encoder = None
 		self.buffer = u""
 
