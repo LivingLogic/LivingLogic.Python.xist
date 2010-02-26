@@ -244,7 +244,7 @@ def fromul4(template, variables="variables", indent=0):
 		elif opcode.code == "builddict":
 			make_scriptlet("r%d = new java.util.HashMap();" % opcode.r1)
 		elif opcode.code == "addlist":
-			make_scriptlet("((java.util.List)r%d).add(r%d)" % (opcode.r1, opcode.r2))
+			make_scriptlet("((java.util.List)r%d).add(r%d);" % (opcode.r1, opcode.r2))
 		elif opcode.code == "adddict":
 			make_scriptlet("((java.util.Map)r%d).put(r%d, r%d);" % (opcode.r1, opcode.r2, opcode.r3))
 		elif opcode.code == "updatedict":
