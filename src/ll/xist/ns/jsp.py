@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-## Copyright 1999-2009 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2009 by Walter Dörwald
+## Copyright 1999-2010 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2010 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -301,10 +301,12 @@ def fromul4(template, variables="variables", indent=0):
 			make_scriptlet("com.livinglogic.ul4.JSPTemplate template%d = new com.livinglogic.ul4.JSPTemplate()" % varcounter)
 			make_scriptlet("{")
 			indent += 1
-			make_scriptlet("public void execute(Writer out, Map variables) throws java.io.IOException")
+			make_scriptlet("public void execute(java.io.Writer out, Map variables) throws java.io.IOException")
 			indent += 1
 			make_scriptlet("{")
 			indent += 1
+			for i in xrange(10):
+				make_scriptlet("Object r%d = null;" % i)
 			defs.append((opcode.arg, variables))
 			variables = "variables"
 		elif opcode.code == "enddef":

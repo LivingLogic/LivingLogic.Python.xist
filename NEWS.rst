@@ -1,3 +1,10 @@
+Changes in 3.7.3 (released 02/27/2010)
+--------------------------------------
+
+*	Fixed a bug in the generated JSP code for the ``def`` opcode in
+	:func:`ll.xist.ns.jsp.fromul4`.
+
+
 Changes in 3.7.2 (released 02/26/2010)
 --------------------------------------
 
