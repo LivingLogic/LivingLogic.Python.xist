@@ -9,6 +9,7 @@ Changes in 3.7.2 (released 02/26/2010)
 --------------------------------------
 
 *	Fixed two bugs in the XML codecs:
+
 	-	An externally specified encoding wasn't honored in the incremental decoder.
 
 	-	Fixed reset() for incremental codecs: If encoding has been changed during
