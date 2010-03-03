@@ -213,9 +213,8 @@ Changes in 3.6 (released 12/31/2008)
 
 *	The following :class:`Color` properties have been dropped: ``r4``, ``g4``,
 	``b4``, ``a4``, ``r8``, ``g8``, ``b8``, ``a8``, ``r``, ``g``, ``b``,  ``a``
-	``int4``, ``int8``, ``rgb4``, ``rgba4``, ``rgb8``, and ``rgba8`` have been
-	dropped. The new methods ``r``, ``g``, ``b`` and ``a`` return the 8 bit
-	component values.
+	``int4``, ``int8``, ``rgb4``, ``rgba4``, ``rgb8``, and ``rgba8``. The new
+	methods ``r``, ``g``, ``b`` and ``a`` return the 8 bit component values.
 
 *	The class methods ``fromhsva`` and ``fromhlsa`` have been renamed to
 	``fromhsv`` and ``fromhls``.
