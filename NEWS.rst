@@ -34,6 +34,13 @@ Changes in 3.8 (released ??/??/????)
 *	ssh URLs now support a ``nice`` argument instead of ``ssh_config``.
 
 
+Changes in 3.7.4 (released 03/25/2010)
+--------------------------------------
+
+*	Fixed a bug in :class:`ll.xist.ns.rss20.guid`. The ``isPermaLink`` attribute
+	was a :class:`URLAttr`, but must be a :class:`TextAttr`.
+
+
 Changes in 3.7.3 (released 02/27/2010)
 --------------------------------------
 
