@@ -291,7 +291,7 @@ args = dict(
 	namespace_packages=["ll"],
 	zip_safe=False,
 	dependency_links=[
-		"http://sourceforge.net/project/showfiles.php?group_id=84168", # cx_Oracle
+		"http://cx-oracle.sourceforge.net/", # cx_Oracle
 	],
 )
 
