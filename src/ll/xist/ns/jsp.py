@@ -353,7 +353,7 @@ def fromul4(template, variables="variables", indent=0):
 		elif opcode.code == "callfunc0":
 			if opcode.arg == "now":
 				make_scriptlet("r{op.r1} = new java.util.Date();".format(op=opcode))
-			else if opcode.arg == "utcnow":
+			elif opcode.arg == "utcnow":
 				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.utcnow();".format(op=opcode))
 			elif opcode.arg == "vars":
 				make_scriptlet("r{op.r1} = {var};".format(op=opcode, var=variables))
