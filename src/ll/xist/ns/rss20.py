@@ -267,7 +267,7 @@ class guid(xsc.Element):
 	"""
 	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
-		class isPermaLink(xsc.URLAttr):
+		class isPermaLink(xsc.TextAttr):
 			values = ("false", "true")
 
 
