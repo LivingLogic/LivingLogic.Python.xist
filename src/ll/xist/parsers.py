@@ -149,16 +149,12 @@ html_xmlns = "http://www.w3.org/1999/xhtml"
 ###
 
 class PipelineMismatchError(TypeError):
-	def __init__(self, pipe, need, got):
-		self.pipe = pipe
-		self.need = need
-		self.got = got
+	def __init__(self, pipein, pipeout):
+		self.pipein = pipein
+		self.pipeout = pipeout
 
 	def __str__(self):
-		if self.got.__class__.__module__ == "__builtin__":
-			return "{0.pipe!r} got wrong input from {0.pipe.input!r}: need {0.need}, got {0.got.__class__.__name__}".format(self)
-		else:
-			return "{0.pipe!r} got wrong input from {0.pipe.input!r}: need {0.need}, got {0.got.__class__.__module__}.{0.got.__class__.__name__}".format(self)
+		return "{0.pipein!r} got wrong input from {0.pipeout!r}: need {0.pipein.intype}, got {0.pipeout.outtype}".format(self)
 
 
 ###
@@ -192,6 +188,8 @@ class PipelineObject(object):
 				other = IterSource(other)
 			else:
 				raise TypeError("can't convert {0!r} to a source".format(other))
+		if other.outtype != self.intype:
+			raise PipelineMismatchError(self, other)
 		self.input = other
 		return self
 
@@ -222,6 +220,7 @@ class StringSource(Source):
 		"""
 		self.url = url_.URL(url if url is not None else "STRING")
 		self.data = data
+		self.outtype = "bytes" if isinstance(data, str) else "unicode"
 
 	def __iter__(self):
 		yield self.data
@@ -231,7 +230,8 @@ class IterSource(Source):
 	"""
 	Provides parser input from an iterator over strings.
 	"""
-	def __init__(self, iterable, url=None):
+
+	def __init__(self, iterable, url=None, outtype="bytes"):
 		"""
 		Create a :class:`IterSource` object. :var:`iterable` must be an iterable
 		object producing 8-bit strings. :var:`url` specifies the url for the
@@ -239,6 +239,7 @@ class IterSource(Source):
 		"""
 		self.url = url_.URL(url if url is not None else "ITER")
 		self.iterable = iterable
+		self.outtype = outtype
 
 	def __iter__(self):
 		return iter(self.iterable)
@@ -249,7 +250,8 @@ class StreamSource(Source):
 	Provides parser input from a stream (i.e. an object, that provides a
 	:meth:`read` method).
 	"""
-	def __init__(self, stream, url=None, bufsize=8192):
+
+	def __init__(self, stream, url=None, bufsize=8192, outtype="bytes"):
 		"""
 		Create a :class:`StreamSource` object. :var:`stream` must possess a
 		:meth:`read` method (with a ``size`` argument). :var:`url` specifies the
@@ -259,6 +261,7 @@ class StreamSource(Source):
 		self.url = url_.URL(url if url is not None else "STREAM")
 		self.stream = stream
 		self.bufsize = bufsize
+		self.outtype = outtype
 
 	def __iter__(self):
 		while True:
@@ -273,7 +276,8 @@ class FileSource(Source):
 	"""
 	Provides parser input from a file.
 	"""
-	def __init__(self, filename, bufsize=8192):
+
+	def __init__(self, filename, bufsize=8192, outtype="bytes"):
 		"""
 		Create a :class:`FileSource` object. :var:`filename` is the name of the
 		file and may start with ``~`` or ``~user`` for the home directory of the
@@ -282,6 +286,7 @@ class FileSource(Source):
 		"""
 		self.url = url_.File(filename)
 		self._filename = os.path.expanduser(filename)
+		self.outtype = outtype
 
 	def __iter__(self):
 		with open(self._filename, "rb") as stream:
@@ -297,6 +302,9 @@ class URLSource(Source):
 	"""
 	Provides parser input from a URL.
 	"""
+
+	outtype = "bytes"
+
 	def __init__(self, name, bufsize=8192, *args, **kwargs):
 		"""
 		Create a :class:`URLSource` object. :var:`name` is the URL.
@@ -330,6 +338,9 @@ class Decoder(PipelineObject):
 	produces 8-bit strings.
 	"""
 
+	intype = "bytes"
+	outtype = "unicode"
+
 	def __init__(self, input=None, encoding=None):
 		"""
 		Create a :class:`Decoder` object. :var:`encoding` is encoding of the input.
@@ -337,7 +348,7 @@ class Decoder(PipelineObject):
 		PipelineObject.__init__(self, input)
 		self.encoding = encoding
 
-	def _checkinput(self, data):
+	def _checkinput(self):
 		if not isinstance(data, str):
 			raise PipelineMismatchError(self, "bytes", data)
 
@@ -364,6 +375,9 @@ class Encoder(PipelineObject):
 	This previous object must be a pipeline object that produces unicode output
 	(e.g. a :class:`Decoder` object).
 	"""
+
+	intype = "unicode"
+	outtype = "bytes"
 
 	def __init__(self, input=None, encoding=None):
 		"""
@@ -399,6 +413,9 @@ class Transcoder(PipelineObject):
 	This previous object can be a source object or any other pipeline object that
 	produces 8-bit strings.
 	"""
+
+	intype = "bytes"
+	outtype = "bytes"
 
 	def __init__(self, input=None, fromencoding=None, toencoding=None):
 		"""
@@ -482,7 +499,7 @@ class Expat(EventParser):
 	A parser using Pythons builtin :mod:`expat` parser.
 	"""
 
-	intype = "str"
+	intype = "bytes"
 
 	def __init__(self, input=None, encoding=None, xmldecl=False, doctype=False, loc=True, cdata=False, ns=False):
 		"""
@@ -648,7 +665,7 @@ class SGMLOP(EventParser):
 	A parser based of :mod:`sgmlop`.
 	"""
 
-	intype = "str"
+	intype = "bytes"
 	outtype = "events"
 
 	def __init__(self, input=None, encoding=None):
@@ -739,6 +756,9 @@ class Prefixes(PipelineObject):
 		 ('text', u'Python'),
 		 ('endtag', (u'a', 'http://www.w3.org/1999/xhtml'))]
 	"""
+
+	intype = "events"
+	outtype = "nsevents"
 
 	def __init__(self, input=None, prefixes=None, **kwargs):
 		"""
@@ -1047,7 +1067,7 @@ class Tidy(PipelineObject):
 	__ http://xmlsoft.org/
 	"""
 
-	intype = "str"
+	intype = "bytes"
 	outtype = "events"
 
 	def __init__(self, input=None, encoding=None, loc=True):
