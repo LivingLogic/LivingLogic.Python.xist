@@ -18,7 +18,7 @@ URLs, etc.).
 
 The next step is the XML parser. It turns the input source into an iterator over
 parsing events (an "event stream"). Further steps in the pipeline might resolve
-namespace prefixes (:class:`Prefixes`), and instantiate XIST classes
+namespace prefixes (:class:`NS`), and instantiate XIST classes
 (:class:`Instantiate`).
 
 The final step in the pipeline is either building an XML tree via :func:`tree`
@@ -33,7 +33,7 @@ Parsing a simple HTML string might e.g. look like this::
 	>>> doc = parsers.tree(
 	...         parsers.StringSource(source)
 	...       | parsers.Expat()
-	...       | parsers.Prefixes(prefixes={None: html})
+	...       | parsers.NS(prefixes={None: html})
 	...       | parsers.Instantiate(pool=xsc.Pool(html))
 	... )
 	>>> doc.bytes()
@@ -733,19 +733,19 @@ class SGMLOP(EventParser):
 		self._buffer.append((self.endtag, name))
 
 
-class Prefixes(PipelineObject):
+class NS(PipelineObject):
 	"""
-	A :class:`Prefixes` is used in a parsing pipeline to add support for XML
-	namespaces. It replaces the element and attribute names in
-	``"enterstarttag"``, ``"leavestarttag"``, ``"endtag"``, ``"enterattr"`` and
-	``"leaveattr"`` events with ``(name, namespace)`` tuples.
+	An :class:`NS` is used in a parsing pipeline to add support for XML namespaces.
+	It replaces the element and attribute names in ``"enterstarttag"``,
+	``"leavestarttag"``, ``"endtag"``, ``"enterattr"`` and ``"leaveattr"`` events
+	with ``(name, namespace)`` tuples.
 
-	The output of a :class:`Prefixes` object in the stream looks like this::
+	The output of a :class:`NS` object in the stream looks like this::
 
 		>>> from ll.xist import parsers
 		>>> from ll.xist.ns import html
 		>>> source = "<a href='http://www.python.org/'>Python</a>"
-		>>> list(parsers.StringSource(source) | parsers.Expat() | parsers.Prefixes(prefixes={None: html}))
+		>>> list(parsers.StringSource(source) | parsers.Expat() | parsers.NS(prefixes={None: html}))
 		[('location', (0, 0)),
 		 ('enterstarttag', (u'a', 'http://www.w3.org/1999/xhtml')),
 		 ('enterattr', (u'href', None)),
@@ -762,8 +762,8 @@ class Prefixes(PipelineObject):
 
 	def __init__(self, input=None, prefixes=None, **kwargs):
 		"""
-		Create a :class:`Prefixes` object. The namespace mapping is initialized
-		from the dictionary :var:`prefixes` (if given) and from :var:`kwargs`.
+		Create a :class:`NS` object. The namespace mapping is initialized from the
+		dictionary :var:`prefixes` (if given) and from :var:`kwargs`.
 		"""
 		PipelineObject.__init__(self, input)
 		# the currently active prefix mapping (will be replaced once xmlns attributes are encountered)
@@ -1221,7 +1221,7 @@ def _fixpipeline(pipeline, parser=None, prefixes=None, pool=None, base=None, loc
 		if not isinstance(parser, Expat) or not parser.ns:
 			needprefixes = True
 	if needprefixes or prefixes is not None:
-		pipeline |= Prefixes(prefixes=prefixes)
+		pipeline |= NS(prefixes=prefixes)
 		needinstantiate = True
 	if needinstantiate or pool is not None or base is not None or not loc:
 		pipeline |= Instantiate(pool=pool, base=base, loc=loc)
