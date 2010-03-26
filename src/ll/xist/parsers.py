@@ -348,14 +348,9 @@ class Decoder(PipelineObject):
 		PipelineObject.__init__(self)
 		self.encoding = encoding
 
-	def _checkinput(self):
-		if not isinstance(data, str):
-			raise PipelineMismatchError(self, "bytes", data)
-
 	def __iter__(self):
 		decoder = codecs.getincrementaldecoder("xml")(encoding=self.encoding)
 		for data in self.input:
-			self._checkinput(data)
 			data = decoder.decode(data, False)
 			if data:
 				yield data
@@ -387,14 +382,9 @@ class Encoder(PipelineObject):
 		PipelineObject.__init__(self)
 		self.encoding = encoding
 
-	def _checkinput(self, data):
-		if not isinstance(data, unicode):
-			raise PipelineMismatchError(self, "unicode", data)
-
 	def __iter__(self):
 		encoder = codecs.getincrementalencoder("xml")(encoding=self.encoding)
 		for data in self.input:
-			self._checkinput(data)
 			data = encoder.encode(data, False)
 			if data:
 				yield data
@@ -426,15 +416,10 @@ class Transcoder(PipelineObject):
 		self.fromencoding = fromencoding
 		self.toencoding = toencoding
 
-	def _checkinput(self, data):
-		if not isinstance(data, str):
-			raise PipelineMismatchError(self, "bytes", data)
-
 	def __iter__(self):
 		decoder = codecs.getincrementaldecoder("xml")(encoding=self.fromencoding)
 		encoder = codecs.getincrementalencoder("xml")(encoding=self.toencoding)
 		for data in self.input:
-			self._checkinput(data)
 			data = encoder.encode(decoder.decode(data, False), False)
 			if data:
 				yield data
@@ -478,16 +463,11 @@ class EventParser(PipelineObject):
 		Return an iterator for the events.
 		"""
 
-	def _checkinput(self, data):
-		if not isinstance(data, str):
-			raise PipelineMismatchError(self, "bytes", data)
-
 	def __iter__(self):
 		"""
 		Return an iterator over events.
 		"""
 		for data in self.input:
-			self._checkinput(data)
 			for event in self.feed(data):
 				yield event
 		for event in self.feed("", True):
@@ -909,14 +889,8 @@ class NS(PipelineObject):
 		(data, prefixes) = self._prefixstack.pop()
 		yield ("endtag", data)
 
-	def _checkinput(self, data):
-		if not isinstance(data, tuple) or len(data) != 2:
-			raise PipelineMismatchError(self, "event", data)
-		# FIXME: More checks
-
 	def __iter__(self):
 		for event in self.input:
-			# self._checkinput(event)
 			for data in getattr(self, event[0])(event[1]):
 				yield data
 
