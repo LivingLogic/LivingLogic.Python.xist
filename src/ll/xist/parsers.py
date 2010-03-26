@@ -168,8 +168,8 @@ class PipelineObject(object):
 	via the or (``|``) operator.
 	"""
 
-	def __init__(self, input=None):
-		self.input = input
+	def __init__(self):
+		self.input = None
 
 	@property
 	def url(self):
@@ -341,11 +341,11 @@ class Decoder(PipelineObject):
 	intype = "bytes"
 	outtype = "unicode"
 
-	def __init__(self, input=None, encoding=None):
+	def __init__(self, encoding=None):
 		"""
 		Create a :class:`Decoder` object. :var:`encoding` is encoding of the input.
 		"""
-		PipelineObject.__init__(self, input)
+		PipelineObject.__init__(self)
 		self.encoding = encoding
 
 	def _checkinput(self):
@@ -379,12 +379,12 @@ class Encoder(PipelineObject):
 	intype = "unicode"
 	outtype = "bytes"
 
-	def __init__(self, input=None, encoding=None):
+	def __init__(self, encoding=None):
 		"""
 		Create an :class:`Encoder` object. :var:`encoding` will be the encoding of
 		the output.
 		"""
-		PipelineObject.__init__(self, input)
+		PipelineObject.__init__(self)
 		self.encoding = encoding
 
 	def _checkinput(self, data):
@@ -417,12 +417,12 @@ class Transcoder(PipelineObject):
 	intype = "bytes"
 	outtype = "bytes"
 
-	def __init__(self, input=None, fromencoding=None, toencoding=None):
+	def __init__(self, fromencoding=None, toencoding=None):
 		"""
 		Create a :class:`Transcoder` object. :var:`fromencoding` is the encoding
 		of the input. :var:`toencoding` is the encoding of the output.
 		"""
-		PipelineObject.__init__(self, input)
+		PipelineObject.__init__(self)
 		self.fromencoding = fromencoding
 		self.toencoding = toencoding
 
@@ -501,7 +501,7 @@ class Expat(EventParser):
 
 	intype = "bytes"
 
-	def __init__(self, input=None, encoding=None, xmldecl=False, doctype=False, loc=True, cdata=False, ns=False):
+	def __init__(self, encoding=None, xmldecl=False, doctype=False, loc=True, cdata=False, ns=False):
 		"""
 		Create an :class:`Expat` object. Arguments have the following meaning:
 
@@ -529,7 +529,7 @@ class Expat(EventParser):
 			``"enterattr"`` and ``"leaveattr"`` events will already be
 			``(name, namespace)`` tuples.
 		"""
-		EventParser.__init__(self, input)
+		EventParser.__init__(self)
 		self._parser = expat.ParserCreate(encoding, "\x01" if ns else None)
 		self._parser.buffer_text = True
 		self._parser.ordered_attributes = True
@@ -668,11 +668,11 @@ class SGMLOP(EventParser):
 	intype = "bytes"
 	outtype = "events"
 
-	def __init__(self, input=None, encoding=None):
+	def __init__(self, encoding=None):
 		"""
 		Create a new :class:`SGMLOP` object.
 		"""
-		EventParser.__init__(self, input)
+		EventParser.__init__(self)
 		self.encoding = encoding
 		self._decoder = codecs.getincrementaldecoder("xml")(encoding=encoding)
 		self._parser = sgmlop.XMLParser()
@@ -760,7 +760,7 @@ class NS(PipelineObject):
 	intype = "events"
 	outtype = "nsevents"
 
-	def __init__(self, input=None, prefixes=None, **kwargs):
+	def __init__(self, prefixes=None, **kwargs):
 		"""
 		Create a :class:`NS` object. The namespace mapping is initialized from the
 		dictionary :var:`prefixes` (if given) and from :var:`kwargs`.
@@ -925,8 +925,8 @@ class Instantiate(PipelineObject):
 	intype = "nsevents"
 	outtype = "xist"
 
-	def __init__(self, input=None, pool=None, base=None, loc=True):
-		PipelineObject.__init__(self, input)
+	def __init__(self, pool=None, base=None, loc=True):
+		PipelineObject.__init__(self)
 		self.pool = (pool if pool is not None else xsc.threadlocalpool.pool)
 		if base is not None:
 			base = url_.URL(base)
@@ -1070,8 +1070,8 @@ class Tidy(PipelineObject):
 	intype = "bytes"
 	outtype = "events"
 
-	def __init__(self, input=None, encoding=None, loc=True):
-		PipelineObject.__init__(self, input)
+	def __init__(self, encoding=None, loc=True):
+		PipelineObject.__init__(self)
 		self.encoding = encoding
 		self.loc = loc
 
