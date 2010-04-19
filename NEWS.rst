@@ -1,3 +1,11 @@
+Changes in 3.7.5 (released 04/19/2010)
+--------------------------------------
+
+*	:class:`ll.orasql.PrimaryKey` has a new method :meth:`itercolumns` that
+	returns an iterator over the columns this primary key consists of.
+
+
+
 Changes in 3.7.4 (released 03/25/2010)
 --------------------------------------
 
