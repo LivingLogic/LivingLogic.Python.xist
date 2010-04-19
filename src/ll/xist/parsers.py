@@ -65,6 +65,9 @@ The following code shows an example of an event stream::
 An event is a tuple consisting of the event type and the event data. The
 following events are produced:
 
+	``"url"``
+		The
+
 	``"xmldecl"``
 		The XML declaration. The event data is a dictionary containing the keys
 		``"version"``, ``"encoding"`` and ``"standalone"``. Parsers may omit this
@@ -148,13 +151,14 @@ html_xmlns = "http://www.w3.org/1999/xhtml"
 ### exceptions
 ###
 
-class PipelineMismatchError(TypeError):
-	def __init__(self, pipein, pipeout):
-		self.pipein = pipein
+class UnknownEventError(TypeError):
+	def __init__(self, pipeout, pipein, event):
 		self.pipeout = pipeout
+		self.pipein = pipein
+		self.event = event
 
 	def __str__(self):
-		return "{0.pipein!r} got wrong input from {0.pipeout!r}: need {0.pipein.intype}, got {0.pipeout.outtype}".format(self)
+		return "{0.pipein!r} can't handle event {0.event[0]!r} from {0.pipeout!r}".format(self)
 
 
 ###
@@ -171,10 +175,6 @@ class PipelineObject(object):
 	def __init__(self):
 		self.input = None
 
-	@property
-	def url(self):
-		return self.input.url if self.input is not None else None
-
 	def __ror__(self, other):
 		"""
 		Set :var:`other` as :var:`self`\s input and return :var:`self`.
@@ -184,12 +184,8 @@ class PipelineObject(object):
 				other = StringSource(other)
 			elif isinstance(other, url_.URL):
 				other = URLSource(other)
-			elif hasattr(other, "__iter__"): # Test this last (as ``URL``\s have :meth:`__iter__` too)
-				other = IterSource(other)
-			else:
+			elif not hasattr(other, "__iter__"): # Test this last (as ``URL``\s have :meth:`__iter__` too)
 				raise TypeError("can't convert {0!r} to a source".format(other))
-		if other.outtype != self.intype:
-			raise PipelineMismatchError(self, other)
 		self.input = other
 		return self
 
@@ -202,11 +198,6 @@ class Source(object):
 	"""
 	A source object provides the input for a parser.
 	"""
-	def __init__(self, url):
-		self.url = url
-
-	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__name__} object url={0.url!r} at {1:#x}>".format(self, id(self))
 
 
 class StringSource(Source):
@@ -220,10 +211,15 @@ class StringSource(Source):
 		"""
 		self.url = url_.URL(url if url is not None else "STRING")
 		self.data = data
-		self.outtype = "bytes" if isinstance(data, str) else "unicode"
 
 	def __iter__(self):
-		yield self.data
+		yield ("url", self.url)
+		if isinstance(self.data, str):
+			yield ("bytes", self.data)
+		elif  isinstance(self.data, unicode):
+			yield ("unicode", self.data)
+		else:
+			raise TypeError("data must be str or unicode")
 
 
 class IterSource(Source):
@@ -231,7 +227,7 @@ class IterSource(Source):
 	Provides parser input from an iterator over strings.
 	"""
 
-	def __init__(self, iterable, url=None, outtype="bytes"):
+	def __init__(self, iterable, url=None):
 		"""
 		Create a :class:`IterSource` object. :var:`iterable` must be an iterable
 		object producing 8-bit strings. :var:`url` specifies the url for the
@@ -239,10 +235,16 @@ class IterSource(Source):
 		"""
 		self.url = url_.URL(url if url is not None else "ITER")
 		self.iterable = iterable
-		self.outtype = outtype
 
 	def __iter__(self):
-		return iter(self.iterable)
+		yield ("url", self.url)
+		for data in self.iterable:
+			if isinstance(data, str):
+				yield ("bytes", data)
+			elif  isinstance(data, unicode):
+				yield ("unicode", data)
+			else:
+				raise TypeError("data must be str or unicode")
 
 
 class StreamSource(Source):
@@ -251,7 +253,7 @@ class StreamSource(Source):
 	:meth:`read` method).
 	"""
 
-	def __init__(self, stream, url=None, bufsize=8192, outtype="bytes"):
+	def __init__(self, stream, url=None, bufsize=8192):
 		"""
 		Create a :class:`StreamSource` object. :var:`stream` must possess a
 		:meth:`read` method (with a ``size`` argument). :var:`url` specifies the
@@ -261,13 +263,18 @@ class StreamSource(Source):
 		self.url = url_.URL(url if url is not None else "STREAM")
 		self.stream = stream
 		self.bufsize = bufsize
-		self.outtype = outtype
 
 	def __iter__(self):
+		yield ("url", self.url)
 		while True:
 			data = self.stream.read(self.bufsize)
 			if data:
-				yield data
+				if isinstance(data, str):
+					yield ("bytes", data)
+				elif  isinstance(data, unicode):
+					yield ("unicode", data)
+				else:
+					raise TypeError("data must be str or unicode")
 			else:
 				break
 
@@ -277,7 +284,6 @@ class FileSource(Source):
 	Provides parser input from a file.
 	"""
 
-	outtype = "bytes"
 	def __init__(self, filename, bufsize=8192):
 		"""
 		Create a :class:`FileSource` object. :var:`filename` is the name of the
@@ -289,11 +295,12 @@ class FileSource(Source):
 		self._filename = os.path.expanduser(filename)
 
 	def __iter__(self):
+		yield ("url", self.url)
 		with open(self._filename, "rb") as stream:
 			while True:
 				data = stream.read(self.bufsize)
 				if data:
-					yield data
+					yield ("bytes", data)
 				else:
 					break
 
@@ -302,8 +309,6 @@ class URLSource(Source):
 	"""
 	Provides parser input from a URL.
 	"""
-
-	outtype = "bytes"
 
 	def __init__(self, name, bufsize=8192, *args, **kwargs):
 		"""
@@ -321,11 +326,12 @@ class URLSource(Source):
 		self.bufsize = bufsize
 
 	def __iter__(self):
+		yield ("url", self.url)
 		with contextlib.closing(self.stream) as stream:
 			while True:
 				data = stream.read(self.bufsize)
 				if data:
-					yield data
+					yield ("bytes", data)
 				else:
 					break
 
@@ -338,9 +344,6 @@ class Decoder(PipelineObject):
 	produces 8-bit strings.
 	"""
 
-	intype = "bytes"
-	outtype = "unicode"
-
 	def __init__(self, encoding=None):
 		"""
 		Create a :class:`Decoder` object. :var:`encoding` is encoding of the input.
@@ -350,13 +353,21 @@ class Decoder(PipelineObject):
 
 	def __iter__(self):
 		decoder = codecs.getincrementaldecoder("xml")(encoding=self.encoding)
-		for data in self.input:
-			data = decoder.decode(data, False)
-			if data:
-				yield data
+		for (evtype, data) in self.input:
+			if evtype == "bytes":
+				data = decoder.decode(data, False)
+				if data:
+					yield ("unicode", data)
+			elif evtype == "unicode":
+				if data:
+					yield ("unicode", data)
+			elif evtype == "url":
+				yield ("url", data)
+			else:
+				raise UnknownEventError(self.input, self, (evtype, data))
 		data = decoder.decode("", True)
 		if data:
-			yield data
+			yield ("unicode", data)
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
@@ -371,9 +382,6 @@ class Encoder(PipelineObject):
 	(e.g. a :class:`Decoder` object).
 	"""
 
-	intype = "unicode"
-	outtype = "bytes"
-
 	def __init__(self, encoding=None):
 		"""
 		Create an :class:`Encoder` object. :var:`encoding` will be the encoding of
@@ -384,13 +392,21 @@ class Encoder(PipelineObject):
 
 	def __iter__(self):
 		encoder = codecs.getincrementalencoder("xml")(encoding=self.encoding)
-		for data in self.input:
-			data = encoder.encode(data, False)
-			if data:
-				yield data
+		for (evtype, data) in self.input:
+			if evtype == "unicode":
+				data = encoder.encode(data, False)
+				if data:
+					yield ("bytes", data)
+			elif evtype == "bytes":
+				if data:
+					yield ("bytes", data)
+			elif evtype == "url":
+				yield ("url", data)
+			else:
+				raise UnknownEventError(self.input, self, (evtype, data))
 		data = encoder.encode(u"", True)
 		if data:
-			yield data
+			yield ("bytes", data)
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
@@ -404,9 +420,6 @@ class Transcoder(PipelineObject):
 	produces 8-bit strings.
 	"""
 
-	intype = "bytes"
-	outtype = "bytes"
-
 	def __init__(self, fromencoding=None, toencoding=None):
 		"""
 		Create a :class:`Transcoder` object. :var:`fromencoding` is the encoding
@@ -419,13 +432,18 @@ class Transcoder(PipelineObject):
 	def __iter__(self):
 		decoder = codecs.getincrementaldecoder("xml")(encoding=self.fromencoding)
 		encoder = codecs.getincrementalencoder("xml")(encoding=self.toencoding)
-		for data in self.input:
-			data = encoder.encode(decoder.decode(data, False), False)
-			if data:
-				yield data
+		for (evtype, data) in self.input:
+			if evtype == "bytes":
+				data = encoder.encode(decoder.decode(data, False), False)
+				if data:
+					yield ("bytes", data)
+			elif evtype == "url":
+				yield ("url", data)
+			else:
+				raise UnknownEventError(self.input, self, (evtype, data))
 		data = encoder.encode(decoder.decode("", True), True)
 		if data:
-			yield data
+			yield ("bytes", data)
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} object fromencoding={0.fromencoding!r} toencoding={0.toencoding!r} at {1:#x}>".format(self, id(self))
@@ -446,10 +464,15 @@ class EventParser(PipelineObject):
 	text = "text"
 	cdata = "cdata"
 	enterstarttag = "enterstarttag"
+	enterstarttagns = "enterstarttagns"
 	enterattr = "enterattr"
+	enterattrns = "enterattrns"
 	leaveattr = "leaveattr"
+	leaveattrns = "leaveattrns"
 	leavestarttag = "leavestarttag"
+	leavestarttagns = "leavestarttagns"
 	endtag = "endtag"
+	endtagns = "endtagns"
 	procinst = "procinst"
 	entity = "entity"
 	location = "location"
@@ -467,9 +490,14 @@ class EventParser(PipelineObject):
 		"""
 		Return an iterator over events.
 		"""
-		for data in self.input:
-			for event in self.feed(data):
-				yield event
+		for (evtype, data) in self.input:
+			if evtype == "bytes":
+				for event2 in self.feed(data):
+					yield event2
+			elif evtype == "url":
+				yield ("url", data)
+			else:
+				yield UnknownEventError(self.input, self, (evtype, data))
 		for event in self.feed("", True):
 			yield event
 
@@ -478,8 +506,6 @@ class Expat(EventParser):
 	"""
 	A parser using Pythons builtin :mod:`expat` parser.
 	"""
-
-	intype = "bytes"
 
 	def __init__(self, encoding=None, xmldecl=False, doctype=False, loc=True, cdata=False, ns=False):
 		"""
@@ -544,8 +570,6 @@ class Expat(EventParser):
 
 		# Buffers the events generated during one call to ``feed``
 		self._buffer = []
-
-		self.outtype = "nsevents" if ns else "events"
 
 	def __repr__(self):
 		v = []
@@ -621,18 +645,18 @@ class Expat(EventParser):
 	def _handle_startelement(self, name, attrs):
 		name = self._getname(name)
 		self._handle_location()
-		self._buffer.append((self.enterstarttag, name))
+		self._buffer.append((self.enterstarttagns if self._ns else self.enterstarttag, name))
 		for i in xrange(0, len(attrs), 2):
 			key = self._getname(attrs[i])
 			self._buffer.append((self.enterattr, key))
 			self._buffer.append((self.text, attrs[i+1]))
 			self._buffer.append((self.leaveattr, key))
-		self._buffer.append((self.leavestarttag, name))
+		self._buffer.append((self.leavestarttagns if self._ns else self.leavestarttag, name))
 
 	def _handle_endelement(self, name):
 		name = self._getname(name)
 		self._handle_location()
-		self._buffer.append((self.endtag, name))
+		self._buffer.append((self.endtagns if self._ns else self.endtag, name))
 
 	def _handle_procinst(self, target, data):
 		if not self._indoctype:
@@ -644,9 +668,6 @@ class SGMLOP(EventParser):
 	"""
 	A parser based of :mod:`sgmlop`.
 	"""
-
-	intype = "bytes"
-	outtype = "events"
 
 	def __init__(self, encoding=None):
 		"""
@@ -737,9 +758,6 @@ class NS(PipelineObject):
 		 ('endtag', (u'a', 'http://www.w3.org/1999/xhtml'))]
 	"""
 
-	intype = "events"
-	outtype = "nsevents"
-
 	def __init__(self, prefixes=None, **kwargs):
 		"""
 		Create a :class:`NS` object. The namespace mapping is initialized from the
@@ -760,6 +778,9 @@ class NS(PipelineObject):
 		self._newprefixes = self._attrs = self._attr = None
 		# A stack entry is an ``((elementname, namespacename), prefixdict)`` tuple
 		self._prefixstack = [(None, newprefixes)]
+
+	def url(self, data):
+		yield ("url", data)
 
 	def xmldecl(self, data):
 		data = ("xmldecl", data)
@@ -865,7 +886,7 @@ class NS(PipelineObject):
 
 		self._prefixstack.append((data, prefixes))
 
-		yield ("enterstarttag", data)
+		yield ("enterstarttagns", data)
 		for (attrname, attrvalue) in self._attrs.iteritems():
 			if u":" in attrname:
 				(attrprefix, attrname) = attrname.split(u":", 1)
@@ -878,27 +899,24 @@ class NS(PipelineObject):
 						raise xsc.IllegalPrefixError(attrprefix)
 			else:
 				xmlns = None
-			yield ("enterattr", (attrname, xmlns))
+			yield ("enterattrns", (attrname, xmlns))
 			for event in attrvalue:
 				yield event
-			yield ("leaveattr", (attrname, xmlns))
-		yield ("leavestarttag", data)
+			yield ("leaveattrns", (attrname, xmlns))
+		yield ("leavestarttagns", data)
 		self._newprefixes = self._attrs = self._attr = None
 
 	def endtag(self, data):
 		(data, prefixes) = self._prefixstack.pop()
-		yield ("endtag", data)
+		yield ("endtagns", data)
 
 	def __iter__(self):
-		for event in self.input:
-			for data in getattr(self, event[0])(event[1]):
+		for (evtype, data) in self.input:
+			for data in getattr(self, evtype)(data):
 				yield data
 
 
 class Instantiate(PipelineObject):
-	intype = "nsevents"
-	outtype = "xist"
-
 	def __init__(self, pool=None, base=None, loc=True):
 		PipelineObject.__init__(self)
 		self.pool = (pool if pool is not None else xsc.threadlocalpool.pool)
@@ -913,15 +931,18 @@ class Instantiate(PipelineObject):
 	def __iter__(self):
 		if self.base is None:
 			self.base = self.url
-		for event in self.input:
-			event = getattr(self, event[0])(event[1])
-			if event is not None:
-				yield event
+		for (evtype, data) in self.input:
+			newevent = getattr(self, evtype)(data)
+			if newevent:
+				yield newevent
+
+	def url(self, data):
+		self._url = data
 
 	def xmldecl(self, data):
 		node = xml.XML(version=data["version"], encoding=data["encoding"], standalone=data["standalone"])
 		if self.loc:
-			node.startloc = xsc.Location(self.url, *self._location)
+			node.startloc = xsc.Location(self._url, *self._location)
 		return ("xmldecl", node)
 
 	def begindoctype(self, data):
@@ -933,7 +954,7 @@ class Instantiate(PipelineObject):
 			fmt = u'{0[name]}'
 		node = xsc.DocType(fmt.format(data))
 		if self.loc:
-			node.startloc = xsc.Location(self.url, *self._location)
+			node.startloc = xsc.Location(self._url, *self._location)
 		self.doctype = node
 		return ("begindoctype", node)
 
@@ -945,7 +966,7 @@ class Instantiate(PipelineObject):
 	def entity(self, data):
 		node = self.pool.entity_xml(data)
 		if self.loc:
-			node.startloc = xsc.Location(self.url, *self._location)
+			node.startloc = xsc.Location(self._url, *self._location)
 		node.parsed(self, "entity")
 		if self._inattr:
 			self._stack[-1].append(node)
@@ -955,7 +976,7 @@ class Instantiate(PipelineObject):
 	def comment(self, data):
 		node = xsc.Comment(data)
 		if self.loc:
-			node.startloc = xsc.Location(self.url, *self._location)
+			node.startloc = xsc.Location(self._url, *self._location)
 		node.parsed(self, "comment")
 		if self._inattr:
 			self._stack[-1].append(node)
@@ -965,7 +986,7 @@ class Instantiate(PipelineObject):
 	def cdata(self, data):
 		node = xsc.Text(data)
 		if self.loc:
-			node.startloc = xsc.Location(self.url, *self._location)
+			node.startloc = xsc.Location(self._url, *self._location)
 		node.parsed(self, "cdata")
 		if self._inattr:
 			self._stack[-1].append(node)
@@ -975,54 +996,54 @@ class Instantiate(PipelineObject):
 	def text(self, data):
 		node = xsc.Text(data)
 		if self.loc:
-			node.startloc = xsc.Location(self.url, *self._location)
+			node.startloc = xsc.Location(self._url, *self._location)
 		node.parsed(self, "text")
 		if self._inattr:
 			self._stack[-1].append(node)
 		else:
 		 	return ("text", node)
 
-	def enterstarttag(self, data):
+	def enterstarttagns(self, data):
 		node = self.pool.element_xml(*data)
 		if self.loc:
-			node.startloc = xsc.Location(self.url, *self._location)
+			node.startloc = xsc.Location(self._url, *self._location)
 		self._stack.append(node)
-		node.parsed(self, "enterstarttag")
-		return ("enterstarttag", node)
+		node.parsed(self, "enterstarttagns")
+		return ("enterstarttagns", node)
 
-	def enterattr(self, data):
+	def enterattrns(self, data):
 		if data[1] is not None:
 			node = self.pool.attrclass_xml(*data)
 		else:
 			node = self._stack[-1].attrs.allowedattr_xml(data[0])
 		if self.loc:
-			node.startloc = xsc.Location(self.url, *self._location)
+			node.startloc = xsc.Location(self._url, *self._location)
 		self._stack[-1].attrs[node] = ()
 		node = self._stack[-1].attrs[node]
 		self._stack.append(node)
 		self._inattr = True
-		node.parsed(self, "enterattr")
+		node.parsed(self, "enterattrns")
 
-	def leaveattr(self, data):
+	def leaveattrns(self, data):
 		node = self._stack.pop()
 		self._inattr = False
-		node.parsed(self, "leaveattr")
+		node.parsed(self, "leaveattrns")
 
-	def leavestarttag(self, data):
-		self._stack[-1].parsed(self, "leavestarttag")
-		return ("leavestarttag", self._stack[-1])
+	def leavestarttagns(self, data):
+		self._stack[-1].parsed(self, "leavestarttagns")
+		return ("leavestarttagns", self._stack[-1])
 
-	def endtag(self, data):
+	def endtagns(self, data):
 		node = self._stack.pop()
 		if self.loc:
-			node.endloc = xsc.Location(self.url, *self._location)
-		node.parsed(self, "endtag")
-		return ("endtag", node)
+			node.endloc = xsc.Location(self._url, *self._location)
+		node.parsed(self, "endtagns")
+		return ("endtagns", node)
 
 	def procinst(self, data):
 		node = self.pool.procinst_xml(*data)
 		if self.loc:
-			node.startloc = xsc.Location(self.url, *self._location)
+			node.startloc = xsc.Location(self._url, *self._location)
 		node.parsed(self, "procinst")
 		if self._inattr:
 			self._stack[-1].append(node)
@@ -1040,9 +1061,6 @@ class Tidy(PipelineObject):
 
 	__ http://xmlsoft.org/
 	"""
-
-	intype = "bytes"
-	outtype = "events"
 
 	def __init__(self, encoding=None, loc=True):
 		PipelineObject.__init__(self)
@@ -1067,8 +1085,9 @@ class Tidy(PipelineObject):
 			if self.loc:
 				lineno = node.lineNo()
 				if lineno != lastlineno[0]:
-					return ("location", (lineno, None))
+					result = ("location", (lineno, None))
 					lastlineno[0] = lineno
+					return result
 
 		def toxsc(node):
 			if node.type == "document_html":
@@ -1115,11 +1134,25 @@ class Tidy(PipelineObject):
 				yield ("comment", decode(node.content))
 			# ignore all other types
 
-		data = "".join(self.input)
+		url = None
+		collectdata = []
+		for (evtype, data) in self.input:
+			if evtype == "url":
+				if url is None:
+					url = data
+				else:
+					raise ValueError("got multiple url events")
+			elif evtype == "bytes":
+				collectdata.append(data)
+			else:
+				raise UnknownEventError((evtype, data), self.input)
+		data = "".join(collectdata)
+		if url is not None:
+			yield ("url", url)
 		if data:
 			try:
 				olddefault = libxml2.lineNumbersDefault(1)
-				doc = libxml2.htmlReadMemory(data, len(data), str(self.url), self.encoding, 0x160)
+				doc = libxml2.htmlReadMemory(data, len(data), str(url), self.encoding, 0x160)
 				try:
 					for event in toxsc(doc):
 						yield event
@@ -1129,54 +1162,53 @@ class Tidy(PipelineObject):
 				libxml2.lineNumbersDefault(olddefault)
 
 
-class ETree(Source):
+class ETree(object):
 	"""
 	Returns XML events from an object that supports the ElementTree__ API.
 
 	__ http://effbot.org/zone/element-index.htm
 	"""
 
-	intype = "etree"
-	outtype = "nsevents"
-
 	def __init__(self, data, url=None, defaultxmlns=None):
 		self.url = url_.URL(url if url is not None else "ETREE")
 		self.data = data
 		self.defaultxmlns = xsc.nsname(defaultxmlns)
 
-	def __iter__(self):
-		def toxsc(node):
-			name = type(node).__name__
-			if "Element" in name:
-				elementname = node.tag
-				if elementname.startswith("{"):
-					(elementxmlns, sep, elementname) = elementname[1:].partition("}")
+	def _asxist(self, node):
+		name = type(node).__name__
+		if "Element" in name:
+			elementname = node.tag
+			if elementname.startswith("{"):
+				(elementxmlns, sep, elementname) = elementname[1:].partition("}")
+			else:
+				elementxmlns = self.defaultxmlns
+			yield ("enterstarttagns", (elementname, elementxmlns))
+			for (attrname, attrvalue) in node.items():
+				if attrname.startswith("{"):
+					(attrxmlns, sep, attrname) = attrname[1:].partition("}")
 				else:
-					elementxmlns = self.defaultxmlns
-				yield ("enterstarttag", (elementname, elementxmlns))
-				for (attrname, attrvalue) in node.items():
-					if attrname.startswith("{"):
-						(attrxmlns, sep, attrname) = attrname[1:].partition("}")
-					else:
-						attrxmlns = None
-					yield ("enterattr", (attrname, attrxmlns))
-					yield ("text", attrvalue)
-					yield ("leaveattr", (attrname, attrxmlns))
-				yield ("leavestarttag", (elementname, elementxmlns))
-				if node.text:
-					yield ("text", node.text)
-				for child in node:
-					for event in toxsc(child):
-						yield event
-					if hasattr(child, "tail") and child.tail:
-						yield ("text", child.tail)
-				yield ("endtag", (elementname, elementxmlns))
-			elif "ProcessingInstruction" in name:
-				yield ("procinst", (node.target, node.text))
-			elif "Comment" in name:
-				yield ("comment", (node.target, node.text))
+					attrxmlns = None
+				yield ("enterattrns", (attrname, attrxmlns))
+				yield ("text", attrvalue)
+				yield ("leaveattrns", (attrname, attrxmlns))
+			yield ("leavestarttagns", (elementname, elementxmlns))
+			if node.text:
+				yield ("text", node.text)
+			for child in node:
+				for event in self._asxist(child):
+					yield event
+				if hasattr(child, "tail") and child.tail:
+					yield ("text", child.tail)
+			yield ("endtagns", (elementname, elementxmlns))
+		elif "ProcessingInstruction" in name:
+			yield ("procinst", (node.target, node.text))
+		elif "Comment" in name:
+			yield ("comment", node.text)
 
-		return toxsc(self.data)
+	def __iter__(self):
+		yield ("url", self.url)
+		for event in self._asxist(self.data):
+			yield event
 
 
 def _fixpipeline(pipeline, parser=None, prefixes=None, pool=None, base=None, loc=True, tidy=False, encoding=None, **parserargs):
@@ -1205,32 +1237,32 @@ def _fixpipeline(pipeline, parser=None, prefixes=None, pool=None, base=None, loc
 def tree(pipeline, validate=True):
 	stack = [xsc.Frag()]
 	for event in pipeline:
-		if event[0] == "enterstarttag":
+		if event[0] == "enterstarttagns":
 			stack[-1].append(event[1])
 			stack.append(event[1])
-		elif event[0] == "endtag":
+		elif event[0] == "endtagns":
 			if validate:
 				event[1].checkvalid()
 			stack.pop()
-		elif event[0] != "leavestarttag":
+		elif event[0] != "leavestarttagns":
 			stack[-1].append(event[1])
 	return stack[0]
 
 
-def iterparse(input, events=("endtag",), validate=True, filter=None):
+def iterparse(input, events=("endtagns",), validate=True, filter=None):
 	filter = xfind.makewalkfilter(filter)
 	path = [xsc.Frag()]
 	for event in pipeline:
 		if event in events and filter.matchpath(path):
 			yield (event, path)
-		if event == "enterstarttag":
+		if event == "enterstarttagns":
 			path[-1].append(node)
 			path.append(node)
-		elif event == "endtag":
+		elif event == "endtagns":
 			if validate:
 				node.checkvalid()
 			path.pop()
-		elif event != "leavestarttag":
+		elif event != "leavestarttagns":
 			path[-1].append(node)
 
 

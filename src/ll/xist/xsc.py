@@ -1866,7 +1866,7 @@ class StyleAttr(Attr):
 		self[:] = self._transform(replacer)
 
 	def parsed(self, parser, event):
-		if event == "leaveattr" and not self.isfancy() and parser.base is not None:
+		if event == "leaveattrns" and not self.isfancy() and parser.base is not None:
 			from ll.xist import css
 			def prependbase(u):
 				return parser.base/u
@@ -1905,7 +1905,7 @@ class URLAttr(Attr):
 	"""
 
 	def parsed(self, parser, event):
-		if event == "leaveattr" and not self.isfancy() and parser.base is not None:
+		if event == "leaveattrns" and not self.isfancy() and parser.base is not None:
 			self[:] = (url_.URL(parser.base/unicode(self)),)
 
 	def _publishattrvalue(self, publisher):
