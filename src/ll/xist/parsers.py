@@ -277,7 +277,8 @@ class FileSource(Source):
 	Provides parser input from a file.
 	"""
 
-	def __init__(self, filename, bufsize=8192, outtype="bytes"):
+	outtype = "bytes"
+	def __init__(self, filename, bufsize=8192):
 		"""
 		Create a :class:`FileSource` object. :var:`filename` is the name of the
 		file and may start with ``~`` or ``~user`` for the home directory of the
@@ -286,7 +287,6 @@ class FileSource(Source):
 		"""
 		self.url = url_.File(filename)
 		self._filename = os.path.expanduser(filename)
-		self.outtype = outtype
 
 	def __iter__(self):
 		with open(self._filename, "rb") as stream:
