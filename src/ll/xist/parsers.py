@@ -745,7 +745,7 @@ class NS(PipelineObject):
 		Create a :class:`NS` object. The namespace mapping is initialized from the
 		dictionary :var:`prefixes` (if given) and from :var:`kwargs`.
 		"""
-		PipelineObject.__init__(self, input)
+		PipelineObject.__init__(self)
 		# the currently active prefix mapping (will be replaced once xmlns attributes are encountered)
 		newprefixes = {}
 		args = (prefixes, kwargs) if prefixes is not None else (kwargs, )
