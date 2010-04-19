@@ -97,6 +97,7 @@ class build(object):
 				+html.li("gurk")
 				+html.li("hurz")
 	"""
+
 	def __init__(self):
 		self.stack = []
 
@@ -159,121 +160,6 @@ def add(*args, **kwargs):
 
 
 ###
-### Magic constants for tree traversal
-###
-
-entercontent = misc.Const("entercontent")
-enterattrs = misc.Const("enterattrs")
-
-
-###
-### Common walk filters
-###
-
-class WalkFilter(object):
-	"""
-	A :class:`WalkFilter` can be passed to the :meth:`walk` method of nodes to
-	specify how to traverse the tree and which nodes to output.
-	"""
-	@misc.notimplemented
-	def filternode(self, node):
-		pass
-
-	def filterpath(self, path):
-		return self.filternode(path[-1])
-
-
-class FindType(WalkFilter):
-	"""
-	Tree traversal filter that finds nodes of a certain type on the first level
-	of the tree without decending further down.
-	"""
-	def __init__(self, *types):
-		self.types = types
-
-	def filternode(self, node):
-		return (isinstance(node, self.types), )
-
-
-class FindTypeAll(WalkFilter):
-	"""
-	Tree traversal filter that finds nodes of a certain type searching the
-	complete tree.
-	"""
-	def __init__(self, *types):
-		self.types = types
-
-	def filternode(self, node):
-		return (isinstance(node, self.types), entercontent)
-
-
-class FindTypeAllAttrs(WalkFilter):
-	"""
-	Tree traversal filter that finds nodes of a certain type searching the
-	complete tree (including attributes).
-	"""
-	def __init__(self, *types):
-		self.types = types
-
-	def filternode(self, node):
-		return (isinstance(node, self.types), entercontent, enterattrs)
-
-
-class FindTypeTop(WalkFilter):
-	"""
-	Tree traversal filter that finds nodes of a certain type searching the
-	complete tree, but traversal of the children of a node is skipped if this
-	node is of the specified type.
-	"""
-	def __init__(self, *types):
-		self.types = types
-
-	def filternode(self, node):
-		if isinstance(node, self.types):
-			return (True,)
-		else:
-			return (entercontent,)
-
-
-class CallableWalkFilter(WalkFilter):
-	"""
-	Tree traversal filter that returns the result of a function call.
-	"""
-	def __init__(self, func):
-		self.func = func
-
-	def filterpath(self, path):
-		return self.func(path)
-
-
-class ConstantWalkFilter(WalkFilter):
-	"""
-	Tree traversal filter that returns the same value for all nodes.
-	"""
-	def __init__(self, value):
-		self.value = value
-
-	def filterpath(self, path):
-		return self.value
-
-
-def makewalkfilter(obj):
-	if not isinstance(obj, WalkFilter):
-		from ll.xist import xfind
-		if isinstance(obj, _Node_Meta):
-			obj = xfind.IsInstanceSelector(obj)
-		elif isinstance(obj, Node):
-			obj = xfind.IsSelector(obj)
-		elif callable(obj):
-			obj = xfind.CallableSelector(obj)
-		elif isinstance(obj, tuple):
-			obj = ConstantWalkFilter(obj)
-		else:
-			raise TypeError("can't convert %r to selector" % obj)
-	return obj
-
-
-###
 ### Conversion context
 ###
 
@@ -317,7 +203,7 @@ class IllegalAttrValueWarning(Warning):
 
 	def __str__(self):
 		attr = self.attr
-		return "Attribute value %r not allowed for %s" % (unicode(attr), attr._str(fullname=True, xml=False, decorate=False))
+		return "Attribute value {0!r} not allowed for {1}".format(unicode(attr), attr._str(fullname=True, xml=False, decorate=False))
 
 
 class RequiredAttrMissingWarning(Warning):
@@ -331,7 +217,7 @@ class RequiredAttrMissingWarning(Warning):
 		self.reqattrs = reqattrs
 
 	def __str__(self):
-		return "Required attribute%s %s missing in %s" % (("s" if len(self.reqattrs)>1 else ""), ", ".join(repr(attr) for attr in self.reqattrs), self.attrs._str(fullname=True, xml=False, decorate=False))
+		return "Required attribute{0} {1} missing in {2}".format(("s" if len(self.reqattrs) > 1 else ""), ", ".join(repr(attr) for attr in self.reqattrs), self.attrs._str(fullname=True, xml=False, decorate=False))
 
 
 class IllegalPrefixError(Error, LookupError):
@@ -342,7 +228,7 @@ class IllegalPrefixError(Error, LookupError):
 		self.prefix = prefix
 
 	def __str__(self):
-		return "namespace prefix %s is undefined" % (self.prefix,)
+		return "namespace prefix {0} is undefined".format(self.prefix)
 
 
 class IllegalElementError(Error, LookupError):
@@ -359,9 +245,9 @@ class IllegalElementError(Error, LookupError):
 		xmlns = self.xmlns
 		if isinstance(xmlns, (list, tuple)):
 			if len(xmlns) > 1:
-				return "no element with %s name %s in namespaces %s" % (("Python", "XML")[self.xml], self.name, ", ".join(nsclark(xmlns) for xmlns in xmlns))
+				return "no element with {0} name {1} in namespaces {2}".format("XML" if self.xml else "Python", self.name, ", ".join(nsclark(xmlns) for xmlns in xmlns))
 			xmlns = xmlns[0]
-		return "no element with %s name %s%s" % (("Python", "XML")[self.xml], nsclark(xmlns), self.name)
+		return "no element with {0} name {1}{2}".format("XML" if self.xml else "Python", nsclark(xmlns), self.name)
 
 
 class IllegalProcInstError(Error, LookupError):
@@ -374,7 +260,7 @@ class IllegalProcInstError(Error, LookupError):
 		self.xml = xml
 
 	def __str__(self):
-		return "no procinst with %s name %s" % (("Python", "XML")[self.xml], self.name)
+		return "no procinst with {0} name {1}".format("XML" if self.xml else "Python", self.name)
 
 
 class IllegalEntityError(Error, LookupError):
@@ -387,7 +273,7 @@ class IllegalEntityError(Error, LookupError):
 		self.xml = xml
 
 	def __str__(self):
-		return "no entity with %s name %s" % (("Python", "XML")[self.xml], self.name)
+		return "no entity with {0} name {1}".format("XML" if self.xml else "Python", self.name)
 
 
 class IllegalCharRefError(Error, LookupError):
@@ -401,8 +287,8 @@ class IllegalCharRefError(Error, LookupError):
 
 	def __str__(self):
 		if isinstance(self.name, (int, long)):
-			return "no charref with codepoint %s" % self.name
-		return "no charref with %s name %s" % (("Python", "XML")[self.xml], self.name)
+			return "no charref with codepoint {0}".format(self.name)
+		return "no charref with {0} name {1}".format("XML" if self.xml else "Python", self.name)
 
 
 class IllegalAttrError(Error, LookupError):
@@ -417,11 +303,11 @@ class IllegalAttrError(Error, LookupError):
 
 	def __str__(self):
 		if isinstance(self.name, basestring):
-			return "no local attribute with %s name %r in %r" % (("Python", "XML")[self.xml], self.name, self.cls)
+			return "no local attribute with {0} name {1!r} in {2!r}".format("XML" if self.xml else "Python", self.name, self.cls)
 		elif self.name.xmlns is None:
-			return "no local attribute with class %r in %r" % (self.name, self.cls)
+			return "no local attribute with class {0!r} in {1!r}".format(self.name, self.cls)
 		else:
-			return "no global attribute with class %r" % self.name
+			return "no global attribute with class {0!r}".format(self.name)
 
 
 class MultipleRootsError(Error):
@@ -440,7 +326,7 @@ class ElementNestingError(Error):
 		self.foundelement = foundelement
 
 	def __str__(self):
-		return "mismatched element nesting (close tag for %s expected; close tag for %s found)" % (self.expectedelement._str(fullname=True, xml=False, decorate=True), self.foundelement._str(fullname=True, xml=False, decorate=True))
+		return "mismatched element nesting (close tag for {0} expected; close tag for {1} found)".format(self.expectedelement._str(fullname=True, xml=False, decorate=True), self.foundelement._str(fullname=True, xml=False, decorate=True))
 
 
 class FileNotFoundWarning(Warning):
@@ -454,7 +340,7 @@ class FileNotFoundWarning(Warning):
 		self.exc = exc
 
 	def __str__(self):
-		return "%s: %r not found (%s)" % (self.message, self.filename, self.exc)
+		return "{0.message}: {0.filename!r} not found ({0.exc})".format(self)
 
 
 class IllegalObjectError(Error, TypeError):
@@ -467,7 +353,7 @@ class IllegalObjectError(Error, TypeError):
 		self.object = object
 
 	def __str__(self):
-		return "can't convert object %r of type %s to an XIST node" % (self.object, type(self.object).__name__)
+		return "can't convert object {0!r} of type {1} to an XIST node".format(self.object, type(self.object).__name__)
 
 
 class IllegalCommentContentWarning(Warning):
@@ -481,7 +367,7 @@ class IllegalCommentContentWarning(Warning):
 		self.comment = comment
 
 	def __str__(self):
-		return "comment with content %r is illegal, as it contains '--' or ends in '-'." % self.comment.content
+		return "comment with content {0!r} is illegal, as it contains '--' or ends in '-'".format(self.comment.content)
 
 
 class IllegalProcInstFormatError(Error):
@@ -495,7 +381,7 @@ class IllegalProcInstFormatError(Error):
 		self.procinst = procinst
 
 	def __str__(self):
-		return "processing instruction with content %r is illegal, as it contains '?>'." % self.procinst.content
+		return "processing instruction with content {0!r} is illegal, as it contains '?>'".format(self.procinst.content)
 
 
 ###
@@ -512,7 +398,7 @@ class _Node_Meta(type):
 		return type.__new__(cls, name, bases, dict)
 
 	def __repr__(self):
-		return "<class %s:%s at 0x%x>" % (self.__module__, self.__fullname__, id(self))
+		return "<class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
 
 	def __div__(self, other):
 		from ll.xist import xfind
@@ -540,11 +426,11 @@ class _Node_Meta(type):
 
 	def __getitem__(self, index):
 		from ll.xist import xfind
-		return xfind.nthoftype(index, self)
+		return xfind.IsInstanceSelector(self)[index]
 
 	def __invert__(self):
 		from ll.xist import xfind
-		return xfind.NotCombinator(xfind.IsInstanceSelector(self))
+		return ~xfind.IsInstanceSelector(self)
 
 
 class Node(object):
@@ -570,10 +456,10 @@ class Node(object):
 	Context = Context
 
 	def __repr__(self):
-		return "<%s:%s object at 0x%x>" % (self.__module__, self.__fullname__, id(self))
+		return "<{0.__module__}:{0.__fullname__} object at {1:#x}>".format(self, id(self))
 
 	def __ne__(self, other):
-		return not self==other
+		return not self == other
 
 	xmlname = None
 	xmlns = None
@@ -746,20 +632,14 @@ class Node(object):
 		"""
 		return complex(unicode(self))
 
-	def parsed(self, parser, start=None):
+	def parsed(self, parser, event):
 		"""
 		This method will be called by the parser :var:`parser` once after
-		:var:`self` is created by the parser and must return the node that is to
-		be put into the tree (in most cases this is :var:`self`, it's used e.g.
-		by :class:`URLAttr` to incorporate the base URL into the attribute).
+		:var:`self` is created by the parser (This is used e.g. by
+		:class:`URLAttr` to incorporate the base URL into the attribute).
 
-		For elements :func:`parsed` will be called twice: Once at the beginning
-		(i.e. before the content is parsed) with :var:`start` being :const:`True`
-		and once at the end after parsing of the content is finished with
-		:var:`start` being :const:`False`. For the second call the return value
-		will be ignored.
+		:var:`event` is the parser event that initiated the call.
 		"""
-		return self
 
 	def checkvalid(self):
 		"""
@@ -838,15 +718,7 @@ class Node(object):
 			publisher = publishers.Publisher(**publishargs)
 		return publisher.write(stream, self, base)
 
-	def _walk(self, walkfilter, path):
-		"""
-		Internal helper for :meth:`walk`.
-		"""
-		for option in walkfilter.filterpath(path):
-			if option is not entercontent and option is not enterattrs and option:
-				yield path
-
-	def walk(self, walkfilter=(True, entercontent)):
+	def walk(self, walkfilter=None):
 		"""
 		Return an iterator for traversing the tree rooted at :var:`self`.
 
@@ -867,50 +739,45 @@ class Node(object):
 		:const:`False`
 			Don't yield this node from the iterator.
 
-		:const:`enterattrs`
-			This is a global constant in :mod:`ll.xist.xsc` and tells :meth:`walk`
+		:const:`xfind.enterattrs`
+			This is a global constant in :mod:`ll.xist.xfind` and tells :meth:`walk`
 			to traverse the attributes of this node (if it's an :class:`Element`,
 			otherwise this option will be ignored).
 
-		:const:`entercontent`
-			This is a global constant in :mod:`ll.xist.xsc` and tells :meth:`walk`
+		:const:`xfind.entercontent`
+			This is a global constant in :mod:`ll.xist.xfind` and tells :meth:`walk`
 			to traverse the child nodes of this node (if it's an :class:`Element`,
 			otherwise this option will be ignored).
 
 		These options will be executed in the order they are specified in the
 		sequence, so to get a top down traversal of a tree (without entering
-		attributes), ``(True, xsc.entercontent)`` can be used. For a bottom up
-		traversal ``(xsc.entercontent, True)`` can be used.
+		attributes), ``(True, xfind.entercontent)`` can be used. For a bottom up
+		traversal ``(xfind.entercontent, True)`` can be used.
 
 		Each item produced by the iterator is a path list. :meth:`walk` reuses
 		this list, so you can't rely on the value of the list being the same
 		across calls to :meth:`next`.
 		"""
-		return self._walk(makewalkfilter(walkfilter), [self])
+		from ll.xist import xfind
+		return xfind.makewalkfilter(walkfilter).walk(self)
 
-	def walknode(self, walkfilter=(True, entercontent)):
+	def walknodes(self, walkfilter=None):
 		"""
 		Return an iterator for traversing the tree. :var:`filter` works the same
 		as the :var:`walkfilter` argument for :meth:`walk`. The items produced
 		by the iterator are the nodes themselves.
 		"""
-		walkfilter = makewalkfilter(walkfilter)
-		def iterate(path):
-			for path in self._walk(walkfilter, path):
-				yield path[-1]
-		return misc.Iterator(iterate([self]))
+		from ll.xist import xfind
+		return xfind.makewalkfilter(walkfilter).walknodes(self)
 
-	def walkpath(self, walkfilter=(True, entercontent)):
+	def walkpaths(self, walkfilter=None):
 		"""
 		Return an iterator for traversing the tree. :var:`walkfilter` works
 		the same as the :var:`walkfilter` argument for :meth:`walk`. The items
 		produced by the iterator are copies of the path.
 		"""
-		walkfilter = makewalkfilter(walkfilter)
-		def iterate(path):
-			for path in self._walk(walkfilter, path):
-				yield path[:]
-		return misc.Iterator(iterate([self]))
+		from ll.xist import xfind
+		return xfind.makewalkfilter(walkfilter).walkpaths(self)
 
 	def compact(self):
 		"""
@@ -942,7 +809,7 @@ class Node(object):
 		if converter is None:
 			converter = converters.Converter(**converterargs)
 		node = function(self, converter)
-		assert isinstance(node, Node), "the mapped method returned the illegal object %r (type %r) when mapping %r" % (node, type(node), self)
+		assert isinstance(node, Node), "the mapped method returned the illegal object {0!r} (type {1!r}) when mapping {2!r}".format(node, type(node), self)
 		return node
 
 	def normalized(self):
@@ -1024,7 +891,7 @@ if ipipe is not None:
 	def _ipipe_name(node):
 		"The element/procinst/entity/attribute name of the node"
 		if isinstance(node, (Element, ProcInst, Entity, Attr)):
-			return "%s.%s" % (node.__class__.__module__, node.__fullname__)
+			return "{0.__class__.__module__}.{0.__fullname__}".format(node)
 		return ipipe.noitem
 	_ipipe_name.__xname__ = "name"
 
@@ -1059,7 +926,7 @@ if ipipe is not None:
 
 	@ipipe.xrepr.when_type(_Node_Meta)
 	def repr_nodeclass(self, mode="default"):
-		yield (astyle.style_type_type, "%s.%s" % (self.__module__, self.__fullname__))
+		yield (astyle.style_type_type, "{0.__module__}.{0.__fullname__}".format(self))
 
 
 	@ipipe.xattrs.when_type(Node)
@@ -1225,10 +1092,10 @@ class CharacterData(Node):
 
 	def __repr__(self):
 		if self.startloc is not None:
-			loc = " (from %s)" % self.startloc
+			loc = " (from {0})".format(self.startloc)
 		else:
 			loc = ""
-		return "<%s.%s content=%r%s at 0x%x>" % (self.__class__.__module__, self.__fullname__, self.content, loc, id(self))
+		return "<{0.__class__.__module__}.{0.__fullname__} content={0.content!r}{1} at {2:#x}>".format(self, loc, id(self))
 
 
 class Text(CharacterData):
@@ -1290,7 +1157,7 @@ class Frag(Node, list):
 	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = cls._strbase(fullname=fullname, xml=xml)
 		if decorate:
-			s = "<%s>" % s
+			s = "<{0}>".format(s)
 		return s
 
 	def _create(self):
@@ -1312,7 +1179,7 @@ class Frag(Node, list):
 		node = self._create()
 		for child in self:
 			convertedchild = child.convert(converter)
-			assert isinstance(convertedchild, Node), "the convert method returned the illegal object %r (type %r) when converting %r" % (convertedchild, type(convertedchild), self)
+			assert isinstance(convertedchild, Node), "the convert method returned the illegal object {0!r} (type {1!r}) when converting {2!r}".format(convertedchild, type(convertedchild), self)
 			node.append(convertedchild)
 		return self._decoratenode(node)
 
@@ -1371,13 +1238,14 @@ class Frag(Node, list):
 		elif isinstance(index, slice):
 			return self.__class__(list.__getitem__(self, index))
 		else:
+			from ll.xist import xfind
 			def iterate(matcher):
 				path = [self, None]
 				for child in self:
 					path[-1] = child
 					if matcher(path):
 						yield child
-			return misc.Iterator(iterate(makewalkfilter(index).matchpath))
+			return misc.Iterator(iterate(xfind.makewalkfilter(index).matchpath))
 
 	def __setitem__(self, index, value):
 		"""
@@ -1405,7 +1273,8 @@ class Frag(Node, list):
 		elif isinstance(index, slice):
 			list.__setitem__(self, index, Frag(value))
 		else:
-			matcher = makewalkfilter(index).matchpath
+			from ll.xist import xfind
+			matcher = xfind.makewalkfilter(index).matchpath
 			value = Frag(value)
 			newcontent = []
 			path = [self, None]
@@ -1436,7 +1305,8 @@ class Frag(Node, list):
 		elif isinstance(index, (int, long, slice)):
 			list.__delitem__(self, index)
 		else:
-			matcher = makewalkfilter(index).matchpath
+			from ll.xist import xfind
+			matcher = xfind.makewalkfilter(index).matchpath
 			list.__setslice__(self, 0, len(self), [child for child in self if not matcher([self, child])])
 
 	def __getslice__(self, index1, index2):
@@ -1498,19 +1368,11 @@ class Frag(Node, list):
 		other = Frag(*others)
 		list.__setslice__(self, index, index, other)
 
-	def _walk(self, filter, path):
-		path.append(None)
-		for child in self:
-			path[-1] = child
-			for result in child._walk(filter, path):
-				yield result
-		path.pop()
-
 	def compact(self):
 		node = self._create()
 		for child in self:
 			compactedchild = child.compact()
-			assert isinstance(compactedchild, Node), "the compact method returned the illegal object %r (type %r) when compacting %r" % (compactedchild, type(compactedchild), child)
+			assert isinstance(compactedchild, Node), "the compact method returned the illegal object {0!r} (type {1!r}) when compacting {2!r}".format(compactedchild, type(compactedchild), child)
 			if compactedchild is not Null:
 				list.append(node, compactedchild)
 		return self._decoratenode(node)
@@ -1576,7 +1438,7 @@ class Frag(Node, list):
 		if converter is None:
 			converter = converters.Converter(**converterargs)
 		node = function(self, converter)
-		assert isinstance(node, Node), "the mapped method returned the illegal object %r (type %r) when mapping %r" % (node, type(node), self)
+		assert isinstance(node, Node), "the mapped method returned the illegal object {0!r} (type {1!r}) when mapping {2!r}".format(node, type(node), self)
 		if node is self:
 			node = self._create()
 			for child in self:
@@ -1611,9 +1473,9 @@ class Frag(Node, list):
 		elif l==1:
 			info = "1 child"
 		else:
-			info = "%d children" % l
-		loc = " (from %s)" % self.startloc if self.startloc is not None else ""
-		return "<%s.%s object (%s)%s at 0x%x>" % (self.__class__.__module__, self.__fullname__, info, loc, id(self))
+			info = "{0} children".format(l)
+		loc = " (from {0})".format(self.startloc) if self.startloc is not None else ""
+		return "<{0.__class__.__module__}.{0.__fullname__} object ({1}){2} at {3:#x}>".format(self, info, loc, id(self))
 
 
 class Comment(CharacterData):
@@ -1642,7 +1504,7 @@ class Comment(CharacterData):
 
 class _DocType_Meta(Node.__metaclass__):
 	def __repr__(self):
-		return "<doctype class %s:%s at 0x%x>" % (self.__module__, self.__fullname__, id(self))
+		return "<doctype class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
 
 
 class DocType(CharacterData):
@@ -1676,7 +1538,7 @@ class _ProcInst_Meta(Node.__metaclass__):
 		return self
 
 	def __repr__(self):
-		return "<procinst class %s:%s at 0x%x>" % (self.__module__, self.__fullname__, id(self))
+		return "<procinst class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
 
 
 class ProcInst(CharacterData):
@@ -1694,7 +1556,7 @@ class ProcInst(CharacterData):
 	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = cls._strbase(fullname=fullname, xml=xml)
 		if decorate:
-			s = "<%s>" % s
+			s = "<{0}>".format(s)
 		return s
 
 	def convert(self, converter):
@@ -1709,17 +1571,17 @@ class ProcInst(CharacterData):
 		content = self.content
 		if u"?>" in content:
 			raise IllegalProcInstFormatError(self)
-		yield publisher.encode(u"<?%s %s?>" % (self.xmlname, content))
+		yield publisher.encode(u"<?{0} {1}?>".format(self.xmlname, content))
 
 	def __unicode__(self):
 		return u""
 
 	def __repr__(self):
 		if self.startloc is not None:
-			loc = " (from %s)" % self.startloc
+			loc = " (from {0})".format(self.startloc)
 		else:
 			loc = ""
-		return "<%s.%s procinst content=%r%s at 0x%x>" % (self.__class__.__module__, self.__fullname__, self.content, loc, id(self))
+		return "<{0.__class__.__module__}.{0.__fullname__} procinst content={0.content!r}{1} at {2:#x}>".format(self, loc, id(self))
 
 	def __mul__(self, n):
 		return Node.__mul__(self, n)
@@ -1768,7 +1630,7 @@ class Null(CharacterData):
 	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = cls._strbase(fullname=fullname, xml=xml)
 		if decorate:
-			s = "<%s>" % s
+			s = "<{0}>".format(s)
 		return s
 
 	def convert(self, converter):
@@ -1810,7 +1672,7 @@ class _Attr_Meta(Frag.__metaclass__):
 		return self
 
 	def __repr__(self):
-		return "<attribute class %s:%s at 0x%x>" % (self.__module__, self.__fullname__, id(self))
+		return "<attribute class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
 
 
 class Attr(Frag):
@@ -1877,21 +1739,11 @@ class Attr(Frag):
 			if value not in values:
 				warnings.warn(IllegalAttrValueWarning(self))
 
-	def _walk(self, walkfilter, path):
-		for option in walkfilter.filterpath(path):
-			if option is entercontent:
-				for result in Frag._walk(self, walkfilter, path):
-					yield result
-			elif option is enterattrs:
-				pass
-			elif option:
-				yield path
-
 	def _publishname(self, publisher):
 		if self.xmlns is not None:
 			prefix = publisher._ns2prefix.get(self.xmlns) if self.xmlns != xml_xmlns else u"xml"
 			if prefix is not None:
-				return u"%s:%s" % (prefix, self.xmlname)
+				return u"{0}:{1}".format(prefix, self.xmlname)
 		return self.xmlname
 
 	def _publishattrvalue(self, publisher):
@@ -1908,7 +1760,7 @@ class Attr(Frag):
 				yield part
 		else:
 			publisher.inattr += 1
-			yield publisher.encode(u' %s="' % self._publishname(publisher))
+			yield publisher.encode(u' {0}="'.format(self._publishname(publisher)))
 			publisher.pushtextfilter(misc.xmlescape_attr)
 			for part in self._publishattrvalue(publisher):
 				yield part
@@ -1926,9 +1778,9 @@ class Attr(Frag):
 		elif l==1:
 			info = u"1 child"
 		else:
-			info = u"%d children" % l
-		loc = " (from %s)" % self.startloc if self.startloc is not None else ""
-		return "<%s.%s attr object (%s)%s at 0x%x>" % (self.__class__.__module__, self.__fullname__, info, loc, id(self))
+			info = u"{0} children".format(l)
+		loc = " (from {0})".formats(elf.startloc) if self.startloc is not None else ""
+		return "<{0.__class__.__module__}.{0.__fullname__} attr object ({1}){2} at {3:#x}>".format(self, info, loc, id(self))
 
 
 class TextAttr(Attr):
@@ -1979,7 +1831,7 @@ class BoolAttr(Attr):
 		else:
 			publisher.inattr += 1
 			name = self._publishname(publisher)
-			yield publisher.encode(u" %s" % name)
+			yield publisher.encode(u" {0}".format(name))
 			if publisher.xhtml>0:
 				yield publisher.encode(u'="')
 				publisher.pushtextfilter(misc.xmlescape)
@@ -2002,7 +1854,7 @@ class StyleAttr(Attr):
 
 	def _transform(self, replacer):
 		from ll.xist import css
-		stylesheet = cssutils.parseString(u"a{%s}" % self)
+		stylesheet = cssutils.parseString(u"a{{{0}}}".format(self))
 		css.replaceurls(stylesheet, replacer)
 		return stylesheet.cssRules[0].style.getCssText(separator=" ")
 
@@ -2013,13 +1865,12 @@ class StyleAttr(Attr):
 		"""
 		self[:] = self._transform(replacer)
 
-	def parsed(self, parser, start=None):
-		if not self.isfancy() and parser.base is not None:
+	def parsed(self, parser, event):
+		if event == "leaveattr" and not self.isfancy() and parser.base is not None:
 			from ll.xist import css
 			def prependbase(u):
 				return parser.base/u
-			return self.__class__(self._transform(prependbase))
-		return self
+			self.replaceurls(prependbase)
 
 	def _publishattrvalue(self, publisher):
 		if not self.isfancy() and publisher.base is not None:
@@ -2042,7 +1893,7 @@ class StyleAttr(Attr):
 		def collect(u):
 			urls.append(u)
 			return u
-		s = cssutils.parseString(u"a{%s}" % self)
+		s = cssutils.parseString(u"a{{{0}}}".format(self))
 		css.replaceurls(s, collect)
 		return urls
 
@@ -2053,8 +1904,9 @@ class URLAttr(Attr):
 	information about URL handling.
 	"""
 
-	def parsed(self, parser, start=None):
-		return self.__class__(url_.URL(parser.base/unicode(self)))
+	def parsed(self, parser, event):
+		if event == "leaveattr" and not self.isfancy() and parser.base is not None:
+			self[:] = (url_.URL(parser.base/unicode(self)),)
 
 	def _publishattrvalue(self, publisher):
 		if self.isfancy():
@@ -2130,7 +1982,7 @@ class _Attrs_Meta(Node.__metaclass__):
 		return self
 
 	def __repr__(self):
-		return "<attrs class %s:%s with %s attrs at 0x%x>" % (self.__module__, self.__fullname__, len(self._bypyname), id(self))
+		return "<attrs class {0.__module__}:{0.__fullname__} with {1} attrs at {2:#x}>".format(self, len(self._bypyname), id(self))
 
 	def __contains__(self, key):
 		if isinstance(key, basestring):
@@ -2171,7 +2023,7 @@ class Attrs(Node, dict):
 			cls._defaultattrspy[value.__name__] = value
 		# fix classname (but don't patch inherited attributes)
 		if "." not in value.__fullname__:
-			value.__fullname__ = "%s.%s" % (cls.__fullname__, value.__fullname__)
+			value.__fullname__ = "{0}.{1}".format(cls.__fullname__, value.__fullname__)
 
 	def _create(self):
 		node = self.__class__() # "virtual" constructor
@@ -2203,7 +2055,7 @@ class Attrs(Node, dict):
 		node = self._create()
 		for value in self.values():
 			newvalue = value.convert(converter)
-			assert isinstance(newvalue, Node), "the convert method returned the illegal object %r (type %r) when converting the attribute %s with the value %r" % (newvalue, type(newvalue), value.__class__.__name__, value)
+			assert isinstance(newvalue, Node), "the convert method returned the illegal object {0!r} (type {1!r}) when converting the attribute {2.__class__.__name__} with the value {2!r}".format(newvalue, type(newvalue), value)
 			node[value.__class__] = newvalue
 		return node
 
@@ -2211,7 +2063,7 @@ class Attrs(Node, dict):
 		node = self._create()
 		for value in self.values():
 			newvalue = value.compact()
-			assert isinstance(newvalue, Node), "the compact method returned the illegal object %r (type %r) when compacting the attribute %s with the value %r" % (newvalue, type(newvalue), value.__class__.__name__, value)
+			assert isinstance(newvalue, Node), "the compact method returned the illegal object {0!r} (type {1!r}) when compacting the attribute {2.__class__.__name__} with the value {2!r}".format(newvalue, type(newvalue), value)
 			node[value.__class__] = newvalue
 		return node
 
@@ -2219,17 +2071,9 @@ class Attrs(Node, dict):
 		node = self._create()
 		for value in self.values():
 			newvalue = value.normalized()
-			assert isinstance(newvalue, Node), "the normalized method returned the illegal object %r (type %r) when normalizing the attribute %s with the value %r" % (newvalue, type(newvalue), value.__class__.__name__, value)
+			assert isinstance(newvalue, Node), "the normalized method returned the illegal object {0!r} (type {1!r}) when normalizing the attribute {2.__class__.__name__} with the value {2!r}".format(newvalue, type(newvalue), value)
 			node[value.__class__] = newvalue
 		return node
-
-	def _walk(self, filter, path):
-		path.append(None)
-		for child in self.values():
-			path[-1] = child
-			for result in child._walk(filter, path):
-				yield result
-		path.pop()
 
 	def present(self, presenter):
 		return presenter.presentAttrs(self) # return a generator-iterator
@@ -2621,12 +2465,12 @@ class Attrs(Node, dict):
 		elif l==1:
 			info = "(1 attr)"
 		else:
-			info = "(%d attrs)" % l
+			info = "({0} attrs)".format(l)
 		if self.startloc is not None:
-			loc = " (from %s)" % self.startloc
+			loc = " (from {0})".format(self.startloc)
 		else:
 			loc = ""
-		return "<%s.%s attrs %s%s at 0x%x>" % (self.__class__.__module__, self.__fullname__, info, loc, id(self))
+		return "<{0.__class__.__module__}.{0.__fullname__} attrs {1}{2} at {3:#x}>".format(self, info, loc, id(self))
 
 
 def _patchclassnames(dict, name):
@@ -2636,10 +2480,10 @@ def _patchclassnames(dict, name):
 	except KeyError:
 		pass
 	else:
-		attrs.__fullname__ = "%s.Attrs" % name
+		attrs.__fullname__ = "{0}.Attrs".format(name)
 		for (key, value) in attrs.__dict__.iteritems():
 			if isinstance(value, _Attr_Meta):
-				value.__fullname__ = "%s.%s" % (name, value.__fullname__)
+				value.__fullname__ = "{0}.{1}".format(name, value.__fullname__)
 
 	# If a Context has been provided patch up its class names
 	try:
@@ -2647,7 +2491,7 @@ def _patchclassnames(dict, name):
 	except KeyError:
 		pass
 	else:
-		context.__fullname__ = "%s.%s" % (name, context.__fullname__)
+		context.__fullname__ = "{0}.{1}".format(name, context.__fullname__)
 
 
 class _Element_Meta(Node.__metaclass__):
@@ -2662,7 +2506,7 @@ class _Element_Meta(Node.__metaclass__):
 		return self
 
 	def __repr__(self):
-		return "<element class %s:%s at 0x%x>" % (self.__module__, self.__fullname__, id(self))
+		return "<element class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
 
 
 class Element(Node):
@@ -2783,9 +2627,9 @@ class Element(Node):
 		s = cls._strbase(fullname=fullname, xml=xml)
 		if decorate:
 			if cls.model is not None and cls.model.empty:
-				s = "<%s/>" % s
+				s = "<{0}/>".format(s)
 			else:
-				s = "<%s>" % s
+				s = "<{0}>".format(s)
 		return s
 
 	def checkvalid(self):
@@ -2868,7 +2712,7 @@ class Element(Node):
 		if self.xmlns is not None:
 			prefix = publisher._ns2prefix.get(self.xmlns)
 			if prefix is not None:
-				return u"%s:%s" % (prefix, self.xmlname)
+				return u"{0}:{1}".format(prefix, self.xmlname)
 		return self.xmlname
 
 	def _publishfull(self, publisher):
@@ -2940,13 +2784,14 @@ class Element(Node):
 		elif isinstance(index, (list, int, long, slice)):
 			return self.content[index]
 		else:
+			from ll.xist import xfind
 			def iterate(matcher):
 				path = [self, None]
 				for child in self:
 					path[-1] = child
 					if matcher(path):
 						yield child
-			return misc.Iterator(iterate(makewalkfilter(index).matchpath))
+			return misc.Iterator(iterate(xfind.makewalkfilter(index).matchpath))
 
 	def __setitem__(self, index, value):
 		"""
@@ -2958,7 +2803,8 @@ class Element(Node):
 		elif isinstance(index, (list, int, long, slice)):
 			self.content[index] = value
 		else:
-			matcher = makewalkfilter(index).matchpath
+			from ll.xist import xfind
+			matcher = xfind.makewalkfilter(index).matchpath
 			value = Frag(value)
 			newcontent = []
 			path = [self, None]
@@ -2980,7 +2826,8 @@ class Element(Node):
 		elif isinstance(index, (list, int, long, slice)):
 			del self.content[index]
 		else:
-			matcher = makewalkfilter(index).matchpath
+			from ll.xist import xfind
+			matcher = xfind.makewalkfilter(index).matchpath
 			self.content = Frag(child for child in self if not matcher([self, child]))
 
 	def __getslice__(self, index1, index2):
@@ -3019,17 +2866,6 @@ class Element(Node):
 		node.content = self.content.compact()
 		node.attrs = self.attrs.compact()
 		return self._decoratenode(node)
-
-	def _walk(self, walkfilter, path):
-		for option in walkfilter.filterpath(path):
-			if option is entercontent:
-				for result in self.content._walk(walkfilter, path):
-					yield result
-			elif option is enterattrs:
-				for result in self.attrs._walk(walkfilter, path):
-					yield result
-			elif option:
-				yield path
 
 	def withsep(self, separator, clone=False):
 		"""
@@ -3083,7 +2919,7 @@ class Element(Node):
 		if converter is None:
 			converter = converters.Converter(**converterargs)
 		node = function(self, converter)
-		assert isinstance(node, Node), "the mapped method returned the illegal object %r (type %r) when mapping %r" % (node, type(node), self)
+		assert isinstance(node, Node), "the mapped method returned the illegal object {0!r} (type {1!r}) when mapping {2!r}".format(node, type(node), self)
 		if node is self:
 			node = self.__class__(self.content.mapped(function, converter))
 			node.attrs = self.attrs.clone()
@@ -3119,19 +2955,19 @@ class Element(Node):
 		elif lc==1:
 			infoc = "1 child"
 		else:
-			infoc = "%d children" % lc
+			infoc = "{0} children".format(lc)
 		la = len(self.attrs)
 		if la==0:
 			infoa = "no attrs"
 		elif la==1:
 			infoa = "1 attr"
 		else:
-			infoa = "%d attrs" % la
+			infoa = "{0} attrs".format(la)
 		if self.startloc is not None:
-			loc = " (from %s)" % self.startloc
+			loc = " (from {0})".format(self.startloc)
 		else:
 			loc = ""
-		return "<%s.%s element object (%s/%s)%s at 0x%x>" % (self.__class__.__module__, self.__fullname__, infoc, infoa, loc, id(self))
+		return "<{0.__class__.__module__}.{0.__fullname__} element object ({1}/{2}){3} at {4:#x}>".format(self, infoc, infoa, loc, id(self))
 
 
 class _Entity_Meta(Node.__metaclass__):
@@ -3142,7 +2978,7 @@ class _Entity_Meta(Node.__metaclass__):
 		return self
 
 	def __repr__(self):
-		return "<entity class %s:%s at 0x%x>" % (self.__module__, self.__fullname__, id(self))
+		return "<entity class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
 
 
 class Entity(Node):
@@ -3158,7 +2994,7 @@ class Entity(Node):
 	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = cls._strbase(fullname=fullname, xml=xml)
 		if decorate:
-			s = "&%s;" % s
+			s = "&{0};".format(s)
 		return s
 
 	def __eq__(self, other):
@@ -3177,15 +3013,15 @@ class Entity(Node):
 
 	def __repr__(self):
 		if self.startloc is not None:
-			loc = " (from %s)" % self.startloc
+			loc = " (from {0})".format(self.startloc)
 		else:
 			loc = ""
-		return "<%s.%s entity object%s at 0x%x>" % (self.__class__.__module__, self.__fullname__, loc, id(self))
+		return "<{0.__class__.__module__}.{0.__fullname__} entity object{1} at {2:#x}>".format(self, loc, id(self))
 
 
 class _CharRef_Meta(Entity.__metaclass__): # don't subclass Text.__metaclass__, as this is redundant
 	def __repr__(self):
-		return "<charref class %s:%s at 0x%x>" % (self.__module__, self.__fullname__, id(self))
+		return "<charref class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
 
 
 class CharRef(Text, Entity):
@@ -3766,8 +3602,16 @@ def docprefixes():
 	"""
 	Return a prefix mapping suitable for parsing XIST docstrings.
 	"""
+	from ll.xist.ns import html, doc, specials
+	return {None: doc, "sp": specials, "h": html}
+
+
+def docpool():
+	"""
+	Return a pool suitable for parsing XIST docstrings.
+	"""
 	from ll.xist.ns import html, chars, abbr, doc, specials
-	return {None: (doc, specials, html, chars, abbr)}
+	return Pool(doc, specials, html, chars, abbr)
 
 
 def nsname(xmlns):
@@ -3789,7 +3633,7 @@ def nsclark(xmlns):
 		return "{}"
 	elif not isinstance(xmlns, basestring):
 		xmlns = xmlns.xmlns
-	return "{%s}" % xmlns
+	return "{{{0}}".format(xmlns)
 
 
 # C0 Controls and Basic Latin
@@ -3835,10 +3679,10 @@ class Location(object):
 		url = str(self.url) if self.url is not None else "???"
 		line = str(self.line) if self.line is not None else "?"
 		col = str(self.col) if self.col is not None else "?"
-		return "%s:%s:%s" % (url, line, col)
+		return "{0}:{1}:{2}".format(url, line, col)
 
 	def __repr__(self):
-		return "%s(%s)" % (self.__class__.__name__, ", ".join("%s=%r" % (attr, getattr(self, attr)) for attr in ("url", "line", "col") if getattr(self, attr) is not None))
+		return "{0.__class__.__name__}({1})".format(self, ", ".join("{0}={!r}".format(attr, getattr(self, attr)) for attr in ("url", "line", "col") if getattr(self, attr) is not None))
 
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and self.url==other.url and self.line==other.line and self.col==other.col

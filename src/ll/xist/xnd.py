@@ -50,7 +50,7 @@ class Base(object):
 			testname += "_"
 		suffix = 2
 		while testname in names:
-			testname = "%s%d" % (name, suffix)
+			testname = "{0}{1}".format(name, suffix)
 			suffix += 1
 		self.pyname = testname
 		names.append(testname)
@@ -71,26 +71,26 @@ class Base(object):
 				if '"' in value:
 					value = repr(value)
 				else:
-					value = 'u"%s"' % repr(value)[2:-1]
+					value = 'u"{0}"'.format(repr(value)[2:-1])
 			else:
 				if '"' in value:
 					value = repr(value)
 				else:
-					value = '"%s"' % repr(value)[1:-1]
+					value = '"{0}"'.format(repr(value)[1:-1])
 		return value
 
 	def aspy(self, **options):
 		options = Options(**options)
 		lines = []
 		self._aspy(lines, 0, [], options)
-		return "".join("%s%s\n" % (level*options.indent, text) for (level, text) in lines)
+		return "".join("{0}{1}\n".format(level*options.indent, text) for (level, text) in lines)
 
 	def _addlines(self, newlines, lines):
 		l = len(newlines)
 		if l==0:
 			lines[-1][1] += " pass"
 		elif l==1:
-			lines[-1][1] += " %s" % newlines[-1][1]
+			lines[-1][1] += " {0}".format(newlines[-1][1])
 		else:
 			lines.extend(newlines)
 
@@ -109,7 +109,7 @@ class Module(Base):
 		self.content = []
 
 	def __repr__(self):
-		return "<%s.%s name=%r url=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.name, self.url, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__name__} name={0.name!r} url={0.url!r} at {1:#x}>".format(self, id(self))
 
 	def __call__(self, *content):
 		self.content.extend(content)
@@ -166,7 +166,7 @@ class Module(Base):
 		for attrgroup in attrgroups:
 			attrgroup.assignname(names)
 
-		lines.append([level, "# -*- coding: %s -*-" % options.encoding])
+		lines.append([level, "# -*- coding: {0} -*-".format(options.encoding)])
 		lines.append([0, ""])
 		lines.append([0, ""])
 
@@ -200,23 +200,23 @@ class Module(Base):
 							if isinstance(arg, Element):
 								arg = arg.pyname
 							modelargs.append(arg)
-					newlines.append(("%s.model" % node.pyname, "%s(%s)" % (node.modeltype, ", ".join(modelargs))))
+					newlines.append(("{0}.model".format(node.pyname), "{0}({1})".format(node.modeltype, ", ".join(modelargs))))
 				if options.model == "all":
 					for line in newlines:
-						lines.append([0, "%s = %s" % line])
+						lines.append([0, "{0} = {1}".format(*line)])
 				elif options.model == "once":
 					newlines.sort(key=lambda l: l[1])
 					for (i, line) in enumerate(newlines):
 						(var, code) = line
 						if i != len(newlines)-1 and code == newlines[i+1][1]:
 							code = "\\"
-						lines.append([0, "%s = %s" % (var, code)])
+						lines.append([0, "{0} = {1}".format(var, code)])
 
 	def element(self, name):
 		for node in self.content:
 			if isinstance(node, Element) and node.name==name:
 				return node
-		raise ValueError("no element named %r" % name)
+		raise ValueError("no element named {0!r}".format(name))
 
 	def shareattrs(self, all):
 		# collect all identical attributes into lists
@@ -252,24 +252,24 @@ class Element(Base):
 		self.doc = doc
 
 	def __repr__(self):
-		return "<%s.%s name=%r xmlns=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.name, self.xmlns, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__name__} name={0.name!r} xmlns={0.xmlns!r} at {1:#x}>".format(self, id(self))
 
 	def __call__(self, *content):
 		self.attrs.extend(content)
 		return self
 
 	def _aspy(self, lines, level, names, options):
-		lines.append([level, "class %s(xsc.Element):" % self.pyname])
+		lines.append([level, "class {0}(xsc.Element):".format(self.pyname)])
 		newlines = []
 		self._adddoc(newlines, level+1)
 		if self.xmlns is not None:
-			newlines.append([level+1, "xmlns = %s" % self.simplify(self.xmlns)])
+			newlines.append([level+1, "xmlns = {0}".format(self.simplify(self.xmlns))])
 		if self.pyname != self.name:
-			newlines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
+			newlines.append([level+1, "xmlname = {0}".format(self.simplify(self.name))])
 		# only output model, if it is a bool, otherwise it might reference other element,
 		# in which case this is done after all element classes have been defined
 		if isinstance(self.modeltype, bool):
-			newlines.append([level+1, "model = %r" % self.modeltype])
+			newlines.append([level+1, "model = {0!r}".format(self.modeltype)])
 
 		if len(self.attrs):
 			# find the attribute groups our elements are in
@@ -287,7 +287,7 @@ class Element(Base):
 				base = ", ".join(group.pyname for group in groups)
 			else:
 				base = "xsc.Element.Attrs"
-			newlines.append([level+1, "class Attrs(%s):" % base])
+			newlines.append([level+1, "class Attrs({0}):".format(base)])
 			if nogroup:
 				localnames = []
 				for attr in nogroup:
@@ -301,7 +301,7 @@ class AttrGroup(Base):
 	id = 0
 	def __init__(self, name):
 		if name is None:
-			name = "attrgroup_%d" % self.__class__.id
+			name = "attrgroup_{0}".format(self.__class__.id)
 			self.__class__.id += 1
 		Base.__init__(self, name)
 		self.attrs = []
@@ -311,7 +311,7 @@ class AttrGroup(Base):
 		return self
 
 	def _aspy(self, lines, level, names, options):
-		lines.append([level, "class %s(xsc.Element.Attrs):" % self.pyname])
+		lines.append([level, "class {0}(xsc.Element.Attrs):".format(self.pyname)])
 		localnames = []
 		for attr in self.attrs:
 			attr._aspy(lines, level+1, localnames, options)
@@ -330,32 +330,32 @@ class Attr(Base):
 		self.shared = None # if this attribute is part of a group ``shared`` will point to the group
 
 	def __repr__(self):
-		return "<%s.%s name=%r type=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.name, self.type, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__name__} name={0.name!r} type={0.type!r} at {1:#x}>".format(self, id(self))
 
 	def _aspy(self, lines, level, names, options):
 		name = self.name
 		if isinstance(self.type, type):
-			basename = "%s.%s" % (self.type.__module__, self.type.__name__)
+			basename = "{0.type.__module__}.{0.type.__name__}".format(self)
 		else:
 			basename = self.type
 		if basename.startswith("ll.xist.xsc."):
 			basename = basename[8:]
-		lines.append([level, "class %s(%s):" % (self.pyname, basename)])
+		lines.append([level, "class {0}({1}):".format(self.pyname, basename)])
 		newlines = []
 		self._adddoc(newlines, level+1)
 		if self.pyname != self.name:
-			newlines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
+			newlines.append([level+1, "xmlname = {0}".format(self.simplify(self.name))])
 		if self.values:
-			values = "(%s)" % ", ".join(str(self.simplify(value)) for value in self.values)
-			newlines.append([level+1, "values = %s" % (values, )])
+			values = "({0})".format(", ".join(str(self.simplify(value)) for value in self.values))
+			newlines.append([level+1, "values = {0}".format(values)])
 		if self.default and options.defaults:
-			newlines.append([level+1, "default = %s" % self.simplify(self.default)])
+			newlines.append([level+1, "default = {0}".format(self.simplify(self.default))])
 		if self.required:
 			newlines.append([level+1, "required = True"])
 		self._addlines(newlines, lines)
 
 	def share(self, group):
-		assert self.shared is None, "cannot share attr %r twice" % self
+		assert self.shared is None, "cannot share attr {0!r} twice".format(self)
 		self.shared = group
 
 	def ident(self):
@@ -368,14 +368,14 @@ class ProcInst(Base):
 		self.doc = doc
 
 	def __repr__(self):
-		return "<%s.%s name=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.name, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__name__} name={0.name!r} at {1:#x}>".format(self, id(self))
 
 	def _aspy(self, lines, level, names, options):
-		lines.append([level, "class %s(xsc.ProcInst):" % self.pyname])
+		lines.append([level, "class {0}(xsc.ProcInst):".format(self.pyname)])
 		newlines = []
 		self._adddoc(newlines, level+1)
 		if self.pyname != self.name:
-			newlines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
+			newlines.append([level+1, "xmlname = {0}".format(self.simplify(self.name))])
 		self._addlines(newlines, lines)
 
 
@@ -385,14 +385,14 @@ class Entity(Base):
 		self.doc = doc
 
 	def __repr__(self):
-		return "<%s.%s name=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.name, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__name__} name={0.name!r} at {1:#x}>".format(self, id(self))
 
 	def _aspy(self, lines, level, names, options):
-		lines.append([level, "class %s(xsc.Entity):" % self.pyname])
+		lines.append([level, "class {0}(xsc.Entity):".format(self.pyname)])
 		newlines = []
 		self._adddoc(newlines, level+1)
 		if self.pyname != self.name:
-			newlines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
+			newlines.append([level+1, "xmlname = {0}".format(self.simplify(self.name))])
 		self._addlines(newlines, lines)
 
 
@@ -402,19 +402,15 @@ class CharRef(Entity):
 		self.codepoint = codepoint
 
 	def __repr__(self):
-		return "<%s.%s name=%r codepoint=0x%x at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.name, self.codepoint, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__name__} name={0.name!r} codepoint={0.codepoint:#x} at {1:#x}>".format(self, id(self))
 
 	def _aspy(self, lines, level, names, options):
-		lines.append([level, "class %s(xsc.CharRef):" % self.pyname])
+		lines.append([level, "class {0}(xsc.CharRef):".format(self.pyname)])
 		newlines = []
 		self._adddoc(newlines, level+1)
 		if self.pyname != self.name:
-			newlines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
-		if self.codepoint > 0xffff:
-			codepoint = "0x%08x" % self.codepoint
-		else:
-			codepoint = "0x%04x" % self.codepoint
-		newlines.append([level+1, "codepoint = %s" % codepoint])
+			newlines.append([level+1, "xmlname = {0}".format(self.simplify(self.name))])
+		newlines.append([level+1, "codepoint = {0:{1}}".format(self.codepoint, "#010x" if self.codepoint > 0xffff else "#06x")])
 		self._addlines(newlines, lines)
 
 

@@ -3,7 +3,7 @@
 
 <p>There are three related methods available for iterating through an &xml;
 tree and finding nodes in the tree: The methods <meth>walk</meth>,
-<meth>walknode</meth> and <meth>walkpath</meth>.</p>
+<meth>walknodes</meth> and <meth>walkpaths</meth>.</p>
 
 <p>The method <pyref module="ll.xist.xsc" class="Node" method="walk"><meth>walk</meth></pyref>
 is a generator. You pass an <pyref module="ll.xist" class="WalkFilter"><class>WalkFilter</class></pyref>
@@ -11,8 +11,8 @@ to <meth>walk</meth> which is used for determining which part of the tree
 should be searched and which nodes should be returned. The objects produced by
 the <meth>walk</meth> method are lists with the path from the root of the
 tree to the node in question (Actually it's always the some list objects, if you
-want distinct objects, use the <meth>walkpath</meth> method). The method
-<meth>walknode</meth> produces the nodes instead of the paths to the
+want distinct objects, use the <meth>walkpaths</meth> method). The method
+<meth>walknodes</meth> produces the nodes instead of the paths to the
 node.</p>
 
 <p>When <meth>walk</meth> iterates through the tree it calls the
@@ -47,19 +47,19 @@ of a tree and produce all table elements, the following code could be used:</p>
 
 <example><h>Using the <meth>walk</meth> method</h>
 <prog>
-from ll.xist import xsc, parsers
+from ll.xist import parsers, xfind
 from ll.xist.ns import html
 
-class IsTable(xsc.WalkFilter):
+class IsTable(xfind.WalkFilter):
 	def filternode(self, node):
 		if isinstance(node, html.table):
-			return (True, xsc.entercontent)
+			return (True, xfind.entercontent)
 		else:
-			return (xsc.entercontent,)
+			return (xfind.entercontent,)
 
 doc = parsers.parseurl("http://www.python.org/", tidy=True)
 
-for node in doc.walknode(IsTable()):
+for node in doc.walknodes(IsTable()):
 	<rep>...</rep>
 </prog>
 </example>
@@ -75,7 +75,7 @@ following code:</p>
 
 <example><h>Searching for <class>li</class> inside <class>ul</class> with <meth>walk</meth></h>
 <prog>
-for li in node.content.walknode(xsc.FindType(html.li)):
+for li in node.content.walknodes(xfind.FindType(html.li)):
 	<rep>...</rep>
 </prog>
 </example>
@@ -92,7 +92,7 @@ from ll.xist.ns import html
 
 doc = parsers.parseurl("http://www.python.org/", tidy=True)
 
-for node in doc.walknode(xsc.FindTypeAll(html.a)):
+for node in doc.walknodes(xfind.FindTypeAll(html.a)):
 	print node.attrs.href
 </prog>
 </example>
@@ -114,18 +114,18 @@ page:</p>
 
 <example><h>Finding external links on the Python home page</h>
 <prog>
-from ll.xist import xsc, parsers
+from ll.xist import parsers, xfind
 from ll.xist.ns import html
 
-class IsExtLink(xsc.WalkFilter):
+class IsExtLink(xfind.WalkFilter):
 	def filternode(self, node):
 		if isinstance(node, html.a) and not unicode(node.attrs.href).startswith(u"http://www.python.org"):
-			return (True, xsc.entercontent)
-		return (xsc.entercontent,)
+			return (True, xfind.entercontent)
+		return (xfind.entercontent,)
 
 doc = parsers.parseurl("http://www.python.org/", tidy=True)
 
-for node in doc.walknode(IsExtLink()):
+for node in doc.walknodes(IsExtLink()):
 	print node.attrs.href
 </prog>
 </example>
@@ -188,7 +188,7 @@ from ll.xist.ns import html
 
 doc = parsers.parseurl("http://www.python.org/", tidy=True)
 
-for node in doc.walknode((html.a | html.area) &amp; xfind.hasattr("href")):
+for node in doc.walknodes((html.a | html.area) &amp; xfind.hasattr("href")):
 	print node.attrs.href
 </prog>
 
@@ -201,7 +201,7 @@ from ll.xist.ns import html
 
 doc = parsers.parseurl("http://www.python.org/", tidy=True)
 
-for node in doc.walknode(xfind.hasattr("id")):
+for node in doc.walknodes(xfind.hasattr("id")):
 	print node.attrs.id
 </prog>
 
@@ -237,7 +237,7 @@ from ll.xist.ns import html
 
 doc = parsers.parseurl("http://www.python.org/", tidy=True)
 
-for node in doc.walknode(css.selector("div#menu ul.level-one li > a")):
+for node in doc.walknodes(css.selector("div#menu ul.level-one li > a")):
 	print node.attrs.href
 </prog>
 </example>

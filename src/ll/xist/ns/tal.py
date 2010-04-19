@@ -26,7 +26,7 @@ xmlns = "http://xml.zope.org/namespaces/tal"
 class Attrs(xsc.Attrs):
 	class define(xsc.TextAttr):
 		xmlns = xmlns
-		
+
 	class attributes(xsc.TextAttr):
 		xmlns = xmlns
 

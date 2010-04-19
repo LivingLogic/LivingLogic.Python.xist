@@ -69,7 +69,7 @@ def main(args=None):
 	colors = ("yes", "no", "auto")
 	p = optparse.OptionParser(usage="usage: %prog [options] source-file-url target-file-url\n   or: %prog [options] source-file-url(s) target-dir-url")
 	p.add_option("-v", "--verbose", dest="verbose", help="Be verbose?", action="store_true", default=False)
-	p.add_option("-c", "--color", dest="color", help="Color output (%s)" % ", ".join(colors), default="auto", choices=colors)
+	p.add_option("-c", "--color", dest="color", help="Color output ({0})".format(", ".join(colors)), default="auto", choices=colors)
 	p.add_option("-u", "--user", dest="user", help="user id or name for target files")
 	p.add_option("-g", "--group", dest="group", help="group id or name for target files")
 	p.add_option("-r", "--recursive", dest="recursive", help="Copy stuff recursively?", action="store_true", default=False)

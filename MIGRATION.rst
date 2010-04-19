@@ -1,12 +1,48 @@
+Migrating to version 3.8
+========================
+
+Changes to XISTs walk filters
+-----------------------------
+
+*	The walk methods :meth:`walknode` and :meth:`walkpath` have been renamed to
+	:meth:`walknodes` and :meth:`walkpaths`. The class :class:`WalkFilter` has
+	been moved to :mod:`ll.xist.xfind`.
+
+Changes to :mod:`ll.url`
+------------------------
+
+*	:class:`ll.url.Path` has been simplified: Path segments are strings instead
+	of tuples. If you need the path parameters (i.e. part after ``;`` in a path
+	segment you have to split the segment yourself.
+
+*	:meth:`ll.url.URL.import_` is gone. As a replacement :func:`misc.module` can
+	be used, i.e. replace::
+
+		>>> from ll import url
+		>>> u = url.File("foo.py")
+		>>> m = u.import_(mode="always")
+
+	with::
+
+		>>> from ll import url, misc
+		>>> u = url.File("foo.py")
+		>>> m = misc.module(u.openread().read(), u.local())
+
+*	ssh URLs now required to standalone :mod:`execnet` package__. The
+	``ssh_config`` parameter for ssh URLs is gone.
+
+	__ http://codespeak.net/execnet/
+
+
 Migrating to version 3.7
 ========================
 
 Changes to the make module
 --------------------------
 
-*	The division operator is no longer implemented, so instead of::
+*	The division operator for actions is no longer implemented, so instead of::
 
-		t1 = make.FileAction(key=url.URL("foo.txt"))
+		t1 = make.FileAction(key=url.URL("file:foo.txt"))
 		t2 = t1 /
 		     make.DecodeAction("iso-8859-1") /
 		     make.EncodeAction("utf-8") /
@@ -58,7 +94,7 @@ Changes to the color module
 Removal of XPIT
 ---------------
 
-*	The XPIT tamplating language has been removed. You should replace all your
+*	The XPIT templating language has been removed. You should replace all your
 	XPIT templates with UL4 templates.
 
 

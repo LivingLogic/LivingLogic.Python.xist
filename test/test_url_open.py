@@ -484,9 +484,8 @@ def test_walk():
 	yield check, "ll/xist/ns/", "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/src/", False
 
 
-def test_ssh_config():
-	ssh_config = "/private/etc/ssh_config"
-	if not os.path.exists(ssh_config):
-		ssh_config = "/etc/ssh_config"
+def test_ssh_params():
 	with context:
-		assert url.URL("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/").isdir(ssh_config=ssh_config) is True
+		u = url.URL("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/")
+		assert u.isdir(remotepython="python2.5") is True
+		assert u.isdir(nice=20) is True

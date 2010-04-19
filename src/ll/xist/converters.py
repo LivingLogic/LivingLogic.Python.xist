@@ -43,12 +43,13 @@ class Converter(object):
 	chapter/subchapter elements with automatic numbering. For an example see the
 	element :class:`ll.xist.ns.doc.section`.
 	"""
+
 	def __init__(self, node=None, root=None, mode=None, stage=None, target=None, lang=None, makeaction=None, makeproject=None):
 		"""
 		Create a :class:`Converter`. Arguments are used to initialize the
 		:class:`Converter` properties of the same name.
 		"""
-		self.states = [ ConverterState(node=node, root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, makeproject=makeproject)]
+		self.states = [ ConverterState(node=node, root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, makeproject=makeproject) ]
 		self.contexts = {}
 
 	class node(misc.propclass):
@@ -58,10 +59,10 @@ class Converter(object):
 		"""
 		def __get__(self):
 			return self.states[-1].node
-	
+
 		def __set__(self, node):
 			self.states[-1].node = node
-	
+
 		def __delete__(self):
 			self.states[-1].node = None
 
@@ -72,10 +73,10 @@ class Converter(object):
 		"""
 		def __get__(self):
 			return self.states[-1].root
-	
+
 		def __set__(self, root):
 			self.states[-1].root = root
-	
+
 		def __delete__(self):
 			self.states[-1].root = None
 
@@ -86,10 +87,10 @@ class Converter(object):
 		"""
 		def __get__(self):
 			return self.states[-1].mode
-	
+
 		def __set__(self, mode):
 			self.states[-1].mode = mode
-	
+
 		def __delete__(self):
 			self.states[-1].mode = None
 
@@ -104,10 +105,10 @@ class Converter(object):
 				return "deliver"
 			else:
 				return self.states[-1].stage
-	
+
 		def __set__(self, stage):
 			self.states[-1].stage = stage
-	
+
 		def __delete__(self):
 			self.states[-1].stage = None
 
@@ -118,10 +119,10 @@ class Converter(object):
 		"""
 		def __get__(self):
 			return self.states[-1].target
-	
+
 		def __set__(self, target):
 			self.states[-1].target = target
-	
+
 		def __delete__(self):
 			self.states[-1].target = None
 
@@ -131,10 +132,10 @@ class Converter(object):
 		"""
 		def __get__(self):
 			return self.states[-1].lang
-	
+
 		def __set__(self, lang):
 			self.states[-1].lang = lang
-	
+
 		def __delete__(self):
 			self.states[-1].lang = None
 
@@ -147,10 +148,10 @@ class Converter(object):
 		"""
 		def __get__(self):
 			return self.states[-1].makeaction
-	
+
 		def __set__(self, makeaction):
 			self.states[-1].makeaction = makeaction
-	
+
 		def __delete__(self):
 			self.states[-1].makeaction = None
 
@@ -163,10 +164,10 @@ class Converter(object):
 		"""
 		def __get__(self):
 			return self.states[-1].makeproject
-	
+
 		def __set__(self, makeproject):
 			self.states[-1].makeproject = makeproject
-	
+
 		def __delete__(self):
 			self.states[-1].makeproject = None
 
@@ -191,7 +192,7 @@ class Converter(object):
 		self.states.append(ConverterState(node=node, root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, makeproject=makeproject))
 
 	def pop(self):
-		if len(self.states)==1:
+		if len(self.states) == 1:
 			raise IndexError("can't pop last state")
 		state = self.states.pop()
 		self.lastnode = state.node

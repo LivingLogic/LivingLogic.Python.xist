@@ -40,7 +40,7 @@ def df(obj):
 
 
 def connid(name):
-	return s4connid("[%d]" % name)
+	return s4connid("[{0}]".format(name))
 
 
 def showcomment(out, *texts):
@@ -66,9 +66,9 @@ def showreport(out, type, countcreate, countdrop, countcollision, countmerge, co
 			else:
 				cls = s4action
 			if count > 1:
-				msg = "%d %ss %s" % (count, type, name)
+				msg = "{0} {1}s {2}".format(count, type, name)
 			else:
-				msg = "1 %s %s" % (type, name)
+				msg = "1 {0} {1}".format(type, name)
 			out.write(cls(msg))
 	if first:
 		out.write(" => identical")
@@ -93,7 +93,7 @@ def main(args=None):
 	# Merge changes between oldsource and newsource into destination
 	p = optparse.OptionParser(usage="usage: %prog [options] oldsourceconnectstring newsourceconnectstring destinationconnectstring")
 	p.add_option("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action="store_true")
-	p.add_option("-c", "--color", dest="color", help="Color output (%s)" % ", ".join(colors), default="auto", choices=colors)
+	p.add_option("-c", "--color", dest="color", help="Color output ({0})".format(", ".join(colors)), default="auto", choices=colors)
 	p.add_option("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' in their name?", default=False, action="store_true")
 	p.add_option("-e", "--encoding", dest="encoding", help="Encoding for output", default="utf-8")
 
@@ -121,7 +121,7 @@ def main(args=None):
 		for (i, obj) in enumerate(connection.iterobjects(mode="flat", schema="user")):
 			keep = ("$" not in obj.name and not obj.name.startswith("SYS_EXPORT_SCHEMA_")) or options.keepjunk
 			if options.verbose:
-				msg = astyle.style_default("oramerge.py: ", cs(connection), connid(name), " fetching #%d " % (i+1), df(obj))
+				msg = astyle.style_default("oramerge.py: ", cs(connection), connid(name), " fetching #{0} ".format(i+1), df(obj))
 				if not keep:
 					msg += s4error(" (skipped)")
 				stderr.writeln(msg)
@@ -347,7 +347,7 @@ def main(args=None):
 											line = conflictmarker(prefix, line)
 									stdout.writeln(line)
 							else:
-								raise OSError("Trouble from diff3: %d" % diffretcode)
+								raise OSError("Trouble from diff3: {0}".format(diffretcode))
 						finally:
 							os.remove(filename3)
 					finally:

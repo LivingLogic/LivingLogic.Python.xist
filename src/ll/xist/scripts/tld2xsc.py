@@ -32,10 +32,10 @@ __docformat__ = "reStructuredText"
 
 
 def tld2xnd(stream, shareattrs=None):
-	node = parsers.parsestream(stream, prefixes={None: tld})
+	node = parsers.parsestream(stream, parser=parsers.Expat, prefixes={None: tld})
 
 	# get and convert the taglib object
-	xnd = node.walknode(tld.taglib)[0].asxnd()
+	xnd = node.walknodes(tld.taglib)[0].asxnd()
 
 	if shareattrs=="dupes":
 		xnd.shareattrs(False)

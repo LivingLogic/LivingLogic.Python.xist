@@ -152,7 +152,7 @@ class bold(xsc.Element):
 		elif converter.target.xmlns == fo.xmlns:
 			node = converter.target.inline(self.content, font_weight="bold")
 		else:
-			raise TypeError("unsupported conversion target %r" % converter.target)
+			raise TypeError("unsupported conversion target {0!r}".format(converter.target))
 		return node.convert(converter)
 </prog>
 </example>

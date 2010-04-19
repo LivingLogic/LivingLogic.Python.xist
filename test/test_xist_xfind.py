@@ -41,7 +41,7 @@ def xfindnode():
 
 def test_levels():
 	def check(node, expr, ids):
-		assert "".join(str(e.attrs.id) for e in node.walknode(expr)) == ids
+		assert "".join(str(e.attrs.id) for e in node.walknodes(expr)) == ids
 
 	ds = [html.div(id=id) for id in xrange(8)]
 	ds[1].append(ds[4:7])
@@ -65,7 +65,7 @@ def test_levels():
 
 def test_isinstance():
 	node = xfindnode()
-	res = list(node.walknode(html.h1))
+	res = list(node.walknodes(html.h1))
 	assert len(res) == 2
 	assert res[0] is node[0][0]
 	assert res[1] is node[1][0]
@@ -76,18 +76,18 @@ def test_isinstance():
 		assert res[1] is node[1][0]
 		assert res[2] is node[1][2][0]
 
-	yield check, list(node.walknode(xfind.IsInstanceSelector(html.h1, html.h2)))
-	yield check, list(node.walknode(xfind.IsInstanceSelector(html.h1) | html.h2))
-	yield check, list(node.walknode(html.h1 | xfind.IsInstanceSelector(html.h2)))
-	yield check, list(node.walknode(html.h1 | html.h2))
-	yield check, list(node.walknode(xsc.Element & ~(xsc.Text | html.p | html.div | html.em | html.img)))
+	yield check, list(node.walknodes(xfind.IsInstanceSelector(html.h1, html.h2)))
+	yield check, list(node.walknodes(xfind.IsInstanceSelector(html.h1) | html.h2))
+	yield check, list(node.walknodes(html.h1 | xfind.IsInstanceSelector(html.h2)))
+	yield check, list(node.walknodes(html.h1 | html.h2))
+	yield check, list(node.walknodes(xsc.Element & ~(xsc.Text | html.p | html.div | html.em | html.img)))
 
 
 def test_hasname():
 	node = xfindnode()
 
 	def check(expr, res):
-		assert [str(e) for e in node.walknode(expr)] == res
+		assert [str(e) for e in node.walknodes(expr)] == res
 	result = ["important", "first", "second", "important", "first", "important", "second", "important", "only"]
 	yield check, xfind.hasname("em"), result
 	yield check, xfind.hasname("em", html), result
@@ -105,27 +105,27 @@ def test_is():
 	# Frags will be put into the path, but the walk filter will not be called for the Frag,
 	# so when the first call happens there are already two nodes in the path
 	# This is done on purpose: filters should not have to special case Frags
-	res = list(node.walknode(node))
+	res = list(node.walknodes(node))
 	assert len(res) == 0
 
-	res = list(node.walknode(node[0]))
+	res = list(node.walknodes(node[0]))
 	assert len(res) == 1
 	assert res[0] is node[0]
 
 
 def test_isroot():
 	node = xfindnode()
-	res = list(node.walknode(xfind.isroot))
+	res = list(node.walknodes(xfind.isroot))
 	assert len(res) == 0
 
-	res = list(node[0].walknode(xfind.isroot))
+	res = list(node[0].walknodes(xfind.isroot))
 	assert len(res) == 1
 	assert res[0] is node[0]
 
 
 def test_empty():
 	node = xfindnode()
-	res = list(node.walknode(xfind.empty))
+	res = list(node.walknodes(xfind.empty))
 	assert len(res) == 2
 	assert res[0] is node[1][0][-1]
 	assert res[1] is node[1][-1]
@@ -133,22 +133,22 @@ def test_empty():
 
 def test_onlychild():
 	node = xfindnode()
-	res = list(node.walknode(xfind.onlychild & html.em))
+	res = list(node.walknodes(xfind.onlychild & html.em))
 	assert len(res) == 1
 	assert res[0] is node[2][0]
 
 
 def test_onlyoftype():
 	node = xfindnode()
-	res = list(node.walknode(xfind.onlyoftype & html.h1))
+	res = list(node.walknodes(xfind.onlyoftype & html.h1))
 	assert len(res) == 2
 	assert res[0] is node[0][0]
 	assert res[1] is node[1][0]
 
-	res = list(node.walknode(xfind.onlyoftype & html.div))
+	res = list(node.walknodes(xfind.onlyoftype & html.div))
 	assert len(res) == 0
 
-	res = list(node.walknode(xfind.onlyoftype & html.p))
+	res = list(node.walknodes(xfind.onlyoftype & html.p))
 	assert len(res) == 3
 	assert res[0] is node[1][1]
 	assert res[1] is node[1][2][1]
@@ -159,22 +159,22 @@ def test_hasattr():
 	node = xfindnode()
 
 	# hasattr
-	res = list(node.walknode(xfind.hasattr("class_")))
+	res = list(node.walknodes(xfind.hasattr("class_")))
 	assert len(res) == 1
 	assert res[0] is node[1]
 
-	res = list(node.walknode(xfind.hasattr(html.div.Attrs.id, html.div.Attrs.align)))
+	res = list(node.walknodes(xfind.hasattr(html.div.Attrs.id, html.div.Attrs.align)))
 	assert len(res) == 3
 	assert res[0] is node[0]
 	assert res[1] is node[1][2]
 	assert res[2] is node[1][3]
 
 	# hasattr_xml
-	res = list(node.walknode(xfind.hasattr_xml("class")))
+	res = list(node.walknodes(xfind.hasattr_xml("class")))
 	assert len(res) == 1
 	assert res[0] is node[1]
 
-	res = list(node.walknode(xfind.hasattr_xml(html.div.Attrs.id, html.div.Attrs.align)))
+	res = list(node.walknodes(xfind.hasattr_xml(html.div.Attrs.id, html.div.Attrs.align)))
 	assert len(res) == 3
 	assert res[0] is node[0]
 	assert res[1] is node[1][2]
@@ -186,7 +186,7 @@ def test_attrhasvalue():
 
 	def check(expected, attrname, *attrvalues):
 		for selector in (xfind.attrhasvalue, xfind.attrhasvalue_xml):
-			got = list(node.walknode(selector(attrname, *attrvalues)))
+			got = list(node.walknodes(selector(attrname, *attrvalues)))
 			assert len(got) == len(expected)
 			for (gotnode, expectednode) in zip(got, expected):
 				assert gotnode is expectednode
@@ -204,7 +204,7 @@ def test_attrcontains():
 
 	def check(expected, attrname, *attrvalues):
 		for selector in (xfind.attrcontains, xfind.attrcontains_xml):
-			got = list(node.walknode(selector(attrname, *attrvalues)))
+			got = list(node.walknodes(selector(attrname, *attrvalues)))
 			assert len(got) == len(expected)
 			for (gotnode, expectednode) in zip(got, expected):
 				assert gotnode is expectednode
@@ -222,7 +222,7 @@ def test_attrstartswith():
 
 	def check(expected, attrname, *attrvalues):
 		for selector in (xfind.attrstartswith, xfind.attrstartswith_xml):
-			got = list(node.walknode(selector(attrname, *attrvalues)))
+			got = list(node.walknodes(selector(attrname, *attrvalues)))
 			assert len(got) == len(expected)
 			for (gotnode, expectednode) in zip(got, expected):
 				assert gotnode is expectednode
@@ -241,7 +241,7 @@ def test_attrendswith():
 
 	def check(expected, attrname, *attrvalues):
 		for selector in (xfind.attrendswith, xfind.attrendswith_xml):
-			got = list(node.walknode(selector(attrname, *attrvalues)))
+			got = list(node.walknodes(selector(attrname, *attrvalues)))
 			assert len(got) == len(expected)
 			for (gotnode, expectednode) in zip(got, expected):
 				assert gotnode is expectednode
@@ -257,26 +257,26 @@ def test_attrendswith():
 
 def test_hasid():
 	node = xfindnode()
-	res = list(node.walknode(xfind.hasid("id42")))
+	res = list(node.walknodes(xfind.hasid("id42")))
 	assert len(res) == 1
 	assert res[0] is node[1][2]
 
 
 def test_hasclass():
 	node = xfindnode()
-	res = list(node.walknode(xfind.hasclass("foo")))
+	res = list(node.walknodes(xfind.hasclass("foo")))
 	assert len(res) == 1
 	assert res[0] is node[1]
 
 
 def test_frag():
-	e = parsers.parsestring("das ist <b>klaus</b>. das ist <b>erich</b>", parser=parsers.SGMLOPParser(), prefixes={None: html})
-	assert u"".join(map(unicode, e.walknode(e//html.b))) == u"klauserich"
+	e = parsers.parsestring("das ist <b>klaus</b>. das ist <b>erich</b>", parser=parsers.SGMLOP, prefixes={None: html})
+	assert u"".join(map(unicode, e.walknodes(e//html.b))) == u"klauserich"
 
 
 def test_multiall():
 	def check(node, expr, ids):
-		assert "".join(str(e.attrs.id) for e in node.walknode(expr)) == ids
+		assert "".join(str(e.attrs.id) for e in node.walknodes(expr)) == ids
 
 	#        ____0____
 	#       /         \
@@ -293,7 +293,7 @@ def test_multiall():
 
 def test_itemsslices():
 	def check(node, expr, ids):
-		assert "".join(str(e.attrs.id) for e in node.walknode(expr)) == ids
+		assert "".join(str(e.attrs.id) for e in node.walknodes(expr)) == ids
 
 	#        ____0____
 	#       /    |    \

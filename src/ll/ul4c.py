@@ -83,7 +83,7 @@ class Location(object):
 		return self.source[self.starttag:self.endtag]
 
 	def __repr__(self):
-		return "<%s.%s %s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self, id(self))
+		return "<{0}.{1} {2} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, self, id(self))
 
 	def pos(self):
 		lastlinefeed = self.source.rfind("\n", 0, self.starttag)
@@ -94,7 +94,7 @@ class Location(object):
 
 	def __str__(self):
 		(line, col) = self.pos()
-		return "%r at %d (line %d, col %d)" % (self.tag, self.starttag+1, line, col)
+		return "{0!r} at {1} (line {2}, col {3})".format(self.tag, self.starttag+1, line, col)
 
 
 ###
@@ -110,7 +110,7 @@ class Error(Exception):
 		self.__cause__ = None
 
 	def __repr__(self):
-		return "<%s.%s in %s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.location, id(self))
+		return "<{0}.{1} in {2} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.location, id(self))
 
 	def __str__(self):
 		path = []
@@ -123,8 +123,8 @@ class Error(Exception):
 		name = exc.__class__.__name__
 		module = exc.__class__.__module__
 		if module != "exceptions":
-			name = "%s.%s" % (module, name)
-		return "%s %s %s" % (name, " ".join("in %s:" % location for location in path), exc)
+			name = "{0}.{1}".format(module, name)
+		return "{0} {1} {2}".format(name, " ".join("in {0}:".format(location) for location in path), exc)
 
 
 class LexicalError(Exception):
@@ -134,7 +134,7 @@ class LexicalError(Exception):
 		self.input = input
 
 	def __str__(self):
-		return "Unmatched input %r" % self.input
+		return "Unmatched input {0!r}".format(self.input)
 
 
 class SyntaxError(Exception):
@@ -142,7 +142,7 @@ class SyntaxError(Exception):
 		self.token = token
 
 	def __str__(self):
-		return "Lexical error near %r" % str(self.token)
+		return "Lexical error near {0!r}".format(str(self.token))
 
 
 class UnterminatedStringError(Exception):
@@ -178,7 +178,7 @@ class UnknownFunctionError(Exception):
 		self.funcname = funcname
 
 	def __str__(self):
-		return "function %r unknown" % self.funcname
+		return "function {0!r} unknown".format(self.funcname)
 
 
 class UnknownMethodError(Exception):
@@ -192,7 +192,7 @@ class UnknownMethodError(Exception):
 		self.methname = methname
 
 	def __str__(self):
-		return "method %r unknown" % self.methname
+		return "method {0!r} unknown".format(self.methname)
 
 
 class UnknownOpcodeError(Exception):
@@ -204,7 +204,7 @@ class UnknownOpcodeError(Exception):
 		self.opcode = opcode
 
 	def __str__(self):
-		return "opcode %r unknown" % self.opcode
+		return "opcode {0!r} unknown".format(self.opcode)
 
 
 class OutOfRegistersError(Exception):
@@ -471,154 +471,90 @@ class Opcode(object):
 		self.location = location
 
 	def __repr__(self):
-		v = ["<", self.__class__.__name__, " code=%r" % self.code]
+		v = ["<", self.__class__.__name__, " code={0!r}".format(self.code)]
 		for attrname in ("r1", "r2", "r3", "r4", "r5", "arg"):
 			attr = getattr(self, attrname)
 			if attr is not None:
-				v.append(" %s=%r" % (attrname, attr))
+				v.append(" {0}={1!r}".format(attrname, attr))
 		if self.code is None:
-			v.append(" text=%r" % self.location.code)
-		v.append(" at 0x%x>" % id(self))
+			v.append(" text={0!r}".format(self.location.code))
+		v.append(" at {0:#x}>".format(id(self)))
 		return "".join(v)
 
 	def __str__(self):
-		if self.code is None:
-			return "print %r" % self.location.code
-		elif self.code == "print":
-			return "print r%r" % self.r1
-		elif self.code == "printx":
-			return "print xmlescape(r%r)" % self.r1
-		elif self.code == "loadnone":
-			return "r%r = None" % self.r1
-		elif self.code == "loadfalse":
-			return "r%r = False" % self.r1
-		elif self.code == "loadtrue":
-			return "r%r = True" % self.r1
-		elif self.code == "loadstr":
-			return "r%r = %r" % (self.r1, self.arg)
-		elif self.code == "loadint":
-			return "r%r = %s" % (self.r1, self.arg)
-		elif self.code == "loadfloat":
-			return "r%r = %s" % (self.r1, self.arg)
-		elif self.code == "loaddate":
-			return "r%r = %s" % (self.r1, self.arg)
-		elif self.code == "loadcolor":
-			return "r%r = #%s" % (self.r1, self.arg)
-		elif self.code == "buildlist":
-			return "r%r = []" % (self.r1)
-		elif self.code == "builddict":
-			return "r%r = {}" % (self.r1)
-		elif self.code == "addlist":
-			return "r%r.append(r%r)" % (self.r1, self.r2)
-		elif self.code == "adddict":
-			return "r%r[r%r] = r%r" % (self.r1, self.r2, self.r3)
-		elif self.code == "updatedict":
-			return "r%r.update(r%r)" % (self.r1, self.r2)
-		elif self.code == "loadvar":
-			return "r%r = vars[%r]" % (self.r1, self.arg)
-		elif self.code == "storevar":
-			return "vars[%r] = r%r" % (self.arg, self.r1)
-		elif self.code == "addvar":
-			return "vars[%r] += r%r" % (self.arg, self.r1)
-		elif self.code == "subvar":
-			return "vars[%r] -= r%r" % (self.arg, self.r1)
-		elif self.code == "mulvar":
-			return "vars[%r] *= r%r" % (self.arg, self.r1)
-		elif self.code == "truedivvar":
-			return "vars[%r] /= r%r" % (self.arg, self.r1)
-		elif self.code == "floordivvar":
-			return "vars[%r] //= r%r" % (self.arg, self.r1)
-		elif self.code == "modvar":
-			return "vars[%r] %%= r%r" % (self.arg, self.r1)
-		elif self.code == "delvar":
-			return "del vars[%r]" % self.arg
-		elif self.code == "for":
-			return "for r%r in r%r" % (self.r1, self.r2)
-		elif self.code == "endfor":
-			return "endfor"
-		elif self.code == "break":
-			return "break"
-		elif self.code == "continue":
-			return "continue"
-		elif self.code == "if":
-			return "if r%r" % self.r1
-		elif self.code == "else":
-			return "else"
-		elif self.code == "endif":
-			return "endif"
-		elif self.code == "getattr":
-			return "r%r = getattr(r%r, %r)" % (self.r1, self.r2, self.arg)
-		elif self.code == "getitem":
-			return "r%r = r%r[r%r]" % (self.r1, self.r2, self.r3)
-		elif self.code == "getslice1":
-			return "r%r = r%r[r%r:]" % (self.r1, self.r2, self.r3)
-		elif self.code == "getslice2":
-			return "r%r = r%r[:r%r]" % (self.r1, self.r2, self.r3)
-		elif self.code == "getslice12":
-			return "r%r = r%r[r%r:r%r]" % (self.r1, self.r2, self.r3, self.r4)
-		elif self.code == "not":
-			return "r%r = not r%r" % (self.r1, self.r2)
-		elif self.code == "eq":
-			return "r%r = r%r == r%r" % (self.r1, self.r2, self.r3)
-		elif self.code == "ne":
-			return "r%r = r%r != r%r" % (self.r1, self.r2, self.r3)
-		elif self.code == "lt":
-			return "r%r = r%r < r%r" % (self.r1, self.r2, self.r3)
-		elif self.code == "le":
-			return "r%r = r%r <= r%r" % (self.r1, self.r2, self.r3)
-		elif self.code == "gt":
-			return "r%r = r%r > r%r" % (self.r1, self.r2, self.r3)
-		elif self.code == "ge":
-			return "r%r = r%r >= r%r" % (self.r1, self.r2, self.r3)
-		elif self.code == "contains":
-			return "r%r = r%r in r%r" % (self.r1, self.r2, self.r3)
-		elif self.code == "notcontains":
-			return "r%r = r%r not in r%r" % (self.r1, self.r2, self.r3)
-		elif self.code == "add":
-			return "r%r = r%r + r%r" % (self.r1, self.r2, self.r3)
-		elif self.code == "sub":
-			return "r%r = r%r - r%r" % (self.r1, self.r2, self.r3)
-		elif self.code == "mul":
-			return "r%r = r%r * r%r" % (self.r1, self.r2, self.r3)
-		elif self.code == "floordiv":
-			return "r%r = r%r // r%r" % (self.r1, self.r2, self.r3)
-		elif self.code == "truediv":
-			return "r%r = r%r / r%r" % (self.r1, self.r2, self.r3)
-		elif self.code == "and":
-			return "r%r = r%r and r%r" % (self.r1, self.r2, self.r3)
-		elif self.code == "or":
-			return "r%r = r%r or r%r" % (self.r1, self.r2, self.r3)
-		elif self.code == "mod":
-			return "r%r = r%r %% r%r" % (self.r1, self.r2, self.r3)
-		elif self.code == "neg":
-			return "r%r = -r%r" % (self.r1, self.r2)
-		elif self.code == "callfunc0":
-			return "r%r = %s()" % (self.r1, self.arg)
-		elif self.code == "callfunc1":
-			return "r%r = %s(r%r)" % (self.r1, self.arg, self.r2)
-		elif self.code == "callfunc2":
-			return "r%r = %s(r%r, r%r)" % (self.r1, self.arg, self.r2, self.r3)
-		elif self.code == "callfunc3":
-			return "r%r = %s(r%r, r%r, r%r)" % (self.r1, self.arg, self.r2, self.r3, self.r4)
-		elif self.code == "callfunc4":
-			return "r%r = %s(r%r, r%r, r%r, r%r)" % (self.r1, self.arg, self.r2, self.r3, self.r4, self.r5)
-		elif self.code == "callmeth0":
-			return "r%r = r%r.%s()" % (self.r1, self.r2, self.arg)
-		elif self.code == "callmeth1":
-			return "r%r = r%r.%s(r%r)" % (self.r1, self.r2, self.arg, self.r3)
-		elif self.code == "callmeth2":
-			return "r%r = r%r.%s(r%r, r%r)" % (self.r1, self.r2, self.arg, self.r3, self.r4)
-		elif self.code == "callmeth3":
-			return "r%r = r%r.%s(r%r, r%r, r%r)" % (self.r1, self.r2, self.arg, self.r3, self.r4, self.r5)
-		elif self.code == "callmethkw":
-			return "r%r = r%r.%s(**r%r)" % (self.r1, self.r2, self.arg, self.r3)
-		elif self.code == "render":
-			return "render r%r(r%r)" % (self.r1, self.r2)
-		elif self.code == "def":
-			return "def %s(vars)" % self.arg
-		elif self.code == "enddef":
-			return "endfor"
-		else:
+		formats = {
+			None: "print {op.location.code!r}",
+			"print": "print r{op.r1!r}",
+			"printx": "print xmlescape(r{op.r1!r})",
+			"loadnone": "r{op.r1!r} = None",
+			"loadfalse": "r{op.r1!r} = False",
+			"loadtrue": "r{op.r1!r} = True",
+			"loadstr": "r{op.r1!r} = {op.r2!r}",
+			"loadint": "r{op.r1!r} = {op.arg}",
+			"loadfloat": "r{op.r1!r} = {op.arg}",
+			"loaddate": "r{op.r1!r} = {op.arg}",
+			"loadcolor": "r{op.r1!r} = #{op.arg}",
+			"buildlist": "r{op.r1!r} = []",
+			"builddict": "r{op.r1!r} = {{}}",
+			"addlist": "r{op.r1!r}.append(r{op.r2!r})",
+			"adddict": "r{op.r1!r}[r{op.r2!r}] = r{op.r3!r}",
+			"updatedict": "r{op.r1!r}.update(r{op.r2!r})",
+			"loadvar": "r{op.r1!r} = vars[{op.arg!r}]",
+			"storevar": "vars[{op.arg!r}] = r{op.r1!r}",
+			"addvar": "vars[{op.arg!r}] += r{op.r1!r}",
+			"subvar": "vars[{op.arg!r}] -= r{op.r1!r}",
+			"mulvar": "vars[{op.arg!r}] *= r{op.r1!r}",
+			"truedivvar": "vars[{op.arg!r}] /= r{op.r1!r}",
+			"floordivvar": "vars[{op.arg!r}] //= r{op.r1!r}",
+			"modvar": "vars[{op.arg!r}] %= r{op.r1!r}",
+			"delvar": "del vars[{op.arg!r}]",
+			"for": "for r{op.r1!r} in r{op.r2!r}",
+			"endfor": "endfor",
+			"break": "break",
+			"continue": "continue",
+			"if": "if r{op.r1!r}",
+			"else": "else",
+			"endif": "endif",
+			"getattr": "r{op.r1!r} = getattr(r{op.r2!r}, {op.arg!r})",
+			"getitem": "r{op.r1!r} = r{op.r2!r}[r{op.r3!r}]",
+			"getslice1": "r{op.r1!r} = r{op.r2!r}[r{op.r3!r}:]",
+			"getslice2": "r{op.r1!r} = r{op.r2!r}[:r{op.r3!r}]",
+			"getslice12": "r{op.r1!r} = r{op.r2!r}[r{op.r3!r}:r{op.r4!r}]",
+			"not": "r{op.r1!r} = not r{op.r2!r}",
+			"eq": "r{op.r1!r} = r{op.r2!r} == r{op.r3!r}",
+			"ne": "r{op.r1!r} = r{op.r2!r} != r{op.r3!r}",
+			"lt": "r{op.r1!r} = r{op.r2!r} < r{op.r3!r}",
+			"le": "r{op.r1!r} = r{op.r2!r} <= r{op.r3!r}",
+			"gt": "r{op.r1!r} = r{op.r2!r} > r{op.r3!r}",
+			"ge": "r{op.r1!r} = r{op.r2!r} >= r{op.r3!r}",
+			"contains": "r{op.r1!r} = r{op.r2!r} in r{op.r3!r}",
+			"notcontains": "r{op.r1!r} = r{op.r2!r} not in r{op.r3!r}",
+			"add": "r{op.r1!r} = r{op.r2!r} + r{op.r3!r}",
+			"sub": "r{op.r1!r} = r{op.r2!r} - r{op.r3!r}",
+			"mul": "r{op.r1!r} = r{op.r2!r} * r{op.r3!r}",
+			"floordiv": "r{op.r1!r} = r{op.r2!r} // r{op.r3!r}",
+			"truediv": "r{op.r1!r} = r{op.r2!r} / r{op.r3!r}",
+			"and": "r{op.r1!r} = r{op.r2!r} and r{op.r3!r}",
+			"or": "r{op.r1!r} = r{op.r2!r} or r{op.r3!r}",
+			"mod": "r{op.r1!r} = r{op.r2!r} % r{op.r3!r}",
+			"neg":"r{op.r1!r} = -r{op.r2!r}",
+			"callfunc0": "r{op.r1!r} = {op.arg}()",
+			"callfunc1": "r{op.r1!r} = {op.arg}(r{op.r2!r})",
+			"callfunc2": "r{op.r1!r} = {op.arg}(r{op.r2!r}, r{op.r3!r})",
+			"callfunc3": "r{op.r1!r} = {op.arg}(r{op.r2!r}, r{op.r3!r}, r{op.r4!r})",
+			"callfunc4": "r{op.r1!r} = {op.arg}(r{op.r2!r}, r{op.r3!r}, r{op.r4!r}, r{op.r5!r})",
+			"callmeth0": "r{op.r1!r} = r{op.r2!r}.{op.arg}()",
+			"callmeth1": "r{op.r1!r} = r{op.r2!r}.{op.arg}(r{op.r3!r})",
+			"callmeth2": "r{op.r1!r} = r{op.r2!r}.{op.arg}(r{op.r3!r}, r{op.r4!r})",
+			"callmeth3": "r{op.r1!r} = r{op.r3!r}.{op.arg}(r{op.r3!r}, r{op.r4!r}, r{op.r5!r})",
+			"callmethkw": "r{op.r1!r} = r{op.r2!r}.{op.arg}(**r{op.r3!r})",
+			"render": "render r{op.r1!r}(r{op.r2!r})",
+			"def": "def {op.arg}(vars)",
+			"enddef": "endfor",
+		}
+		try:
+			return formats[self.code].format(op=self)
+		except KeyError:
 			raise UnknownOpcodeError(self.code)
 
 
@@ -635,7 +571,7 @@ class Template(object):
 	Rendering the template can be done with the methods :meth:`render` (which
 	is a generator) or :meth:`renders` (which returns a string).
 	"""
-	version = "11"
+	version = "12"
 
 	def __init__(self, source=None, startdelim="<?", enddelim="?>"):
 		"""
@@ -671,7 +607,7 @@ class Template(object):
 				elif c == term:
 					return i
 				else:
-					raise ValueError("invalid terminator, expected %r, got %r" % (term, c))
+					raise ValueError("invalid terminator, expected {0!r}, got {1!r}".format(term, c))
 
 		def _readstr(term):
 			i = 0
@@ -686,7 +622,7 @@ class Template(object):
 						break
 					return None
 				else:
-					raise ValueError("invalid terminator, expected %r, got %r" % (term, c))
+					raise ValueError("invalid terminator, expected {0!r}, got {1!r}".format(term, c))
 			s = stream.read(i)
 			if len(s) != i:
 				raise ValueError("short read")
@@ -699,23 +635,23 @@ class Template(object):
 			elif c.isdigit():
 				return int(c)
 			else:
-				raise ValueError("invalid register spec %r" % c)
+				raise ValueError("invalid register spec {0!r}".format(c))
 
 		def _readcr():
 			c = stream.read(1)
 			if c != "\n":
-				raise ValueError("invalid linefeed %r" % c)
+				raise ValueError("invalid linefeed {0!r}".format(c))
 
 		self = cls()
 		stream = StringIO.StringIO(data)
 		header = stream.readline()
 		header = header.rstrip()
 		if header != "ul4":
-			raise ValueError("invalid header, expected 'ul4', got %r" % header)
+			raise ValueError("invalid header, expected 'ul4', got {0!r}".format(header))
 		version = stream.readline()
 		version = version.rstrip()
 		if version != self.version:
-			raise ValueError("invalid version, expected %r got, %r" % (self.version, version))
+			raise ValueError("invalid version, expected {0!r}, got {1!r}".format(self.version, version))
 		self.startdelim = _readstr(u"<")
 		_readcr()
 		self.enddelim = _readstr(u">")
@@ -741,7 +677,7 @@ class Template(object):
 			elif locspec == u"*":
 				location = Location(self.source, _readstr("="), _readint("("), _readint(")"), _readint("{"), _readint("}"))
 			else:
-				raise ValueError("invalid location spec %r" % locspec)
+				raise ValueError("invalid location spec {0!r}".format(locspec))
 			_readcr()
 			count -= 1
 			self.opcodes.append(Opcode(code, r1, r2, r3, r4, r5, arg, location))
@@ -771,7 +707,7 @@ class Template(object):
 				yield term
 				yield string
 
-		yield "ul4\n%s\n" % self.version
+		yield "ul4\n{0}\n".format(self.version)
 		for p in _writestr("<", self.startdelim): yield p
 		yield "\n"
 		for p in _writestr(">", self.enddelim): yield p
@@ -816,74 +752,74 @@ class Template(object):
 		return "".join(self.iterdump())
 
 	def _pythonsource_line(self, location, line):
-		self.lines.append("%s%s" % ("\t"*self.indent, line))
+		self.lines.append("{0}{1}".format("\t"*self.indent, line))
 		if self.lastlocation is not location or not self.locations:
 			self.locations.append((location.type, location.starttag, location.endtag, location.startcode, location.endcode))
 			self.lastlocation = location
 		self.lines2locs.append(len(self.locations)-1)
 
 	def _pythonsource_dispatch_None(self, opcode):
-		self._pythonsource_line(opcode.location, "yield %r" % opcode.location.code)
+		self._pythonsource_line(opcode.location, "yield {0!r}".format(opcode.location.code))
 	def _pythonsource_dispatch_loadstr(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = %r" % (opcode.r1, opcode.arg))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = {op.arg!r}".format(op=opcode))
 	def _pythonsource_dispatch_loadint(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = %s" % (opcode.r1, opcode.arg))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = {op.arg}".format(op=opcode))
 	def _pythonsource_dispatch_loadfloat(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = %s" % (opcode.r1, opcode.arg))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = {op.arg}".format(op=opcode))
 	def _pythonsource_dispatch_loadnone(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = None" % opcode.r1)
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = None".format(op=opcode))
 	def _pythonsource_dispatch_loadfalse(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = False" % opcode.r1)
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = False".format(op=opcode))
 	def _pythonsource_dispatch_loadtrue(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = True" % opcode.r1)
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = True".format(op=opcode))
 	def _pythonsource_dispatch_loaddate(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = datetime.datetime(%s)" % (opcode.r1, ", ".join(str(int(p)) for p in datesplitter.split(opcode.arg))))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = datetime.datetime({date})".format(op=opcode, date=", ".join(str(int(p)) for p in datesplitter.split(opcode.arg))))
 	def _pythonsource_dispatch_loadcolor(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = color.Color(0x%s, 0x%s, 0x%s, 0x%s)" % (opcode.r1, opcode.arg[:2], opcode.arg[2:4], opcode.arg[4:6], opcode.arg[6:]))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = color.Color(0x{r}, 0x{g}, 0x{b}, 0x{a})".format(op=opcode, r=opcode.arg[:2], g=opcode.arg[2:4], b=opcode.arg[4:6], a=opcode.arg[6:]))
 	def _pythonsource_dispatch_buildlist(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = []" % opcode.r1)
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = []".format(op=opcode))
 	def _pythonsource_dispatch_builddict(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = {}" % opcode.r1)
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = {{}}".format(op=opcode))
 	def _pythonsource_dispatch_addlist(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d.append(r%d)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d}.append(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_adddict(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d[r%d] = r%d" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d}[r{op.r2:d}] = r{op.r3:d}".format(op=opcode))
 	def _pythonsource_dispatch_updatedict(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d.update(r%d)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d}.update(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_loadvar(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = variables[%r]" % (opcode.r1, opcode.arg))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = variables[{op.arg!r}]".format(op=opcode))
 	def _pythonsource_dispatch_storevar(self, opcode):
-		self._pythonsource_line(opcode.location, "variables[%r] = r%d" % (opcode.arg, opcode.r1))
+		self._pythonsource_line(opcode.location, "variables[{op.arg!r}] = r{op.r1:d}".format(op=opcode))
 	def _pythonsource_dispatch_addvar(self, opcode):
-		self._pythonsource_line(opcode.location, "variables[%r] += r%d" % (opcode.arg, opcode.r1))
+		self._pythonsource_line(opcode.location, "variables[{op.arg!r}] += r{op.r1:d}".format(op=opcode))
 	def _pythonsource_dispatch_subvar(self, opcode):
-		self._pythonsource_line(opcode.location, "variables[%r] -= r%d" % (opcode.arg, opcode.r1))
+		self._pythonsource_line(opcode.location, "variables[{op.arg!r}] -= r{op.r1:d}".format(op=opcode))
 	def _pythonsource_dispatch_mulvar(self, opcode):
-		self._pythonsource_line(opcode.location, "variables[%r] *= r%d" % (opcode.arg, opcode.r1))
+		self._pythonsource_line(opcode.location, "variables[{op.arg!r}] *= r{op.r1:d}".format(op=opcode))
 	def _pythonsource_dispatch_truedivvar(self, opcode):
-		self._pythonsource_line(opcode.location, "variables[%r] /= r%d" % (opcode.arg, opcode.r1))
+		self._pythonsource_line(opcode.location, "variables[{op.arg!r}] /= r{op.r1:d}".format(op=opcode))
 	def _pythonsource_dispatch_floordivvar(self, opcode):
-		self._pythonsource_line(opcode.location, "variables[%r] //= r%d" % (opcode.arg, opcode.r1))
+		self._pythonsource_line(opcode.location, "variables[{op.arg!r}] //= r{op.r1:d}".format(op=opcode))
 	def _pythonsource_dispatch_modvar(self, opcode):
-		self._pythonsource_line(opcode.location, "variables[%r] %%= r%d" % (opcode.arg, opcode.r1))
+		self._pythonsource_line(opcode.location, "variables[{op.arg!r}] %= r{op.r1:d}".format(op=opcode))
 	def _pythonsource_dispatch_delvar(self, opcode):
-		self._pythonsource_line(opcode.location, "del variables[%r]" % opcode.arg)
+		self._pythonsource_line(opcode.location, "del variables[{op.arg!r}]".format(op=opcode))
 	def _pythonsource_dispatch_getattr(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d[%r]" % (opcode.r1, opcode.r2, opcode.arg))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}[{op.arg!r}]".format(op=opcode))
 	def _pythonsource_dispatch_getitem(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d[r%d]" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}[r{op.r3:d}]".format(op=opcode))
 	def _pythonsource_dispatch_getslice12(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d[r%d:r%d]" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}[r{op.r3:d}:r{op.r4:d}]".format(op=opcode))
 	def _pythonsource_dispatch_getslice1(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d[r%d:]" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}[r{op.r3:d}:]".format(op=opcode))
 	def _pythonsource_dispatch_getslice2(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d[:r%d]" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}[:r{op.r3:d}]".format(op=opcode))
 	def _pythonsource_dispatch_print(self, opcode):
-		self._pythonsource_line(opcode.location, "if r%d is not None: yield unicode(r%d)" % (opcode.r1, opcode.r1))
+		self._pythonsource_line(opcode.location, "if r{op.r1:d} is not None: yield unicode(r{op.r1:d})".format(op=opcode))
 	def _pythonsource_dispatch_printx(self, opcode):
-		self._pythonsource_line(opcode.location, "if r%d is not None: yield xmlescape(unicode(r%d))" % (opcode.r1, opcode.r1))
+		self._pythonsource_line(opcode.location, "if r{op.r1:d} is not None: yield xmlescape(unicode(r{op.r1:d}))".format(op=opcode))
 	def _pythonsource_dispatch_for(self, opcode):
-		self._pythonsource_line(opcode.location, "for r%d in r%d:" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "for r{op.r1:d} in r{op.r2:d}:".format(op=opcode))
 		self.indent += 1
 	def _pythonsource_dispatch_endfor(self, opcode):
 		# we don't have to check for empty loops here, as a ``<?for?>`` tag always generates at least one ``storevar`` opcode inside the loop
@@ -893,101 +829,103 @@ class Template(object):
 	def _pythonsource_dispatch_continue(self, opcode):
 		self._pythonsource_line(opcode.location, "continue")
 	def _pythonsource_dispatch_not(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = not r%d" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = not r{op.r2:d}".format(op=opcode))
 	def _pythonsource_dispatch_neg(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = -r%d" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = -r{op.r2:d}".format(op=opcode))
 	def _pythonsource_dispatch_contains(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d in r%d" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} in r{op.r3:d}".format(op=opcode))
 	def _pythonsource_dispatch_notcontains(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d not in r%d" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} not in r{op.r3:d}".format(op=opcode))
 	def _pythonsource_dispatch_eq(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d == r%d" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} == r{op.r3:d}".format(op=opcode))
 	def _pythonsource_dispatch_ne(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d != r%d" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} != r{op.r3:d}".format(op=opcode))
 	def _pythonsource_dispatch_lt(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d < r%d" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} < r{op.r3:d}".format(op=opcode))
 	def _pythonsource_dispatch_le(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d <= r%d" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} <= r{op.r3:d}".format(op=opcode))
 	def _pythonsource_dispatch_gt(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d > r%d" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} > r{op.r3:d}".format(op=opcode))
 	def _pythonsource_dispatch_ge(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d >= r%d" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} >= r{op.r3:d}".format(op=opcode))
 	def _pythonsource_dispatch_add(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d + r%d" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} + r{op.r3:d}".format(op=opcode))
 	def _pythonsource_dispatch_sub(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d - r%d" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} - r{op.r3:d}".format(op=opcode))
 	def _pythonsource_dispatch_mul(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d * r%d" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} * r{op.r3:d}".format(op=opcode))
 	def _pythonsource_dispatch_floordiv(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d // r%d" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} // r{op.r3:d}".format(op=opcode))
 	def _pythonsource_dispatch_truediv(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d / r%d" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} / r{op.r3:d}".format(op=opcode))
 	def _pythonsource_dispatch_and(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d and r%d" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} and r{op.r3:d}".format(op=opcode))
 	def _pythonsource_dispatch_or(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d or r%d" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} or r{op.r3:d}".format(op=opcode))
 	def _pythonsource_dispatch_mod(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d %% r%d" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} % r{op.r3:d}".format(op=opcode))
 	def _pythonsource_dispatch_callfunc0(self, opcode):
 		try:
-			getattr(self, "_pythonsource_dispatch_callfunc0_%s" % opcode.arg)(opcode)
+			getattr(self, "_pythonsource_dispatch_callfunc0_{op.arg}".format(op=opcode))(opcode)
 		except AttributeError:
 			raise UnknownFunctionError(opcode.arg)
 	def _pythonsource_dispatch_callfunc1(self, opcode):
 		try:
-			getattr(self, "_pythonsource_dispatch_callfunc1_%s" % opcode.arg)(opcode)
+			getattr(self, "_pythonsource_dispatch_callfunc1_{op.arg}".format(op=opcode))(opcode)
 		except AttributeError:
 			raise UnknownFunctionError(opcode.arg)
 	def _pythonsource_dispatch_callfunc2(self, opcode):
 		try:
-			getattr(self, "_pythonsource_dispatch_callfunc2_%s" % opcode.arg)(opcode)
+			getattr(self, "_pythonsource_dispatch_callfunc2_{op.arg}".format(op=opcode))(opcode)
 		except AttributeError:
 			raise UnknownFunctionError(opcode.arg)
 	def _pythonsource_dispatch_callfunc3(self, opcode):
 		try:
-			getattr(self, "_pythonsource_dispatch_callfunc3_%s" % opcode.arg)(opcode)
+			getattr(self, "_pythonsource_dispatch_callfunc3_{op.arg}".format(op=opcode))(opcode)
 		except AttributeError:
 			raise UnknownFunctionError(opcode.arg)
 	def _pythonsource_dispatch_callfunc4(self, opcode):
 		try:
-			getattr(self, "_pythonsource_dispatch_callfunc4_%s" % opcode.arg)(opcode)
+			getattr(self, "_pythonsource_dispatch_callfunc4_{op.arg}".format(op=opcode))(opcode)
 		except AttributeError:
 			raise UnknownFunctionError(opcode.arg)
 	def _pythonsource_dispatch_callmeth0(self, opcode):
 		if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "isoformat", "r", "g", "b", "a", "hls", "hlsa", "hsv", "hsva", "lum"):
-			self._pythonsource_line(opcode.location, "r%d = r%d.%s()" % (opcode.r1, opcode.r2, opcode.arg))
+			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.{op.arg}()".format(op=opcode))
 		elif opcode.arg == "items":
-			self._pythonsource_line(opcode.location, "r%d = r%d.iteritems()" % (opcode.r1, opcode.r2))
+			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.iteritems()".format(op=opcode))
 		elif opcode.arg == "render":
-			self._pythonsource_line(opcode.location, 'r%d = "".join(r%d())' % (opcode.r1, opcode.r2))
+			self._pythonsource_line(opcode.location, 'r{op.r1:d} = "".join(r{op.r2:d}())'.format(op=opcode))
+		elif opcode.arg == "mimeformat":
+			self._pythonsource_line(opcode.location, 'r{op.r1:d} = ul4c._mimeformat(r{op.r2:d})'.format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _pythonsource_dispatch_callmeth1(self, opcode):
 		if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "get", "withlum", "witha"):
-			self._pythonsource_line(opcode.location, "r%d = r%d.%s(r%d)" % (opcode.r1, opcode.r2, opcode.arg, opcode.r3))
+			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.{op.arg}(r{op.r3:d})".format(op=opcode))
 		elif opcode.arg == "join":
-			self._pythonsource_line(opcode.location, "r%d = r%d.join(unicode(x) for x in r%d)" % (opcode.r1, opcode.r2, opcode.r3))
+			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.join(unicode(x) for x in r{op.r3:d})".format(op=opcode))
 		elif opcode.arg == "format":
-			self._pythonsource_line(opcode.location, "r%d = r%d.__format__(r%d)" % (opcode.r1, opcode.r2, opcode.r3))
+			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.__format__(r{op.r3:d})".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _pythonsource_dispatch_callmeth2(self, opcode):
 		if opcode.arg in ("split", "rsplit", "find", "replace", "get"):
-			self._pythonsource_line(opcode.location, "r%d = r%d.%s(r%d, r%d)" % (opcode.r1, opcode.r2, opcode.arg, opcode.r3, opcode.r4))
+			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.{op.arg}(r{op.r3:d}, r{op.r4:d})".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _pythonsource_dispatch_callmeth3(self, opcode):
 		if opcode.arg == "find":
-			self._pythonsource_line(opcode.location, "r%d = r%d.%s(r%d, r%d, r%d)" % (opcode.r1, opcode.r2, opcode.arg, opcode.r3, opcode.r4, opcode.r5))
+			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.{op.arg}(r{op.r3:d}, r{op.r4:d}, r{op.r5:d})".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _pythonsource_dispatch_callmethkw(self, opcode):
 		if opcode.arg == "render":
-			self._pythonsource_line(opcode.location, 'r%d = "".join(r%d(**dict((key.encode("utf-8"), value) for (key, value) in r%d.iteritems())))' % (opcode.r1, opcode.r2, opcode.r3))
+			self._pythonsource_line(opcode.location, 'r{op.r1:d} = "".join(r{op.r2:d}(**dict((key.encode("utf-8"), value) for (key, value) in r{op.r3:d}.iteritems())))'.format(op=opcode)) # FIXME: This can be simplified in Python 3.0 where strings are unicode
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _pythonsource_dispatch_if(self, opcode):
-		self._pythonsource_line(opcode.location, "if r%d:" % (opcode.r1))
+		self._pythonsource_line(opcode.location, "if r{op.r1:d}:".format(op=opcode))
 		self.indent += 1
 	def _pythonsource_dispatch_else(self, opcode):
 		if self.lastopcode == "if":
@@ -1018,97 +956,101 @@ class Template(object):
 		self._pythonsource_line(opcode.location, "newexc.__cause__ = exc")
 		self._pythonsource_line(opcode.location, "raise newexc")
 		self.indent -= 2
-		self._pythonsource_line(opcode.location, "variables[%r] = _" % defopcode.arg)
+		self._pythonsource_line(opcode.location, "variables[{op.arg!r}] = _".format(op=defopcode))
 	def _pythonsource_dispatch_render(self, opcode):
-		self._pythonsource_line(opcode.location, 'for chunk in r%d(**dict((key.encode("utf-8"), value) for (key, value) in r%d.iteritems())): yield chunk' % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, 'for chunk in r{op.r1:d}(**dict((key.encode("utf-8"), value) for (key, value) in r{op.r2:d}.iteritems())): yield chunk'.format(op=opcode))
 	def _pythonsource_dispatch_callfunc0_now(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = datetime.datetime.now()" % opcode.r1)
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = datetime.datetime.now()".format(op=opcode))
+	def _pythonsource_dispatch_callfunc0_utcnow(self, opcode):
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = datetime.datetime.utcnow()".format(op=opcode))
 	def _pythonsource_dispatch_callfunc0_vars(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = variables" % opcode.r1)
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = variables".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_xmlescape(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = xmlescape(unicode(r%d)) if r%d is not None else u''" % (opcode.r1, opcode.r2, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = xmlescape(unicode(r{op.r2:d})) if r{op.r2:d} is not None else u''".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_csv(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = ul4c._csv(r%d)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = ul4c._csv(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_json(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = json.dumps(r%d)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = json.dumps(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_str(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = unicode(r%d) if r%d is not None else u''" % (opcode.r1, opcode.r2, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = unicode(r{op.r2:d}) if r{op.r2:d} is not None else u''".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_int(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = int(r%d)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = int(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_float(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = float(r%d)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = float(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_bool(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = bool(r%d)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = bool(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_len(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = len(r%d)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = len(r{op.r2:d})".format(op=opcode))
+	def _pythonsource_dispatch_callfunc1_abs(self, opcode):
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = abs(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_enumerate(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = enumerate(r%d)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = enumerate(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_isnone(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = r%d is None" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} is None".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_isstr(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = isinstance(r%d, basestring)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, basestring)".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_isint(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = isinstance(r%d, (int, long)) and not isinstance(r%d, bool)" % (opcode.r1, opcode.r2, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, (int, long)) and not isinstance(r{op.r2:d}, bool)".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_isfloat(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = isinstance(r%d, float)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, float)".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_isbool(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = isinstance(r%d, bool)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, bool)".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_isdate(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = isinstance(r%d, datetime.datetime)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, datetime.datetime)".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_islist(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = isinstance(r%d, (list, tuple)) and not isinstance(r%d, color.Color)" % (opcode.r1, opcode.r2, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, (list, tuple)) and not isinstance(r{op.r2:d}, color.Color)".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_isdict(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = isinstance(r%d, dict)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, dict)".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_istemplate(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = hasattr(r%d, '__call__')" % (opcode.r1, opcode.r2)) # this supports normal generators too
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = hasattr(r{op.r2:d}, '__call__')".format(op=opcode)) # this supports normal generators too
 	def _pythonsource_dispatch_callfunc1_iscolor(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = isinstance(r%d, color.Color)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, color.Color)".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_repr(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = ul4c._repr(r%d)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = ul4c._repr(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_get(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = variables.get(r%d)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = variables.get(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_chr(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = unichr(r%d)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = unichr(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_ord(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = ord(r%d)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = ord(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_hex(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = hex(r%d)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = hex(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_oct(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = ul4c._oct(r%d)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = ul4c._oct(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_bin(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = bin(r%d)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = bin(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_sorted(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = sorted(r%d)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = sorted(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_range(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = xrange(r%d)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = xrange(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_type(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = ul4c._type(r%d)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = ul4c._type(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_reversed(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = reversed(r%d)" % (opcode.r1, opcode.r2))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = reversed(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc2_range(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = xrange(r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = xrange(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc2_get(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = variables.get(r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = variables.get(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc2_zip(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = itertools.izip(r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = itertools.izip(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc2_int(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = int(r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = int(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc3_range(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = xrange(r%d, r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = xrange(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc3_zip(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = itertools.izip(r%d, r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = itertools.izip(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc3_rgb(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = color.Color.fromrgb(r%d, r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = color.Color.fromrgb(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc3_hls(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = color.Color.fromhls(r%d, r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = color.Color.fromhls(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc3_hsv(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = color.Color.fromhsv(r%d, r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = color.Color.fromhsv(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc4_rgb(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = color.Color.fromrgb(r%d, r%d, r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4, opcode.r5))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = color.Color.fromrgb(r{op.r2:d}, r{op.r3:d}, r{op.r4:d}, r{op.r5:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc4_hls(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = color.Color.fromhls(r%d, r%d, r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4, opcode.r5))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = color.Color.fromhls(r{op.r2:d}, r{op.r3:d}, r{op.r4:d}, r{op.r5:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc4_hsv(self, opcode):
-		self._pythonsource_line(opcode.location, "r%d = color.Color.fromhsv(r%d, r%d, r%d, r%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4, opcode.r5))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = color.Color.fromhsv(r{op.r2:d}, r{op.r3:d}, r{op.r4:d}, r{op.r5:d})".format(op=opcode))
 
 	def pythonsource(self, function=None):
 		"""
@@ -1124,13 +1066,13 @@ class Template(object):
 		self.lastlocation = Location(self.source, None, 0, 0, 0, 0)
 
 		if function is not None:
-			self._pythonsource_line(self.lastlocation, "def %s(**variables):" % function)
+			self._pythonsource_line(self.lastlocation, "def {0}(**variables):".format(function))
 			self.indent += 1
 			self.lines2locs = [] # We initialize startline one line below, which restarts the counter
 		self._pythonsource_line(self.lastlocation, "import sys, datetime, itertools, json; from ll.misc import xmlescape; from ll import ul4c, color; startline = sys._getframe().f_lineno") # The line number of this line
 		self._pythonsource_line(self.lastlocation, "__1__")
 		self._pythonsource_line(self.lastlocation, "__2__")
-		self._pythonsource_line(self.lastlocation, "source = %r" % self.source)
+		self._pythonsource_line(self.lastlocation, "source = {0!r}".format(self.source))
 		self._pythonsource_line(self.lastlocation, 'variables = dict((key.decode("utf-8"), value) for (key, value) in variables.iteritems())') # FIXME: This can be dropped in Python 3.0 where strings are unicode
 		self._pythonsource_line(self.lastlocation, "r0 = r1 = r2 = r3 = r4 = r5 = r6 = r7 = r8 = r9 = None")
 		self._pythonsource_line(self.lastlocation, "try:")
@@ -1140,7 +1082,7 @@ class Template(object):
 		try:
 			for opcode in self.opcodes:
 				try:
-					getattr(self, "_pythonsource_dispatch_%s" % opcode.code)(opcode)
+					getattr(self, "_pythonsource_dispatch_{0}".format(opcode.code))(opcode)
 				except AttributeError:
 					raise UnknownOpcodeError(opcode.code)
 				self.lastopcode = opcode.code
@@ -1155,8 +1097,8 @@ class Template(object):
 		self._pythonsource_line(self.lastlocation, "newexc.__cause__ = exc")
 		self._pythonsource_line(self.lastlocation, "raise newexc")
 		locoffset = 1+int(self.lines[0].strip() != "__1__")
-		self.lines[locoffset] = self.lines[locoffset].replace("__1__", "locations = %r" % (tuple(self.locations),))
-		self.lines[locoffset+1] = self.lines[locoffset+1].replace("__2__", "lines2locs = %r" % (tuple(self.lines2locs),))
+		self.lines[locoffset] = self.lines[locoffset].replace("__1__", "locations = {0!r}".format(tuple(self.locations)))
+		self.lines[locoffset+1] = self.lines[locoffset+1].replace("__2__", "lines2locs = {0!r}".format(tuple(self.lines2locs)))
 		result = "\n".join(self.lines)
 		del self.lastopcode
 		del self.indent
@@ -1206,13 +1148,13 @@ class Template(object):
 			if opcode.code in ("else", "endif", "endfor", "enddef"):
 				i -= 1
 			if opcode.code in ("endif", "endfor", "enddef"):
-				yield "%s}" % (i*indent)
+				yield "{0}}}".format(i*indent)
 			elif opcode.code in ("for", "if", "def"):
-				yield "%s%s {" % (i*indent, opcode)
+				yield "{0}{1} {{".format(i*indent, opcode)
 			elif opcode.code == "else":
-				yield "%s} else {" % (i*indent)
+				yield "{0}}} else {{".format(i*indent)
 			else:
-				yield "%s%s" % (i*indent, opcode)
+				yield "{0}{1}".format(i*indent, opcode)
 			if opcode.code in ("for", "if", "else", "def"):
 				i += 1
 
@@ -1224,7 +1166,7 @@ class Template(object):
 		This is a generator which produces :class:`Location` objects for each tag
 		or non-tag text. It will be called by :meth:`_compile` internally.
 		"""
-		pattern = u"%s(printx|print|code|for|if|elif|else|end|break|continue|render|def|note)(\s*((.|\\n)*?)\s*)?%s" % (re.escape(startdelim), re.escape(enddelim))
+		pattern = u"{0}(printx|print|code|for|if|elif|else|end|break|continue|render|def|note)(\s*((.|\\n)*?)\s*)?{1}".format(re.escape(startdelim), re.escape(enddelim))
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
@@ -1331,7 +1273,7 @@ class Template(object):
 							if stack[-1][0] != "def":
 								raise BlockError("enddef doesn't match any def")
 						else:
-							raise BlockError("illegal end value %r" % code)
+							raise BlockError("illegal end value {0!r}".format(code))
 					last = stack.pop()
 					if last[0] == "if":
 						for i in xrange(last[2]):
@@ -1357,7 +1299,7 @@ class Template(object):
 					self.opcode("def", arg=location.code)
 					stack.append(("def", location))
 				else: # Can't happen
-					raise ValueError("unknown tag %r" % location.type)
+					raise ValueError("unknown tag {0!r}".format(location.type))
 			except Exception, exc:
 				newexc = Error(location) # FIXME: use ``raise ... from`` in Python 3.0
 				newexc.__cause__ = exc
@@ -1376,7 +1318,7 @@ class Template(object):
 		return u"\n".join(self.format())
 
 	def __repr__(self):
-		return "<%s.%s object with %d opcodes at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, len(self.opcodes), id(self))
+		return "<{0}.{1} object with {2} opcodes at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, len(self.opcodes), id(self))
 
 
 def compile(source, startdelim="<?", enddelim="?>"):
@@ -1397,7 +1339,7 @@ class Token(object):
 		self.type = type
 
 	def __repr__(self):
-		return "%s(%r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.type)
+		return "{0}({1!r}, {2!r}, {3!r})".format(self.__class__.__name__, self.start, self.end, self.type)
 
 	def __str__(self):
 		return self.type
@@ -1419,11 +1361,11 @@ class Const(AST):
 	"""
 
 	def __repr__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.start, self.end)
+		return "{0}({1!r}, {2!r})".format(self.__class__.__name__, self.start, self.end)
 
 	def compile(self, template):
 		r = template._allocreg()
-		template.opcode("load%s" % self.type, r1=r)
+		template.opcode("load{0}".format(self.type), r1=r)
 		return r
 
 
@@ -1448,11 +1390,11 @@ class Value(Const):
 		self.value = value
 
 	def __repr__(self):
-		return "%s(%r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.value)
+		return "{0}({1!r}, {2!r}, {3!r})".format(self.__class__.__name__, self.start, self.end, self.value)
 
 	def compile(self, template):
 		r = template._allocreg()
-		template.opcode("load%s" % self.type, r1=r, arg=unicode(self.value))
+		template.opcode("load{0}".format(self.type), r1=r, arg=unicode(self.value))
 		return r
 
 
@@ -1465,7 +1407,7 @@ class Float(Value):
 
 	def compile(self, template):
 		r = template._allocreg()
-		template.opcode("load%s" % self.type, r1=r, arg=repr(self.value))
+		template.opcode("load{0}".format(self.type), r1=r, arg=repr(self.value))
 		return r
 
 
@@ -1478,7 +1420,7 @@ class Date(Value):
 
 	def compile(self, template):
 		r = template._allocreg()
-		template.opcode("load%s" % self.type, r1=r, arg=self.value.isoformat())
+		template.opcode("load{0}".format(self.type), r1=r, arg=self.value.isoformat())
 		return r
 
 
@@ -1487,7 +1429,7 @@ class Color(Value):
 
 	def compile(self, template):
 		r = template._allocreg()
-		template.opcode("load%s" % self.type, r1=r, arg="%02x%02x%02x%02x" % self.value)
+		template.opcode("load{0}".format(self.type), r1=r, arg="{0:02x}{1:02x}{2:02x}{3:02x}".format(*self.value))
 		return r
 
 
@@ -1497,7 +1439,7 @@ class List(AST):
 		self.items = list(items)
 
 	def __repr__(self):
-		return "%s(%r, %r, %s)" % (self.__class__.__name__, self.start, self.end, repr(self.items)[1:-1])
+		return "{0}({1!r}, {2!r}, {3!r})".format(self.__class__.__name__, self.start, self.end, repr(self.items)[1:-1])
 
 	def compile(self, template):
 		r = template._allocreg()
@@ -1515,7 +1457,7 @@ class Dict(AST):
 		self.items = list(items)
 
 	def __repr__(self):
-		return "%s(%r, %r, %s)" % (self.__class__.__name__, self.start, self.end, repr(self.items)[1:-1])
+		return "{0}({1!r}, {2!r}, {3!r})".format(self.__class__.__name__, self.start, self.end, repr(self.items)[1:-1])
 
 	def compile(self, template):
 		r = template._allocreg()
@@ -1543,7 +1485,7 @@ class Name(AST):
 		self.name = name
 
 	def __repr__(self):
-		return "%s(%r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.name)
+		return "{0}({1!r}, {2!r}, {3!r})".format(self.__class__.__name__, self.start, self.end, self.name)
 
 	def compile(self, template):
 		r = template._allocreg()
@@ -1558,7 +1500,7 @@ class For(AST):
 		self.cont = cont
 
 	def __repr__(self):
-		return "%s(%r, %r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.iter, self.cont)
+		return "{0}({1!r}, {2!r}, {3!r}, {4!r})".format(self.__class__.__name__, self.start, self.end, self.iter, self.cont)
 
 	def compile(self, template):
 		rc = self.cont.compile(template)
@@ -1584,7 +1526,7 @@ class GetAttr(AST):
 		self.attr = attr
 
 	def __repr__(self):
-		return "%s(%r, %r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.obj, self.attr)
+		return "{0}({1!r}, {2!r}, {3!r}, {4!r})".format(self.__class__.__name__, self.start, self.end, self.obj, self.attr)
 
 	def compile(self, template):
 		r = self.obj.compile(template)
@@ -1600,7 +1542,7 @@ class GetSlice12(AST):
 		self.index2 = index2
 
 	def __repr__(self):
-		return "%s(%r, %r, %r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.obj, self.index1, self.index2)
+		return "{0}({1!r}, {2!r}, {3!r}, {4!r}, {5!r})".format(self.__class__.__name__, self.start, self.end, self.obj, self.index1, self.index2)
 
 	def compile(self, template):
 		r1 = self.obj.compile(template)
@@ -1620,7 +1562,7 @@ class Unary(AST):
 		self.obj = obj
 
 	def __repr__(self):
-		return "%s(%r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.obj)
+		return "{0}({1!r}, {2!r}, {3!r})".format(self.__class__.__name__, self.start, self.end, self.obj)
 
 	def compile(self, template):
 		r = self.obj.compile(template)
@@ -1645,7 +1587,7 @@ class Binary(AST):
 		self.obj2 = obj2
 
 	def __repr__(self):
-		return "%s(%r, %r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.obj1, self.obj2)
+		return "{0}({1!r}, {2!r}, {3!r}, {4!r})".format(self.__class__.__name__, self.start, self.end, self.obj1, self.obj2)
 
 	def compile(self, template):
 		r1 = self.obj1.compile(template)
@@ -1740,7 +1682,7 @@ class ChangeVar(AST):
 		self.value = value
 
 	def __repr__(self):
-		return "%s(%r, %r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.name, self.value)
+		return "{0}({1!r}, {2!r}, {3!r}, {4!r})".format(self.__class__.__name__, self.start, self.end, self.name, self.value)
 
 	def compile(self, template):
 		r = self.value.compile(template)
@@ -1782,7 +1724,7 @@ class DelVar(AST):
 		self.name = name
 
 	def __repr__(self):
-		return "%s(%r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.name)
+		return "{0}({1!r}, {2!r}, {3!r})".format(self.__class__.__name__, self.start, self.end, self.name)
 
 	def compile(self, template):
 		template.opcode("delvar", arg=self.name.name)
@@ -1796,9 +1738,9 @@ class CallFunc(AST):
 
 	def __repr__(self):
 		if self.args:
-			return "%s(%r, %r, %r, %s)" % (self.__class__.__name__, self.start, self.end, self.name, repr(self.args)[1:-1])
+			return "{0}({1!r}, {2!r}, {3!r}, {4})".format(self.__class__.__name__, self.start, self.end, self.name, repr(self.args)[1:-1])
 		else:
-			return "%s(%r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.name)
+			return "{0}({1!r}, {2!r}, {3!r})".format(self.__class__.__name__, self.start, self.end, self.name)
 
 	def compile(self, template):
 		if len(self.args) == 0:
@@ -1806,10 +1748,10 @@ class CallFunc(AST):
 			template.opcode("callfunc0", r1=r, arg=self.name.name)
 			return r
 		elif len(self.args) > 4:
-			raise ValueError("%d function arguments not supported" % len(self.args))
+			raise ValueError("{0} function arguments not supported".format(len(self.args)))
 		else:
 			rs = [arg.compile(template) for arg in self.args]
-			template.opcode("callfunc%d" % len(self.args), rs[0], *rs, **dict(arg=self.name.name)) # FIXME: Replace **dict(arg=) with arg= in Python 2.6?
+			template.opcode("callfunc{0}".format(len(self.args)), rs[0], *rs, **dict(arg=self.name.name)) # FIXME: Replace **dict(arg=) with arg= in Python 2.6?
 			for i in xrange(1, len(self.args)):
 				template._freereg(rs[i])
 			return rs[0]
@@ -1824,16 +1766,16 @@ class CallMeth(AST):
 
 	def __repr__(self):
 		if self.args:
-			return "%s(%r, %r, %r, %r, %s)" % (self.__class__.__name__, self.start, self.end, self.name, self.obj, repr(self.args)[1:-1])
+			return "{0}({1!r}, {2!r}, {3!r}, {4!r}, {5})".format(self.__class__.__name__, self.start, self.end, self.name, self.obj, repr(self.args)[1:-1])
 		else:
-			return "%s(%r, %r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.name, self.obj)
+			return "{0}({1!r}, {2!r}, {3!r}, {4!r})".format(self.__class__.__name__, self.start, self.end, self.name, self.obj)
 
 	def compile(self, template):
 		if len(self.args) > 3:
-			raise ValueError("%d method arguments not supported" % len(self.args))
+			raise ValueError("{0} method arguments not supported".format(len(self.args)))
 		ro = self.obj.compile(template)
 		rs = [arg.compile(template) for arg in self.args]
-		template.opcode("callmeth%d" % len(self.args), ro, ro, *rs, **dict(arg=self.name.name))
+		template.opcode("callmeth{0}".format(len(self.args)), ro, ro, *rs, **dict(arg=self.name.name))
 		for r in rs:
 			template._freereg(r)
 		return ro
@@ -1847,7 +1789,7 @@ class CallMethKeywords(AST):
 		self.args = args
 
 	def __repr__(self):
-		return "%s(%r, %r, %r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.name, self.obj, self.args)
+		return "{0}({1!r}, {2!r}, {3!r}, {4!r}, {5!r})".format(self.__class__.__name__, self.start, self.end, self.name, self.obj, self.args)
 
 	def compile(self, template):
 		ra = template._allocreg()
@@ -1878,7 +1820,7 @@ class Render(AST):
 		self.variables = list(variables)
 
 	def __repr__(self):
-		return "%s(%r, %r, %r, %s)" % (self.__class__.__name__, self.start, self.end, self.template, repr(self.variables)[1:-1])
+		return "{0}({1!r}, {2!r}, {3!r}, {4})".format(self.__class__.__name__, self.start, self.end, self.template, repr(self.variables)[1:-1])
 
 	def compile(self, template):
 		ra = template._allocreg()
@@ -2118,7 +2060,7 @@ class ExprParser(spark.Parser):
 		elif isinstance(value, color.Color):
 			return Color(start, end, value)
 		else:
-			raise TypeError("can't convert %r" % value)
+			raise TypeError("can't convert {0!r}".format(value))
 
 	# To implement operator precedence, each expression rule has the precedence in its name. The highest precedence is 11 for atomic expressions.
 	# Each expression can have only expressions as parts which have the some or a higher precedence with two exceptions:
@@ -2533,19 +2475,19 @@ def _repr(obj):
 		return unicode(obj.isoformat())
 	elif isinstance(obj, color.Color):
 		if obj[3] == 0xff:
-			s = "#%02x%02x%02x" % (obj[0], obj[1], obj[2])
+			s = "#{0:02x}{1:02x}{2:02x}".format(obj[0], obj[1], obj[2])
 			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6]:
-				return "#%s%s%s" % (s[1], s[3], s[5])
+				return "#{0}{1}{2}".format(s[1], s[3], s[5])
 			return s
 		else:
-			s = "#%02x%02x%02x%02x" % obj
+			s = "#{0:02x}{1:02x}{2:02x}{3:02x}".format(*obj)
 			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6] and s[7]==s[8]:
-				return "#%s%s%s%s" % (s[1], s[3], s[5], s[7])
+				return "#{0}{1}{2}{4}".format(s[1], s[3], s[5], s[7])
 			return s
 	elif isinstance(obj, list):
-		return u"[%s]" % u", ".join(_repr(item) for item in obj)
+		return u"[{0}]".format(u", ".join(_repr(item) for item in obj))
 	elif isinstance(obj, dict):
-		return u"{%s}" % u", ".join(u"%s: %s" % (_repr(key), _repr(value)) for (key, value) in obj.iteritems())
+		return u"{{0}}".format(u", ".join(u"{0}: {1}".format(_repr(key), _repr(value)) for (key, value) in obj.iteritems()))
 	else:
 		return unicode(repr(obj))
 
@@ -2571,7 +2513,7 @@ def _csv(obj):
 	elif not isinstance(obj, basestring):
 		obj = _repr(obj)
 	if any(c in obj for c in ',"\n'):
-		return u'"%s"' % obj.replace('"', '""')
+		return u'"{0}"'.format(obj.replace('"', '""'))
 	return obj
 
 
@@ -2602,3 +2544,12 @@ def _type(obj):
 	elif isinstance(obj, color.Color):
 		return u"color"
 	return None
+
+
+def _mimeformat(obj):
+	"""
+	Helper for the ``mimeformat`` method.
+	"""
+	weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+	monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+	return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(obj, weekdayname[obj.weekday()], monthname[obj.month])

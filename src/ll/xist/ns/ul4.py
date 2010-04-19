@@ -64,13 +64,13 @@ class attr_ifnn(xsc.AttrProcInst):
 	"""
 
 	def publishattr(self, publisher, attr):
-		yield publisher.encode(u'<?if not isnone(%s)?> %s="<?printx %s?>"<?end if?>' % (self.content, attr._publishname(publisher), self.content))
+		yield publisher.encode(u'<?if not isnone({content})?> {name}="<?printx {content}?>"<?end if?>'.format(content=self.content, name=attr._publishname(publisher)))
 
 	def publishboolattr(self, publisher, attr):
 		name = attr._publishname(publisher)
-		yield publisher.encode(u"<?if not isnone(%s)?> %s" % (self.content, name))
+		yield publisher.encode(u"<?if not isnone({content})?> {name}".format(content=self.content, name=name))
 		if publisher.xhtml>0:
-			yield publisher.encode(u'="%s"' % name)
+			yield publisher.encode(u'="{name}"'.format(name=name))
 		yield publisher.encode(u'<?end if?>')
 
 
@@ -83,7 +83,7 @@ class attr_if(xsc.AttrProcInst):
 
 	def publishattr(self, publisher, attr):
 		publisher.inattr += 1
-		yield publisher.encode(u'<?if %s?> %s="' % (self.content, attr._publishname(publisher)))
+		yield publisher.encode(u'<?if {content}?> {name}="'.format(content=self.content, name=attr._publishname(publisher)))
 		publisher.pushtextfilter(misc.xmlescape_attr)
 		for part in attr._publishattrvalue(publisher):
 			yield part
@@ -93,9 +93,9 @@ class attr_if(xsc.AttrProcInst):
 
 	def publishboolattr(self, publisher, attr):
 		name = attr._publishname(publisher)
-		yield publisher.encode(u"<?if %s?> %s" % (self.content, name))
+		yield publisher.encode(u"<?if {content}?> {name}".format(content=self.content, name=name))
 		if publisher.xhtml>0:
-			yield publisher.encode(u'="%s"' % name)
+			yield publisher.encode(u'="{name}"'.format(name=name))
 		yield publisher.encode(u'<?end if?>')
 
 

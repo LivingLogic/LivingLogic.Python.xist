@@ -3,31 +3,38 @@ Requirements
 
 To use XIST you need the following software packages:
 
-	1.	`Python 2.6`_;
+	*	`Python 2.6`_;
 
-	2.	`Python Imaging Library`_;
+	*	`cssutils`_;
 
-	3.	`libxml2`_ and its Python wrapper (if you want to parse "broken" HTML);
+	*	`Python Imaging Library`_ (if you want to use automatic image size
+		calculation);
 
-	4.	`elinks`_ (if you want want to use the function
+	*	`libxml2`_ and its Python wrapper (if you want to parse "broken" HTML);
+
+	*	`elinks`_ (if you want want to use the function
 		:func:`ll.xist.ns.html.astext`);
 
-	5.	`cx_Oracle`_ (if you want to use :mod:`ll.orasql`);
+	*	`cx_Oracle`_ (if you want to use :mod:`ll.orasql`);
 
-	6.	`setuptools`_ (if you want to install this package as an egg);
+	*	`setuptools`_ (if you want to install this package as an egg);
 
-	7.	`py.test`_ (if you want to run the test suite)
+	*	`py.test`_ (if you want to run the test suite)
 
-	8.	and a C compiler supported by distutils, if you want to install the
+	*	`execnet`_ (if you want to use ssh URLs)
+
+	*	and a C compiler supported by distutils, if you want to install the
 		source distribution.
 
 	.. _Python 2.6: http://www.python.org/
+	.. _cssutils: http://cthedot.de/cssutils/
 	.. _Python Imaging Library: http://www.pythonware.com/products/pil/
 	.. _libxml2: http://www.xmlsoft.org/
 	.. _elinks: http://elinks.or.cz/
 	.. _cx_Oracle: http://cx-oracle.sourceforge.net/
 	.. _setuptools: http://peak.telecommunity.com/DevCenter/setuptools
 	.. _py.test: http://codespeak.net/py/current/doc/test.html
+	.. _execnet: http://codespeak.net/execnet/
 
 
 Installation

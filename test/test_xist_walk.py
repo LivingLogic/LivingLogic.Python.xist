@@ -10,7 +10,7 @@
 
 import py.test
 
-from ll.xist import xsc
+from ll.xist import xsc, xfind
 from ll.xist.ns import html, xml
 
 import xist_common as common
@@ -18,9 +18,9 @@ import xist_common as common
 
 def test_walk_coverage():
 	node = common.createfrag()
-	class Filter(xsc.WalkFilter):
+	class Filter(xfind.WalkFilter):
 		def filternode(self, node):
-			return (True, xsc.enterattrs, xsc.entercontent, True)
+			return (True, xfind.enterattrs, xfind.entercontent, True)
 
 	# call only for code coverage
 	for path in node.walk(Filter()):
@@ -33,7 +33,7 @@ def test_walk_result():
 		def path2str(path):
 			return ".".join("#" if isinstance(node, xsc.Text) else node.xmlname for node in path)
 
-		assert map(path2str, node.walkpath(filter)) == result
+		assert map(path2str, node.walkpaths(filter)) == result
 
 	node = html.div(
 		html.tr(
@@ -44,23 +44,23 @@ def test_walk_result():
 		class_=html.i("hinz")
 	)
 
-	class filtertopdown(xsc.WalkFilter):
+	class filtertopdown(xfind.WalkFilter):
 		def filternode(self, node):
-			return (isinstance(node, xsc.Element), xsc.entercontent)
+			return (isinstance(node, xsc.Element), xfind.entercontent)
 
-	class filterbottomup(xsc.WalkFilter):
+	class filterbottomup(xfind.WalkFilter):
 		def filternode(self, node):
-			return (xsc.entercontent, isinstance(node, xsc.Element))
+			return (xfind.entercontent, isinstance(node, xsc.Element))
 
-	class filtertopdownattrs(xsc.WalkFilter):
+	class filtertopdownattrs(xfind.WalkFilter):
 		def filternode(self, node):
-			return (isinstance(node, xsc.Element), xsc.enterattrs, xsc.entercontent)
+			return (isinstance(node, xsc.Element), xfind.enterattrs, xfind.entercontent)
 
-	class filterbottomupattrs(xsc.WalkFilter):
+	class filterbottomupattrs(xfind.WalkFilter):
 		def filternode(self, node):
-			return (xsc.enterattrs, xsc.entercontent, isinstance(node, xsc.Element))
+			return (xfind.enterattrs, xfind.entercontent, isinstance(node, xsc.Element))
 
-	class filtertopdowntextonlyinattr(xsc.WalkFilter):
+	class filtertopdowntextonlyinattr(xfind.WalkFilter):
 		def filterpath(self, path):
 			for node in path:
 				if isinstance(node, xsc.Attr):
@@ -70,20 +70,20 @@ def test_walk_result():
 				inattr = False
 			node = path[-1]
 			if isinstance(node, xsc.Element):
-				return (True, xsc.enterattrs, xsc.entercontent)
+				return (True, xfind.enterattrs, xfind.entercontent)
 			if inattr and isinstance(node, xsc.Text):
 				return (True, )
 			else:
-				return (xsc.entercontent, )
+				return (xfind.entercontent, )
 
-	class filtertopdownattrwithoutcontent(xsc.WalkFilter):
+	class filtertopdownattrwithoutcontent(xfind.WalkFilter):
 		def filternode(self, node):
 			if isinstance(node, xsc.Element):
-				return (True, xsc.entercontent, xsc.enterattrs)
+				return (True, xfind.entercontent, xfind.enterattrs)
 			elif isinstance(node, (xsc.Attr, xsc.Text)):
 				return (True, )
 			else:
-				return (xsc.entercontent, )
+				return (xfind.entercontent, )
 
 	yield check, node, filtertopdown, ["div", "div.tr", "div.tr.th", "div.tr.td"]
 	yield check, node, filterbottomup, ["div.tr.th", "div.tr.td", "div.tr", "div"]
@@ -103,12 +103,12 @@ def test_walkgetitem():
 			)
 		)
 	)
-	isdiv = xsc.FindTypeAll(html.div)
-	assert str(e.walknode(isdiv)[0]) == "123"
-	assert str(e.walknode(isdiv)[-1]) == "3"
-	py.test.raises(IndexError, e.walknode(isdiv).__getitem__, 3)
-	py.test.raises(IndexError, e.walknode(isdiv).__getitem__, -4)
-	assert str(e.walkpath(isdiv)[0][-1]) == "123"
-	assert str(e.walkpath(isdiv)[-1][-1]) == "3"
-	py.test.raises(IndexError, e.walkpath(isdiv).__getitem__, 3)
-	py.test.raises(IndexError, e.walkpath(isdiv).__getitem__, -4)
+	isdiv = xfind.FindTypeAll(html.div)
+	assert str(e.walknodes(isdiv)[0]) == "123"
+	assert str(e.walknodes(isdiv)[-1]) == "3"
+	py.test.raises(IndexError, e.walknodes(isdiv).__getitem__, 3)
+	py.test.raises(IndexError, e.walknodes(isdiv).__getitem__, -4)
+	assert str(e.walkpaths(isdiv)[0][-1]) == "123"
+	assert str(e.walkpaths(isdiv)[-1][-1]) == "3"
+	py.test.raises(IndexError, e.walkpaths(isdiv).__getitem__, 3)
+	py.test.raises(IndexError, e.walkpaths(isdiv).__getitem__, -4)

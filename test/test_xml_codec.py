@@ -162,6 +162,9 @@ def test_decoder():
 		id = codecs.getincrementaldecoder("xml")(encoding)
 		assert "".join(id.iterdecode(input.encode(encoding))) == input.replace("'x'", repr(encoding))
 
+	id = codecs.getincrementaldecoder("xml")(encoding="ascii")
+	assert id.decode("<?xml version='1.0' encoding='utf-16'?>") == "<?xml version='1.0' encoding='ascii'?>"
+
 	# Autodetectable encodings
 	yield checkauto, "utf-8-sig"
 	yield checkauto, "utf-16"
@@ -172,10 +175,10 @@ def test_decoder():
 		yield checkauto, "utf-32-le"
 		yield checkauto, "utf-32-be"
 
-	def checkdecl(encoding, input=u"<?xml version='1.0' encoding=%r?><gürk>\u20ac</gürk>"):
+	def checkdecl(encoding, input=u"<?xml version='1.0' encoding={encoding!r}?><gürk>\u20ac</gürk>"):
 		# Check stateless decoder with encoding autodetection
 		d = codecs.getdecoder("xml")
-		input = input % encoding
+		input = input.format(encoding=encoding)
 		assert d(input.encode(encoding))[0] == input
 
 		# Check stateless decoder with specified encoding
@@ -191,7 +194,7 @@ def test_decoder():
 
 	# Use correct declaration
 	yield checkdecl, "utf-8"
-	yield checkdecl, "iso-8859-1", u"<?xml version='1.0' encoding=%r?><gürk/>"
+	yield checkdecl, "iso-8859-1", u"<?xml version='1.0' encoding={encoding!r}?><gürk/>"
 	yield checkdecl, "iso-8859-15"
 	yield checkdecl, "cp1252"
 
