@@ -1219,12 +1219,25 @@ class Tidy(PipelineObject):
 
 class ETree(object):
 	"""
-	Returns XML events from an object that supports the ElementTree__ API.
+	Produces XML events from an object that supports the ElementTree__ API.
 
 	__ http://effbot.org/zone/element-index.htm
 	"""
 
 	def __init__(self, data, url=None, defaultxmlns=None):
+		"""
+		Create an :class:`ETree` object. Arguments have the following meaning:
+
+		:var:`data`
+			An object that supports the ElementTree API.
+
+		:var:`url`
+			The URL of the source. Defaults to ``"ETREE"``.
+
+		:var:`defaultxmlns`
+			The namespace name (or a namespace module containing a namespace name)
+			that will be used for all elements that don't have a namespace.
+		"""
 		self.url = url_.URL(url if url is not None else "ETREE")
 		self.data = data
 		self.defaultxmlns = xsc.nsname(defaultxmlns)
@@ -1261,6 +1274,9 @@ class ETree(object):
 			yield ("comment", node.text)
 
 	def __iter__(self):
+		"""
+		Produces an event stream for the ElementTree object.
+		"""
 		yield ("url", self.url)
 		for event in self._asxist(self.data):
 			yield event
