@@ -52,21 +52,25 @@ The following code shows an example of an event stream::
 	>>> from ll.xist import parsers
 	>>> source = "<a href='http://www.python.org/'>Python</a>"
 	>>> list(parsers.StringSource(source) | parsers.Expat())
-	[('location', (0, 0)),
+	[('url', URL('STRING')),
+	 ('position', (0, 0)),
 	 ('enterstarttag', u'a'),
 	 ('enterattr', u'href'),
 	 ('text', u'http://www.python.org/'),
 	 ('leaveattr', u'href'),
 	 ('leavestarttag', u'a'),
-	 ('location', (0, 39)),
+	 ('position', (0, 39)),
 	 ('text', u'Python'),
 	 ('endtag', u'a')]
 
-An event is a tuple consisting of the event type and the event data. The
-following events are produced:
+An event is a tuple consisting of the event type and the event data. Different
+stages in the pipeline produce different event types. The following event types
+can be are produced:
 
 	``"url"``
-		The
+		The event data is the URL of the source. For source that have no natural
+		URL (like strings and streams) the URL can be specified when creating the
+		source object.
 
 	``"xmldecl"``
 		The XML declaration. The event data is a dictionary containing the keys
@@ -158,7 +162,7 @@ class UnknownEventError(TypeError):
 		self.event = event
 
 	def __str__(self):
-		return "{0.pipein!r} can't handle event {0.event[0]!r} from {0.pipeout!r}".format(self)
+		return "{0.pipein!r} can't handle event type {0.event[0]!r} from {0.pipeout!r}".format(self)
 
 
 ###
@@ -913,7 +917,11 @@ class NS(PipelineObject):
 
 	def __iter__(self):
 		for (evtype, data) in self.input:
-			for data in getattr(self, evtype)(data):
+			try:
+				handler = getattr(self, evtype)
+			except AttributeError:
+				raise UnknownEventError(self.input, self, (evtype, data))
+			for data in handler(data):
 				yield data
 
 
@@ -939,7 +947,11 @@ class Instantiate(PipelineObject):
 
 	def __iter__(self):
 		for (evtype, data) in self.input:
-			newevent = getattr(self, evtype)(data)
+			try:
+				handler = getattr(self, evtype)
+			except AttributeError:
+				raise UnknownEventError(self.input, self, (evtype, data))
+			newevent = handler(data)
 			if newevent:
 				yield newevent
 
@@ -1152,7 +1164,7 @@ class Tidy(PipelineObject):
 			elif evtype == "bytes":
 				collectdata.append(data)
 			else:
-				raise UnknownEventError((evtype, data), self.input)
+				raise UnknownEventError(self.input, self, (evtype, data))
 		data = "".join(collectdata)
 		if url is not None:
 			yield ("url", url)
