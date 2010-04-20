@@ -65,12 +65,22 @@ The following code shows an example of an event stream::
 
 An event is a tuple consisting of the event type and the event data. Different
 stages in the pipeline produce different event types. The following event types
-can be are produced:
+can be produced:
 
 	``"url"``
-		The event data is the URL of the source. For source that have no natural
-		URL (like strings and streams) the URL can be specified when creating the
-		source object.
+		The event data is the URL of the source. Usually such an event is produced
+		only once at the start of the event stream. For sources that have no
+		natural URL (like strings and streams) the URL can be specified when
+		creating the source object.
+
+	``"bytes"``
+		The event data is a 8bit string. This event is produced by :class:`Source`
+		(and :class:`Transcoder`) objects.
+
+	``"unicode"``
+		The event data is a unicode string. This event is produced by
+		:class:`Decoder` objects. Note that the only pipeline objects that can
+		handle ``"unicode"`` events are :class:`Encoder` objects.
 
 	``"xmldecl"``
 		The XML declaration. The event data is a dictionary containing the keys
@@ -117,6 +127,29 @@ can be are produced:
 
 	``"endtag"``
 		An element end tag. The event data is the element name.
+
+	``"enterstarttagns"``
+		The beginning of an element start tag in namespace mode.
+		The event data is an (element name, namespace name) tuple. This (and the
+		following four events are produced by :class:`NS` objects or by
+		:class:`Expat` objects when :var:`ns` is true, so that the expat parser
+		does the namespace resolution).
+
+	``"leavestarttagns"``
+		The end of an element start tag in namespace mode. The event data is an
+		(element name, namespace name) tuple.
+
+	``"enterattrns"``
+		The beginning of an attribute in namespace mode. The event data is an
+		(element name, namespace name) tuple.
+
+	``"leaveattrns"``
+		The end of an attribute in namespace mode. The event data is an
+		(element name, namespace name) tuple.
+
+	``"endtagns"``
+		An element end tag in namespace mode. The event data is an
+		(element name, namespace name) tuple.
 
 	``"procinst"``
 		A processing instruction. The event data is a tuple consisting of the
