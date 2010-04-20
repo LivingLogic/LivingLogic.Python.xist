@@ -1308,7 +1308,7 @@ def iterparse(input, events=("endtagns",), validate=True, filter=None):
 	filter = xfind.makewalkfilter(filter)
 	path = [xsc.Frag()]
 	for event in pipeline:
-		if event in events and filter.matchpath(path):
+		if event in events and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
 			yield (event, path)
 		if event == "enterstarttagns":
 			path[-1].append(node)
