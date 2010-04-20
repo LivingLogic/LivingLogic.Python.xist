@@ -326,3 +326,8 @@ def test_htmlparse_base():
 def test_parse_tidy_empty():
 	e = parsers.tree("" | parsers.Tidy() | parsers.NS() | parsers.Instantiate())
 	assert not e
+
+
+def test_base():
+	e = parsers.tree(parsers.StringSource('<a xmlns="http://www.w3.org/1999/xhtml" href="gurk.html"/>', 'http://www.gurk.de/') | parsers.Expat(ns=True) | parsers.Instantiate(pool=xsc.Pool(html)))
+	assert unicode(e.walknodes(html.a)[0].attrs.href) == "http://www.gurk.de/gurk.html"

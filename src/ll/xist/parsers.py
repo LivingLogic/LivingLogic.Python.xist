@@ -649,9 +649,9 @@ class Expat(EventParser):
 		self._buffer.append((self.enterstarttagns if self._ns else self.enterstarttag, name))
 		for i in xrange(0, len(attrs), 2):
 			key = self._getname(attrs[i])
-			self._buffer.append((self.enterattr, key))
+			self._buffer.append((self.enterattrns if self._ns else self.enterattr, key))
 			self._buffer.append((self.text, attrs[i+1]))
-			self._buffer.append((self.leaveattr, key))
+			self._buffer.append((self.leaveattrns if self._ns else self.leaveattr, key))
 		self._buffer.append((self.leavestarttagns if self._ns else self.leavestarttag, name))
 
 	def _handle_endelement(self, name):
@@ -923,12 +923,19 @@ class Instantiate(PipelineObject):
 		self.pool = (pool if pool is not None else xsc.threadlocalpool.pool)
 		if base is not None:
 			base = url_.URL(base)
-		self.base = base
+		self._base = base
 		self._url = url_.URL()
 		self.loc = loc
 		self._position = (None, None)
 		self._stack = []
 		self._inattr = False
+
+	@property
+	def base(self):
+		if self._base is None:
+			return self._url
+		else:
+			return self._base
 
 	def __iter__(self):
 		for (evtype, data) in self.input:
