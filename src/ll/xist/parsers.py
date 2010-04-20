@@ -742,9 +742,10 @@ class SGMLOP(EventParser):
 class NS(PipelineObject):
 	"""
 	An :class:`NS` is used in a parsing pipeline to add support for XML namespaces.
-	It replaces the element and attribute names in ``"enterstarttag"``,
-	``"leavestarttag"``, ``"endtag"``, ``"enterattr"`` and ``"leaveattr"`` events
-	with ``(name, namespace)`` tuples.
+	It replaces the ``"enterstarttag"``, ``"leavestarttag"``, ``"endtag"``,
+	``"enterattr"`` and ``"leaveattr"`` events with the appropriate namespace
+	version of the evetns (i.e. ``"enterstarttagns"`` etc.) when the event data
+	is a ``(name, namespace)`` tuple.
 
 	The output of a :class:`NS` object in the stream looks like this::
 
@@ -752,15 +753,16 @@ class NS(PipelineObject):
 		>>> from ll.xist.ns import html
 		>>> source = "<a href='http://www.python.org/'>Python</a>"
 		>>> list(parsers.StringSource(source) | parsers.Expat() | parsers.NS(prefixes={None: html}))
-		[('location', (0, 0)),
-		 ('enterstarttag', (u'a', 'http://www.w3.org/1999/xhtml')),
-		 ('enterattr', (u'href', None)),
-		 u'http://www.python.org/',
-		 ('leaveattr', (u'href', None)),
-		 ('leavestarttag', (u'a', 'http://www.w3.org/1999/xhtml')),
-		 ('location', (0, 39)),
+		[('url', URL('STRING')),
+		 ('position', (0, 0)),
+		 ('enterstarttagns', (u'a', 'http://www.w3.org/1999/xhtml')),
+		 ('enterattrns', (u'href', None)),
+		 ('text', u'http://www.python.org/'),
+		 ('leaveattrns', (u'href', None)),
+		 ('leavestarttagns', (u'a', 'http://www.w3.org/1999/xhtml')),
+		 ('position', (0, 39)),
 		 ('text', u'Python'),
-		 ('endtag', (u'a', 'http://www.w3.org/1999/xhtml'))]
+		 ('endtagns', (u'a', 'http://www.w3.org/1999/xhtml'))]
 	"""
 
 	def __init__(self, prefixes=None, **kwargs):
