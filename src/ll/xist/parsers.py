@@ -800,21 +800,32 @@ class NS(PipelineObject):
 
 	def __init__(self, prefixes=None, **kwargs):
 		"""
-		Create a :class:`NS` object. The namespace mapping is initialized from the
-		dictionary :var:`prefixes` (if given) and from :var:`kwargs`.
+		Create a :class:`NS` object. :var:`prefixes` (if not ``None``) can be a
+		namespace name (or module), which will the be used for the empty prefix,
+		or a dictionary that maps prefixes to namespace names (or modules).
+		:var:`kwargs` maps prefixes to namespaces names too. If a prefix is in both
+		:var:`prefixes` and :var:`kwargs`, :var:`kwargs` wins.
 		"""
 		PipelineObject.__init__(self)
 		# the currently active prefix mapping (will be replaced once xmlns attributes are encountered)
 		newprefixes = {}
-		args = (prefixes, kwargs) if prefixes is not None else (kwargs, )
-		for arg in args:
-			for (prefix, xmlns) in arg.iteritems():
-				if prefix is not None and not isinstance(prefix, basestring):
-					raise TypeError("prefix must be None or string, not {0!r}".format(prefix))
-				xmlns = xsc.nsname(xmlns)
-				if not isinstance(xmlns, basestring):
-					raise TypeError("xmlns must be string, not {0!r}".format(xmlns))
-				newprefixes[prefix] = xmlns
+		def make(prefix, xmlns):
+			if prefix is not None and not isinstance(prefix, basestring):
+				raise TypeError("prefix must be None or string, not {0!r}".format(prefix))
+			xmlns = xsc.nsname(xmlns)
+			if not isinstance(xmlns, basestring):
+				raise TypeError("xmlns must be string, not {0!r}".format(xmlns))
+			newprefixes[prefix] = xmlns
+
+		if prefixes is not None:
+			if isinstance(prefixes, dict):
+				for (prefix, xmlns) in prefixes.iteritems():
+					make(prefix, xmlns)
+			else:
+				make(None, prefixes)
+
+		for (prefix, xmlns) in kwargs.iteritems():
+			make(prefix, xmlns)
 		self._newprefixes = self._attrs = self._attr = None
 		# A stack entry is an ``((elementname, namespacename), prefixdict)`` tuple
 		self._prefixstack = [(None, newprefixes)]
