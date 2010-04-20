@@ -923,8 +923,8 @@ class NS(PipelineObject):
 				handler = getattr(self, evtype)
 			except AttributeError:
 				raise UnknownEventError(self.input, self, (evtype, data))
-			for data in handler(data):
-				yield data
+			for event in handler(data):
+				yield event
 
 
 class Instantiate(PipelineObject):
@@ -953,9 +953,9 @@ class Instantiate(PipelineObject):
 				handler = getattr(self, evtype)
 			except AttributeError:
 				raise UnknownEventError(self.input, self, (evtype, data))
-			newevent = handler(data)
-			if newevent:
-				yield newevent
+			event = handler(data)
+			if event:
+				yield event
 
 	def url(self, data):
 		self._url = data
