@@ -206,7 +206,10 @@ class url(xsc.ProcInst):
 	publisher.
 	"""
 	def parsed(self, parser, start=None):
-		return self.__class__(unicode(parser.base/self.content))
+		if parser.base is not None:
+			return self.__class__(unicode(parser.base/self.content))
+		else:
+			return self
 
 	def publish(self, publisher):
 		yield publisher.encodetext(unicode(url_.URL(self.content).relative(publisher.base)))

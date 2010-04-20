@@ -1779,7 +1779,7 @@ class Attr(Frag):
 			info = u"1 child"
 		else:
 			info = u"{0} children".format(l)
-		loc = " (from {0})".formats(elf.startloc) if self.startloc is not None else ""
+		loc = " (from {0})".format(elf.startloc) if self.startloc is not None else ""
 		return "<{0.__class__.__module__}.{0.__fullname__} attr object ({1}){2} at {3:#x}>".format(self, info, loc, id(self))
 
 

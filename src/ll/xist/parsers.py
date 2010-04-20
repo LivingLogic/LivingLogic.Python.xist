@@ -121,10 +121,10 @@ following events are produced:
 	``"entity"``
 		An entity reference. The event data is the entity name.
 
-	``"location"``
+	``"position"``
 		The event data is a tuple containing the line and column number in the
 		source (both starting with 0). All the following events should use this
-		location information until the next location event.
+		position information until the next position event.
 """
 
 
@@ -475,7 +475,8 @@ class EventParser(PipelineObject):
 	endtagns = "endtagns"
 	procinst = "procinst"
 	entity = "entity"
-	location = "location"
+	position = "position"
+	url = "url"
 
 	@misc.notimplemented
 	def feed(self, data, final=False):
@@ -495,7 +496,7 @@ class EventParser(PipelineObject):
 				for event2 in self.feed(data):
 					yield event2
 			elif evtype == "url":
-				yield ("url", data)
+				yield (self.url, data)
 			else:
 				yield UnknownEventError(self.input, self, (evtype, data))
 		for event in self.feed("", True):
@@ -548,7 +549,7 @@ class Expat(EventParser):
 		self._ns = ns
 		self._indoctype = False
 		self._incdata = False
-		self._location = None # Remember the last reported location
+		self._position = None # Remember the last reported position
 
 		self._parser.CharacterDataHandler = self._handle_text
 		self._parser.StartElementHandler = self._handle_startelement
@@ -600,12 +601,12 @@ class Expat(EventParser):
 			return (name, None)
 		return name
 
-	def _handle_location(self):
+	def _handle_position(self):
 		if self._loc:
 			loc = (self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
-			if loc != self._location:
-				self._buffer.append((self.location, loc))
-				self._location = loc
+			if loc != self._position:
+				self._buffer.append((self.position, loc))
+				self._position = loc
 
 	def _handle_startcdata(self):
 		self._incdata = True
@@ -615,36 +616,36 @@ class Expat(EventParser):
 
 	def _handle_xmldecl(self, version, encoding, standalone):
 		standalone = (bool(standalone) if standalone != -1 else None)
-		self._handle_location()
+		self._handle_position()
 		self._buffer.append((self.xmldecl, {"version": version, "encoding": encoding, "standalone": standalone}))
 
 	def _handle_begindoctype(self, doctypename, systemid, publicid, has_internal_subset):
 		if self._doctype:
-			self._handle_location()
+			self._handle_position()
 			self._buffer.append((self.begindoctype, {"name": doctypename, "publicid": publicid, "systemid": systemid}))
 
 	def _handle_enddoctype(self):
 		if self._doctype:
-			self._handle_location()
+			self._handle_position()
 			self._buffer.append((self.enddoctype, None))
 
 	def _handle_default(self, data):
 		if data.startswith("&") and data.endswith(";"):
-			self._handle_location()
+			self._handle_position()
 			self._buffer.append((self.entity, data[1:-1]))
 
 	def _handle_comment(self, data):
 		if not self._indoctype:
-			self._handle_location()
+			self._handle_position()
 			self._buffer.append((self.comment, data))
 
 	def _handle_text(self, data):
-		self._handle_location()
+		self._handle_position()
 		self._buffer.append((self.cdata if self._incdata else self.text, data))
 
 	def _handle_startelement(self, name, attrs):
 		name = self._getname(name)
-		self._handle_location()
+		self._handle_position()
 		self._buffer.append((self.enterstarttagns if self._ns else self.enterstarttag, name))
 		for i in xrange(0, len(attrs), 2):
 			key = self._getname(attrs[i])
@@ -655,12 +656,12 @@ class Expat(EventParser):
 
 	def _handle_endelement(self, name):
 		name = self._getname(name)
-		self._handle_location()
+		self._handle_position()
 		self._buffer.append((self.endtagns if self._ns else self.endtag, name))
 
 	def _handle_procinst(self, target, data):
 		if not self._indoctype:
-			self._handle_location()
+			self._handle_position()
 			self._buffer.append((self.procinst, (target, data)))
 
 
@@ -838,8 +839,8 @@ class NS(PipelineObject):
 		else:
 			yield data
 
-	def location(self, data):
-		data = ("location", data)
+	def position(self, data):
+		data = ("position", data)
 		if self._attr is not None:
 			self._attr.append(data)
 		else:
@@ -923,14 +924,13 @@ class Instantiate(PipelineObject):
 		if base is not None:
 			base = url_.URL(base)
 		self.base = base
+		self._url = url_.URL()
 		self.loc = loc
-		self._location = (None, None)
+		self._position = (None, None)
 		self._stack = []
 		self._inattr = False
 
 	def __iter__(self):
-		if self.base is None:
-			self.base = self.url
 		for (evtype, data) in self.input:
 			newevent = getattr(self, evtype)(data)
 			if newevent:
@@ -942,7 +942,7 @@ class Instantiate(PipelineObject):
 	def xmldecl(self, data):
 		node = xml.XML(version=data["version"], encoding=data["encoding"], standalone=data["standalone"])
 		if self.loc:
-			node.startloc = xsc.Location(self._url, *self._location)
+			node.startloc = xsc.Location(self._url, *self._position)
 		return ("xmldecl", node)
 
 	def begindoctype(self, data):
@@ -954,7 +954,7 @@ class Instantiate(PipelineObject):
 			fmt = u'{0[name]}'
 		node = xsc.DocType(fmt.format(data))
 		if self.loc:
-			node.startloc = xsc.Location(self._url, *self._location)
+			node.startloc = xsc.Location(self._url, *self._position)
 		self.doctype = node
 		return ("begindoctype", node)
 
@@ -966,7 +966,7 @@ class Instantiate(PipelineObject):
 	def entity(self, data):
 		node = self.pool.entity_xml(data)
 		if self.loc:
-			node.startloc = xsc.Location(self._url, *self._location)
+			node.startloc = xsc.Location(self._url, *self._position)
 		node.parsed(self, "entity")
 		if self._inattr:
 			self._stack[-1].append(node)
@@ -976,7 +976,7 @@ class Instantiate(PipelineObject):
 	def comment(self, data):
 		node = xsc.Comment(data)
 		if self.loc:
-			node.startloc = xsc.Location(self._url, *self._location)
+			node.startloc = xsc.Location(self._url, *self._position)
 		node.parsed(self, "comment")
 		if self._inattr:
 			self._stack[-1].append(node)
@@ -986,7 +986,7 @@ class Instantiate(PipelineObject):
 	def cdata(self, data):
 		node = xsc.Text(data)
 		if self.loc:
-			node.startloc = xsc.Location(self._url, *self._location)
+			node.startloc = xsc.Location(self._url, *self._position)
 		node.parsed(self, "cdata")
 		if self._inattr:
 			self._stack[-1].append(node)
@@ -996,7 +996,7 @@ class Instantiate(PipelineObject):
 	def text(self, data):
 		node = xsc.Text(data)
 		if self.loc:
-			node.startloc = xsc.Location(self._url, *self._location)
+			node.startloc = xsc.Location(self._url, *self._position)
 		node.parsed(self, "text")
 		if self._inattr:
 			self._stack[-1].append(node)
@@ -1006,7 +1006,7 @@ class Instantiate(PipelineObject):
 	def enterstarttagns(self, data):
 		node = self.pool.element_xml(*data)
 		if self.loc:
-			node.startloc = xsc.Location(self._url, *self._location)
+			node.startloc = xsc.Location(self._url, *self._position)
 		self._stack.append(node)
 		node.parsed(self, "enterstarttagns")
 		return ("enterstarttagns", node)
@@ -1017,7 +1017,7 @@ class Instantiate(PipelineObject):
 		else:
 			node = self._stack[-1].attrs.allowedattr_xml(data[0])
 		if self.loc:
-			node.startloc = xsc.Location(self._url, *self._location)
+			node.startloc = xsc.Location(self._url, *self._position)
 		self._stack[-1].attrs[node] = ()
 		node = self._stack[-1].attrs[node]
 		self._stack.append(node)
@@ -1036,22 +1036,22 @@ class Instantiate(PipelineObject):
 	def endtagns(self, data):
 		node = self._stack.pop()
 		if self.loc:
-			node.endloc = xsc.Location(self._url, *self._location)
+			node.endloc = xsc.Location(self._url, *self._position)
 		node.parsed(self, "endtagns")
 		return ("endtagns", node)
 
 	def procinst(self, data):
 		node = self.pool.procinst_xml(*data)
 		if self.loc:
-			node.startloc = xsc.Location(self._url, *self._location)
+			node.startloc = xsc.Location(self._url, *self._position)
 		node.parsed(self, "procinst")
 		if self._inattr:
 			self._stack[-1].append(node)
 		else:
 			return ("procinst", node)
 
-	def location(self, data):
-		self._location = data
+	def position(self, data):
+		self._position = data
 
 
 class Tidy(PipelineObject):
@@ -1070,69 +1070,69 @@ class Tidy(PipelineObject):
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} loc={0.loc!r} at {1:#x}>".format(self, id(self))
 
+	def _handle_pos(self, node):
+		if self.loc:
+			lineno = node.lineNo()
+			if lineno != self._lastlineno:
+				result = ("position", (lineno, None))
+				self._lastlineno = lineno
+				return result
+
+	@staticmethod
+	def decode(s):
+		try:
+			return s.decode("utf-8")
+		except UnicodeDecodeError:
+			return s.decode("iso-8859-1")
+
+	def _asxist(self, node):
+		decode = self.decode
+		if node.type == "document_html":
+			child = node.children
+			while child is not None:
+				for event in self._asxist(child):
+					yield event
+				child = child.next
+		elif node.type == "element":
+			pos = self._handle_pos(node)
+			if pos is not None:
+				yield pos
+			elementname = decode(node.name).lower()
+			yield ("enterstarttag", elementname)
+			attr = node.properties
+			while attr is not None:
+				attrname = decode(attr.name).lower()
+				content = decode(attr.content) if attr.content is not None else u""
+				yield ("enterattr", attrname)
+				yield ("text", content)
+				yield ("leaveattr", attrname)
+				attr = attr.next
+			yield ("leavestarttag", elementname)
+			child = node.children
+			while child is not None:
+				for event in self._asxist(child):
+					yield event
+				child = child.next
+			yield ("endtag", elementname)
+		elif node.type == "text":
+			pos = self._handle_pos(node)
+			if pos is not None:
+				yield pos
+			yield ("text", decode(node.content))
+		elif node.type == "cdata":
+			pos = self._handle_pos(node)
+			if pos is not None:
+				yield pos
+			yield ("cdata", decode(node.content))
+		elif node.type == "comment":
+			pos = self._handle_pos(node)
+			if pos is not None:
+				yield pos
+			yield ("comment", decode(node.content))
+		# ignore all other types
+
 	def __iter__(self):
 		import libxml2 # This requires libxml2 (see http://www.xmlsoft.org/)
-
-		def decode(s):
-			try:
-				return s.decode("utf-8")
-			except UnicodeDecodeError:
-				return s.decode("iso-8859-1")
-
-		lastlineno = [None] # Have a mutable object to store to current line number
-
-		def _handle_loc(node):
-			if self.loc:
-				lineno = node.lineNo()
-				if lineno != lastlineno[0]:
-					result = ("location", (lineno, None))
-					lastlineno[0] = lineno
-					return result
-
-		def toxsc(node):
-			if node.type == "document_html":
-				child = node.children
-				while child is not None:
-					for event in toxsc(child):
-						yield event
-					child = child.next
-			elif node.type == "element":
-				loc = _handle_loc(node)
-				if loc is not None:
-					yield loc
-				elementname = decode(node.name).lower()
-				yield ("enterstarttag", elementname)
-				attr = node.properties
-				while attr is not None:
-					attrname = decode(attr.name).lower()
-					content = decode(attr.content) if attr.content is not None else u""
-					yield ("enterattr", attrname)
-					yield ("text", content)
-					yield ("leaveattr", attrname)
-					attr = attr.next
-				yield ("leavestarttag", elementname)
-				child = node.children
-				while child is not None:
-					for event in toxsc(child):
-						yield event
-					child = child.next
-				yield ("endtag", elementname)
-			elif node.type == "text":
-				loc = _handle_loc(node)
-				if loc is not None:
-					yield loc
-				yield ("text", decode(node.content))
-			elif node.type == "cdata":
-				loc = _handle_loc(node)
-				if loc is not None:
-					yield loc
-				yield ("cdata", decode(node.content))
-			elif node.type == "comment":
-				loc = _handle_loc(node)
-				if loc is not None:
-					yield loc
-				yield ("comment", decode(node.content))
-			# ignore all other types
 
 		url = None
 		collectdata = []
@@ -1150,11 +1150,12 @@ class Tidy(PipelineObject):
 		if url is not None:
 			yield ("url", url)
 		if data:
+			self._lastlineno = None
 			try:
 				olddefault = libxml2.lineNumbersDefault(1)
 				doc = libxml2.htmlReadMemory(data, len(data), str(url), self.encoding, 0x160)
 				try:
-					for event in toxsc(doc):
+					for event in self._asxist(doc):
 						yield event
 				finally:
 					doc.freeDoc()
