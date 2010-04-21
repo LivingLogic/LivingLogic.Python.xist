@@ -13,7 +13,7 @@ Changes to :mod:`ll.url`
 
 *	:class:`ll.url.Path` has been simplified: Path segments are strings instead
 	of tuples. If you need the path parameters (i.e. part after ``;`` in a path
-	segment you have to split the segment yourself.
+	segment) you have to split the segment yourself.
 
 *	:meth:`ll.url.URL.import_` is gone. As a replacement :func:`misc.module` can
 	be used, i.e. replace::
