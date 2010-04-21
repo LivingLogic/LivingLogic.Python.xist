@@ -88,7 +88,7 @@ Changes to the color module
 *	The property ``css`` has been dropped instead the CSS string is returned
 	by ``__str__``.
 
-*	Dividing color now does a scalar division. Blending colors is now done with
+*	Dividing colors now does a scalar division. Blending colors is now done with
 	the modulo operator.
 
 Removal of XPIT
@@ -258,7 +258,7 @@ The death of namespace modules
 ------------------------------
 
 It's no longer possible to turn modules into namespaces. Element classes belong
-to a namespace (in the XML sense) simpy if their ``xmlns`` attribute have the
+to a namespace (in the XML sense) simply if their ``xmlns`` attribute have the
 same value. So a module definition like this::
 
 	from ll.xist import xsc
@@ -297,8 +297,8 @@ following names have changed:
 *	``olist`` to ``ol``;
 *	``ulist`` to ``ul``;
 *	``dlist`` to ``dl``;
-*	``item`` to ``li`` or ``dd`` (depending on whether it's inside an :class:`ol`,
-	:class:`ul` or :class:`dl`);
+*	``item`` to ``li`` or ``dd`` (depending on whether it's inside an
+	:class:`ol`, :class:`ul` or :class:`dl`);
 *	``term`` to ``dt``;
 *	``link`` to ``a``.
 
@@ -382,7 +382,7 @@ modes you can use the methods :meth:`walknode`, :meth:`walkpath` or
 :meth:`walkindex` instead of using the cursor yielded by :meth:`walk`.
 
 The node methods :meth:`find` and :meth:`findfirst` have been removed. Use
-``xsc.Frag(node.walk(...)`` or ``node.walk(...)[0]`` instead.
+``xsc.Frag(node.walk(...))`` or ``node.walk(...)[0]`` instead.
 
 Changes to publishing
 ---------------------
@@ -423,7 +423,7 @@ Changes to :mod:`ll.xist.ns.code`
 
 The code in a :class:`ll.xist.ns.code.pyexec` object is no longer executed at
 construction time, but at conversion time. So if you relied on this fact (e.g.
-to make a namespace available for parsing the rest of the XML file) you will
+to make a namespace available for parsing of the rest of the XML file) you will
 have to change your code.
 
 Removed namespaces
@@ -748,7 +748,7 @@ Adding element classes to the namespace is now done with the :class:`Namespace`
 classmethod :meth:`update`. If you want the turn a namespace into a module, you
 can use the classmethod :meth:`makemod` instead of :meth:`update`, i.e. replace::
 
-	xmlns = xsc.Namespace("foo", "http://www.foo.com/", vars()
+	xmlns = xsc.Namespace("foo", "http://www.foo.com/", vars())
 
 with::
 	
