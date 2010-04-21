@@ -697,8 +697,8 @@ specified in the publisher.
 :class:`autoimg` changes
 ------------------------
 
-:class:`ll.xist.htmlspecials.autoimg` will no longer touches existing ``width``
-or ``height`` attributes, so e.g. setting the width to twice the image size via
+:class:`ll.xist.htmlspecials.autoimg` will no longer touch existing ``width`` or
+`height`` attributes, so e.g. setting the width to twice the image size via
 ``width="2*%(width)s"`` no longer works. You have to implement your own version
 of :class:`autoimg` if you need this.
 
