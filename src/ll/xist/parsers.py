@@ -65,7 +65,7 @@ The following code shows an example of an event stream::
 
 An event is a tuple consisting of the event type and the event data. Different
 stages in the pipeline produce different event types. The following event types
-can be produced:
+can be produced by source objects:
 
 	``"url"``
 		The event data is the URL of the source. Usually such an event is produced
@@ -74,13 +74,20 @@ can be produced:
 		creating the source object.
 
 	``"bytes"``
-		The event data is a 8bit string. This event is produced by :class:`Source`
-		(and :class:`Transcoder`) objects.
+		This event is produced by :class:`Source` (and :class:`Transcoder`)
+		objects. The event data is an 8bit string.
 
 	``"unicode"``
 		The event data is a unicode string. This event is produced by
 		:class:`Decoder` objects. Note that the only pipeline objects that can
 		handle ``"unicode"`` events are :class:`Encoder` objects.
+
+The following type of events are produced by parsers:
+
+	``"position"``
+		The event data is a tuple containing the line and column number in the
+		source (both starting with 0). All the following events should use this
+		position information until the next position event.
 
 	``"xmldecl"``
 		The XML declaration. The event data is a dictionary containing the keys
@@ -130,7 +137,7 @@ can be produced:
 
 	``"enterstarttagns"``
 		The beginning of an element start tag in namespace mode.
-		The event data is an (element name, namespace name) tuple. This (and the
+		The event data is an (element name, namespace name) tuple. This and the
 		following four events are produced by :class:`NS` objects or by
 		:class:`Expat` objects when :var:`ns` is true, so that the expat parser
 		does the namespace resolution).
@@ -157,11 +164,6 @@ can be produced:
 
 	``"entity"``
 		An entity reference. The event data is the entity name.
-
-	``"position"``
-		The event data is a tuple containing the line and column number in the
-		source (both starting with 0). All the following events should use this
-		position information until the next position event.
 """
 
 
@@ -801,7 +803,7 @@ class NS(PipelineObject):
 	def __init__(self, prefixes=None, **kwargs):
 		"""
 		Create a :class:`NS` object. :var:`prefixes` (if not ``None``) can be a
-		namespace name (or module), which will the be used for the empty prefix,
+		namespace name (or module), which will be used for the empty prefix,
 		or a dictionary that maps prefixes to namespace names (or modules).
 		:var:`kwargs` maps prefixes to namespaces names too. If a prefix is in both
 		:var:`prefixes` and :var:`kwargs`, :var:`kwargs` wins.
@@ -809,6 +811,7 @@ class NS(PipelineObject):
 		PipelineObject.__init__(self)
 		# the currently active prefix mapping (will be replaced once xmlns attributes are encountered)
 		newprefixes = {}
+
 		def make(prefix, xmlns):
 			if prefix is not None and not isinstance(prefix, basestring):
 				raise TypeError("prefix must be None or string, not {0!r}".format(prefix))
