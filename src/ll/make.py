@@ -1279,6 +1279,7 @@ s4error = astyle.Style.fromenv("LL_MAKE_REPRANSI_ERROR", "red:black:bold")
 ### The project class
 ###
 
+
 class Project(dict):
 	"""
 	A :class:`Project` collects all :class:`Action` objects from a project. It
