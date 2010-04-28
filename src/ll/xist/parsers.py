@@ -206,9 +206,10 @@ class UnknownEventError(TypeError):
 
 class PipelineObject(object):
 	"""
-	A :class:`PipelineObject` is the base class of all objects in a
-	:class:`Pipeline`. It provides basic functionality for creating a pipeline
-	via the or (``|``) operator.
+	A :class:`PipelineObject` is the base class of all objects in a pipeline
+	(except for the source objects which sit at the beginning of a pipeline).
+	A :class:`PipelineObject` object provides basic functionality for creating a
+	pipeline via the or (``|``) operator.
 	"""
 
 	def __init__(self):
@@ -217,6 +218,10 @@ class PipelineObject(object):
 	def __ror__(self, other):
 		"""
 		Set :var:`other` as :var:`self`\s input and return :var:`self`.
+		If :var:`other` isn't a :class:`Source` or :class:`PipelineObject` it will
+		be converted to one (string will be converted to a :class:`StringSource`,
+		:class:`URL`\s to a :class:`URLSource`, everything else will be treated
+		as an iterable).
 		"""
 		if not isinstance(other, (Source, PipelineObject)):
 			if isinstance(other, basestring):
@@ -288,13 +293,13 @@ class IterSource(Source):
 
 class StreamSource(Source):
 	"""
-	Provides parser input from a stream (i.e. an object, that provides a
+	Provides parser input from a stream (i.e. an object that provides a
 	:meth:`read` method).
 	"""
 
 	def __init__(self, stream, url=None, bufsize=8192):
 		"""
-		Create a :class:`StreamSource` object. :var:`stream` must possess a
+		Create a :class:`StreamSource` object. :var:`stream` must have a
 		:meth:`read` method (with a ``size`` argument). :var:`url` specifies the
 		url for the source (defaulting to ``"STREAM"``). :var:`bufsize` specifies
 		the chunksize for reads from the stream.
@@ -385,7 +390,9 @@ class Decoder(PipelineObject):
 
 	def __init__(self, encoding=None):
 		"""
-		Create a :class:`Decoder` object. :var:`encoding` is encoding of the input.
+		Create a :class:`Decoder` object. :var:`encoding` is the encoding of the
+		input. If :var:`encoding` is ``None`` it will be automatically detected
+		from the XML data.
 		"""
 		PipelineObject.__init__(self)
 		self.encoding = encoding
@@ -424,7 +431,8 @@ class Encoder(PipelineObject):
 	def __init__(self, encoding=None):
 		"""
 		Create an :class:`Encoder` object. :var:`encoding` will be the encoding of
-		the output.
+		the output. If :var:`encoding` is ``None`` it will be automatically
+		detected from the XML declaration in the data.
 		"""
 		PipelineObject.__init__(self)
 		self.encoding = encoding
