@@ -898,6 +898,8 @@ class Template(object):
 			self._pythonsource_line(opcode.location, 'r{op.r1:d} = "".join(r{op.r2:d}())'.format(op=opcode))
 		elif opcode.arg == "mimeformat":
 			self._pythonsource_line(opcode.location, 'r{op.r1:d} = ul4c._mimeformat(r{op.r2:d})'.format(op=opcode))
+		elif opcode.arg in ("day", "month", "year", "hour", "minute", "second", "microsecond"):
+			self._pythonsource_line(opcode.location, 'r{op.r1:d} = r{op.r2:d}.{op.arg}'.format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _pythonsource_dispatch_callmeth1(self, opcode):

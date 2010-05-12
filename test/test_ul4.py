@@ -1110,6 +1110,41 @@ def test_method_join():
 	check('1,2,3,4', u'<?print ",".join([1, 2, 3, 4])?>')
 
 
+def test_method_day():
+	check('12', u'<?print 2010-05-12T.day()?>')
+	check('12', u'<?print d.day()?>', d=datetime.date(2010, 5, 12))
+
+
+def test_method_month():
+	check('5', u'<?print 2010-05-12T.month()?>')
+	check('5', u'<?print d.month()?>', d=datetime.date(2010, 5, 12))
+
+
+def test_method_year():
+	check('5', u'<?print 2010-05-12T.month()?>')
+	check('5', u'<?print d.month()?>', d=datetime.date(2010, 5, 12))
+
+
+def test_method_hour():
+	check('16', u'<?print 2010-05-12T16:47:56.hour()?>')
+	check('16', u'<?print d.hour()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
+
+
+def test_method_minute():
+	check('47', u'<?print 2010-05-12T16:47:56.minute()?>')
+	check('47', u'<?print d.minute()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
+
+
+def test_method_second():
+	check('56', u'<?print 2010-05-12T16:47:56.second()?>')
+	check('56', u'<?print d.second()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
+
+
+def test_method_microsecond():
+	check('123456', u'<?print 2010-05-12T16:47:56.123456.microsecond()?>')
+	check('123456', u'<?print d.microsecond()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56, 123456))
+
+
 def test_render():
 	t = ul4c.compile(u'<?print prefix?><?print data?><?print suffix?>')
 	check('(f)(o)(o)', u'<?for c in data?><?render t(data=c, prefix="(", suffix=")")?><?end for?>', t=t, data='foo')
