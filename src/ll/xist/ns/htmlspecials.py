@@ -148,7 +148,7 @@ class autopixel(_pixelbase):
 	xmlns = xmlns
 	def convert(self, converter):
 		target = converter.target
-		if not issubclass(target, (ihtml, html)):
+		if target.xmlns not in (ihtml.xmlns, html.xmlns):
 			raise ValueError("unknown conversion target %r" % target)
 		e = target.img(self.attrs.withoutnames(u"color"))
 		src = self.attrs.src.convert(converter).forInput(converter.root)

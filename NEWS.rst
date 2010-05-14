@@ -1,3 +1,9 @@
+Changes in 3.7.6 (released 05/14/2010)
+--------------------------------------
+
+*	Fixed a bug in :class:`ll.xist.ns.htmlspecials.autopixel`.
+
+
 Changes in 3.7.5 (released 04/19/2010)
 --------------------------------------
 
