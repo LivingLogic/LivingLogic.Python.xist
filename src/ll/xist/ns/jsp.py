@@ -360,14 +360,10 @@ def fromul4(template, variables="variables", indent=0):
 			else:
 				raise ul4c.UnknownFunctionError(opcode.arg)
 		elif opcode.code == "callfunc1":
-			if opcode.arg == "xmlescape":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.xmlescape(r{op.r2});".format(op=opcode))
-			elif opcode.arg == "csv":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.csv(r{op.r2});".format(op=opcode))
+			elif opcode.arg in ("xmlescape", "csv", "repr", "enumerate", "chr", "ord", "hex", "oct", "bin", "sorted", "range", "type", "json", "reversed"):
+				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
 			elif opcode.arg == "str":
 				make_scriptlet("r{op.r1} = org.apache.commons.lang.ObjectUtils.toString(r{op.r2});".format(op=opcode))
-			elif opcode.arg == "repr":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.repr(r{op.r2});".format(op=opcode))
 			elif opcode.arg == "int":
 				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.toInteger(r{op.r2});".format(op=opcode))
 			elif opcode.arg == "float":
@@ -376,8 +372,6 @@ def fromul4(template, variables="variables", indent=0):
 				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.getBool(r{op.r2});".format(op=opcode))
 			elif opcode.arg == "len":
 				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.length(r{op.r2});".format(op=opcode))
-			elif opcode.arg == "enumerate":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.enumerate(r{op.r2});".format(op=opcode))
 			elif opcode.arg == "isnone":
 				make_scriptlet("r{op.r1} = (r{op.r2} == null);".format(op=opcode))
 			elif opcode.arg == "isstr":
@@ -398,140 +392,46 @@ def fromul4(template, variables="variables", indent=0):
 				make_scriptlet("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof com.livinglogic.ul4.Template));".format(op=opcode))
 			elif opcode.arg == "iscolor":
 				make_scriptlet("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof com.livinglogic.ul4.Color));".format(op=opcode))
-			elif opcode.arg == "chr":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.chr(r{op.r2});".format(op=opcode))
-			elif opcode.arg == "ord":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.ord(r{op.r2});".format(op=opcode))
-			elif opcode.arg == "hex":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.hex(r{op.r2});".format(op=opcode))
-			elif opcode.arg == "oct":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.oct(r{op.r2});".format(op=opcode))
-			elif opcode.arg == "bin":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.bin(r{op.r2});".format(op=opcode))
-			elif opcode.arg == "sorted":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.sorted(r{op.r2});".format(op=opcode))
-			elif opcode.arg == "range":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.range(r{op.r2});".format(op=opcode))
-			elif opcode.arg == "type":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.type(r{op.r2});".format(op=opcode))
 			elif opcode.arg == "get":
 				make_scriptlet("r{op.r1} = {var}.get(r{op.r2});".format(op=opcode, var=variables))
-			elif opcode.arg == "json":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.json(r{op.r2});".format(op=opcode))
-			elif opcode.arg == "reversed":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.reversed(r{op.r2});".format(op=opcode))
 			else:
 				raise ul4c.UnknownFunctionError(opcode.arg)
 		elif opcode.code == "callfunc2":
-			if opcode.arg == "range":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.range(r{op.r2}, r{op.r3});".format(op=opcode))
+			if opcode.arg in ("range", "zip"):
+				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
 			elif opcode.arg == "get":
 				make_scriptlet("r{op.r1} = {var}.containsKey(r{op.r2}) ? {var}.get(r{op.r2}) : r{op.r3};".format(op=opcode.r1, var=variables))
-			elif opcode.arg == "zip":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.zip(r{op.r2}, r{op.r3});".format(op=opcode))
 			else:
 				raise ul4c.UnknownFunctionError(opcode.arg)
 		elif opcode.code == "callfunc3":
-			if opcode.arg == "range":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.range(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
-			elif opcode.arg == "zip":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.zip(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
-			elif opcode.arg == "rgb":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.rgb(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
-			elif opcode.arg == "hls":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.hls(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
-			elif opcode.arg == "hsv":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.hsv(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+			if opcode.arg in ("range", "zip", "rgb", "hls", "hsv"):
+				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 			else:
 				raise ul4c.UnknownFunctionError(opcode.arg)
 		elif opcode.code == "callfunc4":
-			if opcode.arg == "rgb":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.rgb(r{op.r2}, r{op.r3}, r{op.r4}, r{op.5});".format(op=opcode))
-			elif opcode.arg == "hls":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.hls(r{op.r2}, r{op.r3}, r{op.r4}, r{op.5});".format(op=opcode))
-			elif opcode.arg == "hsv":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.hsv(r{op.r2}, r{op.r3}, r{op.r4}, r{op.5});".format(op=opcode))
+			if opcode.arg in ("rgb", "hls", "hsv"):
+				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.5});".format(op=opcode))
 			else:
 				raise ul4c.UnknownFunctionError(opcode.arg)
 		elif opcode.code == "callmeth0":
-			if opcode.arg == "split":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.split(r{op.r2});".format(op=opcode))
-			elif opcode.arg == "strip":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.strip(r{op.r2});".format(op=opcode))
-			elif opcode.arg == "lstrip":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.lstrip(r{op.r2});".format(op=opcode))
-			elif opcode.arg == "rstrip":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.rstrip(r{op.r2});".format(op=opcode))
-			elif opcode.arg == "upper":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.upper(r{op.r2});".format(op=opcode))
-			elif opcode.arg == "lower":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.lower(r{op.r2});".format(op=opcode))
-			elif opcode.arg == "capitalize":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.capitalize(r{op.r2});".format(op=opcode))
-			elif opcode.arg == "items":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.items(r{op.r2});".format(op=opcode))
-			elif opcode.arg == "isoformat":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.isoformat(r{op.r2});".format(op=opcode))
-			elif opcode.arg == "mimeformat":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.mimeformat(r{op.r2});".format(op=opcode))
-			elif opcode.arg == "r":
-				make_scriptlet("r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).r();".format(op=opcode))
-			elif opcode.arg == "g":
-				make_scriptlet("r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).g();".format(op=opcode))
-			elif opcode.arg == "b":
-				make_scriptlet("r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).b();".format(op=opcode))
-			elif opcode.arg == "a":
-				make_scriptlet("r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).a();".format(op=opcode))
-			elif opcode.arg == "hls":
-				make_scriptlet("r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).hls();".format(op=opcode))
-			elif opcode.arg == "hlsa":
-				make_scriptlet("r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).hlsa();".format(op=opcode))
-			elif opcode.arg == "hsv":
-				make_scriptlet("r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).hsv();".format(op=opcode))
-			elif opcode.arg == "hsva":
-				make_scriptlet("r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).hsva();".format(op=opcode))
+			if opcode.arg in ("split", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "items", "isoformat", "mimeformat", "day", "month", "year", "hour", "minute", "second", "microsecond", "weekday"):
+				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
+			elif opcode.arg in ("r", "g", "b", "a", "hls", "hlsa", "hsv", "hsva"):
+				make_scriptlet("r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).{op.arg}();".format(op=opcode))
 			elif opcode.arg == "lum":
 				make_scriptlet("r{op.r1} = new Double(((com.livinglogic.ul4.Color)r{op.r2}).lum());".format(op=opcode))
 			else:
 				raise ul4c.UnknownMethodError(opcode.arg)
 		elif opcode.code == "callmeth1":
-			if opcode.arg == "split":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.split(r{op.r2}, r{op.r3});".format(op=opcode))
-			elif opcode.arg == "rsplit":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.rsplit(r{op.r2}, r{op.r3});".format(op=opcode))
-			elif opcode.arg == "strip":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.strip(r{op.r2}, r{op.r3});".format(op=opcode))
-			elif opcode.arg == "lstrip":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.lstrip(r{op.r2}, r{op.r3});".format(op=opcode))
-			elif opcode.arg == "rstrip":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.rstrip(r{op.r2}, r{op.r3});".format(op=opcode))
-			elif opcode.arg == "startswith":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.startswith(r{op.r2}, r{op.r3});".format(op=opcode))
-			elif opcode.arg == "endswith":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.endswith(r{op.r2}, r{op.r3});".format(op=opcode))
-			elif opcode.arg == "find":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.find(r{op.r2}, r{op.r3});".format(op=opcode))
-			elif opcode.arg == "rfind":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.rfind(r{op.r2}, r{op.r3});".format(op=opcode))
-			elif opcode.arg == "format":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.format(r{op.r2}, r{op.r3});".format(op=opcode))
+			if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "rfind", "format", "withlum", "witha"):
+				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
 			elif opcode.arg == "get":
 				make_scriptlet("r{op.r1} = ((java.util.Map)r{op.r2}).get(r{op.r3});".format(op=opcode))
-			elif opcode.arg == "withlum":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.withlum(r{op.r2}, r{op.r3});".format(op=opcode))
-			elif opcode.arg == "witha":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.witha(r{op.r2}, r{op.r3});".format(op=opcode))
 			else:
 				raise ul4c.UnknownMethodError(opcode.arg)
 		elif opcode.code == "callmeth2":
-			if opcode.arg == "split":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.split(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
-			elif opcode.arg == "rsplit":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.rsplit(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
-			elif opcode.arg == "find":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.find(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
-			elif opcode.arg == "replace":
-				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.replace(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+			if opcode.arg in ("split", "rsplit", "find", "replace"):
+				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 			elif opcode.arg == "get":
 				make_scriptlet("r{op.r1} = ((java.util.Map)r{op.r2}).containsKey(r{op.r3}) ? ((java.util.Map)r{op.r2}).get(r{op.r3}) : r{op.r4};".format(op=opcode))
 			else:
