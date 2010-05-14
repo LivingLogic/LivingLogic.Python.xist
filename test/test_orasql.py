@@ -52,7 +52,7 @@ if dbname:
 		db = orasql.connect(dbname)
 		user = dbname.split("/")[0]
 		name = dbname.split("@")[1]
-		assert "%s@%s" % (user, name) == db.connectstring()
+		assert "{0}@{1}".format(user, name) == db.connectstring()
 
 
 	def test_connection_iterschema():
@@ -222,14 +222,14 @@ if dbname:
 	@withbitbucket
 	def test_scripts_oracreate():
 		# Test oracreate without executing anything
-		args = "--color yes --verbose --seqcopy %s" % dbname
+		args = "--color yes --verbose --seqcopy {0}".format(dbname)
 		oracreate.main(args.split())
 
 
 	@withbitbucket
 	def test_scripts_oradrop():
 		# Test oradrop without executing anything
-		args = "--color yes --verbose %s" % dbname
+		args = "--color yes --verbose {0}".format(dbname)
 		oradrop.main(args.split())
 
 
@@ -237,8 +237,8 @@ if dbname:
 	def test_scripts_oradiff():
 		# Test oradiff (not really: we will not get any differences)
 		allargs = [
-			"--color yes --verbose %s %s" % (dbname, dbname),
-			"--color yes --verbose %s %s -mfull" % (dbname, dbname),
+			"--color yes --verbose {0} {0}".format(dbname),
+			"--color yes --verbose {0} {0} -mfull".format(dbname),
 		]
 		for args in allargs:
 			oradiff.main(args.split())
@@ -247,21 +247,21 @@ if dbname:
 	@withbitbucket
 	def test_scripts_oramerge():
 		# Test oramerge (not really: we will not get any differences)
-		args = "--color yes --verbose %s %s %s" % (dbname, dbname, dbname)
+		args = "--color yes --verbose {0} {0} {0}".format(dbname)
 		oramerge.main(args.split())
 
 
 	@withbitbucket
 	def test_scripts_oragrant():
 		# Test oragrant
-		args = "--color yes %s" % dbname
+		args = "--color yes {0}".format(dbname)
 		oragrant.main(args.split())
 
 
 	@withbitbucket
 	def test_scripts_orafind():
 		# Test orafind
-		args = "--ignore-case --color yes %s foo" % dbname
+		args = "--ignore-case --color yes {0} foo".format(dbname)
 		orafind.main(args.split())
 
 
@@ -290,17 +290,17 @@ if dbname:
 				# fetch only a few records
 				db = orasql.connect(dbname)
 				c = db.cursor()
-				c.execute("select * from %s" % obj.name)
+				c.execute("select * from {0}".format(obj.name))
 				c.readlobs = False
 				c.fetchone()
-				c.execute("select * from %s" % obj.name)
+				c.execute("select * from {0}".format(obj.name))
 				c.readlobs = True
 				c.fetchone()
 				break
 
 
 	def test_url():
-		u = url.URL("oracle://%s/" % dbname.replace("/", ":"))
+		u = url.URL("oracle://{0}/".format(dbname.replace("/", ":")))
 		assert u.isdir()
 		assert u.mimetype() == "application/octet-stream"
 		u.owner()
@@ -310,7 +310,7 @@ if dbname:
 		u.files()
 		u.dirs()
 
-		u = url.URL("oracle://%s/procedure/orasql_testprocedure" % dbname.replace("/", ":"))
+		u = url.URL("oracle://{0}/procedure/orasql_testprocedure".format(dbname.replace("/", ":")))
 		assert u.isfile()
 		assert u.mimetype() == "text/x-oracle-procedure"
 		u.owner()

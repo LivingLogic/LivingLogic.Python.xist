@@ -72,7 +72,7 @@ class Line(object):
 		elif blank == "collapse":
 			self.compareline = " ".join(line.strip().split())
 		else:
-			raise ValueError("unknown blank value %r" % blank)
+			raise ValueError("unknown blank value {0!r}".format(blank))
 
 	def __eq__(self, other):
 		return self.compareline == other.compareline
@@ -86,7 +86,7 @@ class Line(object):
 
 def showudiff(out, obj, ddl1, ddl2, connection1, connection2, encoding="utf-8", context=3, timeformat="%c"):
 	def header(prefix, style, connection):
-		return style("%s %r in %s: %s" % (prefix, obj, connection.connectstring(), gettimestamp(obj, connection, timeformat)))
+		return style("{0} {1!r} in {2}: {3}".format(prefix, obj, connection.connectstring(), gettimestamp(obj, connection, timeformat)))
 
 	started = False
 	for group in difflib.SequenceMatcher(None, ddl1, ddl2).get_grouped_opcodes(context):
@@ -95,11 +95,11 @@ def showudiff(out, obj, ddl1, ddl2, connection1, connection2, encoding="utf-8", 
 			out.writeln(header("+++", s4addedfile, connection2))
 			started = True
 		(i1, i2, j1, j2) = group[0][1], group[-1][2], group[0][3], group[-1][4]
-		out.writeln(s4pos("@@ -%d,%d +%d,%d @@" % (i1+1, i2-i1, j1+1, j2-j1)))
+		out.writeln(s4pos("@@ -{0},{1} +{2},{3} @@".format(i1+1, i2-i1, j1+1, j2-j1)))
 		for (tag, i1, i2, j1, j2) in group:
 			if tag == "equal":
 				for line in ddl1[i1:i2]:
-					out.writeln((" %s" % line.originalline).encode(encoding))
+					out.writeln(" {0}".format(line.originalline).encode(encoding))
 				continue
 			if tag == "replace" or tag == "delete":
 				for line in ddl1[i1:i2]:
@@ -115,11 +115,11 @@ def main(args=None):
 	blanks = ("literal", "trail", "lead", "both", "collapse")
 	p = optparse.OptionParser(usage="usage: %prog [options] connectstring1 connectstring2")
 	p.add_option("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action="store_true")
-	p.add_option("-c", "--color", dest="color", help="Color output (%s)" % ", ".join(colors), default="auto", choices=colors)
-	p.add_option("-m", "--mode", dest="mode", help="Output mode (%s)" % ", ".join(modes), default="udiff", choices=modes)
+	p.add_option("-c", "--color", dest="color", help="Color output ({0})".format(", ".join(colors)), default="auto", choices=colors)
+	p.add_option("-m", "--mode", dest="mode", help="Output mode ({0})".format(", ".join(modes)), default="udiff", choices=modes)
 	p.add_option("-n", "--context", dest="context", help="Number of context lines", type="int", default=2)
 	p.add_option("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' or 'SYS_EXPORT_SCHEMA_' in their name?", default=False, action="store_true")
-	p.add_option("-b", "--blank", dest="blank", help="How to treat whitespace (%s)" % ", ".join(blanks), default="literal", choices=blanks)
+	p.add_option("-b", "--blank", dest="blank", help="How to treat whitespace ({0})".format(", ".join(blanks)), default="literal", choices=blanks)
 	p.add_option("-e", "--encoding", dest="encoding", help="Encoding for output", default="utf-8")
 
 	(options, args) = p.parse_args(args)
@@ -139,6 +139,7 @@ def main(args=None):
 	connection1 = orasql.connect(args[0])
 	connection2 = orasql.connect(args[1])
 
+	print connection1, connection2
 	def fetch(connection):
 		objects = set()
 
@@ -154,7 +155,7 @@ def main(args=None):
 		for (i, obj) in enumerate(connection.iterobjects(mode="flat", schema="user")):
 			keepdef = keep(obj)
 			if options.verbose:
-				msg = astyle.style_default("oradiff.py: ", cs(connection), ": fetching #%d " % (i+1), df(obj))
+				msg = astyle.style_default("oradiff.py: ", cs(connection), ": fetching #{0} ".format(i+1), df(obj))
 				if not keepdef:
 					msg = astyle.style_default(msg, " ", s4warning("(skipped)"))
 				stderr.writeln(msg)
@@ -168,11 +169,11 @@ def main(args=None):
 	onlyin1 = objects1 - objects2
 	for (i, obj) in enumerate(onlyin1):
 		if options.verbose:
-			stderr.writeln("oradiff.py: only in ", cs(connection1), " #%d/%d " % (i+1, len(onlyin1)), df(obj))
+			stderr.writeln("oradiff.py: only in ", cs(connection1), " #{0}/{1} ".format(i+1, len(onlyin1)), df(obj))
 		if options.mode == "brief":
 			stdout.writeln(df(obj), ": only in ", cs(connection1))
 		elif options.mode == "full":
-			stdout.writeln(comment(df(obj), ": only in " % cs(connection1)))
+			stdout.writeln(comment(df(obj), ": only in ", cs(connection1)))
 			ddl = obj.dropddl(connection1, term=True)
 			if ddl:
 				stdout.write(ddl)
@@ -183,7 +184,7 @@ def main(args=None):
 	onlyin2 = objects2 - objects1
 	for (i, obj) in enumerate(onlyin2):
 		if options.verbose:
-			stderr.writeln("oradiff.py: only in ", cs(connection2), " #%d/%d " % (i+1, len(onlyin2)), df(obj))
+			stderr.writeln("oradiff.py: only in ", cs(connection2), " #{0}/{1} ".format(i+1, len(onlyin2)), df(obj))
 		if options.mode == "brief":
 			stdout.writeln(df(obj), ": only in ", cs(connection2))
 		elif options.mode == "full":
@@ -198,7 +199,7 @@ def main(args=None):
 	common = objects1 & objects2
 	for (i, obj) in enumerate(common):
 		if options.verbose:
-			stderr.writeln("oradiff.py: diffing #%d/%d " % (i+1, len(common)), df(obj))
+			stderr.writeln("oradiff.py: diffing #{0}/{1} ".format(i+1, len(common)), df(obj))
 		ddl1 = obj.createddl(connection1)
 		ddl2 = obj.createddl(connection2)
 		ddl1c = getcanonicalddl(ddl1, options.blank)

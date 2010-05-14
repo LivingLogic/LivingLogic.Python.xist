@@ -9,17 +9,170 @@
 
 
 """
-This file contains everything you need to parse XIST objects from files,
+This module contains everything you need to parse XIST objects from files,
 strings, URLs etc.
+
+Parsing XML is done with a pipelined approach. The first step in the pipeline
+is a :class:`Source` object that provides the XML source (from strings, files,
+URLs, etc.).
+
+The next step is the XML parser. It turns the input source into an iterator over
+parsing events (an "event stream"). Further steps in the pipeline might resolve
+namespace prefixes (:class:`NS`), and instantiate XIST classes
+(:class:`Instantiate`).
+
+The final step in the pipeline is either building an XML tree via :func:`tree`
+or an iterative parsing step (similar to ElementTrees :func:`iterparse`
+function) via :func:`iterparse`.
+
+Parsing a simple HTML string might e.g. look like this::
+
+	>>> from ll.xist import xsc, parsers
+	>>> from ll.xist.ns import html
+	>>> source = "<a href='http://www.python.org/'>Python</a>"
+	>>> doc = parsers.tree(
+	...         parsers.StringSource(source)
+	...       | parsers.Expat()
+	...       | parsers.NS(prefixes={None: html})
+	...       | parsers.Instantiate(pool=xsc.Pool(html))
+	... )
+	>>> doc.bytes()
+	'<a href="http://www.python.org/">Python</a>'
+
+Alternatively the parsing step can be done with a :class:`Tidy` object, which
+parses (potentially ill-formed) HTML into an event stream.
+
+It's also possible to turn an object that is compatible with the ElemenTree__
+API into an event stream via an :class:`ETree` object.
+
+	__ http://effbot.org/zone/element-index.htm
+
+The following code shows an example of an event stream::
+
+	>>> from ll.xist import parsers
+	>>> source = "<a href='http://www.python.org/'>Python</a>"
+	>>> list(parsers.StringSource(source) | parsers.Expat())
+	[('url', URL('STRING')),
+	 ('position', (0, 0)),
+	 ('enterstarttag', u'a'),
+	 ('enterattr', u'href'),
+	 ('text', u'http://www.python.org/'),
+	 ('leaveattr', u'href'),
+	 ('leavestarttag', u'a'),
+	 ('position', (0, 39)),
+	 ('text', u'Python'),
+	 ('endtag', u'a')]
+
+An event is a tuple consisting of the event type and the event data. Different
+stages in the pipeline produce different event types. The following event types
+can be produced by source objects:
+
+	``"url"``
+		The event data is the URL of the source. Usually such an event is produced
+		only once at the start of the event stream. For sources that have no
+		natural URL (like strings and streams) the URL can be specified when
+		creating the source object.
+
+	``"bytes"``
+		This event is produced by :class:`Source` (and :class:`Transcoder`)
+		objects. The event data is an 8bit string.
+
+	``"unicode"``
+		The event data is a unicode string. This event is produced by
+		:class:`Decoder` objects. Note that the only pipeline objects that can
+		handle ``"unicode"`` events are :class:`Encoder` objects.
+
+The following type of events are produced by parsers:
+
+	``"position"``
+		The event data is a tuple containing the line and column number in the
+		source (both starting with 0). All the following events should use this
+		position information until the next position event.
+
+	``"xmldecl"``
+		The XML declaration. The event data is a dictionary containing the keys
+		``"version"``, ``"encoding"`` and ``"standalone"``. Parsers may omit this
+		event.
+
+	``"begindoctype"``
+		The begin of the doctype. The event data is a dictionary containing the
+		keys ``"name"``, ``"publicid"`` and ``"systemid"``.  Parsers may omit this
+		event.
+
+	``"enddoctype"``
+		The end of the doctype. The event data is :const:`None`. (If there is no
+		internal subset, the ``"enddoctype"`` event immediately follows the
+		``"begindoctype"`` event). Parsers may omit this event.
+
+	``"comment"``
+		A comment. The event data is the content of the comment.
+
+	``"text"``
+		A text. The event data is the text content. Parsers should try to avoid
+		outputting multiple text events in sequence.
+
+	``"cdata"``
+		A CDATA section. The event data is the content of the CDATA section.
+		Parsers may report CDATA sections as text events instead of cdata events.
+
+	``"enterstarttag"``
+		The beginning of an element start tag. The event data is the element name.
+
+	``"leavestarttag"``
+		The end of an element start tag. The event data is the element name.
+		The parser will output events for the attributes between the
+		``"enterstarttag"`` and the ``"leavestarttag"`` event.
+
+	``"enterattr"``
+		The beginning of an attribute. The event data is the attribute name.
+
+	``"leaveattr"``
+		The end of an attribute. The event data is the attribute name.
+		The parser will output events for the attribute value between the
+		``"enterattr"`` and the ``"leaveattr"`` event. (In most cases this is
+		one text event).
+
+	``"endtag"``
+		An element end tag. The event data is the element name.
+
+	``"enterstarttagns"``
+		The beginning of an element start tag in namespace mode.
+		The event data is an (element name, namespace name) tuple. This and the
+		following four events are produced by :class:`NS` objects or by
+		:class:`Expat` objects when :var:`ns` is true, so that the expat parser
+		does the namespace resolution).
+
+	``"leavestarttagns"``
+		The end of an element start tag in namespace mode. The event data is an
+		(element name, namespace name) tuple.
+
+	``"enterattrns"``
+		The beginning of an attribute in namespace mode. The event data is an
+		(element name, namespace name) tuple.
+
+	``"leaveattrns"``
+		The end of an attribute in namespace mode. The event data is an
+		(element name, namespace name) tuple.
+
+	``"endtagns"``
+		An element end tag in namespace mode. The event data is an
+		(element name, namespace name) tuple.
+
+	``"procinst"``
+		A processing instruction. The event data is a tuple consisting of the
+		pi target and the pi data.
+
+	``"entity"``
+		An entity reference. The event data is the entity name.
 """
 
 
-import sys, os, os.path, warnings, cStringIO, codecs, pyexpat, contextlib
+import sys, os, os.path, warnings, cStringIO, codecs, contextlib, types
 
 from xml.parsers import expat
 
-from ll import url, xml_codec
-from ll.xist import xsc
+from ll import url as url_, misc, xml_codec
+from ll.xist import xsc, xfind
 try:
 	from ll.xist import sgmlop
 except ImportError:
@@ -30,220 +183,1196 @@ from ll.xist.ns import xml, html
 __docformat__ = "reStructuredText"
 
 
-class Parser(object):
+html_xmlns = "http://www.w3.org/1999/xhtml"
+
+
+###
+### exceptions
+###
+
+class UnknownEventError(TypeError):
+	def __init__(self, pipeout, pipein, event):
+		self.pipeout = pipeout
+		self.pipein = pipein
+		self.event = event
+
+	def __str__(self):
+		return "{0.pipein!r} can't handle event type {0.event[0]!r} from {0.pipeout!r}".format(self)
+
+
+###
+### pipeline
+###
+
+class PipelineObject(object):
+	"""
+	A :class:`PipelineObject` is the base class of all objects in a pipeline
+	(except for the source objects which sit at the beginning of a pipeline).
+	A :class:`PipelineObject` object provides basic functionality for creating a
+	pipeline via the or (``|``) operator.
+	"""
+
+	def __init__(self):
+		self.input = None
+
+	def __ror__(self, other):
+		"""
+		Set :var:`other` as :var:`self`\s input and return :var:`self`.
+		If :var:`other` isn't a :class:`Source` or :class:`PipelineObject` it will
+		be converted to one (string will be converted to a :class:`StringSource`,
+		:class:`URL`\s to a :class:`URLSource`, everything else will be treated
+		as an iterable).
+		"""
+		if not isinstance(other, (Source, PipelineObject)):
+			if isinstance(other, basestring):
+				other = StringSource(other)
+			elif isinstance(other, url_.URL):
+				other = URLSource(other)
+			elif not hasattr(other, "__iter__"): # Test this last (as ``URL``\s have :meth:`__iter__` too)
+				raise TypeError("can't convert {0!r} to a source".format(other))
+		self.input = other
+		return self
+
+
+###
+### sources
+###
+
+class Source(object):
+	"""
+	A source object provides the input for a parser.
+	"""
+
+
+class StringSource(Source):
+	"""
+	Provides parser input from a string.
+	"""
+	def __init__(self, data, url=None):
+		"""
+		Create a :class:`StringSource` object. :var:`data` must be an 8-bit string.
+		:var:`url` specifies the url for the source (defaulting to ``"STRING"``).
+		"""
+		self.url = url_.URL(url if url is not None else "STRING")
+		self.data = data
+
+	def __iter__(self):
+		yield ("url", self.url)
+		if isinstance(self.data, str):
+			yield ("bytes", self.data)
+		elif  isinstance(self.data, unicode):
+			yield ("unicode", self.data)
+		else:
+			raise TypeError("data must be str or unicode")
+
+
+class IterSource(Source):
+	"""
+	Provides parser input from an iterator over strings.
+	"""
+
+	def __init__(self, iterable, url=None):
+		"""
+		Create a :class:`IterSource` object. :var:`iterable` must be an iterable
+		object producing 8-bit strings. :var:`url` specifies the url for the
+		source (defaulting to ``"ITER"``).
+		"""
+		self.url = url_.URL(url if url is not None else "ITER")
+		self.iterable = iterable
+
+	def __iter__(self):
+		yield ("url", self.url)
+		for data in self.iterable:
+			if isinstance(data, str):
+				yield ("bytes", data)
+			elif  isinstance(data, unicode):
+				yield ("unicode", data)
+			else:
+				raise TypeError("data must be str or unicode")
+
+
+class StreamSource(Source):
+	"""
+	Provides parser input from a stream (i.e. an object that provides a
+	:meth:`read` method).
+	"""
+
+	def __init__(self, stream, url=None, bufsize=8192):
+		"""
+		Create a :class:`StreamSource` object. :var:`stream` must have a
+		:meth:`read` method (with a ``size`` argument). :var:`url` specifies the
+		url for the source (defaulting to ``"STREAM"``). :var:`bufsize` specifies
+		the chunksize for reads from the stream.
+		"""
+		self.url = url_.URL(url if url is not None else "STREAM")
+		self.stream = stream
+		self.bufsize = bufsize
+
+	def __iter__(self):
+		yield ("url", self.url)
+		while True:
+			data = self.stream.read(self.bufsize)
+			if data:
+				if isinstance(data, str):
+					yield ("bytes", data)
+				elif  isinstance(data, unicode):
+					yield ("unicode", data)
+				else:
+					raise TypeError("data must be str or unicode")
+			else:
+				break
+
+
+class FileSource(Source):
+	"""
+	Provides parser input from a file.
+	"""
+
+	def __init__(self, filename, bufsize=8192):
+		"""
+		Create a :class:`FileSource` object. :var:`filename` is the name of the
+		file and may start with ``~`` or ``~user`` for the home directory of the
+		current or the specified user. :var:`bufsize` specify the chunksize for
+		reads from the file.
+		"""
+		self.url = url_.File(filename)
+		self._filename = os.path.expanduser(filename)
+
+	def __iter__(self):
+		yield ("url", self.url)
+		with open(self._filename, "rb") as stream:
+			while True:
+				data = stream.read(self.bufsize)
+				if data:
+					yield ("bytes", data)
+				else:
+					break
+
+
+class URLSource(Source):
+	"""
+	Provides parser input from a URL.
+	"""
+
+	def __init__(self, name, bufsize=8192, *args, **kwargs):
+		"""
+		Create a :class:`URLSource` object. :var:`name` is the URL.
+		:var:`bufsize` specify the chunksize for reads from the URL. :var:`args`
+		and :var:`kwargs` will be passed on to the :meth:`open` method of the URL
+		object.
+
+		The URL for the input will be the final URL for the resource (i.e. it will
+		include redirects).
+		"""
+		u = url_.URL(name)
+		self.stream = u.open("rb", *args, **kwargs)
+		self.url = self.stream.finalurl()
+		self.bufsize = bufsize
+
+	def __iter__(self):
+		yield ("url", self.url)
+		with contextlib.closing(self.stream) as stream:
+			while True:
+				data = stream.read(self.bufsize)
+				if data:
+					yield ("bytes", data)
+				else:
+					break
+
+
+class Decoder(PipelineObject):
+	"""
+	Decode the 8-bit output of the previous object in the pipeline to unicode.
+
+	This previous object can be a source object or any other pipeline object that
+	produces 8-bit strings.
+	"""
+
+	def __init__(self, encoding=None):
+		"""
+		Create a :class:`Decoder` object. :var:`encoding` is the encoding of the
+		input. If :var:`encoding` is ``None`` it will be automatically detected
+		from the XML data.
+		"""
+		PipelineObject.__init__(self)
+		self.encoding = encoding
+
+	def __iter__(self):
+		decoder = codecs.getincrementaldecoder("xml")(encoding=self.encoding)
+		for (evtype, data) in self.input:
+			if evtype == "bytes":
+				data = decoder.decode(data, False)
+				if data:
+					yield ("unicode", data)
+			elif evtype == "unicode":
+				if data:
+					yield ("unicode", data)
+			elif evtype == "url":
+				yield ("url", data)
+			else:
+				raise UnknownEventError(self.input, self, (evtype, data))
+		data = decoder.decode("", True)
+		if data:
+			yield ("unicode", data)
+
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
+
+
+class Encoder(PipelineObject):
+	"""
+	Encode the unicode output of the previous object in the pipeline to 8-bit
+	strings.
+
+	This previous object must be a pipeline object that produces unicode output
+	(e.g. a :class:`Decoder` object).
+	"""
+
+	def __init__(self, encoding=None):
+		"""
+		Create an :class:`Encoder` object. :var:`encoding` will be the encoding of
+		the output. If :var:`encoding` is ``None`` it will be automatically
+		detected from the XML declaration in the data.
+		"""
+		PipelineObject.__init__(self)
+		self.encoding = encoding
+
+	def __iter__(self):
+		encoder = codecs.getincrementalencoder("xml")(encoding=self.encoding)
+		for (evtype, data) in self.input:
+			if evtype == "unicode":
+				data = encoder.encode(data, False)
+				if data:
+					yield ("bytes", data)
+			elif evtype == "bytes":
+				if data:
+					yield ("bytes", data)
+			elif evtype == "url":
+				yield ("url", data)
+			else:
+				raise UnknownEventError(self.input, self, (evtype, data))
+		data = encoder.encode(u"", True)
+		if data:
+			yield ("bytes", data)
+
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
+
+
+class Transcoder(PipelineObject):
+	"""
+	Transcode the 8-bit output of the previous object into another encoding.
+
+	This previous object can be a source object or any other pipeline object that
+	produces 8-bit strings.
+	"""
+
+	def __init__(self, fromencoding=None, toencoding=None):
+		"""
+		Create a :class:`Transcoder` object. :var:`fromencoding` is the encoding
+		of the input. :var:`toencoding` is the encoding of the output.
+		"""
+		PipelineObject.__init__(self)
+		self.fromencoding = fromencoding
+		self.toencoding = toencoding
+
+	def __iter__(self):
+		decoder = codecs.getincrementaldecoder("xml")(encoding=self.fromencoding)
+		encoder = codecs.getincrementalencoder("xml")(encoding=self.toencoding)
+		for (evtype, data) in self.input:
+			if evtype == "bytes":
+				data = encoder.encode(decoder.decode(data, False), False)
+				if data:
+					yield ("bytes", data)
+			elif evtype == "url":
+				yield ("url", data)
+			else:
+				raise UnknownEventError(self.input, self, (evtype, data))
+		data = encoder.encode(decoder.decode("", True), True)
+		if data:
+			yield ("bytes", data)
+
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__name__} object fromencoding={0.fromencoding!r} toencoding={0.toencoding!r} at {1:#x}>".format(self, id(self))
+
+
+###
+### Parsers
+###
+
+class EventParser(PipelineObject):
 	"""
 	Basic parser interface.
 	"""
-	def __init__(self):
-		self.application = None
+	xmldecl = "xmldecl"
+	begindoctype = "begindoctype"
+	enddoctype = "enddoctype"
+	comment = "comment"
+	text = "text"
+	cdata = "cdata"
+	enterstarttag = "enterstarttag"
+	enterstarttagns = "enterstarttagns"
+	enterattr = "enterattr"
+	enterattrns = "enterattrns"
+	leaveattr = "leaveattr"
+	leaveattrns = "leaveattrns"
+	leavestarttag = "leavestarttag"
+	leavestarttagns = "leavestarttagns"
+	endtag = "endtag"
+	endtagns = "endtagns"
+	procinst = "procinst"
+	entity = "entity"
+	position = "position"
+	url = "url"
 
-	def begin(self, application):
-		"""
-		Start parsing. Events will be passed to :var:`application`, which must
-		implement a handler for each event type.
-		"""
-		self.application = application
-
-	def end(self):
-		"""
-		Finish parsing.
-		"""
-		self.application = None
-
-	def feed(self, data, final):
+	@misc.notimplemented
+	def feed(self, data, final=False):
 		"""
 		Feed :var:`data` (a byte string) to the parser. If :var:`final` is true
 		this will be the last call to :meth:`feed`.
+
+		Return an iterator for the events.
 		"""
 
+	def __iter__(self):
+		"""
+		Return an iterator over events.
+		"""
+		for (evtype, data) in self.input:
+			if evtype == "bytes":
+				for event2 in self.feed(data):
+					yield event2
+			elif evtype == "url":
+				yield (self.url, data)
+			else:
+				yield UnknownEventError(self.input, self, (evtype, data))
+		for event in self.feed("", True):
+			yield event
 
-class SGMLOPParser(Parser):
+
+class Expat(EventParser):
+	"""
+	A parser using Pythons builtin :mod:`expat` parser.
+	"""
+
+	def __init__(self, encoding=None, xmldecl=False, doctype=False, loc=True, cdata=False, ns=False):
+		"""
+		Create an :class:`Expat` object. Arguments have the following meaning:
+
+		:var:`encoding` : string or :const:`None`
+			The default encoding to use when the source doesn't provide an
+			encoding. The default :const:`None` results in the encoding being
+			detected from the XML itself.
+
+		:var:`xmldecl` : bool
+			Should a node be output for the XML declaration?
+
+		:var:`doctype` : bool
+			Should a node be output for the document type?
+
+		:var:`loc` : bool
+			Should location information be attached to the generated nodes?
+
+		:var:`cdata` : bool
+			Output CDATA sections as ``"cdata"`` events? (If :var:`cdata` is false
+			output ``"text"`` events instead.)
+
+		:var:`ns` : bool
+			If :var:`ns` is true, the parser does its own namespace processing.
+			The data of ``"enterstarttag"``, ``"leavestarttag"``, ``"endtag"``,
+			``"enterattr"`` and ``"leaveattr"`` events will already be
+			``(name, namespace)`` tuples.
+		"""
+		EventParser.__init__(self)
+		self._parser = expat.ParserCreate(encoding, "\x01" if ns else None)
+		self._parser.buffer_text = True
+		self._parser.ordered_attributes = True
+		self._parser.UseForeignDTD(True)
+		self._encoding = encoding
+		self._xmldecl = xmldecl
+		self._doctype = doctype
+		self._loc = loc
+		self._cdata = cdata
+		self._ns = ns
+		self._indoctype = False
+		self._incdata = False
+		self._position = None # Remember the last reported position
+
+		self._parser.CharacterDataHandler = self._handle_text
+		self._parser.StartElementHandler = self._handle_startelement
+		self._parser.EndElementHandler = self._handle_endelement
+		self._parser.ProcessingInstructionHandler = self._handle_procinst
+		self._parser.CommentHandler = self._handle_comment
+		self._parser.DefaultHandler = self._handle_default
+
+		if cdata:
+			self._parser.StartCdataSectionHandler = self._handle_startcdata
+			self._parser.EndCdataSectionHandler = self._handle_endcdata
+
+		if self._xmldecl:
+			self._parser.XmlDeclHandler = self._handle_xmldecl
+
+		# Always required, as we want to recognize whether a comment or PI is in the internal DTD subset
+		self._parser.StartDoctypeDeclHandler = self._handle_begindoctype
+		self._parser.EndDoctypeDeclHandler = self._handle_enddoctype
+
+		# Buffers the events generated during one call to ``feed``
+		self._buffer = []
+
+	def __repr__(self):
+		v = []
+		if self._encoding is not None:
+			v.append(" encoding={0!r}".format(self._encoding))
+		if self._xmldecl is not None:
+			v.append(" xmldecl={0!r}".format(self._xmldecl))
+		if self._doctype is not None:
+			v.append(" doctype={0!r}".format(self._doctype))
+		if self._loc is not None:
+			v.append(" loc={0!r}".format(self._loc))
+		if self._cdata is not None:
+			v.append(" cdata={0!r}".format(self._cdata))
+		if self._ns is not None:
+			v.append(" ns={0!r}".format(self._ns))
+		return "<{0.__class__.__module__}.{0.__class__.__name__} object{1} at {2:#x}>".format(self, "".join(v), id(self))
+
+	def feed(self, data, final=False):
+		self._parser.Parse(data, final)
+		result = iter(self._buffer)
+		self._buffer = []
+		return result
+
+	def _getname(self, name):
+		if self._ns:
+			if "\x01" in name:
+				return tuple(name.split("\x01")[::-1])
+			return (name, None)
+		return name
+
+	def _handle_position(self):
+		if self._loc:
+			loc = (self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+			if loc != self._position:
+				self._buffer.append((self.position, loc))
+				self._position = loc
+
+	def _handle_startcdata(self):
+		self._incdata = True
+
+	def _handle_endcdata(self):
+		self._incdata = False
+
+	def _handle_xmldecl(self, version, encoding, standalone):
+		standalone = (bool(standalone) if standalone != -1 else None)
+		self._handle_position()
+		self._buffer.append((self.xmldecl, {"version": version, "encoding": encoding, "standalone": standalone}))
+
+	def _handle_begindoctype(self, doctypename, systemid, publicid, has_internal_subset):
+		if self._doctype:
+			self._handle_position()
+			self._buffer.append((self.begindoctype, {"name": doctypename, "publicid": publicid, "systemid": systemid}))
+
+	def _handle_enddoctype(self):
+		if self._doctype:
+			self._handle_position()
+			self._buffer.append((self.enddoctype, None))
+
+	def _handle_default(self, data):
+		if data.startswith("&") and data.endswith(";"):
+			self._handle_position()
+			self._buffer.append((self.entity, data[1:-1]))
+
+	def _handle_comment(self, data):
+		if not self._indoctype:
+			self._handle_position()
+			self._buffer.append((self.comment, data))
+
+	def _handle_text(self, data):
+		self._handle_position()
+		self._buffer.append((self.cdata if self._incdata else self.text, data))
+
+	def _handle_startelement(self, name, attrs):
+		name = self._getname(name)
+		self._handle_position()
+		self._buffer.append((self.enterstarttagns if self._ns else self.enterstarttag, name))
+		for i in xrange(0, len(attrs), 2):
+			key = self._getname(attrs[i])
+			self._buffer.append((self.enterattrns if self._ns else self.enterattr, key))
+			self._buffer.append((self.text, attrs[i+1]))
+			self._buffer.append((self.leaveattrns if self._ns else self.leaveattr, key))
+		self._buffer.append((self.leavestarttagns if self._ns else self.leavestarttag, name))
+
+	def _handle_endelement(self, name):
+		name = self._getname(name)
+		self._handle_position()
+		self._buffer.append((self.endtagns if self._ns else self.endtag, name))
+
+	def _handle_procinst(self, target, data):
+		if not self._indoctype:
+			self._handle_position()
+			self._buffer.append((self.procinst, (target, data)))
+
+
+class SGMLOP(EventParser):
 	"""
 	A parser based of :mod:`sgmlop`.
 	"""
+
 	def __init__(self, encoding=None):
 		"""
-		Create a new :class:`SGMLOPParser` object.
+		Create a new :class:`SGMLOP` object.
 		"""
-		Parser.__init__(self)
+		EventParser.__init__(self)
 		self.encoding = encoding
-		self._decoder = None
-		self._parser = None
+		self._decoder = codecs.getincrementaldecoder("xml")(encoding=encoding)
+		self._parser = sgmlop.XMLParser()
+		self._parser.register(self)
+		self._buffer = []
+		self._hadtext = False
 
-	def begin(self, application):
-		Parser.begin(self, application)
-		try:
-			self._decoder = codecs.getincrementaldecoder("xml")(encoding=self.encoding)
-			if self._parser is not None:
-				self._parser.register(None)
-			self._parser = sgmlop.XMLParser()
-			self._parser.register(self)
-		except Exception:
-			if self._parser is not None:
-				self._parser.register(None)
-				self._parser = None
-			self._decoder = None
-			raise
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
 
-	def feed(self, data, final):
+	def feed(self, data, final=False):
 		self._parser.feed(self._decoder.decode(data, final))
-
-	def end(self):
-		Parser.end(self)
-		self._parser.close()
-		if self._parser is not None:
-			self._parser.register(None)
-			self._parser = None
-		self._decoder = None
+		result = iter(self._buffer)
+		self._buffer = []
+		return result
 
 	def handle_comment(self, data):
-		self.application.handle_comment(data, None, None)
+		self._hadtext = False
+		self._buffer.append((self.comment, data))
 
 	def handle_data(self, data):
-		self.application.handle_data(data, None, None)
+		if self._hadtext:
+			self._buffer[-1] = (self.text, self._buffer[-1][1] + data)
+		else:
+			self._buffer.append((self.text, data))
+		self._hadtext = True
 
 	def handle_cdata(self, data):
-		self.application.handle_cdata(data, None, None)
+		self._hadtext = False
+		self._buffer.append((self.cdata, data))
 
 	def handle_proc(self, target, data):
-		self.application.handle_proc(target, data, None, None)
+		self._hadtext = False
+		self._buffer.append((self.procinst, (target, data)))
 
 	def handle_entityref(self, name):
-		self.application.handle_entityref(name, None, None)
+		self._hadtext = False
+		self._buffer.append((self.entity, name))
 
 	def handle_enterstarttag(self, name):
-		self.application.handle_enterstarttag(name, None, None)
+		self._hadtext = False
+		self._buffer.append((self.enterstarttag, name))
 
 	def handle_leavestarttag(self, name):
-		self.application.handle_leavestarttag(name, None, None)
+		self._hadtext = False
+		self._buffer.append((self.leavestarttag, name))
 
 	def handle_enterattr(self, name):
-		self.application.handle_enterattr(name, None, None)
+		self._hadtext = False
+		self._buffer.append((self.enterattr, name))
 
 	def handle_leaveattr(self, name):
-		self.application.handle_leaveattr(name, None, None)
+		self._hadtext = False
+		self._buffer.append((self.leaveattr, name))
 
 	def handle_endtag(self, name):
-		self.application.handle_endtag(name, None, None)
+		self._hadtext = False
+		self._buffer.append((self.endtag, name))
 
 
-class ExpatParser(Parser):
+class NS(PipelineObject):
 	"""
-	A parser using Pythons builtin :mod:`expat` XML parser.
+	An :class:`NS` is used in a parsing pipeline to add support for XML namespaces.
+	It replaces the ``"enterstarttag"``, ``"leavestarttag"``, ``"endtag"``,
+	``"enterattr"`` and ``"leaveattr"`` events with the appropriate namespace
+	version of the evetns (i.e. ``"enterstarttagns"`` etc.) when the event data
+	is a ``(name, namespace)`` tuple.
+
+	The output of a :class:`NS` object in the stream looks like this::
+
+		>>> from ll.xist import parsers
+		>>> from ll.xist.ns import html
+		>>> source = "<a href='http://www.python.org/'>Python</a>"
+		>>> list(parsers.StringSource(source) | parsers.Expat() | parsers.NS(prefixes={None: html}))
+		[('url', URL('STRING')),
+		 ('position', (0, 0)),
+		 ('enterstarttagns', (u'a', 'http://www.w3.org/1999/xhtml')),
+		 ('enterattrns', (u'href', None)),
+		 ('text', u'http://www.python.org/'),
+		 ('leaveattrns', (u'href', None)),
+		 ('leavestarttagns', (u'a', 'http://www.w3.org/1999/xhtml')),
+		 ('position', (0, 39)),
+		 ('text', u'Python'),
+		 ('endtagns', (u'a', 'http://www.w3.org/1999/xhtml'))]
 	"""
-	def __init__(self, encoding=None, transcode=False, xmldecl=False, doctype=False):
-		Parser.__init__(self)
-		self.encoding = encoding
-		self._parser = None
-		self._decoder = None
-		self._encoder = None
-		self._xmldecl = xmldecl
-		self._doctype = doctype
-		self._indoctype = False
-		self._transcode = transcode
 
-	def begin(self, application):
-		Parser.begin(self, application)
-		try:
-			self._parser = expat.ParserCreate(self.encoding)
-			self._parser.buffer_text = True
-			self._parser.ordered_attributes = True
-			self._parser.UseForeignDTD(True)
-			self._parser.CharacterDataHandler = self.handle_data
-			self._parser.StartElementHandler = self.handle_startelement
-			self._parser.EndElementHandler = self.handle_endelement
-			self._parser.ProcessingInstructionHandler = self.handle_proc
-			self._parser.CommentHandler = self.handle_comment
-			self._parser.DefaultHandler = self.handle_default
+	def __init__(self, prefixes=None, **kwargs):
+		"""
+		Create a :class:`NS` object. :var:`prefixes` (if not ``None``) can be a
+		namespace name (or module), which will be used for the empty prefix,
+		or a dictionary that maps prefixes to namespace names (or modules).
+		:var:`kwargs` maps prefixes to namespaces names too. If a prefix is in both
+		:var:`prefixes` and :var:`kwargs`, :var:`kwargs` wins.
+		"""
+		PipelineObject.__init__(self)
+		# the currently active prefix mapping (will be replaced once xmlns attributes are encountered)
+		newprefixes = {}
 
-			if self._xmldecl:
-				self._parser.XmlDeclHandler = self.handle_xmldecl
+		def make(prefix, xmlns):
+			if prefix is not None and not isinstance(prefix, basestring):
+				raise TypeError("prefix must be None or string, not {0!r}".format(prefix))
+			xmlns = xsc.nsname(xmlns)
+			if not isinstance(xmlns, basestring):
+				raise TypeError("xmlns must be string, not {0!r}".format(xmlns))
+			newprefixes[prefix] = xmlns
 
-			# Always required, as we want to recognize whether a comment or PI is in the internal DTD subset
-			self._parser.StartDoctypeDeclHandler = self.handle_begindoctype
-			self._parser.EndDoctypeDeclHandler = self.handle_enddoctype
+		if prefixes is not None:
+			if isinstance(prefixes, dict):
+				for (prefix, xmlns) in prefixes.iteritems():
+					make(prefix, xmlns)
+			else:
+				make(None, prefixes)
 
-			if self._transcode:
-				self._decoder = codecs.getincrementaldecoder("xml")()
-				self._encoder = codecs.getincrementalencoder("xml")(encoding="utf-8")
-		except Exception:
-			self._parser = None
-			self._encoder = None
-			self._decoder = None
-			raise
+		for (prefix, xmlns) in kwargs.iteritems():
+			make(prefix, xmlns)
+		self._newprefixes = self._attrs = self._attr = None
+		# A stack entry is an ``((elementname, namespacename), prefixdict)`` tuple
+		self._prefixstack = [(None, newprefixes)]
 
-	def end(self):
-		Parser.end(self)
-		self._parser = None
-		self._encoder = None
-		self._decoder = None
+	def url(self, data):
+		yield ("url", data)
 
-	def handle_xmldecl(self, version, encoding, standalone):
-		standalone = (bool(standalone) if standalone != -1 else None)
-		self.application.handle_xmldecl(version, encoding, standalone, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
-
-	def handle_begindoctype(self, doctypename, systemid, publicid, has_internal_subset):
-		if publicid:
-			content = u'%s PUBLIC "%s" "%s"' % (doctypename, publicid, systemid)
-		elif systemid:
-			content = u'%s SYSTEM "%s"' % (doctypename, systemid)
+	def xmldecl(self, data):
+		data = ("xmldecl", data)
+		if self._attr is not None:
+			self._attr.append(data)
 		else:
-			content = doctypename
-		self._indoctype = True
-		if self._doctype:
-			self.application.handle_doctype(content, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+			yield data
 
-	def handle_enddoctype(self):
-		self._indoctype = False
+	def begindoctype(self, data):
+		data = ("begindoctype", data)
+		if self._attr is not None:
+			self._attr.append(data)
+		else:
+			yield data
 
-	def handle_default(self, data):
-		if data.startswith("&") and data.endswith(";"):
-			self.application.handle_entityref(data[1:-1], self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+	def enddoctype(self, data):
+		data = ("enddoctype", data)
+		if self._attr is not None:
+			self._attr.append(data)
+		else:
+			yield data
 
-	def handle_comment(self, data):
-		if not self._indoctype:
-			self.application.handle_comment(data, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+	def comment(self, data):
+		data = ("comment", data)
+		if self._attr is not None:
+			self._attr.append(data)
+		else:
+			yield data
 
-	def handle_data(self, data):
-		self.application.handle_data(data, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+	def text(self, data):
+		data = ("text", data)
+		if self._attr is not None:
+			self._attr.append(data)
+		else:
+			yield data
 
-	def handle_startelement(self, name, attrs):
-		self.application.handle_enterstarttag(name, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
-		for i in xrange(0, len(attrs), 2):
-			key = attrs[i]
-			self.application.handle_enterattr(key, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
-			self.application.handle_data(attrs[i+1], self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
-			self.application.handle_leaveattr(key, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
-		self.application.handle_leavestarttag(name, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+	def cdata(self, data):
+		data = ("cdata", data)
+		if self._attr is not None:
+			self._attr.append(data)
+		else:
+			yield data
 
-	def handle_endelement(self, name):
-		self.application.handle_endtag(name, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+	def procinst(self, data):
+		data = ("procinst", data)
+		if self._attr is not None:
+			self._attr.append(data)
+		else:
+			yield data
 
-	def handle_proc(self, target, data):
-		if not self._indoctype:
-			self.application.handle_proc(target, data, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+	def entity(self, data):
+		data = ("entity", data)
+		if self._attr is not None:
+			self._attr.append(data)
+		else:
+			yield data
 
-	def feed(self, data, final):
-		if self._transcode:
-			data = self._decoder.decode(data, final)
-			data = self._encoder.encode(data, final)
-		self._parser.Parse(data, final)
+	def position(self, data):
+		data = ("position", data)
+		if self._attr is not None:
+			self._attr.append(data)
+		else:
+			yield data
+
+	def enterstarttag(self, data):
+		self._newprefixes = {}
+		self._attrs = {}
+		self._attr = None
+		if 0:
+			yield False
+
+	def enterattr(self, data):
+		if data==u"xmlns" or data.startswith(u"xmlns:"):
+			prefix = data[6:] or None
+			self._newprefixes[prefix] = self._attr = []
+		else:
+			self._attrs[data] = self._attr = []
+		if 0:
+			yield False
+
+	def leaveattr(self, data):
+		self._attr = None
+		if 0:
+			yield False
+
+	def leavestarttag(self, data):
+		oldprefixes = self._prefixstack[-1][1]
+
+		if self._newprefixes:
+			prefixes = oldprefixes.copy()
+			newprefixes = dict((key, "".join(d for (t, d) in value if t == "text")) for (key, value) in self._newprefixes.iteritems())
+			prefixes.update(newprefixes)
+		else:
+			prefixes = oldprefixes
+
+		(prefix, sep, name) = data.rpartition(u":")
+		prefix = prefix or None
+
+		try:
+			data = (name, prefixes[prefix])
+		except KeyError:
+			raise xsc.IllegalPrefixError(prefix)
+
+		self._prefixstack.append((data, prefixes))
+
+		yield ("enterstarttagns", data)
+		for (attrname, attrvalue) in self._attrs.iteritems():
+			if u":" in attrname:
+				(attrprefix, attrname) = attrname.split(u":", 1)
+				if attrprefix == "xml":
+					xmlns = xsc.xml_xmlns
+				else:
+					try:
+						xmlns = prefixes[attrprefix]
+					except KeyError:
+						raise xsc.IllegalPrefixError(attrprefix)
+			else:
+				xmlns = None
+			yield ("enterattrns", (attrname, xmlns))
+			for event in attrvalue:
+				yield event
+			yield ("leaveattrns", (attrname, xmlns))
+		yield ("leavestarttagns", data)
+		self._newprefixes = self._attrs = self._attr = None
+
+	def endtag(self, data):
+		(data, prefixes) = self._prefixstack.pop()
+		yield ("endtagns", data)
+
+	def __iter__(self):
+		for (evtype, data) in self.input:
+			try:
+				handler = getattr(self, evtype)
+			except AttributeError:
+				raise UnknownEventError(self.input, self, (evtype, data))
+			for event in handler(data):
+				yield event
 
 
-class Builder(object):
+class Instantiate(PipelineObject):
+	def __init__(self, pool=None, base=None, loc=True):
+		PipelineObject.__init__(self)
+		self.pool = (pool if pool is not None else xsc.threadlocalpool.pool)
+		if base is not None:
+			base = url_.URL(base)
+		self._base = base
+		self._url = url_.URL()
+		self.loc = loc
+		self._position = (None, None)
+		self._stack = []
+		self._inattr = False
+
+	@property
+	def base(self):
+		if self._base is None:
+			return self._url
+		else:
+			return self._base
+
+	def __iter__(self):
+		for (evtype, data) in self.input:
+			try:
+				handler = getattr(self, evtype)
+			except AttributeError:
+				raise UnknownEventError(self.input, self, (evtype, data))
+			event = handler(data)
+			if event:
+				yield event
+
+	def url(self, data):
+		self._url = data
+
+	def xmldecl(self, data):
+		node = xml.XML(version=data["version"], encoding=data["encoding"], standalone=data["standalone"])
+		if self.loc:
+			node.startloc = xsc.Location(self._url, *self._position)
+		return ("xmldecl", node)
+
+	def begindoctype(self, data):
+		if data["publicid"]:
+			fmt = u'{0[name]} PUBLIC "{0[publicid]}" "{0[systemid]}"'
+		elif data["systemid"]:
+			fmt = u'{0[name]} SYSTEM "{0[systemid]}"'
+		else:
+			fmt = u'{0[name]}'
+		node = xsc.DocType(fmt.format(data))
+		if self.loc:
+			node.startloc = xsc.Location(self._url, *self._position)
+		self.doctype = node
+		return ("begindoctype", node)
+
+	def enddoctype(self, data):
+		result = ("enddoctype", self.doctype)
+		del self.doctype
+		return result
+
+	def entity(self, data):
+		node = self.pool.entity_xml(data)
+		if self.loc:
+			node.startloc = xsc.Location(self._url, *self._position)
+		node.parsed(self, "entity")
+		if self._inattr:
+			self._stack[-1].append(node)
+		else:
+		 	return ("entity", node)
+
+	def comment(self, data):
+		node = xsc.Comment(data)
+		if self.loc:
+			node.startloc = xsc.Location(self._url, *self._position)
+		node.parsed(self, "comment")
+		if self._inattr:
+			self._stack[-1].append(node)
+		else:
+			return ("comment", node)
+
+	def cdata(self, data):
+		node = xsc.Text(data)
+		if self.loc:
+			node.startloc = xsc.Location(self._url, *self._position)
+		node.parsed(self, "cdata")
+		if self._inattr:
+			self._stack[-1].append(node)
+		else:
+			return ("cdata", node)
+
+	def text(self, data):
+		node = xsc.Text(data)
+		if self.loc:
+			node.startloc = xsc.Location(self._url, *self._position)
+		node.parsed(self, "text")
+		if self._inattr:
+			self._stack[-1].append(node)
+		else:
+		 	return ("text", node)
+
+	def enterstarttagns(self, data):
+		node = self.pool.element_xml(*data)
+		if self.loc:
+			node.startloc = xsc.Location(self._url, *self._position)
+		self._stack.append(node)
+		node.parsed(self, "enterstarttagns")
+		return ("enterstarttagns", node)
+
+	def enterattrns(self, data):
+		if data[1] is not None:
+			node = self.pool.attrclass_xml(*data)
+		else:
+			node = self._stack[-1].attrs.allowedattr_xml(data[0])
+		if self.loc:
+			node.startloc = xsc.Location(self._url, *self._position)
+		self._stack[-1].attrs[node] = ()
+		node = self._stack[-1].attrs[node]
+		self._stack.append(node)
+		self._inattr = True
+		node.parsed(self, "enterattrns")
+
+	def leaveattrns(self, data):
+		node = self._stack.pop()
+		self._inattr = False
+		node.parsed(self, "leaveattrns")
+
+	def leavestarttagns(self, data):
+		self._stack[-1].parsed(self, "leavestarttagns")
+		return ("leavestarttagns", self._stack[-1])
+
+	def endtagns(self, data):
+		node = self._stack.pop()
+		if self.loc:
+			node.endloc = xsc.Location(self._url, *self._position)
+		node.parsed(self, "endtagns")
+		return ("endtagns", node)
+
+	def procinst(self, data):
+		node = self.pool.procinst_xml(*data)
+		if self.loc:
+			node.startloc = xsc.Location(self._url, *self._position)
+		node.parsed(self, "procinst")
+		if self._inattr:
+			self._stack[-1].append(node)
+		else:
+			return ("procinst", node)
+
+	def position(self, data):
+		self._position = data
+
+
+class Tidy(PipelineObject):
+	"""
+	A :class:`Tidy` object parses (potentially ill-formed) HTML from a source
+	into a event stream by using libxml2__'s HTML parser.
+
+	__ http://xmlsoft.org/
+	"""
+
+	def __init__(self, encoding=None, loc=True):
+		PipelineObject.__init__(self)
+		self.encoding = encoding
+		self.loc = loc
+
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} loc={0.loc!r} at {1:#x}>".format(self, id(self))
+
+	def _handle_pos(self, node):
+		if self.loc:
+			lineno = node.lineNo()
+			if lineno != self._lastlineno:
+				result = ("position", (lineno, None))
+				self._lastlineno = lineno
+				return result
+
+	@staticmethod
+	def decode(s):
+		try:
+			return s.decode("utf-8")
+		except UnicodeDecodeError:
+			return s.decode("iso-8859-1")
+
+	def _asxist(self, node):
+		decode = self.decode
+		if node.type == "document_html":
+			child = node.children
+			while child is not None:
+				for event in self._asxist(child):
+					yield event
+				child = child.next
+		elif node.type == "element":
+			pos = self._handle_pos(node)
+			if pos is not None:
+				yield pos
+			elementname = decode(node.name).lower()
+			yield ("enterstarttag", elementname)
+			attr = node.properties
+			while attr is not None:
+				attrname = decode(attr.name).lower()
+				content = decode(attr.content) if attr.content is not None else u""
+				yield ("enterattr", attrname)
+				yield ("text", content)
+				yield ("leaveattr", attrname)
+				attr = attr.next
+			yield ("leavestarttag", elementname)
+			child = node.children
+			while child is not None:
+				for event in self._asxist(child):
+					yield event
+				child = child.next
+			yield ("endtag", elementname)
+		elif node.type == "text":
+			pos = self._handle_pos(node)
+			if pos is not None:
+				yield pos
+			yield ("text", decode(node.content))
+		elif node.type == "cdata":
+			pos = self._handle_pos(node)
+			if pos is not None:
+				yield pos
+			yield ("cdata", decode(node.content))
+		elif node.type == "comment":
+			pos = self._handle_pos(node)
+			if pos is not None:
+				yield pos
+			yield ("comment", decode(node.content))
+		# ignore all other types
+
+	def __iter__(self):
+		import libxml2 # This requires libxml2 (see http://www.xmlsoft.org/)
+
+		url = None
+		collectdata = []
+		for (evtype, data) in self.input:
+			if evtype == "url":
+				if url is None:
+					url = data
+				else:
+					raise ValueError("got multiple url events")
+			elif evtype == "bytes":
+				collectdata.append(data)
+			else:
+				raise UnknownEventError(self.input, self, (evtype, data))
+		data = "".join(collectdata)
+		if url is not None:
+			yield ("url", url)
+		if data:
+			self._lastlineno = None
+			try:
+				olddefault = libxml2.lineNumbersDefault(1)
+				doc = libxml2.htmlReadMemory(data, len(data), str(url), self.encoding, 0x160)
+				try:
+					for event in self._asxist(doc):
+						yield event
+				finally:
+					doc.freeDoc()
+			finally:
+				libxml2.lineNumbersDefault(olddefault)
+
+
+class ETree(object):
+	"""
+	Produces XML events from an object that supports the ElementTree__ API.
+
+	__ http://effbot.org/zone/element-index.htm
+	"""
+
+	def __init__(self, data, url=None, defaultxmlns=None):
+		"""
+		Create an :class:`ETree` object. Arguments have the following meaning:
+
+		:var:`data`
+			An object that supports the ElementTree API.
+
+		:var:`url`
+			The URL of the source. Defaults to ``"ETREE"``.
+
+		:var:`defaultxmlns`
+			The namespace name (or a namespace module containing a namespace name)
+			that will be used for all elements that don't have a namespace.
+		"""
+		self.url = url_.URL(url if url is not None else "ETREE")
+		self.data = data
+		self.defaultxmlns = xsc.nsname(defaultxmlns)
+
+	def _asxist(self, node):
+		name = type(node).__name__
+		if "Element" in name:
+			elementname = node.tag
+			if elementname.startswith("{"):
+				(elementxmlns, sep, elementname) = elementname[1:].partition("}")
+			else:
+				elementxmlns = self.defaultxmlns
+			yield ("enterstarttagns", (elementname, elementxmlns))
+			for (attrname, attrvalue) in node.items():
+				if attrname.startswith("{"):
+					(attrxmlns, sep, attrname) = attrname[1:].partition("}")
+				else:
+					attrxmlns = None
+				yield ("enterattrns", (attrname, attrxmlns))
+				yield ("text", attrvalue)
+				yield ("leaveattrns", (attrname, attrxmlns))
+			yield ("leavestarttagns", (elementname, elementxmlns))
+			if node.text:
+				yield ("text", node.text)
+			for child in node:
+				for event in self._asxist(child):
+					yield event
+				if hasattr(child, "tail") and child.tail:
+					yield ("text", child.tail)
+			yield ("endtagns", (elementname, elementxmlns))
+		elif "ProcessingInstruction" in name:
+			yield ("procinst", (node.target, node.text))
+		elif "Comment" in name:
+			yield ("comment", node.text)
+
+	def __iter__(self):
+		"""
+		Produces an event stream for the ElementTree object.
+		"""
+		yield ("url", self.url)
+		for event in self._asxist(self.data):
+			yield event
+
+
+def _fixpipeline(pipeline, parser=None, prefixes=None, pool=None, base=None, loc=True, tidy=False, encoding=None, **parserargs):
+	needprefixes = False
+	needinstantiate = False
+	if tidy:
+		pipeline |= Tidy(encoding=encoding)
+		if prefixes is None:
+			prefixes = {None: html_xmlns}
+		needprefixes = True
+	elif parser is not None or parserargs:
+		if parser is None:
+			parser = Expat
+		pipeline |= parser(encoding=encoding, **parserargs)
+		# If we're using an expat parser that does its own namespace handling, we don't need a prefix mapping
+		if not isinstance(parser, Expat) or not parser.ns:
+			needprefixes = True
+	if needprefixes or prefixes is not None:
+		pipeline |= NS(prefixes=prefixes)
+		needinstantiate = True
+	if needinstantiate or pool is not None or base is not None or not loc:
+		pipeline |= Instantiate(pool=pool, base=base, loc=loc)
+	return pipeline
+
+
+def tree(pipeline, validate=True):
+	stack = [xsc.Frag()]
+	for event in pipeline:
+		if event[0] == "enterstarttagns":
+			stack[-1].append(event[1])
+			stack.append(event[1])
+		elif event[0] == "endtagns":
+			if validate:
+				event[1].checkvalid()
+			stack.pop()
+		elif event[0] != "leavestarttagns":
+			stack[-1].append(event[1])
+	return stack[0]
+
+
+def iterparse(input, events=("endtagns",), validate=True, filter=None):
+	filter = xfind.makewalkfilter(filter)
+	path = [xsc.Frag()]
+	for event in pipeline:
+		if event in events and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
+			yield (event, path)
+		if event == "enterstarttagns":
+			path[-1].append(node)
+			path.append(node)
+		elif event == "endtagns":
+			if validate:
+				node.checkvalid()
+			path.pop()
+		elif event != "leavestarttagns":
+			path[-1].append(node)
+
+
+class noBuilder(object):
 	"""
 	It is the job of a :class:`Builder` to create the object tree from the
 	events generated by the underlying parser.
 	"""
 
-	def __init__(self, parser=None, prefixes=None, tidy=False, loc=True, validate=True, encoding=None, pool=None):
+	def __init__(self, parser=Expat, prefixes=None, tidy=False, loc=True, validate=True, encoding=None, pool=None):
 		"""
 		Create a new :class:`Builder` instance.
 
 		Arguments have the following meaning:
 
 		:var:`parser`
-			an instance of the :class:`Parser` class (or any object that provides
+			a subclass of the :class:`Parser` class (or any object that provides
 			the appropriate interface).
 
 		:var:`prefixes` : mapping
@@ -284,7 +1413,7 @@ class Builder(object):
 			self.prefixes = {}
 			for (prefix, xmlns) in prefixes.iteritems():
 				if prefix is not None and not isinstance(prefix, basestring):
-					raise TypeError("Prefix must be None or string, not %r" % prefix)
+					raise TypeError("Prefix must be None or string, not {0!r}".format(prefix))
 				if isinstance(xmlns, (list, tuple)):
 					self.prefixes[prefix] = map(xsc.nsname, xmlns)
 				else:
@@ -298,92 +1427,11 @@ class Builder(object):
 		self._attr = None
 		self._attrs = None
 
-	def _parseHTML(self, data, base, sysid, encoding):
-		"""
-		Internal helper method for parsing HTML via :mod:`libxml2`.
-		"""
-		import libxml2 # This requires libxml2 (see http://www.xmlsoft.org/)
 
-		def decode(s):
-			try:
-				return s.decode("utf-8")
-			except UnicodeDecodeError:
-				return s.decode("iso-8859-1")
-
-		def toxsc(node):
-			if node.type == "document_html":
-				newnode = xsc.Frag()
-				child = node.children
-				while child is not None:
-					newnode.append(toxsc(child))
-					child = child.next
-			elif node.type == "element":
-				name = decode(node.name).lower()
-				try:
-					newnode = self.pool.element_xml(name, html)
-					if self.loc:
-						newnode.startloc = xsc.Location(url=self.base, line=node.lineNo())
-				except xsc.IllegalElementError:
-					newnode = xsc.Frag()
-				else:
-					attr = node.properties
-					while attr is not None:
-						name = decode(attr.name).lower()
-						if attr.content is None:
-							content = u""
-						else:
-							content = decode(attr.content)
-						try:
-							attrnode = newnode.attrs.set_xml(name, value=content)
-						except xsc.IllegalAttrError:
-							pass
-						else:
-							attrnode = attrnode.parsed(self)
-							newnode.attrs.set_xml(name, value=attrnode)
-						attr = attr.next
-					newnode.attrs = newnode.attrs.parsed(self)
-					newnode = newnode.parsed(self, start=True)
-				child = node.children
-				while child is not None:
-					newnode.append(toxsc(child))
-					child = child.next
-				if isinstance(node, xsc.Element): # if we did recognize the element, otherwise we're in a Frag
-					newnode = newnode.parsed(self, start=False)
-			elif node.type in ("text", "cdata"):
-				newnode = self.pool.text(decode(node.content))
-				if self.loc:
-					newnode.startloc = xsc.Location(url=self.base, line=node.lineNo())
-			elif node.type == "comment":
-				newnode = self.pool.comment(decode(node.content))
-				if self.loc:
-					newnode.startloc = xsc.Location(url=self.base, line=node.lineNo())
-			else:
-				newnode = xsc.Null
-			return newnode
-
-		self.base = url.URL(base)
-
-		if not data:
-			node = xsc.Frag()
-		else:
-			try:
-				olddefault = libxml2.lineNumbersDefault(1)
-				doc = libxml2.htmlReadMemory(data, len(data), sysid, encoding, 0x160)
-				try:
-					node = toxsc(doc)
-				finally:
-					doc.freeDoc()
-			finally:
-				libxml2.lineNumbersDefault(olddefault)
-		return node
-
-	def _begin(self, base=None, encoding=None):
+	def _makeparser(self, iterable, encoding=None, base=None):
 		# Internal helper: create a parser and initialize the stack
-		if self.parser is None:
-			parser = ExpatParser(encoding=encoding)
-		else:
-			parser = self.parser
-		self.base = url.URL(base)
+		parser = self.parser(iterable, encoding=encoding)
+		self.base = url_.URL(base)
 		# XIST nodes do not have a parent link, therefore we have to store the
 		# active path through the tree in a stack (which we call ``_nesting``)
 		# together with the namespace prefixes defined by each element.
@@ -391,12 +1439,167 @@ class Builder(object):
 		# After we've finished parsing, the ``Frag`` that we put at the bottom of
 		# the stack will be our document root.
 		self._nesting = [ (xsc.Frag(), self.prefixes) ]
-		parser.begin(self)
+		parser.xmldecl = self.xmldecl
+		parser.begindoctype = self.begindoctype
+		parser.enddoctype = self.enddoctype
+		parser.entity = self.entity
+		parser.comment = self.comment
+		parser.cdata = self.cdata
+		parser.text = self.text
+		parser.enterstarttag = self.enterstarttag
+		parser.enterattr = self.enterattr
+		parser.leaveattr = self.leaveattr
+		parser.leavestarttag = self.leavestarttag
+		parser.endtag = self.endtag
+		parser.procinst = self.procinst
+		if self.loc:
+			parser.location = self.location
+			self._location = (None, None)
 		return parser
 
-	def _end(self, parser):
-		# Internal helper: finish parsing and return the root node
-		parser.end()
+	def xmldecl(self, data):
+		node = xml.XML(version=data["version"], encoding=data["encoding"], standalone=data["standalone"])
+		self._appendNode(node)
+
+	def begindoctype(self, data):
+		if data["publicid"]:
+			fmt = u'{0[name]} PUBLIC "{0[publicid]}" "{0[systemid]}"'
+		elif data["systemid"]:
+			fmt = u'{0[name]} SYSTEM "{0[systemid]}"'
+		else:
+			fmt = u'{0[name]}'
+		node = xsc.DocType(fmt.format(data))
+		self._appendNode(node)
+
+	def enddoctype(self, data):
+		pass
+
+	def entity(self, data):
+		try:
+			c = {u"lt": u"<", u"gt": u">", u"amp": u"&", u"quot": u'"', u"apos": u"'"}[data]
+		except KeyError:
+			node = self.pool.entity_xml(data)
+			if isinstance(node, xsc.CharRef):
+				self.text(unichr(node.codepoint))
+			else:
+				node = node.parsed(self)
+				self._appendNode(node)
+		else:
+			self.text(c)
+
+	def comment(self, data):
+		node = self.pool.comment(data)
+		node = node.parsed(self)
+		self._appendNode(node)
+
+	def cdata(self, data):
+		self.text(data)
+
+	def text(self, data):
+		if data:
+			node = self.pool.text(data)
+			node = node.parsed(self)
+			last = self._nesting[-1][0]
+			if len(last) and isinstance(last[-1], xsc.Text):
+				node = last[-1] + unicode(node) # join consecutive Text nodes
+				node.startloc = last[-1].startloc # make sure the replacement node has the original location
+				last[-1] = node # replace it
+			else:
+				self._appendNode(node)
+
+	def enterstarttag(self, data):
+		self._attrs = {}
+
+	def leavestarttag(self, data):
+		oldprefixes = self.prefixes
+
+		newprefixes = {}
+		for (attrname, xmlns) in self._attrs.iteritems():
+			if attrname==u"xmlns" or attrname.startswith(u"xmlns:"):
+				prefix = attrname[6:] or None
+				newprefixes[prefix] = unicode(xmlns)
+
+		if newprefixes:
+			prefixes = oldprefixes.copy()
+			prefixes.update(newprefixes)
+			self.prefixes = newprefixes = prefixes
+		else:
+			newprefixes = oldprefixes
+
+		(prefix, sep, name) = data.rpartition(u":")
+		prefix = prefix or None
+
+		try:
+			xmlns = newprefixes[prefix]
+		except KeyError:
+			raise xsc.IllegalPrefixError(prefix)
+		else:
+			node = self.pool.element_xml(name, xmlns)
+
+		for (attrname, attrvalue) in self._attrs.iteritems():
+			if attrname != u"xmlns" and not attrname.startswith(u"xmlns:"):
+				if u":" in attrname:
+					(attrprefix, attrname) = attrname.split(u":", 1)
+					if attrprefix == "xml":
+						xmlns = xsc.xml_xmlns
+					else:
+						try:
+							xmlns = newprefixes[attrprefix]
+						except KeyError:
+							raise xsc.IllegalPrefixError(attrprefix)
+				else:
+					xmlns = None
+				if xmlns is not None:
+					attrname = self.pool.attrclass_xml(attrname, xmlns)
+				attrvalue = node.attrs.set_xml(attrname, attrvalue)
+				node.attrs.set_xml(attrname, attrvalue.parsed(self))
+		node.attrs = node.attrs.parsed(self)
+		node = node.parsed(self, start=True)
+		self._appendNode(node)
+		# push new innermost element onto the stack, together with the list of prefix mappings to which we have to return when we leave this element
+		self._nesting.append((node, oldprefixes))
+		self._attrs = None
+
+	def enterattr(self, data):
+		node = xsc.Frag()
+		self._attrs[data] = node
+		self._nesting.append((node, self._nesting[-1][1]))
+
+	def leaveattr(self, data):
+		(node, prefixes) = self._nesting.pop()
+		# if the attribute was empty, ``handle_data`` is newer called, so we have to add an empty text node, to prevent the attribute from disappearing
+		if not node:
+			node.append("")
+
+	def endtag(self, data):
+		currentelement = self._nesting[-1][0]
+
+		(prefix, sep, name) = data.rpartition(u":")
+		xmlns = self.prefixes[prefix or None]
+		element = self.pool.element_xml(name, xmlns) # Unfortunately this creates the element a second time.
+		if  element.__class__ is not currentelement.__class__:
+			raise xsc.ElementNestingError(currentelement.__class__, element.__class__)
+
+		currentelement.parsed(self, start=False) # ignore return value
+
+		if self.validate:
+			currentelement.checkvalid()
+		if self.loc:
+			currentelement.endloc = xsc.Location(*self._location)
+
+		self.prefixes = self._nesting.pop()[1] # pop the innermost element off the stack and restore the old prefixes mapping (from outside this element)
+
+	def procinst(self, data):
+		(target, data) = data
+		if target != "xml":
+			node = self.pool.procinst_xml(target, data)
+			node = node.parsed(self)
+			self._appendNode(node)
+
+	def location(self, data):
+		self._location = data
+
+	def _end(self):
 		return self._nesting[0][0]
 
 	def parsestring(self, data, base=None, encoding=None):
@@ -406,15 +1609,15 @@ class Builder(object):
 		:var:`encoding` can be used to force the parser to use the specified
 		encoding.
 		"""
-		self.url = url.URL(base if base is not None else "STRING")
+		self.url = url_.URL(base if base is not None else "STRING")
 		if isinstance(data, unicode):
 			encoding = "utf-8"
 			data = data.encode(encoding)
-		if self.tidy:
+ 		if self.tidy:
 			return self._parseHTML(data, base=base, sysid=str(self.url), encoding=encoding)
-		parser = self._begin(base=base, encoding=encoding)
-		parser.feed(data, True)
-		return self._end(parser)
+		for (c, data) in self._makeparser([data], base=base, encoding=encoding):
+			c(data)
+ 		return self._end()
 
 	def parseiter(self, iterable, base=None, encoding=None):
 		"""
@@ -423,14 +1626,13 @@ class Builder(object):
 		parsing process, :var:`encoding` can be used to force the parser to use
 		the specified encoding.
 		"""
-		self.url = url.URL(base if base is not None else "ITER")
+		parser = self._makeparser(base=base, encoding=encoding)
+		self.url = url_.URL(base if base is not None else "ITER")
 		if self.tidy:
 			return self._parseHTML("".join(iterable), base=base, sysid=str(self.url), encoding=encoding)
-		parser = self._begin(base=base, encoding=encoding)
-		for chunk in iterable:
-			parser.feed(chunk, False)
-		parser.feed("", True)
-		return self._end(parser)
+		for (c, data) in self._makeparser(data, base=base, encoding=encoding):
+			c(data)
+ 		return self._end()
 
 	def parsestream(self, stream, base=None, encoding=None, bufsize=8192):
 		"""
@@ -439,16 +1641,12 @@ class Builder(object):
 		parser to use the specified encoding. :var:`bufsize` is the buffer size
 		used for reading the stream in blocks.
 		"""
-		self.url = url.URL(base if base is not None else "STREAM")
-		parser = self._begin(base=base, encoding=encoding)
+		self.url = url_.URL(base if base is not None else "STREAM")
 		if self.tidy:
 			return self._parseHTML(stream.read(), base=base, sysid=str(self.url), encoding=encoding)
-		while True:
-			data = stream.read(bufsize)
-			final = not data
-			parser.feed(data, final)
-			if final:
-				return self._end(parser)
+		for (c, data) in self._makeparser(misc.iterstream(stream, bufsize), base=base, encoding=encoding):
+			c(data)
+ 		return self._end()
 
 	def parsefile(self, filename, base=None, encoding=None, bufsize=8192):
 		"""
@@ -458,20 +1656,16 @@ class Builder(object):
 		specified encoding. :var:`bufsize` is the buffer size used for reading
 		the file in blocks.
 		"""
-		self.url = url.File(filename)
+		self.url = url_.File(filename)
 		if base is None:
 			base = self.url
 		filename = os.path.expanduser(filename)
 		with contextlib.closing(open(filename, "rb")) as stream:
 			if self.tidy:
 				return self._parseHTML(stream.read(), base=base, sysid=str(self.url), encoding=encoding)
-			parser = self._begin(base=base, encoding=encoding)
-			while True:
-				data = stream.read(bufsize)
-				final = not data
-				parser.feed(data, final)
-				if final:
-					return self._end(parser)
+			for (c, data) in self._makeparser(misc.iterstream(stream, bufsize), base=base, encoding=encoding):
+				c(data)
+	 		return self._end()
 
 	def parseurl(self, name, base=None, encoding=None, bufsize=8192, *args, **kwargs):
 		"""
@@ -483,29 +1677,26 @@ class Builder(object):
 		buffer size used for reading the response in blocks. :var:`args` and
 		:var:`kwargs` will be passed on to the :meth:`open` call.
 		"""
-		name = url.URL(name)
+		name = url_.URL(name)
 		with contextlib.closing(name.open("rb", *args, **kwargs)) as stream:
 			self.url = stream.finalurl()
 			if base is None:
 				base = self.url
 			if self.tidy:
 				return self._parseHTML(stream.read(), base=base, sysid=str(self.url), encoding=encoding)
-			parser = self._begin(base=base, encoding=encoding)
-			while True:
-				data = stream.read(bufsize)
-				final = not data
-				parser.feed(data, final)
-				if final:
-					return self._end(parser)
+			for (c, data) in self._makeparser(misc.iterstream(stream, bufsize), base=base, encoding=encoding):
+				c(data)
+	 		return self._end()
 
 	def parseetree(self, tree, base=None):
 		"""
 		Parse XML input from the object :var:`tree` which must support the
 		ElementTree__ API. :var:`base` is the base URL for the parsing process
 		(i.e. this URL will be prepended to all links in the tree).
-		
+
 		__ http://effbot.org/zone/element-index.htm
 		"""
+
 		def toxsc(node):
 			name = type(node).__name__
 			if "Element" in name:
@@ -541,7 +1732,7 @@ class Builder(object):
 				newnode = newnode.parsed(self)
 				return newnode
 			return xsc.Null
-		self.base = url.URL(base)
+		self.base = url_.URL(base)
 
 		defaultxmlns = None
 		try:
@@ -551,144 +1742,13 @@ class Builder(object):
 
 		return toxsc(tree)
 
-	def handle_xmldecl(self, version, encoding, standalone, line, col):
-		node = xml.XML(version=version, encoding=encoding, standalone=standalone)
-		self.__appendNode(node, line, col)
-
-	def handle_doctype(self, content, line, col):
-		node = xsc.DocType(content)
-		self.__appendNode(node, line, col)
-
-	def handle_enterstarttag(self, name, line, col):
-		self._attrs = {}
-
-	def handle_enterattr(self, name, line, col):
-		node = xsc.Frag()
-		self._attrs[name] = node
-		self._nesting.append((node, self._nesting[-1][1]))
-
-	def handle_leaveattr(self, name, line, col):
-		(node, prefixes) = self._nesting.pop()
-		# if the attribute was empty, ``handle_data`` is newer called, so we have to add an empty text node, to prevent the attribute from disappearing
-		if not node:
-			node.append("")
-
-	def handle_leavestarttag(self, name, line, col):
-		oldprefixes = self.prefixes
-
-		newprefixes = {}
-		for (attrname, xmlns) in self._attrs.iteritems():
-			if attrname==u"xmlns" or attrname.startswith(u"xmlns:"):
-				prefix = attrname[6:] or None
-				newprefixes[prefix] = unicode(xmlns)
-
-		if newprefixes:
-			prefixes = oldprefixes.copy()
-			prefixes.update(newprefixes)
-			self.prefixes = newprefixes = prefixes
-		else:
-			newprefixes = oldprefixes
-
-		(prefix, sep, name) = name.rpartition(u":")
-		prefix = prefix or None
-
-		try:
-			xmlns = newprefixes[prefix]
-		except KeyError:
-			raise xsc.IllegalPrefixError(prefix)
-		else:
-			node = self.pool.element_xml(name, xmlns)
-
-		for (attrname, attrvalue) in self._attrs.iteritems():
-			if attrname != u"xmlns" and not attrname.startswith(u"xmlns:"):
-				if u":" in attrname:
-					(attrprefix, attrname) = attrname.split(u":", 1)
-					if attrprefix == "xml":
-						xmlns = xsc.xml_xmlns
-					else:
-						try:
-							xmlns = newprefixes[attrprefix]
-						except KeyError:
-							raise xsc.IllegalPrefixError(attrprefix)
-				else:
-					xmlns = None
-				if xmlns is not None:
-					attrname = self.pool.attrclass_xml(attrname, xmlns)
-				attrvalue = node.attrs.set_xml(attrname, attrvalue)
-				node.attrs.set_xml(attrname, attrvalue.parsed(self))
-		node.attrs = node.attrs.parsed(self)
-		node = node.parsed(self, start=True)
-		self.__appendNode(node, line, col)
-		# push new innermost element onto the stack, together with the list of prefix mappings to which we have to return when we leave this element
-		self._nesting.append((node, oldprefixes))
-		self._attrs = None
-
-	def handle_endtag(self, name, line, col):
-		currentelement = self._nesting[-1][0]
-
-		(prefix, sep, name) = name.rpartition(u":")
-		xmlns = self.prefixes[prefix or None]
-		element = self.pool.element_xml(name, xmlns) # Unfortunately this creates the element a second time.
-		if  element.__class__ is not currentelement.__class__:
-			raise xsc.ElementNestingError(currentelement.__class__, element.__class__)
-
-		currentelement.parsed(self, start=False) # ignore return value
-
-		if self.validate:
-			currentelement.checkvalid()
+	def _appendNode(self, node):
 		if self.loc:
-			currentelement.endloc = xsc.Location(self.url, line, col)
-
-		self.prefixes = self._nesting.pop()[1] # pop the innermost element off the stack and restore the old prefixes mapping (from outside this element)
-
-	def handle_data(self, content, line, col):
-		if content:
-			node = self.pool.text(content)
-			node = node.parsed(self)
-			last = self._nesting[-1][0]
-			if len(last) and isinstance(last[-1], xsc.Text):
-				node = last[-1] + unicode(node) # join consecutive Text nodes
-				node.startloc = last[-1].startloc # make sure the replacement node has the original location
-				last[-1] = node # replace it
-			else:
-				self.__appendNode(node, line, col)
-
-	handle_cdata = handle_data
-
-	def handle_comment(self, content, line, col):
-		node = self.pool.comment(content)
-		node = node.parsed(self)
-		self.__appendNode(node, line, col)
-
-	def handle_proc(self, target, data, line, col):
-		if target != "xml":
-			node = self.pool.procinst_xml(target, data)
-			node = node.parsed(self)
-			self.__appendNode(node, line, col)
-
-	def handle_entityref(self, name, line, col):
-		try:
-			c = {u"lt": u"<", u"gt": u">", u"amp": u"&", u"quot": u'"', u"apos": u"'"}[name]
-		except KeyError:
-			node = self.pool.entity_xml(name)
-			if isinstance(node, xsc.CharRef):
-				self.handle_data(unichr(node.codepoint), line, col)
-			else:
-				node = node.parsed(self)
-				self.__appendNode(node, line, col)
-		else:
-			self.handle_data(c, line, col)
-
-	def getLocation(self):
-		return xsc.Location(self._locator)
-
-	def __appendNode(self, node, line, col):
-		if self.loc:
-			node.startloc = xsc.Location(self.url, line, col)
+			node.startloc = xsc.Location(self.url, *self._location)
 		self._nesting[-1][0].append(node) # add the new node to the content of the innermost element/fragment/(attribute)
 
 
-def parsestring(data, base=None, encoding=None, **builderargs):
+def parsestring(data, url=None, **kwargs):
 	"""
 	Parse the string :var:`data` into an XIST tree. For the arguments
 	:var:`base` and :var:`encoding` see the method :meth:`parsestring` in the
@@ -696,11 +1756,10 @@ def parsestring(data, base=None, encoding=None, **builderargs):
 	:class:`Builder` constructor takes as keyword arguments
 	via :var:`builderargs`.
 	"""
-	builder = Builder(**builderargs)
-	return builder.parsestring(data, base=base, encoding=encoding)
+	return tree(_fixpipeline(StringSource(data, url=url), **kwargs))
 
 
-def parseiter(iterable, base=None, encoding=None, **builderargs):
+def parseiter(iterable, url=None, **kwargs):
 	"""
 	Parse the input from the iterable :var:`iterable` (which must produce the
 	input in chunks of bytes) into an XIST tree. For the arguments :var:`base`
@@ -709,23 +1768,21 @@ def parseiter(iterable, base=None, encoding=None, **builderargs):
 	:class:`Builder` constructor takes as keyword arguments via
 	:var:`builderargs`.
 	"""
-	builder = Builder(**builderargs)
-	return builder.parseiter(iterable, base=base, encoding=encoding)
+	return tree(_fixpipeline(IterSource(iterable, url=url), **kwargs))
 
 
-def parsestream(stream, base=None, encoding=None, bufsize=8192, **builderargs):
+def parsestream(stream, base=None, bufsize=8192, **kwargs):
 	"""
 	Parse XML from the stream :var:`stream` into an XIST tree. For the arguments
-	:var:`base`, :var:`encoding` and :var:`bufzise` see the method
+	:var:`base`, :var:`encoding` and :var:`bufsize` see the method
 	:meth:`parsestream` in the :class:`Parser` class. You can pass any other
 	argument that the :class:`Builder` constructor takes as keyword arguments via
 	:var:`builderargs`.
 	"""
-	builder = Builder(**builderargs)
-	return builder.parsestream(stream, base=base, encoding=encoding, bufsize=bufsize)
+	return tree(_fixpipeline(StreamSource(stream, bufsize=bufsize), **kwargs))
 
 
-def parsefile(filename, base=None, encoding=None, bufsize=8192, **builderargs):
+def parsefile(filename, bufsize=8192, **kwargs):
 	"""
 	Parse XML input from the file named :var:`filename`. For the arguments
 	:var:`base`, :var:`encoding` and :var:`bufsize` see the method
@@ -733,11 +1790,10 @@ def parsefile(filename, base=None, encoding=None, bufsize=8192, **builderargs):
 	argument that the :class:`Builder` constructor takes as keyword arguments
 	via :var:`builderargs`.
 	"""
-	builder = Builder(**builderargs)
-	return builder.parsefile(filename, base=base, encoding=encoding, bufsize=bufsize)
+	return tree(_fixpipeline(FileSource(filename, bufsize=bufsize), **kwargs))
 
 
-def parseurl(name, base=None, encoding=None, bufsize=8192, headers=None, data=None, **builderargs):
+def parseurl(name, bufsize=8192, headers=None, data=None, **kwargs):
 	"""
 	Parse XML input from the URL :var:`name` into an XIST tree. For the arguments
 	:var:`base`, :var:`encoding`, :var:`bufsize`, :var:`headers` and :var:`data`
@@ -745,18 +1801,12 @@ def parseurl(name, base=None, encoding=None, bufsize=8192, headers=None, data=No
 	any other argument that the :class:`Builder` constructor takes as keyword
 	arguments via :var:`builderargs`.
 	"""
-	builder = Builder(**builderargs)
-	kwargs = dict(base=base, encoding=encoding)
-	if headers is not None:
-		kwargs["headers"] = headers
-	if data is not None:
-		kwargs["data"] = data
-	return builder.parseurl(name, **kwargs)
+	return tree(_fixpipeline(URLSource(name, headers=headers, data=data), **kwargs))
 
 
-def parseetree(tree, base=None, **builderargs):
+def parseetree(node, defaultxmlns=None, **kwargs):
 	"""
-	Parse XML input from the object :var:`tree` which must support the
+	Parse XML input from the object :var:`node` which must support the
 	ElementTree__ API. For the argument :var:`base` see the method
 	:meth:`parseetree` in the :class:`Builder` class. You can pass any other
 	argument that the :class:`Builder` constructor takes as keyword arguments
@@ -764,5 +1814,4 @@ def parseetree(tree, base=None, **builderargs):
 
 	__ http://effbot.org/zone/element-index.htm
 	"""
-	builder = Builder(**builderargs)
-	return builder.parseetree(tree, base=base)
+	return tree(_fixpipeline(ETree(node, defaultxmlns=defaultxmlns), **kwargs))

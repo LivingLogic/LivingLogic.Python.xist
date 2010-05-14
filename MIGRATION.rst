@@ -1,12 +1,48 @@
+Migrating to version 3.8
+========================
+
+Changes to XISTs walk filters
+-----------------------------
+
+*	The walk methods :meth:`walknode` and :meth:`walkpath` have been renamed to
+	:meth:`walknodes` and :meth:`walkpaths`. The class :class:`WalkFilter` has
+	been moved to :mod:`ll.xist.xfind`.
+
+Changes to :mod:`ll.url`
+------------------------
+
+*	:class:`ll.url.Path` has been simplified: Path segments are strings instead
+	of tuples. If you need the path parameters (i.e. part after ``;`` in a path
+	segment) you have to split the segment yourself.
+
+*	:meth:`ll.url.URL.import_` is gone. As a replacement :func:`misc.module` can
+	be used, i.e. replace::
+
+		>>> from ll import url
+		>>> u = url.File("foo.py")
+		>>> m = u.import_(mode="always")
+
+	with::
+
+		>>> from ll import url, misc
+		>>> u = url.File("foo.py")
+		>>> m = misc.module(u.openread().read(), u.local())
+
+*	ssh URLs now required to standalone :mod:`execnet` package__. The
+	``ssh_config`` parameter for ssh URLs is gone.
+
+	__ http://codespeak.net/execnet/
+
+
 Migrating to version 3.7
 ========================
 
 Changes to the make module
 --------------------------
 
-*	The division operator is no longer implemented, so instead of::
+*	The division operator for actions is no longer implemented, so instead of::
 
-		t1 = make.FileAction(key=url.URL("foo.txt"))
+		t1 = make.FileAction(key=url.URL("file:foo.txt"))
 		t2 = t1 /
 		     make.DecodeAction("iso-8859-1") /
 		     make.EncodeAction("utf-8") /
@@ -52,13 +88,13 @@ Changes to the color module
 *	The property ``css`` has been dropped instead the CSS string is returned
 	by ``__str__``.
 
-*	Dividing color now does a scalar division. Blending colors is now done with
+*	Dividing colors now does a scalar division. Blending colors is now done with
 	the modulo operator.
 
 Removal of XPIT
 ---------------
 
-*	The XPIT tamplating language has been removed. You should replace all your
+*	The XPIT templating language has been removed. You should replace all your
 	XPIT templates with UL4 templates.
 
 
@@ -222,7 +258,7 @@ The death of namespace modules
 ------------------------------
 
 It's no longer possible to turn modules into namespaces. Element classes belong
-to a namespace (in the XML sense) simpy if their ``xmlns`` attribute have the
+to a namespace (in the XML sense) simply if their ``xmlns`` attribute have the
 same value. So a module definition like this::
 
 	from ll.xist import xsc
@@ -261,8 +297,8 @@ following names have changed:
 *	``olist`` to ``ol``;
 *	``ulist`` to ``ul``;
 *	``dlist`` to ``dl``;
-*	``item`` to ``li`` or ``dd`` (depending on whether it's inside an :class:`ol`,
-	:class:`ul` or :class:`dl`);
+*	``item`` to ``li`` or ``dd`` (depending on whether it's inside an
+	:class:`ol`, :class:`ul` or :class:`dl`);
 *	``term`` to ``dt``;
 *	``link`` to ``a``.
 
@@ -346,7 +382,7 @@ modes you can use the methods :meth:`walknode`, :meth:`walkpath` or
 :meth:`walkindex` instead of using the cursor yielded by :meth:`walk`.
 
 The node methods :meth:`find` and :meth:`findfirst` have been removed. Use
-``xsc.Frag(node.walk(...)`` or ``node.walk(...)[0]`` instead.
+``xsc.Frag(node.walk(...))`` or ``node.walk(...)[0]`` instead.
 
 Changes to publishing
 ---------------------
@@ -387,7 +423,7 @@ Changes to :mod:`ll.xist.ns.code`
 
 The code in a :class:`ll.xist.ns.code.pyexec` object is no longer executed at
 construction time, but at conversion time. So if you relied on this fact (e.g.
-to make a namespace available for parsing the rest of the XML file) you will
+to make a namespace available for parsing of the rest of the XML file) you will
 have to change your code.
 
 Removed namespaces
@@ -661,8 +697,8 @@ specified in the publisher.
 :class:`autoimg` changes
 ------------------------
 
-:class:`ll.xist.htmlspecials.autoimg` will no longer touches existing ``width``
-or ``height`` attributes, so e.g. setting the width to twice the image size via
+:class:`ll.xist.htmlspecials.autoimg` will no longer touch existing ``width`` or
+`height`` attributes, so e.g. setting the width to twice the image size via
 ``width="2*%(width)s"`` no longer works. You have to implement your own version
 of :class:`autoimg` if you need this.
 
@@ -712,7 +748,7 @@ Adding element classes to the namespace is now done with the :class:`Namespace`
 classmethod :meth:`update`. If you want the turn a namespace into a module, you
 can use the classmethod :meth:`makemod` instead of :meth:`update`, i.e. replace::
 
-	xmlns = xsc.Namespace("foo", "http://www.foo.com/", vars()
+	xmlns = xsc.Namespace("foo", "http://www.foo.com/", vars())
 
 with::
 	

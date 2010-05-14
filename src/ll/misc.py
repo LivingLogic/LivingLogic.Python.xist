@@ -15,7 +15,7 @@ LivingLogic modules and packages.
 """
 
 
-import sys, types, collections, weakref, cStringIO, gzip as gzip_
+import sys, os, types, collections, weakref, cStringIO, gzip as gzip_
 
 
 __docformat__ = "reStructuredText"
@@ -103,7 +103,7 @@ except ImportError:
 			string = string.replace("'", "&#39;")
 			string = string.replace('"', "&quot;")
 			for c in "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1f\x7f\x80\x81\x82\x83\x84\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f":
-				string = string.replace(c, "&#%d;" % ord(c))
+				string = string.replace(c, "&#{0};".format(ord(c)))
 			return string
 
 	def xmlescape_text(string):
@@ -119,7 +119,7 @@ except ImportError:
 			string = string.replace("<", "&lt;")
 			string = string.replace(">", "&gt;")
 			for c in "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1f\x7f\x80\x81\x82\x83\x84\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f":
-				string = string.replace(c, "&#%d;" % ord(c))
+				string = string.replace(c, "&#{0};".format(ord(c)))
 			return string
 
 	def xmlescape_attr(string):
@@ -136,7 +136,7 @@ except ImportError:
 			string = string.replace(">", "&gt;")
 			string = string.replace('"', "&quot;")
 			for c in "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1f\x7f\x80\x81\x82\x83\x84\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f":
-				string = string.replace(c, "&#%d;" % ord(c))
+				string = string.replace(c, "&#{0};".format(ord(c)))
 			return string
 
 
@@ -147,7 +147,7 @@ def notimplemented(function):
 	implementation.
 	"""
 	def wrapper(self, *args, **kwargs):
-		raise NotImplementedError("method %s() not implemented in %r" % (function.__name__, self.__class__))
+		raise NotImplementedError("method {0}() not implemented in {1!r}".format(function.__name__, self.__class__))
 	wrapper.__dict__.update(function.__dict__)
 	wrapper.__doc__ = function.__doc__
 	wrapper.__name__ = function.__name__
@@ -277,7 +277,7 @@ class Pool(object):
 		return copy
 
 	def __repr__(self):
-		return "<%s.%s object with %d items at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, len(self._attrs), id(self))
+		return "<{0}.{1} object with {2} items at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, len(self._attrs), id(self))
 
 
 def iterone(item):
@@ -364,7 +364,7 @@ class Const(object):
 		self._name = name
 
 	def __repr__(self):
-		return "%s.%s" % (self.__module__, self._name)
+		return "{0}.{1}".format(self.__module__, self._name)
 
 
 def tokenizepi(string):
@@ -447,6 +447,22 @@ def itersplitat(string, positions):
 	part = string[curpos:]
 	if part:
 		yield part
+
+
+def module(code, filename="unnamed.py", name=None):
+	"""
+	Create a module from the Python source code :var:`code`. :var:`filename` will
+	be used as the filename for the module and :var:`name` as the module name
+	(defaulting to the filename part of :var:`filename`).
+	"""
+	if name is None:
+		name = os.path.splitext(os.path.basename(filename))[0]
+	mod = types.ModuleType(name)
+	mod.__file__ = filename
+	code = code.replace("\r\n", "\n") # Normalize line feeds, so that :func:`compile` works (normally done by import)
+	code = compile(code, filename, "exec")
+	exec code in mod.__dict__
+	return mod
 
 
 class JSMinUnterminatedComment(Exception):

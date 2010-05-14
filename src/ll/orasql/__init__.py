@@ -67,7 +67,7 @@ bigbang = datetime.datetime(1970, 1, 1, 0, 0, 0)
 
 class SQLObjectNotFoundError(IOError):
 	def __init__(self, obj):
-		IOError.__init__(self, errno.ENOENT, "no such %s: %s" % (obj.type, getfullname(obj.name, obj.owner)))
+		IOError.__init__(self, errno.ENOENT, "no such {0}: {1}".format(obj.type, getfullname(obj.name, obj.owner)))
 		self.obj = obj
 
 
@@ -77,13 +77,13 @@ class SQLNoSuchObjectError(Exception):
 		self.owner = owner
 
 	def __repr__(self):
-		return "<%s.%s name=%r owner=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.name, self.owner, id(self))
+		return "<{0}.{1} name={2!r} owner={3!r} at {4:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.name, self.owner, id(self))
 
 	def __str__(self):
 		if self.owner is None:
-			return "no object named %r" % (self.name, )
+			return "no object named {0!r}".format(self.name)
 		else:
-			return "no object named %r for owner %r" % (self.name, self.owner)
+			return "no object named {0!r} for owner {1!r}".format(self.name, self.owner)
 
 
 class UnknownModeError(ValueError):
@@ -91,10 +91,10 @@ class UnknownModeError(ValueError):
 		self.mode = mode
 
 	def __repr__(self):
-		return "<%s.%s mode=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.mode, id(self))
+		return "<{0}.{1} mode={2!r} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.mode, id(self))
 
 	def __str__(self):
-		return "unknown mode %r" % self.mode
+		return "unknown mode {0!r}".format(self.mode)
 
 
 class UnknownSchemaError(ValueError):
@@ -102,10 +102,10 @@ class UnknownSchemaError(ValueError):
 		self.schema = schema
 
 	def __repr__(self):
-		return "<%s.%s schema=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.schema, id(self))
+		return "<{0}.{1} schema={2!r} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.schema, id(self))
 
 	def __str__(self):
-		return "unknown schema %r" % self.schema
+		return "unknown schema {0!r}".format(self.schema)
 
 
 class ConflictError(ValueError):
@@ -114,10 +114,10 @@ class ConflictError(ValueError):
 		self.message = message
 
 	def __repr__(self):
-		return "<%s.%s object=%r message=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.object, self.message, id(self))
+		return "<{0}.{1} object={2!r} message={3!r} at {4:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.object, self.message, id(self))
 
 	def __str__(self):
-		return "conflict in %r: %s" % (self.object, self.message)
+		return "conflict in {0!r}: {1}".format(self.object, self.message)
 
 
 class Args(dict):
@@ -167,12 +167,12 @@ class Args(dict):
 
 	def __xrepr__(self, mode):
 		if mode == "header":
-			yield (astyle.style_default, "%s.%s" % (self.__class__.__module__, self.__class__.__name__))
+			yield (astyle.style_default, "{0}.{1}".format(self.__class__.__module__, self.__class__.__name__))
 		else:
 			yield (astyle.style_default, repr(self))
 
 	def __repr__(self):
-		return "%s.%s(%s)" % (self.__class__.__module__, self.__class__.__name__, ", ".join("%s=%r" % item for item in self.iteritems()))
+		return "{0}.{1}({2})".format(self.__class__.__module__, self.__class__.__name__, ", ".join("{0}={1!r}".format(*item) for item in self.iteritems()))
 
 
 class RecordMaker(object):
@@ -214,7 +214,7 @@ class Record(tuple):
 		try:
 			index = self._name2index[name.lower()]
 		except KeyError:
-			raise AttributeError("'%s' object has no attribute %r" % (self.__class__.__name__, name))
+			raise AttributeError("'{0}' object has no attribute {1!r}".format(self.__class__.__name__, name))
 		return tuple.__getitem__(self, index)
 
 	def get(self, name, default=None):
@@ -261,12 +261,12 @@ class Record(tuple):
 
 	def __xrepr__(self, mode):
 		if mode == "header":
-			yield (astyle.style_default, "%s.%s" % (self.__class__.__module__, self.__class__.__name__))
+			yield (astyle.style_default, "{0}.{1}".format(self.__class__.__module__, self.__class__.__name__))
 		else:
 			yield (astyle.style_default, repr(self))
 
 	def __repr__(self):
-		return "<%s.%s %s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, ", ".join("%s=%r" % item for item in self.iteritems()), id(self))
+		return "<{0}.{1} {2} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, ", ".join("{0}={1!r}".format(*item) for item in self.iteritems()), id(self))
 
 
 class _AllTypes(object):
@@ -301,10 +301,10 @@ class SessionPool(SessionPool):
 		super(SessionPool, self).__init__(user, password, database, min, max, increment, connectiontype, threaded, getmode, homogeneous)
 
 	def connectstring(self):
-		return "%s@%s" % (self.username, self.tnsentry)
+		return "{0}@{1}".format(self.username, self.tnsentry)
 
 	def __repr__(self):
-		return "<%s.%s object db=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.connectstring(), id(self))
+		return "<{0}.{1} object db={2!r} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.connectstring(), id(self))
 
 
 class Connection(Connection):
@@ -333,7 +333,7 @@ class Connection(Connection):
 		super(Connection, self).__init__(*args, **kwargs)
 
 	def connectstring(self):
-		return "%s@%s" % (self.username, self.tnsentry)
+		return "{0}@{1}".format(self.username, self.tnsentry)
 
 	def cursor(self, readlobs=None):
 		"""
@@ -343,11 +343,11 @@ class Connection(Connection):
 		return Cursor(self, readlobs=readlobs)
 
 	def __repr__(self):
-		return "<%s.%s object db=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.connectstring(), id(self))
+		return "<{0}.{1} object db={2!r} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.connectstring(), id(self))
 
 	def __xrepr__(self, mode):
 		if mode == "header" or mode=="footer":
-			yield (astyle.style_default, "oracle connection to %s" % self.connectstring())
+			yield (astyle.style_default, "oracle connection to {0}".format(self.connectstring()))
 		elif mode == "cell":
 			yield (style_connection, self.connectstring())
 		else:
@@ -571,7 +571,7 @@ class Connection(Connection):
 						cursor.execute("select column_name from user_tab_columns where table_name=:name order by column_id", name=rec.table_name)
 					for rec2 in cursor.fetchall():
 						# No dependency checks neccessary, but use ``do`` anyway
-						for subobj in do(Comment("%s.%s" % (rec.table_name, rec2.column_name), rec.owner, self)):
+						for subobj in do(Comment("{0}.{1}".format(rec.table_name, rec2.column_name), rec.owner, self)):
 							yield subobj
 
 				if mode == "drop":
@@ -651,7 +651,7 @@ class Connection(Connection):
 			try:
 				cls = Object.name2type[type]
 			except KeyError:
-				raise TypeError("type %s not supported" % type)
+				raise TypeError("type {0} not supported".format(type))
 			else:
 				return cls(rec.object_name, rec.owner, self)
 		raise SQLNoSuchObjectError(name, owner)
@@ -702,7 +702,7 @@ class Connection(Connection):
 			try:
 				cls = Object.name2type[type]
 			except KeyError:
-				raise TypeError("type %s not supported" % type)
+				raise TypeError("type {0} not supported".format(type))
 			else:
 				return cls(rec.object_name, rec.owner, self)
 		raise SQLNoSuchObjectError(name, owner)
@@ -785,7 +785,7 @@ class Cursor(Cursor):
 			yield (astyle.style_default, repr(self))
 
 	def __repr__(self):
-		return "<%s.%s statement=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.statement, id(self))
+		return "<{0}.{1} statement={2!r} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.statement, id(self))
 
 
 def formatstring(value, latin1=False):
@@ -801,23 +801,23 @@ def formatstring(value, latin1=False):
 		if current and (force or (len(current) > 2000)):
 			if result:
 				result.append(" || ")
-			result.append("'%s'" % "".join(current))
+			result.append(u"'{0}'".format("".join(current)))
 
 	for c in value:
 		if c == "'":
-			current.append("''")
+			current.append(u"''")
 			shipcurrent()
 		elif ord(c) < 32 or ord(c)>upper:
 			shipcurrent(True)
 			current = []
 			if result:
-				result.append(" || ")
-			result.append("chr(%d)" % ord(c))
+				result.append(u" || ")
+			result.append(u"chr({0})".format(ord(c)))
 		else:
 			current.append(c)
 			shipcurrent()
 	shipcurrent(True)
-	return "".join(result)
+	return u"".join(result)
 
 
 class MixinNormalDates(object):
@@ -850,40 +850,40 @@ class MixinCodeDDL(object):
 	def createddl(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select text from all_source where lower(type)=lower(:type) and owner=nvl(:owner, user) and name=:name order by line", type=self.__class__.type, owner=self.owner, name=self.name)
-		code = "\n".join((rec.text or "").rstrip() for rec in cursor) # sqlplus strips trailing spaces when executing SQL scripts, so we do that too
+		code = u"\n".join((rec.text or "").rstrip() for rec in cursor) # sqlplus strips trailing spaces when executing SQL scripts, so we do that too
 		if not code:
 			raise SQLObjectNotFoundError(self)
-		code = " ".join(code.split(None, 1)) # compress "PROCEDURE          FOO"
+		code = u" ".join(code.split(None, 1)) # compress "PROCEDURE          FOO"
 		code = code.strip()
 		type = self.__class__.type
 		code = code[code.lower().find(type)+len(type):].strip() # drop "procedure" etc.
 		code = code.split(None, 1)[1] # drop our own name (as for triggers this includes the schema name)
 		if self.owner is not None:
-			code = "create or replace %s %s.%s\n%s\n" % (type, self.owner, self.name, code)
+			code = u"create or replace {0} {1}.{2}\n{3}\n".format(type, self.owner, self.name, code)
 		else:
-			code = "create or replace %s %s\n%s\n" % (type, self.name, code)
+			code = u"create or replace {0} {1}\n{2}\n".format(type, self.name, code)
 		if term:
-			code += "\n/\n"
+			code += u"\n/\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	def dropddl(self, connection=None, term=True):
 		if self.owner is not None:
-			name = "%s.%s" % (self.owner, self.name)
+			name = u"{0}.{1}".format(self.owner, self.name)
 		else:
 			name = self.name
-		code = "drop %s %s" % (self.__class__.type, name)
+		code = u"drop {0} {1}".format(self.__class__.type, name)
 		if term:
-			code += ";\n"
+			code += u";\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	@classmethod
 	def fixname(cls, name, code):
 		code = code.split(None, 5)
-		code = "create or replace %s %s\n%s" % (code[3], name, code[5])
+		code = u"create or replace {0} {1}\n{2}".format(code[3], name, code[5])
 		return code
 
 
@@ -891,12 +891,12 @@ def getfullname(name, owner):
 	parts = []
 	if owner is not None:
 		if owner != owner.upper():
-			parts.append('"%s"' % owner)
+			parts.append('"{0}"'.format(owner))
 		else:
 			parts.append(owner)
 	for part in name.split("."):
 		if part != part.upper():
-			parts.append('"%s"' % part)
+			parts.append('"{0}"'.format(part))
 		else:
 			parts.append(part)
 	return ".".join(parts)
@@ -932,15 +932,15 @@ class Object(object):
 
 	def __repr__(self):
 		if self.owner is not None:
-			return "%s.%s(%r, %r)" % (self.__class__.__module__, self.__class__.__name__, self.name, self.owner)
+			return "{0}.{1}({2!r}, {3!r})".format(self.__class__.__module__, self.__class__.__name__, self.name, self.owner)
 		else:
-			return "%s.%s(%r)" % (self.__class__.__module__, self.__class__.__name__, self.name)
+			return "{0}.{1}({2!r})".format(self.__class__.__module__, self.__class__.__name__, self.name)
 
 	def __str__(self):
 		if self.owner is not None:
-			return "%s(%s, %s)" % (self.__class__.__name__, self.name, self.owner)
+			return "{0}({1}, {2})".format(self.__class__.__name__, self.name, self.owner)
 		else:
-			return "%s(%s)" % (self.__class__.__name__, self.name)
+			return "{0}({1})".format(self.__class__.__name__, self.name)
 
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and self.name == other.name and self.owner == other.owner
@@ -1147,20 +1147,20 @@ class Sequence(MixinNormalDates, Object):
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
-		code  = "create sequence %s\n" % self.getfullname()
-		code += "\tincrement by %d\n" % rec.increment_by
+		code  = "create sequence {0}\n".format(self.getfullname())
+		code += "\tincrement by {0}\n".format(rec.increment_by)
 		if copyvalue:
-			code += "\tstart with %d\n" % (rec.last_number + rec.increment_by)
+			code += "\tstart with {0}\n".format(rec.last_number + rec.increment_by)
 		else:
-			code += "\tstart with %d\n" % rec.min_value
-		code += "\tmaxvalue %s\n" % rec.max_value
-		code += "\tminvalue %d\n" % rec.min_value
-		code += "\t%scycle\n" % ["no", ""][rec.cycle_flag == "Y"]
+			code += "\tstart with {0}\n".format(rec.min_value)
+		code += "\tmaxvalue {0}\n".format(rec.max_value)
+		code += "\tminvalue {0}\n".format(rec.min_value)
+		code += "\t{0}cycle\n".format("" if rec.cycle_flag == "Y" else "no")
 		if rec.cache_size:
-			code += "\tcache %d\n" % rec.cache_size
+			code += "\tcache {0}\n".format(rec.cache_size)
 		else:
 			code += "\tnocache\n"
-		code += "\t%sorder" % ["no", ""][rec.order_flag == "Y"]
+		code += "\t{0}order".format("" if rec.cycle_flag == "Y" else "no")
 		if term:
 			code += ";\n"
 		else:
@@ -1177,17 +1177,17 @@ class Sequence(MixinNormalDates, Object):
 		return self._createddl(connection, term, True)
 
 	def dropddl(self, connection=None, term=True):
-		code = "drop sequence %s" % self.getfullname()
+		code = u"drop sequence {0}".format(self.getfullname())
 		if term:
-			code += ";\n"
+			code += u";\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	@classmethod
 	def fixname(cls, name, code):
 		code = code.split(None, 3)
-		code = "create sequence %s\n%s" % (name, code[3])
+		code = u"create sequence {0}\n{1}".format(name, code[3])
 		return code
 
 	def iterreferences(self, connection=None, schema="all"):
@@ -1218,22 +1218,22 @@ def _columntype(rec, data_precision=None, data_scale=None, char_length=None):
 	elif ftype == "number" and fprec is None and fsize is None:
 		ftype = "number"
 	elif ftype == "number" and fprec == 0:
-		ftype = "number(%d)" % fsize
+		ftype = "number({0})".format(fsize)
 	elif ftype == "number":
-		ftype = "number(%d, %d)" % (fsize, fprec)
+		ftype = "number({0}, {1})".format(fsize, fprec)
 	elif ftype == "raw":
-		ftype = "raw(%d)" % rec.data_length
+		ftype = "raw({0})".format(rec.data_length)
 	else:
 		if char_length != 0:
 			fsize = char_length
 		if fsize is not None:
-			ftype += "(%d" % fsize
+			ftype += "({0}".format(fsize)
 			if rec.char_used == "B":
 				ftype += " byte"
 			elif rec.char_used == "C":
 				ftype += " char"
 			if fprec is not None:
-				ftype += ", %d" % fprec
+				ftype += ", {0}".format(fprec)
 			ftype += ")"
 	return ftype
 
@@ -1258,36 +1258,36 @@ class Table(MixinNormalDates, Object):
 		recs = cursor.fetchall()
 		if not recs:
 			raise SQLObjectNotFoundError(self)
-		code = ["create table %s\n(\n" % self.getfullname()]
+		code = [u"create table {0}\n(\n".format(self.getfullname())]
 		for (i, rec) in enumerate(recs):
 			if i:
-				code.append(",\n")
-			code.append("\t%s %s" % (rec.column_name, _columntype(rec)))
+				code.append(u",\n")
+			code.append(u"\t{0} {1}".format(rec.column_name, _columntype(rec)))
 			default = _columndefault(rec)
 			if default != "null":
-				code.append(" default %s" % default)
+				code.append(u" default {0}".format(default))
 			if rec.nullable == "N":
-				code.append(" not null")
+				code.append(u" not null")
 		if term:
-			code.append("\n);\n")
+			code.append(u"\n);\n")
 		else:
-			code.append("\n)\n")
-		return "".join(code)
+			code.append(u"\n)\n")
+		return u"".join(code)
 
 	def dropddl(self, connection=None, term=True):
 		if self.ismview(connection):
 			return ""
-		code = "drop table %s" % self.getfullname()
+		code = u"drop table {0}".format(self.getfullname())
 		if term:
-			code += ";\n"
+			code += u";\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	@classmethod
 	def fixname(cls, name, code):
 		code = code.split(None, 3)
-		code = "create table %s\n%s" % (name, code[3])
+		code = u"create table {0}\n{1}".format(name, code[3])
 		return code
 
 	def mview(self, connection=None):
@@ -1325,14 +1325,14 @@ class Table(MixinNormalDates, Object):
 		cursor.execute("select column_name from all_tab_columns where owner=nvl(:owner, user) and table_name=:name order by column_id", owner=self.owner, name=self.name)
 
 		for rec in cursor.fetchall():
-			yield Column("%s.%s" % (self.name, rec.column_name), self.owner, connection)
+			yield Column("{0}.{1}".format(self.name, rec.column_name), self.owner, connection)
 
 	def iterrecords(self, connection=None):
 		"""
 		Generator that yields all records of the table :var:`self`.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		query = "select * from %s" % self.getfullname()
+		query = "select * from {0}".format(self.getfullname())
 		cursor.execute(query)
 		return iter(cursor)
 
@@ -1343,7 +1343,7 @@ class Table(MixinNormalDates, Object):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select column_name from all_tab_columns where owner=nvl(:owner, user) and table_name=:name order by column_id", owner=self.owner, name=self.name)
 		for rec in cursor.fetchall():
-			yield Comment("%s.%s" % (self.name, rec.column_name), self.owner, connection)
+			yield Comment("{0}.{1}".format(self.name, rec.column_name), self.owner, connection)
 
 	def iterconstraints(self, connection=None):
 		"""
@@ -1394,7 +1394,7 @@ class Constraint(Object):
 	@classmethod
 	def fixname(cls, name, code):
 		code = code.split(None, 6)
-		code = "alter table %s add constraint %s %s" % (code[2], name, code[6])
+		code = u"alter table {0} add constraint {1} {2}".format(code[2], name, code[6])
 		return code
 
 
@@ -1427,11 +1427,11 @@ class PrimaryKey(Constraint):
 		cursor.execute("select column_name from all_cons_columns where owner=nvl(:owner, user) and constraint_name=:name", owner=self.owner, name=self.name)
 		tablename = getfullname(rec2.table_name, rec2.owner)
 		pkname = getfullname(self.name, None)
-		code = "alter table %s add constraint %s primary key(%s)" % (tablename, pkname, ", ".join(r.column_name for r in cursor))
+		code = u"alter table {0} add constraint {1} primary key({2})".format(tablename, pkname, ", ".join(r.column_name for r in cursor))
 		if term:
-			code += ";\n"
+			code += u";\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	def dropddl(self, connection=None, term=True):
@@ -1440,11 +1440,11 @@ class PrimaryKey(Constraint):
 		rec = cursor.fetchone()
 		tablename = getfullname(rec.table_name, rec.owner)
 		pkname = getfullname(self.name, None)
-		code = "alter table %s drop constraint %s" % (tablename, pkname)
+		code = u"alter table {0} drop constraint {1}".format(tablename, pkname)
 		if term:
-			code += ";\n"
+			code += u";\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	def cdate(self, connection=None):
@@ -1512,13 +1512,13 @@ class Comment(Object):
 
 		name = self.getfullname()
 		if row.comments:
-			code = "comment on column %s is %s" % (name, formatstring(row.comments, latin1=True))
+			code = u"comment on column {0} is {1}".format(name, formatstring(row.comments, latin1=True))
 		else:
-			code = "comment on column %s is ''" % name
+			code = u"comment on column {0} is ''".format(name)
 		if term:
-			code += ";\n"
+			code += u";\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	def dropddl(self, connection=None, term=True):
@@ -1528,7 +1528,7 @@ class Comment(Object):
 	@classmethod
 	def fixname(cls, name, code):
 		code = code.split(None, 5)
-		code = "comment on column %s is %s" % (name, code[5])
+		code = u"comment on column {0} is {1}".format(name, code[5])
 		return code
 
 	def cdate(self, connection=None):
@@ -1562,14 +1562,14 @@ class ForeignKey(Constraint):
 		cursor.execute("select column_name from all_cons_columns where owner=nvl(:owner, user) and constraint_name=:name order by position", owner=self.owner, name=self.name)
 		fields1 = ", ".join(r.column_name for r in cursor)
 		cursor.execute("select table_name, column_name from all_cons_columns where owner=nvl(:owner, user) and constraint_name=:name order by position", owner=rec.r_owner, name=rec.r_constraint_name)
-		fields2 = ", ".join("%s(%s)" % (getfullname(r.table_name, rec.r_owner), r.column_name) for r in cursor)
+		fields2 = ", ".join("{0}({1})".format(getfullname(r.table_name, rec.r_owner), r.column_name) for r in cursor)
 		tablename = getfullname(rec.table_name, self.owner)
 		fkname = getfullname(self.name, None)
-		code = "alter table %s add constraint %s foreign key (%s) references %s" % (tablename, fkname, fields1, fields2)
+		code = u"alter table {0} add constraint {1} foreign key ({2}) references {3}".format(tablename, fkname, fields1, fields2)
 		if term:
-			code += ";\n"
+			code += u";\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	def _ddl(self, connection, cmd, term):
@@ -1580,11 +1580,11 @@ class ForeignKey(Constraint):
 			raise SQLObjectNotFoundError(self)
 		tablename = getfullname(rec.table_name, self.owner)
 		fkname = getfullname(self.name, None)
-		code = "alter table %s %s constraint %s" % (tablename, cmd, fkname)
+		code = u"alter table {0} {1} constraint {2}".format(tablename, cmd, fkname)
 		if term:
-			code += ";\n"
+			code += u";\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	def dropddl(self, connection=None, term=True):
@@ -1673,35 +1673,35 @@ class Index(MixinNormalDates, Object):
 		tablename = getfullname(rec.table_name, self.owner)
 		indexname = self.getfullname()
 		if rec.uniqueness == "UNIQUE":
-			unique = " unique"
+			unique = u" unique"
 		else:
-			unique = ""
+			unique = u""
 		cursor.execute("select aie.column_expression, aic.column_name from all_ind_columns aic, all_ind_expressions aie where aic.table_owner=aie.table_owner(+) and aic.index_name=aie.index_name(+) and aic.column_position=aie.column_position(+) and aic.table_owner=nvl(:owner, user) and aic.index_name=:name order by aic.column_position", owner=self.owner, name=self.name)
-		code = "create%s index %s on %s (%s)" % (unique, indexname, tablename, ", ".join(r.column_expression or r.column_name for r in cursor))
+		code = u"create{0} index {1} on {2} ({3})".format(unique, indexname, tablename, ", ".join(r.column_expression or r.column_name for r in cursor))
 		if term:
-			code += ";\n"
+			code += u";\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	def dropddl(self, connection=None, term=True):
 		if self.isconstraint(connection):
-			return ""
-		code = "drop index %s" % getfullname(self.name, self.owner)
+			return u""
+		code = u"drop index {0}".format(getfullname(self.name, self.owner))
 		if term:
-			code += ";\n"
+			code += u";\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	@classmethod
 	def fixname(cls, name, code):
 		if code.lower().startswith("create unique"):
 			code = code.split(None, 5)
-			code = "create unique index %s %s" % (name, code[5])
+			code = u"create unique index {0} {1}".format(name, code[5])
 		else:
 			code = code.split(None, 4)
-			code = "create index %s %s" % (name, code[4])
+			code = u"create index {0} {1}".format(name, code[4])
 		return code
 
 	def constraint(self, connection=None):
@@ -1764,11 +1764,11 @@ class UniqueConstraint(Constraint):
 		tablename = getfullname(rec.table_name, self.owner)
 		uniquename = getfullname(self.name, None)
 		cursor.execute("select column_name from all_cons_columns where owner=nvl(:owner, user) and constraint_name=:name", owner=self.owner, name=self.name)
-		code = "alter table %s add constraint %s unique(%s)" % (tablename, uniquename, ", ".join(r.column_name for r in cursor))
+		code = u"alter table {0} add constraint {1} unique({2})".format(tablename, uniquename, ", ".join(r.column_name for r in cursor))
 		if term:
-			code += ";\n"
+			code += u";\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	def dropddl(self, connection=None, term=True):
@@ -1779,11 +1779,11 @@ class UniqueConstraint(Constraint):
 			raise SQLObjectNotFoundError(self)
 		tablename = getfullname(rec.table_name, self.owner)
 		uniquename = getfullname(self.name, None)
-		code = "alter table %s drop constraint %s" % (tablename, uniquename)
+		code = u"alter table {0} drop constraint {1}".format(tablename, uniquename)
 		if term:
-			code += ";\n"
+			code += u";\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	def cdate(self, connection=None):
@@ -1855,13 +1855,13 @@ class Synonym(Object):
 			public = ""
 		name = getfullname(self.name, owner)
 		name2 = getfullname(rec.table_name, rec.table_owner)
-		code = "create or replace %ssynonym %s for %s" % (public, name, name2)
+		code = u"create or replace {0}synonym {1} for {2}".format(public, name, name2)
 		if rec.db_link is not None:
-			code += "@%s" % rec.db_link
+			code += u"@{0}".format(rec.db_link)
 		if term:
-			code += ";\n"
+			code += u";\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	def dropddl(self, connection=None, term=True):
@@ -1872,21 +1872,21 @@ class Synonym(Object):
 		else:
 			public = ""
 		name = getfullname(self.name, owner)
-		code = "drop %ssynonym %s" % (public, name)
+		code = u"drop {0}synonym {1}".format(public, name)
 		if term:
-			code += ";\n"
+			code += u";\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	@classmethod
 	def fixname(cls, name, code):
 		if code.lower().startswith("create or replace public"):
 			code = code.split(None, 6)
-			code = "create or replace public synonym %s %s" % (name, code[6])
+			code = u"create or replace public synonym {0} {1}".format(name, code[6])
 		else:
 			code = code.split(None, 5)
-			code = "create or replace synonym %s %s" % (name, code[5])
+			code = u"create or replace synonym {0} {1}".format(name, code[5])
 		return code
 
 	def cdate(self, connection=None):
@@ -1924,31 +1924,31 @@ class View(MixinNormalDates, Object):
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
-		code = "\n".join(line.rstrip() for line in rec.text.strip().splitlines()) # Strip trailing whitespace
-		code = "create or replace force view %s as\n\t%s" % (self.getfullname(), code)
+		code = u"\n".join(line.rstrip() for line in rec.text.strip().splitlines()) # Strip trailing whitespace
+		code = u"create or replace force view {0} as\n\t{1}".format(self.getfullname(), code)
 		if term:
-			code += "\n/\n"
+			code += u"\n/\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	def dropddl(self, connection=None, term=True):
-		code = "drop view %s" % self.getfullname()
+		code = u"drop view {0}".format(self.getfullname())
 		if term:
-			code += ";\n"
+			code += u";\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	@classmethod
 	def fixname(cls, name, code):
 		code = code.split(None, 6)
-		code = "create or replace force view %s %s" % (name, code[6])
+		code = u"create or replace force view {0} {1}".format(name, code[6])
 		return code
 
 	def iterrecords(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		query = "select * from %s" % self.getfullname()
+		query = "select * from {0}".format(self.getfullname())
 		cursor.execute(query)
 		return iter(cursor)
 
@@ -1965,26 +1965,26 @@ class MaterializedView(View):
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
-		code = "\n".join(line.rstrip() for line in rec.query.strip().splitlines()) # Strip trailing whitespace
-		code = "create materialized view %s\nrefresh %s on %s as\n\t%s" % (self.getfullname(), rec.refresh_method, rec.refresh_mode, code)
+		code = u"\n".join(line.rstrip() for line in rec.query.strip().splitlines()) # Strip trailing whitespace
+		code = u"create materialized view {0}\nrefresh {1} on {2} as\n\t{3}".format(self.getfullname(), rec.refresh_method, rec.refresh_mode, code)
 		if term:
-			code += "\n/\n"
+			code += u"\n/\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	def dropddl(self, connection=None, term=True):
-		code = "drop materialized view %s" % self.getfullname()
+		code = u"drop materialized view {0}".format(self.getfullname())
 		if term:
-			code += ";\n"
+			code += u";\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	@classmethod
 	def fixname(cls, name, code):
 		code = code.split(None, 4)
-		code = "create materialized view %s %s" % (name, code[4])
+		code = u"create materialized view {0} {1}".format(name, code[4])
 		return code
 
 	def iterreferences(self, connection=None):
@@ -2010,7 +2010,7 @@ class Library(Object):
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
-		return "create or replace library %s as %r" % (self.getfullname(), rec.file_spec)
+		return "create or replace library {0} as {1!r}".format(self.getfullname(), rec.file_spec)
 		if term:
 			code += ";\n"
 		else:
@@ -2018,17 +2018,17 @@ class Library(Object):
 		return code
 
 	def dropddl(self, connection=None, term=True):
-		code = "drop library %s" % self.getfullname()
+		code = u"drop library {0}".format(self.getfullname())
 		if term:
-			code += ";\n"
+			code += u";\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	@classmethod
 	def fixname(cls, name, code):
 		code = code.split(None, 5)
-		code = "create or replace library %s %s" % (name, code[5])
+		code = u"create or replace library {0} {1}".format(name, code[5])
 		return code
 
 
@@ -2045,7 +2045,7 @@ class Argument(object):
 		self.isout = isout
 
 	def __repr__(self):
-		return "<%s.%s name=%r position=%r datatype=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.name, self.position, self.datatype, id(self))
+		return "<{0}.{1} name={2!r} position={3!r} datatype={4!r} at {5:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.name, self.position, self.datatype, id(self))
 
 	def __xattrs__(self, mode="default"):
 		return ("name", "position", "datatype", "isin", "isout")
@@ -2103,7 +2103,7 @@ class Callable(MixinNormalDates, MixinCodeDDL, Object):
 		queryargs = {}
 
 		if len(args) > len(self._argsbypos):
-			raise TypeError("too many parameters for %r: %d given, %d expected" % (self, len(args), len(self._argsbypos)))
+			raise TypeError("too many parameters for {0!r}: {1} given, {2} expected".format(self, len(args), len(self._argsbypos)))
 
 		# Handle positional arguments
 		for (arg, arginfo) in itertools.izip(args, self._argsbypos):
@@ -2113,11 +2113,11 @@ class Callable(MixinNormalDates, MixinCodeDDL, Object):
 		for (argname, arg) in kwargs.iteritems():
 			argname = argname.lower()
 			if argname in queryargs:
-				raise TypeError("duplicate argument for %r: %s" % (self, argname))
+				raise TypeError("duplicate argument for {0!r}: {1}".format(self, argname))
 			try:
 				arginfo = self._argsbyname[argname]
 			except KeyError:
-				raise TypeError("unknown parameter for %r: %s" % (self, argname))
+				raise TypeError("unknown parameter for {0!r}: {1}".format(self, argname))
 			queryargs[arginfo.name] = self._wraparg(cursor, arginfo, arg)
 
 		# Add out parameters for anything that hasn't been specified
@@ -2134,7 +2134,7 @@ class Callable(MixinNormalDates, MixinCodeDDL, Object):
 			else:
 				t = type(arg)
 		except KeyError:
-			raise TypeError("can't handle parameter %s of type %s with value %r in %r" % (arginfo.name, arginfo.datatype, arg, self))
+			raise TypeError("can't handle parameter {0} of type {1} with value {2!r} in {3!r}".format(arginfo.name, arginfo.datatype, arg, self))
 		if isinstance(arg, str) and len(arg) >= 4000:
 			t = BLOB
 		elif isinstance(arg, unicode) and len(arg) >= 4000:
@@ -2196,11 +2196,11 @@ class Procedure(Callable):
 		if self.owner is None:
 			name = self.name
 		else:
-			name = "%s.%s" % (self.owner, self.name)
+			name = "{0}.{1}".format(self.owner, self.name)
 
 		queryargs = self._getargs(cursor, *args, **kwargs)
 
-		query = "begin %s(%s); end;" % (name, ", ".join("%s=>:%s" % (name, name) for name in queryargs))
+		query = "begin {0}({1}); end;".format(name, ", ".join("{0}=>:{0}".format(name) for name in queryargs))
 
 		cursor.execute(query, queryargs)
 
@@ -2227,7 +2227,7 @@ class Function(Callable):
 		if self.owner is None:
 			name = self.name
 		else:
-			name = "%s.%s" % (self.owner, self.name)
+			name = "{0}.{1}".format(self.owner, self.name)
 
 		queryargs = self._getargs(cursor, *args, **kwargs)
 
@@ -2236,7 +2236,7 @@ class Function(Callable):
 			returnvalue += "_"
 		queryargs[returnvalue] = self._wraparg(cursor, self._returnvalue, None)
 
-		query = "begin :%s := %s(%s); end;" % (returnvalue, name, ", ".join("%s=>:%s" % (name, name) for name in queryargs if name != returnvalue))
+		query = "begin :{0} := {1}({2}); end;".format(returnvalue, name, ", ".join("{0}=>:{0}".format(name) for name in queryargs if name != returnvalue))
 
 		cursor.execute(query, queryargs)
 
@@ -2282,26 +2282,26 @@ class JavaSource(MixinNormalDates, Object):
 	def createddl(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select text from all_source where type='JAVA SOURCE' and owner=nvl(:owner, user) and name=:name order by line", owner=self.owner, name=self.name)
-		code = "\n".join((rec.text or "").rstrip() for rec in cursor)
+		code = u"\n".join((rec.text or u"").rstrip() for rec in cursor)
 		code = code.strip()
 
-		code = "create or replace and compile java source named %s as\n%s\n" % (self.getfullname(), code)
+		code = u"create or replace and compile java source named {0} as\n{1}\n".format(self.getfullname(), code)
 		if term:
-			code += "/\n"
+			code += u"/\n"
 		return code
 
 	def dropddl(self, connection=None, term=True):
-		code = "drop java source %s" % self.getfullname()
+		code = u"drop java source {0}".format(self.getfullname())
 		if term:
-			code += ";\n"
+			code += u";\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	@classmethod
 	def fixname(cls, name, code):
 		code = code.split(None, 9)
-		code = "create or replace and compile java source named %s %s" % (name, code[9])
+		code = u"create or replace and compile java source named {0} {1}".format(name, code[9])
 		return code
 
 
@@ -2321,15 +2321,15 @@ class Privilege(object):
 
 	def __repr__(self):
 		if self.owner is not None:
-			return "%s.%s(%r, %r, %r, %r)" % (self.__class__.__module__, self.__class__.__name__, self.privilege, self.name, self.grantee, self.owner)
+			return "{0}.{1}({2!r}, {3!r}, {4!r}, {5!r})".format(self.__class__.__module__, self.__class__.__name__, self.privilege, self.name, self.grantee, self.owner)
 		else:
-			return "%s.%s(%r, %r, %r)" % (self.__class__.__module__, self.__class__.__name__, self.privilege, self.name, self.grantee)
+			return "{0}.{1}({2!r}, {3!r}, {4!r})".format(self.__class__.__module__, self.__class__.__name__, self.privilege, self.name, self.grantee)
 
 	def __str__(self):
 		if self.owner is not None:
-			return "%s(%r, %r, %r, %r)" % (self.__class__.__name__, self.privilege, self.name, self.grantee, self.owner)
+			return "{0}({1!r}, {2!r}, {3!r}, {4!r})".format(self.__class__.__name__, self.privilege, self.name, self.grantee, self.owner)
 		else:
-			return "%s(%r, %r, %r)" % (self.__class__.__name__, self.privilege, self.name, self.grantee)
+			return "{0}({1!r}, {2!r}, {3!r})".format(self.__class__.__name__, self.privilege, self.name, self.grantee)
 
 	def getconnection(self, connection):
 		if connection is None:
@@ -2396,9 +2396,9 @@ class Privilege(object):
 			grantee = mapgrantee.get(self.grantee.lower(), None)
 		if grantee is None:
 			return ""
-		code = "grant %s on %s to %s" % (self.privilege, self.name, grantee)
+		code = u"grant {0} on {1} to {2}".format(self.privilege, self.name, grantee)
 		if term:
-			code += ";\n"
+			code += u";\n"
 		return code
 
 	def __xattrs__(self, mode="default"):
@@ -2431,17 +2431,17 @@ class Column(Object):
 		(connection, cursor) = self.getcursor(connection)
 		rec = self._getcolumnrecord(cursor)
 		name = self.name.split(".")
-		code = ["alter table %s add %s" % (getfullname(name[0], self.owner), getfullname(name[1], None))]
-		code.append(" %s" % _columntype(rec))
+		code = [u"alter table {0} add {1}".format(getfullname(name[0], self.owner), getfullname(name[1], None))]
+		code.append(" {0}".format(_columntype(rec)))
 		default = _columndefault(rec)
 		if default != "null":
-			code.append(" default %s" % default)
+			code.append(u" default {0}".format(default))
 		if rec.nullable == "N":
-			code.append(" not null")
+			code.append(u" not null")
 		if term:
-			code.append(";\n")
+			code.append(u";\n")
 		else:
-			code.append("\n")
+			code.append(u"\n")
 		return "".join(code)
 
 	def modifyddl(self, connection, cursorold, cursornew, term=True):
@@ -2453,7 +2453,7 @@ class Column(Object):
 
 		name = self.name.split(".")
 
-		code = ["alter table %s modify %s" % (getfullname(name[0], self.owner), getfullname(name[1], None))]
+		code = [u"alter table {0} modify {1}".format(getfullname(name[0], self.owner), getfullname(name[1], None))]
 		# Has the type changed?
 		if recold.data_precision != recnew.data_precision or recold.data_length != recnew.data_length or recold.data_scale != recnew.data_scale or recold.char_length != recnew.char_length or recold.data_type != recnew.data_type or recold.data_type_owner != recnew.data_type_owner:
 			# Has only the size changed?
@@ -2470,7 +2470,7 @@ class Column(Object):
 					char_length = max(r.char_length for r in (rec, recold, recnew) if r.char_length is not None)
 				except ValueError:
 					char_length = None
-				code.append(" %s" % _columntype(rec, data_precision=data_precision, data_scale=data_scale, char_length=char_length))
+				code.append(u" {0}".format(_columntype(rec, data_precision=data_precision, data_scale=data_scale, char_length=char_length)))
 			else: # The type has changed too
 				if recnew.data_type != rec.data_type or recnew.data_type_owner != rec.data_type_owner:
 					raise ConflictError(self, "data_type unmergeable")
@@ -2480,7 +2480,7 @@ class Column(Object):
 					raise ConflictError(self, "data_scale unmergeable")
 				elif recnew.char_length != rec.char_length:
 					raise ConflictError(self, "char_length unmergeable")
-				code.append(" %s" % _columntype(recnew))
+				code.append(u" {0}".format(_columntype(recnew)))
 
 		# Has the default changed?
 		default = _columndefault(rec)
@@ -2489,30 +2489,30 @@ class Column(Object):
 		if olddefault != newdefault:
 			if newdefault != default:
 				raise ConflictError(self, "default value unmergable")
-			code.append(" default %s" % newdefault)
+			code.append(u" default {0}".format(newdefault))
 
 		# Check nullability
 		if recold.nullable != recnew.nullable:
 			if recnew.nullable == "N":
-				code.append(" not null")
+				code.append(u" not null")
 			else:
-				code.append(" null")
+				code.append(u" null")
 
 		if term:
-			code.append(";\n")
+			code.append(u";\n")
 		else:
-			code.append("\n")
+			code.append(u"\n")
 
 		return "".join(code)
 
 	def dropddl(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
 		name = self.name.split(".")
-		code = "alter table %s drop column %s" % (getfullname(name[0], self.owner), getfullname(name[1], None))
+		code = u"alter table {0} drop column {1}".format(getfullname(name[0], self.owner), getfullname(name[1], None))
 		if term:
-			code += ";\n"
+			code += u";\n"
 		else:
-			code += "\n"
+			code += u"\n"
 		return code
 
 	def cdate(self, connection=None):
@@ -2609,11 +2609,11 @@ class OracleConnection(url_.Connection):
 
 	def _isroot(self, url):
 		path = url.path
-		return len(path) == 0 or (len(path) == 1 and not path[0][0])
+		return len(path) == 0 or (len(path) == 1 and not path[0])
 		
 	def _istype(self, url):
 		path = url.path
-		return len(path) == 1 or (len(path) == 2 and not path[1][0])
+		return len(path) == 1 or (len(path) == 2 and not path[1])
 		
 	def isdir(self, url):
 		return self._isroot(url) or self._istype(url)
@@ -2624,7 +2624,7 @@ class OracleConnection(url_.Connection):
 	def mimetype(self, url):
 		if self.isdir(url):
 			return "application/octet-stream"
-		return "text/x-oracle-%s" % url.path[0][0]
+		return "text/x-oracle-{0}".format(url.path[0])
 
 	def owner(self, url):
 		c = self.dbconnection.cursor()
@@ -2634,27 +2634,27 @@ class OracleConnection(url_.Connection):
 	def cdate(self, url):
 		if self.isdir(url):
 			return bigbang
-		type = url.path[0][0]
-		name = url.path[1][0]
+		type = url.path[0]
+		name = url.path[1]
 		# FIXME: This isn't the correct time zone, but Oracle doesn't provide anything better
 		c = self.dbconnection.cursor()
 		c.execute("select created, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from user_objects where lower(object_type)=:type and lower(object_name)=:name", type=type, name=name)
 		row = c.fetchone()
 		if row is None:
-			raise IOError(errno.ENOENT, "no such %s: %s" % (type, name))
+			raise IOError(errno.ENOENT, "no such {0}: {1}".format(type, name))
 		return row[0]-datetime.timedelta(seconds=60*(row[1]*60+row[2]))
 
 	def mdate(self, url):
 		if self.isdir(url):
 			return bigbang
-		type = url.path[0][0]
-		name = url.path[1][0]
+		type = url.path[0]
+		name = url.path[1]
 		# FIXME: This isn't the correct time zone, but Oracle doesn't provide anything better
 		c = self.dbconnection.cursor()
 		c.execute("select last_ddl_time, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from user_objects where lower(object_type)=:type and lower(object_name)=:name", type=type, name=name)
 		row = c.fetchone()
 		if row is None:
-			raise IOError(errno.ENOENT, "no such %s: %s" % (type, name))
+			raise IOError(errno.ENOENT, "no such {0}: {1}".format(type, name))
 		return row[0]-datetime.timedelta(seconds=60*(row[1]*60+row[2]))
 
 	def _listdir(self, url, pattern=None, files=True, dirs=True):
@@ -2672,11 +2672,11 @@ class OracleConnection(url_.Connection):
 				type = path[0][0]
 				names = (name[0] for name in Object.name2type[type].iternames(self.dbconnection, "user") if name[1] is None)
 				if len(path) == 1:
-					result = [url_.URL("%s/%s" % (type, name)) for name in names]
+					result = [url_.URL("{0}/{1}".format(type, name)) for name in names]
 				else:
 					result = [url_.URL(name) for name in names]
 		else:
-			raise IOError(errno.ENOTDIR, "Not a directory: %s" % (url,))
+			raise IOError(errno.ENOTDIR, "Not a directory: {0}".format(url))
 		if pattern is not None:
 			pattern = pattern.lower()
 			result = [u for u in result if fnmatch.fnmatch(unicode(u).lower(), pattern)]
@@ -2692,7 +2692,7 @@ class OracleConnection(url_.Connection):
 		return self._listdir(url, pattern, False, True)
 
 	def __repr__(self):
-		return "<%s.%s to %r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.connection.connectstring(), id(self))
+		return "<{0}.{1} to {2!r} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.connection.connectstring(), id(self))
 
 
 class OracleFileResource(url_.Resource):
@@ -2707,13 +2707,13 @@ class OracleFileResource(url_.Resource):
 		self.closed = False
 		self.name = str(self.url)
 
-		type = url.path[0][0]
+		type = url.path[0]
 		if type not in Object.name2type:
-			raise ValueError("don't know how to handle %r" % url)
+			raise ValueError("don't know how to handle {0!r}".format(url))
 		if "w" in self.mode:
 			self.stream = cStringIO.StringIO()
 		else:
-			name = url.path[1][0]
+			name = url.path[1]
 			code = Object.name2type[type](name.upper()).createddl(self.connection.dbconnection, term=False)
 			self.stream = cStringIO.StringIO(code.encode("utf-8"))
 
@@ -2740,8 +2740,8 @@ class OracleFileResource(url_.Resource):
 		if not self.closed:
 			if "w" in self.mode:
 				c = self.connection.dbconnection.cursor()
-				type = Object.name2type[self.url.path[0][0]]
-				name = self.url.path[1][0]
+				type = Object.name2type[self.url.path[0]]
+				name = self.url.path[1]
 				code = self.stream.getvalue().decode("utf-8")
 				code = type.fixname(name, code)
 				c.execute(code)
@@ -2763,8 +2763,8 @@ class OracleSchemeDefinition(url_.SchemeDefinition):
 		except KeyError:
 			userinfo = url.userinfo.split(":")
 			if len(userinfo) != 2:
-				raise ValueError("illegal userinfo %r" % url.userinfo)
-			connection = connections[server] = OracleConnection(context, "%s/%s@%s" % (userinfo[0], userinfo[1], url.host))
+				raise ValueError("illegal userinfo {0!r}".format(url.userinfo))
+			connection = connections[server] = OracleConnection(context, "{0}/{1}@{2}".format(userinfo[0], userinfo[1], url.host))
 		return (connection, kwargs)
 
 	def open(self, url, mode="rb", context=None):

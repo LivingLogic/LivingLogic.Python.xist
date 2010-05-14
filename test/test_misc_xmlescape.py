@@ -37,7 +37,7 @@ def test_xmlescape():
 			elif c=="'":
 				escape_output.append("&#39;")
 			elif restrictedchars.match(c) is not None:
-				escape_output.append("&#%d;" % ord(c))
+				escape_output.append("&#{0};".format(ord(c)))
 			else:
 				escape_output.append(c)
 		escape_output = "".join(escape_output)
@@ -55,7 +55,7 @@ def test_xmlescape_text():
 			elif c==u">":
 				escape_output.append(u"&gt;")
 			elif restrictedchars.match(c) is not None:
-				escape_output.append(u"&#%d;" % ord(c))
+				escape_output.append(u"&#{0};".format(ord(c)))
 			else:
 				escape_output.append(c)
 		escape_output = "".join(escape_output)
@@ -75,7 +75,7 @@ def test_xmlescape_attr():
 			elif c=='"':
 				escape_output.append("&quot;")
 			elif restrictedchars.match(c) is not None:
-				escape_output.append("&#%d;" % ord(c))
+				escape_output.append("&#{0};".format(ord(c)))
 			else:
 				escape_output.append(c)
 		escape_output = "".join(escape_output)

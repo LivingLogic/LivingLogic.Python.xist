@@ -38,7 +38,7 @@ def test_tld2xsc():
 		<jspversion>1.1</jspversion>
 		<shortname>foo</shortname>
 		<info>just a test</info>
-		<uri>%s</uri>
+		<uri>{xmlns}</uri>
 		<tag>
 			<name>bar</name>
 			<tagclass>com.foo.bar</tagclass>
@@ -66,7 +66,7 @@ def test_tld2xsc():
 			</attribute>
 		</tag>
 	</taglib>
-	""" % xmlns
+	""".format(xmlns=xmlns)
 	ns = tld2ns(tldstring)
 	assert ns.bar.xmlns == xmlns
 	assert ns.__doc__.strip() == "just a test"

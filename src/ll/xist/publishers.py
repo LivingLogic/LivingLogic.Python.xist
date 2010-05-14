@@ -159,7 +159,7 @@ class Publisher(object):
 		while True:
 			if prefix not in self._prefix2ns:
 				return prefix
-			prefix = "ns%d" % suffix
+			prefix = "ns{0}".format(suffix)
 			suffix += 1
 
 	def getencoding(self):
@@ -264,7 +264,7 @@ class Publisher(object):
 		self._ns2prefix.clear()
 		self._prefix2ns.clear()
 		# iterate through every node in the tree
-		for n in node.walknode(xsc.Node):
+		for n in node.walknodes(xsc.Node):
 			self.getobjectprefix(n)
 		# Add the prefixes forced by ``self.showxmlns``
 		for xmlns in self.showxmlns:
@@ -298,7 +298,7 @@ class Publisher(object):
 		rest = self.encoder.encode(u"", True) # finish encoding and flush buffers
 		if rest:
 			yield rest
-	
+
 		self.inattr = 0
 		self.__textfilters = [ misc.xmlescape_text ]
 

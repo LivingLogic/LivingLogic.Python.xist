@@ -69,7 +69,7 @@ class Code(object):
 
 	def funcify(self, name=u"__"):
 		self.indent()
-		self.lines.insert(0, [u"", u"def %s(converter):" % name])
+		self.lines.insert(0, [u"", u"def {0}(converter):".format(name)])
 
 	def asstring(self):
 		v = []

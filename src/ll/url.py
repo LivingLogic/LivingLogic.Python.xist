@@ -52,9 +52,9 @@ except ImportError:
 	pass
 
 try:
-	import py
+	import execnet
 except ImportError:
-	py = None
+	execnet = None
 
 try:
 	import Image
@@ -89,7 +89,7 @@ def httpdate(dt):
 	
 	:var:`dt` is a :class:`datetime.datetime` object in UTC.
 	"""
-	return "%s, %02d %3s %4d %02d:%02d:%02d GMT" % (weekdayname[dt.weekday()], dt.day, monthname[dt.month], dt.year, dt.hour, dt.minute, dt.second)
+	return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(dt, weekdayname[dt.weekday()], monthname[dt.month])
 
 
 try:
@@ -100,13 +100,13 @@ except ImportError:
 		l = len(path_segments)
 		for i in xrange(l):
 			segment = path_segments[i]
-			if segment==(".",) or segment==("",):
+			if not segment:
 				if i==l-1:
-					new_path_segments.append(("",))
-			elif segment==("..",) and len(new_path_segments) and new_path_segments[-1]!=("..",):
+					new_path_segments.append("")
+			elif segment==".." and len(new_path_segments) and new_path_segments[-1] != "..":
 				new_path_segments.pop()
 				if i==l-1:
-					new_path_segments.append(("",))
+					new_path_segments.append("")
 			else:
 				new_path_segments.append(segment)
 		return new_path_segments
@@ -129,7 +129,7 @@ alphanum = alpha + "0123456789"
 mark = "-_.!~*'()"
 additionalsafe = "[]"
 safe = alphanum + mark + additionalsafe
-pathsafe = safe + ":@&=+$," + "|" # add "|" for Windows paths
+pathsafe = safe + ":@&=+$,;" + "|" # add "|" for Windows paths
 querysafe = alphanum
 fragsafe = alphanum
 
@@ -150,7 +150,7 @@ def _urlencode(query_parts):
 				# generate a canonical order for the values
 				values.sort()
 			for value in values:
-				res.append("%s=%s" % (_escape(name, querysafe), _escape(value, querysafe)))
+				res.append("{0}={1}".format(_escape(name, querysafe), _escape(value, querysafe)))
 		return "&".join(res)
 	else:
 		return None
@@ -352,12 +352,7 @@ class Connection(object):
 		"""
 		Return the MIME headers for the file/resource :var:`url`.
 		"""
-		return mimetools.Message(
-			cStringIO.StringIO(
-				"Content-Type: %s\nContent-Length: %d\nLast-modified: %s\n" %
-				(self.mimetype(url), self.size(url), httpdate(self.mdate(url)))
-			)
-		)
+		return mimetools.Message(cStringIO.StringIO("Content-Type: {0}\nContent-Length: {1}\nLast-modified: {2}\n".format(self.mimetype(url), self.size(url), httpdate(self.mdate(url)))))
 
 	@misc.notimplemented
 	def remove(self, url):
@@ -487,12 +482,12 @@ class Connection(object):
 			:var:`data` : byte string
 				Request body to use for an HTTP POST request.
 
-			:var:`remotepython` : string
+			:var:`remotepython` : string or ``None``
 				Name of the Python interpreter to use on the remote side (used by
 				``ssh`` URLs)
 
-			:var:`ssh_config` : string
-				SSH configuration file (used by ``ssh`` URLs)
+			:var:`nice` : int or ``None``
+				Nice level for the remote python (used by ``ssh`` URLs)
 		"""
 
 
@@ -657,347 +652,355 @@ class LocalConnection(Connection):
 		return FileResource(url, mode)
 
 
-if py is not None:
-	class SshConnection(Connection):
-		remote_code = py.code.Source("""
-			import os, urllib, cPickle, fnmatch
+class SshConnection(Connection):
+	remote_code = """
+		import os, urllib, cPickle, fnmatch
 
-			os.stat_float_times(True)
-			files = {}
-			iterators = {}
+		os.stat_float_times(True)
+		files = {}
+		iterators = {}
 
-			def ownergroup(filename, owner=None, group=None):
-				if owner is not None or group is not None:
-					if owner is None or group is None:
-						if isinstance(filename, basestring):
-							stat = os.stat(filename)
-						else:
-							stat = os.fstat(files[filename].fileno())
-					if owner is None:
-						owner = stat.st_uid
-					elif isinstance(owner, basestring):
-						import pwd
-						owner = pwd.getpwnam(owner)[2]
-
-					if group is None:
-						group = stat.st_gid
-					elif isinstance(group, basestring):
-						import grp
-						group = grp.getgrnam(group)[2]
-				return (owner, group)
-
-			def _walk(base, name, pattern, which):
-				if name:
-					fullname = os.path.join(base, name)
-				else:
-					fullname = base
-				for childname in os.listdir(fullname):
-					ful4childname = os.path.join(fullname, childname)
-					relchildname = os.path.join(name, childname)
-					isdir = os.path.isdir(ful4childname)
-					if (pattern is None or fnmatch.fnmatch(childname, pattern)) and which[isdir]:
-						url = urllib.pathname2url(relchildname)
-						if isdir:
-							url += "/"
-						yield url
-					if isdir:
-						for subchild in _walk(base, relchildname, pattern, which):
-							yield subchild
-		
-			def walk(filename, pattern=None):
-				return _walk(filename, "", pattern, (True, True))
-
-			def walkfiles(filename, pattern=None):
-				return _walk(filename, "", pattern, (True, False))
-
-			def walkdirs(filename, pattern=None):
-				return _walk(filename, "", pattern, (False, True))
-
-			while True:
-				(filename, cmdname, args, kwargs) = channel.receive()
-				if isinstance(filename, basestring):
-					filename = os.path.expanduser(urllib.url2pathname(filename))
-				data = None
-				try:
-					if cmdname == "open":
-						try:
-							stream = open(filename, *args, **kwargs)
-						except IOError, exc:
-							if "w" not in args[0] or exc[0] != 2: # didn't work for some other reason than a non existing directory
-								raise
-							(splitpath, splitname) = os.path.split(filename)
-							if splitpath:
-								os.makedirs(splitpath)
-								stream = open(filename, *args, **kwargs)
-							else:
-								raise # we don't have a directory to make so pass the error on
-						data = id(stream)
-						files[data] = stream
-					elif cmdname == "stat":
-						if isinstance(filename, basestring):
-							data = tuple(os.stat(filename))
-						else:
-							data = tuple(os.fstat(files[filename].fileno()))
-					elif cmdname == "lstat":
-						data = os.lstat(filename)
-					elif cmdname == "close":
-						try:
-							stream = files[filename]
-						except KeyError:
-							pass
-						else:
-							stream.close()
-							del files[filename]
-					elif cmdname == "chmod":
-						data = os.chmod(filename, *args, **kwargs)
-					elif cmdname == "chown":
-						(owner, group) = ownergroup(filename, *args, **kwargs)
-						if owner is not None:
-							data = os.chown(filename, owner, group)
-					elif cmdname == "lchown":
-						(owner, group) = ownergroup(filename, *args, **kwargs)
-						if owner is not None:
-							data = os.lchown(filename, owner, group)
-					elif cmdname == "uid":
+		def ownergroup(filename, owner=None, group=None):
+			if owner is not None or group is not None:
+				if owner is None or group is None:
+					if isinstance(filename, basestring):
 						stat = os.stat(filename)
-						data = stat.st_uid
-					elif cmdname == "gid":
-						stat = os.stat(filename)
-						data = stat.st_gid
-					elif cmdname == "owner":
-						import pwd
-						stat = os.stat(filename)
-						data = pwd.getpwuid(stat.st_uid)[0]
-					elif cmdname == "group":
-						import grp
-						stat = os.stat(filename)
-						data = grp.getgrgid(stat.st_gid)[0]
-					elif cmdname == "exists":
-						data = os.path.exists(filename)
-					elif cmdname == "isfile":
-						data = os.path.isfile(filename)
-					elif cmdname == "isdir":
-						data = os.path.isdir(filename)
-					elif cmdname == "islink":
-						data = os.path.islink(filename)
-					elif cmdname == "ismount":
-						data = os.path.ismount(filename)
-					elif cmdname == "access":
-						data = os.access(filename, *args, **kwargs)
-					elif cmdname == "remove":
-						data = os.remove(filename)
-					elif cmdname == "rmdir":
-						data = os.rmdir(filename)
-					elif cmdname == "rename":
-						data = os.rename(filename, os.path.expanduser(args[0]))
-					elif cmdname == "link":
-						data = os.link(filename, os.path.expanduser(args[0]))
-					elif cmdname == "symlink":
-						data = os.symlink(filename, os.path.expanduser(args[0]))
-					elif cmdname == "chdir":
-						data = os.chdir(filename)
-					elif cmdname == "mkdir":
-						data = os.mkdir(filename)
-					elif cmdname == "makedirs":
-						data = os.makedirs(filename)
-					elif cmdname == "makefifo":
-						data = os.makefifo(filename)
-					elif cmdname == "listdir":
-						data = []
-						for f in os.listdir(filename):
-							if args[0] is None or fnmatch.fnmatch(f, args[0]):
-								data.append((os.path.isdir(os.path.join(filename, f)), f))
-					elif cmdname == "files":
-						data = []
-						for f in os.listdir(filename):
-							if args[0] is None or fnmatch.fnmatch(f, args[0]):
-								if os.path.isfile(os.path.join(filename, f)):
-									data.append(f)
-					elif cmdname == "dirs":
-						data = []
-						for f in os.listdir(filename):
-							if args[0] is None or fnmatch.fnmatch(f, args[0]):
-								if os.path.isdir(os.path.join(filename, f)):
-									data.append(f)
-					elif cmdname == "walk":
-						iterator = walk(filename, *args, **kwargs)
-						data = id(iterator)
-						iterators[data] = iterator
-					elif cmdname == "walkfiles":
-						iterator = walkfiles(filename, *args, **kwargs)
-						data = id(iterator)
-						iterators[data] = iterator
-					elif cmdname == "walkdirs":
-						iterator = walkdirs(filename, *args, **kwargs)
-						data = id(iterator)
-						iterators[data] = iterator
-					elif cmdname == "iteratornext":
-						try:
-							data = iterators[filename].next()
-						except StopIteration:
-							del iterators[filename]
-							raise
 					else:
-						data = getattr(files[filename], cmdname)
-						data = data(*args, **kwargs)
-				except Exception, exc:
-					if exc.__class__.__module__ != "exceptions":
-						raise
-					channel.send((True, cPickle.dumps(exc)))
-				else:
-					channel.send((False, data))
-		""")
-		def __init__(self, context, server, remotepython="python", ssh_config=None):
-			# We don't have to store the context (this avoids cycles)
-			self.server = server
-			gateway = py.execnet.SshGateway(server, remotepython=remotepython, ssh_config=ssh_config)
-			self._channel = gateway.remote_exec(self.remote_code)
+						stat = os.fstat(files[filename].fileno())
+				if owner is None:
+					owner = stat.st_uid
+				elif isinstance(owner, basestring):
+					import pwd
+					owner = pwd.getpwnam(owner)[2]
 
-		def close(self):
-			if not self._channel.isclosed():
-				self._channel.close()
-				self._channel.gateway.exit()
-				self._channel.gateway.join()
+				if group is None:
+					group = stat.st_gid
+				elif isinstance(group, basestring):
+					import grp
+					group = grp.getgrnam(group)[2]
+			return (owner, group)
 
-		def _url2filename(self, url):
-			if url.scheme != "ssh":
-				raise ValueError("URL %r is not an ssh URL" % url)
-			filename = str(url.path)
-			if filename.startswith("/~"):
-				filename = filename[1:]
-			return filename
-
-		def _send(self, filename, cmd, *args, **kwargs):
-			self._channel.send((filename, cmd, args, kwargs))
-			(isexc, data) = self._channel.receive()
-			if isexc:
-				raise cPickle.loads(data)
+		def _walk(base, name, pattern, which):
+			if name:
+				fullname = os.path.join(base, name)
 			else:
-				return data
-
-		def stat(self, url):
-			filename = self._url2filename(url)
-			data = self._send(filename, "stat")
-			return os.stat_result(data) # channel returned a tuple => wrap it
-
-		def lstat(self):
-			filename = self._url2filename(url)
-			data = self._send(filename, "lstat")
-			return os.stat_result(data) # channel returned a tuple => wrap it
-
-		def chmod(self, url, mode):
-			return self._send(self._url2filename(url), "chmod", mode)
-
-		def chown(self, url, owner=None, group=None):
-			return self._send(self._url2filename(url), "chown", owner, group)
-
-		def lchown(self, url, owner=None, group=None):
-			return self._send(self._url2filename(url), "lchown", owner, group)
-
-		def chdir(self, url):
-			return self._send(self._url2filename(url), "chdir")
-
-		def mkdir(self, url, mode=0777):
-			return self._send(self._url2filename(url), "mkdir", mode)
-
-		def makedirs(self, url, mode=0777):
-			return self._send(self._url2filename(url), "makedirs", mode)
-
-		def uid(self, url):
-			return self._send(self._url2filename(url), "uid")
-
-		def gid(self, url):
-			return self._send(self._url2filename(url), "gid")
-
-		def owner(self, url):
-			return self._send(self._url2filename(url), "owner")
-
-		def group(self, url):
-			return self._send(self._url2filename(url), "group")
-
-		def exists(self, url):
-			return self._send(self._url2filename(url), "exists")
-
-		def isfile(self, url):
-			return self._send(self._url2filename(url), "isfile")
-
-		def isdir(self, url):
-			return self._send(self._url2filename(url), "isdir")
-
-		def islink(self, url):
-			return self._send(self._url2filename(url), "islink")
-
-		def ismount(self, url):
-			return self._send(self._url2filename(url), "ismount")
-
-		def access(self, url, mode):
-			return self._send(self._url2filename(url), "access", mode)
-
-		def remove(self, url):
-			return self._send(self._url2filename(url), "remove")
-
-		def rmdir(self, url):
-			return self._send(self._url2filename(url), "rmdir")
-
-		def _cmdwithtarget(self, cmdname, url, target):
-			filename = self._url2filename(url)
-			if not isinstance(target, URL):
-				target = URL(target)
-			targetname = self._url2filename(target)
-			if target.server != url.server:
-				raise OSError(errno.EXDEV, os.strerror(errno.EXDEV))
-			return self._send(filename, cmdname, targetname)
-
-		def rename(self, url, target):
-			return self._cmdwithtarget("rename", url, target)
-
-		def link(self, url, target):
-			return self._cmdwithtarget("link", url, target)
-
-		def symlink(self, url, target):
-			return self._cmdwithtarget("symlink", url, target)
-
-		def listdir(self, url, pattern=None):
-			filename = self._url2filename(url)
-			result = []
-			for (isdir, name) in self._send(filename, "listdir", pattern):
-				name = urllib.pathname2url(name)
+				fullname = base
+			for childname in os.listdir(fullname):
+				ful4childname = os.path.join(fullname, childname)
+				relchildname = os.path.join(name, childname)
+				isdir = os.path.isdir(ful4childname)
+				if (pattern is None or fnmatch.fnmatch(childname, pattern)) and which[isdir]:
+					url = urllib.pathname2url(relchildname)
+					if isdir:
+						url += "/"
+					yield url
 				if isdir:
-					name += "/"
-				result.append(URL(name))
-			return result
+					for subchild in _walk(base, relchildname, pattern, which):
+						yield subchild
+	
+		def walk(filename, pattern=None):
+			return _walk(filename, "", pattern, (True, True))
 
-		def files(self, url, pattern=None):
-			filename = self._url2filename(url)
-			return [URL(urllib.pathname2url(name)) for name in self._send(filename, "files", pattern)]
+		def walkfiles(filename, pattern=None):
+			return _walk(filename, "", pattern, (True, False))
 
-		def dirs(self, url, pattern=None):
-			filename = self._url2filename(url)
-			return [URL(urllib.pathname2url(name)+"/") for name in self._send(filename, "dirs", pattern)]
+		def walkdirs(filename, pattern=None):
+			return _walk(filename, "", pattern, (False, True))
 
-		def walk(self, url, pattern=None):
-			filename = self._url2filename(url)
-			iterator = self._send(filename, "walk", pattern)
-			while True:
-				yield URL(self._send(iterator, "iteratornext"))
+		while True:
+			(filename, cmdname, args, kwargs) = channel.receive()
+			if isinstance(filename, basestring):
+				filename = os.path.expanduser(urllib.url2pathname(filename))
+			data = None
+			try:
+				if cmdname == "open":
+					try:
+						stream = open(filename, *args, **kwargs)
+					except IOError, exc:
+						if "w" not in args[0] or exc[0] != 2: # didn't work for some other reason than a non existing directory
+							raise
+						(splitpath, splitname) = os.path.split(filename)
+						if splitpath:
+							os.makedirs(splitpath)
+							stream = open(filename, *args, **kwargs)
+						else:
+							raise # we don't have a directory to make so pass the error on
+					data = id(stream)
+					files[data] = stream
+				elif cmdname == "stat":
+					if isinstance(filename, basestring):
+						data = tuple(os.stat(filename))
+					else:
+						data = tuple(os.fstat(files[filename].fileno()))
+				elif cmdname == "lstat":
+					data = os.lstat(filename)
+				elif cmdname == "close":
+					try:
+						stream = files[filename]
+					except KeyError:
+						pass
+					else:
+						stream.close()
+						del files[filename]
+				elif cmdname == "chmod":
+					data = os.chmod(filename, *args, **kwargs)
+				elif cmdname == "chown":
+					(owner, group) = ownergroup(filename, *args, **kwargs)
+					if owner is not None:
+						data = os.chown(filename, owner, group)
+				elif cmdname == "lchown":
+					(owner, group) = ownergroup(filename, *args, **kwargs)
+					if owner is not None:
+						data = os.lchown(filename, owner, group)
+				elif cmdname == "uid":
+					stat = os.stat(filename)
+					data = stat.st_uid
+				elif cmdname == "gid":
+					stat = os.stat(filename)
+					data = stat.st_gid
+				elif cmdname == "owner":
+					import pwd
+					stat = os.stat(filename)
+					data = pwd.getpwuid(stat.st_uid)[0]
+				elif cmdname == "group":
+					import grp
+					stat = os.stat(filename)
+					data = grp.getgrgid(stat.st_gid)[0]
+				elif cmdname == "exists":
+					data = os.path.exists(filename)
+				elif cmdname == "isfile":
+					data = os.path.isfile(filename)
+				elif cmdname == "isdir":
+					data = os.path.isdir(filename)
+				elif cmdname == "islink":
+					data = os.path.islink(filename)
+				elif cmdname == "ismount":
+					data = os.path.ismount(filename)
+				elif cmdname == "access":
+					data = os.access(filename, *args, **kwargs)
+				elif cmdname == "remove":
+					data = os.remove(filename)
+				elif cmdname == "rmdir":
+					data = os.rmdir(filename)
+				elif cmdname == "rename":
+					data = os.rename(filename, os.path.expanduser(args[0]))
+				elif cmdname == "link":
+					data = os.link(filename, os.path.expanduser(args[0]))
+				elif cmdname == "symlink":
+					data = os.symlink(filename, os.path.expanduser(args[0]))
+				elif cmdname == "chdir":
+					data = os.chdir(filename)
+				elif cmdname == "mkdir":
+					data = os.mkdir(filename)
+				elif cmdname == "makedirs":
+					data = os.makedirs(filename)
+				elif cmdname == "makefifo":
+					data = os.makefifo(filename)
+				elif cmdname == "listdir":
+					data = []
+					for f in os.listdir(filename):
+						if args[0] is None or fnmatch.fnmatch(f, args[0]):
+							data.append((os.path.isdir(os.path.join(filename, f)), f))
+				elif cmdname == "files":
+					data = []
+					for f in os.listdir(filename):
+						if args[0] is None or fnmatch.fnmatch(f, args[0]):
+							if os.path.isfile(os.path.join(filename, f)):
+								data.append(f)
+				elif cmdname == "dirs":
+					data = []
+					for f in os.listdir(filename):
+						if args[0] is None or fnmatch.fnmatch(f, args[0]):
+							if os.path.isdir(os.path.join(filename, f)):
+								data.append(f)
+				elif cmdname == "walk":
+					iterator = walk(filename, *args, **kwargs)
+					data = id(iterator)
+					iterators[data] = iterator
+				elif cmdname == "walkfiles":
+					iterator = walkfiles(filename, *args, **kwargs)
+					data = id(iterator)
+					iterators[data] = iterator
+				elif cmdname == "walkdirs":
+					iterator = walkdirs(filename, *args, **kwargs)
+					data = id(iterator)
+					iterators[data] = iterator
+				elif cmdname == "iteratornext":
+					try:
+						data = iterators[filename].next()
+					except StopIteration:
+						del iterators[filename]
+						raise
+				else:
+					data = getattr(files[filename], cmdname)
+					data = data(*args, **kwargs)
+			except Exception, exc:
+				if exc.__class__.__module__ != "exceptions":
+					raise
+				channel.send((True, cPickle.dumps(exc)))
+			else:
+				channel.send((False, data))
+	"""
+	def __init__(self, context, server, remotepython=None, nice=None):
+		# We don't have to store the context (this avoids cycles)
+		self.server = server
+		self.remotepython = remotepython
+		self.nice = nice
+		self._channel = None
 
-		def walkfiles(self, url, pattern=None):
-			filename = self._url2filename(url)
-			iterator = self._send(filename, "walkfiles", pattern)
-			while True:
-				yield URL(self._send(iterator, "iteratornext"))
+	def close(self):
+		if self._channel is not None and not self._channel.isclosed():
+			self._channel.close()
+			self._channel.gateway.exit()
+			self._channel.gateway.join()
 
-		def walkdirs(self, url, pattern=None):
-			filename = self._url2filename(url)
-			iterator = self._send(filename, "walkdirs", pattern)
-			while True:
-				yield URL(self._send(iterator, "iteratornext"))
+	def _url2filename(self, url):
+		if url.scheme != "ssh":
+			raise ValueError("URL {0!r} is not an ssh URL".format(url))
+		filename = str(url.path)
+		if filename.startswith("/~"):
+			filename = filename[1:]
+		return filename
 
-		def open(self, url, mode="rb"):
-			return RemoteFileResource(self, url, mode)
+	def _send(self, filename, cmd, *args, **kwargs):
+		if self._channel is None:
+			server = "ssh={0}".format(self.server)
+			if self.remotepython is not None:
+				server += "//python={0}".format(self.remotepython)
+			if self.nice is not None:
+				server += "//nice={0}".format(self.nice)
+			gateway = execnet.makegateway(server) # This requires ``execnet`` (http://codespeak.net/execnet/)
+			self._channel = gateway.remote_exec(self.remote_code)
+		self._channel.send((filename, cmd, args, kwargs))
+		(isexc, data) = self._channel.receive()
+		if isexc:
+			raise cPickle.loads(data)
+		else:
+			return data
 
-		def __repr__(self):
-			return "<%s.%s to %r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.server, id(self))
+	def stat(self, url):
+		filename = self._url2filename(url)
+		data = self._send(filename, "stat")
+		return os.stat_result(data) # channel returned a tuple => wrap it
+
+	def lstat(self):
+		filename = self._url2filename(url)
+		data = self._send(filename, "lstat")
+		return os.stat_result(data) # channel returned a tuple => wrap it
+
+	def chmod(self, url, mode):
+		return self._send(self._url2filename(url), "chmod", mode)
+
+	def chown(self, url, owner=None, group=None):
+		return self._send(self._url2filename(url), "chown", owner, group)
+
+	def lchown(self, url, owner=None, group=None):
+		return self._send(self._url2filename(url), "lchown", owner, group)
+
+	def chdir(self, url):
+		return self._send(self._url2filename(url), "chdir")
+
+	def mkdir(self, url, mode=0777):
+		return self._send(self._url2filename(url), "mkdir", mode)
+
+	def makedirs(self, url, mode=0777):
+		return self._send(self._url2filename(url), "makedirs", mode)
+
+	def uid(self, url):
+		return self._send(self._url2filename(url), "uid")
+
+	def gid(self, url):
+		return self._send(self._url2filename(url), "gid")
+
+	def owner(self, url):
+		return self._send(self._url2filename(url), "owner")
+
+	def group(self, url):
+		return self._send(self._url2filename(url), "group")
+
+	def exists(self, url):
+		return self._send(self._url2filename(url), "exists")
+
+	def isfile(self, url):
+		return self._send(self._url2filename(url), "isfile")
+
+	def isdir(self, url):
+		return self._send(self._url2filename(url), "isdir")
+
+	def islink(self, url):
+		return self._send(self._url2filename(url), "islink")
+
+	def ismount(self, url):
+		return self._send(self._url2filename(url), "ismount")
+
+	def access(self, url, mode):
+		return self._send(self._url2filename(url), "access", mode)
+
+	def remove(self, url):
+		return self._send(self._url2filename(url), "remove")
+
+	def rmdir(self, url):
+		return self._send(self._url2filename(url), "rmdir")
+
+	def _cmdwithtarget(self, cmdname, url, target):
+		filename = self._url2filename(url)
+		if not isinstance(target, URL):
+			target = URL(target)
+		targetname = self._url2filename(target)
+		if target.server != url.server:
+			raise OSError(errno.EXDEV, os.strerror(errno.EXDEV))
+		return self._send(filename, cmdname, targetname)
+
+	def rename(self, url, target):
+		return self._cmdwithtarget("rename", url, target)
+
+	def link(self, url, target):
+		return self._cmdwithtarget("link", url, target)
+
+	def symlink(self, url, target):
+		return self._cmdwithtarget("symlink", url, target)
+
+	def listdir(self, url, pattern=None):
+		filename = self._url2filename(url)
+		result = []
+		for (isdir, name) in self._send(filename, "listdir", pattern):
+			name = urllib.pathname2url(name)
+			if isdir:
+				name += "/"
+			result.append(URL(name))
+		return result
+
+	def files(self, url, pattern=None):
+		filename = self._url2filename(url)
+		return [URL(urllib.pathname2url(name)) for name in self._send(filename, "files", pattern)]
+
+	def dirs(self, url, pattern=None):
+		filename = self._url2filename(url)
+		return [URL(urllib.pathname2url(name)+"/") for name in self._send(filename, "dirs", pattern)]
+
+	def walk(self, url, pattern=None):
+		filename = self._url2filename(url)
+		iterator = self._send(filename, "walk", pattern)
+		while True:
+			yield URL(self._send(iterator, "iteratornext"))
+
+	def walkfiles(self, url, pattern=None):
+		filename = self._url2filename(url)
+		iterator = self._send(filename, "walkfiles", pattern)
+		while True:
+			yield URL(self._send(iterator, "iteratornext"))
+
+	def walkdirs(self, url, pattern=None):
+		filename = self._url2filename(url)
+		iterator = self._send(filename, "walkdirs", pattern)
+		while True:
+			yield URL(self._send(iterator, "iteratornext"))
+
+	def open(self, url, mode="rb"):
+		return RemoteFileResource(self, url, mode)
+
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__name__} to {0.server!r} at {1:#x}>".format(self, id(self))
 
 
 class URLConnection(Connection):
@@ -1018,7 +1021,7 @@ class URLConnection(Connection):
 
 	def open(self, url, mode="rb", headers=None, data=None):
 		if mode != "rb":
-			raise NotImplementedError("mode %r not supported" % mode)
+			raise NotImplementedError("mode {0!r} not supported".format(mode))
 		return URLResource(url, headers=headers, data=data)
 
 
@@ -1039,7 +1042,7 @@ def home(user="", scheme="file"):
 		>>> url.home("andreas")
 		URL('file:/home/andreas/')
 	"""
-	return Dir("~%s" % user, scheme)
+	return Dir("~{0}".format(user), scheme)
 
 
 def root():
@@ -1139,33 +1142,6 @@ def firstfile(urls):
 				return url
 
 
-class importcache(dict):
-	def remove(self, mod):
-		try:
-			dict.__delitem__(self, mod.__file__)
-		except KeyError:
-			pass
-
-importcache = importcache()
-
-
-def _import(filename):
-	(path, name) = os.path.split(filename)
-	(name, ext) = os.path.splitext(name)
-
-	if ext != ".py":
-		raise ImportError("Can only import .py files, not %s" % ext)
-
-	oldmod = sys.modules.get(name, None) # get any existing module out of the way
-	sys.modules[name] = mod = types.ModuleType(name) # create module and make sure it can find itself in sys.module
-	mod.__file__ = filename
-	execfile(filename, mod.__dict__)
-	mod = sys.modules.pop(name) # refetch the module if it has replaced itself with a custom object
-	if oldmod is not None: # put old module back
-		sys.modules[name] = oldmod
-	return mod
-
-
 class Resource(object):
 	"""
 	A :class:`Resource` is a base class that provides a file-like interface
@@ -1225,11 +1201,7 @@ class Resource(object):
 		return imagesize
 
 	def __repr__(self):
-		if self.closed:
-			state = "closed"
-		else:
-			state = "open"
-		return "<%s %s.%s %r, mode %r at 0x%x>" % (state, self.__class__.__module__, self.__class__.__name__, self.name, self.mode, id(self))
+		return "<{0}{1.__class__.__module__}.{1.__class__.__name__} {1.name}, mode {1.mode} at {2:#x}>".format("closed" if self.closed else "open", self, id(self))
 
 
 class FileResource(Resource, file):
@@ -1265,79 +1237,78 @@ class FileResource(Resource, file):
 		return LocalSchemeDefinition._connection.mimetype(self.url)
 
 
-if py is not None:
-	class RemoteFileResource(Resource):
-		"""
-		A subclass of :class:`Resource` that handles remote files (those using
-		the ``ssh`` scheme).
-		"""
-		def __init__(self, connection, url, mode="rb"):
-			self.connection = connection
-			self.url = URL(url)
-			self.mode = mode
-			self.closed = False
-			filename = self.connection._url2filename(url)
-			self.name = str(self.url)
-			self.remoteid = self._send(filename, "open", mode)
+class RemoteFileResource(Resource):
+	"""
+	A subclass of :class:`Resource` that handles remote files (those using
+	the ``ssh`` scheme).
+	"""
+	def __init__(self, connection, url, mode="rb"):
+		self.connection = connection
+		self.url = URL(url)
+		self.mode = mode
+		self.closed = False
+		filename = self.connection._url2filename(url)
+		self.name = str(self.url)
+		self.remoteid = self._send(filename, "open", mode)
 
-		def _send(self, filename, cmd, *args, **kwargs):
-			if self.closed:
-				raise ValueError("I/O operation on closed file")
-			return self.connection._send(filename, cmd, *args, **kwargs)
-	
-		def close(self):
-			if not self.closed:
-				self._send(self.remoteid, "close")
-				self.connection = None # close the channel too as there are no longer any meaningful operations
-				self.closed = True
+	def _send(self, filename, cmd, *args, **kwargs):
+		if self.closed:
+			raise ValueError("I/O operation on closed file")
+		return self.connection._send(filename, cmd, *args, **kwargs)
 
-		def read(self, size=-1):
-			return self._send(self.remoteid, "read", size)
+	def close(self):
+		if not self.closed:
+			self._send(self.remoteid, "close")
+			self.connection = None # close the channel too as there are no longer any meaningful operations
+			self.closed = True
 
-		def readline(self, size=-1):
-			return self._send(self.remoteid, "readline", size)
+	def read(self, size=-1):
+		return self._send(self.remoteid, "read", size)
 
-		def readlines(self, size=-1):
-			return self._send(self.remoteid, "readlines", size)
+	def readline(self, size=-1):
+		return self._send(self.remoteid, "readline", size)
 
-		def __iter__(self):
-			return self
+	def readlines(self, size=-1):
+		return self._send(self.remoteid, "readlines", size)
 
-		def next(self):
-			return self._send(self.remoteid, "next")
+	def __iter__(self):
+		return self
 
-		def seek(self, offset, whence=0):
-			return self._send(self.remoteid, "seek", offset, whence)
+	def next(self):
+		return self._send(self.remoteid, "next")
 
-		def tell(self):
-			return self._send(self.remoteid, "tell")
+	def seek(self, offset, whence=0):
+		return self._send(self.remoteid, "seek", offset, whence)
 
-		def truncate(self, size=None):
-			if size is None:
-				return self._send(self.remoteid, "truncate")
-			else:
-				return self._send(self.remoteid, "truncate", size)
+	def tell(self):
+		return self._send(self.remoteid, "tell")
 
-		def write(self, string):
-			return self._send(self.remoteid, "write", string)
+	def truncate(self, size=None):
+		if size is None:
+			return self._send(self.remoteid, "truncate")
+		else:
+			return self._send(self.remoteid, "truncate", size)
 
-		def writelines(self, strings):
-			return self._send(self.remoteid, "writelines", strings)
+	def write(self, string):
+		return self._send(self.remoteid, "write", string)
 
-		def flush(self):
-			return self._send(self.remoteid, "flush")
+	def writelines(self, strings):
+		return self._send(self.remoteid, "writelines", strings)
 
-		def size(self):
-			# Forward to the connection
-			return self.connection.size(self.url)
+	def flush(self):
+		return self._send(self.remoteid, "flush")
 
-		def mdate(self):
-			# Forward to the connection
-			return self.connection.mdate(self.url)
+	def size(self):
+		# Forward to the connection
+		return self.connection.size(self.url)
 
-		def mimetype(self):
-			# Forward to the connection
-			return self.connection.mimetype(self.url)
+	def mdate(self):
+		# Forward to the connection
+		return self.connection.mdate(self.url)
+
+	def mimetype(self):
+		# Forward to the connection
+		return self.connection.mimetype(self.url)
 
 
 class URLResource(Resource):
@@ -1348,7 +1319,7 @@ class URLResource(Resource):
 	"""
 	def __init__(self, url, mode="rb", headers=None, data=None):
 		if "w" in mode:
-			raise ValueError("writing mode %r not supported" % mode)
+			raise ValueError("writing mode {0!r} not supported".format(mode))
 		self.url = URL(url)
 		self.name = str(self.url)
 		self.mode = mode
@@ -1512,7 +1483,7 @@ class SchemeDefinition(object):
 		"""
 
 	def __repr__(self):
-		return "<%s instance scheme=%r usehierarchy=%r useserver=%r usefrag=%r at 0x%x>" % (self.__class__.__name__, self.scheme, self.usehierarchy, self.useserver, self.usefrag, id(self))
+		return "<{0.__class__.__name__} instance scheme={0.scheme!r} usehierarchy={0.usehierarchy!r} useserver={0.useserver!r} usefrag={0.usefrag!r} at {1:#x}>".format(self, id(self))
 
 
 class LocalSchemeDefinition(SchemeDefinition):
@@ -1525,13 +1496,13 @@ class LocalSchemeDefinition(SchemeDefinition):
 
 class SshSchemeDefinition(SchemeDefinition):
 	def _connect(self, url, context=None, **kwargs):
-		if "remotepython" in kwargs or "ssh_config" in kwargs:
+		if "remotepython" in kwargs or "nice" in kwargs:
 			kwargs = kwargs.copy()
-			remotepython = kwargs.pop("remotepython", "python")
-			ssh_config = kwargs.pop("ssh_config", None)
+			remotepython = kwargs.pop("remotepython", None)
+			nice = kwargs.pop("nice", None)
 		else:
-			remotepython = "python"
-			ssh_config = None
+			remotepython = None
+			nice = None
 			
 		context = getcontext(context)
 		if context is threadlocalcontext.__class__.context:
@@ -1543,13 +1514,13 @@ class SshSchemeDefinition(SchemeDefinition):
 		except KeyError:
 			connections = context.schemes["ssh"] = {}
 		try:
-			connection = connections[(server, remotepython)]
+			connection = connections[(server, remotepython, nice)]
 		except KeyError:
-			connection = connections[(server, remotepython)] = SshConnection(context, server, remotepython, ssh_config)
+			connection = connections[(server, remotepython, nice)] = SshConnection(context, server, remotepython, nice)
 		return (connection, kwargs)
 
-	def open(self, url, mode="rb", context=None, remotepython="python", ssh_config=None):
-		(connection, kwargs) = self._connect(url, context, remotepython=remotepython, ssh_config=ssh_config)
+	def open(self, url, mode="rb", context=None, remotepython=None, nice=None):
+		(connection, kwargs) = self._connect(url, context, remotepython=remotepython, nice=nice)
 		return RemoteFileResource(connection, url, mode, **kwargs)
 
 	def closeall(self, context):
@@ -1582,13 +1553,9 @@ class Path(object):
 
 	@classmethod
 	def _fixsegment(cls, segment):
-		if isinstance(segment, basestring):
-			if isinstance(segment, unicode):
-				segment = _escape(segment)
-			return tuple(_unescape(name) for name in segment.split(";", 1))
-		else:
-			assert 1 <= len(segment) <= 2, "path segment %r must have length 1 or 2, not %d" % (segment, len(segment))
-			return tuple(map(unicode, segment))
+		if isinstance(segment, unicode):
+			segment = _escape(segment, pathsafe)
+		return _unescape(segment)
 
 	def _prefix(cls, path):
 		if path.startswith("/"):
@@ -1611,7 +1578,7 @@ class Path(object):
 		segments = prefix.segments
 		if self.isabs != prefix.isabs:
 			return False
-		if segments and segments[-1] == (u"",) and len(self.segments)>len(segments):
+		if segments and not segments[-1] and len(self.segments)>len(segments):
 			return self.segments[:len(segments)-1] == segments[:-1]
 		else:
 			return self.segments[:len(segments)] == segments
@@ -1634,7 +1601,7 @@ class Path(object):
 		return Path(self)
 
 	def __repr__(self):
-		return "Path(%r)" % self._path
+		return "Path({0!r})".format(self._path)
 
 	def __str__(self):
 		return self.path
@@ -1708,7 +1675,7 @@ class Path(object):
 
 	@classmethod
 	def _segments2path(cls, segments):
-		return "/".join(";".join(_escape(value, pathsafe) for value in segment) for segment in segments)
+		return "/".join(_escape(segment, pathsafe) for segment in segments)
 
 	@classmethod
 	def _path2segments(cls, path):
@@ -1772,7 +1739,7 @@ class Path(object):
 		"""
 		def __get__(self):
 			try:
-				return self[-1][0]
+				return self[-1]
 			except IndexError:
 				return None
 	
@@ -1784,12 +1751,9 @@ class Path(object):
 				del self.file
 			segments = self.segments
 			if segments:
-				if len(segments[-1]) == 1:
-					self[-1] = (file, )
-				else:
-					self[-1] = (file, segments[-1][1])
+				self[-1] = file
 			else:
-				self.segments = [(file,)]
+				self.segments = [file]
 	
 		def __delete__(self):
 			"""
@@ -1797,10 +1761,7 @@ class Path(object):
 			"""
 			segments = self.segments
 			if segments:
-				if len(segments[-1]) == 1:
-					self[-1] = ("", )
-				else:
-					self[-1] = ("", segments[-1][1])
+				self[-1] = ""
 
 	class ext(misc.propclass):
 		"""
@@ -1811,47 +1772,33 @@ class Path(object):
 			ext = None
 			segments = self.segments
 			if segments:
-				name = segments[-1][0]
-				pos = name.rfind(".")
+				segment = segments[-1]
+				pos = segment.rfind(".")
 				if pos != -1:
-					ext = name[pos+1:]
+					ext = segment[pos+1:]
 			return ext
 	
 		def __set__(self, ext):
-			"""
-			Setting the extension preserves the parameter in the last segment.
-			"""
 			if ext is None:
 				del self.ext
 			segments = self.segments
 			if segments:
 				segment = segments[-1]
-				name = segment[0]
-				pos = name.rfind(".")
+				pos = segment.rfind(".")
 				if pos != -1:
-					name = name[:pos+1] + ext
+					segment = segment[:pos+1] + ext
 				else:
-					name = name + "." + ext
-				if len(segment)>1:
-					self[-1] = (name, segment[1])
-				else:
-					self[-1] = (name, )
+					segment = segment + "." + ext
+				self[-1] = segment
 	
 		def __delete__(self):
-			"""
-			Deleting the extension preserves the parameter in the last segment.
-			"""
 			segments = self.segments
 			if segments:
 				segment = segments[-1]
-				name = segment[0]
-				pos = name.rfind(".")
+				pos = segment.rfind(".")
 				if pos != -1:
-					name = name[:pos]
-					if len(segment)>1:
-						self[-1] = (name, segment[1])
-					else:
-						self[-1] = (name, )
+					segment = segment[:pos]
+					self[-1] = segment
 
 	def withext(self, ext):
 		"""
@@ -1958,17 +1905,17 @@ class Path(object):
 			del self_segments[0]
 			del base_segments[0]
 		# build a path from one file to the other
-		self_segments[:0] = [(u"..",)]*(len(base_segments)-1)
-		if not len(self_segments) or self_segments==[(u"",)]:
-			self_segments = [(u".",), (u"",)]
+		self_segments[:0] = [u".."]*(len(base_segments)-1)
+		if not len(self_segments) or self_segments==[u""]:
+			self_segments = [u".", u""]
 		return Path(self._segments2path(self_segments))
 
 	def reverse(self):
 		segments = self.segments
 		segments.reverse()
-		if segments and segments[0] == (u"",):
+		if segments and not segments[0]:
 			del segments[0]
-			segments.append((u"",))
+			segments.append(u"")
 		self.segments = segments
 
 	def normalize(self):
@@ -1984,7 +1931,7 @@ class Path(object):
 		Return :var:`self` converted to a filename using the file naming
 		conventions of the OS. Parameters will be dropped in the resulting string.
 		"""
-		path = Path(self._prefix(self._path) + "/".join(segment[0] for segment in self))
+		path = Path(self._prefix(self._path) + "/".join(segment for segment in self))
 		path = path._path
 		localpath = urllib.url2pathname(path)
 		if path.endswith("/") and not (localpath.endswith(os.sep) or (os.altsep is not None and localpath.endswith(os.altsep))):
@@ -2000,7 +1947,7 @@ class Path(object):
 		if path.startswith("///"):
 			path = path[2:]
 		path = urllib.pathname2url(path.encode("utf-8"))
-		if len(self) and self.segments[-1] == ("",):
+		if len(self) and not self.segments[-1]:
 			path += "/"
 		return Path(path)
 
@@ -2014,7 +1961,7 @@ class Path(object):
 		path = urllib.pathname2url(path.encode("utf-8"))
 		if path.startswith("///"):
 			path = path[2:]
-		if len(self) and self.segments[-1] == ("",):
+		if len(self) and not self.segments[-1]:
 			path += "/"
 		return Path(path)
 
@@ -2108,7 +2055,7 @@ class URL(object):
 				scheme = scheme.lower()
 				# check if the scheme only has allowed characters
 				if not self._checkscheme(scheme):
-					raise ValueError("Illegal scheme char in scheme %r" % (scheme, ))
+					raise ValueError("Illegal scheme char in scheme {0!r}".format(scheme))
 				self._scheme = scheme
 			self.reg = schemereg.get(scheme, defaultreg)
 		def __delete__(self):
@@ -2169,7 +2116,7 @@ class URL(object):
 			if self.host is not None:
 				hostport = _escape(self.host, safe)
 				if self.port is not None:
-					hostport += ":%d" % self.port
+					hostport += ":{0}".format(self.port)
 				return hostport
 			else:
 				return None
@@ -2632,9 +2579,9 @@ class URL(object):
 			del newurl.query
 		else:
 			# build a path from one file to the other
-			selfpath_segments[:0] = [(u"..",)]*(len(basepath_segments)-1)
-			if not len(selfpath_segments) or selfpath_segments==[(u"",)]:
-				selfpath_segments = [(u".",), (u"",)]
+			selfpath_segments[:0] = [u".."]*(len(basepath_segments)-1)
+			if not len(selfpath_segments) or selfpath_segments==[u""]:
+				selfpath_segments = [u".", u""]
 			newurl._path.segments = selfpath_segments
 			newurl._path = self.path.relative(baseurl.path)
 		newurl._path.isabs = False
@@ -2647,7 +2594,7 @@ class URL(object):
 		return self.url
 
 	def __repr__(self):
-		return "URL(%r)" % self.url
+		return "URL({0!r})".format(self.url)
 
 	def __nonzero__(self):
 		"""
@@ -2754,7 +2701,7 @@ class URL(object):
 
 	def _checklocal(self):
 		if not self.islocal():
-			raise ValueError("URL %r is not local" % self)
+			raise ValueError("URL {0!r} is not local".format(self))
 
 	def local(self):
 		"""
@@ -2805,8 +2752,8 @@ class URL(object):
 				Name of the Python interpreter to use on the remote side
 				(used by ``ssh`` URLs)
 
-			:var:`ssh_config`
-				SSH configuration file (used by ``ssh`` URLs)
+			:var:`nice`
+				Nice level for the remove python (used by ``ssh`` URLs)
 		"""
 		(connection, kwargs) = self._connect(context=context, **kwargs)
 		return connection.open(self, mode, *args, **kwargs)
@@ -2846,45 +2793,6 @@ class URL(object):
 			(connection, kwargs) = self._connect(context=context, **kwargs)
 			return getattr(connection, name)(self, *args, **kwargs)
 		return realattr
-
-	def import_(self, mode="always"):
-		"""
-		import the file as a Python module. The file extension will be ignored,
-		which means that you might not get exactly the file you specified.
-		:var:`mode` can have the following values:
-
-		``"always"`` (the default)
-			The module will be imported on every call;
-
-		``"once"``
-			The module will be imported only on the first call;
-
-		``"new"``
-			The module will be imported every time it has changed since the
-			last call.
-		"""
-		filename = self.real().local()
-		if mode=="always":
-			mdate = self.mdate()
-		elif mode=="once":
-			try:
-				return importcache[filename][1]
-			except KeyError:
-				mdate = self.mdate()
-		elif mode=="new":
-			mdate = self.mdate()
-			try:
-				(oldmdate, module) = importcache[filename]
-			except KeyError:
-				pass
-			else:
-				if mdate<=oldmdate:
-					return module
-		else:
-			raise ValueError, "mode %r unknown" % mode
-		module = _import(filename)
-		importcache[filename] = (mdate, module)
-		return module
 
 	def __iter__(self):
 		try:

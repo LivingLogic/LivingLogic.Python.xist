@@ -81,7 +81,7 @@ class Scanner(object):
 		cls.res = res
 
 	def error(self, s, pos):
-		print "Lexical error at position %s" % pos
+		print "Lexical error at position {0}".format(pos)
 		raise SystemExit
 
 	def tokenize(self, s):
@@ -262,7 +262,7 @@ class Parser(object):
 		return None
 
 	def error(self, token):
-		print "Syntax error at or near `%s' token" % token
+		print "Syntax error at or near '{0}' token".format(token)
 		raise SystemExit
 
 	def parse(self, tokens):

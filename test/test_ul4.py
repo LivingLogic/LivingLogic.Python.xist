@@ -74,7 +74,7 @@ def checkrunerror(msg, source, **variables):
 	try:
 		t1.renders(**variables)
 	except Exception, exc:
-		assert re.search(msg, "%s.%s: %s" % (exc.__class__.__module__, exc.__class__.__name__, exc)) is not None
+		assert re.search(msg, "{0.__class__.__module__}.{0.__class__.__name__}: {0}".format(exc)) is not None
 	else:
 		py.test.fail("Didn't raise exception")
 
@@ -84,7 +84,7 @@ def checkrunerror(msg, source, **variables):
 	try:
 		t2.renders(**variables)
 	except Exception, exc:
-		assert re.search(msg, "%s.%s: %s" % (exc.__class__.__module__, exc.__class__.__name__, exc)) is not None
+		assert re.search(msg, "{0.__class__.__module__}.{0.__class__.__name__}: {0}".format(exc)) is not None
 	else:
 		py.test.fail("Didn't raise exception")
 
@@ -97,7 +97,7 @@ def checkrunerror(msg, source, **variables):
 	try:
 		t3.renders(**variables)
 	except Exception, exc:
-		assert re.search(msg, "%s.%s: %s" % (exc.__class__.__module__, exc.__class__.__name__, exc)) is not None
+		assert re.search(msg, "{0.__class__.__module__}.{0.__class__.__name__}: {0}".format(exc)) is not None
 	else:
 		py.test.fail("Didn't raise exception")
 	assert s1 == s2 == s3
@@ -494,11 +494,11 @@ def test_nested():
 	sv = u"x"
 	n = 4
 	for i in xrange(8): # when using 10 compiling the variable will run out of registers
-		sc = u"(%s)+(%s)" % (sc, sc)
-		sv = u"(%s)+(%s)" % (sv, sv)
+		sc = u"({0})+({1})".format(sc, sc)
+		sv = u"({0})+({1})".format(sv, sv)
 		n = n+n
-	check(str(n), u'<?print %s?>' % sc)
-	check(str(n), u'<?code x=4?><?print %s?>' % sv)
+	check(str(n), u'<?print {0}?>'.format(sc))
+	check(str(n), u'<?code x=4?><?print {0}?>'.format(sv))
 
 
 def test_precedence():
@@ -519,11 +519,11 @@ def test_bracket():
 	sc = u"4"
 	sv = u"x"
 	for i in xrange(10):
-		sc = u"(%s)" % sc
-		sv = u"(%s)" % sv
+		sc = u"({0})".format(sc)
+		sv = u"({0})".format(sv)
 
-	check("4", u'<?print %s?>' % sc)
-	check("4", u'<?code x=4?><?print %s?>' % sv)
+	check("4", u'<?print {0}?>'.format(sc))
+	check("4", u'<?code x=4?><?print {0}?>'.format(sv))
 
 
 def test_function_now():
@@ -531,6 +531,13 @@ def test_function_now():
 	checkrunerror("function u?'now' unknown", u"<?print now(1, 2)?>")
 	now = unicode(datetime.datetime.now())
 	checkle(now, u"<?print now()?>")
+
+
+def test_function_utcnow():
+	checkrunerror("function u?'utcnow' unknown", u"<?print utcnow(1)?>")
+	checkrunerror("function u?'utcnow' unknown", u"<?print utcnow(1, 2)?>")
+	utcnow = unicode(datetime.datetime.utcnow())
+	checkle(utcnow, u"<?print utcnow()?>")
 
 
 def test_function_vars():
@@ -882,6 +889,15 @@ def test_function_bin():
 	check("-0b1111", code, data=-15)
 
 
+def test_function_abs():
+	checkrunerror("function u?'abs' unknown", u"<?print abs()?>")
+	checkrunerror("function u?'abs' unknown", u"<?print abs(1, 2)?>")
+	code = u"<?print abs(data)?>"
+	check("0", code, data=0)
+	check("42", code, data=42)
+	check("42", code, data=-42)
+
+
 def test_function_sorted():
 	checkrunerror("function u?'sorted' unknown", u"<?print sorted()?>")
 	checkrunerror("function u?'sorted' unknown", u"<?print sorted(1, 2)?>")
@@ -1023,13 +1039,18 @@ def test_method_render():
 def test_method_format():
 	now = datetime.datetime.now()
 	format = "%Y-%m-%d %H:%M:%S"
-	check(now.strftime(format), ur"<?print data.format('%s')?>" % format, data=now)
+	check(now.strftime(format), u"<?print data.format('{0}')?>".format(format), data=now)
 	check('987654', u'<?print 2000-02-29T12:34:56.987654.format("%f")?>')
 
 
 def test_method_isoformat():
 	now = datetime.datetime.now()
 	check(now.isoformat(), ur"<?print data.isoformat()?>", data=now)
+
+
+def test_method_isoformat():
+	now = datetime.datetime(2010, 02, 22, 12, 34, 56)
+	check('Mon, 22 Feb 2010 12:34:56 GMT', ur"<?print data.mimeformat()?>", data=now)
 
 
 def test_method_get():
@@ -1087,6 +1108,41 @@ def test_method_witha():
 def test_method_join():
 	check('1,2,3,4', u'<?print ",".join("1234")?>')
 	check('1,2,3,4', u'<?print ",".join([1, 2, 3, 4])?>')
+
+
+def test_method_day():
+	check('12', u'<?print 2010-05-12T.day()?>')
+	check('12', u'<?print d.day()?>', d=datetime.date(2010, 5, 12))
+
+
+def test_method_month():
+	check('5', u'<?print 2010-05-12T.month()?>')
+	check('5', u'<?print d.month()?>', d=datetime.date(2010, 5, 12))
+
+
+def test_method_year():
+	check('5', u'<?print 2010-05-12T.month()?>')
+	check('5', u'<?print d.month()?>', d=datetime.date(2010, 5, 12))
+
+
+def test_method_hour():
+	check('16', u'<?print 2010-05-12T16:47:56.hour()?>')
+	check('16', u'<?print d.hour()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
+
+
+def test_method_minute():
+	check('47', u'<?print 2010-05-12T16:47:56.minute()?>')
+	check('47', u'<?print d.minute()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
+
+
+def test_method_second():
+	check('56', u'<?print 2010-05-12T16:47:56.second()?>')
+	check('56', u'<?print d.second()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
+
+
+def test_method_microsecond():
+	check('123456', u'<?print 2010-05-12T16:47:56.123456.microsecond()?>')
+	check('123456', u'<?print d.microsecond()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56, 123456))
 
 
 def test_render():

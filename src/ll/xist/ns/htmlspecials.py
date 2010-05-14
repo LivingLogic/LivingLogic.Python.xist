@@ -86,7 +86,7 @@ class _pixelbase(html.img):
 class pixel(_pixelbase):
 	"""
 	Element for single transparent pixel image.
-	
+
 	You can specify the pixel color via the ``color`` attribute (which will set
 	the background-color in the style attribute).
 
@@ -123,7 +123,7 @@ class pixel(_pixelbase):
 class autoimg(html.img):
 	"""
 	An image were width and height attributes are automatically generated.
-	
+
 	If the attributes are already there, they won't be modified.
 	"""
 	xmlns = xmlns
@@ -132,7 +132,7 @@ class autoimg(html.img):
 		if target.xmlns in (ihtml.xmlns, html.xmlns):
 			e = target.img(self.attrs.convert(converter))
 		else:
-			raise ValueError("unknown conversion target %r" % target)
+			raise ValueError("unknown conversion target {0!r}".format(target))
 		src = self[u"src"].convert(converter).forInput(converter.root)
 		e._addimagesizeattributes(src, u"width", u"height")
 		return e
@@ -141,7 +141,7 @@ class autoimg(html.img):
 class autopixel(_pixelbase):
 	"""
 	A pixel image were width and height attributes are automatically generated.
-	
+
 	This works like :class:`pixel` but the size is "inherited" from the image
 	specified via the ``src`` attribute.
 	"""
@@ -149,7 +149,7 @@ class autopixel(_pixelbase):
 	def convert(self, converter):
 		target = converter.target
 		if target.xmlns not in (ihtml.xmlns, html.xmlns):
-			raise ValueError("unknown conversion target %r" % target)
+			raise ValueError("unknown conversion target {0!r}".format(target))
 		e = target.img(self.attrs.withoutnames(u"color"))
 		src = self.attrs.src.convert(converter).forInput(converter.root)
 		e._addimagesizeattributes(src, u"width", u"height")

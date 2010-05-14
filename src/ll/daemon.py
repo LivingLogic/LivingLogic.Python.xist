@@ -29,12 +29,12 @@ An example script might look like this::
 	if __name__ == "__main__":
 		if counter.service():
 			import sys, os, time
-			sys.stdout.write("Daemon started with pid %d\n" % os.getpid())
+			sys.stdout.write("Daemon started with pid {0}\n".format(os.getpid()))
 			sys.stdout.write("Daemon stdout output\n")
 			sys.stderr.write("Daemon stderr output\n")
 			c = 0
 			while True:
-				sys.stdout.write('%d: %s\n' % (c, time.ctime(time.time())))
+				sys.stdout.write('{0}: {1}\n'.format(c, time.ctime(time.time())))
 				sys.stdout.flush()
 				c += 1
 				time.sleep(1)
@@ -145,7 +145,7 @@ class Daemon(object):
 			if pid > 0:
 				sys.exit(0) # Exit first parent
 		except OSError, exc:
-			sys.exit("%s: fork #1 failed: (%d) %s\n" % (sys.argv[0], exc.errno, exc.strerror))
+			sys.exit("{0}: fork #1 failed: ({1}) {2}\n".format(sys.argv[0], exc.errno, exc.strerror))
 	
 		# Decouple from parent environment
 		os.chdir("/")
@@ -158,7 +158,7 @@ class Daemon(object):
 			if pid > 0:
 				sys.exit(0) # Exit second parent
 		except OSError, exc:
-			sys.exit("%s: fork #2 failed: (%d) %s\n" % (sys.argv[0], exc.errno, exc.strerror))
+			sys.exit("{0}: fork #2 failed: ({1}) {2}\n".format(sys.argv[0], exc.errno, exc.strerror))
 	
 		# Now I am a daemon!
 	
@@ -188,12 +188,12 @@ class Daemon(object):
 		try:
 			pidfile = open(self.options.pidfile, "rb")
 		except IOError, exc:
-			sys.exit("can't open pidfile %s: %s" % (self.options.pidfile, str(exc)))
+			sys.exit("can't open pidfile {0}: {1}".format(self.options.pidfile, str(exc)))
 		data = pidfile.read()
 		try:
 			pid = int(data)
 		except ValueError:
-			sys.exit("mangled pidfile %s: %r" % (self.options.pidfile, data))
+			sys.exit("mangled pidfile {0}: {1}".format(self.options.pidfile, data))
 		os.kill(pid, signal.SIGTERM)
 
 	def optionparser(self):
@@ -244,5 +244,5 @@ class Daemon(object):
 			self.stop()
 			return False
 		else:
-			p.error("incorrect argument %s" % self.args[1])
+			p.error("incorrect argument {0}".format(self.args[1]))
 			sys.exit(1)

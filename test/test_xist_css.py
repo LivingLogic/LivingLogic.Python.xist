@@ -21,18 +21,18 @@ def test_css():
 				+html.li("foo")
 				+html.li()
 
-	assert list(e.walknode(css.selector("div"))) == [e]
-	assert list(e.walknode(css.selector("li"))) == [e[0][0], e[0][1]]
-	assert list(e.walknode(css.selector("div#1"))) == [e]
-	assert list(e.walknode(css.selector("#2"))) == [e[0]]
-	assert list(e.walknode(css.selector(":empty"))) == [e[0][1]]
-	assert list(e.walknode(css.selector("li:empty"))) == [e[0][1]]
-	assert list(e.walknode(css.selector("div :empty"))) == [e[0][1]]
-	assert list(e.walknode(css.selector("div>*:empty"))) == []
-	assert list(e.walknode(css.selector("div>:empty"))) == []
-	assert list(e.walknode(css.selector("*|li"))) == [e[0][0], e[0][1]]
-	assert list(e.walknode(css.selector("h|li", prefixes={"h": html}))) == [e[0][0], e[0][1]]
-	assert list(e.walknode(css.selector("h|li", prefixes={"h": specials}))) == []
+	assert list(e.walknodes(css.selector("div"))) == [e]
+	assert list(e.walknodes(css.selector("li"))) == [e[0][0], e[0][1]]
+	assert list(e.walknodes(css.selector("div#1"))) == [e]
+	assert list(e.walknodes(css.selector("#2"))) == [e[0]]
+	assert list(e.walknodes(css.selector(":empty"))) == [e[0][1]]
+	assert list(e.walknodes(css.selector("li:empty"))) == [e[0][1]]
+	assert list(e.walknodes(css.selector("div :empty"))) == [e[0][1]]
+	assert list(e.walknodes(css.selector("div>*:empty"))) == []
+	assert list(e.walknodes(css.selector("div>:empty"))) == []
+	assert list(e.walknodes(css.selector("*|li"))) == [e[0][0], e[0][1]]
+	assert list(e.walknodes(css.selector("h|li", prefixes={"h": html}))) == [e[0][0], e[0][1]]
+	assert list(e.walknodes(css.selector("h|li", prefixes={"h": specials}))) == []
 
 	with xsc.build():
 		with xsc.Frag() as e:
@@ -42,14 +42,14 @@ def test_css():
 			+xsc.Text("filler")
 			+html.ul(html.li("foo"))
 
-	assert list(e.walknode(css.selector("div + p"))) == [e[2]]
-	assert list(e.walknode(css.selector("div + ul"))) == []
-	assert list(e.walknode(css.selector("ul + p"))) == []
-	assert list(e.walknode(css.selector("div ~ p"))) == [e[2]]
-	assert list(e.walknode(css.selector("div ~ ul"))) == [e[4]]
-	assert list(e.walknode(css.selector("p ~ div"))) == []
-	assert list(e.walknode(css.selector("div:first-child + p"))) == [e[2]]
-	assert list(e.walknode(css.selector("*:first-child + p"))) == [e[2]]
+	assert list(e.walknodes(css.selector("div + p"))) == [e[2]]
+	assert list(e.walknodes(css.selector("div + ul"))) == []
+	assert list(e.walknodes(css.selector("ul + p"))) == []
+	assert list(e.walknodes(css.selector("div ~ p"))) == [e[2]]
+	assert list(e.walknodes(css.selector("div ~ ul"))) == [e[4]]
+	assert list(e.walknodes(css.selector("p ~ div"))) == []
+	assert list(e.walknodes(css.selector("div:first-child + p"))) == [e[2]]
+	assert list(e.walknodes(css.selector("*:first-child + p"))) == [e[2]]
 
 	with xsc.build():
 		with xsc.Frag() as e:
@@ -59,18 +59,18 @@ def test_css():
 			+xsc.Text("nix")
 			+html.i("kunz")
 
-	assert list(e.walknode(css.selector("*:only-of-type"))) == [e[0], e[0][0], e[4]]
-	assert list(e.walknode(css.selector("*:nth-child(1)"))) == [e[0], e[0][0]]
-	assert list(e.walknode(css.selector("*:nth-child(2)"))) == [e[0][2], e[1]]
-	assert list(e.walknode(css.selector("*:nth-last-child(1)"))) == [e[0][3], e[4]]
-	assert list(e.walknode(css.selector("*:nth-last-child(2)"))) == [e[0][2], e[2]]
-	assert list(e.walknode(css.selector("*:nth-of-type(1)"))) == [e[0], e[0][0], e[0][2], e[1], e[4]]
-	assert list(e.walknode(css.selector("*:nth-of-type(2)"))) == [e[0][3], e[2]]
-	assert list(e.walknode(css.selector("*:nth-last-of-type(1)"))) == [e[0], e[0][0], e[0][3], e[2], e[4]]
-	assert list(e.walknode(css.selector("*:nth-last-of-type(2)"))) == [e[0][2], e[1]]
+	assert list(e.walknodes(css.selector("*:only-of-type"))) == [e[0], e[0][0], e[4]]
+	assert list(e.walknodes(css.selector("*:nth-child(1)"))) == [e[0], e[0][0]]
+	assert list(e.walknodes(css.selector("*:nth-child(2)"))) == [e[0][2], e[1]]
+	assert list(e.walknodes(css.selector("*:nth-last-child(1)"))) == [e[0][3], e[4]]
+	assert list(e.walknodes(css.selector("*:nth-last-child(2)"))) == [e[0][2], e[2]]
+	assert list(e.walknodes(css.selector("*:nth-of-type(1)"))) == [e[0], e[0][0], e[0][2], e[1], e[4]]
+	assert list(e.walknodes(css.selector("*:nth-of-type(2)"))) == [e[0][3], e[2]]
+	assert list(e.walknodes(css.selector("*:nth-last-of-type(1)"))) == [e[0], e[0][0], e[0][3], e[2], e[4]]
+	assert list(e.walknodes(css.selector("*:nth-last-of-type(2)"))) == [e[0][2], e[1]]
 
 	e = xsc.Frag(html.span(html.b("hurz"), "gurk"))
-	assert list(e.walknode(css.selector("*:only-child"))) == [e[0], e[0][0]]
+	assert list(e.walknodes(css.selector("*:only-child"))) == [e[0], e[0][0]]
 
 	with xsc.build():
 		with xsc.Frag() as e:
@@ -78,9 +78,9 @@ def test_css():
 			+html.em(class_="gurk hurz", lang="en-us")
 			+html.em(class_="hurz", lang="de")
 
-	assert list(e.walknode(css.selector("em[class='gurk']"))) == [e[0]]
-	assert list(e.walknode(css.selector("em[class~='gurk']"))) == [e[0], e[1]]
-	assert list(e.walknode(css.selector("em[lang|='en']"))) == [e[0], e[1]]
+	assert list(e.walknodes(css.selector("em[class='gurk']"))) == [e[0]]
+	assert list(e.walknodes(css.selector("em[class~='gurk']"))) == [e[0], e[1]]
+	assert list(e.walknodes(css.selector("em[lang|='en']"))) == [e[0], e[1]]
 
 
 def test_applystylesheets1():
@@ -93,8 +93,8 @@ def test_applystylesheets1():
 
 	css.applystylesheets(e)
 
-	assert str(e.walknode(html.p)[0].attrs.style) == "color: red;"
-	assert list(e.walknode(html.style)) == []
+	assert str(e.walknodes(html.p)[0].attrs.style) == "color: red;"
+	assert list(e.walknodes(html.style)) == []
 
 
 def test_applystylesheets2():
@@ -107,8 +107,8 @@ def test_applystylesheets2():
 
 	css.applystylesheets(e)
 
-	assert str(e.walknode(html.p)[0].attrs.style) == ""
-	assert list(e.walknode(html.style)) == []
+	assert str(e.walknodes(html.p)[0].attrs.style) == ""
+	assert list(e.walknodes(html.style)) == []
 
 
 def test_applystylesheets3():
@@ -121,8 +121,8 @@ def test_applystylesheets3():
 
 	css.applystylesheets(e)
 
-	assert str(e.walknode(html.p)[0].attrs.style) == "color: red;"
-	assert list(e.walknode(html.style)) == []
+	assert str(e.walknodes(html.p)[0].attrs.style) == "color: red;"
+	assert list(e.walknodes(html.style)) == []
 
 
 def test_applystylesheets4():
@@ -136,8 +136,8 @@ def test_applystylesheets4():
 	css.applystylesheets(e)
 
 	# style attribute wins
-	assert str(e.walknode(html.p)[0].attrs.style) == "color: blue;"
-	assert list(e.walknode(html.style)) == []
+	assert str(e.walknodes(html.p)[0].attrs.style) == "color: blue;"
+	assert list(e.walknodes(html.style)) == []
 
 
 def test_applystylesheets5():
@@ -151,8 +151,8 @@ def test_applystylesheets5():
 	css.applystylesheets(e)
 
 	# stylesheet always wins (at least in CSS 2.1 und 3)
-	assert str(e.walknode(html.p)[0].attrs.style) == "color: blue;"
-	assert list(e.walknode(html.style)) == []
+	assert str(e.walknodes(html.p)[0].attrs.style) == "color: blue;"
+	assert list(e.walknodes(html.style)) == []
 
 
 def test_applystylesheets_media():
@@ -166,7 +166,7 @@ def test_applystylesheets_media():
 
 	css.applystylesheets(e, media="screen")
 
-	assert str(e.walknode(html.p)[0].attrs.style) == "color: red;"
+	assert str(e.walknodes(html.p)[0].attrs.style) == "color: red;"
 
 	# Check that media="screen" doesn't pick up the print stylesheet
 	with xsc.build():
@@ -178,7 +178,7 @@ def test_applystylesheets_media():
 
 	css.applystylesheets(e, media="print")
 
-	assert str(e.walknode(html.p)[0].attrs.style) == ""
+	assert str(e.walknodes(html.p)[0].attrs.style) == ""
 
 	# Check that @media rules are treated properly
 	with xsc.build():
@@ -190,7 +190,7 @@ def test_applystylesheets_media():
 
 	css.applystylesheets(e, media="screen")
 
-	assert str(e.walknode(html.p)[0].attrs.style) == "color: red;"
+	assert str(e.walknodes(html.p)[0].attrs.style) == "color: red;"
 
 	with xsc.build():
 		with html.html() as e:
@@ -201,7 +201,7 @@ def test_applystylesheets_media():
 
 	css.applystylesheets(e, media="print")
 
-	assert str(e.walknode(html.p)[0].attrs.style) == ""
+	assert str(e.walknodes(html.p)[0].attrs.style) == ""
 
 
 def test_applystylesheets_title():
@@ -218,12 +218,12 @@ def test_applystylesheets_title():
 	# Check that title=None uses only the titleless stylesheets
 	e = makenode()
 	css.applystylesheets(e, title=None)
-	assert str(e.walknode(html.p)[0].attrs.style) == "color: red;"
+	assert str(e.walknodes(html.p)[0].attrs.style) == "color: red;"
 
 	# Check that title="blue" uses only the stylesheet with the specified title
 	e = makenode()
 	css.applystylesheets(e, title="blue")
-	assert str(e.walknode(html.p)[0].attrs.style) == "color: blue;"
+	assert str(e.walknodes(html.p)[0].attrs.style) == "color: blue;"
 
 
 def test_parse():
@@ -238,6 +238,6 @@ def test_parse():
 
 def test_comments():
 	d = '<html><head><style type="text/css">/*nix*/ p{/*nix*/ color: red;}</style></head><body><p>gurk</p></body></html>'
-	node = parsers.parsestring(d)
+	node = parsers.parsestring(d, parser=parsers.Expat, prefixes={None: html})
 	css.applystylesheets(node)
-	assert unicode(node.walknode(html.p)[0].attrs.style) == "color: red;"
+	assert unicode(node.walknodes(html.p)[0].attrs.style) == "color: red;"

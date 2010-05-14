@@ -24,7 +24,7 @@ def main(args=None):
 	colors = ("yes", "no", "auto")
 	p = optparse.OptionParser(usage="usage: %prog [options] connectstring >output.sql")
 	p.add_option("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action="store_true")
-	p.add_option("-c", "--color", dest="color", help="Color output (%s)" % ", ".join(colors), default="auto", choices=colors)
+	p.add_option("-c", "--color", dest="color", help="Color output ({0})".format(", ".join(colors)), default="auto", choices=colors)
 	p.add_option("-s", "--seqcopy", dest="seqcopy", help="copy sequence values?", default=False, action="store_true")
 	p.add_option("-x", "--execute", metavar="CONNECTSTRING2", dest="execute", help="Execute in target database", type="str")
 	p.add_option("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' or 'SYS_EXPORT_SCHEMA_' in their name?", default=False, action="store_true")
@@ -74,9 +74,9 @@ def main(args=None):
 		keepobj = keep(obj)
 		if options.verbose:
 			if options.execute:
-				msg = astyle.style_default("oracreate.py: ", cs1, " -> ", cs2, ": fetching/creating #%d" % (i+1))
+				msg = astyle.style_default("oracreate.py: ", cs1, " -> ", cs2, ": fetching/creating #{0}".format(i+1))
 			else:
-				msg = astyle.style_default("oracreate.py: ", cs1, " fetching #%d" % (i+1))
+				msg = astyle.style_default("oracreate.py: ", cs1, " fetching #{0}".format(i+1))
 			msg = astyle.style_default(msg, " ", s4object(str(obj)))
 			if not keepobj:
 				msg = astyle.style_default(msg, " ", s4warning("(skipped)"))
@@ -94,7 +94,7 @@ def main(args=None):
 					except orasql.DatabaseError, exc:
 						if not options.ignore or "ORA-01013" in str(exc):
 							raise
-						stderr.writeln("oracreate.py: ", s4error("%s: %s" % (exc.__class__.__name__, str(exc).strip())))
+						stderr.writeln("oracreate.py: ", s4error("{0}: {1}".format(exc.__class__.__name__, str(exc).strip())))
 				else:
 					stdout.writeln(ddl.encode(options.encoding))
 					stdout.writeln()

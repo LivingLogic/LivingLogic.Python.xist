@@ -75,7 +75,7 @@ class Color(tuple):
 			return cls(*channels)
 		elif s in csscolors:
 			return csscolors[s]
-		raise ValueError("can't interpret %s as css value" % s)
+		raise ValueError("can't interpret {0} as css value".format(s))
 
 	@classmethod
 	def fromrgb(cls, r, g, b, a=1.0):
@@ -110,20 +110,20 @@ class Color(tuple):
 
 	def __repr__(self):
 		if self[3] != 0xff:
-			return "Color(0x%02x, 0x%02x, 0x%02x, 0x%02x)" % self
+			return "Color({0:#04x}, {1:#04x}, {2:#04x}, {3:#04x})".format(*self)
 		else:
-			return "Color(0x%02x, 0x%02x, 0x%02x)" % self[:3]
+			return "Color({0:#04x}, {1:#04x}, {2:#04x})".format(self[0], self[1], self[2])
 
 	def __str__(self):
 		"""
 		:var:`self` formatted as a CSS color string.
 		"""
 		if self[3] != 0xff:
-			return "rgba(%d,%d,%d,%.3f)" % (self[0], self[1], self[2], self[3]/255.)
+			return "rgba({0},{1},{2},{3:.3f})".format(self[0], self[1], self[2], self[3]/255.)
 		else:
-			s = "#%02x%02x%02x" % (self[0], self[1], self[2])
+			s = "#{0:02x}{1:02x}{2:02x}".format(self[0], self[1], self[2])
 			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6]:
-				s = "#%s%s%s" % (s[1], s[3], s[5])
+				s = "#{0}{1}{2}".format(s[1], s[3], s[5])
 		return s
 
 	def r(self):
