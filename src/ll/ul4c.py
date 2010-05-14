@@ -890,7 +890,7 @@ class Template(object):
 		except AttributeError:
 			raise UnknownFunctionError(opcode.arg)
 	def _pythonsource_dispatch_callmeth0(self, opcode):
-		if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "isoformat", "r", "g", "b", "a", "hls", "hlsa", "hsv", "hsva", "lum"):
+		if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "isoformat", "r", "g", "b", "a", "hls", "hlsa", "hsv", "hsva", "lum", "weekday"):
 			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.{op.arg}()".format(op=opcode))
 		elif opcode.arg == "items":
 			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.iteritems()".format(op=opcode))

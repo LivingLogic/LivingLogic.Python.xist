@@ -882,3 +882,23 @@ might output::
 might output::
 
 	Mon, 22 Feb 2010 17:38:40 GMT
+
+
+``day``, ``month``, ``year``, ``hour``, ``minute``, ``second``, ``microsecond``, ``weekday``
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+Those methods are date methods. They return a specific attribute of a date
+object. For example the following reproduces the ``mimeformat`` output from
+above (except for the linefeeds of course)::
+
+	<?code weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']?>
+	<?code months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']?>
+	<?code t = 2010-02-22T17:38:40.123456?>
+	<?print weekdays[t.weekday()]?>, 
+	<?print t.day().format('02')?> 
+	<?print months[t.month()-1]?> 
+	<?print t.year().format('04')?> 
+	<?print t.hour().format('02')?>:
+	<?print t.minute().format('02')?>:
+	<?print t.second().format('02')?>.
+	<?print t.microsecond().format('06')?> GMT

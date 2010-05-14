@@ -1140,6 +1140,11 @@ def test_method_second():
 	check('56', u'<?print d.second()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
 
 
+def test_method_weekday():
+	check('2', u'<?print 2010-05-12T.weekday()?>')
+	check('2', u'<?print d.weekday()?>', d=datetime.date(2010, 5, 12))
+
+
 def test_method_microsecond():
 	check('123456', u'<?print 2010-05-12T16:47:56.123456.microsecond()?>')
 	check('123456', u'<?print d.microsecond()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56, 123456))
