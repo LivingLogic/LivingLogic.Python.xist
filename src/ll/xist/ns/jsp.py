@@ -414,7 +414,7 @@ def fromul4(template, variables="variables", indent=0):
 			else:
 				raise ul4c.UnknownFunctionError(opcode.arg)
 		elif opcode.code == "callmeth0":
-			if opcode.arg in ("split", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "items", "isoformat", "mimeformat", "day", "month", "year", "hour", "minute", "second", "microsecond", "weekday"):
+			if opcode.arg in ("split", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "items", "isoformat", "mimeformat", "day", "month", "year", "hour", "minute", "second", "microsecond", "weekday", "yearday"):
 				make_scriptlet("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
 			elif opcode.arg in ("r", "g", "b", "a", "hls", "hlsa", "hsv", "hsva"):
 				make_scriptlet("r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).{op.arg}();".format(op=opcode))
