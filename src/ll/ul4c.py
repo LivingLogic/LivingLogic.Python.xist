@@ -896,8 +896,8 @@ class Template(object):
 			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.iteritems()".format(op=opcode))
 		elif opcode.arg == "render":
 			self._pythonsource_line(opcode.location, 'r{op.r1:d} = "".join(r{op.r2:d}())'.format(op=opcode))
-		elif opcode.arg == "mimeformat":
-			self._pythonsource_line(opcode.location, 'r{op.r1:d} = ul4c._mimeformat(r{op.r2:d})'.format(op=opcode))
+		elif opcode.arg in ("mimeformat", "yearday"):
+			self._pythonsource_line(opcode.location, 'r{op.r1:d} = ul4c._{op.arg}(r{op.r2:d})'.format(op=opcode))
 		elif opcode.arg in ("day", "month", "year", "hour", "minute", "second", "microsecond"):
 			self._pythonsource_line(opcode.location, 'r{op.r1:d} = r{op.r2:d}.{op.arg}'.format(op=opcode))
 		else:
@@ -2555,3 +2555,10 @@ def _mimeformat(obj):
 	weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 	monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 	return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(obj, weekdayname[obj.weekday()], monthname[obj.month])
+
+
+def _yearday(obj):
+	"""
+	Helper for the ``yearday`` method.
+	"""
+	return (obj - obj.__class__(obj.year, 1, 1)).days+1

@@ -902,3 +902,18 @@ above (except for the linefeeds of course)::
 	<?print t.minute().format('02')?>:
 	<?print t.second().format('02')?>.
 	<?print t.microsecond().format('06')?> GMT
+
+
+``yearday``
+:::::::::::
+
+``yearday`` is a date method. It returns they number of days since the beginning
+of the year, so::
+
+	<?print 2010-01-01T.yearday()?>
+
+prints ``1`` and
+
+	<?print 2010-12-31T.yearday()?>
+
+prints ``365``.
