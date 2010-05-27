@@ -337,6 +337,7 @@ class FileSource(Source):
 		"""
 		self.url = url_.File(filename)
 		self._filename = os.path.expanduser(filename)
+		self.bufsize = bufsize
 
 	def __iter__(self):
 		yield ("url", self.url)
