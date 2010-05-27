@@ -339,6 +339,12 @@ def test_stringsource():
 	assert parsed == source
 
 
+def test_itersource():
+	source = ["hinz", " & ", "kunz"]
+	parsed = "".join(event[1] for event in parsers.IterSource(source) if event[0] == "bytes")
+	assert parsed == "".join(source)
+
+
 def test_filesource():
 	source = open("setup.py", "rb").read()
 	parsed = "".join(event[1] for event in parsers.FileSource("setup.py", bufsize=32) if event[0] == "bytes")
