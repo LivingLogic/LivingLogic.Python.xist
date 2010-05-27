@@ -1250,7 +1250,7 @@ class nthoftype(Selector):
 		>>> for node in doc.walknodes(xfind.nthoftype(0, html.h2)):
 		... 	print node.bytes()
 		...
-		<h2 class="news">SciPy 2007 - Conference for Scientific Computing</h2>
+		<h2 class="news">PyCon Australia program</h2>
 	"""
 
 	def __init__(self, index, *types):
