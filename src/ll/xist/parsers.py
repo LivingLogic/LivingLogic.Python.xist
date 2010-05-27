@@ -70,7 +70,7 @@ can be produced by source objects:
 	``"url"``
 		The event data is the URL of the source. Usually such an event is produced
 		only once at the start of the event stream. For sources that have no
-		natural URL (like strings and streams) the URL can be specified when
+		natural URL (like strings or streams) the URL can be specified when
 		creating the source object.
 
 	``"bytes"``
@@ -108,7 +108,7 @@ The following type of events are produced by parsers:
 		A comment. The event data is the content of the comment.
 
 	``"text"``
-		A text. The event data is the text content. Parsers should try to avoid
+		Text data. The event data is the text content. Parsers should try to avoid
 		outputting multiple text events in sequence.
 
 	``"cdata"``
@@ -135,12 +135,21 @@ The following type of events are produced by parsers:
 	``"endtag"``
 		An element end tag. The event data is the element name.
 
+	``"procinst"``
+		A processing instruction. The event data is a tuple consisting of the
+		pi target and the pi data.
+
+	``"entity"``
+		An entity reference. The event data is the entity name.
+
+The following events are produced for elements and attributes in namespace mode
+(instead of those without the ``ns`` suffix). They are produced by :class:`NS`
+objects or by :class:`Expat` objects when :var:`ns` is true, so that the expat
+parser does the namespace resolution):
+
 	``"enterstarttagns"``
 		The beginning of an element start tag in namespace mode.
-		The event data is an (element name, namespace name) tuple. This and the
-		following four events are produced by :class:`NS` objects or by
-		:class:`Expat` objects when :var:`ns` is true, so that the expat parser
-		does the namespace resolution).
+		The event data is an (element name, namespace name) tuple.
 
 	``"leavestarttagns"``
 		The end of an element start tag in namespace mode. The event data is an
@@ -158,12 +167,6 @@ The following type of events are produced by parsers:
 		An element end tag in namespace mode. The event data is an
 		(element name, namespace name) tuple.
 
-	``"procinst"``
-		A processing instruction. The event data is a tuple consisting of the
-		pi target and the pi data.
-
-	``"entity"``
-		An entity reference. The event data is the entity name.
 """
 
 
