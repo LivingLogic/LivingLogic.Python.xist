@@ -331,3 +331,27 @@ def test_parse_tidy_empty():
 def test_base():
 	e = parsers.tree(parsers.StringSource('<a xmlns="http://www.w3.org/1999/xhtml" href="gurk.html"/>', 'http://www.gurk.de/') | parsers.Expat(ns=True) | parsers.Instantiate(pool=xsc.Pool(html)))
 	assert unicode(e[0].attrs.href) == "http://www.gurk.de/gurk.html"
+
+
+def test_stringsource():
+	source = "hinz & kunz"
+	parsed = "".join(event[1] for event in parsers.StringSource(source) if event[0] == "bytes")
+	assert parsed == source
+
+
+def test_filesource():
+	source = open("setup.py", "rb").read()
+	parsed = "".join(event[1] for event in parsers.FileSource("setup.py", bufsize=32) if event[0] == "bytes")
+	assert parsed == source
+
+
+def test_streamsource():
+	source = open("setup.py", "rb").read()
+	parsed = "".join(event[1] for event in parsers.StreamSource(open("setup.py", "rb"), bufsize=32) if event[0] == "bytes")
+	assert parsed == source
+
+
+def test_urlsource():
+	source = url.URL("http://www.python.org/").openread().read()
+	parsed = "".join(event[1] for event in parsers.URLSource("http://www.python.org/", bufsize=32) if event[0] == "bytes")
+	assert parsed == source
