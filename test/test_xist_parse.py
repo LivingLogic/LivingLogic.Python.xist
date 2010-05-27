@@ -80,7 +80,7 @@ def test_parsingmethods():
 
 def test_parselocationsgmlop():
 	# sgmlop doesn't provide any location info, so check only the URL
-	node = parsers.tree("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>" | parsers.SGMLOP() | parsers.NS(prefixes={None: specials}) | parsers.Instantiate())
+	node = parsers.tree("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>" | parsers.SGMLOP() | parsers.NS(specials) | parsers.Instantiate())
 	assert len(node) == 1
 	assert len(node[0]) == 1
 	assert str(node[0][0].startloc.url) == "STRING"
@@ -90,7 +90,7 @@ def test_parselocationsgmlop():
 
 def test_parselocationexpat():
 	# Check that expat gets the location info right
-	node = parsers.tree("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>" | parsers.Expat() | parsers.NS(prefixes={None: specials}) | parsers.Instantiate())
+	node = parsers.tree("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>" | parsers.Expat() | parsers.NS(specials) | parsers.Instantiate())
 	assert len(node) == 1
 	assert len(node[0]) == 1
 	assert str(node[0][0].startloc.url) == "STRING"
@@ -128,7 +128,7 @@ class Test:
 
 	def test_parseurls(self):
 		# Check proper URL handling when parsing URLAttr or StyleAttr attributes
-		node = parsers.tree('<a href="4.html" style="background-image: url(3.gif);"/>' | parsers.Expat() | parsers.NS(prefixes={None: html}) | parsers.Instantiate(base="root:1/2.html"))
+		node = parsers.tree('<a href="4.html" style="background-image: url(3.gif);"/>' | parsers.Expat() | parsers.NS(html) | parsers.Instantiate(base="root:1/2.html"))
 		assert str(node[0]["style"]) == "background-image: url(root:1/3.gif)"
 		assert node[0]["style"].urls() == [url.URL("root:1/3.gif")]
 		assert str(node[0]["href"]) == "root:1/4.html"
@@ -225,7 +225,7 @@ def test_parseentities_sgmlop():
 
 def test_parseattr_sgmlop():
 	def check(input, output):
-		node = parsers.tree(input | parsers.SGMLOP() | parsers.NS(prefixes={None: a}) | parsers.Instantiate())
+		node = parsers.tree(input | parsers.SGMLOP() | parsers.NS(a) | parsers.Instantiate())
 		node = node.walknodes(a)[0]
 		assert unicode(node.attrs.title) == output
 
@@ -260,8 +260,8 @@ def test_xmlns():
 	assert isinstance(e[0][0], ihtml.a)
 
 	s = "<a><a xmlns={0!r}/></a>".format(ihtml.xmlns)
-	py.test.raises(xsc.IllegalElementError, parsers.tree, s | parsers.Expat() | parsers.NS(prefixes={None: html}) | parsers.Instantiate(pool=xsc.Pool(ihtml)))
-	e = parsers.tree(s | parsers.Expat() | parsers.NS(prefixes={None: html}) | parsers.Instantiate(pool=xsc.Pool(html, ihtml)))
+	py.test.raises(xsc.IllegalElementError, parsers.tree, s | parsers.Expat() | parsers.NS(html) | parsers.Instantiate(pool=xsc.Pool(ihtml)))
+	e = parsers.tree(s | parsers.Expat() | parsers.NS(html) | parsers.Instantiate(pool=xsc.Pool(html, ihtml)))
 	assert isinstance(e[0], html.a)
 	assert isinstance(e[0][0], ihtml.a)
 
@@ -272,53 +272,53 @@ def test_xmlns():
 
 
 def test_parseemptyattribute():
-	e = parsers.tree("<a target=''/>" | parsers.Expat() | parsers.NS(prefixes={None: html}) | parsers.Instantiate(pool=xsc.Pool(html)))
+	e = parsers.tree("<a target=''/>" | parsers.Expat() | parsers.NS(html) | parsers.Instantiate(pool=xsc.Pool(html)))
 	assert "target" in e[0].attrs
 
 
 def test_expat_xmldecl():
-	e = parsers.tree("<?xml version='1.0' encoding='utf-8' standalone='yes'?><a/>" | parsers.Expat() | parsers.NS(prefixes={None: html}) | parsers.Instantiate())
+	e = parsers.tree("<?xml version='1.0' encoding='utf-8' standalone='yes'?><a/>" | parsers.Expat() | parsers.NS(html) | parsers.Instantiate())
 	assert not isinstance(e[0], xml.XML)
 
-	e = parsers.tree("<a/>" | parsers.Expat(xmldecl=True) | parsers.NS(prefixes={None: html}) | parsers.Instantiate())
+	e = parsers.tree("<a/>" | parsers.Expat(xmldecl=True) | parsers.NS(html) | parsers.Instantiate())
 	assert not isinstance(e[0], xml.XML)
 
-	e = parsers.tree("<?xml version='1.0'?><a/>" | parsers.Expat(xmldecl=True) | parsers.NS(prefixes={None: html}) | parsers.Instantiate())
+	e = parsers.tree("<?xml version='1.0'?><a/>" | parsers.Expat(xmldecl=True) | parsers.NS(html) | parsers.Instantiate())
 	assert isinstance(e[0], xml.XML)
 	assert e[0].content == u'version="1.0"'
 
-	e = parsers.tree("<?xml version='1.0' encoding='utf-8'?><a/>" | parsers.Expat(xmldecl=True) | parsers.NS(prefixes={None: html}) | parsers.Instantiate())
+	e = parsers.tree("<?xml version='1.0' encoding='utf-8'?><a/>" | parsers.Expat(xmldecl=True) | parsers.NS(html) | parsers.Instantiate())
 	assert isinstance(e[0], xml.XML)
 	assert e[0].content == u'version="1.0" encoding="utf-8"'
 
-	e = parsers.tree("<?xml version='1.0' encoding='utf-8' standalone='yes'?><a/>" | parsers.Expat(xmldecl=True) | parsers.NS(prefixes={None: html}) | parsers.Instantiate())
+	e = parsers.tree("<?xml version='1.0' encoding='utf-8' standalone='yes'?><a/>" | parsers.Expat(xmldecl=True) | parsers.NS(html) | parsers.Instantiate())
 	assert isinstance(e[0], xml.XML)
 	assert e[0].content == u'version="1.0" encoding="utf-8" standalone="yes"'
 
 
 def test_expat_doctype():
-	e = parsers.tree('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><a/>' | parsers.Expat() | parsers.NS(prefixes={None: html}) | parsers.Instantiate())
+	e = parsers.tree('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><a/>' | parsers.Expat() | parsers.NS(html) | parsers.Instantiate())
 	assert not isinstance(e[0], xsc.DocType)
 
-	e = parsers.tree('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><a/>' | parsers.Expat(doctype=True) | parsers.NS(prefixes={None: html}) | parsers.Instantiate())
+	e = parsers.tree('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><a/>' | parsers.Expat(doctype=True) | parsers.NS(html) | parsers.Instantiate())
 	assert isinstance(e[0], xsc.DocType)
 	assert e[0].content == html.DocTypeXHTML11().content
 
-	e = parsers.tree('<!DOCTYPE html><a/>' | parsers.Expat(doctype=True) | parsers.NS(prefixes={None: html}) | parsers.Instantiate())
+	e = parsers.tree('<!DOCTYPE html><a/>' | parsers.Expat(doctype=True) | parsers.NS(html) | parsers.Instantiate())
 	assert isinstance(e[0], xsc.DocType)
 	assert e[0].content == "html"
 
-	e = parsers.tree('<!DOCTYPE html SYSTEM "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><a/>' | parsers.Expat(doctype=True) | parsers.NS(prefixes={None: html}) | parsers.Instantiate())
+	e = parsers.tree('<!DOCTYPE html SYSTEM "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><a/>' | parsers.Expat(doctype=True) | parsers.NS(html) | parsers.Instantiate())
 	assert isinstance(e[0], xsc.DocType)
 	assert e[0].content == u'html SYSTEM "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"'
 
-	e = parsers.tree('<!DOCTYPE a [<!ELEMENT a EMPTY><!--gurk-->]><a/>' | parsers.Expat(doctype=True) | parsers.NS(prefixes={None: html}) | parsers.Instantiate())
+	e = parsers.tree('<!DOCTYPE a [<!ELEMENT a EMPTY><!--gurk-->]><a/>' | parsers.Expat(doctype=True) | parsers.NS(html) | parsers.Instantiate())
 	assert isinstance(e[0], xsc.DocType)
 	assert e[0].content == u'a' # Internal subset gets dropped
 
 
 def test_htmlparse_base():
-	e = parsers.tree("<a href='gurk.gif'/>" | parsers.Tidy() | parsers.NS(prefixes={None: html}) | parsers.Instantiate(base="hurz/index.html"))
+	e = parsers.tree("<a href='gurk.gif'/>" | parsers.Tidy() | parsers.NS(html) | parsers.Instantiate(base="hurz/index.html"))
 	e = e.walknodes(html.a)[0]
 	assert unicode(e.attrs.href) == "hurz/gurk.gif"
 
