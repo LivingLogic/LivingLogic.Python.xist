@@ -226,6 +226,18 @@ class Selector(WalkFilter):
 		return NotCombinator(self)
 
 
+class AllSelector(Selector):
+	"""
+	Selector that selects all nodes.
+	"""
+
+	def matchpath(self, path):
+		return True
+
+
+all = AllSelector()
+
+
 class IsInstanceSelector(Selector):
 	"""
 	Selector that selects all nodes that are instances of the specified type.
@@ -367,18 +379,18 @@ class IsSelector(Selector):
 		return "{0.__class__.__name__}({0.node!r})".format(self)
 
 
-class isroot(Selector):
+class IsRootSelector(Selector):
+	"""
+	Selector that selects the node that is the root of the traversal.
+	"""
 	def matchpath(self, path):
 		return len(path) == 1
 
-	def __str__(self):
-		return "isroot"
+
+isroot = IsRootSelector()
 
 
-isroot = isroot()
-
-
-class empty(Selector):
+class IsEmptySelector(Selector):
 	"""
 	Selector that selects all empty elements or fragments::
 
@@ -391,8 +403,8 @@ class empty(Selector):
 		<meta content="python programming language object oriented web free source" name="keywords" />
 		<meta content="      Home page for Python, an interpreted, interactive, object-oriented, extensible
 		      programming language. It provides an extraordinary combination of clarity and
-		      versatility, and is free and comprehensively ported. " name="description" />
-		<a type="application/rss+xml" href="http://www.python.org/channews.rdf" rel="alternate" title="RSS" />
+		      versatility, and is free and comprehensively ported." name="description" />
+		<link href="http://www.python.org/channews.rdf" type="application/rss+xml" title="Community Events" rel="alternate" />
 		...
 	"""
 
@@ -403,14 +415,11 @@ class empty(Selector):
 				return len(node) == 0
 		return False
 
-	def __str__(self):
-		return "empty"
+
+empty = IsEmptySelector()
 
 
-empty = empty()
-
-
-class onlychild(Selector):
+class OnlyChildSelector(Selector):
 	"""
 	Selector that selects all node that are the only child of their parents::
 
@@ -437,10 +446,10 @@ class onlychild(Selector):
 		return "onlychild"
 
 
-onlychild = onlychild()
+onlychild = OnlyChildSelector()
 
 
-class onlyoftype(Selector):
+class OnlyOfTypeSelector(Selector):
 	"""
 	Selector that selects all nodes that are the only nodes of their type among
 	their siblings::
@@ -473,7 +482,7 @@ class onlyoftype(Selector):
 		return "onlyoftype"
 
 
-onlyoftype = onlyoftype()
+onlyoftype = OnlyOfTypeSelector()
 
 
 class hasattr(Selector):
@@ -843,7 +852,7 @@ class hasclass(Selector):
 		return "{0.__class__.__name__}({0.classname!r})".format(self)
 
 
-class inattr(Selector):
+class InAttrSelector(Selector):
 	"""
 	Selector that selects all attribute nodes and nodes inside of attributes::
 
@@ -864,7 +873,7 @@ class inattr(Selector):
 		return "inattr"
 
 
-inattr = inattr()
+inattr = InAttrSelector()
 
 
 class Combinator(Selector):
@@ -1284,8 +1293,8 @@ def makewalkfilter(obj):
 			obj = CallableSelector(obj)
 		elif isinstance(obj, tuple):
 			obj = ConstantWalkFilter(obj)
-		elif walkfilter is None:
-			obj = ConstantWalkFilter((True, xfind.entercontent))
+		elif obj is None:
+			obj = all
 		else:
 			raise TypeError("can't convert {0!r} to selector".format(obj))
 	return obj
