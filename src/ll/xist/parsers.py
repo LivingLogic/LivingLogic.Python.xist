@@ -790,12 +790,12 @@ class NS(PipelineObject):
 	version of the evetns (i.e. ``"enterstarttagns"`` etc.) when the event data
 	is a ``(name, namespace)`` tuple.
 
-	The output of a :class:`NS` object in the stream looks like this::
+	The output of an :class:`NS` object in the stream looks like this::
 
 		>>> from ll.xist import parsers
 		>>> from ll.xist.ns import html
 		>>> source = "<a href='http://www.python.org/'>Python</a>"
-		>>> list(parsers.StringSource(source) | parsers.Expat() | parsers.NS(prefixes={None: html}))
+		>>> list(parsers.StringSource(source) | parsers.Expat() | parsers.NS(html))
 		[('url', URL('STRING')),
 		 ('position', (0, 0)),
 		 ('enterstarttagns', (u'a', 'http://www.w3.org/1999/xhtml')),
