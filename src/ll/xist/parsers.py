@@ -1367,12 +1367,27 @@ def tree(pipeline, validate=True):
 	"""
 	Return a tree of XIST nodes from the event stream :var:`pipeline`.
 
+	:var:`pipeline` must output only event that contain XIST nodes, i.e. the
+	event types ``"xmldeclnode"``, ``"doctypenode"``, ``"commentnode"``,
+	``"textnode"``, ``"startelementnode"``, ``"endelementnode"``,
+	``"procinstnode"`` and ``"entitynode"``.
+
 	If :var:`validate` is true, the tree is validated, i.e. it is checked if
 	the structure of the tree is valid (according to the :var:`model` attribute
 	of each element node), if all required attributes are specified and all
 	attributes have allowed values.
 
 	The node returned from :func:`tree` will always be a :class:`Frag` object.
+
+	Example::
+
+		>>> from ll.xist import xsc, parsers
+		>>> from ll.xist.ns import xml, html, chars
+		>>> pool = xsc.Pool(xml, html, chars)
+		>>> pipeline = parsers.URLSource("http://www.python.org/") | parsers.Expat(ns=True) | parsers.Instantiate(pool=pool)
+		>>> doc = parsers.tree(pipeline)
+		>>> doc[0]
+		<ll.xist.ns.html.html element object (5 children/2 attrs) (from http://www.python.org/:3:0) at 0x1028eb3d0>
 	"""
 	stack = [xsc.Frag()]
 	for (evtype, node) in pipeline:
@@ -1389,20 +1404,59 @@ def tree(pipeline, validate=True):
 
 
 def iterparse(pipeline, events=("endelementnode",), validate=True, filter=None):
+	"""
+	Parse the event stream :var:`pipeline` iteratively.
+
+	:func:`iterparse` still builds a tree, but it returns a iterator of
+	``(event type, path)`` tuples that track changes to the tree as it is built.
+	``path`` is a list containing the path from the root ``Frag`` object to the
+	node being worked on.
+
+	Which events and paths are produced depends on the :var:`events` and
+	:var:`filter` arguments. :var:`events`  specifies which events you want to
+	see (possible event types are ``"xmldeclnode"``, ``"doctypenode"``,
+	``"commentnode"``, ``"textnode"``, ``"startelementnode"``,
+	``"endelementnode"``, ``"procinstnode"`` and ``"entitynode"``). The default
+	is to only produce ``"endelementnode"`` events. (Note that for
+	``"startelementnode"`` events, the attributes of the element have been set,
+	but the element is still empty). :var:`filter` specifies an XIST walk filter
+	(see the :mod:`ll.xist.xfind` module for more info on walk filters) to filter
+	which paths are output. The default is to output all paths.
+
+	Example::
+		>>> from ll.xist import xsc, parsers
+		>>> from ll.xist.ns import xml, html, chars
+		>>> pool = xsc.Pool(xml, html, chars)
+		>>> pipeline = parsers.URLSource("http://www.python.org/") | parsers.Expat(ns=True) | parsers.Instantiate(pool=pool)
+		>>> for (evtype, path) in parsers.iterparse(pipeline, filter=html.a/html.img):
+		... 	print path[-1].attrs.src, "-->", path[-2].attrs.href
+		http://www.python.org/images/python-logo.gif --> http://www.python.org/
+		http://www.python.org/images/trans.gif --> http://www.python.org/#left%2Dhand%2Dnavigation
+		http://www.python.org/images/trans.gif --> http://www.python.org/#content%2Dbody
+		http://www.python.org/images/donate.png --> http://www.python.org/psf/donations/
+		http://www.python.org/images/worldmap.jpg --> http://wiki.python.org/moin/Languages
+		http://www.python.org/images/success/tribon.jpg --> http://www.python.org/about/success/tribon/
+	"""
 	filter = xfind.makewalkfilter(filter)
 	path = [xsc.Frag()]
 	for (evtype, node) in pipeline:
-		if evtype in events and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
-			yield (evtype, path)
 		if evtype == "startelementnode":
 			path[-1].append(node)
 			path.append(node)
+			if evtype in events and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
+				yield (evtype, path)
 		elif evtype == "endelementnode":
 			if validate:
 				node.checkvalid()
+			if evtype in events and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
+				yield (evtype, path)
 			path.pop()
 		else:
 			path[-1].append(node)
+			path.append(node)
+			if evtype in events and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
+				yield (evtype, path)
+			path.pop()
 
 
 class noBuilder(object):
