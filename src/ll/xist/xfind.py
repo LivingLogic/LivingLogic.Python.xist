@@ -226,7 +226,7 @@ class Selector(WalkFilter):
 		return NotCombinator(self)
 
 
-class AllSelector(Selector):
+class AnySelector(Selector):
 	"""
 	Selector that selects all nodes.
 	"""
@@ -235,7 +235,7 @@ class AllSelector(Selector):
 		return True
 
 
-all = AllSelector()
+any_ = AnySelector()
 
 
 class IsInstanceSelector(Selector):
@@ -1294,7 +1294,7 @@ def makewalkfilter(obj):
 		elif isinstance(obj, tuple):
 			obj = ConstantWalkFilter(obj)
 		elif obj is None:
-			obj = all
+			obj = any_
 		else:
 			raise TypeError("can't convert {0!r} to selector".format(obj))
 	return obj
