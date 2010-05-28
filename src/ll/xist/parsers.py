@@ -1371,6 +1371,8 @@ def tree(pipeline, validate=True):
 	the structure of the tree is valid (according to the :var:`model` attribute
 	of each element node), if all required attributes are specified and all
 	attributes have allowed values.
+
+	The node returned from :func:`tree` will always be a :class:`Frag` object.
 	"""
 	stack = [xsc.Frag()]
 	for (evtype, node) in pipeline:
