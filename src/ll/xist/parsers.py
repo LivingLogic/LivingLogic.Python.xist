@@ -1031,6 +1031,7 @@ class Instantiate(PipelineObject):
 		self._position = (None, None)
 		self._stack = []
 		self._inattr = False
+		self._indoctype = False
 
 	@property
 	def base(self):
@@ -1069,10 +1070,12 @@ class Instantiate(PipelineObject):
 		if self.loc:
 			node.startloc = xsc.Location(self._url, *self._position)
 		self.doctype = node
+		self._indoctype = True
 
 	def enddoctype(self, data):
 		result = ("doctypenode", self.doctype)
 		del self.doctype
+		self._indoctype = False
 		return result
 
 	def entity(self, data):
@@ -1082,7 +1085,7 @@ class Instantiate(PipelineObject):
 		node.parsed(self, "entity")
 		if self._inattr:
 			self._stack[-1].append(node)
-		else:
+		elif not self._indoctype:
 		 	return ("entitynode", node)
 
 	def comment(self, data):
@@ -1092,7 +1095,7 @@ class Instantiate(PipelineObject):
 		node.parsed(self, "comment")
 		if self._inattr:
 			self._stack[-1].append(node)
-		else:
+		elif not self._indoctype:
 			return ("commentnode", node)
 
 	def cdata(self, data):
@@ -1102,7 +1105,7 @@ class Instantiate(PipelineObject):
 		node.parsed(self, "cdata")
 		if self._inattr:
 			self._stack[-1].append(node)
-		else:
+		elif not self._indoctype:
 			return ("textnode", node)
 
 	def text(self, data):
@@ -1112,7 +1115,7 @@ class Instantiate(PipelineObject):
 		node.parsed(self, "text")
 		if self._inattr:
 			self._stack[-1].append(node)
-		else:
+		elif not self._indoctype:
 		 	return ("textnode", node)
 
 	def enterstarttagns(self, data):
@@ -1159,7 +1162,7 @@ class Instantiate(PipelineObject):
 		node.parsed(self, "procinst")
 		if self._inattr:
 			self._stack[-1].append(node)
-		else:
+		elif not self._indoctype:
 			return ("procinstnode", node)
 
 	def position(self, data):
