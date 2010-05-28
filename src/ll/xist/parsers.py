@@ -167,6 +167,38 @@ parser does the namespace resolution):
 		An element end tag in namespace mode. The event data is an
 		(element name, namespace name) tuple.
 
+Once XIST nodes have been instantiated (by :class:`Instantiate` objects) the
+following events are used:
+
+	``"xmldeclnode"``
+		The XML declaration. The event data is an instance of
+		:class:`ll.xist.xml.XML`.
+
+	``"doctypenode"``
+		The doctype. The event data is an instance of :class:`ll.xist.xsc.DocType`.
+
+	``"commentnode"``
+		A comment. The event data is an instance of :class:`ll.xist.xsc.Comment`.
+
+	``"textnode"``
+		Text data. The event data is and instance of :class:`ll.xist.xsc.Text`.
+
+	``"startelementnode"``
+		The beginning of an element. The event data is an instance of
+		:class:`ll.xist.xsc.Element`.
+
+	``"endelementnode"``
+		The end of an element. The event data is an instance of
+		:class:`ll.xist.xsc.Element`.
+
+	``"procinstnode"``
+		A processing instruction. The event data is an instance of
+		:class:`ll.xist.xsc.ProcInst`.
+
+	``"entitynode"``
+		An entity reference. The event data is an instance of
+		:class:`ll.xist.xsc.Entity`.
+
 """
 
 
@@ -582,10 +614,11 @@ class Expat(EventParser):
 			output ``"text"`` events instead.)
 
 		:var:`ns` : bool
-			If :var:`ns` is true, the parser does its own namespace processing.
-			The data of ``"enterstarttag"``, ``"leavestarttag"``, ``"endtag"``,
-			``"enterattr"`` and ``"leaveattr"`` events will already be
-			``(name, namespace)`` tuples.
+			If :var:`ns` is true, the parser does its own namespace processing,
+			i.e. it will emit ``"enterstarttagns"``, ``"leavestarttagns"``,
+			``"endtagns"``, ``"enterattrns"`` and ``"leaveattrns"`` events instead
+			of ``"enterstarttag"``, ``"leavestarttag"``, ``"endtag"``,
+			``"enterattr"`` and ``"leaveattr"`` events.
 		"""
 		EventParser.__init__(self)
 		self._parser = expat.ParserCreate(encoding, "\x01" if ns else None)
@@ -1023,7 +1056,7 @@ class Instantiate(PipelineObject):
 		node = xml.XML(version=data["version"], encoding=data["encoding"], standalone=data["standalone"])
 		if self.loc:
 			node.startloc = xsc.Location(self._url, *self._position)
-		return ("xmldecl", node)
+		return ("xmldeclnode", node)
 
 	def begindoctype(self, data):
 		if data["publicid"]:
@@ -1036,10 +1069,9 @@ class Instantiate(PipelineObject):
 		if self.loc:
 			node.startloc = xsc.Location(self._url, *self._position)
 		self.doctype = node
-		return ("begindoctype", node)
 
 	def enddoctype(self, data):
-		result = ("enddoctype", self.doctype)
+		result = ("doctypenode", self.doctype)
 		del self.doctype
 		return result
 
@@ -1051,7 +1083,7 @@ class Instantiate(PipelineObject):
 		if self._inattr:
 			self._stack[-1].append(node)
 		else:
-		 	return ("entity", node)
+		 	return ("entitynode", node)
 
 	def comment(self, data):
 		node = xsc.Comment(data)
@@ -1061,7 +1093,7 @@ class Instantiate(PipelineObject):
 		if self._inattr:
 			self._stack[-1].append(node)
 		else:
-			return ("comment", node)
+			return ("commentnode", node)
 
 	def cdata(self, data):
 		node = xsc.Text(data)
@@ -1071,7 +1103,7 @@ class Instantiate(PipelineObject):
 		if self._inattr:
 			self._stack[-1].append(node)
 		else:
-			return ("cdata", node)
+			return ("textnode", node)
 
 	def text(self, data):
 		node = xsc.Text(data)
@@ -1081,15 +1113,14 @@ class Instantiate(PipelineObject):
 		if self._inattr:
 			self._stack[-1].append(node)
 		else:
-		 	return ("text", node)
+		 	return ("textnode", node)
 
 	def enterstarttagns(self, data):
 		node = self.pool.element_xml(*data)
 		if self.loc:
 			node.startloc = xsc.Location(self._url, *self._position)
 		self._stack.append(node)
-		node.parsed(self, "enterstarttagns")
-		return ("enterstarttagns", node)
+		node.parsed(self, "starttagns")
 
 	def enterattrns(self, data):
 		if data[1] is not None:
@@ -1110,15 +1141,16 @@ class Instantiate(PipelineObject):
 		node.parsed(self, "leaveattrns")
 
 	def leavestarttagns(self, data):
-		self._stack[-1].parsed(self, "leavestarttagns")
-		return ("leavestarttagns", self._stack[-1])
+		node = self._stack[-1]
+		node.parsed(self, "leavestarttagns")
+		return ("startelementnode", node)
 
 	def endtagns(self, data):
 		node = self._stack.pop()
 		if self.loc:
 			node.endloc = xsc.Location(self._url, *self._position)
 		node.parsed(self, "endtagns")
-		return ("endtagns", node)
+		return ("endelementnode", node)
 
 	def procinst(self, data):
 		node = self.pool.procinst_xml(*data)
@@ -1128,7 +1160,7 @@ class Instantiate(PipelineObject):
 		if self._inattr:
 			self._stack[-1].append(node)
 		else:
-			return ("procinst", node)
+			return ("procinstnode", node)
 
 	def position(self, data):
 		self._position = data
@@ -1333,33 +1365,34 @@ def _fixpipeline(pipeline, parser=None, prefixes=None, pool=None, base=None, loc
 
 def tree(pipeline, validate=True):
 	stack = [xsc.Frag()]
-	for event in pipeline:
-		if event[0] == "enterstarttagns":
-			stack[-1].append(event[1])
-			stack.append(event[1])
-		elif event[0] == "endtagns":
+	for (evtype, node) in pipeline:
+		if evtype == "startelementnode":
+			stack[-1].append(node)
+			stack.append(node)
+		elif evtype == "endelementnode":
 			if validate:
-				event[1].checkvalid()
+				node.checkvalid()
 			stack.pop()
-		elif event[0] != "leavestarttagns":
-			stack[-1].append(event[1])
+		else:
+			stack[-1].append(node)
 	return stack[0]
 
 
-def iterparse(input, events=("endtagns",), validate=True, filter=None):
+def iterparse(input, events=("endelementnode",), validate=True, filter=None):
 	filter = xfind.makewalkfilter(filter)
 	path = [xsc.Frag()]
-	for event in pipeline:
-		if event in events and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
-			yield (event, path)
-		if event == "enterstarttagns":
+	for (evtype, node) in input:
+		print repr(evtype), repr(node.bytes()), events, filter
+		if evtype in events and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
+			yield (evtype, path)
+		if evtype == "startelementnode":
 			path[-1].append(node)
 			path.append(node)
-		elif event == "endtagns":
+		elif evtype == "endelementnode":
 			if validate:
 				node.checkvalid()
 			path.pop()
-		elif event != "leavestarttagns":
+		else:
 			path[-1].append(node)
 
 
