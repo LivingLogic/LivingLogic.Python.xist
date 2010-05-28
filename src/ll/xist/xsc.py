@@ -3633,7 +3633,7 @@ def nsclark(xmlns):
 		return "{}"
 	elif not isinstance(xmlns, basestring):
 		xmlns = xmlns.xmlns
-	return "{{{0}}".format(xmlns)
+	return "{{{0}}}".format(xmlns)
 
 
 # C0 Controls and Basic Latin
