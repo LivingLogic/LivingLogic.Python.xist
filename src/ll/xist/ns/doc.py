@@ -1457,6 +1457,18 @@ class strong(inline):
 		return e.convert(converter)
 
 
+class z(xsc.Element):
+	"""
+	Put the content into double quotes.
+	"""
+	xmlns = xmlns
+	model = sims.Any()
+
+	def convert(self, converter):
+		e = xsc.Frag(u"\u201c", self.content, u"\u201d")
+		return e.convert(converter)
+
+
 class pyref(inline):
 	"""
 	Reference to a Python object: module, class, method, property or function.

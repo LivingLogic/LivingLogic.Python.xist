@@ -26,18 +26,6 @@ __docformat__ = "reStructuredText"
 xmlns = "http://xmlns.livinglogic.de/xist/ns/specials"
 
 
-class z(xsc.Element):
-	"""
-	Put the content into double quotes.
-	"""
-	xmlns = xmlns
-	model = sims.Any()
-
-	def convert(self, converter):
-		e = xsc.Frag(u"\u201c", self.content, u"\u201d")
-		return e.convert(converter)
-
-
 class filesize(xsc.Element):
 	"""
 	The size (in bytes) of the file whose URL is the attribute href as a

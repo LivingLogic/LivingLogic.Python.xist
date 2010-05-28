@@ -35,6 +35,9 @@ Changes in 3.8 (released ??/??/????)
 
 *	ssh URLs now support a ``nice`` argument instead of ``ssh_config``.
 
+*	The XIST element :class:`ll.xist.ns.specials.z` has been moved to the
+	:mod:`ll.xist.ns.doc` module.
+
 
 Changes in 3.7.6 (released 05/14/2010)
 --------------------------------------
