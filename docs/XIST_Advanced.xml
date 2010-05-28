@@ -1,4 +1,4 @@
-<wrap>
+<spc:wrap xmlns="http://xmlns.livinglogic.de/xist/ns/doc" xmlns:spc="http://xmlns.livinglogic.de/xist/ns/specials">
 <section><h>Converter contexts</h>
 
 <p>Converter contexts can be used to pass around information in recursive
@@ -224,4 +224,4 @@ order.</p>
 <p>For more info see the <pyref module="ll.xist.sims"><mod>sims</mod></pyref>
 module.</p>
 </section>
-</wrap>
+</spc:wrap>

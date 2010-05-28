@@ -1,6 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-
-<wrap>
+<spc:wrap xmlns="http://xmlns.livinglogic.de/xist/ns/doc" xmlns:spc="http://xmlns.livinglogic.de/xist/ns/specials">
 <section><h>Creating &html;</h>
 
 <p>You can create and output &html; like this:</p>
@@ -301,4 +300,4 @@ print document.conv().bytes()
 </tty>
 
 </section>
-</wrap>
+</spc:wrap>

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<wrap>
+<spc:wrap xmlns="http://xmlns.livinglogic.de/xist/ns/doc" xmlns:spc="http://xmlns.livinglogic.de/xist/ns/specials">
 <p>&xist; is an extensible &html;/&xml; generator written in Python.
 It was developed as a replacement for an &html; preprocessor named
 <app moreinfo="http://www.linguistik.uni-erlangen.de/~msbethke/hsc/">HSC</app>
@@ -990,4 +990,4 @@ print e.bytes(prefixes={html: None, xlink: "xl"}, hidexmlns=[html, xlink])
 ]]></prog>
 
 </section>
-</wrap>
+</spc:wrap>

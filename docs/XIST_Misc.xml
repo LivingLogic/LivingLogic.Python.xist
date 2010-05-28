@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<wrap>
+<spc:wrap xmlns="http://xmlns.livinglogic.de/xist/ns/doc" xmlns:spc="http://xmlns.livinglogic.de/xist/ns/specials">
 <section><h>&url;s</h>
 
 <p>For &url; handling &xist; uses the module
@@ -155,4 +155,4 @@ results in the following:</p>
 </tty>
 
 </section>
-</wrap>
+</spc:wrap>
