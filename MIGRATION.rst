@@ -33,6 +33,9 @@ Changes to :mod:`ll.url`
 
 	__ http://codespeak.net/execnet/
 
+*	:class:`ll.xist.ns.specials.z` has been moved to the :mod:`ll.xist.ns.doc`
+	module.
+
 
 Migrating to version 3.7
 ========================
