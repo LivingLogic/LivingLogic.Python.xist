@@ -6,7 +6,7 @@ Changes in 3.8 (released ??/??/????)
 	from the nodes classes into :class:`WalkFilter`. :class:`WalkFilter` has been
 	moved to :mod:`ll.xist.xfind`.
 
-*	A new selector has been added to :mod:`ll.xist.xfind`: :class:`AllSelector`
+*	A new selector has been added to :mod:`ll.xist.xfind`: :class:`AnySelector`
 	outputs all nodes.
 
 *	Added a new function :func:`misc.module` that creates a module from source
