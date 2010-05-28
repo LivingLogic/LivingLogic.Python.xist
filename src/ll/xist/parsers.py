@@ -1392,7 +1392,6 @@ def iterparse(pipeline, events=("endelementnode",), validate=True, filter=None):
 	filter = xfind.makewalkfilter(filter)
 	path = [xsc.Frag()]
 	for (evtype, node) in pipeline:
-		print repr(evtype), repr(node.bytes()), events, filter
 		if evtype in events and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
 			yield (evtype, path)
 		if evtype == "startelementnode":
