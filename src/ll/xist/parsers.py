@@ -1364,6 +1364,14 @@ def _fixpipeline(pipeline, parser=None, prefixes=None, pool=None, base=None, loc
 
 
 def tree(pipeline, validate=True):
+	"""
+	Return a tree of XIST nodes from the event stream :var:`pipeline`.
+
+	If :var:`validate` is true, the tree is validated, i.e. it is checked if
+	the structure of the tree is valid (according to the :var:`model` attribute
+	of each element node), if all required attributes are specified and all
+	attributes have allowed values.
+	"""
 	stack = [xsc.Frag()]
 	for (evtype, node) in pipeline:
 		if evtype == "startelementnode":
