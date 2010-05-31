@@ -856,15 +856,15 @@ class InAttrSelector(Selector):
 	"""
 	Selector that selects all attribute nodes and nodes inside of attributes::
 
-	>>> from ll.xist import parsers, xfind
-	>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
-	>>> for node in doc.walknodes(xfind.inattr & xsc.Text):
-	... 	print node.bytes()
-	...
-	text/html; charset=utf-8
-	content-type
-	python programming language object oriented web free source
-	...
+		>>> from ll.xist import parsers, xfind
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknodes(xfind.inattr & xsc.Text):
+		... 	print node.bytes()
+		...
+		text/html; charset=utf-8
+		content-type
+		python programming language object oriented web free source
+		...
 	"""
 	def matchpath(self, path):
 		return any(isinstance(node, xsc.Attr) for node in path)
