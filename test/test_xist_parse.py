@@ -72,7 +72,7 @@ def test_parsingmethods():
 	pool = xsc.Pool(a)
 
 	yield check, parsers.parsestring(b, parser=parsers.Expat, prefixes=prefixes, pool=pool)
-	yield check, parsers.tree(s | parsers.Encoder(encoding="utf-8") | parsers.Expat() | parsers.NS(prefixes=prefixes) | parsers.Instantiate(pool=pool))
+	yield check, parsers.tree(s | parsers.Encoder(encoding="utf-8") | parsers.Expat() | parsers.NS(prefixes) | parsers.Instantiate(pool=pool))
 	yield check, parsers.parseiter(b, parser=parsers.Expat, prefixes=prefixes, pool=pool) # parse byte by byte
 	yield check, parsers.parsestream(cStringIO.StringIO(b), bufsize=1, parser=parsers.Expat, prefixes=prefixes, pool=pool)
 	yield check, parsers.parseetree(cElementTree.fromstring(b), defaultxmlns=a.xmlns, pool=pool)
@@ -147,13 +147,13 @@ class Test:
 					class required(xsc.TextAttr):
 						required = True
 
-			node = parsers.tree('<Test required="foo"/>' | parsers.Expat() | parsers.NS(prefixes=prefixes) | parsers.Instantiate())
+			node = parsers.tree('<Test required="foo"/>' | parsers.Expat() | parsers.NS(prefixes) | parsers.Instantiate())
 			assert str(node[0]["required"]) == "foo"
 	
 			warnings.filterwarnings("error", category=xsc.RequiredAttrMissingWarning)
-			py.test.raises(xsc.RequiredAttrMissingWarning, parsers.tree, '<Test/>' | parsers.Expat() | parsers.NS(prefixes=prefixes) | parsers.Instantiate())
+			py.test.raises(xsc.RequiredAttrMissingWarning, parsers.tree, '<Test/>' | parsers.Expat() | parsers.NS(prefixes) | parsers.Instantiate())
 
-		py.test.raises(xsc.IllegalElementError, parsers.tree, '<Test required="foo"/>' | parsers.Expat() | parsers.NS(prefixes=prefixes) | parsers.Instantiate())
+		py.test.raises(xsc.IllegalElementError, parsers.tree, '<Test required="foo"/>' | parsers.Expat() | parsers.NS(prefixes) | parsers.Instantiate())
 
 	def test_parsevalueattrs(self):
 		xmlns = "http://www.example.com/required2"
@@ -168,11 +168,11 @@ class Test:
 					class withvalues(xsc.TextAttr):
 						values = ("foo", "bar")
 
-			node = parsers.tree('<Test withvalues="bar"/>' | parsers.Expat() | parsers.NS(prefixes=prefixes) | parsers.Instantiate())
+			node = parsers.tree('<Test withvalues="bar"/>' | parsers.Expat() | parsers.NS(prefixes) | parsers.Instantiate())
 			assert str(node[0]["withvalues"]) == "bar"
 	
 			warnings.filterwarnings("error", category=xsc.IllegalAttrValueWarning)
-			py.test.raises(xsc.IllegalAttrValueWarning, parsers.tree, '<Test withvalues="baz"/>' | parsers.Expat() | parsers.NS(prefixes=prefixes) | parsers.Instantiate())
+			py.test.raises(xsc.IllegalAttrValueWarning, parsers.tree, '<Test withvalues="baz"/>' | parsers.Expat() | parsers.NS(prefixes) | parsers.Instantiate())
 
 	def test_parsestrictentities_expat(self):
 		check_parsestrictentities(
@@ -201,7 +201,7 @@ def test_multipleparsecalls():
 def test_parseentities_sgmlop():
 	def check(input, output):
 		prefixes = {None: a.xmlns}
-		node = parsers.tree("""<a title="{0}">{0}</a>""".format(input) | parsers.SGMLOP() | parsers.NS(prefixes=prefixes) | parsers.Instantiate(pool=xsc.Pool(a, bar, foo, chars)))
+		node = parsers.tree("""<a title="{0}">{0}</a>""".format(input) | parsers.SGMLOP() | parsers.NS(prefixes) | parsers.Instantiate(pool=xsc.Pool(a, bar, foo, chars)))
 		node = node.walknodes(a)[0]
 		assert unicode(node) == output
 		assert unicode(node.attrs.title) == output
