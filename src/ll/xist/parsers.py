@@ -1370,7 +1370,7 @@ def tree(pipeline, validate=True):
 	"""
 	Return a tree of XIST nodes from the event stream :var:`pipeline`.
 
-	:var:`pipeline` must output only event that contain XIST nodes, i.e. the
+	:var:`pipeline` must output only events that contain XIST nodes, i.e. the
 	event types ``"xmldeclnode"``, ``"doctypenode"``, ``"commentnode"``,
 	``"textnode"``, ``"startelementnode"``, ``"endelementnode"``,
 	``"procinstnode"`` and ``"entitynode"``.
