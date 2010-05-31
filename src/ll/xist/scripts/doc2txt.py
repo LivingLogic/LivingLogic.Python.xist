@@ -30,7 +30,7 @@ __docformat__ = "plaintext"
 
 
 def xsc2txt(infilename, outfilename, title, width):
-	e = parsers.parsefile(infilename, prefixes=xsc.docprefixes())
+	e = parsers.tree(parsers.FileSource(infilename) | parsers.SGMLOP() | parsers.NS(doc) | parsers.Instantiate(pool=xsc.docpool()))
 
 	if title is None:
 		title = xsc.Null
