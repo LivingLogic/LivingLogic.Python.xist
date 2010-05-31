@@ -1,6 +1,14 @@
 Changes in 3.8 (released ??/??/????)
 ------------------------------------
 
+*	The XIST element :class:`ll.xist.ns.specials.z` has been moved to the
+	:mod:`ll.xist.ns.doc` module.
+
+*	The function :class:`ll.xist.xsc.docprefixes` has been dropped. A new
+	function :class:`ll.xist.xsc.docpool` has been added.
+
+*	The function :class:`ll.xist.xsc.docprefixes` has been dropped.
+
 *	The walk methods :meth:`walknode` and :meth:`walkpath` have been renamed to
 	:meth:`walknodes` and :meth:`walkpaths` and the implemention has been moved
 	from the nodes classes into :class:`WalkFilter`. :class:`WalkFilter` has been
@@ -34,9 +42,6 @@ Changes in 3.8 (released ??/??/????)
 	__ http://codespeak.net/execnet/
 
 *	ssh URLs now support a ``nice`` argument instead of ``ssh_config``.
-
-*	The XIST element :class:`ll.xist.ns.specials.z` has been moved to the
-	:mod:`ll.xist.ns.doc` module.
 
 
 Changes in 3.7.6 (released 05/14/2010)
