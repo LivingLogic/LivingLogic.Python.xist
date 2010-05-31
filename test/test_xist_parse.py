@@ -98,88 +98,80 @@ def test_parselocationexpat():
 	assert node[0][0].startloc.col == 36 # expat reports the *end* of the text
 
 
-class Test:
-	def setup_method(self, method):
-		global oldfilters
-		oldfilters = warnings.filters[:]
-
-	def teardown_method(self, method):
-		warnings.filters = oldfilters
-
-	def test_nsparse(self):
-		# A prepopulated prefix mapping and xmlns attributes should work together
-		xml = """
-			<x:a>
-				<x:a xmlns:x='http://www.w3.org/1999/xhtml'>
-					<x:a xmlns:x='http://www.nttdocomo.co.jp/imode'>gurk</x:a>
-				</x:a>
+def test_nsparse():
+	# A prepopulated prefix mapping and xmlns attributes should work together
+	xml = """
+		<x:a>
+			<x:a xmlns:x='http://www.w3.org/1999/xhtml'>
+				<x:a xmlns:x='http://www.nttdocomo.co.jp/imode'>gurk</x:a>
 			</x:a>
-		"""
-		check = ihtml.a(
-			html.a(
-				ihtml.a(
-					"gurk"
-				)
+		</x:a>
+	"""
+	check = ihtml.a(
+		html.a(
+			ihtml.a(
+				"gurk"
 			)
 		)
-		node = parsers.tree(xml | parsers.Expat() | parsers.NS(x=ihtml) | parsers.Instantiate())
-		node = node.walknodes(xsc.Element)[0].compact() # get rid of the Frag and whitespace
-		assert node == check
+	)
+	node = parsers.tree(xml | parsers.Expat() | parsers.NS(x=ihtml) | parsers.Instantiate())
+	node = node.walknodes(xsc.Element)[0].compact() # get rid of the Frag and whitespace
+	assert node == check
 
-	def test_parseurls(self):
-		# Check proper URL handling when parsing URLAttr or StyleAttr attributes
-		node = parsers.tree('<a href="4.html" style="background-image: url(3.gif);"/>' | parsers.Expat() | parsers.NS(html) | parsers.Instantiate(base="root:1/2.html"))
-		assert str(node[0]["style"]) == "background-image: url(root:1/3.gif)"
-		assert node[0]["style"].urls() == [url.URL("root:1/3.gif")]
-		assert str(node[0]["href"]) == "root:1/4.html"
-		assert node[0]["href"].forInput(root="gurk/hurz.html") == url.URL("gurk/1/4.html")
 
-	def test_parserequiredattrs(self):
-		xmlns = "http://www.example.com/required"
+def test_parseurls():
+	# Check proper URL handling when parsing URLAttr or StyleAttr attributes
+	node = parsers.tree('<a href="4.html" style="background-image: url(3.gif);"/>' | parsers.Expat() | parsers.NS(html) | parsers.Instantiate(base="root:1/2.html"))
+	assert str(node[0]["style"]) == "background-image: url(root:1/3.gif)"
+	assert node[0]["style"].urls() == [url.URL("root:1/3.gif")]
+	assert str(node[0]["href"]) == "root:1/4.html"
+	assert node[0]["href"].forInput(root="gurk/hurz.html") == url.URL("gurk/1/4.html")
 
-		prefixes = {None: xmlns}
 
-		# Parser should complain about required attributes that are missing
-		with xsc.Pool():
-			class Test(xsc.Element):
-				xmlns = "http://www.example.com/required"
-				class Attrs(xsc.Element.Attrs):
-					class required(xsc.TextAttr):
-						required = True
+def test_parserequiredattrs(recwarn):
+	xmlns = "http://www.example.com/required"
 
-			node = parsers.tree('<Test required="foo"/>' | parsers.Expat() | parsers.NS(prefixes) | parsers.Instantiate())
-			assert str(node[0]["required"]) == "foo"
-	
-			warnings.filterwarnings("error", category=xsc.RequiredAttrMissingWarning)
-			py.test.raises(xsc.RequiredAttrMissingWarning, parsers.tree, '<Test/>' | parsers.Expat() | parsers.NS(prefixes) | parsers.Instantiate())
+	# Parser should complain about required attributes that are missing
+	with xsc.Pool():
+		class Test(xsc.Element):
+			xmlns = "http://www.example.com/required"
+			class Attrs(xsc.Element.Attrs):
+				class required(xsc.TextAttr):
+					required = True
 
-		py.test.raises(xsc.IllegalElementError, parsers.tree, '<Test required="foo"/>' | parsers.Expat() | parsers.NS(prefixes) | parsers.Instantiate())
+		node = parsers.tree('<Test required="foo"/>' | parsers.Expat() | parsers.NS(xmlns) | parsers.Instantiate())
+		assert str(node[0]["required"]) == "foo"
 
-	def test_parsevalueattrs(self):
-		xmlns = "http://www.example.com/required2"
+		warnings.filterwarnings("error", category=xsc.RequiredAttrMissingWarning)
+		py.test.raises(xsc.RequiredAttrMissingWarning, parsers.tree, '<Test/>' | parsers.Expat() | parsers.NS(xmlns) | parsers.Instantiate())
 
-		prefixes = {None: xmlns}
+	py.test.raises(xsc.IllegalElementError, parsers.tree, '<Test required="foo"/>' | parsers.Expat() | parsers.NS(xmlns) | parsers.Instantiate())
 
-		# Parser should complain about attributes with illegal values, when a set of values is specified
-		with xsc.Pool():
-			class Test(xsc.Element):
-				xmlns = "http://www.example.com/required2"
-				class Attrs(xsc.Element.Attrs):
-					class withvalues(xsc.TextAttr):
-						values = ("foo", "bar")
 
-			node = parsers.tree('<Test withvalues="bar"/>' | parsers.Expat() | parsers.NS(prefixes) | parsers.Instantiate())
-			assert str(node[0]["withvalues"]) == "bar"
-	
-			warnings.filterwarnings("error", category=xsc.IllegalAttrValueWarning)
-			py.test.raises(xsc.IllegalAttrValueWarning, parsers.tree, '<Test withvalues="baz"/>' | parsers.Expat() | parsers.NS(prefixes) | parsers.Instantiate())
+def test_parsevalueattrs(recwarn):
+	xmlns = "http://www.example.com/required2"
 
-	def test_parsestrictentities_expat(self):
-		check_parsestrictentities(
-			"a&amp;bc&#32;d&#x20;&#30000;;&lt;&gt;&quot;&apos;",
-			u"""a&bc d {0};<>"'""".format(unichr(30000)),
-			parsers.Expat
-		)
+	# Parser should complain about attributes with illegal values, when a set of values is specified
+	with xsc.Pool():
+		class Test(xsc.Element):
+			xmlns = "http://www.example.com/required2"
+			class Attrs(xsc.Element.Attrs):
+				class withvalues(xsc.TextAttr):
+					values = ("foo", "bar")
+
+		node = parsers.tree('<Test withvalues="bar"/>' | parsers.Expat() | parsers.NS(xmlns) | parsers.Instantiate())
+		assert str(node[0]["withvalues"]) == "bar"
+
+		warnings.filterwarnings("error", category=xsc.IllegalAttrValueWarning)
+		py.test.raises(xsc.IllegalAttrValueWarning, parsers.tree, '<Test withvalues="baz"/>' | parsers.Expat() | parsers.NS(xmlns) | parsers.Instantiate())
+
+
+def test_parsestrictentities_expat():
+	check_parsestrictentities(
+		"a&amp;bc&#32;d&#x20;&#30000;;&lt;&gt;&quot;&apos;",
+		u"""a&bc d {0};<>"'""".format(unichr(30000)),
+		parsers.Expat
+	)
 
 
 def test_multipleparsecalls():
