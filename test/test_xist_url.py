@@ -16,7 +16,8 @@ from ll.xist import xsc, parsers
 from ll.xist.ns import specials, html, jsp
 
 
-def test_url():
+def test_url(recwarn):
+	# The recwarn argument silences the RequiredAttrMissingWarning
 	node = parsers.parsestring("<?url root:images/gurk.gif?>", parser=parsers.SGMLOP, prefixes={None: html})
 	assert node.bytes(base="root:about/us.html") == "../images/gurk.gif"
 
