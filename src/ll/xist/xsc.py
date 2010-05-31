@@ -3598,14 +3598,6 @@ threadlocalpool = ThreadLocalPool()
 ### Functions for namespace handling
 ###
 
-def docprefixes():
-	"""
-	Return a prefix mapping suitable for parsing XIST docstrings.
-	"""
-	from ll.xist.ns import html, doc, specials
-	return {None: doc, "sp": specials, "h": html}
-
-
 def docpool():
 	"""
 	Return a pool suitable for parsing XIST docstrings.
