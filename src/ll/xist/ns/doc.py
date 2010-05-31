@@ -70,7 +70,7 @@ def getdoc(thing, format):
 		from ll.xist.ns import rest, doc
 		return rest.fromstring(text, base=base).conv(target=doc)
 	elif lformat == "xist":
-		node = parsers.tree(parsers.StringSource(text) | parsers.SGMLOP() | parsers.Prefixes(doc) | parsers.Instantiate(pool=xsc.docpool(), base=base))
+		node = parsers.tree(parsers.StringSource(text) | parsers.SGMLOP() | parsers.NS(doc) | parsers.Instantiate(pool=xsc.docpool(), base=base))
 		if not node[p]: # optimization: one paragraph docstrings don't need a <p> element.
 			node = p(node)
 
