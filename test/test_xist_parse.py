@@ -20,7 +20,7 @@ from xml.parsers import expat
 
 from ll import url
 from ll.xist import xsc, parsers, xfind
-from ll.xist.ns import xml, chars, html, ihtml, specials, ruby
+from ll.xist.ns import xml, chars, html, ihtml, specials, ruby, doc
 
 
 oldfilters = None
@@ -80,7 +80,7 @@ def test_parsingmethods():
 
 def test_parselocationsgmlop():
 	# sgmlop doesn't provide any location info, so check only the URL
-	node = parsers.tree("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>" | parsers.SGMLOP() | parsers.NS(specials) | parsers.Instantiate())
+	node = parsers.tree("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>" | parsers.SGMLOP() | parsers.NS(doc) | parsers.Instantiate())
 	assert len(node) == 1
 	assert len(node[0]) == 1
 	assert str(node[0][0].startloc.url) == "STRING"
@@ -90,7 +90,7 @@ def test_parselocationsgmlop():
 
 def test_parselocationexpat():
 	# Check that expat gets the location info right
-	node = parsers.tree("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>" | parsers.Expat() | parsers.NS(specials) | parsers.Instantiate())
+	node = parsers.tree("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>" | parsers.Expat() | parsers.NS(doc) | parsers.Instantiate())
 	assert len(node) == 1
 	assert len(node[0]) == 1
 	assert str(node[0][0].startloc.url) == "STRING"
@@ -248,10 +248,10 @@ def test_parsestringurl():
 
 
 def test_xmlns():
-	s = "<z xmlns={0!r}><rb xmlns={1!r}/><z/></z>".format(specials.xmlns, ruby.xmlns)
-	e = parsers.tree(s | parsers.Expat(ns=True) | parsers.Instantiate(pool=xsc.Pool(specials, ruby)))
+	s = "<z xmlns={0!r}><rb xmlns={1!r}/><z/></z>".format(doc.xmlns, ruby.xmlns)
+	e = parsers.tree(s | parsers.Expat(ns=True) | parsers.Instantiate(pool=xsc.Pool(doc, ruby)))
 
-	assert e[0].xmlns == specials.xmlns
+	assert e[0].xmlns == doc.xmlns
 	assert e[0][0].xmlns == ruby.xmlns
 
 	s = "<a xmlns={0!r}><a xmlns={1!r}/></a>".format(html.xmlns, ihtml.xmlns)
@@ -265,9 +265,9 @@ def test_xmlns():
 	assert isinstance(e[0], html.a)
 	assert isinstance(e[0][0], ihtml.a)
 
-	s = "<z xmlns={0!r}/>".format(specials.xmlns)
-	e = parsers.tree(s | parsers.Expat(ns=True) | parsers.Instantiate(pool=xsc.Pool(specials.z)))
-	assert isinstance(e[0], specials.z)
+	s = "<z xmlns={0!r}/>".format(doc.xmlns)
+	e = parsers.tree(s | parsers.Expat(ns=True) | parsers.Instantiate(pool=xsc.Pool(doc.z)))
+	assert isinstance(e[0], doc.z)
 	py.test.raises(xsc.IllegalElementError, parsers.tree, s | parsers.Expat(ns=True) | parsers.Instantiate(pool=xsc.Pool()))
 
 
