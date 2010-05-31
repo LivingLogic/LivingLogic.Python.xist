@@ -33,7 +33,7 @@ Parsing a simple HTML string might e.g. look like this::
 	>>> doc = parsers.tree(
 	...         parsers.StringSource(source)
 	...       | parsers.Expat()
-	...       | parsers.NS(prefixes={None: html})
+	...       | parsers.NS(html)
 	...       | parsers.Instantiate(pool=xsc.Pool(html))
 	... )
 	>>> doc.bytes()
@@ -1359,7 +1359,7 @@ def _fixpipeline(pipeline, parser=None, prefixes=None, pool=None, base=None, loc
 		if not isinstance(parser, Expat) or not parser.ns:
 			needprefixes = True
 	if needprefixes or prefixes is not None:
-		pipeline |= NS(prefixes=prefixes)
+		pipeline |= NS(prefixes)
 		needinstantiate = True
 	if needinstantiate or pool is not None or base is not None or not loc:
 		pipeline |= Instantiate(pool=pool, base=base, loc=loc)
