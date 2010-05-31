@@ -9,8 +9,6 @@
 ## See ll/__init__.py for the license
 
 
-import warnings
-
 from ll import toxicc
 from ll.xist import xsc
 from ll.xist.ns import html, htmlspecials, toxic

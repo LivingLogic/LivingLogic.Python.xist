@@ -9,7 +9,7 @@
 ## See ll/__init__.py for the license
 
 
-import os, warnings, datetime
+import os, datetime
 
 import py.test
 

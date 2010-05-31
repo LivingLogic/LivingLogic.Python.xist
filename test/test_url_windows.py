@@ -9,20 +9,17 @@
 ## See ll/__init__.py for the license
 
 
-import warnings
-
-import py.test
-
 from ll import url
 
 
-def test_escape():
+def test_escape(recwarn):
 	assert url.URL("%u0042").file == u"\x42"
 
-	warnings.filterwarnings("error", category=UserWarning)
-	py.test.raises(UserWarning, url.URL, "%u00")
-	py.test.raises(UserWarning, url.URL, "%u00xx")
+	url.URL("%u00")
+	recwarn.pop(UserWarning)
 
-	warnings.filterwarnings("ignore", category=UserWarning)
+	url.URL("%u00xx")
+	recwarn.pop(UserWarning)
+
 	assert url.URL("%u00").file == u"%u00"
 	assert url.URL("%u00xx").file == u"%u00xx"

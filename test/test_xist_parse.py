@@ -9,7 +9,7 @@
 ## See ll/__init__.py for the license
 
 
-import warnings, cStringIO
+import cStringIO
 
 from xml.etree import cElementTree
 
@@ -21,9 +21,6 @@ from xml.parsers import expat
 from ll import url
 from ll.xist import xsc, parsers, xfind
 from ll.xist.ns import xml, chars, html, ihtml, specials, ruby, doc
-
-
-oldfilters = None
 
 
 class a(xsc.Element):
@@ -142,8 +139,8 @@ def test_parserequiredattrs(recwarn):
 		node = parsers.tree('<Test required="foo"/>' | parsers.Expat() | parsers.NS(xmlns) | parsers.Instantiate())
 		assert str(node[0]["required"]) == "foo"
 
-		warnings.filterwarnings("error", category=xsc.RequiredAttrMissingWarning)
-		py.test.raises(xsc.RequiredAttrMissingWarning, parsers.tree, '<Test/>' | parsers.Expat() | parsers.NS(xmlns) | parsers.Instantiate())
+		parsers.tree('<Test/>' | parsers.Expat() | parsers.NS(xmlns) | parsers.Instantiate())
+		w = recwarn.pop(xsc.RequiredAttrMissingWarning)
 
 	py.test.raises(xsc.IllegalElementError, parsers.tree, '<Test required="foo"/>' | parsers.Expat() | parsers.NS(xmlns) | parsers.Instantiate())
 
@@ -162,8 +159,8 @@ def test_parsevalueattrs(recwarn):
 		node = parsers.tree('<Test withvalues="bar"/>' | parsers.Expat() | parsers.NS(xmlns) | parsers.Instantiate())
 		assert str(node[0]["withvalues"]) == "bar"
 
-		warnings.filterwarnings("error", category=xsc.IllegalAttrValueWarning)
-		py.test.raises(xsc.IllegalAttrValueWarning, parsers.tree, '<Test withvalues="baz"/>' | parsers.Expat() | parsers.NS(xmlns) | parsers.Instantiate())
+		parsers.tree('<Test withvalues="baz"/>' | parsers.Expat() | parsers.NS(xmlns) | parsers.Instantiate())
+		w = recwarn.pop(xsc.IllegalAttrValueWarning)
 
 
 def test_parsestrictentities_expat():

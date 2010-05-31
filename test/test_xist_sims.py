@@ -9,32 +9,11 @@
 ## See ll/__init__.py for the license
 
 
-import warnings
-
-import py.test
-
 from ll.xist import xsc, sims
 from ll.xist.ns import html, php
 
 
-oldfilters = None
-
-
-def setup_module(module):
-	global oldfilters
-	oldfilters = warnings.filters[:]
-
-	warnings.filterwarnings("error", category=sims.EmptyElementWithContentWarning)
-	warnings.filterwarnings("error", category=sims.WrongElementWarning)
-	warnings.filterwarnings("error", category=sims.ElementWarning)
-	warnings.filterwarnings("error", category=sims.IllegalTextWarning)
-
-
-def teardown_module(module):
-	warnings.filters = oldfilters
-
-
-def test_empty():
+def test_empty(recwarn):
 	with xsc.Pool():
 		class el1(xsc.Element):
 			model = sims.Empty()
@@ -43,19 +22,23 @@ def test_empty():
 		e.bytes()
 	
 		e = el1("gurk")
-		py.test.raises(sims.EmptyElementWithContentWarning, e.bytes)
+		e.bytes()
+		w = recwarn.pop(sims.EmptyElementWithContentWarning)
 	
 		e = el1(php.php("gurk"))
-		py.test.raises(sims.EmptyElementWithContentWarning, e.bytes)
+		e.bytes()
+		w = recwarn.pop(sims.EmptyElementWithContentWarning)
 	
 		e = el1(xsc.Comment("gurk"))
-		py.test.raises(sims.EmptyElementWithContentWarning, e.bytes)
+		e.bytes()
+		w = recwarn.pop(sims.EmptyElementWithContentWarning)
 	
 		e = el1(el1())
-		py.test.raises(sims.EmptyElementWithContentWarning, e.bytes)
+		e.bytes()
+		w = recwarn.pop(sims.EmptyElementWithContentWarning)
 
 
-def test_elements():
+def test_elements(recwarn):
 	with xsc.Pool():
 		class el11(xsc.Element):
 			xmlname = "el1"
@@ -76,7 +59,8 @@ def test_elements():
 		e.bytes()
 	
 		e = el11("foo")
-		py.test.raises(sims.IllegalTextWarning, e.bytes)
+		e.bytes()
+		w = recwarn.pop(sims.IllegalTextWarning)
 	
 		e = el11(php.php("gurk"))
 		e.bytes()
@@ -91,13 +75,15 @@ def test_elements():
 		e.bytes()
 	
 		e = el11(el12())
-		py.test.raises(sims.WrongElementWarning, e.bytes)
+		e.bytes()
+		w = recwarn.pop(sims.WrongElementWarning)
 	
 		e = el11(el22())
-		py.test.raises(sims.WrongElementWarning, e.bytes)
+		e.bytes()
+		w = recwarn.pop(sims.WrongElementWarning)
 
 
-def test_elementsortext():
+def test_elementsortext(recwarn):
 	with xsc.Pool():
 		class el11(xsc.Element):
 			xmlname = "el1"
@@ -133,13 +119,15 @@ def test_elementsortext():
 		e.bytes()
 	
 		e = el11(el12())
-		py.test.raises(sims.WrongElementWarning, e.bytes)
+		e.bytes()
+		w = recwarn.pop(sims.WrongElementWarning)
 	
 		e = el11(el22())
-		py.test.raises(sims.WrongElementWarning, e.bytes)
+		e.bytes()
+		w = recwarn.pop(sims.WrongElementWarning)
 
 
-def test_noelements():
+def test_noelements(recwarn):
 	with xsc.Pool():
 		class el1(xsc.Element):
 			xmlns = "ns1"
@@ -160,14 +148,15 @@ def test_noelements():
 		e.bytes()
 	
 		e = el1(el1())
-		py.test.raises(sims.ElementWarning, e.bytes)
+		e.bytes()
+		w = recwarn.pop(sims.ElementWarning)
 
 		# Elements from a different namespace are OK
 		e = el1(el2())
 		e.bytes()
 
 
-def test_noelementsortext():
+def test_noelementsortext(recwarn):
 	with xsc.Pool():
 		class el1(xsc.Element):
 			xmlns = "ns1"
@@ -179,7 +168,8 @@ def test_noelementsortext():
 		e.bytes()
 	
 		e = el1("foo")
-		py.test.raises(sims.IllegalTextWarning, e.bytes)
+		e.bytes()
+		w = recwarn.pop(sims.IllegalTextWarning)
 	
 		e = el1(php.php("gurk"))
 		e.bytes()
@@ -188,7 +178,8 @@ def test_noelementsortext():
 		e.bytes()
 	
 		e = el1(el1())
-		py.test.raises(sims.ElementWarning, e.bytes)
+		e.bytes()
+		w = recwarn.pop(sims.ElementWarning)
 	
 		# Elements from a different namespace are OK
 		e = el1(el2())

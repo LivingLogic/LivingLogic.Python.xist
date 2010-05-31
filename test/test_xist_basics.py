@@ -9,7 +9,7 @@
 ## See ll/__init__.py for the license
 
 
-import sys, unittest, cStringIO, warnings
+import sys, unittest, cStringIO
 
 from xml.parsers import expat
 
