@@ -362,14 +362,15 @@ class URLSource(object):
 		The URL for the input will be the final URL for the resource (i.e. it will
 		include redirects).
 		"""
-		u = url_.URL(name)
-		self.stream = u.open("rb", *args, **kwargs)
-		self.url = self.stream.finalurl()
+		self.url = url_.URL(name)
 		self.bufsize = bufsize
+		self.args = args
+		self.kwargs = kwargs
 
 	def __iter__(self):
-		yield ("url", self.url)
-		with contextlib.closing(self.stream) as stream:
+		stream = self.url.open("rb", *self.args, **self.kwargs)
+		yield ("url", stream.finalurl())
+		with contextlib.closing(stream) as stream:
 			while True:
 				data = stream.read(self.bufsize)
 				if data:

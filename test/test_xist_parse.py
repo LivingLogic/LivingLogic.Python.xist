@@ -299,30 +299,39 @@ def test_base():
 
 
 def test_stringsource():
-	source = "hinz & kunz"
-	parsed = "".join(event[1] for event in parsers.StringSource(source) if event[0] == "bytes")
-	assert parsed == source
+	expect = "hinz & kunz"
+	source = parsers.StringSource(expect)
+	for i in xrange(3):
+		parsed = "".join(data for (evtype, data) in source if evtype == "bytes")
+		assert parsed == expect
 
 
 def test_itersource():
-	source = ["hinz", " & ", "kunz"]
-	parsed = "".join(event[1] for event in parsers.IterSource(source) if event[0] == "bytes")
-	assert parsed == "".join(source)
+	expect = "hinz & kunz"
+	source = parsers.IterSource(["hinz", " & ", "kunz"])
+	for i in xrange(3):
+		parsed = "".join(data for (evtype, data) in source if evtype == "bytes")
+		assert parsed == expect
 
 
 def test_filesource():
-	source = open("setup.py", "rb").read()
-	parsed = "".join(event[1] for event in parsers.FileSource("setup.py", bufsize=32) if event[0] == "bytes")
-	assert parsed == source
+	expect = open("setup.py", "rb").read()
+	source = parsers.FileSource("setup.py", bufsize=32)
+	for i in xrange(3):
+		parsed = "".join(data for (evtype, data) in source if evtype == "bytes")
+		assert parsed == expect
 
 
 def test_streamsource():
-	source = open("setup.py", "rb").read()
+	# StreamSource objects are not reusable
+	expect = open("setup.py", "rb").read()
 	parsed = "".join(event[1] for event in parsers.StreamSource(open("setup.py", "rb"), bufsize=32) if event[0] == "bytes")
-	assert parsed == source
+	assert parsed == expect
 
 
 def test_urlsource():
-	source = url.URL("http://www.python.org/").openread().read()
-	parsed = "".join(event[1] for event in parsers.URLSource("http://www.python.org/", bufsize=32) if event[0] == "bytes")
-	assert parsed == source
+	expect = url.URL("http://www.python.org/").openread().read()
+	source = parsers.URLSource("http://www.python.org/", bufsize=32)
+	for i in xrange(3):
+		parsed = "".join(data for (evtype, data) in source if evtype == "bytes")
+		assert parsed == expect
