@@ -18,10 +18,10 @@ from ll.xist.ns import specials, html, jsp
 
 def test_url(recwarn):
 	# The recwarn argument silences the RequiredAttrMissingWarning
-	node = parsers.parsestring("<?url root:images/gurk.gif?>", parser=parsers.SGMLOP, prefixes={None: html})
+	node = parsers.tree("<?url root:images/gurk.gif?>", parsers.SGMLOP(), parsers.NS(html), parsers.Instantiate())
 	assert node.bytes(base="root:about/us.html") == "../images/gurk.gif"
 
-	node = parsers.parsestring('<img src="root:images/gurk.gif"/>', parser=parsers.Expat, prefixes={None: html})
+	node = parsers.tree('<img src="root:images/gurk.gif"/>', parsers.Expat(), parsers.NS(html), parsers.Instantiate())
 	assert node.bytes(base="root:about/us.html") == '<img src="../images/gurk.gif" />'
 
 

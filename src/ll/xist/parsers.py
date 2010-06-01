@@ -13,7 +13,7 @@ This module contains everything you need to parse XIST objects from files,
 strings, URLs etc.
 
 Parsing XML is done with a pipelined approach. The first step in the pipeline
-is a :class:`Source` object that provides the XML source (from strings, files,
+is a source object that provides the XML source (from strings, files,
 URLs, etc.).
 
 The next step is the XML parser. It turns the input source into an iterator over
@@ -31,10 +31,10 @@ Parsing a simple HTML string might e.g. look like this::
 	>>> from ll.xist.ns import html
 	>>> source = "<a href='http://www.python.org/'>Python</a>"
 	>>> doc = parsers.tree(
-	...         parsers.StringSource(source)
-	...       | parsers.Expat()
-	...       | parsers.NS(html)
-	...       | parsers.Instantiate(pool=xsc.Pool(html))
+	... 	parsers.StringSource(source)
+	... 	parsers.Expat()
+	... 	parsers.NS(html)
+	... 	parsers.Instantiate(pool=xsc.Pool(html))
 	... )
 	>>> doc.bytes()
 	'<a href="http://www.python.org/">Python</a>'
@@ -51,7 +51,7 @@ The following code shows an example of an event stream::
 
 	>>> from ll.xist import parsers
 	>>> source = "<a href='http://www.python.org/'>Python</a>"
-	>>> list(parsers.StringSource(source) | parsers.Expat())
+	>>> list(parsers.events(parsers.StringSource(source), parsers.Expat()))
 	[('url', URL('STRING')),
 	 ('position', (0, 0)),
 	 ('enterstarttag', u'a'),
@@ -74,15 +74,16 @@ can be produced by source objects:
 		creating the source object.
 
 	``"bytes"``
-		This event is produced by :class:`Source` (and :class:`Transcoder`)
-		objects. The event data is an 8bit string.
+		This event is produced by source objects  (and :class:`Transcoder`).
+		The event data is an 8bit string.
 
 	``"unicode"``
 		The event data is a unicode string. This event is produced by
 		:class:`Decoder` objects. Note that the only pipeline objects that can
 		handle ``"unicode"`` events are :class:`Encoder` objects.
 
-The following type of events are produced by parsers:
+The following type of events are produced by parsers (in addition to the
+``"url"`` event from above):
 
 	``"position"``
 		The event data is a tuple containing the line and column number in the
@@ -144,7 +145,7 @@ The following type of events are produced by parsers:
 
 The following events are produced for elements and attributes in namespace mode
 (instead of those without the ``ns`` suffix). They are produced by :class:`NS`
-objects or by :class:`Expat` objects when :var:`ns` is true, so that the expat
+objects or by the :class:`Expat` objects when :var:`ns` is true (i.e. the expat
 parser does the namespace resolution):
 
 	``"enterstarttagns"``
@@ -185,7 +186,8 @@ following events are used:
 
 	``"startelementnode"``
 		The beginning of an element. The event data is an instance of
-		:class:`ll.xist.xsc.Element`.
+		:class:`ll.xist.xsc.Element`. The attributes of the element object are set,
+		but the element has no content.
 
 	``"endelementnode"``
 		The end of an element. The event data is an instance of
@@ -226,66 +228,26 @@ html_xmlns = "http://www.w3.org/1999/xhtml"
 ###
 
 class UnknownEventError(TypeError):
-	def __init__(self, pipeout, pipein, event):
-		self.pipeout = pipeout
-		self.pipein = pipein
+	def __init__(self, pipe, event):
+		self.pipe = pipe
 		self.event = event
 
 	def __str__(self):
-		return "{0.pipein!r} can't handle event type {0.event[0]!r} from {0.pipeout!r}".format(self)
-
-
-###
-### pipeline
-###
-
-class PipelineObject(object):
-	"""
-	A :class:`PipelineObject` is the base class of all objects in a pipeline
-	(except for the source objects which sit at the beginning of a pipeline).
-	A :class:`PipelineObject` object provides basic functionality for creating a
-	pipeline via the or (``|``) operator.
-	"""
-
-	def __init__(self):
-		self.input = None
-
-	def __ror__(self, other):
-		"""
-		Set :var:`other` as :var:`self`\s input and return :var:`self`.
-		If :var:`other` isn't a :class:`Source` or :class:`PipelineObject` it will
-		be converted to one (string will be converted to a :class:`StringSource`,
-		:class:`URL`\s to a :class:`URLSource`, everything else will be treated
-		as an iterable).
-		"""
-		if not isinstance(other, (Source, PipelineObject)):
-			if isinstance(other, basestring):
-				other = StringSource(other)
-			elif isinstance(other, url_.URL):
-				other = URLSource(other)
-			elif not hasattr(other, "__iter__"): # Test this last (as ``URL``\s have :meth:`__iter__` too)
-				raise TypeError("can't convert {0!r} to a source".format(other))
-		self.input = other
-		return self
+		return "{0.pipe!r} can't handle event type {0.event[0]!r}".format(self)
 
 
 ###
 ### sources
 ###
 
-class Source(object):
-	"""
-	A source object provides the input for a parser.
-	"""
-
-
-class StringSource(Source):
+class StringSource(object):
 	"""
 	Provides parser input from a string.
 	"""
 	def __init__(self, data, url=None):
 		"""
-		Create a :class:`StringSource` object. :var:`data` must be an 8-bit string.
+		Create a :class:`StringSource` object. :var:`data` must be an byte or
+		unicode string.
 		:var:`url` specifies the url for the source (defaulting to ``"STRING"``).
 		"""
 		self.url = url_.URL(url if url is not None else "STRING")
@@ -301,7 +263,7 @@ class StringSource(Source):
 			raise TypeError("data must be str or unicode")
 
 
-class IterSource(Source):
+class IterSource(object):
 	"""
 	Provides parser input from an iterator over strings.
 	"""
@@ -309,8 +271,8 @@ class IterSource(Source):
 	def __init__(self, iterable, url=None):
 		"""
 		Create a :class:`IterSource` object. :var:`iterable` must be an iterable
-		object producing 8-bit strings. :var:`url` specifies the url for the
-		source (defaulting to ``"ITER"``).
+		object producing byte or unicode strings. :var:`url` specifies the url
+		for the source (defaulting to ``"ITER"``).
 		"""
 		self.url = url_.URL(url if url is not None else "ITER")
 		self.iterable = iterable
@@ -326,7 +288,7 @@ class IterSource(Source):
 				raise TypeError("data must be str or unicode")
 
 
-class StreamSource(Source):
+class StreamSource(object):
 	"""
 	Provides parser input from a stream (i.e. an object that provides a
 	:meth:`read` method).
@@ -358,7 +320,7 @@ class StreamSource(Source):
 				break
 
 
-class FileSource(Source):
+class FileSource(object):
 	"""
 	Provides parser input from a file.
 	"""
@@ -367,7 +329,7 @@ class FileSource(Source):
 		"""
 		Create a :class:`FileSource` object. :var:`filename` is the name of the
 		file and may start with ``~`` or ``~user`` for the home directory of the
-		current or the specified user. :var:`bufsize` specify the chunksize for
+		current or the specified user. :var:`bufsize` specifies the chunksize for
 		reads from the file.
 		"""
 		self.url = url_.File(filename)
@@ -385,7 +347,7 @@ class FileSource(Source):
 					break
 
 
-class URLSource(Source):
+class URLSource(object):
 	"""
 	Provides parser input from a URL.
 	"""
@@ -416,12 +378,12 @@ class URLSource(Source):
 					break
 
 
-class Decoder(PipelineObject):
+class Decoder(object):
 	"""
-	Decode the 8-bit output of the previous object in the pipeline to unicode.
+	Decode the byte string output of the input object in the pipeline to unicode.
 
-	This previous object can be a source object or any other pipeline object that
-	produces 8-bit strings.
+	This input object can be a source object or any other pipeline object that
+	produces byte strings.
 	"""
 
 	def __init__(self, encoding=None):
@@ -430,12 +392,11 @@ class Decoder(PipelineObject):
 		input. If :var:`encoding` is ``None`` it will be automatically detected
 		from the XML data.
 		"""
-		PipelineObject.__init__(self)
 		self.encoding = encoding
 
-	def __iter__(self):
+	def __call__(self, input):
 		decoder = codecs.getincrementaldecoder("xml")(encoding=self.encoding)
-		for (evtype, data) in self.input:
+		for (evtype, data) in input:
 			if evtype == "bytes":
 				data = decoder.decode(data, False)
 				if data:
@@ -446,7 +407,7 @@ class Decoder(PipelineObject):
 			elif evtype == "url":
 				yield ("url", data)
 			else:
-				raise UnknownEventError(self.input, self, (evtype, data))
+				raise UnknownEventError(self, (evtype, data))
 		data = decoder.decode("", True)
 		if data:
 			yield ("unicode", data)
@@ -455,12 +416,12 @@ class Decoder(PipelineObject):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
 
 
-class Encoder(PipelineObject):
+class Encoder(object):
 	"""
-	Encode the unicode output of the previous object in the pipeline to 8-bit
+	Encode the unicode output of the input object in the pipeline to byte
 	strings.
 
-	This previous object must be a pipeline object that produces unicode output
+	This input object must be a pipeline object that produces unicode output
 	(e.g. a :class:`Decoder` object).
 	"""
 
@@ -470,12 +431,11 @@ class Encoder(PipelineObject):
 		the output. If :var:`encoding` is ``None`` it will be automatically
 		detected from the XML declaration in the data.
 		"""
-		PipelineObject.__init__(self)
 		self.encoding = encoding
 
-	def __iter__(self):
+	def __call__(self, input):
 		encoder = codecs.getincrementalencoder("xml")(encoding=self.encoding)
-		for (evtype, data) in self.input:
+		for (evtype, data) in input:
 			if evtype == "unicode":
 				data = encoder.encode(data, False)
 				if data:
@@ -486,7 +446,7 @@ class Encoder(PipelineObject):
 			elif evtype == "url":
 				yield ("url", data)
 			else:
-				raise UnknownEventError(self.input, self, (evtype, data))
+				raise UnknownEventError(self, (evtype, data))
 		data = encoder.encode(u"", True)
 		if data:
 			yield ("bytes", data)
@@ -495,27 +455,27 @@ class Encoder(PipelineObject):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
 
 
-class Transcoder(PipelineObject):
+class Transcoder(object):
 	"""
-	Transcode the 8-bit output of the previous object into another encoding.
+	Transcode the byte output of the input object into another encoding.
 
-	This previous object can be a source object or any other pipeline object that
-	produces 8-bit strings.
+	This input object can be a source object or any other pipeline object that
+	produces byte strings.
 	"""
 
 	def __init__(self, fromencoding=None, toencoding=None):
 		"""
 		Create a :class:`Transcoder` object. :var:`fromencoding` is the encoding
-		of the input. :var:`toencoding` is the encoding of the output.
+		of the input. :var:`toencoding` is the encoding of the output. If any of
+		them are ``None`` the encoding will be detected from the data.
 		"""
-		PipelineObject.__init__(self)
 		self.fromencoding = fromencoding
 		self.toencoding = toencoding
 
-	def __iter__(self):
+	def __call__(self, input):
 		decoder = codecs.getincrementaldecoder("xml")(encoding=self.fromencoding)
 		encoder = codecs.getincrementalencoder("xml")(encoding=self.toencoding)
-		for (evtype, data) in self.input:
+		for (evtype, data) in input:
 			if evtype == "bytes":
 				data = encoder.encode(decoder.decode(data, False), False)
 				if data:
@@ -523,7 +483,7 @@ class Transcoder(PipelineObject):
 			elif evtype == "url":
 				yield ("url", data)
 			else:
-				raise UnknownEventError(self.input, self, (evtype, data))
+				raise UnknownEventError(self, (evtype, data))
 		data = encoder.encode(decoder.decode("", True), True)
 		if data:
 			yield ("bytes", data)
@@ -536,7 +496,7 @@ class Transcoder(PipelineObject):
 ### Parsers
 ###
 
-class EventParser(PipelineObject):
+class EventParser(object):
 	"""
 	Basic parser interface.
 	"""
@@ -570,18 +530,18 @@ class EventParser(PipelineObject):
 		Return an iterator for the events.
 		"""
 
-	def __iter__(self):
+	def __call__(self, input):
 		"""
 		Return an iterator over events.
 		"""
-		for (evtype, data) in self.input:
+		for (evtype, data) in input:
 			if evtype == "bytes":
 				for event2 in self.feed(data):
 					yield event2
 			elif evtype == "url":
 				yield (self.url, data)
 			else:
-				yield UnknownEventError(self.input, self, (evtype, data))
+				yield UnknownEventError(self, (evtype, data))
 		for event in self.feed("", True):
 			yield event
 
@@ -819,7 +779,7 @@ class SGMLOP(EventParser):
 		self._buffer.append((self.endtag, name))
 
 
-class NS(PipelineObject):
+class NS(object):
 	"""
 	An :class:`NS` is used in a parsing pipeline to add support for XML namespaces.
 	It replaces the ``"enterstarttag"``, ``"leavestarttag"``, ``"endtag"``,
@@ -831,8 +791,8 @@ class NS(PipelineObject):
 
 		>>> from ll.xist import parsers
 		>>> from ll.xist.ns import html
-		>>> source = "<a href='http://www.python.org/'>Python</a>"
-		>>> list(parsers.StringSource(source) | parsers.Expat() | parsers.NS(html))
+		>>> source = parsers.StringSource("<a href='http://www.python.org/'>Python</a>")
+		>>> list(parsers.events(source, parsers.Expat(), parsers.NS(html)))
 		[('url', URL('STRING')),
 		 ('position', (0, 0)),
 		 ('enterstarttagns', (u'a', 'http://www.w3.org/1999/xhtml')),
@@ -853,7 +813,6 @@ class NS(PipelineObject):
 		:var:`kwargs` maps prefixes to namespaces names too. If a prefix is in both
 		:var:`prefixes` and :var:`kwargs`, :var:`kwargs` wins.
 		"""
-		PipelineObject.__init__(self)
 		# the currently active prefix mapping (will be replaced once xmlns attributes are encountered)
 		newprefixes = {}
 
@@ -877,6 +836,15 @@ class NS(PipelineObject):
 		self._newprefixes = self._attrs = self._attr = None
 		# A stack entry is an ``((elementname, namespacename), prefixdict)`` tuple
 		self._prefixstack = [(None, newprefixes)]
+
+	def __call__(self, input):
+		for (evtype, data) in input:
+			try:
+				handler = getattr(self, evtype)
+			except AttributeError:
+				raise UnknownEventError(self, (evtype, data))
+			for event in handler(data):
+				yield event
 
 	def url(self, data):
 		yield ("url", data)
@@ -1009,19 +977,9 @@ class NS(PipelineObject):
 		(data, prefixes) = self._prefixstack.pop()
 		yield ("endtagns", data)
 
-	def __iter__(self):
-		for (evtype, data) in self.input:
-			try:
-				handler = getattr(self, evtype)
-			except AttributeError:
-				raise UnknownEventError(self.input, self, (evtype, data))
-			for event in handler(data):
-				yield event
 
-
-class Instantiate(PipelineObject):
+class Instantiate(object):
 	def __init__(self, pool=None, base=None, loc=True):
-		PipelineObject.__init__(self)
 		self.pool = (pool if pool is not None else xsc.threadlocalpool.pool)
 		if base is not None:
 			base = url_.URL(base)
@@ -1040,12 +998,12 @@ class Instantiate(PipelineObject):
 		else:
 			return self._base
 
-	def __iter__(self):
-		for (evtype, data) in self.input:
+	def __call__(self, input):
+		for (evtype, data) in input:
 			try:
 				handler = getattr(self, evtype)
 			except AttributeError:
-				raise UnknownEventError(self.input, self, (evtype, data))
+				raise UnknownEventError(self, (evtype, data))
 			event = handler(data)
 			if event:
 				yield event
@@ -1169,16 +1127,15 @@ class Instantiate(PipelineObject):
 		self._position = data
 
 
-class Tidy(PipelineObject):
+class Tidy(object):
 	"""
 	A :class:`Tidy` object parses (potentially ill-formed) HTML from a source
-	into a event stream by using libxml2__'s HTML parser.
+	into a (unnamespaced) event stream by using libxml2__'s HTML parser.
 
 	__ http://xmlsoft.org/
 	"""
 
 	def __init__(self, encoding=None, loc=True):
-		PipelineObject.__init__(self)
 		self.encoding = encoding
 		self.loc = loc
 
@@ -1246,12 +1203,12 @@ class Tidy(PipelineObject):
 			yield ("comment", decode(node.content))
 		# ignore all other types
 
-	def __iter__(self):
+	def __call__(self, input):
 		import libxml2 # This requires libxml2 (see http://www.xmlsoft.org/)
 
 		url = None
 		collectdata = []
-		for (evtype, data) in self.input:
+		for (evtype, data) in input:
 			if evtype == "url":
 				if url is None:
 					url = data
@@ -1260,7 +1217,7 @@ class Tidy(PipelineObject):
 			elif evtype == "bytes":
 				collectdata.append(data)
 			else:
-				raise UnknownEventError(self.input, self, (evtype, data))
+				raise UnknownEventError(self, (evtype, data))
 		data = "".join(collectdata)
 		if url is not None:
 			yield ("url", url)
@@ -1280,7 +1237,8 @@ class Tidy(PipelineObject):
 
 class ETree(object):
 	"""
-	Produces XML events from an object that supports the ElementTree__ API.
+	Produces a (namespaced) event stream from an object that supports the
+	ElementTree__ API.
 
 	__ http://effbot.org/zone/element-index.htm
 	"""
@@ -1343,30 +1301,28 @@ class ETree(object):
 			yield event
 
 
-def _fixpipeline(pipeline, parser=None, prefixes=None, pool=None, base=None, loc=True, tidy=False, encoding=None, **parserargs):
-	needprefixes = False
-	needinstantiate = False
-	if tidy:
-		pipeline |= Tidy(encoding=encoding)
-		if prefixes is None:
-			prefixes = {None: html_xmlns}
-		needprefixes = True
-	elif parser is not None or parserargs:
-		if parser is None:
-			parser = Expat
-		pipeline |= parser(encoding=encoding, **parserargs)
-		# If we're using an expat parser that does its own namespace handling, we don't need a prefix mapping
-		if not isinstance(parser, Expat) or not parser.ns:
-			needprefixes = True
-	if needprefixes or prefixes is not None:
-		pipeline |= NS(prefixes)
-		needinstantiate = True
-	if needinstantiate or pool is not None or base is not None or not loc:
-		pipeline |= Instantiate(pool=pool, base=base, loc=loc)
-	return pipeline
+def events(*pipeline):
+	"""
+	Return an event iterator from the event stream :var:`pipeline`.
+	"""
+	source = pipeline[0]
+
+	# Propagate first pipeline object to a :class:`Source` object (if possible, else use it as it is)
+	if isinstance(source, basestring):
+		source = StringSource(source)
+	elif isinstance(source, url_.URL):
+		source = URLSource(source)
+
+	# Execute the pipeline, propagating pipeline objects in the process
+	output = source
+	for pipe in pipeline[1:]:
+		if isinstance(pipe, xsc.Pool):
+			pipe = Instantiate(pool=pipe)
+		output = pipe(output)
+	return output
 
 
-def tree(pipeline, validate=True):
+def tree(*pipeline, **kwargs):
 	"""
 	Return a tree of XIST nodes from the event stream :var:`pipeline`.
 
@@ -1375,6 +1331,7 @@ def tree(pipeline, validate=True):
 	``"textnode"``, ``"startelementnode"``, ``"endelementnode"``,
 	``"procinstnode"`` and ``"entitynode"``.
 
+	:var:`kwargs` supports one keyword argument: :var:`validate`.
 	If :var:`validate` is true, the tree is validated, i.e. it is checked if
 	the structure of the tree is valid (according to the :var:`model` attribute
 	of each element node), if all required attributes are specified and all
@@ -1386,14 +1343,16 @@ def tree(pipeline, validate=True):
 
 		>>> from ll.xist import xsc, parsers
 		>>> from ll.xist.ns import xml, html, chars
-		>>> pool = xsc.Pool(xml, html, chars)
-		>>> pipeline = parsers.URLSource("http://www.python.org/") | parsers.Expat(ns=True) | parsers.Instantiate(pool=pool)
-		>>> doc = parsers.tree(pipeline)
+		>>> source = parsers.URLSource("http://www.python.org/")
+		>>> parser = parsers.Expat(ns=True)
+		>>> inst = parsers.Instantiate(pool=xsc.Pool(xml, html, chars))
+		>>> doc = parsers.tree(source, parsers, inst)
 		>>> doc[0]
 		<ll.xist.ns.html.html element object (5 children/2 attrs) (from http://www.python.org/:3:0) at 0x1028eb3d0>
 	"""
 	stack = [xsc.Frag()]
-	for (evtype, node) in pipeline:
+	validate = kwargs.get("validate", True)
+	for (evtype, node) in events(*pipeline):
 		if evtype == "startelementnode":
 			stack[-1].append(node)
 			stack.append(node)
@@ -1406,7 +1365,7 @@ def tree(pipeline, validate=True):
 	return stack[0]
 
 
-def iterparse(pipeline, events=("endelementnode",), validate=True, filter=None):
+def iterparse(*pipeline, **kwargs):
 	"""
 	Parse the event stream :var:`pipeline` iteratively.
 
@@ -1415,9 +1374,9 @@ def iterparse(pipeline, events=("endelementnode",), validate=True, filter=None):
 	``path`` is a list containing the path from the root ``Frag`` object to the
 	node being worked on.
 
-	Which events and paths are produced depends on the :var:`events` and
-	:var:`filter` arguments. :var:`events`  specifies which events you want to
-	see (possible event types are ``"xmldeclnode"``, ``"doctypenode"``,
+	Which events and paths are produced depends on the keyword arguments
+	:var:`events` and :var:`filter`. :var:`events`  specifies which events you
+	want to see (possible event types are ``"xmldeclnode"``, ``"doctypenode"``,
 	``"commentnode"``, ``"textnode"``, ``"startelementnode"``,
 	``"endelementnode"``, ``"procinstnode"`` and ``"entitynode"``). The default
 	is to only produce ``"endelementnode"`` events. (Note that for
@@ -1429,9 +1388,10 @@ def iterparse(pipeline, events=("endelementnode",), validate=True, filter=None):
 	Example::
 		>>> from ll.xist import xsc, parsers
 		>>> from ll.xist.ns import xml, html, chars
-		>>> pool = xsc.Pool(xml, html, chars)
-		>>> pipeline = parsers.URLSource("http://www.python.org/") | parsers.Expat(ns=True) | parsers.Instantiate(pool=pool)
-		>>> for (evtype, path) in parsers.iterparse(pipeline, filter=html.a/html.img):
+		>>> source = parsers.URLSource("http://www.python.org/")
+		>>> parser = parsers.Expat(ns=True)
+		>>> inst = parsers.Instantiate(pool=xsc.Pool(xml, html, chars))
+		>>> for (evtype, path) in parsers.iterparse(source, parser, inst, filter=html.a/html.img):
 		... 	print path[-1].attrs.src, "-->", path[-2].attrs.href
 		http://www.python.org/images/python-logo.gif --> http://www.python.org/
 		http://www.python.org/images/trans.gif --> http://www.python.org/#left%2Dhand%2Dnavigation
@@ -1440,92 +1400,26 @@ def iterparse(pipeline, events=("endelementnode",), validate=True, filter=None):
 		http://www.python.org/images/worldmap.jpg --> http://wiki.python.org/moin/Languages
 		http://www.python.org/images/success/tribon.jpg --> http://www.python.org/about/success/tribon/
 	"""
-	filter = xfind.makewalkfilter(filter)
+	events_ = kwargs.get("events", ("endelementnode",))
+	validate = kwargs.get("validate", True)
+	filter = xfind.makewalkfilter(kwargs.get("filter", None))
+
 	path = [xsc.Frag()]
-	for (evtype, node) in pipeline:
+	for (evtype, node) in events(*pipeline):
 		if evtype == "startelementnode":
 			path[-1].append(node)
 			path.append(node)
-			if evtype in events and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
+			if evtype in events_ and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
 				yield (evtype, path)
 		elif evtype == "endelementnode":
 			if validate:
 				node.checkvalid()
-			if evtype in events and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
+			if evtype in events_ and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
 				yield (evtype, path)
 			path.pop()
 		else:
 			path[-1].append(node)
 			path.append(node)
-			if evtype in events and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
+			if evtype in events_ and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
 				yield (evtype, path)
 			path.pop()
-
-
-def parsestring(data, url=None, **kwargs):
-	"""
-	Parse the string :var:`data` into an XIST tree. For the arguments
-	:var:`base` and :var:`encoding` see the method :meth:`parsestring` in the
-	:class:`Builder` class. You can pass any other argument that the
-	:class:`Builder` constructor takes as keyword arguments
-	via :var:`builderargs`.
-	"""
-	return tree(_fixpipeline(StringSource(data, url=url), **kwargs))
-
-
-def parseiter(iterable, url=None, **kwargs):
-	"""
-	Parse the input from the iterable :var:`iterable` (which must produce the
-	input in chunks of bytes) into an XIST tree. For the arguments :var:`base`
-	and :var:`encoding` see the method :meth:`parsestring` in the
-	:class:`Builder` class. You can pass any other argument that the
-	:class:`Builder` constructor takes as keyword arguments via
-	:var:`builderargs`.
-	"""
-	return tree(_fixpipeline(IterSource(iterable, url=url), **kwargs))
-
-
-def parsestream(stream, base=None, bufsize=8192, **kwargs):
-	"""
-	Parse XML from the stream :var:`stream` into an XIST tree. For the arguments
-	:var:`base`, :var:`encoding` and :var:`bufsize` see the method
-	:meth:`parsestream` in the :class:`Parser` class. You can pass any other
-	argument that the :class:`Builder` constructor takes as keyword arguments via
-	:var:`builderargs`.
-	"""
-	return tree(_fixpipeline(StreamSource(stream, bufsize=bufsize), **kwargs))
-
-
-def parsefile(filename, bufsize=8192, **kwargs):
-	"""
-	Parse XML input from the file named :var:`filename`. For the arguments
-	:var:`base`, :var:`encoding` and :var:`bufsize` see the method
-	:meth:`parsefile` in the :class:`Builder` class. You can pass any other
-	argument that the :class:`Builder` constructor takes as keyword arguments
-	via :var:`builderargs`.
-	"""
-	return tree(_fixpipeline(FileSource(filename, bufsize=bufsize), **kwargs))
-
-
-def parseurl(name, bufsize=8192, headers=None, data=None, **kwargs):
-	"""
-	Parse XML input from the URL :var:`name` into an XIST tree. For the arguments
-	:var:`base`, :var:`encoding`, :var:`bufsize`, :var:`headers` and :var:`data`
-	see the method :meth:`parseurl` in the :class:`Builder` class. You can pass
-	any other argument that the :class:`Builder` constructor takes as keyword
-	arguments via :var:`builderargs`.
-	"""
-	return tree(_fixpipeline(URLSource(name, headers=headers, data=data), **kwargs))
-
-
-def parseetree(node, defaultxmlns=None, **kwargs):
-	"""
-	Parse XML input from the object :var:`node` which must support the
-	ElementTree__ API. For the argument :var:`base` see the method
-	:meth:`parseetree` in the :class:`Builder` class. You can pass any other
-	argument that the :class:`Builder` constructor takes as keyword arguments
-	via :var:`builderargs`.
-
-	__ http://effbot.org/zone/element-index.htm
-	"""
-	return tree(_fixpipeline(ETree(node, defaultxmlns=defaultxmlns), **kwargs))

@@ -32,7 +32,7 @@ __docformat__ = "reStructuredText"
 
 
 def tld2xnd(stream, shareattrs=None):
-	node = parsers.parsestream(stream, parser=parsers.Expat, prefixes={None: tld})
+	node = parsers.tree(parsers.StreamSource(stream), parsers.Expat(), parsers.NS(tld), parsers.Instantiate())
 
 	# get and convert the taglib object
 	xnd = node.walknodes(tld.taglib)[0].asxnd()

@@ -270,7 +270,7 @@ def test_hasclass():
 
 
 def test_frag():
-	e = parsers.parsestring("das ist <b>klaus</b>. das ist <b>erich</b>", parser=parsers.SGMLOP, prefixes={None: html})
+	e = parsers.tree("das ist <b>klaus</b>. das ist <b>erich</b>", parsers.SGMLOP(), parsers.NS(html), parsers.Instantiate())
 	assert u"".join(map(unicode, e.walknodes(e//html.b))) == u"klauserich"
 
 
