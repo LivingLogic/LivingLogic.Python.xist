@@ -14,7 +14,7 @@ strings, URLs etc.
 
 Parsing XML is done with a pipelined approach. The first step in the pipeline
 is a source object that provides the XML source (from strings, files,
-URLs, etc.).
+URLs etc.).
 
 The next step is the XML parser. It turns the input source into an iterator over
 parsing events (an "event stream"). Further steps in the pipeline might resolve
@@ -237,7 +237,7 @@ class UnknownEventError(TypeError):
 
 
 ###
-### sources
+### Sources: Classes that create on event stream
 ###
 
 class StringSource(object):
@@ -438,12 +438,16 @@ class ETreeSource(object):
 
 	def __iter__(self):
 		"""
-		Produces an event stream for the ElementTree object.
+		Produces an event stream for the ElementTree object :var:`self.data`.
 		"""
 		yield ("url", self.url)
 		for event in self._asxist(self.data):
 			yield event
 
+
+###
+### Transformers: Classes that transform the event stream.
+###
 
 class Decoder(object):
 	"""
@@ -1303,12 +1307,13 @@ class Tidy(object):
 
 
 ###
-### Stream consuming functions
+### Consumers: Functions that consume an event stream
 ###
 
 def events(*pipeline):
 	"""
-	Return an event iterator from the event stream :var:`pipeline`.
+	Return an iterator over the events produced by the pipeline objects in
+	:var:`pipeline`.
 	"""
 	source = pipeline[0]
 
