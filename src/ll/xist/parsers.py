@@ -1351,7 +1351,7 @@ def events(*pipeline):
 	"""
 	source = pipeline[0]
 
-	# Propagate first pipeline object to a :class:`Source` object (if possible, else use it as it is)
+	# Propagate first pipeline object to a :class:`Source` object (if unambiguous, else use it as it is)
 	if isinstance(source, basestring):
 		source = StringSource(source)
 	elif isinstance(source, url_.URL):
