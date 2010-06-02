@@ -379,6 +379,72 @@ class URLSource(object):
 					break
 
 
+class ETreeSource(object):
+	"""
+	Produces a (namespaced) event stream from an object that supports the
+	ElementTree__ API.
+
+	__ http://effbot.org/zone/element-index.htm
+	"""
+
+	def __init__(self, data, url=None, defaultxmlns=None):
+		"""
+		Create an :class:`ETree` object. Arguments have the following meaning:
+
+		:var:`data`
+			An object that supports the ElementTree API.
+
+		:var:`url`
+			The URL of the source. Defaults to ``"ETREE"``.
+
+		:var:`defaultxmlns`
+			The namespace name (or a namespace module containing a namespace name)
+			that will be used for all elements that don't have a namespace.
+		"""
+		self.url = url_.URL(url if url is not None else "ETREE")
+		self.data = data
+		self.defaultxmlns = xsc.nsname(defaultxmlns)
+
+	def _asxist(self, node):
+		name = type(node).__name__
+		if "Element" in name:
+			elementname = node.tag
+			if elementname.startswith("{"):
+				(elementxmlns, sep, elementname) = elementname[1:].partition("}")
+			else:
+				elementxmlns = self.defaultxmlns
+			yield ("enterstarttagns", (elementname, elementxmlns))
+			for (attrname, attrvalue) in node.items():
+				if attrname.startswith("{"):
+					(attrxmlns, sep, attrname) = attrname[1:].partition("}")
+				else:
+					attrxmlns = None
+				yield ("enterattrns", (attrname, attrxmlns))
+				yield ("text", attrvalue)
+				yield ("leaveattrns", (attrname, attrxmlns))
+			yield ("leavestarttagns", (elementname, elementxmlns))
+			if node.text:
+				yield ("text", node.text)
+			for child in node:
+				for event in self._asxist(child):
+					yield event
+				if hasattr(child, "tail") and child.tail:
+					yield ("text", child.tail)
+			yield ("endtagns", (elementname, elementxmlns))
+		elif "ProcessingInstruction" in name:
+			yield ("procinst", (node.target, node.text))
+		elif "Comment" in name:
+			yield ("comment", node.text)
+
+	def __iter__(self):
+		"""
+		Produces an event stream for the ElementTree object.
+		"""
+		yield ("url", self.url)
+		for event in self._asxist(self.data):
+			yield event
+
+
 class Decoder(object):
 	"""
 	Decode the byte string output of the input object in the pipeline to unicode.
@@ -1236,71 +1302,9 @@ class Tidy(object):
 				libxml2.lineNumbersDefault(olddefault)
 
 
-class ETree(object):
-	"""
-	Produces a (namespaced) event stream from an object that supports the
-	ElementTree__ API.
-
-	__ http://effbot.org/zone/element-index.htm
-	"""
-
-	def __init__(self, data, url=None, defaultxmlns=None):
-		"""
-		Create an :class:`ETree` object. Arguments have the following meaning:
-
-		:var:`data`
-			An object that supports the ElementTree API.
-
-		:var:`url`
-			The URL of the source. Defaults to ``"ETREE"``.
-
-		:var:`defaultxmlns`
-			The namespace name (or a namespace module containing a namespace name)
-			that will be used for all elements that don't have a namespace.
-		"""
-		self.url = url_.URL(url if url is not None else "ETREE")
-		self.data = data
-		self.defaultxmlns = xsc.nsname(defaultxmlns)
-
-	def _asxist(self, node):
-		name = type(node).__name__
-		if "Element" in name:
-			elementname = node.tag
-			if elementname.startswith("{"):
-				(elementxmlns, sep, elementname) = elementname[1:].partition("}")
-			else:
-				elementxmlns = self.defaultxmlns
-			yield ("enterstarttagns", (elementname, elementxmlns))
-			for (attrname, attrvalue) in node.items():
-				if attrname.startswith("{"):
-					(attrxmlns, sep, attrname) = attrname[1:].partition("}")
-				else:
-					attrxmlns = None
-				yield ("enterattrns", (attrname, attrxmlns))
-				yield ("text", attrvalue)
-				yield ("leaveattrns", (attrname, attrxmlns))
-			yield ("leavestarttagns", (elementname, elementxmlns))
-			if node.text:
-				yield ("text", node.text)
-			for child in node:
-				for event in self._asxist(child):
-					yield event
-				if hasattr(child, "tail") and child.tail:
-					yield ("text", child.tail)
-			yield ("endtagns", (elementname, elementxmlns))
-		elif "ProcessingInstruction" in name:
-			yield ("procinst", (node.target, node.text))
-		elif "Comment" in name:
-			yield ("comment", node.text)
-
-	def __iter__(self):
-		"""
-		Produces an event stream for the ElementTree object.
-		"""
-		yield ("url", self.url)
-		for event in self._asxist(self.data):
-			yield event
-
+###
+### Stream consuming functions
+###
 
 def events(*pipeline):
 	"""

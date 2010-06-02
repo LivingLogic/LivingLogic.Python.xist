@@ -57,7 +57,7 @@ def test_parsingmethods():
 	yield check, s, parsers.Encoder(encoding="utf-8"), parsers.Expat(), parsers.NS(a.xmlns), parsers.Instantiate(pool)
 	yield check, parsers.IterSource(b), parsers.Expat(), parsers.NS(a.xmlns), parsers.Instantiate(pool) # parse byte by byte
 	yield check, parsers.StreamSource(cStringIO.StringIO(b), bufsize=1), parsers.Expat(), parsers.NS(a.xmlns), parsers.Instantiate(pool)
-	yield check, parsers.ETree(cElementTree.fromstring(b), defaultxmlns=a.xmlns), parsers.Instantiate(pool)
+	yield check, parsers.ETreeSource(cElementTree.fromstring(b), defaultxmlns=a.xmlns), parsers.Instantiate(pool)
 
 
 def test_parselocationsgmlop():
