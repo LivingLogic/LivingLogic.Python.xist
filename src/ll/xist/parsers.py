@@ -9,21 +9,17 @@
 
 
 """
-This module contains everything you need to parse XIST objects from files,
-strings, URLs etc.
+This module contains everything you need to create XIST objects by parsing
+files, strings, URLs etc.
 
 Parsing XML is done with a pipelined approach. The first step in the pipeline
-is a source object that provides the XML source (from strings, files,
-URLs etc.).
-
+is a source object that provides the input for the rest of the pipeline.
 The next step is the XML parser. It turns the input source into an iterator over
 parsing events (an "event stream"). Further steps in the pipeline might resolve
 namespace prefixes (:class:`NS`), and instantiate XIST classes
-(:class:`Instantiate`).
-
-The final step in the pipeline is either building an XML tree via :func:`tree`
-or an iterative parsing step (similar to ElementTrees :func:`iterparse`
-function) via :func:`iterparse`.
+(:class:`Instantiate`). The final step in the pipeline is either building an
+XML tree via :func:`tree` or an iterative parsing step (similar to ElementTrees
+:func:`iterparse` function) via :func:`iterparse`.
 
 Parsing a simple HTML string might e.g. look like this::
 
@@ -39,15 +35,19 @@ Parsing a simple HTML string might e.g. look like this::
 	>>> doc.bytes()
 	'<a href="http://www.python.org/">Python</a>'
 
-Alternatively the parsing step can be done with a :class:`Tidy` object, which
-parses (potentially ill-formed) HTML into an event stream.
+A source object is an iterable object that produces the input byte string for
+the parser (possibly in multiple chunks) (and information about the URL of the
+input)::
 
-It's also possible to turn an object that is compatible with the ElemenTree__
-API into an event stream via an :class:`ETreeSource` object.
+	>>> from ll.xist import parsers
+	>>> source = "<a href='http://www.python.org/'>Python</a>"
+	>>> list(parsers.StringSource(source))
+	[('url', URL('STRING')),
+	 ('bytes', "<a href='http://www.python.org/'>Python</a>")]
 
-	__ http://effbot.org/zone/element-index.htm
-
-The following code shows an example of an event stream::
+All subsequent objects in the pipeline are callable objects, get the input
+iterator as an argument and return an iterator over events themselves. The
+following code shows an example of an event stream::
 
 	>>> from ll.xist import parsers
 	>>> source = "<a href='http://www.python.org/'>Python</a>"
@@ -74,13 +74,13 @@ can be produced by source objects:
 		creating the source object.
 
 	``"bytes"``
-		This event is produced by source objects  (and :class:`Transcoder`).
-		The event data is an 8bit string.
+		This event is produced by source objects  (and :class:`Transcoder` objects).
+		The event data is a byte string.
 
 	``"unicode"``
 		The event data is a unicode string. This event is produced by
-		:class:`Decoder` objects. Note that the only pipeline objects that can
-		handle ``"unicode"`` events are :class:`Encoder` objects.
+		:class:`Decoder` objects. Note that the only predefined pipeline objects
+		that can handle ``"unicode"`` events are :class:`Encoder` objects.
 
 The following type of events are produced by parsers (in addition to the
 ``"url"`` event from above):
@@ -145,7 +145,7 @@ The following type of events are produced by parsers (in addition to the
 
 The following events are produced for elements and attributes in namespace mode
 (instead of those without the ``ns`` suffix). They are produced by :class:`NS`
-objects or by the :class:`Expat` objects when :var:`ns` is true (i.e. the expat
+objects or by :class:`Expat` objects when :var:`ns` is true (i.e. the expat
 parser does the namespace resolution):
 
 	``"enterstarttagns"``
@@ -187,7 +187,7 @@ following events are used:
 	``"startelementnode"``
 		The beginning of an element. The event data is an instance of
 		:class:`ll.xist.xsc.Element`. The attributes of the element object are set,
-		but the element has no content.
+		but the element has no content (yet).
 
 	``"endelementnode"``
 		The end of an element. The event data is an instance of
@@ -201,6 +201,17 @@ following events are used:
 		An entity reference. The event data is an instance of
 		:class:`ll.xist.xsc.Entity`.
 
+For consuming event stream there are three functions:
+
+	:func:`events`
+		This generator simply outputs the events.
+
+	:func:`tree`
+		This function builds an XML tree from the events and returns it.
+
+	:func:`iterparse`
+		This generator still build a tree like :func:`tree`, but returns event
+		during certain step in the parsing process.
 """
 
 
@@ -228,6 +239,10 @@ html_xmlns = "http://www.w3.org/1999/xhtml"
 ###
 
 class UnknownEventError(TypeError):
+	"""
+	This exception is raised when a pipeline object doesn't know how to handle
+	an event.
+	"""
 	def __init__(self, pipe, event):
 		self.pipe = pipe
 		self.event = event
@@ -246,9 +261,9 @@ class StringSource(object):
 	"""
 	def __init__(self, data, url=None):
 		"""
-		Create a :class:`StringSource` object. :var:`data` must be an byte or
-		unicode string.
-		:var:`url` specifies the url for the source (defaulting to ``"STRING"``).
+		Create a :class:`StringSource` object. :var:`data` must be a byte or
+		unicode string. :var:`url` specifies the URL for the source (defaulting
+		to ``"STRING"``).
 		"""
 		self.url = url_.URL(url if url is not None else "STRING")
 		self.data = data
@@ -271,8 +286,8 @@ class IterSource(object):
 	def __init__(self, iterable, url=None):
 		"""
 		Create a :class:`IterSource` object. :var:`iterable` must be an iterable
-		object producing byte or unicode strings. :var:`url` specifies the url
-		for the source (defaulting to ``"ITER"``).
+		object producing byte or unicode strings. :var:`url` specifies the URL for
+		the source (defaulting to ``"ITER"``).
 		"""
 		self.url = url_.URL(url if url is not None else "ITER")
 		self.iterable = iterable
@@ -298,7 +313,7 @@ class StreamSource(object):
 		"""
 		Create a :class:`StreamSource` object. :var:`stream` must have a
 		:meth:`read` method (with a ``size`` argument). :var:`url` specifies the
-		url for the source (defaulting to ``"STREAM"``). :var:`bufsize` specifies
+		URL for the source (defaulting to ``"STREAM"``). :var:`bufsize` specifies
 		the chunksize for reads from the stream.
 		"""
 		self.url = url_.URL(url if url is not None else "STREAM")
@@ -354,9 +369,9 @@ class URLSource(object):
 
 	def __init__(self, name, bufsize=8192, *args, **kwargs):
 		"""
-		Create a :class:`URLSource` object. :var:`name` is the URL.
-		:var:`bufsize` specify the chunksize for reads from the URL. :var:`args`
-		and :var:`kwargs` will be passed on to the :meth:`open` method of the URL
+		Create a :class:`URLSource` object. :var:`name` is the URL. :var:`bufsize`
+		specifies the chunksize for reads from the URL. :var:`args` and
+		:var:`kwargs` will be passed on to the :meth:`open` method of the URL
 		object.
 
 		The URL for the input will be the final URL for the resource (i.e. it will
@@ -451,7 +466,8 @@ class ETreeSource(object):
 
 class Decoder(object):
 	"""
-	Decode the byte string output of the input object in the pipeline to unicode.
+	Decode the byte strings produced by the previous object in the pipeline to
+	unicode.
 
 	This input object can be a source object or any other pipeline object that
 	produces byte strings.
@@ -489,8 +505,8 @@ class Decoder(object):
 
 class Encoder(object):
 	"""
-	Encode the unicode output of the input object in the pipeline to byte
-	strings.
+	Encode the unicode strings produced by the previous object in the pipeline to
+	byte strings.
 
 	This input object must be a pipeline object that produces unicode output
 	(e.g. a :class:`Decoder` object).
@@ -528,7 +544,7 @@ class Encoder(object):
 
 class Transcoder(object):
 	"""
-	Transcode the byte output of the input object into another encoding.
+	Transcode the byte strings of the input object into another encoding.
 
 	This input object can be a source object or any other pipeline object that
 	produces byte strings.
@@ -538,7 +554,7 @@ class Transcoder(object):
 		"""
 		Create a :class:`Transcoder` object. :var:`fromencoding` is the encoding
 		of the input. :var:`toencoding` is the encoding of the output. If any of
-		them are ``None`` the encoding will be detected from the data.
+		them is ``None`` the encoding will be detected from the data.
 		"""
 		self.fromencoding = fromencoding
 		self.toencoding = toencoding
@@ -603,7 +619,7 @@ class EventParser(object):
 
 	def __call__(self, input):
 		"""
-		Return an iterator over events.
+		Return an iterator over the events produced by :var:`input`.
 		"""
 		for (evtype, data) in input:
 			if evtype == "bytes":
@@ -627,22 +643,21 @@ class Expat(EventParser):
 		Create an :class:`Expat` object. Arguments have the following meaning:
 
 		:var:`encoding` : string or :const:`None`
-			The default encoding to use when the source doesn't provide an
-			encoding. The default :const:`None` results in the encoding being
-			detected from the XML itself.
+			Forces the parser to use the specified encoding. The default
+			:const:`None` results in the encoding being detected from the XML itself.
 
 		:var:`xmldecl` : bool
-			Should a node be output for the XML declaration?
+			Should the parser produce events for the XML declaration?
 
 		:var:`doctype` : bool
-			Should a node be output for the document type?
+			Should the parser produce events for the document type?
 
 		:var:`loc` : bool
-			Should location information be attached to the generated nodes?
+			Should the parser produce ``"location"`` events?
 
 		:var:`cdata` : bool
-			Output CDATA sections as ``"cdata"`` events? (If :var:`cdata` is false
-			output ``"text"`` events instead.)
+			Should the parser output CDATA sections as ``"cdata"`` events? (If
+			:var:`cdata` is false output ``"text"`` events instead.)
 
 		:var:`ns` : bool
 			If :var:`ns` is true, the parser does its own namespace processing,
@@ -782,12 +797,14 @@ class Expat(EventParser):
 
 class SGMLOP(EventParser):
 	"""
-	A parser based of :mod:`sgmlop`.
+	A parser based on :mod:`sgmlop`.
 	"""
 
 	def __init__(self, encoding=None):
 		"""
-		Create a new :class:`SGMLOP` object.
+		Create a new :class:`SGMLOP` object. The :var:`encoding` argument forces
+		the parser to use the specified encoding. The default :const:`None`
+		results in the encoding being detected from the XML itself.
 		"""
 		EventParser.__init__(self)
 		self.encoding = encoding
@@ -852,18 +869,21 @@ class SGMLOP(EventParser):
 
 class NS(object):
 	"""
-	An :class:`NS` is used in a parsing pipeline to add support for XML namespaces.
-	It replaces the ``"enterstarttag"``, ``"leavestarttag"``, ``"endtag"``,
-	``"enterattr"`` and ``"leaveattr"`` events with the appropriate namespace
-	version of the evetns (i.e. ``"enterstarttagns"`` etc.) when the event data
-	is a ``(name, namespace)`` tuple.
+	An :class:`NS` object is used in a parsing pipeline to add support for XML
+	namespaces. It replaces the ``"enterstarttag"``, ``"leavestarttag"``,
+	``"endtag"``, ``"enterattr"`` and ``"leaveattr"`` events with the appropriate
+	namespace version of the events (i.e. ``"enterstarttagns"`` etc.) where the
+	event data is a ``(name, namespace)`` tuple.
 
 	The output of an :class:`NS` object in the stream looks like this::
 
 		>>> from ll.xist import parsers
 		>>> from ll.xist.ns import html
-		>>> source = parsers.StringSource("<a href='http://www.python.org/'>Python</a>")
-		>>> list(parsers.events(source, parsers.Expat(), parsers.NS(html)))
+		>>> source = list(parsers.events(
+		... 	parsers.StringSource("<a href='http://www.python.org/'>Python</a>"),
+		... 	parsers.Expat(),
+		... 	parsers.NS(html)
+		... ))
 		[('url', URL('STRING')),
 		 ('position', (0, 0)),
 		 ('enterstarttagns', (u'a', 'http://www.w3.org/1999/xhtml')),
@@ -878,7 +898,7 @@ class NS(object):
 
 	def __init__(self, prefixes=None, **kwargs):
 		"""
-		Create a :class:`NS` object. :var:`prefixes` (if not ``None``) can be a
+		Create an :class:`NS` object. :var:`prefixes` (if not ``None``) can be a
 		namespace name (or module), which will be used for the empty prefix,
 		or a dictionary that maps prefixes to namespace names (or modules).
 		:var:`kwargs` maps prefixes to namespaces names too. If a prefix is in both
@@ -1201,7 +1221,21 @@ class Instantiate(object):
 class Tidy(object):
 	"""
 	A :class:`Tidy` object parses (potentially ill-formed) HTML from a source
-	into a (unnamespaced) event stream by using libxml2__'s HTML parser.
+	into a (unnamespaced) event stream by using libxml2__'s HTML parser::
+
+		>>> from ll.xist import parsers
+		>>> list(parsers.events(parsers.URLSource("http://www.yahoo.com/"), parsers.Tidy()))
+		[('url', URL('http://de.yahoo.com/?p=us')),
+		 ('position', (3, None)),
+		 ('enterstarttag', u'html'),
+		 ('enterattr', u'lang'),
+		 ('text', u'de-DE'),
+		 ('leaveattr', u'lang'),
+		 ('enterattr', u'class'),
+		 ('text', u'y-fp-bg y-fp-pg-grad  bkt708'),
+		 ('leaveattr', u'class'),
+		 ('leavestarttag', u'html')
+		...
 
 	__ http://xmlsoft.org/
 	"""
@@ -1353,10 +1387,11 @@ def tree(*pipeline, **kwargs):
 
 		>>> from ll.xist import xsc, parsers
 		>>> from ll.xist.ns import xml, html, chars
-		>>> source = parsers.URLSource("http://www.python.org/")
-		>>> parser = parsers.Expat(ns=True)
-		>>> inst = parsers.Instantiate(pool=xsc.Pool(xml, html, chars))
-		>>> doc = parsers.tree(source, parsers, inst)
+		>>> doc = parsers.tree(
+		... 	parsers.URLSource("http://www.python.org/"),
+		... 	parsers.Expat(ns=True),
+		... 	parsers.Instantiate(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> doc[0]
 		<ll.xist.ns.html.html element object (5 children/2 attrs) (from http://www.python.org/:3:0) at 0x1028eb3d0>
 	"""
@@ -1396,12 +1431,15 @@ def iterparse(*pipeline, **kwargs):
 	which paths are output. The default is to output all paths.
 
 	Example::
+
 		>>> from ll.xist import xsc, parsers
 		>>> from ll.xist.ns import xml, html, chars
-		>>> source = parsers.URLSource("http://www.python.org/")
-		>>> parser = parsers.Expat(ns=True)
-		>>> inst = parsers.Instantiate(pool=xsc.Pool(xml, html, chars))
-		>>> for (evtype, path) in parsers.iterparse(source, parser, inst, filter=html.a/html.img):
+		>>> for (evtype, path) in parsers.iterparse(
+		... 	parsers.URLSource("http://www.python.org/"),
+		... 	parsers.Expat(ns=True),
+		... 	parsers.Instantiate(pool=xsc.Pool(xml, html, chars)),
+		... 	filter=html.a/html.img
+		... ):
 		... 	print path[-1].attrs.src, "-->", path[-2].attrs.href
 		http://www.python.org/images/python-logo.gif --> http://www.python.org/
 		http://www.python.org/images/trans.gif --> http://www.python.org/#left%2Dhand%2Dnavigation
