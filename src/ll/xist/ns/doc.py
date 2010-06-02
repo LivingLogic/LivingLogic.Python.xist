@@ -1458,12 +1458,12 @@ class strong(inline):
 		return e.convert(converter)
 
 
-class z(xsc.Element):
+class z(inline):
 	"""
 	Put the content into double quotes.
 	"""
 	xmlns = xmlns
-	model = sims.Any()
+	model = sims.ElementsOrText(inline)
 
 	def convert(self, converter):
 		e = xsc.Frag(u"\u201c", self.content, u"\u201d")
