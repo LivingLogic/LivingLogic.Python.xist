@@ -43,7 +43,7 @@ Alternatively the parsing step can be done with a :class:`Tidy` object, which
 parses (potentially ill-formed) HTML into an event stream.
 
 It's also possible to turn an object that is compatible with the ElemenTree__
-API into an event stream via an :class:`ETree` object.
+API into an event stream via an :class:`ETreeSource` object.
 
 	__ http://effbot.org/zone/element-index.htm
 
@@ -389,7 +389,7 @@ class ETreeSource(object):
 
 	def __init__(self, data, url=None, defaultxmlns=None):
 		"""
-		Create an :class:`ETree` object. Arguments have the following meaning:
+		Create an :class:`ETreeSource` object. Arguments have the following meaning:
 
 		:var:`data`
 			An object that supports the ElementTree API.
