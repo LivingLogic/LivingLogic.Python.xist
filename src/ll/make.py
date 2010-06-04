@@ -386,14 +386,6 @@ class Action(object):
 		"""
 		return CallAttrAction(self, attrname, *args, **kwargs)
 
-	def __or__(self, other):
-		"""
-		Return an :class:`OrAction` for "oring" :var:`self` and :var:`other`.
-		"""
-		if not isinstance(other, Action):
-			other = ObjectAction(other)
-		return OrAction(self, other)
-
 	def __repr__(self):
 		def format(arg):
 			if isinstance(arg, Action):
@@ -1000,38 +992,6 @@ class CallAttrAction(Action):
 		func = getattr(obj, attrname)
 		project.writestep(self, "Calling {0!r}".format(func))
 		return func(*args, **kwargs)
-
-
-class OrAction(Action):
-	"""
-	This action "ors" the output of its input objects.
-	"""
-
-	def __init__(self, *inputs):
-		Action.__init__(self)
-		self.inputs = inputs
-
-	def __iter__(self):
-		for input in self.inputs:
-			yield input
-
-	def __or__(self, other):
-		if not isinstance(other, Action):
-			other = ObjectAction(other)
-		return OrAction(*(self.inputs + (other,)))
-
-	def getargs(self):
-		return self.inputs
-
-	def execute(self, project, *inputs):
-		project.writestep(self, "Oring ", len(inputs), " inputs")
-		result = None
-		for (i, input) in enumerate(inputs):
-			if i:
-				result |= input
-			else:
-				result = input
-		return result
 
 
 class CommandAction(TransformAction):
