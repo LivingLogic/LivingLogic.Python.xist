@@ -683,6 +683,10 @@ class func(code):
 		e = converter.target.function(self.content)
 		return e.convert(converter)
 
+	def convert_html(self, converter):
+		e = converter.target.code(self.content, "()", class_=self.xmlname)
+		return e.convert(converter)
+
 
 class meth(code):
 	"""
@@ -693,6 +697,10 @@ class meth(code):
 
 	def convert_docbook(self, converter):
 		e = converter.target.methodname(self.content)
+		return e.convert(converter)
+
+	def convert_html(self, converter):
+		e = converter.target.code(self.content, "()", class_=self.xmlname)
 		return e.convert(converter)
 
 
