@@ -9,8 +9,6 @@
 ## See ll/__init__.py for the license
 
 
-import py.test
-
 from ll.xist import xsc
 from ll.xist.ns import html, xml, chars, abbr, ihtml, wml, specials, htmlspecials, form, meta, svg, fo, docbook, jsp, struts_html, struts_config, tld
 

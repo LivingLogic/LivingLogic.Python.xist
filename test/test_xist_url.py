@@ -9,8 +9,6 @@
 ## See ll/__init__.py for the license
 
 
-import py.test
-
 from ll import url
 from ll.xist import xsc, parsers
 from ll.xist.ns import specials, html, jsp

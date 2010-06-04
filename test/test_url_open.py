@@ -11,8 +11,6 @@
 
 import os, datetime
 
-import py.test
-
 from ll import url
 
 
