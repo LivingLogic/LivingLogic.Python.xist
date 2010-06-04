@@ -258,7 +258,7 @@ def explain(thing, name=None, format=None, context=[]):
 		bases = xsc.Frag()
 		if len(thing.__bases__):
 			for baseclass in thing.__bases__:
-				if baseclass.__module__ == "__builtin__":
+				if baseclass.__module__ in ("__builtin__", "exceptions"):
 					ref = class_(baseclass.__name__)
 				else:
 					try:
