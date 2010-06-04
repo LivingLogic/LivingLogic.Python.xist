@@ -269,6 +269,10 @@ class StringSource(object):
 		self.data = data
 
 	def __iter__(self):
+		"""
+		Produces an event stream of one ``"url"`` event and one ``"bytes"`` or
+		``"unicode"`` event for the data.
+		"""
 		yield ("url", self.url)
 		if isinstance(self.data, str):
 			yield ("bytes", self.data)
@@ -293,6 +297,10 @@ class IterSource(object):
 		self.iterable = iterable
 
 	def __iter__(self):
+		"""
+		Produces an event stream of one ``"url"`` event followed by the
+		``"bytes"``/``"unicode"`` events for the data from the iterable.
+		"""
 		yield ("url", self.url)
 		for data in self.iterable:
 			if isinstance(data, str):
@@ -321,6 +329,10 @@ class StreamSource(object):
 		self.bufsize = bufsize
 
 	def __iter__(self):
+		"""
+		Produces an event stream of one ``"url"`` event followed by the
+		``"bytes"``/``"unicode"`` events for the data from the stream.
+		"""
 		yield ("url", self.url)
 		while True:
 			data = self.stream.read(self.bufsize)
@@ -352,6 +364,10 @@ class FileSource(object):
 		self.bufsize = bufsize
 
 	def __iter__(self):
+		"""
+		Produces an event stream of one ``"url"`` event followed by the
+		``"bytes"`` events for the data from the file.
+		"""
 		yield ("url", self.url)
 		with open(self._filename, "rb") as stream:
 			while True:
@@ -383,6 +399,10 @@ class URLSource(object):
 		self.kwargs = kwargs
 
 	def __iter__(self):
+		"""
+		Produces an event stream of one ``"url"`` event followed by the
+		``"bytes"`` events for the data from the URL.
+		"""
 		stream = self.url.open("rb", *self.args, **self.kwargs)
 		yield ("url", stream.finalurl())
 		with contextlib.closing(stream) as stream:
@@ -453,8 +473,8 @@ class ETreeSource(object):
 
 	def __iter__(self):
 		"""
-		Produces an event stream for the ElementTree object passed as
-		:var:`data` to the constructor.
+		Produces an event stream of namespaced parsing events for the ElementTree
+		object passed as :var:`data` to the constructor.
 		"""
 		yield ("url", self.url)
 		for event in self._asxist(self.data):
