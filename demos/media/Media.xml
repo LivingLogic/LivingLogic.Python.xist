@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <!DOCTYPE media SYSTEM "Media.dtd">
 <?xml-stylesheet type="text/xsl" href="Media.xsl"?>
-<media>
+<media xmlns="http://xmlns.livinglogic.de/xist/demo/media">
 	<dvd>
 		<name>Grave of the Fireflies</name>
 		<rc>1</rc>
