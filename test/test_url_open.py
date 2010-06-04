@@ -13,6 +13,8 @@ import os, datetime
 
 from ll import url
 
+import py.test
+
 
 def setup_module(module):
 	module.context = url.Context()
@@ -23,6 +25,7 @@ def teardown_module(module):
 
 
 def test_rename():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)
@@ -41,6 +44,7 @@ def test_rename():
 
 
 def test_link():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)
@@ -59,6 +63,7 @@ def test_link():
 
 
 def test_symlink():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)
@@ -76,6 +81,7 @@ def test_symlink():
 
 
 def test_chmod():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)
@@ -95,6 +101,7 @@ def test_chmod():
 
 
 def test_chown():
+	@py.test.mark.net
 	def check(u1, u2, owner, group):
 		with context:
 			u1 = url.URL(u1)
@@ -132,6 +139,7 @@ def test_chown():
 
 
 def test_size():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)
@@ -143,6 +151,7 @@ def test_size():
 
 
 def test_imagesize():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)
@@ -154,6 +163,7 @@ def test_imagesize():
 
 
 def test_mimetype():
+	@py.test.mark.net
 	def check(u, mt):
 		with context:
 			u = url.URL(u)
@@ -165,6 +175,7 @@ def test_mimetype():
 
 
 def test_readline():
+	@py.test.mark.net
 	def check(u, firstline):
 		with context:
 			u = url.URL(u)
@@ -191,6 +202,7 @@ def test_readline():
 
 
 def test_iter():
+	@py.test.mark.net
 	def check(u, firstline):
 		with context:
 			u = url.URL(u)
@@ -204,6 +216,7 @@ def test_iter():
 
 
 def test_seek_tell():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)
@@ -227,6 +240,7 @@ def test_seek_tell():
 
 
 def test_truncate():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)/"foo"
@@ -245,6 +259,7 @@ def test_truncate():
 
 
 def test_owner():
+	@py.test.mark.net
 	def check(u, owner):
 		with context:
 			u = url.URL(u)
@@ -257,6 +272,7 @@ def test_owner():
 
 
 def test_stat():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)
@@ -269,6 +285,7 @@ def test_stat():
 
 
 def test_group():
+	@py.test.mark.net
 	def check(u, *groups):
 		with context:
 			u = url.URL(u)
@@ -281,6 +298,7 @@ def test_group():
 
 
 def test_cdate():
+	@py.test.mark.net
 	def check(u, *args):
 		with context:
 			assert url.URL(u).cdate() >= datetime.datetime(*args)
@@ -290,6 +308,7 @@ def test_cdate():
 
 
 def test_mdate():
+	@py.test.mark.net
 	def check(u, *args):
 		with context:
 			u = url.URL(u)
@@ -301,6 +320,7 @@ def test_mdate():
 
 
 def test_adate():
+	@py.test.mark.net
 	def check(u, *args):
 		with context:
 			assert url.URL(u).adate() >= datetime.datetime(*args)
@@ -310,6 +330,7 @@ def test_adate():
 
 
 def test_exists():
+	@py.test.mark.net
 	def check(u, exists):
 		with context:
 			u = url.URL(u)
@@ -323,6 +344,7 @@ def test_exists():
 
 
 def test_isfile():
+	@py.test.mark.net
 	def check(u, isfile):
 		with context:
 			u = url.URL(u)
@@ -338,6 +360,7 @@ def test_isfile():
 
 
 def test_isdir():
+	@py.test.mark.net
 	def check(u, isdir):
 		with context:
 			u = url.URL(u)
@@ -353,6 +376,7 @@ def test_isdir():
 
 
 def test_islink():
+	@py.test.mark.net
 	def check(u, islink):
 		with context:
 			u = url.URL(u)
@@ -365,6 +389,7 @@ def test_islink():
 
 
 def test_ismount():
+	@py.test.mark.net
 	def check(u, ismount):
 		with context:
 			u = url.URL(u)
@@ -379,6 +404,7 @@ def test_ismount():
 
 
 def test_access():
+	@py.test.mark.net
 	def check(u, mode, result):
 		with context:
 			u = url.URL(u)
@@ -391,6 +417,7 @@ def test_access():
 
 
 def test_resheaders():
+	@py.test.mark.net
 	def check(u, headers):
 		with context:
 			u = url.URL(u)
@@ -404,6 +431,7 @@ def test_resheaders():
 
 
 def test_resdata():
+	@py.test.mark.net
 	def check(u, firstline):
 		with context:
 			u = url.URL(u)
@@ -414,6 +442,7 @@ def test_resdata():
 
 
 def test_mkdir_rmdir():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)/"foo/"
@@ -429,6 +458,7 @@ def test_mkdir_rmdir():
 
 
 def test_makedirs():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)/"foo/bar/"
@@ -445,6 +475,7 @@ def test_makedirs():
 
 
 def test_dir():
+	@py.test.mark.net
 	def check(u, pu, isfile):
 		with context:
 			u = url.URL(u)
@@ -464,6 +495,7 @@ def test_dir():
 
 
 def test_walk():
+	@py.test.mark.net
 	def check(u, pu, isfile):
 		with context:
 			u = url.URL(u)
@@ -482,6 +514,7 @@ def test_walk():
 	yield check, "ll/xist/ns/", "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/src/", False
 
 
+@py.test.mark.net
 def test_ssh_params():
 	with context:
 		u = url.URL("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/")

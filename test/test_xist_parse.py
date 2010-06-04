@@ -328,6 +328,7 @@ def test_streamsource():
 	assert parsed == expect
 
 
+@py.test.mark.net
 def test_urlsource():
 	expect = url.URL("http://www.python.org/").openread().read()
 	source = parsers.URLSource("http://www.python.org/", bufsize=32)
