@@ -19,7 +19,7 @@ parsing events (an "event stream"). Further steps in the pipeline might resolve
 namespace prefixes (:class:`NS`), and instantiate XIST classes
 (:class:`Instantiate`). The final step in the pipeline is either building an
 XML tree via :func:`tree` or an iterative parsing step (similar to ElementTrees
-:func:`iterparse` function) via :func:`iterparse`.
+:func:`iterparse` function) via :func:`itertree`.
 
 Parsing a simple HTML string might e.g. look like this::
 
@@ -209,9 +209,9 @@ For consuming event stream there are three functions:
 	:func:`tree`
 		This function builds an XML tree from the events and returns it.
 
-	:func:`iterparse`
-		This generator still build a tree like :func:`tree`, but returns event
-		during certain step in the parsing process.
+	:func:`itertree`
+		This generator still build a tree like :func:`tree`, but returns events
+		during certain steps in the parsing process.
 """
 
 
@@ -587,26 +587,26 @@ class EventParser(object):
 	"""
 	Basic parser interface.
 	"""
-	xmldecl = "xmldecl"
-	begindoctype = "begindoctype"
-	enddoctype = "enddoctype"
-	comment = "comment"
-	text = "text"
-	cdata = "cdata"
-	enterstarttag = "enterstarttag"
-	enterstarttagns = "enterstarttagns"
-	enterattr = "enterattr"
-	enterattrns = "enterattrns"
-	leaveattr = "leaveattr"
-	leaveattrns = "leaveattrns"
-	leavestarttag = "leavestarttag"
-	leavestarttagns = "leavestarttagns"
-	endtag = "endtag"
-	endtagns = "endtagns"
-	procinst = "procinst"
-	entity = "entity"
-	position = "position"
-	url = "url"
+	evxmldecl = "xmldecl"
+	evbegindoctype = "begindoctype"
+	evenddoctype = "enddoctype"
+	evcomment = "comment"
+	evtext = "text"
+	evcdata = "cdata"
+	eventerstarttag = "enterstarttag"
+	eventerstarttagns = "enterstarttagns"
+	eventerattr = "enterattr"
+	eventerattrns = "enterattrns"
+	evleaveattr = "leaveattr"
+	evleaveattrns = "leaveattrns"
+	evleavestarttag = "leavestarttag"
+	evleavestarttagns = "leavestarttagns"
+	evendtag = "endtag"
+	evendtagns = "endtagns"
+	evprocinst = "procinst"
+	eventity = "entity"
+	evposition = "position"
+	evurl = "url"
 
 	@misc.notimplemented
 	def feed(self, data, final=False):
@@ -626,7 +626,7 @@ class EventParser(object):
 				for event2 in self.feed(data):
 					yield event2
 			elif evtype == "url":
-				yield (self.url, data)
+				yield (self.evurl, data)
 			else:
 				yield UnknownEventError(self, (evtype, data))
 		for event in self.feed("", True):
@@ -667,20 +667,34 @@ class Expat(EventParser):
 			``"enterattr"`` and ``"leaveattr"`` events.
 		"""
 		EventParser.__init__(self)
-		self._parser = expat.ParserCreate(encoding, "\x01" if ns else None)
+		self.encoding = encoding
+		self.xmldecl = xmldecl
+		self.doctype = doctype
+		self.loc = loc
+		self.cdata = cdata
+		self.ns = ns
+
+	def __repr__(self):
+		v = []
+		if self.encoding is not None:
+			v.append(" encoding={0!r}".format(self.encoding))
+		if self.xmldecl is not None:
+			v.append(" xmldecl={0!r}".format(self.xmldecl))
+		if self.doctype is not None:
+			v.append(" doctype={0!r}".format(self.doctype))
+		if self.loc is not None:
+			v.append(" loc={0!r}".format(self.loc))
+		if self.cdata is not None:
+			v.append(" cdata={0!r}".format(self.cdata))
+		if self.ns is not None:
+			v.append(" ns={0!r}".format(self.ns))
+		return "<{0.__class__.__module__}.{0.__class__.__name__} object{1} at {2:#x}>".format(self, "".join(v), id(self))
+
+	def __call__(self, input):
+		self._parser = expat.ParserCreate(self.encoding, "\x01" if self.ns else None)
 		self._parser.buffer_text = True
 		self._parser.ordered_attributes = True
 		self._parser.UseForeignDTD(True)
-		self._encoding = encoding
-		self._xmldecl = xmldecl
-		self._doctype = doctype
-		self._loc = loc
-		self._cdata = cdata
-		self._ns = ns
-		self._indoctype = False
-		self._incdata = False
-		self._position = None # Remember the last reported position
-
 		self._parser.CharacterDataHandler = self._handle_text
 		self._parser.StartElementHandler = self._handle_startelement
 		self._parser.EndElementHandler = self._handle_endelement
@@ -688,35 +702,33 @@ class Expat(EventParser):
 		self._parser.CommentHandler = self._handle_comment
 		self._parser.DefaultHandler = self._handle_default
 
-		if cdata:
+		if self.cdata:
 			self._parser.StartCdataSectionHandler = self._handle_startcdata
 			self._parser.EndCdataSectionHandler = self._handle_endcdata
 
-		if self._xmldecl:
+		if self.xmldecl:
 			self._parser.XmlDeclHandler = self._handle_xmldecl
 
 		# Always required, as we want to recognize whether a comment or PI is in the internal DTD subset
 		self._parser.StartDoctypeDeclHandler = self._handle_begindoctype
 		self._parser.EndDoctypeDeclHandler = self._handle_enddoctype
 
+		self._indoctype = False
+		self._incdata = False
+		self._position = None # Remember the last reported position
+
 		# Buffers the events generated during one call to ``feed``
 		self._buffer = []
 
-	def __repr__(self):
-		v = []
-		if self._encoding is not None:
-			v.append(" encoding={0!r}".format(self._encoding))
-		if self._xmldecl is not None:
-			v.append(" xmldecl={0!r}".format(self._xmldecl))
-		if self._doctype is not None:
-			v.append(" doctype={0!r}".format(self._doctype))
-		if self._loc is not None:
-			v.append(" loc={0!r}".format(self._loc))
-		if self._cdata is not None:
-			v.append(" cdata={0!r}".format(self._cdata))
-		if self._ns is not None:
-			v.append(" ns={0!r}".format(self._ns))
-		return "<{0.__class__.__module__}.{0.__class__.__name__} object{1} at {2:#x}>".format(self, "".join(v), id(self))
+		try:
+			for event in EventParser.__call__(self, input):
+				yield event
+		finally:
+			del self._buffer
+			del self._position
+			del self._incdata
+			del self._indoctype
+			del self._parser
 
 	def feed(self, data, final=False):
 		self._parser.Parse(data, final)
@@ -725,17 +737,17 @@ class Expat(EventParser):
 		return result
 
 	def _getname(self, name):
-		if self._ns:
+		if self.ns:
 			if "\x01" in name:
 				return tuple(name.split("\x01")[::-1])
 			return (name, None)
 		return name
 
 	def _handle_position(self):
-		if self._loc:
+		if self.loc:
 			loc = (self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
 			if loc != self._position:
-				self._buffer.append((self.position, loc))
+				self._buffer.append((self.evposition, loc))
 				self._position = loc
 
 	def _handle_startcdata(self):
@@ -747,52 +759,52 @@ class Expat(EventParser):
 	def _handle_xmldecl(self, version, encoding, standalone):
 		standalone = (bool(standalone) if standalone != -1 else None)
 		self._handle_position()
-		self._buffer.append((self.xmldecl, {"version": version, "encoding": encoding, "standalone": standalone}))
+		self._buffer.append((self.evxmldecl, {"version": version, "encoding": encoding, "standalone": standalone}))
 
 	def _handle_begindoctype(self, doctypename, systemid, publicid, has_internal_subset):
-		if self._doctype:
+		if self.doctype:
 			self._handle_position()
-			self._buffer.append((self.begindoctype, {"name": doctypename, "publicid": publicid, "systemid": systemid}))
+			self._buffer.append((self.evbegindoctype, {"name": doctypename, "publicid": publicid, "systemid": systemid}))
 
 	def _handle_enddoctype(self):
-		if self._doctype:
+		if self.doctype:
 			self._handle_position()
-			self._buffer.append((self.enddoctype, None))
+			self._buffer.append((self.evenddoctype, None))
 
 	def _handle_default(self, data):
 		if data.startswith("&") and data.endswith(";"):
 			self._handle_position()
-			self._buffer.append((self.entity, data[1:-1]))
+			self._buffer.append((self.eventity, data[1:-1]))
 
 	def _handle_comment(self, data):
 		if not self._indoctype:
 			self._handle_position()
-			self._buffer.append((self.comment, data))
+			self._buffer.append((self.evcomment, data))
 
 	def _handle_text(self, data):
 		self._handle_position()
-		self._buffer.append((self.cdata if self._incdata else self.text, data))
+		self._buffer.append((self.evcdata if self._incdata else self.evtext, data))
 
 	def _handle_startelement(self, name, attrs):
 		name = self._getname(name)
 		self._handle_position()
-		self._buffer.append((self.enterstarttagns if self._ns else self.enterstarttag, name))
+		self._buffer.append((self.eventerstarttagns if self.ns else self.eventerstarttag, name))
 		for i in xrange(0, len(attrs), 2):
 			key = self._getname(attrs[i])
-			self._buffer.append((self.enterattrns if self._ns else self.enterattr, key))
-			self._buffer.append((self.text, attrs[i+1]))
-			self._buffer.append((self.leaveattrns if self._ns else self.leaveattr, key))
-		self._buffer.append((self.leavestarttagns if self._ns else self.leavestarttag, name))
+			self._buffer.append((self.eventerattrns if self.ns else self.eventerattr, key))
+			self._buffer.append((self.evtext, attrs[i+1]))
+			self._buffer.append((self.evleaveattrns if self.ns else self.evleaveattr, key))
+		self._buffer.append((self.evleavestarttagns if self.ns else self.evleavestarttag, name))
 
 	def _handle_endelement(self, name):
 		name = self._getname(name)
 		self._handle_position()
-		self._buffer.append((self.endtagns if self._ns else self.endtag, name))
+		self._buffer.append((self.evendtagns if self.ns else self.evendtag, name))
 
 	def _handle_procinst(self, target, data):
 		if not self._indoctype:
 			self._handle_position()
-			self._buffer.append((self.procinst, (target, data)))
+			self._buffer.append((self.evprocinst, (target, data)))
 
 
 class SGMLOP(EventParser):
@@ -808,11 +820,6 @@ class SGMLOP(EventParser):
 		"""
 		EventParser.__init__(self)
 		self.encoding = encoding
-		self._decoder = codecs.getincrementaldecoder("xml")(encoding=encoding)
-		self._parser = sgmlop.XMLParser()
-		self._parser.register(self)
-		self._buffer = []
-		self._hadtext = False
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
@@ -823,48 +830,65 @@ class SGMLOP(EventParser):
 		self._buffer = []
 		return result
 
+	def __call__(self, input):
+		self._decoder = codecs.getincrementaldecoder("xml")(encoding=self.encoding)
+		self._parser = sgmlop.XMLParser()
+		self._parser.register(self)
+		self._buffer = []
+		self._hadtext = False
+
+		try:
+			for event in EventParser.__call__(self, input):
+				yield event
+		finally:
+			del self._hadtext
+			del self._buffer
+			self._parser.register(None)
+			del self._parser
+			del self._decoder
+
 	def handle_comment(self, data):
 		self._hadtext = False
-		self._buffer.append((self.comment, data))
+		self._buffer.append((self.evcomment, data))
 
 	def handle_data(self, data):
 		if self._hadtext:
-			self._buffer[-1] = (self.text, self._buffer[-1][1] + data)
+			self._buffer[-1] = (self.evtext, self._buffer[-1][1] + data)
 		else:
-			self._buffer.append((self.text, data))
+			self._buffer.append((self.evtext, data))
 		self._hadtext = True
 
 	def handle_cdata(self, data):
 		self._hadtext = False
-		self._buffer.append((self.cdata, data))
+		self._buffer.append((self.evcdata, data))
 
 	def handle_proc(self, target, data):
 		self._hadtext = False
-		self._buffer.append((self.procinst, (target, data)))
+		self._buffer.append((self.evprocinst, (target, data)))
 
 	def handle_entityref(self, name):
 		self._hadtext = False
-		self._buffer.append((self.entity, name))
+		self._buffer.append((self.eventity, name))
 
 	def handle_enterstarttag(self, name):
 		self._hadtext = False
-		self._buffer.append((self.enterstarttag, name))
+		self._buffer.append((self.eventerstarttag, name))
 
 	def handle_leavestarttag(self, name):
 		self._hadtext = False
-		self._buffer.append((self.leavestarttag, name))
+		self._buffer.append((self.evleavestarttag, name))
 
 	def handle_enterattr(self, name):
 		self._hadtext = False
-		self._buffer.append((self.enterattr, name))
+		self._buffer.append((self.eventerattr, name))
 
 	def handle_leaveattr(self, name):
 		self._hadtext = False
-		self._buffer.append((self.leaveattr, name))
+		self._buffer.append((self.evleaveattr, name))
 
 	def handle_endtag(self, name):
 		self._hadtext = False
-		self._buffer.append((self.endtag, name))
+		self._buffer.append((self.evendtag, name))
 
 
 class NS(object):
@@ -1410,11 +1434,11 @@ def tree(*pipeline, **kwargs):
 	return stack[0]
 
 
-def iterparse(*pipeline, **kwargs):
+def itertree(*pipeline, **kwargs):
 	"""
 	Parse the event stream :var:`pipeline` iteratively.
 
-	:func:`iterparse` still builds a tree, but it returns a iterator of
+	:func:`itertree` still builds a tree, but it returns a iterator of
 	``(event type, path)`` tuples that track changes to the tree as it is built.
 	``path`` is a list containing the path from the root ``Frag`` object to the
 	node being worked on.
@@ -1434,7 +1458,7 @@ def iterparse(*pipeline, **kwargs):
 
 		>>> from ll.xist import xsc, parsers
 		>>> from ll.xist.ns import xml, html, chars
-		>>> for (evtype, path) in parsers.iterparse(
+		>>> for (evtype, path) in parsers.itertree(
 		... 	parsers.URLSource("http://www.python.org/"),
 		... 	parsers.Expat(ns=True),
 		... 	parsers.Instantiate(pool=xsc.Pool(xml, html, chars)),
