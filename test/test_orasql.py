@@ -199,41 +199,18 @@ if dbname:
 			done.add(obj)
 
 
-	class BitBucket(object):
-		def write(self, text):
-			pass
-
-
-	def withbitbucket(func):
-		def decorator(*args, **kwargs):
-			oldstdout = sys.stdout
-			oldstderr = sys.stderr
-			bitbucket = BitBucket()
-			try:
-				sys.stdout = bitbucket
-				sys.stderr = bitbucket
-				return func(*args, **kwargs)
-			finally:
-				sys.stdout = oldstdout
-				sys.stderr = oldstderr
-		return decorator
-
-
-	@withbitbucket
 	def test_scripts_oracreate():
 		# Test oracreate without executing anything
 		args = "--color yes --verbose --seqcopy {0}".format(dbname)
 		oracreate.main(args.split())
 
 
-	@withbitbucket
 	def test_scripts_oradrop():
 		# Test oradrop without executing anything
 		args = "--color yes --verbose {0}".format(dbname)
 		oradrop.main(args.split())
 
 
-	@withbitbucket
 	def test_scripts_oradiff():
 		# Test oradiff (not really: we will not get any differences)
 		allargs = [
@@ -244,21 +221,18 @@ if dbname:
 			oradiff.main(args.split())
 
 
-	@withbitbucket
 	def test_scripts_oramerge():
 		# Test oramerge (not really: we will not get any differences)
 		args = "--color yes --verbose {0} {0} {0}".format(dbname)
 		oramerge.main(args.split())
 
 
-	@withbitbucket
 	def test_scripts_oragrant():
 		# Test oragrant
 		args = "--color yes {0}".format(dbname)
 		oragrant.main(args.split())
 
 
-	@withbitbucket
 	def test_scripts_orafind():
 		# Test orafind
 		args = "--ignore-case --color yes {0} foo".format(dbname)
