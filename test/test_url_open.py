@@ -124,7 +124,7 @@ def test_chown():
 					assert u1.group() == group
 					assert u2.owner() == owner
 					assert u2.group() == group
-		
+
 					u2.chown(owner, group)
 					assert u1.owner() == owner
 					assert u1.group() == group

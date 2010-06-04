@@ -163,7 +163,7 @@ def main(args=None):
 	p.add_option("-s", "--human-readable-sizes", dest="human", help="Output human readable sizes?", action="store_true")
 	p.add_option("-r", "--recursive", dest="recursive", help="Recursive listing?", action="store_true")
 	p.add_option("-w", "--spacing", dest="spacing", help="Spacing between columns", type="int", default=3)
-	
+
 	(options, args) = p.parse_args(args)
 
 	if options.color == "yes":

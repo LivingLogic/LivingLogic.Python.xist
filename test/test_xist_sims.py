@@ -20,19 +20,19 @@ def test_empty(recwarn):
 
 		e = el1()
 		e.bytes()
-	
+
 		e = el1(u"gurk")
 		e.bytes()
 		w = recwarn.pop(sims.EmptyElementWithContentWarning)
-	
+
 		e = el1(php.php(u"gurk"))
 		e.bytes()
 		w = recwarn.pop(sims.EmptyElementWithContentWarning)
-	
+
 		e = el1(xsc.Comment(u"gurk"))
 		e.bytes()
 		w = recwarn.pop(sims.EmptyElementWithContentWarning)
-	
+
 		e = el1(el1())
 		e.bytes()
 		w = recwarn.pop(sims.EmptyElementWithContentWarning)
@@ -54,30 +54,30 @@ def test_elements(recwarn):
 			xmlns = "ns2"
 
 		el11.model = sims.Elements(el11, el21)
-	
+
 		e = el11()
 		e.bytes()
-	
+
 		e = el11(u"foo")
 		e.bytes()
 		w = recwarn.pop(sims.IllegalTextWarning)
-	
+
 		e = el11(php.php(u"gurk"))
 		e.bytes()
-	
+
 		e = el11(xsc.Comment(u"gurk"))
 		e.bytes()
-	
+
 		e = el11(el11())
 		e.bytes()
-	
+
 		e = el11(el21())
 		e.bytes()
-	
+
 		e = el11(el12())
 		e.bytes()
 		w = recwarn.pop(sims.WrongElementWarning)
-	
+
 		e = el11(el22())
 		e.bytes()
 		w = recwarn.pop(sims.WrongElementWarning)
@@ -99,29 +99,29 @@ def test_elementsortext(recwarn):
 			xmlns = "ns2"
 
 		el11.model = sims.ElementsOrText(el11, el21)
-	
+
 		e = el11()
 		e.bytes()
-	
+
 		e = el11(u"foo")
 		e.bytes()
-	
+
 		e = el11(php.php(u"gurk"))
 		e.bytes()
-	
+
 		e = el11(xsc.Comment(u"gurk"))
 		e.bytes()
-	
+
 		e = el11(el11())
 		e.bytes()
-	
+
 		e = el11(el21())
 		e.bytes()
-	
+
 		e = el11(el12())
 		e.bytes()
 		w = recwarn.pop(sims.WrongElementWarning)
-	
+
 		e = el11(el22())
 		e.bytes()
 		w = recwarn.pop(sims.WrongElementWarning)
@@ -137,16 +137,16 @@ def test_noelements(recwarn):
 
 		e = el1()
 		e.bytes()
-	
+
 		e = el1(u"foo")
 		e.bytes()
-	
+
 		e = el1(php.php(u"gurk"))
 		e.bytes()
-	
+
 		e = el1(xsc.Comment(u"gurk"))
 		e.bytes()
-	
+
 		e = el1(el1())
 		e.bytes()
 		w = recwarn.pop(sims.ElementWarning)
@@ -166,21 +166,21 @@ def test_noelementsortext(recwarn):
 
 		e = el1()
 		e.bytes()
-	
+
 		e = el1(u"foo")
 		e.bytes()
 		w = recwarn.pop(sims.IllegalTextWarning)
-	
+
 		e = el1(php.php(u"gurk"))
 		e.bytes()
-	
+
 		e = el1(xsc.Comment(u"gurk"))
 		e.bytes()
-	
+
 		e = el1(el1())
 		e.bytes()
 		w = recwarn.pop(sims.ElementWarning)
-	
+
 		# Elements from a different namespace are OK
 		e = el1(el2())
 		e.bytes()

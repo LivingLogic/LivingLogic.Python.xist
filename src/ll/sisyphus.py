@@ -171,7 +171,7 @@ class LogFile:
 class Job(object):
 	"""
 	A Job object executes a task once.
-	
+
 	The job announces its presence (and its process id) in a file that is stored
 	in the :dir:`~/run` directory. Logs will be created in the :dir:`~/log`
 	directory (This can be changes by deriving new subclasses).

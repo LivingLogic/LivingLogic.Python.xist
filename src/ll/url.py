@@ -86,7 +86,7 @@ monthname = [None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"
 def httpdate(dt):
 	"""
 	Return a string suitable for a "Last-Modified" and "Expires" header.
-	
+
 	:var:`dt` is a :class:`datetime.datetime` object in UTC.
 	"""
 	return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(dt, weekdayname[dt.weekday()], monthname[dt.month])
@@ -401,7 +401,7 @@ class Connection(object):
 		"""
 		Create the directory :var:`url`.
 		"""
-		
+
 	@misc.notimplemented
 	def makedirs(self, url, mode=0777):
 		"""
@@ -697,7 +697,7 @@ class SshConnection(Connection):
 				if isdir:
 					for subchild in _walk(base, relchildname, pattern, which):
 						yield subchild
-	
+
 		def walk(filename, pattern=None):
 			return _walk(filename, "", pattern, (True, True))
 
@@ -1146,7 +1146,7 @@ class Resource(object):
 	"""
 	A :class:`Resource` is a base class that provides a file-like interface
 	to local and remote files, URLs and other resources.
-	
+
 	Attributes
 	----------
 	Each resource object has the following attributes:
@@ -1503,7 +1503,7 @@ class SshSchemeDefinition(SchemeDefinition):
 		else:
 			remotepython = None
 			nice = None
-			
+
 		context = getcontext(context)
 		if context is threadlocalcontext.__class__.context:
 			raise ValueError("ssh URLs need a custom context")
@@ -1660,7 +1660,7 @@ class Path(object):
 		"""
 		def __get__(self):
 			return self._path.startswith("/")
-	
+
 		def __set__(self, isabs):
 			isabs = bool(isabs)
 			if isabs != self._path.startswith("/"):
@@ -1668,7 +1668,7 @@ class Path(object):
 					self._path = "/" + self._path
 				else:
 					self._path = self._path[1:]
-	
+
 		def __delete__(self):
 			if self._path.startswith("/"):
 				self._path = self._path[1:]
@@ -1711,7 +1711,7 @@ class Path(object):
 
 		def __set__(self, path):
 			self._setpathorsegments(path)
-	
+
 		def __delete__(self):
 			self.clear()
 
@@ -1723,7 +1723,7 @@ class Path(object):
 			if self._segments is None:
 				self._segments = self._path2segments(self._path)
 			return self._segments
-	
+
 		def __set__(self, path):
 			self._setpathorsegments(path)
 
@@ -1742,7 +1742,7 @@ class Path(object):
 				return self[-1]
 			except IndexError:
 				return None
-	
+
 		def __set__(self, file):
 			"""
 			Setting the filename preserves the parameter in the last segment.
@@ -1754,7 +1754,7 @@ class Path(object):
 				self[-1] = file
 			else:
 				self.segments = [file]
-	
+
 		def __delete__(self):
 			"""
 			Deleting the filename preserves the parameter in the last segment.
@@ -1777,7 +1777,7 @@ class Path(object):
 				if pos != -1:
 					ext = segment[pos+1:]
 			return ext
-	
+
 		def __set__(self, ext):
 			if ext is None:
 				del self.ext
@@ -1790,7 +1790,7 @@ class Path(object):
 				else:
 					segment = segment + "." + ext
 				self[-1] = segment
-	
+
 		def __delete__(self):
 			segments = self.segments
 			if segments:
@@ -2391,7 +2391,7 @@ class URL(object):
 					if self._checkscheme(scheme): # if the scheme is illegal assume there is none (e.g. "/foo.php?x=http://www.bar.com", will *not* have the scheme "/foo.php?x=http")
 						self.scheme = scheme # the info about what we have to expect in the rest of the URL can be found in self.reg now
 						url = url[pos+1:]
-	
+
 				# find the fragment (RFC2396, Section 4.1)
 				if self.reg.usefrag:
 					# the fragment itself may not contain a "#", so find the last "#"
@@ -2399,7 +2399,7 @@ class URL(object):
 					if pos != -1:
 						self.frag = _unescape(url[pos+1:])
 						url = url[:pos]
-	
+
 				if self.reg.usehierarchy:
 					# find the query (RFC2396, Section 3.4)
 					pos = url.rfind("?")
@@ -2480,7 +2480,7 @@ class URL(object):
 		"""
 		Join :var:`self` with another (possible relative) :class:`URL`
 		:var:`other`, to form a new :class:`URL`.
-		
+
 		:var:`other` may be a :class:`str`, :class:`unicode` or :class:`URL`
 		object. It may be :const:`None` (referring to the "current document")
 		in which case :var:`self` will be returned. It may also be a list or

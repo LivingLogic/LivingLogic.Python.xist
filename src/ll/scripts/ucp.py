@@ -63,7 +63,7 @@ def main(args=None):
 				if options.verbose:
 					msg = astyle.style_default(astyle.style_url(str(urlwrite)), " (", str(size), " bytes)")
 					stderr.writeln(msg)
-				
+
 
 
 	colors = ("yes", "no", "auto")
@@ -74,7 +74,7 @@ def main(args=None):
 	p.add_option("-g", "--group", dest="group", help="group id or name for target files")
 	p.add_option("-r", "--recursive", dest="recursive", help="Copy stuff recursively?", action="store_true", default=False)
 	p.add_option("-x", "--ignoreerrors", dest="ignoreerrors", help="Ignore errors?", action="store_true", default=False)
-	
+
 	(options, args) = p.parse_args(args)
 	if len(args) < 2:
 		p.error("need at least one source url and one target url")

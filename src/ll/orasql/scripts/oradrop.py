@@ -50,7 +50,7 @@ def main(args=None):
 	connection = orasql.connect(args[0])
 
 	term = not options.execute
-	
+
 	cs = s4connectstring(connection.connectstring())
 
 	def keep(obj):

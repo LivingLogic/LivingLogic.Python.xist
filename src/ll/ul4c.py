@@ -282,15 +282,15 @@ class Opcode(object):
 
 	``"addlist"``
 		Append the object in register :attr:`r2` to the list in register :attr:`r1`.
-	
+
 	``"adddict"``
 		Add a new entry to the dictionary in register :attr:`r1`. The object in
 		:attr:`r2` is the key and the object in register :attr:`r3` is the value.
-	
+
 	``"updatedict"``
 		Update the dictionary in register :attr:`r1` with the items from the
 		dictionary in :attr:`r2`.
-	
+
 	``"loadvar"``:
 		Load the variable named :attr:`arg` into the register :attr:`r1`.
 
@@ -579,7 +579,7 @@ class Template(object):
 		:class:`Template` remains uninitialized, otherwise :var:`source` will be
 		compiled (using :var:`startdelim` and :var:`enddelim` as the tag
 		delimiters).
-		
+
 		"""
 		self.startdelim = startdelim
 		self.enddelim = enddelim
@@ -2359,7 +2359,7 @@ class ExprParser(spark.Parser):
 class ForParser(ExprParser):
 	emptyerror = "loop expression required"
 	start = "for"
-	
+
 	@spark.production('for ::= name in expr0')
 	def for0(self, iter, _0, cont):
 		return For(iter.start, cont.end, iter, cont)

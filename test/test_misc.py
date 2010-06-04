@@ -119,7 +119,7 @@ def test_item():
 	assert misc.item(e, -11, 42) == 42
 
 	iterable = [17, 23, 37]
-	
+
 	# Wrong arguments
 	py.test.raises(TypeError, misc.item)
 	py.test.raises(TypeError, misc.item, [])

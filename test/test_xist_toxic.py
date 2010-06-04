@@ -97,7 +97,7 @@ def sqlservercode():
 		htmlspecials.plaintable(
 			toxic.code(u"""
 				set @i = 1;
-			   
+
 				declare @row_name varchar(100);
 				declare person_cursor cursor for
 					select name from person where name like @search

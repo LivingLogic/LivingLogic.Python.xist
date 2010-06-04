@@ -131,11 +131,11 @@ def test_partial():
 		result = (u"", u"", u"", u"", u"", u"", u"", u"\u1234", u"", u"", u"", u"a")
 		check_partial(decoder, u"\u1234a".encode("utf-32"), *result)
 		decoder.reset()
-	
+
 		# Fake utf-32 stored big endian
 		check_partial(decoder, u"\ufeff\u1234a".encode("utf-32-be"), *result)
 		decoder.reset()
-	
+
 		# Fake utf-32 stored little endian
 		check_partial(decoder, u"\ufeff\u1234a".encode("utf-32-le"), *result)
 		decoder.reset()
@@ -236,4 +236,4 @@ def test_encoder():
 
 	# No recursion
 	py.test.raises(ValueError, u"<?xml version='1.0' encoding='xml'?><gurk/>".encode, "xml")
-	
+

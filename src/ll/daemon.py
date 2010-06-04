@@ -94,7 +94,7 @@ class Daemon(object):
 		os.dup2(si.fileno(), sys.stdin.fileno())
 		os.dup2(so.fileno(), sys.stdout.fileno())
 		os.dup2(se.fileno(), sys.stderr.fileno())
-	
+
 	def handlesighup(self, signum, frame):
 		"""
 		Handle a ``SIG_HUP`` signal: Reopen standard file descriptors.
@@ -138,7 +138,7 @@ class Daemon(object):
 		# Finish up with the current stdout/stderr
 		sys.stdout.flush()
 		sys.stderr.flush()
-	
+
 		# Do first fork
 		try:
 			pid = os.fork()
@@ -146,12 +146,12 @@ class Daemon(object):
 				sys.exit(0) # Exit first parent
 		except OSError, exc:
 			sys.exit("{0}: fork #1 failed: ({1}) {2}\n".format(sys.argv[0], exc.errno, exc.strerror))
-	
+
 		# Decouple from parent environment
 		os.chdir("/")
 		os.umask(0)
 		os.setsid()
-	
+
 		# Do second fork
 		try:
 			pid = os.fork()
@@ -159,15 +159,15 @@ class Daemon(object):
 				sys.exit(0) # Exit second parent
 		except OSError, exc:
 			sys.exit("{0}: fork #2 failed: ({1}) {2}\n".format(sys.argv[0], exc.errno, exc.strerror))
-	
+
 		# Now I am a daemon!
-	
+
 		# Switch user
 		self.switchuser(self.options.user, self.options.group)
 
 		# Redirect standard file descriptors (will belong to the new user)
 		self.openstreams()
-	
+
 		# Write pid file (will belong to the new user)
 		if self.options.pidfile is not None:
 			open(self.options.pidfile, "wb").write(str(os.getpid()))

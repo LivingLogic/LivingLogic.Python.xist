@@ -402,7 +402,7 @@ class Action(object):
 		output = ["arg {0}{1}".format(i, format(arg)) for (i, arg) in enumerate(self.getargs())]
 		for (argname, arg) in self.getkwargs().iteritems():
 			output.append("arg {0}{1}".format(argname, format(arg)))
-			
+
 		if output:
 			output = " with {0}".format(", ".join(output))
 		else:
@@ -1406,11 +1406,11 @@ class Project(dict):
 			text = "0"
 		else:
 			rest = delta.seconds
-	
+
 			(rest, secs) = divmod(rest, 60)
 			(rest, mins) = divmod(rest, 60)
 			rest += delta.days*24
-	
+
 			secs += delta.microseconds/1000000.
 			if rest:
 				text = "{0:d}:{1:02d}:{2:06.3f}h".format(rest, mins, secs)
@@ -1691,13 +1691,13 @@ class Project(dict):
 			self.filesread = 0
 			self.byteswritten = 0
 			self.fileswritten = 0
-	
+
 			self.buildno += 1 # increment build number so that actions that stored the old one can detect a new build round
-	
+
 			for target in targets:
 				data = self._get(target, bigcrunch)
 			now = datetime.datetime.utcnow()
-	
+
 			if self.showsummary:
 				args = []
 				self.write(

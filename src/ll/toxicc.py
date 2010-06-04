@@ -62,7 +62,7 @@ The same example for SQL Server might look like this::
 				htmlspecials.plaintable(
 					toxic.code("""
 						set @i = 1;
-				   
+
 						declare @row_name varchar(100);
 						declare person_cursor cursor for
 							select name from person where name like @search
@@ -89,7 +89,7 @@ The same example for SQL Server might look like this::
 					""")
 				)
 			)
-			return e.convert(converter) 
+			return e.convert(converter)
 
 	print toxic.xml2sqs(search().conv().string(encoding"us-ascii")).encode("us-ascii")
 

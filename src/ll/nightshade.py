@@ -78,7 +78,7 @@ def getnow():
 def httpdate(dt):
 	"""
 	Return a string suitable for a "Last-Modified" and "Expires" header.
-	
+
 	:var:`dt` is a :class:`datetime.datetime` object. If ``:var:`dt`.tzinfo`` is
 	:const:`None` :var:`dt` is assumed to be in the local timezone (using the
 	current UTC offset which might be different from the one used by :var:`dt`).
@@ -94,7 +94,7 @@ class Connect(object):
 	"""
 	:class:`Connect` objects can be used as decorators that wraps a function
 	that needs a database connection.
-	
+
 	If calling the wrapped function results in a database exception that has
 	been caused by a lost connection to the database or similar problems,
 	the function is retried with a new database connection.
@@ -220,7 +220,7 @@ class Call(object):
 		:var:`p_encoding` (a string), :var:`p_etag` (a string) and
 		:var:`p_cachecontrol` (a string) are mapped to the appropriate CherryPy
 		response headers. If :var:`p_etag` is not specified a value is calculated.
-	
+
 		If the procedure/function raised a PL/SQL exception with a code between
 		20200 and 20599, 20000 will be substracted from this value and the
 		resulting value will be used as the HTTP response code, i.e. 20404 will

@@ -118,7 +118,7 @@ def stream2xnd(stream, sims="simple", parser="etree"):
 		node = etree.parse(stream).getroot()
 	else:
 		raise ValueError("unknown parser {0!r}".format(parser))
-	
+
 	return etree2xnd(sims, node)
 
 

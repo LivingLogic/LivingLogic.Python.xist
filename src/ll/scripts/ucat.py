@@ -52,7 +52,7 @@ def main(args=None):
 	p.add_option("-v", "--verbose", dest="verbose", help="Be verbose?", action="store_true", default=False)
 	p.add_option("-r", "--recursive", dest="recursive", help="Copy stuff recursively?", action="store_true", default=False)
 	p.add_option("-x", "--ignoreerrors", dest="ignoreerrors", help="Ignore errors?", action="store_true", default=False)
-	
+
 	(options, args) = p.parse_args(args)
 	if len(args) < 1:
 		p.error("need at least one url")

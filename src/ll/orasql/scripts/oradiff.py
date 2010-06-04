@@ -151,7 +151,7 @@ def main(args=None):
 			if "$" in obj.name or obj.name.startswith("SYS_EXPORT_SCHEMA_"):
 				return False
 			return True
-	
+
 		for (i, obj) in enumerate(connection.iterobjects(mode="flat", schema="user")):
 			keepdef = keep(obj)
 			if options.verbose:

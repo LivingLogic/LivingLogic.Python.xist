@@ -214,7 +214,7 @@ def test_attrcontains():
 	yield check, [node[0]], u"align", u"ri", u"ef"
 	yield check, [], u"align", u"ri", u"en"
 	yield check, [], u"align", u"x"
-	yield check, [], u"gurk", u"", 
+	yield check, [], u"gurk", u"",
 
 
 def test_attrstartswith():

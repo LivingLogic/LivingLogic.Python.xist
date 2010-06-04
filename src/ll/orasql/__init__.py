@@ -553,7 +553,7 @@ class Connection(Connection):
 				if mode == "create" or mode == "flat":
 					for subobj in do(obj):
 						yield subobj
-	
+
 				if not obj.ismview(self):
 					# Primary key
 					if schema == "all":
@@ -563,7 +563,7 @@ class Connection(Connection):
 					for rec2 in cursor.fetchall():
 						for subobj in do(PrimaryKey(rec2.constraint_name, rec2.owner, self)):
 							yield subobj
-	
+
 					# Comments
 					if schema == "all":
 						cursor.execute("select column_name from all_tab_columns where owner=:owner and table_name=:name order by column_id", owner=rec.owner, name=rec.table_name)
@@ -676,7 +676,7 @@ class Connection(Connection):
 					decode((select count(*) from all_arguments where owner = nvl(:owner, user) and lower(object_name) = lower(:object_name) and lower(package_name) = lower(:package_name) and argument_name is null), 0, 'procedure', 'function') as object_type
 				from
 					all_procedures
-				where 
+				where
 					lower(procedure_name) = lower(:object_name) and
 					lower(owner) = lower(nvl(:owner, user)) and
 					lower(object_name) = lower(:package_name)
@@ -1123,7 +1123,7 @@ class Object(object):
 		yield "name"
 		yield "owner"
 		yield "connection"
-	
+
 		if mode == "detail":
 			yield "cdate()"
 			yield "udate()"
@@ -2610,11 +2610,11 @@ class OracleConnection(url_.Connection):
 	def _isroot(self, url):
 		path = url.path
 		return len(path) == 0 or (len(path) == 1 and not path[0])
-		
+
 	def _istype(self, url):
 		path = url.path
 		return len(path) == 1 or (len(path) == 2 and not path[1])
-		
+
 	def isdir(self, url):
 		return self._isroot(url) or self._istype(url)
 

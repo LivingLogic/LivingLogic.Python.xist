@@ -87,4 +87,4 @@ def test_pushpop():
 	assert "".join(c.feed("hinz")) == "\033[36mhinz"
 	c.popcolor()
 	assert "".join(c.feed("kunz")) == "\033[0mkunz"
-	
+
