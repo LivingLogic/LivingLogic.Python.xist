@@ -453,7 +453,8 @@ class ETreeSource(object):
 
 	def __iter__(self):
 		"""
-		Produces an event stream for the ElementTree object :var:`self.data`.
+		Produces an event stream for the ElementTree object passed as
+		:var:`data` to the constructor.
 		"""
 		yield ("url", self.url)
 		for event in self._asxist(self.data):
