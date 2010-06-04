@@ -109,8 +109,14 @@ print node.conv().bytes(encoding="us-ascii")
 
 <prog>
 from ll.xist import parsers
+from ll.xist.ns import html
 
-node = parsers.parseurl("http://www.python.org/", tidy=True)
+node = parsers.tree(
+	parsers.URLSource("http://www.python.org/"),
+	parsers.Tidy(),
+	parsers.NS(html),
+	parsers.Instantiate()
+)
 </prog>
 
 </section>
@@ -124,9 +130,13 @@ inside links on Python's homepage:</p>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseurl("http://www.python.org/", utidy=True)</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.tree(</input>
+<prompt>... </prompt><input>	parsers.URLSource("http://www.python.org/"),</input>
+<prompt>... </prompt><input>	parsers.Expat(ns=True),</input>
+<prompt>... </prompt><input>	parsers.Instantiate()</input>
+<prompt>... </prompt><input>)</input>
 <prompt>&gt;&gt;&gt; </prompt><input>for img in node.walknodes(html.a/html.img):</input>
-<prompt>... </prompt><input>   print img.atts.src</input>
+<prompt>... </prompt><input>   print img.attrs.src</input>
 <prompt>... </prompt><input></input>
 http://www.python.org/images/python-logo.gif
 http://www.python.org/images/trans.gif
@@ -140,7 +150,11 @@ following:</p>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers, xfind</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseurl("http://www.python.org/", tidy=True)</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.tree(</input>
+<prompt>... </prompt><input>	parsers.URLSource("http://www.python.org/"),</input>
+<prompt>... </prompt><input>	parsers.Expat(ns=True),</input>
+<prompt>... </prompt><input>	parsers.Instantiate()</input>
+<prompt>... </prompt><input>)</input>
 <prompt>&gt;&gt;&gt; </prompt><input>for path in node.walkpaths(html.a/html.img):</input>
 <prompt>... </prompt><input>   print path[-2].attrs.href, path[-1].attrs.src</input>
 http://www.python.org/ http://www.python.org/images/python-logo.gif
@@ -156,7 +170,11 @@ following:</p>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll import misc</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseurl("http://www.python.org/", tidy=True)</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.tree(</input>
+<prompt>... </prompt><input>	parsers.URLSource("http://www.python.org/"),</input>
+<prompt>... </prompt><input>	parsers.Expat(ns=True),</input>
+<prompt>... </prompt><input>	parsers.Instantiate()</input>
+<prompt>... </prompt><input>)</input>
 <prompt>&gt;&gt;&gt; </prompt><input>misc.count(node.walk(html.a))</input>
 83
 </tty>
@@ -178,7 +196,11 @@ def p2p(node, converter):
 		node = node.replace("python", "parrot")
 	return node
 
-node = parsers.parseurl("http://www.python.org/", tidy=True)
+node = parsers.tree(
+	parsers.URLSource("http://www.python.org/"),
+	parsers.Expat(ns=True),
+	parsers.Instantiate()
+)
 
 node = node.mapped(p2p)
 node.write(open("parrot_index.html", "wb"))
@@ -194,7 +216,11 @@ makes it possible to output an &xist; tree as usable Python source code:</p>
 
 <tty>
 <prompt>&gt;&gt;&gt;</prompt> <input>from ll.xist import parsers, presenters</input>
-<prompt>&gt;&gt;&gt;</prompt> <input>node = parsers.parseurl("http://www.python.org/", tidy=True)</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.tree(</input>
+<prompt>... </prompt><input>	parsers.URLSource("http://www.python.org/"),</input>
+<prompt>... </prompt><input>	parsers.Expat(ns=True),</input>
+<prompt>... </prompt><input>	parsers.Instantiate()</input>
+<prompt>... </prompt><input>)</input>
 <prompt>&gt;&gt;&gt;</prompt> <input>print presenters.CodePresenter(node)</input>
 ll.xist.xsc.Frag(
 	ll.xist.ns.html.html(
