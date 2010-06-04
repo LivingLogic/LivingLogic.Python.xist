@@ -150,14 +150,13 @@ def test_parsevalueattrs(recwarn):
 
 def test_multipleparsecalls():
 	def check(parser):
-		b = parsers.Builder(parser=parser)
 		for i in xrange(3):
 			try:
-				b.parsestring("<>gurk")
+				parsers.tree("<>gurk", parser, parsers.NS(html), parsers.Instantiate())
 			except Exception:
 				pass
 			for j in xrange(3):
-				assert b.parsestring("<a>gurk</a>").bytes() == "<a>gurk</a>"
+				assert parsers.tree("<a>gurk</a>", parser, parsers.NS(html), parsers.Instantiate()).bytes() == "<a>gurk</a>"
 
 	# A Parser instance should be able to parse multiple XML sources, even when some of the parse calls fail
 	for parser in (parsers.SGMLOP, parsers.Expat):
