@@ -15,18 +15,18 @@ from ll.xist.ns import htmlspecials
 
 def test_pixel():
 	e = htmlspecials.pixel()
-	assert str(e.conv().attrs.src) == "root:px/spc.gif"
+	assert unicode(e.conv().attrs.src) == u"root:px/spc.gif"
 
-	e = htmlspecials.pixel(src="root:nix.gif")
-	assert str(e.conv().attrs.src) == "root:nix.gif"
+	e = htmlspecials.pixel(src=u"root:nix.gif")
+	assert unicode(e.conv().attrs.src) == u"root:nix.gif"
 
 	c = converters.Converter()
-	c[htmlspecials.pixel].src = "root:spam.gif"
+	c[htmlspecials.pixel].src = u"root:spam.gif"
 	e = htmlspecials.pixel()
-	assert str(e.conv(c).attrs.src) == "root:spam.gif"
+	assert unicode(e.conv(c).attrs.src) == u"root:spam.gif"
 
-	e = htmlspecials.pixel(color="red")
-	assert str(e.conv().attrs.style) == "background-color: red;"
+	e = htmlspecials.pixel(color=u"red")
+	assert unicode(e.conv().attrs.style) == u"background-color: red;"
 
-	e = htmlspecials.pixel(color="red", style="display: block;")
-	assert str(e.conv().attrs.style) == "background-color: red; display: block;"
+	e = htmlspecials.pixel(color=u"red", style=u"display: block;")
+	assert unicode(e.conv().attrs.style) == u"background-color: red; display: block;"

@@ -18,9 +18,9 @@ def test_pickle():
 	e = xsc.Frag(
 		xml.XML(),
 		html.DocTypeXHTML10transitional(),
-		xsc.Comment("foo"),
-		html.html(xml.Attrs(lang="de"), lang="de"),
-		php.expression("$foo"),
+		xsc.Comment(u"foo"),
+		html.html(xml.Attrs(lang=u"de"), lang=u"de"),
+		php.expression(u"$foo"),
 		chars.nbsp(),
 		abbr.xml(),
 	)

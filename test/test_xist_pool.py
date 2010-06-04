@@ -18,73 +18,73 @@ from ll.xist.ns import html, php, chars, abbr
 def test_basics():
 	# empty pool
 	r = xsc.Pool()
-	py.test.raises(xsc.IllegalElementError, r.elementclass, "a", html)
-	py.test.raises(xsc.IllegalElementError, r.elementclass_xml, "a", html)
+	py.test.raises(xsc.IllegalElementError, r.elementclass, u"a", html)
+	py.test.raises(xsc.IllegalElementError, r.elementclass_xml, u"a", html)
 
 	# register one element
 	r = xsc.Pool(html.a)
-	assert r.elementclass("a", html) is html.a
-	assert r.elementclass_xml("a", html) is html.a
-	py.test.raises(xsc.IllegalElementError, r.elementclass, "b", html)
-	py.test.raises(xsc.IllegalElementError, r.elementclass_xml, "b", html)
+	assert r.elementclass(u"a", html) is html.a
+	assert r.elementclass_xml(u"a", html) is html.a
+	py.test.raises(xsc.IllegalElementError, r.elementclass, u"b", html)
+	py.test.raises(xsc.IllegalElementError, r.elementclass_xml, u"b", html)
 
 	# register a module
 	r = xsc.Pool(html)
-	assert r.elementclass("a", html) is html.a
-	assert r.elementclass_xml("a", html) is html.a
-	assert r.elementclass("b", html) is html.b
-	assert r.elementclass_xml("b", html) is html.b
-	py.test.raises(xsc.IllegalElementError, r.elementclass, "c", html)
-	py.test.raises(xsc.IllegalElementError, r.elementclass_xml, "c", html)
+	assert r.elementclass(u"a", html) is html.a
+	assert r.elementclass_xml(u"a", html) is html.a
+	assert r.elementclass(u"b", html) is html.b
+	assert r.elementclass_xml(u"b", html) is html.b
+	py.test.raises(xsc.IllegalElementError, r.elementclass, u"c", html)
+	py.test.raises(xsc.IllegalElementError, r.elementclass_xml, u"c", html)
 
 	# procinsts
 	r = xsc.Pool(php.php)
-	assert r.procinstclass("php") is php.php
-	assert r.procinstclass_xml("php") is php.php
-	assert r.procinst("php", "foo") == php.php("foo")
-	assert r.procinst_xml("php", "foo") == php.php("foo")
-	py.test.raises(xsc.IllegalProcInstError, r.procinstclass, "nophp")
-	py.test.raises(xsc.IllegalProcInstError, r.procinstclass_xml, "nophp")
+	assert r.procinstclass(u"php") is php.php
+	assert r.procinstclass_xml(u"php") is php.php
+	assert r.procinst(u"php", u"foo") == php.php(u"foo")
+	assert r.procinst_xml(u"php", u"foo") == php.php(u"foo")
+	py.test.raises(xsc.IllegalProcInstError, r.procinstclass, u"nophp")
+	py.test.raises(xsc.IllegalProcInstError, r.procinstclass_xml, u"nophp")
 
 	# entities
 	r = xsc.Pool(abbr)
-	assert r.entityclass("xist") is abbr.xist
-	assert r.entityclass_xml("xist") is abbr.xist
-	assert r.entity("xist") == abbr.xist()
-	assert r.entity_xml("xist") == abbr.xist()
-	py.test.raises(xsc.IllegalEntityError, r.entityclass, "dontxist")
-	py.test.raises(xsc.IllegalEntityError, r.entityclass_xml, "dontxist")
+	assert r.entityclass(u"xist") is abbr.xist
+	assert r.entityclass_xml(u"xist") is abbr.xist
+	assert r.entity(u"xist") == abbr.xist()
+	assert r.entity_xml(u"xist") == abbr.xist()
+	py.test.raises(xsc.IllegalEntityError, r.entityclass, u"dontxist")
+	py.test.raises(xsc.IllegalEntityError, r.entityclass_xml, u"dontxist")
 
 	# charrefs
 	r = xsc.Pool(chars)
-	assert r.charrefclass("ouml") is chars.ouml
-	assert r.charrefclass_xml("ouml") is chars.ouml
+	assert r.charrefclass(u"ouml") is chars.ouml
+	assert r.charrefclass_xml(u"ouml") is chars.ouml
 	assert r.charrefclass(ord(u"ö")) is chars.ouml
 	assert r.charrefclass_xml(ord(u"ö")) is chars.ouml
-	assert r.charref("ouml") == chars.ouml()
-	assert r.charref_xml("ouml") == chars.ouml()
+	assert r.charref(u"ouml") == chars.ouml()
+	assert r.charref_xml(u"ouml") == chars.ouml()
 	assert r.charref(ord(u"ö")) == chars.ouml()
 	assert r.charref_xml(ord(u"ö")) == chars.ouml()
-	py.test.raises(xsc.IllegalEntityError, r.charrefclass, "nothing")
-	py.test.raises(xsc.IllegalEntityError, r.charrefclass_xml, "nothing")
+	py.test.raises(xsc.IllegalEntityError, r.charrefclass, u"nothing")
+	py.test.raises(xsc.IllegalEntityError, r.charrefclass_xml, u"nothing")
 
 
 def test_textcomment():
 	r = xsc.Pool()
-	assert r.text("foo") == xsc.Text("foo")
-	assert r.comment("foo") == xsc.Comment("foo")
+	assert r.text(u"foo") == xsc.Text(u"foo")
+	assert r.comment(u"foo") == xsc.Comment(u"foo")
 
 
 def test_defaultpool():
 	r = xsc.threadlocalpool.pool
-	assert r.elementclass("a", html) is html.a
-	assert r.elementclass_xml("a", html) is html.a
-	assert r.procinstclass("php") is php.php
-	assert r.procinstclass_xml("php") is php.php
-	assert r.entityclass("xist") is abbr.xist
-	assert r.entityclass_xml("xist") is abbr.xist
-	assert r.charrefclass("euro") is chars.euro
-	assert r.charrefclass_xml("euro") is chars.euro
+	assert r.elementclass(u"a", html) is html.a
+	assert r.elementclass_xml(u"a", html) is html.a
+	assert r.procinstclass(u"php") is php.php
+	assert r.procinstclass_xml(u"php") is php.php
+	assert r.entityclass(u"xist") is abbr.xist
+	assert r.entityclass_xml(u"xist") is abbr.xist
+	assert r.charrefclass(u"euro") is chars.euro
+	assert r.charrefclass_xml(u"euro") is chars.euro
 	assert r.charrefclass(ord(u"\N{EURO SIGN}")) is chars.euro
 	assert r.charrefclass_xml(ord(u"\N{EURO SIGN}")) is chars.euro
 
@@ -108,74 +108,74 @@ def test_names():
 				xmlns = "nix"
 
 	# elements
-	assert r.elementclass("element", "nix") is element
-	assert r.elementclass_xml("-element", "nix") is element
-	assert r.element("element", "nix") == element()
-	assert r.element_xml("-element", "nix") == element()
-	py.test.raises(xsc.IllegalElementError, r.elementclass, "-element", "nix")
-	py.test.raises(xsc.IllegalElementError, r.elementclass_xml, "element", "nix")
+	assert r.elementclass(u"element", u"nix") is element
+	assert r.elementclass_xml(u"-element", u"nix") is element
+	assert r.element(u"element", u"nix") == element()
+	assert r.element_xml(u"-element", u"nix") == element()
+	py.test.raises(xsc.IllegalElementError, r.elementclass, u"-element", u"nix")
+	py.test.raises(xsc.IllegalElementError, r.elementclass_xml, u"element", u"nix")
 	# make sure that the default pool didn't pick up the new class
-	py.test.raises(xsc.IllegalElementError, xsc.threadlocalpool.pool.elementclass, "element", "nix")
-	py.test.raises(xsc.IllegalElementError, xsc.threadlocalpool.pool.elementclass_xml, "-element", "nix")
+	py.test.raises(xsc.IllegalElementError, xsc.threadlocalpool.pool.elementclass, u"element", u"nix")
+	py.test.raises(xsc.IllegalElementError, xsc.threadlocalpool.pool.elementclass_xml, u"-element", u"nix")
 
 	# procinsts
-	assert r.procinstclass("procinst") is procinst
-	assert r.procinstclass_xml("-procinst") is procinst
-	assert r.procinst("procinst", "spam") == procinst("spam")
-	assert r.procinst_xml("-procinst", "spam") == procinst("spam")
-	py.test.raises(xsc.IllegalProcInstError, r.procinstclass, "-procinst")
-	py.test.raises(xsc.IllegalProcInstError, r.procinstclass_xml, "procinst")
+	assert r.procinstclass(u"procinst") is procinst
+	assert r.procinstclass_xml(u"-procinst") is procinst
+	assert r.procinst(u"procinst", u"spam") == procinst(u"spam")
+	assert r.procinst_xml(u"-procinst", u"spam") == procinst(u"spam")
+	py.test.raises(xsc.IllegalProcInstError, r.procinstclass, u"-procinst")
+	py.test.raises(xsc.IllegalProcInstError, r.procinstclass_xml, u"procinst")
 	# make sure that the default pool didn't pick up the new class
-	py.test.raises(xsc.IllegalProcInstError, xsc.threadlocalpool.pool.procinstclass, "procinst")
-	py.test.raises(xsc.IllegalProcInstError, xsc.threadlocalpool.pool.procinstclass_xml, "-procinst")
+	py.test.raises(xsc.IllegalProcInstError, xsc.threadlocalpool.pool.procinstclass, u"procinst")
+	py.test.raises(xsc.IllegalProcInstError, xsc.threadlocalpool.pool.procinstclass_xml, u"-procinst")
 
 	# entities
-	assert r.entityclass("entity") is entity
-	assert r.entityclass_xml("-entity") is entity
-	assert r.entity("entity") == entity()
-	assert r.entity_xml("-entity") == entity()
-	py.test.raises(xsc.IllegalEntityError, r.entityclass, "-entity")
-	py.test.raises(xsc.IllegalEntityError, r.entityclass_xml, "entity")
+	assert r.entityclass(u"entity") is entity
+	assert r.entityclass_xml(u"-entity") is entity
+	assert r.entity(u"entity") == entity()
+	assert r.entity_xml(u"-entity") == entity()
+	py.test.raises(xsc.IllegalEntityError, r.entityclass, u"-entity")
+	py.test.raises(xsc.IllegalEntityError, r.entityclass_xml, u"entity")
 	# make sure that the default pool didn't pick up the new class
-	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.entityclass, "entity")
-	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.entityclass_xml, "-entity")
+	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.entityclass, u"entity")
+	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.entityclass_xml, u"-entity")
 	# the charref is an entity too
-	assert r.entityclass("charref") is charref
-	assert r.entityclass_xml("-charref") is charref
-	assert r.entity("charref") == charref()
-	assert r.entity_xml("-charref") == charref()
-	py.test.raises(xsc.IllegalEntityError, r.entityclass, "-charref")
-	py.test.raises(xsc.IllegalEntityError, r.entityclass_xml, "charref")
+	assert r.entityclass(u"charref") is charref
+	assert r.entityclass_xml(u"-charref") is charref
+	assert r.entity(u"charref") == charref()
+	assert r.entity_xml(u"-charref") == charref()
+	py.test.raises(xsc.IllegalEntityError, r.entityclass, u"-charref")
+	py.test.raises(xsc.IllegalEntityError, r.entityclass_xml, u"charref")
 	# make sure that the default pool didn't pick up the new class
-	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.entityclass, "charref")
-	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.entityclass_xml, "-charref")
+	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.entityclass, u"charref")
+	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.entityclass_xml, u"-charref")
 
 	# charrefs
-	assert r.charrefclass("charref") is charref
-	assert r.charrefclass_xml("-charref") is charref
+	assert r.charrefclass(u"charref") is charref
+	assert r.charrefclass_xml(u"-charref") is charref
 	assert r.charrefclass(42) is charref
 	assert r.charrefclass_xml(42) is charref
-	assert r.charref("charref") == charref()
-	assert r.charref_xml("-charref") == charref()
+	assert r.charref(u"charref") == charref()
+	assert r.charref_xml(u"-charref") == charref()
 	assert r.charref(42) == charref()
 	assert r.charref_xml(42) == charref()
-	py.test.raises(xsc.IllegalEntityError, r.charrefclass, "-charref")
-	py.test.raises(xsc.IllegalEntityError, r.charrefclass_xml, "charref")
+	py.test.raises(xsc.IllegalEntityError, r.charrefclass, u"-charref")
+	py.test.raises(xsc.IllegalEntityError, r.charrefclass_xml, u"charref")
 	# make sure that the default pool didn't pick up the new class
-	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.charrefclass, "charref")
-	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.charrefclass_xml, "-charref")
+	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.charrefclass, u"charref")
+	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.charrefclass_xml, u"-charref")
 	# make sure that entity has not been register as a charref
-	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.charrefclass, "entity")
-	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.charrefclass_xml, "-entity")
+	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.charrefclass, u"entity")
+	py.test.raises(xsc.IllegalEntityError, xsc.threadlocalpool.pool.charrefclass_xml, u"-entity")
 
 	# attributes
-	assert r.attrclass("attr", "nix") is Attrs.attr
-	assert r.attrclass_xml("-attr", "nix") is Attrs.attr
-	py.test.raises(xsc.IllegalAttrError, r.attrclass, "-attr", "nix")
-	py.test.raises(xsc.IllegalAttrError, r.attrclass_xml, "attr", "nix")
+	assert r.attrclass(u"attr", u"nix") is Attrs.attr
+	assert r.attrclass_xml(u"-attr", u"nix") is Attrs.attr
+	py.test.raises(xsc.IllegalAttrError, r.attrclass, u"-attr", u"nix")
+	py.test.raises(xsc.IllegalAttrError, r.attrclass_xml, u"attr", u"nix")
 	# make sure that the default pool didn't pick up the new class
-	py.test.raises(xsc.IllegalAttrError, xsc.threadlocalpool.pool.attrclass, "attr", "nix")
-	py.test.raises(xsc.IllegalAttrError, xsc.threadlocalpool.pool.attrclass_xml, "-attr", "nix")
+	py.test.raises(xsc.IllegalAttrError, xsc.threadlocalpool.pool.attrclass, u"attr", u"nix")
+	py.test.raises(xsc.IllegalAttrError, xsc.threadlocalpool.pool.attrclass_xml, u"-attr", u"nix")
 
 
 def test_names2():
@@ -213,8 +213,8 @@ def test_stack():
 				xmlname = "foo"
 				xmlns = "nix"
 
-	assert r1.elementclass_xml("foo", "nix") is foo1
-	assert r2.elementclass_xml("foo", "nix") is foo2
+	assert r1.elementclass_xml(u"foo", u"nix") is foo1
+	assert r2.elementclass_xml(u"foo", u"nix") is foo2
 
 
 def test_chain():
@@ -232,13 +232,13 @@ def test_chain():
 		class bar(xsc.Element):
 			xmlns = "nix"
 
-	assert p1.elementclass_xml("foo", "nix") is foo1
-	py.test.raises(xsc.IllegalElementError, p1.elementclass, "bar", "nix")
-	assert p1.elementclass_xml("baz", "nix") is baz
+	assert p1.elementclass_xml(u"foo", u"nix") is foo1
+	py.test.raises(xsc.IllegalElementError, p1.elementclass, u"bar", u"nix")
+	assert p1.elementclass_xml(u"baz", u"nix") is baz
 
-	assert p2.elementclass_xml("foo", "nix") is foo2
-	assert p2.elementclass_xml("bar", "nix") is bar
-	assert p2.elementclass_xml("baz", "nix") is baz
+	assert p2.elementclass_xml(u"foo", u"nix") is foo2
+	assert p2.elementclass_xml(u"bar", u"nix") is bar
+	assert p2.elementclass_xml(u"baz", u"nix") is baz
 
 
 def test_chain2():
@@ -251,7 +251,7 @@ def test_chain2():
 			xmlns = "nix"
 
 	p = xsc.Pool(p1, p2)
-	assert p.elementclass_xml("foo2", "nix") is foo2
+	assert p.elementclass_xml(u"foo2", u"nix") is foo2
 
 
 def test_mixedattrnames():
@@ -293,12 +293,12 @@ def test_mixedattrnames():
 			assert unicode(node.attrs.get_xml(name.swapcase())) == value
 
 	tests = [
-		("a", "a"),
-		("A", "A"),
-		(Test.Attrs.a, "a"),
-		(Test.Attrs.A, "A"),
-		(Attrs.a, "a2"),
-		(Attrs.A, "A2")
+		(u"a", u"a"),
+		(u"A", u"A"),
+		(Test.Attrs.a, u"a"),
+		(Test.Attrs.A, u"A"),
+		(Attrs.a, u"a2"),
+		(Attrs.A, u"A2")
 	]
 	for (name, value) in tests:
 		yield check, name, value

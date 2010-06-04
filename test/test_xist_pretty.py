@@ -18,25 +18,25 @@ def test_pretty():
 		assert node.pretty().bytes() == result
 
 	tests = [
-		(html.p("apple", "tree"), "<p>appletree</p>"),
-		(html.p("apple", html.br(), "tree"), "<p>apple<br />tree</p>"),
-		(html.p(php.php("apple")), "<p>\n\t<?php apple?>\n</p>"),
-		(html.p(php.php("apple"), "tree"), "<p><?php apple?>tree</p>"),
+		(html.p(u"apple", u"tree"), b"<p>appletree</p>"),
+		(html.p(u"apple", html.br(), u"tree"), b"<p>apple<br />tree</p>"),
+		(html.p(php.php(u"apple")), b"<p>\n\t<?php apple?>\n</p>"),
+		(html.p(php.php(u"apple"), u"tree"), b"<p><?php apple?>tree</p>"),
 		(
-			html.div(2*html.p("apple", "tree"), html.br()),
-			"<div>\n\t<p>appletree</p>\n\t<p>appletree</p>\n\t<br />\n</div>"
+			html.div(2*html.p(u"apple", u"tree"), html.br()),
+			b"<div>\n\t<p>appletree</p>\n\t<p>appletree</p>\n\t<br />\n</div>"
 		),
 		(
 			html.div(
-				php.php("apple"),
-				html.p("apple", "tree"),
+				php.php(u"apple"),
+				html.p(u"apple", u"tree"),
 				html.div(
-					html.p("apple"),
-					html.p("tree"),
+					html.p(u"apple"),
+					html.p(u"tree"),
 				),
 				html.br()
 			),
-			"<div>\n\t<?php apple?>\n\t<p>appletree</p>\n\t<div>\n\t\t<p>apple</p>\n\t\t<p>tree</p>\n\t</div>\n\t<br />\n</div>"
+			b"<div>\n\t<?php apple?>\n\t<p>appletree</p>\n\t<div>\n\t\t<p>apple</p>\n\t\t<p>tree</p>\n\t</div>\n\t<br />\n</div>"
 		),
 	]
 	for (got, exp) in tests:

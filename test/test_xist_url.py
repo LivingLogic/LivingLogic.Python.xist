@@ -16,16 +16,16 @@ from ll.xist.ns import specials, html, jsp
 
 def test_url(recwarn):
 	# The recwarn argument silences the RequiredAttrMissingWarning
-	node = parsers.tree("<?url root:images/gurk.gif?>", parsers.SGMLOP(), parsers.NS(html), parsers.Instantiate())
-	assert node.bytes(base="root:about/us.html") == "../images/gurk.gif"
+	node = parsers.tree(b"<?url root:images/gurk.gif?>", parsers.SGMLOP(), parsers.NS(html), parsers.Instantiate())
+	assert node.bytes(base="root:about/us.html") == b"../images/gurk.gif"
 
-	node = parsers.tree('<img src="root:images/gurk.gif"/>', parsers.Expat(), parsers.NS(html), parsers.Instantiate())
-	assert node.bytes(base="root:about/us.html") == '<img src="../images/gurk.gif" />'
+	node = parsers.tree(b'<img src="root:images/gurk.gif"/>', parsers.Expat(), parsers.NS(html), parsers.Instantiate())
+	assert node.bytes(base="root:about/us.html") == b'<img src="../images/gurk.gif" />'
 
 
 def test_fancyurl():	
 	node = html.a("gurk", href=("http://", jsp.expression("server")))
-	assert node.bytes(base="root:about/us.html") == '<a href="http://<%= server %>">gurk</a>'
+	assert node.bytes(base="root:about/us.html") == b'<a href="http://<%= server %>">gurk</a>'
 
 
 def test_replaceurls():	

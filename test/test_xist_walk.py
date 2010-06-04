@@ -31,17 +31,17 @@ def test_walk_result():
 	def check(node, filter, result):
 		filter = filter()
 		def path2str(path):
-			return ".".join("#" if isinstance(node, xsc.Text) else node.xmlname for node in path)
+			return u".".join(u"#" if isinstance(node, xsc.Text) else node.xmlname for node in path)
 
 		assert map(path2str, node.walkpaths(filter)) == result
 
 	node = html.div(
 		html.tr(
-			html.th("gurk"),
-			html.td("hurz"),
+			html.th(u"gurk"),
+			html.td(u"hurz"),
 			id=html.b(42)
 		),
-		class_=html.i("hinz")
+		class_=html.i(u"hinz")
 	)
 
 	class filtertopdown(xfind.WalkFilter):
@@ -85,12 +85,12 @@ def test_walk_result():
 			else:
 				return (xfind.entercontent, )
 
-	yield check, node, filtertopdown, ["div", "div.tr", "div.tr.th", "div.tr.td"]
-	yield check, node, filterbottomup, ["div.tr.th", "div.tr.td", "div.tr", "div"]
-	yield check, node, filtertopdownattrs, ["div", "div.class.i", "div.tr", "div.tr.id.b", "div.tr.th", "div.tr.td"]
-	yield check, node, filterbottomupattrs, ["div.class.i", "div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr", "div"]
-	yield check, node, filtertopdowntextonlyinattr, ["div", "div.class.i", "div.class.i.#", "div.tr", "div.tr.id.b", "div.tr.id.b.#", "div.tr.th", "div.tr.td"]
-	yield check, node, filtertopdownattrwithoutcontent, ["div", "div.tr", "div.tr.th", "div.tr.th.#", "div.tr.td", "div.tr.td.#", "div.tr.id", "div.class"]
+	yield check, node, filtertopdown, [u"div", u"div.tr", u"div.tr.th", u"div.tr.td"]
+	yield check, node, filterbottomup, [u"div.tr.th", u"div.tr.td", u"div.tr", u"div"]
+	yield check, node, filtertopdownattrs, [u"div", u"div.class.i", u"div.tr", u"div.tr.id.b", u"div.tr.th", u"div.tr.td"]
+	yield check, node, filterbottomupattrs, [u"div.class.i", u"div.tr.id.b", u"div.tr.th", u"div.tr.td", u"div.tr", u"div"]
+	yield check, node, filtertopdowntextonlyinattr, [u"div", u"div.class.i", u"div.class.i.#", u"div.tr", u"div.tr.id.b", u"div.tr.id.b.#", u"div.tr.th", u"div.tr.td"]
+	yield check, node, filtertopdownattrwithoutcontent, [u"div", u"div.tr", u"div.tr.th", u"div.tr.th.#", u"div.tr.td", u"div.tr.td.#", u"div.tr.id", u"div.class"]
 
 
 def test_walkgetitem():
@@ -104,11 +104,11 @@ def test_walkgetitem():
 		)
 	)
 	isdiv = xfind.FindTypeAll(html.div)
-	assert str(e.walknodes(isdiv)[0]) == "123"
-	assert str(e.walknodes(isdiv)[-1]) == "3"
+	assert unicode(e.walknodes(isdiv)[0]) == u"123"
+	assert unicode(e.walknodes(isdiv)[-1]) == u"3"
 	py.test.raises(IndexError, e.walknodes(isdiv).__getitem__, 3)
 	py.test.raises(IndexError, e.walknodes(isdiv).__getitem__, -4)
-	assert str(e.walkpaths(isdiv)[0][-1]) == "123"
-	assert str(e.walkpaths(isdiv)[-1][-1]) == "3"
+	assert unicode(e.walkpaths(isdiv)[0][-1]) == u"123"
+	assert unicode(e.walkpaths(isdiv)[-1][-1]) == u"3"
 	py.test.raises(IndexError, e.walkpaths(isdiv).__getitem__, 3)
 	py.test.raises(IndexError, e.walkpaths(isdiv).__getitem__, -4)

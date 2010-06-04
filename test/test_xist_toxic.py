@@ -16,18 +16,18 @@ from ll.xist.ns import html, htmlspecials, toxic
 
 def oraclecode():
 	return xsc.Frag(
-		toxic.args("search in varchar2"),
-		toxic.vars("i integer;"),
+		toxic.args(u"search in varchar2"),
+		toxic.vars(u"i integer;"),
 		htmlspecials.plaintable(
-			toxic.code("""
+			toxic.code(u"""
 				i := 1;
 				for row in (select name from person where name like search) loop
 					"""),
 					html.tr(
-						html.th(toxic.expr("i"), align="right"),
-						html.td(toxic.expr("xmlescape(row.name)"))
+						html.th(toxic.expr(u"i"), align=u"right"),
+						html.td(toxic.expr(u"xmlescape(row.name)"))
 					),
-					toxic.code("""
+					toxic.code(u"""
 					i := i+1;
 				end loop;
 			""")
@@ -40,62 +40,62 @@ def test_oracle_clobfunc():
 	tmpl = e.conv().string(encoding="ascii")
 
 	sql = toxicc.compile(tmpl)
-	assert "dbms_lob.createtemporary" in sql
-	assert "procedure write" in sql
-	assert "return clob\n" in sql
+	assert u"dbms_lob.createtemporary" in sql
+	assert u"procedure write" in sql
+	assert u"return clob\n" in sql
 
 
 def test_oracle_varcharfunc():
 	e = xsc.Frag(
-		toxic.type("varchar2(20000)"),
+		toxic.type(u"varchar2(20000)"),
 		oraclecode(),
 	)
 	tmpl = e.conv().string(encoding="ascii")
 
 	sql = toxicc.compile(tmpl)
-	assert "dbms_lob.createtemporary" not in sql
-	assert "procedure write" not in sql
-	assert "c_out := c_out ||" in sql
-	assert "return varchar2\n" in sql
+	assert u"dbms_lob.createtemporary" not in sql
+	assert u"procedure write" not in sql
+	assert u"c_out := c_out ||" in sql
+	assert u"return varchar2\n" in sql
 
 
 def test_oracle_clobproc():
 	e = xsc.Frag(
 		toxic.proc(),
-		toxic.args("c_out out clob"),
+		toxic.args(u"c_out out clob"),
 		oraclecode()
 	)
 	tmpl = e.conv().string(encoding="ascii")
 
 	sql = toxicc.compile(tmpl)
 	print sql
-	assert "dbms_lob.createtemporary" in sql
-	assert "procedure write" in sql
-	assert "c_out out clob" in sql
+	assert u"dbms_lob.createtemporary" in sql
+	assert u"procedure write" in sql
+	assert u"c_out out clob" in sql
 
 
 def test_oracle_varcharproc():
 	e = xsc.Frag(
 		toxic.proc(),
-		toxic.type("varchar2(20000)"),
-		toxic.args("c_out out varchar2(20000)"),
+		toxic.type(u"varchar2(20000)"),
+		toxic.args(u"c_out out varchar2(20000)"),
 		oraclecode(),
 	)
 	tmpl = e.conv().string(encoding="ascii")
 
 	sql = toxicc.compile(tmpl)
-	assert "dbms_lob.createtemporary" not in sql
-	assert "procedure write" not in sql
-	assert "c_out := c_out ||" in sql
-	assert "c_out out varchar2(20000)" in sql
+	assert u"dbms_lob.createtemporary" not in sql
+	assert u"procedure write" not in sql
+	assert u"c_out := c_out ||" in sql
+	assert u"c_out out varchar2(20000)" in sql
 
 
 def sqlservercode():
 	return xsc.Frag(
-		toxic.args("@search varchar(100)"),
-		toxic.vars("declare @i integer;"),
+		toxic.args(u"@search varchar(100)"),
+		toxic.vars(u"declare @i integer;"),
 		htmlspecials.plaintable(
-			toxic.code("""
+			toxic.code(u"""
 				set @i = 1;
 			   
 				declare @row_name varchar(100);
@@ -112,10 +112,10 @@ def sqlservercode():
 
 					"""),
 					html.tr(
-						html.th(toxic.expr("@i"), align="right"),
-						html.td(toxic.expr("schema.xmlescape(@row_name)"))
+						html.th(toxic.expr(u"@i"), align=u"right"),
+						html.td(toxic.expr(u"schema.xmlescape(@row_name)"))
 					),
-					toxic.code("""
+					toxic.code(u"""
 					set @i = @i+1;
 				end
 
@@ -131,46 +131,46 @@ def test_sqlserver_clobfunc():
 	tmpl = e.conv().string(encoding="ascii")
 
 	sql = toxicc.compile(tmpl, mode="sqlserver")
-	assert "declare @c_out varchar(max)" in sql
-	assert "returns varchar(max)\n" in sql
-	assert "set @c_out = @c_out +" in sql
+	assert u"declare @c_out varchar(max)" in sql
+	assert u"returns varchar(max)\n" in sql
+	assert u"set @c_out = @c_out +" in sql
 
 
 def test_sqlserver_varcharfunc():
 	e = xsc.Frag(
-		toxic.type("varchar(20000)"),
+		toxic.type(u"varchar(20000)"),
 		sqlservercode(),
 	)
 	tmpl = e.conv().string(encoding="ascii")
 
 	sql = toxicc.compile(tmpl, mode="sqlserver")
-	assert "declare @c_out varchar(20000)" in sql
-	assert "returns varchar(20000)\n" in sql
-	assert "set @c_out = @c_out +" in sql
+	assert u"declare @c_out varchar(20000)" in sql
+	assert u"returns varchar(20000)\n" in sql
+	assert u"set @c_out = @c_out +" in sql
 
 
 def test_sqlserver_clobproc():
 	e = xsc.Frag(
 		toxic.proc(),
-		toxic.args("@c_out varchar(max) output"),
+		toxic.args(u"@c_out varchar(max) output"),
 		sqlservercode(),
 	)
 	tmpl = e.conv().string(encoding="ascii")
 
 	sql = toxicc.compile(tmpl, mode="sqlserver")
-	assert "@c_out varchar(max) output" in sql
-	assert "set @c_out = @c_out +" in sql
+	assert u"@c_out varchar(max) output" in sql
+	assert u"set @c_out = @c_out +" in sql
 
 
 def test_sqlserver_varcharproc():
 	e = xsc.Frag(
 		toxic.proc(),
-		toxic.type("varchar(20000)"),
-		toxic.args("@c_out varchar(20000) output"),
+		toxic.type(u"varchar(20000)"),
+		toxic.args(u"@c_out varchar(20000) output"),
 		sqlservercode(),
 	)
 	tmpl = e.conv().string(encoding="ascii")
 
 	sql = toxicc.compile(tmpl, mode="sqlserver")
-	assert "c_out varchar(20000) output" in sql
-	assert "set @c_out = @c_out +" in sql
+	assert u"c_out varchar(20000) output" in sql
+	assert u"set @c_out = @c_out +" in sql

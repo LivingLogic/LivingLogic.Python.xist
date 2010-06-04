@@ -174,13 +174,13 @@ def test_write():
 	node = html.div()
 	io = cStringIO.StringIO()
 	node.write(io, xhtml=2)
-	assert io.getvalue() == "<div/>"
+	assert io.getvalue() == b"<div/>"
 
 
 def test_mul():
-	node = xsc.Frag("a")
-	assert 3*node == xsc.Frag(list("aaa"))
-	assert node*3 == xsc.Frag(list("aaa"))
+	node = xsc.Frag(u"a")
+	assert 3*node == xsc.Frag(list(u"aaa"))
+	assert node*3 == xsc.Frag(list(u"aaa"))
 
 	node = html.div()
 	assert 3*node == xsc.Frag(html.div(), html.div(), html.div())
@@ -188,19 +188,19 @@ def test_mul():
 
 
 def test_text():
-	s = "test"
+	s = u"test"
 	node = xsc.Text(s)
 	hash(node)
 	assert len(node), 4
-	assert node[1] == xsc.Text("e")
+	assert node[1] == xsc.Text(u"e")
 	assert 3*node == xsc.Text(3*s)
 	assert node*3 == xsc.Text(s*3)
-	assert node[1:3] == xsc.Text("es")
-	assert node.capitalize() == xsc.Text("Test")
-	assert node.center(8) == xsc.Text("  test  ")
-	assert node.count("t") == 2
-	assert node.endswith("st") is True
-	assert node.index("s") == 2
+	assert node[1:3] == xsc.Text(u"es")
+	assert node.capitalize() == xsc.Text(u"Test")
+	assert node.center(8) == xsc.Text(u"  test  ")
+	assert node.count(u"t") == 2
+	assert node.endswith(u"st") is True
+	assert node.index(u"s") == 2
 	assert node.isalpha() is True
 	assert node.isalnum() is True
 	assert node.isdecimal() is False
@@ -210,24 +210,24 @@ def test_text():
 	assert node.isspace() is False
 	assert node.istitle() is False
 	assert node.isupper() is False
-	assert node.join(xsc.Frag(list("abc"))) == xsc.Frag("a", "test", "b", "test", "c")
-	assert node.ljust(6) == xsc.Text("test  ")
-	assert node.ljust(6, ".") == xsc.Text("test..")
-	assert node.lower() == xsc.Text("test")
-	assert xsc.Text("  test").lstrip() == xsc.Text("test")
-	assert node.replace("s", "x") == xsc.Text("text")
-	assert node.rjust(6) == xsc.Text("  test")
-	assert node.rjust(6, ".") == xsc.Text("..test")
-	assert xsc.Text("test  ").rstrip() == xsc.Text("test")
-	assert node.rfind("s") == 2
-	assert node.rindex("s") == 2
-	assert node.split("e") == xsc.Frag("t", "st")
-	assert xsc.Text("a\nb\n").splitlines() == xsc.Frag("a", "b")
-	assert node.startswith("te") is True
-	assert xsc.Text("  test  ").strip() == xsc.Text("test")
-	assert node.swapcase() == xsc.Text("TEST")
-	assert node.title() == xsc.Text("Test")
-	assert node.upper() == xsc.Text("TEST")
+	assert node.join(xsc.Frag(list(u"abc"))) == xsc.Frag(u"a", u"test", u"b", u"test", u"c")
+	assert node.ljust(6) == xsc.Text(u"test  ")
+	assert node.ljust(6, u".") == xsc.Text(u"test..")
+	assert node.lower() == xsc.Text(u"test")
+	assert xsc.Text(u"  test").lstrip() == xsc.Text(u"test")
+	assert node.replace(u"s", u"x") == xsc.Text(u"text")
+	assert node.rjust(6) == xsc.Text(u"  test")
+	assert node.rjust(6, u".") == xsc.Text(u"..test")
+	assert xsc.Text(u"test  ").rstrip() == xsc.Text(u"test")
+	assert node.rfind(u"s") == 2
+	assert node.rindex(u"s") == 2
+	assert node.split(u"e") == xsc.Frag(u"t", u"st")
+	assert xsc.Text(u"a\nb\n").splitlines() == xsc.Frag(u"a", u"b")
+	assert node.startswith(u"te") is True
+	assert xsc.Text(u"  test  ").strip() == xsc.Text(u"test")
+	assert node.swapcase() == xsc.Text(u"TEST")
+	assert node.title() == xsc.Text(u"Test")
+	assert node.upper() == xsc.Text(u"TEST")
 
 
 def test_charref():
@@ -269,7 +269,7 @@ def test_charref():
 def test_conv():
 	def mappedmapper(node, converter):
 		if isinstance(node, xsc.Text):
-			node = node.replace("gurk", "hurz")
+			node = node.replace(u"gurk", u"hurz")
 		return node
 
 	node = common.createfrag()
@@ -295,19 +295,18 @@ def test_attrsclone():
 	class newa(html.a):
 		def convert(self, converter):
 			attrs = self.attrs.clone()
-			attrs["href"].insert(0, "foo")
+			attrs[u"href"].insert(0, u"foo")
 			e = html.a(self.content, attrs)
 			return e.convert(converter)
-	e = newa("gurk", href="hurz")
+	e = newa(u"gurk", href=u"hurz")
 	e = e.conv().conv()
-	assert unicode(e["href"]) == "foohurz"
-	assert str(e["href"]) == "foohurz"
+	assert unicode(e["href"]) == u"foohurz"
 
 
 def test_attributes():
-	node = html.h1("gurk", {xml.Attrs.lang: "de"}, lang="de")
-	assert node.attrs.has("lang")
-	assert node.attrs.has_xml("lang")
+	node = html.h1(u"gurk", {xml.Attrs.lang: u"de"}, lang=u"de")
+	assert node.attrs.has(u"lang")
+	assert node.attrs.has_xml(u"lang")
 
 	assert node.attrs.has(html.h1.Attrs.lang)
 	assert node.attrs.has_xml(html.h1.Attrs.lang)
@@ -315,7 +314,7 @@ def test_attributes():
 	assert node.attrs.has(xml.Attrs.lang)
 	assert node.attrs.has_xml(xml.Attrs.lang)
 
-	assert "lang" in node.attrs
+	assert u"lang" in node.attrs
 	assert html.h1.Attrs.lang in node.attrs
 	assert xml.Attrs.lang in node.attrs
 
@@ -368,42 +367,44 @@ def test_attributekeysvaluesitems():
 
 
 def test_attributeswithoutnames():
-	node = html.h1("gurk",
-		{xml.Attrs.lang: "de", xml.Attrs.base: "http://www.livinglogic.de/"},
-		lang="de",
-		style="color: #fff",
-		align="right",
-		title="gurk",
-		class_="important",
+	node = html.h1(
+		u"gurk",
+		{xml.Attrs.lang: u"de", xml.Attrs.base: u"http://www.livinglogic.de/"},
+		lang=u"de",
+		style=u"color: #fff",
+		align=u"right",
+		title=u"gurk",
+		class_=u"important",
 		id=42,
-		dir="ltr"
+		dir=u"ltr"
 	)
 	keys = set(node.attrs.keys())
 	keys.remove(html.h1.Attrs.class_)
 
-	keys1 = set(node.attrs.withoutnames("class_").keys())
+	keys1 = set(node.attrs.withoutnames(u"class_").keys())
 	assert keys == keys1
 
 	keys.remove(xml.Attrs.lang)
 	keys.remove(xml.Attrs.base)
-	keys2 = set(node.attrs.withoutnames("class_", xml.Attrs.lang, xml.Attrs.base).keys())
+	keys2 = set(node.attrs.withoutnames(u"class_", xml.Attrs.lang, xml.Attrs.base).keys())
 	assert keys == keys2
 
 	# Check that non existing attrs are handled correctly
-	keys3 = set(node.attrs.withoutnames("class_", "src", xml.Attrs.lang, xml.Attrs.base).keys())
+	keys3 = set(node.attrs.withoutnames(u"class_", u"src", xml.Attrs.lang, xml.Attrs.base).keys())
 	assert keys == keys3
 
 
 def test_attributeswithoutnames_xml():
-	node = html.h1("gurk",
-		title="gurk",
-		class_="important",
+	node = html.h1(
+		u"gurk",
+		title=u"gurk",
+		class_=u"important",
 		id=42,
 	)
 	keys = set(node.attrs.keys())
 	keys.remove(html.h1.Attrs.class_)
 
-	keys1 = set(node.attrs.withoutnames_xml("class").keys())
+	keys1 = set(node.attrs.withoutnames_xml(u"class").keys())
 	assert keys == keys1
 
 
@@ -413,49 +414,52 @@ def test_attributeswithnames():
 			class lang(html.h1.Attrs.lang):
 				default = 42
 
-	node = h1("gurk",
-		{xml.Attrs.space: 1, xml.Attrs.lang: "de"},
-		class_="gurk",
-		align="right"
+	node = h1(
+		u"gurk",
+		{xml.Attrs.space: 1, xml.Attrs.lang: u"de"},
+		class_=u"gurk",
+		align=u"right"
 	)
 
-	assert set(node.attrs.withnames("id").keys()) == set()
+	assert set(node.attrs.withnames(u"id").keys()) == set()
 
-	assert set(node.attrs.withnames("class_").keys()) == set([html.h1.Attrs.class_])
+	assert set(node.attrs.withnames(u"class_").keys()) == set([html.h1.Attrs.class_])
 
-	assert set(node.attrs.withnames("lang", "align").keys()) == set([h1.Attrs.lang, html.h1.Attrs.align])
+	assert set(node.attrs.withnames(u"lang", u"align").keys()) == set([h1.Attrs.lang, html.h1.Attrs.align])
 
-	assert set(node.attrs.withnames(h1.Attrs.lang, "align").keys()) == set([h1.Attrs.lang, html.h1.Attrs.align])
+	assert set(node.attrs.withnames(h1.Attrs.lang, u"align").keys()) == set([h1.Attrs.lang, html.h1.Attrs.align])
 
-	assert set(node.attrs.withnames(html.h1.Attrs.lang, "align").keys()) == set([h1.Attrs.lang, html.h1.Attrs.align])
+	assert set(node.attrs.withnames(html.h1.Attrs.lang, u"align").keys()) == set([h1.Attrs.lang, html.h1.Attrs.align])
 
-	node = html.h1("gurk",
-		{xml.Attrs.space: 1, xml.Attrs.lang: "de"},
-		lang="de",
-		class_="gurk",
-		align="right"
+	node = html.h1(
+		u"gurk",
+		{xml.Attrs.space: 1, xml.Attrs.lang: u"de"},
+		lang=u"de",
+		class_=u"gurk",
+		align=u"right"
 	)
 
-	assert set(node.attrs.withnames("id").keys()) == set()
+	assert set(node.attrs.withnames(u"id").keys()) == set()
 
-	assert set(node.attrs.withnames("class_").keys()) == set([html.h1.Attrs.class_])
+	assert set(node.attrs.withnames(u"class_").keys()) == set([html.h1.Attrs.class_])
 
-	assert set(node.attrs.withnames("lang", "align").keys()) == set([html.h1.Attrs.lang, html.h1.Attrs.align])
+	assert set(node.attrs.withnames(u"lang", u"align").keys()) == set([html.h1.Attrs.lang, html.h1.Attrs.align])
 
 	# no h1.Attrs.lang
-	assert set(node.attrs.withnames(h1.Attrs.lang, "align").keys()) == set([html.h1.Attrs.align])
+	assert set(node.attrs.withnames(h1.Attrs.lang, u"align").keys()) == set([html.h1.Attrs.align])
 
-	assert set(node.attrs.withnames(html.h1.Attrs.lang, "align").keys()) == set([html.h1.Attrs.lang, html.h1.Attrs.align])
+	assert set(node.attrs.withnames(html.h1.Attrs.lang, u"align").keys()) == set([html.h1.Attrs.lang, html.h1.Attrs.align])
 
 
 def test_attributeswithnames_xml():
-	node = html.h1("gurk",
+	node = html.h1(
+		u"gurk",
 		{xml.Attrs.space: 1},
-		lang="de",
-		class_="gurk",
-		align="right"
+		lang=u"de",
+		class_=u"gurk",
+		align=u"right"
 	)
-	assert set(node.attrs.withnames_xml("class").keys()) == set([html.h1.Attrs.class_])
+	assert set(node.attrs.withnames_xml(u"class").keys()) == set([html.h1.Attrs.class_])
 	assert set(node.attrs.withnames_xml(xml.Attrs.space).keys()) == set([xml.Attrs.space])
 
 
@@ -466,11 +470,11 @@ def test_defaultattributes():
 			class withdef(xsc.TextAttr): default = 42
 			class withoutdef(xsc.TextAttr): pass
 	node = Test()
-	assert "withdef" in node.attrs
-	assert "withoutdef" not in node.attrs
-	py.test.raises(xsc.IllegalAttrError, node.attrs.__contains__, "illegal")
+	assert u"withdef" in node.attrs
+	assert u"withoutdef" not in node.attrs
+	py.test.raises(xsc.IllegalAttrError, node.attrs.__contains__, u"illegal")
 	node = Test(withdef=None)
-	assert "withdef" not in node.attrs
+	assert u"withdef" not in node.attrs
 
 
 def test_attributedictmethods():
@@ -518,29 +522,29 @@ def test_fragattrdefault():
 				default = 42
 
 	node = testelem()
-	assert unicode(node["testattr"]) == "42"
-	assert unicode(node.conv()["testattr"]) == "42"
+	assert unicode(node[u"testattr"]) == u"42"
+	assert unicode(node.conv()[u"testattr"]) == u"42"
 
-	node["testattr"].clear()
-	assert "testattr" not in node.attrs
-	assert "testattr" not in node.conv().attrs
+	node[u"testattr"].clear()
+	assert u"testattr" not in node.attrs
+	assert u"testattr" not in node.conv().attrs
 
 	node = testelem(testattr=23)
-	assert unicode(node["testattr"]) == "23"
-	assert unicode(node.conv()["testattr"]) == "23"
+	assert unicode(node[u"testattr"]) == u"23"
+	assert unicode(node.conv()[u"testattr"]) == u"23"
 
-	del node["testattr"]
-	assert unicode(node["testattr"]) == ""
-	assert unicode(node.conv()["testattr"]) == ""
+	del node[u"testattr"]
+	assert unicode(node[u"testattr"]) == u""
+	assert unicode(node.conv()[u"testattr"]) == u""
 
-	node["testattr"] = 23
-	node["testattr"] = None
-	assert "testattr" not in node.attrs
-	assert "testattr" not in node.conv().attrs
+	node[u"testattr"] = 23
+	node[u"testattr"] = None
+	assert u"testattr" not in node.attrs
+	assert u"testattr" not in node.conv().attrs
 
 	node = testelem(testattr=None)
-	assert "testattr" not in node.attrs
-	assert "testattr" not in node.conv().attrs
+	assert u"testattr" not in node.attrs
+	assert u"testattr" not in node.conv().attrs
 
 
 def test_checkisallowed():
@@ -562,86 +566,86 @@ def test_checkisallowed():
 			testattr = None
 
 	node = testelem()
-	assert node.attrs.isallowed("testattr") is True
-	assert node.attrs.isallowed("notestattr") is False
+	assert node.attrs.isallowed(u"testattr") is True
+	assert node.attrs.isallowed(u"notestattr") is False
 
 	node = testelem2()
-	assert node.attrs.isallowed("testattr") is True
-	assert node.attrs.isallowed("notestattr") is False
+	assert node.attrs.isallowed(u"testattr") is True
+	assert node.attrs.isallowed(u"notestattr") is False
 
 	node = testelem3()
-	assert node.attrs.isallowed("testattr") is True
-	assert node.attrs.isallowed("testattr3") is True
+	assert node.attrs.isallowed(u"testattr") is True
+	assert node.attrs.isallowed(u"testattr3") is True
 
 	node = testelem4()
-	assert node.attrs.isallowed("testattr") is False
-	assert node.attrs.isallowed("testattr3") is True
+	assert node.attrs.isallowed(u"testattr") is False
+	assert node.attrs.isallowed(u"testattr3") is True
 
 
 def test_withsep():
 	for class_ in (xsc.Frag, html.div):
 		node = class_(1,2,3)
-		assert unicode(node.withsep(",")) == u"1,2,3"
+		assert unicode(node.withsep(u",")) == u"1,2,3"
 		node = class_(1)
-		assert unicode(node.withsep(",")) == u"1"
+		assert unicode(node.withsep(u",")) == u"1"
 		node = class_()
-		assert unicode(node.withsep(",")) == u""
+		assert unicode(node.withsep(u",")) == u""
 
 
 def test_allowedattr():
-	assert html.a.Attrs.allowedattr("href") is html.a.Attrs.href
-	py.test.raises(xsc.IllegalAttrError, html.a.Attrs.allowedattr, "gurk")
+	assert html.a.Attrs.allowedattr(u"href") is html.a.Attrs.href
+	py.test.raises(xsc.IllegalAttrError, html.a.Attrs.allowedattr, u"gurk")
 	assert html.a.Attrs.allowedattr(xml.Attrs.lang) is xml.Attrs.lang
 
 	# Check inherited attributes
-	assert htmlspecials.plaintable.Attrs.allowedattr("border") is htmlspecials.plaintable.Attrs.border
+	assert htmlspecials.plaintable.Attrs.allowedattr(u"border") is htmlspecials.plaintable.Attrs.border
 	assert htmlspecials.plaintable.Attrs.allowedattr(htmlspecials.plaintable.Attrs.border) is htmlspecials.plaintable.Attrs.border
 	assert html.table.Attrs.allowedattr(htmlspecials.plaintable.Attrs.border) is html.table.Attrs.border
 
 
 def test_plaintableattrs():
 	e = htmlspecials.plaintable(border=3)
-	assert isinstance(e["border"], html.table.Attrs.border)
-	assert isinstance(e["cellpadding"], html.table.Attrs.cellpadding)
+	assert isinstance(e[u"border"], html.table.Attrs.border)
+	assert isinstance(e[u"cellpadding"], html.table.Attrs.cellpadding)
 	e = e.conv()
-	assert isinstance(e["border"], html.table.Attrs.border)
-	assert isinstance(e["cellpadding"], html.table.Attrs.cellpadding)
+	assert isinstance(e[u"border"], html.table.Attrs.border)
+	assert isinstance(e[u"cellpadding"], html.table.Attrs.cellpadding)
 
 
 def test_attrupdate():
-	node = html.a(href="gurk", class_="hurz")
-	node.attrs.update(xml.Attrs(lang="de"), {"href": "gurk2", html.a.Attrs.id: 42})
-	assert unicode(node["href"]) == u"gurk2"
-	assert unicode(node["id"]) == u"42"
+	node = html.a(href=u"gurk", class_=u"hurz")
+	node.attrs.update(xml.Attrs(lang=u"de"), {u"href": u"gurk2", html.a.Attrs.id: 42})
+	assert unicode(node[u"href"]) == u"gurk2"
+	assert unicode(node[u"id"]) == u"42"
 	assert unicode(node[xml.Attrs.lang]) == u"de"
 
-	node = html.a({xml.Attrs.lang: "de"}, href="gurk", class_="hurz")
+	node = html.a({xml.Attrs.lang: u"de"}, href=u"gurk", class_=u"hurz")
 	assert unicode(node[xml.Attrs.lang]) == u"de"
 
-	node = html.a(xml.Attrs(lang="de"), href="gurk", class_="hurz")
+	node = html.a(xml.Attrs(lang=u"de"), href=u"gurk", class_=u"hurz")
 	assert unicode(node[xml.Attrs.lang]) == u"de"
 
 	class Gurk(xsc.Element):
 		model = False
 		class Attrs(xsc.Element.Attrs):
 			class gurk(xsc.TextAttr): pass
-			class hurz(xsc.TextAttr): default = "hinz+kunz"
+			class hurz(xsc.TextAttr): default = u"hinz+kunz"
 
 	node1 = Gurk()
 	node2 = Gurk(hurz=None)
 	node1.attrs.update(node2.attrs)
-	assert "hurz" not in node1.attrs
+	assert u"hurz" not in node1.attrs
 
 	node1 = Gurk(hurz=None)
 	node2 = Gurk()
 	node1.attrs.update(node2.attrs)
-	assert "hurz" in node1.attrs
+	assert u"hurz" in node1.attrs
 
 	node = Gurk(Gurk(hurz=None).attrs)
-	assert "hurz" not in node.attrs
+	assert u"hurz" not in node.attrs
 
 	attrs = Gurk.Attrs(Gurk.Attrs(hurz=None))
-	assert "hurz" not in attrs
+	assert u"hurz" not in attrs
 
 
 def test_classrepr():
@@ -682,19 +686,19 @@ def test_getitem():
 		assert xsc.Frag(e[e/html.dt]) == xsc.Frag(html.dt(0), html.dt(1), html.dt(2))
 		assert xsc.Frag(e[e.__class__/html.dt]) == xsc.Frag(html.dt(0), html.dt(1), html.dt(2))
 
-		for attr in ("class_", xml.Attrs.lang):
-			e = cls("foo", html.div("bar", {attr: "gurk"}), "baz")
+		for attr in (u"class_", xml.Attrs.lang):
+			e = cls(u"foo", html.div(u"bar", {attr: u"gurk"}), u"baz")
 			i = e[xsc.Text]
-			assert str(i.next()) == "foo"
-			assert str(i.next()) == "baz"
+			assert unicode(i.next()) == u"foo"
+			assert unicode(i.next()) == u"baz"
 			py.test.raises(StopIteration, i.next)
 
 		# list
-		for attr in ("class_", xml.Attrs.lang):
-			node = cls(html.div("foo", html.div("bar", {attr: "gurk"}), "baz"))
+		for attr in (u"class_", xml.Attrs.lang):
+			node = cls(html.div(u"foo", html.div(u"bar", {attr: u"gurk"}), u"baz"))
 			assert node[[]] == node[:]
-			assert str(node[[0, 1]]) == "bar"
-			assert str(node[[0, 1, attr]]) == "gurk"
+			assert unicode(node[[0, 1]]) == u"bar"
+			assert unicode(node[[0, 1, attr]]) == u"gurk"
 
 
 def test_setitem():
@@ -731,10 +735,10 @@ def test_setitem():
 		e[::-1] = range(6)
 		assert e == cls(range(5, -1, -1))
 
-		for attr in ("class_", xml.Attrs.lang):
-			node = cls(html.div("foo", html.div({attr: "gurk"}), "bar"))
-			node[[0, 1, attr]] = "hurz"
-			assert str(node[[0, 1, attr]]) == "hurz"
+		for attr in (u"class_", xml.Attrs.lang):
+			node = cls(html.div(u"foo", html.div({attr: u"gurk"}), u"bar"))
+			node[[0, 1, attr]] = u"hurz"
+			assert unicode(node[[0, 1, attr]]) == u"hurz"
 			py.test.raises(ValueError, node.__setitem__, [], None)
 			py.test.raises(ValueError, node.__delitem__, [])
 
@@ -809,29 +813,29 @@ def test_clone():
 	e = html.div(id=(17, html.div(23), 42))
 	for src in (e, e.attrs):
 		dst = src.clone()
-		assert src["id"] is not dst["id"]
-		assert src["id"][0] is dst["id"][0]
-		assert src["id"][1] is not dst["id"][1]
+		assert src[u"id"] is not dst[u"id"]
+		assert src[u"id"][0] is dst[u"id"][0]
+		assert src[u"id"][1] is not dst[u"id"][1]
 
-	e["id"][1] = e # create a cycle
-	e["id"][2] = e # create a cycle
+	e[u"id"][1] = e # create a cycle
+	e[u"id"][2] = e # create a cycle
 	for src in (e, e.attrs):
 		dst = src.copy()
-		assert src["id"] is dst["id"]
-		assert src["id"][0] is dst["id"][0]
-		assert src["id"][1] is dst["id"][1]
-		assert dst["id"][1] is dst["id"][2]
+		assert src[u"id"] is dst[u"id"]
+		assert src[u"id"][0] is dst[u"id"][0]
+		assert src[u"id"][1] is dst[u"id"][1]
+		assert dst[u"id"][1] is dst[u"id"][2]
 		dst = src.deepcopy()
-		assert src["id"] is not dst["id"]
-		assert src["id"][0] is dst["id"][0]
-		assert src["id"][1] is not dst["id"][1]
-		assert dst["id"][1] is dst["id"][2]
+		assert src[u"id"] is not dst[u"id"]
+		assert src[u"id"][0] is dst[u"id"][0]
+		assert src[u"id"][1] is not dst[u"id"][1]
+		assert dst[u"id"][1] is dst[u"id"][2]
 
 
 def test_sortedreversed():
 	for class_ in (xsc.Frag, html.div):
 		node = class_(3, 2, 1)
-		node2 = node.sorted(key=str)
+		node2 = node.sorted(key=unicode)
 		assert node == class_(3, 2, 1)
 		assert node2 == class_(1, 2, 3)
 
@@ -864,9 +868,9 @@ def test_with():
 
 	with xsc.build():
 		with html.p() as e:
-			+xml.Attrs(lang="de")
-	assert e == html.p(xml.Attrs(lang="de"))
-	assert e.bytes() == '<p xml:lang="de"></p>'
+			+xml.Attrs(lang=u"de")
+	assert e == html.p(xml.Attrs(lang=u"de"))
+	assert e.bytes() == b'<p xml:lang="de"></p>'
 
 	with xsc.build():
 		with xsc.Frag() as e:
@@ -881,29 +885,29 @@ def test_with():
 
 	with xsc.build():
 		with html.p() as e:
-			xsc.add(class_="foo")
-	assert e == html.p(class_="foo")
+			xsc.add(class_=u"foo")
+	assert e == html.p(class_=u"foo")
 
 	with xsc.build():
 		with html.p() as e:
-			xsc.add(dict(class_="foo"))
-	assert e == html.p(class_="foo")
+			xsc.add(dict(class_=u"foo"))
+	assert e == html.p(class_=u"foo")
 
 	with xsc.build():
 		with html.p() as e:
-			xsc.add(xml.Attrs(lang="en"))
-	assert e == html.p(xml.Attrs(lang="en"))
+			xsc.add(xml.Attrs(lang=u"en"))
+	assert e == html.p(xml.Attrs(lang=u"en"))
 
 
 def test_with_addattr():
 	with xsc.build():
 		with html.ul() as e:
-			with xsc.addattr("id"):
-				+xsc.Text("gurk")
-	assert e == html.ul(id="gurk")
+			with xsc.addattr(u"id"):
+				+xsc.Text(u"gurk")
+	assert e == html.ul(id=u"gurk")
 
 	with xsc.build():
 		with html.ul() as e:
 			with xsc.addattr(html.ul.Attrs.id):
-				+xsc.Text("gurk")
-	assert e == html.ul(id="gurk")
+				+xsc.Text(u"gurk")
+	assert e == html.ul(id=u"gurk")
