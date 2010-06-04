@@ -226,7 +226,7 @@ def explain(thing, name=None, format=None, context=[]):
 		if name != thing.__name__ and not (thing.__name__.startswith("__") and name=="_" + thing.im_class.__name__ + thing.__name__):
 			sig.append(meth(name), u" = ")
 		sig.append(u"def ", _codeheader(thing.im_func, thing.__name__, meth), u":")
-		return section(h(sig), doc, role=(visibility, u" method ", hasdoc), id=id or None)
+		return section(h(sig), doc, role=(visibility, u" method ", hasdoc), id=id)
 	elif inspect.isfunction(thing):
 		name = name or thing.__name__
 		context = context + [(thing, name)]
