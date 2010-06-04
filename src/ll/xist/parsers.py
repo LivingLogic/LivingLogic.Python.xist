@@ -182,7 +182,7 @@ following events are used:
 		A comment. The event data is an instance of :class:`ll.xist.xsc.Comment`.
 
 	``"textnode"``
-		Text data. The event data is and instance of :class:`ll.xist.xsc.Text`.
+		Text data. The event data is an instance of :class:`ll.xist.xsc.Text`.
 
 	``"startelementnode"``
 		The beginning of an element. The event data is an instance of
@@ -201,7 +201,7 @@ following events are used:
 		An entity reference. The event data is an instance of
 		:class:`ll.xist.xsc.Entity`.
 
-For consuming event stream there are three functions:
+For consuming event streams there are three functions:
 
 	:func:`events`
 		This generator simply outputs the events.
