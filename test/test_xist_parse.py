@@ -334,3 +334,15 @@ def test_urlsource():
 	for i in xrange(3):
 		parsed = "".join(data for (evtype, data) in source if evtype == "bytes")
 		assert parsed == expect
+
+
+def test_itertree_large():
+	def xml():
+		yield "<ul xmlns='%s'>" % html.xmlns
+		for i in xrange(1000):
+			yield "<li>%d</li>" % i
+		yield "</ul>"
+
+	for (i, (evtype, path)) in enumerate(parsers.itertree(parsers.IterSource(xml()), parsers.Expat(ns=True), parsers.Instantiate(), filter=html.li)):
+		assert int(str(path[-1])) == i
+		path[-2].content.clear()
