@@ -363,30 +363,30 @@ def prettify(string, mode="oracle"):
 	newlines = []
 	if mode == "oracle":
 		indents = {
-			"(": (0, 1),
-			");": (-1, 0),
-			")": (-1, 0),
-			"as": (0, 1),
-			"begin": (0, 1),
-			"loop": (0, 1),
-			"end;": (-1, 0),
-			"end": (-1, 0),
-			"exception": (-1, 1),
-			"if": (0, 1),
-			"for": (0, 1),
-			"while": (0, 1),
-			"elsif": (-1, 1),
-			"else": (-1, 1),
+			u"(": (0, 1),
+			u");": (-1, 0),
+			u")": (-1, 0),
+			u"as": (0, 1),
+			u"begin": (0, 1),
+			u"loop": (0, 1),
+			u"end;": (-1, 0),
+			u"end": (-1, 0),
+			u"exception": (-1, 1),
+			u"if": (0, 1),
+			u"for": (0, 1),
+			u"while": (0, 1),
+			u"elsif": (-1, 1),
+			u"else": (-1, 1),
 		}
 	elif mode == "sqlserver":
 		indents = {
-			"(": (0, 1),
-			");": (-1, 0),
-			")": (-1, 0),
-			"as": (0, 1),
-			"begin": (0, 1),
-			"end;": (-1, 0),
-			"end": (-1, 0),
+			u"(": (0, 1),
+			u");": (-1, 0),
+			u")": (-1, 0),
+			u"as": (0, 1),
+			u"begin": (0, 1),
+			u"end;": (-1, 0),
+			u"end": (-1, 0),
 		}
 	else:
 		raise ValueError("unknown mode {0!r}".format(mode))
@@ -394,18 +394,18 @@ def prettify(string, mode="oracle"):
 	firstafteras = False
 	for line in lines:
 		if not line:
-			newlines.append("")
+			newlines.append(u"")
 		else:
 			prefix = line.split(None, 1)[0]
 			(pre, post) = indents.get(prefix, (0, 0))
-			if line.endswith("("):
+			if line.endswith(u"("):
 				post = 1
-			elif firstafteras and prefix == "begin":
+			elif firstafteras and prefix == u"begin":
 				# as followed by begin has same indentation
 				pre = -1
 			indent = max(0, indent+pre)
-			newlines.append("{0}{1}".format("\t"*indent, line))
+			newlines.append(u"{0}{1}".format(u"\t"*indent, line))
 			indent = max(0, indent+post)
-			if prefix == "as":
+			if prefix == u"as":
 				firstafteras = True
-	return "\n".join(newlines)
+	return u"\n".join(newlines)
