@@ -40,8 +40,7 @@ the parser (possibly in multiple chunks) (and information about the URL of the
 input)::
 
 	>>> from ll.xist import parsers
-	>>> source = "<a href='http://www.python.org/'>Python</a>"
-	>>> list(parsers.StringSource(source))
+	>>> list(parsers.StringSource("<a href='http://www.python.org/'>Python</a>"))
 	[('url', URL('STRING')),
 	 ('bytes', "<a href='http://www.python.org/'>Python</a>")]
 
@@ -114,7 +113,8 @@ The following type of events are produced by parsers (in addition to the
 
 	``"cdata"``
 		A CDATA section. The event data is the content of the CDATA section.
-		Parsers may report CDATA sections as text events instead of cdata events.
+		Parsers may report CDATA sections as ``"text"`` events instead of
+		``"cdata"`` events.
 
 	``"enterstarttag"``
 		The beginning of an element start tag. The event data is the element name.
@@ -130,15 +130,15 @@ The following type of events are produced by parsers (in addition to the
 	``"leaveattr"``
 		The end of an attribute. The event data is the attribute name.
 		The parser will output events for the attribute value between the
-		``"enterattr"`` and the ``"leaveattr"`` event. (In most cases this is
-		one text event).
+		``"enterattr"`` and the ``"leaveattr"`` event. (In almost all cases
+		this is one text event).
 
 	``"endtag"``
 		An element end tag. The event data is the element name.
 
 	``"procinst"``
 		A processing instruction. The event data is a tuple consisting of the
-		pi target and the pi data.
+		processing instruction target and the data.
 
 	``"entity"``
 		An entity reference. The event data is the entity name.
@@ -186,8 +186,8 @@ following events are used:
 
 	``"startelementnode"``
 		The beginning of an element. The event data is an instance of
-		:class:`ll.xist.xsc.Element`. The attributes of the element object are set,
-		but the element has no content (yet).
+		:class:`ll.xist.xsc.Element` (or rather one of its subclasses). The
+		attributes of the element object are set, but the element has no content.
 
 	``"endelementnode"``
 		The end of an element. The event data is an instance of
@@ -210,7 +210,7 @@ For consuming event streams there are three functions:
 		This function builds an XML tree from the events and returns it.
 
 	:func:`itertree`
-		This generator still build a tree like :func:`tree`, but returns events
+		This generator builds a tree like :func:`tree`, but returns events
 		during certain steps in the parsing process.
 """
 
