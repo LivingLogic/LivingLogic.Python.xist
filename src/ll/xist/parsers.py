@@ -637,7 +637,7 @@ class Expat(Parser):
 
 	def __init__(self, encoding=None, xmldecl=False, doctype=False, loc=True, cdata=False, ns=False):
 		"""
-		Create an :class:`Expat` object. Arguments have the following meaning:
+		Create an :class:`Expat` parser. Arguments have the following meaning:
 
 		:var:`encoding` : string or :const:`None`
 			Forces the parser to use the specified encoding. The default
@@ -840,7 +840,7 @@ class SGMLOP(Parser):
 
 	def __init__(self, encoding=None, cdata=False):
 		"""
-		Create a new :class:`SGMLOP` object. Arguments have the following meaning:
+		Create a :class:`SGMLOP` parser. Arguments have the following meaning:
 
 		:var:`encoding` : string or :const:`None`
 			Forces the parser to use the specified encoding. The default
