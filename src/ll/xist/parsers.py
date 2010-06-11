@@ -838,13 +838,20 @@ class SGMLOP(Parser):
 	A parser based on :mod:`sgmlop`.
 	"""
 
-	def __init__(self, encoding=None):
+	def __init__(self, encoding=None, cdata=False):
 		"""
-		Create a new :class:`SGMLOP` object. The :var:`encoding` argument forces
-		the parser to use the specified encoding. The default :const:`None`
-		results in the encoding being detected from the XML itself.
+		Create a new :class:`SGMLOP` object. Arguments have the following meaning:
+
+		:var:`encoding` : string or :const:`None`
+			Forces the parser to use the specified encoding. The default
+			:const:`None` results in the encoding being detected from the XML itself.
+
+		:var:`cdata` : bool
+			Should the parser output CDATA sections as ``"cdata"`` events? (If
+			:var:`cdata` is false output ``"text"`` events instead.)
 		"""
 		self.encoding = encoding
+		self.cdata = cdata
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
@@ -912,10 +919,11 @@ class SGMLOP(Parser):
 		self._event(self.evtext, data)
 
 	def handle_cdata(self, data):
-		self._event(self.evcdata, data)
+		self._event(self.evcdata if self.cdata else self.evtext, data)
 
 	def handle_proc(self, target, data):
-		self._event(self.evprocinst, (target, data))
+		if target.lower() != u"xml":
+			self._event(self.evprocinst, (target, data))
 
 	def handle_entityref(self, name):
 		self._event(self.eventity, name)
