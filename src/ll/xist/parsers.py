@@ -488,7 +488,7 @@ class ETreeSource(object):
 class Decoder(object):
 	"""
 	Decode the byte strings produced by the previous object in the pipeline to
-	unicode.
+	unicode strings.
 
 	This input object can be a source object or any other pipeline object that
 	produces byte strings.
