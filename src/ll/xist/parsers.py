@@ -1403,7 +1403,7 @@ def events(*pipeline):
 		source = URLSource(source)
 
 	# Execute the pipeline, propagating pipeline objects in the process
-	output = source
+	output = iter(source)
 	for pipe in pipeline[1:]:
 		if isinstance(pipe, xsc.Pool):
 			pipe = Instantiate(pool=pipe)
