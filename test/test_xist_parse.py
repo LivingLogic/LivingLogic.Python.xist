@@ -12,6 +12,7 @@
 import cStringIO
 
 from xml.etree import cElementTree
+from xml.parsers import expat
 
 import py.test
 
@@ -347,3 +348,15 @@ def test_itertree_large():
 	for (i, (evtype, path)) in enumerate(parsers.itertree(parsers.IterSource(xml()), parsers.Expat(ns=True), parsers.Instantiate(), filter=html.li)):
 		assert int(str(path[-1])) == i
 		path[-2].content.clear()
+
+
+def test_expat_events_on_exc():
+	# Test that all collected events are output, before an exception is thrown
+	i = parsers.events(b"<x/>schrott", parsers.Expat())
+	assert i.next() == (u"url", url.URL("STRING"))
+	assert i.next() == (u"position", (0, 0))
+	assert i.next() == (u"enterstarttag", u"x")
+	assert i.next() == (u"leavestarttag", u"x")
+	assert i.next() == (u"position", (0, 4))
+	assert i.next() == (u"endtag", u"x")
+	py.test.raises(expat.ExpatError, i.next)

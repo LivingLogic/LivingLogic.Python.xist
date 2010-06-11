@@ -604,7 +604,7 @@ class Transcoder(object):
 ### Parsers
 ###
 
-class EventParser(object):
+class Parser(object):
 	"""
 	Basic parser interface.
 	"""
@@ -629,32 +629,8 @@ class EventParser(object):
 	evposition = u"position"
 	evurl = u"url"
 
-	@misc.notimplemented
-	def feed(self, data, final=False):
-		"""
-		Feed :var:`data` (a byte string) to the parser. If :var:`final` is true
-		this will be the last call to :meth:`feed`.
 
-		Return an iterator for the events.
-		"""
-
-	def __call__(self, input):
-		"""
-		Return an iterator over the events produced by :var:`input`.
-		"""
-		for (evtype, data) in input:
-			if evtype == u"bytes":
-				for event2 in self.feed(data):
-					yield event2
-			elif evtype == u"url":
-				yield (self.evurl, data)
-			else:
-				yield UnknownEventError(self, (evtype, data))
-		for event in self.feed("", True):
-			yield event
-
-
-class Expat(EventParser):
+class Expat(Parser):
 	"""
 	A parser using Pythons builtin :mod:`expat` parser.
 	"""
@@ -687,7 +663,6 @@ class Expat(EventParser):
 			of ``"enterstarttag"``, ``"leavestarttag"``, ``"endtag"``,
 			``"enterattr"`` and ``"leaveattr"`` events.
 		"""
-		EventParser.__init__(self)
 		self.encoding = encoding
 		self.xmldecl = xmldecl
 		self.doctype = doctype
@@ -712,6 +687,9 @@ class Expat(EventParser):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} object{1} at {2:#x}>".format(self, "".join(v), id(self))
 
 	def __call__(self, input):
+		"""
+		Return an iterator over the events produced by :var:`input`.
+		"""
 		self._parser = expat.ParserCreate(self.encoding, "\x01" if self.ns else None)
 		self._parser.buffer_text = True
 		self._parser.ordered_attributes = True
@@ -738,24 +716,41 @@ class Expat(EventParser):
 		self._incdata = False
 		self._position = None # Remember the last reported position
 
-		# Buffers the events generated during one call to ``feed``
+		# Buffers the events generated during one call to ``Parse``
 		self._buffer = []
 
 		try:
-			for event in EventParser.__call__(self, input):
-				yield event
+			for (evtype, data) in input:
+				if evtype == u"bytes":
+					try:
+						self._parser.Parse(data, False)
+					except Exception, exc:
+						# In case of an exception we want to output the events we have gathered so far, before reraising the exception
+						for event in self._buffer:
+							yield event
+						raise exc
+					else:
+						for event in self._buffer:
+							yield event
+						self._buffer = []
+				elif evtype == u"url":
+					yield (self.evurl, data)
+				else:
+					yield UnknownEventError(self, (evtype, data))
+			try:
+				self._parser.Parse(b"", True)
+			except Exception, exc:
+				for event in self._buffer:
+					yield event
+			else:
+				for event in self._buffer:
+					yield event
 		finally:
 			del self._buffer
 			del self._position
 			del self._incdata
 			del self._indoctype
 			del self._parser
-
-	def feed(self, data, final=False):
-		self._parser.Parse(data, final)
-		result = iter(self._buffer)
-		self._buffer = []
-		return result
 
 	def _getname(self, name):
 		if self.ns:
@@ -828,7 +823,7 @@ class Expat(EventParser):
 			self._buffer.append((self.evprocinst, (target, data)))
 
 
-class SGMLOP(EventParser):
+class SGMLOP(Parser):
 	"""
 	A parser based on :mod:`sgmlop`.
 	"""
@@ -839,19 +834,15 @@ class SGMLOP(EventParser):
 		the parser to use the specified encoding. The default :const:`None`
 		results in the encoding being detected from the XML itself.
 		"""
-		EventParser.__init__(self)
 		self.encoding = encoding
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
 
-	def feed(self, data, final=False):
-		self._parser.feed(self._decoder.decode(data, final))
-		result = iter(self._buffer)
-		self._buffer = []
-		return result
-
 	def __call__(self, input):
+		"""
+		Return an iterator over the events produced by :var:`input`.
+		"""
 		self._decoder = codecs.getincrementaldecoder("xml")(encoding=self.encoding)
 		self._parser = sgmlop.XMLParser()
 		self._parser.register(self)
@@ -859,8 +850,31 @@ class SGMLOP(EventParser):
 		self._hadtext = False
 
 		try:
-			for event in EventParser.__call__(self, input):
-				yield event
+			for (evtype, data) in input:
+				if evtype == u"bytes":
+					try:
+						self._parser.feed(self._decoder.decode(data, False))
+					except Exception, exc:
+						# In case of an exception we want to output the events we have gathered so far, before reraising the exception
+						for event in self._buffer:
+							yield event
+						raise exc
+					else:
+						for event in self._buffer:
+							yield event
+						self._buffer = []
+				elif evtype == u"url":
+					yield (self.evurl, data)
+				else:
+					yield UnknownEventError(self, (evtype, data))
+			try:
+				self._parser.feed(b"", True)
+			except Exception, exc:
+				for event in self._buffer:
+					yield event
+			else:
+				for event in self._buffer:
+					yield event
 		finally:
 			del self._hadtext
 			del self._buffer
