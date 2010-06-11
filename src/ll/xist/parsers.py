@@ -868,6 +868,7 @@ class SGMLOP(Parser):
 						# In case of an exception we want to output the events we have gathered so far, before reraising the exception
 						for event in self._flush(True):
 							yield event
+						self._parser.close()
 						raise exc
 					else:
 						for event in self._flush(False):
@@ -876,6 +877,7 @@ class SGMLOP(Parser):
 					yield (self.evurl, data)
 				else:
 					yield UnknownEventError(self, (evtype, data))
+			self._parser.close()
 			for event in self._flush(True):
 				yield event
 		finally:
