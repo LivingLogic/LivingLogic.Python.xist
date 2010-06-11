@@ -350,7 +350,7 @@ def test_itertree_large():
 		path[-2].content.clear()
 
 
-def test_expat_events_on_exc():
+def test_expat_events_on_exception():
 	# Test that all collected events are output, before an exception is thrown
 	i = parsers.events(b"<x/>schrott", parsers.Expat())
 	assert i.next() == (u"url", url.URL("STRING"))
@@ -360,3 +360,29 @@ def test_expat_events_on_exc():
 	assert i.next() == (u"position", (0, 4))
 	assert i.next() == (u"endtag", u"x")
 	py.test.raises(expat.ExpatError, i.next)
+
+
+def test_expat_no_multiple_text_events():
+	# Test that we don't get consecutive text events with expat
+	i = parsers.events(parsers.IterSource(b"<a>gurk &amp; hurz &amp; hinz &amp; kunz</a>"), parsers.Expat())
+	assert i.next() == (u"url", url.URL("ITER"))
+	assert i.next() == (u"position", (0, 0))
+	assert i.next() == (u"enterstarttag", u"a")
+	assert i.next() == (u"leavestarttag", u"a")
+	assert i.next() == (u"position", (0, 4))
+	assert i.next() == (u"text", u"gurk & hurz & hinz & kunz")
+	assert i.next() == (u"position", (0, 40))
+	assert i.next() == (u"endtag", u"a")
+	py.test.raises(StopIteration, i.next)
+
+
+def test_sgmlop_no_multiple_text_events():
+	# Test that we don't get consecutive text events with sgmlop
+	i = parsers.events(parsers.IterSource(b"<a>gurk &amp; hurz &amp; hinz &amp; kunz</a>"), parsers.SGMLOP())
+	assert i.next() == (u"url", url.URL("ITER"))
+	assert i.next() == (u"enterstarttag", u"a")
+	assert i.next() == (u"leavestarttag", u"a")
+	assert i.next() == (u"text", u"gurk & hurz & hinz & kunz")
+	assert i.next() == (u"endtag", u"a")
+	py.test.raises(StopIteration, i.next)
+

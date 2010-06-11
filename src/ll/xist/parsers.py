@@ -714,7 +714,7 @@ class Expat(Parser):
 
 		self._indoctype = False
 		self._incdata = False
-		self._position = None # Remember the last reported position
+		self._currentloc = None # Remember the last reported position
 
 		# Buffers the events generated during one call to ``Parse``
 		self._buffer = []
@@ -726,13 +726,12 @@ class Expat(Parser):
 						self._parser.Parse(data, False)
 					except Exception, exc:
 						# In case of an exception we want to output the events we have gathered so far, before reraising the exception
-						for event in self._buffer:
+						for event in self._flush(True):
 							yield event
 						raise exc
 					else:
-						for event in self._buffer:
+						for event in self._flush(False):
 							yield event
-						self._buffer = []
 				elif evtype == u"url":
 					yield (self.evurl, data)
 				else:
@@ -740,17 +739,44 @@ class Expat(Parser):
 			try:
 				self._parser.Parse(b"", True)
 			except Exception, exc:
-				for event in self._buffer:
+				for event in self._flush(True):
 					yield event
+				raise exc
 			else:
-				for event in self._buffer:
+				for event in self._flush(True):
 					yield event
 		finally:
 			del self._buffer
-			del self._position
+			del self._currentloc
 			del self._incdata
 			del self._indoctype
 			del self._parser
+
+	def _event(self, evtype, evdata):
+		loc = None
+		if self.loc:
+			loc = (self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+			if loc == self._currentloc:
+				loc = None
+		if self._buffer and evtype == self._buffer[-1][0] == self.evtext:
+			self._buffer[-1] = (evtype, self._buffer[-1][1] + evdata)
+		else:
+			if loc:
+				self._buffer.append((self.evposition, loc))
+			self._buffer.append((evtype, evdata))
+			self._currentloc = loc
+
+	def _flush(self, force):
+		# Flush ``self._buffer`` as far as possible
+		if force or not self._buffer or self._buffer[-1][0] != self.evtext:
+			for event in self._buffer:
+				yield event
+			del self._buffer[:]
+		else:
+			# hold back the last text event, because there might be more
+			for event in self._buffer[:-1]:
+				yield event
+			del self._buffer[:-1]
 
 	def _getname(self, name):
 		if self.ns:
@@ -758,13 +784,6 @@ class Expat(Parser):
 				return tuple(name.split("\x01")[::-1])
 			return (name, None)
 		return name
-
-	def _handle_position(self):
-		if self.loc:
-			loc = (self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
-			if loc != self._position:
-				self._buffer.append((self.evposition, loc))
-				self._position = loc
 
 	def _handle_startcdata(self):
 		self._incdata = True
@@ -774,53 +793,44 @@ class Expat(Parser):
 
 	def _handle_xmldecl(self, version, encoding, standalone):
 		standalone = (bool(standalone) if standalone != -1 else None)
-		self._handle_position()
-		self._buffer.append((self.evxmldecl, {u"version": version, u"encoding": encoding, u"standalone": standalone}))
+		self._event(self.evxmldecl, {u"version": version, u"encoding": encoding, u"standalone": standalone})
 
 	def _handle_begindoctype(self, doctypename, systemid, publicid, has_internal_subset):
 		if self.doctype:
-			self._handle_position()
-			self._buffer.append((self.evbegindoctype, {u"name": doctypename, u"publicid": publicid, u"systemid": systemid}))
+			self._event(self.evbegindoctype, {u"name": doctypename, u"publicid": publicid, u"systemid": systemid})
 
 	def _handle_enddoctype(self):
 		if self.doctype:
-			self._handle_position()
-			self._buffer.append((self.evenddoctype, None))
+			self._event(self.evenddoctype, None)
 
 	def _handle_default(self, data):
 		if data.startswith(u"&") and data.endswith(u";"):
-			self._handle_position()
-			self._buffer.append((self.eventity, data[1:-1]))
+			self._event(self.eventity, data[1:-1])
 
 	def _handle_comment(self, data):
 		if not self._indoctype:
-			self._handle_position()
-			self._buffer.append((self.evcomment, data))
+			self._event(self.evcomment, data)
 
 	def _handle_text(self, data):
-		self._handle_position()
-		self._buffer.append((self.evcdata if self._incdata else self.evtext, data))
+		self._event(self.evcdata if self._incdata else self.evtext, data)
 
 	def _handle_startelement(self, name, attrs):
 		name = self._getname(name)
-		self._handle_position()
-		self._buffer.append((self.eventerstarttagns if self.ns else self.eventerstarttag, name))
+		self._event(self.eventerstarttagns if self.ns else self.eventerstarttag, name)
 		for i in xrange(0, len(attrs), 2):
 			key = self._getname(attrs[i])
-			self._buffer.append((self.eventerattrns if self.ns else self.eventerattr, key))
-			self._buffer.append((self.evtext, attrs[i+1]))
-			self._buffer.append((self.evleaveattrns if self.ns else self.evleaveattr, key))
-		self._buffer.append((self.evleavestarttagns if self.ns else self.evleavestarttag, name))
+			self._event(self.eventerattrns if self.ns else self.eventerattr, key)
+			self._event(self.evtext, attrs[i+1])
+			self._event(self.evleaveattrns if self.ns else self.evleaveattr, key)
+		self._event(self.evleavestarttagns if self.ns else self.evleavestarttag, name)
 
 	def _handle_endelement(self, name):
 		name = self._getname(name)
-		self._handle_position()
-		self._buffer.append((self.evendtagns if self.ns else self.evendtag, name))
+		self._event(self.evendtagns if self.ns else self.evendtag, name)
 
 	def _handle_procinst(self, target, data):
 		if not self._indoctype:
-			self._handle_position()
-			self._buffer.append((self.evprocinst, (target, data)))
+			self._event(self.evprocinst, (target, data))
 
 
 class SGMLOP(Parser):
@@ -856,25 +866,18 @@ class SGMLOP(Parser):
 						self._parser.feed(self._decoder.decode(data, False))
 					except Exception, exc:
 						# In case of an exception we want to output the events we have gathered so far, before reraising the exception
-						for event in self._buffer:
+						for event in self._flush(True):
 							yield event
 						raise exc
 					else:
-						for event in self._buffer:
+						for event in self._flush(False):
 							yield event
-						self._buffer = []
 				elif evtype == u"url":
 					yield (self.evurl, data)
 				else:
 					yield UnknownEventError(self, (evtype, data))
-			try:
-				self._parser.feed(b"", True)
-			except Exception, exc:
-				for event in self._buffer:
-					yield event
-			else:
-				for event in self._buffer:
-					yield event
+			for event in self._flush(True):
+				yield event
 		finally:
 			del self._hadtext
 			del self._buffer
@@ -882,48 +885,53 @@ class SGMLOP(Parser):
 			del self._parser
 			del self._decoder
 
+	def _event(self, evtype, evdata):
+		if self._buffer and evtype == self._buffer[-1][0] == self.evtext:
+			self._buffer[-1] = (evtype, self._buffer[-1][1] + evdata)
+		else:
+			self._buffer.append((evtype, evdata))
+
+	def _flush(self, force):
+		# Flush ``self._buffer`` as far as possible
+		if force or not self._buffer or self._buffer[-1][0] != self.evtext:
+			for event in self._buffer:
+				yield event
+			del self._buffer[:]
+		else:
+			# hold back the last text event, because there might be more
+			for event in self._buffer[:-1]:
+				yield event
+			del self._buffer[:-1]
+
 	def handle_comment(self, data):
-		self._hadtext = False
-		self._buffer.append((self.evcomment, data))
+		self._event(self.evcomment, data)
 
 	def handle_data(self, data):
-		if self._hadtext:
-			self._buffer[-1] = (self.evtext, self._buffer[-1][1] + data)
-		else:
-			self._buffer.append((self.evtext, data))
-		self._hadtext = True
+		self._event(self.evtext, data)
 
 	def handle_cdata(self, data):
-		self._hadtext = False
-		self._buffer.append((self.evcdata, data))
+		self._event(self.evcdata, data)
 
 	def handle_proc(self, target, data):
-		self._hadtext = False
-		self._buffer.append((self.evprocinst, (target, data)))
+		self._event(self.evprocinst, (target, data))
 
 	def handle_entityref(self, name):
-		self._hadtext = False
-		self._buffer.append((self.eventity, name))
+		self._event(self.eventity, name)
 
 	def handle_enterstarttag(self, name):
-		self._hadtext = False
-		self._buffer.append((self.eventerstarttag, name))
+		self._event(self.eventerstarttag, name)
 
 	def handle_leavestarttag(self, name):
-		self._hadtext = False
-		self._buffer.append((self.evleavestarttag, name))
+		self._event(self.evleavestarttag, name)
 
 	def handle_enterattr(self, name):
-		self._hadtext = False
-		self._buffer.append((self.eventerattr, name))
+		self._event(self.eventerattr, name)
 
 	def handle_leaveattr(self, name):
-		self._hadtext = False
-		self._buffer.append((self.evleaveattr, name))
+		self._event(self.evleaveattr, name)
 
 	def handle_endtag(self, name):
-		self._hadtext = False
-		self._buffer.append((self.evendtag, name))
+		self._event(self.evendtag, name)
 
 
 class NS(object):
