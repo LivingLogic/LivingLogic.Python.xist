@@ -801,33 +801,6 @@ class GetAttrAction(TransformAction):
 		return getattr(data, attrname)
 
 
-class FOPAction(TransformAction):
-	"""
-	This action transforms an XML string (containing XSL-FO) into PDF. For it
-	to work `Apache FOP`__ is required. The command line is hardcoded but it's
-	simple to overwrite the class attribute :attr:`command` in a subclass.
-
-	__ http://xmlgraphics.apache.org/fop/
-	"""
-	command = "/usr/local/src/fop-0.20.5/fop.sh -q -c /usr/local/src/fop-0.20.5/conf/userconfig.xml -fo {src} -pdf {dst}"
-
-	def execute(self, project, data):
-		project.writestep(self, "FOPping input")
-		(infd, inname) = tempfile.mkstemp(suffix=".fo")
-		(outfd, outname) = tempfile.mkstemp(suffix=".pdf")
-		try:
-			infile = os.fdopen(infd, "wb")
-			os.fdopen(outfd).close()
-			infile.write(data)
-			infile.close()
-			os.system(self.command.format(src=inname, dst=outname))
-			data = open(outname, "rb").read()
-		finally:
-			os.remove(inname)
-			os.remove(outname)
-		return data
-
-
 class CallAction(Action):
 	"""
 	This action calls a function or any other callable object with a number of
@@ -1099,6 +1072,33 @@ class ModuleAction(TransformAction):
 
 	def __repr__(self):
 		return "<{0}.{1} object key={2!r} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.getkey(), id(self))
+
+
+class FOPAction(TransformAction):
+	"""
+	This action transforms an XML string (containing XSL-FO) into PDF. For it
+	to work `Apache FOP`__ is required. The command line is hardcoded but it's
+	simple to overwrite the class attribute :attr:`command` in a subclass.
+
+	__ http://xmlgraphics.apache.org/fop/
+	"""
+	command = "/usr/local/src/fop-0.20.5/fop.sh -q -c /usr/local/src/fop-0.20.5/conf/userconfig.xml -fo {src} -pdf {dst}"
+
+	def execute(self, project, data):
+		project.writestep(self, "FOPping input")
+		(infd, inname) = tempfile.mkstemp(suffix=".fo")
+		(outfd, outname) = tempfile.mkstemp(suffix=".pdf")
+		try:
+			infile = os.fdopen(infd, "wb")
+			os.fdopen(outfd).close()
+			infile.write(data)
+			infile.close()
+			os.system(self.command.format(src=inname, dst=outname))
+			data = open(outname, "rb").read()
+		finally:
+			os.remove(inname)
+			os.remove(outname)
+		return data
 
 
 class AlwaysAction(Action):
