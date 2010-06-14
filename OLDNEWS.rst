@@ -1404,7 +1404,7 @@ Changes in ll-url 0.6 (released 03/05/2002)
 
 *	Many functions from :mod:`os` and :mod:`os.path` have been added as
 	methods to :mod:`ll.url`. This was inspired by Jason Orendorff's
-	:mod:`path`__ module.
+	:mod:`path` module__.
 
 	__ http://www.jorendorff.com/articles/python/path/
 
