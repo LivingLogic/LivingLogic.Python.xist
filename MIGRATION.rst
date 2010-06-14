@@ -28,7 +28,7 @@ Changes to parsing
 		... 	parse.StringSource(source)
 		... 	parse.Expat()
 		... 	parse.NS(html)
-		... 	parse.Instantiate(pool=xsc.Pool(html))
+		... 	parse.Node(pool=xsc.Pool(html))
 		... )
 		>>> doc.bytes()
 		'<a href="http://www.python.org/">Python</a>'
@@ -39,7 +39,7 @@ Changes to parsing
 	namespaces use the same namespace prefix. You will either have to rewrite
 	your XML or implement a new class for the parsing pipeline that handles
 	namespaces prefixes *and* instantiating XIST classes (i.e. a combination
-	of what :class:`ll.xist.parse.NS` and :class:`ll.xist.parse.Instantiate` do).
+	of what :class:`ll.xist.parse.NS` and :class:`ll.xist.parse.Node` do).
 
 *	The module :mod:`ll.xist.parsers` has been renamed to :mod:`parse`.
 

@@ -71,7 +71,7 @@ def getdoc(thing, format):
 		return rest.fromstring(text, base=base).conv(target=doc)
 	elif lformat == "xist":
 		from ll.xist.ns import doc
-		node = parse.tree(parse.StringSource(text), parse.SGMLOP(), parse.NS(doc), parse.Instantiate(pool=xsc.docpool(), base=base))
+		node = parse.tree(parse.StringSource(text), parse.SGMLOP(), parse.NS(doc), parse.Node(pool=xsc.docpool(), base=base))
 		if not node[p]: # optimization: one paragraph docstrings don't need a <p> element.
 			node = p(node)
 

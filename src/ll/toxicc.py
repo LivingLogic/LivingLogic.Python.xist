@@ -151,7 +151,7 @@ transforming it and printing the function body works like this::
 	from ll.xist.ns import html, htmlspecials
 	from ll import toxic
 
-	node = parse.tree(parse.FileSource("search.sqlxsc"), parse.Expat(ns=True), parse.Instantiate())
+	node = parse.tree(parse.FileSource("search.sqlxsc"), parse.Expat(ns=True), parse.Node())
 	node = node.conv()
 	print toxic.xml2ora(node.string(encoding="us-ascii")).encode("us-ascii")
 '''

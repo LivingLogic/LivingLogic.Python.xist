@@ -119,7 +119,7 @@ class include(xsc.Element):
 		class src(xsc.URLAttr): pass
 
 	def convert(self, converter):
-		e = parse.tree(parse.URLSource(self[u"src"].forInput()), parse.Expat(ns=True), parse.Instantiate())
+		e = parse.tree(parse.URLSource(self[u"src"].forInput()), parse.Expat(ns=True), parse.Node())
 
 		return e.convert(converter)
 

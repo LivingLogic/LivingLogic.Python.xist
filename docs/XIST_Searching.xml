@@ -58,7 +58,7 @@ class IsTable(xfind.WalkFilter):
 		else:
 			return (xfind.entercontent,)
 
-node = parse.tree(parse.URLSource("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Instantiate(pool=xsc.Pool(xml, html)))
+node = parse.tree(parse.URLSource("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
 
 for node in doc.walknodes(IsTable()):
 	<rep>...</rep>
@@ -91,7 +91,7 @@ extracts all the links on the
 from ll.xist import xsc, parse
 from ll.xist.ns import xml, html
 
-node = parse.tree(parse.URLSource("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Instantiate(pool=xsc.Pool(xml, html)))
+node = parse.tree(parse.URLSource("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
 
 for node in doc.walknodes(xfind.FindTypeAll(html.a)):
 	print node.attrs.href
@@ -124,7 +124,7 @@ class IsExtLink(xfind.WalkFilter):
 			return (True, xfind.entercontent)
 		return (xfind.entercontent,)
 
-doc = parse.tree(parse.URLSource("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Instantiate(pool=xsc.Pool(xml, html)))
+doc = parse.tree(parse.URLSource("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
 
 for node in doc.walknodes(IsExtLink()):
 	print node.attrs.href
@@ -187,7 +187,7 @@ the <lit>|</lit> and <lit>&amp;</lit> operators to combine xfind expressions:</p
 from ll.xist import xsc, parse, xfind
 from ll.xist.ns import xml, html
 
-doc = parse.tree(parse.URLSource("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Instantiate(pool=xsc.Pool(xml, html)))
+doc = parse.tree(parse.URLSource("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
 
 for node in doc.walknodes((html.a | html.area) &amp; xfind.hasattr("href")):
 	print node.attrs.href
@@ -200,7 +200,7 @@ attribute:</p>
 from ll.xist import xsc, parse, xfind
 from ll.xist.ns import xml, html
 
-doc = parse.tree(parse.URLSource("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Instantiate(pool=xsc.Pool(xml, html)))
+doc = parse.tree(parse.URLSource("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
 
 for node in doc.walknodes(xfind.hasattr("id")):
 	print node.attrs.id
@@ -236,7 +236,7 @@ into a walk filter:</p>
 from ll.xist import xsc, parse, css
 from ll.xist.ns import xml, html
 
-doc = parse.tree(parse.URLSource("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Instantiate(pool=xsc.Pool(xml, html)))
+doc = parse.tree(parse.URLSource("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
 
 for node in doc.walknodes(css.selector("div#menu ul.level-one li > a")):
 	print node.attrs.href

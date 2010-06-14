@@ -115,7 +115,7 @@ node = parse.tree(
 	parse.URLSource("http://www.python.org/"),
 	parse.Tidy(),
 	parse.NS(html),
-	parse.Instantiate()
+	parse.Node()
 )
 </prog>
 
@@ -133,7 +133,7 @@ inside links on Python's homepage:</p>
 <prompt>&gt;&gt;&gt; </prompt><input>node = parse.tree(</input>
 <prompt>... </prompt><input>	parse.URLSource("http://www.python.org/"),</input>
 <prompt>... </prompt><input>	parse.Expat(ns=True),</input>
-<prompt>... </prompt><input>	parse.Instantiate()</input>
+<prompt>... </prompt><input>	parse.Node()</input>
 <prompt>... </prompt><input>)</input>
 <prompt>&gt;&gt;&gt; </prompt><input>for img in node.walknodes(html.a/html.img):</input>
 <prompt>... </prompt><input>   print img.attrs.src</input>
@@ -153,7 +153,7 @@ following:</p>
 <prompt>&gt;&gt;&gt; </prompt><input>node = parse.tree(</input>
 <prompt>... </prompt><input>	parse.URLSource("http://www.python.org/"),</input>
 <prompt>... </prompt><input>	parse.Expat(ns=True),</input>
-<prompt>... </prompt><input>	parse.Instantiate()</input>
+<prompt>... </prompt><input>	parse.Node()</input>
 <prompt>... </prompt><input>)</input>
 <prompt>&gt;&gt;&gt; </prompt><input>for path in node.walkpaths(html.a/html.img):</input>
 <prompt>... </prompt><input>   print path[-2].attrs.href, path[-1].attrs.src</input>
@@ -173,7 +173,7 @@ following:</p>
 <prompt>&gt;&gt;&gt; </prompt><input>node = parse.tree(</input>
 <prompt>... </prompt><input>	parse.URLSource("http://www.python.org/"),</input>
 <prompt>... </prompt><input>	parse.Expat(ns=True),</input>
-<prompt>... </prompt><input>	parse.Instantiate()</input>
+<prompt>... </prompt><input>	parse.Node()</input>
 <prompt>... </prompt><input>)</input>
 <prompt>&gt;&gt;&gt; </prompt><input>misc.count(node.walk(html.a))</input>
 83
@@ -199,7 +199,7 @@ def p2p(node, converter):
 node = parse.tree(
 	parse.URLSource("http://www.python.org/"),
 	parse.Expat(ns=True),
-	parse.Instantiate()
+	parse.Node()
 )
 
 node = node.mapped(p2p)
@@ -219,7 +219,7 @@ makes it possible to output an &xist; tree as usable Python source code:</p>
 <prompt>&gt;&gt;&gt; </prompt><input>node = parse.tree(</input>
 <prompt>... </prompt><input>	parse.URLSource("http://www.python.org/"),</input>
 <prompt>... </prompt><input>	parse.Expat(ns=True),</input>
-<prompt>... </prompt><input>	parse.Instantiate()</input>
+<prompt>... </prompt><input>	parse.Node()</input>
 <prompt>... </prompt><input>)</input>
 <prompt>&gt;&gt;&gt;</prompt> <input>print present.CodePresenter(node)</input>
 ll.xist.xsc.Frag(

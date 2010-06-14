@@ -16,10 +16,10 @@ from ll.xist.ns import specials, html, jsp
 
 def test_url(recwarn):
 	# The ``recwarn`` argument silences the ``RequiredAttrMissingWarning``
-	node = parse.tree(b"<?url root:images/gurk.gif?>", parse.SGMLOP(), parse.NS(html), parse.Instantiate())
+	node = parse.tree(b"<?url root:images/gurk.gif?>", parse.SGMLOP(), parse.NS(html), parse.Node())
 	assert node.bytes(base="root:about/us.html") == b"../images/gurk.gif"
 
-	node = parse.tree(b'<img src="root:images/gurk.gif"/>', parse.Expat(), parse.NS(html), parse.Instantiate())
+	node = parse.tree(b'<img src="root:images/gurk.gif"/>', parse.Expat(), parse.NS(html), parse.Node())
 	assert node.bytes(base="root:about/us.html") == b'<img src="../images/gurk.gif" />'
 
 

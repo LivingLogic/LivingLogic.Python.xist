@@ -17,7 +17,7 @@ is a source object that provides the input for the rest of the pipeline.
 The next step is the XML parser. It turns the input source into an iterator over
 parsing events (an "event stream"). Further steps in the pipeline might resolve
 namespace prefixes (:class:`NS`), and instantiate XIST classes
-(:class:`Instantiate`). The final step in the pipeline is either building an
+(:class:`Node`). The final step in the pipeline is either building an
 XML tree via :func:`tree` or an iterative parsing step (similar to ElementTrees
 :func:`iterparse` function) via :func:`itertree`.
 
@@ -30,7 +30,7 @@ Parsing a simple HTML string might e.g. look like this::
 	... 	parse.StringSource(source)
 	... 	parse.Expat()
 	... 	parse.NS(html)
-	... 	parse.Instantiate(pool=xsc.Pool(html))
+	... 	parse.Node(pool=xsc.Pool(html))
 	... )
 	>>> doc.bytes()
 	'<a href="http://www.python.org/">Python</a>'
@@ -168,7 +168,7 @@ parser does the namespace resolution):
 		An element end tag in namespace mode. The event data is an
 		(element name, namespace name) tuple.
 
-Once XIST nodes have been instantiated (by :class:`Instantiate` objects) the
+Once XIST nodes have been instantiated (by :class:`Node` objects) the
 following events are used:
 
 	``"xmldeclnode"``
@@ -1146,7 +1146,7 @@ class NS(object):
 		yield (u"endtagns", data)
 
 
-class Instantiate(object):
+class Node(object):
 	def __init__(self, pool=None, base=None, loc=True):
 		self.pool = (pool if pool is not None else xsc.threadlocalpool.pool)
 		if base is not None:
@@ -1438,7 +1438,7 @@ def events(*pipeline):
 	output = iter(source)
 	for pipe in pipeline[1:]:
 		if isinstance(pipe, xsc.Pool):
-			pipe = Instantiate(pool=pipe)
+			pipe = Node(pool=pipe)
 		output = pipe(output)
 	return output
 
@@ -1467,7 +1467,7 @@ def tree(*pipeline, **kwargs):
 		>>> doc = parse.tree(
 		... 	parse.URLSource("http://www.python.org/"),
 		... 	parse.Expat(ns=True),
-		... 	parse.Instantiate(pool=xsc.Pool(xml, html, chars))
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
 		... )
 		>>> doc[0]
 		<ll.xist.ns.html.html element object (5 children/2 attrs) (from http://www.python.org/:3:0) at 0x1028eb3d0>
@@ -1514,7 +1514,7 @@ def itertree(*pipeline, **kwargs):
 		>>> for (evtype, path) in parse.itertree(
 		... 	parse.URLSource("http://www.python.org/"),
 		... 	parse.Expat(ns=True),
-		... 	parse.Instantiate(pool=xsc.Pool(xml, html, chars)),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars)),
 		... 	filter=html.a/html.img
 		... ):
 		... 	print path[-1].attrs.src, "-->", path[-2].attrs.href

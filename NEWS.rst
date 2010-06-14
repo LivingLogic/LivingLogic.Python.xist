@@ -15,7 +15,7 @@ Changes in 3.8 (released ??/??/????)
 		... 	parse.StringSource(source)
 		... 	parse.Expat()
 		... 	parse.NS(html)
-		... 	parse.Instantiate(pool=xsc.Pool(html))
+		... 	parse.Node(pool=xsc.Pool(html))
 		... )
 		>>> doc.bytes()
 		'<a href="http://www.python.org/">Python</a>'
