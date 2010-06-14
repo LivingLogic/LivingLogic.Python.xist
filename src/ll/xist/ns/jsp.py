@@ -283,7 +283,7 @@ def fromul4(template, variables="variables", indent=0):
 			make_scriptlet(u"out.write(com.livinglogic.ul4.Utils.xmlescape(r{op.r1}));".format(op=opcode))
 		elif opcode.code == "for":
 			varcounter += 1
-			make_scriptlet(u"for (java.util.Iterator iterator{count} = com.livinglogic.ul4.Utils.iterator(r{op.r1}); iterator{count}.hasNext();)".format(op=opcode, count=varcounter))
+			make_scriptlet(u"for (java.util.Iterator iterator{count} = com.livinglogic.ul4.Utils.iterator(r{op.r2}); iterator{count}.hasNext();)".format(op=opcode, count=varcounter))
 			make_scriptlet(u"{")
 			indent += 1
 			make_scriptlet(u"r{op.r1} = iterator{count}.next();".format(op=opcode, count=varcounter))
