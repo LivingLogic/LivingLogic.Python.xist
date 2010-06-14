@@ -956,7 +956,7 @@ class NS(object):
 
 		>>> from ll.xist import parse
 		>>> from ll.xist.ns import html
-		>>> source = list(parse.events(
+		>>> list(parse.events(
 		... 	parse.StringSource("<a href='http://www.python.org/'>Python</a>"),
 		... 	parse.Expat(),
 		... 	parse.NS(html)
@@ -1147,7 +1147,32 @@ class NS(object):
 
 
 class Node(object):
+	"""
+	A :class:`Node` object is used in a parsing pipeline to instantiate XIST
+	nodes. It consumes a namespaced event stream::
+
+		>>> from ll.xist import xsc, parse
+		>>> from ll.xist.ns import html
+		>>> list(parse.events(
+		... 	parse.StringSource("<a href='http://www.python.org/'>Python</a>"),
+		... 	parse.Expat(),
+		... 	parse.NS(html),
+		... 	parse.Node(pool=xsc.Pool(html))
+		... ))
+		[(u'startelementnode',
+		  <ll.xist.ns.html.a element object (no children/1 attr) (from STRING:0:0) at 0x1026e6a10>),
+		 (u'textnode',
+		  <ll.xist.xsc.Text content=u'Python' (from STRING:0:39) at 0x102566b48>),
+		 (u'endelementnode',
+		  <ll.xist.ns.html.a element object (no children/1 attr) (from STRING:0:0) at 0x1026e6a10>)]
+
+	The event data of all events are XIST nodes. The element node from the
+	``"startelementnode"`` event already has all attributes set. There will be
+	no events for attributes.
+	"""
 	def __init__(self, pool=None, base=None, loc=True):
+		"""
+		"""
 		self.pool = (pool if pool is not None else xsc.threadlocalpool.pool)
 		if base is not None:
 			base = url_.URL(base)
