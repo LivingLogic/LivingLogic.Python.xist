@@ -2110,10 +2110,10 @@ class ProcInst(CharacterData):
 		return "<{0.__class__.__module__}.{0.__fullname__} procinst content={0.content!r}{1} at {2:#x}>".format(self, loc, id(self))
 
 	def __mul__(self, n):
-		return Node.__mul__(self, n)
+		return Node.__mul__(self, n) # don't inherit ``CharacterData.__mul__``
 
 	def __rmul__(self, n):
-		return Node.__rmul__(self, n)
+		return Node.__rmul__(self, n) # don't inherit ``CharacterData.__rmul__``
 
 
 class AttrProcInst(ProcInst):
