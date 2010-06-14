@@ -16,7 +16,7 @@ HTML.
 
 import sys, types, time as time_, string, warnings
 
-from ll.xist import xsc, parsers, sims
+from ll.xist import xsc, sims
 from ll.xist.ns import ihtml, html, meta, specials
 
 

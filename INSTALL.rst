@@ -83,9 +83,9 @@ your trees using any of the browsers provided by IPython's `ipipe module`_.
 	.. _ipipe module: http://ipython.scipy.org/moin/UsingIPipe
 
 You can specify which format gets used by changing the value of the
-``defaultpresenter`` variable in the module :mod:`ll.xist.presenters`::
+``defaultpresenter`` variable in the module :mod:`ll.xist.present`::
 
-	from ll.xist import presenters
-	presenters.defaultpresenter = presenters.TreePresenter
+	from ll.xist import present
+	present.defaultpresenter = present.TreePresenter
 
 Setting this value to ``None`` turns the display hook off.

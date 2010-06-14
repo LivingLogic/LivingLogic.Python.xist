@@ -147,11 +147,11 @@ one above looks like this::
 When the file is saved as :file:`search.sqlxsc` then parsing the file,
 transforming it and printing the function body works like this::
 
-	from ll.xist import parsers
+	from ll.xist import parse
 	from ll.xist.ns import html, htmlspecials
 	from ll import toxic
 
-	node = parsers.parsefile("search.sqlxsc")
+	node = parse.tree(parse.FileSource("search.sqlxsc"), parse.Expat(ns=True), parse.Instantiate())
 	node = node.conv()
 	print toxic.xml2ora(node.string(encoding="us-ascii")).encode("us-ascii")
 '''
@@ -160,7 +160,7 @@ transforming it and printing the function body works like this::
 import cStringIO
 
 from ll import misc
-from ll.xist import xsc, publishers
+from ll.xist import xsc
 
 
 __docformat__ = "reStructuredText"
@@ -348,7 +348,7 @@ def compile(string, mode="oracle"):
 	either ``"oracle"`` or ``"sqlserver".
 	"""
 	if mode == "oracle":
-		return  _compile_oracle(string)
+		return _compile_oracle(string)
 	elif mode == "sqlserver":
 		return _compile_sqlserver(string)
 	raise ValueError("unknown mode {0!r}".format(mode))

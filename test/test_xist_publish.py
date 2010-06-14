@@ -9,7 +9,7 @@
 ## See ll/__init__.py for the license
 
 
-from ll.xist import xsc, parsers
+from ll.xist import xsc, parse
 from ll.xist.ns import html, xml, php, abbr, xlink, specials, struts_html
 
 
@@ -144,7 +144,7 @@ def test_encoding():
 			)
 		)
 		s = node.bytes(encoding=encoding)
-		node2 = parsers.tree(s, parsers.Expat(), parsers.NS(html), xsc.Pool(html, php, abbr))
+		node2 = parse.tree(s, parse.Expat(), parse.NS(html), xsc.Pool(html, php, abbr))
 		assert node == node2
 
 	for encoding in ("utf-8", "utf-16", "utf-16-be", "utf-16-le", "latin-1", "ascii"):

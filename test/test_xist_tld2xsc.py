@@ -11,7 +11,7 @@
 
 import types, cStringIO
 
-from ll.xist import xsc, parsers, sims
+from ll.xist import xsc, sims
 from ll.xist.ns import tld
 from ll.xist.scripts import tld2xsc
 

@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ll.xist import xsc, sims, parsers
+from ll.xist import xsc, sims, parse
 from ll.xist.ns import html, htmlspecials, meta, xml, chars
 
 
@@ -143,7 +143,7 @@ class media(xsc.Element):
 
 
 if __name__ == "__main__":
-	node = parsers.tree(parsers.FileSource("Media.xml"), parsers.Expat(ns=True), xsc.Pool(vars(), chars, xml))
+	node = parse.tree(parse.FileSource("Media.xml"), parse.Expat(ns=True), xsc.Pool(vars(), chars, xml))
 	node = node[media][0]
 	node = node.conv()
 	print node.bytes(encoding="us-ascii")

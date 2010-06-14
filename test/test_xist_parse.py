@@ -10,17 +10,14 @@
 
 
 import cStringIO
-
 from xml.etree import cElementTree
+from xml import sax
 from xml.parsers import expat
 
 import py.test
 
-from xml import sax
-from xml.parsers import expat
-
 from ll import url
-from ll.xist import xsc, parsers, xfind
+from ll.xist import xsc, parse, xfind
 from ll.xist.ns import xml, chars, html, ihtml, specials, ruby, doc
 
 
@@ -46,7 +43,7 @@ def test_parsingmethods():
 	b = s.encode("utf-8")
 
 	def check(*pipeline):
-		node = parsers.tree(*pipeline)
+		node = parse.tree(*pipeline)
 		node = node.walknodes(a)[0]
 		assert unicode(node) == t
 		assert unicode(node["title"]) == t
@@ -54,16 +51,16 @@ def test_parsingmethods():
 	prefixes = {None: a.xmlns}
 	pool = xsc.Pool(a)
 
-	yield check, b, parsers.Expat(), parsers.NS(a.xmlns), parsers.Instantiate(pool)
-	yield check, s, parsers.Encoder(encoding="utf-8"), parsers.Expat(), parsers.NS(a.xmlns), parsers.Instantiate(pool)
-	yield check, parsers.IterSource(b), parsers.Expat(), parsers.NS(a.xmlns), parsers.Instantiate(pool) # parse byte by byte
-	yield check, parsers.StreamSource(cStringIO.StringIO(b), bufsize=1), parsers.Expat(), parsers.NS(a.xmlns), parsers.Instantiate(pool)
-	yield check, parsers.ETreeSource(cElementTree.fromstring(b), defaultxmlns=a.xmlns), parsers.Instantiate(pool)
+	yield check, b, parse.Expat(), parse.NS(a.xmlns), parse.Instantiate(pool)
+	yield check, s, parse.Encoder(encoding="utf-8"), parse.Expat(), parse.NS(a.xmlns), parse.Instantiate(pool)
+	yield check, parse.IterSource(b), parse.Expat(), parse.NS(a.xmlns), parse.Instantiate(pool) # parse byte by byte
+	yield check, parse.StreamSource(cStringIO.StringIO(b), bufsize=1), parse.Expat(), parse.NS(a.xmlns), parse.Instantiate(pool)
+	yield check, parse.ETreeSource(cElementTree.fromstring(b), defaultxmlns=a.xmlns), parse.Instantiate(pool)
 
 
 def test_parselocationsgmlop():
 	# sgmlop doesn't provide any location info, so check only the URL
-	node = parsers.tree(b"<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", parsers.SGMLOP(), parsers.NS(doc), parsers.Instantiate())
+	node = parse.tree(b"<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", parse.SGMLOP(), parse.NS(doc), parse.Instantiate())
 	assert len(node) == 1
 	assert len(node[0]) == 1
 	assert str(node[0][0].startloc.url) == "STRING"
@@ -73,7 +70,7 @@ def test_parselocationsgmlop():
 
 def test_parselocationexpat():
 	# Check that expat gets the location info right
-	node = parsers.tree(b"<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", parsers.Expat(), parsers.NS(doc), parsers.Instantiate())
+	node = parse.tree(b"<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", parse.Expat(), parse.NS(doc), parse.Instantiate())
 	assert len(node) == 1
 	assert len(node[0]) == 1
 	assert str(node[0][0].startloc.url) == "STRING"
@@ -97,14 +94,14 @@ def test_nsparse():
 			)
 		)
 	)
-	node = parsers.tree(xml, parsers.Expat(), parsers.NS(x=ihtml), parsers.Instantiate())
+	node = parse.tree(xml, parse.Expat(), parse.NS(x=ihtml), parse.Instantiate())
 	node = node.walknodes(xsc.Element)[0].compact() # get rid of the Frag and whitespace
 	assert node == check
 
 
 def test_parseurls():
-	# Check proper URL handling when parsing URLAttr or StyleAttr attributes
-	node = parsers.tree(b'<a href="4.html" style="background-image: url(3.gif);"/>', parsers.Expat(), parsers.NS(html), parsers.Instantiate(base="root:1/2.html"))
+	# Check proper URL handling when parsing ``URLAttr`` or ``StyleAttr`` attributes
+	node = parse.tree(b'<a href="4.html" style="background-image: url(3.gif);"/>', parse.Expat(), parse.NS(html), parse.Instantiate(base="root:1/2.html"))
 	assert str(node[0]["style"]) == "background-image: url(root:1/3.gif)"
 	assert node[0]["style"].urls() == [url.URL("root:1/3.gif")]
 	assert str(node[0]["href"]) == "root:1/4.html"
@@ -122,13 +119,13 @@ def test_parserequiredattrs(recwarn):
 				class required(xsc.TextAttr):
 					required = True
 
-		node = parsers.tree(b'<Test required="foo"/>', parsers.Expat(), parsers.NS(xmlns), parsers.Instantiate())
+		node = parse.tree(b'<Test required="foo"/>', parse.Expat(), parse.NS(xmlns), parse.Instantiate())
 		assert str(node[0]["required"]) == "foo"
 
-		parsers.tree(b'<Test/>', parsers.Expat(), parsers.NS(xmlns), parsers.Instantiate())
+		parse.tree(b'<Test/>', parse.Expat(), parse.NS(xmlns), parse.Instantiate())
 		w = recwarn.pop(xsc.RequiredAttrMissingWarning)
 
-	py.test.raises(xsc.IllegalElementError, parsers.tree, b'<Test required="foo"/>', parsers.Expat(), parsers.NS(xmlns), parsers.Instantiate())
+	py.test.raises(xsc.IllegalElementError, parse.tree, b'<Test required="foo"/>', parse.Expat(), parse.NS(xmlns), parse.Instantiate())
 
 
 def test_parsevalueattrs(recwarn):
@@ -142,10 +139,10 @@ def test_parsevalueattrs(recwarn):
 				class withvalues(xsc.TextAttr):
 					values = ("foo", "bar")
 
-		node = parsers.tree(b'<Test withvalues="bar"/>', parsers.Expat(), parsers.NS(xmlns), parsers.Instantiate())
+		node = parse.tree(b'<Test withvalues="bar"/>', parse.Expat(), parse.NS(xmlns), parse.Instantiate())
 		assert str(node[0]["withvalues"]) == "bar"
 
-		parsers.tree(b'<Test withvalues="baz"/>', parsers.Expat(), parsers.NS(xmlns), parsers.Instantiate())
+		parse.tree(b'<Test withvalues="baz"/>', parse.Expat(), parse.NS(xmlns), parse.Instantiate())
 		w = recwarn.pop(xsc.IllegalAttrValueWarning)
 
 
@@ -153,20 +150,20 @@ def test_multipleparsecalls():
 	def check(parser):
 		for i in xrange(3):
 			try:
-				parsers.tree(b"<>gurk", parser, parsers.NS(html), parsers.Instantiate())
+				parse.tree(b"<>gurk", parser, parse.NS(html), parse.Instantiate())
 			except Exception:
 				pass
 			for j in xrange(3):
-				assert parsers.tree(b"<a>gurk</a>", parser, parsers.NS(html), parsers.Instantiate()).bytes() == "<a>gurk</a>"
+				assert parse.tree(b"<a>gurk</a>", parser, parse.NS(html), parse.Instantiate()).bytes() == "<a>gurk</a>"
 
 	# A Parser instance should be able to parse multiple XML sources, even when some of the parse calls fail
-	for parser in (parsers.SGMLOP, parsers.Expat):
+	for parser in (parse.SGMLOP, parse.Expat):
 		yield check, parser()
 
 
 def test_parseentities_sgmlop():
 	def check(input, output):
-		node = parsers.tree(b"""<a title="{0}">{0}</a>""".format(input), parsers.SGMLOP(), parsers.NS(a.xmlns), parsers.Instantiate(pool=xsc.Pool(a, bar, foo, chars)))
+		node = parse.tree(b"""<a title="{0}">{0}</a>""".format(input), parse.SGMLOP(), parse.NS(a.xmlns), parse.Instantiate(pool=xsc.Pool(a, bar, foo, chars)))
 		node = node.walknodes(a)[0]
 		assert unicode(node) == output
 		assert unicode(node.attrs.title) == output
@@ -190,7 +187,7 @@ def test_parseentities_sgmlop():
 
 def test_parseattr_sgmlop():
 	def check(input, output):
-		node = parsers.tree(input, parsers.SGMLOP(), parsers.NS(a), parsers.Instantiate())
+		node = parse.tree(input, parse.SGMLOP(), parse.NS(a), parse.Instantiate())
 		node = node.walknodes(a)[0]
 		assert unicode(node.attrs.title) == output
 
@@ -205,102 +202,102 @@ def test_parseattr_sgmlop():
 
 def test_parsestringurl():
 	# Base URLs should end up in the location info of the resulting XML tree
-	node = parsers.tree(b"gurk", parsers.SGMLOP(), parsers.NS(), parsers.Instantiate())
+	node = parse.tree(b"gurk", parse.SGMLOP(), parse.NS(), parse.Instantiate())
 	assert str(node[0].startloc.url) == "STRING"
 
-	node = parsers.tree(parsers.StringSource(b"gurk", url="root:gurk.xmlxsc"), parsers.SGMLOP(), parsers.NS(), parsers.Instantiate())
+	node = parse.tree(parse.StringSource(b"gurk", url="root:gurk.xmlxsc"), parse.SGMLOP(), parse.NS(), parse.Instantiate())
 	assert str(node[0].startloc.url) == "root:gurk.xmlxsc"
 
 
 def test_xmlns():
 	s = b"<z xmlns={0!r}><rb xmlns={1!r}/><z/></z>".format(doc.xmlns, ruby.xmlns)
-	e = parsers.tree(s, parsers.Expat(ns=True), parsers.Instantiate(pool=xsc.Pool(doc, ruby)))
+	e = parse.tree(s, parse.Expat(ns=True), parse.Instantiate(pool=xsc.Pool(doc, ruby)))
 
 	assert e[0].xmlns == doc.xmlns
 	assert e[0][0].xmlns == ruby.xmlns
 
 	s = b"<a xmlns={0!r}><a xmlns={1!r}/></a>".format(html.xmlns, ihtml.xmlns)
-	e = parsers.tree(s, parsers.Expat(ns=True), parsers.Instantiate(pool=xsc.Pool(html, ihtml)))
+	e = parse.tree(s, parse.Expat(ns=True), parse.Instantiate(pool=xsc.Pool(html, ihtml)))
 	assert isinstance(e[0], html.a)
 	assert isinstance(e[0][0], ihtml.a)
 
 	s = b"<a><a xmlns={0!r}/></a>".format(ihtml.xmlns)
-	py.test.raises(xsc.IllegalElementError, parsers.tree, s, parsers.Expat(), parsers.NS(html), parsers.Instantiate(pool=xsc.Pool(ihtml)))
-	e = parsers.tree(s, parsers.Expat(), parsers.NS(html), parsers.Instantiate(pool=xsc.Pool(html, ihtml)))
+	py.test.raises(xsc.IllegalElementError, parse.tree, s, parse.Expat(), parse.NS(html), parse.Instantiate(pool=xsc.Pool(ihtml)))
+	e = parse.tree(s, parse.Expat(), parse.NS(html), parse.Instantiate(pool=xsc.Pool(html, ihtml)))
 	assert isinstance(e[0], html.a)
 	assert isinstance(e[0][0], ihtml.a)
 
 	s = b"<z xmlns={0!r}/>".format(doc.xmlns)
-	e = parsers.tree(s, parsers.Expat(ns=True), parsers.Instantiate(pool=xsc.Pool(doc.z)))
+	e = parse.tree(s, parse.Expat(ns=True), parse.Instantiate(pool=xsc.Pool(doc.z)))
 	assert isinstance(e[0], doc.z)
-	py.test.raises(xsc.IllegalElementError, parsers.tree, s, parsers.Expat(ns=True), parsers.Instantiate(pool=xsc.Pool()))
+	py.test.raises(xsc.IllegalElementError, parse.tree, s, parse.Expat(ns=True), parse.Instantiate(pool=xsc.Pool()))
 
 
 def test_parseemptyattribute():
-	e = parsers.tree(b"<a target=''/>", parsers.Expat(), parsers.NS(html), parsers.Instantiate(pool=xsc.Pool(html)))
+	e = parse.tree(b"<a target=''/>", parse.Expat(), parse.NS(html), parse.Instantiate(pool=xsc.Pool(html)))
 	assert "target" in e[0].attrs
 
 
 def test_expat_xmldecl():
-	e = parsers.tree(b"<?xml version='1.0' encoding='utf-8' standalone='yes'?><a/>", parsers.Expat(), parsers.NS(html), parsers.Instantiate())
+	e = parse.tree(b"<?xml version='1.0' encoding='utf-8' standalone='yes'?><a/>", parse.Expat(), parse.NS(html), parse.Instantiate())
 	assert not isinstance(e[0], xml.XML)
 
-	e = parsers.tree(b"<a/>", parsers.Expat(xmldecl=True), parsers.NS(html), parsers.Instantiate())
+	e = parse.tree(b"<a/>", parse.Expat(xmldecl=True), parse.NS(html), parse.Instantiate())
 	assert not isinstance(e[0], xml.XML)
 
-	e = parsers.tree(b"<?xml version='1.0'?><a/>", parsers.Expat(xmldecl=True), parsers.NS(html), parsers.Instantiate())
+	e = parse.tree(b"<?xml version='1.0'?><a/>", parse.Expat(xmldecl=True), parse.NS(html), parse.Instantiate())
 	assert isinstance(e[0], xml.XML)
 	assert e[0].content == u'version="1.0"'
 
-	e = parsers.tree(b"<?xml version='1.0' encoding='utf-8'?><a/>", parsers.Expat(xmldecl=True), parsers.NS(html), parsers.Instantiate())
+	e = parse.tree(b"<?xml version='1.0' encoding='utf-8'?><a/>", parse.Expat(xmldecl=True), parse.NS(html), parse.Instantiate())
 	assert isinstance(e[0], xml.XML)
 	assert e[0].content == u'version="1.0" encoding="utf-8"'
 
-	e = parsers.tree(b"<?xml version='1.0' encoding='utf-8' standalone='yes'?><a/>", parsers.Expat(xmldecl=True), parsers.NS(html), parsers.Instantiate())
+	e = parse.tree(b"<?xml version='1.0' encoding='utf-8' standalone='yes'?><a/>", parse.Expat(xmldecl=True), parse.NS(html), parse.Instantiate())
 	assert isinstance(e[0], xml.XML)
 	assert e[0].content == u'version="1.0" encoding="utf-8" standalone="yes"'
 
 
 def test_expat_doctype():
-	e = parsers.tree(b'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><a/>', parsers.Expat(), parsers.NS(html), parsers.Instantiate())
+	e = parse.tree(b'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><a/>', parse.Expat(), parse.NS(html), parse.Instantiate())
 	assert not isinstance(e[0], xsc.DocType)
 
-	e = parsers.tree(b'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><a/>', parsers.Expat(doctype=True), parsers.NS(html), parsers.Instantiate())
+	e = parse.tree(b'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><a/>', parse.Expat(doctype=True), parse.NS(html), parse.Instantiate())
 	assert isinstance(e[0], xsc.DocType)
 	assert e[0].content == html.DocTypeXHTML11().content
 
-	e = parsers.tree(b'<!DOCTYPE html><a/>', parsers.Expat(doctype=True), parsers.NS(html), parsers.Instantiate())
+	e = parse.tree(b'<!DOCTYPE html><a/>', parse.Expat(doctype=True), parse.NS(html), parse.Instantiate())
 	assert isinstance(e[0], xsc.DocType)
 	assert e[0].content == "html"
 
-	e = parsers.tree(b'<!DOCTYPE html SYSTEM "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><a/>', parsers.Expat(doctype=True), parsers.NS(html), parsers.Instantiate())
+	e = parse.tree(b'<!DOCTYPE html SYSTEM "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><a/>', parse.Expat(doctype=True), parse.NS(html), parse.Instantiate())
 	assert isinstance(e[0], xsc.DocType)
 	assert e[0].content == u'html SYSTEM "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"'
 
-	e = parsers.tree(b'<!DOCTYPE a [<!ELEMENT a EMPTY><!--gurk-->]><a/>', parsers.Expat(doctype=True), parsers.NS(html), parsers.Instantiate())
+	e = parse.tree(b'<!DOCTYPE a [<!ELEMENT a EMPTY><!--gurk-->]><a/>', parse.Expat(doctype=True), parse.NS(html), parse.Instantiate())
 	assert isinstance(e[0], xsc.DocType)
 	assert e[0].content == u'a' # Internal subset gets dropped
 
 
 def test_htmlparse_base():
-	e = parsers.tree(b"<a href='gurk.gif'/>", parsers.Tidy(), parsers.NS(html), parsers.Instantiate(base="hurz/index.html"))
+	e = parse.tree(b"<a href='gurk.gif'/>", parse.Tidy(), parse.NS(html), parse.Instantiate(base="hurz/index.html"))
 	e = e.walknodes(html.a)[0]
 	assert unicode(e.attrs.href) == "hurz/gurk.gif"
 
 
 def test_parse_tidy_empty():
-	e = parsers.tree(b"", parsers.Tidy(), parsers.NS(), parsers.Instantiate())
+	e = parse.tree(b"", parse.Tidy(), parse.NS(), parse.Instantiate())
 	assert not e
 
 
 def test_base():
-	e = parsers.tree(parsers.StringSource(b'<a xmlns="http://www.w3.org/1999/xhtml" href="gurk.html"/>', 'http://www.gurk.de/'), parsers.Expat(ns=True), parsers.Instantiate(pool=xsc.Pool(html)))
+	e = parse.tree(parse.StringSource(b'<a xmlns="http://www.w3.org/1999/xhtml" href="gurk.html"/>', 'http://www.gurk.de/'), parse.Expat(ns=True), parse.Instantiate(pool=xsc.Pool(html)))
 	assert unicode(e[0].attrs.href) == "http://www.gurk.de/gurk.html"
 
 
 def test_stringsource():
 	expect = b"hinz & kunz"
-	source = parsers.StringSource(expect)
+	source = parse.StringSource(expect)
 	for i in xrange(3):
 		parsed = b"".join(data for (evtype, data) in source if evtype == "bytes")
 		assert parsed == expect
@@ -308,7 +305,7 @@ def test_stringsource():
 
 def test_itersource():
 	expect = b"hinz & kunz"
-	source = parsers.IterSource([b"hinz", b" & ", b"kunz"])
+	source = parse.IterSource([b"hinz", b" & ", b"kunz"])
 	for i in xrange(3):
 		parsed = b"".join(data for (evtype, data) in source if evtype == "bytes")
 		assert parsed == expect
@@ -316,7 +313,7 @@ def test_itersource():
 
 def test_filesource():
 	expect = open("setup.py", "rb").read()
-	source = parsers.FileSource("setup.py", bufsize=32)
+	source = parse.FileSource("setup.py", bufsize=32)
 	for i in xrange(3):
 		parsed = "".join(data for (evtype, data) in source if evtype == "bytes")
 		assert parsed == expect
@@ -325,14 +322,14 @@ def test_filesource():
 def test_streamsource():
 	# StreamSource objects are not reusable
 	expect = open("setup.py", "rb").read()
-	parsed = "".join(event[1] for event in parsers.StreamSource(open("setup.py", "rb"), bufsize=32) if event[0] == "bytes")
+	parsed = "".join(event[1] for event in parse.StreamSource(open("setup.py", "rb"), bufsize=32) if event[0] == "bytes")
 	assert parsed == expect
 
 
 @py.test.mark.net
 def test_urlsource():
 	expect = url.URL("http://www.python.org/").openread().read()
-	source = parsers.URLSource("http://www.python.org/", bufsize=32)
+	source = parse.URLSource("http://www.python.org/", bufsize=32)
 	for i in xrange(3):
 		parsed = b"".join(data for (evtype, data) in source if evtype == "bytes")
 		assert parsed == expect
@@ -345,14 +342,14 @@ def test_itertree_large():
 			yield b"<li>{0}</li>".format(i)
 		yield b"</ul>"
 
-	for (i, (evtype, path)) in enumerate(parsers.itertree(parsers.IterSource(xml()), parsers.Expat(ns=True), parsers.Instantiate(), filter=html.li)):
+	for (i, (evtype, path)) in enumerate(parse.itertree(parse.IterSource(xml()), parse.Expat(ns=True), parse.Instantiate(), filter=html.li)):
 		assert int(str(path[-1])) == i
 		path[-2].content.clear()
 
 
 def test_expat_events_on_exception():
 	# Test that all collected events are output, before an exception is thrown
-	i = parsers.events(b"<x/>schrott", parsers.Expat())
+	i = parse.events(b"<x/>schrott", parse.Expat())
 	assert i.next() == (u"url", url.URL("STRING"))
 	assert i.next() == (u"position", (0, 0))
 	assert i.next() == (u"enterstarttag", u"x")
@@ -364,7 +361,7 @@ def test_expat_events_on_exception():
 
 def test_expat_no_multiple_text_events():
 	# Test that we don't get consecutive text events with expat
-	i = parsers.events(parsers.IterSource(b"<a>gurk &amp; hurz &amp; hinz &amp; kunz</a>"), parsers.Expat())
+	i = parse.events(parse.IterSource(b"<a>gurk &amp; hurz &amp; hinz &amp; kunz</a>"), parse.Expat())
 	assert i.next() == (u"url", url.URL("ITER"))
 	assert i.next() == (u"position", (0, 0))
 	assert i.next() == (u"enterstarttag", u"a")
@@ -378,7 +375,7 @@ def test_expat_no_multiple_text_events():
 
 def test_sgmlop_no_multiple_text_events():
 	# Test that we don't get consecutive text events with sgmlop
-	i = parsers.events(parsers.IterSource(b"<a>gurk &amp; hurz &amp; hinz &amp; kunz</a>"), parsers.SGMLOP())
+	i = parse.events(parse.IterSource(b"<a>gurk &amp; hurz &amp; hinz &amp; kunz</a>"), parse.SGMLOP())
 	assert i.next() == (u"url", url.URL("ITER"))
 	assert i.next() == (u"enterstarttag", u"a")
 	assert i.next() == (u"leavestarttag", u"a")

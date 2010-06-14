@@ -9,7 +9,7 @@ import sys, os, glob
 import cherrypy
 from cherrypy.lib import cptools
 
-from ll.xist import xsc, converters
+from ll.xist import xsc
 from ll.xist.ns import xml, html, doc, htmlspecials, meta
 
 cols = 6

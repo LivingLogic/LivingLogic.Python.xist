@@ -24,7 +24,7 @@ __docformat__ = "reStructuredText"
 import sys, optparse
 
 from ll import url
-from ll.xist import xsc, xfind, parsers, converters
+from ll.xist import xsc, xfind, parse
 from ll.xist.ns import tld
 
 
@@ -32,7 +32,7 @@ __docformat__ = "reStructuredText"
 
 
 def tld2xnd(stream, shareattrs=None):
-	node = parsers.tree(parsers.StreamSource(stream), parsers.Expat(), parsers.NS(tld), parsers.Instantiate())
+	node = parse.tree(parse.StreamSource(stream), parse.Expat(), parse.NS(tld), parse.Instantiate())
 
 	# get and convert the taglib object
 	xnd = node.walknodes(tld.taglib)[0].asxnd()

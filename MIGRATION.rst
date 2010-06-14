@@ -1,6 +1,18 @@
 Migrating to version 3.8
 ========================
 
+Changes to parsing
+------------------
+
+*	The module :mod:`ll.xist.parsers` has been renamed to :mod:`parse`.
+
+*	The module :mod:`ll.xist.presenters` has been renamed to :mod:`present`.
+
+*	The classes :class:`ll.xist.converters.Converter` and
+	:class:`ll.xist.publishers.Publisher` has been moved to :mod:`ll.xist.xsc`.
+	The modules :mod:`ll.xist.converters` and :mod:`ll.xist.publishers` no longer
+	exist.
+
 Changes to XISTs walk filters
 -----------------------------
 

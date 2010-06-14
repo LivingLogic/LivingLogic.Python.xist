@@ -22,7 +22,7 @@ __docformat__ = "reStructuredText"
 
 import sys, getopt
 
-from ll.xist import xsc, parsers, converters
+from ll.xist import xsc, parse
 from ll.xist.ns import html, doc, text
 
 
@@ -30,7 +30,7 @@ __docformat__ = "plaintext"
 
 
 def xsc2txt(infilename, outfilename, title, width):
-	e = parsers.tree(parsers.FileSource(infilename) | parsers.SGMLOP() | parsers.NS(doc) | parsers.Instantiate(pool=xsc.docpool()))
+	e = parse.tree(parse.FileSource(infilename), parse.SGMLOP(), parse.NS(doc), parse.Instantiate(pool=xsc.docpool()))
 
 	if title is None:
 		title = xsc.Null

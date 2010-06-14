@@ -17,7 +17,7 @@ for all conversion target, because they only generate text.
 import sys, types, datetime
 
 from ll import url as url_
-from ll.xist import xsc, parsers, sims
+from ll.xist import xsc, parse, sims
 
 
 __docformat__ = "reStructuredText"
@@ -119,7 +119,7 @@ class include(xsc.Element):
 		class src(xsc.URLAttr): pass
 
 	def convert(self, converter):
-		e = parsers.parseURL(self[u"src"].forInput())
+		e = parse.tree(parse.URLSource(self[u"src"].forInput()), parse.Expat(ns=True), parse.Instantiate())
 
 		return e.convert(converter)
 

@@ -3,7 +3,7 @@
 
 <p>Converter contexts can be used to pass around information in recursive
 calls to the <meth>convert</meth> and <meth>mapped</meth> methods.
-A <pyref module="ll.xist.converters" class="Converter"><class>Converter</class></pyref>
+A <pyref module="ll.xist.xsc" class="Converter"><class>Converter</class></pyref>
 object will be passed in all calls, so this object is the place to store
 information. However if each element, procinst and entity class decided on its
 own which attributes names to use, name collisions would be inevitale. To avoid

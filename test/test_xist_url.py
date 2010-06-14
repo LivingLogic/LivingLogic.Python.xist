@@ -10,16 +10,16 @@
 
 
 from ll import url
-from ll.xist import xsc, parsers
+from ll.xist import xsc, parse
 from ll.xist.ns import specials, html, jsp
 
 
 def test_url(recwarn):
-	# The recwarn argument silences the RequiredAttrMissingWarning
-	node = parsers.tree(b"<?url root:images/gurk.gif?>", parsers.SGMLOP(), parsers.NS(html), parsers.Instantiate())
+	# The ``recwarn`` argument silences the ``RequiredAttrMissingWarning``
+	node = parse.tree(b"<?url root:images/gurk.gif?>", parse.SGMLOP(), parse.NS(html), parse.Instantiate())
 	assert node.bytes(base="root:about/us.html") == b"../images/gurk.gif"
 
-	node = parsers.tree(b'<img src="root:images/gurk.gif"/>', parsers.Expat(), parsers.NS(html), parsers.Instantiate())
+	node = parse.tree(b'<img src="root:images/gurk.gif"/>', parse.Expat(), parse.NS(html), parse.Instantiate())
 	assert node.bytes(base="root:about/us.html") == b'<img src="../images/gurk.gif" />'
 
 

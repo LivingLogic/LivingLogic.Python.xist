@@ -13,9 +13,9 @@ This base &url; can be passed to all parsing functions. If it isn't specified
 it defaults to the &url; of the resource being parsed. This base &url; will
 be prepended to all &url;s that are read during parsing:</p>
 <tty>
-<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers</input>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parse</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parsestring('&lt;img src="eggs.png"/&gt;', base="root:spam/index.html")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = parse.parsestring('&lt;img src="eggs.png"/&gt;', base="root:spam/index.html")</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print node.bytes()</input>
 &lt;img src="root:spam/eggs.png" /&gt;
 </tty>
@@ -44,7 +44,7 @@ publishing. Let's assume we have an &url; <lit>#top</lit>
 in the source file. When we use the <z>real</z> file names
 for parsing and publishing like this:</p>
 <prog>
-node = parsers.parsefile("spam.htmlxsc", base="root:spam.htmlxsc")
+node = parse.parsefile("spam.htmlxsc", base="root:spam.htmlxsc")
 node = node.conv()
 node.write(open("spam.html", "wb"), base="root:spam.html")
 </prog>

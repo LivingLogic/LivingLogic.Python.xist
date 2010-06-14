@@ -30,4 +30,4 @@ HTMLgen_ and HyperText_.
 __docformat__ = "reStructuredText"
 
 
-__all__ = ["xsc", "publishers", "presenters", "parsers", "converters", "sims", "xnd", "ns"]
+__all__ = ["xsc", "present", "parse", "sims", "xnd", "xfind", "ns"]

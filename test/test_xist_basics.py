@@ -16,14 +16,14 @@ from xml.parsers import expat
 import py.test
 
 from ll import url
-from ll.xist import xsc, parsers, css, presenters, converters, sims, xnd, xfind
+from ll.xist import xsc, css, present, sims, xnd, xfind
 from ll.xist.ns import wml, ihtml, html, chars, abbr, specials, htmlspecials, meta, form, php, xml, tld, docbook
 
 import xist_common as common
 
 
 # set to something ASCII, so presenters work, even if the system default encoding is ascii
-presenters.reprtab = "  "
+present.reprtab = "  "
 
 
 def check_lenunicode(node, _len, content):
@@ -274,13 +274,13 @@ def test_conv():
 
 	node = common.createfrag()
 	node.conv()
-	node.conv(converters.Converter())
-	node.mapped(mappedmapper, converters.Converter())
+	node.conv(xsc.Converter())
+	node.mapped(mappedmapper, xsc.Converter())
 
 
 def test_repr():
 	tests = common.allnodes()
-	allpresenters = [c for c in presenters.__dict__.itervalues() if isinstance(c, type) and c is not presenters.Presenter and issubclass(c, presenters.Presenter)]
+	allpresenters = [c for c in present.__dict__.itervalues() if isinstance(c, type) and c is not present.Presenter and issubclass(c, present.Presenter)]
 	for node in tests:
 		repr(node)
 		for class_ in allpresenters:

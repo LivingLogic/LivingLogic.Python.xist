@@ -48,8 +48,8 @@ of a tree and produce all table elements, the following code could be used:</p>
 
 <example><h>Using the <meth>walk</meth> method</h>
 <prog>
-from ll.xist import parsers, xfind
-from ll.xist.ns import html
+from ll.xist import xsc, parse, xfind
+from ll.xist.ns import xml, html
 
 class IsTable(xfind.WalkFilter):
 	def filternode(self, node):
@@ -58,7 +58,7 @@ class IsTable(xfind.WalkFilter):
 		else:
 			return (xfind.entercontent,)
 
-doc = parsers.parseurl("http://www.python.org/", tidy=True)
+node = parse.tree(parse.URLSource("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Instantiate(pool=xsc.Pool(xml, html)))
 
 for node in doc.walknodes(IsTable()):
 	<rep>...</rep>
@@ -88,10 +88,10 @@ extracts all the links on the
 
 <example><h>Finding all links on the Python home page</h>
 <prog>
-from ll.xist import xsc, parsers
-from ll.xist.ns import html
+from ll.xist import xsc, parse
+from ll.xist.ns import xml, html
 
-doc = parsers.parseurl("http://www.python.org/", tidy=True)
+node = parse.tree(parse.URLSource("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Instantiate(pool=xsc.Pool(xml, html)))
 
 for node in doc.walknodes(xfind.FindTypeAll(html.a)):
 	print node.attrs.href
@@ -115,8 +115,8 @@ page:</p>
 
 <example><h>Finding external links on the Python home page</h>
 <prog>
-from ll.xist import parsers, xfind
-from ll.xist.ns import html
+from ll.xist import parse, xfind
+from ll.xist.ns import xml, html
 
 class IsExtLink(xfind.WalkFilter):
 	def filternode(self, node):
@@ -124,7 +124,7 @@ class IsExtLink(xfind.WalkFilter):
 			return (True, xfind.entercontent)
 		return (xfind.entercontent,)
 
-doc = parsers.parseurl("http://www.python.org/", tidy=True)
+doc = parse.tree(parse.URLSource("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Instantiate(pool=xsc.Pool(xml, html)))
 
 for node in doc.walknodes(IsExtLink()):
 	print node.attrs.href
@@ -184,10 +184,10 @@ To do this simply replace <lit>html.a/html.img</lit> with <lit>html.a//html.img<
 the <lit>|</lit> and <lit>&amp;</lit> operators to combine xfind expressions:</p>
 
 <prog>
-from ll.xist import xsc, parsers, xfind
-from ll.xist.ns import html
+from ll.xist import xsc, parse, xfind
+from ll.xist.ns import xml, html
 
-doc = parsers.parseurl("http://www.python.org/", tidy=True)
+doc = parse.tree(parse.URLSource("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Instantiate(pool=xsc.Pool(xml, html)))
 
 for node in doc.walknodes((html.a | html.area) &amp; xfind.hasattr("href")):
 	print node.attrs.href
@@ -197,10 +197,10 @@ for node in doc.walknodes((html.a | html.area) &amp; xfind.hasattr("href")):
 attribute:</p>
 
 <prog>
-from ll.xist import xsc, parsers, xfind
-from ll.xist.ns import html
+from ll.xist import xsc, parse, xfind
+from ll.xist.ns import xml, html
 
-doc = parsers.parseurl("http://www.python.org/", tidy=True)
+doc = parse.tree(parse.URLSource("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Instantiate(pool=xsc.Pool(xml, html)))
 
 for node in doc.walknodes(xfind.hasattr("id")):
 	print node.attrs.id
@@ -233,10 +233,10 @@ into a walk filter:</p>
 
 <example><h>Using &css; selectors as walk filters</h>
 <prog>
-from ll.xist import xsc, parsers, css
-from ll.xist.ns import html
+from ll.xist import xsc, parse, css
+from ll.xist.ns import xml, html
 
-doc = parsers.parseurl("http://www.python.org/", tidy=True)
+doc = parse.tree(parse.URLSource("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Instantiate(pool=xsc.Pool(xml, html)))
 
 for node in doc.walknodes(css.selector("div#menu ul.level-one li > a")):
 	print node.attrs.href

@@ -108,14 +108,14 @@ print node.conv().bytes(encoding="us-ascii")
 <p>Parsing &html; is done like this:</p>
 
 <prog>
-from ll.xist import parsers
+from ll.xist import parse
 from ll.xist.ns import html
 
-node = parsers.tree(
-	parsers.URLSource("http://www.python.org/"),
-	parsers.Tidy(),
-	parsers.NS(html),
-	parsers.Instantiate()
+node = parse.tree(
+	parse.URLSource("http://www.python.org/"),
+	parse.Tidy(),
+	parse.NS(html),
+	parse.Instantiate()
 )
 </prog>
 
@@ -128,12 +128,12 @@ node = parsers.tree(
 inside links on Python's homepage:</p>
 
 <tty>
-<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers</input>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parse</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.tree(</input>
-<prompt>... </prompt><input>	parsers.URLSource("http://www.python.org/"),</input>
-<prompt>... </prompt><input>	parsers.Expat(ns=True),</input>
-<prompt>... </prompt><input>	parsers.Instantiate()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = parse.tree(</input>
+<prompt>... </prompt><input>	parse.URLSource("http://www.python.org/"),</input>
+<prompt>... </prompt><input>	parse.Expat(ns=True),</input>
+<prompt>... </prompt><input>	parse.Instantiate()</input>
 <prompt>... </prompt><input>)</input>
 <prompt>&gt;&gt;&gt; </prompt><input>for img in node.walknodes(html.a/html.img):</input>
 <prompt>... </prompt><input>   print img.attrs.src</input>
@@ -148,12 +148,12 @@ http://www.python.org/images/success/nasa.jpg
 following:</p>
 
 <tty>
-<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers, xfind</input>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parse, xfind</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.tree(</input>
-<prompt>... </prompt><input>	parsers.URLSource("http://www.python.org/"),</input>
-<prompt>... </prompt><input>	parsers.Expat(ns=True),</input>
-<prompt>... </prompt><input>	parsers.Instantiate()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = parse.tree(</input>
+<prompt>... </prompt><input>	parse.URLSource("http://www.python.org/"),</input>
+<prompt>... </prompt><input>	parse.Expat(ns=True),</input>
+<prompt>... </prompt><input>	parse.Instantiate()</input>
 <prompt>... </prompt><input>)</input>
 <prompt>&gt;&gt;&gt; </prompt><input>for path in node.walkpaths(html.a/html.img):</input>
 <prompt>... </prompt><input>   print path[-2].attrs.href, path[-1].attrs.src</input>
@@ -168,12 +168,12 @@ following:</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll import misc</input>
-<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers</input>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parse</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.tree(</input>
-<prompt>... </prompt><input>	parsers.URLSource("http://www.python.org/"),</input>
-<prompt>... </prompt><input>	parsers.Expat(ns=True),</input>
-<prompt>... </prompt><input>	parsers.Instantiate()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = parse.tree(</input>
+<prompt>... </prompt><input>	parse.URLSource("http://www.python.org/"),</input>
+<prompt>... </prompt><input>	parse.Expat(ns=True),</input>
+<prompt>... </prompt><input>	parse.Instantiate()</input>
 <prompt>... </prompt><input>)</input>
 <prompt>&gt;&gt;&gt; </prompt><input>misc.count(node.walk(html.a))</input>
 83
@@ -188,7 +188,7 @@ following:</p>
 text replacements:</p>
 
 <prog>
-from ll.xist import xsc, parsers
+from ll.xist import xsc, parse
 
 def p2p(node, converter):
 	if isinstance(node, xsc.Text):
@@ -196,10 +196,10 @@ def p2p(node, converter):
 		node = node.replace("python", "parrot")
 	return node
 
-node = parsers.tree(
-	parsers.URLSource("http://www.python.org/"),
-	parsers.Expat(ns=True),
-	parsers.Instantiate()
+node = parse.tree(
+	parse.URLSource("http://www.python.org/"),
+	parse.Expat(ns=True),
+	parse.Instantiate()
 )
 
 node = node.mapped(p2p)
@@ -211,17 +211,17 @@ node.write(open("parrot_index.html", "wb"))
 
 <section><h>Converting &html; to &xist; code</h>
 
-<p>The class <pyref module="ll.xist.presenters" class="CodePresenter"><class>ll.xist.presenters.CodePresenter</class></pyref>
+<p>The class <pyref module="ll.xist.present" class="CodePresenter"><class>ll.xist.present.CodePresenter</class></pyref>
 makes it possible to output an &xist; tree as usable Python source code:</p>
 
 <tty>
-<prompt>&gt;&gt;&gt;</prompt> <input>from ll.xist import parsers, presenters</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.tree(</input>
-<prompt>... </prompt><input>	parsers.URLSource("http://www.python.org/"),</input>
-<prompt>... </prompt><input>	parsers.Expat(ns=True),</input>
-<prompt>... </prompt><input>	parsers.Instantiate()</input>
+<prompt>&gt;&gt;&gt;</prompt> <input>from ll.xist import parse, present</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = parse.tree(</input>
+<prompt>... </prompt><input>	parse.URLSource("http://www.python.org/"),</input>
+<prompt>... </prompt><input>	parse.Expat(ns=True),</input>
+<prompt>... </prompt><input>	parse.Instantiate()</input>
 <prompt>... </prompt><input>)</input>
-<prompt>&gt;&gt;&gt;</prompt> <input>print presenters.CodePresenter(node)</input>
+<prompt>&gt;&gt;&gt;</prompt> <input>print present.CodePresenter(node)</input>
 ll.xist.xsc.Frag(
 	ll.xist.ns.html.html(
 		ll.xist.ns.html.head(

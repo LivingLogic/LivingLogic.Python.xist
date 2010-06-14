@@ -7,6 +7,15 @@ Changes in 3.8 (released ??/??/????)
 *	The function :class:`ll.xist.xsc.docprefixes` has been dropped. A new
 	function :class:`ll.xist.xsc.docpool` has been added.
 
+*	The module :mod:`ll.xist.parsers` has been renamed to :mod:`parse`.
+
+*	The module :mod:`ll.xist.presenters` has been renamed to :mod:`present`.
+
+*	The classes :class:`ll.xist.converters.Converter` and
+	:class:`ll.xist.publishers.Publisher` has been moved to :mod:`ll.xist.xsc`.
+	The modules :mod:`ll.xist.converters` and :mod:`ll.xist.publishers` no longer
+	exist.
+
 *	The walk methods :meth:`walknode` and :meth:`walkpath` have been renamed to
 	:meth:`walknodes` and :meth:`walkpaths` and the implemention has been moved
 	from the nodes classes into :class:`WalkFilter`. :class:`WalkFilter` has been
@@ -1140,7 +1149,7 @@ Changes in 2.6.1 (released 11/02/2004)
 *	Restricted characters as defined in `XML 1.1`__ will now be published as
 	character references.
 
-	__  http://www.w3.org/TR/2004/REC-xml11-20040204/#NT-RestrictedChar
+	__ http://www.w3.org/TR/2004/REC-xml11-20040204/#NT-RestrictedChar
 
 
 Changes in 2.6 (released 10/26/2004)

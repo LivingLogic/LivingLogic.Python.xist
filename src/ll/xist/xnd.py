@@ -17,7 +17,7 @@ generated.
 
 import sys, keyword
 
-from ll.xist import xsc, parsers, sims
+from ll.xist import xsc, sims
 
 
 __docformat__ = "reStructuredText"

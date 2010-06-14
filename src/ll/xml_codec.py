@@ -99,7 +99,7 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
 
 	def decode(self, input, final=False):
 		# We're doing basically the same as a ``BufferedIncrementalDecoder``,
-		# but since  the buffer is only relevant until the encoding has been detected
+		# but since the buffer is only relevant until the encoding has been detected
 		# (in which case the buffer of the underlying codec might kick in),
 		# we're implementing buffering ourselves to avoid some overhead.
 		if self.decoder is None:

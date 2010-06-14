@@ -12,7 +12,7 @@
 import py.test
 
 from ll import misc
-from ll.xist import xsc, xfind, parsers
+from ll.xist import xsc, xfind, parse
 from ll.xist.ns import html
 
 
@@ -270,7 +270,7 @@ def test_hasclass():
 
 
 def test_frag():
-	e = parsers.tree(b"das ist <b>klaus</b>. das ist <b>erich</b>", parsers.SGMLOP(), parsers.NS(html), parsers.Instantiate())
+	e = parse.tree(b"das ist <b>klaus</b>. das ist <b>erich</b>", parse.SGMLOP(), parse.NS(html), parse.Instantiate())
 	assert u"".join(map(unicode, e.walknodes(e//html.b))) == u"klauserich"
 
 

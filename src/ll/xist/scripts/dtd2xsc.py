@@ -32,7 +32,7 @@ except ImportError:
 	from xmlproc import dtdparser
 
 from ll import url
-from ll.xist import xsc, parsers, xnd
+from ll.xist import xsc, parse, xnd
 
 
 __docformat__ = "reStructuredText"
@@ -151,7 +151,7 @@ def dtd2xnd(dtd, xmlns=None):
 	ents.sort()
 	for entname in ents:
 		if entname not in ("quot", "apos", "gt", "lt", "amp"):
-			ent = parsers.tree(dtd.resolve_ge(entname).value, parsers.Encoder("utf-8"), parsers.SGMLOP(encoding="utf-8"), parsers.NS(), parsers.Instantiate())
+			ent = parse.tree(dtd.resolve_ge(entname).value, parse.Encoder("utf-8"), parse.SGMLOP(encoding="utf-8"), parse.NS(), parse.Instantiate())
 			ns.content.append(xnd.CharRef(entname, codepoint=ord(unicode(ent[0])[0])))
 
 	return ns

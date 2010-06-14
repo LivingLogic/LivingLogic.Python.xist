@@ -23,14 +23,14 @@ XML tree via :func:`tree` or an iterative parsing step (similar to ElementTrees
 
 Parsing a simple HTML string might e.g. look like this::
 
-	>>> from ll.xist import xsc, parsers
+	>>> from ll.xist import xsc, parse
 	>>> from ll.xist.ns import html
 	>>> source = "<a href='http://www.python.org/'>Python</a>"
-	>>> doc = parsers.tree(
-	... 	parsers.StringSource(source)
-	... 	parsers.Expat()
-	... 	parsers.NS(html)
-	... 	parsers.Instantiate(pool=xsc.Pool(html))
+	>>> doc = parse.tree(
+	... 	parse.StringSource(source)
+	... 	parse.Expat()
+	... 	parse.NS(html)
+	... 	parse.Instantiate(pool=xsc.Pool(html))
 	... )
 	>>> doc.bytes()
 	'<a href="http://www.python.org/">Python</a>'
@@ -39,8 +39,8 @@ A source object is an iterable object that produces the input byte string for
 the parser (possibly in multiple chunks) (and information about the URL of the
 input)::
 
-	>>> from ll.xist import parsers
-	>>> list(parsers.StringSource("<a href='http://www.python.org/'>Python</a>"))
+	>>> from ll.xist import parse
+	>>> list(parse.StringSource("<a href='http://www.python.org/'>Python</a>"))
 	[('url', URL('STRING')),
 	 ('bytes', "<a href='http://www.python.org/'>Python</a>")]
 
@@ -48,9 +48,9 @@ All subsequent objects in the pipeline are callable objects, get the input
 iterator as an argument and return an iterator over events themselves. The
 following code shows an example of an event stream::
 
-	>>> from ll.xist import parsers
+	>>> from ll.xist import parse
 	>>> source = "<a href='http://www.python.org/'>Python</a>"
-	>>> list(parsers.events(parsers.StringSource(source), parsers.Expat()))
+	>>> list(parse.events(parse.StringSource(source), parse.Expat()))
 	[('url', URL('STRING')),
 	 ('position', (0, 0)),
 	 ('enterstarttag', u'a'),
@@ -276,7 +276,7 @@ class StringSource(object):
 		yield (u"url", self.url)
 		if isinstance(self.data, str):
 			yield (u"bytes", self.data)
-		elif  isinstance(self.data, unicode):
+		elif isinstance(self.data, unicode):
 			yield (u"unicode", self.data)
 		else:
 			raise TypeError("data must be str or unicode")
@@ -305,7 +305,7 @@ class IterSource(object):
 		for data in self.iterable:
 			if isinstance(data, str):
 				yield (u"bytes", data)
-			elif  isinstance(data, unicode):
+			elif isinstance(data, unicode):
 				yield (u"unicode", data)
 			else:
 				raise TypeError("data must be str or unicode")
@@ -339,7 +339,7 @@ class StreamSource(object):
 			if data:
 				if isinstance(data, str):
 					yield (u"bytes", data)
-				elif  isinstance(data, unicode):
+				elif isinstance(data, unicode):
 					yield (u"unicode", data)
 				else:
 					raise TypeError("data must be str or unicode")
@@ -954,12 +954,12 @@ class NS(object):
 
 	The output of an :class:`NS` object in the stream looks like this::
 
-		>>> from ll.xist import parsers
+		>>> from ll.xist import parse
 		>>> from ll.xist.ns import html
-		>>> source = list(parsers.events(
-		... 	parsers.StringSource("<a href='http://www.python.org/'>Python</a>"),
-		... 	parsers.Expat(),
-		... 	parsers.NS(html)
+		>>> source = list(parse.events(
+		... 	parse.StringSource("<a href='http://www.python.org/'>Python</a>"),
+		... 	parse.Expat(),
+		... 	parse.NS(html)
 		... ))
 		[('url', URL('STRING')),
 		 ('position', (0, 0)),
@@ -1300,8 +1300,8 @@ class Tidy(object):
 	A :class:`Tidy` object parses (potentially ill-formed) HTML from a source
 	into a (unnamespaced) event stream by using libxml2__'s HTML parser::
 
-		>>> from ll.xist import parsers
-		>>> list(parsers.events(parsers.URLSource("http://www.yahoo.com/"), parsers.Tidy()))
+		>>> from ll.xist import parse
+		>>> list(parse.events(parse.URLSource("http://www.yahoo.com/"), parse.Tidy()))
 		[('url', URL('http://de.yahoo.com/?p=us')),
 		 ('position', (3, None)),
 		 ('enterstarttag', u'html'),
@@ -1462,12 +1462,12 @@ def tree(*pipeline, **kwargs):
 
 	Example::
 
-		>>> from ll.xist import xsc, parsers
+		>>> from ll.xist import xsc, parse
 		>>> from ll.xist.ns import xml, html, chars
-		>>> doc = parsers.tree(
-		... 	parsers.URLSource("http://www.python.org/"),
-		... 	parsers.Expat(ns=True),
-		... 	parsers.Instantiate(pool=xsc.Pool(xml, html, chars))
+		>>> doc = parse.tree(
+		... 	parse.URLSource("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Instantiate(pool=xsc.Pool(xml, html, chars))
 		... )
 		>>> doc[0]
 		<ll.xist.ns.html.html element object (5 children/2 attrs) (from http://www.python.org/:3:0) at 0x1028eb3d0>
@@ -1509,12 +1509,12 @@ def itertree(*pipeline, **kwargs):
 
 	Example::
 
-		>>> from ll.xist import xsc, parsers
+		>>> from ll.xist import xsc, parse
 		>>> from ll.xist.ns import xml, html, chars
-		>>> for (evtype, path) in parsers.itertree(
-		... 	parsers.URLSource("http://www.python.org/"),
-		... 	parsers.Expat(ns=True),
-		... 	parsers.Instantiate(pool=xsc.Pool(xml, html, chars)),
+		>>> for (evtype, path) in parse.itertree(
+		... 	parse.URLSource("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Instantiate(pool=xsc.Pool(xml, html, chars)),
 		... 	filter=html.a/html.img
 		... ):
 		... 	print path[-1].attrs.src, "-->", path[-2].attrs.href

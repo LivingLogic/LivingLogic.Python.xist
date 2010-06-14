@@ -66,7 +66,7 @@ through a function. An example: To replace <lit>Python</lit> with <lit>Parrot</l
 in every text node on the <a href="http://www.python.org/">Python page</a>, do the following:</p>
 
 <prog>
-from ll.xist import xsc, parsers
+from ll.xist import xsc, parse
 
 def p2p(node, converter):
 	if isinstance(node, xsc.Text):
@@ -74,7 +74,7 @@ def p2p(node, converter):
 		node = node.replace(u"python", u"parrot")
 	return node
 
-node = parsers.parseurl("http://www.python.org/", tidy=True)
+node = parse.tree(parse.URLSource("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Instantiate(pool=xsc.Pool(xml, html)))
 node = node.mapped(p2p)
 node.write(open("parrot_index.html", "wb"))
 </prog>

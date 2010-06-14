@@ -9,7 +9,7 @@
 ## See ll/__init__.py for the license
 
 
-from ll.xist import converters
+from ll.xist import xsc
 from ll.xist.ns import htmlspecials
 
 
@@ -20,7 +20,7 @@ def test_pixel():
 	e = htmlspecials.pixel(src=u"root:nix.gif")
 	assert unicode(e.conv().attrs.src) == u"root:nix.gif"
 
-	c = converters.Converter()
+	c = xsc.Converter()
 	c[htmlspecials.pixel].src = u"root:spam.gif"
 	e = htmlspecials.pixel()
 	assert unicode(e.conv(c).attrs.src) == u"root:spam.gif"

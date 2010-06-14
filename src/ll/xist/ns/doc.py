@@ -17,7 +17,7 @@ documentation (in HTML, DocBook and XSL-FO).
 import sys, types, inspect, textwrap, warnings, operator
 
 import ll
-from ll.xist import xsc, parsers, sims, xfind
+from ll.xist import xsc, parse, sims, xfind
 from ll.xist.ns import html, docbook, fo, specials, xml
 
 
@@ -71,7 +71,7 @@ def getdoc(thing, format):
 		return rest.fromstring(text, base=base).conv(target=doc)
 	elif lformat == "xist":
 		from ll.xist.ns import doc
-		node = parsers.tree(parsers.StringSource(text), parsers.SGMLOP(), parsers.NS(doc), parsers.Instantiate(pool=xsc.docpool(), base=base))
+		node = parse.tree(parse.StringSource(text), parse.SGMLOP(), parse.NS(doc), parse.Instantiate(pool=xsc.docpool(), base=base))
 		if not node[p]: # optimization: one paragraph docstrings don't need a <p> element.
 			node = p(node)
 
