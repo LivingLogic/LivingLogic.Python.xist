@@ -16,8 +16,6 @@ Changes to parsing
 		>>> from ll.xist.ns import html
 		>>> source = "<a href='http://www.python.org/'>Python</a>"
 		>>> doc = parsers.parsestring(source, pool=xsc.Pool(html))
-		>>> doc.bytes()
-		'<a href="http://www.python.org/">Python</a>'
 
 	Now this is done the following way::
 
@@ -30,8 +28,6 @@ Changes to parsing
 		... 	parse.NS(html)
 		... 	parse.Node(pool=xsc.Pool(html))
 		... )
-		>>> doc.bytes()
-		'<a href="http://www.python.org/">Python</a>'
 
 	For more info see the module :mod:`ll.xist.parse`.
 
@@ -84,6 +80,23 @@ Changes to :mod:`ll.url`
 
 *	:class:`ll.xist.ns.specials.z` has been moved to the :mod:`ll.xist.ns.doc`
 	module.
+
+Changes to :mod:`ll.make`
+-------------------------
+
+*	The two classes :class:`ll.make.PoolAction` and
+	:class:`ll.make.XISTPoolAction` have been dropped. To update your code,
+	replace::
+
+		make.XISTPoolAction(html)
+
+	with::
+
+		make.ObjectAction(xsc.Pool).call(html)
+
+*	The class :class:`XISTParseAction` has been removed. This action can be
+	replaced by a combination of :class:`ObjectAction`, :class:`CallAction` and
+	:class:`CallAttrAction` using the new parsing infrastructure.
 
 
 Migrating to version 3.7

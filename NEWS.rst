@@ -52,6 +52,15 @@ Changes in 3.8 (released ??/??/????)
 *	The old :class:`URL` method :meth:`import_` has been removed. The new
 	function :func:`misc.module` can now be used for that.
 
+*	The two classes :class:`ll.make.PoolAction` and
+	:class:`ll.make.XISTPoolAction` have been dropped. You can use
+	``make.ObjectAction(misc.Pool).call()`` and
+	``make.ObjectAction(xsc.Pool).call()`` for that.
+
+*	The class :class:`XISTParseAction` has been removed. This action can be
+	replaced by a combination of :class:`ObjectAction`, :class:`CallAction` and
+	:class:`CallAttrAction`.
+
 *	Two new UL4 functions ``abs`` and ``utcnow`` have been added.
 
 *	A few methods have been added to UL4 date objects: ``mimeformat``, ``day``,
