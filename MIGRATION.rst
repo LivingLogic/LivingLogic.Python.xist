@@ -78,9 +78,6 @@ Changes to :mod:`ll.url`
 
 	__ http://codespeak.net/execnet/
 
-*	:class:`ll.xist.ns.specials.z` has been moved to the :mod:`ll.xist.ns.doc`
-	module.
-
 Changes to :mod:`ll.make`
 -------------------------
 
@@ -97,6 +94,12 @@ Changes to :mod:`ll.make`
 *	The class :class:`XISTParseAction` has been removed. This action can be
 	replaced by a combination of :class:`ObjectAction`, :class:`CallAction` and
 	:class:`CallAttrAction` using the new parsing infrastructure.
+
+Other changes
+-------------
+
+*	:class:`ll.xist.ns.specials.z` has been moved to the :mod:`ll.xist.ns.doc`
+	module.
 
 
 Migrating to version 3.7
