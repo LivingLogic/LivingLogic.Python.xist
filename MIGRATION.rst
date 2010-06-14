@@ -4,6 +4,43 @@ Migrating to version 3.8
 Changes to parsing
 ------------------
 
+*	The parsing infrastructure has been completely rewritten to be more modular
+	and to support iterative parsing (similar to `ElementTree`__). Now parsing
+	XML is done in a pipeline approach.
+
+	__ http://effbot.org/zone/element-iterparse.htm
+
+	Previously parsing a string looked like this::
+
+		>>> from ll.xist import xsc, parsers
+		>>> from ll.xist.ns import html
+		>>> source = "<a href='http://www.python.org/'>Python</a>"
+		>>> doc = parsers.parsestring(source, pool=xsc.Pool(html))
+		>>> doc.bytes()
+		'<a href="http://www.python.org/">Python</a>'
+
+	Now this is done the following way::
+
+		>>> from ll.xist import xsc, parse
+		>>> from ll.xist.ns import html
+		>>> source = "<a href='http://www.python.org/'>Python</a>"
+		>>> doc = parse.tree(
+		... 	parse.StringSource(source)
+		... 	parse.Expat()
+		... 	parse.NS(html)
+		... 	parse.Instantiate(pool=xsc.Pool(html))
+		... )
+		>>> doc.bytes()
+		'<a href="http://www.python.org/">Python</a>'
+
+	For more info see the module :mod:`ll.xist.parse`.
+
+*	Something that no longer works is parsing XML where elements from different
+	namespaces use the same namespace prefix. You will either have to rewrite
+	your XML or implement a new class for the parsing pipeline that handles
+	namespaces prefixes *and* instantiating XIST classes (i.e. a combination
+	of what :class:`ll.xist.parse.NS` and :class:`ll.xist.parse.Instantiate` do).
+
 *	The module :mod:`ll.xist.parsers` has been renamed to :mod:`parse`.
 
 *	The module :mod:`ll.xist.presenters` has been renamed to :mod:`present`.

@@ -1,6 +1,25 @@
 Changes in 3.8 (released ??/??/????)
 ------------------------------------
 
+*	The parsing infrastructure has been completely rewritten to be more modular
+	and to support iterative parsing (similar to `ElementTree`__).
+
+	__ http://effbot.org/zone/element-iterparse.htm
+
+	Now parsing XML is done in a pipeline approach that looks like this::
+
+		>>> from ll.xist import xsc, parse
+		>>> from ll.xist.ns import html
+		>>> source = "<a href='http://www.python.org/'>Python</a>"
+		>>> doc = parse.tree(
+		... 	parse.StringSource(source)
+		... 	parse.Expat()
+		... 	parse.NS(html)
+		... 	parse.Instantiate(pool=xsc.Pool(html))
+		... )
+		>>> doc.bytes()
+		'<a href="http://www.python.org/">Python</a>'
+
 *	The XIST element :class:`ll.xist.ns.specials.z` has been moved to the
 	:mod:`ll.xist.ns.doc` module.
 
