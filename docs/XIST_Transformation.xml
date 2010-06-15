@@ -74,7 +74,7 @@ def p2p(node, converter):
 		node = node.replace(u"python", u"parrot")
 	return node
 
-node = parse.tree(parse.URLSource("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+node = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
 node = node.mapped(p2p)
 node.write(open("parrot_index.html", "wb"))
 </prog>

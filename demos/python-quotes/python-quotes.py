@@ -13,7 +13,7 @@ url = "http://www.amk.ca/quotations/python-quotes.xml"
 if __name__ == "__main__":
 	pool = xsc.Pool(html, xml, qel_xmlns, rdf_xmlns, rdfs_xmlns, cc_xmlns, dc_xmlns)
 	base = "root:python-quotes.html"
-	e = parse.tree(parse.URLSource(url), parse.Expat(ns=True), parse.Node(pool=pool, base=base), validate=False)
+	e = parse.tree(parse.URL(url), parse.Expat(ns=True), parse.Node(pool=pool, base=base), validate=False)
 	e = e[qel_xmlns.quotations][0]
 	e = e.compact().conv()
 	print e.bytes(base=base, encoding="iso-8859-1", validate=False)

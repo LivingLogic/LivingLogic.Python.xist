@@ -23,7 +23,7 @@ Changes to parsing
 		>>> from ll.xist.ns import html
 		>>> source = "<a href='http://www.python.org/'>Python</a>"
 		>>> doc = parse.tree(
-		... 	parse.StringSource(source)
+		... 	parse.String(source)
 		... 	parse.Expat()
 		... 	parse.NS(html)
 		... 	parse.Node(pool=xsc.Pool(html))

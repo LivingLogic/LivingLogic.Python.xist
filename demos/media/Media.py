@@ -143,7 +143,7 @@ class media(xsc.Element):
 
 
 if __name__ == "__main__":
-	node = parse.tree(parse.FileSource("Media.xml"), parse.Expat(ns=True), xsc.Pool(vars(), chars, xml))
+	node = parse.tree(parse.File("Media.xml"), parse.Expat(ns=True), xsc.Pool(vars(), chars, xml))
 	node = node[media][0]
 	node = node.conv()
 	print node.bytes(encoding="us-ascii")

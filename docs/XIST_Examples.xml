@@ -112,7 +112,7 @@ from ll.xist import parse
 from ll.xist.ns import html
 
 node = parse.tree(
-	parse.URLSource("http://www.python.org/"),
+	parse.URL("http://www.python.org/"),
 	parse.Tidy(),
 	parse.NS(html),
 	parse.Node()
@@ -131,7 +131,7 @@ inside links on Python's homepage:</p>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parse</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = parse.tree(</input>
-<prompt>... </prompt><input>	parse.URLSource("http://www.python.org/"),</input>
+<prompt>... </prompt><input>	parse.URL("http://www.python.org/"),</input>
 <prompt>... </prompt><input>	parse.Expat(ns=True),</input>
 <prompt>... </prompt><input>	parse.Node()</input>
 <prompt>... </prompt><input>)</input>
@@ -151,7 +151,7 @@ following:</p>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parse, xfind</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = parse.tree(</input>
-<prompt>... </prompt><input>	parse.URLSource("http://www.python.org/"),</input>
+<prompt>... </prompt><input>	parse.URL("http://www.python.org/"),</input>
 <prompt>... </prompt><input>	parse.Expat(ns=True),</input>
 <prompt>... </prompt><input>	parse.Node()</input>
 <prompt>... </prompt><input>)</input>
@@ -171,7 +171,7 @@ following:</p>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parse</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = parse.tree(</input>
-<prompt>... </prompt><input>	parse.URLSource("http://www.python.org/"),</input>
+<prompt>... </prompt><input>	parse.URL("http://www.python.org/"),</input>
 <prompt>... </prompt><input>	parse.Expat(ns=True),</input>
 <prompt>... </prompt><input>	parse.Node()</input>
 <prompt>... </prompt><input>)</input>
@@ -197,7 +197,7 @@ def p2p(node, converter):
 	return node
 
 node = parse.tree(
-	parse.URLSource("http://www.python.org/"),
+	parse.URL("http://www.python.org/"),
 	parse.Expat(ns=True),
 	parse.Node()
 )
@@ -217,7 +217,7 @@ makes it possible to output an &xist; tree as usable Python source code:</p>
 <tty>
 <prompt>&gt;&gt;&gt;</prompt> <input>from ll.xist import parse, present</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = parse.tree(</input>
-<prompt>... </prompt><input>	parse.URLSource("http://www.python.org/"),</input>
+<prompt>... </prompt><input>	parse.URL("http://www.python.org/"),</input>
 <prompt>... </prompt><input>	parse.Expat(ns=True),</input>
 <prompt>... </prompt><input>	parse.Node()</input>
 <prompt>... </prompt><input>)</input>

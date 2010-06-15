@@ -53,9 +53,9 @@ def test_parsingmethods():
 
 	yield check, b, parse.Expat(), parse.NS(a.xmlns), parse.Node(pool)
 	yield check, s, parse.Encoder(encoding="utf-8"), parse.Expat(), parse.NS(a.xmlns), parse.Node(pool)
-	yield check, parse.IterSource(b), parse.Expat(), parse.NS(a.xmlns), parse.Node(pool) # parse byte by byte
-	yield check, parse.StreamSource(cStringIO.StringIO(b), bufsize=1), parse.Expat(), parse.NS(a.xmlns), parse.Node(pool)
-	yield check, parse.ETreeSource(cElementTree.fromstring(b), defaultxmlns=a.xmlns), parse.Node(pool)
+	yield check, parse.Iter(b), parse.Expat(), parse.NS(a.xmlns), parse.Node(pool) # parse byte by byte
+	yield check, parse.Stream(cStringIO.StringIO(b), bufsize=1), parse.Expat(), parse.NS(a.xmlns), parse.Node(pool)
+	yield check, parse.ETree(cElementTree.fromstring(b), defaultxmlns=a.xmlns), parse.Node(pool)
 
 
 def test_parselocationsgmlop():
@@ -205,7 +205,7 @@ def test_parsestringurl():
 	node = parse.tree(b"gurk", parse.SGMLOP(), parse.NS(), parse.Node())
 	assert str(node[0].startloc.url) == "STRING"
 
-	node = parse.tree(parse.StringSource(b"gurk", url="root:gurk.xmlxsc"), parse.SGMLOP(), parse.NS(), parse.Node())
+	node = parse.tree(parse.String(b"gurk", url="root:gurk.xmlxsc"), parse.SGMLOP(), parse.NS(), parse.Node())
 	assert str(node[0].startloc.url) == "root:gurk.xmlxsc"
 
 
@@ -291,13 +291,13 @@ def test_parse_tidy_empty():
 
 
 def test_base():
-	e = parse.tree(parse.StringSource(b'<a xmlns="http://www.w3.org/1999/xhtml" href="gurk.html"/>', 'http://www.gurk.de/'), parse.Expat(ns=True), parse.Node(pool=xsc.Pool(html)))
+	e = parse.tree(parse.String(b'<a xmlns="http://www.w3.org/1999/xhtml" href="gurk.html"/>', 'http://www.gurk.de/'), parse.Expat(ns=True), parse.Node(pool=xsc.Pool(html)))
 	assert unicode(e[0].attrs.href) == "http://www.gurk.de/gurk.html"
 
 
 def test_stringsource():
 	expect = b"hinz & kunz"
-	source = parse.StringSource(expect)
+	source = parse.String(expect)
 	for i in xrange(3):
 		parsed = b"".join(data for (evtype, data) in source if evtype == "bytes")
 		assert parsed == expect
@@ -305,7 +305,7 @@ def test_stringsource():
 
 def test_itersource():
 	expect = b"hinz & kunz"
-	source = parse.IterSource([b"hinz", b" & ", b"kunz"])
+	source = parse.Iter([b"hinz", b" & ", b"kunz"])
 	for i in xrange(3):
 		parsed = b"".join(data for (evtype, data) in source if evtype == "bytes")
 		assert parsed == expect
@@ -313,23 +313,23 @@ def test_itersource():
 
 def test_filesource():
 	expect = open("setup.py", "rb").read()
-	source = parse.FileSource("setup.py", bufsize=32)
+	source = parse.File("setup.py", bufsize=32)
 	for i in xrange(3):
 		parsed = "".join(data for (evtype, data) in source if evtype == "bytes")
 		assert parsed == expect
 
 
 def test_streamsource():
-	# StreamSource objects are not reusable
+	# Stream objects are not reusable
 	expect = open("setup.py", "rb").read()
-	parsed = "".join(event[1] for event in parse.StreamSource(open("setup.py", "rb"), bufsize=32) if event[0] == "bytes")
+	parsed = "".join(event[1] for event in parse.Stream(open("setup.py", "rb"), bufsize=32) if event[0] == "bytes")
 	assert parsed == expect
 
 
 @py.test.mark.net
 def test_urlsource():
 	expect = url.URL("http://www.python.org/").openread().read()
-	source = parse.URLSource("http://www.python.org/", bufsize=32)
+	source = parse.URL("http://www.python.org/", bufsize=32)
 	for i in xrange(3):
 		parsed = b"".join(data for (evtype, data) in source if evtype == "bytes")
 		assert parsed == expect
@@ -342,7 +342,7 @@ def test_itertree_large():
 			yield b"<li>{0}</li>".format(i)
 		yield b"</ul>"
 
-	for (i, (evtype, path)) in enumerate(parse.itertree(parse.IterSource(xml()), parse.Expat(ns=True), parse.Node(), filter=html.li)):
+	for (i, (evtype, path)) in enumerate(parse.itertree(parse.Iter(xml()), parse.Expat(ns=True), parse.Node(), filter=html.li)):
 		assert int(str(path[-1])) == i
 		path[-2].content.clear()
 
@@ -361,7 +361,7 @@ def test_expat_events_on_exception():
 
 def test_expat_no_multiple_text_events():
 	# Test that we don't get consecutive text events with expat
-	i = parse.events(parse.IterSource(b"<a>gurk &amp; hurz &amp; hinz &amp; kunz</a>"), parse.Expat())
+	i = parse.events(parse.Iter(b"<a>gurk &amp; hurz &amp; hinz &amp; kunz</a>"), parse.Expat())
 	assert i.next() == (u"url", url.URL("ITER"))
 	assert i.next() == (u"position", (0, 0))
 	assert i.next() == (u"enterstarttag", u"a")
@@ -375,7 +375,7 @@ def test_expat_no_multiple_text_events():
 
 def test_sgmlop_no_multiple_text_events():
 	# Test that we don't get consecutive text events with sgmlop
-	i = parse.events(parse.IterSource(b"<a>gurk &amp; hurz &amp; hinz &amp; kunz</a>"), parse.SGMLOP())
+	i = parse.events(parse.Iter(b"<a>gurk &amp; hurz &amp; hinz &amp; kunz</a>"), parse.SGMLOP())
 	assert i.next() == (u"url", url.URL("ITER"))
 	assert i.next() == (u"enterstarttag", u"a")
 	assert i.next() == (u"leavestarttag", u"a")

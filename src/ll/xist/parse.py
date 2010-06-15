@@ -27,7 +27,7 @@ Parsing a simple HTML string might e.g. look like this::
 	>>> from ll.xist.ns import html
 	>>> source = "<a href='http://www.python.org/'>Python</a>"
 	>>> doc = parse.tree(
-	... 	parse.StringSource(source)
+	... 	parse.String(source)
 	... 	parse.Expat()
 	... 	parse.NS(html)
 	... 	parse.Node(pool=xsc.Pool(html))
@@ -40,7 +40,7 @@ the parser (possibly in multiple chunks) (and information about the URL of the
 input)::
 
 	>>> from ll.xist import parse
-	>>> list(parse.StringSource("<a href='http://www.python.org/'>Python</a>"))
+	>>> list(parse.String("<a href='http://www.python.org/'>Python</a>"))
 	[('url', URL('STRING')),
 	 ('bytes', "<a href='http://www.python.org/'>Python</a>")]
 
@@ -50,7 +50,7 @@ following code shows an example of an event stream::
 
 	>>> from ll.xist import parse
 	>>> source = "<a href='http://www.python.org/'>Python</a>"
-	>>> list(parse.events(parse.StringSource(source), parse.Expat()))
+	>>> list(parse.events(parse.String(source), parse.Expat()))
 	[('url', URL('STRING')),
 	 ('position', (0, 0)),
 	 ('enterstarttag', u'a'),
@@ -255,13 +255,13 @@ class UnknownEventError(TypeError):
 ### Sources: Classes that create on event stream
 ###
 
-class StringSource(object):
+class String(object):
 	"""
 	Provides parser input from a string.
 	"""
 	def __init__(self, data, url=None):
 		"""
-		Create a :class:`StringSource` object. :var:`data` must be a byte or
+		Create a :class:`String` object. :var:`data` must be a byte or
 		unicode string. :var:`url` specifies the URL for the source (defaulting
 		to ``"STRING"``).
 		"""
@@ -282,16 +282,16 @@ class StringSource(object):
 			raise TypeError("data must be str or unicode")
 
 
-class IterSource(object):
+class Iter(object):
 	"""
 	Provides parser input from an iterator over strings.
 	"""
 
 	def __init__(self, iterable, url=None):
 		"""
-		Create a :class:`IterSource` object. :var:`iterable` must be an iterable
-		object producing byte or unicode strings. :var:`url` specifies the URL for
-		the source (defaulting to ``"ITER"``).
+		Create a :class:`Iter` object. :var:`iterable` must be an iterable object
+		producing byte or unicode strings. :var:`url` specifies the URL for the
+		source (defaulting to ``"ITER"``).
 		"""
 		self.url = url_.URL(url if url is not None else "ITER")
 		self.iterable = iterable
@@ -311,7 +311,7 @@ class IterSource(object):
 				raise TypeError("data must be str or unicode")
 
 
-class StreamSource(object):
+class Stream(object):
 	"""
 	Provides parser input from a stream (i.e. an object that provides a
 	:meth:`read` method).
@@ -319,10 +319,10 @@ class StreamSource(object):
 
 	def __init__(self, stream, url=None, bufsize=8192):
 		"""
-		Create a :class:`StreamSource` object. :var:`stream` must have a
-		:meth:`read` method (with a ``size`` argument). :var:`url` specifies the
-		URL for the source (defaulting to ``"STREAM"``). :var:`bufsize` specifies
-		the chunksize for reads from the stream.
+		Create a :class:`Stream` object. :var:`stream` must have a :meth:`read`
+		method (with a ``size`` argument). :var:`url` specifies the URL for the
+		source (defaulting to ``"STREAM"``). :var:`bufsize` specifies the
+		chunksize for reads from the stream.
 		"""
 		self.url = url_.URL(url if url is not None else "STREAM")
 		self.stream = stream
@@ -347,17 +347,17 @@ class StreamSource(object):
 				break
 
 
-class FileSource(object):
+class File(object):
 	"""
 	Provides parser input from a file.
 	"""
 
 	def __init__(self, filename, bufsize=8192):
 		"""
-		Create a :class:`FileSource` object. :var:`filename` is the name of the
-		file and may start with ``~`` or ``~user`` for the home directory of the
-		current or the specified user. :var:`bufsize` specifies the chunksize for
-		reads from the file.
+		Create a :class:`File` object. :var:`filename` is the name of the file
+		and may start with ``~`` or ``~user`` for the home directory of the
+		current or the specified user. :var:`bufsize` specifies the chunksize
+		for reads from the file.
 		"""
 		self.url = url_.File(filename)
 		self._filename = os.path.expanduser(filename)
@@ -378,14 +378,14 @@ class FileSource(object):
 					break
 
 
-class URLSource(object):
+class URL(object):
 	"""
 	Provides parser input from a URL.
 	"""
 
 	def __init__(self, name, bufsize=8192, *args, **kwargs):
 		"""
-		Create a :class:`URLSource` object. :var:`name` is the URL. :var:`bufsize`
+		Create a :class:`URL` object. :var:`name` is the URL. :var:`bufsize`
 		specifies the chunksize for reads from the URL. :var:`args` and
 		:var:`kwargs` will be passed on to the :meth:`open` method of the URL
 		object.
@@ -414,7 +414,7 @@ class URLSource(object):
 					break
 
 
-class ETreeSource(object):
+class ETree(object):
 	"""
 	Produces a (namespaced) event stream from an object that supports the
 	ElementTree__ API.
@@ -424,7 +424,7 @@ class ETreeSource(object):
 
 	def __init__(self, data, url=None, defaultxmlns=None):
 		"""
-		Create an :class:`ETreeSource` object. Arguments have the following meaning:
+		Create an :class:`ETree` object. Arguments have the following meaning:
 
 		:var:`data`
 			An object that supports the ElementTree API.
@@ -957,7 +957,7 @@ class NS(object):
 		>>> from ll.xist import parse
 		>>> from ll.xist.ns import html
 		>>> list(parse.events(
-		... 	parse.StringSource("<a href='http://www.python.org/'>Python</a>"),
+		... 	parse.String("<a href='http://www.python.org/'>Python</a>"),
 		... 	parse.Expat(),
 		... 	parse.NS(html)
 		... ))
@@ -1154,7 +1154,7 @@ class Node(object):
 		>>> from ll.xist import xsc, parse
 		>>> from ll.xist.ns import html
 		>>> list(parse.events(
-		... 	parse.StringSource("<a href='http://www.python.org/'>Python</a>"),
+		... 	parse.String("<a href='http://www.python.org/'>Python</a>"),
 		... 	parse.Expat(),
 		... 	parse.NS(html),
 		... 	parse.Node(pool=xsc.Pool(html))
@@ -1326,7 +1326,7 @@ class Tidy(object):
 	into a (unnamespaced) event stream by using libxml2__'s HTML parser::
 
 		>>> from ll.xist import parse
-		>>> list(parse.events(parse.URLSource("http://www.yahoo.com/"), parse.Tidy()))
+		>>> list(parse.events(parse.URL("http://www.yahoo.com/"), parse.Tidy()))
 		[('url', URL('http://de.yahoo.com/?p=us')),
 		 ('position', (3, None)),
 		 ('enterstarttag', u'html'),
@@ -1453,11 +1453,11 @@ def events(*pipeline):
 	"""
 	source = pipeline[0]
 
-	# Propagate first pipeline object to a :class:`Source` object (if unambiguous, else use it as it is)
+	# Propagate first pipeline object to a source object (if unambiguous, else use it as it is)
 	if isinstance(source, basestring):
-		source = StringSource(source)
+		source = String(source)
 	elif isinstance(source, url_.URL):
-		source = URLSource(source)
+		source = URL(source)
 
 	# Execute the pipeline, propagating pipeline objects in the process
 	output = iter(source)
@@ -1490,7 +1490,7 @@ def tree(*pipeline, **kwargs):
 		>>> from ll.xist import xsc, parse
 		>>> from ll.xist.ns import xml, html, chars
 		>>> doc = parse.tree(
-		... 	parse.URLSource("http://www.python.org/"),
+		... 	parse.URL("http://www.python.org/"),
 		... 	parse.Expat(ns=True),
 		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
 		... )
@@ -1537,7 +1537,7 @@ def itertree(*pipeline, **kwargs):
 		>>> from ll.xist import xsc, parse
 		>>> from ll.xist.ns import xml, html, chars
 		>>> for (evtype, path) in parse.itertree(
-		... 	parse.URLSource("http://www.python.org/"),
+		... 	parse.URL("http://www.python.org/"),
 		... 	parse.Expat(ns=True),
 		... 	parse.Node(pool=xsc.Pool(xml, html, chars)),
 		... 	filter=html.a/html.img
