@@ -42,7 +42,7 @@ Changes to parsing
 *	The module :mod:`ll.xist.presenters` has been renamed to :mod:`present`.
 
 *	The classes :class:`ll.xist.converters.Converter` and
-	:class:`ll.xist.publishers.Publisher` has been moved to :mod:`ll.xist.xsc`.
+	:class:`ll.xist.publishers.Publisher` have been moved to :mod:`ll.xist.xsc`.
 	The modules :mod:`ll.xist.converters` and :mod:`ll.xist.publishers` no longer
 	exist.
 
@@ -146,15 +146,14 @@ Changes to the color module
 
 *	The following :class:`Color` properties have been dropped: ``r4``, ``g4``,
 	``b4``, ``a4``, ``r8``, ``g8``, ``b8``, ``a8``, ``r``, ``g``, ``b``,  ``a``
-	``int4``, ``int8``, ``rgb4``, ``rgba4``, ``rgb8``, and ``rgba8`` have been
-	dropped. The new methods ``r``, ``g``, ``b`` and ``a`` return the 8 bit
-	component values.
+	``int4``, ``int8``, ``rgb4``, ``rgba4``, ``rgb8``, and ``rgba8``. The new
+	methods ``r``, ``g``, ``b`` and ``a`` return the 8 bit component values.
 
 *	The class methods ``fromhsva`` and ``fromhlsa`` have been renamed to
 	``fromhsv`` and ``fromhls``.
 
-*	The property ``css`` has been dropped instead the CSS string is returned
-	by ``__str__``.
+*	The property ``css`` has been dropped. The CSS string is returned by
+	``__str__`` now.
 
 *	Dividing colors now does a scalar division. Blending colors is now done with
 	the modulo operator.
@@ -254,6 +253,7 @@ Changes to the make module
 
 Changes to TOXIC
 ----------------
+
 *	TOXIC has been split into a compiler and an XIST namespace module. Instead
 	of calling the function :func:`ll.xist.ns.toxic.xml2ora` you now have to use
 	:func:`ll.toxicc.compile`. (However using TOXIC with :mod:`ll.make` hasn't
@@ -288,7 +288,7 @@ Changes to URL handling
 
 URLs containing processing instructions will no longer be transformed in
 any way. If you need the old behaviour you can wrap the initial part of
-the attribute value into an :class:`specials.url` PI.
+the attribute value into a :class:`specials.url` PI.
 
 
 Migrating to version 3.0
@@ -550,7 +550,7 @@ Other minor changes
 :class:`ll.xist.ns.specials.ignore`.
 
 :class:`ll.xist.xfind.item` no longer handles slices. If you've used that
-functionality, you may now use slices on XFind operators, and materilize the
+functionality, you may now use slices on XFind operators, and materialize the
 result, i.e. replace ``xfind.slice(foo, 1, -1)`` with ``list(foo[1:-1])``, if
 ``foo`` is an XFind operator. Otherwise you can use ``list(foo)[1:-1]``.
 
@@ -708,8 +708,8 @@ The three arguments :var:`elementmode`, :var:`entitymode` and
 Changed namespaces
 ------------------
 
-The character reference classes from :mod:`ll.xist.ns.html` have been moved to a
-separate namespace :mod:`ll.xist.ns.chars`.
+The character reference classes from :mod:`ll.xist.ns.html` have been moved
+to a separate namespace :mod:`ll.xist.ns.chars`.
 
 The processing instructions :class:`eval_` and :class:`exec_` from the
 :mod:`ll.xist.ns.code` module have been renamed to :class:`pyeval` and

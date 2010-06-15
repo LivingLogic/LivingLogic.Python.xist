@@ -6,19 +6,36 @@ Changes in 3.8 (released ??/??/????)
 
 	__ http://effbot.org/zone/element-iterparse.htm
 
-	Now parsing XML is done in a pipeline approach that looks like this::
+	Now parsing XML is done in a pipelined approach that looks like this::
 
 		>>> from ll.xist import xsc, parse
 		>>> from ll.xist.ns import html
-		>>> source = "<a href='http://www.python.org/'>Python</a>"
 		>>> doc = parse.tree(
-		... 	parse.String(source)
+		... 	parse.String("<a href='http://www.python.org/'>Python</a>")
 		... 	parse.Expat()
 		... 	parse.NS(html)
 		... 	parse.Node(pool=xsc.Pool(html))
 		... )
 		>>> doc.bytes()
 		'<a href="http://www.python.org/">Python</a>'
+
+	Iterative parsing looks like this::
+
+		>>> from ll.xist import xsc, parse
+		>>> from ll.xist.ns import xml, html, chars
+		>>> for (evtype, path) in parse.itertree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars)),
+		... 	filter=html.a/html.img
+		... ):
+		... 	print path[-1].attrs.src, "-->", path[-2].attrs.href
+		http://www.python.org/images/python-logo.gif --> http://www.python.org/
+		http://www.python.org/images/trans.gif --> http://www.python.org/#left%2Dhand%2Dnavigation
+		http://www.python.org/images/trans.gif --> http://www.python.org/#content%2Dbody
+		http://www.python.org/images/donate.png --> http://www.python.org/psf/donations/
+		http://www.python.org/images/worldmap.jpg --> http://wiki.python.org/moin/Languages
+		http://www.python.org/images/success/tribon.jpg --> http://www.python.org/about/success/tribon/
 
 *	The XIST element :class:`ll.xist.ns.specials.z` has been moved to the
 	:mod:`ll.xist.ns.doc` module.
