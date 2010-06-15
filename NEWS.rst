@@ -1,4 +1,4 @@
-Changes in 3.8 (released ??/??/????)
+Changes in 3.8 (released 06/15/2010)
 ------------------------------------
 
 *	The parsing infrastructure has been completely rewritten to be more modular
