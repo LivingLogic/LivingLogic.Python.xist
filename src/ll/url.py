@@ -2794,15 +2794,18 @@ class URL(object):
 			return getattr(connection, name)(self, *args, **kwargs)
 		return realattr
 
-	def import_(self):
+	def import_(self, name=None):
 		"""
 		Import the content of the URL :var:`self` as a Python module.
+
+		:var:`name` can be used the specify the module name (i.e. the ``__name__``
+		attribute of the module). The default determines it from the URL.
 		"""
 		if self.islocal():
 			filename = self.local()
 		else:
 			filename = "/{0}/{1}{2}".format(self.scheme, self.server, self.path)
-		return misc.module(self.openread().read(), filename)
+		return misc.module(self.openread().read(), filename, name)
 
 	def __iter__(self):
 		try:
