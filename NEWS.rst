@@ -1,8 +1,8 @@
 Changes in 3.8.1 (released 06/17/2010)
 --------------------------------------
 
-*	The method :meth:`ll.url.import_` that had been dropped in version 3.8 has
-	been reintroduced. However internally :func:`misc.module` is used for
+*	The method :meth:`ll.url.URL.import_` that had been dropped in version 3.8
+	has been reintroduced. However internally :func:`misc.module` is used for
 	creating the module object. A side effect of this is that importing from
 	non-local URLs now works.
 
