@@ -13,7 +13,7 @@ test: install
 	py.test
 
 
-dist: test
+dist:
 	rm -rf dist/*
 	python$(PYVERSION) setup.py sdist --formats=bztar,gztar
 	python$(PYVERSION) setup.py sdist --formats=zip
