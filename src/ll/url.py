@@ -2802,7 +2802,7 @@ class URL(object):
 		attribute of the module). The default determines it from the URL.
 		"""
 		if self.islocal():
-			filename = self.local()
+			filename = self.real().local()
 		else:
 			filename = "/{0}/{1}{2}".format(self.scheme, self.server, self.path)
 		return misc.module(self.openread().read(), filename, name)
