@@ -2794,6 +2794,16 @@ class URL(object):
 			return getattr(connection, name)(self, *args, **kwargs)
 		return realattr
 
+	def import_(self):
+		"""
+		Import the content of the URL :var:`self` as a Python module.
+		"""
+		if self.islocal():
+			filename = self.local()
+		else:
+			filename = "/{0}/{1}{2}".format(self.scheme, self.server, self.path)
+		return misc.module(self.openread().read(), filename)
+
 	def __iter__(self):
 		try:
 			isdir = self.isdir()
