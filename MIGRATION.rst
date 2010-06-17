@@ -73,6 +73,10 @@ Changes to :mod:`ll.url`
 		>>> u = url.File("foo.py")
 		>>> m = misc.module(u.openread().read(), u.local())
 
+	However, note that :meth:`ll.url.URL.import_` has been reintroduced in 3.8.1
+	based on :func:`misc.import`. This means that the mode argument is no longer
+	supported.
+
 *	ssh URLs now required to standalone :mod:`execnet` package__. The
 	``ssh_config`` parameter for ssh URLs is gone.
 
