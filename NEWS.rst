@@ -4,7 +4,13 @@ Changes in 3.8.1 (released 06/17/2010)
 *	The method :meth:`ll.url.URL.import_` that had been dropped in version 3.8
 	has been reintroduced. However internally :func:`misc.module` is used for
 	creating the module object. A side effect of this is that importing from
-	non-local URLs now works.
+	non-local URLs now works::
+
+		>>> from ll import url
+		>>> u = url.URL("http://www.livinglogic.de/Python/misc/index_module.py")
+		>>> m = u.import_()
+		>>> m.last("gurk")
+		"k"
 
 
 Changes in 3.8 (released 06/15/2010)
