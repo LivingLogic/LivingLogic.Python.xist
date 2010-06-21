@@ -1,3 +1,10 @@
+Changes in 3.8.2 (released 06/21/2010)
+--------------------------------------
+
+*	Fixed a bug in the logging methods of :class:`ll.sisyphus.Job`: Logging
+	unicode strings didn't work.
+
+
 Changes in 3.8.1 (released 06/17/2010)
 --------------------------------------
 

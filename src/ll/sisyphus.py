@@ -108,7 +108,7 @@ def _formattimedelta(timedelta):
 	return "{0:d}:{1:02d}:{2:06.3f}".format(rest, mins, secs+timedelta.microseconds/1000000.)
 
 
-class LogFile:
+class LogFile(object):
 	"""
 	A log file. All lines written to the file will be prepended with a time stamp.
 	"""
@@ -162,7 +162,7 @@ class LogFile:
 			if lines and not len(lines[-1]):
 				del lines[-1]
 			for line in lines:
-				line = "{0} {1}\n".format(prefix, line)
+				line = u"{0} {1}\n".format(prefix, line)
 				if isinstance(line, unicode):
 					line = line.encode(self.encoding, "replace")
 				self.file.write(line)
