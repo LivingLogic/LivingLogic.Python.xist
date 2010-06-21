@@ -63,7 +63,7 @@ def main(args=None):
 			return False
 		if options.keepjunk:
 			return True
-		# output pk, fks etc. only when they belong to the table we do output
+		# output pk, fks etc. only when they belong to a table we do output
 		if isinstance(obj, (orasql.Constraint, orasql.Index)):
 			obj = obj.table()
 		if "$" in obj.name or obj.name.startswith("SYS_EXPORT_SCHEMA_"):
