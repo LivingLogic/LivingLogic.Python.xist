@@ -857,7 +857,10 @@ class MixinCodeDDL(object):
 		code = code.strip()
 		type = self.__class__.type
 		code = code[code.lower().find(type)+len(type):].strip() # drop "procedure" etc.
-		code = code.split(None, 1)[1] # drop our own name (as for triggers this includes the schema name)
+		# drop our own name (as for triggers this includes the schema name)
+		while code and (code[0].isalnum() or code[0] in u"_$."):
+			code = code[1:]
+		code = code.strip()
 		if self.owner is not None:
 			code = u"create or replace {0} {1}.{2}\n{3}\n".format(type, self.owner, self.name, code)
 		else:
