@@ -2,10 +2,10 @@ Changes in 3.8.2 (released 06/21/2010)
 --------------------------------------
 
 *	Fixed a bug in the logging methods of :class:`ll.sisyphus.Job`: Logging
-	unicode strings didn't work.
+	unicode strings didn't work. Now all strings are promoted to unicode.
 
 *	The default encoding for :class:`ll.sisyphus` log files has changed to UTF-8.
-	This can be changed by setting an :attr:`encoding` class attribute in the
+	This can be changed by setting the class attribute :attr:`encoding` in the
 	class derived from :class:`ll.sisyphus.Job`.
 
 
