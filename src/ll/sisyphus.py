@@ -112,7 +112,7 @@ class LogFile(object):
 	"""
 	A log file. All lines written to the file will be prepended with a time stamp.
 	"""
-	def __init__(self, name, mode="a", buffering=True, encoding="iso-8859-1"):
+	def __init__(self, name, mode="a", buffering=True, encoding="utf-8"):
 		"""
 		Create a new log file (which will be opened on the first write).
 		Arguments are:
@@ -185,6 +185,8 @@ class Job(object):
 	errorfilenametemplate = "~/log/{name}_error.log"
 	progressfilenametemplate = "~/log/{name}_progress.log"
 
+	encoding = "utf-8"
+
 	def __init__(self, maxruntime=0, name=None, raiseerrors=False, printkills=False):
 		"""
 		Create a new job. Arguments are:
@@ -214,9 +216,9 @@ class Job(object):
 		self.printkills = printkills
 		self.pidfilewritten = False
 		self.pidfilename = url.File(self.pidfilenametemplate.format(name=self.name))
-		self.loopLogfile = LogFile(self.loopfilenametemplate.format(name=self.name))
-		self.errorLogfile = LogFile(self.errorfilenametemplate.format(name=self.name))
-		self.progressLogfile = LogFile(self.progressfilenametemplate.format(name=self.name), mode="w")
+		self.loopLogfile = LogFile(self.loopfilenametemplate.format(name=self.name), encoding=self.encoding)
+		self.errorLogfile = LogFile(self.errorfilenametemplate.format(name=self.name), encoding=self.encoding)
+		self.progressLogfile = LogFile(self.progressfilenametemplate.format(name=self.name), mode="w", encoding=self.encoding)
 
 	def __writepid(self):
 		"""
