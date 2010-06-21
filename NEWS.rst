@@ -1,3 +1,11 @@
+Changes in 3.9 (released ??/??/2010)
+------------------------------------
+
+*	Fixed a bug in ``oracreate.py``: If the source of procedures and functions
+	didn't have whitespace between the name and the ``(`` the ``(`` was missing
+	from the output.
+
+
 Changes in 3.8.2 (released 06/21/2010)
 --------------------------------------
 
