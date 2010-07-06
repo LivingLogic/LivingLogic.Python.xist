@@ -714,7 +714,7 @@ Changes in 3.1 (released 01/18/2008)
 	conversion targets.
 
 
-Changes in 2.9 (released 01/07/2008)
+Changes in 3.0 (released 01/07/2008)
 ------------------------------------
 
 *	Namespaces have been greatly simplified. There are no namespace modules any
