@@ -77,7 +77,7 @@ Migration info for ll-make
 Migrating to ll-make 1.0
 ========================
 
-:class:`Target`s now have four action chains instead of one, so you
+:class:`Target`\s now have four action chains instead of one, so you
 have to rewrite your :class:`Target` constructors. How the new call looks
 depends on the target itself. For example a simple copy operation might look
 like this::
