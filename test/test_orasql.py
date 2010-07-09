@@ -204,7 +204,8 @@ def test_procedure_arguments():
 @py.test.mark.db
 def test_procedure_nonexistant():
 	db = orasql.connect(dbname)
-	py.test.raises(orasql.SQLObjectNotFoundError, orasql.Procedure("DOESNOTEXIST"), db.cursor())
+	with py.test.raises(orasql.SQLObjectNotFoundError):
+		orasql.Procedure("DOESNOTEXIST")(db.cursor())
 
 
 @py.test.mark.db

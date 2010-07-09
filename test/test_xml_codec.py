@@ -72,7 +72,8 @@ def test_detectencoding_str():
 	assert xml_codec._detectencoding("<?xml\rversion='1.0' ?>") == "utf-8"
 	assert xml_codec._detectencoding("<?xml\rversion='1.0' Encoding='x'") is None # encoding not recognized (might come later)
 	assert xml_codec._detectencoding("<?xml\rVersion='1.0'") is None
-	py.test.raises(ValueError, xml_codec._detectencoding, "<?xml\rversion='1.0' encoding=''") # empty encoding
+	with py.test.raises(ValueError):
+		xml_codec._detectencoding("<?xml\rversion='1.0' encoding=''") # empty encoding
 	assert xml_codec._detectencoding("<", False) is None
 	assert xml_codec._detectencoding("<", True) == "utf-8"
 	assert xml_codec._detectencoding("<?", False) is None
@@ -199,7 +200,8 @@ def test_decoder():
 	yield checkdecl, "cp1252"
 
 	# No recursion
-	py.test.raises(ValueError, "<?xml version='1.0' encoding='xml'?><gurk/>".decode, "xml")
+	with py.test.raises(ValueError):
+		"<?xml version='1.0' encoding='xml'?><gurk/>".decode("xml")
 
 
 def test_encoder():
@@ -235,5 +237,5 @@ def test_encoder():
 	yield check, "cp1252"
 
 	# No recursion
-	py.test.raises(ValueError, u"<?xml version='1.0' encoding='xml'?><gurk/>".encode, "xml")
-
+	with py.test.raises(ValueError):
+		u"<?xml version='1.0' encoding='xml'?><gurk/>".encode("xml")

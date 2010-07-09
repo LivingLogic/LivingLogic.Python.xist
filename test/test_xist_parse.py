@@ -125,7 +125,8 @@ def test_parserequiredattrs(recwarn):
 		parse.tree(b'<Test/>', parse.Expat(), parse.NS(xmlns), parse.Node())
 		w = recwarn.pop(xsc.RequiredAttrMissingWarning)
 
-	py.test.raises(xsc.IllegalElementError, parse.tree, b'<Test required="foo"/>', parse.Expat(), parse.NS(xmlns), parse.Node())
+	with py.test.raises(xsc.IllegalElementError):
+		parse.tree(b'<Test required="foo"/>', parse.Expat(), parse.NS(xmlns), parse.Node())
 
 
 def test_parsevalueattrs(recwarn):
@@ -222,7 +223,8 @@ def test_xmlns():
 	assert isinstance(e[0][0], ihtml.a)
 
 	s = b"<a><a xmlns={0!r}/></a>".format(ihtml.xmlns)
-	py.test.raises(xsc.IllegalElementError, parse.tree, s, parse.Expat(), parse.NS(html), parse.Node(pool=xsc.Pool(ihtml)))
+	with py.test.raises(xsc.IllegalElementError):
+		parse.tree(s, parse.Expat(), parse.NS(html), parse.Node(pool=xsc.Pool(ihtml)))
 	e = parse.tree(s, parse.Expat(), parse.NS(html), parse.Node(pool=xsc.Pool(html, ihtml)))
 	assert isinstance(e[0], html.a)
 	assert isinstance(e[0][0], ihtml.a)
@@ -230,7 +232,8 @@ def test_xmlns():
 	s = b"<z xmlns={0!r}/>".format(doc.xmlns)
 	e = parse.tree(s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool(doc.z)))
 	assert isinstance(e[0], doc.z)
-	py.test.raises(xsc.IllegalElementError, parse.tree, s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool()))
+	with py.test.raises(xsc.IllegalElementError):
+		parse.tree(s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool()))
 
 
 def test_parseemptyattribute():
@@ -348,7 +351,7 @@ def test_itertree_large():
 
 
 def test_expat_events_on_exception():
-	# Test that all collected events are output, before an exception is thrown
+	# Test that all collected events are output before an exception is thrown
 	i = parse.events(b"<x/>schrott", parse.Expat())
 	assert i.next() == (u"url", url.URL("STRING"))
 	assert i.next() == (u"position", (0, 0))
@@ -356,7 +359,8 @@ def test_expat_events_on_exception():
 	assert i.next() == (u"leavestarttag", u"x")
 	assert i.next() == (u"position", (0, 4))
 	assert i.next() == (u"endtag", u"x")
-	py.test.raises(expat.ExpatError, i.next)
+	with py.test.raises(expat.ExpatError):
+		i.next()
 
 
 def test_expat_no_multiple_text_events():
@@ -370,7 +374,8 @@ def test_expat_no_multiple_text_events():
 	assert i.next() == (u"text", u"gurk & hurz & hinz & kunz")
 	assert i.next() == (u"position", (0, 40))
 	assert i.next() == (u"endtag", u"a")
-	py.test.raises(StopIteration, i.next)
+	with py.test.raises(StopIteration):
+		i.next()
 
 
 def test_sgmlop_no_multiple_text_events():
@@ -381,5 +386,6 @@ def test_sgmlop_no_multiple_text_events():
 	assert i.next() == (u"leavestarttag", u"a")
 	assert i.next() == (u"text", u"gurk & hurz & hinz & kunz")
 	assert i.next() == (u"endtag", u"a")
-	py.test.raises(StopIteration, i.next)
+	with py.test.raises(StopIteration):
+		i.next()
 
