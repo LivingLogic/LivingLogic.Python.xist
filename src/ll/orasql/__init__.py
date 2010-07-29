@@ -749,13 +749,6 @@ class Cursor(Cursor):
 		super(Cursor, self).__init__(connection)
 		self.readlobs = (readlobs if readlobs is not None else connection.readlobs)
 
-	def _decode(self, value, isblob):
-		if isinstance(value, LOB) and (self.readlobs is True or (isinstance(self.readlobs, (int, long)) and value.size() <= self.readlobs)):
-			value = value.read()
-		if isinstance(value, str) and not isblob:
-			value = value.decode(self.connection.encoding)
-		return value
-
 	def execute(self, statement, parameters=None, **kwargs):
 		if isinstance(statement, str):
 			statement = unicode(statement)
@@ -2138,7 +2131,7 @@ class Callable(MixinNormalDates, MixinCodeDDL, Object):
 				t = type(arg)
 		except KeyError:
 			raise TypeError("can't handle parameter {0} of type {1} with value {2!r} in {3!r}".format(arginfo.name, arginfo.datatype, arg, self))
-		if isinstance(arg, str) and len(arg) >= 4000:
+		if isinstance(arg, str): # ``str`` is treated as binary data, always wrap it in a ``BLOB``
 			t = BLOB
 		elif isinstance(arg, unicode) and len(arg) >= 4000:
 			t = CLOB
