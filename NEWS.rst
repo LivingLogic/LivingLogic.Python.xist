@@ -1,3 +1,10 @@
+Changes in 3.8.3 (released 07/29/2010)
+--------------------------------------
+
+*	:class:`str` arguments are now always treated as ``BLOB``\s in
+	:mod:`ll.orasql` functions and procedures.
+
+
 Changes in 3.8.2 (released 06/21/2010)
 --------------------------------------
 
