@@ -244,26 +244,26 @@ class flash(xsc.Element):
 	def convert(self, converter):
 		target = converter.target
 		e = target.object(
-			target.param(name=u"movie", value=self[u"src"]),
+			target.param(name=u"movie", value=self.attrs.src),
 			target.embed(
-				src=self[u"src"],
-				quality=self[u"quality"],
-				bgcolor=self[u"bgcolor"],
-				width=self[u"width"],
-				height=self[u"height"],
+				src=self.attrs.src,
+				quality=self.attrs.quality,
+				bgcolor=self.attrs.bgcolor,
+				width=self.attrs.width,
+				height=self.attrs.height,
 				type=u"application/x-shockwave-flash",
 				pluginspage=u"http://www.macromedia.com/shockwave/download/index.cgi?P1_Prod_Version=ShockwaveFlash"
 			),
 			classid=u"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000",
 			codebase=u"http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=5,0,0,0",
-			width=self[u"width"],
-			height=self[u"height"]
+			width=self.attrs.width,
+			height=self.attrs.height
 		)
 
 		# copy optional attributes
 		for attrname in (u"quality", u"bgcolor"):
 			if attrname in self.attrs:
-				e.insert(0, target.param(name=attrname, value=self[attrname]))
+				e.insert(0, target.param(name=attrname, value=self.attrs[attrname]))
 
 		return e.convert(converter)
 
@@ -285,24 +285,24 @@ class quicktime(xsc.Element):
 	def convert(self, converter):
 		target = converter.target
 		e = target.object(
-			target.param(name=u"src", value=self[u"src"]),
+			target.param(name=u"src", value=self.attrs.src),
 			target.param(name=u"type", value=u"video/quicktime"),
 			target.param(name=u"pluginspage", value=u"http://www.apple.com/quicktime/download/indext.html"),
 			target.embed(
-				src=self[u"src"],
-				href=self[u"href"],
-				target=self[u"target"],
-				bgcolor=self[u"bgcolor"],
-				width=self[u"width"],
-				height=self[u"height"],
+				src=self.attrs.src,
+				href=self.attrs.href,
+				target=self.attrs.target,
+				bgcolor=self.attrs.bgcolor,
+				width=self.attrs.width,
+				height=self.attrs.height,
 				type=u"video/quicktime",
-				border=self[u"border"],
+				border=self.attrs.border,
 				pluginspage=u"http://www.apple.com/quicktime/download/indext.html"
 			),
 			classid=u"clsid:02BF25D5-8C17-4B23-BC80-D3488ABDDC6B",
 			codebase=u"http://www.apple.com/qtactivex/qtplugin.cab#version=6,0,2,0",
-			width=self[u"width"],
-			height=self[u"height"]
+			width=self.attrs.width,
+			height=self.attrs.height
 		)
 
 		# copy optional attributes
