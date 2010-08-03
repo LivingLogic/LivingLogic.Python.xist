@@ -18,7 +18,7 @@ with xsc.Pool():
 		model = sims.Empty()
 
 
-def test_empty1(recwarn):
+def test_empty1():
 	e = el1()
 	e.bytes()
 
