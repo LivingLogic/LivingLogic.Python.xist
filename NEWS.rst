@@ -13,6 +13,8 @@ Changes in 3.9 (released ??/??/2010)
 	:class:`ll.xist.ns.htmlspecials.html`. Furthermore this new element will not
 	change any attribute if it has already been set.
 
+*	:class:`ll.xist.ns.html.title` no longer does any manipulation of its content.
+
 
 Changes in 3.8.3 (released 07/29/2010)
 --------------------------------------

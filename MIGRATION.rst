@@ -9,6 +9,14 @@ Changes to :mod:`ll.xist.ns.html`
 	:class:`ll.xist.ns.htmlspecials.html`. Furthermore this new element will not
 	change any attribute if it has already been set.
 
+	So if you need the functionality replace any use of
+	:class:`ll.xist.ns.html.html` with :class:`ll.xist.ns.htmlspecials.html`.
+
+*	:class:`ll.xist.ns.html.title` no longer does any manipulation of its content.
+
+	If you needed this functionality, you can copy it from the old ``title``
+	element and put it into your own element class.
+
 
 Migrating to version 3.8
 ========================
