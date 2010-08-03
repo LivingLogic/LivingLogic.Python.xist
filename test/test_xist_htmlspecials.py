@@ -10,7 +10,7 @@
 
 
 from ll.xist import xsc
-from ll.xist.ns import htmlspecials
+from ll.xist.ns import xml, htmlspecials
 
 
 def test_pixel():
@@ -30,3 +30,24 @@ def test_pixel():
 
 	e = htmlspecials.pixel(color=u"red", style=u"display: block;")
 	assert unicode(e.conv().attrs.style) == u"background-color: red; display: block;"
+
+
+def test_html():
+	# Without a conversion language ``htmlspecials.html`` will not touch the language attributes
+	e = htmlspecials.html().conv()
+	assert "lang" not in e.attrs
+	assert xml.Attrs.lang not in e.attrs
+
+	e = htmlspecials.html().conv(lang="de")
+	assert unicode(e.attrs.lang) == "de"
+	assert unicode(e.attrs[xml.Attrs.lang]) == "de"
+
+	# If ``lang`` is given ``htmlspecials.html`` will not touch it
+	e = htmlspecials.html(lang="en").conv(lang="de")
+	assert unicode(e.attrs.lang) == "en"
+	assert unicode(e.attrs[xml.Attrs.lang]) == "de"
+
+	# If ``xml:lang`` is given ``htmlspecials.html`` will not touch it
+	e = htmlspecials.html(xml.Attrs(lang="en")).conv(lang="de")
+	assert unicode(e.attrs.lang) == "de"
+	assert unicode(e.attrs[xml.Attrs.lang]) == "en"

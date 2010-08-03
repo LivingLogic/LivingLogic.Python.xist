@@ -17,7 +17,7 @@ HTML.
 import sys, types, time as time_, string, warnings
 
 from ll.xist import xsc, sims
-from ll.xist.ns import ihtml, html, meta, specials
+from ll.xist.ns import xml, ihtml, html as html_, meta, specials
 
 
 __docformat__ = "reStructuredText"
@@ -26,60 +26,77 @@ __docformat__ = "reStructuredText"
 xmlns = "http://xmlns.livinglogic.de/xist/ns/htmlspecials"
 
 
-class plaintable(html.table):
+class html(html_.html):
+	"""
+	Creates an :class:`ll.xist.ns.html.html` element and automatically sets the
+	``lang`` and ``xml:lang`` attributes to the ``converter``\s configured language.
+	"""
+	xmlns = xmlns
+
+	def convert(self, converter):
+		node = html_.html(self.content, self.attrs)
+		if converter.lang is not None:
+			if "lang" not in node.attrs:
+				node.attrs.lang = converter.lang
+			if xml.Attrs.lang not in node.attrs:
+				node.attrs[xml.Attrs.lang] = converter.lang
+		return node.convert(converter)
+
+
+class plaintable(html_.table):
 	"""
 	a HTML table where the values of the attributes ``cellpadding``,
 	``cellspacing`` and ``border`` default to ``0``.
 	"""
 	xmlns = xmlns
-	class Attrs(html.table.Attrs):
-		class cellpadding(html.table.Attrs.cellpadding):
+	class Attrs(html_.table.Attrs):
+		class cellpadding(html_.table.Attrs.cellpadding):
 			default = 0
-		class cellspacing(html.table.Attrs.cellspacing):
+		class cellspacing(html_.table.Attrs.cellspacing):
 			default = 0
-		class border(html.table.Attrs.border):
+		class border(html_.table.Attrs.border):
 			default = 0
 
 	def convert(self, converter):
-		e = html.table(self.content, self.attrs)
+		e = html_.table(self.content, self.attrs)
 		return e.convert(converter)
 
 
-class plainbody(html.body):
+class plainbody(html_.body):
 	"""
 	a HTML body where the attributes ``leftmargin``, ``topmargin``,
 	``marginheight`` and ``marginwidth`` default to ``0``.
 	"""
 	xmlns = xmlns
-	class Attrs(html.body.Attrs):
-		class leftmargin(html.body.Attrs.leftmargin):
+	class Attrs(html_.body.Attrs):
+		class leftmargin(html_.body.Attrs.leftmargin):
 			default = 0
-		class topmargin(html.body.Attrs.topmargin):
+		class topmargin(html_.body.Attrs.topmargin):
 			default = 0
-		class marginheight(html.body.Attrs.marginheight):
+		class marginheight(html_.body.Attrs.marginheight):
 			default = 0
-		class marginwidth(html.body.Attrs.marginwidth):
+		class marginwidth(html_.body.Attrs.marginwidth):
 			default = 0
 
 	def convert(self, converter):
-		e = html.body(self.content, self.attrs)
+		e = html_.body(self.content, self.attrs)
 		return e.convert(converter)
 
 
-class _pixelbase(html.img):
+class _pixelbase(html_.img):
 	xmlns = xmlns
-	class Context(html.img.Context):
+	class Context(html_.img.Context):
 		def __init__(self):
 			self.src = "root:px/spc.gif"
 
-	class Attrs(html.img.Attrs):
+	class Attrs(html_.img.Attrs):
 		class color(xsc.TextAttr):
 			"""
 			The pixel color as a CSS value. Leave it blank to get a transparent
 			pixel.
 			"""
 
-		class alt(html.img.Attrs.alt):
+		class alt(html_.img.Attrs.alt):
 			default = ""
 
 
@@ -120,7 +137,7 @@ class pixel(_pixelbase):
 		return e.convert(converter)
 
 
-class autoimg(html.img):
+class autoimg(html_.img):
 	"""
 	An image were width and height attributes are automatically generated.
 
@@ -129,7 +146,7 @@ class autoimg(html.img):
 	xmlns = xmlns
 	def convert(self, converter):
 		target = converter.target
-		if target.xmlns in (ihtml.xmlns, html.xmlns):
+		if target.xmlns in (ihtml.xmlns, html_.xmlns):
 			e = target.img(self.attrs.convert(converter))
 		else:
 			raise ValueError("unknown conversion target {0!r}".format(target))
@@ -148,7 +165,7 @@ class autopixel(_pixelbase):
 	xmlns = xmlns
 	def convert(self, converter):
 		target = converter.target
-		if target.xmlns not in (ihtml.xmlns, html.xmlns):
+		if target.xmlns not in (ihtml.xmlns, html_.xmlns):
 			raise ValueError("unknown conversion target {0!r}".format(target))
 		e = target.img(self.attrs.withoutnames(u"color"))
 		src = self.attrs.src.convert(converter).forInput(converter.root)
@@ -157,7 +174,7 @@ class autopixel(_pixelbase):
 		return e
 
 
-class autoinput(html.input):
+class autoinput(html_.input):
 	"""
 	Extends :class:`ll.xist.ns.html.input` with the ability to automatically
 	set the size, if this element has ``type=="image"``.
@@ -166,8 +183,8 @@ class autoinput(html.input):
 	def convert(self, converter):
 		target = converter.target
 		e = target.input(self.content, self.attrs)
-		if u"type" in self.attrs and unicode(self[u"type"].convert(converter)) == u"image":
-			src = self[u"src"].convert(converter).forInput(converter.root)
+		if u"type" in self.attrs and unicode(self.attrs.type.convert(converter)) == u"image":
+			src = self.attrs.src.convert(converter).forInput(converter.root)
 			e._addimagesizeattributes(src, u"size", None) # no height
 		return e.convert(converter)
 
@@ -199,12 +216,12 @@ class redirectpage(xsc.Element):
 		return e.convert(converter)
 
 
-class javascript(html.script):
+class javascript(html_.script):
 	"""
 	Can be used for javascript.
 	"""
 	xmlns = xmlns
-	class Attrs(html.script.Attrs):
+	class Attrs(html_.script.Attrs):
 		language = None
 		type = None
 
@@ -298,27 +315,27 @@ class quicktime(xsc.Element):
 
 class ImgAttrDecorator(specials.AttrDecorator):
 	xmlns = xmlns
-	class Attrs(html.img.Attrs):
+	class Attrs(html_.img.Attrs):
 		pass
-	idecoratable = (html.img,)
+	idecoratable = (html_.img,)
 
 
 class InputAttrDecorator(specials.AttrDecorator):
 	xmlns = xmlns
-	class Attrs(html.input.Attrs):
+	class Attrs(html_.input.Attrs):
 		pass
-	decoratable = (html.input,)
+	decoratable = (html_.input,)
 
 
 class FormAttrDecorator(specials.AttrDecorator):
 	xmlns = xmlns
-	class Attrs(html.form.Attrs):
+	class Attrs(html_.form.Attrs):
 		pass
-	decoratable = (html.form,)
+	decoratable = (html_.form,)
 
 
 class TextAreaAttrDecorator(specials.AttrDecorator):
 	xmlns = xmlns
-	class Attrs(html.textarea.Attrs):
+	class Attrs(html_.textarea.Attrs):
 		pass
-	decoratable = (html.textarea,)
+	decoratable = (html_.textarea,)

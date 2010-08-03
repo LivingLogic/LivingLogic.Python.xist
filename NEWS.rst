@@ -5,8 +5,13 @@ Changes in 3.9 (released ??/??/2010)
 	didn't have whitespace between the name and the ``(`` the ``(`` was missing
 	from the output.
 
-*	Expose the Java string literal formatting function in :mod:`ll.xist.ns.jsp`
-	as :func:`javastring`.
+*	the Java string literal formatting function in :mod:`ll.xist.ns.jsp` has been
+	exposed as :func:`javastring`.
+
+*	:class:`ll.xist.ns.html.html` will no longer change the ``lang`` and
+	``xml:lang`` attributes. This functionality has been moved to the new element
+	:class:`ll.xist.ns.htmlspecials.html`. Furthermore this new element will not
+	change any attribute if it has already been set.
 
 
 Changes in 3.8.3 (released 07/29/2010)

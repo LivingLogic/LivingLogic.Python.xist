@@ -1,3 +1,15 @@
+Migrating to version 3.9
+========================
+
+Changes to :mod:`ll.xist.ns.html`
+---------------------------------
+
+*	:class:`ll.xist.ns.html.html` will no longer change the ``lang`` and
+	``xml:lang`` attributes. This functionality has been moved to the new element
+	:class:`ll.xist.ns.htmlspecials.html`. Furthermore this new element will not
+	change any attribute if it has already been set.
+
+
 Migrating to version 3.8
 ========================
 

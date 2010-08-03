@@ -16,11 +16,9 @@ __ http://www.w3.org/TR/html4/loose.dtd
 """
 
 
-import os, cgi, contextlib, subprocess
+import cgi, subprocess
 
-from ll import url, misc
-from ll.xist import xsc, sims, xfind
-from ll.xist.ns import xml
+from ll.xist import xsc, sims
 
 
 __docformat__ = "reStructuredText"
@@ -178,13 +176,6 @@ class html(xsc.Element):
 	xmlns = xmlns
 	class Attrs(i18nattrs):
 		class id(xsc.IDAttr): pass
-
-	def convert(self, converter):
-		if converter.lang is not None and self.Attrs.lang not in self.attrs and xml.Attrs.lang not in self.attrs:
-			node = html(self.content, self.attrs, xml.Attrs(lang=converter.lang), lang=converter.lang)
-			return node.convert(converter)
-		else:
-			return super(html, self).convert(converter)
 
 
 class head(xsc.Element):
