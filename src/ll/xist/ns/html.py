@@ -168,6 +168,22 @@ class DocTypeXHTML11(xsc.DocType):
 		xsc.DocType.__init__(self, 'html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"')
 
 
+class DocTypeHTML5(xsc.DocType):
+	"""
+	document type for HTML 5
+	"""
+	def __init__(self):
+		xsc.DocType.__init__(self, "html")
+
+
+class DocTypeHTML5Legacy(xsc.DocType):
+	"""
+	document type for HTML 5 (legacy version)
+	"""
+	def __init__(self):
+		xsc.DocType.__init__(self, 'html SYSTEM "about:legacy-compat"')
+
+
 # The global structure of an HTML document
 class html(xsc.Element):
 	"""
