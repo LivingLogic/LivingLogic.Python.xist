@@ -18,6 +18,7 @@ with xsc.Pool():
 		model = sims.Empty()
 
 
+# The following tests are split into separate test functions, because ``py.test`` has problems otherwise
 def test_empty1():
 	e = el1()
 	e.bytes()
