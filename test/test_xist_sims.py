@@ -13,29 +13,38 @@ from ll.xist import xsc, sims
 from ll.xist.ns import html, php
 
 
-def test_empty(recwarn):
-	with xsc.Pool():
-		class el1(xsc.Element):
-			model = sims.Empty()
+with xsc.Pool():
+	class el1(xsc.Element):
+		model = sims.Empty()
 
-		e = el1()
-		e.bytes()
 
-		e = el1(u"gurk")
-		e.bytes()
-		w = recwarn.pop(sims.EmptyElementWithContentWarning)
+def test_empty1(recwarn):
+	e = el1()
+	e.bytes()
 
-		e = el1(php.php(u"gurk"))
-		e.bytes()
-		w = recwarn.pop(sims.EmptyElementWithContentWarning)
 
-		e = el1(xsc.Comment(u"gurk"))
-		e.bytes()
-		w = recwarn.pop(sims.EmptyElementWithContentWarning)
+def test_empty2(recwarn):
+	e = el1(u"gurk")
+	e.bytes()
+	w = recwarn.pop(sims.EmptyElementWithContentWarning)
 
-		e = el1(el1())
-		e.bytes()
-		w = recwarn.pop(sims.EmptyElementWithContentWarning)
+
+def test_empty3(recwarn):
+	e = el1(php.php(u"gurk"))
+	e.bytes()
+	w = recwarn.pop(sims.EmptyElementWithContentWarning)
+
+
+def test_empty4(recwarn):
+	e = el1(xsc.Comment(u"gurk"))
+	e.bytes()
+	w = recwarn.pop(sims.EmptyElementWithContentWarning)
+
+
+def test_empty5(recwarn):
+	e = el1(el1())
+	e.bytes()
+	w = recwarn.pop(sims.EmptyElementWithContentWarning)
 
 
 def test_elements(recwarn):
