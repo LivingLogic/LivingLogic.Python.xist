@@ -15,9 +15,6 @@ Changes in 3.9 (released ??/??/2010)
 
 *	:class:`ll.xist.ns.html.title` no longer does any manipulation of its content.
 
-*	Added doctype classes for HTML 5 to :mod:`ll.xist.ns.html`:
-	:class:`DocTypeHTML5` and :class:`DocTypeHTML5Legacy`
-
 
 Changes in 3.8.3 (released 07/29/2010)
 --------------------------------------
