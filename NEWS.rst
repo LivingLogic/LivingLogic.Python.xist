@@ -5,6 +5,9 @@ Changes in 3.9 (released ??/??/2010)
 	didn't have whitespace between the name and the ``(`` the ``(`` was missing
 	from the output.
 
+*	Expose the Java string literal formatting function in :mod:`ll.xist.ns.jsp`
+	as :func:`javastring`.
+
 
 Changes in 3.8.3 (released 07/29/2010)
 --------------------------------------
