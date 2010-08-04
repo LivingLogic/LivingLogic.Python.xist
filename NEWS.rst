@@ -1,4 +1,4 @@
-Changes in 3.9 (released ??/??/2010)
+Changes in 3.9 (released 08/04/2010)
 ------------------------------------
 
 *	:class:`ll.xist.ns.html.html` will no longer change the ``lang`` and
