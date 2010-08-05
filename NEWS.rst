@@ -1,3 +1,11 @@
+Changes in 3.10 (released ??/??/2010)
+-------------------------------------
+
+*	Fixed a bug in :mod:`ll.nightshade`. If the function/procedure didn't set an
+	encoding, the handling of the response body was totally broken (which
+	resulted in a ISO-8859-1 encoded output).
+
+
 Changes in 3.9 (released 08/04/2010)
 ------------------------------------
 

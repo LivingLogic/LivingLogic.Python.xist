@@ -248,6 +248,12 @@ class Call(object):
 		now = getnow()
 		(body, result) = call(*args, **kwargs)
 
+		# Get response body
+		if "c_out" in result:
+			body = result.c_out
+		if hasattr(body, "read"):
+			body = body.read()
+
 		# Set HTTP headers from parameters
 		expires = result.get("p_expires", None)
 		if expires is not None:
@@ -255,18 +261,17 @@ class Call(object):
 		lastmodified = result.get("p_lastmodified", None)
 		if lastmodified is not None:
 			cherrypy.response.headers["Last-Modified"] = httpdate(lastmodified)
-		encoding = None
-		if isinstance(result, unicode):
-			encoding = "utf-8"
-			result = result.encoding(encoding)
 		mimetype = result.get("p_mimetype", None)
-		if mimetype is not None:
-			if encoding is None:
-				encoding = result.get("p_encoding", None)
-			if encoding is not None:
-				cherrypy.response.headers["Content-Type"] = "{0}; charset={1}".format(mimetype, encoding)
-			else:
-				cherrypy.response.headers["Content-Type"] = mimetype
+		if mimetype is None:
+			mimetype = "text/html" if isinstance(body, unicode) else "application/octet-stream"
+
+		encoding = result.get("p_encoding", None)
+		if encoding is None and isinstance(body, unicode):
+			encoding = "utf-8"
+		if encoding is not None:
+			cherrypy.response.headers["Content-Type"] = "{0}; charset={1}".format(mimetype, encoding)
+		else:
+			cherrypy.response.headers["Content-Type"] = mimetype
 		hasetag = False
 		etag = result.get("p_etag", None)
 		if etag is not None:
@@ -281,14 +286,10 @@ class Call(object):
 		if status is not None:
 			cherrypy.response.status = status
 
-		# Get response body
-		if "c_out" in result:
-			body = result.c_out
-			if hasattr(result, "read"):
-				result = result.read()
-			if not hasetag:
-				cherrypy.response.headers["ETag"] = '"{0:x}"'.format(hash(body))
+		# Set ETag
+		if not hasetag:
+			cherrypy.response.headers["ETag"] = '"{0:x}"'.format(hash(body))
 
-		if hasattr(body, "read"):
-			body = body.read()
+		if isinstance(body, unicode):
+			body = body.encode(encoding)
 		return body
