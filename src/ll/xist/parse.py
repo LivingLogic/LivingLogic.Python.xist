@@ -1342,8 +1342,26 @@ class Tidy(object):
 	__ http://xmlsoft.org/
 	"""
 
-	def __init__(self, encoding=None, loc=True):
+	def __init__(self, encoding=None, skipbad=False, loc=True):
+		"""
+		Create a new :class:`Tidy` object. Parameters have the following meaning:
+
+		:var:`encoding` : string or ``None``
+			The encoding of the input. If :var:`encoding` is ``None`` it will
+			be automatically detected by the HTML parser.
+
+		:var:`skipbad` : bool
+			If :var:`skipbad` is true, unknown elements (i.e. those not in the
+			:mod:`ll.xist.ns.html` namespace) will be skipped (i.e. instead of
+			the element its content will be output). Unknown attributes will be
+			skipped completely.
+
+		:var:`loc` : bool
+			If :var:`loc` is true, ``"position"`` events will be generated else
+			they will be skipped.
+		"""
 		self.encoding = encoding
+		self.skipbad = skipbad
 		self.loc = loc
 
 	def __repr__(self):
@@ -1377,22 +1395,30 @@ class Tidy(object):
 			if pos is not None:
 				yield pos
 			elementname = decode(node.name).lower()
-			yield (u"enterstarttag", elementname)
-			attr = node.properties
-			while attr is not None:
-				attrname = decode(attr.name).lower()
-				content = decode(attr.content) if attr.content is not None else u""
-				yield (u"enterattr", attrname)
-				yield (u"text", content)
-				yield (u"leaveattr", attrname)
-				attr = attr.next
-			yield (u"leavestarttag", elementname)
+			if self.skipbad:
+				el = getattr(html, elementname, None)
+				elok = el is not None
+			else:
+				elok = True
+			if elok:
+				yield (u"enterstarttag", elementname)
+				attr = node.properties
+				while attr is not None:
+					attrname = decode(attr.name).lower()
+					if not self.skipbad or el.Attrs.isallowed_xml(attrname):
+						content = decode(attr.content) if attr.content is not None else u""
+						yield (u"enterattr", attrname)
+						yield (u"text", content)
+						yield (u"leaveattr", attrname)
+					attr = attr.next
+				yield (u"leavestarttag", elementname)
 			child = node.children
 			while child is not None:
 				for event in self._asxist(child):
 					yield event
 				child = child.next
-			yield (u"endtag", elementname)
+			if elok:
+				yield (u"endtag", elementname)
 		elif node.type == "text":
 			pos = self._handle_pos(node)
 			if pos is not None:
