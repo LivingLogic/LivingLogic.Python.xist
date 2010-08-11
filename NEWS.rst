@@ -6,7 +6,7 @@ Changes in 3.10 (released ??/??/2010)
 	resulted in a ISO-8859-1 encoded output).
 
 *	:class:`ll.xist.parse.Tidy` now supports an additional parameter: If
-	:var:`skipbad` is true unknown elements and attributes will be skipped.
+	:var:`skipbad` is true, unknown elements and attributes will be skipped.
 
 
 Changes in 3.9 (released 08/04/2010)
