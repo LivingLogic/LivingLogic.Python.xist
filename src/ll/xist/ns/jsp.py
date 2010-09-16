@@ -356,14 +356,14 @@ def fromul4(template, variables="variables", indent=0):
 		elif opcode.code == "callfunc0":
 			if opcode.arg == "now":
 				make_scriptlet(u"r{op.r1} = new java.util.Date();".format(op=opcode))
-			elif opcode.arg == "utcnow":
-				make_scriptlet(u"r{op.r1} = com.livinglogic.ul4.Utils.utcnow();".format(op=opcode))
+			elif opcode.arg in ("utcnow", "random"):
+				make_scriptlet(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}();".format(op=opcode))
 			elif opcode.arg == "vars":
 				make_scriptlet(u"r{op.r1} = {var};".format(op=opcode, var=variables))
 			else:
 				raise ul4c.UnknownFunctionError(opcode.arg)
 		elif opcode.code == "callfunc1":
-			if opcode.arg in ("xmlescape", "csv", "repr", "enumerate", "chr", "ord", "hex", "oct", "bin", "sorted", "range", "type", "json", "reversed"):
+			if opcode.arg in ("xmlescape", "csv", "repr", "enumerate", "chr", "ord", "hex", "oct", "bin", "sorted", "range", "type", "json", "reversed", "randrange"):
 				make_scriptlet(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
 			elif opcode.arg == "str":
 				make_scriptlet(u"r{op.r1} = org.apache.commons.lang.ObjectUtils.toString(r{op.r2});".format(op=opcode))
@@ -400,14 +400,14 @@ def fromul4(template, variables="variables", indent=0):
 			else:
 				raise ul4c.UnknownFunctionError(opcode.arg)
 		elif opcode.code == "callfunc2":
-			if opcode.arg in ("range", "zip"):
+			if opcode.arg in ("range", "zip", "randrange"):
 				make_scriptlet(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
 			elif opcode.arg == "get":
 				make_scriptlet(u"r{op.r1} = {var}.containsKey(r{op.r2}) ? {var}.get(r{op.r2}) : r{op.r3};".format(op=opcode.r1, var=variables))
 			else:
 				raise ul4c.UnknownFunctionError(opcode.arg)
 		elif opcode.code == "callfunc3":
-			if opcode.arg in ("range", "zip", "rgb", "hls", "hsv"):
+			if opcode.arg in ("range", "zip", "rgb", "hls", "hsv", "randrange"):
 				make_scriptlet(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 			else:
 				raise ul4c.UnknownFunctionError(opcode.arg)

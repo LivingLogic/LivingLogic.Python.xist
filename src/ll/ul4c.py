@@ -967,6 +967,8 @@ class Template(object):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = datetime.datetime.utcnow()".format(op=opcode))
 	def _pythonsource_dispatch_callfunc0_vars(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = variables".format(op=opcode))
+	def _pythonsource_dispatch_callfunc0_random(self, opcode):
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = random.random()".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_xmlescape(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = xmlescape(unicode(r{op.r2:d})) if r{op.r2:d} is not None else u''".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_csv(self, opcode):
@@ -1029,6 +1031,8 @@ class Template(object):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = ul4c._type(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_reversed(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = reversed(r{op.r2:d})".format(op=opcode))
+	def _pythonsource_dispatch_callfunc1_randrange(self, opcode):
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = random.randrange(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc2_range(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = xrange(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc2_get(self, opcode):
@@ -1037,6 +1041,8 @@ class Template(object):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = itertools.izip(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc2_int(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = int(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
+	def _pythonsource_dispatch_callfunc2_randrange(self, opcode):
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = random.randrange(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc3_range(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = xrange(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc3_zip(self, opcode):
@@ -1047,6 +1053,8 @@ class Template(object):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = color.Color.fromhls(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc3_hsv(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = color.Color.fromhsv(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
+	def _pythonsource_dispatch_callfunc3_randrange(self, opcode):
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = random.randrange(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc4_rgb(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = color.Color.fromrgb(r{op.r2:d}, r{op.r3:d}, r{op.r4:d}, r{op.r5:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc4_hls(self, opcode):
@@ -1071,7 +1079,7 @@ class Template(object):
 			self._pythonsource_line(self.lastlocation, "def {0}(**variables):".format(function))
 			self.indent += 1
 			self.lines2locs = [] # We initialize startline one line below, which restarts the counter
-		self._pythonsource_line(self.lastlocation, "import sys, datetime, itertools, json; from ll.misc import xmlescape; from ll import ul4c, color; startline = sys._getframe().f_lineno") # The line number of this line
+		self._pythonsource_line(self.lastlocation, "import sys, datetime, itertools, json, random; from ll.misc import xmlescape; from ll import ul4c, color; startline = sys._getframe().f_lineno") # The line number of this line
 		self._pythonsource_line(self.lastlocation, "__1__")
 		self._pythonsource_line(self.lastlocation, "__2__")
 		self._pythonsource_line(self.lastlocation, "source = {0!r}".format(self.source))

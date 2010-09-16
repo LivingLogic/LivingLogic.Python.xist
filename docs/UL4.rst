@@ -485,6 +485,21 @@ Functions
 loop variables).
 
 
+``random``
+::::::::::
+
+``random()`` returns a random float value between 0 (included) and 1 (excluded).
+
+
+``randrange``
+:::::::::::
+
+``randrange(start, stop, step)`` returns a random integer value between ``start``
+(included) and ``stop`` (excluded). ``step`` specifies the step size (i.e.
+when ``r`` is the random value, ``(r-start) % step`` will always be ``0``.
+``step`` and ``start`` can be ommitted.
+
+
 ``isnone``
 ::::::::::
 

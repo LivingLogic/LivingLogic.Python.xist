@@ -546,6 +546,19 @@ def test_function_vars():
 	check("yes", u"<?if 'spam' in vars()?>yes<?else?>no<?end if?>", spam="eggs")
 
 
+def test_function_random():
+	checkrunerror("function u?'random' unknown", "<?print random(1)?>")
+	checkrunerror("function u?'random' unknown", "<?print random(1, 2)?>")
+	check("ok", u"<?code r = random()?><?if r>=0 and r<1?>ok<?end if?>")
+
+
+def test_function_randrange():
+	checkrunerror("function u?'randrange' unknown", "<?print randrange()?>")
+	check("ok", u"<?code r = randrange(4)?><?if r>=0 and r<4?>ok<?end if?>")
+	check("ok", u"<?code r = randrange(17, 23)?><?if r>=17 and r<23?>ok<?end if?>")
+	check("ok", u"<?code r = randrange(17, 23, 2)?><?if r>=17 and r<23 and r%2?>ok<?end if?>")
+
+
 def test_function_xmlescape():
 	checkrunerror("function u?'xmlescape' unknown", u"<?print xmlescape()?>")
 	checkrunerror("function u?'xmlescape' unknown", u"<?print xmlescape(1, 2)?>")
