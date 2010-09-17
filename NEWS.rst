@@ -805,7 +805,7 @@ Changes in 3.0 (released 01/07/2008)
 
 *	Constructing trees can now be done with ``with`` blocks. Code looks like
 	this::
-	
+
 		with xsc.Frag() as node:
 			+xml.XML()
 			+html.DocTypeXHTML10transitional()
@@ -819,7 +819,7 @@ Changes in 3.0 (released 01/07/2008)
 						+xsc.Text("This example page has a link to the ")
 						+html.a("Python home page", href="http://www.python.org/")
 						+xsc.Text(".")
-	
+
 		print node.conv().bytes(encoding="us-ascii")
 
 	Also the function :func:`xsc.append` has been renamed to :func:`add` and
@@ -1631,7 +1631,7 @@ Changes in 2.2 (released 07/31/2003)
 	have to call :meth:`mapped` directly and pass a node and a converter.
 
 *	The HTML handling of the :class:`HTMLParser` has been improved (it now
-	uses code from :mod:`xml.sax.drivers2.drv_sgmlop_html` (which is part of 
+	uses code from :mod:`xml.sax.drivers2.drv_sgmlop_html` (which is part of
 	PyXML__.
 
 	__ http://pyxml.sf.net/

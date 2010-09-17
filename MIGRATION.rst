@@ -250,7 +250,7 @@ Changes to XIST
 					+html.p("The foo page!")
 
 	(i.e. wrap the outermost ``with`` block in another ``with xsc.build()``
-	block.) 
+	block.)
 
 
 Migrating to version 3.3
@@ -646,7 +646,7 @@ The boolean class attribute :attr:`empty` for element classes has been replaced
 by an object :attr:`model`. :attr:`empty` is still supported, but issues a
 :class:`PendingDeprecationWarning`. If you don't want to specify a proper
 content model for your own elements you can replace ``empty = False`` with
-``model = True`` (which is a shortcut for ``model = sims.Any()``) and 
+``model = True`` (which is a shortcut for ``model = sims.Any()``) and
 ``empty = True`` with ``model = False`` (which is a shortcut for
 ``model = sims.Empty()``).
 
@@ -843,7 +843,7 @@ can use the classmethod :meth:`makemod` instead of :meth:`update`, i.e. replace:
 	xmlns = xsc.Namespace("foo", "http://www.foo.com/", vars())
 
 with::
-	
+
 	class xmlns(xsc.Namespace):
 		xmlname = "foo"
 		xmlurl = "http://www.foo.com/"
@@ -935,7 +935,7 @@ Global attributes are supported now, e.g. the attributes ``xml:lang`` and
 
 	from ll.xist import xsc
 	from ll.xist.ns import html, xml
-	
+
 	node = html.html(
 		content,
 		{(xml, "lang"): "en", (xml, "space"): "preserve"},
