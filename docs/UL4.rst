@@ -500,6 +500,12 @@ when ``r`` is the random value, ``(r-start) % step`` will always be ``0``.
 ``step`` and ``start`` can be ommitted.
 
 
+``randchoice``
+::::::::::::::
+
+``randchoice(seq)`` returns a random item from the sequence ``seq``.
+
+
 ``isnone``
 ::::::::::
 

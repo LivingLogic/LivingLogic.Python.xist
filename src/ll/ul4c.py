@@ -1033,6 +1033,8 @@ class Template(object):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = reversed(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_randrange(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = random.randrange(r{op.r2:d})".format(op=opcode))
+	def _pythonsource_dispatch_callfunc1_randchoice(self, opcode):
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = random.choice(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc2_range(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = xrange(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc2_get(self, opcode):

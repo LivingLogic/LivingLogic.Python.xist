@@ -549,14 +549,21 @@ def test_function_vars():
 def test_function_random():
 	checkrunerror("function u?'random' unknown", "<?print random(1)?>")
 	checkrunerror("function u?'random' unknown", "<?print random(1, 2)?>")
-	check("ok", u"<?code r = random()?><?if r>=0 and r<1?>ok<?end if?>")
+	check("ok", u"<?code r = random()?><?if r>=0 and r<1?>ok<?else?>fail<?end if?>")
 
 
 def test_function_randrange():
 	checkrunerror("function u?'randrange' unknown", "<?print randrange()?>")
-	check("ok", u"<?code r = randrange(4)?><?if r>=0 and r<4?>ok<?end if?>")
-	check("ok", u"<?code r = randrange(17, 23)?><?if r>=17 and r<23?>ok<?end if?>")
-	check("ok", u"<?code r = randrange(17, 23, 2)?><?if r>=17 and r<23 and r%2?>ok<?end if?>")
+	check("ok", u"<?code r = randrange(4)?><?if r>=0 and r<4?>ok<?else?>fail<?end if?>")
+	check("ok", u"<?code r = randrange(17, 23)?><?if r>=17 and r<23?>ok<?else?>fail<?end if?>")
+	check("ok", u"<?code r = randrange(17, 23, 2)?><?if r>=17 and r<23 and r%2?>ok<?else?>fail<?end if?>")
+
+
+def test_function_randchoice():
+	checkrunerror("function u?'randrange' unknown", "<?print randrange()?>")
+	check("ok", u"<?code r = randchoice('abc')?><?if r in 'abc'?>ok<?else?>fail<?end if?>")
+	check("ok", u"<?code s = [17, 23, 42]?><?code r = randchoice(s)?><?if r in s?>ok<?else?>fail<?end if?>")
+	check("ok", u"<?code s = #12345678?><?code sl = [0x12, 0x34, 0x56, 0x78]?><?code r = randchoice(s)?><?if r in sl?>ok<?else?>fail<?end if?>")
 
 
 def test_function_xmlescape():
