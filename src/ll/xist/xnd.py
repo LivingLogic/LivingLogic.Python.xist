@@ -71,35 +71,35 @@ class Base(object):
 				if '"' in value:
 					value = repr(value)
 				else:
-					value = 'u"{0}"'.format(repr(value)[2:-1])
+					value = u'u"{0}"'.format(repr(value)[2:-1])
 			else:
 				if '"' in value:
 					value = repr(value)
 				else:
-					value = '"{0}"'.format(repr(value)[1:-1])
+					value = u'"{0}"'.format(repr(value)[1:-1])
 		return value
 
 	def aspy(self, **options):
 		options = Options(**options)
 		lines = []
 		self._aspy(lines, 0, [], options)
-		return "".join("{0}{1}\n".format(level*options.indent, text) for (level, text) in lines)
+		return u"".join(u"{0}{1}\n".format(level*options.indent, text) for (level, text) in lines)
 
 	def _addlines(self, newlines, lines):
 		l = len(newlines)
 		if l==0:
-			lines[-1][1] += " pass"
+			lines[-1][1] += u" pass"
 		elif l==1:
-			lines[-1][1] += " {0}".format(newlines[-1][1])
+			lines[-1][1] += u" {0}".format(newlines[-1][1])
 		else:
 			lines.extend(newlines)
 
 	def _adddoc(self, lines, level):
 		if self.doc is not None:
-			lines.append([level, '"""'])
+			lines.append([level, u'"""'])
 			for line in self.doc.splitlines():
 				lines.append([level, line])
-			lines.append([level, '"""'])
+			lines.append([level, u'"""'])
 
 
 class Module(Base):
