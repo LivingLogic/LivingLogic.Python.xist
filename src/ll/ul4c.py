@@ -923,7 +923,7 @@ class Template(object):
 			raise UnknownMethodError(opcode.arg)
 	def _pythonsource_dispatch_callmethkw(self, opcode):
 		if opcode.arg == "render":
-			self._pythonsource_line(opcode.location, 'r{op.r1:d} = "".join(r{op.r2:d}(**dict((key.encode("utf-8"), value) for (key, value) in r{op.r3:d}.iteritems())))'.format(op=opcode)) # FIXME: This can be simplified in Python 3.0 where strings are unicode
+			self._pythonsource_line(opcode.location, 'r{op.r1:d} = "".join(r{op.r2:d}(**{{key.encode("utf-8"): value for (key, value) in r{op.r3:d}.iteritems()}}))'.format(op=opcode)) # FIXME: This can be simplified in Python 3.0 where strings are unicode
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _pythonsource_dispatch_if(self, opcode):
@@ -943,7 +943,7 @@ class Template(object):
 		self._pythonsource_line(opcode.location, "def _(**variables):")
 		self.defs.append(opcode)
 		self.indent += 1
-		self._pythonsource_line(opcode.location, 'variables = dict((key.decode("utf-8"), value) for (key, value) in variables.iteritems())') # FIXME: This can be dropped in Python 3.0 where strings are unicode
+		self._pythonsource_line(opcode.location, 'variables = {key.decode("utf-8"): value for (key, value) in variables.iteritems()}') # FIXME: This can be dropped in Python 3.0 where strings are unicode
 		self._pythonsource_line(opcode.location, "r0 = r1 = r2 = r3 = r4 = r5 = r6 = r7 = r8 = r9 = None")
 		self._pythonsource_line(opcode.location, "try:")
 		self.indent += 1
@@ -960,7 +960,7 @@ class Template(object):
 		self.indent -= 2
 		self._pythonsource_line(opcode.location, "variables[{op.arg!r}] = _".format(op=defopcode))
 	def _pythonsource_dispatch_render(self, opcode):
-		self._pythonsource_line(opcode.location, 'for chunk in r{op.r1:d}(**dict((key.encode("utf-8"), value) for (key, value) in r{op.r2:d}.iteritems())): yield chunk'.format(op=opcode))
+		self._pythonsource_line(opcode.location, 'for chunk in r{op.r1:d}(**{{key.encode("utf-8"): value for (key, value) in r{op.r2:d}.iteritems()}}): yield chunk'.format(op=opcode))
 	def _pythonsource_dispatch_callfunc0_now(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = datetime.datetime.now()".format(op=opcode))
 	def _pythonsource_dispatch_callfunc0_utcnow(self, opcode):
@@ -1085,7 +1085,7 @@ class Template(object):
 		self._pythonsource_line(self.lastlocation, "__1__")
 		self._pythonsource_line(self.lastlocation, "__2__")
 		self._pythonsource_line(self.lastlocation, "source = {!r}".format(self.source))
-		self._pythonsource_line(self.lastlocation, 'variables = dict((key.decode("utf-8"), value) for (key, value) in variables.iteritems())') # FIXME: This can be dropped in Python 3.0 where strings are unicode
+		self._pythonsource_line(self.lastlocation, 'variables = {key.decode("utf-8"): value for (key, value) in variables.iteritems()}') # FIXME: This can be dropped in Python 3.0 where strings are unicode
 		self._pythonsource_line(self.lastlocation, "r0 = r1 = r2 = r3 = r4 = r5 = r6 = r7 = r8 = r9 = None")
 		self._pythonsource_line(self.lastlocation, "try:")
 		self.indent += 1

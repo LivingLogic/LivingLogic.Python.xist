@@ -663,7 +663,7 @@ class Publisher(object):
 		self.encoder = None
 		self.xhtml = xhtml
 		self.validate = validate
-		self.prefixes = dict((nsname(xmlns), prefix) for (xmlns, prefix) in prefixes.iteritems())
+		self.prefixes = {nsname(xmlns): prefix for (xmlns, prefix) in prefixes.iteritems()}
 		self.prefixdefault = prefixdefault
 		self.hidexmlns = set(nsname(xmlns) for xmlns in hidexmlns)
 		self.showxmlns = set(nsname(xmlns) for xmlns in showxmlns)

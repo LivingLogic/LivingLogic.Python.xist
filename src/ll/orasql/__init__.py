@@ -416,7 +416,7 @@ class Connection(Connection):
 		else:
 			done = set()
 
-			tables = dict(((rec.table_name, rec.owner), Table(rec.table_name, rec.owner, self)) for rec in cursor.fetchall())
+			tables = {(rec.table_name, rec.owner): Table(rec.table_name, rec.owner, self) for rec in cursor.fetchall()}
 			def do(table):
 				if table not in done:
 					done.add(table)
@@ -2388,7 +2388,7 @@ class Privilege(object):
 			else:
 				grantee = None
 		else:
-			mapgrantee = dict((key.lower(), value) for (key, value) in mapgrantee.iteritems())
+			mapgrantee = {key.lower(): value for (key, value) in mapgrantee.iteritems()}
 			grantee = mapgrantee.get(self.grantee.lower(), None)
 		if grantee is None:
 			return ""

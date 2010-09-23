@@ -76,7 +76,7 @@ class Scanner(object):
 				res[mode].append(pattern)
 		for (mode, patterns) in res.iteritems():
 			pattern = re.compile('|'.join(patterns), re.VERBOSE|cls.reflags)
-			index2func = dict((number-1, getattr(cls, name)) for (name, number) in pattern.groupindex.iteritems())
+			index2func = {number-1: getattr(cls, name) for (name, number) in pattern.groupindex.iteritems()}
 			res[mode] = (pattern, index2func)
 		cls.res = res
 
