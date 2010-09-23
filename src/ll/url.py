@@ -1601,7 +1601,7 @@ class Path(object):
 		return Path(self)
 
 	def __repr__(self):
-		return "Path({0!r})".format(self._path)
+		return "Path({!r})".format(self._path)
 
 	def __str__(self):
 		return self.path
@@ -2055,7 +2055,7 @@ class URL(object):
 				scheme = scheme.lower()
 				# check if the scheme only has allowed characters
 				if not self._checkscheme(scheme):
-					raise ValueError("Illegal scheme char in scheme {0!r}".format(scheme))
+					raise ValueError("Illegal scheme char in scheme {!r}".format(scheme))
 				self._scheme = scheme
 			self.reg = schemereg.get(scheme, defaultreg)
 		def __delete__(self):
@@ -2594,7 +2594,7 @@ class URL(object):
 		return self.url
 
 	def __repr__(self):
-		return "URL({0!r})".format(self.url)
+		return "URL({!r})".format(self.url)
 
 	def __nonzero__(self):
 		"""
@@ -2701,7 +2701,7 @@ class URL(object):
 
 	def _checklocal(self):
 		if not self.islocal():
-			raise ValueError("URL {0!r} is not local".format(self))
+			raise ValueError("URL {!r} is not local".format(self))
 
 	def local(self):
 		"""
