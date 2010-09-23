@@ -47,7 +47,7 @@ this::
 """
 
 
-import sys, os, os.path, optparse, warnings, re, datetime, cStringIO, errno, tempfile, operator, types, cPickle, gc, contextlib, locale, gzip
+import sys, os, os.path, argparse, warnings, re, datetime, cStringIO, errno, tempfile, operator, types, cPickle, gc, contextlib, locale, gzip
 
 from ll import misc, url
 
@@ -1496,10 +1496,10 @@ class Project(dict):
 		self.clear()
 		self.create()
 
-	def optionparser(self):
+	def argparser(self):
 		"""
-		Return an :mod:`optparse` parser for parsing the command line options.
-		This can be overwritten in subclasses to add more options.
+		Return an :mod:`argparse` parser for parsing the command line arguments.
+		This can be overwritten in subclasses to add more arguments.
 		"""
 
 		def action2name(action):
@@ -1516,42 +1516,43 @@ class Project(dict):
 			else:
 				return "all"
 
-		actions = ["all", "file", "phony", "filephony", "none"]
-		p = optparse.OptionParser(usage="usage: %prog [options] [targets]")
-		p.add_option("-x", "--ignore", dest="ignoreerrors", help="Ignore errors", action="store_true", default=None)
-		p.add_option("-X", "--noignore", dest="ignoreerrors", help="Don't ignore errors", action="store_false", default=None)
-		p.add_option("-c", "--color", dest="color", help="Use colored output", action="store_true", default=None)
-		p.add_option("-C", "--nocolor", dest="color", help="No colored output", action="store_false", default=None)
-		p.add_option("-g", "--growl", dest="growl", help="Issue growl notification after the build?", action="store_true", default=None)
-		p.add_option("-a", "--showaction", dest="showaction", help="Show actions ({0})?".format(", ".join(actions)), choices=actions, default=action2name(self.showaction))
-		p.add_option("-s", "--showstep", dest="showstep", help="Show steps ({0})?".format(", ".join(actions)), choices=actions, default=action2name(self.showstep))
-		p.add_option("-n", "--shownote", dest="shownote", help="Show notes ({0})?".format(", ".join(actions)), choices=actions, default=action2name(self.shownote))
-		p.add_option("-r", "--showregistration", dest="showregistration", help="Show registration ({0})?".format(", ".join(actions)), choices=actions, default=action2name(self.showregistration))
-		p.add_option("-i", "--showidle", dest="showidle", help="Show actions that didn't produce data?", action="store_true", default=self.showidle)
-		p.add_option("-d", "--showdata", dest="showdata", help="Show data?", action="store_true", default=self.showdata)
+		actions = ("all", "file", "phony", "filephony", "none")
+		p = argparse.ArgumentParser(description="build one or more targets")
+		p.add_argument("targets", metavar="target", help="Target to be built", nargs="*")
+		p.add_argument("-x", "--ignore", dest="ignoreerrors", help="Ignore errors", action="store_true", default=None)
+		p.add_argument("-X", "--noignore", dest="ignoreerrors", help="Don't ignore errors", action="store_false", default=None)
+		p.add_argument("-c", "--color", dest="color", help="Use colored output", action="store_true", default=None)
+		p.add_argument("-C", "--nocolor", dest="color", help="No colored output", action="store_false", default=None)
+		p.add_argument("-g", "--growl", dest="growl", help="Issue growl notification after the build?", action="store_true", default=None)
+		p.add_argument("-a", "--showaction", dest="showaction", help="Show actions?", choices=actions, default=action2name(self.showaction))
+		p.add_argument("-s", "--showstep", dest="showstep", help="Show steps?", choices=actions, default=action2name(self.showstep))
+		p.add_argument("-n", "--shownote", dest="shownote", help="Show notes?", choices=actions, default=action2name(self.shownote))
+		p.add_argument("-r", "--showregistration", dest="showregistration", help="Show registration?", choices=actions, default=action2name(self.showregistration))
+		p.add_argument("-i", "--showidle", dest="showidle", help="Show actions that didn't produce data?", action="store_true", default=self.showidle)
+		p.add_argument("-d", "--showdata", dest="showdata", help="Show data?", action="store_true", default=self.showdata)
 		return p
 
-	def parseoptions(self, commandline=None):
+	def parseargs(self, args=None):
 		"""
-		Use the parser returned by :meth:`optionparser` to parse the option
-		sequence :var:`commandline`, modify :var:`self` accordingly and return
+		Use the parser returned by :meth:`argparser` to parse the argument
+		sequence :var:`args`, modify :var:`self` accordingly and return
 		the result of the parsers :meth:`parse_args` call.
 		"""
-		p = self.optionparser()
-		(options, args) = p.parse_args(commandline)
-		if options.ignoreerrors is not None:
-			self.ignoreerrors = options.ignoreerrors
-		if options.color is not None:
-			self.color = options.color
+		p = self.argparser()
+		args = p.parse_args(args)
+		if args.ignoreerrors is not None:
+			self.ignoreerrors = args.ignoreerrors
+		if args.color is not None:
+			self.color = args.color
 		if self.growl is not None:
-			self.growl = options.growl
-		self.showaction = options.showaction
-		self.showstep = options.showstep
-		self.shownote = options.shownote
-		self.showregistration = options.showregistration
-		self.showidle = options.showidle
-		self.showdata = options.showdata
-		return (options, args)
+			self.growl = args.growl
+		self.showaction = args.showaction
+		self.showstep = args.showstep
+		self.shownote = args.shownote
+		self.showregistration = args.showregistration
+		self.showidle = args.showidle
+		self.showdata = args.showdata
+		return args
 
 	def _get(self, target, since):
 		"""
@@ -1655,19 +1656,17 @@ class Project(dict):
 				pipe.write("{0} actions failed".format(self.actionsfailed))
 				pipe.close()
 
-	def buildwithargs(self, commandline=None):
+	def buildwithargs(self, args=None):
 		"""
-		For calling make scripts from the command line. :var:`commandline`
-		defaults to ``sys.argv[1:]``. Any positional arguments in the command
-		line will be treated as target ids. If there are no positional arguments,
-		a list of all registered :class:`PhonyAction` objects will be output.
+		For calling make scripts from the command line. :var:`args` defaults to
+		``sys.argv``. Any positional arguments in the command line will be treated
+		as target ids. If there are no positional arguments, a list of all
+		registered :class:`PhonyAction` objects will be output.
 		"""
-		if not commandline:
-			commandline = sys.argv[1:]
-		(options, args) = self.parseoptions(commandline)
+		args = self.parseargs(args)
 
-		if args:
-			self.build(*args)
+		if args.targets:
+			self.build(*args.targets)
 		else:
 			self.writeln("Available phony targets are:")
 			self.writephonytargets()

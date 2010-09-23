@@ -10,7 +10,7 @@
 ## See ll/__init__.py for the license
 
 
-import sys, optparse, contextlib, datetime, pwd, grp, stat, curses
+import sys, argparse, contextlib, datetime, pwd, grp, stat, curses
 
 from ll import url
 
@@ -155,33 +155,29 @@ def main(args=None):
 		else:
 			printone(url, long, human)
 
-	colors = ("yes", "no", "auto")
-	p = optparse.OptionParser(usage="usage: %prog [options] [url] [url] ...")
-	p.add_option("-c", "--color", dest="color", help="Color output ([{0}])".format(", ".join(colors)), default="auto", choices=colors)
-	p.add_option("-1", "--one", dest="one", help="One entry per line?", action="store_true")
-	p.add_option("-l", "--long", dest="long", help="Long format?", action="store_true")
-	p.add_option("-s", "--human-readable-sizes", dest="human", help="Output human readable sizes?", action="store_true")
-	p.add_option("-r", "--recursive", dest="recursive", help="Recursive listing?", action="store_true")
-	p.add_option("-w", "--spacing", dest="spacing", help="Spacing between columns", type="int", default=3)
+	p = argparse.ArgumentParser(description="List the content of one or more URLs")
+	p.add_argument("urls", metavar="url", help="URLs to be listed (default: current dir)", nargs="*", default=url.here(), type=url.URL)
+	p.add_argument("-c", "--color", dest="color", help="Color output", default="auto", choices=("yes", "no", "auto"))
+	p.add_argument("-1", "--one", dest="one", help="One entry per line?", action="store_true")
+	p.add_argument("-l", "--long", dest="long", help="Long format?", action="store_true")
+	p.add_argument("-s", "--human-readable-sizes", dest="human", help="Human readable file sizes?", action="store_true")
+	p.add_argument("-r", "--recursive", dest="recursive", help="Recursive listing?", action="store_true")
+	p.add_argument("-w", "--spacing", dest="spacing", metavar="N", help="Number of spaces between columns", type=int, default=3)
 
-	(options, args) = p.parse_args(args)
+	args = p.parse_args(args)
 
-	if options.color == "yes":
+	if args.color == "yes":
 		color = True
-	elif options.color == "no":
+	elif args.color == "no":
 		color = False
 	else:
 		color = None
 	stdout = astyle.Stream(sys.stdout, color)
 	stderr = astyle.Stream(sys.stderr, color)
 
-	if not args:
-		args = [url.here(scheme=None)]
-
 	with url.Context():
-		for u in args:
-			u = url.URL(u)
-			printall(u, u, options.one, options.long, options.recursive, options.human, options.spacing)
+		for u in args.urls:
+			printall(u, u, args.one, args.long, args.recursive, args.human, args.spacing)
 
 
 if __name__ == "__main__":

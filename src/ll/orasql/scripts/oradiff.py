@@ -9,7 +9,7 @@
 ## See orasql/__init__.py for the license
 
 
-import sys, os, difflib, optparse
+import sys, os, difflib, argparse
 
 from ll import orasql, astyle
 
@@ -110,43 +110,38 @@ def showudiff(out, obj, ddl1, ddl2, connection1, connection2, encoding="utf-8", 
 
 
 def main(args=None):
-	colors = ("yes", "no", "auto")
-	modes = ("brief", "udiff", "full")
-	blanks = ("literal", "trail", "lead", "both", "collapse")
-	p = optparse.OptionParser(usage="usage: %prog [options] connectstring1 connectstring2")
-	p.add_option("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action="store_true")
-	p.add_option("-c", "--color", dest="color", help="Color output ({0})".format(", ".join(colors)), default="auto", choices=colors)
-	p.add_option("-m", "--mode", dest="mode", help="Output mode ({0})".format(", ".join(modes)), default="udiff", choices=modes)
-	p.add_option("-n", "--context", dest="context", help="Number of context lines", type="int", default=2)
-	p.add_option("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' or 'SYS_EXPORT_SCHEMA_' in their name?", default=False, action="store_true")
-	p.add_option("-b", "--blank", dest="blank", help="How to treat whitespace ({0})".format(", ".join(blanks)), default="literal", choices=blanks)
-	p.add_option("-e", "--encoding", dest="encoding", help="Encoding for output", default="utf-8")
+	p = argparse.ArgumentParser(description="compare two Oracle database schemas")
+	p.add_argument("connectionstring1", help="First schema")
+	p.add_argument("connectionstring2", help="Second schema")
+	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action="store_true")
+	p.add_argument("-c", "--color", dest="color", help="Color output", default="auto", choices=("yes", "no", "auto"))
+	p.add_argument("-m", "--mode", dest="mode", help="Output mode", default="udiff", choices=("brief", "udiff", "full"))
+	p.add_argument("-n", "--context", dest="context", help="Number of context lines", type=int, default=2)
+	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' or 'SYS_EXPORT_SCHEMA_' in their name?", default=False, action="store_true")
+	p.add_argument("-b", "--blank", dest="blank", help="How to treat whitespace ({0})".format(", ".join(blanks)), default="literal", choices=("literal", "trail", "lead", "both", "collapse"))
+	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for output", default="utf-8")
 
-	(options, args) = p.parse_args(args)
-	if len(args) != 2:
-		p.error("incorrect number of arguments")
-		return 1
+	args = p.parse_args(args)
 
-	if options.color == "yes":
+	if args.color == "yes":
 		color = True
-	elif options.color == "no":
+	elif args.color == "no":
 		color = False
 	else:
 		color = None
 	stdout = astyle.Stream(sys.stdout, color)
 	stderr = astyle.Stream(sys.stderr, color)
 
-	connection1 = orasql.connect(args[0])
-	connection2 = orasql.connect(args[1])
+	connection1 = orasql.connect(args.connectionstring1)
+	connection2 = orasql.connect(args.connectionstring2)
 
-	print connection1, connection2
 	def fetch(connection):
 		objects = set()
 
 		def keep(obj):
 			if obj.owner is not None:
 				return False
-			if options.keepjunk:
+			if args.keepjunk:
 				return True
 			if "$" in obj.name or obj.name.startswith("SYS_EXPORT_SCHEMA_"):
 				return False
@@ -154,7 +149,7 @@ def main(args=None):
 
 		for (i, obj) in enumerate(connection.iterobjects(mode="flat", schema="user")):
 			keepdef = keep(obj)
-			if options.verbose:
+			if args.verbose:
 				msg = astyle.style_default("oradiff.py: ", cs(connection), ": fetching #{0} ".format(i+1), df(obj))
 				if not keepdef:
 					msg = astyle.style_default(msg, " ", s4warning("(skipped)"))
@@ -168,50 +163,50 @@ def main(args=None):
 
 	onlyin1 = objects1 - objects2
 	for (i, obj) in enumerate(onlyin1):
-		if options.verbose:
+		if args.verbose:
 			stderr.writeln("oradiff.py: only in ", cs(connection1), " #{0}/{1} ".format(i+1, len(onlyin1)), df(obj))
-		if options.mode == "brief":
+		if args.mode == "brief":
 			stdout.writeln(df(obj), ": only in ", cs(connection1))
-		elif options.mode == "full":
+		elif args.mode == "full":
 			stdout.writeln(comment(df(obj), ": only in ", cs(connection1)))
 			ddl = obj.dropddl(connection1, term=True)
 			if ddl:
 				stdout.write(ddl)
-		elif options.mode == "udiff":
-			ddl = getcanonicalddl(obj.createddl(connection1), options.blank)
-			showudiff(stdout, obj, ddl, [], connection1, connection2, options.encoding, options.context)
+		elif args.mode == "udiff":
+			ddl = getcanonicalddl(obj.createddl(connection1), args.blank)
+			showudiff(stdout, obj, ddl, [], connection1, connection2, args.encoding, args.context)
 
 	onlyin2 = objects2 - objects1
 	for (i, obj) in enumerate(onlyin2):
-		if options.verbose:
+		if args.verbose:
 			stderr.writeln("oradiff.py: only in ", cs(connection2), " #{0}/{1} ".format(i+1, len(onlyin2)), df(obj))
-		if options.mode == "brief":
+		if args.mode == "brief":
 			stdout.writeln(df(obj), ": only in ", cs(connection2))
-		elif options.mode == "full":
+		elif args.mode == "full":
 			stdout.writeln(comment(df(obj), ": only in ", cs(connection2)))
 			ddl = obj.createddl(connection2, term=True)
 			if ddl:
 				stdout.write(ddl)
-		elif options.mode == "udiff":
-			ddl = getcanonicalddl(obj.createddl(connection2), options.blank)
-			showudiff(stdout, obj, [], ddl, connection1, connection2, options.encoding, options.context)
+		elif args.mode == "udiff":
+			ddl = getcanonicalddl(obj.createddl(connection2), args.blank)
+			showudiff(stdout, obj, [], ddl, connection1, connection2, args.encoding, args.context)
 
 	common = objects1 & objects2
 	for (i, obj) in enumerate(common):
-		if options.verbose:
+		if args.verbose:
 			stderr.writeln("oradiff.py: diffing #{0}/{1} ".format(i+1, len(common)), df(obj))
 		ddl1 = obj.createddl(connection1)
 		ddl2 = obj.createddl(connection2)
-		ddl1c = getcanonicalddl(ddl1, options.blank)
-		ddl2c = getcanonicalddl(ddl2, options.blank)
+		ddl1c = getcanonicalddl(ddl1, args.blank)
+		ddl2c = getcanonicalddl(ddl2, args.blank)
 		if ddl1c != ddl2c:
-			if options.mode == "brief":
+			if args.mode == "brief":
 				stdout.writeln(df(obj), ": different")
-			elif options.mode == "full":
+			elif args.mode == "full":
 				stdout.writeln(comment(df(obj), ": different"))
 				stdout.write(obj.createddl(connection2))
-			elif options.mode == "udiff":
-				showudiff(stdout, obj, ddl1c, ddl2c, connection1, connection2, options.encoding, options.context)
+			elif args.mode == "udiff":
+				showudiff(stdout, obj, ddl1c, ddl2c, connection1, connection2, args.encoding, args.context)
 
 
 if __name__ == "__main__":

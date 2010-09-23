@@ -10,7 +10,7 @@
 
 __docformat__ = "reStructuredText"
 
-import os, optparse, collections, contextlib
+import os, collections, contextlib
 
 from ll import url
 from ll.xist import xsc, sims

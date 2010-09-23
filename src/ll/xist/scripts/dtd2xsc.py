@@ -24,7 +24,7 @@ For usage information type::
 __docformat__ = "reStructuredText"
 
 
-import sys, os.path, optparse
+import sys, os.path, argparse
 
 try:
 	from xml.parsers.xmlproc import dtdparser
@@ -168,17 +168,14 @@ def stream2xnd(stream, xmlns, shareattrs):
 
 
 def main(args=None):
-	p = optparse.OptionParser(usage="usage: %prog [options] <input.dtd >output_xmlns.py")
-	p.add_option("-x", "--xmlns", dest="xmlns", help="the namespace name for this module")
-	p.add_option("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements?", choices=("none", "dupes", "all"), default="dupes")
-	p.add_option("-m", "--model", dest="model", default="once", help="Add sims information to the namespace", choices=("no", "all", "once"))
-	p.add_option("-d", "--defaults", action="store_true", dest="defaults", help="Output default values for attributes")
+	p = argparse.ArgumentParser(description="Convert DTD (on stdin) to XIST namespace (on stdout)")
+	p.add_argument("-x", "--xmlns", dest="xmlns", help="the namespace name for this module")
+	p.add_argument("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements?", choices=("none", "dupes", "all"), default="dupes")
+	p.add_argument("-m", "--model", dest="model", default="once", help="Add sims information to the namespace", choices=("no", "all", "once"))
+	p.add_argument("-d", "--defaults", action="store_true", dest="defaults", help="Output default values for attributes?")
 
-	(options, args) = p.parse_args(args)
-	if len(args) != 0:
-		p.error("incorrect number of arguments")
-		return 1
-	print stream2xnd(sys.stdin, options.xmlns, options.shareattrs).aspy(model=options.model, defaults=options.defaults)
+	args = p.parse_args(args)
+	print stream2xnd(sys.stdin, options.xmlns, args.shareattrs).aspy(model=args.model, defaults=args.defaults)
 
 
 if __name__ == "__main__":

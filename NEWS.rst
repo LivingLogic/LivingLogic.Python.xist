@@ -1,5 +1,10 @@
-Changes in 3.10 (released ??/??/2010)
+Changes in 3.10 (released 09/23/2010)
 -------------------------------------
+
+*	Python 2.7 is required now as XIST now uses ``"{}".format(foo)`` and
+	:mod:`argparse`.
+
+*	All scripts and :mod:`ll.make` have been ported to use :mod:`argparse`.
 
 *	Fixed a bug in :mod:`ll.nightshade`. If the function/procedure didn't set an
 	encoding, the handling of the response body was totally broken (which
@@ -2630,7 +2635,7 @@ Changes in 0.3.5 (released 07/02/2000)
 	:rfc:`2068` requires.)
 
 *	Image size calculation is now done in :meth:`asString` and not in
-	:meth:`asHTML`.	This allows to write faster code. Old method::
+	:meth:`asHTML`. This allows to write faster code. Old method::
 
 		e = html.div(html.img(...),gurk.hurz()).asHTML().asString()
 

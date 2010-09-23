@@ -1,3 +1,29 @@
+Migrating to version 3.10
+=========================
+
+Changes to the required Python version
+--------------------------------------
+
+Python 2.7 is required now.
+
+Changes to :mod:`ll.make`
+-------------------------
+
+*	:mod:`ll.make` uses :mod:`argparse` now.
+
+*	:meth:`ll.make.Project.optionparser` has been renamed to :meth:`argparser`
+	and returns a :class:`argparse.ArgumentParser` object now.
+
+*	:meth:`ll.make.Project.parseoptions` has been renamed to :meth:`parseargs`
+	and returns a :class:`argparse.Namespace` object now.
+
+Changes to :mod:`ll.daemon`
+---------------------------
+
+*	:mod:`ll.daemon` uses :mod:`argparse` now. :meth:`ll.daemon.Daemon.optionparser`
+	has been renamed to :meth:`argparser.
+
+
 Migrating to version 3.9
 ========================
 
@@ -7,7 +33,7 @@ Changes to :mod:`ll.xist.ns.html`
 *	:class:`ll.xist.ns.html.html` will no longer change the ``lang`` and
 	``xml:lang`` attributes. This functionality has been moved to the new element
 	:class:`ll.xist.ns.htmlspecials.html`. Furthermore this new element will not
-	change any attribute if it has already been set.
+	change an attribute if this attribute has already been set.
 
 	So if you need the functionality replace any use of
 	:class:`ll.xist.ns.html.html` with :class:`ll.xist.ns.htmlspecials.html`.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys, os, optparse, codecs
+import sys, os, argparse, codecs
 
 from ll import ul4c
 
@@ -84,18 +84,16 @@ class Connect(object):
 
 
 def main(args=None):
-	p = optparse.OptionParser(usage="usage: %prog [options] maintemplate [subtemplate1 subtemplate2 ...]")
-	p.add_option("-i", "--inputencoding", dest="inputencoding", help="Encoding for template sources", default="utf-8", metavar="ENCODING")
-	p.add_option("-o", "--outputencoding", dest="outputencoding", help="Encoding for output", default="utf-8", metavar="ENCODING")
+	p = argparse.ArgumentParser(description="render UL4 templates containing SQL statements")
+	p.add_argument("templates", metavar="template", help="templates to be used", nargs="+")
+	p.add_argument("-i", "--inputencoding", dest="inputencoding", help="Encoding for template sources", default="utf-8", metavar="ENCODING")
+	p.add_argument("-o", "--outputencoding", dest="outputencoding", help="Encoding for output", default="utf-8", metavar="ENCODING")
 
-	(options, args) = p.parse_args(args)
-	if len(args) < 1:
-		p.error("incorrect number of arguments")
-		return 1
+	args = p.parse_args(args)
 
 	templates = {}
 	maintemplate = None
-	for templatename in args:
+	for templatename in args.templates:
 		if templatename == "-":
 			templatestream = sys.stdin
 			templatename = "stdin"
@@ -104,14 +102,14 @@ def main(args=None):
 			templatename = os.path.basename(templatename)
 			if os.path.extsep in templatename:
 				templatename = templatename.rpartition(os.extsep)[0]
-		template = ul4c.compile(templatestream.read().decode(options.inputencoding))
+		template = ul4c.compile(templatestream.read().decode(args.inputencoding))
 		# The first template is the main template
 		if maintemplate is None:
 			maintemplate = template
 		templates[templatename] = template
 
-	vars = dict(connect=Connect(), system=System(), encoding=options.outputencoding, templates=templates)
-	for part in codecs.iterencode(maintemplate.render(**vars), options.outputencoding):
+	vars = dict(connect=Connect(), system=System(), encoding=args.outputencoding, templates=templates)
+	for part in codecs.iterencode(maintemplate.render(**vars), args.outputencoding):
 		sys.stdout.write(part)
 
 

@@ -9,7 +9,7 @@
 ## See ll/__init__.py for the license
 
 
-import sys, optparse
+import sys, argparse
 
 from ll.xist import xsc, xnd, sims
 
@@ -37,11 +37,12 @@ def getelementname(node):
 	return (name, xmlns)
 
 
-def etree2xnd(sims, node):
+def etree2xnd(model, node):
 	ns = xnd.Module()
 	elements = {} # maps (name, xmlns) to (xnd.Element, content set, attrname->xnd.Attr map)
 	procinsts = {} # maps name to xnd.ProcInst
 
+	# Iterate through the tree a collect: which elements are encountered and how they are nested
 	for path in iterpath(node):
 		node = path[-1]
 		if "Element" in type(node).__name__:
@@ -82,12 +83,12 @@ def etree2xnd(sims, node):
 				parententry[1].add(xndnode)
 
 	# Put sims info into the element definitions
-	if sims == "none":
+	if model == "none":
 		pass
-	elif sims == "simple":
+	elif model == "simple":
 		for entry in elements.itervalues():
 			entry[0].modeltype = bool(entry[1])
-	elif sims == "full":
+	elif model == "full":
 		for entry in elements.itervalues():
 			if not entry[1]:
 				entry[0].modeltype = "sims.Empty"
@@ -105,11 +106,11 @@ def etree2xnd(sims, node):
 						entry[0].modeltype = "sims.Elements"
 					entry[0].modelargs = elements
 	else:
-		raise ValueError("unknown sims mode {0!r}".format(sims))
+		raise ValueError("unknown sims mode {0!r}".format(model))
 	return ns
 
 
-def stream2xnd(stream, sims="simple", parser="etree"):
+def stream2xnd(stream, model="simple", parser="etree"):
 	if parser == "etree":
 		from xml.etree import cElementTree
 		node = cElementTree.parse(stream).getroot()
@@ -119,20 +120,16 @@ def stream2xnd(stream, sims="simple", parser="etree"):
 	else:
 		raise ValueError("unknown parser {0!r}".format(parser))
 
-	return etree2xnd(sims, node)
+	return etree2xnd(model, node)
 
 
 def main(args=None):
-	p = optparse.OptionParser(usage="usage: %prog [options] <input.xml >output.py")
-	p.add_option("-p", "--parser", dest="parser", help="parser module to use for XML parsing (etree or lxml)", choices=("etree", "lxml"), default="etree")
-	choices = ["none", "simple", "full"]
-	p.add_option("-s", "--sims", dest="sims", help="Create sims info? ({0})".format(", ".join(choices)), metavar="MODE", default="simple")
+	p = argparse.ArgumentParser(description="Convert XML (on stdin) to XIST namespace (on stdout)")
+	p.add_argument("-p", "--parser", dest="parser", help="parser module to use for XML parsing (etree or lxml)", choices=("etree", "lxml"), default="etree")
+	p.add_argument("-m", "--model", dest="model", help="Create sims info?", choices=("none", "simple", "full"), default="simple")
 
-	(options, args) = p.parse_args(args)
-	if len(args) != 0:
-		p.error("incorrect number of arguments")
-		return 1
-	print stream2xnd(sys.stdin, sims=options.sims, parser=options.parser).aspy()
+	args = p.parse_args(args)
+	print stream2xnd(sys.stdin, model=args.model, parser=args.parser).aspy()
 
 
 if __name__ == "__main__":
