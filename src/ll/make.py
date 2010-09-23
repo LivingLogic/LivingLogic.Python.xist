@@ -47,7 +47,7 @@ this::
 """
 
 
-import sys, os, os.path, argparse, warnings, re, datetime, cStringIO, errno, tempfile, operator, types, cPickle, gc, contextlib, locale, gzip
+import sys, os, os.path, argparse, warnings, re, datetime, cStringIO, errno, tempfile, operator, types, cPickle, gc, contextlib, gzip
 
 from ll import misc, url
 
@@ -56,11 +56,6 @@ try:
 except ImportError:
 	from ll import astyle
 
-
-try:
-	locale.setlocale(locale.LC_NUMERIC, "en_US")
-except Exception:
-	pass
 
 __docformat__ = "reStructuredText"
 
