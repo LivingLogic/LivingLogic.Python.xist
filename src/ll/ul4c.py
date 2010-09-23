@@ -83,7 +83,7 @@ class Location(object):
 		return self.source[self.starttag:self.endtag]
 
 	def __repr__(self):
-		return "<{0}.{1} {2} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, self, id(self))
+		return "<{}.{} {} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self, id(self))
 
 	def pos(self):
 		lastlinefeed = self.source.rfind("\n", 0, self.starttag)
@@ -94,7 +94,7 @@ class Location(object):
 
 	def __str__(self):
 		(line, col) = self.pos()
-		return "{0!r} at {1} (line {2}, col {3})".format(self.tag, self.starttag+1, line, col)
+		return "{!r} at {} (line {}, col {})".format(self.tag, self.starttag+1, line, col)
 
 
 ###
@@ -110,7 +110,7 @@ class Error(Exception):
 		self.__cause__ = None
 
 	def __repr__(self):
-		return "<{0}.{1} in {2} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.location, id(self))
+		return "<{}.{} in {} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.location, id(self))
 
 	def __str__(self):
 		path = []
@@ -123,8 +123,8 @@ class Error(Exception):
 		name = exc.__class__.__name__
 		module = exc.__class__.__module__
 		if module != "exceptions":
-			name = "{0}.{1}".format(module, name)
-		return "{0} {1} {2}".format(name, " ".join("in {0}:".format(location) for location in path), exc)
+			name = "{}.{}".format(module, name)
+		return "{} {} {}".format(name, " ".join("in {}:".format(location) for location in path), exc)
 
 
 class LexicalError(Exception):
@@ -134,7 +134,7 @@ class LexicalError(Exception):
 		self.input = input
 
 	def __str__(self):
-		return "Unmatched input {0!r}".format(self.input)
+		return "Unmatched input {!r}".format(self.input)
 
 
 class SyntaxError(Exception):
@@ -142,7 +142,7 @@ class SyntaxError(Exception):
 		self.token = token
 
 	def __str__(self):
-		return "Lexical error near {0!r}".format(str(self.token))
+		return "Lexical error near {!r}".format(str(self.token))
 
 
 class UnterminatedStringError(Exception):
@@ -178,7 +178,7 @@ class UnknownFunctionError(Exception):
 		self.funcname = funcname
 
 	def __str__(self):
-		return "function {0!r} unknown".format(self.funcname)
+		return "function {!r} unknown".format(self.funcname)
 
 
 class UnknownMethodError(Exception):
@@ -192,7 +192,7 @@ class UnknownMethodError(Exception):
 		self.methname = methname
 
 	def __str__(self):
-		return "method {0!r} unknown".format(self.methname)
+		return "method {!r} unknown".format(self.methname)
 
 
 class UnknownOpcodeError(Exception):
@@ -204,7 +204,7 @@ class UnknownOpcodeError(Exception):
 		self.opcode = opcode
 
 	def __str__(self):
-		return "opcode {0!r} unknown".format(self.opcode)
+		return "opcode {!r} unknown".format(self.opcode)
 
 
 class OutOfRegistersError(Exception):
@@ -471,14 +471,14 @@ class Opcode(object):
 		self.location = location
 
 	def __repr__(self):
-		v = ["<", self.__class__.__name__, " code={0!r}".format(self.code)]
+		v = ["<", self.__class__.__name__, " code={!r}".format(self.code)]
 		for attrname in ("r1", "r2", "r3", "r4", "r5", "arg"):
 			attr = getattr(self, attrname)
 			if attr is not None:
-				v.append(" {0}={1!r}".format(attrname, attr))
+				v.append(" {}={!r}".format(attrname, attr))
 		if self.code is None:
-			v.append(" text={0!r}".format(self.location.code))
-		v.append(" at {0:#x}>".format(id(self)))
+			v.append(" text={!r}".format(self.location.code))
+		v.append(" at {:#x}>".format(id(self)))
 		return "".join(v)
 
 	def __str__(self):
@@ -607,7 +607,7 @@ class Template(object):
 				elif c == term:
 					return i
 				else:
-					raise ValueError("invalid terminator, expected {0!r}, got {1!r}".format(term, c))
+					raise ValueError("invalid terminator, expected {!r}, got {!r}".format(term, c))
 
 		def _readstr(term):
 			i = 0
@@ -622,7 +622,7 @@ class Template(object):
 						break
 					return None
 				else:
-					raise ValueError("invalid terminator, expected {0!r}, got {1!r}".format(term, c))
+					raise ValueError("invalid terminator, expected {!r}, got {!r}".format(term, c))
 			s = stream.read(i)
 			if len(s) != i:
 				raise ValueError("short read")
@@ -635,23 +635,23 @@ class Template(object):
 			elif c.isdigit():
 				return int(c)
 			else:
-				raise ValueError("invalid register spec {0!r}".format(c))
+				raise ValueError("invalid register spec {!r}".format(c))
 
 		def _readcr():
 			c = stream.read(1)
 			if c != "\n":
-				raise ValueError("invalid linefeed {0!r}".format(c))
+				raise ValueError("invalid linefeed {!r}".format(c))
 
 		self = cls()
 		stream = StringIO.StringIO(data)
 		header = stream.readline()
 		header = header.rstrip()
 		if header != "ul4":
-			raise ValueError("invalid header, expected 'ul4', got {0!r}".format(header))
+			raise ValueError("invalid header, expected 'ul4', got {!r}".format(header))
 		version = stream.readline()
 		version = version.rstrip()
 		if version != self.version:
-			raise ValueError("invalid version, expected {0!r}, got {1!r}".format(self.version, version))
+			raise ValueError("invalid version, expected {!r}, got {!r}".format(self.version, version))
 		self.startdelim = _readstr(u"<")
 		_readcr()
 		self.enddelim = _readstr(u">")
@@ -677,7 +677,7 @@ class Template(object):
 			elif locspec == u"*":
 				location = Location(self.source, _readstr("="), _readint("("), _readint(")"), _readint("{"), _readint("}"))
 			else:
-				raise ValueError("invalid location spec {0!r}".format(locspec))
+				raise ValueError("invalid location spec {!r}".format(locspec))
 			_readcr()
 			count -= 1
 			self.opcodes.append(Opcode(code, r1, r2, r3, r4, r5, arg, location))
@@ -707,7 +707,7 @@ class Template(object):
 				yield term
 				yield string
 
-		yield "ul4\n{0}\n".format(self.version)
+		yield "ul4\n{}\n".format(self.version)
 		for p in _writestr("<", self.startdelim): yield p
 		yield "\n"
 		for p in _writestr(">", self.enddelim): yield p
@@ -752,14 +752,14 @@ class Template(object):
 		return "".join(self.iterdump())
 
 	def _pythonsource_line(self, location, line):
-		self.lines.append("{0}{1}".format("\t"*self.indent, line))
+		self.lines.append("\t"*self.indent + line)
 		if self.lastlocation is not location or not self.locations:
 			self.locations.append((location.type, location.starttag, location.endtag, location.startcode, location.endcode))
 			self.lastlocation = location
 		self.lines2locs.append(len(self.locations)-1)
 
 	def _pythonsource_dispatch_None(self, opcode):
-		self._pythonsource_line(opcode.location, "yield {0!r}".format(opcode.location.code))
+		self._pythonsource_line(opcode.location, "yield {op.location.code!r}".format(op=opcode))
 	def _pythonsource_dispatch_loadstr(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = {op.arg!r}".format(op=opcode))
 	def _pythonsource_dispatch_loadint(self, opcode):
@@ -1078,13 +1078,13 @@ class Template(object):
 		self.lastlocation = Location(self.source, None, 0, 0, 0, 0)
 
 		if function is not None:
-			self._pythonsource_line(self.lastlocation, "def {0}(**variables):".format(function))
+			self._pythonsource_line(self.lastlocation, "def {}(**variables):".format(function))
 			self.indent += 1
 			self.lines2locs = [] # We initialize startline one line below, which restarts the counter
 		self._pythonsource_line(self.lastlocation, "import sys, datetime, itertools, json, random; from ll.misc import xmlescape; from ll import ul4c, color; startline = sys._getframe().f_lineno") # The line number of this line
 		self._pythonsource_line(self.lastlocation, "__1__")
 		self._pythonsource_line(self.lastlocation, "__2__")
-		self._pythonsource_line(self.lastlocation, "source = {0!r}".format(self.source))
+		self._pythonsource_line(self.lastlocation, "source = {!r}".format(self.source))
 		self._pythonsource_line(self.lastlocation, 'variables = dict((key.decode("utf-8"), value) for (key, value) in variables.iteritems())') # FIXME: This can be dropped in Python 3.0 where strings are unicode
 		self._pythonsource_line(self.lastlocation, "r0 = r1 = r2 = r3 = r4 = r5 = r6 = r7 = r8 = r9 = None")
 		self._pythonsource_line(self.lastlocation, "try:")
@@ -1094,7 +1094,7 @@ class Template(object):
 		try:
 			for opcode in self.opcodes:
 				try:
-					getattr(self, "_pythonsource_dispatch_{0}".format(opcode.code))(opcode)
+					getattr(self, "_pythonsource_dispatch_{}".format(opcode.code))(opcode)
 				except AttributeError:
 					raise UnknownOpcodeError(opcode.code)
 				self.lastopcode = opcode.code
@@ -1109,8 +1109,8 @@ class Template(object):
 		self._pythonsource_line(self.lastlocation, "newexc.__cause__ = exc")
 		self._pythonsource_line(self.lastlocation, "raise newexc")
 		locoffset = 1+int(self.lines[0].strip() != "__1__")
-		self.lines[locoffset] = self.lines[locoffset].replace("__1__", "locations = {0!r}".format(tuple(self.locations)))
-		self.lines[locoffset+1] = self.lines[locoffset+1].replace("__2__", "lines2locs = {0!r}".format(tuple(self.lines2locs)))
+		self.lines[locoffset] = self.lines[locoffset].replace("__1__", "locations = {!r}".format(tuple(self.locations)))
+		self.lines[locoffset+1] = self.lines[locoffset+1].replace("__2__", "lines2locs = {!r}".format(tuple(self.lines2locs)))
 		result = "\n".join(self.lines)
 		del self.lastopcode
 		del self.indent
@@ -1160,13 +1160,13 @@ class Template(object):
 			if opcode.code in ("else", "endif", "endfor", "enddef"):
 				i -= 1
 			if opcode.code in ("endif", "endfor", "enddef"):
-				yield "{0}}}".format(i*indent)
+				yield "{}}}".format(i*indent)
 			elif opcode.code in ("for", "if", "def"):
-				yield "{0}{1} {{".format(i*indent, opcode)
+				yield "{}{} {{".format(i*indent, opcode)
 			elif opcode.code == "else":
-				yield "{0}}} else {{".format(i*indent)
+				yield "{}}} else {{".format(i*indent)
 			else:
-				yield "{0}{1}".format(i*indent, opcode)
+				yield "{}{}".format(i*indent, opcode)
 			if opcode.code in ("for", "if", "else", "def"):
 				i += 1
 
@@ -1178,7 +1178,7 @@ class Template(object):
 		This is a generator which produces :class:`Location` objects for each tag
 		or non-tag text. It will be called by :meth:`_compile` internally.
 		"""
-		pattern = u"{0}(printx|print|code|for|if|elif|else|end|break|continue|render|def|note)(\s*((.|\\n)*?)\s*)?{1}".format(re.escape(startdelim), re.escape(enddelim))
+		pattern = u"{}(printx|print|code|for|if|elif|else|end|break|continue|render|def|note)(\s*((.|\\n)*?)\s*)?{}".format(re.escape(startdelim), re.escape(enddelim))
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
@@ -1285,7 +1285,7 @@ class Template(object):
 							if stack[-1][0] != "def":
 								raise BlockError("enddef doesn't match any def")
 						else:
-							raise BlockError("illegal end value {0!r}".format(code))
+							raise BlockError("illegal end value {!r}".format(code))
 					last = stack.pop()
 					if last[0] == "if":
 						for i in xrange(last[2]):
@@ -1311,7 +1311,7 @@ class Template(object):
 					self.opcode("def", arg=location.code)
 					stack.append(("def", location))
 				else: # Can't happen
-					raise ValueError("unknown tag {0!r}".format(location.type))
+					raise ValueError("unknown tag {!r}".format(location.type))
 			except Exception, exc:
 				newexc = Error(location) # FIXME: use ``raise ... from`` in Python 3.0
 				newexc.__cause__ = exc
@@ -1330,7 +1330,7 @@ class Template(object):
 		return u"\n".join(self.format())
 
 	def __repr__(self):
-		return "<{0}.{1} object with {2} opcodes at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, len(self.opcodes), id(self))
+		return "<{}.{} object with {} opcodes at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, len(self.opcodes), id(self))
 
 
 def compile(source, startdelim="<?", enddelim="?>"):
@@ -1351,7 +1351,7 @@ class Token(object):
 		self.type = type
 
 	def __repr__(self):
-		return "{0}({1!r}, {2!r}, {3!r})".format(self.__class__.__name__, self.start, self.end, self.type)
+		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.type)
 
 	def __str__(self):
 		return self.type
@@ -1373,11 +1373,11 @@ class Const(AST):
 	"""
 
 	def __repr__(self):
-		return "{0}({1!r}, {2!r})".format(self.__class__.__name__, self.start, self.end)
+		return "{}({!r}, {!r})".format(self.__class__.__name__, self.start, self.end)
 
 	def compile(self, template):
 		r = template._allocreg()
-		template.opcode("load{0}".format(self.type), r1=r)
+		template.opcode("load{}".format(self.type), r1=r)
 		return r
 
 
@@ -1402,11 +1402,11 @@ class Value(Const):
 		self.value = value
 
 	def __repr__(self):
-		return "{0}({1!r}, {2!r}, {3!r})".format(self.__class__.__name__, self.start, self.end, self.value)
+		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.value)
 
 	def compile(self, template):
 		r = template._allocreg()
-		template.opcode("load{0}".format(self.type), r1=r, arg=unicode(self.value))
+		template.opcode("load{}".format(self.type), r1=r, arg=unicode(self.value))
 		return r
 
 
@@ -1419,7 +1419,7 @@ class Float(Value):
 
 	def compile(self, template):
 		r = template._allocreg()
-		template.opcode("load{0}".format(self.type), r1=r, arg=repr(self.value))
+		template.opcode("load{}".format(self.type), r1=r, arg=repr(self.value))
 		return r
 
 
@@ -1432,7 +1432,7 @@ class Date(Value):
 
 	def compile(self, template):
 		r = template._allocreg()
-		template.opcode("load{0}".format(self.type), r1=r, arg=self.value.isoformat())
+		template.opcode("load{}".format(self.type), r1=r, arg=self.value.isoformat())
 		return r
 
 
@@ -1441,7 +1441,7 @@ class Color(Value):
 
 	def compile(self, template):
 		r = template._allocreg()
-		template.opcode("load{0}".format(self.type), r1=r, arg="{0:02x}{1:02x}{2:02x}{3:02x}".format(*self.value))
+		template.opcode("load{}".format(self.type), r1=r, arg="{:02x}{:02x}{:02x}{:02x}".format(*self.value))
 		return r
 
 
@@ -1451,7 +1451,7 @@ class List(AST):
 		self.items = list(items)
 
 	def __repr__(self):
-		return "{0}({1!r}, {2!r}, {3!r})".format(self.__class__.__name__, self.start, self.end, repr(self.items)[1:-1])
+		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, repr(self.items)[1:-1])
 
 	def compile(self, template):
 		r = template._allocreg()
@@ -1469,7 +1469,7 @@ class Dict(AST):
 		self.items = list(items)
 
 	def __repr__(self):
-		return "{0}({1!r}, {2!r}, {3!r})".format(self.__class__.__name__, self.start, self.end, repr(self.items)[1:-1])
+		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, repr(self.items)[1:-1])
 
 	def compile(self, template):
 		r = template._allocreg()
@@ -1497,7 +1497,7 @@ class Name(AST):
 		self.name = name
 
 	def __repr__(self):
-		return "{0}({1!r}, {2!r}, {3!r})".format(self.__class__.__name__, self.start, self.end, self.name)
+		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.name)
 
 	def compile(self, template):
 		r = template._allocreg()
@@ -1512,7 +1512,7 @@ class For(AST):
 		self.cont = cont
 
 	def __repr__(self):
-		return "{0}({1!r}, {2!r}, {3!r}, {4!r})".format(self.__class__.__name__, self.start, self.end, self.iter, self.cont)
+		return "{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.iter, self.cont)
 
 	def compile(self, template):
 		rc = self.cont.compile(template)
@@ -1538,7 +1538,7 @@ class GetAttr(AST):
 		self.attr = attr
 
 	def __repr__(self):
-		return "{0}({1!r}, {2!r}, {3!r}, {4!r})".format(self.__class__.__name__, self.start, self.end, self.obj, self.attr)
+		return "{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.obj, self.attr)
 
 	def compile(self, template):
 		r = self.obj.compile(template)
@@ -1554,7 +1554,7 @@ class GetSlice12(AST):
 		self.index2 = index2
 
 	def __repr__(self):
-		return "{0}({1!r}, {2!r}, {3!r}, {4!r}, {5!r})".format(self.__class__.__name__, self.start, self.end, self.obj, self.index1, self.index2)
+		return "{}({!r}, {!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.obj, self.index1, self.index2)
 
 	def compile(self, template):
 		r1 = self.obj.compile(template)
@@ -1574,7 +1574,7 @@ class Unary(AST):
 		self.obj = obj
 
 	def __repr__(self):
-		return "{0}({1!r}, {2!r}, {3!r})".format(self.__class__.__name__, self.start, self.end, self.obj)
+		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.obj)
 
 	def compile(self, template):
 		r = self.obj.compile(template)
@@ -1599,7 +1599,7 @@ class Binary(AST):
 		self.obj2 = obj2
 
 	def __repr__(self):
-		return "{0}({1!r}, {2!r}, {3!r}, {4!r})".format(self.__class__.__name__, self.start, self.end, self.obj1, self.obj2)
+		return "{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.obj1, self.obj2)
 
 	def compile(self, template):
 		r1 = self.obj1.compile(template)
@@ -1694,7 +1694,7 @@ class ChangeVar(AST):
 		self.value = value
 
 	def __repr__(self):
-		return "{0}({1!r}, {2!r}, {3!r}, {4!r})".format(self.__class__.__name__, self.start, self.end, self.name, self.value)
+		return "{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.name, self.value)
 
 	def compile(self, template):
 		r = self.value.compile(template)
@@ -1736,7 +1736,7 @@ class DelVar(AST):
 		self.name = name
 
 	def __repr__(self):
-		return "{0}({1!r}, {2!r}, {3!r})".format(self.__class__.__name__, self.start, self.end, self.name)
+		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.name)
 
 	def compile(self, template):
 		template.opcode("delvar", arg=self.name.name)
@@ -1750,9 +1750,9 @@ class CallFunc(AST):
 
 	def __repr__(self):
 		if self.args:
-			return "{0}({1!r}, {2!r}, {3!r}, {4})".format(self.__class__.__name__, self.start, self.end, self.name, repr(self.args)[1:-1])
+			return "{}({!r}, {!r}, {!r}, {})".format(self.__class__.__name__, self.start, self.end, self.name, repr(self.args)[1:-1])
 		else:
-			return "{0}({1!r}, {2!r}, {3!r})".format(self.__class__.__name__, self.start, self.end, self.name)
+			return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.name)
 
 	def compile(self, template):
 		if len(self.args) == 0:
@@ -1760,10 +1760,10 @@ class CallFunc(AST):
 			template.opcode("callfunc0", r1=r, arg=self.name.name)
 			return r
 		elif len(self.args) > 4:
-			raise ValueError("{0} function arguments not supported".format(len(self.args)))
+			raise ValueError("{} function arguments not supported".format(len(self.args)))
 		else:
 			rs = [arg.compile(template) for arg in self.args]
-			template.opcode("callfunc{0}".format(len(self.args)), rs[0], *rs, **dict(arg=self.name.name)) # FIXME: Replace **dict(arg=) with arg= in Python 2.6?
+			template.opcode("callfunc{}".format(len(self.args)), rs[0], *rs, **dict(arg=self.name.name)) # FIXME: Replace **dict(arg=) with arg= in Python 2.6?
 			for i in xrange(1, len(self.args)):
 				template._freereg(rs[i])
 			return rs[0]
@@ -1778,16 +1778,16 @@ class CallMeth(AST):
 
 	def __repr__(self):
 		if self.args:
-			return "{0}({1!r}, {2!r}, {3!r}, {4!r}, {5})".format(self.__class__.__name__, self.start, self.end, self.name, self.obj, repr(self.args)[1:-1])
+			return "{}({!r}, {!r}, {!r}, {!r}, {})".format(self.__class__.__name__, self.start, self.end, self.name, self.obj, repr(self.args)[1:-1])
 		else:
-			return "{0}({1!r}, {2!r}, {3!r}, {4!r})".format(self.__class__.__name__, self.start, self.end, self.name, self.obj)
+			return "{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.name, self.obj)
 
 	def compile(self, template):
 		if len(self.args) > 3:
-			raise ValueError("{0} method arguments not supported".format(len(self.args)))
+			raise ValueError("{} method arguments not supported".format(len(self.args)))
 		ro = self.obj.compile(template)
 		rs = [arg.compile(template) for arg in self.args]
-		template.opcode("callmeth{0}".format(len(self.args)), ro, ro, *rs, **dict(arg=self.name.name))
+		template.opcode("callmeth{}".format(len(self.args)), ro, ro, *rs, **dict(arg=self.name.name))
 		for r in rs:
 			template._freereg(r)
 		return ro
@@ -1801,7 +1801,7 @@ class CallMethKeywords(AST):
 		self.args = args
 
 	def __repr__(self):
-		return "{0}({1!r}, {2!r}, {3!r}, {4!r}, {5!r})".format(self.__class__.__name__, self.start, self.end, self.name, self.obj, self.args)
+		return "{}({!r}, {!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.name, self.obj, self.args)
 
 	def compile(self, template):
 		ra = template._allocreg()
@@ -1832,7 +1832,7 @@ class Render(AST):
 		self.variables = list(variables)
 
 	def __repr__(self):
-		return "{0}({1!r}, {2!r}, {3!r}, {4})".format(self.__class__.__name__, self.start, self.end, self.template, repr(self.variables)[1:-1])
+		return "{}({!r}, {!r}, {!r}, {})".format(self.__class__.__name__, self.start, self.end, self.template, repr(self.variables)[1:-1])
 
 	def compile(self, template):
 		ra = template._allocreg()
@@ -2072,7 +2072,7 @@ class ExprParser(spark.Parser):
 		elif isinstance(value, color.Color):
 			return Color(start, end, value)
 		else:
-			raise TypeError("can't convert {0!r}".format(value))
+			raise TypeError("can't convert {!r}".format(value))
 
 	# To implement operator precedence, each expression rule has the precedence in its name. The highest precedence is 11 for atomic expressions.
 	# Each expression can have only expressions as parts which have the some or a higher precedence with two exceptions:
@@ -2487,19 +2487,19 @@ def _repr(obj):
 		return unicode(obj.isoformat())
 	elif isinstance(obj, color.Color):
 		if obj[3] == 0xff:
-			s = "#{0:02x}{1:02x}{2:02x}".format(obj[0], obj[1], obj[2])
+			s = "#{:02x}{:02x}{:02x}".format(obj[0], obj[1], obj[2])
 			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6]:
-				return "#{0}{1}{2}".format(s[1], s[3], s[5])
+				return "#{}{}{}".format(s[1], s[3], s[5])
 			return s
 		else:
-			s = "#{0:02x}{1:02x}{2:02x}{3:02x}".format(*obj)
+			s = "#{:02x}{:02x}{:02x}{:02x}".format(*obj)
 			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6] and s[7]==s[8]:
-				return "#{0}{1}{2}{4}".format(s[1], s[3], s[5], s[7])
+				return "#{}{}{}{}".format(s[1], s[3], s[5], s[7])
 			return s
 	elif isinstance(obj, list):
-		return u"[{0}]".format(u", ".join(_repr(item) for item in obj))
+		return u"[{}]".format(u", ".join(_repr(item) for item in obj))
 	elif isinstance(obj, dict):
-		return u"{{0}}".format(u", ".join(u"{0}: {1}".format(_repr(key), _repr(value)) for (key, value) in obj.iteritems()))
+		return u"{{{}}}".format(u", ".join(u"{}: {}".format(_repr(key), _repr(value)) for (key, value) in obj.iteritems()))
 	else:
 		return unicode(repr(obj))
 
@@ -2525,7 +2525,7 @@ def _csv(obj):
 	elif not isinstance(obj, basestring):
 		obj = _repr(obj)
 	if any(c in obj for c in ',"\n'):
-		return u'"{0}"'.format(obj.replace('"', '""'))
+		return u'"{}"'.format(obj.replace('"', '""'))
 	return obj
 
 

@@ -52,25 +52,23 @@ def main(args=None):
 		# Progress report
 		if args.verbose:
 			msg = "truncating" if args.truncate else "deleting from"
-			msg = astyle.style_default("oradelete.py: ", cs, ": {0} #{1} ".format(msg, i+1), s4object(str(obj)))
+			msg = astyle.style_default("oradelete.py: ", cs, ": {} #{} ".format(msg, i+1), s4object(str(obj)))
 			stderr.writeln(msg)
 
 		# Print or execute SQL
 		if args.execute:
 			try:
-				if args.truncate:
-					cursor.execute(u"truncate table {0}".format(obj.name))
-				else:
-					cursor.execute(u"delete from {0}".format(obj.name))
+				fmt = u"truncate table {}" if args.truncate else u"delete from {}"
+				cursor.execute(fmt.format(obj.name))
 			except orasql.DatabaseError, exc:
 				if not args.ignore or "ORA-01013" in str(exc):
 					raise
-				stderr.writeln("oradelete.py: ", s4error("{0}: {1}".format(exc.__class__, str(exc).strip())))
+				stderr.writeln("oradelete.py: ", s4error("{}: {}".format(exc.__class__, str(exc).strip())))
 		else:
 			if args.truncate:
-				sql = u"truncate table {0};\n".format(obj.name)
+				sql = u"truncate table {};\n".format(obj.name)
 			else:
-				sql = u"delete from {1};\n".format(obj.name)
+				sql = u"delete from {};\n".format(obj.name)
 			stdout.write(sql.encode(args.encoding))
 	if not args.truncate:
 		connection.commit()
@@ -79,7 +77,7 @@ def main(args=None):
 		for (i, obj) in enumerate(connection.itersequences(schema="user")):
 			# Progress report
 			if args.verbose:
-				msg = astyle.style_default("oradelete.py: ", cs, ": recreating #{0} ".format(i+1), s4object(str(obj)))
+				msg = astyle.style_default("oradelete.py: ", cs, ": recreating #{} ".format(i+1), s4object(str(obj)))
 				stderr.writeln(msg)
 
 			# Print or execute SQL
@@ -91,7 +89,7 @@ def main(args=None):
 				except orasql.DatabaseError, exc:
 					if not args.ignore or "ORA-01013" in str(exc):
 						raise
-					stderr.writeln("oradelete.py: ", s4error("{0}: {1}".format(exc.__class__, str(exc).strip())))
+					stderr.writeln("oradelete.py: ", s4error("{}: {}".format(exc.__class__, str(exc).strip())))
 			else:
 				sql = obj.dropddl(term=True) + obj.createddl(term=True)
 				stdout.write(sql.encode(args.encoding))

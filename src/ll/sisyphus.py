@@ -64,18 +64,18 @@ The following example illustrates the use of this module::
 		def __init__(self):
 			sisyphus.Job.__init__(self, 180, name="Fetch")
 			self.url = "http://www.python.org/"
-			self.tmpname = "Fetch_Tmp_{0}.html".format(os.getpid())
+			self.tmpname = "Fetch_Tmp_{}.html".format(os.getpid())
 			self.officialname = "Python.html"
 
 		def execute(self):
-			self.logProgress("fetching data from {0!r}".format(self.url))
+			self.logProgress("fetching data from {!r}".format(self.url))
 			data = urllib.urlopen(self.url).read()
 			datasize = len(data)
-			self.logProgress("writing file {0!r} ({1} bytes)".format(self.tmpname, datasize))
+			self.logProgress("writing file {!r} ({} bytes)".format(self.tmpname, datasize))
 			open(self.tmpname, "wb").write(data)
-			self.logProgress("renaming file {0!r} to {1!r}".format(self.tmpname, self.officialname))
+			self.logProgress("renaming file {!r} to {!r}".format(self.tmpname, self.officialname))
 			os.rename(self.tmpname, self.officialname)
-			self.logLoop("cached {0!r} as {1!r} ({2} bytes)".format(self.url, self.officialname, datasize))
+			self.logLoop("cached {!r} as {!r} ({} bytes)".format(self.url, self.officialname, datasize))
 
 	if __name__=="__main__":
 		sisyphus.execute(Fetch())
@@ -105,7 +105,7 @@ def _formattimedelta(timedelta):
 	(rest, secs) = divmod(rest, 60)
 	(rest, mins) = divmod(rest, 60)
 	rest += timedelta.days*24
-	return "{0:d}:{1:02d}:{2:06.3f}".format(rest, mins, secs+timedelta.microseconds/1000000.)
+	return "{:d}:{:02d}:{:06.3f}".format(rest, mins, secs+timedelta.microseconds/1000000.)
 
 
 class LogFile(object):
@@ -149,7 +149,7 @@ class LogFile(object):
 		"""
 		now = datetime.datetime.now()
 		pid = os.getpid()
-		prefix = "[pid={0}][{1}]=[t+{2}]".format(pid, _formattime(now), _formattimedelta(now-self.starttime))
+		prefix = "[pid={}][{}]=[t+{}]".format(pid, _formattime(now), _formattimedelta(now-self.starttime))
 
 		self.__open()
 		for text in texts:
@@ -162,7 +162,7 @@ class LogFile(object):
 			if lines and not len(lines[-1]):
 				del lines[-1]
 			for line in lines:
-				line = u"{0} {1}\n".format(prefix, line)
+				line = u"{} {}\n".format(prefix, line)
 				if isinstance(line, unicode):
 					line = line.encode(self.encoding, "replace")
 				self.file.write(line)
@@ -303,7 +303,7 @@ class Job(object):
 				# disk may have been full
 				file.close()
 				self.__writepid()
-				self.logProgress("ignoring bogus pid file {0} (invalid content)".format(self.pidfilename))
+				self.logProgress("ignoring bogus pid file {} (invalid content)".format(self.pidfilename))
 			else:
 				file.close()
 				# Check if this process really exists, if not continue as if the pid file wasn't there
@@ -313,7 +313,7 @@ class Job(object):
 					if exc[0] != errno.ESRCH:
 						raise
 					self.__writepid()
-					msg = "ignoring bogus pid file {0} (process with pid {1} doesn't exist)".format(self.pidfilename, pid)
+					msg = "ignoring bogus pid file {} (process with pid {} doesn't exist)".format(self.pidfilename, pid)
 					self.logError(msg)
 				else:
 					if self.maxruntime and self.starttime-lastmodified > self.maxruntime: # the job is to old, so it probably hangs => kill it
@@ -323,12 +323,12 @@ class Job(object):
 							if exc[0] != errno.ESRCH: # there was no process
 								raise
 						self.__writepid()
-						msg = "killed previous job running with pid {0} (ran {1} seconds; {2} allowed); here we go".format(pid, _formattimedelta(self.starttime-lastmodified), _formattimedelta(self.maxruntime))
+						msg = "killed previous job running with pid {} (ran {} seconds; {} allowed); here we go".format(pid, _formattimedelta(self.starttime-lastmodified), _formattimedelta(self.maxruntime))
 						self.logError(msg)
 						if self.printkills:
 							print msg
 					else:
-						msg = "Job still running (for {0}; {1} allowed; started on {2}) with pid {3} (according to {4})".format(_formattimedelta(self.starttime-lastmodified), _formattimedelta(self.maxruntime), _formattime(lastmodified), pid, self.pidfilename)
+						msg = "Job still running (for {}; {} allowed; started on {}) with pid {} (according to {})".format(_formattimedelta(self.starttime-lastmodified), _formattimedelta(self.maxruntime), _formattime(lastmodified), pid, self.pidfilename)
 						self.logErrorOnly(msg)
 						return # Return without calling :meth:`execute`
 

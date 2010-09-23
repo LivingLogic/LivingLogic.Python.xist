@@ -673,17 +673,17 @@ class Expat(Parser):
 	def __repr__(self):
 		v = []
 		if self.encoding is not None:
-			v.append(" encoding={0!r}".format(self.encoding))
+			v.append(" encoding={!r}".format(self.encoding))
 		if self.xmldecl is not None:
-			v.append(" xmldecl={0!r}".format(self.xmldecl))
+			v.append(" xmldecl={!r}".format(self.xmldecl))
 		if self.doctype is not None:
-			v.append(" doctype={0!r}".format(self.doctype))
+			v.append(" doctype={!r}".format(self.doctype))
 		if self.loc is not None:
-			v.append(" loc={0!r}".format(self.loc))
+			v.append(" loc={!r}".format(self.loc))
 		if self.cdata is not None:
-			v.append(" cdata={0!r}".format(self.cdata))
+			v.append(" cdata={!r}".format(self.cdata))
 		if self.ns is not None:
-			v.append(" ns={0!r}".format(self.ns))
+			v.append(" ns={!r}".format(self.ns))
 		return "<{0.__class__.__module__}.{0.__class__.__name__} object{1} at {2:#x}>".format(self, "".join(v), id(self))
 
 	def __call__(self, input):
@@ -986,10 +986,10 @@ class NS(object):
 
 		def make(prefix, xmlns):
 			if prefix is not None and not isinstance(prefix, basestring):
-				raise TypeError("prefix must be None or string, not {0!r}".format(prefix))
+				raise TypeError("prefix must be None or string, not {!r}".format(prefix))
 			xmlns = xsc.nsname(xmlns)
 			if not isinstance(xmlns, basestring):
-				raise TypeError("xmlns must be string, not {0!r}".format(xmlns))
+				raise TypeError("xmlns must be string, not {!r}".format(xmlns))
 			newprefixes[prefix] = xmlns
 
 		if prefixes is not None:

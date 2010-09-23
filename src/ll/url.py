@@ -150,7 +150,7 @@ def _urlencode(query_parts):
 				# generate a canonical order for the values
 				values.sort()
 			for value in values:
-				res.append("{0}={1}".format(_escape(name, querysafe), _escape(value, querysafe)))
+				res.append("{}={}".format(_escape(name, querysafe), _escape(value, querysafe)))
 		return "&".join(res)
 	else:
 		return None
@@ -352,7 +352,7 @@ class Connection(object):
 		"""
 		Return the MIME headers for the file/resource :var:`url`.
 		"""
-		return mimetools.Message(cStringIO.StringIO("Content-Type: {0}\nContent-Length: {1}\nLast-modified: {2}\n".format(self.mimetype(url), self.size(url), httpdate(self.mdate(url)))))
+		return mimetools.Message(cStringIO.StringIO("Content-Type: {}\nContent-Length: {}\nLast-modified: {}\n".format(self.mimetype(url), self.size(url), httpdate(self.mdate(url)))))
 
 	@misc.notimplemented
 	def remove(self, url):
@@ -864,11 +864,11 @@ class SshConnection(Connection):
 
 	def _send(self, filename, cmd, *args, **kwargs):
 		if self._channel is None:
-			server = "ssh={0}".format(self.server)
+			server = "ssh={}".format(self.server)
 			if self.remotepython is not None:
-				server += "//python={0}".format(self.remotepython)
+				server += "//python={}".format(self.remotepython)
 			if self.nice is not None:
-				server += "//nice={0}".format(self.nice)
+				server += "//nice={}".format(self.nice)
 			gateway = execnet.makegateway(server) # This requires ``execnet`` (http://codespeak.net/execnet/)
 			self._channel = gateway.remote_exec(self.remote_code)
 		self._channel.send((filename, cmd, args, kwargs))
@@ -1042,7 +1042,7 @@ def home(user="", scheme="file"):
 		>>> url.home("andreas")
 		URL('file:/home/andreas/')
 	"""
-	return Dir("~{0}".format(user), scheme)
+	return Dir("~{}".format(user), scheme)
 
 
 def root():
@@ -2116,7 +2116,7 @@ class URL(object):
 			if self.host is not None:
 				hostport = _escape(self.host, safe)
 				if self.port is not None:
-					hostport += ":{0}".format(self.port)
+					hostport += ":{}".format(self.port)
 				return hostport
 			else:
 				return None
@@ -2804,7 +2804,7 @@ class URL(object):
 		if self.islocal():
 			filename = self.real().local()
 		else:
-			filename = "/{0}/{1}{2}".format(self.scheme, self.server, self.path)
+			filename = "/{}/{}{}".format(self.scheme, self.server, self.path)
 		return misc.module(self.openread().read(), filename, name)
 
 	def __iter__(self):

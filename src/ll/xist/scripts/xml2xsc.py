@@ -106,7 +106,7 @@ def etree2xnd(model, node):
 						entry[0].modeltype = "sims.Elements"
 					entry[0].modelargs = elements
 	else:
-		raise ValueError("unknown sims mode {0!r}".format(model))
+		raise ValueError("unknown sims mode {!r}".format(model))
 	return ns
 
 
@@ -118,7 +118,7 @@ def stream2xnd(stream, model="simple", parser="etree"):
 		from lxml import etree
 		node = etree.parse(stream).getroot()
 	else:
-		raise ValueError("unknown parser {0!r}".format(parser))
+		raise ValueError("unknown parser {!r}".format(parser))
 
 	return etree2xnd(model, node)
 

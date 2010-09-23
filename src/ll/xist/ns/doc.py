@@ -51,17 +51,18 @@ def getdoc(thing, format):
 	text = "\n".join(lines)
 
 	if inspect.ismethod(thing):
-		base = "METHOD-DOCSTRING({0}.{1.im_class.__name__}.{1.__name__})".format(_getmodulename(thing), thing)
+		fmt = "METHOD-DOCSTRING({0}.{1.im_class.__name__}.{1.__name__})"
 	elif isinstance(thing, property):
-		base = "PROPERTY-DOCSTRING({0}.{1})".format(_getmodulename(thing), "unknown")
+		fmt = "PROPERTY-DOCSTRING({0}.{1})"
 	elif inspect.isfunction(thing):
-		base = "FUNCTION-DOCSTRING({0}.{1.__name__})".format(_getmodulename(thing), thing)
+		fmt = "FUNCTION-DOCSTRING({0}.{1.__name__})"
 	elif inspect.isclass(thing):
-		base = "CLASS-DOCSTRING({0}.{1.__name__})".format(_getmodulename(thing), thing)
+		fmt = "CLASS-DOCSTRING({0}.{1.__name__})"
 	elif inspect.ismodule(thing):
-		base = "MODULE-DOCSTRING({0})".format(_getmodulename(thing))
+		fmt = "MODULE-DOCSTRING({0})"
 	else:
-		base = "DOCSTRING"
+		fmt = "DOCSTRING"
+	base = fmt.format(_getmodulename(thing), thing)
 
 	lformat = format.lower()
 	if lformat == "plaintext":
@@ -106,7 +107,7 @@ def getdoc(thing, format):
 					ref[u"module"] = thing.__name__
 		return node
 	else:
-		raise ValueError("unsupported __docformat__ {0!r}".format(format))
+		raise ValueError("unsupported __docformat__ {!r}".format(format))
 
 
 def getsourceline(obj):
@@ -393,10 +394,10 @@ class base(xsc.Element):
 			return u"-0.7cm"
 
 		def indent(self):
-			return u"{0:.1f}cm".format(0.7*self.indentcount)
+			return u"{:.1f}cm".format(0.7*self.indentcount)
 
 		def labelindent(self):
-			return u"{0:.1f}cm".format(0.7*self.indentcount-0.4)
+			return u"{:.1f}cm".format(0.7*self.indentcount-0.4)
 
 	def convert(self, converter):
 		target = converter.target
@@ -409,7 +410,7 @@ class base(xsc.Element):
 		elif target.xmlns == fo.xmlns:
 			return self.convert_fo(converter)
 		else:
-			raise ValueError("unknown conversion target {0!r}".format(target))
+			raise ValueError("unknown conversion target {!r}".format(target))
 
 	def convert_doc(self, converter):
 		e = self.__class__(
@@ -965,9 +966,9 @@ class h(base):
 				level = len(context.sections)
 				if context.firstheaderlevel is None:
 					context.firstheaderlevel = level
-				e = getattr(converter.target, "h{0}".format(context.firstheaderlevel+level), converter.target.h6)(self.content)
+				e = getattr(converter.target, "h{}".format(context.firstheaderlevel+level), converter.target.h6)(self.content)
 			else:
-				raise ValueError("unknown node {0!r} on the stack".format(context.stack[-1]))
+				raise ValueError("unknown node {!r} on the stack".format(context.stack[-1]))
 		else:
 			context.firstheaderlevel = 0
 			e = converter.target.h1(self.content)
@@ -1010,7 +1011,7 @@ class section(block):
 			e.attrs.class_.append(" ", self.attrs.role)
 		#if "id" in self.attrs:
 		#	e.append(target.a(name=self.attrs.id, id=self.attrs.id))
-		hclass = getattr(target, u"h{0}".format(level), target.h6)
+		hclass = getattr(target, u"h{}".format(level), target.h6)
 		for t in ts:
 			e.append(hclass(t.content))
 		e.append(cs)
@@ -1151,7 +1152,7 @@ class li(block):
 		if type=="ul":
 			label = u"\u2022"
 		elif type=="ol":
-			label = "{0}.".format(context.lists[-1][1])
+			label = "{}.".format(context.lists[-1][1])
 		context.indentcount += 1
 		if self[block]: # Do we have a block in our content?
 			content = self.content # yes => use the content as is

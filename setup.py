@@ -217,7 +217,7 @@ else:
 	underlines = [i for (i, line) in enumerate(news) if line.startswith("---")]
 	news = news[underlines[0]-1:underlines[1]-1]
 	news = "".join(news)
-	descr = "{0}\n\n\n{1}".format(DESCRIPTION.strip(), news)
+	descr = "{}\n\n\n{}".format(DESCRIPTION.strip(), news)
 
 	# Get rid of text roles PyPI doesn't know about
 	descr = re.subn(":[a-z]+:`([a-zA-Z0-9_.]+)`", "``\\1``", descr)[0]

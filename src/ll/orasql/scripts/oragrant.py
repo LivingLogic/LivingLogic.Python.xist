@@ -68,9 +68,9 @@ def main(args=None):
 		keepobj = keep(obj)
 		if args.verbose:
 			if args.execute:
-				msg = astyle.style_default("oragrant.py: ", cs1, " -> ", cs2, ": fetching/granting #{0}".format(i+1))
+				msg = astyle.style_default("oragrant.py: ", cs1, " -> ", cs2, ": fetching/granting #{}".format(i+1))
 			else:
-				msg = astyle.style_default("oragrant.py: ", cs1, " fetching #{0}".format(i+1))
+				msg = astyle.style_default("oragrant.py: ", cs1, " fetching #{}".format(i+1))
 			msg = astyle.style_default(msg, " ", s4object(str(obj)))
 			if not keepobj:
 				msg = astyle.style_default(msg, " ", s4warning("(skipped)"))
@@ -85,7 +85,7 @@ def main(args=None):
 					except orasql.DatabaseError, exc:
 						if not args.ignore or "ORA-01013" in str(exc):
 							raise
-						stderr.writeln("oragrant.py: ", s4error("{0}: {1}".format(exc.__class__.__name__, str(exc).strip())))
+						stderr.writeln("oragrant.py: ", s4error("{}: {}".format(exc.__class__.__name__, str(exc).strip())))
 				else:
 					stdout.writeln(ddl.encode(args.encoding))
 					stdout.writeln()

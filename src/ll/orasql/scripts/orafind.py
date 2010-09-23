@@ -40,7 +40,7 @@ def df(obj):
 
 
 def connid(name):
-	return s4connid("[{0}]".format(name))
+	return s4connid("[{}]".format(name))
 
 
 def showcomment(out, *texts):
@@ -66,9 +66,9 @@ def showreport(out, type, countcreate, countdrop, countcollision, countmerge, co
 			else:
 				cls = s4action
 			if count > 1:
-				msg = "{0} {1}s {2}".format(count, type, name)
+				msg = "{} {}s {}".format(count, type, name)
 			else:
-				msg = "1 {0} {1}".format(type, name)
+				msg = "1 {} {}".format(type, name)
 			out.write(cls(msg))
 	if first:
 		out.write(" => identical")
@@ -113,7 +113,7 @@ def main(args=None):
 	searchstring = args.searchstring.decode(args.encoding)
 	if args.ignorecase:
 		searchstring = searchstring.lower()
-	searchstring = "%{0}%".format(searchstring.replace("%", "%%"))
+	searchstring = "%{}%".format(searchstring.replace("%", "%%"))
 	tablenames = [name.decode(args.encoding).lower() for name in args.tables]
 
 	connection = orasql.connect(connectstring, readlobs=args.readlobs)
@@ -131,12 +131,12 @@ def main(args=None):
 				datatype = col.datatype()
 				if datatype == "clob" or datatype.startswith("varchar2"):
 					if args.ignorecase:
-						where.append("lower({0}) like :searchstring".format(col.name))
+						where.append("lower({}) like :searchstring".format(col.name))
 					else:
-						where.append("{0} like :searchstring".format(col.name))
+						where.append("{} like :searchstring".format(col.name))
 			if not where:
 				continue # no string columns
-			query = "select * from {0} where {1}".format(table.name, " or ".join(where))
+			query = "select * from {} where {}".format(table.name, " or ".join(where))
 			c.execute(query, searchstring=searchstring)
 			for r in c:
 				stdout.writeln("orafind.py: in ", df(table), ": ", repr(r))

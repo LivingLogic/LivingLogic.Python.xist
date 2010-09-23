@@ -156,7 +156,7 @@ class directive_page(directive):
 				options[u"charset"] = encoding
 				node = self.__class__(
 					self.attrs,
-					contentType=(contenttype, u"; ", u"; ".join("{0}={1}".format(*option) for option in options.items())),
+					contentType=(contenttype, u"; ", u"; ".join("{}={}".format(*option) for option in options.items())),
 					pageEncoding=encoding
 				)
 				return node.publish(publisher) # return a generator-iterator
@@ -174,8 +174,8 @@ def javastring(s):
 			v.append(specialchars[c])
 		except KeyError:
 			oc = ord(c)
-			v.append(u"\\u{0:04x}".format(oc) if oc >= 128 else c)
-	return u'"{0}"'.format(u"".join(v))
+			v.append(u"\\u{:04x}".format(oc) if oc >= 128 else c)
+	return u'"{}"'.format(u"".join(v))
 
 
 def fromul4(template, variables="variables", indent=0):
@@ -196,9 +196,9 @@ def fromul4(template, variables="variables", indent=0):
 
 	def make_scriptlet(content):
 		if result and isinstance(result[-1], scriptlet):
-			result[-1] += u"{0}{1}\n".format(u"\t"*indent, content)
+			result[-1] += u"{}{}\n".format(u"\t"*indent, content)
 		else:
-			result.append(scriptlet(u"\n{0}{1}\n".format(u"\t"*indent, content)))
+			result.append(scriptlet(u"\n{}{}\n".format(u"\t"*indent, content)))
 
 	varcounter = 0 # Used to number loop iterators and local templates
 	result = xsc.Frag()
@@ -213,7 +213,7 @@ def fromul4(template, variables="variables", indent=0):
 	make_scriptlet(u"//@@@ BEGIN template code")
 
 	for i in xrange(10):
-		make_scriptlet(u"Object r{0} = null;".format(i))
+		make_scriptlet(u"Object r{} = null;".format(i))
 
 	defs = []
 	lastloc = None
@@ -222,7 +222,7 @@ def fromul4(template, variables="variables", indent=0):
 			lastloc = opcode.location
 			(line, col) = lastloc.pos()
 			tag = lastloc.tag
-			make_scriptlet(u"// Location {0} (line {1}, col {2}): {3}".format(lastloc.starttag+1, line, col, repr(tag)[1+isinstance(tag, unicode):-1]))
+			make_scriptlet(u"// Location {} (line {}, col {}): {}".format(lastloc.starttag+1, line, col, repr(tag)[1+isinstance(tag, unicode):-1]))
 		if opcode.code is None:
 			make_literal(opcode.location.code)
 		elif opcode.code == "loadstr":
@@ -303,7 +303,7 @@ def fromul4(template, variables="variables", indent=0):
 			make_scriptlet(u"{")
 			indent += 1
 			for i in xrange(10):
-				make_scriptlet(u"Object r{0} = null;".format(i))
+				make_scriptlet(u"Object r{} = null;".format(i))
 			defs.append((opcode.arg, variables))
 			variables = "variables"
 		elif opcode.code == "enddef":

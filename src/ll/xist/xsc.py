@@ -203,7 +203,7 @@ class IllegalAttrValueWarning(Warning):
 
 	def __str__(self):
 		attr = self.attr
-		return "Attribute value {0!r} not allowed for {1}".format(unicode(attr), attr._str(fullname=True, xml=False, decorate=False))
+		return "Attribute value {!r} not allowed for {}".format(unicode(attr), attr._str(fullname=True, xml=False, decorate=False))
 
 
 class RequiredAttrMissingWarning(Warning):
@@ -217,7 +217,7 @@ class RequiredAttrMissingWarning(Warning):
 		self.reqattrs = reqattrs
 
 	def __str__(self):
-		return "Required attribute{0} {1} missing in {2}".format(("s" if len(self.reqattrs) > 1 else ""), ", ".join(repr(attr) for attr in self.reqattrs), self.attrs._str(fullname=True, xml=False, decorate=False))
+		return "Required attribute{} {} missing in {}".format(("s" if len(self.reqattrs) > 1 else ""), ", ".join(repr(attr) for attr in self.reqattrs), self.attrs._str(fullname=True, xml=False, decorate=False))
 
 
 class IllegalPrefixError(Error, LookupError):
@@ -228,7 +228,7 @@ class IllegalPrefixError(Error, LookupError):
 		self.prefix = prefix
 
 	def __str__(self):
-		return "namespace prefix {0} is undefined".format(self.prefix)
+		return "namespace prefix {} is undefined".format(self.prefix)
 
 
 class IllegalElementError(Error, LookupError):
@@ -245,9 +245,9 @@ class IllegalElementError(Error, LookupError):
 		xmlns = self.xmlns
 		if isinstance(xmlns, (list, tuple)):
 			if len(xmlns) > 1:
-				return "no element with {0} name {1} in namespaces {2}".format("XML" if self.xml else "Python", self.name, ", ".join(nsclark(xmlns) for xmlns in xmlns))
+				return "no element with {} name {} in namespaces {}".format("XML" if self.xml else "Python", self.name, ", ".join(nsclark(xmlns) for xmlns in xmlns))
 			xmlns = xmlns[0]
-		return "no element with {0} name {1}{2}".format("XML" if self.xml else "Python", nsclark(xmlns), self.name)
+		return "no element with {} name {}{}".format("XML" if self.xml else "Python", nsclark(xmlns), self.name)
 
 
 class IllegalProcInstError(Error, LookupError):
@@ -260,7 +260,7 @@ class IllegalProcInstError(Error, LookupError):
 		self.xml = xml
 
 	def __str__(self):
-		return "no procinst with {0} name {1}".format("XML" if self.xml else "Python", self.name)
+		return "no procinst with {} name {}".format("XML" if self.xml else "Python", self.name)
 
 
 class IllegalEntityError(Error, LookupError):
@@ -273,7 +273,7 @@ class IllegalEntityError(Error, LookupError):
 		self.xml = xml
 
 	def __str__(self):
-		return "no entity with {0} name {1}".format("XML" if self.xml else "Python", self.name)
+		return "no entity with {} name {}".format("XML" if self.xml else "Python", self.name)
 
 
 class IllegalCharRefError(Error, LookupError):
@@ -287,8 +287,8 @@ class IllegalCharRefError(Error, LookupError):
 
 	def __str__(self):
 		if isinstance(self.name, (int, long)):
-			return "no charref with codepoint {0}".format(self.name)
-		return "no charref with {0} name {1}".format("XML" if self.xml else "Python", self.name)
+			return "no charref with codepoint {}".format(self.name)
+		return "no charref with {} name {}".format("XML" if self.xml else "Python", self.name)
 
 
 class IllegalAttrError(Error, LookupError):
@@ -303,11 +303,11 @@ class IllegalAttrError(Error, LookupError):
 
 	def __str__(self):
 		if isinstance(self.name, basestring):
-			return "no local attribute with {0} name {1!r} in {2!r}".format("XML" if self.xml else "Python", self.name, self.cls)
+			return "no local attribute with {} name {!r} in {!r}".format("XML" if self.xml else "Python", self.name, self.cls)
 		elif self.name.xmlns is None:
-			return "no local attribute with class {0!r} in {1!r}".format(self.name, self.cls)
+			return "no local attribute with class {!r} in {!r}".format(self.name, self.cls)
 		else:
-			return "no global attribute with class {0!r}".format(self.name)
+			return "no global attribute with class {!r}".format(self.name)
 
 
 class MultipleRootsError(Error):
@@ -326,7 +326,7 @@ class ElementNestingError(Error):
 		self.foundelement = foundelement
 
 	def __str__(self):
-		return "mismatched element nesting (close tag for {0} expected; close tag for {1} found)".format(self.expectedelement._str(fullname=True, xml=False, decorate=True), self.foundelement._str(fullname=True, xml=False, decorate=True))
+		return "mismatched element nesting (close tag for {} expected; close tag for {} found)".format(self.expectedelement._str(fullname=True, xml=False, decorate=True), self.foundelement._str(fullname=True, xml=False, decorate=True))
 
 
 class FileNotFoundWarning(Warning):
@@ -353,7 +353,7 @@ class IllegalObjectError(Error, TypeError):
 		self.object = object
 
 	def __str__(self):
-		return "can't convert object {0!r} of type {1} to an XIST node".format(self.object, type(self.object).__name__)
+		return "can't convert object {!r} of type {} to an XIST node".format(self.object, type(self.object).__name__)
 
 
 class IllegalCommentContentWarning(Warning):
@@ -367,7 +367,7 @@ class IllegalCommentContentWarning(Warning):
 		self.comment = comment
 
 	def __str__(self):
-		return "comment with content {0!r} is illegal, as it contains '--' or ends in '-'".format(self.comment.content)
+		return "comment with content {!r} is illegal, as it contains '--' or ends in '-'".format(self.comment.content)
 
 
 class IllegalProcInstFormatError(Error):
@@ -381,7 +381,7 @@ class IllegalProcInstFormatError(Error):
 		self.procinst = procinst
 
 	def __str__(self):
-		return "processing instruction with content {0!r} is illegal, as it contains '?>'".format(self.procinst.content)
+		return "processing instruction with content {!r} is illegal, as it contains '?>'".format(self.procinst.content)
 
 
 ###
@@ -723,7 +723,7 @@ class Publisher(object):
 		while True:
 			if prefix not in self._prefix2ns:
 				return prefix
-			prefix = "ns{0}".format(suffix)
+			prefix = "ns{}".format(suffix)
 			suffix += 1
 
 	def getencoding(self):
@@ -1335,7 +1335,7 @@ class Node(object):
 		if converter is None:
 			converter = Converter(**converterargs)
 		node = function(self, converter)
-		assert isinstance(node, Node), "the mapped method returned the illegal object {0!r} (type {1!r}) when mapping {2!r}".format(node, type(node), self)
+		assert isinstance(node, Node), "the mapped method returned the illegal object {!r} (type {!r}) when mapping {!r}".format(node, type(node), self)
 		return node
 
 	def normalized(self):
@@ -1618,7 +1618,7 @@ class CharacterData(Node):
 
 	def __repr__(self):
 		if self.startloc is not None:
-			loc = " (from {0})".format(self.startloc)
+			loc = " (from {})".format(self.startloc)
 		else:
 			loc = ""
 		return "<{0.__class__.__module__}.{0.__fullname__} content={0.content!r}{1} at {2:#x}>".format(self, loc, id(self))
@@ -1683,7 +1683,7 @@ class Frag(Node, list):
 	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = cls._strbase(fullname=fullname, xml=xml)
 		if decorate:
-			s = "<{0}>".format(s)
+			s = "<{}>".format(s)
 		return s
 
 	def _create(self):
@@ -1705,7 +1705,7 @@ class Frag(Node, list):
 		node = self._create()
 		for child in self:
 			convertedchild = child.convert(converter)
-			assert isinstance(convertedchild, Node), "the convert method returned the illegal object {0!r} (type {1!r}) when converting {2!r}".format(convertedchild, type(convertedchild), self)
+			assert isinstance(convertedchild, Node), "the convert method returned the illegal object {!r} (type {!r}) when converting {!r}".format(convertedchild, type(convertedchild), self)
 			node.append(convertedchild)
 		return self._decoratenode(node)
 
@@ -1898,7 +1898,7 @@ class Frag(Node, list):
 		node = self._create()
 		for child in self:
 			compactedchild = child.compact()
-			assert isinstance(compactedchild, Node), "the compact method returned the illegal object {0!r} (type {1!r}) when compacting {2!r}".format(compactedchild, type(compactedchild), child)
+			assert isinstance(compactedchild, Node), "the compact method returned the illegal object {!r} (type {!r}) when compacting {!r}".format(compactedchild, type(compactedchild), child)
 			if compactedchild is not Null:
 				list.append(node, compactedchild)
 		return self._decoratenode(node)
@@ -1964,7 +1964,7 @@ class Frag(Node, list):
 		if converter is None:
 			converter = Converter(**converterargs)
 		node = function(self, converter)
-		assert isinstance(node, Node), "the mapped method returned the illegal object {0!r} (type {1!r}) when mapping {2!r}".format(node, type(node), self)
+		assert isinstance(node, Node), "the mapped method returned the illegal object {!r} (type {!r}) when mapping {!r}".format(node, type(node), self)
 		if node is self:
 			node = self._create()
 			for child in self:
@@ -1999,8 +1999,8 @@ class Frag(Node, list):
 		elif l==1:
 			info = "1 child"
 		else:
-			info = "{0} children".format(l)
-		loc = " (from {0})".format(self.startloc) if self.startloc is not None else ""
+			info = "{} children".format(l)
+		loc = " (from {})".format(self.startloc) if self.startloc is not None else ""
 		return "<{0.__class__.__module__}.{0.__fullname__} object ({1}){2} at {3:#x}>".format(self, info, loc, id(self))
 
 
@@ -2082,7 +2082,7 @@ class ProcInst(CharacterData):
 	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = cls._strbase(fullname=fullname, xml=xml)
 		if decorate:
-			s = "<{0}>".format(s)
+			s = "<{}>".format(s)
 		return s
 
 	def convert(self, converter):
@@ -2097,14 +2097,14 @@ class ProcInst(CharacterData):
 		content = self.content
 		if u"?>" in content:
 			raise IllegalProcInstFormatError(self)
-		yield publisher.encode(u"<?{0} {1}?>".format(self.xmlname, content))
+		yield publisher.encode(u"<?{} {}?>".format(self.xmlname, content))
 
 	def __unicode__(self):
 		return u""
 
 	def __repr__(self):
 		if self.startloc is not None:
-			loc = " (from {0})".format(self.startloc)
+			loc = " (from {})".format(self.startloc)
 		else:
 			loc = ""
 		return "<{0.__class__.__module__}.{0.__fullname__} procinst content={0.content!r}{1} at {2:#x}>".format(self, loc, id(self))
@@ -2156,7 +2156,7 @@ class Null(CharacterData):
 	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = cls._strbase(fullname=fullname, xml=xml)
 		if decorate:
-			s = "<{0}>".format(s)
+			s = "<{}>".format(s)
 		return s
 
 	def convert(self, converter):
@@ -2269,7 +2269,7 @@ class Attr(Frag):
 		if self.xmlns is not None:
 			prefix = publisher._ns2prefix.get(self.xmlns) if self.xmlns != xml_xmlns else u"xml"
 			if prefix is not None:
-				return u"{0}:{1}".format(prefix, self.xmlname)
+				return u"{}:{}".format(prefix, self.xmlname)
 		return self.xmlname
 
 	def _publishattrvalue(self, publisher):
@@ -2286,7 +2286,7 @@ class Attr(Frag):
 				yield part
 		else:
 			publisher.inattr += 1
-			yield publisher.encode(u' {0}="'.format(self._publishname(publisher)))
+			yield publisher.encode(u' {}="'.format(self._publishname(publisher)))
 			publisher.pushtextfilter(misc.xmlescape_attr)
 			for part in self._publishattrvalue(publisher):
 				yield part
@@ -2304,8 +2304,8 @@ class Attr(Frag):
 		elif l==1:
 			info = u"1 child"
 		else:
-			info = u"{0} children".format(l)
-		loc = " (from {0})".format(self.startloc) if self.startloc is not None else ""
+			info = u"{} children".format(l)
+		loc = " (from {})".format(self.startloc) if self.startloc is not None else ""
 		return "<{0.__class__.__module__}.{0.__fullname__} attr object ({1}){2} at {3:#x}>".format(self, info, loc, id(self))
 
 
@@ -2357,7 +2357,7 @@ class BoolAttr(Attr):
 		else:
 			publisher.inattr += 1
 			name = self._publishname(publisher)
-			yield publisher.encode(u" {0}".format(name))
+			yield publisher.encode(u" {}".format(name))
 			if publisher.xhtml>0:
 				yield publisher.encode(u'="')
 				publisher.pushtextfilter(misc.xmlescape)
@@ -2380,7 +2380,7 @@ class StyleAttr(Attr):
 
 	def _transform(self, replacer):
 		from ll.xist import css
-		stylesheet = cssutils.parseString(u"a{{{0}}}".format(self))
+		stylesheet = cssutils.parseString(u"a{{{}}}".format(self))
 		css.replaceurls(stylesheet, replacer)
 		return stylesheet.cssRules[0].style.getCssText(separator=" ")
 
@@ -2419,7 +2419,7 @@ class StyleAttr(Attr):
 		def collect(u):
 			urls.append(u)
 			return u
-		s = cssutils.parseString(u"a{{{0}}}".format(self))
+		s = cssutils.parseString(u"a{{{}}}".format(self))
 		css.replaceurls(s, collect)
 		return urls
 
@@ -2549,7 +2549,7 @@ class Attrs(Node, dict):
 			cls._defaultattrspy[value.__name__] = value
 		# fix classname (but don't patch inherited attributes)
 		if "." not in value.__fullname__:
-			value.__fullname__ = "{0}.{1}".format(cls.__fullname__, value.__fullname__)
+			value.__fullname__ = "{}.{}".format(cls.__fullname__, value.__fullname__)
 
 	def _create(self):
 		node = self.__class__() # "virtual" constructor
@@ -2991,9 +2991,9 @@ class Attrs(Node, dict):
 		elif l==1:
 			info = "(1 attr)"
 		else:
-			info = "({0} attrs)".format(l)
+			info = "({} attrs)".format(l)
 		if self.startloc is not None:
-			loc = " (from {0})".format(self.startloc)
+			loc = " (from {})".format(self.startloc)
 		else:
 			loc = ""
 		return "<{0.__class__.__module__}.{0.__fullname__} attrs {1}{2} at {3:#x}>".format(self, info, loc, id(self))
@@ -3006,10 +3006,10 @@ def _patchclassnames(dict, name):
 	except KeyError:
 		pass
 	else:
-		attrs.__fullname__ = "{0}.Attrs".format(name)
+		attrs.__fullname__ = "{}.Attrs".format(name)
 		for (key, value) in attrs.__dict__.iteritems():
 			if isinstance(value, _Attr_Meta):
-				value.__fullname__ = "{0}.{1}".format(name, value.__fullname__)
+				value.__fullname__ = "{}.{}".format(name, value.__fullname__)
 
 	# If a Context has been provided patch up its class names
 	try:
@@ -3017,7 +3017,7 @@ def _patchclassnames(dict, name):
 	except KeyError:
 		pass
 	else:
-		context.__fullname__ = "{0}.{1}".format(name, context.__fullname__)
+		context.__fullname__ = "{}.{}".format(name, context.__fullname__)
 
 
 class _Element_Meta(Node.__metaclass__):
@@ -3153,9 +3153,9 @@ class Element(Node):
 		s = cls._strbase(fullname=fullname, xml=xml)
 		if decorate:
 			if cls.model is not None and cls.model.empty:
-				s = "<{0}/>".format(s)
+				s = "<{}/>".format(s)
 			else:
-				s = "<{0}>".format(s)
+				s = "<{}>".format(s)
 		return s
 
 	def checkvalid(self):
@@ -3238,7 +3238,7 @@ class Element(Node):
 		if self.xmlns is not None:
 			prefix = publisher._ns2prefix.get(self.xmlns)
 			if prefix is not None:
-				return u"{0}:{1}".format(prefix, self.xmlname)
+				return u"{}:{}".format(prefix, self.xmlname)
 		return self.xmlname
 
 	def _publishfull(self, publisher):
@@ -3445,7 +3445,7 @@ class Element(Node):
 		if converter is None:
 			converter = Converter(**converterargs)
 		node = function(self, converter)
-		assert isinstance(node, Node), "the mapped method returned the illegal object {0!r} (type {1!r}) when mapping {2!r}".format(node, type(node), self)
+		assert isinstance(node, Node), "the mapped method returned the illegal object {!r} (type {!r}) when mapping {!r}".format(node, type(node), self)
 		if node is self:
 			node = self.__class__(self.content.mapped(function, converter))
 			node.attrs = self.attrs.clone()
@@ -3481,16 +3481,16 @@ class Element(Node):
 		elif lc==1:
 			infoc = "1 child"
 		else:
-			infoc = "{0} children".format(lc)
+			infoc = "{} children".format(lc)
 		la = len(self.attrs)
 		if la==0:
 			infoa = "no attrs"
 		elif la==1:
 			infoa = "1 attr"
 		else:
-			infoa = "{0} attrs".format(la)
+			infoa = "{} attrs".format(la)
 		if self.startloc is not None:
-			loc = " (from {0})".format(self.startloc)
+			loc = " (from {})".format(self.startloc)
 		else:
 			loc = ""
 		return "<{0.__class__.__module__}.{0.__fullname__} element object ({1}/{2}){3} at {4:#x}>".format(self, infoc, infoa, loc, id(self))
@@ -3520,7 +3520,7 @@ class Entity(Node):
 	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = cls._strbase(fullname=fullname, xml=xml)
 		if decorate:
-			s = "&{0};".format(s)
+			s = "&{};".format(s)
 		return s
 
 	def __eq__(self, other):
@@ -3539,7 +3539,7 @@ class Entity(Node):
 
 	def __repr__(self):
 		if self.startloc is not None:
-			loc = " (from {0})".format(self.startloc)
+			loc = " (from {})".format(self.startloc)
 		else:
 			loc = ""
 		return "<{0.__class__.__module__}.{0.__fullname__} entity object{1} at {2:#x}>".format(self, loc, id(self))
@@ -4148,7 +4148,7 @@ def nsclark(xmlns):
 		return "{}"
 	elif not isinstance(xmlns, basestring):
 		xmlns = xmlns.xmlns
-	return "{{{0}}}".format(xmlns)
+	return "{{{}}}".format(xmlns)
 
 
 # C0 Controls and Basic Latin
@@ -4194,10 +4194,10 @@ class Location(object):
 		url = str(self.url) if self.url is not None else "???"
 		line = str(self.line) if self.line is not None else "?"
 		col = str(self.col) if self.col is not None else "?"
-		return "{0}:{1}:{2}".format(url, line, col)
+		return "{}:{}:{}".format(url, line, col)
 
 	def __repr__(self):
-		return "{0.__class__.__name__}({1})".format(self, ", ".join("{0}={!r}".format(attr, getattr(self, attr)) for attr in ("url", "line", "col") if getattr(self, attr) is not None))
+		return "{0.__class__.__name__}({1})".format(self, ", ".join("{}={!r}".format(attr, getattr(self, attr)) for attr in ("url", "line", "col") if getattr(self, attr) is not None))
 
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and self.url==other.url and self.line==other.line and self.col==other.col

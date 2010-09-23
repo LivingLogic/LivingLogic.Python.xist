@@ -494,11 +494,11 @@ def test_nested():
 	sv = u"x"
 	n = 4
 	for i in xrange(8): # when using 10 compiling the variable will run out of registers
-		sc = u"({0})+({1})".format(sc, sc)
-		sv = u"({0})+({1})".format(sv, sv)
-		n = n+n
-	check(str(n), u'<?print {0}?>'.format(sc))
-	check(str(n), u'<?code x=4?><?print {0}?>'.format(sv))
+		sc = u"({})+({})".format(sc, sc)
+		sv = u"({})+({})".format(sv, sv)
+		n = n + n
+	check(str(n), u'<?print {}?>'.format(sc))
+	check(str(n), u'<?code x=4?><?print {}?>'.format(sv))
 
 
 def test_precedence():
@@ -519,11 +519,11 @@ def test_bracket():
 	sc = u"4"
 	sv = u"x"
 	for i in xrange(10):
-		sc = u"({0})".format(sc)
-		sv = u"({0})".format(sv)
+		sc = u"({})".format(sc)
+		sv = u"({})".format(sv)
 
-	check("4", u'<?print {0}?>'.format(sc))
-	check("4", u'<?code x=4?><?print {0}?>'.format(sv))
+	check("4", u'<?print {}?>'.format(sc))
+	check("4", u'<?code x=4?><?print {}?>'.format(sv))
 
 
 def test_function_now():
@@ -1059,7 +1059,7 @@ def test_method_render():
 def test_method_format():
 	now = datetime.datetime.now()
 	format = "%Y-%m-%d %H:%M:%S"
-	check(now.strftime(format), u"<?print data.format('{0}')?>".format(format), data=now)
+	check(now.strftime(format), u"<?print data.format('{}')?>".format(format), data=now)
 	check('987654', u'<?print 2000-02-29T12:34:56.987654.format("%f")?>')
 
 

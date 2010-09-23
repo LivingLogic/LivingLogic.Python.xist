@@ -40,7 +40,7 @@ def df(obj):
 
 
 def connid(name):
-	return s4connid("[{0}]".format(name))
+	return s4connid("[{}]".format(name))
 
 
 def showcomment(out, *texts):
@@ -66,9 +66,9 @@ def showreport(out, type, countcreate, countdrop, countcollision, countmerge, co
 			else:
 				cls = s4action
 			if count > 1:
-				msg = "{0} {1}s {2}".format(count, type, name)
+				msg = "{} {}s {}".format(count, type, name)
 			else:
-				msg = "1 {0} {1}".format(type, name)
+				msg = "1 {} {}".format(type, name)
 			out.write(cls(msg))
 	if first:
 		out.write(" => identical")
@@ -119,7 +119,7 @@ def main(args=None):
 		for (i, obj) in enumerate(connection.iterobjects(mode="flat", schema="user")):
 			keep = ("$" not in obj.name and not obj.name.startswith("SYS_EXPORT_SCHEMA_")) or args.keepjunk
 			if args.verbose:
-				msg = astyle.style_default("oramerge.py: ", cs(connection), connid(name), " fetching #{0} ".format(i+1), df(obj))
+				msg = astyle.style_default("oramerge.py: ", cs(connection), connid(name), " fetching #{} ".format(i+1), df(obj))
 				if not keep:
 					msg += s4error(" (skipped)")
 				stderr.writeln(msg)
@@ -345,7 +345,7 @@ def main(args=None):
 											line = conflictmarker(prefix, line)
 									stdout.writeln(line)
 							else:
-								raise OSError("Trouble from diff3: {0}".format(diffretcode))
+								raise OSError("Trouble from diff3: {}".format(diffretcode))
 						finally:
 							os.remove(filename3)
 					finally:
