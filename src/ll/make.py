@@ -1586,8 +1586,7 @@ class Project(dict):
 
 		self.starttime = datetime.datetime.utcnow()
 
-		def format(v):
-			return locale.format("%d", v, True)
+		format = "{:,}".format
 
 		with url.Context():
 			self.stack = []
