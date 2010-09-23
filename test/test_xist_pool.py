@@ -229,16 +229,16 @@ def test_names2():
 			codepoint = 0x4242
 
 	# Test elements
-	assert set(r.elements()) == set([el_])
+	assert set(r.elements()) == {el_}
 
 	# Test entities
-	assert set(r.entities()) == set([cr_, en_])
+	assert set(r.entities()) == {cr_, en_}
 
 	# Test procinsts
-	assert set(r.procinsts()) == set([pi_])
+	assert set(r.procinsts()) == {pi_}
 
 	# Test charrefs
-	assert set(r.charrefs()) == set([cr_])
+	assert set(r.charrefs()) == {cr_}
 
 
 def test_stack():

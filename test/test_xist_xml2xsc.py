@@ -51,7 +51,7 @@ def test_attrs():
 	xml = "<foo a='1'><foo b='2'/></foo>"
 	mod = xml2mod(xml, parser=parser)
 
-	assert set(a.xmlname for a in mod.foo.Attrs.allowedattrs()) == set("ab")
+	assert set(a.xmlname for a in mod.foo.Attrs.allowedattrs()) == {"a", "b"}
 
 
 def test_model1():

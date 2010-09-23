@@ -424,13 +424,13 @@ def test_attributeswithnames():
 
 	assert set(node.attrs.withnames(u"id").keys()) == set()
 
-	assert set(node.attrs.withnames(u"class_").keys()) == set([html.h1.Attrs.class_])
+	assert set(node.attrs.withnames(u"class_").keys()) == {html.h1.Attrs.class_}
 
-	assert set(node.attrs.withnames(u"lang", u"align").keys()) == set([h1.Attrs.lang, html.h1.Attrs.align])
+	assert set(node.attrs.withnames(u"lang", u"align").keys()) == {h1.Attrs.lang, html.h1.Attrs.align}
 
-	assert set(node.attrs.withnames(h1.Attrs.lang, u"align").keys()) == set([h1.Attrs.lang, html.h1.Attrs.align])
+	assert set(node.attrs.withnames(h1.Attrs.lang, u"align").keys()) == {h1.Attrs.lang, html.h1.Attrs.align}
 
-	assert set(node.attrs.withnames(html.h1.Attrs.lang, u"align").keys()) == set([h1.Attrs.lang, html.h1.Attrs.align])
+	assert set(node.attrs.withnames(html.h1.Attrs.lang, u"align").keys()) == {h1.Attrs.lang, html.h1.Attrs.align}
 
 	node = html.h1(
 		u"gurk",
@@ -442,14 +442,14 @@ def test_attributeswithnames():
 
 	assert set(node.attrs.withnames(u"id").keys()) == set()
 
-	assert set(node.attrs.withnames(u"class_").keys()) == set([html.h1.Attrs.class_])
+	assert set(node.attrs.withnames(u"class_").keys()) == {html.h1.Attrs.class_}
 
-	assert set(node.attrs.withnames(u"lang", u"align").keys()) == set([html.h1.Attrs.lang, html.h1.Attrs.align])
+	assert set(node.attrs.withnames(u"lang", u"align").keys()) == {html.h1.Attrs.lang, html.h1.Attrs.align}
 
 	# no h1.Attrs.lang
-	assert set(node.attrs.withnames(h1.Attrs.lang, u"align").keys()) == set([html.h1.Attrs.align])
+	assert set(node.attrs.withnames(h1.Attrs.lang, u"align").keys()) == {html.h1.Attrs.align}
 
-	assert set(node.attrs.withnames(html.h1.Attrs.lang, u"align").keys()) == set([html.h1.Attrs.lang, html.h1.Attrs.align])
+	assert set(node.attrs.withnames(html.h1.Attrs.lang, u"align").keys()) == {html.h1.Attrs.lang, html.h1.Attrs.align}
 
 
 def test_attributeswithnames_xml():
@@ -460,8 +460,8 @@ def test_attributeswithnames_xml():
 		class_=u"gurk",
 		align=u"right"
 	)
-	assert set(node.attrs.withnames_xml(u"class").keys()) == set([html.h1.Attrs.class_])
-	assert set(node.attrs.withnames_xml(xml.Attrs.space).keys()) == set([xml.Attrs.space])
+	assert set(node.attrs.withnames_xml(u"class").keys()) == {html.h1.Attrs.class_}
+	assert set(node.attrs.withnames_xml(xml.Attrs.space).keys()) == {xml.Attrs.space}
 
 
 

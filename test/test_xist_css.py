@@ -229,11 +229,11 @@ def test_applystylesheets_title():
 def test_parse():
 	s = css.parsestring(b"@charset 'utf-8'; div{background-image: url(gurk.gif);}")
 	urls = set(css.geturls(s))
-	assert urls == set([url.URL("gurk.gif")])
+	assert urls == {url.URL("gurk.gif")}
 
 	s = css.parsestring(b"@charset 'utf-8'; div{background-image: url(gurk.gif);}", base="root:")
 	urls = set(css.geturls(s))
-	assert urls == set([url.URL("root:gurk.gif")])
+	assert urls == {url.URL("root:gurk.gif")}
 
 
 def test_comments():

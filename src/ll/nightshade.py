@@ -99,7 +99,7 @@ class Connect(object):
 	been caused by a lost connection to the database or similar problems,
 	the function is retried with a new database connection.
 	"""
-	_badoracleexceptions = set((
+	_badoracleexceptions = {
 		28,    # your session has been killed
 		1012,  # not logged on
 		1014,  # Oracle shutdown in progress
@@ -117,7 +117,7 @@ class Connect(object):
 		12540, # TNS:internal limit restriction exceeded
 		12541, # TNS:no listener
 		12543, # TNS:destination host unreachable
-	))
+	}
 
 	def __init__(self, connectstring=None, pool=None, retry=3, **kwargs):
 		"""
