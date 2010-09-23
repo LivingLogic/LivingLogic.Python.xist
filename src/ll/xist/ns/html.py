@@ -49,7 +49,7 @@ class MediaDescAttr(xsc.TextAttr):
 		``True`` if :var:`media` is ``None`` or :var:`self` is empty.
 		"""
 		if media is not None and self:
-			return media in set(m.strip() for m in unicode(self).split(","))
+			return media in {m.strip() for m in unicode(self).split(",")}
 		return True
 
 

@@ -60,7 +60,7 @@ def geturls(stylesheet):
 def _getmedia(stylesheet):
 	while stylesheet is not None:
 		if stylesheet.media is not None:
-			return set(mq.mediaType for mq in stylesheet.media)
+			return {mq.mediaType for mq in stylesheet.media}
 		stylesheet = stylesheet.parentStyleSheet
 	return None
 

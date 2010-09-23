@@ -665,8 +665,8 @@ class Publisher(object):
 		self.validate = validate
 		self.prefixes = {nsname(xmlns): prefix for (xmlns, prefix) in prefixes.iteritems()}
 		self.prefixdefault = prefixdefault
-		self.hidexmlns = set(nsname(xmlns) for xmlns in hidexmlns)
-		self.showxmlns = set(nsname(xmlns) for xmlns in showxmlns)
+		self.hidexmlns = {nsname(xmlns) for xmlns in hidexmlns}
+		self.showxmlns = {nsname(xmlns) for xmlns in showxmlns}
 		self._ns2prefix = {}
 		self._prefix2ns = {}
 
@@ -2606,7 +2606,7 @@ class Attrs(Node, dict):
 
 	def checkvalid(self):
 		# collect required attributes
-		attrs = set(value for value in self.allowedattrs() if value.required)
+		attrs = {value for value in self.allowedattrs() if value.required}
 		# Check each existing attribute and remove it from the list of required ones
 		for value in self.values():
 			value.checkvalid()

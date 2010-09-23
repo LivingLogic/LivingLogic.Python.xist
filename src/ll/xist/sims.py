@@ -187,7 +187,7 @@ class Elements(object):
 					warnings.warn(IllegalTextWarning(node, child))
 				elif isinstance(child, xsc.Element) and node.xmlns is not None and not isinstance(child, self.elements):
 					if ns is None: # Calculate the first time we need it
-						ns = set(el.xmlns for el in self.elements if el.xmlns is not None)
+						ns = {el.xmlns for el in self.elements if el.xmlns is not None}
 					if child.xmlns in ns:
 						warnings.warn(WrongElementWarning(node, child, self.elements))
 
@@ -219,7 +219,7 @@ class ElementsOrText(Elements):
 			for child in node.content:
 				if isinstance(child, xsc.Element) and node.xmlns is not None and not isinstance(child, self.elements):
 					if ns is None: # Calculate the first time we need it
-						ns = set(el.xmlns for el in self.elements if el.xmlns is not None)
+						ns = {el.xmlns for el in self.elements if el.xmlns is not None}
 					if child.xmlns in ns:
 						warnings.warn(WrongElementWarning(node, child, self.elements))
 
