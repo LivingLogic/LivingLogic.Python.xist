@@ -459,7 +459,6 @@ def module(code, filename="unnamed.py", name=None):
 		name = os.path.splitext(os.path.basename(filename))[0]
 	mod = types.ModuleType(name)
 	mod.__file__ = filename
-	code = code.replace("\r\n", "\n") # Normalize line feeds, so that :func:`compile` works (normally done by ``import`` itself)
 	code = compile(code, filename, "exec")
 	exec code in mod.__dict__
 	return mod
