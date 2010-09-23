@@ -930,8 +930,7 @@ class ReSTConversionWarning(Warning):
 class ReSTConverter(object):
 	def __init__(self):
 		from ll.xist.ns import doc, abbr
-		self.namedrefs = collections.defaultdict()
-		self.namedrefs.default_factory = list
+		self.namedrefs = collections.defaultdict(list)
 		self.unnamedrefs = []
 		self.doc = doc
 		self.abbr = abbr
