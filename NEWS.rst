@@ -1,4 +1,4 @@
-Changes in 3.10 (released 09/23/2010)
+Changes in 3.10 (released 09/24/2010)
 -------------------------------------
 
 *	Python 2.7 is required now as XIST now uses set literals, set and dict
@@ -16,6 +16,9 @@ Changes in 3.10 (released 09/23/2010)
 
 *	The random number functions ``random``, ``randrange`` and ``randchoice``
 	have been added to UL4.
+
+*	A new function :func:`ll.misc.prettycsv` has been added. It can be
+	used to pretty print the data produced by the :mod:`csv` module.
 
 
 Changes in 3.9 (released 08/04/2010)

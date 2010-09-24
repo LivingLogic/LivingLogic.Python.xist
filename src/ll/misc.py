@@ -15,7 +15,7 @@ LivingLogic modules and packages.
 """
 
 
-import sys, os, types, collections, weakref, cStringIO, gzip as gzip_
+import sys, os, types, collections, weakref, cStringIO, gzip as gzip_, csv, itertools
 
 
 __docformat__ = "reStructuredText"
@@ -462,6 +462,37 @@ def module(code, filename="unnamed.py", name=None):
 	code = compile(code, filename, "exec")
 	exec code in mod.__dict__
 	return mod
+
+
+def prettycsv(rows, padding="   "):
+	"""
+	Format table :var:`rows`.
+
+	:var:`rows` must be a list of lists of strings (e.g. as produced by the
+	:mod:`cvs` module). :var:`padding` is the padding between columns.
+
+	:func:`prettycsv` is a generator.
+	"""
+
+	def width(row, i):
+		try:
+			return len(row[i])
+		except IndexError:
+			return 0
+
+	maxlen = max(len(row) for row in rows)
+	lengths = [max(width(row, i) for row in rows) for i in xrange(maxlen)]
+	for row in rows:
+		lasti = len(row)-1
+		for (i, (w, f)) in enumerate(itertools.izip(lengths, row)):
+			if i:
+				yield padding
+			if i == lasti:
+				f = f.rstrip() # don't add padding to the last column
+			else:
+				f = u"{0:<{1}}".format(f, w)
+			yield f
+		yield "\n"
 
 
 class JSMinUnterminatedComment(Exception):

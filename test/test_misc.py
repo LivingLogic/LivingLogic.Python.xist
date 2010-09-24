@@ -258,3 +258,10 @@ def test_notimplemented():
 
 	with py.test.raises(NotImplementedError):
 		Bad().bad()
+
+
+def test_prettycsv():
+	assert "".join(misc.prettycsv([["a", "b", "c"], ["abc", "defg", "hijkl"]])) == "a     b      c\nabc   defg   hijkl\n"
+	assert "".join(misc.prettycsv([["a", "b "], ["abc", "def"]])) == "a     b\nabc   def\n"
+	assert "".join(misc.prettycsv([["a"], ["abc", "def"]])) == "a\nabc   def\n"
+	assert "".join(misc.prettycsv([["a", "b"], ["abc", "def"]], "..")) == "a  ..b\nabc..def\n"
