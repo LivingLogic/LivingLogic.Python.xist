@@ -156,8 +156,8 @@ class DBInfo(object):
 			p_job_logfilename=self.job.logfilename,
 			p_job_loglinkname=self.job.loglinkname,
 			p_job_pidfilename=self.job.pidfilename,
-			p_job_log2file=self.job.log2file,
-			p_job_log2db=self.job.log2db,
+			p_job_log2file=int(self.job.log2file),
+			p_job_log2db=int(self.job.log2db),
 			p_job_formatlogline=self.job.formatlogline,
 			p_job_keepfilelogs=self.job.keepfilelogs,
 			p_job_keepdblogs=self.job.keepdblogs,
@@ -169,8 +169,8 @@ class DBInfo(object):
 		self.job.logfilename = self.run.p_job_logfilename
 		self.job.loglinkname = self.run.p_job_loglinkname
 		self.job.pidfilename = self.run.p_job_pidfilename
-		self.job.log2file = self.run.p_job_log2file
-		self.job.log2db = self.run.p_job_log2db
+		self.job.log2file = bool(self.run.p_job_log2file)
+		self.job.log2db = bool(self.run.p_job_log2db)
 		self.job.formatlogline = self.run.p_job_formatlogline
 		self.job.keepfilelogs = self.run.p_job_keepfilelogs
 		self.job.keepdblogs = self.run.p_job_keepdblogs
