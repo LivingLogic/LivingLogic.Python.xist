@@ -1638,12 +1638,12 @@ class Project(dict):
 				pipe = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE).stdin
 				pipe.write("{}\n".format(filename))
 				pipe.write("{}.{}\n".format(self.__class__.__module__, self.__class__.__name__))
-				pipe.write("{} registered targets, ".format(len(self)))
-				pipe.write("{} actions called, ".format(self.actionscalled))
-				pipe.write("{} steps executed, ".format(self.stepsexecuted))
-				pipe.write("{} files/{} bytes read, ".format(self.filesread, self.bytesread))
-				pipe.write("{} files/{} bytes written, ".format(self.fileswritten, self.byteswritten))
-				pipe.write("{} actions failed".format(self.actionsfailed))
+				pipe.write("{:,} registered targets, ".format(len(self)))
+				pipe.write("{:,} actions called, ".format(self.actionscalled))
+				pipe.write("{:,} steps executed, ".format(self.stepsexecuted))
+				pipe.write("{:,} files/{:,} bytes read, ".format(self.filesread, self.bytesread))
+				pipe.write("{:,} files/{:,} bytes written, ".format(self.fileswritten, self.byteswritten))
+				pipe.write("{:,} actions failed".format(self.actionsfailed))
 				pipe.close()
 
 	def buildwithargs(self, args=None):
