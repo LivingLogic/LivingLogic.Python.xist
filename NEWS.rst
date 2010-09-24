@@ -1,8 +1,9 @@
 Changes in 3.10 (released 09/23/2010)
 -------------------------------------
 
-*	Python 2.7 is required now as XIST now uses ``"{}".format(foo)``,
-	set literals, set and dict comprehension and the new :mod:`argparse` module.
+*	Python 2.7 is required now as XIST now uses set literals, set and dict
+	comprehension, the new :mod:`argparse` module and various other new features
+	of Python 2.7.
 
 *	All scripts and :mod:`ll.make` have been ported to use :mod:`argparse`.
 
