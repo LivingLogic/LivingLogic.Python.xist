@@ -51,7 +51,7 @@ class contenttype(html.meta):
 				content=self[u"mimetype"],
 			)
 		else:
-			raise ValueError("unknown conversion target {0!r}".format(target))
+			raise ValueError("unknown conversion target {!r}".format(target))
 		return e.convert(converter)
 
 	def publish(self, publisher):

@@ -9,7 +9,7 @@
 ## See orasql/__init__.py for the license
 
 
-import sys, os, difflib, optparse, tempfile, subprocess
+import sys, os, difflib, argparse, tempfile, subprocess
 
 from ll import orasql, astyle
 
@@ -40,7 +40,7 @@ def df(obj):
 
 
 def connid(name):
-	return s4connid("[{0}]".format(name))
+	return s4connid("[{}]".format(name))
 
 
 def showcomment(out, *texts):
@@ -66,9 +66,9 @@ def showreport(out, type, countcreate, countdrop, countcollision, countmerge, co
 			else:
 				cls = s4action
 			if count > 1:
-				msg = "{0} {1}s {2}".format(count, type, name)
+				msg = "{} {}s {}".format(count, type, name)
 			else:
-				msg = "1 {0} {1}".format(type, name)
+				msg = "1 {} {}".format(type, name)
 			out.write(cls(msg))
 	if first:
 		out.write(" => identical")
@@ -88,40 +88,38 @@ def gettimestamp(obj, cursor, format):
 
 
 def main(args=None):
-	colors = ("yes", "no", "auto")
-	blanks = ("literal", "trail", "lead", "both", "collapse")
 	# Merge changes between oldsource and newsource into destination
-	p = optparse.OptionParser(usage="usage: %prog [options] oldsourceconnectstring newsourceconnectstring destinationconnectstring")
-	p.add_option("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action="store_true")
-	p.add_option("-c", "--color", dest="color", help="Color output ({0})".format(", ".join(colors)), default="auto", choices=colors)
-	p.add_option("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' in their name?", default=False, action="store_true")
-	p.add_option("-e", "--encoding", dest="encoding", help="Encoding for output", default="utf-8")
+	p = argparse.ArgumentParser(description="output info for merging the changes between two Oracle database schemas into a third")
+	p.add_argument("connectstring1", help="Old version of database schema")
+	p.add_argument("connectstring2", help="New version of database schema")
+	p.add_argument("connectstring3", help="Schema into which changes should be merged")
+	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action="store_true")
+	p.add_argument("-c", "--color", dest="color", help="Color output", default="auto", choices=("yes", "no", "auto"))
+	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' in their name?", default=False, action="store_true")
+	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for output", default="utf-8")
 
-	(options, args) = p.parse_args(args)
-	if len(args) != 3:
-		p.error("incorrect number of arguments")
-		return 1
+	args = p.parse_args(args)
 
-	if options.color == "yes":
+	if args.color == "yes":
 		color = True
-	elif options.color == "no":
+	elif args.color == "no":
 		color = False
 	else:
 		color = None
 	stdout = astyle.Stream(sys.stdout, color)
 	stderr = astyle.Stream(sys.stderr, color)
 
-	connection1 = orasql.connect(args[0])
-	connection2 = orasql.connect(args[1])
-	connection3 = orasql.connect(args[2])
+	connection1 = orasql.connect(args.connectstring1)
+	connection2 = orasql.connect(args.connectstring2)
+	connection3 = orasql.connect(args.connectstring3)
 
 	def fetch(connection, name):
 		objects = set()
 
 		for (i, obj) in enumerate(connection.iterobjects(mode="flat", schema="user")):
-			keep = ("$" not in obj.name and not obj.name.startswith("SYS_EXPORT_SCHEMA_")) or options.keepjunk
-			if options.verbose:
-				msg = astyle.style_default("oramerge.py: ", cs(connection), connid(name), " fetching #{0} ".format(i+1), df(obj))
+			keep = ("$" not in obj.name and not obj.name.startswith("SYS_EXPORT_SCHEMA_")) or args.keepjunk
+			if args.verbose:
+				msg = astyle.style_default("oramerge.py: ", cs(connection), connid(name), " fetching #{} ".format(i+1), df(obj))
 				if not keep:
 					msg += s4error(" (skipped)")
 				stderr.writeln(msg)
@@ -159,7 +157,7 @@ def main(args=None):
 		in1 = obj in objects1
 		in2 = obj in objects2
 		in3 = obj in objects3
-		if options.verbose:
+		if args.verbose:
 			stderr.write("oramerge.py: ", df(obj), " #", str(i+1), "/", str(len(allobjects)), ": ")
 			first = True
 			for (nr, flag) in enumerate((in1, in2, in3)):
@@ -173,25 +171,25 @@ def main(args=None):
 		comm = s4comment("-- ", df(obj), " ")
 		if in1 != in2: # ignore changes from in2 to in3, because only if something changed in the sources we have to do something
 			if not in1 and in2 and not in3: # added in in2 => copy it to db3
-				if options.verbose:
+				if args.verbose:
 					stderr.writeln(" => ", s4action("new (create it)"))
 				countcreate += 1
 				action = "create"
 			elif not in1 and in2 and in3: # added in both in2 and in3 => collision?
 				if obj.createddl(connection2) != obj.createddl(connection3):
-					if options.verbose:
+					if args.verbose:
 						stderr.writeln(" => ", s4error("collision"))
 					countcollision += 1
 					action = "collision"
 					retcode = 2
 				else:
-					if options.verbose:
+					if args.verbose:
 						stderr.writeln(" => already created (keep it)")
 			elif in1 and not in2 and not in3: # removed in in2 and in3 => not needed
-				if options.verbose:
+				if args.verbose:
 					stderr.writeln(" => removed (not needed)")
 			elif in1 and not in2 and in3: # removed in in2 => remove in db3
-				if options.verbose:
+				if args.verbose:
 					stderr.writeln(" => ", s4action("drop it"))
 				countdrop += 1
 				action = "drop"
@@ -202,7 +200,7 @@ def main(args=None):
 			ddl2 = obj.createddl(connection2)
 			ddl3 = obj.createddl(connection3)
 
-			if options.verbose:
+			if args.verbose:
 				stderr.write(" => diffing")
 
 			if ddl1 != ddl2: # ignore changes between ddl2 and ddl3 here too
@@ -255,20 +253,20 @@ def main(args=None):
 									countmerge += 1
 									showcomment(stdout, "merged ", df(field))
 									stdout.writeln(ddl)
-					if options.verbose:
+					if args.verbose:
 						showreport(stderr, "field", fieldcountcreate, fieldcountdrop, fieldcountcollision, fieldcountmerge, fieldcountmergeconflict)
 				else:
-					if options.verbose:
+					if args.verbose:
 						stderr.write(" => merge them")
 					action = "merge"
 			else:
-				if options.verbose:
+				if args.verbose:
 					stderr.writeln(" => identical")
 		elif in3:
-			if options.verbose:
+			if args.verbose:
 				stderr.writeln(" => keep it")
 		else:
-			if options.verbose:
+			if args.verbose:
 				stderr.writeln(" => not needed")
 
 		if action is not None:
@@ -289,15 +287,15 @@ def main(args=None):
 				lines = []
 				file1 = open(filename1, "wb")
 				try:
-					write(file1, ddl1.encode(options.encoding))
+					write(file1, ddl1.encode(args.encoding))
 
 					file2 = open(filename2, "wb")
 					try:
-						write(file2, ddl2.encode(options.encoding))
+						write(file2, ddl2.encode(args.encoding))
 
 						file3 = open(filename3, "wb")
 						try:
-							write(file3, ddl3.encode(options.encoding))
+							write(file3, ddl3.encode(args.encoding))
 
 							# do the diffing
 							proc = subprocess.Popen(["diff3", "-m", filename3, filename1, filename2], stdout=subprocess.PIPE)
@@ -324,12 +322,12 @@ def main(args=None):
 								finalddl = data
 								# diff3 seems to append a "\n"
 								if finalddl != ddl3 and (not finalddl.endswith("\n") or finalddl[:-1] != ddl3):
-									if options.verbose:
+									if args.verbose:
 										stderr.writeln(" => ", s4action("merged"))
 									stdout.write(finalddl)
 							elif diffretcode == 1: # conflict
 								showcomment(stdout, "merge conflict ", df(obj))
-								if options.verbose:
+								if args.verbose:
 									stderr.writeln(" => ", s4error("merge conflict"))
 								retcode = 2
 								for line in data.splitlines():
@@ -347,14 +345,14 @@ def main(args=None):
 											line = conflictmarker(prefix, line)
 									stdout.writeln(line)
 							else:
-								raise OSError("Trouble from diff3: {0}".format(diffretcode))
+								raise OSError("Trouble from diff3: {}".format(diffretcode))
 						finally:
 							os.remove(filename3)
 					finally:
 						os.remove(filename2)
 				finally:
 					os.remove(filename1)
-	if options.verbose:
+	if args.verbose:
 		stderr.write("oramerge.py: ", cs(connection3))
 		showreport(stderr, "object", countcreate, countdrop, countcollision, countmerge, countmergeconflict)
 	return retcode

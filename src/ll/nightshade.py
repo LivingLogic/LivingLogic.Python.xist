@@ -87,7 +87,7 @@ def httpdate(dt):
 		dt += datetime.timedelta(seconds=[time.timezone, time.altzone][time.daylight])
 	else:
 		dt -= dt.tzinfo.utcoffset(dt)
-	return "{0}, {1:02d} {2:3s} {3:4d} {4:02d}:{5:02d}:{6:02d} GMT".format(weekdayname[dt.weekday()], dt.day, monthname[dt.month], dt.year, dt.hour, dt.minute, dt.second)
+	return "{}, {:02d} {:3s} {:4d} {:02d}:{:02d}:{:02d} GMT".format(weekdayname[dt.weekday()], dt.day, monthname[dt.month], dt.year, dt.hour, dt.minute, dt.second)
 
 
 class Connect(object):
@@ -99,7 +99,7 @@ class Connect(object):
 	been caused by a lost connection to the database or similar problems,
 	the function is retried with a new database connection.
 	"""
-	_badoracleexceptions = set((
+	_badoracleexceptions = {
 		28,    # your session has been killed
 		1012,  # not logged on
 		1014,  # Oracle shutdown in progress
@@ -117,7 +117,7 @@ class Connect(object):
 		12540, # TNS:internal limit restriction exceeded
 		12541, # TNS:no listener
 		12543, # TNS:destination host unreachable
-	))
+	}
 
 	def __init__(self, connectstring=None, pool=None, retry=3, **kwargs):
 		"""
@@ -248,6 +248,12 @@ class Call(object):
 		now = getnow()
 		(body, result) = call(*args, **kwargs)
 
+		# Get response body
+		if "c_out" in result:
+			body = result.c_out
+		if hasattr(body, "read"):
+			body = body.read()
+
 		# Set HTTP headers from parameters
 		expires = result.get("p_expires", None)
 		if expires is not None:
@@ -255,18 +261,17 @@ class Call(object):
 		lastmodified = result.get("p_lastmodified", None)
 		if lastmodified is not None:
 			cherrypy.response.headers["Last-Modified"] = httpdate(lastmodified)
-		encoding = None
-		if isinstance(result, unicode):
-			encoding = "utf-8"
-			result = result.encoding(encoding)
 		mimetype = result.get("p_mimetype", None)
-		if mimetype is not None:
-			if encoding is None:
-				encoding = result.get("p_encoding", None)
-			if encoding is not None:
-				cherrypy.response.headers["Content-Type"] = "{0}; charset={1}".format(mimetype, encoding)
-			else:
-				cherrypy.response.headers["Content-Type"] = mimetype
+		if mimetype is None:
+			mimetype = "text/html" if isinstance(body, unicode) else "application/octet-stream"
+
+		encoding = result.get("p_encoding", None)
+		if encoding is None and isinstance(body, unicode):
+			encoding = "utf-8"
+		if encoding is not None:
+			cherrypy.response.headers["Content-Type"] = "{}; charset={}".format(mimetype, encoding)
+		else:
+			cherrypy.response.headers["Content-Type"] = mimetype
 		hasetag = False
 		etag = result.get("p_etag", None)
 		if etag is not None:
@@ -281,14 +286,10 @@ class Call(object):
 		if status is not None:
 			cherrypy.response.status = status
 
-		# Get response body
-		if "c_out" in result:
-			body = result.c_out
-			if hasattr(result, "read"):
-				result = result.read()
-			if not hasetag:
-				cherrypy.response.headers["ETag"] = '"{0:x}"'.format(hash(body))
+		# Set ETag
+		if not hasetag:
+			cherrypy.response.headers["ETag"] = '"{:x}"'.format(hash(body))
 
-		if hasattr(body, "read"):
-			body = body.read()
+		if isinstance(body, unicode):
+			body = body.encode(encoding)
 		return body

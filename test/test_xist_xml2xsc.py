@@ -22,9 +22,9 @@ else:
 	parser = "lxml"
 
 
-def xml2mod(s, parser="etree", sims="simple"):
+def xml2mod(s, parser="etree", model="simple"):
 	with xsc.Pool():
-		xnd = xml2xsc.stream2xnd(cStringIO.StringIO(s), parser=parser, sims=sims)
+		xnd = xml2xsc.stream2xnd(cStringIO.StringIO(s), parser=parser, model=model)
 
 		code = xnd.aspy().encode()
 		code = compile(code, "test.py", "exec")
@@ -51,12 +51,12 @@ def test_attrs():
 	xml = "<foo a='1'><foo b='2'/></foo>"
 	mod = xml2mod(xml, parser=parser)
 
-	assert set(a.xmlname for a in mod.foo.Attrs.allowedattrs()) == set("ab")
+	assert {a.xmlname for a in mod.foo.Attrs.allowedattrs()} == {"a", "b"}
 
 
 def test_model1():
 	xml = "<foo><foo/><bar><foo/></bar></foo>"
-	mod = xml2mod(xml, parser=parser, sims="full")
+	mod = xml2mod(xml, parser=parser, model="full")
 
 	assert mod.foo in mod.foo.model.elements
 	assert mod.bar in mod.foo.model.elements
@@ -66,7 +66,7 @@ def test_model1():
 
 def test_model2():
 	xml = "<foo><bar>gurk<bar/></bar><baz><!--nix--><baz/></baz></foo>"
-	mod = xml2mod(xml, parser=parser, sims="full")
+	mod = xml2mod(xml, parser=parser, model="full")
 
 	assert isinstance(mod.foo.model, sims.Elements)
 	assert isinstance(mod.bar.model, sims.ElementsOrText)

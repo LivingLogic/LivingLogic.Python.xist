@@ -71,35 +71,35 @@ class Base(object):
 				if '"' in value:
 					value = repr(value)
 				else:
-					value = 'u"{0}"'.format(repr(value)[2:-1])
+					value = u'u"{}"'.format(repr(value)[2:-1])
 			else:
 				if '"' in value:
 					value = repr(value)
 				else:
-					value = '"{0}"'.format(repr(value)[1:-1])
+					value = u'"{}"'.format(repr(value)[1:-1])
 		return value
 
 	def aspy(self, **options):
 		options = Options(**options)
 		lines = []
 		self._aspy(lines, 0, [], options)
-		return "".join("{0}{1}\n".format(level*options.indent, text) for (level, text) in lines)
+		return u"".join(u"{}{}\n".format(level*options.indent, text) for (level, text) in lines)
 
 	def _addlines(self, newlines, lines):
 		l = len(newlines)
 		if l==0:
-			lines[-1][1] += " pass"
+			lines[-1][1] += u" pass"
 		elif l==1:
-			lines[-1][1] += " {0}".format(newlines[-1][1])
+			lines[-1][1] += u" {}".format(newlines[-1][1])
 		else:
 			lines.extend(newlines)
 
 	def _adddoc(self, lines, level):
 		if self.doc is not None:
-			lines.append([level, '"""'])
+			lines.append([level, u'"""'])
 			for line in self.doc.splitlines():
 				lines.append([level, line])
-			lines.append([level, '"""'])
+			lines.append([level, u'"""'])
 
 
 class Module(Base):
@@ -166,7 +166,7 @@ class Module(Base):
 		for attrgroup in attrgroups:
 			attrgroup.assignname(names)
 
-		lines.append([level, "# -*- coding: {0} -*-".format(options.encoding)])
+		lines.append([level, "# -*- coding: {} -*-".format(options.encoding)])
 		lines.append([0, ""])
 		lines.append([0, ""])
 
@@ -200,23 +200,23 @@ class Module(Base):
 							if isinstance(arg, Element):
 								arg = arg.pyname
 							modelargs.append(arg)
-					newlines.append(("{0}.model".format(node.pyname), "{0}({1})".format(node.modeltype, ", ".join(modelargs))))
+					newlines.append(("{}.model".format(node.pyname), "{}({})".format(node.modeltype, ", ".join(modelargs))))
 				if options.model == "all":
 					for line in newlines:
-						lines.append([0, "{0} = {1}".format(*line)])
+						lines.append([0, "{} = {}".format(*line)])
 				elif options.model == "once":
 					newlines.sort(key=lambda l: l[1])
 					for (i, line) in enumerate(newlines):
 						(var, code) = line
 						if i != len(newlines)-1 and code == newlines[i+1][1]:
 							code = "\\"
-						lines.append([0, "{0} = {1}".format(var, code)])
+						lines.append([0, "{} = {}".format(var, code)])
 
 	def element(self, name):
 		for node in self.content:
 			if isinstance(node, Element) and node.name==name:
 				return node
-		raise ValueError("no element named {0!r}".format(name))
+		raise ValueError("no element named {!r}".format(name))
 
 	def shareattrs(self, all):
 		# collect all identical attributes into lists
@@ -259,17 +259,17 @@ class Element(Base):
 		return self
 
 	def _aspy(self, lines, level, names, options):
-		lines.append([level, "class {0}(xsc.Element):".format(self.pyname)])
+		lines.append([level, "class {}(xsc.Element):".format(self.pyname)])
 		newlines = []
 		self._adddoc(newlines, level+1)
 		if self.xmlns is not None:
-			newlines.append([level+1, "xmlns = {0}".format(self.simplify(self.xmlns))])
+			newlines.append([level+1, "xmlns = {}".format(self.simplify(self.xmlns))])
 		if self.pyname != self.name:
-			newlines.append([level+1, "xmlname = {0}".format(self.simplify(self.name))])
+			newlines.append([level+1, "xmlname = {}".format(self.simplify(self.name))])
 		# only output model, if it is a bool, otherwise it might reference other element,
 		# in which case this is done after all element classes have been defined
 		if isinstance(self.modeltype, bool):
-			newlines.append([level+1, "model = {0!r}".format(self.modeltype)])
+			newlines.append([level+1, "model = {!r}".format(self.modeltype)])
 
 		if len(self.attrs):
 			# find the attribute groups our elements are in
@@ -287,7 +287,7 @@ class Element(Base):
 				base = ", ".join(group.pyname for group in groups)
 			else:
 				base = "xsc.Element.Attrs"
-			newlines.append([level+1, "class Attrs({0}):".format(base)])
+			newlines.append([level+1, "class Attrs({}):".format(base)])
 			if nogroup:
 				localnames = []
 				for attr in nogroup:
@@ -301,7 +301,7 @@ class AttrGroup(Base):
 	id = 0
 	def __init__(self, name):
 		if name is None:
-			name = "attrgroup_{0}".format(self.__class__.id)
+			name = "attrgroup_{}".format(self.__class__.id)
 			self.__class__.id += 1
 		Base.__init__(self, name)
 		self.attrs = []
@@ -311,7 +311,7 @@ class AttrGroup(Base):
 		return self
 
 	def _aspy(self, lines, level, names, options):
-		lines.append([level, "class {0}(xsc.Element.Attrs):".format(self.pyname)])
+		lines.append([level, "class {}(xsc.Element.Attrs):".format(self.pyname)])
 		localnames = []
 		for attr in self.attrs:
 			attr._aspy(lines, level+1, localnames, options)
@@ -340,22 +340,22 @@ class Attr(Base):
 			basename = self.type
 		if basename.startswith("ll.xist.xsc."):
 			basename = basename[8:]
-		lines.append([level, "class {0}({1}):".format(self.pyname, basename)])
+		lines.append([level, "class {}({}):".format(self.pyname, basename)])
 		newlines = []
 		self._adddoc(newlines, level+1)
 		if self.pyname != self.name:
-			newlines.append([level+1, "xmlname = {0}".format(self.simplify(self.name))])
+			newlines.append([level+1, "xmlname = {}".format(self.simplify(self.name))])
 		if self.values:
-			values = "({0})".format(", ".join(str(self.simplify(value)) for value in self.values))
-			newlines.append([level+1, "values = {0}".format(values)])
+			values = "({})".format(", ".join(str(self.simplify(value)) for value in self.values))
+			newlines.append([level+1, "values = {}".format(values)])
 		if self.default and options.defaults:
-			newlines.append([level+1, "default = {0}".format(self.simplify(self.default))])
+			newlines.append([level+1, "default = {}".format(self.simplify(self.default))])
 		if self.required:
 			newlines.append([level+1, "required = True"])
 		self._addlines(newlines, lines)
 
 	def share(self, group):
-		assert self.shared is None, "cannot share attr {0!r} twice".format(self)
+		assert self.shared is None, "cannot share attr {!r} twice".format(self)
 		self.shared = group
 
 	def ident(self):
@@ -371,11 +371,11 @@ class ProcInst(Base):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} name={0.name!r} at {1:#x}>".format(self, id(self))
 
 	def _aspy(self, lines, level, names, options):
-		lines.append([level, "class {0}(xsc.ProcInst):".format(self.pyname)])
+		lines.append([level, "class {}(xsc.ProcInst):".format(self.pyname)])
 		newlines = []
 		self._adddoc(newlines, level+1)
 		if self.pyname != self.name:
-			newlines.append([level+1, "xmlname = {0}".format(self.simplify(self.name))])
+			newlines.append([level+1, "xmlname = {}".format(self.simplify(self.name))])
 		self._addlines(newlines, lines)
 
 
@@ -388,11 +388,11 @@ class Entity(Base):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} name={0.name!r} at {1:#x}>".format(self, id(self))
 
 	def _aspy(self, lines, level, names, options):
-		lines.append([level, "class {0}(xsc.Entity):".format(self.pyname)])
+		lines.append([level, "class {}(xsc.Entity):".format(self.pyname)])
 		newlines = []
 		self._adddoc(newlines, level+1)
 		if self.pyname != self.name:
-			newlines.append([level+1, "xmlname = {0}".format(self.simplify(self.name))])
+			newlines.append([level+1, "xmlname = {}".format(self.simplify(self.name))])
 		self._addlines(newlines, lines)
 
 
@@ -405,11 +405,11 @@ class CharRef(Entity):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} name={0.name!r} codepoint={0.codepoint:#x} at {1:#x}>".format(self, id(self))
 
 	def _aspy(self, lines, level, names, options):
-		lines.append([level, "class {0}(xsc.CharRef):".format(self.pyname)])
+		lines.append([level, "class {}(xsc.CharRef):".format(self.pyname)])
 		newlines = []
 		self._adddoc(newlines, level+1)
 		if self.pyname != self.name:
-			newlines.append([level+1, "xmlname = {0}".format(self.simplify(self.name))])
+			newlines.append([level+1, "xmlname = {}".format(self.simplify(self.name))])
 		newlines.append([level+1, "codepoint = {0:{1}}".format(self.codepoint, "#010x" if self.codepoint > 0xffff else "#06x")])
 		self._addlines(newlines, lines)
 

@@ -54,7 +54,7 @@ def test_connection_connectstring():
 	db = orasql.connect(dbname)
 	user = dbname.split("/")[0]
 	name = dbname.split("@")[1]
-	assert "{0}@{1}".format(user, name) == db.connectstring()
+	assert "{}@{}".format(user, name) == db.connectstring()
 
 
 @py.test.mark.db
@@ -204,7 +204,8 @@ def test_procedure_arguments():
 @py.test.mark.db
 def test_procedure_nonexistant():
 	db = orasql.connect(dbname)
-	py.test.raises(orasql.SQLObjectNotFoundError, orasql.Procedure("DOESNOTEXIST"), db.cursor())
+	with py.test.raises(orasql.SQLObjectNotFoundError):
+		orasql.Procedure("DOESNOTEXIST")(db.cursor())
 
 
 @py.test.mark.db
@@ -221,14 +222,14 @@ def test_createorder():
 @py.test.mark.db
 def test_scripts_oracreate():
 	# Test oracreate without executing anything
-	args = "--color yes --verbose --seqcopy {0}".format(dbname)
+	args = "--color yes --verbose --seqcopy {}".format(dbname)
 	oracreate.main(args.split())
 
 
 @py.test.mark.db
 def test_scripts_oradrop():
 	# Test oradrop without executing anything
-	args = "--color yes --verbose {0}".format(dbname)
+	args = "--color yes --verbose {}".format(dbname)
 	oradrop.main(args.split())
 
 
@@ -292,10 +293,10 @@ def test_fetch():
 			# fetch only a few records
 			db = orasql.connect(dbname)
 			c = db.cursor()
-			c.execute("select * from {0}".format(obj.name))
+			c.execute("select * from {}".format(obj.name))
 			c.readlobs = False
 			c.fetchone()
-			c.execute("select * from {0}".format(obj.name))
+			c.execute("select * from {}".format(obj.name))
 			c.readlobs = True
 			c.fetchone()
 			break
@@ -303,7 +304,7 @@ def test_fetch():
 
 @py.test.mark.db
 def test_url():
-	u = url.URL("oracle://{0}/".format(dbname.replace("/", ":")))
+	u = url.URL("oracle://{}/".format(dbname.replace("/", ":")))
 	assert u.isdir()
 	assert u.mimetype() == "application/octet-stream"
 	u.owner()
@@ -313,7 +314,7 @@ def test_url():
 	u.files()
 	u.dirs()
 
-	u = url.URL("oracle://{0}/procedure/orasql_testprocedure".format(dbname.replace("/", ":")))
+	u = url.URL("oracle://{}/procedure/orasql_testprocedure".format(dbname.replace("/", ":")))
 	assert u.isfile()
 	assert u.mimetype() == "text/x-oracle-procedure"
 	u.owner()

@@ -15,7 +15,7 @@ LivingLogic modules and packages.
 """
 
 
-import sys, os, types, collections, weakref, cStringIO, gzip as gzip_
+import sys, os, types, collections, weakref, cStringIO, gzip as gzip_, csv, itertools
 
 
 __docformat__ = "reStructuredText"
@@ -103,7 +103,7 @@ except ImportError:
 			string = string.replace("'", "&#39;")
 			string = string.replace('"', "&quot;")
 			for c in "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1f\x7f\x80\x81\x82\x83\x84\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f":
-				string = string.replace(c, "&#{0};".format(ord(c)))
+				string = string.replace(c, "&#{};".format(ord(c)))
 			return string
 
 	def xmlescape_text(string):
@@ -119,7 +119,7 @@ except ImportError:
 			string = string.replace("<", "&lt;")
 			string = string.replace(">", "&gt;")
 			for c in "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1f\x7f\x80\x81\x82\x83\x84\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f":
-				string = string.replace(c, "&#{0};".format(ord(c)))
+				string = string.replace(c, "&#{};".format(ord(c)))
 			return string
 
 	def xmlescape_attr(string):
@@ -136,7 +136,7 @@ except ImportError:
 			string = string.replace(">", "&gt;")
 			string = string.replace('"', "&quot;")
 			for c in "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1f\x7f\x80\x81\x82\x83\x84\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f":
-				string = string.replace(c, "&#{0};".format(ord(c)))
+				string = string.replace(c, "&#{};".format(ord(c)))
 			return string
 
 
@@ -147,7 +147,7 @@ def notimplemented(function):
 	implementation.
 	"""
 	def wrapper(self, *args, **kwargs):
-		raise NotImplementedError("method {0}() not implemented in {1!r}".format(function.__name__, self.__class__))
+		raise NotImplementedError("method {}() not implemented in {!r}".format(function.__name__, self.__class__))
 	wrapper.__dict__.update(function.__dict__)
 	wrapper.__doc__ = function.__doc__
 	wrapper.__name__ = function.__name__
@@ -277,7 +277,7 @@ class Pool(object):
 		return copy
 
 	def __repr__(self):
-		return "<{0}.{1} object with {2} items at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, len(self._attrs), id(self))
+		return "<{}.{} object with {} items at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, len(self._attrs), id(self))
 
 
 def iterone(item):
@@ -364,7 +364,7 @@ class Const(object):
 		self._name = name
 
 	def __repr__(self):
-		return "{0}.{1}".format(self.__module__, self._name)
+		return "{}.{}".format(self.__module__, self._name)
 
 
 def tokenizepi(string):
@@ -459,10 +459,40 @@ def module(code, filename="unnamed.py", name=None):
 		name = os.path.splitext(os.path.basename(filename))[0]
 	mod = types.ModuleType(name)
 	mod.__file__ = filename
-	code = code.replace("\r\n", "\n") # Normalize line feeds, so that :func:`compile` works (normally done by ``import`` itself)
 	code = compile(code, filename, "exec")
 	exec code in mod.__dict__
 	return mod
+
+
+def prettycsv(rows, padding="   "):
+	"""
+	Format table :var:`rows`.
+
+	:var:`rows` must be a list of lists of strings (e.g. as produced by the
+	:mod:`cvs` module). :var:`padding` is the padding between columns.
+
+	:func:`prettycsv` is a generator.
+	"""
+
+	def width(row, i):
+		try:
+			return len(row[i])
+		except IndexError:
+			return 0
+
+	maxlen = max(len(row) for row in rows)
+	lengths = [max(width(row, i) for row in rows) for i in xrange(maxlen)]
+	for row in rows:
+		lasti = len(row)-1
+		for (i, (w, f)) in enumerate(itertools.izip(lengths, row)):
+			if i:
+				yield padding
+			if i == lasti:
+				f = f.rstrip() # don't add padding to the last column
+			else:
+				f = u"{0:<{1}}".format(f, w)
+			yield f
+		yield "\n"
 
 
 class JSMinUnterminatedComment(Exception):

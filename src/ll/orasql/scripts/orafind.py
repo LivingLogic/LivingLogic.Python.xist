@@ -9,7 +9,7 @@
 ## See orasql/__init__.py for the license
 
 
-import sys, os, optparse
+import sys, os, argparse
 
 from ll import orasql, astyle
 
@@ -40,7 +40,7 @@ def df(obj):
 
 
 def connid(name):
-	return s4connid("[{0}]".format(name))
+	return s4connid("[{}]".format(name))
 
 
 def showcomment(out, *texts):
@@ -66,9 +66,9 @@ def showreport(out, type, countcreate, countdrop, countcollision, countmerge, co
 			else:
 				cls = s4action
 			if count > 1:
-				msg = "{0} {1}s {2}".format(count, type, name)
+				msg = "{} {}s {}".format(count, type, name)
 			else:
-				msg = "1 {0} {1}".format(type, name)
+				msg = "1 {} {}".format(type, name)
 			out.write(cls(msg))
 	if first:
 		out.write(" => identical")
@@ -88,42 +88,41 @@ def gettimestamp(obj, cursor, format):
 
 
 def main(args=None):
-	colors = ("yes", "no", "auto")
-	p = optparse.OptionParser(usage="usage: %prog [options] connectstring searchstring [table] [table] ...")
-	p.add_option("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action="store_true")
-	p.add_option("-c", "--color", dest="color", help="Color output ({0})".format(", ".join(colors)), default="auto", choices=colors)
-	p.add_option("-i", "--ignore-case", dest="ignorecase", help="Ignore case distinctions?", default=False, action="store_true")
-	p.add_option("-r", "--read-lobs", dest="readlobs", help="Read LOBs when printing records?", default=False, action="store_true")
-	p.add_option("-e", "--encoding", dest="encoding", help="Encoding of the command line arguments", default="utf-8")
+	p = argparse.ArgumentParser(description="Search for a string in all fields of all tables in an Oracle database schema")
+	p.add_argument("connectstring", help="Oracle connect string")
+	p.add_argument("searchstring", help="String to search for")
+	p.add_argument("tables", metavar="table", nargs="*", help="Limit search to those tables")
+	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action="store_true")
+	p.add_argument("-c", "--color", dest="color", help="Color output", default="auto", choices=("yes", "no", "auto"))
+	p.add_argument("-i", "--ignore-case", dest="ignorecase", help="Ignore case distinctions?", default=False, action="store_true")
+	p.add_argument("-r", "--read-lobs", dest="readlobs", help="Read LOBs when printing records?", default=False, action="store_true")
+	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding of the command line arguments", default="utf-8")
 
-	(options, args) = p.parse_args(args)
-	if len(args) < 2:
-		p.error("incorrect number of arguments")
-		return 1
+	args = p.parse_args(args)
 
-	if options.color == "yes":
+	if args.color == "yes":
 		color = True
-	elif options.color == "no":
+	elif args.color == "no":
 		color = False
 	else:
 		color = None
 	stdout = astyle.Stream(sys.stdout, color)
 	stderr = astyle.Stream(sys.stderr, color)
 
-	connectstring = args[0].decode(options.encoding)
-	searchstring = args[1].decode(options.encoding)
-	if options.ignorecase:
+	connectstring = args.connectstring.decode(args.encoding)
+	searchstring = args.searchstring.decode(args.encoding)
+	if args.ignorecase:
 		searchstring = searchstring.lower()
-	searchstring = "%{0}%".format(searchstring.replace("%", "%%"))
-	tablenames = [name.decode(options.encoding).lower() for name in args[2:]]
+	searchstring = "%{}%".format(searchstring.replace("%", "%%"))
+	tablenames = [name.decode(args.encoding).lower() for name in args.tables]
 
-	connection = orasql.connect(connectstring, readlobs=options.readlobs)
+	connection = orasql.connect(connectstring, readlobs=args.readlobs)
 	c = connection.cursor()
 
 	tables = list(connection.itertables())
 	for (i, table) in enumerate(tables):
 		skip = tablenames and table.name.lower() not in tablenames
-		if options.verbose:
+		if args.verbose:
 			msg = "skipped" if skip else "searching"
 			stderr.writeln("orafind.py: ", df(table), " #", str(i+1), "/", str(len(tables)), ": ", msg)
 		if not skip:
@@ -131,13 +130,13 @@ def main(args=None):
 			for col in table.itercolumns():
 				datatype = col.datatype()
 				if datatype == "clob" or datatype.startswith("varchar2"):
-					if options.ignorecase:
-						where.append("lower({0}) like :searchstring".format(col.name))
+					if args.ignorecase:
+						where.append("lower({}) like :searchstring".format(col.name))
 					else:
-						where.append("{0} like :searchstring".format(col.name))
+						where.append("{} like :searchstring".format(col.name))
 			if not where:
 				continue # no string columns
-			query = "select * from {0} where {1}".format(table.name, " or ".join(where))
+			query = "select * from {} where {}".format(table.name, " or ".join(where))
 			c.execute(query, searchstring=searchstring)
 			for r in c:
 				stdout.writeln("orafind.py: in ", df(table), ": ", repr(r))

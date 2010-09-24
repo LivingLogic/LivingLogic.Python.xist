@@ -485,6 +485,27 @@ Functions
 loop variables).
 
 
+``random``
+::::::::::
+
+``random()`` returns a random float value between 0 (included) and 1 (excluded).
+
+
+``randrange``
+:::::::::::::
+
+``randrange(start, stop, step)`` returns a random integer value between ``start``
+(included) and ``stop`` (excluded). ``step`` specifies the step size (i.e.
+when ``r`` is the random value, ``(r-start) % step`` will always be ``0``.
+``step`` and ``start`` can be ommitted.
+
+
+``randchoice``
+::::::::::::::
+
+``randchoice(seq)`` returns a random item from the sequence ``seq``.
+
+
 ``isnone``
 ::::::::::
 
@@ -615,7 +636,7 @@ a list or dictionary). For example the following code::
 prints::
 
 	0=f;1=o;2=o;
-	
+
 
 ``xmlescape``
 :::::::::::::
@@ -894,10 +915,10 @@ above (except for the linefeeds of course)::
 	<?code weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']?>
 	<?code months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']?>
 	<?code t = 2010-02-22T17:38:40.123456?>
-	<?print weekdays[t.weekday()]?>, 
-	<?print t.day().format('02')?> 
-	<?print months[t.month()-1]?> 
-	<?print t.year().format('04')?> 
+	<?print weekdays[t.weekday()]?>,
+	<?print t.day().format('02')?>
+	<?print months[t.month()-1]?>
+	<?print t.year().format('04')?>
 	<?print t.hour().format('02')?>:
 	<?print t.minute().format('02')?>:
 	<?print t.second().format('02')?>.

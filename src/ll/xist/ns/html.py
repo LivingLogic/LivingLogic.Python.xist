@@ -16,11 +16,9 @@ __ http://www.w3.org/TR/html4/loose.dtd
 """
 
 
-import os, cgi, contextlib, subprocess
+import cgi, subprocess
 
-from ll import url, misc
-from ll.xist import xsc, sims, xfind
-from ll.xist.ns import xml
+from ll.xist import xsc, sims
 
 
 __docformat__ = "reStructuredText"
@@ -51,7 +49,7 @@ class MediaDescAttr(xsc.TextAttr):
 		``True`` if :var:`media` is ``None`` or :var:`self` is empty.
 		"""
 		if media is not None and self:
-			return media in set(m.strip() for m in unicode(self).split(","))
+			return media in {m.strip() for m in unicode(self).split(",")}
 		return True
 
 
@@ -179,13 +177,6 @@ class html(xsc.Element):
 	class Attrs(i18nattrs):
 		class id(xsc.IDAttr): pass
 
-	def convert(self, converter):
-		if converter.lang is not None and self.Attrs.lang not in self.attrs and xml.Attrs.lang not in self.attrs:
-			node = html(self.content, self.attrs, xml.Attrs(lang=converter.lang), lang=converter.lang)
-			return node.convert(converter)
-		else:
-			return super(html, self).convert(converter)
-
 
 class head(xsc.Element):
 	"""
@@ -204,19 +195,6 @@ class title(xsc.Element):
 	xmlns = xmlns
 	class Attrs(i18nattrs):
 		class id(xsc.IDAttr): pass
-
-	def unwrapHTML(self, node, converter):
-		if isinstance(node, xsc.Element) and node.xmlns==xmlns: # is this one of our own elements => filter it out
-			if isinstance(node, img):
-				node = node["alt"]
-			else:
-				node = node.content.mapped(self.unwrapHTML, converter)
-		return node
-
-	def convert(self, converter):
-		content = self.content.convert(converter)
-		content = content.mapped(self.unwrapHTML, converter)
-		return title(content, self.attrs)
 
 
 class base(xsc.Element):
@@ -259,7 +237,7 @@ class meta(xsc.Element):
 					node = self.__class__(
 						self.attrs,
 						http_equiv=u"Content-Type",
-						content=(contenttype, u"; ", u"; ".join(u"{0}={1}".format(*option) for option in options.items()))
+						content=(contenttype, u"; ", u"; ".join(u"{}={}".format(*option) for option in options.items()))
 					)
 					return node.publish(publisher) # return a generator-iterator
 		return super(meta, self).publish(publisher) # return a generator-iterator
@@ -1367,8 +1345,8 @@ def astext(node, encoding="iso-8859-1", width=72):
 
 	options = [
 		"-dump 1",
-		"-dump-charset {0}".format(encoding),
-		"-dump-width {0}".format(width),
+		"-dump-charset {}".format(encoding),
+		"-dump-width {}".format(width),
 		"-force-html",
 		"-no-home",
 		"-no-numbering",
@@ -1378,7 +1356,7 @@ def astext(node, encoding="iso-8859-1", width=72):
 
 	text = node.bytes(encoding=encoding)
 
-	cmd = "elinks {0}".format(" ".join(options))
+	cmd = "elinks {}".format(" ".join(options))
 	p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
 	p.stdin.write(text)
 	p.stdin.close()

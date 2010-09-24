@@ -217,7 +217,7 @@ else:
 	underlines = [i for (i, line) in enumerate(news) if line.startswith("---")]
 	news = news[underlines[0]-1:underlines[1]-1]
 	news = "".join(news)
-	descr = "{0}\n\n\n{1}".format(DESCRIPTION.strip(), news)
+	descr = "{}\n\n\n{}".format(DESCRIPTION.strip(), news)
 
 	# Get rid of text roles PyPI doesn't know about
 	descr = re.subn(":[a-z]+:`([a-zA-Z0-9_.]+)`", "``\\1``", descr)[0]
@@ -227,7 +227,7 @@ else:
 
 args = dict(
 	name="ll-xist",
-	version="3.8.2",
+	version="3.10",
 	description="Extensible HTML/XML generator, cross-platform templating language, Oracle utilities and various other tools",
 	long_description=descr,
 	author="Walter Doerwald",
@@ -235,8 +235,8 @@ args = dict(
 	url="http://www.livinglogic.de/Python/xist/",
 	download_url="http://www.livinglogic.de/Python/Download.html#xist",
 	license="MIT",
-	classifiers=sorted(set(c for c in CLASSIFIERS.strip().splitlines() if c.strip() and not c.strip().startswith("#"))),
-	keywords=", ".join(sorted(set(k.strip() for k in KEYWORDS.strip().splitlines() if k.strip() and not k.strip().startswith("#")))),
+	classifiers=sorted({c for c in CLASSIFIERS.strip().splitlines() if c.strip() and not c.strip().startswith("#")}),
+	keywords=", ".join(sorted({k.strip() for k in KEYWORDS.strip().splitlines() if k.strip() and not k.strip().startswith("#")})),
 	package_dir={"": "src"},
 	packages=["ll", "ll.scripts", "ll.xist", "ll.xist.ns", "ll.xist.scripts", "ll.orasql", "ll.orasql.scripts"],
 	ext_modules=[

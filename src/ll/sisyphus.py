@@ -64,18 +64,18 @@ The following example illustrates the use of this module::
 		def __init__(self):
 			sisyphus.Job.__init__(self, "ACME.FooBar", "Fetch", "log/pwd@logging.acme.com", 180)
 			self.url = "http://www.python.org/"
-			self.tmpname = "Fetch_Tmp_{0}.html".format(os.getpid())
+			self.tmpname = "Fetch_Tmp_{}.html".format(os.getpid())
 			self.officialname = "Python.html"
 
 		def execute(self):
-			self.log("fetching data from {0!r}".format(self.url))
+			self.log("fetching data from {!r}".format(self.url))
 			data = urllib.urlopen(self.url).read()
 			datasize = len(data)
-			self.log("writing file {0!r} ({1} bytes)".format(self.tmpname, datasize))
+			self.log("writing file {!r} ({} bytes)".format(self.tmpname, datasize))
 			open(self.tmpname, "wb").write(data)
-			self.log("renaming file {0!r} to {1!r}".format(self.tmpname, self.officialname))
+			self.log("renaming file {!r} to {!r}".format(self.tmpname, self.officialname))
 			os.rename(self.tmpname, self.officialname)
-			return "cached {0!r} as {1!r} ({2} bytes)".format(self.url, self.officialname, datasize)
+			return "cached {!r} as {!r} ({} bytes)".format(self.url, self.officialname, datasize)
 
 	if __name__=="__main__":
 		sisyphus.execute(Fetch())
@@ -476,9 +476,9 @@ class Job(object):
 			for fileurl in logdir/logdir.files():
 				if fileurl.mdate() < threshold:
 					if not removedany: # Only log this line for the first logfile we remove
-						self.log.sisyphus.info("Removing logfiles older than {0} days".format(keepfilelogs.days))
+						self.log.sisyphus.info("Removing logfiles older than {} days".format(keepfilelogs.days))
 						removedany = True
-					self.log.sisyphus.info("Removing logfile {0}".format(fileurl.local()))
+					self.log.sisyphus.info("Removing logfile {}".format(fileurl.local()))
 					fileurl.remove()
 
 	def execute(self):
@@ -531,7 +531,7 @@ class Job(object):
 				# disk may have been full
 				pidfile.close()
 				self._writepid(pidfilename)
-				self.log.sisyphus.warning(u"ignoring bogus pid file {0} (invalid content)".format(pidfilename))
+				self.log.sisyphus.warning(u"ignoring bogus pid file {} (invalid content)".format(pidfilename))
 			else:
 				pidfile.close()
 				# Check if this process really exists, if not continue as if the pid file wasn't there
@@ -541,7 +541,7 @@ class Job(object):
 					if exc[0] != errno.ESRCH:
 						raise
 					self._writepid(pidfilename)
-					msg = u"ignoring bogus pid file {0} (process with pid {1} doesn't exist)".format(pidfilename, pid)
+					msg = u"ignoring bogus pid file {} (process with pid {} doesn't exist)".format(pidfilename, pid)
 					self.log.sisyphus.warning(msg)
 				else:
 					if self.info.maxruntime and self.info.starttime-lastmodified > self.info.maxruntime: # the job is to old, so it probably hangs => kill it
@@ -551,10 +551,10 @@ class Job(object):
 							if exc[0] != errno.ESRCH: # there was no process
 								raise
 						self._writepid(pidfilename)
-						msg = u"killed previous job running with pid {0} (ran {1} seconds; {2} allowed); here we go!".format(pid, self.info.starttime-lastmodified, self.info.maxruntime)
+						msg = u"killed previous job running with pid {} (ran {} seconds; {} allowed); here we go!".format(pid, self.info.starttime-lastmodified, self.info.maxruntime)
 						self.log.sisyphus.warning(msg)
 					else:
-						msg = u"Job still running (for {0}; {1} allowed; started on {2}) with pid {3} (according to {4})".format(self.info.starttime-lastmodified, lastmodified, pid, pidfilename)
+						msg = u"Job still running (for {}; {} allowed; started on {}) with pid {} (according to {})".format(self.info.starttime-lastmodified, lastmodified, pid, pidfilename)
 						self.log.sisyphus.warning(msg)
 						return # Return without calling :meth:`execute`
 
@@ -565,7 +565,7 @@ class Job(object):
 		except BaseException, exc:
 			# log the error to the logfile, because the job probably didn't have a chance to do it
 			self.log.sisyphus.exc(exc)
-			result = u"failed with {0}".format(self._exc(exc))
+			result = u"failed with {}".format(self._exc(exc))
 			self.log.sisyphus.error(result)
 			if self.__db is not None:
 				self.__db.failed(result)

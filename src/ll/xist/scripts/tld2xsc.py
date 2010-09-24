@@ -21,7 +21,7 @@ For usage information type::
 __docformat__ = "reStructuredText"
 
 
-import sys, optparse
+import sys, argparse
 
 from ll import url
 from ll.xist import xsc, xfind, parse
@@ -45,16 +45,13 @@ def tld2xnd(stream, shareattrs=None):
 
 
 def main(args=None):
-	p = optparse.OptionParser(usage="usage: %prog [options] <input.tld >output_xmlns.py")
-	p.add_option("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements?", choices=("none", "dupes", "all"), default="dupes")
-	p.add_option("-m", "--model", dest="model", default="once", help="Add sims information to the namespace", choices=("no", "all", "once"))
-	p.add_option("-d", "--defaults", action="store_true", dest="defaults", help="Output default values for attributes")
+	p = argparse.ArgumentParser(description="Convert JSP Tag Library Descriptor XML file (on stdin) to XIST namespace (on stdout)")
+	p.add_argument("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements?", choices=("none", "dupes", "all"), default="dupes")
+	p.add_argument("-m", "--model", dest="model", help="Add sims information to the namespace", choices=("no", "all", "once"), default="once")
+	p.add_argument("-d", "--defaults", dest="defaults", action="store_true", help="Output default values for attributes?")
 
-	(options, args) = p.parse_args(args)
-	if len(args) != 0:
-		p.error("incorrect number of arguments")
-		return 1
-	print tld2xnd(sys.stdin, options.shareattrs).aspy(model=options.model, defaults=options.defaults)
+	args = p.parse_args(args)
+	print tld2xnd(sys.stdin, args.shareattrs).aspy(model=args.model, defaults=args.defaults)
 
 
 if __name__ == "__main__":

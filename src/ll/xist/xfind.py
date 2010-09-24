@@ -288,7 +288,7 @@ class IsInstanceSelector(Selector):
 		if len(self.types) == 1:
 			return "{0.types[0].__module__}.{0.types[0].__name__}".format(self)
 		else:
-			return "({0})".format(" | ".join("{0.__module__}.{0.__name__}".format(type) for type in self.types))
+			return "({})".format(" | ".join("{0.__module__}.{0.__name__}".format(type) for type in self.types))
 
 
 class hasname(Selector):
@@ -518,7 +518,7 @@ class hasattr(Selector):
 		return False
 
 	def __str__(self):
-		return "{0}({1})".format(self.__class__.__name__, ", ".join(repr(attrname) for attrname in self.attrnames))
+		return "{}({})".format(self.__class__.__name__, ", ".join(repr(attrname) for attrname in self.attrnames))
 
 
 class hasattr_xml(Selector):
@@ -909,11 +909,11 @@ class BinaryCombinator(Combinator):
 	def __str__(self):
 		left = str(self.left)
 		if isinstance(self.left, Combinator) and not isinstance(self.left, self.__class__):
-			left = "({0})".format(left)
+			left = "({})".format(left)
 		right = str(self.right)
 		if isinstance(self.right, Combinator) and not isinstance(self.right, self.__class__):
-			right = "({0})".format(right)
-		return "{0}{1}{2}".format(left, self.symbol, right)
+			right = "({})".format(right)
+		return "{}{}{}".format(left, self.symbol, right)
 
 
 class ChildCombinator(BinaryCombinator):
@@ -1077,7 +1077,7 @@ class ChainedCombinator(Combinator):
 		for selector in self.selectors:
 			s = str(selector)
 			if isinstance(selector, Combinator) and not isinstance(selector, self.__class__):
-				s = "({0})".format(s)
+				s = "({})".format(s)
 			v.append(s)
 		return self.symbol.join(v)
 
@@ -1176,9 +1176,9 @@ class NotCombinator(Combinator):
 
 	def __str__(self):
 		if isinstance(self.selector, Combinator) and not isinstance(self.selector, NotCombinator):
-			return "~({0})".format(self.selector)
+			return "~({})".format(self.selector)
 		else:
-			return "~{0}".format(self.selector)
+			return "~{}".format(self.selector)
 
 
 class CallableSelector(Selector):

@@ -76,12 +76,12 @@ class Scanner(object):
 				res[mode].append(pattern)
 		for (mode, patterns) in res.iteritems():
 			pattern = re.compile('|'.join(patterns), re.VERBOSE|cls.reflags)
-			index2func = dict((number-1, getattr(cls, name)) for (name, number) in pattern.groupindex.iteritems())
+			index2func = {number-1: getattr(cls, name) for (name, number) in pattern.groupindex.iteritems()}
 			res[mode] = (pattern, index2func)
 		cls.res = res
 
 	def error(self, s, pos):
-		print "Lexical error at position {0}".format(pos)
+		print "Lexical error at position {}".format(pos)
 		raise SystemExit
 
 	def tokenize(self, s):
@@ -262,7 +262,7 @@ class Parser(object):
 		return None
 
 	def error(self, token):
-		print "Syntax error at or near '{0}' token".format(token)
+		print "Syntax error at or near '{}' token".format(token)
 		raise SystemExit
 
 	def parse(self, tokens):

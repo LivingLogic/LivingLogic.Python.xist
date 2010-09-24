@@ -1,3 +1,49 @@
+Migrating to version 3.10
+=========================
+
+Changes to the required Python version
+--------------------------------------
+
+Python 2.7 is required now.
+
+Changes to :mod:`ll.make`
+-------------------------
+
+*	:mod:`ll.make` uses :mod:`argparse` now.
+
+*	:meth:`ll.make.Project.optionparser` has been renamed to :meth:`argparser`
+	and returns a :class:`argparse.ArgumentParser` object now.
+
+*	:meth:`ll.make.Project.parseoptions` has been renamed to :meth:`parseargs`
+	and returns a :class:`argparse.Namespace` object now.
+
+Changes to :mod:`ll.daemon`
+---------------------------
+
+*	:mod:`ll.daemon` uses :mod:`argparse` now. :meth:`ll.daemon.Daemon.optionparser`
+	has been renamed to :meth:`argparser.
+
+
+Migrating to version 3.9
+========================
+
+Changes to :mod:`ll.xist.ns.html`
+---------------------------------
+
+*	:class:`ll.xist.ns.html.html` will no longer change the ``lang`` and
+	``xml:lang`` attributes. This functionality has been moved to the new element
+	:class:`ll.xist.ns.htmlspecials.html`. Furthermore this new element will not
+	change an attribute if this attribute has already been set.
+
+	So if you need the functionality replace any use of
+	:class:`ll.xist.ns.html.html` with :class:`ll.xist.ns.htmlspecials.html`.
+
+*	:class:`ll.xist.ns.html.title` no longer does any manipulation of its content.
+
+	If you needed this functionality, you can copy it from the old ``title``
+	element and put it into your own element class.
+
+
 Migrating to version 3.8
 ========================
 
@@ -230,7 +276,7 @@ Changes to XIST
 					+html.p("The foo page!")
 
 	(i.e. wrap the outermost ``with`` block in another ``with xsc.build()``
-	block.) 
+	block.)
 
 
 Migrating to version 3.3
@@ -626,7 +672,7 @@ The boolean class attribute :attr:`empty` for element classes has been replaced
 by an object :attr:`model`. :attr:`empty` is still supported, but issues a
 :class:`PendingDeprecationWarning`. If you don't want to specify a proper
 content model for your own elements you can replace ``empty = False`` with
-``model = True`` (which is a shortcut for ``model = sims.Any()``) and 
+``model = True`` (which is a shortcut for ``model = sims.Any()``) and
 ``empty = True`` with ``model = False`` (which is a shortcut for
 ``model = sims.Empty()``).
 
@@ -823,7 +869,7 @@ can use the classmethod :meth:`makemod` instead of :meth:`update`, i.e. replace:
 	xmlns = xsc.Namespace("foo", "http://www.foo.com/", vars())
 
 with::
-	
+
 	class xmlns(xsc.Namespace):
 		xmlname = "foo"
 		xmlurl = "http://www.foo.com/"
@@ -915,7 +961,7 @@ Global attributes are supported now, e.g. the attributes ``xml:lang`` and
 
 	from ll.xist import xsc
 	from ll.xist.ns import html, xml
-	
+
 	node = html.html(
 		content,
 		{(xml, "lang"): "en", (xml, "space"): "preserve"},

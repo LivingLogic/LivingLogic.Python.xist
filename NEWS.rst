@@ -1,9 +1,49 @@
-Changes in 3.9 (released ??/??/2010)
+Changes in 3.10 (released 09/24/2010)
+-------------------------------------
+
+*	Python 2.7 is required now as XIST now uses set literals, set and dict
+	comprehension, the new :mod:`argparse` module and various other new features
+	of Python 2.7.
+
+*	All scripts and :mod:`ll.make` have been ported to use :mod:`argparse`.
+
+*	Fixed a bug in :mod:`ll.nightshade`. If the function/procedure didn't set an
+	encoding, the handling of the response body was totally broken (which
+	resulted in a ISO-8859-1 encoded output).
+
+*	:class:`ll.xist.parse.Tidy` now supports an additional parameter: If
+	:var:`skipbad` is true, unknown elements and attributes will be skipped.
+
+*	The random number functions ``random``, ``randrange`` and ``randchoice``
+	have been added to UL4.
+
+*	A new function :func:`ll.misc.prettycsv` has been added. It can be
+	used to pretty print the data produced by the :mod:`csv` module.
+
+
+Changes in 3.9 (released 08/04/2010)
 ------------------------------------
+
+*	:class:`ll.xist.ns.html.html` will no longer change the ``lang`` and
+	``xml:lang`` attributes. This functionality has been moved to the new element
+	:class:`ll.xist.ns.htmlspecials.html`. Furthermore this new element will not
+	change any attribute if it has already been set.
+
+*	:class:`ll.xist.ns.html.title` no longer does any manipulation of its content.
+
+*	the Java string literal formatting function in :mod:`ll.xist.ns.jsp` has been
+	exposed as :func:`javastring`.
 
 *	Fixed a bug in ``oracreate.py``: If the source of procedures and functions
 	didn't have whitespace between the name and the ``(`` the ``(`` was missing
 	from the output.
+
+
+Changes in 3.8.3 (released 07/29/2010)
+--------------------------------------
+
+*	:class:`str` arguments are now always treated as ``BLOB``\s in
+	:mod:`ll.orasql` functions and procedures.
 
 
 Changes in 3.8.2 (released 06/21/2010)
@@ -774,7 +814,7 @@ Changes in 3.0 (released 01/07/2008)
 
 *	Constructing trees can now be done with ``with`` blocks. Code looks like
 	this::
-	
+
 		with xsc.Frag() as node:
 			+xml.XML()
 			+html.DocTypeXHTML10transitional()
@@ -788,7 +828,7 @@ Changes in 3.0 (released 01/07/2008)
 						+xsc.Text("This example page has a link to the ")
 						+html.a("Python home page", href="http://www.python.org/")
 						+xsc.Text(".")
-	
+
 		print node.conv().bytes(encoding="us-ascii")
 
 	Also the function :func:`xsc.append` has been renamed to :func:`add` and
@@ -1600,7 +1640,7 @@ Changes in 2.2 (released 07/31/2003)
 	have to call :meth:`mapped` directly and pass a node and a converter.
 
 *	The HTML handling of the :class:`HTMLParser` has been improved (it now
-	uses code from :mod:`xml.sax.drivers2.drv_sgmlop_html` (which is part of 
+	uses code from :mod:`xml.sax.drivers2.drv_sgmlop_html` (which is part of
 	PyXML__.
 
 	__ http://pyxml.sf.net/
@@ -2599,7 +2639,7 @@ Changes in 0.3.5 (released 07/02/2000)
 	:rfc:`2068` requires.)
 
 *	Image size calculation is now done in :meth:`asString` and not in
-	:meth:`asHTML`.	This allows to write faster code. Old method::
+	:meth:`asHTML`. This allows to write faster code. Old method::
 
 		e = html.div(html.img(...),gurk.hurz()).asHTML().asString()
 

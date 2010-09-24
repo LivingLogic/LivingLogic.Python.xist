@@ -494,11 +494,11 @@ def test_nested():
 	sv = u"x"
 	n = 4
 	for i in xrange(8): # when using 10 compiling the variable will run out of registers
-		sc = u"({0})+({1})".format(sc, sc)
-		sv = u"({0})+({1})".format(sv, sv)
-		n = n+n
-	check(str(n), u'<?print {0}?>'.format(sc))
-	check(str(n), u'<?code x=4?><?print {0}?>'.format(sv))
+		sc = u"({})+({})".format(sc, sc)
+		sv = u"({})+({})".format(sv, sv)
+		n = n + n
+	check(str(n), u'<?print {}?>'.format(sc))
+	check(str(n), u'<?code x=4?><?print {}?>'.format(sv))
 
 
 def test_precedence():
@@ -519,11 +519,11 @@ def test_bracket():
 	sc = u"4"
 	sv = u"x"
 	for i in xrange(10):
-		sc = u"({0})".format(sc)
-		sv = u"({0})".format(sv)
+		sc = u"({})".format(sc)
+		sv = u"({})".format(sv)
 
-	check("4", u'<?print {0}?>'.format(sc))
-	check("4", u'<?code x=4?><?print {0}?>'.format(sv))
+	check("4", u'<?print {}?>'.format(sc))
+	check("4", u'<?code x=4?><?print {}?>'.format(sv))
 
 
 def test_function_now():
@@ -544,6 +544,26 @@ def test_function_vars():
 	checkrunerror("function u?'vars' unknown", "<?print vars(1)?>")
 	checkrunerror("function u?'vars' unknown", "<?print vars(1, 2)?>")
 	check("yes", u"<?if 'spam' in vars()?>yes<?else?>no<?end if?>", spam="eggs")
+
+
+def test_function_random():
+	checkrunerror("function u?'random' unknown", "<?print random(1)?>")
+	checkrunerror("function u?'random' unknown", "<?print random(1, 2)?>")
+	check("ok", u"<?code r = random()?><?if r>=0 and r<1?>ok<?else?>fail<?end if?>")
+
+
+def test_function_randrange():
+	checkrunerror("function u?'randrange' unknown", "<?print randrange()?>")
+	check("ok", u"<?code r = randrange(4)?><?if r>=0 and r<4?>ok<?else?>fail<?end if?>")
+	check("ok", u"<?code r = randrange(17, 23)?><?if r>=17 and r<23?>ok<?else?>fail<?end if?>")
+	check("ok", u"<?code r = randrange(17, 23, 2)?><?if r>=17 and r<23 and r%2?>ok<?else?>fail<?end if?>")
+
+
+def test_function_randchoice():
+	checkrunerror("function u?'randrange' unknown", "<?print randrange()?>")
+	check("ok", u"<?code r = randchoice('abc')?><?if r in 'abc'?>ok<?else?>fail<?end if?>")
+	check("ok", u"<?code s = [17, 23, 42]?><?code r = randchoice(s)?><?if r in s?>ok<?else?>fail<?end if?>")
+	check("ok", u"<?code s = #12345678?><?code sl = [0x12, 0x34, 0x56, 0x78]?><?code r = randchoice(s)?><?if r in sl?>ok<?else?>fail<?end if?>")
 
 
 def test_function_xmlescape():
@@ -1039,7 +1059,7 @@ def test_method_render():
 def test_method_format():
 	now = datetime.datetime.now()
 	format = "%Y-%m-%d %H:%M:%S"
-	check(now.strftime(format), u"<?print data.format('{0}')?>".format(format), data=now)
+	check(now.strftime(format), u"<?print data.format('{}')?>".format(format), data=now)
 	check('987654', u'<?print 2000-02-29T12:34:56.987654.format("%f")?>')
 
 

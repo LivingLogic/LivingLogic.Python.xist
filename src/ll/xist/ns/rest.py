@@ -10,7 +10,7 @@
 
 __docformat__ = "reStructuredText"
 
-import os, optparse, collections, contextlib
+import os, collections, contextlib
 
 from ll import url
 from ll.xist import xsc, sims
@@ -930,8 +930,7 @@ class ReSTConversionWarning(Warning):
 class ReSTConverter(object):
 	def __init__(self):
 		from ll.xist.ns import doc, abbr
-		self.namedrefs = collections.defaultdict()
-		self.namedrefs.default_factory = list
+		self.namedrefs = collections.defaultdict(list)
 		self.unnamedrefs = []
 		self.doc = doc
 		self.abbr = abbr
@@ -1001,7 +1000,7 @@ class ReSTConverter(object):
 			warnings.warn(ReSTConversionWarning(str(node)))
 			return xsc.Null # ignore system messages
 		else:
-			raise TypeError("can't handle {0!r}".format(node.__class__))
+			raise TypeError("can't handle {!r}".format(node.__class__))
 
 
 def fromstring(string, base=None, **options):

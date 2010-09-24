@@ -59,7 +59,8 @@ def test_append():
 		check_lenunicode(node, 6, u"123456")
 		node.append(html.p.Attrs.id(7))
 		check_lenunicode(node, 7, u"1234567")
-		py.test.raises(TypeError, node.append, xml.Attrs(lang=8))
+		with py.test.raises(TypeError):
+			node.append(xml.Attrs(lang=8))
 
 
 def test_extend():
@@ -423,13 +424,13 @@ def test_attributeswithnames():
 
 	assert set(node.attrs.withnames(u"id").keys()) == set()
 
-	assert set(node.attrs.withnames(u"class_").keys()) == set([html.h1.Attrs.class_])
+	assert set(node.attrs.withnames(u"class_").keys()) == {html.h1.Attrs.class_}
 
-	assert set(node.attrs.withnames(u"lang", u"align").keys()) == set([h1.Attrs.lang, html.h1.Attrs.align])
+	assert set(node.attrs.withnames(u"lang", u"align").keys()) == {h1.Attrs.lang, html.h1.Attrs.align}
 
-	assert set(node.attrs.withnames(h1.Attrs.lang, u"align").keys()) == set([h1.Attrs.lang, html.h1.Attrs.align])
+	assert set(node.attrs.withnames(h1.Attrs.lang, u"align").keys()) == {h1.Attrs.lang, html.h1.Attrs.align}
 
-	assert set(node.attrs.withnames(html.h1.Attrs.lang, u"align").keys()) == set([h1.Attrs.lang, html.h1.Attrs.align])
+	assert set(node.attrs.withnames(html.h1.Attrs.lang, u"align").keys()) == {h1.Attrs.lang, html.h1.Attrs.align}
 
 	node = html.h1(
 		u"gurk",
@@ -441,14 +442,14 @@ def test_attributeswithnames():
 
 	assert set(node.attrs.withnames(u"id").keys()) == set()
 
-	assert set(node.attrs.withnames(u"class_").keys()) == set([html.h1.Attrs.class_])
+	assert set(node.attrs.withnames(u"class_").keys()) == {html.h1.Attrs.class_}
 
-	assert set(node.attrs.withnames(u"lang", u"align").keys()) == set([html.h1.Attrs.lang, html.h1.Attrs.align])
+	assert set(node.attrs.withnames(u"lang", u"align").keys()) == {html.h1.Attrs.lang, html.h1.Attrs.align}
 
 	# no h1.Attrs.lang
-	assert set(node.attrs.withnames(h1.Attrs.lang, u"align").keys()) == set([html.h1.Attrs.align])
+	assert set(node.attrs.withnames(h1.Attrs.lang, u"align").keys()) == {html.h1.Attrs.align}
 
-	assert set(node.attrs.withnames(html.h1.Attrs.lang, u"align").keys()) == set([html.h1.Attrs.lang, html.h1.Attrs.align])
+	assert set(node.attrs.withnames(html.h1.Attrs.lang, u"align").keys()) == {html.h1.Attrs.lang, html.h1.Attrs.align}
 
 
 def test_attributeswithnames_xml():
@@ -459,8 +460,8 @@ def test_attributeswithnames_xml():
 		class_=u"gurk",
 		align=u"right"
 	)
-	assert set(node.attrs.withnames_xml(u"class").keys()) == set([html.h1.Attrs.class_])
-	assert set(node.attrs.withnames_xml(xml.Attrs.space).keys()) == set([xml.Attrs.space])
+	assert set(node.attrs.withnames_xml(u"class").keys()) == {html.h1.Attrs.class_}
+	assert set(node.attrs.withnames_xml(xml.Attrs.space).keys()) == {xml.Attrs.space}
 
 
 
@@ -472,7 +473,8 @@ def test_defaultattributes():
 	node = Test()
 	assert u"withdef" in node.attrs
 	assert u"withoutdef" not in node.attrs
-	py.test.raises(xsc.IllegalAttrError, node.attrs.__contains__, u"illegal")
+	with py.test.raises(xsc.IllegalAttrError):
+		u"illegal" in node.attrs
 	node = Test(withdef=None)
 	assert u"withdef" not in node.attrs
 
@@ -594,7 +596,8 @@ def test_withsep():
 
 def test_allowedattr():
 	assert html.a.Attrs.allowedattr(u"href") is html.a.Attrs.href
-	py.test.raises(xsc.IllegalAttrError, html.a.Attrs.allowedattr, u"gurk")
+	with py.test.raises(xsc.IllegalAttrError):
+		html.a.Attrs.allowedattr(u"gurk")
 	assert html.a.Attrs.allowedattr(xml.Attrs.lang) is xml.Attrs.lang
 
 	# Check inherited attributes
@@ -691,7 +694,8 @@ def test_getitem():
 			i = e[xsc.Text]
 			assert unicode(i.next()) == u"foo"
 			assert unicode(i.next()) == u"baz"
-			py.test.raises(StopIteration, i.next)
+			with py.test.raises(StopIteration):
+				i.next()
 
 		# list
 		for attr in (u"class_", xml.Attrs.lang):
@@ -739,8 +743,10 @@ def test_setitem():
 			node = cls(html.div(u"foo", html.div({attr: u"gurk"}), u"bar"))
 			node[[0, 1, attr]] = u"hurz"
 			assert unicode(node[[0, 1, attr]]) == u"hurz"
-			py.test.raises(ValueError, node.__setitem__, [], None)
-			py.test.raises(ValueError, node.__delitem__, [])
+			with py.test.raises(ValueError):
+				node[[]] = None
+			with py.test.raises(ValueError):
+				del node[[]]
 
 
 def test_delitem():

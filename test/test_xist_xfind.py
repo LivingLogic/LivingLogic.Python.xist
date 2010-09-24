@@ -327,7 +327,9 @@ def test_item():
 	assert unicode(e[xsc.Text][9]) == u"9"
 	assert unicode(e[xsc.Text][-1]) == u"9"
 	assert unicode(e[xsc.Text][-10]) == u"0"
-	py.test.raises(IndexError, e[xsc.Text].__getitem__, 10)
-	py.test.raises(IndexError, e[xsc.Text].__getitem__, -11)
+	with py.test.raises(IndexError):
+		e[xsc.Text][10]
+	with py.test.raises(IndexError):
+		e[xsc.Text][-11]
 	assert unicode(misc.item(e[xsc.Text], 10, u"x")) == u"x"
 	assert unicode(misc.item(e[xsc.Text], -11, u"x")) == u"x"

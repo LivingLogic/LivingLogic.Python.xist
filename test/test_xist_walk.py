@@ -106,9 +106,13 @@ def test_walkgetitem():
 	isdiv = xfind.FindTypeAll(html.div)
 	assert unicode(e.walknodes(isdiv)[0]) == u"123"
 	assert unicode(e.walknodes(isdiv)[-1]) == u"3"
-	py.test.raises(IndexError, e.walknodes(isdiv).__getitem__, 3)
-	py.test.raises(IndexError, e.walknodes(isdiv).__getitem__, -4)
+	with py.test.raises(IndexError):
+		e.walknodes(isdiv)[3]
+	with py.test.raises(IndexError):
+		e.walknodes(isdiv)[-4]
 	assert unicode(e.walkpaths(isdiv)[0][-1]) == u"123"
 	assert unicode(e.walkpaths(isdiv)[-1][-1]) == u"3"
-	py.test.raises(IndexError, e.walkpaths(isdiv).__getitem__, 3)
-	py.test.raises(IndexError, e.walkpaths(isdiv).__getitem__, -4)
+	with py.test.raises(IndexError):
+		e.walkpaths(isdiv)[3]
+	with py.test.raises(IndexError):
+		e.walkpaths(isdiv)[-4]

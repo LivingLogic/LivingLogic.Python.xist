@@ -19,7 +19,7 @@ To use XIST you need the following software packages:
 
 	*	`setuptools`_ (if you want to install this package as an egg);
 
-	*	`py.test`_ (if you want to run the test suite)
+	*	`py.test`_ (if you want to run the test suite; at least version 1.3.2)
 
 	*	`execnet`_ (if you want to use ssh URLs)
 

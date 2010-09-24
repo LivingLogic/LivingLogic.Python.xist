@@ -39,7 +39,7 @@ def test_xmlescape():
 			elif c=="'":
 				escape_output.append("&#39;")
 			elif restrictedchars.match(c) is not None:
-				escape_output.append("&#{0};".format(ord(c)))
+				escape_output.append("&#{};".format(ord(c)))
 			else:
 				escape_output.append(c)
 		escape_output = "".join(escape_output)
@@ -57,7 +57,7 @@ def test_xmlescape_text():
 			elif c==u">":
 				escape_output.append(u"&gt;")
 			elif restrictedchars.match(c) is not None:
-				escape_output.append(u"&#{0};".format(ord(c)))
+				escape_output.append(u"&#{};".format(ord(c)))
 			else:
 				escape_output.append(c)
 		escape_output = "".join(escape_output)
@@ -77,7 +77,7 @@ def test_xmlescape_attr():
 			elif c=='"':
 				escape_output.append("&quot;")
 			elif restrictedchars.match(c) is not None:
-				escape_output.append("&#{0};".format(ord(c)))
+				escape_output.append("&#{};".format(ord(c)))
 			else:
 				escape_output.append(c)
 		escape_output = "".join(escape_output)
@@ -94,14 +94,16 @@ def test_item():
 	assert misc.item(e, 0) == 0
 	assert misc.item(e, 0) == 1
 	assert misc.item(e, -1) == 9
-	py.test.raises(IndexError, misc.item, e, -1)
+	with py.test.raises(IndexError):
+		misc.item(e, -1)
 	assert misc.item(e, -1, 42) == 42
 
 	e = iter(range(10))
 	assert misc.item(e, 4) == 4
 
 	e = iter(range(10))
-	py.test.raises(IndexError, misc.item, e, 10)
+	with py.test.raises(IndexError):
+		misc.item(e, 10)
 
 	e = iter(range(10))
 	assert misc.item(e, 10, 42) == 42
@@ -113,7 +115,8 @@ def test_item():
 	assert misc.item(e, -10) == 0
 
 	e = iter(range(10))
-	py.test.raises(IndexError, misc.item, e, -11)
+	with py.test.raises(IndexError):
+		misc.item(e, -11)
 
 	e = iter(range(10))
 	assert misc.item(e, -11, 42) == 42
@@ -121,25 +124,32 @@ def test_item():
 	iterable = [17, 23, 37]
 
 	# Wrong arguments
-	py.test.raises(TypeError, misc.item)
-	py.test.raises(TypeError, misc.item, [])
-	py.test.raises(TypeError, misc.item, 42, 42)
+	with py.test.raises(TypeError):
+		misc.item()
+	with py.test.raises(TypeError):
+		misc.item([])
+	with py.test.raises(TypeError):
+		misc.item(42, 42)
 
 	# Non-negative index
 	assert misc.item(iterable, 0), 17
 	assert misc.item(iterable, 2), 37
-	py.test.raises(IndexError, misc.item, iterable, 3)
+	with py.test.raises(IndexError):
+		misc.item(iterable, 3)
 	assert misc.item(iterable, 3, 42), 42
 	assert misc.item(err(10), 9), 9
-	py.test.raises(SyntaxError, misc.item, err(10), 10)
+	with py.test.raises(SyntaxError):
+		misc.item(err(10), 10)
 
 	# Negative index
 	assert misc.item(iterable, -1), 37
 	assert misc.item(iterable, -3), 17
-	py.test.raises(IndexError, misc.item, iterable, -4)
+	with py.test.raises(IndexError):
+		misc.item(iterable, -4)
 	assert misc.item(iterable, -4, 42), 42
 	# iterator is always exhausted
-	py.test.raises(SyntaxError, misc.item, err(10), -1)
+	with py.test.raises(SyntaxError):
+		misc.item(err(10), -1)
 
 
 def test_first():
@@ -148,7 +158,8 @@ def test_first():
 	assert misc.first(e) == 1
 
 	e = iter([])
-	py.test.raises(IndexError, misc.first, e)
+	with py.test.raises(IndexError):
+		misc.first(e)
 
 	e = iter([])
 	assert misc.first(e, 42) == 42
@@ -157,10 +168,12 @@ def test_first():
 def test_last():
 	e = iter(range(10))
 	assert misc.last(e) == 9
-	py.test.raises(IndexError, misc.last, e)
+	with py.test.raises(IndexError):
+		misc.last(e)
 
 	e = iter([])
-	py.test.raises(IndexError, misc.last, e)
+	with py.test.raises(IndexError):
+		misc.last(e)
 
 	e = iter([])
 	assert misc.last(e, 42) == 42
@@ -187,7 +200,8 @@ def test_iterator_next():
 	e = misc.Iterator(iter(range(2)))
 	assert e.next() == 0
 	assert e.next() == 1
-	py.test.raises(StopIteration, e.next)
+	with py.test.raises(StopIteration):
+		e.next()
 
 
 def test_iterator_getitem():
@@ -195,7 +209,8 @@ def test_iterator_getitem():
 	assert e[0] == 0
 	assert e[0] == 1
 	assert e[-1] == 9
-	py.test.raises(IndexError, e.__getitem__, -1)
+	with py.test.raises(IndexError):
+		e[-1]
 
 
 def test_pool():
@@ -241,4 +256,12 @@ def test_notimplemented():
 		def bad(self):
 			pass
 
-	py.test.raises(NotImplementedError, Bad().bad)
+	with py.test.raises(NotImplementedError):
+		Bad().bad()
+
+
+def test_prettycsv():
+	assert "".join(misc.prettycsv([["a", "b", "c"], ["abc", "defg", "hijkl"]])) == "a     b      c\nabc   defg   hijkl\n"
+	assert "".join(misc.prettycsv([["a", "b "], ["abc", "def"]])) == "a     b\nabc   def\n"
+	assert "".join(misc.prettycsv([["a"], ["abc", "def"]])) == "a\nabc   def\n"
+	assert "".join(misc.prettycsv([["a", "b"], ["abc", "def"]], "..")) == "a  ..b\nabc..def\n"

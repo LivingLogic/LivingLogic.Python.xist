@@ -47,7 +47,7 @@ this::
 """
 
 
-import sys, os, os.path, optparse, warnings, re, datetime, cStringIO, errno, tempfile, operator, types, cPickle, gc, contextlib, locale, gzip
+import sys, os, os.path, argparse, warnings, re, datetime, cStringIO, errno, tempfile, operator, types, cPickle, gc, contextlib, gzip
 
 from ll import misc, url
 
@@ -56,11 +56,6 @@ try:
 except ImportError:
 	from ll import astyle
 
-
-try:
-	locale.setlocale(locale.LC_NUMERIC, "en_US")
-except Exception:
-	pass
 
 __docformat__ = "reStructuredText"
 
@@ -98,7 +93,7 @@ class Level(object):
 		self.reported = reported
 
 	def __repr__(self):
-		return "<{0}.{1} object action={2!r} since={3!r} reportable={4!r} reported={5} at {6:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.action, self.since, self.reportable, self.reported, id(self))
+		return "<{}.{} object action={!r} since={!r} reportable={!r} reported={} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.action, self.since, self.reportable, self.reported, id(self))
 
 
 def report(func):
@@ -159,23 +154,19 @@ def report(func):
 				if project.showdata:
 					args.append(": ")
 					if error is not None:
-						if error.__module__ != "exceptions":
-							text = "{0}.{1}".format(error.__module__, error.__name__)
-						else:
-							text = error.__name__
+						fmt = "{0.__module__}.{0.__name__}" if error.__module__ != "exceptions" else "{0.__name__}"
+						text = fmt.format(error)
 						args.append(s4error(text))
 					elif data is nodata:
 						args.append("nodata")
 					elif isinstance(data, str):
-						args.append(s4data("str ({0}b)".format(len(data))))
+						args.append(s4data("str ({}b)".format(len(data))))
 					elif isinstance(data, unicode):
-						args.append(s4data("unicode ({0}c)".format(len(data))))
+						args.append(s4data("unicode ({}c)".format(len(data))))
 					else:
 						dataclass = data.__class__
-						if dataclass.__module__ != "__builtin__":
-							text = "{0}.{1} @ {2:#x}".format(dataclass.__module__, dataclass.__name__, id(data))
-						else:
-							text = "{0} @ {1:#x}".format(dataclass.__name__, id(data))
+						fmt = "{0.__module__}.{0.__name__} @ {1:#x}" if dataclass.__module__ != "__builtin__" else "{0.__name__} @ {1:#x}"
+						text = fmt.format(dataclass, id(data))
 						args.append(s4data(text))
 				project.writestack(*args)
 		return data
@@ -199,7 +190,7 @@ class RedefinedTargetWarning(Warning):
 		self.key = key
 
 	def __str__(self):
-		return "target with key={0!r} redefined".format(self.key)
+		return "target with key={!r} redefined".format(self.key)
 
 
 class UndefinedTargetError(KeyError):
@@ -212,7 +203,7 @@ class UndefinedTargetError(KeyError):
 		self.key = key
 
 	def __str__(self):
-		return "target {0!r} undefined".format(self.key)
+		return "target {!r} undefined".format(self.key)
 
 
 ###
@@ -280,7 +271,7 @@ def _ipipe_type(obj):
 	try:
 		return obj.type
 	except AttributeError:
-		return "{0}.{1}".format(obj.__class__.__module__, obj.__class__.__name__)
+		return "{}.{}".format(obj.__class__.__module__, obj.__class__.__name__)
 _ipipe_type.__xname__ = "type"
 
 
@@ -389,7 +380,7 @@ class Action(object):
 	def __repr__(self):
 		def format(arg):
 			if isinstance(arg, Action):
-				return " from {0}.{1}".format(arg.__class__.__module__, arg.__class__.__name__)
+				return " from {}.{}".format(arg.__class__.__module__, arg.__class__.__name__)
 			elif isinstance(arg, tuple):
 				return "=(?)"
 			elif isinstance(arg, list):
@@ -397,17 +388,17 @@ class Action(object):
 			elif isinstance(arg, dict):
 				return "={?}"
 			else:
-				return "={0!r}"/format(arg)
+				return "={!r}".format(arg)
 
-		output = ["arg {0}{1}".format(i, format(arg)) for (i, arg) in enumerate(self.getargs())]
+		output = ["arg {}{}".format(i, format(arg)) for (i, arg) in enumerate(self.getargs())]
 		for (argname, arg) in self.getkwargs().iteritems():
-			output.append("arg {0}{1}".format(argname, format(arg)))
+			output.append("arg {}{}".format(argname, format(arg)))
 
 		if output:
-			output = " with {0}".format(", ".join(output))
+			output = " with {}".format(", ".join(output))
 		else:
 			output = ""
-		return "<{0}.{1} object{2} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, output, id(self))
+		return "<{}.{} object{} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, output, id(self))
 
 	@misc.notimplemented
 	def __iter__(self):
@@ -465,7 +456,7 @@ class Action(object):
 					test = str(key.relative(here))
 					if len(test) < len(s):
 						s = test
-					test = "~/{0}".format(key.relative(home))
+					test = "~/{}".format(key.relative(home))
 					if len(test) < len(s):
 						s = test
 				else:
@@ -549,7 +540,7 @@ class CollectAction(TransformAction):
 		return data
 
 	def __repr__(self):
-		return "<{0}.{1} object at {2:#x}>".format(self.__class__.__module__, self.__class__.__name__, id(self))
+		return "<{}.{} object at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, id(self))
 
 
 class PhonyAction(Action):
@@ -601,10 +592,10 @@ class PhonyAction(Action):
 			return None if self.changed > since else nodata
 
 	def __repr__(self):
-		s = "<{0}.{1} object".format(self.__class__.__module__, self.__class__.__name__)
+		s = "<{}.{} object".format(self.__class__.__module__, self.__class__.__name__)
 		if self.key is not None:
-			s += " with key={0!r}".format(self.key)
-		s += " at {0:#x}>".format(id(self))
+			s += " with key={!r}".format(self.key)
+		s += " at {:#x}>".format(id(self))
 		return s
 
 
@@ -672,7 +663,7 @@ class FileAction(TransformAction):
 				return data
 		else: # We have no inputs (i.e. this is a "source" file)
 			if self.changed is bigbang:
-				raise ValueError("source file {0!r} doesn't exist".format(self.key))
+				raise ValueError("source file {!r} doesn't exist".format(self.key))
 		if self.changed > since: # We are up to date now and newer than the output action
 			return self.read(project) # return file data (to output action or client)
 		# else fail through and return :const:`nodata`
@@ -693,7 +684,7 @@ class FileAction(TransformAction):
 		return OwnerAction(self, user, group)
 
 	def __repr__(self):
-		return "<{0}.{1} object key={2!r} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.key, id(self))
+		return "<{}.{} object key={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.key, id(self))
 
 
 class MkDirAction(TransformAction):
@@ -720,7 +711,7 @@ class MkDirAction(TransformAction):
 		self.key.makedirs(self.mode)
 
 	def __repr__(self):
-		return "<{0}.{1} object with mode={2:#03o} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.mode, id(self))
+		return "<{}.{} object with mode={:#03o} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.mode, id(self))
 
 
 class PipeAction(TransformAction):
@@ -751,7 +742,7 @@ class PipeAction(TransformAction):
 		return output
 
 	def __repr__(self):
-		return "<{0}.{1} object with command={2!r} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.command, id(self))
+		return "<{}.{} object with command={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.command, id(self))
 
 
 class CacheAction(TransformAction):
@@ -831,17 +822,17 @@ class CallAction(Action):
 			if len(args) == 1:
 				argsmsg = " with 1 arg"
 			else:
-				argsmsg = " with {0} args".format(len(args))
+				argsmsg = " with {} args".format(len(args))
 		else:
 			argsmsg = " without args"
 		if kwargs:
 			if len(kwargs) == 1:
-				kwargsmsg = " and keyword {0}".format(", ".join(kwargs))
+				kwargsmsg = " and keyword {}".format(", ".join(kwargs))
 			else:
-				kwargsmsg = " and keywords {0}".format(", ".join(kwargs))
+				kwargsmsg = " and keywords {}".format(", ".join(kwargs))
 		else:
 			kwargsmsg = ""
-		project.writestep(self, "Calling {0!r}".format(func), argsmsg, kwargsmsg)
+		project.writestep(self, "Calling {!r}".format(func), argsmsg, kwargsmsg)
 		return func(*args, **kwargs)
 
 
@@ -874,7 +865,7 @@ class CallAttrAction(Action):
 
 	def execute(self, project, obj, attrname, *args, **kwargs):
 		func = getattr(obj, attrname)
-		project.writestep(self, "Calling {0!r}".format(func))
+		project.writestep(self, "Calling {!r}".format(func))
 		return func(*args, **kwargs)
 
 
@@ -897,7 +888,7 @@ class CommandAction(TransformAction):
 		os.system(self.command)
 
 	def __repr__(self):
-		return "<{0}.{1} object command={2!r} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.command, id(self))
+		return "<{}.{} object command={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.command, id(self))
 
 
 class ModeAction(TransformAction):
@@ -926,7 +917,7 @@ class ModeAction(TransformAction):
 		Change the permission bits of the file ``self.getkey()``.
 		"""
 		key = self.getkey()
-		project.writestep(self, "Changing mode of ", project.strkey(key), " to {0:#03o}".format(mode))
+		project.writestep(self, "Changing mode of ", project.strkey(key), " to {:#03o}".format(mode))
 		key.chmod(mode)
 		return data
 
@@ -1071,7 +1062,7 @@ class ModuleAction(TransformAction):
 		return nodata
 
 	def __repr__(self):
-		return "<{0}.{1} object key={2!r} at {3:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.getkey(), id(self))
+		return "<{}.{} object key={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.getkey(), id(self))
 
 
 class FOPAction(TransformAction):
@@ -1186,7 +1177,7 @@ class Project(dict):
 		self.growl = self._getenvbool("LL_MAKE_GROWL", False)
 
 	def __repr__(self):
-		return "<{0}.{1} with {2} targets at {3:#x}>".format(self.__module__, self.__class__.__name__, len(self), id(self))
+		return "<{}.{} with {} targets at {:#x}>".format(self.__module__, self.__class__.__name__, len(self), id(self))
 
 	class showaction(misc.propclass):
 		"""
@@ -1324,11 +1315,11 @@ class Project(dict):
 
 			secs += delta.microseconds/1000000.
 			if rest:
-				text = "{0:d}:{1:02d}:{2:06.3f}h".format(rest, mins, secs)
+				text = "{:d}:{:02d}:{:06.3f}h".format(rest, mins, secs)
 			elif mins:
-				text = "{0:02d}:{1:06.3f}m".format(mins, secs)
+				text = "{:02d}:{:06.3f}m".format(mins, secs)
 			else:
-				text = "{0:.3f}s".format(secs)
+				text = "{:.3f}s".format(secs)
 		return s4time(text)
 
 	def strdatetime(self, dt):
@@ -1336,14 +1327,14 @@ class Project(dict):
 		Return a nicely formatted and colored string for the
 		:class:`datetime.datetime` value :var:`dt`.
 		"""
-		return s4time(dt.strftime("%Y-%m-%d %H:%M:%S"), "{0:06d}".format(dt.microsecond))
+		return s4time(dt.strftime("%Y-%m-%d %H:%M:%S.%f"))
 
 	def strcounter(self, counter):
 		"""
 		Return a nicely formatted and colored string for the counter value
 		:var:`counter`.
 		"""
-		return s4counter("{0}.".format(counter))
+		return s4counter("{}.".format(counter))
 
 	def strerror(self, text):
 		"""
@@ -1366,7 +1357,7 @@ class Project(dict):
 			test = str(key.relative(self.here))
 			if len(test) < len(s):
 				s = test
-			test = "~/{0}".format(key.relative(self.home))
+			test = "~/{}".format(key.relative(self.home))
 			if len(test) < len(s):
 				s = test
 		return s4key(s)
@@ -1496,10 +1487,10 @@ class Project(dict):
 		self.clear()
 		self.create()
 
-	def optionparser(self):
+	def argparser(self):
 		"""
-		Return an :mod:`optparse` parser for parsing the command line options.
-		This can be overwritten in subclasses to add more options.
+		Return an :mod:`argparse` parser for parsing the command line arguments.
+		This can be overwritten in subclasses to add more arguments.
 		"""
 
 		def action2name(action):
@@ -1516,42 +1507,43 @@ class Project(dict):
 			else:
 				return "all"
 
-		actions = ["all", "file", "phony", "filephony", "none"]
-		p = optparse.OptionParser(usage="usage: %prog [options] [targets]")
-		p.add_option("-x", "--ignore", dest="ignoreerrors", help="Ignore errors", action="store_true", default=None)
-		p.add_option("-X", "--noignore", dest="ignoreerrors", help="Don't ignore errors", action="store_false", default=None)
-		p.add_option("-c", "--color", dest="color", help="Use colored output", action="store_true", default=None)
-		p.add_option("-C", "--nocolor", dest="color", help="No colored output", action="store_false", default=None)
-		p.add_option("-g", "--growl", dest="growl", help="Issue growl notification after the build?", action="store_true", default=None)
-		p.add_option("-a", "--showaction", dest="showaction", help="Show actions ({0})?".format(", ".join(actions)), choices=actions, default=action2name(self.showaction))
-		p.add_option("-s", "--showstep", dest="showstep", help="Show steps ({0})?".format(", ".join(actions)), choices=actions, default=action2name(self.showstep))
-		p.add_option("-n", "--shownote", dest="shownote", help="Show notes ({0})?".format(", ".join(actions)), choices=actions, default=action2name(self.shownote))
-		p.add_option("-r", "--showregistration", dest="showregistration", help="Show registration ({0})?".format(", ".join(actions)), choices=actions, default=action2name(self.showregistration))
-		p.add_option("-i", "--showidle", dest="showidle", help="Show actions that didn't produce data?", action="store_true", default=self.showidle)
-		p.add_option("-d", "--showdata", dest="showdata", help="Show data?", action="store_true", default=self.showdata)
+		actions = ("all", "file", "phony", "filephony", "none")
+		p = argparse.ArgumentParser(description="build one or more targets")
+		p.add_argument("targets", metavar="target", help="Target to be built", nargs="*")
+		p.add_argument("-x", "--ignore", dest="ignoreerrors", help="Ignore errors", action="store_true", default=None)
+		p.add_argument("-X", "--noignore", dest="ignoreerrors", help="Don't ignore errors", action="store_false", default=None)
+		p.add_argument("-c", "--color", dest="color", help="Use colored output", action="store_true", default=None)
+		p.add_argument("-C", "--nocolor", dest="color", help="No colored output", action="store_false", default=None)
+		p.add_argument("-g", "--growl", dest="growl", help="Issue growl notification after the build?", action="store_true", default=None)
+		p.add_argument("-a", "--showaction", dest="showaction", help="Show actions?", choices=actions, default=action2name(self.showaction))
+		p.add_argument("-s", "--showstep", dest="showstep", help="Show steps?", choices=actions, default=action2name(self.showstep))
+		p.add_argument("-n", "--shownote", dest="shownote", help="Show notes?", choices=actions, default=action2name(self.shownote))
+		p.add_argument("-r", "--showregistration", dest="showregistration", help="Show registration?", choices=actions, default=action2name(self.showregistration))
+		p.add_argument("-i", "--showidle", dest="showidle", help="Show actions that didn't produce data?", action="store_true", default=self.showidle)
+		p.add_argument("-d", "--showdata", dest="showdata", help="Show data?", action="store_true", default=self.showdata)
 		return p
 
-	def parseoptions(self, commandline=None):
+	def parseargs(self, args=None):
 		"""
-		Use the parser returned by :meth:`optionparser` to parse the option
-		sequence :var:`commandline`, modify :var:`self` accordingly and return
+		Use the parser returned by :meth:`argparser` to parse the argument
+		sequence :var:`args`, modify :var:`self` accordingly and return
 		the result of the parsers :meth:`parse_args` call.
 		"""
-		p = self.optionparser()
-		(options, args) = p.parse_args(commandline)
-		if options.ignoreerrors is not None:
-			self.ignoreerrors = options.ignoreerrors
-		if options.color is not None:
-			self.color = options.color
+		p = self.argparser()
+		args = p.parse_args(args)
+		if args.ignoreerrors is not None:
+			self.ignoreerrors = args.ignoreerrors
+		if args.color is not None:
+			self.color = args.color
 		if self.growl is not None:
-			self.growl = options.growl
-		self.showaction = options.showaction
-		self.showstep = options.showstep
-		self.shownote = options.shownote
-		self.showregistration = options.showregistration
-		self.showidle = options.showidle
-		self.showdata = options.showdata
-		return (options, args)
+			self.growl = args.growl
+		self.showaction = args.showaction
+		self.showstep = args.showstep
+		self.shownote = args.shownote
+		self.showregistration = args.showregistration
+		self.showidle = args.showidle
+		self.showdata = args.showdata
+		return args
 
 	def _get(self, target, since):
 		"""
@@ -1589,8 +1581,7 @@ class Project(dict):
 
 		self.starttime = datetime.datetime.utcnow()
 
-		def format(v):
-			return locale.format("%d", v, True)
+		format = "{:,}".format
 
 		with url.Context():
 			self.stack = []
@@ -1642,32 +1633,30 @@ class Project(dict):
 					filename = "???.py"
 				else:
 					filename = os.path.abspath(module.__file__)
-				cmd = "growlnotify -i py -n ll.make 'll.make done in {0}'".format(self.strtimedelta(now-self.starttime))
+				cmd = "growlnotify -i py -n ll.make 'll.make done in {}'".format(self.strtimedelta(now-self.starttime))
 				import subprocess
 				pipe = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE).stdin
-				pipe.write("{0}\n".format(filename))
-				pipe.write("{0}.{1}\n".format(self.__class__.__module__, self.__class__.__name__))
-				pipe.write("{0} registered targets, ".format(len(self)))
-				pipe.write("{0} actions called, ".format(self.actionscalled))
-				pipe.write("{0} steps executed, ".format(self.stepsexecuted))
-				pipe.write("{0} files/{1} bytes read, ".format(self.filesread, self.bytesread))
-				pipe.write("{0} files/{1} bytes written, ".format(self.fileswritten, self.byteswritten))
-				pipe.write("{0} actions failed".format(self.actionsfailed))
+				pipe.write("{}\n".format(filename))
+				pipe.write("{}.{}\n".format(self.__class__.__module__, self.__class__.__name__))
+				pipe.write("{:,} registered targets, ".format(len(self)))
+				pipe.write("{:,} actions called, ".format(self.actionscalled))
+				pipe.write("{:,} steps executed, ".format(self.stepsexecuted))
+				pipe.write("{:,} files/{:,} bytes read, ".format(self.filesread, self.bytesread))
+				pipe.write("{:,} files/{:,} bytes written, ".format(self.fileswritten, self.byteswritten))
+				pipe.write("{:,} actions failed".format(self.actionsfailed))
 				pipe.close()
 
-	def buildwithargs(self, commandline=None):
+	def buildwithargs(self, args=None):
 		"""
-		For calling make scripts from the command line. :var:`commandline`
-		defaults to ``sys.argv[1:]``. Any positional arguments in the command
-		line will be treated as target ids. If there are no positional arguments,
-		a list of all registered :class:`PhonyAction` objects will be output.
+		For calling make scripts from the command line. :var:`args` defaults to
+		``sys.argv``. Any positional arguments in the command line will be treated
+		as target ids. If there are no positional arguments, a list of all
+		registered :class:`PhonyAction` objects will be output.
 		"""
-		if not commandline:
-			commandline = sys.argv[1:]
-		(options, args) = self.parseoptions(commandline)
+		args = self.parseargs(args)
 
-		if args:
-			self.build(*args)
+		if args.targets:
+			self.build(*args.targets)
 		else:
 			self.writeln("Available phony targets are:")
 			self.writephonytargets()

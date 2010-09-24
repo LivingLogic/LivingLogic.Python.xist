@@ -140,7 +140,8 @@ def test_scopecheck():
 			+xsc.Text(u"hurz")
 			+detox.end(u"for")
 
-	py.test.raises(SyntaxError, makeoutput, e, u"gurk")
+	with py.test.raises(SyntaxError):
+		makeoutput(e, u"gurk")
 
 
 def test_textexpr():
