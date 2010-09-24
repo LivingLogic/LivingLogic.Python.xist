@@ -492,7 +492,7 @@ loop variables).
 
 
 ``randrange``
-:::::::::::
+:::::::::::::
 
 ``randrange(start, stop, step)`` returns a random integer value between ``start``
 (included) and ``stop`` (excluded). ``step`` specifies the step size (i.e.
