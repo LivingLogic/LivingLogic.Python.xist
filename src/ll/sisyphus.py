@@ -18,7 +18,7 @@ one will quit immediately if the first one hasn't exceeded its maximum allowed
 lifetime yet. If it has exceeded the allowed lifetime the first job
 will be killed and the second will start running.
 
-In addition to that, logging features are provided.
+In addition to that, job execution can be logged to files and a database.
 
 To use this module, you must derive your own class from :class:`Job` and
 implement the :meth:`execute` method.
@@ -27,23 +27,6 @@ The job announces its presence (and its process id) in a file that is stored in
 the :dir:`~/run` directory. Logs will be created in the :dir:`~/log` directory
 (This can be changes by deriving new subclasses and overwriting the appropriate
 class attribute).
-
-There are three log files:
-
-	:file:`~/log/jobname_progress.log`
-		The progress of one job execution is logged here. This log file will be
-		truncated at the start of every execution, so you can be rather verbose.
-		Use the :meth:`logProgress` method for writing to this log file.
-
-	:file:`~/log/jobname_loop.log`
-		One log line may be appended to the log after every job execution.
-		Call the method :meth:`logLoop` once at the end of :meth:`execute` for
-		this.
-
-	:file:`~/log/jobname_error.log`
-		Here exceptions happening during the execution of a job will be logged.
-		This is done via the :meth:`logError` method with can be used for
-		reporting other exception conditions apart from exceptions.
 
 To execute a job, use the module level function :func:`execute`.
 
@@ -62,7 +45,7 @@ The following example illustrates the use of this module::
 		"savely fetches an HTML file and saves it to a local file."
 
 		def __init__(self):
-			sisyphus.Job.__init__(self, "ACME.FooBar", "Fetch", "log/pwd@logging.acme.com", 180)
+			sisyphus.Job.__init__(self, "ACME.FooBar", "Fetch", connectstring="log/pwd@logging.acme.com", maxtime=180)
 			self.url = "http://www.python.org/"
 			self.tmpname = "Fetch_Tmp_{}.html".format(os.getpid())
 			self.officialname = "Python.html"
@@ -106,7 +89,7 @@ class DBInfo(object):
 	# Username for logging to the db
 	user = u"ll.sisyphus"
 
-	# The names of procedures to call for certain events
+	# The names of procedures that are called for certain events
 	procname_start = "DGRUN_START"
 	procname_log = "DGRUN_LOG"
 	procname_error = "DGRUN_ERROR"
@@ -305,7 +288,7 @@ class Job(object):
 	# Class to use for all communication with the database
 	DBInfo = DBInfo
 
-	def __init__(self, projectname, jobname, connectstring=None, maxruntime=0):
+	def __init__(self, projectname, jobname, connectstring=None, maxtime=0):
 		"""
 		Create a new :class:`Job` object. Parameters have the following meaning:
 
@@ -324,10 +307,10 @@ class Job(object):
 				If :var:`connectstring` is :const:`None` the job never talks to the
 				database.
 
-			:var:`maxruntime` : :class:`int` or :class:`datetime.timedelta`
+			:var:`maxtime` : :class:`int` or :class:`datetime.timedelta`
 				Maximum allowed runtime for the job (as a :class:`datetime.timedelta`
 				instance or the number of seconds). If a job is started and the
-				previous invocation has been running for more than :var:`maxruntime`
+				previous invocation has been running for more than :var:`maxtime`
 				the previous job will be killed.
 		"""
 		self.info = AttrDict()
@@ -374,20 +357,26 @@ class Job(object):
 		# Current line number
 		self.lineno = 1
 
-		if not isinstance(maxruntime, datetime.timedelta):
-			maxruntime = datetime.timedelta(seconds=maxruntime)
-		self.info.maxruntime = maxruntime
+		if not isinstance(maxtime, datetime.timedelta):
+			maxtime = datetime.timedelta(seconds=maxtime)
+		self.info.maxtime = maxtime
 
 		self.pidfilewritten = False
 
 		self.__db = self.DBInfo(self, connectstring) if connectstring is not None else None
 
 	def _string(self, s):
+		"""
+		Convert :var:`s` to unicode if its a :class:`str`.
+		"""
 		if isinstance(s, str):
 			s = s.decode(self.inputencoding, self.inputerrors)
 		return s
 
 	def _exc(self, exc):
+		"""
+		Format an exception object for logging.
+		"""
 		if exc.__class__.__module__ not in ("__builtin__", "exceptions"):
 			fmt = u"{0.__class__.__module__}.{0.__class__.__name__}: {0}"
 		else:
@@ -544,14 +533,14 @@ class Job(object):
 					msg = u"ignoring bogus pid file {} (process with pid {} doesn't exist)".format(pidfilename, pid)
 					self.log.sisyphus.warning(msg)
 				else:
-					if self.info.maxruntime and self.info.starttime-lastmodified > self.info.maxruntime: # the job is to old, so it probably hangs => kill it
+					if self.info.maxtime and self.info.starttime-lastmodified > self.info.maxtime: # the job is to old, so it probably hangs => kill it
 						try:
 							os.kill(pid, 9)
 						except OSError, exc:
 							if exc[0] != errno.ESRCH: # there was no process
 								raise
 						self._writepid(pidfilename)
-						msg = u"killed previous job running with pid {} (ran {} seconds; {} allowed); here we go!".format(pid, self.info.starttime-lastmodified, self.info.maxruntime)
+						msg = u"killed previous job running with pid {} (ran {} seconds; {} allowed); here we go!".format(pid, self.info.starttime-lastmodified, self.info.maxtime)
 						self.log.sisyphus.warning(msg)
 					else:
 						msg = u"Job still running (for {}; {} allowed; started on {}) with pid {} (according to {})".format(self.info.starttime-lastmodified, lastmodified, pid, pidfilename)
