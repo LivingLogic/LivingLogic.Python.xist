@@ -1,3 +1,9 @@
+Changes in 3.11 (released ??/??/2010)
+-------------------------------------
+
+*	Various attributes of UL4 templates are exposed to UL4 itself.
+
+
 Changes in 3.10 (released 09/24/2010)
 -------------------------------------
 
