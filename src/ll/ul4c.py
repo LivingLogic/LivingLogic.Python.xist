@@ -75,7 +75,7 @@ class Location(object):
 		self.endcode = endcode
 
 	def __getitem__(self, key):
-		if key in {"source", "type", "starttag", "endtag", "startcode", "endcode"}:
+		if key in {"type", "starttag", "endtag", "startcode", "endcode"}:
 			return getattr(self, key)
 		raise KeyError(key)
 
