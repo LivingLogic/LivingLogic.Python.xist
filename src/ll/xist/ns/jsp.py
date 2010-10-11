@@ -446,7 +446,7 @@ def fromul4(template, variables="variables", indent=0):
 				raise ul4c.UnknownMethodError(opcode.arg)
 		elif opcode.code == "callmethkw":
 			if opcode.arg == "render":
-				make_scriptlet(u"r{op.r1} = ((com.livinglogic.ul4.Template)r{op.r3}).renders((java.util.Map)r{op.r3});".format(op=opcode))
+				make_scriptlet(u"r{op.r1} = ((com.livinglogic.ul4.Template)r{op.r2}).renders((java.util.Map)r{op.r3});".format(op=opcode))
 			else:
 				raise ul4c.UnknownMethodError(opcode.arg)
 		elif opcode.code == "if":
