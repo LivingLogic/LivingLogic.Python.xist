@@ -384,7 +384,7 @@ The def tag defined a new template as a variable. Usage looks like this::
 This template can be called like any other template, that has been passed to
 the outermost template::
 
-	<?quote.render(text="foo")?>
+	<?render quote(text="foo")?>
 
 
 ``note``
