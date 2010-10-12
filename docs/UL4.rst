@@ -928,7 +928,7 @@ above (except for the linefeeds of course)::
 ``yearday``
 :::::::::::
 
-``yearday`` is a date method. It returns they number of days since the beginning
+``yearday`` is a date method. It returns the number of days since the beginning
 of the year, so::
 
 	<?print 2010-01-01T.yearday()?>
