@@ -304,15 +304,15 @@ def fromul4(template, variables="variables", indent=0):
 			indent += 1
 			for i in xrange(10):
 				make_scriptlet(u"Object r{} = null;".format(i))
-			defs.append((opcode.arg, variables))
+			defs.append((opcode.arg, variables, varcounter))
 			variables = "variables"
 		elif opcode.code == "enddef":
 			indent -= 1
 			make_scriptlet(u"}")
 			indent -= 1
 			make_scriptlet(u"};")
-			(arg, variables) = defs.pop()
-			make_scriptlet(u"{var}.put({arg}, template{count});".format(var=variables, arg=javastring(arg), countr=varcounter))
+			(arg, variables, oldcounter) = defs.pop()
+			make_scriptlet(u"{var}.put({arg}, template{count});".format(var=variables, arg=javastring(arg), count=oldcounter))
 		elif opcode.code == "break":
 			make_scriptlet(u"break;")
 		elif opcode.code == "continue":
