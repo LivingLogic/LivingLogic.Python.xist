@@ -74,6 +74,11 @@ class Location(object):
 		self.startcode = startcode
 		self.endcode = endcode
 
+	def __getitem__(self, key):
+		if key in {"type", "starttag", "endtag", "startcode", "endcode"}:
+			return getattr(self, key)
+		raise KeyError(key)
+
 	@property
 	def code(self):
 		return self.source[self.startcode:self.endcode]
@@ -470,6 +475,11 @@ class Opcode(object):
 		self.arg = arg
 		self.location = location
 
+	def __getitem__(self, key):
+		if key in {"code", "r1", "r2", "r3", "r4", "r5", "arg", "location"}:
+			return getattr(self, key)
+		raise KeyError(key)
+
 	def __repr__(self):
 		v = ["<", self.__class__.__name__, " code={!r}".format(self.code)]
 		for attrname in ("r1", "r2", "r3", "r4", "r5", "arg"):
@@ -591,6 +601,11 @@ class Template(object):
 		self.defs = []
 		if source is not None:
 			self._compile(source, startdelim, enddelim)
+
+	def __getitem__(self, key):
+		if key in {"startdelim", "enddelim", "source", "opcodes"}:
+			return getattr(self, key)
+		raise KeyError(key)
 
 	@classmethod
 	def loads(cls, data):

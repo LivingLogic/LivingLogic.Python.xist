@@ -806,7 +806,7 @@ class hasid(Selector):
 		>>> for node in doc.walknodes(xfind.hasid("logo")):
 		... 	print node.bytes()
 		...
-		<img src="http://www.python.org/images/python-logo.gif" id="logo" alt="homepage" border="0" />
+		<img border="0" alt="homepage" id="logo" src="http://www.python.org/images/python-logo.gif" />
 	"""
 
 	def __init__(self, *ids):
@@ -1262,7 +1262,7 @@ class nthoftype(Selector):
 		>>> for node in doc.walknodes(xfind.nthoftype(0, html.h2)):
 		... 	print node.bytes()
 		...
-		<h2 class="news">PyCon Australia program</h2>
+		<h2 class="news">Python 3.2 alpha 2 released</h2>
 	"""
 
 	def __init__(self, index, *types):

@@ -384,7 +384,7 @@ The def tag defined a new template as a variable. Usage looks like this::
 This template can be called like any other template, that has been passed to
 the outermost template::
 
-	<?quote.render(text="foo")?>
+	<?render quote(text="foo")?>
 
 
 ``note``
@@ -928,7 +928,7 @@ above (except for the linefeeds of course)::
 ``yearday``
 :::::::::::
 
-``yearday`` is a date method. It returns they number of days since the beginning
+``yearday`` is a date method. It returns the number of days since the beginning
 of the year, so::
 
 	<?print 2010-01-01T.yearday()?>

@@ -1286,3 +1286,19 @@ def test_pythonsource():
 def test_pythonfunction():
 	t = universaltemplate()
 	t.pythonfunction()
+
+
+def test_templateattributes():
+	s = "<?print x?>"
+	t = ul4c.compile(s)
+	check("<?", u"<?print template.startdelim?>", template=t)
+	check("?>", u"<?print template.enddelim?>", template=t)
+	check(s, u"<?print template.source?>", template=t)
+	check("2", u"<?print len(template.opcodes)?>", template=t)
+	check("loadvar", u"<?print template.opcodes[0].code?>", template=t)
+	check("0", u"<?print template.opcodes[0].r1?>", template=t)
+	check("", u"<?print template.opcodes[0].r2?>", template=t)
+	check("x", u"<?print template.opcodes[0].arg?>", template=t)
+	check("x", u"<?print template.opcodes[0].arg?>", template=t)
+	check(s, u"<?code loc = template.opcodes[0].location?><?print template.source[loc.starttag:loc.endtag]?>", template=t)
+	check("x", u"<?code loc = template.opcodes[0].location?><?print template.source[loc.startcode:loc.endcode]?>", template=t)
