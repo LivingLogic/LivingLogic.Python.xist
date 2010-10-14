@@ -46,7 +46,7 @@ The following example illustrates the use of this module::
 		projectname = "ACME.FooBar"
 		jobname = "Fetch"
 		maxtime = 180
-		argdescription = "savely fetches http://www.python.org/ and saves it to a local file"
+		argdescription = "fetches http://www.python.org/ and saves it to a local file"
 
 		def __init__(self):
 			self.url = "http://www.python.org/"
