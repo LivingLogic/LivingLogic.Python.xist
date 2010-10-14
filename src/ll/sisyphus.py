@@ -352,8 +352,8 @@ class Job(object):
 
 	def _log(self, tags, *texts):
 		"""
-		Log items in :var:`texts` to the log file and/or the database using
-		:var:`tags` as the list of tags.
+		Log items in :var:`texts` to the log file using :var:`tags` as the list
+		of tags.
 		"""
 		if self.log2file:
 			timestamp = datetime.datetime.now()
