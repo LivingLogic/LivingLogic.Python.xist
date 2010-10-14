@@ -365,7 +365,7 @@ class Job(object):
 				elif not isinstance(text, unicode):
 					text = self._string(pprint.pformat(text))
 				lines = text.splitlines()
-				if lines and not len(lines[-1]):
+				if lines and not lines[-1].strip():
 					del lines[-1]
 				for line in lines:
 					text = self._formatlogline.renders(line=line, time=timestamp, tags=tags, **self.info)
