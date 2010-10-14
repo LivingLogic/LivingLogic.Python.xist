@@ -21,7 +21,7 @@ Changes to :mod:`ll.daemon`
 ---------------------------
 
 *	:mod:`ll.daemon` uses :mod:`argparse` now. :meth:`ll.daemon.Daemon.optionparser`
-	has been renamed to :meth:`argparser.
+	has been renamed to :meth:`argparser`.
 
 
 Migrating to version 3.9
