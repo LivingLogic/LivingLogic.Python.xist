@@ -64,7 +64,7 @@ The following example illustrates the use of this module::
 			return "cached {!r} as {!r} ({} bytes)".format(self.url, self.officialname, datasize)
 
 	if __name__=="__main__":
-		sisyphus.execute(Fetch())
+		sisyphus.executewithargs(Fetch())
 """
 
 
