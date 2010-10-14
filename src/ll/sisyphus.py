@@ -172,6 +172,54 @@ class Job(object):
 	outputencoding = u"utf-8"
 	outputerrors = u"strict"
 
+	def execute(self):
+		"""
+		Execute the job once. The return value is a one line summary of what the
+		job did. Overwrite in subclasses.
+		"""
+		return u"done"
+
+	def failed(self):
+		"""
+		Called when running the job generated an exception. Overwrite in
+		subclasses, to e.g. rollback your database transactions.
+		"""
+		pass
+
+	def argparser(self):
+		"""
+		Return an :mod:`argparse` parser for parsing the command line arguments.
+		This can be overwritten in subclasses to add more arguments.
+		"""
+		p = argparse.ArgumentParser(description=self.argdescription)
+		p.add_argument("-p", "--projectname", dest="projectname", metavar="NAME", help="The name of the project this job belongs to", type=self._string, default=self.projectname)
+		p.add_argument("-j", "--jobname", dest="jobname", metavar="NAME", help="The name of the job", type=self._string, default=self.jobname if self.jobname is not None else self.__class__.__name__)
+		p.add_argument("-m", "--maxtime", dest="maxtime", metavar="SECONDS", help="Maximum number of seconds the job is allowed to run", type=int, default=self.info.maxtime.total_seconds())
+		p.add_argument(      "--keepfilelogs", dest="keepfilelogs", metavar="DAYS", help="Number of days log files are kept", type=float, default=self.keepfilelogs)
+		p.add_argument(      "--inputencoding", dest="inputencoding", metavar="ENCODING", help="Encoding for system data (i.e. crontab etc.)", default=self.inputencoding)
+		p.add_argument(      "--inputerrors", dest="inputerrors", metavar="METHOD", help="Error handling method for encoding errors in system data", default=self.inputerrors)
+		p.add_argument(      "--outputencoding", dest="outputencoding", metavar="ENCODING", help="Encoding for the log file", default=self.outputencoding)
+		p.add_argument(      "--outputerrors", dest="outputerrors", metavar="METHOD", help="Error handling method for encoding errors in log texts", default=self.outputerrors)
+		return p
+
+	def parseargs(self, args=None):
+		"""
+		Use the parser returned by :meth:`argparser` to parse the argument
+		sequence :var:`args`, modify :var:`self` accordingly and return
+		the result of the parsers :meth:`parse_args` call.
+		"""
+		p = self.argparser()
+		args = p.parse_args(args)
+		self.info.projectname = args.projectname
+		self.info.jobname = args.jobname
+		self.info.maxtime = datetime.timedelta(seconds=args.maxtime)
+		self.keepfilelogs = datetime.timedelta(days=args.keepfilelogs)
+		self.inputencoding = args.inputencoding
+		self.inputerrors = args.inputerrors
+		self.outputencoding = args.outputencoding
+		self.outputerrors = args.outputerrors
+		return args
+
 	def _setup(self):
 		self.info = AttrDict()
 		self.info.connectstring = self._string(self.connectstring)
@@ -224,161 +272,6 @@ class Job(object):
 		self.lineno = 1
 
 		self.pidfilewritten = False
-
-	def _string(self, s):
-		"""
-		Convert :var:`s` to unicode if it's a :class:`str`.
-		"""
-		if isinstance(s, str):
-			s = s.decode(self.inputencoding, self.inputerrors)
-		return s
-
-	def _exc(self, exc):
-		"""
-		Format an exception object for logging.
-		"""
-		if exc.__class__.__module__ not in ("__builtin__", "exceptions"):
-			fmt = u"{0.__class__.__module__}.{0.__class__.__name__}: {0}"
-		else:
-			fmt = u"{0.__class__.__name__}: {0}"
-		return fmt.format(exc)
-
-	def _log(self, tags, *texts):
-		"""
-		Log items in :var:`texts` to the log file and/or the database using
-		:var:`tags` as the list of tags.
-		"""
-		if self.log2file:
-			timestamp = datetime.datetime.now()
-			for text in texts:
-				text = self._string(text)
-				if isinstance(text, BaseException):
-					tb = u"".join(traceback.format_tb(sys.exc_info()[-1]))
-					text = u"{tb}\n{exc}".format(tb=tb, exc=self._exc(text))
-				elif not isinstance(text, unicode):
-					text = self._string(pprint.pformat(text))
-				lines = text.splitlines()
-				if lines and not len(lines[-1]):
-					del lines[-1]
-				for line in lines:
-					text = self._formatlogline.renders(line=line, time=timestamp, tags=tags, **self.info)
-					self._logfile.write(text.encode(self.outputencoding, self.outputerrors))
-					self._logfile.flush()
-					self.lineno += 1
-
-	def _writepid(self, pidfilename):
-		"""
-		Create the file containing the pid of the current process.
-		"""
-		if not self.pidfilewritten:
-			with contextlib.closing(url.File(pidfilename).openwrite()) as file:
-				file.write(str(self.info.pid))
-			self.pidfilewritten = True
-
-	def _killpid(self, pidfilename):
-		"""
-		Delete the pid file.
-		"""
-		if self.pidfilewritten:
-			url.File(pidfilename).remove()
-			self.pidfilewritten = False
-
-	def _createlog(self):
-		"""
-		Create the logfile and a link to this logfile (if requested).
-		"""
-		self._logfile = None
-		self._logfilename = None
-		self._loglinename = None
-		if self.log2file:
-			logfilename = ul4c.compile(self.logfilename).renders(**self.info)
-			lf = self._logfilename = url.File(logfilename).abs()
-			self._logfile = lf.openwrite()
-
-			if self.loglinkname is not None:
-				loglinkname = ul4c.compile(self.loglinkname).renders(**self.info)
-				ll = self._loglinkname = url.File(loglinkname).abs()
-				try:
-					lf.symlink(ll)
-				except OSError, exc:
-					if exc[0] == errno.EEXIST:
-						ll.remove()
-						lf.symlink(ll)
-					else:
-						raise
-		self.log = Tag(self._log)
-
-	def _cleanupoldlogs(self):
-		"""
-		Remove old logfiles.
-		"""
-		if self._logfile and self.keepfilelogs is not None:
-			removedany = False
-			keepfilelogs = self.keepfilelogs
-			if not isinstance(keepfilelogs, datetime.timedelta):
-				keepfilelogs = datetime.timedelta(days=keepfilelogs)
-			threshold = datetime.datetime.utcnow() - keepfilelogs # Files older that this will be deleted
-			logdir = self._logfile.url.withoutfile()
-			for fileurl in logdir/logdir.files():
-				fileurl = logdir/fileurl
-				# Never delete the current log file or the link to it, even if keepfilelogs is 0
-				if fileurl == self._logfile.url or fileurl == self._loglinkname:
-					continue
-				# If the file is to old, delete it (not that this might delete files that were not produced by sisyphus)
-				if fileurl.mdate() < threshold:
-					if not removedany: # Only log this line for the first logfile we remove
-						self.log.sisyphus.info("Removing logfiles older than {}".format(keepfilelogs))
-						removedany = True
-					self.log.sisyphus.info("Removing logfile {}".format(fileurl.local()))
-					fileurl.remove()
-
-	def argparser(self):
-		"""
-		Return an :mod:`argparse` parser for parsing the command line arguments.
-		This can be overwritten in subclasses to add more arguments.
-		"""
-		p = argparse.ArgumentParser(description=self.argdescription)
-		p.add_argument("-p", "--projectname", dest="projectname", metavar="NAME", help="The name of the project this job belongs to", type=self._string, default=self.projectname)
-		p.add_argument("-j", "--jobname", dest="jobname", metavar="NAME", help="The name of the job", type=self._string, default=self.jobname if self.jobname is not None else self.__class__.__name__)
-		p.add_argument("-m", "--maxtime", dest="maxtime", metavar="SECONDS", help="Maximum number of seconds the job is allowed to run", type=int, default=self.info.maxtime.total_seconds())
-		p.add_argument(      "--keepfilelogs", dest="keepfilelogs", metavar="DAYS", help="Number of days log files are kept", type=float, default=self.keepfilelogs)
-		p.add_argument(      "--inputencoding", dest="inputencoding", metavar="ENCODING", help="Encoding for system data (i.e. crontab etc.)", default=self.inputencoding)
-		p.add_argument(      "--inputerrors", dest="inputerrors", metavar="METHOD", help="Error handling method for encoding errors in system data", default=self.inputerrors)
-		p.add_argument(      "--outputencoding", dest="outputencoding", metavar="ENCODING", help="Encoding for the log file", default=self.outputencoding)
-		p.add_argument(      "--outputerrors", dest="outputerrors", metavar="METHOD", help="Error handling method for encoding errors in log texts", default=self.outputerrors)
-		return p
-
-	def parseargs(self, args=None):
-		"""
-		Use the parser returned by :meth:`argparser` to parse the argument
-		sequence :var:`args`, modify :var:`self` accordingly and return
-		the result of the parsers :meth:`parse_args` call.
-		"""
-		p = self.argparser()
-		args = p.parse_args(args)
-		self.info.projectname = args.projectname
-		self.info.jobname = args.jobname
-		self.info.maxtime = datetime.timedelta(seconds=args.maxtime)
-		self.keepfilelogs = datetime.timedelta(days=args.keepfilelogs)
-		self.inputencoding = args.inputencoding
-		self.inputerrors = args.inputerrors
-		self.outputencoding = args.outputencoding
-		self.outputerrors = args.outputerrors
-		return args
-
-	def execute(self):
-		"""
-		Execute the job once. The return value is a one line summary of what the
-		job did. Overwrite in subclasses.
-		"""
-		return u"done"
-
-	def failed(self):
-		"""
-		Called when running the job generated an exception. Overwrite in
-		subclasses, to e.g. rollback your database transactions.
-		"""
-		pass
 
 	def _handleexecution(self):
 		"""
@@ -456,6 +349,113 @@ class Job(object):
 		finally:
 			self._logfile.close()
 		self._killpid(pidfilename) # finished => remove the pid file
+
+	def _log(self, tags, *texts):
+		"""
+		Log items in :var:`texts` to the log file and/or the database using
+		:var:`tags` as the list of tags.
+		"""
+		if self.log2file:
+			timestamp = datetime.datetime.now()
+			for text in texts:
+				text = self._string(text)
+				if isinstance(text, BaseException):
+					tb = u"".join(traceback.format_tb(sys.exc_info()[-1]))
+					text = u"{tb}\n{exc}".format(tb=tb, exc=self._exc(text))
+				elif not isinstance(text, unicode):
+					text = self._string(pprint.pformat(text))
+				lines = text.splitlines()
+				if lines and not len(lines[-1]):
+					del lines[-1]
+				for line in lines:
+					text = self._formatlogline.renders(line=line, time=timestamp, tags=tags, **self.info)
+					self._logfile.write(text.encode(self.outputencoding, self.outputerrors))
+					self._logfile.flush()
+					self.lineno += 1
+
+	def _createlog(self):
+		"""
+		Create the logfile and a link to this logfile (if requested).
+		"""
+		self._logfile = None
+		self._logfilename = None
+		self._loglinename = None
+		if self.log2file:
+			logfilename = ul4c.compile(self.logfilename).renders(**self.info)
+			lf = self._logfilename = url.File(logfilename).abs()
+			self._logfile = lf.openwrite()
+
+			if self.loglinkname is not None:
+				loglinkname = ul4c.compile(self.loglinkname).renders(**self.info)
+				ll = self._loglinkname = url.File(loglinkname).abs()
+				try:
+					lf.symlink(ll)
+				except OSError, exc:
+					if exc[0] == errno.EEXIST:
+						ll.remove()
+						lf.symlink(ll)
+					else:
+						raise
+		self.log = Tag(self._log)
+
+	def _cleanupoldlogs(self):
+		"""
+		Remove old logfiles.
+		"""
+		if self._logfile and self.keepfilelogs is not None:
+			removedany = False
+			keepfilelogs = self.keepfilelogs
+			if not isinstance(keepfilelogs, datetime.timedelta):
+				keepfilelogs = datetime.timedelta(days=keepfilelogs)
+			threshold = datetime.datetime.utcnow() - keepfilelogs # Files older that this will be deleted
+			logdir = self._logfile.url.withoutfile()
+			for fileurl in logdir/logdir.files():
+				fileurl = logdir/fileurl
+				# Never delete the current log file or the link to it, even if keepfilelogs is 0
+				if fileurl == self._logfile.url or fileurl == self._loglinkname:
+					continue
+				# If the file is to old, delete it (not that this might delete files that were not produced by sisyphus)
+				if fileurl.mdate() < threshold:
+					if not removedany: # Only log this line for the first logfile we remove
+						self.log.sisyphus.info("Removing logfiles older than {}".format(keepfilelogs))
+						removedany = True
+					self.log.sisyphus.info("Removing logfile {}".format(fileurl.local()))
+					fileurl.remove()
+
+	def _writepid(self, pidfilename):
+		"""
+		Create the file containing the pid of the current process.
+		"""
+		if not self.pidfilewritten:
+			with contextlib.closing(url.File(pidfilename).openwrite()) as file:
+				file.write(str(self.info.pid))
+			self.pidfilewritten = True
+
+	def _killpid(self, pidfilename):
+		"""
+		Delete the pid file.
+		"""
+		if self.pidfilewritten:
+			url.File(pidfilename).remove()
+			self.pidfilewritten = False
+
+	def _string(self, s):
+		"""
+		Convert :var:`s` to unicode if it's a :class:`str`.
+		"""
+		if isinstance(s, str):
+			s = s.decode(self.inputencoding, self.inputerrors)
+		return s
+
+	def _exc(self, exc):
+		"""
+		Format an exception object for logging.
+		"""
+		if exc.__class__.__module__ not in ("__builtin__", "exceptions"):
+			fmt = u"{0.__class__.__module__}.{0.__class__.__name__}: {0}"
+		else:
+			fmt = u"{0.__class__.__name__}: {0}"
+		return fmt.format(exc)
 
 
 def execute(job):
