@@ -18,7 +18,7 @@ one will quit immediately if the first one hasn't exceeded its maximum allowed
 lifetime yet. If it has exceeded the allowed lifetime the first job
 will be killed and the second will start running.
 
-In addition to that, job execution can be logged to files and a database.
+In addition to that, job execution can be logged.
 
 To use this module, you must derive your own class from :class:`Job` and
 implement the :meth:`execute` method.
@@ -28,7 +28,8 @@ the :dir:`~/run` directory. Logs will be created in the :dir:`~/log` directory
 (This can be changes by deriving new subclasses and overwriting the appropriate
 class attribute).
 
-To execute a job, use the module level function :func:`execute`.
+To execute a job, use the module level function :func:`execute` (or
+:func:`executewithargs` when you want to support command line argument).
 
 Example
 -------
@@ -42,10 +43,12 @@ The following example illustrates the use of this module::
 	from ll import sisyphus
 
 	class Fetch(sisyphus.Job):
-		"savely fetches an HTML file and saves it to a local file."
+		projectname = "ACME.FooBar"
+		jobname = "Fetch"
+		maxtime = 180
+		argdescription = "savely fetches http://www.python.org/ and saves it to a local file"
 
 		def __init__(self):
-			sisyphus.Job.__init__(self, "ACME.FooBar", "Fetch", connectstring="log/pwd@logging.acme.com", maxtime=180)
 			self.url = "http://www.python.org/"
 			self.tmpname = "Fetch_Tmp_{}.html".format(os.getpid())
 			self.officialname = "Python.html"
@@ -83,14 +86,20 @@ encodingdeclaration = re.compile(r"coding[:=]\s*([-\w.]+)")
 
 
 class Tag(object):
-	def __init__(self, logger, *tags):
-		self.logger = logger
+	"""
+	A :class:`Tag` object can be used to call a function with an additional list
+	of tags. Tags ca be added via :meth:`__getattr__` or :meth:`__getitem__` calls.
+	"""
+	def __init__(self, log, *tags):
+		self.log = log
 		self.tags = tags
 		self._map = {}
 
 	def __getattr__(self, tag):
+		if tag in self.tags: # Avoid duplicate tags
+			return self
 		if tag not in self._map:
-			newtag = Tag(self.logger, *(self.tags + (tag,)))
+			newtag = Tag(self.log, *(self.tags + (tag,)))
 			self._map[tag] = newtag
 			return newtag
 		else:
@@ -99,144 +108,13 @@ class Tag(object):
 	__getitem__ = __getattr__
 
 	def __call__(self, *texts, **kwargs):
-		self.logger(self.tags, *texts, **kwargs)
-
-
-class DBInfo(object):
-	"""
-	This object handles all communcation with the database
-	"""
-	# Username for logging to the db
-	user = u"ll.sisyphus"
-
-	# The names of procedures that are called for certain events
-	procname_start = "DGRUN_START"
-	procname_log = "DGRUN_LOG"
-	procname_error = "DGRUN_ERROR"
-	procname_failed = "DGRUN_FAILED"
-	procname_end = "DGRUN_END"
-
-	def __init__(self, job):
-		self.job = job
-
-	def start(self):
-		"""
-		Start logging. If :meth:`start` returns false, the job will not run.
-		"""
-		from ll import orasql
-		self.db = orasql.connect(self.job.info.connectstring, threaded=True)
-		self.dbrun_start = orasql.Procedure(self.procname_start)
-		self.dbrun_log = orasql.Procedure(self.procname_log)
-		self.dbrun_error = orasql.Procedure(self.procname_error)
-		self.dbrun_failed = orasql.Procedure(self.procname_failed)
-		self.dbrun_end = orasql.Procedure(self.procname_end)
-		self.cursor = self.db.cursor()
-		self.run = self.dbrun_start(
-			self.cursor,
-			c_user=self.user,
-			p_pro_name=self.job.info.projectname,
-			p_job_name=self.job.info.jobname,
-			p_host_name=self.job.info.host_name,
-			p_host_fqdn=self.job.info.host_fqdn,
-			p_host_ip=self.job.info.host_ip,
-			p_host_sysname=self.job.info.host_sysname,
-			p_host_nodename=self.job.info.host_nodename,
-			p_host_release=self.job.info.host_release,
-			p_host_version=self.job.info.host_version,
-			p_host_machine=self.job.info.host_machine,
-			p_user_name=self.job.info.user_name,
-			p_user_uid=self.job.info.user_uid,
-			p_user_gid=self.job.info.user_gid,
-			p_user_gecos=self.job.info.user_gecos,
-			p_user_dir=self.job.info.user_dir,
-			p_user_shell=self.job.info.user_shell,
-			p_scr_filename=self.job.info.filename,
-			p_scr_source=self.job.source,
-			p_cron_tab=self.job.crontab,
-			p_run_start=self.job.info.starttime,
-			p_run_pid=self.job.info.pid,
-			p_job_logfilename=self.job.logfilename,
-			p_job_loglinkname=self.job.loglinkname,
-			p_job_pidfilename=self.job.pidfilename,
-			p_job_log2file=int(self.job.log2file),
-			p_job_log2db=int(self.job.log2db),
-			p_job_formatlogline=self.job.formatlogline,
-			p_job_keepfilelogs=self.job.keepfilelogs,
-			p_job_keepdblogs=self.job.keepdblogs,
-			p_job_keepdbruns=self.job.keepdbruns,
-		)
-		self.db.commit()
-
-		# Copy information from the database back to the job
-		self.job.logfilename = self.run.p_job_logfilename
-		self.job.loglinkname = self.run.p_job_loglinkname
-		self.job.pidfilename = self.run.p_job_pidfilename
-		self.job.log2file = bool(self.run.p_job_log2file)
-		self.job.log2db = bool(self.run.p_job_log2db)
-		self.job.formatlogline = self.run.p_job_formatlogline
-		self.job.keepfilelogs = self.run.p_job_keepfilelogs
-		self.job.keepdblogs = self.run.p_job_keepdblogs
-		self.job.keepdbruns = self.run.p_job_keepdbruns
-		return self.run.p_job_active != 0
-
-	def end(self, result):
-		"""
-		Finish logging (without errors) and clean up.
-		"""
-		self.dbrun_end(
-			self.cursor,
-			c_user=self.user,
-			p_run_id=self.run.p_run_id,
-			p_run_end=datetime.datetime.now(),
-			p_run_result=self.job.unicodearg(result),
-			p_keepdblogs=self.job.keepdblogs,
-			p_keepdbruns=self.job.keepdbruns,
-		)
-		self.db.commit()
-
-	def failed(self, result):
-		"""
-		Finish logging (with errors) and clean up.
-		"""
-		self.dbrun_failed(
-			self.cursor,
-			c_user=self.user,
-			p_run_id=self.run.p_run_id,
-			p_run_end=datetime.datetime.now(),
-			p_run_result=self.job.unicodearg(result),
-			p_keepdblogs=self.job.keepdblogs,
-			p_keepdbruns=self.job.keepdbruns,
-		)
-		self.db.commit()
-
-	def log(self, timestamp, tags, line):
-		"""
-		Write a log line to the database.
-		"""
-		self.dbrun_log(
-			self.cursor,
-			c_user=self.user,
-			p_run_id=self.run.p_run_id,
-			p_log_lineno=self.job.lineno,
-			p_log_date=timestamp,
-			p_log_tags=u", ".join(tags),
-			p_log_line=line
-		)
-		self.db.commit()
-
-	def error(self):
-		"""
-		Record that this job has produced an error in the database.
-		"""
-		self.dbrun_error(
-			self.cursor,
-			c_user=self.user,
-			p_run_id=self.run.p_run_id
-		)
-		self.db.commit()
+		self.log(self.tags, *texts, **kwargs)
 
 
 class AttrDict(dict):
+	"""
+	:class:`dict` subclass that makes keys available as attributes.
+	"""
 	def __getattr__(self, name):
 		try:
 			return self[name]
@@ -268,31 +146,23 @@ class Job(object):
 	# Description for help message of the command line argument parser
 	argdescription = "execute the job"
 
-	# A connect string for connecting to the database. This is passed to the constructor of the nested :class:`DBInfo` class
-	# (which can be overwritten in subclasses to support databases other than Oracle).
-	# If :var:`connectstring` is :const:`None` the job never talks to the database.
-	connectstring = None
-
 	# Maximum allowed runtime for the job (as a :class:`datetime.timedelta` instance or the number of seconds). If a job is started and the
 	# previous invocation has been running for more than :var:`maxtime` the previous job will be killed.
 	maxtime = 5 * 60
 
-	# Default log/pidfile location/name as an UL4 template (can be overwritten in subclasses or by the db)
+	# Default log/pidfile location/name as an UL4 template (can be overwritten in subclasses)
 	logfilename = u"~<?print user_name?>/log/<?print projectname?>/<?print jobname?>/<?print starttime.format('%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog"
 	loglinkname = u"~<?print user_name?>/log/<?print projectname?>/<?print jobname?>/current.sisyphuslog"
 	pidfilename = u"~<?print user_name?>/run/<?print projectname?>/<?print jobname?>.pid"
 
-	# Should logging be done to files or to the database? (can be overwritten in subclasses or by the db)
+	# Should logging be done? (can be overwritten in subclasses)
 	log2file = True
-	log2db = True
 
-	# Format string for logging (can be overwritten in subclasses or by the db)
+	# Format string for logging (can be overwritten in subclasses)
 	formatlogline = u"[<?print time?>]=[t+<?print time-starttime?>]<?if tags?>[<?print ', '.join(tags)?>]<?end if?>: <?print line?>"
 
-	# How many days to keep logs (can be overwritten in subclasses or by the db)
+	# How many days to keep logs (can be overwritten in subclasses)
 	keepfilelogs = 30 # log files
-	keepdblogs = 90 # database log (detailed line listing)
-	keepdbruns = 300 # database log (summary of the run)
 
 	# Encoding/errors to be used for all system data (host/user/network info etc.)
 	inputencoding = u"utf-8"
@@ -302,14 +172,11 @@ class Job(object):
 	outputencoding = u"utf-8"
 	outputerrors = u"strict"
 
-	# Class to use for all communication with the database
-	DBInfo = DBInfo
-
-	def setup(self):
+	def _setup(self):
 		self.info = AttrDict()
-		self.info.connectstring = self.unicodearg(self.connectstring)
-		self.info.projectname = self.unicodearg(self.projectname)
-		self.info.jobname = self.unicodearg(self.jobname)
+		self.info.connectstring = self._string(self.connectstring)
+		self.info.projectname = self._string(self.projectname)
+		self.info.jobname = self._string(self.jobname)
 
 		maxtime = self.maxtime
 		if not isinstance(maxtime, datetime.timedelta):
@@ -321,19 +188,19 @@ class Job(object):
 
 		# Get host info
 		host_name = socket.gethostname()
-		self.info.host_name = self.unicodearg(socket.gethostname())
-		self.info.host_fqdn = self.unicodearg(socket.getfqdn(host_name))
-		self.info.host_ip = self.unicodearg(socket.gethostbyname(host_name))
+		self.info.host_name = self._string(socket.gethostname())
+		self.info.host_fqdn = self._string(socket.getfqdn(host_name))
+		self.info.host_ip = self._string(socket.gethostbyname(host_name))
 
 		# Get uname info
-		(self.info.host_sysname, self.info.host_nodename, self.info.host_release, self.info.host_version, self.info.host_machine) = map(self.unicodearg, os.uname())
+		(self.info.host_sysname, self.info.host_nodename, self.info.host_release, self.info.host_version, self.info.host_machine) = map(self._string, os.uname())
 
 		# Get user info
-		(self.info.user_name, _, self.info.user_uid, self.info.user_gid, self.info.user_gecos, self.info.user_dir, self.info.user_shell) = map(self.unicodearg, pwd.getpwuid(os.getuid()))
+		(self.info.user_name, _, self.info.user_uid, self.info.user_gid, self.info.user_gecos, self.info.user_dir, self.info.user_shell) = map(self._string, pwd.getpwuid(os.getuid()))
 
 		# Get filename
 		filename = sys.modules["__main__"].__file__
-		self.info.filename = self.unicodearg(os.path.abspath(filename))
+		self.info.filename = self._string(os.path.abspath(filename))
 
 		# Get source code
 		with open(filename.rstrip("c"), "rb") as f:
@@ -351,16 +218,14 @@ class Job(object):
 			self.source = source.decode(encoding, self.inputerrors)
 
 		# Get crontab
-		self.crontab = self.unicodearg(os.popen("crontab -l 2>/dev/null").read())
+		self.crontab = self._string(os.popen("crontab -l 2>/dev/null").read())
 
 		# Current line number
 		self.lineno = 1
 
 		self.pidfilewritten = False
 
-		self.__db = self.DBInfo(self) if self.info.connectstring is not None else None
-
-	def unicodearg(self, s):
+	def _string(self, s):
 		"""
 		Convert :var:`s` to unicode if it's a :class:`str`.
 		"""
@@ -383,28 +248,23 @@ class Job(object):
 		Log items in :var:`texts` to the log file and/or the database using
 		:var:`tags` as the list of tags.
 		"""
-		if self.log2file or (self.__db is not None and self.log2db):
+		if self.log2file:
 			timestamp = datetime.datetime.now()
 			for text in texts:
-				text = self.unicodearg(text)
+				text = self._string(text)
 				if isinstance(text, BaseException):
 					tb = u"".join(traceback.format_tb(sys.exc_info()[-1]))
 					text = u"{tb}\n{exc}".format(tb=tb, exc=self._exc(text))
 				elif not isinstance(text, unicode):
-					text = self.unicodearg(pprint.pformat(text))
+					text = self._string(pprint.pformat(text))
 				lines = text.splitlines()
 				if lines and not len(lines[-1]):
 					del lines[-1]
 				for line in lines:
-					if self.log2file:
-						text = self._formatlogline.renders(line=line, time=timestamp, tags=tags, **self.info)
-						self._logfile.write(text.encode(self.outputencoding, self.outputerrors))
-						self._logfile.flush()
-					if self.__db is not None and self.log2db:
-						self.__db.log(timestamp, tags, line)
+					text = self._formatlogline.renders(line=line, time=timestamp, tags=tags, **self.info)
+					self._logfile.write(text.encode(self.outputencoding, self.outputerrors))
+					self._logfile.flush()
 					self.lineno += 1
-			if self.__db is not None and ("error" in tags or "exc" in tags):
-				self.__db.error()
 
 	def _writepid(self, pidfilename):
 		"""
@@ -428,14 +288,16 @@ class Job(object):
 		Create the logfile and a link to this logfile (if requested).
 		"""
 		self._logfile = None
+		self._logfilename = None
+		self._loglinename = None
 		if self.log2file:
 			logfilename = ul4c.compile(self.logfilename).renders(**self.info)
-			lf = url.File(logfilename)
+			lf = self._logfilename = url.File(logfilename).abs()
 			self._logfile = lf.openwrite()
 
 			if self.loglinkname is not None:
 				loglinkname = ul4c.compile(self.loglinkname).renders(**self.info)
-				ll = url.File(loglinkname)
+				ll = self._loglinkname = url.File(loglinkname).abs()
 				try:
 					lf.symlink(ll)
 				except OSError, exc:
@@ -455,12 +317,17 @@ class Job(object):
 			keepfilelogs = self.keepfilelogs
 			if not isinstance(keepfilelogs, datetime.timedelta):
 				keepfilelogs = datetime.timedelta(days=keepfilelogs)
-			threshold = datetime.datetime.now() - keepfilelogs # Files older that this will be deleted
+			threshold = datetime.datetime.utcnow() - keepfilelogs # Files older that this will be deleted
 			logdir = self._logfile.url.withoutfile()
 			for fileurl in logdir/logdir.files():
+				fileurl = logdir/fileurl
+				# Never delete the current log file or the link to it, even if keepfilelogs is 0
+				if fileurl == self._logfile.url or fileurl == self._loglinkname:
+					continue
+				# If the file is to old, delete it (not that this might delete files that were not produced by sisyphus)
 				if fileurl.mdate() < threshold:
 					if not removedany: # Only log this line for the first logfile we remove
-						self.log.sisyphus.info("Removing logfiles older than {} days".format(keepfilelogs.days))
+						self.log.sisyphus.info("Removing logfiles older than {}".format(keepfilelogs))
 						removedany = True
 					self.log.sisyphus.info("Removing logfile {}".format(fileurl.local()))
 					fileurl.remove()
@@ -471,14 +338,10 @@ class Job(object):
 		This can be overwritten in subclasses to add more arguments.
 		"""
 		p = argparse.ArgumentParser(description=self.argdescription)
-		p.add_argument("-p", "--projectname", dest="projectname", metavar="NAME", help="The name of the project this job belongs to", type=self.unicodearg, default=self.projectname)
-		p.add_argument("-j", "--jobname", dest="jobname", metavar="NAME", help="The name of the job", type=self.unicodearg, default=self.jobname if self.jobname is not None else self.__class__.__name__)
-		p.add_argument("-d", "--db", dest="connectstring", metavar="USER/PWD@DB", help="Connectstring for the logging database", type=self.unicodearg, default=self.info.connectstring)
-		p.add_argument(      "--nodb", dest="connectstring", help="Don't log to the database", action="store_const", const=None)
+		p.add_argument("-p", "--projectname", dest="projectname", metavar="NAME", help="The name of the project this job belongs to", type=self._string, default=self.projectname)
+		p.add_argument("-j", "--jobname", dest="jobname", metavar="NAME", help="The name of the job", type=self._string, default=self.jobname if self.jobname is not None else self.__class__.__name__)
 		p.add_argument("-m", "--maxtime", dest="maxtime", metavar="SECONDS", help="Maximum number of seconds the job is allowed to run", type=int, default=self.info.maxtime.total_seconds())
-		p.add_argument(      "--keepfilelogs", dest="keepfilelogs", metavar="DAYS", help="Number of days log files are kept", type=int, default=self.keepfilelogs)
-		p.add_argument(      "--keepdblogs", dest="keepdblogs", metavar="DAYS", help="Number of days detailed logging info is kept in the database", type=int, default=self.keepdblogs)
-		p.add_argument(      "--keepdbruns", dest="keepdbruns", metavar="DAYS", help="Number of days a summary about the job execution is kept in the database", type=int, default=self.keepdbruns)
+		p.add_argument(      "--keepfilelogs", dest="keepfilelogs", metavar="DAYS", help="Number of days log files are kept", type=float, default=self.keepfilelogs)
 		p.add_argument(      "--inputencoding", dest="inputencoding", metavar="ENCODING", help="Encoding for system data (i.e. crontab etc.)", default=self.inputencoding)
 		p.add_argument(      "--inputerrors", dest="inputerrors", metavar="METHOD", help="Error handling method for encoding errors in system data", default=self.inputerrors)
 		p.add_argument(      "--outputencoding", dest="outputencoding", metavar="ENCODING", help="Encoding for the log file", default=self.outputencoding)
@@ -495,8 +358,8 @@ class Job(object):
 		args = p.parse_args(args)
 		self.info.projectname = args.projectname
 		self.info.jobname = args.jobname
-		self.info.connectstring = args.connectstring
 		self.info.maxtime = datetime.timedelta(seconds=args.maxtime)
+		self.keepfilelogs = datetime.timedelta(days=args.keepfilelogs)
 		self.inputencoding = args.inputencoding
 		self.inputerrors = args.inputerrors
 		self.outputencoding = args.outputencoding
@@ -517,16 +380,11 @@ class Job(object):
 		"""
 		pass
 
-	def handleexecution(self):
+	def _handleexecution(self):
 		"""
 		Handle executing the job including handling of duplicate or hanging jobs.
 		"""
 		self.info.starttime = datetime.datetime.now()
-
-		if self.__db is not None:
-			if not self.__db.start():
-				self.__db.end(u"job is deactivated")
-				return
 
 		pidfilename = ul4c.compile(self.pidfilename).renders(**self.info)
 		pidfilename = os.path.expanduser(pidfilename)
@@ -550,7 +408,7 @@ class Job(object):
 			try:
 				pid = int(pidfile.read())
 			except ValueError:
-				# disk may have been full
+				# file is empty or otherwise broken (disk may have been full)
 				pidfile.close()
 				self._writepid(pidfilename)
 				self.log.sisyphus.warning(u"ignoring bogus pid file {} (invalid content)".format(pidfilename))
@@ -588,17 +446,13 @@ class Job(object):
 			# log the error to the logfile, because the job probably didn't have a chance to do it
 			self.log.sisyphus.exc(exc)
 			result = u"failed with {}".format(self._exc(exc))
-			self.log.sisyphus.error(result)
-			if self.__db is not None:
-				self.__db.failed(result)
+			self.log.sisyphus.result.error(result)
 			self.failed()
 			self._killpid(pidfilename)
 			raise
 		else:
 			# log the result
-			self.log.sisyphus.info(self.unicodearg(result))
-			if self.__db is not None:
-				self.__db.end(result)
+			self.log.sisyphus.result(self._string(result))
 		finally:
 			self._logfile.close()
 		self._killpid(pidfilename) # finished => remove the pid file
@@ -608,8 +462,8 @@ def execute(job):
 	"""
 	Execute the job :var:`job` once.
 	"""
-	job.setup()
-	job.handleexecution()
+	job._setup()
+	job._handleexecution()
 
 
 def executewithargs(job, args=None):
@@ -619,6 +473,6 @@ def executewithargs(job, args=None):
 	:var:`args` are the command line arguments (:const:`None` results in
 	``sys.argv`` being used)
 	"""
-	job.setup()
+	job._setup()
 	job.parseargs(args)
-	job.handleexecution()
+	job._handleexecution()
