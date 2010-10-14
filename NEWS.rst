@@ -42,12 +42,12 @@ Changes in 3.9 (released 08/04/2010)
 
 *	:class:`ll.xist.ns.html.html` will no longer change the ``lang`` and
 	``xml:lang`` attributes. This functionality has been moved to the new element
-	:class:`ll.xist.ns.htmlspecials.html`. Furthermore this new element will not
-	change any attribute if it has already been set.
+	:class:`ll.xist.ns.htmlspecials.html`. Furthermore this new element won't
+	change existing attributes.
 
 *	:class:`ll.xist.ns.html.title` no longer does any manipulation of its content.
 
-*	the Java string literal formatting function in :mod:`ll.xist.ns.jsp` has been
+*	The Java string literal formatting function in :mod:`ll.xist.ns.jsp` has been
 	exposed as :func:`javastring`.
 
 *	Fixed a bug in ``oracreate.py``: If the source of procedures and functions
