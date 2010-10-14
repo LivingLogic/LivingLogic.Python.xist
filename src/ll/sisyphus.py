@@ -65,7 +65,7 @@ The following example illustrates the use of this module::
 """
 
 
-import sys, os, socket, pwd, codecs, traceback, errno, pprint, datetime, re, contextlib
+import sys, os, socket, pwd, codecs, traceback, errno, pprint, datetime, re, contextlib, argparse
 
 from ll import url, ul4c
 
@@ -82,6 +82,26 @@ codecs.register_error("literaldecode", literaldecode)
 encodingdeclaration = re.compile(r"coding[:=]\s*([-\w.]+)")
 
 
+class Tag(object):
+	def __init__(self, logger, *tags):
+		self.logger = logger
+		self.tags = tags
+		self._map = {}
+
+	def __getattr__(self, tag):
+		if tag not in self._map:
+			newtag = Tag(self.logger, *(self.tags + (tag,)))
+			self._map[tag] = newtag
+			return newtag
+		else:
+			return self._map[tag]
+
+	__getitem__ = __getattr__
+
+	def __call__(self, *texts, **kwargs):
+		self.logger(self.tags, *texts, **kwargs)
+
+
 class DBInfo(object):
 	"""
 	This object handles all communcation with the database
@@ -96,16 +116,15 @@ class DBInfo(object):
 	procname_failed = "DGRUN_FAILED"
 	procname_end = "DGRUN_END"
 
-	def __init__(self, job, connectstring):
+	def __init__(self, job):
 		self.job = job
-		self.connectstring = connectstring
 
 	def start(self):
 		"""
 		Start logging. If :meth:`start` returns false, the job will not run.
 		"""
 		from ll import orasql
-		self.db = orasql.connect(self.connectstring, threaded=True)
+		self.db = orasql.connect(self.job.info.connectstring, threaded=True)
 		self.dbrun_start = orasql.Procedure(self.procname_start)
 		self.dbrun_log = orasql.Procedure(self.procname_log)
 		self.dbrun_error = orasql.Procedure(self.procname_error)
@@ -169,7 +188,7 @@ class DBInfo(object):
 			c_user=self.user,
 			p_run_id=self.run.p_run_id,
 			p_run_end=datetime.datetime.now(),
-			p_run_result=self.job._string(result),
+			p_run_result=self.job.unicodearg(result),
 			p_keepdblogs=self.job.keepdblogs,
 			p_keepdbruns=self.job.keepdbruns,
 		)
@@ -184,7 +203,7 @@ class DBInfo(object):
 			c_user=self.user,
 			p_run_id=self.run.p_run_id,
 			p_run_end=datetime.datetime.now(),
-			p_run_result=self.job._string(result),
+			p_run_result=self.job.unicodearg(result),
 			p_keepdblogs=self.job.keepdblogs,
 			p_keepdbruns=self.job.keepdbruns,
 		)
@@ -217,26 +236,6 @@ class DBInfo(object):
 		self.db.commit()
 
 
-class Log(object):
-	def __init__(self, job, *tags):
-		self.job = job
-		self.tags = tags
-		self._map = {}
-
-	def __getattr__(self, tag):
-		if tag not in self._map:
-			newlog = Log(self.job, *(self.tags + (tag,)))
-			self._map[tag] = newlog
-			return newlog
-		else:
-			return self._map[tag]
-
-	__getitem__ = __getattr__
-
-	def __call__(self, *texts):
-		self.job._log(self.tags, *texts)
-
-
 class AttrDict(dict):
 	def __getattr__(self, name):
 		try:
@@ -260,6 +259,24 @@ class Job(object):
 	:meth:`execute` method.
 	"""
 
+	# The name of the project this job belongs to. This might be a dot-separated hierarchical project name (e.g. including customer names or similar stuff).
+	projectname = None
+
+	# The name of the job itself (defaulting to the name of the class)
+	jobname = None
+
+	# Description for help message of the command line argument parser
+	argdescription = "execute the job"
+
+	# A connect string for connecting to the database. This is passed to the constructor of the nested :class:`DBInfo` class
+	# (which can be overwritten in subclasses to support databases other than Oracle).
+	# If :var:`connectstring` is :const:`None` the job never talks to the database.
+	connectstring = None
+
+	# Maximum allowed runtime for the job (as a :class:`datetime.timedelta` instance or the number of seconds). If a job is started and the
+	# previous invocation has been running for more than :var:`maxtime` the previous job will be killed.
+	maxtime = 5 * 60
+
 	# Default log/pidfile location/name as an UL4 template (can be overwritten in subclasses or by the db)
 	logfilename = u"~<?print user_name?>/log/<?print projectname?>/<?print jobname?>/<?print starttime.format('%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog"
 	loglinkname = u"~<?print user_name?>/log/<?print projectname?>/<?print jobname?>/current.sisyphuslog"
@@ -270,7 +287,7 @@ class Job(object):
 	log2db = True
 
 	# Format string for logging (can be overwritten in subclasses or by the db)
-	formatlogline = u"[<?print time?>]=[t+<?print time-starttime?>]<?if tags?>[<?print ', '.join(tags)?>]<?end if?>: <?print line?>\n"
+	formatlogline = u"[<?print time?>]=[t+<?print time-starttime?>]<?if tags?>[<?print ', '.join(tags)?>]<?end if?>: <?print line?>"
 
 	# How many days to keep logs (can be overwritten in subclasses or by the db)
 	keepfilelogs = 30 # log files
@@ -288,53 +305,35 @@ class Job(object):
 	# Class to use for all communication with the database
 	DBInfo = DBInfo
 
-	def __init__(self, projectname, jobname, connectstring=None, maxtime=0):
-		"""
-		Create a new :class:`Job` object. Parameters have the following meaning:
-
-			:var:`projectname` : string
-				The name of the project this job belongs to. This might be a
-				dot-separated hierarchical project name (e.g. including customer
-				names or similar stuff).
-
-			:var:`jobname` : string
-				The name of the job itself.
-
-			:var:`connectstring` : string or :const:`None`
-				A connect string for connecting to the database. This is passed to
-				the constructor of the nested :class:`DBInfo` class (which can be
-				overwritten in subclasses to support databases other than Oracle).
-				If :var:`connectstring` is :const:`None` the job never talks to the
-				database.
-
-			:var:`maxtime` : :class:`int` or :class:`datetime.timedelta`
-				Maximum allowed runtime for the job (as a :class:`datetime.timedelta`
-				instance or the number of seconds). If a job is started and the
-				previous invocation has been running for more than :var:`maxtime`
-				the previous job will be killed.
-		"""
+	def setup(self):
 		self.info = AttrDict()
-		self.info.projectname = self._string(projectname)
-		self.info.jobname = self._string(jobname)
+		self.info.connectstring = self.unicodearg(self.connectstring)
+		self.info.projectname = self.unicodearg(self.projectname)
+		self.info.jobname = self.unicodearg(self.jobname)
+
+		maxtime = self.maxtime
+		if not isinstance(maxtime, datetime.timedelta):
+			maxtime = datetime.timedelta(seconds=maxtime)
+		self.info.maxtime = maxtime
 
 		# Get PID
 		self.info.pid = os.getpid()
 
 		# Get host info
 		host_name = socket.gethostname()
-		self.info.host_name = self._string(socket.gethostname())
-		self.info.host_fqdn = self._string(socket.getfqdn(host_name))
-		self.info.host_ip = self._string(socket.gethostbyname(host_name))
+		self.info.host_name = self.unicodearg(socket.gethostname())
+		self.info.host_fqdn = self.unicodearg(socket.getfqdn(host_name))
+		self.info.host_ip = self.unicodearg(socket.gethostbyname(host_name))
 
 		# Get uname info
-		(self.info.host_sysname, self.info.host_nodename, self.info.host_release, self.info.host_version, self.info.host_machine) = map(self._string, os.uname())
+		(self.info.host_sysname, self.info.host_nodename, self.info.host_release, self.info.host_version, self.info.host_machine) = map(self.unicodearg, os.uname())
 
 		# Get user info
-		(self.info.user_name, _, self.info.user_uid, self.info.user_gid, self.info.user_gecos, self.info.user_dir, self.info.user_shell) = map(self._string, pwd.getpwuid(os.getuid()))
+		(self.info.user_name, _, self.info.user_uid, self.info.user_gid, self.info.user_gecos, self.info.user_dir, self.info.user_shell) = map(self.unicodearg, pwd.getpwuid(os.getuid()))
 
 		# Get filename
 		filename = sys.modules["__main__"].__file__
-		self.info.filename = self._string(os.path.abspath(filename))
+		self.info.filename = self.unicodearg(os.path.abspath(filename))
 
 		# Get source code
 		with open(filename.rstrip("c"), "rb") as f:
@@ -352,22 +351,18 @@ class Job(object):
 			self.source = source.decode(encoding, self.inputerrors)
 
 		# Get crontab
-		self.crontab = self._string(os.popen("crontab -l 2>/dev/null").read())
+		self.crontab = self.unicodearg(os.popen("crontab -l 2>/dev/null").read())
 
 		# Current line number
 		self.lineno = 1
 
-		if not isinstance(maxtime, datetime.timedelta):
-			maxtime = datetime.timedelta(seconds=maxtime)
-		self.info.maxtime = maxtime
-
 		self.pidfilewritten = False
 
-		self.__db = self.DBInfo(self, connectstring) if connectstring is not None else None
+		self.__db = self.DBInfo(self) if self.info.connectstring is not None else None
 
-	def _string(self, s):
+	def unicodearg(self, s):
 		"""
-		Convert :var:`s` to unicode if its a :class:`str`.
+		Convert :var:`s` to unicode if it's a :class:`str`.
 		"""
 		if isinstance(s, str):
 			s = s.decode(self.inputencoding, self.inputerrors)
@@ -391,12 +386,12 @@ class Job(object):
 		if self.log2file or (self.__db is not None and self.log2db):
 			timestamp = datetime.datetime.now()
 			for text in texts:
-				text = self._string(text)
+				text = self.unicodearg(text)
 				if isinstance(text, BaseException):
 					tb = u"".join(traceback.format_tb(sys.exc_info()[-1]))
 					text = u"{tb}\n{exc}".format(tb=tb, exc=self._exc(text))
 				elif not isinstance(text, unicode):
-					text = self._string(pprint.pformat(text))
+					text = self.unicodearg(pprint.pformat(text))
 				lines = text.splitlines()
 				if lines and not len(lines[-1]):
 					del lines[-1]
@@ -449,7 +444,7 @@ class Job(object):
 						lf.symlink(ll)
 					else:
 						raise
-		self.log = Log(self)
+		self.log = Tag(self._log)
 
 	def _cleanupoldlogs(self):
 		"""
@@ -470,6 +465,44 @@ class Job(object):
 					self.log.sisyphus.info("Removing logfile {}".format(fileurl.local()))
 					fileurl.remove()
 
+	def argparser(self):
+		"""
+		Return an :mod:`argparse` parser for parsing the command line arguments.
+		This can be overwritten in subclasses to add more arguments.
+		"""
+		p = argparse.ArgumentParser(description=self.argdescription)
+		p.add_argument("-p", "--projectname", dest="projectname", metavar="NAME", help="The name of the project this job belongs to", type=self.unicodearg, default=self.projectname)
+		p.add_argument("-j", "--jobname", dest="jobname", metavar="NAME", help="The name of the job", type=self.unicodearg, default=self.jobname if self.jobname is not None else self.__class__.__name__)
+		p.add_argument("-d", "--db", dest="connectstring", metavar="USER/PWD@DB", help="Connectstring for the logging database", type=self.unicodearg, default=self.info.connectstring)
+		p.add_argument(      "--nodb", dest="connectstring", help="Don't log to the database", action="store_const", const=None)
+		p.add_argument("-m", "--maxtime", dest="maxtime", metavar="SECONDS", help="Maximum number of seconds the job is allowed to run", type=int, default=self.info.maxtime.total_seconds())
+		p.add_argument(      "--keepfilelogs", dest="keepfilelogs", metavar="DAYS", help="Number of days log files are kept", type=int, default=self.keepfilelogs)
+		p.add_argument(      "--keepdblogs", dest="keepdblogs", metavar="DAYS", help="Number of days detailed logging info is kept in the database", type=int, default=self.keepdblogs)
+		p.add_argument(      "--keepdbruns", dest="keepdbruns", metavar="DAYS", help="Number of days a summary about the job execution is kept in the database", type=int, default=self.keepdbruns)
+		p.add_argument(      "--inputencoding", dest="inputencoding", metavar="ENCODING", help="Encoding for system data (i.e. crontab etc.)", default=self.inputencoding)
+		p.add_argument(      "--inputerrors", dest="inputerrors", metavar="METHOD", help="Error handling method for encoding errors in system data", default=self.inputerrors)
+		p.add_argument(      "--outputencoding", dest="outputencoding", metavar="ENCODING", help="Encoding for the log file", default=self.outputencoding)
+		p.add_argument(      "--outputerrors", dest="outputerrors", metavar="METHOD", help="Error handling method for encoding errors in log texts", default=self.outputerrors)
+		return p
+
+	def parseargs(self, args=None):
+		"""
+		Use the parser returned by :meth:`argparser` to parse the argument
+		sequence :var:`args`, modify :var:`self` accordingly and return
+		the result of the parsers :meth:`parse_args` call.
+		"""
+		p = self.argparser()
+		args = p.parse_args(args)
+		self.info.projectname = args.projectname
+		self.info.jobname = args.jobname
+		self.info.connectstring = args.connectstring
+		self.info.maxtime = datetime.timedelta(seconds=args.maxtime)
+		self.inputencoding = args.inputencoding
+		self.inputerrors = args.inputerrors
+		self.outputencoding = args.outputencoding
+		self.outputerrors = args.outputerrors
+		return args
+
 	def execute(self):
 		"""
 		Execute the job once. The return value is a one line summary of what the
@@ -487,7 +520,6 @@ class Job(object):
 	def handleexecution(self):
 		"""
 		Handle executing the job including handling of duplicate or hanging jobs.
-		This is the method to be called from the outside world.
 		"""
 		self.info.starttime = datetime.datetime.now()
 
@@ -499,7 +531,8 @@ class Job(object):
 		pidfilename = ul4c.compile(self.pidfilename).renders(**self.info)
 		pidfilename = os.path.expanduser(pidfilename)
 
-		self._formatlogline = ul4c.compile(self.formatlogline.replace("\n", "").replace("\r", "") + u"\n")
+		formatlogline = self.formatlogline.replace("\n", "").replace("\r", "") + u"\n"
+		self._formatlogline = ul4c.compile(formatlogline)
 
 		self._createlog()
 
@@ -563,7 +596,7 @@ class Job(object):
 			raise
 		else:
 			# log the result
-			self.log.sisyphus.info(self._string(result))
+			self.log.sisyphus.info(self.unicodearg(result))
 			if self.__db is not None:
 				self.__db.end(result)
 		finally:
@@ -571,11 +604,21 @@ class Job(object):
 		self._killpid(pidfilename) # finished => remove the pid file
 
 
-def execute(*jobs):
+def execute(job):
 	"""
-	Execute several jobs.
+	Execute the job :var:`job` once.
+	"""
+	job.setup()
+	job.handleexecution()
 
-	Items in :var:`jobs` are job objects that will be executed sequentially.
+
+def executewithargs(job, args=None):
 	"""
-	for job in jobs:
-		job.handleexecution()
+	Execute the job :var:`job` once with command line arguments.
+
+	:var:`args` are the command line arguments (:const:`None` results in
+	``sys.argv`` being used)
+	"""
+	job.setup()
+	job.parseargs(args)
+	job.handleexecution()
