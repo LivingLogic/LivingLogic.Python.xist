@@ -4,6 +4,16 @@ Changes in 3.11 (released ??/??/2010)
 *	Various attributes of UL4 templates are exposed to UL4 itself.
 
 
+Changes in 3.10.1 (released 10/13/2010)
+---------------------------------------
+
+*	Fixed bugs in the handling of the ``def`` and ``enddef`` opcodes in
+	:func:`ll.xist.ns.jsp.fromul4`.
+
+*	Fixed a bug in the handling of the ``render`` method in
+	:func:`ll.xist.ns.jsp.fromul4`.
+
+
 Changes in 3.10 (released 09/24/2010)
 -------------------------------------
 
