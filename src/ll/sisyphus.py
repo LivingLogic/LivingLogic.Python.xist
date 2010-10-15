@@ -169,8 +169,9 @@ class Job(object):
 	``outputerrors`` : :option:`--outputerrors`
 		Encoding error handler name (goes with ``outputencoding``)
 
-	Command line arguments take precedence over instance attributes and those
-	take precedence over class attributes.
+	Command line arguments take precedence over instance attributes (if
+	:func:`executewithargs` is used) and those take precedence over class
+	attributes.
 	"""
 
 	projectname = None
