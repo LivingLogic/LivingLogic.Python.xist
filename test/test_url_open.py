@@ -40,6 +40,7 @@ def test_rename():
 			assert not u2.exists()
 
 	yield check, __file__.rstrip("c")
+	yield check, url.URL(__file__.rstrip("c"))
 	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/"
 
 

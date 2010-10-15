@@ -575,7 +575,7 @@ class LocalConnection(Connection):
 		name = self._url2filename(url)
 		if not isinstance(target, URL):
 			target = URL(target)
-		targetname = self._url2filename(target)
+		target = self._url2filename(target)
 		os.rename(name, target)
 
 	def link(self, url, target):
