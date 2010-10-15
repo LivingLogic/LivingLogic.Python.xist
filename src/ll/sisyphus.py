@@ -29,7 +29,7 @@ the :dir:`~/run` directory. Logs will be created in the :dir:`~/log` directory
 class attribute).
 
 To execute a job, use the module level function :func:`execute` (or
-:func:`executewithargs` when you want to support command line argument).
+:func:`executewithargs` when you want to support command line arguments).
 
 Example
 -------
@@ -45,8 +45,8 @@ The following example illustrates the use of this module::
 	class Fetch(sisyphus.Job):
 		projectname = "ACME.FooBar"
 		jobname = "Fetch"
+		argdescription = "fetch http://www.python.org/ and save it to a local file"
 		maxtime = 180
-		argdescription = "fetches http://www.python.org/ and saves it to a local file"
 
 		def __init__(self):
 			self.url = "http://www.python.org/"
@@ -70,7 +70,7 @@ The following example illustrates the use of this module::
 
 import sys, os, socket, pwd, codecs, traceback, errno, pprint, datetime, re, contextlib, argparse
 
-from ll import url, ul4c
+from ll import url, ul4c, misc
 
 
 __docformat__ = "reStructuredText"
@@ -85,46 +85,6 @@ codecs.register_error("literaldecode", literaldecode)
 encodingdeclaration = re.compile(r"coding[:=]\s*([-\w.]+)")
 
 
-class Tag(object):
-	"""
-	A :class:`Tag` object can be used to call a function with an additional list
-	of tags. Tags ca be added via :meth:`__getattr__` or :meth:`__getitem__` calls.
-	"""
-	def __init__(self, log, *tags):
-		self.log = log
-		self.tags = tags
-		self._map = {}
-
-	def __getattr__(self, tag):
-		if tag in self.tags: # Avoid duplicate tags
-			return self
-		if tag not in self._map:
-			newtag = Tag(self.log, *(self.tags + (tag,)))
-			self._map[tag] = newtag
-			return newtag
-		else:
-			return self._map[tag]
-
-	__getitem__ = __getattr__
-
-	def __call__(self, *texts, **kwargs):
-		self.log(self.tags, *texts, **kwargs)
-
-
-class AttrDict(dict):
-	"""
-	:class:`dict` subclass that makes keys available as attributes.
-	"""
-	def __getattr__(self, name):
-		try:
-			return self[name]
-		except KeyError:
-			raise AttributeError
-
-	def __setattr__(self, name, value):
-		self[name] = value
-
-
 class Job(object):
 	"""
 	A Job object executes a task once.
@@ -135,40 +95,104 @@ class Job(object):
 
 	To use this class, derive your own class from it and overwrite the
 	:meth:`execute` method.
+
+	Logging itself is done by calling ``self.log``::
+
+		self.log("can't parse XML file {}".format(filename))
+
+	This logs the argument without tagging the line. To add tags to the logging
+	call, simply access attributes of ``self.log``::
+
+		self.log.xml.warning("can't parse XML file {}".format(filename))
+
+	This adds the tags ``"xml"`` and ``"warning"`` to the log line.
+
+	The job con be configured in three ways. By class attributes in the
+	:class:`Job` subclass, by attributes of the :class:`Job` instance (e.g. set
+	in :meth:`__init__`) and by command line arguments (if :func:`executewithargs`
+	is used). The following attributes are supported:
+
+	``projectname`` : :option:`-p` or :option:`--projectname`
+		The name of the project this job belongs to. This might be a dot-separated
+		hierarchical project name (e.g. including customer names or similar stuff).
+
+	``jobname`` : :option:`-j` or :option:`--jobname`
+		The name of the job itself (defaulting to the name of the class if
+		:const:`None` is given).
+
+	``argdescription`` : No command line equivalent
+		Description for help message of the command line argument parser.
+
+	``maxtime`` : :option:`-m` or :option:`--maxtime`
+		Maximum allowed runtime for the job (as a :class:`datetime.timedelta`
+		instance or the number of seconds). If a job is started and the previous
+		invocation has been running for more than ``maxtime`` the previous job
+		will be killed.
+
+	``logfilename`` : :option:`--logfilename`
+		Path/name of the logfile for this job as an UL4 template. Variables
+		available in the template include ``user_name``, ``projectname``,
+		``jobname`` and ``starttime``.
+
+	``loglinkname`` : :option:`--loglinkname`
+		A link that points to the currently active logfile (as an UL4 template).
+		If this is :const:`None` no link will be created.
+
+	``pidfilename`` : :option:`--pidfilename`
+		The path/name of the file where the job stores its process id (as an UL4
+		template).
+
+	``log2file`` : :option:`-l` or :option:`--log2file`
+		Should a logfile be written at all?
+
+	``formatlogline`` : :option:`--formatlogline`
+		An UL4 template for formatting each line in the logfile. Available
+		variables are ``time`` (current time), ``starttime`` (start time of the
+		job), ``tags`` (list of tags for the line) and ``line`` (the log line
+		itself).
+
+	``keepfilelogs`` : :option:`--keepfilelogs`
+		The number of days the logfiles are kept. Old logfiles (i.e. any file in
+		the same directory as the current logfile that's more than
+		``keepfilelogs`` days old) will be removed at the end of the job.
+
+	``inputencoding`` : :option:`--inputencoding`
+		The encoding to be used for data that is supposed to be unicode, but isn't
+		(e.g. host/user/network info, lines passed to ``self.log`` etc.)
+
+	``inputerrors`` : :option:`--inputerrors`
+		Decoding error handler name (goes with ``inputencoding``)
+
+	``outputencoding`` : :option:`--outputencoding`
+		The encoding to be used for the logfile.
+
+	``outputerrors`` : :option:`--outputerrors`
+		Encoding error handler name (goes with ``outputencoding``)
+
+	Command line arguments take precedence over instance attributes and those
+	take precedence over class attributes.
 	"""
 
-	# The name of the project this job belongs to. This might be a dot-separated hierarchical project name (e.g. including customer names or similar stuff).
 	projectname = None
-
-	# The name of the job itself (defaulting to the name of the class)
 	jobname = None
 
-	# Description for help message of the command line argument parser
 	argdescription = "execute the job"
 
-	# Maximum allowed runtime for the job (as a :class:`datetime.timedelta` instance or the number of seconds). If a job is started and the
-	# previous invocation has been running for more than :var:`maxtime` the previous job will be killed.
 	maxtime = 5 * 60
 
-	# Default log/pidfile location/name as an UL4 template (can be overwritten in subclasses)
 	logfilename = u"~<?print user_name?>/log/<?print projectname?>/<?print jobname?>/<?print starttime.format('%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog"
 	loglinkname = u"~<?print user_name?>/log/<?print projectname?>/<?print jobname?>/current.sisyphuslog"
 	pidfilename = u"~<?print user_name?>/run/<?print projectname?>/<?print jobname?>.pid"
 
-	# Should logging be done? (can be overwritten in subclasses)
 	log2file = True
 
-	# Format string for logging (can be overwritten in subclasses)
 	formatlogline = u"[<?print time?>]=[t+<?print time-starttime?>]<?if tags?>[<?print ', '.join(tags)?>]<?end if?>: <?print line?>"
 
-	# How many days to keep logs (can be overwritten in subclasses)
-	keepfilelogs = 30 # log files
+	keepfilelogs = 30
 
-	# Encoding/errors to be used for all system data (host/user/network info etc.)
 	inputencoding = u"utf-8"
 	inputerrors = u"literaldecode"
 
-	# Encoding/errors to be used for the logfile
 	outputencoding = u"utf-8"
 	outputerrors = u"strict"
 
@@ -195,6 +219,7 @@ class Job(object):
 		p.add_argument("-p", "--projectname", dest="projectname", metavar="NAME", help="The name of the project this job belongs to", type=self._string, default=self.projectname)
 		p.add_argument("-j", "--jobname", dest="jobname", metavar="NAME", help="The name of the job", type=self._string, default=self.jobname if self.jobname is not None else self.__class__.__name__)
 		p.add_argument("-m", "--maxtime", dest="maxtime", metavar="SECONDS", help="Maximum number of seconds the job is allowed to run", type=int, default=self.info.maxtime.total_seconds())
+		p.add_argument("-l", "--log2file", dest="log2file", metavar="FLAG", help="Should a logfile be written?", type=misc.flag, default=self.log2file)
 		p.add_argument(      "--keepfilelogs", dest="keepfilelogs", metavar="DAYS", help="Number of days log files are kept", type=float, default=self.keepfilelogs)
 		p.add_argument(      "--inputencoding", dest="inputencoding", metavar="ENCODING", help="Encoding for system data (i.e. crontab etc.)", default=self.inputencoding)
 		p.add_argument(      "--inputerrors", dest="inputerrors", metavar="METHOD", help="Error handling method for encoding errors in system data", default=self.inputerrors)
@@ -213,6 +238,7 @@ class Job(object):
 		self.info.projectname = args.projectname
 		self.info.jobname = args.jobname
 		self.info.maxtime = datetime.timedelta(seconds=args.maxtime)
+		self.log2file = args.log2file
 		self.keepfilelogs = datetime.timedelta(days=args.keepfilelogs)
 		self.inputencoding = args.inputencoding
 		self.inputerrors = args.inputerrors
@@ -222,7 +248,6 @@ class Job(object):
 
 	def _setup(self):
 		self.info = AttrDict()
-		self.info.connectstring = self._string(self.connectstring)
 		self.info.projectname = self._string(self.projectname)
 		self.info.jobname = self._string(self.jobname)
 
@@ -273,6 +298,8 @@ class Job(object):
 
 		self.pidfilewritten = False
 
+		self.log = Tag(self._log)
+
 	def _handleexecution(self):
 		"""
 		Handle executing the job including handling of duplicate or hanging jobs.
@@ -285,7 +312,7 @@ class Job(object):
 		formatlogline = self.formatlogline.replace("\n", "").replace("\r", "") + u"\n"
 		self._formatlogline = ul4c.compile(formatlogline)
 
-		self._createlog()
+		self._createlogfile()
 
 		self.log.sisyphus.info(u"{info.filename} (pid {info.pid})".format(info=self.info))
 		try: # is there a pid file from a running job?
@@ -331,10 +358,11 @@ class Job(object):
 						self.log.sisyphus.warning(msg)
 						return # Return without calling :meth:`execute`
 
+		self._createloglink() # We only want to create the link if it is clear that the job *will* run
 		try:
 			with url.Context():
 				result = self.execute()
-				self._cleanupoldlogs() # Clean up old logfiles
+			self._cleanupoldlogs() # Clean up old logfiles
 		except BaseException, exc:
 			# log the error to the logfile, because the job probably didn't have a chance to do it
 			self.log.sisyphus.exc(exc)
@@ -347,7 +375,8 @@ class Job(object):
 			# log the result
 			self.log.sisyphus.result(self._string(result))
 		finally:
-			self._logfile.close()
+			if self._logfile is not None:
+				self._logfile.close()
 		self._killpid(pidfilename) # finished => remove the pid file
 
 	def _log(self, tags, *texts):
@@ -373,36 +402,40 @@ class Job(object):
 					self._logfile.flush()
 					self.lineno += 1
 
-	def _createlog(self):
+	def _createlogfile(self):
 		"""
-		Create the logfile and a link to this logfile (if requested).
+		Create the logfile (if requested).
 		"""
 		self._logfile = None
 		self._logfilename = None
-		self._loglinename = None
 		if self.log2file:
 			logfilename = ul4c.compile(self.logfilename).renders(**self.info)
 			lf = self._logfilename = url.File(logfilename).abs()
 			self._logfile = lf.openwrite()
 
-			if self.loglinkname is not None:
-				loglinkname = ul4c.compile(self.loglinkname).renders(**self.info)
-				ll = self._loglinkname = url.File(loglinkname).abs()
-				try:
+	def _createloglink(self):
+		"""
+		Create a link to the logfile (if requested).
+		"""
+		self._loglinkname = None
+		if self.log2file and self.loglinkname is not None:
+			loglinkname = ul4c.compile(self.loglinkname).renders(**self.info)
+			ll = self._loglinkname = url.File(loglinkname).abs()
+			lf = self._logfilename
+			try:
+				lf.symlink(ll)
+			except OSError, exc:
+				if exc[0] == errno.EEXIST:
+					ll.remove()
 					lf.symlink(ll)
-				except OSError, exc:
-					if exc[0] == errno.EEXIST:
-						ll.remove()
-						lf.symlink(ll)
-					else:
-						raise
-		self.log = Tag(self._log)
+				else:
+					raise
 
 	def _cleanupoldlogs(self):
 		"""
 		Remove old logfiles.
 		"""
-		if self._logfile and self.keepfilelogs is not None:
+		if self._logfile is not None and self.keepfilelogs is not None:
 			removedany = False
 			keepfilelogs = self.keepfilelogs
 			if not isinstance(keepfilelogs, datetime.timedelta):
@@ -412,7 +445,7 @@ class Job(object):
 			for fileurl in logdir/logdir.files():
 				fileurl = logdir/fileurl
 				# Never delete the current log file or the link to it, even if keepfilelogs is 0
-				if fileurl == self._logfile.url or fileurl == self._loglinkname:
+				if fileurl == self._logfilename or fileurl == self._loglinkname:
 					continue
 				# If the file is to old, delete it (not that this might delete files that were not produced by sisyphus)
 				if fileurl.mdate() < threshold:
@@ -456,6 +489,46 @@ class Job(object):
 		else:
 			fmt = u"{0.__class__.__name__}: {0}"
 		return fmt.format(exc)
+
+
+class Tag(object):
+	"""
+	A :class:`Tag` object can be used to call a function with an additional list
+	of tags. Tags ca be added via :meth:`__getattr__` or :meth:`__getitem__` calls.
+	"""
+	def __init__(self, log, *tags):
+		self.log = log
+		self.tags = tags
+		self._map = {}
+
+	def __getattr__(self, tag):
+		if tag in self.tags: # Avoid duplicate tags
+			return self
+		if tag not in self._map:
+			newtag = Tag(self.log, *(self.tags + (tag,)))
+			self._map[tag] = newtag
+			return newtag
+		else:
+			return self._map[tag]
+
+	__getitem__ = __getattr__
+
+	def __call__(self, *texts, **kwargs):
+		self.log(self.tags, *texts, **kwargs)
+
+
+class AttrDict(dict):
+	"""
+	:class:`dict` subclass that makes keys available as attributes.
+	"""
+	def __getattr__(self, name):
+		try:
+			return self[name]
+		except KeyError:
+			raise AttributeError
+
+	def __setattr__(self, name, value):
+		self[name] = value
 
 
 def execute(job):

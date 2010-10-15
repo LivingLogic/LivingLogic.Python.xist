@@ -367,6 +367,19 @@ class Const(object):
 		return "{}.{}".format(self.__module__, self._name)
 
 
+def flag(value):
+	"""
+	Return a :class:`bool` value for the string :var:`value`. :var:`value` can
+	be ``"1"``, ``"true"`` or ``"yes"`` for :const:`True` and ``"0"``,
+	``"false"`` or ``"noe"`` for :const:`False`.
+	"""
+	if value in ("1", "true", "yes"):
+		return True
+	elif value in ("0", "false", "no"):
+		return False
+	raise ValueError("unknown flag value")
+
+
 def tokenizepi(string):
 	"""
 	Tokenize the string object :var:`string` according to the processing
