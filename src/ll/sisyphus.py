@@ -180,9 +180,9 @@ class Job(object):
 
 	maxtime = 5 * 60
 
-	logfilename = u"~<?print user_name?>/log/<?print projectname?>/<?print jobname?>/<?print starttime.format('%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog"
-	loglinkname = u"~<?print user_name?>/log/<?print projectname?>/<?print jobname?>/current.sisyphuslog"
-	pidfilename = u"~<?print user_name?>/run/<?print projectname?>/<?print jobname?>.pid"
+	logfilename = u"~<?print user_name?>/ll.sisyphus/log/<?print projectname?>/<?print jobname?>/<?print starttime.format('%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog"
+	loglinkname = u"~<?print user_name?>/ll.sisyphus/log/<?print projectname?>/<?print jobname?>/current.sisyphuslog"
+	pidfilename = u"~<?print user_name?>/ll.sisyphus/run/<?print projectname?>/<?print jobname?>.pid"
 
 	log2file = True
 
