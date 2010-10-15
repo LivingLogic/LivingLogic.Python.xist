@@ -1,5 +1,9 @@
-Changes in 3.11 (released ??/??/2010)
+Changes in 3.11 (released 10/15/2010)
 -------------------------------------
+
+*	:mod:`ll.sisyphus` has been rewritten. The new version supports: One log
+	file per job invocation; enhanced configuration for logging; command line
+	arguments.
 
 *	Various attributes of UL4 templates are exposed to UL4 itself.
 

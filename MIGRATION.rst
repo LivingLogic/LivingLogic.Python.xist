@@ -1,3 +1,49 @@
+Migrating to version 3.11
+=========================
+
+Changes to :mod:`ll.sisyphus`
+-----------------------------
+
+*	The method :meth:`logLoop` is gone. Replace::
+
+		self.logLoop("done")
+
+	with::
+
+		return "done"
+
+*	The method :meth:`logProgress` is gone. Replace::
+
+		self.logProgress("parsing XML file")
+
+	with::
+
+		self.log("parsing XML file")
+
+	You might also add tags to the logging call via::
+
+		self.log.xml("parsing XML")
+
+	(This adds the tag ``"xml"`` to the log line.)
+
+*	:class:`sisyphus.Job` no longer has a constructor. Configuration is now done
+	via class attributes. Replace::
+
+		class TransmogrifyStuff(sisyphus.Job):
+			def __init__(self, connectstring):
+				sisyphus.Job.__init__(self, 30, "ACME_TransmogrifyStuff", raiseerrors=True)
+
+	with::
+
+		class TransmogrifyStuff(sisyphus.Job):
+			projectname = "ACME.MyProject"
+			jobname = "TransmogrifyStuff"
+			maxtime = 30
+
+*	The default location of run/log files has changed. Now ``~/ll.sisyphus/log``
+	is used for log files and ``~/ll.sisyphus/run`` is used for run files.
+
+
 Migrating to version 3.10
 =========================
 
