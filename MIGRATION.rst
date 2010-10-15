@@ -26,6 +26,17 @@ Changes to :mod:`ll.sisyphus`
 
 	(This adds the tag ``"xml"`` to the log line.)
 
+*	The method :meth:`logError` is gone. Replace::
+
+		self.logError("Can't parse XML file")
+
+	with::
+
+		self.log.error("Can't parse XML file")
+
+	If the object passed to ``self.log`` is an exception, the logging call will
+	add the ``exc`` tag automatically.
+
 *	:class:`sisyphus.Job` no longer has a constructor. Configuration is now done
 	via class attributes. Replace::
 
