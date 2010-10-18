@@ -1,3 +1,13 @@
+Changes in 3.11.1 (released 10/18/2010)
+---------------------------------------
+
+*	Fixed two bugs in the error handling for unknown XML parsing events in
+	:meth:`ll.xist.parse.Expat.__call__` and :meth:`ll.xist.parse.SGMLOP.__call__`
+	(exceptions were yielded instead of raised).
+
+*	:mod:`ll.sisyphus` jobs now don't break if they can't find the script source.
+
+
 Changes in 3.11 (released 10/15/2010)
 -------------------------------------
 

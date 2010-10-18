@@ -277,19 +277,22 @@ class Job(object):
 		self.info.filename = self._string(os.path.abspath(filename))
 
 		# Get source code
-		with open(filename.rstrip("c"), "rb") as f:
-			source = f.read()
-			lines = source.splitlines()
-			# find encoding in the first two lines
-			encoding = self.inputencoding
-			if lines and lines[0].startswith(codecs.BOM_UTF8):
-				encoding = "utf-8"
-			else:
-				for line in lines[:2]:
-					match = encodingdeclaration.search(line)
-					if match is not None:
-						encoding = match.group(1)
-			self.source = source.decode(encoding, self.inputerrors)
+		try:
+			with open(filename.rstrip("c"), "rb") as f:
+				source = f.read()
+				lines = source.splitlines()
+				# find encoding in the first two lines
+				encoding = self.inputencoding
+				if lines and lines[0].startswith(codecs.BOM_UTF8):
+					encoding = "utf-8"
+				else:
+					for line in lines[:2]:
+						match = encodingdeclaration.search(line)
+						if match is not None:
+							encoding = match.group(1)
+				self.source = source.decode(encoding, self.inputerrors)
+		except IOError: # Script might have called ``os.chdir()`` before
+			self.source = None
 
 		# Get crontab
 		self.crontab = self._string(os.popen("crontab -l 2>/dev/null").read())

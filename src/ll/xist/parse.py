@@ -735,7 +735,7 @@ class Expat(Parser):
 				elif evtype == u"url":
 					yield (self.evurl, data)
 				else:
-					yield UnknownEventError(self, (evtype, data))
+					raise UnknownEventError(self, (evtype, data))
 			try:
 				self._parser.Parse(b"", True)
 			except Exception, exc:
@@ -883,7 +883,7 @@ class SGMLOP(Parser):
 				elif evtype == u"url":
 					yield (self.evurl, data)
 				else:
-					yield UnknownEventError(self, (evtype, data))
+					raise UnknownEventError(self, (evtype, data))
 			self._parser.close()
 			for event in self._flush(True):
 				yield event
