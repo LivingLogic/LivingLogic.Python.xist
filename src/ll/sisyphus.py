@@ -187,7 +187,7 @@ class Job(object):
 
 	log2file = True
 
-	formatlogline = u"[<?print time?>]=[t+<?print time-starttime?>]<?if tags?>[<?print ', '.join(tags)?>]<?end if?>: <?print line?>"
+	formatlogline = u"[<?print time?>]=[t+<?print time-starttime?>]<?for tag in tags?>[<?print tag?>]<?end for?>: <?print line?>"
 
 	keepfilelogs = 30
 

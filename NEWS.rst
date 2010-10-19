@@ -4,6 +4,14 @@ Changes in 3.12 (released ??/??/2010)
 *	:mod:`ll.sisyphus` now uses ``sys._getframe()`` to more reliably determine
 	the name of the script.
 
+*	Changed the default output of tags in :mod:`ll.sisyphus` log files from::
+
+		[tag1, tag2, tag3]
+
+	to::
+
+		[tag1][tag2][tag3]
+
 
 Changes in 3.11.1 (released 10/18/2010)
 ---------------------------------------
