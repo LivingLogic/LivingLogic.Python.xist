@@ -1,3 +1,10 @@
+Changes in 3.12 (released ??/??/2010)
+-------------------------------------
+
+*	:mod:`ll.sisyphus` now uses ``sys._getframe()`` to more reliably determine
+	the name of the script.
+
+
 Changes in 3.11.1 (released 10/18/2010)
 ---------------------------------------
 

@@ -272,9 +272,9 @@ class Job(object):
 		# Get user info
 		(self.info.user_name, _, self.info.user_uid, self.info.user_gid, self.info.user_gecos, self.info.user_dir, self.info.user_shell) = map(self._string, pwd.getpwuid(os.getuid()))
 
-		# Get filename
-		filename = sys.modules["__main__"].__file__
-		self.info.filename = self._string(os.path.abspath(filename))
+		# Get filename of the executing script
+		filename = sys._getframe(-1).f_code.co_filename
+		self.info.filename = self._string(filename)
 
 		# Get source code
 		try:
