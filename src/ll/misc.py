@@ -477,6 +477,48 @@ def module(code, filename="unnamed.py", name=None):
 	return mod
 
 
+class SysInfo(object):
+	"""
+	A :class:`SysInfo` object contains information about the host, user, python
+	version and script. Available attributes are ``host_name``, ``host_fqdn``,
+	``host_ip``, ``host_sysname``, ``host_nodename``, ``host_release``,
+	``host_version``, ``host_machine``, ``user_name``, ``user_uid``, ``user_gid``,
+	``user_gecos``, ``user_dir``, ``user_shell``, ``python_executable``,
+	``python_version``, ``pid`` and ``scriptname``.
+
+	:class:`SysInfo` object also support a mimimal dictionary interface (i.e.
+	:meth:`__getitem__` and :meth:`__iter__`).
+	"""
+
+	_keys = {"host_name", "host_fqdn", "host_ip", "host_sysname", "host_nodename", "host_release", "host_version", "host_machine", "python_executable", "python_version", "pid", "scriptname"}
+
+	def __init__(self, encoding="utf-8", errors="replace"):
+		import socket, pwd
+
+		def _string(s):
+			if isinstance(s, str):
+				s = s.decode(encoding, errors)
+			return s
+
+		self.host_name = _string(socket.gethostname())
+		self.host_fqdn = _string(self.host_name)
+		self.host_ip = _string(socket.gethostbyname(self.host_name))
+		(self.host_sysname, self.host_nodename, self.host_release, self.host_version, self.host_machine) = map(_string, os.uname())
+		(self.user_name, _, self.user_uid, self.user_gid, self.user_gecos, self.user_dir, self.user_shell) = map(_string, pwd.getpwuid(os.getuid()))
+		self.python_executable = _string(sys.executable)
+		self.python_version = ("{}.{}.{}" if sys.version_info.micro else "{}.{}").format(*sys.version_info)
+		self.pid = os.getpid()
+		self.scriptname = _string(sys._getframe(-1).f_code.co_filename)
+
+	def __getitem__(self, key):
+		if key in self._keys:
+			return getattr(self, key)
+		raise KeyError(key)
+
+	def __iter__(self):
+		return iter(self._keys)
+
+	
 def prettycsv(rows, padding="   "):
 	"""
 	Format table :var:`rows`.

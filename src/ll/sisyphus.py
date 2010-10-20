@@ -181,9 +181,9 @@ class Job(object):
 
 	maxtime = 5 * 60
 
-	logfilename = u"~<?print user_name?>/ll.sisyphus/log/<?print projectname?>/<?print jobname?>/<?print starttime.format('%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog"
-	loglinkname = u"~<?print user_name?>/ll.sisyphus/log/<?print projectname?>/<?print jobname?>/current.sisyphuslog"
-	pidfilename = u"~<?print user_name?>/ll.sisyphus/run/<?print projectname?>/<?print jobname?>.pid"
+	logfilename = u"~/ll.sisyphus/log/<?print projectname?>/<?print jobname?>/<?print starttime.format('%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog"
+	loglinkname = u"~/ll.sisyphus/log/<?print projectname?>/<?print jobname?>/current.sisyphuslog"
+	pidfilename = u"~/ll.sisyphus/run/<?print projectname?>/<?print jobname?>.pid"
 
 	log2file = True
 
@@ -249,6 +249,7 @@ class Job(object):
 
 	def _setup(self):
 		self.info = AttrDict()
+		self.info.sysinfo = misc.SysInfo(self.inputencoding, self.inputerrors)
 		self.info.projectname = self._string(self.projectname)
 		self.info.jobname = self._string(self.jobname)
 
@@ -257,28 +258,9 @@ class Job(object):
 			maxtime = datetime.timedelta(seconds=maxtime)
 		self.info.maxtime = maxtime
 
-		# Get PID
-		self.info.pid = os.getpid()
-
-		# Get host info
-		host_name = socket.gethostname()
-		self.info.host_name = self._string(socket.gethostname())
-		self.info.host_fqdn = self._string(socket.getfqdn(host_name))
-		self.info.host_ip = self._string(socket.gethostbyname(host_name))
-
-		# Get uname info
-		(self.info.host_sysname, self.info.host_nodename, self.info.host_release, self.info.host_version, self.info.host_machine) = map(self._string, os.uname())
-
-		# Get user info
-		(self.info.user_name, _, self.info.user_uid, self.info.user_gid, self.info.user_gecos, self.info.user_dir, self.info.user_shell) = map(self._string, pwd.getpwuid(os.getuid()))
-
-		# Get filename of the executing script
-		filename = sys._getframe(-1).f_code.co_filename
-		self.info.filename = self._string(filename)
-
 		# Get source code
 		try:
-			with open(filename.rstrip("c"), "rb") as f:
+			with open(self.info.sysinfo.scriptname.rstrip("c"), "rb") as f:
 				source = f.read()
 				lines = source.splitlines()
 				# find encoding in the first two lines
@@ -318,7 +300,7 @@ class Job(object):
 
 		self._createlogfile()
 
-		self.log.sisyphus.info(u"{info.filename} (pid {info.pid})".format(info=self.info))
+		self.log.sisyphus.info(u"{0.sysinfo.scriptname} (pid {0.sysinfo.pid})".format(self.info))
 		try: # is there a pid file from a running job?
 			pidfile = open(pidfilename, "r")
 		except IOError, exc: # no pid file => the job has finished without problems
@@ -465,7 +447,7 @@ class Job(object):
 		"""
 		if not self.pidfilewritten:
 			with contextlib.closing(url.File(pidfilename).openwrite()) as file:
-				file.write(str(self.info.pid))
+				file.write(str(self.info.sysinfo.pid))
 			self.pidfilewritten = True
 
 	def _killpid(self, pidfilename):
