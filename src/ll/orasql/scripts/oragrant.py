@@ -31,7 +31,7 @@ def main(args=None):
 	p.add_argument("-m", "--mapgrantee", dest="mapgrantee", help="Map grantees (Python expression: list or dict)", default="True")
 	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for output", default="utf-8")
 
-	(options, args) = p.parse_args(args)
+	args = p.parse_args(args)
 
 	if args.color == "yes":
 		color = True
