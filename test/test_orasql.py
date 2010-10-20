@@ -192,6 +192,7 @@ def test_constraints():
 			obj.table()
 			if isinstance(obj, orasql.ForeignKey):
 				obj.pk()
+				list(obj.itercolumns())
 
 
 @py.test.mark.db

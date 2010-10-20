@@ -1410,7 +1410,7 @@ class PrimaryKey(Constraint):
 		if rec2 is None:
 			raise SQLObjectNotFoundError(self)
 		tablename = getfullname(rec2.table_name, rec2.owner)
-		cursor.execute("select column_name from all_cons_columns where owner=nvl(:owner, user) and constraint_name=:name", owner=self.owner, name=self.name)
+		cursor.execute("select column_name from all_cons_columns where owner=nvl(:owner, user) and constraint_name=:name order by position", owner=self.owner, name=self.name)
 		for r in cursor:
 			yield Column(u"{}.{}".format(tablename, r.column_name))
 
@@ -1420,7 +1420,7 @@ class PrimaryKey(Constraint):
 		rec2 = cursor.fetchone()
 		if rec2 is None:
 			raise SQLObjectNotFoundError(self)
-		cursor.execute("select column_name from all_cons_columns where owner=nvl(:owner, user) and constraint_name=:name", owner=self.owner, name=self.name)
+		cursor.execute("select column_name from all_cons_columns where owner=nvl(:owner, user) and constraint_name=:name order by position", owner=self.owner, name=self.name)
 		tablename = getfullname(rec2.table_name, rec2.owner)
 		pkname = getfullname(self.name, None)
 		code = u"alter table {} add constraint {} primary key({})".format(tablename, pkname, ", ".join(r.column_name for r in cursor))
@@ -1634,6 +1634,15 @@ class ForeignKey(Constraint):
 		cursor.execute("select decode(r_owner, user, null, r_owner) as r_owner, r_constraint_name from all_constraints where constraint_type='R' and owner=nvl(:owner, user) and constraint_name=:name", owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		return PrimaryKey(rec.r_constraint_name, rec.r_owner, connection)
+
+	def itercolumns(self, connection=None):
+		"""
+		Return an iterator over the columns this foreign key consists of.
+		"""
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select decode(owner, user, null, owner) as owner, table_name, column_name from all_cons_columns where constraint_name=:name and owner=nvl(:owner, user) order by position", owner=self.owner, name=self.name)
+		for r in cursor:
+			yield Column(u"{}.{}".format(r.table_name, r.column_name), r.owner)
 
 	def isenabled(self, connection=None):
 		"""

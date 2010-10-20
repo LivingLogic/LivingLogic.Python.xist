@@ -1,6 +1,9 @@
 Changes in 3.12 (released ??/??/2010)
 -------------------------------------
 
+*	:class:`ll.orasql.ForeignKey` has a new method :meth:`itercolumns` for
+	iterating over the columns the foreign key consists of.
+
 *	A new class :mod:`ll.misc.SysInfo` has been added that provides
 	host/user/python/script information. :mod:`ll.sisyphus` uses this new
 	class.
