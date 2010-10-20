@@ -43,9 +43,8 @@ def xsc2txt(infilename, outfilename, title, width):
 
 	e = e.conv()
 
-	file = open(outfilename, "wb")
-	file.write(html.astext(e, width=width))
-	file.close()
+	with open(outfilename, "wb") as f:
+		f.write(html.astext(e, width=width))
 
 
 def main(args=None):
