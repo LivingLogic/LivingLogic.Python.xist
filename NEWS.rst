@@ -1,8 +1,9 @@
 Changes in 3.12 (released ??/??/2010)
 -------------------------------------
 
-*	:mod:`ll.sisyphus` now uses ``sys._getframe()`` to more reliably determine
-	the name of the script.
+*	A new class :mod:`ll.misc.SysInfo` has been added that provides
+	host/user/python/script information. :mod:`ll.sisyphus` uses this new
+	class.
 
 *	Changed the default output of tags in :mod:`ll.sisyphus` log files from::
 
