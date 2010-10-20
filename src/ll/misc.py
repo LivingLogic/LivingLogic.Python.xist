@@ -21,6 +21,10 @@ import sys, os, types, collections, weakref, cStringIO, gzip as gzip_, csv, iter
 __docformat__ = "reStructuredText"
 
 
+# get the current directory as early as possible to minimize the chance that someone has called ``os.chdir()``
+_curdir = os.getcwd()
+
+
 # fetch item, first, last, count and xmlescape
 try:
 	from ll._misc import *
@@ -508,7 +512,7 @@ class SysInfo(object):
 		self.python_executable = _string(sys.executable)
 		self.python_version = ("{}.{}.{}" if sys.version_info.micro else "{}.{}").format(*sys.version_info)
 		self.pid = os.getpid()
-		self.scriptname = _string(sys._getframe(-1).f_code.co_filename)
+		self.scriptname = _string(os.path.join(_curdir, sys.modules["__main__"].__file__))
 
 	def __getitem__(self, key):
 		if key in self._keys:
@@ -548,6 +552,7 @@ def prettycsv(rows, padding="   "):
 				f = u"{0:<{1}}".format(f, w)
 			yield f
 		yield "\n"
+
 
 
 class JSMinUnterminatedComment(Exception):
