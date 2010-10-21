@@ -285,7 +285,7 @@ class Job(object):
 			self._formatlogline = ul4c.compile(self.formatlogline.replace("\n", "").replace("\r", "") + u"\n") # Log line formatting template
 			self._createlog() # Create log file and link
 
-			self.log.sisyphus.info(u"{0.sysinfo.scriptname} (maxtime {0.maxtime} seconds; parent pid {0.sysinfo.pid})".format(self.info))
+			self.log.sisyphus.info(u"{} (max run time {}; parent pid {})".format(self.info.sysinfo.scriptname, maxtimedelta, self.info.sysinfo.pid))
 
 			# Fork the process; the child will do the work; the parent will monitor the maximum runtime
 			pid = os.fork()
@@ -294,7 +294,7 @@ class Job(object):
 				# set a signal that kills the child process after the maximum runtime
 				def alarm(signum, frame):
 					os.kill(pid, signal.SIGTERM) # Kill our child
-					self.log.sisyphus.error.kill(u"Terminated after {} seconds!".format(self.maxtime))
+					self.log.sisyphus.error.kill(u"Terminated after {}".format(maxtimedelta))
 					if self.noisykills:
 						raise MaximumRuntimeExceeded(self.maxtime)
 					sys.exit(1)
@@ -303,7 +303,7 @@ class Job(object):
 				os.wait() # Wait for the child process to terminate
 				return # Exit normally
 			# From now on we are in the child process
-			self.log.sisyphus.info(u"no previous job running; here we go (child pid {})!".format(os.getpid()))
+			self.log.sisyphus.info(u"forked worker child (child pid {})".format(os.getpid()))
 
 			try:
 				with url.Context():
