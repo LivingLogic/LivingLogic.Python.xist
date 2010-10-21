@@ -254,43 +254,17 @@ class Job(object):
 		self.outputerrors = args.outputerrors
 		return args
 
-	def _setup(self):
+	def _handleexecution(self):
+		"""
+		Handle executing the job including handling of duplicate or hanging jobs.
+		"""
 		self.info = AttrDict()
 		self.info.sysinfo = misc.SysInfo(self.inputencoding, self.inputerrors)
 		self.info.projectname = self._string(self.projectname)
 		self.info.jobname = self._string(self.jobname)
 		self.info.maxtime = self.maxtime
+		maxtimedelta = datetime.timedelta(seconds=self.maxtime)
 
-		# Get source code
-		try:
-			with open(self.info.sysinfo.scriptname.rstrip("c"), "rb") as f:
-				source = f.read()
-				lines = source.splitlines()
-				# find encoding in the first two lines
-				encoding = self.inputencoding
-				if lines and lines[0].startswith(codecs.BOM_UTF8):
-					encoding = "utf-8"
-				else:
-					for line in lines[:2]:
-						match = encodingdeclaration.search(line)
-						if match is not None:
-							encoding = match.group(1)
-				self.source = source.decode(encoding, self.inputerrors)
-		except IOError: # Script might have called ``os.chdir()`` before
-			self.source = None
-
-		# Get crontab
-		self.crontab = self._string(os.popen("crontab -l 2>/dev/null").read())
-
-		# Current line number
-		self.lineno = 1
-
-		self.log = Tag(self._log)
-
-	def _handleexecution(self):
-		"""
-		Handle executing the job including handling of duplicate or hanging jobs.
-		"""
 		# Obtain a lock on the script file to make sure we're the only one running
 		with open(self.info.sysinfo.scriptname, "rb") as f:
 			try:
@@ -304,10 +278,12 @@ class Job(object):
 			# we were able to obtain the lock, so we are the only one running
 			self.info.starttime = datetime.datetime.now()
 
-			formatlogline = self.formatlogline.replace("\n", "").replace("\r", "") + u"\n"
-			self._formatlogline = ul4c.compile(formatlogline)
-
-			self._createlog()
+			self._getscriptsource() # Get source code
+			self._getcrontab() # Get crontab
+			self.lineno = 1 # Current line number
+			self.log = Tag(self._log) # Create tagged logger
+			self._formatlogline = ul4c.compile(self.formatlogline.replace("\n", "").replace("\r", "") + u"\n") # Log line formatting template
+			self._createlog() # Create log file and link
 
 			self.log.sisyphus.info(u"{0.sysinfo.scriptname} (maxtime {0.maxtime} seconds; parent pid {0.sysinfo.pid})".format(self.info))
 
@@ -371,6 +347,33 @@ class Job(object):
 					self._logfile.write(text.encode(self.outputencoding, self.outputerrors))
 					self._logfile.flush()
 					self.lineno += 1
+
+	def _getscriptsource(self):
+		"""
+		Reads the source code of the script into ``self.source``.
+		"""
+		try:
+			with open(self.info.sysinfo.scriptname.rstrip("c"), "rb") as f:
+				source = f.read()
+				lines = source.splitlines()
+				# find encoding in the first two lines
+				encoding = self.inputencoding
+				if lines and lines[0].startswith(codecs.BOM_UTF8):
+					encoding = "utf-8"
+				else:
+					for line in lines[:2]:
+						match = encodingdeclaration.search(line)
+						if match is not None:
+							encoding = match.group(1)
+				self.source = source.decode(encoding, self.inputerrors)
+		except IOError: # Script might have called ``os.chdir()`` before
+			self.source = None
+
+	def _getcrontab(self):
+		"""
+		Reads the current crontab into ``self.crontab``.
+		"""
+		self.crontab = self._string(os.popen("crontab -l 2>/dev/null").read())
 
 	def _createlog(self):
 		"""
@@ -485,7 +488,6 @@ def execute(job):
 	"""
 	Execute the job :var:`job` once.
 	"""
-	job._setup()
 	job._handleexecution()
 
 
@@ -497,5 +499,4 @@ def executewithargs(job, args=None):
 	``sys.argv`` being used)
 	"""
 	job.parseargs(args)
-	job._setup()
 	job._handleexecution()
