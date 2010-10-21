@@ -1,15 +1,16 @@
 Changes in 3.12 (released 10/21/2010)
 -------------------------------------
 
-*	:class:`ll.orasql.ForeignKey` has a new method :meth:`itercolumns` for
-	iterating over the columns the foreign key consists of.
+*	The way that :mod:`ll.sisyphus` handles running jobs has changed. Jobs no
+	longer create a pid file. Avoiding duplicate running jobs is done with a file
+	lock on the script file and limiting the maximum runtime is done by forking
+	the process and monitoring the runtime in the parent process. This means that
+	a job that is past its maximum allowed runtime will not be killed by the next
+	job invocation. Instead the job will kill itself.
 
 *	A new class :mod:`ll.misc.SysInfo` has been added that provides
 	host/user/python/script information. :mod:`ll.sisyphus` uses this new
 	class.
-
-*	Fixed a bug in the ``uls`` script: For remote URLs uid and gid must be
-	resolved on the remote host.
 
 *	Changed the default output of tags in :mod:`ll.sisyphus` log files from::
 
@@ -18,6 +19,15 @@ Changes in 3.12 (released 10/21/2010)
 	to::
 
 		[tag1][tag2][tag3]
+
+*	The default location for :mod:`ll.sisyphus` log files has changed to
+	``~/ll.sisyphus/projectname/jobname/``.
+
+*	:class:`ll.orasql.ForeignKey` has a new method :meth:`itercolumns` for
+	iterating over the columns the foreign key consists of.
+
+*	Fixed a bug in the ``uls`` script: For remote URLs uid and gid must be
+	resolved on the remote host.
 
 
 Changes in 3.11.1 (released 10/18/2010)
