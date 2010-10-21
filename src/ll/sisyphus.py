@@ -13,20 +13,17 @@
 :mod:`ll.sisyphus` simplifies running Python stuff as cron jobs.
 
 There will be no more than one sisyphus job of a certain name running at every
-given time. When the job is already running and a second is started, the second
-one will quit immediately if the first one hasn't exceeded its maximum allowed
-lifetime yet. If it has exceeded the allowed lifetime the first job
-will be killed and the second will start running.
+given time. A job has a maximum allowed runtime. If this maximum is exceeded,
+the job will kill itself.
 
 In addition to that, job execution can be logged.
 
 To use this module, you must derive your own class from :class:`Job` and
 implement the :meth:`execute` method.
 
-The job announces its presence (and its process id) in a file that is stored in
-the :dir:`~/run` directory. Logs will be created in the :dir:`~/log` directory
-(This can be changes by deriving new subclasses and overwriting the appropriate
-class attribute).
+Logs will (by default) be created in the :dir:`~/ll.sisyphus` directory.
+This can be changed by deriving a new subclass and overwriting the appropriate
+class attribute.
 
 To execute a job, use the module level function :func:`execute` (or
 :func:`executewithargs` when you want to support command line arguments).
@@ -65,6 +62,8 @@ The following example illustrates the use of this module::
 
 	if __name__=="__main__":
 		sisyphus.executewithargs(Fetch())
+
+You will find the log files for this job in ``~/ll.sisyphus/ACME.FooBar/Fetch/``.
 """
 
 
