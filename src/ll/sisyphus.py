@@ -336,7 +336,7 @@ class Job(object):
 				text = self._string(text)
 				if isinstance(text, BaseException):
 					if "exc" not in tags:
-						tags += ["exc"]
+						tags += ("exc",)
 					tb = u"".join(traceback.format_tb(sys.exc_info()[-1]))
 					text = u"{tb}\n{exc}".format(tb=tb, exc=self._exc(text))
 				elif not isinstance(text, unicode):

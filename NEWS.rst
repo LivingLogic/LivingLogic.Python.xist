@@ -1,3 +1,9 @@
+Changes in 3.12.1 (released 10/21/2010)
+---------------------------------------
+
+*	Fixed a bug in :mod:`ll.sisyphus` when logging exceptions.
+
+
 Changes in 3.12 (released 10/21/2010)
 -------------------------------------
 
