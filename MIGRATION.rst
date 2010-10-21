@@ -1,3 +1,15 @@
+Migrating to version 3.12
+=========================
+
+Changes to :mod:`ll.sisyphus`
+-----------------------------
+
+*	The maximum allowed run time for jobs is now a hard limit. Previously a
+	running job that exceeded the maximum allowed run time would only be killed
+	when the next job was started. Now the job will kill itself. This means you
+	*might* have adjust your ``maxtime`` setting.
+
+
 Migrating to version 3.11
 =========================
 
