@@ -85,14 +85,8 @@ def main(args=None):
 	def printone(url, long, human):
 		if long:
 			stat = url.stat()
-			if stat.st_uid not in uids:
-				user = uids[stat.st_uid] = pwd.getpwuid(stat.st_uid)[0]
-			else:
-				user = uids[stat.st_uid]
-			if stat.st_gid not in gids:
-				group = gids[stat.st_gid] = grp.getgrgid(stat.st_gid)[0]
-			else:
-				group = gids[stat.st_gid]
+			owner = url.owner()
+			group = url.group()
 			mtime = datetime.datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
 			mode = "".join([text[bool(stat.st_mode&bit)] for (bit, text) in modedata])
 			size = stat.st_size
@@ -106,7 +100,7 @@ def main(args=None):
 							size = astyle.style_default(str(int(size)), style_sizeunit(c))
 						break
 					size /= 1024.
-			stdout.write(mode, sep, rpad(user, 8), sep, rpad(group, 8), sep, lpad(size, 5 if human else 12), sep, lpad(stat.st_nlink, 3), sep, mtime, sep)
+			stdout.write(mode, sep, rpad(owner, 8), sep, rpad(group, 8), sep, lpad(size, 5 if human else 12), sep, lpad(stat.st_nlink, 3), sep, mtime, sep)
 		if url.isdir():
 			stdout.writeln(style_dir(str(url)))
 		else:

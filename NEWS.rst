@@ -1,4 +1,4 @@
-Changes in 3.12 (released ??/??/2010)
+Changes in 3.12 (released 10/21/2010)
 -------------------------------------
 
 *	:class:`ll.orasql.ForeignKey` has a new method :meth:`itercolumns` for
@@ -7,6 +7,9 @@ Changes in 3.12 (released ??/??/2010)
 *	A new class :mod:`ll.misc.SysInfo` has been added that provides
 	host/user/python/script information. :mod:`ll.sisyphus` uses this new
 	class.
+
+*	Fixed a bug in the ``uls`` script: For remote URLs uid and gid must be
+	resolved on the remote host.
 
 *	Changed the default output of tags in :mod:`ll.sisyphus` log files from::
 
