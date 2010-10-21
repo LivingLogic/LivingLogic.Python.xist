@@ -7,7 +7,7 @@ Changes to :mod:`ll.sisyphus`
 *	The maximum allowed runtime for jobs is now a hard limit. Previously a
 	running job that exceeded the maximum allowed runtime would only be killed
 	when the next job was started. Now the job will kill itself immediately after
-	``maxtime`` seconds. This means you *might* have adjust your ``maxtime``
+	``maxtime`` seconds. This means you *might* have to adjust your ``maxtime``
 	setting.
 
 *	The default location of log files has changed. Now ``~/ll.sisyphus/`` is used
