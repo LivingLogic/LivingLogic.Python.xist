@@ -10,8 +10,8 @@ Changes to :mod:`ll.sisyphus`
 	``maxtime`` seconds. This means you *might* have adjust your ``maxtime``
 	setting.
 
-*	The default location of log files has changed. Now ``~/ll.sisyphus/`` as the
-	base directory instead of ``~/ll.sisyphus/log/``.
+*	The default location of log files has changed. Now ``~/ll.sisyphus/`` as used
+	as the base directory instead of ``~/ll.sisyphus/log/``.
 
 
 Migrating to version 3.11
