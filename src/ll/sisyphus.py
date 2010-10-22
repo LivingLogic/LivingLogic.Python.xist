@@ -117,8 +117,8 @@ class Job(object):
 	:mod:`ll.sisyphus` itself uses the following tags:
 
 		``sisyphus``
-			This tag will be added to all log lines produced by the
-			:mod:`ll.sisyphus` itself
+			This tag will be added to all log lines produced by :mod:`ll.sisyphus`
+			itself
 
 		``init``
 			This tag is used for the log lines output at the start of the job
