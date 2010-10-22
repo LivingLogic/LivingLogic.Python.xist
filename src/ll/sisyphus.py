@@ -114,6 +114,26 @@ class Job(object):
 
 	This adds the tags ``"xml"`` and ``"warning"`` to the log line.
 
+	:mod:`ll.sisyphus` itself uses the following tags:
+
+		``sisyphus``
+			This tag will be added to all log lines produced by the
+			:mod:`ll.sisyphus` itself
+
+		``init``
+			This tag is used for the log lines output at the start of the job
+
+		``result``
+			This tag is used for final line it the log files that shows a summary
+			of what the job did (or why it failed)
+
+		``fail``
+			This tag is used in the result line if the job failed with a exception.
+
+		``kill``
+			This tag is used in the result line if the job was killed because it
+			exceeded the maximum allowed runtime.
+
 	The job con be configured in three ways. By class attributes in the
 	:class:`Job` subclass, by attributes of the :class:`Job` instance (e.g. set
 	in :meth:`__init__`) and by command line arguments (if :func:`executewithargs`
@@ -146,7 +166,7 @@ class Job(object):
 		A link that points to the currently active logfile (as an UL4 template).
 		If this is :const:`None` no link will be created.
 
-	``log2file`` : :option:`-l` or :option:`--log2file`
+	``log2file`` : :option:`-f` or :option:`--log2file`
 		Should a logfile be written at all?
 
 	``formatlogline`` : :option:`--formatlogline`
@@ -191,6 +211,8 @@ class Job(object):
 	loglinkname = u"~/ll.sisyphus/<?print projectname?>/<?print jobname?>/current.sisyphuslog"
 
 	log2file = True
+	log2stdout = False
+	log2stderr = False
 
 	formatlogline = u"[<?print time?>]=[t+<?print time-starttime?>]<?for tag in tags?>[<?print tag?>]<?end for?>: <?print line?>"
 
@@ -225,7 +247,9 @@ class Job(object):
 		p.add_argument("-p", "--projectname", dest="projectname", metavar="NAME", help="The name of the project this job belongs to", type=self._string, default=self.projectname)
 		p.add_argument("-j", "--jobname", dest="jobname", metavar="NAME", help="The name of the job", type=self._string, default=self.jobname if self.jobname is not None else self.__class__.__name__)
 		p.add_argument("-m", "--maxtime", dest="maxtime", metavar="SECONDS", help="Maximum number of seconds the job is allowed to run", type=int, default=self.maxtime)
-		p.add_argument("-l", "--log2file", dest="log2file", metavar="FLAG", help="Should a logfile be written?", type=misc.flag, default=self.log2file)
+		p.add_argument("-f", "--log2file", dest="log2file", metavar="FLAG", help="Should the job log into a file?", type=misc.flag, default=self.log2file)
+		p.add_argument("-o", "--log2stdout", dest="log2stdout", metavar="FLAG", help="Should the job log to stdout?", type=misc.flag, default=self.log2stdout)
+		p.add_argument("-e", "--log2stderr", dest="log2stderr", metavar="FLAG", help="Should the job log to stderr?", type=misc.flag, default=self.log2stderr)
 		p.add_argument(      "--keepfilelogs", dest="keepfilelogs", metavar="DAYS", help="Number of days log files are kept", type=float, default=self.keepfilelogs)
 		p.add_argument(      "--inputencoding", dest="inputencoding", metavar="ENCODING", help="Encoding for system data (i.e. crontab etc.)", default=self.inputencoding)
 		p.add_argument(      "--inputerrors", dest="inputerrors", metavar="METHOD", help="Error handling method for encoding errors in system data", default=self.inputerrors)
@@ -247,6 +271,8 @@ class Job(object):
 		self.maxtime = args.maxtime
 		self.noisykills = args.noisykills
 		self.log2file = args.log2file
+		self.log2stdout = args.log2stdout
+		self.log2stderr = args.log2stderr
 		self.keepfilelogs = datetime.timedelta(days=args.keepfilelogs)
 		self.inputencoding = args.inputencoding
 		self.inputerrors = args.inputerrors
@@ -285,7 +311,7 @@ class Job(object):
 			self._formatlogline = ul4c.compile(self.formatlogline.replace("\n", "").replace("\r", "") + u"\n") # Log line formatting template
 			self._createlog() # Create log file and link
 
-			self.log.sisyphus.info(u"{} (max run time {}; parent pid {})".format(self.info.sysinfo.scriptname, maxtimedelta, self.info.sysinfo.pid))
+			self.log.sisyphus.init(u"{} (max run time {}; parent pid {})".format(self.info.sysinfo.scriptname, maxtimedelta, self.info.sysinfo.pid))
 
 			# Fork the process; the child will do the work; the parent will monitor the maximum runtime
 			pid = os.fork()
@@ -303,7 +329,7 @@ class Job(object):
 				os.wait() # Wait for the child process to terminate
 				return # Exit normally
 			# From now on we are in the child process
-			self.log.sisyphus.info(u"forked worker child (child pid {})".format(os.getpid()))
+			self.log.sisyphus.init(u"forked worker child (child pid {})".format(os.getpid()))
 
 			try:
 				with url.Context():
@@ -313,12 +339,12 @@ class Job(object):
 				# log the error to the logfile, because the job probably didn't have a chance to do it
 				self.log.sisyphus.exc(exc)
 				result = u"failed with {}".format(self._exc(exc))
-				self.log.sisyphus.result.error(result)
+				self.log.sisyphus.result.fail(result)
 				self.failed()
 				raise
 			else:
 				# log the result
-				self.log.sisyphus.result(self._string(result))
+				self.log.sisyphus.result.ok(self._string(result))
 			finally:
 				if self._logfile is not None:
 					self._logfile.close()
@@ -330,7 +356,7 @@ class Job(object):
 		Log items in :var:`texts` to the log file using :var:`tags` as the list
 		of tags.
 		"""
-		if self.log2file:
+		if self.log2file or self.log2stdout or self.log2stderr:
 			timestamp = datetime.datetime.now()
 			for text in texts:
 				text = self._string(text)
@@ -346,8 +372,16 @@ class Job(object):
 					del lines[-1]
 				for line in lines:
 					text = self._formatlogline.renders(line=line, time=timestamp, tags=tags, **self.info)
-					self._logfile.write(text.encode(self.outputencoding, self.outputerrors))
-					self._logfile.flush()
+					text = text.encode(self.outputencoding, self.outputerrors)
+					if self.log2file:
+						self._logfile.write(text)
+						self._logfile.flush()
+					if self.log2stdout:
+						sys.stdout.write(text)
+						sys.stdout.flush()
+					if self.log2stderr:
+						sys.stderr.write(text)
+						sys.stderr.flush()
 					self.lineno += 1
 
 	def _getscriptsource(self):
