@@ -416,10 +416,10 @@ class Job(object):
 			logdir = self._logfile.url.withoutfile()
 			for fileurl in logdir/logdir.files():
 				fileurl = logdir/fileurl
-				# Never delete the current log file or the link to it, even if keepfilelogs is 0
+				# Never delete the current log file or link, even if keepfilelogs is 0
 				if fileurl == self._logfilename or fileurl == self._loglinkname:
 					continue
-				# If the file is to old, delete it (not that this might delete files that were not produced by sisyphus)
+				# If the file is to old, delete it (note that this might delete files that were not produced by sisyphus)
 				if fileurl.mdate() < threshold:
 					if not removedany: # Only log this line for the first logfile we remove
 						self.log.sisyphus.info("Removing logfiles older than {}".format(keepfilelogs))
