@@ -1,8 +1,8 @@
 Changes in 3.13 (released 10/21/2010)
 -------------------------------------
 
-*	The tag the :mod:`ll.sisyphus` itself uses for logging have changed slightly.
-	For more info see the module documentation.
+*	The tags that :mod:`ll.sisyphus` itself uses for logging have changed
+	slightly. For more info see the module documentation.
 
 *	:mod:`ll.sisyphus` job can now log to ``stdout`` and ``stderr``.
 
