@@ -289,6 +289,7 @@ class Job(object):
 		self.info.projectname = self._string(self.projectname)
 		self.info.jobname = self._string(self.jobname)
 		self.info.maxtime = self.maxtime
+		self._prefix = ""
 		maxtimedelta = datetime.timedelta(seconds=self.maxtime)
 
 		# Obtain a lock on the script file to make sure we're the only one running
@@ -351,6 +352,20 @@ class Job(object):
 				fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
 			os._exit(0)
 
+	@contextlib.contextmanager
+	def prefix(self, prefix):
+		"""
+		:meth:`prefix` is a context manager. For the duration of the ``with`` block
+		:var:`prefix` will be prepended to all log lines. :meth:`prefix` calls can
+		be nested.
+		"""
+		oldprefix = self._prefix
+		self._prefix += prefix
+		try:
+			yield
+		finally:
+			self._prefix = oldprefix
+
 	def _log(self, tags, *texts):
 		"""
 		Log items in :var:`texts` to the log file using :var:`tags` as the list
@@ -371,7 +386,7 @@ class Job(object):
 				if lines and not lines[-1].strip():
 					del lines[-1]
 				for line in lines:
-					text = self._formatlogline.renders(line=line, time=timestamp, tags=tags, **self.info)
+					text = self._formatlogline.renders(line=self._prefix+line, time=timestamp, tags=tags, **self.info)
 					text = text.encode(self.outputencoding, self.outputerrors)
 					if self.log2file:
 						self._logfile.write(text)

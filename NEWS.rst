@@ -1,10 +1,16 @@
-Changes in 3.13 (released 10/21/2010)
+Changes in 3.13 (released 10/22/2010)
 -------------------------------------
+
+*	sisyphus jobs now have a new method :meth:`prefix`. This method is a context
+	manager. For the duration of the ``with`` block, the passed in prefix will be
+	prepended to all log lines.
+
+*	:mod:`ll.sisyphus` job can now log to ``stdout`` and ``stderr`` with the new
+	options :option:`-o`/:option:`--log2stdout` and
+	:option:`-e`/:option:`--log2stderr`.
 
 *	The tags that :mod:`ll.sisyphus` itself uses for logging have changed
 	slightly. For more info see the module documentation.
-
-*	:mod:`ll.sisyphus` job can now log to ``stdout`` and ``stderr``.
 
 *	The option :option:`-l` for sisyphus jobs has been renamed to :option:`-f`.
 
