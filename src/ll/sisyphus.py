@@ -321,7 +321,7 @@ class Job(object):
 				# set a signal that kills the child process after the maximum runtime
 				def alarm(signum, frame):
 					os.kill(pid, signal.SIGTERM) # Kill our child
-					self.log.sisyphus.error.kill(u"Terminated after {}".format(maxtimedelta))
+					self.log.sisyphus.result.kill(u"Terminated after {}".format(maxtimedelta))
 					if self.noisykills:
 						raise MaximumRuntimeExceeded(self.maxtime)
 					sys.exit(1)
