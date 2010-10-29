@@ -23,7 +23,7 @@ from __future__ import division
 __docformat__ = "reStructuredText"
 
 
-import re, datetime, StringIO, locale
+import re, datetime, StringIO, locale, json
 
 from ll import spark, color
 
@@ -766,6 +766,91 @@ class Template(object):
 		"""
 		return "".join(self.iterdump())
 
+	def render(self, **variables):
+		"""
+		Render the template iteratively (i.e. this is a generator).
+		:var:`variables` contains the top level variables available to the
+		template code.
+		"""
+		return self.pythonfunction()(**variables)
+
+	def renders(self, **variables):
+		"""
+		Render the template as a string. :var:`variables` contains the top level
+		variables available to the template code.
+		"""
+		return "".join(self.pythonfunction()(**variables))
+
+	def pythonfunction(self):
+		"""
+		Return a Python generator that can be called to render the template. The
+		argument signature of the function will be ``**variables``.
+		"""
+		if self._pythonfunction is None:
+			code = self.pythonsource("render")
+			ns = {}
+			exec code.encode("utf-8") in ns # FIXME: no need to encode in Python 3.0
+			self._pythonfunction = ns["render"]
+		return self._pythonfunction
+
+	def __call__(self, **variables):
+		return self.pythonfunction()(**variables)
+
+	def pythonsource(self, function=None):
+		"""
+		Return the template as Python source code. If :var:`function` is specified
+		the code will be wrapped in a function with this name.
+		"""
+
+		self.indent = 0
+		self.lines = []
+		self.locations = []
+		self.lines2locs = []
+		self.lastopcode = None
+		self.lastlocation = Location(self.source, None, 0, 0, 0, 0)
+
+		if function is not None:
+			self._pythonsource_line(self.lastlocation, "def {}(**variables):".format(function))
+			self.indent += 1
+			self.lines2locs = [] # We initialize startline one line below, which restarts the counter
+		self._pythonsource_line(self.lastlocation, "import sys, datetime, itertools, json, random; from ll.misc import xmlescape; from ll import ul4c, color; startline = sys._getframe().f_lineno") # The line number of this line
+		self._pythonsource_line(self.lastlocation, "__1__")
+		self._pythonsource_line(self.lastlocation, "__2__")
+		self._pythonsource_line(self.lastlocation, "source = {!r}".format(self.source))
+		self._pythonsource_line(self.lastlocation, 'variables = {key.decode("utf-8"): value for (key, value) in variables.iteritems()}') # FIXME: This can be dropped in Python 3.0 where strings are unicode
+		self._pythonsource_line(self.lastlocation, "r0 = r1 = r2 = r3 = r4 = r5 = r6 = r7 = r8 = r9 = None")
+		self._pythonsource_line(self.lastlocation, "try:")
+		self.indent += 1
+		# Make sure that the resulting code is a generator even if the byte codes produce no yield statement
+		self._pythonsource_line(self.lastlocation, "if 0: yield ''")
+		try:
+			for opcode in self.opcodes:
+				try:
+					getattr(self, "_pythonsource_dispatch_{}".format(opcode.code))(opcode)
+				except AttributeError:
+					raise UnknownOpcodeError(opcode.code)
+				self.lastopcode = opcode.code
+		except Exception, exc:
+			newexc = Error(opcode.location) # FIXME: Use ``raise ... from`` in Python 3.0
+			newexc.__cause__ = exc
+			raise newexc
+		self.indent -= 1
+		self._pythonsource_line(self.lastlocation, "except Exception, exc:")
+		self.indent += 1
+		self._pythonsource_line(self.lastlocation, "newexc = ul4c.Error(ul4c.Location(source, *locations[lines2locs[sys.exc_info()[2].tb_lineno-startline]]))") # FIXME: Use ``raise ... from`` in Python 3.0
+		self._pythonsource_line(self.lastlocation, "newexc.__cause__ = exc")
+		self._pythonsource_line(self.lastlocation, "raise newexc")
+		locoffset = 1+int(self.lines[0].strip() != "__1__")
+		self.lines[locoffset] = self.lines[locoffset].replace("__1__", "locations = {!r}".format(tuple(self.locations)))
+		self.lines[locoffset+1] = self.lines[locoffset+1].replace("__2__", "lines2locs = {!r}".format(tuple(self.lines2locs)))
+		result = "\n".join(self.lines)
+		del self.lastopcode
+		del self.indent
+		del self.lines
+		del self.locations
+		del self.lines2locs
+		return result
+
 	def _pythonsource_line(self, location, line):
 		self.lines.append("\t"*self.indent + line)
 		if self.lastlocation is not location or not self.locations:
@@ -989,7 +1074,7 @@ class Template(object):
 	def _pythonsource_dispatch_callfunc1_csv(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = ul4c._csv(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_json(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = json.dumps(r{op.r2:d})".format(op=opcode))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = ul4c._json(r{op.r2:d})".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_str(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = unicode(r{op.r2:d}) if r{op.r2:d} is not None else u''".format(op=opcode))
 	def _pythonsource_dispatch_callfunc1_int(self, opcode):
@@ -1079,90 +1164,278 @@ class Template(object):
 	def _pythonsource_dispatch_callfunc4_hsv(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = color.Color.fromhsv(r{op.r2:d}, r{op.r3:d}, r{op.r4:d}, r{op.r5:d})".format(op=opcode))
 
-	def pythonsource(self, function=None):
+	def jssource(self, function=False):
 		"""
-		Return the template as Python source code. If :var:`function` is specified
-		the code will be wrapped in a function with this name.
-		"""
+		Return the template as Javascript source code. If :var:`function` is true
+		the code will be wrapped in a function. The signature of the function will
+		be ``function(vars)``, i.e. all template variables will be attributes of
+		the object ``vars``.
 
+		Note that the generated code will require the ``ul4`` Javascript support
+		library.
+		"""
 		self.indent = 0
 		self.lines = []
-		self.locations = []
-		self.lines2locs = []
-		self.lastopcode = None
-		self.lastlocation = Location(self.source, None, 0, 0, 0, 0)
+		self.varcounter = 0
 
-		if function is not None:
-			self._pythonsource_line(self.lastlocation, "def {}(**variables):".format(function))
+		if function:
+			self._jssource_line("function(vars)")
+			self._jssource_line("{")
 			self.indent += 1
-			self.lines2locs = [] # We initialize startline one line below, which restarts the counter
-		self._pythonsource_line(self.lastlocation, "import sys, datetime, itertools, json, random; from ll.misc import xmlescape; from ll import ul4c, color; startline = sys._getframe().f_lineno") # The line number of this line
-		self._pythonsource_line(self.lastlocation, "__1__")
-		self._pythonsource_line(self.lastlocation, "__2__")
-		self._pythonsource_line(self.lastlocation, "source = {!r}".format(self.source))
-		self._pythonsource_line(self.lastlocation, 'variables = {key.decode("utf-8"): value for (key, value) in variables.iteritems()}') # FIXME: This can be dropped in Python 3.0 where strings are unicode
-		self._pythonsource_line(self.lastlocation, "r0 = r1 = r2 = r3 = r4 = r5 = r6 = r7 = r8 = r9 = None")
-		self._pythonsource_line(self.lastlocation, "try:")
-		self.indent += 1
-		# Make sure that the resulting code is a generator even if the byte codes produce no yield statement
-		self._pythonsource_line(self.lastlocation, "if 0: yield ''")
-		try:
-			for opcode in self.opcodes:
-				try:
-					getattr(self, "_pythonsource_dispatch_{}".format(opcode.code))(opcode)
-				except AttributeError:
-					raise UnknownOpcodeError(opcode.code)
-				self.lastopcode = opcode.code
-		except Exception, exc:
-			newexc = Error(opcode.location) # FIXME: Use ``raise ... from`` in Python 3.0
-			newexc.__cause__ = exc
-			raise newexc
-		self.indent -= 1
-		self._pythonsource_line(self.lastlocation, "except Exception, exc:")
-		self.indent += 1
-		self._pythonsource_line(self.lastlocation, "newexc = ul4c.Error(ul4c.Location(source, *locations[lines2locs[sys.exc_info()[2].tb_lineno-startline]]))") # FIXME: Use ``raise ... from`` in Python 3.0
-		self._pythonsource_line(self.lastlocation, "newexc.__cause__ = exc")
-		self._pythonsource_line(self.lastlocation, "raise newexc")
-		locoffset = 1+int(self.lines[0].strip() != "__1__")
-		self.lines[locoffset] = self.lines[locoffset].replace("__1__", "locations = {!r}".format(tuple(self.locations)))
-		self.lines[locoffset+1] = self.lines[locoffset+1].replace("__2__", "lines2locs = {!r}".format(tuple(self.lines2locs)))
+
+		self._jssource_line(u"//@@@ BEGIN template source")
+		lines = self.source.splitlines(False)
+		width = len(str(len(lines)+1))
+		for (i, line) in enumerate(lines):
+			self._jssource_line(u"// {1:{0}} {2}".format(width, i+1, line))
+		self._jssource_line(u"//@@@ BEGIN template code")
+
+		self._jssource_line(u"var out = [], {};".format(", ".join("r{} = null".format(i) for i in xrange(10))))
+
+		lastloc = None
+		for opcode in self.opcodes:
+			if opcode.code is not None and opcode.location is not lastloc:
+				lastloc = opcode.location
+				(line, col) = lastloc.pos()
+				tag = lastloc.tag
+				self._jssource_line(u"// Location {} (line {}, col {}): {}".format(lastloc.starttag+1, line, col, repr(tag)[1+isinstance(tag, unicode):-1]))
+			try:
+				getattr(self, "_jssource_dispatch_{}".format(opcode.code))(opcode)
+			except AttributeError:
+				raise UnknownOpcodeError(opcode.code)
+
+		self._jssource_line(u'return out.join("");')
+		self._jssource_line(u"//@@@ END template code")
+
+		if function:
+			self.indent -= 1
+			self._jssource_line("}")
+
 		result = "\n".join(self.lines)
-		del self.lastopcode
-		del self.indent
+
+		del self.varcounter
 		del self.lines
-		del self.locations
-		del self.lines2locs
+		del self.indent
 		return result
 
-	def pythonfunction(self):
-		"""
-		Return a Python generator that can be called to render the template. The
-		argument signature of the function will be ``**variables``.
-		"""
-		if self._pythonfunction is None:
-			code = self.pythonsource("render")
-			ns = {}
-			exec code.encode("utf-8") in ns # FIXME: no need to encode in Python 3.0
-			self._pythonfunction = ns["render"]
-		return self._pythonfunction
+	def _jssource_line(self, line):
+		self.lines.append(u"\t"*self.indent + line)
 
-	def __call__(self, **variables):
-		return self.pythonfunction()(**variables)
-
-	def render(self, **variables):
-		"""
-		Render the template iteratively (i.e. this is a generator).
-		:var:`variables` contains the top level variables available to the
-		template code.
-		"""
-		return self.pythonfunction()(**variables)
-
-	def renders(self, **variables):
-		"""
-		Render the template as a string. :var:`variables` contains the top level
-		variables available to the template code.
-		"""
-		return "".join(self.render(**variables))
+	def _jssource_dispatch_None(self, opcode):
+		self._jssource_line("out.push({});".format(json.dumps(opcode.location.code)))
+	def _jssource_dispatch_loadstr(self, opcode):
+		self._jssource_line(u'r{op.r1} = {arg};'.format(op=opcode, arg=json.dumps(opcode.arg)))
+	def _jssource_dispatch_loadint(self, opcode):
+		self._jssource_line(u"r{op.r1} = {op.arg};".format(op=opcode))
+	def _jssource_dispatch_loadfloat(self, opcode):
+		self._jssource_line(u"r{op.r1} = {op.arg};".format(op=opcode))
+	def _jssource_dispatch_loadnone(self, opcode):
+		self._jssource_line(u"r{op.r1} = null;".format(op=opcode))
+	def _jssource_dispatch_loadfalse(self, opcode):
+		self._jssource_line(u"r{op.r1} = false;".format(op=opcode))
+	def _jssource_dispatch_loadtrue(self, opcode):
+		self._jssource_line(u"r{op.r1} = true;".format(op=opcode))
+	def _jssource_dispatch_loaddate(self, opcode):
+		args = map(int, datesplitter.split(opcode.arg))
+		args[1] -= 1
+		if len(args) == 7:
+			args[6] //= 1000
+		self._jssource_line(u"r{op.r1} = new Date({date});".format(op=opcode, date=", ".join(map(str, args))))
+	def _jssource_dispatch_loadcolor(self, opcode):
+		self._jssource_line(u"r{op.r1} = ul4._fu_rgb(0x{r}, 0x{g}, 0x{b}, 0x{a});".format(op=opcode, r=opcode.arg[:2], g=opcode.arg[2:4], b=opcode.arg[4:6], a=opcode.arg[6:]))
+	def _jssource_dispatch_buildlist(self, opcode):
+		self._jssource_line(u"r{op.r1} = [];".format(op=opcode))
+	def _jssource_dispatch_builddict(self, opcode):
+		self._jssource_line(u"r{op.r1} = {{}};".format(op=opcode))
+	def _jssource_dispatch_addlist(self, opcode):
+		self._jssource_line(u"r{op.r1}.push(r{op.r2});".format(op=opcode))
+	def _jssource_dispatch_adddict(self, opcode):
+		self._jssource_line(u"r{op.r1}[r{op.r2}] = r{op.r3};".format(op=opcode))
+	def _jssource_dispatch_updatedict(self, opcode):
+		self._jssource_line(u"for (var key in r{op.r2})".format(op=opcode))
+		self.indent += 1
+		self._jssource_line(u"r{op.r1}[key] = r{op.r2}[key];".format(op=opcode))
+		self.indent -= 1
+	def _jssource_dispatch_loadvar(self, opcode):
+		self._jssource_line(u"r{op.r1} = vars[{arg}];".format(op=opcode, arg=json.dumps(opcode.arg)))
+	def _jssource_dispatch_storevar(self, opcode):
+		self._jssource_line(u"vars[{arg}] = r{op.r1};".format(op=opcode, arg=json.dumps(opcode.arg)))
+	def _jssource_dispatch_addvar(self, opcode):
+		self._jssource_line(u"vars[{arg}] = ul4.add(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+	def _jssource_dispatch_subvar(self, opcode):
+		self._jssource_line(u"vars[{arg}] = ul4.sub(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+	def _jssource_dispatch_mulvar(self, opcode):
+		self._jssource_line(u"vars[{arg}] = ul4.mul(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+	def _jssource_dispatch_truedivvar(self, opcode):
+		self._jssource_line(u"vars[{arg}] = ul4.truediv(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+	def _jssource_dispatch_floordivvar(self, opcode):
+		self._jssource_line(u"vars[{arg}] = ul4.floordiv(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+	def _jssource_dispatch_modvar(self, opcode):
+		self._jssource_line(u"vars[{arg}] = ul4.mod(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+	def _jssource_dispatch_delvar(self, opcode):
+		self._jssource_line(u"vars[{arg}] = null;".format(arg=json.dumps(opcode.arg)))
+	def _jssource_dispatch_getattr(self, opcode):
+		self._jssource_line(u"r{op.r1} = ul4.getitem(r{op.r2}, {arg});".format(op=opcode, arg=json.dumps(opcode.arg)))
+	def _jssource_dispatch_getitem(self, opcode):
+		self._jssource_line(u"r{op.r1} = ul4.getitem(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _jssource_dispatch_getslice12(self, opcode):
+		self._jssource_line(u"r{op.r1} = ul4.getslice(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+	def _jssource_dispatch_getslice1(self, opcode):
+		self._jssource_line(u"r{op.r1} = ul4.getslice(r{op.r2}, r{op.r3}, null);".format(op=opcode))
+	def _jssource_dispatch_getslice2(self, opcode):
+		self._jssource_line(u"r{op.r1} = ul4.getslice(r{op.r2}, null, r{op.r3});".format(op=opcode))
+	def _jssource_dispatch_print(self, opcode):
+		self._jssource_line(u"out.push(ul4._fu_str(r{op.r1}));".format(op=opcode))
+	def _jssource_dispatch_printx(self, opcode):
+		self._jssource_line(u"out.push(ul4._fu_xmlescape(r{op.r1}));".format(op=opcode))
+	def _jssource_dispatch_for(self, opcode):
+		self.varcounter += 1
+		self._jssource_line(u"for (var iter{counter} = ul4.iter(r{op.r2});;)".format(op=opcode, counter=self.varcounter))
+		self._jssource_line(u"{")
+		self.indent += 1
+		self._jssource_line(u"r{op.r1} = iter{counter}();".format(op=opcode, counter=self.varcounter))
+		self._jssource_line(u"if (r{op.r1} === null)".format(op=opcode))
+		self.indent += 1
+		self._jssource_line(u"break;")
+		self.indent -= 1
+		self._jssource_line(u"r{op.r1} = r{op.r1}[0];".format(op=opcode))
+	def _jssource_dispatch_endfor(self, opcode):
+		self.indent -= 1
+		self._jssource_line(u"}")
+	def _jssource_dispatch_def(self, opcode):
+		self._jssource_line(u"vars[{arg}] = function(vars)".format(arg=json.dumps(opcode.arg)))
+		self._jssource_line(u"{")
+		self.indent += 1
+		self._jssource_line(u"var out = [], {};".format(", ".join("r{} = null".format(i) for i in xrange(10))))
+	def _jssource_dispatch_enddef(self, opcode):
+		self._jssource_line(u'return out.join("");')
+		self.indent -= 1
+		self._jssource_line(u"};")
+	def _jssource_dispatch_break(self, opcode):
+		self._jssource_line(u"break;")
+	def _jssource_dispatch_continue(self, opcode):
+		self._jssource_line(u"continue;")
+	def _jssource_dispatch_not(self, opcode):
+		self._jssource_line(u"r{op.r1} = !ul4._fu_bool(r{op.r2});".format(op=opcode))
+	def _jssource_dispatch_neg(self, opcode):
+		self._jssource_line(u"r{op.r1} = ul4.neg(r{op.r2});".format(op=opcode))
+	def _jssource_dispatch_contains(self, opcode):
+		self._jssource_line(u"r{op.r1} = ul4.contains(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _jssource_dispatch_notcontains(self, opcode):
+		self._jssource_line(u"r{op.r1} = !ul4.contains(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _jssource_dispatch_eq(self, opcode):
+		self._jssource_line(u"r{op.r1} = ul4.equals(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _jssource_dispatch_ne(self, opcode):
+		self._jssource_line(u"r{op.r1} = !ul4.equals(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _jssource_dispatch_lt(self, opcode):
+		self._jssource_line(u"r{op.r1} = ul4.lt(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _jssource_dispatch_le(self, opcode):
+		self._jssource_line(u"r{op.r1} = ul4.le(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _jssource_dispatch_gt(self, opcode):
+		self._jssource_line(u"r{op.r1} = !ul4.le(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _jssource_dispatch_ge(self, opcode):
+		self._jssource_line(u"r{op.r1} = !ul4.lt(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _jssource_dispatch_add(self, opcode):
+		self._jssource_line(u"r{op.r1} = ul4.add(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _jssource_dispatch_sub(self, opcode):
+		self._jssource_line(u"r{op.r1} = ul4.sub(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _jssource_dispatch_mul(self, opcode):
+		self._jssource_line(u"r{op.r1} = ul4.mul(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _jssource_dispatch_floordiv(self, opcode):
+		self._jssource_line(u"r{op.r1} = ul4.floordiv(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _jssource_dispatch_truediv(self, opcode):
+		self._jssource_line(u"r{op.r1} = ul4.truediv(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _jssource_dispatch_and(self, opcode):
+		self._jssource_line(u"r{op.r1} = ul4._fu_bool(r{op.r3}) ? r{op.r2} : r{op.r3};".format(op=opcode))
+	def _jssource_dispatch_or(self, opcode):
+		self._jssource_line(u"r{op.r1} = ul4._fu_bool(r{op.r2}) ? r{op.r2} : r{op.r3};".format(op=opcode))
+	def _jssource_dispatch_mod(self, opcode):
+		self._jssource_line(u"r{op.r1} = ul4.mod(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _jssource_dispatch_callfunc0(self, opcode):
+		if opcode.arg == "now":
+			self._jssource_line(u"r{op.r1} = new Date();".format(op=opcode))
+		elif opcode.arg == "utcnow":
+			self._jssource_line(u"r{op.r1} = ul4.utcnow();".format(op=opcode))
+		elif opcode.arg == "random":
+			self._jssource_line(u"r{op.r1} = Math.random();".format(op=opcode))
+		elif opcode.arg == "vars":
+			self._jssource_line(u"r{op.r1} = vars;".format(op=opcode))
+		else:
+			raise UnknownFunctionError(opcode.arg)
+	def _jssource_dispatch_callfunc1(self, opcode):
+		if opcode.arg in {"xmlescape", "csv", "repr", "enumerate", "chr", "ord", "hex", "oct", "bin", "sorted", "type", "json", "reversed", "randchoice", "str", "int", "float", "bool", "len", "isstr", "isint", "isfloat", "isbool", "isdate", "islist", "isdict", "istemplate", "iscolor", "abs"}:
+			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2});".format(op=opcode))
+		elif opcode.arg in {"range", "randrange"}:
+			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(0, r{op.r2}, 1);".format(op=opcode))
+		elif opcode.arg == "isnone":
+			self._jssource_line(u"r{op.r1} = (r{op.r2} === null);".format(op=opcode))
+		elif opcode.arg == "get":
+			self._jssource_line(u"r{op.r1} = ul4.get(vars, r{op.r2});".format(op=opcode))
+		else:
+			raise UnknownFunctionError(opcode.arg)
+	def _jssource_dispatch_callfunc2(self, opcode):
+		if opcode.arg in {"zip", "int"}:
+			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
+		elif opcode.arg in {"range", "randrange"}:
+			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, 1);".format(op=opcode))
+		elif opcode.arg == "get":
+			self._jssource_line(u"r{op.r1} = ul4.get(vars, r{op.r2}, r{op.r3});".format(op=opcode))
+		else:
+			raise UnknownFunctionError(opcode.arg)
+	def _jssource_dispatch_callfunc3(self, opcode):
+		if opcode.arg in {"range", "zip", "hls", "hsv", "randrange"}:
+			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+		elif opcode.arg == "rgb":
+			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, 0xff);".format(op=opcode))
+		else:
+			raise UnknownFunctionError(opcode.arg)
+	def _jssource_dispatch_callfunc4(self, opcode):
+		if opcode.arg in {"rgb", "hls", "hsv"}:
+			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.5});".format(op=opcode))
+		else:
+			raise UnknownFunctionError(opcode.arg)
+	def _jssource_dispatch_callmeth0(self, opcode):
+		if opcode.arg in {"split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "items", "isoformat", "mimeformat", "day", "month", "year", "hour", "minute", "second", "microsecond", "weekday", "yearday", "r", "g", "b", "a", "lum", "hls", "hlsa", "hsv", "hsva"}:
+			self._jssource_line(u"r{op.r1} = ul4.{op.arg}(r{op.r2});".format(op=opcode))
+		elif opcode.arg == "render":
+			self._jssource_line(u"r{op.r1} = r{op.r2}();".format(op=opcode))
+		else:
+			raise UnknownMethodError(opcode.arg)
+	def _jssource_dispatch_callmeth1(self, opcode):
+		if opcode.arg in {"join", "split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "rfind", "format", "withlum", "witha", "get"}:
+			self._jssource_line(u"r{op.r1} = ul4.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
+		else:
+			raise UnknownMethodError(opcode.arg)
+	def _jssource_dispatch_callmeth2(self, opcode):
+		if opcode.arg in {"split", "rsplit", "find", "replace", "get"}:
+			self._jssource_line(u"r{op.r1} = ul4.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+		else:
+			raise UnknownMethodError(opcode.arg)
+	def _jssource_dispatch_callmeth3(self, opcode):
+		if opcode.arg == "find":
+			self._jssource_line(u"r{op.r1} = com.livinglogic.ul4.Utils.find(r{op.r2}, r{op.r3}, r{op.r4}, r{op.5});".format(op=opcode))
+		else:
+			raise UnknownMethodError(opcode.arg)
+	def _jssource_dispatch_callmethkw(self, opcode):
+		if opcode.arg == "render":
+			self._jssource_line(u"r{op.r1} = r{op.r2}(r{op.r3});".format(op=opcode))
+		else:
+			raise UnknownMethodError(opcode.arg)
+	def _jssource_dispatch_if(self, opcode):
+		self._jssource_line(u"if (ul4._fu_bool(r{op.r1}))".format(op=opcode))
+		self._jssource_line(u"{")
+		self.indent += 1
+	def _jssource_dispatch_else(self, opcode):
+		self.indent -= 1
+		self._jssource_line(u"}")
+		self._jssource_line(u"else")
+		self._jssource_line(u"{")
+		self.indent += 1
+	def _jssource_dispatch_endif(self, opcode):
+		self.indent -= 1
+		self._jssource_line(u"}")
+	def _jssource_dispatch_render(self, opcode):
+		self._jssource_line(u"out.push(r{op.r1}(r{op.r2}));".format(op=opcode))
 
 	def format(self, indent="\t"):
 		"""
@@ -1356,7 +1629,7 @@ loads = Template.loads
 
 
 ###
-### Tokens and nodes for the AST
+### Compiler stuff: Tokens and nodes for the AST
 ###
 
 class Token(object):
@@ -2517,6 +2790,30 @@ def _repr(obj):
 		return u"{{{}}}".format(u", ".join(u"{}: {}".format(_repr(key), _repr(value)) for (key, value) in obj.iteritems()))
 	else:
 		return unicode(repr(obj))
+
+
+def _json(obj):
+	"""
+	Helper for the ``json`` function.
+	"""
+	if obj is None:
+		return u"null"
+	if isinstance(obj, (bool, int, long, float, basestring)):
+		return json.dumps(obj)
+	elif isinstance(obj, datetime.datetime):
+		return format(obj, u"new Date({}, {}, {}, {}, {}, {}, {})".format(obj.year, obj.month-1, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond//1000))
+	elif isinstance(obj, datetime.date):
+		return format(obj, u"new Date({}, {}, {})".format(obj.year, obj.month-1, obj.day))
+	elif isinstance(obj, color.Color):
+		return u"ul4._fu_rgb({}, {}, {}, {})".format(*obj)
+	elif isinstance(obj, (tuple, list)):
+		return u"[{}]".format(u", ".join(_json(item) for item in obj))
+	elif isinstance(obj, dict):
+		return u"{{{}}}".format(u", ".join(u"{}: {}".format(_json(key), _json(value)) for (key, value) in obj.iteritems()))
+	elif isinstance(obj, Template):
+		return obj.jssource(True)
+	else:
+		raise TypeError("can't handle object of type {}".format(type(obj)))
 
 
 def _oct(value):

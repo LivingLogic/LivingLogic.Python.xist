@@ -9,11 +9,21 @@
 ## See ll/__init__.py for the license
 
 
-import re, datetime, StringIO
+import os, re, datetime, StringIO, json
 
 import py.test
 
 from ll import ul4c, color
+
+
+def jsexecute(_t_, **variables):
+	js = _t_.jssource(True)
+	js = u"template = {};\ndata = {};\nprint(template(data));\n".format(js, ul4c._json(variables))
+	open("gurk.js", "wb").write(js.encode("utf-8"))
+	result = os.popen("d8 js/ul4.js gurk.js", "rb").read()
+	result = result.decode("utf-8")
+	result = result[:-1] # Drop the "\n"
+	return result
 
 
 def check(result, source, **variables):
@@ -35,6 +45,9 @@ def check(result, source, **variables):
 	s3 = unicode(t3)
 	assert result == t3.renders(**variables)
 	assert s1 == s2 == s3
+
+	# Check the Javascript version (this requires an installed ``d8`` shell from V8 (http://code.google.com/p/v8/))
+	assert result == jsexecute(t1, **variables)
 
 
 def checkle(result, source, **variables):
@@ -188,7 +201,7 @@ def test_date():
 	check('2000-02-29T00:00:00', u'<?print 2000-02-29T.isoformat()?>')
 	check('2000-02-29T12:34:00', u'<?print 2000-02-29T12:34.isoformat()?>')
 	check('2000-02-29T12:34:56', u'<?print 2000-02-29T12:34:56.isoformat()?>')
-	check('2000-02-29T12:34:56.987654', u'<?print 2000-02-29T12:34:56.987654.isoformat()?>')
+	check('2000-02-29T12:34:56.987000', u'<?print 2000-02-29T12:34:56.987000.isoformat()?>') # JS only supports milliseconds
 	check('yes', u'<?if 2000-02-29T12:34:56.987654?>yes<?else?>no<?end if?>')
 
 
@@ -569,7 +582,7 @@ def test_function_randchoice():
 def test_function_xmlescape():
 	checkrunerror("function u?'xmlescape' unknown", u"<?print xmlescape()?>")
 	checkrunerror("function u?'xmlescape' unknown", u"<?print xmlescape(1, 2)?>")
-	check("&lt;&gt;&amp;&#39;&quot;gurk", u"<?print xmlescape(data)?>", data='<>&\'"gurk')
+	check("&lt;&lt;&gt;&gt;&amp;&#39;&quot;gurk", u"<?print xmlescape(data)?>", data='<<>>&\'"gurk')
 
 
 def test_function_csv():
@@ -980,7 +993,6 @@ def test_function_type():
 	check("dict", code, x={1: 2})
 	check("template", code, x=ul4c.compile(""))
 	check("color", code, x=color.red)
-	check("", code, x=1j)
 
 
 def test_function_reversed():
@@ -1161,8 +1173,8 @@ def test_method_second():
 
 
 def test_method_microsecond():
-	check('123456', u'<?print 2010-05-12T16:47:56.123456.microsecond()?>')
-	check('123456', u'<?print d.microsecond()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56, 123456))
+	check('123000', u'<?print 2010-05-12T16:47:56.123000.microsecond()?>')
+	check('123000', u'<?print d.microsecond()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56, 123000))
 
 
 def test_method_weekday():
@@ -1172,6 +1184,7 @@ def test_method_weekday():
 
 def test_method_yearday():
 	check('1', u'<?print 2010-01-01T.yearday()?>')
+	check('366', u'<?print 2008-12-31T.yearday()?>')
 	check('365', u'<?print 2010-12-31T.yearday()?>')
 	check('132', u'<?print 2010-05-12T.yearday()?>')
 	check('132', u'<?print 2010-05-12T16:47:56.yearday()?>')

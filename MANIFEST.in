@@ -11,3 +11,4 @@ include Makefile
 recursive-include demos *
 recursive-include scripts *.py
 include px/spc.gif
+include js/ul4.js
