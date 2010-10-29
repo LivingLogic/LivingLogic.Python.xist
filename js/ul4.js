@@ -169,10 +169,10 @@ var ul4 = {
 	_fu_rgb: function(r, g, b, a)
 	{
 		var c = this._clone(this.Color);
-		c.r = typeof(r) === "undefined" ? 0x00 : r;
-		c.g = typeof(g) === "undefined" ? 0x00 : g;
-		c.b = typeof(b) === "undefined" ? 0x00 : b;
-		c.a = typeof(a) === "undefined" ? 0xff : a;
+		c.r = r;
+		c.g = g;
+		c.b = b;
+		c.a = a;
 		return c;
 	},
 
