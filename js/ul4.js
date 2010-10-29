@@ -258,11 +258,6 @@ var ul4 = {
 		return -obj;
 	},
 
-	_fu_abs: function(obj)
-	{
-		return Math.abs(obj);
-	},
-
 	contains: function(obj1, obj2)
 	{
 		if (typeof(obj1) === "string" && typeof(obj2) === "string")
@@ -982,6 +977,11 @@ var ul4 = {
 		}
 		result.__iter__ = true;
 		return result;
+	},
+
+	_fu_abs: function(obj)
+	{
+		return Math.abs(obj);
 	},
 
 	replace: function(obj1, obj2, obj3, obj4)
