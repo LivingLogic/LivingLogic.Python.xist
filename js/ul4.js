@@ -1,12 +1,4 @@
 var ul4 = {
-	_clone: function(obj)
-	{
-		function F(){};
-		F.prototype = obj;
-		var result = new F();
-		return result;
-	},
-
 	_fu_isnone: function(obj)
 	{
 		return obj === null;
@@ -176,34 +168,17 @@ var ul4 = {
 		return c;
 	},
 
-	add: function(obj1, obj2)
+	_op_add: function(obj1, obj2)
 	{
 		return obj1 + obj2;
 	},
 
-	sub: function(obj1, obj2)
+	_op_sub: function(obj1, obj2)
 	{
 		return obj1 - obj2;
 	},
 
-	_repeatstr: function(str, rep)
-	{
-		var result = "";
-		for (;rep>0;--rep)
-			result += str;
-		return result;
-	},
-
-	_repeatlist: function(list, rep)
-	{
-		var result = [];
-		for (;rep>0;--rep)
-			for (var i in list)
-				result.push(list[i]);
-		return result;
-	},
-
-	mul: function(obj1, obj2)
+	_op_mul: function(obj1, obj2)
 	{
 		if (this._fu_isint(obj1))
 		{
@@ -211,13 +186,13 @@ var ul4 = {
 			{
 				if (obj1 <= 0)
 					throw "mul() repetition counter must be positive";
-				return this._repeatstr(obj2, obj1)
+				return this._str_repeat(obj2, obj1)
 			}
 			else if (this._fu_islist(obj2))
 			{
 				if (obj1 <= 0)
 					throw "mul() repetition counter must be positive";
-				return this._repeatlist(obj2, obj1)
+				return this._list_repeat(obj2, obj1)
 			}
 		}
 		else if (this._fu_isint(obj2))
@@ -226,39 +201,39 @@ var ul4 = {
 			{
 				if (obj2 <= 0)
 					throw "mul() repetition counter must be positive";
-				return this._repeatstr(obj1, obj2)
+				return this._str_repeat(obj1, obj2)
 			}
 			else if (this._fu_islist(obj1))
 			{
 				if (obj2 <= 0)
 					throw "mul() repetition counter must be positive";
-				return this._repeatlist(obj1, obj2)
+				return this._list_repeat(obj1, obj2)
 			}
 		}
 		return obj1 * obj2;
 	},
 
-	floordiv: function(obj1, obj2)
+	_op_floordiv: function(obj1, obj2)
 	{
 		return Math.floor(obj1 / obj2);
 	},
 
-	truediv: function(obj1, obj2)
+	_op_truediv: function(obj1, obj2)
 	{
 		return obj1 / obj2;
 	},
 
-	mod: function(obj1, obj2)
+	_op_mod: function(obj1, obj2)
 	{
 		return obj1 % obj2;
 	},
 
-	neg: function(obj)
+	_op_neg: function(obj)
 	{
 		return -obj;
 	},
 
-	contains: function(obj1, obj2)
+	_op_contains: function(obj1, obj2)
 	{
 		if (typeof(obj1) === "string" && typeof(obj2) === "string")
 		{
@@ -280,157 +255,19 @@ var ul4 = {
 		// FIXME: Color
 	},
 
-	equals: function(obj1, obj2)
+	_op_equals: function(obj1, obj2)
 	{
 		return obj1 === obj2;
 	},
 
-	lt: function(obj1, obj2)
+	_op_lt: function(obj1, obj2)
 	{
 		return obj1 < obj2;
 	},
 
-	le: function(obj1, obj2)
+	_op_le: function(obj1, obj2)
 	{
 		return obj1 <= obj2;
-	},
-
-	_daterepr: function(obj)
-	{
-		var year = obj.getFullYear();
-		var month = obj.getMonth()+1;
-		var day = obj.getDate();
-		var hours = obj.getHours();
-		var minutes = obj.getMinutes();
-		var seconds = obj.getSeconds();
-		var milliseconds = obj.getMilliseconds();
-		var result = year + "-" + this._lpad(month, "0", 2) + "-" + this._lpad(day, "0", 2) + "T" + this._lpad(hours, "0", 2) + ":" + this._lpad(minutes, "0", 2) + ":" + this._lpad(seconds, "0", 2);
-		if (milliseconds)
-			result += "." + this._lpad(milliseconds, "0", 3) + "000";
-		return result;
-	},
-
-	_colorrepr: function(obj)
-	{
-		var r = this._lpad(obj.r.toString(16), "0", 2);
-		var g = this._lpad(obj.g.toString(16), "0", 2);
-		var b = this._lpad(obj.b.toString(16), "0", 2);
-		var a = this._lpad(obj.a.toString(16), "0", 2);
-		if (obj.a !== 0xff)
-		{
-			if (r[0] === r[1] && g[0] === g[1] && b[0] === b[1] && a[0] === a[1])
-				return "#" + r[0] + g[0] + b[0] + a[0];
-			else
-				return "#" + r + g + b + a;
-		}
-		else
-		{
-			if (r[0] === r[1] && g[0] === g[1] && b[0] === b[1])
-				return "#" + r[0] + g[0] + b[0];
-			else
-				return "#" + r + g + b;
-		}
-	},
-
-	_colorstr: function(obj)
-	{
-		if (obj.a !== 0xff)
-		{
-			return "rgba(" + obj.r + ", " + obj.g + ", " + obj.b + ", " + (obj.a/255) + ")";
-		}
-		else
-		{
-			var r = this._lpad(obj.r.toString(16), "0", 2);
-			var g = this._lpad(obj.g.toString(16), "0", 2);
-			var b = this._lpad(obj.b.toString(16), "0", 2);
-			var a = this._lpad(obj.a.toString(16), "0", 2);
-			if (r[0] === r[1] && g[0] === g[1] && b[0] === b[1])
-				return "#" + r[0] + g[0] + b[0];
-			else
-				return "#" + r + g + b;
-		}
-	},
-
-	_strjs: function(str)
-	{
-		var result = "";
-		for (var i in str)
-		{
-			var c = str[i];
-			switch (c)
-			{
-				case "\r":
-					result += "\\r";
-					break;
-				case "\n":
-					result += "\\n";
-					break;
-				case "\t":
-					result += "\\t";
-					break;
-				case '"':
-					result += '\\"';
-					break;
-				default:
-					var code = str.charCodeAt(i);
-					if (code >= 32 && code < 128)
-						result += c;
-					else
-						result += "\\u" + this._lpad(code.toString(16), "0", 4);
-					break;
-			}
-		}
-		return '"' + result + '"';
-	},
-
-	_strrepr: function(str)
-	{
-		var result = "";
-		for (var i in str)
-		{
-			var c = str[i];
-			switch (c)
-			{
-				case "\r":
-					result += "\\r";
-					break;
-				case "\n":
-					result += "\\n";
-					break;
-				case "\t":
-					result += "\\t";
-					break;
-				case '"':
-					result += '\\"';
-					break;
-				default:
-					var code = str.charCodeAt(i);
-					if (code >= 32 && code < 128)
-						result += c;
-					else
-					{
-						var prefix, length;
-						if (code <= 0xFF)
-						{
-							prefix = "\\x";
-							length = 2;
-						}
-						else if (code <= 0xFFFF)
-						{
-							prefix = "\\u";
-							length = 4;
-						}
-						else
-						{
-							prefix = "\\U";
-							length = 8;
-						}
-						result += prefix + this._lpad(code.toString(16), "0", length);
-					}
-					break;
-			}
-		}
-		return '"' + result + '"';
 	},
 
 	_fu_type: function(obj)
@@ -485,11 +322,11 @@ var ul4 = {
 		}
 		else if (obj instanceof Date)
 		{
-			return this._daterepr(obj);
+			return this._date_repr(obj);
 		}
 		else if (this._fu_iscolor(obj))
 		{
-			return this._colorstr(obj);
+			return this._color_str(obj);
 		}
 		else if (this._fu_isdict(obj))
 		{
@@ -604,18 +441,18 @@ var ul4 = {
 		else if (obj === true)
 			return "True";
 		else if (typeof(obj) === "string")
-			return this._strrepr(obj);
+			return this._str_repr(obj);
 		else if (typeof(obj) === "number")
 		{
 			return "" + obj;
 		}
 		else if (obj instanceof Date)
 		{
-			return this._daterepr(obj);
+			return this._date_repr(obj);
 		}
 		else if (this._fu_iscolor(obj))
 		{
-			return this._colorrepr(obj);
+			return this._color_repr(obj);
 		}
 		else if (this._fu_isdict(obj))
 		{
@@ -710,12 +547,8 @@ var ul4 = {
 		return result;
 	},
 
-	_fu_range: function(obj1, obj2, obj3)
+	_fu_range: function(start, stop, step)
 	{
-		var start = (typeof(obj2) !== "undefined") ? obj1 : 0;
-		var stop = (typeof(obj2) !== "undefined") ? obj2 : obj1;
-		var step = (typeof(obj3) !== "undefined") ? obj3 : 1;
-
 		var lower, higher;
 		if (step === 0)
 			throw "range() requires a step argument != 0";
@@ -751,7 +584,7 @@ var ul4 = {
 		else if (obj === true)
 			return "true";
 		else if (typeof(obj) === "string")
-			return this._strjs(obj);
+			return this._str_json(obj);
 		else if (typeof(obj) === "number")
 		{
 			return "" + obj;
@@ -801,7 +634,7 @@ var ul4 = {
 		throw "json() requires a serializable object";
 	},
 
-	getitem: function(obj1, obj2)
+	_op_getitem: function(obj1, obj2)
 	{
 		if (typeof(obj1) === "string")
 		{
@@ -850,7 +683,7 @@ var ul4 = {
 		throw "getitem() needs a sequence or dict";
 	},
 
-	getslice: function(obj1, obj2, obj3)
+	_op_getslice: function(obj1, obj2, obj3)
 	{
 		if (obj2 === null)
 			obj2 = 0;
@@ -869,40 +702,6 @@ var ul4 = {
 			return (typeof(result) !== "undefined") ? result : obj3;
 		}
 		throw "get() needs a dict";
-	},
-
-	iter: function(obj)
-	{
-		if (obj.__iter__)
-		{
-			return obj;
-		}
-		else if (typeof(obj) === "string" || this._fu_islist(obj))
-		{
-			var i = 0;
-			var result = function()
-			{
-				return (i < obj.length) ? [obj[i++]] : null;
-			}
-			result.__iter__ = true;
-			return result;
-		}
-		else if (this._fu_isdict(obj))
-		{
-			var keys = [];
-			for (var key in obj)
-				keys.push(key);
-			var i = 0;
-			var result = function()
-			{
-				if (i >= keys.length)
-					return null;
-				return [keys[i++]];
-			}
-			result.__iter__ = true;
-			return result;
-		}
-		return null;
 	},
 
 	_fu_reversed: function(obj)
@@ -946,7 +745,7 @@ var ul4 = {
 
 	_fu_enumerate: function(obj)
 	{
-		var iter = this.iter(obj);
+		var iter = this._iter(obj);
 		var i = 0;
 		var result = function()
 		{
@@ -961,7 +760,7 @@ var ul4 = {
 	{
 		var iters = [];
 		for (var i = 0; i < arguments.length; ++i)
-			iters.push(this.iter(arguments[i]));
+			iters.push(this._iter(arguments[i]));
 
 		var result = function()
 		{
@@ -1120,24 +919,6 @@ var ul4 = {
 			throw "endswith() requires two strings";
 
 		return obj1.substr(obj1.length-obj2.length) === obj2;
-	},
-
-	_lpad: function(str, pad, len)
-	{
-		if (typeof(str) === "number")
-			str = str.toString();
-		while (str.length < len)
-			str = pad + str;
-		return str;
-	},
-
-	_rpad: function(str, pad, len)
-	{
-		if (typeof(str) === "number")
-			str = str.toString();
-		while (str.length < len)
-			str = str + pad;
-		return str;
 	},
 
 	isoformat: function(obj)
@@ -1371,5 +1152,226 @@ var ul4 = {
 		if (!this._fu_iscolor(obj1))
 			throw "withlum() requires a color";
 		return obj1.withlum(obj2);
-	}
+	},
+
+	/// Helper functions
+
+	// Crockford style object creation
+	_clone: function(obj)
+	{
+		function F(){};
+		F.prototype = obj;
+		var result = new F();
+		return result;
+	},
+
+	// Return an iterator for ``obj``
+	_iter: function(obj)
+	{
+		if (obj.__iter__)
+		{
+			return obj;
+		}
+		else if (typeof(obj) === "string" || this._fu_islist(obj))
+		{
+			var i = 0;
+			var result = function()
+			{
+				return (i < obj.length) ? [obj[i++]] : null;
+			}
+			result.__iter__ = true;
+			return result;
+		}
+		else if (this._fu_isdict(obj))
+		{
+			var keys = [];
+			for (var key in obj)
+				keys.push(key);
+			var i = 0;
+			var result = function()
+			{
+				if (i >= keys.length)
+					return null;
+				return [keys[i++]];
+			}
+			result.__iter__ = true;
+			return result;
+		}
+		return null;
+	},
+
+	// Repeat string ``str`` ``rep`` times
+	_str_repeat: function(str, rep)
+	{
+		var result = "";
+		for (;rep>0;--rep)
+			result += str;
+		return result;
+	},
+
+	_list_repeat: function(list, rep)
+	{
+		var result = [];
+		for (;rep>0;--rep)
+			for (var i in list)
+				result.push(list[i]);
+		return result;
+	},
+
+	_date_repr: function(obj)
+	{
+		var year = obj.getFullYear();
+		var month = obj.getMonth()+1;
+		var day = obj.getDate();
+		var hours = obj.getHours();
+		var minutes = obj.getMinutes();
+		var seconds = obj.getSeconds();
+		var milliseconds = obj.getMilliseconds();
+		var result = year + "-" + this._lpad(month, "0", 2) + "-" + this._lpad(day, "0", 2) + "T" + this._lpad(hours, "0", 2) + ":" + this._lpad(minutes, "0", 2) + ":" + this._lpad(seconds, "0", 2);
+		if (milliseconds)
+			result += "." + this._lpad(milliseconds, "0", 3) + "000";
+		return result;
+	},
+
+	_color_repr: function(obj)
+	{
+		var r = this._lpad(obj.r.toString(16), "0", 2);
+		var g = this._lpad(obj.g.toString(16), "0", 2);
+		var b = this._lpad(obj.b.toString(16), "0", 2);
+		var a = this._lpad(obj.a.toString(16), "0", 2);
+		if (obj.a !== 0xff)
+		{
+			if (r[0] === r[1] && g[0] === g[1] && b[0] === b[1] && a[0] === a[1])
+				return "#" + r[0] + g[0] + b[0] + a[0];
+			else
+				return "#" + r + g + b + a;
+		}
+		else
+		{
+			if (r[0] === r[1] && g[0] === g[1] && b[0] === b[1])
+				return "#" + r[0] + g[0] + b[0];
+			else
+				return "#" + r + g + b;
+		}
+	},
+
+	_color_str: function(obj)
+	{
+		if (obj.a !== 0xff)
+		{
+			return "rgba(" + obj.r + ", " + obj.g + ", " + obj.b + ", " + (obj.a/255) + ")";
+		}
+		else
+		{
+			var r = this._lpad(obj.r.toString(16), "0", 2);
+			var g = this._lpad(obj.g.toString(16), "0", 2);
+			var b = this._lpad(obj.b.toString(16), "0", 2);
+			var a = this._lpad(obj.a.toString(16), "0", 2);
+			if (r[0] === r[1] && g[0] === g[1] && b[0] === b[1])
+				return "#" + r[0] + g[0] + b[0];
+			else
+				return "#" + r + g + b;
+		}
+	},
+
+	_str_json: function(str)
+	{
+		var result = "";
+		for (var i in str)
+		{
+			var c = str[i];
+			switch (c)
+			{
+				case "\r":
+					result += "\\r";
+					break;
+				case "\n":
+					result += "\\n";
+					break;
+				case "\t":
+					result += "\\t";
+					break;
+				case '"':
+					result += '\\"';
+					break;
+				default:
+					var code = str.charCodeAt(i);
+					if (code >= 32 && code < 128)
+						result += c;
+					else
+						result += "\\u" + this._lpad(code.toString(16), "0", 4);
+					break;
+			}
+		}
+		return '"' + result + '"';
+	},
+
+	_str_repr: function(str)
+	{
+		var result = "";
+		for (var i in str)
+		{
+			var c = str[i];
+			switch (c)
+			{
+				case "\r":
+					result += "\\r";
+					break;
+				case "\n":
+					result += "\\n";
+					break;
+				case "\t":
+					result += "\\t";
+					break;
+				case '"':
+					result += '\\"';
+					break;
+				default:
+					var code = str.charCodeAt(i);
+					if (code >= 32 && code < 128)
+						result += c;
+					else
+					{
+						var prefix, length;
+						if (code <= 0xFF)
+						{
+							prefix = "\\x";
+							length = 2;
+						}
+						else if (code <= 0xFFFF)
+						{
+							prefix = "\\u";
+							length = 4;
+						}
+						else
+						{
+							prefix = "\\U";
+							length = 8;
+						}
+						result += prefix + this._lpad(code.toString(16), "0", length);
+					}
+					break;
+			}
+		}
+		return '"' + result + '"';
+	},
+
+	_lpad: function(str, pad, len)
+	{
+		if (typeof(str) === "number")
+			str = str.toString();
+		while (str.length < len)
+			str = pad + str;
+		return str;
+	},
+
+	_rpad: function(str, pad, len)
+	{
+		if (typeof(str) === "number")
+			str = str.toString();
+		while (str.length < len)
+			str = str + pad;
+		return str;
+	},
+
 }

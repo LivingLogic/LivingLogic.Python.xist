@@ -1261,36 +1261,36 @@ class Template(object):
 	def _jssource_dispatch_storevar(self, opcode):
 		self._jssource_line(u"vars[{arg}] = r{op.r1};".format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _jssource_dispatch_addvar(self, opcode):
-		self._jssource_line(u"vars[{arg}] = ul4.add(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+		self._jssource_line(u"vars[{arg}] = ul4._op_add(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _jssource_dispatch_subvar(self, opcode):
-		self._jssource_line(u"vars[{arg}] = ul4.sub(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+		self._jssource_line(u"vars[{arg}] = ul4._op_sub(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _jssource_dispatch_mulvar(self, opcode):
-		self._jssource_line(u"vars[{arg}] = ul4.mul(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+		self._jssource_line(u"vars[{arg}] = ul4._op_mul(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _jssource_dispatch_truedivvar(self, opcode):
-		self._jssource_line(u"vars[{arg}] = ul4.truediv(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+		self._jssource_line(u"vars[{arg}] = ul4._op_truediv(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _jssource_dispatch_floordivvar(self, opcode):
-		self._jssource_line(u"vars[{arg}] = ul4.floordiv(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+		self._jssource_line(u"vars[{arg}] = ul4._op_floordiv(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _jssource_dispatch_modvar(self, opcode):
-		self._jssource_line(u"vars[{arg}] = ul4.mod(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+		self._jssource_line(u"vars[{arg}] = ul4._op_mod(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _jssource_dispatch_delvar(self, opcode):
 		self._jssource_line(u"vars[{arg}] = null;".format(arg=json.dumps(opcode.arg)))
 	def _jssource_dispatch_getattr(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4.getitem(r{op.r2}, {arg});".format(op=opcode, arg=json.dumps(opcode.arg)))
+		self._jssource_line(u"r{op.r1} = ul4._op_getitem(r{op.r2}, {arg});".format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _jssource_dispatch_getitem(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4.getitem(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._jssource_line(u"r{op.r1} = ul4._op_getitem(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _jssource_dispatch_getslice12(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4.getslice(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+		self._jssource_line(u"r{op.r1} = ul4._op_getslice(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 	def _jssource_dispatch_getslice1(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4.getslice(r{op.r2}, r{op.r3}, null);".format(op=opcode))
+		self._jssource_line(u"r{op.r1} = ul4._op_getslice(r{op.r2}, r{op.r3}, null);".format(op=opcode))
 	def _jssource_dispatch_getslice2(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4.getslice(r{op.r2}, null, r{op.r3});".format(op=opcode))
+		self._jssource_line(u"r{op.r1} = ul4._op_getslice(r{op.r2}, null, r{op.r3});".format(op=opcode))
 	def _jssource_dispatch_print(self, opcode):
 		self._jssource_line(u"out.push(ul4._fu_str(r{op.r1}));".format(op=opcode))
 	def _jssource_dispatch_printx(self, opcode):
 		self._jssource_line(u"out.push(ul4._fu_xmlescape(r{op.r1}));".format(op=opcode))
 	def _jssource_dispatch_for(self, opcode):
 		self.varcounter += 1
-		self._jssource_line(u"for (var iter{counter} = ul4.iter(r{op.r2});;)".format(op=opcode, counter=self.varcounter))
+		self._jssource_line(u"for (var iter{counter} = ul4._iter(r{op.r2});;)".format(op=opcode, counter=self.varcounter))
 		self._jssource_line(u"{")
 		self.indent += 1
 		self._jssource_line(u"r{op.r1} = iter{counter}();".format(op=opcode, counter=self.varcounter))
@@ -1318,39 +1318,39 @@ class Template(object):
 	def _jssource_dispatch_not(self, opcode):
 		self._jssource_line(u"r{op.r1} = !ul4._fu_bool(r{op.r2});".format(op=opcode))
 	def _jssource_dispatch_neg(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4.neg(r{op.r2});".format(op=opcode))
+		self._jssource_line(u"r{op.r1} = ul4._op_neg(r{op.r2});".format(op=opcode))
 	def _jssource_dispatch_contains(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4.contains(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._jssource_line(u"r{op.r1} = ul4._op_contains(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _jssource_dispatch_notcontains(self, opcode):
-		self._jssource_line(u"r{op.r1} = !ul4.contains(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._jssource_line(u"r{op.r1} = !ul4._op_contains(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _jssource_dispatch_eq(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4.equals(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._jssource_line(u"r{op.r1} = ul4._op_equals(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _jssource_dispatch_ne(self, opcode):
-		self._jssource_line(u"r{op.r1} = !ul4.equals(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._jssource_line(u"r{op.r1} = !ul4._op_equals(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _jssource_dispatch_lt(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4.lt(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._jssource_line(u"r{op.r1} = ul4._op_lt(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _jssource_dispatch_le(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4.le(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._jssource_line(u"r{op.r1} = ul4._op_le(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _jssource_dispatch_gt(self, opcode):
-		self._jssource_line(u"r{op.r1} = !ul4.le(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._jssource_line(u"r{op.r1} = !ul4._op_le(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _jssource_dispatch_ge(self, opcode):
-		self._jssource_line(u"r{op.r1} = !ul4.lt(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._jssource_line(u"r{op.r1} = !ul4._op_lt(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _jssource_dispatch_add(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4.add(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._jssource_line(u"r{op.r1} = ul4._op_add(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _jssource_dispatch_sub(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4.sub(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._jssource_line(u"r{op.r1} = ul4._op_sub(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _jssource_dispatch_mul(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4.mul(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._jssource_line(u"r{op.r1} = ul4._op_mul(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _jssource_dispatch_floordiv(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4.floordiv(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._jssource_line(u"r{op.r1} = ul4._op_floordiv(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _jssource_dispatch_truediv(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4.truediv(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._jssource_line(u"r{op.r1} = ul4._op_truediv(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _jssource_dispatch_and(self, opcode):
 		self._jssource_line(u"r{op.r1} = ul4._fu_bool(r{op.r3}) ? r{op.r2} : r{op.r3};".format(op=opcode))
 	def _jssource_dispatch_or(self, opcode):
 		self._jssource_line(u"r{op.r1} = ul4._fu_bool(r{op.r2}) ? r{op.r2} : r{op.r3};".format(op=opcode))
 	def _jssource_dispatch_mod(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4.mod(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._jssource_line(u"r{op.r1} = ul4._op_mod(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _jssource_dispatch_callfunc0(self, opcode):
 		if opcode.arg == "now":
 			self._jssource_line(u"r{op.r1} = new Date();".format(op=opcode))
