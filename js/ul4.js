@@ -36,7 +36,7 @@ var ul4 = {
 
 	_fu_istemplate: function(obj)
 	{
-		return Object.prototype.toString.call(obj) == "[object Function]"; // we can't detect more than that ``obj`` is a function
+		return Object.prototype.toString.call(obj) == "[object Object]" && !!obj.__istemplate__;
 	},
 
 	_fu_islist: function(obj)
@@ -46,7 +46,7 @@ var ul4 = {
 
 	_fu_isdict: function(obj)
 	{
-		return Object.prototype.toString.call(obj) == "[object Object]" && !obj.__iscolor__;
+		return Object.prototype.toString.call(obj) == "[object Object]" && !obj.__iscolor__ && !obj.__istemplate__;
 	},
 
 	_fu_bool: function(obj)
@@ -629,7 +629,7 @@ var ul4 = {
 		}
 		else if (this.istemplate(obj))
 		{
-			return obj.toString();
+			return "ul4.Template.create(" + obj.render.toString() + ")";
 		}
 		throw "json() requires a serializable object";
 	},
@@ -1374,4 +1374,19 @@ var ul4 = {
 		return str;
 	},
 
+	Template: {
+		__istemplate__: true,
+
+		create: function(render)
+		{
+			var template = ul4._clone(this);
+			template.render = render;
+			return template;
+		},
+
+		renders: function(vars)
+		{
+			return this.render(vars).join("");
+		}
+	}
 }

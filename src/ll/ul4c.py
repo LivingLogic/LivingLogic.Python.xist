@@ -1179,8 +1179,7 @@ class Template(object):
 		self.varcounter = 0
 
 		if function:
-			self._jssource_line("function(vars)")
-			self._jssource_line("{")
+			self._jssource_line("ul4.Template.create(function(vars){")
 			self.indent += 1
 
 		self._jssource_line(u"//@@@ BEGIN template source")
@@ -1204,12 +1203,12 @@ class Template(object):
 			except AttributeError:
 				raise UnknownOpcodeError(opcode.code)
 
-		self._jssource_line(u'return out.join("");')
+		self._jssource_line(u'return out;')
 		self._jssource_line(u"//@@@ END template code")
 
 		if function:
 			self.indent -= 1
-			self._jssource_line("}")
+			self._jssource_line("})")
 
 		result = "\n".join(self.lines)
 
@@ -1303,14 +1302,13 @@ class Template(object):
 		self.indent -= 1
 		self._jssource_line(u"}")
 	def _jssource_dispatch_def(self, opcode):
-		self._jssource_line(u"vars[{arg}] = function(vars)".format(arg=json.dumps(opcode.arg)))
-		self._jssource_line(u"{")
+		self._jssource_line(u"vars[{arg}] = ul4.Template.create(function(vars){{".format(arg=json.dumps(opcode.arg)))
 		self.indent += 1
 		self._jssource_line(u"var out = [], {};".format(", ".join("r{} = null".format(i) for i in xrange(10))))
 	def _jssource_dispatch_enddef(self, opcode):
-		self._jssource_line(u'return out.join("");')
+		self._jssource_line(u'return out;')
 		self.indent -= 1
-		self._jssource_line(u"};")
+		self._jssource_line(u"});")
 	def _jssource_dispatch_break(self, opcode):
 		self._jssource_line(u"break;")
 	def _jssource_dispatch_continue(self, opcode):
@@ -1398,7 +1396,7 @@ class Template(object):
 		if opcode.arg in {"split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "items", "isoformat", "mimeformat", "day", "month", "year", "hour", "minute", "second", "microsecond", "weekday", "yearday", "r", "g", "b", "a", "lum", "hls", "hlsa", "hsv", "hsva"}:
 			self._jssource_line(u"r{op.r1} = ul4.{op.arg}(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "render":
-			self._jssource_line(u"r{op.r1} = r{op.r2}();".format(op=opcode))
+			self._jssource_line(u"r{op.r1} = r{op.r2}.renders({{}});".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _jssource_dispatch_callmeth1(self, opcode):
@@ -1418,7 +1416,7 @@ class Template(object):
 			raise UnknownMethodError(opcode.arg)
 	def _jssource_dispatch_callmethkw(self, opcode):
 		if opcode.arg == "render":
-			self._jssource_line(u"r{op.r1} = r{op.r2}(r{op.r3});".format(op=opcode))
+			self._jssource_line(u"r{op.r1} = r{op.r2}.renders(r{op.r3});".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _jssource_dispatch_if(self, opcode):
@@ -1435,7 +1433,7 @@ class Template(object):
 		self.indent -= 1
 		self._jssource_line(u"}")
 	def _jssource_dispatch_render(self, opcode):
-		self._jssource_line(u"out.push(r{op.r1}(r{op.r2}));".format(op=opcode))
+		self._jssource_line(u"out = out.concat(r{op.r1}.render(r{op.r2}));".format(op=opcode))
 
 	def format(self, indent="\t"):
 		"""
