@@ -19,7 +19,6 @@ from ll import ul4c, color
 def jsexecute(_t_, **variables):
 	js = _t_.jssource(True)
 	js = u"template = {};\ndata = {};\nprint(template.renders(data));\n".format(js, ul4c._json(variables))
-	print js.encode("utf-8")
 	open("gurk.js", "wb").write(js.encode("utf-8"))
 	result = os.popen("d8 js/ul4.js gurk.js", "rb").read()
 	result = result.decode("utf-8")
