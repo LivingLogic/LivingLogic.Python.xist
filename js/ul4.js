@@ -288,7 +288,7 @@ var ul4 = {
 			return "color";
 		else if (this._fu_isdict(obj))
 			return "dict";
-		else if (toString.call(obj) === "[object Function]")
+		else if (this._fu_istemplate(obj))
 			return "template";
 		return null;
 	},
