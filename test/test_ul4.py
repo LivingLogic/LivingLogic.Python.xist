@@ -293,7 +293,9 @@ def test_code_modvar():
 
 
 def test_code_delvar():
-	checkrunerror('KeyError', u'<?code x = 1729?><?code del x?><?print x?>')
+	for r in allrenders():
+		with raises("(KeyError|not found)"):
+			r(u'<?code x = 1729?><?code del x?><?print x?>')
 
 
 def test_for_string():

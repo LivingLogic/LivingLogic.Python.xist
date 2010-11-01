@@ -667,6 +667,13 @@ var ul4 = {
 				throw "index " + this._fu_repr(org) + " out of range";
 			return obj1[obj2];
 		}
+		else if (this._fu_isdict(obj1))
+		{
+			var result = obj1[obj2];
+			if (typeof(result) === "undefined")
+				throw "key " + this._fu_repr(obj2) + " not found";
+			return result;
+		}
 		else if (this._fu_islist(obj1))
 		{
 			var org = obj2;
@@ -675,13 +682,6 @@ var ul4 = {
 			if (obj2 < 0 || obj2 > obj1.length)
 				throw "index " + this._fu_repr(org) + " out of range";
 			return obj1[obj2];
-		}
-		else if (this._fu_isdict(obj1))
-		{
-			var result = obj1[obj2];
-			if (typeof(result) === "undefined")
-				throw "key " + this._fu_repr(obj2) + " not found";
-			return result;
 		}
 		else if (this._fu_iscolor(obj1))
 		{

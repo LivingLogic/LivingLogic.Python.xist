@@ -1256,7 +1256,7 @@ class Template(object):
 		self._jssource_line(u"r{op.r1}[key] = r{op.r2}[key];".format(op=opcode))
 		self.indent -= 1
 	def _jssource_dispatch_loadvar(self, opcode):
-		self._jssource_line(u"r{op.r1} = vars[{arg}];".format(op=opcode, arg=json.dumps(opcode.arg)))
+		self._jssource_line(u"r{op.r1} = ul4._op_getitem(vars, {arg});".format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _jssource_dispatch_storevar(self, opcode):
 		self._jssource_line(u"vars[{arg}] = r{op.r1};".format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _jssource_dispatch_addvar(self, opcode):
@@ -1272,7 +1272,7 @@ class Template(object):
 	def _jssource_dispatch_modvar(self, opcode):
 		self._jssource_line(u"vars[{arg}] = ul4._op_mod(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _jssource_dispatch_delvar(self, opcode):
-		self._jssource_line(u"vars[{arg}] = null;".format(arg=json.dumps(opcode.arg)))
+		self._jssource_line(u"vars[{arg}] = undefined;".format(arg=json.dumps(opcode.arg)))
 	def _jssource_dispatch_getattr(self, opcode):
 		self._jssource_line(u"r{op.r1} = ul4._op_getitem(r{op.r2}, {arg});".format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _jssource_dispatch_getitem(self, opcode):
