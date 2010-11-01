@@ -514,9 +514,11 @@ def test_getitem():
 		assert "u" == r(u"<?print 'gurk'[-3]?>")
 		assert "u" == r(u"<?print x[-3]?>", x="gurk")
 	checkcompileerror("IndexError", u"<?print 'gurk'[4]?>")
-	checkrunerror("IndexError", u"<?print x[4]?>", x="gurk")
+	with raises("index (4 )?out of range"):
+		r(u"<?print x[4]?>", x="gurk")
 	checkcompileerror("IndexError", u"<?print 'gurk'[-5]?>")
-	checkrunerror("IndexError", u"<?print x[-5]?>", x="gurk")
+	with raises("index (-5 )?out of range"):
+		r(u"<?print x[-5]?>", x="gurk")
 
 
 def test_getslice12():
@@ -748,35 +750,45 @@ def test_function_float():
 
 
 def test_function_len():
+	code = u"<?print len(data)?>"
 	for r in allrenders():
 		with raises("len.*unknown"):
 			r(u"<?print len()?>")
 		with raises("len.*unknown"):
 			r(u"<?print len(1, 2)?>")
-	checkrunerror("object of type 'NoneType' has no len", u"<?print len(data)?>", data=None)
-	checkrunerror("object of type 'bool' has no len", u"<?print len(data)?>", data=True)
-	checkrunerror("object of type 'bool' has no len", u"<?print len(data)?>", data=False)
-	checkrunerror("object of type 'int' has no len", u"<?print len(data)?>", data=42)
-	checkrunerror("object of type 'float' has no len", u"<?print len(data)?>", data=4.2)
 	for r in allrenders():
-		assert "42" == r(u"<?print len(data)?>", data=42*"?")
-		assert "42" == r(u"<?print len(data)?>", data=42*[None])
-		assert "42" == r(u"<?print len(data)?>", data=dict.fromkeys(xrange(42)))
+		with raises("has no len\\(\\)"):
+			r(code, data=None)
+		with raises("has no len\\(\\)"):
+			r(code, data=True)
+		with raises("has no len\\(\\)"):
+			r(code, data=False)
+		with raises("has no len\\(\\)"):
+			r(code, data=42)
+		with raises("has no len\\(\\)"):
+			r(code, data=4.2)
+		assert "42" == r(code, data=42*"?")
+		assert "42" == r(code, data=42*[None])
+		assert "42" == r(code, data=dict.fromkeys(xrange(42)))
 
 
 def test_function_enumerate():
+	code = u"<?for (i, value) in enumerate(data)?><?print i?>:<?print value?>\n<?end for?>"
 	for r in allrenders():
 		with raises("enumerate.*unknown"):
 			r(u"<?print enumerate()?>")
 		with raises("enumerate.*unknown"):
 			r(u"<?print enumerate(1, 2)?>")
-	code = u"<?for (i, value) in enumerate(data)?><?print i?>:<?print value?>\n<?end for?>"
-	checkrunerror("'NoneType' object is not iterable", code, data=None)
-	checkrunerror("'bool' object is not iterable", code, data=True)
-	checkrunerror("'bool' object is not iterable", code, data=False)
-	checkrunerror("'int' object is not iterable", code, data=42)
-	checkrunerror("'float' object is not iterable", code, data=4.2)
-	for r in allrenders():
+		with raises("is not iterable"):
+			r(code, data=None)
+		with raises("is not iterable"):
+			r(code, data=True)
+		with raises("is not iterable"):
+			r(code, data=False)
+		with raises("is not iterable"):
+			r(code, data=42)
+		with raises("is not iterable"):
+			r(code, data=4.2)
 		assert "0:f\n1:o\n2:o\n" == r(code, data="foo")
 		assert "0:foo\n1:bar\n" == r(code, data=["foo", "bar"])
 		assert "0:foo\n" == r(code, data=dict(foo=True))
