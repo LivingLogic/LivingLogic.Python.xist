@@ -350,16 +350,25 @@ var ul4 = {
 
 	_fu_int: function(obj1, obj2)
 	{
+		var result;
 		if (typeof(obj2) !== "undefined")
 		{
 			if (typeof(obj1) !== "string" || !this._fu_isint(obj2))
 				throw "int() requires a string and an integer";
-			return parseInt(obj1, obj2);
+			result = parseInt(obj1, obj2);
+			if (result == NaN)
+				throw "invalid literal for int()";
+			return result;
 		}
 		else
 		{
 			if (typeof(obj1) == "string")
-				return parseInt(obj1);
+			{
+				result = parseInt(obj1);
+				if (result == NaN)
+					throw "invalid literal for int()";
+				return result;
+			}
 			else if (typeof(obj1) == "number")
 				return Math.floor(obj1);
 			else if (obj1 === true)
@@ -453,6 +462,19 @@ var ul4 = {
 		else if (this._fu_iscolor(obj))
 		{
 			return this._color_repr(obj);
+		}
+		else if (this._fu_islist(obj))
+		{
+			var v = [];
+			v.push("[");
+			for (var i in obj)
+			{
+				if (i != 0)
+					v.push(", ");
+				v.push(this._fu_repr(obj[i]));
+			}
+			v.push("]");
+			return v.join("");
 		}
 		else if (this._fu_isdict(obj))
 		{
