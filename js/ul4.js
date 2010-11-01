@@ -356,7 +356,7 @@ var ul4 = {
 			if (typeof(obj1) !== "string" || !this._fu_isint(obj2))
 				throw "int() requires a string and an integer";
 			result = parseInt(obj1, obj2);
-			if (result == NaN)
+			if (result.toString() == "NaN")
 				throw "invalid literal for int()";
 			return result;
 		}
@@ -365,7 +365,7 @@ var ul4 = {
 			if (typeof(obj1) == "string")
 			{
 				result = parseInt(obj1);
-				if (result == NaN)
+				if (result.toString() == "NaN")
 					throw "invalid literal for int()";
 				return result;
 			}
@@ -375,7 +375,7 @@ var ul4 = {
 				return 1;
 			else if (obj1 === false)
 				return 0;
-			throw "int() requires a string, number or bool";
+			throw "int() argument must be a string or a number";
 		}
 	},
 
@@ -389,7 +389,7 @@ var ul4 = {
 			return 1.;
 		else if (obj === false)
 			return 0.;
-		throw "float() requires a string, number or bool";
+		throw "float() argument must be a string or a number";
 	},
 
 	_fu_list: function(obj)
