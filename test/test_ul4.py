@@ -18,10 +18,13 @@ from ll import ul4c, color
 
 @contextlib.contextmanager
 def raises(msg):
+	# Check that the ``with`` block raises an exception that matches a regexp
 	try:
 		yield
 	except Exception, exc:
 		assert re.search(msg, "{0.__class__.__module__}.{0.__class__.__name__}: {0}".format(exc)) is not None
+	else:
+		py.test.fail("failed to raise exception")
 
 
 def render(__, **variables):
@@ -53,6 +56,9 @@ def renderjs(__, **variables):
 	result = os.popen("d8 js/ul4.js gurk.js", "rb").read()
 	result = result.decode("utf-8")
 	result = result[:-1] # Drop the "\n"
+	# Check if we have an exception
+	if result.endswith("^"):
+		raise RuntimeError(result.splitlines()[0])
 	return result
 
 
@@ -62,31 +68,6 @@ def allrenders(js=True):
 	yield renderdump
 	if js:
 		yield renderjs
-
-
-def check(result, source, js=True, **variables):
-	# Check with template compiled from source
-	t1 = ul4c.compile(source)
-	s1 = unicode(t1)
-	assert result == t1.renders(**variables)
-
-	# Check with template loaded again via the string interface
-	t2 = ul4c.loads(t1.dumps())
-	s2 = unicode(t2)
-	assert result == t2.renders(**variables)
-
-	# Check with template loaded again via the stream interface
-	stream = StringIO.StringIO()
-	t1.dump(stream)
-	stream.seek(0)
-	t3 = ul4c.load(stream)
-	s3 = unicode(t3)
-	assert result == t3.renders(**variables)
-	assert s1 == s2 == s3
-
-	# Check the Javascript version (this requires an installed ``d8`` shell from V8 (http://code.google.com/p/v8/))
-	if js:
-		assert result == renderjs(source, **variables)
 
 
 def checkcompileerror(msg, source):
