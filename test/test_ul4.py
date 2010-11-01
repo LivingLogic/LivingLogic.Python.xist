@@ -70,15 +70,6 @@ def allrenders(js=True):
 		yield renderjs
 
 
-def checkcompileerror(msg, source):
-	try:
-		ul4c.compile(source)
-	except Exception, exc:
-		assert re.search(msg, str(exc)) is not None
-	else:
-		py.test.fail("Didn't raise exception")
-
-
 def test_text():
 	for r in allrenders():
 		assert u'gurk' == r(u'gurk')
@@ -149,7 +140,8 @@ def test_float():
 
 
 def test_string():
-	checkcompileerror("Unterminated string", u'<?print "?>')
+	with raises("Unterminated string"):
+		render(u'<?print "?>')
 	for r in allrenders():
 		assert 'foo' == r(u'<?print "foo"?>')
 		assert '\n' == r(u'<?print "\\n"?>')
@@ -329,26 +321,43 @@ def test_else():
 
 
 def test_block_errors():
-	checkcompileerror("in u?.<.for x in data.>..*block unclosed", u'<?for x in data?>')
-	checkcompileerror("endif doesn't match any if", u'<?for x in data?><?end if?>')
-	checkcompileerror("not in any block", u'<?end?>')
-	checkcompileerror("not in any block", u'<?end for?>')
-	checkcompileerror("not in any block", u'<?end if?>')
-	checkcompileerror("else doesn't match any if", u'<?else?>')
-	checkcompileerror("in u?.<.if data.>..*block unclosed", u'<?if data?>')
-	checkcompileerror("in u?.<.if data.>..*block unclosed", u'<?if data?><?else?>')
-	checkcompileerror("duplicate else", u'<?if data?><?else?><?else?>')
-	checkcompileerror("else already seen in elif", u'<?if data?><?else?><?elif data?>')
-	checkcompileerror("else already seen in elif", u'<?if data?><?elif data?><?elif data?><?else?><?elif data?>')
+	with raises("in u?.<.for x in data.>..*block unclosed"):
+		render(u'<?for x in data?>')
+	with raises("endif doesn't match any if"):
+		render(u'<?for x in data?><?end if?>')
+	with raises("not in any block"):
+		render(u'<?end?>')
+	with raises("not in any block"):
+		render(u'<?end for?>')
+	with raises("not in any block"):
+		render(u'<?end if?>')
+	with raises("else doesn't match any if"):
+		render(u'<?else?>')
+	with raises("in u?.<.if data.>..*block unclosed"):
+		render(u'<?if data?>')
+	with raises("in u?.<.if data.>..*block unclosed"):
+		render(u'<?if data?><?else?>')
+	with raises("duplicate else"):
+		render(u'<?if data?><?else?><?else?>')
+	with raises("else already seen in elif"):
+		render(u'<?if data?><?else?><?elif data?>')
+	with raises("else already seen in elif"):
+		render(u'<?if data?><?elif data?><?elif data?><?else?><?elif data?>')
 
 
 def test_empty():
-	checkcompileerror("expression required", u'<?print?>')
-	checkcompileerror("expression required", u'<?if?>')
-	checkcompileerror("expression required", u'<<?if x?><?elif?><?end if?>')
-	checkcompileerror("loop expression required", u'<?for?>')
-	checkcompileerror("statement required", u'<?code?>')
-	checkcompileerror("render statement required", u'<?render?>')
+	with raises("expression required"):
+		render(u'<?print?>')
+	with raises("expression required"):
+		render(u'<?if?>')
+	with raises("expression required"):
+		render(u'<<?if x?><?elif?><?end if?>')
+	with raises("loop expression required"):
+		render(u'<?for?>')
+	with raises("statement required"):
+		render(u'<?code?>')
+	with raises("render statement required"):
+		render(u'<?render?>')
 
 
 def test_add():
@@ -363,7 +372,6 @@ def test_sub():
 	for r in allrenders():
 		assert '0' == r(u'<?print 21-21?>')
 		assert '0' == r(u'<?code x=21?><?code y=21?><?print x-y?>')
-
 
 
 def test_mul():
@@ -477,12 +485,14 @@ def test_getitem():
 		assert "u" == r(u"<?print x[1]?>", x="gurk")
 		assert "u" == r(u"<?print 'gurk'[-3]?>")
 		assert "u" == r(u"<?print x[-3]?>", x="gurk")
-	checkcompileerror("IndexError", u"<?print 'gurk'[4]?>")
-	with raises("index (4 )?out of range"):
-		r(u"<?print x[4]?>", x="gurk")
-	checkcompileerror("IndexError", u"<?print 'gurk'[-5]?>")
-	with raises("index (-5 )?out of range"):
-		r(u"<?print x[-5]?>", x="gurk")
+		with raises("IndexError"):
+			r(u"<?print 'gurk'[4]?>")
+		with raises("index (4 )?out of range"):
+			r(u"<?print x[4]?>", x="gurk")
+		with raises("IndexError"):
+				r(u"<?print 'gurk'[-5]?>")
+		with raises("index (-5 )?out of range"):
+			r(u"<?print x[-5]?>", x="gurk")
 
 
 def test_getslice12():
