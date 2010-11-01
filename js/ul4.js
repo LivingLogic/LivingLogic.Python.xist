@@ -438,7 +438,7 @@ var ul4 = {
 				++i;
 			return i;
 		}
-		throw "len() requires a sequence or dict";
+		throw "object of type '" + this._fu_type(obj) + "' has no len()";
 	},
 
 	_fu_repr: function(obj)
