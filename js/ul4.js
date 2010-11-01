@@ -658,14 +658,14 @@ var ul4 = {
 
 	_op_getitem: function(obj1, obj2)
 	{
-		else if (this._fu_isdict(obj1))
+		if (this._fu_isdict(obj1))
 		{
 			var result = obj1[obj2];
 			if (typeof(result) === "undefined")
 				throw "key " + this._fu_repr(obj2) + " not found";
 			return result;
 		}
-		if (typeof(obj1) === "string" || this._fu_islist(obj1))
+		else if (typeof(obj1) === "string" || this._fu_islist(obj1))
 		{
 			var org = obj2;
 			if (obj2 < 0)
