@@ -79,42 +79,6 @@ def checkcompileerror(msg, source):
 		py.test.fail("Didn't raise exception")
 
 
-def checkrunerror(msg, source, **variables):
-	# Check with template compiled from source
-	t1 = ul4c.compile(source)
-	s1 = unicode(t1)
-	try:
-		t1.renders(**variables)
-	except Exception, exc:
-		assert re.search(msg, "{0.__class__.__module__}.{0.__class__.__name__}: {0}".format(exc)) is not None
-	else:
-		py.test.fail("Didn't raise exception")
-
-	# Check with template loaded again via the string interface
-	t2 = ul4c.loads(t1.dumps())
-	s2 = unicode(t2)
-	try:
-		t2.renders(**variables)
-	except Exception, exc:
-		assert re.search(msg, "{0.__class__.__module__}.{0.__class__.__name__}: {0}".format(exc)) is not None
-	else:
-		py.test.fail("Didn't raise exception")
-
-	# Check with template loaded again via the stream interface
-	stream = StringIO.StringIO()
-	t1.dump(stream)
-	stream.seek(0)
-	t3 = ul4c.load(stream)
-	s3 = unicode(t3)
-	try:
-		t3.renders(**variables)
-	except Exception, exc:
-		assert re.search(msg, "{0.__class__.__module__}.{0.__class__.__name__}: {0}".format(exc)) is not None
-	else:
-		py.test.fail("Didn't raise exception")
-	assert s1 == s2 == s3
-
-
 def test_text():
 	for r in allrenders():
 		assert u'gurk' == r(u'gurk')
@@ -1444,7 +1408,11 @@ def test_nested_exceptions():
 	tmpl2 = ul4c.compile(u"<?render tmpl1(x=x)?>")
 	tmpl3 = ul4c.compile(u"<?render tmpl2(tmpl1=tmpl1, x=x)?>")
 
-	checkrunerror(r"TypeError .*render tmpl3.*render tmpl2.*render tmpl1.*print 2.*unsupported operand type", u"<?render tmpl3(tmpl1=tmpl1, tmpl2=tmpl2, x=x)?>", tmpl1=tmpl1, tmpl2=tmpl2, tmpl3=tmpl3, x=None)
+	for r in allrenders():
+		if r is not renderjs:
+			msg = "TypeError .*render tmpl3.*render tmpl2.*render tmpl1.*print 2.*unsupported operand type"
+			with raises(msg):
+				r(u"<?render tmpl3(tmpl1=tmpl1, tmpl2=tmpl2, x=x)?>", tmpl1=tmpl1, tmpl2=tmpl2, tmpl3=tmpl3, x=None)
 
 
 def test_note():
