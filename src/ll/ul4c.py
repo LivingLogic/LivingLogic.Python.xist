@@ -1353,7 +1353,7 @@ class Template(object):
 		if opcode.arg == "now":
 			self._jssource_line(u"r{op.r1} = new Date();".format(op=opcode))
 		elif opcode.arg == "utcnow":
-			self._jssource_line(u"r{op.r1} = ul4.utcnow();".format(op=opcode))
+			self._jssource_line(u"r{op.r1} = ul4._fu_utcnow();".format(op=opcode))
 		elif opcode.arg == "random":
 			self._jssource_line(u"r{op.r1} = Math.random();".format(op=opcode))
 		elif opcode.arg == "vars":
