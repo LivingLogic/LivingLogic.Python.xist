@@ -1217,7 +1217,7 @@ var ul4 = {
 	_str_repeat: function(str, rep)
 	{
 		var result = "";
-		for (;rep>0;--rep)
+		for (; rep>0; --rep)
 			result += str;
 		return result;
 	},
@@ -1225,7 +1225,7 @@ var ul4 = {
 	_list_repeat: function(list, rep)
 	{
 		var result = [];
-		for (;rep>0;--rep)
+		for (; rep>0; --rep)
 			for (var i in list)
 				result.push(list[i]);
 		return result;
