@@ -1181,11 +1181,7 @@ var ul4 = {
 	// Return an iterator for ``obj``
 	_iter: function(obj)
 	{
-		if (obj.__iter__)
-		{
-			return obj;
-		}
-		else if (typeof(obj) === "string" || this._fu_islist(obj))
+		if (typeof(obj) === "string" || this._fu_islist(obj))
 		{
 			var i = 0;
 			var result = function()
@@ -1210,7 +1206,11 @@ var ul4 = {
 			result.__iter__ = true;
 			return result;
 		}
-		return null;
+		else if (obj !== null && typeof(obj.__iter__) !== "undefined")
+		{
+			return obj;
+		}
+		throw "'" + this._fu_type(obj) + "' object is not iterable";
 	},
 
 	// Repeat string ``str`` ``rep`` times
