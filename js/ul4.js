@@ -796,7 +796,14 @@ var ul4 = {
 		return Math.abs(obj);
 	},
 
-	replace: function(obj1, obj2, obj3, obj4)
+	_fu_utcnow: function()
+	{
+		var now = new Date();
+		// FIXME: The timezone is wrong for the new ``Date`` object.
+		return new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds(), now.getUTCMilliseconds());
+	},
+
+	_me_replace: function(obj1, obj2, obj3, obj4)
 	{
 		var result = [];
 		if (typeof(obj4) === "undefined")
@@ -816,7 +823,7 @@ var ul4 = {
 		return result.join("");
 	},
 
-	strip: function(obj1, obj2)
+	_me_strip: function(obj1, obj2)
 	{
 		if (typeof(obj1) !== "string")
 			throw "strip() requires a string";
@@ -831,7 +838,7 @@ var ul4 = {
 		return obj1;
 	},
 
-	lstrip: function(obj1, obj2)
+	_me_lstrip: function(obj1, obj2)
 	{
 		if (typeof(obj1) !== "string")
 			throw "lstrip() requires a string";
@@ -844,7 +851,7 @@ var ul4 = {
 		return obj1;
 	},
 
-	rstrip: function(obj1, obj2)
+	_me_rstrip: function(obj1, obj2)
 	{
 		if (typeof(obj1) !== "string")
 			throw "rstrip() requires a string";
@@ -857,40 +864,84 @@ var ul4 = {
 		return obj1;
 	},
 
-	split: function(obj1, obj2, obj3)
+	_me_split: function(obj1, obj2, obj3)
 	{
 		if (typeof(obj1) !== "string")
 			throw "split() requires a string as first argument";
-		if (obj2 !== null && typeof(obj2) !== "undefined")
+		if (obj2 !== null && typeof(obj2) !== "string")
+			throw "split() requires a string as second argument";
+		var result = obj1.split(obj2 !== null ? obj2 : /[ \n\r\t]+/, obj3 !== null ? obj3 : obj1.length);
+		if (obj2 === null)
 		{
-			if (typeof(obj2) !== "string")
-				throw "split() requires a string as second argument";
+			if (result.length && !result[0].length)
+				result.splice(0, 1);
+			if (result.length && !result[result.length-1].length)
+				result.splice(-1);
 		}
-		else
-			obj2 = /[ \n\r\t]+/;
-		var result = obj1.split(obj2, obj3);
-		if (result.length && !result[0].length)
-			result.splice(0, 1);
-		if (result.length && !result[result.length-1].length)
-			result.splice(-1);
+		return result;
+		{
+			if (obj2 !== null)
+			{
+				var result = [];
+				while (obj1.length)
+				{
+					var pos = obj1.indexOf(obj2);
+					if (pos === -1 || !obj3--)
+					{
+						result.push(obj1);
+						break;
+					}
+					result.push(obj1.substr(0, pos));
+					obj1 = obj1.substr(pos + obj2.length);
+				}
+				return result;
+			}
+		}
+	},
+
+	_me_find: function(obj1, obj2, obj3, obj4)
+	{
+		if (obj3 === null)
+			obj3 = 0;
+		if (obj4 === null)
+			obj4 = obj1.length;
+		if (obj3 !== 0 || obj4 !== obj1.length)
+			obj1 = obj1.substring(obj3, obj4);
+		var result = obj1.indexOf(obj2);
+		if (result !== -1)
+			result += obj3;
 		return result;
 	},
 
-	lower: function(obj)
+	_me_rfind: function(obj1, obj2, obj3, obj4)
+	{
+		if (obj3 === null)
+			obj3 = 0;
+		if (obj4 === null)
+			obj4 = obj1.length;
+		if (obj3 !== 0 || obj4 !== obj1.length)
+			obj1 = obj1.substring(obj3, obj4);
+		var result = obj1.lastIndexOf(obj2);
+		if (result !== -1)
+			result += obj3;
+		return result;
+	},
+
+	_me_lower: function(obj)
 	{
 		if (typeof(obj) != "string")
 			throw "lower() requires a string";
 		return obj.toLowerCase();
 	},
 
-	upper: function(obj)
+	_me_upper: function(obj)
 	{
 		if (typeof(obj) != "string")
 			throw "upper() requires a string";
 		return obj.toUpperCase();
 	},
 
-	capitalize: function(obj)
+	_me_capitalize: function(obj)
 	{
 		if (typeof(obj) != "string")
 			throw "capitalize() requires a string";
@@ -899,7 +950,17 @@ var ul4 = {
 		return obj;
 	},
 
-	items: function(obj)
+	_me_get: function(obj1, obj2, obj3)
+	{
+		if (!this._fu_isdict(obj1))
+			throw "get() requires a dict";
+		var result = obj1[obj2];
+		if (typeof(result) === "undefined")
+			result = obj3;
+		return result;
+	},
+
+	_me_items: function(obj)
 	{
 		if (!this._fu_isdict(obj))
 			throw "items() requires a dict";
@@ -909,7 +970,7 @@ var ul4 = {
 		return result;
 	},
 
-	join: function(obj1, obj2)
+	_me_join: function(obj1, obj2)
 	{
 		if (typeof(obj1) !== "string")
 			throw "join() requires a string";
@@ -918,7 +979,7 @@ var ul4 = {
 		return obj2.join(obj1);
 	},
 
-	startswith: function(obj1, obj2)
+	_me_startswith: function(obj1, obj2)
 	{
 		if (typeof(obj1) !== "string" || typeof(obj2) !== "string")
 			throw "startswith() requires two strings";
@@ -926,7 +987,7 @@ var ul4 = {
 		return obj1.substr(0, obj2.length) === obj2;
 	},
 
-	endswith: function(obj1, obj2)
+	_me_endswith: function(obj1, obj2)
 	{
 		if (typeof(obj1) !== "string" || typeof(obj2) !== "string")
 			throw "endswith() requires two strings";
@@ -934,7 +995,7 @@ var ul4 = {
 		return obj1.substr(obj1.length-obj2.length) === obj2;
 	},
 
-	isoformat: function(obj)
+	_me_isoformat: function(obj)
 	{
 		if (!this._fu_isdate(obj))
 			throw "isoformat() requires a date";
@@ -945,7 +1006,7 @@ var ul4 = {
 		return result;
 	},
 
-	mimeformat: function(obj)
+	_me_mimeformat: function(obj)
 	{
 		var weekdayname = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 		var monthname = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -953,66 +1014,59 @@ var ul4 = {
 		if (!this._fu_isdate(obj))
 			throw "mimeformat() requires a date";
 
-		return weekdayname[this.weekday(obj)] + ", " + this._lpad(obj.getDate(), "0", 2) + " " + monthname[obj.getMonth()] + " " + obj.getFullYear() + " " + this._lpad(obj.getHours(), "0", 2) + ":" + this._lpad(obj.getMinutes(), "0", 2) + ":" + this._lpad(obj.getSeconds(), "0", 2) + " GMT";
+		return weekdayname[this._me_weekday(obj)] + ", " + this._lpad(obj.getDate(), "0", 2) + " " + monthname[obj.getMonth()] + " " + obj.getFullYear() + " " + this._lpad(obj.getHours(), "0", 2) + ":" + this._lpad(obj.getMinutes(), "0", 2) + ":" + this._lpad(obj.getSeconds(), "0", 2) + " GMT";
 	},
 
-	_fu_utcnow: function()
-	{
-		var now = new Date();
-		// FIXME: The timezone is wrong for the new ``Date`` object.
-		return new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds(), now.getUTCMilliseconds());
-	},
-
-	year: function(obj)
+	_me_year: function(obj)
 	{
 		if (!this._fu_isdate(obj))
 			throw "year() requires a date";
 		return obj.getFullYear();
 	},
 
-	month: function(obj)
+	_me_month: function(obj)
 	{
 		if (!this._fu_isdate(obj))
 			throw "month() requires a date";
 		return obj.getMonth()+1;
 	},
 
-	day: function(obj)
+	_me_day: function(obj)
 	{
 		if (!this._fu_isdate(obj))
 			throw "day() requires a date";
 		return obj.getDate();
 	},
 
-	hour: function(obj)
+	_me_hour: function(obj)
 	{
 		if (!this._fu_isdate(obj))
 			throw "hour() requires a date";
 		return obj.getHours();
 	},
 
-	minute: function(obj)
+	_me_minute: function(obj)
 	{
 		if (!this._fu_isdate(obj))
 			throw "minute() requires a date";
 		return obj.getMinutes();
 	},
 
-	second: function(obj)
+	_me_second: function(obj)
 	{
 		if (!this._fu_isdate(obj))
 			throw "second() requires a date";
 		return obj.getSeconds();
 	},
 
-	microsecond: function(obj)
+	_me_microsecond: function(obj)
 	{
 		if (!this._fu_isdate(obj))
 			throw "micosecond() requires a date";
 		return obj.getMilliseconds() * 1000;
 	},
 
-	weekday: function(obj)
+	_me_weekday: function(obj)
 	{
 		if (!this._fu_isdate(obj))
 			throw "weekday() requires a date";
@@ -1020,18 +1074,18 @@ var ul4 = {
 		return d ? d-1 : 6;
 	},
 
-	isleap: function(obj)
+	_isleap: function(obj)
 	{
 		if (!this._fu_isdate(obj))
 			throw "isleap() requires a date";
 		return new Date(obj.getFullYear(), 1, 29).getMonth() === 1;
 	},
 
-	yearday: function(obj)
+	_me_yearday: function(obj)
 	{
 		if (!this._fu_isdate(obj))
 			throw "yearday() requires a date";
-		var leap = this.isleap(obj) ? 1 : 0;
+		var leap = this._isleap(obj) ? 1 : 0;
 		var day = obj.getDate();
 		switch (obj.getMonth())
 		{
@@ -1063,70 +1117,70 @@ var ul4 = {
 	},
 
 	// Color methods
-	r: function(obj)
+	_me_r: function(obj)
 	{
 		if (!this._fu_iscolor(obj))
 			throw "r() requires a color";
 		return obj.r;
 	},
 
-	g: function(obj)
+	_me_g: function(obj)
 	{
 		if (!this._fu_iscolor(obj))
 			throw "g() requires a color";
 		return obj.g;
 	},
 
-	b: function(obj)
+	_me_b: function(obj)
 	{
 		if (!this._fu_iscolor(obj))
 			throw "b() requires a color";
 		return obj.b;
 	},
 
-	a: function(obj)
+	_me_a: function(obj)
 	{
 		if (!this._fu_iscolor(obj))
 			throw "a() requires a color";
 		return obj.a;
 	},
 
-	lum: function(obj)
+	_me_lum: function(obj)
 	{
 		if (!this._fu_iscolor(obj))
 			throw "lum() requires a color";
 		return obj.lum();
 	},
 
-	hls: function(obj)
+	_me_hls: function(obj)
 	{
 		if (!this._fu_iscolor(obj))
 			throw "hls() requires a color";
 		return obj.hls();
 	},
 
-	hlsa: function(obj)
+	_me_hlsa: function(obj)
 	{
 		if (!this._fu_iscolor(obj))
 			throw "hlsa() requires a color";
 		return obj.hlsa();
 	},
 
-	hsv: function(obj)
+	_me_hsv: function(obj)
 	{
 		if (!this._fu_iscolor(obj))
 			throw "hsv() requires a color";
 		return obj.hsv();
 	},
 
-	hsva: function(obj)
+	_me_hsva: function(obj)
 	{
 		if (!this._fu_iscolor(obj))
 			throw "hsva() requires a color";
 		return obj.hsva();
 	},
 
-	witha: function(obj1, obj2)
+	_me_witha: function(obj1, obj2)
 	{
 		if (!this._fu_iscolor(obj1))
 			throw "witha() requires a color";
@@ -1160,7 +1214,7 @@ var ul4 = {
 		return this._fu_rgb(_v(m1, m2, h+1/3)*255, _v(m1, m2, h)*255, _v(m1, m2, h-1/3)*255, a*255);
 	},
 
-	withlum: function(obj1, obj2)
+	_me_withlum: function(obj1, obj2)
 	{
 		if (!this._fu_iscolor(obj1))
 			throw "withlum() requires a color";

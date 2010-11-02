@@ -1003,7 +1003,7 @@ class Template(object):
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _pythonsource_dispatch_callmeth1(self, opcode):
-		if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "get", "withlum", "witha"):
+		if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "rfind", "get", "withlum", "witha"):
 			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.{op.arg}(r{op.r3:d})".format(op=opcode))
 		elif opcode.arg == "join":
 			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.join(unicode(x) for x in r{op.r3:d})".format(op=opcode))
@@ -1012,12 +1012,12 @@ class Template(object):
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _pythonsource_dispatch_callmeth2(self, opcode):
-		if opcode.arg in ("split", "rsplit", "find", "replace", "get"):
+		if opcode.arg in ("split", "rsplit", "find", "rfind", "replace", "get"):
 			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.{op.arg}(r{op.r3:d}, r{op.r4:d})".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _pythonsource_dispatch_callmeth3(self, opcode):
-		if opcode.arg == "find":
+		if opcode.arg in {"find", "rfind"}:
 			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.{op.arg}(r{op.r3:d}, r{op.r4:d}, r{op.r5:d})".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
@@ -1393,25 +1393,33 @@ class Template(object):
 		else:
 			raise UnknownFunctionError(opcode.arg)
 	def _jssource_dispatch_callmeth0(self, opcode):
-		if opcode.arg in {"split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "items", "isoformat", "mimeformat", "day", "month", "year", "hour", "minute", "second", "microsecond", "weekday", "yearday", "r", "g", "b", "a", "lum", "hls", "hlsa", "hsv", "hsva"}:
-			self._jssource_line(u"r{op.r1} = ul4.{op.arg}(r{op.r2});".format(op=opcode))
+		if opcode.arg in {"strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "items", "isoformat", "mimeformat", "day", "month", "year", "hour", "minute", "second", "microsecond", "weekday", "yearday", "r", "g", "b", "a", "lum", "hls", "hlsa", "hsv", "hsva"}:
+			self._jssource_line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2});".format(op=opcode))
+		elif opcode.arg in {"split", "rsplit"}:
+			self._jssource_line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, null, null);".format(op=opcode))
 		elif opcode.arg == "render":
 			self._jssource_line(u"r{op.r1} = r{op.r2}.renders({{}});".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _jssource_dispatch_callmeth1(self, opcode):
-		if opcode.arg in {"join", "split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "rfind", "format", "withlum", "witha", "get"}:
-			self._jssource_line(u"r{op.r1} = ul4.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
+		if opcode.arg in {"join", "strip", "lstrip", "rstrip", "startswith", "endswith", "format", "withlum", "witha"}:
+			self._jssource_line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
+		elif opcode.arg in {"split", "rsplit", "get"}:
+			self._jssource_line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, null);".format(op=opcode))
+		elif opcode.arg in {"find", "rfind"}:
+			self._jssource_line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, null, null);".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _jssource_dispatch_callmeth2(self, opcode):
-		if opcode.arg in {"split", "rsplit", "find", "replace", "get"}:
-			self._jssource_line(u"r{op.r1} = ul4.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+		if opcode.arg in {"split", "rsplit", "replace", "get"}:
+			self._jssource_line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+		elif opcode.arg in {"find", "rfind"}:
+			self._jssource_line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, null);".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _jssource_dispatch_callmeth3(self, opcode):
-		if opcode.arg == "find":
-			self._jssource_line(u"r{op.r1} = com.livinglogic.ul4.Utils.find(r{op.r2}, r{op.r3}, r{op.r4}, r{op.5});".format(op=opcode))
+		if opcode.arg in {"find", "rfind"}:
+			self._jssource_line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _jssource_dispatch_callmethkw(self, opcode):

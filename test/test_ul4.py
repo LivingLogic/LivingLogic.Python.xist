@@ -490,7 +490,7 @@ def test_getitem():
 		with raises("index (4 )?out of range"):
 			r(u"<?print x[4]?>", x="gurk")
 		with raises("IndexError"):
-				r(u"<?print 'gurk'[-5]?>")
+			r(u"<?print 'gurk'[-5]?>")
 		with raises("index (-5 )?out of range"):
 			r(u"<?print x[-5]?>", x="gurk")
 
@@ -1329,6 +1329,28 @@ def test_method_join():
 	for r in allrenders():
 		assert '1,2,3,4' == r(u'<?print ",".join("1234")?>')
 		assert '1,2,3,4' == r(u'<?print ",".join([1, 2, 3, 4])?>')
+
+
+def test_method_find():
+	for r in allrenders():
+		assert '-1' == r(u'<?print s.find("ks")?>', s="gurkgurk")
+		assert '2' == r(u'<?print s.find("rk")?>', s="gurkgurk")
+		assert '2' == r(u'<?print s.find("rk", 2)?>', s="gurkgurk")
+		assert '2' == r(u'<?print s.find("rk", 2, 4)?>', s="gurkgurk")
+		assert '6' == r(u'<?print s.find("rk", 4, 8)?>', s="gurkgurk")
+		assert '-1' == r(u'<?print s.find("rk", 2, 3)?>', s="gurkgurk")
+		assert '-1' == r(u'<?print s.find("rk", 7)?>', s="gurkgurk")
+
+
+def test_method_rfind():
+	for r in allrenders():
+		assert '-1' == r(u'<?print s.rfind("ks")?>', s="gurkgurk")
+		assert '6' == r(u'<?print s.rfind("rk")?>', s="gurkgurk")
+		assert '6' == r(u'<?print s.rfind("rk", 2)?>', s="gurkgurk")
+		assert '2' == r(u'<?print s.rfind("rk", 2, 4)?>', s="gurkgurk")
+		assert '6' == r(u'<?print s.rfind("rk", 4, 8)?>', s="gurkgurk")
+		assert '-1' == r(u'<?print s.rfind("rk", 2, 3)?>', s="gurkgurk")
+		assert '-1' == r(u'<?print s.rfind("rk", 7)?>', s="gurkgurk")
 
 
 def test_method_day():
