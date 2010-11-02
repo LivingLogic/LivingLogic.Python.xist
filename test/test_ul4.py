@@ -9,7 +9,7 @@
 ## See ll/__init__.py for the license
 
 
-import os, re, datetime, StringIO, json, contextlib
+import os, re, datetime, StringIO, json, contextlib, tempfile
 
 import py.test
 
@@ -52,8 +52,10 @@ def renderjs(__, **variables):
 	__ = ul4c.compile(__)
 	js = __.jssource(True)
 	js = u"template = {};\ndata = {};\nprint(template.renders(data));\n".format(js, ul4c._json(variables))
-	open("gurk.js", "wb").write(js.encode("utf-8"))
-	result = os.popen("d8 js/ul4.js gurk.js", "rb").read()
+	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
+		f.write(js.encode("utf-8"))
+		f.flush()
+		result = os.popen("d8 js/ul4.js {}".format(f.name), "rb").read()
 	result = result.decode("utf-8")
 	result = result[:-1] # Drop the "\n"
 	# Check if we have an exception
