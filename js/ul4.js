@@ -950,6 +950,115 @@ var ul4 = {
 		return obj;
 	},
 
+	_me_format: function(obj1, obj2)
+	{
+		var weekdays1 = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+		var weekdays2 = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+		var months1 = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+		var months2 = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November','December'];
+		var firstday;
+
+		if (this._fu_isdate(obj1))
+		{
+			var result = [];
+			var inspec = false;
+			for (var i in obj2)
+			{
+				var c = obj2[i];
+				if (inspec)
+				{
+					switch (c)
+					{
+						case "a":
+							c = weekdays1[obj1.getDay()];
+							break;
+						case "A":
+							c = weekdays2[obj1.getDay()];
+							break;
+						case "b":
+							c = months1[obj1.getMonth()];
+							break;
+						case "B":
+							c = months2[obj1.getMonth()];
+							break;
+						case "c":
+							c = weekdays1[obj1.getDay()] + " " + months1[obj1.getMonth()] + " " + this._lpad(obj1.getDate(), " ", 2) + " " + this._lpad(obj1.getHours(), "0", 2) + ":" + this._lpad(obj1.getMinutes(), "0", 2) + ":" + this._lpad(obj1.getSeconds(), "0", 2) + " " + obj1.getFullYear();
+							break;
+						case "d":
+							c = this._lpad(obj1.getDate(), "0", 2);
+							break;
+						case "f":
+							c = this._lpad(obj1.getMilliseconds(), "0", 3) + "000";
+							break;
+						case "H":
+							c = this._lpad(obj1.getHours(), "0", 2);
+							break;
+						case "I":
+							c = this._lpad(((obj1.getHours()-1) % 12)+1, "0", 2);
+							break;
+						case "j":
+							c = this._lpad(this._me_yearday(obj1), "0", 3);
+							break;
+						case "m":
+							c = this._lpad(obj1.getMonth()+1, "0", 2);
+							break;
+						case "M":
+							c = this._lpad(obj1.getMinutes(), "0", 2);
+							break;
+						case "p":
+							c = obj1.getHours() < 12 ? "AM" : "PM";
+							break;
+						case "S":
+							c = this._lpad(obj1.getSeconds(), "0", 2);
+							break;
+						case "U":
+							firstday = (new Date(obj1.getFullYear(), 0, 1).getDay());
+							c = Math.floor((this._me_yearday(obj1) + firstday - 1) / 7);
+							break;
+						case "w":
+							c = obj1.getDay();
+							break;
+						case "W":
+							firstday = (new Date(obj1.getFullYear(), 0, 1).getDay());
+							firstday = firstday ? firstday-1 : 6;
+							c = Math.floor((this._me_yearday(obj1) + firstday - 1) / 7);
+							break;
+						case "x":
+							c = this._lpad(obj1.getMonth() + 1, "0", 2) + "/" + this._lpad(obj1.getDate(), "0", 2) + "/" + this._lpad(obj1.getFullYear() % 100, "0", 2);
+							break;
+						case "X":
+							c = this._lpad(obj1.getHours(), "0", 2) + "/" + this._lpad(obj1.getMinutes(), "0", 2) + "/" + this._lpad(obj1.getSeconds(), "0", 2);
+							break;
+						case "y":
+							c = (obj1.getFullYear() % 100).toString();
+							break;
+						case "Y":
+							c = obj1.getFullYear().toString();
+							break;
+						case "z":
+							// UTC offset in the form +HHMM or -HHMM
+							c = "";
+							break;
+						case "Z":
+							// Time zone name
+							c = "";
+							break;
+					}
+					result.push(c);
+					inspec = false;
+				}
+				else
+				{
+					if (c == "%")
+						inspec = true;
+					else
+						result.push(c);
+				}
+			}
+			return result.join("");
+		}
+	},
+
 	_me_get: function(obj1, obj2, obj3)
 	{
 		if (!this._fu_isdict(obj1))

@@ -1247,23 +1247,16 @@ def test_method_render():
 
 
 def test_method_format():
-	now = datetime.datetime.now()
-	format = "%Y-%m-%d %H:%M:%S"
+	t = datetime.datetime(2010, 11, 2, 12, 34, 56, 987000)
+	format = "%Y-%m-%d %H:%M:%S.%f %a %A %b %B %% %I %j %p %U %w %W %y"
 	for r in allrenders():
-		assert now.strftime(format) == r(u"<?print data.format('{}')?>".format(format), data=now)
-		assert '987654' == r(u'<?print 2000-02-29T12:34:56.987654.format("%f")?>')
+		assert t.strftime(format) == r(u"<?print data.format('{}')?>".format(format), data=t)
 
 
 def test_method_isoformat():
-	now = datetime.datetime.now()
+	t = datetime.datetime(2010, 02, 22, 12, 34, 56)
 	for r in allrenders():
-		assert now.isoformat() == r(ur"<?print data.isoformat()?>", data=now)
-
-
-def test_method_isoformat():
-	now = datetime.datetime(2010, 02, 22, 12, 34, 56)
-	for r in allrenders():
-		assert 'Mon, 22 Feb 2010 12:34:56 GMT' == r(ur"<?print data.mimeformat()?>", data=now)
+		assert 'Mon, 22 Feb 2010 12:34:56 GMT' == r(ur"<?print data.mimeformat()?>", data=t)
 
 
 def test_method_get():
