@@ -460,6 +460,8 @@ def test_contains():
 		assert "False" == r(code, x="un", y="gurk")
 		assert "True" == r(code, x="a", y={"a": 1, "b": 2})
 		assert "False" == r(code, x="c", y={"a": 1, "b": 2})
+		assert "True" == r(code, x=0xff, y=color.Color(0x00, 0x80, 0xff, 0x42))
+		assert "False" == r(code, x=0x23, y=color.Color(0x00, 0x80, 0xff, 0x42))
 
 
 def test_notcontains():
@@ -471,6 +473,8 @@ def test_notcontains():
 		assert "True" == r(code, x="un", y="gurk")
 		assert "False" == r(code, x="a", y={"a": 1, "b": 2})
 		assert "True" == r(code, x="c", y={"a": 1, "b": 2})
+		assert "False" == r(code, x=0xff, y=color.Color(0x00, 0x80, 0xff, 0x42))
+		assert "True" == r(code, x=0x23, y=color.Color(0x00, 0x80, 0xff, 0x42))
 
 
 def test_and():
