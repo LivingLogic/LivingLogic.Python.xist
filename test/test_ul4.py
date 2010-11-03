@@ -620,12 +620,14 @@ def test_function_utcnow():
 
 
 def test_function_vars():
+	code = u"<?if var in vars()?>yes<?else?>no<?end if?>"
 	for r in allrenders():
 		with raises("vars.*unknown"):
 			r("<?print vars(1)?>")
 		with raises("vars.*unknown"):
 			r("<?print vars(1, 2)?>")
-		assert "yes" == r(u"<?if 'spam' in vars()?>yes<?else?>no<?end if?>", spam="eggs")
+		assert "yes" == r(code, var="spam", spam="eggs")
+		assert "no" == r(code, var="nospam", spam="eggs")
 
 
 def test_function_random():
