@@ -462,6 +462,17 @@ def test_contains():
 		assert "False" == r(code, x="c", y={"a": 1, "b": 2})
 
 
+def test_notcontains():
+	code = u'<?print x not in y?>'
+	for r in allrenders():
+		assert "False" == r(code, x=2, y=[1, 2, 3])
+		assert "True" == r(code, x=4, y=[1, 2, 3])
+		assert "False" == r(code, x="ur", y="gurk")
+		assert "True" == r(code, x="un", y="gurk")
+		assert "False" == r(code, x="a", y={"a": 1, "b": 2})
+		assert "True" == r(code, x="c", y={"a": 1, "b": 2})
+
+
 def test_and():
 	for r in allrenders():
 		assert "False" == r(u'<?print x and y?>', x=False, y=False)
