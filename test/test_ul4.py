@@ -451,6 +451,16 @@ def test_gt():
 		assert "True" == r(u'<?print x>2?>', x=3)
 
 
+def test_ge():
+	for r in allrenders():
+		assert "False" == r(u'<?print 1>=2?>')
+		assert "True" == r(u'<?print 2>=2?>')
+		assert "True" == r(u'<?print 3>=2?>')
+		assert "False" == r(u'<?print x>=2?>', x=1)
+		assert "True" == r(u'<?print x>=2?>', x=2)
+		assert "True" == r(u'<?print x>=2?>', x=3)
+
+
 def test_contains():
 	code = u'<?print x in y?>'
 	for r in allrenders():
@@ -495,16 +505,6 @@ def test_not():
 	for r in allrenders():
 		assert "True" == r(u'<?print not x?>', x=False)
 		assert "False" == r(u'<?print not x?>', x=42)
-
-
-def test_ge():
-	for r in allrenders():
-		assert "False" == r(u'<?print 1>=2?>')
-		assert "True" == r(u'<?print 2>=2?>')
-		assert "True" == r(u'<?print 3>=2?>')
-		assert "False" == r(u'<?print x>=2?>', x=1)
-		assert "True" == r(u'<?print x>=2?>', x=2)
-		assert "True" == r(u'<?print x>=2?>', x=3)
 
 
 def test_getitem():
