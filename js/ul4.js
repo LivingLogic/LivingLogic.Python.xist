@@ -870,15 +870,19 @@ var ul4 = {
 			throw "split() requires a string as first argument";
 		if (sep !== null && typeof(sep) !== "string")
 			throw "split() requires a string as second argument";
-		var result = string.split(sep !== null ? sep : /[ \n\r\t]+/, count !== null ? count : string.length);
-		if (sep === null)
+		if (!count)
 		{
-			if (result.length && !result[0].length)
-				result.splice(0, 1);
-			if (result.length && !result[result.length-1].length)
-				result.splice(-1);
+			var result = string.split(sep !== null ? sep : /[ \n\r\t]+/);
+			if (sep === null)
+			{
+				if (result.length && !result[0].length)
+					result.splice(0, 1);
+				if (result.length && !result[result.length-1].length)
+					result.splice(-1);
+			}
+			return result;
 		}
-		return result;
+		else
 		{
 			if (sep !== null)
 			{
@@ -893,6 +897,82 @@ var ul4 = {
 					}
 					result.push(string.substr(0, pos));
 					string = string.substr(pos + sep.length);
+				}
+				return result;
+			}
+			else
+			{
+				var result = [];
+				while (string.length)
+				{
+					string = this._me_lstrip(string);
+					var part;
+					if (!count--)
+					 	part = string;
+					else
+						part = string.split(/[ \n\r\t]+/, 1)[0];
+					if (part.length)
+						result.push(part);
+					string = string.substr(part.length);
+				}
+				return result;
+			}
+		}
+	},
+
+	_me_rsplit: function(string, sep, count)
+	{
+		if (typeof(string) !== "string")
+			throw "rsplit() requires a string as first argument";
+		if (sep !== null && typeof(sep) !== "string")
+			throw "rsplit() requires a string as second argument";
+		if (!count)
+		{
+			var result = string.split(sep !== null ? sep : /[ \n\r\t]+/);
+			if (sep === null)
+			{
+				if (result.length && !result[0].length)
+					result.splice(0, 1);
+				if (result.length && !result[result.length-1].length)
+					result.splice(-1);
+			}
+			return result;
+		}
+		else
+		{
+			if (sep !== null)
+			{
+				var result = [];
+				while (string.length)
+				{
+					var pos = string.lastIndexOf(sep);
+					if (pos === -1 || !count--)
+					{
+						result.unshift(string);
+						break;
+					}
+					result.unshift(string.substr(pos+sep.length));
+					string = string.substr(0, pos);
+				}
+				return result;
+			}
+			else
+			{
+				var result = [];
+				while (string.length)
+				{
+					string = this._me_rstrip(string);
+					var part;
+					if (!count--)
+					 	part = string;
+					else
+					{
+						part = string.split(/[ \n\r\t]+/);
+						part = part[part.length-1];
+					}
+					if (part.length)
+						result.unshift(part);
+					string = string.substr(0, string.length-part.length);
 				}
 				return result;
 			}
@@ -1369,7 +1449,7 @@ var ul4 = {
 			result.__iter__ = true;
 			return result;
 		}
-		else if (obj !== null && typeof(obj.__iter__) !== "undefined")
+		else if (obj !== null && obj !== undefined && typeof(obj.__iter__) !== "undefined")
 		{
 			return obj;
 		}
