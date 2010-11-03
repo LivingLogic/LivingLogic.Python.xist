@@ -1,3 +1,13 @@
+Migrating to version 3.14
+=========================
+
+Changes to :mod:`ll.ul4c`
+-------------------------
+
+*	Date constants now need a ``@`` as a prefix. I.e. chance ``2010-11-03T`` to
+	``@2010-11-03T`` etc.
+
+
 Migrating to version 3.12
 =========================
 

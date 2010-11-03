@@ -1,3 +1,13 @@
+Changes in 3.14 (released ??/??/2010)
+-------------------------------------
+
+*	UL4 templates now have a method :meth:`jssource` that returns Javascript
+	source code.
+
+*	Date constants in UL4 have changed. They are now written like this:
+	``@2010-11-05T``.
+
+
 Changes in 3.13 (released 10/22/2010)
 -------------------------------------
 

@@ -50,7 +50,7 @@ def renderdump(__, **variables):
 def renderjs(__, **variables):
 	# Check the Javascript version (this requires an installed ``d8`` shell from V8 (http://code.google.com/p/v8/))
 	__ = ul4c.compile(__)
-	js = __.jssource(True)
+	js = __.jssource()
 	js = u"template = {};\ndata = {};\nprint(template.renders(data));\n".format(js, ul4c._json(variables))
 	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 		f.write(js.encode("utf-8"))
@@ -167,11 +167,11 @@ def test_string():
 
 def test_date():
 	for r in allrenders():
-		assert '2000-02-29T00:00:00' == r(u'<?print 2000-02-29T.isoformat()?>')
-		assert '2000-02-29T12:34:00' == r(u'<?print 2000-02-29T12:34.isoformat()?>')
-		assert '2000-02-29T12:34:56' == r(u'<?print 2000-02-29T12:34:56.isoformat()?>')
-		assert '2000-02-29T12:34:56.987000' == r(u'<?print 2000-02-29T12:34:56.987000.isoformat()?>') # JS only supports milliseconds
-		assert 'yes' == r(u'<?if 2000-02-29T12:34:56.987654?>yes<?else?>no<?end if?>')
+		assert '2000-02-29T00:00:00' == r(u'<?print @2000-02-29T.isoformat()?>')
+		assert '2000-02-29T12:34:00' == r(u'<?print @2000-02-29T12:34.isoformat()?>')
+		assert '2000-02-29T12:34:56' == r(u'<?print @2000-02-29T12:34:56.isoformat()?>')
+		assert '2000-02-29T12:34:56.987000' == r(u'<?print @2000-02-29T12:34:56.987000.isoformat()?>') # JS only supports milliseconds
+		assert 'yes' == r(u'<?if @2000-02-29T12:34:56.987654?>yes<?else?>no<?end if?>')
 
 
 def test_color():
@@ -1378,59 +1378,59 @@ def test_method_rfind():
 
 def test_method_day():
 	for r in allrenders():
-		assert '12' == r(u'<?print 2010-05-12T.day()?>')
+		assert '12' == r(u'<?print @2010-05-12T.day()?>')
 		assert '12' == r(u'<?print d.day()?>', d=datetime.date(2010, 5, 12))
 
 
 def test_method_month():
 	for r in allrenders():
-		assert '5' == r(u'<?print 2010-05-12T.month()?>')
+		assert '5' == r(u'<?print @2010-05-12T.month()?>')
 		assert '5' == r(u'<?print d.month()?>', d=datetime.date(2010, 5, 12))
 
 
 def test_method_year():
 	for r in allrenders():
-		assert '5' == r(u'<?print 2010-05-12T.month()?>')
+		assert '5' == r(u'<?print @2010-05-12T.month()?>')
 		assert '5' == r(u'<?print d.month()?>', d=datetime.date(2010, 5, 12))
 
 
 def test_method_hour():
 	for r in allrenders():
-		assert '16' == r(u'<?print 2010-05-12T16:47:56.hour()?>')
+		assert '16' == r(u'<?print @2010-05-12T16:47:56.hour()?>')
 		assert '16' == r(u'<?print d.hour()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
 
 
 def test_method_minute():
 	for r in allrenders():
-		assert '47' == r(u'<?print 2010-05-12T16:47:56.minute()?>')
+		assert '47' == r(u'<?print @2010-05-12T16:47:56.minute()?>')
 		assert '47' == r(u'<?print d.minute()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
 
 
 def test_method_second():
 	for r in allrenders():
-		assert '56' == r(u'<?print 2010-05-12T16:47:56.second()?>')
+		assert '56' == r(u'<?print @2010-05-12T16:47:56.second()?>')
 		assert '56' == r(u'<?print d.second()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
 
 
 def test_method_microsecond():
 	for r in allrenders():
-		assert '123000' == r(u'<?print 2010-05-12T16:47:56.123000.microsecond()?>')
+		assert '123000' == r(u'<?print @2010-05-12T16:47:56.123000.microsecond()?>')
 		assert '123000' == r(u'<?print d.microsecond()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56, 123000))
 
 
 def test_method_weekday():
 	for r in allrenders():
-		assert '2' == r(u'<?print 2010-05-12T.weekday()?>')
+		assert '2' == r(u'<?print @2010-05-12T.weekday()?>')
 		assert '2' == r(u'<?print d.weekday()?>', d=datetime.date(2010, 5, 12))
 
 
 def test_method_yearday():
 	for r in allrenders():
-		assert '1' == r(u'<?print 2010-01-01T.yearday()?>')
-		assert '366' == r(u'<?print 2008-12-31T.yearday()?>')
-		assert '365' == r(u'<?print 2010-12-31T.yearday()?>')
-		assert '132' == r(u'<?print 2010-05-12T.yearday()?>')
-		assert '132' == r(u'<?print 2010-05-12T16:47:56.yearday()?>')
+		assert '1' == r(u'<?print @2010-01-01T.yearday()?>')
+		assert '366' == r(u'<?print @2008-12-31T.yearday()?>')
+		assert '365' == r(u'<?print @2010-12-31T.yearday()?>')
+		assert '132' == r(u'<?print @2010-05-12T.yearday()?>')
+		assert '132' == r(u'<?print @2010-05-12T16:47:56.yearday()?>')
 		assert '132' == r(u'<?print d.yearday()?>', d=datetime.date(2010, 5, 12))
 		assert '132' == r(u'<?print d.yearday()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
 
@@ -1484,7 +1484,7 @@ def universaltemplate():
 		<?code x = None?>
 		<?code x = False?>
 		<?code x = True?>
-		<?code x = 2009-01-04T?>
+		<?code x = @2009-01-04T?>
 		<?code x = #0063a8?>
 		<?code x = [42]?>
 		<?code x = {"fortytwo": 42}?>

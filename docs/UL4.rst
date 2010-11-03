@@ -139,13 +139,13 @@ Date constants
 Date objects have a date and time including microseconds. Date constants can be
 created like this:
 
-	*	``2008-12-24T``
+	*	``@2008-12-24T``
 
-	*	``2008-12-24T12:34``
+	*	``@2008-12-24T12:34``
 
-	*	``2008-12-24T12:34:56``
+	*	``@2008-12-24T12:34:56``
 
-	*	``2008-12-24T12:34:56.987654``
+	*	``@2008-12-24T12:34:56.987654``
 
 
 Color constants
@@ -914,7 +914,7 @@ above (except for the linefeeds of course)::
 
 	<?code weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']?>
 	<?code months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']?>
-	<?code t = 2010-02-22T17:38:40.123456?>
+	<?code t = @2010-02-22T17:38:40.123456?>
 	<?print weekdays[t.weekday()]?>,
 	<?print t.day().format('02')?>
 	<?print months[t.month()-1]?>
@@ -931,7 +931,7 @@ above (except for the linefeeds of course)::
 ``yearday`` is a date method. It returns the number of days since the beginning
 of the year, so::
 
-	<?print 2010-01-01T.yearday()?>
+	<?print @2010-01-01T.yearday()?>
 
 prints ``1`` and
 

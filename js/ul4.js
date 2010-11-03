@@ -1508,7 +1508,7 @@ var ul4 = {
 		var minutes = obj.getMinutes();
 		var seconds = obj.getSeconds();
 		var milliseconds = obj.getMilliseconds();
-		var result = year + "-" + this._lpad(month, "0", 2) + "-" + this._lpad(day, "0", 2) + "T" + this._lpad(hours, "0", 2) + ":" + this._lpad(minutes, "0", 2) + ":" + this._lpad(seconds, "0", 2);
+		var result = "@" + year + "-" + this._lpad(month, "0", 2) + "-" + this._lpad(day, "0", 2) + "T" + this._lpad(hours, "0", 2) + ":" + this._lpad(minutes, "0", 2) + ":" + this._lpad(seconds, "0", 2);
 		if (milliseconds)
 			result += "." + this._lpad(milliseconds, "0", 3) + "000";
 		return result;

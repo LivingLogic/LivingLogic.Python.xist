@@ -581,7 +581,7 @@ class Template(object):
 	Rendering the template can be done with the methods :meth:`render` (which
 	is a generator) or :meth:`renders` (which returns a string).
 	"""
-	version = "12"
+	version = "13"
 
 	def __init__(self, source=None, startdelim="<?", enddelim="?>"):
 		"""
@@ -2185,10 +2185,9 @@ class Scanner(spark.Scanner):
 	def color3(self, start, end, s):
 		self.rv.append(Color(start, end, color.Color(17*int(s[1], 16), 17*int(s[2], 16), 17*int(s[3], 16))))
 
-	# Must be before the int and float constants
-	@spark.token("\\d{4}-\\d{2}-\\d{2}T(\\d{2}:\\d{2}(:\\d{2}(\\.\\d{6})?)?)?", "default")
+	@spark.token("@\\d{4}-\\d{2}-\\d{2}T(\\d{2}:\\d{2}(:\\d{2}(\\.\\d{6})?)?)?", "default")
 	def date(self, start, end, s):
-		self.rv.append(Date(start, end, datetime.datetime(*map(int, filter(None, datesplitter.split(s))))))
+		self.rv.append(Date(start, end, datetime.datetime(*map(int, filter(None, datesplitter.split(s[1:]))))))
 
 	@spark.token("\\(|\\)|\\[|\\]|\\{|\\}|\\.|,|==|\\!=|<=|<|>=|>|=|\\+=|\\-=|\\*=|//=|/=|%=|%|:|\\+|-|\\*\\*|\\*|//|/", "default")
 	def token(self, start, end, s):
@@ -2814,7 +2813,7 @@ def _json(obj):
 	elif isinstance(obj, dict):
 		return u"{{{}}}".format(u", ".join(u"{}: {}".format(_json(key), _json(value)) for (key, value) in obj.iteritems()))
 	elif isinstance(obj, Template):
-		return obj.jssource(True)
+		return obj.jssource()
 	else:
 		raise TypeError("can't handle object of type {}".format(type(obj)))
 
