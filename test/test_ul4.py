@@ -451,6 +451,17 @@ def test_gt():
 		assert "True" == r(u'<?print x>2?>', x=3)
 
 
+def test_contains():
+	code = u'<?print x in y?>'
+	for r in allrenders():
+		assert "True" == r(code, x=2, y=[1, 2, 3])
+		assert "False" == r(code, x=4, y=[1, 2, 3])
+		assert "True" == r(code, x="ur", y="gurk")
+		assert "False" == r(code, x="un", y="gurk")
+		assert "True" == r(code, x="a", y={"a": 1, "b": 2})
+		assert "False" == r(code, x="c", y={"a": 1, "b": 2})
+
+
 def test_and():
 	for r in allrenders():
 		assert "False" == r(u'<?print x and y?>', x=False, y=False)
