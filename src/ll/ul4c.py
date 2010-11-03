@@ -1164,12 +1164,11 @@ class Template(object):
 	def _pythonsource_dispatch_callfunc4_hsv(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = color.Color.fromhsv(r{op.r2:d}, r{op.r3:d}, r{op.r4:d}, r{op.r5:d})".format(op=opcode))
 
-	def jssource(self, function=False):
+	def jssource(self):
 		"""
-		Return the template as Javascript source code. If :var:`function` is true
-		the code will be wrapped in a function. The signature of the function will
-		be ``function(vars)``, i.e. all template variables will be attributes of
-		the object ``vars``.
+		Return the template as the source code of a Javascript function. The
+		signature of the function will be ``function(vars)``, i.e. all template
+		variables will be attributes of the object ``vars``.
 
 		Note that the generated code will require the ``ul4`` Javascript support
 		library.
@@ -1178,9 +1177,8 @@ class Template(object):
 		self.lines = []
 		self.varcounter = 0
 
-		if function:
-			self._jssource_line("ul4.Template.create(function(vars){")
-			self.indent += 1
+		self._jssource_line("ul4.Template.create(function(vars){")
+		self.indent += 1
 
 		self._jssource_line(u"//@@@ BEGIN template source")
 		lines = self.source.splitlines(False)
@@ -1206,9 +1204,8 @@ class Template(object):
 		self._jssource_line(u'return out;')
 		self._jssource_line(u"//@@@ END template code")
 
-		if function:
-			self.indent -= 1
-			self._jssource_line("})")
+		self.indent -= 1
+		self._jssource_line("})")
 
 		result = "\n".join(self.lines)
 
