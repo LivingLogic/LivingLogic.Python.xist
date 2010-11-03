@@ -233,21 +233,21 @@ var ul4 = {
 		return -obj;
 	},
 
-	_op_contains: function(obj1, obj2)
+	_op_contains: function(obj, container)
 	{
-		if (typeof(obj1) === "string" && typeof(obj2) === "string")
+		if (typeof(obj) === "string" && typeof(container) === "string")
 		{
-			return obj2.indexOf(obj1) != -1;
+			return container.indexOf(obj) != -1;
 		}
-		else if (this._fu_islist(obj2))
+		else if (this._fu_islist(container))
 		{
-			return obj2.indexOf(obj1) != -1;
+			return container.indexOf(obj) != -1;
 		}
-		else if (this._fu_isdict(obj2))
+		else if (this._fu_isdict(container))
 		{
-			for (var key in obj2)
+			for (var key in container)
 			{
-				if (key === obj1)
+				if (key === obj)
 					return true;
 			}
 			return false;
@@ -348,32 +348,32 @@ var ul4 = {
 		return "?";
 	},
 
-	_fu_int: function(obj1, obj2)
+	_fu_int: function(obj, base)
 	{
 		var result;
-		if (typeof(obj2) !== "undefined")
+		if (typeof(base) !== "undefined")
 		{
-			if (typeof(obj1) !== "string" || !this._fu_isint(obj2))
+			if (typeof(obj) !== "string" || !this._fu_isint(base))
 				throw "int() requires a string and an integer";
-			result = parseInt(obj1, obj2);
+			result = parseInt(obj, base);
 			if (result.toString() == "NaN")
 				throw "invalid literal for int()";
 			return result;
 		}
 		else
 		{
-			if (typeof(obj1) == "string")
+			if (typeof(obj) == "string")
 			{
-				result = parseInt(obj1);
+				result = parseInt(obj);
 				if (result.toString() == "NaN")
 					throw "invalid literal for int()";
 				return result;
 			}
-			else if (typeof(obj1) == "number")
-				return Math.floor(obj1);
-			else if (obj1 === true)
+			else if (typeof(obj) == "number")
+				return Math.floor(obj);
+			else if (obj === true)
 				return 1;
-			else if (obj1 === false)
+			else if (obj === false)
 				return 0;
 			throw "int() argument must be a string or a number";
 		}
@@ -656,63 +656,63 @@ var ul4 = {
 		throw "json() requires a serializable object";
 	},
 
-	_op_getitem: function(obj1, obj2)
+	_op_getitem: function(container, key)
 	{
-		if (this._fu_isdict(obj1))
+		if (this._fu_isdict(container))
 		{
-			var result = obj1[obj2];
+			var result = container[key];
 			if (typeof(result) === "undefined")
-				throw "key " + this._fu_repr(obj2) + " not found";
+				throw "key " + this._fu_repr(key) + " not found";
 			return result;
 		}
-		else if (typeof(obj1) === "string" || this._fu_islist(obj1))
+		else if (typeof(container) === "string" || this._fu_islist(container))
 		{
-			var org = obj2;
-			if (obj2 < 0)
-				obj2 += obj1.length;
-			if (obj2 < 0 || obj2 >= obj1.length)
-				throw "index " + this._fu_repr(org) + " out of range";
-			return obj1[obj2];
+			var orgkey = key;
+			if (key < 0)
+				key += container.length;
+			if (key < 0 || key >= container.length)
+				throw "index " + this._fu_repr(orgkey) + " out of range";
+			return container[key];
 		}
-		else if (this._fu_iscolor(obj1))
+		else if (this._fu_iscolor(container))
 		{
-			var org = obj2;
-			if (obj2 < 0)
-				obj2 += 4;
-			switch (obj2)
+			var orgkey = key;
+			if (key < 0)
+				key += 4;
+			switch (key)
 			{
 				case 0:
-					return obj1.r;
+					return container.r;
 				case 1:
-					return obj1.g;
+					return container.g;
 				case 2:
-					return obj1.b;
+					return container.b;
 				case 3:
-					return obj1.a;
+					return container.a;
 				default:
-					throw "index " + this._fu_repr(org) + " out of range";
+					throw "index " + this._fu_repr(orgkey) + " out of range";
 			}
 		}
 		throw "getitem() needs a sequence or dict";
 	},
 
-	_op_getslice: function(obj1, obj2, obj3)
+	_op_getslice: function(container, start, stop)
 	{
-		if (obj2 === null)
-			obj2 = 0;
-		if (obj3 === null)
-			obj3 = obj1.length;
-		return obj1.slice(obj2, obj3);
+		if (start === null)
+			start = 0;
+		if (stop === null)
+			stop = container.length;
+		return container.slice(start, stop);
 	},
 
-	get: function(obj1, obj2, obj3)
+	get: function(container, key, defaultvalue)
 	{
-		if (this._fu_isdict(obj1))
+		if (this._fu_isdict(container))
 		{
-			if (typeof(obj3) === "undefined")
-				obj3 = null;
-			var result = obj1[obj2];
-			return (typeof(result) !== "undefined") ? result : obj3;
+			if (typeof(defaultvalue) === "undefined")
+				defaultvalue = null;
+			var result = container[key];
+			return (typeof(result) !== "undefined") ? result : defaultvalue;
 		}
 		throw "get() needs a dict";
 	},
@@ -803,75 +803,75 @@ var ul4 = {
 		return new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds(), now.getUTCMilliseconds());
 	},
 
-	_me_replace: function(obj1, obj2, obj3, obj4)
+	_me_replace: function(string, searchstring, replacestring, count)
 	{
 		var result = [];
-		if (typeof(obj4) === "undefined")
-			obj4 = obj1.length;
-		while (obj1.length)
+		if (typeof(count) === "undefined")
+			count = string.length;
+		while (string.length)
 		{
-			var pos = obj1.indexOf(obj2);
-			if (pos === -1 || !obj4--)
+			var pos = string.indexOf(searchstring);
+			if (pos === -1 || !count--)
 			{
-				result.push(obj1);
+				result.push(string);
 				break;
 			}
-			result.push(obj1.substr(0, pos));
-			result.push(obj3);
-			obj1 = obj1.substr(pos + obj2.length);
+			result.push(string.substr(0, pos));
+			result.push(replacestring);
+			string = string.substr(pos + searchstring.length);
 		}
 		return result.join("");
 	},
 
-	_me_strip: function(obj1, obj2)
+	_me_strip: function(string, stripchars)
 	{
-		if (typeof(obj1) !== "string")
+		if (typeof(string) !== "string")
 			throw "strip() requires a string";
-		if (typeof(obj2) === "undefined")
-			obj2 = " \r\n\t";
-		else if (typeof(obj2) !== "string")
+		if (typeof(stripchars) === "undefined")
+			stripchars = " \r\n\t";
+		else if (typeof(stripchars) !== "string")
 			throw "strip() requires two strings";
-		while (obj1 && obj2.indexOf(obj1[0]) >= 0)
-			obj1 = obj1.substr(1);
-		while (obj1 && obj2.indexOf(obj1[obj1.length-1]) >= 0)
-			obj1 = obj1.substr(0, obj1.length-1);
-		return obj1;
+		while (string && stripchars.indexOf(string[0]) >= 0)
+			string = string.substr(1);
+		while (string && stripchars.indexOf(string[string.length-1]) >= 0)
+			string = string.substr(0, string.length-1);
+		return string;
 	},
 
-	_me_lstrip: function(obj1, obj2)
+	_me_lstrip: function(string, stripchars)
 	{
-		if (typeof(obj1) !== "string")
+		if (typeof(string) !== "string")
 			throw "lstrip() requires a string";
-		if (typeof(obj2) === "undefined")
-			obj2 = " \r\n\t";
-		else if (typeof(obj2) !== "string")
+		if (typeof(stripchars) === "undefined")
+			stripchars = " \r\n\t";
+		else if (typeof(stripchars) !== "string")
 			throw "lstrip() requires two strings";
-		while (obj1 && obj2.indexOf(obj1[0]) >= 0)
-			obj1 = obj1.substr(1);
-		return obj1;
+		while (string && stripchars.indexOf(string[0]) >= 0)
+			string = string.substr(1);
+		return string;
 	},
 
-	_me_rstrip: function(obj1, obj2)
+	_me_rstrip: function(string, stripchars)
 	{
-		if (typeof(obj1) !== "string")
+		if (typeof(string) !== "string")
 			throw "rstrip() requires a string";
-		if (typeof(obj2) === "undefined")
-			obj2 = " \r\n\t";
-		else if (typeof(obj2) !== "string")
+		if (typeof(stripchars) === "undefined")
+			stripchars = " \r\n\t";
+		else if (typeof(stripchars) !== "string")
 			throw "rstrip() requires two strings";
-		while (obj1 && obj2.indexOf(obj1[obj1.length-1]) >= 0)
-			obj1 = obj1.substr(0, obj1.length-1);
-		return obj1;
+		while (string && stripchars.indexOf(string[string.length-1]) >= 0)
+			string = string.substr(0, string.length-1);
+		return string;
 	},
 
-	_me_split: function(obj1, obj2, obj3)
+	_me_split: function(string, sep, count)
 	{
-		if (typeof(obj1) !== "string")
+		if (typeof(string) !== "string")
 			throw "split() requires a string as first argument";
-		if (obj2 !== null && typeof(obj2) !== "string")
+		if (sep !== null && typeof(sep) !== "string")
 			throw "split() requires a string as second argument";
-		var result = obj1.split(obj2 !== null ? obj2 : /[ \n\r\t]+/, obj3 !== null ? obj3 : obj1.length);
-		if (obj2 === null)
+		var result = string.split(sep !== null ? sep : /[ \n\r\t]+/, count !== null ? count : string.length);
+		if (sep === null)
 		{
 			if (result.length && !result[0].length)
 				result.splice(0, 1);
@@ -880,50 +880,50 @@ var ul4 = {
 		}
 		return result;
 		{
-			if (obj2 !== null)
+			if (sep !== null)
 			{
 				var result = [];
-				while (obj1.length)
+				while (string.length)
 				{
-					var pos = obj1.indexOf(obj2);
-					if (pos === -1 || !obj3--)
+					var pos = string.indexOf(sep);
+					if (pos === -1 || !count--)
 					{
-						result.push(obj1);
+						result.push(string);
 						break;
 					}
-					result.push(obj1.substr(0, pos));
-					obj1 = obj1.substr(pos + obj2.length);
+					result.push(string.substr(0, pos));
+					string = string.substr(pos + sep.length);
 				}
 				return result;
 			}
 		}
 	},
 
-	_me_find: function(obj1, obj2, obj3, obj4)
+	_me_find: function(string, searchstring, start, stop)
 	{
-		if (obj3 === null)
-			obj3 = 0;
-		if (obj4 === null)
-			obj4 = obj1.length;
-		if (obj3 !== 0 || obj4 !== obj1.length)
-			obj1 = obj1.substring(obj3, obj4);
-		var result = obj1.indexOf(obj2);
+		if (start === null)
+			start = 0;
+		if (stop === null)
+			stop = string.length;
+		if (start !== 0 || stop !== string.length)
+			string = string.substring(start, stop);
+		var result = string.indexOf(searchstring);
 		if (result !== -1)
-			result += obj3;
+			result += start;
 		return result;
 	},
 
-	_me_rfind: function(obj1, obj2, obj3, obj4)
+	_me_rfind: function(string, searchstring, start, stop)
 	{
-		if (obj3 === null)
-			obj3 = 0;
-		if (obj4 === null)
-			obj4 = obj1.length;
-		if (obj3 !== 0 || obj4 !== obj1.length)
-			obj1 = obj1.substring(obj3, obj4);
-		var result = obj1.lastIndexOf(obj2);
+		if (start === null)
+			start = 0;
+		if (stop === null)
+			stop = string.length;
+		if (start !== 0 || stop !== string.length)
+			string = string.substring(start, stop);
+		var result = string.lastIndexOf(searchstring);
 		if (result !== -1)
-			result += obj3;
+			result += start;
 		return result;
 	},
 
@@ -950,7 +950,7 @@ var ul4 = {
 		return obj;
 	},
 
-	_me_format: function(obj1, obj2)
+	_me_format: function(obj, format)
 	{
 		var weekdays1 = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 		var weekdays2 = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -958,82 +958,82 @@ var ul4 = {
 		var months2 = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November','December'];
 		var firstday;
 
-		if (this._fu_isdate(obj1))
+		if (this._fu_isdate(obj))
 		{
 			var result = [];
 			var inspec = false;
-			for (var i in obj2)
+			for (var i in format)
 			{
-				var c = obj2[i];
+				var c = format[i];
 				if (inspec)
 				{
 					switch (c)
 					{
 						case "a":
-							c = weekdays1[obj1.getDay()];
+							c = weekdays1[obj.getDay()];
 							break;
 						case "A":
-							c = weekdays2[obj1.getDay()];
+							c = weekdays2[obj.getDay()];
 							break;
 						case "b":
-							c = months1[obj1.getMonth()];
+							c = months1[obj.getMonth()];
 							break;
 						case "B":
-							c = months2[obj1.getMonth()];
+							c = months2[obj.getMonth()];
 							break;
 						case "c":
-							c = weekdays1[obj1.getDay()] + " " + months1[obj1.getMonth()] + " " + this._lpad(obj1.getDate(), " ", 2) + " " + this._lpad(obj1.getHours(), "0", 2) + ":" + this._lpad(obj1.getMinutes(), "0", 2) + ":" + this._lpad(obj1.getSeconds(), "0", 2) + " " + obj1.getFullYear();
+							c = weekdays1[obj.getDay()] + " " + months1[obj.getMonth()] + " " + this._lpad(obj.getDate(), " ", 2) + " " + this._lpad(obj.getHours(), "0", 2) + ":" + this._lpad(obj.getMinutes(), "0", 2) + ":" + this._lpad(obj.getSeconds(), "0", 2) + " " + obj.getFullYear();
 							break;
 						case "d":
-							c = this._lpad(obj1.getDate(), "0", 2);
+							c = this._lpad(obj.getDate(), "0", 2);
 							break;
 						case "f":
-							c = this._lpad(obj1.getMilliseconds(), "0", 3) + "000";
+							c = this._lpad(obj.getMilliseconds(), "0", 3) + "000";
 							break;
 						case "H":
-							c = this._lpad(obj1.getHours(), "0", 2);
+							c = this._lpad(obj.getHours(), "0", 2);
 							break;
 						case "I":
-							c = this._lpad(((obj1.getHours()-1) % 12)+1, "0", 2);
+							c = this._lpad(((obj.getHours()-1) % 12)+1, "0", 2);
 							break;
 						case "j":
-							c = this._lpad(this._me_yearday(obj1), "0", 3);
+							c = this._lpad(this._me_yearday(obj), "0", 3);
 							break;
 						case "m":
-							c = this._lpad(obj1.getMonth()+1, "0", 2);
+							c = this._lpad(obj.getMonth()+1, "0", 2);
 							break;
 						case "M":
-							c = this._lpad(obj1.getMinutes(), "0", 2);
+							c = this._lpad(obj.getMinutes(), "0", 2);
 							break;
 						case "p":
-							c = obj1.getHours() < 12 ? "AM" : "PM";
+							c = obj.getHours() < 12 ? "AM" : "PM";
 							break;
 						case "S":
-							c = this._lpad(obj1.getSeconds(), "0", 2);
+							c = this._lpad(obj.getSeconds(), "0", 2);
 							break;
 						case "U":
-							firstday = (new Date(obj1.getFullYear(), 0, 1).getDay());
-							c = Math.floor((this._me_yearday(obj1) + firstday - 1) / 7);
+							firstday = (new Date(obj.getFullYear(), 0, 1).getDay());
+							c = Math.floor((this._me_yearday(obj) + firstday - 1) / 7);
 							break;
 						case "w":
-							c = obj1.getDay();
+							c = obj.getDay();
 							break;
 						case "W":
-							firstday = (new Date(obj1.getFullYear(), 0, 1).getDay());
+							firstday = (new Date(obj.getFullYear(), 0, 1).getDay());
 							firstday = firstday ? firstday-1 : 6;
-							c = Math.floor((this._me_yearday(obj1) + firstday - 1) / 7);
+							c = Math.floor((this._me_yearday(obj) + firstday - 1) / 7);
 							break;
 						case "x":
-							c = this._lpad(obj1.getMonth() + 1, "0", 2) + "/" + this._lpad(obj1.getDate(), "0", 2) + "/" + this._lpad(obj1.getFullYear() % 100, "0", 2);
+							c = this._lpad(obj.getMonth() + 1, "0", 2) + "/" + this._lpad(obj.getDate(), "0", 2) + "/" + this._lpad(obj.getFullYear() % 100, "0", 2);
 							break;
 						case "X":
-							c = this._lpad(obj1.getHours(), "0", 2) + "/" + this._lpad(obj1.getMinutes(), "0", 2) + "/" + this._lpad(obj1.getSeconds(), "0", 2);
+							c = this._lpad(obj.getHours(), "0", 2) + "/" + this._lpad(obj.getMinutes(), "0", 2) + "/" + this._lpad(obj.getSeconds(), "0", 2);
 							break;
 						case "y":
-							c = (obj1.getFullYear() % 100).toString();
+							c = (obj.getFullYear() % 100).toString();
 							break;
 						case "Y":
-							c = obj1.getFullYear().toString();
+							c = obj.getFullYear().toString();
 							break;
 						case "z":
 							// UTC offset in the form +HHMM or -HHMM
@@ -1059,13 +1059,13 @@ var ul4 = {
 		}
 	},
 
-	_me_get: function(obj1, obj2, obj3)
+	_me_get: function(container, key, defaultvalue)
 	{
-		if (!this._fu_isdict(obj1))
+		if (!this._fu_isdict(container))
 			throw "get() requires a dict";
-		var result = obj1[obj2];
+		var result = container[key];
 		if (typeof(result) === "undefined")
-			result = obj3;
+			result = defaultvalue;
 		return result;
 	},
 
@@ -1079,29 +1079,29 @@ var ul4 = {
 		return result;
 	},
 
-	_me_join: function(obj1, obj2)
+	_me_join: function(sep, container)
 	{
-		if (typeof(obj1) !== "string")
+		if (typeof(sep) !== "string")
 			throw "join() requires a string";
-		if (!this._fu_islist(obj2))
-			obj2 = this._fu_list(obj2);
-		return obj2.join(obj1);
+		if (!this._fu_islist(container))
+			container = this._fu_list(container);
+		return container.join(sep);
 	},
 
-	_me_startswith: function(obj1, obj2)
+	_me_startswith: function(string, prefix)
 	{
-		if (typeof(obj1) !== "string" || typeof(obj2) !== "string")
+		if (typeof(string) !== "string" || typeof(prefix) !== "string")
 			throw "startswith() requires two strings";
 
-		return obj1.substr(0, obj2.length) === obj2;
+		return string.substr(0, prefix.length) === prefix;
 	},
 
-	_me_endswith: function(obj1, obj2)
+	_me_endswith: function(string, suffix)
 	{
-		if (typeof(obj1) !== "string" || typeof(obj2) !== "string")
+		if (typeof(string) !== "string" || typeof(suffix) !== "string")
 			throw "endswith() requires two strings";
 
-		return obj1.substr(obj1.length-obj2.length) === obj2;
+		return string.substr(string.length-suffix.length) === suffix;
 	},
 
 	_me_isoformat: function(obj)
@@ -1289,11 +1289,11 @@ var ul4 = {
 		return obj.hsva();
 	},
 
-	_me_witha: function(obj1, obj2)
+	_me_witha: function(obj, newa)
 	{
-		if (!this._fu_iscolor(obj1))
+		if (!this._fu_iscolor(obj))
 			throw "witha() requires a color";
-		return obj1.witha(obj2);
+		return obj.witha(newa);
 	},
 
 	_hls: function(h, l, s, a)
@@ -1323,11 +1323,11 @@ var ul4 = {
 		return this._fu_rgb(_v(m1, m2, h+1/3)*255, _v(m1, m2, h)*255, _v(m1, m2, h-1/3)*255, a*255);
 	},
 
-	_me_withlum: function(obj1, obj2)
+	_me_withlum: function(obj, newlum)
 	{
-		if (!this._fu_iscolor(obj1))
+		if (!this._fu_iscolor(obj))
 			throw "withlum() requires a color";
-		return obj1.withlum(obj2);
+		return obj.withlum(newlum);
 	},
 
 	/// Helper functions
@@ -1532,22 +1532,22 @@ var ul4 = {
 		return '"' + result + '"';
 	},
 
-	_lpad: function(str, pad, len)
+	_lpad: function(string, pad, len)
 	{
-		if (typeof(str) === "number")
-			str = str.toString();
-		while (str.length < len)
-			str = pad + str;
-		return str;
+		if (typeof(string) === "number")
+			string = string.toString();
+		while (string.length < len)
+			string = pad + string;
+		return string;
 	},
 
-	_rpad: function(str, pad, len)
+	_rpad: function(string, pad, len)
 	{
-		if (typeof(str) === "number")
-			str = str.toString();
-		while (str.length < len)
-			str = str + pad;
-		return str;
+		if (typeof(string) === "number")
+			string = string.toString();
+		while (string.length < len)
+			string = string + pad;
+		return string;
 	},
 
 	Template: {
