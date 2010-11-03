@@ -1,173 +1,5 @@
 var ul4 = {
-	_fu_isnone: function(obj)
-	{
-		return obj === null;
-	},
-
-	_fu_isbool: function(obj)
-	{
-		return typeof(obj) == "boolean";
-	},
-
-	_fu_isint: function(obj)
-	{
-		return (typeof(obj) == "number") && Math.round(obj) == obj;
-	},
-
-	_fu_isfloat: function(obj)
-	{
-		return (typeof(obj) == "number") && Math.round(obj) != obj;
-	},
-
-	_fu_isstr: function(obj)
-	{
-		return typeof(obj) == "string";
-	},
-
-	_fu_isdate: function(obj)
-	{
-		return Object.prototype.toString.call(obj) == "[object Date]";
-	},
-
-	_fu_iscolor: function(obj)
-	{
-		return Object.prototype.toString.call(obj) == "[object Object]" && !!obj.__iscolor__;
-	},
-
-	_fu_istemplate: function(obj)
-	{
-		return Object.prototype.toString.call(obj) == "[object Object]" && !!obj.__istemplate__;
-	},
-
-	_fu_islist: function(obj)
-	{
-		return Object.prototype.toString.call(obj) == "[object Array]";
-	},
-
-	_fu_isdict: function(obj)
-	{
-		return Object.prototype.toString.call(obj) == "[object Object]" && !obj.__iscolor__ && !obj.__istemplate__;
-	},
-
-	_fu_bool: function(obj)
-	{
-		if (obj === null || obj === false || obj === 0 || obj === "")
-			return false;
-		else
-		{
-			if (this._fu_islist(obj))
-				return obj.length != 0;
-			else if (this._fu_isdict(obj))
-			{
-				for (var key in obj)
-					return true;
-				return false;
-			}
-			return true;
-		}
-	},
-
-	Color: {
-		__iscolor__: true,
-
-		lum: function()
-		{
-			return this.hls()[1];
-		},
-
-		hls: function()
-		{
-			var r = this.r/255.;
-			var g = this.g/255.;
-			var b = this.b/255.;
-			var maxc = Math.max(r, g, b);
-			var minc = Math.min(r, g, b);
-			var h, l, s;
-			var rc, gc, bc;
-
-			l = (minc+maxc)/2.0;
-			if (minc == maxc)
-				return [0.0, l, 0.0];
-			if (l <= 0.5)
-				s = (maxc-minc) / (maxc+minc);
-			else
-				s = (maxc-minc) / (2.0-maxc-minc);
-			rc = (maxc-r) / (maxc-minc);
-			gc = (maxc-g) / (maxc-minc);
-			bc = (maxc-b) / (maxc-minc);
-			if (r == maxc)
-				h = bc-gc;
-			else if (g == maxc)
-				h = 2.0+rc-bc;
-			else
-				h = 4.0+gc-rc;
-			h = (h/6.0) % 1.0;
-			return [h, l, s];
-		},
-
-		hlsa: function()
-		{
-			var hls = this.hls();
-			return hls.concat(this.a/255.);
-		},
-
-		hsv: function()
-		{
-			var r = this.r/255.;
-			var g = this.g/255.;
-			var b = this.b/255.;
-			var maxc = Math.max(r, g, b);
-			var minc = Math.min(r, g, b);
-			var v = maxc;
-			if (minc == maxc)
-				return [0.0, 0.0, v];
-			var s = (maxc-minc) / maxc;
-			var rc = (maxc-r) / (maxc-minc);
-			var gc = (maxc-g) / (maxc-minc);
-			var bc = (maxc-b) / (maxc-minc);
-			var h;
-			if (r == maxc)
-				h = bc-gc;
-			else if (g == maxc)
-				h = 2.0+rc-bc;
-			else
-				h = 4.0+gc-rc;
-			h = (h/6.0) % 1.0;
-			return [h, s, v];
-		},
-
-		hsva: function()
-		{
-			var hsv = this.hsv();
-			return hsv.concat(this.a/255.);
-		},
-
-		witha: function(a)
-		{
-			if (typeof(a) !== "number")
-				throw "witha() requires a number";
-			return ul4._fu_rgb(this.r, this.g, this.b, a);
-		},
-
-		withlum: function(lum)
-		{
-			if (typeof(lum) !== "number")
-				throw "witha() requires a number";
-			var hlsa = this.hlsa();
-			return ul4._hls(hlsa[0], lum, hlsa[2], hlsa[3]);
-		}
-	},
-
-	_fu_rgb: function(r, g, b, a)
-	{
-		var c = this._clone(this.Color);
-		c.r = r;
-		c.g = g;
-		c.b = b;
-		c.a = a;
-		return c;
-	},
-
+	// Functions with the ``_op_`` prefix implement UL4 opcodes
 	_op_add: function(obj1, obj2)
 	{
 		return obj1 + obj2;
@@ -252,7 +84,11 @@ var ul4 = {
 			}
 			return false;
 		}
-		// FIXME: Color
+		else if (this._fu_iscolor(container))
+		{
+			return container.r == obj || container.g == obj || container.b == obj || container.a == obj;
+		}
+		throw "argument of type '" + this._fu_type(container) + "' is not iterable";
 	},
 
 	_op_equals: function(obj1, obj2)
@@ -268,6 +104,134 @@ var ul4 = {
 	_op_le: function(obj1, obj2)
 	{
 		return obj1 <= obj2;
+	},
+
+	_op_getitem: function(container, key)
+	{
+		if (this._fu_isdict(container))
+		{
+			var result = container[key];
+			if (typeof(result) === "undefined")
+				throw "key " + this._fu_repr(key) + " not found";
+			return result;
+		}
+		else if (typeof(container) === "string" || this._fu_islist(container))
+		{
+			var orgkey = key;
+			if (key < 0)
+				key += container.length;
+			if (key < 0 || key >= container.length)
+				throw "index " + this._fu_repr(orgkey) + " out of range";
+			return container[key];
+		}
+		else if (this._fu_iscolor(container))
+		{
+			var orgkey = key;
+			if (key < 0)
+				key += 4;
+			switch (key)
+			{
+				case 0:
+					return container.r;
+				case 1:
+					return container.g;
+				case 2:
+					return container.b;
+				case 3:
+					return container.a;
+				default:
+					throw "index " + this._fu_repr(orgkey) + " out of range";
+			}
+		}
+		throw "getitem() needs a sequence or dict";
+	},
+
+	_op_getslice: function(container, start, stop)
+	{
+		if (start === null)
+			start = 0;
+		if (stop === null)
+			stop = container.length;
+		return container.slice(start, stop);
+	},
+
+	// Functions with the ``_fu_`` prefix implement UL4 functions
+	_fu_isnone: function(obj)
+	{
+		return obj === null;
+	},
+
+	_fu_isbool: function(obj)
+	{
+		return typeof(obj) == "boolean";
+	},
+
+	_fu_isint: function(obj)
+	{
+		return (typeof(obj) == "number") && Math.round(obj) == obj;
+	},
+
+	_fu_isfloat: function(obj)
+	{
+		return (typeof(obj) == "number") && Math.round(obj) != obj;
+	},
+
+	_fu_isstr: function(obj)
+	{
+		return typeof(obj) == "string";
+	},
+
+	_fu_isdate: function(obj)
+	{
+		return Object.prototype.toString.call(obj) == "[object Date]";
+	},
+
+	_fu_iscolor: function(obj)
+	{
+		return Object.prototype.toString.call(obj) == "[object Object]" && !!obj.__iscolor__;
+	},
+
+	_fu_istemplate: function(obj)
+	{
+		return Object.prototype.toString.call(obj) == "[object Object]" && !!obj.__istemplate__;
+	},
+
+	_fu_islist: function(obj)
+	{
+		return Object.prototype.toString.call(obj) == "[object Array]";
+	},
+
+	_fu_isdict: function(obj)
+	{
+		return Object.prototype.toString.call(obj) == "[object Object]" && !obj.__iscolor__ && !obj.__istemplate__;
+	},
+
+	_fu_bool: function(obj)
+	{
+		if (obj === null || obj === false || obj === 0 || obj === "")
+			return false;
+		else
+		{
+			if (this._fu_islist(obj))
+				return obj.length != 0;
+			else if (this._fu_isdict(obj))
+			{
+				for (var key in obj)
+					return true;
+				return false;
+			}
+			return true;
+		}
+	},
+
+	_fu_rgb: function(r, g, b, a)
+	{
+		var c = this._clone(this.Color);
+		c.r = r;
+		c.g = g;
+		c.b = b;
+		c.a = a;
+		return c;
 	},
 
 	_fu_type: function(obj)
@@ -656,55 +620,6 @@ var ul4 = {
 		throw "json() requires a serializable object";
 	},
 
-	_op_getitem: function(container, key)
-	{
-		if (this._fu_isdict(container))
-		{
-			var result = container[key];
-			if (typeof(result) === "undefined")
-				throw "key " + this._fu_repr(key) + " not found";
-			return result;
-		}
-		else if (typeof(container) === "string" || this._fu_islist(container))
-		{
-			var orgkey = key;
-			if (key < 0)
-				key += container.length;
-			if (key < 0 || key >= container.length)
-				throw "index " + this._fu_repr(orgkey) + " out of range";
-			return container[key];
-		}
-		else if (this._fu_iscolor(container))
-		{
-			var orgkey = key;
-			if (key < 0)
-				key += 4;
-			switch (key)
-			{
-				case 0:
-					return container.r;
-				case 1:
-					return container.g;
-				case 2:
-					return container.b;
-				case 3:
-					return container.a;
-				default:
-					throw "index " + this._fu_repr(orgkey) + " out of range";
-			}
-		}
-		throw "getitem() needs a sequence or dict";
-	},
-
-	_op_getslice: function(container, start, stop)
-	{
-		if (start === null)
-			start = 0;
-		if (stop === null)
-			stop = container.length;
-		return container.slice(start, stop);
-	},
-
 	get: function(container, key, defaultvalue)
 	{
 		if (this._fu_isdict(container))
@@ -803,6 +718,7 @@ var ul4 = {
 		return new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds(), now.getUTCMilliseconds());
 	},
 
+	// Functions with the ``_me_`` prefix implement UL4 methods
 	_me_replace: function(string, searchstring, replacestring, count)
 	{
 		var result = [];
@@ -908,7 +824,7 @@ var ul4 = {
 					string = this._me_lstrip(string);
 					var part;
 					if (!count--)
-					 	part = string;
+					 	part = string; // Take the rest of the string
 					else
 						part = string.split(/[ \n\r\t]+/, 1)[0];
 					if (part.length)
@@ -964,7 +880,7 @@ var ul4 = {
 					string = this._me_rstrip(string);
 					var part;
 					if (!count--)
-					 	part = string;
+					 	part = string; // Take the rest of the string
 					else
 					{
 						part = string.split(/[ \n\r\t]+/);
@@ -1410,7 +1326,116 @@ var ul4 = {
 		return obj.withlum(newlum);
 	},
 
-	/// Helper functions
+	// "Classes"
+	Color: {
+		__iscolor__: true,
+
+		lum: function()
+		{
+			return this.hls()[1];
+		},
+
+		hls: function()
+		{
+			var r = this.r/255.;
+			var g = this.g/255.;
+			var b = this.b/255.;
+			var maxc = Math.max(r, g, b);
+			var minc = Math.min(r, g, b);
+			var h, l, s;
+			var rc, gc, bc;
+
+			l = (minc+maxc)/2.0;
+			if (minc == maxc)
+				return [0.0, l, 0.0];
+			if (l <= 0.5)
+				s = (maxc-minc) / (maxc+minc);
+			else
+				s = (maxc-minc) / (2.0-maxc-minc);
+			rc = (maxc-r) / (maxc-minc);
+			gc = (maxc-g) / (maxc-minc);
+			bc = (maxc-b) / (maxc-minc);
+			if (r == maxc)
+				h = bc-gc;
+			else if (g == maxc)
+				h = 2.0+rc-bc;
+			else
+				h = 4.0+gc-rc;
+			h = (h/6.0) % 1.0;
+			return [h, l, s];
+		},
+
+		hlsa: function()
+		{
+			var hls = this.hls();
+			return hls.concat(this.a/255.);
+		},
+
+		hsv: function()
+		{
+			var r = this.r/255.;
+			var g = this.g/255.;
+			var b = this.b/255.;
+			var maxc = Math.max(r, g, b);
+			var minc = Math.min(r, g, b);
+			var v = maxc;
+			if (minc == maxc)
+				return [0.0, 0.0, v];
+			var s = (maxc-minc) / maxc;
+			var rc = (maxc-r) / (maxc-minc);
+			var gc = (maxc-g) / (maxc-minc);
+			var bc = (maxc-b) / (maxc-minc);
+			var h;
+			if (r == maxc)
+				h = bc-gc;
+			else if (g == maxc)
+				h = 2.0+rc-bc;
+			else
+				h = 4.0+gc-rc;
+			h = (h/6.0) % 1.0;
+			return [h, s, v];
+		},
+
+		hsva: function()
+		{
+			var hsv = this.hsv();
+			return hsv.concat(this.a/255.);
+		},
+
+		witha: function(a)
+		{
+			if (typeof(a) !== "number")
+				throw "witha() requires a number";
+			return ul4._fu_rgb(this.r, this.g, this.b, a);
+		},
+
+		withlum: function(lum)
+		{
+			if (typeof(lum) !== "number")
+				throw "witha() requires a number";
+			var hlsa = this.hlsa();
+			return ul4._hls(hlsa[0], lum, hlsa[2], hlsa[3]);
+		}
+	},
+
+
+	Template: {
+		__istemplate__: true,
+
+		create: function(render)
+		{
+			var template = ul4._clone(this);
+			template.render = render;
+			return template;
+		},
+
+		renders: function(vars)
+		{
+			return this.render(vars).join("");
+		}
+	},
+
+		/// Helper functions
 
 	// Crockford style object creation
 	_clone: function(obj)
@@ -1628,21 +1653,5 @@ var ul4 = {
 		while (string.length < len)
 			string = string + pad;
 		return string;
-	},
-
-	Template: {
-		__istemplate__: true,
-
-		create: function(render)
-		{
-			var template = ul4._clone(this);
-			template.render = render;
-			return template;
-		},
-
-		renders: function(vars)
-		{
-			return this.render(vars).join("");
-		}
 	}
 }
