@@ -419,7 +419,9 @@ def fromul4(template, variables="variables", indent=0):
 		elif opcode.code == "callmeth0":
 			if opcode.arg in ("split", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "items", "isoformat", "mimeformat", "day", "month", "year", "hour", "minute", "second", "microsecond", "weekday", "yearday"):
 				make_scriptlet(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
-			elif opcode.arg in ("r", "g", "b", "a", "hls", "hlsa", "hsv", "hsva"):
+			elif opcode.arg in ("r", "g", "b", "a"):
+				make_scriptlet(u"r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).get{arg}();".format(op=opcode, arg=opcode.arg.upper()))
+			elif opcode.arg in ("hls", "hlsa", "hsv", "hsva"):
 				make_scriptlet(u"r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).{op.arg}();".format(op=opcode))
 			elif opcode.arg == "lum":
 				make_scriptlet(u"r{op.r1} = new Double(((com.livinglogic.ul4.Color)r{op.r2}).lum());".format(op=opcode))
