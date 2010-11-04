@@ -91,7 +91,7 @@ var ul4 = {
 		throw "argument of type '" + this._fu_type(container) + "' is not iterable";
 	},
 
-	_op_equals: function(obj1, obj2)
+	_op_eq: function(obj1, obj2)
 	{
 		return obj1 === obj2;
 	},
@@ -620,18 +620,6 @@ var ul4 = {
 		throw "json() requires a serializable object";
 	},
 
-	get: function(container, key, defaultvalue)
-	{
-		if (this._fu_isdict(container))
-		{
-			if (typeof(defaultvalue) === "undefined")
-				defaultvalue = null;
-			var result = container[key];
-			return (typeof(result) !== "undefined") ? result : defaultvalue;
-		}
-		throw "get() needs a dict";
-	},
-
 	_fu_reversed: function(obj)
 	{
 		if (typeof(obj) != "string" && !this._fu_islist(obj)) // We don't have to materialize strings or lists
@@ -1061,7 +1049,11 @@ var ul4 = {
 			throw "get() requires a dict";
 		var result = container[key];
 		if (typeof(result) === "undefined")
-			result = defaultvalue;
+		{
+			if (typeof(defaultvalue) === "undefined")
+				return null;
+			return defaultvalue;
+		}
 		return result;
 	},
 

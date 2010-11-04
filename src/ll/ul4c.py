@@ -1319,9 +1319,9 @@ class Template(object):
 	def _jssource_dispatch_notcontains(self, opcode):
 		self._jssource_line(u"r{op.r1} = !ul4._op_contains(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _jssource_dispatch_eq(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4._op_equals(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._jssource_line(u"r{op.r1} = ul4._op_eq(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _jssource_dispatch_ne(self, opcode):
-		self._jssource_line(u"r{op.r1} = !ul4._op_equals(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._jssource_line(u"r{op.r1} = !ul4._op_eq(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _jssource_dispatch_lt(self, opcode):
 		self._jssource_line(u"r{op.r1} = ul4._op_lt(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _jssource_dispatch_le(self, opcode):
@@ -1365,7 +1365,7 @@ class Template(object):
 		elif opcode.arg == "isnone":
 			self._jssource_line(u"r{op.r1} = (r{op.r2} === null);".format(op=opcode))
 		elif opcode.arg == "get":
-			self._jssource_line(u"r{op.r1} = ul4.get(vars, r{op.r2});".format(op=opcode))
+			self._jssource_line(u"r{op.r1} = ul4._me_get(vars, r{op.r2});".format(op=opcode))
 		else:
 			raise UnknownFunctionError(opcode.arg)
 	def _jssource_dispatch_callfunc2(self, opcode):
@@ -1374,7 +1374,7 @@ class Template(object):
 		elif opcode.arg in {"range", "randrange"}:
 			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, 1);".format(op=opcode))
 		elif opcode.arg == "get":
-			self._jssource_line(u"r{op.r1} = ul4.get(vars, r{op.r2}, r{op.r3});".format(op=opcode))
+			self._jssource_line(u"r{op.r1} = ul4._me_get(vars, r{op.r2}, r{op.r3});".format(op=opcode))
 		else:
 			raise UnknownFunctionError(opcode.arg)
 	def _jssource_dispatch_callfunc3(self, opcode):
