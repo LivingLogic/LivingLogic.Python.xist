@@ -64,262 +64,265 @@ def renderjs(__, **variables):
 	return result
 
 
-def allrenders(js=True):
-	yield render
-	yield renderdumps
-	yield renderdump
-	if js:
-		yield renderjs
+def with_all_renderers(func):
+	# Decorator that turns a test into a generative test testing the function ``func`` with all ``render*`` functions.
+	def decorated():
+		yield func, render
+		yield func, renderdumps
+		yield func, renderdump
+		yield func, renderjs
+	return decorated
 
 
-def test_text():
-	for r in allrenders():
-		assert u'gurk' == r(u'gurk')
-		assert u'g\xfcrk' == r(u'g\xfcrk')
+@with_all_renderers
+def test_text(r):
+	assert u'gurk' == r(u'gurk')
+	assert u'g\xfcrk' == r(u'g\xfcrk')
 
 
-def test_none():
-	for r in allrenders():
-		assert '' == r(u'<?print None?>')
-		assert 'no' == r(u'<?if None?>yes<?else?>no<?end if?>')
+@with_all_renderers
+def test_none(r):
+	assert '' == r(u'<?print None?>')
+	assert 'no' == r(u'<?if None?>yes<?else?>no<?end if?>')
 
 
-def test_false():
-	for r in allrenders():
-		assert 'False' == r(u'<?print False?>')
-		assert 'no' == r(u'<?if False?>yes<?else?>no<?end if?>')
+@with_all_renderers
+def test_false(r):
+	assert 'False' == r(u'<?print False?>')
+	assert 'no' == r(u'<?if False?>yes<?else?>no<?end if?>')
 
 
-def test_true():
-	for r in allrenders():
-		assert 'True' == r(u'<?print True?>')
-		assert 'yes' == r(u'<?if True?>yes<?else?>no<?end if?>')
+@with_all_renderers
+def test_true(r):
+	assert 'True' == r(u'<?print True?>')
+	assert 'yes' == r(u'<?if True?>yes<?else?>no<?end if?>')
 
 
-def test_int():
-	for r in allrenders():
-		assert '0' == r(u'<?print 0?>')
-		assert '42' == r(u'<?print 42?>')
-		assert '-42' == r(u'<?print -42?>')
-		assert '255' == r(u'<?print 0xff?>')
-		assert '255' == r(u'<?print 0Xff?>')
-		assert '-255' == r(u'<?print -0xff?>')
-		assert '-255' == r(u'<?print -0Xff?>')
-		assert '63' == r(u'<?print 0o77?>')
-		assert '63' == r(u'<?print 0O77?>')
-		assert '-63' == r(u'<?print -0o77?>')
-		assert '-63' == r(u'<?print -0O77?>')
-		assert '7' == r(u'<?print 0b111?>')
-		assert '7' == r(u'<?print 0B111?>')
-		assert '-7' == r(u'<?print -0b111?>')
-		assert '-7' == r(u'<?print -0B111?>')
+@with_all_renderers
+def test_int(r):
+	assert '0' == r(u'<?print 0?>')
+	assert '42' == r(u'<?print 42?>')
+	assert '-42' == r(u'<?print -42?>')
+	assert '255' == r(u'<?print 0xff?>')
+	assert '255' == r(u'<?print 0Xff?>')
+	assert '-255' == r(u'<?print -0xff?>')
+	assert '-255' == r(u'<?print -0Xff?>')
+	assert '63' == r(u'<?print 0o77?>')
+	assert '63' == r(u'<?print 0O77?>')
+	assert '-63' == r(u'<?print -0o77?>')
+	assert '-63' == r(u'<?print -0O77?>')
+	assert '7' == r(u'<?print 0b111?>')
+	assert '7' == r(u'<?print 0B111?>')
+	assert '-7' == r(u'<?print -0b111?>')
+	assert '-7' == r(u'<?print -0B111?>')
 
-		assert 'no' == r(u'<?if 0?>yes<?else?>no<?end if?>')
-		assert 'yes' == r(u'<?if 1?>yes<?else?>no<?end if?>')
-		assert 'yes' == r(u'<?if -1?>yes<?else?>no<?end if?>')
-
-
-def test_float():
-	for r in allrenders():
-		if r is not renderjs:
-			assert '0.0' == r(u'<?print 0.?>')
-			assert '42.0' == r(u'<?print 42.?>')
-			assert '-42.0' == r(u'<?print -42.?>')
-		else:
-			# Javascript doesn't distinguish between int and float
-			assert 0.0 == eval(r(u'<?print 0.?>'))
-			assert 42.0 == eval(r(u'<?print 42.?>'))
-			assert -42.0 == eval(r(u'<?print -42.?>'))
-		assert '-42.5' == r(u'<?print -42.5?>')
-		assert '1e+42' == r(u'<?print 1E42?>')
-		assert '1e+42' == r(u'<?print 1e42?>')
-		assert '-1e+42' == r(u'<?print -1E42?>')
-		assert '-1e+42' == r(u'<?print -1e42?>')
-
-		assert 'no' == r(u'<?if 0.?>yes<?else?>no<?end if?>')
-		assert 'yes' == r(u'<?if 1.?>yes<?else?>no<?end if?>')
-		assert 'yes' == r(u'<?if -1.?>yes<?else?>no<?end if?>')
+	assert 'no' == r(u'<?if 0?>yes<?else?>no<?end if?>')
+	assert 'yes' == r(u'<?if 1?>yes<?else?>no<?end if?>')
+	assert 'yes' == r(u'<?if -1?>yes<?else?>no<?end if?>')
 
 
-def test_string():
+@with_all_renderers
+def test_float(r):
+	if r is not renderjs:
+		assert '0.0' == r(u'<?print 0.?>')
+		assert '42.0' == r(u'<?print 42.?>')
+		assert '-42.0' == r(u'<?print -42.?>')
+	else:
+		# Javascript doesn't distinguish between int and float
+		assert 0.0 == eval(r(u'<?print 0.?>'))
+		assert 42.0 == eval(r(u'<?print 42.?>'))
+		assert -42.0 == eval(r(u'<?print -42.?>'))
+	assert '-42.5' == r(u'<?print -42.5?>')
+	assert '1e+42' == r(u'<?print 1E42?>')
+	assert '1e+42' == r(u'<?print 1e42?>')
+	assert '-1e+42' == r(u'<?print -1E42?>')
+	assert '-1e+42' == r(u'<?print -1e42?>')
+
+	assert 'no' == r(u'<?if 0.?>yes<?else?>no<?end if?>')
+	assert 'yes' == r(u'<?if 1.?>yes<?else?>no<?end if?>')
+	assert 'yes' == r(u'<?if -1.?>yes<?else?>no<?end if?>')
+
+
+@with_all_renderers
+def test_string(r):
 	with raises("Unterminated string"):
-		render(u'<?print "?>')
-	for r in allrenders():
-		assert 'foo' == r(u'<?print "foo"?>')
-		assert '\n' == r(u'<?print "\\n"?>')
-		assert '\r' == r(u'<?print "\\r"?>')
-		assert '\t' == r(u'<?print "\\t"?>')
-		assert '\f' == r(u'<?print "\\f"?>')
-		assert '\b' == r(u'<?print "\\b"?>')
-		assert '\a' == r(u'<?print "\\a"?>')
-		assert '\x1b' == r(u'<?print "\\e"?>')
-		assert '"' == r(u'<?print "\\""?>')
-		assert "'" == r(u'<?print "\\\'"?>')
-		assert u'\u20ac' == r(u'<?print "\u20ac"?>')
-		assert u'\xff' == r(u'<?print "\\xff"?>')
-		assert u'\u20ac' == r(u'''<?print "\\u20ac"?>''')
-		assert "\\xxx" == r(u'<?print "\\xxx"?>')
-		assert "a\nb" == r(u'<?print "a\nb"?>')
+		r(u'<?print "?>')
+	assert 'foo' == r(u'<?print "foo"?>')
+	assert '\n' == r(u'<?print "\\n"?>')
+	assert '\r' == r(u'<?print "\\r"?>')
+	assert '\t' == r(u'<?print "\\t"?>')
+	assert '\f' == r(u'<?print "\\f"?>')
+	assert '\b' == r(u'<?print "\\b"?>')
+	assert '\a' == r(u'<?print "\\a"?>')
+	assert '\x1b' == r(u'<?print "\\e"?>')
+	assert '"' == r(u'<?print "\\""?>')
+	assert "'" == r(u'<?print "\\\'"?>')
+	assert u'\u20ac' == r(u'<?print "\u20ac"?>')
+	assert u'\xff' == r(u'<?print "\\xff"?>')
+	assert u'\u20ac' == r(u'''<?print "\\u20ac"?>''')
+	assert "\\xxx" == r(u'<?print "\\xxx"?>')
+	assert "a\nb" == r(u'<?print "a\nb"?>')
 
-		assert 'no' == r(u'<?if ""?>yes<?else?>no<?end if?>')
-		assert 'yes' == r(u'<?if "foo"?>yes<?else?>no<?end if?>')
-
-
-def test_date():
-	for r in allrenders():
-		assert '2000-02-29T00:00:00' == r(u'<?print @2000-02-29T.isoformat()?>')
-		assert '2000-02-29T12:34:00' == r(u'<?print @2000-02-29T12:34.isoformat()?>')
-		assert '2000-02-29T12:34:56' == r(u'<?print @2000-02-29T12:34:56.isoformat()?>')
-		assert '2000-02-29T12:34:56.987000' == r(u'<?print @2000-02-29T12:34:56.987000.isoformat()?>') # JS only supports milliseconds
-		assert 'yes' == r(u'<?if @2000-02-29T12:34:56.987654?>yes<?else?>no<?end if?>')
+	assert 'no' == r(u'<?if ""?>yes<?else?>no<?end if?>')
+	assert 'yes' == r(u'<?if "foo"?>yes<?else?>no<?end if?>')
 
 
-def test_color():
-	for r in allrenders():
-		assert '255,255,255,255' == r(u'<?code c = #fff?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
-		assert '255,255,255,255' == r(u'<?code c = #ffffff?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
-		assert '18,52,86,255' == r(u'<?code c = #123456?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
-		assert '17,34,51,68' == r(u'<?code c = #1234?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
-		assert '18,52,86,120' == r(u'<?code c = #12345678?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
-		assert 'yes' == r(u'<?if #fff?>yes<?else?>no<?end if?>')
+@with_all_renderers
+def test_date(r):
+	assert '2000-02-29T00:00:00' == r(u'<?print @2000-02-29T.isoformat()?>')
+	assert '2000-02-29T12:34:00' == r(u'<?print @2000-02-29T12:34.isoformat()?>')
+	assert '2000-02-29T12:34:56' == r(u'<?print @2000-02-29T12:34:56.isoformat()?>')
+	assert '2000-02-29T12:34:56.987000' == r(u'<?print @2000-02-29T12:34:56.987000.isoformat()?>') # JS only supports milliseconds
+	assert 'yes' == r(u'<?if @2000-02-29T12:34:56.987654?>yes<?else?>no<?end if?>')
 
 
-def test_list():
-	for r in allrenders():
-		assert '' == r(u'<?for item in []?><?print item?>;<?end for?>')
-		assert '1;' == r(u'<?for item in [1]?><?print item?>;<?end for?>')
-		assert '1;' == r(u'<?for item in [1,]?><?print item?>;<?end for?>')
-		assert '1;2;' == r(u'<?for item in [1, 2]?><?print item?>;<?end for?>')
-		assert '1;2;' == r(u'<?for item in [1, 2,]?><?print item?>;<?end for?>')
-		assert 'no' == r(u'<?if []?>yes<?else?>no<?end if?>')
-		assert 'yes' == r(u'<?if [1]?>yes<?else?>no<?end if?>')
+@with_all_renderers
+def test_color(r):
+	assert '255,255,255,255' == r(u'<?code c = #fff?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
+	assert '255,255,255,255' == r(u'<?code c = #ffffff?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
+	assert '18,52,86,255' == r(u'<?code c = #123456?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
+	assert '17,34,51,68' == r(u'<?code c = #1234?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
+	assert '18,52,86,120' == r(u'<?code c = #12345678?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
+	assert 'yes' == r(u'<?if #fff?>yes<?else?>no<?end if?>')
 
 
-def test_dict():
-	for r in allrenders():
-		assert '' == r(u'<?for (key, value) in {}.items()?><?print key?>:<?print value?>\n<?end for?>')
-		assert '1:2\n' == r(u'<?for (key, value) in {1:2}.items()?><?print key?>:<?print value?>\n<?end for?>')
-		assert '1:2\n' == r(u'<?for (key, value) in {1:2,}.items()?><?print key?>:<?print value?>\n<?end for?>')
-		# With duplicate keys, later ones simply overwrite earlier ones
-		assert '1:3\n' == r(u'<?for (key, value) in {1:2, 1: 3}.items()?><?print key?>:<?print value?>\n<?end for?>')
-		# Test **
-		assert '1:2\n' == r(u'<?for (key, value) in {**{1:2}}.items()?><?print key?>:<?print value?>\n<?end for?>')
-		assert '1:4\n' == r(u'<?for (key, value) in {1:1, **{1:2}, 1:3, **{1:4}}.items()?><?print key?>:<?print value?>\n<?end for?>')
-		assert 'no' == r(u'<?if {}?>yes<?else?>no<?end if?>')
-		assert 'yes' == r(u'<?if {1:2}?>yes<?else?>no<?end if?>')
+@with_all_renderers
+def test_list(r):
+	assert '' == r(u'<?for item in []?><?print item?>;<?end for?>')
+	assert '1;' == r(u'<?for item in [1]?><?print item?>;<?end for?>')
+	assert '1;' == r(u'<?for item in [1,]?><?print item?>;<?end for?>')
+	assert '1;2;' == r(u'<?for item in [1, 2]?><?print item?>;<?end for?>')
+	assert '1;2;' == r(u'<?for item in [1, 2,]?><?print item?>;<?end for?>')
+	assert 'no' == r(u'<?if []?>yes<?else?>no<?end if?>')
+	assert 'yes' == r(u'<?if [1]?>yes<?else?>no<?end if?>')
 
 
-def test_code_storevar():
-	for r in allrenders():
-		assert '42' == r(u'<?code x = 42?><?print x?>')
-		assert 'xyzzy' == r(u'<?code x = "xyzzy"?><?print x?>')
+@with_all_renderers
+def test_dict(r):
+	assert '' == r(u'<?for (key, value) in {}.items()?><?print key?>:<?print value?>\n<?end for?>')
+	assert '1:2\n' == r(u'<?for (key, value) in {1:2}.items()?><?print key?>:<?print value?>\n<?end for?>')
+	assert '1:2\n' == r(u'<?for (key, value) in {1:2,}.items()?><?print key?>:<?print value?>\n<?end for?>')
+	# With duplicate keys, later ones simply overwrite earlier ones
+	assert '1:3\n' == r(u'<?for (key, value) in {1:2, 1: 3}.items()?><?print key?>:<?print value?>\n<?end for?>')
+	# Test **
+	assert '1:2\n' == r(u'<?for (key, value) in {**{1:2}}.items()?><?print key?>:<?print value?>\n<?end for?>')
+	assert '1:4\n' == r(u'<?for (key, value) in {1:1, **{1:2}, 1:3, **{1:4}}.items()?><?print key?>:<?print value?>\n<?end for?>')
+	assert 'no' == r(u'<?if {}?>yes<?else?>no<?end if?>')
+	assert 'yes' == r(u'<?if {1:2}?>yes<?else?>no<?end if?>')
 
 
-def test_code_addvar():
-	for r in allrenders():
-		assert '40' == r(u'<?code x = 17?><?code x += 23?><?print x?>')
-		assert 'xyzzy' == r(u'<?code x = "xyz"?><?code x += "zy"?><?print x?>')
+@with_all_renderers
+def test_code_storevar(r):
+	assert '42' == r(u'<?code x = 42?><?print x?>')
+	assert 'xyzzy' == r(u'<?code x = "xyzzy"?><?print x?>')
 
 
-def test_code_subvar():
-	for r in allrenders():
-		assert '-6' == r(u'<?code x = 17?><?code x -= 23?><?print x?>')
+@with_all_renderers
+def test_code_addvar(r):
+	assert '40' == r(u'<?code x = 17?><?code x += 23?><?print x?>')
+	assert 'xyzzy' == r(u'<?code x = "xyz"?><?code x += "zy"?><?print x?>')
 
 
-def test_code_mulvar():
-	for r in allrenders():
-		assert '391' == r(u'<?code x = 17?><?code x *= 23?><?print x?>')
-		assert 17*'xyzzy' == r(u'<?code x = 17?><?code x *= "xyzzy"?><?print x?>')
-		assert 17*'xyzzy' == r(u'<?code x = "xyzzy"?><?code x *= 17?><?print x?>')
+@with_all_renderers
+def test_code_subvar(r):
+	assert '-6' == r(u'<?code x = 17?><?code x -= 23?><?print x?>')
 
 
-def test_code_floordivvar():
-	for r in allrenders():
-		assert '2' == r(u'<?code x = 5?><?code x //= 2?><?print x?>')
-		assert '-3' == r(u'<?code x = -5?><?code x //= 2?><?print x?>')
+@with_all_renderers
+def test_code_mulvar(r):
+	assert '391' == r(u'<?code x = 17?><?code x *= 23?><?print x?>')
+	assert 17*'xyzzy' == r(u'<?code x = 17?><?code x *= "xyzzy"?><?print x?>')
+	assert 17*'xyzzy' == r(u'<?code x = "xyzzy"?><?code x *= 17?><?print x?>')
 
 
-def test_code_truedivvar():
-	for r in allrenders():
-		assert '2.5' == r(u'<?code x = 5?><?code x /= 2?><?print x?>')
-		assert '-2.5' == r(u'<?code x = -5?><?code x /= 2?><?print x?>')
+@with_all_renderers
+def test_code_floordivvar(r):
+	assert '2' == r(u'<?code x = 5?><?code x //= 2?><?print x?>')
+	assert '-3' == r(u'<?code x = -5?><?code x //= 2?><?print x?>')
 
 
-def test_code_modvar():
-	for r in allrenders():
-		assert '4' == r(u'<?code x = 1729?><?code x %= 23?><?print x?>')
+@with_all_renderers
+def test_code_truedivvar(r):
+	assert '2.5' == r(u'<?code x = 5?><?code x /= 2?><?print x?>')
+	assert '-2.5' == r(u'<?code x = -5?><?code x /= 2?><?print x?>')
 
 
-def test_code_delvar():
-	for r in allrenders():
-		with raises("(KeyError|not found)"):
-			r(u'<?code x = 1729?><?code del x?><?print x?>')
+@with_all_renderers
+def test_code_modvar(r):
+	assert '4' == r(u'<?code x = 1729?><?code x %= 23?><?print x?>')
 
 
-def test_for_string():
-	for r in allrenders():
-		assert '' == r(u'<?for c in data?>(<?print c?>)<?end for?>', data="")
-		assert '(g)(u)(r)(k)' == r(u'<?for c in data?>(<?print c?>)<?end for?>', data="gurk")
+@with_all_renderers
+def test_code_delvar(r):
+	with raises("(KeyError|not found)"):
+		r(u'<?code x = 1729?><?code del x?><?print x?>')
 
 
-def test_for_list():
-	for r in allrenders():
-		assert '' == r(u'<?for c in data?>(<?print c?>)<?end for?>', data="")
-		assert '(g)(u)(r)(k)' == r(u'<?for c in data?>(<?print c?>)<?end for?>', data=["g", "u", "r", "k"])
+@with_all_renderers
+def test_for_string(r):
+	assert '' == r(u'<?for c in data?>(<?print c?>)<?end for?>', data="")
+	assert '(g)(u)(r)(k)' == r(u'<?for c in data?>(<?print c?>)<?end for?>', data="gurk")
 
 
-def test_for_dict():
-	for r in allrenders():
-		assert '' == r(u'<?for c in data?>(<?print c?>)<?end for?>', data={})
-		assert '(a)(b)(c)' == r(u'<?for c in sorted(data)?>(<?print c?>)<?end for?>', data=dict(a=1, b=2, c=3))
+@with_all_renderers
+def test_for_list(r):
+	assert '' == r(u'<?for c in data?>(<?print c?>)<?end for?>', data="")
+	assert '(g)(u)(r)(k)' == r(u'<?for c in data?>(<?print c?>)<?end for?>', data=["g", "u", "r", "k"])
 
 
-def test_for_nested():
-	for r in allrenders():
-		assert '[(1)(2)][(3)(4)]' == r(u'<?for list in data?>[<?for n in list?>(<?print n?>)<?end for?>]<?end for?>', data=[[1, 2], [3, 4]])
+@with_all_renderers
+def test_for_dict(r):
+	assert '' == r(u'<?for c in data?>(<?print c?>)<?end for?>', data={})
+	assert '(a)(b)(c)' == r(u'<?for c in sorted(data)?>(<?print c?>)<?end for?>', data=dict(a=1, b=2, c=3))
 
 
-def test_for_unpacking():
+@with_all_renderers
+def test_for_nested(r):
+	assert '[(1)(2)][(3)(4)]' == r(u'<?for list in data?>[<?for n in list?>(<?print n?>)<?end for?>]<?end for?>', data=[[1, 2], [3, 4]])
+
+
+@with_all_renderers
+def test_for_unpacking(r):
 	data = [
 		("spam", "eggs", 17),
 		("gurk", "hurz", 23),
 		("hinz", "kunz", 42)
 	]
-	for r in allrenders():
-		assert '(spam)(gurk)(hinz)' == r(u'<?for (a,) in data?>(<?print a?>)<?end for?>', data=data)
-		assert '(spam,eggs)(gurk,hurz)(hinz,kunz)' == r(u'<?for (a, b) in data?>(<?print a?>,<?print b?>)<?end for?>', data=data)
-		assert '(spam,eggs,17)(gurk,hurz,23)(hinz,kunz,42)' == r(u'<?for (a, b, c) in data?>(<?print a?>,<?print b?>,<?print c?>)<?end for?>', data=data)
+
+	assert '(spam)(gurk)(hinz)' == r(u'<?for (a,) in data?>(<?print a?>)<?end for?>', data=data)
+	assert '(spam,eggs)(gurk,hurz)(hinz,kunz)' == r(u'<?for (a, b) in data?>(<?print a?>,<?print b?>)<?end for?>', data=data)
+	assert '(spam,eggs,17)(gurk,hurz,23)(hinz,kunz,42)' == r(u'<?for (a, b, c) in data?>(<?print a?>,<?print b?>,<?print c?>)<?end for?>', data=data)
 
 
-def test_break():
-	for r in allrenders():
-		assert '1, 2, ' == r(u'<?for i in [1,2,3]?><?print i?>, <?if i==2?><?break?><?end if?><?end for?>')
+@with_all_renderers
+def test_break(r):
+	assert '1, 2, ' == r(u'<?for i in [1,2,3]?><?print i?>, <?if i==2?><?break?><?end if?><?end for?>')
 
 
-def test_break_nested():
-	for r in allrenders():
-		assert '1, 1, 2, 1, 2, 3, ' == r(u'<?for i in [1,2,3,4]?><?for j in [1,2,3,4]?><?print j?>, <?if j>=i?><?break?><?end if?><?end for?><?if i>=3?><?break?><?end if?><?end for?>')
+@with_all_renderers
+def test_break_nested(r):
+	assert '1, 1, 2, 1, 2, 3, ' == r(u'<?for i in [1,2,3,4]?><?for j in [1,2,3,4]?><?print j?>, <?if j>=i?><?break?><?end if?><?end for?><?if i>=3?><?break?><?end if?><?end for?>')
 
 
-def test_continue():
-	for r in allrenders():
-		assert '1, 3, ' == r(u'<?for i in [1,2,3]?><?if i==2?><?continue?><?end if?><?print i?>, <?end for?>')
+@with_all_renderers
+def test_continue(r):
+	assert '1, 3, ' == r(u'<?for i in [1,2,3]?><?if i==2?><?continue?><?end if?><?print i?>, <?end for?>')
 
 
-def test_continue_nested():
-	for r in allrenders():
-		assert '1, 3, \n1, 3, \n' == r(u'<?for i in [1,2,3]?><?if i==2?><?continue?><?end if?><?for j in [1,2,3]?><?if j==2?><?continue?><?end if?><?print j?>, <?end for?>\n<?end for?>')
+@with_all_renderers
+def test_continue_nested(r):
+	assert '1, 3, \n1, 3, \n' == r(u'<?for i in [1,2,3]?><?if i==2?><?continue?><?end if?><?for j in [1,2,3]?><?if j==2?><?continue?><?end if?><?print j?>, <?end for?>\n<?end for?>')
 
 
-def test_if():
-	for r in allrenders():
-		assert '42' == r(u'<?if data?><?print data?><?end if?>', data=42)
+@with_all_renderers
+def test_if(r):
+	assert '42' == r(u'<?if data?><?print data?><?end if?>', data=42)
 
 
-def test_else():
-	for r in allrenders():
-		assert '42' == r(u'<?if data?><?print data?><?else?>no<?end if?>', data=42)
-		assert 'no' == r(u'<?if data?><?print data?><?else?>no<?end if?>', data=0)
+@with_all_renderers
+def test_else(r):
+	assert '42' == r(u'<?if data?><?print data?><?else?>no<?end if?>', data=42)
+	assert 'no' == r(u'<?if data?><?print data?><?else?>no<?end if?>', data=0)
 
 
 def test_block_errors():
@@ -362,204 +365,207 @@ def test_empty():
 		render(u'<?render?>')
 
 
-def test_add():
-	for r in allrenders():
-		assert '42' == r(u'<?print 21+21?>')
-		assert '42' == r(u'<?code x=21?><?code y=21?><?print x+y?>')
-		assert 'foobar' == r(u'<?code x="foo"?><?code y="bar"?><?print x+y?>')
-		assert '(f)(o)(o)(b)(a)(r)' == r(u'<?for i in data.foo+data.bar?>(<?print i?>)<?end for?>', data=dict(foo="foo", bar="bar"))
+@with_all_renderers
+def test_add(r):
+	assert '42' == r(u'<?print 21+21?>')
+	assert '42' == r(u'<?code x=21?><?code y=21?><?print x+y?>')
+	assert 'foobar' == r(u'<?code x="foo"?><?code y="bar"?><?print x+y?>')
+	assert '(f)(o)(o)(b)(a)(r)' == r(u'<?for i in data.foo+data.bar?>(<?print i?>)<?end for?>', data=dict(foo="foo", bar="bar"))
 
 
-def test_sub():
-	for r in allrenders():
-		assert '0' == r(u'<?print 21-21?>')
-		assert '0' == r(u'<?code x=21?><?code y=21?><?print x-y?>')
+@with_all_renderers
+def test_sub(r):
+	assert '0' == r(u'<?print 21-21?>')
+	assert '0' == r(u'<?code x=21?><?code y=21?><?print x-y?>')
 
 
-def test_mul():
-	for r in allrenders():
-		assert str(17*23) == r(u'<?print 17*23?>')
-		assert str(17*23) == r(u'<?code x=17?><?code y=23?><?print x*y?>')
-		assert 17*"foo" == r(u'<?print 17*"foo"?>')
-		assert 17*"foo" == r(u'<?code x=17?><?code y="foo"?><?print x*y?>')
-		assert "foo"*17 == r(u'<?code x="foo"?><?code y=17?><?print x*y?>')
-		assert "foo"*17 == r(u'<?print "foo"*17?>')
-		assert "(foo)(bar)(foo)(bar)(foo)(bar)" == r(u'<?for i in 3*data?>(<?print i?>)<?end for?>', data=["foo", "bar"])
+@with_all_renderers
+def test_mul(r):
+	assert str(17*23) == r(u'<?print 17*23?>')
+	assert str(17*23) == r(u'<?code x=17?><?code y=23?><?print x*y?>')
+	assert 17*"foo" == r(u'<?print 17*"foo"?>')
+	assert 17*"foo" == r(u'<?code x=17?><?code y="foo"?><?print x*y?>')
+	assert "foo"*17 == r(u'<?code x="foo"?><?code y=17?><?print x*y?>')
+	assert "foo"*17 == r(u'<?print "foo"*17?>')
+	assert "(foo)(bar)(foo)(bar)(foo)(bar)" == r(u'<?for i in 3*data?>(<?print i?>)<?end for?>', data=["foo", "bar"])
 
 
-def test_truediv():
-	for r in allrenders():
-		assert "0.5" == r(u'<?print 1/2?>')
-		assert "0.5" == r(u'<?code x=1?><?code y=2?><?print x/y?>')
+@with_all_renderers
+def test_truediv(r):
+	assert "0.5" == r(u'<?print 1/2?>')
+	assert "0.5" == r(u'<?code x=1?><?code y=2?><?print x/y?>')
 
 
-def test_floordiv():
-	for r in allrenders():
-		assert "0" == r(u'<?print 1//2?>')
-		assert "0" == r(u'<?code x=1?><?code y=2?><?print x//y?>')
+@with_all_renderers
+def test_floordiv(r):
+	assert "0" == r(u'<?print 1//2?>')
+	assert "0" == r(u'<?code x=1?><?code y=2?><?print x//y?>')
 
 
-def test_mod():
-	for r in allrenders():
-		assert str(42%17) == r(u'<?print 42%17?>')
-		assert str(42%17) == r(u'<?code x=42?><?code y=17?><?print x%y?>')
+@with_all_renderers
+def test_mod(r):
+	assert str(42%17) == r(u'<?print 42%17?>')
+	assert str(42%17) == r(u'<?code x=42?><?code y=17?><?print x%y?>')
 
 
-def test_eq():
-	for r in allrenders():
-		assert "False" == r(u'<?print 17==23?>')
-		assert "True" == r(u'<?print 17==17?>')
-		assert "False" == r(u'<?print x==23?>', x=17)
-		assert "True" == r(u'<?print x==23?>', x=23)
+@with_all_renderers
+def test_eq(r):
+	assert "False" == r(u'<?print 17==23?>')
+	assert "True" == r(u'<?print 17==17?>')
+	assert "False" == r(u'<?print x==23?>', x=17)
+	assert "True" == r(u'<?print x==23?>', x=23)
 
 
-def test_ne():
-	for r in allrenders():
-		assert "True" == r(u'<?print 17!=23?>')
-		assert "False" == r(u'<?print 17!=17?>')
-		assert "True" == r(u'<?print x!=23?>', x=17)
-		assert "False" == r(u'<?print x!=23?>', x=23)
+@with_all_renderers
+def test_ne(r):
+	assert "True" == r(u'<?print 17!=23?>')
+	assert "False" == r(u'<?print 17!=17?>')
+	assert "True" == r(u'<?print x!=23?>', x=17)
+	assert "False" == r(u'<?print x!=23?>', x=23)
 
 
-def test_lt():
-	for r in allrenders():
-		assert "True" == r(u'<?print 1<2?>')
-		assert "False" == r(u'<?print 2<2?>')
-		assert "False" == r(u'<?print 3<2?>')
-		assert "True" == r(u'<?print x<2?>', x=1)
-		assert "False" == r(u'<?print x<2?>', x=2)
-		assert "False" == r(u'<?print x<2?>', x=3)
+@with_all_renderers
+def test_lt(r):
+	assert "True" == r(u'<?print 1<2?>')
+	assert "False" == r(u'<?print 2<2?>')
+	assert "False" == r(u'<?print 3<2?>')
+	assert "True" == r(u'<?print x<2?>', x=1)
+	assert "False" == r(u'<?print x<2?>', x=2)
+	assert "False" == r(u'<?print x<2?>', x=3)
 
 
-def test_le():
-	for r in allrenders():
-		assert "True" == r(u'<?print 1<=2?>')
-		assert "True" == r(u'<?print 2<=2?>')
-		assert "False" == r(u'<?print 3<=2?>')
-		assert "True" == r(u'<?print x<=2?>', x=1)
-		assert "True" == r(u'<?print x<=2?>', x=2)
-		assert "False" == r(u'<?print x<=2?>', x=3)
+@with_all_renderers
+def test_le(r):
+	assert "True" == r(u'<?print 1<=2?>')
+	assert "True" == r(u'<?print 2<=2?>')
+	assert "False" == r(u'<?print 3<=2?>')
+	assert "True" == r(u'<?print x<=2?>', x=1)
+	assert "True" == r(u'<?print x<=2?>', x=2)
+	assert "False" == r(u'<?print x<=2?>', x=3)
 
 
-def test_gt():
-	for r in allrenders():
-		assert "False" == r(u'<?print 1>2?>')
-		assert "False" == r(u'<?print 2>2?>')
-		assert "True" == r(u'<?print 3>2?>')
-		assert "False" == r(u'<?print x>2?>', x=1)
-		assert "False" == r(u'<?print x>2?>', x=2)
-		assert "True" == r(u'<?print x>2?>', x=3)
+@with_all_renderers
+def test_gt(r):
+	assert "False" == r(u'<?print 1>2?>')
+	assert "False" == r(u'<?print 2>2?>')
+	assert "True" == r(u'<?print 3>2?>')
+	assert "False" == r(u'<?print x>2?>', x=1)
+	assert "False" == r(u'<?print x>2?>', x=2)
+	assert "True" == r(u'<?print x>2?>', x=3)
 
 
-def test_ge():
-	for r in allrenders():
-		assert "False" == r(u'<?print 1>=2?>')
-		assert "True" == r(u'<?print 2>=2?>')
-		assert "True" == r(u'<?print 3>=2?>')
-		assert "False" == r(u'<?print x>=2?>', x=1)
-		assert "True" == r(u'<?print x>=2?>', x=2)
-		assert "True" == r(u'<?print x>=2?>', x=3)
+@with_all_renderers
+def test_ge(r):
+	assert "False" == r(u'<?print 1>=2?>')
+	assert "True" == r(u'<?print 2>=2?>')
+	assert "True" == r(u'<?print 3>=2?>')
+	assert "False" == r(u'<?print x>=2?>', x=1)
+	assert "True" == r(u'<?print x>=2?>', x=2)
+	assert "True" == r(u'<?print x>=2?>', x=3)
 
 
-def test_contains():
+@with_all_renderers
+def test_contains(r):
 	code = u'<?print x in y?>'
-	for r in allrenders():
-		assert "True" == r(code, x=2, y=[1, 2, 3])
-		assert "False" == r(code, x=4, y=[1, 2, 3])
-		assert "True" == r(code, x="ur", y="gurk")
-		assert "False" == r(code, x="un", y="gurk")
-		assert "True" == r(code, x="a", y={"a": 1, "b": 2})
-		assert "False" == r(code, x="c", y={"a": 1, "b": 2})
-		assert "True" == r(code, x=0xff, y=color.Color(0x00, 0x80, 0xff, 0x42))
-		assert "False" == r(code, x=0x23, y=color.Color(0x00, 0x80, 0xff, 0x42))
+
+	assert "True" == r(code, x=2, y=[1, 2, 3])
+	assert "False" == r(code, x=4, y=[1, 2, 3])
+	assert "True" == r(code, x="ur", y="gurk")
+	assert "False" == r(code, x="un", y="gurk")
+	assert "True" == r(code, x="a", y={"a": 1, "b": 2})
+	assert "False" == r(code, x="c", y={"a": 1, "b": 2})
+	assert "True" == r(code, x=0xff, y=color.Color(0x00, 0x80, 0xff, 0x42))
+	assert "False" == r(code, x=0x23, y=color.Color(0x00, 0x80, 0xff, 0x42))
 
 
-def test_notcontains():
+@with_all_renderers
+def test_notcontains(r):
 	code = u'<?print x not in y?>'
-	for r in allrenders():
-		assert "False" == r(code, x=2, y=[1, 2, 3])
-		assert "True" == r(code, x=4, y=[1, 2, 3])
-		assert "False" == r(code, x="ur", y="gurk")
-		assert "True" == r(code, x="un", y="gurk")
-		assert "False" == r(code, x="a", y={"a": 1, "b": 2})
-		assert "True" == r(code, x="c", y={"a": 1, "b": 2})
-		assert "False" == r(code, x=0xff, y=color.Color(0x00, 0x80, 0xff, 0x42))
-		assert "True" == r(code, x=0x23, y=color.Color(0x00, 0x80, 0xff, 0x42))
+
+	assert "False" == r(code, x=2, y=[1, 2, 3])
+	assert "True" == r(code, x=4, y=[1, 2, 3])
+	assert "False" == r(code, x="ur", y="gurk")
+	assert "True" == r(code, x="un", y="gurk")
+	assert "False" == r(code, x="a", y={"a": 1, "b": 2})
+	assert "True" == r(code, x="c", y={"a": 1, "b": 2})
+	assert "False" == r(code, x=0xff, y=color.Color(0x00, 0x80, 0xff, 0x42))
+	assert "True" == r(code, x=0x23, y=color.Color(0x00, 0x80, 0xff, 0x42))
 
 
-def test_and():
-	for r in allrenders():
-		assert "False" == r(u'<?print x and y?>', x=False, y=False)
-		assert "False" == r(u'<?print x and y?>', x=False, y=True)
-		assert "0" == r(u'<?print x and y?>', x=0, y=True)
+@with_all_renderers
+def test_and(r):
+	assert "False" == r(u'<?print x and y?>', x=False, y=False)
+	assert "False" == r(u'<?print x and y?>', x=False, y=True)
+	assert "0" == r(u'<?print x and y?>', x=0, y=True)
 
 
-def test_or():
-	for r in allrenders():
-		assert "False" == r(u'<?print x or y?>', x=False, y=False)
-		assert "True" == r(u'<?print x or y?>', x=False, y=True)
-		assert "42" == r(u'<?print x or y?>', x=42, y=True)
+@with_all_renderers
+def test_or(r):
+	assert "False" == r(u'<?print x or y?>', x=False, y=False)
+	assert "True" == r(u'<?print x or y?>', x=False, y=True)
+	assert "42" == r(u'<?print x or y?>', x=42, y=True)
 
 
-def test_not():
-	for r in allrenders():
-		assert "True" == r(u'<?print not x?>', x=False)
-		assert "False" == r(u'<?print not x?>', x=42)
+@with_all_renderers
+def test_not(r):
+	assert "True" == r(u'<?print not x?>', x=False)
+	assert "False" == r(u'<?print not x?>', x=42)
 
 
-def test_getitem():
-	for r in allrenders():
-		assert "u" == r(u"<?print 'gurk'[1]?>")
-		assert "u" == r(u"<?print x[1]?>", x="gurk")
-		assert "u" == r(u"<?print 'gurk'[-3]?>")
-		assert "u" == r(u"<?print x[-3]?>", x="gurk")
-		with raises("IndexError"):
-			r(u"<?print 'gurk'[4]?>")
-		with raises("index (4 )?out of range"):
-			r(u"<?print x[4]?>", x="gurk")
-		with raises("IndexError"):
-			r(u"<?print 'gurk'[-5]?>")
-		with raises("index (-5 )?out of range"):
-			r(u"<?print x[-5]?>", x="gurk")
+@with_all_renderers
+def test_getitem(r):
+	assert "u" == r(u"<?print 'gurk'[1]?>")
+	assert "u" == r(u"<?print x[1]?>", x="gurk")
+	assert "u" == r(u"<?print 'gurk'[-3]?>")
+	assert "u" == r(u"<?print x[-3]?>", x="gurk")
+	with raises("IndexError"):
+		r(u"<?print 'gurk'[4]?>")
+	with raises("index (4 )?out of range"):
+		r(u"<?print x[4]?>", x="gurk")
+	with raises("IndexError"):
+		r(u"<?print 'gurk'[-5]?>")
+	with raises("index (-5 )?out of range"):
+		r(u"<?print x[-5]?>", x="gurk")
 
 
-def test_getslice12():
-	for r in allrenders():
-		assert "ur" == r(u"<?print 'gurk'[1:3]?>")
-		assert "ur" == r(u"<?print x[1:3]?>", x="gurk")
-		assert "ur" == r(u"<?print 'gurk'[-3:-1]?>")
-		assert "ur" == r(u"<?print x[-3:-1]?>", x="gurk")
-		assert "" == r(u"<?print 'gurk'[4:10]?>")
-		assert "" == r(u"<?print x[4:10]?>", x="gurk")
-		assert "" == r(u"<?print 'gurk'[-10:-5]?>")
-		assert "" == r(u"<?print x[-10:-5]?>", x="gurk")
+@with_all_renderers
+def test_getslice12(r):
+	assert "ur" == r(u"<?print 'gurk'[1:3]?>")
+	assert "ur" == r(u"<?print x[1:3]?>", x="gurk")
+	assert "ur" == r(u"<?print 'gurk'[-3:-1]?>")
+	assert "ur" == r(u"<?print x[-3:-1]?>", x="gurk")
+	assert "" == r(u"<?print 'gurk'[4:10]?>")
+	assert "" == r(u"<?print x[4:10]?>", x="gurk")
+	assert "" == r(u"<?print 'gurk'[-10:-5]?>")
+	assert "" == r(u"<?print x[-10:-5]?>", x="gurk")
 
 
-def test_getslice1():
-	for r in allrenders():
-		assert "urk" == r(u"<?print 'gurk'[1:]?>")
-		assert "urk" == r(u"<?print x[1:]?>", x="gurk")
-		assert "urk" == r(u"<?print 'gurk'[-3:]?>")
-		assert "urk" == r(u"<?print x[-3:]?>", x="gurk")
-		assert "" == r(u"<?print 'gurk'[4:]?>")
-		assert "" == r(u"<?print x[4:]?>", x="gurk")
-		assert "gurk" == r(u"<?print 'gurk'[-10:]?>")
-		assert "gurk" == r(u"<?print x[-10:]?>", x="gurk")
+@with_all_renderers
+def test_getslice1(r):
+	assert "urk" == r(u"<?print 'gurk'[1:]?>")
+	assert "urk" == r(u"<?print x[1:]?>", x="gurk")
+	assert "urk" == r(u"<?print 'gurk'[-3:]?>")
+	assert "urk" == r(u"<?print x[-3:]?>", x="gurk")
+	assert "" == r(u"<?print 'gurk'[4:]?>")
+	assert "" == r(u"<?print x[4:]?>", x="gurk")
+	assert "gurk" == r(u"<?print 'gurk'[-10:]?>")
+	assert "gurk" == r(u"<?print x[-10:]?>", x="gurk")
 
 
-def test_getslice2():
-	for r in allrenders():
-		assert "gur" == r(u"<?print 'gurk'[:3]?>")
-		assert "gur" == r(u"<?print x[:3]?>", x="gurk")
-		assert "gur" == r(u"<?print 'gurk'[:-1]?>")
-		assert "gur" == r(u"<?print x[:-1]?>", x="gurk")
-		assert "gurk" == r(u"<?print 'gurk'[:10]?>")
-		assert "gurk" == r(u"<?print x[:10]?>", x="gurk")
-		assert "" == r(u"<?print 'gurk'[:-5]?>")
-		assert "" == r(u"<?print x[:-5]?>", x="gurk")
+@with_all_renderers
+def test_getslice2(r):
+	assert "gur" == r(u"<?print 'gurk'[:3]?>")
+	assert "gur" == r(u"<?print x[:3]?>", x="gurk")
+	assert "gur" == r(u"<?print 'gurk'[:-1]?>")
+	assert "gur" == r(u"<?print x[:-1]?>", x="gurk")
+	assert "gurk" == r(u"<?print 'gurk'[:10]?>")
+	assert "gurk" == r(u"<?print x[:10]?>", x="gurk")
+	assert "" == r(u"<?print 'gurk'[:-5]?>")
+	assert "" == r(u"<?print x[:-5]?>", x="gurk")
 
 
-def test_nested():
+@with_all_renderers
+def test_nested(r):
 	sc = u"4"
 	sv = u"x"
 	n = 4
@@ -567,930 +573,969 @@ def test_nested():
 		sc = u"({})+({})".format(sc, sc)
 		sv = u"({})+({})".format(sv, sv)
 		n = n + n
-	for r in allrenders():
-		assert str(n) == r(u'<?print {}?>'.format(sc))
-		assert str(n) == r(u'<?code x=4?><?print {}?>'.format(sv))
+
+	assert str(n) == r(u'<?print {}?>'.format(sc))
+	assert str(n) == r(u'<?code x=4?><?print {}?>'.format(sv))
 
 
-def test_precedence():
-	for r in allrenders():
-		assert "14" == r(u'<?print 2+3*4?>')
-		assert "20" == r(u'<?print (2+3)*4?>')
-		assert "10" == r(u'<?print -2+-3*-4?>')
-		assert "14" == r(u'<?print --2+--3*--4?>')
-		assert "14" == r(u'<?print (-(-2))+(-((-3)*-(-4)))?>')
-		assert "42" == r(u'<?print 2*data.value?>', data=dict(value=21))
-		assert "42" == r(u'<?print data.value[0]?>', data=dict(value=[42]))
-		assert "42" == r(u'<?print data[0].value?>', data=[dict(value=42)])
-		assert "42" == r(u'<?print data[0][0][0]?>', data=[[[42]]])
-		assert "42" == r(u'<?print data.value.value[0]?>', data=dict(value=dict(value=[42])))
-		assert "42" == r(u'<?print data.value.value[0].value.value[0]?>', data=dict(value=dict(value=[dict(value=dict(value=[42]))])))
+@with_all_renderers
+def test_precedence(r):
+	assert "14" == r(u'<?print 2+3*4?>')
+	assert "20" == r(u'<?print (2+3)*4?>')
+	assert "10" == r(u'<?print -2+-3*-4?>')
+	assert "14" == r(u'<?print --2+--3*--4?>')
+	assert "14" == r(u'<?print (-(-2))+(-((-3)*-(-4)))?>')
+	assert "42" == r(u'<?print 2*data.value?>', data=dict(value=21))
+	assert "42" == r(u'<?print data.value[0]?>', data=dict(value=[42]))
+	assert "42" == r(u'<?print data[0].value?>', data=[dict(value=42)])
+	assert "42" == r(u'<?print data[0][0][0]?>', data=[[[42]]])
+	assert "42" == r(u'<?print data.value.value[0]?>', data=dict(value=dict(value=[42])))
+	assert "42" == r(u'<?print data.value.value[0].value.value[0]?>', data=dict(value=dict(value=[dict(value=dict(value=[42]))])))
 
 
-def test_bracket():
+@with_all_renderers
+def test_bracket(r):
 	sc = u"4"
 	sv = u"x"
 	for i in xrange(10):
 		sc = u"({})".format(sc)
 		sv = u"({})".format(sv)
 
-	for r in allrenders():
-		assert "4" == r(u'<?print {}?>'.format(sc))
-		assert "4" == r(u'<?code x=4?><?print {}?>'.format(sv))
+	assert "4" == r(u'<?print {}?>'.format(sc))
+	assert "4" == r(u'<?code x=4?><?print {}?>'.format(sv))
 
 
-def test_function_now():
+@with_all_renderers
+def test_function_now(r):
 	now = unicode(datetime.datetime.now())
-	for r in allrenders():
-		with raises("now.*unknown"):
-			r(u"<?print now(1)?>")
-		with raises("now.*unknown"):
-			r(u"<?print now(1, 2)?>")
-		assert now <= r(u"<?print now()?>")
+
+	with raises("now.*unknown"):
+		r(u"<?print now(1)?>")
+	with raises("now.*unknown"):
+		r(u"<?print now(1, 2)?>")
+	assert now <= r(u"<?print now()?>")
 
 
-def test_function_utcnow():
+@with_all_renderers
+def test_function_utcnow(r):
 	utcnow = unicode(datetime.datetime.utcnow())
-	for r in allrenders():
-		with raises("utcnow.*unknown"):
-			r(u"<?print utcnow(1)?>")
-		with raises("utcnow.*unknown"):
-			r(u"<?print utcnow(1, 2)?>")
-		assert utcnow <= r(u"<?print utcnow()?>")
+
+	with raises("utcnow.*unknown"):
+		r(u"<?print utcnow(1)?>")
+	with raises("utcnow.*unknown"):
+		r(u"<?print utcnow(1, 2)?>")
+	assert utcnow <= r(u"<?print utcnow()?>")
 
 
-def test_function_vars():
+@with_all_renderers
+def test_function_vars(r):
 	code = u"<?if var in vars()?>yes<?else?>no<?end if?>"
-	for r in allrenders():
-		with raises("vars.*unknown"):
-			r("<?print vars(1)?>")
-		with raises("vars.*unknown"):
-			r("<?print vars(1, 2)?>")
-		assert "yes" == r(code, var="spam", spam="eggs")
-		assert "no" == r(code, var="nospam", spam="eggs")
+
+	with raises("vars.*unknown"):
+		r("<?print vars(1)?>")
+	with raises("vars.*unknown"):
+		r("<?print vars(1, 2)?>")
+	assert "yes" == r(code, var="spam", spam="eggs")
+	assert "no" == r(code, var="nospam", spam="eggs")
 
 
-def test_function_random():
-	for r in allrenders():
-		with raises("random.*unknown"):
-			r("<?print random(1)?>")
-		with raises("random.*unknown"):
-			r("<?print random(1, 2)?>")
-		assert "ok" == r(u"<?code r = random()?><?if r>=0 and r<1?>ok<?else?>fail<?end if?>")
+@with_all_renderers
+def test_function_random(r):
+	with raises("random.*unknown"):
+		r("<?print random(1)?>")
+	with raises("random.*unknown"):
+		r("<?print random(1, 2)?>")
+	assert "ok" == r(u"<?code r = random()?><?if r>=0 and r<1?>ok<?else?>fail<?end if?>")
 
 
-def test_function_randrange():
-	for r in allrenders():
-		with raises("randrange.*unknown"):
-			r("<?print randrange()?>")
-		assert "ok" == r(u"<?code r = randrange(4)?><?if r>=0 and r<4?>ok<?else?>fail<?end if?>")
-		assert "ok" == r(u"<?code r = randrange(17, 23)?><?if r>=17 and r<23?>ok<?else?>fail<?end if?>")
-		assert "ok" == r(u"<?code r = randrange(17, 23, 2)?><?if r>=17 and r<23 and r%2?>ok<?else?>fail<?end if?>")
+@with_all_renderers
+def test_function_randrange(r):
+	with raises("randrange.*unknown"):
+		r("<?print randrange()?>")
+	assert "ok" == r(u"<?code r = randrange(4)?><?if r>=0 and r<4?>ok<?else?>fail<?end if?>")
+	assert "ok" == r(u"<?code r = randrange(17, 23)?><?if r>=17 and r<23?>ok<?else?>fail<?end if?>")
+	assert "ok" == r(u"<?code r = randrange(17, 23, 2)?><?if r>=17 and r<23 and r%2?>ok<?else?>fail<?end if?>")
 
 
-def test_function_randchoice():
-	for r in allrenders():
-		with raises("randchoice.*unknown"):
-			r("<?print randchoice()?>")
-		assert "ok" == r(u"<?code r = randchoice('abc')?><?if r in 'abc'?>ok<?else?>fail<?end if?>")
-		assert "ok" == r(u"<?code s = [17, 23, 42]?><?code r = randchoice(s)?><?if r in s?>ok<?else?>fail<?end if?>")
-		assert "ok" == r(u"<?code s = #12345678?><?code sl = [0x12, 0x34, 0x56, 0x78]?><?code r = randchoice(s)?><?if r in sl?>ok<?else?>fail<?end if?>")
+@with_all_renderers
+def test_function_randchoice(r):
+	with raises("randchoice.*unknown"):
+		r("<?print randchoice()?>")
+	assert "ok" == r(u"<?code r = randchoice('abc')?><?if r in 'abc'?>ok<?else?>fail<?end if?>")
+	assert "ok" == r(u"<?code s = [17, 23, 42]?><?code r = randchoice(s)?><?if r in s?>ok<?else?>fail<?end if?>")
+	assert "ok" == r(u"<?code s = #12345678?><?code sl = [0x12, 0x34, 0x56, 0x78]?><?code r = randchoice(s)?><?if r in sl?>ok<?else?>fail<?end if?>")
 
 
-def test_function_xmlescape():
-	for r in allrenders():
-		with raises("xmlescape.*unknown"):
-			r(u"<?print xmlescape()?>")
-		with raises("xmlescape.*unknown"):
-			r(u"<?print xmlescape(1, 2)?>")
-		assert "&lt;&lt;&gt;&gt;&amp;&#39;&quot;gurk" == r(u"<?print xmlescape(data)?>", data='<<>>&\'"gurk')
+@with_all_renderers
+def test_function_xmlescape(r):
+	with raises("xmlescape.*unknown"):
+		r(u"<?print xmlescape()?>")
+	with raises("xmlescape.*unknown"):
+		r(u"<?print xmlescape(1, 2)?>")
+	assert "&lt;&lt;&gt;&gt;&amp;&#39;&quot;gurk" == r(u"<?print xmlescape(data)?>", data='<<>>&\'"gurk')
 
 
-def test_function_csv():
-	for r in allrenders():
-		with raises("csv.*unknown"):
-			r(u"<?print csv()?>")
-		with raises("csv.*unknown"):
-			r(u"<?print csv(1, 2)?>")
-		assert "" == r(u"<?print csv(data)?>", data=None)
-		assert "False" == r(u"<?print csv(data)?>", data=False)
-		assert "True" == r(u"<?print csv(data)?>", data=True)
-		assert "42" == r(u"<?print csv(data)?>", data=42)
-		# no check for float
-		assert "abc" == r(u"<?print csv(data)?>", data="abc")
-		assert '"a,b,c"' == r(u"<?print csv(data)?>", data="a,b,c")
-		assert '"a""b""c"' == r(u"<?print csv(data)?>", data='a"b"c')
-		assert '"a\nb\nc"' == r(u"<?print csv(data)?>", data="a\nb\nc")
+@with_all_renderers
+def test_function_csv(r):
+	with raises("csv.*unknown"):
+		r(u"<?print csv()?>")
+	with raises("csv.*unknown"):
+		r(u"<?print csv(1, 2)?>")
+	assert "" == r(u"<?print csv(data)?>", data=None)
+	assert "False" == r(u"<?print csv(data)?>", data=False)
+	assert "True" == r(u"<?print csv(data)?>", data=True)
+	assert "42" == r(u"<?print csv(data)?>", data=42)
+	# no check for float
+	assert "abc" == r(u"<?print csv(data)?>", data="abc")
+	assert '"a,b,c"' == r(u"<?print csv(data)?>", data="a,b,c")
+	assert '"a""b""c"' == r(u"<?print csv(data)?>", data='a"b"c')
+	assert '"a\nb\nc"' == r(u"<?print csv(data)?>", data="a\nb\nc")
 
 
-def test_function_json():
-	for r in allrenders():
-		with raises("json.*unknown"):
-			r(u"<?print json()?>")
-		with raises("json.*unknown"):
-			r(u"<?print json(1, 2)?>")
-		assert "null" == r(u"<?print json(data)?>", data=None)
-		assert "false" == r(u"<?print json(data)?>", data=False)
-		assert "true" == r(u"<?print json(data)?>", data=True)
-		assert "42" == r(u"<?print json(data)?>", data=42)
-		# no check for float
-		assert '"abc"' == r(u"<?print json(data)?>", data="abc")
-		assert '[1, 2, 3]', r(u"<?print json(data)?>", data=[1, 2, 3])
-		assert '{"one": 1}' == r(u"<?print json(data)?>", data={"one": 1})
+@with_all_renderers
+def test_function_json(r):
+	with raises("json.*unknown"):
+		r(u"<?print json()?>")
+	with raises("json.*unknown"):
+		r(u"<?print json(1, 2)?>")
+	assert "null" == r(u"<?print json(data)?>", data=None)
+	assert "false" == r(u"<?print json(data)?>", data=False)
+	assert "true" == r(u"<?print json(data)?>", data=True)
+	assert "42" == r(u"<?print json(data)?>", data=42)
+	# no check for float
+	assert '"abc"' == r(u"<?print json(data)?>", data="abc")
+	assert '[1, 2, 3]', r(u"<?print json(data)?>", data=[1, 2, 3])
+	assert '{"one": 1}' == r(u"<?print json(data)?>", data={"one": 1})
 
 
-def test_function_str():
-	for r in allrenders():
-		with raises("str.*unknown"):
-			r(u"<?print str()?>")
-		with raises("str.*unknown"):
-			r(u"<?print str(1, 2)?>")
-		assert "" == r(u"<?print str(data)?>", data=None)
-		assert "True" == r(u"<?print str(data)?>", data=True)
-		assert "False" == r(u"<?print str(data)?>", data=False)
-		assert "42" == r(u"<?print str(data)?>", data=42)
-		assert "4.2" == r(u"<?print str(data)?>", data=4.2)
-		assert "foo" == r(u"<?print str(data)?>", data="foo")
+@with_all_renderers
+def test_function_str(r):
+	with raises("str.*unknown"):
+		r(u"<?print str()?>")
+	with raises("str.*unknown"):
+		r(u"<?print str(1, 2)?>")
+	assert "" == r(u"<?print str(data)?>", data=None)
+	assert "True" == r(u"<?print str(data)?>", data=True)
+	assert "False" == r(u"<?print str(data)?>", data=False)
+	assert "42" == r(u"<?print str(data)?>", data=42)
+	assert "4.2" == r(u"<?print str(data)?>", data=4.2)
+	assert "foo" == r(u"<?print str(data)?>", data="foo")
 
 
-def test_function_int():
-	for r in allrenders():
-		with raises("int.*unknown"):
-			r(u"<?print int()?>")
-		with raises("int.*unknown"):
-			r(u"<?print int(1, 2, 3)?>")
-		with raises("int\\(\\) argument must be a string or a number"):
-			r(u"<?print int(data)?>", data=None)
-		with raises("invalid literal for int"):
-			r(u"<?print int(data)?>", data="foo")
-		assert "1" == r(u"<?print int(data)?>", data=True)
-		assert "0" == r(u"<?print int(data)?>", data=False)
-		assert "42" == r(u"<?print int(data)?>", data=42)
-		assert "4" == r(u"<?print int(data)?>", data=4.2)
-		assert "42" == r(u"<?print int(data)?>", data="42")
-		assert "66" == r(u"<?print int(data, 16)?>", data="42")
+@with_all_renderers
+def test_function_int(r):
+	with raises("int.*unknown"):
+		r(u"<?print int()?>")
+	with raises("int.*unknown"):
+		r(u"<?print int(1, 2, 3)?>")
+	with raises("int\\(\\) argument must be a string or a number"):
+		r(u"<?print int(data)?>", data=None)
+	with raises("invalid literal for int"):
+		r(u"<?print int(data)?>", data="foo")
+	assert "1" == r(u"<?print int(data)?>", data=True)
+	assert "0" == r(u"<?print int(data)?>", data=False)
+	assert "42" == r(u"<?print int(data)?>", data=42)
+	assert "4" == r(u"<?print int(data)?>", data=4.2)
+	assert "42" == r(u"<?print int(data)?>", data="42")
+	assert "66" == r(u"<?print int(data, 16)?>", data="42")
 
 
-def test_function_float():
+@with_all_renderers
+def test_function_float(r):
 	code = u"<?print float(data)?>"
-	for r in allrenders():
-		with raises("float.*unknown"):
-			r(u"<?print float()?>")
-		with raises("float.*unknown"):
-			r(u"<?print float(1, 2, 3)?>")
-		with raises("float\\(\\) argument must be a string or a number"):
-			r(code, data=None)
-		assert "4.2" == r(code, data=4.2)
-		if r is not renderjs:
-			assert "1.0" == r(code, data=True)
-			assert "0.0" == r(code, data=False)
-			assert "42.0" == r(code, data=42)
-			assert "42.0" == r(code, data="42")
-		else:
-			assert 1.0 == eval(r(code, data=True))
-			assert 0.0 == eval(r(code, data=False))
-			assert 42.0 == eval(r(code, data=42))
-			assert 42.0 == eval(r(code, data="42"))
+
+	with raises("float.*unknown"):
+		r(u"<?print float()?>")
+	with raises("float.*unknown"):
+		r(u"<?print float(1, 2, 3)?>")
+	with raises("float\\(\\) argument must be a string or a number"):
+		r(code, data=None)
+	assert "4.2" == r(code, data=4.2)
+	if r is not renderjs:
+		assert "1.0" == r(code, data=True)
+		assert "0.0" == r(code, data=False)
+		assert "42.0" == r(code, data=42)
+		assert "42.0" == r(code, data="42")
+	else:
+		assert 1.0 == eval(r(code, data=True))
+		assert 0.0 == eval(r(code, data=False))
+		assert 42.0 == eval(r(code, data=42))
+		assert 42.0 == eval(r(code, data="42"))
 
 
-def test_function_len():
+@with_all_renderers
+def test_function_len(r):
 	code = u"<?print len(data)?>"
-	for r in allrenders():
-		with raises("len.*unknown"):
-			r(u"<?print len()?>")
-		with raises("len.*unknown"):
-			r(u"<?print len(1, 2)?>")
-	for r in allrenders():
-		with raises("has no len\\(\\)"):
-			r(code, data=None)
-		with raises("has no len\\(\\)"):
-			r(code, data=True)
-		with raises("has no len\\(\\)"):
-			r(code, data=False)
-		with raises("has no len\\(\\)"):
-			r(code, data=42)
-		with raises("has no len\\(\\)"):
-			r(code, data=4.2)
-		assert "42" == r(code, data=42*"?")
-		assert "42" == r(code, data=42*[None])
-		assert "42" == r(code, data=dict.fromkeys(xrange(42)))
+	with raises("len.*unknown"):
+		r(u"<?print len()?>")
+	with raises("len.*unknown"):
+		r(u"<?print len(1, 2)?>")
+	with raises("has no len\\(\\)"):
+		r(code, data=None)
+	with raises("has no len\\(\\)"):
+		r(code, data=True)
+	with raises("has no len\\(\\)"):
+		r(code, data=False)
+	with raises("has no len\\(\\)"):
+		r(code, data=42)
+	with raises("has no len\\(\\)"):
+		r(code, data=4.2)
+	assert "42" == r(code, data=42*"?")
+	assert "42" == r(code, data=42*[None])
+	assert "42" == r(code, data=dict.fromkeys(xrange(42)))
 
 
-def test_function_enumerate():
+@with_all_renderers
+def test_function_enumerate(r):
 	code = u"<?for (i, value) in enumerate(data)?><?print i?>:<?print value?>\n<?end for?>"
-	for r in allrenders():
-		with raises("enumerate.*unknown"):
-			r(u"<?print enumerate()?>")
-		with raises("enumerate.*unknown"):
-			r(u"<?print enumerate(1, 2)?>")
-		with raises("is not iterable"):
-			r(code, data=None)
-		with raises("is not iterable"):
-			r(code, data=True)
-		with raises("is not iterable"):
-			r(code, data=False)
-		with raises("is not iterable"):
-			r(code, data=42)
-		with raises("is not iterable"):
-			r(code, data=4.2)
-		assert "0:f\n1:o\n2:o\n" == r(code, data="foo")
-		assert "0:foo\n1:bar\n" == r(code, data=["foo", "bar"])
-		assert "0:foo\n" == r(code, data=dict(foo=True))
+	with raises("enumerate.*unknown"):
+		r(u"<?print enumerate()?>")
+	with raises("enumerate.*unknown"):
+		r(u"<?print enumerate(1, 2)?>")
+	with raises("is not iterable"):
+		r(code, data=None)
+	with raises("is not iterable"):
+		r(code, data=True)
+	with raises("is not iterable"):
+		r(code, data=False)
+	with raises("is not iterable"):
+		r(code, data=42)
+	with raises("is not iterable"):
+		r(code, data=4.2)
+	assert "0:f\n1:o\n2:o\n" == r(code, data="foo")
+	assert "0:foo\n1:bar\n" == r(code, data=["foo", "bar"])
+	assert "0:foo\n" == r(code, data=dict(foo=True))
 
 
-def test_function_isnone():
+@with_all_renderers
+def test_function_isnone(r):
 	code = u"<?print isnone(data)?>"
-	for r in allrenders():
-		with raises("isnone.*unknown"):
-			r(u"<?print isnone()?>")
-		with raises("isnone.*unknown"):
-			r(u"<?print isnone(1, 2)?>")
-		assert "True" == r(code, data=None)
-		assert "False" == r(code, data=True)
-		assert "False" == r(code, data=False)
-		assert "False" == r(code, data=42)
-		assert "False" == r(code, data=4.2)
-		assert "False" == r(code, data="foo")
-		assert "False" == r(code, data=datetime.datetime.now())
-		assert "False" == r(code, data=())
-		assert "False" == r(code, data=[])
-		assert "False" == r(code, data={})
-		assert "False" == r(code, data=ul4c.compile(u""))
-		assert "False" == r(code, data=color.red)
+	with raises("isnone.*unknown"):
+		r(u"<?print isnone()?>")
+	with raises("isnone.*unknown"):
+		r(u"<?print isnone(1, 2)?>")
+	assert "True" == r(code, data=None)
+	assert "False" == r(code, data=True)
+	assert "False" == r(code, data=False)
+	assert "False" == r(code, data=42)
+	assert "False" == r(code, data=4.2)
+	assert "False" == r(code, data="foo")
+	assert "False" == r(code, data=datetime.datetime.now())
+	assert "False" == r(code, data=())
+	assert "False" == r(code, data=[])
+	assert "False" == r(code, data={})
+	assert "False" == r(code, data=ul4c.compile(u""))
+	assert "False" == r(code, data=color.red)
 
 
-def test_function_isbool():
+@with_all_renderers
+def test_function_isbool(r):
 	code = u"<?print isbool(data)?>"
-	for r in allrenders():
-		with raises("isbool.*unknown"):
-			r(u"<?print isbool()?>")
-		with raises("isbool.*unknown"):
-			r(u"<?print isbool(1, 2)?>")
-		assert "False" == r(code, data=None)
-		assert "True" == r(code, data=True)
-		assert "True" == r(code, data=False)
-		assert "False" == r(code, data=42)
-		assert "False" == r(code, data=4.2)
-		assert "False" == r(code, data="foo")
-		assert "False" == r(code, data=datetime.datetime.now())
-		assert "False" == r(code, data=())
-		assert "False" == r(code, data=[])
-		assert "False" == r(code, data={})
-		assert "False" == r(code, data=ul4c.compile(u""))
-		assert "False" == r(code, data=color.red)
+
+	with raises("isbool.*unknown"):
+		r(u"<?print isbool()?>")
+	with raises("isbool.*unknown"):
+		r(u"<?print isbool(1, 2)?>")
+	assert "False" == r(code, data=None)
+	assert "True" == r(code, data=True)
+	assert "True" == r(code, data=False)
+	assert "False" == r(code, data=42)
+	assert "False" == r(code, data=4.2)
+	assert "False" == r(code, data="foo")
+	assert "False" == r(code, data=datetime.datetime.now())
+	assert "False" == r(code, data=())
+	assert "False" == r(code, data=[])
+	assert "False" == r(code, data={})
+	assert "False" == r(code, data=ul4c.compile(u""))
+	assert "False" == r(code, data=color.red)
 
 
-def test_function_isint():
+@with_all_renderers
+def test_function_isint(r):
 	code = u"<?print isint(data)?>"
-	for r in allrenders():
-		with raises("isint.*unknown"):
-			r(u"<?print isint()?>")
-		with raises("isint.*unknown"):
-			r(u"<?print isint(1, 2)?>")
-		assert "False" == r(code, data=None)
-		assert "False" == r(code, data=True)
-		assert "False" == r(code, data=False)
-		assert "True" == r(code, data=42)
-		assert "False" == r(code, data=4.2)
-		assert "False" == r(code, data="foo")
-		assert "False" == r(code, data=datetime.datetime.now())
-		assert "False" == r(code, data=())
-		assert "False" == r(code, data=[])
-		assert "False" == r(code, data={})
-		assert "False" == r(code, data=ul4c.compile(u""))
-		assert "False" == r(code, data=color.red)
+
+	with raises("isint.*unknown"):
+		r(u"<?print isint()?>")
+	with raises("isint.*unknown"):
+		r(u"<?print isint(1, 2)?>")
+	assert "False" == r(code, data=None)
+	assert "False" == r(code, data=True)
+	assert "False" == r(code, data=False)
+	assert "True" == r(code, data=42)
+	assert "False" == r(code, data=4.2)
+	assert "False" == r(code, data="foo")
+	assert "False" == r(code, data=datetime.datetime.now())
+	assert "False" == r(code, data=())
+	assert "False" == r(code, data=[])
+	assert "False" == r(code, data={})
+	assert "False" == r(code, data=ul4c.compile(u""))
+	assert "False" == r(code, data=color.red)
 
 
-def test_function_isfloat():
+@with_all_renderers
+def test_function_isfloat(r):
 	code = u"<?print isfloat(data)?>"
-	for r in allrenders():
-		with raises("isfloat.*unknown"):
-			r(u"<?print isfloat()?>")
-		with raises("isfloat.*unknown"):
-			r(u"<?print isfloat(1, 2)?>")
-		assert "False" == r(code, data=None)
-		assert "False" == r(code, data=True)
-		assert "False" == r(code, data=False)
-		assert "False" == r(code, data=42)
-		assert "True" == r(code, data=4.2)
-		assert "False" == r(code, data="foo")
-		assert "False" == r(code, data=datetime.datetime.now())
-		assert "False" == r(code, data=())
-		assert "False" == r(code, data=[])
-		assert "False" == r(code, data={})
-		assert "False" == r(code, data=ul4c.compile(u""))
-		assert "False" == r(code, data=color.red)
+
+	with raises("isfloat.*unknown"):
+		r(u"<?print isfloat()?>")
+	with raises("isfloat.*unknown"):
+		r(u"<?print isfloat(1, 2)?>")
+	assert "False" == r(code, data=None)
+	assert "False" == r(code, data=True)
+	assert "False" == r(code, data=False)
+	assert "False" == r(code, data=42)
+	assert "True" == r(code, data=4.2)
+	assert "False" == r(code, data="foo")
+	assert "False" == r(code, data=datetime.datetime.now())
+	assert "False" == r(code, data=())
+	assert "False" == r(code, data=[])
+	assert "False" == r(code, data={})
+	assert "False" == r(code, data=ul4c.compile(u""))
+	assert "False" == r(code, data=color.red)
 
 
-def test_function_isstr():
+@with_all_renderers
+def test_function_isstr(r):
 	code = u"<?print isstr(data)?>"
-	for r in allrenders():
-		with raises("isstr.*unknown"):
-			r(u"<?print isstr()?>")
-		with raises("isstr.*unknown"):
-			r(u"<?print isstr(1, 2)?>")
-		assert "False" == r(code, data=None)
-		assert "False" == r(code, data=True)
-		assert "False" == r(code, data=False)
-		assert "False" == r(code, data=42)
-		assert "False" == r(code, data=4.2)
-		assert "True" == r(code, data="foo")
-		assert "False" == r(code, data=datetime.datetime.now())
-		assert "False" == r(code, data=())
-		assert "False" == r(code, data=[])
-		assert "False" == r(code, data={})
-		assert "False" == r(code, data=ul4c.compile(u""))
-		assert "False" == r(code, data=color.red)
+
+	with raises("isstr.*unknown"):
+		r(u"<?print isstr()?>")
+	with raises("isstr.*unknown"):
+		r(u"<?print isstr(1, 2)?>")
+	assert "False" == r(code, data=None)
+	assert "False" == r(code, data=True)
+	assert "False" == r(code, data=False)
+	assert "False" == r(code, data=42)
+	assert "False" == r(code, data=4.2)
+	assert "True" == r(code, data="foo")
+	assert "False" == r(code, data=datetime.datetime.now())
+	assert "False" == r(code, data=())
+	assert "False" == r(code, data=[])
+	assert "False" == r(code, data={})
+	assert "False" == r(code, data=ul4c.compile(u""))
+	assert "False" == r(code, data=color.red)
 
 
-def test_function_isdate():
+@with_all_renderers
+def test_function_isdate(r):
 	code = u"<?print isdate(data)?>"
-	for r in allrenders():
-		with raises("isdate.*unknown"):
-			r(u"<?print isdate()?>")
-		with raises("isdate.*unknown"):
-			r(u"<?print isdate(1, 2)?>")
-		assert "False" == r(code, data=None)
-		assert "False" == r(code, data=True)
-		assert "False" == r(code, data=False)
-		assert "False" == r(code, data=42)
-		assert "False" == r(code, data=4.2)
-		assert "False" == r(code, data="foo")
-		assert "True" == r(code, data=datetime.datetime.now())
-		assert "False" == r(code, data=())
-		assert "False" == r(code, data=[])
-		assert "False" == r(code, data={})
-		assert "False" == r(code, data=ul4c.compile(u""))
-		assert "False" == r(code, data=color.red)
+
+	with raises("isdate.*unknown"):
+		r(u"<?print isdate()?>")
+	with raises("isdate.*unknown"):
+		r(u"<?print isdate(1, 2)?>")
+	assert "False" == r(code, data=None)
+	assert "False" == r(code, data=True)
+	assert "False" == r(code, data=False)
+	assert "False" == r(code, data=42)
+	assert "False" == r(code, data=4.2)
+	assert "False" == r(code, data="foo")
+	assert "True" == r(code, data=datetime.datetime.now())
+	assert "False" == r(code, data=())
+	assert "False" == r(code, data=[])
+	assert "False" == r(code, data={})
+	assert "False" == r(code, data=ul4c.compile(u""))
+	assert "False" == r(code, data=color.red)
 
 
-def test_function_islist():
+@with_all_renderers
+def test_function_islist(r):
 	code = u"<?print islist(data)?>"
-	for r in allrenders():
-		with raises("islist.*unknown"):
-			r(u"<?print islist()?>")
-		with raises("islist.*unknown"):
-			r(u"<?print islist(1, 2)?>")
-		assert "False" == r(code, data=None)
-		assert "False" == r(code, data=True)
-		assert "False" == r(code, data=False)
-		assert "False" == r(code, data=42)
-		assert "False" == r(code, data=4.2)
-		assert "False" == r(code, data="foo")
-		assert "False" == r(code, data=datetime.datetime.now())
-		assert "True" == r(code, data=())
-		assert "True" == r(code, data=[])
-		assert "False" == r(code, data={})
-		assert "False" == r(code, data=ul4c.compile(u""))
-		assert "False" == r(code, data=color.red)
+
+	with raises("islist.*unknown"):
+		r(u"<?print islist()?>")
+	with raises("islist.*unknown"):
+		r(u"<?print islist(1, 2)?>")
+	assert "False" == r(code, data=None)
+	assert "False" == r(code, data=True)
+	assert "False" == r(code, data=False)
+	assert "False" == r(code, data=42)
+	assert "False" == r(code, data=4.2)
+	assert "False" == r(code, data="foo")
+	assert "False" == r(code, data=datetime.datetime.now())
+	assert "True" == r(code, data=())
+	assert "True" == r(code, data=[])
+	assert "False" == r(code, data={})
+	assert "False" == r(code, data=ul4c.compile(u""))
+	assert "False" == r(code, data=color.red)
 
 
-def test_function_isdict():
+@with_all_renderers
+def test_function_isdict(r):
 	code = u"<?print isdict(data)?>"
-	for r in allrenders():
-		with raises("isdict.*unknown"):
-			r(u"<?print isdict()?>")
-		with raises("isdict.*unknown"):
-			r(u"<?print isdict(1, 2)?>")
-		assert "False" == r(code, data=None)
-		assert "False" == r(code, data=True)
-		assert "False" == r(code, data=False)
-		assert "False" == r(code, data=42)
-		assert "False" == r(code, data=4.2)
-		assert "False" == r(code, data="foo")
-		assert "False" == r(code, data=datetime.datetime.now())
-		assert "False" == r(code, data=())
-		assert "False" == r(code, data=[])
-		assert "True" == r(code, data={})
-		assert "False" == r(code, data=ul4c.compile(u""))
-		assert "False" == r(code, data=color.red)
+
+	with raises("isdict.*unknown"):
+		r(u"<?print isdict()?>")
+	with raises("isdict.*unknown"):
+		r(u"<?print isdict(1, 2)?>")
+	assert "False" == r(code, data=None)
+	assert "False" == r(code, data=True)
+	assert "False" == r(code, data=False)
+	assert "False" == r(code, data=42)
+	assert "False" == r(code, data=4.2)
+	assert "False" == r(code, data="foo")
+	assert "False" == r(code, data=datetime.datetime.now())
+	assert "False" == r(code, data=())
+	assert "False" == r(code, data=[])
+	assert "True" == r(code, data={})
+	assert "False" == r(code, data=ul4c.compile(u""))
+	assert "False" == r(code, data=color.red)
 
 
-def test_function_istemplate():
+@with_all_renderers
+def test_function_istemplate(r):
 	code = u"<?print istemplate(data)?>"
-	for r in allrenders():
-		with raises("istemplate.*unknown"):
-			r(u"<?print istemplate()?>")
-		with raises("istemplate.*unknown"):
-			r(u"<?print istemplate(1, 2)?>")
-		assert "False" == r(code, data=None)
-		assert "False" == r(code, data=True)
-		assert "False" == r(code, data=False)
-		assert "False" == r(code, data=42)
-		assert "False" == r(code, data=4.2)
-		assert "False" == r(code, data="foo")
-		assert "False" == r(code, data=datetime.datetime.now())
-		assert "False" == r(code, data=())
-		assert "False" == r(code, data=[])
-		assert "False" == r(code, data={})
-		assert "True" == r(code, data=ul4c.compile(u""))
-		assert "False" == r(code, data=color.red)
+
+	with raises("istemplate.*unknown"):
+		r(u"<?print istemplate()?>")
+	with raises("istemplate.*unknown"):
+		r(u"<?print istemplate(1, 2)?>")
+	assert "False" == r(code, data=None)
+	assert "False" == r(code, data=True)
+	assert "False" == r(code, data=False)
+	assert "False" == r(code, data=42)
+	assert "False" == r(code, data=4.2)
+	assert "False" == r(code, data="foo")
+	assert "False" == r(code, data=datetime.datetime.now())
+	assert "False" == r(code, data=())
+	assert "False" == r(code, data=[])
+	assert "False" == r(code, data={})
+	assert "True" == r(code, data=ul4c.compile(u""))
+	assert "False" == r(code, data=color.red)
 
 
-def test_function_iscolor():
+@with_all_renderers
+def test_function_iscolor(r):
 	code = u"<?print iscolor(data)?>"
-	for r in allrenders():
-		with raises("iscolor.*unknown"):
-			r(u"<?print iscolor()?>")
-		with raises("iscolor.*unknown"):
-			r(u"<?print iscolor(1, 2)?>")
-		assert "False" == r(code, data=None)
-		assert "False" == r(code, data=True)
-		assert "False" == r(code, data=False)
-		assert "False" == r(code, data=42)
-		assert "False" == r(code, data=4.2)
-		assert "False" == r(code, data="foo")
-		assert "False" == r(code, data=datetime.datetime.now())
-		assert "False" == r(code, data=())
-		assert "False" == r(code, data=[])
-		assert "False" == r(code, data={})
-		assert "False" == r(code, data=ul4c.compile(u""))
-		assert "True" == r(code, data=color.red)
+
+	with raises("iscolor.*unknown"):
+		r(u"<?print iscolor()?>")
+	with raises("iscolor.*unknown"):
+		r(u"<?print iscolor(1, 2)?>")
+	assert "False" == r(code, data=None)
+	assert "False" == r(code, data=True)
+	assert "False" == r(code, data=False)
+	assert "False" == r(code, data=42)
+	assert "False" == r(code, data=4.2)
+	assert "False" == r(code, data="foo")
+	assert "False" == r(code, data=datetime.datetime.now())
+	assert "False" == r(code, data=())
+	assert "False" == r(code, data=[])
+	assert "False" == r(code, data={})
+	assert "False" == r(code, data=ul4c.compile(u""))
+	assert "True" == r(code, data=color.red)
 
 
-def test_function_get():
-	for r in allrenders():
-		with raises("get.*unknown"):
-			r(u"<?print get()?>")
-		assert "" == r(u"<?print get('x')?>")
-		assert "42" == r(u"<?print get('x')?>", x=42)
-		assert "17" == r(u"<?print get('x', 17)?>")
-		assert "42" == r(u"<?print get('x', 17)?>", x=42)
+@with_all_renderers
+def test_function_get(r):
+	with raises("get.*unknown"):
+		r(u"<?print get()?>")
+	assert "" == r(u"<?print get('x')?>")
+	assert "42" == r(u"<?print get('x')?>", x=42)
+	assert "17" == r(u"<?print get('x', 17)?>")
+	assert "42" == r(u"<?print get('x', 17)?>", x=42)
 
 
-def test_function_repr():
+@with_all_renderers
+def test_function_repr(r):
 	code = u"<?print repr(data)?>"
-	for r in allrenders():
-		with raises("repr.*unknown"):
-			r(u"<?print repr()?>")
-		with raises("repr.*unknown"):
-			r(u"<?print repr(1, 2)?>")
-		assert "None" == r(code, data=None)
-		assert "True" == r(code, data=True)
-		assert "False" == r(code, data=False)
-		assert "42" == r(code, data=42)
-		assert 42.5 == eval(r(code, data=42.5))
-		assert r(code, data="foo") in ('"foo"', "'foo'")
-		assert [1, 2, 3] == eval(r(code, data=[1, 2, 3]))
-		if r is not renderjs:
-			assert (1, 2, 3) == eval(r(code, data=(1, 2, 3)))
-		assert {"a": 1, "b": 2} == eval(r(code, data={"a": 1, "b": 2}))
+
+	with raises("repr.*unknown"):
+		r(u"<?print repr()?>")
+	with raises("repr.*unknown"):
+		r(u"<?print repr(1, 2)?>")
+	assert "None" == r(code, data=None)
+	assert "True" == r(code, data=True)
+	assert "False" == r(code, data=False)
+	assert "42" == r(code, data=42)
+	assert 42.5 == eval(r(code, data=42.5))
+	assert r(code, data="foo") in ('"foo"', "'foo'")
+	assert [1, 2, 3] == eval(r(code, data=[1, 2, 3]))
+	if r is not renderjs:
+		assert (1, 2, 3) == eval(r(code, data=(1, 2, 3)))
+	assert {"a": 1, "b": 2} == eval(r(code, data={"a": 1, "b": 2}))
 
 
-def test_function_chr():
+@with_all_renderers
+def test_function_chr(r):
 	code = u"<?print chr(data)?>"
-	for r in allrenders():
-		with raises("chr.*unknown"):
-			r(u"<?print chr()?>")
-		with raises("chr.*unknown"):
-			r(u"<?print chr(1, 2)?>")
-		assert "\x00" == r(code, data=0)
-		assert "a" == r(code, data=ord("a"))
-		assert u"\u20ac" == r(code, data=0x20ac)
+
+	with raises("chr.*unknown"):
+		r(u"<?print chr()?>")
+	with raises("chr.*unknown"):
+		r(u"<?print chr(1, 2)?>")
+	assert "\x00" == r(code, data=0)
+	assert "a" == r(code, data=ord("a"))
+	assert u"\u20ac" == r(code, data=0x20ac)
 
 
-def test_function_ord():
+@with_all_renderers
+def test_function_ord(r):
 	code = u"<?print ord(data)?>"
-	for r in allrenders():
-		with raises("ord.*unknown"):
-			r(u"<?print ord()?>")
-		with raises("ord.*unknown"):
-			r(u"<?print ord(1, 2)?>")
-		assert "0" == r(code, data="\x00")
-		assert str(ord("a")) == r(code, data="a")
-		assert str(0x20ac) == r(code, data=u"\u20ac")
+
+	with raises("ord.*unknown"):
+		r(u"<?print ord()?>")
+	with raises("ord.*unknown"):
+		r(u"<?print ord(1, 2)?>")
+	assert "0" == r(code, data="\x00")
+	assert str(ord("a")) == r(code, data="a")
+	assert str(0x20ac) == r(code, data=u"\u20ac")
 
 
-def test_function_hex():
+@with_all_renderers
+def test_function_hex(r):
 	code = u"<?print hex(data)?>"
-	for r in allrenders():
-		with raises("hex.*unknown"):
-			r(u"<?print hex()?>")
-		with raises("hex.*unknown"):
-			r(u"<?print hex(1, 2)?>")
-		assert "0x0" == r(code, data=0)
-		assert "0xff" == r(code, data=0xff)
-		assert "0xffff" == r(code, data=0xffff)
-		assert "-0xffff" == r(code, data=-0xffff)
+
+	with raises("hex.*unknown"):
+		r(u"<?print hex()?>")
+	with raises("hex.*unknown"):
+		r(u"<?print hex(1, 2)?>")
+	assert "0x0" == r(code, data=0)
+	assert "0xff" == r(code, data=0xff)
+	assert "0xffff" == r(code, data=0xffff)
+	assert "-0xffff" == r(code, data=-0xffff)
 
 
-def test_function_oct():
+@with_all_renderers
+def test_function_oct(r):
 	code = u"<?print oct(data)?>"
-	for r in allrenders():
-		with raises("oct.*unknown"):
-			r(u"<?print oct()?>")
-		with raises("oct.*unknown"):
-			r(u"<?print oct(1, 2)?>")
-		assert "0o0" == r(code, data=0)
-		assert "0o77" == r(code, data=077)
-		assert "0o7777" == r(code, data=07777)
-		assert "-0o7777" == r(code, data=-07777)
+
+	with raises("oct.*unknown"):
+		r(u"<?print oct()?>")
+	with raises("oct.*unknown"):
+		r(u"<?print oct(1, 2)?>")
+	assert "0o0" == r(code, data=0)
+	assert "0o77" == r(code, data=077)
+	assert "0o7777" == r(code, data=07777)
+	assert "-0o7777" == r(code, data=-07777)
 
 
-def test_function_bin():
+@with_all_renderers
+def test_function_bin(r):
 	code = u"<?print bin(data)?>"
-	for r in allrenders():
-		with raises("bin.*unknown"):
-			r(u"<?print bin()?>")
-		with raises("bin.*unknown"):
-			r(u"<?print bin(1, 2)?>")
-		assert "0b0" == r(code, data=0)
-		assert "0b11" == r(code, data=3)
-		assert "-0b1111" == r(code, data=-15)
+
+	with raises("bin.*unknown"):
+		r(u"<?print bin()?>")
+	with raises("bin.*unknown"):
+		r(u"<?print bin(1, 2)?>")
+	assert "0b0" == r(code, data=0)
+	assert "0b11" == r(code, data=3)
+	assert "-0b1111" == r(code, data=-15)
 
 
-def test_function_abs():
+@with_all_renderers
+def test_function_abs(r):
 	code = u"<?print abs(data)?>"
-	for r in allrenders():
-		with raises("abs.*unknown"):
-			r(u"<?print abs()?>")
-		with raises("abs.*unknown"):
-			r(u"<?print abs(1, 2)?>")
-		assert "0" == r(code, data=0)
-		assert "42" == r(code, data=42)
-		assert "42" == r(code, data=-42)
+
+	with raises("abs.*unknown"):
+		r(u"<?print abs()?>")
+	with raises("abs.*unknown"):
+		r(u"<?print abs(1, 2)?>")
+	assert "0" == r(code, data=0)
+	assert "42" == r(code, data=42)
+	assert "42" == r(code, data=-42)
 
 
-def test_function_sorted():
+@with_all_renderers
+def test_function_sorted(r):
 	code = u"<?for i in sorted(data)?><?print i?><?end for?>"
-	for r in allrenders():
-		with raises("sorted.*unknown"):
-			r(u"<?print sorted()?>")
-		with raises("sorted.*unknown"):
-			r(u"<?print sorted(1, 2)?>")
-		assert "gkru" == r(code, data="gurk")
-		assert "24679" == r(code, data="92746")
-		assert "012" == r(code, data={0: "zero", 1: "one", 2: "two"})
+
+	with raises("sorted.*unknown"):
+		r(u"<?print sorted()?>")
+	with raises("sorted.*unknown"):
+		r(u"<?print sorted(1, 2)?>")
+	assert "gkru" == r(code, data="gurk")
+	assert "24679" == r(code, data="92746")
+	assert "012" == r(code, data={0: "zero", 1: "one", 2: "two"})
 
 
-def test_function_range():
-	for r in allrenders():
-		with raises("range.*unknown"):
-			r(u"<?print range()?>")
-		code = u"<?for i in range(data)?><?print i?><?end for?>"
-		assert "" == r(code, data=-10)
-		assert "" == r(code, data=0)
-		assert "0" == r(code, data=1)
-		assert "01234" == r(code, data=5)
-		code = u"<?for i in range(data[0], data[1])?><?print i?><?end for?>"
-		assert "" == r(code, data=[0, -10])
-		assert "" == r(code, data=[0, 0])
-		assert "01234" == r(code, data=[0, 5])
-		assert "-5-4-3-2-101234" == r(code, data=[-5, 5])
-		code = u"<?for i in range(data[0], data[1], data[2])?><?print i?><?end for?>"
-		assert "" == r(code, data=[0, -10, 1])
-		assert "" == r(code, data=[0, 0, 1])
-		assert "02468" == r(code, data=[0, 10, 2])
-		assert "" == r(code, data=[0, 10, -2])
-		assert "108642" == r(code, data=[10, 0, -2])
-		assert "" == r(code, data=[10, 0, 2])
+@with_all_renderers
+def test_function_range(r):
+	with raises("range.*unknown"):
+		r(u"<?print range()?>")
+	code = u"<?for i in range(data)?><?print i?><?end for?>"
+	assert "" == r(code, data=-10)
+	assert "" == r(code, data=0)
+	assert "0" == r(code, data=1)
+	assert "01234" == r(code, data=5)
+	code = u"<?for i in range(data[0], data[1])?><?print i?><?end for?>"
+	assert "" == r(code, data=[0, -10])
+	assert "" == r(code, data=[0, 0])
+	assert "01234" == r(code, data=[0, 5])
+	assert "-5-4-3-2-101234" == r(code, data=[-5, 5])
+	code = u"<?for i in range(data[0], data[1], data[2])?><?print i?><?end for?>"
+	assert "" == r(code, data=[0, -10, 1])
+	assert "" == r(code, data=[0, 0, 1])
+	assert "02468" == r(code, data=[0, 10, 2])
+	assert "" == r(code, data=[0, 10, -2])
+	assert "108642" == r(code, data=[10, 0, -2])
+	assert "" == r(code, data=[10, 0, 2])
 
 
-def test_function_zip():
-	for r in allrenders():
-		with raises("zip.*unknown"):
-			r(u"<?print zip()?>")
-		with raises("zip.*unknown"):
-			r(u"<?print zip(1)?>")
-		code = u"<?for (ix, iy) in zip(x, y)?><?print ix?>-<?print iy?>;<?end for?>"
-		assert "" == r(code, x=[], y=[])
-		assert "1-3;2-4;" == r(code, x=[1, 2], y=[3, 4])
-		assert "1-4;2-5;" == r(code, x=[1, 2, 3], y=[4, 5])
-		code = u"<?for (ix, iy, iz) in zip(x, y, z)?><?print ix?>-<?print iy?>+<?print iz?>;<?end for?>"
-		assert "" == r(code, x=[], y=[], z=[])
-		assert "1-3+5;2-4+6;" == r(code, x=[1, 2], y=[3, 4], z=[5, 6])
-		assert "1-4+6;" == r(code, x=[1, 2, 3], y=[4, 5], z=[6])
+@with_all_renderers
+def test_function_zip(r):
+	with raises("zip.*unknown"):
+		r(u"<?print zip()?>")
+	with raises("zip.*unknown"):
+		r(u"<?print zip(1)?>")
+	code = u"<?for (ix, iy) in zip(x, y)?><?print ix?>-<?print iy?>;<?end for?>"
+	assert "" == r(code, x=[], y=[])
+	assert "1-3;2-4;" == r(code, x=[1, 2], y=[3, 4])
+	assert "1-4;2-5;" == r(code, x=[1, 2, 3], y=[4, 5])
+	code = u"<?for (ix, iy, iz) in zip(x, y, z)?><?print ix?>-<?print iy?>+<?print iz?>;<?end for?>"
+	assert "" == r(code, x=[], y=[], z=[])
+	assert "1-3+5;2-4+6;" == r(code, x=[1, 2], y=[3, 4], z=[5, 6])
+	assert "1-4+6;" == r(code, x=[1, 2, 3], y=[4, 5], z=[6])
 
 
-def test_function_type():
+@with_all_renderers
+def test_function_type(r):
 	code = u"<?print type(x)?>"
-	for r in allrenders():
-		with raises("type.*unknown"):
-			r(u"<?print type()?>")
-		with raises("type.*unknown"):
-			r(u"<?print type(1, 2)?>")
-		assert "none" == r(code, x=None)
-		assert "bool" == r(code, x=False)
-		assert "bool" == r(code, x=True)
-		assert "int" == r(code, x=42)
-		assert "int" == r(code, x=42L)
-		assert "float" == r(code, x=4.2)
-		assert "str" == r(code, x="foo")
-		assert "str" == r(code, x=u"foo")
-		assert "date" == r(code, x=datetime.datetime.now())
-		assert "date" == r(code, x=datetime.date.today())
-		assert "list" == r(code, x=(1, 2))
-		assert "list" == r(code, x=[1, 2])
-		assert "dict" == r(code, x={1: 2})
-		assert "template" == r(code, x=ul4c.compile(""))
-		assert "color" == r(code, x=color.red)
+
+	with raises("type.*unknown"):
+		r(u"<?print type()?>")
+	with raises("type.*unknown"):
+		r(u"<?print type(1, 2)?>")
+	assert "none" == r(code, x=None)
+	assert "bool" == r(code, x=False)
+	assert "bool" == r(code, x=True)
+	assert "int" == r(code, x=42)
+	assert "int" == r(code, x=42L)
+	assert "float" == r(code, x=4.2)
+	assert "str" == r(code, x="foo")
+	assert "str" == r(code, x=u"foo")
+	assert "date" == r(code, x=datetime.datetime.now())
+	assert "date" == r(code, x=datetime.date.today())
+	assert "list" == r(code, x=(1, 2))
+	assert "list" == r(code, x=[1, 2])
+	assert "dict" == r(code, x={1: 2})
+	assert "template" == r(code, x=ul4c.compile(""))
+	assert "color" == r(code, x=color.red)
 
 
-def test_function_reversed():
+@with_all_renderers
+def test_function_reversed(r):
 	code = u"<?for i in reversed(x)?>(<?print i?>)<?end for?>"
-	for r in allrenders():
-		with raises("reversed.*unknown"):
-			r(u"<?print reversed()?>")
-		with raises("reversed.*unknown"):
-			r(u"<?print reversed(1, 2)?>")
-		assert "(3)(2)(1)" == r(code, x="123")
-		assert "(3)(2)(1)" == r(code, x=[1, 2, 3])
-		assert "(3)(2)(1)" == r(code, x=(1, 2, 3))
+
+	with raises("reversed.*unknown"):
+		r(u"<?print reversed()?>")
+	with raises("reversed.*unknown"):
+		r(u"<?print reversed(1, 2)?>")
+	assert "(3)(2)(1)" == r(code, x="123")
+	assert "(3)(2)(1)" == r(code, x=[1, 2, 3])
+	assert "(3)(2)(1)" == r(code, x=(1, 2, 3))
 
 
-def test_function_rgb():
-	for r in allrenders():
-		assert "#369" == r("<?print repr(rgb(0.2, 0.4, 0.6))?>")
-		assert "#369c" == r("<?print repr(rgb(0.2, 0.4, 0.6, 0.8))?>")
+@with_all_renderers
+def test_function_rgb(r):
+	assert "#369" == r("<?print repr(rgb(0.2, 0.4, 0.6))?>")
+	assert "#369c" == r("<?print repr(rgb(0.2, 0.4, 0.6, 0.8))?>")
 
 
-def test_function_hls():
-	for r in allrenders():
-		assert "#fff" == r("<?print repr(hls(0, 1, 0))?>")
-		assert "#fff0" == r("<?print repr(hls(0, 1, 0, 0))?>")
+@with_all_renderers
+def test_function_hls(r):
+	assert "#fff" == r("<?print repr(hls(0, 1, 0))?>")
+	assert "#fff0" == r("<?print repr(hls(0, 1, 0, 0))?>")
 
 
-def test_function_hsv():
-	for r in allrenders():
-		assert "#fff" == r("<?print repr(hsv(0, 0, 1))?>")
-		assert "#fff0" == r("<?print repr(hsv(0, 0, 1, 0))?>")
+@with_all_renderers
+def test_function_hsv(r):
+	assert "#fff" == r("<?print repr(hsv(0, 0, 1))?>")
+	assert "#fff0" == r("<?print repr(hsv(0, 0, 1, 0))?>")
 
 
-def test_method_upper():
-	for r in allrenders():
-		assert "GURK" == r(u"<?print 'gurk'.upper()?>")
+@with_all_renderers
+def test_method_upper(r):
+	assert "GURK" == r(u"<?print 'gurk'.upper()?>")
 
 
-def test_method_lower():
-	for r in allrenders():
-		assert "gurk" == r(u"<?print 'GURK'.lower()?>")
+@with_all_renderers
+def test_method_lower(r):
+	assert "gurk" == r(u"<?print 'GURK'.lower()?>")
 
 
-def test_method_capitalize():
-	for r in allrenders():
-		assert "Gurk" == r(u"<?print 'gURK'.capitalize()?>")
+@with_all_renderers
+def test_method_capitalize(r):
+	assert "Gurk" == r(u"<?print 'gURK'.capitalize()?>")
 
 
-def test_method_startswith():
-	for r in allrenders():
-		assert "True" == r(u"<?print 'gurkhurz'.startswith('gurk')?>")
-		assert "False" == r(u"<?print 'gurkhurz'.startswith('hurz')?>")
+@with_all_renderers
+def test_method_startswith(r):
+	assert "True" == r(u"<?print 'gurkhurz'.startswith('gurk')?>")
+	assert "False" == r(u"<?print 'gurkhurz'.startswith('hurz')?>")
 
 
-def test_method_endswith():
-	for r in allrenders():
-		assert "True" == r(u"<?print 'gurkhurz'.endswith('hurz')?>")
-		assert "False" == r(u"<?print 'gurkhurz'.endswith('gurk')?>")
+@with_all_renderers
+def test_method_endswith(r):
+	assert "True" == r(u"<?print 'gurkhurz'.endswith('hurz')?>")
+	assert "False" == r(u"<?print 'gurkhurz'.endswith('gurk')?>")
 
 
-def test_method_strip():
-	for r in allrenders():
-		assert "gurk" == r(r"<?print ' \t\r\ngurk \t\r\n'.strip()?>")
-		assert "gurk" == r(r"<?print 'xyzzygurkxyzzy'.strip('xyz')?>")
+@with_all_renderers
+def test_method_strip(r):
+	assert "gurk" == r(r"<?print ' \t\r\ngurk \t\r\n'.strip()?>")
+	assert "gurk" == r(r"<?print 'xyzzygurkxyzzy'.strip('xyz')?>")
 
 
-def test_method_lstrip():
-	for r in allrenders():
-		assert "gurk \t\r\n" == r(ur"<?print ' \t\r\ngurk \t\r\n'.lstrip()?>")
-		assert "gurkxyzzy" == r(ur"<?print 'xyzzygurkxyzzy'.lstrip('xyz')?>")
+@with_all_renderers
+def test_method_lstrip(r):
+	assert "gurk \t\r\n" == r(ur"<?print ' \t\r\ngurk \t\r\n'.lstrip()?>")
+	assert "gurkxyzzy" == r(ur"<?print 'xyzzygurkxyzzy'.lstrip('xyz')?>")
 
 
-def test_method_rstrip():
-	for r in allrenders():
-		assert " \t\r\ngurk" == r(ur"<?print ' \t\r\ngurk \t\r\n'.rstrip()?>")
-		assert "xyzzygurk" == r(ur"<?print 'xyzzygurkxyzzy'.rstrip('xyz')?>")
+@with_all_renderers
+def test_method_rstrip(r):
+	assert " \t\r\ngurk" == r(ur"<?print ' \t\r\ngurk \t\r\n'.rstrip()?>")
+	assert "xyzzygurk" == r(ur"<?print 'xyzzygurkxyzzy'.rstrip('xyz')?>")
 
 
-def test_method_split():
-	for r in allrenders():
-		assert "(g)(u)(r)(k)" == r(ur"<?for item in ' \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n'.split()?>(<?print item?>)<?end for?>")
-		assert "(g)(u \t\r\nr \t\r\nk \t\r\n)" == r(ur"<?for item in ' \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n'.split(None, 1)?>(<?print item?>)<?end for?>")
-		assert "()(g)(u)(r)(k)()" == r(ur"<?for item in 'xxgxxuxxrxxkxx'.split('xx')?>(<?print item?>)<?end for?>")
-		assert "()(g)(uxxrxxkxx)" == r(ur"<?for item in 'xxgxxuxxrxxkxx'.split('xx', 2)?>(<?print item?>)<?end for?>")
+@with_all_renderers
+def test_method_split(r):
+	assert "(g)(u)(r)(k)" == r(ur"<?for item in ' \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n'.split()?>(<?print item?>)<?end for?>")
+	assert "(g)(u \t\r\nr \t\r\nk \t\r\n)" == r(ur"<?for item in ' \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n'.split(None, 1)?>(<?print item?>)<?end for?>")
+	assert "()(g)(u)(r)(k)()" == r(ur"<?for item in 'xxgxxuxxrxxkxx'.split('xx')?>(<?print item?>)<?end for?>")
+	assert "()(g)(uxxrxxkxx)" == r(ur"<?for item in 'xxgxxuxxrxxkxx'.split('xx', 2)?>(<?print item?>)<?end for?>")
 
 
-def test_method_rsplit():
-	for r in allrenders():
-		assert "(g)(u)(r)(k)" == r(ur"<?for item in ' \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n'.rsplit()?>(<?print item?>)<?end for?>")
-		assert "( \t\r\ng \t\r\nu \t\r\nr)(k)" == r(ur"<?for item in ' \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n'.rsplit(None, 1)?>(<?print item?>)<?end for?>")
-		assert "()(g)(u)(r)(k)()" == r(ur"<?for item in 'xxgxxuxxrxxkxx'.rsplit('xx')?>(<?print item?>)<?end for?>")
-		assert "(xxgxxuxxr)(k)()" == r(ur"<?for item in 'xxgxxuxxrxxkxx'.rsplit('xx', 2)?>(<?print item?>)<?end for?>")
+@with_all_renderers
+def test_method_rsplit(r):
+	assert "(g)(u)(r)(k)" == r(ur"<?for item in ' \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n'.rsplit()?>(<?print item?>)<?end for?>")
+	assert "( \t\r\ng \t\r\nu \t\r\nr)(k)" == r(ur"<?for item in ' \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n'.rsplit(None, 1)?>(<?print item?>)<?end for?>")
+	assert "()(g)(u)(r)(k)()" == r(ur"<?for item in 'xxgxxuxxrxxkxx'.rsplit('xx')?>(<?print item?>)<?end for?>")
+	assert "(xxgxxuxxr)(k)()" == r(ur"<?for item in 'xxgxxuxxrxxkxx'.rsplit('xx', 2)?>(<?print item?>)<?end for?>")
 
 
-def test_method_replace():
-	for r in allrenders():
-		assert 'goork' == r(ur"<?print 'gurk'.replace('u', 'oo')?>")
+@with_all_renderers
+def test_method_replace(r):
+	assert 'goork' == r(ur"<?print 'gurk'.replace('u', 'oo')?>")
 
 
-def test_method_render():
-	for r in allrenders():
-		t = ul4c.compile(u'(<?print data?>)')
-		assert '(GURK)' == r(u"<?print t.render(data='gurk').upper()?>", t=t)
-		assert '(GURK)' == r(u"<?print t.render(**{'data': 'gurk'}).upper()?>", t=t)
+@with_all_renderers
+def test_method_render(r):
+	t = ul4c.compile(u'(<?print data?>)')
+	assert '(GURK)' == r(u"<?print t.render(data='gurk').upper()?>", t=t)
+	assert '(GURK)' == r(u"<?print t.render(**{'data': 'gurk'}).upper()?>", t=t)
 
-		t = ul4c.compile(u'(gurk)')
-		assert '(GURK)' == r(u"<?print t.render().upper()?>", t=t)
+	t = ul4c.compile(u'(gurk)')
+	assert '(GURK)' == r(u"<?print t.render().upper()?>", t=t)
 
 
-def test_method_format():
+@with_all_renderers
+def test_method_format(r):
 	t = datetime.datetime(2010, 11, 2, 12, 34, 56, 987000)
 	format = "%Y-%m-%d %H:%M:%S.%f %a %A %b %B %% %I %j %p %U %w %W %y"
-	for r in allrenders():
-		assert t.strftime(format) == r(u"<?print data.format('{}')?>".format(format), data=t)
+	assert t.strftime(format) == r(u"<?print data.format('{}')?>".format(format), data=t)
 
 
-def test_method_isoformat():
+@with_all_renderers
+def test_method_isoformat(r):
 	t = datetime.datetime(2010, 02, 22, 12, 34, 56)
-	for r in allrenders():
-		assert 'Mon, 22 Feb 2010 12:34:56 GMT' == r(ur"<?print data.mimeformat()?>", data=t)
+	assert 'Mon, 22 Feb 2010 12:34:56 GMT' == r(ur"<?print data.mimeformat()?>", data=t)
 
 
-def test_method_get():
-	for r in allrenders():
-		assert "42" == r(u"<?print {}.get('foo', 42)?>")
-		assert "17" == r(u"<?print {'foo': 17}.get('foo', 42)?>")
-		assert "" == r(u"<?print {}.get('foo')?>")
-		assert "17" == r(u"<?print {'foo': 17}.get('foo')?>")
+@with_all_renderers
+def test_method_get(r):
+	assert "42" == r(u"<?print {}.get('foo', 42)?>")
+	assert "17" == r(u"<?print {'foo': 17}.get('foo', 42)?>")
+	assert "" == r(u"<?print {}.get('foo')?>")
+	assert "17" == r(u"<?print {'foo': 17}.get('foo')?>")
 
 
-def test_method_r_g_b_a():
-	for r in allrenders():
-		assert '0x11' == r(u'<?code c = #123?><?print hex(c.r())?>')
-		assert '0x22' == r(u'<?code c = #123?><?print hex(c.g())?>')
-		assert '0x33' == r(u'<?code c = #123?><?print hex(c.b())?>')
-		assert '0xff' == r(u'<?code c = #123?><?print hex(c.a())?>')
+@with_all_renderers
+def test_method_r_g_b_a(r):
+	assert '0x11' == r(u'<?code c = #123?><?print hex(c.r())?>')
+	assert '0x22' == r(u'<?code c = #123?><?print hex(c.g())?>')
+	assert '0x33' == r(u'<?code c = #123?><?print hex(c.b())?>')
+	assert '0xff' == r(u'<?code c = #123?><?print hex(c.a())?>')
 
 
-def test_method_hls():
-	for r in allrenders():
-		assert '0' == r(u'<?code c = #fff?><?print int(c.hls()[0])?>')
-		assert '1' == r(u'<?code c = #fff?><?print int(c.hls()[1])?>')
-		assert '0' == r(u'<?code c = #fff?><?print int(c.hls()[2])?>')
+@with_all_renderers
+def test_method_hls(r):
+	assert '0' == r(u'<?code c = #fff?><?print int(c.hls()[0])?>')
+	assert '1' == r(u'<?code c = #fff?><?print int(c.hls()[1])?>')
+	assert '0' == r(u'<?code c = #fff?><?print int(c.hls()[2])?>')
 
 
-def test_method_hlsa():
-	for r in allrenders():
-		assert '0' == r(u'<?code c = #fff?><?print int(c.hlsa()[0])?>')
-		assert '1' == r(u'<?code c = #fff?><?print int(c.hlsa()[1])?>')
-		assert '0' == r(u'<?code c = #fff?><?print int(c.hlsa()[2])?>')
-		assert '1' == r(u'<?code c = #fff?><?print int(c.hlsa()[3])?>')
+@with_all_renderers
+def test_method_hlsa(r):
+	assert '0' == r(u'<?code c = #fff?><?print int(c.hlsa()[0])?>')
+	assert '1' == r(u'<?code c = #fff?><?print int(c.hlsa()[1])?>')
+	assert '0' == r(u'<?code c = #fff?><?print int(c.hlsa()[2])?>')
+	assert '1' == r(u'<?code c = #fff?><?print int(c.hlsa()[3])?>')
 
 
-def test_method_hsv():
-	for r in allrenders():
-		assert '0' == r(u'<?code c = #fff?><?print int(c.hsv()[0])?>')
-		assert '0' == r(u'<?code c = #fff?><?print int(c.hsv()[1])?>')
-		assert '1' == r(u'<?code c = #fff?><?print int(c.hsv()[2])?>')
+@with_all_renderers
+def test_method_hsv(r):
+	assert '0' == r(u'<?code c = #fff?><?print int(c.hsv()[0])?>')
+	assert '0' == r(u'<?code c = #fff?><?print int(c.hsv()[1])?>')
+	assert '1' == r(u'<?code c = #fff?><?print int(c.hsv()[2])?>')
 
 
-def test_method_hsva():
-	for r in allrenders():
-		assert '0' == r(u'<?code c = #fff?><?print int(c.hsva()[0])?>')
-		assert '0' == r(u'<?code c = #fff?><?print int(c.hsva()[1])?>')
-		assert '1' == r(u'<?code c = #fff?><?print int(c.hsva()[2])?>')
-		assert '1' == r(u'<?code c = #fff?><?print int(c.hsva()[3])?>')
+@with_all_renderers
+def test_method_hsva(r):
+	assert '0' == r(u'<?code c = #fff?><?print int(c.hsva()[0])?>')
+	assert '0' == r(u'<?code c = #fff?><?print int(c.hsva()[1])?>')
+	assert '1' == r(u'<?code c = #fff?><?print int(c.hsva()[2])?>')
+	assert '1' == r(u'<?code c = #fff?><?print int(c.hsva()[3])?>')
 
 
-def test_method_lum():
-	for r in allrenders():
-		assert 'True' == r(u'<?print #fff.lum() == 1?>')
+@with_all_renderers
+def test_method_lum(r):
+	assert 'True' == r(u'<?print #fff.lum() == 1?>')
 
 
-def test_method_withlum():
-	for r in allrenders():
-		assert '#fff' == r(u'<?print #000.withlum(1)?>')
+@with_all_renderers
+def test_method_withlum(r):
+	assert '#fff' == r(u'<?print #000.withlum(1)?>')
 
 
-def test_method_witha():
-	for r in allrenders():
-		assert '#0063a82a' == r(u'<?print repr(#0063a8.witha(42))?>')
+@with_all_renderers
+def test_method_witha(r):
+	assert '#0063a82a' == r(u'<?print repr(#0063a8.witha(42))?>')
 
 
-def test_method_join():
-	for r in allrenders():
-		assert '1,2,3,4' == r(u'<?print ",".join("1234")?>')
-		assert '1,2,3,4' == r(u'<?print ",".join([1, 2, 3, 4])?>')
+@with_all_renderers
+def test_method_join(r):
+	assert '1,2,3,4' == r(u'<?print ",".join("1234")?>')
+	assert '1,2,3,4' == r(u'<?print ",".join([1, 2, 3, 4])?>')
 
 
-def test_method_find():
-	for r in allrenders():
-		assert '-1' == r(u'<?print s.find("ks")?>', s="gurkgurk")
-		assert '2' == r(u'<?print s.find("rk")?>', s="gurkgurk")
-		assert '2' == r(u'<?print s.find("rk", 2)?>', s="gurkgurk")
-		assert '2' == r(u'<?print s.find("rk", 2, 4)?>', s="gurkgurk")
-		assert '6' == r(u'<?print s.find("rk", 4, 8)?>', s="gurkgurk")
-		assert '-1' == r(u'<?print s.find("rk", 2, 3)?>', s="gurkgurk")
-		assert '-1' == r(u'<?print s.find("rk", 7)?>', s="gurkgurk")
+@with_all_renderers
+def test_method_find(r):
+	assert '-1' == r(u'<?print s.find("ks")?>', s="gurkgurk")
+	assert '2' == r(u'<?print s.find("rk")?>', s="gurkgurk")
+	assert '2' == r(u'<?print s.find("rk", 2)?>', s="gurkgurk")
+	assert '2' == r(u'<?print s.find("rk", 2, 4)?>', s="gurkgurk")
+	assert '6' == r(u'<?print s.find("rk", 4, 8)?>', s="gurkgurk")
+	assert '-1' == r(u'<?print s.find("rk", 2, 3)?>', s="gurkgurk")
+	assert '-1' == r(u'<?print s.find("rk", 7)?>', s="gurkgurk")
 
 
-def test_method_rfind():
-	for r in allrenders():
-		assert '-1' == r(u'<?print s.rfind("ks")?>', s="gurkgurk")
-		assert '6' == r(u'<?print s.rfind("rk")?>', s="gurkgurk")
-		assert '6' == r(u'<?print s.rfind("rk", 2)?>', s="gurkgurk")
-		assert '2' == r(u'<?print s.rfind("rk", 2, 4)?>', s="gurkgurk")
-		assert '6' == r(u'<?print s.rfind("rk", 4, 8)?>', s="gurkgurk")
-		assert '-1' == r(u'<?print s.rfind("rk", 2, 3)?>', s="gurkgurk")
-		assert '-1' == r(u'<?print s.rfind("rk", 7)?>', s="gurkgurk")
+@with_all_renderers
+def test_method_rfind(r):
+	assert '-1' == r(u'<?print s.rfind("ks")?>', s="gurkgurk")
+	assert '6' == r(u'<?print s.rfind("rk")?>', s="gurkgurk")
+	assert '6' == r(u'<?print s.rfind("rk", 2)?>', s="gurkgurk")
+	assert '2' == r(u'<?print s.rfind("rk", 2, 4)?>', s="gurkgurk")
+	assert '6' == r(u'<?print s.rfind("rk", 4, 8)?>', s="gurkgurk")
+	assert '-1' == r(u'<?print s.rfind("rk", 2, 3)?>', s="gurkgurk")
+	assert '-1' == r(u'<?print s.rfind("rk", 7)?>', s="gurkgurk")
 
 
-def test_method_day():
-	for r in allrenders():
-		assert '12' == r(u'<?print @2010-05-12T.day()?>')
-		assert '12' == r(u'<?print d.day()?>', d=datetime.date(2010, 5, 12))
+@with_all_renderers
+def test_method_day(r):
+	assert '12' == r(u'<?print @2010-05-12T.day()?>')
+	assert '12' == r(u'<?print d.day()?>', d=datetime.date(2010, 5, 12))
 
 
-def test_method_month():
-	for r in allrenders():
-		assert '5' == r(u'<?print @2010-05-12T.month()?>')
-		assert '5' == r(u'<?print d.month()?>', d=datetime.date(2010, 5, 12))
+@with_all_renderers
+def test_method_month(r):
+	assert '5' == r(u'<?print @2010-05-12T.month()?>')
+	assert '5' == r(u'<?print d.month()?>', d=datetime.date(2010, 5, 12))
 
 
-def test_method_year():
-	for r in allrenders():
-		assert '5' == r(u'<?print @2010-05-12T.month()?>')
-		assert '5' == r(u'<?print d.month()?>', d=datetime.date(2010, 5, 12))
+@with_all_renderers
+def test_method_year(r):
+	assert '5' == r(u'<?print @2010-05-12T.month()?>')
+	assert '5' == r(u'<?print d.month()?>', d=datetime.date(2010, 5, 12))
 
 
-def test_method_hour():
-	for r in allrenders():
-		assert '16' == r(u'<?print @2010-05-12T16:47:56.hour()?>')
-		assert '16' == r(u'<?print d.hour()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
+@with_all_renderers
+def test_method_hour(r):
+	assert '16' == r(u'<?print @2010-05-12T16:47:56.hour()?>')
+	assert '16' == r(u'<?print d.hour()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
 
 
-def test_method_minute():
-	for r in allrenders():
-		assert '47' == r(u'<?print @2010-05-12T16:47:56.minute()?>')
-		assert '47' == r(u'<?print d.minute()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
+@with_all_renderers
+def test_method_minute(r):
+	assert '47' == r(u'<?print @2010-05-12T16:47:56.minute()?>')
+	assert '47' == r(u'<?print d.minute()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
 
 
-def test_method_second():
-	for r in allrenders():
-		assert '56' == r(u'<?print @2010-05-12T16:47:56.second()?>')
-		assert '56' == r(u'<?print d.second()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
+@with_all_renderers
+def test_method_second(r):
+	assert '56' == r(u'<?print @2010-05-12T16:47:56.second()?>')
+	assert '56' == r(u'<?print d.second()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
 
 
-def test_method_microsecond():
-	for r in allrenders():
-		assert '123000' == r(u'<?print @2010-05-12T16:47:56.123000.microsecond()?>')
-		assert '123000' == r(u'<?print d.microsecond()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56, 123000))
+@with_all_renderers
+def test_method_microsecond(r):
+	assert '123000' == r(u'<?print @2010-05-12T16:47:56.123000.microsecond()?>')
+	assert '123000' == r(u'<?print d.microsecond()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56, 123000))
 
 
-def test_method_weekday():
-	for r in allrenders():
-		assert '2' == r(u'<?print @2010-05-12T.weekday()?>')
-		assert '2' == r(u'<?print d.weekday()?>', d=datetime.date(2010, 5, 12))
+@with_all_renderers
+def test_method_weekday(r):
+	assert '2' == r(u'<?print @2010-05-12T.weekday()?>')
+	assert '2' == r(u'<?print d.weekday()?>', d=datetime.date(2010, 5, 12))
 
 
-def test_method_yearday():
-	for r in allrenders():
-		assert '1' == r(u'<?print @2010-01-01T.yearday()?>')
-		assert '366' == r(u'<?print @2008-12-31T.yearday()?>')
-		assert '365' == r(u'<?print @2010-12-31T.yearday()?>')
-		assert '132' == r(u'<?print @2010-05-12T.yearday()?>')
-		assert '132' == r(u'<?print @2010-05-12T16:47:56.yearday()?>')
-		assert '132' == r(u'<?print d.yearday()?>', d=datetime.date(2010, 5, 12))
-		assert '132' == r(u'<?print d.yearday()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
+@with_all_renderers
+def test_method_yearday(r):
+	assert '1' == r(u'<?print @2010-01-01T.yearday()?>')
+	assert '366' == r(u'<?print @2008-12-31T.yearday()?>')
+	assert '365' == r(u'<?print @2010-12-31T.yearday()?>')
+	assert '132' == r(u'<?print @2010-05-12T.yearday()?>')
+	assert '132' == r(u'<?print @2010-05-12T16:47:56.yearday()?>')
+	assert '132' == r(u'<?print d.yearday()?>', d=datetime.date(2010, 5, 12))
+	assert '132' == r(u'<?print d.yearday()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
 
 
-def test_render():
+@with_all_renderers
+def test_render(r):
 	t = ul4c.compile(u'<?print prefix?><?print data?><?print suffix?>')
-	for r in allrenders():
-		assert '(f)(o)(o)' == r(u'<?for c in data?><?render t(data=c, prefix="(", suffix=")")?><?end for?>', t=t, data='foo')
-		assert '(f)(o)(o)' == r(u'<?for c in data?><?render t(data=c, **{"prefix": "(", "suffix": ")"})?><?end for?>', t=t, data='foo')
+	assert '(f)(o)(o)' == r(u'<?for c in data?><?render t(data=c, prefix="(", suffix=")")?><?end for?>', t=t, data='foo')
+	assert '(f)(o)(o)' == r(u'<?for c in data?><?render t(data=c, **{"prefix": "(", "suffix": ")"})?><?end for?>', t=t, data='foo')
 
 
-def test_render_var():
+@with_all_renderers
+def test_render_var(r):
 	t = ul4c.compile(u'<?code x += 1?><?print x?>')
-	for r in allrenders():
-		assert '42,43,42' == r(u'<?print x?>,<?render t(x=x)?>,<?print x?>', t=t, x=42)
+	assert '42,43,42' == r(u'<?print x?>,<?render t(x=x)?>,<?print x?>', t=t, x=42)
 
 
-def test_def():
-	for r in allrenders():
-		assert 'foo' == r(u'<?def lower?><?print x.lower()?><?end def?><?print lower.render(x="FOO")?>')
+@with_all_renderers
+def test_def(r):
+	assert 'foo' == r(u'<?def lower?><?print x.lower()?><?end def?><?print lower.render(x="FOO")?>')
 
 
-def test_parse():
-	for r in allrenders():
-		assert '42' == r(u'<?print data.Noner?>', data=dict(Noner=42))
+@with_all_renderers
+def test_parse(r):
+	assert '42' == r(u'<?print data.Noner?>', data=dict(Noner=42))
 
 
-def test_nested_exceptions():
+@with_all_renderers
+def test_nested_exceptions(r):
 	tmpl1 = ul4c.compile(u"<?print 2*x?>")
 	tmpl2 = ul4c.compile(u"<?render tmpl1(x=x)?>")
 	tmpl3 = ul4c.compile(u"<?render tmpl2(tmpl1=tmpl1, x=x)?>")
 
-	for r in allrenders():
-		if r is not renderjs:
-			msg = "TypeError .*render tmpl3.*render tmpl2.*render tmpl1.*print 2.*unsupported operand type"
-			with raises(msg):
-				r(u"<?render tmpl3(tmpl1=tmpl1, tmpl2=tmpl2, x=x)?>", tmpl1=tmpl1, tmpl2=tmpl2, tmpl3=tmpl3, x=None)
+	if r is not renderjs:
+		msg = "TypeError .*render tmpl3.*render tmpl2.*render tmpl1.*print 2.*unsupported operand type"
+		with raises(msg):
+			r(u"<?render tmpl3(tmpl1=tmpl1, tmpl2=tmpl2, x=x)?>", tmpl1=tmpl1, tmpl2=tmpl2, tmpl3=tmpl3, x=None)
 
 
-def test_note():
-	for r in allrenders():
-		assert "foo" == r(u"f<?note This is?>o<?note a comment?>o")
+@with_all_renderers
+def test_note(r):
+	assert "foo" == r(u"f<?note This is?>o<?note a comment?>o")
+
+
+@with_all_renderers
+def test_templateattributes(r):
+	if r is not renderjs:
+		s = "<?print x?>"
+		t = ul4c.compile(s)
+		assert "<?" == r(u"<?print template.startdelim?>", template=t)
+		assert "?>" == r(u"<?print template.enddelim?>", template=t)
+		assert s == r(u"<?print template.source?>", template=t)
+		assert "2" == r(u"<?print len(template.opcodes)?>", template=t)
+		assert "loadvar" == r(u"<?print template.opcodes[0].code?>", template=t)
+		assert "0" == r(u"<?print template.opcodes[0].r1?>", template=t)
+		assert "" == r(u"<?print template.opcodes[0].r2?>", template=t)
+		assert "x" == r(u"<?print template.opcodes[0].arg?>", template=t)
+		assert s == r(u"<?code loc = template.opcodes[0].location?><?print template.source[loc.starttag:loc.endtag]?>", template=t)
+		assert "x" == r(u"<?code loc = template.opcodes[0].location?><?print template.source[loc.startcode:loc.endcode]?>", template=t)
 
 
 def universaltemplate():
@@ -1571,17 +1616,6 @@ def test_pythonfunction():
 	t.pythonfunction()
 
 
-def test_templateattributes():
-	s = "<?print x?>"
-	t = ul4c.compile(s)
-	for r in allrenders(js=False):
-		assert "<?" == r(u"<?print template.startdelim?>", template=t)
-		assert "?>" == r(u"<?print template.enddelim?>", template=t)
-		assert s == r(u"<?print template.source?>", template=t)
-		assert "2" == r(u"<?print len(template.opcodes)?>", template=t)
-		assert "loadvar" == r(u"<?print template.opcodes[0].code?>", template=t)
-		assert "0" == r(u"<?print template.opcodes[0].r1?>", template=t)
-		assert "" == r(u"<?print template.opcodes[0].r2?>", template=t)
-		assert "x" == r(u"<?print template.opcodes[0].arg?>", template=t)
-		assert s == r(u"<?code loc = template.opcodes[0].location?><?print template.source[loc.starttag:loc.endtag]?>", template=t)
-		assert "x" == r(u"<?code loc = template.opcodes[0].location?><?print template.source[loc.startcode:loc.endcode]?>", template=t)
+def test_jssource():
+	t = universaltemplate()
+	t.jssource()
