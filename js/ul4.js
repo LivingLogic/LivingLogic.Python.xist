@@ -226,12 +226,7 @@ var ul4 = {
 
 	_fu_rgb: function(r, g, b, a)
 	{
-		var c = this._clone(this.Color);
-		c.r = r;
-		c.g = g;
-		c.b = b;
-		c.a = a;
-		return c;
+		return this.Color.create(255*r, 255*g, 255*b, typeof(a) == "undefined" ? 0xff : (255*a));
 	},
 
 	_fu_type: function(obj)
@@ -704,6 +699,61 @@ var ul4 = {
 		var now = new Date();
 		// FIXME: The timezone is wrong for the new ``Date`` object.
 		return new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds(), now.getUTCMilliseconds());
+	},
+
+	_fu_hls: function(h, l, s, a)
+	{
+		var _v = function(m1, m2, hue)
+		{
+			hue = hue % 1.0;
+			if (hue < 1/6)
+				return m1 + (m2-m1)*hue*6.0;
+			else if (hue < 0.5)
+				return m2;
+			else if (hue < 2/3)
+				return m1 + (m2-m1)*(2/3-hue)*6.0;
+			return m1;
+		};
+
+		var m1, m2;
+		if (typeof(a) === "undefined")
+			a = 1;
+		if (s == 0.0)
+		    return this._fu_rgb(l, l, l, a);
+		if (l <= 0.5)
+		    m2 = l * (1.0+s);
+		else
+		    m2 = l+s-(l*s);
+		m1 = 2.0*l - m2;
+		return this._fu_rgb(_v(m1, m2, h+1/3), _v(m1, m2, h), _v(m1, m2, h-1/3), a);
+	},
+
+	_fu_hsv: function(h, s, v, a)
+	{
+		if (typeof(a) === "undefined")
+			a = 1;
+		if (s == 0.0)
+			return this._fu_rgb(v, v, v, a);
+		var i = Math.floor(h*6.0);
+		var f = (h*6.0) - i;
+		var p = v*(1.0 - s);
+		var q = v*(1.0 - s*f);
+		var t = v*(1.0 - s*(1.0-f));
+		switch (i%6)
+		{
+			case 0:
+				return this._fu_rgb(v, t, p, a);
+			case 1:
+				return this._fu_rgb(q, v, p, a);
+			case 2:
+				return this._fu_rgb(p, v, t, a);
+			case 3:
+				return this._fu_rgb(p, q, v, a);
+			case 4:
+				return this._fu_rgb(t, p, v, a);
+			case 5:
+				return this._fu_rgb(v, p, q, a);
+		}
 	},
 
 	// Functions with the ``_me_`` prefix implement UL4 methods
@@ -1284,33 +1334,6 @@ var ul4 = {
 		return obj.witha(newa);
 	},
 
-	_hls: function(h, l, s, a)
-	{
-		var _v = function(m1, m2, hue)
-		{
-			hue = hue % 1.0;
-			if (hue < 1/6)
-				return m1 + (m2-m1)*hue*6.0;
-			else if (hue < 0.5)
-				return m2;
-			else if (hue < 2/3)
-				return m1 + (m2-m1)*(2/3-hue)*6.0;
-			return m1;
-		};
-
-		var m1, m2;
-		if (typeof(a) === "undefined")
-			a = 1;
-		if (s == 0.0)
-		    return this._fu_rgb(l*255, l*255, l*255, a*255);
-		if (l <= 0.5)
-		    m2 = l * (1.0+s);
-		else
-		    m2 = l+s-(l*s);
-		m1 = 2.0*l - m2;
-		return this._fu_rgb(_v(m1, m2, h+1/3)*255, _v(m1, m2, h)*255, _v(m1, m2, h-1/3)*255, a*255);
-	},
-
 	_me_withlum: function(obj, newlum)
 	{
 		if (!this._fu_iscolor(obj))
@@ -1321,6 +1344,16 @@ var ul4 = {
 	// "Classes"
 	Color: {
 		__iscolor__: true,
+
+		create: function(r, g, b, a)
+		{
+			var c = ul4._clone(this);
+			c.r = r;
+			c.g = g;
+			c.b = b;
+			c.a = a;
+			return c;
+		},
 
 		lum: function()
 		{
@@ -1398,7 +1431,7 @@ var ul4 = {
 		{
 			if (typeof(a) !== "number")
 				throw "witha() requires a number";
-			return ul4._fu_rgb(this.r, this.g, this.b, a);
+			return ul4.Color.create(this.r, this.g, this.b, a);
 		},
 
 		withlum: function(lum)
@@ -1406,7 +1439,7 @@ var ul4 = {
 			if (typeof(lum) !== "number")
 				throw "witha() requires a number";
 			var hlsa = this.hlsa();
-			return ul4._hls(hlsa[0], lum, hlsa[2], hlsa[3]);
+			return ul4._fu_hls(hlsa[0], lum, hlsa[2], hlsa[3]);
 		}
 	},
 

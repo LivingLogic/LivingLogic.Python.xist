@@ -1198,6 +1198,24 @@ def test_function_reversed():
 		assert "(3)(2)(1)" == r(code, x=(1, 2, 3))
 
 
+def test_function_rgb():
+	for r in allrenders():
+		assert "#369" == r("<?print repr(rgb(0.2, 0.4, 0.6))?>")
+		assert "#369c" == r("<?print repr(rgb(0.2, 0.4, 0.6, 0.8))?>")
+
+
+def test_function_hls():
+	for r in allrenders():
+		assert "#fff" == r("<?print repr(hls(0, 1, 0))?>")
+		assert "#fff0" == r("<?print repr(hls(0, 1, 0, 0))?>")
+
+
+def test_function_hsv():
+	for r in allrenders():
+		assert "#fff" == r("<?print repr(hsv(0, 0, 1))?>")
+		assert "#fff0" == r("<?print repr(hsv(0, 0, 1, 0))?>")
+
+
 def test_method_upper():
 	for r in allrenders():
 		assert "GURK" == r(u"<?print 'gurk'.upper()?>")

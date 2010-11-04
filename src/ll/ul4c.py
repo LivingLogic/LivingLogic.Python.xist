@@ -1238,7 +1238,7 @@ class Template(object):
 			args[6] //= 1000
 		self._jssource_line(u"r{op.r1} = new Date({date});".format(op=opcode, date=", ".join(map(str, args))))
 	def _jssource_dispatch_loadcolor(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4._fu_rgb(0x{r}, 0x{g}, 0x{b}, 0x{a});".format(op=opcode, r=opcode.arg[:2], g=opcode.arg[2:4], b=opcode.arg[4:6], a=opcode.arg[6:]))
+		self._jssource_line(u"r{op.r1} = ul4.Color.create(0x{r}, 0x{g}, 0x{b}, 0x{a});".format(op=opcode, r=opcode.arg[:2], g=opcode.arg[2:4], b=opcode.arg[4:6], a=opcode.arg[6:]))
 	def _jssource_dispatch_buildlist(self, opcode):
 		self._jssource_line(u"r{op.r1} = [];".format(op=opcode))
 	def _jssource_dispatch_builddict(self, opcode):
@@ -1381,12 +1381,12 @@ class Template(object):
 		if opcode.arg in {"range", "zip", "hls", "hsv", "randrange"}:
 			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 		elif opcode.arg == "rgb":
-			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, 0xff);".format(op=opcode))
+			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, 1.0);".format(op=opcode))
 		else:
 			raise UnknownFunctionError(opcode.arg)
 	def _jssource_dispatch_callfunc4(self, opcode):
 		if opcode.arg in {"rgb", "hls", "hsv"}:
-			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.5});".format(op=opcode))
+			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
 		else:
 			raise UnknownFunctionError(opcode.arg)
 	def _jssource_dispatch_callmeth0(self, opcode):
@@ -2807,7 +2807,7 @@ def _json(obj):
 	elif isinstance(obj, datetime.date):
 		return format(obj, u"new Date({}, {}, {})".format(obj.year, obj.month-1, obj.day))
 	elif isinstance(obj, color.Color):
-		return u"ul4._fu_rgb({}, {}, {}, {})".format(*obj)
+		return u"ul4.Color.create({}, {}, {}, {})".format(*obj)
 	elif isinstance(obj, (tuple, list)):
 		return u"[{}]".format(u", ".join(_json(item) for item in obj))
 	elif isinstance(obj, dict):
