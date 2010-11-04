@@ -29,12 +29,16 @@ def raises(msg):
 
 def render(__, **variables):
 	__ = ul4c.compile(__)
+	print "Testing Python template:"
+	print __.pythonsource()
 	return __.renders(**variables)
 
 
 def renderdumps(__, **variables):
 	__ = ul4c.compile(__)
 	__ = ul4c.loads(__.dumps()) # Recreate the template from the binary dump
+	print "Testing Python template loaded from string:"
+	print __.pythonsource()
 	return __.renders(**variables)
 
 
@@ -44,6 +48,8 @@ def renderdump(__, **variables):
 	__.dump(stream)
 	stream.seek(0)
 	__ = ul4c.load(stream) # Recreate the template from the stream
+	print "Testing Python template loaded from stream:"
+	print __.pythonsource()
 	return __.renders(**variables)
 
 
@@ -51,13 +57,14 @@ def renderjs(__, **variables):
 	# Check the Javascript version (this requires an installed ``d8`` shell from V8 (http://code.google.com/p/v8/))
 	__ = ul4c.compile(__)
 	js = __.jssource()
+	print "Testing Javascript template:"
+	print js.encode("utf-8")
 	js = u"template = {};\ndata = {};\nprint(template.renders(data));\n".format(js, ul4c._json(variables))
 	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 		f.write(js.encode("utf-8"))
 		f.flush()
 		result = os.popen("d8 js/ul4.js {}".format(f.name), "rb").read()
-	result = result.decode("utf-8")
-	result = result[:-1] # Drop the "\n"
+	result = result.decode("utf-8")[:-1] # Drop the "\n"
 	# Check if we have an exception
 	if result.endswith("^"):
 		raise RuntimeError(result.splitlines()[0])
