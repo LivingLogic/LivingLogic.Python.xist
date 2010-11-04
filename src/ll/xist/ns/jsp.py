@@ -356,14 +356,14 @@ def fromul4(template, variables="variables", indent=0):
 		elif opcode.code == "callfunc0":
 			if opcode.arg == "now":
 				make_scriptlet(u"r{op.r1} = new java.util.Date();".format(op=opcode))
-			elif opcode.arg in ("utcnow", "random"):
+			elif opcode.arg in {"utcnow", "random"}:
 				make_scriptlet(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}();".format(op=opcode))
 			elif opcode.arg == "vars":
 				make_scriptlet(u"r{op.r1} = {var};".format(op=opcode, var=variables))
 			else:
 				raise ul4c.UnknownFunctionError(opcode.arg)
 		elif opcode.code == "callfunc1":
-			if opcode.arg in ("xmlescape", "csv", "repr", "enumerate", "chr", "ord", "hex", "oct", "bin", "sorted", "range", "type", "json", "reversed", "randrange"):
+			if opcode.arg in {"xmlescape", "csv", "repr", "enumerate", "chr", "ord", "hex", "oct", "bin", "sorted", "range", "type", "json", "reversed", "randrange"}:
 				make_scriptlet(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
 			elif opcode.arg == "str":
 				make_scriptlet(u"r{op.r1} = org.apache.commons.lang.ObjectUtils.toString(r{op.r2});".format(op=opcode))
@@ -400,42 +400,42 @@ def fromul4(template, variables="variables", indent=0):
 			else:
 				raise ul4c.UnknownFunctionError(opcode.arg)
 		elif opcode.code == "callfunc2":
-			if opcode.arg in ("range", "zip", "randrange"):
+			if opcode.arg in {"range", "zip", "randrange"}:
 				make_scriptlet(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
 			elif opcode.arg == "get":
 				make_scriptlet(u"r{op.r1} = {var}.containsKey(r{op.r2}) ? {var}.get(r{op.r2}) : r{op.r3};".format(op=opcode.r1, var=variables))
 			else:
 				raise ul4c.UnknownFunctionError(opcode.arg)
 		elif opcode.code == "callfunc3":
-			if opcode.arg in ("range", "zip", "rgb", "hls", "hsv", "randrange"):
+			if opcode.arg in {"range", "zip", "rgb", "hls", "hsv", "randrange"}:
 				make_scriptlet(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 			else:
 				raise ul4c.UnknownFunctionError(opcode.arg)
 		elif opcode.code == "callfunc4":
-			if opcode.arg in ("rgb", "hls", "hsv"):
+			if opcode.arg in {"rgb", "hls", "hsv"}:
 				make_scriptlet(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.5});".format(op=opcode))
 			else:
 				raise ul4c.UnknownFunctionError(opcode.arg)
 		elif opcode.code == "callmeth0":
-			if opcode.arg in ("split", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "items", "isoformat", "mimeformat", "day", "month", "year", "hour", "minute", "second", "microsecond", "weekday", "yearday"):
+			if opcode.arg in {"split", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "items", "isoformat", "mimeformat", "day", "month", "year", "hour", "minute", "second", "microsecond", "weekday", "yearday"}:
 				make_scriptlet(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
-			elif opcode.arg in ("r", "g", "b", "a"):
+			elif opcode.arg in {"r", "g", "b", "a"}:
 				make_scriptlet(u"r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).get{arg}();".format(op=opcode, arg=opcode.arg.upper()))
-			elif opcode.arg in ("hls", "hlsa", "hsv", "hsva"):
+			elif opcode.arg in {"hls", "hlsa", "hsv", "hsva"}:
 				make_scriptlet(u"r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).{op.arg}();".format(op=opcode))
 			elif opcode.arg == "lum":
 				make_scriptlet(u"r{op.r1} = new Double(((com.livinglogic.ul4.Color)r{op.r2}).lum());".format(op=opcode))
 			else:
 				raise ul4c.UnknownMethodError(opcode.arg)
 		elif opcode.code == "callmeth1":
-			if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "rfind", "format", "withlum", "witha"):
+			if opcode.arg in {"split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "rfind", "format", "withlum", "witha"}:
 				make_scriptlet(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
 			elif opcode.arg == "get":
 				make_scriptlet(u"r{op.r1} = ((java.util.Map)r{op.r2}).get(r{op.r3});".format(op=opcode))
 			else:
 				raise ul4c.UnknownMethodError(opcode.arg)
 		elif opcode.code == "callmeth2":
-			if opcode.arg in ("split", "rsplit", "find", "replace"):
+			if opcode.arg in {"split", "rsplit", "find", "replace"}:
 				make_scriptlet(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 			elif opcode.arg == "get":
 				make_scriptlet(u"r{op.r1} = ((java.util.Map)r{op.r2}).containsKey(r{op.r3}) ? ((java.util.Map)r{op.r2}).get(r{op.r3}) : r{op.r4};".format(op=opcode))
