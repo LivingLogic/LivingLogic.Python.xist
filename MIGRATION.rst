@@ -7,6 +7,9 @@ Changes to :mod:`ll.ul4c`
 *	Date constants now need a ``@`` as a prefix. I.e. chance ``2010-11-03T`` to
 	``@2010-11-03T`` etc.
 
+*	The :var:`function` argument for :meth:`ul4c.Template.pythonsource` is gone.
+	The output will always be a full function.
+
 
 Migrating to version 3.12
 =========================

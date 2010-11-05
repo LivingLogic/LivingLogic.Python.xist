@@ -1,11 +1,15 @@
-Changes in 3.14 (released ??/??/2010)
+Changes in 3.14 (released 11/05/2010)
 -------------------------------------
 
 *	UL4 templates now have a method :meth:`jssource` that returns Javascript
-	source code.
+	source code. This means that now UL4 templates can be converted to: Python
+	source code, JSP source code and Javascript source code.
 
 *	Date constants in UL4 have changed. They are now written like this:
 	``@2010-11-05T``.
+
+*	The :var:`function` argument for :meth:`ul4c.Template.pythonsource` is gone.
+	The output will always be a full function.
 
 
 Changes in 3.13 (released 10/22/2010)
