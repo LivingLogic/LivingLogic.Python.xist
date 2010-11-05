@@ -130,20 +130,15 @@ def test_int(r):
 
 @with_all_renderers
 def test_float(r):
-	if r is not renderjs:
-		assert '0.0' == r(u'<?print 0.?>')
-		assert '42.0' == r(u'<?print 42.?>')
-		assert '-42.0' == r(u'<?print -42.?>')
-	else:
-		# Javascript doesn't distinguish between int and float
-		assert 0.0 == eval(r(u'<?print 0.?>'))
-		assert 42.0 == eval(r(u'<?print 42.?>'))
-		assert -42.0 == eval(r(u'<?print -42.?>'))
-	assert '-42.5' == r(u'<?print -42.5?>')
-	assert '1e+42' == r(u'<?print 1E42?>')
-	assert '1e+42' == r(u'<?print 1e42?>')
-	assert '-1e+42' == r(u'<?print -1E42?>')
-	assert '-1e+42' == r(u'<?print -1e42?>')
+	# str() output might differ slightly between Python and JS, so eval the output again for tests
+	assert 0.0 == eval(r(u'<?print 0.?>'))
+	assert 42.0 == eval(r(u'<?print 42.?>'))
+	assert -42.0 == eval(r(u'<?print -42.?>'))
+	assert -42.5 == eval(r(u'<?print -42.5?>'))
+	assert 1e42 == eval(r(u'<?print 1E42?>'))
+	assert 1e42 == eval(r(u'<?print 1e42?>'))
+	assert -1e42 == eval(r(u'<?print -1E42?>'))
+	assert -1e42 == eval(r(u'<?print -1e42?>'))
 
 	assert 'no' == r(u'<?if 0.?>yes<?else?>no<?end if?>')
 	assert 'yes' == r(u'<?if 1.?>yes<?else?>no<?end if?>')
