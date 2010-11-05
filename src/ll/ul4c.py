@@ -875,7 +875,7 @@ class Template(object):
 	def _pythonsource_dispatch_loaddate(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = datetime.datetime({date})".format(op=opcode, date=", ".join(str(int(p)) for p in datesplitter.split(opcode.arg))))
 	def _pythonsource_dispatch_loadcolor(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = color.Color(0x{r}, 0x{g}, 0x{b}, 0x{a})".format(op=opcode, r=opcode.arg[:2], g=opcode.arg[2:4], b=opcode.arg[4:6], a=opcode.arg[6:]))
+		self._pythonsource_line(opcode.location, "r{op.r1:d} = color.Color({r}, {g}, {b}, {a})".format(op=opcode, r=int(opcode.arg[:2], 16), g=int(opcode.arg[2:4], 16), b=int(opcode.arg[4:6], 16), a=int(opcode.arg[6:], 16)))
 	def _pythonsource_dispatch_buildlist(self, opcode):
 		self._pythonsource_line(opcode.location, "r{op.r1:d} = []".format(op=opcode))
 	def _pythonsource_dispatch_builddict(self, opcode):
@@ -1195,7 +1195,7 @@ class Template(object):
 				lastloc = opcode.location
 				(line, col) = lastloc.pos()
 				tag = lastloc.tag
-				self._jssource_line(u"// Location {} (line {}, col {}): {}".format(lastloc.starttag+1, line, col, repr(tag)[1+isinstance(tag, unicode):-1]))
+				self._jssource_line(u"// {} tag at {} (line {}, col {}): {}".format(lastloc.type, lastloc.starttag+1, line, col, repr(tag)[1+isinstance(tag, unicode):-1]))
 			try:
 				getattr(self, "_jssource_dispatch_{}".format(opcode.code))(opcode)
 			except AttributeError:
@@ -1238,7 +1238,7 @@ class Template(object):
 			args[6] //= 1000
 		self._jssource_line(u"r{op.r1} = new Date({date});".format(op=opcode, date=", ".join(map(str, args))))
 	def _jssource_dispatch_loadcolor(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4.Color.create(0x{r}, 0x{g}, 0x{b}, 0x{a});".format(op=opcode, r=opcode.arg[:2], g=opcode.arg[2:4], b=opcode.arg[4:6], a=opcode.arg[6:]))
+		self._jssource_line(u"r{op.r1} = ul4.Color.create({r}, {g}, {b}, {a});".format(op=opcode, r=int(opcode.arg[:2], 16), g=int(opcode.arg[2:4], 16), b=int(opcode.arg[4:6], 16), a=int(opcode.arg[6:], 16)))
 	def _jssource_dispatch_buildlist(self, opcode):
 		self._jssource_line(u"r{op.r1} = [];".format(op=opcode))
 	def _jssource_dispatch_builddict(self, opcode):
@@ -1378,9 +1378,9 @@ class Template(object):
 		else:
 			raise UnknownFunctionError(opcode.arg)
 	def _jssource_dispatch_callfunc3(self, opcode):
-		if opcode.arg in {"range", "zip", "hls", "hsv", "randrange"}:
+		if opcode.arg in {"range", "zip", "randrange"}:
 			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
-		elif opcode.arg == "rgb":
+		elif opcode.arg in {"rgb", "hls", "hsv"}:
 			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, 1.0);".format(op=opcode))
 		else:
 			raise UnknownFunctionError(opcode.arg)
@@ -1810,12 +1810,12 @@ class For(AST):
 		ri = template._allocreg()
 		template.opcode("for", r1=ri, r2=rc)
 		if isinstance(self.iter, list):
+			rii = template._allocreg()
 			for (i, iter) in enumerate(self.iter):
-				rii = template._allocreg()
 				template.opcode("loadint", r1=rii, arg=str(i))
 				template.opcode("getitem", r1=rii, r2=ri, r3=rii)
 				template.opcode("storevar", r1=rii, arg=iter.name)
-				template._freereg(rii)
+			template._freereg(rii)
 		else:
 			template.opcode("storevar", r1=ri, arg=self.iter.name)
 		template._freereg(ri)
