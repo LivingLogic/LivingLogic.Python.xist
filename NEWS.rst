@@ -8,8 +8,8 @@ Changes in 3.14 (released 11/05/2010)
 *	Date constants in UL4 have changed. They are now written like this:
 	``@2010-11-05T``.
 
-*	The :var:`function` argument for :meth:`ul4c.Template.pythonsource` is gone.
-	The output will always be a full function.
+*	:meth:`ul4c.Template.pythonsource` no longer accepts ``None`` as the
+	function name. The output will always be a full function.
 
 
 Changes in 3.13 (released 10/22/2010)
