@@ -163,21 +163,6 @@ class directive_page(directive):
 		return super(directive_page, self).publish(publisher) # return a generator-iterator
 
 
-def javastring(s):
-	"""
-	Return a Java string literal for the string :var:`s`.
-	"""
-	v = []
-	specialchars = {u"\r": u"\\r", u"\n": u"\\n", u"\t": u"\\t", u'"': u'\\"'}
-	for c in s:
-		try:
-			v.append(specialchars[c])
-		except KeyError:
-			oc = ord(c)
-			v.append(u"\\u{:04x}".format(oc) if oc >= 128 else c)
-	return u'"{}"'.format(u"".join(v))
-
-
 def fromul4(template, variables="variables", indent=0):
 	"""
 	Return the UL4 template :var:`template` as JSP source code. :var:`variables`
@@ -226,7 +211,7 @@ def fromul4(template, variables="variables", indent=0):
 		if opcode.code is None:
 			make_literal(opcode.location.code)
 		elif opcode.code == "loadstr":
-			make_scriptlet(u'r{op.r1} = {arg};'.format(op=opcode, arg=javastring(opcode.arg)))
+			make_scriptlet(u'r{op.r1} = {arg};'.format(op=opcode, arg=misc.javastring(opcode.arg)))
 		elif opcode.code == "loadint":
 			make_scriptlet(u"r{op.r1} = new Integer({op.arg});".format(op=opcode))
 		elif opcode.code == "loadfloat":
@@ -238,7 +223,7 @@ def fromul4(template, variables="variables", indent=0):
 		elif opcode.code == "loadtrue":
 			make_scriptlet(u"r{op.r1} = Boolean.TRUE;".format(op=opcode))
 		elif opcode.code == "loaddate":
-			make_scriptlet(u"r{op.r1} = com.livinglogic.ul4.Utils.isoDateFormatter.parse({arg});".format(op=opcode, arg=javastring(opcode.arg)))
+			make_scriptlet(u"r{op.r1} = com.livinglogic.ul4.Utils.isoDateFormatter.parse({arg});".format(op=opcode, arg=misc.javastring(opcode.arg)))
 		elif opcode.code == "loadcolor":
 			make_scriptlet(u"r{op.r1} = new com.livinglogic.ul4.Color(0x{r}, 0x{g}, 0x{b}, 0x{a})".format(op=opcode, r=opcode.arg[:2], g=opcode.arg[2:4], b=opcode.arg[4:6], a=opcode.arg[6:]))
 		elif opcode.code == "buildlist":
@@ -252,26 +237,26 @@ def fromul4(template, variables="variables", indent=0):
 		elif opcode.code == "updatedict":
 			make_scriptlet(u"((java.util.Map)r{op.r1}).putAll((java.util.Map)r{op.r2});".format(op=opcode))
 		elif opcode.code == "loadvar":
-			make_scriptlet(u"r{op.r1} = com.livinglogic.ul4.Utils.getItem({var}, {arg});".format(op=opcode, var=variables, arg=javastring(opcode.arg)))
+			make_scriptlet(u"r{op.r1} = com.livinglogic.ul4.Utils.getItem({var}, {arg});".format(op=opcode, var=variables, arg=misc.javastring(opcode.arg)))
 		elif opcode.code == "storevar":
-			make_scriptlet(u"{var}.put({arg}, r{op.r1});".format(var=variables, arg=javastring(opcode.arg), op=opcode))
+			make_scriptlet(u"{var}.put({arg}, r{op.r1});".format(var=variables, arg=misc.javastring(opcode.arg), op=opcode))
 		elif opcode.code == "addvar":
-			make_scriptlet(u"{var}.put({arg}, com.livinglogic.ul4.Utils.add({var}.get({arg}), r{op.r1}));".format(var=variables, arg=javastring(opcode.arg), op=opcode))
+			make_scriptlet(u"{var}.put({arg}, com.livinglogic.ul4.Utils.add({var}.get({arg}), r{op.r1}));".format(var=variables, arg=misc.javastring(opcode.arg), op=opcode))
 		elif opcode.code == "subvar":
-			make_scriptlet(u"{var}.put({arg}, com.livinglogic.ul4.Utils.sub({var}.get({arg}), r{op.r1}));".format(var=variables, arg=javastring(opcode.arg), op=opcode))
+			make_scriptlet(u"{var}.put({arg}, com.livinglogic.ul4.Utils.sub({var}.get({arg}), r{op.r1}));".format(var=variables, arg=misc.javastring(opcode.arg), op=opcode))
 		elif opcode.code == "mulvar":
-			make_scriptlet(u"{var}.put({arg}, com.livinglogic.ul4.Utils.mul({var}.get({arg}), r{op.r1}));".format(var=variables, arg=javastring(opcode.arg), op=opcode))
+			make_scriptlet(u"{var}.put({arg}, com.livinglogic.ul4.Utils.mul({var}.get({arg}), r{op.r1}));".format(var=variables, arg=misc.javastring(opcode.arg), op=opcode))
 		elif opcode.code == "truedivvar":
-			make_scriptlet(u"{var}.put({arg}, com.livinglogic.ul4.Utils.truediv({var}.get({arg}), r{op.r1}));".format(var=variables, arg=javastring(opcode.arg), op=opcode))
+			make_scriptlet(u"{var}.put({arg}, com.livinglogic.ul4.Utils.truediv({var}.get({arg}), r{op.r1}));".format(var=variables, arg=misc.javastring(opcode.arg), op=opcode))
 		elif opcode.code == "floordivvar":
-			name = javastring(opcode.arg)
-			make_scriptlet(u"{var}.put({arg}, com.livinglogic.ul4.Utils.floordiv({var}.get({arg}), r{op.r1}));".format(var=variables, arg=javastring(opcode.arg), op=opcode))
+			name = misc.javastring(opcode.arg)
+			make_scriptlet(u"{var}.put({arg}, com.livinglogic.ul4.Utils.floordiv({var}.get({arg}), r{op.r1}));".format(var=variables, arg=misc.javastring(opcode.arg), op=opcode))
 		elif opcode.code == "modvar":
-			make_scriptlet(u"{var}.put({arg}, com.livinglogic.ul4.Utils.mod({var}.get({arg}), r{op.r1}));".format(var=variables, arg=javastring(opcode.arg), op=opcode))
+			make_scriptlet(u"{var}.put({arg}, com.livinglogic.ul4.Utils.mod({var}.get({arg}), r{op.r1}));".format(var=variables, arg=misc.javastring(opcode.arg), op=opcode))
 		elif opcode.code == "delvar":
-			make_scriptlet(u"{var}.remove({arg});".format(var=variables, arg=javastring(opcode.arg)))
+			make_scriptlet(u"{var}.remove({arg});".format(var=variables, arg=misc.javastring(opcode.arg)))
 		elif opcode.code == "getattr":
-			make_scriptlet(u"r{op.r1} = com.livinglogic.ul4.Utils.getItem(r{op.r2}, {arg});".format(op=opcode, arg=javastring(opcode.arg)))
+			make_scriptlet(u"r{op.r1} = com.livinglogic.ul4.Utils.getItem(r{op.r2}, {arg});".format(op=opcode, arg=misc.javastring(opcode.arg)))
 		elif opcode.code == "getitem":
 			make_scriptlet(u"r{op.r1} = com.livinglogic.ul4.Utils.getItem(r{op.r2}, r{op.r3});".format(op=opcode))
 		elif opcode.code == "getslice12":
@@ -312,7 +297,7 @@ def fromul4(template, variables="variables", indent=0):
 			indent -= 1
 			make_scriptlet(u"};")
 			(arg, variables, oldcounter) = defs.pop()
-			make_scriptlet(u"{var}.put({arg}, template{count});".format(var=variables, arg=javastring(arg), count=oldcounter))
+			make_scriptlet(u"{var}.put({arg}, template{count});".format(var=variables, arg=misc.javastring(arg), count=oldcounter))
 		elif opcode.code == "break":
 			make_scriptlet(u"break;")
 		elif opcode.code == "continue":
@@ -465,7 +450,7 @@ def fromul4(template, variables="variables", indent=0):
 			indent -= 1
 			make_scriptlet(u"}")
 		elif opcode.code == "render":
-			make_scriptlet(u"((com.livinglogic.ul4.Template)r{op.r1}).renderjsp(out, (Map)r{op.r2});".format(op=opcode))
+			make_scriptlet(u"((com.livinglogic.ul4.Template)r{op.r1}).render(out, (Map)r{op.r2});".format(op=opcode))
 		else:
 			raise ul4c.UnknownOpcodeError(opcode.code)
 	make_scriptlet(u"//@@@ END template code")

@@ -481,6 +481,21 @@ def module(code, filename="unnamed.py", name=None):
 	return mod
 
 
+def javastring(s):
+	"""
+	Return a Java string literal for the string :var:`s`.
+	"""
+	v = []
+	specialchars = {u"\r": u"\\r", u"\n": u"\\n", u"\t": u"\\t", u'"': u'\\"'}
+	for c in s:
+		try:
+			v.append(specialchars[c])
+		except KeyError:
+			oc = ord(c)
+			v.append(u"\\u{:04x}".format(oc) if oc >= 128 else c)
+	return u'"{}"'.format(u"".join(v))
+
+
 class SysInfo(object):
 	"""
 	A :class:`SysInfo` object contains information about the host, user, python

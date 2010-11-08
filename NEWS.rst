@@ -1,3 +1,9 @@
+Changes in 3.15 (released ??/??/2010)
+-------------------------------------
+
+*	:func:`ll.xist.ns.jsp.javastring` has been move to :mod:`ll.misc`.
+
+
 Changes in 3.14 (released 11/05/2010)
 -------------------------------------
 
