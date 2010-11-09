@@ -260,6 +260,15 @@ def test_notimplemented():
 		Bad().bad()
 
 
+def test_javastring():
+	assert '""' == misc.javastring("")
+	assert '"abc"' == misc.javastring("abc")
+	assert '"\'"' == misc.javastring("'")
+	assert '"\\n"' == misc.javastring("\n")
+	assert '"\\""' == misc.javastring('"')
+	assert '"\\u00ff"' == misc.javastring(u"\xff")
+	assert '"\\u20ac"' == misc.javastring(u"\u20ac")
+
 def test_prettycsv():
 	assert "".join(misc.prettycsv([["a", "b", "c"], ["abc", "defg", "hijkl"]])) == "a     b      c\nabc   defg   hijkl\n"
 	assert "".join(misc.prettycsv([["a", "b "], ["abc", "def"]])) == "a     b\nabc   def\n"
