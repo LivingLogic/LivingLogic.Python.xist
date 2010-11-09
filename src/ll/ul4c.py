@@ -581,7 +581,7 @@ class Template(object):
 	Rendering the template can be done with the methods :meth:`render` (which
 	is a generator) or :meth:`renders` (which returns a string).
 	"""
-	version = "13"
+	version = "14"
 
 	def __init__(self, source=None, startdelim="<?", enddelim="?>"):
 		"""
@@ -611,44 +611,48 @@ class Template(object):
 		The class method :meth:`loads` loads the template from string :var:`data`.
 		:var:`data` must contain the template in compiled format.
 		"""
-		def _readint(term):
-			i = 0
+		def _readint(prefix):
+			if prefix is not None:
+				c = stream.read(len(prefix))
+				if c != prefix:
+					raise ValueError("invalid prefix, expected {!r}, got {!r}".format(prefix, c))
+			i = None
 			while True:
 				c = stream.read(1)
 				if c.isdigit():
+					if i is None:
+						i = 0
 					i = 10*i+int(c)
-				elif c == term:
+				elif c == "|":
 					return i
 				else:
-					raise ValueError("invalid terminator, expected {!r}, got {!r}".format(term, c))
+					raise ValueError("invalid separator, expected '|', got {!r}".format(c))
 
-		def _readstr(term):
-			i = 0
-			digit = False
+		def _readstr(prefix):
+			if prefix is not None:
+				c = stream.read(len(prefix))
+				if c != prefix:
+					raise ValueError("invalid prefix, expected {!r}, got {!r}".format(prefix, c))
+			i = None
 			while True:
 				c = stream.read(1)
 				if c.isdigit():
+					if i is None:
+						i = 0
 					i = 10*i+int(c)
-					digit = True
-				elif c == term:
-					if digit:
-						break
-					return None
+				elif c == "|":
+					if i is None:
+						return None
+					break
 				else:
-					raise ValueError("invalid terminator, expected {!r}, got {!r}".format(term, c))
+					raise ValueError("invalid separator, expected '|', got {!r}".format(c))
 			s = stream.read(i)
 			if len(s) != i:
 				raise ValueError("short read")
-			return s
-
-		def _readspec():
 			c = stream.read(1)
-			if c == "-":
-				return None
-			elif c.isdigit():
-				return int(c)
-			else:
-				raise ValueError("invalid register spec {!r}".format(c))
+			if c != "|":
+				raise ValueError("invalid separator, expected '|', got {!r}".format(c))
+			return s
 
 		def _readcr():
 			c = stream.read(1)
@@ -665,30 +669,33 @@ class Template(object):
 		version = version.rstrip()
 		if version != self.version:
 			raise ValueError("invalid version, expected {!r}, got {!r}".format(self.version, version))
-		self.startdelim = _readstr(u"<")
+		self.startdelim = _readstr(u"SD")
 		_readcr()
-		self.enddelim = _readstr(u">")
+		self.enddelim = _readstr(u"ED")
 		_readcr()
-		self.source = _readstr('"')
+		self.source = _readstr("SRC")
 		self.opcodes = []
 		_readcr()
-		count = _readint(u"#")
+		count = _readint(u"n")
 		_readcr()
 		location = None
 		while count:
-			r1 = _readspec()
-			r2 = _readspec()
-			r3 = _readspec()
-			r4 = _readspec()
-			r5 = _readspec()
-			code = _readstr(":")
-			arg = _readstr(".")
+			r1 = _readint(None)
+			r2 = _readint(None)
+			r3 = _readint(None)
+			r4 = _readint(None)
+			r5 = _readint(None)
+			code = _readstr("C")
+			arg = _readstr("A")
 			locspec = stream.read(1)
 			if locspec == u"^":
 				if location is None:
 					raise ValueError("no previous location")
 			elif locspec == u"*":
-				location = Location(self.source, _readstr("="), _readint("("), _readint(")"), _readint("{"), _readint("}"))
+				locspec2 = stream.read(1)
+				if locspec2 != "|":
+					raise ValueError("invalid location spec {!r}".format(locspec + locspec2))
+				location = Location(self.source, _readstr("T"), _readint("st"), _readint("et"), _readint("sc"), _readint("ec"))
 			else:
 				raise ValueError("invalid location spec {!r}".format(locspec))
 			_readcr()
@@ -708,44 +715,47 @@ class Template(object):
 		"""
 		This generator outputs the template in compiled format.
 		"""
-		def _writeint(term, number):
-			yield unicode(number)
-			yield term
+		def _writeint(prefix, number):
+			if prefix is not None:
+				yield prefix
+			if number is not None:
+				yield unicode(number)
+			yield u"|"
 
-		def _writestr(term, string):
-			if string is None:
-				yield term
-			else:
+		def _writestr(prefix, string):
+			yield prefix
+			if string is not None:
 				yield str(len(string))
-				yield term
+				yield u"|"
 				yield string
+			yield u"|"
 
 		yield "ul4\n{}\n".format(self.version)
-		for p in _writestr("<", self.startdelim): yield p
+		for p in _writestr("SD", self.startdelim): yield p
 		yield "\n"
-		for p in _writestr(">", self.enddelim): yield p
+		for p in _writestr("ED", self.enddelim): yield p
 		yield "\n"
-		for p in _writestr('"', self.source): yield p
+		for p in _writestr("SRC", self.source): yield p
 		yield "\n"
-		for p in _writeint("#", len(self.opcodes)): yield p
+		for p in _writeint("n", len(self.opcodes)): yield p
 		yield "\n"
 		lastlocation = None
 		for opcode in self.opcodes:
-			yield str(opcode.r1) if opcode.r1 is not None else u"-"
-			yield str(opcode.r2) if opcode.r2 is not None else u"-"
-			yield str(opcode.r3) if opcode.r3 is not None else u"-"
-			yield str(opcode.r4) if opcode.r4 is not None else u"-"
-			yield str(opcode.r5) if opcode.r5 is not None else u"-"
-			for p in _writestr(":", opcode.code): yield p
-			for p in _writestr(".", opcode.arg): yield p
+			for p in _writeint(None, opcode.r1): yield p
+			for p in _writeint(None, opcode.r2): yield p
+			for p in _writeint(None, opcode.r3): yield p
+			for p in _writeint(None, opcode.r4): yield p
+			for p in _writeint(None, opcode.r5): yield p
+			for p in _writestr("C", opcode.code): yield p
+			for p in _writestr("A", opcode.arg): yield p
 			if opcode.location is not lastlocation:
 				lastlocation = opcode.location
-				yield u"*"
-				for p in _writestr("=", lastlocation.type): yield p
-				for p in _writeint("(", lastlocation.starttag): yield p
-				for p in _writeint(")", lastlocation.endtag): yield p
-				for p in _writeint("{", lastlocation.startcode): yield p
-				for p in _writeint("}", lastlocation.endcode): yield p
+				yield u"*|"
+				for p in _writestr("T", lastlocation.type): yield p
+				for p in _writeint("st", lastlocation.starttag): yield p
+				for p in _writeint("et", lastlocation.endtag): yield p
+				for p in _writeint("sc", lastlocation.startcode): yield p
+				for p in _writeint("ec", lastlocation.endcode): yield p
 			else:
 				yield "^"
 			yield "\n"

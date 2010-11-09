@@ -1,4 +1,4 @@
-Changes in 3.15 (released ??/??/2010)
+Changes in 3.15 (released 11/09/2010)
 -------------------------------------
 
 *	It's now possible to create Java source code from UL4 templates with the
@@ -9,6 +9,8 @@ Changes in 3.15 (released ??/??/2010)
 
 *	The function :func:`ll.xist.ns.fromul4` no uses the new method
 	:meth:`ll.ul4c.Template.javasource` for generating JSP.
+
+*	The binary format for UL4 template has changed to enhance human readability.
 
 *	:func:`ll.xist.ns.jsp.javastring` has been move to :mod:`ll.misc`.
 
