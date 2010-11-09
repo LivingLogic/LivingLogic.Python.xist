@@ -12,7 +12,7 @@ Changes in 3.15 (released 11/09/2010)
 
 *	The binary format for UL4 template has changed to enhance human readability.
 
-*	:func:`ll.xist.ns.jsp.javastring` has been move to :mod:`ll.misc`.
+*	:func:`ll.xist.ns.jsp.javastring` has been moved to :mod:`ll.misc`.
 
 
 Changes in 3.14 (released 11/05/2010)
