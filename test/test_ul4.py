@@ -1621,3 +1621,8 @@ def test_pythonfunction():
 def test_jssource():
 	t = universaltemplate()
 	t.jssource()
+
+
+def test_javasource():
+	t = universaltemplate()
+	t.javasource()

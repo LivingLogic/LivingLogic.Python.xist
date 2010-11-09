@@ -1,3 +1,12 @@
+Migrating to version 3.15
+=========================
+
+Changes to :mod:`ll.xist.ns.jsp`
+--------------------------------
+
+*	:func:`ll.xist.ns.jsp.javastring` has been move to :mod:`ll.misc`.
+
+
 Migrating to version 3.14
 =========================
 

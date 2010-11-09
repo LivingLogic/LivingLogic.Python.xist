@@ -25,7 +25,7 @@ __docformat__ = "reStructuredText"
 
 import re, datetime, StringIO, locale, json
 
-from ll import spark, color
+from ll import spark, color, misc
 
 
 # Regular expression used for splitting dates
@@ -597,8 +597,6 @@ class Template(object):
 		self.opcodes = None
 		# The following is used for converting the opcodes back to executable Python code
 		self._pythonfunction = None
-		# Stack for currently open def opcodes
-		self.defs = []
 		if source is not None:
 			self._compile(source, startdelim, enddelim)
 
@@ -796,649 +794,28 @@ class Template(object):
 	def __call__(self, **variables):
 		return self.pythonfunction()(**variables)
 
-	def pythonsource(self, function=None):
+	def pythonsource(self, *args, **kwargs):
 		"""
-		Return the template as Python source code. If :var:`function` is specified
-		the code will be wrapped in a function with this name.
+		Return the template as Python source code. All arguments in :var:`args`
+		and :var:`kwargs` will be passed on to the :class:`PythonSource` object
+		which creates the sourcecode. See its constructor for more info.
 		"""
-
-		self.indent = 0
-		self.lines = []
-		self.locations = []
-		self.lines2locs = []
-		self.lastopcode = None
-		self.lastlocation = Location(self.source, None, 0, 0, 0, 0)
-
-		if function is not None:
-			self._pythonsource_line(self.lastlocation, "def {}(**variables):".format(function))
-			self.indent += 1
-			self.lines2locs = [] # We initialize startline one line below, which restarts the counter
-		self._pythonsource_line(self.lastlocation, "import sys, datetime, itertools, json, random; from ll.misc import xmlescape; from ll import ul4c, color; startline = sys._getframe().f_lineno") # The line number of this line
-		self._pythonsource_line(self.lastlocation, "__1__")
-		self._pythonsource_line(self.lastlocation, "__2__")
-		self._pythonsource_line(self.lastlocation, "source = {!r}".format(self.source))
-		self._pythonsource_line(self.lastlocation, 'variables = {key.decode("utf-8"): value for (key, value) in variables.iteritems()}') # FIXME: This can be dropped in Python 3.0 where strings are unicode
-		self._pythonsource_line(self.lastlocation, "r0 = r1 = r2 = r3 = r4 = r5 = r6 = r7 = r8 = r9 = None")
-		self._pythonsource_line(self.lastlocation, "try:")
-		self.indent += 1
-		# Make sure that the resulting code is a generator even if the byte codes produce no yield statement
-		self._pythonsource_line(self.lastlocation, "if 0: yield ''")
-		try:
-			for opcode in self.opcodes:
-				try:
-					getattr(self, "_pythonsource_dispatch_{}".format(opcode.code))(opcode)
-				except AttributeError:
-					raise UnknownOpcodeError(opcode.code)
-				self.lastopcode = opcode.code
-		except Exception, exc:
-			newexc = Error(opcode.location) # FIXME: Use ``raise ... from`` in Python 3.0
-			newexc.__cause__ = exc
-			raise newexc
-		self.indent -= 1
-		self._pythonsource_line(self.lastlocation, "except Exception, exc:")
-		self.indent += 1
-		self._pythonsource_line(self.lastlocation, "newexc = ul4c.Error(ul4c.Location(source, *locations[lines2locs[sys.exc_info()[2].tb_lineno-startline]]))") # FIXME: Use ``raise ... from`` in Python 3.0
-		self._pythonsource_line(self.lastlocation, "newexc.__cause__ = exc")
-		self._pythonsource_line(self.lastlocation, "raise newexc")
-		locoffset = 1+int(self.lines[0].strip() != "__1__")
-		self.lines[locoffset] = self.lines[locoffset].replace("__1__", "locations = {!r}".format(tuple(self.locations)))
-		self.lines[locoffset+1] = self.lines[locoffset+1].replace("__2__", "lines2locs = {!r}".format(tuple(self.lines2locs)))
-		result = "\n".join(self.lines)
-		del self.lastopcode
-		del self.indent
-		del self.lines
-		del self.locations
-		del self.lines2locs
-		return result
-
-	def _pythonsource_line(self, location, line):
-		self.lines.append("\t"*self.indent + line)
-		if self.lastlocation is not location or not self.locations:
-			self.locations.append((location.type, location.starttag, location.endtag, location.startcode, location.endcode))
-			self.lastlocation = location
-		self.lines2locs.append(len(self.locations)-1)
-
-	def _pythonsource_dispatch_None(self, opcode):
-		self._pythonsource_line(opcode.location, "yield {op.location.code!r}".format(op=opcode))
-	def _pythonsource_dispatch_loadstr(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = {op.arg!r}".format(op=opcode))
-	def _pythonsource_dispatch_loadint(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = {op.arg}".format(op=opcode))
-	def _pythonsource_dispatch_loadfloat(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = {op.arg}".format(op=opcode))
-	def _pythonsource_dispatch_loadnone(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = None".format(op=opcode))
-	def _pythonsource_dispatch_loadfalse(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = False".format(op=opcode))
-	def _pythonsource_dispatch_loadtrue(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = True".format(op=opcode))
-	def _pythonsource_dispatch_loaddate(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = datetime.datetime({date})".format(op=opcode, date=", ".join(str(int(p)) for p in datesplitter.split(opcode.arg))))
-	def _pythonsource_dispatch_loadcolor(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = color.Color({r}, {g}, {b}, {a})".format(op=opcode, r=int(opcode.arg[:2], 16), g=int(opcode.arg[2:4], 16), b=int(opcode.arg[4:6], 16), a=int(opcode.arg[6:], 16)))
-	def _pythonsource_dispatch_buildlist(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = []".format(op=opcode))
-	def _pythonsource_dispatch_builddict(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = {{}}".format(op=opcode))
-	def _pythonsource_dispatch_addlist(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d}.append(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_adddict(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d}[r{op.r2:d}] = r{op.r3:d}".format(op=opcode))
-	def _pythonsource_dispatch_updatedict(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d}.update(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_loadvar(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = variables[{op.arg!r}]".format(op=opcode))
-	def _pythonsource_dispatch_storevar(self, opcode):
-		self._pythonsource_line(opcode.location, "variables[{op.arg!r}] = r{op.r1:d}".format(op=opcode))
-	def _pythonsource_dispatch_addvar(self, opcode):
-		self._pythonsource_line(opcode.location, "variables[{op.arg!r}] += r{op.r1:d}".format(op=opcode))
-	def _pythonsource_dispatch_subvar(self, opcode):
-		self._pythonsource_line(opcode.location, "variables[{op.arg!r}] -= r{op.r1:d}".format(op=opcode))
-	def _pythonsource_dispatch_mulvar(self, opcode):
-		self._pythonsource_line(opcode.location, "variables[{op.arg!r}] *= r{op.r1:d}".format(op=opcode))
-	def _pythonsource_dispatch_truedivvar(self, opcode):
-		self._pythonsource_line(opcode.location, "variables[{op.arg!r}] /= r{op.r1:d}".format(op=opcode))
-	def _pythonsource_dispatch_floordivvar(self, opcode):
-		self._pythonsource_line(opcode.location, "variables[{op.arg!r}] //= r{op.r1:d}".format(op=opcode))
-	def _pythonsource_dispatch_modvar(self, opcode):
-		self._pythonsource_line(opcode.location, "variables[{op.arg!r}] %= r{op.r1:d}".format(op=opcode))
-	def _pythonsource_dispatch_delvar(self, opcode):
-		self._pythonsource_line(opcode.location, "del variables[{op.arg!r}]".format(op=opcode))
-	def _pythonsource_dispatch_getattr(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}[{op.arg!r}]".format(op=opcode))
-	def _pythonsource_dispatch_getitem(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}[r{op.r3:d}]".format(op=opcode))
-	def _pythonsource_dispatch_getslice12(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}[r{op.r3:d}:r{op.r4:d}]".format(op=opcode))
-	def _pythonsource_dispatch_getslice1(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}[r{op.r3:d}:]".format(op=opcode))
-	def _pythonsource_dispatch_getslice2(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}[:r{op.r3:d}]".format(op=opcode))
-	def _pythonsource_dispatch_print(self, opcode):
-		self._pythonsource_line(opcode.location, "if r{op.r1:d} is not None: yield unicode(r{op.r1:d})".format(op=opcode))
-	def _pythonsource_dispatch_printx(self, opcode):
-		self._pythonsource_line(opcode.location, "if r{op.r1:d} is not None: yield xmlescape(unicode(r{op.r1:d}))".format(op=opcode))
-	def _pythonsource_dispatch_for(self, opcode):
-		self._pythonsource_line(opcode.location, "for r{op.r1:d} in r{op.r2:d}:".format(op=opcode))
-		self.indent += 1
-	def _pythonsource_dispatch_endfor(self, opcode):
-		# we don't have to check for empty loops here, as a ``<?for?>`` tag always generates at least one ``storevar`` opcode inside the loop
-		self.indent -= 1
-	def _pythonsource_dispatch_break(self, opcode):
-		self._pythonsource_line(opcode.location, "break")
-	def _pythonsource_dispatch_continue(self, opcode):
-		self._pythonsource_line(opcode.location, "continue")
-	def _pythonsource_dispatch_not(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = not r{op.r2:d}".format(op=opcode))
-	def _pythonsource_dispatch_neg(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = -r{op.r2:d}".format(op=opcode))
-	def _pythonsource_dispatch_contains(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} in r{op.r3:d}".format(op=opcode))
-	def _pythonsource_dispatch_notcontains(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} not in r{op.r3:d}".format(op=opcode))
-	def _pythonsource_dispatch_eq(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} == r{op.r3:d}".format(op=opcode))
-	def _pythonsource_dispatch_ne(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} != r{op.r3:d}".format(op=opcode))
-	def _pythonsource_dispatch_lt(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} < r{op.r3:d}".format(op=opcode))
-	def _pythonsource_dispatch_le(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} <= r{op.r3:d}".format(op=opcode))
-	def _pythonsource_dispatch_gt(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} > r{op.r3:d}".format(op=opcode))
-	def _pythonsource_dispatch_ge(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} >= r{op.r3:d}".format(op=opcode))
-	def _pythonsource_dispatch_add(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} + r{op.r3:d}".format(op=opcode))
-	def _pythonsource_dispatch_sub(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} - r{op.r3:d}".format(op=opcode))
-	def _pythonsource_dispatch_mul(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} * r{op.r3:d}".format(op=opcode))
-	def _pythonsource_dispatch_floordiv(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} // r{op.r3:d}".format(op=opcode))
-	def _pythonsource_dispatch_truediv(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} / r{op.r3:d}".format(op=opcode))
-	def _pythonsource_dispatch_and(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} and r{op.r3:d}".format(op=opcode))
-	def _pythonsource_dispatch_or(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} or r{op.r3:d}".format(op=opcode))
-	def _pythonsource_dispatch_mod(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} % r{op.r3:d}".format(op=opcode))
-	def _pythonsource_dispatch_callfunc0(self, opcode):
-		try:
-			getattr(self, "_pythonsource_dispatch_callfunc0_{op.arg}".format(op=opcode))(opcode)
-		except AttributeError:
-			raise UnknownFunctionError(opcode.arg)
-	def _pythonsource_dispatch_callfunc1(self, opcode):
-		try:
-			getattr(self, "_pythonsource_dispatch_callfunc1_{op.arg}".format(op=opcode))(opcode)
-		except AttributeError:
-			raise UnknownFunctionError(opcode.arg)
-	def _pythonsource_dispatch_callfunc2(self, opcode):
-		try:
-			getattr(self, "_pythonsource_dispatch_callfunc2_{op.arg}".format(op=opcode))(opcode)
-		except AttributeError:
-			raise UnknownFunctionError(opcode.arg)
-	def _pythonsource_dispatch_callfunc3(self, opcode):
-		try:
-			getattr(self, "_pythonsource_dispatch_callfunc3_{op.arg}".format(op=opcode))(opcode)
-		except AttributeError:
-			raise UnknownFunctionError(opcode.arg)
-	def _pythonsource_dispatch_callfunc4(self, opcode):
-		try:
-			getattr(self, "_pythonsource_dispatch_callfunc4_{op.arg}".format(op=opcode))(opcode)
-		except AttributeError:
-			raise UnknownFunctionError(opcode.arg)
-	def _pythonsource_dispatch_callmeth0(self, opcode):
-		if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "isoformat", "r", "g", "b", "a", "hls", "hlsa", "hsv", "hsva", "lum", "weekday"):
-			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.{op.arg}()".format(op=opcode))
-		elif opcode.arg == "items":
-			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.iteritems()".format(op=opcode))
-		elif opcode.arg == "render":
-			self._pythonsource_line(opcode.location, 'r{op.r1:d} = "".join(r{op.r2:d}())'.format(op=opcode))
-		elif opcode.arg in ("mimeformat", "yearday"):
-			self._pythonsource_line(opcode.location, 'r{op.r1:d} = ul4c._{op.arg}(r{op.r2:d})'.format(op=opcode))
-		elif opcode.arg in ("day", "month", "year", "hour", "minute", "second", "microsecond"):
-			self._pythonsource_line(opcode.location, 'r{op.r1:d} = r{op.r2:d}.{op.arg}'.format(op=opcode))
-		else:
-			raise UnknownMethodError(opcode.arg)
-	def _pythonsource_dispatch_callmeth1(self, opcode):
-		if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "rfind", "get", "withlum", "witha"):
-			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.{op.arg}(r{op.r3:d})".format(op=opcode))
-		elif opcode.arg == "join":
-			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.join(unicode(x) for x in r{op.r3:d})".format(op=opcode))
-		elif opcode.arg == "format":
-			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.__format__(r{op.r3:d})".format(op=opcode))
-		else:
-			raise UnknownMethodError(opcode.arg)
-	def _pythonsource_dispatch_callmeth2(self, opcode):
-		if opcode.arg in ("split", "rsplit", "find", "rfind", "replace", "get"):
-			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.{op.arg}(r{op.r3:d}, r{op.r4:d})".format(op=opcode))
-		else:
-			raise UnknownMethodError(opcode.arg)
-	def _pythonsource_dispatch_callmeth3(self, opcode):
-		if opcode.arg in {"find", "rfind"}:
-			self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d}.{op.arg}(r{op.r3:d}, r{op.r4:d}, r{op.r5:d})".format(op=opcode))
-		else:
-			raise UnknownMethodError(opcode.arg)
-	def _pythonsource_dispatch_callmethkw(self, opcode):
-		if opcode.arg == "render":
-			self._pythonsource_line(opcode.location, 'r{op.r1:d} = "".join(r{op.r2:d}(**{{key.encode("utf-8"): value for (key, value) in r{op.r3:d}.iteritems()}}))'.format(op=opcode)) # FIXME: This can be simplified in Python 3.0 where strings are unicode
-		else:
-			raise UnknownMethodError(opcode.arg)
-	def _pythonsource_dispatch_if(self, opcode):
-		self._pythonsource_line(opcode.location, "if r{op.r1:d}:".format(op=opcode))
-		self.indent += 1
-	def _pythonsource_dispatch_else(self, opcode):
-		if self.lastopcode == "if":
-			self.lines[-1] += " pass"
-		self.indent -= 1
-		self._pythonsource_line(opcode.location, "else:")
-		self.indent += 1
-	def _pythonsource_dispatch_endif(self, opcode):
-		if self.lastopcode in ("if", "else"):
-			lines[-1] += " pass"
-		self.indent -= 1
-	def _pythonsource_dispatch_def(self, opcode):
-		self._pythonsource_line(opcode.location, "def _(**variables):")
-		self.defs.append(opcode)
-		self.indent += 1
-		self._pythonsource_line(opcode.location, 'variables = {key.decode("utf-8"): value for (key, value) in variables.iteritems()}') # FIXME: This can be dropped in Python 3.0 where strings are unicode
-		self._pythonsource_line(opcode.location, "r0 = r1 = r2 = r3 = r4 = r5 = r6 = r7 = r8 = r9 = None")
-		self._pythonsource_line(opcode.location, "try:")
-		self.indent += 1
-		# Make sure that the resulting code is a generator even if the byte codes produce no yield statement
-		self._pythonsource_line(opcode.location, "if 0: yield ''")
-	def _pythonsource_dispatch_enddef(self, opcode):
-		defopcode = self.defs.pop()
-		self.indent -= 1
-		self._pythonsource_line(opcode.location, "except Exception, exc:")
-		self.indent += 1
-		self._pythonsource_line(opcode.location, "newexc = ul4c.Error(ul4c.Location(source, *locations[lines2locs[sys.exc_info()[2].tb_lineno-startline]]))") # FIXME: Use ``raise ... from`` in Python 3.0
-		self._pythonsource_line(opcode.location, "newexc.__cause__ = exc")
-		self._pythonsource_line(opcode.location, "raise newexc")
-		self.indent -= 2
-		self._pythonsource_line(opcode.location, "variables[{op.arg!r}] = _".format(op=defopcode))
-	def _pythonsource_dispatch_render(self, opcode):
-		self._pythonsource_line(opcode.location, 'for chunk in r{op.r1:d}(**{{key.encode("utf-8"): value for (key, value) in r{op.r2:d}.iteritems()}}): yield chunk'.format(op=opcode))
-	def _pythonsource_dispatch_callfunc0_now(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = datetime.datetime.now()".format(op=opcode))
-	def _pythonsource_dispatch_callfunc0_utcnow(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = datetime.datetime.utcnow()".format(op=opcode))
-	def _pythonsource_dispatch_callfunc0_vars(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = variables".format(op=opcode))
-	def _pythonsource_dispatch_callfunc0_random(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = random.random()".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_xmlescape(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = xmlescape(unicode(r{op.r2:d})) if r{op.r2:d} is not None else u''".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_csv(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = ul4c._csv(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_json(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = ul4c._json(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_str(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = unicode(r{op.r2:d}) if r{op.r2:d} is not None else u''".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_int(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = int(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_float(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = float(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_bool(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = bool(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_len(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = len(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_abs(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = abs(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_enumerate(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = enumerate(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_isnone(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = r{op.r2:d} is None".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_isstr(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, basestring)".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_isint(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, (int, long)) and not isinstance(r{op.r2:d}, bool)".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_isfloat(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, float)".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_isbool(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, bool)".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_isdate(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, datetime.datetime)".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_islist(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, (list, tuple)) and not isinstance(r{op.r2:d}, color.Color)".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_isdict(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, dict)".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_istemplate(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = hasattr(r{op.r2:d}, '__call__')".format(op=opcode)) # this supports normal generators too
-	def _pythonsource_dispatch_callfunc1_iscolor(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, color.Color)".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_repr(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = ul4c._repr(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_get(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = variables.get(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_chr(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = unichr(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_ord(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = ord(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_hex(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = hex(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_oct(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = ul4c._oct(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_bin(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = bin(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_sorted(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = sorted(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_range(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = xrange(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_type(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = ul4c._type(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_reversed(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = reversed(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_randrange(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = random.randrange(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc1_randchoice(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = random.choice(r{op.r2:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc2_range(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = xrange(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc2_get(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = variables.get(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc2_zip(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = itertools.izip(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc2_int(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = int(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc2_randrange(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = random.randrange(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc3_range(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = xrange(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc3_zip(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = itertools.izip(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc3_rgb(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = color.Color.fromrgb(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc3_hls(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = color.Color.fromhls(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc3_hsv(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = color.Color.fromhsv(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc3_randrange(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = random.randrange(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc4_rgb(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = color.Color.fromrgb(r{op.r2:d}, r{op.r3:d}, r{op.r4:d}, r{op.r5:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc4_hls(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = color.Color.fromhls(r{op.r2:d}, r{op.r3:d}, r{op.r4:d}, r{op.r5:d})".format(op=opcode))
-	def _pythonsource_dispatch_callfunc4_hsv(self, opcode):
-		self._pythonsource_line(opcode.location, "r{op.r1:d} = color.Color.fromhsv(r{op.r2:d}, r{op.r3:d}, r{op.r4:d}, r{op.r5:d})".format(op=opcode))
+		return unicode(PythonSource(self, *args, **kwargs))
 
 	def jssource(self):
 		"""
-		Return the template as the source code of a Javascript function. The
-		signature of the function will be ``function(vars)``, i.e. all template
-		variables will be attributes of the object ``vars``.
-
-		Note that the generated code will require the ``ul4`` Javascript support
-		library.
+		Return the template as the source code of a Javascript function. A
+		:class:`JavascriptSource` object will be used to generated the sourcecode.
 		"""
-		self.indent = 0
-		self.lines = []
-		self.varcounter = 0
+		return unicode(JavascriptSource(self))
 
-		self._jssource_line("ul4.Template.create(function(vars){")
-		self.indent += 1
-
-		self._jssource_line(u"//@@@ BEGIN template source")
-		lines = self.source.splitlines(False)
-		width = len(str(len(lines)+1))
-		for (i, line) in enumerate(lines):
-			self._jssource_line(u"// {1:{0}} {2}".format(width, i+1, line))
-		self._jssource_line(u"//@@@ BEGIN template code")
-
-		self._jssource_line(u"var out = [], {};".format(", ".join("r{} = null".format(i) for i in xrange(10))))
-
-		lastloc = None
-		for opcode in self.opcodes:
-			if opcode.code is not None and opcode.location is not lastloc:
-				lastloc = opcode.location
-				(line, col) = lastloc.pos()
-				tag = lastloc.tag
-				self._jssource_line(u"// {} tag at {} (line {}, col {}): {}".format(lastloc.type, lastloc.starttag+1, line, col, repr(tag)[1+isinstance(tag, unicode):-1]))
-			try:
-				getattr(self, "_jssource_dispatch_{}".format(opcode.code))(opcode)
-			except AttributeError:
-				raise UnknownOpcodeError(opcode.code)
-
-		self._jssource_line(u'return out;')
-		self._jssource_line(u"//@@@ END template code")
-
-		self.indent -= 1
-		self._jssource_line("})")
-
-		result = "\n".join(self.lines)
-
-		del self.varcounter
-		del self.lines
-		del self.indent
-		return result
-
-	def _jssource_line(self, line):
-		self.lines.append(u"\t"*self.indent + line)
-
-	def _jssource_dispatch_None(self, opcode):
-		self._jssource_line("out.push({});".format(json.dumps(opcode.location.code)))
-	def _jssource_dispatch_loadstr(self, opcode):
-		self._jssource_line(u'r{op.r1} = {arg};'.format(op=opcode, arg=json.dumps(opcode.arg)))
-	def _jssource_dispatch_loadint(self, opcode):
-		self._jssource_line(u"r{op.r1} = {op.arg};".format(op=opcode))
-	def _jssource_dispatch_loadfloat(self, opcode):
-		self._jssource_line(u"r{op.r1} = {op.arg};".format(op=opcode))
-	def _jssource_dispatch_loadnone(self, opcode):
-		self._jssource_line(u"r{op.r1} = null;".format(op=opcode))
-	def _jssource_dispatch_loadfalse(self, opcode):
-		self._jssource_line(u"r{op.r1} = false;".format(op=opcode))
-	def _jssource_dispatch_loadtrue(self, opcode):
-		self._jssource_line(u"r{op.r1} = true;".format(op=opcode))
-	def _jssource_dispatch_loaddate(self, opcode):
-		args = map(int, datesplitter.split(opcode.arg))
-		args[1] -= 1
-		if len(args) == 7:
-			args[6] //= 1000
-		self._jssource_line(u"r{op.r1} = new Date({date});".format(op=opcode, date=", ".join(map(str, args))))
-	def _jssource_dispatch_loadcolor(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4.Color.create({r}, {g}, {b}, {a});".format(op=opcode, r=int(opcode.arg[:2], 16), g=int(opcode.arg[2:4], 16), b=int(opcode.arg[4:6], 16), a=int(opcode.arg[6:], 16)))
-	def _jssource_dispatch_buildlist(self, opcode):
-		self._jssource_line(u"r{op.r1} = [];".format(op=opcode))
-	def _jssource_dispatch_builddict(self, opcode):
-		self._jssource_line(u"r{op.r1} = {{}};".format(op=opcode))
-	def _jssource_dispatch_addlist(self, opcode):
-		self._jssource_line(u"r{op.r1}.push(r{op.r2});".format(op=opcode))
-	def _jssource_dispatch_adddict(self, opcode):
-		self._jssource_line(u"r{op.r1}[r{op.r2}] = r{op.r3};".format(op=opcode))
-	def _jssource_dispatch_updatedict(self, opcode):
-		self._jssource_line(u"for (var key in r{op.r2})".format(op=opcode))
-		self.indent += 1
-		self._jssource_line(u"r{op.r1}[key] = r{op.r2}[key];".format(op=opcode))
-		self.indent -= 1
-	def _jssource_dispatch_loadvar(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4._op_getitem(vars, {arg});".format(op=opcode, arg=json.dumps(opcode.arg)))
-	def _jssource_dispatch_storevar(self, opcode):
-		self._jssource_line(u"vars[{arg}] = r{op.r1};".format(op=opcode, arg=json.dumps(opcode.arg)))
-	def _jssource_dispatch_addvar(self, opcode):
-		self._jssource_line(u"vars[{arg}] = ul4._op_add(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
-	def _jssource_dispatch_subvar(self, opcode):
-		self._jssource_line(u"vars[{arg}] = ul4._op_sub(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
-	def _jssource_dispatch_mulvar(self, opcode):
-		self._jssource_line(u"vars[{arg}] = ul4._op_mul(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
-	def _jssource_dispatch_truedivvar(self, opcode):
-		self._jssource_line(u"vars[{arg}] = ul4._op_truediv(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
-	def _jssource_dispatch_floordivvar(self, opcode):
-		self._jssource_line(u"vars[{arg}] = ul4._op_floordiv(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
-	def _jssource_dispatch_modvar(self, opcode):
-		self._jssource_line(u"vars[{arg}] = ul4._op_mod(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
-	def _jssource_dispatch_delvar(self, opcode):
-		self._jssource_line(u"vars[{arg}] = undefined;".format(arg=json.dumps(opcode.arg)))
-	def _jssource_dispatch_getattr(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4._op_getitem(r{op.r2}, {arg});".format(op=opcode, arg=json.dumps(opcode.arg)))
-	def _jssource_dispatch_getitem(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4._op_getitem(r{op.r2}, r{op.r3});".format(op=opcode))
-	def _jssource_dispatch_getslice12(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4._op_getslice(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
-	def _jssource_dispatch_getslice1(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4._op_getslice(r{op.r2}, r{op.r3}, null);".format(op=opcode))
-	def _jssource_dispatch_getslice2(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4._op_getslice(r{op.r2}, null, r{op.r3});".format(op=opcode))
-	def _jssource_dispatch_print(self, opcode):
-		self._jssource_line(u"out.push(ul4._fu_str(r{op.r1}));".format(op=opcode))
-	def _jssource_dispatch_printx(self, opcode):
-		self._jssource_line(u"out.push(ul4._fu_xmlescape(r{op.r1}));".format(op=opcode))
-	def _jssource_dispatch_for(self, opcode):
-		self.varcounter += 1
-		self._jssource_line(u"for (var iter{counter} = ul4._iter(r{op.r2});;)".format(op=opcode, counter=self.varcounter))
-		self._jssource_line(u"{")
-		self.indent += 1
-		self._jssource_line(u"r{op.r1} = iter{counter}();".format(op=opcode, counter=self.varcounter))
-		self._jssource_line(u"if (r{op.r1} === null)".format(op=opcode))
-		self.indent += 1
-		self._jssource_line(u"break;")
-		self.indent -= 1
-		self._jssource_line(u"r{op.r1} = r{op.r1}[0];".format(op=opcode))
-	def _jssource_dispatch_endfor(self, opcode):
-		self.indent -= 1
-		self._jssource_line(u"}")
-	def _jssource_dispatch_def(self, opcode):
-		self._jssource_line(u"vars[{arg}] = ul4.Template.create(function(vars){{".format(arg=json.dumps(opcode.arg)))
-		self.indent += 1
-		self._jssource_line(u"var out = [], {};".format(", ".join("r{} = null".format(i) for i in xrange(10))))
-	def _jssource_dispatch_enddef(self, opcode):
-		self._jssource_line(u'return out;')
-		self.indent -= 1
-		self._jssource_line(u"});")
-	def _jssource_dispatch_break(self, opcode):
-		self._jssource_line(u"break;")
-	def _jssource_dispatch_continue(self, opcode):
-		self._jssource_line(u"continue;")
-	def _jssource_dispatch_not(self, opcode):
-		self._jssource_line(u"r{op.r1} = !ul4._fu_bool(r{op.r2});".format(op=opcode))
-	def _jssource_dispatch_neg(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4._op_neg(r{op.r2});".format(op=opcode))
-	def _jssource_dispatch_contains(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4._op_contains(r{op.r2}, r{op.r3});".format(op=opcode))
-	def _jssource_dispatch_notcontains(self, opcode):
-		self._jssource_line(u"r{op.r1} = !ul4._op_contains(r{op.r2}, r{op.r3});".format(op=opcode))
-	def _jssource_dispatch_eq(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4._op_eq(r{op.r2}, r{op.r3});".format(op=opcode))
-	def _jssource_dispatch_ne(self, opcode):
-		self._jssource_line(u"r{op.r1} = !ul4._op_eq(r{op.r2}, r{op.r3});".format(op=opcode))
-	def _jssource_dispatch_lt(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4._op_lt(r{op.r2}, r{op.r3});".format(op=opcode))
-	def _jssource_dispatch_le(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4._op_le(r{op.r2}, r{op.r3});".format(op=opcode))
-	def _jssource_dispatch_gt(self, opcode):
-		self._jssource_line(u"r{op.r1} = !ul4._op_le(r{op.r2}, r{op.r3});".format(op=opcode))
-	def _jssource_dispatch_ge(self, opcode):
-		self._jssource_line(u"r{op.r1} = !ul4._op_lt(r{op.r2}, r{op.r3});".format(op=opcode))
-	def _jssource_dispatch_add(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4._op_add(r{op.r2}, r{op.r3});".format(op=opcode))
-	def _jssource_dispatch_sub(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4._op_sub(r{op.r2}, r{op.r3});".format(op=opcode))
-	def _jssource_dispatch_mul(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4._op_mul(r{op.r2}, r{op.r3});".format(op=opcode))
-	def _jssource_dispatch_floordiv(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4._op_floordiv(r{op.r2}, r{op.r3});".format(op=opcode))
-	def _jssource_dispatch_truediv(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4._op_truediv(r{op.r2}, r{op.r3});".format(op=opcode))
-	def _jssource_dispatch_and(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4._fu_bool(r{op.r3}) ? r{op.r2} : r{op.r3};".format(op=opcode))
-	def _jssource_dispatch_or(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4._fu_bool(r{op.r2}) ? r{op.r2} : r{op.r3};".format(op=opcode))
-	def _jssource_dispatch_mod(self, opcode):
-		self._jssource_line(u"r{op.r1} = ul4._op_mod(r{op.r2}, r{op.r3});".format(op=opcode))
-	def _jssource_dispatch_callfunc0(self, opcode):
-		if opcode.arg == "now":
-			self._jssource_line(u"r{op.r1} = new Date();".format(op=opcode))
-		elif opcode.arg == "utcnow":
-			self._jssource_line(u"r{op.r1} = ul4._fu_utcnow();".format(op=opcode))
-		elif opcode.arg == "random":
-			self._jssource_line(u"r{op.r1} = Math.random();".format(op=opcode))
-		elif opcode.arg == "vars":
-			self._jssource_line(u"r{op.r1} = vars;".format(op=opcode))
-		else:
-			raise UnknownFunctionError(opcode.arg)
-	def _jssource_dispatch_callfunc1(self, opcode):
-		if opcode.arg in {"xmlescape", "csv", "repr", "enumerate", "chr", "ord", "hex", "oct", "bin", "sorted", "type", "json", "reversed", "randchoice", "str", "int", "float", "bool", "len", "isstr", "isint", "isfloat", "isbool", "isdate", "islist", "isdict", "istemplate", "iscolor", "abs"}:
-			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2});".format(op=opcode))
-		elif opcode.arg in {"range", "randrange"}:
-			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(0, r{op.r2}, 1);".format(op=opcode))
-		elif opcode.arg == "isnone":
-			self._jssource_line(u"r{op.r1} = (r{op.r2} === null);".format(op=opcode))
-		elif opcode.arg == "get":
-			self._jssource_line(u"r{op.r1} = ul4._me_get(vars, r{op.r2});".format(op=opcode))
-		else:
-			raise UnknownFunctionError(opcode.arg)
-	def _jssource_dispatch_callfunc2(self, opcode):
-		if opcode.arg in {"zip", "int"}:
-			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
-		elif opcode.arg in {"range", "randrange"}:
-			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, 1);".format(op=opcode))
-		elif opcode.arg == "get":
-			self._jssource_line(u"r{op.r1} = ul4._me_get(vars, r{op.r2}, r{op.r3});".format(op=opcode))
-		else:
-			raise UnknownFunctionError(opcode.arg)
-	def _jssource_dispatch_callfunc3(self, opcode):
-		if opcode.arg in {"range", "zip", "randrange"}:
-			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
-		elif opcode.arg in {"rgb", "hls", "hsv"}:
-			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, 1.0);".format(op=opcode))
-		else:
-			raise UnknownFunctionError(opcode.arg)
-	def _jssource_dispatch_callfunc4(self, opcode):
-		if opcode.arg in {"rgb", "hls", "hsv"}:
-			self._jssource_line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
-		else:
-			raise UnknownFunctionError(opcode.arg)
-	def _jssource_dispatch_callmeth0(self, opcode):
-		if opcode.arg in {"strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "items", "isoformat", "mimeformat", "day", "month", "year", "hour", "minute", "second", "microsecond", "weekday", "yearday", "r", "g", "b", "a", "lum", "hls", "hlsa", "hsv", "hsva"}:
-			self._jssource_line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2});".format(op=opcode))
-		elif opcode.arg in {"split", "rsplit"}:
-			self._jssource_line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, null, null);".format(op=opcode))
-		elif opcode.arg == "render":
-			self._jssource_line(u"r{op.r1} = r{op.r2}.renders({{}});".format(op=opcode))
-		else:
-			raise UnknownMethodError(opcode.arg)
-	def _jssource_dispatch_callmeth1(self, opcode):
-		if opcode.arg in {"join", "strip", "lstrip", "rstrip", "startswith", "endswith", "format", "withlum", "witha"}:
-			self._jssource_line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
-		elif opcode.arg in {"split", "rsplit", "get"}:
-			self._jssource_line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, null);".format(op=opcode))
-		elif opcode.arg in {"find", "rfind"}:
-			self._jssource_line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, null, null);".format(op=opcode))
-		else:
-			raise UnknownMethodError(opcode.arg)
-	def _jssource_dispatch_callmeth2(self, opcode):
-		if opcode.arg in {"split", "rsplit", "replace", "get"}:
-			self._jssource_line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
-		elif opcode.arg in {"find", "rfind"}:
-			self._jssource_line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, null);".format(op=opcode))
-		else:
-			raise UnknownMethodError(opcode.arg)
-	def _jssource_dispatch_callmeth3(self, opcode):
-		if opcode.arg in {"find", "rfind"}:
-			self._jssource_line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
-		else:
-			raise UnknownMethodError(opcode.arg)
-	def _jssource_dispatch_callmethkw(self, opcode):
-		if opcode.arg == "render":
-			self._jssource_line(u"r{op.r1} = r{op.r2}.renders(r{op.r3});".format(op=opcode))
-		else:
-			raise UnknownMethodError(opcode.arg)
-	def _jssource_dispatch_if(self, opcode):
-		self._jssource_line(u"if (ul4._fu_bool(r{op.r1}))".format(op=opcode))
-		self._jssource_line(u"{")
-		self.indent += 1
-	def _jssource_dispatch_else(self, opcode):
-		self.indent -= 1
-		self._jssource_line(u"}")
-		self._jssource_line(u"else")
-		self._jssource_line(u"{")
-		self.indent += 1
-	def _jssource_dispatch_endif(self, opcode):
-		self.indent -= 1
-		self._jssource_line(u"}")
-	def _jssource_dispatch_render(self, opcode):
-		self._jssource_line(u"out = out.concat(r{op.r1}.render(r{op.r2}));".format(op=opcode))
+	def javasource(self, *args, **kwargs):
+		"""
+		Return the template as Java source code. All arguments in :var:`args`
+		and :var:`kwargs` will be passed on to the :class:`JavaSource` object
+		which creates the sourcecode. See its constructor for more info.
+		"""
+		return unicode(JavaSource(self, *args, **kwargs))
 
 	def format(self, indent="\t"):
 		"""
@@ -1627,8 +1004,994 @@ class Template(object):
 def compile(source, startdelim="<?", enddelim="?>"):
 	return Template(source, startdelim, enddelim)
 
+
 load = Template.load
 loads = Template.loads
+
+
+###
+### Code generators for various languages
+###
+
+class PythonSource(object):
+	"""
+	A :class:`PythonSource` object generates Python sourcecode from a UL4
+	template.
+	"""
+
+	def __init__(self, template, function=None):
+		"""
+		Create a :class:`PythonSource` object. :var:`template` is the
+		:class:`Template` object. If :var:`function` is specified the code will be
+		wrapped in a function with this name.
+		"""
+		self.template = template
+		self.function = function
+
+	def __unicode__(self):
+		"""
+		Return the Python sourcecode for the :class:`Template` object passed to
+		the constructor.
+		"""
+		self.indent = 0
+		self.lines = []
+		self.locations = []
+		self.lines2locs = []
+		self.defs = [] # Stack for currently open def opcodes
+		self.lastopcode = None
+		self.lastlocation = Location(self.template.source, None, 0, 0, 0, 0)
+
+		if self.function is not None:
+			self._line(self.lastlocation, "def {}(**variables):".format(self.function))
+			self.indent += 1
+			self.lines2locs = [] # We initialize startline one line below, which restarts the counter
+		self._line(self.lastlocation, "import sys, datetime, itertools, json, random; from ll.misc import xmlescape; from ll import ul4c, color; startline = sys._getframe().f_lineno") # The line number of this line
+		self._line(self.lastlocation, "__1__")
+		self._line(self.lastlocation, "__2__")
+		self._line(self.lastlocation, "source = {!r}".format(self.template.source))
+		self._line(self.lastlocation, 'variables = {key.decode("utf-8"): value for (key, value) in variables.iteritems()}') # FIXME: This can be dropped in Python 3.0 where strings are unicode
+		self._line(self.lastlocation, "r0 = r1 = r2 = r3 = r4 = r5 = r6 = r7 = r8 = r9 = None")
+		self._line(self.lastlocation, "try:")
+		self.indent += 1
+		# Make sure that the resulting code is a generator even if the byte codes produce no yield statement
+		self._line(self.lastlocation, "if 0: yield ''")
+		try:
+			for opcode in self.template.opcodes:
+				try:
+					getattr(self, "_dispatch_{}".format(opcode.code))(opcode)
+				except AttributeError:
+					raise UnknownOpcodeError(opcode.code)
+				self.lastopcode = opcode.code
+		except Exception, exc:
+			newexc = Error(opcode.location) # FIXME: Use ``raise ... from`` in Python 3.0
+			newexc.__cause__ = exc
+			raise newexc
+		self.indent -= 1
+		self._line(self.lastlocation, "except Exception, exc:")
+		self.indent += 1
+		self._line(self.lastlocation, "newexc = ul4c.Error(ul4c.Location(source, *locations[lines2locs[sys.exc_info()[2].tb_lineno-startline]]))") # FIXME: Use ``raise ... from`` in Python 3.0
+		self._line(self.lastlocation, "newexc.__cause__ = exc")
+		self._line(self.lastlocation, "raise newexc")
+		locoffset = 1+int(self.lines[0].strip() != "__1__")
+		self.lines[locoffset] = self.lines[locoffset].replace("__1__", "locations = {!r}".format(tuple(self.locations)))
+		self.lines[locoffset+1] = self.lines[locoffset+1].replace("__2__", "lines2locs = {!r}".format(tuple(self.lines2locs)))
+		return "\n".join(self.lines)
+
+	def _line(self, location, line):
+		self.lines.append("\t"*self.indent + line)
+		if self.lastlocation is not location or not self.locations:
+			self.locations.append((location.type, location.starttag, location.endtag, location.startcode, location.endcode))
+			self.lastlocation = location
+		self.lines2locs.append(len(self.locations)-1)
+
+	def _dispatch_None(self, opcode):
+		self._line(opcode.location, "yield {op.location.code!r}".format(op=opcode))
+	def _dispatch_loadstr(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = {op.arg!r}".format(op=opcode))
+	def _dispatch_loadint(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = {op.arg}".format(op=opcode))
+	def _dispatch_loadfloat(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = {op.arg}".format(op=opcode))
+	def _dispatch_loadnone(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = None".format(op=opcode))
+	def _dispatch_loadfalse(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = False".format(op=opcode))
+	def _dispatch_loadtrue(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = True".format(op=opcode))
+	def _dispatch_loaddate(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = datetime.datetime({date})".format(op=opcode, date=", ".join(str(int(p)) for p in datesplitter.split(opcode.arg))))
+	def _dispatch_loadcolor(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = color.Color({r}, {g}, {b}, {a})".format(op=opcode, r=int(opcode.arg[:2], 16), g=int(opcode.arg[2:4], 16), b=int(opcode.arg[4:6], 16), a=int(opcode.arg[6:], 16)))
+	def _dispatch_buildlist(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = []".format(op=opcode))
+	def _dispatch_builddict(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = {{}}".format(op=opcode))
+	def _dispatch_addlist(self, opcode):
+		self._line(opcode.location, "r{op.r1:d}.append(r{op.r2:d})".format(op=opcode))
+	def _dispatch_adddict(self, opcode):
+		self._line(opcode.location, "r{op.r1:d}[r{op.r2:d}] = r{op.r3:d}".format(op=opcode))
+	def _dispatch_updatedict(self, opcode):
+		self._line(opcode.location, "r{op.r1:d}.update(r{op.r2:d})".format(op=opcode))
+	def _dispatch_loadvar(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = variables[{op.arg!r}]".format(op=opcode))
+	def _dispatch_storevar(self, opcode):
+		self._line(opcode.location, "variables[{op.arg!r}] = r{op.r1:d}".format(op=opcode))
+	def _dispatch_addvar(self, opcode):
+		self._line(opcode.location, "variables[{op.arg!r}] += r{op.r1:d}".format(op=opcode))
+	def _dispatch_subvar(self, opcode):
+		self._line(opcode.location, "variables[{op.arg!r}] -= r{op.r1:d}".format(op=opcode))
+	def _dispatch_mulvar(self, opcode):
+		self._line(opcode.location, "variables[{op.arg!r}] *= r{op.r1:d}".format(op=opcode))
+	def _dispatch_truedivvar(self, opcode):
+		self._line(opcode.location, "variables[{op.arg!r}] /= r{op.r1:d}".format(op=opcode))
+	def _dispatch_floordivvar(self, opcode):
+		self._line(opcode.location, "variables[{op.arg!r}] //= r{op.r1:d}".format(op=opcode))
+	def _dispatch_modvar(self, opcode):
+		self._line(opcode.location, "variables[{op.arg!r}] %= r{op.r1:d}".format(op=opcode))
+	def _dispatch_delvar(self, opcode):
+		self._line(opcode.location, "del variables[{op.arg!r}]".format(op=opcode))
+	def _dispatch_getattr(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}[{op.arg!r}]".format(op=opcode))
+	def _dispatch_getitem(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}[r{op.r3:d}]".format(op=opcode))
+	def _dispatch_getslice12(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}[r{op.r3:d}:r{op.r4:d}]".format(op=opcode))
+	def _dispatch_getslice1(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}[r{op.r3:d}:]".format(op=opcode))
+	def _dispatch_getslice2(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}[:r{op.r3:d}]".format(op=opcode))
+	def _dispatch_print(self, opcode):
+		self._line(opcode.location, "if r{op.r1:d} is not None: yield unicode(r{op.r1:d})".format(op=opcode))
+	def _dispatch_printx(self, opcode):
+		self._line(opcode.location, "if r{op.r1:d} is not None: yield xmlescape(unicode(r{op.r1:d}))".format(op=opcode))
+	def _dispatch_for(self, opcode):
+		self._line(opcode.location, "for r{op.r1:d} in r{op.r2:d}:".format(op=opcode))
+		self.indent += 1
+	def _dispatch_endfor(self, opcode):
+		# we don't have to check for empty loops here, as a ``<?for?>`` tag always generates at least one ``storevar`` opcode inside the loop
+		self.indent -= 1
+	def _dispatch_break(self, opcode):
+		self._line(opcode.location, "break")
+	def _dispatch_continue(self, opcode):
+		self._line(opcode.location, "continue")
+	def _dispatch_not(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = not r{op.r2:d}".format(op=opcode))
+	def _dispatch_neg(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = -r{op.r2:d}".format(op=opcode))
+	def _dispatch_contains(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d} in r{op.r3:d}".format(op=opcode))
+	def _dispatch_notcontains(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d} not in r{op.r3:d}".format(op=opcode))
+	def _dispatch_eq(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d} == r{op.r3:d}".format(op=opcode))
+	def _dispatch_ne(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d} != r{op.r3:d}".format(op=opcode))
+	def _dispatch_lt(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d} < r{op.r3:d}".format(op=opcode))
+	def _dispatch_le(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d} <= r{op.r3:d}".format(op=opcode))
+	def _dispatch_gt(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d} > r{op.r3:d}".format(op=opcode))
+	def _dispatch_ge(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d} >= r{op.r3:d}".format(op=opcode))
+	def _dispatch_add(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d} + r{op.r3:d}".format(op=opcode))
+	def _dispatch_sub(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d} - r{op.r3:d}".format(op=opcode))
+	def _dispatch_mul(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d} * r{op.r3:d}".format(op=opcode))
+	def _dispatch_floordiv(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d} // r{op.r3:d}".format(op=opcode))
+	def _dispatch_truediv(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d} / r{op.r3:d}".format(op=opcode))
+	def _dispatch_and(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d} and r{op.r3:d}".format(op=opcode))
+	def _dispatch_or(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d} or r{op.r3:d}".format(op=opcode))
+	def _dispatch_mod(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d} % r{op.r3:d}".format(op=opcode))
+	def _dispatch_callfunc0(self, opcode):
+		try:
+			getattr(self, "_dispatch_callfunc0_{op.arg}".format(op=opcode))(opcode)
+		except AttributeError:
+			raise UnknownFunctionError(opcode.arg)
+	def _dispatch_callfunc1(self, opcode):
+		try:
+			getattr(self, "_dispatch_callfunc1_{op.arg}".format(op=opcode))(opcode)
+		except AttributeError:
+			raise UnknownFunctionError(opcode.arg)
+	def _dispatch_callfunc2(self, opcode):
+		try:
+			getattr(self, "_dispatch_callfunc2_{op.arg}".format(op=opcode))(opcode)
+		except AttributeError:
+			raise UnknownFunctionError(opcode.arg)
+	def _dispatch_callfunc3(self, opcode):
+		try:
+			getattr(self, "_dispatch_callfunc3_{op.arg}".format(op=opcode))(opcode)
+		except AttributeError:
+			raise UnknownFunctionError(opcode.arg)
+	def _dispatch_callfunc4(self, opcode):
+		try:
+			getattr(self, "_dispatch_callfunc4_{op.arg}".format(op=opcode))(opcode)
+		except AttributeError:
+			raise UnknownFunctionError(opcode.arg)
+	def _dispatch_callmeth0(self, opcode):
+		if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "isoformat", "r", "g", "b", "a", "hls", "hlsa", "hsv", "hsva", "lum", "weekday"):
+			self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}.{op.arg}()".format(op=opcode))
+		elif opcode.arg == "items":
+			self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}.iteritems()".format(op=opcode))
+		elif opcode.arg == "render":
+			self._line(opcode.location, 'r{op.r1:d} = "".join(r{op.r2:d}())'.format(op=opcode))
+		elif opcode.arg in ("mimeformat", "yearday"):
+			self._line(opcode.location, 'r{op.r1:d} = ul4c._{op.arg}(r{op.r2:d})'.format(op=opcode))
+		elif opcode.arg in ("day", "month", "year", "hour", "minute", "second", "microsecond"):
+			self._line(opcode.location, 'r{op.r1:d} = r{op.r2:d}.{op.arg}'.format(op=opcode))
+		else:
+			raise UnknownMethodError(opcode.arg)
+	def _dispatch_callmeth1(self, opcode):
+		if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "rfind", "get", "withlum", "witha"):
+			self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}.{op.arg}(r{op.r3:d})".format(op=opcode))
+		elif opcode.arg == "join":
+			self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}.join(unicode(x) for x in r{op.r3:d})".format(op=opcode))
+		elif opcode.arg == "format":
+			self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}.__format__(r{op.r3:d})".format(op=opcode))
+		else:
+			raise UnknownMethodError(opcode.arg)
+	def _dispatch_callmeth2(self, opcode):
+		if opcode.arg in ("split", "rsplit", "find", "rfind", "replace", "get"):
+			self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}.{op.arg}(r{op.r3:d}, r{op.r4:d})".format(op=opcode))
+		else:
+			raise UnknownMethodError(opcode.arg)
+	def _dispatch_callmeth3(self, opcode):
+		if opcode.arg in {"find", "rfind"}:
+			self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}.{op.arg}(r{op.r3:d}, r{op.r4:d}, r{op.r5:d})".format(op=opcode))
+		else:
+			raise UnknownMethodError(opcode.arg)
+	def _dispatch_callmethkw(self, opcode):
+		if opcode.arg == "render":
+			self._line(opcode.location, 'r{op.r1:d} = "".join(r{op.r2:d}(**{{key.encode("utf-8"): value for (key, value) in r{op.r3:d}.iteritems()}}))'.format(op=opcode)) # FIXME: This can be simplified in Python 3.0 where strings are unicode
+		else:
+			raise UnknownMethodError(opcode.arg)
+	def _dispatch_if(self, opcode):
+		self._line(opcode.location, "if r{op.r1:d}:".format(op=opcode))
+		self.indent += 1
+	def _dispatch_else(self, opcode):
+		if self.lastopcode == "if":
+			self.lines[-1] += " pass"
+		self.indent -= 1
+		self._line(opcode.location, "else:")
+		self.indent += 1
+	def _dispatch_endif(self, opcode):
+		if self.lastopcode in ("if", "else"):
+			lines[-1] += " pass"
+		self.indent -= 1
+	def _dispatch_def(self, opcode):
+		self._line(opcode.location, "def _(**variables):")
+		self.defs.append(opcode)
+		self.indent += 1
+		self._line(opcode.location, 'variables = {key.decode("utf-8"): value for (key, value) in variables.iteritems()}') # FIXME: This can be dropped in Python 3.0 where strings are unicode
+		self._line(opcode.location, "r0 = r1 = r2 = r3 = r4 = r5 = r6 = r7 = r8 = r9 = None")
+		self._line(opcode.location, "try:")
+		self.indent += 1
+		# Make sure that the resulting code is a generator even if the byte codes produce no yield statement
+		self._line(opcode.location, "if 0: yield ''")
+	def _dispatch_enddef(self, opcode):
+		defopcode = self.defs.pop()
+		self.indent -= 1
+		self._line(opcode.location, "except Exception, exc:")
+		self.indent += 1
+		self._line(opcode.location, "newexc = ul4c.Error(ul4c.Location(source, *locations[lines2locs[sys.exc_info()[2].tb_lineno-startline]]))") # FIXME: Use ``raise ... from`` in Python 3.0
+		self._line(opcode.location, "newexc.__cause__ = exc")
+		self._line(opcode.location, "raise newexc")
+		self.indent -= 2
+		self._line(opcode.location, "variables[{op.arg!r}] = _".format(op=defopcode))
+	def _dispatch_render(self, opcode):
+		self._line(opcode.location, 'for chunk in r{op.r1:d}(**{{key.encode("utf-8"): value for (key, value) in r{op.r2:d}.iteritems()}}): yield chunk'.format(op=opcode))
+	def _dispatch_callfunc0_now(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = datetime.datetime.now()".format(op=opcode))
+	def _dispatch_callfunc0_utcnow(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = datetime.datetime.utcnow()".format(op=opcode))
+	def _dispatch_callfunc0_vars(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = variables".format(op=opcode))
+	def _dispatch_callfunc0_random(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = random.random()".format(op=opcode))
+	def _dispatch_callfunc1_xmlescape(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = xmlescape(unicode(r{op.r2:d})) if r{op.r2:d} is not None else u''".format(op=opcode))
+	def _dispatch_callfunc1_csv(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = ul4c._csv(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_json(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = ul4c._json(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_str(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = unicode(r{op.r2:d}) if r{op.r2:d} is not None else u''".format(op=opcode))
+	def _dispatch_callfunc1_int(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = int(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_float(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = float(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_bool(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = bool(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_len(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = len(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_abs(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = abs(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_enumerate(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = enumerate(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_isnone(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d} is None".format(op=opcode))
+	def _dispatch_callfunc1_isstr(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, basestring)".format(op=opcode))
+	def _dispatch_callfunc1_isint(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, (int, long)) and not isinstance(r{op.r2:d}, bool)".format(op=opcode))
+	def _dispatch_callfunc1_isfloat(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, float)".format(op=opcode))
+	def _dispatch_callfunc1_isbool(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, bool)".format(op=opcode))
+	def _dispatch_callfunc1_isdate(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, datetime.datetime)".format(op=opcode))
+	def _dispatch_callfunc1_islist(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, (list, tuple)) and not isinstance(r{op.r2:d}, color.Color)".format(op=opcode))
+	def _dispatch_callfunc1_isdict(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, dict)".format(op=opcode))
+	def _dispatch_callfunc1_istemplate(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = hasattr(r{op.r2:d}, '__call__')".format(op=opcode)) # this supports normal generators too
+	def _dispatch_callfunc1_iscolor(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, color.Color)".format(op=opcode))
+	def _dispatch_callfunc1_repr(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = ul4c._repr(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_get(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = variables.get(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_chr(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = unichr(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_ord(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = ord(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_hex(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = hex(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_oct(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = ul4c._oct(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_bin(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = bin(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_sorted(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = sorted(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_range(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = xrange(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_type(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = ul4c._type(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_reversed(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = reversed(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_randrange(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = random.randrange(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_randchoice(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = random.choice(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc2_range(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = xrange(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
+	def _dispatch_callfunc2_get(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = variables.get(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
+	def _dispatch_callfunc2_zip(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = itertools.izip(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
+	def _dispatch_callfunc2_int(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = int(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
+	def _dispatch_callfunc2_randrange(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = random.randrange(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
+	def _dispatch_callfunc3_range(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = xrange(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
+	def _dispatch_callfunc3_zip(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = itertools.izip(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
+	def _dispatch_callfunc3_rgb(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = color.Color.fromrgb(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
+	def _dispatch_callfunc3_hls(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = color.Color.fromhls(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
+	def _dispatch_callfunc3_hsv(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = color.Color.fromhsv(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
+	def _dispatch_callfunc3_randrange(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = random.randrange(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
+	def _dispatch_callfunc4_rgb(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = color.Color.fromrgb(r{op.r2:d}, r{op.r3:d}, r{op.r4:d}, r{op.r5:d})".format(op=opcode))
+	def _dispatch_callfunc4_hls(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = color.Color.fromhls(r{op.r2:d}, r{op.r3:d}, r{op.r4:d}, r{op.r5:d})".format(op=opcode))
+	def _dispatch_callfunc4_hsv(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = color.Color.fromhsv(r{op.r2:d}, r{op.r3:d}, r{op.r4:d}, r{op.r5:d})".format(op=opcode))
+
+
+class JavascriptSource(object):
+	"""
+	A :class:`JavascriptSource` object generates javascript sourcecode from a UL4
+	template.
+
+	The signature of the generated Javascript function will be ``function(vars)``,
+	i.e. all template variables will be attributes of the object ``vars``.
+
+	Note that the generated code will require the ``ul4`` Javascript support
+	library.
+	"""
+	def __init__(self, template):
+		"""
+		Create a :class:`JavascriptSource` object. :var:`template` is the
+		:class:`Template` object.
+		"""
+		self.template = template
+
+	def __unicode__(self):
+		"""
+		Return the Javascript sourcecode for the :class:`Template` object passed
+		to the constructor.
+		"""
+		self._indent = 0
+		self._lines = []
+		self._varcounter = 0
+
+		self._line("ul4.Template.create(function(vars){")
+		self._indent += 1
+
+		self._line(u"//@@@ BEGIN template source")
+		lines = self.template.source.splitlines(False)
+		width = len(str(len(lines)+1))
+		for (i, line) in enumerate(lines):
+			self._line(u"// {1:{0}} {2}".format(width, i+1, line))
+		self._line(u"//@@@ BEGIN template code")
+
+		self._line(u"var out = [], {};".format(", ".join("r{} = null".format(i) for i in xrange(10))))
+
+		lastloc = None
+		for opcode in self.template.opcodes:
+			if opcode.code is not None and opcode.location is not lastloc:
+				lastloc = opcode.location
+				(line, col) = lastloc.pos()
+				tag = lastloc.tag
+				self._line(u"// <?{}?< tag at {} (line {}, col {}): {}".format(lastloc.type, lastloc.starttag+1, line, col, repr(tag)[1+isinstance(tag, unicode):-1]))
+			try:
+				getattr(self, "_dispatch_{}".format(opcode.code))(opcode)
+			except AttributeError:
+				raise UnknownOpcodeError(opcode.code)
+
+		self._line(u'return out;')
+		self._line(u"//@@@ END template code")
+
+		self._indent -= 1
+		self._line("})")
+
+		return "\n".join(self._lines)
+
+	def _line(self, line):
+		self._lines.append(u"\t"*self._indent + line)
+
+	def _dispatch_None(self, opcode):
+		self._line("out.push({});".format(json.dumps(opcode.location.code)))
+	def _dispatch_loadstr(self, opcode):
+		self._line(u'r{op.r1} = {arg};'.format(op=opcode, arg=json.dumps(opcode.arg)))
+	def _dispatch_loadint(self, opcode):
+		self._line(u"r{op.r1} = {op.arg};".format(op=opcode))
+	def _dispatch_loadfloat(self, opcode):
+		self._line(u"r{op.r1} = {op.arg};".format(op=opcode))
+	def _dispatch_loadnone(self, opcode):
+		self._line(u"r{op.r1} = null;".format(op=opcode))
+	def _dispatch_loadfalse(self, opcode):
+		self._line(u"r{op.r1} = false;".format(op=opcode))
+	def _dispatch_loadtrue(self, opcode):
+		self._line(u"r{op.r1} = true;".format(op=opcode))
+	def _dispatch_loaddate(self, opcode):
+		args = map(int, datesplitter.split(opcode.arg))
+		args[1] -= 1
+		if len(args) == 7:
+			args[6] //= 1000
+		self._line(u"r{op.r1} = new Date({date});".format(op=opcode, date=", ".join(map(str, args))))
+	def _dispatch_loadcolor(self, opcode):
+		self._line(u"r{op.r1} = ul4.Color.create({r}, {g}, {b}, {a});".format(op=opcode, r=int(opcode.arg[:2], 16), g=int(opcode.arg[2:4], 16), b=int(opcode.arg[4:6], 16), a=int(opcode.arg[6:], 16)))
+	def _dispatch_buildlist(self, opcode):
+		self._line(u"r{op.r1} = [];".format(op=opcode))
+	def _dispatch_builddict(self, opcode):
+		self._line(u"r{op.r1} = {{}};".format(op=opcode))
+	def _dispatch_addlist(self, opcode):
+		self._line(u"r{op.r1}.push(r{op.r2});".format(op=opcode))
+	def _dispatch_adddict(self, opcode):
+		self._line(u"r{op.r1}[r{op.r2}] = r{op.r3};".format(op=opcode))
+	def _dispatch_updatedict(self, opcode):
+		self._line(u"for (var key in r{op.r2})".format(op=opcode))
+		self._indent += 1
+		self._line(u"r{op.r1}[key] = r{op.r2}[key];".format(op=opcode))
+		self._indent -= 1
+	def _dispatch_loadvar(self, opcode):
+		self._line(u"r{op.r1} = ul4._op_getitem(vars, {arg});".format(op=opcode, arg=json.dumps(opcode.arg)))
+	def _dispatch_storevar(self, opcode):
+		self._line(u"vars[{arg}] = r{op.r1};".format(op=opcode, arg=json.dumps(opcode.arg)))
+	def _dispatch_addvar(self, opcode):
+		self._line(u"vars[{arg}] = ul4._op_add(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+	def _dispatch_subvar(self, opcode):
+		self._line(u"vars[{arg}] = ul4._op_sub(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+	def _dispatch_mulvar(self, opcode):
+		self._line(u"vars[{arg}] = ul4._op_mul(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+	def _dispatch_truedivvar(self, opcode):
+		self._line(u"vars[{arg}] = ul4._op_truediv(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+	def _dispatch_floordivvar(self, opcode):
+		self._line(u"vars[{arg}] = ul4._op_floordiv(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+	def _dispatch_modvar(self, opcode):
+		self._line(u"vars[{arg}] = ul4._op_mod(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+	def _dispatch_delvar(self, opcode):
+		self._line(u"vars[{arg}] = undefined;".format(arg=json.dumps(opcode.arg)))
+	def _dispatch_getattr(self, opcode):
+		self._line(u"r{op.r1} = ul4._op_getitem(r{op.r2}, {arg});".format(op=opcode, arg=json.dumps(opcode.arg)))
+	def _dispatch_getitem(self, opcode):
+		self._line(u"r{op.r1} = ul4._op_getitem(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_getslice12(self, opcode):
+		self._line(u"r{op.r1} = ul4._op_getslice(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+	def _dispatch_getslice1(self, opcode):
+		self._line(u"r{op.r1} = ul4._op_getslice(r{op.r2}, r{op.r3}, null);".format(op=opcode))
+	def _dispatch_getslice2(self, opcode):
+		self._line(u"r{op.r1} = ul4._op_getslice(r{op.r2}, null, r{op.r3});".format(op=opcode))
+	def _dispatch_print(self, opcode):
+		self._line(u"out.push(ul4._fu_str(r{op.r1}));".format(op=opcode))
+	def _dispatch_printx(self, opcode):
+		self._line(u"out.push(ul4._fu_xmlescape(r{op.r1}));".format(op=opcode))
+	def _dispatch_for(self, opcode):
+		self._varcounter += 1
+		self._line(u"for (var iter{counter} = ul4._iter(r{op.r2});;)".format(op=opcode, counter=self._varcounter))
+		self._line(u"{")
+		self._indent += 1
+		self._line(u"r{op.r1} = iter{counter}();".format(op=opcode, counter=self._varcounter))
+		self._line(u"if (r{op.r1} === null)".format(op=opcode))
+		self._indent += 1
+		self._line(u"break;")
+		self._indent -= 1
+		self._line(u"r{op.r1} = r{op.r1}[0];".format(op=opcode))
+	def _dispatch_endfor(self, opcode):
+		self._indent -= 1
+		self._line(u"}")
+	def _dispatch_def(self, opcode):
+		self._line(u"vars[{arg}] = ul4.Template.create(function(vars){{".format(arg=json.dumps(opcode.arg)))
+		self._indent += 1
+		self._line(u"var out = [], {};".format(", ".join("r{} = null".format(i) for i in xrange(10))))
+	def _dispatch_enddef(self, opcode):
+		self._line(u'return out;')
+		self._indent -= 1
+		self._line(u"});")
+	def _dispatch_break(self, opcode):
+		self._line(u"break;")
+	def _dispatch_continue(self, opcode):
+		self._line(u"continue;")
+	def _dispatch_not(self, opcode):
+		self._line(u"r{op.r1} = !ul4._fu_bool(r{op.r2});".format(op=opcode))
+	def _dispatch_neg(self, opcode):
+		self._line(u"r{op.r1} = ul4._op_neg(r{op.r2});".format(op=opcode))
+	def _dispatch_contains(self, opcode):
+		self._line(u"r{op.r1} = ul4._op_contains(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_notcontains(self, opcode):
+		self._line(u"r{op.r1} = !ul4._op_contains(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_eq(self, opcode):
+		self._line(u"r{op.r1} = ul4._op_eq(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_ne(self, opcode):
+		self._line(u"r{op.r1} = !ul4._op_eq(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_lt(self, opcode):
+		self._line(u"r{op.r1} = ul4._op_lt(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_le(self, opcode):
+		self._line(u"r{op.r1} = ul4._op_le(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_gt(self, opcode):
+		self._line(u"r{op.r1} = !ul4._op_le(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_ge(self, opcode):
+		self._line(u"r{op.r1} = !ul4._op_lt(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_add(self, opcode):
+		self._line(u"r{op.r1} = ul4._op_add(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_sub(self, opcode):
+		self._line(u"r{op.r1} = ul4._op_sub(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_mul(self, opcode):
+		self._line(u"r{op.r1} = ul4._op_mul(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_floordiv(self, opcode):
+		self._line(u"r{op.r1} = ul4._op_floordiv(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_truediv(self, opcode):
+		self._line(u"r{op.r1} = ul4._op_truediv(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_and(self, opcode):
+		self._line(u"r{op.r1} = ul4._fu_bool(r{op.r3}) ? r{op.r2} : r{op.r3};".format(op=opcode))
+	def _dispatch_or(self, opcode):
+		self._line(u"r{op.r1} = ul4._fu_bool(r{op.r2}) ? r{op.r2} : r{op.r3};".format(op=opcode))
+	def _dispatch_mod(self, opcode):
+		self._line(u"r{op.r1} = ul4._op_mod(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_callfunc0(self, opcode):
+		if opcode.arg == "now":
+			self._line(u"r{op.r1} = new Date();".format(op=opcode))
+		elif opcode.arg == "utcnow":
+			self._line(u"r{op.r1} = ul4._fu_utcnow();".format(op=opcode))
+		elif opcode.arg == "random":
+			self._line(u"r{op.r1} = Math.random();".format(op=opcode))
+		elif opcode.arg == "vars":
+			self._line(u"r{op.r1} = vars;".format(op=opcode))
+		else:
+			raise UnknownFunctionError(opcode.arg)
+	def _dispatch_callfunc1(self, opcode):
+		if opcode.arg in {"xmlescape", "csv", "repr", "enumerate", "chr", "ord", "hex", "oct", "bin", "sorted", "type", "json", "reversed", "randchoice", "str", "int", "float", "bool", "len", "isstr", "isint", "isfloat", "isbool", "isdate", "islist", "isdict", "istemplate", "iscolor", "abs"}:
+			self._line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2});".format(op=opcode))
+		elif opcode.arg in {"range", "randrange"}:
+			self._line(u"r{op.r1} = ul4._fu_{op.arg}(0, r{op.r2}, 1);".format(op=opcode))
+		elif opcode.arg == "isnone":
+			self._line(u"r{op.r1} = (r{op.r2} === null);".format(op=opcode))
+		elif opcode.arg == "get":
+			self._line(u"r{op.r1} = ul4._me_get(vars, r{op.r2});".format(op=opcode))
+		else:
+			raise UnknownFunctionError(opcode.arg)
+	def _dispatch_callfunc2(self, opcode):
+		if opcode.arg in {"zip", "int"}:
+			self._line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
+		elif opcode.arg in {"range", "randrange"}:
+			self._line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, 1);".format(op=opcode))
+		elif opcode.arg == "get":
+			self._line(u"r{op.r1} = ul4._me_get(vars, r{op.r2}, r{op.r3});".format(op=opcode))
+		else:
+			raise UnknownFunctionError(opcode.arg)
+	def _dispatch_callfunc3(self, opcode):
+		if opcode.arg in {"range", "zip", "randrange"}:
+			self._line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+		elif opcode.arg in {"rgb", "hls", "hsv"}:
+			self._line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, 1.0);".format(op=opcode))
+		else:
+			raise UnknownFunctionError(opcode.arg)
+	def _dispatch_callfunc4(self, opcode):
+		if opcode.arg in {"rgb", "hls", "hsv"}:
+			self._line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
+		else:
+			raise UnknownFunctionError(opcode.arg)
+	def _dispatch_callmeth0(self, opcode):
+		if opcode.arg in {"strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "items", "isoformat", "mimeformat", "day", "month", "year", "hour", "minute", "second", "microsecond", "weekday", "yearday", "r", "g", "b", "a", "lum", "hls", "hlsa", "hsv", "hsva"}:
+			self._line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2});".format(op=opcode))
+		elif opcode.arg in {"split", "rsplit"}:
+			self._line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, null, null);".format(op=opcode))
+		elif opcode.arg == "render":
+			self._line(u"r{op.r1} = r{op.r2}.renders({{}});".format(op=opcode))
+		else:
+			raise UnknownMethodError(opcode.arg)
+	def _dispatch_callmeth1(self, opcode):
+		if opcode.arg in {"join", "strip", "lstrip", "rstrip", "startswith", "endswith", "format", "withlum", "witha"}:
+			self._line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
+		elif opcode.arg in {"split", "rsplit", "get"}:
+			self._line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, null);".format(op=opcode))
+		elif opcode.arg in {"find", "rfind"}:
+			self._line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, null, null);".format(op=opcode))
+		else:
+			raise UnknownMethodError(opcode.arg)
+	def _dispatch_callmeth2(self, opcode):
+		if opcode.arg in {"split", "rsplit", "replace", "get"}:
+			self._line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+		elif opcode.arg in {"find", "rfind"}:
+			self._line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, null);".format(op=opcode))
+		else:
+			raise UnknownMethodError(opcode.arg)
+	def _dispatch_callmeth3(self, opcode):
+		if opcode.arg in {"find", "rfind"}:
+			self._line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
+		else:
+			raise UnknownMethodError(opcode.arg)
+	def _dispatch_callmethkw(self, opcode):
+		if opcode.arg == "render":
+			self._line(u"r{op.r1} = r{op.r2}.renders(r{op.r3});".format(op=opcode))
+		else:
+			raise UnknownMethodError(opcode.arg)
+	def _dispatch_if(self, opcode):
+		self._line(u"if (ul4._fu_bool(r{op.r1}))".format(op=opcode))
+		self._line(u"{")
+		self._indent += 1
+	def _dispatch_else(self, opcode):
+		self._indent -= 1
+		self._line(u"}")
+		self._line(u"else")
+		self._line(u"{")
+		self._indent += 1
+	def _dispatch_endif(self, opcode):
+		self._indent -= 1
+		self._line(u"}")
+	def _dispatch_render(self, opcode):
+		self._line(u"out = out.concat(r{op.r1}.render(r{op.r2}));".format(op=opcode))
+
+
+class JavaSource(object):
+	"""
+	A :class:`JavaSource` object generates Java sourcecode from a UL4
+	template.
+
+	The code produced requires the `UL4 Java package`__.
+
+	__ http://hg.livinglogic.de/LivingLogic.Java.ul4
+	"""
+
+	def __init__(self, template, indent=2, variables="variables"):
+		"""
+		Create a :class:`JavaSource` object. :var:`template` is the
+		:class:`Template` object.
+
+		:var:`indent` is the current indent level (defaulting to 2 for normal
+		method source code).
+
+		:var:`variables` is the variable name of ``Map`` object containing the
+		template variables.
+		"""
+		self.template = template
+		self.indent = indent
+		self.variables = variables
+
+	def __unicode__(self):
+		"""
+		Return the Java sourcecode for the :class:`Template` object passed to
+		the constructor.
+		"""
+		self._lines = []
+		self._varcounter = 0
+		self.defs = [] # Stack for currently open def opcodes
+		self._line(u"//@@@ BEGIN template source")
+		lines = self.template.source.splitlines(False)
+		width = len(str(len(lines)+1))
+		for (i, line) in enumerate(lines):
+			self._line(u"// {1:{0}} {2}".format(width, i+1, line))
+		self._line(u"//@@@ BEGIN template code")
+
+		for i in xrange(10):
+			self._line(u"Object r{} = null;".format(i))
+
+		lastloc = None
+		for opcode in self.template.opcodes:
+			if opcode.code is not None and opcode.location is not lastloc:
+				lastloc = opcode.location
+				(line, col) = lastloc.pos()
+				tag = lastloc.tag
+				self._line(u"// <?{}?> tag at {} (line {}, col {}): {}".format(lastloc.type, lastloc.starttag+1, line, col, repr(tag)[1+isinstance(tag, unicode):-1]))
+			try:
+				getattr(self, "_dispatch_{}".format(opcode.code))(opcode)
+			except AttributeError:
+				raise UnknownOpcodeError(opcode.code)
+
+		self._line(u"//@@@ END template code")
+
+		return u"\n".join(self._lines)
+
+	def output(self, expression):
+		"""
+		Return a statement for outputting the Java expression :var:`expression`.
+		This uses ``out.write()`` (for JSP etc.) but can be overwritten in
+		subclasses.
+		"""
+		return u"out.write({});".format(expression)
+
+	def _line(self, line):
+		self._lines.append(u"\t"*self.indent + line)
+
+	def _dispatch_None(self, opcode):
+		(line, col) = opcode.location.pos()
+		self._line(u"// Literal at {} (line {}, col {})".format(opcode.location.starttag+1, line, col))
+		self._line(self.output(misc.javastring(opcode.location.code)))
+	def _dispatch_loadstr(self, opcode):
+		self._line(u"r{op.r1} = {arg};".format(op=opcode, arg=misc.javastring(opcode.arg)))
+	def _dispatch_loadint(self, opcode):
+		self._line(u"r{op.r1} = new Integer({op.arg});".format(op=opcode))
+	def _dispatch_loadfloat(self, opcode):
+		self._line(u"r{op.r1} = new Double({op.arg});".format(op=opcode))
+	def _dispatch_loadnone(self, opcode):
+		self._line(u"r{op.r1} = null;".format(op=opcode))
+	def _dispatch_loadfalse(self, opcode):
+		self._line(u"r{op.r1} = false;".format(op=opcode))
+	def _dispatch_loadtrue(self, opcode):
+		self._line(u"r{op.r1} = true;".format(op=opcode))
+	def _dispatch_loaddate(self, opcode):
+		self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.isoDateFormatter.parse({arg});".format(op=opcode, arg=misc.javastring(opcode.arg)))
+	def _dispatch_loadcolor(self, opcode):
+		self._line(u"r{op.r1} = new com.livinglogic.ul4.Color(0x{r}, 0x{g}, 0x{b}, 0x{a})".format(op=opcode, r=opcode.arg[:2], g=opcode.arg[2:4], b=opcode.arg[4:6], a=opcode.arg[6:]))
+	def _dispatch_buildlist(self, opcode):
+		self._line(u"r{op.r1} = new java.util.ArrayList();".format(op=opcode))
+	def _dispatch_builddict(self, opcode):
+		self._line(u"r{op.r1} = new java.util.HashMap();".format(op=opcode))
+	def _dispatch_addlist(self, opcode):
+		self._line(u"((java.util.List)r{op.r1}).add(r{op.r2});".format(op=opcode))
+	def _dispatch_adddict(self, opcode):
+		self._line(u"((java.util.Map)r{op.r1}).put(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_updatedict(self, opcode):
+		self._line(u"((java.util.Map)r{op.r1}).putAll((java.util.Map)r{op.r2});".format(op=opcode))
+	def _dispatch_loadvar(self, opcode):
+		self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.getItem({var}, {arg});".format(op=opcode, var=self.variables, arg=misc.javastring(opcode.arg)))
+	def _dispatch_storevar(self, opcode):
+		self._line(u"{var}.put({arg}, r{op.r1});".format(var=self.variables, arg=misc.javastring(opcode.arg), op=opcode))
+	def _dispatch_addvar(self, opcode):
+		self._line(u"{var}.put({arg}, com.livinglogic.ul4.Utils.add({var}.get({arg}), r{op.r1}));".format(var=self.variables, arg=misc.javastring(opcode.arg), op=opcode))
+	def _dispatch_subvar(self, opcode):
+		self._line(u"{var}.put({arg}, com.livinglogic.ul4.Utils.sub({var}.get({arg}), r{op.r1}));".format(var=self.variables, arg=misc.javastring(opcode.arg), op=opcode))
+	def _dispatch_mulvar(self, opcode):
+		self._line(u"{var}.put({arg}, com.livinglogic.ul4.Utils.mul({var}.get({arg}), r{op.r1}));".format(var=self.variables, arg=misc.javastring(opcode.arg), op=opcode))
+	def _dispatch_truedivvar(self, opcode):
+		self._line(u"{var}.put({arg}, com.livinglogic.ul4.Utils.truediv({var}.get({arg}), r{op.r1}));".format(var=self.variables, arg=misc.javastring(opcode.arg), op=opcode))
+	def _dispatch_floordivvar(self, opcode):
+		name = misc.javastring(opcode.arg)
+		self._line(u"{var}.put({arg}, com.livinglogic.ul4.Utils.floordiv({var}.get({arg}), r{op.r1}));".format(var=self.variables, arg=misc.javastring(opcode.arg), op=opcode))
+	def _dispatch_modvar(self, opcode):
+		self._line(u"{var}.put({arg}, com.livinglogic.ul4.Utils.mod({var}.get({arg}), r{op.r1}));".format(var=self.variables, arg=misc.javastring(opcode.arg), op=opcode))
+	def _dispatch_delvar(self, opcode):
+		self._line(u"{var}.remove({arg});".format(var=self.variables, arg=misc.javastring(opcode.arg)))
+	def _dispatch_getattr(self, opcode):
+		self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.getItem(r{op.r2}, {arg});".format(op=opcode, arg=misc.javastring(opcode.arg)))
+	def _dispatch_getitem(self, opcode):
+		self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.getItem(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_getslice12(self, opcode):
+		self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.getSlice(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+	def _dispatch_getslice1(self, opcode):
+		self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.getSlice(r{op.r2}, r{op.r3}, null);".format(op=opcode))
+	def _dispatch_getslice2(self, opcode):
+		self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.getSlice(r{op.r2}, null, r{op.r3});".format(op=opcode))
+	def _dispatch_print(self, opcode):
+		self._line(self.output(u"org.apache.commons.lang.ObjectUtils.toString(r{op.r1})".format(op=opcode)))
+	def _dispatch_printx(self, opcode):
+		self._line(self.output(u"com.livinglogic.ul4.Utils.xmlescape(r{op.r1})".format(op=opcode)))
+	def _dispatch_for(self, opcode):
+		self._varcounter += 1
+		self._line(u"for (java.util.Iterator iterator{count} = com.livinglogic.ul4.Utils.iterator(r{op.r2}); iterator{count}.hasNext();)".format(op=opcode, count=self._varcounter))
+		self._line(u"{")
+		self.indent += 1
+		self._line(u"r{op.r1} = iterator{count}.next();".format(op=opcode, count=self._varcounter))
+	def _dispatch_endfor(self, opcode):
+		self.indent -= 1
+		self._line(u"}")
+	def _dispatch_def(self, opcode):
+		self._varcounter += 1
+		self._line(u"com.livinglogic.ul4.JSPTemplate template{count} = new com.livinglogic.ul4.JSPTemplate()".format(count=self._varcounter))
+		self._line(u"{")
+		self.indent += 1
+		self._line(u"public void render(java.io.Writer out, Map<String, Object> variables) throws java.io.IOException")
+		self.indent += 1
+		self._line(u"{")
+		self.indent += 1
+		for i in xrange(10):
+			self._line(u"Object r{} = null;".format(i))
+		self.defs.append((opcode.arg, self.variables, self._varcounter))
+		self.variables = "variables"
+	def _dispatch_enddef(self, opcode):
+		self.indent -= 1
+		self._line(u"}")
+		self.indent -= 1
+		self._line(u"};")
+		(arg, self.variables, oldcounter) = self.defs.pop()
+		self._line(u"{var}.put({arg}, template{count});".format(var=self.variables, arg=misc.javastring(arg), count=oldcounter))
+	def _dispatch_break(self, opcode):
+		self._line(u"break;")
+	def _dispatch_continue(self, opcode):
+		self._line(u"continue;")
+	def _dispatch_not(self, opcode):
+		self._line(u"r{op.r1} = !com.livinglogic.ul4.Utils.getBool(r{op.r2});".format(op=opcode))
+	def _dispatch_neg(self, opcode):
+		self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.neg(r{op.r2});".format(op=opcode))
+	def _dispatch_contains(self, opcode):
+		self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.contains(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_notcontains(self, opcode):
+		self._line(u"r{op.r1} = !com.livinglogic.ul4.Utils.contains(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_eq(self, opcode):
+		self._line(u"r{op.r1} = org.apache.commons.lang.ObjectUtils.equals(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_ne(self, opcode):
+		self._line(u"r{op.r1} = !org.apache.commons.lang.ObjectUtils.equals(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_lt(self, opcode):
+		self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.lt(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_le(self, opcode):
+		self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.le(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_gt(self, opcode):
+		self._line(u"r{op.r1} = !com.livinglogic.ul4.Utils.le(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_ge(self, opcode):
+		self._line(u"r{op.r1} = !com.livinglogic.ul4.Utils.lt(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_add(self, opcode):
+		self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.add(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_sub(self, opcode):
+		self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.sub(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_mul(self, opcode):
+		self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.mul(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_floordiv(self, opcode):
+		self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.floordiv(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_truediv(self, opcode):
+		self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.truediv(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_and(self, opcode):
+		self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.getBool(r{op.r3}) ? r{op.r2} : r{op.r3};".format(op=opcode))
+	def _dispatch_or(self, opcode):
+		self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.getBool(r{op.r2}) ? r{op.r2} : r{op.r3};".format(op=opcode))
+	def _dispatch_mod(self, opcode):
+		self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.mod(r{op.r2}, r{op.r3});".format(op=opcode))
+	def _dispatch_callfunc0(self, opcode):
+		if opcode.arg == "now":
+			self._line(u"r{op.r1} = new java.util.Date();".format(op=opcode))
+		elif opcode.arg in {"utcnow", "random"}:
+			self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}();".format(op=opcode))
+		elif opcode.arg == "vars":
+			self._line(u"r{op.r1} = {var};".format(op=opcode, var=variables))
+		else:
+			raise ul4c.UnknownFunctionError(opcode.arg)
+	def _dispatch_callfunc1(self, opcode):
+		if opcode.arg in {"xmlescape", "csv", "repr", "enumerate", "chr", "ord", "hex", "oct", "bin", "sorted", "range", "type", "json", "reversed", "randrange"}:
+			self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
+		elif opcode.arg == "str":
+			self._line(u"r{op.r1} = org.apache.commons.lang.ObjectUtils.toString(r{op.r2});".format(op=opcode))
+		elif opcode.arg == "int":
+			self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.toInteger(r{op.r2});".format(op=opcode))
+		elif opcode.arg == "float":
+			self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.toFloat(r{op.r2});".format(op=opcode))
+		elif opcode.arg == "bool":
+			self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.getBool(r{op.r2});".format(op=opcode))
+		elif opcode.arg == "len":
+			self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.length(r{op.r2});".format(op=opcode))
+		elif opcode.arg == "isnone":
+			self._line(u"r{op.r1} = (r{op.r2} == null);".format(op=opcode))
+		elif opcode.arg == "isstr":
+			self._line(u"r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof String));".format(op=opcode))
+		elif opcode.arg == "isint":
+			self._line(u"r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof Integer));".format(op=opcode))
+		elif opcode.arg == "isfloat":
+			self._line(u"r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof Double));".format(op=opcode))
+		elif opcode.arg == "isbool":
+			self._line(u"r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof Boolean));".format(op=opcode))
+		elif opcode.arg == "isdate":
+			self._line(u"r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof java.util.Date));".format(op=opcode))
+		elif opcode.arg == "islist":
+			self._line(u"r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof java.util.List));".format(op=opcode))
+		elif opcode.arg == "isdict":
+			self._line(u"r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof java.util.Map));".format(op=opcode))
+		elif opcode.arg == "istemplate":
+			self._line(u"r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof com.livinglogic.ul4.Template));".format(op=opcode))
+		elif opcode.arg == "iscolor":
+			self._line(u"r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof com.livinglogic.ul4.Color));".format(op=opcode))
+		elif opcode.arg == "get":
+			self._line(u"r{op.r1} = {var}.get(r{op.r2});".format(op=opcode, var=variables))
+		else:
+			raise ul4c.UnknownFunctionError(opcode.arg)
+	def _dispatch_callfunc2(self, opcode):
+		if opcode.arg in {"range", "zip", "randrange"}:
+			self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
+		elif opcode.arg == "get":
+			self._line(u"r{op.r1} = {var}.containsKey(r{op.r2}) ? {var}.get(r{op.r2}) : r{op.r3};".format(op=opcode.r1, var=self.variables))
+		else:
+			raise ul4c.UnknownFunctionError(opcode.arg)
+	def _dispatch_callfunc3(self, opcode):
+		if opcode.arg in {"range", "zip", "rgb", "hls", "hsv", "randrange"}:
+			self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+		else:
+			raise ul4c.UnknownFunctionError(opcode.arg)
+	def _dispatch_callfunc4(self, opcode):
+		if opcode.arg in {"rgb", "hls", "hsv"}:
+			self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
+		else:
+			raise ul4c.UnknownFunctionError(opcode.arg)
+	def _dispatch_callmeth0(self, opcode):
+		if opcode.arg in {"split", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "items", "isoformat", "mimeformat", "day", "month", "year", "hour", "minute", "second", "microsecond", "weekday", "yearday"}:
+			self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
+		elif opcode.arg in {"r", "g", "b", "a"}:
+			self._line(u"r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).get{arg}();".format(op=opcode, arg=opcode.arg.upper()))
+		elif opcode.arg in {"hls", "hlsa", "hsv", "hsva"}:
+			self._line(u"r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).{op.arg}();".format(op=opcode))
+		elif opcode.arg == "lum":
+			self._line(u"r{op.r1} = new Double(((com.livinglogic.ul4.Color)r{op.r2}).lum());".format(op=opcode))
+		else:
+			raise ul4c.UnknownMethodError(opcode.arg)
+	def _dispatch_callmeth1(self, opcode):
+		if opcode.arg in {"split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "rfind", "format", "withlum", "witha"}:
+			self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
+		elif opcode.arg == "get":
+			self._line(u"r{op.r1} = ((java.util.Map)r{op.r2}).get(r{op.r3});".format(op=opcode))
+		else:
+			raise ul4c.UnknownMethodError(opcode.arg)
+	def _dispatch_callmeth2(self, opcode):
+		if opcode.arg in {"split", "rsplit", "find", "replace"}:
+			self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+		elif opcode.arg == "get":
+			self._line(u"r{op.r1} = ((java.util.Map)r{op.r2}).containsKey(r{op.r3}) ? ((java.util.Map)r{op.r2}).get(r{op.r3}) : r{op.r4};".format(op=opcode))
+		else:
+			raise ul4c.UnknownMethodError(opcode.arg)
+	def _dispatch_callmeth3(self, opcode):
+		if opcode.arg == "find":
+			self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.find(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
+		else:
+			raise ul4c.UnknownMethodError(opcode.arg)
+	def _dispatch_callmethkw(self, opcode):
+		if opcode.arg == "render":
+			self._line(u"r{op.r1} = ((com.livinglogic.ul4.Template)r{op.r2}).renders((java.util.Map)r{op.r3});".format(op=opcode))
+		else:
+			raise ul4c.UnknownMethodError(opcode.arg)
+	def _dispatch_if(self, opcode):
+		self._line(u"if (com.livinglogic.ul4.Utils.getBool(r{op.r1}))".format(op=opcode))
+		self._line(u"{")
+		self.indent += 1
+	def _dispatch_else(self, opcode):
+		self.indent -= 1
+		self._line(u"}")
+		self._line(u"else")
+		self._line(u"{")
+		self.indent += 1
+	def _dispatch_endif(self, opcode):
+		self.indent -= 1
+		self._line(u"}")
+	def _dispatch_render(self, opcode):
+		self._line(u"((com.livinglogic.ul4.Template)r{op.r1}).render(out, (Map)r{op.r2});".format(op=opcode))
 
 
 ###
