@@ -64,8 +64,6 @@ def main(args=None):
 					msg = astyle.style_default(astyle.style_url(str(urlwrite)), " (", str(size), " bytes)")
 					stderr.writeln(msg)
 
-
-
 	p = argparse.ArgumentParser(description="Copies URLs")
 	p.add_argument("urls", metavar="url", help="either one source and one target file, or multiple source files and one target dir", nargs="*", type=url.URL)
 	p.add_argument("-v", "--verbose", dest="verbose", help="Be verbose?", action="store_true", default=False)
