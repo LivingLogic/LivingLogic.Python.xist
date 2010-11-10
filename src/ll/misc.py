@@ -537,7 +537,7 @@ class SysInfo(object):
 	def __iter__(self):
 		return iter(self._keys)
 
-	
+
 def prettycsv(rows, padding="   "):
 	"""
 	Format table :var:`rows`.
