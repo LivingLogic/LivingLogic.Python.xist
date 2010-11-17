@@ -1897,7 +1897,7 @@ class JavaSource(object):
 		elif opcode.arg == "vars":
 			self._line(u"r{op.r1} = {var};".format(op=opcode, var=variables))
 		else:
-			raise ul4c.UnknownFunctionError(opcode.arg)
+			raise UnknownFunctionError(opcode.arg)
 	def _dispatch_callfunc1(self, opcode):
 		if opcode.arg in {"xmlescape", "csv", "repr", "enumerate", "chr", "ord", "hex", "oct", "bin", "sorted", "range", "type", "json", "reversed", "randrange"}:
 			self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
@@ -1934,24 +1934,24 @@ class JavaSource(object):
 		elif opcode.arg == "get":
 			self._line(u"r{op.r1} = {var}.get(r{op.r2});".format(op=opcode, var=variables))
 		else:
-			raise ul4c.UnknownFunctionError(opcode.arg)
+			raise UnknownFunctionError(opcode.arg)
 	def _dispatch_callfunc2(self, opcode):
 		if opcode.arg in {"range", "zip", "randrange"}:
 			self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
 		elif opcode.arg == "get":
 			self._line(u"r{op.r1} = {var}.containsKey(r{op.r2}) ? {var}.get(r{op.r2}) : r{op.r3};".format(op=opcode.r1, var=self.variables))
 		else:
-			raise ul4c.UnknownFunctionError(opcode.arg)
+			raise UnknownFunctionError(opcode.arg)
 	def _dispatch_callfunc3(self, opcode):
 		if opcode.arg in {"range", "zip", "rgb", "hls", "hsv", "randrange"}:
 			self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 		else:
-			raise ul4c.UnknownFunctionError(opcode.arg)
+			raise UnknownFunctionError(opcode.arg)
 	def _dispatch_callfunc4(self, opcode):
 		if opcode.arg in {"rgb", "hls", "hsv"}:
 			self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
 		else:
-			raise ul4c.UnknownFunctionError(opcode.arg)
+			raise UnknownFunctionError(opcode.arg)
 	def _dispatch_callmeth0(self, opcode):
 		if opcode.arg in {"split", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "items", "isoformat", "mimeformat", "day", "month", "year", "hour", "minute", "second", "microsecond", "weekday", "yearday"}:
 			self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
@@ -1962,31 +1962,31 @@ class JavaSource(object):
 		elif opcode.arg == "lum":
 			self._line(u"r{op.r1} = new Double(((com.livinglogic.ul4.Color)r{op.r2}).lum());".format(op=opcode))
 		else:
-			raise ul4c.UnknownMethodError(opcode.arg)
+			raise UnknownMethodError(opcode.arg)
 	def _dispatch_callmeth1(self, opcode):
 		if opcode.arg in {"split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "rfind", "format", "withlum", "witha"}:
 			self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
 		elif opcode.arg == "get":
 			self._line(u"r{op.r1} = ((java.util.Map)r{op.r2}).get(r{op.r3});".format(op=opcode))
 		else:
-			raise ul4c.UnknownMethodError(opcode.arg)
+			raise UnknownMethodError(opcode.arg)
 	def _dispatch_callmeth2(self, opcode):
 		if opcode.arg in {"split", "rsplit", "find", "replace"}:
 			self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 		elif opcode.arg == "get":
 			self._line(u"r{op.r1} = ((java.util.Map)r{op.r2}).containsKey(r{op.r3}) ? ((java.util.Map)r{op.r2}).get(r{op.r3}) : r{op.r4};".format(op=opcode))
 		else:
-			raise ul4c.UnknownMethodError(opcode.arg)
+			raise UnknownMethodError(opcode.arg)
 	def _dispatch_callmeth3(self, opcode):
 		if opcode.arg == "find":
 			self._line(u"r{op.r1} = com.livinglogic.ul4.Utils.find(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
 		else:
-			raise ul4c.UnknownMethodError(opcode.arg)
+			raise UnknownMethodError(opcode.arg)
 	def _dispatch_callmethkw(self, opcode):
 		if opcode.arg == "render":
 			self._line(u"r{op.r1} = ((com.livinglogic.ul4.Template)r{op.r2}).renders((java.util.Map)r{op.r3});".format(op=opcode))
 		else:
-			raise ul4c.UnknownMethodError(opcode.arg)
+			raise UnknownMethodError(opcode.arg)
 	def _dispatch_if(self, opcode):
 		self._line(u"if (com.livinglogic.ul4.Utils.getBool(r{op.r1}))".format(op=opcode))
 		self._line(u"{")
