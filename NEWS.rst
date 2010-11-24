@@ -4,6 +4,8 @@ Changes in 3.15.1 (released 11/24/2010)
 *	Fixed a bug in the error handling code of the UL4 compiler when an unknown
 	function or method was encountered.
 
+*	Fixed str/unicode problems with the search string in ``orafind.py``.
+
 
 Changes in 3.15 (released 11/09/2010)
 -------------------------------------

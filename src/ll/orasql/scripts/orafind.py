@@ -113,7 +113,7 @@ def main(args=None):
 	searchstring = args.searchstring.decode(args.encoding)
 	if args.ignorecase:
 		searchstring = searchstring.lower()
-	searchstring = "%{}%".format(searchstring.replace("%", "%%"))
+	searchstring = u"%{}%".format(searchstring.replace(u"%", u"%%"))
 	tablenames = [name.decode(args.encoding).lower() for name in args.tables]
 
 	connection = orasql.connect(connectstring, readlobs=args.readlobs)
