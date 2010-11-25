@@ -153,6 +153,8 @@ def test_encoding():
 
 def test_xmlheader():
 	assert xml.XML().bytes(encoding="utf-8") == b'<?xml version="1.0" encoding="utf-8"?>'
+	assert xml.XML().bytes(encoding="latin-1") == b'<?xml version="1.0" encoding="latin-1"?>'
+	assert html.div(xml.XML()).bytes(encoding="latin-1") == b'<div><?xml version="1.0" encoding="latin-1"?></div>'
 
 
 def test_struts_html():

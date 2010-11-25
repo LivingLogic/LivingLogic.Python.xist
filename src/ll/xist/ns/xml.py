@@ -14,6 +14,7 @@ and classes for the XML declaration.
 """
 
 
+from ll import xml_codec
 from ll.xist import xsc, sims
 
 
@@ -37,8 +38,7 @@ class Attrs(xsc.Attrs):
 
 class XML(xsc.ProcInst):
 	"""
-	XML declaration. The encoding will be automatically set when publishing
-	(by the XML codec).
+	XML declaration. The encoding will be automatically set when publishing.
 	"""
 	xmlname = "xml"
 
@@ -50,6 +50,14 @@ class XML(xsc.ProcInst):
 		if standalone is not None:
 			v.append(u'standalone="{}"'.format("yes" if standalone else "no"))
 		xsc.ProcInst.__init__(self, u" ".join(v))
+
+	def publish(self, publisher):
+		if publisher.validate:
+			self.checkvalid()
+		xml = u"<?xml {}?>".format(self.content)
+		if publisher.encoding is not None:
+			xml = xml_codec._fixencoding(xml, unicode(publisher.encoding))
+		yield publisher.encode(xml)
 
 
 class XMLStyleSheet(xsc.ProcInst):

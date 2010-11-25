@@ -1,3 +1,11 @@
+Changes in 3.15.2 (released 11/25/2010)
+---------------------------------------
+
+*	Publishing an :class:`ll.xist.ns.xml.XML` object will now always put the
+	correct encoding into the XML declaration, no matter where in the XML tree
+	the :class:`xml.XML` object sits.
+
+
 Changes in 3.15.1 (released 11/24/2010)
 ---------------------------------------
 
