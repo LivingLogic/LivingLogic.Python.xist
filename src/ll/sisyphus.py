@@ -96,10 +96,6 @@ class Job(object):
 	"""
 	A Job object executes a task once.
 
-	The job announces its presence (and its process id) in a file that is stored
-	in the :dir:`~/run/` directory. Logs will be created in the :dir:`~/log/`
-	directory (This can be changes by deriving new subclasses).
-
 	To use this class, derive your own class from it and overwrite the
 	:meth:`execute` method.
 
@@ -154,8 +150,14 @@ class Job(object):
 		Maximum allowed runtime for the job (as the number of seconds). If the job
 		runs longer than that it will kill itself.
 
+	``fork`` : :option:`--fork`
+		Forks the process and does the work in the child process. The parent
+		process is responsible for monitoring the maximum runtime (this is the
+		default). In non-forking mode the single process does both the work and
+		the runtime monitoring.
+
 	``noisykills`` : :option:`--noisykills`
-		Should an exception be raised when the maximum runtime is exceeded?
+		Should a message be printed when the maximum runtime is exceeded?
 
 	``logfilename`` : :option:`--logfilename`
 		Path/name of the logfile for this job as an UL4 template. Variables
@@ -205,6 +207,8 @@ class Job(object):
 
 	maxtime = 5 * 60
 
+	fork = True
+
 	noisykills = False
 
 	logfilename = u"~/ll.sisyphus/<?print projectname?>/<?print jobname?>/<?print starttime.format('%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog"
@@ -247,6 +251,7 @@ class Job(object):
 		p.add_argument("-p", "--projectname", dest="projectname", metavar="NAME", help="The name of the project this job belongs to", type=self._string, default=self.projectname)
 		p.add_argument("-j", "--jobname", dest="jobname", metavar="NAME", help="The name of the job", type=self._string, default=self.jobname if self.jobname is not None else self.__class__.__name__)
 		p.add_argument("-m", "--maxtime", dest="maxtime", metavar="SECONDS", help="Maximum number of seconds the job is allowed to run", type=int, default=self.maxtime)
+		p.add_argument(      "--fork", dest="fork", metavar="FLAG", help="Fork the process and do the work in the child process?", type=misc.flag, default=self.fork)
 		p.add_argument("-f", "--log2file", dest="log2file", metavar="FLAG", help="Should the job log into a file?", type=misc.flag, default=self.log2file)
 		p.add_argument("-o", "--log2stdout", dest="log2stdout", metavar="FLAG", help="Should the job log to stdout?", type=misc.flag, default=self.log2stdout)
 		p.add_argument("-e", "--log2stderr", dest="log2stderr", metavar="FLAG", help="Should the job log to stderr?", type=misc.flag, default=self.log2stderr)
@@ -255,7 +260,7 @@ class Job(object):
 		p.add_argument(      "--inputerrors", dest="inputerrors", metavar="METHOD", help="Error handling method for encoding errors in system data", default=self.inputerrors)
 		p.add_argument(      "--outputencoding", dest="outputencoding", metavar="ENCODING", help="Encoding for the log file", default=self.outputencoding)
 		p.add_argument(      "--outputerrors", dest="outputerrors", metavar="METHOD", help="Error handling method for encoding errors in log texts", default=self.outputerrors)
-		p.add_argument(      "--noisykills", dest="noisykills", metavar="FLAG", help="Should an exception be raised if the maximum runtime is exceeded?", type=misc.flag, default=self.noisykills)
+		p.add_argument(      "--noisykills", dest="noisykills", metavar="FLAG", help="Should a message be printed if the maximum runtime is exceeded?", type=misc.flag, default=self.noisykills)
 		return p
 
 	def parseargs(self, args=None):
@@ -269,6 +274,7 @@ class Job(object):
 		self.projectname = args.projectname
 		self.jobname = args.jobname
 		self.maxtime = args.maxtime
+		self.fork = args.fork
 		self.noisykills = args.noisykills
 		self.log2file = args.log2file
 		self.log2stdout = args.log2stdout
@@ -280,6 +286,26 @@ class Job(object):
 		self.outputerrors = args.outputerrors
 		return args
 
+	def _alarm_fork(self, signum, frame):
+		os.kill(self.killpid, signal.SIGTERM) # Kill our child
+		maxtime = datetime.timedelta(seconds=self.maxtime)
+		if self._logfile is not None:
+			self.log.sisyphus.result.kill(u"Terminated child after {}".format(maxtime))
+			self._logfile.close()
+		if self.noisykills:
+			print "Terminated forked job {} (pid {}) after {}".format(self.info.sysinfo.scriptname, self.info.sysinfo.pid, maxtime)
+		os._exit(1)
+
+	def _alarm_nofork(self, signum, frame):
+		self._prefix = ""
+		maxtime = datetime.timedelta(seconds=self.maxtime)
+		if self._logfile is not None:
+			self.log.sisyphus.result.kill(u"Terminated after {}".format(maxtime))
+			self._logfile.close()
+		if self.noisykills:
+			print "Terminated job {} (pid {}) after {}".format(self.info.sysinfo.scriptname, self.info.sysinfo.pid, maxtime)
+		os._exit(1)
+
 	def _handleexecution(self):
 		"""
 		Handle executing the job including handling of duplicate or hanging jobs.
@@ -290,7 +316,6 @@ class Job(object):
 		self.info.jobname = self._string(self.jobname)
 		self.info.maxtime = self.maxtime
 		self._prefix = ""
-		maxtimedelta = datetime.timedelta(seconds=self.maxtime)
 
 		# Obtain a lock on the script file to make sure we're the only one running
 		with open(self.info.sysinfo.scriptname, "rb") as f:
@@ -312,25 +337,22 @@ class Job(object):
 			self._formatlogline = ul4c.compile(self.formatlogline.replace("\n", "").replace("\r", "") + u"\n") # Log line formatting template
 			self._createlog() # Create log file and link
 
-			self.log.sisyphus.init(u"{} (max run time {}; parent pid {})".format(self.info.sysinfo.scriptname, maxtimedelta, self.info.sysinfo.pid))
+			self.log.sisyphus.init(u"{} (max time {}; pid {})".format(self.info.sysinfo.scriptname, datetime.timedelta(seconds=self.maxtime), self.info.sysinfo.pid))
 
-			# Fork the process; the child will do the work; the parent will monitor the maximum runtime
-			pid = os.fork()
-
-			if pid: # We are the parent process
-				# set a signal that kills the child process after the maximum runtime
-				def alarm(signum, frame):
-					os.kill(pid, signal.SIGTERM) # Kill our child
-					self.log.sisyphus.result.kill(u"Terminated after {}".format(maxtimedelta))
-					if self.noisykills:
-						raise MaximumRuntimeExceeded(self.maxtime)
-					sys.exit(1)
-				signal.signal(signal.SIGALRM, alarm)
+			if self.fork: # Forking mode?
+				# Fork the process; the child will do the work; the parent will monitor the maximum runtime
+				self.killpid = pid = os.fork()
+				if pid: # We are the parent process
+					# set a signal to kill the child process after the maximum runtime
+					signal.signal(signal.SIGALRM, self._alarm_fork)
+					signal.alarm(self.maxtime)
+					os.wait() # Wait for the child process to terminate
+					return # Exit normally
+				self.log.sisyphus.init(u"forked worker child (child pid {})".format(os.getpid()))
+			else: # We didn't fork
+				# set a signal to kill ourselves after the maximum runtime
+				signal.signal(signal.SIGALRM, self._alarm_nofork)
 				signal.alarm(self.maxtime)
-				os.wait() # Wait for the child process to terminate
-				return # Exit normally
-			# From now on we are in the child process
-			self.log.sisyphus.init(u"forked worker child (child pid {})".format(os.getpid()))
 
 			try:
 				with url.Context():
@@ -350,7 +372,8 @@ class Job(object):
 				if self._logfile is not None:
 					self._logfile.close()
 				fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
-			os._exit(0)
+			if self.fork:
+				os._exit(0)
 
 	@contextlib.contextmanager
 	def prefix(self, prefix):

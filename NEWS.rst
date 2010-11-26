@@ -1,3 +1,11 @@
+Changes in 3.15.3 (released 11/26/2010)
+---------------------------------------
+
+*	:mod:`ll.sisyphus` now supports a non-forking mode (``--fork=no``). In this
+	mode executing the job and monitoring the maximum runtime is done by the same
+	(single) process.
+
+
 Changes in 3.15.2 (released 11/25/2010)
 ---------------------------------------
 
