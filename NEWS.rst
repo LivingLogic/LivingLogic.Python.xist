@@ -521,7 +521,7 @@ Changes in 3.6 (released 12/31/2008)
 *	The property ``css`` has been dropped. Instead the CSS string is returned
 	by ``__str__``.
 
-*	Dividing color now does a scalar division. Blending colors is now done with
+*	Dividing colors now does a scalar division. Blending colors is now done with
 	the modulo operator.
 
 *	Support for color objects has been added to UL4.
