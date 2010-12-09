@@ -401,7 +401,7 @@ class Job(object):
 				if isinstance(text, BaseException):
 					if "exc" not in tags:
 						tags += ("exc",)
-					tb = u"".join(traceback.format_tb(sys.exc_info()[-1]))
+					tb = u"".join(map(self._string, traceback.format_tb(sys.exc_info()[-1])))
 					text = u"{tb}\n{exc}".format(tb=tb, exc=self._exc(text))
 				elif not isinstance(text, unicode):
 					text = self._string(pprint.pformat(text))
@@ -512,10 +512,17 @@ class Job(object):
 		Format an exception object for logging.
 		"""
 		if exc.__class__.__module__ not in ("__builtin__", "exceptions"):
-			fmt = u"{0.__class__.__module__}.{0.__class__.__name__}: {0}"
+			fmt = u"{0.__class__.__module__}.{0.__class__.__name__}: {1}"
 		else:
-			fmt = u"{0.__class__.__name__}: {0}"
-		return fmt.format(exc)
+			fmt = u"{0.__class__.__name__}: {1}"
+		try:
+			strexc = unicode(exc)
+		except UnicodeError:
+			try:
+				strexc = str(exc)
+			except UnicodeError:
+				strexc = u"?"
+		return fmt.format(exc, strexc)
 
 
 class Tag(object):
