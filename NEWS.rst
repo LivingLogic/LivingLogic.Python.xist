@@ -1,3 +1,10 @@
+Changes in 3.15.4 (released ??/??/2010)
+---------------------------------------
+
+*	:mod:`ll.sisyphus` logging of exceptions and tracebacks should be more robust
+	against encoding problems.
+
+
 Changes in 3.15.3 (released 11/26/2010)
 ---------------------------------------
 
