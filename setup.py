@@ -283,7 +283,7 @@ args = dict(
 		"scripts/orafind.py",
 	],
 	install_requires=[
-		"cssutils == 0.9.5.1",
+		"cssutils == 0.9.7",
 	],
 	extras_require = {
 		"oracle":  ["cx_Oracle >= 5.0.1"],
