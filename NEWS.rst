@@ -8,6 +8,8 @@ Changes in 3.15.4 (released ??/??/2010)
 
 *	Fixed a bug in the command line argument handling of ``dtd2xsc.py``.
 
+*	``dtd2xsc.py`` can now handle undefined entities.
+
 
 Changes in 3.15.3 (released 11/26/2010)
 ---------------------------------------

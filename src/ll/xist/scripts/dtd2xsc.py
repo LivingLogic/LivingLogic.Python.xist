@@ -151,8 +151,12 @@ def dtd2xnd(dtd, xmlns=None):
 	ents.sort()
 	for entname in ents:
 		if entname not in ("quot", "apos", "gt", "lt", "amp"):
-			ent = parse.tree(dtd.resolve_ge(entname).value, parse.Encoder("utf-8"), parse.SGMLOP(encoding="utf-8"), parse.NS(), parse.Node())
-			ns.content.append(xnd.CharRef(entname, codepoint=ord(unicode(ent[0])[0])))
+			try:
+				ent = parse.tree(dtd.resolve_ge(entname).value, parse.Encoder("utf-8"), parse.SGMLOP(encoding="utf-8"), parse.NS(), parse.Node())
+			except xsc.IllegalEntityError:
+				pass
+			else:
+				ns.content.append(xnd.CharRef(entname, codepoint=ord(unicode(ent[0])[0])))
 
 	return ns
 
