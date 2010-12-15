@@ -175,7 +175,7 @@ def main(args=None):
 	p.add_argument("-d", "--defaults", action="store_true", dest="defaults", help="Output default values for attributes?")
 
 	args = p.parse_args(args)
-	print stream2xnd(sys.stdin, options.xmlns, args.shareattrs).aspy(model=args.model, defaults=args.defaults)
+	print stream2xnd(sys.stdin, args.xmlns, args.shareattrs).aspy(model=args.model, defaults=args.defaults)
 
 
 if __name__ == "__main__":

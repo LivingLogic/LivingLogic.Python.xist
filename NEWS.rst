@@ -6,6 +6,8 @@ Changes in 3.15.4 (released ??/??/2010)
 
 *	The :mod:`cssutils` version has been bumped to 0.9.7.
 
+*	Fixed a bug in the command line argument handling of ``dtd2xsc.py``.
+
 
 Changes in 3.15.3 (released 11/26/2010)
 ---------------------------------------
