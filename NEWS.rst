@@ -1,10 +1,14 @@
-Changes in 3.15.4 (released ??/??/2010)
----------------------------------------
+Changes in 3.16 (released ??/??/2010)
+-------------------------------------
 
 *	:mod:`ll.sisyphus` logging of exceptions and tracebacks should be more robust
 	against encoding problems.
 
 *	The :mod:`cssutils` version has been bumped to 0.9.7.
+
+*	``dtd2xsc.py`` can now combine the content of more than one DTD into a
+	namespace. Handling of duplicate elements can be specified with a new
+	:option:`duplicates` option.
 
 *	Fixed a bug in the command line argument handling of ``dtd2xsc.py``.
 

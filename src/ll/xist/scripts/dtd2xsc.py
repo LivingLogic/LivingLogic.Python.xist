@@ -24,7 +24,7 @@ For usage information type::
 __docformat__ = "reStructuredText"
 
 
-import sys, os.path, argparse
+import sys, os.path, argparse, contextlib
 
 try:
 	from xml.parsers.xmlproc import dtdparser
@@ -54,15 +54,13 @@ def getxmlns(dtd):
 	return found
 
 
-def dtd2xnd(dtd, xmlns=None):
+def adddtd2xnd(ns, dtd, xmlns=None, duplicates="reject"):
 	"""
-	Convert DTD information from the URL :var:`dtdurl` to an XIST DOM using the
-	:mod:`ll.xist.xnd` functionality.
+	Append DTD information from :var:`dtd` to the :class:`xnd.Module` object
+	:var:`ns`.
 	"""
 
 	dtd = dtdparser.load_dtd_string(dtd)
-
-	ns = xnd.Module()
 
 	if xmlns is None:
 		# try to guess the namespace name from the dtd
@@ -93,7 +91,7 @@ def dtd2xnd(dtd, xmlns=None):
 				else:
 					type = "xsc.TextAttr"
 					if isinstance(dtd_a.type, list):
-						if len(dtd_a.type)>1:
+						if len(dtd_a.type) > 1:
 							values = dtd_a.type
 						else:
 							type = "xsc.BoolAttr"
@@ -102,11 +100,9 @@ def dtd2xnd(dtd, xmlns=None):
 					required = True
 				else:
 					required = None
-				a = xnd.Attr(name=attrname, type=type, default=default, required=required)
-				for v in values:
-					a.values.append(v)
-				e.attrs.append(a)
-		ns.content.append(e)
+				a = xnd.Attr(name=attrname, type=type, default=default, required=required, values=values)
+				e.attrs[a.name] = a
+		e.add(ns, duplicates=duplicates)
 
 	# Iterate through the elements a second time and add model information
 	for elemname in elements:
@@ -136,13 +132,13 @@ def dtd2xnd(dtd, xmlns=None):
 				elif cont == "EMPTY":
 					modeltype = "sims.Empty"
 				else:
-					modelargs.append(ns.element(cont))
+					modelargs.append(ns.elements[(cont, xmlns)])
 			if not modelargs:
 				if modeltype == "sims.ElementsOrText":
 					modeltype = "sims.NoElements"
 				else:
 					modeltype = "sims.NoElementsOrText"
-		e = ns.element(elemname)
+		e = ns.elements[(elemname, xmlns)]
 		e.modeltype = modeltype
 		e.modelargs = modelargs
 
@@ -156,30 +152,41 @@ def dtd2xnd(dtd, xmlns=None):
 			except xsc.IllegalEntityError:
 				pass
 			else:
-				ns.content.append(xnd.CharRef(entname, codepoint=ord(unicode(ent[0])[0])))
+				e = xnd.CharRef(entname, codepoint=ord(unicode(ent[0])[0]))
+				e.add(ns, duplicates=duplicates)
 
+
+def stream2xnd(urls, xmlns, shareattrs, duplicates):
+	ns = xnd.Module()
+	with url.Context():
+		for u in urls:
+			with contextlib.closing(u.openread()) as f:
+				adddtd2xnd(ns, f.read(), xmlns, duplicates)
+
+	if shareattrs=="dupes":
+		ns.shareattrs(False)
+	elif shareattrs=="all":
+		ns.shareattrs(True)
 	return ns
 
 
-def stream2xnd(stream, xmlns, shareattrs):
-	xnd = dtd2xnd(stream.read(), xmlns)
-
-	if shareattrs=="dupes":
-		xnd.shareattrs(False)
-	elif shareattrs=="all":
-		xnd.shareattrs(True)
-	return xnd
+def dtd2xnd(dtd, xmlns=None, duplicates="reject"):
+	ns = xnd.Module()
+	adddtd2xnd(ns, dtd, xmlns, duplicates)
+	return ns
 
 
 def main(args=None):
-	p = argparse.ArgumentParser(description="Convert DTD (on stdin) to XIST namespace (on stdout)")
+	p = argparse.ArgumentParser(description="Convert DTDs to XIST namespace (on stdout)")
+	p.add_argument("urls", metavar="urls", type=url.URL, help="ULRs of DTDs to be parsed", nargs="+")
 	p.add_argument("-x", "--xmlns", dest="xmlns", help="the namespace name for this module")
 	p.add_argument("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements?", choices=("none", "dupes", "all"), default="dupes")
 	p.add_argument("-m", "--model", dest="model", default="once", help="Add sims information to the namespace", choices=("no", "all", "once"))
 	p.add_argument("-d", "--defaults", action="store_true", dest="defaults", help="Output default values for attributes?")
+	p.add_argument(      "--duplicates", dest="duplicates", help="How to handle duplicate elements from multiple DTDs", choices=("reject", "allow", "merge"))
 
 	args = p.parse_args(args)
-	print stream2xnd(sys.stdin, args.xmlns, args.shareattrs).aspy(model=args.model, defaults=args.defaults)
+	print stream2xnd(args.urls, args.xmlns, args.shareattrs, args.duplicates).aspy(model=args.model, defaults=args.defaults)
 
 
 if __name__ == "__main__":

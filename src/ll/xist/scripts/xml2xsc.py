@@ -39,10 +39,10 @@ def getelementname(node):
 
 def etree2xnd(model, node):
 	ns = xnd.Module()
-	elements = {} # maps (name, xmlns) to (xnd.Element, content set, attrname->xnd.Attr map)
+	elements = {} # maps (name, xmlns) to (xnd.Element, content set)
 	procinsts = {} # maps name to xnd.ProcInst
 
-	# Iterate through the tree a collect: which elements are encountered and how they are nested
+	# Iterate through the tree and collect which elements are encountered and how they are nested
 	for path in iterpath(node):
 		node = path[-1]
 		if "Element" in type(node).__name__:
@@ -51,15 +51,13 @@ def etree2xnd(model, node):
 				entry = elements[(name, xmlns)]
 			except KeyError:
 				xndnode = xnd.Element(name, xmlns=xmlns)
-				entry = elements[(name, xmlns)] = (xndnode, set(), {})
+				entry = elements[(name, xmlns)] = (xndnode, set())
 				ns(xndnode)
 			else:
 				xndnode = entry[0]
 			for attrname in node.keys():
-				if not attrname.startswith("{") and attrname not in entry[2]:
-					attr = xnd.Attr(attrname, type=xsc.TextAttr)
-					entry[0](attr)
-					entry[2][attrname] = attr
+				if not attrname.startswith("{") and attrname not in entry[0].attrs:
+					entry[0](xnd.Attr(attrname, type=xsc.TextAttr))
 		elif "ProcessingInstruction" in type(node).__name__:
 			name = node.target
 			try:

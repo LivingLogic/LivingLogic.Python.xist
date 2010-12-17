@@ -52,19 +52,15 @@ class attribute(xsc.Element):
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self):
-		e = xnd.Attr(unicode(self[name][0].content), u"xsc.TextAttr")
-		isrequired = None
+		isrequired = False
 		node = misc.first(self[required], None)
 		if node is not None:
-			value = unicode(node[0].content)
+			value = unicode(node).strip()
 			if value in (u"true", u"yes"):
 				isrequired = True
-			elif value in (u"false", u"no"):
-				isrequired = None
-			else:
-				raise ValueError("value {} not allowed for tag <required>".format(value))
-		e.required = isrequired
-		return e
+			elif value not in (u"false", u"no"):
+				raise ValueError("value {!r} not allowed for tag <required>".format(value))
+		return xnd.Attr(unicode(self[name][0].content), u"xsc.TextAttr", isrequired)
 
 
 class bodycontent(xsc.Element):
@@ -177,7 +173,7 @@ class tag(xsc.Element):
 			elif value == u"empty":
 				empty = True
 			else:
-				raise ValueError("value {} is not allowed for tag <bodycontent>".format(value))
+				raise ValueError("value {!r} is not allowed for tag <bodycontent>".format(value))
 		if empty:
 			e.modeltype = "sims.Empty"
 		else:
@@ -186,7 +182,8 @@ class tag(xsc.Element):
 		if node is not None:
 			e.doc = node.asxnd()
 		for attr in self[attribute]:
-			e.attrs.append(attr.asxnd())
+			attrname = unicode(attr[name][0].content)
+			e.attrs[attrname] = attr.asxnd()
 		return e
 
 
@@ -237,7 +234,7 @@ class taglib(xsc.Element):
 			e2 = node.asxnd()
 			if xmlns is not None and isinstance(e2, xnd.Element):
 				e2.xmlns = xmlns
-			e.content.append(e2)
+			e(e2)
 		return e
 
 
