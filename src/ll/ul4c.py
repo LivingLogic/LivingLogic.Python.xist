@@ -23,7 +23,7 @@ from __future__ import division
 __docformat__ = "reStructuredText"
 
 
-import re, datetime, StringIO, locale, json
+import re, datetime, StringIO, locale, json, collections
 
 from ll import spark, color, misc
 
@@ -3181,10 +3181,10 @@ def _json(obj):
 		return format(obj, u"new Date({}, {}, {})".format(obj.year, obj.month-1, obj.day))
 	elif isinstance(obj, color.Color):
 		return u"ul4.Color.create({}, {}, {}, {})".format(*obj)
-	elif isinstance(obj, (tuple, list)):
-		return u"[{}]".format(u", ".join(_json(item) for item in obj))
-	elif isinstance(obj, dict):
+	elif isinstance(obj, collections.Mapping):
 		return u"{{{}}}".format(u", ".join(u"{}: {}".format(_json(key), _json(value)) for (key, value) in obj.iteritems()))
+	elif isinstance(obj, collections.Sequence):
+		return u"[{}]".format(u", ".join(_json(item) for item in obj))
 	elif isinstance(obj, Template):
 		return obj.jssource()
 	else:
@@ -3234,10 +3234,10 @@ def _type(obj):
 		return u"date"
 	elif isinstance(obj, color.Color):
 		return u"color"
-	elif isinstance(obj, (list, tuple)):
-		return u"list"
-	elif isinstance(obj, dict):
+	elif isinstance(obj, collections.Mapping):
 		return u"dict"
+	elif isinstance(obj, collections.Sequence):
+		return u"list"
 	elif hasattr(obj, "__call__"):
 		return u"template"
 	elif isinstance(obj, color.Color):

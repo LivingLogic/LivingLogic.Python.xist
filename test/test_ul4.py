@@ -16,6 +16,31 @@ import py.test
 from ll import ul4c, color
 
 
+class PseudoDict(collections.Mapping):
+	def __init__(self, dict):
+		self.dict = dict
+
+	def __getitem__(self, key):
+		return self.dict[key]
+
+	def __iter__(self):
+		return iter(self.dict)
+
+	def __len__(self):
+		return len(self.dict)
+
+
+class PseudoList(collections.Sequencce):
+	def __init__(self, list):
+		self.list = list
+
+	def __getitem__(self, index):
+		return self.list[index]
+
+	def __len__(self):
+		return len(self.list)
+
+
 @contextlib.contextmanager
 def raises(msg):
 	# Check that the ``with`` block raises an exception that matches a regexp
@@ -707,7 +732,9 @@ def test_function_json(r):
 	# no check for float
 	assert '"abc"' == r(u"<?print json(data)?>", data="abc")
 	assert '[1, 2, 3]', r(u"<?print json(data)?>", data=[1, 2, 3])
+	assert '[1, 2, 3]', r(u"<?print json(data)?>", data=PseudoList([1, 2, 3]))
 	assert '{"one": 1}' == r(u"<?print json(data)?>", data={"one": 1})
+	assert '{"one": 1}' == r(u"<?print json(data)?>", data=PseudoDict({"one": 1}))
 
 
 @with_all_renderers
@@ -1210,7 +1237,9 @@ def test_function_type(r):
 	assert "date" == r(code, x=datetime.date.today())
 	assert "list" == r(code, x=(1, 2))
 	assert "list" == r(code, x=[1, 2])
+	assert "list" == r(code, x=PseudoList([1, 2]))
 	assert "dict" == r(code, x={1: 2})
+	assert "dict" == r(code, x=PseudoDict({1: 2}))
 	assert "template" == r(code, x=ul4c.compile(""))
 	assert "color" == r(code, x=color.red)
 
