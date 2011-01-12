@@ -14,9 +14,10 @@ Changes in 3.16 (released ??/??/2011)
 
 *	``dtd2xsc.py`` can now handle undefined entities.
 
-*	The UL4 function ``json`` and ``type`` can now handle all instances of
-	:class:`collections.Mapping` and :class:`collections.Sequence` not just
-	:class:`tuple`, :class:`list` and :class:`dict`.
+*	The UL4 functions ``json``, ``type``, ``islist`` and ``isdict`` can now
+	handle all instances of :class:`collections.Mapping` and
+	:class:`collections.Sequence` not just :class:`tuple`, :class:`list` and
+	:class:`dict`.
 
 
 Changes in 3.15.3 (released 11/26/2010)

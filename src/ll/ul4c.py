@@ -1055,7 +1055,7 @@ class PythonSource(object):
 			self._line(self.lastlocation, "def {}(**variables):".format(self.function))
 			self.indent += 1
 			self.lines2locs = [] # We initialize startline one line below, which restarts the counter
-		self._line(self.lastlocation, "import sys, datetime, itertools, json, random; from ll.misc import xmlescape; from ll import ul4c, color; startline = sys._getframe().f_lineno") # The line number of this line
+		self._line(self.lastlocation, "import sys, datetime, itertools, json, random, collections; from ll.misc import xmlescape; from ll import ul4c, color; startline = sys._getframe().f_lineno") # The line number of this line
 		self._line(self.lastlocation, "__1__")
 		self._line(self.lastlocation, "__2__")
 		self._line(self.lastlocation, "source = {!r}".format(self.template.source))
@@ -1338,9 +1338,9 @@ class PythonSource(object):
 	def _dispatch_callfunc1_isdate(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, datetime.datetime)".format(op=opcode))
 	def _dispatch_callfunc1_islist(self, opcode):
-		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, (list, tuple)) and not isinstance(r{op.r2:d}, color.Color)".format(op=opcode))
+		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, collections.Sequence) and not isinstance(r{op.r2:d}, (str, unicode, color.Color))".format(op=opcode))
 	def _dispatch_callfunc1_isdict(self, opcode):
-		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, dict)".format(op=opcode))
+		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, collections.Mapping)".format(op=opcode))
 	def _dispatch_callfunc1_istemplate(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = hasattr(r{op.r2:d}, '__call__')".format(op=opcode)) # this supports normal generators too
 	def _dispatch_callfunc1_iscolor(self, opcode):

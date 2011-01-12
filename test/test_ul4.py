@@ -9,7 +9,7 @@
 ## See ll/__init__.py for the license
 
 
-import os, re, datetime, StringIO, json, contextlib, tempfile
+import os, re, datetime, StringIO, json, contextlib, tempfile, collections
 
 import py.test
 
@@ -30,7 +30,7 @@ class PseudoDict(collections.Mapping):
 		return len(self.dict)
 
 
-class PseudoList(collections.Sequencce):
+class PseudoList(collections.Sequence):
 	def __init__(self, list):
 		self.list = list
 
@@ -984,6 +984,7 @@ def test_function_islist(r):
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "True" == r(code, data=())
 	assert "True" == r(code, data=[])
+	assert "True" == r(code, data=PseudoList([]))
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.compile(u""))
 	assert "False" == r(code, data=color.red)
@@ -1007,6 +1008,7 @@ def test_function_isdict(r):
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "True" == r(code, data={})
+	assert "True" == r(code, data=PseudoDict({}))
 	assert "False" == r(code, data=ul4c.compile(u""))
 	assert "False" == r(code, data=color.red)
 
