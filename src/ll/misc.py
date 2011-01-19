@@ -15,7 +15,7 @@ LivingLogic modules and packages.
 """
 
 
-import sys, os, types, collections, weakref, cStringIO, gzip as gzip_, csv, itertools
+import sys, os, types, collections, weakref, cStringIO, gzip as gzip_, csv, itertools, argparse
 
 
 __docformat__ = "reStructuredText"
@@ -371,18 +371,34 @@ class Const(object):
 		return "{}.{}".format(self.__module__, self._name)
 
 
-def flag(value):
+class FlagAction(argparse.Action):
 	"""
-	Return a :class:`bool` value for the string :var:`value`. :var:`value` can
-	be ``"1"``, ``"true"`` or ``"yes"`` for :const:`True` and ``"0"``,
-	``"false"`` or ``"noe"`` for :const:`False`.
+	:class:`FlagAction` can be use with :mod:`argparse` for options that
+	represent flags. An options can have a value like ``yes`` or ``no`` for the
+	correspending boolean value, or if the value is omitted it is the inverted
+	default value (i.e. specifying the option toggles it).
 	"""
-	value = value.lower()
-	if value in ("1", "true", "yes"):
-		return True
-	elif value in ("0", "false", "no"):
-		return False
-	raise ValueError("unknown flag value")
+	true_choices = ("1", "true", "yes", "on")
+	false_choices = ("0", "false", "no", "off")
+
+	def __init__(self, option_strings, dest, default=False, help=None):
+		# FIXME: This doesn't work with :class:`argparse.ArgumentDefaultsHelpFormatter` or with fancier formatting.
+		help = help.replace("%(default)s", "yes" if default else "no")
+		help = help.replace("%(default)r", "yes" if default else "no")
+		super(FlagAction, self).__init__(option_strings=option_strings, dest=dest, default=default, help=help, metavar="yes|no", const=not default, nargs="?")
+
+	def __call__(self, parser, namespace, values, option_string=None):
+		if isinstance(values, basestring):
+			values = values.lower()
+			if values in self.true_choices:
+				values = True
+			elif values in self.false_choices:
+				values = False
+			else:
+				parser.error("argument {}: invalid flag value: {!r} (use any of {})".format("/".join(self.option_strings), values, ", ".join(self.true_choices + self.false_choices)))
+		else:
+			values = bool(values)
+		setattr(namespace, self.dest, values)
 
 
 def tokenizepi(string):

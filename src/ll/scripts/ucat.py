@@ -12,7 +12,7 @@
 
 import sys, argparse, contextlib, errno
 
-from ll import url
+from ll import misc, url
 
 try:
 	import astyle
@@ -49,9 +49,9 @@ def main(args=None):
 
 	p = argparse.ArgumentParser(description="print URL content on the screen")
 	p.add_argument("urls", metavar="url", help="URLs to be printed", nargs="+", type=url.URL)
-	p.add_argument("-v", "--verbose", dest="verbose", help="Be verbose?", action="store_true", default=False)
-	p.add_argument("-r", "--recursive", dest="recursive", help="Copy stuff recursively?", action="store_true", default=False)
-	p.add_argument("-x", "--ignoreerrors", dest="ignoreerrors", help="Ignore errors?", action="store_true", default=False)
+	p.add_argument("-v", "--verbose", dest="verbose", help="Be verbose? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-r", "--recursive", dest="recursive", help="Copy stuff recursively? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-x", "--ignoreerrors", dest="ignoreerrors", help="Ignore errors? (default: %(default)s)", action=misc.FlagAction, default=False)
 
 	args = p.parse_args(args)
 	with url.Context():

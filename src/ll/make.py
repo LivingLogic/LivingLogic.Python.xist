@@ -1169,6 +1169,7 @@ class Project(dict):
 		self.showaction = os.environ.get("LL_MAKE_SHOWACTION", "filephony")
 		self.showstep = os.environ.get("LL_MAKE_SHOWSTEP", "all")
 		self.shownote = os.environ.get("LL_MAKE_SHOWNOTE", "none")
+		self.color = self._getenvbool("LL_MAKE_COLOR", True)
 		self.showidle = self._getenvbool("LL_MAKE_SHOWIDLE", False)
 		self.showregistration = os.environ.get("LL_MAKE_SHOWREGISTRATION", "phony")
 		self.showtime = self._getenvbool("LL_MAKE_SHOWTIME", True)
@@ -1510,17 +1511,15 @@ class Project(dict):
 		actions = ("all", "file", "phony", "filephony", "none")
 		p = argparse.ArgumentParser(description="build one or more targets")
 		p.add_argument("targets", metavar="target", help="Target to be built", nargs="*")
-		p.add_argument("-x", "--ignore", dest="ignoreerrors", help="Ignore errors", action="store_true", default=None)
-		p.add_argument("-X", "--noignore", dest="ignoreerrors", help="Don't ignore errors", action="store_false", default=None)
-		p.add_argument("-c", "--color", dest="color", help="Use colored output", action="store_true", default=None)
-		p.add_argument("-C", "--nocolor", dest="color", help="No colored output", action="store_false", default=None)
-		p.add_argument("-g", "--growl", dest="growl", help="Issue growl notification after the build?", action="store_true", default=None)
-		p.add_argument("-a", "--showaction", dest="showaction", help="Show actions?", choices=actions, default=action2name(self.showaction))
-		p.add_argument("-s", "--showstep", dest="showstep", help="Show steps?", choices=actions, default=action2name(self.showstep))
-		p.add_argument("-n", "--shownote", dest="shownote", help="Show notes?", choices=actions, default=action2name(self.shownote))
-		p.add_argument("-r", "--showregistration", dest="showregistration", help="Show registration?", choices=actions, default=action2name(self.showregistration))
-		p.add_argument("-i", "--showidle", dest="showidle", help="Show actions that didn't produce data?", action="store_true", default=self.showidle)
-		p.add_argument("-d", "--showdata", dest="showdata", help="Show data?", action="store_true", default=self.showdata)
+		p.add_argument("-x", "--ignoreerrors", dest="ignoreerrors", help="Ignore errors? (default: %(default)s)", action=misc.FlagAction, default=self.ignoreerrors)
+		p.add_argument("-c", "--color", dest="color", help="Use colored output? (default: %(default)s)", action=misc.FlagAction, default=self.color)
+		p.add_argument("-g", "--growl", dest="growl", help="Issue growl notification after the build? (default: %(default)s)", action=misc.FlagAction, default=self.growl)
+		p.add_argument("-a", "--showaction", dest="showaction", help="Show actions? (default: %(default)s)", choices=actions, default=action2name(self.showaction))
+		p.add_argument("-s", "--showstep", dest="showstep", help="Show steps? (default: %(default)s)", choices=actions, default=action2name(self.showstep))
+		p.add_argument("-n", "--shownote", dest="shownote", help="Show notes? (default: %(default)s)", choices=actions, default=action2name(self.shownote))
+		p.add_argument("-r", "--showregistration", dest="showregistration", help="Show registration? (default: %(default)s)", choices=actions, default=action2name(self.showregistration))
+		p.add_argument("-i", "--showidle", dest="showidle", help="Show actions that didn't produce data? (default: %(default)s)", action=misc.FlagAction, default=self.showidle)
+		p.add_argument("-d", "--showdata", dest="showdata", help="Show data? (default: %(default)s)", action=misc.FlagAction, default=self.showdata)
 		return p
 
 	def parseargs(self, args=None):
@@ -1529,20 +1528,19 @@ class Project(dict):
 		sequence :var:`args`, modify :var:`self` accordingly and return
 		the result of the parsers :meth:`parse_args` call.
 		"""
+		print self.showdata
 		p = self.argparser()
 		args = p.parse_args(args)
-		if args.ignoreerrors is not None:
-			self.ignoreerrors = args.ignoreerrors
-		if args.color is not None:
-			self.color = args.color
-		if self.growl is not None:
-			self.growl = args.growl
+		self.ignoreerrors = args.ignoreerrors
+		self.color = args.color
+		self.growl = args.growl
 		self.showaction = args.showaction
 		self.showstep = args.showstep
 		self.shownote = args.shownote
 		self.showregistration = args.showregistration
 		self.showidle = args.showidle
 		self.showdata = args.showdata
+		print self.showdata
 		return args
 
 	def _get(self, target, since):

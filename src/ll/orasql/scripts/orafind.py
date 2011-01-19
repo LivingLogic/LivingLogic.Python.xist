@@ -92,11 +92,11 @@ def main(args=None):
 	p.add_argument("connectstring", help="Oracle connect string")
 	p.add_argument("searchstring", help="String to search for")
 	p.add_argument("tables", metavar="table", nargs="*", help="Limit search to those tables")
-	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action="store_true")
-	p.add_argument("-c", "--color", dest="color", help="Color output", default="auto", choices=("yes", "no", "auto"))
-	p.add_argument("-i", "--ignore-case", dest="ignorecase", help="Ignore case distinctions?", default=False, action="store_true")
-	p.add_argument("-r", "--read-lobs", dest="readlobs", help="Read LOBs when printing records?", default=False, action="store_true")
-	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding of the command line arguments", default="utf-8")
+	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default: %(default)s)", , action=misc.FlagAction, default=False)
+	p.add_argument("-c", "--color", dest="color", help="Color output (default: %(default)s)", default="auto", choices=("yes", "no", "auto"))
+	p.add_argument("-i", "--ignore-case", dest="ignorecase", help="Ignore case distinctions? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-r", "--read-lobs", dest="readlobs", help="Read LOBs when printing records? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding of the command line arguments (default: %(default)s)", default="utf-8")
 
 	args = p.parse_args(args)
 

@@ -11,7 +11,7 @@
 
 import sys, os, difflib, argparse, tempfile, subprocess
 
-from ll import orasql, astyle
+from ll import misc, orasql, astyle
 
 
 s4warning = astyle.Style.fromenv("LL_ORASQL_REPRANSI_WARNING", "red:black")
@@ -93,10 +93,10 @@ def main(args=None):
 	p.add_argument("connectstring1", help="Old version of database schema")
 	p.add_argument("connectstring2", help="New version of database schema")
 	p.add_argument("connectstring3", help="Schema into which changes should be merged")
-	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action="store_true")
-	p.add_argument("-c", "--color", dest="color", help="Color output", default="auto", choices=("yes", "no", "auto"))
-	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' in their name?", default=False, action="store_true")
-	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for output", default="utf-8")
+	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-c", "--color", dest="color", help="Color output (default: %(default)s)", default="auto", choices=("yes", "no", "auto"))
+	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' in their name? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for output (default: %(default)s)", default="utf-8")
 
 	args = p.parse_args(args)
 

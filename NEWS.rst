@@ -19,10 +19,14 @@ Changes in 3.16 (released ??/??/2011)
 	:class:`collections.Sequence` not just :class:`tuple`, :class:`list` and
 	:class:`dict`.
 
-*	The help message for sisyphus jobs now shows the default for all options.
+*	The help message for all scripts in XIST now show the default for all options.
 
-*	Command line options for sisyphus jobs have been enhanced: Flags without a
-	``yes``/``no`` value now toggle the default.
+*	Replace the function :func:`misc.flag` with a class :class:`misc.FlagAction`
+	the can be used as the action in :meth:`add_argument` calls.
+
+*	Command line options for all scripts have been enhanced: Flags without a
+	``yes``/``no`` value now toggle the default (using the new
+	:class:`misc.FlagAction`).
 
 
 Changes in 3.15.3 (released 11/26/2010)

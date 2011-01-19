@@ -12,7 +12,7 @@
 
 import sys, argparse, contextlib, datetime, pwd, grp, stat, curses
 
-from ll import url
+from ll import misc, url
 
 try:
 	import astyle
@@ -151,12 +151,12 @@ def main(args=None):
 
 	p = argparse.ArgumentParser(description="List the content of one or more URLs")
 	p.add_argument("urls", metavar="url", help="URLs to be listed (default: current dir)", nargs="*", default=url.here(), type=url.URL)
-	p.add_argument("-c", "--color", dest="color", help="Color output", default="auto", choices=("yes", "no", "auto"))
-	p.add_argument("-1", "--one", dest="one", help="One entry per line?", action="store_true")
-	p.add_argument("-l", "--long", dest="long", help="Long format?", action="store_true")
-	p.add_argument("-s", "--human-readable-sizes", dest="human", help="Human readable file sizes?", action="store_true")
-	p.add_argument("-r", "--recursive", dest="recursive", help="Recursive listing?", action="store_true")
-	p.add_argument("-w", "--spacing", dest="spacing", metavar="N", help="Number of spaces between columns", type=int, default=3)
+	p.add_argument("-c", "--color", dest="color", help="Color output (default: %(default)s)", default="auto", choices=("yes", "no", "auto"))
+	p.add_argument("-1", "--one", dest="one", help="One entry per line? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-l", "--long", dest="long", help="Long format? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-s", "--human-readable-sizes", dest="human", help="Human readable file sizes? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-r", "--recursive", dest="recursive", help="Recursive listing? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-w", "--spacing", dest="spacing", metavar="N", help="Number of spaces between columns (default: %(default)s)", type=int, default=3)
 
 	args = p.parse_args(args)
 

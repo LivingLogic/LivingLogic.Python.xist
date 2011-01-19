@@ -251,16 +251,16 @@ class Job(object):
 		p.add_argument("-p", "--projectname", dest="projectname", metavar="NAME", help="The name of the project this job belongs to (default: %(default)s)", type=self._string, default=self.projectname)
 		p.add_argument("-j", "--jobname", dest="jobname", metavar="NAME", help="The name of the job (default: %(default)s)", type=self._string, default=self.jobname if self.jobname is not None else self.__class__.__name__)
 		p.add_argument("-m", "--maxtime", dest="maxtime", metavar="SECONDS", help="Maximum number of seconds the job is allowed to run (default: %(default)s)", type=int, default=self.maxtime)
-		p.add_argument(      "--fork", dest="fork", metavar="FLAG", help="Fork the process and do the work in the child process? (default: %(default)s)", type=misc.flag, default=self.fork, nargs="?", const=not self.fork)
-		p.add_argument("-f", "--log2file", dest="log2file", metavar="FLAG", help="Should the job log into a file? (default: %(default)s)", type=misc.flag, default=self.log2file, nargs="?", const=not self.log2file)
-		p.add_argument("-o", "--log2stdout", dest="log2stdout", metavar="FLAG", help="Should the job log to stdout? (default: %(default)s)", type=misc.flag, default=self.log2stdout, nargs="?", const=not self.log2stdout)
-		p.add_argument("-e", "--log2stderr", dest="log2stderr", metavar="FLAG", help="Should the job log to stderr? (default: %(default)s)", type=misc.flag, default=self.log2stderr, nargs="?", const=not self.log2stderr)
+		p.add_argument(      "--fork", dest="fork", help="Fork the process and do the work in the child process? (default: %(default)s)", action=misc.FlagAction, default=self.fork)
+		p.add_argument("-f", "--log2file", dest="log2file", help="Should the job log into a file? (default: %(default)s)", action=misc.FlagAction, default=self.log2file)
+		p.add_argument("-o", "--log2stdout", dest="log2stdout", help="Should the job log to stdout? (default: %(default)s)", action=misc.FlagAction, default=self.log2stdout)
+		p.add_argument("-e", "--log2stderr", dest="log2stderr", help="Should the job log to stderr? (default: %(default)s)", action=misc.FlagAction, default=self.log2stderr)
 		p.add_argument(      "--keepfilelogs", dest="keepfilelogs", metavar="DAYS", help="Number of days log files are kept (default: %(default)s)", type=float, default=self.keepfilelogs)
 		p.add_argument(      "--inputencoding", dest="inputencoding", metavar="ENCODING", help="Encoding for system data (i.e. crontab etc.) (default: %(default)s)", default=self.inputencoding)
 		p.add_argument(      "--inputerrors", dest="inputerrors", metavar="METHOD", help="Error handling method for encoding errors in system data (default: %(default)s)", default=self.inputerrors)
 		p.add_argument(      "--outputencoding", dest="outputencoding", metavar="ENCODING", help="Encoding for the log file (default: %(default)s)", default=self.outputencoding)
 		p.add_argument(      "--outputerrors", dest="outputerrors", metavar="METHOD", help="Error handling method for encoding errors in log texts (default: %(default)s)", default=self.outputerrors)
-		p.add_argument(      "--noisykills", dest="noisykills", metavar="FLAG", help="Should a message be printed if the maximum runtime is exceeded? (default: %(default)s)", type=misc.flag, default=self.noisykills, nargs="?", const=not self.noisykills)
+		p.add_argument(      "--noisykills", dest="noisykills", help="Should a message be printed if the maximum runtime is exceeded? (default: %(default)s)", action=misc.FlagAction, default=self.noisykills)
 		return p
 
 	def parseargs(self, args=None):

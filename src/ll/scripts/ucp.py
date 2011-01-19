@@ -12,7 +12,7 @@
 
 import sys, argparse, contextlib
 
-from ll import url
+from ll import misc, url
 
 try:
 	import astyle
@@ -66,12 +66,12 @@ def main(args=None):
 
 	p = argparse.ArgumentParser(description="Copies URLs")
 	p.add_argument("urls", metavar="url", help="either one source and one target file, or multiple source files and one target dir", nargs="*", type=url.URL)
-	p.add_argument("-v", "--verbose", dest="verbose", help="Be verbose?", action="store_true", default=False)
-	p.add_argument("-c", "--color", dest="color", help="Color output", default="auto", choices=("yes", "no", "auto"))
+	p.add_argument("-v", "--verbose", dest="verbose", metavar="FLAG", help="Be verbose? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-c", "--color", dest="color", help="Color output (default: %(default)s)", default="auto", choices=("yes", "no", "auto"))
 	p.add_argument("-u", "--user", dest="user", help="user id or name for target files")
 	p.add_argument("-g", "--group", dest="group", help="group id or name for target files")
-	p.add_argument("-r", "--recursive", dest="recursive", help="Copy stuff recursively?", action="store_true", default=False)
-	p.add_argument("-x", "--ignoreerrors", dest="ignoreerrors", help="Ignore errors?", action="store_true", default=False)
+	p.add_argument("-r", "--recursive", dest="recursive", metavar="FLAG", help="Copy stuff recursively? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-x", "--ignoreerrors", dest="ignoreerrors", metavar="FLAG", help="Ignore errors? (default: %(default)s)", action=misc.FlagAction, default=False)
 
 	args = p.parse_args(args)
 	if len(args.urls) < 2:
