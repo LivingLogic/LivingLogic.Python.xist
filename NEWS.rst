@@ -22,7 +22,7 @@ Changes in 3.16 (released ??/??/2011)
 *	The help message for all scripts in XIST now show the default for all options.
 
 *	Replaced the function :func:`misc.flag` with a class :class:`misc.FlagAction`
-	the can be used as the action in :meth:`argparsh.ArgumentParser.add_argument`
+	that can be used as the action in :meth:`argparsh.ArgumentParser.add_argument`
 	calls.
 
 *	Command line options for all scripts have been enhanced: Flags without a
