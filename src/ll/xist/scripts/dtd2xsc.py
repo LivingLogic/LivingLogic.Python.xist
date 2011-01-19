@@ -156,7 +156,7 @@ def adddtd2xnd(ns, dtd, xmlns=None, duplicates="reject"):
 				e.add(ns, duplicates=duplicates)
 
 
-def stream2xnd(urls, xmlns, shareattrs, duplicates):
+def urls2xnd(urls, xmlns, shareattrs, duplicates):
 	ns = xnd.Module()
 	with url.Context():
 		for u in urls:
@@ -186,7 +186,7 @@ def main(args=None):
 	p.add_argument(      "--duplicates", dest="duplicates", help="How to handle duplicate elements from multiple DTDs", choices=("reject", "allow", "merge"))
 
 	args = p.parse_args(args)
-	print stream2xnd(args.urls, args.xmlns, args.shareattrs, args.duplicates).aspy(model=args.model, defaults=args.defaults)
+	print urls2xnd(args.urls, args.xmlns, args.shareattrs, args.duplicates).aspy(model=args.model, defaults=args.defaults)
 
 
 if __name__ == "__main__":
