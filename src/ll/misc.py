@@ -377,6 +377,7 @@ def flag(value):
 	be ``"1"``, ``"true"`` or ``"yes"`` for :const:`True` and ``"0"``,
 	``"false"`` or ``"noe"`` for :const:`False`.
 	"""
+	value = value.lower()
 	if value in ("1", "true", "yes"):
 		return True
 	elif value in ("0", "false", "no"):
