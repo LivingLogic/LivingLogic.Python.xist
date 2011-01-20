@@ -11,7 +11,7 @@
 
 import sys, os, argparse
 
-from ll import astyle, orasql
+from ll import misc, astyle, orasql
 
 
 s4warning = astyle.Style.fromenv("LL_ORASQL_REPRANSI_WARNING", "red:black")
@@ -23,12 +23,12 @@ s4object = astyle.Style.fromenv("LL_ORASQL_REPRANSI_OBJECT", "green:black")
 def main(args=None):
 	p = argparse.ArgumentParser(description="Print (or execute) drop statements for all objects in an Oracle database schema")
 	p.add_argument("connectstring", help="Oracle connect string")
-	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action="store_true")
+	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report?", action=misc.FlagAction, default=False)
 	p.add_argument("-c", "--color", dest="color", help="Color output", default="auto", choices=("yes", "no", "auto"))
 	p.add_argument("-f", "--fks", dest="fks", help="How should foreign keys from other schemas be treated?", default="disable", choices=("keep", "disable", "drop"))
-	p.add_argument("-x", "--execute", dest="execute", action="store_true", help="immediately execute the commands instead of printing them?")
-	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' in their name?", default=False, action="store_true")
-	p.add_argument("-i", "--ignore", dest="ignore", help="Ignore errors?", default=False, action="store_true")
+	p.add_argument("-x", "--execute", dest="execute", help="immediately execute the commands instead of printing them?", action=misc.FlagAction, default=False)
+	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' in their name?", action=misc.FlagAction, default=False)
+	p.add_argument("-i", "--ignore", dest="ignore", help="Ignore errors?", default=False, action=misc.FlagAction)
 	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for output", default="utf-8")
 
 	args = p.parse_args(args)

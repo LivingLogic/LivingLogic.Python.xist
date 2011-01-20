@@ -11,7 +11,7 @@
 
 import sys, os, argparse
 
-from ll import astyle, orasql
+from ll import misc, astyle, orasql
 
 
 s4warning = astyle.Style.fromenv("LL_ORASQL_REPRANSI_WARNING", "red:black")
@@ -23,12 +23,12 @@ s4object = astyle.Style.fromenv("LL_ORASQL_REPRANSI_OBJECT", "green:black")
 def main(args=None):
 	p = argparse.ArgumentParser(description="Print (or execute) the DDL of all objects in an Oracle database schema")
 	p.add_argument("connectstring", help="Oracle connect string")
-	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action="store_true")
+	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action=misc.FlagAction)
 	p.add_argument("-c", "--color", dest="color", help="Color output", default="auto", choices=("yes", "no", "auto"))
-	p.add_argument("-s", "--seqcopy", dest="seqcopy", help="copy sequence values?", default=False, action="store_true")
+	p.add_argument("-s", "--seqcopy", dest="seqcopy", help="copy sequence values?", default=False, action=misc.FlagAction)
 	p.add_argument("-x", "--execute", metavar="CONNECTSTRING2", dest="execute", help="Execute in target database")
-	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' or 'SYS_EXPORT_SCHEMA_' in their name?", default=False, action="store_true")
-	p.add_argument("-i", "--ignore", dest="ignore", help="Ignore errors?", default=False, action="store_true")
+	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' or 'SYS_EXPORT_SCHEMA_' in their name?", default=False, action=misc.FlagAction)
+	p.add_argument("-i", "--ignore", dest="ignore", help="Ignore errors?", default=False, action=misc.FlagAction)
 	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for output", default="utf-8")
 
 	args = p.parse_args(args)

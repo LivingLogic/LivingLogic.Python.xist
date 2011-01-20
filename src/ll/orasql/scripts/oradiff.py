@@ -11,7 +11,7 @@
 
 import sys, os, difflib, argparse
 
-from ll import orasql, astyle
+from ll import misc, orasql, astyle
 
 
 s4warning = astyle.Style.fromenv("LL_ORASQL_REPRANSI_WARNING", "red:black")
@@ -113,11 +113,11 @@ def main(args=None):
 	p = argparse.ArgumentParser(description="compare two Oracle database schemas")
 	p.add_argument("connectionstring1", help="First schema")
 	p.add_argument("connectionstring2", help="Second schema")
-	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action="store_true")
+	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action=misc.FlagAction)
 	p.add_argument("-c", "--color", dest="color", help="Color output", default="auto", choices=("yes", "no", "auto"))
 	p.add_argument("-m", "--mode", dest="mode", help="Output mode", default="udiff", choices=("brief", "udiff", "full"))
 	p.add_argument("-n", "--context", dest="context", help="Number of context lines", type=int, default=2)
-	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' or 'SYS_EXPORT_SCHEMA_' in their name?", default=False, action="store_true")
+	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' or 'SYS_EXPORT_SCHEMA_' in their name?", default=False, action=misc.FlagAction)
 	p.add_argument("-b", "--blank", dest="blank", help="How to treat whitespace", default="literal", choices=("literal", "trail", "lead", "both", "collapse"))
 	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for output", default="utf-8")
 

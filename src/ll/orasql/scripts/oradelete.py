@@ -11,7 +11,7 @@
 
 import sys, os, argparse
 
-from ll import astyle, orasql
+from ll import misc, astyle, orasql
 
 
 s4warning = astyle.Style.fromenv("LL_ORASQL_REPRANSI_WARNING", "red:black")
@@ -23,13 +23,13 @@ s4object = astyle.Style.fromenv("LL_ORASQL_REPRANSI_OBJECT", "green:black")
 def main(args=None):
 	p = argparse.ArgumentParser(description="Print (or execute) SQL for deleting all records from all tables in an Oracle database schema")
 	p.add_argument("connectstring", help="Oracle connect string")
-	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action="store_true")
+	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action=misc.FlagAction)
 	p.add_argument("-c", "--color", dest="color", help="Color output", default="auto", choices=("yes", "no", "auto"))
-	p.add_argument("-s", "--sequences", dest="sequences", help="Reset sequences?", default=False, action="store_true")
+	p.add_argument("-s", "--sequences", dest="sequences", help="Reset sequences?", default=False, action=misc.FlagAction)
 	p.add_argument("-x", "--execute", dest="execute", action="store_true", help="immediately execute the commands instead of printing them?")
-	p.add_argument("-i", "--ignore", dest="ignore", help="Ignore errors?", default=False, action="store_true")
+	p.add_argument("-i", "--ignore", dest="ignore", help="Ignore errors?", default=False, action=misc.FlagAction)
 	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for output", default="utf-8")
-	p.add_argument("-t", "--truncate", dest="truncate", help="Truncate tables instead of deleting", default=False, action="store_true")
+	p.add_argument("-t", "--truncate", dest="truncate", help="Truncate tables instead of deleting", default=False, action=misc.FlagAction)
 
 	args = p.parse_args(args)
 
