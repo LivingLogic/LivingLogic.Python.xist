@@ -1,3 +1,20 @@
+Migrating to version 3.16
+=========================
+
+Changes to :mod:`ll.xist.misc`
+------------------------------
+
+*	:func:`ll.xist.misc.flag` is gone. If the function is still required, here is
+	the source::
+
+		def flag(value):
+			if value in ("1", "true", "yes"):
+				return True
+			elif value in ("0", "false", "no"):
+				return False
+			raise ValueError("unknown flag value")
+
+
 Migrating to version 3.15
 =========================
 
