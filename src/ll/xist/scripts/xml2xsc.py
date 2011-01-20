@@ -9,8 +9,9 @@
 ## See ll/__init__.py for the license
 
 
-import sys, argparse
+import sys, argparse, cStringIO
 
+from ll import misc, url
 from ll.xist import xsc, xnd, sims
 
 
@@ -37,36 +38,26 @@ def getelementname(node):
 	return (name, xmlns)
 
 
-def etree2xnd(model, node):
-	ns = xnd.Module()
-	elements = {} # maps (name, xmlns) to (xnd.Element, content set)
-	procinsts = {} # maps name to xnd.ProcInst
-
+def addetree2xnd(ns, node, elements):
 	# Iterate through the tree and collect which elements are encountered and how they are nested
 	for path in iterpath(node):
 		node = path[-1]
 		if "Element" in type(node).__name__:
 			(name, xmlns) = getelementname(node)
-			try:
-				entry = elements[(name, xmlns)]
-			except KeyError:
-				xndnode = xnd.Element(name, xmlns=xmlns)
-				entry = elements[(name, xmlns)] = (xndnode, set())
-				ns(xndnode)
+			if (name, xmlns) in ns.elements:
+				xndnode = ns.elements[(name, xmlns)]
 			else:
-				xndnode = entry[0]
+				xndnode = xnd.Element(name, xmlns=xmlns)
+				xndnode.add(ns)
+				elements[(name, xmlns)] = set()
 			for attrname in node.keys():
-				if not attrname.startswith("{") and attrname not in entry[0].attrs:
-					entry[0](xnd.Attr(attrname, type=xsc.TextAttr))
+				if not attrname.startswith("{") and attrname not in xndnode.attrs:
+					xndnode(xnd.Attr(attrname, type=xsc.TextAttr))
 		elif "ProcessingInstruction" in type(node).__name__:
 			name = node.target
-			try:
-				xndnode = procinsts[name]
-			except KeyError:
-				procinst = xnd.ProcInst(name)
-				procinsts[name] = procinst
-				xndnode = procinst
-			ns(xndnode)
+			if name not in ns.procinsts:
+				xndnode = xnd.ProcInst(name)
+				xndnode.add(ns)
 		elif "Comment" in type(node).__name__:
 			xndnode = "#comment"
 		elif isinstance(node, basestring):
@@ -78,56 +69,72 @@ def etree2xnd(model, node):
 			parent = path[-2]
 			if "Element" in type(parent).__name__:
 				parententry = elements[getelementname(parent)]
-				parententry[1].add(xndnode)
+				parententry.add(xndnode)
+
+
+def makexnd(streams, parser="etree", shareattrs="dupes", model="simple"):
+	elements = {} # maps (name, xmlns) to content set
+	ns = xnd.Module()
+	with url.Context():
+		for stream in streams:
+			if isinstance(stream, url.URL):
+				stream = stream.openread()
+			elif isinstance(stream, str):
+				stream = cStringIO.StringIO(stream)
+			if parser == "etree":
+				from xml.etree import cElementTree
+				node = cElementTree.parse(stream).getroot()
+			elif parser == "lxml":
+				from lxml import etree
+				node = etree.parse(stream).getroot()
+			else:
+				raise ValueError("unknown parser {!r}".format(parser))
+			stream.close()
+			addetree2xnd(ns, node, elements)
 
 	# Put sims info into the element definitions
 	if model == "none":
 		pass
 	elif model == "simple":
-		for entry in elements.itervalues():
-			entry[0].modeltype = bool(entry[1])
-	elif model == "full":
-		for entry in elements.itervalues():
-			if not entry[1]:
-				entry[0].modeltype = "sims.Empty"
+		for (fullname, modelset) in elements.iteritems():
+			ns.elements[fullname].modeltype = bool(modelset)
+	elif model in ("fullall", "fullonce"):
+		for (fullname, modelset) in elements.iteritems():
+			element = ns.elements[fullname]
+			if not modelset:
+				element.modeltype = "sims.Empty"
 			else:
-				elements = [el for el in entry[1] if isinstance(el, xnd.Element)]
+				elements = [el for el in modelset if isinstance(el, xnd.Element)]
 				if not elements:
-					if "#text" in entry[1]:
-						entry[0].modeltype = "sims.NoElements"
+					if "#text" in modelset:
+						element.modeltype = "sims.NoElements"
 					else:
-						entry[0].modeltype = "sims.NoElementsOrText"
+						element.modeltype = "sims.NoElementsOrText"
 				else:
-					if "#text" in entry[1]:
-						entry[0].modeltype = "sims.ElementsOrText"
+					if "#text" in modelset:
+						element.modeltype = "sims.ElementsOrText"
 					else:
-						entry[0].modeltype = "sims.Elements"
-					entry[0].modelargs = elements
+						element.modeltype = "sims.Elements"
+					element.modelargs = elements
 	else:
 		raise ValueError("unknown sims mode {!r}".format(model))
+
+	if shareattrs=="dupes":
+		ns.shareattrs(False)
+	elif shareattrs=="all":
+		ns.shareattrs(True)
 	return ns
 
 
-def stream2xnd(stream, model="simple", parser="etree"):
-	if parser == "etree":
-		from xml.etree import cElementTree
-		node = cElementTree.parse(stream).getroot()
-	elif parser == "lxml":
-		from lxml import etree
-		node = etree.parse(stream).getroot()
-	else:
-		raise ValueError("unknown parser {!r}".format(parser))
-
-	return etree2xnd(model, node)
-
-
 def main(args=None):
-	p = argparse.ArgumentParser(description="Convert XML (on stdin) to XIST namespace (on stdout)")
-	p.add_argument("-p", "--parser", dest="parser", help="parser module to use for XML parsing (etree or lxml)", choices=("etree", "lxml"), default="etree")
-	p.add_argument("-m", "--model", dest="model", help="Create sims info?", choices=("none", "simple", "full"), default="simple")
+	p = argparse.ArgumentParser(description="Convert XML files to XIST namespace (on stdout)")
+	p.add_argument("urls", metavar="urls", type=url.URL, help="ULRs of DTDs to be parsed", nargs="+")
+	p.add_argument("-p", "--parser", dest="parser", help="parser module to use for XML parsing (default: %(default)s)", choices=("etree", "lxml"), default="etree")
+	p.add_argument("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements? (default: %(default)s)", choices=("none", "dupes", "all"), default="dupes")
+	p.add_argument("-m", "--model", dest="model", help="Create sims info? (default: %(default)s)", choices=("none", "simple", "fullall", "fullonce"), default="simple")
 
 	args = p.parse_args(args)
-	print stream2xnd(sys.stdin, model=args.model, parser=args.parser).aspy()
+	print makexnd(args.urls, parser=args.parser, shareattrs=args.shareattrs, model=args.model).aspy(model=args.model)
 
 
 if __name__ == "__main__":

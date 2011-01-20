@@ -124,15 +124,9 @@ class Base(object):
 		keyword. Furthermore it is made sure that the new name is not in the list
 		:var:`names`. (If :var:`name` is :const:`None` ``self.name`` is used.)
 		"""
-		newname = []
 		if name is None:
 			name = self.name
-		for c in name:
-			if "a" <= c <= "z" or "A" <= c <= "Z" or "0" <= c <= "9" or c == "_":
-				newname.append(c)
-			else:
-				newname.append("_")
-		name = "".join(newname)
+		name = "".join(c if "a" <= c <= "z" or "A" <= c <= "Z" or "0" <= c <= "9" or c == "_" else "_" for c in name)
 		testname = name
 		if keyword.iskeyword(name):
 			testname += "_"
@@ -141,12 +135,12 @@ class Base(object):
 			testname = "{0}{1}".format(name, suffix)
 			suffix += 1
 		self.pyname = testname
-		names.append(testname)
+		names.add(testname)
 
 	def aspy(self, **options):
 		options = Options(**options)
 		lines = []
-		self._aspy(lines, 0, [], options)
+		self._aspy(lines, 0, set(), options)
 		return u"".join(u"{}{}\n".format(level*options.indent, text) for (level, text) in lines)
 
 	def _addlines(self, newlines, lines):
@@ -208,7 +202,7 @@ class Module(Base):
 		# assign names to all elements
 		for child in self.elements.itervalues():
 			child.assignpyname(names)
-			attrnames = []
+			attrnames = set()
 			for attr in child.attrs.itervalues():
 				attr.assignpyname(attrnames)
 
@@ -251,7 +245,7 @@ class Module(Base):
 				node._aspy(lines, level, names, options)
 
 		# output schema information for the elements
-		if options.model != "no":
+		if options.model != "none":
 			elswithschema = [node for node in self.elements.itervalues() if not isinstance(node.modeltype, (bool, type(None)))]
 			if elswithschema:
 				lines.append([0, ""])
@@ -265,16 +259,18 @@ class Module(Base):
 								arg = arg.pyname
 							modelargs.append(arg)
 					newlines.append(("{}.model".format(node.pyname), "{}({})".format(node.modeltype, ", ".join(modelargs))))
-				if options.model == "all":
+				if options.model in ("simple", "fullall"):
 					for line in newlines:
 						lines.append([0, "{} = {}".format(*line)])
-				elif options.model == "once":
+				elif options.model == "fullonce":
 					newlines.sort(key=lambda l: l[1])
 					for (i, line) in enumerate(newlines):
 						(var, code) = line
 						if i != len(newlines)-1 and code == newlines[i+1][1]:
 							code = "\\"
 						lines.append([0, "{} = {}".format(var, code)])
+				else:
+					raise ValueError("unknown sims mode {!r}".format(options.model))
 
 	def shareattrs(self, all):
 		# collect all identical attributes into lists
@@ -535,7 +531,7 @@ class CharRef(Entity):
 
 
 class Options(object):
-	def __init__(self, indent="\t", encoding=None, defaults=False, model="once"):
+	def __init__(self, indent="\t", encoding=None, defaults=False, model="fullonce"):
 		self.indent = indent
 		if encoding is None:
 			encoding = sys.getdefaultencoding()

@@ -24,7 +24,9 @@ def dtd2mod(s, xmlns=None, shareattrs=None):
 	mod = types.ModuleType("test")
 	mod.__file__ = "test.py"
 	encoding = "iso-8859-1"
-	code = xnd.aspy(encoding=encoding).encode(encoding)
+	code = xnd.aspy(encoding=encoding, model="fullonce").encode(encoding)
+	print "Module source generated from DTDs:"
+	print code
 	code = compile(code, "test.py", "exec")
 	exec code in mod.__dict__
 	return mod

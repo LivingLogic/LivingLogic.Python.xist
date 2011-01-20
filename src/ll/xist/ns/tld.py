@@ -51,7 +51,7 @@ class attribute(xsc.Element):
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
-	def asxnd(self):
+	def asxnd(self, model="simple"):
 		isrequired = False
 		node = misc.first(self[required], None)
 		if node is not None:
@@ -93,7 +93,7 @@ class info(xsc.Element):
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
-	def asxnd(self):
+	def asxnd(self, model="simple"):
 		return self.content.string()
 
 
@@ -162,7 +162,7 @@ class tag(xsc.Element):
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
-	def asxnd(self):
+	def asxnd(self, model="simple"):
 		e = xnd.Element(unicode(self[name][0].content))
 		empty = None
 		node = misc.first(self[bodycontent], None)
@@ -174,16 +174,17 @@ class tag(xsc.Element):
 				empty = True
 			else:
 				raise ValueError("value {!r} is not allowed for tag <bodycontent>".format(value))
-		if empty:
-			e.modeltype = "sims.Empty"
-		else:
-			e.modeltype = "sims.Any"
+		if model != "none":
+			if model == "simple":
+				e.modeltype = not empty
+			else:
+				e.modeltype = "sims.Empty" if empty else "sims.Any"
 		node = misc.first(self[info], None)
 		if node is not None:
-			e.doc = node.asxnd()
+			e.doc = node.asxnd(model=model)
 		for attr in self[attribute]:
 			attrname = unicode(attr[name][0].content)
-			e.attrs[attrname] = attr.asxnd()
+			e.attrs[attrname] = attr.asxnd(model=model)
 		return e
 
 
@@ -223,19 +224,19 @@ class taglib(xsc.Element):
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
-	def asxnd(self):
-		e = xnd.Module(unicode(self[shortname][0].content))
+	def asxnd(self, model="simple"):
+		ns = xnd.Module()
 		node = misc.first(self[uri], None)
 		xmlns = unicode(node[0].content) if node is not None else None
 		node = misc.first(self[info], None)
 		if node is not None:
-			e.doc = node.asxnd()
+			ns.doc = node.asxnd(model=model)
 		for node in self[tag]:
-			e2 = node.asxnd()
-			if xmlns is not None and isinstance(e2, xnd.Element):
-				e2.xmlns = xmlns
-			e(e2)
-		return e
+			e = node.asxnd(model=model)
+			if xmlns is not None and isinstance(e, xnd.Element):
+				e.xmlns = xmlns
+			e.add(ns)
+		return ns
 
 
 class teiclass(xsc.Element):

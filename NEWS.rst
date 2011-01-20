@@ -10,6 +10,8 @@ Changes in 3.16 (released ??/??/2011)
 	namespace. Handling of duplicate elements can be specified with a new
 	:option:`duplicates` option.
 
+*	``xml2xsc.py`` can now collect the XML info from multiple XML files.
+
 *	Fixed a bug in the command line argument handling of ``dtd2xsc.py``.
 
 *	``dtd2xsc.py`` can now handle undefined entities.

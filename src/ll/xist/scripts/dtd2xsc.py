@@ -54,7 +54,7 @@ def getxmlns(dtd):
 	return found
 
 
-def adddtd2xnd(ns, dtd, xmlns=None, duplicates="reject"):
+def adddtd2xnd(ns, dtd, xmlns=None, model="simple", duplicates="reject"):
 	"""
 	Append DTD information from :var:`dtd` to the :class:`xnd.Module` object
 	:var:`ns`.
@@ -139,6 +139,9 @@ def adddtd2xnd(ns, dtd, xmlns=None, duplicates="reject"):
 				else:
 					modeltype = "sims.NoElementsOrText"
 		e = ns.elements[(elemname, xmlns)]
+		if model == "simple":
+			modeltype = modeltype == "sims.Empty"
+			modelargs = None
 		e.modeltype = modeltype
 		e.modelargs = modelargs
 
@@ -181,12 +184,12 @@ def main(args=None):
 	p.add_argument("urls", metavar="urls", type=url.URL, help="ULRs of DTDs to be parsed", nargs="+")
 	p.add_argument("-x", "--xmlns", dest="xmlns", metavar="NAME", help="the namespace name for this module")
 	p.add_argument("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements? (default: %(default)s)", choices=("none", "dupes", "all"), default="dupes")
-	p.add_argument("-m", "--model", dest="model", default="once", help="Add sims information to the namespace (default: %(default)s)", choices=("no", "all", "once"))
+	p.add_argument("-m", "--model", dest="model", default="once", help="Add sims information to the namespace (default: %(default)s)", choices=("no", "simple", "fullall", "fullonce"))
 	p.add_argument("-d", "--defaults", dest="defaults", help="Output default values for attributes? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument(      "--duplicates", dest="duplicates", help="How to handle duplicate elements from multiple DTDs (default: %(default)s)", choices=("reject", "allow", "merge"), default="reject")
 
 	args = p.parse_args(args)
-	print urls2xnd(args.urls, args.xmlns, args.shareattrs, args.duplicates).aspy(model=args.model, defaults=args.defaults)
+	print urls2xnd(args.urls, args.xmlns, args.shareattrs, args.model, args.duplicates).aspy(model=args.model, defaults=args.defaults)
 
 
 if __name__ == "__main__":
