@@ -31,7 +31,7 @@ try:
 except ImportError:
 	from xmlproc import dtdparser
 
-from ll import url
+from ll import misc, url
 from ll.xist import xsc, parse, xnd
 
 
@@ -179,11 +179,11 @@ def dtd2xnd(dtd, xmlns=None, duplicates="reject"):
 def main(args=None):
 	p = argparse.ArgumentParser(description="Convert DTDs to XIST namespace (on stdout)")
 	p.add_argument("urls", metavar="urls", type=url.URL, help="ULRs of DTDs to be parsed", nargs="+")
-	p.add_argument("-x", "--xmlns", dest="xmlns", help="the namespace name for this module")
-	p.add_argument("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements?", choices=("none", "dupes", "all"), default="dupes")
-	p.add_argument("-m", "--model", dest="model", default="once", help="Add sims information to the namespace", choices=("no", "all", "once"))
-	p.add_argument("-d", "--defaults", action="store_true", dest="defaults", help="Output default values for attributes?")
-	p.add_argument(      "--duplicates", dest="duplicates", help="How to handle duplicate elements from multiple DTDs", choices=("reject", "allow", "merge"))
+	p.add_argument("-x", "--xmlns", dest="xmlns", metavar="NAME", help="the namespace name for this module")
+	p.add_argument("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements? (default: %(default)s)", choices=("none", "dupes", "all"), default="dupes")
+	p.add_argument("-m", "--model", dest="model", default="once", help="Add sims information to the namespace (default: %(default)s)", choices=("no", "all", "once"))
+	p.add_argument("-d", "--defaults", dest="defaults", help="Output default values for attributes? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument(      "--duplicates", dest="duplicates", help="How to handle duplicate elements from multiple DTDs (default: %(default)s)", choices=("reject", "allow", "merge"), default="reject")
 
 	args = p.parse_args(args)
 	print urls2xnd(args.urls, args.xmlns, args.shareattrs, args.duplicates).aspy(model=args.model, defaults=args.defaults)
