@@ -86,8 +86,8 @@ class Connect(object):
 def main(args=None):
 	p = argparse.ArgumentParser(description="render UL4 templates containing SQL statements")
 	p.add_argument("templates", metavar="template", help="templates to be used", nargs="+")
-	p.add_argument("-i", "--inputencoding", dest="inputencoding", help="Encoding for template sources", default="utf-8", metavar="ENCODING")
-	p.add_argument("-o", "--outputencoding", dest="outputencoding", help="Encoding for output", default="utf-8", metavar="ENCODING")
+	p.add_argument("-i", "--inputencoding", dest="inputencoding", help="Encoding for template sources (default %(default)s)", default="utf-8", metavar="ENCODING")
+	p.add_argument("-o", "--outputencoding", dest="outputencoding", help="Encoding for output (default %(default)s)", default="utf-8", metavar="ENCODING")
 
 	args = p.parse_args(args)
 

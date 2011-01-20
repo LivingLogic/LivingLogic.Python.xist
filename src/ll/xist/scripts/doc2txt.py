@@ -52,7 +52,7 @@ def main(args=None):
 	p.add_argument("source", help="input XML file")
 	p.add_argument("target", help="output plain text file")
 	p.add_argument("-t", "--title", dest="title", help="Title for the document")
-	p.add_argument("-w", "--width", dest="width", help="Width of the plain text output", type=int, default=72)
+	p.add_argument("-w", "--width", dest="width", help="Width of the plain text output (default %(default)s)", type=int, default=72)
 
 	args = p.parse_args()
 

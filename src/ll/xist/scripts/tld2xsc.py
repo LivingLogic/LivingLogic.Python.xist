@@ -47,9 +47,9 @@ def makexnd(stream, shareattrs="dupes", model="simple"):
 
 def main(args=None):
 	p = argparse.ArgumentParser(description="Convert JSP Tag Library Descriptor XML file (on stdin) to XIST namespace (on stdout)")
-	p.add_argument("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements?", choices=("none", "dupes", "all"), default="dupes")
-	p.add_argument("-m", "--model", dest="model", help="Add sims information to the namespace", choices=("none", "simple", "fullall", "fullonce"), default="simple")
-	p.add_argument("-d", "--defaults", dest="defaults", help="Output default values for attributes?", action=misc.FlagAction, default=False)
+	p.add_argument("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements? (default %(default)s)", choices=("none", "dupes", "all"), default="dupes")
+	p.add_argument("-m", "--model", dest="model", help="Add sims information to the namespace (default %(default)s)", choices=("none", "simple", "fullall", "fullonce"), default="simple")
+	p.add_argument("-d", "--defaults", dest="defaults", help="Output default values for attributes? (default %(default)s)", action=misc.FlagAction, default=False)
 
 	args = p.parse_args(args)
 	print makexnd(sys.stdin, args.shareattrs).aspy(model=args.model, defaults=args.defaults)
