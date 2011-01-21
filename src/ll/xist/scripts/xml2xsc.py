@@ -132,9 +132,10 @@ def main(args=None):
 	p.add_argument("-p", "--parser", dest="parser", help="parser module to use for XML parsing (default: %(default)s)", choices=("etree", "lxml"), default="etree")
 	p.add_argument("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements? (default: %(default)s)", choices=("none", "dupes", "all"), default="dupes")
 	p.add_argument("-m", "--model", dest="model", help="Create sims info? (default: %(default)s)", choices=("none", "simple", "fullall", "fullonce"), default="simple")
+	p.add_argument("-n", "--force-ns", dest="forcens", metavar="NAME", help="Force elements without a namespace into this namespace")
 
 	args = p.parse_args(args)
-	print makexnd(args.urls, parser=args.parser, shareattrs=args.shareattrs, model=args.model).aspy(model=args.model)
+	print makexnd(args.urls, parser=args.parser, shareattrs=args.shareattrs, model=args.model).aspy(model=args.model, forcens=args.forcens)
 
 
 if __name__ == "__main__":

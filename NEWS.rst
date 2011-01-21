@@ -31,6 +31,9 @@ Changes in 3.16 (released ??/??/2011)
 	``yes``/``no`` value now toggle the default (using the new
 	:class:`misc.FlagAction`).
 
+*	The script ``xml2xsc.py`` has a new option :option:`--force-ns`, for setting
+	a namespace name for elements without a namespace.
+
 
 Changes in 3.15.3 (released 11/26/2010)
 ---------------------------------------

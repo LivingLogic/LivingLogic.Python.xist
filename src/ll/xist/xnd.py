@@ -337,8 +337,11 @@ class Element(Base):
 		lines.append([level, "class {}(xsc.Element):".format(self.pyname)])
 		newlines = []
 		self._adddoc(newlines, level+1)
-		if self.xmlns is not None:
-			newlines.append([level+1, "xmlns = {}".format(simplify(self.xmlns))])
+		xmlns = self.xmlns
+		if xmlns is None:
+			xmlns = options.forcens
+		if xmlns is not None:
+			newlines.append([level+1, "xmlns = {}".format(simplify(xmlns))])
 		if self.pyname != self.name:
 			newlines.append([level+1, "xmlname = {}".format(simplify(self.name))])
 		# only output model, if it is a bool, otherwise it might reference other element,
@@ -531,10 +534,11 @@ class CharRef(Entity):
 
 
 class Options(object):
-	def __init__(self, indent="\t", encoding=None, defaults=False, model="fullonce"):
+	def __init__(self, indent="\t", encoding=None, defaults=False, model="fullonce", forcens=None):
 		self.indent = indent
 		if encoding is None:
 			encoding = sys.getdefaultencoding()
 		self.encoding = encoding
 		self.defaults = defaults
 		self.model = model
+		self.forcens = forcens
