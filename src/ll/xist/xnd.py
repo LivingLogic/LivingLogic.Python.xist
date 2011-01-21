@@ -193,16 +193,12 @@ class Module(object):
 
 	def _aspy(self, lines, level, names, module):
 		# Find all namespaces
-		self.xmlnames = dict.fromkeys(e.xmlns for e in self.elements.itervalues())
-		# Assign variable names to namespaces
-		for xmlns in self.xmlnames:
+		self._xmlnames = dict.fromkeys(e.xmlns for e in self.elements.itervalues() if e.xmlns is not None)
+		# Assign names to namespaces
+		for xmlns in self._xmlnames:
 			varname = findname("xmlns", names)
-			self.xmlnames[xmlns] = varname
+			self._xmlnames[xmlns] = varname
 			names.add(varname)
-		print self.xmlnames
-		
-		# used as a variable name for the namespace name (must always work, i.e. be the original name)
-		# self.assignpyname(names, "xmlns")
 
 		# assign names to all elements
 		for child in self.elements.itervalues():
@@ -235,6 +231,13 @@ class Module(object):
 		_adddoc(lines, self.doc, level)
 
 		lines.append([level, "from ll.xist import xsc, sims"])
+
+		# output namespace names
+		if self._xmlnames:
+			lines.append([0, ""])
+			lines.append([0, ""])
+			for (xmlns, varname) in self._xmlnames.iteritems():
+				lines.append([level, "{} = {!r}".format(varname, xmlns)])
 
 		# output attribute groups
 		for attrgroup in attrgroups:
@@ -365,7 +368,11 @@ class Element(Named):
 		newlines = []
 		_adddoc(newlines, self.doc, level+1)
 		if self.xmlns is not None:
-			newlines.append([level+1, "xmlns = {}".format(_simplify(self.xmlns))])
+			try:
+				xmlns = module._xmlnames[self.xmlns] # Use variable name
+			except KeyError:
+				xmlns = _simplify(self.xmlns) # Use literal
+			newlines.append([level+1, "xmlns = {}".format(xmlns)])
 		if self.pyname != self.name:
 			newlines.append([level+1, "xmlname = {}".format(_simplify(self.name))])
 		# only output model if it is a bool, otherwise it might reference other element,
