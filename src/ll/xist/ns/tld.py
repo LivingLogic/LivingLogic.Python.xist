@@ -183,8 +183,7 @@ class tag(xsc.Element):
 		if node is not None:
 			e.doc = node.asxnd(model=model)
 		for attr in self[attribute]:
-			attrname = unicode(attr[name][0].content)
-			e.attrs[attrname] = attr.asxnd(model=model)
+			e += attr.asxnd(model=model)
 		return e
 
 
@@ -235,7 +234,7 @@ class taglib(xsc.Element):
 			e = node.asxnd(model=model)
 			if xmlns is not None and isinstance(e, xnd.Element):
 				e.xmlns = xmlns
-			e.add(ns)
+			ns += e
 		return ns
 
 

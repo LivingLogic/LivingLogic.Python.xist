@@ -26,7 +26,7 @@ def xml2mod(strings, parser="etree", model="simple"):
 	with xsc.Pool():
 		xnd = xml2xsc.makexnd(strings, parser=parser, model=model)
 
-		code = xnd.aspy(model=model).encode()
+		code = str(xnd)
 		print "Module source generated from XMLs:"
 		print code
 		code = compile(code, "test.py", "exec")

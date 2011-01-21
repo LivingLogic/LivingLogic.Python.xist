@@ -17,12 +17,12 @@ from ll.xist.scripts import tld2xsc
 
 
 def tld2ns(s, shareattrs=None):
-	xnd = tld2xsc.makexnd(s, shareattrs=shareattrs)
+	xnd = tld2xsc.makexnd(s, encoding="iso-8859-1", shareattrs=shareattrs)
 
 	mod = types.ModuleType("test")
 	mod.__file__ = "test.py"
-	encoding = "iso-8859-1"
-	code = xnd.aspy(encoding=encoding).encode(encoding)
+
+	code = str(xnd)
 	print "Module source generated from TLD:"
 	print code
 	code = compile(code, "test.py", "exec")

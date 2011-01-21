@@ -23,7 +23,7 @@ from ll.xist import xsc, sims
 __docformat__ = "reStructuredText"
 
 
-def simplify(value):
+def _simplify(value):
 	"""
 	Return a string whose value can be used as an intializer for an attribute
 	value. (If the value is an :class:`int` strip the quotes, if it fits into
@@ -110,10 +110,10 @@ class RedefinedCharRefError(Error):
 
 def findname(basename, names):
 	"""
-	Return a name that is based on :var:`basename`, a valid Python identifier
-	and not in :var:`names. Illegal characters in :var:`basename` are replaced
-	with ``_`` and an ``_`` appendedwhen the name collides with a Python
-	keyword.
+	Return a new valid Python identifier based on :var:`basename`, i.e. a name
+	that is based on :var:`basename`, a valid Python identifier and not in
+	:var:`names. Illegal characters in :var:`basename` are replaced with ``_``
+	and an ``_`` appendedwhen the name collides with a Python keyword.
 	"""
 	basename = "".join(c if "a" <= c <= "z" or "A" <= c <= "Z" or "0" <= c <= "9" or c == "_" else "_" for c in basename)
 	testname = basename
@@ -126,53 +126,33 @@ def findname(basename, names):
 	return testname
 
 
-class Base(object):
-	def __init__(self, name):
-		self.name = name
-		self.pyname = None
-
-	def __ne__(self, other):
-		return not self == other
-
-	def assignpyname(self, names, name=None):
-		"""
-		Assign a Python identifier to :var:`self` (using either :var:`name` or
-		:var:`self.name`). This uses :func:`findname` to create a valid Python
-		identifier that is not in :var:`names`.
-		"""
-		if name is None:
-			name = self.name
-		name = findname(name, names)
-		self.pyname = name
-		names.add(name)
-
-	def aspy(self, **options):
-		options = Options(**options)
-		lines = []
-		self._aspy(lines, 0, set(), options)
-		return u"".join(u"{}{}\n".format(level*options.indent, text) for (level, text) in lines)
-
-	def _addlines(self, newlines, lines):
-		l = len(newlines)
-		if l==0:
-			lines[-1][1] += u" pass"
-		elif l==1:
-			lines[-1][1] += u" {}".format(newlines[-1][1])
-		else:
-			lines.extend(newlines)
-
-	def _adddoc(self, lines, level):
-		if self.doc is not None:
-			lines.append([level, u'"""'])
-			for line in self.doc.splitlines():
-				lines.append([level, line])
-			lines.append([level, u'"""'])
+def _addlines(lines, newlines):
+	l = len(newlines)
+	if l==0:
+		lines[-1][1] += u" pass"
+	elif l==1:
+		lines[-1][1] += u" {}".format(newlines[-1][1])
+	else:
+		lines.extend(newlines)
 
 
-class Module(Base):
-	def __init__(self, doc=None):
-		Base.__init__(self, "____")
+def _adddoc(lines, doc, level):
+	if doc is not None:
+		lines.append([level, u'"""'])
+		for line in doc.splitlines():
+			lines.append([level, line])
+		lines.append([level, u'"""'])
+
+
+class Module(object):
+	def __init__(self, doc=None, defaultxmlns=None, indent="\t", encoding=None, defaults=False, model="fullonce", duplicates="reject"):
 		self.doc = doc
+		self.defaultxmlns = defaultxmlns
+		self.indent = indent
+		self.encoding = encoding if encoding is not None else sys.getdefaultencoding()
+		self.defaults = defaults
+		self.model = model
+		self.duplicates = duplicates
 		self.elements = collections.OrderedDict() # Maps (element name, namespace name) to ``xnd.Element``
 		self.procinsts = collections.OrderedDict() # Maps pi target to ``xnd.ProcInst``
 		self.entities = collections.OrderedDict() # Maps entity name to ``xnd.Entity``
@@ -181,10 +161,17 @@ class Module(Base):
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} name={0.name!r} url={0.url!r} at {1:#x}>".format(self, id(self))
 
-	def __call__(self, *content):
-		for thing in content:
-			thing.add(self)
+	def __iadd__(self, node):
+		node._add(self)
 		return self
+
+	def __unicode__(self):
+		lines = []
+		self._aspy(lines, 0, set(), self)
+		return u"".join(u"{}{}\n".format(level*self.indent, text) for (level, text) in lines)
+
+	def __str__(self):
+		return unicode(self).encode(self.encoding)
 
 	def _findgroups(self):
 		"""
@@ -204,9 +191,18 @@ class Module(Base):
 					attrgroupset[attr.shared] = True
 		return attrgroups
 
-	def _aspy(self, lines, level, names, options):
+	def _aspy(self, lines, level, names, module):
+		# Find all namespaces
+		self.xmlnames = dict.fromkeys(e.xmlns for e in self.elements.itervalues())
+		# Assign variable names to namespaces
+		for xmlns in self.xmlnames:
+			varname = findname("xmlns", names)
+			self.xmlnames[xmlns] = varname
+			names.add(varname)
+		print self.xmlnames
+		
 		# used as a variable name for the namespace name (must always work, i.e. be the original name)
-		self.assignpyname(names, "xmlns")
+		# self.assignpyname(names, "xmlns")
 
 		# assign names to all elements
 		for child in self.elements.itervalues():
@@ -232,11 +228,11 @@ class Module(Base):
 		for attrgroup in attrgroups:
 			attrgroup.assignpyname(names)
 
-		lines.append([level, "# -*- coding: {} -*-".format(options.encoding)])
+		lines.append([level, "# -*- coding: {} -*-".format(module.encoding)])
 		lines.append([0, ""])
 		lines.append([0, ""])
 
-		self._adddoc(lines, level)
+		_adddoc(lines, self.doc, level)
 
 		lines.append([level, "from ll.xist import xsc, sims"])
 
@@ -244,17 +240,17 @@ class Module(Base):
 		for attrgroup in attrgroups:
 			lines.append([0, ""])
 			lines.append([0, ""])
-			attrgroup._aspy(lines, level, names, options)
+			attrgroup._aspy(lines, level, names, module)
 
 		# output elements, procinsts, entities and charref
 		for nodetype in ("elements", "procinsts", "entities", "charrefs"):
 			for node in getattr(self, nodetype).itervalues():
 				lines.append([0, ""])
 				lines.append([0, ""])
-				node._aspy(lines, level, names, options)
+				node._aspy(lines, level, names, module)
 
 		# output schema information for the elements
-		if options.model != "none":
+		if module.model != "none":
 			elswithschema = [node for node in self.elements.itervalues() if not isinstance(node.modeltype, (bool, type(None)))]
 			if elswithschema:
 				lines.append([0, ""])
@@ -268,10 +264,10 @@ class Module(Base):
 								arg = arg.pyname
 							modelargs.append(arg)
 					newlines.append(("{}.model".format(node.pyname), "{}({})".format(node.modeltype, ", ".join(modelargs))))
-				if options.model in ("simple", "fullall"):
+				if self.model in ("simple", "fullall"):
 					for line in newlines:
 						lines.append([0, "{} = {}".format(*line)])
-				elif options.model == "fullonce":
+				elif self.model == "fullonce":
 					newlines.sort(key=lambda l: l[1])
 					for (i, line) in enumerate(newlines):
 						(var, code) = line
@@ -279,7 +275,7 @@ class Module(Base):
 							code = "\\"
 						lines.append([0, "{} = {}".format(var, code)])
 				else:
-					raise ValueError("unknown sims mode {!r}".format(options.model))
+					raise ValueError("unknown sims mode {!r}".format(self.model))
 
 	def shareattrs(self, all):
 		# collect all identical attributes into lists
@@ -302,9 +298,30 @@ class Module(Base):
 					attr.share(group)
 
 
-class Element(Base):
+class Named(object):
+	def __init__(self, name):
+		self.name = name
+		self.pyname = None
+
+	def __ne__(self, other):
+		return not self == other
+
+	def assignpyname(self, names, name=None):
+		"""
+		Assign a Python identifier to :var:`self` (using either :var:`name` or
+		:var:`self.name`). This uses :func:`findname` to create a valid Python
+		identifier that is not in :var:`names`.
+		"""
+		if name is None:
+			name = self.name
+		name = findname(name, names)
+		self.pyname = name
+		names.add(name)
+
+
+class Element(Named):
 	def __init__(self, name, xmlns=None, modeltype=None, modelargs=None, doc=None):
-		Base.__init__(self, name)
+		Named.__init__(self, name)
 		self.xmlns = xmlns
 		self.attrs = collections.OrderedDict()
 		self.modeltype = modeltype
@@ -318,42 +335,40 @@ class Element(Base):
 		# Don't compare the models
 		return type(other) is Element and self.name == other.name and self.xmlns == other.xmlns and self.attrs == other.attrs
 
-	def __call__(self, *attrs):
-		for attr in attrs:
-			self.attrs[attr.name] = attr
+	def __iadd__(self, attr):
+		self.attrs[attr.name] = attr
 		return self
 
-	def add(self, module, duplicates="reject"):
+	def _add(self, module):
 		key = (self.name, self.xmlns)
 		if key in module.elements:
 			oldelement = module.elements[key]
-			if duplicates == "reject":
-				raise RedefinedElementError(oldelement, self, duplicates=duplicates)
-			elif duplicates == "allow":
+			if module.duplicates == "reject":
+				raise RedefinedElementError(oldelement, self, duplicates=module.duplicates)
+			elif module.duplicates == "allow":
 				if module.elements[self.name] != self:
-					raise RedefinedElementError(oldelement, self, duplicates=duplicates)
+					raise RedefinedElementError(oldelement, self, duplicates=module.duplicates)
 			else: # if duplicates == "merge"
 				for attr in self.attrs.itervalues():
 					if attr.name in self.attrs:
 						if attr != self.attrs[attr.name]:
-							raise RedefinedElementError(oldelement, self, duplicates=duplicates)
+							raise RedefinedElementError(oldelement, self, duplicates=module.duplicates)
 					else:
 						self.attrs[attr.name] = attr
 		else:
 			module.elements[key] = self
+		if self.xmlns is None:
+			self.xmlns = module.defaultxmlns
 
-	def _aspy(self, lines, level, names, options):
+	def _aspy(self, lines, level, names, module):
 		lines.append([level, "class {}(xsc.Element):".format(self.pyname)])
 		newlines = []
-		self._adddoc(newlines, level+1)
-		xmlns = self.xmlns
-		if xmlns is None:
-			xmlns = options.forcens
-		if xmlns is not None:
-			newlines.append([level+1, "xmlns = {}".format(simplify(xmlns))])
+		_adddoc(newlines, self.doc, level+1)
+		if self.xmlns is not None:
+			newlines.append([level+1, "xmlns = {}".format(_simplify(self.xmlns))])
 		if self.pyname != self.name:
-			newlines.append([level+1, "xmlname = {}".format(simplify(self.name))])
-		# only output model, if it is a bool, otherwise it might reference other element,
+			newlines.append([level+1, "xmlname = {}".format(_simplify(self.name))])
+		# only output model if it is a bool, otherwise it might reference other element,
 		# in which case this is done after all element classes have been defined
 		if isinstance(self.modeltype, bool):
 			newlines.append([level+1, "model = {!r}".format(self.modeltype)])
@@ -378,35 +393,35 @@ class Element(Base):
 			if nogroup:
 				localnames = []
 				for attr in nogroup:
-					attr._aspy(newlines, level+2, localnames, options)
+					attr._aspy(newlines, level+2, localnames, module)
 			else:
 				newlines.append([level+2, "pass"])
-		self._addlines(newlines, lines)
+		_addlines(lines, newlines)
 
 
-class AttrGroup(Base):
+class AttrGroup(Named):
 	id = 0
 	def __init__(self, name):
 		if name is None:
 			name = "attrgroup_{}".format(self.__class__.id)
 			self.__class__.id += 1
-		Base.__init__(self, name)
+		Named.__init__(self, name)
 		self.attrs = []
 
 	def __call__(self, *content):
 		self.attrs.extend(content)
 		return self
 
-	def _aspy(self, lines, level, names, options):
+	def _aspy(self, lines, level, names, module):
 		lines.append([level, "class {}(xsc.Element.Attrs):".format(self.pyname)])
 		localnames = []
 		for attr in self.attrs:
-			attr._aspy(lines, level+1, localnames, options)
+			attr._aspy(lines, level+1, localnames, module)
 
 
-class Attr(Base):
+class Attr(Named):
 	def __init__(self, name, type, required=False, default=None, values=None, doc=None):
-		Base.__init__(self, name)
+		Named.__init__(self, name)
 		self.doc = doc
 		self.type = type
 		self.required = required
@@ -423,7 +438,7 @@ class Attr(Base):
 	def __hash__(self):
 		return hash(self.name) ^ hash(self.type) ^ hash(self.required) ^ hash(self.default) ^ hash(self.values)
 
-	def _aspy(self, lines, level, names, options):
+	def _aspy(self, lines, level, names, module):
 		name = self.name
 		if isinstance(self.type, type):
 			basename = "{0.type.__module__}.{0.type.__name__}".format(self)
@@ -433,17 +448,17 @@ class Attr(Base):
 			basename = basename[8:]
 		lines.append([level, "class {}({}):".format(self.pyname, basename)])
 		newlines = []
-		self._adddoc(newlines, level+1)
+		_adddoc(newlines, self.doc, level+1)
 		if self.pyname != self.name:
-			newlines.append([level+1, "xmlname = {}".format(simplify(self.name))])
+			newlines.append([level+1, "xmlname = {}".format(_simplify(self.name))])
 		if self.values:
-			values = "({})".format(", ".join(str(simplify(value)) for value in self.values))
+			values = "({})".format(", ".join(str(_simplify(value)) for value in self.values))
 			newlines.append([level+1, "values = {}".format(values)])
-		if self.default and options.defaults:
-			newlines.append([level+1, "default = {}".format(simplify(self.default))])
+		if self.default and module.defaults:
+			newlines.append([level+1, "default = {}".format(_simplify(self.default))])
 		if self.required:
 			newlines.append([level+1, "required = True"])
-		self._addlines(newlines, lines)
+		_addlines(lines, newlines)
 
 	def share(self, group):
 		assert self.shared is None, "cannot share attr {!r} twice".format(self)
@@ -453,33 +468,33 @@ class Attr(Base):
 		return (self.name, self.type, self.required, self.default, tuple(self.values))
 
 
-class ProcInst(Base):
+class ProcInst(Named):
 	def __init__(self, name, doc=None):
-		Base.__init__(self, name)
+		Named.__init__(self, name)
 		self.doc = doc
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} name={0.name!r} at {1:#x}>".format(self, id(self))
 
-	def add(self, module, duplicates="reject"):
+	def _add(self, module):
 		if self.name in module.procinsts:
-			if duplicates == "reject":
-				raise RedefinedProcInstError(module.procinsts[self.name], self, duplicates)
+			if module.duplicates == "reject":
+				raise RedefinedProcInstError(module.procinsts[self.name], self, module.duplicates)
 		else:
 			module.procinsts[self.name] = self
 
-	def _aspy(self, lines, level, names, options):
+	def _aspy(self, lines, level, names, module):
 		lines.append([level, "class {}(xsc.ProcInst):".format(self.pyname)])
 		newlines = []
-		self._adddoc(newlines, level+1)
+		_adddoc(newlines, self.doc, level+1)
 		if self.pyname != self.name:
-			newlines.append([level+1, "xmlname = {}".format(simplify(self.name))])
-		self._addlines(newlines, lines)
+			newlines.append([level+1, "xmlname = {}".format(_simplify(self.name))])
+		_addlines(lines, newlines)
 
 
-class Entity(Base):
+class Entity(Named):
 	def __init__(self, name, doc=None):
-		Base.__init__(self, name)
+		Named.__init__(self, name)
 		self.doc = doc
 
 	def __repr__(self):
@@ -488,20 +503,20 @@ class Entity(Base):
 	def __eq__(self, other):
 		return type(other) is CharRef and self.name == other.name
 
-	def add(self, module, duplicates="reject"):
+	def _add(self, module):
 		if self.name in module.entities:
-			if duplicates == "reject":
-				raise RedefinedEntityError(module.entities[self.name], self, duplicates)
+			if module.duplicates == "reject":
+				raise RedefinedEntityError(module.entities[self.name], self, module.duplicates)
 		else:
 			module.entities[self.name] = self
 
-	def _aspy(self, lines, level, names, options):
+	def _aspy(self, lines, level, names, module):
 		lines.append([level, "class {}(xsc.Entity):".format(self.pyname)])
 		newlines = []
-		self._adddoc(newlines, level+1)
+		_adddoc(newlines, self.doc, level+1)
 		if self.pyname != self.name:
-			newlines.append([level+1, "xmlname = {}".format(simplify(self.name))])
-		self._addlines(newlines, lines)
+			newlines.append([level+1, "xmlname = {}".format(_simplify(self.name))])
+		_addlines(lines, newlines)
 
 
 class CharRef(Entity):
@@ -515,23 +530,23 @@ class CharRef(Entity):
 	def __eq__(self, other):
 		return type(other) is CharRef and self.name == other.name and self.codepoint == other.codepoint
 
-	def add(self, module, duplicates="reject"):
+	def _add(self, module):
 		if self.name in module.charrefs:
-			if duplicates == "reject":
-				raise RedefinedCharRefError(oldcharref, self, duplicates)
+			if module.duplicates == "reject":
+				raise RedefinedCharRefError(oldcharref, self, module.duplicates)
 			else: # duplicates in ("allow", "merge"):
 				oldcharref = module.charrefs[self.name]
 				if oldcharref != self:
-					raise RedefinedCharRefError(oldcharref, self, duplicates)
+					raise RedefinedCharRefError(oldcharref, self, module.duplicates)
 		else:
 			module.charrefs[self.name] = self
 
-	def _aspy(self, lines, level, names, options):
+	def _aspy(self, lines, level, names, module):
 		lines.append([level, "class {}(xsc.CharRef):".format(self.pyname)])
 		newlines = []
-		self._adddoc(newlines, level+1)
+		_adddoc(newlines, self.doc, level+1)
 		if self.pyname != self.name:
-			newlines.append([level+1, "xmlname = {}".format(simplify(self.name))])
+			newlines.append([level+1, "xmlname = {}".format(_simplify(self.name))])
 		if self.codepoint > 0xffff:
 			fmt = "#010x"
 		elif self.codepoint > 0xff:
@@ -539,15 +554,4 @@ class CharRef(Entity):
 		else:
 			fmt = "#02x"
 		newlines.append([level+1, "codepoint = {0:{1}}".format(self.codepoint, fmt)])
-		self._addlines(newlines, lines)
-
-
-class Options(object):
-	def __init__(self, indent="\t", encoding=None, defaults=False, model="fullonce", forcens=None):
-		self.indent = indent
-		if encoding is None:
-			encoding = sys.getdefaultencoding()
-		self.encoding = encoding
-		self.defaults = defaults
-		self.model = model
-		self.forcens = forcens
+		_addlines(lines, newlines)

@@ -31,7 +31,7 @@ from ll.xist.ns import tld
 __docformat__ = "reStructuredText"
 
 
-def makexnd(stream, shareattrs="dupes", model="simple"):
+def makexnd(stream, encoding=None, shareattrs="dupes", model="simple"):
 	# :var:`stream` can be a stream, an :class:`URL` or a string
 	node = parse.tree(stream, parse.Expat(), parse.NS(tld), parse.Node())
 
@@ -52,7 +52,7 @@ def main(args=None):
 	p.add_argument("-d", "--defaults", dest="defaults", help="Output default values for attributes? (default %(default)s)", action=misc.FlagAction, default=False)
 
 	args = p.parse_args(args)
-	print makexnd(sys.stdin, args.shareattrs).aspy(model=args.model, defaults=args.defaults)
+	print makexnd(sys.stdin, args.shareattrs, model=args.model, defaults=args.defaults)
 
 
 if __name__ == "__main__":

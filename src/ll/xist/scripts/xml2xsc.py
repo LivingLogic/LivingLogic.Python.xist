@@ -48,16 +48,15 @@ def addetree2xnd(ns, node, elements):
 				xndnode = ns.elements[(name, xmlns)]
 			else:
 				xndnode = xnd.Element(name, xmlns=xmlns)
-				xndnode.add(ns)
+				ns += xndnode
 				elements[(name, xmlns)] = set()
 			for attrname in node.keys():
 				if not attrname.startswith("{") and attrname not in xndnode.attrs:
-					xndnode(xnd.Attr(attrname, type=xsc.TextAttr))
+					xndnode += xnd.Attr(attrname, type=xsc.TextAttr)
 		elif "ProcessingInstruction" in type(node).__name__:
 			name = node.target
 			if name not in ns.procinsts:
-				xndnode = xnd.ProcInst(name)
-				xndnode.add(ns)
+				ns += xnd.ProcInst(name)
 		elif "Comment" in type(node).__name__:
 			xndnode = "#comment"
 		elif isinstance(node, basestring):
@@ -72,24 +71,23 @@ def addetree2xnd(ns, node, elements):
 				parententry.add(xndnode)
 
 
-def makexnd(streams, parser="etree", shareattrs="dupes", model="simple"):
+def makexnd(urls, parser="etree", shareattrs="dupes", model="simple", defaultxmlns=None):
 	elements = {} # maps (name, xmlns) to content set
-	ns = xnd.Module()
+	ns = xnd.Module(defaultxmlns=defaultxmlns)
 	with url.Context():
-		for stream in streams:
-			if isinstance(stream, url.URL):
-				stream = stream.openread()
-			elif isinstance(stream, str):
-				stream = cStringIO.StringIO(stream)
+		for u in urls:
+			if isinstance(u, url.URL):
+				u = u.openread()
+			elif isinstance(u, str):
+				u = cStringIO.StringIO(u)
 			if parser == "etree":
 				from xml.etree import cElementTree
-				node = cElementTree.parse(stream).getroot()
+				node = cElementTree.parse(u).getroot()
 			elif parser == "lxml":
 				from lxml import etree
-				node = etree.parse(stream).getroot()
+				node = etree.parse(u).getroot()
 			else:
 				raise ValueError("unknown parser {!r}".format(parser))
-			stream.close()
 			addetree2xnd(ns, node, elements)
 
 	# Put sims info into the element definitions
@@ -132,10 +130,10 @@ def main(args=None):
 	p.add_argument("-p", "--parser", dest="parser", help="parser module to use for XML parsing (default: %(default)s)", choices=("etree", "lxml"), default="etree")
 	p.add_argument("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements? (default: %(default)s)", choices=("none", "dupes", "all"), default="dupes")
 	p.add_argument("-m", "--model", dest="model", help="Create sims info? (default: %(default)s)", choices=("none", "simple", "fullall", "fullonce"), default="simple")
-	p.add_argument("-n", "--force-ns", dest="forcens", metavar="NAME", help="Force elements without a namespace into this namespace")
+	p.add_argument("-x", "--defaultxmlns", dest="defaultxmlns", metavar="NAME", help="Force elements without a namespace into this namespace")
 
 	args = p.parse_args(args)
-	print makexnd(args.urls, parser=args.parser, shareattrs=args.shareattrs, model=args.model).aspy(model=args.model, forcens=args.forcens)
+	print makexnd(**args.__dict__)
 
 
 if __name__ == "__main__":

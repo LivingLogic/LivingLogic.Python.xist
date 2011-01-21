@@ -15,16 +15,16 @@ from ll.xist import xsc, xnd, sims
 from ll.xist.scripts import dtd2xsc
 
 
-def dtd2mod(s, xmlns=None, shareattrs=None):
-	xnd = dtd2xsc.dtd2xnd(s, xmlns)
+def dtd2mod(s, shareattrs=None, **kwargs):
+	xnd = dtd2xsc.urls2xnd([s], encoding="iso-8859-1", model="fullonce", **kwargs)
 
 	if shareattrs is not None:
 		xnd.shareattrs(shareattrs)
 
 	mod = types.ModuleType("test")
 	mod.__file__ = "test.py"
-	encoding = "iso-8859-1"
-	code = xnd.aspy(encoding=encoding, model="fullonce").encode(encoding)
+
+	code = str(xnd)
 	print "Module source generated from DTDs:"
 	print code
 	code = compile(code, "test.py", "exec")
@@ -92,7 +92,7 @@ def test_charref():
 	<!ELEMENT foo (EMPTY)>
 	<!ENTITY bar "&#xff;">
 	"""
-	ns = dtd2mod(dtdstring, "foo")
+	ns = dtd2mod(dtdstring)
 
 	assert ns.bar.codepoint == 0xff
 
@@ -104,7 +104,7 @@ def test_keyword():
 		class CDATA              #IMPLIED
 	>
 	"""
-	ns = dtd2mod(dtdstring, "foo")
+	ns = dtd2mod(dtdstring)
 	assert issubclass(ns.foo.Attrs.class_, xsc.TextAttr)
 	assert ns.foo.Attrs.class_.__name__ == "class_"
 	assert ns.foo.Attrs.class_.xmlname == u"class"
@@ -114,7 +114,7 @@ def test_quotes():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT foo EMPTY>
 	"""
-	ns = dtd2mod(dtdstring, '"')
+	ns = dtd2mod(dtdstring, defaultxmlns='"')
 	assert ns.foo.xmlns == '"'
 
 
@@ -122,7 +122,7 @@ def test_unicode():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT foo EMPTY>
 	"""
-	ns = dtd2mod(dtdstring, u'\u3042')
+	ns = dtd2mod(dtdstring, defaultxmlns=u'\u3042')
 	assert ns.foo.xmlns == u'\u3042'
 
 
@@ -130,7 +130,7 @@ def test_unicodequotes():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT foo EMPTY>
 	"""
-	ns = dtd2mod(dtdstring, u'"\u3042"')
+	ns = dtd2mod(dtdstring, defaultxmlns=u'"\u3042"')
 	assert ns.foo.xmlns == u'"\u3042"'
 
 
@@ -138,7 +138,7 @@ def test_badelementname():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT class EMPTY>
 	"""
-	ns = dtd2mod(dtdstring, "foo")
+	ns = dtd2mod(dtdstring)
 	assert issubclass(ns.class_, xsc.Element)
 
 
@@ -153,7 +153,7 @@ def test_shareattrsnone():
 		baz CDATA              #IMPLIED
 	>
 	"""
-	ns = dtd2mod(dtdstring, "foo", shareattrs=None)
+	ns = dtd2mod(dtdstring, shareattrs=None)
 	assert not hasattr(ns, "baz")
 
 
@@ -170,7 +170,7 @@ def test_shareattrsdupes():
 		baz2 CDATA             #REQUIRED
 	>
 	"""
-	ns = dtd2mod(dtdstring, "foo", shareattrs=False)
+	ns = dtd2mod(dtdstring, shareattrs=False)
 	assert issubclass(ns.foo.Attrs.baz, ns.baz.baz)
 	assert issubclass(ns.bar.Attrs.baz, ns.baz.baz)
 	assert not hasattr(ns, "baz2")
@@ -191,7 +191,7 @@ def test_shareattrsall():
 		bazz CDATA             #REQUIRED
 	>
 	"""
-	ns = dtd2mod(dtdstring, "foo", shareattrs=True)
+	ns = dtd2mod(dtdstring, shareattrs=True)
 	assert issubclass(ns.foo.Attrs.baz, ns.baz.baz)
 	assert issubclass(ns.bar.Attrs.baz, ns.baz.baz)
 
