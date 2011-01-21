@@ -1,4 +1,4 @@
-Changes in 3.16 (released ??/??/2011)
+Changes in 3.16 (released 01/21/2011)
 -------------------------------------
 
 *	:mod:`ll.sisyphus` logging of exceptions and tracebacks should be more robust

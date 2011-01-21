@@ -108,6 +108,24 @@ class RedefinedCharRefError(Error):
 		return "charref named {0.oldcharref.named} with codepoint {0.oldcharref.codepoint} redefined with codepoint {0.newcharref.codepoint}".format(self)
 
 
+def findname(basename, names):
+	"""
+	Return a name that is based on :var:`basename`, a valid Python identifier
+	and not in :var:`names. Illegal characters in :var:`basename` are replaced
+	with ``_`` and an ``_`` appendedwhen the name collides with a Python
+	keyword.
+	"""
+	basename = "".join(c if "a" <= c <= "z" or "A" <= c <= "Z" or "0" <= c <= "9" or c == "_" else "_" for c in basename)
+	testname = basename
+	if keyword.iskeyword(basename):
+		testname += "_"
+	suffix = 2
+	while testname in names:
+		testname = "{0}{1}".format(basename, suffix)
+		suffix += 1
+	return testname
+
+
 class Base(object):
 	def __init__(self, name):
 		self.name = name
@@ -118,24 +136,15 @@ class Base(object):
 
 	def assignpyname(self, names, name=None):
 		"""
-		Assign a modified version of :var:`name` to :attr:`pyname`, that is a
-		valid Python identifier. This is done by replacing illegal characters
-		with ``_`` and appending an ``_`` when the name collides with a Python
-		keyword. Furthermore it is made sure that the new name is not in the list
-		:var:`names`. (If :var:`name` is :const:`None` ``self.name`` is used.)
+		Assign a Python identifier to :var:`self` (using either :var:`name` or
+		:var:`self.name`). This uses :func:`findname` to create a valid Python
+		identifier that is not in :var:`names`.
 		"""
 		if name is None:
 			name = self.name
-		name = "".join(c if "a" <= c <= "z" or "A" <= c <= "Z" or "0" <= c <= "9" or c == "_" else "_" for c in name)
-		testname = name
-		if keyword.iskeyword(name):
-			testname += "_"
-		suffix = 2
-		while testname in names:
-			testname = "{0}{1}".format(name, suffix)
-			suffix += 1
-		self.pyname = testname
-		names.add(testname)
+		name = findname(name, names)
+		self.pyname = name
+		names.add(name)
 
 	def aspy(self, **options):
 		options = Options(**options)
