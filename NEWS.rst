@@ -1,6 +1,11 @@
 Changes in 3.16 (released 01/21/2011)
 -------------------------------------
 
+*	The UL4 functions ``json``, ``type``, ``islist`` and ``isdict`` can now
+	handle all instances of :class:`collections.Mapping` and
+	:class:`collections.Sequence` not just :class:`tuple`, :class:`list` and
+	:class:`dict`.
+
 *	:mod:`ll.sisyphus` logging of exceptions and tracebacks should be more robust
 	against encoding problems.
 
@@ -15,11 +20,6 @@ Changes in 3.16 (released 01/21/2011)
 *	Fixed a bug in the command line argument handling of ``dtd2xsc.py``.
 
 *	``dtd2xsc.py`` can now handle undefined entities.
-
-*	The UL4 functions ``json``, ``type``, ``islist`` and ``isdict`` can now
-	handle all instances of :class:`collections.Mapping` and
-	:class:`collections.Sequence` not just :class:`tuple`, :class:`list` and
-	:class:`dict`.
 
 *	The help message for all scripts in XIST now show the default for all options.
 
