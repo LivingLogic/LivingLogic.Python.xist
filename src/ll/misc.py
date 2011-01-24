@@ -382,22 +382,21 @@ class FlagAction(argparse.Action):
 	false_choices = ("0", "false", "no", "off")
 
 	def __init__(self, option_strings, dest, default=False, help=None):
-		# FIXME: This doesn't work with :class:`argparse.ArgumentDefaultsHelpFormatter` or with fancier formatting.
-		help = help.replace("%(default)s", "yes" if default else "no")
-		help = help.replace("%(default)r", "yes" if default else "no")
-		super(FlagAction, self).__init__(option_strings=option_strings, dest=dest, default=default, help=help, metavar="yes|no", const=not default, nargs="?")
+		super(FlagAction, self).__init__(option_strings=option_strings, dest=dest, default="yes" if default else "no", help=help, metavar="yes|no", const="no" if default else "yes", type=self.str2bool, nargs="?")
+
+	def __repr__(self):
+		return "<FlagAction at 0x{:x}>".format(id(self))
+
+	def str2bool(self, value):
+		value = value.lower()
+		if value in self.true_choices:
+			return True
+		elif value in self.false_choices:
+			return False
+		else:
+			raise argparse.ArgumentTypeError("invalid flag value: {!r} (use any of {})".format(value, ", ".join(self.true_choices + self.false_choices)))
 
 	def __call__(self, parser, namespace, values, option_string=None):
-		if isinstance(values, basestring):
-			values = values.lower()
-			if values in self.true_choices:
-				values = True
-			elif values in self.false_choices:
-				values = False
-			else:
-				parser.error("argument {}: invalid flag value: {!r} (use any of {})".format("/".join(self.option_strings), values, ", ".join(self.true_choices + self.false_choices)))
-		else:
-			values = bool(values)
 		setattr(namespace, self.dest, values)
 
 
