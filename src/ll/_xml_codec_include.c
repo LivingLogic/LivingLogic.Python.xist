@@ -60,7 +60,7 @@ static int STRINGLIB_PARSEPSEUDOATTR(const STRINGLIB_CHAR *s, const STRINGLIB_CH
 		++s;
 	if (s == end) /* don't know yet */
 		return 0;
-	
+
 	quote = *s;
 
 	if (quote != '"' && quote != '\'')

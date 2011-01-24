@@ -31,7 +31,7 @@
  * 2001-10-02 fl  Optional well-formedness checker
  * 2001-12-18 fl  Flag missing entity handler only in strict mode (@XML12)
  * 2001-12-29 fl  Fixed compilation under gcc -Wstrict
- * 2002-01-13 fl  Resolve entities in attributes 
+ * 2002-01-13 fl  Resolve entities in attributes
  * 2002-03-26 fl  PyArg_NoArgs is deprecated; replace with PyArg_ParseTuple
  * 2002-05-26 fl  Don't mess up on <empty/> tags (@XML20)
  * 2002-11-13 fl  Changed handling of large character entities (@XML15)
@@ -43,14 +43,14 @@
  *
  * Copyright (c) 1998-2007 by Secret Labs AB
  * Copyright (c) 1998-2007 by Fredrik Lundh
- * 
+ *
  * fredrik@pythonware.com
  * http://www.pythonware.com
  *
  * By obtaining, using, and/or copying this software and/or its
  * associated documentation, you agree that you have read, understood,
  * and will comply with the following terms and conditions:
- * 
+ *
  * Permission to use, copy, modify, and distribute this software and its
  * associated documentation for any purpose and without fee is hereby
  * granted, provided that the above copyright notice appears in all
@@ -59,7 +59,7 @@
  * AB or the author not be used in advertising or publicity pertaining to
  * distribution of the software without specific, written prior
  * permission.
- * 
+ *
  * SECRET LABS AB AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO
  * THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS.  IN NO EVENT SHALL SECRET LABS AB OR THE AUTHOR BE LIABLE FOR
