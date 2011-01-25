@@ -230,7 +230,7 @@ class Pool(object):
 		"""
 		Register :var:`object` in the pool. :var:`object` can be a module, a
 		dictionary or a :class:`Pool` objects (with registers the pool as a base
-		pool. If :var:`object` is a module and has an attribute :attr:`__bases__`
+		pool). If :var:`object` is a module and has an attribute :attr:`__bases__`
 		(being a sequence of other modules) this attribute will be used to
 		initialize :var:`self` base pool.
 		"""
