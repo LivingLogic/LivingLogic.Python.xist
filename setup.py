@@ -227,7 +227,7 @@ else:
 
 args = dict(
 	name="ll-xist",
-	version="3.16",
+	version="3.17",
 	description="Extensible HTML/XML generator, cross-platform templating language, Oracle utilities and various other tools",
 	long_description=description,
 	author="Walter Doerwald",
@@ -239,6 +239,7 @@ args = dict(
 	keywords=", ".join(sorted({k.strip() for k in KEYWORDS.strip().splitlines() if k.strip() and not k.strip().startswith("#")})),
 	package_dir={"": "src"},
 	packages=["ll", "ll.scripts", "ll.xist", "ll.xist.ns", "ll.xist.scripts", "ll.orasql", "ll.orasql.scripts"],
+	package_data={"ll": ["data/js/*.js", "data/px/*.gif"]},
 	ext_modules=[
 		tools.Extension("ll._url", ["src/ll/_url.c"]),
 		tools.Extension("ll._ansistyle", ["src/ll/_ansistyle.c"]),

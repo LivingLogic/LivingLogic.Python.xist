@@ -1,3 +1,11 @@
+Changes in 3.17 (released ??/??/2011)
+-------------------------------------
+
+*	The spacer pixel ``px/spc.gif`` and the UL4 Javascript support library
+	``ul4.js`` will now be installed alongside the Python modules (in
+	``ll.data``).
+
+
 Changes in 3.16 (released 01/21/2011)
 -------------------------------------
 
