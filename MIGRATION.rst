@@ -11,7 +11,7 @@ Migrating to version 3.16
 =========================
 
 Changes to :mod:`ll.misc`
-------------------------------
+-------------------------
 
 *	:func:`ll.misc.flag` is gone. If the function is still required, here is
 	the source::
