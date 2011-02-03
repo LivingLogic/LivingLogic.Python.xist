@@ -1,6 +1,9 @@
 Changes in 3.17 (released ??/??/2011)
 -------------------------------------
 
+*	The UL4 function ``repr`` now handles all instances of
+	:class:`collections.Mapping` and :class:`collections.Sequence` too.
+
 *	The spacer pixel ``px/spc.gif`` and the UL4 Javascript support library
 	``ul4.js`` will now be installed alongside the Python modules (in
 	``ll.data``).

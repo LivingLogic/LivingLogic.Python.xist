@@ -1809,7 +1809,7 @@ class JavaSource(object):
 		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.isoDateFormatter.parse({arg});".format(op=opcode, arg=misc.javaexpr(opcode.arg)))
 		self._usereg(opcode.r1)
 	def _dispatch_loadcolor(self, opcode):
-		self._do(u"r{op.r1} = new com.livinglogic.ul4.Color(0x{r}, 0x{g}, 0x{b}, 0x{a})".format(op=opcode, r=opcode.arg[:2], g=opcode.arg[2:4], b=opcode.arg[4:6], a=opcode.arg[6:]))
+		self._do(u"r{op.r1} = new com.livinglogic.ul4.Color(0x{r}, 0x{g}, 0x{b}, 0x{a});".format(op=opcode, r=opcode.arg[:2], g=opcode.arg[2:4], b=opcode.arg[4:6], a=opcode.arg[6:]))
 		self._usereg(opcode.r1)
 	def _dispatch_buildlist(self, opcode):
 		self._do(u"r{op.r1} = new java.util.ArrayList();".format(op=opcode))
@@ -3239,9 +3239,9 @@ def _repr(obj):
 			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6] and s[7]==s[8]:
 				return "#{}{}{}{}".format(s[1], s[3], s[5], s[7])
 			return s
-	elif isinstance(obj, list):
+	elif isinstance(obj, collections.Sequence):
 		return u"[{}]".format(u", ".join(_repr(item) for item in obj))
-	elif isinstance(obj, dict):
+	elif isinstance(obj, collections.Mapping):
 		return u"{{{}}}".format(u", ".join(u"{}: {}".format(_repr(key), _repr(value)) for (key, value) in obj.iteritems()))
 	else:
 		return unicode(repr(obj))
