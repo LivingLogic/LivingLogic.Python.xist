@@ -521,7 +521,7 @@ def javaexpr(obj):
 				v.append(u"\\u{:04x}".format(oc) if oc >= 128 else c)
 		return u'"{}"'.format(u"".join(v))
 	elif isinstance(obj, (datetime.date, datetime.datetime)):
-		return "com.livinglogic.ul4.Utils.isoDateFormatter.parse({})".format(javaexpr(obj.isoformat()))
+		return "com.livinglogic.ul4.Utils.isoparse({})".format(javaexpr(obj.isoformat()))
 	elif isinstance(obj, color.Color):
 		return "new com.livinglogic.ul4.Color({}, {}, {}, {})".format(*obj)
 	elif isinstance(obj, (int, float)):
