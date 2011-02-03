@@ -1840,7 +1840,6 @@ class JavaSource(object):
 	def _dispatch_truedivvar(self, opcode):
 		self._do(u"{var}.put({arg}, com.livinglogic.ul4.Utils.truediv({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javastring(opcode.arg), op=opcode))
 	def _dispatch_floordivvar(self, opcode):
-		name = misc.javastring(opcode.arg)
 		self._do(u"{var}.put({arg}, com.livinglogic.ul4.Utils.floordiv({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javastring(opcode.arg), op=opcode))
 	def _dispatch_modvar(self, opcode):
 		self._do(u"{var}.put({arg}, com.livinglogic.ul4.Utils.mod({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javastring(opcode.arg), op=opcode))
@@ -1964,12 +1963,12 @@ class JavaSource(object):
 		elif opcode.arg in {"utcnow", "random"}:
 			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}();".format(op=opcode))
 		elif opcode.arg == "vars":
-			self._do(u"r{op.r1} = {var};".format(op=opcode, var=variables))
+			self._do(u"r{op.r1} = {var};".format(op=opcode, var=self._stack[-1].variables))
 		else:
 			raise UnknownFunctionError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callfunc1(self, opcode):
-		if opcode.arg in {"xmlescape", "csv", "repr", "enumerate", "chr", "ord", "hex", "oct", "bin", "sorted", "range", "type", "json", "reversed", "randrange"}:
+		if opcode.arg in {"xmlescape", "csv", "repr", "enumerate", "chr", "ord", "hex", "oct", "bin", "sorted", "range", "type", "json", "reversed", "randrange", "randchoice", "abs"}:
 			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "str":
 			self._do(u"r{op.r1} = org.apache.commons.lang.ObjectUtils.toString(r{op.r2});".format(op=opcode))
@@ -2009,6 +2008,8 @@ class JavaSource(object):
 	def _dispatch_callfunc2(self, opcode):
 		if opcode.arg in {"range", "zip", "randrange"}:
 			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
+		elif opcode.arg == "int":
+			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.toInteger(r{op.r2}, r{op.r3});".format(op=opcode))
 		elif opcode.arg == "get":
 			self._do(u"r{op.r1} = {var}.containsKey(r{op.r2}) ? {var}.get(r{op.r2}) : r{op.r3};".format(op=opcode.r1, var=self._stack[-1].variables))
 		else:
