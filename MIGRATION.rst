@@ -1,10 +1,19 @@
+Migrating to version 3.17
+=========================
+
+Changes to :mod:`ll.misc`
+------------------------------
+
+*	:func:`ll.misc.javastring` has been renamed to :func:`ll.misc.javaexpr`.
+
+
 Migrating to version 3.16
 =========================
 
-Changes to :mod:`ll.xist.misc`
+Changes to :mod:`ll.misc`
 ------------------------------
 
-*	:func:`ll.xist.misc.flag` is gone. If the function is still required, here is
+*	:func:`ll.misc.flag` is gone. If the function is still required, here is
 	the source::
 
 		def flag(value):

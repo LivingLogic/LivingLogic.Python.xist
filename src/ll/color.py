@@ -17,8 +17,6 @@ from __future__ import division
 
 import colorsys
 
-from ll import misc
-
 
 __docformat__ = "reStructuredText"
 

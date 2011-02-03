@@ -15,7 +15,9 @@ LivingLogic modules and packages.
 """
 
 
-import sys, os, types, collections, weakref, cStringIO, gzip as gzip_, csv, itertools, argparse
+import sys, os, types, datetime, collections, weakref, cStringIO, gzip as gzip_, csv, itertools, argparse
+
+from ll import color
 
 
 __docformat__ = "reStructuredText"
@@ -498,19 +500,38 @@ def module(code, filename="unnamed.py", name=None):
 	return mod
 
 
-def javastring(s):
+def javaexpr(obj):
 	"""
-	Return a Java string literal for the string :var:`s`.
+	Return a Java expression for the object :var:`obj`.
 	"""
-	v = []
-	specialchars = {u"\r": u"\\r", u"\n": u"\\n", u"\t": u"\\t", u'"': u'\\"'}
-	for c in s:
-		try:
-			v.append(specialchars[c])
-		except KeyError:
-			oc = ord(c)
-			v.append(u"\\u{:04x}".format(oc) if oc >= 128 else c)
-	return u'"{}"'.format(u"".join(v))
+	if obj is None:
+		return "null"
+	elif obj is True:
+		return "true"
+	elif obj is False:
+		return "false"
+	elif isinstance(obj, basestring):
+		v = []
+		specialchars = {u"\r": u"\\r", u"\n": u"\\n", u"\t": u"\\t", u'"': u'\\"'}
+		for c in obj:
+			try:
+				v.append(specialchars[c])
+			except KeyError:
+				oc = ord(c)
+				v.append(u"\\u{:04x}".format(oc) if oc >= 128 else c)
+		return u'"{}"'.format(u"".join(v))
+	elif isinstance(obj, (datetime.date, datetime.datetime)):
+		return "com.livinglogic.ul4.Utils.isoDateFormatter.parse({});".format(javaexpr(obj.isoformat()))
+	elif isinstance(obj, color.Color):
+		return "new com.livinglogic.ul4.Color({}, {}, {}, {});".format(*obj)
+	elif isinstance(obj, (int, float)):
+		return repr(obj)
+	elif isinstance(obj, collections.Sequence):
+		return "com.livinglogic.ul4.Utils.makeList({})".format(", ".join(javaexpr(item) for item in obj))
+	elif isinstance(obj, collections.Mapping):
+		return "com.livinglogic.ul4.Utils.makeMap({})".format(", ".join("{}, {}".format(javaexpr(key), javaexpr(value)) for (key, value) in obj.iteritems()))
+	else:
+		raise TypeError("can't handle object of type {}".format(type(obj)))
 
 
 class SysInfo(object):

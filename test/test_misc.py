@@ -260,14 +260,31 @@ def test_notimplemented():
 		Bad().bad()
 
 
-def test_javastring():
-	assert '""' == misc.javastring("")
-	assert '"abc"' == misc.javastring("abc")
-	assert '"\'"' == misc.javastring("'")
-	assert '"\\n"' == misc.javastring("\n")
-	assert '"\\""' == misc.javastring('"')
-	assert '"\\u00ff"' == misc.javastring(u"\xff")
-	assert '"\\u20ac"' == misc.javastring(u"\u20ac")
+def test_javaexpr():
+	# None
+	assert "null" == misc.javaexpr(None)
+	# bool
+	assert "true" == misc.javaexpr(True)
+	assert "false" == misc.javaexpr(False)
+	# int
+	assert "42" == misc.javaexpr(42)
+	# float
+	assert "42.5" == misc.javaexpr(42.5)
+	# string
+	assert '""' == misc.javaexpr("")
+	assert '"abc"' == misc.javaexpr("abc")
+	assert '"\'"' == misc.javaexpr("'")
+	assert '"\\n"' == misc.javaexpr("\n")
+	assert '"\\""' == misc.javaexpr('"')
+	assert '"\\u00ff"' == misc.javaexpr(u"\xff")
+	assert '"\\u20ac"' == misc.javaexpr(u"\u20ac")
+	# list
+	assert "com.livinglogic.ul4.Utils.makeList()" == misc.javaexpr(())
+	assert "com.livinglogic.ul4.Utils.makeList(1, 2, 3)" == misc.javaexpr([1, 2, 3])
+	# dict
+	assert "com.livinglogic.ul4.Utils.makeMap()" == misc.javaexpr({})
+	assert "com.livinglogic.ul4.Utils.makeMap(1, 2)" == misc.javaexpr({1: 2})
+
 
 def test_prettycsv():
 	assert "".join(misc.prettycsv([["a", "b", "c"], ["abc", "defg", "hijkl"]])) == "a     b      c\nabc   defg   hijkl\n"

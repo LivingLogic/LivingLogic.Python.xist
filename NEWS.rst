@@ -4,8 +4,12 @@ Changes in 3.17 (released ??/??/2011)
 *	The spacer pixel ``px/spc.gif`` and the UL4 Javascript support library
 	``ul4.js`` will now be installed alongside the Python modules (in
 	``ll.data``).
+
 *	The Java source code produced by :meth:`ll.ul.Template.javasource` will now
 	contains register declarations only for the registers that are actually used.
+
+*	:func:`misc.javastring` has been renamed to :func:`misc.javaexpr` can can
+	now produce the Java sourcecode for more types.
 
 
 Changes in 3.16 (released 01/21/2011)

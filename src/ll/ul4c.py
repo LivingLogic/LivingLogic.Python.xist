@@ -1786,9 +1786,9 @@ class JavaSource(object):
 	def _dispatch_None(self, opcode):
 		(line, col) = opcode.location.pos()
 		self._do(u"// Literal at {} (line {}, col {})".format(opcode.location.starttag+1, line, col))
-		self._do(self.output(misc.javastring(opcode.location.code)))
+		self._do(self.output(misc.javaexpr(opcode.location.code)))
 	def _dispatch_loadstr(self, opcode):
-		self._do(u"r{op.r1} = {arg};".format(op=opcode, arg=misc.javastring(opcode.arg)))
+		self._do(u"r{op.r1} = {arg};".format(op=opcode, arg=misc.javaexpr(opcode.arg)))
 		self._usereg(opcode.r1)
 	def _dispatch_loadint(self, opcode):
 		self._do(u"r{op.r1} = new Integer({op.arg});".format(op=opcode))
@@ -1806,7 +1806,7 @@ class JavaSource(object):
 		self._do(u"r{op.r1} = true;".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_loaddate(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.isoDateFormatter.parse({arg});".format(op=opcode, arg=misc.javastring(opcode.arg)))
+		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.isoDateFormatter.parse({arg});".format(op=opcode, arg=misc.javaexpr(opcode.arg)))
 		self._usereg(opcode.r1)
 	def _dispatch_loadcolor(self, opcode):
 		self._do(u"r{op.r1} = new com.livinglogic.ul4.Color(0x{r}, 0x{g}, 0x{b}, 0x{a})".format(op=opcode, r=opcode.arg[:2], g=opcode.arg[2:4], b=opcode.arg[4:6], a=opcode.arg[6:]))
@@ -1827,26 +1827,26 @@ class JavaSource(object):
 		self._do(u"((java.util.Map)r{op.r1}).putAll((java.util.Map)r{op.r2});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_loadvar(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.getItem({var}, {arg});".format(op=opcode, var=self._stack[-1].variables, arg=misc.javastring(opcode.arg)))
+		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.getItem({var}, {arg});".format(op=opcode, var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg)))
 		self._usereg(opcode.r1)
 	def _dispatch_storevar(self, opcode):
-		self._do(u"{var}.put({arg}, r{op.r1});".format(var=self._stack[-1].variables, arg=misc.javastring(opcode.arg), op=opcode))
+		self._do(u"{var}.put({arg}, r{op.r1});".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_addvar(self, opcode):
-		self._do(u"{var}.put({arg}, com.livinglogic.ul4.Utils.add({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javastring(opcode.arg), op=opcode))
+		self._do(u"{var}.put({arg}, com.livinglogic.ul4.Utils.add({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_subvar(self, opcode):
-		self._do(u"{var}.put({arg}, com.livinglogic.ul4.Utils.sub({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javastring(opcode.arg), op=opcode))
+		self._do(u"{var}.put({arg}, com.livinglogic.ul4.Utils.sub({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_mulvar(self, opcode):
-		self._do(u"{var}.put({arg}, com.livinglogic.ul4.Utils.mul({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javastring(opcode.arg), op=opcode))
+		self._do(u"{var}.put({arg}, com.livinglogic.ul4.Utils.mul({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_truedivvar(self, opcode):
-		self._do(u"{var}.put({arg}, com.livinglogic.ul4.Utils.truediv({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javastring(opcode.arg), op=opcode))
+		self._do(u"{var}.put({arg}, com.livinglogic.ul4.Utils.truediv({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_floordivvar(self, opcode):
-		self._do(u"{var}.put({arg}, com.livinglogic.ul4.Utils.floordiv({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javastring(opcode.arg), op=opcode))
+		self._do(u"{var}.put({arg}, com.livinglogic.ul4.Utils.floordiv({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_modvar(self, opcode):
-		self._do(u"{var}.put({arg}, com.livinglogic.ul4.Utils.mod({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javastring(opcode.arg), op=opcode))
+		self._do(u"{var}.put({arg}, com.livinglogic.ul4.Utils.mod({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_delvar(self, opcode):
-		self._do(u"{var}.remove({arg});".format(var=self._stack[-1].variables, arg=misc.javastring(opcode.arg)))
+		self._do(u"{var}.remove({arg});".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg)))
 	def _dispatch_getattr(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.getItem(r{op.r2}, {arg});".format(op=opcode, arg=misc.javastring(opcode.arg)))
+		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.getItem(r{op.r2}, {arg});".format(op=opcode, arg=misc.javaexpr(opcode.arg)))
 		self._usereg(opcode.r1)
 	def _dispatch_getitem(self, opcode):
 		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.getItem(r{op.r2}, r{op.r3});".format(op=opcode))
@@ -1897,7 +1897,7 @@ class JavaSource(object):
 		self._do(u"}")
 		self._do(-1)
 		self._do(u"};")
-		self._do(u"{var}.put({arg}, template{count});".format(var=self._stack[-1].variables, arg=misc.javastring(level.name), count=varcounter))
+		self._do(u"{var}.put({arg}, template{count});".format(var=self._stack[-1].variables, arg=misc.javaexpr(level.name), count=varcounter))
 		self._stack[-1].varcounter += 1
 	def _dispatch_break(self, opcode):
 		self._do(u"break;")
