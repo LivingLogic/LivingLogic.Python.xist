@@ -504,6 +504,9 @@ def javaexpr(obj):
 	"""
 	Return a Java expression for the object :var:`obj`.
 	"""
+
+	from ll import ul4c
+
 	if obj is None:
 		return "null"
 	elif obj is True:
@@ -524,12 +527,14 @@ def javaexpr(obj):
 		return "com.livinglogic.ul4.Utils.isoparse({})".format(javaexpr(obj.isoformat()))
 	elif isinstance(obj, color.Color):
 		return "new com.livinglogic.ul4.Color({}, {}, {}, {})".format(*obj)
-	elif isinstance(obj, (int, float)):
+	elif isinstance(obj, (int, long, float)):
 		return repr(obj)
 	elif isinstance(obj, collections.Sequence):
-		return "com.livinglogic.ul4.Utils.makeList({})".format(", ".join(javaexpr(item) for item in obj))
+		return "java.util.Arrays.asList({})".format(", ".join(javaexpr(item) for item in obj))
 	elif isinstance(obj, collections.Mapping):
 		return "com.livinglogic.ul4.Utils.makeMap({})".format(", ".join("{}, {}".format(javaexpr(key), javaexpr(value)) for (key, value) in obj.iteritems()))
+	elif isinstance(obj, ul4c.Template):
+		return "new com.livinglogic.ul4.JSPTemplate() {{ public void render(java.io.Writer out, java.util.Map<String, Object> variables) throws java.io.IOException {{ {} }} }}".format(" ".join(line.strip() for line in obj.javasource().splitlines()))
 	else:
 		raise TypeError("can't handle object of type {}".format(type(obj)))
 
