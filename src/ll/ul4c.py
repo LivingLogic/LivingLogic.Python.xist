@@ -28,7 +28,7 @@ import re, datetime, StringIO, locale, json, collections
 from ll import spark, color, misc
 
 
-# Regular expression used for splitting dates
+# Regular expression used for splitting dates in isoformat
 datesplitter = re.compile("[-T:.]")
 
 
@@ -1226,13 +1226,13 @@ class PythonSource(object):
 		except AttributeError:
 			raise UnknownFunctionError(opcode.arg)
 	def _dispatch_callmeth0(self, opcode):
-		if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "isoformat", "r", "g", "b", "a", "hls", "hlsa", "hsv", "hsva", "lum", "weekday"):
+		if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "r", "g", "b", "a", "hls", "hlsa", "hsv", "hsva", "lum", "weekday"):
 			self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}.{op.arg}()".format(op=opcode))
 		elif opcode.arg == "items":
 			self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}.iteritems()".format(op=opcode))
 		elif opcode.arg == "render":
 			self._line(opcode.location, 'r{op.r1:d} = "".join(r{op.r2:d}())'.format(op=opcode))
-		elif opcode.arg in ("mimeformat", "yearday"):
+		elif opcode.arg in ("mimeformat", "yearday", "isoformat"):
 			self._line(opcode.location, 'r{op.r1:d} = ul4c._{op.arg}(r{op.r2:d})'.format(op=opcode))
 		elif opcode.arg in ("day", "month", "year", "hour", "minute", "second", "microsecond"):
 			self._line(opcode.location, 'r{op.r1:d} = r{op.r2:d}.{op.arg}'.format(op=opcode))
@@ -1737,19 +1737,19 @@ class JavaSource(object):
 				lastloc = opcode.location
 				(line, col) = lastloc.pos()
 				tag = lastloc.tag
-				self._do(u"// <?{}?> tag at {} (line {}, col {}): {}".format(lastloc.type, lastloc.starttag+1, line, col, repr(tag)[1+isinstance(tag, unicode):-1]))
+				self._do(u"/* <?{}?> tag at {} (line {}, col {}): {} */".format(lastloc.type, lastloc.starttag+1, line, col, repr(tag)[1+isinstance(tag, unicode):-1]))
 			try:
 				getattr(self, "_dispatch_{}".format(opcode.code))(opcode)
 			except AttributeError:
 				raise UnknownOpcodeError(opcode.code)
 
 		# Add source and register declaration at the beginning
-		lines.append(u"//@@@ BEGIN template source")
+		lines.append(u"/*@@@ BEGIN template source */")
 		sourcelines = self.template.source.splitlines(False)
 		width = len(str(len(sourcelines)))
 		for (i, line) in enumerate(sourcelines):
-			lines.append(u"// {1:{0}} {2}".format(width, i+1, line))
-		lines.append(u"//@@@ BEGIN template code")
+			lines.append(u"/* {1:{0}} {2} */".format(width, i+1, line))
+		lines.append(u"/*@@@ BEGIN template code */")
 		
 		for i in sorted(self._stack[-1].regsused):
 			lines.append(u"Object r{} = null;".format(i))
@@ -1757,7 +1757,7 @@ class JavaSource(object):
 		# copy over generated source code
 		lines.extend(self._stack[-1].lines)
 
-		lines.append(u"//@@@ END template code")
+		lines.append(u"/*@@@ END template code */")
 
 		v = []
 		indent = self.indent
@@ -1785,7 +1785,7 @@ class JavaSource(object):
 
 	def _dispatch_None(self, opcode):
 		(line, col) = opcode.location.pos()
-		self._do(u"// Literal at {} (line {}, col {})".format(opcode.location.starttag+1, line, col))
+		self._do(u"/* Literal at {} (line {}, col {}) */".format(opcode.location.starttag+1, line, col))
 		self._do(self.output(misc.javaexpr(opcode.location.code)))
 	def _dispatch_loadstr(self, opcode):
 		self._do(u"r{op.r1} = {arg};".format(op=opcode, arg=misc.javaexpr(opcode.arg)))
@@ -1806,7 +1806,7 @@ class JavaSource(object):
 		self._do(u"r{op.r1} = true;".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_loaddate(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.isoDateFormatter.parse({arg});".format(op=opcode, arg=misc.javaexpr(opcode.arg)))
+		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.makeDate({date});".format(op=opcode, date=", ".join(str(int(p)) for p in datesplitter.split(opcode.arg))))
 		self._usereg(opcode.r1)
 	def _dispatch_loadcolor(self, opcode):
 		self._do(u"r{op.r1} = new com.livinglogic.ul4.Color(0x{r}, 0x{g}, 0x{b}, 0x{a});".format(op=opcode, r=opcode.arg[:2], g=opcode.arg[2:4], b=opcode.arg[4:6], a=opcode.arg[6:]))
@@ -1861,7 +1861,7 @@ class JavaSource(object):
 		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.getSlice(r{op.r2}, null, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_print(self, opcode):
-		self._do(self.output(u"org.apache.commons.lang.ObjectUtils.toString(r{op.r1})".format(op=opcode)))
+		self._do(self.output(u"com.livinglogic.ul4.Utils.str(r{op.r1})".format(op=opcode)))
 	def _dispatch_printx(self, opcode):
 		self._do(self.output(u"com.livinglogic.ul4.Utils.xmlescape(r{op.r1})".format(op=opcode)))
 	def _dispatch_for(self, opcode):
@@ -1884,7 +1884,7 @@ class JavaSource(object):
 		self._do(u"com.livinglogic.ul4.JSPTemplate template{count} = new com.livinglogic.ul4.JSPTemplate()".format(count=varcounter))
 		self._do(u"{")
 		self._do(1)
-		self._do(u"public void render(java.io.Writer out, Map<String, Object> variables) throws java.io.IOException")
+		self._do(u"public void render(java.io.Writer out, java.util.Map<String, Object> variables) throws java.io.IOException")
 		self._do(u"{")
 		self._do(1)
 		# registers
@@ -1916,10 +1916,10 @@ class JavaSource(object):
 		self._do(u"r{op.r1} = !com.livinglogic.ul4.Utils.contains(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_eq(self, opcode):
-		self._do(u"r{op.r1} = org.apache.commons.lang.ObjectUtils.equals(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.eq(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_ne(self, opcode):
-		self._do(u"r{op.r1} = !org.apache.commons.lang.ObjectUtils.equals(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.ne(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_lt(self, opcode):
 		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.lt(r{op.r2}, r{op.r3});".format(op=opcode))
@@ -1928,10 +1928,10 @@ class JavaSource(object):
 		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.le(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_gt(self, opcode):
-		self._do(u"r{op.r1} = !com.livinglogic.ul4.Utils.le(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do(u"r{op.r1} = !com.livinglogic.ul4.Utils.gt(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_ge(self, opcode):
-		self._do(u"r{op.r1} = !com.livinglogic.ul4.Utils.lt(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do(u"r{op.r1} = !com.livinglogic.ul4.Utils.ge(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_add(self, opcode):
 		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.add(r{op.r2}, r{op.r3});".format(op=opcode))
@@ -2001,7 +2001,7 @@ class JavaSource(object):
 		elif opcode.arg == "iscolor":
 			self._do(u"r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof com.livinglogic.ul4.Color));".format(op=opcode))
 		elif opcode.arg == "get":
-			self._do(u"r{op.r1} = {var}.get(r{op.r2});".format(op=opcode, var=variables))
+			self._do(u"r{op.r1} = {var}.get(r{op.r2});".format(op=opcode, var=self._stack[-1].variables))
 		else:
 			raise UnknownFunctionError(opcode.arg)
 		self._usereg(opcode.r1)
@@ -2035,7 +2035,7 @@ class JavaSource(object):
 		elif opcode.arg in {"hls", "hlsa", "hsv", "hsva"}:
 			self._do(u"r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).{op.arg}();".format(op=opcode))
 		elif opcode.arg == "lum":
-			self._do(u"r{op.r1} = new Double(((com.livinglogic.ul4.Color)r{op.r2}).lum());".format(op=opcode))
+			self._do(u"r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).lum();".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 		self._usereg(opcode.r1)
@@ -2081,7 +2081,7 @@ class JavaSource(object):
 		self._do(-1)
 		self._do(u"}")
 	def _dispatch_render(self, opcode):
-		self._do(u"((com.livinglogic.ul4.Template)r{op.r1}).render(out, (Map)r{op.r2});".format(op=opcode))
+		self._do(u"((com.livinglogic.ul4.Template)r{op.r1}).render(out, (java.util.Map)r{op.r2});".format(op=opcode))
 
 
 ###
@@ -3227,7 +3227,13 @@ def _repr(obj):
 	elif isinstance(obj, str):
 		return unicode(repr(obj))
 	elif isinstance(obj, datetime.datetime):
-		return unicode(obj.isoformat())
+		s = unicode(obj.isoformat())
+		if s.endswith(u"T00:00:00"):
+			return u"@{}T".format(s[:-9])
+		else:
+			return u"@" + s
+	elif isinstance(obj, datetime.date):
+		return u"@{}T".format(obj.isoformat())
 	elif isinstance(obj, color.Color):
 		if obj[3] == 0xff:
 			s = "#{:02x}{:02x}{:02x}".format(obj[0], obj[1], obj[2])
@@ -3339,3 +3345,14 @@ def _yearday(obj):
 	Helper for the ``yearday`` method.
 	"""
 	return (obj - obj.__class__(obj.year, 1, 1)).days+1
+
+
+def _isoformat(obj):
+	"""
+	Helper for the ``isoformat`` method.
+	"""
+	result = obj.isoformat()
+	suffix = "T00:00:00"
+	if result.endswith(suffix):
+		return result[:-len(suffix)]
+	return result

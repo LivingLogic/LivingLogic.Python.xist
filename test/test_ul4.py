@@ -9,11 +9,11 @@
 ## See ll/__init__.py for the license
 
 
-import os, re, datetime, StringIO, json, contextlib, tempfile, collections
+import sys, os, re, datetime, StringIO, json, contextlib, tempfile, collections, shutil
 
 import py.test
 
-from ll import ul4c, color
+from ll import ul4c, color, misc
 
 
 class PseudoDict(collections.Mapping):
@@ -78,6 +78,7 @@ def renderdump(__, **variables):
 	return __.renders(**variables)
 
 
+@py.test.mark.js
 def renderjs(__, **variables):
 	# Check the Javascript version (this requires an installed ``d8`` shell from V8 (http://code.google.com/p/v8/))
 	__ = ul4c.compile(__)
@@ -96,6 +97,55 @@ def renderjs(__, **variables):
 	return result
 
 
+javacodetemplate = u"""
+public class UL4Test
+{{
+	public static void main(String[] args) throws java.io.UnsupportedEncodingException
+	{{
+		com.livinglogic.ul4.Template template = new com.livinglogic.ul4.JSPTemplate()
+		{{
+			public void render(java.io.Writer out, java.util.Map<String, Object> variables) throws java.io.IOException
+			{{
+{template}
+			}}
+		}};
+		java.util.Map<String, Object> variables = (java.util.Map<String, Object>){variables};
+		String output = template.renders(variables);
+		// We can't use ``System.out.print`` here, because this gives us no control over the encoding
+		// Use ``System.out.write`` to make sure the output is in UTF-8
+		byte[] outputBytes = output.getBytes("utf-8");
+		System.out.write(outputBytes, 0, outputBytes.length);
+	}}
+}}
+""".strip()
+
+
+@py.test.mark.java
+def renderjava(__, **variables):
+	# Check the Java version
+	__ = ul4c.compile(__)
+	java = __.javasource(indent=4)
+	tempdir = tempfile.mkdtemp()
+	try:
+		print "Testing Java template:"
+		java = javacodetemplate.format(variables=misc.javaexpr(variables), template=java)
+		print java.encode("utf-8")
+		with open(os.path.join(tempdir, "UL4Test.java"), "wb") as f:
+			f.write(java.encode("utf-8"))
+		os.system("cd {}; javac -encoding utf-8 UL4Test.java".format(tempdir))
+		result = os.popen("cd {}; java UL4Test 2>&1".format(tempdir), "rb").read()
+	finally:
+		shutil.rmtree(tempdir)
+	result = result.decode("utf-8")
+	# Check if we have an exception
+	resultlines = result.splitlines()
+	for line in resultlines:
+		prefix = 'Exception in thread "main"'
+		if line.startswith(prefix):
+			raise RuntimeError(line[len(prefix):].strip())
+	return result
+
+
 def with_all_renderers(func):
 	# Decorator that turns a test into a generative test testing the function ``func`` with all ``render*`` functions.
 	def decorated():
@@ -103,6 +153,7 @@ def with_all_renderers(func):
 		yield func, renderdumps
 		yield func, renderdump
 		yield func, renderjs
+		yield func, renderjava
 	return decorated
 
 
@@ -196,10 +247,10 @@ def test_string(r):
 
 @with_all_renderers
 def test_date(r):
-	assert '2000-02-29T00:00:00' == r(u'<?print @2000-02-29T.isoformat()?>')
+	assert '2000-02-29' == r(u'<?print @2000-02-29T.isoformat()?>')
 	assert '2000-02-29T12:34:00' == r(u'<?print @2000-02-29T12:34.isoformat()?>')
 	assert '2000-02-29T12:34:56' == r(u'<?print @2000-02-29T12:34:56.isoformat()?>')
-	assert '2000-02-29T12:34:56.987000' == r(u'<?print @2000-02-29T12:34:56.987000.isoformat()?>') # JS only supports milliseconds
+	assert '2000-02-29T12:34:56.987000' == r(u'<?print @2000-02-29T12:34:56.987000.isoformat()?>') # JS and Java only supports milliseconds
 	assert 'yes' == r(u'<?if @2000-02-29T12:34:56.987654?>yes<?else?>no<?end if?>')
 
 
@@ -777,7 +828,7 @@ def test_function_float(r):
 		r(u"<?print float()?>")
 	with raises("float.*unknown"):
 		r(u"<?print float(1, 2, 3)?>")
-	with raises("float\\(\\) argument must be a string or a number"):
+	with raises("float\\(\\) argument must be a string or a number|Can't convert null to a float"):
 		r(code, data=None)
 	assert "4.2" == r(code, data=4.2)
 	if r is not renderjs:
@@ -1083,8 +1134,12 @@ def test_function_repr(r):
 	assert r(code, data="foo") in ('"foo"', "'foo'")
 	assert [1, 2, 3] == eval(r(code, data=[1, 2, 3]))
 	if r is not renderjs:
-		assert (1, 2, 3) == eval(r(code, data=(1, 2, 3)))
+		assert [1, 2, 3] == eval(r(code, data=(1, 2, 3)))
 	assert {"a": 1, "b": 2} == eval(r(code, data={"a": 1, "b": 2}))
+	assert "@2011-02-07T12:34:56.123000" == r(code, data=datetime.datetime(2011, 2, 7, 12, 34, 56, 123000))
+	assert "@2011-02-07T12:34:56" == r(code, data=datetime.datetime(2011, 2, 7, 12, 34, 56))
+	assert "@2011-02-07T" == r(code, data=datetime.datetime(2011, 2, 7))
+	assert "@2011-02-07T" == r(code, data=datetime.date(2011, 2, 7))
 
 
 @with_all_renderers
@@ -1556,7 +1611,7 @@ def test_note(r):
 
 @with_all_renderers
 def test_templateattributes(r):
-	if r is not renderjs:
+	if r not in (renderjs, renderjava):
 		s = "<?print x?>"
 		t = ul4c.compile(s)
 		assert "<?" == r(u"<?print template.startdelim?>", template=t)

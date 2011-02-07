@@ -523,8 +523,10 @@ def javaexpr(obj):
 				oc = ord(c)
 				v.append(u"\\u{:04x}".format(oc) if oc >= 128 else c)
 		return u'"{}"'.format(u"".join(v))
-	elif isinstance(obj, (datetime.date, datetime.datetime)):
-		return "com.livinglogic.ul4.Utils.isoparse({})".format(javaexpr(obj.isoformat()))
+	elif isinstance(obj, datetime.datetime): # check ``datetime`` before ``date``, as ``datetime`` is a subclass of ``date``
+		return "com.livinglogic.ul4.Utils.makeDate({0.year}, {0.month}, {0.day}, {0.hour}, {0.minute}, {0.second}, {0.microsecond})".format(obj)
+	elif isinstance(obj, datetime.date):
+		return "com.livinglogic.ul4.Utils.makeDate({0.year}, {0.month}, {0.day})".format(obj)
 	elif isinstance(obj, color.Color):
 		return "new com.livinglogic.ul4.Color({}, {}, {}, {})".format(*obj)
 	elif isinstance(obj, (int, long, float)):

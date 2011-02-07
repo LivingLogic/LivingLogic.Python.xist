@@ -14,6 +14,12 @@ Changes in 3.17 (released ??/??/2011)
 *	:func:`misc.javastring` has been renamed to :func:`misc.javaexpr` can can
 	now produce the Java sourcecode for more types.
 
+*	The UL4 method ``isoformat`` now omits the time part if it is ``00:00:00``.
+
+*	The UL4 function ``repr`` now prodcues a valid UL4 date literal for date
+	objects.
+
+
 
 Changes in 3.16 (released 01/21/2011)
 -------------------------------------

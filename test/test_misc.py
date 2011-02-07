@@ -279,8 +279,8 @@ def test_javaexpr():
 	assert '"\\u00ff"' == misc.javaexpr(u"\xff")
 	assert '"\\u20ac"' == misc.javaexpr(u"\u20ac")
 	# list
-	assert "com.livinglogic.ul4.Utils.makeList()" == misc.javaexpr(())
-	assert "com.livinglogic.ul4.Utils.makeList(1, 2, 3)" == misc.javaexpr([1, 2, 3])
+	assert "java.util.Arrays.asList()" == misc.javaexpr(())
+	assert "java.util.Arrays.asList(1, 2, 3)" == misc.javaexpr([1, 2, 3])
 	# dict
 	assert "com.livinglogic.ul4.Utils.makeMap()" == misc.javaexpr({})
 	assert "com.livinglogic.ul4.Utils.makeMap(1, 2)" == misc.javaexpr({1: 2})

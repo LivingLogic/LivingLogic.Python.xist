@@ -1146,10 +1146,17 @@ var ul4 = {
 	{
 		if (!this._fu_isdate(obj))
 			throw "isoformat() requires a date";
-		var result = obj.getFullYear() + "-" + this._lpad((obj.getMonth()+1).toString(), "0", 2) + "-" + this._lpad(obj.getDate().toString(), "0", 2) + "T" + this._lpad(obj.getHours().toString(), "0", 2) + ":" + this._lpad(obj.getMinutes().toString(), "0", 2) + ":" + this._lpad(obj.getSeconds().toString(), "0", 2)
+		var result = obj.getFullYear() + "-" + this._lpad((obj.getMonth()+1).toString(), "0", 2) + "-" + this._lpad(obj.getDate().toString(), "0", 2);
+		var hour = obj.getHours();
+		var minute = obj.getMinutes();
+		var second = obj.getSeconds();
 		var ms = obj.getMilliseconds();
-		if (ms)
-			result += "." + this._lpad(ms.toString(), "0", 3) + "000";
+		if (hour || minute || second || ms)
+		{
+			result += "T" + this._lpad(hour.toString(), "0", 2) + ":" + this._lpad(minute.toString(), "0", 2) + ":" + this._lpad(second.toString(), "0", 2);
+			if (ms)
+				result += "." + this._lpad(ms.toString(), "0", 3) + "000";
+		}
 		return result;
 	},
 
@@ -1529,13 +1536,18 @@ var ul4 = {
 		var year = obj.getFullYear();
 		var month = obj.getMonth()+1;
 		var day = obj.getDate();
-		var hours = obj.getHours();
-		var minutes = obj.getMinutes();
-		var seconds = obj.getSeconds();
-		var milliseconds = obj.getMilliseconds();
-		var result = "@" + year + "-" + this._lpad(month, "0", 2) + "-" + this._lpad(day, "0", 2) + "T" + this._lpad(hours, "0", 2) + ":" + this._lpad(minutes, "0", 2) + ":" + this._lpad(seconds, "0", 2);
-		if (milliseconds)
-			result += "." + this._lpad(milliseconds, "0", 3) + "000";
+		var hour = obj.getHours();
+		var minute = obj.getMinutes();
+		var second = obj.getSeconds();
+		var ms = obj.getMilliseconds();
+		var result = "@" + year + "-" + this._lpad(month.toString(), "0", 2) + "-" + this._lpad(day.toString(), "0", 2) + "T";
+
+		if (hour || minute || second || ms)
+		{
+			result += this._lpad(hour.toString(), "0", 2) + ":" + this._lpad(minute.toString(), "0", 2) + ":" + this._lpad(second.toString(), "0", 2);
+			if (ms)
+				result += "." + this._lpad(ms.toString(), "0", 3) + "000";
+		}
 		return result;
 	},
 
