@@ -1928,10 +1928,10 @@ class JavaSource(object):
 		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.le(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_gt(self, opcode):
-		self._do(u"r{op.r1} = !com.livinglogic.ul4.Utils.gt(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.gt(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_ge(self, opcode):
-		self._do(u"r{op.r1} = !com.livinglogic.ul4.Utils.ge(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.ge(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_add(self, opcode):
 		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.add(r{op.r2}, r{op.r3});".format(op=opcode))
@@ -1968,10 +1968,8 @@ class JavaSource(object):
 			raise UnknownFunctionError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callfunc1(self, opcode):
-		if opcode.arg in {"xmlescape", "csv", "repr", "enumerate", "chr", "ord", "hex", "oct", "bin", "sorted", "range", "type", "json", "reversed", "randrange", "randchoice", "abs"}:
+		if opcode.arg in {"xmlescape", "csv", "repr", "enumerate", "chr", "ord", "hex", "oct", "bin", "sorted", "range", "type", "json", "reversed", "randrange", "randchoice", "abs", "str"}:
 			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
-		elif opcode.arg == "str":
-			self._do(u"r{op.r1} = org.apache.commons.lang.ObjectUtils.toString(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "int":
 			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.toInteger(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "float":
@@ -2011,7 +2009,7 @@ class JavaSource(object):
 		elif opcode.arg == "int":
 			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.toInteger(r{op.r2}, r{op.r3});".format(op=opcode))
 		elif opcode.arg == "get":
-			self._do(u"r{op.r1} = {var}.containsKey(r{op.r2}) ? {var}.get(r{op.r2}) : r{op.r3};".format(op=opcode.r1, var=self._stack[-1].variables))
+			self._do(u"r{op.r1} = {var}.containsKey(r{op.r2}) ? {var}.get(r{op.r2}) : r{op.r3};".format(op=opcode, var=self._stack[-1].variables))
 		else:
 			raise UnknownFunctionError(opcode.arg)
 		self._usereg(opcode.r1)
@@ -2028,7 +2026,7 @@ class JavaSource(object):
 			raise UnknownFunctionError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callmeth0(self, opcode):
-		if opcode.arg in {"split", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "items", "isoformat", "mimeformat", "day", "month", "year", "hour", "minute", "second", "microsecond", "weekday", "yearday"}:
+		if opcode.arg in {"split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "items", "isoformat", "mimeformat", "day", "month", "year", "hour", "minute", "second", "microsecond", "weekday", "yearday"}:
 			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
 		elif opcode.arg in {"r", "g", "b", "a"}:
 			self._do(u"r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).get{arg}();".format(op=opcode, arg=opcode.arg.upper()))
@@ -2036,11 +2034,13 @@ class JavaSource(object):
 			self._do(u"r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).{op.arg}();".format(op=opcode))
 		elif opcode.arg == "lum":
 			self._do(u"r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).lum();".format(op=opcode))
+		elif opcode.arg == "render":
+			self._do(u"r{op.r1} = ((com.livinglogic.ul4.Template)r{op.r2}).renders(null);".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callmeth1(self, opcode):
-		if opcode.arg in {"split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "rfind", "format", "withlum", "witha"}:
+		if opcode.arg in {"join", "split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "rfind", "format", "withlum", "witha"}:
 			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
 		elif opcode.arg == "get":
 			self._do(u"r{op.r1} = ((java.util.Map)r{op.r2}).get(r{op.r3});".format(op=opcode))
@@ -2048,7 +2048,7 @@ class JavaSource(object):
 			raise UnknownMethodError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callmeth2(self, opcode):
-		if opcode.arg in {"split", "rsplit", "find", "replace"}:
+		if opcode.arg in {"split", "rsplit", "find", "rfind", "replace"}:
 			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 		elif opcode.arg == "get":
 			self._do(u"r{op.r1} = ((java.util.Map)r{op.r2}).containsKey(r{op.r3}) ? ((java.util.Map)r{op.r2}).get(r{op.r3}) : r{op.r4};".format(op=opcode))
@@ -2056,8 +2056,8 @@ class JavaSource(object):
 			raise UnknownMethodError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callmeth3(self, opcode):
-		if opcode.arg == "find":
-			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.find(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
+		if opcode.arg in {"find", "rfind"}:
+			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 		self._usereg(opcode.r1)
@@ -2806,7 +2806,7 @@ class ExprParser(spark.Parser):
 			return True_(start, end)
 		elif value is False:
 			return False_(start, end)
-		elif isinstance(value, int):
+		elif isinstance(value, (int, long)):
 			return Int(start, end, value)
 		elif isinstance(value, float):
 			return Float(start, end, value)

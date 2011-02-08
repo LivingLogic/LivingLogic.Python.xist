@@ -238,7 +238,6 @@ def test_string(r):
 	assert u'\u20ac' == r(u'<?print "\u20ac"?>')
 	assert u'\xff' == r(u'<?print "\\xff"?>')
 	assert u'\u20ac' == r(u'''<?print "\\u20ac"?>''')
-	assert "\\xxx" == r(u'<?print "\\xxx"?>')
 	assert "a\nb" == r(u'<?print "a\nb"?>')
 
 	assert 'no' == r(u'<?if ""?>yes<?else?>no<?end if?>')
@@ -445,22 +444,28 @@ def test_empty():
 
 @with_all_renderers
 def test_add(r):
-	assert '42' == r(u'<?print 21+21?>')
-	assert '42' == r(u'<?code x=21?><?code y=21?><?print x+y?>')
+	values = (17, 23, 1., -1.)
+	for x in values:
+		for y in values:
+			assert x + y == eval(r(u'<?print x + y?>', x=x, y=y)) # Using ``eval`` avoid problem with the nonexistant int/float distinction in JS
 	assert 'foobar' == r(u'<?code x="foo"?><?code y="bar"?><?print x+y?>')
 	assert '(f)(o)(o)(b)(a)(r)' == r(u'<?for i in data.foo+data.bar?>(<?print i?>)<?end for?>', data=dict(foo="foo", bar="bar"))
 
 
 @with_all_renderers
 def test_sub(r):
-	assert '0' == r(u'<?print 21-21?>')
-	assert '0' == r(u'<?code x=21?><?code y=21?><?print x-y?>')
+	values = (17, 23, 1., -1.)
+	for x in values:
+		for y in values:
+			assert x - y == eval(r(u'<?print x - y?>', x=x, y=y))
 
 
 @with_all_renderers
 def test_mul(r):
-	assert str(17*23) == r(u'<?print 17*23?>')
-	assert str(17*23) == r(u'<?code x=17?><?code y=23?><?print x*y?>')
+	values = (17, 23, 1., -1.)
+	for x in values:
+		for y in values:
+			assert x * y == eval(r(u'<?print x * y?>', x=x, y=y))
 	assert 17*"foo" == r(u'<?print 17*"foo"?>')
 	assert 17*"foo" == r(u'<?code x=17?><?code y="foo"?><?print x*y?>')
 	assert "foo"*17 == r(u'<?code x="foo"?><?code y=17?><?print x*y?>')
@@ -482,64 +487,65 @@ def test_floordiv(r):
 
 @with_all_renderers
 def test_mod(r):
-	assert str(42%17) == r(u'<?print 42%17?>')
-	assert str(42%17) == r(u'<?code x=42?><?code y=17?><?print x%y?>')
+	values = (17, 23, 17., 23.)
+	for x in values:
+		for y in values:
+			assert x % y == eval(r(u'<?print {} % {}?>'.format(x, y)))
+			assert x % y == eval(r(u'<?print x % y?>', x=x, y=y))
 
 
 @with_all_renderers
 def test_eq(r):
-	assert "False" == r(u'<?print 17==23?>')
-	assert "True" == r(u'<?print 17==17?>')
-	assert "False" == r(u'<?print x==23?>', x=17)
-	assert "True" == r(u'<?print x==23?>', x=23)
+	values = (17, 23, 17., 23.)
+	for x in values:
+		for y in values:
+			assert str(x == y) == r(u'<?print {} == {}?>'.format(x, y))
+			assert str(x == y) == r(u'<?print x == y?>', x=x, y=y)
 
 
 @with_all_renderers
 def test_ne(r):
-	assert "True" == r(u'<?print 17!=23?>')
-	assert "False" == r(u'<?print 17!=17?>')
-	assert "True" == r(u'<?print x!=23?>', x=17)
-	assert "False" == r(u'<?print x!=23?>', x=23)
+	values = (17, 23, 17., 23.)
+	for x in values:
+		for y in values:
+			assert str(x != y) == r(u'<?print {} != {}?>'.format(x, y))
+			assert str(x != y) == r(u'<?print x != y?>', x=x, y=y)
 
 
 @with_all_renderers
 def test_lt(r):
-	assert "True" == r(u'<?print 1<2?>')
-	assert "False" == r(u'<?print 2<2?>')
-	assert "False" == r(u'<?print 3<2?>')
-	assert "True" == r(u'<?print x<2?>', x=1)
-	assert "False" == r(u'<?print x<2?>', x=2)
-	assert "False" == r(u'<?print x<2?>', x=3)
+	values = (17, 23, 17., 23.)
+	for x in values:
+		for y in values:
+			assert str(x < y) == r(u'<?print {} < {}?>'.format(x, y))
+			assert str(x < y) == r(u'<?print x < y?>', x=x, y=y)
 
 
 @with_all_renderers
 def test_le(r):
-	assert "True" == r(u'<?print 1<=2?>')
-	assert "True" == r(u'<?print 2<=2?>')
-	assert "False" == r(u'<?print 3<=2?>')
-	assert "True" == r(u'<?print x<=2?>', x=1)
-	assert "True" == r(u'<?print x<=2?>', x=2)
-	assert "False" == r(u'<?print x<=2?>', x=3)
+	values = (17, 23, 17., 23.)
+	for x in values:
+		for y in values:
+			assert str(x <= y) == r(u'<?print {} <= {}?>'.format(x, y))
+			assert str(x <= y) == r(u'<?print x <= y?>', x=x, y=y)
 
 
 @with_all_renderers
 def test_gt(r):
-	assert "False" == r(u'<?print 1>2?>')
-	assert "False" == r(u'<?print 2>2?>')
-	assert "True" == r(u'<?print 3>2?>')
-	assert "False" == r(u'<?print x>2?>', x=1)
-	assert "False" == r(u'<?print x>2?>', x=2)
-	assert "True" == r(u'<?print x>2?>', x=3)
+	values = (17, 23, 17., 23.)
+	for x in values:
+		for y in values:
+			assert str(x > y) == r(u'<?print {} > {}?>'.format(x, y))
+			assert str(x > y) == r(u'<?print x > y?>', x=x, y=y)
 
 
 @with_all_renderers
 def test_ge(r):
-	assert "False" == r(u'<?print 1>=2?>')
-	assert "True" == r(u'<?print 2>=2?>')
-	assert "True" == r(u'<?print 3>=2?>')
-	assert "False" == r(u'<?print x>=2?>', x=1)
-	assert "True" == r(u'<?print x>=2?>', x=2)
-	assert "True" == r(u'<?print x>=2?>', x=3)
+	values = (17, 23, 17., 23.)
+	for x in values:
+		for y in values:
+			assert str(x >= y) == r(u'<?print {} >= {}?>'.format(x, y))
+			assert str(x >= y) == r(u'<?print x >= y?>', x=x, y=y)
 
 
 @with_all_renderers
@@ -808,9 +814,9 @@ def test_function_int(r):
 		r(u"<?print int()?>")
 	with raises("int.*unknown"):
 		r(u"<?print int(1, 2, 3)?>")
-	with raises("int\\(\\) argument must be a string or a number"):
+	with raises("int\\(\\) argument must be a string or a number|int\\(null\\) not supported"):
 		r(u"<?print int(data)?>", data=None)
-	with raises("invalid literal for int"):
+	with raises("invalid literal for int|NumberFormatException"):
 		r(u"<?print int(data)?>", data="foo")
 	assert "1" == r(u"<?print int(data)?>", data=True)
 	assert "0" == r(u"<?print int(data)?>", data=False)
@@ -828,7 +834,7 @@ def test_function_float(r):
 		r(u"<?print float()?>")
 	with raises("float.*unknown"):
 		r(u"<?print float(1, 2, 3)?>")
-	with raises("float\\(\\) argument must be a string or a number|Can't convert null to a float"):
+	with raises("float\\(\\) argument must be a string or a number|float\\(null\\) not supported"):
 		r(code, data=None)
 	assert "4.2" == r(code, data=4.2)
 	if r is not renderjs:
@@ -850,15 +856,15 @@ def test_function_len(r):
 		r(u"<?print len()?>")
 	with raises("len.*unknown"):
 		r(u"<?print len(1, 2)?>")
-	with raises("has no len\\(\\)"):
+	with raises("has no len\\(\\)|len\\(.*\\) not supported"):
 		r(code, data=None)
-	with raises("has no len\\(\\)"):
+	with raises("has no len\\(\\)|len\\(.*\\) not supported"):
 		r(code, data=True)
-	with raises("has no len\\(\\)"):
+	with raises("has no len\\(\\)|len\\(.*\\) not supported"):
 		r(code, data=False)
-	with raises("has no len\\(\\)"):
+	with raises("has no len\\(\\)|len\\(.*\\) not supported"):
 		r(code, data=42)
-	with raises("has no len\\(\\)"):
+	with raises("has no len\\(\\)|len\\(.*\\) not supported"):
 		r(code, data=4.2)
 	assert "42" == r(code, data=42*"?")
 	assert "42" == r(code, data=42*[None])
@@ -872,15 +878,15 @@ def test_function_enumerate(r):
 		r(u"<?print enumerate()?>")
 	with raises("enumerate.*unknown"):
 		r(u"<?print enumerate(1, 2)?>")
-	with raises("is not iterable"):
+	with raises("is not iterable|iter\\(.*\\) not supported"):
 		r(code, data=None)
-	with raises("is not iterable"):
+	with raises("is not iterable|iter\\(.*\\) not supported"):
 		r(code, data=True)
-	with raises("is not iterable"):
+	with raises("is not iterable|iter\\(.*\\) not supported"):
 		r(code, data=False)
-	with raises("is not iterable"):
+	with raises("is not iterable|iter\\(.*\\) not supported"):
 		r(code, data=42)
-	with raises("is not iterable"):
+	with raises("is not iterable|iter\\(.*\\) not supported"):
 		r(code, data=4.2)
 	assert "0:f\n1:o\n2:o\n" == r(code, data="foo")
 	assert "0:foo\n1:bar\n" == r(code, data=["foo", "bar"])
@@ -1599,7 +1605,7 @@ def test_nested_exceptions(r):
 	tmpl3 = ul4c.compile(u"<?render tmpl2(tmpl1=tmpl1, x=x)?>")
 
 	if r is not renderjs:
-		msg = "TypeError .*render tmpl3.*render tmpl2.*render tmpl1.*print 2.*unsupported operand type"
+		msg = "TypeError .*render tmpl3.*render tmpl2.*render tmpl1.*print 2.*unsupported operand type|.* \\* .* not supported"
 		with raises(msg):
 			r(u"<?render tmpl3(tmpl1=tmpl1, tmpl2=tmpl2, x=x)?>", tmpl1=tmpl1, tmpl2=tmpl2, tmpl3=tmpl3, x=None)
 
