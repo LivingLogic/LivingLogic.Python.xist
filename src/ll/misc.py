@@ -529,7 +529,15 @@ def javaexpr(obj):
 		return "com.livinglogic.ul4.Utils.makeDate({0.year}, {0.month}, {0.day})".format(obj)
 	elif isinstance(obj, color.Color):
 		return "new com.livinglogic.ul4.Color({}, {}, {}, {})".format(*obj)
-	elif isinstance(obj, (int, long, float)):
+	elif isinstance(obj, (int, float)):
+		return repr(obj)
+	elif isinstance(obj, long):
+		if -0x8000000 <= obj <= 0xffffffff:
+			return repr(obj).rstrip("lL")
+		elif -0x800000000000000 <= obj <= 0xffffffffffffffff:
+			return repr(obj)
+		else:
+			return 'new BigInteger("{}")'.format(obj)
 		return repr(obj)
 	elif isinstance(obj, collections.Sequence):
 		return "java.util.Arrays.asList({})".format(", ".join(javaexpr(item) for item in obj))
