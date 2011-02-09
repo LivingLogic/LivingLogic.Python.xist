@@ -708,7 +708,9 @@ def test_function_utcnow(r):
 		r(u"<?print utcnow(1)?>")
 	with raises("utcnow.*unknown"):
 		r(u"<?print utcnow(1, 2)?>")
-	assert utcnow <= r(u"<?print utcnow()?>")
+	utcnowfromtemplate = r(u"<?print utcnow()?>")
+	# JS and Java only have milliseconds precision, but this shouldn't lead to problems here, as rendering the template takes longer than a millisecond
+	assert utcnow <= utcnowfromtemplate
 
 
 @with_all_renderers
