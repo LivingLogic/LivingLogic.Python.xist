@@ -802,12 +802,16 @@ def test_function_str(r):
 		r(u"<?print str()?>")
 	with raises("str.*unknown"):
 		r(u"<?print str(1, 2)?>")
-	assert "" == r(u"<?print str(data)?>", data=None)
-	assert "True" == r(u"<?print str(data)?>", data=True)
-	assert "False" == r(u"<?print str(data)?>", data=False)
-	assert "42" == r(u"<?print str(data)?>", data=42)
-	assert "4.2" == r(u"<?print str(data)?>", data=4.2)
-	assert "foo" == r(u"<?print str(data)?>", data="foo")
+	code = u"<?print str(data)?>"
+	assert "" == r(code, data=None)
+	assert "True" == r(code, data=True)
+	assert "False" == r(code, data=False)
+	assert "42" == r(code, data=42)
+	assert "4.2" == r(code, data=4.2)
+	assert "foo" == r(code, data="foo")
+	assert "2011-02-09" == r(code, data=datetime.date(2011, 2, 9))
+	assert "2011-02-09 12:34:56" == r(code, data=datetime.datetime(2011, 2, 9, 12, 34, 56))
+	assert "2011-02-09 12:34:56.987000" == r(code, data=datetime.datetime(2011, 2, 9, 12, 34, 56, 987000))
 
 
 @with_all_renderers
