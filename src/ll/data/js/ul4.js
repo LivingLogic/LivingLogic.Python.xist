@@ -1061,7 +1061,7 @@ var ul4 = {
 							c = this._lpad(obj.getMonth() + 1, "0", 2) + "/" + this._lpad(obj.getDate(), "0", 2) + "/" + this._lpad(obj.getFullYear() % 100, "0", 2);
 							break;
 						case "X":
-							c = this._lpad(obj.getHours(), "0", 2) + "/" + this._lpad(obj.getMinutes(), "0", 2) + "/" + this._lpad(obj.getSeconds(), "0", 2);
+							c = this._lpad(obj.getHours(), "0", 2) + ":" + this._lpad(obj.getMinutes(), "0", 2) + ":" + this._lpad(obj.getSeconds(), "0", 2);
 							break;
 						case "y":
 							c = (obj.getFullYear() % 100).toString();
