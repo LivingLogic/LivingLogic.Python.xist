@@ -164,8 +164,8 @@ def evaleq(expected, render):
 	assert expected == got
 
 
-def evalcontains(expected, render):
-	got = eval(render.renders())
+def contains(expected, render):
+	got = render.renders()
 	assert got in expected
 
 
@@ -250,8 +250,7 @@ def test_float():
 
 def test_string():
 	for r in all_renderers:
-		with raises("Unterminated string"):
-			r(u'<?print "?>').renders()
+		yield raises, "Unterminated string", r(u'<?print "?>')
 		yield eq, 'foo', r(u'<?print "foo"?>')
 		yield eq, '\n', r(u'<?print "\\n"?>')
 		yield eq, '\r', r(u'<?print "\\r"?>')
@@ -829,10 +828,10 @@ def test_function_float():
 			yield eq, "42.0", r(code, data=42)
 			yield eq, "42.0", r(code, data="42")
 		else:
-			yield evaleq, 1.0, eval(r(code, data=True))
-			yield evaleq, 0.0, eval(r(code, data=False))
-			yield evaleq, 42.0, eval(r(code, data=42))
-			yield evaleq, 42.0, eval(r(code, data="42"))
+			yield evaleq, 1.0, r(code, data=True)
+			yield evaleq, 0.0, r(code, data=False)
+			yield evaleq, 42.0, r(code, data=42)
+			yield evaleq, 42.0, r(code, data="42")
 
 
 def test_function_len():
@@ -1086,9 +1085,9 @@ def test_function_repr():
 		yield eq, "False", r(code, data=False)
 		yield eq, "42", r(code, data=42)
 		yield evaleq, 42.5, r(code, data=42.5)
-		yield evalcontains, ('"foo"', "'foo'"), r(code, data="foo")
+		yield contains, ('"foo"', "'foo'"), r(code, data="foo")
 		yield evaleq, [1, 2, 3], r(code, data=[1, 2, 3])
-		if r is not renderjs:
+		if r is not RenderJS:
 			yield evaleq, [1, 2, 3], r(code, data=(1, 2, 3))
 		yield evaleq, {"a": 1, "b": 2}, r(code, data={"a": 1, "b": 2})
 		yield eq, "@2011-02-07T12:34:56.123000", r(code, data=datetime.datetime(2011, 2, 7, 12, 34, 56, 123000))
@@ -1331,7 +1330,7 @@ def test_method_rsplit():
 		for args in data:
 			obj = args[0]
 			args = args[1:]
-			expected = "".join("({})".format(f) for f in obj.rsplit(*args))
+			expected = u"".join(u"({})".format(f) for f in obj.rsplit(*args))
 			code = ur"<?for item in {}.rsplit({})?>(<?print item?>)<?end for?>".format(ul4c._repr(obj), ", ".join(ul4c._repr(arg) for arg in args))
 			yield eq, expected, r(code)
 
@@ -1354,11 +1353,10 @@ def test_method_render():
 def test_method_format():
 	t = datetime.datetime(2010, 11, 2, 12, 34, 56, 987000)
 	for r in all_renderers:
-		format = ("%Y", "%m", "%d", "%H", "%M", "%S", "%f", "%a", "%A", "%b", "%B", "%I", "%j", "%p", "%U", "%W", "%y", "%%")
-		if r is not RenderJava:
-			format += ("%c", "%w", "%x", "%X")
-		for char in format:
-			yield eq, t.strftime(char), r(u"<?print data.format('{}')?>".format(char), data=t)
+		formatchars = "YmdHMSfaAbBIjpUwWycxX%"
+		for char in formatchars:
+			format = "<%{}>".format(char)
+			yield eq, t.strftime(format), r(u"<?print data.format('{}')?>".format(format), data=t)
 
 
 def test_method_isoformat():
