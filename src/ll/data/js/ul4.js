@@ -281,7 +281,7 @@ var ul4 = {
 		}
 		else if (obj instanceof Date)
 		{
-			return this._date_repr(obj);
+			return this._date_str(obj);
 		}
 		else if (this._fu_iscolor(obj))
 		{
@@ -1545,6 +1545,26 @@ var ul4 = {
 		if (hour || minute || second || ms)
 		{
 			result += this._lpad(hour.toString(), "0", 2) + ":" + this._lpad(minute.toString(), "0", 2) + ":" + this._lpad(second.toString(), "0", 2);
+			if (ms)
+				result += "." + this._lpad(ms.toString(), "0", 3) + "000";
+		}
+		return result;
+	},
+
+	_date_str: function(obj)
+	{
+		var year = obj.getFullYear();
+		var month = obj.getMonth()+1;
+		var day = obj.getDate();
+		var hour = obj.getHours();
+		var minute = obj.getMinutes();
+		var second = obj.getSeconds();
+		var ms = obj.getMilliseconds();
+		var result = year + "-" + this._lpad(month.toString(), "0", 2) + "-" + this._lpad(day.toString(), "0", 2);
+
+		if (hour || minute || second || ms)
+		{
+			result += " " + this._lpad(hour.toString(), "0", 2) + ":" + this._lpad(minute.toString(), "0", 2) + ":" + this._lpad(second.toString(), "0", 2);
 			if (ms)
 				result += "." + this._lpad(ms.toString(), "0", 3) + "000";
 		}
