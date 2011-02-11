@@ -12,32 +12,32 @@ var ul4 = {
 
 	_op_mul: function(obj1, obj2)
 	{
-		if (this._fu_isint(obj1))
+		if (this._fu_isint(obj1) || this._fu_isbool(obj1))
 		{
 			if (typeof(obj2) === "string")
 			{
-				if (obj1 <= 0)
+				if (obj1 < 0)
 					throw "mul() repetition counter must be positive";
 				return this._str_repeat(obj2, obj1)
 			}
 			else if (this._fu_islist(obj2))
 			{
-				if (obj1 <= 0)
+				if (obj1 < 0)
 					throw "mul() repetition counter must be positive";
 				return this._list_repeat(obj2, obj1)
 			}
 		}
-		else if (this._fu_isint(obj2))
+		else if (this._fu_isint(obj2) || this._fu_isbool(obj2))
 		{
 			if (typeof(obj1) === "string")
 			{
-				if (obj2 <= 0)
+				if (obj2 < 0)
 					throw "mul() repetition counter must be positive";
 				return this._str_repeat(obj1, obj2)
 			}
 			else if (this._fu_islist(obj1))
 			{
-				if (obj2 <= 0)
+				if (obj2 < 0)
 					throw "mul() repetition counter must be positive";
 				return this._list_repeat(obj1, obj2)
 			}
