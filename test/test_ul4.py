@@ -324,39 +324,49 @@ def test_code_storevar():
 
 def test_code_addvar():
 	for r in all_renderers:
-		yield eq, '40', r(u'<?code x = 17?><?code x += 23?><?print x?>')
+		for x in (17, 17., False, True):
+			for y in (23, 23., False, True):
+				yield evaleq, x + y, r(u'<?code x = {}?><?code x += {}?><?print x?>'.format(x, y))
 		yield eq, 'xyzzy', r(u'<?code x = "xyz"?><?code x += "zy"?><?print x?>')
 
 
 def test_code_subvar():
 	for r in all_renderers:
-		yield eq, '-6', r(u'<?code x = 17?><?code x -= 23?><?print x?>')
+		for x in (17, 17., False, True):
+			for y in (23, 23., False, True):
+				yield evaleq, x - y, r(u'<?code x = {}?><?code x -= {}?><?print x?>'.format(x, y))
 
 
 def test_code_mulvar():
 	for r in all_renderers:
-		yield eq, '391', r(u'<?code x = 17?><?code x *= 23?><?print x?>')
-		yield eq, 17*'xyzzy', r(u'<?code x = 17?><?code x *= "xyzzy"?><?print x?>')
-		yield eq, 17*'xyzzy', r(u'<?code x = "xyzzy"?><?code x *= 17?><?print x?>')
+		for x in (17, 17., False, True):
+			for y in (23, 23., False, True):
+				yield evaleq, x * y, r(u'<?code x = {}?><?code x *= {}?><?print x?>'.format(x, y))
+		for x in (17, False, True):
+			y = "xyzzy"
+			yield eq, x * y, r(u'<?code x = {}?><?code x *= {!r}?><?print x?>'.format(x, y))
+		yield eq, 17*"xyzzy", r(u'<?code x = "xyzzy"?><?code x *= 17?><?print x?>')
 
 
 def test_code_floordivvar():
 	for r in all_renderers:
-		for x in (5, -5, 5.0, -5.0, 4, -4, 4.0, -4.0):
-			for y in (2, -2, 2.0, -2.0):
+		for x in (5, -5, 5.0, -5.0, 4, -4, 4.0, -4.0, False, True):
+			for y in (2, -2, 2.0, -2.0, True):
 				yield evaleq, x // y, r(u'<?code x = {}?><?code x //= {}?><?print x?>'.format(x, y))
 
 
 def test_code_truedivvar():
 	for r in all_renderers:
-		for x in (5, -5, 5.0, -5.0, 4, -4, 4.0, -4.0):
-			for y in (2, -2, 2.0, -2.0):
+		for x in (5, -5, 5.0, -5.0, 4, -4, 4.0, -4.0, False, True):
+			for y in (2, -2, 2.0, -2.0, True):
 				yield evaleq, x / y, r(u'<?code x = {}?><?code x /= {}?><?print x?>'.format(x, y))
 
 
 def test_code_modvar():
 	for r in all_renderers:
-		yield eq, '4', r(u'<?code x = 1729?><?code x %= 23?><?print x?>')
+		for x in (1729, 1729.0, -1729, -1729.0, False, True):
+			for y in (23, 23., -23, -23.0, False):
+				yield evaleq, x % y, r(u'<?code x = {}?><?code x %= {}?><?print x?>'.format(x, y))
 
 
 def test_code_delvar():
