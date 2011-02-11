@@ -9,6 +9,8 @@
 ## See ll/__init__.py for the license
 
 
+from __future__ import division
+
 import sys, os, re, datetime, StringIO, json, contextlib, tempfile, collections, shutil
 
 import py.test
@@ -340,14 +342,16 @@ def test_code_mulvar():
 
 def test_code_floordivvar():
 	for r in all_renderers:
-		yield eq, '2', r(u'<?code x = 5?><?code x //= 2?><?print x?>')
-		yield eq, '-3', r(u'<?code x = -5?><?code x //= 2?><?print x?>')
+		for x in (5, -5, 5.0, -5.0, 4, -4, 4.0, -4.0):
+			for y in (2, -2, 2.0, -2.0):
+				yield evaleq, x // y, r(u'<?code x = {}?><?code x //= {}?><?print x?>'.format(x, y))
 
 
 def test_code_truedivvar():
 	for r in all_renderers:
-		yield eq, '2.5', r(u'<?code x = 5?><?code x /= 2?><?print x?>')
-		yield eq, '-2.5', r(u'<?code x = -5?><?code x /= 2?><?print x?>')
+		for x in (5, -5, 5.0, -5.0, 4, -4, 4.0, -4.0):
+			for y in (2, -2, 2.0, -2.0):
+				yield evaleq, x / y, r(u'<?code x = {}?><?code x /= {}?><?print x?>'.format(x, y))
 
 
 def test_code_modvar():
