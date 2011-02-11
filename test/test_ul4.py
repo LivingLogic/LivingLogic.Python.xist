@@ -11,7 +11,7 @@
 
 from __future__ import division
 
-import sys, os, re, datetime, StringIO, json, contextlib, tempfile, collections, shutil
+import sys, os, re, datetime, StringIO, json, contextlib, tempfile, collections, shutil, subprocess
 
 import py.test
 
@@ -90,7 +90,7 @@ class RenderJS(Render):
 		template = ul4c.compile(self.source)
 		js = template.jssource()
 		js = u"template = {};\ndata = {};\nprint(template.renders(data));\n".format(js, ul4c._json(self.variables))
-		print "Testing Javascript code ({}, line {}):".format(self.filename, self.lineno)
+		print "Testing Javascript code compiled by Python ({}, line {}):".format(self.filename, self.lineno)
 		print js.encode("utf-8")
 		with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 			f.write(js.encode("utf-8"))
@@ -103,57 +103,101 @@ class RenderJS(Render):
 		return result
 
 
-javacodetemplate = u"""
-public class UL4Test
-{{
-	public static void main(String[] args) throws java.io.UnsupportedEncodingException
-	{{
-		com.livinglogic.ul4.Template template = new com.livinglogic.ul4.JSPTemplate()
-		{{
-			public void render(java.io.Writer out, java.util.Map<String, Object> variables) throws java.io.IOException
-			{{
-{template}
-			}}
-		}};
-		java.util.Map<String, Object> variables = (java.util.Map<String, Object>){variables};
-		String output = template.renders(variables);
-		// We can't use ``System.out.print`` here, because this gives us no control over the encoding
-		// Use ``System.out.write`` to make sure the output is in UTF-8
-		byte[] outputBytes = output.getBytes("utf-8");
-		System.out.write(outputBytes, 0, outputBytes.length);
-	}}
-}}
-""".strip()
-
-
 class RenderJava(Render):
-	def renders(self):
-		# Check the Java version
-		template = ul4c.compile(self.source)
-		java = template.javasource(indent=4)
+	maincodetemplate = u"""
+	public class UL4Test
+	{
+		public static void main(String[] args) throws java.io.UnsupportedEncodingException
+		{
+			%(source)s
+		}
+	}
+	"""
+
+	def formatsource(self, string):
+		indent = 0
+		newlines = []
+		for line in string.strip().splitlines(False):
+			line = line.strip()
+			if line == "}":
+				indent -= 1
+			if line:
+				newlines.append(indent*"\t" + line + "\n")
+			if line == "{":
+				indent += 1
+		return "".join(newlines)
+
+	def runsource(self, source):
 		tempdir = tempfile.mkdtemp()
 		try:
-			print "Testing Java code ({}, line {}):".format(self.filename, self.lineno)
-			java = javacodetemplate.format(variables=misc.javaexpr(self.variables), template=java)
-			print java.encode("utf-8")
+			source = self.maincodetemplate % dict(source=source)
+			source = self.formatsource(source)
+			print source.encode("utf-8")
 			with open(os.path.join(tempdir, "UL4Test.java"), "wb") as f:
-				f.write(java.encode("utf-8"))
+				f.write(source.encode("utf-8"))
 			os.system("cd {}; javac -encoding utf-8 UL4Test.java".format(tempdir))
-			result = os.popen("cd {}; java UL4Test 2>&1".format(tempdir), "rb").read()
+			pipe = subprocess.Popen("cd {}; java UL4Test 2>&1".format(tempdir), stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+			(stdout, stderr) = pipe.communicate()
 		finally:
 			shutil.rmtree(tempdir)
-		result = result.decode("utf-8")
 		# Check if we have an exception
-		resultlines = result.splitlines()
-		for line in resultlines:
+		stdoutlines = stdout.splitlines()
+		for line in stdoutlines:
 			prefix = 'Exception in thread "main"'
 			if line.startswith(prefix):
+				print >>sys.stderr, stdout
 				raise RuntimeError(line[len(prefix):].strip())
+		result = stdout.decode("utf-8")
 		return result
+
+class RenderJavaSourceByPython(RenderJava):
+	codetemplate = u"""
+	com.livinglogic.ul4.Template template = new com.livinglogic.ul4.JSPTemplate()
+	{
+		public void render(java.io.Writer out, java.util.Map<String, Object> variables) throws java.io.IOException
+		{
+			%(template)s
+		}
+	};
+	java.util.Map<String, Object> variables = (java.util.Map<String, Object>)%(variables)s;
+	String output = template.renders(variables);
+	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
+	// Use ``System.out.write`` to make sure the output is in UTF-8
+	byte[] outputBytes = output.getBytes("utf-8");
+	System.out.write(outputBytes, 0, outputBytes.length);
+	"""
+
+	def renders(self):
+		# Check the Java version
+		print "Testing Java code ({}, line {}):".format(self.filename, self.lineno)
+		template = ul4c.compile(self.source)
+		java = template.javasource(indent=4)
+		java = self.codetemplate % dict(variables=misc.javaexpr(self.variables), template=java)
+		return self.runsource(java)
+
+
+class RenderJavaLoadByJava(RenderJava):
+	codetemplate = u"""
+	com.livinglogic.ul4.InterpretedTemplate template = com.livinglogic.ul4.InterpretedTemplate.load(%(dump)s);
+	java.util.Map<String, Object> variables = (java.util.Map<String, Object>)%(variables)s;
+	String output = template.renders(variables);
+	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
+	// Use ``System.out.write`` to make sure the output is in UTF-8
+	byte[] outputBytes = output.getBytes("utf-8");
+	System.out.write(outputBytes, 0, outputBytes.length);
+	"""
+
+	def renders(self):
+		# Check the Java version
+		print "Testing Java InterpretedTemplate compiled by Python ({}, line {}):".format(self.filename, self.lineno)
+		template = ul4c.compile(self.source)
+		dump = template.dumps()
+		java = self.codetemplate % dict(variables=misc.javaexpr(self.variables), dump=misc.javaexpr(dump))
+		return self.runsource(java)
 
 
 all_python_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump)
-all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJava)
+all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaSourceByPython, RenderJavaLoadByJava)
 
 
 def eq(expected, render):
