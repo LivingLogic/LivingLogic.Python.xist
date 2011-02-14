@@ -1358,13 +1358,13 @@ def test_method_endswith():
 
 def test_method_strip():
 	for r in all_renderers:
-		yield eq, "gurk", r(r"<?print ' \t\r\ngurk \t\r\n'.strip()?>")
-		yield eq, "gurk", r(r"<?print 'xyzzygurkxyzzy'.strip('xyz')?>")
+		yield eq, "gurk", r(r"<?print obj.strip()?>", obj=' \t\r\ngurk \t\r\n')
+		yield eq, "gurk", r(r"<?print obj.strip('xyz')?>", obj='xyzzygurkxyzzy')
 
 
 def test_method_lstrip():
 	for r in all_renderers:
-		yield eq, "gurk \t\r\n", r("<?print obj.lstrip()", obj=" \t\r\ngurk \t\r\n")
+		yield eq, "gurk \t\r\n", r("<?print obj.lstrip()?>", obj=" \t\r\ngurk \t\r\n")
 		yield eq, "gurkxyzzy", r("<?print obj.lstrip(arg)?>", obj="xyzzygurkxyzzy", arg="xyz")
 
 
