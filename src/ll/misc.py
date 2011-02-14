@@ -515,7 +515,7 @@ def javaexpr(obj):
 		return "false"
 	elif isinstance(obj, basestring):
 		v = []
-		specialchars = {u"\r": u"\\r", u"\n": u"\\n", u"\t": u"\\t", u'"': u'\\"'}
+		specialchars = {u"\r": u"\\r", u"\n": u"\\n", u"\t": u"\\t", u'"': u'\\"', u"\\": u"\\\\"}
 		for c in obj:
 			try:
 				v.append(specialchars[c])
