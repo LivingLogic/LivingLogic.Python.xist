@@ -150,6 +150,7 @@ class RenderJava(Render):
 		result = stdout.decode("utf-8")
 		return result
 
+
 class RenderJavaSourceByPython(RenderJava):
 	codetemplate = u"""
 	com.livinglogic.ul4.Template template = new com.livinglogic.ul4.JSPTemplate()
@@ -311,6 +312,10 @@ def test_string():
 		yield eq, u'\xff', r(u'<?print "\\xff"?>')
 		yield eq, u'\u20ac', r(u'''<?print "\\u20ac"?>''')
 		yield eq, "a\nb", r(u'<?print "a\nb"?>')
+
+		# Test escapes
+		yield eq, u'gu\n\r\trk', r(u"<?print 'gu\n\r\trk'?>")
+		yield eq, u'gu\n\r\t\\rk', r(ur"<?print 'gu\n\r\t\\rk'?>")
 
 		yield eq, 'no', r(u'<?if ""?>yes<?else?>no<?end if?>')
 		yield eq, 'yes', r(u'<?if "foo"?>yes<?else?>no<?end if?>')
@@ -1359,38 +1364,30 @@ def test_method_strip():
 
 def test_method_lstrip():
 	for r in all_renderers:
-		yield eq, "gurk \t\r\n", r(ur"<?print ' \t\r\ngurk \t\r\n'.lstrip()?>")
-		yield eq, "gurkxyzzy", r(ur"<?print 'xyzzygurkxyzzy'.lstrip('xyz')?>")
+		yield eq, "gurk \t\r\n", r("<?print obj.lstrip()", obj=" \t\r\ngurk \t\r\n")
+		yield eq, "gurkxyzzy", r("<?print obj.lstrip(arg)?>", obj="xyzzygurkxyzzy", arg="xyz")
 
 
 def test_method_rstrip():
 	for r in all_renderers:
-		yield eq, " \t\r\ngurk", r(ur"<?print ' \t\r\ngurk \t\r\n'.rstrip()?>")
-		yield eq, "xyzzygurk", r(ur"<?print 'xyzzygurkxyzzy'.rstrip('xyz')?>")
+		yield eq, " \t\r\ngurk", r("<?print obj.rstrip()?>", obj=" \t\r\ngurk \t\r\n")
+		yield eq, "xyzzygurk", r("<?print obj.rstrip(arg)?>", obj="xyzzygurkxyzzy", arg="xyz")
 
 
 def test_method_split():
 	for r in all_renderers:
-		yield eq, "(g)(u)(r)(k)", r(ur"<?for item in ' \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n'.split()?>(<?print item?>)<?end for?>")
-		yield eq, "(g)(u \t\r\nr \t\r\nk \t\r\n)", r(ur"<?for item in ' \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n'.split(None, 1)?>(<?print item?>)<?end for?>")
-		yield eq, "()(g)(u)(r)(k)()", r(ur"<?for item in 'xxgxxuxxrxxkxx'.split('xx')?>(<?print item?>)<?end for?>")
-		yield eq, "()(g)(uxxrxxkxx)", r(ur"<?for item in 'xxgxxuxxrxxkxx'.split('xx', 2)?>(<?print item?>)<?end for?>")
+		yield eq, "(g)(u)(r)(k)", r(u"<?for item in obj.split()?>(<?print item?>)<?end for?>", obj=" \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n")
+		yield eq, "(g)(u \t\r\nr \t\r\nk \t\r\n)", r(u"<?for item in obj.split(None, 1)?>(<?print item?>)<?end for?>", obj=" \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n")
+		yield eq, "()(g)(u)(r)(k)()", r(u"<?for item in obj.split(arg)?>(<?print item?>)<?end for?>", obj="xxgxxuxxrxxkxx", arg="xx")
+		yield eq, "()(g)(uxxrxxkxx)", r(u"<?for item in obj.split(arg, 2)?>(<?print item?>)<?end for?>", obj="xxgxxuxxrxxkxx", arg="xx")
 
 
 def test_method_rsplit():
-	data = [
-		(' \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n',),
-		(' \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n', None, 1),
-		('xxgxxuxxrxxkxx', 'xx'),
-		('xxgxxuxxrxxkxx', 'xx', 2),
-	]
 	for r in all_renderers:
-		for args in data:
-			obj = args[0]
-			args = args[1:]
-			expected = u"".join(u"({})".format(f) for f in obj.rsplit(*args))
-			code = ur"<?for item in {}.rsplit({})?>(<?print item?>)<?end for?>".format(ul4c._repr(obj), ", ".join(ul4c._repr(arg) for arg in args))
-			yield eq, expected, r(code)
+		yield eq, "(g)(u)(r)(k)", r(u"<?for item in obj.rsplit()?>(<?print item?>)<?end for?>", obj=" \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n")
+		yield eq, "(gur)(k)", r(u"<?for item in obj.rsplit(None, 1)?>(<?print item?>)<?end for?>", obj=" \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n")
+		yield eq, "()(g)(u)(r)(k)()", r(u"<?for item in obj.rsplit(arg)?>(<?print item?>)<?end for?>", obj="xxgxxuxxrxxkxx", arg="xx")
+		yield eq, "(xxgxxuxxrxx)(k)()", r(u"<?for item in obj.rsplit(arg, 2)?>(<?print item?>)<?end for?>", obj="xxgxxuxxrxxkxx", arg="xx")
 
 
 def test_method_replace():
@@ -1414,7 +1411,7 @@ def test_method_format():
 		formatchars = "YmdHMSfaAbBIjpUwWycxX%"
 		for char in formatchars:
 			format = "<%{}>".format(char)
-			yield eq, t.strftime(format), r(u"<?print data.format('{}')?>".format(format), data=t)
+			yield eq, t.strftime(format), r(u"<?print data.format(format)?>", format=format, data=t)
 
 
 def test_method_isoformat():
