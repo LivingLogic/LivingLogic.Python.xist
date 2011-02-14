@@ -515,13 +515,13 @@ def javaexpr(obj):
 		return "false"
 	elif isinstance(obj, basestring):
 		v = []
-		specialchars = {u"\r": u"\\r", u"\n": u"\\n", u"\t": u"\\t", u"\f": u"\\f", u'"': u'\\"', u"\\": u"\\\\"}
+		specialchars = {u"\r": u"\\r", u"\n": u"\\n", u"\t": u"\\t", u"\f": u"\\f", u"\b": u"\\b", u'"': u'\\"', u"\\": u"\\\\"}
 		for c in obj:
 			try:
 				v.append(specialchars[c])
 			except KeyError:
 				oc = ord(c)
-				v.append(u"\\u{:04x}".format(oc) if oc >= 128 else c)
+				v.append(u"\\u{:04x}".format(oc) if oc >= 128 or oc <= 31 else c)
 		return u'"{}"'.format(u"".join(v))
 	elif isinstance(obj, datetime.datetime): # check ``datetime`` before ``date``, as ``datetime`` is a subclass of ``date``
 		return "com.livinglogic.ul4.Utils.makeDate({0.year}, {0.month}, {0.day}, {0.hour}, {0.minute}, {0.second}, {0.microsecond})".format(obj)
