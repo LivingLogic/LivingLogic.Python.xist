@@ -306,12 +306,15 @@ def test_string():
 		yield eq, '\b', r(u'<?print "\\b"?>')
 		yield eq, '\a', r(u'<?print "\\a"?>')
 		yield eq, '\x1b', r(u'<?print "\\e"?>')
+		yield eq, '\x00', r(u'<?print "\\x00"?>')
 		yield eq, '"', r(u'<?print "\\""?>')
 		yield eq, "'", r(u'<?print "\\\'"?>')
 		yield eq, u'\u20ac', r(u'<?print "\u20ac"?>')
 		yield eq, u'\xff', r(u'<?print "\\xff"?>')
 		yield eq, u'\u20ac', r(u'''<?print "\\u20ac"?>''')
 		yield eq, "a\nb", r(u'<?print "a\nb"?>')
+		for c in u"\x00\x80\u0100\u3042\n\r\t\f\b\a\e\"":
+			yield eq, c, r(u'<?print obj?>', obj=c) # This tests :func:`misc.javaexpr` for Java and :func:`ul4c._json` for JS
 
 		# Test escapes
 		yield eq, u'gu\n\r\trk', r(u"<?print 'gu\n\r\trk'?>")
