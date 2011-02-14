@@ -1376,18 +1376,18 @@ def test_method_rstrip():
 
 def test_method_split():
 	for r in all_renderers:
-		yield eq, "(g)(u)(r)(k)", r(u"<?for item in obj.split()?>(<?print item?>)<?end for?>", obj=" \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n")
-		yield eq, "(g)(u \t\r\nr \t\r\nk \t\r\n)", r(u"<?for item in obj.split(None, 1)?>(<?print item?>)<?end for?>", obj=" \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n")
-		yield eq, "()(g)(u)(r)(k)()", r(u"<?for item in obj.split(arg)?>(<?print item?>)<?end for?>", obj="xxgxxuxxrxxkxx", arg="xx")
-		yield eq, "()(g)(uxxrxxkxx)", r(u"<?for item in obj.split(arg, 2)?>(<?print item?>)<?end for?>", obj="xxgxxuxxrxxkxx", arg="xx")
+		yield eq, "(f)(o)(o)", r(u"<?for item in obj.split()?>(<?print item?>)<?end for?>", obj=" \t\r\nf \t\r\no \t\r\no \t\r\n")
+		yield eq, "(f)(o \t\r\no \t\r\n)", r(u"<?for item in obj.split(None, 1)?>(<?print item?>)<?end for?>", obj=" \t\r\nf \t\r\no \t\r\no \t\r\n")
+		yield eq, "()(f)(o)(o)()", r(u"<?for item in obj.split(arg)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
+		yield eq, "()(f)(oxxoxx)", r(u"<?for item in obj.split(arg, 2)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
 
 
 def test_method_rsplit():
 	for r in all_renderers:
-		yield eq, "(g)(u)(r)(k)", r(u"<?for item in obj.rsplit()?>(<?print item?>)<?end for?>", obj=" \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n")
-		yield eq, "(gur)(k)", r(u"<?for item in obj.rsplit(None, 1)?>(<?print item?>)<?end for?>", obj=" \t\r\ng \t\r\nu \t\r\nr \t\r\nk \t\r\n")
-		yield eq, "()(g)(u)(r)(k)()", r(u"<?for item in obj.rsplit(arg)?>(<?print item?>)<?end for?>", obj="xxgxxuxxrxxkxx", arg="xx")
-		yield eq, "(xxgxxuxxrxx)(k)()", r(u"<?for item in obj.rsplit(arg, 2)?>(<?print item?>)<?end for?>", obj="xxgxxuxxrxxkxx", arg="xx")
+		yield eq, "(f)(o)(o)", r(u"<?for item in obj.rsplit()?>(<?print item?>)<?end for?>", obj=" \t\r\nf \t\r\no \t\r\no \t\r\n")
+		yield eq, "( \t\r\nf \t\r\no)(o)", r(u"<?for item in obj.rsplit(None, 1)?>(<?print item?>)<?end for?>", obj=" \t\r\nf \t\r\no \t\r\no \t\r\n")
+		yield eq, "()(f)(o)(o)()", r(u"<?for item in obj.rsplit(arg)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
+		yield eq, "(xxfxxo)(o)()", r(u"<?for item in obj.rsplit(arg, 2)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
 
 
 def test_method_replace():
@@ -1406,12 +1406,31 @@ def test_method_render():
 
 
 def test_method_format():
-	t = datetime.datetime(2010, 11, 2, 12, 34, 56, 987000)
+	t = datetime.datetime(2011, 2, 6, 12, 34, 56, 987000)
+	code = u"<?print data.format(format)?>"
 	for r in all_renderers:
-		formatchars = "YmdHMSfaAbBIjpUwWycxX%"
-		for char in formatchars:
-			format = "<%{}>".format(char)
-			yield eq, t.strftime(format), r(u"<?print data.format(format)?>", format=format, data=t)
+		yield eq, "2011", r(code, format="%Y", data=t)
+		yield eq, "02", r(code, format="%m", data=t)
+		yield eq, "06", r(code, format="%d", data=t)
+		yield eq, "12", r(code, format="%H", data=t)
+		yield eq, "34", r(code, format="%M", data=t)
+		yield eq, "56", r(code, format="%S", data=t)
+		yield eq, "987000", r(code, format="%f", data=t)
+		yield contains, ("Sun", "Son"), r(code, format="%a", data=t)
+		yield contains, ("Sunday", "Sonntag"), r(code, format="%A", data=t)
+		yield eq, "Feb", r(code, format="%b", data=t)
+		yield contains, ("February", Februar), r(code, format="%B", data=t)
+		yield eq, "12", r(code, format="%I", data=t)
+		yield eq, "038", r(code, format="%j", data=t)
+		yield eq, "PM", r(code, format="%p", data=t)
+		yield eq, "05", r(code, format="%U", data=t)
+		yield eq, "0", r(code, format="%w", data=t)
+		yield eq, "04", r(code, format="%W", data=t)
+		yield eq, "11", r(code, format="%y", data=t)
+		yield contains, ("Sun Feb  6 12:34:56 2011", "Son Feb  6 12:34:56 2011"), r(code, format="%c", data=t)
+		yield eq, "02/06/11", r(code, format="%x", data=t)
+		yield eq, "12:34:56", r(code, format="%X", data=t)
+		yield eq, "%", r(code, format="%%", data=t)
 
 
 def test_method_isoformat():
