@@ -521,7 +521,7 @@ def javaexpr(obj):
 				v.append(specialchars[c])
 			except KeyError:
 				oc = ord(c)
-				v.append(u"\\u{:04x}".format(oc) if oc >= 128 or oc <= 31 else c)
+				v.append(c if 32 <= oc < 128 else u"\\u{:04x}".format(oc))
 		return u'"{}"'.format(u"".join(v))
 	elif isinstance(obj, datetime.datetime): # check ``datetime`` before ``date``, as ``datetime`` is a subclass of ``date``
 		return "com.livinglogic.ul4.Utils.makeDate({0.year}, {0.month}, {0.day}, {0.hour}, {0.minute}, {0.second}, {0.microsecond})".format(obj)

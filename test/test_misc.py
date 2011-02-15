@@ -275,7 +275,12 @@ def test_javaexpr():
 	assert '"abc"' == misc.javaexpr("abc")
 	assert '"\'"' == misc.javaexpr("'")
 	assert '"\\n"' == misc.javaexpr("\n")
+	assert '"\\r"' == misc.javaexpr("\r")
+	assert '"\\t"' == misc.javaexpr("\t")
+	assert '"\\f"' == misc.javaexpr("\f")
+	assert '"\\b"' == misc.javaexpr("\b")
 	assert '"\\""' == misc.javaexpr('"')
+	assert '"\\u0000"' == misc.javaexpr("\x00")
 	assert '"\\u00ff"' == misc.javaexpr(u"\xff")
 	assert '"\\u20ac"' == misc.javaexpr(u"\u20ac")
 	# list
