@@ -223,14 +223,14 @@ def test_createorder():
 @py.test.mark.db
 def test_scripts_oracreate():
 	# Test oracreate without executing anything
-	args = "--color yes --verbose --seqcopy {}".format(dbname)
+	args = "--color=yes --verbose=yes --seqcopy {}".format(dbname)
 	oracreate.main(args.split())
 
 
 @py.test.mark.db
 def test_scripts_oradrop():
 	# Test oradrop without executing anything
-	args = "--color yes --verbose {}".format(dbname)
+	args = "--color=yes --verbose=yes {}".format(dbname)
 	oradrop.main(args.split())
 
 
@@ -238,8 +238,8 @@ def test_scripts_oradrop():
 def test_scripts_oradiff():
 	# Test oradiff (not really: we will not get any differences)
 	allargs = [
-		"--color yes --verbose {0} {0}".format(dbname),
-		"--color yes --verbose {0} {0} -mfull".format(dbname),
+		"--color=yes --verbose=yes {0} {0}".format(dbname),
+		"--color=yes --verbose=yes {0} {0} -mfull".format(dbname),
 	]
 	for args in allargs:
 		oradiff.main(args.split())
@@ -248,21 +248,21 @@ def test_scripts_oradiff():
 @py.test.mark.db
 def test_scripts_oramerge():
 	# Test oramerge (not really: we will not get any differences)
-	args = "--color yes --verbose {0} {0} {0}".format(dbname)
+	args = "--color=yes --verbose=yes {0} {0} {0}".format(dbname)
 	oramerge.main(args.split())
 
 
 @py.test.mark.db
 def test_scripts_oragrant():
 	# Test oragrant
-	args = "--color yes {0}".format(dbname)
+	args = "--color=yes {0}".format(dbname)
 	oragrant.main(args.split())
 
 
 @py.test.mark.db
 def test_scripts_orafind():
 	# Test orafind
-	args = "--ignore-case --color yes {0} foo".format(dbname)
+	args = "--ignore-case yes --color=yes {0} foo".format(dbname)
 	orafind.main(args.split())
 
 
