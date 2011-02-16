@@ -107,7 +107,8 @@ class RenderJava(Render):
 	maincodetemplate = u"""
 	public class UL4Test
 	{
-		public static void main(String[] args) throws java.io.UnsupportedEncodingException
+		@SuppressWarnings("unchecked")
+		public static void main(String[] args) throws java.io.IOException, java.io.UnsupportedEncodingException
 		{
 			%(source)s
 		}
@@ -115,6 +116,9 @@ class RenderJava(Render):
 	"""
 
 	def formatsource(self, string):
+		"""
+		Reindents the Java source.
+		"""
 		indent = 0
 		newlines = []
 		for line in string.strip().splitlines(False):
@@ -128,6 +132,9 @@ class RenderJava(Render):
 		return "".join(newlines)
 
 	def runsource(self, source):
+		"""
+		Compile the Java source :var:`source`, run it and return the output
+		"""
 		tempdir = tempfile.mkdtemp()
 		try:
 			source = self.maincodetemplate % dict(source=source)
@@ -151,7 +158,7 @@ class RenderJava(Render):
 		return result
 
 
-class RenderJavaSourceByPython(RenderJava):
+class RenderJavaSourceCompiledByPython(RenderJava):
 	codetemplate = u"""
 	com.livinglogic.ul4.Template template = new com.livinglogic.ul4.JSPTemplate()
 	{
@@ -160,7 +167,7 @@ class RenderJavaSourceByPython(RenderJava):
 			%(template)s
 		}
 	};
-	java.util.Map<String, Object> variables = (java.util.Map<String, Object>)%(variables)s;
+	java.util.Map<String, Object> variables = %(variables)s;
 	String output = template.renders(variables);
 	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
 	// Use ``System.out.write`` to make sure the output is in UTF-8
@@ -180,7 +187,7 @@ class RenderJavaSourceByPython(RenderJava):
 class RenderJavaLoadByJava(RenderJava):
 	codetemplate = u"""
 	com.livinglogic.ul4.InterpretedTemplate template = com.livinglogic.ul4.InterpretedTemplate.load(%(dump)s);
-	java.util.Map<String, Object> variables = (java.util.Map<String, Object>)%(variables)s;
+	java.util.Map<String, Object> variables = %(variables)s;
 	String output = template.renders(variables);
 	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
 	// Use ``System.out.write`` to make sure the output is in UTF-8
@@ -190,15 +197,36 @@ class RenderJavaLoadByJava(RenderJava):
 
 	def renders(self):
 		# Check the Java version
-		print "Testing Java InterpretedTemplate compiled by Python ({}, line {}):".format(self.filename, self.lineno)
+		print "Testing Java InterpretedTemplate (interpreted mode, compiled by Python) ({}, line {}):".format(self.filename, self.lineno)
 		template = ul4c.compile(self.source)
 		dump = template.dumps()
 		java = self.codetemplate % dict(variables=misc.javaexpr(self.variables), dump=misc.javaexpr(dump))
 		return self.runsource(java)
 
 
+class RenderJavaSourceCompiledByJava(RenderJava):
+	codetemplate = u"""
+	com.livinglogic.ul4.InterpretedTemplate template = com.livinglogic.ul4.Compiler.compile(%(source)s);
+	System.err.println("Generate Java code:");
+	System.err.println(template.javaSource());
+	com.livinglogic.ul4.JSPTemplate compiledTemplate = template.compileToJava();
+	java.util.Map<String, Object> variables = %(variables)s;
+	String output = compiledTemplate.renders(variables);
+	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
+	// Use ``System.out.write`` to make sure the output is in UTF-8
+	byte[] outputBytes = output.getBytes("utf-8");
+	System.out.write(outputBytes, 0, outputBytes.length);
+	"""
+
+	def renders(self):
+		# Check the Java version
+		print "Testing Java InterpretedTemplate (compiled mode, compiled by Java) ({}, line {}):".format(self.filename, self.lineno)
+		java = self.codetemplate % dict(source=misc.javaexpr(self.source), variables=misc.javaexpr(self.variables))
+		return self.runsource(java)
+
+
 all_python_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump)
-all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaSourceByPython, RenderJavaLoadByJava)
+all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaSourceCompiledByPython, RenderJavaLoadByJava, RenderJavaSourceCompiledByJava)
 
 
 def eq(expected, render):
@@ -417,7 +445,7 @@ def test_code_truedivvar():
 def test_code_modvar():
 	for r in all_renderers:
 		for x in (1729, 1729.0, -1729, -1729.0, False, True):
-			for y in (23, 23., -23, -23.0, False):
+			for y in (23, 23., -23, -23.0, True):
 				yield evaleq, x % y, r(u'<?code x = {}?><?code x %= {}?><?print x?>'.format(x, y))
 
 
@@ -1422,7 +1450,7 @@ def test_method_format():
 		yield contains, ("Sun", "Son"), r(code, format="%a", data=t)
 		yield contains, ("Sunday", "Sonntag"), r(code, format="%A", data=t)
 		yield eq, "Feb", r(code, format="%b", data=t)
-		yield contains, ("February", Februar), r(code, format="%B", data=t)
+		yield contains, ("February", "Februar"), r(code, format="%B", data=t)
 		yield eq, "12", r(code, format="%I", data=t)
 		yield eq, "038", r(code, format="%j", data=t)
 		yield eq, "PM", r(code, format="%p", data=t)
