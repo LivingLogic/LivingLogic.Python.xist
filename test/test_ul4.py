@@ -115,6 +115,17 @@ class RenderJava(Render):
 	}
 	"""
 
+	def findexception(self, output):
+		lines = output.splitlines()
+		for line in lines:
+			prefix = 'Exception in thread "main"'
+			if line.startswith(prefix):
+				msg = line[len(prefix):].strip()
+				if msg == "Traceback (most recent call last):": # This is a Jython exception, the message is in the last line
+					msg = lines[-1]
+				print >>sys.stderr, output
+				raise RuntimeError(msg)
+
 	def formatsource(self, string):
 		"""
 		Reindents the Java source.
@@ -143,19 +154,16 @@ class RenderJava(Render):
 			with open(os.path.join(tempdir, "UL4Test.java"), "wb") as f:
 				f.write(source.encode("utf-8"))
 			os.system("cd {}; javac -encoding utf-8 UL4Test.java".format(tempdir))
-			pipe = subprocess.Popen("cd {}; java UL4Test 2>&1".format(tempdir), stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+			pipe = subprocess.Popen("cd {}; java UL4Test".format(tempdir), stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 			(stdout, stderr) = pipe.communicate()
 		finally:
 			shutil.rmtree(tempdir)
 		# Check if we have an exception
-		stdoutlines = stdout.splitlines()
-		for line in stdoutlines:
-			prefix = 'Exception in thread "main"'
-			if line.startswith(prefix):
-				print >>sys.stderr, stdout
-				raise RuntimeError(line[len(prefix):].strip())
-		result = stdout.decode("utf-8")
-		return result
+		self.findexception(stdout)
+		self.findexception(stderr)
+		if stderr:
+			print >>sys.stderr, stderr
+		return stdout.decode("utf-8")
 
 
 class RenderJavaSourceCompiledByPython(RenderJava):
@@ -1452,11 +1460,11 @@ def test_method_format():
 		yield eq, "Feb", r(code, format="%b", data=t)
 		yield contains, ("February", "Februar"), r(code, format="%B", data=t)
 		yield eq, "12", r(code, format="%I", data=t)
-		yield eq, "038", r(code, format="%j", data=t)
+		yield eq, "037", r(code, format="%j", data=t)
 		yield eq, "PM", r(code, format="%p", data=t)
-		yield eq, "05", r(code, format="%U", data=t)
+		yield eq, "06", r(code, format="%U", data=t)
 		yield eq, "0", r(code, format="%w", data=t)
-		yield eq, "04", r(code, format="%W", data=t)
+		yield eq, "05", r(code, format="%W", data=t)
 		yield eq, "11", r(code, format="%y", data=t)
 		yield contains, ("Sun Feb  6 12:34:56 2011", "Son Feb  6 12:34:56 2011"), r(code, format="%c", data=t)
 		yield eq, "02/06/11", r(code, format="%x", data=t)
