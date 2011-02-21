@@ -499,7 +499,7 @@ class Opcode(object):
 			"loadnone": "r{op.r1!r} = None",
 			"loadfalse": "r{op.r1!r} = False",
 			"loadtrue": "r{op.r1!r} = True",
-			"loadstr": "r{op.r1!r} = {op.r2!r}",
+			"loadstr": "r{op.r1!r} = {op.arg!r}",
 			"loadint": "r{op.r1!r} = {op.arg}",
 			"loadfloat": "r{op.r1!r} = {op.arg}",
 			"loaddate": "r{op.r1!r} = {op.arg}",
