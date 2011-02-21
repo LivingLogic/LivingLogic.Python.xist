@@ -16,7 +16,7 @@ Changes in 3.17 (released ??/??/2011)
 
 *	The UL4 method ``isoformat`` now omits the time part if it is ``00:00:00``.
 
-*	The UL4 function ``repr`` now prodcues a valid UL4 date literal for date
+*	The UL4 function ``repr`` now produces a valid UL4 date literal for date
 	objects.
 
 
