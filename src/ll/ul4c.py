@@ -581,7 +581,7 @@ class Template(object):
 	Rendering the template can be done with the methods :meth:`render` (which
 	is a generator) or :meth:`renders` (which returns a string).
 	"""
-	version = "14"
+	version = "15"
 
 	def __init__(self, source=None, startdelim="<?", enddelim="?>"):
 		"""
@@ -1371,6 +1371,8 @@ class PythonSource(object):
 		self._line(opcode.location, "r{op.r1:d} = random.randrange(r{op.r2:d})".format(op=opcode))
 	def _dispatch_callfunc1_randchoice(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = random.choice(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc2_format(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = format(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
 	def _dispatch_callfunc2_range(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = xrange(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
 	def _dispatch_callfunc2_get(self, opcode):
@@ -1615,7 +1617,7 @@ class JavascriptSource(object):
 		else:
 			raise UnknownFunctionError(opcode.arg)
 	def _dispatch_callfunc2(self, opcode):
-		if opcode.arg in {"zip", "int"}:
+		if opcode.arg in {"format", "zip", "int"}:
 			self._line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
 		elif opcode.arg in {"range", "randrange"}:
 			self._line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, 1);".format(op=opcode))
@@ -1645,7 +1647,7 @@ class JavascriptSource(object):
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _dispatch_callmeth1(self, opcode):
-		if opcode.arg in {"join", "strip", "lstrip", "rstrip", "startswith", "endswith", "format", "withlum", "witha"}:
+		if opcode.arg in {"join", "strip", "lstrip", "rstrip", "startswith", "endswith", "withlum", "witha"}:
 			self._line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
 		elif opcode.arg in {"split", "rsplit", "get"}:
 			self._line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, null);".format(op=opcode))
@@ -2004,7 +2006,7 @@ class JavaSource(object):
 			raise UnknownFunctionError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callfunc2(self, opcode):
-		if opcode.arg in {"range", "zip", "randrange"}:
+		if opcode.arg in {"format", "range", "zip", "randrange"}:
 			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
 		elif opcode.arg == "int":
 			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.toInteger(r{op.r2}, r{op.r3});".format(op=opcode))
@@ -2040,7 +2042,7 @@ class JavaSource(object):
 			raise UnknownMethodError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callmeth1(self, opcode):
-		if opcode.arg in {"join", "split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "rfind", "format", "withlum", "witha"}:
+		if opcode.arg in {"join", "split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "rfind", "withlum", "witha"}:
 			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
 		elif opcode.arg == "get":
 			self._do(u"r{op.r1} = ((java.util.Map)r{op.r2}).get(r{op.r3});".format(op=opcode))

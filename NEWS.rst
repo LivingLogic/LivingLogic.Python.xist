@@ -19,6 +19,7 @@ Changes in 3.17 (released ??/??/2011)
 *	The UL4 function ``repr`` now produces a valid UL4 date literal for date
 	objects.
 
+*	The UL4 method ``format`` is now a function instead.
 
 
 Changes in 3.16 (released 01/21/2011)

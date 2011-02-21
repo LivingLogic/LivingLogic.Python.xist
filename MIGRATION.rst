@@ -6,6 +6,8 @@ Changes to :mod:`ll.misc`
 
 *	:func:`ll.misc.javastring` has been renamed to :func:`ll.misc.javaexpr`.
 
+*	The UL4 method ``format`` is now a function instead.
+
 
 Migrating to version 3.16
 =========================

@@ -1201,6 +1201,34 @@ def test_function_repr():
 		yield eq, "@2011-02-07T", r(code, data=datetime.date(2011, 2, 7))
 
 
+def test_method_format():
+	t = datetime.datetime(2011, 2, 6, 12, 34, 56, 987000)
+	code = u"<?print format(data, format)?>"
+	for r in all_renderers:
+		yield eq, "2011", r(code, format="%Y", data=t)
+		yield eq, "02", r(code, format="%m", data=t)
+		yield eq, "06", r(code, format="%d", data=t)
+		yield eq, "12", r(code, format="%H", data=t)
+		yield eq, "34", r(code, format="%M", data=t)
+		yield eq, "56", r(code, format="%S", data=t)
+		yield eq, "987000", r(code, format="%f", data=t)
+		yield contains, ("Sun", "So"), r(code, format="%a", data=t)
+		yield contains, ("Sunday", "Sonntag"), r(code, format="%A", data=t)
+		yield eq, "Feb", r(code, format="%b", data=t)
+		yield contains, ("February", "Februar"), r(code, format="%B", data=t)
+		yield eq, "12", r(code, format="%I", data=t)
+		yield eq, "037", r(code, format="%j", data=t)
+		yield eq, "PM", r(code, format="%p", data=t)
+		yield eq, "06", r(code, format="%U", data=t)
+		yield eq, "0", r(code, format="%w", data=t)
+		yield eq, "05", r(code, format="%W", data=t)
+		yield eq, "11", r(code, format="%y", data=t)
+		yield contains, ("Sun Feb  6 12:34:56 2011", "So Feb  6 12:34:56 2011"), r(code, format="%c", data=t)
+		yield eq, "02/06/11", r(code, format="%x", data=t)
+		yield eq, "12:34:56", r(code, format="%X", data=t)
+		yield eq, "%", r(code, format="%%", data=t)
+
+
 def test_function_chr():
 	code = u"<?print chr(data)?>"
 
@@ -1445,34 +1473,6 @@ def test_method_render():
 
 		t = ul4c.compile(u'(gurk)')
 		yield eq, '(GURK)', r(u"<?print t.render().upper()?>", t=t)
-
-
-def test_method_format():
-	t = datetime.datetime(2011, 2, 6, 12, 34, 56, 987000)
-	code = u"<?print data.format(format)?>"
-	for r in all_renderers:
-		yield eq, "2011", r(code, format="%Y", data=t)
-		yield eq, "02", r(code, format="%m", data=t)
-		yield eq, "06", r(code, format="%d", data=t)
-		yield eq, "12", r(code, format="%H", data=t)
-		yield eq, "34", r(code, format="%M", data=t)
-		yield eq, "56", r(code, format="%S", data=t)
-		yield eq, "987000", r(code, format="%f", data=t)
-		yield contains, ("Sun", "So"), r(code, format="%a", data=t)
-		yield contains, ("Sunday", "Sonntag"), r(code, format="%A", data=t)
-		yield eq, "Feb", r(code, format="%b", data=t)
-		yield contains, ("February", "Februar"), r(code, format="%B", data=t)
-		yield eq, "12", r(code, format="%I", data=t)
-		yield eq, "037", r(code, format="%j", data=t)
-		yield eq, "PM", r(code, format="%p", data=t)
-		yield eq, "06", r(code, format="%U", data=t)
-		yield eq, "0", r(code, format="%w", data=t)
-		yield eq, "05", r(code, format="%W", data=t)
-		yield eq, "11", r(code, format="%y", data=t)
-		yield contains, ("Sun Feb  6 12:34:56 2011", "So Feb  6 12:34:56 2011"), r(code, format="%c", data=t)
-		yield eq, "02/06/11", r(code, format="%x", data=t)
-		yield eq, "12:34:56", r(code, format="%X", data=t)
-		yield eq, "%", r(code, format="%%", data=t)
 
 
 def test_method_isoformat():
