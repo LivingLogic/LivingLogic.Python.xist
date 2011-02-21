@@ -758,7 +758,10 @@ def test_nested():
 	sc = u"4"
 	sv = u"x"
 	n = 4
-	for i in xrange(8): # when using 10 compiling the variable will run out of registers
+	# when using 10 compiling the variable will run out of registers
+	# when using 8 Java will output "An irrecoverable stack overflow has occurred"
+	depth = 7
+	for i in xrange(depth):
 		sc = u"({})+({})".format(sc, sc)
 		sv = u"({})+({})".format(sv, sv)
 		n = n + n
@@ -1455,7 +1458,7 @@ def test_method_format():
 		yield eq, "34", r(code, format="%M", data=t)
 		yield eq, "56", r(code, format="%S", data=t)
 		yield eq, "987000", r(code, format="%f", data=t)
-		yield contains, ("Sun", "Son"), r(code, format="%a", data=t)
+		yield contains, ("Sun", "So"), r(code, format="%a", data=t)
 		yield contains, ("Sunday", "Sonntag"), r(code, format="%A", data=t)
 		yield eq, "Feb", r(code, format="%b", data=t)
 		yield contains, ("February", "Februar"), r(code, format="%B", data=t)
@@ -1466,7 +1469,7 @@ def test_method_format():
 		yield eq, "0", r(code, format="%w", data=t)
 		yield eq, "05", r(code, format="%W", data=t)
 		yield eq, "11", r(code, format="%y", data=t)
-		yield contains, ("Sun Feb  6 12:34:56 2011", "Son Feb  6 12:34:56 2011"), r(code, format="%c", data=t)
+		yield contains, ("Sun Feb  6 12:34:56 2011", "So Feb  6 12:34:56 2011"), r(code, format="%c", data=t)
 		yield eq, "02/06/11", r(code, format="%x", data=t)
 		yield eq, "12:34:56", r(code, format="%X", data=t)
 		yield eq, "%", r(code, format="%%", data=t)
