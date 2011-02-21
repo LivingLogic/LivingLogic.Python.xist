@@ -352,7 +352,7 @@ def test_string():
 		for c in u"\x00\x80\u0100\u3042\n\r\t\f\b\a\e\"":
 			yield eq, c, r(u'<?print obj?>', obj=c) # This tests :func:`misc.javaexpr` for Java and :func:`ul4c._json` for JS
 
-		# Test escapes
+		# Test literal control characters
 		yield eq, u'gu\n\r\trk', r(u"<?print 'gu\n\r\trk'?>")
 		yield eq, u'gu\n\r\t\\rk', r(ur"<?print 'gu\n\r\t\\rk'?>")
 
