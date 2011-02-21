@@ -57,7 +57,15 @@ var ul4 = {
 
 	_op_mod: function(obj1, obj2)
 	{
-		return obj1 % obj2;
+		var div = Math.floor(obj1 / obj2);
+		var mod = obj1 - div * obj2;
+
+		if (mod != 0 && ((obj2 < 0 && mod > 0) || (obj2 > 0 && mod < 0)))
+		{
+			mod += obj2;
+			--div;
+		}
+		return obj1 - div * obj2;
 	},
 
 	_op_neg: function(obj)
@@ -1047,7 +1055,7 @@ var ul4 = {
 							break;
 						case "U":
 							firstday = (new Date(obj.getFullYear(), 0, 1).getDay());
-							c = Math.floor((this._me_yearday(obj) + firstday - 1) / 7);
+							c = this._lpad(Math.floor((this._me_yearday(obj) + firstday - 1) / 7), "0", 2);
 							break;
 						case "w":
 							c = obj.getDay();
@@ -1055,7 +1063,7 @@ var ul4 = {
 						case "W":
 							firstday = (new Date(obj.getFullYear(), 0, 1).getDay());
 							firstday = firstday ? firstday-1 : 6;
-							c = Math.floor((this._me_yearday(obj) + firstday - 1) / 7);
+							c = this._lpad(Math.floor((this._me_yearday(obj) + firstday - 1) / 7), "0", 2);
 							break;
 						case "x":
 							c = this._lpad(obj.getMonth() + 1, "0", 2) + "/" + this._lpad(obj.getDate(), "0", 2) + "/" + this._lpad(obj.getFullYear() % 100, "0", 2);
