@@ -1,4 +1,4 @@
-Changes in 3.17 (released ??/??/2011)
+Changes in 3.17 (released 02/24/2011)
 -------------------------------------
 
 *	The UL4 function ``repr`` now handles all instances of
@@ -9,7 +9,7 @@ Changes in 3.17 (released ??/??/2011)
 	``ll.xist.data``).
 
 *	The Java source code produced by :meth:`ll.ul.Template.javasource` will now
-	contains register declarations only for the registers that are actually used.
+	contain register declarations only for the registers that are actually used.
 
 *	:func:`misc.javastring` has been renamed to :func:`misc.javaexpr` can can
 	now produce the Java sourcecode for more types.
@@ -20,6 +20,8 @@ Changes in 3.17 (released ??/??/2011)
 	objects.
 
 *	The UL4 method ``format`` is now a function instead.
+
+*	The tests for UL4 now test the Java implementation too.
 
 
 Changes in 3.16 (released 01/21/2011)
