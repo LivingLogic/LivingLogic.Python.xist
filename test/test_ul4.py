@@ -95,7 +95,7 @@ class RenderJS(Render):
 		with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 			f.write(js.encode("utf-8"))
 			f.flush()
-			result = os.popen("d8 src/ll/data/js/ul4.js {}".format(f.name), "rb").read()
+			result = os.popen("d8 src/ll/xist/data/js/ul4.js {}".format(f.name), "rb").read()
 		result = result.decode("utf-8")[:-1] # Drop the "\n"
 		# Check if we have an exception
 		if result.endswith("^"):
