@@ -10,5 +10,5 @@ recursive-include docs *.xml
 include Makefile
 recursive-include demos *
 recursive-include scripts *.py
-include src/ll/data/px/spc.gif
-include src/ll/data/js/ul4.js
+include src/ll/xist/data/px/spc.gif
+include src/ll/xist/data/js/ul4.js

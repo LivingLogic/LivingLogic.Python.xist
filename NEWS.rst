@@ -1,3 +1,10 @@
+Changes in 3.17.1 (released 02/25/2011)
+---------------------------------------
+
+*	Due to a bug in ``MANIFEST.in`` the spacer GIF and the UL4 Javascript support
+	library where not included in the distirbution package. This has been fixed.
+
+
 Changes in 3.17 (released 02/24/2011)
 -------------------------------------
 
