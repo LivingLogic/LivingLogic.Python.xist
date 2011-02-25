@@ -1,3 +1,10 @@
+Changes in 3.17.2 (released 02/25/2011)
+---------------------------------------
+
+*	Fixed ``setup.py`` so that the spacer GIF and the UL4 Javascript support
+	library *really* get installed.
+
+
 Changes in 3.17.1 (released 02/25/2011)
 ---------------------------------------
 
