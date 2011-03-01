@@ -62,7 +62,7 @@ def findcolcount(urls, width, spacing):
 		(s, rows, cols) = width4cols(numcols, spacing)
 		if s <= width or numcols == 1:
 			return (rows, cols)
-		numcols -=1
+		numcols -= 1
 
 
 def main(args=None):
@@ -143,9 +143,11 @@ def main(args=None):
 					printblock(None, urls, width, spacing)
 			else:
 				for child in url.listdir():
-					printone(url/child, long, human)
+					child = url/child
+					if not recursive or child.isdir(): # For files the print call is done by the recursive call to ``printall``
+						printone(child, long, human)
 					if recursive:
-						printall(base, url/child, one, long, recursive, human, spacing)
+						printall(base, child, one, long, recursive, human, spacing)
 		else:
 			printone(url, long, human)
 
