@@ -84,7 +84,7 @@ class Style(object):
 	def __eq__(self, other):
 		return self.fg == other.fg and self.bg == other.bg and self.attrs == other.attrs
 
-	def __neq__(self, other):
+	def __ne__(self, other):
 		return self.fg != other.fg or self.bg != other.bg or self.attrs != other.attrs
 
 	def __repr__(self):
