@@ -571,7 +571,7 @@ class Connection(Connection):
 						cursor.execute("select column_name from user_tab_columns where table_name=:name order by column_id", name=rec.table_name)
 					for rec2 in cursor.fetchall():
 						# No dependency checks neccessary, but use ``do`` anyway
-						for subobj in do(Comment("{}.{}".format(rec.table_name, rec2.column_name), rec.owner, self)):
+						for subobj in do(Comment(u"{}.{}".format(rec.table_name, rec2.column_name), rec.owner, self)):
 							yield subobj
 
 				if mode == "drop":
@@ -1321,7 +1321,7 @@ class Table(MixinNormalDates, Object):
 		cursor.execute("select column_name from all_tab_columns where owner=nvl(:owner, user) and table_name=:name order by column_id", owner=self.owner, name=self.name)
 
 		for rec in cursor.fetchall():
-			yield Column("{}.{}".format(self.name, rec.column_name), self.owner, connection)
+			yield Column(u"{}.{}".format(self.name, rec.column_name), self.owner, connection)
 
 	def iterrecords(self, connection=None):
 		"""
@@ -1339,7 +1339,7 @@ class Table(MixinNormalDates, Object):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select column_name from all_tab_columns where owner=nvl(:owner, user) and table_name=:name order by column_id", owner=self.owner, name=self.name)
 		for rec in cursor.fetchall():
-			yield Comment("{}.{}".format(self.name, rec.column_name), self.owner, connection)
+			yield Comment(u"{}.{}".format(self.name, rec.column_name), self.owner, connection)
 
 	def iterconstraints(self, connection=None):
 		"""
@@ -1558,7 +1558,7 @@ class ForeignKey(Constraint):
 		cursor.execute("select column_name from all_cons_columns where owner=nvl(:owner, user) and constraint_name=:name order by position", owner=self.owner, name=self.name)
 		fields1 = ", ".join(r.column_name for r in cursor)
 		cursor.execute("select table_name, column_name from all_cons_columns where owner=nvl(:owner, user) and constraint_name=:name order by position", owner=rec.r_owner, name=rec.r_constraint_name)
-		fields2 = ", ".join("{}({})".format(getfullname(r.table_name, rec.r_owner), r.column_name) for r in cursor)
+		fields2 = ", ".join(u"{}({})".format(getfullname(r.table_name, rec.r_owner), r.column_name) for r in cursor)
 		tablename = getfullname(rec.table_name, self.owner)
 		fkname = getfullname(self.name, None)
 		code = u"alter table {} add constraint {} foreign key ({}) references {}".format(tablename, fkname, fields1, fields2)
@@ -2677,7 +2677,7 @@ class OracleConnection(url_.Connection):
 				type = path[0][0]
 				names = (name[0] for name in Object.name2type[type].iternames(self.dbconnection, "user") if name[1] is None)
 				if len(path) == 1:
-					result = [url_.URL("{}/{}".format(type, name)) for name in names]
+					result = [url_.URL(u"{}/{}".format(type, name)) for name in names]
 				else:
 					result = [url_.URL(name) for name in names]
 		else:
