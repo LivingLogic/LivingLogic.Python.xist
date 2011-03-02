@@ -1,4 +1,4 @@
-Changes in 3.17.3 (released 03/01/2011)
+Changes in 3.17.3 (released 03/02/2011)
 ---------------------------------------
 
 *	Enhanced support for table and column names containing non-ASCII characters
