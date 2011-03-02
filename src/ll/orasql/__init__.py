@@ -2674,7 +2674,7 @@ class OracleConnection(url_.Connection):
 		elif self._istype(url): # type directory
 			if files:
 				path = url.path
-				type = path[0][0]
+				type = path[0]
 				names = (name[0] for name in Object.name2type[type].iternames(self.dbconnection, "user") if name[1] is None)
 				if len(path) == 1:
 					result = [url_.URL(u"{}/{}".format(type, name)) for name in names]
