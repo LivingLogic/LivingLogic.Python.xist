@@ -1,8 +1,8 @@
 Changes in 3.17.3 (released 03/01/2011)
 ---------------------------------------
 
-*	Fixed :mod:`ll.orasql` to support table and column names containing
-	non-ASCII characters.
+*	Enhanced support for table and column names containing non-ASCII characters
+	in :mod:`ll.orasql`.
 
 *	Fixed a bug in the ``uls`` script: In long recursive mode files were
 	printed twice.
