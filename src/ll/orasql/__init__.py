@@ -890,11 +890,11 @@ class MixinCodeDDL(object):
 def getfullname(name, owner):
 	parts = []
 	if owner is not None:
-		if owner != owner.upper() or not owner.isalnum():
+		if owner != owner.upper() or not all(c.isalnum() or c == u"_" for c in owner):
 			part = '"{}"'.format(owner)
 		parts.append(owner)
 	for part in name.split("."):
-		if part != part.upper() or not part.isalnum():
+		if part != part.upper() or not all(c.isalnum() or c == u"_" for c in part):
 			part = '"{}"'.format(part)
 		parts.append(part)
 	return ".".join(parts)
