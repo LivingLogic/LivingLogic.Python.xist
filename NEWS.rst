@@ -3,7 +3,12 @@ Changes in 3.17.4 (released ??/??/2011)
 
 *	Fixed a regression in :class:`ll.orasql.OracleConnection`.
 
-*	Fixed ``ZeroDivisionError`` in script ``uls`` for empty directories.
+*	Fixed :exc:`ZeroDivisionError` in script ``uls`` for empty directories.
+
+*	Added a class method :meth:`ll.orasql.Contraint.iternames` and a class method
+	:meth:`ll.orasql.Index.iternames` that skips those indexes that are generated
+	by constraints. With this addition ``uls``/``ucp`` now list/copy constraints
+	and indexes properly.
 
 
 Changes in 3.17.3 (released 03/02/2011)
