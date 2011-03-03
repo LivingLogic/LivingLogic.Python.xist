@@ -12,8 +12,8 @@ Changes in 3.17.4 (released ??/??/2011)
 	starts with ``BIN$``.
 
 *	The scripts ``uls``, ``ucp`` and ``ucat`` have new options :option:`--include`
-	and :option:`--exclude` for including/excluding URLs that match the regular
-	expressions.
+	and :option:`--exclude` for including/excluding URLs that match a regular
+	expression.
 
 *	The unused :option:`--verbose` was removed from the script ``ucat``.
 
