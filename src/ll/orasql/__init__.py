@@ -850,14 +850,14 @@ class MixinCodeDDL(object):
 		code = code.strip()
 		type = self.__class__.type
 		code = code[code.lower().find(type)+len(type):].strip() # drop "procedure" etc.
-		# drop our own name (as for triggers this includes the schema name)
-		while code and (code[0].isalnum() or code[0] in u"_$."):
-			code = code[1:]
-		code = code.strip()
-		if self.owner is not None:
-			code = u"create or replace {} {}.{}\n{}\n".format(type, self.owner, self.name, code)
+		# drop our own name (for triggers this includes the schema name)
+		if code.startswith('"'):
+			code = code[code.find('"', 1)+1:]
 		else:
-			code = u"create or replace {} {}\n{}\n".format(type, self.name, code)
+			while code and (code[0].isalnum() or code[0] in u"_$."):
+				code = code[1:]
+		code = code.strip()
+		code = u"create or replace {} {}\n{}\n".format(type, self.getfullname(), code)
 		if term:
 			code += u"\n/\n"
 		else:
@@ -879,22 +879,20 @@ class MixinCodeDDL(object):
 	@classmethod
 	def fixname(cls, name, code):
 		code = code.split(None, 5)
-		code = u"create or replace {} {}\n{}".format(code[3], name, code[5])
+		code = u"create or replace {} {}\n{}".format(code[3], getfullname(name), code[5])
 		return code
 
 
 def getfullname(name, owner):
 	parts = []
 	if owner is not None:
-		if owner != owner.upper():
-			parts.append('"{}"'.format(owner))
-		else:
-			parts.append(owner)
+		if owner != owner.upper() or not owner.isalnum():
+			part = '"{}"'.format(owner)
+		parts.append(owner)
 	for part in name.split("."):
-		if part != part.upper():
-			parts.append('"{}"'.format(part))
-		else:
-			parts.append(part)
+		if part != part.upper() or not part.isalnum():
+			part = '"{}"'.format(part)
+		parts.append(part)
 	return ".".join(parts)
 
 
@@ -1258,7 +1256,7 @@ class Table(MixinNormalDates, Object):
 		for (i, rec) in enumerate(recs):
 			if i:
 				code.append(u",\n")
-			code.append(u"\t{} {}".format(rec.column_name, _columntype(rec)))
+			code.append(u"\t{} {}".format(getfullname(rec.column_name), _columntype(rec)))
 			default = _columndefault(rec)
 			if default != "null":
 				code.append(u" default {}".format(default))
@@ -1850,7 +1848,7 @@ class Synonym(Object):
 			public = ""
 		name = getfullname(self.name, owner)
 		name2 = getfullname(rec.table_name, rec.table_owner)
-		code = u"create or replace {}synonym {} for {}".format(public, name, name2)
+		code = u"create or replace {}synonym {} for {}".format(public, getfullname(name), getfullname(name2))
 		if rec.db_link is not None:
 			code += u"@{}".format(rec.db_link)
 		if term:
@@ -1867,7 +1865,7 @@ class Synonym(Object):
 		else:
 			public = ""
 		name = getfullname(self.name, owner)
-		code = u"drop {}synonym {}".format(public, name)
+		code = u"drop {}synonym {}".format(public, getfullname(name))
 		if term:
 			code += u";\n"
 		else:
@@ -1878,10 +1876,10 @@ class Synonym(Object):
 	def fixname(cls, name, code):
 		if code.lower().startswith("create or replace public"):
 			code = code.split(None, 6)
-			code = u"create or replace public synonym {} {}".format(name, code[6])
+			code = u"create or replace public synonym {} {}".format(getfullname(name), code[6])
 		else:
 			code = code.split(None, 5)
-			code = u"create or replace synonym {} {}".format(name, code[5])
+			code = u"create or replace synonym {} {}".format(getfullname(name), code[5])
 		return code
 
 	def cdate(self, connection=None):
@@ -1938,7 +1936,7 @@ class View(MixinNormalDates, Object):
 	@classmethod
 	def fixname(cls, name, code):
 		code = code.split(None, 6)
-		code = u"create or replace force view {} {}".format(name, code[6])
+		code = u"create or replace force view {} {}".format(getfullname(name), code[6])
 		return code
 
 	def iterrecords(self, connection=None):
