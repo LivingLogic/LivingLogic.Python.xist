@@ -1185,7 +1185,7 @@ class Sequence(MixinNormalDates, Object):
 	@classmethod
 	def fixname(cls, name, code):
 		code = code.split(None, 3)
-		code = u"create sequence {}\n{}".format(name, code[3])
+		code = u"create sequence {}\n{}".format(getfullname(name, None), code[3])
 		return code
 
 	def iterreferences(self, connection=None, schema="all"):
@@ -1285,7 +1285,7 @@ class Table(MixinNormalDates, Object):
 	@classmethod
 	def fixname(cls, name, code):
 		code = code.split(None, 3)
-		code = u"create table {}\n{}".format(name, code[3])
+		code = u"create table {}\n{}".format(getfullname(name, None), code[3])
 		return code
 
 	def mview(self, connection=None):
@@ -1417,7 +1417,7 @@ class Constraint(Object):
 	@classmethod
 	def fixname(cls, name, code):
 		code = code.split(None, 6)
-		code = u"alter table {} add constraint {} {}".format(code[2], name, code[6])
+		code = u"alter table {} add constraint {} {}".format(code[2], getfullname(name, None), code[6])
 		return code
 
 
@@ -1536,7 +1536,7 @@ class Comment(Object):
 	@classmethod
 	def fixname(cls, name, code):
 		code = code.split(None, 5)
-		code = u"comment on column {} is {}".format(name, code[5])
+		code = u"comment on column {} is {}".format(getfullname(name, None), code[5])
 		return code
 
 	def cdate(self, connection=None):
@@ -1710,10 +1710,10 @@ class Index(MixinNormalDates, Object):
 	def fixname(cls, name, code):
 		if code.lower().startswith("create unique"):
 			code = code.split(None, 5)
-			code = u"create unique index {} {}".format(name, code[5])
+			code = u"create unique index {} {}".format(getfullname(name, None), code[5])
 		else:
 			code = code.split(None, 4)
-			code = u"create index {} {}".format(name, code[4])
+			code = u"create index {} {}".format(getfullname(name, None), code[4])
 		return code
 
 	def constraint(self, connection=None):
