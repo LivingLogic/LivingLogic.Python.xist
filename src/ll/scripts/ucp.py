@@ -26,6 +26,13 @@ except ImportError:
 
 
 def main(args=None):
+	def match(strurl):
+		if args.include is not None and args.include.search(strurl) is None:
+			return False
+		if args.exclude is not None and args.exclude.search(strurl) is not None:
+			return False
+		return True
+
 	def copyone(urlread, urlwrite):
 		strurlread = str(urlread)
 		if urlread.isdir():
@@ -37,12 +44,7 @@ def main(args=None):
 					msg = astyle.style_default("ucp: ", astyle.style_url(strurlread), " (directory skipped)")
 					stderr.writeln(msg)
 		else:
-			do = True
-			if args.include is not None and args.include.search(strurlread) is None:
-				do = False
-			if args.exclude is not None and args.exclude.search(strurlread) is not None:
-				do = False
-			if do:
+			if match(strurlread):
 				if args.verbose:
 					msg = astyle.style_default("ucp: ", astyle.style_url(strurlread), " -> ")
 					stderr.write(msg)

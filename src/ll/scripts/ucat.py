@@ -26,6 +26,13 @@ except ImportError:
 
 
 def main(args=None):
+	def match(strurl):
+		if args.include is not None and args.include.search(strurl) is None:
+			return False
+		if args.exclude is not None and args.exclude.search(strurl) is not None:
+			return False
+		return True
+
 	def catone(urlread):
 		strurlread = str(urlread)
 		if urlread.isdir():
@@ -35,12 +42,7 @@ def main(args=None):
 			else:
 				raise IOError(errno.EISDIR, "Is a directory", strurlread)
 		else:
-			do = True
-			if args.include is not None and args.include.search(strurlread) is None:
-				do = False
-			if args.exclude is not None and args.exclude.search(strurlread) is not None:
-				do = False
-			if do:
+			if match(strurlread):
 				try:
 					with contextlib.closing(urlread.open("rb")) as fileread:
 						size = 0
