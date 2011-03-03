@@ -61,10 +61,11 @@ def main(args=None):
 									break
 					if user or group:
 						urlwrite.chown(user, group)
-				except Exception:
+				except Exception, exc:
 					if args.ignoreerrors:
 						if args.verbose:
-							msg = astyle.style_error(" (failed)")
+							exc = str(exc).replace("\n", " ").strip()
+							msg = astyle.style_error(" (failed: {})".format(exc))
 							stderr.writeln(msg)
 					else:
 						raise
