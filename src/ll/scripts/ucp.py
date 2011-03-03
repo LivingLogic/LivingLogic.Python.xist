@@ -64,8 +64,12 @@ def main(args=None):
 				except Exception, exc:
 					if args.ignoreerrors:
 						if args.verbose:
-							exc = str(exc).replace("\n", " ").strip()
-							msg = astyle.style_error(" (failed: {})".format(exc))
+							excname = exc.__class__.__name__
+							excmodule = exc.__class__.__module__
+							if excmodule != "exceptions":
+								excname = "{}.{}".format(excmodule, excname)
+							excmsg = str(exc).replace("\n", " ").strip()
+							msg = astyle.style_error(" (failed with {}: {})".format(excname, excmsg))
 							stderr.writeln(msg)
 					else:
 						raise
