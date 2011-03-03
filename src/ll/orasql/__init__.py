@@ -67,7 +67,7 @@ bigbang = datetime.datetime(1970, 1, 1, 0, 0, 0)
 
 class SQLObjectNotFoundError(IOError):
 	def __init__(self, obj):
-		IOError.__init__(self, errno.ENOENT, "no such {}: {}".format(obj.type, getfullname(obj.name, obj.owner)))
+		IOError.__init__(self, errno.ENOENT, "no such {}: {}".format(obj.type, obj.getfullname()))
 		self.obj = obj
 
 
@@ -1689,7 +1689,7 @@ class Index(MixinNormalDates, Object):
 	def dropddl(self, connection=None, term=True):
 		if self.isconstraint(connection):
 			return u""
-		code = u"drop index {}".format(getfullname(self.name, self.owner))
+		code = u"drop index {}".format(self.getfullname())
 		if term:
 			code += u";\n"
 		else:
@@ -1869,7 +1869,7 @@ class Synonym(Object):
 		else:
 			public = ""
 		name = getfullname(self.name, owner)
-		code = u"drop {}synonym {}".format(public, getfullname(name))
+		code = u"drop {}synonym {}".format(public, name)
 		if term:
 			code += u";\n"
 		else:
