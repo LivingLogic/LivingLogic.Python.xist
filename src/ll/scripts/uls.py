@@ -58,11 +58,14 @@ def findcolcount(urls, width, spacing):
 		return (sum(cols) + (numcols-1)*spacing, rows, cols)
 
 	numcols = len(urls)
-	while True:
-		(s, rows, cols) = width4cols(numcols, spacing)
-		if s <= width or numcols == 1:
-			return (rows, cols)
-		numcols -= 1
+	if numcols:
+		while True:
+			(s, rows, cols) = width4cols(numcols, spacing)
+			if s <= width or numcols == 1:
+				return (rows, cols)
+			numcols -= 1
+	else:
+		return (0, 0)
 
 
 def main(args=None):

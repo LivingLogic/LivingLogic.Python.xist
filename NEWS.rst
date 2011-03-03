@@ -3,6 +3,8 @@ Changes in 3.17.4 (released ??/??/2011)
 
 *	Fixed a regression in :class:`ll.orasql.OracleConnection`.
 
+*	Fixed ``ZeroDivisionError`` in script ``uls`` for empty directories.
+
 
 Changes in 3.17.3 (released 03/02/2011)
 ---------------------------------------
