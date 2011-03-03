@@ -215,7 +215,6 @@ def test_createorder():
 	done = set()
 	for obj in objlist:
 		for refobj in objdict[obj][0]:
-			print obj, refobj
 			assert refobj in done
 		done.add(obj)
 
