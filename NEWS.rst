@@ -8,7 +8,8 @@ Changes in 3.17.4 (released ??/??/2011)
 *	Added a class method :meth:`ll.orasql.Contraint.iternames` and a class method
 	:meth:`ll.orasql.Index.iternames` that skips those indexes that are generated
 	by constraints. With this addition ``uls``/``ucp`` now list/copy constraints
-	and indexes properly.
+	and indexes properly. All ``iternames`` methods now skip objects whose name
+	starts with ``BIN$``.
 
 
 Changes in 3.17.3 (released 03/02/2011)
