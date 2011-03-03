@@ -10,7 +10,7 @@
 ## See ll/__init__.py for the license
 
 
-import sys, argparse, contextlib, errno
+import sys, re, argparse, contextlib, errno
 
 from ll import misc, url
 
@@ -27,31 +27,39 @@ except ImportError:
 
 def main(args=None):
 	def catone(urlread):
+		strurlread = str(urlread)
 		if urlread.isdir():
 			if args.recursive:
 				for u in urlread.listdir():
 					catone(urlread/u)
 			else:
-				raise IOError(errno.EISDIR, "Is a directory", str(urlread))
+				raise IOError(errno.EISDIR, "Is a directory", strurlread)
 		else:
-			try:
-				with contextlib.closing(urlread.open("rb")) as fileread:
-					size = 0
-					while True:
-						data = fileread.read(262144)
-						if data:
-							sys.stdout.write(data)
-						else:
-							break
-			except Exception:
-				if not args.ignoreerrors:
-					raise
+			do = True
+			if args.include is not None and args.include.search(strurlread) is None:
+				do = False
+			if args.exclude is not None and args.exclude.search(strurlread) is not None:
+				do = False
+			if do:
+				try:
+					with contextlib.closing(urlread.open("rb")) as fileread:
+						size = 0
+						while True:
+							data = fileread.read(262144)
+							if data:
+								sys.stdout.write(data)
+							else:
+								break
+				except Exception:
+					if not args.ignoreerrors:
+						raise
 
 	p = argparse.ArgumentParser(description="print URL content on the screen")
 	p.add_argument("urls", metavar="url", help="URLs to be printed", nargs="+", type=url.URL)
-	p.add_argument("-v", "--verbose", dest="verbose", help="Be verbose? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-r", "--recursive", dest="recursive", help="Copy stuff recursively? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-x", "--ignoreerrors", dest="ignoreerrors", help="Ignore errors? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-i", "--include", dest="include", metavar="PATTERN", help="Include only URLs matching PATTERN (default: %(default)s)", type=re.compile)
+	p.add_argument("-e", "--exclude", dest="exclude", metavar="PATTERN", help="Exclude URLs matching PATTERN (default: %(default)s)", type=re.compile)
 
 	args = p.parse_args(args)
 	with url.Context():

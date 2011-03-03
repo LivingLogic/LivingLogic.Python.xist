@@ -10,7 +10,7 @@
 ## See ll/__init__.py for the license
 
 
-import sys, argparse, contextlib
+import sys, re, argparse, contextlib
 
 from ll import misc, url
 
@@ -27,41 +27,52 @@ except ImportError:
 
 def main(args=None):
 	def copyone(urlread, urlwrite):
+		strurlread = str(urlread)
 		if urlread.isdir():
 			if args.recursive:
 				for u in urlread.listdir():
 					copyone(urlread/u, urlwrite/u)
 			else:
 				if args.verbose:
-					msg = astyle.style_default("ucp: ", astyle.style_url(str(urlread)), " (directory skipped)")
+					msg = astyle.style_default("ucp: ", astyle.style_url(strurlread), " (directory skipped)")
 					stderr.writeln(msg)
 		else:
-			if args.verbose:
-				msg = astyle.style_default("ucp: ", astyle.style_url(str(urlread)), " -> ")
-				stderr.write(msg)
-			try:
-				with contextlib.closing(urlread.open("rb")) as fileread:
-					with contextlib.closing(urlwrite.open("wb")) as filewrite:
-						size = 0
-						while True:
-							data = fileread.read(262144)
-							if data:
-								filewrite.write(data)
-								size += len(data)
-							else:
-								break
-				if user or group:
-					urlwrite.chown(user, group)
-			except Exception:
-				if args.ignoreerrors:
-					if args.verbose:
-						msg = astyle.style_error(" (failed)")
-						stderr.writeln(msg)
+			do = True
+			if args.include is not None and args.include.search(strurlread) is None:
+				do = False
+			if args.exclude is not None and args.exclude.search(strurlread) is not None:
+				do = False
+			if do:
+				if args.verbose:
+					msg = astyle.style_default("ucp: ", astyle.style_url(strurlread), " -> ")
+					stderr.write(msg)
+				try:
+					with contextlib.closing(urlread.open("rb")) as fileread:
+						with contextlib.closing(urlwrite.open("wb")) as filewrite:
+							size = 0
+							while True:
+								data = fileread.read(262144)
+								if data:
+									filewrite.write(data)
+									size += len(data)
+								else:
+									break
+					if user or group:
+						urlwrite.chown(user, group)
+				except Exception:
+					if args.ignoreerrors:
+						if args.verbose:
+							msg = astyle.style_error(" (failed)")
+							stderr.writeln(msg)
+					else:
+						raise
 				else:
-					raise
+					if args.verbose:
+						msg = astyle.style_default(astyle.style_url(str(urlwrite)), " (", str(size), " bytes)")
+						stderr.writeln(msg)
 			else:
 				if args.verbose:
-					msg = astyle.style_default(astyle.style_url(str(urlwrite)), " (", str(size), " bytes)")
+					msg = astyle.style_default("ucp: ", astyle.style_url(strurlread), astyle.style_warn(" (skipped)"))
 					stderr.writeln(msg)
 
 	p = argparse.ArgumentParser(description="Copies URLs")
@@ -72,6 +83,8 @@ def main(args=None):
 	p.add_argument("-g", "--group", dest="group", help="group id or name for target files")
 	p.add_argument("-r", "--recursive", dest="recursive", help="Copy stuff recursively? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-x", "--ignoreerrors", dest="ignoreerrors", help="Ignore errors? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-i", "--include", dest="include", metavar="PATTERN", help="Include only URLs matching PATTERN (default: %(default)s)", type=re.compile)
+	p.add_argument("-e", "--exclude", dest="exclude", metavar="PATTERN", help="Exclude URLs matching PATTERN (default: %(default)s)", type=re.compile)
 
 	args = p.parse_args(args)
 	if len(args.urls) < 2:

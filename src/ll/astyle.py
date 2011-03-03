@@ -395,7 +395,8 @@ style_file = Style.fromstr("green:black")
 # Style for ellipsis (when an output has been shortened
 style_ellisis = Style.fromstr("red:black")
 
-# Style for displaying exceptions
+# Style for displaying warnings/errors/exceptions
+style_warn = Style.fromstr("yellow:black")
 style_error = Style.fromstr("red:black")
 
 # Style for displaying non-existing attributes
