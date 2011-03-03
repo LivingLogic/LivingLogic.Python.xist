@@ -41,7 +41,7 @@ def main(args=None):
 					copyone(urlread/u, urlwrite/u)
 			else:
 				if args.verbose:
-					msg = astyle.style_default("ucp: ", astyle.style_url(strurlread), " (directory skipped)")
+					msg = astyle.style_default("ucp: ", astyle.style_url(strurlread), astyle.style_warn(" (directory skipped)"))
 					stderr.writeln(msg)
 		else:
 			if match(strurlread):
