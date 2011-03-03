@@ -17,6 +17,8 @@ Changes in 3.17.4 (released ??/??/2011)
 
 *	The unused :option:`--verbose` was removed from the script ``ucat``.
 
+*	``ucp -x`` no prints exception details.
+
 
 Changes in 3.17.3 (released 03/02/2011)
 ---------------------------------------
