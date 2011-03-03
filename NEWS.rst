@@ -11,8 +11,8 @@ Changes in 3.17.4 (released ??/??/2011)
 	and indexes properly. All ``iternames`` methods now skip objects whose name
 	starts with ``BIN$``.
 
-*	The scripts ``ucp`` and ``ucat`` have new options :option:`--include` and
-	:option:`--exclude` for including/excluding URLs that match the regular
+*	The scripts ``uls``, ``ucp`` and ``ucat`` have new options :option:`--include`
+	and :option:`--exclude` for including/excluding URLs that match the regular
 	expressions.
 
 *	The unused :option:`--verbose` was removed from the script ``ucat``.

@@ -10,7 +10,7 @@
 ## See ll/__init__.py for the license
 
 
-import sys, argparse, contextlib, datetime, pwd, grp, stat, curses
+import sys, re, argparse, contextlib, datetime, pwd, grp, stat, curses
 
 from ll import misc, url
 
@@ -85,6 +85,14 @@ def main(args=None):
 	sep = style_pad("|")
 	curses.setupterm()
 	width = curses.tigetnum('cols')
+
+	def match(strurl):
+		if args.include is not None and args.include.search(strurl) is None:
+			return False
+		if args.exclude is not None and args.exclude.search(strurl) is not None:
+			return False
+		return True
+
 	def printone(url, long, human):
 		if long:
 			stat = url.stat()
@@ -136,23 +144,25 @@ def main(args=None):
 				url.path.segments.append("")
 			if not long and not one:
 				if recursive:
-					urls = [(url/child, str(child)) for child in url.files()]
+					urls = [(url/child, str(child)) for child in url.files() if match(str(url/child))]
 					if urls:
 						printblock(url, urls, width, spacing)
 					for child in url.dirs():
 						printall(base, url/child, one, long, recursive, human, spacing)
 				else:
-					urls = [(url/child, str(child)) for child in url.listdir()]
+					urls = [(url/child, str(child)) for child in url.listdir() if match(str(url/child))]
 					printblock(None, urls, width, spacing)
 			else:
 				for child in url.listdir():
 					child = url/child
-					if not recursive or child.isdir(): # For files the print call is done by the recursive call to ``printall``
-						printone(child, long, human)
+					if match(str(child)):
+						if not recursive or child.isdir(): # For files the print call is done by the recursive call to ``printall``
+							printone(child, long, human)
 					if recursive:
 						printall(base, child, one, long, recursive, human, spacing)
 		else:
-			printone(url, long, human)
+			if math(str(url)):
+				printone(url, long, human)
 
 	p = argparse.ArgumentParser(description="List the content of one or more URLs")
 	p.add_argument("urls", metavar="url", help="URLs to be listed (default: current dir)", nargs="*", default=url.here(), type=url.URL)
@@ -162,6 +172,8 @@ def main(args=None):
 	p.add_argument("-s", "--human-readable-sizes", dest="human", help="Human readable file sizes? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-r", "--recursive", dest="recursive", help="Recursive listing? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-w", "--spacing", dest="spacing", metavar="N", help="Number of spaces between columns (default: %(default)s)", type=int, default=3)
+	p.add_argument("-i", "--include", dest="include", metavar="PATTERN", help="Include only URLs matching PATTERN (default: %(default)s)", type=re.compile)
+	p.add_argument("-e", "--exclude", dest="exclude", metavar="PATTERN", help="Exclude URLs matching PATTERN (default: %(default)s)", type=re.compile)
 
 	args = p.parse_args(args)
 
