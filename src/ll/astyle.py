@@ -392,7 +392,7 @@ style_url = Style.fromstr("green:black")
 style_dir = Style.fromstr("cyan:black")
 style_file = Style.fromstr("green:black")
 
-# Style for ellipsis (when an output has been shortened
+# Style for ellipsis (when an output has been shortened)
 style_ellisis = Style.fromstr("red:black")
 
 # Style for displaying warnings/errors/exceptions
