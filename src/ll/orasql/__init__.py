@@ -1852,7 +1852,7 @@ class Synonym(Object):
 			public = ""
 		name = getfullname(self.name, owner)
 		name2 = getfullname(rec.table_name, rec.table_owner)
-		code = u"create or replace {}synonym {} for {}".format(public, getfullname(name), getfullname(name2))
+		code = u"create or replace {}synonym {} for {}".format(public, name, name2)
 		if rec.db_link is not None:
 			code += u"@{}".format(rec.db_link)
 		if term:
