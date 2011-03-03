@@ -223,7 +223,7 @@ def test_createorder():
 @py.test.mark.db
 def test_scripts_oracreate():
 	# Test oracreate without executing anything
-	args = "--color=yes --verbose=yes --seqcopy {}".format(dbname)
+	args = "--color=yes --verbose=yes --seqcopy=yes {}".format(dbname)
 	oracreate.main(args.split())
 
 
