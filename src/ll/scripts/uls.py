@@ -161,7 +161,7 @@ def main(args=None):
 					if recursive:
 						printall(base, child, one, long, recursive, human, spacing)
 		else:
-			if math(str(url)):
+			if match(str(url)):
 				printone(url, long, human)
 
 	p = argparse.ArgumentParser(description="List the content of one or more URLs")
