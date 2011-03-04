@@ -190,13 +190,14 @@ def main(args=None):
 			if url.path.segments[-1]:
 				url.path.segments.append("")
 			if not args.long and not args.one:
-				urls = [(url/child, str(child)) for child in url.files() if match(str(url/child))]
 				if args.recursive:
+					urls = [(url/child, str(child)) for child in url.files() if match(str(url/child))]
 					if urls:
 						printblock(url, urls)
 					for child in url.dirs():
 						printall(base, url/child)
 				else:
+					urls = [(url/child, str(child)) for child in url.listdir() if match(str(url/child))]
 					printblock(None, urls)
 			else:
 				for child in url.listdir():
