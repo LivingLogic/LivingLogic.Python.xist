@@ -389,19 +389,28 @@ class field_body(BaseElement):
 
 
 class option_list(BaseElement):
-	pass
+	def convert(self, converter):
+		e = doc.dl(self.content)
+		return e.convert(converter)
 
 
 class option_list_item(BaseElement):
-	pass
+	def convert(self, converter):
+		e = self.content
+		return e.convert(converter)
 
 
 class option_group(BaseElement):
-	pass
-
-
-class option(BaseElement):
-	pass
+	def convert(self, converter):
+		e = doc.dt()
+		for o in self[option]:
+			if e:
+				e.append(", ")
+			e2 = doc.lit(doc.option(o[option_string][0].content))
+			for oa in o[option_argument]:
+				e2.append("=", oa.content)
+			e.append(e2)
+		return e.convert(converter)
 
 
 class option_string(BaseElement):
@@ -415,7 +424,9 @@ class option_argument(BaseElement):
 
 
 class description(BaseElement):
-	pass
+	def convert(self, converter):
+		e = doc.dd(self.content)
+		return e.convert(converter)
 
 
 class literal_block(BaseElement):
