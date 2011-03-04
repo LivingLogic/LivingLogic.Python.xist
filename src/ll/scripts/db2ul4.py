@@ -1,9 +1,30 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""
+``db2ul4`` is a script that can be used for rendering database content into
+a UL4 template. An example template that connects to an Oracle database and
+outputs the content of a ``person`` table into an XML file looks like this::
+
+	<?xml version='1.0' encoding='<?print encoding?>'?>
+	<?code db = oracle["user/pwd@db"]?>
+	<persons>
+		<?for p in db.iter["select id, firstname, lastname from person"]?>
+			<person id="<?printx p.id?>">
+				<firstname><?printx p.firstname?></firstname>
+				<lastname><?printx p.lastname?></lastname>
+			</person>
+		<?end for?>
+	</persons>
+"""
+
+
 import sys, os, argparse, codecs
 
 from ll import ul4c
+
+
+__docformat__ = "reStructuredText"
 
 
 class System(object):
@@ -31,7 +52,10 @@ class QueryIter(object):
 		return c
 
 
-class DB(object):
+class Connection(object):
+	def __init__(self, connection):
+		self.connection = connection
+
 	def __getitem__(self, key):
 		if key == "iter":
 			return QueryIter(self.connection)
@@ -41,14 +65,14 @@ class DB(object):
 			raise KeyError(key)
 
 
-class Oracle(DB):
-	def __init__(self, connectstring):
+class Oracle(object):
+	def __getitem__(self, connectstring):
 		from ll import orasql
-		self.connection = orasql.connect(connectstring, readlobs=True)
+		return Connection(orasql.connect(connectstring, readlobs=True))
 
 
-class SQLite(DB):
-	def __init__(self, connectstring):
+class SQLite(object):
+	def __getitem__(self, connectstring):
 		import sqlite3
 		connection = sqlite3.connect(connectstring)
 		class Row(sqlite3.Row):
@@ -57,30 +81,17 @@ class SQLite(DB):
 					key = key.encode("ascii")
 				return sqlite3.Row.__getitem__(self, key)
 		connection.row_factory = Row
-		self.connection = connection
+		return Connection(connection)
 
 
-class MySQL(DB):
-	def __init__(self, connectstring):
+class MySQL(object):
+	def __getitem__(self, connectstring):
 		import MySQLdb
 		from MySQLdb import cursors
 		(user, host) = connectstring.split("@")
 		(user, passwd) = user.split("/")
 		(host, db) = host.split("/")
-		self.connection = MySQLdb.connect(user=user, passwd=passwd, host=host, db=db, use_unicode=True, cursorclass=cursors.DictCursor)
-
-
-class Connect(object):
-	def __getitem__(self, connectstring):
-		(type, sep, connectstring) = connectstring.partition(":")
-		if type == "oracle":
-			return Oracle(connectstring)
-		elif type == "sqlite":
-			return SQLite(connectstring)
-		elif type == "mysql":
-			return MySQL(connectstring)
-		else:
-			raise KeyError(connectstring)
+		return Connection(MySQLdb.connect(user=user, passwd=passwd, host=host, db=db, use_unicode=True, cursorclass=cursors.DictCursor))
 
 
 def main(args=None):
@@ -108,7 +119,14 @@ def main(args=None):
 			maintemplate = template
 		templates[templatename] = template
 
-	vars = dict(connect=Connect(), system=System(), encoding=args.outputencoding, templates=templates)
+	vars = dict(
+		oracle=Oracle(),
+		sqlite=SQLite(),
+		mysql=MySQL(),
+		system=System(),
+		encoding=args.outputencoding,
+		templates=templates,
+	)
 	for part in codecs.iterencode(maintemplate.render(**vars), args.outputencoding):
 		sys.stdout.write(part)
 

@@ -1,8 +1,26 @@
+Migrating to version 3.18
+=========================
+
+Changes to ``db2ul4``
+---------------------
+
+*	The variables available in UL4 templates used by ``db2ul4`` have changed.
+	Instead of a ``connect`` object, there are now three objects for each
+	supported database (i.e. ``oracle``, ``sqlite`` and ``mysql``). To update
+	your template replace::
+
+		connect["oracle:user/pwd@db"]
+
+	with::
+
+		oracle["user/pwd@db"]
+
+
 Migrating to version 3.17
 =========================
 
 Changes to :mod:`ll.misc`
-------------------------------
+-------------------------
 
 *	:func:`ll.misc.javastring` has been renamed to :func:`ll.misc.javaexpr`.
 
