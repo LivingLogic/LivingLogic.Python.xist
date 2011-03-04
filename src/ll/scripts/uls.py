@@ -44,7 +44,7 @@ Options
 		List directory recursively
 
 	``-w``, ``--spacing`` : integer
-		The number of spaces between column (only relevant when neither ``--long``
+		The number of spaces between columns (only relevant when neither ``--long``
 		nor ``--one`` is specified)
 
 	``-i``, ``--include`` : regular expression
@@ -52,6 +52,9 @@ Options
 
 	``-e``, ``--expression`` : regular expression
 		URLs matching the regular expression will be not be output.
+
+	``-a``, ``--all`` :  ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Output files whose name starts with a dot?
 """
 
 
@@ -119,6 +122,8 @@ def main(args=None):
 		if args.include is not None and args.include.search(strurl) is None:
 			return False
 		if args.exclude is not None and args.exclude.search(strurl) is not None:
+			return False
+		if not args.all and strurl.startswith("."):
 			return False
 		return True
 
@@ -221,6 +226,7 @@ def main(args=None):
 	p.add_argument("-w", "--spacing", dest="spacing", metavar="N", help="Number of spaces between columns (default: %(default)s)", type=int, default=3)
 	p.add_argument("-i", "--include", dest="include", metavar="PATTERN", help="Include only URLs matching PATTERN (default: %(default)s)", type=re.compile)
 	p.add_argument("-e", "--exclude", dest="exclude", metavar="PATTERN", help="Exclude URLs matching PATTERN (default: %(default)s)", type=re.compile)
+	p.add_argument("-a", "--all", dest="all", help="Include dot files? (default: %(default)s)", action=misc.FlagAction, default=False)
 
 	args = p.parse_args(args)
 

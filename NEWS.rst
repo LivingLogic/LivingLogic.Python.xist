@@ -13,7 +13,8 @@ Changes in 3.18 (released ??/??/2011)
 
 *	The scripts ``uls``, ``ucp`` and ``ucat`` have new options :option:`--include`
 	and :option:`--exclude` for including/excluding URLs that match a regular
-	expression.
+	expression. They also have an new option :option:`--all` to include/exclude
+	dot files (i.e. files whose name starts with a dot)
 
 *	The unused :option:`--verbose` was removed from the script ``ucat``.
 

@@ -31,6 +31,8 @@ def main(args=None):
 			return False
 		if args.exclude is not None and args.exclude.search(strurl) is not None:
 			return False
+		if not args.all and strurl.startswith("."):
+			return False
 		return True
 
 	def catone(urlread):
@@ -62,6 +64,7 @@ def main(args=None):
 	p.add_argument("-x", "--ignoreerrors", dest="ignoreerrors", help="Ignore errors? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-i", "--include", dest="include", metavar="PATTERN", help="Include only URLs matching PATTERN (default: %(default)s)", type=re.compile)
 	p.add_argument("-e", "--exclude", dest="exclude", metavar="PATTERN", help="Exclude URLs matching PATTERN (default: %(default)s)", type=re.compile)
+	p.add_argument("-a", "--all", dest="all", help="Include dot files? (default: %(default)s)", action=misc.FlagAction, default=False)
 
 	args = p.parse_args(args)
 	with url.Context():
