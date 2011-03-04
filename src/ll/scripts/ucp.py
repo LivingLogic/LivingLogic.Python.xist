@@ -26,12 +26,13 @@ except ImportError:
 
 
 def main(args=None):
-	def match(strurl):
+	def match(url):
+		strurl = str(url)
 		if args.include is not None and args.include.search(strurl) is None:
 			return False
 		if args.exclude is not None and args.exclude.search(strurl) is not None:
 			return False
-		if not args.all and strurl.startswith("."):
+		if not args.all and url.file.startswith("."):
 			return False
 		return True
 
@@ -46,7 +47,7 @@ def main(args=None):
 					msg = astyle.style_default("ucp: ", astyle.style_url(strurlread), astyle.style_warn(" (directory skipped)"))
 					stderr.writeln(msg)
 		else:
-			if match(strurlread):
+			if match(urlread):
 				if args.verbose:
 					msg = astyle.style_default("ucp: ", astyle.style_url(strurlread), " -> ")
 					stderr.write(msg)

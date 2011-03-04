@@ -118,12 +118,13 @@ def main(args=None):
 	curses.setupterm()
 	width = curses.tigetnum('cols')
 
-	def match(strurl):
+	def match(url):
+		strurl = str(url)
 		if args.include is not None and args.include.search(strurl) is None:
 			return False
 		if args.exclude is not None and args.exclude.search(strurl) is not None:
 			return False
-		if not args.all and strurl.startswith("."):
+		if not args.all and url.file.startswith("."):
 			return False
 		return True
 
@@ -196,24 +197,24 @@ def main(args=None):
 				url.path.segments.append("")
 			if not args.long and not args.one:
 				if args.recursive:
-					urls = [(url/child, str(child)) for child in url.files() if match(str(url/child))]
+					urls = [(url/child, str(child)) for child in url.files() if match(url/child)]
 					if urls:
 						printblock(url, urls)
 					for child in url.dirs():
 						printall(base, url/child)
 				else:
-					urls = [(url/child, str(child)) for child in url.listdir() if match(str(url/child))]
+					urls = [(url/child, str(child)) for child in url.listdir() if match(url/child)]
 					printblock(None, urls)
 			else:
 				for child in url.listdir():
 					child = url/child
-					if match(str(child)):
+					if match(child):
 						if not args.recursive or child.isdir(): # For files the print call is done by the recursive call to ``printall``
 							printone(child)
 					if args.recursive:
 						printall(base, child)
 		else:
-			if match(str(url)):
+			if match(url):
 				printone(url)
 
 	p = argparse.ArgumentParser(description="List the content of one or more URLs")

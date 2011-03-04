@@ -26,25 +26,25 @@ except ImportError:
 
 
 def main(args=None):
-	def match(strurl):
+	def match(url):
+		strurl = str(url)
 		if args.include is not None and args.include.search(strurl) is None:
 			return False
 		if args.exclude is not None and args.exclude.search(strurl) is not None:
 			return False
-		if not args.all and strurl.startswith("."):
+		if not args.all and url.file.startswith("."):
 			return False
 		return True
 
 	def catone(urlread):
-		strurlread = str(urlread)
 		if urlread.isdir():
 			if args.recursive:
 				for u in urlread.listdir():
 					catone(urlread/u)
 			else:
-				raise IOError(errno.EISDIR, "Is a directory", strurlread)
+				raise IOError(errno.EISDIR, "Is a directory", str(urlread))
 		else:
-			if match(strurlread):
+			if match(urlread):
 				try:
 					with contextlib.closing(urlread.open("rb")) as fileread:
 						size = 0
