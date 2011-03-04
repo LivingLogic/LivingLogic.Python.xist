@@ -1528,7 +1528,6 @@ class Project(dict):
 		sequence :var:`args`, modify :var:`self` accordingly and return
 		the result of the parsers :meth:`parse_args` call.
 		"""
-		print self.showdata
 		p = self.argparser()
 		args = p.parse_args(args)
 		self.ignoreerrors = args.ignoreerrors
@@ -1540,7 +1539,6 @@ class Project(dict):
 		self.showregistration = args.showregistration
 		self.showidle = args.showidle
 		self.showdata = args.showdata
-		print self.showdata
 		return args
 
 	def _get(self, target, since):
