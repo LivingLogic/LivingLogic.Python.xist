@@ -44,8 +44,8 @@ Options
 		List directory recursively.
 
 	``-w``, ``--spacing`` : integer
-		The number of spaces (or pad characters) between columns (only relevant
-		when neither ``--long`` nor ``--one`` is specified).
+		The number of spaces (or padding characters) between columns (only
+		relevant when neither ``--long`` nor ``--one`` is specified).
 
 	``-P``, ``--padding`` : characters
 		The characters using for padding output in multicolumn or long format.
@@ -236,7 +236,7 @@ def main(args=None):
 	p.add_argument("-l", "--long", dest="long", help="Long format? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-s", "--human-readable-sizes", dest="human", help="Human readable file sizes? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-r", "--recursive", dest="recursive", help="Recursive listing? (default: %(default)s)", action=misc.FlagAction, default=False)
-	p.add_argument("-w", "--spacing", dest="spacing", metavar="N", help="Number of spaces between columns (default: %(default)s)", type=int, default=3)
+	p.add_argument("-w", "--spacing", dest="spacing", metavar="INTEGER", help="Space between columns (default: %(default)s)", type=int, default=3)
 	p.add_argument("-P", "--padding", dest="padding", metavar="CHARS", help="Characters used for column padding (default: %(default)s)", default=" ")
 	p.add_argument("-S", "--separator", dest="separator", metavar="CHARS", help="Characters used for separating columns in long format (default: %(default)s)", default="  ")
 	p.add_argument("-i", "--include", dest="include", metavar="PATTERN", help="Include only URLs matching PATTERN (default: %(default)s)", type=re.compile)
