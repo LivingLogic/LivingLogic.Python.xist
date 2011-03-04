@@ -16,6 +16,9 @@ Changes in 3.18 (released ??/??/2011)
 	expression. They also have an new option :option:`--all` to include/exclude
 	dot files (i.e. files whose name starts with a dot)
 
+*	``ucp`` now supports to new options :option:`--padchar` and
+	:option:`--sepchar` which are used for column output.
+
 *	The unused :option:`--verbose` was removed from the script ``ucat``.
 
 *	``ucp -x`` now prints exception details.
