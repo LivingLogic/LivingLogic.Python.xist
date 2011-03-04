@@ -10,6 +10,51 @@
 ## See ll/__init__.py for the license
 
 
+"""
+``uls`` is a script that lists directory contents. It is an URL-enabled version
+of the ``ls`` system command. Via :mod:`ll.url` and :mod:`ll.orasql` ``uls``
+supports ``ssh`` and ``oracle`` URLs too.
+
+
+Options
+-------
+
+``uls`` supports the following options:
+
+	``urls``
+		Zero or more URLs. If no URL is given the current directory is listed.
+
+	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
+		Should the ouput be colored. If ``auto`` is specified (the default) then
+		the output is colored if stdout is a terminal.
+
+	``-1``, ``--one`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Force output to be one URL per line. The default is to output URLs in
+		multiple columns (as many as fit on the screen)
+
+	``-l``, ``--long`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Ouput in long format: One URL per line containing the following information:
+		file mode, owner name, group name, number of bytes in the file,
+		number of links, URL
+
+	``-s``, ``--human-readable-sizes`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Output the file size in human readable form (e.g. ``42M`` for 42 megabytes)
+
+	``-r``, ``--recursive`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		List directory recursively
+
+	``-w``, ``--spacing`` : integer
+		The number of spaces between column (only relevant when neither ``--long``
+		nor ``--one`` is specified)
+
+	``-i``, ``--include`` : regular expression
+		Only URLs matching the regular expression will be output.
+
+	``-e``, ``--expression`` : regular expression
+		URLs matching the regular expression will be not be output.
+"""
+
+
 import sys, re, argparse, contextlib, datetime, pwd, grp, stat, curses
 
 from ll import misc, url
@@ -23,6 +68,9 @@ try:
 	from ll import orasql # Activate oracle URLs
 except ImportError:
 	pass
+
+
+__docformat__ = "reStructuredText"
 
 
 style_file = astyle.Style.fromstr("white:black")
@@ -47,25 +95,6 @@ def lpad(s, l):
 	if len(meas) < l:
 		return astyle.style_default(style_pad("."*(l-len(meas))), s)
 	return s
-
-
-def findcolcount(urls, width, spacing):
-	def width4cols(numcols, spacing):
-		cols = [0]*numcols
-		rows = (len(urls)+numcols-1)//numcols
-		for (i, (u, su)) in enumerate(urls):
-			cols[i//rows] = max(cols[i//rows], len(su))
-		return (sum(cols) + (numcols-1)*spacing, rows, cols)
-
-	numcols = len(urls)
-	if numcols:
-		while True:
-			(s, rows, cols) = width4cols(numcols, spacing)
-			if s <= width or numcols == 1:
-				return (rows, cols)
-			numcols -= 1
-	else:
-		return (0, 0)
 
 
 def main(args=None):
@@ -93,15 +122,33 @@ def main(args=None):
 			return False
 		return True
 
-	def printone(url, long, human):
-		if long:
+	def findcolcount(urls):
+		def width4cols(numcols):
+			cols = [0]*numcols
+			rows = (len(urls)+numcols-1)//numcols
+			for (i, (u, su)) in enumerate(urls):
+				cols[i//rows] = max(cols[i//rows], len(su))
+			return (sum(cols) + (numcols-1)*args.spacing, rows, cols)
+
+		numcols = len(urls)
+		if numcols:
+			while True:
+				(s, rows, cols) = width4cols(numcols)
+				if s <= width or numcols == 1:
+					return (rows, cols)
+				numcols -= 1
+		else:
+			return (0, 0)
+
+	def printone(url):
+		if args.long:
 			stat = url.stat()
 			owner = url.owner()
 			group = url.group()
 			mtime = datetime.datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
 			mode = "".join([text[bool(stat.st_mode&bit)] for (bit, text) in modedata])
 			size = stat.st_size
-			if human:
+			if args.human:
 				s = "BKMGTP"
 				for c in s:
 					if size < 2048:
@@ -111,16 +158,16 @@ def main(args=None):
 							size = astyle.style_default(str(int(size)), style_sizeunit(c))
 						break
 					size /= 1024.
-			stdout.write(mode, sep, rpad(owner, 8), sep, rpad(group, 8), sep, lpad(size, 5 if human else 12), sep, lpad(stat.st_nlink, 3), sep, mtime, sep)
+			stdout.write(mode, sep, rpad(owner, 8), sep, rpad(group, 8), sep, lpad(size, 5 if args.human else 12), sep, lpad(stat.st_nlink, 3), sep, mtime, sep)
 		if url.isdir():
 			stdout.writeln(style_dir(str(url)))
 		else:
 			stdout.writeln(style_file(str(url)))
 
-	def printblock(url, urls, width, spacing):
+	def printblock(url, urls):
 		if url is not None:
 			stdout.writeln(style_dir(str(url)), ":")
-		(rows, cols) = findcolcount(urls, width, spacing)
+		(rows, cols) = findcolcount(urls)
 		for i in xrange(rows):
 			for (j, w) in enumerate(cols):
 				index = i+j*rows
@@ -134,38 +181,37 @@ def main(args=None):
 					else:
 						su = style_file(su)
 					if index + rows < len(urls):
-						su = rpad(su, w+spacing)
+						su = rpad(su, w+args.spacing)
 					stdout.write(su)
 			stdout.writeln()
 
-	def printall(base, url, one, long, recursive, human, spacing):
+	def printall(base, url):
 		if url.isdir():
 			if url.path.segments[-1]:
 				url.path.segments.append("")
-			if not long and not one:
-				if recursive:
-					urls = [(url/child, str(child)) for child in url.files() if match(str(url/child))]
+			if not args.long and not args.one:
+				urls = [(url/child, str(child)) for child in url.files() if match(str(url/child))]
+				if args.recursive:
 					if urls:
-						printblock(url, urls, width, spacing)
+						printblock(url, urls)
 					for child in url.dirs():
-						printall(base, url/child, one, long, recursive, human, spacing)
+						printall(base, url/child)
 				else:
-					urls = [(url/child, str(child)) for child in url.listdir() if match(str(url/child))]
-					printblock(None, urls, width, spacing)
+					printblock(None, urls)
 			else:
 				for child in url.listdir():
 					child = url/child
 					if match(str(child)):
-						if not recursive or child.isdir(): # For files the print call is done by the recursive call to ``printall``
-							printone(child, long, human)
-					if recursive:
-						printall(base, child, one, long, recursive, human, spacing)
+						if not args.recursive or child.isdir(): # For files the print call is done by the recursive call to ``printall``
+							printone(child)
+					if args.recursive:
+						printall(base, child)
 		else:
 			if match(str(url)):
-				printone(url, long, human)
+				printone(url)
 
 	p = argparse.ArgumentParser(description="List the content of one or more URLs")
-	p.add_argument("urls", metavar="url", help="URLs to be listed (default: current dir)", nargs="*", default=url.here(), type=url.URL)
+	p.add_argument("urls", metavar="url", help="URLs to be listed (default: current dir)", nargs="*", default=[url.Dir("./", scheme=None)], type=url.URL)
 	p.add_argument("-c", "--color", dest="color", help="Color output (default: %(default)s)", default="auto", choices=("yes", "no", "auto"))
 	p.add_argument("-1", "--one", dest="one", help="One entry per line? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-l", "--long", dest="long", help="Long format? (default: %(default)s)", action=misc.FlagAction, default=False)
@@ -188,7 +234,7 @@ def main(args=None):
 
 	with url.Context():
 		for u in args.urls:
-			printall(u, u, args.one, args.long, args.recursive, args.human, args.spacing)
+			printall(u, u)
 
 
 if __name__ == "__main__":
