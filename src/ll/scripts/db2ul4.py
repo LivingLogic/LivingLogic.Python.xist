@@ -11,7 +11,7 @@ Options
 
 ``db2ul4`` supports the following options:
 
-	:option:`templates`
+	``templates``
 		One or more template files. A file named ``-`` will be treated as
 		standard input. The first file in the list is the main template, i.e. the
 		one that gets rendered. All templates will be available in the main
@@ -19,10 +19,10 @@ Options
 		of the files (i.e. ``foo.ul4`` will be ``templates.foo``; stdin will be
 		``templates.stdin``).
 
-	:option:`-i`, :option:`--inputencoding`
+	``-i``, ``--inputencoding``
 		The encoding of the templates files (default ``utf-8``)
 
-	:option:`-o`, :option:`--outputencoding`
+	``-o``, ``--outputencoding``
 		The encoding used for the rendered output (default ``utf-8``)
 
 
