@@ -71,8 +71,8 @@ Inside the template the following variables are available:
 Example
 -------
 
-This example shows you how to connect to an Oracle database and output the
-content of a ``person`` table into an XML file.
+This example shows how to connect to an Oracle database and output the content
+of a ``person`` table into an XML file.
 
 Suppose we have a database table that looks like this::
 
