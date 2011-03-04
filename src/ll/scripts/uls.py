@@ -47,10 +47,10 @@ Options
 		The number of spaces (or pad characters) between columns (only relevant
 		when neither ``--long`` nor ``--one`` is specified).
 
-	``-P``, ``--padchar`` : character
-		The character using for padding output in multicolumn or long format.
+	``-P``, ``--padding`` : characters
+		The characters using for padding output in multicolumn or long format.
 
-	``-S``, ``--sepchar`` : character
+	``-S``, ``--separator`` : characters
 		The characters used for separating columns in long format.
 
 	``-i``, ``--include`` : regular expression
@@ -110,7 +110,11 @@ def main(args=None):
 		if not isinstance(s, (basestring, astyle.Text)):
 			s = str(s)
 		if len(meas) < l:
-			return astyle.style_default(s, style_pad(args.padchar*(l-len(meas))))
+			size = l-len(meas)
+			psize = len(args.padding)
+			repeats = (size+psize-1)//psize
+			padding = (args.padding*repeats)[-size:]
+			return astyle.style_default(s, style_pad(padding))
 		return s
 
 	def lpad(s, l):
@@ -118,7 +122,11 @@ def main(args=None):
 		if not isinstance(s, (basestring, astyle.Text)):
 			s = str(s)
 		if len(meas) < l:
-			return astyle.style_default(style_pad(args.padchar*(l-len(meas))), s)
+			size = l-len(meas)
+			psize = len(args.padding)
+			repeats = (size+psize-1)//psize
+			padding = (args.padding*repeats)[:size]
+			return astyle.style_default(style_pad(padding), s)
 		return s
 
 	def match(url):
@@ -151,7 +159,7 @@ def main(args=None):
 
 	def printone(url):
 		if args.long:
-			sep = style_pad(args.sepchar)
+			sep = style_pad(args.separator)
 			stat = url.stat()
 			owner = url.owner()
 			group = url.group()
@@ -229,8 +237,8 @@ def main(args=None):
 	p.add_argument("-s", "--human-readable-sizes", dest="human", help="Human readable file sizes? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-r", "--recursive", dest="recursive", help="Recursive listing? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-w", "--spacing", dest="spacing", metavar="N", help="Number of spaces between columns (default: %(default)s)", type=int, default=3)
-	p.add_argument("-P", "--padchar", dest="padchar", metavar="CHAR", help="Character used for padding columns (default: %(default)s)", default=" ")
-	p.add_argument("-S", "--sepchar", dest="sepchar", metavar="CHARS", help="Characters used for separating columns in long format (default: %(default)s)", default="  ")
+	p.add_argument("-P", "--padding", dest="padding", metavar="CHARS", help="Characters used for column padding (default: %(default)s)", default=" ")
+	p.add_argument("-S", "--separator", dest="separator", metavar="CHARS", help="Characters used for separating columns in long format (default: %(default)s)", default="  ")
 	p.add_argument("-i", "--include", dest="include", metavar="PATTERN", help="Include only URLs matching PATTERN (default: %(default)s)", type=re.compile)
 	p.add_argument("-e", "--exclude", dest="exclude", metavar="PATTERN", help="Exclude URLs matching PATTERN (default: %(default)s)", type=re.compile)
 	p.add_argument("-a", "--all", dest="all", help="Include dot files? (default: %(default)s)", action=misc.FlagAction, default=False)
