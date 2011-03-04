@@ -80,7 +80,7 @@ class Connect(object):
 		elif type == "mysql":
 			return MySQL(connectstring)
 		else:
-			return KeyError(connectstring)
+			raise KeyError(connectstring)
 
 
 def main(args=None):
