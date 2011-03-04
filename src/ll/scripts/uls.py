@@ -30,28 +30,28 @@ Options
 
 	``-1``, ``--one`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		Force output to be one URL per line. The default is to output URLs in
-		multiple columns (as many as fit on the screen)
+		multiple columns (as many as fit on the screen).
 
 	``-l``, ``--long`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		Ouput in long format: One URL per line containing the following information:
 		file mode, owner name, group name, number of bytes in the file,
-		number of links, URL
+		number of links, URL.
 
 	``-s``, ``--human-readable-sizes`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Output the file size in human readable form (e.g. ``42M`` for 42 megabytes)
+		Output the file size in human readable form (e.g. ``42M`` for 42 megabytes).
 
 	``-r``, ``--recursive`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		List directory recursively
+		List directory recursively.
 
 	``-w``, ``--spacing`` : integer
 		The number of spaces between columns (only relevant when neither ``--long``
-		nor ``--one`` is specified)
+		nor ``--one`` is specified).
 
 	``-P``, ``--padchar`` : character
 		The character using for padding output in multicolumn or long format.
 
 	``-S``, ``--sepchar`` : character
-		The characters used for separating columns in long format
+		The characters used for separating columns in long format.
 
 	``-i``, ``--include`` : regular expression
 		Only URLs matching the regular expression will be output.
