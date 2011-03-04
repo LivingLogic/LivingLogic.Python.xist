@@ -3,8 +3,87 @@
 
 """
 ``db2ul4`` is a script that can be used for rendering database content into
-a UL4 template. An example template that connects to an Oracle database and
-outputs the content of a ``person`` table into an XML file looks like this::
+a UL4 template.
+
+
+Options
+-------
+
+``db2ul4`` supports the following options:
+
+	:option:`templates`
+		One or more template files. A file named ``-`` will be treated as
+		standard input. The first file in the list is the main template, i.e. the
+		one that gets rendered. All templates will be available in the main
+		template as the ``templates`` dictionary. The keys are the base names
+		of the files (i.e. ``foo.ul4`` will be ``templates.foo``; stdin will be
+		``templates.stdin``).
+
+	:option:`-i`, :option:`--inputencoding`
+		The encoding of the templates files (default ``utf-8``)
+
+	:option:`-o`, :option:`--outputencoding`
+		The encoding used for the rendered output (default ``utf-8``)
+
+
+Template variables
+------------------
+
+Inside the template the following variables are available:
+
+	``templates``
+		A dictionary containing all the templates specified on the command line.
+
+	``encoding``
+		The encoding specified via the :option:`--outputencoding` option.
+
+	``system``
+		A dict-like object that maps system commands to their output, e.g. the
+		template::
+
+			<?print system["whoami"]?>
+
+		will output the user name.
+
+	``oracle``
+		A dict-like object that maps Oracle connect strings to connection objects.
+		A connection object is itself a dict-like object providing two key:
+
+			``iter``
+				A dict-like object that maps SQL queries to iterators over the
+				query result records
+
+			``list``
+				A dict-like object that maps SQL queries to a list of query result
+				records
+
+		A record in turn is a dict-like object mapping field names to field values.
+
+	``mysql``
+		A dict-like object that maps MySQL connect strings to connection objects.
+		A MySQL connect string is a string of the form ``user/pwd@host/db``.
+
+	``sqlite``
+		A dict-like object that maps SQLite connect strings to connection objects.
+		The connect string will be passed directly to :func:`sqlite3.connect`.
+
+
+Example
+-------
+
+This example shows you how to connect to an Oracle database and output the
+content of a ``person`` table into an XML file.
+
+Suppose we have a database table that looks like this::
+
+	create table person
+	(
+		id integer not null,
+		firstname varchar2(200),
+		lastname varchar2(200)
+	);
+
+Then we can use the following template to output the table into an XML file::
 
 	<?xml version='1.0' encoding='<?print encoding?>'?>
 	<?code db = oracle["user/pwd@db"]?>
@@ -16,6 +95,11 @@ outputs the content of a ``person`` table into an XML file looks like this::
 			</person>
 		<?end for?>
 	</persons>
+
+If we put the template into the file ``person.ul4`` we can call ``db2ul4`` like
+this::
+
+	db2ul4 -o=utf-8 person.ul4 >person.xml
 """
 
 
