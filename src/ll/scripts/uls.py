@@ -44,8 +44,8 @@ Options
 		List directory recursively.
 
 	``-w``, ``--spacing`` : integer
-		The number of spaces between columns (only relevant when neither ``--long``
-		nor ``--one`` is specified).
+		The number of spaces (or pad characters) between columns (only relevant
+		when neither ``--long`` nor ``--one`` is specified).
 
 	``-P``, ``--padchar`` : character
 		The character using for padding output in multicolumn or long format.
