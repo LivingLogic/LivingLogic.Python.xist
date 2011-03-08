@@ -33,6 +33,9 @@ Changes in 3.18 (released ??/??/2011)
 	for all schema objects. On writing a ``.sql`` extension will be stripped to
 	get the name of the schema object.
 
+*	Oracle URLs now should support schema objects with fancy names (i.e. ones
+	that contain accented characters).
+
 
 Changes in 3.17.3 (released 03/02/2011)
 ---------------------------------------
