@@ -10,6 +10,56 @@
 ## See ll/__init__.py for the license
 
 
+"""
+``ucat`` is a script for printing files. It is an URL-enabled version of the
+``cat`` system command. Via :mod:`ll.url` and :mod:`ll.orasql` ``ucat`` supports
+``ssh`` and ``oracle`` URLs too.
+
+
+Options
+-------
+
+``ucat`` supports the following options:
+
+	``urls``
+		One or more URLs to be printed.
+
+	``-r``, ``--recursive`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Prints directory content recursively.
+
+	``-x``, ``--ignoreerrors`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Ignores errors occuring during the copy process. (Otherwise the copy
+		process is aborted.)
+
+	``-i``, ``--include`` : regular expression
+		Only copy files that contain the regular expression.
+
+	``-e``, ``--exclude`` : regular expression
+		Don't copy files that contain the regular expression.
+
+	``-a``, ``--all`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Include dot files (i.e. files whose name starts with a ``.``). Not that
+		the content of directories whose name starts with a dot will still be
+		printed.
+
+
+Examples
+--------
+Print a file::
+
+	$ ucat foo.txt
+
+Print a remote file::
+
+	$ ucat ssh://user@www.example.org/~/foo.txt
+
+Print the SQL source code of a procedure in an Oracle database::
+
+	$ ucat oracle://user:pwd@oracle.example.org/procedure/foo
+
+"""
+
+
 import sys, re, argparse, contextlib, errno
 
 from ll import misc, url
@@ -23,6 +73,9 @@ try:
 	from ll import orasql # activate the oracle scheme
 except ImportError:
 	pass
+
+
+__docformat__ = "reStructuredText"
 
 
 def main(args=None):
