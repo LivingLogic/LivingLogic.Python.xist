@@ -61,6 +61,48 @@ Options
 
 	``-a``, ``--all`` :  ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		Output files whose name starts with a dot?
+
+
+Examples
+--------
+
+List the current directory::
+
+	$ uls
+	CREDITS.rst   installer.bmp   NEWS.rst           scripts/    test/
+	demos/        Makefile        OLDMIGRATION.rst   setup.cfg
+	docs/         MANIFEST.in     OLDNEWS.rst        setup.py
+	INSTALL.rst   MIGRATION.rst   README.rst         src/
+
+List the current directory in long format with human readable file sizes::
+
+	$ uls -s -l
+	rw-r--r--  walter    staff      1114    1  2008-01-06 22:27:15  CREDITS.rst
+	rwxr-xr-x  walter    staff       170    5  2007-12-03 23:35:33  demos/
+	rwxr-xr-x  walter    staff       340   10  2010-12-08 16:48:53  docs/
+	rw-r--r--  walter    staff        2K    1  2010-12-08 16:48:53  INSTALL.rst
+	rw-r--r--  walter    staff       35K    1  2007-12-03 23:35:33  installer.bmp
+	rw-r--r--  walter    staff      1763    1  2011-01-21 17:22:32  Makefile
+	rw-r--r--  walter    staff       346    1  2011-02-25 11:13:18  MANIFEST.in
+	rw-r--r--  walter    staff       34K    1  2011-03-04 13:48:35  MIGRATION.rst
+	rw-r--r--  walter    staff      107K    1  2011-03-04 18:18:42  NEWS.rst
+	rw-r--r--  walter    staff        8K    1  2010-12-08 16:48:53  OLDMIGRATION.rst
+	rw-r--r--  walter    staff       75K    1  2010-12-08 16:48:53  OLDNEWS.rst
+	rw-r--r--  walter    staff        3K    1  2010-12-08 16:48:53  README.rst
+	rwxr-xr-x  walter    staff       578   17  2010-12-08 16:48:53  scripts/
+	rw-r--r--  walter    staff        39    1  2010-12-08 16:48:53  setup.cfg
+	rw-r--r--  walter    staff        7K    1  2011-03-03 13:33:21  setup.py
+	rwxr-xr-x  walter    staff       136    4  2007-12-04 01:43:13  src/
+	rwxr-xr-x  walter    staff        2K   68  2011-03-03 13:27:46  test/
+
+Recursively list a remote directory::
+
+	uls ssh://user@www.example.org/~/dir/ -r
+	...
+
+Recursively list the schema objects in an Oracle database::
+
+	uls oracle://user:pwd@oracle.example.org/ -r
 """
 
 
