@@ -60,7 +60,9 @@ Options
 		URLs matching the regular expression will be not be output.
 
 	``-a``, ``--all`` :  ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Output files whose name starts with a dot?
+		Output dot files (i.e. files and directories whose name starts with a
+		``.``). Not that the content of directories whose name start with a dot
+		will still be listed.
 
 
 Examples

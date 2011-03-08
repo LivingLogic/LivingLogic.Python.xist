@@ -10,6 +10,86 @@
 ## See ll/__init__.py for the license
 
 
+"""
+``ucp`` is a script that copies files/directory contents. It is an URL-enabled
+version of the ``cp`` system command. Via :mod:`ll.url` and :mod:`ll.orasql`
+``ucp`` supports ``ssh`` and ``oracle`` URLs too.
+
+
+Options
+-------
+
+``ucp`` supports the following options:
+
+	``urls``
+		Two or more URLs. If more than two URLs are given or if the last URL refers
+		to a directory, the last URL is the target directory. All other sources
+		are copied into this target directory. Else one file is copied to another
+		file.
+
+	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Give a report during the copy process about the files copied and their sizes.
+
+	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
+		Should the ouput be colored. If ``auto`` is specified (the default) then
+		the output is colored if stdout is a terminal.
+
+	``-u``, ``--user``
+		A user id or name. If given ``ucp`` will change the owner of the
+		target files.
+
+	``-g``, ``--group``
+		A group id or name. If given ``ucp`` will change the group of the
+		target files.
+
+	``-r``, ``--recursive`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Copies files recursively.
+
+	``-x``, ``--ignoreerrors`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Ignores errors occuring during the copy process. (Otherwise the copy
+		process is aborted.)
+
+	``-i``, ``--include`` : regular expression
+		Only copy files that contain the regular expression.
+
+	``-e``, ``--exclude`` : regular expression
+		Don't copy files that contain the regular expression.
+
+	``-a``, ``--all`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Include dot files (i.e. files whose name starts with a ``.``). Not that
+		the content of directories whose name starts with a dot will still be
+		copied.
+
+
+Examples
+--------
+
+Copy one file to another::
+
+	$ ucp foo.txt bar.txt
+
+Copy a file into an existing directory::
+
+	$ ucp foo.txt dir/
+
+Copy multiple files into a new or existing directory (and give a progress
+report)::
+
+	$ ucp foo.txt bar.txt baz.txt dir/ -v
+	ucp: foo.txt -> dir/foo.txt (1114 bytes)
+	ucp: bar.txt -> dir/bar.txt (2916 bytes)
+	ucp: baz.txt -> dir/baz.txt (35812 bytes)
+
+Recursively copy the schema objects in an Oracle database to a local directory::
+
+	ucp oracle://user:pwd@oracle.example.org/ db/ -r
+
+Recursively copy the schema objects in an Oracle database to a remote directory::
+
+	ucp oracle://user:pwd@oracle.example.org/ ssh://user@www.example.org/~/db/ -r
+"""
+
+
 import sys, re, argparse, contextlib
 
 from ll import misc, url
@@ -23,6 +103,9 @@ try:
 	from ll import orasql # activate the oracle scheme
 except ImportError:
 	pass
+
+
+__docformat__ = "reStructuredText"
 
 
 def main(args=None):
