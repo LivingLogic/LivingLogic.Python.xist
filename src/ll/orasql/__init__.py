@@ -2706,12 +2706,14 @@ class OracleFileResource(url_.Resource):
 		if "w" in self.mode:
 			self.stream = cStringIO.StringIO()
 		else:
-			name = url.path[1]
-			if name.lower().endswith(".sql"):
-				name = name[:-4]
-			name = unicodedata.normalize('NFC', name)
-			code = Object.name2type[type](name).createddl(self.connection.dbconnection, term=False)
+			code = Object.name2type[type](self._namefromurl()).createddl(self.connection.dbconnection, term=False)
 			self.stream = cStringIO.StringIO(code.encode("utf-8"))
+
+	def _namefromurl(self):
+		name = self.url.path[1]
+		if name.lower().endswith(".sql"):
+			name = name[:-4]
+		return unicodedata.normalize('NFC', name)
 
 	def read(self, size=-1):
 		if self.closed:
@@ -2737,10 +2739,7 @@ class OracleFileResource(url_.Resource):
 			if "w" in self.mode:
 				c = self.connection.dbconnection.cursor()
 				type = Object.name2type[self.url.path[0]]
-				name = self.url.path[1]
-				if name.lower().endswith(".sql"):
-					name = name[:-4]
-				name = unicodedata.normalize('NFC', name)
+				name = self._namefromurl()
 				code = self.stream.getvalue().decode("utf-8")
 				code = type.fixname(name, code)
 				c.execute(code)
