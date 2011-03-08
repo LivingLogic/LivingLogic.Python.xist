@@ -103,6 +103,7 @@ Recursively list a remote directory::
 Recursively list the schema objects in an Oracle database::
 
 	uls oracle://user:pwd@oracle.example.org/ -r
+	...
 """
 
 
