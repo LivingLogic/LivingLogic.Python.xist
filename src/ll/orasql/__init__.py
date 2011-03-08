@@ -1306,6 +1306,18 @@ class Table(MixinNormalDates, Object):
 		"""
 		return self.mview(connection) is not None
 
+	def organization(self, connection=None):
+		"""
+		Return the organization of this table: either ``"heap"`` (for "normal"
+		tables) or ``"index"`` (for index organized tables).
+		"""
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select iot_type from all_tables where owner=nvl(:owner, user) and table_name=:name", owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		if rec is None:
+			raise SQLObjectNotFoundError(self)
+		return "heap" if rec.iot_type is None else "index"
+
 	@classmethod
 	def iternames(cls, connection, schema="user"):
 		cursor = connection.cursor()

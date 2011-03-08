@@ -36,6 +36,9 @@ Changes in 3.18 (released ??/??/2011)
 *	Oracle URLs now should support schema objects with fancy names (i.e. ones
 	that contain accented characters).
 
+*	:class:`ll.orasql.Table` has a new method :meth:`organization` that returns
+	``"heap"`` or normal tables and ``"index"`` for index organized tables.
+
 
 Changes in 3.17.3 (released 03/02/2011)
 ---------------------------------------
