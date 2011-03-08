@@ -28,7 +28,7 @@ __ http://cx-oracle.sourceforge.net/
 """
 
 
-import urllib, datetime, itertools, cStringIO, errno, fnmatch
+import urllib, datetime, itertools, cStringIO, errno, fnmatch, unicodedata
 
 from cx_Oracle import *
 
@@ -814,7 +814,7 @@ def formatstring(value, latin1=False):
 
 
 def makeurl(name):
-	return urllib.pathname2url(name).replace("/", "%2f")
+	return urllib.pathname2url(name.encode("utf-8")).replace("/", "%2f")
 
 
 class MixinNormalDates(object):
@@ -1940,7 +1940,7 @@ class View(MixinNormalDates, Object):
 	@classmethod
 	def fixname(cls, name, code):
 		code = code.split(None, 6)
-		code = u"create or replace force view {} {}".format(getfullname(name), code[6])
+		code = u"create or replace force view {} {}".format(getfullname(name, None), code[6])
 		return code
 
 	def iterrecords(self, connection=None):
@@ -2709,6 +2709,7 @@ class OracleFileResource(url_.Resource):
 			name = url.path[1]
 			if name.lower().endswith(".sql"):
 				name = name[:-4]
+			name = unicodedata.normalize('NFC', name)
 			code = Object.name2type[type](name).createddl(self.connection.dbconnection, term=False)
 			self.stream = cStringIO.StringIO(code.encode("utf-8"))
 
@@ -2739,6 +2740,7 @@ class OracleFileResource(url_.Resource):
 				name = self.url.path[1]
 				if name.lower().endswith(".sql"):
 					name = name[:-4]
+				name = unicodedata.normalize('NFC', name)
 				code = self.stream.getvalue().decode("utf-8")
 				code = type.fixname(name, code)
 				c.execute(code)
