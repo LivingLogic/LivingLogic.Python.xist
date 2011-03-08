@@ -2665,9 +2665,9 @@ class OracleConnection(url_.Connection):
 				type = path[0]
 				names = (name[0] for name in Object.name2type[type].iternames(self.dbconnection, "user") if name[1] is None)
 				if len(path) == 1:
-					result = [url_.URL(u"{}/{}".format(type, makeurl(name))) for name in names]
+					result = [url_.URL(u"{}/{}.sql".format(type, makeurl(name))) for name in names]
 				else:
-					result = [url_.URL(makeurl(name)) for name in names]
+					result = [url_.URL(u"{}.sql".format(makeurl(name))) for name in names]
 		else:
 			raise IOError(errno.ENOTDIR, "Not a directory: {}".format(url))
 		if pattern is not None:
@@ -2707,6 +2707,8 @@ class OracleFileResource(url_.Resource):
 			self.stream = cStringIO.StringIO()
 		else:
 			name = url.path[1]
+			if name.lower().endswith(".sql"):
+				name = name[:-4]
 			code = Object.name2type[type](name).createddl(self.connection.dbconnection, term=False)
 			self.stream = cStringIO.StringIO(code.encode("utf-8"))
 
@@ -2735,6 +2737,8 @@ class OracleFileResource(url_.Resource):
 				c = self.connection.dbconnection.cursor()
 				type = Object.name2type[self.url.path[0]]
 				name = self.url.path[1]
+				if name.lower().endswith(".sql"):
+					name = name[:-4]
 				code = self.stream.getvalue().decode("utf-8")
 				code = type.fixname(name, code)
 				c.execute(code)

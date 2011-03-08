@@ -14,7 +14,7 @@ Changes in 3.18 (released ??/??/2011)
 *	The scripts ``uls``, ``ucp`` and ``ucat`` have new options :option:`--include`
 	and :option:`--exclude` for including/excluding URLs that match a regular
 	expression. They also have an new option :option:`--all` to include/exclude
-	dot files (i.e. files whose name starts with a dot)
+	dot files (i.e. files/directories whose name starts with a dot)
 
 *	``ucp`` now supports to new options :option:`--padding` and
 	:option:`--separator` which are used for column output.
@@ -28,6 +28,10 @@ Changes in 3.18 (released ??/??/2011)
 	supported database (i.e. ``oracle``, ``sqlite`` and ``mysql``)
 
 *	:mod:`ll.xist.ns.rest` now handles option lists.
+
+*	The Oracle URLs provided by :mod:`ll.orasql` now have a ``.sql`` extension
+	for all schema objects. On writing a ``.sql`` extension will be stripped to
+	get the name of the schema object.
 
 
 Changes in 3.17.3 (released 03/02/2011)
