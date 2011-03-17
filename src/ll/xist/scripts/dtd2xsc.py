@@ -10,14 +10,17 @@
 
 
 """
-Module that helps to create XIST namespace modules from DTDs. Needs xmlproc__
+``dtd2xsc`` is a script that helps to create XIST namespace modules from DTDs.
+It reads one or more DTDs and outputs a skeleton namespace module.
 
-__http://www.garshol.priv.no/download/software/xmlproc/
+
+``dtd2xsc`` requires xmlproc__.
+
+__ http://www.garshol.priv.no/download/software/xmlproc/
 
 For usage information type::
 
 	$ dtd2xsc --help
-
 """
 
 

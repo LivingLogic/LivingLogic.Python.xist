@@ -9,6 +9,12 @@
 ## See ll/__init__.py for the license
 
 
+"""
+``xml2xsc`` is a script that generates an XIST namespace module from one or more
+XML files.
+"""
+
+
 import sys, argparse, cStringIO
 
 from ll import misc, url
