@@ -12,7 +12,7 @@ This package contains the following scripts:
 
 	``db2ul4``
 		``db2ul4`` renders an UL4 template. The available template variables
-		allow system command and database access. Supported databases are Oracle,
+		allow system commands and database access. Supported databases are Oracle,
 		sqllite and MySQL.
 
 	``uls``
