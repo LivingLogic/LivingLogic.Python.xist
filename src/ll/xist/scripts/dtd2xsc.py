@@ -10,17 +10,50 @@
 
 
 """
-``dtd2xsc`` is a script that helps to create XIST namespace modules from DTDs.
+``dtd2xsc`` is a script that helps create XIST namespace modules from DTDs.
 It reads one or more DTDs and outputs a skeleton namespace module.
 
+``dtd2xsc`` supports the following options:
 
-``dtd2xsc`` requires xmlproc__.
+	``urls``
+		One or more URLs (or filenames) of DTDs to be parsed
 
-__ http://www.garshol.priv.no/download/software/xmlproc/
+	``-x``, ``--xmlns``
+		The default namespace name. All elements that don't belong to any
+		namespace will be assigned to this namespace.
 
-For usage information type::
+	``-s``, ``--shareattrs`` : ``none``, ``dupes``, ``all``
+		Should attributes be shared among the elements? ``none`` means that each
+		element will have its own standalone :class:`Attrs` class directly derived
+		from :class:`ll.xist.Elements.Attrs`. For ``dupes`` each attribute that is
+		used by more than one element will be moved into its own :class:`Attrs`
+		class. For ``all`` this will be done for all attributes.
 
-	$ dtd2xsc --help
+	``-m``, ``--model`` : ``no``, ``simple``, ``fullall``, ``fullonce``
+		Add model information to the namespace. ``no`` doesn't add any model
+		information. ``simple`` only adds ``model = False`` or ``model = True``
+		(i.e. only the information whether the element must be empty or not).
+		``fullall`` adds a :mod:`ll.xist.sims` model object to each element class.
+		``fullonce`` adds full model information to, but reuses model objects for
+		elements which have the same model.
+
+	``-d``, ``--defaults`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Should default values for attributes specified in the DTD be added to the
+		XIST namespace (as the ``default`` specification in the attribute class)?
+
+	``--duplicates`` : ``reject``, ``allow``, ``merge``
+		If more that one DTD is specified on the command line, some elements
+		might be specified in more than one DTD. ``--duplicates`` specifies how
+		to handle this case: ``reject`` doesn't allow multiple element
+		specifications. ``allow`` allows them, but only if both specifications
+		are identical (i.e. have the same attributes). ``merge`` allows them and
+		adds the attribute specification of all element specifications to the
+		resulting XIST namespace.
+
+Note that ``dtd2xsc`` requires xmlproc_ to work.
+
+	.. _xmlproc: http://www.garshol.priv.no/download/software/xmlproc/
+
 """
 
 
@@ -42,9 +75,7 @@ __docformat__ = "reStructuredText"
 
 
 def getxmlns(dtd):
-	"""
-	Extract the value of all fixed ``xmlns`` attributes
-	"""
+	# Extract the value of all fixed ``xmlns`` attributes
 	found = set()
 	for elemname in dtd.get_elements():
 		element = dtd.get_elem(elemname)
@@ -58,11 +89,7 @@ def getxmlns(dtd):
 
 
 def adddtd2xnd(ns, dtd):
-	"""
-	Append DTD information from :var:`dtd` to the :class:`xnd.Module` object
-	:var:`ns`.
-	"""
-
+	# Appends DTD information from :var:`dtd` to the :class:`xnd.Module` object
 	dtd = dtdparser.load_dtd_string(dtd)
 
 	# try to guess the namespace name from the dtd
