@@ -11,9 +11,9 @@
 
 
 """
-``uls`` is a script that lists directory contents. It is an URL-enabled version
-of the ``ls`` system command. Via :mod:`ll.url` and :mod:`ll.orasql` ``uls``
-supports ``ssh`` and ``oracle`` URLs too.
+``uls`` is a script that lists the content of directories. It is an URL-enabled
+version of the ``ls`` system command. Via :mod:`ll.url` and :mod:`ll.orasql`
+``uls`` supports ``ssh`` and ``oracle`` URLs too.
 
 
 Options
@@ -41,11 +41,12 @@ Options
 		Output the file size in human readable form (e.g. ``42M`` for 42 megabytes).
 
 	``-r``, ``--recursive`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		List directory recursively.
+		List directories recursively.
 
 	``-w``, ``--spacing`` : integer
 		The number of spaces (or padding characters) between columns (only
-		relevant when neither ``--long`` nor ``--one`` is specified).
+		relevant for multicolumn ouput, i.e. when neither ``--long`` nor
+		``--one`` is specified).
 
 	``-P``, ``--padding`` : characters
 		The characters using for padding output in multicolumn or long format.
@@ -54,10 +55,10 @@ Options
 		The characters used for separating columns in long format.
 
 	``-i``, ``--include`` : regular expression
-		Only URLs matching the regular expression will be output.
+		Only URLs matching this regular expression will be output.
 
 	``-e``, ``--expression`` : regular expression
-		URLs matching the regular expression will be not be output.
+		URLs matching this regular expression will be not be output.
 
 	``-a``, ``--all`` :  ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		Output dot files (i.e. files and directories whose name starts with a
@@ -131,6 +132,10 @@ style_file = astyle.Style.fromstr("white:black")
 style_dir = astyle.Style.fromstr("yellow:black")
 style_pad = astyle.Style.fromstr("black:black:bold")
 style_sizeunit = astyle.Style.fromstr("cyan:black")
+
+
+def encodedstring(s):
+	return s.decode(sys.stdin.encoding)
 
 
 def main(args=None):
@@ -289,8 +294,8 @@ def main(args=None):
 	p.add_argument("-s", "--human-readable-sizes", dest="human", help="Human readable file sizes? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-r", "--recursive", dest="recursive", help="Recursive listing? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-w", "--spacing", dest="spacing", metavar="INTEGER", help="Space between columns (default: %(default)s)", type=int, default=3)
-	p.add_argument("-P", "--padding", dest="padding", metavar="CHARS", help="Characters used for column padding (default: %(default)s)", default=" ")
-	p.add_argument("-S", "--separator", dest="separator", metavar="CHARS", help="Characters used for separating columns in long format (default: %(default)s)", default="  ")
+	p.add_argument("-P", "--padding", dest="padding", metavar="CHARS", help="Characters used for column padding (default: %(default)s)", default=u" ", type=encodedstring)
+	p.add_argument("-S", "--separator", dest="separator", metavar="CHARS", help="Characters used for separating columns in long format (default: %(default)s)", default=u"  ", type=encodedstring)
 	p.add_argument("-i", "--include", dest="include", metavar="PATTERN", help="Include only URLs matching PATTERN (default: %(default)s)", type=re.compile)
 	p.add_argument("-e", "--exclude", dest="exclude", metavar="PATTERN", help="Exclude URLs matching PATTERN (default: %(default)s)", type=re.compile)
 	p.add_argument("-a", "--all", dest="all", help="Include dot files? (default: %(default)s)", action=misc.FlagAction, default=False)
