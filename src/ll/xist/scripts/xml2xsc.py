@@ -79,7 +79,7 @@ def addetree2xnd(ns, node, elements):
 
 def makexnd(urls, parser="etree", shareattrs="dupes", model="simple", defaultxmlns=None):
 	elements = {} # maps (name, xmlns) to content set
-	ns = xnd.Module(defaultxmlns=defaultxmlns)
+	ns = xnd.Module(defaultxmlns=defaultxmlns, model=model)
 	with url.Context():
 		for u in urls:
 			if isinstance(u, url.URL):
