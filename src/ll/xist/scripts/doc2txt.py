@@ -11,12 +11,13 @@
 
 """
 Module that uses :func:`html.astext` to generate a text version of a doc fragment.
-Usage: doc2txt spam.xml spam.txt
-       to generate spam.txt from spam.xml
+
+Usage::
+
+	doc2txt spam.xml spam.txt
+
+to generate ``spam.txt`` from ``spam.xml``
 """
-
-
-__docformat__ = "reStructuredText"
 
 
 import sys, argparse
@@ -25,7 +26,7 @@ from ll.xist import xsc, parse
 from ll.xist.ns import html, doc
 
 
-__docformat__ = "plaintext"
+__docformat__ = "reStructuredText"
 
 
 def xsc2txt(infilename, outfilename, title, width):
