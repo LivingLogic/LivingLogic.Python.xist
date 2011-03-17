@@ -290,8 +290,7 @@ class Module(object):
 					try:
 						attrs = identicalattrs[ident]
 					except KeyError:
-						attrs = []
-						identicalattrs[ident] = attrs
+						attrs = identicalattrs[ident] = []
 					attrs.append(attr)
 		for (ident, attrs) in identicalattrs.iteritems():
 			# if the attribute appears more than once (or all attributes should be shared), define a group for it
