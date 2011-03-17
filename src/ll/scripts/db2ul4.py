@@ -47,17 +47,6 @@ Inside the template the following variables are available:
 
 	``oracle``
 		A dict-like object that maps Oracle connect strings to connection objects.
-		A connection object is itself a dict-like object providing two key:
-
-			``iter``
-				A dict-like object that maps SQL queries to iterators over the
-				query result records
-
-			``list``
-				A dict-like object that maps SQL queries to a list of query result
-				records
-
-		A record in turn is a dict-like object mapping field names to field values.
 
 	``mysql``
 		A dict-like object that maps MySQL connect strings to connection objects.
@@ -66,6 +55,17 @@ Inside the template the following variables are available:
 	``sqlite``
 		A dict-like object that maps SQLite connect strings to connection objects.
 		The connect string will be passed directly to :func:`sqlite3.connect`.
+
+All connection objects are itself dict-like objects providing two keys:
+
+	``iter``
+		A dict-like object that maps SQL queries to iterators over the
+		result records.
+
+	``list``
+		A dict-like object that maps SQL queries to a list of result records.
+
+A record in turn is a dict-like object mapping field names to field values.
 
 
 Example
