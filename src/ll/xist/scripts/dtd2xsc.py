@@ -53,7 +53,6 @@ It reads one or more DTDs and outputs a skeleton namespace module.
 Note that ``dtd2xsc`` requires xmlproc_ to work.
 
 	.. _xmlproc: http://www.garshol.priv.no/download/software/xmlproc/
-
 """
 
 
