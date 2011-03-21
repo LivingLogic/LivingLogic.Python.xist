@@ -16,7 +16,8 @@ It reads one or more DTDs and outputs a skeleton namespace module.
 ``dtd2xsc`` supports the following options:
 
 	``urls``
-		One or more URLs (or filenames) of DTDs to be parsed
+		Zerone or more URLs (or filenames) of DTDs to be parsed. If no URL is
+		given stdin will be read.
 
 	``-x``, ``--xmlns``
 		The default namespace name. All elements that don't belong to any
@@ -188,6 +189,8 @@ def adddtd2xnd(ns, dtd):
 def urls2xnd(urls, shareattrs=None, **kwargs):
 	ns = xnd.Module(**kwargs)
 	with url.Context():
+		if not urls:
+			urls = [sys.stdin]
 		for u in urls:
 			if isinstance(u, url.URL):
 				u = u.openread()
@@ -204,7 +207,7 @@ def urls2xnd(urls, shareattrs=None, **kwargs):
 
 def main(args=None):
 	p = argparse.ArgumentParser(description="Convert DTDs to XIST namespace (on stdout)")
-	p.add_argument("urls", metavar="urls", type=url.URL, help="ULRs of DTDs to be parsed", nargs="+")
+	p.add_argument("urls", metavar="urls", type=url.URL, help="Zero of more URLs of DTDs to be parsed (default stdin)", nargs="*")
 	p.add_argument("-x", "--xmlns", dest="defaultxmlns", metavar="NAME", help="the namespace name for this module")
 	p.add_argument("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements? (default: %(default)s)", choices=("none", "dupes", "all"), default="dupes")
 	p.add_argument("-m", "--model", dest="model", default="once", help="Add sims information to the namespace (default: %(default)s)", choices=("no", "simple", "fullall", "fullonce"))

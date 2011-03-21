@@ -30,7 +30,8 @@ Changes in 3.18 (released ??/??/2011)
 *	The script ``doc2txt`` now reads from ``stdin`` and writes to ``stdout``
 	instead of requiring file names on the command line.
 
-*	If the script ``xml2xsc`` is called without arguments ``stdin`` is read.
+*	If the scripts ``xml2xsc`` or ``dtd2xsc`` are called without arguments
+	``stdin`` is read.
 
 *	:mod:`ll.xist.ns.rest` now handles option lists.
 
