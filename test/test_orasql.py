@@ -314,7 +314,7 @@ def test_url():
 	u.files()
 	u.dirs()
 
-	u = url.URL("oracle://{}/procedure/orasql_testprocedure".format(dbname.replace("/", ":")))
+	u = url.URL("oracle://{}/procedure/ORASQL_TESTPROCEDURE".format(dbname.replace("/", ":")))
 	assert u.isfile()
 	assert u.mimetype() == "text/x-oracle-procedure"
 	u.owner()
