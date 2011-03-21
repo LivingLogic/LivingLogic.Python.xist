@@ -10,11 +10,9 @@
 
 
 """
-``doc2txt`` is a script converts an XML files using XIST doc vocabulary (i.e.
-:mod:`ll.xist.ns.doc` into plain text (by using :func:`ll.xist.ns.html.astext`,
-which needs an installed elinks_.
-
-	.. _elinks: http://elinks.or.cz/
+``doc2txt`` is a script that converts an XML files using XIST doc vocabulary
+(i.e. the :mod:`ll.xist.ns.doc` namespace module) into plain text (by using
+:func:`ll.xist.ns.html.astext`.
 
 ``doc2txt`` supports the following options:
 
@@ -26,13 +24,16 @@ which needs an installed elinks_.
 
 The input is read from stdin and printed to stdout.
 
+Note that ``doc2txt`` needs an installed elinks_ browser.
+
+	.. _elinks: http://elinks.or.cz/
+
 Example
 -------
 
 The following generates ``spam.txt`` from ``spam.xml`` formatted to 80 columns::
 
 	$ doc2txt <spam.xml >spam.txt -w80
-
 """
 
 
