@@ -19,7 +19,8 @@ Changes in 3.18 (released ??/??/2011)
 *	``ucp`` now supports to new options :option:`--padding` and
 	:option:`--separator` which are used for column output.
 
-*	The unused :option:`--verbose` was removed from the script ``ucat``.
+*	Two unused options were removed: :option:`--verbose` from the script ``ucat``
+	and :option:`--defaults` from the script ``tld2xsc``.
 
 *	``ucp -x`` now prints exception details.
 

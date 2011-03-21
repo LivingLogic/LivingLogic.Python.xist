@@ -10,12 +10,26 @@
 
 
 """
-Module that helps to create XIST namespace modules from TLD files (Java tag
-library descriptors).
+``tld2xsc`` is a script that converts a JSP Tag Library Descriptor XML file
+into a skeleton XIST namespace module. The tld file is read from stdin and
+the namespace module is printed to stdout.
 
-For usage information type::
+``tld2xsc`` supports the following options:
 
-	$ tld2xsc --help
+	``-s``, ``--shareattrs`` : ``none``, ``dupes``, ``all``
+		Should attributes be shared among the elements? ``none`` means that each
+		element will have its own standalone :class:`Attrs` class directly derived
+		from :class:`ll.xist.Elements.Attrs`. For ``dupes`` each attribute that is
+		used by more than one element will be moved into its own :class:`Attrs`
+		class. For ``all`` this will be done for all attributes.
+
+	``-m``, ``--model`` : ``no``, ``simple``, ``fullall``, ``fullonce``
+		Add model information to the namespace. ``no`` doesn't add any model
+		information. ``simple`` only adds ``model = False`` or ``model = True``
+		(i.e. only the information whether the element must be empty or not).
+		``fullall`` adds a :mod:`ll.xist.sims` model object to each element class.
+		``fullonce`` adds full model information to, but reuses model objects for
+		elements which have the same model.
 """
 
 __docformat__ = "reStructuredText"
@@ -49,10 +63,9 @@ def main(args=None):
 	p = argparse.ArgumentParser(description="Convert JSP Tag Library Descriptor XML file (on stdin) to XIST namespace (on stdout)")
 	p.add_argument("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements? (default %(default)s)", choices=("none", "dupes", "all"), default="dupes")
 	p.add_argument("-m", "--model", dest="model", help="Add sims information to the namespace (default %(default)s)", choices=("none", "simple", "fullall", "fullonce"), default="simple")
-	p.add_argument("-d", "--defaults", dest="defaults", help="Output default values for attributes? (default %(default)s)", action=misc.FlagAction, default=False)
 
 	args = p.parse_args(args)
-	print makexnd(sys.stdin, args.shareattrs, model=args.model, defaults=args.defaults)
+	print makexnd(sys.stdin, args.shareattrs, model=args.model)
 
 
 if __name__ == "__main__":
