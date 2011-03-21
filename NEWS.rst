@@ -27,6 +27,9 @@ Changes in 3.18 (released ??/??/2011)
 	Instead of a ``connect`` object, there are now three objects for each
 	supported database (i.e. ``oracle``, ``sqlite`` and ``mysql``)
 
+*	The script ``doc2txt`` now reads from ``stdin`` and writes to ``stdout``
+	instead of requiring file names on the command line.
+
 *	:mod:`ll.xist.ns.rest` now handles option lists.
 
 *	The Oracle URLs provided by :mod:`ll.orasql` now have a ``.sql`` extension

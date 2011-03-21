@@ -15,6 +15,12 @@ Changes to ``db2ul4``
 
 		oracle["user/pwd@db"]
 
+Changes to scripts
+------------------
+
+*	The script ``doc2txt`` now reads from ``stdin`` and writes to ``stdout``
+	instead of requiring file names on the command line.
+
 
 Migrating to version 3.17
 =========================

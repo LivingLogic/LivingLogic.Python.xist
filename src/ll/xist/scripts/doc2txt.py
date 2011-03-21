@@ -10,13 +10,29 @@
 
 
 """
-Module that uses :func:`html.astext` to generate a text version of a doc fragment.
+``doc2txt`` is a script converts an XML files using XIST doc vocabulary (i.e.
+:mod:`ll.xist.ns.doc` into plain text (by using :func:`ll.xist.ns.html.astext`,
+which needs an installed elinks_.
 
-Usage::
+	.. _elinks: http://elinks.or.cz/
 
-	doc2txt spam.xml spam.txt
+``doc2txt`` supports the following options:
 
-to generate ``spam.txt`` from ``spam.xml``
+	``-t``, ``--title``
+		The title for the document
+
+	``-w``, ``--width``
+		The width of the formatted text output (default 72)
+
+The input is read from stdin and printed to stdout.
+
+Example
+-------
+
+The following generates ``spam.txt`` from ``spam.xml`` formatted to 80 columns::
+
+	$ doc2txt <spam.xml >spam.txt -w80
+
 """
 
 
@@ -29,8 +45,8 @@ from ll.xist.ns import html, doc
 __docformat__ = "reStructuredText"
 
 
-def xsc2txt(infilename, outfilename, title, width):
-	e = parse.tree(parse.File(infilename), parse.SGMLOP(), parse.NS(doc), parse.Node(pool=xsc.docpool()))
+def xsc2txt(instream, outstream, title, width):
+	e = parse.tree(parse.Stream(instream), parse.SGMLOP(), parse.NS(doc), parse.Node(pool=xsc.docpool()))
 
 	if title is None:
 		title = xsc.Null
@@ -44,20 +60,17 @@ def xsc2txt(infilename, outfilename, title, width):
 
 	e = e.conv()
 
-	with open(outfilename, "wb") as f:
-		f.write(html.astext(e, width=width))
+	outstream.write(html.astext(e, width=width))
 
 
 def main(args=None):
-	p = argparse.ArgumentParser(description="Convert an XML file using the ll.xist.ns.doc namespace into plain text")
-	p.add_argument("source", help="input XML file")
-	p.add_argument("target", help="output plain text file")
+	p = argparse.ArgumentParser(description="Convert an XML file (on stdin) using the ll.xist.ns.doc namespace into plain text and print it (on stdout)")
 	p.add_argument("-t", "--title", dest="title", help="Title for the document")
 	p.add_argument("-w", "--width", dest="width", help="Width of the plain text output (default %(default)s)", type=int, default=72)
 
 	args = p.parse_args()
 
-	xsc2txt(args.source, args.target, args.title, args.width)
+	xsc2txt(sys.stdin, sys.stdout, args.title, args.width)
 
 
 if __name__ == "__main__":
