@@ -20,7 +20,8 @@ as possible.
 ``xml2xsc`` supports the following options:
 
 	``urls``
-		One or more URLs (or filenames) of XML files to be parsed
+		Zero or more URLs (or filenames) of XML files to be parsed. If no URL is
+		given stdin will be read.
 
 	``-p``, ``--parser`` : ``etree`` or ``lxml``
 		Which XML parser should be used from parsing the XML files? (``etree`` is
@@ -115,6 +116,8 @@ def makexnd(urls, parser="etree", shareattrs="dupes", model="simple", defaultxml
 	elements = {} # maps (name, xmlns) to content set
 	ns = xnd.Module(defaultxmlns=defaultxmlns, model=model)
 	with url.Context():
+		if not urls:
+			urls = [sys.stdin]
 		for u in urls:
 			if isinstance(u, url.URL):
 				u = u.openread()
@@ -166,7 +169,7 @@ def makexnd(urls, parser="etree", shareattrs="dupes", model="simple", defaultxml
 
 def main(args=None):
 	p = argparse.ArgumentParser(description="Convert XML files to XIST namespace (on stdout)")
-	p.add_argument("urls", metavar="urls", type=url.URL, help="URLs of XML files to be parsed", nargs="+")
+	p.add_argument("urls", metavar="urls", type=url.URL, help="URLs of XML files to be parsed (default stdin)", nargs="*")
 	p.add_argument("-p", "--parser", dest="parser", help="parser module to use for XML parsing (default: %(default)s)", choices=("etree", "lxml"), default="etree")
 	p.add_argument("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements? (default: %(default)s)", choices=("none", "dupes", "all"), default="dupes")
 	p.add_argument("-m", "--model", dest="model", help="Create sims info? (default: %(default)s)", choices=("none", "simple", "fullall", "fullonce"), default="simple")
