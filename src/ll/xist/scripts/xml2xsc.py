@@ -11,7 +11,41 @@
 
 """
 ``xml2xsc`` is a script that generates an XIST namespace module from one or more
-XML files.
+XML files. ``xml2xsc`` will output an XIST element class for each element it
+encounters in any of the XML files. The attributes and model information
+``xml2xsc`` assigns to an element will be collected from each occurence of the
+element in the XML files, so the XML files should cover as many different cases
+as possible.
+
+``xml2xsc`` supports the following options:
+
+	``urls``
+		One or more URLs (or filenames) of XML files to be parsed
+
+	``-p``, ``--parser`` : ``etree`` or ``lxml``
+		Which XML parser should be used from parsing the XML files? (``etree`` is
+		the default, ``lxml`` requires that lxml_ is installed)
+
+	``-s``, ``--shareattrs`` : ``none``, ``dupes``, ``all``
+		Should attributes be shared among the elements? ``none`` means that each
+		element will have its own standalone :class:`Attrs` class directly derived
+		from :class:`ll.xist.Elements.Attrs`. For ``dupes`` each attribute that is
+		used by more than one element will be moved into its own :class:`Attrs`
+		class. For ``all`` this will be done for all attributes.
+
+	``-m``, ``--model`` : ``no``, ``simple``, ``fullall``, ``fullonce``
+		Add model information to the namespace. ``no`` doesn't add any model
+		information. ``simple`` only adds ``model = False`` or ``model = True``
+		(i.e. only the information whether the element must be empty or not).
+		``fullall`` adds a :mod:`ll.xist.sims` model object to each element class.
+		``fullonce`` adds full model information to, but reuses model objects for
+		elements which have the same model.
+
+	``-x``, ``--defaultxmlns``
+		The default namespace name. All elements that don't belong to any
+		namespace will be assigned to this namespace.
+
+	.. _lxml: http://lxml.de/
 """
 
 
@@ -132,7 +166,7 @@ def makexnd(urls, parser="etree", shareattrs="dupes", model="simple", defaultxml
 
 def main(args=None):
 	p = argparse.ArgumentParser(description="Convert XML files to XIST namespace (on stdout)")
-	p.add_argument("urls", metavar="urls", type=url.URL, help="ULRs of DTDs to be parsed", nargs="+")
+	p.add_argument("urls", metavar="urls", type=url.URL, help="URLs of XML files to be parsed", nargs="+")
 	p.add_argument("-p", "--parser", dest="parser", help="parser module to use for XML parsing (default: %(default)s)", choices=("etree", "lxml"), default="etree")
 	p.add_argument("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements? (default: %(default)s)", choices=("none", "dupes", "all"), default="dupes")
 	p.add_argument("-m", "--model", dest="model", help="Create sims info? (default: %(default)s)", choices=("none", "simple", "fullall", "fullonce"), default="simple")
