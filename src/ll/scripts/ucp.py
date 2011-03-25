@@ -11,6 +11,9 @@
 
 
 """
+Purpose
+-------
+
 ``ucp`` is a script that copies files/directory contents. It is an URL-enabled
 version of the ``cp`` system command. Via :mod:`ll.url` and :mod:`ll.orasql`
 ``ucp`` supports ``ssh`` and ``oracle`` URLs too.
@@ -22,13 +25,14 @@ Options
 ``ucp`` supports the following options:
 
 	``urls``
-		Two or more URLs. If more than two URLs are given or if the last URL refers
-		to a directory, the last URL is the target directory. All other sources
-		are copied into this target directory. Else one file is copied to another
-		file.
+		Two or more URLs. If more than two URLs are given or the last URL refers
+		to an existing directory, the last URL is the target directory. All other
+		sources are copied into this target directory. Else one file is copied
+		to another file.
 
 	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Give a report during the copy process about the files copied and their sizes.
+		Give a report during the copy process about the files copied and their
+		sizes.
 
 	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
 		Should the ouput be colored. If ``auto`` is specified (the default) then

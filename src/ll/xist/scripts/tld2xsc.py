@@ -10,9 +10,16 @@
 
 
 """
+Purpose
+-------
+
 ``tld2xsc`` is a script that converts a JSP Tag Library Descriptor XML file
 into a skeleton XIST namespace module. The tld file is read from stdin and
 the namespace module is printed to stdout.
+
+
+Options
+-------
 
 ``tld2xsc`` supports the following options:
 

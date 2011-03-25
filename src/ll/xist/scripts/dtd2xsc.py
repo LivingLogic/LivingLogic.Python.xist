@@ -10,13 +10,20 @@
 
 
 """
+Purpose
+-------
+
 ``dtd2xsc`` is a script that helps create XIST namespace modules from DTDs.
 It reads one or more DTDs and outputs a skeleton namespace module.
+
+
+Options
+-------
 
 ``dtd2xsc`` supports the following options:
 
 	``urls``
-		Zerone or more URLs (or filenames) of DTDs to be parsed. If no URL is
+		Zero or more URLs (or filenames) of DTDs to be parsed. If no URL is
 		given stdin will be read.
 
 	``-x``, ``--xmlns``
@@ -54,6 +61,54 @@ It reads one or more DTDs and outputs a skeleton namespace module.
 Note that ``dtd2xsc`` requires xmlproc_ to work.
 
 	.. _xmlproc: http://www.garshol.priv.no/download/software/xmlproc/
+
+
+Example
+-------
+
+Suppose we have the following DTD file (named ``foo.dtd``)::
+
+	<?xml version="1.0" encoding="ISO-8859-1"?>
+	<!ELEMENT persons (person*)>
+	<!ELEMENT person (firstname?, lastname?)>
+	<!ATTLIST person id CDATA #REQUIRED>
+	<!ELEMENT firstname (#PCDATA)>
+	<!ELEMENT lastname (#PCDATA)>
+
+Then we can generate a skeleton XIST namespace from it with the following command::
+
+	dtd2xsc ~/gurk.dtd -xhttp://xmlns.example.org/ -mfullall
+
+The output will be::
+
+	# -*- coding: ascii -*-
+
+
+	from ll.xist import xsc, sims
+
+
+	xmlns = 'http://xmlns.example.org/'
+
+
+	class firstname(xsc.Element): xmlns = xmlns
+
+
+	class lastname(xsc.Element): xmlns = xmlns
+
+
+	class person(xsc.Element):
+		xmlns = xmlns
+		class Attrs(xsc.Element.Attrs):
+			class id(xsc.TextAttr): required = True
+
+
+	class persons(xsc.Element): xmlns = xmlns
+
+
+	person.model = sims.Elements(lastname, firstname)
+	persons.model = sims.Elements(person)
+	firstname.model = sims.NoElements()
+	lastname.model = sims.NoElements()
 """
 
 
@@ -210,7 +265,7 @@ def main(args=None):
 	p.add_argument("urls", metavar="urls", type=url.URL, help="Zero of more URLs of DTDs to be parsed (default stdin)", nargs="*")
 	p.add_argument("-x", "--xmlns", dest="defaultxmlns", metavar="NAME", help="the namespace name for this module")
 	p.add_argument("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements? (default: %(default)s)", choices=("none", "dupes", "all"), default="dupes")
-	p.add_argument("-m", "--model", dest="model", default="once", help="Add sims information to the namespace (default: %(default)s)", choices=("no", "simple", "fullall", "fullonce"))
+	p.add_argument("-m", "--model", dest="model", default="fullonce", help="Add sims information to the namespace (default: %(default)s)", choices=("no", "simple", "fullall", "fullonce"))
 	p.add_argument("-d", "--defaults", dest="defaults", help="Output default values for attributes? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument(      "--duplicates", dest="duplicates", help="How to handle duplicate elements from multiple DTDs (default: %(default)s)", choices=("reject", "allow", "merge"), default="reject")
 

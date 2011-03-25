@@ -19,7 +19,7 @@ This package contains the following scripts:
 
 	``tld2xsc``
 		``tld2xsc`` converts a Java tag library description XML file to a skeleton
-		XIST namespace
+		XIST namespace.
 
 	``doc2txt``
 		``doc2txt`` creates a plain text file from a XML file using XISTs doc

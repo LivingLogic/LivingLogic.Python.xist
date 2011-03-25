@@ -11,6 +11,9 @@
 
 
 """
+Purpose
+-------
+
 ``ucat`` is a script for printing files. It is an URL-enabled version of the
 ``cat`` system command. Via :mod:`ll.url` and :mod:`ll.orasql` ``ucat`` supports
 ``ssh`` and ``oracle`` URLs too.
@@ -53,9 +56,9 @@ Print a remote file::
 
 	$ ucat ssh://user@www.example.org/~/foo.txt
 
-Print the SQL source code of a procedure in an Oracle database::
+Print the SQL source code of the procedure ``FOO`` in an Oracle database::
 
-	$ ucat oracle://user:pwd@oracle.example.org/procedure/foo
+	$ ucat oracle://user:pwd@oracle.example.org/procedure/FOO
 
 """
 

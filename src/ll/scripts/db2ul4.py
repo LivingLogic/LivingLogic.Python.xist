@@ -88,7 +88,7 @@ Then we can use the following template to output the table into an XML file::
 	<?xml version='1.0' encoding='<?print encoding?>'?>
 	<?code db = oracle["user/pwd@db"]?>
 	<persons>
-		<?for p in db.iter["select id, firstname, lastname from person"]?>
+		<?for p in db.iter["select id, firstname, lastname from person order by 2, 1"]?>
 			<person id="<?printx p.id?>">
 				<firstname><?printx p.firstname?></firstname>
 				<lastname><?printx p.lastname?></lastname>

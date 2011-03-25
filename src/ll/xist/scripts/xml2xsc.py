@@ -10,12 +10,19 @@
 
 
 """
+Purpose
+-------
+
 ``xml2xsc`` is a script that generates an XIST namespace module from one or more
 XML files. ``xml2xsc`` will output an XIST element class for each element it
 encounters in any of the XML files. The attributes and model information
 ``xml2xsc`` assigns to an element will be collected from each occurence of the
 element in the XML files, so the XML files should cover as many different cases
 as possible.
+
+
+Options
+-------
 
 ``xml2xsc`` supports the following options:
 
@@ -47,6 +54,42 @@ as possible.
 		namespace will be assigned to this namespace.
 
 	.. _lxml: http://lxml.de/
+
+
+Example
+-------
+
+Suppose we have the following XML file (named ``foo.xml``)::
+
+	<x a="0"><x b="1"/><y/></x>
+
+Then we can generate a skeleton XIST namespace from it with the following command::
+
+	xml2xsc foo.xml -xhttp://xmlns.example.org/ -mfullonce
+
+The output will be::
+
+	# -*- coding: ascii -*-
+
+
+	from ll.xist import xsc, sims
+
+
+	xmlns = 'http://xmlns.example.org/'
+
+
+	class x(xsc.Element):
+		xmlns = xmlns
+		class Attrs(xsc.Element.Attrs):
+			class a(xsc.TextAttr): pass
+			class b(xsc.TextAttr): pass
+
+
+	class y(xsc.Element): xmlns = xmlns
+
+
+	x.model = sims.Elements(y, x)
+	y.model = sims.Empty()
 """
 
 

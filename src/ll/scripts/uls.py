@@ -11,6 +11,9 @@
 
 
 """
+Purpose
+-------
+
 ``uls`` is a script that lists the content of directories. It is an URL-enabled
 version of the ``ls`` system command. Via :mod:`ll.url` and :mod:`ll.orasql`
 ``uls`` supports ``ssh`` and ``oracle`` URLs too.
@@ -49,7 +52,7 @@ Options
 		``--one`` is specified).
 
 	``-P``, ``--padding`` : characters
-		The characters using for padding output in multicolumn or long format.
+		The characters used for padding output in multicolumn or long format.
 
 	``-S``, ``--separator`` : characters
 		The characters used for separating columns in long format.
@@ -57,12 +60,12 @@ Options
 	``-i``, ``--include`` : regular expression
 		Only URLs matching this regular expression will be output.
 
-	``-e``, ``--expression`` : regular expression
+	``-e``, ``--exclude`` : regular expression
 		URLs matching this regular expression will be not be output.
 
 	``-a``, ``--all`` :  ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		Output dot files (i.e. files and directories whose name starts with a
-		``.``). Not that the content of directories whose name start with a dot
+		``.``). Note that the content of directories whose name start with a dot
 		will still be listed.
 
 
