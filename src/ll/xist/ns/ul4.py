@@ -105,26 +105,37 @@ class attr_if(xsc.AttrProcInst):
 
 class if_(xsc.ProcInst):
 	xmlname = "if"
+	prettyindentbefore = 0
+	prettyindentafter = 1
+
 
 
 class elif_(xsc.ProcInst):
 	xmlname = "elif"
+	prettyindentbefore = -1
+	prettyindentafter = 1
 
 
 class else_(xsc.ProcInst):
 	xmlname = "else"
+	prettyindentbefore = -1
+	prettyindentafter = 1
 
 
 class end(xsc.ProcInst):
 	"""
 	Ends an :class:`if_` or :class:`for_`. The PI value may be the type of the
-	block (either ``"if"`` or ``"for"``). If the value is empty the innermost
-	block will be closed without any checks for the type of block.
+	block (either ``"if"``, ``"for"`` or ``"def"``). If the value is empty the
+	innermost block will be closed without any checks for the type of block.
 	"""
+	prettyindentbefore = -1
+	prettyindentafter = 0
 
 
 class for_(xsc.ProcInst):
 	xmlname = "for"
+	prettyindentbefore = 0
+	prettyindentafter = 1
 
 
 class break_(xsc.ProcInst):
@@ -137,3 +148,5 @@ class continue_(xsc.ProcInst):
 
 class def_(xsc.ProcInst):
 	xmlname = "def"
+	prettyindentbefore = 0
+	prettyindentafter = 1

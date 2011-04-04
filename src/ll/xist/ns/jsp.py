@@ -71,6 +71,8 @@ class declaration(xsc.ProcInst):
 
 class If(scriptlet):
 	xmlname = "if"
+	prettyindentbefore = 0
+	prettyindentafter = 1
 
 	def convert(self, converter):
 		return scriptlet(u"if(", self.content, u"){")
@@ -78,6 +80,8 @@ class If(scriptlet):
 
 class Else(scriptlet):
 	xmlname = "else"
+	prettyindentbefore = -1
+	prettyindentafter = 1
 
 	def convert(self, converter):
 		return scriptlet(u"}else{")
@@ -85,6 +89,8 @@ class Else(scriptlet):
 
 class ElIf(scriptlet):
 	xmlname = "elif"
+	prettyindentbefore = -1
+	prettyindentafter = 1
 
 	def convert(self, converter):
 		return scriptlet(u"}else if (", self.content, u"){")
@@ -92,6 +98,8 @@ class ElIf(scriptlet):
 
 class End(scriptlet):
 	xmlname = "end"
+	prettyindentbefore = -1
+	prettyindentafter = 0
 
 	def convert(self, converter):
 		return scriptlet(u"}")

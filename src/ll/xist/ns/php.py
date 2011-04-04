@@ -36,6 +36,8 @@ class expression(php):
 
 class If(php):
 	xmlname = "if"
+	prettyindentbefore = 0
+	prettyindentafter = 1
 
 	def convert(self, converter):
 		return php(u"if (", self.content, u"){")
@@ -43,6 +45,8 @@ class If(php):
 
 class Else(php):
 	xmlname = "else"
+	prettyindentbefore = -1
+	prettyindentafter = 1
 
 	def convert(self, converter):
 		return php(u"}else{")
@@ -50,6 +54,8 @@ class Else(php):
 
 class ElIf(php):
 	xmlname = "elif"
+	prettyindentbefore = -1
+	prettyindentafter = 1
 
 	def convert(self, converter):
 		return php(u"}else if (", self.content, u"){")
@@ -57,6 +63,8 @@ class ElIf(php):
 
 class End(php):
 	xmlname = "end"
+	prettyindentbefore = -1
+	prettyindentafter = 0
 
 	def convert(self, converter):
 		return php(u"}")

@@ -981,6 +981,9 @@ class Node(object):
 
 	Context = Context
 
+	prettyindentbefore = 0
+	prettyindentafter = 0
+
 	def __repr__(self):
 		return "<{0.__module__}:{0.__fullname__} object at {1:#x}>".format(self, id(self))
 
@@ -1989,7 +1992,9 @@ class Frag(Node, list):
 		for (i, child) in enumerate(self):
 			if i:
 				node.append("\n")
+			level += child.prettyindentbefore
 			node.append(child.pretty(level, indent))
+			level += child.prettyindentafter
 		return node
 
 	def __repr__(self):
@@ -3458,6 +3463,7 @@ class Element(Node):
 		return node
 
 	def pretty(self, level=0, indent="\t"):
+		orglevel = level # Remember the original indent level, so that any misconfiguration inside the element doesn't mess with the indentation
 		node = self.__class__(self.attrs)
 		if len(self):
 			# search for text content
@@ -3467,11 +3473,14 @@ class Element(Node):
 					node.append(self.content.clone())
 					break
 			else:
+				level += 1
 				for child in self:
-					node.append("\n", child.pretty(level+1, indent))
-				node.append("\n", indent*level)
-		if level>0:
-			node = Frag(indent*level, node)
+					level += child.prettyindentbefore
+					node.append("\n", child.pretty(level, indent))
+					level += child.prettyindentafter
+				node.append("\n", indent*orglevel)
+		if orglevel>0:
+			node = Frag(indent*orglevel, node)
 		return node
 
 	def __repr__(self):

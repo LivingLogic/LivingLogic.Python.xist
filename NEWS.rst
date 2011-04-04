@@ -46,6 +46,10 @@ Changes in 3.18 (released ??/??/2011)
 *	:class:`ll.orasql.Table` has a new method :meth:`organization` that returns
 	``"heap"`` or normal tables and ``"index"`` for index organized tables.
 
+*	Pretty printing of XIST trees can now be customized with the class attributes
+	:var:`prettyindentbefore` and :var:`prettyindentafter`. The values will be
+	added to the current indentation level before and after the node in question.
+
 
 Changes in 3.17.3 (released 03/02/2011)
 ---------------------------------------
