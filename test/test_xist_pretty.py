@@ -10,7 +10,7 @@
 
 
 from ll.xist import xsc
-from ll.xist.ns import html, php
+from ll.xist.ns import html, php, ul4
 
 
 def test_pretty():
@@ -37,6 +37,16 @@ def test_pretty():
 				html.br()
 			),
 			b"<div>\n\t<?php apple?>\n\t<p>appletree</p>\n\t<div>\n\t\t<p>apple</p>\n\t\t<p>tree</p>\n\t</div>\n\t<br />\n</div>"
+		),
+		(
+			html.ul(
+				ul4.for_("name in names"),
+				html.li(
+					ul4.printx("name"),
+				),
+				ul4.end("for"),
+			),
+			b"<ul>\n\t<?for name in names?>\n\t\t<li>\n\t\t\t<?printx name?>\n\t\t</li>\n\t<?end for?>\n</ul>"
 		),
 	]
 	for (got, exp) in tests:
