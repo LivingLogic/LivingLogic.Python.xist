@@ -48,6 +48,26 @@ def test_pretty():
 			),
 			b"<ul>\n\t<?for name in names?>\n\t\t<li>\n\t\t\t<?printx name?>\n\t\t</li>\n\t<?end for?>\n</ul>"
 		),
+		(
+			xsc.Frag(
+				ul4.if_("n == 0"),
+					html.span("zero"),
+				ul4.elif_("n == 1"),
+					html.span("one"),
+				ul4.else_(),
+					html.span("many"),
+				ul4.end("if"),
+			),
+			b"<?if n == 0?>\n\t<span>zero</span>\n<?elif n == 1?>\n\t<span>one</span>\n<?else ?>\n\t<span>many</span>\n<?end if?>"
+		),
+		(
+			xsc.Frag(
+				ul4.def_("spam"),
+					ul4.printx("eggs"),
+				ul4.end("def"),
+			),
+			b"<?def spam?>\n\t<?printx eggs?>\n<?end def?>"
+		),
 	]
 	for (got, exp) in tests:
 		yield check, got, exp
