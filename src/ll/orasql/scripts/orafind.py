@@ -9,9 +9,62 @@
 ## See orasql/__init__.py for the license
 
 
+"""
+Purpose
+-------
+
+``orafind`` can be used to search all tables in an Oracle database schema for
+a string.
+
+
+Options
+-------
+
+``orafind`` supports the following options:
+
+	``connectstring``
+		An Oracle connectstring.
+
+	``searchstring``
+		The text to be searched for.
+
+	``tables``
+		Zero or more tables names. If any table name is specified the search will
+		be limited to those tables. Otherwise all tables will be searched.
+		
+	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Produces output (on stderr) while to datebase is read or written.
+
+	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
+		Should the output (when the ``-v`` option is used) be colored. If ``auto``
+		is specified (the default) then the output is colored if stderr is a
+		terminal.
+
+	``-i``, ``--ignore-case`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		If given, the search will be case insensitve.
+
+	``-r``, ``--read-lobs`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		If given, ``CLOB``\s will be read when printing search results.
+
+	``-e``, ``--encoding`` : encoding
+		The encoding of the command line arguments (default is ``utf-8``).
+
+Example
+-------
+
+Search for ``spam`` in all tables in the schema ``user@db``. The search is case
+insensitive and ``CLOB``\s will be printed::
+
+	$ orafind user/pwd@db spam -i -r
+"""
+
+
 import sys, os, argparse
 
 from ll import misc, orasql, astyle
+
+
+__docformat__ = "reStructuredText"
 
 
 s4warning = astyle.Style.fromenv("LL_ORASQL_REPRANSI_WARNING", "red:black")
@@ -95,7 +148,7 @@ def main(args=None):
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-c", "--color", dest="color", help="Color output (default: %(default)s)", default="auto", choices=("yes", "no", "auto"))
 	p.add_argument("-i", "--ignore-case", dest="ignorecase", help="Ignore case distinctions? (default: %(default)s)", action=misc.FlagAction, default=False)
-	p.add_argument("-r", "--read-lobs", dest="readlobs", help="Read LOBs when printing records? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-r", "--read-lobs", dest="readlobs", help="Read CLOBs when printing records? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding of the command line arguments (default: %(default)s)", default="utf-8")
 
 	args = p.parse_args(args)
