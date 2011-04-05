@@ -2527,7 +2527,7 @@ class Column(Object):
 	def cdate(self, connection=None):
 		# The column creation date is the table creation date
 		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select created from all_objects where lower(object_type)='table' and object_name=:name and owner=nvl(:owner, user)", name=self.name.split(".")[0], owner=self.owner)
+		cursor.execute("select created from all_objects where object_type='TABLE' and object_name=:name and owner=nvl(:owner, user)", name=self.name.split(".")[0], owner=self.owner)
 		row = cursor.fetchone()
 		if row is None:
 			raise SQLObjectNotFoundError(self)
@@ -2536,7 +2536,7 @@ class Column(Object):
 	def udate(self, connection=None):
 		# The column modification date is the table modification date
 		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select last_ddl_time from all_objects where lower(object_type)='table' and object_name=:name and owner=nvl(:owner, user)", name=self.name.split(".")[0], owner=self.owner)
+		cursor.execute("select last_ddl_time from all_objects where object_type='TABLE' and object_name=:name and owner=nvl(:owner, user)", name=self.name.split(".")[0], owner=self.owner)
 		row = cursor.fetchone()
 		if row is None:
 			raise SQLObjectNotFoundError(self)
@@ -2645,9 +2645,11 @@ class OracleConnection(url_.Connection):
 			return bigbang
 		type = url.path[0]
 		name = url.path[1]
+		if name.lower().endswith(".sql"):
+			name = name[:-4]
 		# FIXME: This isn't the correct time zone, but Oracle doesn't provide anything better
 		c = self.dbconnection.cursor()
-		c.execute("select created, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from user_objects where lower(object_type)=:type and lower(object_name)=:name", type=type, name=name)
+		c.execute("select created, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from user_objects where lower(object_type)=:type and object_name=:name", type=type, name=name)
 		row = c.fetchone()
 		if row is None:
 			raise IOError(errno.ENOENT, "no such {}: {}".format(type, name))
@@ -2658,9 +2660,11 @@ class OracleConnection(url_.Connection):
 			return bigbang
 		type = url.path[0]
 		name = url.path[1]
+		if name.lower().endswith(".sql"):
+			name = name[:-4]
 		# FIXME: This isn't the correct time zone, but Oracle doesn't provide anything better
 		c = self.dbconnection.cursor()
-		c.execute("select last_ddl_time, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from user_objects where lower(object_type)=:type and lower(object_name)=:name", type=type, name=name)
+		c.execute("select last_ddl_time, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from user_objects where lower(object_type)=:type and object_name=:name", type=type, name=name)
 		row = c.fetchone()
 		if row is None:
 			raise IOError(errno.ENOENT, "no such {}: {}".format(type, name))
