@@ -35,7 +35,7 @@ Options
 		sizes.
 
 	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
-		Should the ouput be colored. If ``auto`` is specified (the default) then
+		Should the output be colored. If ``auto`` is specified (the default) then
 		the output is colored if stdout is a terminal.
 
 	``-u``, ``--user``

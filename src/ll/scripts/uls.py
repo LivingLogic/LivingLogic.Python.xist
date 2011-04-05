@@ -28,7 +28,7 @@ Options
 		Zero or more URLs. If no URL is given the current directory is listed.
 
 	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
-		Should the ouput be colored. If ``auto`` is specified (the default) then
+		Should the output be colored. If ``auto`` is specified (the default) then
 		the output is colored if stdout is a terminal.
 
 	``-1``, ``--one`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
@@ -48,7 +48,7 @@ Options
 
 	``-w``, ``--spacing`` : integer
 		The number of spaces (or padding characters) between columns (only
-		relevant for multicolumn ouput, i.e. when neither ``--long`` nor
+		relevant for multicolumn output, i.e. when neither ``--long`` nor
 		``--one`` is specified).
 
 	``-P``, ``--padding`` : characters
