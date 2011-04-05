@@ -9,9 +9,61 @@
 ## See orasql/__init__.py for the license
 
 
+"""
+Purpose
+-------
+
+``oragrant`` prints all existing grants in an Oracle database schema.
+It can also be used to execute these grant statements directly.
+
+
+Options
+-------
+
+``oragrant`` supports the following options:
+
+	``connectstring``
+		An Oracle connectstring.
+
+	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Produces output (on stderr) while to datebase is read or written.
+
+	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
+		Should the output (when the ``-v`` option is used) be colored. If ``auto``
+		is specified (the default) then the output is colored if stderr is a
+		terminal.
+
+	``-x``, ``--execute`` : connectstring
+		When the ``-x`` argument is given the SQL script isn't printed on stdout,
+		but executed in the database specfied as the ``-x`` argument.
+
+	``-k``, ``--keepjunk`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		If given, database objects that have ``$`` or ``SYS_EXPORT_SCHEMA_`` in
+		their name will be skipped (otherwise these objects will be included).
+
+	``-i``, ``--ignore`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		If given, errors occuring while the database is read or written will be
+		ignored.
+
+	``-m``, ``--mapgrantee`` : Python expression: ``list`` or ``dict``
+		A Python ``dict`` or ``list`` literal which will be evaluated. If the
+		grantee is not in this list (or dictionary) no grant statement will be
+		returned. If it's a dictionary and the grantee exists as a key, the
+		privilege will be granted to the user specified as the value instead of
+		the original one. The default is to grant all privileges to the original
+		grantee.
+
+	``-e``, ``--encoding`` : encoding
+		The encoding of the output (if ``-x`` is not given; default is ``utf-8``).
+"""
+
+
 import sys, os, argparse
 
 from ll import misc, astyle, orasql
+
+
+__docformat__ = "reStructuredText"
 
 
 s4warning = astyle.Style.fromenv("LL_ORASQL_REPRANSI_WARNING", "red:black")
