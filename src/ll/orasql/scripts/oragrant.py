@@ -55,6 +55,15 @@ Options
 
 	``-e``, ``--encoding`` : encoding
 		The encoding of the output (if ``-x`` is not given; default is ``utf-8``).
+
+
+Example
+-------
+
+Grant all privileges that ``alice`` has in the schema ``user@db`` to ``bob`` in
+``user2@db2``::
+
+	$ oragrant user/pwd@db -x user2/pwd2@db2 -m '{"alice": "bob"}' -v
 """
 
 
