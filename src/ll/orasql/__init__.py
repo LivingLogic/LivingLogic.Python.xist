@@ -2387,7 +2387,7 @@ class Privilege(object):
 		"""
 		Return SQL code to grant this privilege. If :var:`mapgrantee` is a list
 		or a dictionary and ``self.grantee`` is not in this list (or dictionary)
-		no command will returned. If it's a dictionary and ``self.grantee`` is
+		no command will be returned. If it's a dictionary and ``self.grantee`` is
 		in it, the privilege will be granted to the user specified as the value
 		instead of the original one. If :var:`mapgrantee` is true (the default)
 		the privilege will be granted to the original grantee.
