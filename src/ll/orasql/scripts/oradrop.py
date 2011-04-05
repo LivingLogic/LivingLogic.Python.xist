@@ -9,9 +9,63 @@
 ## See orasql/__init__.py for the license
 
 
+"""
+Purpose
+-------
+
+``oradrop`` prints the drop statements for all objects in an Oracle database
+schema in the correct order (i.e. objects will be dropped so that no errors
+happen during script execution). ``oradrop`` can also be used to actually
+make the schema empty..
+
+
+Options
+-------
+
+``oradrop`` supports the following options:
+
+	``connectstring``
+		An Oracle connectstring.
+
+	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Produces output (on stderr) while to datebase is read or written.
+
+	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
+		Should the output (when the ``-v`` option is used) be colored. If ``auto``
+		is specified (the default) then the output is colored if stderr is a
+		terminal.
+
+	``-f``, ``--fks`` : ``keep``, ``disable``, ``drop``
+		Specifies how foreign keys from other schemas pointing to this schema
+		should be treated: ``keep`` will now change the foreign keys in any way
+		(this *will* lead to errors); ``disable`` will disable the foreign keys
+		and ``drop`` will drop them completely.
+
+	``-x``, ``--execute`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		When the ``-x`` argument is given the SQL script isn't printed on stdout,
+		but is executed directly. Be careful with this: You *will* have an empty
+		schema after ``oradrop -x``.
+
+	``-k``, ``--keepjunk`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		If given, database objects that have ``$`` or ``SYS_EXPORT_SCHEMA_`` in
+		their name will be skipped (otherwise these objects will be included in
+		the output).
+
+	``-i``, ``--ignore`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		If given, errors occuring while it database is read or written will be
+		ignored.
+
+	``-e``, ``--encoding`` : encoding
+		The encoding of the output (if ``-x`` is not given; default is ``utf-8``).
+"""
+
+
 import sys, os, argparse
 
 from ll import misc, astyle, orasql
+
+
+__docformat__ = "reStructuredText"
 
 
 s4warning = astyle.Style.fromenv("LL_ORASQL_REPRANSI_WARNING", "red:black")

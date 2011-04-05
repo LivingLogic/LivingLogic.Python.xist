@@ -287,7 +287,7 @@ args = dict(
 		"cssutils == 0.9.7",
 	],
 	extras_require = {
-		"oracle":  ["cx_Oracle >= 5.0.1"],
+		"oracle":  ["cx_Oracle >= 5.0.1, < 5.1"],
 	},
 	namespace_packages=["ll"],
 	zip_safe=False,
