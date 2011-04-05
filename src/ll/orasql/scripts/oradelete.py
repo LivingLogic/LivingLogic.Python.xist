@@ -9,9 +9,59 @@
 ## See orasql/__init__.py for the license
 
 
+"""
+Purpose
+-------
+
+``oradelete`` prints the delete statements for all tables in an Oracle database
+schema in the correct order (i.e. records will be deleted so that no errors
+happen during script execution). ``oradelete`` can also be used to actually
+make all tables empty.
+
+
+Options
+-------
+
+``oradelete`` supports the following options:
+
+	``connectstring``
+		An Oracle connectstring.
+
+	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Produces output (on stderr) while to datebase is read or written.
+
+	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
+		Should the output (when the ``-v`` option is used) be colored. If ``auto``
+		is specified (the default) then the output is colored if stderr is a
+		terminal.
+
+	``-s``, ``--sequences`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Should sequences be reset to their initial values?
+
+	``-x``, ``--execute`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		When the ``-x`` argument is given the SQL script isn't printed on stdout,
+		but is executed directly. Be careful with this: You *will* have empty
+		tables after ``oradelete -x``.
+
+	``-i``, ``--ignore`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		If given, errors occuring while the database is read or written will be
+		ignored.
+
+	``-e``, ``--encoding`` : encoding
+		The encoding of the output (if ``-x`` is not given; default is ``utf-8``).
+
+	``-t``, ``--truncate`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		If given the script uses the ``TRUNCATE`` command instead of the ``DELETE``
+		command.
+"""
+
+
 import sys, os, argparse
 
 from ll import misc, astyle, orasql
+
+
+__docformat__ = "reStructuredText"
 
 
 s4warning = astyle.Style.fromenv("LL_ORASQL_REPRANSI_WARNING", "red:black")

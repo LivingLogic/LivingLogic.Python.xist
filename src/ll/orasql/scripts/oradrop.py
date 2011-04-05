@@ -16,7 +16,7 @@ Purpose
 ``oradrop`` prints the drop statements for all objects in an Oracle database
 schema in the correct order (i.e. objects will be dropped so that no errors
 happen during script execution). ``oradrop`` can also be used to actually
-make the schema empty..
+make the schema empty.
 
 
 Options
@@ -52,7 +52,7 @@ Options
 		the output).
 
 	``-i``, ``--ignore`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If given, errors occuring while it database is read or written will be
+		If given, errors occuring while the database is read or written will be
 		ignored.
 
 	``-e``, ``--encoding`` : encoding

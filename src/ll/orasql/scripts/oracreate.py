@@ -49,7 +49,7 @@ Options
 		their name will be skipped (otherwise these objects will be included).
 
 	``-i``, ``--ignore`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If given, errors occuring while it database is read or written will be
+		If given, errors occuring while the database is read or written will be
 		ignored.
 
 	``-e``, ``--encoding`` : encoding
