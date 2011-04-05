@@ -381,7 +381,7 @@ class Connection(Connection):
 
 		``"drop"``
 			Drop order, deleting records from the table in this order will not
-			violate foreign key onstraints.
+			violate foreign key constraints.
 
 		``"flat"``
 			Unordered.
