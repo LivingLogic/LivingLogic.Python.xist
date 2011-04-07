@@ -177,7 +177,7 @@ def showudiff(out, obj, ddl1, ddl2, connection1, connection2, encoding="utf-8", 
 
 
 def main(args=None):
-	p = argparse.ArgumentParser(description="compare two Oracle database schemas")
+	p = argparse.ArgumentParser(description="compare two Oracle database schemas", epilog="For more info see http://www.livinglogic.de/Python/orasql/scripts/oradiff.html")
 	p.add_argument("connectstring1", help="First schema")
 	p.add_argument("connectstring2", help="Second schema")
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", default=False, action=misc.FlagAction)

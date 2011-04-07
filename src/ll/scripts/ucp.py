@@ -179,7 +179,7 @@ def main(args=None):
 					msg = astyle.style_default("ucp: ", astyle.style_url(strurlread), astyle.style_warn(" (skipped)"))
 					stderr.writeln(msg)
 
-	p = argparse.ArgumentParser(description="Copies URLs")
+	p = argparse.ArgumentParser(description="Copies URLs", epilog="For more info see http://www.livinglogic.de/Python/scripts/ucp.html")
 	p.add_argument("urls", metavar="url", help="either one source and one target file, or multiple source files and one target dir", nargs="*", type=url.URL)
 	p.add_argument("-v", "--verbose", dest="verbose", help="Be verbose? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-c", "--color", dest="color", help="Color output (default: %(default)s)", default="auto", choices=("yes", "no", "auto"))
