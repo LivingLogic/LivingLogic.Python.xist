@@ -28,7 +28,7 @@ Options
 		An Oracle connectstring.
 
 	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Produces output (on stderr) while to datebase is read or written.
+		Produces output (on stderr) while to database is read or written.
 
 	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
 		Should the output (when the ``-v`` option is used) be colored. If ``auto``
@@ -47,12 +47,12 @@ Options
 		schema after ``oradrop -x``.
 
 	``-k``, ``--keepjunk`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If given, database objects that have ``$`` or ``SYS_EXPORT_SCHEMA_`` in
-		their name will be skipped (otherwise these objects will be included in
-		the output).
+		If true (the default), database objects that have ``$`` or
+		``SYS_EXPORT_SCHEMA_`` in their name will be skipped (otherwise these
+		objects will be included in the output).
 
 	``-i``, ``--ignore`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If given, errors occuring while the database is read or written will be
+		If true, errors occuring while the database is read or written will be
 		ignored.
 
 	``-e``, ``--encoding`` : encoding

@@ -33,7 +33,7 @@ Options
 		be limited to those tables. Otherwise all tables will be searched.
 		
 	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Produces output (on stderr) while to datebase is read or written.
+		Produces output (on stderr) while to database is read or written.
 
 	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
 		Should the output (when the ``-v`` option is used) be colored. If ``auto``

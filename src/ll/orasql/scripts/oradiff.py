@@ -9,9 +9,76 @@
 ## See orasql/__init__.py for the license
 
 
+"""
+Purpose
+-------
+
+``oradiff`` can be used to find the difference between two Oracle database schemas.
+
+
+Options
+-------
+
+``oradiff`` supports the following options:
+
+	``connectstring1``
+		Oracle connectstring for the first database schema.
+
+	``connectstring2``
+		Oracle connectstring for the second database schema.
+
+	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Produces output (on stderr) while to database is read.
+
+	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
+		Should the output (when the ``-v`` option is used) be colored. If ``auto``
+		is specified (the default) then the output is colored if stderr is a
+		terminal.
+
+	``-m``, ``--mode`` : ``brief``, ``udiff`` or ``full``
+		Specifies how the differences should be shown. ``brief`` only prints
+		whether objects are different (or which ones exist in one of the databases);
+		``udiff`` outputs the differences in "unified diff" format and ``full``
+		outputs the object from the second schema if they differ (i.e. it outputs
+		the script that must be executed to copy the differences from schema 2
+		to schema 1).
+
+	``-n``, ``--context`` : integer
+		The number of context lines in unified diff mode (i.e. the number of
+		unchanged lines above and below each block of changes; the default is 2)
+
+	``-k``, ``--keepjunk`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		If true (the default), database objects that have ``$`` or
+		``SYS_EXPORT_SCHEMA_`` in their name will be skipped (otherwise these
+		objects will be included in the output).
+
+	``-b``, ``--blank`` : ``literal``, ``trail``, ``lead``, ``both`` or ``collapse``
+		The ``-b`` option specifies how whitespace in the database objects should
+		be compared. With ``literal`` all whitespace is significant, with ``trail``
+		trailing whitespace will be ignore, with ``lead`` leading whitespace will
+		be ignored, with ``both`` trailing and leading whitespace will be ignored
+		and with ``collapse`` trailing and leading whitespace will be ignored and
+		stretches of whitespace will be treated as a single space.
+
+	``-e``, ``--encoding`` : encoding
+		The encoding of the output (default is ``utf-8``).
+
+Example
+-------
+
+Compare the schemas ``user@db`` and ``user2@db2``, collapsing whitespace and
+using unified diff mode with 5 context lines::
+
+	$ oradiff user/pwd@db user2/pwd2@db2 -bcollapse -mudiff -n5 -v >db.diff
+"""
+
+
 import sys, os, difflib, argparse
 
 from ll import misc, orasql, astyle
+
+
+__docformat__ = "reStructuredText"
 
 
 s4warning = astyle.Style.fromenv("LL_ORASQL_REPRANSI_WARNING", "red:black")
@@ -111,8 +178,8 @@ def showudiff(out, obj, ddl1, ddl2, connection1, connection2, encoding="utf-8", 
 
 def main(args=None):
 	p = argparse.ArgumentParser(description="compare two Oracle database schemas")
-	p.add_argument("connectionstring1", help="First schema")
-	p.add_argument("connectionstring2", help="Second schema")
+	p.add_argument("connectstring1", help="First schema")
+	p.add_argument("connectstring2", help="Second schema")
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", default=False, action=misc.FlagAction)
 	p.add_argument("-c", "--color", dest="color", help="Color output (default %(default)s)", default="auto", choices=("yes", "no", "auto"))
 	p.add_argument("-m", "--mode", dest="mode", help="Output mode (default %(default)s)", default="udiff", choices=("brief", "udiff", "full"))
@@ -132,8 +199,8 @@ def main(args=None):
 	stdout = astyle.Stream(sys.stdout, color)
 	stderr = astyle.Stream(sys.stderr, color)
 
-	connection1 = orasql.connect(args.connectionstring1)
-	connection2 = orasql.connect(args.connectionstring2)
+	connection1 = orasql.connect(args.connectstring1)
+	connection2 = orasql.connect(args.connectstring2)
 
 	def fetch(connection):
 		objects = set()
