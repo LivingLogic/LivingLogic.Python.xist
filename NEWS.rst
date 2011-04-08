@@ -50,7 +50,7 @@ Changes in 3.18 (released 04/08/2011)
 	:var:`prettyindentbefore` and :var:`prettyindentafter`. The values will be
 	added to the current indentation level before and after the node in question.
 
-*	All 14 scripts that are part of XIST (``uls``, ``ucp``, ``ucat``, ``db2ul4``,
+*	All scripts that are part of XIST (``uls``, ``ucp``, ``ucat``, ``db2ul4``,
 	``dtd2xsc``, ``tld2xsc``, ``doc2txt``, ``xml2xsc``, ``oracreate``,
 	``oradrop``, ``oradelete``, ``oradiff``, ``oramerge``, ``oragrant`` and
 	``orafind``) are now properly documented on the webpages.
