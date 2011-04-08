@@ -112,9 +112,6 @@ The output will be::
 """
 
 
-__docformat__ = "reStructuredText"
-
-
 import sys, os.path, argparse, cStringIO
 
 try:
