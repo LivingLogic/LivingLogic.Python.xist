@@ -1,4 +1,4 @@
-Changes in 3.18 (released ??/??/2011)
+Changes in 3.18 (released 04/08/2011)
 -------------------------------------
 
 *	Fixed a regression in :class:`ll.orasql.OracleConnection`.
@@ -49,6 +49,11 @@ Changes in 3.18 (released ??/??/2011)
 *	Pretty printing of XIST trees can now be customized with the class attributes
 	:var:`prettyindentbefore` and :var:`prettyindentafter`. The values will be
 	added to the current indentation level before and after the node in question.
+
+*	All 14 scripts that are part of XIST (``uls``, ``ucp``, ``ucat``, ``db2ul4``,
+	``dtd2xsc``, ``tld2xsc``, ``doc2txt``, ``xml2xsc``, ``oracreate``,
+	``oradrop``, ``oradelete``, ``oradiff``, ``oramerge``, ``oragrant`` and
+	``orafind``) are now properly documented on the webpages.
 
 
 Changes in 3.17.3 (released 03/02/2011)
