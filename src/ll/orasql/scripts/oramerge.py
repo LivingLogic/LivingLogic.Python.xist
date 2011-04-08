@@ -9,9 +9,65 @@
 ## See orasql/__init__.py for the license
 
 
+"""
+Purpose
+-------
+
+``oramerge`` can be used for merging the changes between two Oracle database
+schemas into a third one. Depending on the existance/non-existance of schema
+objects in the three schemas ``oramerge`` does the right thing. If a schema
+objects exists in all three schemas, the external tool ``merge3`` will be used
+for creating a merged version of the object (except for tables where the
+appropriate ``ALTER TABLE`` statements will be output if possible).
+
+
+Options
+-------
+
+``oramerge`` supports the following options:
+
+	``connectstring1`` : Oracle connectstring
+		Old version of database schema
+
+	``connectstring2`` : Oracle connectstring
+		New version of database schema
+
+	``connectstring3`` : Oracle connectstring
+		Schema into which changes should be merged
+
+	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Produces output (on stderr) while to database is read or written.
+
+	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
+		Should the output (when the ``-v`` option is used) be colored. If ``auto``
+		is specified (the default) then the output is colored if stderr is a
+		terminal.
+
+	``-k``, ``--keepjunk`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		If true (the default), database objects that have ``$`` or
+		``SYS_EXPORT_SCHEMA_`` in their name will be skipped (otherwise these
+		objects will be considered as merge candidates).
+
+	``-e``, ``--encoding`` : encoding
+		The encoding of the output (default is ``utf-8``).
+
+
+Example
+-------
+
+Output a script that merges the changes between ``user@db`` and ``user2@db2``
+into ``user3@db3``::
+
+	$ oramerge user/pwd@db user2/pwd2@db2 user3/pwd3@db3 -v >db.sql
+"""
+
+
 import sys, os, difflib, argparse, tempfile, subprocess
 
 from ll import misc, orasql, astyle
+
+
+__docformat__ = "reStructuredText"
 
 
 s4warning = astyle.Style.fromenv("LL_ORASQL_REPRANSI_WARNING", "red:black")
