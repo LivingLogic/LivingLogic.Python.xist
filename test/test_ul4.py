@@ -234,7 +234,8 @@ class RenderJavaSourceCompiledByJava(RenderJava):
 
 
 all_python_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump)
-all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaSourceCompiledByPython, RenderJavaLoadByJava, RenderJavaSourceCompiledByJava)
+# FIXME: The following really takes a long time to run: all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaSourceCompiledByPython, RenderJavaLoadByJava, RenderJavaSourceCompiledByJava)
+all_renderers = all_python_renderers
 
 
 def eq(expected, render):
