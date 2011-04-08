@@ -117,7 +117,10 @@ import sys, os.path, argparse, cStringIO
 try:
 	from xml.parsers.xmlproc import dtdparser
 except ImportError:
-	from xmlproc import dtdparser
+	try:
+		from xmlproc import dtdparser
+	except ImportError:
+		dtdparser = None
 
 from ll import misc, url
 from ll.xist import xsc, parse, xnd
@@ -142,7 +145,7 @@ def getxmlns(dtd):
 
 def adddtd2xnd(ns, dtd):
 	# Appends DTD information from :var:`dtd` to the :class:`xnd.Module` object
-	dtd = dtdparser.load_dtd_string(dtd)
+	dtd = dtdparser.load_dtd_string(dtd) # This requires ``xmlproc``
 
 	# try to guess the namespace name from the dtd
 	xmlns = getxmlns(dtd)
