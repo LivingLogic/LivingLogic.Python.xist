@@ -1,3 +1,10 @@
+Changes in 3.18.1 (released 04/13/2011)
+---------------------------------------
+
+*	The methods :meth:`elements`, :meth:`procinsts`, :meth:`entities` and
+	:meth:`charrefs` of :class:`ll.xist.xsc.Pool` now handle base pools properly.
+
+
 Changes in 3.18 (released 04/08/2011)
 -------------------------------------
 

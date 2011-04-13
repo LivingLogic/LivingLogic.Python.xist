@@ -3731,7 +3731,15 @@ class Pool(misc.Pool):
 		"""
 		Return an iterator for all registered element classes.
 		"""
-		return self._elementsbypyname.itervalues() # FIXME: this ignores bases
+		seen = set()
+		for element in self._elementsbypyname.itervalues():
+			yield element
+			seen.add((element.xmlname, element.xmlns))
+		for base in self.bases:
+			for element in base.elements():
+				if (element.xmlname, element.xmlns) not in seen:
+					yield element
+					seen.add((element.xmlname, element.xmlns))
 
 	def elementclass(self, name, xmlns):
 		"""
@@ -3817,7 +3825,15 @@ class Pool(misc.Pool):
 		"""
 		Return an iterator for all registered processing instruction classes.
 		"""
-		return self._procinstsbypyname.itervalues() # FIXME: this ignores bases
+		seen = set()
+		for procinst in self._procinstsbypyname.itervalues():
+			yield procinst
+			seen.add(procinst.xmlname)
+		for base in self.bases:
+			for procinst in base.procinsts():
+				if procinst.xmlname not in seen:
+					yield procinst
+					seen.add(procinst.xmlname)
 
 	def procinstclass(self, name):
 		"""
@@ -3883,7 +3899,15 @@ class Pool(misc.Pool):
 		"""
 		Return an iterator for all registered entity classes.
 		"""
-		return self._entitiesbypyname.itervalues() # FIXME: this ignores bases
+		seen = set()
+		for entity in self._entitiesbypyname.itervalues():
+			yield entity
+			seen.add(entity.xmlname)
+		for base in self.bases:
+			for entity in base.entities():
+				if entity.xmlname not in seen:
+					yield entity
+					seen.add(entity.xmlname)
 
 	def entityclass(self, name):
 		"""
@@ -3945,7 +3969,15 @@ class Pool(misc.Pool):
 		"""
 		Return an iterator for all character entity classes.
 		"""
-		return self._charrefsbypyname.itervalues() # FIXME: this ignores bases
+		seen = set()
+		for charref in self._charrefsbypyname.itervalues():
+			yield charref
+			seen.add(charref.xmlname)
+		for base in self.bases:
+			for charref in base.charrefs():
+				if charref.xmlname not in seen:
+					yield charref
+					seen.add(charref.xmlname)
 
 	def charrefclass(self, name):
 		"""

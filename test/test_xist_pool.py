@@ -345,3 +345,21 @@ def test_mixedattrnames():
 def test_xmlns():
 	p = xsc.Pool(html)
 	assert p.xmlns == html.xmlns
+
+
+def test_itermethods():
+	class pi(xsc.ProcInst):
+		pass
+	class en(xsc.Entity):
+		pass
+	class cr(xsc.CharRef):
+		codepoint = 0x42
+
+	p1 = xsc.Pool(html.a, pi, en, cr)
+	p2 = xsc.Pool(html.b, p1)
+
+	assert html.a in list(p2.elements())
+	assert html.b in list(p2.elements())
+	assert pi in list(p2.procinsts())
+	assert en in list(p2.entities())
+	assert cr in list(p2.charrefs())
