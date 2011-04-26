@@ -227,7 +227,7 @@ else:
 
 args = dict(
 	name="ll-xist",
-	version="3.18.1",
+	version="3.19",
 	description="Extensible HTML/XML generator, cross-platform templating language, Oracle utilities and various other tools",
 	long_description=description,
 	author="Walter Doerwald",
@@ -287,7 +287,7 @@ args = dict(
 		"cssutils == 0.9.7",
 	],
 	extras_require = {
-		"oracle":  ["cx_Oracle >= 5.0.1, < 5.1"],
+		"oracle":  ["cx_Oracle >= 5.1, < 5.2"],
 	},
 	namespace_packages=["ll"],
 	zip_safe=False,

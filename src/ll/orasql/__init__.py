@@ -28,16 +28,9 @@ __ http://cx-oracle.sourceforge.net/
 """
 
 
-import urllib, datetime, itertools, cStringIO, errno, fnmatch, unicodedata
+import urllib, datetime, itertools, cStringIO, errno, fnmatch, unicodedata, codecs
 
 from cx_Oracle import *
-
-try:
-	UNICODE
-	raise ImportError("cx_Oracle must be compiled with WITH_UNICODE=1")
-except NameError:
-	pass
-
 
 from ll import misc
 
@@ -175,20 +168,175 @@ class Args(dict):
 		return "{}.{}({})".format(self.__class__.__module__, self.__class__.__name__, ", ".join("{}={!r}".format(*item) for item in self.iteritems()))
 
 
+class CLOBStream(object):
+	"""
+	A :class:`CLOBStream` object provides streamlike access to a CLOB.
+	"""
+
+	def __init__(self, value, encoding):
+		self.value = value
+		self.encoding = encoding
+		self.decoder = codecs.getincrementaldecoder(encoding)()
+		self.pos = 0
+
+	def readall(self):
+		"""
+		Read all remaining data from the stream and return the decoded unicode
+		object for the data.
+		"""
+		result = self.decoder.decode(self.value.read(self.pos+1), True)
+		self.pos = self.value.size()
+		return result
+
+	def readchunk(self):
+		"""
+		Read a chunk of data from the stream and return the decoded unicode object
+		for the data. Reading is done in optimally sized chunks.
+		"""
+		size = self.value.getchunksize()
+		bytes = self.value.read(self.pos+1, size)
+		self.pos += size
+		if self.pos >= self.value.size():
+			self.pos = self.value.size()
+			return self.decoder.decode(bytes, True)
+		else:
+			return self.decoder.decode(bytes, False)
+
+	def read(self, size=None):
+		"""
+		Read :var:`size` bytes from to stream and return the decoded unicode object
+		for the data. If :var:`size` is ``None``, all remaining data will be read.
+		"""
+		if size is None:
+			return self.readall()
+		if size <= 0:
+			return self.readchunk()
+		bytes = self.value.read(self.pos+1, size)
+		self.pos += size
+		if self.pos >= self.value.size():
+			self.pos = self.value.size()
+			return self.decoder.decode(bytes, True)
+		else:
+			return self.decoder.decode(bytes, False)
+
+	def reset(self):
+		"""
+		Reset the stream, so that the next :meth:`read` call starts at the
+		beginning of the CLOB.
+		"""
+		self.decoder = codecs.getincrementaldecoder(self.encoding)()
+		self.pos = 0
+
+
+class BLOBStream(object):
+	"""
+	A :class:`BLOBStream` object provides streamlike access to a BLOB.
+	"""
+
+	def __init__(self, value):
+		self.value = value
+		self.pos = 0
+
+	def readall(self):
+		"""
+		Read all remaining data from the stream and return it.
+		"""
+		result = self.value.read(self.pos+1)
+		self.pos = self.value.size()
+		return result
+
+	def readchunk(self):
+		"""
+		Read a chunk of data from the stream and return it. Reading is done in
+		optimally sized chunks.
+		"""
+		size = self.value.getchunksize()
+		bytes = self.value.read(self.pos+1, size)
+		self.pos += size
+		if self.pos >= self.value.size():
+			self.pos = self.value.size()
+		return bytes
+
+	def read(self, size=None):
+		"""
+		Read :var:`size` bytes from to stream and return them. If :var:`size` is
+		``None``, all remaining data will be read.
+		"""
+		if size is None:
+			return self.readall()
+		if size <= 0:
+			return self.readchunk()
+		bytes = self.value.read(self.pos+1, size)
+		self.pos += size
+		if self.pos >= self.value.size():
+			self.pos = self.value.size()
+		return bytes
+
+	def reset(self):
+		"""
+		Reset the stream, so that the next :meth:`read` call starts at the
+		beginning of the BLOB.
+		"""
+		self.pos = 0
+
+
+def _decodeclob(value, encoding, readlobs):
+	if value is not None:
+		if readlobs is True or (isinstance(readlobs, (int, long)) and value.size() <= readlobs):
+			value = value.read().decode(encoding)
+		else:
+			value = CLOBStream(value, encoding)
+	return value
+
+
+def _decodeblob(value, readlobs):
+	if value is not None:
+		if readlobs is True or (isinstance(readlobs, (int, long)) and value.size() <= readlobs):
+			value = value.read()
+		else:
+			value = BLOBStream(value)
+	return value
+
+
 class RecordMaker(object):
 	def __init__(self, cursor):
 		self._readlobs = cursor.readlobs
+		self._encoding = cursor.connection.encoding
+		self._nencoding = cursor.connection.nencoding
 		self._index2name = tuple(d[0].lower() for d in cursor.description)
-
-	def _decode(self, value):
-		if isinstance(value, LOB) and (self._readlobs is True or (isinstance(self._readlobs, (int, long)) and value.size() <= self._readlobs)):
-			value = value.read()
-		return value
+		self._index2conv = tuple(getattr(self, d[1].__name__, self.DEFAULT) for d in cursor.description)
 
 	def __call__(self, *row):
-		row = tuple(self._decode(value) for value in row)
+		row = tuple(conv(value) for (conv, value) in itertools.izip(self._index2conv, row))
 		name2index = dict(itertools.izip(self._index2name, itertools.count()))
 		return Record(self._index2name, name2index, row)
+
+	def STRING(self, value):
+		if value is not None:
+			value = value.decode(self._encoding)
+		return value
+
+	def LONG_STRING(self, value):
+		if value is not None:
+			value = value.decode(self._encoding)
+		return value
+
+	def FIXED_CHAR(self, value):
+		if value is not None:
+			value = value.decode(self._encoding)
+		return value
+
+	def CLOB(self, value):
+		return _decodeclob(value, self._encoding, self._readlobs)
+
+	def NCLOB(self, value):
+		return _decodeclob(value, self._nencoding, self._readlobs)
+
+	def BLOB(self, value):
+		return _decodeblob(value, self._readlobs)
+
+	def DEFAULT(self, value):
+		return value
 
 
 class Record(tuple):
@@ -317,14 +465,12 @@ class Connection(Connection):
 		:func:`cx_Oracle.connect` the following keyword argument is supported.
 
 		:var:`readlobs` : bool or integer
-			If :var:`readlobs` is :const:`False` all cursor fetch return
-			:class:`LOB` objects as usual. If :var:`readlobs` is an :class:`int`
-			(or :class:`long`) :class:`LOB`s with a maximum size of :var:`readlobs`
+			If :var:`readlobs` is :const:`False` all cursor fetches return
+			:class:`CLOBStream` or :class:`BLOBStream` objects. If :var:`readlobs`
+			is an :class:`int` :class:`LOB`s with a maximum size of :var:`readlobs`
 			will be returned as strings. If :var:`readlobs` is :const:`True`
 			all :class:`LOB` values will be returned as strings.
 		"""
-		if args and isinstance(args[0], str):
-			args = (unicode(args[0]),) + args[1:]
 		if "readlobs" in kwargs:
 			kwargs = kwargs.copy()
 			self.readlobs = kwargs.pop("readlobs", False)
@@ -750,8 +896,6 @@ class Cursor(Cursor):
 		self.readlobs = (readlobs if readlobs is not None else connection.readlobs)
 
 	def execute(self, statement, parameters=None, **kwargs):
-		if isinstance(statement, str):
-			statement = unicode(statement)
 		if parameters is not None:
 			result = super(Cursor, self).execute(statement, parameters, **kwargs)
 		else:
@@ -761,8 +905,6 @@ class Cursor(Cursor):
 		return result
 
 	def executemany(self, statement, parameters):
-		if isinstance(statement, str):
-			statement = unicode(statement)
 		result = super(Cursor, self).executemany(statement, parameters)
 		if self.description is not None:
 			self.rowfactory = RecordMaker(self)
@@ -2152,11 +2294,15 @@ class Callable(MixinNormalDates, MixinCodeDDL, Object):
 		var.setvalue(0, arg)
 		return var
 
-	def _unwraparg(self, cursor, arg):
-		arg = arg.getvalue(0)
-		if isinstance(arg, LOB) and (cursor.readlobs is True or (isinstance(cursor.readlobs, (int, long)) and arg.size() <= cursor.readlobs)):
-			arg = arg.read()
-		return arg
+	def _unwraparg(self, arginfo, cursor, value):
+		if isinstance(value, LOB):
+			if arginfo.datatype == "clob":
+				return _decodeclob(value, cursor.connection.encoding, cursor.readlobs)
+			elif arginfo.datatype == "nclob":
+				return _decodeclob(value, cursor.connection.nencoding, cursor.readlobs)
+			elif arginfo.datatype == "blob":
+				return _decodeblob(value, cursor.readlobs)
+		return value
 
 	def _makerecord(self, cursor, args):
 		index2name = []
@@ -2165,7 +2311,7 @@ class Callable(MixinNormalDates, MixinCodeDDL, Object):
 			name = arginfo.name
 			if name in args:
 				index2name.append(name)
-				values.append(self._unwraparg(cursor, args[name]))
+				values.append(self._unwraparg(arginfo, cursor, args[name].getvalue(0)))
 		name2index = dict(itertools.izip(index2name, itertools.count()))
 		return Record(index2name, name2index, values)
 
@@ -2249,7 +2395,7 @@ class Function(Callable):
 
 		cursor.execute(query, queryargs)
 
-		returnvalue = self._unwraparg(cursor, queryargs.pop(returnvalue))
+		returnvalue = self._unwraparg(self._returnvalue, cursor, queryargs.pop(returnvalue).getvalue(0))
 
 		return (returnvalue, self._makerecord(cursor, queryargs))
 

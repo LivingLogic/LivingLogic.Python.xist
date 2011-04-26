@@ -43,6 +43,16 @@ def teardown_module(module):
 	module.objdict = {}
 
 
+def readlob(value, size=None):
+	result = []
+	while True:
+		data = value.read(size)
+		if not data:
+			break
+		result.append(data)
+	return "".join(result)
+
+
 @py.test.mark.db
 def test_connect():
 	db = orasql.connect(dbname)
@@ -267,23 +277,49 @@ def test_scripts_orafind():
 
 @py.test.mark.db
 def test_callprocedure():
-	db = orasql.connect(dbname, readlobs=True)
+	db = orasql.connect(dbname)
 	proc = db.getobject("orasql_testprocedure")
-	result = proc(db.cursor(), c_user=u"py.test", p_in=u"abcäöü", p_inout=u"abc"*10000)
+	result = proc(db.cursor(readlobs=True), c_user=u"py.test", p_in=u"abcäöü", p_inout=u"abc"*10000)
 	assert result.p_in == u"abcäöü"
 	assert result.p_out == u"ABCÄÖÜ"
 	assert result.p_inout == u"ABC"*10000 + u"abcäöü"
+	
+	result = proc(db.cursor(readlobs=False), c_user=u"py.test", p_in=u"abcäöü", p_inout=u"abc"*10000)
+	assert result.p_in == u"abcäöü"
+	assert result.p_out == u"ABCÄÖÜ"
+	assert readlob(result.p_inout, 8192) == u"ABC"*10000 + u"abcäöü"
 
 
 @py.test.mark.db
 def test_callfunction():
-	db = orasql.connect(dbname, readlobs=True)
+	db = orasql.connect(dbname)
 	func = db.getobject("orasql_testfunction")
-	(result, args) = func(db.cursor(), c_user=u"py.test", p_in=u"abcäöü", p_inout=u"abc"*10000)
+	(result, args) = func(db.cursor(readlobs=True), c_user=u"py.test", p_in=u"abcäöü", p_inout=u"abc"*10000)
 	assert result == u"ABCÄÖÜ"
 	assert args.p_in == u"abcäöü"
 	assert args.p_out == u"ABCÄÖÜ"
 	assert args.p_inout == u"ABC"*10000 + u"abcäöü"
+
+	(result, args) = func(db.cursor(readlobs=False), c_user=u"py.test", p_in=u"abcäöü", p_inout=u"abc"*10000)
+	assert result == u"ABCÄÖÜ"
+	assert args.p_in == u"abcäöü"
+	assert args.p_out == u"ABCÄÖÜ"
+	assert readlob(args.p_inout, 8192) == u"ABC"*10000 + u"abcäöü"
+
+
+@py.test.mark.db
+def test_clob_fromprocedure():
+	db = orasql.connect(dbname)
+	proc = db.getobject("orasql_testprocedure")
+	def check(sizearg):
+		result = proc(db.cursor(readlobs=False), c_user=u"py.test", p_in=u"abcäöü", p_inout=u"abc"*10000)
+		assert readlob(result.p_inout, sizearg) == u"ABC"*10000 + u"abcäöü"
+		assert result.p_inout.read() == ""
+	yield check, 1
+	yield check, 2
+	yield check, 8192
+	yield check, 0
+	yield check, None
 
 
 @py.test.mark.db

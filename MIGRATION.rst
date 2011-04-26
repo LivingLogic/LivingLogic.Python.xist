@@ -1,3 +1,24 @@
+Migrating to version 3.19
+=========================
+
+Changes to :mod:`ll.orasql`
+---------------------------
+
+*	:mod:`ll.orasql` now requires cx_Oracle 5.1 (i.e. ``UNICODE`` mode is no
+	longer used).
+
+*	If the :var:`readlobs` option is false for :mod:`ll.orasql` cursors, the
+	CLOBs/BLOBs returned will be be wrapped into something that behaves like a
+	Python file. The original :class:`LOB` object is available as the ``value``
+	attribute of the returned wrapper object::
+
+		db = orasql.connect("user/pwd@db")
+		c = db.cursor()
+		c.execute("select theclob from thetable")
+		row = c.fetchone()
+		print row[0].value.read()
+
+
 Migrating to version 3.18
 =========================
 
