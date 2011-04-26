@@ -4,7 +4,7 @@ Changes in 3.19 (released 04/26/2011)
 *	:mod:`ll.orasql` now requires cx_Oracle 5.1.
 
 *	If the :var:`readlobs` option is false for :mod:`ll.orasql` cursors, the
-	CLOBs/BLOBs returned will be be wrapped into something that behaves like a
+	CLOBs/BLOBs returned will be wrapped into something that behaves like a
 	Python file.
 
 
