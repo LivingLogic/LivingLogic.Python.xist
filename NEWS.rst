@@ -1,3 +1,14 @@
+Changes in 3.20 (released ??/??/2011)
+-------------------------------------
+
+*	It's now possible to specify the connection mode (i.e. ``SYSDBA`` and
+	``SYSOPER``) in ``oracle`` URLs like this::
+
+		$ uls oracle://sys:pwd:sysdba@tnsname/
+
+	Supported are the values ``normal`` (the default), ``sysdba`` and ``sysoper``.
+
+
 Changes in 3.19 (released 04/26/2011)
 -------------------------------------
 

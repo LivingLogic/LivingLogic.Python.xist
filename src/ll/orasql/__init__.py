@@ -22,7 +22,12 @@
 	database metadata.
 
 *	Importing this module adds support for URLs with the scheme ``oracle`` to
-	:mod:`ll.url`.
+	:mod:`ll.url`. Examples of these URLs are::
+
+		oracle://user:pwd@db/
+		oracle://user:pwd@db/view/
+		oracle://user:pwd@db/view/USER_TABLES.sql
+		oracle://sys:pwd:sysdba@db/
 
 __ http://cx-oracle.sourceforge.net/
 """
@@ -2753,8 +2758,8 @@ class Column(Object):
 ###
 
 class OracleConnection(url_.Connection):
-	def __init__(self, context, connection):
-		self.dbconnection = connect(connection)
+	def __init__(self, context, connection, mode):
+		self.dbconnection = connect(connection, mode=mode) if mode is not None else connect(connection)
 
 	def open(self, url, mode="rb"):
 		return OracleFileResource(self, url, mode)
@@ -2922,9 +2927,17 @@ class OracleSchemeDefinition(url_.SchemeDefinition):
 			connection = connections[server]
 		except KeyError:
 			userinfo = url.userinfo.split(":")
-			if len(userinfo) != 2:
+			lui = len(userinfo)
+			if lui == 2:
+				mode = None
+			elif lui == 3:
+				try:
+					mode = dict(sysoper=SYSOPER, sysdba=SYSDBA, normal=None)[userinfo[2]]
+				except KeyError:
+					raise ValueError("unknown connect mode {!r}".format(userinfo[2]))
+			else:
 				raise ValueError("illegal userinfo {!r}".format(url.userinfo))
-			connection = connections[server] = OracleConnection(context, "{}/{}@{}".format(userinfo[0], userinfo[1], url.host))
+			connection = connections[server] = OracleConnection(context, "{}/{}@{}".format(userinfo[0], userinfo[1], url.host), mode)
 		return (connection, kwargs)
 
 	def open(self, url, mode="rb", context=None):
