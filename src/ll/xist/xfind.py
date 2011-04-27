@@ -681,7 +681,7 @@ class attrstartswith(Selector):
 		>>> from ll.xist.ns import xml, html
 		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(xfind.attrstartswith("class_", "input-")):
-		... 	print repr(node)
+		... 	print node.bytes()
 		...
 		<input class="input-text" id="q" type="text" name="q" />
 		<input value="search" class="input-button" id="submit" type="submit" name="submit" />
