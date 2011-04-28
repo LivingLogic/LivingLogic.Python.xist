@@ -37,30 +37,16 @@ import urllib, datetime, itertools, cStringIO, errno, fnmatch, unicodedata, code
 
 from cx_Oracle import *
 
-from ll import misc
-
-try:
-	import astyle
-except ImportError:
-	from ll import astyle
-
-
-# ipipe support
-try:
-	import ipipe
-except ImportError:
-	ipipe = None
-
-from ll import url as url_
+from ll import misc, url as url_
 
 
 __docformat__ = "reStructuredText"
 
 
-style_connection = astyle.style_url
+bigbang = datetime.datetime(1970, 1, 1, 0, 0, 0) # timestamp for Oracle "directories"
 
 
-bigbang = datetime.datetime(1970, 1, 1, 0, 0, 0)
+ALL = object() # marker object for specifying a user
 
 
 class SQLObjectNotFoundError(IOError):
@@ -93,17 +79,6 @@ class UnknownModeError(ValueError):
 
 	def __str__(self):
 		return "unknown mode {!r}".format(self.mode)
-
-
-class UnknownSchemaError(ValueError):
-	def __init__(self, schema):
-		self.schema = schema
-
-	def __repr__(self):
-		return "<{}.{} schema={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.schema, id(self))
-
-	def __str__(self):
-		return "unknown schema {!r}".format(self.schema)
 
 
 class ConflictError(ValueError):
@@ -158,16 +133,6 @@ class Args(dict):
 			self.__delitem__(name)
 		except KeyError:
 			raise AttributeError(name)
-
-	def __xattrs__(self, mode="default"):
-		# Return the attributes of this record. This is for interfacing with ipipe
-		return self.iterkeys()
-
-	def __xrepr__(self, mode):
-		if mode == "header":
-			yield (astyle.style_default, "{}.{}".format(self.__class__.__module__, self.__class__.__name__))
-		else:
-			yield (astyle.style_default, repr(self))
 
 	def __repr__(self):
 		return "{}.{}({})".format(self.__class__.__module__, self.__class__.__name__, ", ".join("{}={!r}".format(*item) for item in self.iteritems()))
@@ -408,39 +373,8 @@ class Record(tuple):
 		"""
 		return ((key, tuple.__getitem__(self, index)) for (index, key) in enumerate(self._index2name))
 
-	def __xattrs__(self, mode="default"):
-		# Return the attributes of this record. This is for interfacing with ipipe
-		return self.iterkeys()
-
-	def __xrepr__(self, mode):
-		if mode == "header":
-			yield (astyle.style_default, "{}.{}".format(self.__class__.__module__, self.__class__.__name__))
-		else:
-			yield (astyle.style_default, repr(self))
-
 	def __repr__(self):
 		return "<{}.{} {} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, ", ".join("{}={!r}".format(*item) for item in self.iteritems()), id(self))
-
-
-class _AllTypes(object):
-	def __init__(self, connection, class_, schema, count):
-		self.connection = connection
-		self.class_ = class_
-		self.type = class_.type
-		self.schema = schema
-		self.count = count
-
-	def __xattrs__(self, mode="default"):
-		return ("type", "count")
-
-	def __xrepr__(self, mode):
-		if mode == "header" or mode == "footer":
-			yield (astyle.style_default, self.type + "s")
-		else:
-			yield (astyle.style_default, repr(self))
-
-	def __iter__(self):
-		return self.class_.iterobjects(self.connection, self.schema)
 
 
 class SessionPool(SessionPool):
@@ -499,39 +433,15 @@ class Connection(Connection):
 	def __repr__(self):
 		return "<{}.{} object db={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.connectstring(), id(self))
 
-	def __xrepr__(self, mode):
-		if mode == "header" or mode=="footer":
-			yield (astyle.style_default, "oracle connection to {}".format(self.connectstring()))
-		elif mode == "cell":
-			yield (style_connection, self.connectstring())
-		else:
-			yield (astyle.style_default, repr(self))
-
-	def iterschema(self, schema="user"):
-		"""
-		Generator that returns the number of different object types for this
-		database. For the meaning of :var:`schema` see :meth:`iterobjects`.
-		"""
-		if schema not in ("user", "all", "dba"):
-			raise UnknownSchemaError(schema)
-
-		cursor = self.cursor()
-		cursor.execute("select object_type as type, count(*) as count from {}_objects group by object_type".format(schema))
-		for row in cursor.fetchall():
-			class_ = Object.name2type.get(row.type.lower(), None)
-			if class_ is not None:
-				yield _AllTypes(self, class_, schema, row.count)
-		if schema == "user":
-			cursor.execute("select count(*) as count from user_tab_privs where owner=user")
-		else:
-			cursor.execute("select count(*) as count from {}_tab_privs".format(schema))
-		yield _AllTypes(self, Privilege, schema, cursor.fetchone()[0])
-
-	def itertables(self, schema="user", mode="flat"):
+	def itertables(self, user=ALL, mode="flat"):
 		"""
 		Generator that yields all table definitions in the current users schema
 		(or all users schemas). :var:`mode` specifies the order in which tables
 		will be yielded:
+
+		``"create"``
+			Create order, deleting records from the table in this order will not
+			violate foreign key constraints.
 
 		``"drop"``
 			Drop order, deleting records from the table in this order will not
@@ -559,27 +469,21 @@ class Connection(Connection):
 		if mode not in ("create", "drop", "flat"):
 			raise UnknownModeError(mode)
 
-		if schema not in ("user", "all", "dba"):
-			raise UnknownSchemaError(schema)
-
 		cursor = self.cursor()
 
-		if schema == "user":
-			cursor.execute("select null as owner, table_name from user_tables minus select null as owner, mview_name as table_name from user_mviews")
-		else:
-			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {0}_tables minus select decode(owner, user, null, owner) as owner, mview_name as table_name from {0}_mviews".format(schema))
+		tables = Table.iterobjects(self, user)
 
 		if mode == "flat":
-			for rec in cursor.fetchall():
-				yield Table(rec.table_name, rec.owner, self)
+			for table in tables:
+				yield table
 		else:
 			done = set()
 
-			tables = {(rec.table_name, rec.owner): Table(rec.table_name, rec.owner, self) for rec in cursor.fetchall()}
+			tables = {(table.name, table.owner): table for table in tables}
 			def do(table):
 				if table not in done:
 					done.add(table)
-					cursor.execute("select ac1.table_name, decode(ac1.owner, user, null, ac1.owner) as owner from {0}_constraints ac1, {0}_constraints ac2 where ac1.constraint_type = 'R' and ac2.table_name=:name and ac2.owner = nvl(:owner, user) and ac1.r_constraint_name = ac2.constraint_name and ac1.r_owner = ac2.owner".format(schema), name=table.name, owner=table.owner)
+					cursor.execute("select ac1.table_name, decode(ac1.owner, user, null, ac1.owner) as owner from {0}_constraints ac1, {0}_constraints ac2 where ac1.constraint_type = 'R' and ac2.table_name=:name and ac2.owner = nvl(:owner, user) and ac1.r_constraint_name = ac2.constraint_name and ac1.r_owner = ac2.owner".format(cursor.ddprefix()), name=table.name, owner=table.owner)
 					for rec in cursor.fetchall():
 						try:
 							t2 = tables[(rec.table_name, rec.owner)]
@@ -593,55 +497,28 @@ class Connection(Connection):
 				for t in do(table):
 					yield t
 
-	def itersequences(self, schema="user"):
+	def itersequences(self, user=ALL):
 		"""
-		Generator that yields all sequence in the current users schema (or all
-		users schemas). :var:`schema` specifies from which user sequences should
-		be yielded:
-
-		``"user"``
-			Only sequences belonging to the current user will be yielded (i.e.
-			sequences from the ``USER_SEQUENCES`` view).
-
-		``"all"``
-			All sequences accessible to the user will be yielded (i.e. sequences
-			from the ``ALL_SEQUENCES`` view).
-
-		``"dba"``
-			All sequences from all users will be yielded (i.e. sequences from the
-			``DBA_SEQUENCES`` view, this requires the appropriate privileges).
+		Generator that yields sequences. :var:`user` can be ``None``, ``ALL``
+		(the default) or a user name.
 		"""
-		if schema not in ("user", "all", "dba"):
-			raise UnknownSchemaError(schema)
+		return Sequence.iterobjects(self, user)
 
-		cursor = self.cursor()
-
-		if schema == "user":
-			cursor.execute("select null as sequence_owner, sequence_name from user_sequences")
-		else:
-			cursor.execute("select decode(sequence_owner, user, null, sequence_owner) as sequence_owner, sequence_name from {}_sequences".format(schema))
-		for rec in cursor.fetchall():
-			yield Sequence(rec.sequence_name, rec.sequence_owner, self)
-
-	def iterfks(self, schema="user"):
+	def iterfks(self, user=ALL):
 		"""
-		Generator that yields all foreign key constraints in the current users
-		schema (or all users schemas). :var:`schema` specifies from which user
-		foreign keys should be yielded: ``user``, ``all`` or ``dba``.
+		Generator that yields all foreign key constraints. :var:`user` can be
+		``None``, ``ALL`` (the default) or a user name.
 		"""
-		if schema not in ("user", "all", "dba"):
-			raise UnknownSchemaError(schema)
+		return ForeignKey.iterobjects(self, user)
 
-		cursor = self.cursor()
+	def iterprivileges(self, user=ALL):
+		"""
+		Generator that yields object privileges. :var:`user` can be ``None``,
+		``ALL`` (the default) or a user name.
+		"""
+		return Privilege.iterobjects(self, user)
 
-		if schema == "user":
-			cursor.execute("select null as owner, constraint_name from user_constraints where constraint_type='R' order by table_name, constraint_name")
-		else:
-			cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type='R' order by owner, table_name, constraint_name".format(schema))
-		for rec in cursor.fetchall():
-			yield ForeignKey(rec.constraint_name, rec.owner, self)
-
-	def iterobjects(self, mode="create", schema="user"):
+	def iterobjects(self, user=ALL, mode="create"):
 		"""
 		Generator that yields the sequences, tables, primary keys, foreign keys,
 		comments, unique constraints, indexes, views, functions, procedures,
@@ -677,9 +554,6 @@ class Connection(Connection):
 		if mode not in ("create", "drop", "flat"):
 			raise UnknownModeError(mode)
 
-		if schema not in ("user", "all", "dba"):
-			raise UnknownSchemaError(schema)
-
 		done = set()
 
 		cursor = self.cursor()
@@ -697,103 +571,75 @@ class Connection(Connection):
 					yield obj
 
 		def dosequences():
-			if schema == "user":
-				cursor.execute("select null as sequence_owner, sequence_name from user_sequences")
-			else:
-				cursor.execute("select decode(sequence_owner, user, null, sequence_owner) as sequence_owner, sequence_name from {}_sequences".format(schema))
-			for rec in cursor.fetchall():
-				for obj in do(Sequence(rec.sequence_name, rec.sequence_owner, self)):
+			for sequence in Sequence.iterobjects(self, user):
+				for obj in do(sequence):
 					yield obj
 
 		def dotables():
-			if schema == "user":
-				cursor.execute("select null as owner, table_name from user_tables")
-			else:
-				cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {}_tables".format(schema))
-			for rec in cursor.fetchall():
-				obj = Table(rec.table_name, rec.owner, self)
+			for table in Table.iterobjects(self, user):
 				if mode == "create" or mode == "flat":
-					for subobj in do(obj):
-						yield subobj
+					for obj in do(table):
+						yield obj
 
-				if not obj.ismview(self):
+				if not table.ismview(self):
 					# Primary key
-					if schema == "user":
-						cursor.execute("select null as owner, constraint_name from user_constraints where constraint_type='P' and table_name=:name", name=rec.table_name)
-					else:
-						cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type='P' and owner=:owner and table_name=:name".format(schema), owner=rec.owner, name=rec.table_name)
-					for rec2 in cursor.fetchall():
-						for subobj in do(PrimaryKey(rec2.constraint_name, rec2.owner, self)):
-							yield subobj
+					pk = table.pk()
+					if pk is not None:
+						for obj in do(pk):
+							yield obj
 
 					# Comments
-					if schema == "user":
-						cursor.execute("select column_name from user_tab_columns where table_name=:name order by column_id", name=rec.table_name)
-					else:
-						cursor.execute("select column_name from {}_tab_columns where owner=:owner and table_name=:name order by column_id".format(schema), owner=rec.owner, name=rec.table_name)
-					for rec2 in cursor.fetchall():
+					for comment in table.itercomments():
 						# No dependency checks neccessary, but use ``do`` anyway
-						for subobj in do(Comment(u"{}.{}".format(rec.table_name, rec2.column_name), rec.owner, self)):
-							yield subobj
+						for obj in do(comment):
+							yield obj
 
 				if mode == "drop":
-					for subobj in do(obj):
-						yield subobj
+					for obj in do(table):
+						yield obj
 
 		def doconstraints():
-			if schema == "user":
+			if user is None:
 				cursor.execute("select constraint_type, null as owner, constraint_name from user_constraints where constraint_type in ('R', 'U') order by table_name, constraint_type, constraint_name")
+			elif user is ALL:
+				cursor.execute("select constraint_type, decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type in ('R', 'U') order by owner, table_name, constraint_type, constraint_name".format(cursor.ddprefix()))
 			else:
-				cursor.execute("select constraint_type, decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type in ('R', 'U') order by owner, table_name, constraint_type, constraint_name".format(schema))
+				cursor.execute("select constraint_type, decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type in ('R', 'U') and owner=:owner order by table_name, constraint_type, constraint_name".format(cursor.ddprefix()), owner=user)
 			types = {"U": UniqueConstraint, "R": ForeignKey}
 			for rec in cursor.fetchall():
 				for subobj in do(types[rec.constraint_type](rec.constraint_name, rec.owner, self)):
 					yield subobj
 
 		def doindexes():
-			if schema == "user":
-				cursor.execute("select null as owner, index_name from user_indexes where index_type in ('NORMAL', 'FUNCTION-BASED NORMAL') order by table_name, index_name")
-			else:
-				cursor.execute("select decode(owner, user, null, owner) as owner, index_name from {}_indexes where index_type in ('NORMAL', 'FUNCTION-BASED NORMAL') order by owner, table_name, index_name".format(schema))
-			for rec in cursor.fetchall():
-				for subobj in do(Index(rec.index_name, rec.owner, self)):
-					yield subobj
+			for index in Index.iterobjects(self, user):
+				for obj in do(index):
+					yield obj
 
 		def dosynonyms():
-			if schema == "user":
-				cursor.execute("select null as owner, synonym_name from user_synonyms")
-			else:
-				cursor.execute("select decode(owner, user, null, owner) as owner, synonym_name from {}_synonyms".format(schema))
-			for rec in cursor.fetchall():
-				for subobj in do(Synonym(rec.synonym_name, rec.owner, self)):
-					yield subobj
+			for synonym in Synonym.iterobjects(self, user):
+				for obj in do(synonym):
+					yield obj
 
 		def doviews():
-			if schema == "user":
-				cursor.execute("select null as owner, view_name from user_views")
-			else:
-				cursor.execute("select decode(owner, user, null, owner) as owner, view_name from {}_views".format(schema))
-			for rec in cursor.fetchall():
-				for subobj in do(View(rec.view_name, rec.owner, self)):
-					yield subobj
+			for view in View.iterobjects(self, user):
+				for obj in do(view):
+					yield obj
 
 		def domviews():
-			if schema == "user":
+			if user is None:
 				cursor.execute("select null as owner, mview_name from user_mviews")
+			elif user is ALL:
+				cursor.execute("select decode(owner, user, null, owner) as owner, mview_name from {}_mviews".format(cursor.ddprefix()))
 			else:
-				cursor.execute("select decode(owner, user, null, owner) as owner, mview_name from {}_mviews".format(schema))
+				cursor.execute("select decode(owner, user, null, owner) as owner, mview_name from {}_mviews where owner=:owner".format(cursor.ddprefix()), owner=user)
 			for rec in cursor.fetchall():
 				for subobj in do(MaterializedView(rec.mview_name, rec.owner, self)):
 					yield subobj
 
 		def docode():
 			for type in (Function, Procedure, Package, PackageBody, Type, Trigger, JavaSource):
-				if schema == "user":
-					cursor.execute("select null as owner, object_name from user_objects where lower(object_type)=lower(:type)", type=type.type)
-				else:
-					cursor.execute("select decode(owner, user, null, owner) as owner, object_name from {}_objects where lower(object_type)=lower(:type)".format(schema), type=type.type)
-				for rec in cursor.fetchall():
-					for subobj in do(type(rec.object_name, rec.owner, self)):
+				for obj in type.iterobjects(self, user):
+					for subobj in do(obj):
 						yield subobj
 
 		funcs = [dosequences, dotables, doconstraints, doindexes, dosynonyms, doviews, domviews, docode]
@@ -869,14 +715,6 @@ class Connection(Connection):
 				return cls(rec.object_name, rec.owner, self)
 		raise SQLNoSuchObjectError(name, owner)
 
-	def iterprivileges(self, schema="user"):
-		"""
-		Generator that yields object privileges for the current users (or all
-		users) objects. :var:`schema` specifies which privileges should be
-		yielded: ``user``, ``all`` or ``dba``.
-		"""
-		return Privilege.iterobjects(self, schema)
-
 
 def connect(*args, **kwargs):
 	"""
@@ -935,15 +773,6 @@ class Cursor(Cursor):
 		if self.description is not None:
 			self.rowfactory = RecordMaker(self)
 		return result
-
-	def __xrepr__(self, mode):
-		if mode == "header" or mode == "footer":
-			if self.statement:
-				yield (astyle.style_default, self.statement)
-			else:
-				yield (astyle.style_default, "no statement")
-		else:
-			yield (astyle.style_default, repr(self))
 
 	def __repr__(self):
 		return "<{}.{} statement={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.statement, id(self))
@@ -1049,10 +878,10 @@ class MixinCodeDDL(object):
 		return code
 
 	@classmethod
-	def fixname(cls, name, code):
+	def fixname(cls, code):
 		if code:
 			code = code.split(None, 5)
-			code = u"create or replace {} {}\n{}".format(code[3], getfullname(name, None), code[5])
+			code = u"create or replace {} {}\n{}".format(code[3], self.getfullname(), code[5])
 		return code
 
 
@@ -1134,10 +963,10 @@ class Object(object):
 		"""
 
 	@misc.notimplemented
-	def fixname(cls, name, code):
+	def fixname(cls, code):
 		"""
 		Replace the name of the object in the SQL code :var:`code` with
-		:var:`name`.
+		the name of :var:`self`.
 		"""
 
 	@misc.notimplemented
@@ -1169,11 +998,11 @@ class Object(object):
 		cursor.execute("select referenced_type, decode(referenced_owner, user, null, referenced_owner) as referenced_owner, referenced_name from {}_dependencies where type=upper(:type) and name=:name and owner=nvl(:owner, user) and type != 'NON-EXISTENT'".format(cursor.ddprefix()), type=self.type, name=self.name, owner=self.owner)
 		for rec in cursor.fetchall():
 			try:
-				type = Object.name2type[rec.referenced_type.lower()]
+				cls = Object.name2type[rec.referenced_type.lower()]
 			except KeyError:
 				pass # FIXME: Issue a warning?
 			else:
-				yield type(rec.referenced_name, rec.referenced_owner, connection)
+				yield cls(rec.referenced_name, rec.referenced_owner, connection)
 
 	def iterreferencesall(self, connection=None, done=None):
 		"""
@@ -1243,70 +1072,49 @@ class Object(object):
 	connectstring = property(getconnectstring)
 
 	@classmethod
-	def iternames(cls, connection, schema="user"):
+	def iternames(cls, connection, user=ALL):
 		"""
-		Generator that yields the names of all objects of this type in the current
-		users schema (or all users schemas). :var:`schema` specifies from which
-		user tables should be yielded:
+		Generator that yields the names of all objects of this type. The argument
+		:var:`user` specifies whos objects are yielded:
+		
+			``None``
+				All objects belonging to the current user (i.e. via the view
+				``USER_OBJECTS``).
 
-		``"user"``
-			Only names of objects belonging to the current user will be yielded
-			(i.e. the objects in the view ``USER_OBJECTS``).
+			``ALL``
+				All objects for all users (via the views ``ALL_OBJECTS`` or
+				``DBA_OBJECTS``)
 
-		``"all"``
-			All names of the objects accessible to the current user will be yielded.
-			(i.e. the objects in the view ``ALL_OBJECTS``).
-
-		``"dba"``
-			All names of the objects from all users will be yielded. (i.e. the
-			objects in the view ``DBA_OBJECTS``, this requires appropriate
-			privileges).
+			username : string
+				All objects belonging the the specified user
 		"""
 		cursor = connection.cursor()
-		if schema=="user":
+		if user is None:
 			cursor.execute("select null as owner, object_name from user_objects where lower(object_type) = :type and object_name not like 'BIN$%' order by object_name", type=cls.type)
+		elif user is ALL:
+			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from {}_objects where lower(object_type) = :type and object_name not like 'BIN$%' order by owner, object_name".format(cursor.ddprefix()), type=cls.type)
 		else:
-			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from {}_objects where lower(object_type) = :type and object_name not like 'BIN$%' order by owner, object_name".format(schema), type=cls.type)
+			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from {}_objects where lower(object_type) = :type and object_name not like 'BIN$%' and owner=:owner order by owner, object_name".format(cursor.ddprefix()), type=cls.type, owner=user)
 		return ((row.object_name, row.owner) for row in cursor)
 
 	@classmethod
-	def iterobjects(cls, connection, schema="user"):
+	def iterobjects(cls, connection, user=ALL):
 		"""
-		Generator that yields all objects of this type in the database schema
-		of :var:`cursor`.
+		Generator that yields all objects of this type in the current users schema.
+		The argument :var:`user` specifies whos objects are yielded:
+		
+			``None``
+				All objects belonging to the current user (i.e. via the view
+				``USER_OBJECTS``).
+
+			``ALL``
+				All objects for all users (via the views ``ALL_OBJECTS`` or
+				``DBA_OBJECTS``)
+
+			username : string
+				All objects belonging the the specified user
 		"""
-		return (cls(name[0], name[1], connection) for name in cls.iternames(connection, schema))
-
-	def __iter__(self):
-		return iter(self.createddl().splitlines())
-
-	def __xrepr__(self, mode):
-		if mode == "cell":
-			yield (astyle.style_type_type, self.__class__.__name__)
-			yield (astyle.style_default, "(")
-			yield (astyle.style_default, self.name)
-			if self.owner is not None:
-				yield (astyle.style_default, ",")
-				yield (astyle.style_default, self.owner)
-			yield (astyle.style_default, ")")
-		else:
-			yield (astyle.style_default, repr(self))
-
-	def __xattrs__(self, mode="default"):
-		yield "type"
-		yield "name"
-		yield "owner"
-		yield "connection"
-
-		if mode == "detail":
-			yield "cdate()"
-			yield "udate()"
-			yield "-createddl()"
-			yield "-dropddl()"
-			yield "-iterreferences()"
-			yield "-iterreferencedby()"
-			yield "-iterreferencesall()"
-			yield "-iterreferencedbyall()"
+		return (cls(name[0], name[1], connection) for name in cls.iternames(connection, user))
 
 
 class Sequence(MixinNormalDates, Object):
@@ -1359,21 +1167,15 @@ class Sequence(MixinNormalDates, Object):
 		return code
 
 	@classmethod
-	def fixname(cls, name, code):
+	def fixname(cls, code):
 		code = code.split(None, 3)
-		code = u"create sequence {}\n{}".format(getfullname(name, None), code[3])
+		code = u"create sequence {}\n{}".format(self.getfullname(), code[3])
 		return code
 
-	def iterreferences(self, connection=None, schema="all"):
+	def iterreferences(self, connection=None, done=None):
 		# Shortcut: a sequence doesn't depend on anything
 		if False:
 			yield None
-
-	def __xattrs__(self, mode="default"):
-		for attr in super(Sequence, self).__xattrs__(mode):
-			yield attr
-			if attr == "-createddl()":
-				yield "-createddlcopy()"
 
 
 def _columntype(rec, data_precision=None, data_scale=None, char_length=None):
@@ -1458,9 +1260,9 @@ class Table(MixinNormalDates, Object):
 		return code
 
 	@classmethod
-	def fixname(cls, name, code):
+	def fixname(cls, code):
 		code = code.split(None, 3)
-		code = u"create table {}\n{}".format(getfullname(name, None), code[3])
+		code = u"create table {}\n{}".format(self.getfullname(), code[3])
 		return code
 
 	def mview(self, connection=None):
@@ -1494,12 +1296,15 @@ class Table(MixinNormalDates, Object):
 		return "heap" if rec.iot_type is None else "index"
 
 	@classmethod
-	def iternames(cls, connection, schema="user"):
+	def iternames(cls, connection, user=ALL):
+		# Skip tables that are materialized views
 		cursor = connection.cursor()
-		if schema == "user":
-			cursor.execute("select null as owner, table_name from user_tables where table_name not like 'BIN$%' order by table_name")
+		if user is None:
+			cursor.execute("select null as owner, table_name from user_tables where table_name not like 'BIN$%' minus select null as owner, mview_name as table_name from user_mviews order by table_name")
+		elif user is ALL:
+			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {0}_tables where table_name not like 'BIN$%' order by owner, table_name minus select decode(owner, user, null, owner) as owner, mview_name as table_name from {0}_mviews".format(cursor.ddprefix()))
 		else:
-			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {}_tables where table_name not like 'BIN$%' order by owner, table_name".format(schema))
+			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {0}_tables where table_name not like 'BIN$%' and owner=:owner order by table_name minus select decode(owner, user, null, owner) as owner, mview_name as table_name from {0}_mviews where owner=:owner".format(cursor.ddprefix()), owner=user)
 		return ((row.table_name, row.owner) for row in cursor)
 
 	def itercolumns(self, connection=None):
@@ -1508,9 +1313,7 @@ class Table(MixinNormalDates, Object):
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select column_name from {}_tab_columns where owner=nvl(:owner, user) and table_name=:name order by column_id".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-
-		for rec in cursor.fetchall():
-			yield Column(u"{}.{}".format(self.name, rec.column_name), self.owner, connection)
+		return (Column(u"{}.{}".format(self.name, rec.column_name), self.owner, connection) for rec in cursor)
 
 	def iterrecords(self, connection=None):
 		"""
@@ -1527,19 +1330,26 @@ class Table(MixinNormalDates, Object):
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select column_name from {}_tab_columns where owner=nvl(:owner, user) and table_name=:name order by column_id".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		for rec in cursor.fetchall():
-			yield Comment(u"{}.{}".format(self.name, rec.column_name), self.owner, connection)
+		return (Comment(u"{}.{}".format(self.name, rec.column_name), self.owner, connection) for rec in cursor)
+
+	def _iterconstraints(self, connection, cond):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select decode(owner, user, null, owner) as owner, constraint_type, constraint_name from {}_constraints where constraint_type {} and owner=nvl(:owner, user) and table_name=:name".format(cursor.ddprefix(), cond), owner=self.owner, name=self.name)
+		types = {"P": PrimaryKey, "U": UniqueConstraint, "R": ForeignKey}
+		return (types[rec.constraint_type](rec.constraint_name, rec.owner, connection) for rec in cursor)
 
 	def iterconstraints(self, connection=None):
 		"""
 		Generator that yields all constraints for this table.
 		"""
-		(connection, cursor) = self.getcursor(connection)
-		# Primary and unique key(s)
-		cursor.execute("select decode(owner, user, null, owner) as owner, constraint_type, constraint_name from {}_constraints where constraint_type in ('P', 'U', 'R') and owner=nvl(:owner, user) and table_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		types = {"P": PrimaryKey, "U": UniqueConstraint, "R": ForeignKey}
-		for rec in cursor.fetchall():
-			yield types[rec.constraint_type](rec.constraint_name, rec.owner, connection)
+		return self._iterconstraints(connection, "in ('P', 'U', 'R')")
+
+	def pk(self, connection=None):
+		"""
+		Return the primary key constraint for this table (or ``None`` if the table
+		has no primary key constraint).
+		"""
+		return misc.first(self._iterconstraints(connection, "= 'P'"), None)
 
 	def iterreferences(self, connection=None):
 		connection = self.getconnection(connection)
@@ -1559,16 +1369,6 @@ class Table(MixinNormalDates, Object):
 			# skip the materialized view
 			if not isinstance(obj, MaterializedView) or obj.name != self.name or obj.owner != self.owner:
 				yield obj
-
-	def __xattrs__(self, mode="default"):
-		for attr in super(Table, self).__xattrs__(mode):
-			yield attr
-		if mode=="detail":
-			yield "-itercolumns()"
-			yield "-iterrecords()"
-			yield "-itercomments()"
-			yield "-iterconstraints()"
-			yield "mview()"
 
 
 class Constraint(Object):
@@ -1594,18 +1394,20 @@ class Constraint(Object):
 		return row[0]
 
 	@classmethod
-	def iternames(cls, connection, schema="user"):
+	def iternames(cls, connection, user=ALL):
 		cursor = connection.cursor()
-		if schema == "user":
+		if user is None:
 			cursor.execute("select null as owner, constraint_name from user_constraints where constraint_type=:type and constraint_name not like 'BIN$%' order by constraint_name", type=cls.constraint_type)
+		elif user is ALL:
+			cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type=:type and constraint_name not like 'BIN$%' order by owner, constraint_name".format(cursor.ddprefix()), type=cls.constraint_type)
 		else:
-			cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type=:type and constraint_name not like 'BIN$%' order by owner, constraint_name".format(schema), type=cls.constraint_type)
+			cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type=:type and constraint_name not like 'BIN$%' and owner=:owner order by owner, constraint_name".format(cursor.ddprefix()), type=cls.constraint_type, owner=user)
 		return ((row.constraint_name, row.owner) for row in cursor)
 
 	@classmethod
-	def fixname(cls, name, code):
+	def fixname(cls, code):
 		code = code.split(None, 6)
-		code = u"alter table {} add constraint {} {}".format(code[2], getfullname(name, None), code[6])
+		code = u"alter table {} add constraint {} {}".format(code[2], self.getfullname(), code[6])
 		return code
 
 
@@ -1627,8 +1429,7 @@ class PrimaryKey(Constraint):
 			raise SQLObjectNotFoundError(self)
 		tablename = getfullname(rec2.table_name, rec2.owner)
 		cursor.execute("select column_name from {}_cons_columns where owner=nvl(:owner, user) and constraint_name=:name order by position".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		for r in cursor:
-			yield Column(u"{}.{}".format(tablename, r.column_name))
+		return (Column(u"{}.{}".format(tablename, rec.column_name)) for rec in cursor)
 
 	def createddl(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
@@ -1673,8 +1474,7 @@ class PrimaryKey(Constraint):
 	def iterreferences(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {}_constraints where constraint_type='P' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		for rec in cursor.fetchall():
-			yield Table(rec.table_name, rec.owner, connection)
+		return (Table(rec.table_name, rec.owner, connection) for rec in cursor)
 
 	def table(self, connection=None):
 		"""
@@ -1684,12 +1484,6 @@ class PrimaryKey(Constraint):
 		cursor.execute("select table_name from {}_constraints where constraint_type='P' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		return Table(rec.table_name, self.owner, connection)
-
-	def __xattrs__(self, mode="default"):
-		for attr in super(PrimaryKey, self).__xattrs__(mode):
-			yield attr
-		if mode == "detail":
-			yield "table()"
 
 
 class Comment(Object):
@@ -1722,9 +1516,9 @@ class Comment(Object):
 		return ""
 
 	@classmethod
-	def fixname(cls, name, code):
+	def fixname(cls, code):
 		code = code.split(None, 5)
-		code = u"comment on column {} is {}".format(getfullname(name, None), code[5])
+		code = u"comment on column {} is {}".format(self.getfullname(), code[5])
 		return code
 
 	def cdate(self, connection=None):
@@ -1838,13 +1632,6 @@ class ForeignKey(Constraint):
 		rec = cursor.fetchone()
 		return rec[0] == "ENABLED"
 
-	def __xattrs__(self, mode="default"):
-		for attr in super(ForeignKey, self).__xattrs__(mode):
-			yield attr
-		if mode == "detail":
-			yield "table()"
-			yield "pk()"
-
 
 class Index(MixinNormalDates, Object):
 	"""
@@ -1885,23 +1672,25 @@ class Index(MixinNormalDates, Object):
 		return code
 
 	@classmethod
-	def iternames(cls, connection, schema="user"):
+	def iternames(cls, connection, user=ALL):
 		# We skip those indexes that are generated by a constraint
 		cursor = connection.cursor()
-		if schema=="user":
+		if user is None:
 			cursor.execute("select null as owner, object_name from (select object_name from user_objects where object_type = 'INDEX' minus select constraint_name as object_name from user_constraints where constraint_type in ('U', 'P')) where object_name not like 'BIN$%' order by object_name")
+		elif user is ALL:
+			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from (select owner, object_name from {0}_objects where object_type = 'INDEX' minus select owner, constraint_name as object_name from {0}_constraints where constraint_type in ('U', 'P')) where object_name not like 'BIN$%' order by owner, object_name".format(cursor.ddprefix()))
 		else:
-			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from (select owner, object_name from {0}_objects where object_type = 'INDEX' minus select owner, constraint_name as object_name from {0}_constraints where constraint_type in ('U', 'P')) where object_name not like 'BIN$%' order by owner, object_name".format(schema))
+			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from (select owner, object_name from {0}_objects where object_type = 'INDEX' and owner=:owner minus select owner, constraint_name as object_name from {0}_constraints where constraint_type in ('U', 'P')) and owner=:owner where object_name not like 'BIN$%' order by owner, object_name".format(cursor.ddprefix()), owner=user)
 		return ((row.object_name, row.owner) for row in cursor)
 
 	@classmethod
-	def fixname(cls, name, code):
+	def fixname(cls, code):
 		if code.lower().startswith("create unique"):
 			code = code.split(None, 5)
-			code = u"create unique index {} {}".format(getfullname(name, None), code[5])
+			code = u"create unique index {} {}".format(self.getfullname(), code[5])
 		else:
 			code = code.split(None, 4)
-			code = u"create index {} {}".format(getfullname(name, None), code[4])
+			code = u"create index {} {}".format(self.getfullname(), code[4])
 		return code
 
 	def constraint(self, connection=None):
@@ -1939,13 +1728,6 @@ class Index(MixinNormalDates, Object):
 		cursor.execute("select table_name from {}_indexes where table_owner=nvl(:owner, user) and index_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		return Table(rec.table_name, self.owner, connection)
-
-	def __xattrs__(self, mode="default"):
-		for attr in super(Index, self).__xattrs__(mode):
-			yield attr
-		if mode == "detail":
-			yield "constraint()"
-			yield "table()"
 
 
 class UniqueConstraint(Constraint):
@@ -2013,12 +1795,6 @@ class UniqueConstraint(Constraint):
 		rec = cursor.fetchone()
 		return Table(rec.table_name, self.owner, connection)
 
-	def __xattrs__(self, mode="default"):
-		for attr in super(UniqueConstraint, self).__xattrs__(mode):
-			yield attr
-		if mode == "detail":
-			yield "table()"
-
 
 class Synonym(Object):
 	"""
@@ -2065,13 +1841,13 @@ class Synonym(Object):
 		return code
 
 	@classmethod
-	def fixname(cls, name, code):
+	def fixname(cls, code):
 		if code.lower().startswith("create or replace public"):
 			code = code.split(None, 6)
-			code = u"create or replace public synonym {} {}".format(getfullname(name), code[6])
+			code = u"create or replace public synonym {} {}".format(self.getfullname(), code[6])
 		else:
 			code = code.split(None, 5)
-			code = u"create or replace synonym {} {}".format(getfullname(name), code[5])
+			code = u"create or replace synonym {} {}".format(self.getfullname(), code[5])
 		return code
 
 	def cdate(self, connection=None):
@@ -2080,7 +1856,7 @@ class Synonym(Object):
 	def udate(self, connection=None):
 		return None
 
-	def iterreferences(self, connection=None, schema="all"):
+	def iterreferences(self, connection=None, done=None):
 		# Shortcut: a synonym doesn't depend on anything
 		if False:
 			yield None
@@ -2126,9 +1902,9 @@ class View(MixinNormalDates, Object):
 		return code
 
 	@classmethod
-	def fixname(cls, name, code):
+	def fixname(cls, code):
 		code = code.split(None, 6)
-		code = u"create or replace force view {} {}".format(getfullname(name, None), code[6])
+		code = u"create or replace force view {} {}".format(self.getfullname(), code[6])
 		return code
 
 	def iterrecords(self, connection=None):
@@ -2167,9 +1943,9 @@ class MaterializedView(View):
 		return code
 
 	@classmethod
-	def fixname(cls, name, code):
+	def fixname(cls, code):
 		code = code.split(None, 4)
-		code = u"create materialized view {} {}".format(name, code[4])
+		code = u"create materialized view {} {}".format(self.getfullname(), code[4])
 		return code
 
 	def iterreferences(self, connection=None):
@@ -2211,9 +1987,9 @@ class Library(Object):
 		return code
 
 	@classmethod
-	def fixname(cls, name, code):
+	def fixname(cls, code):
 		code = code.split(None, 5)
-		code = u"create or replace library {} {}".format(name, code[5])
+		code = u"create or replace library {} {}".format(self.getfullname(), code[5])
 		return code
 
 
@@ -2231,9 +2007,6 @@ class Argument(object):
 
 	def __repr__(self):
 		return "<{}.{} name={!r} position={!r} datatype={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.name, self.position, self.datatype, id(self))
-
-	def __xattrs__(self, mode="default"):
-		return ("name", "position", "datatype", "isin", "isout")
 
 
 class Callable(MixinNormalDates, MixinCodeDDL, Object):
@@ -2357,12 +2130,6 @@ class Callable(MixinNormalDates, MixinCodeDDL, Object):
 		self._calcargs(cursor)
 		for arginfo in self._argsbypos:
 			yield arginfo
-
-	def __xattrs__(self, mode="default"):
-		for attr in Object.__xattrs__(self, mode):
-			yield attr
-		if mode == "detail":
-			yield "-iterarguments()"
 
 
 class Procedure(Callable):
@@ -2488,16 +2255,37 @@ class JavaSource(MixinNormalDates, Object):
 		return code
 
 	@classmethod
-	def fixname(cls, name, code):
+	def fixname(cls, code):
 		code = code.split(None, 9)
-		code = u"create or replace and compile java source named {} {}".format(name, code[9])
+		code = u"create or replace and compile java source named {} {}".format(self.getfullname(), code[9])
 		return code
 
 
 class Privilege(object):
 	"""
 	Models a database object privilege (i.e. a grant).
+
+	A :class:`Privilege` object has the following attributes:
+	
+		``privilege`` : string
+			The type of the privilege (``EXECUTE`` etc.)
+
+		``name`` : string
+			The name of the object for which this privilege grants access
+
+		``owner`` : string or ``None``
+			the owner of the object
+
+		``grantor`` : string or ``None``
+			Who granted this privilege?
+
+		``grantee`` : string or ``None``
+			To whom has this privilege been granted?
+
+		``connection`` : :class:`Connection` or ``None``
+			The database connection
 	"""
+
 	type = u"privilege" # required by iterschema()
 
 	def __init__(self, privilege, name, grantor, grantee, owner=None, connection=None):
@@ -2538,35 +2326,25 @@ class Privilege(object):
 	connectstring = property(getconnectstring)
 
 	@classmethod
-	def iterobjects(self, connection, schema="user"):
+	def iterobjects(cls, connection, user=ALL):
 		"""
-		Generator that yields object privileges for the current users (or all
-		users) objects.
-
-		:var:`schema` specifies which privileges should be yielded:
-
-		``"user"``
-			Only object privileges for objects belonging to the current user will
-			be yielded (i.e. privileges from the view ``USER_TAB_PRIVS``).
-
-		``"all"``
-			All object privileges accessible to the current user will be yielded
-			(i.e. privileges from the view ``ALL_TABS_PRIVS``).
-
-		``"all"``
-			All object privileges will be yielded (i.e. privileges from the view
-			``DBA_TABS_PRIVS``, this requires appropriate privileges).
+		Generator that yields object privileges. For the meaning of :var:`user`
+		see :meth:`Object.iternames`.
 		"""
-		if schema not in ("user", "all", "dba"):
-			raise UnknownSchemaError(schema)
-
 		cursor = connection.cursor() # can't use :meth:`getcursor` as we're in a classmethod
 
-		if schema == "user":
+		if user is None:
 			cursor.execute("select null as owner, privilege, table_name as object, decode(grantor, user, null, grantor) as grantor, grantee from user_tab_privs where owner=user order by table_name, privilege")
+		elif user is ALL:
+			ddprefix = cursor.ddprefix()
+			# The column names in ``ALL_TAB_PRIVS`` and ``DBA_TAB_PRIVS`` are different, so we have to use two different queries
+			if ddprefix == "all":
+				cursor.execute("select decode(table_schema, user, null, table_schema) as owner, privilege, table_name as object, decode(grantor, user, null, grantor) as grantor, grantee from all_tab_privs order by table_name, privilege")
+			else:
+				cursor.execute("select decode(owner, user, null, owner) as owner, privilege, table_name as object, decode(grantor, user, null, grantor) as grantor, grantee from dba_tab_privs order by table_name, privilege")
 		else:
-			cursor.execute("select decode(table_schema, user, null, table_schema) as owner, privilege, table_name as object, decode(grantor, user, null, grantor) as grantor, grantee from {}_tab_privs order by table_schema, table_name, privilege".format(schema))
-		return (Privilege(rec.privilege, rec.object, rec.grantor, rec.grantee, rec.owner, cursor.connection) for rec in cursor)
+			cursor.execute("select decode(table_schema, user, null, table_schema) as owner, privilege, table_name as object, decode(grantor, user, null, grantor) as grantor, grantee from {}_tab_privs where table_schema=:owner order by table_schema, table_name, privilege".format(cursor.ddprefix()), owner=user)
+		return (Privilege(rec.privilege, rec.object, rec.grantor, rec.grantee, rec.owner, connection) for rec in cursor)
 
 	def grantddl(self, connection=None, term=True, mapgrantee=True):
 		"""
@@ -2594,16 +2372,6 @@ class Privilege(object):
 		if term:
 			code += u";\n"
 		return code
-
-	def __xattrs__(self, mode="default"):
-		yield ipipe.AttributeDescriptor("privilege", "the type of the privilege")
-		yield ipipe.AttributeDescriptor("name", "the name of the object for which this privilege grants access")
-		yield ipipe.AttributeDescriptor("owner", "the owner of the object")
-		yield ipipe.AttributeDescriptor("grantor", "who granted this privilege?")
-		yield ipipe.AttributeDescriptor("grantee", "to whom has this privilege been granted?")
-		yield ipipe.AttributeDescriptor("connection")
-		if mode == "detail":
-			yield ipipe.IterMethodDescriptor("grantddl", "the SQL statement to issue this privilege")
 
 
 class Column(Object):
@@ -2772,20 +2540,6 @@ class Column(Object):
 			raise SQLObjectNotFoundError(self)
 		return rec.comments or None
 
-	def __xattrs__(self, mode="default"):
-		for attr in super(Column, self).__xattrs__(mode):
-			if attr == "-createddl()":
-				yield "-addddl()"
-			else:
-				yield attr
-		yield "datatype()"
-		yield "default()"
-		yield "nullable()"
-		yield "comment()"
-
-	def __iter__(self):
-		return None
-
 
 ###
 ### Classes that add an ``oracle`` scheme to the urls supported by :mod:`ll.url`.
@@ -2864,7 +2618,7 @@ class OracleConnection(url_.Connection):
 			if files:
 				path = url.path
 				type = path[0]
-				names = (name[0] for name in Object.name2type[type].iternames(self.dbconnection, "user") if name[1] is None)
+				names = (name[0] for name in Object.name2type[type].iternames(self.dbconnection, None))
 				if len(path) == 1:
 					result = [url_.URL(u"{}/{}.sql".format(type, makeurl(name))) for name in names]
 				else:
@@ -2901,13 +2655,10 @@ class OracleFileResource(url_.Resource):
 		self.closed = False
 		self.name = str(self.url)
 
-		type = url.path[0]
-		if type not in Object.name2type:
-			raise ValueError("don't know how to handle {0!r}".format(url))
 		if "w" in self.mode:
 			self.stream = cStringIO.StringIO()
 		else:
-			code = Object.name2type[type](self._namefromurl()).createddl(self.connection.dbconnection, term=False)
+			code = self._objectfromurl().createddl(self.connection.dbconnection, term=False)
 			self.stream = cStringIO.StringIO(code.encode("utf-8"))
 
 	def _namefromurl(self):
@@ -2916,6 +2667,12 @@ class OracleFileResource(url_.Resource):
 			name = name[:-4]
 		return unicodedata.normalize('NFC', name)
 
+	def _objectfromurl(self):
+		type = self.url.path[0]
+		if type not in Object.name2type:
+			raise ValueError("don't know how to handle {0!r}".format(self.url))
+		return Object.name2type[type](self._namefromurl())
+	
 	def read(self, size=-1):
 		if self.closed:
 			raise ValueError("I/O operation on closed file")
@@ -2938,12 +2695,11 @@ class OracleFileResource(url_.Resource):
 	def close(self):
 		if not self.closed:
 			if "w" in self.mode:
-				c = self.connection.dbconnection.cursor()
-				type = Object.name2type[self.url.path[0]]
-				name = self._namefromurl()
+				obj = self._objectfromurl()
 				code = self.stream.getvalue().decode("utf-8")
-				code = type.fixname(name, code)
-				c.execute(code)
+				code = obj.fixname(code)
+				cursor = self.connection.dbconnection.cursor()
+				cursor.execute(code)
 			self.stream = None
 			self.closed = True
 

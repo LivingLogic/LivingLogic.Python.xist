@@ -30,7 +30,7 @@ def setup_module(module):
 		# get all definitions
 		# (this tests that :meth:`iterobjects`, :meth:`iterreferences` and :meth:`iterreferencedby` run to completion)
 		module.objdict = {}
-		for obj in db.iterobjects():
+		for obj in db.iterobjects(None):
 			if obj.owner is None:
 				module.objlist.append(obj)
 				references = [o for o in obj.iterreferences() if o.owner is None]
@@ -68,27 +68,21 @@ def test_connection_connectstring():
 
 
 @py.test.mark.db
-def test_connection_iterschema():
-	db = orasql.connect(dbname)
-	list(db.iterschema())
-
-
-@py.test.mark.db
 def test_connection_itertables():
 	db = orasql.connect(dbname)
-	list(db.itertables())
+	list(db.itertables(None))
 
 
 @py.test.mark.db
 def test_connection_iterfks():
 	db = orasql.connect(dbname)
-	list(db.iterfks())
+	list(db.iterfks(None))
 
 
 @py.test.mark.db
 def test_connection_iterprivileges():
 	db = orasql.connect(dbname)
-	list(db.iterprivileges())
+	list(db.iterprivileges(None))
 
 
 @py.test.mark.db

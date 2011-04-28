@@ -8,13 +8,21 @@ Changes in 3.20 (released ??/??/2011)
 
 	Supported are the values ``normal`` (the default), ``sysdba`` and ``sysoper``.
 
-*	The :var:`schema` argument used by various methods in :mod:`ll.orasql` now
-	supports the additional value ``"dba"``. This uses the ``DBA_*`` variant
-	of various meta data views (but requires appropriate privileges to be used).
-	The views are also used if possible in all spot where the ``ALL_`` views where
-	used before.
+*	The :var:`schema` argument used by various methods in :mod:`ll.orasql` has
+	been replace be a :var:`user` argument that can be ``None`` (for the current
+	user), the constant ``ALL`` for all users (which uses the ``DBA_*`` variant
+	of various meta data views if possible or the ``ALL_*`` variants other wise)
+	and a specific user name.
+
+	These views are also used if possible in all spot where the ``ALL_`` views
+	where used before.
 
 *	:mod:`ll.orasql` now supports tables without columns.
+
+*	:class:`ll.orasql.Table` has a new method :meth:`pk` that returns the primary
+	key contraint (or ``None`` if the table has now primary key contraint).
+
+*	:mod:`ipipe` support has been removed from :mod:`ll.orasql`.
 
 
 Changes in 3.19 (released 04/26/2011)

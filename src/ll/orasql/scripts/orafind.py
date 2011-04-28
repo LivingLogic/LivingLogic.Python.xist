@@ -172,7 +172,7 @@ def main(args=None):
 	connection = orasql.connect(connectstring, readlobs=args.readlobs)
 	c = connection.cursor()
 
-	tables = list(connection.itertables())
+	tables = list(connection.itertables(None))
 	for (i, table) in enumerate(tables):
 		skip = tablenames and table.name.lower() not in tablenames
 		if args.verbose:

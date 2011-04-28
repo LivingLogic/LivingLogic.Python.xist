@@ -126,7 +126,7 @@ def main(args=None):
 			return False
 		return True
 
-	for (i, obj) in enumerate(connection.iterprivileges(schema="user")):
+	for (i, obj) in enumerate(connection.iterprivileges(None)):
 		keepobj = keep(obj)
 		if args.verbose:
 			if args.execute:

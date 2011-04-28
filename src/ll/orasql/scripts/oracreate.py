@@ -130,7 +130,7 @@ def main(args=None):
 			return False
 		return True
 
-	for (i, obj) in enumerate(connection.iterobjects(mode="create", schema="user")):
+	for (i, obj) in enumerate(connection.iterobjects(user=None, mode="create")):
 		keepobj = keep(obj)
 		if args.verbose:
 			if args.execute:

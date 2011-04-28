@@ -113,7 +113,7 @@ def main(args=None):
 		return True
 
 	ddls = []
-	for (i, obj) in enumerate(connection.iterobjects(mode="drop", schema="user")):
+	for (i, obj) in enumerate(connection.iterobjects(user=None, mode="drop")):
 		keepdef = keep(obj)
 		# Get DDL
 		ddl = ""
