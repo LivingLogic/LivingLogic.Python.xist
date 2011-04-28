@@ -4,9 +4,17 @@ Changes in 3.20 (released ??/??/2011)
 *	It's now possible to specify the connection mode (i.e. ``SYSDBA`` and
 	``SYSOPER``) in ``oracle`` URLs like this::
 
-		$ uls oracle://sys:pwd:sysdba@tnsname/
+		$ uls oracle://sys:pwd:sysdba@dsn/
 
 	Supported are the values ``normal`` (the default), ``sysdba`` and ``sysoper``.
+
+*	The :var:`schema` argument used by various methods in :mod:`ll.orasql` now
+	supports the additional value ``"dba"``. This uses the ``DBA_*`` variant
+	of various meta data views (but requires appropriate privileges to be used).
+	The views are also used if possible in all spot where the ``ALL_`` views where
+	used before.
+
+*	:mod:`ll.orasql` now supports tables without columns.
 
 
 Changes in 3.19 (released 04/26/2011)
