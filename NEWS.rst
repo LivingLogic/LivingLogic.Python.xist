@@ -9,18 +9,21 @@ Changes in 3.20 (released ??/??/2011)
 	Supported are the values ``normal`` (the default), ``sysdba`` and ``sysoper``.
 
 *	The :var:`schema` argument used by various methods in :mod:`ll.orasql` has
-	been replace be a :var:`user` argument that can be ``None`` (for the current
+	been replace be a :var:`owner` argument that can be ``None`` (for the current
 	user), the constant ``ALL`` for all users (which uses the ``DBA_*`` variant
-	of various meta data views if possible or the ``ALL_*`` variants other wise)
+	of various meta data views if possible or the ``ALL_*`` variants otherwise)
 	and a specific user name.
 
-	These views are also used if possible in all spot where the ``ALL_`` views
+	These views are also used if possible in all spots where the ``ALL_`` views
 	where used before.
 
 *	:mod:`ll.orasql` now supports tables without columns.
 
 *	:class:`ll.orasql.Table` has a new method :meth:`pk` that returns the primary
 	key contraint (or ``None`` if the table has now primary key contraint).
+
+*	Fixed a bug in :class:`ll.xist.xsc.Pool`: Registered elements/entities etc.
+	now show up as attributes of the pool object.
 
 *	:mod:`ipipe` support has been removed from :mod:`ll.orasql`.
 

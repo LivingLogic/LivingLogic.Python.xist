@@ -433,7 +433,7 @@ class Connection(Connection):
 	def __repr__(self):
 		return "<{}.{} object db={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.connectstring(), id(self))
 
-	def itertables(self, user=ALL, mode="flat"):
+	def itertables(self, owner=ALL, mode="flat"):
 		"""
 		Generator that yields all table definitions in the current users schema
 		(or all users schemas). :var:`mode` specifies the order in which tables
@@ -471,7 +471,7 @@ class Connection(Connection):
 
 		cursor = self.cursor()
 
-		tables = Table.iterobjects(self, user)
+		tables = Table.iterobjects(self, owner)
 
 		if mode == "flat":
 			for table in tables:
@@ -497,28 +497,28 @@ class Connection(Connection):
 				for t in do(table):
 					yield t
 
-	def itersequences(self, user=ALL):
+	def itersequences(self, owner=ALL):
 		"""
-		Generator that yields sequences. :var:`user` can be ``None``, ``ALL``
+		Generator that yields sequences. :var:`owner` can be ``None``, ``ALL``
 		(the default) or a user name.
 		"""
-		return Sequence.iterobjects(self, user)
+		return Sequence.iterobjects(self, owner)
 
-	def iterfks(self, user=ALL):
+	def iterfks(self, owner=ALL):
 		"""
-		Generator that yields all foreign key constraints. :var:`user` can be
+		Generator that yields all foreign key constraints. :var:`owner` can be
 		``None``, ``ALL`` (the default) or a user name.
 		"""
-		return ForeignKey.iterobjects(self, user)
+		return ForeignKey.iterobjects(self, owner)
 
-	def iterprivileges(self, user=ALL):
+	def iterprivileges(self, owner=ALL):
 		"""
-		Generator that yields object privileges. :var:`user` can be ``None``,
+		Generator that yields object privileges. :var:`owner` can be ``None``,
 		``ALL`` (the default) or a user name.
 		"""
-		return Privilege.iterobjects(self, user)
+		return Privilege.iterobjects(self, owner)
 
-	def iterobjects(self, user=ALL, mode="create"):
+	def iterobjects(self, owner=ALL, mode="create"):
 		"""
 		Generator that yields the sequences, tables, primary keys, foreign keys,
 		comments, unique constraints, indexes, views, functions, procedures,
@@ -571,78 +571,39 @@ class Connection(Connection):
 					yield obj
 
 		def dosequences():
-			for sequence in Sequence.iterobjects(self, user):
+			for sequence in Sequence.iterobjects(self, owner):
 				for obj in do(sequence):
 					yield obj
 
 		def dotables():
-			for table in Table.iterobjects(self, user):
+			for table in Table.iterobjects(self, owner):
 				if mode == "create" or mode == "flat":
 					for obj in do(table):
 						yield obj
 
-				if not table.ismview(self):
-					# Primary key
-					pk = table.pk()
-					if pk is not None:
-						for obj in do(pk):
-							yield obj
+				# Primary key
+				pk = table.pk()
+				if pk is not None:
+					for obj in do(pk):
+						yield obj
 
-					# Comments
-					for comment in table.itercomments():
-						# No dependency checks neccessary, but use ``do`` anyway
-						for obj in do(comment):
-							yield obj
+				# Comments
+				for comment in table.itercomments():
+					# No dependency checks neccessary, but use ``do`` anyway
+					for obj in do(comment):
+						yield obj
 
 				if mode == "drop":
 					for obj in do(table):
 						yield obj
 
-		def doconstraints():
-			if user is None:
-				cursor.execute("select constraint_type, null as owner, constraint_name from user_constraints where constraint_type in ('R', 'U') order by table_name, constraint_type, constraint_name")
-			elif user is ALL:
-				cursor.execute("select constraint_type, decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type in ('R', 'U') order by owner, table_name, constraint_type, constraint_name".format(cursor.ddprefix()))
-			else:
-				cursor.execute("select constraint_type, decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type in ('R', 'U') and owner=:owner order by table_name, constraint_type, constraint_name".format(cursor.ddprefix()), owner=user)
-			types = {"U": UniqueConstraint, "R": ForeignKey}
-			for rec in cursor.fetchall():
-				for subobj in do(types[rec.constraint_type](rec.constraint_name, rec.owner, self)):
-					yield subobj
-
-		def doindexes():
-			for index in Index.iterobjects(self, user):
-				for obj in do(index):
-					yield obj
-
-		def dosynonyms():
-			for synonym in Synonym.iterobjects(self, user):
-				for obj in do(synonym):
-					yield obj
-
-		def doviews():
-			for view in View.iterobjects(self, user):
-				for obj in do(view):
-					yield obj
-
-		def domviews():
-			if user is None:
-				cursor.execute("select null as owner, mview_name from user_mviews")
-			elif user is ALL:
-				cursor.execute("select decode(owner, user, null, owner) as owner, mview_name from {}_mviews".format(cursor.ddprefix()))
-			else:
-				cursor.execute("select decode(owner, user, null, owner) as owner, mview_name from {}_mviews where owner=:owner".format(cursor.ddprefix()), owner=user)
-			for rec in cursor.fetchall():
-				for subobj in do(MaterializedView(rec.mview_name, rec.owner, self)):
-					yield subobj
-
-		def docode():
-			for type in (Function, Procedure, Package, PackageBody, Type, Trigger, JavaSource):
-				for obj in type.iterobjects(self, user):
+		def dorest():
+			for type in (UniqueConstraint, ForeignKey, Index, Synonym, View, MaterializedView, Function, Procedure, Package, PackageBody, Type, Trigger, JavaSource):
+				for obj in type.iterobjects(self, owner):
 					for subobj in do(obj):
 						yield subobj
 
-		funcs = [dosequences, dotables, doconstraints, doindexes, dosynonyms, doviews, domviews, docode]
+		funcs = [dosequences, dotables, dorest]
 		if mode == "drop":
 			funcs = reversed(funcs)
 
@@ -1072,10 +1033,10 @@ class Object(object):
 	connectstring = property(getconnectstring)
 
 	@classmethod
-	def iternames(cls, connection, user=ALL):
+	def iternames(cls, connection, owner=ALL):
 		"""
 		Generator that yields the names of all objects of this type. The argument
-		:var:`user` specifies whos objects are yielded:
+		:var:`owner` specifies whos objects are yielded:
 		
 			``None``
 				All objects belonging to the current user (i.e. via the view
@@ -1089,19 +1050,19 @@ class Object(object):
 				All objects belonging the the specified user
 		"""
 		cursor = connection.cursor()
-		if user is None:
+		if owner is None:
 			cursor.execute("select null as owner, object_name from user_objects where lower(object_type) = :type and object_name not like 'BIN$%' order by object_name", type=cls.type)
-		elif user is ALL:
+		elif owner is ALL:
 			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from {}_objects where lower(object_type) = :type and object_name not like 'BIN$%' order by owner, object_name".format(cursor.ddprefix()), type=cls.type)
 		else:
-			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from {}_objects where lower(object_type) = :type and object_name not like 'BIN$%' and owner=:owner order by owner, object_name".format(cursor.ddprefix()), type=cls.type, owner=user)
+			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from {}_objects where lower(object_type) = :type and object_name not like 'BIN$%' and owner=:owner order by owner, object_name".format(cursor.ddprefix()), type=cls.type, owner=owner)
 		return ((row.object_name, row.owner) for row in cursor)
 
 	@classmethod
-	def iterobjects(cls, connection, user=ALL):
+	def iterobjects(cls, connection, owner=ALL):
 		"""
 		Generator that yields all objects of this type in the current users schema.
-		The argument :var:`user` specifies whos objects are yielded:
+		The argument :var:`owner` specifies whos objects are yielded:
 		
 			``None``
 				All objects belonging to the current user (i.e. via the view
@@ -1114,7 +1075,7 @@ class Object(object):
 			username : string
 				All objects belonging the the specified user
 		"""
-		return (cls(name[0], name[1], connection) for name in cls.iternames(connection, user))
+		return (cls(name[0], name[1], connection) for name in cls.iternames(connection, owner))
 
 
 class Sequence(MixinNormalDates, Object):
@@ -1296,15 +1257,15 @@ class Table(MixinNormalDates, Object):
 		return "heap" if rec.iot_type is None else "index"
 
 	@classmethod
-	def iternames(cls, connection, user=ALL):
+	def iternames(cls, connection, owner=ALL):
 		# Skip tables that are materialized views
 		cursor = connection.cursor()
-		if user is None:
+		if owner is None:
 			cursor.execute("select null as owner, table_name from user_tables where table_name not like 'BIN$%' minus select null as owner, mview_name as table_name from user_mviews order by table_name")
-		elif user is ALL:
+		elif owner is ALL:
 			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {0}_tables where table_name not like 'BIN$%' order by owner, table_name minus select decode(owner, user, null, owner) as owner, mview_name as table_name from {0}_mviews".format(cursor.ddprefix()))
 		else:
-			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {0}_tables where table_name not like 'BIN$%' and owner=:owner order by table_name minus select decode(owner, user, null, owner) as owner, mview_name as table_name from {0}_mviews where owner=:owner".format(cursor.ddprefix()), owner=user)
+			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {0}_tables where table_name not like 'BIN$%' and owner=:owner order by table_name minus select decode(owner, user, null, owner) as owner, mview_name as table_name from {0}_mviews where owner=:owner".format(cursor.ddprefix()), owner=owner)
 		return ((row.table_name, row.owner) for row in cursor)
 
 	def itercolumns(self, connection=None):
@@ -1394,14 +1355,14 @@ class Constraint(Object):
 		return row[0]
 
 	@classmethod
-	def iternames(cls, connection, user=ALL):
+	def iternames(cls, connection, owner=ALL):
 		cursor = connection.cursor()
-		if user is None:
+		if owner is None:
 			cursor.execute("select null as owner, constraint_name from user_constraints where constraint_type=:type and constraint_name not like 'BIN$%' order by constraint_name", type=cls.constraint_type)
-		elif user is ALL:
+		elif owner is ALL:
 			cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type=:type and constraint_name not like 'BIN$%' order by owner, constraint_name".format(cursor.ddprefix()), type=cls.constraint_type)
 		else:
-			cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type=:type and constraint_name not like 'BIN$%' and owner=:owner order by owner, constraint_name".format(cursor.ddprefix()), type=cls.constraint_type, owner=user)
+			cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type=:type and constraint_name not like 'BIN$%' and owner=:owner order by owner, constraint_name".format(cursor.ddprefix()), type=cls.constraint_type, owner=owner)
 		return ((row.constraint_name, row.owner) for row in cursor)
 
 	@classmethod
@@ -1672,15 +1633,15 @@ class Index(MixinNormalDates, Object):
 		return code
 
 	@classmethod
-	def iternames(cls, connection, user=ALL):
+	def iternames(cls, connection, owner=ALL):
 		# We skip those indexes that are generated by a constraint
 		cursor = connection.cursor()
-		if user is None:
+		if owner is None:
 			cursor.execute("select null as owner, object_name from (select object_name from user_objects where object_type = 'INDEX' minus select constraint_name as object_name from user_constraints where constraint_type in ('U', 'P')) where object_name not like 'BIN$%' order by object_name")
-		elif user is ALL:
+		elif owner is ALL:
 			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from (select owner, object_name from {0}_objects where object_type = 'INDEX' minus select owner, constraint_name as object_name from {0}_constraints where constraint_type in ('U', 'P')) where object_name not like 'BIN$%' order by owner, object_name".format(cursor.ddprefix()))
 		else:
-			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from (select owner, object_name from {0}_objects where object_type = 'INDEX' and owner=:owner minus select owner, constraint_name as object_name from {0}_constraints where constraint_type in ('U', 'P')) and owner=:owner where object_name not like 'BIN$%' order by owner, object_name".format(cursor.ddprefix()), owner=user)
+			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from (select owner, object_name from {0}_objects where object_type = 'INDEX' and owner=:owner minus select owner, constraint_name as object_name from {0}_constraints where constraint_type in ('U', 'P')) and owner=:owner where object_name not like 'BIN$%' order by owner, object_name".format(cursor.ddprefix()), owner=owner)
 		return ((row.object_name, row.owner) for row in cursor)
 
 	@classmethod
@@ -2326,16 +2287,16 @@ class Privilege(object):
 	connectstring = property(getconnectstring)
 
 	@classmethod
-	def iterobjects(cls, connection, user=ALL):
+	def iterobjects(cls, connection, owner=ALL):
 		"""
-		Generator that yields object privileges. For the meaning of :var:`user`
+		Generator that yields object privileges. For the meaning of :var:`owner`
 		see :meth:`Object.iternames`.
 		"""
 		cursor = connection.cursor() # can't use :meth:`getcursor` as we're in a classmethod
 
-		if user is None:
+		if owner is None:
 			cursor.execute("select null as owner, privilege, table_name as object, decode(grantor, user, null, grantor) as grantor, grantee from user_tab_privs where owner=user order by table_name, privilege")
-		elif user is ALL:
+		elif owner is ALL:
 			ddprefix = cursor.ddprefix()
 			# The column names in ``ALL_TAB_PRIVS`` and ``DBA_TAB_PRIVS`` are different, so we have to use two different queries
 			if ddprefix == "all":
@@ -2343,7 +2304,7 @@ class Privilege(object):
 			else:
 				cursor.execute("select decode(owner, user, null, owner) as owner, privilege, table_name as object, decode(grantor, user, null, grantor) as grantor, grantee from dba_tab_privs order by table_name, privilege")
 		else:
-			cursor.execute("select decode(table_schema, user, null, table_schema) as owner, privilege, table_name as object, decode(grantor, user, null, grantor) as grantor, grantee from {}_tab_privs where table_schema=:owner order by table_schema, table_name, privilege".format(cursor.ddprefix()), owner=user)
+			cursor.execute("select decode(table_schema, user, null, table_schema) as owner, privilege, table_name as object, decode(grantor, user, null, grantor) as grantor, grantee from {}_tab_privs where table_schema=:owner order by table_schema, table_name, privilege".format(cursor.ddprefix()), owner=owner)
 		return (Privilege(rec.privilege, rec.object, rec.grantor, rec.grantee, rec.owner, connection) for rec in cursor)
 
 	def grantddl(self, connection=None, term=True, mapgrantee=True):
