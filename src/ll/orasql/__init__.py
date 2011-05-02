@@ -2762,7 +2762,7 @@ class OracleSchemeDefinition(url_.SchemeDefinition):
 			elif lui == 2:
 				mode = None
 			else:
-					raise ValueError("illegal userinfo {!r}".format(url.userinfo))
+				raise ValueError("illegal userinfo {!r}".format(url.userinfo))
 			connection = connections[server] = OracleConnection(context, "{}/{}@{}".format(userinfo[0], userinfo[1], url.host), mode, user)
 		return (connection, kwargs)
 
