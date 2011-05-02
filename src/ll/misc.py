@@ -237,20 +237,18 @@ class Pool(object):
 		initialize :var:`self` base pool.
 		"""
 		if isinstance(object, types.ModuleType):
-			self._attrs.update(object.__dict__)
-			if hasattr(object, "__bases__"):
-				for base in object.__bases__:
+			self.register(object.__dict__)
+		elif isinstance(object, dict):
+			self._attrs.update(object)
+			if "__bases__" in object:
+				for base in object["__bases__"]:
 					if not isinstance(base, Pool):
 						base = self.__class__(base)
 					self.register(base)
-		elif isinstance(object, dict):
-			for (key, value) in object.iteritems():
-				try:
-					self._attrs[key] = value
-				except TypeError:
-					pass
 		elif isinstance(object, Pool):
 			self.bases.append(object)
+		elif isinstance(object, type):
+			self._attrs[object.__name__] = object
 
 	def __getitem__(self, key):
 		try:

@@ -3681,6 +3681,7 @@ class Pool(misc.Pool):
 
 		*	a module (all attributes in the module will be registered).
 		"""
+		super(Pool, self).register(object)
 		if isinstance(object, type):
 			if issubclass(object, Element):
 				if object.register:
@@ -3706,17 +3707,13 @@ class Pool(misc.Pool):
 				for attr in object.allowedattrs():
 					self.register(attr)
 		elif isinstance(object, types.ModuleType):
-			super(Pool, self).register(object)
 			for (key, value) in object.__dict__.iteritems():
-				if isinstance(value, type): # This avoids recursive module registration
+				if not isinstance(value, types.ModuleType): # This avoids recursive module registration
 					self.register(value)
 		elif isinstance(object, dict):
-			super(Pool, self).register(object)
 			for (key, value) in object.iteritems():
-				if isinstance(value, type): # This avoids recursive module registration
+				if not isinstance(value, types.ModuleType): # This avoids recursive module registration
 					self.register(value)
-		elif isinstance(object, Pool):
-			super(Pool, self).register(object)
 
 	def __enter__(self):
 		self.prev = threadlocalpool.pool

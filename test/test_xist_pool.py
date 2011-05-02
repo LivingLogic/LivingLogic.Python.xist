@@ -104,14 +104,14 @@ def test_defaultpool():
 def test_names():
 	# Test classes where the Python and the XML name differ
 	with xsc.Pool() as r:
-		class element(xsc.Element):
+		class element1(xsc.Element):
 			xmlname = "-element"
 			xmlns = "nix"
-		class procinst(xsc.ProcInst):
+		class procinst1(xsc.ProcInst):
 			xmlname = "-procinst"
-		class entity(xsc.Entity):
+		class entity1(xsc.Entity):
 			xmlname = "-entity"
-		class charref(xsc.CharRef):
+		class charref1(xsc.CharRef):
 			xmlname = "-charref"
 			codepoint = 42
 		class Attrs(xsc.Attrs):
@@ -120,85 +120,89 @@ def test_names():
 				xmlns = "nix"
 
 	# elements
-	assert r.elementclass(u"element", u"nix") is element
-	assert r.elementclass_xml(u"-element", u"nix") is element
-	assert r.element(u"element", u"nix") == element()
-	assert r.element_xml(u"-element", u"nix") == element()
+	assert r.element1 is element1
+	assert r.elementclass(u"element1", u"nix") is element1
+	assert r.elementclass_xml(u"-element", u"nix") is element1
+	assert r.element(u"element1", u"nix") == element1()
+	assert r.element_xml(u"-element", u"nix") == element1()
 	with py.test.raises(xsc.IllegalElementError):
 		r.elementclass(u"-element", u"nix")
 	with py.test.raises(xsc.IllegalElementError):
-		r.elementclass_xml(u"element", u"nix")
+		r.elementclass_xml(u"element1", u"nix")
 	# make sure that the default pool didn't pick up the new class
 	with py.test.raises(xsc.IllegalElementError):
-		xsc.threadlocalpool.pool.elementclass(u"element", u"nix")
+		xsc.threadlocalpool.pool.elementclass(u"element1", u"nix")
 	with py.test.raises(xsc.IllegalElementError):
 		xsc.threadlocalpool.pool.elementclass_xml(u"-element", u"nix")
 
 	# procinsts
-	assert r.procinstclass(u"procinst") is procinst
-	assert r.procinstclass_xml(u"-procinst") is procinst
-	assert r.procinst(u"procinst", u"spam") == procinst(u"spam")
-	assert r.procinst_xml(u"-procinst", u"spam") == procinst(u"spam")
+	assert r.procinst1 is procinst1
+	assert r.procinstclass(u"procinst1") is procinst1
+	assert r.procinstclass_xml(u"-procinst") is procinst1
+	assert r.procinst(u"procinst1", u"spam") == procinst1(u"spam")
+	assert r.procinst_xml(u"-procinst", u"spam") == procinst1(u"spam")
 	with py.test.raises(xsc.IllegalProcInstError):
 		r.procinstclass(u"-procinst")
 	with py.test.raises(xsc.IllegalProcInstError):
-		r.procinstclass_xml(u"procinst")
+		r.procinstclass_xml(u"procinst1")
 	# make sure that the default pool didn't pick up the new class
 	with py.test.raises(xsc.IllegalProcInstError):
-		xsc.threadlocalpool.pool.procinstclass(u"procinst")
+		xsc.threadlocalpool.pool.procinstclass(u"procinst1")
 	with py.test.raises(xsc.IllegalProcInstError):
 		xsc.threadlocalpool.pool.procinstclass_xml(u"-procinst")
 
 	# entities
-	assert r.entityclass(u"entity") is entity
-	assert r.entityclass_xml(u"-entity") is entity
-	assert r.entity(u"entity") == entity()
-	assert r.entity_xml(u"-entity") == entity()
+	r.entity1 is entity1
+	assert r.entityclass(u"entity1") is entity1
+	assert r.entityclass_xml(u"-entity") is entity1
+	assert r.entity(u"entity1") == entity1()
+	assert r.entity_xml(u"-entity") == entity1()
 	with py.test.raises(xsc.IllegalEntityError):
 		r.entityclass(u"-entity")
 	with py.test.raises(xsc.IllegalEntityError):
-		r.entityclass_xml(u"entity")
+		r.entityclass_xml(u"entity1")
 	# make sure that the default pool didn't pick up the new class
 	with py.test.raises(xsc.IllegalEntityError):
-		xsc.threadlocalpool.pool.entityclass(u"entity")
+		xsc.threadlocalpool.pool.entityclass(u"entity1")
 	with py.test.raises(xsc.IllegalEntityError):
 		xsc.threadlocalpool.pool.entityclass_xml(u"-entity")
 	# the charref is an entity too
-	assert r.entityclass(u"charref") is charref
-	assert r.entityclass_xml(u"-charref") is charref
-	assert r.entity(u"charref") == charref()
-	assert r.entity_xml(u"-charref") == charref()
+	assert r.entityclass(u"charref1") is charref1
+	assert r.entityclass_xml(u"-charref") is charref1
+	assert r.entity(u"charref1") == charref1()
+	assert r.entity_xml(u"-charref") == charref1()
 	with py.test.raises(xsc.IllegalEntityError):
 		r.entityclass(u"-charref")
 	with py.test.raises(xsc.IllegalEntityError):
-		r.entityclass_xml(u"charref")
+		r.entityclass_xml(u"charref1")
 	# make sure that the default pool didn't pick up the new class
 	with py.test.raises(xsc.IllegalEntityError):
-		xsc.threadlocalpool.pool.entityclass(u"charref")
+		xsc.threadlocalpool.pool.entityclass(u"charref1")
 	with py.test.raises(xsc.IllegalEntityError):
 		xsc.threadlocalpool.pool.entityclass_xml(u"-charref")
 
 	# charrefs
-	assert r.charrefclass(u"charref") is charref
-	assert r.charrefclass_xml(u"-charref") is charref
-	assert r.charrefclass(42) is charref
-	assert r.charrefclass_xml(42) is charref
-	assert r.charref(u"charref") == charref()
-	assert r.charref_xml(u"-charref") == charref()
-	assert r.charref(42) == charref()
-	assert r.charref_xml(42) == charref()
+	r.charref1 is charref1
+	assert r.charrefclass(u"charref1") is charref1
+	assert r.charrefclass_xml(u"-charref") is charref1
+	assert r.charrefclass(42) is charref1
+	assert r.charrefclass_xml(42) is charref1
+	assert r.charref(u"charref1") == charref1()
+	assert r.charref_xml(u"-charref") == charref1()
+	assert r.charref(42) == charref1()
+	assert r.charref_xml(42) == charref1()
 	with py.test.raises(xsc.IllegalEntityError):
 		r.charrefclass(u"-charref")
 	with py.test.raises(xsc.IllegalEntityError):
-		r.charrefclass_xml(u"charref")
+		r.charrefclass_xml(u"charref1")
 	# make sure that the default pool didn't pick up the new class
 	with py.test.raises(xsc.IllegalEntityError):
-		xsc.threadlocalpool.pool.charrefclass(u"charref")
+		xsc.threadlocalpool.pool.charrefclass(u"charref1")
 	with py.test.raises(xsc.IllegalEntityError):
 		xsc.threadlocalpool.pool.charrefclass_xml(u"-charref")
 	# make sure that entity has not been register as a charref
 	with py.test.raises(xsc.IllegalEntityError):
-		xsc.threadlocalpool.pool.charrefclass(u"entity")
+		xsc.threadlocalpool.pool.charrefclass(u"entity1")
 	with py.test.raises(xsc.IllegalEntityError):
 		xsc.threadlocalpool.pool.charrefclass_xml(u"-entity")
 
