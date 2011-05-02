@@ -1264,9 +1264,9 @@ class Table(MixinNormalDates, Object):
 		if owner is None:
 			cursor.execute("select null as owner, table_name from user_tables where table_name not like 'BIN$%' minus select null as owner, mview_name as table_name from user_mviews order by table_name")
 		elif owner is ALL:
-			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {0}_tables where table_name not like 'BIN$%' order by owner, table_name minus select decode(owner, user, null, owner) as owner, mview_name as table_name from {0}_mviews".format(cursor.ddprefix()))
+			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {0}_tables where table_name not like 'BIN$%' order by owner, table_name minus select decode(owner, user, null, owner) as owner, mview_name as table_name from {0}_mviews order by owner, table_name".format(cursor.ddprefix()))
 		else:
-			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {0}_tables where table_name not like 'BIN$%' and owner=:owner order by table_name minus select decode(owner, user, null, owner) as owner, mview_name as table_name from {0}_mviews where owner=:owner".format(cursor.ddprefix()), owner=owner)
+			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {0}_tables where table_name not like 'BIN$%' and owner=:owner minus select decode(owner, user, null, owner) as owner, mview_name as table_name from {0}_mviews where owner=:owner order by table_name".format(cursor.ddprefix()), owner=owner)
 		return ((row.table_name, row.owner) for row in cursor)
 
 	def itercolumns(self, connection=None):
@@ -1636,7 +1636,7 @@ class Index(MixinNormalDates, Object):
 		elif owner is ALL:
 			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from (select owner, object_name from {0}_objects where object_type = 'INDEX' minus select owner, constraint_name as object_name from {0}_constraints where constraint_type in ('U', 'P')) where object_name not like 'BIN$%' order by owner, object_name".format(cursor.ddprefix()))
 		else:
-			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from (select owner, object_name from {0}_objects where object_type = 'INDEX' and owner=:owner minus select owner, constraint_name as object_name from {0}_constraints where constraint_type in ('U', 'P')) and owner=:owner where object_name not like 'BIN$%' order by owner, object_name".format(cursor.ddprefix()), owner=owner)
+			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from (select owner, object_name from {0}_objects where object_type = 'INDEX' and owner=:owner minus select owner, constraint_name as object_name from {0}_constraints where constraint_type in ('U', 'P') and owner=:owner) where object_name not like 'BIN$%' order by owner, object_name".format(cursor.ddprefix()), owner=owner)
 		return ((row.object_name, row.owner) for row in cursor)
 
 	@classmethod
