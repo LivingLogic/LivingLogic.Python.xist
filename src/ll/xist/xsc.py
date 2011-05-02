@@ -3049,7 +3049,7 @@ class Element(Node):
 
 	:attr:`model` : object with :meth:`checkvalid` method
 		This is an object that is used for validating the content of the element.
-		See the module :mod:`ll.xist.sims` for more info. If ``model`` is
+		See the module :mod:`ll.xist.sims` for more info. If :attr:`model` is
 		:const:`None` validation will be skipped, otherwise it will be performed
 		when parsing or publishing.
 

@@ -52,7 +52,7 @@ class Location(object):
 			The complete source string
 
 		:var:`type`
-			The tag type (i.e. ``"for"``, ``"if"``, etc. or :const:`None` for
+			The tag type (i.e. ``"for"``, ``"if"``, etc. or ``None`` for
 			literal text)
 
 		:var:`starttag`
@@ -234,7 +234,7 @@ class Opcode(object):
 	:attr:`code` : string or :const:`None`
 		The opcode type (see below for a list).
 
-	:attr:`r1`, :attr:`r2`, :attr:`r3`, :attr:`r4`, :attr:`r5` : integer or :const:`None`
+	:attr:`r1`, :attr:`r2`, :attr:`r3`, :attr:`r4`, :attr:`r5` : integer or ``None``
 		 Register specifications (for the sources or the target of the opcode)
 
 	:attr:`arg` : string or :const:`None`
@@ -246,7 +246,7 @@ class Opcode(object):
 
 	The following opcode types are available:
 
-	:const:`None`:
+	``None``:
 		Print text. The text is available from ``location.code``.
 
 	``"print"``:
@@ -254,7 +254,7 @@ class Opcode(object):
 		is not a string, it will be converted to a string first.)
 
 	``"loadnone"``:
-		Load the constant :const:`None` into register :attr:`r1`.
+		Load the constant ``None`` into register :attr:`r1`.
 
 	``"loadfalse"``:
 		Load the constant :const:`False` into register :attr:`r1`.
@@ -342,7 +342,7 @@ class Opcode(object):
 
 	``"getslice12"``:
 		Get an slice from the object in register :attr:`r2`. The object in
-		register :attr:`r3` (which must be an ``int`` or :const:`None`) specifies
+		register :attr:`r3` (which must be an ``int`` or ``None``) specifies
 		the start index, the object in register :attr:`r4` specifies the end index.
 		The result will be stored in register :attr:`r1`.
 
@@ -585,7 +585,7 @@ class Template(object):
 
 	def __init__(self, source=None, startdelim="<?", enddelim="?>"):
 		"""
-		Create a :class:`Template` object. If :var:`source` is :const:`None`, the
+		Create a :class:`Template` object. If :var:`source` is ``None``, the
 		:class:`Template` remains uninitialized, otherwise :var:`source` will be
 		compiled (using :var:`startdelim` and :var:`enddelim` as the tag
 		delimiters).

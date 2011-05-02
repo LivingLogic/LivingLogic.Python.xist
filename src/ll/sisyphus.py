@@ -140,8 +140,8 @@ class Job(object):
 		hierarchical project name (e.g. including customer names or similar stuff).
 
 	``jobname`` : :option:`-j` or :option:`--jobname`
-		The name of the job itself (defaulting to the name of the class if
-		:const:`None` is given).
+		The name of the job itself (defaulting to the name of the class if none
+		is given).
 
 	``argdescription`` : No command line equivalent
 		Description for help message of the command line argument parser.
