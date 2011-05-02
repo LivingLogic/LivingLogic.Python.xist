@@ -2237,7 +2237,7 @@ class Privilege(object):
 			The database connection
 	"""
 
-	type = u"privilege" # required by iterschema()
+	type = u"privilege"
 
 	def __init__(self, privilege, name, grantor, grantee, owner=None, connection=None):
 		self.privilege = privilege
