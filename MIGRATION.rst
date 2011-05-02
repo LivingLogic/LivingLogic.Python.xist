@@ -8,7 +8,7 @@ Changes to :mod:`ll.orasql`
 	longer used).
 
 *	If the :var:`readlobs` option is false for :mod:`ll.orasql` cursors, the
-	CLOBs/BLOBs returned will be be wrapped into something that behaves like a
+	CLOBs/BLOBs returned will be wrapped into something that behaves like a
 	Python file. The original :class:`LOB` object is available as the ``value``
 	attribute of the returned wrapper object::
 
