@@ -2497,8 +2497,9 @@ class Column(Object):
 ###
 
 class OracleConnection(url_.Connection):
-	def __init__(self, context, connection, mode):
+	def __init__(self, context, connection, mode, user):
 		self.dbconnection = connect(connection, mode=mode) if mode is not None else connect(connection)
+		self.user = user
 
 	def open(self, url, mode="rb"):
 		return OracleFileResource(self, url, mode)
@@ -2506,24 +2507,62 @@ class OracleConnection(url_.Connection):
 	def close(self):
 		self.dbconnection.close()
 
-	def _isroot(self, url):
+	def _type(self, url):
 		path = url.path
-		return len(path) == 0 or (len(path) == 1 and not path[0])
+		lp = len(path)
+		if lp == 0:
+			return "root"
+		elif lp == 1:
+			if path[0]:
+				if path[0] == "user":
+					return "allusers"
+				else:
+					return "type"
+			else:
+				return "root"
+		elif lp == 2:
+			if path[0] == "user":
+				if path[1]:
+					return "user"
+				else:
+					return "allusers"
+			else:
+				return "object"
+		elif lp == 3:
+			if path[0] == "user":
+				if path[2]:
+					return "usertype"
+				else:
+					return "user"
+			else:
+				raise ValueError("can't happen")
+		elif lp == 4:
+			if path[0] == "user":
+				if path[3]:
+					return "object"
+				else:
+					return "usertype"
+			else:
+				raise ValueError("can't happen")
 
 	def _istype(self, url):
 		path = url.path
 		return len(path) == 1 or (len(path) == 2 and not path[1])
 
+	def _isuserroot(self, url):
+		path = url.path
+		return len(path) == 1 or (len(path) == 2 and not path[1])
+
 	def isdir(self, url):
-		return self._isroot(url) or self._istype(url)
+		return self._type(url) != "object"
 
 	def isfile(self, url):
-		return not self.isdir(url)
+		return self._type(url) == "object"
 
 	def mimetype(self, url):
 		if self.isdir(url):
 			return "application/octet-stream"
-		return "text/x-oracle-{}".format(url.path[0])
+		return "text/x-oracle-{}".format(url.path[0 if url.path[0] != "user" else 2])
 
 	def owner(self, url):
 		c = self.dbconnection.cursor()
@@ -2562,15 +2601,43 @@ class OracleConnection(url_.Connection):
 
 	def _listdir(self, url, pattern=None, files=True, dirs=True):
 		result = []
-		if self._isroot(url): # root
+		type = self._type(url)
+		if type == "root":
 			if dirs:
 				result = [url_.URL(name + "/") for name in Object.name2type]
-		elif self._istype(url): # type directory
+		elif type == "type": # type directory for current user
 			if files:
 				path = url.path
 				type = path[0]
 				names = (name[0] for name in Object.name2type[type].iternames(self.dbconnection, None))
 				if len(path) == 1:
+					result = [url_.URL(u"{}/{}.sql".format(type, makeurl(name))) for name in names]
+				else:
+					result = [url_.URL(u"{}.sql".format(makeurl(name))) for name in names]
+		elif type == "allusers":
+			# FIXME: List all users
+			pass
+			# if dirs:
+			# 	path = url.path
+			# 	type = path[2]
+			# 	names = (name[0] for name in Object.name2type[type].iternames(self.dbconnection, path[0]))
+			# 	if len(path) == 3:
+			# 		result = [url_.URL(u"{}/{}.sql".format(type, makeurl(name))) for name in names]
+			# 	else:
+			# 		result = [url_.URL(u"{}.sql".format(makeurl(name))) for name in names]
+		elif type == "user":
+			if dirs:
+				path = url.path
+				if len(path) == 2:
+					result = [url_.URL("{}/{}/".format(path[1], name)) for name in Object.name2type]
+				else:
+					result = [url_.URL("{}/".format(name)) for name in Object.name2type]
+		elif type == "usertype":
+			if files:
+				path = url.path
+				type = path[2]
+				names = (name[0] for name in Object.name2type[type].iternames(self.dbconnection, path[1]))
+				if len(path) == 3:
 					result = [url_.URL(u"{}/{}.sql".format(type, makeurl(name))) for name in names]
 				else:
 					result = [url_.URL(u"{}.sql".format(makeurl(name))) for name in names]
@@ -2612,17 +2679,24 @@ class OracleFileResource(url_.Resource):
 			code = self._objectfromurl().createddl(self.connection.dbconnection, term=False)
 			self.stream = cStringIO.StringIO(code.encode("utf-8"))
 
-	def _namefromurl(self):
-		name = self.url.path[1]
+	def _infofromurl(self):
+		if len(self.url.path) == 2:
+			owner = None
+			type = self.url.path[0]
+			name = self.url.path[1]
+		else:
+			owner = self.url.path[1]
+			type = self.url.path[2]
+			name = self.url.path[3]
 		if name.lower().endswith(".sql"):
 			name = name[:-4]
-		return unicodedata.normalize('NFC', name)
+		return (unicodedata.normalize('NFC', name), owner, type)
 
 	def _objectfromurl(self):
-		type = self.url.path[0]
+		(name, owner, type) = self._infofromurl()
 		if type not in Object.name2type:
 			raise ValueError("don't know how to handle {0!r}".format(self.url))
-		return Object.name2type[type](self._namefromurl())
+		return Object.name2type[type](name, owner)
 	
 	def read(self, size=-1):
 		if self.closed:
@@ -2671,14 +2745,18 @@ class OracleSchemeDefinition(url_.SchemeDefinition):
 			lui = len(userinfo)
 			if lui == 2:
 				mode = None
+				user = False
 			elif lui == 3:
 				try:
 					mode = dict(sysoper=SYSOPER, sysdba=SYSDBA, normal=None)[userinfo[2]]
 				except KeyError:
 					raise ValueError("unknown connect mode {!r}".format(userinfo[2]))
+				user = False
+			elif lui == 4:
+				user = userinfo[3]
 			else:
 				raise ValueError("illegal userinfo {!r}".format(url.userinfo))
-			connection = connections[server] = OracleConnection(context, "{}/{}@{}".format(userinfo[0], userinfo[1], url.host), mode)
+			connection = connections[server] = OracleConnection(context, "{}/{}@{}".format(userinfo[0], userinfo[1], url.host), mode, user)
 		return (connection, kwargs)
 
 	def open(self, url, mode="rb", context=None):
