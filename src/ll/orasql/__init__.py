@@ -2605,6 +2605,8 @@ class OracleConnection(url_.Connection):
 		if type == "root":
 			if dirs:
 				result = [url_.URL(name + "/") for name in Object.name2type]
+				if self.user:
+					result.append(url_.URL("user/"))
 		elif type == "type": # type directory for current user
 			if files:
 				path = url.path
@@ -2746,16 +2748,21 @@ class OracleSchemeDefinition(url_.SchemeDefinition):
 			if lui == 2:
 				mode = None
 				user = False
-			elif lui == 3:
+			if lui >= 3:
 				try:
 					mode = dict(sysoper=SYSOPER, sysdba=SYSDBA, normal=None)[userinfo[2]]
 				except KeyError:
 					raise ValueError("unknown connect mode {!r}".format(userinfo[2]))
-				user = False
-			elif lui == 4:
-				user = userinfo[3]
+				if lui == 4:
+					user = userinfo[3]
+				elif lui == 3:
+					user = False
+				else:
+					raise ValueError("illegal userinfo {!r}".format(url.userinfo))
+			elif lui == 2:
+				mode = None
 			else:
-				raise ValueError("illegal userinfo {!r}".format(url.userinfo))
+					raise ValueError("illegal userinfo {!r}".format(url.userinfo))
 			connection = connections[server] = OracleConnection(context, "{}/{}@{}".format(userinfo[0], userinfo[1], url.host), mode, user)
 		return (connection, kwargs)
 
