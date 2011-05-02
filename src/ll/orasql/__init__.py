@@ -1430,7 +1430,7 @@ class PrimaryKey(Constraint):
 		# Normally there is an index for this primary key, but we ignore it, as for the purpose of :mod:`orasql` this index doesn't exist
 
 	def iterreferences(self, connection=None):
-		return self.table(connection)
+		yield self.table(connection)
 
 	def table(self, connection=None):
 		"""
