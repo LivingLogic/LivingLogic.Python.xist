@@ -497,8 +497,8 @@ class Decoder(object):
 	def __init__(self, encoding=None):
 		"""
 		Create a :class:`Decoder` object. :var:`encoding` is the encoding of the
-		input. If :var:`encoding` is ``None`` it will be automatically detected
-		from the XML data.
+		input. If :var:`encoding` is :const:`None` it will be automatically
+		detected from the XML data.
 		"""
 		self.encoding = encoding
 
@@ -536,7 +536,7 @@ class Encoder(object):
 	def __init__(self, encoding=None):
 		"""
 		Create an :class:`Encoder` object. :var:`encoding` will be the encoding of
-		the output. If :var:`encoding` is ``None`` it will be automatically
+		the output. If :var:`encoding` is :const:`None` it will be automatically
 		detected from the XML declaration in the data.
 		"""
 		self.encoding = encoding
@@ -575,7 +575,7 @@ class Transcoder(object):
 		"""
 		Create a :class:`Transcoder` object. :var:`fromencoding` is the encoding
 		of the input. :var:`toencoding` is the encoding of the output. If any of
-		them is ``None`` the encoding will be detected from the data.
+		them is :const:`None` the encoding will be detected from the data.
 		"""
 		self.fromencoding = fromencoding
 		self.toencoding = toencoding
@@ -975,8 +975,8 @@ class NS(object):
 
 	def __init__(self, prefixes=None, **kwargs):
 		"""
-		Create an :class:`NS` object. :var:`prefixes` (if not ``None``) can be a
-		namespace name (or module), which will be used for the empty prefix,
+		Create an :class:`NS` object. :var:`prefixes` (if not :const:`None`) can
+		be a namespace name (or module), which will be used for the empty prefix,
 		or a dictionary that maps prefixes to namespace names (or modules).
 		:var:`kwargs` maps prefixes to namespaces names too. If a prefix is in both
 		:var:`prefixes` and :var:`kwargs`, :var:`kwargs` wins.
@@ -1346,8 +1346,8 @@ class Tidy(object):
 		"""
 		Create a new :class:`Tidy` object. Parameters have the following meaning:
 
-		:var:`encoding` : string or ``None``
-			The encoding of the input. If :var:`encoding` is ``None`` it will
+		:var:`encoding` : string or :const:`None`
+			The encoding of the input. If :var:`encoding` is :const:`None` it will
 			be automatically detected by the HTML parser.
 
 		:var:`skipbad` : bool

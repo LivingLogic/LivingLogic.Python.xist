@@ -46,7 +46,7 @@ class MediaDescAttr(xsc.TextAttr):
 	def hasmedia(self, media):
 		"""
 		Return whether :var:`self` contains the media type :var:`media`. Returns
-		``True`` if :var:`media` is ``None`` or :var:`self` is empty.
+		``True`` if :var:`media` is :const:`None` or :var:`self` is empty.
 		"""
 		if media is not None and self:
 			return media in {m.strip() for m in unicode(self).split(",")}

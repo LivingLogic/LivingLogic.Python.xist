@@ -482,11 +482,11 @@ class Connection(object):
 			:var:`data` : byte string
 				Request body to use for an HTTP POST request.
 
-			:var:`remotepython` : string or ``None``
+			:var:`remotepython` : string or :const:`None`
 				Name of the Python interpreter to use on the remote side (used by
 				``ssh`` URLs)
 
-			:var:`nice` : int or ``None``
+			:var:`nice` : int or :const:`None`
 				Nice level for the remote python (used by ``ssh`` URLs)
 		"""
 

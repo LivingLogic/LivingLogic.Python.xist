@@ -88,4 +88,4 @@ You can specify which format gets used by changing the value of the
 	from ll.xist import present
 	present.defaultpresenter = present.TreePresenter
 
-Setting this value to ``None`` turns the display hook off.
+Setting this value to :const:`None` turns the display hook off.

@@ -781,7 +781,7 @@ Changes to :mod:`ll.xist.xfind`
 
 The functions :func:`xfind.first` and :func:`xfind.last` now use
 :func:`xfind.item`, so they will raise an :exc:`IndexError` when no default
-value is passed. To get the old behaviour, simply pass ``None`` as the default.
+value is passed. To get the old behaviour, simply pass :const:`None` as the default.
 
 
 Migrating to version 2.6

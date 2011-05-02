@@ -52,8 +52,8 @@ class Location(object):
 			The complete source string
 
 		:var:`type`
-			The tag type (i.e. ``"for"``, ``"if"``, etc. or ``None`` for literal
-			text)
+			The tag type (i.e. ``"for"``, ``"if"``, etc. or :const:`None` for
+			literal text)
 
 		:var:`starttag`
 			The start position of the start delimiter.

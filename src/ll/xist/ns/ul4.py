@@ -58,9 +58,9 @@ class render(xsc.ProcInst):
 class attr_ifnn(xsc.AttrProcInst):
 	"""
 	Conditional attribute: If this PI is used as the first in an attribute, it's
-	value is treated as an expression. If this expression is not ``None`` it is
-	output as the value of the attribute, otherwise the attribute itself will be
-	skipped.
+	value is treated as an expression. If this expression is not :const:`None`
+	it is output as the value of the attribute, otherwise the attribute itself
+	will be skipped.
 	"""
 
 	def publishattr(self, publisher, attr):

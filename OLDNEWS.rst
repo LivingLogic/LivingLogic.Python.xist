@@ -102,7 +102,7 @@ Changes in 1.7.5 (released 03/09/2007)
 ======================================
 
 *	:class:`ll.url.Resource` now has a method :meth:`encoding` that returns
-	``None`` (for "encoding unknown").
+	:const:`None` (for "encoding unknown").
 
 
 Changes in 1.7.4 (released 03/08/2007)
@@ -247,7 +247,7 @@ Changes in 1.3 (released 06/28/2006)
 Changes in 1.2 (released 12/13/2005)
 ====================================
 
-*	``None`` is now allowed as a proper data object in :mod:`ll.make` actions.
+*	:const:`None` is now allowed as a proper data object in :mod:`ll.make` actions.
 
 *	:mod:`ll.xpit` now supports conditionals (i.e. the new processing
 	instruction targets ``if``, ``elif``, ``else`` and ``endif``. Now there
