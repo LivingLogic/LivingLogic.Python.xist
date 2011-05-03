@@ -2574,15 +2574,57 @@ class OracleConnection(url_.Connection):
 				raise ValueError("can't happen")
 		elif lp == 4:
 			if path[0] == "user":
-				return "object"
+				return "userobject"
 			else:
 				raise ValueError("can't happen")
 
+	def _infofromurl(self, url):
+		type = self._type(url)
+		if type == "root":
+			owner = None
+			objectype = None
+			name = None
+		elif type == "allusers":
+			owner = None
+			objectype = None
+			name = None
+		elif type == "type":
+			owner = None
+			objectype = None
+			name = None
+		elif type == "user":
+			owner = url.path[1]
+			objectype = None
+			name = None
+		elif type == "object":
+			owner = None
+			objectype = url.path[0]
+			name = url.path[1]
+		elif type == "usertype":
+			owner = url.path[1]
+			objectype = url.path[2]
+			name = None
+		else:
+			owner = url.path[1]
+			objectype = url.path[2]
+			name = url.path[3]
+		if name is not None:
+			if name.lower().endswith(".sql"):
+				name = name[:-4]
+			name = unicodedata.normalize('NFC', name)
+		return (type, owner, objectype, name)
+
+	def _objectfromurl(self, url):
+		(type, owner, objecttype, name) = self._infofromurl(url)
+		if objecttype not in Object.name2type:
+			raise ValueError("don't know how to handle {0!r}".format(self.url))
+		return Object.name2type[objecttype](name, owner)
+
 	def isdir(self, url):
-		return self._type(url) != "object"
+		return not self._type(url).endswith("object")
 
 	def isfile(self, url):
-		return self._type(url) == "object"
+		return self._type(url).endswith("object")
 
 	def mimetype(self, url):
 		if self.isdir(url):
@@ -2590,9 +2632,12 @@ class OracleConnection(url_.Connection):
 		return "text/x-oracle-{}".format(url.path[0 if url.path[0] != "user" else 2])
 
 	def owner(self, url):
-		c = self.dbconnection.cursor()
-		c.execute("select user from dual")
-		return c.fetchone()[0]
+		if len(url.path) >= 2 and url.path[0] == "user" and url.path[1]:
+			return url.path[1]
+		else:
+			c = self.dbconnection.cursor()
+			c.execute("select user from dual")
+			return c.fetchone()[0]
 
 	def cdate(self, url):
 		if self.isdir(url):
@@ -2698,28 +2743,9 @@ class OracleFileResource(url_.Resource):
 		if "w" in self.mode:
 			self.stream = cStringIO.StringIO()
 		else:
-			code = self._objectfromurl().createddl(self.connection.dbconnection, term=False)
+			code = self.connection._objectfromurl(url).createddl(self.connection.dbconnection, term=False)
 			self.stream = cStringIO.StringIO(code.encode("utf-8"))
 
-	def _infofromurl(self):
-		if len(self.url.path) == 2:
-			owner = None
-			type = self.url.path[0]
-			name = self.url.path[1]
-		else:
-			owner = self.url.path[1]
-			type = self.url.path[2]
-			name = self.url.path[3]
-		if name.lower().endswith(".sql"):
-			name = name[:-4]
-		return (unicodedata.normalize('NFC', name), owner, type)
-
-	def _objectfromurl(self):
-		(name, owner, type) = self._infofromurl()
-		if type not in Object.name2type:
-			raise ValueError("don't know how to handle {0!r}".format(self.url))
-		return Object.name2type[type](name, owner)
-	
 	def read(self, size=-1):
 		if self.closed:
 			raise ValueError("I/O operation on closed file")
