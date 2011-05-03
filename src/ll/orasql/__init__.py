@@ -33,7 +33,7 @@ __ http://cx-oracle.sourceforge.net/
 """
 
 
-import urllib, datetime, itertools, cStringIO, errno, fnmatch, unicodedata, codecs
+import os, urllib, datetime, itertools, cStringIO, errno, fnmatch, unicodedata, codecs
 
 from cx_Oracle import *
 
@@ -787,19 +787,21 @@ class MixinNormalDates(object):
 	"""
 	def cdate(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select created from {}_objects where lower(object_type)=:type and object_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), type=self.__class__.type, name=self.name, owner=self.owner)
+		cursor.execute("select created, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from {}_objects where lower(object_type)=:type and object_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), type=self.__class__.type, name=self.name, owner=self.owner)
 		row = cursor.fetchone()
 		if row is None:
 			raise SQLObjectNotFoundError(self)
-		return row.created
+		# FIXME: This is only correct 50% of the time, but Oracle doesn't provide anything better
+		return row[0]-datetime.timedelta(seconds=60*(row[1]*60+row[2]))
 
 	def udate(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select last_ddl_time from {}_objects where lower(object_type)=:type and object_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), type=self.__class__.type, name=self.name, owner=self.owner)
+		cursor.execute("select last_ddl_time, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from {}_objects where lower(object_type)=:type and object_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), type=self.__class__.type, name=self.name, owner=self.owner)
 		row = cursor.fetchone()
 		if row is None:
 			raise SQLObjectNotFoundError(self)
-		return row.last_ddl_time
+		# FIXME: This is only correct 50% of the time, but Oracle doesn't provide anything better
+		return row[0]-datetime.timedelta(seconds=60*(row[1]*60+row[2]))
 
 
 class MixinCodeDDL(object):
@@ -1345,7 +1347,7 @@ class Constraint(Object):
 
 	def cdate(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select last_change from {}_constraints where constraint_type=:type and constraint_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), type=self.constraint_type, name=self.name, owner=self.owner)
+		cursor.execute("select last_change, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from {}_constraints where constraint_type=:type and constraint_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), type=self.constraint_type, name=self.name, owner=self.owner)
 		row = cursor.fetchone()
 		if row is None:
 			raise SQLObjectNotFoundError(self)
@@ -1353,11 +1355,12 @@ class Constraint(Object):
 
 	def udate(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select last_change from {}_constraints where constraint_type=:type and constraint_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), type=self.constraint_type, name=self.name, owner=self.owner)
+		cursor.execute("select last_change, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from {}_constraints where constraint_type=:type and constraint_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), type=self.constraint_type, name=self.name, owner=self.owner)
 		row = cursor.fetchone()
 		if row is None:
 			raise SQLObjectNotFoundError(self)
-		return row[0]
+		# FIXME: This is only correct 50% of the time, but Oracle doesn't provide anything better
+		return row[0]-datetime.timedelta(seconds=60*(row[1]*60+row[2]))
 
 	@classmethod
 	def iternames(cls, connection, owner=ALL):
@@ -2435,20 +2438,22 @@ class Column(Object):
 	def cdate(self, connection=None):
 		# The column creation date is the table creation date
 		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select created from {}_objects where object_type='TABLE' and object_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), name=self.name.split(".")[0], owner=self.owner)
+		cursor.execute("select created, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from {}_objects where object_type='TABLE' and object_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), name=self.name.split(".")[0], owner=self.owner)
 		row = cursor.fetchone()
 		if row is None:
 			raise SQLObjectNotFoundError(self)
-		return row[0]
+		# FIXME: This isn't the correct time zone, but Oracle doesn't provide anything better
+		return row[0]-datetime.timedelta(seconds=60*(row[1]*60+row[2]))
 
 	def udate(self, connection=None):
 		# The column modification date is the table modification date
 		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select last_ddl_time from {}_objects where object_type='TABLE' and object_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), name=self.name.split(".")[0], owner=self.owner)
+		cursor.execute("select last_ddl_time, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from {}_objects where object_type='TABLE' and object_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), name=self.name.split(".")[0], owner=self.owner)
 		row = cursor.fetchone()
 		if row is None:
 			raise SQLObjectNotFoundError(self)
-		return row[0]
+		# FIXME: This is only correct 50% of the time, but Oracle doesn't provide anything better
+		return row[0]-datetime.timedelta(seconds=60*(row[1]*60+row[2]))
 
 	def iterreferences(self, connection=None):
 		connection = self.getconnection(connection)
@@ -2642,32 +2647,20 @@ class OracleConnection(url_.Connection):
 	def cdate(self, url):
 		if self.isdir(url):
 			return bigbang
-		type = url.path[0]
-		name = url.path[1]
-		if name.lower().endswith(".sql"):
-			name = name[:-4]
-		# FIXME: This isn't the correct time zone, but Oracle doesn't provide anything better
-		c = self.dbconnection.cursor()
-		c.execute("select created, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from user_objects where lower(object_type)=:type and object_name=:name", type=type, name=name)
-		row = c.fetchone()
-		if row is None:
-			raise IOError(errno.ENOENT, "no such {}: {}".format(type, name))
-		return row[0]-datetime.timedelta(seconds=60*(row[1]*60+row[2]))
+		try:
+			obj = self._objectfromurl(url)
+		except SQLNoSuchObjectError, exc:
+			raise IOError(errno.ENOENT, "no such file: {}".format(type, url))
+		return obj.cdate(self.dbconnection)
 
 	def mdate(self, url):
 		if self.isdir(url):
 			return bigbang
-		type = url.path[0]
-		name = url.path[1]
-		if name.lower().endswith(".sql"):
-			name = name[:-4]
-		# FIXME: This isn't the correct time zone, but Oracle doesn't provide anything better
-		c = self.dbconnection.cursor()
-		c.execute("select last_ddl_time, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from user_objects where lower(object_type)=:type and object_name=:name", type=type, name=name)
-		row = c.fetchone()
-		if row is None:
-			raise IOError(errno.ENOENT, "no such {}: {}".format(type, name))
-		return row[0]-datetime.timedelta(seconds=60*(row[1]*60+row[2]))
+		try:
+			obj = self._objectfromurl(url)
+		except SQLNoSuchObjectError, exc:
+			raise IOError(errno.ENOENT, "no such file: {}".format(type, url))
+		return obj.udate(self.dbconnection)
 
 	def _listdir(self, url, pattern=None, files=True, dirs=True):
 		result = []
