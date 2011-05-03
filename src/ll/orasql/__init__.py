@@ -2528,7 +2528,7 @@ class User(object):
 		Generator that yields the names of all users
 		"""
 		cursor = connection.cursor()
-		cursor.execute("select username from {}_users".format(cursor.ddprefix()))
+		cursor.execute("select username from {}_users order by username".format(cursor.ddprefix()))
 		return (row.username for row in cursor)
 
 	@classmethod
