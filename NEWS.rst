@@ -18,7 +18,8 @@ Changes in 3.20 (released ??/??/2011)
 	where used before.
 
 *	It's now possible to list all users in the database with the class methods
-	:meth:`User.iternames` and :meth:`User.iterobjects`.
+	:meth:`User.iternames` and :meth:`User.iterobjects` and with
+	:meth:`Connection.iterusers`.
 
 *	Oracle URLs now support the directory ``user/`` which contains all users, i.e.
 	``oracle://user:pwd@db/user/`` lists all users and

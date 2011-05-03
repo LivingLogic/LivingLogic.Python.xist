@@ -519,6 +519,12 @@ class Connection(Connection):
 		"""
 		return Privilege.iterobjects(self, owner)
 
+	def iterusers(self):
+		"""
+		Generator that yields all users.
+		"""
+		return User.iterobjects(self)
+
 	def iterobjects(self, owner=ALL, mode="create"):
 		"""
 		Generator that yields the sequences, tables, primary keys, foreign keys,
