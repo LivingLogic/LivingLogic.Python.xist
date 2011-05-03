@@ -2509,49 +2509,31 @@ class OracleConnection(url_.Connection):
 
 	def _type(self, url):
 		path = url.path
+		if path and not path[-1]:
+			path = path[:-1]
 		lp = len(path)
 		if lp == 0:
 			return "root"
 		elif lp == 1:
-			if path[0]:
-				if path[0] == "user":
-					return "allusers"
-				else:
-					return "type"
+			if path[0] == "user":
+				return "allusers"
 			else:
-				return "root"
+				return "type"
 		elif lp == 2:
 			if path[0] == "user":
-				if path[1]:
-					return "user"
-				else:
-					return "allusers"
+				return "user"
 			else:
 				return "object"
 		elif lp == 3:
 			if path[0] == "user":
-				if path[2]:
-					return "usertype"
-				else:
-					return "user"
+				return "usertype"
 			else:
 				raise ValueError("can't happen")
 		elif lp == 4:
 			if path[0] == "user":
-				if path[3]:
-					return "object"
-				else:
-					return "usertype"
+				return "object"
 			else:
 				raise ValueError("can't happen")
-
-	def _istype(self, url):
-		path = url.path
-		return len(path) == 1 or (len(path) == 2 and not path[1])
-
-	def _isuserroot(self, url):
-		path = url.path
-		return len(path) == 1 or (len(path) == 2 and not path[1])
 
 	def isdir(self, url):
 		return self._type(url) != "object"
