@@ -863,13 +863,13 @@ def getfullname(name, owner):
 	parts = []
 	if owner is not None:
 		if owner != owner.upper() or not all(c.isalnum() or c == u"_" for c in owner):
-			part = '"{}"'.format(owner)
+			part = u'"{}"'.format(owner)
 		parts.append(owner)
-	for part in name.split("."):
+	for part in name.split(u"."):
 		if part != part.upper() or not all(c.isalnum() or c == u"_" for c in part):
-			part = '"{}"'.format(part)
+			part = u'"{}"'.format(part)
 		parts.append(part)
-	return ".".join(parts)
+	return u".".join(parts)
 
 
 class Object(object):
