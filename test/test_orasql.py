@@ -161,6 +161,7 @@ def test_table_columns():
 				col.default()
 				col.nullable()
 				col.comment()
+				assert col.table() == obj
 
 
 @py.test.mark.db

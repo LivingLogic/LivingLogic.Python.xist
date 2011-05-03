@@ -21,6 +21,9 @@ Changes in 3.20 (released ??/??/2011)
 	:meth:`User.iternames` and :meth:`User.iterobjects` and with
 	:meth:`Connection.iterusers`.
 
+*	Oracle column objects have a new method :meth:`table` that returns the
+	table the column belongs to.
+
 *	Oracle URLs now support the directory ``user/`` which contains all users, i.e.
 	``oracle://user:pwd@db/user/`` lists all users and
 	``oracle://user:pwd@db/user/foo/`` lists the same stuff as

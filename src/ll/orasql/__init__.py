@@ -1276,7 +1276,7 @@ class Table(MixinNormalDates, Object):
 		if owner is None:
 			cursor.execute("select null as owner, table_name from user_tables where table_name not like 'BIN$%' minus select null as owner, mview_name as table_name from user_mviews order by table_name")
 		elif owner is ALL:
-			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {0}_tables where table_name not like 'BIN$%' order by owner, table_name minus select decode(owner, user, null, owner) as owner, mview_name as table_name from {0}_mviews order by owner, table_name".format(cursor.ddprefix()))
+			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {0}_tables where table_name not like 'BIN$%' minus select decode(owner, user, null, owner) as owner, mview_name as table_name from {0}_mviews order by owner, table_name".format(cursor.ddprefix()))
 		else:
 			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {0}_tables where table_name not like 'BIN$%' and owner=:owner minus select decode(owner, user, null, owner) as owner, mview_name as table_name from {0}_mviews where owner=:owner order by table_name".format(cursor.ddprefix()), owner=owner)
 		return ((row.table_name, row.owner) for row in cursor)
@@ -2441,25 +2441,17 @@ class Column(Object):
 			code += u"\n"
 		return code
 
+	def table(self):
+		name = self.name.split(".")
+		return Table(name[0], self.owner, self.connection)
+
 	def cdate(self, connection=None):
 		# The column creation date is the table creation date
-		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select created, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from {}_objects where object_type='TABLE' and object_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), name=self.name.split(".")[0], owner=self.owner)
-		row = cursor.fetchone()
-		if row is None:
-			raise SQLObjectNotFoundError(self)
-		# FIXME: This isn't the correct time zone, but Oracle doesn't provide anything better
-		return row[0]-datetime.timedelta(seconds=60*(row[1]*60+row[2]))
+		return self.table().cdate(connection)
 
 	def udate(self, connection=None):
 		# The column modification date is the table modification date
-		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select last_ddl_time, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from {}_objects where object_type='TABLE' and object_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), name=self.name.split(".")[0], owner=self.owner)
-		row = cursor.fetchone()
-		if row is None:
-			raise SQLObjectNotFoundError(self)
-		# FIXME: This is only correct 50% of the time, but Oracle doesn't provide anything better
-		return row[0]-datetime.timedelta(seconds=60*(row[1]*60+row[2]))
+		return self.table().udate(connection)
 
 	def iterreferences(self, connection=None):
 		connection = self.getconnection(connection)
