@@ -776,6 +776,10 @@ def makeurl(name):
 	return urllib.pathname2url(name.encode("utf-8")).replace("/", "%2f")
 
 
+###
+### Classes used for database meta data
+###
+
 class MixinNormalDates(object):
 	"""
 	Mixin class that provides methods for determining creation and modification
@@ -2492,14 +2496,53 @@ class Column(Object):
 		return rec.comments or None
 
 
+class User(object):
+	"""
+	Models a user in the database
+	"""
+	def __init__(self, name, connection=None):
+		self.name = name
+		self.connection = connection
+
+	def __repr__(self):
+		return "{}.{}({!r})".format(self.__class__.__module__, self.__class__.__name__, self.name)
+
+	def __str__(self):
+		return "{}({})".format(self.__class__.__name__, self.name)
+
+	def __eq__(self, other):
+		return self.__class__ is other.__class__ and self.name == other.name
+
+	def __ne__(self, other):
+		return not self.__eq__(other)
+
+	def __hash__(self):
+		return hash(self.__class__.__name__) ^ hash(self.name)
+
+	@classmethod
+	def iternames(cls, connection):
+		"""
+		Generator that yields the names of all users
+		"""
+		cursor = connection.cursor()
+		cursor.execute("select username from {}_users".format(cursor.ddprefix()))
+		return (row.username for row in cursor)
+
+	@classmethod
+	def iterobjects(cls, connection):
+		"""
+		Generator that yields all user objects.
+		"""
+		return (cls(name[0], connection) for name in cls.iternames(connection))
+
+
 ###
 ### Classes that add an ``oracle`` scheme to the urls supported by :mod:`ll.url`.
 ###
 
 class OracleConnection(url_.Connection):
-	def __init__(self, context, connection, mode, user):
+	def __init__(self, context, connection, mode):
 		self.dbconnection = connect(connection, mode=mode) if mode is not None else connect(connection)
-		self.user = user
 
 	def open(self, url, mode="rb"):
 		return OracleFileResource(self, url, mode)
@@ -2584,12 +2627,10 @@ class OracleConnection(url_.Connection):
 	def _listdir(self, url, pattern=None, files=True, dirs=True):
 		result = []
 		type = self._type(url)
-		if type == "root":
+		if type == "root": # directory of types for the current user
 			if dirs:
 				result = [url_.URL(name + "/") for name in Object.name2type]
-				if self.user:
-					result.append(url_.URL("user/"))
-		elif type == "type": # type directory for current user
+		elif type == "type": # directory of objects of the specified type for current user
 			if files:
 				path = url.path
 				type = path[0]
@@ -2598,25 +2639,22 @@ class OracleConnection(url_.Connection):
 					result = [url_.URL(u"{}/{}.sql".format(type, makeurl(name))) for name in names]
 				else:
 					result = [url_.URL(u"{}.sql".format(makeurl(name))) for name in names]
-		elif type == "allusers":
-			# FIXME: List all users
-			pass
-			# if dirs:
-			# 	path = url.path
-			# 	type = path[2]
-			# 	names = (name[0] for name in Object.name2type[type].iternames(self.dbconnection, path[0]))
-			# 	if len(path) == 3:
-			# 		result = [url_.URL(u"{}/{}.sql".format(type, makeurl(name))) for name in names]
-			# 	else:
-			# 		result = [url_.URL(u"{}.sql".format(makeurl(name))) for name in names]
-		elif type == "user":
+		elif type == "allusers": # directory of all users
+			if dirs:
+				path = url.path
+				names = User.iternames(self.dbconnection)
+				if len(path) == 1:
+					result = [url_.URL(u"user/{}/".format(makeurl(name))) for name in names]
+				else:
+					result = [url_.URL(u"{}/".format(makeurl(name))) for name in names]
+		elif type == "user": # directory of types for a specific user
 			if dirs:
 				path = url.path
 				if len(path) == 2:
 					result = [url_.URL("{}/{}/".format(path[1], name)) for name in Object.name2type]
 				else:
 					result = [url_.URL("{}/".format(name)) for name in Object.name2type]
-		elif type == "usertype":
+		elif type == "usertype": # directory of objects of the specified type for a specific user
 			if files:
 				path = url.path
 				type = path[2]
@@ -2729,23 +2767,14 @@ class OracleSchemeDefinition(url_.SchemeDefinition):
 			lui = len(userinfo)
 			if lui == 2:
 				mode = None
-				user = False
-			if lui >= 3:
+			elif lui == 3:
 				try:
 					mode = dict(sysoper=SYSOPER, sysdba=SYSDBA, normal=None)[userinfo[2]]
 				except KeyError:
 					raise ValueError("unknown connect mode {!r}".format(userinfo[2]))
-				if lui == 4:
-					user = userinfo[3]
-				elif lui == 3:
-					user = False
-				else:
-					raise ValueError("illegal userinfo {!r}".format(url.userinfo))
-			elif lui == 2:
-				mode = None
 			else:
 				raise ValueError("illegal userinfo {!r}".format(url.userinfo))
-			connection = connections[server] = OracleConnection(context, "{}/{}@{}".format(userinfo[0], userinfo[1], url.host), mode, user)
+			connection = connections[server] = OracleConnection(context, "{}/{}@{}".format(userinfo[0], userinfo[1], url.host), mode)
 		return (connection, kwargs)
 
 	def open(self, url, mode="rb", context=None):
