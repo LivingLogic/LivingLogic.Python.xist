@@ -10,12 +10,21 @@ Changes in 3.20 (released ??/??/2011)
 
 *	The :var:`schema` argument used by various methods in :mod:`ll.orasql` has
 	been replace be a :var:`owner` argument that can be :const:`None` (for the
-	current user), the constant ``ALL`` for all users (which uses the ``DBA_*``
-	variant of various meta data views if possible or the ``ALL_*`` variants
-	otherwise) and a specific user name.
+	current user), the constant :const:`ALL` for all users (which uses the
+	``DBA_*`` variant of various meta data views if possible or the ``ALL_*``
+	variants otherwise) and a specific user name.
 
 	These views are also used if possible in all spots where the ``ALL_`` views
 	where used before.
+
+*	It's now possible to list all users in the database with the class methods
+	:meth:`User.iternames` and :meth:`User.iterobjects`.
+
+*	Oracle URLs now support the directory ``user/`` which contains all users, i.e.
+	``oracle://user:pwd@db/user/`` lists all users and
+	``oracle://user:pwd@db/user/foo/`` lists the same stuff as
+	``oracle://foo:pwd@db/``. This directory however will *not* be listed in the
+	root directory ``oracle://user:pwd@db/``.
 
 *	:mod:`ll.orasql` now supports tables without columns.
 
