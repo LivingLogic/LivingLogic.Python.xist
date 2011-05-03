@@ -74,6 +74,12 @@ def test_connection_itertables():
 
 
 @py.test.mark.db
+def test_connection_itersequences():
+	db = orasql.connect(dbname)
+	list(db.itersequences(None))
+
+
+@py.test.mark.db
 def test_connection_iterfks():
 	db = orasql.connect(dbname)
 	list(db.iterfks(None))
@@ -83,6 +89,12 @@ def test_connection_iterfks():
 def test_connection_iterprivileges():
 	db = orasql.connect(dbname)
 	list(db.iterprivileges(None))
+
+
+@py.test.mark.db
+def test_connection_iterusers():
+	db = orasql.connect(dbname)
+	list(db.iterusers())
 
 
 @py.test.mark.db
