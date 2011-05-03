@@ -35,10 +35,10 @@ Changes in 3.20 (released ??/??/2011)
 *	:class:`ll.orasql.Table` has a new method :meth:`pk` that returns the primary
 	key contraint (or :const:`None` if the table has now primary key contraint).
 
+*	:mod:`ipipe` support has been removed from :mod:`ll.orasql`.
+
 *	Fixed a bug in :class:`ll.xist.xsc.Pool`: Registered elements/entities etc.
 	now show up as attributes of the pool object.
-
-*	:mod:`ipipe` support has been removed from :mod:`ll.orasql`.
 
 
 Changes in 3.19 (released 04/26/2011)
