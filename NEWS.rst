@@ -9,7 +9,7 @@ Changes in 3.20 (released ??/??/2011)
 	Supported are the values ``normal`` (the default), ``sysdba`` and ``sysoper``.
 
 *	The :var:`schema` argument used by various methods in :mod:`ll.orasql` has
-	been replace be a :var:`owner` argument that can be :const:`None` (for the
+	been replaced by a :var:`owner` argument that can be :const:`None` (for the
 	current user), the constant :const:`ALL` for all users (which uses the
 	``DBA_*`` variant of various meta data views if possible or the ``ALL_*``
 	variants otherwise) and a specific user name.
@@ -21,8 +21,8 @@ Changes in 3.20 (released ??/??/2011)
 	:meth:`User.iternames` and :meth:`User.iterobjects` and with
 	:meth:`Connection.iterusers`.
 
-*	Oracle column objects have a new method :meth:`table` that returns the
-	table the column belongs to.
+*	Oracle :class:`Column` objects have a new method :meth:`table` that returns
+	the table the column belongs to.
 
 *	Oracle URLs now support the directory ``user/`` which contains all users, i.e.
 	``oracle://user:pwd@db/user/`` lists all users and
@@ -34,6 +34,9 @@ Changes in 3.20 (released ??/??/2011)
 
 *	:class:`ll.orasql.Table` has a new method :meth:`pk` that returns the primary
 	key contraint (or :const:`None` if the table has now primary key contraint).
+
+*	A bug the the queries for :class:`Index` objects in :mod:`ll.orasql` has been
+	fixed.
 
 *	:mod:`ipipe` support has been removed from :mod:`ll.orasql`.
 
