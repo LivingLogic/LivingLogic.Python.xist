@@ -2730,8 +2730,8 @@ class OracleConnection(url_.Connection):
 
 class OracleFileResource(url_.Resource):
 	"""
-	An :class:`OracleResource` wraps a function or procedure in an Oracle
-	database in a file-like API.
+	An :class:`OracleFileResource` wraps an Oracle database object (like a
+	table, view, function, procedure etc.) in a file-like API.
 	"""
 	def __init__(self, connection, url, mode="rb"):
 		self.connection = connection
