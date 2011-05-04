@@ -239,12 +239,17 @@ class Pool(object):
 		if isinstance(object, types.ModuleType):
 			self.register(object.__dict__)
 		elif isinstance(object, dict):
-			self._attrs.update(object)
-			if "__bases__" in object:
-				for base in object["__bases__"]:
-					if not isinstance(base, Pool):
-						base = self.__class__(base)
-					self.register(base)
+			for (key, value) in object.iteritems():
+				if key == "__bases__":
+					for base in value:
+						if not isinstance(base, Pool):
+							base = self.__class__(base)
+						self.bases.append(base)
+				elif not isinstance(value, (types.ModuleType, dict)):
+					try:
+						self._attrs[key] = value
+					except TypeError:
+						pass
 		elif isinstance(object, Pool):
 			self.bases.append(object)
 		elif isinstance(object, type):

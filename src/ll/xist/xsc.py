@@ -3681,7 +3681,7 @@ class Pool(misc.Pool):
 
 		*	a module (all attributes in the module will be registered).
 		"""
-		super(Pool, self).register(object)
+		# Note that the following is a complete reimplementation, otherwise the interactions would be too complicated.
 		if isinstance(object, type):
 			if issubclass(object, Element):
 				if object.register:
@@ -3706,14 +3706,25 @@ class Pool(misc.Pool):
 			elif issubclass(object, Attrs):
 				for attr in object.allowedattrs():
 					self.register(attr)
+			self._attrs[object.__name__] = object
 		elif isinstance(object, types.ModuleType):
-			for (key, value) in object.__dict__.iteritems():
-				if not isinstance(value, types.ModuleType): # This avoids recursive module registration
-					self.register(value)
+			self.register(object.__dict__)
 		elif isinstance(object, dict):
 			for (key, value) in object.iteritems():
-				if not isinstance(value, types.ModuleType): # This avoids recursive module registration
+				if key == "__bases__":
+					for base in value:
+						if not isinstance(base, Pool):
+							base = self.__class__(base)
+						self.bases.append(base)
+				elif isinstance(value, type):
 					self.register(value)
+				elif not isinstance(value, (types.ModuleType, dict)):
+					try:
+						self._attrs[key] = value
+					except TypeError:
+						pass
+		elif isinstance(object, Pool):
+			self.bases.append(object)
 
 	def __enter__(self):
 		self.prev = threadlocalpool.pool
@@ -3723,6 +3734,41 @@ class Pool(misc.Pool):
 	def __exit__(self, type, value, traceback):
 		threadlocalpool.pool = self.prev
 		del self.prev
+
+	def clear(self):
+		"""
+		Make :var:`self` empty.
+		"""
+		self._elementsbyxmlname.clear()
+		self._elementsbypyname.clear()
+		self._procinstsbyxmlname.clear()
+		self._procinstsbypyname.clear()
+		self._entitiesbyxmlname.clear()
+		self._entitiesbypyname.clear()
+		self._charrefsbyxmlname.clear()
+		self._charrefsbypyname.clear()
+		self._charrefsbycodepoint.clear()
+		self._attrsbyxmlname.clear()
+		self._attrsbypyname.clear()
+		misc.Pool.clear(self)
+
+	def clone(self):
+		"""
+		Return a copy of :var:`self`.
+		"""
+		copy = misc.Pool.clone(self)
+		copy._elementsbyxmlname = self._elementsbyxmlname.copy()
+		copy._elementsbypyname = self._elementsbypyname.copy()
+		copy._procinstsbyxmlname = self._procinstsbyxmlname.copy()
+		copy._procinstsbypyname = self._procinstsbypyname.copy()
+		copy._entitiesbyxmlname = self._entitiesbyxmlname.copy()
+		copy._entitiesbypyname = self._entitiesbypyname.copy()
+		copy._charrefsbyxmlname = self._charrefsbyxmlname.copy()
+		copy._charrefsbypyname = self._charrefsbypyname.copy()
+		copy._charrefsbycodepoint = self._charrefsbycodepoint.copy()
+		copy._attrsbyxmlname = self._attrsbyxmlname.copy()
+		copy._attrsbypyname = self._attrsbypyname.copy()
+		return copy
 
 	def elements(self):
 		"""
@@ -4111,41 +4157,6 @@ class Pool(misc.Pool):
 			for base in self.bases:
 				return getattr(base, key)
 			raise AttributeError(key)
-
-	def clear(self):
-		"""
-		Make :var:`self` empty.
-		"""
-		self._elementsbyxmlname.clear()
-		self._elementsbypyname.clear()
-		self._procinstsbyxmlname.clear()
-		self._procinstsbypyname.clear()
-		self._entitiesbyxmlname.clear()
-		self._entitiesbypyname.clear()
-		self._charrefsbyxmlname.clear()
-		self._charrefsbypyname.clear()
-		self._charrefsbycodepoint.clear()
-		self._attrsbyxmlname.clear()
-		self._attrsbypyname.clear()
-		misc.Pool.clear()
-
-	def clone(self):
-		"""
-		Return a copy of :var:`self`.
-		"""
-		copy = Pool.clone(self)
-		copy._elementsbyxmlname = self._elementsbyxmlname.copy()
-		copy._elementsbypyname = self._elementsbypyname.copy()
-		copy._procinstsbyxmlname = self._procinstsbyxmlname.copy()
-		copy._procinstsbypyname = self._procinstsbypyname.copy()
-		copy._entitiesbyxmlname = self._entitiesbyxmlname.copy()
-		copy._entitiesbypyname = self._entitiesbypyname.copy()
-		copy._charrefsbyxmlname = self._charrefsbyxmlname.copy()
-		copy._charrefsbypyname = self._charrefsbypyname.copy()
-		copy._charrefsbycodepoint = self._charrefsbycodepoint.copy()
-		copy._attrsbyxmlname = self._attrsbyxmlname.copy()
-		copy._attrsbypyname = self._attrsbypyname.copy()
-		return copy
 
 
 # Default pool (can be temporarily changed via ``with xsc.Pool() as pool:``)
