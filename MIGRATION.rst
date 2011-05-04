@@ -1,3 +1,16 @@
+Migrating to version 3.20
+=========================
+
+Changes to :mod:`ll.orasql`
+---------------------------
+
+*	The :var:`schema` argument used by various methods in :mod:`ll.orasql` has
+	been replaced by a :var:`owner` argument that can be :const:`None` (for the
+	current user), the constant :const:`ALL` for all users (which uses the
+	``DBA_*`` variant of various meta data views if possible or the ``ALL_*``
+	variants otherwise) and a specific user name.
+
+
 Migrating to version 3.19
 =========================
 
