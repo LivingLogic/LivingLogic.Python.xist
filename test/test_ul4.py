@@ -268,30 +268,35 @@ def raises(msg, render):
 		py.test.fail("failed to raise exception")
 
 
+@py.test.mark.ul4
 def test_text():
 	for r in all_renderers:
 		yield eq, u'gurk', r(u'gurk')
 		yield eq, u'g\xfcrk', r(u'g\xfcrk')
 
 
+@py.test.mark.ul4
 def test_none():
 	for r in all_renderers:
 		yield eq, '', r(u'<?print None?>')
 		yield eq, 'no', r(u'<?if None?>yes<?else?>no<?end if?>')
 
 
+@py.test.mark.ul4
 def test_false():
 	for r in all_renderers:
 		yield eq, 'False', r(u'<?print False?>')
 		yield eq, 'no', r(u'<?if False?>yes<?else?>no<?end if?>')
 
 
+@py.test.mark.ul4
 def test_true():
 	for r in all_renderers:
 		yield eq, 'True', r(u'<?print True?>')
 		yield eq, 'yes', r(u'<?if True?>yes<?else?>no<?end if?>')
 
 
+@py.test.mark.ul4
 def test_int():
 	for r in all_renderers:
 		yield eq, '0', r(u'<?print 0?>')
@@ -315,6 +320,7 @@ def test_int():
 		yield eq, 'yes', r(u'<?if -1?>yes<?else?>no<?end if?>')
 
 
+@py.test.mark.ul4
 def test_float():
 	for r in all_renderers:
 		# str() output might differ slightly between Python and JS, so eval the output again for tests
@@ -332,6 +338,7 @@ def test_float():
 		yield eq, 'yes', r(u'<?if -1.?>yes<?else?>no<?end if?>')
 
 
+@py.test.mark.ul4
 def test_string():
 	for r in all_renderers:
 		yield raises, "Unterminated string", r(u'<?print "?>')
@@ -361,6 +368,7 @@ def test_string():
 		yield eq, 'yes', r(u'<?if "foo"?>yes<?else?>no<?end if?>')
 
 
+@py.test.mark.ul4
 def test_date():
 	for r in all_renderers:
 		yield eq, '2000-02-29', r(u'<?print @2000-02-29T.isoformat()?>')
@@ -370,6 +378,7 @@ def test_date():
 		yield eq, 'yes', r(u'<?if @2000-02-29T12:34:56.987654?>yes<?else?>no<?end if?>')
 
 
+@py.test.mark.ul4
 def test_color():
 	for r in all_renderers:
 		yield eq, '255,255,255,255', r(u'<?code c = #fff?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
@@ -380,6 +389,7 @@ def test_color():
 		yield eq, 'yes', r(u'<?if #fff?>yes<?else?>no<?end if?>')
 
 
+@py.test.mark.ul4
 def test_list():
 	for r in all_renderers:
 		yield eq, '', r(u'<?for item in []?><?print item?>;<?end for?>')
@@ -391,6 +401,7 @@ def test_list():
 		yield eq, 'yes', r(u'<?if [1]?>yes<?else?>no<?end if?>')
 
 
+@py.test.mark.ul4
 def test_dict():
 	for r in all_renderers:
 		yield eq, '', r(u'<?for (key, value) in {}.items()?><?print key?>:<?print value?>\n<?end for?>')
@@ -405,12 +416,14 @@ def test_dict():
 		yield eq, 'yes', r(u'<?if {1:2}?>yes<?else?>no<?end if?>')
 
 
+@py.test.mark.ul4
 def test_code_storevar():
 	for r in all_renderers:
 		yield eq, '42', r(u'<?code x = 42?><?print x?>')
 		yield eq, 'xyzzy', r(u'<?code x = "xyzzy"?><?print x?>')
 
 
+@py.test.mark.ul4
 def test_code_addvar():
 	for r in all_renderers:
 		for x in (17, 17., False, True):
@@ -419,6 +432,7 @@ def test_code_addvar():
 		yield eq, 'xyzzy', r(u'<?code x = "xyz"?><?code x += "zy"?><?print x?>')
 
 
+@py.test.mark.ul4
 def test_code_subvar():
 	for r in all_renderers:
 		for x in (17, 17., False, True):
@@ -426,6 +440,7 @@ def test_code_subvar():
 				yield evaleq, x - y, r(u'<?code x = {}?><?code x -= {}?><?print x?>'.format(x, y))
 
 
+@py.test.mark.ul4
 def test_code_mulvar():
 	for r in all_renderers:
 		for x in (17, 17., False, True):
@@ -437,6 +452,7 @@ def test_code_mulvar():
 		yield eq, 17*"xyzzy", r(u'<?code x = "xyzzy"?><?code x *= 17?><?print x?>')
 
 
+@py.test.mark.ul4
 def test_code_floordivvar():
 	for r in all_renderers:
 		for x in (5, -5, 5.0, -5.0, 4, -4, 4.0, -4.0, False, True):
@@ -444,6 +460,7 @@ def test_code_floordivvar():
 				yield evaleq, x // y, r(u'<?code x = {}?><?code x //= {}?><?print x?>'.format(x, y))
 
 
+@py.test.mark.ul4
 def test_code_truedivvar():
 	for r in all_renderers:
 		for x in (5, -5, 5.0, -5.0, 4, -4, 4.0, -4.0, False, True):
@@ -451,6 +468,7 @@ def test_code_truedivvar():
 				yield evaleq, x / y, r(u'<?code x = {}?><?code x /= {}?><?print x?>'.format(x, y))
 
 
+@py.test.mark.ul4
 def test_code_modvar():
 	for r in all_renderers:
 		for x in (1729, 1729.0, -1729, -1729.0, False, True):
@@ -458,34 +476,40 @@ def test_code_modvar():
 				yield evaleq, x % y, r(u'<?code x = {}?><?code x %= {}?><?print x?>'.format(x, y))
 
 
+@py.test.mark.ul4
 def test_code_delvar():
 	for r in all_renderers:
 		yield raises, "(KeyError|not found)", r(u'<?code x = 1729?><?code del x?><?print x?>')
 
 
+@py.test.mark.ul4
 def test_for_string():
 	for r in all_renderers:
 		yield eq, '', r(u'<?for c in data?>(<?print c?>)<?end for?>', data="")
 		yield eq, '(g)(u)(r)(k)', r(u'<?for c in data?>(<?print c?>)<?end for?>', data="gurk")
 
 
+@py.test.mark.ul4
 def test_for_list():
 	for r in all_renderers:
 		yield eq, '', r(u'<?for c in data?>(<?print c?>)<?end for?>', data="")
 		yield eq, '(g)(u)(r)(k)', r(u'<?for c in data?>(<?print c?>)<?end for?>', data=["g", "u", "r", "k"])
 
 
+@py.test.mark.ul4
 def test_for_dict():
 	for r in all_renderers:
 		yield eq, '', r(u'<?for c in data?>(<?print c?>)<?end for?>', data={})
 		yield eq, '(a)(b)(c)', r(u'<?for c in sorted(data)?>(<?print c?>)<?end for?>', data=dict(a=1, b=2, c=3))
 
 
+@py.test.mark.ul4
 def test_for_nested():
 	for r in all_renderers:
 		yield eq, '[(1)(2)][(3)(4)]', r(u'<?for list in data?>[<?for n in list?>(<?print n?>)<?end for?>]<?end for?>', data=[[1, 2], [3, 4]])
 
 
+@py.test.mark.ul4
 def test_for_unpacking():
 	data = [
 		("spam", "eggs", 17),
@@ -499,37 +523,44 @@ def test_for_unpacking():
 		yield eq, '(spam,eggs,17)(gurk,hurz,23)(hinz,kunz,42)', r(u'<?for (a, b, c) in data?>(<?print a?>,<?print b?>,<?print c?>)<?end for?>', data=data)
 
 
+@py.test.mark.ul4
 def test_break():
 	for r in all_renderers:
 		yield eq, '1, 2, ', r(u'<?for i in [1,2,3]?><?print i?>, <?if i==2?><?break?><?end if?><?end for?>')
 
 
+@py.test.mark.ul4
 def test_break_nested():
 	for r in all_renderers:
 		yield eq, '1, 1, 2, 1, 2, 3, ', r(u'<?for i in [1,2,3,4]?><?for j in [1,2,3,4]?><?print j?>, <?if j>=i?><?break?><?end if?><?end for?><?if i>=3?><?break?><?end if?><?end for?>')
 
 
+@py.test.mark.ul4
 def test_continue():
 	for r in all_renderers:
 		yield eq, '1, 3, ', r(u'<?for i in [1,2,3]?><?if i==2?><?continue?><?end if?><?print i?>, <?end for?>')
 
 
+@py.test.mark.ul4
 def test_continue_nested():
 	for r in all_renderers:
 		yield eq, '1, 3, \n1, 3, \n', r(u'<?for i in [1,2,3]?><?if i==2?><?continue?><?end if?><?for j in [1,2,3]?><?if j==2?><?continue?><?end if?><?print j?>, <?end for?>\n<?end for?>')
 
 
+@py.test.mark.ul4
 def test_if():
 	for r in all_renderers:
 		yield eq, '42', r(u'<?if data?><?print data?><?end if?>', data=42)
 
 
+@py.test.mark.ul4
 def test_else():
 	for r in all_renderers:
 		yield eq, '42', r(u'<?if data?><?print data?><?else?>no<?end if?>', data=42)
 		yield eq, 'no', r(u'<?if data?><?print data?><?else?>no<?end if?>', data=0)
 
 
+@py.test.mark.ul4
 def test_block_errors():
 	yield raises, "in u?.<.for x in data.>..*block unclosed", RenderPython(u'<?for x in data?>')
 	yield raises, "endif doesn't match any if", RenderPython(u'<?for x in data?><?end if?>')
@@ -544,6 +575,7 @@ def test_block_errors():
 	yield raises, "else already seen in elif", RenderPython(u'<?if data?><?elif data?><?elif data?><?else?><?elif data?>')
 
 
+@py.test.mark.ul4
 def test_empty():
 	yield raises, "expression required", RenderPython(u'<?print?>')
 	yield raises, "expression required", RenderPython(u'<?if?>')
@@ -553,6 +585,7 @@ def test_empty():
 	yield raises, "render statement required", RenderPython(u'<?render?>')
 
 
+@py.test.mark.ul4
 def test_add():
 	values = (17, 23, 1., -1.)
 	for r in all_renderers:
@@ -563,6 +596,7 @@ def test_add():
 		yield eq, '(f)(o)(o)(b)(a)(r)', r(u'<?for i in data.foo+data.bar?>(<?print i?>)<?end for?>', data=dict(foo="foo", bar="bar"))
 
 
+@py.test.mark.ul4
 def test_sub():
 	values = (17, 23, 1., -1.)
 	for r in all_renderers:
@@ -571,6 +605,7 @@ def test_sub():
 				yield evaleq, x - y, r(u'<?print x - y?>', x=x, y=y)
 
 
+@py.test.mark.ul4
 def test_mul():
 	values = (17, 23, 1., -1.)
 	for r in all_renderers:
@@ -584,18 +619,21 @@ def test_mul():
 		yield eq, "(foo)(bar)(foo)(bar)(foo)(bar)", r(u'<?for i in 3*data?>(<?print i?>)<?end for?>', data=["foo", "bar"])
 
 
+@py.test.mark.ul4
 def test_truediv():
 	for r in all_renderers:
 		yield eq, "0.5", r(u'<?print 1/2?>')
 		yield eq, "0.5", r(u'<?code x=1?><?code y=2?><?print x/y?>')
 
 
+@py.test.mark.ul4
 def test_floordiv():
 	for r in all_renderers:
 		yield eq, "0", r(u'<?print 1//2?>')
 		yield eq, "0", r(u'<?code x=1?><?code y=2?><?print x//y?>')
 
 
+@py.test.mark.ul4
 def test_mod():
 	values = (17, 23, 17., 23.)
 	for r in all_renderers:
@@ -605,6 +643,7 @@ def test_mod():
 				yield evaleq, x % y, r(u'<?print x % y?>', x=x, y=y)
 
 
+@py.test.mark.ul4
 def test_eq():
 	values = (17, 23, 17., 23.)
 	for r in all_renderers:
@@ -614,6 +653,7 @@ def test_eq():
 				yield eq, str(x == y), r(u'<?print x == y?>', x=x, y=y)
 
 
+@py.test.mark.ul4
 def test_ne():
 	values = (17, 23, 17., 23.)
 	for r in all_renderers:
@@ -623,6 +663,7 @@ def test_ne():
 				yield eq, str(x != y), r(u'<?print x != y?>', x=x, y=y)
 
 
+@py.test.mark.ul4
 def test_lt():
 	values = (17, 23, 17., 23.)
 	for r in all_renderers:
@@ -632,6 +673,7 @@ def test_lt():
 				yield eq, str(x < y), r(u'<?print x < y?>', x=x, y=y)
 
 
+@py.test.mark.ul4
 def test_le():
 	values = (17, 23, 17., 23.)
 	for r in all_renderers:
@@ -641,6 +683,7 @@ def test_le():
 				yield eq, str(x <= y), r(u'<?print x <= y?>', x=x, y=y)
 
 
+@py.test.mark.ul4
 def test_gt():
 	values = (17, 23, 17., 23.)
 	for r in all_renderers:
@@ -650,6 +693,7 @@ def test_gt():
 				yield eq, str(x > y), r(u'<?print x > y?>', x=x, y=y)
 
 
+@py.test.mark.ul4
 def test_ge():
 	values = (17, 23, 17., 23.)
 	for r in all_renderers:
@@ -659,6 +703,7 @@ def test_ge():
 				yield eq, str(x >= y), r(u'<?print x >= y?>', x=x, y=y)
 
 
+@py.test.mark.ul4
 def test_contains():
 	code = u'<?print x in y?>'
 
@@ -673,6 +718,7 @@ def test_contains():
 		yield eq, "False", r(code, x=0x23, y=color.Color(0x00, 0x80, 0xff, 0x42))
 
 
+@py.test.mark.ul4
 def test_notcontains():
 	code = u'<?print x not in y?>'
 
@@ -687,6 +733,7 @@ def test_notcontains():
 		yield eq, "True", r(code, x=0x23, y=color.Color(0x00, 0x80, 0xff, 0x42))
 
 
+@py.test.mark.ul4
 def test_and():
 	for r in all_renderers:
 		yield eq, "False", r(u'<?print x and y?>', x=False, y=False)
@@ -694,6 +741,7 @@ def test_and():
 		yield eq, "0", r(u'<?print x and y?>', x=0, y=True)
 
 
+@py.test.mark.ul4
 def test_or():
 	for r in all_renderers:
 		yield eq, "False", r(u'<?print x or y?>', x=False, y=False)
@@ -701,12 +749,14 @@ def test_or():
 		yield eq, "42", r(u'<?print x or y?>', x=42, y=True)
 
 
+@py.test.mark.ul4
 def test_not():
 	for r in all_renderers:
 		yield eq, "True", r(u'<?print not x?>', x=False)
 		yield eq, "False", r(u'<?print not x?>', x=42)
 
 
+@py.test.mark.ul4
 def test_getitem():
 	for r in all_renderers:
 		yield eq, "u", r(u"<?print 'gurk'[1]?>")
@@ -719,6 +769,7 @@ def test_getitem():
 		yield raises, "index (-5 )?out of range", r(u"<?print x[-5]?>", x="gurk")
 
 
+@py.test.mark.ul4
 def test_getslice12():
 	for r in all_renderers:
 		yield eq, "ur", r(u"<?print 'gurk'[1:3]?>")
@@ -731,6 +782,7 @@ def test_getslice12():
 		yield eq, "", r(u"<?print x[-10:-5]?>", x="gurk")
 
 
+@py.test.mark.ul4
 def test_getslice1():
 	for r in all_renderers:
 		yield eq, "urk", r(u"<?print 'gurk'[1:]?>")
@@ -743,6 +795,7 @@ def test_getslice1():
 		yield eq, "gurk", r(u"<?print x[-10:]?>", x="gurk")
 
 
+@py.test.mark.ul4
 def test_getslice2():
 	for r in all_renderers:
 		yield eq, "gur", r(u"<?print 'gurk'[:3]?>")
@@ -755,6 +808,7 @@ def test_getslice2():
 		yield eq, "", r(u"<?print x[:-5]?>", x="gurk")
 
 
+@py.test.mark.ul4
 def test_nested():
 	sc = u"4"
 	sv = u"x"
@@ -772,6 +826,7 @@ def test_nested():
 		yield eq, str(n), r(u'<?code x=4?><?print {}?>'.format(sv))
 
 
+@py.test.mark.ul4
 def test_precedence():
 	for r in all_renderers:
 		yield eq, "14", r(u'<?print 2+3*4?>')
@@ -787,6 +842,7 @@ def test_precedence():
 		yield eq, "42", r(u'<?print data.value.value[0].value.value[0]?>', data=dict(value=dict(value=[dict(value=dict(value=[42]))])))
 
 
+@py.test.mark.ul4
 def test_bracket():
 	sc = u"4"
 	sv = u"x"
@@ -799,6 +855,7 @@ def test_bracket():
 		yield eq, "4", r(u'<?code x=4?><?print {}?>'.format(sv))
 
 
+@py.test.mark.ul4
 def test_function_now():
 	now = unicode(datetime.datetime.now())
 
@@ -808,6 +865,7 @@ def test_function_now():
 		yield le, now, r(u"<?print now()?>")
 
 
+@py.test.mark.ul4
 def test_function_utcnow():
 	utcnow = unicode(datetime.datetime.utcnow())
 
@@ -819,6 +877,7 @@ def test_function_utcnow():
 		yield le, utcnow, utcnowfromtemplate
 
 
+@py.test.mark.ul4
 def test_function_vars():
 	code = u"<?if var in vars()?>yes<?else?>no<?end if?>"
 
@@ -829,6 +888,7 @@ def test_function_vars():
 		yield eq, "no", r(code, var="nospam", spam="eggs")
 
 
+@py.test.mark.ul4
 def test_function_random():
 	for r in all_renderers:
 		yield raises, "random.*unknown", r("<?print random(1)?>")
@@ -836,6 +896,7 @@ def test_function_random():
 		yield eq, "ok", r(u"<?code r = random()?><?if r>=0 and r<1?>ok<?else?>fail<?end if?>")
 
 
+@py.test.mark.ul4
 def test_function_randrange():
 	for r in all_renderers:
 		yield raises, "randrange.*unknown", r("<?print randrange()?>")
@@ -844,6 +905,7 @@ def test_function_randrange():
 		yield eq, "ok", r(u"<?code r = randrange(17, 23, 2)?><?if r>=17 and r<23 and r%2?>ok<?else?>fail<?end if?>")
 
 
+@py.test.mark.ul4
 def test_function_randchoice():
 	for r in all_renderers:
 		yield raises, "randchoice.*unknown", r("<?print randchoice()?>")
@@ -852,6 +914,7 @@ def test_function_randchoice():
 		yield eq, "ok", r(u"<?code s = #12345678?><?code sl = [0x12, 0x34, 0x56, 0x78]?><?code r = randchoice(s)?><?if r in sl?>ok<?else?>fail<?end if?>")
 
 
+@py.test.mark.ul4
 def test_function_xmlescape():
 	for r in all_renderers:
 		yield raises, "xmlescape.*unknown", r(u"<?print xmlescape()?>")
@@ -859,6 +922,7 @@ def test_function_xmlescape():
 		yield eq, "&lt;&lt;&gt;&gt;&amp;&#39;&quot;gurk", r(u"<?print xmlescape(data)?>", data='<<>>&\'"gurk')
 
 
+@py.test.mark.ul4
 def test_function_csv():
 	for r in all_renderers:
 		yield raises, "csv.*unknown", r(u"<?print csv()?>")
@@ -874,6 +938,7 @@ def test_function_csv():
 		yield eq, '"a\nb\nc"', r(u"<?print csv(data)?>", data="a\nb\nc")
 
 
+@py.test.mark.ul4
 def test_function_json():
 	for r in all_renderers:
 		yield raises, "json.*unknown", r(u"<?print json()?>")
@@ -890,6 +955,7 @@ def test_function_json():
 		yield eq, '{"one": 1}', r(u"<?print json(data)?>", data=PseudoDict({"one": 1}))
 
 
+@py.test.mark.ul4
 def test_function_str():
 	code = u"<?print str(data)?>"
 	for r in all_renderers:
@@ -906,6 +972,7 @@ def test_function_str():
 		yield eq, "2011-02-09 12:34:56.987000", r(code, data=datetime.datetime(2011, 2, 9, 12, 34, 56, 987000))
 
 
+@py.test.mark.ul4
 def test_function_int():
 	for r in all_renderers:
 		yield raises, "int.*unknown", RenderPython(u"<?print int()?>")
@@ -920,6 +987,7 @@ def test_function_int():
 		yield eq, "66", r(u"<?print int(data, 16)?>", data="42")
 
 
+@py.test.mark.ul4
 def test_function_float():
 	code = u"<?print float(data)?>"
 
@@ -940,6 +1008,7 @@ def test_function_float():
 			yield evaleq, 42.0, r(code, data="42")
 
 
+@py.test.mark.ul4
 def test_function_len():
 	code = u"<?print len(data)?>"
 	for r in all_renderers:
@@ -955,6 +1024,7 @@ def test_function_len():
 		yield eq, "42", r(code, data=dict.fromkeys(xrange(42)))
 
 
+@py.test.mark.ul4
 def test_function_enumerate():
 	code = u"<?for (i, value) in enumerate(data)?><?print i?>:<?print value?>\n<?end for?>"
 	for r in all_renderers:
@@ -970,6 +1040,7 @@ def test_function_enumerate():
 		yield eq, "0:foo\n", r(code, data=dict(foo=True))
 
 
+@py.test.mark.ul4
 def test_function_isnone():
 	code = u"<?print isnone(data)?>"
 	for r in all_renderers:
@@ -989,6 +1060,7 @@ def test_function_isnone():
 		yield eq, "False", r(code, data=color.red)
 
 
+@py.test.mark.ul4
 def test_function_isbool():
 	code = u"<?print isbool(data)?>"
 
@@ -1009,6 +1081,7 @@ def test_function_isbool():
 		yield eq, "False", r(code, data=color.red)
 
 
+@py.test.mark.ul4
 def test_function_isint():
 	code = u"<?print isint(data)?>"
 
@@ -1029,6 +1102,7 @@ def test_function_isint():
 		yield eq, "False", r(code, data=color.red)
 
 
+@py.test.mark.ul4
 def test_function_isfloat():
 	code = u"<?print isfloat(data)?>"
 
@@ -1049,6 +1123,7 @@ def test_function_isfloat():
 		yield eq, "False", r(code, data=color.red)
 
 
+@py.test.mark.ul4
 def test_function_isstr():
 	code = u"<?print isstr(data)?>"
 
@@ -1069,6 +1144,7 @@ def test_function_isstr():
 		yield eq, "False", r(code, data=color.red)
 
 
+@py.test.mark.ul4
 def test_function_isdate():
 	code = u"<?print isdate(data)?>"
 
@@ -1089,6 +1165,7 @@ def test_function_isdate():
 		yield eq, "False", r(code, data=color.red)
 
 
+@py.test.mark.ul4
 def test_function_islist():
 	code = u"<?print islist(data)?>"
 
@@ -1110,6 +1187,7 @@ def test_function_islist():
 		yield eq, "False", r(code, data=color.red)
 
 
+@py.test.mark.ul4
 def test_function_isdict():
 	code = u"<?print isdict(data)?>"
 
@@ -1131,6 +1209,7 @@ def test_function_isdict():
 		yield eq, "False", r(code, data=color.red)
 
 
+@py.test.mark.ul4
 def test_function_istemplate():
 	code = u"<?print istemplate(data)?>"
 
@@ -1151,6 +1230,7 @@ def test_function_istemplate():
 		yield eq, "False", r(code, data=color.red)
 
 
+@py.test.mark.ul4
 def test_function_iscolor():
 	code = u"<?print iscolor(data)?>"
 
@@ -1171,6 +1251,7 @@ def test_function_iscolor():
 		yield eq, "True", r(code, data=color.red)
 
 
+@py.test.mark.ul4
 def test_function_get():
 	for r in all_renderers:
 		yield raises, "get.*unknown", r(u"<?print get()?>")
@@ -1180,6 +1261,7 @@ def test_function_get():
 		yield eq, "42", r(u"<?print get('x', 17)?>", x=42)
 
 
+@py.test.mark.ul4
 def test_function_repr():
 	code = u"<?print repr(data)?>"
 
@@ -1202,6 +1284,7 @@ def test_function_repr():
 		yield eq, "@2011-02-07T", r(code, data=datetime.date(2011, 2, 7))
 
 
+@py.test.mark.ul4
 def test_method_format():
 	t = datetime.datetime(2011, 2, 6, 12, 34, 56, 987000)
 	code = u"<?print format(data, format)?>"
@@ -1230,6 +1313,7 @@ def test_method_format():
 		yield eq, "%", r(code, format="%%", data=t)
 
 
+@py.test.mark.ul4
 def test_function_chr():
 	code = u"<?print chr(data)?>"
 
@@ -1241,6 +1325,7 @@ def test_function_chr():
 		yield eq, u"\u20ac", r(code, data=0x20ac)
 
 
+@py.test.mark.ul4
 def test_function_ord():
 	code = u"<?print ord(data)?>"
 
@@ -1252,6 +1337,7 @@ def test_function_ord():
 		yield eq, str(0x20ac), r(code, data=u"\u20ac")
 
 
+@py.test.mark.ul4
 def test_function_hex():
 	code = u"<?print hex(data)?>"
 
@@ -1264,6 +1350,7 @@ def test_function_hex():
 		yield eq, "-0xffff", r(code, data=-0xffff)
 
 
+@py.test.mark.ul4
 def test_function_oct():
 	code = u"<?print oct(data)?>"
 
@@ -1276,6 +1363,7 @@ def test_function_oct():
 		yield eq, "-0o7777", r(code, data=-07777)
 
 
+@py.test.mark.ul4
 def test_function_bin():
 	code = u"<?print bin(data)?>"
 
@@ -1287,6 +1375,7 @@ def test_function_bin():
 		yield eq, "-0b1111", r(code, data=-15)
 
 
+@py.test.mark.ul4
 def test_function_abs():
 	code = u"<?print abs(data)?>"
 
@@ -1298,6 +1387,7 @@ def test_function_abs():
 		yield eq, "42", r(code, data=-42)
 
 
+@py.test.mark.ul4
 def test_function_sorted():
 	code = u"<?for i in sorted(data)?><?print i?><?end for?>"
 
@@ -1309,6 +1399,7 @@ def test_function_sorted():
 		yield eq, "012", r(code, data={0: "zero", 1: "one", 2: "two"})
 
 
+@py.test.mark.ul4
 def test_function_range():
 	code1 = u"<?for i in range(data)?><?print i?><?end for?>"
 	code2 = u"<?for i in range(data[0], data[1])?><?print i?><?end for?>"
@@ -1332,6 +1423,7 @@ def test_function_range():
 		yield eq, "", r(code3, data=[10, 0, 2])
 
 
+@py.test.mark.ul4
 def test_function_zip():
 	code2 = u"<?for (ix, iy) in zip(x, y)?><?print ix?>-<?print iy?>;<?end for?>"
 	code3 = u"<?for (ix, iy, iz) in zip(x, y, z)?><?print ix?>-<?print iy?>+<?print iz?>;<?end for?>"
@@ -1346,6 +1438,7 @@ def test_function_zip():
 		yield eq, "1-4+6;", r(code3, x=[1, 2, 3], y=[4, 5], z=[6])
 
 
+@py.test.mark.ul4
 def test_function_type():
 	code = u"<?print type(x)?>"
 
@@ -1371,6 +1464,7 @@ def test_function_type():
 		yield eq, "color", r(code, x=color.red)
 
 
+@py.test.mark.ul4
 def test_function_reversed():
 	code = u"<?for i in reversed(x)?>(<?print i?>)<?end for?>"
 
@@ -1382,69 +1476,81 @@ def test_function_reversed():
 		yield eq, "(3)(2)(1)", r(code, x=(1, 2, 3))
 
 
+@py.test.mark.ul4
 def test_function_rgb():
 	for r in all_renderers:
 		yield eq, "#369", r("<?print repr(rgb(0.2, 0.4, 0.6))?>")
 		yield eq, "#369c", r("<?print repr(rgb(0.2, 0.4, 0.6, 0.8))?>")
 
 
+@py.test.mark.ul4
 def test_function_hls():
 	for r in all_renderers:
 		yield eq, "#fff", r("<?print repr(hls(0, 1, 0))?>")
 		yield eq, "#fff0", r("<?print repr(hls(0, 1, 0, 0))?>")
 
 
+@py.test.mark.ul4
 def test_function_hsv():
 	for r in all_renderers:
 		yield eq, "#fff", r("<?print repr(hsv(0, 0, 1))?>")
 		yield eq, "#fff0", r("<?print repr(hsv(0, 0, 1, 0))?>")
 
 
+@py.test.mark.ul4
 def test_method_upper():
 	for r in all_renderers:
 		yield eq, "GURK", r(u"<?print 'gurk'.upper()?>")
 
 
+@py.test.mark.ul4
 def test_method_lower():
 	for r in all_renderers:
 		yield eq, "gurk", r(u"<?print 'GURK'.lower()?>")
 
 
+@py.test.mark.ul4
 def test_method_capitalize():
 	for r in all_renderers:
 		yield eq, "Gurk", r(u"<?print 'gURK'.capitalize()?>")
 
 
+@py.test.mark.ul4
 def test_method_startswith():
 	for r in all_renderers:
 		yield eq, "True", r(u"<?print 'gurkhurz'.startswith('gurk')?>")
 		yield eq, "False", r(u"<?print 'gurkhurz'.startswith('hurz')?>")
 
 
+@py.test.mark.ul4
 def test_method_endswith():
 	for r in all_renderers:
 		yield eq, "True", r(u"<?print 'gurkhurz'.endswith('hurz')?>")
 		yield eq, "False", r(u"<?print 'gurkhurz'.endswith('gurk')?>")
 
 
+@py.test.mark.ul4
 def test_method_strip():
 	for r in all_renderers:
 		yield eq, "gurk", r(r"<?print obj.strip()?>", obj=' \t\r\ngurk \t\r\n')
 		yield eq, "gurk", r(r"<?print obj.strip('xyz')?>", obj='xyzzygurkxyzzy')
 
 
+@py.test.mark.ul4
 def test_method_lstrip():
 	for r in all_renderers:
 		yield eq, "gurk \t\r\n", r("<?print obj.lstrip()?>", obj=" \t\r\ngurk \t\r\n")
 		yield eq, "gurkxyzzy", r("<?print obj.lstrip(arg)?>", obj="xyzzygurkxyzzy", arg="xyz")
 
 
+@py.test.mark.ul4
 def test_method_rstrip():
 	for r in all_renderers:
 		yield eq, " \t\r\ngurk", r("<?print obj.rstrip()?>", obj=" \t\r\ngurk \t\r\n")
 		yield eq, "xyzzygurk", r("<?print obj.rstrip(arg)?>", obj="xyzzygurkxyzzy", arg="xyz")
 
 
+@py.test.mark.ul4
 def test_method_split():
 	for r in all_renderers:
 		yield eq, "(f)(o)(o)", r(u"<?for item in obj.split()?>(<?print item?>)<?end for?>", obj=" \t\r\nf \t\r\no \t\r\no \t\r\n")
@@ -1453,6 +1559,7 @@ def test_method_split():
 		yield eq, "()(f)(oxxoxx)", r(u"<?for item in obj.split(arg, 2)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
 
 
+@py.test.mark.ul4
 def test_method_rsplit():
 	for r in all_renderers:
 		yield eq, "(f)(o)(o)", r(u"<?for item in obj.rsplit()?>(<?print item?>)<?end for?>", obj=" \t\r\nf \t\r\no \t\r\no \t\r\n")
@@ -1461,11 +1568,13 @@ def test_method_rsplit():
 		yield eq, "(xxfxxo)(o)()", r(u"<?for item in obj.rsplit(arg, 2)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
 
 
+@py.test.mark.ul4
 def test_method_replace():
 	for r in all_renderers:
 		yield eq, 'goork', r(ur"<?print 'gurk'.replace('u', 'oo')?>")
 
 
+@py.test.mark.ul4
 def test_method_render():
 	for r in all_renderers:
 		t = ul4c.compile(u'(<?print data?>)')
@@ -1476,12 +1585,14 @@ def test_method_render():
 		yield eq, '(GURK)', r(u"<?print t.render().upper()?>", t=t)
 
 
+@py.test.mark.ul4
 def test_method_isoformat():
 	t = datetime.datetime(2010, 02, 22, 12, 34, 56)
 	for r in all_renderers:
 		yield eq, 'Mon, 22 Feb 2010 12:34:56 GMT', r(ur"<?print data.mimeformat()?>", data=t)
 
 
+@py.test.mark.ul4
 def test_method_get():
 	for r in all_renderers:
 		yield eq, "42", r(u"<?print {}.get('foo', 42)?>")
@@ -1490,6 +1601,7 @@ def test_method_get():
 		yield eq, "17", r(u"<?print {'foo': 17}.get('foo')?>")
 
 
+@py.test.mark.ul4
 def test_method_r_g_b_a():
 	for r in all_renderers:
 		yield eq, '0x11', r(u'<?code c = #123?><?print hex(c.r())?>')
@@ -1498,6 +1610,7 @@ def test_method_r_g_b_a():
 		yield eq, '0xff', r(u'<?code c = #123?><?print hex(c.a())?>')
 
 
+@py.test.mark.ul4
 def test_method_hls():
 	for r in all_renderers:
 		yield eq, '0', r(u'<?code c = #fff?><?print int(c.hls()[0])?>')
@@ -1505,6 +1618,7 @@ def test_method_hls():
 		yield eq, '0', r(u'<?code c = #fff?><?print int(c.hls()[2])?>')
 
 
+@py.test.mark.ul4
 def test_method_hlsa():
 	for r in all_renderers:
 		yield eq, '0', r(u'<?code c = #fff?><?print int(c.hlsa()[0])?>')
@@ -1513,6 +1627,7 @@ def test_method_hlsa():
 		yield eq, '1', r(u'<?code c = #fff?><?print int(c.hlsa()[3])?>')
 
 
+@py.test.mark.ul4
 def test_method_hsv():
 	for r in all_renderers:
 		yield eq, '0', r(u'<?code c = #fff?><?print int(c.hsv()[0])?>')
@@ -1520,6 +1635,7 @@ def test_method_hsv():
 		yield eq, '1', r(u'<?code c = #fff?><?print int(c.hsv()[2])?>')
 
 
+@py.test.mark.ul4
 def test_method_hsva():
 	for r in all_renderers:
 		yield eq, '0', r(u'<?code c = #fff?><?print int(c.hsva()[0])?>')
@@ -1528,27 +1644,32 @@ def test_method_hsva():
 		yield eq, '1', r(u'<?code c = #fff?><?print int(c.hsva()[3])?>')
 
 
+@py.test.mark.ul4
 def test_method_lum():
 	for r in all_renderers:
 		yield eq, 'True', r(u'<?print #fff.lum() == 1?>')
 
 
+@py.test.mark.ul4
 def test_method_withlum():
 	for r in all_renderers:
 		yield eq, '#fff', r(u'<?print #000.withlum(1)?>')
 
 
+@py.test.mark.ul4
 def test_method_witha():
 	for r in all_renderers:
 		yield eq, '#0063a82a', r(u'<?print repr(#0063a8.witha(42))?>')
 
 
+@py.test.mark.ul4
 def test_method_join():
 	for r in all_renderers:
 		yield eq, '1,2,3,4', r(u'<?print ",".join("1234")?>')
 		yield eq, '1,2,3,4', r(u'<?print ",".join([1, 2, 3, 4])?>')
 
 
+@py.test.mark.ul4
 def test_method_find():
 	for r in all_renderers:
 		yield eq, '-1', r(u'<?print s.find("ks")?>', s="gurkgurk")
@@ -1560,6 +1681,7 @@ def test_method_find():
 		yield eq, '-1', r(u'<?print s.find("rk", 7)?>', s="gurkgurk")
 
 
+@py.test.mark.ul4
 def test_method_rfind():
 	for r in all_renderers:
 		yield eq, '-1', r(u'<?print s.rfind("ks")?>', s="gurkgurk")
@@ -1571,54 +1693,63 @@ def test_method_rfind():
 		yield eq, '-1', r(u'<?print s.rfind("rk", 7)?>', s="gurkgurk")
 
 
+@py.test.mark.ul4
 def test_method_day():
 	for r in all_renderers:
 		yield eq, '12', r(u'<?print @2010-05-12T.day()?>')
 		yield eq, '12', r(u'<?print d.day()?>', d=datetime.date(2010, 5, 12))
 
 
+@py.test.mark.ul4
 def test_method_month():
 	for r in all_renderers:
 		yield eq, '5', r(u'<?print @2010-05-12T.month()?>')
 		yield eq, '5', r(u'<?print d.month()?>', d=datetime.date(2010, 5, 12))
 
 
+@py.test.mark.ul4
 def test_method_year():
 	for r in all_renderers:
 		yield eq, '5', r(u'<?print @2010-05-12T.month()?>')
 		yield eq, '5', r(u'<?print d.month()?>', d=datetime.date(2010, 5, 12))
 
 
+@py.test.mark.ul4
 def test_method_hour():
 	for r in all_renderers:
 		yield eq, '16', r(u'<?print @2010-05-12T16:47:56.hour()?>')
 		yield eq, '16', r(u'<?print d.hour()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
 
 
+@py.test.mark.ul4
 def test_method_minute():
 	for r in all_renderers:
 		yield eq, '47', r(u'<?print @2010-05-12T16:47:56.minute()?>')
 		yield eq, '47', r(u'<?print d.minute()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
 
 
+@py.test.mark.ul4
 def test_method_second():
 	for r in all_renderers:
 		yield eq, '56', r(u'<?print @2010-05-12T16:47:56.second()?>')
 		yield eq, '56', r(u'<?print d.second()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
 
 
+@py.test.mark.ul4
 def test_method_microsecond():
 	for r in all_renderers:
 		yield eq, '123000', r(u'<?print @2010-05-12T16:47:56.123000.microsecond()?>')
 		yield eq, '123000', r(u'<?print d.microsecond()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56, 123000))
 
 
+@py.test.mark.ul4
 def test_method_weekday():
 	for r in all_renderers:
 		yield eq, '2', r(u'<?print @2010-05-12T.weekday()?>')
 		yield eq, '2', r(u'<?print d.weekday()?>', d=datetime.date(2010, 5, 12))
 
 
+@py.test.mark.ul4
 def test_method_yearday():
 	for r in all_renderers:
 		yield eq, '1', r(u'<?print @2010-01-01T.yearday()?>')
@@ -1630,6 +1761,7 @@ def test_method_yearday():
 		yield eq, '132', r(u'<?print d.yearday()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
 
 
+@py.test.mark.ul4
 def test_render():
 	t = ul4c.compile(u'<?print prefix?><?print data?><?print suffix?>')
 	for r in all_renderers:
@@ -1637,22 +1769,26 @@ def test_render():
 		yield eq, '(f)(o)(o)', r(u'<?for c in data?><?render t(data=c, **{"prefix": "(", "suffix": ")"})?><?end for?>', t=t, data='foo')
 
 
+@py.test.mark.ul4
 def test_render_var():
 	t = ul4c.compile(u'<?code x += 1?><?print x?>')
 	for r in all_renderers:
 		yield eq, '42,43,42', r(u'<?print x?>,<?render t(x=x)?>,<?print x?>', t=t, x=42)
 
 
+@py.test.mark.ul4
 def test_def():
 	for r in all_renderers:
 		yield eq, 'foo', r(u'<?def lower?><?print x.lower()?><?end def?><?print lower.render(x="FOO")?>')
 
 
+@py.test.mark.ul4
 def test_parse():
 	for r in all_renderers:
 		yield eq, '42', r(u'<?print data.Noner?>', data=dict(Noner=42))
 
 
+@py.test.mark.ul4
 def test_nested_exceptions():
 	tmpl1 = ul4c.compile(u"<?print 2*x?>")
 	tmpl2 = ul4c.compile(u"<?render tmpl1(x=x)?>")
@@ -1663,11 +1799,13 @@ def test_nested_exceptions():
 		yield raises, msg, r(u"<?render tmpl3(tmpl1=tmpl1, tmpl2=tmpl2, x=x)?>", tmpl1=tmpl1, tmpl2=tmpl2, tmpl3=tmpl3, x=None)
 
 
+@py.test.mark.ul4
 def test_note():
 	for r in all_renderers:
 		yield eq, "foo", r(u"f<?note This is?>o<?note a comment?>o")
 
 
+@py.test.mark.ul4
 def test_templateattributes():
 	s = "<?print x?>"
 	t = ul4c.compile(s)
@@ -1747,27 +1885,32 @@ def universaltemplate():
 	""")
 
 
+@py.test.mark.ul4
 def test_strtemplate():
 	t = universaltemplate()
 	str(t)
 
 
+@py.test.mark.ul4
 def test_pythonsource():
 	t = universaltemplate()
 	t.pythonsource()
 	t.pythonsource("template")
 
 
+@py.test.mark.ul4
 def test_pythonfunction():
 	t = universaltemplate()
 	t.pythonfunction()
 
 
+@py.test.mark.ul4
 def test_jssource():
 	t = universaltemplate()
 	t.jssource()
 
 
+@py.test.mark.ul4
 def test_javasource():
 	t = universaltemplate()
 	t.javasource()
