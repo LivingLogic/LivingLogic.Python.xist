@@ -1,4 +1,4 @@
-Changes in 3.20 (released ??/??/2011)
+Changes in 3.20 (released 05/05/2011)
 -------------------------------------
 
 *	It's now possible to specify the connection mode (i.e. ``SYSDBA`` and
