@@ -11,6 +11,9 @@ Currently there's a compiler and renderer in Python and a
 
 __ http://hg.livinglogic.de/LivingLogic.Java.ul4/
 
+Also compilation to Javascript is supported in both the Python and the Java
+compiler.
+
 
 Embedding
 =========
