@@ -7,12 +7,10 @@ look.
 to implement renderers for these templates in multiple programming languages.
 
 Currently there's a compiler and renderer in Python and a
-`compiler and renderer in Java`__.
+`compiler and renderer in Java`__. Also compilation to Javascript is supported
+in both the Python and the Java compiler.
 
 __ http://hg.livinglogic.de/LivingLogic.Java.ul4/
-
-Also compilation to Javascript is supported in both the Python and the Java
-compiler.
 
 
 Embedding
