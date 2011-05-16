@@ -1448,7 +1448,7 @@ class JavascriptSource(object):
 				lastloc = opcode.location
 				(line, col) = lastloc.pos()
 				tag = lastloc.tag
-				self._line(u"// <?{}?< tag at {} (line {}, col {}): {}".format(lastloc.type, lastloc.starttag+1, line, col, repr(tag)[1+isinstance(tag, unicode):-1]))
+				self._line(u"// <?{}?> tag at {} (line {}, col {}): {}".format(lastloc.type, lastloc.starttag+1, line, col, repr(tag)[1+isinstance(tag, unicode):-1]))
 			try:
 				getattr(self, "_dispatch_{}".format(opcode.code))(opcode)
 			except AttributeError:
