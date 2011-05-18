@@ -1,3 +1,11 @@
+Changes in 3.20.1 (released 05/18/2011)
+---------------------------------------
+
+*	Fixed a bug in the Java code generation for UL4 templates: When the template
+	source code contained C-style comments (i.e. ``/* foo */``) invalid Java
+	source code was produced.
+
+
 Changes in 3.20 (released 05/05/2011)
 -------------------------------------
 

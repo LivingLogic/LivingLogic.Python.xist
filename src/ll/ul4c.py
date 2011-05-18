@@ -1750,7 +1750,7 @@ class JavaSource(object):
 		sourcelines = self.template.source.splitlines(False)
 		width = len(str(len(sourcelines)))
 		for (i, line) in enumerate(sourcelines):
-			lines.append(u"/* {1:{0}} {2} */".format(width, i+1, line))
+			lines.append(u"/* {1:{0}} {2} */".format(width, i+1, line.replace("/*", "*").replace("*/", "*")))
 		lines.append(u"/*@@@ BEGIN template code */")
 		
 		for i in sorted(self._stack[-1].regsused):
