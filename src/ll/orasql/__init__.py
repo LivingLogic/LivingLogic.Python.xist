@@ -727,17 +727,29 @@ class Cursor(Cursor):
 				self.connection._ddprefix = "dba"
 		return self.connection._ddprefix
 
+	def _encode(self, value):
+		# Helper method that encodes :var:`value` using the client encoding (if :var:`value` is :class:`unicode`)
+		if isinstance(value, dict):
+			value = dict((self._encode(key), self._encode(value)) for (key, value) in value.iteritems())
+		elif isinstance(value, list):
+			value = map(self._encode, value)
+		elif isinstance(value, tuple):
+			value = tuple(self._encode(v) for v in value)
+		elif isinstance(value, unicode):
+			return value.encode(self.connection.encoding)
+		return value
+
 	def execute(self, statement, parameters=None, **kwargs):
 		if parameters is not None:
-			result = super(Cursor, self).execute(statement, parameters, **kwargs)
+			result = super(Cursor, self).execute(self._encode(statement), self._encode(parameters), **self._encode(kwargs))
 		else:
-			result = super(Cursor, self).execute(statement, **kwargs)
+			result = super(Cursor, self).execute(self._encode(statement), **self._encode(kwargs))
 		if self.description is not None:
 			self.rowfactory = RecordMaker(self)
 		return result
 
 	def executemany(self, statement, parameters):
-		result = super(Cursor, self).executemany(statement, parameters)
+		result = super(Cursor, self).executemany(self._encode(statement), self._encode(parameters))
 		if self.description is not None:
 			self.rowfactory = RecordMaker(self)
 		return result

@@ -1,3 +1,10 @@
+Changes in 3.20.2 (released 05/23/2011)
+---------------------------------------
+
+*	Unicode parameters in :meth:`execute` and :meth:`executemany` in
+	:mod:`ll.xist.orasql` now get encoded to the Oracle client character set.
+
+
 Changes in 3.20.1 (released 05/18/2011)
 ---------------------------------------
 
