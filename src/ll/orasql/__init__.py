@@ -419,7 +419,8 @@ class Connection(Connection):
 			self.readlobs = False
 		super(Connection, self).__init__(*args, **kwargs)
 		self.mode = kwargs.get("mode")
-		self._ddprefix = None
+		self._ddprefix = None # Do we have access to the ``DBA_*`` views?
+		self._ddprefixargs = None # Do we have access to the ``DBA_ARGUMENTS`` view (which doesn't exist in Oracle 10)?
 
 	def connectstring(self):
 		return "{}@{}".format(self.username, self.tnsentry)
@@ -726,6 +727,25 @@ class Cursor(Cursor):
 			else:
 				self.connection._ddprefix = "dba"
 		return self.connection._ddprefix
+
+	def ddprefixargs(self):
+		"""
+		Return whether the user has access to the ``DBA_ARGUMENTS`` view
+		(``"dba"``) or not (``"all"``).
+		"""
+		# This method is separate from :meth:`ddprefix`, because Oracle 10 doesn't
+		# have a ``DBA_ARGUMENTS`` view.
+		if self.connection._ddprefixargs is None:
+			try:
+				self.execute("select /*+FIRST_ROWS(1)*/ object_name from dba_arguments")
+			except DatabaseError, exc:
+				if exc.args[0].code == 942: # ORA-00942: table or view does not exist
+					self.connection._ddprefixargs = "all"
+				else:
+					raise
+			else:
+				self.connection._ddprefixargs = "dba"
+		return self.connection._ddprefixargs
 
 	def _encode(self, value):
 		# Helper method that encodes :var:`value` using the client encoding (if :var:`value` is :class:`unicode`)
@@ -2020,9 +2040,9 @@ class Callable(MixinNormalDates, MixinCodeDDL, Object):
 			self._argsbypos = []
 			self._argsbyname = {}
 			if package_name is not None:
-				cursor.execute("select lower(argument_name) as name, lower(in_out) as in_out, lower(data_type) as datatype from {}_arguments where owner=nvl(:owner, user) and package_name=:package_name and object_name=:procedure_name and data_level=0 order by sequence".format(cursor.ddprefix()), owner=self.owner, package_name=package_name, procedure_name=procedure_name)
+				cursor.execute("select lower(argument_name) as name, lower(in_out) as in_out, lower(data_type) as datatype from {}_arguments where owner=nvl(:owner, user) and package_name=:package_name and object_name=:procedure_name and data_level=0 order by sequence".format(cursor.ddprefixargs()), owner=self.owner, package_name=package_name, procedure_name=procedure_name)
 			else:
-				cursor.execute("select lower(argument_name) as name, lower(in_out) as in_out, lower(data_type) as datatype from {}_arguments where owner=nvl(:owner, user) and package_name is null and object_name=:procedure_name and data_level=0 order by sequence".format(cursor.ddprefix()), owner=self.owner, procedure_name=procedure_name)
+				cursor.execute("select lower(argument_name) as name, lower(in_out) as in_out, lower(data_type) as datatype from {}_arguments where owner=nvl(:owner, user) and package_name is null and object_name=:procedure_name and data_level=0 order by sequence".format(cursor.ddprefixargs()), owner=self.owner, procedure_name=procedure_name)
 			i = 0 # argument position (skip return value)
 			for record in cursor:
 				arginfo = Argument(record.name, i, record.datatype, "in" in record.in_out, "out" in record.in_out)
