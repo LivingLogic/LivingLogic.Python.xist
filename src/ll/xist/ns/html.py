@@ -69,7 +69,7 @@ class ColorAttr(xsc.ColorAttr): "a color using sRGB: #RRGGBB as Hex values"
 class TextAlignAttr(xsc.TextAttr): "text alignment"; values = (u"left", u"right", u"center", u"justify")
 class OLStyleAttr(xsc.TextAttr): values = "1aAiI"
 class ULStyleAttr(xsc.TextAttr): values = (u"disc", u"square", u"circle")
-class InputTypeAttr(xsc.TextAttr): values = (u"text", u"password", u"checkbox", u"radio", u"submit", u"reset", u"file", u"hidden", u"image", u"button", "datetime", "datetime-local", "date", "month", "time", "week", "number", "range", "email", "url", "search", "tel", "color")
+class InputTypeAttr(xsc.TextAttr): values = (u"text", u"password", u"checkbox", u"radio", u"submit", u"reset", u"file", u"hidden", u"image", u"button", u"datetime", u"datetime-local", u"date", u"month", u"time", u"week", u"number", u"range", u"email", u"url", u"search", u"tel", u"color")
 class AutocompleteAttr(xsc.TextAttr): values = (u"on", u"off")
 class FormEncTypeAttr(xsc.TextAttr): values = (u"application/x-www-form-urlencoded", u"multipart/form-data", u"text/plain")
 class TRulesAttr(xsc.TextAttr): values = (u"none", u"groups", u"rows", u"cols", u"all")
@@ -1010,9 +1010,13 @@ class input(xsc.Element):
 		class formmethod(xsc.TextAttr): values = (u"get", u"post")
 		class formnovalidate(xsc.BoolAttr): pass
 		class formtarget(FrameTargetAttr): pass
+		class max(xsc.TextAttr): pass
+		class min(xsc.TextAttr): pass
+		class multiple(xsc.BoolAttr): pass
 		class pattern(xsc.TextAttr): pass
 		class placeholder(xsc.TextAttr): pass
 		class required(xsc.BoolAttr): pass
+		class step(xsc.TextAttr): pass
 
 
 class select(xsc.Element):
