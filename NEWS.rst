@@ -1,3 +1,17 @@
+Changes in 3.21 (released 6/03/2011)
+------------------------------------
+
+*	Oracle 10 doesn't have a ``DBA_ARGUMENTS`` view.
+	Fixed :class:`ll.orasql.Function` and :class:`ll.orasql.Procedure`
+	accordingly.
+
+*	The ``type`` attribute for the :class:`input` element now supports the new
+	input types from HTML5.
+
+*	The form elements :class:`input`, :class:`select` and :class:`textarea`
+	gained the additional attributes from HTML5.
+
+
 Changes in 3.20.2 (released 05/23/2011)
 ---------------------------------------
 

@@ -69,7 +69,9 @@ class ColorAttr(xsc.ColorAttr): "a color using sRGB: #RRGGBB as Hex values"
 class TextAlignAttr(xsc.TextAttr): "text alignment"; values = (u"left", u"right", u"center", u"justify")
 class OLStyleAttr(xsc.TextAttr): values = "1aAiI"
 class ULStyleAttr(xsc.TextAttr): values = (u"disc", u"square", u"circle")
-class InputTypeAttr(xsc.TextAttr): values = (u"text", u"password", u"checkbox", u"radio", u"submit", u"reset", u"file", u"hidden", u"image", u"button")
+class InputTypeAttr(xsc.TextAttr): values = (u"text", u"password", u"checkbox", u"radio", u"submit", u"reset", u"file", u"hidden", u"image", u"button", "datetime", "datetime-local", "date", "month", "time", "week", "number", "range", "email", "url", "search", "tel", "color")
+class AutocompleteAttr(xsc.TextAttr): values = (u"on", u"off")
+class FormEncTypeAttr(xsc.TextAttr): values = (u"application/x-www-form-urlencoded", u"multipart/form-data", u"text/plain")
 class TRulesAttr(xsc.TextAttr): values = (u"none", u"groups", u"rows", u"cols", u"all")
 class TAlignAttr(xsc.TextAttr): values = (u"left", u"right", u"center")
 class CAlignAttr(xsc.TextAttr): values = (u"top", u"bottom", u"left", u"right")
@@ -999,6 +1001,18 @@ class input(xsc.Element):
 		class accept(ContentTypesAttr): pass
 		class align(ImgAlignAttr): pass
 		class border(xsc.IntAttr): pass # deprecated
+		# HTML5 attributes
+		class autocomplete(AutocompleteAttr): pass
+		class autofocus(xsc.BoolAttr): pass
+		class form(xsc.IDAttr): pass
+		class formaction(xsc.URLAttr): pass
+		class formenctype(FormEncTypeAttr): pass
+		class formmethod(xsc.TextAttr): values = (u"get", u"post")
+		class formnovalidate(xsc.BoolAttr): pass
+		class formtarget(FrameTargetAttr): pass
+		class pattern(xsc.TextAttr): pass
+		class placeholder(xsc.TextAttr): pass
+		class required(xsc.BoolAttr): pass
 
 
 class select(xsc.Element):
@@ -1016,6 +1030,10 @@ class select(xsc.Element):
 		class onblur(ScriptAttr): pass
 		class onchange(ScriptAttr): pass
 		class rows(xsc.TextAttr): pass # deprecated
+		# HTML5 attributes
+		class autofocus(xsc.BoolAttr): pass
+		class form(xsc.IDAttr): pass
+		class required(xsc.BoolAttr): pass
 
 
 class optgroup(xsc.Element):
@@ -1053,7 +1071,14 @@ class textarea(xsc.Element):
 		class readonly(xsc.BoolAttr): pass
 		class onselect(ScriptAttr): pass
 		class onchange(ScriptAttr): pass
-		class wrap(xsc.TextAttr): values = (u"virtual", u"physical", u"off") # deprecated
+		class wrap(xsc.TextAttr): values = (u"virtual", u"physical", u"off", "soft", "hard") # soft/hard are from HTML5
+		# HTML5 attributes
+		class autofocus(xsc.BoolAttr): pass
+		class form(xsc.IDAttr): pass
+		class required(xsc.BoolAttr): pass
+		class placeholder(xsc.TextAttr): pass
+		class required(xsc.BoolAttr): pass
+		class maxlength(xsc.IntAttr): pass
 
 
 class fieldset(xsc.Element):
@@ -1085,6 +1110,14 @@ class button(xsc.Element):
 		class value(xsc.TextAttr): pass
 		class type(xsc.TextAttr): values = (u"button", u"submit", u"reset")
 		class disabled(xsc.BoolAttr): pass
+		# HTML5 attributes
+		class autofocus(xsc.BoolAttr): pass
+		class form(xsc.IDAttr): pass
+		class formaction(xsc.URLAttr): pass
+		class formenctype(FormEncTypeAttr): pass
+		class formmethod(xsc.TextAttr): values = (u"get", u"post")
+		class formnovalidate(xsc.BoolAttr): pass
+		class formtarget(FrameTargetAttr): pass
 
 
 class isindex(xsc.Element):
