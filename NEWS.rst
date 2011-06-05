@@ -1,5 +1,5 @@
-Changes in 3.21 (released 6/03/2011)
-------------------------------------
+Changes in 3.21 (released 06/03/2011)
+-------------------------------------
 
 *	Oracle 10 doesn't have a ``DBA_ARGUMENTS`` view.
 	Fixed :class:`ll.orasql.Function` and :class:`ll.orasql.Procedure`
