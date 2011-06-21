@@ -917,13 +917,13 @@ above (except for the linefeeds of course)::
 	<?code months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']?>
 	<?code t = @2010-02-22T17:38:40.123456?>
 	<?print weekdays[t.weekday()]?>,
-	<?print t.day().format('02')?>
+	<?print format(t.day(), '02')?>
 	<?print months[t.month()-1]?>
-	<?print t.year().format('04')?>
-	<?print t.hour().format('02')?>:
-	<?print t.minute().format('02')?>:
-	<?print t.second().format('02')?>.
-	<?print t.microsecond().format('06')?> GMT
+	<?print format(t.year(), '04')?>
+	<?print format(t.hour(), '02')?>:
+	<?print format(t.minute(), '02')?>:
+	<?print format(t.second(), '02')?>.
+	<?print format(t.microsecond(), '06')?> GMT
 
 
 ``yearday``
