@@ -43,6 +43,11 @@ Options
 		but is executed directly. Be careful with this: You *will* have empty
 		tables after ``oradelete -x``.
 
+	``-k``, ``--keepjunk`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		If true (the default), database objects that have ``$`` or
+		``SYS_EXPORT_SCHEMA_`` in their name will be skipped (otherwise these
+		objects will be included in the output).
+
 	``-i``, ``--ignore`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		If given, errors occuring while the database is read or written will be
 		ignored.
@@ -53,10 +58,18 @@ Options
 	``-t``, ``--truncate`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		If given the script uses the ``TRUNCATE`` command instead of the ``DELETE``
 		command.
+
+	``--include`` : regexp
+		Only include objects in the output if their name contains the regular
+		expression.
+
+	``--exclude`` : regexp
+		Exclude objects from the output if their name contains the regular
+		expression.
 """
 
 
-import sys, os, argparse
+import sys, os, re, argparse
 
 from ll import misc, astyle, orasql
 
@@ -77,9 +90,12 @@ def main(args=None):
 	p.add_argument("-c", "--color", dest="color", help="Color output (default %(default)s)", default="auto", choices=("yes", "no", "auto"))
 	p.add_argument("-s", "--sequences", dest="sequences", help="Reset sequences? (default %(default)s)", default=False, action=misc.FlagAction)
 	p.add_argument("-x", "--execute", dest="execute", action=misc.FlagAction, help="immediately execute the commands instead of printing them? (default %(default)s)")
+	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' or 'SYS_EXPORT_SCHEMA_' in their name? (default %(default)s)", default=False, action="store_true")
 	p.add_argument("-i", "--ignore", dest="ignore", help="Ignore errors? (default %(default)s)", default=False, action=misc.FlagAction)
 	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for output (default %(default)s)", default="utf-8")
 	p.add_argument("-t", "--truncate", dest="truncate", help="Truncate tables (instead of deleting)? (default %(default)s)", default=False, action=misc.FlagAction)
+	p.add_argument(      "--include", dest="include", metavar="REGEXP", help="Include only objects whose name contains PATTERN (default: %(default)s)", type=re.compile)
+	p.add_argument(      "--exclude", dest="exclude", metavar="REGEXP", help="Exclude objects whose name contains PATTERN (default: %(default)s)", type=re.compile)
 
 	args = p.parse_args(args)
 
@@ -98,51 +114,68 @@ def main(args=None):
 
 	cs = s4connectstring(connection.connectstring())
 
-	for (i, obj) in enumerate(connection.itertables(schema="user", mode="drop")):
+	def keep(obj):
+		if ("$" in obj.name or "/" in obj.name or obj.name.startswith("SYS_EXPORT_SCHEMA_")) and not args.keepjunk:
+			return False
+		if args.include is not None and args.include.search(obj.name) is None:
+			return False
+		if args.exclude is not None and args.exclude.search(obj.name) is not None:
+			return False
+		return True
+
+	for (i, obj) in enumerate(connection.itertables(owner=None, mode="drop")):
+		keepobj = keep(obj)
 		# Progress report
 		if args.verbose:
 			msg = "truncating" if args.truncate else "deleting from"
 			msg = astyle.style_default("oradelete.py: ", cs, ": {} #{} ".format(msg, i+1), s4object(str(obj)))
+			if not keepobj:
+				msg = astyle.style_default(msg, " ", s4warning("(skipped)"))
 			stderr.writeln(msg)
 
-		# Print or execute SQL
-		if args.execute:
-			try:
-				fmt = u"truncate table {}" if args.truncate else u"delete from {}"
-				cursor.execute(fmt.format(obj.name))
-			except orasql.DatabaseError, exc:
-				if not args.ignore or "ORA-01013" in str(exc):
-					raise
-				stderr.writeln("oradelete.py: ", s4error("{}: {}".format(exc.__class__, str(exc).strip())))
-		else:
-			if args.truncate:
-				sql = u"truncate table {};\n".format(obj.name)
-			else:
-				sql = u"delete from {};\n".format(obj.name)
-			stdout.write(sql.encode(args.encoding))
-	if not args.truncate:
-		connection.commit()
-
-	if args.sequences:
-		for (i, obj) in enumerate(connection.itersequences(schema="user")):
-			# Progress report
-			if args.verbose:
-				msg = astyle.style_default("oradelete.py: ", cs, ": recreating #{} ".format(i+1), s4object(str(obj)))
-				stderr.writeln(msg)
-
+		if keepobj:
 			# Print or execute SQL
 			if args.execute:
 				try:
-					sql = obj.createddl(term=False)
-					cursor.execute(obj.dropddl(term=False))
-					cursor.execute(sql)
+					fmt = u"truncate table {}" if args.truncate else u"delete from {}"
+					cursor.execute(fmt.format(obj.name))
 				except orasql.DatabaseError, exc:
 					if not args.ignore or "ORA-01013" in str(exc):
 						raise
 					stderr.writeln("oradelete.py: ", s4error("{}: {}".format(exc.__class__, str(exc).strip())))
 			else:
-				sql = obj.dropddl(term=True) + obj.createddl(term=True)
+				if args.truncate:
+					sql = u"truncate table {};\n".format(obj.name)
+				else:
+					sql = u"delete from {};\n".format(obj.name)
 				stdout.write(sql.encode(args.encoding))
+	if not args.truncate:
+		connection.commit()
+
+	if args.sequences:
+		for (i, obj) in enumerate(connection.itersequences(owner=None)):
+			keepobj = keep(obj)
+			# Progress report
+			if args.verbose:
+				msg = astyle.style_default("oradelete.py: ", cs, ": recreating #{} ".format(i+1), s4object(str(obj)))
+				if not keepobj:
+					msg = astyle.style_default(msg, " ", s4warning("(skipped)"))
+				stderr.writeln(msg)
+
+			if keepobj:
+				# Print or execute SQL
+				if args.execute:
+					try:
+						sql = obj.createddl(term=False)
+						cursor.execute(obj.dropddl(term=False))
+						cursor.execute(sql)
+					except orasql.DatabaseError, exc:
+						if not args.ignore or "ORA-01013" in str(exc):
+							raise
+						stderr.writeln("oradelete.py: ", s4error("{}: {}".format(exc.__class__, str(exc).strip())))
+				else:
+					sql = obj.dropddl(term=True) + obj.createddl(term=True)
+					stdout.write(sql.encode(args.encoding))
 
 if __name__ == "__main__":
 	sys.exit(main())

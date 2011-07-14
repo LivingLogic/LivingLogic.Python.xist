@@ -1,3 +1,10 @@
+Changes in 3.23 (released ??/??/2011)
+-------------------------------------
+
+*	The script ``oradelete`` now supports the options :option:`--include`,
+	:option:`--exclude` and :option:`--keepjunk` too.
+
+
 Changes in 3.22 (released 07/14/2011)
 -------------------------------------
 
