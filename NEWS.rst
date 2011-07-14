@@ -1,3 +1,11 @@
+Changes in 3.22 (released 07/14/2011)
+-------------------------------------
+
+*	The scripts ``oracreate``, ``oradrop`` and ``oragrant`` have new options
+	:option:`--include` and :option:`--exclude` that can be used to filter the
+	objects that will be output.
+
+
 Changes in 3.21 (released 06/03/2011)
 -------------------------------------
 

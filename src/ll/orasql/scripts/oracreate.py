@@ -55,6 +55,13 @@ Options
 	``-e``, ``--encoding`` : encoding
 		The encoding of the output (if ``-x`` is not given; default is ``utf-8``).
 
+	``--include`` : regexp
+		Only include objects in the output if their name contains the regular
+		expression.
+
+	``--exclude`` : regexp
+		Exclude objects from the output if their name contains the regular
+		expression.
 
 Examples
 --------
@@ -69,7 +76,7 @@ Copy the database schema ``user@db`` to ``user2@db2``::
 """
 
 
-import sys, os, argparse
+import sys, os, re, argparse
 
 from ll import misc, astyle, orasql
 
@@ -93,6 +100,8 @@ def main(args=None):
 	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' or 'SYS_EXPORT_SCHEMA_' in their name? (default %(default)s)", default=False, action=misc.FlagAction)
 	p.add_argument("-i", "--ignore", dest="ignore", help="Ignore errors? (default %(default)s)", default=False, action=misc.FlagAction)
 	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for output (default %(default)s)", default="utf-8")
+	p.add_argument(      "--include", dest="include", metavar="REGEXP", help="Include only objects whose name contains PATTERN (default: %(default)s)", type=re.compile)
+	p.add_argument(      "--exclude", dest="exclude", metavar="REGEXP", help="Exclude objects whose name contains PATTERN (default: %(default)s)", type=re.compile)
 
 	args = p.parse_args(args)
 
@@ -121,12 +130,14 @@ def main(args=None):
 	def keep(obj):
 		if obj.owner is not None:
 			return False
-		if args.keepjunk:
-			return True
 		# output pk, fks etc. only when they belong to a table we do output
 		if isinstance(obj, (orasql.Constraint, orasql.Index)):
 			obj = obj.table()
-		if "$" in obj.name or obj.name.startswith("SYS_EXPORT_SCHEMA_"):
+		if ("$" in obj.name or "/" in obj.name or obj.name.startswith("SYS_EXPORT_SCHEMA_")) and not args.keepjunk:
+			return False
+		if args.include is not None and args.include.search(obj.name) is None:
+			return False
+		if args.exclude is not None and args.exclude.search(obj.name) is not None:
 			return False
 		return True
 
