@@ -570,9 +570,9 @@ class Opcode(object):
 
 class Template(object):
 	"""
-	A template object can be compiled via the class method :meth:`compile` from
-	source. It can be loaded from the compiled format via :meth:`load` (from a
-	stream) or :meth:`loads` (from a string).
+	A template object is normally creating by passing the template source to the
+	constructor. It can also be loaded from the compiled format via the class
+	methods :meth:`load` (from a stream) or :meth:`loads` (from a string).
 
 	The compiled format can be generated with the methods :meth:`dump` (which
 	dumps the format to a stream) or :meth:`dumps` (which returns a string with
