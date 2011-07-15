@@ -1881,9 +1881,8 @@ class JavaSource(object):
 		self._stack.append(_JavaTemplateLevel("variables", opcode.arg))
 	def _dispatch_enddef(self, opcode):
 		level = self._stack.pop()
-		varcounter = self._stack[-1].varcounter
 		# define new template object
-		self._do(u"com.livinglogic.ul4.JSPTemplate template{count} = new com.livinglogic.ul4.JSPTemplate()".format(count=varcounter))
+		self._do(u"{var}.put({arg}, new com.livinglogic.ul4.JSPTemplate()".format(var=self._stack[-1].variables, arg=misc.javaexpr(level.name)))
 		self._do(u"{")
 		self._do(1)
 		self._do(u"public void render(java.io.Writer out, java.util.Map<String, Object> variables) throws java.io.IOException")
@@ -1898,9 +1897,7 @@ class JavaSource(object):
 		self._do(-1)
 		self._do(u"}")
 		self._do(-1)
-		self._do(u"};")
-		self._do(u"{var}.put({arg}, template{count});".format(var=self._stack[-1].variables, arg=misc.javaexpr(level.name), count=varcounter))
-		self._stack[-1].varcounter += 1
+		self._do(u"});")
 	def _dispatch_break(self, opcode):
 		self._do(u"break;")
 	def _dispatch_continue(self, opcode):
