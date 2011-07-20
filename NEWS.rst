@@ -1,5 +1,13 @@
-Changes in 3.23 (released ??/??/2011)
+Changes in 3.23 (released 07/20/2011)
 -------------------------------------
+
+*	UL4 template objects now have a name. This name will be displayed in
+	exception messages. Nested templates display their own name in the exception
+	message.
+
+*	The module global functions :func:`ll.ul4c.compile`, :func:`ll.ul4c.load` and
+	:func:`ll.ul4c.loads` have been removed. Instead of them the :class:`Template`
+	constructor and the class methods :meth:`load` and :meth:`loads` can be used.
 
 *	The script ``oradelete`` now supports the options :option:`--include`,
 	:option:`--exclude` and :option:`--keepjunk` too.

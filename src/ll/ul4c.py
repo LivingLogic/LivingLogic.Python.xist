@@ -41,33 +41,37 @@ class Location(object):
 	A :class:`Location` object contains information about the location of a
 	template tag.
 	"""
-	__slots__ = ("source", "type", "starttag", "endtag", "startcode", "endcode")
+	__slots__ = ("source", "name", "type", "starttag", "endtag", "startcode", "endcode")
 
-	def __init__(self, source, type, starttag, endtag, startcode, endcode):
+	def __init__(self, source, name, type, starttag, endtag, startcode, endcode):
 		"""
 		Create a new :class:`Location` object. The arguments have the following
 		meaning:
 
-		:var:`source`
-			The complete source string
+			:var:`source`
+				The complete source string
 
-		:var:`type`
-			The tag type (i.e. ``"for"``, ``"if"``, etc. or ``None`` for
-			literal text)
+			:var:`name`
+				The name of the template the location belongs to.
 
-		:var:`starttag`
-			The start position of the start delimiter.
+			:var:`type`
+				The tag type (i.e. ``"for"``, ``"if"``, etc. or ``None`` for
+				literal text)
 
-		:var:`endtag`
-			The end position of the end delimiter.
+			:var:`starttag`
+				The start position of the start delimiter.
 
-		:var:`startcode`
-			The start position of the tag code.
+			:var:`endtag`
+				The end position of the end delimiter.
 
-		:var:`endcode`
-			The end position of the tag code.
+			:var:`startcode`
+				The start position of the tag code.
+
+			:var:`endcode`
+				The end position of the tag code.
 		"""
 		self.source = source
+		self.name = name
 		self.type = type
 		self.starttag = starttag
 		self.endtag = endtag
@@ -75,7 +79,7 @@ class Location(object):
 		self.endcode = endcode
 
 	def __getitem__(self, key):
-		if key in {"type", "starttag", "endtag", "startcode", "endcode"}:
+		if key in {"name", "type", "starttag", "endtag", "startcode", "endcode"}:
 			return getattr(self, key)
 		raise KeyError(key)
 
@@ -99,7 +103,7 @@ class Location(object):
 
 	def __str__(self):
 		(line, col) = self.pos()
-		return "{!r} at {} (line {}, col {})".format(self.tag, self.starttag+1, line, col)
+		return "{!r} at {} (line {}, col {}, template {})".format(self.tag, self.starttag+1, line, col, self.name)
 
 
 ###
@@ -120,6 +124,7 @@ class Error(Exception):
 	def __str__(self):
 		path = []
 
+ 		# FIXME: Drop ``__cause__`` traversal in Python 3, as this is done by Python itself
 		exc = self
 		while isinstance(exc, Error):
 			if not path or path[-1] is not exc.location:
@@ -129,7 +134,7 @@ class Error(Exception):
 		module = exc.__class__.__module__
 		if module != "exceptions":
 			name = "{}.{}".format(module, name)
-		return "{} {} {}".format(name, " ".join("in {}:".format(location) for location in path), exc)
+		return "{} {} {}".format(" ".join("in {}:".format(location) for location in path), name, exc)
 
 
 class LexicalError(Exception):
@@ -581,24 +586,26 @@ class Template(object):
 	Rendering the template can be done with the methods :meth:`render` (which
 	is a generator) or :meth:`renders` (which returns a string).
 	"""
-	version = "15"
+	version = "16"
 
-	def __init__(self, source=None, startdelim="<?", enddelim="?>"):
+	def __init__(self, source=None, name="unnamed", startdelim="<?", enddelim="?>"):
 		"""
 		Create a :class:`Template` object. If :var:`source` is ``None``, the
 		:class:`Template` remains uninitialized, otherwise :var:`source` will be
 		compiled (using :var:`startdelim` and :var:`enddelim` as the tag
-		delimiters).
+		delimiters). :var:`name` is the name of the template. It will be used in
+		exception messages and should be a valid Python identifier.
 
 		"""
 		self.startdelim = startdelim
 		self.enddelim = enddelim
+		self.name = name
 		self.source = None
 		self.opcodes = None
 		# The following is used for converting the opcodes back to executable Python code
 		self._pythonfunction = None
 		if source is not None:
-			self._compile(source, startdelim, enddelim)
+			self._compile(source, name, startdelim, enddelim)
 
 	def __getitem__(self, key):
 		if key in {"startdelim", "enddelim", "source", "opcodes"}:
@@ -611,6 +618,8 @@ class Template(object):
 		The class method :meth:`loads` loads the template from string :var:`data`.
 		:var:`data` must contain the template in compiled format.
 		"""
+		defnames = [] # Names of nested templates
+
 		def _readint(prefix):
 			if prefix is not None:
 				c = stream.read(len(prefix))
@@ -669,6 +678,9 @@ class Template(object):
 		version = version.rstrip()
 		if version != self.version:
 			raise ValueError("invalid version, expected {!r}, got {!r}".format(self.version, version))
+		self.name = _readstr(u"N")
+		defnames.append(self.name)
+		_readcr()
 		self.startdelim = _readstr(u"SD")
 		_readcr()
 		self.enddelim = _readstr(u"ED")
@@ -688,6 +700,8 @@ class Template(object):
 			code = _readstr("C")
 			arg = _readstr("A")
 			locspec = stream.read(1)
+			if code == "enddef":
+				defnames.pop()
 			if locspec == u"^":
 				if location is None:
 					raise ValueError("no previous location")
@@ -695,12 +709,14 @@ class Template(object):
 				locspec2 = stream.read(1)
 				if locspec2 != "|":
 					raise ValueError("invalid location spec {!r}".format(locspec + locspec2))
-				location = Location(self.source, _readstr("T"), _readint("st"), _readint("et"), _readint("sc"), _readint("ec"))
+				location = Location(self.source, defnames[-1], _readstr("T"), _readint("st"), _readint("et"), _readint("sc"), _readint("ec"))
 			else:
 				raise ValueError("invalid location spec {!r}".format(locspec))
 			_readcr()
 			count -= 1
 			self.opcodes.append(Opcode(code, r1, r2, r3, r4, r5, arg, location))
+			if code == "def":
+				defnames.append(arg)
 		return self
 
 	@classmethod
@@ -731,6 +747,8 @@ class Template(object):
 			yield u"|"
 
 		yield "ul4\n{}\n".format(self.version)
+		for p in _writestr("N", self.name): yield p
+		yield "\n"
 		for p in _writestr("SD", self.startdelim): yield p
 		yield "\n"
 		for p in _writestr("ED", self.enddelim): yield p
@@ -795,10 +813,10 @@ class Template(object):
 		argument signature of the function will be ``**variables``.
 		"""
 		if self._pythonfunction is None:
-			code = self.pythonsource("render")
+			code = self.pythonsource()
 			ns = {}
-			exec code.encode("utf-8") in ns # FIXME: no need to encode in Python 3.0
-			self._pythonfunction = ns["render"]
+			exec code.encode("utf-8") in ns # FIXME: no need to encode in Python 3
+			self._pythonfunction = ns[self.name]
 		return self._pythonfunction
 
 	def __call__(self, **variables):
@@ -833,7 +851,8 @@ class Template(object):
 		(but without trailing newlines). :var:`indent` can be used to specify how
 		to indent blocks (defaulting to ``"\\t"``).
 		"""
-		i = 0
+		yield "def {} {{".format(self.name)
+		i = 1
 		for opcode in self.opcodes:
 			if opcode.code in ("else", "endif", "endfor", "enddef"):
 				i -= 1
@@ -847,8 +866,9 @@ class Template(object):
 				yield "{}{}".format(i*indent, opcode)
 			if opcode.code in ("for", "if", "else", "def"):
 				i += 1
+		yield "}"
 
-	def _tokenize(self, source, startdelim, enddelim):
+	def _tokenize(self, source, name, startdelim, enddelim):
 		"""
 		Tokenize the template source code :var:`source` into tags and non-tag
 		text. :var:`startdelim` and :var:`enddelim` are used as the tag delimiters.
@@ -860,14 +880,14 @@ class Template(object):
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
-				yield Location(source, None, pos, match.start(), pos, match.start())
+				yield Location(source, None, None, pos, match.start(), pos, match.start())
 			type = source[match.start(1):match.end(1)]
 			if type != "note":
-				yield Location(source, type, match.start(), match.end(), match.start(3), match.end(3))
+				yield Location(source, None, type, match.start(), match.end(), match.start(3), match.end(3))
 			pos = match.end()
 		end = len(source)
 		if pos != end:
-			yield Location(source, None, pos, end, pos, end)
+			yield Location(source, None, None, pos, end, pos, end)
 
 	def _allocreg(self):
 		"""
@@ -891,11 +911,12 @@ class Template(object):
 		"""
 		self.opcodes.append(Opcode(code, r1, r2, r3, r4, r5, arg, self.location))
 
-	def _compile(self, source, startdelim, enddelim):
+	def _compile(self, source, name, startdelim, enddelim):
 		"""
 		Compile the template source code :var:`source` into opcodes.
 		:var:`startdelim` and :var:`enddelim` are used as the tag delimiters.
 		"""
+		self.name = name
 		self.startdelim = startdelim
 		self.enddelim = enddelim
 		scanner = Scanner()
@@ -904,7 +925,7 @@ class Template(object):
 		parsefor = ForParser(scanner).compile
 		parserender = RenderParser(scanner).compile
 
-		# This stack stores for each nested for/foritem/if/elif/else the following information:
+		# This stack stores for each nested for/if/elif/else/def the following information:
 		# 1) Which construct we're in (i.e. "if" or "for")
 		# 2) The start location of the construct
 		# For ifs:
@@ -915,7 +936,7 @@ class Template(object):
 		self.source = source
 		self.opcodes = []
 
-		for location in self._tokenize(source, startdelim, enddelim):
+		for location in self._tokenize(source, name, startdelim, enddelim):
 			self.location = location
 			try:
 				if location.type is None:
@@ -991,15 +1012,24 @@ class Template(object):
 				else: # Can't happen
 					raise ValueError("unknown tag {!r}".format(location.type))
 			except Exception, exc:
-				newexc = Error(location) # FIXME: use ``raise ... from`` in Python 3.0
+				newexc = Error(location) # FIXME: use ``raise ... from`` in Python 3
 				newexc.__cause__ = exc
 				raise newexc
 			finally:
 				del self.location
 		if stack:
-			newexc = Error(stack[-1][1]) # FIXME: use ``raise ... from`` in Python 3.0
+			newexc = Error(stack[-1][1]) # FIXME: use ``raise ... from`` in Python 3
 			newexc.__cause__ = BlockError("block unclosed")
 			raise newexc
+
+		# Do an extra loop over the opcodes to fix the template names in the location objects
+		defnames = [name] # This stack stores the names of the nested templates.
+		for opcode in self.opcodes:
+			if opcode.code == "enddef":
+				defnames.pop()
+			opcode.location.name = defnames[-1]
+			if opcode.code == "def":
+				defnames.append(opcode.arg)
 
 	def __str__(self):
 		return "\n".join(self.format())
@@ -1009,14 +1039,6 @@ class Template(object):
 
 	def __repr__(self):
 		return "<{}.{} object with {} opcodes at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, len(self.opcodes), id(self))
-
-
-def compile(source, startdelim="<?", enddelim="?>"):
-	return Template(source, startdelim, enddelim)
-
-
-load = Template.load
-loads = Template.loads
 
 
 ###
@@ -1029,14 +1051,12 @@ class PythonSource(object):
 	template.
 	"""
 
-	def __init__(self, template, function=None):
+	def __init__(self, template):
 		"""
 		Create a :class:`PythonSource` object. :var:`template` is the
-		:class:`Template` object. If :var:`function` is specified the code will be
-		wrapped in a function with this name.
+		:class:`Template` object.
 		"""
 		self.template = template
-		self.function = function
 
 	def __unicode__(self):
 		"""
@@ -1049,17 +1069,17 @@ class PythonSource(object):
 		self.lines2locs = []
 		self.defs = [] # Stack for currently open def opcodes
 		self.lastopcode = None
-		self.lastlocation = Location(self.template.source, None, 0, 0, 0, 0)
+		self.lastlocation = Location(self.template.source, self.template.name, None, 0, 0, 0, 0)
 
-		if self.function is not None:
-			self._line(self.lastlocation, "def {}(**variables):".format(self.function))
-			self.indent += 1
-			self.lines2locs = [] # We initialize startline one line below, which restarts the counter
+		self._line(self.lastlocation, "def {}(**variables):".format(self.template.name))
+		self.indent += 1
+		self.lines2locs = [] # We initialize startline one line below, which restarts the counter
 		self._line(self.lastlocation, "import sys, datetime, itertools, json, random, collections; from ll.misc import xmlescape; from ll import ul4c, color; startline = sys._getframe().f_lineno") # The line number of this line
 		self._line(self.lastlocation, "__1__")
 		self._line(self.lastlocation, "__2__")
 		self._line(self.lastlocation, "source = {!r}".format(self.template.source))
-		self._line(self.lastlocation, 'variables = {key.decode("utf-8"): value for (key, value) in variables.iteritems()}') # FIXME: This can be dropped in Python 3.0 where strings are unicode
+		self._line(self.lastlocation, "name = {!r}".format(self.template.name))
+		self._line(self.lastlocation, 'variables = {key.decode("utf-8"): value for (key, value) in variables.iteritems()}') # FIXME: This can be dropped in Python 3 where strings are unicode
 		self._line(self.lastlocation, "r0 = r1 = r2 = r3 = r4 = r5 = r6 = r7 = r8 = r9 = None")
 		self._line(self.lastlocation, "try:")
 		self.indent += 1
@@ -1073,13 +1093,13 @@ class PythonSource(object):
 					raise UnknownOpcodeError(opcode.code)
 				self.lastopcode = opcode.code
 		except Exception, exc:
-			newexc = Error(opcode.location) # FIXME: Use ``raise ... from`` in Python 3.0
+			newexc = Error(opcode.location) # FIXME: Use ``raise ... from`` in Python 3
 			newexc.__cause__ = exc
 			raise newexc
 		self.indent -= 1
 		self._line(self.lastlocation, "except Exception, exc:")
 		self.indent += 1
-		self._line(self.lastlocation, "newexc = ul4c.Error(ul4c.Location(source, *locations[lines2locs[sys.exc_info()[2].tb_lineno-startline]]))") # FIXME: Use ``raise ... from`` in Python 3.0
+		self._line(self.lastlocation, "newexc = ul4c.Error(ul4c.Location(source, name, *locations[lines2locs[sys.exc_info()[2].tb_lineno-startline]]))") # FIXME: Use ``raise ... from`` in Python 3
 		self._line(self.lastlocation, "newexc.__cause__ = exc")
 		self._line(self.lastlocation, "raise newexc")
 		locoffset = 1+int(self.lines[0].strip() != "__1__")
@@ -1259,7 +1279,7 @@ class PythonSource(object):
 			raise UnknownMethodError(opcode.arg)
 	def _dispatch_callmethkw(self, opcode):
 		if opcode.arg == "render":
-			self._line(opcode.location, 'r{op.r1:d} = "".join(r{op.r2:d}(**{{key.encode("utf-8"): value for (key, value) in r{op.r3:d}.iteritems()}}))'.format(op=opcode)) # FIXME: This can be simplified in Python 3.0 where strings are unicode
+			self._line(opcode.location, 'r{op.r1:d} = "".join(r{op.r2:d}(**{{key.encode("utf-8"): value for (key, value) in r{op.r3:d}.iteritems()}}))'.format(op=opcode)) # FIXME: This can be simplified in Python 3 where strings are unicode
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _dispatch_if(self, opcode):
@@ -1276,10 +1296,11 @@ class PythonSource(object):
 			lines[-1] += " pass"
 		self.indent -= 1
 	def _dispatch_def(self, opcode):
-		self._line(opcode.location, "def _(**variables):")
+		self._line(opcode.location, "def _template_{}(**variables):".format(opcode.arg))
 		self.defs.append(opcode)
 		self.indent += 1
-		self._line(opcode.location, 'variables = {key.decode("utf-8"): value for (key, value) in variables.iteritems()}') # FIXME: This can be dropped in Python 3.0 where strings are unicode
+		self._line(opcode.location, "name = {!r}".format(opcode.arg))
+		self._line(opcode.location, 'variables = {key.decode("utf-8"): value for (key, value) in variables.iteritems()}') # FIXME: This can be dropped in Python 3 where strings are unicode
 		self._line(opcode.location, "r0 = r1 = r2 = r3 = r4 = r5 = r6 = r7 = r8 = r9 = None")
 		self._line(opcode.location, "try:")
 		self.indent += 1
@@ -1290,11 +1311,11 @@ class PythonSource(object):
 		self.indent -= 1
 		self._line(opcode.location, "except Exception, exc:")
 		self.indent += 1
-		self._line(opcode.location, "newexc = ul4c.Error(ul4c.Location(source, *locations[lines2locs[sys.exc_info()[2].tb_lineno-startline]]))") # FIXME: Use ``raise ... from`` in Python 3.0
+		self._line(opcode.location, "newexc = ul4c.Error(ul4c.Location(source, name, *locations[lines2locs[sys.exc_info()[2].tb_lineno-startline]]))") # FIXME: Use ``raise ... from`` in Python 3
 		self._line(opcode.location, "newexc.__cause__ = exc")
 		self._line(opcode.location, "raise newexc")
 		self.indent -= 2
-		self._line(opcode.location, "variables[{op.arg!r}] = _".format(op=defopcode))
+		self._line(opcode.location, "variables[{op.arg!r}] = _template_{op.arg}".format(op=defopcode))
 	def _dispatch_render(self, opcode):
 		self._line(opcode.location, 'for chunk in r{op.r1:d}(**{{key.encode("utf-8"): value for (key, value) in r{op.r2:d}.iteritems()}}): yield chunk'.format(op=opcode))
 	def _dispatch_callfunc0_now(self, opcode):
@@ -1430,7 +1451,7 @@ class JavascriptSource(object):
 		self._lines = []
 		self._varcounter = 0
 
-		self._line("ul4.Template.create(function(vars){")
+		self._line("ul4.Template.create('{}', function(vars){{".format(self.template.name))
 		self._indent += 1
 
 		self._line(u"//@@@ BEGIN template source")
@@ -1547,7 +1568,7 @@ class JavascriptSource(object):
 		self._indent -= 1
 		self._line(u"}")
 	def _dispatch_def(self, opcode):
-		self._line(u"vars[{arg}] = ul4.Template.create(function(vars){{".format(arg=json.dumps(opcode.arg)))
+		self._line(u"vars[{arg}] = ul4.Template.create({arg}, function(vars){{".format(arg=json.dumps(opcode.arg)))
 		self._indent += 1
 		self._line(u"var out = [], {};".format(", ".join("r{} = null".format(i) for i in xrange(10))))
 	def _dispatch_enddef(self, opcode):
@@ -1882,9 +1903,15 @@ class JavaSource(object):
 	def _dispatch_enddef(self, opcode):
 		level = self._stack.pop()
 		# define new template object
-		self._do(u"{var}.put({arg}, new com.livinglogic.ul4.JSPTemplate()".format(var=self._stack[-1].variables, arg=misc.javaexpr(level.name)))
+		self._do(u'{var}.put({arg}, new com.livinglogic.ul4.JSPTemplate()'.format(var=self._stack[-1].variables, arg=misc.javaexpr(level.name)))
 		self._do(u"{")
 		self._do(1)
+		self._do(u"public String getName()")
+		self._do(u"{")
+		self._do(1)
+		self._do(u'return {};'.format(misc.javaexpr(level.name)))
+		self._do(-1)
+		self._do(u"}")
 		self._do(u"public void render(java.io.Writer out, java.util.Map<String, Object> variables) throws java.io.IOException")
 		self._do(u"{")
 		self._do(1)
@@ -2615,7 +2642,7 @@ class Scanner(spark.Scanner):
 			if self.mode != "default":
 				raise UnterminatedStringError()
 		except Exception, exc:
-			newexc = Error(location) # FIXME: use ``raise ... from`` in Python 3.0
+			newexc = Error(location) # FIXME: use ``raise ... from`` in Python 3
 			newexc.__cause__ = exc
 			raise newexc
 		return self.rv
@@ -2786,7 +2813,7 @@ class ExprParser(spark.Parser):
 			ast = self.parse(self.scanner.tokenize(location))
 			return ast.compile(template)
 		except Exception, exc:
-			newexc = Error(location) # FIXME: Use ``raise ... from`` in Python 3.0
+			newexc = Error(location) # FIXME: Use ``raise ... from`` in Python 3
 			newexc.__cause__ = exc
 			raise newexc
 		finally:

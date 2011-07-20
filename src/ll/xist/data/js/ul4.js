@@ -727,7 +727,7 @@ var ul4 = {
 		}
 		else if (this.istemplate(obj))
 		{
-			return "ul4.Template.create(" + obj.render.toString() + ")";
+			return "ul4.Template.create('" + obj.name + "', " + obj.render.toString() + ")";
 		}
 		throw "json() requires a serializable object";
 	},
@@ -1462,9 +1462,10 @@ var ul4 = {
 	Template: {
 		__istemplate__: true,
 
-		create: function(render)
+		create: function(name, render)
 		{
 			var template = ul4._clone(this);
+			template.name = name;
 			template.render = render;
 			return template;
 		},

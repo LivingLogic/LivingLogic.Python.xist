@@ -57,7 +57,7 @@ class Render(object):
 
 class RenderPython(Render):
 	def renders(self):
-		template = ul4c.compile(self.source)
+		template = ul4c.Template(self.source)
 		print "Testing Python template:".format(self.filename, self.lineno)
 		print template.pythonsource()
 		return template.renders(**self.variables)
@@ -65,8 +65,8 @@ class RenderPython(Render):
 
 class RenderPythonDumpS(Render):
 	def renders(self):
-		template = ul4c.compile(self.source)
-		template = ul4c.loads(template.dumps()) # Recreate the template from the binary dump
+		template = ul4c.Template(self.source)
+		template = ul4c.Template.loads(template.dumps()) # Recreate the template from the binary dump
 		print "Testing Python template loaded from string ({}, line {}):".format(self.filename, self.lineno)
 		print template.pythonsource()
 		return template.renders(**self.variables)
@@ -74,11 +74,11 @@ class RenderPythonDumpS(Render):
 
 class RenderPythonDump(Render):
 	def renders(self):
-		template = ul4c.compile(self.source)
+		template = ul4c.Template(self.source)
 		stream = StringIO.StringIO()
 		template.dump(stream)
 		stream.seek(0)
-		template = ul4c.load(stream) # Recreate the template from the stream
+		template = ul4c.Template.load(stream) # Recreate the template from the stream
 		print "Testing Python template loaded from stream ({}, line {}):".format(self.filename, self.lineno)
 		print template.pythonsource()
 		return template.renders(**self.variables)
@@ -87,7 +87,7 @@ class RenderPythonDump(Render):
 class RenderJS(Render):
 	def renders(self):
 		# Check the Javascript version (this requires an installed ``d8`` shell from V8 (http://code.google.com/p/v8/))
-		template = ul4c.compile(self.source)
+		template = ul4c.Template(self.source)
 		js = template.jssource()
 		js = u"template = {};\ndata = {};\nprint(template.renders(data));\n".format(js, ul4c._json(self.variables))
 		print "Testing Javascript code compiled by Python ({}, line {}):".format(self.filename, self.lineno)
@@ -117,14 +117,22 @@ class RenderJava(Render):
 
 	def findexception(self, output):
 		lines = output.splitlines()
+		msg = None
 		for line in lines:
-			prefix = 'Exception in thread "main"'
-			if line.startswith(prefix):
-				msg = line[len(prefix):].strip()
-				if msg == "Traceback (most recent call last):": # This is a Jython exception, the message is in the last line
-					msg = lines[-1]
-				print >>sys.stderr, output
-				raise RuntimeError(msg)
+			prefix1 = 'Exception in thread "main"'
+			prefix2 = "Caused by:"
+			if line.startswith(prefix1):
+				msg = line[len(prefix1):].strip()
+			elif line.startswith(prefix2):
+				msg = line[len(prefix2):].strip()
+			else:
+				continue
+			if msg == "Traceback (most recent call last):": # This is a Jython exception, the message is in the last line
+				msg = lines[-1]
+				break
+		if msg is not None:
+			print >>sys.stderr, output
+			raise RuntimeError(msg)
 
 	def formatsource(self, string):
 		"""
@@ -170,6 +178,10 @@ class RenderJavaSourceCompiledByPython(RenderJava):
 	codetemplate = u"""
 	com.livinglogic.ul4.Template template = new com.livinglogic.ul4.JSPTemplate()
 	{
+		public String getName()
+		{
+			return "unnamed";
+		}
 		public void render(java.io.Writer out, java.util.Map<String, Object> variables) throws java.io.IOException
 		{
 			%(template)s
@@ -186,7 +198,7 @@ class RenderJavaSourceCompiledByPython(RenderJava):
 	def renders(self):
 		# Check the Java version
 		print "Testing Java code ({}, line {}):".format(self.filename, self.lineno)
-		template = ul4c.compile(self.source)
+		template = ul4c.Template(self.source)
 		java = template.javasource(indent=4)
 		java = self.codetemplate % dict(variables=misc.javaexpr(self.variables), template=java)
 		return self.runsource(java)
@@ -206,7 +218,7 @@ class RenderJavaLoadByJava(RenderJava):
 	def renders(self):
 		# Check the Java version
 		print "Testing Java InterpretedTemplate (interpreted mode, compiled by Python) ({}, line {}):".format(self.filename, self.lineno)
-		template = ul4c.compile(self.source)
+		template = ul4c.Template(self.source)
 		dump = template.dumps()
 		java = self.codetemplate % dict(variables=misc.javaexpr(self.variables), dump=misc.javaexpr(dump))
 		return self.runsource(java)
@@ -234,7 +246,8 @@ class RenderJavaSourceCompiledByJava(RenderJava):
 
 
 all_python_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump)
-# FIXME: The following really takes a long time to run: all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaSourceCompiledByPython, RenderJavaLoadByJava, RenderJavaSourceCompiledByJava)
+# FIXME: The following really takes a long time to run: 
+#all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaSourceCompiledByPython, RenderJavaLoadByJava, RenderJavaSourceCompiledByJava)
 all_renderers = all_python_renderers
 
 
@@ -1056,7 +1069,7 @@ def test_function_isnone():
 		yield eq, "False", r(code, data=())
 		yield eq, "False", r(code, data=[])
 		yield eq, "False", r(code, data={})
-		yield eq, "False", r(code, data=ul4c.compile(u""))
+		yield eq, "False", r(code, data=ul4c.Template(u""))
 		yield eq, "False", r(code, data=color.red)
 
 
@@ -1077,7 +1090,7 @@ def test_function_isbool():
 		yield eq, "False", r(code, data=())
 		yield eq, "False", r(code, data=[])
 		yield eq, "False", r(code, data={})
-		yield eq, "False", r(code, data=ul4c.compile(u""))
+		yield eq, "False", r(code, data=ul4c.Template(u""))
 		yield eq, "False", r(code, data=color.red)
 
 
@@ -1098,7 +1111,7 @@ def test_function_isint():
 		yield eq, "False", r(code, data=())
 		yield eq, "False", r(code, data=[])
 		yield eq, "False", r(code, data={})
-		yield eq, "False", r(code, data=ul4c.compile(u""))
+		yield eq, "False", r(code, data=ul4c.Template(u""))
 		yield eq, "False", r(code, data=color.red)
 
 
@@ -1119,7 +1132,7 @@ def test_function_isfloat():
 		yield eq, "False", r(code, data=())
 		yield eq, "False", r(code, data=[])
 		yield eq, "False", r(code, data={})
-		yield eq, "False", r(code, data=ul4c.compile(u""))
+		yield eq, "False", r(code, data=ul4c.Template(u""))
 		yield eq, "False", r(code, data=color.red)
 
 
@@ -1140,7 +1153,7 @@ def test_function_isstr():
 		yield eq, "False", r(code, data=())
 		yield eq, "False", r(code, data=[])
 		yield eq, "False", r(code, data={})
-		yield eq, "False", r(code, data=ul4c.compile(u""))
+		yield eq, "False", r(code, data=ul4c.Template(u""))
 		yield eq, "False", r(code, data=color.red)
 
 
@@ -1161,7 +1174,7 @@ def test_function_isdate():
 		yield eq, "False", r(code, data=())
 		yield eq, "False", r(code, data=[])
 		yield eq, "False", r(code, data={})
-		yield eq, "False", r(code, data=ul4c.compile(u""))
+		yield eq, "False", r(code, data=ul4c.Template(u""))
 		yield eq, "False", r(code, data=color.red)
 
 
@@ -1183,7 +1196,7 @@ def test_function_islist():
 		yield eq, "True", r(code, data=[])
 		yield eq, "True", r(code, data=PseudoList([]))
 		yield eq, "False", r(code, data={})
-		yield eq, "False", r(code, data=ul4c.compile(u""))
+		yield eq, "False", r(code, data=ul4c.Template(u""))
 		yield eq, "False", r(code, data=color.red)
 
 
@@ -1205,7 +1218,7 @@ def test_function_isdict():
 		yield eq, "False", r(code, data=[])
 		yield eq, "True", r(code, data={})
 		yield eq, "True", r(code, data=PseudoDict({}))
-		yield eq, "False", r(code, data=ul4c.compile(u""))
+		yield eq, "False", r(code, data=ul4c.Template(u""))
 		yield eq, "False", r(code, data=color.red)
 
 
@@ -1226,7 +1239,7 @@ def test_function_istemplate():
 		yield eq, "False", r(code, data=())
 		yield eq, "False", r(code, data=[])
 		yield eq, "False", r(code, data={})
-		yield eq, "True", r(code, data=ul4c.compile(u""))
+		yield eq, "True", r(code, data=ul4c.Template(u""))
 		yield eq, "False", r(code, data=color.red)
 
 
@@ -1247,7 +1260,7 @@ def test_function_iscolor():
 		yield eq, "False", r(code, data=())
 		yield eq, "False", r(code, data=[])
 		yield eq, "False", r(code, data={})
-		yield eq, "False", r(code, data=ul4c.compile(u""))
+		yield eq, "False", r(code, data=ul4c.Template(u""))
 		yield eq, "True", r(code, data=color.red)
 
 
@@ -1460,7 +1473,7 @@ def test_function_type():
 		yield eq, "list", r(code, x=PseudoList([1, 2]))
 		yield eq, "dict", r(code, x={1: 2})
 		yield eq, "dict", r(code, x=PseudoDict({1: 2}))
-		yield eq, "template", r(code, x=ul4c.compile(""))
+		yield eq, "template", r(code, x=ul4c.Template(""))
 		yield eq, "color", r(code, x=color.red)
 
 
@@ -1577,11 +1590,11 @@ def test_method_replace():
 @py.test.mark.ul4
 def test_method_render():
 	for r in all_renderers:
-		t = ul4c.compile(u'(<?print data?>)')
+		t = ul4c.Template(u'(<?print data?>)')
 		yield eq, '(GURK)', r(u"<?print t.render(data='gurk').upper()?>", t=t)
 		yield eq, '(GURK)', r(u"<?print t.render(**{'data': 'gurk'}).upper()?>", t=t)
 
-		t = ul4c.compile(u'(gurk)')
+		t = ul4c.Template(u'(gurk)')
 		yield eq, '(GURK)', r(u"<?print t.render().upper()?>", t=t)
 
 
@@ -1763,7 +1776,7 @@ def test_method_yearday():
 
 @py.test.mark.ul4
 def test_render():
-	t = ul4c.compile(u'<?print prefix?><?print data?><?print suffix?>')
+	t = ul4c.Template(u'<?print prefix?><?print data?><?print suffix?>')
 	for r in all_renderers:
 		yield eq, '(f)(o)(o)', r(u'<?for c in data?><?render t(data=c, prefix="(", suffix=")")?><?end for?>', t=t, data='foo')
 		yield eq, '(f)(o)(o)', r(u'<?for c in data?><?render t(data=c, **{"prefix": "(", "suffix": ")"})?><?end for?>', t=t, data='foo')
@@ -1771,7 +1784,7 @@ def test_render():
 
 @py.test.mark.ul4
 def test_render_var():
-	t = ul4c.compile(u'<?code x += 1?><?print x?>')
+	t = ul4c.Template(u'<?code x += 1?><?print x?>')
 	for r in all_renderers:
 		yield eq, '42,43,42', r(u'<?print x?>,<?render t(x=x)?>,<?print x?>', t=t, x=42)
 
@@ -1790,12 +1803,12 @@ def test_parse():
 
 @py.test.mark.ul4
 def test_nested_exceptions():
-	tmpl1 = ul4c.compile(u"<?print 2*x?>")
-	tmpl2 = ul4c.compile(u"<?render tmpl1(x=x)?>")
-	tmpl3 = ul4c.compile(u"<?render tmpl2(tmpl1=tmpl1, x=x)?>")
+	tmpl1 = ul4c.Template(u"<?print 2*x?>")
+	tmpl2 = ul4c.Template(u"<?render tmpl1(x=x)?>")
+	tmpl3 = ul4c.Template(u"<?render tmpl2(tmpl1=tmpl1, x=x)?>")
 
 	for r in all_python_renderers:
-		msg = "TypeError .*render tmpl3.*render tmpl2.*render tmpl1.*print 2.*unsupported operand type|.* \\* .* not supported"
+		msg = "render tmpl3.*render tmpl2.*render tmpl1.*print 2.*TypeError.*unsupported operand type|.* \\* .* not supported"
 		yield raises, msg, r(u"<?render tmpl3(tmpl1=tmpl1, tmpl2=tmpl2, x=x)?>", tmpl1=tmpl1, tmpl2=tmpl2, tmpl3=tmpl3, x=None)
 
 
@@ -1808,7 +1821,7 @@ def test_note():
 @py.test.mark.ul4
 def test_templateattributes():
 	s = "<?print x?>"
-	t = ul4c.compile(s)
+	t = ul4c.Template(s)
 
 	for r in all_python_renderers:
 		yield eq, "<?", r(u"<?print template.startdelim?>", template=t)
@@ -1824,7 +1837,7 @@ def test_templateattributes():
 
 
 def universaltemplate():
-	return ul4c.compile("""
+	return ul4c.Template("""
 		text
 		<?code x = 'gurk'?>
 		<?code x = 42?>
@@ -1895,7 +1908,6 @@ def test_strtemplate():
 def test_pythonsource():
 	t = universaltemplate()
 	t.pythonsource()
-	t.pythonsource("template")
 
 
 @py.test.mark.ul4

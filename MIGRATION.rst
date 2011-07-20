@@ -1,3 +1,14 @@
+Migrating to version 3.23
+=========================
+
+Changes to :mod:`ll.ul4c`
+-------------------------
+
+*	The module global functions :func:`ll.ul4c.compile`, :func:`ll.ul4c.load` and
+	:func:`ll.ul4c.loads` have been removed. Instead of them the :class:`Template`
+	constructor and the class methods :meth:`load` and :meth:`loads` can be used.
+
+
 Migrating to version 3.20
 =========================
 
