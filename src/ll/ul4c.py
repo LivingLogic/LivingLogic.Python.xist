@@ -851,7 +851,7 @@ class Template(object):
 		(but without trailing newlines). :var:`indent` can be used to specify how
 		to indent blocks (defaulting to ``"\\t"``).
 		"""
-		yield "def {} {{".format(self.name)
+		yield "def {}(**vars) {{".format(self.name)
 		i = 1
 		for opcode in self.opcodes:
 			if opcode.code in ("else", "endif", "endfor", "enddef"):
