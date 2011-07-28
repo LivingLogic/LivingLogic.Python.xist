@@ -1,3 +1,10 @@
+Changes in 3.23.1 (released 07/28/2011)
+---------------------------------------
+
+*	Fixed a bug in :mod:`ll.sisyphus`: The code wasn't updated to use
+	:class:`ll.ul4c.Template` instead of :func:`ll.ul4c.compile`.
+
+
 Changes in 3.23 (released 07/20/2011)
 -------------------------------------
 

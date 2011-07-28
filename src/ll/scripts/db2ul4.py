@@ -197,7 +197,7 @@ def main(args=None):
 			templatename = os.path.basename(templatename)
 			if os.path.extsep in templatename:
 				templatename = templatename.rpartition(os.extsep)[0]
-		template = ul4c.compile(templatestream.read().decode(args.inputencoding))
+		template = ul4c.Template(templatestream.read().decode(args.inputencoding), templatename)
 		# The first template is the main template
 		if maintemplate is None:
 			maintemplate = template

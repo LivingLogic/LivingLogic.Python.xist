@@ -334,7 +334,7 @@ class Job(object):
 			self._getcrontab() # Get crontab
 			self.lineno = 1 # Current line number
 			self.log = Tag(self._log) # Create tagged logger
-			self._formatlogline = ul4c.compile(self.formatlogline.replace("\n", "").replace("\r", "") + u"\n") # Log line formatting template
+			self._formatlogline = ul4c.Template(self.formatlogline.replace("\n", "").replace("\r", "") + u"\n", "formatlogline") # Log line formatting template
 			self._createlog() # Create log file and link
 
 			self.log.sisyphus.init(u"{} (max time {}; pid {})".format(self.info.sysinfo.scriptname, datetime.timedelta(seconds=self.maxtime), self.info.sysinfo.pid))
@@ -458,12 +458,12 @@ class Job(object):
 		self._loglinkname = None
 		if self.log2file:
 			# Create the log file
-			logfilename = ul4c.compile(self.logfilename).renders(**self.info)
+			logfilename = ul4c.Template(self.logfilename, "logfilename").renders(**self.info)
 			lf = self._logfilename = url.File(logfilename).abs()
 			self._logfile = lf.openwrite()
 			if self.loglinkname is not None:
 				# Create the log link
-				loglinkname = ul4c.compile(self.loglinkname).renders(**self.info)
+				loglinkname = ul4c.Template(self.loglinkname, "loglinkname").renders(**self.info)
 				ll = self._loglinkname = url.File(loglinkname).abs()
 				lf = self._logfilename
 				try:
