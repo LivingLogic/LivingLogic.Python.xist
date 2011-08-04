@@ -22,7 +22,7 @@ __ http://www.linguistik.uni-erlangen.de/~msbethke/software.html
 It also borrows the basic ideas (XML/HTML elements as Python objects) from
 HTMLgen_ and HyperText_.
 
-.. _HTMLgen: http://starship.python.net/crew/friedrich/HTMLgen/html/main.html
+.. _HTMLgen: http://www.linuxjournal.com/article/2986
 .. _HyperText: http://dustman.net/andy/python/HyperText
 """
 
