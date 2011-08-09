@@ -4,7 +4,6 @@ include OLDNEWS.rst
 include INSTALL.rst
 include MIGRATION.rst
 include OLDMIGRATION.rst
-include CREDITS.rst
 recursive-include docs *.rst
 recursive-include docs *.xml
 include Makefile
