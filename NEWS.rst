@@ -1,3 +1,22 @@
+Changes in 3.24 (released 08/09/2011)
+-------------------------------------
+
+*	The :class:`ProcInst` subclass :class:`ll.xist.xsc.AttrProcInst` has been
+	replaced with an :class:`Element` subclass :class:`ll.xist.xsc.AttrElement`.
+	Conditional handling of the attribute will be used, if the
+	:class:`AttrElement` instance is the only
+	child of the attribute. Outside of attributes the :class:`AttrElement`
+	instance will be published normally (via :meth:`publish`, which must be
+	implemented)
+
+*	:class:`ll.xist.ns.ul4.attr_if` is an :class:`ll.xist.xsc.AttrElement`
+	subclass now. The condition is in the ``cond`` attribute and the attribute
+	content is inside the element. Outside of an attribute :class:`attr_if`
+	will put a normal UL4 ``if`` condition around its content.
+
+*	:class:`ll.xist.ns.ul4.attr_ifnn` has been removed.
+
+
 Changes in 3.23.1 (released 07/28/2011)
 ---------------------------------------
 

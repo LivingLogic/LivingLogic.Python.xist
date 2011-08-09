@@ -2121,37 +2121,6 @@ class ProcInst(CharacterData):
 		return Node.__rmul__(self, n) # don't inherit ``CharacterData.__rmul__``
 
 
-class AttrProcInst(ProcInst):
-	"""
-	Special subclass of :class:`ProcInst`.
-
-	When an :class:`AttrProcInst` node is the first node in an attribute, it
-	takes over publishing of the attribute (via the methods :meth:`publishattr`
-	and :meth:`publishboolattr`). In all other cases the processing instruction
-	disappears completely.
-	"""
-
-	register = None
-
-	def publish(self, publisher):
-		if False:
-			yield ""
-
-	@misc.notimplemented
-	def publishattr(self, publisher, attr):
-		"""
-		Publish the attribute :var:`attr` to the publisher :var:`publisher`.
-		(Note that ``attr[0]`` is :var:`self`).
-		"""
-
-	@misc.notimplemented
-	def publishboolattr(self, publisher, attr):
-		"""
-		Publish the boolean attribute :var:`attr` to the publisher
-		:var:`publisher`. (Note that ``attr[0]`` is :var:`self`).
-		"""
-
-
 class Null(CharacterData):
 	"""
 	node that does not contain anything.
@@ -2286,7 +2255,7 @@ class Attr(Frag):
 	def publish(self, publisher):
 		if publisher.validate:
 			self.checkvalid()
-		if self and isinstance(self[0], AttrProcInst):
+		if len(self)==1 and isinstance(self[0], AttrElement):
 			for part in self[0].publishattr(publisher, self):
 				yield part
 		else:
@@ -2356,8 +2325,8 @@ class BoolAttr(Attr):
 	def publish(self, publisher):
 		if publisher.validate:
 			self.checkvalid()
-		if self and isinstance(self[0], AttrProcInst):
-			for part in self[0].publishboolattr(publisher, self):
+		if len(self)==1 and isinstance(self[0], AttrElement):
+			for part in self[0].publishboolattr(publisher):
 				yield part
 		else:
 			publisher.inattr += 1
@@ -3503,6 +3472,38 @@ class Element(Node):
 		else:
 			loc = ""
 		return "<{0.__class__.__module__}.{0.__fullname__} element object ({1}/{2}){3} at {4:#x}>".format(self, infoc, infoa, loc, id(self))
+
+
+class AttrElement(Element):
+	"""
+	Special subclass of :class:`Element`.
+
+	When an :class:`AttrElement` node is the only node in an attribute, it
+	takes over publishing of the attribute (via the methods :meth:`publishattr`
+	and :meth:`publishboolattr`). In all other cases publishing is done in the
+	normal way (and must be overwritten with the :meth:`publish` method).
+	"""
+
+	register = None
+
+	@misc.notimplemented
+	def publish(self, publisher):
+		"""
+		Publish ``self`` to the publisher :var:`publisher` (outside of any
+		attribute)
+		"""
+
+	@misc.notimplemented
+	def publishattr(self, publisher, attr):
+		"""
+		Publish the attribute :var:`attr` to the publisher :var:`publisher`.
+		"""
+
+	@misc.notimplemented
+	def publishboolattr(self, publisher, attr):
+		"""
+		Publish the boolean attribute :var:`attr` to the publisher
+		"""
 
 
 class _Entity_Meta(Node.__metaclass__):

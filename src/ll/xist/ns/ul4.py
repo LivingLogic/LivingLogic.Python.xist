@@ -55,37 +55,29 @@ class render(xsc.ProcInst):
 ### Processing instructions for conditional attributes
 ###
 
-class attr_ifnn(xsc.AttrProcInst):
+class attr_if(xsc.AttrElement):
 	"""
-	Conditional attribute: If this PI is used as the first in an attribute, it's
-	value is treated as an expression. If this expression is not ``None``
-	it is output as the value of the attribute, otherwise the attribute itself
-	will be skipped.
+	Conditional attribute: The ``cond`` attribute is a expression. If this
+	expression is true, the attribute will be output normally (with the elements
+	content as content (except for boolean attributes)), otherwise the attribute
+	itself will be skipped. Outside of an attribute this will produce a normal
+	UL4 ``if`` around its content.
 	"""
 
-	def publishattr(self, publisher, attr):
-		yield publisher.encode(u'<?if not isnone({content})?> {name}="<?printx {content}?>"<?end if?>'.format(content=self.content, name=attr._publishname(publisher)))
+	class Attrs(xsc.Attrs):
+		class cond(xsc.TextAttr): required = True
 
-	def publishboolattr(self, publisher, attr):
-		name = attr._publishname(publisher)
-		yield publisher.encode(u"<?if not isnone({content})?> {name}".format(content=self.content, name=name))
-		if publisher.xhtml>0:
-			yield publisher.encode(u'="{name}"'.format(name=name))
+	def publish(self, publisher):
+		yield publisher.encode(u'<?if {cond}?>'.format(cond=unicode(self.attrs.cond)))
+		for part in self.content.publish(publisher):
+			yield part
 		yield publisher.encode(u'<?end if?>')
-
-
-class attr_if(xsc.AttrProcInst):
-	"""
-	Conditional attribute: If this PI is used as the first in an attribute, it's
-	value is treated as an expression. If this expression is true, the attribute
-	will be output normally, otherwise the attribute itself will be skipped.
-	"""
 
 	def publishattr(self, publisher, attr):
 		publisher.inattr += 1
-		yield publisher.encode(u'<?if {content}?> {name}="'.format(content=self.content, name=attr._publishname(publisher)))
+		yield publisher.encode(u'<?if {cond}?> {name}="'.format(cond=unicode(self.attrs.cond), name=attr._publishname(publisher)))
 		publisher.pushtextfilter(misc.xmlescape_attr)
-		for part in attr._publishattrvalue(publisher):
+		for part in self.content.publish(publisher):
 			yield part
 		publisher.poptextfilter()
 		yield publisher.encode(u'"<?end if?>')
@@ -93,7 +85,7 @@ class attr_if(xsc.AttrProcInst):
 
 	def publishboolattr(self, publisher, attr):
 		name = attr._publishname(publisher)
-		yield publisher.encode(u"<?if {content}?> {name}".format(content=self.content, name=name))
+		yield publisher.encode(u'<?if {cond}?> {name}'.format(cond=unicode(self.attrs.cond), name=attr._publishname(publisher)))
 		if publisher.xhtml>0:
 			yield publisher.encode(u'="{name}"'.format(name=name))
 		yield publisher.encode(u'<?end if?>')

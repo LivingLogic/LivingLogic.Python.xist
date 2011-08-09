@@ -16,6 +16,7 @@ import sys, os, re, datetime, StringIO, json, contextlib, tempfile, collections,
 import py.test
 
 from ll import ul4c, color, misc
+from ll.xist.ns import html, ul4
 
 
 class PseudoDict(collections.Mapping):
@@ -1926,3 +1927,23 @@ def test_jssource():
 def test_javasource():
 	t = universaltemplate()
 	t.javasource()
+
+
+@py.test.mark.ul4
+def test_attr_if():
+	cond = ul4.attr_if(html.a("gu'\"rk"), cond="cond")
+
+	s = html.div(class_=cond).conv().string()
+	for r in all_renderers:
+		yield eq, u'<div></div>', r(s, cond=False)
+		yield eq, u'''<div class="gu'&quot;rk"></div>''', r(s, cond=True)
+
+	s = html.div(class_=(cond, "hurz")).conv().string()
+	for r in all_renderers:
+		yield eq, u'<div class="hurz"></div>', r(s, cond=False)
+		yield eq, u'''<div class="gu'&quot;rkhurz"></div>''', r(s, cond=True)
+
+	s = cond.conv().string()
+	for r in all_renderers:
+		yield eq, u'', r(s, cond=False)
+		yield eq, u'''<a>gu'"rk</a>''', r(s, cond=True)

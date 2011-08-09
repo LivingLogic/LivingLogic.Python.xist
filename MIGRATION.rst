@@ -1,3 +1,22 @@
+Migrating to version 3.24
+=========================
+
+Changes to :mod:`ll.xist.ns.ul4`
+--------------------------------
+
+*	:class:`ll.xist.ns.ul4.attr_if` is now an :class:`ll.xist.xsc.AttrElement`
+	subclass. Change your code from::
+
+		html.div(id=(ul4.attr_if("foo"), "bar"))
+
+	to::
+
+		html.div(id=ul4.attr_if("bar", cond="foo"))
+
+*	:class:`ll.xist.ns.ul4.attr_ifnn` has been removed. Replace it with the
+	equivalent :class:`attr_if` call.
+
+
 Migrating to version 3.23
 =========================
 

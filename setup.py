@@ -48,8 +48,8 @@ XIST also includes the following modules and packages:
 *	:mod:`ll.ul4c` is compiler for a templating language with similar capabilities
 	to `Django's templating language`__. ``UL4`` templates are compiled to an
 	internal bytecode format, which makes it possible to implement template
-	renderers in other languages and makes the template code "secure" (i.e.
-	template code can't open or delete files).
+	renderers in other languages (Java and Javascript are supported) and makes
+	the template code "secure" (i.e. template code can't open or delete files).
 
 	__ http://www.djangoproject.com/documentation/templates/
 
@@ -227,7 +227,7 @@ else:
 
 args = dict(
 	name="ll-xist",
-	version="3.23.1",
+	version="3.24",
 	description="Extensible HTML/XML generator, cross-platform templating language, Oracle utilities and various other tools",
 	long_description=description,
 	author="Walter Doerwald",
