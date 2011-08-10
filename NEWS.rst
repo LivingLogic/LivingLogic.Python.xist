@@ -1,3 +1,10 @@
+Changes in 3.24.1 (released 08/10/2011)
+---------------------------------------
+
+*	Fixed a bug in the new :class:`ll.xist.xsc.AttrElement` class that surfaced
+	in the context of boolean attributes.
+
+
 Changes in 3.24 (released 08/09/2011)
 -------------------------------------
 

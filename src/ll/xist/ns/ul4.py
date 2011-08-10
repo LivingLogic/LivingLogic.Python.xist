@@ -85,7 +85,7 @@ class attr_if(xsc.AttrElement):
 
 	def publishboolattr(self, publisher, attr):
 		name = attr._publishname(publisher)
-		yield publisher.encode(u'<?if {cond}?> {name}'.format(cond=unicode(self.attrs.cond), name=attr._publishname(publisher)))
+		yield publisher.encode(u'<?if {cond}?> {name}'.format(cond=unicode(self.attrs.cond), name=name))
 		if publisher.xhtml>0:
 			yield publisher.encode(u'="{name}"'.format(name=name))
 		yield publisher.encode(u'<?end if?>')

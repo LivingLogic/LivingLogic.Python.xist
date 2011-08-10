@@ -2326,7 +2326,7 @@ class BoolAttr(Attr):
 		if publisher.validate:
 			self.checkvalid()
 		if len(self)==1 and isinstance(self[0], AttrElement):
-			for part in self[0].publishboolattr(publisher):
+			for part in self[0].publishboolattr(publisher, self):
 				yield part
 		else:
 			publisher.inattr += 1

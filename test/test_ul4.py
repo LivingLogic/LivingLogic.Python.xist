@@ -1947,3 +1947,8 @@ def test_attr_if():
 	for r in all_renderers:
 		yield eq, u'', r(s, cond=False)
 		yield eq, u'''<a>gu'"rk</a>''', r(s, cond=True)
+
+	s = html.ul(compact=ul4.attr_if(True, cond="cond")).conv().string()
+	for r in all_renderers:
+		yield eq, u'<ul></ul>', r(s, cond=False)
+		yield eq, u'''<ul compact="compact"></ul>''', r(s, cond=True)
