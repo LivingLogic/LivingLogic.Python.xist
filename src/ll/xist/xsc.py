@@ -974,7 +974,7 @@ class Node(object):
 
 	# Subclasses relevant for parsing (i.e. Element, ProcInst, Entity and CharRef)
 	# have an additional class attribute named register. This attribute may have
-	# three values:
+	# two values:
 	# :const:`False`: Don't register for parsing.
 	# :const:`True`:  Use for parsing.
 	# If register is not set it defaults to :const:`True`
