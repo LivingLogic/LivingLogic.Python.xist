@@ -1411,7 +1411,7 @@ class Tidy(object):
 						attrcontent = decode(attr.content) if attr.content is not None else u""
 						attrs.append((attrname, attrcontent))
 					attr = attr.next
-				# We sort the attribute, because this gives a canonical event stream for HTML
+				# We sort the attributes, because this gives a canonical event stream for HTML
 				for (attrname, attrcontent) in sorted(attrs):
 					yield (u"enterattr", attrname)
 					yield (u"text", attrcontent)
