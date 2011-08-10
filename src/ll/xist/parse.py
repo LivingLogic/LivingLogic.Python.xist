@@ -1402,15 +1402,20 @@ class Tidy(object):
 				elok = True
 			if elok:
 				yield (u"enterstarttag", elementname)
+				# Collect all attributes, so we can sort them
+				attrs = []
 				attr = node.properties
 				while attr is not None:
 					attrname = decode(attr.name).lower()
 					if not self.skipbad or el.Attrs.isallowed_xml(attrname):
-						content = decode(attr.content) if attr.content is not None else u""
-						yield (u"enterattr", attrname)
-						yield (u"text", content)
-						yield (u"leaveattr", attrname)
+						attrcontent = decode(attr.content) if attr.content is not None else u""
+						attrs.append((attrname, attrcontent))
 					attr = attr.next
+				# We sort the attribute, because this gives a canonical event stream for HTML
+				for (attrname, attrcontent) in sorted(attrs):
+					yield (u"enterattr", attrname)
+					yield (u"text", attrcontent)
+					yield (u"leaveattr", attrname)
 				yield (u"leavestarttag", elementname)
 			child = node.children
 			while child is not None:
