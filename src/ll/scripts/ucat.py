@@ -31,14 +31,14 @@ Options
 		Prints directory content recursively.
 
 	``-x``, ``--ignoreerrors`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Ignores errors occuring during the copy process. (Otherwise the copy
-		process is aborted.)
+		Ignores file i/o errors occuring during the output process. (Otherwise
+		the script will be aborted.)
 
 	``-i``, ``--include`` : regular expression
-		Only copy files that contain the regular expression.
+		Only print files that contain the regular expression.
 
 	``-e``, ``--exclude`` : regular expression
-		Don't copy files that contain the regular expression.
+		Don't print files that contain the regular expression.
 
 	``-a``, ``--all`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		Include dot files (i.e. files whose name starts with a ``.``). Not that
