@@ -14,8 +14,8 @@
 Purpose
 -------
 
-``uhpp`` is a script for pretty printing XML HTML files. It is URL-enabled,
-so you can specify local file names and URL (and remote files via ``ssh`` URLs).
+``uhpp`` is a script for pretty printing HTML files. It is URL-enabled, so you
+can specify local file names and URLs (and remote files via ``ssh`` URLs).
 
 
 Options
