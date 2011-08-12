@@ -7,7 +7,7 @@ Changes in 3.25 (released 08/12/2011)
 *	The :meth:`compact` method has been renamed to :meth:`compacted` to avoid
 	collisions with the ``compact`` attribute in HTML elements.
 
-*	A new script ``uhpp`` has been added, that can be used for prett printing
+*	A new script ``uhpp`` has been added, that can be used for pretty printing
 	HTML. As the attributes are output in alphabetical order it can also be used
 	as a tool for comparing HTML files.
 
