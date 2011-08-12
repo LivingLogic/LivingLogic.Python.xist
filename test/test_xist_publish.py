@@ -175,3 +175,8 @@ def test_comment_in_attr():
 def test_doctype_in_attr():
 	node = html.div(class_=html.DocTypeXHTML11())
 	assert node.bytes() == b"""<div class=""></div>"""
+
+
+def test_attribute_order():
+	node = html.div(xml.Attrs(lang="de"), id="id42", align="right", class_="foo")
+	assert node.bytes() == b"""<div xml:lang="de" align="right" class="foo" id="id42"></div>"""

@@ -15,5 +15,5 @@ if __name__ == "__main__":
 	base = "root:python-quotes.html"
 	e = parse.tree(parse.URL(url), parse.Expat(ns=True), parse.Node(pool=pool, base=base), validate=False)
 	e = e[qel_xmlns.quotations][0]
-	e = e.compact().conv()
+	e = e.compacted().conv()
 	print e.bytes(base=base, encoding="iso-8859-1", validate=False)

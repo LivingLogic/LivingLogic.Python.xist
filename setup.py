@@ -227,7 +227,7 @@ else:
 
 args = dict(
 	name="ll-xist",
-	version="3.24.1",
+	version="3.25",
 	description="Extensible HTML/XML generator, cross-platform templating language, Oracle utilities and various other tools",
 	long_description=description,
 	author="Walter Doerwald",
@@ -252,6 +252,7 @@ args = dict(
 			"uls = ll.scripts.uls:main",
 			"ucp = ll.scripts.ucp:main",
 			"ucat = ll.scripts.ucat:main",
+			"uhpp = ll.xist.scripts.uhpp:main",
 			"db2ul4 = ll.scripts.db2ul4:main",
 			"dtd2xsc = ll.xist.scripts.dtd2xsc:main",
 			"tld2xsc = ll.xist.scripts.tld2xsc:main",
@@ -270,6 +271,7 @@ args = dict(
 		"scripts/uls.py",
 		"scripts/ucp.py",
 		"scripts/ucat.py",
+		"scripts/uhpp.py",
 		"scripts/db2ul4.py",
 		"scripts/dtd2xsc.py",
 		"scripts/tld2xsc.py",

@@ -1308,7 +1308,7 @@ class Node(object):
 		from ll.xist import xfind
 		return xfind.makewalkfilter(walkfilter).walkpaths(self)
 
-	def compact(self):
+	def compacted(self):
 		"""
 		Return a version of :var:`self`, where textnodes or character references
 		that contain only linefeeds are removed, i.e. potentially useless
@@ -1646,11 +1646,8 @@ class Text(CharacterData):
 	def present(self, presenter):
 		return presenter.presentText(self) # return a generator-iterator
 
-	def compact(self):
-		if self.content.isspace():
-			return Null
-		else:
-			return self
+	def compacted(self):
+		return Null if self.content.isspace() else self
 
 	def pretty(self, level=0, indent="\t"):
 		return self
@@ -1897,10 +1894,10 @@ class Frag(Node, list):
 		other = Frag(*others)
 		list.__setslice__(self, index, index, other)
 
-	def compact(self):
+	def compacted(self):
 		node = self._create()
 		for child in self:
-			compactedchild = child.compact()
+			compactedchild = child.compacted()
 			assert isinstance(compactedchild, Node), "the compact method returned the illegal object {!r} (type {!r}) when compacting {!r}".format(compactedchild, type(compactedchild), child)
 			if compactedchild is not Null:
 				list.append(node, compactedchild)
@@ -2559,11 +2556,11 @@ class Attrs(Node, dict):
 			node[value.__class__] = newvalue
 		return node
 
-	def compact(self):
+	def compacted(self):
 		node = self._create()
 		for value in self.values():
-			newvalue = value.compact()
-			assert isinstance(newvalue, Node), "the compact method returned the illegal object {0!r} (type {1!r}) when compacting the attribute {2.__class__.__name__} with the value {2!r}".format(newvalue, type(newvalue), value)
+			newvalue = value.compacted()
+			assert isinstance(newvalue, Node), "the compacted method returned the illegal object {0!r} (type {1!r}) when compacting the attribute {2.__class__.__name__} with the value {2!r}".format(newvalue, type(newvalue), value)
 			node[value.__class__] = newvalue
 		return node
 
@@ -2595,7 +2592,12 @@ class Attrs(Node, dict):
 	def publish(self, publisher):
 		if publisher.validate:
 			self.checkvalid()
-		for value in self.values():
+
+		def clarkname(attr):
+			return nsclark(attr.xmlns) + attr.xmlname
+
+		# Output the attributes sorted by their "clark" name to get deterministic output
+		for value in sorted(self.values(), key=clarkname):
 			for part in value.publish(publisher):
 				yield part
 
@@ -3361,10 +3363,10 @@ class Element(Node):
 	def __iter__(self):
 		return iter(self.content)
 
-	def compact(self):
+	def compacted(self):
 		node = self.__class__()
-		node.content = self.content.compact()
-		node.attrs = self.attrs.compact()
+		node.content = self.content.compacted()
+		node.attrs = self.attrs.compacted()
 		return self._decoratenode(node)
 
 	def withsep(self, separator, clone=False):
@@ -3536,7 +3538,7 @@ class Entity(Node):
 	def __eq__(self, other):
 		return self.__class__ is other.__class__
 
-	def compact(self):
+	def compacted(self):
 		return self
 
 	def present(self, presenter):

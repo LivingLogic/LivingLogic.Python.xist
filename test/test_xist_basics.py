@@ -126,7 +126,7 @@ def test_len():
 
 def test_standardmethods():
 	for node in common.allnodes():
-		node.compact()
+		node.compacted()
 		node.normalized()
 		list(node.walk((True, xfind.enterattrs, xfind.entercontent)))
 		list(node.walknodes((True, xfind.enterattrs, xfind.entercontent)))
@@ -134,7 +134,7 @@ def test_standardmethods():
 		node.pretty()
 		node.clone()
 		node.conv()
-		node.normalized().compact().pretty()
+		node.normalized().compacted().pretty()
 
 
 def test_standardmethods2():

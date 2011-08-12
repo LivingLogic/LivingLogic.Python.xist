@@ -95,7 +95,7 @@ def test_nsparse():
 		)
 	)
 	node = parse.tree(xml, parse.Expat(), parse.NS(x=ihtml), parse.Node())
-	node = node.walknodes(xsc.Element)[0].compact() # get rid of the Frag and whitespace
+	node = node.walknodes(xsc.Element)[0].compacted() # get rid of the Frag and whitespace
 	assert node == check
 
 

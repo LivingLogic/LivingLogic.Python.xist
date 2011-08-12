@@ -1,3 +1,17 @@
+Changes in 3.25 (released 08/12/2011)
+---------------------------------------
+
+*	:class:`ll.xist.parse.Tidy` will now output the attribute events in sorted
+	order. Publishing an XIST node will output the attributes in sorted order too.
+
+*	The :meth:`compact` method has been renamed to :meth:`compacted` to avoid
+	collisions with the ``compact`` attribute in HTML elements.
+
+*	A new script ``uhpp`` has been added, that can be used for prett printing
+	HTML. As the attributes are output in alphabetical order it can also be used
+	as a tool for comparing HTML files.
+
+
 Changes in 3.24.1 (released 08/10/2011)
 ---------------------------------------
 

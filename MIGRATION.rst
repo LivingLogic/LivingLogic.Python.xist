@@ -1,3 +1,13 @@
+Migrating to version 3.25
+=========================
+
+Changes to XIST
+---------------
+
+*	The :meth:`compact` method has been renamed to :meth:`compacted` to avoid
+	collisions with the ``compact`` attribute in HTML elements.
+
+
 Migrating to version 3.24
 =========================
 
