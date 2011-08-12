@@ -70,7 +70,7 @@ def main(args=None):
 		node = node.pretty()
 		print node.bytes(encoding=args.encoding)
 
-	p = argparse.ArgumentParser(description="pretty print XML and HTML files", epilog="For more info see http://www.livinglogic.de/Python/scripts/uxpp.html")
+	p = argparse.ArgumentParser(description="pretty print HTML files", epilog="For more info see http://www.livinglogic.de/Python/scripts/uxpp.html")
 	p.add_argument("urls", metavar="url", help="URLs to be pretty printed", nargs="*", type=url.URL)
 	p.add_argument("-v", "--verbose", dest="verbose", help="Ouput parse warnings?", action=misc.FlagAction, default=False)
 	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for output (default: %(default)s)", default="utf-8")
