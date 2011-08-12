@@ -134,7 +134,7 @@ class Error(Exception):
 		module = exc.__class__.__module__
 		if module != "exceptions":
 			name = "{}.{}".format(module, name)
-		return "{} {} {}".format(" ".join("in {}:".format(location) for location in path), name, exc)
+		return "{} {}: {}".format(" ".join("in {}:".format(location) for location in path), name, exc)
 
 
 class LexicalError(Exception):
