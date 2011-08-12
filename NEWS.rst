@@ -1,5 +1,5 @@
 Changes in 3.25 (released 08/12/2011)
----------------------------------------
+-------------------------------------
 
 *	:class:`ll.xist.parse.Tidy` will now output the attribute events in sorted
 	order. Publishing an XIST node will output the attributes in sorted order too.
