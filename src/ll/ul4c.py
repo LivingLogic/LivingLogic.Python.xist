@@ -717,6 +717,8 @@ class Template(object):
 			self.opcodes.append(Opcode(code, r1, r2, r3, r4, r5, arg, location))
 			if code == "def":
 				defnames.append(arg)
+			elif code == "end" and arg == "def":
+				defnames.pop()
 		return self
 
 	@classmethod
