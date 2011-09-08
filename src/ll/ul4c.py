@@ -1293,7 +1293,7 @@ class PythonSource(object):
 		self.indent += 1
 	def _dispatch_endif(self, opcode):
 		if self.lastopcode in ("if", "else"):
-			lines[-1] += " pass"
+			self.lines[-1] += " pass"
 		self.indent -= 1
 	def _dispatch_def(self, opcode):
 		self._line(opcode.location, "def _template_{}(**variables):".format(opcode.arg))
@@ -1346,6 +1346,14 @@ class PythonSource(object):
 		self._line(opcode.location, "r{op.r1:d} = abs(r{op.r2:d})".format(op=opcode))
 	def _dispatch_callfunc1_enum(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = enumerate(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_enumfl(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = ul4c._enumfl(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_firstlast(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = ul4c._firstlast(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_first(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = ul4c._first(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_last(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = ul4c._last(r{op.r2:d})".format(op=opcode))
 	def _dispatch_callfunc1_isnone(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d} is None".format(op=opcode))
 	def _dispatch_callfunc1_isstr(self, opcode):
@@ -3163,6 +3171,14 @@ class ForParser(ExprParser):
 	def for3b(self, _0, iter1, _1, iter2, _2, iter3, _3, _4, _5, cont):
 		return For(_0.start, cont.end, [iter1, iter2, iter3], cont)
 
+	@spark.production('for ::= ( name , name , name , name ) in expr0')
+	def for4a(self, _0, iter1, _1, iter2, _2, iter3, _3, iter4, _5, _6, cont):
+		return For(_0.start, cont.end, [iter1, iter2, iter3, iter4], cont)
+
+	@spark.production('for ::= ( name , name , name , name , ) in expr0')
+	def for4b(self, _0, iter1, _1, iter2, _2, iter3, _3, iter4, _5, _6, cont):
+		return For(_0.start, cont.end, [iter1, iter2, iter3, iter4], cont)
+
 
 class StmtParser(ExprParser):
 	emptyerror = "statement required"
@@ -3301,6 +3317,82 @@ def _json(obj):
 		return obj.jssource()
 	else:
 		raise TypeError("can't handle object of type {}".format(type(obj)))
+
+
+def _enumfl(obj):
+	"""
+	Helper for the ``enumfl`` function.
+	"""
+	lastitem = None
+	first = True
+	i = 0
+	it = iter(obj)
+	try:
+		item = it.next()
+	except StopIteration:
+		return
+	while True:
+		try:
+			(lastitem, item) = (item, it.next())
+		except StopIteration:
+			yield (i, first, True, item) # Items haven't been swapped yet
+			return
+		else:
+			yield (i, first, False, lastitem)
+			first = False
+		i += 1
+
+
+def _firstlast(obj):
+	"""
+	Helper for the ``firstlast`` function.
+	"""
+	lastitem = None
+	first = True
+	it = iter(obj)
+	try:
+		item = it.next()
+	except StopIteration:
+		return
+	while True:
+		try:
+			(lastitem, item) = (item, it.next())
+		except StopIteration:
+			yield (first, True, item) # Items haven't been swapped yet
+			return
+		else:
+			yield (first, False, lastitem)
+			first = False
+
+
+def _first(obj):
+	"""
+	Helper for the ``first`` function.
+	"""
+	first = True
+	for item in obj:
+		yield (first, item)
+		first = False
+
+
+def _last(obj):
+	"""
+	Helper for the ``last`` function.
+	"""
+	lastitem = None
+	it = iter(obj)
+	try:
+		item = it.next()
+	except StopIteration:
+		return
+	while True:
+		try:
+			(lastitem, item) = (item, it.next())
+		except StopIteration:
+			yield (True, item) # Items haven't been swapped yet
+			return
+		else:
+			yield (False, lastitem)
 
 
 def _oct(value):

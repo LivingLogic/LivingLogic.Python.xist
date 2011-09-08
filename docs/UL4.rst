@@ -626,17 +626,90 @@ is returned. If ``v`` is not given, it defaults to ``None``.
 or dictionary.
 
 
-``enumerate``
+``firstlast``
 :::::::::::::
+
+Iterates through items of the argument (which must be iterable, i.e. a string,
+a list or dictionary) and gives information about whether the item is the first
+and/or last in the iterable. For example the following code::
+
+	<?for (f, l, c) in firstlast("foo")?>
+		<?if f?>[<?end if?>
+		(<?print c?>)
+		<?if l?>]<?end if?>
+	<?end for?>
+
+prints::
+
+	[(f)(o)(o)]
+
+
+``first``
+:::::::::
+
+Iterates through items of the argument (which must be iterable, i.e. a string,
+a list or dictionary) and gives information about whether the item is the first
+in the iterable. For example the following code::
+
+	<?for (f, c) in first("foo")?>
+		<?if f?>[<?end if?>
+		(<?print c?>)
+	<?end for?>
+
+prints::
+
+	[(f)(o)(o)
+
+
+``last``
+::::::::
+
+Iterates through items of the argument (which must be iterable, i.e. a string,
+a list or dictionary) and gives information about whether the item is the last
+in the iterable. For example the following code::
+
+	<?for (l, c) in firstlast("foo")?>
+		(<?print c?>)
+		<?if l?>]<?end if?>
+	<?end for?>
+
+prints::
+
+	(f)(o)(o)]
+
+
+``enum``
+::::::::
 
 Enumerates the items of the argument (which must be iterable, i.e. a string,
 a list or dictionary). For example the following code::
 
-	<?for (i, c) in enumerate("foo")?><?print i?>=<?print c?>;<?end for?>
+	<?for (i, c) in enum("foo")?>
+		(<?print c?>=<?print i?>)
+	<?end for?>
 
 prints::
 
-	0=f;1=o;2=o;
+	(f=0)(o=1)(o=2)
+
+
+``enumfl``
+::::::::::
+
+This function is a combination of ``firstlast`` and ``enum``. It iterates
+through items of the argument (which must be iterable, i.e. a string, a list
+or dictionary) and gives information about whether the item is the first
+and/or last in the iterable and its position. For example the following code::
+
+	<?for (i, f, l, c) in enumfl("foo")?>
+		<?if f?>[<?end if?>
+		(<?print c?>=<?print i?>)
+		<?if l?>]<?end if?>
+	<?end for?>
+
+prints::
+
+	[(f=0)(o=1)(o=2)]
 
 
 ``xmlescape``

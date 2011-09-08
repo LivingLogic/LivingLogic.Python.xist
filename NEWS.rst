@@ -3,6 +3,10 @@ Changes in 3.26 (released ??/??/2011)
 
 *	The UL4 function ``enumerate`` has been renamed to ``enum``.
 
+*	The following new functions have been added to UL4: ``first``, ``last``,
+	``firstlast``, ``enumfl``. They are variants of ``enumerate``/``enum`` that
+	give information about whether the item is the first and/or last item.
+
 
 Changes in 3.25 (released 08/12/2011)
 -------------------------------------
