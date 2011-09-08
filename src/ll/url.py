@@ -1201,7 +1201,7 @@ class Resource(object):
 		return imagesize
 
 	def __repr__(self):
-		return "<{0}{1.__class__.__module__}.{1.__class__.__name__} {1.name}, mode {1.mode} at {2:#x}>".format("closed" if self.closed else "open", self, id(self))
+		return "<{0} {1.__class__.__module__}.{1.__class__.__name__} {1.name}, mode {1.mode} at {2:#x}>".format("closed" if self.closed else "open", self, id(self))
 
 
 class FileResource(Resource, file):
