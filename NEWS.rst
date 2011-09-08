@@ -1,3 +1,9 @@
+Changes in 3.26 (released ??/??/2011)
+-------------------------------------
+
+*	The UL4 function ``enumerate`` has been renamed to ``enum``.
+
+
 Changes in 3.25 (released 08/12/2011)
 -------------------------------------
 

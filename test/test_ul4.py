@@ -1039,11 +1039,11 @@ def test_function_len():
 
 
 @py.test.mark.ul4
-def test_function_enumerate():
-	code = u"<?for (i, value) in enumerate(data)?><?print i?>:<?print value?>\n<?end for?>"
+def test_function_enum():
+	code = u"<?for (i, value) in enum(data)?><?print i?>:<?print value?>\n<?end for?>"
 	for r in all_renderers:
-		yield raises, "enumerate.*unknown", r(u"<?print enumerate()?>")
-		yield raises, "enumerate.*unknown", r(u"<?print enumerate(1, 2)?>")
+		yield raises, "enum.*unknown", r(u"<?print enum()?>")
+		yield raises, "enum.*unknown", r(u"<?print enum(1, 2)?>")
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=None)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=True)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=False)

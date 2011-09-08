@@ -1,3 +1,12 @@
+Migrating to version 3.26
+=========================
+
+Changes to UL4
+--------------
+
+*	The UL4 function ``enumerate`` has been renamed to ``enum``.
+
+
 Migrating to version 3.25
 =========================
 
