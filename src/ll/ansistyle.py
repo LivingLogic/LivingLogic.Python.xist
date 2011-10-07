@@ -148,7 +148,7 @@ class Text(list):
 		return self
 
 	def insert(self, index, *others):
-		list.__setslice__(self, index, index, list(others))
+		list.__setitem__(self, slice(index, index), list(others))
 
 	def __repr__(self):
 		return "%s.%s(%s)" % (self.__class__.__module__, self.__class__.__name__, list.__repr__(self)[1:-1])

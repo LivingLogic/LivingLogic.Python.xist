@@ -1621,38 +1621,33 @@ class Path(object):
 		return len(self.segments)
 
 	def __getitem__(self, index):
-		return self.segments[index]
+		if isinstance(index, slice):
+			# Return of slice of the path. The resulting path will always be relative, i.e. the leading ``/`` will be dropped.
+			return Path(self.segments[index])
+		else:
+			return self.segments[index]
 
 	def __setitem__(self, index, value):
 		segments = self.segments
-		segments[index] = self._fixsegment(value)
-		self._path = self._prefix(self._path) + self._segments2path(segments)
+		if isinstance(index, slice):
+			segments[index1:index2] = map(self._fixsegment, seq)
+			self._path = self._prefix(self._path) + self._segments2path(segments)
+		else:
+			segments[index] = self._fixsegment(value)
+			self._path = self._prefix(self._path) + self._segments2path(segments)
 		self._segments = segments
 
 	def __delitem__(self, index):
-		segments = self.segments
-		del segments[index]
-		self._path = self._segments2path(segments)
-		self._segments = segments
+		if isinstance(index, slice):
+			del self.segments[index1:index2]
+		else:
+			segments = self.segments
+			del segments[index]
+			self._path = self._segments2path(segments)
+			self._segments = segments
 
 	def __contains__(self, item):
 		return self._fixsegment(item) in self.segments
-
-	def __getslice__(self, index1, index2):
-		"""
-		Return of slice of the path. The resulting path will always be relative,
-		i.e. the leading ``/`` will be dropped.
-		"""
-		return Path(self.segments[index1:index2])
-
-	def __setslice__(self, index1, index2, seq):
-		segments = self.segments
-		segments[index1:index2] = map(self._fixsegment, seq)
-		self._path = self._prefix(self._path) + self._segments2path(segments)
-		self._segments = segments
-
-	def __delslice__(self, index1, index2):
-		del self.segments[index1:index2]
 
 	class isabs(misc.propclass):
 		"""

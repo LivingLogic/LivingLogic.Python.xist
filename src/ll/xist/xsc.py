@@ -1522,9 +1522,6 @@ class CharacterData(Node):
 	def __rmul__(self, n):
 		return self.__class__(n * self._content)
 
-	def __getslice__(self, index1, index2):
-		return self.__class__(self._content.__getslice__(index1, index2))
-
 	def capitalize(self):
 		return self.__class__(self._content.capitalize())
 
@@ -1761,7 +1758,9 @@ class Frag(Node, list):
 		elif isinstance(index, int):
 			return list.__getitem__(self, index)
 		elif isinstance(index, slice):
-			return self.__class__(list.__getitem__(self, index))
+			node = self._create()
+			list.extend(node, list.__getitem__(self, index))
+			return node
 		else:
 			from ll.xist import xfind
 			def iterate(matcher):
@@ -1792,9 +1791,9 @@ class Frag(Node, list):
 			value = Frag(value)
 			if index==-1:
 				l = len(self)
-				list.__setslice__(self, l-1, l, value)
+				list.__setitem__(self, slice(l-1, l), value)
 			else:
-				list.__setslice__(self, index, index+1, value)
+				list.__setitem__(self, slice(index, index+1), value)
 		elif isinstance(index, slice):
 			list.__setitem__(self, index, Frag(value))
 		else:
@@ -1809,7 +1808,7 @@ class Frag(Node, list):
 					newcontent.extend(value)
 				else:
 					newcontent.append(child)
-			list.__setslice__(self, 0, len(self), newcontent)
+			list.__setitem__(self, slice(0, len(self)), newcontent)
 
 	def __delitem__(self, index):
 		"""
@@ -1832,23 +1831,7 @@ class Frag(Node, list):
 		else:
 			from ll.xist import xfind
 			matcher = xfind.makewalkfilter(index).matchpath
-			list.__setslice__(self, 0, len(self), [child for child in self if not matcher([self, child])])
-
-	def __getslice__(self, index1, index2):
-		"""
-		Returns a slice of the content of the fragment.
-		"""
-		node = self._create()
-		list.extend(node, list.__getslice__(self, index1, index2))
-		return node
-
-	def __setslice__(self, index1, index2, sequence):
-		"""
-		Replace a slice of the content of the fragment
-		"""
-		list.__setslice__(self, index1, index2, Frag(sequence))
-
-	# no need to implement __delslice__
+			list.__setitem__(self, slice(0, len(self)), [child for child in self if not matcher([self, child])])
 
 	def __mul__(self, factor):
 		"""
@@ -1891,7 +1874,7 @@ class Frag(Node, list):
 		the same as ``self[index:index] = others``)
 		"""
 		other = Frag(*others)
-		list.__setslice__(self, index, index, other)
+		list.__setitem__(self, slice(index, index), other)
 
 	def compacted(self):
 		node = self._create()
@@ -3326,24 +3309,6 @@ class Element(Node, metaclass=_Element_Meta):
 			matcher = xfind.makewalkfilter(index).matchpath
 			self.content = Frag(child for child in self if not matcher([self, child]))
 
-	def __getslice__(self, index1, index2):
-		"""
-		Return a copy of the element that contains a slice of the content.
-		"""
-		return self.content[index1:index2]
-
-	def __setslice__(self, index1, index2, sequence):
-		"""
-		Replace a slice of the content of the element.
-		"""
-		self.content[index1:index2] = sequence
-
-	def __delslice__(self, index1, index2):
-		"""
-		Remove a slice of the content of the element.
-		"""
-		del self.content[index1:index2]
-
 	def __iadd__(self, other):
 		self.extend(other)
 		return self
@@ -3587,9 +3552,6 @@ class CharRef(Text, Entity, metaclass=_CharRef_Meta):
 
 	def __rmul__(self, n):
 		return Text(n * self.content)
-
-	def __getslice__(self, index1, index2):
-		return Text(self.content.__getslice__(index1, index2))
 
 	def capitalize(self):
 		return Text(self.content.capitalize())
