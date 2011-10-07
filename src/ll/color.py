@@ -257,8 +257,11 @@ class Color(tuple):
 	def __rmul__(self, factor):
 		return self.__class__(factor*self[0], factor*self[1], factor*self[2], self[3])
 
-	def __div__(self, factor):
+	def __truediv__(self, factor):
 		return self.__class__(self[0]/factor, self[1]/factor, self[2]/factor, self[3])
+
+	def __floordiv__(self, factor):
+		return self.__class__(self[0]//factor, self[1]//factor, self[2]//factor, self[3])
 
 	def __mod__(self, other):
 		"""
