@@ -2844,7 +2844,7 @@ Changes in 1.0 (released 06/18/2001)
 	following XML::
 
 		<if lang="en">Title
-		<elif lang="de">Überschrift
+		<elif lang="de">Ãœberschrift
 		</if>
 
 *	URL handling has be completely changed and is much, much simpler now. There
