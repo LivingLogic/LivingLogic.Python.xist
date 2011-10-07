@@ -86,9 +86,9 @@ static PyObject *_switchcolor(PyObject *self, PyObject *args)
 
 		*p++ = 'm';
 
-		return PyBytes_FromStringAndSize(buffer, p-buffer);
+		return PyUnicode_FromStringAndSize(buffer, p-buffer);
 	}
-	return PyBytes_FromStringAndSize(NULL, 0);
+	return PyUnicode_FromStringAndSize(NULL, 0);
 }
 
 
