@@ -878,7 +878,7 @@ class Publisher(object):
 		"""
 		Return a byte string in XML format for the XIST node :var:`node`.
 		"""
-		return "".join(self.iterbytes(node, base))
+		return b"".join(self.iterbytes(node, base))
 
 	def iterstring(self, node, base=None):
 		"""
@@ -889,7 +889,7 @@ class Publisher(object):
 			part = decoder.decode(part, False)
 			if part:
 				yield part
-		part = decoder.decode("", True)
+		part = decoder.decode(b"", True)
 		if part:
 			yield part
 
@@ -2777,7 +2777,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 			if mapping is not None:
 				if isinstance(mapping, Attrs):
 					# This makes sure that global attributes are copied properly
-					for value in mapping._iterallvalues():
+					for value in mapping._allvalues():
 						self[value.__class__] = value
 				else:
 					for (attrname, attrvalue) in mapping.items():
@@ -2834,31 +2834,31 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		return misc.count(self.values())
 
 	def keys(self):
-		for value in dict.itervalues(self):
+		for value in dict.values(self):
 			if value:
 				yield value.__class__
 
 	iterkeys = __iter__ = keys
 
 	def values(self):
-		for value in dict.itervalues(self):
+		for value in dict.values(self):
 			if value:
 				yield value
 
 	itervalues = values
 
 	def items(self):
-		for value in dict.itervalues(self):
+		for value in dict.values(self):
 			if value:
 				yield (value.__class__, value)
 
 	iteritems = items
 
-	def _iterallvalues(self):
+	def _allvalues(self):
 		"""
 		Iterate through all values, even the unset ones.
 		"""
-		return dict.itervalues(self)
+		return dict.values(self)
 
 	def attr(self, name):
 		attr = self.allowedattr(name)
