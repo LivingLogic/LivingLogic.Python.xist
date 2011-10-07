@@ -93,7 +93,7 @@ The output will be::
 """
 
 
-import sys, argparse, cStringIO
+import sys, argparse, io
 
 from ll import misc, url
 from ll.xist import xsc, xnd, sims
@@ -134,7 +134,7 @@ def addetree2xnd(ns, node, elements):
 				xndnode = xnd.Element(name, xmlns=xmlns)
 				ns += xndnode
 				elements[(name, xmlns)] = set()
-			for attrname in node.keys():
+			for attrname in list(node.keys()):
 				if not attrname.startswith("{") and attrname not in xndnode.attrs:
 					xndnode += xnd.Attr(attrname, type=xsc.TextAttr)
 		elif "ProcessingInstruction" in type(node).__name__:
@@ -143,7 +143,7 @@ def addetree2xnd(ns, node, elements):
 				ns += xnd.ProcInst(name)
 		elif "Comment" in type(node).__name__:
 			xndnode = "#comment"
-		elif isinstance(node, basestring):
+		elif isinstance(node, str):
 			if node.isspace():
 				xndnode = "#whitespace"
 			else:
@@ -165,7 +165,7 @@ def makexnd(urls, parser="etree", shareattrs="dupes", model="simple", defaultxml
 			if isinstance(u, url.URL):
 				u = u.openread()
 			elif isinstance(u, str):
-				u = cStringIO.StringIO(u)
+				u = io.StringIO(u)
 			if parser == "etree":
 				from xml.etree import cElementTree
 				node = cElementTree.parse(u).getroot()
@@ -180,10 +180,10 @@ def makexnd(urls, parser="etree", shareattrs="dupes", model="simple", defaultxml
 	if model == "none":
 		pass
 	elif model == "simple":
-		for (fullname, modelset) in elements.iteritems():
+		for (fullname, modelset) in elements.items():
 			ns.elements[fullname].modeltype = bool(modelset)
 	elif model in ("fullall", "fullonce"):
-		for (fullname, modelset) in elements.iteritems():
+		for (fullname, modelset) in elements.items():
 			element = ns.elements[fullname]
 			if not modelset:
 				element.modeltype = "sims.Empty"
@@ -219,7 +219,7 @@ def main(args=None):
 	p.add_argument("-x", "--defaultxmlns", dest="defaultxmlns", metavar="NAME", help="Force elements without a namespace into this namespace")
 
 	args = p.parse_args(args)
-	print makexnd(**args.__dict__)
+	print(makexnd(**args.__dict__))
 
 
 if __name__ == "__main__":

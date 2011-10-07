@@ -72,7 +72,7 @@ def main(args=None):
 	p.add_argument("-m", "--model", dest="model", help="Add sims information to the namespace (default %(default)s)", choices=("none", "simple", "fullall", "fullonce"), default="simple")
 
 	args = p.parse_args(args)
-	print makexnd(sys.stdin, args.shareattrs, model=args.model)
+	print(makexnd(sys.stdin, args.shareattrs, model=args.model))
 
 
 if __name__ == "__main__":

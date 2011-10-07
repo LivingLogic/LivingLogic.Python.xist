@@ -76,7 +76,7 @@ __docformat__ = "reStructuredText"
 
 
 def literaldecode(exc):
-	return (u"".join(u"[%02x]" % ord(c) for c in exc.object[exc.start:exc.end]), exc.end)
+	return ("".join("[%02x]" % ord(c) for c in exc.object[exc.start:exc.end]), exc.end)
 
 codecs.register_error("literaldecode", literaldecode)
 
@@ -211,29 +211,29 @@ class Job(object):
 
 	noisykills = False
 
-	logfilename = u"~/ll.sisyphus/<?print projectname?>/<?print jobname?>/<?print starttime.format('%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog"
-	loglinkname = u"~/ll.sisyphus/<?print projectname?>/<?print jobname?>/current.sisyphuslog"
+	logfilename = "~/ll.sisyphus/<?print projectname?>/<?print jobname?>/<?print starttime.format('%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog"
+	loglinkname = "~/ll.sisyphus/<?print projectname?>/<?print jobname?>/current.sisyphuslog"
 
 	log2file = True
 	log2stdout = False
 	log2stderr = False
 
-	formatlogline = u"[<?print time?>]=[t+<?print time-starttime?>]<?for tag in tags?>[<?print tag?>]<?end for?>: <?print line?>"
+	formatlogline = "[<?print time?>]=[t+<?print time-starttime?>]<?for tag in tags?>[<?print tag?>]<?end for?>: <?print line?>"
 
 	keepfilelogs = 30
 
-	inputencoding = u"utf-8"
-	inputerrors = u"literaldecode"
+	inputencoding = "utf-8"
+	inputerrors = "literaldecode"
 
-	outputencoding = u"utf-8"
-	outputerrors = u"strict"
+	outputencoding = "utf-8"
+	outputerrors = "strict"
 
 	def execute(self):
 		"""
 		Execute the job once. The return value is a one line summary of what the
 		job did. Overwrite in subclasses.
 		"""
-		return u"done"
+		return "done"
 
 	def failed(self):
 		"""
@@ -290,20 +290,20 @@ class Job(object):
 		os.kill(self.killpid, signal.SIGTERM) # Kill our child
 		maxtime = datetime.timedelta(seconds=self.maxtime)
 		if self._logfile is not None:
-			self.log.sisyphus.result.kill(u"Terminated child after {}".format(maxtime))
+			self.log.sisyphus.result.kill("Terminated child after {}".format(maxtime))
 			self._logfile.close()
 		if self.noisykills:
-			print "Terminated forked job {} (pid {}) after {}".format(self.info.sysinfo.scriptname, self.info.sysinfo.pid, maxtime)
+			print("Terminated forked job {} (pid {}) after {}".format(self.info.sysinfo.scriptname, self.info.sysinfo.pid, maxtime))
 		os._exit(1)
 
 	def _alarm_nofork(self, signum, frame):
 		self._prefix = ""
 		maxtime = datetime.timedelta(seconds=self.maxtime)
 		if self._logfile is not None:
-			self.log.sisyphus.result.kill(u"Terminated after {}".format(maxtime))
+			self.log.sisyphus.result.kill("Terminated after {}".format(maxtime))
 			self._logfile.close()
 		if self.noisykills:
-			print "Terminated job {} (pid {}) after {}".format(self.info.sysinfo.scriptname, self.info.sysinfo.pid, maxtime)
+			print("Terminated job {} (pid {}) after {}".format(self.info.sysinfo.scriptname, self.info.sysinfo.pid, maxtime))
 		os._exit(1)
 
 	def _handleexecution(self):
@@ -321,7 +321,7 @@ class Job(object):
 		with open(self.info.sysinfo.scriptname, "rb") as f:
 			try:
 				fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-			except IOError, exc:
+			except IOError as exc:
 				if exc[0] not in (errno.EACCES, errno.EAGAIN): # some other error
 					raise
 				# The previous invocation of the job is still running
@@ -334,10 +334,10 @@ class Job(object):
 			self._getcrontab() # Get crontab
 			self.lineno = 1 # Current line number
 			self.log = Tag(self._log) # Create tagged logger
-			self._formatlogline = ul4c.Template(self.formatlogline.replace("\n", "").replace("\r", "") + u"\n", "formatlogline") # Log line formatting template
+			self._formatlogline = ul4c.Template(self.formatlogline.replace("\n", "").replace("\r", "") + "\n", "formatlogline") # Log line formatting template
 			self._createlog() # Create log file and link
 
-			self.log.sisyphus.init(u"{} (max time {}; pid {})".format(self.info.sysinfo.scriptname, datetime.timedelta(seconds=self.maxtime), self.info.sysinfo.pid))
+			self.log.sisyphus.init("{} (max time {}; pid {})".format(self.info.sysinfo.scriptname, datetime.timedelta(seconds=self.maxtime), self.info.sysinfo.pid))
 
 			if self.fork: # Forking mode?
 				# Fork the process; the child will do the work; the parent will monitor the maximum runtime
@@ -348,7 +348,7 @@ class Job(object):
 					signal.alarm(self.maxtime)
 					os.wait() # Wait for the child process to terminate
 					return # Exit normally
-				self.log.sisyphus.init(u"forked worker child (child pid {})".format(os.getpid()))
+				self.log.sisyphus.init("forked worker child (child pid {})".format(os.getpid()))
 			else: # We didn't fork
 				# set a signal to kill ourselves after the maximum runtime
 				signal.signal(signal.SIGALRM, self._alarm_nofork)
@@ -358,10 +358,10 @@ class Job(object):
 				with url.Context():
 					result = self.execute()
 				self._cleanupoldlogs() # Clean up old logfiles
-			except BaseException, exc:
+			except BaseException as exc:
 				# log the error to the logfile, because the job probably didn't have a chance to do it
 				self.log.sisyphus.exc(exc)
-				result = u"failed with {}".format(self._exc(exc))
+				result = "failed with {}".format(self._exc(exc))
 				self.log.sisyphus.result.fail(result)
 				self.failed()
 				raise
@@ -401,9 +401,9 @@ class Job(object):
 				if isinstance(text, BaseException):
 					if "exc" not in tags:
 						tags += ("exc",)
-					tb = u"".join(map(self._string, traceback.format_tb(sys.exc_info()[-1])))
-					text = u"{tb}\n{exc}".format(tb=tb, exc=self._exc(text))
-				elif not isinstance(text, unicode):
+					tb = "".join(map(self._string, traceback.format_tb(sys.exc_info()[-1])))
+					text = "{tb}\n{exc}".format(tb=tb, exc=self._exc(text))
+				elif not isinstance(text, str):
 					text = self._string(pprint.pformat(text))
 				lines = text.splitlines()
 				if lines and not lines[-1].strip():
@@ -468,7 +468,7 @@ class Job(object):
 				lf = self._logfilename
 				try:
 					lf.symlink(ll)
-				except OSError, exc:
+				except OSError as exc:
 					if exc[0] == errno.EEXIST:
 						ll.remove()
 						lf.symlink(ll)
@@ -512,16 +512,16 @@ class Job(object):
 		Format an exception object for logging.
 		"""
 		if exc.__class__.__module__ not in ("__builtin__", "exceptions"):
-			fmt = u"{0.__class__.__module__}.{0.__class__.__name__}: {1}"
+			fmt = "{0.__class__.__module__}.{0.__class__.__name__}: {1}"
 		else:
-			fmt = u"{0.__class__.__name__}: {1}"
+			fmt = "{0.__class__.__name__}: {1}"
 		try:
-			strexc = unicode(exc)
+			strexc = str(exc)
 		except UnicodeError:
 			try:
 				strexc = str(exc).decode("iso-8859-1") # latin-1 might be wrong, but it will not produce an exception
 			except Exception:
-				strexc = u"?"
+				strexc = "?"
 		return fmt.format(exc, strexc)
 
 

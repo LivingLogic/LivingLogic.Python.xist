@@ -48,8 +48,8 @@ def production(pattern):
 def _sparknames(cls):
 	names = set()
 	for c in cls.__mro__:
-		for meth in sorted((m for m in c.__dict__.itervalues() if hasattr(m, 'spark')), key=lambda m:m.func_code.co_firstlineno):
-			name = meth.func_name
+		for meth in sorted((m for m in c.__dict__.values() if hasattr(m, 'spark')), key=lambda m:m.__code__.co_firstlineno):
+			name = meth.__name__
 			if name not in names:
 				yield name
 				names.add(name)
@@ -69,19 +69,19 @@ class Scanner(object):
 		res = {}
 		for name in _sparknames(cls):
 			func = getattr(cls, name)
-			for (mode, patterns) in func.spark.iteritems():
+			for (mode, patterns) in func.spark.items():
 				pattern = '(?P<%s>%s)' % (name, '|'.join(patterns))
 				if mode not in res:
 					res[mode] = []
 				res[mode].append(pattern)
-		for (mode, patterns) in res.iteritems():
+		for (mode, patterns) in res.items():
 			pattern = re.compile('|'.join(patterns), re.VERBOSE|cls.reflags)
-			index2func = {number-1: getattr(cls, name) for (name, number) in pattern.groupindex.iteritems()}
+			index2func = {number-1: getattr(cls, name) for (name, number) in pattern.groupindex.items()}
 			res[mode] = (pattern, index2func)
 		cls.res = res
 
 	def error(self, s, pos):
-		print "Lexical error at position {}".format(pos)
+		print("Lexical error at position {}".format(pos))
 		raise SystemExit
 
 	def tokenize(self, s):
@@ -102,7 +102,7 @@ class Scanner(object):
 
 	@token(r'( . | \n )+')
 	def default(self, start, end, s):
-		print "Specification error: unmatched input"
+		print("Specification error: unmatched input")
 		raise SystemExit
 
 #
@@ -170,7 +170,7 @@ class Parser(object):
 		cls.nullable = {}
 		tbd = []
 
-		for rulelist in cls.rules.values():
+		for rulelist in list(cls.rules.values()):
 			lhs = rulelist[0][0]
 			cls.nullable[lhs] = 0
 			for rule in rulelist:
@@ -207,7 +207,7 @@ class Parser(object):
 		cls.new2old = {}
 
 		worklist = []
-		for rulelist in cls.rules.values():
+		for rulelist in list(cls.rules.values()):
 			for rule in rulelist:
 				worklist.append((rule, 0, 1, rule))
 
@@ -262,14 +262,14 @@ class Parser(object):
 		return None
 
 	def error(self, token):
-		print "Syntax error at or near '{}' token".format(token)
+		print("Syntax error at or near '{}' token".format(token))
 		raise SystemExit
 
 	def parse(self, tokens):
 		sets = [ [(1,0), (2,0)] ]
 		self.links = {}
 
-		for i in xrange(len(tokens)):
+		for i in range(len(tokens)):
 			sets.append([])
 
 			if not sets[i]:
@@ -296,7 +296,8 @@ class Parser(object):
 		return sym.startswith(cls._NULLABLE)
 
 	@classmethod
-	def skip(cls, (lhs, rhs), pos=0):
+	def skip(cls, xxx_todo_changeme, pos=0):
+		(lhs, rhs) = xxx_todo_changeme
 		n = len(rhs)
 		while pos < n:
 			if not cls.isnullable(rhs[pos]):
@@ -560,7 +561,7 @@ class Parser(object):
 		rhs = rule[1]
 		attr = [None] * len(rhs)
 
-		for i in xrange(len(rhs)-1, -1, -1):
+		for i in range(len(rhs)-1, -1, -1):
 			attr[i] = self.deriveEpsilon(rhs[i])
 		return self.rule2func[self.new2old[rule]](self, *attr)
 
@@ -579,7 +580,7 @@ class Parser(object):
 		rhs = rule[1]
 		attr = [None] * len(rhs)
 
-		for i in xrange(len(rhs)-1, -1, -1):
+		for i in range(len(rhs)-1, -1, -1):
 			sym = rhs[i]
 			if sym not in self.newrules:
 				if sym != self._BOF:
@@ -604,13 +605,13 @@ class Parser(object):
 		#
 		sortlist = []
 		name2index = {}
-		for i in xrange(len(rules)):
+		for i in range(len(rules)):
 			lhs, rhs = rule = rules[i]
 			name = self.rule2func[self.new2old[rule]].__name__
 			sortlist.append((len(rhs), name))
 			name2index[name] = i
 		sortlist.sort()
-		list = map(lambda (a,b): b, sortlist)
+		list = [a_b[1] for a_b in sortlist]
 		return rules[name2index[self.resolve(list)]]
 
 	def resolve(self, list):

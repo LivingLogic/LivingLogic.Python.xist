@@ -18,12 +18,12 @@ look.
 to implement template renderers in multiple programming languages.
 """
 
-from __future__ import division
+
 
 __docformat__ = "reStructuredText"
 
 
-import re, datetime, StringIO, locale, json, collections
+import re, datetime, io, locale, json, collections
 
 from ll import spark, color, misc
 
@@ -669,7 +669,7 @@ class Template(object):
 				raise ValueError("invalid linefeed {!r}".format(c))
 
 		self = cls()
-		stream = StringIO.StringIO(data)
+		stream = io.StringIO(data)
 		header = stream.readline()
 		header = header.rstrip()
 		if header != "ul4":
@@ -678,17 +678,17 @@ class Template(object):
 		version = version.rstrip()
 		if version != self.version:
 			raise ValueError("invalid version, expected {!r}, got {!r}".format(self.version, version))
-		self.name = _readstr(u"N")
+		self.name = _readstr("N")
 		defnames.append(self.name)
 		_readcr()
-		self.startdelim = _readstr(u"SD")
+		self.startdelim = _readstr("SD")
 		_readcr()
-		self.enddelim = _readstr(u"ED")
+		self.enddelim = _readstr("ED")
 		_readcr()
 		self.source = _readstr("SRC")
 		self.opcodes = []
 		_readcr()
-		count = _readint(u"n")
+		count = _readint("n")
 		_readcr()
 		location = None
 		while count:
@@ -702,10 +702,10 @@ class Template(object):
 			locspec = stream.read(1)
 			if code == "enddef":
 				defnames.pop()
-			if locspec == u"^":
+			if locspec == "^":
 				if location is None:
 					raise ValueError("no previous location")
-			elif locspec == u"*":
+			elif locspec == "*":
 				locspec2 = stream.read(1)
 				if locspec2 != "|":
 					raise ValueError("invalid location spec {!r}".format(locspec + locspec2))
@@ -735,16 +735,16 @@ class Template(object):
 			if prefix is not None:
 				yield prefix
 			if number is not None:
-				yield unicode(number)
-			yield u"|"
+				yield str(number)
+			yield "|"
 
 		def _writestr(prefix, string):
 			yield prefix
 			if string is not None:
 				yield str(len(string))
-				yield u"|"
+				yield "|"
 				yield string
-			yield u"|"
+			yield "|"
 
 		yield "ul4\n{}\n".format(self.version)
 		for p in _writestr("N", self.name): yield p
@@ -768,7 +768,7 @@ class Template(object):
 			for p in _writestr("A", opcode.arg): yield p
 			if opcode.location is not lastlocation:
 				lastlocation = opcode.location
-				yield u"*|"
+				yield "*|"
 				for p in _writestr("T", lastlocation.type): yield p
 				for p in _writeint("st", lastlocation.starttag): yield p
 				for p in _writeint("et", lastlocation.endtag): yield p
@@ -815,7 +815,7 @@ class Template(object):
 		if self._pythonfunction is None:
 			code = self.pythonsource()
 			ns = {}
-			exec code.encode("utf-8") in ns # FIXME: no need to encode in Python 3
+			exec(code.encode("utf-8"), ns) # FIXME: no need to encode in Python 3
 			self._pythonfunction = ns[self.name]
 		return self._pythonfunction
 
@@ -828,14 +828,14 @@ class Template(object):
 		and :var:`kwargs` will be passed on to the :class:`PythonSource` object
 		which creates the sourcecode. See its constructor for more info.
 		"""
-		return unicode(PythonSource(self, *args, **kwargs))
+		return str(PythonSource(self, *args, **kwargs))
 
 	def jssource(self):
 		"""
 		Return the template as the source code of a Javascript function. A
 		:class:`JavascriptSource` object will be used to generated the sourcecode.
 		"""
-		return unicode(JavascriptSource(self))
+		return str(JavascriptSource(self))
 
 	def javasource(self, *args, **kwargs):
 		"""
@@ -843,7 +843,7 @@ class Template(object):
 		and :var:`kwargs` will be passed on to the :class:`JavaSource` object
 		which creates the sourcecode. See its constructor for more info.
 		"""
-		return unicode(JavaSource(self, *args, **kwargs))
+		return str(JavaSource(self, *args, **kwargs))
 
 	def format(self, indent="\t"):
 		"""
@@ -876,7 +876,7 @@ class Template(object):
 		This is a generator which produces :class:`Location` objects for each tag
 		or non-tag text. It will be called by :meth:`_compile` internally.
 		"""
-		pattern = u"{}(printx|print|code|for|if|elif|else|end|break|continue|render|def|note)(\s*((.|\\n)*?)\s*)?{}".format(re.escape(startdelim), re.escape(enddelim))
+		pattern = "{}(printx|print|code|for|if|elif|else|end|break|continue|render|def|note)(\s*((.|\\n)*?)\s*)?{}".format(re.escape(startdelim), re.escape(enddelim))
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
@@ -987,7 +987,7 @@ class Template(object):
 							raise BlockError("illegal end value {!r}".format(code))
 					last = stack.pop()
 					if last[0] == "if":
-						for i in xrange(last[2]):
+						for i in range(last[2]):
 							self.opcode("endif")
 					elif last[0] == "for":
 						self.opcode("endfor")
@@ -1011,7 +1011,7 @@ class Template(object):
 					stack.append(("def", location))
 				else: # Can't happen
 					raise ValueError("unknown tag {!r}".format(location.type))
-			except Exception, exc:
+			except Exception as exc:
 				newexc = Error(location) # FIXME: use ``raise ... from`` in Python 3
 				newexc.__cause__ = exc
 				raise newexc
@@ -1035,7 +1035,7 @@ class Template(object):
 		return "\n".join(self.format())
 
 	def __unicode__(self):
-		return u"\n".join(self.format())
+		return "\n".join(self.format())
 
 	def __repr__(self):
 		return "<{}.{} object with {} opcodes at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, len(self.opcodes), id(self))
@@ -1092,7 +1092,7 @@ class PythonSource(object):
 				except AttributeError:
 					raise UnknownOpcodeError(opcode.code)
 				self.lastopcode = opcode.code
-		except Exception, exc:
+		except Exception as exc:
 			newexc = Error(opcode.location) # FIXME: Use ``raise ... from`` in Python 3
 			newexc.__cause__ = exc
 			raise newexc
@@ -1462,14 +1462,14 @@ class JavascriptSource(object):
 		self._line("ul4.Template.create('{}', function(vars){{".format(self.template.name))
 		self._indent += 1
 
-		self._line(u"//@@@ BEGIN template source")
+		self._line("//@@@ BEGIN template source")
 		lines = self.template.source.splitlines(False)
 		width = len(str(len(lines)+1))
 		for (i, line) in enumerate(lines):
-			self._line(u"// {1:{0}} {2}".format(width, i+1, line))
-		self._line(u"//@@@ BEGIN template code")
+			self._line("// {1:{0}} {2}".format(width, i+1, line))
+		self._line("//@@@ BEGIN template code")
 
-		self._line(u"var out = [], {};".format(", ".join("r{} = null".format(i) for i in xrange(10))))
+		self._line("var out = [], {};".format(", ".join("r{} = null".format(i) for i in range(10))))
 
 		lastloc = None
 		for opcode in self.template.opcodes:
@@ -1477,14 +1477,14 @@ class JavascriptSource(object):
 				lastloc = opcode.location
 				(line, col) = lastloc.pos()
 				tag = lastloc.tag
-				self._line(u"// <?{}?> tag at position {} (line {}, col {}, template {}): {}".format(lastloc.type, lastloc.starttag+1, line, col, lastloc.name, repr(tag)[1+isinstance(tag, unicode):-1]))
+				self._line("// <?{}?> tag at position {} (line {}, col {}, template {}): {}".format(lastloc.type, lastloc.starttag+1, line, col, lastloc.name, repr(tag)[1+isinstance(tag, str):-1]))
 			try:
 				getattr(self, "_dispatch_{}".format(opcode.code))(opcode)
 			except AttributeError:
 				raise UnknownOpcodeError(opcode.code)
 
-		self._line(u'return out;')
-		self._line(u"//@@@ END template code")
+		self._line('return out;')
+		self._line("//@@@ END template code")
 
 		self._indent -= 1
 		self._line("})")
@@ -1492,230 +1492,230 @@ class JavascriptSource(object):
 		return "\n".join(self._lines)
 
 	def _line(self, line):
-		self._lines.append(u"\t"*self._indent + line)
+		self._lines.append("\t"*self._indent + line)
 
 	def _dispatch_None(self, opcode):
 		self._line("out.push({});".format(json.dumps(opcode.location.code)))
 	def _dispatch_loadstr(self, opcode):
-		self._line(u'r{op.r1} = {arg};'.format(op=opcode, arg=json.dumps(opcode.arg)))
+		self._line('r{op.r1} = {arg};'.format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _dispatch_loadint(self, opcode):
-		self._line(u"r{op.r1} = {op.arg};".format(op=opcode))
+		self._line("r{op.r1} = {op.arg};".format(op=opcode))
 	def _dispatch_loadfloat(self, opcode):
-		self._line(u"r{op.r1} = {op.arg};".format(op=opcode))
+		self._line("r{op.r1} = {op.arg};".format(op=opcode))
 	def _dispatch_loadnone(self, opcode):
-		self._line(u"r{op.r1} = null;".format(op=opcode))
+		self._line("r{op.r1} = null;".format(op=opcode))
 	def _dispatch_loadfalse(self, opcode):
-		self._line(u"r{op.r1} = false;".format(op=opcode))
+		self._line("r{op.r1} = false;".format(op=opcode))
 	def _dispatch_loadtrue(self, opcode):
-		self._line(u"r{op.r1} = true;".format(op=opcode))
+		self._line("r{op.r1} = true;".format(op=opcode))
 	def _dispatch_loaddate(self, opcode):
-		args = map(int, datesplitter.split(opcode.arg))
+		args = list(map(int, datesplitter.split(opcode.arg)))
 		args[1] -= 1
 		if len(args) == 7:
 			args[6] //= 1000
-		self._line(u"r{op.r1} = new Date({date});".format(op=opcode, date=", ".join(map(str, args))))
+		self._line("r{op.r1} = new Date({date});".format(op=opcode, date=", ".join(map(str, args))))
 	def _dispatch_loadcolor(self, opcode):
-		self._line(u"r{op.r1} = ul4.Color.create({r}, {g}, {b}, {a});".format(op=opcode, r=int(opcode.arg[:2], 16), g=int(opcode.arg[2:4], 16), b=int(opcode.arg[4:6], 16), a=int(opcode.arg[6:], 16)))
+		self._line("r{op.r1} = ul4.Color.create({r}, {g}, {b}, {a});".format(op=opcode, r=int(opcode.arg[:2], 16), g=int(opcode.arg[2:4], 16), b=int(opcode.arg[4:6], 16), a=int(opcode.arg[6:], 16)))
 	def _dispatch_buildlist(self, opcode):
-		self._line(u"r{op.r1} = [];".format(op=opcode))
+		self._line("r{op.r1} = [];".format(op=opcode))
 	def _dispatch_builddict(self, opcode):
-		self._line(u"r{op.r1} = {{}};".format(op=opcode))
+		self._line("r{op.r1} = {{}};".format(op=opcode))
 	def _dispatch_addlist(self, opcode):
-		self._line(u"r{op.r1}.push(r{op.r2});".format(op=opcode))
+		self._line("r{op.r1}.push(r{op.r2});".format(op=opcode))
 	def _dispatch_adddict(self, opcode):
-		self._line(u"r{op.r1}[r{op.r2}] = r{op.r3};".format(op=opcode))
+		self._line("r{op.r1}[r{op.r2}] = r{op.r3};".format(op=opcode))
 	def _dispatch_updatedict(self, opcode):
-		self._line(u"for (var key in r{op.r2})".format(op=opcode))
+		self._line("for (var key in r{op.r2})".format(op=opcode))
 		self._indent += 1
-		self._line(u"r{op.r1}[key] = r{op.r2}[key];".format(op=opcode))
+		self._line("r{op.r1}[key] = r{op.r2}[key];".format(op=opcode))
 		self._indent -= 1
 	def _dispatch_loadvar(self, opcode):
-		self._line(u"r{op.r1} = ul4._op_getitem(vars, {arg});".format(op=opcode, arg=json.dumps(opcode.arg)))
+		self._line("r{op.r1} = ul4._op_getitem(vars, {arg});".format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _dispatch_storevar(self, opcode):
-		self._line(u"vars[{arg}] = r{op.r1};".format(op=opcode, arg=json.dumps(opcode.arg)))
+		self._line("vars[{arg}] = r{op.r1};".format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _dispatch_addvar(self, opcode):
-		self._line(u"vars[{arg}] = ul4._op_add(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+		self._line("vars[{arg}] = ul4._op_add(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _dispatch_subvar(self, opcode):
-		self._line(u"vars[{arg}] = ul4._op_sub(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+		self._line("vars[{arg}] = ul4._op_sub(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _dispatch_mulvar(self, opcode):
-		self._line(u"vars[{arg}] = ul4._op_mul(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+		self._line("vars[{arg}] = ul4._op_mul(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _dispatch_truedivvar(self, opcode):
-		self._line(u"vars[{arg}] = ul4._op_truediv(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+		self._line("vars[{arg}] = ul4._op_truediv(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _dispatch_floordivvar(self, opcode):
-		self._line(u"vars[{arg}] = ul4._op_floordiv(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+		self._line("vars[{arg}] = ul4._op_floordiv(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _dispatch_modvar(self, opcode):
-		self._line(u"vars[{arg}] = ul4._op_mod(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
+		self._line("vars[{arg}] = ul4._op_mod(vars[{arg}], r{op.r1});".format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _dispatch_delvar(self, opcode):
-		self._line(u"vars[{arg}] = undefined;".format(arg=json.dumps(opcode.arg)))
+		self._line("vars[{arg}] = undefined;".format(arg=json.dumps(opcode.arg)))
 	def _dispatch_getattr(self, opcode):
-		self._line(u"r{op.r1} = ul4._op_getitem(r{op.r2}, {arg});".format(op=opcode, arg=json.dumps(opcode.arg)))
+		self._line("r{op.r1} = ul4._op_getitem(r{op.r2}, {arg});".format(op=opcode, arg=json.dumps(opcode.arg)))
 	def _dispatch_getitem(self, opcode):
-		self._line(u"r{op.r1} = ul4._op_getitem(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._line("r{op.r1} = ul4._op_getitem(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _dispatch_getslice12(self, opcode):
-		self._line(u"r{op.r1} = ul4._op_getslice(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+		self._line("r{op.r1} = ul4._op_getslice(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 	def _dispatch_getslice1(self, opcode):
-		self._line(u"r{op.r1} = ul4._op_getslice(r{op.r2}, r{op.r3}, null);".format(op=opcode))
+		self._line("r{op.r1} = ul4._op_getslice(r{op.r2}, r{op.r3}, null);".format(op=opcode))
 	def _dispatch_getslice2(self, opcode):
-		self._line(u"r{op.r1} = ul4._op_getslice(r{op.r2}, null, r{op.r3});".format(op=opcode))
+		self._line("r{op.r1} = ul4._op_getslice(r{op.r2}, null, r{op.r3});".format(op=opcode))
 	def _dispatch_print(self, opcode):
-		self._line(u"out.push(ul4._fu_str(r{op.r1}));".format(op=opcode))
+		self._line("out.push(ul4._fu_str(r{op.r1}));".format(op=opcode))
 	def _dispatch_printx(self, opcode):
-		self._line(u"out.push(ul4._fu_xmlescape(r{op.r1}));".format(op=opcode))
+		self._line("out.push(ul4._fu_xmlescape(r{op.r1}));".format(op=opcode))
 	def _dispatch_for(self, opcode):
 		self._varcounter += 1
-		self._line(u"for (var iter{counter} = ul4._iter(r{op.r2});;)".format(op=opcode, counter=self._varcounter))
-		self._line(u"{")
+		self._line("for (var iter{counter} = ul4._iter(r{op.r2});;)".format(op=opcode, counter=self._varcounter))
+		self._line("{")
 		self._indent += 1
-		self._line(u"r{op.r1} = iter{counter}();".format(op=opcode, counter=self._varcounter))
-		self._line(u"if (r{op.r1} === null)".format(op=opcode))
+		self._line("r{op.r1} = iter{counter}();".format(op=opcode, counter=self._varcounter))
+		self._line("if (r{op.r1} === null)".format(op=opcode))
 		self._indent += 1
-		self._line(u"break;")
+		self._line("break;")
 		self._indent -= 1
-		self._line(u"r{op.r1} = r{op.r1}[0];".format(op=opcode))
+		self._line("r{op.r1} = r{op.r1}[0];".format(op=opcode))
 	def _dispatch_endfor(self, opcode):
 		self._indent -= 1
-		self._line(u"}")
+		self._line("}")
 	def _dispatch_def(self, opcode):
-		self._line(u"vars[{arg}] = ul4.Template.create({arg}, function(vars){{".format(arg=json.dumps(opcode.arg)))
+		self._line("vars[{arg}] = ul4.Template.create({arg}, function(vars){{".format(arg=json.dumps(opcode.arg)))
 		self._indent += 1
-		self._line(u"var out = [], {};".format(", ".join("r{} = null".format(i) for i in xrange(10))))
+		self._line("var out = [], {};".format(", ".join("r{} = null".format(i) for i in range(10))))
 	def _dispatch_enddef(self, opcode):
-		self._line(u'return out;')
+		self._line('return out;')
 		self._indent -= 1
-		self._line(u"});")
+		self._line("});")
 	def _dispatch_break(self, opcode):
-		self._line(u"break;")
+		self._line("break;")
 	def _dispatch_continue(self, opcode):
-		self._line(u"continue;")
+		self._line("continue;")
 	def _dispatch_not(self, opcode):
-		self._line(u"r{op.r1} = !ul4._fu_bool(r{op.r2});".format(op=opcode))
+		self._line("r{op.r1} = !ul4._fu_bool(r{op.r2});".format(op=opcode))
 	def _dispatch_neg(self, opcode):
-		self._line(u"r{op.r1} = ul4._op_neg(r{op.r2});".format(op=opcode))
+		self._line("r{op.r1} = ul4._op_neg(r{op.r2});".format(op=opcode))
 	def _dispatch_contains(self, opcode):
-		self._line(u"r{op.r1} = ul4._op_contains(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._line("r{op.r1} = ul4._op_contains(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _dispatch_notcontains(self, opcode):
-		self._line(u"r{op.r1} = !ul4._op_contains(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._line("r{op.r1} = !ul4._op_contains(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _dispatch_eq(self, opcode):
-		self._line(u"r{op.r1} = ul4._op_eq(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._line("r{op.r1} = ul4._op_eq(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _dispatch_ne(self, opcode):
-		self._line(u"r{op.r1} = !ul4._op_eq(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._line("r{op.r1} = !ul4._op_eq(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _dispatch_lt(self, opcode):
-		self._line(u"r{op.r1} = ul4._op_lt(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._line("r{op.r1} = ul4._op_lt(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _dispatch_le(self, opcode):
-		self._line(u"r{op.r1} = ul4._op_le(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._line("r{op.r1} = ul4._op_le(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _dispatch_gt(self, opcode):
-		self._line(u"r{op.r1} = !ul4._op_le(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._line("r{op.r1} = !ul4._op_le(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _dispatch_ge(self, opcode):
-		self._line(u"r{op.r1} = !ul4._op_lt(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._line("r{op.r1} = !ul4._op_lt(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _dispatch_add(self, opcode):
-		self._line(u"r{op.r1} = ul4._op_add(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._line("r{op.r1} = ul4._op_add(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _dispatch_sub(self, opcode):
-		self._line(u"r{op.r1} = ul4._op_sub(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._line("r{op.r1} = ul4._op_sub(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _dispatch_mul(self, opcode):
-		self._line(u"r{op.r1} = ul4._op_mul(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._line("r{op.r1} = ul4._op_mul(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _dispatch_floordiv(self, opcode):
-		self._line(u"r{op.r1} = ul4._op_floordiv(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._line("r{op.r1} = ul4._op_floordiv(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _dispatch_truediv(self, opcode):
-		self._line(u"r{op.r1} = ul4._op_truediv(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._line("r{op.r1} = ul4._op_truediv(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _dispatch_and(self, opcode):
-		self._line(u"r{op.r1} = ul4._fu_bool(r{op.r3}) ? r{op.r2} : r{op.r3};".format(op=opcode))
+		self._line("r{op.r1} = ul4._fu_bool(r{op.r3}) ? r{op.r2} : r{op.r3};".format(op=opcode))
 	def _dispatch_or(self, opcode):
-		self._line(u"r{op.r1} = ul4._fu_bool(r{op.r2}) ? r{op.r2} : r{op.r3};".format(op=opcode))
+		self._line("r{op.r1} = ul4._fu_bool(r{op.r2}) ? r{op.r2} : r{op.r3};".format(op=opcode))
 	def _dispatch_mod(self, opcode):
-		self._line(u"r{op.r1} = ul4._op_mod(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._line("r{op.r1} = ul4._op_mod(r{op.r2}, r{op.r3});".format(op=opcode))
 	def _dispatch_callfunc0(self, opcode):
 		if opcode.arg == "now":
-			self._line(u"r{op.r1} = new Date();".format(op=opcode))
+			self._line("r{op.r1} = new Date();".format(op=opcode))
 		elif opcode.arg == "utcnow":
-			self._line(u"r{op.r1} = ul4._fu_utcnow();".format(op=opcode))
+			self._line("r{op.r1} = ul4._fu_utcnow();".format(op=opcode))
 		elif opcode.arg == "random":
-			self._line(u"r{op.r1} = Math.random();".format(op=opcode))
+			self._line("r{op.r1} = Math.random();".format(op=opcode))
 		elif opcode.arg == "vars":
-			self._line(u"r{op.r1} = vars;".format(op=opcode))
+			self._line("r{op.r1} = vars;".format(op=opcode))
 		else:
 			raise UnknownFunctionError(opcode.arg)
 	def _dispatch_callfunc1(self, opcode):
 		if opcode.arg in {"xmlescape", "csv", "repr", "enum", "chr", "ord", "hex", "oct", "bin", "sorted", "type", "json", "reversed", "randchoice", "str", "int", "float", "bool", "len", "isstr", "isint", "isfloat", "isbool", "isdate", "islist", "isdict", "istemplate", "iscolor", "abs"}:
-			self._line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2});".format(op=opcode))
+			self._line("r{op.r1} = ul4._fu_{op.arg}(r{op.r2});".format(op=opcode))
 		elif opcode.arg in {"range", "randrange"}:
-			self._line(u"r{op.r1} = ul4._fu_{op.arg}(0, r{op.r2}, 1);".format(op=opcode))
+			self._line("r{op.r1} = ul4._fu_{op.arg}(0, r{op.r2}, 1);".format(op=opcode))
 		elif opcode.arg == "isnone":
-			self._line(u"r{op.r1} = (r{op.r2} === null);".format(op=opcode))
+			self._line("r{op.r1} = (r{op.r2} === null);".format(op=opcode))
 		elif opcode.arg == "get":
-			self._line(u"r{op.r1} = ul4._me_get(vars, r{op.r2});".format(op=opcode))
+			self._line("r{op.r1} = ul4._me_get(vars, r{op.r2});".format(op=opcode))
 		else:
 			raise UnknownFunctionError(opcode.arg)
 	def _dispatch_callfunc2(self, opcode):
 		if opcode.arg in {"format", "zip", "int"}:
-			self._line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
+			self._line("r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
 		elif opcode.arg in {"range", "randrange"}:
-			self._line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, 1);".format(op=opcode))
+			self._line("r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, 1);".format(op=opcode))
 		elif opcode.arg == "get":
-			self._line(u"r{op.r1} = ul4._me_get(vars, r{op.r2}, r{op.r3});".format(op=opcode))
+			self._line("r{op.r1} = ul4._me_get(vars, r{op.r2}, r{op.r3});".format(op=opcode))
 		else:
 			raise UnknownFunctionError(opcode.arg)
 	def _dispatch_callfunc3(self, opcode):
 		if opcode.arg in {"range", "zip", "randrange"}:
-			self._line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+			self._line("r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 		elif opcode.arg in {"rgb", "hls", "hsv"}:
-			self._line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, 1.0);".format(op=opcode))
+			self._line("r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, 1.0);".format(op=opcode))
 		else:
 			raise UnknownFunctionError(opcode.arg)
 	def _dispatch_callfunc4(self, opcode):
 		if opcode.arg in {"rgb", "hls", "hsv"}:
-			self._line(u"r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
+			self._line("r{op.r1} = ul4._fu_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
 		else:
 			raise UnknownFunctionError(opcode.arg)
 	def _dispatch_callmeth0(self, opcode):
 		if opcode.arg in {"strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "items", "isoformat", "mimeformat", "day", "month", "year", "hour", "minute", "second", "microsecond", "weekday", "yearday", "r", "g", "b", "a", "lum", "hls", "hlsa", "hsv", "hsva"}:
-			self._line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2});".format(op=opcode))
+			self._line("r{op.r1} = ul4._me_{op.arg}(r{op.r2});".format(op=opcode))
 		elif opcode.arg in {"split", "rsplit"}:
-			self._line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, null, null);".format(op=opcode))
+			self._line("r{op.r1} = ul4._me_{op.arg}(r{op.r2}, null, null);".format(op=opcode))
 		elif opcode.arg == "render":
-			self._line(u"r{op.r1} = r{op.r2}.renders({{}});".format(op=opcode))
+			self._line("r{op.r1} = r{op.r2}.renders({{}});".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _dispatch_callmeth1(self, opcode):
 		if opcode.arg in {"join", "strip", "lstrip", "rstrip", "startswith", "endswith", "withlum", "witha"}:
-			self._line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
+			self._line("r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
 		elif opcode.arg in {"split", "rsplit", "get"}:
-			self._line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, null);".format(op=opcode))
+			self._line("r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, null);".format(op=opcode))
 		elif opcode.arg in {"find", "rfind"}:
-			self._line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, null, null);".format(op=opcode))
+			self._line("r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, null, null);".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _dispatch_callmeth2(self, opcode):
 		if opcode.arg in {"split", "rsplit", "replace", "get"}:
-			self._line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+			self._line("r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 		elif opcode.arg in {"find", "rfind"}:
-			self._line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, null);".format(op=opcode))
+			self._line("r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, null);".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _dispatch_callmeth3(self, opcode):
 		if opcode.arg in {"find", "rfind"}:
-			self._line(u"r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
+			self._line("r{op.r1} = ul4._me_{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _dispatch_callmethkw(self, opcode):
 		if opcode.arg == "render":
-			self._line(u"r{op.r1} = r{op.r2}.renders(r{op.r3});".format(op=opcode))
+			self._line("r{op.r1} = r{op.r2}.renders(r{op.r3});".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _dispatch_if(self, opcode):
-		self._line(u"if (ul4._fu_bool(r{op.r1}))".format(op=opcode))
-		self._line(u"{")
+		self._line("if (ul4._fu_bool(r{op.r1}))".format(op=opcode))
+		self._line("{")
 		self._indent += 1
 	def _dispatch_else(self, opcode):
 		self._indent -= 1
-		self._line(u"}")
-		self._line(u"else")
-		self._line(u"{")
+		self._line("}")
+		self._line("else")
+		self._line("{")
 		self._indent += 1
 	def _dispatch_endif(self, opcode):
 		self._indent -= 1
-		self._line(u"}")
+		self._line("}")
 	def _dispatch_render(self, opcode):
-		self._line(u"out = out.concat(r{op.r1}.render(r{op.r2}));".format(op=opcode))
+		self._line("out = out.concat(r{op.r1}.render(r{op.r2}));".format(op=opcode))
 
 
 class _JavaTemplateLevel(object):
@@ -1768,27 +1768,27 @@ class JavaSource(object):
 				lastloc = opcode.location
 				(line, col) = lastloc.pos()
 				tag = lastloc.tag
-				self._do(u"/* <?{}?> tag at position {} (line {}, col {}, template {}): {} */".format(lastloc.type, lastloc.starttag+1, line, col, lastloc.name, repr(tag)[1+isinstance(tag, unicode):-1]))
+				self._do("/* <?{}?> tag at position {} (line {}, col {}, template {}): {} */".format(lastloc.type, lastloc.starttag+1, line, col, lastloc.name, repr(tag)[1+isinstance(tag, str):-1]))
 			try:
 				getattr(self, "_dispatch_{}".format(opcode.code))(opcode)
 			except AttributeError:
 				raise UnknownOpcodeError(opcode.code)
 
 		# Add source and register declaration at the beginning
-		lines.append(u"/*@@@ BEGIN template source */")
+		lines.append("/*@@@ BEGIN template source */")
 		sourcelines = self.template.source.splitlines(False)
 		width = len(str(len(sourcelines)))
 		for (i, line) in enumerate(sourcelines):
-			lines.append(u"/* {1:{0}} {2} */".format(width, i+1, line.replace("/*", "*").replace("*/", "*")))
-		lines.append(u"/*@@@ BEGIN template code */")
+			lines.append("/* {1:{0}} {2} */".format(width, i+1, line.replace("/*", "*").replace("*/", "*")))
+		lines.append("/*@@@ BEGIN template code */")
 		
 		for i in sorted(self._stack[-1].regsused):
-			lines.append(u"Object r{} = null;".format(i))
+			lines.append("Object r{} = null;".format(i))
 
 		# copy over generated source code
 		lines.extend(self._stack[-1].lines)
 
-		lines.append(u"/*@@@ END template code */")
+		lines.append("/*@@@ END template code */")
 
 		v = []
 		indent = self.indent
@@ -1797,7 +1797,7 @@ class JavaSource(object):
 				indent += line
 			else:
 				v.append("\t"*indent + line)
-		return u"\n".join(v)
+		return "\n".join(v)
 
 	def output(self, expression):
 		"""
@@ -1805,7 +1805,7 @@ class JavaSource(object):
 		This uses ``out.write()`` (for JSP etc.) but can be overwritten in
 		subclasses.
 		"""
-		return u"out.write({});".format(expression)
+		return "out.write({});".format(expression)
 
 	def _usereg(self, r):
 		self._stack[-1].regsused.add(r)
@@ -1816,306 +1816,306 @@ class JavaSource(object):
 
 	def _dispatch_None(self, opcode):
 		(line, col) = opcode.location.pos()
-		self._do(u"/* Literal at {} (line {}, col {}) */".format(opcode.location.starttag+1, line, col))
+		self._do("/* Literal at {} (line {}, col {}) */".format(opcode.location.starttag+1, line, col))
 		self._do(self.output(misc.javaexpr(opcode.location.code)))
 	def _dispatch_loadstr(self, opcode):
-		self._do(u"r{op.r1} = {arg};".format(op=opcode, arg=misc.javaexpr(opcode.arg)))
+		self._do("r{op.r1} = {arg};".format(op=opcode, arg=misc.javaexpr(opcode.arg)))
 		self._usereg(opcode.r1)
 	def _dispatch_loadint(self, opcode):
-		self._do(u"r{op.r1} = new Integer({op.arg});".format(op=opcode))
+		self._do("r{op.r1} = new Integer({op.arg});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_loadfloat(self, opcode):
-		self._do(u"r{op.r1} = new Double({op.arg});".format(op=opcode))
+		self._do("r{op.r1} = new Double({op.arg});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_loadnone(self, opcode):
-		self._do(u"r{op.r1} = null;".format(op=opcode))
+		self._do("r{op.r1} = null;".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_loadfalse(self, opcode):
-		self._do(u"r{op.r1} = false;".format(op=opcode))
+		self._do("r{op.r1} = false;".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_loadtrue(self, opcode):
-		self._do(u"r{op.r1} = true;".format(op=opcode))
+		self._do("r{op.r1} = true;".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_loaddate(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.makeDate({date});".format(op=opcode, date=", ".join(str(int(p)) for p in datesplitter.split(opcode.arg))))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.makeDate({date});".format(op=opcode, date=", ".join(str(int(p)) for p in datesplitter.split(opcode.arg))))
 		self._usereg(opcode.r1)
 	def _dispatch_loadcolor(self, opcode):
-		self._do(u"r{op.r1} = new com.livinglogic.ul4.Color(0x{r}, 0x{g}, 0x{b}, 0x{a});".format(op=opcode, r=opcode.arg[:2], g=opcode.arg[2:4], b=opcode.arg[4:6], a=opcode.arg[6:]))
+		self._do("r{op.r1} = new com.livinglogic.ul4.Color(0x{r}, 0x{g}, 0x{b}, 0x{a});".format(op=opcode, r=opcode.arg[:2], g=opcode.arg[2:4], b=opcode.arg[4:6], a=opcode.arg[6:]))
 		self._usereg(opcode.r1)
 	def _dispatch_buildlist(self, opcode):
-		self._do(u"r{op.r1} = new java.util.ArrayList();".format(op=opcode))
+		self._do("r{op.r1} = new java.util.ArrayList();".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_builddict(self, opcode):
-		self._do(u"r{op.r1} = new java.util.HashMap();".format(op=opcode))
+		self._do("r{op.r1} = new java.util.HashMap();".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_addlist(self, opcode):
-		self._do(u"((java.util.List)r{op.r1}).add(r{op.r2});".format(op=opcode))
+		self._do("((java.util.List)r{op.r1}).add(r{op.r2});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_adddict(self, opcode):
-		self._do(u"((java.util.Map)r{op.r1}).put(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("((java.util.Map)r{op.r1}).put(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_updatedict(self, opcode):
-		self._do(u"((java.util.Map)r{op.r1}).putAll((java.util.Map)r{op.r2});".format(op=opcode))
+		self._do("((java.util.Map)r{op.r1}).putAll((java.util.Map)r{op.r2});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_loadvar(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.getItem({var}, {arg});".format(op=opcode, var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg)))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getItem({var}, {arg});".format(op=opcode, var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg)))
 		self._usereg(opcode.r1)
 	def _dispatch_storevar(self, opcode):
-		self._do(u"{var}.put({arg}, r{op.r1});".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
+		self._do("{var}.put({arg}, r{op.r1});".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_addvar(self, opcode):
-		self._do(u"{var}.put({arg}, com.livinglogic.ul4.Utils.add({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
+		self._do("{var}.put({arg}, com.livinglogic.ul4.Utils.add({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_subvar(self, opcode):
-		self._do(u"{var}.put({arg}, com.livinglogic.ul4.Utils.sub({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
+		self._do("{var}.put({arg}, com.livinglogic.ul4.Utils.sub({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_mulvar(self, opcode):
-		self._do(u"{var}.put({arg}, com.livinglogic.ul4.Utils.mul({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
+		self._do("{var}.put({arg}, com.livinglogic.ul4.Utils.mul({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_truedivvar(self, opcode):
-		self._do(u"{var}.put({arg}, com.livinglogic.ul4.Utils.truediv({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
+		self._do("{var}.put({arg}, com.livinglogic.ul4.Utils.truediv({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_floordivvar(self, opcode):
-		self._do(u"{var}.put({arg}, com.livinglogic.ul4.Utils.floordiv({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
+		self._do("{var}.put({arg}, com.livinglogic.ul4.Utils.floordiv({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_modvar(self, opcode):
-		self._do(u"{var}.put({arg}, com.livinglogic.ul4.Utils.mod({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
+		self._do("{var}.put({arg}, com.livinglogic.ul4.Utils.mod({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_delvar(self, opcode):
-		self._do(u"{var}.remove({arg});".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg)))
+		self._do("{var}.remove({arg});".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg)))
 	def _dispatch_getattr(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.getItem(r{op.r2}, {arg});".format(op=opcode, arg=misc.javaexpr(opcode.arg)))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getItem(r{op.r2}, {arg});".format(op=opcode, arg=misc.javaexpr(opcode.arg)))
 		self._usereg(opcode.r1)
 	def _dispatch_getitem(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.getItem(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getItem(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_getslice12(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.getSlice(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getSlice(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_getslice1(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.getSlice(r{op.r2}, r{op.r3}, null);".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getSlice(r{op.r2}, r{op.r3}, null);".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_getslice2(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.getSlice(r{op.r2}, null, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getSlice(r{op.r2}, null, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_print(self, opcode):
-		self._do(self.output(u"com.livinglogic.ul4.Utils.str(r{op.r1})".format(op=opcode)))
+		self._do(self.output("com.livinglogic.ul4.Utils.str(r{op.r1})".format(op=opcode)))
 	def _dispatch_printx(self, opcode):
-		self._do(self.output(u"com.livinglogic.ul4.Utils.xmlescape(r{op.r1})".format(op=opcode)))
+		self._do(self.output("com.livinglogic.ul4.Utils.xmlescape(r{op.r1})".format(op=opcode)))
 	def _dispatch_for(self, opcode):
 		varcounter = self._stack[-1].varcounter
-		self._do(u"for (java.util.Iterator iterator{count} = com.livinglogic.ul4.Utils.iterator(r{op.r2}); iterator{count}.hasNext();)".format(op=opcode, count=varcounter))
-		self._do(u"{")
+		self._do("for (java.util.Iterator iterator{count} = com.livinglogic.ul4.Utils.iterator(r{op.r2}); iterator{count}.hasNext();)".format(op=opcode, count=varcounter))
+		self._do("{")
 		self._do(1)
-		self._do(u"r{op.r1} = iterator{count}.next();".format(op=opcode, count=varcounter))
+		self._do("r{op.r1} = iterator{count}.next();".format(op=opcode, count=varcounter))
 		self._usereg(opcode.r1)
 		self._stack[-1].varcounter += 1
 	def _dispatch_endfor(self, opcode):
 		self._do(-1)
-		self._do(u"}")
+		self._do("}")
 	def _dispatch_def(self, opcode):
 		self._stack.append(_JavaTemplateLevel("variables", opcode.arg))
 	def _dispatch_enddef(self, opcode):
 		level = self._stack.pop()
 		# define new template object
-		self._do(u'{var}.put({arg}, new com.livinglogic.ul4.JSPTemplate()'.format(var=self._stack[-1].variables, arg=misc.javaexpr(level.name)))
-		self._do(u"{")
+		self._do('{var}.put({arg}, new com.livinglogic.ul4.JSPTemplate()'.format(var=self._stack[-1].variables, arg=misc.javaexpr(level.name)))
+		self._do("{")
 		self._do(1)
-		self._do(u"public String getName()")
-		self._do(u"{")
+		self._do("public String getName()")
+		self._do("{")
 		self._do(1)
-		self._do(u'return {};'.format(misc.javaexpr(level.name)))
+		self._do('return {};'.format(misc.javaexpr(level.name)))
 		self._do(-1)
-		self._do(u"}")
-		self._do(u"public void render(java.io.Writer out, java.util.Map<String, Object> variables) throws java.io.IOException")
-		self._do(u"{")
+		self._do("}")
+		self._do("public void render(java.io.Writer out, java.util.Map<String, Object> variables) throws java.io.IOException")
+		self._do("{")
 		self._do(1)
 		# registers
 		for i in sorted(level.regsused):
-			self._do(u"Object r{} = null;".format(i))
+			self._do("Object r{} = null;".format(i))
 		# copy over source from the nested template
 		self._stack[-1].lines.extend(level.lines)
 		# end object and put it into variables
 		self._do(-1)
-		self._do(u"}")
+		self._do("}")
 		self._do(-1)
-		self._do(u"});")
+		self._do("});")
 	def _dispatch_break(self, opcode):
-		self._do(u"break;")
+		self._do("break;")
 	def _dispatch_continue(self, opcode):
-		self._do(u"continue;")
+		self._do("continue;")
 	def _dispatch_not(self, opcode):
-		self._do(u"r{op.r1} = !com.livinglogic.ul4.Utils.getBool(r{op.r2});".format(op=opcode))
+		self._do("r{op.r1} = !com.livinglogic.ul4.Utils.getBool(r{op.r2});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_neg(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.neg(r{op.r2});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.neg(r{op.r2});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_contains(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.contains(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.contains(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_notcontains(self, opcode):
-		self._do(u"r{op.r1} = !com.livinglogic.ul4.Utils.contains(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = !com.livinglogic.ul4.Utils.contains(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_eq(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.eq(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.eq(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_ne(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.ne(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.ne(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_lt(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.lt(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.lt(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_le(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.le(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.le(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_gt(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.gt(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.gt(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_ge(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.ge(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.ge(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_add(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.add(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.add(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_sub(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.sub(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.sub(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_mul(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.mul(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.mul(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_floordiv(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.floordiv(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.floordiv(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_truediv(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.truediv(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.truediv(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_and(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.getBool(r{op.r3}) ? r{op.r2} : r{op.r3};".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getBool(r{op.r3}) ? r{op.r2} : r{op.r3};".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_or(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.getBool(r{op.r2}) ? r{op.r2} : r{op.r3};".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getBool(r{op.r2}) ? r{op.r2} : r{op.r3};".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_mod(self, opcode):
-		self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.mod(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.mod(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_callfunc0(self, opcode):
 		if opcode.arg == "now":
-			self._do(u"r{op.r1} = new java.util.Date();".format(op=opcode))
+			self._do("r{op.r1} = new java.util.Date();".format(op=opcode))
 		elif opcode.arg in {"utcnow", "random"}:
-			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}();".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}();".format(op=opcode))
 		elif opcode.arg == "vars":
-			self._do(u"r{op.r1} = {var};".format(op=opcode, var=self._stack[-1].variables))
+			self._do("r{op.r1} = {var};".format(op=opcode, var=self._stack[-1].variables))
 		else:
 			raise UnknownFunctionError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callfunc1(self, opcode):
 		if opcode.arg in {"xmlescape", "csv", "repr", "enum", "chr", "ord", "hex", "oct", "bin", "sorted", "range", "type", "json", "reversed", "randrange", "randchoice", "abs", "str"}:
-			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "int":
-			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.toInteger(r{op.r2});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.toInteger(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "float":
-			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.toFloat(r{op.r2});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.toFloat(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "bool":
-			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.getBool(r{op.r2});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.getBool(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "len":
-			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.length(r{op.r2});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.length(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "isnone":
-			self._do(u"r{op.r1} = (r{op.r2} == null);".format(op=opcode))
+			self._do("r{op.r1} = (r{op.r2} == null);".format(op=opcode))
 		elif opcode.arg == "isstr":
-			self._do(u"r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof String));".format(op=opcode))
+			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof String));".format(op=opcode))
 		elif opcode.arg == "isint":
-			self._do(u"r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof Integer));".format(op=opcode))
+			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof Integer));".format(op=opcode))
 		elif opcode.arg == "isfloat":
-			self._do(u"r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof Double));".format(op=opcode))
+			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof Double));".format(op=opcode))
 		elif opcode.arg == "isbool":
-			self._do(u"r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof Boolean));".format(op=opcode))
+			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof Boolean));".format(op=opcode))
 		elif opcode.arg == "isdate":
-			self._do(u"r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof java.util.Date));".format(op=opcode))
+			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof java.util.Date));".format(op=opcode))
 		elif opcode.arg == "islist":
-			self._do(u"r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof java.util.List));".format(op=opcode))
+			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof java.util.List));".format(op=opcode))
 		elif opcode.arg == "isdict":
-			self._do(u"r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof java.util.Map));".format(op=opcode))
+			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof java.util.Map));".format(op=opcode))
 		elif opcode.arg == "istemplate":
-			self._do(u"r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof com.livinglogic.ul4.Template));".format(op=opcode))
+			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof com.livinglogic.ul4.Template));".format(op=opcode))
 		elif opcode.arg == "iscolor":
-			self._do(u"r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof com.livinglogic.ul4.Color));".format(op=opcode))
+			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof com.livinglogic.ul4.Color));".format(op=opcode))
 		elif opcode.arg == "get":
-			self._do(u"r{op.r1} = {var}.get(r{op.r2});".format(op=opcode, var=self._stack[-1].variables))
+			self._do("r{op.r1} = {var}.get(r{op.r2});".format(op=opcode, var=self._stack[-1].variables))
 		else:
 			raise UnknownFunctionError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callfunc2(self, opcode):
 		if opcode.arg in {"format", "range", "zip", "randrange"}:
-			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
 		elif opcode.arg == "int":
-			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.toInteger(r{op.r2}, r{op.r3});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.toInteger(r{op.r2}, r{op.r3});".format(op=opcode))
 		elif opcode.arg == "get":
-			self._do(u"r{op.r1} = {var}.containsKey(r{op.r2}) ? {var}.get(r{op.r2}) : r{op.r3};".format(op=opcode, var=self._stack[-1].variables))
+			self._do("r{op.r1} = {var}.containsKey(r{op.r2}) ? {var}.get(r{op.r2}) : r{op.r3};".format(op=opcode, var=self._stack[-1].variables))
 		else:
 			raise UnknownFunctionError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callfunc3(self, opcode):
 		if opcode.arg in {"range", "zip", "rgb", "hls", "hsv", "randrange"}:
-			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 		else:
 			raise UnknownFunctionError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callfunc4(self, opcode):
 		if opcode.arg in {"rgb", "hls", "hsv"}:
-			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
 		else:
 			raise UnknownFunctionError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callmeth0(self, opcode):
 		if opcode.arg in {"split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "items", "isoformat", "mimeformat", "day", "month", "year", "hour", "minute", "second", "microsecond", "weekday", "yearday"}:
-			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
 		elif opcode.arg in {"r", "g", "b", "a"}:
-			self._do(u"r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).get{arg}();".format(op=opcode, arg=opcode.arg.upper()))
+			self._do("r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).get{arg}();".format(op=opcode, arg=opcode.arg.upper()))
 		elif opcode.arg in {"hls", "hlsa", "hsv", "hsva"}:
-			self._do(u"r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).{op.arg}();".format(op=opcode))
+			self._do("r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).{op.arg}();".format(op=opcode))
 		elif opcode.arg == "lum":
-			self._do(u"r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).lum();".format(op=opcode))
+			self._do("r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).lum();".format(op=opcode))
 		elif opcode.arg == "render":
-			self._do(u"r{op.r1} = ((com.livinglogic.ul4.Template)r{op.r2}).renders(null);".format(op=opcode))
+			self._do("r{op.r1} = ((com.livinglogic.ul4.Template)r{op.r2}).renders(null);".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callmeth1(self, opcode):
 		if opcode.arg in {"join", "split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "rfind", "withlum", "witha"}:
-			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
 		elif opcode.arg == "get":
-			self._do(u"r{op.r1} = ((java.util.Map)r{op.r2}).get(r{op.r3});".format(op=opcode))
+			self._do("r{op.r1} = ((java.util.Map)r{op.r2}).get(r{op.r3});".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callmeth2(self, opcode):
 		if opcode.arg in {"split", "rsplit", "find", "rfind", "replace"}:
-			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 		elif opcode.arg == "get":
-			self._do(u"r{op.r1} = ((java.util.Map)r{op.r2}).containsKey(r{op.r3}) ? ((java.util.Map)r{op.r2}).get(r{op.r3}) : r{op.r4};".format(op=opcode))
+			self._do("r{op.r1} = ((java.util.Map)r{op.r2}).containsKey(r{op.r3}) ? ((java.util.Map)r{op.r2}).get(r{op.r3}) : r{op.r4};".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callmeth3(self, opcode):
 		if opcode.arg in {"find", "rfind"}:
-			self._do(u"r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callmethkw(self, opcode):
 		if opcode.arg == "render":
-			self._do(u"r{op.r1} = ((com.livinglogic.ul4.Template)r{op.r2}).renders((java.util.Map)r{op.r3});".format(op=opcode))
+			self._do("r{op.r1} = ((com.livinglogic.ul4.Template)r{op.r2}).renders((java.util.Map)r{op.r3});".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_if(self, opcode):
-		self._do(u"if (com.livinglogic.ul4.Utils.getBool(r{op.r1}))".format(op=opcode))
-		self._do(u"{")
+		self._do("if (com.livinglogic.ul4.Utils.getBool(r{op.r1}))".format(op=opcode))
+		self._do("{")
 		self._do(1)
 	def _dispatch_else(self, opcode):
 		self._do(-1)
-		self._do(u"}")
-		self._do(u"else")
-		self._do(u"{")
+		self._do("}")
+		self._do("else")
+		self._do("{")
 		self._do(1)
 	def _dispatch_endif(self, opcode):
 		self._do(-1)
-		self._do(u"}")
+		self._do("}")
 	def _dispatch_render(self, opcode):
-		self._do(u"((com.livinglogic.ul4.Template)r{op.r1}).render(out, (java.util.Map)r{op.r2});".format(op=opcode))
+		self._do("((com.livinglogic.ul4.Template)r{op.r1}).render(out, (java.util.Map)r{op.r2});".format(op=opcode))
 
 
 ###
@@ -2184,7 +2184,7 @@ class Value(Const):
 
 	def compile(self, template):
 		r = template._allocreg()
-		template.opcode("load{}".format(self.type), r1=r, arg=unicode(self.value))
+		template.opcode("load{}".format(self.type), r1=r, arg=str(self.value))
 		return r
 
 
@@ -2542,7 +2542,7 @@ class CallFunc(AST):
 		else:
 			rs = [arg.compile(template) for arg in self.args]
 			template.opcode("callfunc{}".format(len(self.args)), rs[0], *rs, **dict(arg=self.name.name)) # FIXME: Replace **dict(arg=) with arg= in Python 2.6?
-			for i in xrange(1, len(self.args)):
+			for i in range(1, len(self.args)):
 				template._freereg(rs[i])
 			return rs[0]
 
@@ -2649,7 +2649,7 @@ class Scanner(spark.Scanner):
 			spark.Scanner.tokenize(self, location.code)
 			if self.mode != "default":
 				raise UnterminatedStringError()
-		except Exception, exc:
+		except Exception as exc:
 			newexc = Error(location) # FIXME: use ``raise ... from`` in Python 3
 			newexc.__cause__ = exc
 			raise newexc
@@ -2674,7 +2674,7 @@ class Scanner(spark.Scanner):
 
 	@spark.token("@\\d{4}-\\d{2}-\\d{2}T(\\d{2}:\\d{2}(:\\d{2}(\\.\\d{6})?)?)?", "default")
 	def date(self, start, end, s):
-		self.rv.append(Date(start, end, datetime.datetime(*map(int, filter(None, datesplitter.split(s[1:]))))))
+		self.rv.append(Date(start, end, datetime.datetime(*list(map(int, [_f for _f in datesplitter.split(s[1:]) if _f])))))
 
 	@spark.token("\\(|\\)|\\[|\\]|\\{|\\}|\\.|,|==|\\!=|<=|<|>=|>|=|\\+=|\\-=|\\*=|//=|/=|%=|%|:|\\+|-|\\*\\*|\\*|//|/", "default")
 	def token(self, start, end, s):
@@ -2782,11 +2782,11 @@ class Scanner(spark.Scanner):
 
 	@spark.token("\\\\x[0-9a-fA-F]{2}", "str1", "str2")
 	def escaped8bitchar(self, start, end, s):
-		self.collectstr.append(unichr(int(s[2:], 16)))
+		self.collectstr.append(chr(int(s[2:], 16)))
 
 	@spark.token("\\\\u[0-9a-fA-F]{4}", "str1", "str2")
 	def escaped16bitchar(self, start, end, s):
-		self.collectstr.append(unichr(int(s[2:], 16)))
+		self.collectstr.append(chr(int(s[2:], 16)))
 
 	@spark.token(".|\\n", "str1", "str2")
 	def text(self, start, end, s):
@@ -2816,11 +2816,11 @@ class ExprParser(spark.Parser):
 		location = template.location
 		if not location.code:
 			raise ValueError(self.emptyerror)
-		template.registers = set(xrange(10))
+		template.registers = set(range(10))
 		try:
 			ast = self.parse(self.scanner.tokenize(location))
 			return ast.compile(template)
-		except Exception, exc:
+		except Exception as exc:
 			newexc = Error(location) # FIXME: Use ``raise ... from`` in Python 3
 			newexc.__cause__ = exc
 			raise newexc
@@ -2840,11 +2840,11 @@ class ExprParser(spark.Parser):
 			return True_(start, end)
 		elif value is False:
 			return False_(start, end)
-		elif isinstance(value, (int, long)):
+		elif isinstance(value, int):
 			return Int(start, end, value)
 		elif isinstance(value, float):
 			return Float(start, end, value)
-		elif isinstance(value, basestring):
+		elif isinstance(value, str):
 			return Str(start, end, value)
 		elif isinstance(value, color.Color):
 			return Color(start, end, value)
@@ -3264,18 +3264,18 @@ def _repr(obj):
 	"""
 	Helper for the ``repr`` function.
 	"""
-	if isinstance(obj, unicode):
-		return unicode(repr(obj)[1:])
+	if isinstance(obj, str):
+		return str(repr(obj)[1:])
 	elif isinstance(obj, str):
-		return unicode(repr(obj))
+		return str(repr(obj))
 	elif isinstance(obj, datetime.datetime):
-		s = unicode(obj.isoformat())
-		if s.endswith(u"T00:00:00"):
-			return u"@{}T".format(s[:-9])
+		s = str(obj.isoformat())
+		if s.endswith("T00:00:00"):
+			return "@{}T".format(s[:-9])
 		else:
-			return u"@" + s
+			return "@" + s
 	elif isinstance(obj, datetime.date):
-		return u"@{}T".format(obj.isoformat())
+		return "@{}T".format(obj.isoformat())
 	elif isinstance(obj, color.Color):
 		if obj[3] == 0xff:
 			s = "#{:02x}{:02x}{:02x}".format(obj[0], obj[1], obj[2])
@@ -3288,11 +3288,11 @@ def _repr(obj):
 				return "#{}{}{}{}".format(s[1], s[3], s[5], s[7])
 			return s
 	elif isinstance(obj, collections.Sequence):
-		return u"[{}]".format(u", ".join(_repr(item) for item in obj))
+		return "[{}]".format(", ".join(_repr(item) for item in obj))
 	elif isinstance(obj, collections.Mapping):
-		return u"{{{}}}".format(u", ".join(u"{}: {}".format(_repr(key), _repr(value)) for (key, value) in obj.iteritems()))
+		return "{{{}}}".format(", ".join("{}: {}".format(_repr(key), _repr(value)) for (key, value) in obj.items()))
 	else:
-		return unicode(repr(obj))
+		return str(repr(obj))
 
 
 def _json(obj):
@@ -3300,19 +3300,19 @@ def _json(obj):
 	Helper for the ``json`` function.
 	"""
 	if obj is None:
-		return u"null"
-	if isinstance(obj, (bool, int, long, float, basestring)):
+		return "null"
+	if isinstance(obj, (bool, int, float, str)):
 		return json.dumps(obj)
 	elif isinstance(obj, datetime.datetime):
-		return format(obj, u"new Date({}, {}, {}, {}, {}, {}, {})".format(obj.year, obj.month-1, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond//1000))
+		return format(obj, "new Date({}, {}, {}, {}, {}, {}, {})".format(obj.year, obj.month-1, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond//1000))
 	elif isinstance(obj, datetime.date):
-		return format(obj, u"new Date({}, {}, {})".format(obj.year, obj.month-1, obj.day))
+		return format(obj, "new Date({}, {}, {})".format(obj.year, obj.month-1, obj.day))
 	elif isinstance(obj, color.Color):
-		return u"ul4.Color.create({}, {}, {}, {})".format(*obj)
+		return "ul4.Color.create({}, {}, {}, {})".format(*obj)
 	elif isinstance(obj, collections.Mapping):
-		return u"{{{}}}".format(u", ".join(u"{}: {}".format(_json(key), _json(value)) for (key, value) in obj.iteritems()))
+		return "{{{}}}".format(", ".join("{}: {}".format(_json(key), _json(value)) for (key, value) in obj.items()))
 	elif isinstance(obj, collections.Sequence):
-		return u"[{}]".format(u", ".join(_json(item) for item in obj))
+		return "[{}]".format(", ".join(_json(item) for item in obj))
 	elif isinstance(obj, Template):
 		return obj.jssource()
 	else:
@@ -3328,12 +3328,12 @@ def _enumfl(obj):
 	i = 0
 	it = iter(obj)
 	try:
-		item = it.next()
+		item = next(it)
 	except StopIteration:
 		return
 	while True:
 		try:
-			(lastitem, item) = (item, it.next())
+			(lastitem, item) = (item, next(it))
 		except StopIteration:
 			yield (i, first, True, item) # Items haven't been swapped yet
 			return
@@ -3351,12 +3351,12 @@ def _firstlast(obj):
 	first = True
 	it = iter(obj)
 	try:
-		item = it.next()
+		item = next(it)
 	except StopIteration:
 		return
 	while True:
 		try:
-			(lastitem, item) = (item, it.next())
+			(lastitem, item) = (item, next(it))
 		except StopIteration:
 			yield (first, True, item) # Items haven't been swapped yet
 			return
@@ -3382,12 +3382,12 @@ def _last(obj):
 	lastitem = None
 	it = iter(obj)
 	try:
-		item = it.next()
+		item = next(it)
 	except StopIteration:
 		return
 	while True:
 		try:
-			(lastitem, item) = (item, it.next())
+			(lastitem, item) = (item, next(it))
 		except StopIteration:
 			yield (True, item) # Items haven't been swapped yet
 			return
@@ -3412,11 +3412,11 @@ def _csv(obj):
 	Helper for the ``csv`` function.
 	"""
 	if obj is None:
-		return u""
-	elif not isinstance(obj, basestring):
+		return ""
+	elif not isinstance(obj, str):
 		obj = _repr(obj)
 	if any(c in obj for c in ',"\n'):
-		return u'"{}"'.format(obj.replace('"', '""'))
+		return '"{}"'.format(obj.replace('"', '""'))
 	return obj
 
 
@@ -3425,27 +3425,27 @@ def _type(obj):
 	Helper for the ``type`` function.
 	"""
 	if obj is None:
-		return u"none"
-	elif isinstance(obj, basestring):
-		return u"str"
+		return "none"
+	elif isinstance(obj, str):
+		return "str"
 	elif isinstance(obj, bool):
-		return u"bool"
-	elif isinstance(obj, (int, long)):
-		return u"int"
+		return "bool"
+	elif isinstance(obj, int):
+		return "int"
 	elif isinstance(obj, float):
-		return u"float"
+		return "float"
 	elif isinstance(obj, (datetime.datetime, datetime.date)):
-		return u"date"
+		return "date"
 	elif isinstance(obj, color.Color):
-		return u"color"
+		return "color"
 	elif isinstance(obj, collections.Mapping):
-		return u"dict"
+		return "dict"
 	elif isinstance(obj, collections.Sequence):
-		return u"list"
+		return "list"
 	elif hasattr(obj, "__call__"):
-		return u"template"
+		return "template"
 	elif isinstance(obj, color.Color):
-		return u"color"
+		return "color"
 	return None
 
 

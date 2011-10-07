@@ -13,7 +13,7 @@ from ll import url
 
 
 def test_escape(recwarn):
-	assert url.URL("%u0042").file == u"\x42"
+	assert url.URL("%u0042").file == "\x42"
 
 	url.URL("%u00")
 	recwarn.pop(UserWarning)
@@ -21,5 +21,5 @@ def test_escape(recwarn):
 	url.URL("%u00xx")
 	recwarn.pop(UserWarning)
 
-	assert url.URL("%u00").file == u"%u00"
-	assert url.URL("%u00xx").file == u"%u00xx"
+	assert url.URL("%u00").file == "%u00"
+	assert url.URL("%u00xx").file == "%u00xx"

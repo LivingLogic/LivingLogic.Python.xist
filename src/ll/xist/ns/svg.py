@@ -36,7 +36,7 @@ class DocTypeSVG11(xsc.DocType):
 class alignment_baseline(xsc.Attrs):
 	class alignment_baseline(xsc.TextAttr):
 		xmlname = "alignment-baseline"
-		values = (u"auto", u"baseline", u"before-edge", u"text-before-edge", u"middle", u"central", u"after-edge", u"text-after-edge", u"ideographic", u"alphabetic", u"hanging", u"mathematical", u"inherit")
+		values = ("auto", "baseline", "before-edge", "text-before-edge", "middle", "central", "after-edge", "text-after-edge", "ideographic", "alphabetic", "hanging", "mathematical", "inherit")
 
 
 class baseline_shift(xsc.Attrs):
@@ -58,7 +58,7 @@ class clip_path(xsc.Attrs):
 class clip_rule(xsc.Attrs):
 	class clip_rule(xsc.TextAttr):
 		xmlname = "clip-rule"
-		values = (u"nonzero", u"evenodd", u"inherit")
+		values = ("nonzero", "evenodd", "inherit")
 
 
 class color(xsc.Attrs):
@@ -68,13 +68,13 @@ class color(xsc.Attrs):
 class color_interpolation(xsc.Attrs):
 	class color_interpolation(xsc.TextAttr):
 		xmlname = "color-interpolation"
-		values = (u"auto", u"sRGB", u"linearRGB", u"inherit")
+		values = ("auto", "sRGB", "linearRGB", "inherit")
 
 
 class color_interpolation_filters(xsc.Attrs):
 	class color_interpolation_filters(xsc.TextAttr):
 		xmlname = "color-interpolation-filters"
-		values = (u"auto", u"sRGB", u"linearRGB", u"inherit")
+		values = ("auto", "sRGB", "linearRGB", "inherit")
 
 
 class color_profile2(xsc.Attrs):
@@ -84,7 +84,7 @@ class color_profile2(xsc.Attrs):
 class color_rendering(xsc.Attrs):
 	class color_rendering(xsc.TextAttr):
 		xmlname = "color-rendering"
-		values = (u"auto", u"optimizeSpeed", u"optimizeQuality", u"inherit")
+		values = ("auto", "optimizeSpeed", "optimizeQuality", "inherit")
 
 
 class cursor2(xsc.Attrs):
@@ -92,17 +92,17 @@ class cursor2(xsc.Attrs):
 
 
 class direction(xsc.Attrs):
-	class direction(xsc.TextAttr): values = (u"ltr", u"rtl", u"inherit")
+	class direction(xsc.TextAttr): values = ("ltr", "rtl", "inherit")
 
 
 class display(xsc.Attrs):
-	class display(xsc.TextAttr): values = (u"inline", u"block", u"list-item", u"run-in", u"compact", u"marker", u"table", u"inline-table", u"table-row-group", u"table-header-group", u"table-footer-group", u"table-row", u"table-column-group", u"table-column", u"table-cell", u"table-caption", u"none", u"inherit")
+	class display(xsc.TextAttr): values = ("inline", "block", "list-item", "run-in", "compact", "marker", "table", "inline-table", "table-row-group", "table-header-group", "table-footer-group", "table-row", "table-column-group", "table-column", "table-cell", "table-caption", "none", "inherit")
 
 
 class dominant_baseline(xsc.Attrs):
 	class dominant_baseline(xsc.TextAttr):
 		xmlname = "dominant-baseline"
-		values = (u"auto", u"use-script", u"no-change", u"reset-size", u"ideographic", u"alphabetic", u"hanging", u"mathematical", u"central", u"middle", u"text-after-edge", u"text-before-edge", u"inherit")
+		values = ("auto", "use-script", "no-change", "reset-size", "ideographic", "alphabetic", "hanging", "mathematical", "central", "middle", "text-after-edge", "text-before-edge", "inherit")
 
 
 class enable_background(xsc.Attrs):
@@ -110,7 +110,7 @@ class enable_background(xsc.Attrs):
 
 
 class externalResourcesRequired(xsc.Attrs):
-	class externalResourcesRequired(xsc.TextAttr): values = (u"false", u"true")
+	class externalResourcesRequired(xsc.TextAttr): values = ("false", "true")
 
 
 class fill(xsc.Attrs):
@@ -124,7 +124,7 @@ class fill_opacity(xsc.Attrs):
 class fill_rule(xsc.Attrs):
 	class fill_rule(xsc.TextAttr):
 		xmlname = "fill-rule"
-		values = (u"nonzero", u"evenodd", u"inherit")
+		values = ("nonzero", "evenodd", "inherit")
 
 
 class filter2(xsc.Attrs):
@@ -154,25 +154,25 @@ class font_size_adjust(xsc.Attrs):
 class font_stretch(xsc.Attrs):
 	class font_stretch(xsc.TextAttr):
 		xmlname = "font-stretch"
-		values = (u"normal", u"wider", u"narrower", u"ultra-condensed", u"extra-condensed", u"condensed", u"semi-condensed", u"semi-expanded", u"expanded", u"extra-expanded", u"ultra-expanded", u"inherit")
+		values = ("normal", "wider", "narrower", "ultra-condensed", "extra-condensed", "condensed", "semi-condensed", "semi-expanded", "expanded", "extra-expanded", "ultra-expanded", "inherit")
 
 
 class font_style(xsc.Attrs):
 	class font_style(xsc.TextAttr):
 		xmlname = "font-style"
-		values = (u"normal", u"italic", u"oblique", u"inherit")
+		values = ("normal", "italic", "oblique", "inherit")
 
 
 class font_variant(xsc.Attrs):
 	class font_variant(xsc.TextAttr):
 		xmlname = "font-variant"
-		values = (u"normal", u"small-caps", u"inherit")
+		values = ("normal", "small-caps", "inherit")
 
 
 class font_weight(xsc.Attrs):
 	class font_weight(xsc.TextAttr):
 		xmlname = "font-weight"
-		values = (u"normal", u"bold", u"bolder", u"lighter", 100, 200, 300, 400, 500, 600, 700, 800, 900, u"inherit")
+		values = ("normal", "bold", "bolder", "lighter", 100, 200, 300, 400, 500, 600, 700, 800, 900, "inherit")
 
 
 class glyph_orientation_horizontal(xsc.Attrs):
@@ -190,7 +190,7 @@ class id(xsc.Attrs):
 class image_rendering(xsc.Attrs):
 	class image_rendering(xsc.TextAttr):
 		xmlname = "image-rendering"
-		values = (u"auto", u"optimizeSpeed", u"optimizeQuality", u"inherit")
+		values = ("auto", "optimizeSpeed", "optimizeQuality", "inherit")
 
 
 class kerning(xsc.Attrs):
@@ -266,13 +266,13 @@ class opacity(xsc.Attrs):
 
 
 class overflow(xsc.Attrs):
-	class overflow(xsc.TextAttr): values = (u"visible", u"hidden", u"scroll", u"auto", u"inherit")
+	class overflow(xsc.TextAttr): values = ("visible", "hidden", "scroll", "auto", "inherit")
 
 
 class pointer_events(xsc.Attrs):
 	class pointer_events(xsc.TextAttr):
 		xmlname = "pointer-events"
-		values = (u"visiblePainted", u"visibleFill", u"visibleStroke", u"visible", u"painted", u"fill", u"stroke", u"all", u"none", u"inherit")
+		values = ("visiblePainted", "visibleFill", "visibleStroke", "visible", "painted", "fill", "stroke", "all", "none", "inherit")
 
 
 class requiredExtensions(xsc.Attrs):
@@ -286,7 +286,7 @@ class requiredFeatures(xsc.Attrs):
 class shape_rendering(xsc.Attrs):
 	class shape_rendering(xsc.TextAttr):
 		xmlname = "shape-rendering"
-		values = (u"auto", u"optimizeSpeed", u"crispEdges", u"geometricPrecision", u"inherit")
+		values = ("auto", "optimizeSpeed", "crispEdges", "geometricPrecision", "inherit")
 
 
 class stop_color(xsc.Attrs):
@@ -312,13 +312,13 @@ class stroke_dashoffset(xsc.Attrs):
 class stroke_linecap(xsc.Attrs):
 	class stroke_linecap(xsc.TextAttr):
 		xmlname = "stroke-linecap"
-		values = (u"butt", u"round", u"square", u"inherit")
+		values = ("butt", "round", "square", "inherit")
 
 
 class stroke_linejoin(xsc.Attrs):
 	class stroke_linejoin(xsc.TextAttr):
 		xmlname = "stroke-linejoin"
-		values = (u"miter", u"round", u"bevel", u"inherit")
+		values = ("miter", "round", "bevel", "inherit")
 
 
 class stroke_miterlimit(xsc.Attrs):
@@ -344,7 +344,7 @@ class systemLanguage(xsc.Attrs):
 class text_anchor(xsc.Attrs):
 	class text_anchor(xsc.TextAttr):
 		xmlname = "text-anchor"
-		values = (u"start", u"middle", u"end", u"inherit")
+		values = ("start", "middle", "end", "inherit")
 
 
 class text_decoration(xsc.Attrs):
@@ -354,7 +354,7 @@ class text_decoration(xsc.Attrs):
 class text_rendering(xsc.Attrs):
 	class text_rendering(xsc.TextAttr):
 		xmlname = "text-rendering"
-		values = (u"auto", u"optimizeSpeed", u"optimizeLegibility", u"geometricPrecision", u"inherit")
+		values = ("auto", "optimizeSpeed", "optimizeLegibility", "geometricPrecision", "inherit")
 
 
 class transform(xsc.Attrs):
@@ -364,11 +364,11 @@ class transform(xsc.Attrs):
 class unicode_bidi(xsc.Attrs):
 	class unicode_bidi(xsc.TextAttr):
 		xmlname = "unicode-bidi"
-		values = (u"normal", u"embed", u"bidi-override", u"inherit")
+		values = ("normal", "embed", "bidi-override", "inherit")
 
 
 class visibility(xsc.Attrs):
-	class visibility(xsc.TextAttr): values = (u"visible", u"hidden", u"inherit")
+	class visibility(xsc.TextAttr): values = ("visible", "hidden", "inherit")
 
 
 class word_spacing(xsc.Attrs):
@@ -378,7 +378,7 @@ class word_spacing(xsc.Attrs):
 class writing_mode(xsc.Attrs):
 	class writing_mode(xsc.TextAttr):
 		xmlname = "writing-mode"
-		values = (u"lr-tb", u"rl-tb", u"tb-rl", u"lr", u"rl", u"tb", u"inherit")
+		values = ("lr-tb", "rl-tb", "tb-rl", "lr", "rl", "tb", "inherit")
 
 
 class dx(xsc.Attrs):
@@ -410,11 +410,11 @@ class y(xsc.Attrs):
 
 
 class accumulate(xsc.Attrs):
-	class accumulate(xsc.TextAttr): values = (u"none", u"sum")
+	class accumulate(xsc.TextAttr): values = ("none", "sum")
 
 
 class additive(xsc.Attrs):
-	class additive(xsc.TextAttr): values = (u"replace", u"sum")
+	class additive(xsc.TextAttr): values = ("replace", "sum")
 
 
 class attributeName(xsc.Attrs):
@@ -434,7 +434,7 @@ class by(xsc.Attrs):
 
 
 class calcMode(xsc.Attrs):
-	class calcMode(xsc.TextAttr): values = (u"discrete", u"linear", u"paced", u"spline")
+	class calcMode(xsc.TextAttr): values = ("discrete", "linear", "paced", "spline")
 
 
 class dur(xsc.Attrs):
@@ -446,7 +446,7 @@ class end(xsc.Attrs):
 
 
 class fill2(xsc.Attrs):
-	class fill(xsc.TextAttr): values = (u"remove", u"freeze")
+	class fill(xsc.TextAttr): values = ("remove", "freeze")
 
 
 class from_(xsc.Attrs):
@@ -490,7 +490,7 @@ class repeatDur(xsc.Attrs):
 
 
 class restart(xsc.Attrs):
-	class restart(xsc.TextAttr): values = (u"always", u"never", u"whenNotActive")
+	class restart(xsc.TextAttr): values = ("always", "never", "whenNotActive")
 
 
 class to(xsc.Attrs):
@@ -563,7 +563,7 @@ class tableValues(xsc.Attrs):
 
 class type(xsc.Attrs):
 	class type(xsc.TextAttr):
-		values = (u"identity", u"table", u"discrete", u"linear", u"gamma")
+		values = ("identity", "table", "discrete", "linear", "gamma")
 		required = True
 
 
@@ -648,11 +648,11 @@ class gradientTransform(xsc.Attrs):
 
 
 class gradientUnits(xsc.Attrs):
-	class gradientUnits(xsc.TextAttr): values = (u"userSpaceOnUse", u"objectBoundingBox")
+	class gradientUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
 
 
 class spreadMethod(xsc.Attrs):
-	class spreadMethod(xsc.TextAttr): values = (u"pad", u"reflect", u"repeat")
+	class spreadMethod(xsc.TextAttr): values = ("pad", "reflect", "repeat")
 
 
 class viewBox(xsc.Attrs):
@@ -668,11 +668,11 @@ class type2(xsc.Attrs):
 
 
 class zoomAndPan(xsc.Attrs):
-	class zoomAndPan(xsc.TextAttr): values = (u"disable", u"magnify")
+	class zoomAndPan(xsc.TextAttr): values = ("disable", "magnify")
 
 
 class lengthAdjust(xsc.Attrs):
-	class lengthAdjust(xsc.TextAttr): values = (u"spacing", u"spacingAndGlyphs")
+	class lengthAdjust(xsc.TextAttr): values = ("spacing", "spacingAndGlyphs")
 
 
 class textLength(xsc.Attrs):
@@ -718,7 +718,7 @@ class animateColor(xsc.Element):
 class animateMotion(xsc.Element):
 	xmlns = xmlns
 	class Attrs(accumulate, additive, begin, by, dur, end, externalResourcesRequired, fill2, from_, id, keySplines, keyTimes, max, min, onbegin, onend, onload, onrepeat, repeatCount, repeatDur, requiredExtensions, requiredFeatures, restart, rotate, systemLanguage, to, values):
-		class calcMode(xsc.TextAttr): values = (u"discrete", u"linear", u"paced", u"spline")
+		class calcMode(xsc.TextAttr): values = ("discrete", "linear", "paced", "spline")
 		class keyPoints(xsc.TextAttr): pass
 		class origin(xsc.TextAttr): pass
 		class path(xsc.TextAttr): pass
@@ -727,7 +727,7 @@ class animateMotion(xsc.Element):
 class animateTransform(xsc.Element):
 	xmlns = xmlns
 	class Attrs(accumulate, additive, attributeName, attributeType, begin, by, calcMode, dur, end, externalResourcesRequired, fill2, from_, id, keySplines, keyTimes, max, min, onbegin, onend, onload, onrepeat, repeatCount, repeatDur, requiredExtensions, requiredFeatures, restart, systemLanguage, to, values):
-		class type(xsc.TextAttr): values = (u"translate", u"scale", u"rotate", u"skewX", u"skewY")
+		class type(xsc.TextAttr): values = ("translate", "scale", "rotate", "skewX", "skewY")
 
 
 class circle(xsc.Element):
@@ -739,7 +739,7 @@ class circle(xsc.Element):
 class clipPath(xsc.Element):
 	xmlns = xmlns
 	class Attrs(alignment_baseline, baseline_shift, class_, clip_path, clip_rule, color, color_interpolation, color_rendering, cursor2, direction, display, dominant_baseline, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, id, image_rendering, kerning, letter_spacing, mask2, opacity, pointer_events, requiredExtensions, requiredFeatures, shape_rendering, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_anchor, text_decoration, text_rendering, transform, unicode_bidi, visibility, word_spacing, writing_mode):
-		class clipPathUnits(xsc.TextAttr): values = (u"userSpaceOnUse", u"objectBoundingBox")
+		class clipPathUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
 
 
 class color_profile(xsc.Element):
@@ -750,7 +750,7 @@ class color_profile(xsc.Element):
 		class name(xsc.TextAttr): required = True
 		class rendering_intent(xsc.TextAttr):
 			xmlname = "rendering-intent"
-			values = (u"auto", u"perceptual", u"relative-colorimetric", u"saturation", u"absolute-colorimetric")
+			values = ("auto", "perceptual", "relative-colorimetric", "saturation", "absolute-colorimetric")
 
 
 class cursor(xsc.Element):
@@ -788,13 +788,13 @@ class ellipse(xsc.Element):
 class feBlend(xsc.Element):
 	xmlns = xmlns
 	class Attrs(color_interpolation_filters, height, id, in_, in2, result, width, x, y):
-		class mode(xsc.TextAttr): values = (u"normal", u"multiply", u"screen", u"darken", u"lighten")
+		class mode(xsc.TextAttr): values = ("normal", "multiply", "screen", "darken", "lighten")
 
 
 class feColorMatrix(xsc.Element):
 	xmlns = xmlns
 	class Attrs(color_interpolation_filters, height, id, in_, result, values, width, x, y):
-		class type(xsc.TextAttr): values = (u"matrix", u"saturate", u"hueRotate", u"luminanceToAlpha")
+		class type(xsc.TextAttr): values = ("matrix", "saturate", "hueRotate", "luminanceToAlpha")
 
 
 class feComponentTransfer(xsc.Element):
@@ -810,7 +810,7 @@ class feComposite(xsc.Element):
 		class k2(xsc.TextAttr): pass
 		class k3(xsc.TextAttr): pass
 		class k4(xsc.TextAttr): pass
-		class operator(xsc.TextAttr): values = (u"over", u"in", u"out", u"atop", u"xor", u"arithmetic")
+		class operator(xsc.TextAttr): values = ("over", "in", "out", "atop", "xor", "arithmetic")
 
 
 class feConvolveMatrix(xsc.Element):
@@ -818,10 +818,10 @@ class feConvolveMatrix(xsc.Element):
 	class Attrs(color_interpolation_filters, height, id, in_, kernelUnitLength, result, width, x, y):
 		class bias(xsc.TextAttr): pass
 		class divisor(xsc.TextAttr): pass
-		class edgeMode(xsc.TextAttr): values = (u"duplicate", u"wrap", u"none")
+		class edgeMode(xsc.TextAttr): values = ("duplicate", "wrap", "none")
 		class kernelMatrix(xsc.TextAttr): required = True
 		class order(xsc.TextAttr): required = True
-		class preserveAlpha(xsc.TextAttr): values = (u"false", u"true")
+		class preserveAlpha(xsc.TextAttr): values = ("false", "true")
 		class targetX(xsc.IntAttr): pass
 		class targetY(xsc.IntAttr): pass
 
@@ -836,8 +836,8 @@ class feDisplacementMap(xsc.Element):
 	xmlns = xmlns
 	class Attrs(color_interpolation_filters, height, id, in_, in2, result, width, x, y):
 		class scale(xsc.TextAttr): pass
-		class xChannelSelector(xsc.TextAttr): values = (u"R", u"G", u"B", u"A")
-		class yChannelSelector(xsc.TextAttr): values = (u"R", u"G", u"B", u"A")
+		class xChannelSelector(xsc.TextAttr): values = ("R", "G", "B", "A")
+		class yChannelSelector(xsc.TextAttr): values = ("R", "G", "B", "A")
 
 
 class feDistantLight(xsc.Element):
@@ -904,7 +904,7 @@ class feMergeNode(xsc.Element):
 class feMorphology(xsc.Element):
 	xmlns = xmlns
 	class Attrs(color_interpolation_filters, height, id, in_, result, width, x, y):
-		class operator(xsc.TextAttr): values = (u"erode", u"dilate")
+		class operator(xsc.TextAttr): values = ("erode", "dilate")
 		class radius(xsc.TextAttr): pass
 
 
@@ -947,16 +947,16 @@ class feTurbulence(xsc.Element):
 		class baseFrequency(xsc.TextAttr): pass
 		class numOctaves(xsc.IntAttr): pass
 		class seed(xsc.TextAttr): pass
-		class stitchTiles(xsc.TextAttr): values = (u"stitch", u"noStitch")
-		class type(xsc.TextAttr): values = (u"fractalNoise", u"turbulence")
+		class stitchTiles(xsc.TextAttr): values = ("stitch", "noStitch")
+		class type(xsc.TextAttr): values = ("fractalNoise", "turbulence")
 
 
 class filter(xsc.Element):
 	xmlns = xmlns
 	class Attrs(alignment_baseline, baseline_shift, class_, clip, clip_path, clip_rule, color, color_interpolation, color_interpolation_filters, color_profile2, color_rendering, cursor2, direction, display, dominant_baseline, enable_background, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, flood_color, flood_opacity, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, height, id, image_rendering, kerning, letter_spacing, lighting_color, marker_end, marker_mid, marker_start, mask2, opacity, overflow, pointer_events, shape_rendering, stop_color, stop_opacity, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, text_anchor, text_decoration, text_rendering, unicode_bidi, visibility, width, word_spacing, writing_mode, x, y):
 		class filterRes(xsc.TextAttr): pass
-		class filterUnits(xsc.TextAttr): values = (u"userSpaceOnUse", u"objectBoundingBox")
-		class primitiveUnits(xsc.TextAttr): values = (u"userSpaceOnUse", u"objectBoundingBox")
+		class filterUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
+		class primitiveUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
 
 
 class font(xsc.Element):
@@ -1052,7 +1052,7 @@ class glyph(xsc.Element):
 		class glyph_name(xsc.TextAttr): xmlname = "glyph-name"
 		class lang(xsc.TextAttr): pass
 		class orientation(xsc.TextAttr): pass
-		class unicode(xsc.TextAttr): pass
+		class str(xsc.TextAttr): pass
 
 
 class glyphRef(xsc.Element):
@@ -1089,7 +1089,7 @@ class marker(xsc.Element):
 	xmlns = xmlns
 	class Attrs(alignment_baseline, baseline_shift, class_, clip, clip_path, clip_rule, color, color_interpolation, color_interpolation_filters, color_profile2, color_rendering, cursor2, direction, display, dominant_baseline, enable_background, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, flood_color, flood_opacity, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, id, image_rendering, kerning, letter_spacing, lighting_color, marker_end, marker_mid, marker_start, mask2, opacity, overflow, pointer_events, preserveAspectRatio, shape_rendering, stop_color, stop_opacity, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, text_anchor, text_decoration, text_rendering, unicode_bidi, viewBox, visibility, word_spacing, writing_mode):
 		class markerHeight(xsc.TextAttr): pass
-		class markerUnits(xsc.TextAttr): values = (u"strokeWidth", u"userSpaceOnUse")
+		class markerUnits(xsc.TextAttr): values = ("strokeWidth", "userSpaceOnUse")
 		class markerWidth(xsc.TextAttr): pass
 		class orient(xsc.TextAttr): pass
 		class refX(xsc.TextAttr): pass
@@ -1099,8 +1099,8 @@ class marker(xsc.Element):
 class mask(xsc.Element):
 	xmlns = xmlns
 	class Attrs(alignment_baseline, baseline_shift, class_, clip, clip_path, clip_rule, color, color_interpolation, color_interpolation_filters, color_profile2, color_rendering, cursor2, direction, display, dominant_baseline, enable_background, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, flood_color, flood_opacity, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, height, id, image_rendering, kerning, letter_spacing, lighting_color, marker_end, marker_mid, marker_start, mask2, opacity, overflow, pointer_events, requiredExtensions, requiredFeatures, shape_rendering, stop_color, stop_opacity, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_anchor, text_decoration, text_rendering, unicode_bidi, visibility, width, word_spacing, writing_mode, x, y):
-		class maskContentUnits(xsc.TextAttr): values = (u"userSpaceOnUse", u"objectBoundingBox")
-		class maskUnits(xsc.TextAttr): values = (u"userSpaceOnUse", u"objectBoundingBox")
+		class maskContentUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
+		class maskUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
 
 
 class metadata(xsc.Element):
@@ -1132,9 +1132,9 @@ class path(xsc.Element):
 class pattern(xsc.Element):
 	xmlns = xmlns
 	class Attrs(alignment_baseline, baseline_shift, class_, clip, clip_path, clip_rule, color, color_interpolation, color_interpolation_filters, color_profile2, color_rendering, cursor2, direction, display, dominant_baseline, enable_background, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, flood_color, flood_opacity, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, height, id, image_rendering, kerning, letter_spacing, lighting_color, marker_end, marker_mid, marker_start, mask2, opacity, overflow, pointer_events, preserveAspectRatio, requiredExtensions, requiredFeatures, shape_rendering, stop_color, stop_opacity, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_anchor, text_decoration, text_rendering, unicode_bidi, viewBox, visibility, width, word_spacing, writing_mode, x, y):
-		class patternContentUnits(xsc.TextAttr): values = (u"userSpaceOnUse", u"objectBoundingBox")
+		class patternContentUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
 		class patternTransform(xsc.TextAttr): pass
-		class patternUnits(xsc.TextAttr): values = (u"userSpaceOnUse", u"objectBoundingBox")
+		class patternUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
 
 
 class polygon(xsc.Element):
@@ -1225,8 +1225,8 @@ class text(xsc.Element):
 class textPath(xsc.Element):
 	xmlns = xmlns
 	class Attrs(alignment_baseline, baseline_shift, class_, clip_path, clip_rule, color, color_interpolation, color_rendering, cursor2, direction, display, dominant_baseline, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, id, image_rendering, kerning, lengthAdjust, letter_spacing, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, pointer_events, requiredExtensions, requiredFeatures, shape_rendering, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_anchor, text_decoration, text_rendering, textLength, unicode_bidi, visibility, word_spacing):
-		class method(xsc.TextAttr): values = (u"align", u"stretch")
-		class spacing(xsc.TextAttr): values = (u"auto", u"exact")
+		class method(xsc.TextAttr): values = ("align", "stretch")
+		class spacing(xsc.TextAttr): values = ("auto", "exact")
 		class startOffset(xsc.TextAttr): pass
 
 

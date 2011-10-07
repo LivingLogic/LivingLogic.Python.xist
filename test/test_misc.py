@@ -18,10 +18,10 @@ import py.test
 
 # The following includes \x00 in addition to those characters defined in
 # http://www.w3.org/TR/2004/REC-xml11-20040204/#NT-RestrictedChar
-restrictedchars = re.compile(u"[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F-\x84\x86-\x9F]")
+restrictedchars = re.compile("[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F-\x84\x86-\x9F]")
 
 
-escape_input = u"".join(unichr(i) for i in xrange(1000)) + u"".join(unichr(i) for i in xrange(sys.maxunicode-10, sys.maxunicode+1))
+escape_input = "".join(chr(i) for i in range(1000)) + "".join(chr(i) for i in range(sys.maxunicode-10, sys.maxunicode+1))
 
 
 def test_xmlescape():
@@ -50,14 +50,14 @@ def test_xmlescape_text():
 	for input in (escape_input, escape_input.encode("iso-8859-1", "ignore")):
 		escape_output = []
 		for c in escape_input:
-			if c==u"&":
-				escape_output.append(u"&amp;")
-			elif c==u"<":
-				escape_output.append(u"&lt;")
-			elif c==u">":
-				escape_output.append(u"&gt;")
+			if c=="&":
+				escape_output.append("&amp;")
+			elif c=="<":
+				escape_output.append("&lt;")
+			elif c==">":
+				escape_output.append("&gt;")
 			elif restrictedchars.match(c) is not None:
-				escape_output.append(u"&#{};".format(ord(c)))
+				escape_output.append("&#{};".format(ord(c)))
 			else:
 				escape_output.append(c)
 		escape_output = "".join(escape_output)
@@ -86,11 +86,11 @@ def test_xmlescape_attr():
 
 def test_item():
 	def err(n):
-		for i in xrange(n):
+		for i in range(n):
 			yield i
 		raise SyntaxError
 
-	e = iter(range(10))
+	e = iter(list(range(10)))
 	assert misc.item(e, 0) == 0
 	assert misc.item(e, 0) == 1
 	assert misc.item(e, -1) == 9
@@ -98,27 +98,27 @@ def test_item():
 		misc.item(e, -1)
 	assert misc.item(e, -1, 42) == 42
 
-	e = iter(range(10))
+	e = iter(list(range(10)))
 	assert misc.item(e, 4) == 4
 
-	e = iter(range(10))
+	e = iter(list(range(10)))
 	with py.test.raises(IndexError):
 		misc.item(e, 10)
 
-	e = iter(range(10))
+	e = iter(list(range(10)))
 	assert misc.item(e, 10, 42) == 42
 
-	e = iter(range(10))
+	e = iter(list(range(10)))
 	assert misc.item(e, -1) == 9
 
-	e = iter(range(10))
+	e = iter(list(range(10)))
 	assert misc.item(e, -10) == 0
 
-	e = iter(range(10))
+	e = iter(list(range(10)))
 	with py.test.raises(IndexError):
 		misc.item(e, -11)
 
-	e = iter(range(10))
+	e = iter(list(range(10)))
 	assert misc.item(e, -11, 42) == 42
 
 	iterable = [17, 23, 37]
@@ -153,7 +153,7 @@ def test_item():
 
 
 def test_first():
-	e = iter(range(10))
+	e = iter(list(range(10)))
 	assert misc.first(e) == 0
 	assert misc.first(e) == 1
 
@@ -166,7 +166,7 @@ def test_first():
 
 
 def test_last():
-	e = iter(range(10))
+	e = iter(list(range(10)))
 	assert misc.last(e) == 9
 	with py.test.raises(IndexError):
 		misc.last(e)
@@ -180,7 +180,7 @@ def test_last():
 
 
 def test_count():
-	e = iter(range(10))
+	e = iter(list(range(10)))
 	assert misc.count(e) == 10
 	assert misc.count(e) == 0
 
@@ -189,7 +189,7 @@ def test_count():
 
 
 def test_iterator_bool():
-	e = misc.Iterator(iter(range(10)))
+	e = misc.Iterator(iter(list(range(10))))
 	assert e
 
 	e = misc.Iterator(iter([]))
@@ -197,15 +197,15 @@ def test_iterator_bool():
 
 
 def test_iterator_next():
-	e = misc.Iterator(iter(range(2)))
-	assert e.next() == 0
-	assert e.next() == 1
+	e = misc.Iterator(iter(list(range(2))))
+	assert next(e) == 0
+	assert next(e) == 1
 	with py.test.raises(StopIteration):
-		e.next()
+		next(e)
 
 
 def test_iterator_getitem():
-	e = misc.Iterator(iter(range(10)))
+	e = misc.Iterator(iter(list(range(10))))
 	assert e[0] == 0
 	assert e[0] == 1
 	assert e[-1] == 9
@@ -284,8 +284,8 @@ def test_javaexpr():
 	assert '"\\b"' == misc.javaexpr("\b")
 	assert '"\\""' == misc.javaexpr('"')
 	assert '"\\u0000"' == misc.javaexpr("\x00")
-	assert '"\\u00ff"' == misc.javaexpr(u"\xff")
-	assert '"\\u20ac"' == misc.javaexpr(u"\u20ac")
+	assert '"\\u00ff"' == misc.javaexpr("\xff")
+	assert '"\\u20ac"' == misc.javaexpr("\u20ac")
 	# list
 	assert "java.util.Arrays.asList()" == misc.javaexpr(())
 	assert "java.util.Arrays.asList(1, 2, 3)" == misc.javaexpr([1, 2, 3])

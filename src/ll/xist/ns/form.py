@@ -30,7 +30,7 @@ class text(html.input):
 		type = None
 
 	def convert(self, converter):
-		e = html.input(self.attrs, type=u"text")
+		e = html.input(self.attrs, type="text")
 		return e.convert(converter)
 
 
@@ -40,7 +40,7 @@ class checkbox(html.input):
 		type = None
 
 	def convert(self, converter):
-		e = html.input(self.attrs, type=u"checkbox")
+		e = html.input(self.attrs, type="checkbox")
 		return e.convert(converter)
 
 
@@ -50,7 +50,7 @@ class radio(html.input):
 		type = None
 
 	def convert(self, converter):
-		e = html.input(self.attrs, type=u"radio")
+		e = html.input(self.attrs, type="radio")
 		return e.convert(converter)
 
 
@@ -60,7 +60,7 @@ class file(html.input):
 		type = None
 
 	def convert(self, converter):
-		e = html.input(self.attrs, type=u"file")
+		e = html.input(self.attrs, type="file")
 		return e.convert(converter)
 
 
@@ -70,7 +70,7 @@ class submit(html.input):
 		type = None
 
 	def convert(self, converter):
-		e = html.input(self.attrs, type=u"submit")
+		e = html.input(self.attrs, type="submit")
 		return e.convert(converter)
 
 
@@ -80,7 +80,7 @@ class button(html.input):
 		type = None
 
 	def convert(self, converter):
-		e = html.input(self.attrs, type=u"button")
+		e = html.input(self.attrs, type="button")
 		return e.convert(converter)
 
 
@@ -90,7 +90,7 @@ class textarea(html.textarea):
 		class value(xsc.TextAttr): pass
 
 	def convert(self, converter):
-		e = html.textarea(self.attrs.value, self.attrs.withoutnames(u"value"))
+		e = html.textarea(self.attrs.value, self.attrs.withoutnames("value"))
 		return e.convert(converter)
 
 
@@ -100,8 +100,8 @@ class hidden(html.input):
 		type = None
 
 	def __unicode__(self):
-		return u""
+		return ""
 
 	def convert(self, converter):
-		e = html.input(self.attrs, type=u"hidden")
+		e = html.input(self.attrs, type="hidden")
 		return e.convert(converter)

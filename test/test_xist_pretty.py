@@ -18,21 +18,21 @@ def test_pretty():
 		assert node.pretty().bytes() == result
 
 	tests = [
-		(html.p(u"apple", u"tree"), b"<p>appletree</p>"),
-		(html.p(u"apple", html.br(), u"tree"), b"<p>apple<br />tree</p>"),
-		(html.p(php.php(u"apple")), b"<p>\n\t<?php apple?>\n</p>"),
-		(html.p(php.php(u"apple"), u"tree"), b"<p><?php apple?>tree</p>"),
+		(html.p("apple", "tree"), b"<p>appletree</p>"),
+		(html.p("apple", html.br(), "tree"), b"<p>apple<br />tree</p>"),
+		(html.p(php.php("apple")), b"<p>\n\t<?php apple?>\n</p>"),
+		(html.p(php.php("apple"), "tree"), b"<p><?php apple?>tree</p>"),
 		(
-			html.div(2*html.p(u"apple", u"tree"), html.br()),
+			html.div(2*html.p("apple", "tree"), html.br()),
 			b"<div>\n\t<p>appletree</p>\n\t<p>appletree</p>\n\t<br />\n</div>"
 		),
 		(
 			html.div(
-				php.php(u"apple"),
-				html.p(u"apple", u"tree"),
+				php.php("apple"),
+				html.p("apple", "tree"),
 				html.div(
-					html.p(u"apple"),
-					html.p(u"tree"),
+					html.p("apple"),
+					html.p("tree"),
 				),
 				html.br()
 			),

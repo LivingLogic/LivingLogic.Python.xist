@@ -8,7 +8,7 @@
 ## See ll/__init__.py for the license
 
 
-from __future__ import division
+
 
 """
 :mod:`ll.color` provides classes and functions for handling RGB colors.
@@ -364,12 +364,12 @@ def mix(*args):
 	for arg in args:
 		if isinstance(arg, Color):
 			sumweights += weight
-			for i in xrange(3):
+			for i in range(3):
 				channels[i] += weight*arg[i]
 			channels[3] += weight*(255-arg[3])
 		elif isinstance(arg, tuple):
 			sumweights += arg[1]
-			for i in xrange(3):
+			for i in range(3):
 				channels[i] += arg[1]*arg[0][i]
 			channels[3] += weight*(255-arg[0][3])
 		else:

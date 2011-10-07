@@ -25,19 +25,19 @@ def test_empty1():
 
 
 def test_empty2(recwarn):
-	e = el1(u"gurk")
+	e = el1("gurk")
 	e.bytes()
 	w = recwarn.pop(sims.EmptyElementWithContentWarning)
 
 
 def test_empty3(recwarn):
-	e = el1(php.php(u"gurk"))
+	e = el1(php.php("gurk"))
 	e.bytes()
 	w = recwarn.pop(sims.EmptyElementWithContentWarning)
 
 
 def test_empty4(recwarn):
-	e = el1(xsc.Comment(u"gurk"))
+	e = el1(xsc.Comment("gurk"))
 	e.bytes()
 	w = recwarn.pop(sims.EmptyElementWithContentWarning)
 
@@ -68,14 +68,14 @@ def test_elements(recwarn):
 		e = el11()
 		e.bytes()
 
-		e = el11(u"foo")
+		e = el11("foo")
 		e.bytes()
 		w = recwarn.pop(sims.IllegalTextWarning)
 
-		e = el11(php.php(u"gurk"))
+		e = el11(php.php("gurk"))
 		e.bytes()
 
-		e = el11(xsc.Comment(u"gurk"))
+		e = el11(xsc.Comment("gurk"))
 		e.bytes()
 
 		e = el11(el11())
@@ -113,13 +113,13 @@ def test_elementsortext(recwarn):
 		e = el11()
 		e.bytes()
 
-		e = el11(u"foo")
+		e = el11("foo")
 		e.bytes()
 
-		e = el11(php.php(u"gurk"))
+		e = el11(php.php("gurk"))
 		e.bytes()
 
-		e = el11(xsc.Comment(u"gurk"))
+		e = el11(xsc.Comment("gurk"))
 		e.bytes()
 
 		e = el11(el11())
@@ -148,13 +148,13 @@ def test_noelements(recwarn):
 		e = el1()
 		e.bytes()
 
-		e = el1(u"foo")
+		e = el1("foo")
 		e.bytes()
 
-		e = el1(php.php(u"gurk"))
+		e = el1(php.php("gurk"))
 		e.bytes()
 
-		e = el1(xsc.Comment(u"gurk"))
+		e = el1(xsc.Comment("gurk"))
 		e.bytes()
 
 		e = el1(el1())
@@ -177,14 +177,14 @@ def test_noelementsortext(recwarn):
 		e = el1()
 		e.bytes()
 
-		e = el1(u"foo")
+		e = el1("foo")
 		e.bytes()
 		w = recwarn.pop(sims.IllegalTextWarning)
 
-		e = el1(php.php(u"gurk"))
+		e = el1(php.php("gurk"))
 		e.bytes()
 
-		e = el1(xsc.Comment(u"gurk"))
+		e = el1(xsc.Comment("gurk"))
 		e.bytes()
 
 		e = el1(el1())

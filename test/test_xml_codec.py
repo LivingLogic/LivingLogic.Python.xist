@@ -82,20 +82,20 @@ def test_detectencoding_str():
 
 def test_detectencoding_unicode():
 	# Unicode version (only parses the header)
-	assert xml_codec._detectencoding(u'<?xml \r\n\t \r\n\t \r\n\tversion \r\n\t \r\n\t= \r\n\t \r\n\t"1.0" \r\n\t \r\n\t \r\n\tencoding \r\n\t \r\n\t= \r\n\t \r\n\t"x') is None
-	assert xml_codec._detectencoding(u'<?xml \r\n\t \r\n\t \r\n\tversion \r\n\t \r\n\t= \r\n\t \r\n\t"1.0" \r\n\t \r\n\t \r\n\tencoding \r\n\t \r\n\t= \r\n\t \r\n\t"x', True) == "utf-8"
-	assert xml_codec._detectencoding(u'<?xml \r\n\t \r\n\t \r\n\tversion \r\n\t \r\n\t= \r\n\t \r\n\t"1.0" \r\n\t \r\n\t \r\n\tencoding \r\n\t \r\n\t= \r\n\t \r\n\t"x"') == "x"
+	assert xml_codec._detectencoding('<?xml \r\n\t \r\n\t \r\n\tversion \r\n\t \r\n\t= \r\n\t \r\n\t"1.0" \r\n\t \r\n\t \r\n\tencoding \r\n\t \r\n\t= \r\n\t \r\n\t"x') is None
+	assert xml_codec._detectencoding('<?xml \r\n\t \r\n\t \r\n\tversion \r\n\t \r\n\t= \r\n\t \r\n\t"1.0" \r\n\t \r\n\t \r\n\tencoding \r\n\t \r\n\t= \r\n\t \r\n\t"x', True) == "utf-8"
+	assert xml_codec._detectencoding('<?xml \r\n\t \r\n\t \r\n\tversion \r\n\t \r\n\t= \r\n\t \r\n\t"1.0" \r\n\t \r\n\t \r\n\tencoding \r\n\t \r\n\t= \r\n\t \r\n\t"x"') == "x"
 
 
 def test_fixencoding():
-	s = u'<?xml \r\n\t \r\n\t \r\n\tversion \r\n\t \r\n\t= \r\n\t \r\n\t"1.0" \r\n\t \r\n\t \r\n\tencoding \r\n\t \r\n\t= \r\n\t \r\n\t"x'
-	assert xml_codec._fixencoding(s, u"utf-8") is None
+	s = '<?xml \r\n\t \r\n\t \r\n\tversion \r\n\t \r\n\t= \r\n\t \r\n\t"1.0" \r\n\t \r\n\t \r\n\tencoding \r\n\t \r\n\t= \r\n\t \r\n\t"x'
+	assert xml_codec._fixencoding(s, "utf-8") is None
 
-	s = u'<?xml \r\n\t \r\n\t \r\n\tversion \r\n\t \r\n\t= \r\n\t \r\n\t"1.0" \r\n\t \r\n\t \r\n\tencoding \r\n\t \r\n\t= \r\n\t \r\n\t"x'
-	assert xml_codec._fixencoding(s, u"utf-8", True) == s
+	s = '<?xml \r\n\t \r\n\t \r\n\tversion \r\n\t \r\n\t= \r\n\t \r\n\t"1.0" \r\n\t \r\n\t \r\n\tencoding \r\n\t \r\n\t= \r\n\t \r\n\t"x'
+	assert xml_codec._fixencoding(s, "utf-8", True) == s
 
-	s = u'<?xml \r\n\t \r\n\t \r\n\tversion \r\n\t \r\n\t= \r\n\t \r\n\t"1.0" \r\n\t \r\n\t \r\n\tencoding \r\n\t \r\n\t= \r\n\t \r\n\t"x"?>'
-	assert xml_codec._fixencoding(s, u"utf-8") == s.replace('"x"', '"utf-8"')
+	s = '<?xml \r\n\t \r\n\t \r\n\tversion \r\n\t \r\n\t= \r\n\t \r\n\t"1.0" \r\n\t \r\n\t \r\n\tencoding \r\n\t \r\n\t= \r\n\t \r\n\t"x"?>'
+	assert xml_codec._fixencoding(s, "utf-8") == s.replace('"x"', '"utf-8"')
 
 
 def check_partial(decoder, input, *parts):
@@ -108,46 +108,46 @@ def test_partial():
 	decoder = codecs.getincrementaldecoder("xml")()
 
 	# UTF-16
-	check_partial(decoder, u"\ufeff".encode("utf-16-be"), u"", u"")
+	check_partial(decoder, "\ufeff".encode("utf-16-be"), "", "")
 	decoder.reset()
 
-	check_partial(decoder, u"\ufeff".encode("utf-16-le"), u"", u"")
+	check_partial(decoder, "\ufeff".encode("utf-16-le"), "", "")
 	decoder.reset()
 
-	result = (u"", u"", u"", u"\u1234", u"", u"a")
+	result = ("", "", "", "\u1234", "", "a")
 
-	check_partial(decoder, u"\u1234a".encode("utf-16"), *result)
+	check_partial(decoder, "\u1234a".encode("utf-16"), *result)
 	decoder.reset()
 
 	# Fake utf-16 stored big endian
-	check_partial(decoder, u"\ufeff\u1234a".encode("utf-16-be"), *result)
+	check_partial(decoder, "\ufeff\u1234a".encode("utf-16-be"), *result)
 	decoder.reset()
 
 	# Fake utf-16 stored little endian
-	check_partial(decoder, u"\ufeff\u1234a".encode("utf-16-le"), *result)
+	check_partial(decoder, "\ufeff\u1234a".encode("utf-16-le"), *result)
 	decoder.reset()
 
 	# UTF-32
 	if haveutf32:
-		result = (u"", u"", u"", u"", u"", u"", u"", u"\u1234", u"", u"", u"", u"a")
-		check_partial(decoder, u"\u1234a".encode("utf-32"), *result)
+		result = ("", "", "", "", "", "", "", "\u1234", "", "", "", "a")
+		check_partial(decoder, "\u1234a".encode("utf-32"), *result)
 		decoder.reset()
 
 		# Fake utf-32 stored big endian
-		check_partial(decoder, u"\ufeff\u1234a".encode("utf-32-be"), *result)
+		check_partial(decoder, "\ufeff\u1234a".encode("utf-32-be"), *result)
 		decoder.reset()
 
 		# Fake utf-32 stored little endian
-		check_partial(decoder, u"\ufeff\u1234a".encode("utf-32-le"), *result)
+		check_partial(decoder, "\ufeff\u1234a".encode("utf-32-le"), *result)
 		decoder.reset()
 
 	# UTF-8-Sig
-	check_partial(decoder, u"\u1234a".encode("utf-8-sig"), u"", u"", u"", u"", u"", u"\u1234", u"a")
+	check_partial(decoder, "\u1234a".encode("utf-8-sig"), "", "", "", "", "", "\u1234", "a")
 	decoder.reset()
 
 
 def test_decoder():
-	def checkauto(encoding, input=u"<?xml version='1.0' encoding='x'?>gürk\u20ac"):
+	def checkauto(encoding, input="<?xml version='1.0' encoding='x'?>gürk\u20ac"):
 		# Check stateless decoder
 		d = codecs.getdecoder("xml")
 		assert d(input.encode(encoding))[0] == input.replace("'x'", repr(encoding))
@@ -176,7 +176,7 @@ def test_decoder():
 		yield checkauto, "utf-32-le"
 		yield checkauto, "utf-32-be"
 
-	def checkdecl(encoding, input=u"<?xml version='1.0' encoding={encoding!r}?><gürk>\u20ac</gürk>"):
+	def checkdecl(encoding, input="<?xml version='1.0' encoding={encoding!r}?><gürk>\u20ac</gürk>"):
 		# Check stateless decoder with encoding autodetection
 		d = codecs.getdecoder("xml")
 		input = input.format(encoding=encoding)
@@ -195,7 +195,7 @@ def test_decoder():
 
 	# Use correct declaration
 	yield checkdecl, "utf-8"
-	yield checkdecl, "iso-8859-1", u"<?xml version='1.0' encoding={encoding!r}?><gürk/>"
+	yield checkdecl, "iso-8859-1", "<?xml version='1.0' encoding={encoding!r}?><gürk/>"
 	yield checkdecl, "iso-8859-15"
 	yield checkdecl, "cp1252"
 
@@ -205,7 +205,7 @@ def test_decoder():
 
 
 def test_encoder():
-	def check(encoding, input=u"<?xml version='1.0' encoding='x'?>gürk\u20ac"):
+	def check(encoding, input="<?xml version='1.0' encoding='x'?>gürk\u20ac"):
 		# Check stateless encoder with encoding autodetection
 		e = codecs.getencoder("xml")
 		inputdecl = input.replace("'x'", repr(encoding))
@@ -232,10 +232,10 @@ def test_encoder():
 		yield check, "utf-32-le"
 		yield check, "utf-32-be"
 	yield check, "utf-8"
-	yield check, "iso-8859-1", u"<?xml version='1.0' encoding='x'?><gürk/>"
+	yield check, "iso-8859-1", "<?xml version='1.0' encoding='x'?><gürk/>"
 	yield check, "iso-8859-15"
 	yield check, "cp1252"
 
 	# No recursion
 	with py.test.raises(ValueError):
-		u"<?xml version='1.0' encoding='xml'?><gurk/>".encode("xml")
+		"<?xml version='1.0' encoding='xml'?><gurk/>".encode("xml")

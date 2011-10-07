@@ -9,7 +9,7 @@
 ## See ll/__init__.py for the license
 
 
-import cStringIO
+import io
 from xml.etree import cElementTree
 from xml import sax
 from xml.parsers import expat
@@ -30,7 +30,7 @@ class a(xsc.Element):
 
 class foo(xsc.Entity):
 	def __unicode__(self):
-		return u"FOO"
+		return "FOO"
 
 
 class bar(xsc.CharRef):
@@ -38,15 +38,15 @@ class bar(xsc.CharRef):
 
 
 def test_parsingmethods():
-	t = u"abc\U00012345\u3042xyz"
-	s = u'<?xml version="1.0" encoding="utf-8"?><a title="{0}">{0}</a>'.format(t)
+	t = "abc\U00012345\u3042xyz"
+	s = '<?xml version="1.0" encoding="utf-8"?><a title="{0}">{0}</a>'.format(t)
 	b = s.encode("utf-8")
 
 	def check(*pipeline):
 		node = parse.tree(*pipeline)
 		node = node.walknodes(a)[0]
-		assert unicode(node) == t
-		assert unicode(node["title"]) == t
+		assert str(node) == t
+		assert str(node["title"]) == t
 
 	prefixes = {None: a.xmlns}
 	pool = xsc.Pool(a)
@@ -54,7 +54,7 @@ def test_parsingmethods():
 	yield check, b, parse.Expat(), parse.NS(a.xmlns), parse.Node(pool)
 	yield check, s, parse.Encoder(encoding="utf-8"), parse.Expat(), parse.NS(a.xmlns), parse.Node(pool)
 	yield check, parse.Iter(b), parse.Expat(), parse.NS(a.xmlns), parse.Node(pool) # parse byte by byte
-	yield check, parse.Stream(cStringIO.StringIO(b), bufsize=1), parse.Expat(), parse.NS(a.xmlns), parse.Node(pool)
+	yield check, parse.Stream(io.StringIO(b), bufsize=1), parse.Expat(), parse.NS(a.xmlns), parse.Node(pool)
 	yield check, parse.ETree(cElementTree.fromstring(b), defaultxmlns=a.xmlns), parse.Node(pool)
 
 
@@ -149,12 +149,12 @@ def test_parsevalueattrs(recwarn):
 
 def test_multipleparsecalls():
 	def check(parser):
-		for i in xrange(3):
+		for i in range(3):
 			try:
 				parse.tree(b"<>gurk", parser, parse.NS(html), parse.Node())
 			except Exception:
 				pass
-			for j in xrange(3):
+			for j in range(3):
 				assert parse.tree(b"<a>gurk</a>", parser, parse.NS(html), parse.Node()).bytes() == "<a>gurk</a>"
 
 	# A Parser instance should be able to parse multiple XML sources, even when some of the parse calls fail
@@ -166,8 +166,8 @@ def test_parseentities_sgmlop():
 	def check(input, output):
 		node = parse.tree(b"""<a title="{0}">{0}</a>""".format(input), parse.SGMLOP(), parse.NS(a.xmlns), parse.Node(pool=xsc.Pool(a, bar, foo, chars)))
 		node = node.walknodes(a)[0]
-		assert unicode(node) == output
-		assert unicode(node.attrs.title) == output
+		assert str(node) == output
+		assert str(node.attrs.title) == output
 
 	yield check, b"a", "a"
 	yield check, b";a;", ";a;"
@@ -183,14 +183,14 @@ def test_parseentities_sgmlop():
 	yield check, b"&bar;", "\x42"
 	yield check, b"&#32;", " "
 	yield check, b"&#x20;", " "
-	yield check, b"&#x3042;", u"\u3042"
+	yield check, b"&#x3042;", "\u3042"
 
 
 def test_parseattr_sgmlop():
 	def check(input, output):
 		node = parse.tree(input, parse.SGMLOP(), parse.NS(a), parse.Node())
 		node = node.walknodes(a)[0]
-		assert unicode(node.attrs.title) == output
+		assert str(node.attrs.title) == output
 
 	yield check, b"""<a title=x></a>""", "x"
 	yield check, b"""<a title=x/>""", "x"
@@ -250,15 +250,15 @@ def test_expat_xmldecl():
 
 	e = parse.tree(b"<?xml version='1.0'?><a/>", parse.Expat(xmldecl=True), parse.NS(html), parse.Node())
 	assert isinstance(e[0], xml.XML)
-	assert e[0].content == u'version="1.0"'
+	assert e[0].content == 'version="1.0"'
 
 	e = parse.tree(b"<?xml version='1.0' encoding='utf-8'?><a/>", parse.Expat(xmldecl=True), parse.NS(html), parse.Node())
 	assert isinstance(e[0], xml.XML)
-	assert e[0].content == u'version="1.0" encoding="utf-8"'
+	assert e[0].content == 'version="1.0" encoding="utf-8"'
 
 	e = parse.tree(b"<?xml version='1.0' encoding='utf-8' standalone='yes'?><a/>", parse.Expat(xmldecl=True), parse.NS(html), parse.Node())
 	assert isinstance(e[0], xml.XML)
-	assert e[0].content == u'version="1.0" encoding="utf-8" standalone="yes"'
+	assert e[0].content == 'version="1.0" encoding="utf-8" standalone="yes"'
 
 
 def test_expat_doctype():
@@ -275,17 +275,17 @@ def test_expat_doctype():
 
 	e = parse.tree(b'<!DOCTYPE html SYSTEM "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><a/>', parse.Expat(doctype=True), parse.NS(html), parse.Node())
 	assert isinstance(e[0], xsc.DocType)
-	assert e[0].content == u'html SYSTEM "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"'
+	assert e[0].content == 'html SYSTEM "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"'
 
 	e = parse.tree(b'<!DOCTYPE a [<!ELEMENT a EMPTY><!--gurk-->]><a/>', parse.Expat(doctype=True), parse.NS(html), parse.Node())
 	assert isinstance(e[0], xsc.DocType)
-	assert e[0].content == u'a' # Internal subset gets dropped
+	assert e[0].content == 'a' # Internal subset gets dropped
 
 
 def test_htmlparse_base():
 	e = parse.tree(b"<a href='gurk.gif'/>", parse.Tidy(), parse.NS(html), parse.Node(base="hurz/index.html"))
 	e = e.walknodes(html.a)[0]
-	assert unicode(e.attrs.href) == "hurz/gurk.gif"
+	assert str(e.attrs.href) == "hurz/gurk.gif"
 
 
 def test_parse_tidy_empty():
@@ -295,13 +295,13 @@ def test_parse_tidy_empty():
 
 def test_base():
 	e = parse.tree(parse.String(b'<a xmlns="http://www.w3.org/1999/xhtml" href="gurk.html"/>', 'http://www.gurk.de/'), parse.Expat(ns=True), parse.Node(pool=xsc.Pool(html)))
-	assert unicode(e[0].attrs.href) == "http://www.gurk.de/gurk.html"
+	assert str(e[0].attrs.href) == "http://www.gurk.de/gurk.html"
 
 
 def test_stringsource():
 	expect = b"hinz & kunz"
 	source = parse.String(expect)
-	for i in xrange(3):
+	for i in range(3):
 		parsed = b"".join(data for (evtype, data) in source if evtype == "bytes")
 		assert parsed == expect
 
@@ -309,7 +309,7 @@ def test_stringsource():
 def test_itersource():
 	expect = b"hinz & kunz"
 	source = parse.Iter([b"hinz", b" & ", b"kunz"])
-	for i in xrange(3):
+	for i in range(3):
 		parsed = b"".join(data for (evtype, data) in source if evtype == "bytes")
 		assert parsed == expect
 
@@ -317,7 +317,7 @@ def test_itersource():
 def test_filesource():
 	expect = open("setup.py", "rb").read()
 	source = parse.File("setup.py", bufsize=32)
-	for i in xrange(3):
+	for i in range(3):
 		parsed = "".join(data for (evtype, data) in source if evtype == "bytes")
 		assert parsed == expect
 
@@ -333,7 +333,7 @@ def test_streamsource():
 def test_urlsource():
 	expect = url.URL("http://www.python.org/").openread().read()
 	source = parse.URL("http://www.python.org/", bufsize=32)
-	for i in xrange(3):
+	for i in range(3):
 		parsed = b"".join(data for (evtype, data) in source if evtype == "bytes")
 		assert parsed == expect
 
@@ -341,7 +341,7 @@ def test_urlsource():
 def test_itertree_large():
 	def xml():
 		yield b"<ul xmlns='{}'>".format(html.xmlns)
-		for i in xrange(1000):
+		for i in range(1000):
 			yield b"<li>{}</li>".format(i)
 		yield b"</ul>"
 
@@ -353,39 +353,39 @@ def test_itertree_large():
 def test_expat_events_on_exception():
 	# Test that all collected events are output before an exception is thrown
 	i = parse.events(b"<x/>schrott", parse.Expat())
-	assert i.next() == (u"url", url.URL("STRING"))
-	assert i.next() == (u"position", (0, 0))
-	assert i.next() == (u"enterstarttag", u"x")
-	assert i.next() == (u"leavestarttag", u"x")
-	assert i.next() == (u"position", (0, 4))
-	assert i.next() == (u"endtag", u"x")
+	assert next(i) == ("url", url.URL("STRING"))
+	assert next(i) == ("position", (0, 0))
+	assert next(i) == ("enterstarttag", "x")
+	assert next(i) == ("leavestarttag", "x")
+	assert next(i) == ("position", (0, 4))
+	assert next(i) == ("endtag", "x")
 	with py.test.raises(expat.ExpatError):
-		i.next()
+		next(i)
 
 
 def test_expat_no_multiple_text_events():
 	# Test that we don't get consecutive text events with expat
 	i = parse.events(parse.Iter(b"<a>gurk &amp; hurz &amp; hinz &amp; kunz</a>"), parse.Expat())
-	assert i.next() == (u"url", url.URL("ITER"))
-	assert i.next() == (u"position", (0, 0))
-	assert i.next() == (u"enterstarttag", u"a")
-	assert i.next() == (u"leavestarttag", u"a")
-	assert i.next() == (u"position", (0, 4))
-	assert i.next() == (u"text", u"gurk & hurz & hinz & kunz")
-	assert i.next() == (u"position", (0, 40))
-	assert i.next() == (u"endtag", u"a")
+	assert next(i) == ("url", url.URL("ITER"))
+	assert next(i) == ("position", (0, 0))
+	assert next(i) == ("enterstarttag", "a")
+	assert next(i) == ("leavestarttag", "a")
+	assert next(i) == ("position", (0, 4))
+	assert next(i) == ("text", "gurk & hurz & hinz & kunz")
+	assert next(i) == ("position", (0, 40))
+	assert next(i) == ("endtag", "a")
 	with py.test.raises(StopIteration):
-		i.next()
+		next(i)
 
 
 def test_sgmlop_no_multiple_text_events():
 	# Test that we don't get consecutive text events with sgmlop
 	i = parse.events(parse.Iter(b"<a>gurk &amp; hurz &amp; hinz &amp; kunz</a>"), parse.SGMLOP())
-	assert i.next() == (u"url", url.URL("ITER"))
-	assert i.next() == (u"enterstarttag", u"a")
-	assert i.next() == (u"leavestarttag", u"a")
-	assert i.next() == (u"text", u"gurk & hurz & hinz & kunz")
-	assert i.next() == (u"endtag", u"a")
+	assert next(i) == ("url", url.URL("ITER"))
+	assert next(i) == ("enterstarttag", "a")
+	assert next(i) == ("leavestarttag", "a")
+	assert next(i) == ("text", "gurk & hurz & hinz & kunz")
+	assert next(i) == ("endtag", "a")
 	with py.test.raises(StopIteration):
-		i.next()
+		next(i)
 

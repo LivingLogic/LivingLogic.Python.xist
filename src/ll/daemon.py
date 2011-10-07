@@ -8,7 +8,7 @@
 ## See ll/__init__.py for the license
 
 
-ur"""
+r"""
 This module can be used on UNIX to fork a daemon process. It is based on
 `Jürgen Hermann's Cookbook recipe`__.
 
@@ -123,11 +123,11 @@ class Daemon(object):
 		(a user/group name).
 		"""
 		if group is not None:
-			if isinstance(group, basestring):
+			if isinstance(group, str):
 				group = grp.getgrnam(group).gr_gid
 			os.setegid(group)
 		if user is not None:
-			if isinstance(user, basestring):
+			if isinstance(user, str):
 				user = pwd.getpwnam(user).pw_uid
 			os.seteuid(user)
 			if "HOME" in os.environ:
@@ -147,7 +147,7 @@ class Daemon(object):
 			pid = os.fork()
 			if pid > 0:
 				sys.exit(0) # Exit first parent
-		except OSError, exc:
+		except OSError as exc:
 			sys.exit("{}: fork #1 failed: ({}) {}\n".format(sys.argv[0], exc.errno, exc.strerror))
 
 		# Decouple from parent environment
@@ -160,7 +160,7 @@ class Daemon(object):
 			pid = os.fork()
 			if pid > 0:
 				sys.exit(0) # Exit second parent
-		except OSError, exc:
+		except OSError as exc:
 			sys.exit("{}: fork #2 failed: ({}) {}\n".format(sys.argv[0], exc.errno, exc.strerror))
 
 		# Now I am a daemon!
@@ -190,7 +190,7 @@ class Daemon(object):
 			sys.exit("no pidfile specified")
 		try:
 			pidfile = open(self.options.pidfile, "rb")
-		except IOError, exc:
+		except IOError as exc:
 			sys.exit("can't open pidfile {}: {}".format(self.options.pidfile, str(exc)))
 		data = pidfile.read()
 		try:

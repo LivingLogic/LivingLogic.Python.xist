@@ -34,7 +34,7 @@ __docformat__ = "reStructuredText"
 def _isstyle(path):
 	if path:
 		node = path[-1]
-		return (isinstance(node, html.style) and unicode(node.attrs["type"]) == "text/css") or (isinstance(node, html.link) and unicode(node.attrs["rel"]) == "stylesheet")
+		return (isinstance(node, html.style) and str(node.attrs["type"]) == "text/css") or (isinstance(node, html.link) and str(node.attrs["rel"]) == "stylesheet")
 	return False
 
 
@@ -45,7 +45,7 @@ def replaceurls(stylesheet, replacer):
 	be replaced with the result.
 	"""
 	def newreplacer(u):
-		return unicode(replacer(url.URL(u)))
+		return str(replacer(url.URL(u)))
 	cssutils.replaceUrls(stylesheet, newreplacer)
 
 
@@ -126,9 +126,9 @@ def iterrules(node, base=None, media=None, title=None):
 	def matchlink(node):
 		if node.attrs.media.hasmedia(media):
 			if title is None:
-				if "title" not in node.attrs and "alternate" not in unicode(node.attrs.rel).split():
+				if "title" not in node.attrs and "alternate" not in str(node.attrs.rel).split():
 					return True
-			elif not node.attrs.title.isfancy() and unicode(node.attrs.title) == title and "alternate" in unicode(node.attrs.rel).split():
+			elif not node.attrs.title.isfancy() and str(node.attrs.title) == title and "alternate" in str(node.attrs.rel).split():
 				return True
 		return False
 
@@ -137,7 +137,7 @@ def iterrules(node, base=None, media=None, title=None):
 			if title is None:
 				if "title" not in node.attrs:
 					return True
-			elif unicode(node.attrs.title) == title:
+			elif str(node.attrs.title) == title:
 				return True
 		return False
 
@@ -146,7 +146,7 @@ def iterrules(node, base=None, media=None, title=None):
 			if isinstance(cssnode, html.style):
 				href = str(base) if base is not None else None
 				if matchstyle(cssnode):
-					stylesheet = cssutils.parseString(unicode(cssnode.content), href=href, media=unicode(cssnode.attrs.media))
+					stylesheet = cssutils.parseString(str(cssnode.content), href=href, media=str(cssnode.attrs.media))
 					for rule in _doimport(media, stylesheet, base):
 						yield rule
 			else: # link
@@ -157,7 +157,7 @@ def iterrules(node, base=None, media=None, title=None):
 					if matchlink(cssnode):
 						with contextlib.closing(href.open("rb")) as r:
 							s = r.read()
-						stylesheet = cssutils.parseString(unicode(s), href=str(href), media=unicode(cssnode.attrs.media))
+						stylesheet = cssutils.parseString(str(s), href=str(href), media=str(cssnode.attrs.media))
 						for rule in _doimport(media, stylesheet, href):
 							yield rule
 	return misc.Iterator(doiter(node))
@@ -186,14 +186,14 @@ def applystylesheets(node, base=None, media=None, title=None):
 				yield (
 					(1, 0, 0, 0),
 					xfind.IsSelector(node),
-					cssutils.parseString(u"*{{{}}}".format(style)).cssRules[0].style # parse the style out of the style attribute
+					cssutils.parseString("*{{{}}}".format(style)).cssRules[0].style # parse the style out of the style attribute
 				)
 
 	rules = []
 	for (i, rule) in enumerate(iterrules(node, base=base, media=media, title=title)):
 		for sel in rule.selectorList:
 			rules.append((sel.specificity, selector(sel), rule.style))
-	rules.sort(key=lambda(spec, sel, rule): spec)
+	rules.sort(key=lambda spec_sel_rule: spec_sel_rule[0])
 	count = 0
 	for path in node.walk(xsc.Element):
 		del path[-1][_isstyle] # drop style sheet nodes
@@ -204,7 +204,7 @@ def applystylesheets(node, base=None, media=None, title=None):
 					for prop in style:
 						styles[prop.name] = (count, prop.cssText)
 						count += 1
-			style = " ".join("{};".format(value) for (count, value) in sorted(styles.itervalues()))
+			style = " ".join("{};".format(value) for (count, value) in sorted(styles.values()))
 			if style:
 				path[-1].attrs["style"] = style
 
@@ -227,7 +227,7 @@ def _is_nth_node(iterator, node, index):
 				return i % 2 == 0
 		return False
 	else:
-		if not isinstance(index, (int, long)):
+		if not isinstance(index, int):
 			try:
 				index = int(index)
 			except ValueError:
@@ -257,7 +257,7 @@ def _is_nth_last_node(iterator, node, index):
 				pos = i
 		return pos is None or (i-pos) % 2 == 0
 	else:
-		if not isinstance(index, (int, long)):
+		if not isinstance(index, int):
 			try:
 				index = int(index)
 			except ValueError:
@@ -321,7 +321,7 @@ class CSSAttributeListSelector(CSSWeightedSelector):
 			node = path[-1]
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attributename):
 				attr = node.attrs.get_xml(self.attributename)
-				return self.attributevalue in unicode(attr).split()
+				return self.attributevalue in str(attr).split()
 		return False
 
 	def __str__(self):
@@ -343,7 +343,7 @@ class CSSAttributeLangSelector(CSSWeightedSelector):
 			node = path[-1]
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attributename):
 				attr = node.attrs.get_xml(self.attributename)
-				parts = unicode(attr).split("-", 1)
+				parts = str(attr).split("-", 1)
 				if parts:
 					return parts[0] == self.attributevalue
 		return False
@@ -693,10 +693,10 @@ def selector(selectors, prefixes=None):
 	may be a mapping mapping namespace prefixes to namespace names.
 	"""
 
-	if isinstance(selectors, basestring):
+	if isinstance(selectors, str):
 		if prefixes is not None:
-			prefixes = dict((key, xsc.nsname(value)) for (key, value) in prefixes.iteritems())
-			selectors = "{}\n{}{{}}".format("\n".join("@namespace {} {!r};".format(key if key is not None else "", value) for (key, value) in prefixes.iteritems()), selectors)
+			prefixes = dict((key, xsc.nsname(value)) for (key, value) in prefixes.items())
+			selectors = "{}\n{}{{}}".format("\n".join("@namespace {} {!r};".format(key if key is not None else "", value) for (key, value) in prefixes.items()), selectors)
 		else:
 			selectors = "{}{{}}".format(selectors)
 		for rule in cssutils.CSSParser().parseString(selectors).cssRules:

@@ -30,7 +30,7 @@ xmlns = "http://www.w3.org/1999/xhtml"
 
 
 # common attributes types
-class DirAttr(xsc.TextAttr): "direction for weak/neutral text"; values = (u"ltr", u"rtl")
+class DirAttr(xsc.TextAttr): "direction for weak/neutral text"; values = ("ltr", "rtl")
 class ContentTypeAttr(xsc.TextAttr): "media type, as per [RFC2045]"
 class ContentTypesAttr(xsc.TextAttr): "comma-separated list of media types, as per [RFC2045]"
 class CharsetAttr(xsc.TextAttr): "a character encoding, as per [RFC2045]"
@@ -49,7 +49,7 @@ class MediaDescAttr(xsc.TextAttr):
 		``True`` if :var:`media` is :const:`None` or :var:`self` is empty.
 		"""
 		if media is not None and self:
-			return media in {m.strip() for m in unicode(self).split(",")}
+			return media in {m.strip() for m in str(self).split(",")}
 		return True
 
 
@@ -62,21 +62,21 @@ class FrameTargetAttr(xsc.TextAttr): "render in this frame"
 class LengthAttr(xsc.TextAttr): "<rep>nn</rep> for pixels or <rep>nn%</rep> for percentage length"
 class MultiLengthAttr(xsc.TextAttr): "pixel, percentage, or relative"
 class PixelsAttr(xsc.IntAttr): "integer representing length in pixels"
-class ShapeAttr(xsc.TextAttr): "image shapes"; values = (u"rect", u"circle", u"poly", u"default")
+class ShapeAttr(xsc.TextAttr): "image shapes"; values = ("rect", "circle", "poly", "default")
 class CoordsAttr(xsc.TextAttr): "comma separated list of lengths"
-class ImgAlignAttr(xsc.TextAttr): "image alignment"; values = (u"top", u"middle", u"bottom", u"left", u"right", u"absmiddle")
+class ImgAlignAttr(xsc.TextAttr): "image alignment"; values = ("top", "middle", "bottom", "left", "right", "absmiddle")
 class ColorAttr(xsc.ColorAttr): "a color using sRGB: #RRGGBB as Hex values"
-class TextAlignAttr(xsc.TextAttr): "text alignment"; values = (u"left", u"right", u"center", u"justify")
+class TextAlignAttr(xsc.TextAttr): "text alignment"; values = ("left", "right", "center", "justify")
 class OLStyleAttr(xsc.TextAttr): values = "1aAiI"
-class ULStyleAttr(xsc.TextAttr): values = (u"disc", u"square", u"circle")
-class InputTypeAttr(xsc.TextAttr): values = (u"text", u"password", u"checkbox", u"radio", u"submit", u"reset", u"file", u"hidden", u"image", u"button", u"datetime", u"datetime-local", u"date", u"month", u"time", u"week", u"number", u"range", u"email", u"url", u"search", u"tel", u"color")
-class AutocompleteAttr(xsc.TextAttr): values = (u"on", u"off")
-class FormEncTypeAttr(xsc.TextAttr): values = (u"application/x-www-form-urlencoded", u"multipart/form-data", u"text/plain")
-class TRulesAttr(xsc.TextAttr): values = (u"none", u"groups", u"rows", u"cols", u"all")
-class TAlignAttr(xsc.TextAttr): values = (u"left", u"right", u"center")
-class CAlignAttr(xsc.TextAttr): values = (u"top", u"bottom", u"left", u"right")
-class TFrameAttr(xsc.TextAttr): values = (u"void", u"above", u"below", u"hsides", u"lhs", u"rhs", u"vsides", u"box", u"border")
-class ScopeAttr(xsc.TextAttr): values = (u"row", u"col", u"rowgroup", u"colgroup")
+class ULStyleAttr(xsc.TextAttr): values = ("disc", "square", "circle")
+class InputTypeAttr(xsc.TextAttr): values = ("text", "password", "checkbox", "radio", "submit", "reset", "file", "hidden", "image", "button", "datetime", "datetime-local", "date", "month", "time", "week", "number", "range", "email", "url", "search", "tel", "color")
+class AutocompleteAttr(xsc.TextAttr): values = ("on", "off")
+class FormEncTypeAttr(xsc.TextAttr): values = ("application/x-www-form-urlencoded", "multipart/form-data", "text/plain")
+class TRulesAttr(xsc.TextAttr): values = ("none", "groups", "rows", "cols", "all")
+class TAlignAttr(xsc.TextAttr): values = ("left", "right", "center")
+class CAlignAttr(xsc.TextAttr): values = ("top", "bottom", "left", "right")
+class TFrameAttr(xsc.TextAttr): values = ("void", "above", "below", "hsides", "lhs", "rhs", "vsides", "box", "border")
+class ScopeAttr(xsc.TextAttr): values = ("row", "col", "rowgroup", "colgroup")
 
 
 # common attributes sets
@@ -229,17 +229,17 @@ class meta(xsc.Element):
 		class scheme(xsc.TextAttr): pass
 
 	def publish(self, publisher):
-		if u"http_equiv" in self.attrs and not self.attrs.http_equiv.isfancy():
-			ctype = unicode(self[u"http_equiv"]).lower()
-			if ctype == u"content-type" and u"content" in self.attrs:
-				(contenttype, options) = cgi.parse_header(unicode(self[u"content"]))
+		if "http_equiv" in self.attrs and not self.attrs.http_equiv.isfancy():
+			ctype = str(self["http_equiv"]).lower()
+			if ctype == "content-type" and "content" in self.attrs:
+				(contenttype, options) = cgi.parse_header(str(self["content"]))
 				encoding = publisher.getencoding()
-				if u"charset" not in options or options[u"charset"] != encoding:
-					options[u"charset"] = encoding
+				if "charset" not in options or options["charset"] != encoding:
+					options["charset"] = encoding
 					node = self.__class__(
 						self.attrs,
-						http_equiv=u"Content-Type",
-						content=(contenttype, u"; ", u"; ".join(u"{}={}".format(*option) for option in options.items()))
+						http_equiv="Content-Type",
+						content=(contenttype, "; ", "; ".join("{}={}".format(*option) for option in list(options.items())))
 					)
 					return node.publish(publisher) # return a generator-iterator
 		return super(meta, self).publish(publisher) # return a generator-iterator
@@ -315,7 +315,7 @@ class iframe(xsc.Element):
 		class marginwidth(PixelsAttr): pass
 		class marginheight(PixelsAttr): pass
 		class noresize(xsc.BoolAttr): pass # deprecated
-		class scrolling(xsc.TextAttr): values = (u"yes", u"no", u"auto")
+		class scrolling(xsc.TextAttr): values = ("yes", "no", "auto")
 		class align(ImgAlignAttr): pass
 		class height(LengthAttr): pass
 		class width(LengthAttr): pass
@@ -516,7 +516,7 @@ class hr(xsc.Element):
 	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(allattrs):
-		class align(xsc.TextAttr): values = (u"left", u"right", u"center")
+		class align(xsc.TextAttr): values = ("left", "right", "center")
 		class noshade(xsc.BoolAttr): pass
 		class size(PixelsAttr): pass
 		class width(LengthAttr): pass # deprecated
@@ -618,7 +618,7 @@ class br(xsc.Element):
 	model = sims.Empty()
 
 	class Attrs(coreattrs):
-		class clear(xsc.TextAttr): values = (u"left", u"all", u"right", u"none")
+		class clear(xsc.TextAttr): values = ("left", "all", "right", "none")
 
 
 class em(xsc.Element):
@@ -871,7 +871,7 @@ class param(xsc.Element):
 		class id(xsc.IDAttr): pass
 		class name(xsc.TextAttr): required = True
 		class value(xsc.TextAttr): pass
-		class valuetype(xsc.TextAttr): values = (u"data", u"ref", u"object")
+		class valuetype(xsc.TextAttr): values = ("data", "ref", "object")
 		class type(ContentTypeAttr): pass
 
 
@@ -917,7 +917,7 @@ class img(xsc.Element):
 		class lowsrc(xsc.URLAttr): pass # deprecated
 
 	def __unicode__(self):
-		return unicode(self["alt"])
+		return str(self["alt"])
 
 
 class map(xsc.Element):
@@ -956,7 +956,7 @@ class form(xsc.Element):
 	xmlns = xmlns
 	class Attrs(allattrs):
 		class action(xsc.URLAttr): required = True
-		class method(xsc.TextAttr): values = (u"get", u"post")
+		class method(xsc.TextAttr): values = ("get", "post")
 		class name(xsc.TextAttr): pass
 		class enctype(ContentTypeAttr): pass
 		class onsubmit(ScriptAttr): pass
@@ -1007,7 +1007,7 @@ class input(xsc.Element):
 		class form(xsc.IDAttr): pass
 		class formaction(xsc.URLAttr): pass
 		class formenctype(FormEncTypeAttr): pass
-		class formmethod(xsc.TextAttr): values = (u"get", u"post")
+		class formmethod(xsc.TextAttr): values = ("get", "post")
 		class formnovalidate(xsc.BoolAttr): pass
 		class formtarget(FrameTargetAttr): pass
 		class max(xsc.TextAttr): pass
@@ -1075,7 +1075,7 @@ class textarea(xsc.Element):
 		class readonly(xsc.BoolAttr): pass
 		class onselect(ScriptAttr): pass
 		class onchange(ScriptAttr): pass
-		class wrap(xsc.TextAttr): values = (u"virtual", u"physical", u"off", "soft", "hard") # soft/hard are from HTML5
+		class wrap(xsc.TextAttr): values = ("virtual", "physical", "off", "soft", "hard") # soft/hard are from HTML5
 		# HTML5 attributes
 		class autofocus(xsc.BoolAttr): pass
 		class form(xsc.IDAttr): pass
@@ -1101,7 +1101,7 @@ class legend(xsc.Element):
 	xmlns = xmlns
 	class Attrs(allattrs):
 		class accesskey(xsc.TextAttr): pass
-		class align(xsc.TextAttr): values = (u"top", u"bottom", u"left", u"right")
+		class align(xsc.TextAttr): values = ("top", "bottom", "left", "right")
 
 
 class button(xsc.Element):
@@ -1112,14 +1112,14 @@ class button(xsc.Element):
 	class Attrs(allattrs, focusattrs):
 		class name(xsc.TextAttr): pass
 		class value(xsc.TextAttr): pass
-		class type(xsc.TextAttr): values = (u"button", u"submit", u"reset")
+		class type(xsc.TextAttr): values = ("button", "submit", "reset")
 		class disabled(xsc.BoolAttr): pass
 		# HTML5 attributes
 		class autofocus(xsc.BoolAttr): pass
 		class form(xsc.IDAttr): pass
 		class formaction(xsc.URLAttr): pass
 		class formenctype(FormEncTypeAttr): pass
-		class formmethod(xsc.TextAttr): values = (u"get", u"post")
+		class formmethod(xsc.TextAttr): values = ("get", "post")
 		class formnovalidate(xsc.BoolAttr): pass
 		class formtarget(FrameTargetAttr): pass
 
@@ -1348,7 +1348,7 @@ def astext(node, encoding="iso-8859-1", width=72):
 
 	# Fix the HTML
 	def decorateheader(node, converter, c):
-		content = unicode(node)
+		content = str(node)
 		l = len(content)
 		if c:
 			underline = ((c*l)[:l], br())
@@ -1363,15 +1363,15 @@ def astext(node, encoding="iso-8859-1", width=72):
 
 	def decorate(node, converter):
 		if isinstance(node, xsc.Text):
-			node = node.replace(u"\N{EM DASH}", u"--")
-			node = node.replace(u"\N{EN DASH}", u"-")
-			node = node.replace(u"\u200b", u"")
-			node = node.replace(u"\N{GREEK CAPITAL LETTER ALPHA}", u"Alpha")
-			node = node.replace(u"\N{GREEK CAPITAL LETTER BETA}", u"Beta")
-			node = node.replace(u"\N{GREEK CAPITAL LETTER GAMMA}", u"Gamma")
-			node = node.replace(u"\N{GREEK SMALL LETTER ALPHA}", u"alpha")
-			node = node.replace(u"\N{GREEK SMALL LETTER BETA}", u"beta")
-			node = node.replace(u"\N{GREEK SMALL LETTER GAMMA}", u"gamma")
+			node = node.replace("\N{EM DASH}", "--")
+			node = node.replace("\N{EN DASH}", "-")
+			node = node.replace("\u200b", "")
+			node = node.replace("\N{GREEK CAPITAL LETTER ALPHA}", "Alpha")
+			node = node.replace("\N{GREEK CAPITAL LETTER BETA}", "Beta")
+			node = node.replace("\N{GREEK CAPITAL LETTER GAMMA}", "Gamma")
+			node = node.replace("\N{GREEK SMALL LETTER ALPHA}", "alpha")
+			node = node.replace("\N{GREEK SMALL LETTER BETA}", "beta")
+			node = node.replace("\N{GREEK SMALL LETTER GAMMA}", "gamma")
 		elif isinstance(node, (h1, h2)):
 			node = decorateheader(node, converter, "=")
 		elif isinstance(node, (h3, h4, h5, h6)):

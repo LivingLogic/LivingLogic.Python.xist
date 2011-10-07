@@ -9,7 +9,7 @@
 ## See ll/__init__.py for the license
 
 
-import cStringIO, types
+import io, types
 
 from ll.xist import xsc, sims
 from ll.xist.scripts import xml2xsc
@@ -27,13 +27,13 @@ def xml2mod(strings, parser="etree", model="simple"):
 		xnd = xml2xsc.makexnd(strings, parser=parser, model=model)
 
 		code = str(xnd)
-		print "Module source generated from XMLs:"
-		print code
+		print("Module source generated from XMLs:")
+		print(code)
 		code = compile(code, "test.py", "exec")
 
 		mod = types.ModuleType("test")
 		mod.__file__ = "test.py"
-		exec code in mod.__dict__
+		exec(code, mod.__dict__)
 		return mod
 
 

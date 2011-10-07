@@ -9,7 +9,7 @@
 ## See ll/__init__.py for the license
 
 
-import types, cStringIO
+import types, io
 
 from ll.xist import xsc, sims
 from ll.xist.ns import tld
@@ -23,10 +23,10 @@ def tld2ns(s, shareattrs=None):
 	mod.__file__ = "test.py"
 
 	code = str(xnd)
-	print "Module source generated from TLD:"
-	print code
+	print("Module source generated from TLD:")
+	print(code)
 	code = compile(code, "test.py", "exec")
-	exec code in mod.__dict__
+	exec(code, mod.__dict__)
 	return mod
 
 
@@ -72,7 +72,7 @@ def test_tld2xsc():
 	ns = tld2ns(tldstring)
 	assert ns.bar.xmlns == xmlns
 	assert ns.__doc__.strip() == "just a test"
-	assert ns.bar.xmlname == u"bar"
+	assert ns.bar.xmlname == "bar"
 	assert isinstance(ns.bar.model, sims.Empty)
 	assert ns.bar.__doc__.strip() == "info"
 

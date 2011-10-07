@@ -165,7 +165,7 @@ def main(args=None):
 				stderr.writeln("oradrop.py: ", cs, ": dropping #{}/{} ".format(i+1, len(ddls)), s4object(str(obj)))
 			try:
 				cursor.execute(ddl)
-			except orasql.DatabaseError, exc:
+			except orasql.DatabaseError as exc:
 				if not args.ignore or "ORA-01013" in str(exc):
 					raise
 				stderr.writeln("oradrop.py: ", s4error("{}: {}".format(exc.__class__, str(exc).strip())))

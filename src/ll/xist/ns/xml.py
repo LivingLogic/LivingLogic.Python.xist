@@ -27,7 +27,7 @@ xmlns = xsc.xml_xmlns
 class Attrs(xsc.Attrs):
 	class space(xsc.TextAttr):
 		xmlns = xmlns
-		values = (u"default", u"preserve")
+		values = ("default", "preserve")
 
 	class lang(xsc.TextAttr):
 		xmlns = xmlns
@@ -44,19 +44,19 @@ class XML(xsc.ProcInst):
 
 	def __init__(self, version="1.0", encoding="utf-8", standalone=None):
 		v = []
-		v.append(u'version="{}"'.format(version)) # According to http://www.w3.org/TR/2000/REC-xml-20001006#NT-XMLDecl version is required
+		v.append('version="{}"'.format(version)) # According to http://www.w3.org/TR/2000/REC-xml-20001006#NT-XMLDecl version is required
 		if encoding is not None:
-			v.append(u'encoding="{}"'.format(encoding))
+			v.append('encoding="{}"'.format(encoding))
 		if standalone is not None:
-			v.append(u'standalone="{}"'.format("yes" if standalone else "no"))
-		xsc.ProcInst.__init__(self, u" ".join(v))
+			v.append('standalone="{}"'.format("yes" if standalone else "no"))
+		xsc.ProcInst.__init__(self, " ".join(v))
 
 	def publish(self, publisher):
 		if publisher.validate:
 			self.checkvalid()
-		xml = u"<?xml {}?>".format(self.content)
+		xml = "<?xml {}?>".format(self.content)
 		if publisher.encoding is not None:
-			xml = xml_codec._fixencoding(xml, unicode(publisher.encoding))
+			xml = xml_codec._fixencoding(xml, str(publisher.encoding))
 		yield publisher.encode(xml)
 
 

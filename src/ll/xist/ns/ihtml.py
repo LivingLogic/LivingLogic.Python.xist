@@ -377,15 +377,15 @@ class meta(xsc.Element):
 
 	def publish(self, publisher):
 		if "http_equiv" in self.attrs:
-			ctype = unicode(self[u"http_equiv"]).lower()
-			if ctype == u"content-type" and u"content" in self.attrs:
-				(contenttype, options) = cgi.parse_header(unicode(self[u"content"]))
-				if u"charset" not in options or options[u"charset"] != publisher.encoding:
-					options[u"charset"] = publisher.encoding
+			ctype = str(self["http_equiv"]).lower()
+			if ctype == "content-type" and "content" in self.attrs:
+				(contenttype, options) = cgi.parse_header(str(self["content"]))
+				if "charset" not in options or options["charset"] != publisher.encoding:
+					options["charset"] = publisher.encoding
 					node = self.__class__(
 						self.attrs,
-						http_equiv=u"Content-Type",
-						content=(contenttype, u"; ", u"; ".join(u"{}={}".format(*option) for option in options.items()))
+						http_equiv="Content-Type",
+						content=(contenttype, "; ", "; ".join("{}={}".format(*option) for option in list(options.items())))
 					)
 					return node.publish(publisher) # return a generator-iterator
 		return super(meta, self).publish(publisher) # return a generator-iterator

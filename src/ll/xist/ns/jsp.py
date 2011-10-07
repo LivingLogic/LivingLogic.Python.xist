@@ -29,11 +29,11 @@ class directive(xsc.Element):
 	register = False # only serves as a base class
 
 	def publish(self, publisher):
-		yield publisher.encode(u"<%@ ")
+		yield publisher.encode("<%@ ")
 		yield publisher.encode(self._publishname(publisher))
 		for part in self.attrs.publish(publisher):
 			yield part
-		yield publisher.encode(u"%>")
+		yield publisher.encode("%>")
 
 
 class scriptlet(xsc.ProcInst):
@@ -42,9 +42,9 @@ class scriptlet(xsc.ProcInst):
 	"""
 
 	def publish(self, publisher):
-		yield publisher.encode(u"<% ")
+		yield publisher.encode("<% ")
 		yield publisher.encode(self.content)
-		yield publisher.encode(u" %>")
+		yield publisher.encode(" %>")
 
 
 class expression(xsc.ProcInst):
@@ -53,9 +53,9 @@ class expression(xsc.ProcInst):
 	"""
 
 	def publish(self, publisher):
-		yield publisher.encode(u"<%= ")
+		yield publisher.encode("<%= ")
 		yield publisher.encode(self.content)
-		yield publisher.encode(u" %>")
+		yield publisher.encode(" %>")
 
 
 class declaration(xsc.ProcInst):
@@ -64,9 +64,9 @@ class declaration(xsc.ProcInst):
 	"""
 
 	def publish(self, publisher):
-		yield publisher.encode(u"<%! ")
+		yield publisher.encode("<%! ")
 		yield publisher.encode(self.content)
-		yield publisher.encode(u" %>")
+		yield publisher.encode(" %>")
 
 
 class If(scriptlet):
@@ -75,7 +75,7 @@ class If(scriptlet):
 	prettyindentafter = 1
 
 	def convert(self, converter):
-		return scriptlet(u"if(", self.content, u"){")
+		return scriptlet("if(", self.content, "){")
 
 
 class Else(scriptlet):
@@ -84,7 +84,7 @@ class Else(scriptlet):
 	prettyindentafter = 1
 
 	def convert(self, converter):
-		return scriptlet(u"}else{")
+		return scriptlet("}else{")
 
 
 class ElIf(scriptlet):
@@ -93,7 +93,7 @@ class ElIf(scriptlet):
 	prettyindentafter = 1
 
 	def convert(self, converter):
-		return scriptlet(u"}else if (", self.content, u"){")
+		return scriptlet("}else if (", self.content, "){")
 
 
 class End(scriptlet):
@@ -102,7 +102,7 @@ class End(scriptlet):
 	prettyindentafter = 0
 
 	def convert(self, converter):
-		return scriptlet(u"}")
+		return scriptlet("}")
 
 
 class block(xsc.Element):
@@ -115,9 +115,9 @@ class block(xsc.Element):
 
 	def convert(self, converter):
 		e = xsc.Frag(
-			scriptlet(u"{"),
+			scriptlet("{"),
 			self.content,
-			scriptlet(u"}")
+			scriptlet("}")
 		)
 		return e.convert(converter)
 
@@ -142,29 +142,29 @@ class directive_page(directive):
 			values = ("java",)
 		class extends(xsc.TextAttr): pass
 		class import_(xsc.TextAttr): xmlname = "import"
-		class session(xsc.TextAttr): values = (u"true", u"false")
+		class session(xsc.TextAttr): values = ("true", "false")
 		class buffer(xsc.TextAttr): pass
-		class autoFlush(xsc.TextAttr): values = (u"true", u"false")
-		class isThreadSafe(xsc.TextAttr): values = (u"true", u"false")
+		class autoFlush(xsc.TextAttr): values = ("true", "false")
+		class isThreadSafe(xsc.TextAttr): values = ("true", "false")
 		class info(xsc.TextAttr): pass
 		class errorPage(xsc.URLAttr): pass
 		class contentType(xsc.TextAttr): pass
-		class isErrorPage(xsc.TextAttr): values = (u"true", u"false")
+		class isErrorPage(xsc.TextAttr): values = ("true", "false")
 		class pageEncoding(xsc.TextAttr): pass
 
 	def publish(self, publisher):
 		# Only a contentType attribute triggers the special code
-		if u"contentType" in self.attrs and not self.attrs.contentType.isfancy() and not self.attrs.pageEncoding.isfancy():
-			(contenttype, options) = cgi.parse_header(unicode(self.attrs.contentType))
-			pageencoding = unicode(self.attrs.pageEncoding)
+		if "contentType" in self.attrs and not self.attrs.contentType.isfancy() and not self.attrs.pageEncoding.isfancy():
+			(contenttype, options) = cgi.parse_header(str(self.attrs.contentType))
+			pageencoding = str(self.attrs.pageEncoding)
 			encoding = publisher.encoding
 			if encoding is None:
 				encoding = "utf-8"
-			if u"charset" not in options or not (options[u"charset"] == pageencoding == encoding):
-				options[u"charset"] = encoding
+			if "charset" not in options or not (options["charset"] == pageencoding == encoding):
+				options["charset"] = encoding
 				node = self.__class__(
 					self.attrs,
-					contentType=(contenttype, u"; ", u"; ".join("{}={}".format(*option) for option in options.items())),
+					contentType=(contenttype, "; ", "; ".join("{}={}".format(*option) for option in list(options.items()))),
 					pageEncoding=encoding
 				)
 				return node.publish(publisher) # return a generator-iterator

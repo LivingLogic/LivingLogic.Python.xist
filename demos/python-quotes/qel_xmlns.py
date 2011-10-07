@@ -33,7 +33,7 @@ class description(xsc.Element):
 	model = sims.NoElements()
 
 	def convert(self, converter):
-		e = html.div(self.content, class_=u"description")
+		e = html.div(self.content, class_="description")
 
 		return e.convert(converter)
 
@@ -43,7 +43,7 @@ class note(xsc.Element):
 	model = sims.NoElements()
 
 	def convert(self, converter):
-		e = html.div(self.content, class_=u"note")
+		e = html.div(self.content, class_="note")
 
 		return e.convert(converter)
 
@@ -99,15 +99,15 @@ class quotation(xsc.Element):
 				content.append(child)
 		if authors:
 			if sources:
-				footer = html.div(authors, u" ", chars.mdash(), u" ", sources, class_=u"source")
+				footer = html.div(authors, " ", chars.mdash(), " ", sources, class_="source")
 			else:
-				footer = html.div(authors, class_=u"source")
+				footer = html.div(authors, class_="source")
 		else:
 			if sources:
-				footer = html.div(sources, class_=u"source")
+				footer = html.div(sources, class_="source")
 			else:
 				footer = None
-		e = html.div(content, footer, class_=u"quotation")
+		e = html.div(content, footer, class_="quotation")
 
 		return e.convert(converter)
 
@@ -124,7 +124,7 @@ class quotations(xsc.Element):
 					with html.head():
 						+meta.contenttype()
 						+html.title(self[title][0].content)
-						+meta.stylesheet(href=u"root:python-quotes.css")
+						+meta.stylesheet(href="root:python-quotes.css")
 					+html.body(
 						self[title],
 						self[editor],

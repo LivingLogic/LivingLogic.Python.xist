@@ -36,8 +36,8 @@ These three levels of functionality are implemented in three classes:
 """
 
 
-import sys, os, urllib, urllib2, types, mimetypes, mimetools, cStringIO, warnings
-import datetime, cgi, fnmatch, cPickle, errno, threading
+import sys, os, urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, types, mimetypes, mimetools, io, warnings
+import datetime, cgi, fnmatch, pickle, errno, threading
 
 try:
 	from email import utils as emutils
@@ -62,7 +62,7 @@ except ImportError:
 	pass
 
 try:
-	import astyle
+	from . import astyle
 except ImportError:
 	from ll import astyle
 
@@ -98,7 +98,7 @@ except ImportError:
 	def _normalizepath(path_segments):
 		new_path_segments = []
 		l = len(path_segments)
-		for i in xrange(l):
+		for i in range(l):
 			segment = path_segments[i]
 			if not segment:
 				if i==l-1:
@@ -113,11 +113,11 @@ except ImportError:
 
 	def _escape(s, safe=""):
 		if not safe:
-			safe = "".join(chr(c) for c in xrange(128))
-		return urllib.quote_plus(s.encode("utf-8"), safe)
+			safe = "".join(chr(c) for c in range(128))
+		return urllib.parse.quote_plus(s.encode("utf-8"), safe)
 
 	def _unescape(s):
-		s = urllib.unquote_plus(s)
+		s = urllib.parse.unquote_plus(s)
 		try:
 			return s.decode("utf-8")
 		except UnicodeError:
@@ -140,7 +140,7 @@ schemechar = alphanum + "+-."
 def _urlencode(query_parts):
 	if query_parts is not None:
 		res = []
-		items = query_parts.items()
+		items = list(query_parts.items())
 		# generate a canonical order for the names
 		items.sort()
 		for (name, values) in items:
@@ -352,7 +352,7 @@ class Connection(object):
 		"""
 		Return the MIME headers for the file/resource :var:`url`.
 		"""
-		return mimetools.Message(cStringIO.StringIO("Content-Type: {}\nContent-Length: {}\nLast-modified: {}\n".format(self.mimetype(url), self.size(url), httpdate(self.mdate(url)))))
+		return mimetools.Message(io.StringIO("Content-Type: {}\nContent-Length: {}\nLast-modified: {}\n".format(self.mimetype(url), self.size(url), httpdate(self.mdate(url)))))
 
 	@misc.notimplemented
 	def remove(self, url):
@@ -397,13 +397,13 @@ class Connection(object):
 		os.chdir(self.name)
 
 	@misc.notimplemented
-	def mkdir(self, url, mode=0777):
+	def mkdir(self, url, mode=0o777):
 		"""
 		Create the directory :var:`url`.
 		"""
 
 	@misc.notimplemented
-	def makedirs(self, url, mode=0777):
+	def makedirs(self, url, mode=0o777):
 		"""
 		Create the directory :var:`url` and all intermediate ones.
 		"""
@@ -512,11 +512,11 @@ class LocalConnection(Connection):
 				stat = os.stat(name)
 			if owner is None:
 				owner = stat.st_uid
-			elif isinstance(owner, basestring):
+			elif isinstance(owner, str):
 				owner = pwd.getpwnam(owner)[2]
 			if group is None:
 				group = stat.st_gid
-			elif isinstance(group, basestring):
+			elif isinstance(group, str):
 				group = grp.getgrnam(group)[2]
 			func(name, owner, group)
 
@@ -529,10 +529,10 @@ class LocalConnection(Connection):
 	def chdir(self, url):
 		os.chdir(self._url2filename(url))
 
-	def mkdir(self, url, mode=0777):
+	def mkdir(self, url, mode=0o777):
 		os.mkdir(self._url2filename(url), mode)
 
-	def makedirs(self, url, mode=0777):
+	def makedirs(self, url, mode=0o777):
 		os.makedirs(self._url2filename(url), mode)
 
 	def uid(self, url):
@@ -631,7 +631,7 @@ class LocalConnection(Connection):
 			relchildname = os.path.join(name, childname)
 			isdir = os.path.isdir(ful4childname)
 			if (pattern is None or fnmatch.fnmatch(childname, pattern)) and which[isdir]:
-				url = urllib.pathname2url(relchildname)
+				url = urllib.request.pathname2url(relchildname)
 				if isdir:
 					url += "/"
 				yield URL(url)
@@ -874,7 +874,7 @@ class SshConnection(Connection):
 		self._channel.send((filename, cmd, args, kwargs))
 		(isexc, data) = self._channel.receive()
 		if isexc:
-			raise cPickle.loads(data)
+			raise pickle.loads(data)
 		else:
 			return data
 
@@ -900,10 +900,10 @@ class SshConnection(Connection):
 	def chdir(self, url):
 		return self._send(self._url2filename(url), "chdir")
 
-	def mkdir(self, url, mode=0777):
+	def mkdir(self, url, mode=0o777):
 		return self._send(self._url2filename(url), "mkdir", mode)
 
-	def makedirs(self, url, mode=0777):
+	def makedirs(self, url, mode=0o777):
 		return self._send(self._url2filename(url), "makedirs", mode)
 
 	def uid(self, url):
@@ -964,7 +964,7 @@ class SshConnection(Connection):
 		filename = self._url2filename(url)
 		result = []
 		for (isdir, name) in self._send(filename, "listdir", pattern):
-			name = urllib.pathname2url(name)
+			name = urllib.request.pathname2url(name)
 			if isdir:
 				name += "/"
 			result.append(URL(name))
@@ -972,11 +972,11 @@ class SshConnection(Connection):
 
 	def files(self, url, pattern=None):
 		filename = self._url2filename(url)
-		return [URL(urllib.pathname2url(name)) for name in self._send(filename, "files", pattern)]
+		return [URL(urllib.request.pathname2url(name)) for name in self._send(filename, "files", pattern)]
 
 	def dirs(self, url, pattern=None):
 		filename = self._url2filename(url)
-		return [URL(urllib.pathname2url(name)+"/") for name in self._send(filename, "dirs", pattern)]
+		return [URL(urllib.request.pathname2url(name)+"/") for name in self._send(filename, "dirs", pattern)]
 
 	def walk(self, url, pattern=None):
 		filename = self._url2filename(url)
@@ -1059,7 +1059,7 @@ def File(name, scheme="file"):
 		>>> url.File("a#b")
 		URL('file:a%23b')
 	"""
-	name = urllib.pathname2url(os.path.expanduser(name))
+	name = urllib.request.pathname2url(os.path.expanduser(name))
 	if name.startswith("///"):
 		name = name[2:]
 	url = URL(name)
@@ -1075,7 +1075,7 @@ def Dir(name, scheme="file"):
 		>>> url.Dir("a#b")
 		URL('file:a%23b/')
 	"""
-	name = urllib.pathname2url(os.path.expanduser(name))
+	name = urllib.request.pathname2url(os.path.expanduser(name))
 	if not name.endswith("/"):
 		name += "/"
 	if name.startswith("///"):
@@ -1213,7 +1213,7 @@ class FileResource(Resource, file):
 		name = os.path.expanduser(url.local())
 		try:
 			file.__init__(self, name, mode)
-		except IOError, exc:
+		except IOError as exc:
 			if "w" not in mode or exc[0] != 2: # didn't work for some other reason than a non existing directory
 				raise
 			(splitpath, splitname) = os.path.split(name)
@@ -1274,7 +1274,7 @@ class RemoteFileResource(Resource):
 	def __iter__(self):
 		return self
 
-	def next(self):
+	def __next__(self):
 		return self._send(self.remoteid, "next")
 
 	def seek(self, offset, whence=0):
@@ -1329,11 +1329,11 @@ class URLResource(Resource):
 		self.closed = False
 		self._stream = None
 		if data is not None:
-			data = urllib.urlencode(data)
+			data = urllib.parse.urlencode(data)
 		if headers is None:
 			headers = {}
-		req = urllib2.Request(url=self.name, data=data, headers=headers)
-		self._stream = urllib2.urlopen(req)
+		req = urllib.request.Request(url=self.name, data=data, headers=headers)
+		self._stream = urllib.request.urlopen(req)
 		self._finalurl = URL(self._stream.url) # Remember the final URL in case of a redirect
 		self._resheaders = self._stream.info()
 		self._mimetype = None
@@ -1352,7 +1352,7 @@ class URLResource(Resource):
 		if lm is not None:
 			lm = mime2dt(lm)
 		self._mdate = lm
-		self._buffer = cStringIO.StringIO()
+		self._buffer = io.StringIO()
 
 	def __getattr__(self, name):
 		function = getattr(self._stream, name)
@@ -1403,7 +1403,7 @@ class URLResource(Resource):
 		return self._buffer.getvalue()
 
 	def imagesize(self):
-		img = Image.open(cStringIO.StringIO(self.resdata())) # Requires PIL
+		img = Image.open(io.StringIO(self.resdata())) # Requires PIL
 		return img.size
 
 	def __iter__(self):
@@ -1524,7 +1524,7 @@ class SshSchemeDefinition(SchemeDefinition):
 		return RemoteFileResource(connection, url, mode, **kwargs)
 
 	def closeall(self, context):
-		for connection in context.schemes["ssh"].itervalues():
+		for connection in context.schemes["ssh"].values():
 			connection.close()
 
 
@@ -1553,7 +1553,7 @@ class Path(object):
 
 	@classmethod
 	def _fixsegment(cls, segment):
-		if isinstance(segment, unicode):
+		if isinstance(segment, str):
 			segment = _escape(segment, pathsafe)
 		return _unescape(segment)
 
@@ -1565,7 +1565,7 @@ class Path(object):
 
 	def insert(self, index, *others):
 		segments = self.segments
-		segments[index:index] = map(self._fixsegment, others)
+		segments[index:index] = list(map(self._fixsegment, others))
 		self.segments = segments
 
 	def startswith(self, prefix):
@@ -1647,7 +1647,7 @@ class Path(object):
 
 	def __setslice__(self, index1, index2, seq):
 		segments = self.segments
-		segments[index1:index2] = map(self._fixsegment, seq)
+		segments[index1:index2] = list(map(self._fixsegment, seq))
 		self._path = self._prefix(self._path) + self._segments2path(segments)
 		self._segments = segments
 
@@ -1681,7 +1681,7 @@ class Path(object):
 	def _path2segments(cls, path):
 		if path.startswith("/"):
 			path = path[1:]
-		return map(cls._fixsegment, path.split("/"))
+		return list(map(cls._fixsegment, path.split("/")))
 
 	def _setpathorsegments(self, path):
 		if path is None:
@@ -1691,10 +1691,10 @@ class Path(object):
 			self._path = path._path
 			self._segments = None
 		elif isinstance(path, (list, tuple)):
-			self._segments = map(self._fixsegment, path)
+			self._segments = list(map(self._fixsegment, path))
 			self._path = self._prefix(self._path) + self._segments2path(self._segments)
 		else:
-			if isinstance(path, unicode):
+			if isinstance(path, str):
 				path = _escape(path)
 			prefix = self._prefix(path)
 			if prefix:
@@ -1849,7 +1849,7 @@ class Path(object):
 		"""
 		Join two paths.
 		"""
-		if isinstance(other, basestring):
+		if isinstance(other, str):
 			other = Path(other)
 		if isinstance(other, Path):
 			newpath = Path()
@@ -1877,7 +1877,7 @@ class Path(object):
 		Right hand version of :meth:`__div__`. This supports list and generators
 		as the left hand side too.
 		"""
-		if isinstance(other, basestring):
+		if isinstance(other, str):
 			other = Path(other)
 		if isinstance(other, Path):
 			return other/self
@@ -1905,9 +1905,9 @@ class Path(object):
 			del self_segments[0]
 			del base_segments[0]
 		# build a path from one file to the other
-		self_segments[:0] = [u".."]*(len(base_segments)-1)
-		if not len(self_segments) or self_segments==[u""]:
-			self_segments = [u".", u""]
+		self_segments[:0] = [".."]*(len(base_segments)-1)
+		if not len(self_segments) or self_segments==[""]:
+			self_segments = [".", ""]
 		return Path(self._segments2path(self_segments))
 
 	def reverse(self):
@@ -1915,7 +1915,7 @@ class Path(object):
 		segments.reverse()
 		if segments and not segments[0]:
 			del segments[0]
-			segments.append(u"")
+			segments.append("")
 		self.segments = segments
 
 	def normalize(self):
@@ -1933,7 +1933,7 @@ class Path(object):
 		"""
 		path = Path(self._prefix(self._path) + "/".join(segment for segment in self))
 		path = path._path
-		localpath = urllib.url2pathname(path)
+		localpath = urllib.request.url2pathname(path)
 		if path.endswith("/") and not (localpath.endswith(os.sep) or (os.altsep is not None and localpath.endswith(os.altsep))):
 			localpath += os.sep
 		return localpath
@@ -1946,7 +1946,7 @@ class Path(object):
 		path = path.rstrip(os.sep)
 		if path.startswith("///"):
 			path = path[2:]
-		path = urllib.pathname2url(path.encode("utf-8"))
+		path = urllib.request.pathname2url(path.encode("utf-8"))
 		if len(self) and not self.segments[-1]:
 			path += "/"
 		return Path(path)
@@ -1958,7 +1958,7 @@ class Path(object):
 		"""
 		path = os.path.realpath(self.local())
 		path = path.rstrip(os.sep)
-		path = urllib.pathname2url(path.encode("utf-8"))
+		path = urllib.request.pathname2url(path.encode("utf-8"))
 		if path.startswith("///"):
 			path = path[2:]
 		if len(self) and not self.segments[-1]:
@@ -1971,20 +1971,20 @@ class Query(dict):
 	def __init__(self, arg=None, **kwargs):
 		if arg is not None:
 			if isinstance(arg, dict):
-				for (key, value) in arg.iteritems():
+				for (key, value) in arg.items():
 					self.add(key, value)
 			else:
 				for (key, value) in arg:
 					self.add(key, value)
-		for (key, value) in kwargs.iteritems():
+		for (key, value) in kwargs.items():
 			self.add(key, value)
 
 	def __setitem__(self, key, value):
-		dict.__setitem__(self, unicode(key), [unicode(value)])
+		dict.__setitem__(self, str(key), [str(value)])
 
 	def add(self, key, *values):
-		key = unicode(key)
-		values = map(unicode, values)
+		key = str(key)
+		values = list(map(str, values))
 		self.setdefault(key, []).extend(values)
 
 	def __xrepr__(self, mode="default"):
@@ -2298,8 +2298,8 @@ class URL(object):
 			self._query = query
 			if query is not None:
 				parts = {}
-				for part in query.split(u"&"):
-					namevalue = part.split(u"=", 1)
+				for part in query.split("&"):
+					namevalue = part.split("=", 1)
 					name = _unescape(namevalue[0].replace("+", " "))
 					if len(namevalue) == 2:
 						value = _unescape(namevalue[1].replace("+", " "))
@@ -2382,7 +2382,7 @@ class URL(object):
 				self.query = url.query
 				self.frag = url.frag
 			else:
-				if isinstance(url, unicode):
+				if isinstance(url, str):
 					url = _escape(url)
 				# find the scheme (RFC2396, Section 3.1)
 				pos = url.find(":")
@@ -2494,7 +2494,7 @@ class URL(object):
 			>>> for f in here/here.files():
 			... 	print f
 		"""
-		if isinstance(other, basestring):
+		if isinstance(other, str):
 			other = URL(other)
 		if isinstance(other, URL):
 			newurl = URL()
@@ -2535,7 +2535,7 @@ class URL(object):
 		Right hand version of :meth:`__div__`. This supports lists and iterables
 		as the left hand side too.
 		"""
-		if isinstance(other, basestring):
+		if isinstance(other, str):
 			other = URL(other)
 		if isinstance(other, URL):
 			return other/self
@@ -2579,9 +2579,9 @@ class URL(object):
 			del newurl.query
 		else:
 			# build a path from one file to the other
-			selfpath_segments[:0] = [u".."]*(len(basepath_segments)-1)
-			if not len(selfpath_segments) or selfpath_segments==[u""]:
-				selfpath_segments = [u".", u""]
+			selfpath_segments[:0] = [".."]*(len(basepath_segments)-1)
+			if not len(selfpath_segments) or selfpath_segments==[""]:
+				selfpath_segments = [".", ""]
 			newurl._path.segments = selfpath_segments
 			newurl._path = self.path.relative(baseurl.path)
 		newurl._path.isabs = False
@@ -2596,7 +2596,7 @@ class URL(object):
 	def __repr__(self):
 		return "URL({!r})".format(self.url)
 
-	def __nonzero__(self):
+	def __bool__(self):
 		"""
 		Return whether the :class:`URL` is not empty, i.e. whether it is not the
 		:class:`URL` referring to the start of the current document.

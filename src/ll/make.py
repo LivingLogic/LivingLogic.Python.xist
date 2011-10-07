@@ -47,12 +47,12 @@ this::
 """
 
 
-import sys, os, os.path, argparse, warnings, re, datetime, cStringIO, errno, tempfile, operator, types, cPickle, gc, contextlib, gzip
+import sys, os, os.path, argparse, warnings, re, datetime, io, errno, tempfile, operator, types, pickle, gc, contextlib, gzip
 
 from ll import misc, url
 
 try:
-	import astyle
+	from . import astyle
 except ImportError:
 	from ll import astyle
 
@@ -120,7 +120,7 @@ def report(func):
 		t1 = datetime.datetime.utcnow()
 		try:
 			data = func(self, project, since)
-		except Exception, exc:
+		except Exception as exc:
 			project.actionsfailed += 1
 			if project.ignoreerrors: # ignore changes in failed subgraphs
 				data = nodata # Return "everything is up to date" in this case
@@ -161,7 +161,7 @@ def report(func):
 						args.append("nodata")
 					elif isinstance(data, str):
 						args.append(s4data("str ({}b)".format(len(data))))
-					elif isinstance(data, unicode):
+					elif isinstance(data, str):
 						args.append(s4data("unicode ({}c)".format(len(data))))
 					else:
 						dataclass = data.__class__
@@ -250,7 +250,7 @@ def getoutputs(project, since, input):
 		resultdata = {}
 		havedata = False
 		resultchanged = bigbang
-		for (key, value) in input.iteritems():
+		for (key, value) in input.items():
 			(data, changed) = getoutputs(project, since, value)
 			resultchanged = max(resultchanged, changed)
 			if data is not nodata and not havedata: # The first real output
@@ -391,7 +391,7 @@ class Action(object):
 				return "={!r}".format(arg)
 
 		output = ["arg {}{}".format(i, format(arg)) for (i, arg) in enumerate(self.getargs())]
-		for (argname, arg) in self.getkwargs().iteritems():
+		for (argname, arg) in self.getkwargs().items():
 			output.append("arg {}{}".format(argname, format(arg)))
 
 		if output:
@@ -669,7 +669,7 @@ class FileAction(TransformAction):
 		# else fail through and return :const:`nodata`
 		return nodata
 
-	def chmod(self, mode=0644):
+	def chmod(self, mode=0o644):
 		"""
 		Return a :class:`ModeAction` that will change the file permissions of
 		:var:`self` to :var:`mode`.
@@ -692,7 +692,7 @@ class MkDirAction(TransformAction):
 	This action creates the a directory (passing through its input data).
 	"""
 
-	def __init__(self, key, mode=0777):
+	def __init__(self, key, mode=0o777):
 		"""
 		Create a :class:`MkDirAction` instance. :var:`mode` (which defaults to
 		:const:`0777`) will be used as the permission bit pattern for the new
@@ -808,7 +808,7 @@ class CallAction(Action):
 		yield self.func
 		for input in self.args:
 			yield input
-		for input in self.kwargs.itervalues():
+		for input in self.kwargs.values():
 			yield input
 
 	def getargs(self):
@@ -854,7 +854,7 @@ class CallAttrAction(Action):
 		yield self.attrname
 		for input in self.args:
 			yield input
-		for input in self.kwargs.itervalues():
+		for input in self.kwargs.values():
 			yield input
 
 	def getargs(self):
@@ -896,7 +896,7 @@ class ModeAction(TransformAction):
 	:class:`ModeAction` changes file permissions and passes through the input data.
 	"""
 
-	def __init__(self, input=None, mode=0644):
+	def __init__(self, input=None, mode=0o644):
 		"""
 		Create an :class:`ModeAction` object. :var:`mode` (which defaults to
 		:const:`0644`) will be use as the permission bit pattern.
@@ -1414,7 +1414,7 @@ class Project(dict):
 		"""
 		yield key
 		key2 = key
-		if isinstance(key, basestring):
+		if isinstance(key, str):
 			key2 = url.URL(key)
 			yield key2
 		if isinstance(key2, url.URL):
@@ -1422,7 +1422,7 @@ class Project(dict):
 			yield key2
 			key2 = key2.real(scheme="file")
 			yield key2
-		if isinstance(key, basestring) and ":" in key:
+		if isinstance(key, str) and ":" in key:
 			(prefix, rest) = key.split(":", 1)
 			if prefix == "oracle":
 				if "|" in rest:
@@ -1462,7 +1462,7 @@ class Project(dict):
 		"""
 		sup = super(Project, self)
 		for key2 in self._candidates(key):
-			has = sup.has_key(key2)
+			has = key2 in sup
 			if has:
 				return True
 		return False
@@ -1749,7 +1749,7 @@ class Project(dict):
 		phonies = []
 		maxlen = 0
 		for key in self:
-			if isinstance(key, basestring):
+			if isinstance(key, str):
 				maxlen = max(maxlen, len(key))
 				phonies.append(self[key])
 		phonies.sort(key=operator.attrgetter("key"))

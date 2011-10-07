@@ -137,17 +137,17 @@ def main(args=None):
 			# Print or execute SQL
 			if args.execute:
 				try:
-					fmt = u"truncate table {}" if args.truncate else u"delete from {}"
+					fmt = "truncate table {}" if args.truncate else "delete from {}"
 					cursor.execute(fmt.format(obj.name))
-				except orasql.DatabaseError, exc:
+				except orasql.DatabaseError as exc:
 					if not args.ignore or "ORA-01013" in str(exc):
 						raise
 					stderr.writeln("oradelete.py: ", s4error("{}: {}".format(exc.__class__, str(exc).strip())))
 			else:
 				if args.truncate:
-					sql = u"truncate table {};\n".format(obj.name)
+					sql = "truncate table {};\n".format(obj.name)
 				else:
-					sql = u"delete from {};\n".format(obj.name)
+					sql = "delete from {};\n".format(obj.name)
 				stdout.write(sql.encode(args.encoding))
 	if not args.truncate:
 		connection.commit()
@@ -169,7 +169,7 @@ def main(args=None):
 						sql = obj.createddl(term=False)
 						cursor.execute(obj.dropddl(term=False))
 						cursor.execute(sql)
-					except orasql.DatabaseError, exc:
+					except orasql.DatabaseError as exc:
 						if not args.ignore or "ORA-01013" in str(exc):
 							raise
 						stderr.writeln("oradelete.py: ", s4error("{}: {}".format(exc.__class__, str(exc).strip())))

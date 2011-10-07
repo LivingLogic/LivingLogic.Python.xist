@@ -25,10 +25,10 @@ def dtd2mod(s, shareattrs=None, **kwargs):
 	mod.__file__ = "test.py"
 
 	code = str(xnd)
-	print "Module source generated from DTDs:"
-	print code
+	print("Module source generated from DTDs:")
+	print(code)
 	code = compile(code, "test.py", "exec")
-	exec code in mod.__dict__
+	exec(code, mod.__dict__)
 	return mod
 
 
@@ -107,7 +107,7 @@ def test_keyword():
 	ns = dtd2mod(dtdstring)
 	assert issubclass(ns.foo.Attrs.class_, xsc.TextAttr)
 	assert ns.foo.Attrs.class_.__name__ == "class_"
-	assert ns.foo.Attrs.class_.xmlname == u"class"
+	assert ns.foo.Attrs.class_.xmlname == "class"
 
 
 def test_quotes():
@@ -122,16 +122,16 @@ def test_unicode():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT foo EMPTY>
 	"""
-	ns = dtd2mod(dtdstring, defaultxmlns=u'\u3042')
-	assert ns.foo.xmlns == u'\u3042'
+	ns = dtd2mod(dtdstring, defaultxmlns='\u3042')
+	assert ns.foo.xmlns == '\u3042'
 
 
 def test_unicodequotes():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT foo EMPTY>
 	"""
-	ns = dtd2mod(dtdstring, defaultxmlns=u'"\u3042"')
-	assert ns.foo.xmlns == u'"\u3042"'
+	ns = dtd2mod(dtdstring, defaultxmlns='"\u3042"')
+	assert ns.foo.xmlns == '"\u3042"'
 
 
 def test_badelementname():

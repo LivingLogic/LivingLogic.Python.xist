@@ -31,9 +31,9 @@ class taglib(xsc.ProcInst):
 	xmlns = xmlns
 
 	def publish(self, publisher):
-		yield publisher.encode(u'<%@ taglib uri="/WEB-INF/struts-html.tld" prefix="')
+		yield publisher.encode('<%@ taglib uri="/WEB-INF/struts-html.tld" prefix="')
 		yield publisher.encode(publisher.getobjectprefix(self))
-		yield publisher.encode(u'" %>')
+		yield publisher.encode('" %>')
 
 
 class Element(xsc.Element):

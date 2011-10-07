@@ -160,7 +160,7 @@ def main(args=None):
 
 	def rpad(s, l):
 		meas = str(s)
-		if not isinstance(s, (basestring, astyle.Text)):
+		if not isinstance(s, (str, astyle.Text)):
 			s = str(s)
 		if len(meas) < l:
 			size = l-len(meas)
@@ -172,7 +172,7 @@ def main(args=None):
 
 	def lpad(s, l):
 		meas = str(s)
-		if not isinstance(s, (basestring, astyle.Text)):
+		if not isinstance(s, (str, astyle.Text)):
 			s = str(s)
 		if len(meas) < l:
 			size = l-len(meas)
@@ -246,7 +246,7 @@ def main(args=None):
 		if url is not None:
 			stdout.writeln(style_dir(str(url)), ":")
 		(rows, cols) = findcolcount(urls)
-		for i in xrange(rows):
+		for i in range(rows):
 			for (j, w) in enumerate(cols):
 				index = i+j*rows
 				try:
@@ -297,8 +297,8 @@ def main(args=None):
 	p.add_argument("-s", "--human-readable-sizes", dest="human", help="Human readable file sizes? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-r", "--recursive", dest="recursive", help="Recursive listing? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-w", "--spacing", dest="spacing", metavar="INTEGER", help="Space between columns (default: %(default)s)", type=int, default=3)
-	p.add_argument("-P", "--padding", dest="padding", metavar="CHARS", help="Characters used for column padding (default: %(default)s)", default=u" ", type=encodedstring)
-	p.add_argument("-S", "--separator", dest="separator", metavar="CHARS", help="Characters used for separating columns in long format (default: %(default)s)", default=u"  ", type=encodedstring)
+	p.add_argument("-P", "--padding", dest="padding", metavar="CHARS", help="Characters used for column padding (default: %(default)s)", default=" ", type=encodedstring)
+	p.add_argument("-S", "--separator", dest="separator", metavar="CHARS", help="Characters used for separating columns in long format (default: %(default)s)", default="  ", type=encodedstring)
 	p.add_argument("-i", "--include", dest="include", metavar="PATTERN", help="Include only URLs matching PATTERN (default: %(default)s)", type=re.compile)
 	p.add_argument("-e", "--exclude", dest="exclude", metavar="PATTERN", help="Exclude URLs matching PATTERN (default: %(default)s)", type=re.compile)
 	p.add_argument("-a", "--all", dest="all", help="Include dot files? (default: %(default)s)", action=misc.FlagAction, default=False)

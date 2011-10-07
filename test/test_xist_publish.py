@@ -54,10 +54,10 @@ def test_publishprocinst():
 
 
 def test_publishboolattr():
-	node = html.td(u"?", nowrap=None)
+	node = html.td("?", nowrap=None)
 	assert node.bytes(xhtml=0) == b"""<td>?</td>"""
 
-	node = html.td(u"?", nowrap=True)
+	node = html.td("?", nowrap=True)
 	assert node.bytes(xhtml=0) == b"""<td nowrap>?</td>"""
 	assert node.bytes(xhtml=1) == b"""<td nowrap="nowrap">?</td>"""
 	assert node.bytes(xhtml=2) == b"""<td nowrap="nowrap">?</td>"""
@@ -68,14 +68,14 @@ def test_publishboolattr():
 				xmlname = "baz"
 
 	# Check that the XML name is used as the value
-	assert foo(u"?", bar=True).bytes(xhtml=2) == b"""<foo baz="baz">?</foo>"""
+	assert foo("?", bar=True).bytes(xhtml=2) == b"""<foo baz="baz">?</foo>"""
 
 
 def test_publishurlattr():
 	node = html.link(href=None)
 	assert node.bytes(xhtml=1) == b"""<link />"""
 
-	node = html.link(href=u"root:gurk.html")
+	node = html.link(href="root:gurk.html")
 	assert node.bytes(xhtml=1) == b"""<link href="root:gurk.html" />"""
 	assert node.bytes(xhtml=1, base="root:gurk.html") == b"""<link href="" />"""
 	assert node.bytes(xhtml=1, base="root:hurz.html") == b"""<link href="gurk.html" />"""
@@ -85,34 +85,34 @@ def test_publishstyleattr():
 	node = html.div(style=None)
 	assert node.bytes(xhtml=1) == b"""<div></div>"""
 
-	node = html.div(style=u"background-image: url(root:gurk.html)")
+	node = html.div(style="background-image: url(root:gurk.html)")
 	assert node.bytes(xhtml=1) == b"""<div style="background-image: url(root:gurk.html)"></div>"""
 	assert node.bytes(xhtml=1, base="root:gurk.html") == b"""<div style="background-image: url()"></div>"""
 	assert node.bytes(xhtml=1, base="root:hurz.html") == b"""<div style="background-image: url(gurk.html)"></div>"""
 
 
 def test_publishxmlattr():
-	node = html.html(xml.Attrs(space=u"preserve"))
+	node = html.html(xml.Attrs(space="preserve"))
 	assert node.bytes(prefixdefault=False) == b"""<html xml:space="preserve"></html>"""
 	assert node.bytes(prefixdefault=True) == b"""<ns:html xmlns:ns="http://www.w3.org/1999/xhtml" xml:space="preserve"></ns:html>"""
 	assert node.bytes(prefixdefault=None) == b"""<html xmlns="http://www.w3.org/1999/xhtml" xml:space="preserve"></html>"""
-	assert node.bytes(prefixes={html: u"h"}) == b"""<h:html xmlns:h="http://www.w3.org/1999/xhtml" xml:space="preserve"></h:html>"""
+	assert node.bytes(prefixes={html: "h"}) == b"""<h:html xmlns:h="http://www.w3.org/1999/xhtml" xml:space="preserve"></h:html>"""
 	# Prefix for XML namespace can't be overwritten
-	assert node.bytes(prefixes={html: u"h", xml: u"spam"}) == b"""<h:html xmlns:h="http://www.w3.org/1999/xhtml" xml:space="preserve"></h:html>"""
+	assert node.bytes(prefixes={html: "h", xml: "spam"}) == b"""<h:html xmlns:h="http://www.w3.org/1999/xhtml" xml:space="preserve"></h:html>"""
 
 
 def test_publishglobalattr():
 	# FIXME: Some of those tests depend on dict iteration order
-	node = html.html(xlink.Attrs(title=u"the foo bar"))
+	node = html.html(xlink.Attrs(title="the foo bar"))
 	assert node.bytes(prefixdefault=False) == b"""<html xmlns:ns="http://www.w3.org/1999/xlink" ns:title="the foo bar"></html>"""
 	assert node.bytes(prefixdefault=None) == b"""<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ns="http://www.w3.org/1999/xlink" ns:title="the foo bar"></html>"""
 	assert node.bytes(prefixdefault=True) == b"""<ns:html xmlns:ns="http://www.w3.org/1999/xhtml" xmlns:ns2="http://www.w3.org/1999/xlink" ns2:title="the foo bar"></ns:html>"""
-	assert node.bytes(prefixdefault=u"h") == b"""<h:html xmlns:h="http://www.w3.org/1999/xhtml" xmlns:ns="http://www.w3.org/1999/xlink" ns:title="the foo bar"></h:html>"""
-	assert node.bytes(prefixes={html: u"h", xlink: u"xl"}) == b"""<h:html xmlns:h="http://www.w3.org/1999/xhtml" xmlns:xl="http://www.w3.org/1999/xlink" xl:title="the foo bar"></h:html>"""
+	assert node.bytes(prefixdefault="h") == b"""<h:html xmlns:h="http://www.w3.org/1999/xhtml" xmlns:ns="http://www.w3.org/1999/xlink" ns:title="the foo bar"></h:html>"""
+	assert node.bytes(prefixes={html: "h", xlink: "xl"}) == b"""<h:html xmlns:h="http://www.w3.org/1999/xhtml" xmlns:xl="http://www.w3.org/1999/xlink" xl:title="the foo bar"></h:html>"""
 
 
 def test_publishspecialsurl():
-	node = specials.url(u"root:gurk.html")
+	node = specials.url("root:gurk.html")
 	assert node.bytes() == b"""root:gurk.html"""
 	assert node.bytes(base="root:gurk.html") == b""""""
 	assert node.bytes(base="root:hurz.html") == b"""gurk.html"""
@@ -126,7 +126,7 @@ def test_publishempty():
 
 
 def test_publishescaped():
-	s = u"""\x04<&'"\xff>"""
+	s = """\x04<&'"\xff>"""
 	node = xsc.Text(s)
 	assert node.bytes(encoding="ascii") == b"""&#4;&lt;&amp;'"&#255;&gt;"""
 	node = html.span(class_=s)
@@ -137,10 +137,10 @@ def test_encoding():
 	def check(encoding):
 		node = xsc.Frag(
 			html.div(
-				php.php(u"echo $foo"),
+				php.php("echo $foo"),
 				abbr.html(),
-				html.div(u"gurk", class_=u"hurz"),
-				u"\u3042",
+				html.div("gurk", class_="hurz"),
+				"\u3042",
 			)
 		)
 		s = node.bytes(encoding=encoding)
@@ -158,17 +158,17 @@ def test_xmlheader():
 
 
 def test_struts_html():
-	assert b'prefix="xyzzx"' in struts_html.taglib().bytes(prefixdefault=u"xyzzx")
+	assert b'prefix="xyzzx"' in struts_html.taglib().bytes(prefixdefault="xyzzx")
 
 
 def test_publish_forcexmlns():
 	e = html.html()
-	s = e.bytes(prefixes={html: u"h", specials: u"s"}, showxmlns=[specials])
+	s = e.bytes(prefixes={html: "h", specials: "s"}, showxmlns=[specials])
 	assert b'xmlns:s="{}"'.format(specials.xmlns) in s
 
 
 def test_comment_in_attr():
-	node = html.div(class_=xsc.Comment(u"gurk"))
+	node = html.div(class_=xsc.Comment("gurk"))
 	assert node.bytes() == b"""<div class=""></div>"""
 
 

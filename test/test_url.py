@@ -14,41 +14,41 @@ from ll import url
 
 def test_fileext():
 	u = url.URL("/gurk/hurz")
-	assert u.file == u"hurz"
+	assert u.file == "hurz"
 	assert u.ext is None
-	u.file = u"nöx.png"
-	assert u.file == u"nöx.png"
-	assert u.ext == u"png"
-	assert unicode(u.path) == u"/gurk/n%C3%B6x.png"
+	u.file = "nöx.png"
+	assert u.file == "nöx.png"
+	assert u.ext == "png"
+	assert str(u.path) == "/gurk/n%C3%B6x.png"
 	u.ext = "gif"
-	assert u.file == u"nöx.gif"
-	assert u.ext == u"gif"
+	assert u.file == "nöx.gif"
+	assert u.ext == "gif"
 
 	u = url.URL("/gurk/hurz.")
-	assert u.file == u"hurz."
-	assert u.ext == u""
+	assert u.file == "hurz."
+	assert u.ext == ""
 	u.ext = "gif"
-	assert u.file == u"hurz.gif"
-	assert u.ext == u"gif"
+	assert u.file == "hurz.gif"
+	assert u.ext == "gif"
 
 	u = url.URL("/gurk/hurz.png")
-	assert u.file == u"hurz.png"
-	assert u.ext == u"png"
+	assert u.file == "hurz.png"
+	assert u.ext == "png"
 
 	u = url.URL("/gurk/hurz/")
-	assert u.file == u""
+	assert u.file == ""
 	assert u.ext is None
 	u.ext = "gif"
-	assert u.file == u".gif"
-	assert u.ext == u"gif"
+	assert u.file == ".gif"
+	assert u.ext == "gif"
 
 	assert url.URL(".gif").withoutext() == url.URL("./")
 
 
 def test_join_list():
-	assert ["", "gurk", "gurk/"]/url.URL("index.html") == map(url.URL, ["index.html", "index.html", "gurk/index.html"])
+	assert ["", "gurk", "gurk/"]/url.URL("index.html") == list(map(url.URL, ["index.html", "index.html", "gurk/index.html"]))
 
-	assert url.URL("gurk/")/["", "hinz", "kunz"] == map(url.URL, ["gurk/", "gurk/hinz", "gurk/kunz"])
+	assert url.URL("gurk/")/["", "hinz", "kunz"] == list(map(url.URL, ["gurk/", "gurk/hinz", "gurk/kunz"]))
 
 
 def test_withfile():
@@ -256,7 +256,7 @@ def test_normalize():
 def test_str():
 	s = "ftp://ftp.livinglogic.de/pub/livinglogic/xist/XIST-42.105.tar.bz2"
 	u = url.URL(s)
-	assert unicode(u) == s
+	assert str(u) == s
 	assert str(u) == s
 
 
@@ -293,20 +293,20 @@ def test_query():
 
 	u.query += "=17"
 	assert u.query == "id=13&id=17"
-	assert u.query_parts == {u"id": [u"13", u"17"]}
+	assert u.query_parts == {"id": ["13", "17"]}
 
 	del u.query_parts["id"]
 	u.query_parts["name"] = "gurk"
 	assert u.query == "name=gurk"
-	assert u.query_parts == {u"name": u"gurk"}
+	assert u.query_parts == {"name": "gurk"}
 
-	u.query_parts["name"] = [u"gürk"]
+	u.query_parts["name"] = ["gürk"]
 	assert u.query == "name=g%C3%BCrk"
-	assert u.query_parts == {u"name": [u"gürk"]}
+	assert u.query_parts == {"name": ["gürk"]}
 
-	u.query_parts["name"] = u"gürk"
+	u.query_parts["name"] = "gürk"
 	assert u.query == "name=g%C3%BCrk"
-	assert u.query_parts == {u"name": u"gürk"}
+	assert u.query_parts == {"name": "gürk"}
 
 
 def test_eq():

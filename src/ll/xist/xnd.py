@@ -38,12 +38,12 @@ def _simplify(value):
 			if '"' in value:
 				value = repr(value)
 			else:
-				value = u'u"{}"'.format(repr(value)[2:-1])
+				value = 'u"{}"'.format(repr(value)[2:-1])
 		else:
 			if '"' in value:
 				value = repr(value)
 			else:
-				value = u'"{}"'.format(repr(value)[1:-1])
+				value = '"{}"'.format(repr(value)[1:-1])
 	return value
 
 
@@ -63,10 +63,10 @@ class RedefinedElementError(Error):
 			msgs = []
 			if self.oldelement.attrs != self.newelement.attrs:
 				# New element has different attributes
-				removed = [attr.name for attr in self.oldelement.attrs.itervalues() if attr.name not in self.newelement.attrs]
+				removed = [attr.name for attr in self.oldelement.attrs.values() if attr.name not in self.newelement.attrs]
 				if removed:
 					msgs.append("attribute{} {} removed".format("s" if len(removed) > 1 else "", ", ".join(removed)))
-				added = [attr.name for attr in self.newelement.attrs.itervalues() if attr.name not in self.oldelement.attrs]
+				added = [attr.name for attr in self.newelement.attrs.values() if attr.name not in self.oldelement.attrs]
 				if added:
 					msgs.append("attribute{} {} added".format("s" if len(added) > 1 else "", ", ".join(added)))
 			if msgs:
@@ -129,19 +129,19 @@ def findname(basename, names):
 def _addlines(lines, newlines):
 	l = len(newlines)
 	if l==0:
-		lines[-1][1] += u" pass"
+		lines[-1][1] += " pass"
 	elif l==1:
-		lines[-1][1] += u" {}".format(newlines[-1][1])
+		lines[-1][1] += " {}".format(newlines[-1][1])
 	else:
 		lines.extend(newlines)
 
 
 def _adddoc(lines, doc, level):
 	if doc is not None:
-		lines.append([level, u'"""'])
+		lines.append([level, '"""'])
 		for line in doc.splitlines():
 			lines.append([level, line])
-		lines.append([level, u'"""'])
+		lines.append([level, '"""'])
 
 
 class Module(object):
@@ -168,10 +168,10 @@ class Module(object):
 	def __unicode__(self):
 		lines = []
 		self._aspy(lines, 0, set(), self)
-		return u"".join(u"{}{}\n".format(level*self.indent, text) for (level, text) in lines)
+		return "".join("{}{}\n".format(level*self.indent, text) for (level, text) in lines)
 
 	def __str__(self):
-		return unicode(self).encode(self.encoding)
+		return str(self).encode(self.encoding)
 
 	def _findgroups(self):
 		"""
@@ -184,8 +184,8 @@ class Module(object):
 		# find all attribute groups defined for the attributes
 		attrgroups = []
 		attrgroupset = {}
-		for node in self.elements.itervalues():
-			for attr in node.attrs.itervalues():
+		for node in self.elements.values():
+			for attr in node.attrs.values():
 				if attr.shared is not None and attr.shared not in attrgroupset:
 					attrgroups.append(attr.shared)
 					attrgroupset[attr.shared] = True
@@ -193,7 +193,7 @@ class Module(object):
 
 	def _aspy(self, lines, level, names, module):
 		# Find all namespaces
-		self._xmlnames = dict.fromkeys(e.xmlns for e in self.elements.itervalues() if e.xmlns is not None)
+		self._xmlnames = dict.fromkeys(e.xmlns for e in self.elements.values() if e.xmlns is not None)
 		# Assign names to namespaces
 		for xmlns in self._xmlnames:
 			varname = findname("xmlns", names)
@@ -201,22 +201,22 @@ class Module(object):
 			names.add(varname)
 
 		# assign names to all elements
-		for child in self.elements.itervalues():
+		for child in self.elements.values():
 			child.assignpyname(names)
 			attrnames = set()
-			for attr in child.attrs.itervalues():
+			for attr in child.attrs.values():
 				attr.assignpyname(attrnames)
 
 		# assign names to all processing instructions
-		for child in self.procinsts.itervalues():
+		for child in self.procinsts.values():
 			child.assignpyname(names)
 
 		# assign names to all entitites
-		for child in self.entities.itervalues():
+		for child in self.entities.values():
 			child.assignpyname(names)
 
 		# assign names to all character references
-		for child in self.charrefs.itervalues():
+		for child in self.charrefs.values():
 			child.assignpyname(names)
 
 		# Assign names to attribute groups
@@ -236,7 +236,7 @@ class Module(object):
 		if self._xmlnames:
 			lines.append([0, ""])
 			lines.append([0, ""])
-			for (xmlns, varname) in self._xmlnames.iteritems():
+			for (xmlns, varname) in self._xmlnames.items():
 				lines.append([level, "{} = {!r}".format(varname, xmlns)])
 
 		# output attribute groups
@@ -247,14 +247,14 @@ class Module(object):
 
 		# output elements, procinsts, entities and charref
 		for nodetype in ("elements", "procinsts", "entities", "charrefs"):
-			for node in getattr(self, nodetype).itervalues():
+			for node in getattr(self, nodetype).values():
 				lines.append([0, ""])
 				lines.append([0, ""])
 				node._aspy(lines, level, names, module)
 
 		# output schema information for the elements
 		if module.model != "none":
-			elswithschema = [node for node in self.elements.itervalues() if not isinstance(node.modeltype, (bool, type(None)))]
+			elswithschema = [node for node in self.elements.values() if not isinstance(node.modeltype, (bool, type(None)))]
 			if elswithschema:
 				lines.append([0, ""])
 				lines.append([0, ""])
@@ -283,8 +283,8 @@ class Module(object):
 	def shareattrs(self, all):
 		# collect all identical attributes into lists
 		identicalattrs = collections.OrderedDict()
-		for node in self.elements.itervalues():
-			for attr in node.attrs.itervalues():
+		for node in self.elements.values():
+			for attr in node.attrs.values():
 				if attr.shared is None: # skip attributes that are already shared
 					ident = attr.ident()
 					try:
@@ -292,7 +292,7 @@ class Module(object):
 					except KeyError:
 						attrs = identicalattrs[ident] = []
 					attrs.append(attr)
-		for (ident, attrs) in identicalattrs.iteritems():
+		for (ident, attrs) in identicalattrs.items():
 			# if the attribute appears more than once (or all attributes should be shared), define a group for it
 			if all or len(attrs) > 1:
 				group = AttrGroup(attrs[0].name)(attrs[0])
@@ -351,7 +351,7 @@ class Element(Named):
 				if module.elements[self.name] != self:
 					raise RedefinedElementError(oldelement, self, duplicates=module.duplicates)
 			else: # if duplicates == "merge"
-				for attr in self.attrs.itervalues():
+				for attr in self.attrs.values():
 					if attr.name in self.attrs:
 						if attr != self.attrs[attr.name]:
 							raise RedefinedElementError(oldelement, self, duplicates=module.duplicates)
@@ -385,7 +385,7 @@ class Element(Named):
 			groups = []
 			groupset = {}
 			nogroup = []
-			for attr in self.attrs.itervalues():
+			for attr in self.attrs.values():
 				if attr.shared is not None:
 					if tuple(attr.shared.attrs) not in groupset:
 						groups.append(attr.shared)

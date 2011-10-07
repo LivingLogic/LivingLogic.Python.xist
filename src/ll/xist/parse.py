@@ -215,7 +215,7 @@ For consuming event streams there are three functions:
 """
 
 
-import sys, os, os.path, warnings, cStringIO, codecs, contextlib, types
+import sys, os, os.path, warnings, io, codecs, contextlib, types
 
 from xml.parsers import expat
 
@@ -273,11 +273,11 @@ class String(object):
 		Produces an event stream of one ``"url"`` event and one ``"bytes"`` or
 		``"unicode"`` event for the data.
 		"""
-		yield (u"url", self.url)
+		yield ("url", self.url)
 		if isinstance(self.data, str):
-			yield (u"bytes", self.data)
-		elif isinstance(self.data, unicode):
-			yield (u"unicode", self.data)
+			yield ("bytes", self.data)
+		elif isinstance(self.data, str):
+			yield ("unicode", self.data)
 		else:
 			raise TypeError("data must be str or unicode")
 
@@ -301,12 +301,12 @@ class Iter(object):
 		Produces an event stream of one ``"url"`` event followed by the
 		``"bytes"``/``"unicode"`` events for the data from the iterable.
 		"""
-		yield (u"url", self.url)
+		yield ("url", self.url)
 		for data in self.iterable:
 			if isinstance(data, str):
-				yield (u"bytes", data)
-			elif isinstance(data, unicode):
-				yield (u"unicode", data)
+				yield ("bytes", data)
+			elif isinstance(data, str):
+				yield ("unicode", data)
 			else:
 				raise TypeError("data must be str or unicode")
 
@@ -333,14 +333,14 @@ class Stream(object):
 		Produces an event stream of one ``"url"`` event followed by the
 		``"bytes"``/``"unicode"`` events for the data from the stream.
 		"""
-		yield (u"url", self.url)
+		yield ("url", self.url)
 		while True:
 			data = self.stream.read(self.bufsize)
 			if data:
 				if isinstance(data, str):
-					yield (u"bytes", data)
-				elif isinstance(data, unicode):
-					yield (u"unicode", data)
+					yield ("bytes", data)
+				elif isinstance(data, str):
+					yield ("unicode", data)
 				else:
 					raise TypeError("data must be str or unicode")
 			else:
@@ -368,12 +368,12 @@ class File(object):
 		Produces an event stream of one ``"url"`` event followed by the
 		``"bytes"`` events for the data from the file.
 		"""
-		yield (u"url", self.url)
+		yield ("url", self.url)
 		with open(self._filename, "rb") as stream:
 			while True:
 				data = stream.read(self.bufsize)
 				if data:
-					yield (u"bytes", data)
+					yield ("bytes", data)
 				else:
 					break
 
@@ -404,12 +404,12 @@ class URL(object):
 		``"bytes"`` events for the data from the URL.
 		"""
 		stream = self.url.open("rb", *self.args, **self.kwargs)
-		yield (u"url", stream.finalurl())
+		yield ("url", stream.finalurl())
 		with contextlib.closing(stream) as stream:
 			while True:
 				data = stream.read(self.bufsize)
 				if data:
-					yield (u"bytes", data)
+					yield ("bytes", data)
 				else:
 					break
 
@@ -448,35 +448,35 @@ class ETree(object):
 				(elementxmlns, sep, elementname) = elementname[1:].partition("}")
 			else:
 				elementxmlns = self.defaultxmlns
-			yield (u"enterstarttagns", (elementname, elementxmlns))
-			for (attrname, attrvalue) in node.items():
+			yield ("enterstarttagns", (elementname, elementxmlns))
+			for (attrname, attrvalue) in list(node.items()):
 				if attrname.startswith("{"):
 					(attrxmlns, sep, attrname) = attrname[1:].partition("}")
 				else:
 					attrxmlns = None
-				yield (u"enterattrns", (attrname, attrxmlns))
-				yield (u"text", attrvalue)
-				yield (u"leaveattrns", (attrname, attrxmlns))
-			yield (u"leavestarttagns", (elementname, elementxmlns))
+				yield ("enterattrns", (attrname, attrxmlns))
+				yield ("text", attrvalue)
+				yield ("leaveattrns", (attrname, attrxmlns))
+			yield ("leavestarttagns", (elementname, elementxmlns))
 			if node.text:
-				yield (u"text", node.text)
+				yield ("text", node.text)
 			for child in node:
 				for event in self._asxist(child):
 					yield event
 				if hasattr(child, "tail") and child.tail:
-					yield (u"text", child.tail)
-			yield (u"endtagns", (elementname, elementxmlns))
+					yield ("text", child.tail)
+			yield ("endtagns", (elementname, elementxmlns))
 		elif "ProcessingInstruction" in name:
-			yield (u"procinst", (node.target, node.text))
+			yield ("procinst", (node.target, node.text))
 		elif "Comment" in name:
-			yield (u"comment", node.text)
+			yield ("comment", node.text)
 
 	def __iter__(self):
 		"""
 		Produces an event stream of namespaced parsing events for the ElementTree
 		object passed as :var:`data` to the constructor.
 		"""
-		yield (u"url", self.url)
+		yield ("url", self.url)
 		for event in self._asxist(self.data):
 			yield event
 
@@ -505,20 +505,20 @@ class Decoder(object):
 	def __call__(self, input):
 		decoder = codecs.getincrementaldecoder("xml")(encoding=self.encoding)
 		for (evtype, data) in input:
-			if evtype == u"bytes":
+			if evtype == "bytes":
 				data = decoder.decode(data, False)
 				if data:
-					yield (u"unicode", data)
-			elif evtype == u"unicode":
+					yield ("unicode", data)
+			elif evtype == "unicode":
 				if data:
-					yield (u"unicode", data)
-			elif evtype == u"url":
-				yield (u"url", data)
+					yield ("unicode", data)
+			elif evtype == "url":
+				yield ("url", data)
 			else:
 				raise UnknownEventError(self, (evtype, data))
 		data = decoder.decode("", True)
 		if data:
-			yield (u"unicode", data)
+			yield ("unicode", data)
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
@@ -544,20 +544,20 @@ class Encoder(object):
 	def __call__(self, input):
 		encoder = codecs.getincrementalencoder("xml")(encoding=self.encoding)
 		for (evtype, data) in input:
-			if evtype == u"unicode":
+			if evtype == "unicode":
 				data = encoder.encode(data, False)
 				if data:
-					yield (u"bytes", data)
-			elif evtype == u"bytes":
+					yield ("bytes", data)
+			elif evtype == "bytes":
 				if data:
-					yield (u"bytes", data)
-			elif evtype == u"url":
-				yield (u"url", data)
+					yield ("bytes", data)
+			elif evtype == "url":
+				yield ("url", data)
 			else:
 				raise UnknownEventError(self, (evtype, data))
-		data = encoder.encode(u"", True)
+		data = encoder.encode("", True)
 		if data:
-			yield (u"bytes", data)
+			yield ("bytes", data)
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
@@ -584,17 +584,17 @@ class Transcoder(object):
 		decoder = codecs.getincrementaldecoder("xml")(encoding=self.fromencoding)
 		encoder = codecs.getincrementalencoder("xml")(encoding=self.toencoding)
 		for (evtype, data) in input:
-			if evtype == u"bytes":
+			if evtype == "bytes":
 				data = encoder.encode(decoder.decode(data, False), False)
 				if data:
-					yield (u"bytes", data)
-			elif evtype == u"url":
-				yield (u"url", data)
+					yield ("bytes", data)
+			elif evtype == "url":
+				yield ("url", data)
 			else:
 				raise UnknownEventError(self, (evtype, data))
 		data = encoder.encode(decoder.decode("", True), True)
 		if data:
-			yield (u"bytes", data)
+			yield ("bytes", data)
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} object fromencoding={0.fromencoding!r} toencoding={0.toencoding!r} at {1:#x}>".format(self, id(self))
@@ -608,26 +608,26 @@ class Parser(object):
 	"""
 	Basic parser interface.
 	"""
-	evxmldecl = u"xmldecl"
-	evbegindoctype = u"begindoctype"
-	evenddoctype = u"enddoctype"
-	evcomment = u"comment"
-	evtext = u"text"
-	evcdata = u"cdata"
-	eventerstarttag = u"enterstarttag"
-	eventerstarttagns = u"enterstarttagns"
-	eventerattr = u"enterattr"
-	eventerattrns = u"enterattrns"
-	evleaveattr = u"leaveattr"
-	evleaveattrns = u"leaveattrns"
-	evleavestarttag = u"leavestarttag"
-	evleavestarttagns = u"leavestarttagns"
-	evendtag = u"endtag"
-	evendtagns = u"endtagns"
-	evprocinst = u"procinst"
-	eventity = u"entity"
-	evposition = u"position"
-	evurl = u"url"
+	evxmldecl = "xmldecl"
+	evbegindoctype = "begindoctype"
+	evenddoctype = "enddoctype"
+	evcomment = "comment"
+	evtext = "text"
+	evcdata = "cdata"
+	eventerstarttag = "enterstarttag"
+	eventerstarttagns = "enterstarttagns"
+	eventerattr = "enterattr"
+	eventerattrns = "enterattrns"
+	evleaveattr = "leaveattr"
+	evleaveattrns = "leaveattrns"
+	evleavestarttag = "leavestarttag"
+	evleavestarttagns = "leavestarttagns"
+	evendtag = "endtag"
+	evendtagns = "endtagns"
+	evprocinst = "procinst"
+	eventity = "entity"
+	evposition = "position"
+	evurl = "url"
 
 
 class Expat(Parser):
@@ -721,10 +721,10 @@ class Expat(Parser):
 
 		try:
 			for (evtype, data) in input:
-				if evtype == u"bytes":
+				if evtype == "bytes":
 					try:
 						self._parser.Parse(data, False)
-					except Exception, exc:
+					except Exception as exc:
 						# In case of an exception we want to output the events we have gathered so far, before reraising the exception
 						for event in self._flush(True):
 							yield event
@@ -732,13 +732,13 @@ class Expat(Parser):
 					else:
 						for event in self._flush(False):
 							yield event
-				elif evtype == u"url":
+				elif evtype == "url":
 					yield (self.evurl, data)
 				else:
 					raise UnknownEventError(self, (evtype, data))
 			try:
 				self._parser.Parse(b"", True)
-			except Exception, exc:
+			except Exception as exc:
 				for event in self._flush(True):
 					yield event
 				raise exc
@@ -793,18 +793,18 @@ class Expat(Parser):
 
 	def _handle_xmldecl(self, version, encoding, standalone):
 		standalone = (bool(standalone) if standalone != -1 else None)
-		self._event(self.evxmldecl, {u"version": version, u"encoding": encoding, u"standalone": standalone})
+		self._event(self.evxmldecl, {"version": version, "encoding": encoding, "standalone": standalone})
 
 	def _handle_begindoctype(self, doctypename, systemid, publicid, has_internal_subset):
 		if self.doctype:
-			self._event(self.evbegindoctype, {u"name": doctypename, u"publicid": publicid, u"systemid": systemid})
+			self._event(self.evbegindoctype, {"name": doctypename, "publicid": publicid, "systemid": systemid})
 
 	def _handle_enddoctype(self):
 		if self.doctype:
 			self._event(self.evenddoctype, None)
 
 	def _handle_default(self, data):
-		if data.startswith(u"&") and data.endswith(u";"):
+		if data.startswith("&") and data.endswith(";"):
 			self._event(self.eventity, data[1:-1])
 
 	def _handle_comment(self, data):
@@ -817,7 +817,7 @@ class Expat(Parser):
 	def _handle_startelement(self, name, attrs):
 		name = self._getname(name)
 		self._event(self.eventerstarttagns if self.ns else self.eventerstarttag, name)
-		for i in xrange(0, len(attrs), 2):
+		for i in range(0, len(attrs), 2):
 			key = self._getname(attrs[i])
 			self._event(self.eventerattrns if self.ns else self.eventerattr, key)
 			self._event(self.evtext, attrs[i+1])
@@ -868,10 +868,10 @@ class SGMLOP(Parser):
 
 		try:
 			for (evtype, data) in input:
-				if evtype == u"bytes":
+				if evtype == "bytes":
 					try:
 						self._parser.feed(self._decoder.decode(data, False))
-					except Exception, exc:
+					except Exception as exc:
 						# In case of an exception we want to output the events we have gathered so far, before reraising the exception
 						for event in self._flush(True):
 							yield event
@@ -880,7 +880,7 @@ class SGMLOP(Parser):
 					else:
 						for event in self._flush(False):
 							yield event
-				elif evtype == u"url":
+				elif evtype == "url":
 					yield (self.evurl, data)
 				else:
 					raise UnknownEventError(self, (evtype, data))
@@ -922,7 +922,7 @@ class SGMLOP(Parser):
 		self._event(self.evcdata if self.cdata else self.evtext, data)
 
 	def handle_proc(self, target, data):
-		if target.lower() != u"xml":
+		if target.lower() != "xml":
 			self._event(self.evprocinst, (target, data))
 
 	def handle_entityref(self, name):
@@ -985,21 +985,21 @@ class NS(object):
 		newprefixes = {}
 
 		def make(prefix, xmlns):
-			if prefix is not None and not isinstance(prefix, basestring):
+			if prefix is not None and not isinstance(prefix, str):
 				raise TypeError("prefix must be None or string, not {!r}".format(prefix))
 			xmlns = xsc.nsname(xmlns)
-			if not isinstance(xmlns, basestring):
+			if not isinstance(xmlns, str):
 				raise TypeError("xmlns must be string, not {!r}".format(xmlns))
 			newprefixes[prefix] = xmlns
 
 		if prefixes is not None:
 			if isinstance(prefixes, dict):
-				for (prefix, xmlns) in prefixes.iteritems():
+				for (prefix, xmlns) in prefixes.items():
 					make(prefix, xmlns)
 			else:
 				make(None, prefixes)
 
-		for (prefix, xmlns) in kwargs.iteritems():
+		for (prefix, xmlns) in kwargs.items():
 			make(prefix, xmlns)
 		self._newprefixes = self._attrs = self._attr = None
 		# A stack entry is an ``((elementname, namespacename), prefixdict)`` tuple
@@ -1015,66 +1015,66 @@ class NS(object):
 				yield event
 
 	def url(self, data):
-		yield (u"url", data)
+		yield ("url", data)
 
 	def xmldecl(self, data):
-		data = (u"xmldecl", data)
+		data = ("xmldecl", data)
 		if self._attr is not None:
 			self._attr.append(data)
 		else:
 			yield data
 
 	def begindoctype(self, data):
-		data = (u"begindoctype", data)
+		data = ("begindoctype", data)
 		if self._attr is not None:
 			self._attr.append(data)
 		else:
 			yield data
 
 	def enddoctype(self, data):
-		data = (u"enddoctype", data)
+		data = ("enddoctype", data)
 		if self._attr is not None:
 			self._attr.append(data)
 		else:
 			yield data
 
 	def comment(self, data):
-		data = (u"comment", data)
+		data = ("comment", data)
 		if self._attr is not None:
 			self._attr.append(data)
 		else:
 			yield data
 
 	def text(self, data):
-		data = (u"text", data)
+		data = ("text", data)
 		if self._attr is not None:
 			self._attr.append(data)
 		else:
 			yield data
 
 	def cdata(self, data):
-		data = (u"cdata", data)
+		data = ("cdata", data)
 		if self._attr is not None:
 			self._attr.append(data)
 		else:
 			yield data
 
 	def procinst(self, data):
-		data = (u"procinst", data)
+		data = ("procinst", data)
 		if self._attr is not None:
 			self._attr.append(data)
 		else:
 			yield data
 
 	def entity(self, data):
-		data = (u"entity", data)
+		data = ("entity", data)
 		if self._attr is not None:
 			self._attr.append(data)
 		else:
 			yield data
 
 	def position(self, data):
-		data = (u"position", data)
+		data = ("position", data)
 		if self._attr is not None:
 			self._attr.append(data)
 		else:
@@ -1088,7 +1088,7 @@ class NS(object):
 			yield False
 
 	def enterattr(self, data):
-		if data==u"xmlns" or data.startswith(u"xmlns:"):
+		if data=="xmlns" or data.startswith("xmlns:"):
 			prefix = data[6:] or None
 			self._newprefixes[prefix] = self._attr = []
 		else:
@@ -1106,12 +1106,12 @@ class NS(object):
 
 		if self._newprefixes:
 			prefixes = oldprefixes.copy()
-			newprefixes = {key: u"".join(d for (t, d) in value if t == u"text") for (key, value) in self._newprefixes.iteritems()}
+			newprefixes = {key: "".join(d for (t, d) in value if t == "text") for (key, value) in self._newprefixes.items()}
 			prefixes.update(newprefixes)
 		else:
 			prefixes = oldprefixes
 
-		(prefix, sep, name) = data.rpartition(u":")
+		(prefix, sep, name) = data.rpartition(":")
 		prefix = prefix or None
 
 		try:
@@ -1121,10 +1121,10 @@ class NS(object):
 
 		self._prefixstack.append((data, prefixes))
 
-		yield (u"enterstarttagns", data)
-		for (attrname, attrvalue) in self._attrs.iteritems():
-			if u":" in attrname:
-				(attrprefix, attrname) = attrname.split(u":", 1)
+		yield ("enterstarttagns", data)
+		for (attrname, attrvalue) in self._attrs.items():
+			if ":" in attrname:
+				(attrprefix, attrname) = attrname.split(":", 1)
 				if attrprefix == "xml":
 					xmlns = xsc.xml_xmlns
 				else:
@@ -1134,16 +1134,16 @@ class NS(object):
 						raise xsc.IllegalPrefixError(attrprefix)
 			else:
 				xmlns = None
-			yield (u"enterattrns", (attrname, xmlns))
+			yield ("enterattrns", (attrname, xmlns))
 			for event in attrvalue:
 				yield event
-			yield (u"leaveattrns", (attrname, xmlns))
-		yield (u"leavestarttagns", data)
+			yield ("leaveattrns", (attrname, xmlns))
+		yield ("leavestarttagns", data)
 		self._newprefixes = self._attrs = self._attr = None
 
 	def endtag(self, data):
 		(data, prefixes) = self._prefixstack.pop()
-		yield (u"endtagns", data)
+		yield ("endtagns", data)
 
 
 class Node(object):
@@ -1205,18 +1205,18 @@ class Node(object):
 		self._url = data
 
 	def xmldecl(self, data):
-		node = xml.XML(version=data[u"version"], encoding=data[u"encoding"], standalone=data[u"standalone"])
+		node = xml.XML(version=data["version"], encoding=data["encoding"], standalone=data["standalone"])
 		if self.loc:
 			node.startloc = xsc.Location(self._url, *self._position)
-		return (u"xmldeclnode", node)
+		return ("xmldeclnode", node)
 
 	def begindoctype(self, data):
-		if data[u"publicid"]:
-			fmt = u'{0[name]} PUBLIC "{0[publicid]}" "{0[systemid]}"'
+		if data["publicid"]:
+			fmt = '{0[name]} PUBLIC "{0[publicid]}" "{0[systemid]}"'
 		elif data["systemid"]:
-			fmt = u'{0[name]} SYSTEM "{0[systemid]}"'
+			fmt = '{0[name]} SYSTEM "{0[systemid]}"'
 		else:
-			fmt = u'{0[name]}'
+			fmt = '{0[name]}'
 		node = xsc.DocType(fmt.format(data))
 		if self.loc:
 			node.startloc = xsc.Location(self._url, *self._position)
@@ -1224,7 +1224,7 @@ class Node(object):
 		self._indoctype = True
 
 	def enddoctype(self, data):
-		result = (u"doctypenode", self.doctype)
+		result = ("doctypenode", self.doctype)
 		del self.doctype
 		self._indoctype = False
 		return result
@@ -1233,48 +1233,48 @@ class Node(object):
 		node = self.pool.entity_xml(data)
 		if self.loc:
 			node.startloc = xsc.Location(self._url, *self._position)
-		node.parsed(self, u"entity")
+		node.parsed(self, "entity")
 		if self._inattr:
 			self._stack[-1].append(node)
 		elif not self._indoctype:
-		 	return (u"entitynode", node)
+		 	return ("entitynode", node)
 
 	def comment(self, data):
 		node = xsc.Comment(data)
 		if self.loc:
 			node.startloc = xsc.Location(self._url, *self._position)
-		node.parsed(self, u"comment")
+		node.parsed(self, "comment")
 		if self._inattr:
 			self._stack[-1].append(node)
 		elif not self._indoctype:
-			return (u"commentnode", node)
+			return ("commentnode", node)
 
 	def cdata(self, data):
 		node = xsc.Text(data)
 		if self.loc:
 			node.startloc = xsc.Location(self._url, *self._position)
-		node.parsed(self, u"cdata")
+		node.parsed(self, "cdata")
 		if self._inattr:
 			self._stack[-1].append(node)
 		elif not self._indoctype:
-			return (u"textnode", node)
+			return ("textnode", node)
 
 	def text(self, data):
 		node = xsc.Text(data)
 		if self.loc:
 			node.startloc = xsc.Location(self._url, *self._position)
-		node.parsed(self, u"text")
+		node.parsed(self, "text")
 		if self._inattr:
 			self._stack[-1].append(node)
 		elif not self._indoctype:
-		 	return (u"textnode", node)
+		 	return ("textnode", node)
 
 	def enterstarttagns(self, data):
 		node = self.pool.element_xml(*data)
 		if self.loc:
 			node.startloc = xsc.Location(self._url, *self._position)
 		self._stack.append(node)
-		node.parsed(self, u"starttagns")
+		node.parsed(self, "starttagns")
 
 	def enterattrns(self, data):
 		if data[1] is not None:
@@ -1287,34 +1287,34 @@ class Node(object):
 		node = self._stack[-1].attrs[node]
 		self._stack.append(node)
 		self._inattr = True
-		node.parsed(self, u"enterattrns")
+		node.parsed(self, "enterattrns")
 
 	def leaveattrns(self, data):
 		node = self._stack.pop()
 		self._inattr = False
-		node.parsed(self, u"leaveattrns")
+		node.parsed(self, "leaveattrns")
 
 	def leavestarttagns(self, data):
 		node = self._stack[-1]
-		node.parsed(self, u"leavestarttagns")
-		return (u"startelementnode", node)
+		node.parsed(self, "leavestarttagns")
+		return ("startelementnode", node)
 
 	def endtagns(self, data):
 		node = self._stack.pop()
 		if self.loc:
 			node.endloc = xsc.Location(self._url, *self._position)
-		node.parsed(self, u"endtagns")
-		return (u"endelementnode", node)
+		node.parsed(self, "endtagns")
+		return ("endelementnode", node)
 
 	def procinst(self, data):
 		node = self.pool.procinst_xml(*data)
 		if self.loc:
 			node.startloc = xsc.Location(self._url, *self._position)
-		node.parsed(self, u"procinst")
+		node.parsed(self, "procinst")
 		if self._inattr:
 			self._stack[-1].append(node)
 		elif not self._indoctype:
-			return (u"procinstnode", node)
+			return ("procinstnode", node)
 
 	def position(self, data):
 		self._position = data
@@ -1371,7 +1371,7 @@ class Tidy(object):
 		if self.loc:
 			lineno = node.lineNo()
 			if lineno != self._lastlineno:
-				result = (u"position", (lineno, None))
+				result = ("position", (lineno, None))
 				self._lastlineno = lineno
 				return result
 
@@ -1389,7 +1389,7 @@ class Tidy(object):
 			while child is not None:
 				for event in self._asxist(child):
 					yield event
-				child = child.next
+				child = child.__next__
 		elif node.type == "element":
 			pos = self._handle_pos(node)
 			if pos is not None:
@@ -1401,44 +1401,44 @@ class Tidy(object):
 			else:
 				elok = True
 			if elok:
-				yield (u"enterstarttag", elementname)
+				yield ("enterstarttag", elementname)
 				# Collect all attributes, so we can sort them
 				attrs = []
 				attr = node.properties
 				while attr is not None:
 					attrname = decode(attr.name).lower()
 					if not self.skipbad or el.Attrs.isallowed_xml(attrname):
-						attrcontent = decode(attr.content) if attr.content is not None else u""
+						attrcontent = decode(attr.content) if attr.content is not None else ""
 						attrs.append((attrname, attrcontent))
-					attr = attr.next
+					attr = attr.__next__
 				# We sort the attributes, because this gives a canonical event stream for HTML
 				for (attrname, attrcontent) in sorted(attrs):
-					yield (u"enterattr", attrname)
-					yield (u"text", attrcontent)
-					yield (u"leaveattr", attrname)
-				yield (u"leavestarttag", elementname)
+					yield ("enterattr", attrname)
+					yield ("text", attrcontent)
+					yield ("leaveattr", attrname)
+				yield ("leavestarttag", elementname)
 			child = node.children
 			while child is not None:
 				for event in self._asxist(child):
 					yield event
-				child = child.next
+				child = child.__next__
 			if elok:
-				yield (u"endtag", elementname)
+				yield ("endtag", elementname)
 		elif node.type == "text":
 			pos = self._handle_pos(node)
 			if pos is not None:
 				yield pos
-			yield (u"text", decode(node.content))
+			yield ("text", decode(node.content))
 		elif node.type == "cdata":
 			pos = self._handle_pos(node)
 			if pos is not None:
 				yield pos
-			yield (u"cdata", decode(node.content))
+			yield ("cdata", decode(node.content))
 		elif node.type == "comment":
 			pos = self._handle_pos(node)
 			if pos is not None:
 				yield pos
-			yield (u"comment", decode(node.content))
+			yield ("comment", decode(node.content))
 		# ignore all other types
 
 	def __call__(self, input):
@@ -1447,18 +1447,18 @@ class Tidy(object):
 		url = None
 		collectdata = []
 		for (evtype, data) in input:
-			if evtype == u"url":
+			if evtype == "url":
 				if url is None:
 					url = data
 				else:
 					raise ValueError("got multiple url events")
-			elif evtype == u"bytes":
+			elif evtype == "bytes":
 				collectdata.append(data)
 			else:
 				raise UnknownEventError(self, (evtype, data))
 		data = "".join(collectdata)
 		if url is not None:
-			yield (u"url", url)
+			yield ("url", url)
 		if data:
 			self._lastlineno = None
 			try:
@@ -1485,7 +1485,7 @@ def events(*pipeline):
 	source = pipeline[0]
 
 	# Propagate first pipeline object to a source object (if unambiguous, else use it as it is)
-	if isinstance(source, basestring):
+	if isinstance(source, str):
 		source = String(source)
 	elif isinstance(source, url_.URL):
 		source = URL(source)
@@ -1531,10 +1531,10 @@ def tree(*pipeline, **kwargs):
 	stack = [xsc.Frag()]
 	validate = kwargs.get("validate", True)
 	for (evtype, node) in events(*pipeline):
-		if evtype == u"startelementnode":
+		if evtype == "startelementnode":
 			stack[-1].append(node)
 			stack.append(node)
-		elif evtype == u"endelementnode":
+		elif evtype == "endelementnode":
 			if validate:
 				node.checkvalid()
 			stack.pop()
@@ -1587,12 +1587,12 @@ def itertree(*pipeline, **kwargs):
 
 	path = [xsc.Frag()]
 	for (evtype, node) in events(*pipeline):
-		if evtype == u"startelementnode":
+		if evtype == "startelementnode":
 			path[-1].append(node)
 			path.append(node)
 			if evtype in events_ and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
 				yield (evtype, path)
-		elif evtype == u"endelementnode":
+		elif evtype == "endelementnode":
 			if validate:
 				node.checkvalid()
 			if evtype in events_ and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``

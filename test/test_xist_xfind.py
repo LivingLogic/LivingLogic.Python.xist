@@ -19,31 +19,31 @@ from ll.xist.ns import html
 def xfindnode():
 	return xsc.Frag(
 		html.div(
-			html.h1(u"The ", html.em(u"important"), u" headline"),
-			html.p(u"The ", html.em(u"first"), u" paragraph."),
-			html.p(u"The ", html.em(u"second"), u" ", html.em(u"important"), u" paragraph."),
-			align=u"left",
+			html.h1("The ", html.em("important"), " headline"),
+			html.p("The ", html.em("first"), " paragraph."),
+			html.p("The ", html.em("second"), " ", html.em("important"), " paragraph."),
+			align="left",
 		),
 		html.div(
-			html.h1(u"The headline", html.img(src=u"root:gurk.gif")),
-			html.p(u"The ", html.em(u"first"), u" paragraph."),
+			html.h1("The headline", html.img(src="root:gurk.gif")),
+			html.p("The ", html.em("first"), " paragraph."),
 			html.div(
-				html.h2(u"The ", html.em(u"important"), u" headline"),
-				html.p(u"The ", html.em(u"second"), u" ", html.em(u"important"), u" paragraph."),
-				id=u"id42",
+				html.h2("The ", html.em("important"), " headline"),
+				html.p("The ", html.em("second"), " ", html.em("important"), " paragraph."),
+				id="id42",
 			),
-			html.div(id=u"id23"),
-			class_=u"foo",
+			html.div(id="id23"),
+			class_="foo",
 		),
-		html.p(html.em(u"only")),
+		html.p(html.em("only")),
 	)
 
 
 def test_levels():
 	def check(node, expr, ids):
-		assert u"".join(unicode(e.attrs.id) for e in node.walknodes(expr)) == ids
+		assert "".join(str(e.attrs.id) for e in node.walknodes(expr)) == ids
 
-	ds = [html.div(id=id) for id in xrange(8)]
+	ds = [html.div(id=id) for id in range(8)]
 	ds[1].append(ds[4:7])
 	ds[2].append(ds[7])
 	ds[0].append(ds[1:4])
@@ -54,10 +54,10 @@ def test_levels():
 	# 4  5  6  7
 
 	tests = [
-		(ds[0]//html.div, u"1456273"),
-		(ds[0]/html.div, u"123"),
-		(ds[0]/html.div/html.div, u"4567"),
-		(ds[0]/html.div/html.div/html.div, u""),
+		(ds[0]//html.div, "1456273"),
+		(ds[0]/html.div, "123"),
+		(ds[0]/html.div/html.div, "4567"),
+		(ds[0]/html.div/html.div/html.div, ""),
 	]
 	for (got, exp) in tests:
 		yield check, ds[0], got, exp
@@ -87,16 +87,16 @@ def test_hasname():
 	node = xfindnode()
 
 	def check(expr, res):
-		assert [unicode(e) for e in node.walknodes(expr)] == res
-	result = [u"important", u"first", u"second", u"important", u"first", u"important", u"second", u"important", u"only"]
-	yield check, xfind.hasname(u"em"), result
-	yield check, xfind.hasname(u"em", html), result
-	yield check, xfind.hasname(u"em", html.xmlns), result
-	yield check, xfind.hasname(u"em", u"gurk"), []
-	yield check, xfind.hasname_xml(u"em"), result
-	yield check, xfind.hasname_xml(u"em", html), result
-	yield check, xfind.hasname_xml(u"em", html.xmlns), result
-	yield check, xfind.hasname_xml(u"em", u"gurk"), []
+		assert [str(e) for e in node.walknodes(expr)] == res
+	result = ["important", "first", "second", "important", "first", "important", "second", "important", "only"]
+	yield check, xfind.hasname("em"), result
+	yield check, xfind.hasname("em", html), result
+	yield check, xfind.hasname("em", html.xmlns), result
+	yield check, xfind.hasname("em", "gurk"), []
+	yield check, xfind.hasname_xml("em"), result
+	yield check, xfind.hasname_xml("em", html), result
+	yield check, xfind.hasname_xml("em", html.xmlns), result
+	yield check, xfind.hasname_xml("em", "gurk"), []
 
 
 def test_is():
@@ -191,12 +191,12 @@ def test_attrhasvalue():
 			for (gotnode, expectednode) in zip(got, expected):
 				assert gotnode is expectednode
 
-	yield check, [node[0]], u"align", u"left"
-	yield check, [node[0]], html.div.Attrs.align, u"left"
-	yield check, [node[0]], u"align", u"right", u"center", u"left"
-	yield check, [], u"align", u"right", u"center"
-	yield check, [], u"align", u"right"
-	yield check, [], u"gurk", u"hurz"
+	yield check, [node[0]], "align", "left"
+	yield check, [node[0]], html.div.Attrs.align, "left"
+	yield check, [node[0]], "align", "right", "center", "left"
+	yield check, [], "align", "right", "center"
+	yield check, [], "align", "right"
+	yield check, [], "gurk", "hurz"
 
 
 def test_attrcontains():
@@ -209,12 +209,12 @@ def test_attrcontains():
 			for (gotnode, expectednode) in zip(got, expected):
 				assert gotnode is expectednode
 
-	yield check, [node[0]], u"align", u"ef"
-	yield check, [node[0]], html.div.Attrs.align, u"ef"
-	yield check, [node[0]], u"align", u"ri", u"ef"
-	yield check, [], u"align", u"ri", u"en"
-	yield check, [], u"align", u"x"
-	yield check, [], u"gurk", u"",
+	yield check, [node[0]], "align", "ef"
+	yield check, [node[0]], html.div.Attrs.align, "ef"
+	yield check, [node[0]], "align", "ri", "ef"
+	yield check, [], "align", "ri", "en"
+	yield check, [], "align", "x"
+	yield check, [], "gurk", "",
 
 
 def test_attrstartswith():
@@ -227,13 +227,13 @@ def test_attrstartswith():
 			for (gotnode, expectednode) in zip(got, expected):
 				assert gotnode is expectednode
 
-	yield check, [node[0]], u"align", u"le"
-	yield check, [node[0]], html.div.Attrs.align, u"le"
-	yield check, [node[0]], u"align", u"ri", u"ce", u"le"
-	yield check, [], u"align", u"ri", u"ce"
-	yield check, [], u"align", u"eft"
-	yield check, [], u"gurk", u""
-	yield check, [node[1][0][1]], u"src", u"root:"
+	yield check, [node[0]], "align", "le"
+	yield check, [node[0]], html.div.Attrs.align, "le"
+	yield check, [node[0]], "align", "ri", "ce", "le"
+	yield check, [], "align", "ri", "ce"
+	yield check, [], "align", "eft"
+	yield check, [], "gurk", ""
+	yield check, [node[1][0][1]], "src", "root:"
 
 
 def test_attrendswith():
@@ -246,13 +246,13 @@ def test_attrendswith():
 			for (gotnode, expectednode) in zip(got, expected):
 				assert gotnode is expectednode
 
-	yield check, [node[0]], u"align", u"ft"
-	yield check, [node[0]], html.div.Attrs.align, u"ft"
-	yield check, [node[0]], u"align", u"ht", u"er", u"ft"
-	yield check, [], u"align", u"ht", u"er"
-	yield check, [], u"align", u"lef"
-	yield check, [], u"gurk", u""
-	yield check, [node[1][0][1]], u"src", u".gif"
+	yield check, [node[0]], "align", "ft"
+	yield check, [node[0]], html.div.Attrs.align, "ft"
+	yield check, [node[0]], "align", "ht", "er", "ft"
+	yield check, [], "align", "ht", "er"
+	yield check, [], "align", "lef"
+	yield check, [], "gurk", ""
+	yield check, [node[1][0][1]], "src", ".gif"
 
 
 def test_hasid():
@@ -271,12 +271,12 @@ def test_hasclass():
 
 def test_frag():
 	e = parse.tree(b"das ist <b>klaus</b>. das ist <b>erich</b>", parse.SGMLOP(), parse.NS(html), parse.Node())
-	assert u"".join(map(unicode, e.walknodes(e//html.b))) == u"klauserich"
+	assert "".join(map(str, e.walknodes(e//html.b))) == "klauserich"
 
 
 def test_multiall():
 	def check(node, expr, ids):
-		assert u"".join(unicode(e.attrs.id) for e in node.walknodes(expr)) == ids
+		assert "".join(str(e.attrs.id) for e in node.walknodes(expr)) == ids
 
 	#        ____0____
 	#       /         \
@@ -285,51 +285,51 @@ def test_multiall():
 	#   3     4     5     6
 	#  / \   / \   / \   / \
 	# 7   8 9   a b   c d   e
-	ds = [html.div(id=hex(id).lower()[2:]) for id in xrange(15)]
-	for i in xrange(7):
+	ds = [html.div(id=hex(id).lower()[2:]) for id in range(15)]
+	for i in range(7):
 		ds[i].append(ds[2*i+1:2*i+3])
-	check(ds[0], ds[0]//html.div//html.div, u"37849a5bc6de")
+	check(ds[0], ds[0]//html.div//html.div, "37849a5bc6de")
 
 
 def test_itemsslices():
 	def check(node, expr, ids):
-		assert u"".join(unicode(e.attrs.id) for e in node.walknodes(expr)) == ids
+		assert "".join(str(e.attrs.id) for e in node.walknodes(expr)) == ids
 
 	#        ____0____
 	#       /    |    \
 	#     _1_   _2_   _3_
 	#    /   \ /   \ /   \
 	#   4     5     6     7
-	ds = [html.div(id=id) for id in xrange(8)]
+	ds = [html.div(id=id) for id in range(8)]
 	ds[0].append(ds[1], ds[2], ds[3])
 	ds[1].append(ds[4], ds[5])
 	ds[2].append(ds[5], ds[6])
 	ds[3].append(ds[6], ds[7])
 
 	tests = [
-		(ds[0]/html.div[0]/html.div[-1], u"5"),
-		(ds[0]/html.div/html.div[-1], u"567"),
-		(ds[0]/html.div[-1]/html.div, u"67"),
-		(ds[0]/html.div/html.div, u"455667"), # we get 5 and 6 twice
+		(ds[0]/html.div[0]/html.div[-1], "5"),
+		(ds[0]/html.div/html.div[-1], "567"),
+		(ds[0]/html.div[-1]/html.div, "67"),
+		(ds[0]/html.div/html.div, "455667"), # we get 5 and 6 twice
 		#(ds[0]/(html.div/html.div) & xfind.nthchild(2), u"5"), # we get 5 and 6 twice
 		#(ds[0]/html.div[:]/html.div[:], u"455667"),
-		(ds[0]/html.div/html.p[0], u""),
-		(ds[0]/html.p[0]/html.p[0], u""),
-		(ds[0]//html.div, u"145256367"),
+		(ds[0]/html.div/html.p[0], ""),
+		(ds[0]/html.p[0]/html.p[0], ""),
+		(ds[0]//html.div, "145256367"),
 	]
 	for (got, exp) in tests:
 		yield check, ds[0], got, exp
 
 
 def test_item():
-	e = html.div(xrange(10))
-	assert unicode(e[xsc.Text][0]) == u"0"
-	assert unicode(e[xsc.Text][9]) == u"9"
-	assert unicode(e[xsc.Text][-1]) == u"9"
-	assert unicode(e[xsc.Text][-10]) == u"0"
+	e = html.div(range(10))
+	assert str(e[xsc.Text][0]) == "0"
+	assert str(e[xsc.Text][9]) == "9"
+	assert str(e[xsc.Text][-1]) == "9"
+	assert str(e[xsc.Text][-10]) == "0"
 	with py.test.raises(IndexError):
 		e[xsc.Text][10]
 	with py.test.raises(IndexError):
 		e[xsc.Text][-11]
-	assert unicode(misc.item(e[xsc.Text], 10, u"x")) == u"x"
-	assert unicode(misc.item(e[xsc.Text], -11, u"x")) == u"x"
+	assert str(misc.item(e[xsc.Text], 10, "x")) == "x"
+	assert str(misc.item(e[xsc.Text], -11, "x")) == "x"

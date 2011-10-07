@@ -112,7 +112,7 @@ The output will be::
 """
 
 
-import sys, os.path, argparse, cStringIO
+import sys, os.path, argparse, io
 
 try:
 	from xml.parsers.xmlproc import dtdparser
@@ -136,7 +136,7 @@ def getxmlns(dtd):
 		element = dtd.get_elem(elemname)
 		for attrname in element.get_attr_list():
 			attr = element.get_attr(attrname)
-			if attrname=="xmlns" or u":" in attrname:
+			if attrname=="xmlns" or ":" in attrname:
 				if attr.decl=="#FIXED":
 					found.add(attr.default)
 					continue # skip a namespace declaration
@@ -150,7 +150,7 @@ def adddtd2xnd(ns, dtd):
 	# try to guess the namespace name from the dtd
 	xmlns = getxmlns(dtd)
 	if len(xmlns) == 1:
-		xmlns = iter(xmlns).next()
+		xmlns = next(iter(xmlns))
 	else:
 		xmlns = None
 
@@ -167,7 +167,7 @@ def adddtd2xnd(ns, dtd):
 			attrs.sort()
 			for attrname in attrs:
 				dtd_a = dtd_e.get_attr(attrname)
-				if attrname=="xmlns" or u":" in attrname:
+				if attrname=="xmlns" or ":" in attrname:
 					continue # skip namespace declarations and global attributes
 				values = []
 				if dtd_a.type == "ID":
@@ -238,7 +238,7 @@ def adddtd2xnd(ns, dtd):
 			except xsc.IllegalEntityError:
 				pass
 			else:
-				ns += xnd.CharRef(entname, codepoint=ord(unicode(ent[0])[0]))
+				ns += xnd.CharRef(entname, codepoint=ord(str(ent[0])[0]))
 
 
 def urls2xnd(urls, shareattrs=None, **kwargs):
@@ -250,7 +250,7 @@ def urls2xnd(urls, shareattrs=None, **kwargs):
 			if isinstance(u, url.URL):
 				u = u.openread()
 			elif isinstance(u, str):
-				u = cStringIO.StringIO(u)
+				u = io.StringIO(u)
 			adddtd2xnd(ns, u.read())
 
 	if shareattrs=="dupes":
@@ -270,7 +270,7 @@ def main(args=None):
 	p.add_argument(      "--duplicates", dest="duplicates", help="How to handle duplicate elements from multiple DTDs (default: %(default)s)", choices=("reject", "allow", "merge"), default="reject")
 
 	args = p.parse_args(args)
-	print urls2xnd(**args.__dict__)
+	print(urls2xnd(**args.__dict__))
 
 
 if __name__ == "__main__":

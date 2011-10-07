@@ -23,7 +23,7 @@ def xnd2ns(data):
 		code = compile(code, "test.py", "exec")
 		mod = types.ModuleType("test")
 		mod.__file__ = "test.py"
-		exec code in mod.__dict__
+		exec(code, mod.__dict__)
 		return mod
 
 

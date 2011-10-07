@@ -1020,7 +1020,7 @@ def fromstring(string, base=None, **options):
 
 	def toxist(node):
 		if isinstance(node, nodes.Text):
-			return xsc.Text(unicode(node.astext()))
+			return xsc.Text(str(node.astext()))
 		else:
 			e = elements[node.__class__.__name__](toxist(child) for child in node.children)
 			e.startloc = xsc.Location(node.source, node.line)

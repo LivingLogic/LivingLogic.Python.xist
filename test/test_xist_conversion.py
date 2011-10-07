@@ -16,28 +16,28 @@ from ll.xist.ns import html
 def test_mapped():
 	def maplang(node, converter):
 		if isinstance(node, xsc.Text):
-			node = node.replace(u"lang", converter.lang)
+			node = node.replace("lang", converter.lang)
 		return node
 
 	node = xsc.Frag(
-		u"lang",
+		"lang",
 		html.div(
-			u"lang",
-			class_=u"lang",
+			"lang",
+			class_="lang",
 		)
 	)
 	node2 = node.mapped(maplang, lang="en")
 	assert node == xsc.Frag(
-		u"lang",
+		"lang",
 		html.div(
-			u"lang",
-			class_=u"lang",
+			"lang",
+			class_="lang",
 		)
 	)
 	assert node2 == xsc.Frag(
-		u"en",
+		"en",
 		html.div(
-			u"en",
-			class_=u"lang", # No replacement in attributes
+			"en",
+			class_="lang", # No replacement in attributes
 		)
 	)

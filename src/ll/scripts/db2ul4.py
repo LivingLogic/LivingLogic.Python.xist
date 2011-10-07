@@ -161,7 +161,7 @@ class SQLite(object):
 		connection = sqlite3.connect(connectstring)
 		class Row(sqlite3.Row):
 			def __getitem__(self, key):
-				if isinstance(key, unicode):
+				if isinstance(key, str):
 					key = key.encode("ascii")
 				return sqlite3.Row.__getitem__(self, key)
 		connection.row_factory = Row

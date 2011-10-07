@@ -299,7 +299,7 @@ def main(args=None):
 							if ddl1 != ddl2 or ddl2 != ddl3:
 								try:
 									ddl = field.modifyddl(connection3, connection1.cursor(), connection2.cursor()) # add changes from db1 to db2
-								except orasql.ConflictError, exc:
+								except orasql.ConflictError as exc:
 									fieldcountmergeconflict += 1
 									countmergeconflict += 1
 									showcomment(stdout, "merge conflict ", df(field))

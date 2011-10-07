@@ -55,12 +55,12 @@ class attribute(xsc.Element):
 		isrequired = False
 		node = misc.first(self[required], None)
 		if node is not None:
-			value = unicode(node).strip()
-			if value in (u"true", u"yes"):
+			value = str(node).strip()
+			if value in ("true", "yes"):
 				isrequired = True
-			elif value not in (u"false", u"no"):
+			elif value not in ("false", "no"):
 				raise ValueError("value {!r} not allowed for tag <required>".format(value))
-		return xnd.Attr(unicode(self[name][0].content), u"xsc.TextAttr", isrequired)
+		return xnd.Attr(str(self[name][0].content), "xsc.TextAttr", isrequired)
 
 
 class bodycontent(xsc.Element):
@@ -163,14 +163,14 @@ class tag(xsc.Element):
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self, model="simple"):
-		e = xnd.Element(unicode(self[name][0].content))
+		e = xnd.Element(str(self[name][0].content))
 		empty = None
 		node = misc.first(self[bodycontent], None)
 		if node is not None:
-			value = unicode(node[0].content)
-			if value in (u"tagdependent", u"JSP"):
+			value = str(node[0].content)
+			if value in ("tagdependent", "JSP"):
 				empty = False
-			elif value == u"empty":
+			elif value == "empty":
 				empty = True
 			else:
 				raise ValueError("value {!r} is not allowed for tag <bodycontent>".format(value))
@@ -226,7 +226,7 @@ class taglib(xsc.Element):
 	def asxnd(self, model="simple"):
 		ns = xnd.Module()
 		node = misc.first(self[uri], None)
-		xmlns = unicode(node[0].content) if node is not None else None
+		xmlns = str(node[0].content) if node is not None else None
 		node = misc.first(self[info], None)
 		if node is not None:
 			ns.doc = node.asxnd(model=model)

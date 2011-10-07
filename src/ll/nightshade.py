@@ -175,12 +175,12 @@ class Connect(object):
 
 	def __call__(self, func):
 		def wrapper(*args, **kwargs):
-			for i in xrange(self.retry):
+			for i in range(self.retry):
 				connection = self._getconnection()
 				try:
 					# This only works if func is using the same connection
 					return func(*args, **kwargs)
-				except orasql.DatabaseError, exc:
+				except orasql.DatabaseError as exc:
 					if i<self.retry-1 and self._isbadoracleexception(exc):
 						# Drop bad connection and retry
 						self._dropconnection(connection)
@@ -237,7 +237,7 @@ class Call(object):
 					result = self.callable(cursor, *args, **kwargs)
 				cursor.connection.commit()
 				return result
-			except orasql.DatabaseError, exc:
+			except orasql.DatabaseError as exc:
 				if exc.args:
 					code = getattr(exc[0], "code", 0)
 					if 20200 <= code <= 20599:
@@ -263,10 +263,10 @@ class Call(object):
 			cherrypy.response.headers["Last-Modified"] = httpdate(lastmodified)
 		mimetype = result.get("p_mimetype", None)
 		if mimetype is None:
-			mimetype = "text/html" if isinstance(body, unicode) else "application/octet-stream"
+			mimetype = "text/html" if isinstance(body, str) else "application/octet-stream"
 
 		encoding = result.get("p_encoding", None)
-		if encoding is None and isinstance(body, unicode):
+		if encoding is None and isinstance(body, str):
 			encoding = "utf-8"
 		if encoding is not None:
 			cherrypy.response.headers["Content-Type"] = "{}; charset={}".format(mimetype, encoding)
@@ -290,6 +290,6 @@ class Call(object):
 		if not hasetag:
 			cherrypy.response.headers["ETag"] = '"{:x}"'.format(hash(body))
 
-		if isinstance(body, unicode):
+		if isinstance(body, str):
 			body = body.encode(encoding)
 		return body

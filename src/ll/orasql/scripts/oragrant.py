@@ -156,7 +156,7 @@ def main(args=None):
 				if args.execute:
 					try:
 						cursor2.execute(ddl)
-					except orasql.DatabaseError, exc:
+					except orasql.DatabaseError as exc:
 						if not args.ignore or "ORA-01013" in str(exc):
 							raise
 						stderr.writeln("oragrant.py: ", s4error("{}: {}".format(exc.__class__.__name__, str(exc).strip())))

@@ -17,7 +17,7 @@ exception and warning classes and a few helper classes and functions.
 __docformat__ = "reStructuredText"
 
 
-import sys, os, random, copy, warnings, cPickle, threading, weakref, types, codecs
+import sys, os, random, copy, warnings, pickle, threading, weakref, types, codecs
 
 import cssutils
 
@@ -62,7 +62,7 @@ def tonode(value):
 			raise IllegalObjectError(value)
 		# we don't have to turn an Attr into a Frag, because this will be done once the Attr is put back into the tree
 		return value
-	elif isinstance(value, (basestring, int, long, float)):
+	elif isinstance(value, (str, int, float)):
 		return Text(value)
 	elif value is None:
 		return Null
@@ -203,7 +203,7 @@ class IllegalAttrValueWarning(Warning):
 
 	def __str__(self):
 		attr = self.attr
-		return "Attribute value {!r} not allowed for {}".format(unicode(attr), attr._str(fullname=True, xml=False, decorate=False))
+		return "Attribute value {!r} not allowed for {}".format(str(attr), attr._str(fullname=True, xml=False, decorate=False))
 
 
 class RequiredAttrMissingWarning(Warning):
@@ -286,7 +286,7 @@ class IllegalCharRefError(Error, LookupError):
 		self.xml = xml
 
 	def __str__(self):
-		if isinstance(self.name, (int, long)):
+		if isinstance(self.name, int):
 			return "no charref with codepoint {}".format(self.name)
 		return "no charref with {} name {}".format("XML" if self.xml else "Python", self.name)
 
@@ -302,7 +302,7 @@ class IllegalAttrError(Error, LookupError):
 		self.xml = xml
 
 	def __str__(self):
-		if isinstance(self.name, basestring):
+		if isinstance(self.name, str):
 			return "no local attribute with {} name {!r} in {!r}".format("XML" if self.xml else "Python", self.name, self.cls)
 		elif self.name.xmlns is None:
 			return "no local attribute with class {!r} in {!r}".format(self.name, self.cls)
@@ -663,7 +663,7 @@ class Publisher(object):
 		self.encoder = None
 		self.xhtml = xhtml
 		self.validate = validate
-		self.prefixes = {nsname(xmlns): prefix for (xmlns, prefix) in prefixes.iteritems()}
+		self.prefixes = {nsname(xmlns): prefix for (xmlns, prefix) in prefixes.items()}
 		self.prefixdefault = prefixdefault
 		self.hidexmlns = {nsname(xmlns) for xmlns in hidexmlns}
 		self.showxmlns = {nsname(xmlns) for xmlns in showxmlns}
@@ -859,7 +859,7 @@ class Publisher(object):
 
 		for part in self.node.publish(self):
 			yield part
-		rest = self.encoder.encode(u"", True) # finish encoding and flush buffers
+		rest = self.encoder.encode("", True) # finish encoding and flush buffers
 		if rest:
 			yield rest
 
@@ -959,12 +959,11 @@ class _Node_Meta(type):
 		return ~xfind.IsInstanceSelector(self)
 
 
-class Node(object):
+class Node(object, metaclass=_Node_Meta):
 	"""
 	base class for nodes in the document tree. Derived classes may
 	overwrite :meth:`convert` or :meth:`publish`.
 	"""
-	__metaclass__ = _Node_Meta
 
 	# location of this node in the XML file (will be hidden in derived classes,
 	# but is specified here, so that no special tests are required. In derived
@@ -1121,19 +1120,19 @@ class Node(object):
 		Return the character content of :var:`self` as a string (if possible, i.e.
 		there are no characters that are unencodable in the default encoding).
 		"""
-		return str(unicode(self))
+		return str(str(self))
 
 	def __int__(self):
 		"""
 		Convert the character content of :var:`self` to an :class:`int`.
 		"""
-		return int(unicode(self))
+		return int(str(self))
 
 	def __long__(self):
 		"""
 		Convert the character content of :var:`self` to an :class:`long`.
 		"""
-		return long(unicode(self))
+		return int(str(self))
 
 	def asFloat(self, decimal=".", ignore=""):
 		"""
@@ -1142,11 +1141,11 @@ class Node(object):
 		(e.g. ``"."`` (the default) or ``","``). :var:`ignore` specifies which
 		characters will be ignored.
 		"""
-		s = unicode(self)
+		s = str(self)
 		for c in ignore:
-			s = s.replace(c, u"")
-		if decimal != u".":
-			s = s.replace(decimal, u".")
+			s = s.replace(c, "")
+		if decimal != ".":
+			s = s.replace(decimal, ".")
 		return float(s)
 
 	def __float__(self):
@@ -1159,7 +1158,7 @@ class Node(object):
 		"""
 		Convert the character content of :var:`self` to an :class:`complex`.
 		"""
-		return complex(unicode(self))
+		return complex(str(self))
 
 	def parsed(self, parser, event):
 		"""
@@ -1446,9 +1445,9 @@ if ipipe is not None:
 	def _ipipe_content(node):
 		"The text content"
 		if isinstance(node, CharacterData):
-			return unicode(node.content)
+			return str(node.content)
 		elif isinstance(node, Attr):
-			return unicode(node)
+			return str(node)
 		return ipipe.noitem
 	_ipipe_content.__xname__ = "content"
 
@@ -1484,7 +1483,7 @@ class CharacterData(Node):
 	__slots__ = ("_content",)
 
 	def __init__(self, *content):
-		self._content = u"".join(unicode(x) for x in content)
+		self._content = "".join(str(x) for x in content)
 
 	def __getstate__(self):
 		return self._content
@@ -1515,7 +1514,7 @@ class CharacterData(Node):
 		return self.__class__(self._content + other)
 
 	def __radd__(self, other):
-		return self.__class__(unicode(other) + self._content)
+		return self.__class__(str(other) + self._content)
 
 	def __mul__(self, n):
 		return self.__class__(n * self._content)
@@ -1532,13 +1531,13 @@ class CharacterData(Node):
 	def center(self, width):
 		return self.__class__(self._content.center(width))
 
-	def count(self, sub, start=0, end=sys.maxint):
+	def count(self, sub, start=0, end=sys.maxsize):
 		return self._content.count(sub, start, end)
 
-	def endswith(self, suffix, start=0, end=sys.maxint):
+	def endswith(self, suffix, start=0, end=sys.maxsize):
 		return self._content.endswith(suffix, start, end)
 
-	def index(self, sub, start=0, end=sys.maxint):
+	def index(self, sub, start=0, end=sys.maxsize):
 		return self._content.index(sub, start, end)
 
 	def isalpha(self):
@@ -1571,7 +1570,7 @@ class CharacterData(Node):
 	def join(self, frag):
 		return frag.withsep(self)
 
-	def ljust(self, width, fill=u" "):
+	def ljust(self, width, fill=" "):
 		return self.__class__(self._content.ljust(width, fill))
 
 	def lower(self):
@@ -1583,16 +1582,16 @@ class CharacterData(Node):
 	def replace(self, old, new, maxsplit=-1):
 		return self.__class__(self._content.replace(old, new, maxsplit))
 
-	def rjust(self, width, fill=u" "):
+	def rjust(self, width, fill=" "):
 		return self.__class__(self._content.rjust(width, fill))
 
 	def rstrip(self, chars=None):
 		return self.__class__(self._content.rstrip(chars))
 
-	def rfind(self, sub, start=0, end=sys.maxint):
+	def rfind(self, sub, start=0, end=sys.maxsize):
 		return self._content.rfind(sub, start, end)
 
-	def rindex(self, sub, start=0, end=sys.maxint):
+	def rindex(self, sub, start=0, end=sys.maxsize):
 		return self._content.rindex(sub, start, end)
 
 	def split(self, sep=None, maxsplit=-1):
@@ -1601,7 +1600,7 @@ class CharacterData(Node):
 	def splitlines(self, keepends=0):
 		return Frag(self._content.splitlines(keepends))
 
-	def startswith(self, prefix, start=0, end=sys.maxint):
+	def startswith(self, prefix, start=0, end=sys.maxsize):
 		return self._content.startswith(prefix, start, end)
 
 	def strip(self, chars=None):
@@ -1737,7 +1736,7 @@ class Frag(Node, list):
 		return presenter.presentFrag(self) # return a generator-iterator
 
 	def __unicode__(self):
-		return u"".join(unicode(child) for child in self)
+		return "".join(str(child) for child in self)
 
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and list.__eq__(self, other)
@@ -1759,7 +1758,7 @@ class Frag(Node, list):
 			for subindex in index:
 				node = node[subindex]
 			return node
-		elif isinstance(index, (int, long)):
+		elif isinstance(index, int):
 			return list.__getitem__(self, index)
 		elif isinstance(index, slice):
 			return self.__class__(list.__getitem__(self, index))
@@ -1789,7 +1788,7 @@ class Frag(Node, list):
 			for subindex in index[:-1]:
 				node = node[subindex]
 			node[index[-1]] = value
-		elif isinstance(index, (int, long)):
+		elif isinstance(index, int):
 			value = Frag(value)
 			if index==-1:
 				l = len(self)
@@ -1828,7 +1827,7 @@ class Frag(Node, list):
 			for subindex in index[:-1]:
 				node = node[subindex]
 			del node[index[-1]]
-		elif isinstance(index, (int, long, slice)):
+		elif isinstance(index, (int, slice)):
 			list.__delitem__(self, index)
 		else:
 			from ll.xist import xfind
@@ -2015,7 +2014,7 @@ class Comment(CharacterData):
 		return self
 
 	def __unicode__(self):
-		return u""
+		return ""
 
 	def present(self, presenter):
 		return presenter.presentComment(self)  # return a generator-iterator
@@ -2023,11 +2022,11 @@ class Comment(CharacterData):
 	def publish(self, publisher):
 		if not publisher.inattr:
 			content = self.content
-			if u"--" in content or content.endswith(u"-"):
+			if "--" in content or content.endswith("-"):
 				warnings.warn(IllegalCommentContentWarning(self))
-			yield publisher.encode(u"<!--")
+			yield publisher.encode("<!--")
 			yield publisher.encode(content)
-			yield publisher.encode(u"-->")
+			yield publisher.encode("-->")
 
 
 class _DocType_Meta(Node.__metaclass__):
@@ -2035,12 +2034,10 @@ class _DocType_Meta(Node.__metaclass__):
 		return "<doctype class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
 
 
-class DocType(CharacterData):
+class DocType(CharacterData, metaclass=_DocType_Meta):
 	"""
 	An XML document type declaration.
 	"""
-
-	__metaclass__ = _DocType_Meta
 
 	def convert(self, converter):
 		return self
@@ -2050,12 +2047,12 @@ class DocType(CharacterData):
 
 	def publish(self, publisher):
 		if not publisher.inattr:
-			yield publisher.encode(u"<!DOCTYPE ")
+			yield publisher.encode("<!DOCTYPE ")
 			yield publisher.encode(self.content)
-			yield publisher.encode(u">")
+			yield publisher.encode(">")
 
 	def __unicode__(self):
-		return u""
+		return ""
 
 
 class _ProcInst_Meta(Node.__metaclass__):
@@ -2069,14 +2066,13 @@ class _ProcInst_Meta(Node.__metaclass__):
 		return "<procinst class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
 
 
-class ProcInst(CharacterData):
+class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
 	"""
 	Base class for processing instructions.
 
 	Processing instructions for specific targets must be implemented as
 	subclasses of :class:`ProcInst`.
 	"""
-	__metaclass__ = _ProcInst_Meta
 
 	register = None
 
@@ -2097,12 +2093,12 @@ class ProcInst(CharacterData):
 		if publisher.validate:
 			self.checkvalid()
 		content = self.content
-		if u"?>" in content:
+		if "?>" in content:
 			raise IllegalProcInstFormatError(self)
-		yield publisher.encode(u"<?{} {}?>".format(self.xmlname, content))
+		yield publisher.encode("<?{} {}?>".format(self.xmlname, content))
 
 	def __unicode__(self):
-		return u""
+		return ""
 
 	def __repr__(self):
 		if self.startloc is not None:
@@ -2141,7 +2137,7 @@ class Null(CharacterData):
 		return presenter.presentNull(self) # return a generator-iterator
 
 	def __unicode__(self):
-		return u""
+		return ""
 
 	def __repr__(self):
 		return "ll.xist.xsc.Null"
@@ -2162,7 +2158,7 @@ class _Attr_Meta(Frag.__metaclass__):
 		if "values" in dict:
 			values = dict["values"]
 			if values is not None:
-				dict["values"] = tuple(unicode(entry) for entry in values)
+				dict["values"] = tuple(str(entry) for entry in values)
 		self = super(_Attr_Meta, cls).__new__(cls, name, bases, dict)
 		if self.xmlns is not None:
 			threadlocalpool.pool.register(self)
@@ -2172,7 +2168,7 @@ class _Attr_Meta(Frag.__metaclass__):
 		return "<attribute class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
 
 
-class Attr(Frag):
+class Attr(Frag, metaclass=_Attr_Meta):
 	"""
 	Base class of all attribute classes.
 
@@ -2200,7 +2196,6 @@ class Attr(Frag):
 		>>> print node.bytes()
 		<img alt="EGGS" src="<?php echo 'eggs.gif'?>" />
 	"""
-	__metaclass__ = _Attr_Meta
 	required = False
 	default = None
 	values = None
@@ -2232,15 +2227,15 @@ class Attr(Frag):
 		"""
 		values = self.__class__.values
 		if self and isinstance(values, tuple) and not self.isfancy():
-			value = unicode(self)
+			value = str(self)
 			if value not in values:
 				warnings.warn(IllegalAttrValueWarning(self))
 
 	def _publishname(self, publisher):
 		if self.xmlns is not None:
-			prefix = publisher._ns2prefix.get(self.xmlns) if self.xmlns != xml_xmlns else u"xml"
+			prefix = publisher._ns2prefix.get(self.xmlns) if self.xmlns != xml_xmlns else "xml"
 			if prefix is not None:
-				return u"{}:{}".format(prefix, self.xmlname)
+				return "{}:{}".format(prefix, self.xmlname)
 		return self.xmlname
 
 	def _publishattrvalue(self, publisher):
@@ -2257,12 +2252,12 @@ class Attr(Frag):
 				yield part
 		else:
 			publisher.inattr += 1
-			yield publisher.encode(u' {}="'.format(self._publishname(publisher)))
+			yield publisher.encode(' {}="'.format(self._publishname(publisher)))
 			publisher.pushtextfilter(misc.xmlescape_attr)
 			for part in self._publishattrvalue(publisher):
 				yield part
 			publisher.poptextfilter()
-			yield publisher.encode(u'"')
+			yield publisher.encode('"')
 			publisher.inattr -= 1
 
 	def pretty(self, level=0, indent="\t"):
@@ -2271,11 +2266,11 @@ class Attr(Frag):
 	def __repr__(self):
 		l = len(self)
 		if l==0:
-			info = u"no children"
+			info = "no children"
 		elif l==1:
-			info = u"1 child"
+			info = "1 child"
 		else:
-			info = u"{} children".format(l)
+			info = "{} children".format(l)
 		loc = " (from {})".format(self.startloc) if self.startloc is not None else ""
 		return "<{0.__class__.__module__}.{0.__fullname__} attr object ({1}){2} at {3:#x}>".format(self, info, loc, id(self))
 
@@ -2328,13 +2323,13 @@ class BoolAttr(Attr):
 		else:
 			publisher.inattr += 1
 			name = self._publishname(publisher)
-			yield publisher.encode(u" {}".format(name))
+			yield publisher.encode(" {}".format(name))
 			if publisher.xhtml>0:
-				yield publisher.encode(u'="')
+				yield publisher.encode('="')
 				publisher.pushtextfilter(misc.xmlescape)
 				yield publisher.encode(name)
 				publisher.poptextfilter()
-				yield publisher.encode(u'"')
+				yield publisher.encode('"')
 			publisher.inattr -= 1
 
 
@@ -2351,7 +2346,7 @@ class StyleAttr(Attr):
 
 	def _transform(self, replacer):
 		from ll.xist import css
-		stylesheet = cssutils.parseString(u"a{{{}}}".format(self))
+		stylesheet = cssutils.parseString("a{{{}}}".format(self))
 		css.replaceurls(stylesheet, replacer)
 		return stylesheet.cssRules[0].style.getCssText(separator=" ")
 
@@ -2390,7 +2385,7 @@ class StyleAttr(Attr):
 		def collect(u):
 			urls.append(u)
 			return u
-		s = cssutils.parseString(u"a{{{}}}".format(self))
+		s = cssutils.parseString("a{{{}}}".format(self))
 		css.replaceurls(s, collect)
 		return urls
 
@@ -2403,13 +2398,13 @@ class URLAttr(Attr):
 
 	def parsed(self, parser, event):
 		if event == "leaveattrns" and not self.isfancy() and parser.base is not None:
-			self[:] = (url_.URL(parser.base/unicode(self)),)
+			self[:] = (url_.URL(parser.base/str(self)),)
 
 	def _publishattrvalue(self, publisher):
 		if self.isfancy():
 			return Attr._publishattrvalue(self, publisher)
 		else:
-			new = Attr(url_.URL(unicode(self)).relative(publisher.base))
+			new = Attr(url_.URL(str(self)).relative(publisher.base))
 			return new._publishattrvalue(publisher)
 
 	def asURL(self):
@@ -2482,24 +2477,23 @@ class _Attrs_Meta(Node.__metaclass__):
 		return "<attrs class {0.__module__}:{0.__fullname__} with {1} attrs at {2:#x}>".format(self, len(self._bypyname), id(self))
 
 	def __contains__(self, key):
-		if isinstance(key, basestring):
+		if isinstance(key, str):
 			return key in self._bypyname
 		if key.xmlns is not None:
 			return True
 		return self._bypyname.get(key.__name__, None) is key
 
 
-class Attrs(Node, dict):
+class Attrs(Node, dict, metaclass=_Attrs_Meta):
 	"""
 	An attribute map. Allowed entries are specified through nested subclasses
 	of :class:`Attr`.
 	"""
-	__metaclass__ = _Attrs_Meta
 
 	def __init__(self, _content=None, **attrs):
 		dict.__init__(self)
 		# set default attribute values
-		for (key, value) in self._defaultattrspy.iteritems():
+		for (key, value) in self._defaultattrspy.items():
 			self[key] = value.default.clone()
 		# set attributes, this might overwrite (or delete) default attributes
 		self.update(_content, **attrs)
@@ -2550,7 +2544,7 @@ class Attrs(Node, dict):
 
 	def convert(self, converter):
 		node = self._create()
-		for value in self.values():
+		for value in list(self.values()):
 			newvalue = value.convert(converter)
 			assert isinstance(newvalue, Node), "the convert method returned the illegal object {0!r} (type {1!r}) when converting the attribute {2.__class__.__name__} with the value {2!r}".format(newvalue, type(newvalue), value)
 			node[value.__class__] = newvalue
@@ -2558,7 +2552,7 @@ class Attrs(Node, dict):
 
 	def compacted(self):
 		node = self._create()
-		for value in self.values():
+		for value in list(self.values()):
 			newvalue = value.compacted()
 			assert isinstance(newvalue, Node), "the compacted method returned the illegal object {0!r} (type {1!r}) when compacting the attribute {2.__class__.__name__} with the value {2!r}".format(newvalue, type(newvalue), value)
 			node[value.__class__] = newvalue
@@ -2566,7 +2560,7 @@ class Attrs(Node, dict):
 
 	def normalized(self):
 		node = self._create()
-		for value in self.values():
+		for value in list(self.values()):
 			newvalue = value.normalized()
 			assert isinstance(newvalue, Node), "the normalized method returned the illegal object {0!r} (type {1!r}) when normalizing the attribute {2.__class__.__name__} with the value {2!r}".format(newvalue, type(newvalue), value)
 			node[value.__class__] = newvalue
@@ -2579,7 +2573,7 @@ class Attrs(Node, dict):
 		# collect required attributes
 		attrs = {value for value in self.allowedattrs() if value.required}
 		# Check each existing attribute and remove it from the list of required ones
-		for value in self.values():
+		for value in list(self.values()):
 			value.checkvalid()
 			try:
 				attrs.remove(value.__class__)
@@ -2597,16 +2591,16 @@ class Attrs(Node, dict):
 			return nsclark(attr.xmlns) + attr.xmlname
 
 		# Output the attributes sorted by their "clark" name to get deterministic output
-		for value in sorted(self.values(), key=clarkname):
+		for value in sorted(list(self.values()), key=clarkname):
 			for part in value.publish(publisher):
 				yield part
 
 	def __unicode__(self):
-		return u""
+		return ""
 
 	@classmethod
 	def isallowed(cls, name):
-		if isinstance(name, basestring):
+		if isinstance(name, str):
 			return name in cls._bypyname
 		if name.xmlns is not None:
 			return True
@@ -2619,7 +2613,7 @@ class Attrs(Node, dict):
 
 	@classmethod
 	def isallowed_xml(cls, name, xmlns=None):
-		if isinstance(name, basestring):
+		if isinstance(name, str):
 			return name in cls._byxmlname
 		if name.xmlns is not None:
 			return True
@@ -2786,7 +2780,7 @@ class Attrs(Node, dict):
 					for value in mapping._iterallvalues():
 						self[value.__class__] = value
 				else:
-					for (attrname, attrvalue) in mapping.iteritems():
+					for (attrname, attrvalue) in mapping.items():
 						self[attrname] = attrvalue
 
 	@classmethod
@@ -2794,11 +2788,11 @@ class Attrs(Node, dict):
 		"""
 		Return an iterator over all allowed attribute classes.
 		"""
-		return cls._bypyname.itervalues()
+		return iter(cls._bypyname.values())
 
 	@classmethod
 	def allowedattr(cls, name):
-		if isinstance(name, basestring):
+		if isinstance(name, str):
 			try:
 				return cls._bypyname[name]
 			except KeyError:
@@ -2818,7 +2812,7 @@ class Attrs(Node, dict):
 
 	@classmethod
 	def allowedattr_xml(cls, name):
-		if isinstance(name, basestring):
+		if isinstance(name, str):
 			try:
 				return cls._byxmlname[name]
 			except KeyError:
@@ -2837,7 +2831,7 @@ class Attrs(Node, dict):
 			raise IllegalAttrError(name, cls, True)
 
 	def __len__(self):
-		return misc.count(self.values())
+		return misc.count(list(self.values()))
 
 	def keys(self):
 		for value in dict.itervalues(self):
@@ -2889,7 +2883,7 @@ class Attrs(Node, dict):
 		Return a filtered version of :var:`self`.
 		"""
 		node = self._create()
-		for (name, value) in self.items():
+		for (name, value) in list(self.items()):
 			if function(value):
 				node[name] = value
 		return node
@@ -2897,7 +2891,7 @@ class Attrs(Node, dict):
 	def _fixnames(self, names):
 		newnames = []
 		for name in names:
-			if isinstance(name, basestring):
+			if isinstance(name, str):
 				try:
 					name = self.allowedattr(name)
 				except IllegalAttrError:
@@ -2908,7 +2902,7 @@ class Attrs(Node, dict):
 	def _fixnames_xml(self, names):
 		newnames = []
 		for name in names:
-			if isinstance(name, basestring):
+			if isinstance(name, str):
 				try:
 					name = self.allowedattr_xml(name)
 				except IllegalAttrError:
@@ -2983,7 +2977,7 @@ def _patchclassnames(dict, name):
 		pass
 	else:
 		attrs.__fullname__ = "{}.Attrs".format(name)
-		for (key, value) in attrs.__dict__.iteritems():
+		for (key, value) in attrs.__dict__.items():
 			if isinstance(value, _Attr_Meta):
 				value.__fullname__ = "{}.{}".format(name, value.__fullname__)
 
@@ -3011,7 +3005,7 @@ class _Element_Meta(Node.__metaclass__):
 		return "<element class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
 
 
-class Element(Node):
+class Element(Node, metaclass=_Element_Meta):
 	"""
 	This class represents XML/XIST elements. All elements implemented by the
 	user must be derived from this class.
@@ -3040,7 +3034,6 @@ class Element(Node):
 		XML name is not a valid Python identifier) :attr:`xmlname` can be used to
 		specify the real XML name. Otherwise the XML name will be the Python name.
 	"""
-	__metaclass__ = _Element_Meta
 
 	model = None
 	register = None
@@ -3066,7 +3059,7 @@ class Element(Node):
 
 	def __getstate__(self):
 		attrs = {}
-		for (key, value) in self.attrs.iteritems():
+		for (key, value) in self.attrs.items():
 			if key.xmlns is None:
 				key = key.__name__
 			else:
@@ -3074,11 +3067,12 @@ class Element(Node):
 			attrs[key] = Frag(value)
 		return (self.content, attrs)
 
-	def __setstate__(self, (content, attrs)):
+	def __setstate__(self, xxx_todo_changeme):
+		(content, attrs) = xxx_todo_changeme
 		self.content = content
 		self.attrs = self.Attrs()
-		for (key, value) in attrs.iteritems():
-			if not isinstance(key, basestring):
+		for (key, value) in attrs.items():
+			if not isinstance(key, str):
 				obj = __import__(key[0])
 				for name in key[0].split(".")[1:]:
 					obj = getattr(obj, name)
@@ -3117,7 +3111,7 @@ class Element(Node):
 				self.attrs.update(child)
 			else:
 				self.content.append(child)
-		for (attrname, attrvalue) in attrs.iteritems():
+		for (attrname, attrvalue) in attrs.items():
 			self.attrs[attrname] = attrvalue
 		return self
 
@@ -3185,7 +3179,7 @@ class Element(Node):
 		return self._decoratenode(node)
 
 	def __unicode__(self):
-		return unicode(self.content)
+		return str(self.content)
 
 	def _addimagesizeattributes(self, url, widthattr=None, heightattr=None):
 		"""
@@ -3199,7 +3193,7 @@ class Element(Node):
 		"""
 		try:
 			size = url.imagesize()
-		except IOError, exc:
+		except IOError as exc:
 			warnings.warn(FileNotFoundWarning("can't read image", url, exc))
 		else:
 			for attr in (heightattr, widthattr):
@@ -3214,7 +3208,7 @@ class Element(Node):
 		if self.xmlns is not None:
 			prefix = publisher._ns2prefix.get(self.xmlns)
 			if prefix is not None:
-				return u"{}:{}".format(prefix, self.xmlname)
+				return "{}:{}".format(prefix, self.xmlname)
 		return self.xmlname
 
 	def _publishfull(self, publisher):
@@ -3224,17 +3218,17 @@ class Element(Node):
 		:meth:`publish` and simply call this method.
 		"""
 		name = self._publishname(publisher)
-		yield publisher.encode(u"<")
+		yield publisher.encode("<")
 		yield publisher.encode(name)
 		# we're the first element to be published, so we have to create the xmlns attributes
 		if publisher._publishxmlns:
-			for (xmlns, prefix) in publisher._ns2prefix.iteritems():
+			for (xmlns, prefix) in publisher._ns2prefix.items():
 				if xmlns not in publisher.hidexmlns:
-					yield publisher.encode(u" xmlns")
+					yield publisher.encode(" xmlns")
 					if prefix is not None:
-						yield publisher.encode(u":")
+						yield publisher.encode(":")
 						yield publisher.encode(prefix)
-					yield publisher.encode(u'="')
+					yield publisher.encode('="')
 					yield publisher.encode(xmlns)
 					yield publisher.encode('"')
 			# reset the note, so the next element won't create the attributes again
@@ -3242,24 +3236,24 @@ class Element(Node):
 		for part in self.attrs.publish(publisher):
 			yield part
 		if len(self):
-			yield publisher.encode(u">")
+			yield publisher.encode(">")
 			for part in self.content.publish(publisher):
 				yield part
-			yield publisher.encode(u"</")
+			yield publisher.encode("</")
 			yield publisher.encode(name)
-			yield publisher.encode(u">")
+			yield publisher.encode(">")
 		else:
 			if publisher.xhtml in (0, 1):
 				if self.model is not None and self.model.empty:
 					if publisher.xhtml==1:
-						yield publisher.encode(u" /")
-					yield publisher.encode(u">")
+						yield publisher.encode(" /")
+					yield publisher.encode(">")
 				else:
-					yield publisher.encode(u"></")
+					yield publisher.encode("></")
 					yield publisher.encode(name)
-					yield publisher.encode(u">")
+					yield publisher.encode(">")
 			elif publisher.xhtml == 2:
-				yield publisher.encode(u"/>")
+				yield publisher.encode("/>")
 
 	def publish(self, publisher):
 		if publisher.validate:
@@ -3281,9 +3275,9 @@ class Element(Node):
 		:meth:`__getitem__` also supports walk filters.
 
 		"""
-		if isinstance(index, (basestring, _Attr_Meta)):
+		if isinstance(index, (str, _Attr_Meta)):
 			return self.attrs[index]
-		elif isinstance(index, (list, int, long, slice)):
+		elif isinstance(index, (list, int, slice)):
 			return self.content[index]
 		else:
 			from ll.xist import xfind
@@ -3300,9 +3294,9 @@ class Element(Node):
 		Set an attribute or content node to the value :var:`value`. For possible
 		types for :var:`index` see :meth:`__getitem__`.
 		"""
-		if isinstance(index, (basestring, _Attr_Meta)):
+		if isinstance(index, (str, _Attr_Meta)):
 			self.attrs[index] = value
-		elif isinstance(index, (list, int, long, slice)):
+		elif isinstance(index, (list, int, slice)):
 			self.content[index] = value
 		else:
 			from ll.xist import xfind
@@ -3323,9 +3317,9 @@ class Element(Node):
 		Remove an attribute or content node. For possible types for :var:`index`
 		see :meth:`__getitem__`.
 		"""
-		if isinstance(index, (basestring, _Attr_Meta)):
+		if isinstance(index, (str, _Attr_Meta)):
 			del self.attrs[index]
-		elif isinstance(index, (list, int, long, slice)):
+		elif isinstance(index, (list, int, slice)):
 			del self.content[index]
 		else:
 			from ll.xist import xfind
@@ -3519,12 +3513,11 @@ class _Entity_Meta(Node.__metaclass__):
 		return "<entity class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
 
 
-class Entity(Node):
+class Entity(Node, metaclass=_Entity_Meta):
 	"""
 	Class for entities. Derive your own entities from it and overwrite
 	:meth:`convert`.
 	"""
-	__metaclass__ = _Entity_Meta
 
 	register = None
 
@@ -3545,9 +3538,9 @@ class Entity(Node):
 		return presenter.presentEntity(self) # return a generator-iterator
 
 	def publish(self, publisher):
-		yield publisher.encode(u"&")
+		yield publisher.encode("&")
 		yield publisher.encode(self.xmlname)
-		yield publisher.encode(u";")
+		yield publisher.encode(";")
 
 	def __repr__(self):
 		if self.startloc is not None:
@@ -3562,16 +3555,15 @@ class _CharRef_Meta(Entity.__metaclass__): # don't subclass Text.__metaclass__, 
 		return "<charref class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
 
 
-class CharRef(Text, Entity):
+class CharRef(Text, Entity, metaclass=_CharRef_Meta):
 	"""
 	A simple named character reference, the codepoint is in the class attribute
 	:attr:`codepoint`.
 	"""
-	__metaclass__ = _CharRef_Meta
 	register = None
 
 	def __init__(self):
-		Text.__init__(self, unichr(self.codepoint))
+		Text.__init__(self, chr(self.codepoint))
 		Entity.__init__(self)
 
 	def __getnewargs__(self):
@@ -3588,7 +3580,7 @@ class CharRef(Text, Entity):
 		return Text(self.content + other)
 
 	def __radd__(self, other):
-		return Text(unicode(other) + self.content)
+		return Text(str(other) + self.content)
 
 	def __mul__(self, n):
 		return Text(n * self.content)
@@ -3605,7 +3597,7 @@ class CharRef(Text, Entity):
 	def center(self, width):
 		return Text(self.content.center(width))
 
-	def ljust(self, width, fill=u" "):
+	def ljust(self, width, fill=" "):
 		return Text(self.content.ljust(width, fill))
 
 	def lower(self):
@@ -3617,7 +3609,7 @@ class CharRef(Text, Entity):
 	def replace(self, old, new, maxsplit=-1):
 		return Text(self.content.replace(old, new, maxsplit))
 
-	def rjust(self, width, fill=u" "):
+	def rjust(self, width, fill=" "):
 		return Text(self.content.rjust(width, fill))
 
 	def rstrip(self, chars=None):
@@ -3713,7 +3705,7 @@ class Pool(misc.Pool):
 		elif isinstance(object, types.ModuleType):
 			self.register(object.__dict__)
 		elif isinstance(object, dict):
-			for (key, value) in object.iteritems():
+			for (key, value) in object.items():
 				if key == "__bases__":
 					for base in value:
 						if not isinstance(base, Pool):
@@ -3778,7 +3770,7 @@ class Pool(misc.Pool):
 		Return an iterator for all registered element classes.
 		"""
 		seen = set()
-		for element in self._elementsbypyname.itervalues():
+		for element in self._elementsbypyname.values():
 			yield element
 			seen.add((element.xmlname, element.xmlns))
 		for base in self.bases:
@@ -3872,7 +3864,7 @@ class Pool(misc.Pool):
 		Return an iterator for all registered processing instruction classes.
 		"""
 		seen = set()
-		for procinst in self._procinstsbypyname.itervalues():
+		for procinst in self._procinstsbypyname.values():
 			yield procinst
 			seen.add(procinst.xmlname)
 		for base in self.bases:
@@ -3946,7 +3938,7 @@ class Pool(misc.Pool):
 		Return an iterator for all registered entity classes.
 		"""
 		seen = set()
-		for entity in self._entitiesbypyname.itervalues():
+		for entity in self._entitiesbypyname.values():
 			yield entity
 			seen.add(entity.xmlname)
 		for base in self.bases:
@@ -4016,7 +4008,7 @@ class Pool(misc.Pool):
 		Return an iterator for all character entity classes.
 		"""
 		seen = set()
-		for charref in self._charrefsbypyname.itervalues():
+		for charref in self._charrefsbypyname.values():
 			yield charref
 			seen.add(charref.xmlname)
 		for base in self.bases:
@@ -4033,7 +4025,7 @@ class Pool(misc.Pool):
 		will be raised.
 		"""
 		try:
-			if isinstance(name, (int, long)):
+			if isinstance(name, int):
 				return self._charrefsbycodepoint[name]
 			return self._charrefsbypyname[name]
 		except KeyError:
@@ -4052,7 +4044,7 @@ class Pool(misc.Pool):
 		will be raised.
 		"""
 		try:
-			if isinstance(name, (int, long)):
+			if isinstance(name, int):
 				return self._charrefsbycodepoint[name]
 			return self._charrefsbyxmlname[name]
 		except KeyError:
@@ -4082,7 +4074,7 @@ class Pool(misc.Pool):
 		Is there a registered character entity class in :var:`self` with the
 		Python name or codepoint :var:`name`?
 		"""
-		if isinstance(name, (int, long)):
+		if isinstance(name, int):
 			has = name in self._charrefsbycodepoint
 		else:
 			has = name in self._charrefsbypyname
@@ -4093,7 +4085,7 @@ class Pool(misc.Pool):
 		Is there a registered character entity class in :var:`self` with the XML
 		name or codepoint :var:`name`?
 		"""
-		if isinstance(name, (int, long)):
+		if isinstance(name, int):
 			has = name in self._charrefsbycodepoint
 		else:
 			has = name in self._charrefsbypyname
@@ -4186,7 +4178,7 @@ def nsname(xmlns):
 	If :var:`xmlns` is a module, return ``xmlns.xmlns``, else return
 	:var:`xmlns` unchanged.
 	"""
-	if xmlns is not None and not isinstance(xmlns, basestring):
+	if xmlns is not None and not isinstance(xmlns, str):
 		xmlns = xmlns.xmlns
 	return xmlns
 
@@ -4198,7 +4190,7 @@ def nsclark(xmlns):
 	"""
 	if xmlns is None:
 		return "{}"
-	elif not isinstance(xmlns, basestring):
+	elif not isinstance(xmlns, str):
 		xmlns = xmlns.xmlns
 	return "{{{}}}".format(xmlns)
 

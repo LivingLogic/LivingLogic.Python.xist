@@ -68,8 +68,8 @@ class Colorizer(object):
 		output will never contain any color/style switching escape sequences.
 		"""
 		self.colored = colored
-		self._colors = [0070]
-		self._activecolor = 0070
+		self._colors = [0o070]
+		self._activecolor = 0o070
 
 	def pushcolor(self, color):
 		"""
@@ -111,14 +111,14 @@ class Colorizer(object):
 		</dl>
 		"""
 		for string in strings:
-			if isinstance(string, (int, long)):
+			if isinstance(string, int):
 				if string != -1:
 					self._colors[-1] = string
 			elif string is None:
-				part = self._switchcolor(0070)
+				part = self._switchcolor(0o070)
 				if part:
 					yield part
-			elif isinstance(string, basestring):
+			elif isinstance(string, str):
 				if string:
 					part = self._switchcolor(self._colors[-1])
 					if part:
@@ -183,11 +183,11 @@ class EscapedText(Text):
 	def __init__(self, *content):
 		newcontent = []
 		for text in content:
-			if isinstance(text, basestring):
+			if isinstance(text, str):
 				wasstr = None
 				for c in text:
 					c = self.escapechar(c)
-					isstr = isinstance(c, basestring)
+					isstr = isinstance(c, str)
 					if wasstr and isstr:
 						newcontent[-1] += c
 					else:

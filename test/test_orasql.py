@@ -99,7 +99,7 @@ def test_connection_iterusers():
 
 @py.test.mark.db
 def test_referenceconsistency():
-	for (obj, (references, referencedby)) in objdict.iteritems():
+	for (obj, (references, referencedby)) in objdict.items():
 		for refobj in references:
 			# check that :meth:`iterobjects` returned everything from this schema
 			assert refobj.owner is not None or refobj in objdict
@@ -286,32 +286,32 @@ def test_scripts_orafind():
 def test_callprocedure():
 	db = orasql.connect(dbname)
 	proc = db.getobject("orasql_testprocedure")
-	result = proc(db.cursor(readlobs=True), c_user=u"py.test", p_in=u"abcäöü", p_inout=u"abc"*10000)
-	assert result.p_in == u"abcäöü"
-	assert result.p_out == u"ABCÄÖÜ"
-	assert result.p_inout == u"ABC"*10000 + u"abcäöü"
+	result = proc(db.cursor(readlobs=True), c_user="py.test", p_in="abcäöü", p_inout="abc"*10000)
+	assert result.p_in == "abcäöü"
+	assert result.p_out == "ABCÄÖÜ"
+	assert result.p_inout == "ABC"*10000 + "abcäöü"
 	
-	result = proc(db.cursor(readlobs=False), c_user=u"py.test", p_in=u"abcäöü", p_inout=u"abc"*10000)
-	assert result.p_in == u"abcäöü"
-	assert result.p_out == u"ABCÄÖÜ"
-	assert readlob(result.p_inout, 8192) == u"ABC"*10000 + u"abcäöü"
+	result = proc(db.cursor(readlobs=False), c_user="py.test", p_in="abcäöü", p_inout="abc"*10000)
+	assert result.p_in == "abcäöü"
+	assert result.p_out == "ABCÄÖÜ"
+	assert readlob(result.p_inout, 8192) == "ABC"*10000 + "abcäöü"
 
 
 @py.test.mark.db
 def test_callfunction():
 	db = orasql.connect(dbname)
 	func = db.getobject("orasql_testfunction")
-	(result, args) = func(db.cursor(readlobs=True), c_user=u"py.test", p_in=u"abcäöü", p_inout=u"abc"*10000)
-	assert result == u"ABCÄÖÜ"
-	assert args.p_in == u"abcäöü"
-	assert args.p_out == u"ABCÄÖÜ"
-	assert args.p_inout == u"ABC"*10000 + u"abcäöü"
+	(result, args) = func(db.cursor(readlobs=True), c_user="py.test", p_in="abcäöü", p_inout="abc"*10000)
+	assert result == "ABCÄÖÜ"
+	assert args.p_in == "abcäöü"
+	assert args.p_out == "ABCÄÖÜ"
+	assert args.p_inout == "ABC"*10000 + "abcäöü"
 
-	(result, args) = func(db.cursor(readlobs=False), c_user=u"py.test", p_in=u"abcäöü", p_inout=u"abc"*10000)
-	assert result == u"ABCÄÖÜ"
-	assert args.p_in == u"abcäöü"
-	assert args.p_out == u"ABCÄÖÜ"
-	assert readlob(args.p_inout, 8192) == u"ABC"*10000 + u"abcäöü"
+	(result, args) = func(db.cursor(readlobs=False), c_user="py.test", p_in="abcäöü", p_inout="abc"*10000)
+	assert result == "ABCÄÖÜ"
+	assert args.p_in == "abcäöü"
+	assert args.p_out == "ABCÄÖÜ"
+	assert readlob(args.p_inout, 8192) == "ABC"*10000 + "abcäöü"
 
 
 @py.test.mark.db
@@ -319,8 +319,8 @@ def test_clob_fromprocedure():
 	db = orasql.connect(dbname)
 	proc = db.getobject("orasql_testprocedure")
 	def check(sizearg):
-		result = proc(db.cursor(readlobs=False), c_user=u"py.test", p_in=u"abcäöü", p_inout=u"abc"*10000)
-		assert readlob(result.p_inout, sizearg) == u"ABC"*10000 + u"abcäöü"
+		result = proc(db.cursor(readlobs=False), c_user="py.test", p_in="abcäöü", p_inout="abc"*10000)
+		assert readlob(result.p_inout, sizearg) == "ABC"*10000 + "abcäöü"
 		assert result.p_inout.read() == ""
 	yield check, 1
 	yield check, 2

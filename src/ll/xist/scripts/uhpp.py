@@ -68,7 +68,7 @@ def main(args=None):
 		if args.compact:
 			node = node.normalized().compacted()
 		node = node.pretty()
-		print node.bytes(encoding=args.encoding)
+		print(node.bytes(encoding=args.encoding))
 
 	p = argparse.ArgumentParser(description="pretty print HTML files", epilog="For more info see http://www.livinglogic.de/Python/scripts/uxpp.html")
 	p.add_argument("urls", metavar="url", help="URLs to be pretty printed", nargs="*", type=url.URL)

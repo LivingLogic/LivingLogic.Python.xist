@@ -20,4 +20,4 @@ def test_explain():
 	"""
 	This is <func>test_explain</func>.
 	"""
-	assert unicode(doc.explain(test_explain, format="xist").walknodes(doc.func)[0]) == u"test_explain"
+	assert str(doc.explain(test_explain, format="xist").walknodes(doc.func)[0]) == "test_explain"

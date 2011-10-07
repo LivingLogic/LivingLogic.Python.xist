@@ -158,7 +158,7 @@ def main(args=None):
 									break
 					if user or group:
 						urlwrite.chown(user, group)
-				except Exception, exc:
+				except Exception as exc:
 					if args.ignoreerrors:
 						if args.verbose:
 							excname = exc.__class__.__name__

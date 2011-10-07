@@ -31,7 +31,7 @@ class php(xsc.ProcInst):
 
 class expression(php):
 	def convert(self, converter):
-		return php(u"print ", self.content, u";")
+		return php("print ", self.content, ";")
 
 
 class If(php):
@@ -40,7 +40,7 @@ class If(php):
 	prettyindentafter = 1
 
 	def convert(self, converter):
-		return php(u"if (", self.content, u"){")
+		return php("if (", self.content, "){")
 
 
 class Else(php):
@@ -49,7 +49,7 @@ class Else(php):
 	prettyindentafter = 1
 
 	def convert(self, converter):
-		return php(u"}else{")
+		return php("}else{")
 
 
 class ElIf(php):
@@ -58,7 +58,7 @@ class ElIf(php):
 	prettyindentafter = 1
 
 	def convert(self, converter):
-		return php(u"}else if (", self.content, u"){")
+		return php("}else if (", self.content, "){")
 
 
 class End(php):
@@ -67,7 +67,7 @@ class End(php):
 	prettyindentafter = 0
 
 	def convert(self, converter):
-		return php(u"}")
+		return php("}")
 
 
 class block(xsc.Element):
@@ -76,8 +76,8 @@ class block(xsc.Element):
 
 	def convert(self, converter):
 		e = xsc.Frag(
-			php(u"{"),
+			php("{"),
 			self.content,
-			php(u"}")
+			php("}")
 		)
 		return e.convert(converter)

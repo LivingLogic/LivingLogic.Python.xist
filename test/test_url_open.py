@@ -92,8 +92,8 @@ def test_chmod():
 					r.write("testing ...")
 				finally:
 					r.close()
-				u.chmod(0444)
-				assert u.stat().st_mode & 0777 == 0444
+				u.chmod(0o444)
+				assert u.stat().st_mode & 0o777 == 0o444
 			finally:
 				u.remove()
 
@@ -208,7 +208,7 @@ def test_iter():
 		with context:
 			u = url.URL(u)
 			r = u.open()
-			assert r.next() == firstline
+			assert next(r) == firstline
 			list(r)
 
 	yield check, __file__.rstrip("c"), "#!/usr/bin/env python\n"
@@ -279,7 +279,7 @@ def test_stat():
 			u = url.URL(u)
 			stat = u.stat()
 			assert stat.st_size > 1000
-			assert stat.st_mode & 0600 == 0600
+			assert stat.st_mode & 0o600 == 0o600
 
 	yield check, url.File(__file__)/"../README.rst"
 	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst"
@@ -423,7 +423,7 @@ def test_resheaders():
 		with context:
 			u = url.URL(u)
 			realheaders = u.resheaders()
-			for (k, v) in headers.iteritems():
+			for (k, v) in headers.items():
 				assert realheaders[k] == v
 
 	yield check, url.File(__file__)/"../README.rst", {"Content-type": "application/octet-stream"}
@@ -447,10 +447,10 @@ def test_mkdir_rmdir():
 	def check(u):
 		with context:
 			u = url.URL(u)/"foo/"
-			u.mkdir(0755)
+			u.mkdir(0o755)
 			try:
 				assert u.isdir()
-				assert u.stat().st_mode & 0777 == 0755
+				assert u.stat().st_mode & 0o777 == 0o755
 			finally:
 				u.rmdir()
 
@@ -463,10 +463,10 @@ def test_makedirs():
 	def check(u):
 		with context:
 			u = url.URL(u)/"foo/bar/"
-			u.makedirs(0755)
+			u.makedirs(0o755)
 			try:
 				assert u.isdir()
-				assert u.stat().st_mode & 0777 == 0755
+				assert u.stat().st_mode & 0o777 == 0o755
 			finally:
 				u.rmdir()
 				(u/"../").rmdir()

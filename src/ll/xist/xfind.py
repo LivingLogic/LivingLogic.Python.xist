@@ -92,7 +92,7 @@ class WalkFilter(object):
 				elif option is enterattrs:
 					if isinstance(node, xsc.Element):
 						path.append(None)
-						for child in node.attrs.values():
+						for child in list(node.attrs.values()):
 							path[-1] = child
 							for result in self._walk(path):
 								yield result
@@ -573,7 +573,7 @@ class attrhasvalue(Selector):
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
 				attr = node.attrs.get(self.attrname)
 				if not attr.isfancy(): # if there are PIs, say no
-					return unicode(attr) in self.attrvalues
+					return str(attr) in self.attrvalues
 		return False
 
 	def __str__(self):
@@ -598,7 +598,7 @@ class attrhasvalue_xml(Selector):
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
 				attr = node.attrs.get_xml(self.attrname)
 				if not attr.isfancy(): # if there are PIs, say no
-					return unicode(attr) in self.attrvalues
+					return str(attr) in self.attrvalues
 		return False
 
 	def __str__(self):
@@ -638,7 +638,7 @@ class attrcontains(Selector):
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
 				attr = node.attrs.get(self.attrname)
 				if not attr.isfancy(): # if there are PIs, say no
-					return any(attrvalue in unicode(attr) for attrvalue in self.attrvalues)
+					return any(attrvalue in str(attr) for attrvalue in self.attrvalues)
 		return False
 
 	def __str__(self):
@@ -663,7 +663,7 @@ class attrcontains_xml(Selector):
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
 				attr = node.attrs.get_xml(self.attrname)
 				if not attr.isfancy(): # if there are PIs, say no
-					return any(attrvalue in unicode(attr) for attrvalue in self.attrvalues)
+					return any(attrvalue in str(attr) for attrvalue in self.attrvalues)
 		return False
 
 	def __str__(self):
@@ -699,7 +699,7 @@ class attrstartswith(Selector):
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
 				attr = node.attrs.get(self.attrname)
 				if not attr.isfancy(): # if there are PIs, say no
-					return any(unicode(attr).startswith(attrvalue) for attrvalue in self.attrvalues)
+					return any(str(attr).startswith(attrvalue) for attrvalue in self.attrvalues)
 		return False
 
 	def __str__(self):
@@ -724,7 +724,7 @@ class attrstartswith_xml(Selector):
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
 				attr = node.attrs.get_xml(self.attrname)
 				if not attr.isfancy(): # if there are PIs, say no
-					return any(unicode(attr).startswith(attrvalue) for attrvalue in self.attrvalues)
+					return any(str(attr).startswith(attrvalue) for attrvalue in self.attrvalues)
 		return False
 
 	def __str__(self):
@@ -763,7 +763,7 @@ class attrendswith(Selector):
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
 				attr = node.attrs.get(self.attrname)
 				if not attr.isfancy(): # if there are PIs, say no
-					return any(unicode(attr).endswith(attrvalue) for attrvalue in self.attrvalues)
+					return any(str(attr).endswith(attrvalue) for attrvalue in self.attrvalues)
 		return False
 
 	def __str__(self):
@@ -788,7 +788,7 @@ class attrendswith_xml(Selector):
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
 				attr = node.attrs.get_xml(self.attrname)
 				if not attr.isfancy(): # if there are PIs, say no
-					return any(unicode(attr).endswith(attrvalue) for attrvalue in self.attrvalues)
+					return any(str(attr).endswith(attrvalue) for attrvalue in self.attrvalues)
 		return False
 
 	def __str__(self):
@@ -820,7 +820,7 @@ class hasid(Selector):
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml("id"):
 				attr = node.attrs.get_xml("id")
 				if not attr.isfancy():
-					return unicode(attr) in self.ids
+					return str(attr) in self.ids
 		return False
 
 	def __str__(self):
@@ -856,7 +856,7 @@ class hasclass(Selector):
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml("class"):
 				attr = node.attrs.get_xml("class")
 				if not attr.isfancy():
-					return any(classname in unicode(attr).split() for classname in self.classnames)
+					return any(classname in str(attr).split() for classname in self.classnames)
 		return False
 
 	def __str__(self):
@@ -1301,7 +1301,7 @@ def makewalkfilter(obj):
 			obj = IsInstanceSelector(obj)
 		elif isinstance(obj, xsc.Node):
 			obj = IsSelector(obj)
-		elif callable(obj):
+		elif isinstance(obj, collections.Callable):
 			obj = CallableSelector(obj)
 		elif isinstance(obj, tuple):
 			obj = ConstantWalkFilter(obj)
