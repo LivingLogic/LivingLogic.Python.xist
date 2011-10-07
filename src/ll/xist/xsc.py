@@ -926,7 +926,7 @@ class _Node_Meta(type):
 	def __repr__(self):
 		return "<class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
 
-	def __div__(self, other):
+	def __truediv__(self, other):
 		from ll.xist import xfind
 		return xfind.IsInstanceSelector(self) / other
 
@@ -1012,7 +1012,7 @@ class Node(object, metaclass=_Node_Meta):
 	def __pos__(self):
 		threadlocalnodehandler.handler.add(self)
 
-	def __div__(self, other):
+	def __truediv__(self, other):
 		from ll.xist import xfind
 		return xfind.IsSelector(self) / other
 

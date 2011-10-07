@@ -179,7 +179,7 @@ class Selector(WalkFilter):
 	def filterpath(self, path):
 		return (True, entercontent, enterattrs) if self.matchpath(path) else (entercontent, enterattrs)
 
-	def __div__(self, other):
+	def __truediv__(self, other):
 		"""
 		Create a :class:`ChildCombinator` with :var:`self` as the left hand
 		selector and :var:`other` as the right hand selector.
