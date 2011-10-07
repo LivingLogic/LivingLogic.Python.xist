@@ -227,7 +227,7 @@ else:
 
 args = dict(
 	name="ll-xist",
-	version="3.25",
+	version="4.0",
 	description="Extensible HTML/XML generator, cross-platform templating language, Oracle utilities and various other tools",
 	long_description=description,
 	author="Walter Doerwald",
@@ -286,7 +286,7 @@ args = dict(
 		"scripts/orafind.py",
 	],
 	install_requires=[
-		"cssutils == 0.9.7",
+		"cssutils > 0.9.7, < 0.9.9",
 	],
 	extras_require = {
 		"oracle":  ["cx_Oracle >= 5.1, < 5.2"],
