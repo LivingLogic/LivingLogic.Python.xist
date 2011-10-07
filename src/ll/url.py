@@ -36,8 +36,9 @@ These three levels of functionality are implemented in three classes:
 """
 
 
-import sys, os, urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, types, mimetypes, mimetools, io, warnings
+import sys, os, urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, types, mimetypes, io, warnings
 import datetime, cgi, fnmatch, pickle, errno, threading
+from email import message
 
 try:
 	from email import utils as emutils
@@ -351,7 +352,7 @@ class Connection(object):
 		"""
 		Return the MIME headers for the file/resource :var:`url`.
 		"""
-		return mimetools.Message(io.StringIO("Content-Type: {}\nContent-Length: {}\nLast-modified: {}\n".format(self.mimetype(url), self.size(url), httpdate(self.mdate(url)))))
+		return message.Message(io.StringIO("Content-Type: {}\nContent-Length: {}\nLast-modified: {}\n".format(self.mimetype(url), self.size(url), httpdate(self.mdate(url)))))
 
 	@misc.notimplemented
 	def remove(self, url):
@@ -1203,7 +1204,7 @@ class Resource(object):
 		return "<{0} {1.__class__.__module__}.{1.__class__.__name__} {1.name}, mode {1.mode} at {2:#x}>".format("closed" if self.closed else "open", self, id(self))
 
 
-class FileResource(Resource, file):
+class FileResource(Resource, io.BufferedRandom):
 	"""
 	A subclass of :class:`Resource` that handles local files.
 	"""
@@ -1211,14 +1212,14 @@ class FileResource(Resource, file):
 		url = URL(url)
 		name = os.path.expanduser(url.local())
 		try:
-			file.__init__(self, name, mode)
+			io.BufferedRandom.__init__(self, io.FileIO(name, mode))
 		except IOError as exc:
 			if "w" not in mode or exc[0] != 2: # didn't work for some other reason than a non existing directory
 				raise
 			(splitpath, splitname) = os.path.split(name)
 			if splitpath:
 				os.makedirs(splitpath)
-				file.__init__(self, name, mode)
+				io.BufferedRandom.__init__(self, io.FileIO(name, mode))
 			else:
 				raise # we don't have a directory to make so pass the error on
 		self.url = url
