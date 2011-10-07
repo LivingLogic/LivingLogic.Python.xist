@@ -2029,7 +2029,7 @@ class Comment(CharacterData):
 			yield publisher.encode("-->")
 
 
-class _DocType_Meta(Node.__metaclass__):
+class _DocType_Meta(type(Node)):
 	def __repr__(self):
 		return "<doctype class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
 
@@ -2055,7 +2055,7 @@ class DocType(CharacterData, metaclass=_DocType_Meta):
 		return ""
 
 
-class _ProcInst_Meta(Node.__metaclass__):
+class _ProcInst_Meta(type(Node)):
 	def __new__(cls, name, bases, dict):
 		self = super(_ProcInst_Meta, cls).__new__(cls, name, bases, dict)
 		if dict.get("register") is not None: # check here as the pool isn't defined yet
@@ -2146,7 +2146,7 @@ class Null(CharacterData):
 Null = Null() # Singleton, the Python way
 
 
-class _Attr_Meta(Frag.__metaclass__):
+class _Attr_Meta(type(Frag)):
 	def __new__(cls, name, bases, dict):
 		# can be overwritten in subclasses, to specify that this attributes is required
 		if "required" in dict:
@@ -2458,7 +2458,7 @@ class URLAttr(Attr):
 		return self.forInput(root).openwrite()
 
 
-class _Attrs_Meta(Node.__metaclass__):
+class _Attrs_Meta(type(Node)):
 	def __new__(cls, name, bases, dict):
 		self = super(_Attrs_Meta, cls).__new__(cls, name, bases, dict)
 		self._byxmlname = weakref.WeakValueDictionary() # map XML name to attribute class
@@ -2990,7 +2990,7 @@ def _patchclassnames(dict, name):
 		context.__fullname__ = "{}.{}".format(name, context.__fullname__)
 
 
-class _Element_Meta(Node.__metaclass__):
+class _Element_Meta(type(Node)):
 	def __new__(cls, name, bases, dict):
 		if "model" in dict and isinstance(dict["model"], bool):
 			from ll.xist import sims
@@ -3502,7 +3502,7 @@ class AttrElement(Element):
 		"""
 
 
-class _Entity_Meta(Node.__metaclass__):
+class _Entity_Meta(type(Node)):
 	def __new__(cls, name, bases, dict):
 		self = super(_Entity_Meta, cls).__new__(cls, name, bases, dict)
 		if dict.get("register") is not None:
@@ -3550,7 +3550,7 @@ class Entity(Node, metaclass=_Entity_Meta):
 		return "<{0.__class__.__module__}.{0.__fullname__} entity object{1} at {2:#x}>".format(self, loc, id(self))
 
 
-class _CharRef_Meta(Entity.__metaclass__): # don't subclass Text.__metaclass__, as this is redundant
+class _CharRef_Meta(type(Entity)): # don't subclass Text.__metaclass__, as this is redundant
 	def __repr__(self):
 		return "<charref class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
 
