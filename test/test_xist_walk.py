@@ -29,7 +29,7 @@ def test_walk_coverage():
 
 def test_walk_result():
 	def check(node, filter, result):
-		filter = list(filter())
+		filter = filter()
 		def path2str(path):
 			return ".".join("#" if isinstance(node, xsc.Text) else node.xmlname for node in path)
 

@@ -2674,7 +2674,7 @@ class Scanner(spark.Scanner):
 
 	@spark.token("@\\d{4}-\\d{2}-\\d{2}T(\\d{2}:\\d{2}(:\\d{2}(\\.\\d{6})?)?)?", "default")
 	def date(self, start, end, s):
-		self.rv.append(Date(start, end, datetime.datetime(*list(map(int, [_f for _f in datesplitter.split(s[1:]) if _f])))))
+		self.rv.append(Date(start, end, datetime.datetime(*map(int, [_f for _f in datesplitter.split(s[1:]) if _f]))))
 
 	@spark.token("\\(|\\)|\\[|\\]|\\{|\\}|\\.|,|==|\\!=|<=|<|>=|>|=|\\+=|\\-=|\\*=|//=|/=|%=|%|:|\\+|-|\\*\\*|\\*|//|/", "default")
 	def token(self, start, end, s):

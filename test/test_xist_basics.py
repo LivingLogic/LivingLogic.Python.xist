@@ -707,7 +707,7 @@ def test_getitem():
 
 def test_setitem():
 	for cls in (xsc.Frag, html.div):
-		e = cls(list(range(6)))
+		e = cls(range(6))
 		e[1] = 10
 		assert e == cls(0, 10, 2, 3, 4, 5)
 		e[1] = None
@@ -715,29 +715,29 @@ def test_setitem():
 		e[1] = ()
 		assert e == cls(0, 3, 4, 5)
 
-		e = cls(list(range(6)))
+		e = cls(range(6))
 		e[-1] = None
 		assert e == cls(0, 1, 2, 3, 4)
 
-		e = cls(list(range(6)))
+		e = cls(range(6))
 		e[1:5] = (100, 200)
 		assert e == cls(0, 100, 200, 5)
 
-		e = cls(list(range(6)))
+		e = cls(range(6))
 		e[:] = (100, 200)
 		assert e == cls(100, 200)
 
-		e = cls(list(range(6)))
+		e = cls(range(6))
 		e[::2] = (100, 120, 140)
 		assert e == cls(100, 1, 120, 3, 140, 5)
 
-		e = cls(list(range(6)))
+		e = cls(range(6))
 		e[1::2] = (110, 130, 150)
 		assert e == cls(0, 110, 2, 130, 4, 150)
 
-		e = cls(list(range(6)))
-		e[::-1] = list(range(6))
-		assert e == cls(list(range(5, -1, -1)))
+		e = cls(range(6))
+		e[::-1] = range(6)
+		assert e == cls(range(5, -1, -1))
 
 		for attr in ("class_", xml.Attrs.lang):
 			node = cls(html.div("foo", html.div({attr: "gurk"}), "bar"))
@@ -751,41 +751,41 @@ def test_setitem():
 
 def test_delitem():
 	for cls in (xsc.Frag, html.div):
-		e = cls(list(range(6)))
+		e = cls(range(6))
 		del e[0]
 		assert e == cls(1, 2, 3, 4, 5)
 		del e[-1]
 		assert e == cls(1, 2, 3, 4)
 
-		e = cls(list(range(6)))
+		e = cls(range(6))
 		del e[1:5]
 		assert e == cls(0, 5)
 
-		e = cls(list(range(6)))
+		e = cls(range(6))
 		del e[2:]
 		assert e == cls(0, 1)
 
-		e = cls(list(range(6)))
+		e = cls(range(6))
 		del e[-2:]
 		assert e == cls(0, 1, 2, 3)
 
-		e = cls(list(range(6)))
+		e = cls(range(6))
 		del e[:2]
 		assert e == cls(2, 3, 4, 5)
 
-		e = cls(list(range(6)))
+		e = cls(range(6))
 		del e[:-2]
 		assert e == cls(4, 5)
 
-		e = cls(list(range(6)))
+		e = cls(range(6))
 		del e[:]
 		assert e == cls()
 
-		e = cls(list(range(6)))
+		e = cls(range(6))
 		del e[::2]
 		assert e == cls(1, 3, 5)
 
-		e = cls(list(range(6)))
+		e = cls(range(6))
 		del e[1::2]
 		assert e == cls(0, 2, 4)
 

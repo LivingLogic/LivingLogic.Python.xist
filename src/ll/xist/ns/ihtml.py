@@ -385,7 +385,7 @@ class meta(xsc.Element):
 					node = self.__class__(
 						self.attrs,
 						http_equiv="Content-Type",
-						content=(contenttype, "; ", "; ".join("{}={}".format(*option) for option in list(options.items())))
+						content=(contenttype, "; ", "; ".join("{}={}".format(*option) for option in options.items()))
 					)
 					return node.publish(publisher) # return a generator-iterator
 		return super(meta, self).publish(publisher) # return a generator-iterator

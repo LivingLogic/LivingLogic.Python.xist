@@ -140,9 +140,8 @@ schemechar = alphanum + "+-."
 def _urlencode(query_parts):
 	if query_parts is not None:
 		res = []
-		items = list(query_parts.items())
 		# generate a canonical order for the names
-		items.sort()
+		items = sorted(query_parts.items())
 		for (name, values) in items:
 			if not isinstance(values, (list, tuple)):
 				values = (values,)
@@ -1565,7 +1564,7 @@ class Path(object):
 
 	def insert(self, index, *others):
 		segments = self.segments
-		segments[index:index] = list(map(self._fixsegment, others))
+		segments[index:index] = map(self._fixsegment, others)
 		self.segments = segments
 
 	def startswith(self, prefix):
@@ -1647,7 +1646,7 @@ class Path(object):
 
 	def __setslice__(self, index1, index2, seq):
 		segments = self.segments
-		segments[index1:index2] = list(map(self._fixsegment, seq))
+		segments[index1:index2] = map(self._fixsegment, seq)
 		self._path = self._prefix(self._path) + self._segments2path(segments)
 		self._segments = segments
 
@@ -1984,7 +1983,7 @@ class Query(dict):
 
 	def add(self, key, *values):
 		key = str(key)
-		values = list(map(str, values))
+		values = map(str, values)
 		self.setdefault(key, []).extend(values)
 
 	def __xrepr__(self, mode="default"):

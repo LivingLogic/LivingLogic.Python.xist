@@ -46,9 +46,9 @@ def test_fileext():
 
 
 def test_join_list():
-	assert ["", "gurk", "gurk/"]/url.URL("index.html") == list(map(url.URL, ["index.html", "index.html", "gurk/index.html"]))
+	assert ["", "gurk", "gurk/"]/url.URL("index.html") == map(url.URL, ["index.html", "index.html", "gurk/index.html"])
 
-	assert url.URL("gurk/")/["", "hinz", "kunz"] == list(map(url.URL, ["gurk/", "gurk/hinz", "gurk/kunz"]))
+	assert url.URL("gurk/")/["", "hinz", "kunz"] == map(url.URL, ["gurk/", "gurk/hinz", "gurk/kunz"])
 
 
 def test_withfile():

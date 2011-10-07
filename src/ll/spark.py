@@ -170,7 +170,7 @@ class Parser(object):
 		cls.nullable = {}
 		tbd = []
 
-		for rulelist in list(cls.rules.values()):
+		for rulelist in cls.rules.values():
 			lhs = rulelist[0][0]
 			cls.nullable[lhs] = 0
 			for rule in rulelist:
@@ -207,7 +207,7 @@ class Parser(object):
 		cls.new2old = {}
 
 		worklist = []
-		for rulelist in list(cls.rules.values()):
+		for rulelist in cls.rules.values():
 			for rule in rulelist:
 				worklist.append((rule, 0, 1, rule))
 

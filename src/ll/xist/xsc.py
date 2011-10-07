@@ -2544,7 +2544,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 
 	def convert(self, converter):
 		node = self._create()
-		for value in list(self.values()):
+		for value in self.values():
 			newvalue = value.convert(converter)
 			assert isinstance(newvalue, Node), "the convert method returned the illegal object {0!r} (type {1!r}) when converting the attribute {2.__class__.__name__} with the value {2!r}".format(newvalue, type(newvalue), value)
 			node[value.__class__] = newvalue
@@ -2552,7 +2552,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 
 	def compacted(self):
 		node = self._create()
-		for value in list(self.values()):
+		for value in self.values():
 			newvalue = value.compacted()
 			assert isinstance(newvalue, Node), "the compacted method returned the illegal object {0!r} (type {1!r}) when compacting the attribute {2.__class__.__name__} with the value {2!r}".format(newvalue, type(newvalue), value)
 			node[value.__class__] = newvalue
@@ -2560,7 +2560,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 
 	def normalized(self):
 		node = self._create()
-		for value in list(self.values()):
+		for value in self.values():
 			newvalue = value.normalized()
 			assert isinstance(newvalue, Node), "the normalized method returned the illegal object {0!r} (type {1!r}) when normalizing the attribute {2.__class__.__name__} with the value {2!r}".format(newvalue, type(newvalue), value)
 			node[value.__class__] = newvalue
@@ -2573,7 +2573,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		# collect required attributes
 		attrs = {value for value in self.allowedattrs() if value.required}
 		# Check each existing attribute and remove it from the list of required ones
-		for value in list(self.values()):
+		for value in self.values():
 			value.checkvalid()
 			try:
 				attrs.remove(value.__class__)
@@ -2591,7 +2591,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 			return nsclark(attr.xmlns) + attr.xmlname
 
 		# Output the attributes sorted by their "clark" name to get deterministic output
-		for value in sorted(list(self.values()), key=clarkname):
+		for value in sorted(self.values(), key=clarkname):
 			for part in value.publish(publisher):
 				yield part
 
@@ -2831,7 +2831,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 			raise IllegalAttrError(name, cls, True)
 
 	def __len__(self):
-		return misc.count(list(self.values()))
+		return misc.count(self.values())
 
 	def keys(self):
 		for value in dict.itervalues(self):
@@ -2883,7 +2883,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		Return a filtered version of :var:`self`.
 		"""
 		node = self._create()
-		for (name, value) in list(self.items()):
+		for (name, value) in self.items():
 			if function(value):
 				node[name] = value
 		return node

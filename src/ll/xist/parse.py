@@ -449,7 +449,7 @@ class ETree(object):
 			else:
 				elementxmlns = self.defaultxmlns
 			yield ("enterstarttagns", (elementname, elementxmlns))
-			for (attrname, attrvalue) in list(node.items()):
+			for (attrname, attrvalue) in node.items():
 				if attrname.startswith("{"):
 					(attrxmlns, sep, attrname) = attrname[1:].partition("}")
 				else:

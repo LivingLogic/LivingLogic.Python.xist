@@ -134,7 +134,7 @@ def addetree2xnd(ns, node, elements):
 				xndnode = xnd.Element(name, xmlns=xmlns)
 				ns += xndnode
 				elements[(name, xmlns)] = set()
-			for attrname in list(node.keys()):
+			for attrname in node.keys():
 				if not attrname.startswith("{") and attrname not in xndnode.attrs:
 					xndnode += xnd.Attr(attrname, type=xsc.TextAttr)
 		elif "ProcessingInstruction" in type(node).__name__:

@@ -90,7 +90,7 @@ def test_item():
 			yield i
 		raise SyntaxError
 
-	e = iter(list(range(10)))
+	e = iter(range(10))
 	assert misc.item(e, 0) == 0
 	assert misc.item(e, 0) == 1
 	assert misc.item(e, -1) == 9
@@ -98,27 +98,27 @@ def test_item():
 		misc.item(e, -1)
 	assert misc.item(e, -1, 42) == 42
 
-	e = iter(list(range(10)))
+	e = iter(range(10))
 	assert misc.item(e, 4) == 4
 
-	e = iter(list(range(10)))
+	e = iter(range(10))
 	with py.test.raises(IndexError):
 		misc.item(e, 10)
 
-	e = iter(list(range(10)))
+	e = iter(range(10))
 	assert misc.item(e, 10, 42) == 42
 
-	e = iter(list(range(10)))
+	e = iter(range(10))
 	assert misc.item(e, -1) == 9
 
-	e = iter(list(range(10)))
+	e = iter(range(10))
 	assert misc.item(e, -10) == 0
 
-	e = iter(list(range(10)))
+	e = iter(range(10))
 	with py.test.raises(IndexError):
 		misc.item(e, -11)
 
-	e = iter(list(range(10)))
+	e = iter(range(10))
 	assert misc.item(e, -11, 42) == 42
 
 	iterable = [17, 23, 37]
@@ -153,7 +153,7 @@ def test_item():
 
 
 def test_first():
-	e = iter(list(range(10)))
+	e = iter(range(10))
 	assert misc.first(e) == 0
 	assert misc.first(e) == 1
 
@@ -166,7 +166,7 @@ def test_first():
 
 
 def test_last():
-	e = iter(list(range(10)))
+	e = iter(range(10))
 	assert misc.last(e) == 9
 	with py.test.raises(IndexError):
 		misc.last(e)
@@ -180,7 +180,7 @@ def test_last():
 
 
 def test_count():
-	e = iter(list(range(10)))
+	e = iter(range(10))
 	assert misc.count(e) == 10
 	assert misc.count(e) == 0
 
@@ -189,7 +189,7 @@ def test_count():
 
 
 def test_iterator_bool():
-	e = misc.Iterator(iter(list(range(10))))
+	e = misc.Iterator(iter(range(10)))
 	assert e
 
 	e = misc.Iterator(iter([]))
@@ -197,7 +197,7 @@ def test_iterator_bool():
 
 
 def test_iterator_next():
-	e = misc.Iterator(iter(list(range(2))))
+	e = misc.Iterator(iter(range(2)))
 	assert next(e) == 0
 	assert next(e) == 1
 	with py.test.raises(StopIteration):
@@ -205,7 +205,7 @@ def test_iterator_next():
 
 
 def test_iterator_getitem():
-	e = misc.Iterator(iter(list(range(10))))
+	e = misc.Iterator(iter(range(10)))
 	assert e[0] == 0
 	assert e[0] == 1
 	assert e[-1] == 9

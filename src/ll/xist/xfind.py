@@ -92,7 +92,7 @@ class WalkFilter(object):
 				elif option is enterattrs:
 					if isinstance(node, xsc.Element):
 						path.append(None)
-						for child in list(node.attrs.values()):
+						for child in node.attrs.values():
 							path[-1] = child
 							for result in self._walk(path):
 								yield result

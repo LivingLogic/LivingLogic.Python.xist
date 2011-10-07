@@ -292,7 +292,7 @@ def explain(thing, name=None, format=None, context=[]):
 		all = []
 		properties = []
 		classes = []
-		for varname in list(thing.__dict__.keys()):
+		for varname in thing.__dict__.keys():
 			obj = getattr(thing, varname)
 			if isinstance(obj, property):
 				properties.append((obj, varname))
