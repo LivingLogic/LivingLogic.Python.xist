@@ -49,7 +49,7 @@ to get colored output.</p>
 """
 
 
-from _ansistyle import switchcolor
+from ._ansistyle import switchcolor
 
 
 __docformat__ = "xist"
