@@ -531,7 +531,7 @@ def javaexpr(obj):
 		return "com.livinglogic.ul4.Utils.makeDate({0.year}, {0.month}, {0.day})".format(obj)
 	elif isinstance(obj, color.Color):
 		return "new com.livinglogic.ul4.Color({}, {}, {}, {})".format(*obj)
-	elif isinstance(obj, (int, float)):
+	elif isinstance(obj, float):
 		return repr(obj)
 	elif isinstance(obj, int):
 		if -0x8000000 <= obj <= 0xffffffff:
