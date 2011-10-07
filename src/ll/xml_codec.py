@@ -35,7 +35,7 @@ encoding into the XML declaration (if there is one).
 import codecs
 
 try:
-	from _xml_codec import detectencoding as _detectencoding, fixencoding as _fixencoding
+	from ._xml_codec import detectencoding as _detectencoding, fixencoding as _fixencoding
 except ImportError:
 	import re
 
@@ -85,7 +85,7 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
 		self._initial_encoding = self.encoding = encoding
 		codecs.IncrementalDecoder.__init__(self, errors)
 		self._errors = errors # Store ``errors`` somewhere else, because we have to hide it in a property
-		self.buffer = ""
+		self.buffer = b""
 		self.headerfixed = False
 
 	def iterdecode(self, input):
@@ -93,7 +93,7 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
 			result = self.decode(part, False)
 			if result:
 				yield result
-		result = self.decode("", True)
+		result = self.decode(b"", True)
 		if result:
 			yield result
 
@@ -111,13 +111,16 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
 					return "" # no encoding determined yet, so no output
 			if self.encoding == "xml":
 				raise ValueError("xml not allowed as encoding name")
-			self.buffer = "" # isn't needed any more, as the decoder might keep its own buffer
+			self.buffer = b"" # isn't needed any more, as the decoder might keep its own buffer
 			self.decoder = codecs.getincrementaldecoder(self.encoding)(self._errors)
 		if self.headerfixed:
 			return self.decoder.decode(input, final)
 		# If we haven't fixed the header yet, the content of ``self.buffer`` is a ``unicode`` object
-		output = self.buffer + self.decoder.decode(input, final)
-		newoutput = _fixencoding(output, str(self.encoding), final)
+		buffer = self.buffer
+		if isinstance(buffer, bytes):
+			buffer = buffer.decode("ascii")
+		output = buffer + self.decoder.decode(input, final)
+		newoutput = _fixencoding(output, self.encoding, final)
 		if newoutput is None:
 			self.buffer = output # retry fixing the declaration (but keep the decoded stuff)
 			return ""
@@ -128,7 +131,7 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
 		codecs.IncrementalDecoder.reset(self)
 		self.encoding = self._initial_encoding
 		self.decoder = None
-		self.buffer = ""
+		self.buffer = b""
 		self.headerfixed = False
 
 	def _geterrors(self):

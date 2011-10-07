@@ -318,29 +318,29 @@ static PyObject *detectencoding_str(const char *str, Py_ssize_t len, int final)
 		}
 	}
 	if (candidates == 0)
-		return PyBytes_FromString("utf-8");
+		return PyUnicode_FromString("utf-8");
 	else if (!(candidates & (candidates-1))) /* only one encoding remaining */
 	{
 		if ((candidates == CANDIDATE_UTF_8_SIG) && (origlen >= 3))
-			return PyBytes_FromString("utf-8-sig");
+			return PyUnicode_FromString("utf-8-sig");
 		else if ((candidates == CANDIDATE_UTF_16_AS_LE) && (origlen >= 2))
-			return PyBytes_FromString("utf-16");
+			return PyUnicode_FromString("utf-16");
 		else if ((candidates == CANDIDATE_UTF_16_AS_BE) && (origlen >= 2))
-			return PyBytes_FromString("utf-16");
+			return PyUnicode_FromString("utf-16");
 		else if ((candidates == CANDIDATE_UTF_16_LE) && (origlen >= 4))
-			return PyBytes_FromString("utf-16-le");
+			return PyUnicode_FromString("utf-16-le");
 		else if ((candidates == CANDIDATE_UTF_16_BE) && (origlen >= 2))
-			return PyBytes_FromString("utf-16-be");
+			return PyUnicode_FromString("utf-16-be");
 		else if ((candidates == CANDIDATE_UTF_32_AS_LE) && (origlen >= 4))
-			return PyBytes_FromString("utf-32");
+			return PyUnicode_FromString("utf-32");
 		else if ((candidates == CANDIDATE_UTF_32_AS_BE) && (origlen >= 4))
-			return PyBytes_FromString("utf-32");
+			return PyUnicode_FromString("utf-32");
 		else if ((candidates == CANDIDATE_UTF_32_LE) && (origlen >= 4))
-			return PyBytes_FromString("utf-32-le");
+			return PyUnicode_FromString("utf-32-le");
 		else if ((candidates == CANDIDATE_UTF_32_BE) && (origlen >= 4))
-			return PyBytes_FromString("utf-32-be");
+			return PyUnicode_FromString("utf-32-be");
 		else if ((candidates == CANDIDATE_EBCDIC) && (origlen >= 4))
-			return PyBytes_FromString("cp037");
+			return PyUnicode_FromString("cp037");
 		else if ((candidates == CANDIDATE_DECL) && (origlen >= 6))
 		{
 			const char *encodingstart;
@@ -353,14 +353,14 @@ static PyObject *detectencoding_str(const char *str, Py_ssize_t len, int final)
 				case 0: /* don't know yet */
 					Py_RETURN_NONE;
 				case 1: /* not found => default to utf-8 */
-					return PyBytes_FromString("utf-8");
+					return PyUnicode_FromString("utf-8");
 				case 2: /* found it  */
-					return PyBytes_FromStringAndSize(encodingstart, encodingend-encodingstart);
+					return PyUnicode_FromStringAndSize(encodingstart, encodingend-encodingstart);
 			}
 		}
 	}
 	if (final) /* if this is the last call, and we haven't determined an encoding yet, we default to UTF-8 */
-		return PyBytes_FromString("utf-8");
+		return PyUnicode_FromString("utf-8");
 	/* We don't know yet */
 	Py_RETURN_NONE;
 }

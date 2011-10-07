@@ -24,60 +24,60 @@ else:
 
 
 def test_detectencoding_str():
-	assert xml_codec._detectencoding("") is None
-	assert xml_codec._detectencoding("\xef") is None
-	assert xml_codec._detectencoding("\xef\x33") == "utf-8"
-	assert xml_codec._detectencoding("\xef\xbb") is None
-	assert xml_codec._detectencoding("\xef\xbb\x33") == "utf-8"
-	assert xml_codec._detectencoding("\xef\xbb\xbf") == "utf-8-sig"
-	assert xml_codec._detectencoding("\xff") is None
-	assert xml_codec._detectencoding("\xff\x33") == "utf-8"
-	assert xml_codec._detectencoding("\xff\xfe") is None
-	assert xml_codec._detectencoding("\xff\xfe\x33") == "utf-16"
-	assert xml_codec._detectencoding("\xff\xfe\x00") is None
-	assert xml_codec._detectencoding("\xff\xfe\x00\x33") == "utf-16"
-	assert xml_codec._detectencoding("\xff\xfe\x00\x00") == "utf-32"
-	assert xml_codec._detectencoding("\x00") is None
-	assert xml_codec._detectencoding("\x00\x33") == "utf-8"
-	assert xml_codec._detectencoding("\x00\x00") is None
-	assert xml_codec._detectencoding("\x00\x00\x33") == "utf-8"
-	assert xml_codec._detectencoding("\x00\x00\xfe") is None
-	assert xml_codec._detectencoding("\x00\x00\x00\x33") == "utf-8"
-	assert xml_codec._detectencoding("\x00\x00\x00<") == "utf-32-be"
-	assert xml_codec._detectencoding("\x00\x00\xfe\xff") == "utf-32"
-	assert xml_codec._detectencoding("<") is None
-	assert xml_codec._detectencoding("<\x33") == "utf-8"
-	assert xml_codec._detectencoding("<\x00") is None
-	assert xml_codec._detectencoding("<\x00\x33") == "utf-8"
-	assert xml_codec._detectencoding("<\x00\x00") is None
-	assert xml_codec._detectencoding("<\x00\x00\x33") == "utf-8"
-	assert xml_codec._detectencoding("<\x00\x00\x00") == "utf-32-le"
-	assert xml_codec._detectencoding("\x4c") is None
-	assert xml_codec._detectencoding("\x4c\x33") == "utf-8"
-	assert xml_codec._detectencoding("\x4c\x6f") is None
-	assert xml_codec._detectencoding("\x4c\x6f\x33") == "utf-8"
-	assert xml_codec._detectencoding("\x4c\x6f\xa7") is None
-	assert xml_codec._detectencoding("\x4c\x6f\xa7\x33") == "utf-8"
-	assert xml_codec._detectencoding("\x4c\x6f\xa7\x94") == "cp037"
-	assert xml_codec._detectencoding("<?") is None
-	assert xml_codec._detectencoding("<?x") is None
-	assert xml_codec._detectencoding("<?xm") is None
-	assert xml_codec._detectencoding("<?xml") is None
-	assert xml_codec._detectencoding("<?xml\r") is None
-	assert xml_codec._detectencoding("<?xml\rversion='1.0'") is None
-	assert xml_codec._detectencoding("<?xml\rversion='1.0' encoding='x") is None
-	assert xml_codec._detectencoding("<?xml\rversion='1.0' encoding='x'") == "x"
-	assert xml_codec._detectencoding('<?xml\rversion="1.0" encoding="x"') == "x"
-	assert xml_codec._detectencoding('<?xml \r\n\t \r\n\t \r\n\tversion \r\n\t \r\n\t= \r\n\t \r\n\t"1.0" \r\n\t \r\n\t \r\n\tencoding \r\n\t \r\n\t= \r\n\t \r\n\t"x"') == "x"
-	assert xml_codec._detectencoding("<?xml\rversion='1.0' ?>") == "utf-8"
-	assert xml_codec._detectencoding("<?xml\rversion='1.0' Encoding='x'") is None # encoding not recognized (might come later)
-	assert xml_codec._detectencoding("<?xml\rVersion='1.0'") is None
+	assert xml_codec._detectencoding(b"") is None
+	assert xml_codec._detectencoding(b"\xef") is None
+	assert xml_codec._detectencoding(b"\xef\x33") == "utf-8"
+	assert xml_codec._detectencoding(b"\xef\xbb") is None
+	assert xml_codec._detectencoding(b"\xef\xbb\x33") == "utf-8"
+	assert xml_codec._detectencoding(b"\xef\xbb\xbf") == "utf-8-sig"
+	assert xml_codec._detectencoding(b"\xff") is None
+	assert xml_codec._detectencoding(b"\xff\x33") == "utf-8"
+	assert xml_codec._detectencoding(b"\xff\xfe") is None
+	assert xml_codec._detectencoding(b"\xff\xfe\x33") == "utf-16"
+	assert xml_codec._detectencoding(b"\xff\xfe\x00") is None
+	assert xml_codec._detectencoding(b"\xff\xfe\x00\x33") == "utf-16"
+	assert xml_codec._detectencoding(b"\xff\xfe\x00\x00") == "utf-32"
+	assert xml_codec._detectencoding(b"\x00") is None
+	assert xml_codec._detectencoding(b"\x00\x33") == "utf-8"
+	assert xml_codec._detectencoding(b"\x00\x00") is None
+	assert xml_codec._detectencoding(b"\x00\x00\x33") == "utf-8"
+	assert xml_codec._detectencoding(b"\x00\x00\xfe") is None
+	assert xml_codec._detectencoding(b"\x00\x00\x00\x33") == "utf-8"
+	assert xml_codec._detectencoding(b"\x00\x00\x00<") == "utf-32-be"
+	assert xml_codec._detectencoding(b"\x00\x00\xfe\xff") == "utf-32"
+	assert xml_codec._detectencoding(b"<") is None
+	assert xml_codec._detectencoding(b"<\x33") == "utf-8"
+	assert xml_codec._detectencoding(b"<\x00") is None
+	assert xml_codec._detectencoding(b"<\x00\x33") == "utf-8"
+	assert xml_codec._detectencoding(b"<\x00\x00") is None
+	assert xml_codec._detectencoding(b"<\x00\x00\x33") == "utf-8"
+	assert xml_codec._detectencoding(b"<\x00\x00\x00") == "utf-32-le"
+	assert xml_codec._detectencoding(b"\x4c") is None
+	assert xml_codec._detectencoding(b"\x4c\x33") == "utf-8"
+	assert xml_codec._detectencoding(b"\x4c\x6f") is None
+	assert xml_codec._detectencoding(b"\x4c\x6f\x33") == "utf-8"
+	assert xml_codec._detectencoding(b"\x4c\x6f\xa7") is None
+	assert xml_codec._detectencoding(b"\x4c\x6f\xa7\x33") == "utf-8"
+	assert xml_codec._detectencoding(b"\x4c\x6f\xa7\x94") == "cp037"
+	assert xml_codec._detectencoding(b"<?") is None
+	assert xml_codec._detectencoding(b"<?x") is None
+	assert xml_codec._detectencoding(b"<?xm") is None
+	assert xml_codec._detectencoding(b"<?xml") is None
+	assert xml_codec._detectencoding(b"<?xml\r") is None
+	assert xml_codec._detectencoding(b"<?xml\rversion='1.0'") is None
+	assert xml_codec._detectencoding(b"<?xml\rversion='1.0' encoding='x") is None
+	assert xml_codec._detectencoding(b"<?xml\rversion='1.0' encoding='x'") == "x"
+	assert xml_codec._detectencoding(b'<?xml\rversion="1.0" encoding="x"') == "x"
+	assert xml_codec._detectencoding(b'<?xml \r\n\t \r\n\t \r\n\tversion \r\n\t \r\n\t= \r\n\t \r\n\t"1.0" \r\n\t \r\n\t \r\n\tencoding \r\n\t \r\n\t= \r\n\t \r\n\t"x"') == "x"
+	assert xml_codec._detectencoding(b"<?xml\rversion='1.0' ?>") == "utf-8"
+	assert xml_codec._detectencoding(b"<?xml\rversion='1.0' Encoding='x'") is None # encoding not recognized (might come later)
+	assert xml_codec._detectencoding(b"<?xml\rVersion='1.0'") is None
 	with py.test.raises(ValueError):
-		xml_codec._detectencoding("<?xml\rversion='1.0' encoding=''") # empty encoding
-	assert xml_codec._detectencoding("<", False) is None
-	assert xml_codec._detectencoding("<", True) == "utf-8"
-	assert xml_codec._detectencoding("<?", False) is None
-	assert xml_codec._detectencoding("<?", True) == "utf-8"
+		xml_codec._detectencoding(b"<?xml\rversion='1.0' encoding=''") # empty encoding
+	assert xml_codec._detectencoding(b"<", False) is None
+	assert xml_codec._detectencoding(b"<", True) == "utf-8"
+	assert xml_codec._detectencoding(b"<?", False) is None
+	assert xml_codec._detectencoding(b"<?", True) == "utf-8"
 
 
 def test_detectencoding_unicode():
@@ -101,6 +101,7 @@ def test_fixencoding():
 def check_partial(decoder, input, *parts):
 	assert len(input) == len(parts)
 	for (c, part) in zip(input, parts):
+		c = bytes([c])
 		assert decoder.decode(c) == part
 
 
@@ -164,7 +165,7 @@ def test_decoder():
 		assert "".join(id.iterdecode(input.encode(encoding))) == input.replace("'x'", repr(encoding))
 
 	id = codecs.getincrementaldecoder("xml")(encoding="ascii")
-	assert id.decode("<?xml version='1.0' encoding='utf-16'?>") == "<?xml version='1.0' encoding='ascii'?>"
+	assert id.decode(b"<?xml version='1.0' encoding='utf-16'?>") == "<?xml version='1.0' encoding='ascii'?>"
 
 	# Autodetectable encodings
 	yield checkauto, "utf-8-sig"
@@ -201,7 +202,7 @@ def test_decoder():
 
 	# No recursion
 	with py.test.raises(ValueError):
-		"<?xml version='1.0' encoding='xml'?><gurk/>".decode("xml")
+		b"<?xml version='1.0' encoding='xml'?><gurk/>".decode("xml")
 
 
 def test_encoder():
@@ -216,11 +217,11 @@ def test_encoder():
 
 		# Check incremental encoder with encoding autodetection
 		ie = codecs.getincrementalencoder("xml")()
-		assert "".join(ie.iterencode(inputdecl)).decode(encoding) == inputdecl
+		assert b"".join(ie.iterencode(inputdecl)).decode(encoding) == inputdecl
 
 		# Check incremental encoder with specified encoding
 		ie = codecs.getincrementalencoder("xml")(encoding=encoding)
-		assert "".join(ie.iterencode(input)).decode(encoding) == inputdecl
+		assert b"".join(ie.iterencode(input)).decode(encoding) == inputdecl
 
 	# Autodetectable encodings
 	yield check, "utf-8-sig"
