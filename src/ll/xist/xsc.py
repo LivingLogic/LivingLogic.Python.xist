@@ -1104,33 +1104,20 @@ class Node(object, metaclass=_Node_Meta):
 		"""
 
 	@misc.notimplemented
-	def __unicode__(self):
+	def __str__(self):
 		"""
-		Return the character content of :var:`self` as a unicode string. This
-		means that comments and processing instructions will be filtered out.
+		Return the character content of :var:`self` as a string. This means that
+		comments and processing instructions will be filtered out.
 		For elements you'll get the element content.
 
-		:meth:`__unicode__` can be used everywhere where a plain string
+		:meth:`__str__` can be used everywhere where a plain string
 		representation of the node is required.
 		"""
 		pass
 
-	def __str__(self):
-		"""
-		Return the character content of :var:`self` as a string (if possible, i.e.
-		there are no characters that are unencodable in the default encoding).
-		"""
-		return str(str(self))
-
 	def __int__(self):
 		"""
 		Convert the character content of :var:`self` to an :class:`int`.
-		"""
-		return int(str(self))
-
-	def __long__(self):
-		"""
-		Convert the character content of :var:`self` to an :class:`long`.
 		"""
 		return int(str(self))
 
@@ -1633,7 +1620,7 @@ class Text(CharacterData):
 	def convert(self, converter):
 		return self
 
-	def __unicode__(self):
+	def __str__(self):
 		return self._content
 
 	def publish(self, publisher):
@@ -1732,7 +1719,7 @@ class Frag(Node, list):
 	def present(self, presenter):
 		return presenter.presentFrag(self) # return a generator-iterator
 
-	def __unicode__(self):
+	def __str__(self):
 		return "".join(str(child) for child in self)
 
 	def __eq__(self, other):
@@ -1903,13 +1890,12 @@ class Frag(Node, list):
 			node.append(child)
 		return node
 
-	def sorted(self, cmp=None, key=None, reverse=False):
+	def sorted(self, key=None, reverse=False):
 		"""
-		Return a sorted version of the :var:`self`. :var:`cmp`, :var:`key` and
-		:var:`reverse` have to same meaning as for the builtin function
-		:func:`sorted`.
+		Return a sorted version of the :var:`self`. :var:`key` and :var:`reverse`
+		have to same meaning as for the builtin function :func:`sorted`.
 		"""
-		return self.__class__(sorted(self, cmp, key, reverse))
+		return self.__class__(sorted(self, key=key, reverse=reverse))
 
 	def reversed(self):
 		"""
@@ -1996,7 +1982,7 @@ class Comment(CharacterData):
 	def convert(self, converter):
 		return self
 
-	def __unicode__(self):
+	def __str__(self):
 		return ""
 
 	def present(self, presenter):
@@ -2034,7 +2020,7 @@ class DocType(CharacterData, metaclass=_DocType_Meta):
 			yield publisher.encode(self.content)
 			yield publisher.encode(">")
 
-	def __unicode__(self):
+	def __str__(self):
 		return ""
 
 
@@ -2080,7 +2066,7 @@ class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
 			raise IllegalProcInstFormatError(self)
 		yield publisher.encode("<?{} {}?>".format(self.xmlname, content))
 
-	def __unicode__(self):
+	def __str__(self):
 		return ""
 
 	def __repr__(self):
@@ -2119,7 +2105,7 @@ class Null(CharacterData):
 	def present(self, presenter):
 		return presenter.presentNull(self) # return a generator-iterator
 
-	def __unicode__(self):
+	def __str__(self):
 		return ""
 
 	def __repr__(self):
@@ -2395,7 +2381,7 @@ class URLAttr(Attr):
 		Return :var:`self` as a :class:`URL` object (note that non-:class:`Text`
 		content will be filtered out).
 		"""
-		return url_.URL(Attr.__unicode__(self))
+		return url_.URL(Attr.__str__(self))
 
 	def forInput(self, root=None):
 		"""
@@ -2578,7 +2564,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 			for part in value.publish(publisher):
 				yield part
 
-	def __unicode__(self):
+	def __str__(self):
 		return ""
 
 	@classmethod
@@ -3161,7 +3147,7 @@ class Element(Node, metaclass=_Element_Meta):
 		node.attrs = copy.deepcopy(self.attrs, memo)
 		return self._decoratenode(node)
 
-	def __unicode__(self):
+	def __str__(self):
 		return str(self.content)
 
 	def _addimagesizeattributes(self, url, widthattr=None, heightattr=None):
@@ -3338,15 +3324,15 @@ class Element(Node, metaclass=_Element_Meta):
 		node.content = self.content.withsep(separator, clone)
 		return node
 
-	def sorted(self, cmp=None, key=None, reverse=False):
+	def sorted(self, key=None, reverse=False):
 		"""
-		Return a sorted version of :var:`self`. :var:`compare` is a comparison
-		function. The arguments :var:`cmp`, :var:`key` and :var:`reverse` have
-		the same meaning as fot the builtin :func:`sorted` function.
+		Return a sorted version of :var:`self`. The arguments :var:`key` and
+		:var:`reverse` have the same meaning as for the builtin :func:`sorted`
+		function.
 		"""
 		node = self.__class__()
 		node.attrs = self.attrs.clone()
-		node.content = self.content.sorted(cmp, key, reverse)
+		node.content = self.content.sorted(key, reverse)
 		return node
 
 	def reversed(self):
