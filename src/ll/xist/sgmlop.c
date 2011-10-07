@@ -111,8 +111,8 @@ static char copyright[] =
 #define CHAR_T            unsigned char
 #define ISALNUM           isalnum
 #define TOLOWER           tolower
-#define EMPTYSTRING()     PyString_FromString("")
-#define BUILDSTRING(s, l) PyString_FromStringAndSize(s, l)
+#define EMPTYSTRING()     PyBytes_FromString("")
+#define BUILDSTRING(s, l) PyBytes_FromStringAndSize(s, l)
 #define PARSEFORMAT       "t#"
 #define BUILDFORMAT       "s#"
 
@@ -138,34 +138,6 @@ static char copyright[] =
 #else
 typedef int Py_ssize_t;
 #define INTFORMAT "i"
-#endif
-
-#if PY_VERSION_HEX >= 0x02000000
-/* use garbage collection (requires Python 2.0 or later) */
-#define SGMLOP_GC
-
-/* from http://python.ca/nas/python/type-gc.html */
-#if defined(Py_TPFLAGS_GC) && !defined(Py_TPFLAGS_HAVE_GC)
-/* Python 2.2 GC compatibility macros */
-#define Py_TPFLAGS_HAVE_GC Py_TPFLAGS_GC
-#define PyObject_GC_New PyObject_New
-#define PyObject_GC_Del PyObject_Del
-#define PyObject_GC_Track PyObject_GC_Init
-#define PyObject_GC_UnTrack PyObject_GC_Fini
-#endif
-
-#ifndef Py_TPFLAGS_HAVE_GC
-/* no GC */
-#define Py_TPFLAGS_HAVE_GC 0
-#define PyObject_GC_New PyObject_New
-#define PyObject_GC_Del PyObject_Del
-#define PyObject_GC_Track
-#define PyObject_GC_UnTrack
-#define PyGC_HEAD_SIZE 0
-typedef int (*visitproc)(PyObject *, void *);
-typedef int (*traverseproc)(PyObject *, visitproc, void *);
-#endif
-
 #endif
 
 /* ==================================================================== */
@@ -225,7 +197,7 @@ typedef struct {
 
 } FastParserObject;
 
-staticforward PyTypeObject FastParser_Type;
+PyTypeObject FastParser_Type;
 
 /* forward declarations */
 static Py_ssize_t fastfeed(
@@ -294,9 +266,7 @@ _sgmlop_new(int xml)
     self->handle_cdata = NULL;
     self->handle_comment = NULL;
 
-#if defined(SGMLOP_GC)
     PyObject_GC_Track(self);
-#endif
 
     return (PyObject*) self;
 }
@@ -319,10 +289,10 @@ _sgmlop_xmlparser(PyObject* self, PyObject* args)
     return _sgmlop_new(1);
 }
 
-#if defined (SGMLOP_GC)
 static int
-_sgmlop_traverse(FastParserObject *self, visitproc visit, void *arg)
+_sgmlop_traverse(PyObject *_self, visitproc visit, void *arg)
 {
+    FastParserObject *self = (FastParserObject*)_self;
     int err;
 
 #define VISIT(member)\
@@ -347,11 +317,11 @@ _sgmlop_traverse(FastParserObject *self, visitproc visit, void *arg)
 
     return 0;
 }
-#endif
 
 static int
-_sgmlop_clear(FastParserObject* self)
+_sgmlop_clear(PyObject* _self)
 {
+    FastParserObject *self = (FastParserObject*)_self;
 #define CLEAR(member)\
     Py_XDECREF(self->member);\
     self->member = NULL;
@@ -373,19 +343,14 @@ _sgmlop_clear(FastParserObject* self)
 }
 
 static void
-_sgmlop_dealloc(FastParserObject* self)
+_sgmlop_dealloc(PyObject* _self)
 {
-#if defined(SGMLOP_GC)
-    PyObject_GC_UnTrack(self);
-#endif
+    FastParserObject *self = (FastParserObject*)_self;
+    PyObject_GC_UnTrack(_self);
     if (self->buffer)
         free(self->buffer);
-    _sgmlop_clear(self);
-#if defined(SGMLOP_GC)
-    PyObject_GC_Del(self);
-#else
-    PyObject_DEL(self);
-#endif
+    _sgmlop_clear(_self);
+    PyObject_GC_Del(_self);
 }
 
 static PyObject*
@@ -545,23 +510,37 @@ static PyMethodDef _sgmlop_methods[] = {
     {NULL, NULL}
 };
 
-static PyObject*
-_sgmlop_getattr(FastParserObject* self, char* name)
-{
-    return Py_FindMethod(_sgmlop_methods, (PyObject*) self, name);
-}
-
-statichere PyTypeObject FastParser_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0, /* ob_size */
-    "FastParser", /* tp_name */
-    sizeof(FastParserObject), /* tp_size */
-    0, /* tp_itemsize */
-    /* methods */
-    (destructor)_sgmlop_dealloc, /* tp_dealloc */
-    0, /* tp_print */
-    (getattrfunc)_sgmlop_getattr, /* tp_getattr */
-    0, /* tp_setattr */
+PyTypeObject FastParser_Type = {
+        PyVarObject_HEAD_INIT(NULL, 0)
+        "FastParser", /* tp_name */
+        sizeof(FastParserObject), /* tp_size */
+        0, /* tp_itemsize */
+        /* methods */
+        _sgmlop_dealloc, /* tp_dealloc */
+        0, /* tp_print */
+        0, /* tp_getattr */
+        0, /* tp_setattr */
+        0,                      /*tp_reserved*/
+        0,                      /*tp_repr*/
+        0,                      /*tp_as_number*/
+        0,                      /*tp_as_sequence*/
+        0,                      /*tp_as_mapping*/
+        0,                      /*tp_hash*/
+        0,                      /*tp_call*/
+        0,                      /*tp_str*/
+        PyObject_GenericGetAttr,/*tp_getattro*/
+        0,                      /*tp_setattro*/
+        0,                      /*tp_as_buffer*/
+        Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC,     /*tp_flags*/
+        0,                      /*tp_doc*/
+        _sgmlop_traverse,       /*tp_traverse*/
+        _sgmlop_clear,          /*tp_clear*/
+        0,                      /*tp_richcompare*/
+        0,                      /*tp_weaklistoffset*/
+        0,                      /*tp_iter*/
+        0,                      /*tp_iternext*/
+        _sgmlop_methods,        /*tp_methods*/
+        0,                      /*tp_members*/
 };
 
 /* ==================================================================== */
@@ -573,24 +552,24 @@ static PyMethodDef _functions[] = {
     {NULL, NULL}
 };
 
-void
-#ifdef WIN32
-__declspec(dllexport)
-#endif
-initsgmlop(void)
+static struct PyModuleDef sgmlopmodule = {
+    PyModuleDef_HEAD_INIT,
+    "sgmlop",
+    0, /* module doc */
+    -1,
+    _functions,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+
+PyMODINIT_FUNC
+PyInit_sgmlop(void)
 {
-    /* Patch object type */
-    FastParser_Type.ob_type = &PyType_Type;
-
-#if defined (SGMLOP_GC)
-    /* enable garbage collection for the parser object */
-    FastParser_Type.tp_basicsize += PyGC_HEAD_SIZE;
-    FastParser_Type.tp_flags = Py_TPFLAGS_HAVE_GC;
-    FastParser_Type.tp_traverse = (traverseproc) _sgmlop_traverse;
-    FastParser_Type.tp_clear = (inquiry) _sgmlop_clear;
-#endif
-
-    Py_InitModule("sgmlop", _functions);
+    if (PyType_Ready(&FastParser_Type) < 0)
+        return NULL;
+    return PyModule_Create(&sgmlopmodule);
 }
 
 /* -------------------------------------------------------------------- */
