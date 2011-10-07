@@ -242,8 +242,8 @@ def test_itersplitat():
 
 
 def test_gzip():
-	assert misc.gunzip(misc.gzip("gurk", 0)) == "gurk"
-	assert misc.gunzip(misc.gzip("gurk", 9)) == "gurk"
+	assert misc.gunzip(misc.gzip(b"gurk", 0)) == b"gurk"
+	assert misc.gunzip(misc.gzip(b"gurk", 9)) == b"gurk"
 
 
 def test_jsmin():

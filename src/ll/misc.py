@@ -447,7 +447,7 @@ def gzip(data, compresslevel=9):
 	Compresses the byte string :var:`data` with gzip using the compression level
 	:var:`compresslevel`.
 	"""
-	stream = io.StringIO()
+	stream = io.BytesIO()
 	compressor = gzip_.GzipFile(filename="", mode="wb", fileobj=stream, compresslevel=compresslevel)
 	compressor.write(data)
 	compressor.close()
@@ -458,7 +458,7 @@ def gunzip(data):
 	"""
 	Uncompresses the byte string :var:`data` with gzip.
 	"""
-	stream = io.StringIO(data)
+	stream = io.BytesIO(data)
 	compressor = gzip_.GzipFile(filename="", mode="rb", fileobj=stream)
 	return compressor.read()
 
