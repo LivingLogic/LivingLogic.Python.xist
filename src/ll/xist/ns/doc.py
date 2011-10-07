@@ -960,7 +960,7 @@ class h(base):
 	def convert_html(self, converter):
 		context = converter[self]
 		if context.stack:
-		 	if isinstance(context.stack[-1], example):
+			if isinstance(context.stack[-1], example):
 				e = self.content
 			elif isinstance(context.stack[-1], section):
 				level = len(context.sections)
