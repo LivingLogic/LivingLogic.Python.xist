@@ -44,8 +44,8 @@ static PyObject *escape(PyObject *self, PyObject *args)
 		return NULL;
 	}
 
-	starts = PyString_AS_STRING(str);
-	ends = starts + PyString_GET_SIZE(str);
+	starts = PyBytes_AS_STRING(str);
+	ends = starts + PyBytes_GET_SIZE(str);
 
 	for (newsize = 0, s = starts; s < ends; ++s)
 	{
@@ -55,11 +55,11 @@ static PyObject *escape(PyObject *self, PyObject *args)
 			newsize += 3;
 	}
 
-	res = PyString_FromStringAndSize(NULL, newsize);
+	res = PyBytes_FromStringAndSize(NULL, newsize);
 	if (res)
 	{
-		startr = PyString_AS_STRING(res);
-		endr = startr + PyString_GET_SIZE(res);
+		startr = PyBytes_AS_STRING(res);
+		endr = startr + PyBytes_GET_SIZE(res);
 
 		for (s = starts, r = startr; s < ends;)
 		{
@@ -345,11 +345,20 @@ static PyMethodDef _functions[] =
 	{NULL, NULL}
 };
 
-void
-#ifdef WIN32
-__declspec(dllexport)
-#endif
-init_url(void)
+static struct PyModuleDef _urlmodule = {
+    PyModuleDef_HEAD_INIT,
+    "_url",
+    0, /* module doc */
+    -1,
+    _functions,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+
+PyMODINIT_FUNC
+PyInit_url(void)
 {
-	Py_InitModule("_url", _functions);
+    return PyModule_Create(&_urlmodule);
 }

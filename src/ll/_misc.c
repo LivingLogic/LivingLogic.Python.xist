@@ -30,9 +30,9 @@
 /* define str version of xmlescape */
 #define STRINGLIB_NAME xmlescape_str
 #define STRINGLIB_CHAR unsigned char
-#define STRINGLIB_LEN PyString_GET_SIZE
-#define STRINGLIB_NEW PyString_FromStringAndSize
-#define STRINGLIB_STR PyString_AS_STRING
+#define STRINGLIB_LEN PyBytes_GET_SIZE
+#define STRINGLIB_NEW PyBytes_FromStringAndSize
+#define STRINGLIB_STR PyBytes_AS_STRING
 
 #include "_misc_include.c"
 
@@ -49,7 +49,7 @@ static PyObject *_xmlescape(PyObject *arg, int doquot, int doapos)
 	{
 		return xmlescape_unicode(arg, doquot, doapos);
 	}
-	else if (PyString_Check(arg))
+	else if (PyBytes_Check(arg))
 	{
 		return xmlescape_str(arg, doquot, doapos);
 	}
@@ -356,9 +356,20 @@ static char module__doc__[] =
 :func:`count`, :func:`xmlescape`, :func:`xmlescape_text` and\n\
 :func:`xmlescape_attr`";
 
+static struct PyModuleDef _miscmodule = {
+    PyModuleDef_HEAD_INIT,
+    "_misc",
+    module__doc__, /* module doc */
+    -1,
+    _functions,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
 
 PyMODINIT_FUNC
-init_misc(void)
+PyInit__misc(void)
 {
-	Py_InitModule3("_misc", _functions, module__doc__);
+    return PyModule_Create(&_miscmodule);
 }

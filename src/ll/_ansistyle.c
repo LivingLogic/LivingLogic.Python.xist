@@ -86,9 +86,9 @@ static PyObject *_switchcolor(PyObject *self, PyObject *args)
 
 		*p++ = 'm';
 
-		return PyString_FromStringAndSize(buffer, p-buffer);
+		return PyBytes_FromStringAndSize(buffer, p-buffer);
 	}
-	return PyString_FromStringAndSize(NULL, 0);
+	return PyBytes_FromStringAndSize(NULL, 0);
 }
 
 
@@ -102,16 +102,23 @@ static PyMethodDef _functions[] =
 	{NULL, NULL}
 };
 
-
 static char module__doc__[] =
 "This module contains the function switchcolor().";
 
+static struct PyModuleDef _ansistylemodule = {
+    PyModuleDef_HEAD_INIT,
+    "_ansistyle",
+    module__doc__, /* module doc */
+    -1,
+    _functions,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
 
-void
-#ifdef WIN32
-__declspec(dllexport)
-#endif
-init_ansistyle(void)
+PyMODINIT_FUNC
+PyInit__ansistyle(void)
 {
-	Py_InitModule3("_ansistyle", _functions, module__doc__);
+    return PyModule_Create(&_ansistylemodule);
 }
