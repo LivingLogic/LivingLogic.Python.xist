@@ -163,8 +163,8 @@ def test_struts_html():
 
 def test_publish_forcexmlns():
 	e = html.html()
-	s = e.bytes(prefixes={html: "h", specials: "s"}, showxmlns=[specials])
-	assert b'xmlns:s="{}"'.format(specials.xmlns) in s
+	s = e.string(prefixes={html: "h", specials: "s"}, showxmlns=[specials])
+	assert 'xmlns:s="{}"'.format(specials.xmlns) in s
 
 
 def test_comment_in_attr():
