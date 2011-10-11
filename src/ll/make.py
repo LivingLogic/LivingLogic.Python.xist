@@ -422,7 +422,7 @@ class Action(object):
 		:var:`input`. I.e. if :var:`self` depends directly or indirectly on
 		:var:`input`, this generator will produce all paths ``p`` where
 		``p[0] is self`` and ``p[-1] is input`` and ``p[i+1] in p[i]`` for all
-		``i`` in ``xrange(len(p)-1)``.
+		``i`` in ``range(len(p)-1)``.
 		"""
 		if input is self:
 			yield [self]
