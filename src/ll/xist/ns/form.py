@@ -99,7 +99,7 @@ class hidden(html.input):
 	class Attrs(html.input.Attrs):
 		type = None
 
-	def __unicode__(self):
+	def __str__(self):
 		return ""
 
 	def convert(self, converter):

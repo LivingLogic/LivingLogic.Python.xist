@@ -36,7 +36,7 @@ class base(xsc.Entity):
 		node = doc.abbr(self.__class__.content, title=self.__class__.title, lang=self.__class__.lang)
 		return node.convert(converter)
 
-	def __unicode__(self):
+	def __str__(self):
 		return str(self.content)
 
 

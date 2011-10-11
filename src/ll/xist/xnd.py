@@ -165,13 +165,10 @@ class Module(object):
 		node._add(self)
 		return self
 
-	def __unicode__(self):
+	def __str__(self):
 		lines = []
 		self._aspy(lines, 0, set(), self)
 		return "".join("{}{}\n".format(level*self.indent, text) for (level, text) in lines)
-
-	def __str__(self):
-		return str(self).encode(self.encoding)
 
 	def _findgroups(self):
 		"""

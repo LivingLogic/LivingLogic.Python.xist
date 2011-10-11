@@ -29,7 +29,7 @@ class a(xsc.Element):
 
 
 class foo(xsc.Entity):
-	def __unicode__(self):
+	def __str__(self):
 		return "FOO"
 
 

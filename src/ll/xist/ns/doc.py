@@ -465,7 +465,7 @@ class abbr(inline):
 	def convert_fo(self, converter):
 		return xsc.Text(str(self.content))
 
-	def __unicode__(self):
+	def __str__(self):
 		return str(self.content)
 
 

@@ -2585,9 +2585,6 @@ class URL(object):
 	def __str__(self):
 		return self.url
 
-	def __unicode__(self):
-		return self.url
-
 	def __repr__(self):
 		return "URL({!r})".format(self.url)
 

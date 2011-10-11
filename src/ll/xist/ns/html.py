@@ -916,8 +916,8 @@ class img(xsc.Element):
 		class vspace(PixelsAttr): pass
 		class lowsrc(xsc.URLAttr): pass # deprecated
 
-	def __unicode__(self):
-		return str(self["alt"])
+	def __str__(self):
+		return str(self.attrs.alt)
 
 
 class map(xsc.Element):
