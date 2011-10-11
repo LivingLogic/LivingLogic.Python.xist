@@ -90,7 +90,7 @@ def test_for():
 	with xsc.build():
 		with xsc.Frag() as e:
 			with defblock(func="gurk(arg)"):
-				with forblock(loop="i in xrange(arg)"):
+				with forblock(loop="i in range(arg)"):
 					+detox.expr("str(i)")
 
 	assert makeoutput(e, "gurk", 3) == "012"
