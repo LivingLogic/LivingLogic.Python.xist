@@ -120,7 +120,7 @@ from ll.xist.ns import xml, html
 
 class IsExtLink(xfind.WalkFilter):
 	def filternode(self, node):
-		if isinstance(node, html.a) and not unicode(node.attrs.href).startswith(u"http://www.python.org"):
+		if isinstance(node, html.a) and not str(node.attrs.href).startswith(u"http://www.python.org"):
 			return (True, xfind.entercontent)
 		return (xfind.entercontent,)
 

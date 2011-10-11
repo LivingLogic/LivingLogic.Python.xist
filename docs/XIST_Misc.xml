@@ -139,7 +139,7 @@ the processing instruction. For example, consider the following &xml; file:</p>
 	# sum
 	def gauss(top=100):
 		sum = 0
-		for i in xrange(top+1):
+		for i in range(top+1):
 			sum += i
 		return sum
 ?&gt;
