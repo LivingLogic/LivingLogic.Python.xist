@@ -663,19 +663,19 @@ class SshConnection(Connection):
 		def ownergroup(filename, owner=None, group=None):
 			if owner is not None or group is not None:
 				if owner is None or group is None:
-					if isinstance(filename, basestring):
+					if isinstance(filename, str):
 						stat = os.stat(filename)
 					else:
 						stat = os.fstat(files[filename].fileno())
 				if owner is None:
 					owner = stat.st_uid
-				elif isinstance(owner, basestring):
+				elif isinstance(owner, str):
 					import pwd
 					owner = pwd.getpwnam(owner)[2]
 
 				if group is None:
 					group = stat.st_gid
-				elif isinstance(group, basestring):
+				elif isinstance(group, str):
 					import grp
 					group = grp.getgrnam(group)[2]
 			return (owner, group)
@@ -709,7 +709,7 @@ class SshConnection(Connection):
 
 		while True:
 			(filename, cmdname, args, kwargs) = channel.receive()
-			if isinstance(filename, basestring):
+			if isinstance(filename, str):
 				filename = os.path.expanduser(urllib.url2pathname(filename))
 			data = None
 			try:
@@ -728,7 +728,7 @@ class SshConnection(Connection):
 					data = id(stream)
 					files[data] = stream
 				elif cmdname == "stat":
-					if isinstance(filename, basestring):
+					if isinstance(filename, str):
 						data = tuple(os.stat(filename))
 					else:
 						data = tuple(os.fstat(files[filename].fileno()))
