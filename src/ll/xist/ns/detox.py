@@ -18,7 +18,7 @@ The following example is a simple "Hello, World" type template::
 
 	template = """
 	<?def helloworld(n=10)?>
-		<?for i in xrange(n)?>
+		<?for i in range(n)?>
 			Hello, World!
 		<?end for?>
 	<?end def?>
@@ -157,7 +157,7 @@ class for_(xsc.ProcInst):
 	For example::
 
 		<ul>
-			<?for i in xrange(10)?>
+			<?for i in range(10)?>
 				<li><?expr str(i)?></li>
 			<?end for?>
 		</ul>
