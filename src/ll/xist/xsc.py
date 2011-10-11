@@ -858,7 +858,8 @@ class Publisher(object):
 		self.encoder = codecs.getincrementalencoder("xml")(encoding=self.encoding)
 
 		for part in self.node.publish(self):
-			yield part
+			if part:
+				yield part
 		rest = self.encoder.encode("", True) # finish encoding and flush buffers
 		if rest:
 			yield rest
@@ -1836,7 +1837,7 @@ class Frag(Node, list):
 		self.extend(other)
 		return self
 
-	# no need to implement __len__ or __nonzero__
+	# no need to implement __len__ or __bool__
 
 	def append(self, *others):
 		"""
