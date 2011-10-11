@@ -272,12 +272,18 @@ def le(expected, render):
 	assert expected <= got
 
 
+def exceptionchain(exc):
+	while exc is not None:
+		yield exc
+		exc = exc.__cause__
+
+
 def raises(msg, render):
 	# Check that executing ``render`` raises an exception that matches a regexp
 	try:
 		render.renders()
 	except Exception as exc:
-		assert re.search(msg, "{0.__class__.__module__}.{0.__class__.__name__}: {0}".format(exc)) is not None
+		assert any(re.search(msg, "{0.__class__.__module__}.{0.__class__.__name__}: {0}".format(subexc)) is not None for subexc in exceptionchain(exc))
 	else:
 		py.test.fail("failed to raise exception")
 
