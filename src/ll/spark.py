@@ -55,14 +55,15 @@ def _sparknames(cls):
 				names.add(name)
 
 
-class Scanner(object):
-	reflags = 0
+class _Scanner_Meta(type):
+	def __new__(mcl, name, bases, dict_):
+		cls = type.__new__(mcl, name, bases, dict_)
+		cls.reflect()
+		return cls
 
-	class __metaclass__(type):
-		def __new__(mcl, name, bases, dict_):
-			cls = type.__new__(mcl, name, bases, dict_)
-			cls.reflect()
-			return cls
+
+class Scanner(metaclass=_Scanner_Meta):
+	reflags = 0
 
 	@classmethod
 	def reflect(cls):
@@ -115,7 +116,15 @@ class _State:
 		self.items = items
 		self.stateno = stateno
 
-class Parser(object):
+
+class _Parser_Meta(type):
+	def __new__(mcl, name, bases, dict_):
+		cls = type.__new__(mcl, name, bases, dict_)
+		cls.reflect()
+		return cls
+
+
+class Parser(metaclass=_Parser_Meta):
 	#
 	#  An Earley parser, as per J. Earley, "An Efficient Context-Free
 	#  Parsing Algorithm", CACM 13(2), pp. 94-102.  Also J. C. Earley,
@@ -127,12 +136,6 @@ class Parser(object):
 	#  Parsing", unpublished paper, 2001.
 	#
 	start = None # Start symbol
-
-	class __metaclass__(type):
-		def __new__(mcl, name, bases, dict_):
-			cls = type.__new__(mcl, name, bases, dict_)
-			cls.reflect()
-			return cls
 
 	_NULLABLE = '\e_'
 	_START = 'START'
