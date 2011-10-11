@@ -116,7 +116,6 @@ class Error(Exception):
 	"""
 	def __init__(self, location):
 		self.location = location
-		self.__cause__ = None
 
 	def __repr__(self):
 		return "<{}.{} in {} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.location, id(self))
@@ -124,17 +123,7 @@ class Error(Exception):
 	def __str__(self):
 		path = []
 
- 		# FIXME: Drop ``__cause__`` traversal in Python 3, as this is done by Python itself
-		exc = self
-		while isinstance(exc, Error):
-			if not path or path[-1] is not exc.location:
-				path.append(exc.location)
-			exc = exc.__cause__
-		name = exc.__class__.__name__
-		module = exc.__class__.__module__
-		if module != "exceptions":
-			name = "{}.{}".format(module, name)
-		return "{} {}: {}".format(" ".join("in {}:".format(location) for location in path), name, exc)
+		return "in {}".format(self.location)
 
 
 class LexicalError(Exception):
@@ -815,7 +804,7 @@ class Template(object):
 		if self._pythonfunction is None:
 			code = self.pythonsource()
 			ns = {}
-			exec(code.encode("utf-8"), ns) # FIXME: no need to encode in Python 3
+			exec(code, ns)
 			self._pythonfunction = ns[self.name]
 		return self._pythonfunction
 
@@ -1012,15 +1001,11 @@ class Template(object):
 				else: # Can't happen
 					raise ValueError("unknown tag {!r}".format(location.type))
 			except Exception as exc:
-				newexc = Error(location) # FIXME: use ``raise ... from`` in Python 3
-				newexc.__cause__ = exc
-				raise newexc
+				raise Error(location) from exc
 			finally:
 				del self.location
 		if stack:
-			newexc = Error(stack[-1][1]) # FIXME: use ``raise ... from`` in Python 3
-			newexc.__cause__ = BlockError("block unclosed")
-			raise newexc
+			raise Error(stack[-1][1]) from BlockError("block unclosed")
 
 		# Do an extra loop over the opcodes to fix the template names in the location objects
 		defnames = [name] # This stack stores the names of the nested templates.
@@ -1032,9 +1017,6 @@ class Template(object):
 				defnames.append(opcode.arg)
 
 	def __str__(self):
-		return "\n".join(self.format())
-
-	def __unicode__(self):
 		return "\n".join(self.format())
 
 	def __repr__(self):
@@ -1058,7 +1040,7 @@ class PythonSource(object):
 		"""
 		self.template = template
 
-	def __unicode__(self):
+	def __str__(self):
 		"""
 		Return the Python sourcecode for the :class:`Template` object passed to
 		the constructor.
@@ -1079,7 +1061,6 @@ class PythonSource(object):
 		self._line(self.lastlocation, "__2__")
 		self._line(self.lastlocation, "source = {!r}".format(self.template.source))
 		self._line(self.lastlocation, "name = {!r}".format(self.template.name))
-		self._line(self.lastlocation, 'variables = {key.decode("utf-8"): value for (key, value) in variables.iteritems()}') # FIXME: This can be dropped in Python 3 where strings are unicode
 		self._line(self.lastlocation, "r0 = r1 = r2 = r3 = r4 = r5 = r6 = r7 = r8 = r9 = None")
 		self._line(self.lastlocation, "try:")
 		self.indent += 1
@@ -1093,15 +1074,11 @@ class PythonSource(object):
 					raise UnknownOpcodeError(opcode.code)
 				self.lastopcode = opcode.code
 		except Exception as exc:
-			newexc = Error(opcode.location) # FIXME: Use ``raise ... from`` in Python 3
-			newexc.__cause__ = exc
-			raise newexc
+			raise Error(opcode.location) from exc
 		self.indent -= 1
-		self._line(self.lastlocation, "except Exception, exc:")
+		self._line(self.lastlocation, "except Exception as exc:")
 		self.indent += 1
-		self._line(self.lastlocation, "newexc = ul4c.Error(ul4c.Location(source, name, *locations[lines2locs[sys.exc_info()[2].tb_lineno-startline]]))") # FIXME: Use ``raise ... from`` in Python 3
-		self._line(self.lastlocation, "newexc.__cause__ = exc")
-		self._line(self.lastlocation, "raise newexc")
+		self._line(self.lastlocation, "raise ul4c.Error(ul4c.Location(source, name, *locations[lines2locs[sys.exc_info()[2].tb_lineno-startline]])) from exc")
 		locoffset = 1+int(self.lines[0].strip() != "__1__")
 		self.lines[locoffset] = self.lines[locoffset].replace("__1__", "locations = {!r}".format(tuple(self.locations)))
 		self.lines[locoffset+1] = self.lines[locoffset+1].replace("__2__", "lines2locs = {!r}".format(tuple(self.lines2locs)))
@@ -1171,9 +1148,9 @@ class PythonSource(object):
 	def _dispatch_getslice2(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}[:r{op.r3:d}]".format(op=opcode))
 	def _dispatch_print(self, opcode):
-		self._line(opcode.location, "if r{op.r1:d} is not None: yield unicode(r{op.r1:d})".format(op=opcode))
+		self._line(opcode.location, "if r{op.r1:d} is not None: yield str(r{op.r1:d})".format(op=opcode))
 	def _dispatch_printx(self, opcode):
-		self._line(opcode.location, "if r{op.r1:d} is not None: yield xmlescape(unicode(r{op.r1:d}))".format(op=opcode))
+		self._line(opcode.location, "if r{op.r1:d} is not None: yield xmlescape(str(r{op.r1:d}))".format(op=opcode))
 	def _dispatch_for(self, opcode):
 		self._line(opcode.location, "for r{op.r1:d} in r{op.r2:d}:".format(op=opcode))
 		self.indent += 1
@@ -1249,7 +1226,7 @@ class PythonSource(object):
 		if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "r", "g", "b", "a", "hls", "hlsa", "hsv", "hsva", "lum", "weekday"):
 			self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}.{op.arg}()".format(op=opcode))
 		elif opcode.arg == "items":
-			self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}.iteritems()".format(op=opcode))
+			self._line(opcode.location, "r{op.r1:d} = list(r{op.r2:d}.items())".format(op=opcode))
 		elif opcode.arg == "render":
 			self._line(opcode.location, 'r{op.r1:d} = "".join(r{op.r2:d}())'.format(op=opcode))
 		elif opcode.arg in ("mimeformat", "yearday", "isoformat"):
@@ -1262,7 +1239,7 @@ class PythonSource(object):
 		if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "rfind", "get", "withlum", "witha"):
 			self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}.{op.arg}(r{op.r3:d})".format(op=opcode))
 		elif opcode.arg == "join":
-			self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}.join(unicode(x) for x in r{op.r3:d})".format(op=opcode))
+			self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}.join(str(x) for x in r{op.r3:d})".format(op=opcode))
 		elif opcode.arg == "format":
 			self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}.__format__(r{op.r3:d})".format(op=opcode))
 		else:
@@ -1279,7 +1256,7 @@ class PythonSource(object):
 			raise UnknownMethodError(opcode.arg)
 	def _dispatch_callmethkw(self, opcode):
 		if opcode.arg == "render":
-			self._line(opcode.location, 'r{op.r1:d} = "".join(r{op.r2:d}(**{{key.encode("utf-8"): value for (key, value) in r{op.r3:d}.iteritems()}}))'.format(op=opcode)) # FIXME: This can be simplified in Python 3 where strings are unicode
+			self._line(opcode.location, 'r{op.r1:d} = "".join(r{op.r2:d}(**r{op.r3:d}))'.format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 	def _dispatch_if(self, opcode):
@@ -1300,7 +1277,6 @@ class PythonSource(object):
 		self.defs.append(opcode)
 		self.indent += 1
 		self._line(opcode.location, "name = {!r}".format(opcode.arg))
-		self._line(opcode.location, 'variables = {key.decode("utf-8"): value for (key, value) in variables.iteritems()}') # FIXME: This can be dropped in Python 3 where strings are unicode
 		self._line(opcode.location, "r0 = r1 = r2 = r3 = r4 = r5 = r6 = r7 = r8 = r9 = None")
 		self._line(opcode.location, "try:")
 		self.indent += 1
@@ -1309,15 +1285,13 @@ class PythonSource(object):
 	def _dispatch_enddef(self, opcode):
 		defopcode = self.defs.pop()
 		self.indent -= 1
-		self._line(opcode.location, "except Exception, exc:")
+		self._line(opcode.location, "except Exception as exc:")
 		self.indent += 1
-		self._line(opcode.location, "newexc = ul4c.Error(ul4c.Location(source, name, *locations[lines2locs[sys.exc_info()[2].tb_lineno-startline]]))") # FIXME: Use ``raise ... from`` in Python 3
-		self._line(opcode.location, "newexc.__cause__ = exc")
-		self._line(opcode.location, "raise newexc")
+		self._line(opcode.location, "raise ul4c.Error(ul4c.Location(source, name, *locations[lines2locs[sys.exc_info()[2].tb_lineno-startline]])) from exc")
 		self.indent -= 2
 		self._line(opcode.location, "variables[{op.arg!r}] = _template_{op.arg}".format(op=defopcode))
 	def _dispatch_render(self, opcode):
-		self._line(opcode.location, 'for chunk in r{op.r1:d}(**{{key.encode("utf-8"): value for (key, value) in r{op.r2:d}.iteritems()}}): yield chunk'.format(op=opcode))
+		self._line(opcode.location, 'for chunk in r{op.r1:d}(**r{op.r2:d}): yield chunk'.format(op=opcode))
 	def _dispatch_callfunc0_now(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = datetime.datetime.now()".format(op=opcode))
 	def _dispatch_callfunc0_utcnow(self, opcode):
@@ -1327,13 +1301,13 @@ class PythonSource(object):
 	def _dispatch_callfunc0_random(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = random.random()".format(op=opcode))
 	def _dispatch_callfunc1_xmlescape(self, opcode):
-		self._line(opcode.location, "r{op.r1:d} = xmlescape(unicode(r{op.r2:d})) if r{op.r2:d} is not None else u''".format(op=opcode))
+		self._line(opcode.location, "r{op.r1:d} = xmlescape(str(r{op.r2:d})) if r{op.r2:d} is not None else ''".format(op=opcode))
 	def _dispatch_callfunc1_csv(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = ul4c._csv(r{op.r2:d})".format(op=opcode))
 	def _dispatch_callfunc1_json(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = ul4c._json(r{op.r2:d})".format(op=opcode))
 	def _dispatch_callfunc1_str(self, opcode):
-		self._line(opcode.location, "r{op.r1:d} = unicode(r{op.r2:d}) if r{op.r2:d} is not None else u''".format(op=opcode))
+		self._line(opcode.location, "r{op.r1:d} = str(r{op.r2:d}) if r{op.r2:d} is not None else ''".format(op=opcode))
 	def _dispatch_callfunc1_int(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = int(r{op.r2:d})".format(op=opcode))
 	def _dispatch_callfunc1_float(self, opcode):
@@ -1357,9 +1331,9 @@ class PythonSource(object):
 	def _dispatch_callfunc1_isnone(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d} is None".format(op=opcode))
 	def _dispatch_callfunc1_isstr(self, opcode):
-		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, basestring)".format(op=opcode))
+		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, str)".format(op=opcode))
 	def _dispatch_callfunc1_isint(self, opcode):
-		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, (int, long)) and not isinstance(r{op.r2:d}, bool)".format(op=opcode))
+		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, int) and not isinstance(r{op.r2:d}, bool)".format(op=opcode))
 	def _dispatch_callfunc1_isfloat(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, float)".format(op=opcode))
 	def _dispatch_callfunc1_isbool(self, opcode):
@@ -1367,7 +1341,7 @@ class PythonSource(object):
 	def _dispatch_callfunc1_isdate(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, datetime.datetime)".format(op=opcode))
 	def _dispatch_callfunc1_islist(self, opcode):
-		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, collections.Sequence) and not isinstance(r{op.r2:d}, (str, unicode, color.Color))".format(op=opcode))
+		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, collections.Sequence) and not isinstance(r{op.r2:d}, (str, color.Color))".format(op=opcode))
 	def _dispatch_callfunc1_isdict(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, collections.Mapping)".format(op=opcode))
 	def _dispatch_callfunc1_istemplate(self, opcode):
@@ -1379,19 +1353,19 @@ class PythonSource(object):
 	def _dispatch_callfunc1_get(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = variables.get(r{op.r2:d})".format(op=opcode))
 	def _dispatch_callfunc1_chr(self, opcode):
-		self._line(opcode.location, "r{op.r1:d} = unichr(r{op.r2:d})".format(op=opcode))
+		self._line(opcode.location, "r{op.r1:d} = chr(r{op.r2:d})".format(op=opcode))
 	def _dispatch_callfunc1_ord(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = ord(r{op.r2:d})".format(op=opcode))
 	def _dispatch_callfunc1_hex(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = hex(r{op.r2:d})".format(op=opcode))
 	def _dispatch_callfunc1_oct(self, opcode):
-		self._line(opcode.location, "r{op.r1:d} = ul4c._oct(r{op.r2:d})".format(op=opcode))
+		self._line(opcode.location, "r{op.r1:d} = oct(r{op.r2:d})".format(op=opcode))
 	def _dispatch_callfunc1_bin(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = bin(r{op.r2:d})".format(op=opcode))
 	def _dispatch_callfunc1_sorted(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = sorted(r{op.r2:d})".format(op=opcode))
 	def _dispatch_callfunc1_range(self, opcode):
-		self._line(opcode.location, "r{op.r1:d} = xrange(r{op.r2:d})".format(op=opcode))
+		self._line(opcode.location, "r{op.r1:d} = range(r{op.r2:d})".format(op=opcode))
 	def _dispatch_callfunc1_type(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = ul4c._type(r{op.r2:d})".format(op=opcode))
 	def _dispatch_callfunc1_reversed(self, opcode):
@@ -1403,19 +1377,19 @@ class PythonSource(object):
 	def _dispatch_callfunc2_format(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = format(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
 	def _dispatch_callfunc2_range(self, opcode):
-		self._line(opcode.location, "r{op.r1:d} = xrange(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
+		self._line(opcode.location, "r{op.r1:d} = range(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
 	def _dispatch_callfunc2_get(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = variables.get(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
 	def _dispatch_callfunc2_zip(self, opcode):
-		self._line(opcode.location, "r{op.r1:d} = itertools.izip(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
+		self._line(opcode.location, "r{op.r1:d} = zip(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
 	def _dispatch_callfunc2_int(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = int(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
 	def _dispatch_callfunc2_randrange(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = random.randrange(r{op.r2:d}, r{op.r3:d})".format(op=opcode))
 	def _dispatch_callfunc3_range(self, opcode):
-		self._line(opcode.location, "r{op.r1:d} = xrange(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
+		self._line(opcode.location, "r{op.r1:d} = range(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
 	def _dispatch_callfunc3_zip(self, opcode):
-		self._line(opcode.location, "r{op.r1:d} = itertools.izip(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
+		self._line(opcode.location, "r{op.r1:d} = zip(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
 	def _dispatch_callfunc3_rgb(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = color.Color.fromrgb(r{op.r2:d}, r{op.r3:d}, r{op.r4:d})".format(op=opcode))
 	def _dispatch_callfunc3_hls(self, opcode):
@@ -1450,7 +1424,7 @@ class JavascriptSource(object):
 		"""
 		self.template = template
 
-	def __unicode__(self):
+	def __str__(self):
 		"""
 		Return the Javascript sourcecode for the :class:`Template` object passed
 		to the constructor.
@@ -1752,7 +1726,7 @@ class JavaSource(object):
 		self.indent = indent
 		self.variables = variables
 
-	def __unicode__(self):
+	def __str__(self):
 		"""
 		Return the Java sourcecode for the :class:`Template` object passed to
 		the constructor.
@@ -2541,7 +2515,7 @@ class CallFunc(AST):
 			raise ValueError("{} function arguments not supported".format(len(self.args)))
 		else:
 			rs = [arg.compile(template) for arg in self.args]
-			template.opcode("callfunc{}".format(len(self.args)), rs[0], *rs, **dict(arg=self.name.name)) # FIXME: Replace **dict(arg=) with arg= in Python 2.6?
+			template.opcode("callfunc{}".format(len(self.args)), rs[0], *rs, arg=self.name.name)
 			for i in range(1, len(self.args)):
 				template._freereg(rs[i])
 			return rs[0]
@@ -2650,9 +2624,7 @@ class Scanner(spark.Scanner):
 			if self.mode != "default":
 				raise UnterminatedStringError()
 		except Exception as exc:
-			newexc = Error(location) # FIXME: use ``raise ... from`` in Python 3
-			newexc.__cause__ = exc
-			raise newexc
+			raise Error(location) from exc
 		return self.rv
 
 	# Color tokens must be in the order of decreasing length
@@ -2821,9 +2793,7 @@ class ExprParser(spark.Parser):
 			ast = self.parse(self.scanner.tokenize(location))
 			return ast.compile(template)
 		except Exception as exc:
-			newexc = Error(location) # FIXME: Use ``raise ... from`` in Python 3
-			newexc.__cause__ = exc
-			raise newexc
+			raise Error(location) from exc
 		finally:
 			del template.registers
 
@@ -3265,9 +3235,7 @@ def _repr(obj):
 	Helper for the ``repr`` function.
 	"""
 	if isinstance(obj, str):
-		return str(repr(obj)[1:])
-	elif isinstance(obj, str):
-		return str(repr(obj))
+		return repr(obj)
 	elif isinstance(obj, datetime.datetime):
 		s = str(obj.isoformat())
 		if s.endswith("T00:00:00"):
@@ -3292,7 +3260,7 @@ def _repr(obj):
 	elif isinstance(obj, collections.Mapping):
 		return "{{{}}}".format(", ".join("{}: {}".format(_repr(key), _repr(value)) for (key, value) in obj.items()))
 	else:
-		return str(repr(obj))
+		return repr(obj)
 
 
 def _json(obj):
@@ -3393,18 +3361,6 @@ def _last(obj):
 			return
 		else:
 			yield (False, lastitem)
-
-
-def _oct(value):
-		"""
-		Helper for the ``oct`` function.
-		"""
-		if value == 0:
-			return "0o0"
-		elif value < 0:
-			return "-0o" + oct(value)[2:]
-		else:
-			return "0o" + oct(value)[1:]
 
 
 def _csv(obj):
