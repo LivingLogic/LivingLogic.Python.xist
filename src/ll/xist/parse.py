@@ -271,13 +271,13 @@ class String(object):
 	def __iter__(self):
 		"""
 		Produces an event stream of one ``"url"`` event and one ``"bytes"`` or
-		``"unicode"`` event for the data.
+		``"str"`` event for the data.
 		"""
 		yield ("url", self.url)
-		if isinstance(self.data, str):
+		if isinstance(self.data, bytes):
 			yield ("bytes", self.data)
 		elif isinstance(self.data, str):
-			yield ("unicode", self.data)
+			yield ("str", self.data)
 		else:
 			raise TypeError("data must be str or unicode")
 
@@ -299,14 +299,14 @@ class Iter(object):
 	def __iter__(self):
 		"""
 		Produces an event stream of one ``"url"`` event followed by the
-		``"bytes"``/``"unicode"`` events for the data from the iterable.
+		``"bytes"``/``"str"`` events for the data from the iterable.
 		"""
 		yield ("url", self.url)
 		for data in self.iterable:
-			if isinstance(data, str):
+			if isinstance(data, bytes):
 				yield ("bytes", data)
 			elif isinstance(data, str):
-				yield ("unicode", data)
+				yield ("str", data)
 			else:
 				raise TypeError("data must be str or unicode")
 
@@ -331,16 +331,16 @@ class Stream(object):
 	def __iter__(self):
 		"""
 		Produces an event stream of one ``"url"`` event followed by the
-		``"bytes"``/``"unicode"`` events for the data from the stream.
+		``"bytes"``/``"str"`` events for the data from the stream.
 		"""
 		yield ("url", self.url)
 		while True:
 			data = self.stream.read(self.bufsize)
 			if data:
-				if isinstance(data, str):
+				if isinstance(data, bytes):
 					yield ("bytes", data)
 				elif isinstance(data, str):
-					yield ("unicode", data)
+					yield ("str", data)
 				else:
 					raise TypeError("data must be str or unicode")
 			else:
@@ -508,10 +508,10 @@ class Decoder(object):
 			if evtype == "bytes":
 				data = decoder.decode(data, False)
 				if data:
-					yield ("unicode", data)
-			elif evtype == "unicode":
+					yield ("str", data)
+			elif evtype == "str":
 				if data:
-					yield ("unicode", data)
+					yield ("str", data)
 			elif evtype == "url":
 				yield ("url", data)
 			else:
@@ -1485,7 +1485,7 @@ def events(*pipeline):
 	source = pipeline[0]
 
 	# Propagate first pipeline object to a source object (if unambiguous, else use it as it is)
-	if isinstance(source, str):
+	if isinstance(source, (bytes, str)):
 		source = String(source)
 	elif isinstance(source, url_.URL):
 		source = URL(source)
