@@ -165,7 +165,9 @@ def makexnd(urls, parser="etree", shareattrs="dupes", model="simple", defaultxml
 			if isinstance(u, url.URL):
 				u = u.openread()
 			elif isinstance(u, str):
-				u = io.StringIO(u)
+				u = io.BytesIO(u.encode("utf-8"))
+			elif isinstance(u, bytes):
+				u = io.BytesIO(u)
 			if parser == "etree":
 				from xml.etree import cElementTree
 				node = cElementTree.parse(u).getroot()
