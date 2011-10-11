@@ -245,7 +245,7 @@ Internal helper function for normalizing a path list";
  * code is:
 	new_path_segments = []
 	l = len(path_segments)
-	for i in xrange(l):
+	for i in range(l):
 		segment = path_segments[i]
 		if segment=="." or segment=="":
 			if i==l-1:
