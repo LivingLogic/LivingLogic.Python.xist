@@ -358,7 +358,7 @@ static struct PyModuleDef _urlmodule = {
 };
 
 PyMODINIT_FUNC
-PyInit_url(void)
+PyInit__url(void)
 {
     return PyModule_Create(&_urlmodule);
 }
