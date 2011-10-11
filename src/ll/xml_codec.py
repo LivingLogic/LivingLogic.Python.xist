@@ -170,7 +170,7 @@ class IncrementalEncoder(codecs.IncrementalEncoder):
 				newinput = _fixencoding(input, str(self.encoding), final)
 				if newinput is None: # declaration not complete => Retry next time
 					self.buffer = input
-					return ""
+					return b""
 				input = newinput
 			else:
 				# Use encoding from the XML declaration
@@ -183,7 +183,7 @@ class IncrementalEncoder(codecs.IncrementalEncoder):
 				self.buffer = ""
 			else:
 				self.buffer = input
-				return ""
+				return b""
 		return self.encoder.encode(input, final)
 
 	def reset(self):
