@@ -1840,7 +1840,7 @@ class Path(object):
 		self._path = ""
 		self._segments = []
 
-	def __div__(self, other):
+	def __truediv__(self, other):
 		"""
 		Join two paths.
 		"""
@@ -1867,7 +1867,7 @@ class Path(object):
 		else: # this makes path/generator possible
 			return (self/path for path in other)
 
-	def __rdiv__(self, other):
+	def __rtruediv__(self, other):
 		"""
 		Right hand version of :meth:`__div__`. This supports list and generators
 		as the left hand side too.
@@ -2471,7 +2471,7 @@ class URL(object):
 		del url.frag
 		return url
 
-	def __div__(self, other):
+	def __truediv__(self, other):
 		"""
 		Join :var:`self` with another (possible relative) :class:`URL`
 		:var:`other`, to form a new :class:`URL`.
@@ -2525,7 +2525,7 @@ class URL(object):
 		else: # this makes path/generator possible
 			return (self/path for path in other)
 
-	def __rdiv__(self, other):
+	def __rtruediv__(self, other):
 		"""
 		Right hand version of :meth:`__div__`. This supports lists and iterables
 		as the left hand side too.
