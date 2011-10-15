@@ -26,9 +26,9 @@ static PyObject *escape(PyObject *self, PyObject *args)
 	unsigned char *s;
 	unsigned char *starts;
 	unsigned char *ends;
-	char *r;
-	char *startr;
-	char *endr;
+	Py_UNICODE *r;
+	Py_UNICODE *startr;
+	Py_UNICODE *endr;
 	int newsize;
 
 	if (!PyArg_ParseTuple(args, "O|s:escape", &str, &safe))
@@ -55,11 +55,11 @@ static PyObject *escape(PyObject *self, PyObject *args)
 			newsize += 3;
 	}
 
-	res = PyBytes_FromStringAndSize(NULL, newsize);
+	res = PyUnicode_FromStringAndSize(NULL, newsize);
 	if (res)
 	{
-		startr = PyBytes_AS_STRING(res);
-		endr = startr + PyBytes_GET_SIZE(res);
+		startr = PyUnicode_AS_UNICODE(res);
+		endr = startr + PyUnicode_GET_SIZE(res);
 
 		for (s = starts, r = startr; s < ends;)
 		{
