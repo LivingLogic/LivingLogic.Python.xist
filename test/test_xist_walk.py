@@ -33,7 +33,7 @@ def test_walk_result():
 		def path2str(path):
 			return ".".join("#" if isinstance(node, xsc.Text) else node.xmlname for node in path)
 
-		assert list(map(path2str, node.walkpaths(filter))) == result
+		assert [path2str(s) for s in node.walkpaths(filter)] == result
 
 	node = html.div(
 		html.tr(
