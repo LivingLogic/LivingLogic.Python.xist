@@ -94,7 +94,7 @@ def httpdate(dt):
 
 
 try:
-	from _url import escape as _escape, unescape as _unescape, normalizepath as _normalizepath
+	from ._url import escape as _escape, unescape as _unescape, normalizepath as _normalizepath
 except ImportError:
 	def _normalizepath(path_segments):
 		new_path_segments = []
