@@ -76,10 +76,10 @@ can be produced by source objects:
 		This event is produced by source objects  (and :class:`Transcoder` objects).
 		The event data is a byte string.
 
-	``"unicode"``
-		The event data is a unicode string. This event is produced by
-		:class:`Decoder` objects. Note that the only predefined pipeline objects
-		that can handle ``"unicode"`` events are :class:`Encoder` objects.
+	``"str"``
+		The event data is a Jstring. This event is produced by :class:`Decoder`
+		objects. Note that the only predefined pipeline objects that can handle
+		``"str"`` events are :class:`Encoder` objects.
 
 The following type of events are produced by parsers (in addition to the
 ``"url"`` event from above):
@@ -518,7 +518,7 @@ class Decoder(object):
 				raise UnknownEventError(self, (evtype, data))
 		data = decoder.decode("", True)
 		if data:
-			yield ("unicode", data)
+			yield ("str", data)
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
@@ -544,7 +544,7 @@ class Encoder(object):
 	def __call__(self, input):
 		encoder = codecs.getincrementalencoder("xml")(encoding=self.encoding)
 		for (evtype, data) in input:
-			if evtype == "unicode":
+			if evtype == "str":
 				data = encoder.encode(data, False)
 				if data:
 					yield ("bytes", data)
