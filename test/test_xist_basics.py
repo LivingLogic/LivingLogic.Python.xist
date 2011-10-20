@@ -173,9 +173,9 @@ def test_number():
 
 def test_write():
 	node = html.div()
-	io = io.StringIO()
-	node.write(io, xhtml=2)
-	assert io.getvalue() == b"<div/>"
+	s = io.BytesIO()
+	node.write(s, xhtml=2)
+	assert s.getvalue() == b"<div/>"
 
 
 def test_mul():
