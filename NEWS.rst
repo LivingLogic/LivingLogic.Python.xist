@@ -1,5 +1,14 @@
-Changes in 3.26 (released ??/??/2011)
--------------------------------------
+Changes in 4.0 (released ??/??/2011)
+------------------------------------
+
+*	The source has been ported to Python 3. From now on XIST is a Python 3 only
+	project. A big thanks goes to Martin v. Löwis, who got this conversion
+	started on PyCon DE 2011. He did the basic ``2to3`` conversion and updated
+	the C source to work on Python 3. Without Martin, XIST wouldn't have made
+	the leap to Python 3 for several years.
+
+*	The XIST node method :meth:`sorted` has been removed, as it no longer makes
+	sense, because with Python 3 nodes might be uncomparable.
 
 *	The UL4 function ``enumerate`` has been renamed to ``enum``.
 
