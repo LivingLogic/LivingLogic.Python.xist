@@ -155,7 +155,7 @@ def test_multipleparsecalls():
 			except Exception:
 				pass
 			for j in range(3):
-				assert parse.tree(b"<a>gurk</a>", parser, parse.NS(html), parse.Node()).bytes() == "<a>gurk</a>"
+				assert parse.tree(b"<a>gurk</a>", parser, parse.NS(html), parse.Node()).string() == "<a>gurk</a>"
 
 	# A Parser instance should be able to parse multiple XML sources, even when some of the parse calls fail
 	for parser in (parse.SGMLOP, parse.Expat):
