@@ -325,7 +325,7 @@ def test_filesource():
 def test_streamsource():
 	# Stream objects are not reusable
 	expect = open("setup.py", "rb").read()
-	parsed = "".join(event[1] for event in parse.Stream(open("setup.py", "rb"), bufsize=32) if event[0] == "bytes")
+	parsed = b"".join(event[1] for event in parse.Stream(open("setup.py", "rb"), bufsize=32) if event[0] == "bytes")
 	assert parsed == expect
 
 
