@@ -1338,7 +1338,7 @@ class URLResource(Resource):
 		self._resheaders = self._stream.info()
 		self._mimetype = None
 		self._encoding = None
-		contenttype = self._resheaders.getheader("Content-Type")
+		contenttype = self._resheaders.get("Content-Type")
 		if contenttype is not None:
 			(mimetype, options) = cgi.parse_header(contenttype)
 			self._mimetype = mimetype
