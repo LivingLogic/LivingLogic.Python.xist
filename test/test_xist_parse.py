@@ -164,26 +164,26 @@ def test_multipleparsecalls():
 
 def test_parseentities_sgmlop():
 	def check(input, output):
-		node = parse.tree(b"""<a title="{0}">{0}</a>""".format(input), parse.SGMLOP(), parse.NS(a.xmlns), parse.Node(pool=xsc.Pool(a, bar, foo, chars)))
+		node = parse.tree('<a title="{0}">{0}</a>'.format(input).encode("utf-8"), parse.SGMLOP(), parse.NS(a.xmlns), parse.Node(pool=xsc.Pool(a, bar, foo, chars)))
 		node = node.walknodes(a)[0]
 		assert str(node) == output
 		assert str(node.attrs.title) == output
 
-	yield check, b"a", "a"
-	yield check, b";a;", ";a;"
-	yield check, b"&lt;", "<"
-	yield check, b"&lt;&gt;", "<>"
-	yield check, b"&gt;", ">"
-	yield check, b"&apos;", "'"
-	yield check, b"&quot;", '"'
-	yield check, b"&amp;", "&"
-	yield check, b"&amp;", "&"
-	yield check, b"a&amp;b", "a&b"
-	yield check, b"&foo;", "FOO"
-	yield check, b"&bar;", "\x42"
-	yield check, b"&#32;", " "
-	yield check, b"&#x20;", " "
-	yield check, b"&#x3042;", "\u3042"
+	yield check, "a", "a"
+	yield check, ";a;", ";a;"
+	yield check, "&lt;", "<"
+	yield check, "&lt;&gt;", "<>"
+	yield check, "&gt;", ">"
+	yield check, "&apos;", "'"
+	yield check, "&quot;", '"'
+	yield check, "&amp;", "&"
+	yield check, "&amp;", "&"
+	yield check, "a&amp;b", "a&b"
+	yield check, "&foo;", "FOO"
+	yield check, "&bar;", "\x42"
+	yield check, "&#32;", " "
+	yield check, "&#x20;", " "
+	yield check, "&#x3042;", "\u3042"
 
 
 def test_parseattr_sgmlop():
@@ -211,25 +211,25 @@ def test_parsestringurl():
 
 
 def test_xmlns():
-	s = b"<z xmlns={!r}><rb xmlns={!r}/><z/></z>".format(doc.xmlns, ruby.xmlns)
+	s = "<z xmlns={!r}><rb xmlns={!r}/><z/></z>".format(doc.xmlns, ruby.xmlns).encode("utf-8")
 	e = parse.tree(s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool(doc, ruby)))
 
 	assert e[0].xmlns == doc.xmlns
 	assert e[0][0].xmlns == ruby.xmlns
 
-	s = b"<a xmlns={!r}><a xmlns={!r}/></a>".format(html.xmlns, ihtml.xmlns)
+	s = "<a xmlns={!r}><a xmlns={!r}/></a>".format(html.xmlns, ihtml.xmlns).encode("utf-8")
 	e = parse.tree(s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool(html, ihtml)))
 	assert isinstance(e[0], html.a)
 	assert isinstance(e[0][0], ihtml.a)
 
-	s = b"<a><a xmlns={!r}/></a>".format(ihtml.xmlns)
+	s = "<a><a xmlns={!r}/></a>".format(ihtml.xmlns).encode("utf-8")
 	with py.test.raises(xsc.IllegalElementError):
 		parse.tree(s, parse.Expat(), parse.NS(html), parse.Node(pool=xsc.Pool(ihtml)))
 	e = parse.tree(s, parse.Expat(), parse.NS(html), parse.Node(pool=xsc.Pool(html, ihtml)))
 	assert isinstance(e[0], html.a)
 	assert isinstance(e[0][0], ihtml.a)
 
-	s = b"<z xmlns={!r}/>".format(doc.xmlns)
+	s = "<z xmlns={!r}/>".format(doc.xmlns).encode("utf-8")
 	e = parse.tree(s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool(doc.z)))
 	assert isinstance(e[0], doc.z)
 	with py.test.raises(xsc.IllegalElementError):
