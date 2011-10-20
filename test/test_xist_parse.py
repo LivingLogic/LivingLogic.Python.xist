@@ -340,10 +340,10 @@ def test_urlsource():
 
 def test_itertree_large():
 	def xml():
-		yield b"<ul xmlns='{}'>".format(html.xmlns)
+		yield "<ul xmlns='{}'>".format(html.xmlns).encode("utf-8")
 		for i in range(1000):
-			yield b"<li>{}</li>".format(i)
-		yield b"</ul>"
+			yield "<li>{}</li>".format(i).encode("utf-8")
+		yield "</ul>".encode("utf-8")
 
 	for (i, (evtype, path)) in enumerate(parse.itertree(parse.Iter(xml()), parse.Expat(ns=True), parse.Node(), filter=html.li)):
 		assert int(str(path[-1])) == i
