@@ -53,8 +53,12 @@ __docformat__ = "reStructuredText"
 
 
 def makexnd(stream, encoding=None, shareattrs="dupes", model="simple"):
-	# :var:`stream` can be a stream, an :class:`URL` or a string
-	node = parse.tree(stream, parse.Expat(), parse.NS(tld), parse.Node())
+	# :var:`stream` can be a stream, an :class:`URL` or ``str``/``bytes``
+	encoding = None
+	if isinstance(stream, str):
+		encoding = "utf-8"
+		stream = stream.encode(encoding)
+	node = parse.tree(stream, parse.Expat(encoding=encoding), parse.NS(tld), parse.Node())
 
 	# get and convert the taglib object
 	xnd = node.walknodes(tld.taglib)[0].asxnd(model=model)
