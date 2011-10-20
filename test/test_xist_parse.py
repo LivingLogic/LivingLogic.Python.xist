@@ -318,7 +318,7 @@ def test_filesource():
 	expect = open("setup.py", "rb").read()
 	source = parse.File("setup.py", bufsize=32)
 	for i in range(3):
-		parsed = "".join(data for (evtype, data) in source if evtype == "bytes")
+		parsed = b"".join(data for (evtype, data) in source if evtype == "bytes")
 		assert parsed == expect
 
 
