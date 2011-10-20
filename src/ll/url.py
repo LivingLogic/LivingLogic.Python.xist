@@ -1352,7 +1352,7 @@ class URLResource(Resource):
 		if lm is not None:
 			lm = mime2dt(lm)
 		self._mdate = lm
-		self._buffer = io.StringIO()
+		self._buffer = io.BytesIO()
 
 	def __getattr__(self, name):
 		function = getattr(self._stream, name)
