@@ -1481,7 +1481,7 @@ class CharacterData(Node):
 
 	class content(misc.propclass):
 		"""
-		The text content of the node as a :class:`unicode` object.
+		The text content of the node as a :class:`str` object.
 		"""
 		def __get__(self):
 			return self._content
@@ -1490,7 +1490,27 @@ class CharacterData(Node):
 		return self._content.__hash__()
 
 	def __eq__(self, other):
-		return self.__class__ is other.__class__ and self._content==other._content
+		return self.__class__ is other.__class__ and self._content == other._content
+
+	def __lt__(self, other):
+		if not issubclass(self.__class__, other.__class__) and not issubclass(other.__class__, self.__class__):
+			raise TypeError("unorderable types")
+		return self._content < other._content
+
+	def __le__(self, other):
+		if not issubclass(self.__class__, other.__class__) and not issubclass(other.__class__, self.__class__):
+			raise TypeError("unorderable types")
+		return self._content <= other._content
+
+	def __gt__(self, other):
+		if not issubclass(self.__class__, other.__class__) and not issubclass(other.__class__, self.__class__):
+			raise TypeError("unorderable types")
+		return self._content > other._content
+
+	def __ge__(self, other):
+		if not issubclass(self.__class__, other.__class__) and not issubclass(other.__class__, self.__class__):
+			raise TypeError("unorderable types")
+		return self._content >= other._content
 
 	def __len__(self):
 		return self._content.__len__()
