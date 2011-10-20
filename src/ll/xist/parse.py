@@ -869,8 +869,11 @@ class SGMLOP(Parser):
 		try:
 			for (evtype, data) in input:
 				if evtype == "bytes":
+					data = self._decoder.decode(data, False)
+					evtype = "str"
+				if evtype == "str":
 					try:
-						self._parser.feed(self._decoder.decode(data, False))
+						self._parser.feed(data)
 					except Exception as exc:
 						# In case of an exception we want to output the events we have gathered so far, before reraising the exception
 						for event in self._flush(True):
