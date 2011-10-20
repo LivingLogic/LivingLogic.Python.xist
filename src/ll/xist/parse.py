@@ -305,6 +305,8 @@ class Iter(object):
 		for data in self.iterable:
 			if isinstance(data, bytes):
 				yield ("bytes", data)
+			elif isinstance(data, int): # From iterating over a ``bytes`` object
+				yield ("bytes", bytes([data]))
 			elif isinstance(data, str):
 				yield ("str", data)
 			else:
