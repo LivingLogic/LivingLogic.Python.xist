@@ -38,12 +38,7 @@ These three levels of functionality are implemented in three classes:
 
 import sys, os, urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, types, mimetypes, io, warnings
 import datetime, cgi, fnmatch, pickle, errno, threading
-from email import message
-
-try:
-	from email import utils as emutils
-except ImportError:
-	from email import Utils as emutils
+from email import message, utils
 
 # don't fail when :mod:`pwd` or :mod:`grp` can't be imported, because if this
 # doesn't work, we're probably on Windows and :func:`os.chown` won't work anyway.
@@ -77,7 +72,7 @@ os.stat_float_times(True)
 
 
 def mime2dt(s):
-	return datetime.datetime(*emutils.parsedate(s)[:7])
+	return datetime.datetime(*utils.parsedate(s)[:7])
 
 
 weekdayname = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
