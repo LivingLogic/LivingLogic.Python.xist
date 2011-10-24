@@ -2410,6 +2410,7 @@ class URL(object):
 					self.path = Path(url)
 				else:
 					self.opaque_part = url
+
 		def __delete__(self):
 			"""
 			After deleting the URL the resulting object will refer to the
