@@ -1911,13 +1911,6 @@ class Frag(Node, list):
 			node.append(child)
 		return node
 
-	def sorted(self, key=None, reverse=False):
-		"""
-		Return a sorted version of the :var:`self`. :var:`key` and :var:`reverse`
-		have to same meaning as for the builtin function :func:`sorted`.
-		"""
-		return self.__class__(sorted(self, key=key, reverse=reverse))
-
 	def reversed(self):
 		"""
 		Return a reversed version of the :var:`self`.
@@ -3343,17 +3336,6 @@ class Element(Node, metaclass=_Element_Meta):
 		node = self.__class__()
 		node.attrs = self.attrs.clone()
 		node.content = self.content.withsep(separator, clone)
-		return node
-
-	def sorted(self, key=None, reverse=False):
-		"""
-		Return a sorted version of :var:`self`. The arguments :var:`key` and
-		:var:`reverse` have the same meaning as for the builtin :func:`sorted`
-		function.
-		"""
-		node = self.__class__()
-		node.attrs = self.attrs.clone()
-		node.content = self.content.sorted(key, reverse)
 		return node
 
 	def reversed(self):

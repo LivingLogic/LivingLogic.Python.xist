@@ -139,7 +139,6 @@ def test_standardmethods():
 
 def test_standardmethods2():
 	for node in (common.createelement(), common.createfrag()):
-		node.sorted()
 		node.shuffled()
 		node.reversed()
 
@@ -838,13 +837,7 @@ def test_clone():
 		assert dst["id"][1] is dst["id"][2]
 
 
-def test_sortedreversed():
-	for class_ in (xsc.Frag, html.div):
-		node = class_(3, 2, 1)
-		node2 = node.sorted(key=str)
-		assert node == class_(3, 2, 1)
-		assert node2 == class_(1, 2, 3)
-
+def test_reversed():
 	for class_ in (xsc.Frag, html.div):
 		node = class_(3, 2, 1)
 		node2 = node.reversed()
