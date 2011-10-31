@@ -230,11 +230,7 @@ _sgmlop_new(int xml)
 {
     FastParserObject* self;
 
-#if defined(SGMLOP_GC)
     self = PyObject_GC_New(FastParserObject, &FastParser_Type);
-#else
-    self = PyObject_NEW(FastParserObject, &FastParser_Type);
-#endif
 
     if (self == NULL)
         return NULL;
