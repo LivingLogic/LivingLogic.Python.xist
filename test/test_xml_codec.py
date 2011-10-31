@@ -158,11 +158,11 @@ def test_decoder():
 
 		# Check incremental decoder
 		id = codecs.getincrementaldecoder("xml")()
-		assert "".join(id.iterdecode(input.encode(encoding))) == input.replace("'x'", repr(encoding))
+		assert "".join(id.iterdecode(bytes([c]) for c in input.encode(encoding))) == input.replace("'x'", repr(encoding))
 
 		# Check incremental decoder with specified encoding
 		id = codecs.getincrementaldecoder("xml")(encoding)
-		assert "".join(id.iterdecode(input.encode(encoding))) == input.replace("'x'", repr(encoding))
+		assert "".join(id.iterdecode(bytes([c]) for c in input.encode(encoding))) == input.replace("'x'", repr(encoding))
 
 	id = codecs.getincrementaldecoder("xml")(encoding="ascii")
 	assert id.decode(b"<?xml version='1.0' encoding='utf-16'?>") == "<?xml version='1.0' encoding='ascii'?>"
@@ -188,11 +188,11 @@ def test_decoder():
 
 		# Check incremental decoder with encoding autodetection
 		id = codecs.getincrementaldecoder("xml")()
-		assert "".join(id.iterdecode(input.encode(encoding))) == input
+		assert "".join(id.iterdecode(bytes([c]) for c in input.encode(encoding))) == input
 
 		# Check incremental decoder with specified encoding
 		id = codecs.getincrementaldecoder("xml")(encoding)
-		assert "".join(id.iterdecode(input.encode(encoding))) == input
+		assert "".join(id.iterdecode(bytes([c]) for c in input.encode(encoding))) == input
 
 	# Use correct declaration
 	yield checkdecl, "utf-8"
