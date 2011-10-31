@@ -19,7 +19,7 @@ To use XIST you need the following software packages:
 
 	*	`setuptools`_ (if you want to install this package as an egg);
 
-	*	`py.test`_ (if you want to run the test suite; at least version 1.3.2)
+	*	`pytest`_ (if you want to run the test suite; at least version 1.3.2)
 
 	*	`execnet`_ (if you want to use ssh URLs)
 
@@ -33,7 +33,7 @@ To use XIST you need the following software packages:
 	.. _elinks: http://elinks.or.cz/
 	.. _cx_Oracle: http://cx-oracle.sourceforge.net/
 	.. _setuptools: http://peak.telecommunity.com/DevCenter/setuptools
-	.. _py.test: http://codespeak.net/py/current/doc/test.html
+	.. _pytest: http://pytest.org/latest/
 	.. _execnet: http://codespeak.net/execnet/
 
 
