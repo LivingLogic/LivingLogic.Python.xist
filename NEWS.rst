@@ -13,7 +13,7 @@ Changes in 4.0 (released ??/??/2011)
 	.. _libxml2: http://www.xmlsoft.org/
 	.. _lxml: http://lxml.de/
 
-	This change has one visible result: :class:`ll.xist.parse.Tidy` objects
+	This change has one visible result: :class:`ll.xist.parse.Tidy` objects now
 	emit namespaced events.
 
 *	The XIST node method :meth:`sorted` has been removed, as it no longer makes
