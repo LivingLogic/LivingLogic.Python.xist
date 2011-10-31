@@ -247,7 +247,7 @@ class IsInstanceSelector(Selector):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(html.a):
 		... 	print node.attrs.href, node.attrs.title
 		...
@@ -300,7 +300,7 @@ class hasname(Selector):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(xfind.hasname("img")):
 		... 	print node.bytes()
 		...
@@ -364,7 +364,7 @@ class IsSelector(Selector):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(doc[0]/xsc.Element):
 		... 	print repr(node)
 		...
@@ -398,7 +398,7 @@ class IsEmptySelector(Selector):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(xfind.empty):
 		... 	print node.bytes()
 		...
@@ -428,7 +428,7 @@ class OnlyChildSelector(Selector):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(xfind.onlychild & html.a):
 		... 	print node.bytes()
 		...
@@ -460,7 +460,7 @@ class OnlyOfTypeSelector(Selector):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(xfind.onlyoftype & xsc.Element):
 		... 	print repr(node)
 		...
@@ -498,7 +498,7 @@ class hasattr(Selector):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(xfind.hasattr(xml.Attrs.lang)):
 		... 	print repr(node)
 		...
@@ -552,7 +552,7 @@ class attrhasvalue(Selector):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(xfind.attrhasvalue("rel", "stylesheet")):
 		... 	print node.attrs.href
 		...
@@ -614,7 +614,7 @@ class attrcontains(Selector):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(xfind.attrcontains("rel", "stylesheet")):
 		... 	print node.attrs.rel, node.attrs.href
 		...
@@ -679,7 +679,7 @@ class attrstartswith(Selector):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(xfind.attrstartswith("class_", "input-")):
 		... 	print node.bytes()
 		...
@@ -740,7 +740,7 @@ class attrendswith(Selector):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(xfind.attrendswith("href", ".css")):
 		... 	print node.attrs.href
 		...
@@ -802,7 +802,7 @@ class hasid(Selector):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(xfind.hasid("logo")):
 		... 	print node.bytes()
 		...
@@ -834,7 +834,7 @@ class hasclass(Selector):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(xfind.hasclass("reference")):
 		... 	print node.bytes()
 		...
@@ -869,7 +869,7 @@ class InAttrSelector(Selector):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(xfind.inattr & xsc.Text):
 		... 	print node.bytes()
 		...
@@ -928,7 +928,7 @@ class ChildCombinator(BinaryCombinator):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(html.a/html.img):
 		... 	print node.bytes()
 		...
@@ -958,7 +958,7 @@ class DescendantCombinator(BinaryCombinator):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(html.div//html.img):
 		... 	print node.bytes()
 		...
@@ -991,7 +991,7 @@ class AdjacentSiblingCombinator(BinaryCombinator):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(html.h2*html.p/html.a):
 		... 	print node.bytes()
 		...
@@ -1037,7 +1037,7 @@ class GeneralSiblingCombinator(BinaryCombinator):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(html.a**html.a):
 		... 	print node.bytes()
 		...
@@ -1090,7 +1090,7 @@ class OrCombinator(ChainedCombinator):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(xfind.hasattr("href") | xfind.hasattr("src")):
 		... 	print node.attrs.href if "href" in node.Attrs else node.attrs.src
 		...
@@ -1129,7 +1129,7 @@ class AndCombinator(ChainedCombinator):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(html.input & xfind.hasattr("id")):
 		... 	print node.bytes()
 		...
@@ -1161,7 +1161,7 @@ class NotCombinator(Combinator):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(html.img & ~xfind.hasattr("border")):
 		... 	print node.bytes()
 		...
@@ -1194,7 +1194,7 @@ class CallableSelector(Selector):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> def foreignlink(path):
 		... 	return path and isinstance(path[-1], html.a) and not path[-1].attrs.href.asURL().server.endswith(".python.org")
 		...
@@ -1258,7 +1258,7 @@ class nthoftype(Selector):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(xfind.nthoftype(0, html.h2)):
 		... 	print node.bytes()
 		...

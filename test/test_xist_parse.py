@@ -54,7 +54,7 @@ def test_parsingmethods():
 	yield check, b, parse.Expat(), parse.NS(a.xmlns), parse.Node(pool)
 	yield check, s, parse.Encoder(encoding="utf-8"), parse.Expat(), parse.NS(a.xmlns), parse.Node(pool)
 	yield check, parse.Iter(b), parse.Expat(), parse.NS(a.xmlns), parse.Node(pool) # parse byte by byte
-	yield check, parse.Stream(io.StringIO(b), bufsize=1), parse.Expat(), parse.NS(a.xmlns), parse.Node(pool)
+	yield check, parse.Stream(io.BytesIO(b), bufsize=1), parse.Expat(), parse.NS(a.xmlns), parse.Node(pool)
 	yield check, parse.ETree(cElementTree.fromstring(b), defaultxmlns=a.xmlns), parse.Node(pool)
 
 
@@ -283,7 +283,7 @@ def test_expat_doctype():
 
 
 def test_htmlparse_base():
-	e = parse.tree(b"<a href='gurk.gif'/>", parse.Tidy(), parse.NS(html), parse.Node(base="hurz/index.html"))
+	e = parse.tree(b"<a href='gurk.gif'/>", parse.Tidy(), parse.Node(base="hurz/index.html"))
 	e = e.walknodes(html.a)[0]
 	assert str(e.attrs.href) == "hurz/gurk.gif"
 

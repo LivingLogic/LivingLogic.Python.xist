@@ -7,6 +7,15 @@ Changes in 4.0 (released ??/??/2011)
 	the C source to work on Python 3. Without Martin, XIST wouldn't have made
 	the leap to Python 3 for several years.
 
+*	As there's no Python 3 port of libxml2_\s Python wrapper, XIST now uses lxml_
+	for HTML parsing.
+
+	.. _libxml2: http://www.xmlsoft.org/
+	.. _lxml: http://lxml.de/
+
+	This change has one visible result: :class:`ll.xist.parse.Tidy` objects
+	emit namespaced events.
+
 *	The XIST node method :meth:`sorted` has been removed, as it no longer makes
 	sense, because with Python 3 nodes might be uncomparable.
 

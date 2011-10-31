@@ -392,20 +392,17 @@ static PyObject *detectencoding_unicode(const Py_UNICODE *str, Py_ssize_t len, i
 static PyObject *detectencoding(PyObject *self, PyObject *args)
 {
 	PyObject *obj;
+	Py_buffer buf;
 	int final = 0;
 
 	if (!PyArg_ParseTuple(args, "O|i:detectxmlencoding", &obj, &final))
 		return NULL;
 
-	if (PyBytes_Check(obj))
-		return detectencoding_str(PyBytes_AS_STRING(obj), PyBytes_GET_SIZE(obj), final);
-	else if (PyUnicode_Check(obj))
+	if (PyUnicode_Check(obj))
 		return detectencoding_unicode(PyUnicode_AS_UNICODE(obj), PyUnicode_GET_SIZE(obj), final);
-	else
-	{
-		PyErr_SetString(PyExc_TypeError, "expected str or unicode");
-		return NULL;
-	}
+	else if (!PyObject_GetBuffer(obj, &buf, PyBUF_CONTIG_RO))
+		return detectencoding_str(buf.buf, buf.len, final);
+	return NULL;
 }
 
 

@@ -1328,26 +1328,27 @@ class Node(object):
 class Tidy(object):
 	"""
 	A :class:`Tidy` object parses (potentially ill-formed) HTML from a source
-	into a (unnamespaced) event stream by using libxml2__'s HTML parser::
+	into a (namespaced) event stream by using lxml__'s HTML parser::
 
 		>>> from ll.xist import parse
 		>>> list(parse.events(parse.URL("http://www.yahoo.com/"), parse.Tidy()))
 		[('url', URL('http://de.yahoo.com/?p=us')),
-		 ('position', (3, None)),
-		 ('enterstarttag', u'html'),
-		 ('enterattr', u'lang'),
-		 ('text', u'de-DE'),
-		 ('leaveattr', u'lang'),
-		 ('enterattr', u'class'),
-		 ('text', u'y-fp-bg y-fp-pg-grad  bkt708'),
-		 ('leaveattr', u'class'),
-		 ('leavestarttag', u'html')
+		 ('enterstarttagns', ('html', 'http://www.w3.org/1999/xhtml')),
+		 ('enterattrns', ('lang', None)),
+		 ('text', 'de-DE'),
+		 ('leaveattrns', ('lang', None)),
+		 ('enterattrns', ('class', None)),
+		 ('text', 'y-fp-bg y-fp-pg-grad  bkt708'),
+		 ('leaveattrns', ('class', None)),
+		 ('enterattrns', ('style', None)),
+		 ('leaveattrns', ('style', None)),
+		 ('leavestarttagns', ('html', 'http://www.w3.org/1999/xhtml')),
 		...
 
-	__ http://xmlsoft.org/
+	__ http://lxml.de/
 	"""
 
-	def __init__(self, encoding=None, skipbad=False, loc=True):
+	def __init__(self, encoding=None, skipbad=False):
 		"""
 		Create a new :class:`Tidy` object. Parameters have the following meaning:
 
@@ -1360,94 +1361,62 @@ class Tidy(object):
 			:mod:`ll.xist.ns.html` namespace) will be skipped (i.e. instead of
 			the element its content will be output). Unknown attributes will be
 			skipped completely.
-
-		:var:`loc` : bool
-			If :var:`loc` is true, ``"position"`` events will be generated else
-			they will be skipped.
 		"""
 		self.encoding = encoding
 		self.skipbad = skipbad
-		self.loc = loc
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} loc={0.loc!r} at {1:#x}>".format(self, id(self))
-
-	def _handle_pos(self, node):
-		if self.loc:
-			lineno = node.lineNo()
-			if lineno != self._lastlineno:
-				result = ("position", (lineno, None))
-				self._lastlineno = lineno
-				return result
-
-	@staticmethod
-	def decode(s):
-		try:
-			return s.decode("utf-8")
-		except UnicodeDecodeError:
-			return s.decode("iso-8859-1")
+		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} skipbad={0.skipbad!r} at {1:#x}>".format(self, id(self))
 
 	def _asxist(self, node):
-		decode = self.decode
-		if node.type == "document_html":
-			child = node.children
-			while child is not None:
-				for event in self._asxist(child):
-					yield event
-				child = child.__next__
-		elif node.type == "element":
-			pos = self._handle_pos(node)
-			if pos is not None:
-				yield pos
-			elementname = decode(node.name).lower()
-			if self.skipbad:
-				el = getattr(html, elementname, None)
-				elok = el is not None
-			else:
+		from ll.xist.ns import html
+		name = type(node).__name__
+		if "ElementTree" in name:
+			for event in self._asxist(node.getroot()):
+				yield event
+		elif "Element" in name:
+			elementname = node.tag
+			if elementname.startswith("{"):
+				(elementxmlns, sep, elementname) = elementname[1:].partition("}")
+				element = None
 				elok = True
-			if elok:
-				yield ("enterstarttag", elementname)
-				# Collect all attributes, so we can sort them
-				attrs = []
-				attr = node.properties
-				while attr is not None:
-					attrname = decode(attr.name).lower()
-					if not self.skipbad or el.Attrs.isallowed_xml(attrname):
-						attrcontent = decode(attr.content) if attr.content is not None else ""
-						attrs.append((attrname, attrcontent))
-					attr = attr.__next__
-				# We sort the attributes, because this gives a canonical event stream for HTML
-				for (attrname, attrcontent) in sorted(attrs):
-					yield ("enterattr", attrname)
-					yield ("text", attrcontent)
-					yield ("leaveattr", attrname)
-				yield ("leavestarttag", elementname)
-			child = node.children
-			while child is not None:
+			else:
+				elementxmlns = html.xmlns
+				element = getattr(html, elementname, None)
+				elok = element is not None
+			if elok: # Output events for the start tag, if the element is known
+				yield ("enterstarttagns", (elementname, elementxmlns))
+				for (attrname, attrvalue) in sorted(node.items()):
+					if attrname.startswith("{"):
+						(attrxmlns, sep, attrname) = attrname[1:].partition("}")
+						atok = True
+					else:
+						attrxmlns = None
+						# Output the attribute if: all attributes should be output, or it isn't an HTML element, or the attribute is known
+						atok = not self.skipbad or element is None or element.Attrs.isallowed_xml(attrname)
+					if atok:
+						yield ("enterattrns", (attrname, attrxmlns))
+						if attrvalue:
+							yield ("text", attrvalue)
+						yield ("leaveattrns", (attrname, attrxmlns))
+				yield ("leavestarttagns", (elementname, elementxmlns))
+			if node.text:
+				yield ("text", node.text)
+			for child in node:
 				for event in self._asxist(child):
 					yield event
-				child = child.__next__
-			if elok:
-				yield ("endtag", elementname)
-		elif node.type == "text":
-			pos = self._handle_pos(node)
-			if pos is not None:
-				yield pos
-			yield ("text", decode(node.content))
-		elif node.type == "cdata":
-			pos = self._handle_pos(node)
-			if pos is not None:
-				yield pos
-			yield ("cdata", decode(node.content))
-		elif node.type == "comment":
-			pos = self._handle_pos(node)
-			if pos is not None:
-				yield pos
-			yield ("comment", decode(node.content))
+				if hasattr(child, "tail") and child.tail:
+					yield ("text", child.tail)
+			if elok: # Output events for the end tag, if the element is known
+				yield ("endtagns", (elementname, elementxmlns))
+		elif "ProcessingInstruction" in name:
+			yield ("procinst", (node.target, node.text))
+		elif "Comment" in name:
+			yield ("comment", node.text)
 		# ignore all other types
 
 	def __call__(self, input):
-		import libxml2 # This requires libxml2 (see http://www.xmlsoft.org/)
+		from lxml import etree # This requires lxml (see http://lxml.de/)
 
 		url = None
 		collectdata = []
@@ -1461,21 +1430,14 @@ class Tidy(object):
 				collectdata.append(data)
 			else:
 				raise UnknownEventError(self, (evtype, data))
-		data = "".join(collectdata)
+		data = b"".join(collectdata)
 		if url is not None:
 			yield ("url", url)
 		if data:
-			self._lastlineno = None
-			try:
-				olddefault = libxml2.lineNumbersDefault(1)
-				doc = libxml2.htmlReadMemory(data, len(data), str(url), self.encoding, 0x160)
-				try:
-					for event in self._asxist(doc):
-						yield event
-				finally:
-					doc.freeDoc()
-			finally:
-				libxml2.lineNumbersDefault(olddefault)
+			parser = etree.HTMLParser(encoding=self.encoding)
+			doc = etree.parse(io.BytesIO(data), parser)
+			for event in self._asxist(doc):
+				yield event
 
 
 ###
