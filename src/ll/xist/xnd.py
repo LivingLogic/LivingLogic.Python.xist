@@ -334,6 +334,9 @@ class Element(Named):
 		# Don't compare the models
 		return type(other) is Element and self.name == other.name and self.xmlns == other.xmlns and self.attrs == other.attrs
 
+	def __hash__(self):
+		return hash(self.name) ^ hash(self.xmlns) # don't include the attributes in the hash value, as they're unhashable
+
 	def __iadd__(self, attr):
 		self.attrs[attr.name] = attr
 		return self
