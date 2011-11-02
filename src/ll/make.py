@@ -1422,18 +1422,6 @@ class Project(dict):
 			yield key2
 			key2 = key2.real(scheme="file")
 			yield key2
-		if isinstance(key, str) and ":" in key:
-			(prefix, rest) = key.split(":", 1)
-			if prefix == "oracle":
-				if "|" in rest:
-					(connection, rest) = rest.split("|", 1)
-					if ":" in rest:
-						(type, name) = rest.split(":", 1)
-						if "|" in rest:
-							(name, key) = rest.split("|")
-						else:
-							key = None
-						yield OracleKey(connection, type, name, key)
 
 	def __getitem__(self, key):
 		"""
