@@ -582,17 +582,17 @@ def test_else():
 
 @py.test.mark.ul4
 def test_block_errors():
-	yield raises, "in u?.<.for x in data.>..*block unclosed", RenderPython('<?for x in data?>')
-	yield raises, "endif doesn't match any if", RenderPython('<?for x in data?><?end if?>')
-	yield raises, "not in any block", RenderPython('<?end?>')
-	yield raises, "not in any block", RenderPython('<?end for?>')
-	yield raises, "not in any block", RenderPython('<?end if?>')
-	yield raises, "else doesn't match any if", RenderPython('<?else?>')
-	yield raises, "in u?.<.if data.>..*block unclosed", RenderPython('<?if data?>')
-	yield raises, "in u?.<.if data.>..*block unclosed", RenderPython('<?if data?><?else?>')
-	yield raises, "duplicate else", RenderPython('<?if data?><?else?><?else?>')
-	yield raises, "else already seen in elif", RenderPython('<?if data?><?else?><?elif data?>')
-	yield raises, "else already seen in elif", RenderPython('<?if data?><?elif data?><?elif data?><?else?><?elif data?>')
+	yield raises, "BlockError: block unclosed", RenderPython('<?for x in data?>')
+	yield raises, "BlockError: endif doesn't match any if", RenderPython('<?for x in data?><?end if?>')
+	yield raises, "BlockError: not in any block", RenderPython('<?end?>')
+	yield raises, "BlockError: not in any block", RenderPython('<?end for?>')
+	yield raises, "BlockError: not in any block", RenderPython('<?end if?>')
+	yield raises, "BlockError: else doesn't match any if", RenderPython('<?else?>')
+	yield raises, "BlockError: block unclosed", RenderPython('<?if data?>')
+	yield raises, "BlockError: block unclosed", RenderPython('<?if data?><?else?>')
+	yield raises, "BlockError: duplicate else", RenderPython('<?if data?><?else?><?else?>')
+	yield raises, "BlockError: else already seen in elif", RenderPython('<?if data?><?else?><?elif data?>')
+	yield raises, "BlockError: else already seen in elif", RenderPython('<?if data?><?elif data?><?elif data?><?else?><?elif data?>')
 
 
 @py.test.mark.ul4
@@ -1884,7 +1884,7 @@ def test_nested_exceptions():
 	tmpl3 = ul4c.Template("<?render tmpl2(tmpl1=tmpl1, x=x)?>")
 
 	for r in all_python_renderers:
-		msg = "render tmpl3.*render tmpl2.*render tmpl1.*print 2.*TypeError.*unsupported operand type|.* \\* .* not supported"
+		msg = "TypeError: unsupported operand type\\(s\\) for \\*: 'int' and 'NoneType'|.* \\* .* not supported"
 		yield raises, msg, r("<?render tmpl3(tmpl1=tmpl1, tmpl2=tmpl2, x=x)?>", tmpl1=tmpl1, tmpl2=tmpl2, tmpl3=tmpl3, x=None)
 
 
