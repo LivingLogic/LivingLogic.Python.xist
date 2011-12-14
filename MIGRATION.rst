@@ -874,7 +874,7 @@ presentation API directly (instead of the node method :meth:`repr`).
 Parsing HTML
 ------------
 
-Parsing HTML is now done via libxml2's HTML parser, instead of using µTidyLib of
+Parsing HTML is now done via libxml2's HTML parser, instead of using ÂµTidyLib of
 mxTidy. You can no longer pass arguments to tidy. Only the boolean values of the
 :var:`tidy` argument will be used. There are no other visible changes to the API
 but the result of parsing might have changed.
