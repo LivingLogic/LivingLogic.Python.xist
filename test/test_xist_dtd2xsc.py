@@ -89,7 +89,7 @@ def test_convert():
 
 def test_charref():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
-	<!ELEMENT foo (EMPTY)>
+	<!ELEMENT foo EMPTY>
 	<!ENTITY bar "&#xff;">
 	"""
 	ns = dtd2mod(dtdstring)

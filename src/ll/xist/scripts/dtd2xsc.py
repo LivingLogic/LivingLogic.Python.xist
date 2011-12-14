@@ -58,9 +58,9 @@ Options
 		adds the attribute specification of all element specifications to the
 		resulting XIST namespace.
 
-Note that ``dtd2xsc`` requires xmlproc_ to work.
+Note that ``dtd2xsc`` requires lxml_ to work.
 
-	.. _xmlproc: http://www.garshol.priv.no/download/software/xmlproc/
+	.. _lxml: http://lxml.de/
 
 
 Example
@@ -112,15 +112,9 @@ The output will be::
 """
 
 
-import sys, os.path, argparse, io
+import sys, os.path, argparse, io, operator
 
-try:
-	from xml.parsers.xmlproc import dtdparser
-except ImportError:
-	try:
-		from xmlproc import dtdparser
-	except ImportError:
-		dtdparser = None
+from lxml import etree
 
 from ll import misc, url
 from ll.xist import xsc, parse, xnd
@@ -132,20 +126,18 @@ __docformat__ = "reStructuredText"
 def getxmlns(dtd):
 	# Extract the value of all fixed ``xmlns`` attributes
 	found = set()
-	for elemname in dtd.get_elements():
-		element = dtd.get_elem(elemname)
-		for attrname in element.get_attr_list():
-			attr = element.get_attr(attrname)
-			if attrname=="xmlns" or ":" in attrname:
-				if attr.decl=="#FIXED":
-					found.add(attr.default)
+	for elemdecl in dtd.iterelements():
+		for attrdecl in elemdecl.iterattributes():
+			if attrdecl.name=="xmlns" or ":" in attrdecl.name:
+				if attrdecl.default == "fixed":
+					found.add(attrdecl.defaultValue)
 					continue # skip a namespace declaration
 	return found
 
 
 def adddtd2xnd(ns, dtd):
 	# Appends DTD information from :var:`dtd` to the :class:`xnd.Module` object
-	dtd = dtdparser.load_dtd_string(dtd) # This requires ``xmlproc``
+	dtd = etree.DTD(dtd) # This requires ``lxml``
 
 	# try to guess the namespace name from the dtd
 	xmlns = getxmlns(dtd)
@@ -154,74 +146,67 @@ def adddtd2xnd(ns, dtd):
 	else:
 		xmlns = None
 
+	namegetter = operator.attrgetter("name")
 	# Add element info
-	elements = dtd.get_elements()
-	elements.sort()
-	for elemname in elements:
-		dtd_e = dtd.get_elem(elemname)
-		e = xnd.Element(elemname, xmlns=xmlns)
+	elements = sorted(dtd.iterelements(), key=namegetter)
+	for elemdecl in elements:
+		e = xnd.Element(elemdecl.name, xmlns=xmlns)
 
 		# Add attribute info for this element
-		attrs = dtd_e.get_attr_list()
-		if len(attrs):
-			attrs.sort()
-			for attrname in attrs:
-				dtd_a = dtd_e.get_attr(attrname)
-				if attrname=="xmlns" or ":" in attrname:
-					continue # skip namespace declarations and global attributes
-				values = []
-				if dtd_a.type == "ID":
-					type = "xsc.IDAttr"
-				else:
-					type = "xsc.TextAttr"
-					if isinstance(dtd_a.type, list):
-						if len(dtd_a.type) > 1:
-							values = dtd_a.type
-						else:
-							type = "xsc.BoolAttr"
-				default = dtd_a.default
-				if dtd_a.decl=="#REQUIRED":
-					required = True
-				else:
-					required = None
-				e += xnd.Attr(name=attrname, type=type, default=default, required=required, values=values)
+		attrs = sorted(elemdecl.iterattributes(), key=namegetter)
+		for attrdecl in attrs:
+			if attrdecl.name=="xmlns" or attrdecl.prefix:
+				continue # skip namespace declarations and global attributes
+			values = []
+			if attrdecl.type == "id":
+				type = "xsc.IDAttr"
+			else:
+				type = "xsc.TextAttr"
+				values = attrdecl.values()
+				if len(values) == 1:
+					type = "xsc.BoolAttr"
+					values = None
+				elif not values:
+					values = None
+			default = attrdecl.defaultValue
+			if attrdecl.default == "required":
+				required = True
+			else:
+				required = None
+			e += xnd.Attr(name=attrdecl.name, type=type, default=default, required=required, values=values)
 		ns += e
 
 	# Iterate through the elements a second time and add model information
-	for elemname in elements:
-		e = dtd.get_elem(elemname)
-		model = e.get_content_model()
-		if model is None:
-			modeltype = "sims.Any"
-			modelargs = None
-		elif model == ("", [], ""):
+	for elemdecl in elements:
+		if elemdecl.type == "empty":
 			modeltype = "sims.Empty"
+			modelargs = None
+		elif elemdecl.type == "any":
+			modeltype = "sims.Any"
 			modelargs = None
 		else:
 			def extractcont(model):
-				if len(model) == 3:
-					result = {}
-					for cont in model[1]:
-						result.update(extractcont(cont))
-					return result
-				else:
-					return {model[0]: None}
-			model = extractcont(model)
-			modeltype = "sims.Elements"
-			modelargs = []
-			for cont in model:
-				if cont == "#PCDATA":
+				content = set()
+				if model is not None:
+					content.update(extractcont(model.left))
+					if model.name is not None:
+						content.add(model.name)
+					content.update(extractcont(model.right))
+				return content
+			elementcontent = extractcont(elemdecl.content)
+			if elementcontent:
+				modelargs = [ns.elements[(name, xmlns)] for name in elementcontent]
+				if elemdecl.type == "mixed":
 					modeltype = "sims.ElementsOrText"
-				elif cont == "EMPTY":
-					modeltype = "sims.Empty"
 				else:
-					modelargs.append(ns.elements[(cont, xmlns)])
-			if not modelargs:
-				if modeltype == "sims.ElementsOrText":
+					modeltype = "sims.Elements"
+			else:
+				modelargs = []
+				if elemdecl.type == "mixed":
 					modeltype = "sims.NoElements"
 				else:
 					modeltype = "sims.NoElementsOrText"
-		e = ns.elements[(elemname, xmlns)]
+		e = ns.elements[(elemdecl.name, xmlns)]
 		if ns.model == "simple":
 			modeltype = modeltype == "sims.Empty"
 			modelargs = None
@@ -229,16 +214,10 @@ def adddtd2xnd(ns, dtd):
 		e.modelargs = modelargs
 
 	# Add entities
-	ents = dtd.get_general_entities()
-	ents.sort()
-	for entname in ents:
-		if entname not in ("quot", "apos", "gt", "lt", "amp"):
-			try:
-				ent = parse.tree(dtd.resolve_ge(entname).value, parse.Encoder("utf-8"), parse.SGMLOP(encoding="utf-8"), parse.NS(), parse.Node())
-			except xsc.IllegalEntityError:
-				pass
-			else:
-				ns += xnd.CharRef(entname, codepoint=ord(str(ent[0])[0]))
+	entities = sorted(dtd.iterentities(), key=namegetter)
+	for entdecl in entities:
+		if entdecl.name not in ("quot", "apos", "gt", "lt", "amp") and entdecl.content and len(entdecl.content) == 1:
+			ns += xnd.CharRef(entdecl.name, codepoint=ord(entdecl.content)
 
 
 def urls2xnd(urls, shareattrs=None, **kwargs):
@@ -251,7 +230,7 @@ def urls2xnd(urls, shareattrs=None, **kwargs):
 				u = u.openread()
 			elif isinstance(u, str):
 				u = io.StringIO(u)
-			adddtd2xnd(ns, u.read())
+			adddtd2xnd(ns, u)
 
 	if shareattrs=="dupes":
 		ns.shareattrs(False)
