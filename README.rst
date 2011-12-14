@@ -106,4 +106,4 @@ An announcement mailing list is available too. For info go to
 https://mail.livinglogic.de/mailman/listinfo/xist-announce
 
 
--- Walter Dörwald <walter@livinglogic.de>
+-- Walter DÃ¶rwald <walter@livinglogic.de>
