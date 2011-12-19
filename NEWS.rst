@@ -3127,7 +3127,7 @@ Changes in 0.3.5 (released 07/02/2000)
 
 		e = html.div(html.img(...),gurk.hurz().asHTML()).asString()
 
-*	Image size calculation is now done for ``<nput type="image">``. The ``size``
+*	Image size calculation is now done for ``<input type="image">``. The ``size``
 	attribute is set to the image width.
 
 *	Manipulating the path in an URL is now done via the usual
