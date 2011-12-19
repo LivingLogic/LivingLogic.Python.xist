@@ -21,6 +21,9 @@ Changes in 4.0 (released ??/??/2011)
 
 *	The UL4 function ``enumerate`` has been renamed to ``enum``.
 
+*	UL4 stacktraces now use exception chaining to report the exception location
+	in nested templates.
+
 *	The following new functions have been added to UL4: ``first``, ``last``,
 	``firstlast``, ``enumfl``. They are variants of ``enumerate``/``enum`` that
 	give information about whether the item is the first and/or last item.
