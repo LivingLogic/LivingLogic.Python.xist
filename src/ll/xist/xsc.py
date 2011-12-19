@@ -132,6 +132,7 @@ class addattr(object):
 				with xsc.addattr("align"):
 					+xsc.Text("right")
 	"""
+
 	def __init__(self, attrname):
 		"""
 		Create an :class:`addattr` object for adding to the attribute named
