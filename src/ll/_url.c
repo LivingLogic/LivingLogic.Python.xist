@@ -346,19 +346,19 @@ static PyMethodDef _functions[] =
 };
 
 static struct PyModuleDef _urlmodule = {
-    PyModuleDef_HEAD_INIT,
-    "_url",
-    0, /* module doc */
-    -1,
-    _functions,
-    NULL,
-    NULL,
-    NULL,
-    NULL
+	PyModuleDef_HEAD_INIT,
+	"_url",
+	0, /* module doc */
+	-1,
+	_functions,
+	NULL,
+	NULL,
+	NULL,
+	NULL
 };
 
 PyMODINIT_FUNC
 PyInit__url(void)
 {
-    return PyModule_Create(&_urlmodule);
+	return PyModule_Create(&_urlmodule);
 }
