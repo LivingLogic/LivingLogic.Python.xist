@@ -149,7 +149,6 @@ def main(args=None):
 	p.add_argument("-c", "--color", dest="color", help="Color output (default: %(default)s)", default="auto", choices=("yes", "no", "auto"))
 	p.add_argument("-i", "--ignore-case", dest="ignorecase", help="Ignore case distinctions? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-r", "--read-lobs", dest="readlobs", help="Read CLOBs when printing records? (default: %(default)s)", action=misc.FlagAction, default=False)
-	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding of the command line arguments (default: %(default)s)", default="utf-8")
 
 	args = p.parse_args(args)
 
@@ -162,14 +161,13 @@ def main(args=None):
 	stdout = astyle.Stream(sys.stdout, color)
 	stderr = astyle.Stream(sys.stderr, color)
 
-	connectstring = args.connectstring.decode(args.encoding)
-	searchstring = args.searchstring.decode(args.encoding)
+	searchstring = args.searchstring
 	if args.ignorecase:
 		searchstring = searchstring.lower()
 	searchstring = "%{}%".format(searchstring.replace("%", "%%"))
-	tablenames = [name.decode(args.encoding).lower() for name in args.tables]
+	tablenames = [name.lower() for name in args.tables]
 
-	connection = orasql.connect(connectstring, readlobs=args.readlobs)
+	connection = orasql.connect(args.connectstring, readlobs=args.readlobs)
 	c = connection.cursor()
 
 	tables = list(connection.itertables(None))
