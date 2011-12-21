@@ -662,29 +662,17 @@ class Cursor(Cursor):
 				self.connection._ddprefixargs = "dba"
 		return self.connection._ddprefixargs
 
-	def _encode(self, value):
-		# Helper method that encodes :var:`value` using the client encoding (if :var:`value` is :class:`unicode`)
-		if isinstance(value, dict):
-			value = dict((self._encode(key), self._encode(value)) for (key, value) in value.items())
-		elif isinstance(value, list):
-			value = list(map(self._encode, value))
-		elif isinstance(value, tuple):
-			value = tuple(self._encode(v) for v in value)
-		elif isinstance(value, str):
-			return value.encode(self.connection.encoding)
-		return value
-
 	def execute(self, statement, parameters=None, **kwargs):
 		if parameters is not None:
-			result = super(Cursor, self).execute(self._encode(statement), self._encode(parameters), **self._encode(kwargs))
+			result = super(Cursor, self).execute(statement, parameters, **kwargs)
 		else:
-			result = super(Cursor, self).execute(self._encode(statement), **self._encode(kwargs))
+			result = super(Cursor, self).execute(statement, **kwargs)
 		if self.description is not None:
 			self.rowfactory = RecordMaker(self)
 		return result
 
 	def executemany(self, statement, parameters):
-		result = super(Cursor, self).executemany(self._encode(statement), self._encode(parameters))
+		result = super(Cursor, self).executemany(statement, parameters)
 		if self.description is not None:
 			self.rowfactory = RecordMaker(self)
 		return result
@@ -2682,7 +2670,7 @@ class OracleFileResource(url_.Resource):
 			self.stream = io.StringIO()
 		else:
 			code = self.connection._objectfromurl(url).createddl(self.connection.dbconnection, term=False)
-			self.stream = io.StringIO(code.encode("utf-8"))
+			self.stream = io.StringIO(code)
 
 	def read(self, size=-1):
 		if self.closed:
@@ -2707,7 +2695,7 @@ class OracleFileResource(url_.Resource):
 		if not self.closed:
 			if "w" in self.mode:
 				obj = self._objectfromurl()
-				code = self.stream.getvalue().decode("utf-8")
+				code = self.stream.getvalue()
 				code = obj.fixname(code)
 				cursor = self.connection.dbconnection.cursor()
 				cursor.execute(code)
