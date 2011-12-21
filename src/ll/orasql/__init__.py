@@ -202,8 +202,6 @@ def _decodelob(value, readlobs):
 class RecordMaker(object):
 	def __init__(self, cursor):
 		self._readlobs = cursor.readlobs
-		self._encoding = cursor.connection.encoding
-		self._nencoding = cursor.connection.nencoding
 		self._index2name = tuple(d[0].lower() for d in cursor.description)
 		self._index2conv = tuple(getattr(self, d[1].__name__, self.DEFAULT) for d in cursor.description)
 
