@@ -569,20 +569,19 @@ class SysInfo(object):
 	def __init__(self, encoding="utf-8", errors="replace"):
 		import socket, pwd
 
-		def _string(s):
-			if isinstance(s, str):
-				s = s.decode(encoding, errors)
-			return s
-
-		self.host_name = _string(socket.gethostname())
-		self.host_fqdn = _string(self.host_name)
-		self.host_ip = _string(socket.gethostbyname(self.host_name))
-		(self.host_sysname, self.host_nodename, self.host_release, self.host_version, self.host_machine) = map(_string, os.uname())
-		(self.user_name, _, self.user_uid, self.user_gid, self.user_gecos, self.user_dir, self.user_shell) = map(_string, pwd.getpwuid(os.getuid()))
-		self.python_executable = _string(sys.executable)
+		self.host_name = socket.gethostname()
+		self.host_fqdn = self.host_name
+		self.host_ip = socket.gethostbyname(self.host_name)
+		(self.host_sysname, self.host_nodename, self.host_release, self.host_version, self.host_machine) = os.uname()
+		(self.user_name, _, self.user_uid, self.user_gid, self.user_gecos, self.user_dir, self.user_shell) = pwd.getpwuid(os.getuid())
+		self.python_executable = sys.executable
 		self.python_version = ("{}.{}.{}" if sys.version_info.micro else "{}.{}").format(*sys.version_info)
 		self.pid = os.getpid()
-		self.scriptname = _string(os.path.join(_curdir, sys.modules["__main__"].__file__))
+		main = sys.modules["__main__"]
+		if hasattr(main, "__file__"):
+			self.scriptname = os.path.join(_curdir, main.__file__)
+		else:
+			self.scriptname = "<shell>"
 
 	def __getitem__(self, key):
 		if key in self._keys:
