@@ -169,18 +169,18 @@ class LOBStream(object):
 
 	def read(self, size=None):
 		"""
-		Read :var:`size` bytes from to stream and return them. If :var:`size` is
-		:const:`None`, all remaining data will be read.
+		Read :var:`size` bytes/characters from to stream and return them.
+		If :var:`size` is :const:`None`, all remaining data will be read.
 		"""
 		if size is None:
 			return self.readall()
 		if size <= 0:
 			return self.readchunk()
-		bytes = self.value.read(self.pos+1, size)
+		data = self.value.read(self.pos+1, size)
 		self.pos += size
 		if self.pos >= self.value.size():
 			self.pos = self.value.size()
-		return bytes
+		return data
 
 	def reset(self):
 		"""
