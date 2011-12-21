@@ -566,7 +566,7 @@ class SysInfo(object):
 
 	_keys = {"host_name", "host_fqdn", "host_ip", "host_sysname", "host_nodename", "host_release", "host_version", "host_machine", "python_executable", "python_version", "pid", "scriptname"}
 
-	def __init__(self, encoding="utf-8", errors="replace"):
+	def __init__(self):
 		import socket, pwd
 
 		self.host_name = socket.gethostname()
