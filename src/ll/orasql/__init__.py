@@ -138,70 +138,9 @@ class Args(dict):
 		return "{}.{}({})".format(self.__class__.__module__, self.__class__.__name__, ", ".join("{}={!r}".format(*item) for item in self.items()))
 
 
-class CLOBStream(object):
+class LOBStream(object):
 	"""
-	A :class:`CLOBStream` object provides streamlike access to a CLOB.
-	"""
-
-	def __init__(self, value, encoding):
-		self.value = value
-		self.encoding = encoding
-		self.decoder = codecs.getincrementaldecoder(encoding)()
-		self.pos = 0
-
-	def readall(self):
-		"""
-		Read all remaining data from the stream and return the decoded unicode
-		object for the data.
-		"""
-		result = self.decoder.decode(self.value.read(self.pos+1), True)
-		self.pos = self.value.size()
-		return result
-
-	def readchunk(self):
-		"""
-		Read a chunk of data from the stream and return the decoded unicode object
-		for the data. Reading is done in optimally sized chunks.
-		"""
-		size = self.value.getchunksize()
-		bytes = self.value.read(self.pos+1, size)
-		self.pos += size
-		if self.pos >= self.value.size():
-			self.pos = self.value.size()
-			return self.decoder.decode(bytes, True)
-		else:
-			return self.decoder.decode(bytes, False)
-
-	def read(self, size=None):
-		"""
-		Read :var:`size` bytes from to stream and return the decoded unicode object
-		for the data. If :var:`size` is :const:`None`, all remaining data will be
-		read.
-		"""
-		if size is None:
-			return self.readall()
-		if size <= 0:
-			return self.readchunk()
-		bytes = self.value.read(self.pos+1, size)
-		self.pos += size
-		if self.pos >= self.value.size():
-			self.pos = self.value.size()
-			return self.decoder.decode(bytes, True)
-		else:
-			return self.decoder.decode(bytes, False)
-
-	def reset(self):
-		"""
-		Reset the stream, so that the next :meth:`read` call starts at the
-		beginning of the CLOB.
-		"""
-		self.decoder = codecs.getincrementaldecoder(self.encoding)()
-		self.pos = 0
-
-
-class BLOBStream(object):
-	"""
-	A :class:`BLOBStream` object provides streamlike access to a BLOB.
+	A :class:`LOBStream` object provides streamlike access to a ``BLOB`` or ``CLOB``.
 	"""
 
 	def __init__(self, value):
@@ -251,21 +190,12 @@ class BLOBStream(object):
 		self.pos = 0
 
 
-def _decodeclob(value, encoding, readlobs):
-	if value is not None:
-		if readlobs is True or (isinstance(readlobs, int) and value.size() <= readlobs):
-			value = value.read().decode(encoding)
-		else:
-			value = CLOBStream(value, encoding)
-	return value
-
-
-def _decodeblob(value, readlobs):
+def _decodelob(value, readlobs):
 	if value is not None:
 		if readlobs is True or (isinstance(readlobs, int) and value.size() <= readlobs):
 			value = value.read()
 		else:
-			value = BLOBStream(value)
+			value = LOBStream(value)
 	return value
 
 
@@ -282,29 +212,14 @@ class RecordMaker(object):
 		name2index = dict(zip(self._index2name, itertools.count()))
 		return Record(self._index2name, name2index, row)
 
-	def STRING(self, value):
-		if value is not None:
-			value = value.decode(self._encoding)
-		return value
-
-	def LONG_STRING(self, value):
-		if value is not None:
-			value = value.decode(self._encoding)
-		return value
-
-	def FIXED_CHAR(self, value):
-		if value is not None:
-			value = value.decode(self._encoding)
-		return value
-
 	def CLOB(self, value):
-		return _decodeclob(value, self._encoding, self._readlobs)
+		return _decodelob(value, self._readlobs)
 
 	def NCLOB(self, value):
-		return _decodeclob(value, self._nencoding, self._readlobs)
+		return _decodelob(value, self._readlobs)
 
 	def BLOB(self, value):
-		return _decodeblob(value, self._readlobs)
+		return _decodelob(value, self._readlobs)
 
 	def DEFAULT(self, value):
 		return value
@@ -904,7 +819,17 @@ def getfullname(name, owner):
 	return ".".join(parts)
 
 
-class Object(object):
+class _Object_meta(type):
+	def __new__(mcl, name, bases, dict):
+		typename = None
+		if "type" in dict and name != "Object":
+			typename = dict["type"]
+		cls = type.__new__(mcl, name, bases, dict)
+		if typename is not None:
+			Object.name2type[typename] = cls
+		return cls
+
+class Object(object, metaclass=_Object_meta):
 	"""
 	The base class for all Python classes modelling schema objects in the
 	database.
@@ -916,16 +841,6 @@ class Object(object):
 	:class:`JavaSource` and :class:`Column`.
 	"""
 	name2type = {} # maps the Oracle type name to the Python class (populated by the metaclass)
-
-	class __metaclass__(type):
-		def __new__(mcl, name, bases, dict):
-			typename = None
-			if "type" in dict and name != "Object":
-				typename = dict["type"]
-			cls = type.__new__(mcl, name, bases, dict)
-			if typename is not None:
-				Object.name2type[typename] = cls
-			return cls
 
 	def __init__(self, name, owner=None, connection=None):
 		self.name = str(name) if isinstance(name, str) else name
@@ -2652,7 +2567,7 @@ class OracleConnection(url_.Connection):
 	def _objectfromurl(self, url):
 		(type, owner, objecttype, name) = self._infofromurl(url)
 		if objecttype not in Object.name2type:
-			raise ValueError("don't know how to handle {0!r}".format(self.url))
+			raise ValueError("don't know how to handle {0!r}".format(url))
 		return Object.name2type[objecttype](name, owner)
 
 	def isdir(self, url):
