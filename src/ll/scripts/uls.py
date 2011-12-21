@@ -137,10 +137,6 @@ style_pad = astyle.Style.fromstr("black:black:bold")
 style_sizeunit = astyle.Style.fromstr("cyan:black")
 
 
-def encodedstring(s):
-	return s.decode(sys.stdin.encoding)
-
-
 def main(args=None):
 	uids = {}
 	gids = {}
@@ -297,8 +293,8 @@ def main(args=None):
 	p.add_argument("-s", "--human-readable-sizes", dest="human", help="Human readable file sizes? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-r", "--recursive", dest="recursive", help="Recursive listing? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-w", "--spacing", dest="spacing", metavar="INTEGER", help="Space between columns (default: %(default)s)", type=int, default=3)
-	p.add_argument("-P", "--padding", dest="padding", metavar="CHARS", help="Characters used for column padding (default: %(default)s)", default=" ", type=encodedstring)
-	p.add_argument("-S", "--separator", dest="separator", metavar="CHARS", help="Characters used for separating columns in long format (default: %(default)s)", default="  ", type=encodedstring)
+	p.add_argument("-P", "--padding", dest="padding", metavar="CHARS", help="Characters used for column padding (default: %(default)s)", default=" ", type=str)
+	p.add_argument("-S", "--separator", dest="separator", metavar="CHARS", help="Characters used for separating columns in long format (default: %(default)s)", default="  ", type=str)
 	p.add_argument("-i", "--include", dest="include", metavar="PATTERN", help="Include only URLs matching PATTERN (default: %(default)s)", type=re.compile)
 	p.add_argument("-e", "--exclude", dest="exclude", metavar="PATTERN", help="Exclude URLs matching PATTERN (default: %(default)s)", type=re.compile)
 	p.add_argument("-a", "--all", dest="all", help="Include dot files? (default: %(default)s)", action=misc.FlagAction, default=False)
