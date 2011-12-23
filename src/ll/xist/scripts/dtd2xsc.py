@@ -217,7 +217,7 @@ def adddtd2xnd(ns, dtd):
 	entities = sorted(dtd.iterentities(), key=namegetter)
 	for entdecl in entities:
 		if entdecl.name not in ("quot", "apos", "gt", "lt", "amp") and entdecl.content and len(entdecl.content) == 1:
-			ns += xnd.CharRef(entdecl.name, codepoint=ord(entdecl.content)
+			ns += xnd.CharRef(entdecl.name, codepoint=ord(entdecl.content))
 
 
 def urls2xnd(urls, shareattrs=None, **kwargs):
