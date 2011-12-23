@@ -1199,25 +1199,39 @@ class Resource(object):
 		return "<{0} {1.__class__.__module__}.{1.__class__.__name__} {1.name}, mode {1.mode} at {2:#x}>".format("closed" if self.closed else "open", self, id(self))
 
 
-class FileResource(Resource, io.BufferedRandom):
+class FileResource(Resource):
 	"""
 	A subclass of :class:`Resource` that handles local files.
 	"""
 	def __init__(self, url, mode="rb"):
 		url = URL(url)
 		name = os.path.expanduser(url.local())
+		if "r" in mode:
+			if "w" in mode:
+				base = io.BufferedRandom
+			else:
+				base = io.BufferedReader
+		else:
+			if "w" in mode:
+				base = io.BufferedWriter
+			else:
+				raise ValueError("need 'r' or 'w' in mode")
 		try:
-			io.BufferedRandom.__init__(self, io.FileIO(name, mode))
+			file = base(io.FileIO(name, mode))
 		except IOError as exc:
 			if "w" not in mode or exc[0] != 2: # didn't work for some other reason than a non existing directory
 				raise
 			(splitpath, splitname) = os.path.split(name)
 			if splitpath:
 				os.makedirs(splitpath)
-				io.BufferedRandom.__init__(self, io.FileIO(name, mode))
+				file = base(io.FileIO(name, mode))
 			else:
 				raise # we don't have a directory to make so pass the error on
+		self.file = file
 		self.url = url
+
+	def __getattr__(self, name):
+		return getattr(self.file, name)
 
 	def size(self):
 		# Forward to the connection
