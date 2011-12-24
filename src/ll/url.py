@@ -1203,28 +1203,18 @@ class FileResource(Resource):
 	"""
 	A subclass of :class:`Resource` that handles local files.
 	"""
-	def __init__(self, url, mode="rb"):
+	def __init__(self, url, mode="rb", **kwargs):
 		url = URL(url)
 		name = os.path.expanduser(url.local())
-		if "r" in mode:
-			if "w" in mode:
-				base = io.BufferedRandom
-			else:
-				base = io.BufferedReader
-		else:
-			if "w" in mode:
-				base = io.BufferedWriter
-			else:
-				raise ValueError("need 'r' or 'w' in mode")
 		try:
-			file = base(io.FileIO(name, mode))
+			file = open(name, mode, **kwargs)
 		except IOError as exc:
 			if "w" not in mode or exc[0] != 2: # didn't work for some other reason than a non existing directory
 				raise
 			(splitpath, splitname) = os.path.split(name)
 			if splitpath:
 				os.makedirs(splitpath)
-				file = base(io.FileIO(name, mode))
+				file = open(name, mode, **kwargs)
 			else:
 				raise # we don't have a directory to make so pass the error on
 		self.file = file
