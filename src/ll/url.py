@@ -2751,10 +2751,10 @@ class URL(object):
 		return connection.open(self, *args, **kwargs)
 
 	def openread(self, context=None, *args, **kwargs):
-		return self.open(context, mode="r", *args, **kwargs)
+		return self.open(context, mode="rb", *args, **kwargs)
 
 	def openwrite(self, context=None, *args, **kwargs):
-		return self.open(context, mode="w", *args, **kwargs)
+		return self.open(context, mode="wb", *args, **kwargs)
 
 	def __getattr__(self, name):
 		"""
