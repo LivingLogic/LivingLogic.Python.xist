@@ -649,9 +649,8 @@ class LocalConnection(Connection):
 
 class SshConnection(Connection):
 	remote_code = """
-		import os, urllib, cPickle, fnmatch
+		import os, urllib.request, pickle, fnmatch
 
-		os.stat_float_times(True)
 		files = {}
 		iterators = {}
 
@@ -705,14 +704,14 @@ class SshConnection(Connection):
 		while True:
 			(filename, cmdname, args, kwargs) = channel.receive()
 			if isinstance(filename, str):
-				filename = os.path.expanduser(urllib.url2pathname(filename))
+				filename = os.path.expanduser(urllib.request.url2pathname(filename))
 			data = None
 			try:
 				if cmdname == "open":
 					try:
 						stream = open(filename, *args, **kwargs)
-					except IOError, exc:
-						if "w" not in args[0] or exc[0] != 2: # didn't work for some other reason than a non existing directory
+					except IOError as exc:
+						if "w" not in args[0] or exc.errno != 2: # didn't work for some other reason than a non existing directory
 							raise
 						(splitpath, splitname) = os.path.split(filename)
 						if splitpath:
@@ -829,10 +828,10 @@ class SshConnection(Connection):
 				else:
 					data = getattr(files[filename], cmdname)
 					data = data(*args, **kwargs)
-			except Exception, exc:
+			except Exception as exc:
 				if exc.__class__.__module__ != "exceptions":
 					raise
-				channel.send((True, cPickle.dumps(exc)))
+				channel.send((True, pickle.dumps(exc)))
 			else:
 				channel.send((False, data))
 	"""
