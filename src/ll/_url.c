@@ -140,7 +140,7 @@ static PyObject *unescape(PyObject *self, PyObject *args)
 		else
 		{
 			char buffer[100];
-			if (pos+3>len || (in[pos+1] == 'u' && pos+6>len))
+			if (pos+3>len)
 			{
 				sprintf(buffer, "truncated escape at position %d", pos);
 				if (PyErr_Warn(PyExc_UserWarning, buffer))
@@ -151,34 +151,6 @@ static PyObject *unescape(PyObject *self, PyObject *args)
 				/* copy the characters literally */
 				while (pos<len)
 					*out++ = in[pos++];
-			}
-			else if (in[pos+1] == 'u')
-			{
-				if ((!isxdigit(in[pos+2])) || (!isxdigit(in[pos+3])) ||
-				    (!isxdigit(in[pos+4])) || (!isxdigit(in[pos+5])))
-				{
-					int k;
-					sprintf(buffer, "malformed escape at position %d", pos);
-					if (PyErr_Warn(PyExc_UserWarning, buffer) < 0)
-					{
-						PyMem_Free(res);
-						return NULL;
-					}
-
-					for (k = 0; k < 6; ++k)
-						*out++ = in[pos + k];
-				}
-				else
-				{
-					int k;
-					for (k = 0; k < 4; ++k)
-						buffer[k] = in[pos + k + 2];
-
-					buffer[4] = '\0';
-
-					widechar_to_utf8(strtol(buffer, NULL, 16), &out);
-				}
-				pos += 6;
 			}
 			else
 			{

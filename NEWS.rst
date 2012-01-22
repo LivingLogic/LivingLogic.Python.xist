@@ -1,4 +1,4 @@
-Changes in 4.0 (released ??/??/2011)
+Changes in 4.0 (released ??/??/2012)
 ------------------------------------
 
 *	The source has been ported to Python 3. From now on XIST is a Python 3 only
@@ -23,6 +23,8 @@ Changes in 4.0 (released ??/??/2011)
 
 *	UL4 stacktraces now use exception chaining to report the exception location
 	in nested templates.
+
+*	Th support for ``%u`` escapes in URLs has been removed.
 
 *	The orasql script ``orafind`` no longer has an :option:`-e`/:option:`--encoding`
 	option.
