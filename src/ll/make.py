@@ -1148,7 +1148,7 @@ class Project(dict):
 	about the progress of the build process.
 	"""
 	def __init__(self):
-		super(Project, self).__init__()
+		super().__init__()
 		self.actionscalled = 0
 		self.actionsfailed = 0
 		self.stepsexecuted = 0
@@ -1387,7 +1387,7 @@ class Project(dict):
 		if isinstance(key, url.URL) and key.islocal():
 			key = key.abs(scheme="file")
 		target.key = key
-		super(Project, self).__setitem__(key, target)
+		super().__setitem__(key, target)
 
 	def add(self, target, key=None):
 		"""
@@ -1430,10 +1430,9 @@ class Project(dict):
 		:var:`key` still can't be found a :exc:`UndefinedTargetError` will be
 		raised.
 		"""
-		sup = super(Project, self)
 		for key2 in self._candidates(key):
 			try:
-				return sup.__getitem__(key2)
+				return super().__getitem__(key2)
 			except KeyError:
 				pass
 		raise UndefinedTargetError(key)
@@ -1448,12 +1447,7 @@ class Project(dict):
 		"""
 		Return whether the target with the key :var:`key` exists in the project.
 		"""
-		sup = super(Project, self)
-		for key2 in self._candidates(key):
-			has = key2 in sup
-			if has:
-				return True
-		return False
+		return any(super(Project, self).__contains__(key2) for key2 in self._candidates(key))
 
 	def create(self):
 		"""
