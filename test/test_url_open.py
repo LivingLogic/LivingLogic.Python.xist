@@ -216,7 +216,7 @@ def test_iter():
 	yield check, "http://www.livinglogic.de/Python/", '<?xml version="1.0" encoding="utf-8"?>\n'
 
 
-def test_autocreate():
+def test_autocreate_dir():
 	@py.test.mark.net
 	def check(u):
 		with context:
