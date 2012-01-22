@@ -643,8 +643,8 @@ class LocalConnection(Connection):
 	def walkdirs(self, url, pattern=None):
 		return self._walk(self._url2filename(url), "", pattern, (False, True))
 
-	def open(self, url, mode="rb"):
-		return FileResource(url, mode)
+	def open(self, url, **kwargs):
+		return FileResource(url, **kwargs)
 
 
 class SshConnection(Connection):
@@ -1203,18 +1203,18 @@ class FileResource(Resource):
 	"""
 	A subclass of :class:`Resource` that handles local files.
 	"""
-	def __init__(self, url, mode="rb", **kwargs):
+	def __init__(self, url, *args, **kwargs):
 		url = URL(url)
 		name = os.path.expanduser(url.local())
 		try:
-			file = open(name, mode, **kwargs)
+			file = open(name, *args, **kwargs)
 		except IOError as exc:
 			if "w" not in mode or exc.errno != 2: # didn't work for some other reason than a non existing directory
 				raise
 			(splitpath, splitname) = os.path.split(name)
 			if splitpath:
 				os.makedirs(splitpath)
-				file = open(name, mode, **kwargs)
+				file = open(name, *args, **kwargs)
 			else:
 				raise # we don't have a directory to make so pass the error on
 		self.file = file
@@ -2717,7 +2717,7 @@ class URL(object):
 		"""
 		return self._connect(context, **kwargs)[0]
 
-	def open(self, mode="rb", context=None, *args, **kwargs):
+	def open(self, context=None, *args, **kwargs):
 		"""
 		Open :var:`self` for reading or writing. :meth:`open` returns a
 		:class:`Resource` object.
@@ -2748,13 +2748,13 @@ class URL(object):
 				Nice level for the remove python (used by ``ssh`` URLs)
 		"""
 		(connection, kwargs) = self._connect(context=context, **kwargs)
-		return connection.open(self, mode, *args, **kwargs)
+		return connection.open(self, *args, **kwargs)
 
 	def openread(self, context=None, *args, **kwargs):
-		return self.open("rb", context, *args, **kwargs)
+		return self.open(context, mode="r", *args, **kwargs)
 
 	def openwrite(self, context=None, *args, **kwargs):
-		return self.open("wb", context, *args, **kwargs)
+		return self.open(context, mode="w", *args, **kwargs)
 
 	def __getattr__(self, name):
 		"""
