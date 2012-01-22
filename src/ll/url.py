@@ -990,8 +990,8 @@ class SshConnection(Connection):
 		while True:
 			yield URL(self._send(iterator, "iteratornext"))
 
-	def open(self, url, mode="rb"):
-		return RemoteFileResource(self, url, mode)
+	def open(self, url, *args, **kwargs):
+		return RemoteFileResource(self, url, *args, **kwargs)
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} to {0.server!r} at {1:#x}>".format(self, id(self))
