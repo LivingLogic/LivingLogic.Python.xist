@@ -168,7 +168,7 @@ class directive_page(directive):
 					pageEncoding=encoding
 				)
 				return node.publish(publisher) # return a generator-iterator
-		return super(directive_page, self).publish(publisher) # return a generator-iterator
+		return super().publish(publisher) # return a generator-iterator
 
 
 def fromul4(template, variables="variables", indent=0):

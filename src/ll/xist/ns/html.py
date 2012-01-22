@@ -242,7 +242,7 @@ class meta(xsc.Element):
 						content=(contenttype, "; ", "; ".join("{}={}".format(*option) for option in options.items()))
 					)
 					return node.publish(publisher) # return a generator-iterator
-		return super(meta, self).publish(publisher) # return a generator-iterator
+		return super().publish(publisher) # return a generator-iterator
 
 
 class link(xsc.Element):
