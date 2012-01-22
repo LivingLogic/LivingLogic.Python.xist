@@ -221,9 +221,10 @@ def test_procedure_arguments():
 
 @py.test.mark.db
 def test_procedure_nonexistant():
-	db = orasql.connect(dbname)
-	with py.test.raises(orasql.SQLObjectNotFoundError):
-		orasql.Procedure("DOESNOTEXIST")(db.cursor())
+	if dbname:
+		db = orasql.connect(dbname)
+		with py.test.raises(orasql.SQLObjectNotFoundError):
+			orasql.Procedure("DOESNOTEXIST")(db.cursor())
 
 
 @py.test.mark.db
@@ -238,95 +239,104 @@ def test_createorder():
 
 @py.test.mark.db
 def test_scripts_oracreate():
-	# Test oracreate without executing anything
-	args = "--color=yes --verbose=yes --seqcopy=yes {}".format(dbname)
-	oracreate.main(args.split())
+	if dbname:
+		# Test oracreate without executing anything
+		args = "--color=yes --verbose=yes --seqcopy=yes {}".format(dbname)
+		oracreate.main(args.split())
 
 
 @py.test.mark.db
 def test_scripts_oradrop():
-	# Test oradrop without executing anything
-	args = "--color=yes --verbose=yes {}".format(dbname)
-	oradrop.main(args.split())
+	if dbname:
+		# Test oradrop without executing anything
+		args = "--color=yes --verbose=yes {}".format(dbname)
+		oradrop.main(args.split())
 
 
 @py.test.mark.db
 def test_scripts_oradiff():
-	# Test oradiff (not really: we will not get any differences)
-	allargs = [
-		"--color=yes --verbose=yes {0} {0}".format(dbname),
-		"--color=yes --verbose=yes {0} {0} -mfull".format(dbname),
-	]
-	for args in allargs:
-		oradiff.main(args.split())
+	if dbname:
+		# Test oradiff (not really: we will not get any differences)
+		allargs = [
+			"--color=yes --verbose=yes {0} {0}".format(dbname),
+			"--color=yes --verbose=yes {0} {0} -mfull".format(dbname),
+		]
+		for args in allargs:
+			oradiff.main(args.split())
 
 
 @py.test.mark.db
 def test_scripts_oramerge():
-	# Test oramerge (not really: we will not get any differences)
-	args = "--color=yes --verbose=yes {0} {0} {0}".format(dbname)
-	oramerge.main(args.split())
+	if dbname:
+		# Test oramerge (not really: we will not get any differences)
+		args = "--color=yes --verbose=yes {0} {0} {0}".format(dbname)
+		oramerge.main(args.split())
 
 
 @py.test.mark.db
 def test_scripts_oragrant():
-	# Test oragrant
-	args = "--color=yes {0}".format(dbname)
-	oragrant.main(args.split())
+	if dbname:
+		# Test oragrant
+		args = "--color=yes {0}".format(dbname)
+		oragrant.main(args.split())
 
 
 @py.test.mark.db
 def test_scripts_orafind():
-	# Test orafind
-	args = "--ignore-case yes --color=yes {0} foo".format(dbname)
-	orafind.main(args.split())
+	if dbname:
+		# Test orafind
+		args = "--ignore-case yes --color=yes {0} foo".format(dbname)
+		orafind.main(args.split())
 
 
 @py.test.mark.db
 def test_callprocedure():
-	db = orasql.connect(dbname)
-	proc = db.getobject("orasql_testprocedure")
-	result = proc(db.cursor(readlobs=True), c_user="py.test", p_in="abcäöü", p_inout="abc"*10000)
-	assert result.p_in == "abcäöü"
-	assert result.p_out == "ABCÄÖÜ"
-	assert result.p_inout == "ABC"*10000 + "abcäöü"
+	if dbname:
+		db = orasql.connect(dbname)
+		proc = db.getobject("orasql_testprocedure")
+		result = proc(db.cursor(readlobs=True), c_user="py.test", p_in="abcäöü", p_inout="abc"*10000)
+		assert result.p_in == "abcäöü"
+		assert result.p_out == "ABCÄÖÜ"
+		assert result.p_inout == "ABC"*10000 + "abcäöü"
 	
-	result = proc(db.cursor(readlobs=False), c_user="py.test", p_in="abcäöü", p_inout="abc"*10000)
-	assert result.p_in == "abcäöü"
-	assert result.p_out == "ABCÄÖÜ"
-	assert readlob(result.p_inout, 8192) == "ABC"*10000 + "abcäöü"
+		result = proc(db.cursor(readlobs=False), c_user="py.test", p_in="abcäöü", p_inout="abc"*10000)
+		assert result.p_in == "abcäöü"
+		assert result.p_out == "ABCÄÖÜ"
+		assert readlob(result.p_inout, 8192) == "ABC"*10000 + "abcäöü"
 
 
 @py.test.mark.db
 def test_callfunction():
-	db = orasql.connect(dbname)
-	func = db.getobject("orasql_testfunction")
-	(result, args) = func(db.cursor(readlobs=True), c_user="py.test", p_in="abcäöü", p_inout="abc"*10000)
-	assert result == "ABCÄÖÜ"
-	assert args.p_in == "abcäöü"
-	assert args.p_out == "ABCÄÖÜ"
-	assert args.p_inout == "ABC"*10000 + "abcäöü"
+	if dbname:
+		db = orasql.connect(dbname)
+		func = db.getobject("orasql_testfunction")
+		(result, args) = func(db.cursor(readlobs=True), c_user="py.test", p_in="abcäöü", p_inout="abc"*10000)
+		assert result == "ABCÄÖÜ"
+		assert args.p_in == "abcäöü"
+		assert args.p_out == "ABCÄÖÜ"
+		assert args.p_inout == "ABC"*10000 + "abcäöü"
 
-	(result, args) = func(db.cursor(readlobs=False), c_user="py.test", p_in="abcäöü", p_inout="abc"*10000)
-	assert result == "ABCÄÖÜ"
-	assert args.p_in == "abcäöü"
-	assert args.p_out == "ABCÄÖÜ"
-	assert readlob(args.p_inout, 8192) == "ABC"*10000 + "abcäöü"
+		(result, args) = func(db.cursor(readlobs=False), c_user="py.test", p_in="abcäöü", p_inout="abc"*10000)
+		assert result == "ABCÄÖÜ"
+		assert args.p_in == "abcäöü"
+		assert args.p_out == "ABCÄÖÜ"
+		assert readlob(args.p_inout, 8192) == "ABC"*10000 + "abcäöü"
 
 
 @py.test.mark.db
 def test_clob_fromprocedure():
-	db = orasql.connect(dbname)
-	proc = db.getobject("orasql_testprocedure")
-	def check(sizearg):
-		result = proc(db.cursor(readlobs=False), c_user="py.test", p_in="abcäöü", p_inout="abc"*10000)
-		assert readlob(result.p_inout, sizearg) == "ABC"*10000 + "abcäöü"
-		assert result.p_inout.read() == ""
-	yield check, 1
-	yield check, 2
-	yield check, 8192
-	yield check, 0
-	yield check, None
+	if dbname:
+		db = orasql.connect(dbname)
+		proc = db.getobject("orasql_testprocedure")
+		def check(sizearg):
+			result = proc(db.cursor(readlobs=False), c_user="py.test", p_in="abcäöü", p_inout="abc"*10000)
+			assert readlob(result.p_inout, sizearg) == "ABC"*10000 + "abcäöü"
+			assert result.p_inout.read() == ""
+		yield check, 1
+		yield check, 2
+		yield check, 8192
+		yield check, 0
+		yield check, None
 
 
 @py.test.mark.db
