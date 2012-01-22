@@ -1241,14 +1241,15 @@ class RemoteFileResource(Resource):
 	A subclass of :class:`Resource` that handles remote files (those using
 	the ``ssh`` scheme).
 	"""
-	def __init__(self, connection, url, mode="rb"):
+	def __init__(self, connection, url, *args, **kwargs):
 		self.connection = connection
 		self.url = URL(url)
-		self.mode = mode
+		self.args = args
+		self.kwargs = kwargs
 		self.closed = False
 		filename = self.connection._url2filename(url)
 		self.name = str(self.url)
-		self.remoteid = self._send(filename, "open", mode)
+		self.remoteid = self._send(filename, "open", *args, **kwargs)
 
 	def _send(self, filename, cmd, *args, **kwargs):
 		if self.closed:
