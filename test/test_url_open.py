@@ -216,6 +216,22 @@ def test_iter():
 	yield check, "http://www.livinglogic.de/Python/", '<?xml version="1.0" encoding="utf-8"?>\n'
 
 
+def test_autocreate():
+	@py.test.mark.net
+	def check(u):
+		with context:
+			try:
+				u = url.URL(u)
+				with u.openwrite() as f:
+					f.write("Hurz!")
+			finally:
+				u.remove()
+				u.withoutfile().rmdir()
+
+	yield check, "gurk/hurz.txt"
+	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/gurk/hurz.txt"
+
+
 def test_seek_tell():
 	@py.test.mark.net
 	def check(u):

@@ -1209,7 +1209,7 @@ class FileResource(Resource):
 		try:
 			file = open(name, mode, **kwargs)
 		except IOError as exc:
-			if "w" not in mode or exc[0] != 2: # didn't work for some other reason than a non existing directory
+			if "w" not in mode or exc.errno != 2: # didn't work for some other reason than a non existing directory
 				raise
 			(splitpath, splitname) = os.path.split(name)
 			if splitpath:
