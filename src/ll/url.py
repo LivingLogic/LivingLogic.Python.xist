@@ -711,7 +711,8 @@ class SshConnection(Connection):
 					try:
 						stream = open(filename, *args, **kwargs)
 					except IOError as exc:
-						if "w" not in args[0] or exc.errno != 2: # didn't work for some other reason than a non existing directory
+						mode = args[0] if args else kwargs.get("mode", "rb")
+						if "w" not in mode or exc.errno != 2: # didn't work for some other reason than a non existing directory
 							raise
 						(splitpath, splitname) = os.path.split(filename)
 						if splitpath:
@@ -1208,6 +1209,7 @@ class FileResource(Resource):
 		try:
 			file = open(name, *args, **kwargs)
 		except IOError as exc:
+			mode = args[0] if args else kwargs.get("mode", "rb")
 			if "w" not in mode or exc.errno != 2: # didn't work for some other reason than a non existing directory
 				raise
 			(splitpath, splitname) = os.path.split(name)
