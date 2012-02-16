@@ -189,6 +189,24 @@ class LOBStream(object):
 		"""
 		self.pos = 0
 
+	def seek(self, offset, whence=0):
+		"""
+		Seek to the position :var:`offset` in the LOB. The :var:`whence` argument
+		is optional and defaults to ``0`` (absolute file positioning);
+		The other allowed value is ``1`` (seek relative to the current position).
+		"""
+		if whence == 0:
+			self.pos = whence
+		elif whence == 1:
+			self.pos += whence
+		else:
+			raise ValueError("unkown whence: {!r}".format(whence))
+		size = self.value.size()
+		if self.pos >= size:
+			self.pos = size
+		elif self.pos < 0:
+			self.pos = 0
+
 
 def _decodelob(value, readlobs):
 	if value is not None:

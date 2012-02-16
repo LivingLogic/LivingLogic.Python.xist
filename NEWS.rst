@@ -33,6 +33,8 @@ Changes in 4.0 (released ??/??/2012)
 	``firstlast``, ``enumfl``. They are variants of ``enumerate``/``enum`` that
 	give information about whether the item is the first and/or last item.
 
+*	:class:`ll.orasql.LOBStream` has a new method :meth:`seek`.
+
 
 Changes in 3.25 (released 08/12/2011)
 -------------------------------------
