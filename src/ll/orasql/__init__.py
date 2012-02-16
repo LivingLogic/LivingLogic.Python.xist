@@ -185,7 +185,7 @@ class LOBStream(object):
 	def reset(self):
 		"""
 		Reset the stream, so that the next :meth:`read` call starts at the
-		beginning of the BLOB.
+		beginning of the LOB.
 		"""
 		self.pos = 0
 
