@@ -638,7 +638,6 @@ def jsmin(input):
 	"""
 	Minimizes the Javascript source :var:`input`.
 	"""
-
 	indata = iter(input.replace("\r", "\n"))
 
 	# Copy the input to the output, deleting the characters which are

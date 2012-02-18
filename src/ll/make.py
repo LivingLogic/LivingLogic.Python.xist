@@ -159,10 +159,10 @@ def report(func):
 						args.append(s4error(text))
 					elif data is nodata:
 						args.append("nodata")
+					elif isinstance(data, bytes):
+						args.append(s4data("bytes ({}b)".format(len(data))))
 					elif isinstance(data, str):
-						args.append(s4data("str ({}b)".format(len(data))))
-					elif isinstance(data, str):
-						args.append(s4data("unicode ({}c)".format(len(data))))
+						args.append(s4data("chars ({}c)".format(len(data))))
 					else:
 						dataclass = data.__class__
 						fmt = "{0.__module__}.{0.__name__} @ {1:#x}" if dataclass.__module__ != "__builtin__" else "{0.__name__} @ {1:#x}"
@@ -623,7 +623,7 @@ class FileAction(TransformAction):
 		Write :var:`data` to the file and return it.
 		"""
 		project.writestep(self, "Writing ", len(data), " bytes to ", project.strkey(self.key))
-		with contextlib.closing(self.key.open("wb")) as file:
+		with contextlib.closing(self.key.open(mode="wb")) as file:
 			file.write(data)
 			project.fileswritten += 1
 			project.byteswritten += len(data)
@@ -633,7 +633,7 @@ class FileAction(TransformAction):
 		Read the content from the file and return it.
 		"""
 		project.writestep(self, "Reading ", project.strkey(self.key))
-		with contextlib.closing(self.key.open("rb")) as file:
+		with contextlib.closing(self.key.open(mode="rb")) as file:
 			data = file.read()
 			project.filesread += 1
 			project.bytesread += len(data)
