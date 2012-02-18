@@ -839,7 +839,7 @@ class CallAction(Action):
 class CallAttrAction(Action):
 	"""
 	This action calls an attribute of an object with a number of arguments. Both
-	positional and keyword arguments are supported and the object, the atribute
+	positional and keyword arguments are supported and the object, the attribute
 	name and the arguments can be static objects or actions.
 	"""
 	def __init__(self, obj, attrname, *args, **kwargs):
