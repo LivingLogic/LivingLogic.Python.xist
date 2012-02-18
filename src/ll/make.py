@@ -1012,7 +1012,7 @@ class ModuleAction(TransformAction):
 				filename = key.local()
 			except ValueError: # is not local
 				filename = str(key)
-			name = key.withoutext().file.encode("ascii", "ignore")
+			name = key.withoutext().file.encode("ascii", "ignore").decode("ascii")
 		else:
 			filename = name = str(key)
 
