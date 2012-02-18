@@ -2675,7 +2675,7 @@ class OracleFileResource(url_.Resource):
 	An :class:`OracleFileResource` wraps an Oracle database object (like a
 	table, view, function, procedure etc.) in a file-like API.
 	"""
-	def __init__(self, connection, url, mode="rb"):
+	def __init__(self, connection, url, mode="r"):
 		self.connection = connection
 		self.url = url
 		self.mode = mode
