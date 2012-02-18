@@ -1976,7 +1976,7 @@ class JavaSource(object):
 			raise UnknownFunctionError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callfunc1(self, opcode):
-		if opcode.arg in {"xmlescape", "csv", "repr", "enum", "chr", "ord", "hex", "oct", "bin", "sorted", "range", "type", "json", "reversed", "randrange", "randchoice", "abs", "str"}:
+		if opcode.arg in {"xmlescape", "csv", "repr", "enum", "first", "last", "enumfl", "chr", "ord", "hex", "oct", "bin", "sorted", "range", "type", "json", "reversed", "randrange", "randchoice", "abs", "str"}:
 			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "int":
 			self._do("r{op.r1} = com.livinglogic.ul4.Utils.toInteger(r{op.r2});".format(op=opcode))
