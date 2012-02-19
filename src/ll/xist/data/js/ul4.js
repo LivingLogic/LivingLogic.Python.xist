@@ -784,6 +784,77 @@ var ul4 = {
 		return result;
 	},
 
+	_fu_first: function(obj)
+	{
+		var iter = this._iter(obj);
+		var isfirst = true;
+		var result = function()
+		{
+			var inner = iter();
+			var result = inner !== null ? [[isfirst, inner[0]]] : null;
+			isfirst = false;
+			return result;
+		}
+		result.__iter__ = true;
+		return result;
+	},
+
+	_fu_last: function(obj)
+	{
+		var iter = this._iter(obj);
+		var lastitem = iter();
+		var result = function()
+		{
+			if (lastitem === null)
+				return null;
+			var inner = iter();
+			var result = [[inner === null, lastitem[0]]];
+			lastitem = inner;
+			return result;
+		}
+		result.__iter__ = true;
+		return result;
+	},
+
+	_fu_firstlast: function(obj)
+	{
+		var iter = this._iter(obj);
+		var isfirst = true;
+		var lastitem = iter();
+		var result = function()
+		{
+			if (lastitem === null)
+				return null;
+			var inner = iter();
+			var result = [[isfirst, inner === null, lastitem[0]]];
+			lastitem = inner;
+			isfirst = false;
+			return result;
+		}
+		result.__iter__ = true;
+		return result;
+	},
+
+	_fu_enumfl: function(obj)
+	{
+		var iter = this._iter(obj);
+		var i = 0;
+		var isfirst = true;
+		var lastitem = iter();
+		var result = function()
+		{
+			if (lastitem === null)
+				return null;
+			var inner = iter();
+			var result = [[i++, isfirst, inner === null, lastitem[0]]];
+			lastitem = inner;
+			isfirst = false;
+			return result;
+		}
+		result.__iter__ = true;
+		return result;
+	},
+
 	_fu_zip: function()
 	{
 		var iters = [];
