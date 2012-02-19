@@ -53,7 +53,7 @@ except ImportError:
 	execnet = None
 
 try:
-	import Image
+	from PIL import Image
 except ImportError:
 	pass
 
@@ -316,7 +316,7 @@ class Connection(object):
 
 		__ http://www.pythonware.com/products/pil/
 		"""
-		stream = self.open(url, "rb")
+		stream = self.open(url, mode="rb")
 		img = Image.open(stream) # Requires PIL
 		imagesize = img.size
 		stream.close()
