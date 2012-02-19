@@ -19,8 +19,6 @@ Changes in 4.0 (released ??/??/2012)
 *	The XIST node method :meth:`sorted` has been removed, as it no longer makes
 	sense, because with Python 3 nodes might be uncomparable.
 
-*	The UL4 function ``enumerate`` has been renamed to ``enum``.
-
 *	UL4 stacktraces now use exception chaining to report the exception location
 	in nested templates.
 
@@ -30,8 +28,8 @@ Changes in 4.0 (released ??/??/2012)
 	option.
 
 *	The following new functions have been added to UL4: ``first``, ``last``,
-	``firstlast``, ``enumfl``. They are variants of ``enumerate``/``enum`` that
-	give information about whether the item is the first and/or last item.
+	``firstlast``, ``enumfl``. They are variants of ``enumerate`` that give
+	information about whether the item is the first and/or last item.
 
 *	:class:`ll.orasql.LOBStream` has a new method :meth:`seek`.
 

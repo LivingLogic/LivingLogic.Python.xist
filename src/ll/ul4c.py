@@ -1318,7 +1318,7 @@ class PythonSource(object):
 		self._line(opcode.location, "r{op.r1:d} = len(r{op.r2:d})".format(op=opcode))
 	def _dispatch_callfunc1_abs(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = abs(r{op.r2:d})".format(op=opcode))
-	def _dispatch_callfunc1_enum(self, opcode):
+	def _dispatch_callfunc1_enumerate(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = enumerate(r{op.r2:d})".format(op=opcode))
 	def _dispatch_callfunc1_enumfl(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = ul4c._enumfl(r{op.r2:d})".format(op=opcode))
@@ -1609,7 +1609,7 @@ class JavascriptSource(object):
 		else:
 			raise UnknownFunctionError(opcode.arg)
 	def _dispatch_callfunc1(self, opcode):
-		if opcode.arg in {"xmlescape", "csv", "repr", "enum", "chr", "ord", "hex", "oct", "bin", "sorted", "type", "json", "reversed", "randchoice", "str", "int", "float", "bool", "len", "isstr", "isint", "isfloat", "isbool", "isdate", "islist", "isdict", "istemplate", "iscolor", "abs"}:
+		if opcode.arg in {"xmlescape", "csv", "repr", "enumerate", "chr", "ord", "hex", "oct", "bin", "sorted", "type", "json", "reversed", "randchoice", "str", "int", "float", "bool", "len", "isstr", "isint", "isfloat", "isbool", "isdate", "islist", "isdict", "istemplate", "iscolor", "abs"}:
 			self._line("r{op.r1} = ul4._fu_{op.arg}(r{op.r2});".format(op=opcode))
 		elif opcode.arg in {"range", "randrange"}:
 			self._line("r{op.r1} = ul4._fu_{op.arg}(0, r{op.r2}, 1);".format(op=opcode))
@@ -1976,7 +1976,7 @@ class JavaSource(object):
 			raise UnknownFunctionError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callfunc1(self, opcode):
-		if opcode.arg in {"xmlescape", "csv", "repr", "enum", "first", "last", "enumfl", "chr", "ord", "hex", "oct", "bin", "sorted", "range", "type", "json", "reversed", "randrange", "randchoice", "abs", "str"}:
+		if opcode.arg in {"xmlescape", "csv", "repr", "enumerate", "first", "last", "enumfl", "chr", "ord", "hex", "oct", "bin", "sorted", "range", "type", "json", "reversed", "randrange", "randchoice", "abs", "str"}:
 			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "int":
 			self._do("r{op.r1} = com.livinglogic.ul4.Utils.toInteger(r{op.r2});".format(op=opcode))
