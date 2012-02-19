@@ -8,7 +8,8 @@ To use XIST you need the following software packages:
 	*	`cssutils`_;
 
 	*	`Python Imaging Library`_ (if you want to use automatic image size
-		calculation);
+		calculation); (As long as the PIL isn't ported to Python 3, you can use this
+		`PIL port to Python 3`_)
 
 	*	`lxml`_ (if you want to parse "broken" HTML);
 
@@ -29,6 +30,7 @@ To use XIST you need the following software packages:
 	.. _Python 3.2: http://www.python.org/
 	.. _cssutils: http://cthedot.de/cssutils/
 	.. _Python Imaging Library: http://www.pythonware.com/products/pil/
+	.. _PIL port to Python 3: http://www.lfd.uci.edu/~gohlke/pythonlibs/#pil
 	.. _lxml: http://lxml.de/
 	.. _elinks: http://elinks.or.cz/
 	.. _cx_Oracle: http://cx-oracle.sourceforge.net/
