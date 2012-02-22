@@ -604,26 +604,34 @@ class FileAction(TransformAction):
 	A :class:`FileAction` is used for reading and writing files (and other
 	objects providing the appropriate interface).
 	"""
-	def __init__(self, key, input=None):
+	def __init__(self, key, input=None, encoding=None, errors=None):
 		"""
 		Create a :class:`FileAction` object with :var:`key` as the "filename".
 		:var:`key` must be an object that provides a method :meth:`open` for
 		opening readable and writable streams to the file. :var:`input` is the
-		data written to the file (or the action producing the data).
+		data written to the file (or the action producing the data). :var:`encoding`
+		is the encoding to be used from reading/writing. If :var:`encoding` is
+		:const:`None` binary i/o will be used. :var:`errors` is the codec error
+		handling name for encoding/decoding text.
 		"""
 		TransformAction.__init__(self, input)
 		self.key = url.URL(key)
+		self.encoding = encoding
+		self.errors = errors
 		self.buildno = None
 
 	def getkey(self):
 		return self.key
 
+	def getkwargs(self):
+		return dict(data=self.input, encoding=self.encoding, errors=errors)
+
 	def write(self, project, data):
 		"""
 		Write :var:`data` to the file and return it.
 		"""
-		project.writestep(self, "Writing ", len(data), " bytes to ", project.strkey(self.key))
-		with contextlib.closing(self.key.open(mode="wb")) as file:
+		project.writestep(self, "Writing ", len(data), " ", ("bytes" if isinstance(data, bytes) else "chars"), " to ", project.strkey(self.key))
+		with contextlib.closing(self.key.open(mode="wb" if self.encoding is None else "w", encoding=self.encoding, errors=self.errors)) as file:
 			file.write(data)
 			project.fileswritten += 1
 			project.byteswritten += len(data)
@@ -633,7 +641,7 @@ class FileAction(TransformAction):
 		Read the content from the file and return it.
 		"""
 		project.writestep(self, "Reading ", project.strkey(self.key))
-		with contextlib.closing(self.key.open(mode="rb")) as file:
+		with contextlib.closing(self.key.open(mode="rb" if self.encoding is None else "r", encoding=self.encoding, errors=self.errors)) as file:
 			data = file.read()
 			project.filesread += 1
 			project.bytesread += len(data)
@@ -1614,14 +1622,16 @@ class Project(dict):
 				cmd = "growlnotify -i py -n ll.make 'll.make done in {}'".format(self.strtimedelta(now-self.starttime))
 				import subprocess
 				pipe = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE).stdin
-				pipe.write("{}\n".format(filename))
-				pipe.write("{}.{}\n".format(self.__class__.__module__, self.__class__.__name__))
-				pipe.write("{:,} registered targets, ".format(len(self)))
-				pipe.write("{:,} actions called, ".format(self.actionscalled))
-				pipe.write("{:,} steps executed, ".format(self.stepsexecuted))
-				pipe.write("{:,} files/{:,} bytes read, ".format(self.filesread, self.bytesread))
-				pipe.write("{:,} files/{:,} bytes written, ".format(self.fileswritten, self.byteswritten))
-				pipe.write("{:,} actions failed".format(self.actionsfailed))
+				def write(s):
+					pipe.write(s.encode("utf-8"))
+				write("{}\n".format(filename))
+				write("{}.{}\n".format(self.__class__.__module__, self.__class__.__name__))
+				write("{:,} registered targets, ".format(len(self)))
+				write("{:,} actions called, ".format(self.actionscalled))
+				write("{:,} steps executed, ".format(self.stepsexecuted))
+				write("{:,} files/{:,} bytes read, ".format(self.filesread, self.bytesread))
+				write("{:,} files/{:,} bytes written, ".format(self.fileswritten, self.byteswritten))
+				write("{:,} actions failed".format(self.actionsfailed))
 				pipe.close()
 
 	def buildwithargs(self, args=None):

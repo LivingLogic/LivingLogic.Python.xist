@@ -3,7 +3,7 @@ Changes in 4.0 (released ??/??/2012)
 
 *	The source has been ported to Python 3. From now on XIST is a Python 3 only
 	project. A big thanks goes to Martin v. Löwis, who got this conversion
-	started on PyCon DE 2011. He did the basic ``2to3`` conversion and updated
+	started at PyCon DE 2011. He did the basic ``2to3`` conversion and updated
 	the C source to work on Python 3. Without Martin, XIST wouldn't have made
 	the leap to Python 3 for several years.
 
@@ -32,6 +32,9 @@ Changes in 4.0 (released ??/??/2012)
 	information about whether the item is the first and/or last item.
 
 *	:class:`ll.orasql.LOBStream` has a new method :meth:`seek`.
+
+*	:class:`ll.make.FileAction` supports encoding/decoding when writing/reading
+	the file. For this use the :var:`encoding` and :var:`errors` arguments.
 
 
 Changes in 3.25 (released 08/12/2011)
