@@ -159,6 +159,8 @@ def report(func):
 						args.append(s4error(text))
 					elif data is nodata:
 						args.append("nodata")
+					elif data is None:
+						args.append(s4data("None"))
 					elif isinstance(data, bytes):
 						args.append(s4data("bytes ({}b)".format(len(data))))
 					elif isinstance(data, str):
