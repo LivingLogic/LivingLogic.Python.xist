@@ -157,19 +157,8 @@ def report(func):
 						fmt = "{0.__module__}.{0.__name__}" if error.__module__ != "exceptions" else "{0.__name__}"
 						text = fmt.format(error)
 						args.append(s4error(text))
-					elif data is nodata:
-						args.append("nodata")
-					elif data is None:
-						args.append(s4data("None"))
-					elif isinstance(data, bytes):
-						args.append(s4data("bytes ({}b)".format(len(data))))
-					elif isinstance(data, str):
-						args.append(s4data("chars ({}c)".format(len(data))))
 					else:
-						dataclass = data.__class__
-						fmt = "{0.__module__}.{0.__name__} @ {1:#x}" if dataclass.__module__ != "__builtin__" else "{0.__name__} @ {1:#x}"
-						text = fmt.format(dataclass, id(data))
-						args.append(s4data(text))
+						args.append(project.strdata(data))
 				project.writestack(*args)
 		return data
 	reporter.__dict__.update(func.__dict__)
@@ -1386,6 +1375,23 @@ class Project(dict):
 			return s4action(name, "(", self.strkey(action.key), ")")
 		else:
 			return s4action(name)
+
+	def strdata(self, data):
+		if data is nodata:
+			return "nodata"
+		elif isinstance(data, (int, float)):
+			return s4data(repr(data))
+		elif data is None:
+			return s4data("None")
+		elif isinstance(data, bytes):
+			return s4data("bytes ({}b)".format(len(data)))
+		elif isinstance(data, str):
+			return s4data("chars ({}c)".format(len(data)))
+		else:
+			dataclass = data.__class__
+			fmt = "{0.__module__}.{0.__name__} @ {1:#x}" if dataclass.__module__ != "__builtin__" else "{0.__name__} @ {1:#x}"
+			text = fmt.format(dataclass, id(data))
+			return s4data(text)
 
 	def __setitem__(self, key, target):
 		"""
