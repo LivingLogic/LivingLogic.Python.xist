@@ -1552,12 +1552,6 @@ class Path(object):
 		self._segments = []
 		self.path = path
 
-	@classmethod
-	def _fixsegment(cls, segment):
-		if isinstance(segment, str):
-			segment = _escape(segment, pathsafe)
-		return _unescape(segment)
-
 	def _prefix(cls, path):
 		if path.startswith("/"):
 			return "/"
@@ -1566,7 +1560,7 @@ class Path(object):
 
 	def insert(self, index, *others):
 		segments = self.segments
-		segments[index:index] = map(self._fixsegment, others)
+		segments[index:index] = map(_unescape, others)
 		self.segments = segments
 
 	def startswith(self, prefix):
@@ -1631,10 +1625,10 @@ class Path(object):
 	def __setitem__(self, index, value):
 		segments = self.segments
 		if isinstance(index, slice):
-			segments[index1:index2] = map(self._fixsegment, seq)
+			segments[index1:index2] = map(_unescape, seq)
 			self._path = self._prefix(self._path) + self._segments2path(segments)
 		else:
-			segments[index] = self._fixsegment(value)
+			segments[index] = _unescape(value)
 			self._path = self._prefix(self._path) + self._segments2path(segments)
 		self._segments = segments
 
@@ -1648,7 +1642,7 @@ class Path(object):
 			self._segments = segments
 
 	def __contains__(self, item):
-		return self._fixsegment(item) in self.segments
+		return _unescape(item) in self.segments
 
 	class isabs(misc.propclass):
 		"""
@@ -1677,7 +1671,7 @@ class Path(object):
 	def _path2segments(cls, path):
 		if path.startswith("/"):
 			path = path[1:]
-		return list(map(cls._fixsegment, path.split("/")))
+		return list(map(_unescape, path.split("/")))
 
 	def _setpathorsegments(self, path):
 		if path is None:
@@ -1687,7 +1681,7 @@ class Path(object):
 			self._path = path._path
 			self._segments = None
 		elif isinstance(path, (list, tuple)):
-			self._segments = list(map(self._fixsegment, path))
+			self._segments = list(map(_unescape, path))
 			self._path = self._prefix(self._path) + self._segments2path(self._segments)
 		else:
 			if isinstance(path, str):
