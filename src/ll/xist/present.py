@@ -294,7 +294,7 @@ class TreePresenter(Presenter):
 		return s4tab(level*indent)
 
 	def text(self, text):
-		return repr(text)[2:-1]
+		return repr(text)[1:-1]
 
 	def __iter__(self):
 		self._inattr = 0
