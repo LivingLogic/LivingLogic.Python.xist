@@ -1264,6 +1264,8 @@ class embed(xsc.Element):
 		class type(xsc.TextAttr): pass
 		class bgcolor(xsc.ColorAttr): pass
 		class menu(xsc.TextAttr): pass # deprecated
+		class allowFullScreen(xsc.TextAttr): pass # deprecated
+		class flashvars(xsc.TextAttr): pass # deprecated
 
 
 # The pain, the pain ...

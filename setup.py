@@ -227,7 +227,7 @@ else:
 
 args = dict(
 	name="ll-xist",
-	version="3.7.6",
+	version="3.7.7",
 	description="Extensible HTML/XML generator, cross-platform templating language, Oracle utilities and various other tools",
 	long_description=descr,
 	author="Walter Doerwald",
