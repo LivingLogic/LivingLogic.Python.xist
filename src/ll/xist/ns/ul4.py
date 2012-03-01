@@ -52,7 +52,7 @@ class render(xsc.ProcInst):
 
 
 ###
-### Processing instructions for conditional attributes
+### Element for conditional attributes
 ###
 
 class attr_if(xsc.AttrElement):
