@@ -26,24 +26,15 @@ __docformat__ = "reStructuredText"
 def _simplify(value):
 	"""
 	Return a string whose value can be used as an intializer for an attribute
-	value. (If the value is an :class:`int` strip the quotes, if it fits into
-	ASCII drop the ``u`` prefix.)
+	value. (If the value is an :class:`int` strip the quotes)
 	"""
 	try:
 		value = int(value)
 	except ValueError:
-		try:
-			value = str(value)
-		except UnicodeError:
-			if '"' in value:
-				value = repr(value)
-			else:
-				value = 'u"{}"'.format(repr(value)[2:-1])
+		if '"' in value:
+			value = repr(value)
 		else:
-			if '"' in value:
-				value = repr(value)
-			else:
-				value = '"{}"'.format(repr(value)[1:-1])
+			value = '"{}"'.format(repr(value)[1:-1])
 	return value
 
 
