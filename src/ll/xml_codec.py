@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2007-2010 by LivingLogic AG, Bayreuth/Germany.
-# Copyright 2007-2010 by Walter Dörwald
+# Copyright 2007-2011 by LivingLogic AG, Bayreuth/Germany.
+# Copyright 2007-2011 by Walter Dörwald
 #
 # All Rights Reserved
 #
@@ -35,20 +35,20 @@ encoding into the XML declaration (if there is one).
 import codecs
 
 try:
-	from _xml_codec import detectencoding as _detectencoding, fixencoding as _fixencoding
+	from ._xml_codec import detectencoding as _detectencoding, fixencoding as _fixencoding
 except ImportError:
 	import re
 
 	def _detectencoding(input, final=False):
 		raise NotImplementedError("C module _xml_codec missing, _detectencoding() not supported")
 
-	_xmlheader = re.compile(u"""(<\\?xml\\s+version\\s*=\\s*['"][^'"]+['"]\\s+encoding\\s*=\\s*['"])([^'"]+)(['"])""")
+	_xmlheader = re.compile("""(<\\?xml\\s+version\\s*=\\s*['"][^'"]+['"]\\s+encoding\\s*=\\s*['"])([^'"]+)(['"])""")
 
 	def _fixencoding(input, encoding, final=False):
 		if final or input.startswith("<?xml"):
 			match = _xmlheader.match(input)
 			if match:
-				return u''.join((match.group(1), encoding, match.group(3), input[match.end(0):]))
+				return ''.join((match.group(1), encoding, match.group(3), input[match.end(0):]))
 			if "?>" in input or final:
 				return input
 			return None
@@ -64,7 +64,7 @@ def decode(input, errors="strict", encoding=None):
 	if encoding == "xml":
 		raise ValueError("xml not allowed as encoding name")
 	(input, consumed) = codecs.getdecoder(encoding)(input, errors)
-	return (_fixencoding(input, unicode(encoding), True), consumed)
+	return (_fixencoding(input, str(encoding), True), consumed)
 
 
 def encode(input, errors="strict", encoding=None):
@@ -72,7 +72,7 @@ def encode(input, errors="strict", encoding=None):
 	if encoding is None:
 		encoding = _detectencoding(input, True)
 	else:
-		input = _fixencoding(input, unicode(encoding), True)
+		input = _fixencoding(input, str(encoding), True)
 	if encoding == "xml":
 		raise ValueError("xml not allowed as encoding name")
 	info = codecs.lookup(encoding)
@@ -85,7 +85,7 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
 		self._initial_encoding = self.encoding = encoding
 		codecs.IncrementalDecoder.__init__(self, errors)
 		self._errors = errors # Store ``errors`` somewhere else, because we have to hide it in a property
-		self.buffer = ""
+		self.buffer = b""
 		self.headerfixed = False
 
 	def iterdecode(self, input):
@@ -93,13 +93,13 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
 			result = self.decode(part, False)
 			if result:
 				yield result
-		result = self.decode("", True)
+		result = self.decode(b"", True)
 		if result:
 			yield result
 
 	def decode(self, input, final=False):
 		# We're doing basically the same as a ``BufferedIncrementalDecoder``,
-		# but since  the buffer is only relevant until the encoding has been detected
+		# but since the buffer is only relevant until the encoding has been detected
 		# (in which case the buffer of the underlying codec might kick in),
 		# we're implementing buffering ourselves to avoid some overhead.
 		if self.decoder is None:
@@ -108,19 +108,22 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
 				self.encoding = _detectencoding(input, final)
 				if self.encoding is None:
 					self.buffer = input # retry the complete input on the next call
-					return u"" # no encoding determined yet, so no output
+					return "" # no encoding determined yet, so no output
 			if self.encoding == "xml":
 				raise ValueError("xml not allowed as encoding name")
-			self.buffer = "" # isn't needed any more, as the decoder might keep its own buffer
+			self.buffer = b"" # isn't needed any more, as the decoder might keep its own buffer
 			self.decoder = codecs.getincrementaldecoder(self.encoding)(self._errors)
 		if self.headerfixed:
 			return self.decoder.decode(input, final)
 		# If we haven't fixed the header yet, the content of ``self.buffer`` is a ``unicode`` object
-		output = self.buffer + self.decoder.decode(input, final)
-		newoutput = _fixencoding(output, unicode(self.encoding), final)
+		buffer = self.buffer
+		if isinstance(buffer, bytes):
+			buffer = buffer.decode("ascii")
+		output = buffer + self.decoder.decode(input, final)
+		newoutput = _fixencoding(output, self.encoding, final)
 		if newoutput is None:
 			self.buffer = output # retry fixing the declaration (but keep the decoded stuff)
-			return u""
+			return ""
 		self.headerfixed = True
 		return newoutput
 
@@ -128,7 +131,7 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
 		codecs.IncrementalDecoder.reset(self)
 		self.encoding = self._initial_encoding
 		self.decoder = None
-		self.buffer = ""
+		self.buffer = b""
 		self.headerfixed = False
 
 	def _geterrors(self):
@@ -148,14 +151,14 @@ class IncrementalEncoder(codecs.IncrementalEncoder):
 		self._initial_encoding = self.encoding = encoding
 		codecs.IncrementalEncoder.__init__(self, errors)
 		self._errors = errors # Store ``errors`` somewhere else, because we have to hide it in a property
-		self.buffer = u""
+		self.buffer = ""
 
 	def iterencode(self, input):
 		for part in input:
 			result = self.encode(part, False)
 			if result:
 				yield result
-		result = self.encode(u"", True)
+		result = self.encode("", True)
 		if result:
 			yield result
 
@@ -164,10 +167,10 @@ class IncrementalEncoder(codecs.IncrementalEncoder):
 			input = self.buffer + input
 			if self.encoding is not None:
 				# Replace encoding in the declaration with the specified one
-				newinput = _fixencoding(input, unicode(self.encoding), final)
+				newinput = _fixencoding(input, str(self.encoding), final)
 				if newinput is None: # declaration not complete => Retry next time
 					self.buffer = input
-					return ""
+					return b""
 				input = newinput
 			else:
 				# Use encoding from the XML declaration
@@ -177,17 +180,17 @@ class IncrementalEncoder(codecs.IncrementalEncoder):
 					raise ValueError("xml not allowed as encoding name")
 				info = codecs.lookup(self.encoding)
 				self.encoder = info.incrementalencoder(self._errors)
-				self.buffer = u""
+				self.buffer = ""
 			else:
 				self.buffer = input
-				return ""
+				return b""
 		return self.encoder.encode(input, final)
 
 	def reset(self):
 		codecs.IncrementalEncoder.reset(self)
 		self.encoding = self._initial_encoding
 		self.encoder = None
-		self.buffer = u""
+		self.buffer = ""
 
 	def _geterrors(self):
 		return self._errors

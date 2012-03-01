@@ -1,15 +1,13 @@
 #! /usr/bin/env/python
 # -*- coding: utf-8 -*-
 
-## Copyright 2009-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2009-2010 by Walter Dörwald
+## Copyright 2009-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2009-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
 ## See ll/__init__.py for the license
 
-
-import warnings
 
 from ll import toxicc
 from ll.xist import xsc
@@ -70,7 +68,7 @@ def test_oracle_clobproc():
 	tmpl = e.conv().string(encoding="ascii")
 
 	sql = toxicc.compile(tmpl)
-	print sql
+	print(sql)
 	assert "dbms_lob.createtemporary" in sql
 	assert "procedure write" in sql
 	assert "c_out out clob" in sql
@@ -99,7 +97,7 @@ def sqlservercode():
 		htmlspecials.plaintable(
 			toxic.code("""
 				set @i = 1;
-			   
+
 				declare @row_name varchar(100);
 				declare person_cursor cursor for
 					select name from person where name like @search

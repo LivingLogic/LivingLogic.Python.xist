@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
-## Copyright 2007-2010 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 2007-2010 by Walter Dörwald
+## Copyright 2007-2011 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 2007-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
 ## See ll/__init__.py for the license
 
 
-ur"""
+r"""
 This module can be used on UNIX to fork a daemon process. It is based on
 `Jürgen Hermann's Cookbook recipe`__.
 
@@ -29,22 +29,27 @@ An example script might look like this::
 	if __name__ == "__main__":
 		if counter.service():
 			import sys, os, time
-			sys.stdout.write("Daemon started with pid %d\n" % os.getpid())
+			sys.stdout.write("Daemon started with pid {}\n".format(os.getpid()))
 			sys.stdout.write("Daemon stdout output\n")
 			sys.stderr.write("Daemon stderr output\n")
 			c = 0
 			while True:
-				sys.stdout.write('%d: %s\n' % (c, time.ctime(time.time())))
+				sys.stdout.write('{}: {}\n'.format(c, time.ctime(time.time())))
 				sys.stdout.flush()
 				c += 1
 				time.sleep(1)
 """
 
 
-import sys, os, signal, pwd, grp, optparse
+import sys, os, signal, pwd, grp, argparse
 
 
 __docformat__ = "reStructuredText"
+
+
+class Options(object):
+	def __init__(self, **values):
+		self.__dict__.update(values)
 
 
 class Daemon(object):
@@ -72,7 +77,7 @@ class Daemon(object):
 		In the same way :var:`group` can be the name or gid of a group.
 		:meth:`start` will switch to this group.
 		"""
-		options = dict(
+		self.options = Options(
 			stdin=stdin,
 			stdout=stdout,
 			stderr=stderr,
@@ -80,8 +85,6 @@ class Daemon(object):
 			user=user,
 			group=group,
 		)
-
-		self.options = optparse.Values(options)
 
 	def openstreams(self):
 		"""
@@ -94,7 +97,7 @@ class Daemon(object):
 		os.dup2(si.fileno(), sys.stdin.fileno())
 		os.dup2(so.fileno(), sys.stdout.fileno())
 		os.dup2(se.fileno(), sys.stderr.fileno())
-	
+
 	def handlesighup(self, signum, frame):
 		"""
 		Handle a ``SIG_HUP`` signal: Reopen standard file descriptors.
@@ -120,11 +123,11 @@ class Daemon(object):
 		(a user/group name).
 		"""
 		if group is not None:
-			if isinstance(group, basestring):
+			if isinstance(group, str):
 				group = grp.getgrnam(group).gr_gid
 			os.setegid(group)
 		if user is not None:
-			if isinstance(user, basestring):
+			if isinstance(user, str):
 				user = pwd.getpwnam(user).pw_uid
 			os.seteuid(user)
 			if "HOME" in os.environ:
@@ -138,36 +141,36 @@ class Daemon(object):
 		# Finish up with the current stdout/stderr
 		sys.stdout.flush()
 		sys.stderr.flush()
-	
+
 		# Do first fork
 		try:
 			pid = os.fork()
 			if pid > 0:
 				sys.exit(0) # Exit first parent
-		except OSError, exc:
-			sys.exit("%s: fork #1 failed: (%d) %s\n" % (sys.argv[0], exc.errno, exc.strerror))
-	
+		except OSError as exc:
+			sys.exit("{}: fork #1 failed: ({}) {}\n".format(sys.argv[0], exc.errno, exc.strerror))
+
 		# Decouple from parent environment
 		os.chdir("/")
 		os.umask(0)
 		os.setsid()
-	
+
 		# Do second fork
 		try:
 			pid = os.fork()
 			if pid > 0:
 				sys.exit(0) # Exit second parent
-		except OSError, exc:
-			sys.exit("%s: fork #2 failed: (%d) %s\n" % (sys.argv[0], exc.errno, exc.strerror))
-	
+		except OSError as exc:
+			sys.exit("{}: fork #2 failed: ({}) {}\n".format(sys.argv[0], exc.errno, exc.strerror))
+
 		# Now I am a daemon!
-	
+
 		# Switch user
 		self.switchuser(self.options.user, self.options.group)
 
 		# Redirect standard file descriptors (will belong to the new user)
 		self.openstreams()
-	
+
 		# Write pid file (will belong to the new user)
 		if self.options.pidfile is not None:
 			open(self.options.pidfile, "wb").write(str(os.getpid()))
@@ -187,27 +190,28 @@ class Daemon(object):
 			sys.exit("no pidfile specified")
 		try:
 			pidfile = open(self.options.pidfile, "rb")
-		except IOError, exc:
-			sys.exit("can't open pidfile %s: %s" % (self.options.pidfile, str(exc)))
+		except IOError as exc:
+			sys.exit("can't open pidfile {}: {}".format(self.options.pidfile, str(exc)))
 		data = pidfile.read()
 		try:
 			pid = int(data)
 		except ValueError:
-			sys.exit("mangled pidfile %s: %r" % (self.options.pidfile, data))
+			sys.exit("mangled pidfile {}: {}".format(self.options.pidfile, data))
 		os.kill(pid, signal.SIGTERM)
 
-	def optionparser(self):
+	def argparser(self):
 		"""
-		Return an :mod:`optparse` parser for parsing the command line options.
-		This can be overwritten in subclasses to add more options.
+		Return an :mod:`argparse` parser for parsing the command line arguments.
+		This can be overwritten in subclasses to add more arguments.
 		"""
-		p = optparse.OptionParser(usage="usage: %prog [options] (start|stop|restart|run)")
-		p.add_option("--pidfile", dest="pidfile", help="PID filename (default %default)", default=self.options.pidfile)
-		p.add_option("--stdin", dest="stdin", help="stdin filename (default %default)", default=self.options.stdin)
-		p.add_option("--stdout", dest="stdout", help="stdout filename (default %default)", default=self.options.stdout)
-		p.add_option("--stderr", dest="stderr", help="stderr filename (default %default)", default=self.options.stderr)
-		p.add_option("--user", dest="user", help="user name or id (default %default)", default=self.options.user)
-		p.add_option("--group", dest="group", help="group name or id (default %default)", default=self.options.group)
+		p = argparse.ArgumentParser(description="Start, stop or restart a daemon process")
+		p.add_argument("action", help="Action to execute", choices=("start", "stop", "restart", "run"))
+		p.add_argument("--pidfile", dest="pidfile", help="PID filename (default %(default)s)", default=self.options.pidfile)
+		p.add_argument("--stdin", dest="stdin", help="stdin filename (default %(default)s)", default=self.options.stdin)
+		p.add_argument("--stdout", dest="stdout", help="stdout filename (default %(default)s)", default=self.options.stdout)
+		p.add_argument("--stderr", dest="stderr", help="stderr filename (default %(default)s)", default=self.options.stderr)
+		p.add_argument("--user", dest="user", help="user name or id (default %(default)s)", default=self.options.user)
+		p.add_argument("--group", dest="group", help="group name or id (default %(default)s)", default=self.options.group)
 		return p
 
 	def service(self, args=None):
@@ -221,28 +225,19 @@ class Daemon(object):
 		The return value is true when a starting option has been specified as the
 		command line argument, i.e. if the daemon should be started.
 
-		The :mod:`optparse` options and arguments are available
-		afterwards as ``self.options`` and ``self.args``.
+		The :mod:`argparse` arguments are available afterwards as ``self.args``.
 		"""
-		p = self.optionparser()
-		if args is None:
-			args = sys.argv
-		(self.options, self.args) = p.parse_args(args)
-		if len(self.args) != 2:
-			p.error("incorrect number of arguments")
-			sys.exit(1)
-		if self.args[1] == "run":
+		p = self.argparser()
+		self.args = p.parse_args(args)
+		if self.args.action == "run":
 			return True
-		elif self.args[1] == "restart":
+		elif self.args.action == "restart":
 			self.stop()
 			self.start()
 			return True
-		elif self.args[1] == "start":
+		elif self.args.action == "start":
 			self.start()
 			return True
-		elif self.args[1] == "stop":
+		elif self.args.action == "stop":
 			self.stop()
 			return False
-		else:
-			p.error("incorrect argument %s" % self.args[1])
-			sys.exit(1)

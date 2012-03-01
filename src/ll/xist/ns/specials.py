@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-## Copyright 1999-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2010 by Walter Dörwald
+## Copyright 1999-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -17,25 +17,13 @@ for all conversion target, because they only generate text.
 import sys, types, datetime
 
 from ll import url as url_
-from ll.xist import xsc, parsers, sims
+from ll.xist import xsc, parse, sims
 
 
 __docformat__ = "reStructuredText"
 
 
 xmlns = "http://xmlns.livinglogic.de/xist/ns/specials"
-
-
-class z(xsc.Element):
-	"""
-	Put the content into double quotes.
-	"""
-	xmlns = xmlns
-	model = sims.Any()
-
-	def convert(self, converter):
-		e = xsc.Frag(u"\u201c", self.content, u"\u201d")
-		return e.convert(converter)
 
 
 class filesize(xsc.Element):
@@ -49,11 +37,11 @@ class filesize(xsc.Element):
 		class href(xsc.URLAttr): required = True
 
 	def convert(self, converter):
-		size = self[u"href"].convert(converter).contentlength(root=converter.root)
+		size = self["href"].convert(converter).contentlength(root=converter.root)
 		if size is not None:
 			return xsc.Text(size)
 		else:
-			return xsc.Text(u"?")
+			return xsc.Text("?")
 
 
 class filetime(xsc.Element):
@@ -74,11 +62,11 @@ class filetime(xsc.Element):
 			"""
 			A :func:`strftime` compatible formatstring for formatting the timestamp.
 			"""
-			default = u"%d. %b. %Y, %H:%M"
+			default = "%d. %b. %Y, %H:%M"
 
 	def convert(self, converter):
-		format = str(self[u"format"].convert(converter))
-		return xsc.Text(self[u"href"].convert(converter).lastmodified(root=converter.root).strftime(format))
+		format = str(self["format"].convert(converter))
+		return xsc.Text(self["href"].convert(converter).lastmodified(root=converter.root).strftime(format))
 
 
 class time(xsc.Element):
@@ -94,15 +82,15 @@ class time(xsc.Element):
 			"""
 			A :func:`strftime` compatible formatstring for formatting the timestamp.
 			"""
-			default = u"%d. %b. %Y, %H:%M"
+			default = "%d. %b. %Y, %H:%M"
 		class utc(xsc.BoolAttr):
 			"""
 			Should UTC be used or local time?
 			"""
 
 	def convert(self, converter):
-		format = str(self[u"format"].convert(converter))
-		if u"utc" in self.attrs:
+		format = str(self["format"].convert(converter))
+		if "utc" in self.attrs:
 			f = datetime.datetime.utcnow
 		else:
 			f = datetime.datetime.now
@@ -131,7 +119,7 @@ class include(xsc.Element):
 		class src(xsc.URLAttr): pass
 
 	def convert(self, converter):
-		e = parsers.parseURL(self[u"src"].forInput())
+		e = parse.tree(parse.URL(self["src"].forInput()), parse.Expat(ns=True), parse.Node())
 
 		return e.convert(converter)
 
@@ -142,11 +130,11 @@ class loremipsum(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
 		class len(xsc.IntAttr): pass
 
-	text = u"Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diem nonummy nibh euismod tincidnut ut lacreet dolore magna aliguam erat volutpat. Ut wisis enim ad minim veniam, quis nostrud exerci tution ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis te feugifacilisi. Duis antem dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zril delinit au gue duis dolore te feugat nulla facilisi."
+	text = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diem nonummy nibh euismod tincidnut ut lacreet dolore magna aliguam erat volutpat. Ut wisis enim ad minim veniam, quis nostrud exerci tution ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis te feugifacilisi. Duis antem dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zril delinit au gue duis dolore te feugat nulla facilisi."
 
 	def convert(self, converter):
-		if u"len" in self.attrs:
-			text = self.text[:int(self[u"len"].convert(converter))]
+		if "len" in self.attrs:
+			text = self.text[:int(self["len"].convert(converter))]
 		else:
 			text = self.text
 		return xsc.Text(text)
@@ -179,7 +167,7 @@ class AttrDecorator(xsc.Element):
 				node.content.mapped(self._mapper, converter),
 				node.attrs.mapped(self._mapper, converter),
 			)
-			for (attrname, attrvalue) in self.attrs.iteritems():
+			for (attrname, attrvalue) in self.attrs.items():
 				if attrname not in node.attrs:
 					node[attrname] = attrvalue.convert(converter)
 		return node
@@ -206,10 +194,13 @@ class url(xsc.ProcInst):
 	publisher.
 	"""
 	def parsed(self, parser, start=None):
-		return self.__class__(unicode(parser.base/self.content))
+		if parser.base is not None:
+			return self.__class__(str(parser.base/self.content))
+		else:
+			return self
 
 	def publish(self, publisher):
-		yield publisher.encodetext(unicode(url_.URL(self.content).relative(publisher.base)))
+		yield publisher.encodetext(str(url_.URL(self.content).relative(publisher.base)))
 
 
 # Control characters (not part of HTML)

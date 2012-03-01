@@ -1,8 +1,8 @@
 #! /usr/bin/env/python
 # -*- coding: utf-8 -*-
 
-## Copyright 2007-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2007-2010 by Walter Dörwald
+## Copyright 2007-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2007-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -90,7 +90,7 @@ def test_for():
 	with xsc.build():
 		with xsc.Frag() as e:
 			with defblock(func="gurk(arg)"):
-				with forblock(loop="i in xrange(arg)"):
+				with forblock(loop="i in range(arg)"):
 					+detox.expr("str(i)")
 
 	assert makeoutput(e, "gurk", 3) == "012"
@@ -140,7 +140,8 @@ def test_scopecheck():
 			+xsc.Text("hurz")
 			+detox.end("for")
 
-	py.test.raises(SyntaxError, makeoutput, e, "gurk")
+	with py.test.raises(SyntaxError):
+		makeoutput(e, "gurk")
 
 
 def test_textexpr():

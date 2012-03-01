@@ -7,7 +7,8 @@ look.
 to implement renderers for these templates in multiple programming languages.
 
 Currently there's a compiler and renderer in Python and a
-`compiler and renderer in Java`__.
+`compiler and renderer in Java`__. Also compilation to Javascript is supported
+in both the Python and the Java compiler.
 
 __ http://hg.livinglogic.de/LivingLogic.Java.ul4/
 
@@ -139,13 +140,13 @@ Date constants
 Date objects have a date and time including microseconds. Date constants can be
 created like this:
 
-	*	``2008-12-24T``
+	*	``@2008-12-24T``
 
-	*	``2008-12-24T12:34``
+	*	``@2008-12-24T12:34``
 
-	*	``2008-12-24T12:34:56``
+	*	``@2008-12-24T12:34:56``
 
-	*	``2008-12-24T12:34:56.987654``
+	*	``@2008-12-24T12:34:56.987654``
 
 
 Color constants
@@ -384,7 +385,7 @@ The def tag defined a new template as a variable. Usage looks like this::
 This template can be called like any other template, that has been passed to
 the outermost template::
 
-	<?quote.render(text="foo")?>
+	<?render quote(text="foo")?>
 
 
 ``note``
@@ -471,12 +472,39 @@ Functions
 ``now()`` returns the current date and time as a date object.
 
 
+``utcnow``
+::::::::::
+
+``utcnow()`` returns the current date and time as a date object in UTC.
+
+
 ``vars``
 ::::::::
 
 ``vars()`` returns a dictionary containing all currently defined variables
 (i.e. variables passed to the template, defined via ``<?code?>`` tags or as
 loop variables).
+
+
+``random``
+::::::::::
+
+``random()`` returns a random float value between 0 (included) and 1 (excluded).
+
+
+``randrange``
+:::::::::::::
+
+``randrange(start, stop, step)`` returns a random integer value between ``start``
+(included) and ``stop`` (excluded). ``step`` specifies the step size (i.e.
+when ``r`` is the random value, ``(r-start) % step`` will always be ``0``.
+``step`` and ``start`` can be ommitted.
+
+
+``randchoice``
+::::::::::::::
+
+``randchoice(seq)`` returns a random item from the sequence ``seq``.
 
 
 ``isnone``
@@ -598,18 +626,91 @@ is returned. If ``v`` is not given, it defaults to ``None``.
 or dictionary.
 
 
-``enumerate``
+``firstlast``
 :::::::::::::
+
+Iterates through items of the argument (which must be iterable, i.e. a string,
+a list or dictionary) and gives information about whether the item is the first
+and/or last in the iterable. For example the following code::
+
+	<?for (f, l, c) in firstlast("foo")?>
+		<?if f?>[<?end if?>
+		(<?print c?>)
+		<?if l?>]<?end if?>
+	<?end for?>
+
+prints::
+
+	[(f)(o)(o)]
+
+
+``first``
+:::::::::
+
+Iterates through items of the argument (which must be iterable, i.e. a string,
+a list or dictionary) and gives information about whether the item is the first
+in the iterable. For example the following code::
+
+	<?for (f, c) in first("foo")?>
+		<?if f?>[<?end if?>
+		(<?print c?>)
+	<?end for?>
+
+prints::
+
+	[(f)(o)(o)
+
+
+``last``
+::::::::
+
+Iterates through items of the argument (which must be iterable, i.e. a string,
+a list or dictionary) and gives information about whether the item is the last
+in the iterable. For example the following code::
+
+	<?for (l, c) in firstlast("foo")?>
+		(<?print c?>)
+		<?if l?>]<?end if?>
+	<?end for?>
+
+prints::
+
+	(f)(o)(o)]
+
+
+``enum``
+::::::::
 
 Enumerates the items of the argument (which must be iterable, i.e. a string,
 a list or dictionary). For example the following code::
 
-	<?for (i, c) in enumerate("foo")?><?print i?>=<?print c?>;<?end for?>
+	<?for (i, c) in enum("foo")?>
+		(<?print c?>=<?print i?>)
+	<?end for?>
 
 prints::
 
-	0=f;1=o;2=o;
-	
+	(f=0)(o=1)(o=2)
+
+
+``enumfl``
+::::::::::
+
+This function is a combination of ``firstlast`` and ``enum``. It iterates
+through items of the argument (which must be iterable, i.e. a string, a list
+or dictionary) and gives information about whether the item is the first
+and/or last in the iterable and its position. For example the following code::
+
+	<?for (i, f, l, c) in enumfl("foo")?>
+		<?if f?>[<?end if?>
+		(<?print c?>=<?print i?>)
+		<?if l?>]<?end if?>
+	<?end for?>
+
+prints::
+
+	[(f=0)(o=1)(o=2)]
+
 
 ``xmlescape``
 :::::::::::::
@@ -850,3 +951,64 @@ output as a string. The parameter can be passed via keyword argument or via the
 	<?code output = template.render(a=17, b=23)?>
 	<?code data = {'a': 17, 'b': 23)?>
 	<?code output = template.render(**data)?>
+
+
+``isoformat``
+:::::::::::::
+
+``isoformat`` is a date method. It returns the date object in ISO 8601 format,
+i.e.::
+
+	<?print now().isoformat()?>
+
+might output::
+
+	2010-02-22T18:30:29.569639
+
+
+``mimeformat``
+::::::::::::::
+
+``mimeformat`` is a date method. It returns the date object in MIME format
+(assuming the date object is in UTC), i.e.::
+
+	<?print utcnow().mimeformat()?>
+
+might output::
+
+	Mon, 22 Feb 2010 17:38:40 GMT
+
+
+``day``, ``month``, ``year``, ``hour``, ``minute``, ``second``, ``microsecond``, ``weekday``
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+Those methods are date methods. They return a specific attribute of a date
+object. For example the following reproduces the ``mimeformat`` output from
+above (except for the linefeeds of course)::
+
+	<?code weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']?>
+	<?code months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']?>
+	<?code t = @2010-02-22T17:38:40.123456?>
+	<?print weekdays[t.weekday()]?>,
+	<?print format(t.day(), '02')?>
+	<?print months[t.month()-1]?>
+	<?print format(t.year(), '04')?>
+	<?print format(t.hour(), '02')?>:
+	<?print format(t.minute(), '02')?>:
+	<?print format(t.second(), '02')?>.
+	<?print format(t.microsecond(), '06')?> GMT
+
+
+``yearday``
+:::::::::::
+
+``yearday`` is a date method. It returns the number of days since the beginning
+of the year, so::
+
+	<?print @2010-01-01T.yearday()?>
+
+prints ``1`` and
+
+	<?print 2010-12-31T.yearday()?>
+
+prints ``365``.

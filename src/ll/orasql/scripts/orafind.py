@@ -1,17 +1,70 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## Copyright 2005-2010 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 2005-2010 by Walter Dörwald
+## Copyright 2005-2011 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 2005-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
 ## See orasql/__init__.py for the license
 
 
-import sys, os, optparse
+"""
+Purpose
+-------
 
-from ll import orasql, astyle
+``orafind`` can be used to search all tables in an Oracle database schema for
+a string.
+
+
+Options
+-------
+
+``orafind`` supports the following options:
+
+	``connectstring``
+		An Oracle connectstring.
+
+	``searchstring``
+		The text to be searched for.
+
+	``tables``
+		Zero or more tables names. If any table name is specified the search will
+		be limited to those tables. Otherwise all tables will be searched.
+		
+	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Produces output (on stderr) while to database is read or written.
+
+	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
+		Should the output (when the ``-v`` option is used) be colored. If ``auto``
+		is specified (the default) then the output is colored if stderr is a
+		terminal.
+
+	``-i``, ``--ignore-case`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		If given, the search will be case insensitve.
+
+	``-r``, ``--read-lobs`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		If given, ``CLOB``\s will be read when printing search results.
+
+	``-e``, ``--encoding`` : encoding
+		The encoding of the command line arguments (default is ``utf-8``).
+
+Example
+-------
+
+Search for ``spam`` in all tables in the schema ``user@db``. The search is case
+insensitive and ``CLOB``\s will be printed::
+
+	$ orafind user/pwd@db spam -i -r
+"""
+
+
+import sys, os, argparse
+
+from ll import misc, orasql, astyle
+
+
+__docformat__ = "reStructuredText"
 
 
 s4warning = astyle.Style.fromenv("LL_ORASQL_REPRANSI_WARNING", "red:black")
@@ -40,7 +93,7 @@ def df(obj):
 
 
 def connid(name):
-	return s4connid("[%d]" % name)
+	return s4connid("[{}]".format(name))
 
 
 def showcomment(out, *texts):
@@ -66,9 +119,9 @@ def showreport(out, type, countcreate, countdrop, countcollision, countmerge, co
 			else:
 				cls = s4action
 			if count > 1:
-				msg = "%d %ss %s" % (count, type, name)
+				msg = "{} {}s {}".format(count, type, name)
 			else:
-				msg = "1 %s %s" % (type, name)
+				msg = "1 {} {}".format(type, name)
 			out.write(cls(msg))
 	if first:
 		out.write(" => identical")
@@ -88,42 +141,39 @@ def gettimestamp(obj, cursor, format):
 
 
 def main(args=None):
-	colors = ("yes", "no", "auto")
-	p = optparse.OptionParser(usage="usage: %prog [options] connectstring searchstring [table] [table] ...")
-	p.add_option("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action="store_true")
-	p.add_option("-c", "--color", dest="color", help="Color output (%s)" % ", ".join(colors), default="auto", choices=colors)
-	p.add_option("-i", "--ignore-case", dest="ignorecase", help="Ignore case distinctions?", default=False, action="store_true")
-	p.add_option("-r", "--read-lobs", dest="readlobs", help="Read LOBs when printing records?", default=False, action="store_true")
-	p.add_option("-e", "--encoding", dest="encoding", help="Encoding of the command line arguments", default="utf-8")
+	p = argparse.ArgumentParser(description="Search for a string in all fields of all tables in an Oracle database schema", epilog="For more info see http://www.livinglogic.de/Python/orasql/scripts/orafind.html")
+	p.add_argument("connectstring", help="Oracle connect string")
+	p.add_argument("searchstring", help="String to search for")
+	p.add_argument("tables", metavar="table", nargs="*", help="Limit search to those tables")
+	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-c", "--color", dest="color", help="Color output (default: %(default)s)", default="auto", choices=("yes", "no", "auto"))
+	p.add_argument("-i", "--ignore-case", dest="ignorecase", help="Ignore case distinctions? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-r", "--read-lobs", dest="readlobs", help="Read CLOBs when printing records? (default: %(default)s)", action=misc.FlagAction, default=False)
 
-	(options, args) = p.parse_args(args)
-	if len(args) < 2:
-		p.error("incorrect number of arguments")
-		return 1
+	args = p.parse_args(args)
 
-	if options.color == "yes":
+	if args.color == "yes":
 		color = True
-	elif options.color == "no":
+	elif args.color == "no":
 		color = False
 	else:
 		color = None
 	stdout = astyle.Stream(sys.stdout, color)
 	stderr = astyle.Stream(sys.stderr, color)
 
-	connectstring = args[0].decode(options.encoding)
-	searchstring = args[1].decode(options.encoding)
-	if options.ignorecase:
+	searchstring = args.searchstring
+	if args.ignorecase:
 		searchstring = searchstring.lower()
-	searchstring = "%%%s%%" % searchstring.replace("%", "%%")
-	tablenames = [name.decode(options.encoding).lower() for name in args[2:]]
+	searchstring = "%{}%".format(searchstring.replace("%", "%%"))
+	tablenames = [name.lower() for name in args.tables]
 
-	connection = orasql.connect(connectstring, readlobs=options.readlobs)
+	connection = orasql.connect(args.connectstring, readlobs=args.readlobs)
 	c = connection.cursor()
 
-	tables = list(connection.itertables())
+	tables = list(connection.itertables(None))
 	for (i, table) in enumerate(tables):
 		skip = tablenames and table.name.lower() not in tablenames
-		if options.verbose:
+		if args.verbose:
 			msg = "skipped" if skip else "searching"
 			stderr.writeln("orafind.py: ", df(table), " #", str(i+1), "/", str(len(tables)), ": ", msg)
 		if not skip:
@@ -131,13 +181,13 @@ def main(args=None):
 			for col in table.itercolumns():
 				datatype = col.datatype()
 				if datatype == "clob" or datatype.startswith("varchar2"):
-					if options.ignorecase:
-						where.append("lower(%s) like :searchstring" % col.name)
+					if args.ignorecase:
+						where.append("lower({}) like :searchstring".format(col.name))
 					else:
-						where.append("%s like :searchstring" % col.name)
+						where.append("{} like :searchstring".format(col.name))
 			if not where:
 				continue # no string columns
-			query = "select * from %s where %s" % (table.name, " or ".join(where))
+			query = "select * from {} where {}".format(table.name, " or ".join(where))
 			c.execute(query, searchstring=searchstring)
 			for r in c:
 				stdout.writeln("orafind.py: in ", df(table), ": ", repr(r))

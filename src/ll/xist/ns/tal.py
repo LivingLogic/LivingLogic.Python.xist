@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-## Copyright 1999-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2010 by Walter Dörwald
+## Copyright 1999-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -26,7 +26,7 @@ xmlns = "http://xml.zope.org/namespaces/tal"
 class Attrs(xsc.Attrs):
 	class define(xsc.TextAttr):
 		xmlns = xmlns
-		
+
 	class attributes(xsc.TextAttr):
 		xmlns = xmlns
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-## Copyright 1999-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2010 by Walter Dörwald
+## Copyright 1999-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -31,35 +31,43 @@ class php(xsc.ProcInst):
 
 class expression(php):
 	def convert(self, converter):
-		return php(u"print ", self.content, u";")
+		return php("print ", self.content, ";")
 
 
 class If(php):
 	xmlname = "if"
+	prettyindentbefore = 0
+	prettyindentafter = 1
 
 	def convert(self, converter):
-		return php(u"if (", self.content, u"){")
+		return php("if (", self.content, "){")
 
 
 class Else(php):
 	xmlname = "else"
+	prettyindentbefore = -1
+	prettyindentafter = 1
 
 	def convert(self, converter):
-		return php(u"}else{")
+		return php("}else{")
 
 
 class ElIf(php):
 	xmlname = "elif"
+	prettyindentbefore = -1
+	prettyindentafter = 1
 
 	def convert(self, converter):
-		return php(u"}else if (", self.content, u"){")
+		return php("}else if (", self.content, "){")
 
 
 class End(php):
 	xmlname = "end"
+	prettyindentbefore = -1
+	prettyindentafter = 0
 
 	def convert(self, converter):
-		return php(u"}")
+		return php("}")
 
 
 class block(xsc.Element):
@@ -68,8 +76,8 @@ class block(xsc.Element):
 
 	def convert(self, converter):
 		e = xsc.Frag(
-			php(u"{"),
+			php("{"),
 			self.content,
-			php(u"}")
+			php("}")
 		)
 		return e.convert(converter)

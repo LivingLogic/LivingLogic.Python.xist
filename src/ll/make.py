@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## Copyright 2002-2010 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 2002-2010 by Walter Dörwald
+## Copyright 2002-2011 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 2002-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -47,20 +47,15 @@ this::
 """
 
 
-import sys, os, os.path, optparse, warnings, re, datetime, cStringIO, errno, tempfile, operator, types, cPickle, gc, contextlib, locale, gzip
+import sys, os, os.path, argparse, warnings, re, datetime, io, errno, tempfile, operator, types, pickle, gc, contextlib, gzip
 
 from ll import misc, url
 
 try:
-	import astyle
+	from . import astyle
 except ImportError:
 	from ll import astyle
 
-
-try:
-	locale.setlocale(locale.LC_NUMERIC, "en_US")
-except Exception:
-	pass
 
 __docformat__ = "reStructuredText"
 
@@ -98,7 +93,7 @@ class Level(object):
 		self.reported = reported
 
 	def __repr__(self):
-		return "<%s.%s object action=%r since=%r reportable=%r reported=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.action, self.since, self.reportable, self.reported, id(self))
+		return "<{}.{} object action={!r} since={!r} reportable={!r} reported={} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.action, self.since, self.reportable, self.reported, id(self))
 
 
 def report(func):
@@ -125,7 +120,7 @@ def report(func):
 		t1 = datetime.datetime.utcnow()
 		try:
 			data = func(self, project, since)
-		except Exception, exc:
+		except Exception as exc:
 			project.actionsfailed += 1
 			if project.ignoreerrors: # ignore changes in failed subgraphs
 				data = nodata # Return "everything is up to date" in this case
@@ -159,24 +154,11 @@ def report(func):
 				if project.showdata:
 					args.append(": ")
 					if error is not None:
-						if error.__module__ != "exceptions":
-							text = "%s.%s" % (error.__module__, error.__name__)
-						else:
-							text = error.__name__
+						fmt = "{0.__module__}.{0.__name__}" if error.__module__ != "exceptions" else "{0.__name__}"
+						text = fmt.format(error)
 						args.append(s4error(text))
-					elif data is nodata:
-						args.append("nodata")
-					elif isinstance(data, str):
-						args.append(s4data("str (%db)" % len(data)))
-					elif isinstance(data, unicode):
-						args.append(s4data("unicode (%dc)" % len(data)))
 					else:
-						dataclass = data.__class__
-						if dataclass.__module__ != "__builtin__":
-							text = "%s.%s @ 0x%x" % (dataclass.__module__, dataclass.__name__, id(data))
-						else:
-							text = "%s @ 0x%x" % (dataclass.__name__, id(data))
-						args.append(s4data(text))
+						args.append(project.strdata(data))
 				project.writestack(*args)
 		return data
 	reporter.__dict__.update(func.__dict__)
@@ -199,7 +181,7 @@ class RedefinedTargetWarning(Warning):
 		self.key = key
 
 	def __str__(self):
-		return "target with key=%r redefined" % self.key
+		return "target with key={!r} redefined".format(self.key)
 
 
 class UndefinedTargetError(KeyError):
@@ -212,7 +194,7 @@ class UndefinedTargetError(KeyError):
 		self.key = key
 
 	def __str__(self):
-		return "target %r undefined" % self.key
+		return "target {!r} undefined".format(self.key)
 
 
 ###
@@ -259,7 +241,7 @@ def getoutputs(project, since, input):
 		resultdata = {}
 		havedata = False
 		resultchanged = bigbang
-		for (key, value) in input.iteritems():
+		for (key, value) in input.items():
 			(data, changed) = getoutputs(project, since, value)
 			resultchanged = max(resultchanged, changed)
 			if data is not nodata and not havedata: # The first real output
@@ -280,7 +262,7 @@ def _ipipe_type(obj):
 	try:
 		return obj.type
 	except AttributeError:
-		return "%s.%s" % (obj.__class__.__module__, obj.__class__.__name__)
+		return "{}.{}".format(obj.__class__.__module__, obj.__class__.__name__)
 _ipipe_type.__xname__ = "type"
 
 
@@ -389,7 +371,7 @@ class Action(object):
 	def __repr__(self):
 		def format(arg):
 			if isinstance(arg, Action):
-				return " from %s.%s" % (arg.__class__.__module__, arg.__class__.__name__)
+				return " from {}.{}".format(arg.__class__.__module__, arg.__class__.__name__)
 			elif isinstance(arg, tuple):
 				return "=(?)"
 			elif isinstance(arg, list):
@@ -397,17 +379,17 @@ class Action(object):
 			elif isinstance(arg, dict):
 				return "={?}"
 			else:
-				return "=%r" % (arg,)
+				return "={!r}".format(arg)
 
-		output = ["arg %d%s" % (i, format(arg)) for (i, arg) in enumerate(self.getargs())]
-		for (argname, arg) in self.getkwargs().iteritems():
-			output.append("arg %s%s" % (argname, format(arg)))
-			
+		output = ["arg {}{}".format(i, format(arg)) for (i, arg) in enumerate(self.getargs())]
+		for (argname, arg) in self.getkwargs().items():
+			output.append("arg {}{}".format(argname, format(arg)))
+
 		if output:
-			output = " with %s" % ", ".join(output)
+			output = " with {}".format(", ".join(output))
 		else:
 			output = ""
-		return "<%s.%s object%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, output, id(self))
+		return "<{}.{} object{} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, output, id(self))
 
 	@misc.notimplemented
 	def __iter__(self):
@@ -431,7 +413,7 @@ class Action(object):
 		:var:`input`. I.e. if :var:`self` depends directly or indirectly on
 		:var:`input`, this generator will produce all paths ``p`` where
 		``p[0] is self`` and ``p[-1] is input`` and ``p[i+1] in p[i]`` for all
-		``i`` in ``xrange(len(p)-1)``.
+		``i`` in ``range(len(p)-1)``.
 		"""
 		if input is self:
 			yield [self]
@@ -465,7 +447,7 @@ class Action(object):
 					test = str(key.relative(here))
 					if len(test) < len(s):
 						s = test
-					test = "~/%s" % key.relative(home)
+					test = "~/{}".format(key.relative(home))
 					if len(test) < len(s):
 						s = test
 				else:
@@ -549,7 +531,7 @@ class CollectAction(TransformAction):
 		return data
 
 	def __repr__(self):
-		return "<%s.%s object at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, id(self))
+		return "<{}.{} object at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, id(self))
 
 
 class PhonyAction(Action):
@@ -601,10 +583,10 @@ class PhonyAction(Action):
 			return None if self.changed > since else nodata
 
 	def __repr__(self):
-		s = "<%s.%s object" % (self.__class__.__module__, self.__class__.__name__)
+		s = "<{}.{} object".format(self.__class__.__module__, self.__class__.__name__)
 		if self.key is not None:
-			s += " with key=%r" % self.key
-		s += " at 0x%x>" % id(self)
+			s += " with key={!r}".format(self.key)
+		s += " at {:#x}>".format(id(self))
 		return s
 
 
@@ -613,26 +595,34 @@ class FileAction(TransformAction):
 	A :class:`FileAction` is used for reading and writing files (and other
 	objects providing the appropriate interface).
 	"""
-	def __init__(self, key, input=None):
+	def __init__(self, key, input=None, encoding=None, errors=None):
 		"""
 		Create a :class:`FileAction` object with :var:`key` as the "filename".
 		:var:`key` must be an object that provides a method :meth:`open` for
 		opening readable and writable streams to the file. :var:`input` is the
-		data written to the file (or the action producing the data).
+		data written to the file (or the action producing the data). :var:`encoding`
+		is the encoding to be used from reading/writing. If :var:`encoding` is
+		:const:`None` binary i/o will be used. :var:`errors` is the codec error
+		handling name for encoding/decoding text.
 		"""
 		TransformAction.__init__(self, input)
 		self.key = url.URL(key)
+		self.encoding = encoding
+		self.errors = errors
 		self.buildno = None
 
 	def getkey(self):
 		return self.key
 
+	def getkwargs(self):
+		return dict(data=self.input, encoding=self.encoding, errors=errors)
+
 	def write(self, project, data):
 		"""
 		Write :var:`data` to the file and return it.
 		"""
-		project.writestep(self, "Writing ", len(data), " bytes to ", project.strkey(self.key))
-		with contextlib.closing(self.key.open("wb")) as file:
+		project.writestep(self, "Writing ", len(data), " ", ("bytes" if isinstance(data, bytes) else "chars"), " to ", project.strkey(self.key))
+		with contextlib.closing(self.key.open(mode="wb" if self.encoding is None else "w", encoding=self.encoding, errors=self.errors)) as file:
 			file.write(data)
 			project.fileswritten += 1
 			project.byteswritten += len(data)
@@ -642,7 +632,7 @@ class FileAction(TransformAction):
 		Read the content from the file and return it.
 		"""
 		project.writestep(self, "Reading ", project.strkey(self.key))
-		with contextlib.closing(self.key.open("rb")) as file:
+		with contextlib.closing(self.key.open(mode="rb" if self.encoding is None else "r", encoding=self.encoding, errors=self.errors)) as file:
 			data = file.read()
 			project.filesread += 1
 			project.bytesread += len(data)
@@ -672,13 +662,13 @@ class FileAction(TransformAction):
 				return data
 		else: # We have no inputs (i.e. this is a "source" file)
 			if self.changed is bigbang:
-				raise ValueError("source file %r doesn't exist" % self.key)
+				raise ValueError("source file {!r} doesn't exist".format(self.key))
 		if self.changed > since: # We are up to date now and newer than the output action
 			return self.read(project) # return file data (to output action or client)
 		# else fail through and return :const:`nodata`
 		return nodata
 
-	def chmod(self, mode=0644):
+	def chmod(self, mode=0o644):
 		"""
 		Return a :class:`ModeAction` that will change the file permissions of
 		:var:`self` to :var:`mode`.
@@ -693,7 +683,7 @@ class FileAction(TransformAction):
 		return OwnerAction(self, user, group)
 
 	def __repr__(self):
-		return "<%s.%s object key=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.key, id(self))
+		return "<{}.{} object key={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.key, id(self))
 
 
 class MkDirAction(TransformAction):
@@ -701,7 +691,7 @@ class MkDirAction(TransformAction):
 	This action creates the a directory (passing through its input data).
 	"""
 
-	def __init__(self, key, mode=0777):
+	def __init__(self, key, mode=0o777):
 		"""
 		Create a :class:`MkDirAction` instance. :var:`mode` (which defaults to
 		:const:`0777`) will be used as the permission bit pattern for the new
@@ -720,7 +710,7 @@ class MkDirAction(TransformAction):
 		self.key.makedirs(self.mode)
 
 	def __repr__(self):
-		return "<%s.%s object with mode=0%03o at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.mode, id(self))
+		return "<{}.{} object with mode={:#03o} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.mode, id(self))
 
 
 class PipeAction(TransformAction):
@@ -751,7 +741,7 @@ class PipeAction(TransformAction):
 		return output
 
 	def __repr__(self):
-		return "<%s.%s object with command=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.command, id(self))
+		return "<{}.{} object with command={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.command, id(self))
 
 
 class CacheAction(TransformAction):
@@ -801,122 +791,6 @@ class GetAttrAction(TransformAction):
 		return getattr(data, attrname)
 
 
-class PoolAction(Action):
-	"""
-	This action collect all its input data into a :class:`ll.misc.Pool` object.
-	"""
-
-	def __init__(self, *inputs):
-		"""
-		Create an :class:`PoolAction` object. Arguments in :var:`inputs` must be
-		:class:`ImportAction` or :class:`ModuleAction` objects.
-		"""
-		Action.__init__(self)
-		self.inputs = list(inputs)
-
-	def addinputs(self, *inputs):
-		"""
-		Registers additional inputs.
-		"""
-		self.inputs.extend(inputs)
-		return self
-
-	def __iter__(self):
-		return iter(self.inputs)
-
-	def _getpool(self, *data):
-		return misc.Pool(*data)
-
-	def getargs(self):
-		return (self.inputs,)
-
-	def execute(self, project, data):
-		data = self._getpool(*data)
-		project.writestep(self, "Created ", data.__class__.__module__, ".", data.__class__.__name__," object")
-		return data
-
-
-class XISTPoolAction(PoolAction):
-	"""
-	This action collect all its input data into an :class:`ll.xist.xsc.Pool`
-	object.
-	"""
-
-	def _getpool(self, *data):
-		from ll.xist import xsc
-		return xsc.Pool(*data)
-
-
-class XISTParseAction(TransformAction):
-	"""
-	This action parses the input data (a string) into an XIST node.
-	"""
-
-	def __init__(self, input=None, builder=None, pool=None, base=None):
-		"""
-		Create an :class:`XISTParseAction` object. :var:`builder` must be an
-		instance of :class:`ll.xist.parsers.Builder`. If :var:`builder` is
-		:const:`None` a builder will be created for you. :var:`pool` must be an
-		XIST pool object (or an action returning one). :var:`base` will be the
-		base URL used for parsing.
-		"""
-		TransformAction.__init__(self, input)
-		if builder is None:
-			from ll.xist import parsers
-			builder = parsers.Builder()
-		self.builder = builder
-		self.pool = pool
-		self.base = base
-
-	def __iter__(self):
-		for input in TransformAction.__iter__(self):
-			yield input
-		yield self.builder
-		yield self.pool
-		yield self.base
-
-	def getkwargs(self):
-		return dict(data=self.input, builder=self.builder, pool=self.pool, base=self.base)
-
-	def execute(self, project, data, builder, pool, base):
-		from ll.xist import xsc
-		oldpool = builder.pool
-		try:
-			builder.pool = xsc.Pool(pool, oldpool)
-			project.writestep(self, "Parsing XIST input with base ", base)
-			data = builder.parsestring(data, base)
-		finally:
-			builder.pool = oldpool # Restore old pool
-		return data
-
-
-class FOPAction(TransformAction):
-	"""
-	This action transforms an XML string (containing XSL-FO) into PDF. For it
-	to work `Apache FOP`__ is required. The command line is hardcoded but it's
-	simple to overwrite the class attribute :attr:`command` in a subclass.
-
-	__ http://xmlgraphics.apache.org/fop/
-	"""
-	command = "/usr/local/src/fop-0.20.5/fop.sh -q -c /usr/local/src/fop-0.20.5/conf/userconfig.xml -fo %s -pdf %s"
-
-	def execute(self, project, data):
-		project.writestep(self, "FOPping input")
-		(infd, inname) = tempfile.mkstemp(suffix=".fo")
-		(outfd, outname) = tempfile.mkstemp(suffix=".pdf")
-		try:
-			infile = os.fdopen(infd, "wb")
-			os.fdopen(outfd).close()
-			infile.write(data)
-			infile.close()
-			os.system(self.command % (inname, outname))
-			data = open(outname, "rb").read()
-		finally:
-			os.remove(inname)
-			os.remove(outname)
-		return data
-
-
 class CallAction(Action):
 	"""
 	This action calls a function or any other callable object with a number of
@@ -933,7 +807,7 @@ class CallAction(Action):
 		yield self.func
 		for input in self.args:
 			yield input
-		for input in self.kwargs.itervalues():
+		for input in self.kwargs.values():
 			yield input
 
 	def getargs(self):
@@ -947,24 +821,24 @@ class CallAction(Action):
 			if len(args) == 1:
 				argsmsg = " with 1 arg"
 			else:
-				argsmsg = " with %d args" % len(args)
+				argsmsg = " with {} args".format(len(args))
 		else:
 			argsmsg = " without args"
 		if kwargs:
 			if len(kwargs) == 1:
-				kwargsmsg = " and keyword %s" % ", ".join(kwargs)
+				kwargsmsg = " and keyword {}".format(", ".join(kwargs))
 			else:
-				kwargsmsg = " and keywords %s" % ", ".join(kwargs)
+				kwargsmsg = " and keywords {}".format(", ".join(kwargs))
 		else:
 			kwargsmsg = ""
-		project.writestep(self, "Calling %r" % (func, ), argsmsg, kwargsmsg)
+		project.writestep(self, "Calling {!r}".format(func), argsmsg, kwargsmsg)
 		return func(*args, **kwargs)
 
 
 class CallAttrAction(Action):
 	"""
 	This action calls an attribute of an object with a number of arguments. Both
-	positional and keyword arguments are supported and the object, the atribute
+	positional and keyword arguments are supported and the object, the attribute
 	name and the arguments can be static objects or actions.
 	"""
 	def __init__(self, obj, attrname, *args, **kwargs):
@@ -979,7 +853,7 @@ class CallAttrAction(Action):
 		yield self.attrname
 		for input in self.args:
 			yield input
-		for input in self.kwargs.itervalues():
+		for input in self.kwargs.values():
 			yield input
 
 	def getargs(self):
@@ -990,7 +864,7 @@ class CallAttrAction(Action):
 
 	def execute(self, project, obj, attrname, *args, **kwargs):
 		func = getattr(obj, attrname)
-		project.writestep(self, "Calling %r" % func)
+		project.writestep(self, "Calling {!r}".format(func))
 		return func(*args, **kwargs)
 
 
@@ -1013,7 +887,7 @@ class CommandAction(TransformAction):
 		os.system(self.command)
 
 	def __repr__(self):
-		return "<%s.%s object command=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.command, id(self))
+		return "<{}.{} object command={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.command, id(self))
 
 
 class ModeAction(TransformAction):
@@ -1021,7 +895,7 @@ class ModeAction(TransformAction):
 	:class:`ModeAction` changes file permissions and passes through the input data.
 	"""
 
-	def __init__(self, input=None, mode=0644):
+	def __init__(self, input=None, mode=0o644):
 		"""
 		Create an :class:`ModeAction` object. :var:`mode` (which defaults to
 		:const:`0644`) will be use as the permission bit pattern.
@@ -1042,7 +916,7 @@ class ModeAction(TransformAction):
 		Change the permission bits of the file ``self.getkey()``.
 		"""
 		key = self.getkey()
-		project.writestep(self, "Changing mode of ", project.strkey(key), " to 0%03o" % mode)
+		project.writestep(self, "Changing mode of ", project.strkey(key), " to {:#03o}".format(mode))
 		key.chmod(mode)
 		return data
 
@@ -1137,22 +1011,15 @@ class ModuleAction(TransformAction):
 				filename = key.local()
 			except ValueError: # is not local
 				filename = str(key)
-			name = key.withoutext().file.encode("ascii", "ignore")
+			name = key.withoutext().file.encode("ascii", "ignore").decode("ascii")
 		else:
 			filename = name = str(key)
 
 		del self.inputs[:] # The module will be reloaded => drop all dependencies (they will be rebuilt during import)
 
-		# Normalize line feeds, so that :func:`compile` works (normally done by import)
-		data = data.replace("\r\n", "\n")
-
-		mod = types.ModuleType(name)
-		mod.__file__ = filename
-
 		try:
 			project.importstack.append(self)
-			code = compile(data, filename, "exec")
-			exec code in mod.__dict__
+			mod = misc.module(data, filename, name)
 		finally:
 			project.importstack.pop(-1)
 		return mod
@@ -1194,7 +1061,34 @@ class ModuleAction(TransformAction):
 		return nodata
 
 	def __repr__(self):
-		return "<%s.%s object key=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.getkey(), id(self))
+		return "<{}.{} object key={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.getkey(), id(self))
+
+
+class FOPAction(TransformAction):
+	"""
+	This action transforms an XML string (containing XSL-FO) into PDF. For it
+	to work `Apache FOP`__ is required. The command line is hardcoded but it's
+	simple to overwrite the class attribute :attr:`command` in a subclass.
+
+	__ http://xmlgraphics.apache.org/fop/
+	"""
+	command = "/usr/local/src/fop-0.20.5/fop.sh -q -c /usr/local/src/fop-0.20.5/conf/userconfig.xml -fo {src} -pdf {dst}"
+
+	def execute(self, project, data):
+		project.writestep(self, "FOPping input")
+		(infd, inname) = tempfile.mkstemp(suffix=".fo")
+		(outfd, outname) = tempfile.mkstemp(suffix=".pdf")
+		try:
+			infile = os.fdopen(infd, "wb")
+			os.fdopen(outfd).close()
+			infile.write(data)
+			infile.close()
+			os.system(self.command.format(src=inname, dst=outname))
+			data = open(outname, "rb").read()
+		finally:
+			os.remove(inname)
+			os.remove(outname)
+		return data
 
 
 class AlwaysAction(Action):
@@ -1253,7 +1147,7 @@ class Project(dict):
 	about the progress of the build process.
 	"""
 	def __init__(self):
-		super(Project, self).__init__()
+		super().__init__()
 		self.actionscalled = 0
 		self.actionsfailed = 0
 		self.stepsexecuted = 0
@@ -1274,6 +1168,7 @@ class Project(dict):
 		self.showaction = os.environ.get("LL_MAKE_SHOWACTION", "filephony")
 		self.showstep = os.environ.get("LL_MAKE_SHOWSTEP", "all")
 		self.shownote = os.environ.get("LL_MAKE_SHOWNOTE", "none")
+		self.color = self._getenvbool("LL_MAKE_COLOR", True)
 		self.showidle = self._getenvbool("LL_MAKE_SHOWIDLE", False)
 		self.showregistration = os.environ.get("LL_MAKE_SHOWREGISTRATION", "phony")
 		self.showtime = self._getenvbool("LL_MAKE_SHOWTIME", True)
@@ -1282,7 +1177,7 @@ class Project(dict):
 		self.growl = self._getenvbool("LL_MAKE_GROWL", False)
 
 	def __repr__(self):
-		return "<%s.%s with %d targets at 0x%x>" % (self.__module__, self.__class__.__name__, len(self), id(self))
+		return "<{}.{} with {} targets at {:#x}>".format(self.__module__, self.__class__.__name__, len(self), id(self))
 
 	class showaction(misc.propclass):
 		"""
@@ -1413,18 +1308,18 @@ class Project(dict):
 			text = "0"
 		else:
 			rest = delta.seconds
-	
+
 			(rest, secs) = divmod(rest, 60)
 			(rest, mins) = divmod(rest, 60)
 			rest += delta.days*24
-	
+
 			secs += delta.microseconds/1000000.
 			if rest:
-				text = "%d:%02d:%06.3fh" % (rest, mins, secs)
+				text = "{:d}:{:02d}:{:06.3f}h".format(rest, mins, secs)
 			elif mins:
-				text = "%02d:%06.3fm" % (mins, secs)
+				text = "{:02d}:{:06.3f}m".format(mins, secs)
 			else:
-				text = "%.3fs" % secs
+				text = "{:.3f}s".format(secs)
 		return s4time(text)
 
 	def strdatetime(self, dt):
@@ -1432,14 +1327,14 @@ class Project(dict):
 		Return a nicely formatted and colored string for the
 		:class:`datetime.datetime` value :var:`dt`.
 		"""
-		return s4time(dt.strftime("%Y-%m-%d %H:%M:%S"), ".%06d" % (dt.microsecond))
+		return s4time(dt.strftime("%Y-%m-%d %H:%M:%S.%f"))
 
 	def strcounter(self, counter):
 		"""
 		Return a nicely formatted and colored string for the counter value
 		:var:`counter`.
 		"""
-		return s4counter("%d." % counter)
+		return s4counter("{}.".format(counter))
 
 	def strerror(self, text):
 		"""
@@ -1462,7 +1357,7 @@ class Project(dict):
 			test = str(key.relative(self.here))
 			if len(test) < len(s):
 				s = test
-			test = "~/%s" % key.relative(self.home)
+			test = "~/{}".format(key.relative(self.home))
 			if len(test) < len(s):
 				s = test
 		return s4key(s)
@@ -1481,6 +1376,23 @@ class Project(dict):
 		else:
 			return s4action(name)
 
+	def strdata(self, data):
+		if data is nodata:
+			return "nodata"
+		elif isinstance(data, (int, float)):
+			return s4data(repr(data))
+		elif data is None:
+			return s4data("None")
+		elif isinstance(data, bytes):
+			return s4data("bytes ({}b)".format(len(data)))
+		elif isinstance(data, str):
+			return s4data("chars ({}c)".format(len(data)))
+		else:
+			dataclass = data.__class__
+			fmt = "{0.__module__}.{0.__name__} @ {1:#x}" if dataclass.__module__ != "__builtin__" else "{0.__name__} @ {1:#x}"
+			text = fmt.format(dataclass, id(data))
+			return s4data(text)
+
 	def __setitem__(self, key, target):
 		"""
 		Add the action :var:`target` to :var:`self` as a target and register it
@@ -1491,7 +1403,7 @@ class Project(dict):
 		if isinstance(key, url.URL) and key.islocal():
 			key = key.abs(scheme="file")
 		target.key = key
-		super(Project, self).__setitem__(key, target)
+		super().__setitem__(key, target)
 
 	def add(self, target, key=None):
 		"""
@@ -1518,7 +1430,7 @@ class Project(dict):
 		"""
 		yield key
 		key2 = key
-		if isinstance(key, basestring):
+		if isinstance(key, str):
 			key2 = url.URL(key)
 			yield key2
 		if isinstance(key2, url.URL):
@@ -1526,18 +1438,6 @@ class Project(dict):
 			yield key2
 			key2 = key2.real(scheme="file")
 			yield key2
-		if isinstance(key, basestring) and ":" in key:
-			(prefix, rest) = key.split(":", 1)
-			if prefix == "oracle":
-				if "|" in rest:
-					(connection, rest) = rest.split("|", 1)
-					if ":" in rest:
-						(type, name) = rest.split(":", 1)
-						if "|" in rest:
-							(name, key) = rest.split("|")
-						else:
-							key = None
-						yield OracleKey(connection, type, name, key)
 
 	def __getitem__(self, key):
 		"""
@@ -1546,10 +1446,9 @@ class Project(dict):
 		:var:`key` still can't be found a :exc:`UndefinedTargetError` will be
 		raised.
 		"""
-		sup = super(Project, self)
 		for key2 in self._candidates(key):
 			try:
-				return sup.__getitem__(key2)
+				return super().__getitem__(key2)
 			except KeyError:
 				pass
 		raise UndefinedTargetError(key)
@@ -1564,12 +1463,7 @@ class Project(dict):
 		"""
 		Return whether the target with the key :var:`key` exists in the project.
 		"""
-		sup = super(Project, self)
-		for key2 in self._candidates(key):
-			has = sup.has_key(key2)
-			if has:
-				return True
-		return False
+		return any(super(Project, self).__contains__(key2) for key2 in self._candidates(key))
 
 	def create(self):
 		"""
@@ -1592,10 +1486,10 @@ class Project(dict):
 		self.clear()
 		self.create()
 
-	def optionparser(self):
+	def argparser(self):
 		"""
-		Return an :mod:`optparse` parser for parsing the command line options.
-		This can be overwritten in subclasses to add more options.
+		Return an :mod:`argparse` parser for parsing the command line arguments.
+		This can be overwritten in subclasses to add more arguments.
 		"""
 
 		def action2name(action):
@@ -1612,42 +1506,38 @@ class Project(dict):
 			else:
 				return "all"
 
-		actions = ["all", "file", "phony", "filephony", "none"]
-		p = optparse.OptionParser(usage="usage: %prog [options] [targets]")
-		p.add_option("-x", "--ignore", dest="ignoreerrors", help="Ignore errors", action="store_true", default=None)
-		p.add_option("-X", "--noignore", dest="ignoreerrors", help="Don't ignore errors", action="store_false", default=None)
-		p.add_option("-c", "--color", dest="color", help="Use colored output", action="store_true", default=None)
-		p.add_option("-C", "--nocolor", dest="color", help="No colored output", action="store_false", default=None)
-		p.add_option("-g", "--growl", dest="growl", help="Issue growl notification after the build?", action="store_true", default=None)
-		p.add_option("-a", "--showaction", dest="showaction", help="Show actions (%s)?" % ", ".join(actions), choices=actions, default=action2name(self.showaction))
-		p.add_option("-s", "--showstep", dest="showstep", help="Show steps (%s)?" % ", ".join(actions), choices=actions, default=action2name(self.showstep))
-		p.add_option("-n", "--shownote", dest="shownote", help="Show notes (%s)?" % ", ".join(actions), choices=actions, default=action2name(self.shownote))
-		p.add_option("-r", "--showregistration", dest="showregistration", help="Show registration (%s)?" % ", ".join(actions), choices=actions, default=action2name(self.showregistration))
-		p.add_option("-i", "--showidle", dest="showidle", help="Show actions that didn't produce data?", action="store_true", default=self.showidle)
-		p.add_option("-d", "--showdata", dest="showdata", help="Show data?", action="store_true", default=self.showdata)
+		actions = ("all", "file", "phony", "filephony", "none")
+		p = argparse.ArgumentParser(description="build one or more targets", epilog="For more info see http://www.livinglogic.de/Python/make/")
+		p.add_argument("targets", metavar="target", help="Target to be built", nargs="*")
+		p.add_argument("-x", "--ignoreerrors", dest="ignoreerrors", help="Ignore errors? (default: %(default)s)", action=misc.FlagAction, default=self.ignoreerrors)
+		p.add_argument("-c", "--color", dest="color", help="Use colored output? (default: %(default)s)", action=misc.FlagAction, default=self.color)
+		p.add_argument("-g", "--growl", dest="growl", help="Issue growl notification after the build? (default: %(default)s)", action=misc.FlagAction, default=self.growl)
+		p.add_argument("-a", "--showaction", dest="showaction", help="Show actions? (default: %(default)s)", choices=actions, default=action2name(self.showaction))
+		p.add_argument("-s", "--showstep", dest="showstep", help="Show steps? (default: %(default)s)", choices=actions, default=action2name(self.showstep))
+		p.add_argument("-n", "--shownote", dest="shownote", help="Show notes? (default: %(default)s)", choices=actions, default=action2name(self.shownote))
+		p.add_argument("-r", "--showregistration", dest="showregistration", help="Show registration? (default: %(default)s)", choices=actions, default=action2name(self.showregistration))
+		p.add_argument("-i", "--showidle", dest="showidle", help="Show actions that didn't produce data? (default: %(default)s)", action=misc.FlagAction, default=self.showidle)
+		p.add_argument("-d", "--showdata", dest="showdata", help="Show data? (default: %(default)s)", action=misc.FlagAction, default=self.showdata)
 		return p
 
-	def parseoptions(self, commandline=None):
+	def parseargs(self, args=None):
 		"""
-		Use the parser returned by :meth:`optionparser` to parse the option
-		sequence :var:`commandline`, modify :var:`self` accordingly and return
+		Use the parser returned by :meth:`argparser` to parse the argument
+		sequence :var:`args`, modify :var:`self` accordingly and return
 		the result of the parsers :meth:`parse_args` call.
 		"""
-		p = self.optionparser()
-		(options, args) = p.parse_args(commandline)
-		if options.ignoreerrors is not None:
-			self.ignoreerrors = options.ignoreerrors
-		if options.color is not None:
-			self.color = options.color
-		if self.growl is not None:
-			self.growl = options.growl
-		self.showaction = options.showaction
-		self.showstep = options.showstep
-		self.shownote = options.shownote
-		self.showregistration = options.showregistration
-		self.showidle = options.showidle
-		self.showdata = options.showdata
-		return (options, args)
+		p = self.argparser()
+		args = p.parse_args(args)
+		self.ignoreerrors = args.ignoreerrors
+		self.color = args.color
+		self.growl = args.growl
+		self.showaction = args.showaction
+		self.showstep = args.showstep
+		self.shownote = args.shownote
+		self.showregistration = args.showregistration
+		self.showidle = args.showidle
+		self.showdata = args.showdata
+		return args
 
 	def _get(self, target, since):
 		"""
@@ -1685,8 +1575,7 @@ class Project(dict):
 
 		self.starttime = datetime.datetime.utcnow()
 
-		def format(v):
-			return locale.format("%d", v, True)
+		format = "{:,}".format
 
 		with url.Context():
 			self.stack = []
@@ -1698,13 +1587,13 @@ class Project(dict):
 			self.filesread = 0
 			self.byteswritten = 0
 			self.fileswritten = 0
-	
+
 			self.buildno += 1 # increment build number so that actions that stored the old one can detect a new build round
-	
+
 			for target in targets:
 				data = self._get(target, bigcrunch)
 			now = datetime.datetime.utcnow()
-	
+
 			if self.showsummary:
 				args = []
 				self.write(
@@ -1732,33 +1621,38 @@ class Project(dict):
 					self.write(" [t+", self.strtimedelta(now-self.starttime), "]")
 				self.writeln()
 			if self.growl:
-				filename = os.path.abspath(sys.modules[self.__class__.__module__].__file__)
-				cmd = "growlnotify -i py -n ll.make 'll.make done in %s'" % self.strtimedelta(now-self.starttime)
+				try:
+					module = sys.modules[self.__class__.__module__]
+				except KeyError:
+					filename = "???.py"
+				else:
+					filename = os.path.abspath(module.__file__)
+				cmd = "growlnotify -i py -n ll.make 'll.make done in {}'".format(self.strtimedelta(now-self.starttime))
 				import subprocess
 				pipe = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE).stdin
-				pipe.write("%s\n" % filename)
-				pipe.write("%s.%s\n" % (self.__class__.__module__, self.__class__.__name__))
-				pipe.write("%d registered targets, " % len(self))
-				pipe.write("%d actions called, " % self.actionscalled)
-				pipe.write("%d steps executed, " % self.stepsexecuted)
-				pipe.write("%d files/%d bytes read, " % (self.filesread, self.bytesread))
-				pipe.write("%d files/%d bytes written, " % (self.fileswritten, self.byteswritten))
-				pipe.write("%d actions failed" % self.actionsfailed)
+				def write(s):
+					pipe.write(s.encode("utf-8"))
+				write("{}\n".format(filename))
+				write("{}.{}\n".format(self.__class__.__module__, self.__class__.__name__))
+				write("{:,} registered targets, ".format(len(self)))
+				write("{:,} actions called, ".format(self.actionscalled))
+				write("{:,} steps executed, ".format(self.stepsexecuted))
+				write("{:,} files/{:,} bytes read, ".format(self.filesread, self.bytesread))
+				write("{:,} files/{:,} bytes written, ".format(self.fileswritten, self.byteswritten))
+				write("{:,} actions failed".format(self.actionsfailed))
 				pipe.close()
 
-	def buildwithargs(self, commandline=None):
+	def buildwithargs(self, args=None):
 		"""
-		For calling make scripts from the command line. :var:`commandline`
-		defaults to ``sys.argv[1:]``. Any positional arguments in the command
-		line will be treated as target ids. If there are no positional arguments,
-		a list of all registered :class:`PhonyAction` objects will be output.
+		For calling make scripts from the command line. :var:`args` defaults to
+		``sys.argv``. Any positional arguments in the command line will be treated
+		as target ids. If there are no positional arguments, a list of all
+		registered :class:`PhonyAction` objects will be output.
 		"""
-		if not commandline:
-			commandline = sys.argv[1:]
-		(options, args) = self.parseoptions(commandline)
+		args = self.parseargs(args)
 
-		if args:
-			self.build(*args)
+		if args.targets:
+			self.build(*args.targets)
 		else:
 			self.writeln("Available phony targets are:")
 			self.writephonytargets()
@@ -1855,7 +1749,7 @@ class Project(dict):
 		phonies = []
 		maxlen = 0
 		for key in self:
-			if isinstance(key, basestring):
+			if isinstance(key, str):
 				maxlen = max(maxlen, len(key))
 				phonies.append(self[key])
 		phonies.sort(key=operator.attrgetter("key"))

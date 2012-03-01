@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<wrap>
+<spc:wrap xmlns="http://xmlns.livinglogic.de/xist/ns/doc" xmlns:spc="http://xmlns.livinglogic.de/xist/ns/specials">
 <section><h>&url;s</h>
 
 <p>For &url; handling &xist; uses the module
@@ -13,9 +13,9 @@ This base &url; can be passed to all parsing functions. If it isn't specified
 it defaults to the &url; of the resource being parsed. This base &url; will
 be prepended to all &url;s that are read during parsing:</p>
 <tty>
-<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers</input>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parse</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parsestring('&lt;img src="eggs.png"/&gt;', base="root:spam/index.html")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = parse.parsestring('&lt;img src="eggs.png"/&gt;', base="root:spam/index.html")</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print node.bytes()</input>
 &lt;img src="root:spam/eggs.png" /&gt;
 </tty>
@@ -44,7 +44,7 @@ publishing. Let's assume we have an &url; <lit>#top</lit>
 in the source file. When we use the <z>real</z> file names
 for parsing and publishing like this:</p>
 <prog>
-node = parsers.parsefile("spam.htmlxsc", base="root:spam.htmlxsc")
+node = parse.parsefile("spam.htmlxsc", base="root:spam.htmlxsc")
 node = node.conv()
 node.write(open("spam.html", "wb"), base="root:spam.html")
 </prog>
@@ -139,7 +139,7 @@ the processing instruction. For example, consider the following &xml; file:</p>
 	# sum
 	def gauss(top=100):
 		sum = 0
-		for i in xrange(top+1):
+		for i in range(top+1):
 			sum += i
 		return sum
 ?&gt;
@@ -155,4 +155,4 @@ results in the following:</p>
 </tty>
 
 </section>
-</wrap>
+</spc:wrap>

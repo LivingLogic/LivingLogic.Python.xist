@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-## Copyright 2009-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2009-2010 by Walter Dörwald
+## Copyright 2009-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2009-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -55,48 +55,40 @@ class render(xsc.ProcInst):
 ### Processing instructions for conditional attributes
 ###
 
-class attr_ifnn(xsc.AttrProcInst):
+class attr_if(xsc.AttrElement):
 	"""
-	Conditional attribute: If this PI is used as the first in an attribute, it's
-	value is treated as an expression. If this expression is not ``None`` it is
-	output as the value of the attribute, otherwise the attribute itself will be
-	skipped.
+	Conditional attribute: The ``cond`` attribute is a expression. If this
+	expression is true, the attribute will be output normally (with the elements
+	content as content (except for boolean attributes)), otherwise the attribute
+	itself will be skipped. Outside of an attribute this will produce a normal
+	UL4 ``if`` around its content.
 	"""
 
-	def publishattr(self, publisher, attr):
-		yield publisher.encode(u'<?if not isnone(%s)?> %s="<?printx %s?>"<?end if?>' % (self.content, attr._publishname(publisher), self.content))
+	class Attrs(xsc.Attrs):
+		class cond(xsc.TextAttr): required = True
 
-	def publishboolattr(self, publisher, attr):
-		name = attr._publishname(publisher)
-		yield publisher.encode(u"<?if not isnone(%s)?> %s" % (self.content, name))
-		if publisher.xhtml>0:
-			yield publisher.encode(u'="%s"' % name)
-		yield publisher.encode(u'<?end if?>')
-
-
-class attr_if(xsc.AttrProcInst):
-	"""
-	Conditional attribute: If this PI is used as the first in an attribute, it's
-	value is treated as an expression. If this expression is true, the attribute
-	will be output normally, otherwise the attribute itself will be skipped.
-	"""
+	def publish(self, publisher):
+		yield publisher.encode('<?if {cond}?>'.format(cond=str(self.attrs.cond)))
+		for part in self.content.publish(publisher):
+			yield part
+		yield publisher.encode('<?end if?>')
 
 	def publishattr(self, publisher, attr):
 		publisher.inattr += 1
-		yield publisher.encode(u'<?if %s?> %s="' % (self.content, attr._publishname(publisher)))
+		yield publisher.encode('<?if {cond}?> {name}="'.format(cond=str(self.attrs.cond), name=attr._publishname(publisher)))
 		publisher.pushtextfilter(misc.xmlescape_attr)
-		for part in attr._publishattrvalue(publisher):
+		for part in self.content.publish(publisher):
 			yield part
 		publisher.poptextfilter()
-		yield publisher.encode(u'"<?end if?>')
+		yield publisher.encode('"<?end if?>')
 		publisher.inattr -= 1
 
 	def publishboolattr(self, publisher, attr):
 		name = attr._publishname(publisher)
-		yield publisher.encode(u"<?if %s?> %s" % (self.content, name))
+		yield publisher.encode('<?if {cond}?> {name}'.format(cond=str(self.attrs.cond), name=name))
 		if publisher.xhtml>0:
-			yield publisher.encode(u'="%s"' % name)
-		yield publisher.encode(u'<?end if?>')
+			yield publisher.encode('="{name}"'.format(name=name))
+		yield publisher.encode('<?end if?>')
 
 
 ###
@@ -105,26 +97,37 @@ class attr_if(xsc.AttrProcInst):
 
 class if_(xsc.ProcInst):
 	xmlname = "if"
+	prettyindentbefore = 0
+	prettyindentafter = 1
+
 
 
 class elif_(xsc.ProcInst):
 	xmlname = "elif"
+	prettyindentbefore = -1
+	prettyindentafter = 1
 
 
 class else_(xsc.ProcInst):
 	xmlname = "else"
+	prettyindentbefore = -1
+	prettyindentafter = 1
 
 
 class end(xsc.ProcInst):
 	"""
 	Ends an :class:`if_` or :class:`for_`. The PI value may be the type of the
-	block (either ``"if"`` or ``"for"``). If the value is empty the innermost
-	block will be closed without any checks for the type of block.
+	block (either ``"if"``, ``"for"`` or ``"def"``). If the value is empty the
+	innermost block will be closed without any checks for the type of block.
 	"""
+	prettyindentbefore = -1
+	prettyindentafter = 0
 
 
 class for_(xsc.ProcInst):
 	xmlname = "for"
+	prettyindentbefore = 0
+	prettyindentafter = 1
 
 
 class break_(xsc.ProcInst):
@@ -137,3 +140,5 @@ class continue_(xsc.ProcInst):
 
 class def_(xsc.ProcInst):
 	xmlname = "def"
+	prettyindentbefore = 0
+	prettyindentafter = 1

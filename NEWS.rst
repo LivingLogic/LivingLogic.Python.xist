@@ -1,8 +1,667 @@
-Changes in 3.7.7 (released 03/01/2012)
---------------------------------------
+Changes in 4.0 (released ??/??/2012)
+------------------------------------
+
+*	The source has been ported to Python 3. From now on XIST is a Python 3 only
+	project. A big thanks goes to Martin v. Löwis, who got this conversion
+	started at PyCon DE 2011. He did the basic ``2to3`` conversion and updated
+	the C source to work on Python 3. Without Martin, XIST wouldn't have made
+	the leap to Python 3 for several years.
+
+*	As there's no Python 3 port of libxml2_\s Python wrapper, XIST now uses lxml_
+	for HTML parsing.
+
+	.. _libxml2: http://www.xmlsoft.org/
+	.. _lxml: http://lxml.de/
+
+	This change has one visible result: :class:`ll.xist.parse.Tidy` objects now
+	emit namespaced events.
+
+*	The XIST node method :meth:`sorted` has been removed, as it no longer makes
+	sense, because with Python 3 nodes might be uncomparable.
+
+*	UL4 stacktraces now use exception chaining to report the exception location
+	in nested templates.
+
+*	Th support for ``%u`` escapes in URLs has been removed.
+
+*	The orasql script ``orafind`` no longer has an :option:`-e`/:option:`--encoding`
+	option.
+
+*	The following new functions have been added to UL4: ``first``, ``last``,
+	``firstlast``, ``enumfl``. They are variants of ``enumerate`` that give
+	information about whether the item is the first and/or last item.
+
+*	:class:`ll.orasql.LOBStream` has a new method :meth:`seek`.
+
+*	:class:`ll.make.FileAction` supports encoding/decoding when writing/reading
+	the file. For this use the :var:`encoding` and :var:`errors` arguments.
 
 *	Added the attributes ``allowfullscreen`` and ``flashvars`` to
 	:class:`ll.xist.ns.html.embed`.
+
+
+Changes in 3.25 (released 08/12/2011)
+-------------------------------------
+
+*	:class:`ll.xist.parse.Tidy` will now output the attribute events in sorted
+	order. Publishing an XIST node will output the attributes in sorted order too.
+
+*	The :meth:`compact` method has been renamed to :meth:`compacted` to avoid
+	collisions with the ``compact`` attribute in HTML elements.
+
+*	A new script ``uhpp`` has been added, that can be used for pretty printing
+	HTML. As the attributes are output in alphabetical order it can also be used
+	as a tool for comparing HTML files.
+
+
+Changes in 3.24.1 (released 08/10/2011)
+---------------------------------------
+
+*	Fixed a bug in the new :class:`ll.xist.xsc.AttrElement` class that surfaced
+	in the context of boolean attributes.
+
+
+Changes in 3.24 (released 08/09/2011)
+-------------------------------------
+
+*	The :class:`ProcInst` subclass :class:`ll.xist.xsc.AttrProcInst` has been
+	replaced with an :class:`Element` subclass :class:`ll.xist.xsc.AttrElement`.
+	Conditional handling of the attribute will be used, if the
+	:class:`AttrElement` instance is the only
+	child of the attribute. Outside of attributes the :class:`AttrElement`
+	instance will be published normally (via :meth:`publish`, which must be
+	implemented).
+
+*	:class:`ll.xist.ns.ul4.attr_if` is an :class:`ll.xist.xsc.AttrElement`
+	subclass now. The condition is in the ``cond`` attribute and the attribute
+	content is inside the element. Outside of an attribute :class:`attr_if`
+	will put a normal UL4 ``if`` condition around its content.
+
+*	:class:`ll.xist.ns.ul4.attr_ifnn` has been removed.
+
+
+Changes in 3.23.1 (released 07/28/2011)
+---------------------------------------
+
+*	Fixed a bug in :mod:`ll.sisyphus`: The code wasn't updated to use
+	:class:`ll.ul4c.Template` instead of :func:`ll.ul4c.compile`.
+
+
+Changes in 3.23 (released 07/20/2011)
+-------------------------------------
+
+*	UL4 template objects now have a name. This name will be displayed in
+	exception messages. Nested templates display their own name in the exception
+	message.
+
+*	The module global functions :func:`ll.ul4c.compile`, :func:`ll.ul4c.load` and
+	:func:`ll.ul4c.loads` have been removed. Instead of them the :class:`Template`
+	constructor and the class methods :meth:`load` and :meth:`loads` can be used.
+
+*	The script ``oradelete`` now supports the options :option:`--include`,
+	:option:`--exclude` and :option:`--keepjunk` too.
+
+
+Changes in 3.22 (released 07/14/2011)
+-------------------------------------
+
+*	The scripts ``oracreate``, ``oradrop`` and ``oragrant`` have new options
+	:option:`--include` and :option:`--exclude` that can be used to filter the
+	objects that will be output.
+
+
+Changes in 3.21 (released 06/03/2011)
+-------------------------------------
+
+*	Oracle 10 doesn't have a ``DBA_ARGUMENTS`` view.
+	Fixed :class:`ll.orasql.Function` and :class:`ll.orasql.Procedure`
+	accordingly.
+
+*	The ``type`` attribute for the :class:`input` element now supports the new
+	input types from HTML5.
+
+*	The form elements :class:`input`, :class:`select` and :class:`textarea`
+	gained the additional attributes from HTML5.
+
+
+Changes in 3.20.2 (released 05/23/2011)
+---------------------------------------
+
+*	Unicode parameters in :meth:`execute` and :meth:`executemany` in
+	:mod:`ll.xist.orasql` now get encoded to the Oracle client character set.
+
+
+Changes in 3.20.1 (released 05/18/2011)
+---------------------------------------
+
+*	Fixed a bug in the Java code generation for UL4 templates: When the template
+	source code contained C-style comments (i.e. ``/* foo */``) invalid Java
+	source code was produced.
+
+
+Changes in 3.20 (released 05/05/2011)
+-------------------------------------
+
+*	It's now possible to specify the connection mode (i.e. ``SYSDBA`` and
+	``SYSOPER``) in ``oracle`` URLs like this::
+
+		$ uls oracle://sys:pwd:sysdba@dsn/
+
+	Supported are the values ``normal`` (the default), ``sysdba`` and ``sysoper``.
+
+*	The :var:`schema` argument used by various methods in :mod:`ll.orasql` has
+	been replaced by a :var:`owner` argument that can be :const:`None` (for the
+	current user), the constant :const:`ALL` for all users (which uses the
+	``DBA_*`` variant of various meta data views if possible or the ``ALL_*``
+	variants otherwise) and a specific user name.
+
+	These views are also used if possible in all spots where the ``ALL_`` views
+	where used before.
+
+*	It's now possible to list all users in the database with the class methods
+	:meth:`User.iternames` and :meth:`User.iterobjects` and with
+	:meth:`Connection.iterusers`.
+
+*	Oracle :class:`Column` objects have a new method :meth:`table` that returns
+	the table the column belongs to.
+
+*	Oracle URLs now support the directory ``user/`` which contains all users, i.e.
+	``oracle://user:pwd@db/user/`` lists all users and
+	``oracle://user:pwd@db/user/foo/`` lists the same stuff as
+	``oracle://foo:pwd@db/``. This directory however will *not* be listed in the
+	root directory ``oracle://user:pwd@db/``.
+
+*	:mod:`ll.orasql` now supports tables without columns.
+
+*	:class:`ll.orasql.Table` has a new method :meth:`pk` that returns the primary
+	key contraint (or :const:`None` if the table has now primary key contraint).
+
+*	A bug in the queries for :class:`Index` objects in :mod:`ll.orasql` has been
+	fixed.
+
+*	:mod:`ipipe` support has been removed from :mod:`ll.orasql`.
+
+*	Fixed a bug in :class:`ll.xist.xsc.Pool`: Registered elements/entities etc.
+	now show up as attributes of the pool object.
+
+
+Changes in 3.19 (released 04/26/2011)
+-------------------------------------
+
+*	:mod:`ll.orasql` now requires cx_Oracle 5.1.
+
+*	If the :var:`readlobs` option is false for :mod:`ll.orasql` cursors, the
+	CLOBs/BLOBs returned will be wrapped into something that behaves like a
+	Python file.
+
+
+Changes in 3.18.1 (released 04/13/2011)
+---------------------------------------
+
+*	The methods :meth:`elements`, :meth:`procinsts`, :meth:`entities` and
+	:meth:`charrefs` of :class:`ll.xist.xsc.Pool` now handle base pools properly.
+
+
+Changes in 3.18 (released 04/08/2011)
+-------------------------------------
+
+*	Fixed a regression in :class:`ll.orasql.OracleConnection`.
+
+*	Fixed :exc:`ZeroDivisionError` in script ``uls`` for empty directories.
+
+*	Added a class method :meth:`ll.orasql.Contraint.iternames` and a class method
+	:meth:`ll.orasql.Index.iternames` that skips those indexes that are generated
+	by constraints. With this addition ``uls``/``ucp`` now list/copy constraints
+	and indexes properly. All ``iternames`` methods now skip objects whose name
+	starts with ``BIN$``.
+
+*	The scripts ``uls``, ``ucp`` and ``ucat`` have new options :option:`--include`
+	and :option:`--exclude` for including/excluding URLs that match a regular
+	expression. They also have an new option :option:`--all` to include/exclude
+	dot files (i.e. files/directories whose name starts with a dot)
+
+*	``ucp`` now supports to new options :option:`--padding` and
+	:option:`--separator` which are used for column output.
+
+*	Two unused options were removed: :option:`--verbose` from the script ``ucat``
+	and :option:`--defaults` from the script ``tld2xsc``.
+
+*	``ucp -x`` now prints exception details.
+
+*	The variables available in UL4 templates used by ``db2ul4`` have changed.
+	Instead of a ``connect`` object, there are now three objects for each
+	supported database (i.e. ``oracle``, ``sqlite`` and ``mysql``)
+
+*	The script ``doc2txt`` now reads from ``stdin`` and writes to ``stdout``
+	instead of requiring file names on the command line.
+
+*	If the scripts ``xml2xsc`` or ``dtd2xsc`` are called without arguments
+	``stdin`` is read.
+
+*	:mod:`ll.xist.ns.rest` now handles option lists.
+
+*	The Oracle URLs provided by :mod:`ll.orasql` now have a ``.sql`` extension
+	for all schema objects. On writing a ``.sql`` extension will be stripped to
+	get the name of the schema object.
+
+*	Oracle URLs now should support schema objects with fancy names (i.e. ones
+	that contain accented characters).
+
+*	:class:`ll.orasql.Table` has a new method :meth:`organization` that returns
+	``"heap"`` or normal tables and ``"index"`` for index organized tables.
+
+*	Pretty printing of XIST trees can now be customized with the class attributes
+	:var:`prettyindentbefore` and :var:`prettyindentafter`. The values will be
+	added to the current indentation level before and after the node in question.
+
+*	All scripts that are part of XIST (``uls``, ``ucp``, ``ucat``, ``db2ul4``,
+	``dtd2xsc``, ``tld2xsc``, ``doc2txt``, ``xml2xsc``, ``oracreate``,
+	``oradrop``, ``oradelete``, ``oradiff``, ``oramerge``, ``oragrant`` and
+	``orafind``) are now properly documented on the webpages.
+
+
+Changes in 3.17.3 (released 03/02/2011)
+---------------------------------------
+
+*	Enhanced support for table and column names containing non-ASCII characters
+	in :mod:`ll.orasql`.
+
+*	Fixed a bug in the ``uls`` script: In long recursive mode files were
+	printed twice.
+
+
+Changes in 3.17.2 (released 02/25/2011)
+---------------------------------------
+
+*	Fixed ``setup.py`` so that the spacer GIF and the UL4 Javascript support
+	library *really* get installed.
+
+
+Changes in 3.17.1 (released 02/25/2011)
+---------------------------------------
+
+*	Due to a bug in ``MANIFEST.in`` the spacer GIF and the UL4 Javascript support
+	library where not included in the distirbution package. This has been fixed.
+
+
+Changes in 3.17 (released 02/24/2011)
+-------------------------------------
+
+*	The UL4 function ``repr`` now handles all instances of
+	:class:`collections.Mapping` and :class:`collections.Sequence` too.
+
+*	The spacer pixel ``px/spc.gif`` and the UL4 Javascript support library
+	``ul4.js`` will now be installed alongside the Python modules (in
+	``ll.xist.data``).
+
+*	The Java source code produced by :meth:`ll.ul.Template.javasource` will now
+	contain register declarations only for the registers that are actually used.
+
+*	:func:`misc.javastring` has been renamed to :func:`misc.javaexpr` can can
+	now produce the Java sourcecode for more types.
+
+*	The UL4 method ``isoformat`` now omits the time part if it is ``00:00:00``.
+
+*	The UL4 function ``repr`` now produces a valid UL4 date literal for date
+	objects.
+
+*	The UL4 method ``format`` is now a function instead.
+
+*	The tests for UL4 now test the Java implementation too.
+
+
+Changes in 3.16 (released 01/21/2011)
+-------------------------------------
+
+*	The UL4 functions ``json``, ``type``, ``islist`` and ``isdict`` can now
+	handle all instances of :class:`collections.Mapping` and
+	:class:`collections.Sequence` not just :class:`tuple`, :class:`list` and
+	:class:`dict`.
+
+*	:mod:`ll.sisyphus` logging of exceptions and tracebacks should be more robust
+	against encoding problems.
+
+*	The :mod:`cssutils` version has been bumped to 0.9.7.
+
+*	``dtd2xsc.py`` can now combine the content of more than one DTD into a
+	namespace. Handling of duplicate elements can be specified with a new
+	:option:`duplicates` option.
+
+*	``xml2xsc.py`` can now collect the XML info from multiple XML files.
+
+*	Fixed a bug in the command line argument handling of ``dtd2xsc.py``.
+
+*	``dtd2xsc.py`` can now handle undefined entities.
+
+*	The help message for all scripts in XIST now show the default for all options.
+
+*	Replaced the function :func:`misc.flag` with a class :class:`misc.FlagAction`
+	that can be used as the action in :meth:`argparse.ArgumentParser.add_argument`
+	calls.
+
+*	Command line options for all scripts have been enhanced: Flags without a
+	``yes``/``no`` value now toggle the default (using the new
+	:class:`misc.FlagAction`).
+
+*	The script ``xml2xsc.py`` has a new option :option:`--defaultxmlns` for
+	setting a namespace name for elements without a namespace.
+
+*	:mod:`ll.xist.xnd` and the related scripts have seen some refactoring.
+
+
+Changes in 3.15.3 (released 11/26/2010)
+---------------------------------------
+
+*	:mod:`ll.sisyphus` now supports a non-forking mode (``--fork=no``). In this
+	mode executing the job and monitoring the maximum runtime is done by the same
+	(single) process.
+
+
+Changes in 3.15.2 (released 11/25/2010)
+---------------------------------------
+
+*	Publishing an :class:`ll.xist.ns.xml.XML` object will now always put the
+	correct encoding into the XML declaration, no matter where in the XML tree
+	the :class:`xml.XML` object sits.
+
+
+Changes in 3.15.1 (released 11/24/2010)
+---------------------------------------
+
+*	Fixed a bug in the error handling code of the UL4 compiler when an unknown
+	function or method was encountered.
+
+*	Fixed str/unicode problems with the search string in ``orafind.py``.
+
+
+Changes in 3.15 (released 11/09/2010)
+-------------------------------------
+
+*	It's now possible to create Java source code from UL4 templates with the
+	method :meth:`ll.ul4c.Template.javasource`.
+
+*	Creating source code (in Python, Javascript and Java) from UL4 templates
+	has been moved out of :class:`ll.ul4c.Template` into separate classes.
+
+*	The function :func:`ll.xist.ns.fromul4` now uses the new method
+	:meth:`ll.ul4c.Template.javasource` for generating JSP.
+
+*	The binary format for UL4 templates has changed to enhance readability.
+
+*	:func:`ll.xist.ns.jsp.javastring` has been moved to :mod:`ll.misc`.
+
+
+Changes in 3.14 (released 11/05/2010)
+-------------------------------------
+
+*	UL4 templates now have a method :meth:`jssource` that returns Javascript
+	source code. This means that now UL4 templates can be converted to: Python
+	source code, JSP source code and Javascript source code.
+
+*	Date constants in UL4 have changed. They are now written like this:
+	``@2010-11-05T``.
+
+*	:meth:`ul4c.Template.pythonsource` no longer accepts :const:`None` as the
+	function name. The output will always be a full function.
+
+
+Changes in 3.13 (released 10/22/2010)
+-------------------------------------
+
+*	sisyphus jobs now have a new method :meth:`prefix`. This method is a context
+	manager. For the duration of the ``with`` block, the passed in prefix will be
+	prepended to all log lines.
+
+*	:mod:`ll.sisyphus` job can now log to ``stdout`` and ``stderr`` with the new
+	options :option:`-o`/:option:`--log2stdout` and
+	:option:`-e`/:option:`--log2stderr`.
+
+*	The tags that :mod:`ll.sisyphus` itself uses for logging have changed
+	slightly. For more info see the module documentation.
+
+*	The option :option:`-l` for sisyphus jobs has been renamed to :option:`-f`.
+
+
+Changes in 3.12.1 (released 10/21/2010)
+---------------------------------------
+
+*	Fixed a bug in :mod:`ll.sisyphus` when logging exceptions.
+
+
+Changes in 3.12 (released 10/21/2010)
+-------------------------------------
+
+*	The way that :mod:`ll.sisyphus` handles running jobs has changed. Jobs no
+	longer create a pid file. Avoiding duplicate running jobs is done with a file
+	lock on the script file and limiting the maximum runtime is done by forking
+	the process and monitoring the runtime in the parent process. This means that
+	a job that is past its maximum allowed runtime will not be killed by the next
+	job invocation. Instead the job will kill itself.
+
+*	A new class :mod:`ll.misc.SysInfo` has been added that provides
+	host/user/python/script information. :mod:`ll.sisyphus` uses this new
+	class.
+
+*	Changed the default output of tags in :mod:`ll.sisyphus` log files from::
+
+		[tag1, tag2, tag3]
+
+	to::
+
+		[tag1][tag2][tag3]
+
+*	The default location for :mod:`ll.sisyphus` log files has changed to
+	``~/ll.sisyphus/projectname/jobname/``.
+
+*	:class:`ll.orasql.ForeignKey` has a new method :meth:`itercolumns` for
+	iterating over the columns the foreign key consists of.
+
+*	Fixed a bug in the ``uls`` script: For remote URLs uid and gid must be
+	resolved on the remote host.
+
+
+Changes in 3.11.1 (released 10/18/2010)
+---------------------------------------
+
+*	Fixed two bugs in the error handling for unknown XML parsing events in
+	:meth:`ll.xist.parse.Expat.__call__` and :meth:`ll.xist.parse.SGMLOP.__call__`
+	(exceptions were yielded instead of raised).
+
+*	:mod:`ll.sisyphus` jobs now don't break if they can't find the script source.
+
+
+Changes in 3.11 (released 10/15/2010)
+-------------------------------------
+
+*	:mod:`ll.sisyphus` has been rewritten. The new version supports: One log
+	file per job invocation; enhanced configuration for logging; command line
+	arguments.
+
+*	Various attributes of UL4 templates are exposed to UL4 itself.
+
+*	Fixed a bug in :meth:`ll.url.LocalConnection.rename`.
+
+
+Changes in 3.10.1 (released 10/13/2010)
+---------------------------------------
+
+*	Fixed bugs in the handling of the ``def`` and ``enddef`` opcodes in
+	:func:`ll.xist.ns.jsp.fromul4`.
+
+*	Fixed a bug in the handling of the ``render`` method in
+	:func:`ll.xist.ns.jsp.fromul4`.
+
+
+Changes in 3.10 (released 09/24/2010)
+-------------------------------------
+
+*	Python 2.7 is required now as XIST now uses set literals, set and dict
+	comprehension, the new :mod:`argparse` module and various other new features
+	of Python 2.7.
+
+*	All scripts and :mod:`ll.make` have been ported to use :mod:`argparse`.
+
+*	Fixed a bug in :mod:`ll.nightshade`. If the function/procedure didn't set an
+	encoding, the handling of the response body was totally broken (which
+	resulted in a ISO-8859-1 encoded output).
+
+*	:class:`ll.xist.parse.Tidy` now supports an additional parameter: If
+	:var:`skipbad` is true, unknown elements and attributes will be skipped.
+
+*	The random number functions ``random``, ``randrange`` and ``randchoice``
+	have been added to UL4.
+
+*	A new function :func:`ll.misc.prettycsv` has been added. It can be
+	used to pretty print the data produced by the :mod:`csv` module.
+
+
+Changes in 3.9 (released 08/04/2010)
+------------------------------------
+
+*	:class:`ll.xist.ns.html.html` will no longer change the ``lang`` and
+	``xml:lang`` attributes. This functionality has been moved to the new element
+	:class:`ll.xist.ns.htmlspecials.html`. Furthermore this new element won't
+	change existing attributes.
+
+*	:class:`ll.xist.ns.html.title` no longer does any manipulation of its content.
+
+*	The Java string literal formatting function in :mod:`ll.xist.ns.jsp` has been
+	exposed as :func:`javastring`.
+
+*	Fixed a bug in ``oracreate.py``: If the source of procedures and functions
+	didn't have whitespace between the name and the ``(`` the ``(`` was missing
+	from the output.
+
+
+Changes in 3.8.3 (released 07/29/2010)
+--------------------------------------
+
+*	:class:`str` arguments are now always treated as ``BLOB``\s in
+	:mod:`ll.orasql` functions and procedures.
+
+
+Changes in 3.8.2 (released 06/21/2010)
+--------------------------------------
+
+*	Fixed a bug in the logging methods of :class:`ll.sisyphus.Job`: Logging
+	unicode strings didn't work. Now all strings are promoted to unicode.
+
+*	The default encoding for :class:`ll.sisyphus` log files has changed to UTF-8.
+	This can be changed by setting the class attribute :attr:`encoding` in the
+	class derived from :class:`ll.sisyphus.Job`.
+
+
+Changes in 3.8.1 (released 06/17/2010)
+--------------------------------------
+
+*	The method :meth:`ll.url.URL.import_` that had been dropped in version 3.8
+	has been reintroduced. However internally :func:`misc.module` is used for
+	creating the module object. A side effect of this is that importing from
+	non-local URLs now works::
+
+		>>> from ll import url
+		>>> u = url.URL("http://www.livinglogic.de/Python/misc/index_module.py")
+		>>> m = u.import_()
+		>>> m.last("gurk")
+		"k"
+
+
+Changes in 3.8 (released 06/15/2010)
+------------------------------------
+
+*	The parsing infrastructure has been completely rewritten to be more modular
+	and to support iterative parsing (similar to `ElementTree`__).
+
+	__ http://effbot.org/zone/element-iterparse.htm
+
+	Now parsing XML is done in a pipelined approach that looks like this::
+
+		>>> from ll.xist import xsc, parse
+		>>> from ll.xist.ns import html
+		>>> doc = parse.tree(
+		... 	parse.String("<a href='http://www.python.org/'>Python</a>")
+		... 	parse.Expat()
+		... 	parse.NS(html)
+		... 	parse.Node(pool=xsc.Pool(html))
+		... )
+		>>> doc.bytes()
+		'<a href="http://www.python.org/">Python</a>'
+
+	Iterative parsing looks like this::
+
+		>>> from ll.xist import xsc, parse
+		>>> from ll.xist.ns import xml, html, chars
+		>>> for (evtype, path) in parse.itertree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars)),
+		... 	filter=html.a/html.img
+		... ):
+		... 	print path[-1].attrs.src, "-->", path[-2].attrs.href
+		http://www.python.org/images/python-logo.gif --> http://www.python.org/
+		http://www.python.org/images/trans.gif --> http://www.python.org/#left%2Dhand%2Dnavigation
+		http://www.python.org/images/trans.gif --> http://www.python.org/#content%2Dbody
+		http://www.python.org/images/donate.png --> http://www.python.org/psf/donations/
+		http://www.python.org/images/worldmap.jpg --> http://wiki.python.org/moin/Languages
+		http://www.python.org/images/success/tribon.jpg --> http://www.python.org/about/success/tribon/
+
+*	The XIST element :class:`ll.xist.ns.specials.z` has been moved to the
+	:mod:`ll.xist.ns.doc` module.
+
+*	The function :class:`ll.xist.xsc.docprefixes` has been dropped. A new
+	function :class:`ll.xist.xsc.docpool` has been added.
+
+*	The module :mod:`ll.xist.parsers` has been renamed to :mod:`parse`.
+
+*	The module :mod:`ll.xist.presenters` has been renamed to :mod:`present`.
+
+*	The classes :class:`ll.xist.converters.Converter` and
+	:class:`ll.xist.publishers.Publisher` has been moved to :mod:`ll.xist.xsc`.
+	The modules :mod:`ll.xist.converters` and :mod:`ll.xist.publishers` no longer
+	exist.
+
+*	The walk methods :meth:`walknode` and :meth:`walkpath` have been renamed to
+	:meth:`walknodes` and :meth:`walkpaths` and the implemention has been moved
+	from the nodes classes into :class:`WalkFilter`. :class:`WalkFilter` has been
+	moved to :mod:`ll.xist.xfind`.
+
+*	A new selector has been added to :mod:`ll.xist.xfind`: :class:`AnySelector`
+	outputs all nodes.
+
+*	Added a new function :func:`misc.module` that creates a module from source
+	code.
+
+*	:class:`ll.url.Path` has been simplified: Path segments are strings instead
+	of tuples now.
+
+*	The old :class:`URL` method :meth:`import_` has been removed. The new
+	function :func:`misc.module` can now be used for that.
+
+*	The two classes :class:`ll.make.PoolAction` and
+	:class:`ll.make.XISTPoolAction` have been dropped. You can use
+	``make.ObjectAction(misc.Pool).call()`` and
+	``make.ObjectAction(xsc.Pool).call()`` for that.
+
+*	The class :class:`XISTParseAction` has been removed. This action can be
+	replaced by a combination of :class:`ObjectAction`, :class:`CallAction` and
+	:class:`CallAttrAction`.
+
+*	Two new UL4 functions ``abs`` and ``utcnow`` have been added.
+
+*	A few methods have been added to UL4 date objects: ``mimeformat``, ``day``,
+	``month``, ``year``, ``hour``, ``minute``, ``second``, ``microsecond``,
+	``weekday`` and ``yearday``.
+
+*	Use autoboxing in the Java code generated by :mod:`ll.xist.ns.jsp.fromul4`.
+
+*	All code has been switched to using the :meth:`format` method instead of
+	using the ``%`` operator.
+
+*	ssh URLs in :mod:`ll.url` now use the standalone :mod:`execnet` package__.
+
+	__ http://codespeak.net/execnet/
+
+*	ssh URLs now support a ``nice`` argument instead of ``ssh_config``.
 
 
 Changes in 3.7.6 (released 05/14/2010)
@@ -16,7 +675,6 @@ Changes in 3.7.5 (released 04/19/2010)
 
 *	:class:`ll.orasql.PrimaryKey` has a new method :meth:`itercolumns` that
 	returns an iterator over the columns this primary key consists of.
-
 
 
 Changes in 3.7.4 (released 03/25/2010)
@@ -205,9 +863,8 @@ Changes in 3.6 (released 12/31/2008)
 
 *	The following :class:`Color` properties have been dropped: ``r4``, ``g4``,
 	``b4``, ``a4``, ``r8``, ``g8``, ``b8``, ``a8``, ``r``, ``g``, ``b``,  ``a``
-	``int4``, ``int8``, ``rgb4``, ``rgba4``, ``rgb8``, and ``rgba8`` have been
-	dropped. The new methods ``r``, ``g``, ``b`` and ``a`` return the 8 bit
-	component values.
+	``int4``, ``int8``, ``rgb4``, ``rgba4``, ``rgb8``, and ``rgba8``. The new
+	methods ``r``, ``g``, ``b`` and ``a`` return the 8 bit component values.
 
 *	The class methods ``fromhsva`` and ``fromhlsa`` have been renamed to
 	``fromhsv`` and ``fromhls``.
@@ -215,7 +872,7 @@ Changes in 3.6 (released 12/31/2008)
 *	The property ``css`` has been dropped. Instead the CSS string is returned
 	by ``__str__``.
 
-*	Dividing color now does a scalar division. Blending colors is now done with
+*	Dividing colors now does a scalar division. Blending colors is now done with
 	the modulo operator.
 
 *	Support for color objects has been added to UL4.
@@ -591,7 +1248,7 @@ Changes in 3.1 (released 01/18/2008)
 	conversion targets.
 
 
-Changes in 2.9 (released 01/07/2008)
+Changes in 3.0 (released 01/07/2008)
 ------------------------------------
 
 *	Namespaces have been greatly simplified. There are no namespace modules any
@@ -651,7 +1308,7 @@ Changes in 2.9 (released 01/07/2008)
 
 *	Constructing trees can now be done with ``with`` blocks. Code looks like
 	this::
-	
+
 		with xsc.Frag() as node:
 			+xml.XML()
 			+html.DocTypeXHTML10transitional()
@@ -665,7 +1322,7 @@ Changes in 2.9 (released 01/07/2008)
 						+xsc.Text("This example page has a link to the ")
 						+html.a("Python home page", href="http://www.python.org/")
 						+xsc.Text(".")
-	
+
 		print node.conv().bytes(encoding="us-ascii")
 
 	Also the function :func:`xsc.append` has been renamed to :func:`add` and
@@ -1105,7 +1762,7 @@ Changes in 2.6.1 (released 11/02/2004)
 *	Restricted characters as defined in `XML 1.1`__ will now be published as
 	character references.
 
-	__  http://www.w3.org/TR/2004/REC-xml11-20040204/#NT-RestrictedChar
+	__ http://www.w3.org/TR/2004/REC-xml11-20040204/#NT-RestrictedChar
 
 
 Changes in 2.6 (released 10/26/2004)
@@ -1477,7 +2134,7 @@ Changes in 2.2 (released 07/31/2003)
 	have to call :meth:`mapped` directly and pass a node and a converter.
 
 *	The HTML handling of the :class:`HTMLParser` has been improved (it now
-	uses code from :mod:`xml.sax.drivers2.drv_sgmlop_html` (which is part of 
+	uses code from :mod:`xml.sax.drivers2.drv_sgmlop_html` (which is part of
 	PyXML__.
 
 	__ http://pyxml.sf.net/
@@ -2219,7 +2876,7 @@ Changes in 1.0 (released 06/18/2001)
 	following XML::
 
 		<if lang="en">Title
-		<elif lang="de">�berschrift
+		<elif lang="de">Überschrift
 		</if>
 
 *	URL handling has be completely changed and is much, much simpler now. There
@@ -2476,7 +3133,7 @@ Changes in 0.3.5 (released 07/02/2000)
 	:rfc:`2068` requires.)
 
 *	Image size calculation is now done in :meth:`asString` and not in
-	:meth:`asHTML`.	This allows to write faster code. Old method::
+	:meth:`asHTML`. This allows to write faster code. Old method::
 
 		e = html.div(html.img(...),gurk.hurz()).asHTML().asString()
 
@@ -2484,7 +3141,7 @@ Changes in 0.3.5 (released 07/02/2000)
 
 		e = html.div(html.img(...),gurk.hurz().asHTML()).asString()
 
-*	Image size calculation is now done for ``<nput type="image">``. The ``size``
+*	Image size calculation is now done for ``<input type="image">``. The ``size``
 	attribute is set to the image width.
 
 *	Manipulating the path in an URL is now done via the usual

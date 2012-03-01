@@ -1,17 +1,80 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## Copyright 2005-2010 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 2005-2010 by Walter Dörwald
+## Copyright 2005-2011 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 2005-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
 ## See orasql/__init__.py for the license
 
 
-import sys, os, optparse
+"""
+Purpose
+-------
 
-from ll import astyle, orasql
+``oradrop`` prints the drop statements for all objects in an Oracle database
+schema in the correct order (i.e. objects will be dropped so that no errors
+happen during script execution). ``oradrop`` can also be used to actually
+make the schema empty.
+
+
+Options
+-------
+
+``oradrop`` supports the following options:
+
+	``connectstring``
+		An Oracle connectstring.
+
+	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Produces output (on stderr) while to database is read or written.
+
+	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
+		Should the output (when the ``-v`` option is used) be colored. If ``auto``
+		is specified (the default) then the output is colored if stderr is a
+		terminal.
+
+	``-f``, ``--fks`` : ``keep``, ``disable``, ``drop``
+		Specifies how foreign keys from other schemas pointing to this schema
+		should be treated: ``keep`` will now change the foreign keys in any way
+		(this *will* lead to errors); ``disable`` will disable the foreign keys
+		and ``drop`` will drop them completely.
+
+	``-x``, ``--execute`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		When the ``-x`` argument is given the SQL script isn't printed on stdout,
+		but is executed directly. Be careful with this: You *will* have an empty
+		schema after ``oradrop -x``.
+
+	``-k``, ``--keepjunk`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		If true (the default), database objects that have ``$`` or
+		``SYS_EXPORT_SCHEMA_`` in their name will be skipped (otherwise these
+		objects will be included in the output).
+
+	``-i``, ``--ignore`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		If true, errors occuring while the database is read or written will be
+		ignored.
+
+	``-e``, ``--encoding`` : encoding
+		The encoding of the output (if ``-x`` is not given; default is ``utf-8``).
+
+	``--include`` : regexp
+		Only include objects in the output if their name contains the regular
+		expression.
+
+	``--exclude`` : regexp
+		Exclude objects from the output if their name contains the regular
+		expression.
+
+"""
+
+
+import sys, os, re, argparse
+
+from ll import misc, astyle, orasql
+
+
+__docformat__ = "reStructuredText"
 
 
 s4warning = astyle.Style.fromenv("LL_ORASQL_REPRANSI_WARNING", "red:black")
@@ -21,25 +84,23 @@ s4object = astyle.Style.fromenv("LL_ORASQL_REPRANSI_OBJECT", "green:black")
 
 
 def main(args=None):
-	colors = ("yes", "no", "auto")
-	fks = ("keep", "disable", "drop")
-	p = optparse.OptionParser(usage="usage: %prog [options] connectstring >output.sql")
-	p.add_option("-v", "--verbose", dest="verbose", help="Give a progress report?", default=False, action="store_true")
-	p.add_option("-c", "--color", dest="color", help="Color output (%s)" % ", ".join(colors), default="auto", choices=colors)
-	p.add_option("-f", "--fks", dest="fks", help="How should foreign keys from other schemas be treated (%s)?" % ", ".join(fks), default="disable", choices=fks)
-	p.add_option("-x", "--execute", dest="execute", action="store_true", help="immediately execute the commands instead of printing them?")
-	p.add_option("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' in their name?", default=False, action="store_true")
-	p.add_option("-i", "--ignore", dest="ignore", help="Ignore errors?", default=False, action="store_true")
-	p.add_option("-e", "--encoding", dest="encoding", help="Encoding for output", default="utf-8")
+	p = argparse.ArgumentParser(description="Print (or execute) drop statements for all objects in an Oracle database schema", epilog="For more info see http://www.livinglogic.de/Python/orasql/scripts/oradrop.html")
+	p.add_argument("connectstring", help="Oracle connect string")
+	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-c", "--color", dest="color", help="Color output (default %(default)s)", default="auto", choices=("yes", "no", "auto"))
+	p.add_argument("-f", "--fks", dest="fks", help="How should foreign keys from other schemas be treated? (default %(default)s)", default="disable", choices=("keep", "disable", "drop"))
+	p.add_argument("-x", "--execute", dest="execute", help="immediately execute the commands instead of printing them? (default %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' in their name? (default %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-i", "--ignore", dest="ignore", help="Ignore errors? (default %(default)s)", default=False, action=misc.FlagAction)
+	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for output (default %(default)s)", default="utf-8")
+	p.add_argument(      "--include", dest="include", metavar="REGEXP", help="Include only objects whose name contains PATTERN (default: %(default)s)", type=re.compile)
+	p.add_argument(      "--exclude", dest="exclude", metavar="REGEXP", help="Exclude objects whose name contains PATTERN (default: %(default)s)", type=re.compile)
 
-	(options, args) = p.parse_args(args)
-	if len(args) != 1:
-		p.error("incorrect number of arguments")
-		return 1
+	args = p.parse_args(args)
 
-	if options.color == "yes":
+	if args.color == "yes":
 		color = True
-	elif options.color == "no":
+	elif args.color == "no":
 		color = False
 	else:
 		color = None
@@ -47,33 +108,35 @@ def main(args=None):
 	stdout = astyle.Stream(sys.stdout, color)
 	stderr = astyle.Stream(sys.stderr, color)
 
-	connection = orasql.connect(args[0])
+	connection = orasql.connect(args.connectstring)
 
-	term = not options.execute
-	
+	term = not args.execute
+
 	cs = s4connectstring(connection.connectstring())
 
 	def keep(obj):
 		if obj.owner is not None and not isinstance(obj, orasql.ForeignKey):
 			return False
-		if options.keepjunk:
-			return True
-		if "$" in obj.name:
+		if ("$" in obj.name or obj.name.startswith("SYS_EXPORT_SCHEMA_")) and not args.keepjunk:
+			return False
+		if args.include is not None and args.include.search(obj.name) is None:
+			return False
+		if args.exclude is not None and args.exclude.search(obj.name) is not None:
 			return False
 		return True
 
 	ddls = []
-	for (i, obj) in enumerate(connection.iterobjects(mode="drop", schema="user")):
+	for (i, obj) in enumerate(connection.iterobjects(owner=None, mode="drop")):
 		keepdef = keep(obj)
 		# Get DDL
 		ddl = ""
 		action = "skipped"
 		if obj.owner is not None:
 			if isinstance(obj, orasql.ForeignKey):
-				if options.fks == "disable":
+				if args.fks == "disable":
 					ddl = obj.disableddl(cursor, term)
 					action = "disabled"
-				elif options.fks == "drop":
+				elif args.fks == "drop":
 					ddl = obj.dropddl(cursor, term)
 					action = None
 		elif keepdef:
@@ -81,31 +144,31 @@ def main(args=None):
 			action = None
 
 		# Progress report
-		if options.verbose:
-			msg = astyle.style_default("oradrop.py: ", cs, ": fetching #%d " % (i+1), s4object(str(obj)))
+		if args.verbose:
+			msg = astyle.style_default("oradrop.py: ", cs, ": fetching #{} ".format(i+1), s4object(str(obj)))
 			if action is not None:
-				msg = astyle.style_default(msg, " ", s4warning("(%s)" % action))
+				msg = astyle.style_default(msg, " ", s4warning("({})".format(action)))
 			stderr.writeln(msg)
 
 		if ddl:
 			# Print or execute DDL
-			if options.execute:
+			if args.execute:
 				ddls.append((obj, ddl))
 			else:
-				stdout.write(ddl.encode(options.encoding))
+				stdout.write(ddl.encode(args.encoding))
 
 	# Execute DDL
-	if options.execute:
+	if args.execute:
 		cursor = connection.cursor()
 		for (i, (obj, ddl)) in enumerate(ddls):
-			if options.verbose:
-				stderr.writeln("oradrop.py: ", cs, ": dropping #%d/%d " % (i+1, len(ddls)), s4object(str(obj)))
+			if args.verbose:
+				stderr.writeln("oradrop.py: ", cs, ": dropping #{}/{} ".format(i+1, len(ddls)), s4object(str(obj)))
 			try:
 				cursor.execute(ddl)
-			except orasql.DatabaseError, exc:
-				if not options.ignore or "ORA-01013" in str(exc):
+			except orasql.DatabaseError as exc:
+				if not args.ignore or "ORA-01013" in str(exc):
 					raise
-				stderr.writeln("oradrop.py: ", s4error("%s: %s" % (exc.__class__, str(exc).strip())))
+				stderr.writeln("oradrop.py: ", s4error("{}: {}".format(exc.__class__, str(exc).strip())))
 
 
 if __name__ == "__main__":

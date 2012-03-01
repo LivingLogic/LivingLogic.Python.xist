@@ -1,4 +1,4 @@
-<wrap>
+<spc:wrap xmlns="http://xmlns.livinglogic.de/xist/ns/doc" xmlns:spc="http://xmlns.livinglogic.de/xist/ns/specials">
 <p>The class <pyref module="ll.url" class="URL"><class>ll.url.URL</class></pyref>
 supports many common schemes and one additional special scheme named
 <lit>root</lit> that deserves an explanation.</p>
@@ -59,4 +59,4 @@ URL('../../../images/logos/spam.png')
 
 <p>I.e. this gives us a relative &url; that references <lit>url2</lit>
 from <lit>base</lit> when both &url;s are relative to the same root directory.</p>
-</wrap>
+</spc:wrap>

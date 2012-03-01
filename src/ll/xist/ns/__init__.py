@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-## Copyright 1999-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2010 by Walter Dörwald
+## Copyright 1999-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -22,8 +22,8 @@ from :class:`ll.xist.xsc.Element.convert`.
 Other namespace modules provide additional functionality through new element
 classes. Calling :meth:`ll.xist.xsc.Node.convert` on these elements might
 convert them to one of these target namespaces (depending on the :attr:`target`
-attribute of the :class:`ll.xist.converters.Converter` object passed around.)
-Some of these namespace modules completely ignore the target and convert to one
+attribute of the :class:`ll.xist.xsc.Converter` object passed around.) Some of
+these namespace modules completely ignore the target and convert to one
 fixed target namespace (:mod:`ll.xist.ns.html` in most cases).
 """
 

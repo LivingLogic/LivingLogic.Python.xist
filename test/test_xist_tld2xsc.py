@@ -1,30 +1,32 @@
 #! /usr/bin/env/python
 # -*- coding: utf-8 -*-
 
-## Copyright 1999-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2010 by Walter Dörwald
+## Copyright 1999-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
 ## See ll/__init__.py for the license
 
 
-import types, cStringIO
+import types, io
 
-from ll.xist import xsc, parsers, sims
+from ll.xist import xsc, sims
 from ll.xist.ns import tld
 from ll.xist.scripts import tld2xsc
 
 
 def tld2ns(s, shareattrs=None):
-	xnd = tld2xsc.tld2xnd(cStringIO.StringIO(s), shareattrs=shareattrs)
+	xnd = tld2xsc.makexnd(s, encoding="iso-8859-1", shareattrs=shareattrs)
 
 	mod = types.ModuleType("test")
 	mod.__file__ = "test.py"
-	encoding = "iso-8859-1"
-	code = xnd.aspy(encoding=encoding).encode(encoding)
+
+	code = str(xnd)
+	print("Module source generated from TLD:")
+	print(code)
 	code = compile(code, "test.py", "exec")
-	exec code in mod.__dict__
+	exec(code, mod.__dict__)
 	return mod
 
 
@@ -38,7 +40,7 @@ def test_tld2xsc():
 		<jspversion>1.1</jspversion>
 		<shortname>foo</shortname>
 		<info>just a test</info>
-		<uri>%s</uri>
+		<uri>{xmlns}</uri>
 		<tag>
 			<name>bar</name>
 			<tagclass>com.foo.bar</tagclass>
@@ -66,11 +68,11 @@ def test_tld2xsc():
 			</attribute>
 		</tag>
 	</taglib>
-	""" % xmlns
+	""".format(xmlns=xmlns)
 	ns = tld2ns(tldstring)
 	assert ns.bar.xmlns == xmlns
 	assert ns.__doc__.strip() == "just a test"
-	assert ns.bar.xmlname == u"bar"
+	assert ns.bar.xmlname == "bar"
 	assert isinstance(ns.bar.model, sims.Empty)
 	assert ns.bar.__doc__.strip() == "info"
 

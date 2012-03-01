@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-## Copyright 1999-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2010 by Walter Dörwald
+## Copyright 1999-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -17,7 +17,7 @@ documentation (in HTML, DocBook and XSL-FO).
 import sys, types, inspect, textwrap, warnings, operator
 
 import ll
-from ll.xist import xsc, parsers, sims, xfind
+from ll.xist import xsc, parse, sims, xfind
 from ll.xist.ns import html, docbook, fo, specials, xml
 
 
@@ -51,17 +51,18 @@ def getdoc(thing, format):
 	text = "\n".join(lines)
 
 	if inspect.ismethod(thing):
-		base = "METHOD-DOCSTRING(%s.%s.%s)" % (_getmodulename(thing), thing.im_class.__name__, thing.__name__)
+		fmt = "METHOD-DOCSTRING({0}.{1.im_class.__name__}.{1.__name__})"
 	elif isinstance(thing, property):
-		base = "PROPERTY-DOCSTRING(%s.%s)" % (_getmodulename(thing), "unknown")
+		fmt = "PROPERTY-DOCSTRING({0}.{1})"
 	elif inspect.isfunction(thing):
-		base = "FUNCTION-DOCSTRING(%s.%s)" % (_getmodulename(thing), thing.__name__)
+		fmt = "FUNCTION-DOCSTRING({0}.{1.__name__})"
 	elif inspect.isclass(thing):
-		base = "CLASS-DOCSTRING(%s.%s)" % (_getmodulename(thing), thing.__name__)
+		fmt = "CLASS-DOCSTRING({0}.{1.__name__})"
 	elif inspect.ismodule(thing):
-		base = "MODULE-DOCSTRING(%s)" % _getmodulename(thing)
+		fmt = "MODULE-DOCSTRING({0})"
 	else:
-		base = "DOCSTRING"
+		fmt = "DOCSTRING"
+	base = fmt.format(_getmodulename(thing), thing)
 
 	lformat = format.lower()
 	if lformat == "plaintext":
@@ -70,7 +71,8 @@ def getdoc(thing, format):
 		from ll.xist.ns import rest, doc
 		return rest.fromstring(text, base=base).conv(target=doc)
 	elif lformat == "xist":
-		node = parsers.parsestring(text, base=base, prefixes=xsc.docprefixes(), parser=parsers.SGMLOPParser())
+		from ll.xist.ns import doc
+		node = parse.tree(parse.String(text), parse.SGMLOP(), parse.NS(doc), parse.Node(pool=xsc.docpool(), base=base))
 		if not node[p]: # optimization: one paragraph docstrings don't need a <p> element.
 			node = p(node)
 
@@ -79,44 +81,44 @@ def getdoc(thing, format):
 			realthing = thing
 			while hasattr(realthing, "__wrapped__"):
 				realthing = realthing.__wrapped__
-			for ref in node.walknode(pyref):
-				if u"module" not in ref.attrs:
-					ref[u"module"] = _getmodulename(realthing)
-					if u"class_" not in ref.attrs:
-						ref[u"class_"] = thing.im_class.__name__
-						if u"method" not in ref.attrs:
-							ref[u"method"] = thing.__name__
+			for ref in node.walknodes(pyref):
+				if "module" not in ref.attrs:
+					ref["module"] = _getmodulename(realthing)
+					if "class_" not in ref.attrs:
+						ref["class_"] = thing.__self__.__class__.__name__
+						if "method" not in ref.attrs:
+							ref["method"] = thing.__name__
 		elif inspect.isfunction(thing):
 			# Use the original method instead of the decorator
 			while hasattr(thing, "__wrapped__"):
 				thing = thing.__wrapped__
-			for ref in node.walknode(pyref):
-				if u"module" not in ref.attrs:
-					ref[u"module"] = _getmodulename(thing)
+			for ref in node.walknodes(pyref):
+				if "module" not in ref.attrs:
+					ref["module"] = _getmodulename(thing)
 		elif inspect.isclass(thing):
-			for ref in node.walknode(pyref):
-				if u"module" not in ref.attrs:
-					ref[u"module"] = _getmodulename(thing)
-					if u"class_" not in ref.attrs:
-						ref[u"class_"] = thing.__name__
+			for ref in node.walknodes(pyref):
+				if "module" not in ref.attrs:
+					ref["module"] = _getmodulename(thing)
+					if "class_" not in ref.attrs:
+						ref["class_"] = thing.__name__
 		elif inspect.ismodule(thing):
-			for ref in node.walknode(pyref):
-				if u"module" not in ref.attrs:
-					ref[u"module"] = thing.__name__
+			for ref in node.walknodes(pyref):
+				if "module" not in ref.attrs:
+					ref["module"] = thing.__name__
 		return node
 	else:
-		raise ValueError("unsupported __docformat__ %r" % format)
+		raise ValueError("unsupported __docformat__ {!r}".format(format))
 
 
 def getsourceline(obj):
 	if isinstance(obj, property):
 		pos = 999999999
 		if obj.fget is not None:
-			pos = min(pos, obj.fget.func_code.co_firstlineno)
+			pos = min(pos, obj.fget.__code__.co_firstlineno)
 		if obj.fset is not None:
-			pos = min(pos, obj.fset.func_code.co_firstlineno)
+			pos = min(pos, obj.fset.__code__.co_firstlineno)
 		if obj.fdel is not None:
-			pos = min(pos, obj.fdel.func_code.co_firstlineno)
+			pos = min(pos, obj.fdel.__code__.co_firstlineno)
 	else:
 		while hasattr(obj, "__wrapped__"):
 			obj = obj.__wrapped__
@@ -137,7 +139,7 @@ def _codeheader(thing, name, type):
 	offset = len(args)
 	if defaults is not None:
 		offset -= len(defaults)
-	for i in xrange(len(args)):
+	for i in range(len(args)):
 		if i == 0:
 			if issubclass(type, meth):
 				if args[i] == "self":
@@ -150,20 +152,20 @@ def _codeheader(thing, name, type):
 				sig.append(var(args[i]))
 		else:
 			if sig:
-				sig.append(u", ")
+				sig.append(", ")
 			sig.append(var(args[i]))
 		if i >= offset:
-			sig.append(u"=", lit(repr(defaults[i-offset])))
+			sig.append("=", lit(repr(defaults[i-offset])))
 	if varargs:
 		if sig:
-			sig.append(u", ")
-		sig.append(u"*", var(varargs))
+			sig.append(", ")
+		sig.append("*", var(varargs))
 	if varkw:
 		if sig:
-			sig.append(u", ")
-		sig.append(u"**", var(varkw))
-	sig.insert(0, type(name), u"\u200b(") # use "ZERO WIDTH SPACE" to allow linebreaks
-	sig.append(u")")
+			sig.append(", ")
+		sig.append("**", var(varkw))
+	sig.insert(0, type(name), "\u200b(") # use "ZERO WIDTH SPACE" to allow linebreaks
+	sig.append(")")
 	return sig
 
 
@@ -197,58 +199,58 @@ def explain(thing, name=None, format=None, context=[]):
 			pass
 
 	# Determine visibility
-	visibility = u"public"
+	visibility = "public"
 	testname = name or thing.__name__
 	if testname.startswith("_"):
-		visibility = u"protected"
+		visibility = "protected"
 		if testname.startswith("__"):
-			visibility = u"private"
+			visibility = "private"
 			if testname.endswith("__"):
-				visibility = u"special"
+				visibility = "special"
 
 	# Determine whether thing has a docstring
 	if format is None and inspect.ismodule(thing):
 		format = getattr(thing, "__docformat__", "plaintext").split()[0]
 	doc = getdoc(thing, format)
 	if doc is xsc.Null:
-		hasdoc = u"nodoc"
+		hasdoc = "nodoc"
 	else:
-		hasdoc = u"doc"
+		hasdoc = "doc"
 
 	# Determine type
 	if inspect.ismethod(thing):
 		name = name or thing.__name__
 		context = context + [(thing, name)]
-		(args, varargs, varkw, defaults) = inspect.getargspec(thing.im_func)
+		(args, varargs, varkw, defaults) = inspect.getargspec(thing.__func__)
 		id = "-".join(info[1] for info in context[1:]) or None
 		sig = xsc.Frag()
-		if name != thing.__name__ and not (thing.__name__.startswith("__") and name=="_" + thing.im_class.__name__ + thing.__name__):
-			sig.append(meth(name), u" = ")
-		sig.append(u"def ", _codeheader(thing.im_func, thing.__name__, meth), u":")
-		return section(h(sig), doc, role=(visibility, u" method ", hasdoc), id=id or None)
+		if name != thing.__name__ and not (thing.__name__.startswith("__") and name=="_" + thing.__self__.__class__.__name__ + thing.__name__):
+			sig.append(meth(name), " = ")
+		sig.append("def ", _codeheader(thing.__func__, thing.__name__, meth), ":")
+		return section(h(sig), doc, role=(visibility, " method ", hasdoc), id=id)
 	elif inspect.isfunction(thing):
 		name = name or thing.__name__
 		context = context + [(thing, name)]
-		id = u"-".join(info[1] for info in context[1:]) or None
+		id = "-".join(info[1] for info in context[1:]) or None
 		sig = xsc.Frag(
-			u"def ",
+			"def ",
 			_codeheader(thing, name, func),
-			u":"
+			":"
 		)
-		return section(h(sig), doc, role=(visibility, u" function ", hasdoc), id=id)
+		return section(h(sig), doc, role=(visibility, " function ", hasdoc), id=id)
 	elif isinstance(thing, property):
 		context = context + [(thing, name)]
-		id = u"-".join(info[1] for info in context[1:]) or None
+		id = "-".join(info[1] for info in context[1:]) or None
 		sig = xsc.Frag(
-			u"property ", name, u":"
+			"property ", name, ":"
 		)
-		node = section(h(sig), doc, role=(visibility, u" property ", hasdoc), id=id)
+		node = section(h(sig), doc, role=(visibility, " property ", hasdoc), id=id)
 		if thing.fget is not None:
-			node.append(explain(thing.fget, u"__get__", format, context))
+			node.append(explain(thing.fget, "__get__", format, context))
 		if thing.fset is not None:
-			node.append(explain(thing.fset, u"__set__", format, context))
+			node.append(explain(thing.fset, "__set__", format, context))
 		if thing.fdel is not None:
-			node.append(explain(thing.fdel, u"__delete__", format, context))
+			node.append(explain(thing.fdel, "__delete__", format, context))
 		return node
 	elif inspect.isclass(thing):
 		name = name or thing.__name__
@@ -257,7 +259,7 @@ def explain(thing, name=None, format=None, context=[]):
 		bases = xsc.Frag()
 		if len(thing.__bases__):
 			for baseclass in thing.__bases__:
-				if baseclass.__module__ == "__builtin__":
+				if baseclass.__module__ in ("__builtin__", "exceptions"):
 					ref = class_(baseclass.__name__)
 				else:
 					try:
@@ -265,24 +267,24 @@ def explain(thing, name=None, format=None, context=[]):
 					except AttributeError:
 						baseclassname = baseclass.__name__
 					if thing.__module__ != baseclass.__module__:
-						baseclassname4text = baseclass.__module__ + u"." + baseclassname
+						baseclassname4text = baseclass.__module__ + "." + baseclassname
 					else:
 						baseclassname4text = baseclassname
 					#baseclassname4text = u".\u200b".join(baseclassname4text.split("."))
 					ref = pyref(class_(baseclassname4text), module=baseclass.__module__, class_=baseclassname)
 				bases.append(ref)
-			bases = bases.withsep(u", ")
-			bases.insert(0, u"\u200b(") # use "ZERO WIDTH SPACE" to allow linebreaks
-			bases.append(u")")
+			bases = bases.withsep(", ")
+			bases.insert(0, "\u200b(") # use "ZERO WIDTH SPACE" to allow linebreaks
+			bases.append(")")
 		node = section(
 			h(
-				u"class ",
+				"class ",
 				class_(name),
 				bases,
-				u":"
+				":"
 			),
 			doc,
-			role=(visibility, u" class ", hasdoc),
+			role=(visibility, " class ", hasdoc),
 			id=id
 		)
 
@@ -305,7 +307,7 @@ def explain(thing, name=None, format=None, context=[]):
 			elif inspect.ismethod(obj):
 				# skip the method if it's a property getter, setter or deleter
 				for (prop, name) in properties:
-					if obj.im_func==prop.fget or obj.im_func==prop.fset or obj.im_func==prop.fdel:
+					if obj.__func__==prop.fget or obj.__func__==prop.fset or obj.__func__==prop.fdel:
 						break
 				else:
 					_append(all, obj, varname)
@@ -350,26 +352,26 @@ class base(xsc.Element):
 			self.sections = [0]
 			self.firstheaderlevel = None
 
-			self.llblue = u"#006499"
-			self.llgreen = u"#9fc94d"
+			self.llblue = "#006499"
+			self.llgreen = "#9fc94d"
 
-			self.ttfont = u"CourierNew, monospace"
-			self.hdfont = u"ArialNarrow, Arial, sans-serif"
-			self.font = u"PalatinoLinotype, serif"
+			self.ttfont = "CourierNew, monospace"
+			self.hdfont = "ArialNarrow, Arial, sans-serif"
+			self.font = "PalatinoLinotype, serif"
 
 			self.indentcount = 0
 
 			self.vspaceattrs = dict(
-				space_before=u"0pt",
-				space_after_minimum=u"4pt",
-				space_after_optimum=u"6pt",
-				space_after_maximum=u"12pt",
-				space_after_conditionality=u"discard",
+				space_before="0pt",
+				space_after_minimum="4pt",
+				space_after_optimum="6pt",
+				space_after_maximum="12pt",
+				space_after_conditionality="discard",
 			)
 
 			self.linkattrs = dict(
-				color=u"blue",
-				text_decoration=u"underline",
+				color="blue",
+				text_decoration="underline",
 			)
 
 			self.codeattrs = dict(
@@ -377,25 +379,25 @@ class base(xsc.Element):
 			)
 
 			self.repattrs = dict(
-				font_style=u"italic",
+				font_style="italic",
 			)
 
 			self.emattrs = dict(
-				font_style=u"italic",
+				font_style="italic",
 			)
 
 			self.strongattrs = dict(
-				font_weight=u"bold",
+				font_weight="bold",
 			)
 
 		def dedent(self):
-			return u"-0.7cm"
+			return "-0.7cm"
 
 		def indent(self):
-			return u"%.1fcm" % (0.7*self.indentcount)
+			return "{:.1f}cm".format(0.7*self.indentcount)
 
 		def labelindent(self):
-			return u"%.1fcm" % (0.7*self.indentcount-0.4)
+			return "{:.1f}cm".format(0.7*self.indentcount-0.4)
 
 	def convert(self, converter):
 		target = converter.target
@@ -408,7 +410,7 @@ class base(xsc.Element):
 		elif target.xmlns == fo.xmlns:
 			return self.convert_fo(converter)
 		else:
-			raise ValueError("unknown conversion target %r" % target)
+			raise ValueError("unknown conversion target {!r}".format(target))
 
 	def convert_doc(self, converter):
 		e = self.__class__(
@@ -461,10 +463,10 @@ class abbr(inline):
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
-		return xsc.Text(unicode(self.content))
+		return xsc.Text(str(self.content))
 
-	def __unicode__(self):
-		return unicode(self.content)
+	def __str__(self):
+		return str(self.content)
 
 
 class tab(xsc.Element):
@@ -475,7 +477,7 @@ class tab(xsc.Element):
 	register = False
 
 	def convert(self, converter):
-		e = converter.target.span(u"\xB7\xA0\xA0", class_=u"tab")
+		e = converter.target.span("\xB7\xA0\xA0", class_="tab")
 		return e.convert(converter)
 
 
@@ -495,7 +497,7 @@ class litblock(block):
 			child = child.convert(converter)
 			if isinstance(child, xsc.Text):
 				for c in child.content:
-					if c==u"\t":
+					if c=="\t":
 						c = tab()
 					e.append(c)
 			else:
@@ -509,9 +511,9 @@ class litblock(block):
 		e = target.block(
 			context.vspaceattrs,
 			context.codeattrs,
-			text_align=u"left",
-			line_height=u"130%",
-			font_size=u"90%",
+			text_align="left",
+			line_height="130%",
+			font_size="90%",
 			start_indent=context.indent(),
 			end_indent=context.indent()
 		)
@@ -522,14 +524,14 @@ class litblock(block):
 			if isinstance(child, xsc.Text):
 				for c in child.content:
 					# We have to do the following, because FOP doesn't support the white-space property yet
-					if c==u" ":
-						c = u"\xa0" # transform spaces into nbsps
-					if c==u"\t":
-						c = target.inline(u"\u25ab\xa0\xa0\xa0", color="rgb(50%, 50%, 50%)")
-					if c==u"\n":
+					if c==" ":
+						c = "\xa0" # transform spaces into nbsps
+					if c=="\t":
+						c = target.inline("\u25ab\xa0\xa0\xa0", color="rgb(50%, 50%, 50%)")
+					if c=="\n":
 						if not collect and not first: # fix empty lines (but not the first one)
-							collect.append(u"\ufeff")
-							collect[u"line_height"] = u"60%" # reduce the line-height
+							collect.append("\ufeff")
+							collect["line_height"] = "60%" # reduce the line-height
 						e.append(collect)
 						collect = target.block()
 						first = False
@@ -548,7 +550,7 @@ class prog(litblock):
 	A literal listing of all or part of a program.
 	"""
 	xmlns = xmlns
-	cssclass = u"prog"
+	cssclass = "prog"
 
 	def convert_docbook(self, converter):
 		e = converter.target.programlisting(self.content)
@@ -560,7 +562,7 @@ class tty(litblock):
 	A dump of a shell session.
 	"""
 	xmlns = xmlns
-	cssclass = u"tty"
+	cssclass = "tty"
 
 	def convert_docbook(self, converter):
 		e = converter.target.screen(self.content)
@@ -578,11 +580,11 @@ class prompt(inline):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_=u"prompt")
+		e = converter.target.code(self.content, class_="prompt")
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
-		return xsc.Text(unicode(self.content))
+		return xsc.Text(str(self.content))
 
 
 class input(inline):
@@ -596,11 +598,11 @@ class input(inline):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_=u"input")
+		e = converter.target.code(self.content, class_="input")
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
-		return xsc.Text(unicode(self.content))
+		return xsc.Text(str(self.content))
 
 
 class rep(inline):
@@ -615,7 +617,7 @@ class rep(inline):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.var(self.content, class_=u"rep")
+		e = converter.target.var(self.content, class_="rep")
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
@@ -651,7 +653,7 @@ class option(code):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_=u"option")
+		e = converter.target.code(self.content, class_="option")
 		return e.convert(converter)
 
 
@@ -667,7 +669,7 @@ class lit(code):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_=u"lit")
+		e = converter.target.code(self.content, class_="lit")
 		return e.convert(converter)
 
 
@@ -715,7 +717,7 @@ class prop(code):
 	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
-		e = converter.target.varname(self.content, role=u"property")
+		e = converter.target.varname(self.content, role="property")
 		return e.convert(converter)
 
 
@@ -756,7 +758,7 @@ class markup(code):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_=u"markup")
+		e = converter.target.code(self.content, class_="markup")
 		return e.convert(converter)
 
 
@@ -771,15 +773,15 @@ class self(code):
 	model = sims.Empty()
 
 	def convert_docbook(self, converter):
-		e = converter.target.varname(u"self")
+		e = converter.target.varname("self")
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(u"self", class_=u"self")
+		e = converter.target.code("self", class_="self")
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
-		e = converter.target.inline(u"self", converter[self].codeattrs)
+		e = converter.target.inline("self", converter[self].codeattrs)
 		return e.convert(converter)
 
 self_ = self
@@ -796,15 +798,15 @@ class cls(inline):
 	model = sims.Empty()
 
 	def convert_docbook(self, converter):
-		e = converter.target.varname(u"cls")
+		e = converter.target.varname("cls")
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(u"cls", class_=u"cls")
+		e = converter.target.code("cls", class_="cls")
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
-		e = converter.target.inline(u"cls", converter[self].codeattrs)
+		e = converter.target.inline("cls", converter[self].codeattrs)
 		return e.convert(converter)
 
 
@@ -828,11 +830,11 @@ class mod(code):
 	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
-		e = converter.target.classname(self.content, role=u"module")
+		e = converter.target.classname(self.content, role="module")
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_=u"module")
+		e = converter.target.code(self.content, class_="module")
 		return e.convert(converter)
 
 
@@ -848,7 +850,7 @@ class file(code):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_=u"filename")
+		e = converter.target.code(self.content, class_="filename")
 		return e.convert(converter)
 
 
@@ -860,7 +862,7 @@ class dir(code):
 	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
-		e = converter.target.filename(self.content, class_=u"directory")
+		e = converter.target.filename(self.content, class_="directory")
 		return e.convert(converter)
 
 
@@ -872,7 +874,7 @@ class user(code):
 	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
-		e = converter.target.literal(self.content, role=u"username")
+		e = converter.target.literal(self.content, role="username")
 		return e.convert(converter)
 
 
@@ -884,7 +886,7 @@ class host(code):
 	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
-		e = converter.target.literal(self.content, role=u"hostname")
+		e = converter.target.literal(self.content, role="hostname")
 		return e.convert(converter)
 
 
@@ -896,7 +898,7 @@ class const(code):
 	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
-		e = converter.target.literal(self.content, role=u"constant")
+		e = converter.target.literal(self.content, role="constant")
 		return e.convert(converter)
 
 
@@ -908,7 +910,7 @@ class data(code):
 	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
-		e = converter.target.literal(self.content, role=u"data")
+		e = converter.target.literal(self.content, role="data")
 		return e.convert(converter)
 
 
@@ -926,14 +928,14 @@ class app(inline):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		if u"moreinfo" in self.attrs:
-			e = converter.target.a(self.content, class_=u"app", href=self.attrs.moreinfo)
+		if "moreinfo" in self.attrs:
+			e = converter.target.a(self.content, class_="app", href=self.attrs.moreinfo)
 		else:
-			e = converter.target.span(self.content, class_=u"app")
+			e = converter.target.span(self.content, class_="app")
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
-		if u"moreinfo" in self.attrs:
+		if "moreinfo" in self.attrs:
 			e = converter.target.basic_link(
 				self.content,
 				converter[self].linkattrs,
@@ -958,15 +960,15 @@ class h(base):
 	def convert_html(self, converter):
 		context = converter[self]
 		if context.stack:
-		 	if isinstance(context.stack[-1], example):
+			if isinstance(context.stack[-1], example):
 				e = self.content
 			elif isinstance(context.stack[-1], section):
 				level = len(context.sections)
 				if context.firstheaderlevel is None:
 					context.firstheaderlevel = level
-				e = getattr(converter.target, "h%d" % (context.firstheaderlevel+level), converter.target.h6)(self.content)
+				e = getattr(converter.target, "h{}".format(context.firstheaderlevel+level), converter.target.h6)(self.content)
 			else:
-				raise ValueError("unknown node %r on the stack" % context.stack[-1])
+				raise ValueError("unknown node {!r} on the stack".format(context.stack[-1]))
 		else:
 			context.firstheaderlevel = 0
 			e = converter.target.h1(self.content)
@@ -998,18 +1000,18 @@ class section(block):
 		level = len(context.sections)
 		context.sections.append(0) # for numbering the subsections
 		ts = xsc.Frag()
-		cs = html.div(class_=u"content")
+		cs = html.div(class_="content")
 		for child in self:
 			if isinstance(child, h):
 				ts.append(child)
 			else:
 				cs.append(child)
-		e = target.div(class_=(u"section level", level), id=self.attrs.id)
+		e = target.div(class_=("section level", level), id=self.attrs.id)
 		if "role" in self.attrs:
 			e.attrs.class_.append(" ", self.attrs.role)
 		#if "id" in self.attrs:
 		#	e.append(target.a(name=self.attrs.id, id=self.attrs.id))
-		hclass = getattr(target, u"h%d" % level, target.h6)
+		hclass = getattr(target, "h{}".format(level), target.h6)
 		for t in ts:
 			e.append(hclass(t.content))
 		e.append(cs)
@@ -1027,10 +1029,10 @@ class section(block):
 		cs = xsc.Frag()
 		props = [
 			# size,    before,  after
-			(u"30pt", u"30pt", u"2pt"),
-			(u"22pt", u"20pt", u"2pt"),
-			(u"16pt", u"15pt", u"2pt"),
-			(u"12pt", u"15pt", u"2pt")
+			("30pt", "30pt", "2pt"),
+			("22pt", "20pt", "2pt"),
+			("16pt", "15pt", "2pt"),
+			("12pt", "15pt", "2pt")
 		]
 		for child in self.content:
 			if isinstance(child, h):
@@ -1038,7 +1040,7 @@ class section(block):
 			else:
 				cs.append(child)
 		p = props[min(len(context.sections)-1, len(props)-1)]
-		isref = unicode(self.attrs.role.convert(converter)) in (u"class", u"method", u"property", u"function", u"module")
+		isref = str(self.attrs.role.convert(converter)) in ("class", "method", "property", "function", "module")
 
 		number = None
 		if isref:
@@ -1047,8 +1049,8 @@ class section(block):
 		else:
 			if len(context.sections)>1:
 				number = (
-					u".".join(unicode(s) for s in context.sections[:-1]),
-					u". "
+					".".join(str(s) for s in context.sections[:-1]),
+					". "
 				)
 			text_indent = None
 
@@ -1057,9 +1059,9 @@ class section(block):
 			color=context.llblue,
 			space_before=p[1],
 			space_after=p[2],
-			text_align=u"left",
+			text_align="left",
 			font_family=context.hdfont,
-			keep_with_next_within_page=u"always",
+			keep_with_next_within_page="always",
 			text_indent=text_indent
 		)
 		e = fo.block(
@@ -1095,7 +1097,7 @@ class p(block):
 		e = fo.block(
 			self.content,
 			converter[self].vspaceattrs,
-			line_height=u"130%"
+			line_height="130%"
 		)
 		return e.convert(converter)
 
@@ -1118,7 +1120,7 @@ class dt(block):
 	def convert_fo(self, converter):
 		e = converter.target.block(
 			self.content,
-			font_style=u"italic"
+			font_style="italic"
 		)
 		return e.convert(converter)
 
@@ -1148,9 +1150,9 @@ class li(block):
 		context.lists[-1][1] += 1
 		type = context.lists[-1][0]
 		if type=="ul":
-			label = u"\u2022"
+			label = "\u2022"
 		elif type=="ol":
-			label = "%d." % context.lists[-1][1]
+			label = "{}.".format(context.lists[-1][1])
 		context.indentcount += 1
 		if self[block]: # Do we have a block in our content?
 			content = self.content # yes => use the content as is
@@ -1233,7 +1235,7 @@ class ul(list):
 	def convert_fo(self, converter):
 		context = converter[self]
 		context.lists.append(["ul", 0])
-		e = converter.target.list_block(self.content, line_height=u"130%")
+		e = converter.target.list_block(self.content, line_height="130%")
 		e = e.convert(converter)
 		del context.lists[-1]
 		return e
@@ -1257,7 +1259,7 @@ class ol(list):
 	def convert_fo(self, converter):
 		context = converter[self]
 		context.lists.append(["ol", 0])
-		e = converter.target.list_block(self.content, line_height=u"130%")
+		e = converter.target.list_block(self.content, line_height="130%")
 		e = e.convert(converter)
 		del context.lists[-1]
 		return e
@@ -1315,7 +1317,7 @@ class example(block):
 			else:
 				e.append(child)
 		if ts:
-			e.append(target.div(ts, class_=u"example-title"))
+			e.append(target.div(ts, class_="example-title"))
 		with _stack(converter[self], self):
 			return e.convert(converter)
 
@@ -1347,7 +1349,7 @@ class a(inline):
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
-		if u"href" in self.attrs:
+		if "href" in self.attrs:
 			e = converter.target.basic_link(
 				self.content,
 				converter[self].linkattrs,
@@ -1372,11 +1374,11 @@ class xref(inline):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.a(self.content, href=(u"#", self.attrs.ref))
+		e = converter.target.a(self.content, href=("#", self.attrs.ref))
 		return e.convert(convertert)
 
 	def convert_fo(self, converter):
-		if u"href" in self.attrs:
+		if "href" in self.attrs:
 			e = converter.target.basic_link(
 				self.content,
 				converter[self].linkattrs,
@@ -1399,14 +1401,14 @@ class email(inline):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.a(self.content, href=(u"mailto:", self.content))
+		e = converter.target.a(self.content, href=("mailto:", self.content))
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
 		e = converter.target.basic_link(
 			self.content,
 			converter[self].linkattrs,
-			external_destination=(u"mailto:", self.content)
+			external_destination=("mailto:", self.content)
 		)
 		return e.convert(converter)
 
@@ -1457,6 +1459,18 @@ class strong(inline):
 		return e.convert(converter)
 
 
+class z(inline):
+	"""
+	Put the content into double quotes.
+	"""
+	xmlns = xmlns
+	model = sims.ElementsOrText(inline)
+
+	def convert(self, converter):
+		e = xsc.Frag("\u201c", self.content, "\u201d")
+		return e.convert(converter)
+
+
 class pyref(inline):
 	"""
 	Reference to a Python object: module, class, method, property or function.
@@ -1465,7 +1479,7 @@ class pyref(inline):
 	model = sims.ElementsOrText(inline)
 	class Attrs(xsc.Element.Attrs):
 		class module(xsc.TextAttr): pass
-		class class_(xsc.TextAttr): xmlname = u"class"
+		class class_(xsc.TextAttr): xmlname = "class"
 		class method(xsc.TextAttr): pass
 		class property(xsc.TextAttr): pass
 		class function(xsc.TextAttr): pass
@@ -1480,26 +1494,26 @@ class pyref(inline):
 		context = converter[self]
 		if target.xmlns == xmlns: # our own namespace
 			return self.convert_doc(converter)
-		if u"function" in self.attrs:
-			function = unicode(self.attrs.function.convert(converter))
+		if "function" in self.attrs:
+			function = str(self.attrs.function.convert(converter))
 		else:
 			function = None
-		if u"method" in self.attrs:
-			method = unicode(self.attrs.method.convert(converter))
+		if "method" in self.attrs:
+			method = str(self.attrs.method.convert(converter))
 		else:
 			method = None
-		if u"property" in self.attrs:
-			prop = unicode(self.attrs.property.convert(converter))
+		if "property" in self.attrs:
+			prop = str(self.attrs.property.convert(converter))
 		else:
 			prop = None
-		if u"class_" in self.attrs:
-			class__ = unicode(self.attrs.class_.convert(converter)).replace(u".", u"-")
+		if "class_" in self.attrs:
+			class__ = str(self.attrs.class_.convert(converter)).replace(".", "-")
 		else:
 			class__ = None
-		if u"module" in self.attrs:
-			module = unicode(self.attrs.module.convert(converter))
-			if module.startswith(u"ll."):
-				module = module[3:].replace(u".", u"/")
+		if "module" in self.attrs:
+			module = str(self.attrs.module.convert(converter))
+			if module.startswith("ll."):
+				module = module[3:].replace(".", "/")
 			elif module == "ll":
 				module = "core"
 			else:
@@ -1511,18 +1525,18 @@ class pyref(inline):
 		if target.xmlns == html.xmlns:
 			if function is not None:
 				if module is not None:
-					e = target.a(e, href=(context.base, module, u"/index.html#", function))
+					e = target.a(e, href=(context.base, module, "/index.html#", function))
 			elif method is not None:
 				if class__ is not None and module is not None:
-					e = target.a(e, href=(context.base, module, u"/index.html#", class__, "-", method))
+					e = target.a(e, href=(context.base, module, "/index.html#", class__, "-", method))
 			elif prop is not None:
 				if class__ is not None and module is not None:
-					e = target.a(e, href=(context.base, module, u"/index.html#", class__, "-", prop))
+					e = target.a(e, href=(context.base, module, "/index.html#", class__, "-", prop))
 			elif class__ is not None:
 				if module is not None:
-					e = target.a(e, href=(context.base, module, u"/index.html#", class__))
+					e = target.a(e, href=(context.base, module, "/index.html#", class__))
 			elif module is not None:
-				e = target.a(e, href=(context.base, module, u"/index.html"))
+				e = target.a(e, href=(context.base, module, "/index.html"))
 		return e.convert(converter)
 
 
@@ -1541,50 +1555,50 @@ class fodoc(base):
 		converter.pop()
 
 		e = xsc.Frag(
-			xml.XML(), u"\n",
+			xml.XML(), "\n",
 			fo.root(
 				fo.layout_master_set(
 					fo.simple_page_master(
 						fo.region_body(
-							region_name=u"xsl-region-body",
-							margin_bottom=u"3cm"
+							region_name="xsl-region-body",
+							margin_bottom="3cm"
 						),
 						fo.region_after(
-							region_name=u"xsl-region-after",
-							extent=u"2cm"
+							region_name="xsl-region-after",
+							extent="2cm"
 						),
-						master_name=u"default",
-						page_height=u"29.7cm",
-						page_width=u"21cm",
-						margin_top=u"1cm",
-						margin_bottom=u"1cm",
-						margin_left=u"2.5cm",
-						margin_right=u"1cm"
+						master_name="default",
+						page_height="29.7cm",
+						page_width="21cm",
+						margin_top="1cm",
+						margin_bottom="1cm",
+						margin_left="2.5cm",
+						margin_right="1cm"
 					)
 				),
 				fo.page_sequence(
 					fo.static_content(
 						fo.block(
 							fo.page_number(),
-							border_before_width=u"0.1pt",
-							border_before_color=u"#000",
-							border_before_style=u"solid",
-							padding_before=u"4pt",
-							text_align=u"center"
+							border_before_width="0.1pt",
+							border_before_color="#000",
+							border_before_style="solid",
+							padding_before="4pt",
+							text_align="center"
 						),
-						flow_name=u"xsl-region-after"
+						flow_name="xsl-region-after"
 					),
 					fo.flow(
 						e,
-						flow_name=u"xsl-region-body"
+						flow_name="xsl-region-body"
 					),
-					master_reference=u"default"
+					master_reference="default"
 				),
 				font_family=context.font,
-				font_size=u"10pt",
-				text_align=u"justify",
-				line_height=u"normal",
-				language=u"en",
+				font_size="10pt",
+				text_align="justify",
+				line_height="normal",
+				language="en",
 				orphans=2,
 				widows=3
 			)

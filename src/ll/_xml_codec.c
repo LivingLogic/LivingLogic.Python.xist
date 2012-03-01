@@ -1,6 +1,6 @@
 /*
-** Copyright 2007-2010 by LivingLogic AG, Bayreuth/Germany.
-** Copyright 2007-2010 by Walter Dörwald
+** Copyright 2007-2011 by LivingLogic AG, Bayreuth/Germany.
+** Copyright 2007-2011 by Walter DÃ¶rwald
 **
 ** All Rights Reserved
 **
@@ -318,29 +318,29 @@ static PyObject *detectencoding_str(const char *str, Py_ssize_t len, int final)
 		}
 	}
 	if (candidates == 0)
-		return PyString_FromString("utf-8");
+		return PyUnicode_FromString("utf-8");
 	else if (!(candidates & (candidates-1))) /* only one encoding remaining */
 	{
 		if ((candidates == CANDIDATE_UTF_8_SIG) && (origlen >= 3))
-			return PyString_FromString("utf-8-sig");
+			return PyUnicode_FromString("utf-8-sig");
 		else if ((candidates == CANDIDATE_UTF_16_AS_LE) && (origlen >= 2))
-			return PyString_FromString("utf-16");
+			return PyUnicode_FromString("utf-16");
 		else if ((candidates == CANDIDATE_UTF_16_AS_BE) && (origlen >= 2))
-			return PyString_FromString("utf-16");
+			return PyUnicode_FromString("utf-16");
 		else if ((candidates == CANDIDATE_UTF_16_LE) && (origlen >= 4))
-			return PyString_FromString("utf-16-le");
+			return PyUnicode_FromString("utf-16-le");
 		else if ((candidates == CANDIDATE_UTF_16_BE) && (origlen >= 2))
-			return PyString_FromString("utf-16-be");
+			return PyUnicode_FromString("utf-16-be");
 		else if ((candidates == CANDIDATE_UTF_32_AS_LE) && (origlen >= 4))
-			return PyString_FromString("utf-32");
+			return PyUnicode_FromString("utf-32");
 		else if ((candidates == CANDIDATE_UTF_32_AS_BE) && (origlen >= 4))
-			return PyString_FromString("utf-32");
+			return PyUnicode_FromString("utf-32");
 		else if ((candidates == CANDIDATE_UTF_32_LE) && (origlen >= 4))
-			return PyString_FromString("utf-32-le");
+			return PyUnicode_FromString("utf-32-le");
 		else if ((candidates == CANDIDATE_UTF_32_BE) && (origlen >= 4))
-			return PyString_FromString("utf-32-be");
+			return PyUnicode_FromString("utf-32-be");
 		else if ((candidates == CANDIDATE_EBCDIC) && (origlen >= 4))
-			return PyString_FromString("cp037");
+			return PyUnicode_FromString("cp037");
 		else if ((candidates == CANDIDATE_DECL) && (origlen >= 6))
 		{
 			const char *encodingstart;
@@ -353,14 +353,14 @@ static PyObject *detectencoding_str(const char *str, Py_ssize_t len, int final)
 				case 0: /* don't know yet */
 					Py_RETURN_NONE;
 				case 1: /* not found => default to utf-8 */
-					return PyString_FromString("utf-8");
+					return PyUnicode_FromString("utf-8");
 				case 2: /* found it  */
-					return PyString_FromStringAndSize(encodingstart, encodingend-encodingstart);
+					return PyUnicode_FromStringAndSize(encodingstart, encodingend-encodingstart);
 			}
 		}
 	}
 	if (final) /* if this is the last call, and we haven't determined an encoding yet, we default to UTF-8 */
-		return PyString_FromString("utf-8");
+		return PyUnicode_FromString("utf-8");
 	/* We don't know yet */
 	Py_RETURN_NONE;
 }
@@ -392,20 +392,17 @@ static PyObject *detectencoding_unicode(const Py_UNICODE *str, Py_ssize_t len, i
 static PyObject *detectencoding(PyObject *self, PyObject *args)
 {
 	PyObject *obj;
+	Py_buffer buf;
 	int final = 0;
 
 	if (!PyArg_ParseTuple(args, "O|i:detectxmlencoding", &obj, &final))
 		return NULL;
 
-	if (PyString_Check(obj))
-		return detectencoding_str(PyString_AS_STRING(obj), PyString_GET_SIZE(obj), final);
-	else if (PyUnicode_Check(obj))
+	if (PyUnicode_Check(obj))
 		return detectencoding_unicode(PyUnicode_AS_UNICODE(obj), PyUnicode_GET_SIZE(obj), final);
-	else
-	{
-		PyErr_SetString(PyExc_TypeError, "expected str or unicode");
-		return NULL;
-	}
+	else if (!PyObject_GetBuffer(obj, &buf, PyBUF_CONTIG_RO))
+		return detectencoding_str(buf.buf, buf.len, final);
+	return NULL;
 }
 
 
@@ -486,11 +483,20 @@ static PyMethodDef _functions[] =
 };
 
 
-void
-#ifdef WIN32
-__declspec(dllexport)
-#endif
-init_xml_codec(void)
+static struct PyModuleDef _xml_codecmodule = {
+    PyModuleDef_HEAD_INIT,
+    "_xml_codec",
+    0, /* module doc */
+    -1,
+    _functions,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+
+PyMODINIT_FUNC
+PyInit__xml_codec(void)
 {
-	Py_InitModule("_xml_codec", _functions);
+    return PyModule_Create(&_xml_codecmodule);
 }

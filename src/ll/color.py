@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
-## Copyright 2004-2010 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 2004-2010 by Walter Dörwald
+## Copyright 2004-2011 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 2004-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
 ## See ll/__init__.py for the license
 
 
-from __future__ import division
+
 
 """
 :mod:`ll.color` provides classes and functions for handling RGB colors.
@@ -16,8 +16,6 @@ from __future__ import division
 
 
 import colorsys
-
-from ll import misc
 
 
 __docformat__ = "reStructuredText"
@@ -75,7 +73,7 @@ class Color(tuple):
 			return cls(*channels)
 		elif s in csscolors:
 			return csscolors[s]
-		raise ValueError("can't interpret %s as css value" % s)
+		raise ValueError("can't interpret {} as css value".format(s))
 
 	@classmethod
 	def fromrgb(cls, r, g, b, a=1.0):
@@ -110,20 +108,20 @@ class Color(tuple):
 
 	def __repr__(self):
 		if self[3] != 0xff:
-			return "Color(0x%02x, 0x%02x, 0x%02x, 0x%02x)" % self
+			return "Color({:#04x}, {:#04x}, {:#04x}, {:#04x})".format(*self)
 		else:
-			return "Color(0x%02x, 0x%02x, 0x%02x)" % self[:3]
+			return "Color({:#04x}, {:#04x}, {:#04x})".format(*self)
 
 	def __str__(self):
 		"""
 		:var:`self` formatted as a CSS color string.
 		"""
 		if self[3] != 0xff:
-			return "rgba(%d,%d,%d,%.3f)" % (self[0], self[1], self[2], self[3]/255.)
+			return "rgba({},{},{},{:.3f})".format(self[0], self[1], self[2], self[3]/255.)
 		else:
-			s = "#%02x%02x%02x" % (self[0], self[1], self[2])
+			s = "#{:02x}{:02x}{:02x}".format(self[0], self[1], self[2])
 			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6]:
-				s = "#%s%s%s" % (s[1], s[3], s[5])
+				s = "#{}{}{}".format(s[1], s[3], s[5])
 		return s
 
 	def r(self):
@@ -259,8 +257,11 @@ class Color(tuple):
 	def __rmul__(self, factor):
 		return self.__class__(factor*self[0], factor*self[1], factor*self[2], self[3])
 
-	def __div__(self, factor):
+	def __truediv__(self, factor):
 		return self.__class__(self[0]/factor, self[1]/factor, self[2]/factor, self[3])
+
+	def __floordiv__(self, factor):
+		return self.__class__(self[0]//factor, self[1]//factor, self[2]//factor, self[3])
 
 	def __mod__(self, other):
 		"""
@@ -366,12 +367,12 @@ def mix(*args):
 	for arg in args:
 		if isinstance(arg, Color):
 			sumweights += weight
-			for i in xrange(3):
+			for i in range(3):
 				channels[i] += weight*arg[i]
 			channels[3] += weight*(255-arg[3])
 		elif isinstance(arg, tuple):
 			sumweights += arg[1]
-			for i in xrange(3):
+			for i in range(3):
 				channels[i] += arg[1]*arg[0][i]
 			channels[3] += weight*(255-arg[0][3])
 		else:

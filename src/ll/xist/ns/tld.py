@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-## Copyright 1999-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2010 by Walter Dörwald
+## Copyright 1999-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -51,20 +51,16 @@ class attribute(xsc.Element):
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
-	def asxnd(self):
-		e = xnd.Attr(unicode(self[name][0].content), u"xsc.TextAttr")
-		isrequired = None
+	def asxnd(self, model="simple"):
+		isrequired = False
 		node = misc.first(self[required], None)
 		if node is not None:
-			value = unicode(node[0].content)
-			if value in (u"true", u"yes"):
+			value = str(node).strip()
+			if value in ("true", "yes"):
 				isrequired = True
-			elif value in (u"false", u"no"):
-				isrequired = None
-			else:
-				raise ValueError("value %s not allowed for tag <required>" % value)
-		e.required = isrequired
-		return e
+			elif value not in ("false", "no"):
+				raise ValueError("value {!r} not allowed for tag <required>".format(value))
+		return xnd.Attr(str(self[name][0].content), "xsc.TextAttr", isrequired)
 
 
 class bodycontent(xsc.Element):
@@ -97,7 +93,7 @@ class info(xsc.Element):
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
-	def asxnd(self):
+	def asxnd(self, model="simple"):
 		return self.content.string()
 
 
@@ -166,27 +162,28 @@ class tag(xsc.Element):
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
-	def asxnd(self):
-		e = xnd.Element(unicode(self[name][0].content))
+	def asxnd(self, model="simple"):
+		e = xnd.Element(str(self[name][0].content))
 		empty = None
 		node = misc.first(self[bodycontent], None)
 		if node is not None:
-			value = unicode(node[0].content)
-			if value in (u"tagdependent", u"JSP"):
+			value = str(node[0].content)
+			if value in ("tagdependent", "JSP"):
 				empty = False
-			elif value == u"empty":
+			elif value == "empty":
 				empty = True
 			else:
-				raise ValueError("value %s is not allowed for tag <bodycontent>" % value)
-		if empty:
-			e.modeltype = "sims.Empty"
-		else:
-			e.modeltype = "sims.Any"
+				raise ValueError("value {!r} is not allowed for tag <bodycontent>".format(value))
+		if model != "none":
+			if model == "simple":
+				e.modeltype = not empty
+			else:
+				e.modeltype = "sims.Empty" if empty else "sims.Any"
 		node = misc.first(self[info], None)
 		if node is not None:
-			e.doc = node.asxnd()
+			e.doc = node.asxnd(model=model)
 		for attr in self[attribute]:
-			e.attrs.append(attr.asxnd())
+			e += attr.asxnd(model=model)
 		return e
 
 
@@ -204,7 +201,7 @@ class tagclass(xsc.Element):
 class taglib(xsc.Element):
 	"""
 	The taglib tag is the document root, it defines:
-	
+
 	``tlibversion``
 		The version of the tag library implementation
 
@@ -226,19 +223,19 @@ class taglib(xsc.Element):
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
-	def asxnd(self):
-		e = xnd.Module(unicode(self[shortname][0].content))
+	def asxnd(self, model="simple"):
+		ns = xnd.Module()
 		node = misc.first(self[uri], None)
-		xmlns = unicode(node[0].content) if node is not None else None
+		xmlns = str(node[0].content) if node is not None else None
 		node = misc.first(self[info], None)
 		if node is not None:
-			e.doc = node.asxnd()
+			ns.doc = node.asxnd(model=model)
 		for node in self[tag]:
-			e2 = node.asxnd()
-			if xmlns is not None and isinstance(e2, xnd.Element):
-				e2.xmlns = xmlns
-			e.content.append(e2)
-		return e
+			e = node.asxnd(model=model)
+			if xmlns is not None and isinstance(e, xnd.Element):
+				e.xmlns = xmlns
+			ns += e
+		return ns
 
 
 class teiclass(xsc.Element):

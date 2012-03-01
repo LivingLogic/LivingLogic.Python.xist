@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-## Copyright 1999-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2010 by Walter Dörwald
+## Copyright 1999-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -28,7 +28,7 @@ except ImportError:
 
 from ll import misc, url
 
-import xsc
+from . import xsc
 
 
 __docformat__ = "reStructuredText"
@@ -161,15 +161,15 @@ s4id = astyle.Style.fromenv("LL_XIST_STYLE_ID", "yellow:black")
 
 
 # specifies how to represent an indentation in the DOM tree
-reprtab = os.environ.get("LL_XIST_REPR_TAB", u"  ")
+reprtab = os.environ.get("LL_XIST_REPR_TAB", "  ")
 
 
 def strtab(count):
-	return s4tab(unicode(reprtab)*count)
+	return s4tab(str(reprtab)*count)
 
 
 def strtext(text):
-	return s4text(s4quote(u'"'), text, s4quote(u'"'))
+	return s4text(s4quote('"'), text, s4quote('"'))
 
 
 class Presenter(table):
@@ -310,7 +310,7 @@ class TreePresenter(Presenter):
 		loc = node.startloc
 		nest = len(self._path)
 		l = len(lines)
-		for i in xrange(max(1, l)): # at least one line
+		for i in range(max(1, l)): # at least one line
 			if loc is not None:
 				hereloc = loc.offset(i)
 			else:
@@ -319,10 +319,10 @@ class TreePresenter(Presenter):
 			if i<len(lines):
 				s = lines[i]
 			else:
-				s = u""
+				s = ""
 			if indent:
 				oldlen = len(s)
-				s = s.lstrip(u"\t")
+				s = s.lstrip("\t")
 				mynest += len(s)-oldlen
 			s = formatter(self.text(s))
 			if i == 0 and head is not None: # prepend head to first line
@@ -369,12 +369,12 @@ class TreePresenter(Presenter):
 
 	def presentAttrs(self, node):
 		if self._inattr:
-			for (attrclass, attrvalue) in node.iteritems():
+			for (attrclass, attrvalue) in node.items():
 				yield " "
 				if attrclass.xmlns is not None:
-					yield s4attr(s4ns(self.text(unicode(attrclass.__module__))), ":", s4attrname(self.text(unicode(attrclass.__fullname__))))
+					yield s4attr(s4ns(self.text(str(attrclass.__module__))), ":", s4attrname(self.text(str(attrclass.__fullname__))))
 				else:
-					yield s4attrname(self.text(unicode(attrclass.__name__)))
+					yield s4attrname(self.text(str(attrclass.__name__)))
 				yield s4attr('="')
 				for text in attrvalue.present(self):
 					yield text
@@ -390,7 +390,7 @@ class TreePresenter(Presenter):
 				s4attrs(indent, "<", ns, ":", name, ">"),
 			)
 			self._path.append(None)
-			for (attrclass, attrvalue) in node.iteritems():
+			for (attrclass, attrvalue) in node.items():
 				self._path[-1] = attrclass
 				for line in attrvalue.present(self):
 					yield line
@@ -632,7 +632,7 @@ class CodePresenter(Presenter):
 		if len(node):
 			globalattrs = {}
 			localattrs = {}
-			for (attrclass, attrvalue) in node.iteritems():
+			for (attrclass, attrvalue) in node.items():
 				if attrclass.xmlns is not None:
 					globalattrs[attrclass] = attrvalue
 				else:
@@ -642,7 +642,7 @@ class CodePresenter(Presenter):
 			self._level += 1
 			if globalattrs:
 				yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), "{"))
-				for (i, (attrclass, attrvalue)) in enumerate(globalattrs.iteritems()):
+				for (i, (attrclass, attrvalue)) in enumerate(iter(globalattrs.items())):
 					self._path.append(attrclass)
 					attrname = astyle.style_default(s4ns(attrclass.__module__), ".", s4attrname(attrclass.__fullname__))
 					self._inattr += 1
@@ -659,7 +659,7 @@ class CodePresenter(Presenter):
 				if localattrs:
 					line += ","
 				yield Line(node, node.startloc, self._path[:], line)
-			for (i, (attrclass, attrvalue)) in enumerate(localattrs.iteritems()):
+			for (i, (attrclass, attrvalue)) in enumerate(iter(localattrs.items())):
 				self._path.append(attrclass.__name__)
 				self._inattr += 1
 				attrtext = self._formatattrvalue(attrvalue)
@@ -695,7 +695,7 @@ class CodePresenter(Presenter):
 
 			globalattrs = {}
 			localattrs = {}
-			for (attrclass, attrvalue) in node.attrs.iteritems():
+			for (attrclass, attrvalue) in node.attrs.items():
 				if attrclass.xmlns is not None:
 					globalattrs[attrclass] = attrvalue
 				else:
@@ -703,7 +703,7 @@ class CodePresenter(Presenter):
 
 			if globalattrs:
 				yield Line(node.attrs, node.attrs.startloc, self._path[:], astyle.style_default(self._indent(), "{"))
-				for (i, (attrclass, attrvalue)) in enumerate(globalattrs.iteritems()):
+				for (i, (attrclass, attrvalue)) in enumerate(iter(globalattrs.items())):
 					self._path.append(attrclass)
 					attrname = astyle.style_default(s4ns(attrclass.__module__), ".", s4attrname(attrclass.__fullname__))
 					self._inattr += 1
@@ -720,7 +720,7 @@ class CodePresenter(Presenter):
 				if localattrs:
 					line += ","
 				yield Line(node.attrs, node.attrs.startloc, self._path[:], line)
-			for (i, (attrclass, attrvalue)) in enumerate(localattrs.iteritems()):
+			for (i, (attrclass, attrvalue)) in enumerate(iter(localattrs.items())):
 				self._inattr += 1
 				attrtext = self._formatattrvalue(attrvalue)
 				self._inattr -= 1

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-## Copyright 1999-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2010 by Walter Dörwald
+## Copyright 1999-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2011 by Walter DÃ¶rwald
 ##
 ## All Rights Reserved
 ##
@@ -22,7 +22,7 @@ __ http://www.linguistik.uni-erlangen.de/~msbethke/software.html
 It also borrows the basic ideas (XML/HTML elements as Python objects) from
 HTMLgen_ and HyperText_.
 
-.. _HTMLgen: http://starship.python.net/crew/friedrich/HTMLgen/html/main.html
+.. _HTMLgen: http://www.linuxjournal.com/article/2986
 .. _HyperText: http://dustman.net/andy/python/HyperText
 """
 
@@ -30,5 +30,4 @@ HTMLgen_ and HyperText_.
 __docformat__ = "reStructuredText"
 
 
-__all__ = ["xsc", "publishers", "presenters", "parsers", "converters", "sims", "xnd", "ns"]
-
+__all__ = ["xsc", "present", "parse", "sims", "xnd", "xfind", "ns"]

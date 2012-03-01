@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-## Copyright 2005-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2005-2010 by Walter Dörwald
+## Copyright 2005-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2005-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -29,7 +29,7 @@ class base(xsc.Element):
 	"Abstract" basis class, providing common attributes.
 	"""
 	register = False
-	
+
 	class Attrs(xsc.Element.Attrs):
 		class ns(xsc.TextAttr): pass
 		# ns is inherited from the nearest ancestor, where a ns-attribute is defined, else it's ""
@@ -86,7 +86,7 @@ class define(base):
 	xmlns = xmlns
 	class Attrs(base.Attrs):
 		class name(xsc.TextAttr): required = True
-		class combine(xsc.TextAttr): values = (u"interleave", u"choice")
+		class combine(xsc.TextAttr): values = ("interleave", "choice")
 
 
 class div(base):
@@ -272,7 +272,7 @@ class start(base):
 	"""
 	xmlns = xmlns
 	class Attrs(base.Attrs):
-		class combine(xsc.TextAttr): values = (u"combine", u"interleave")
+		class combine(xsc.TextAttr): values = ("combine", "interleave")
 
 
 class text(base):

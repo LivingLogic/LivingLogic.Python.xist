@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-## Copyright 1999-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2010 by Walter Dörwald
+## Copyright 1999-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -31,9 +31,9 @@ class taglib(xsc.ProcInst):
 	xmlns = xmlns
 
 	def publish(self, publisher):
-		yield publisher.encode(u'<%@ taglib uri="/WEB-INF/struts-html.tld" prefix="')
+		yield publisher.encode('<%@ taglib uri="/WEB-INF/struts-html.tld" prefix="')
 		yield publisher.encode(publisher.getobjectprefix(self))
-		yield publisher.encode(u'" %>')
+		yield publisher.encode('" %>')
 
 
 class Element(xsc.Element):

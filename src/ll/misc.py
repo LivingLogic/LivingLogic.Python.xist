@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## Copyright 2004-2010 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 2004-2010 by Walter Dörwald
+## Copyright 2004-2011 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 2004-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -15,10 +15,16 @@ LivingLogic modules and packages.
 """
 
 
-import sys, types, collections, weakref, cStringIO, gzip as gzip_
+import sys, os, types, datetime, collections, weakref, io, gzip as gzip_, csv, itertools, argparse
+
+from ll import color
 
 
 __docformat__ = "reStructuredText"
+
+
+# get the current directory as early as possible to minimize the chance that someone has called ``os.chdir()``
+_curdir = os.getcwd()
 
 
 # fetch item, first, last, count and xmlescape
@@ -94,8 +100,8 @@ except ImportError:
 		``>``, ``&``, ``\"``, ``'`` and every restricted character has been
 		replaced with their XML character entity or character reference.
 		"""
-		if isinstance(string, unicode):
-			return string.translate({0x00: u'&#0;', 0x01: u'&#1;', 0x02: u'&#2;', 0x03: u'&#3;', 0x04: u'&#4;', 0x05: u'&#5;', 0x06: u'&#6;', 0x07: u'&#7;', 0x08: u'&#8;', 0x0b: u'&#11;', 0x0c: u'&#12;', 0x0e: u'&#14;', 0x0f: u'&#15;', 0x10: u'&#16;', 0x11: u'&#17;', 0x12: u'&#18;', 0x13: u'&#19;', 0x14: u'&#20;', 0x15: u'&#21;', 0x16: u'&#22;', 0x17: u'&#23;', 0x18: u'&#24;', 0x19: u'&#25;', 0x1a: u'&#26;', 0x1b: u'&#27;', 0x1c: u'&#28;', 0x1d: u'&#29;', 0x1e: u'&#30;', 0x1f: u'&#31;', 0x22: u'&quot;', 0x26: u'&amp;', 0x27: u'&#39;', 0x3c: u'&lt;', 0x3e: u'&gt;', 0x7f: u'&#127;', 0x80: u'&#128;', 0x81: u'&#129;', 0x82: u'&#130;', 0x83: u'&#131;', 0x84: u'&#132;', 0x86: u'&#134;', 0x87: u'&#135;', 0x88: u'&#136;', 0x89: u'&#137;', 0x8a: u'&#138;', 0x8b: u'&#139;', 0x8c: u'&#140;', 0x8d: u'&#141;', 0x8e: u'&#142;', 0x8f: u'&#143;', 0x90: u'&#144;', 0x91: u'&#145;', 0x92: u'&#146;', 0x93: u'&#147;', 0x94: u'&#148;', 0x95: u'&#149;', 0x96: u'&#150;', 0x97: u'&#151;', 0x98: u'&#152;', 0x99: u'&#153;', 0x9a: u'&#154;', 0x9b: u'&#155;', 0x9c: u'&#156;', 0x9d: u'&#157;', 0x9e: u'&#158;', 0x9f: u'&#159;'})
+		if isinstance(string, str):
+			return string.translate({0x00: '&#0;', 0x01: '&#1;', 0x02: '&#2;', 0x03: '&#3;', 0x04: '&#4;', 0x05: '&#5;', 0x06: '&#6;', 0x07: '&#7;', 0x08: '&#8;', 0x0b: '&#11;', 0x0c: '&#12;', 0x0e: '&#14;', 0x0f: '&#15;', 0x10: '&#16;', 0x11: '&#17;', 0x12: '&#18;', 0x13: '&#19;', 0x14: '&#20;', 0x15: '&#21;', 0x16: '&#22;', 0x17: '&#23;', 0x18: '&#24;', 0x19: '&#25;', 0x1a: '&#26;', 0x1b: '&#27;', 0x1c: '&#28;', 0x1d: '&#29;', 0x1e: '&#30;', 0x1f: '&#31;', 0x22: '&quot;', 0x26: '&amp;', 0x27: '&#39;', 0x3c: '&lt;', 0x3e: '&gt;', 0x7f: '&#127;', 0x80: '&#128;', 0x81: '&#129;', 0x82: '&#130;', 0x83: '&#131;', 0x84: '&#132;', 0x86: '&#134;', 0x87: '&#135;', 0x88: '&#136;', 0x89: '&#137;', 0x8a: '&#138;', 0x8b: '&#139;', 0x8c: '&#140;', 0x8d: '&#141;', 0x8e: '&#142;', 0x8f: '&#143;', 0x90: '&#144;', 0x91: '&#145;', 0x92: '&#146;', 0x93: '&#147;', 0x94: '&#148;', 0x95: '&#149;', 0x96: '&#150;', 0x97: '&#151;', 0x98: '&#152;', 0x99: '&#153;', 0x9a: '&#154;', 0x9b: '&#155;', 0x9c: '&#156;', 0x9d: '&#157;', 0x9e: '&#158;', 0x9f: '&#159;'})
 		else:
 			string = string.replace("&", "&amp;")
 			string = string.replace("<", "&lt;")
@@ -103,7 +109,7 @@ except ImportError:
 			string = string.replace("'", "&#39;")
 			string = string.replace('"', "&quot;")
 			for c in "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1f\x7f\x80\x81\x82\x83\x84\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f":
-				string = string.replace(c, "&#%d;" % ord(c))
+				string = string.replace(c, "&#{};".format(ord(c)))
 			return string
 
 	def xmlescape_text(string):
@@ -112,14 +118,14 @@ except ImportError:
 		``>``, ``&``, and every restricted character has been replaced with their
 		XML character entity or character reference.
 		"""
-		if isinstance(string, unicode):
-			return string.translate({0x00: u'&#0;', 0x01: u'&#1;', 0x02: u'&#2;', 0x03: u'&#3;', 0x04: u'&#4;', 0x05: u'&#5;', 0x06: u'&#6;', 0x07: u'&#7;', 0x08: u'&#8;', 0x0b: u'&#11;', 0x0c: u'&#12;', 0x0e: u'&#14;', 0x0f: u'&#15;', 0x10: u'&#16;', 0x11: u'&#17;', 0x12: u'&#18;', 0x13: u'&#19;', 0x14: u'&#20;', 0x15: u'&#21;', 0x16: u'&#22;', 0x17: u'&#23;', 0x18: u'&#24;', 0x19: u'&#25;', 0x1a: u'&#26;', 0x1b: u'&#27;', 0x1c: u'&#28;', 0x1d: u'&#29;', 0x1e: u'&#30;', 0x1f: u'&#31;', 0x26: u'&amp;', 0x3c: u'&lt;', 0x3e: u'&gt;', 0x7f: u'&#127;', 0x80: u'&#128;', 0x81: u'&#129;', 0x82: u'&#130;', 0x83: u'&#131;', 0x84: u'&#132;', 0x86: u'&#134;', 0x87: u'&#135;', 0x88: u'&#136;', 0x89: u'&#137;', 0x8a: u'&#138;', 0x8b: u'&#139;', 0x8c: u'&#140;', 0x8d: u'&#141;', 0x8e: u'&#142;', 0x8f: u'&#143;', 0x90: u'&#144;', 0x91: u'&#145;', 0x92: u'&#146;', 0x93: u'&#147;', 0x94: u'&#148;', 0x95: u'&#149;', 0x96: u'&#150;', 0x97: u'&#151;', 0x98: u'&#152;', 0x99: u'&#153;', 0x9a: u'&#154;', 0x9b: u'&#155;', 0x9c: u'&#156;', 0x9d: u'&#157;', 0x9e: u'&#158;', 0x9f: u'&#159;'})
+		if isinstance(string, str):
+			return string.translate({0x00: '&#0;', 0x01: '&#1;', 0x02: '&#2;', 0x03: '&#3;', 0x04: '&#4;', 0x05: '&#5;', 0x06: '&#6;', 0x07: '&#7;', 0x08: '&#8;', 0x0b: '&#11;', 0x0c: '&#12;', 0x0e: '&#14;', 0x0f: '&#15;', 0x10: '&#16;', 0x11: '&#17;', 0x12: '&#18;', 0x13: '&#19;', 0x14: '&#20;', 0x15: '&#21;', 0x16: '&#22;', 0x17: '&#23;', 0x18: '&#24;', 0x19: '&#25;', 0x1a: '&#26;', 0x1b: '&#27;', 0x1c: '&#28;', 0x1d: '&#29;', 0x1e: '&#30;', 0x1f: '&#31;', 0x26: '&amp;', 0x3c: '&lt;', 0x3e: '&gt;', 0x7f: '&#127;', 0x80: '&#128;', 0x81: '&#129;', 0x82: '&#130;', 0x83: '&#131;', 0x84: '&#132;', 0x86: '&#134;', 0x87: '&#135;', 0x88: '&#136;', 0x89: '&#137;', 0x8a: '&#138;', 0x8b: '&#139;', 0x8c: '&#140;', 0x8d: '&#141;', 0x8e: '&#142;', 0x8f: '&#143;', 0x90: '&#144;', 0x91: '&#145;', 0x92: '&#146;', 0x93: '&#147;', 0x94: '&#148;', 0x95: '&#149;', 0x96: '&#150;', 0x97: '&#151;', 0x98: '&#152;', 0x99: '&#153;', 0x9a: '&#154;', 0x9b: '&#155;', 0x9c: '&#156;', 0x9d: '&#157;', 0x9e: '&#158;', 0x9f: '&#159;'})
 		else:
 			string = string.replace("&", "&amp;")
 			string = string.replace("<", "&lt;")
 			string = string.replace(">", "&gt;")
 			for c in "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1f\x7f\x80\x81\x82\x83\x84\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f":
-				string = string.replace(c, "&#%d;" % ord(c))
+				string = string.replace(c, "&#{};".format(ord(c)))
 			return string
 
 	def xmlescape_attr(string):
@@ -128,15 +134,15 @@ except ImportError:
 		``>``, ``&``, ``"`` and every restricted character has been replaced with
 		their XML character entity or character reference.
 		"""
-		if isinstance(string, unicode):
-			return string.translate({0x00: u'&#0;', 0x01: u'&#1;', 0x02: u'&#2;', 0x03: u'&#3;', 0x04: u'&#4;', 0x05: u'&#5;', 0x06: u'&#6;', 0x07: u'&#7;', 0x08: u'&#8;', 0x0b: u'&#11;', 0x0c: u'&#12;', 0x0e: u'&#14;', 0x0f: u'&#15;', 0x10: u'&#16;', 0x11: u'&#17;', 0x12: u'&#18;', 0x13: u'&#19;', 0x14: u'&#20;', 0x15: u'&#21;', 0x16: u'&#22;', 0x17: u'&#23;', 0x18: u'&#24;', 0x19: u'&#25;', 0x1a: u'&#26;', 0x1b: u'&#27;', 0x1c: u'&#28;', 0x1d: u'&#29;', 0x1e: u'&#30;', 0x1f: u'&#31;', 0x22: u'&quot;', 0x26: u'&amp;', 0x3c: u'&lt;', 0x3e: u'&gt;', 0x7f: u'&#127;', 0x80: u'&#128;', 0x81: u'&#129;', 0x82: u'&#130;', 0x83: u'&#131;', 0x84: u'&#132;', 0x86: u'&#134;', 0x87: u'&#135;', 0x88: u'&#136;', 0x89: u'&#137;', 0x8a: u'&#138;', 0x8b: u'&#139;', 0x8c: u'&#140;', 0x8d: u'&#141;', 0x8e: u'&#142;', 0x8f: u'&#143;', 0x90: u'&#144;', 0x91: u'&#145;', 0x92: u'&#146;', 0x93: u'&#147;', 0x94: u'&#148;', 0x95: u'&#149;', 0x96: u'&#150;', 0x97: u'&#151;', 0x98: u'&#152;', 0x99: u'&#153;', 0x9a: u'&#154;', 0x9b: u'&#155;', 0x9c: u'&#156;', 0x9d: u'&#157;', 0x9e: u'&#158;', 0x9f: u'&#159;'})
+		if isinstance(string, str):
+			return string.translate({0x00: '&#0;', 0x01: '&#1;', 0x02: '&#2;', 0x03: '&#3;', 0x04: '&#4;', 0x05: '&#5;', 0x06: '&#6;', 0x07: '&#7;', 0x08: '&#8;', 0x0b: '&#11;', 0x0c: '&#12;', 0x0e: '&#14;', 0x0f: '&#15;', 0x10: '&#16;', 0x11: '&#17;', 0x12: '&#18;', 0x13: '&#19;', 0x14: '&#20;', 0x15: '&#21;', 0x16: '&#22;', 0x17: '&#23;', 0x18: '&#24;', 0x19: '&#25;', 0x1a: '&#26;', 0x1b: '&#27;', 0x1c: '&#28;', 0x1d: '&#29;', 0x1e: '&#30;', 0x1f: '&#31;', 0x22: '&quot;', 0x26: '&amp;', 0x3c: '&lt;', 0x3e: '&gt;', 0x7f: '&#127;', 0x80: '&#128;', 0x81: '&#129;', 0x82: '&#130;', 0x83: '&#131;', 0x84: '&#132;', 0x86: '&#134;', 0x87: '&#135;', 0x88: '&#136;', 0x89: '&#137;', 0x8a: '&#138;', 0x8b: '&#139;', 0x8c: '&#140;', 0x8d: '&#141;', 0x8e: '&#142;', 0x8f: '&#143;', 0x90: '&#144;', 0x91: '&#145;', 0x92: '&#146;', 0x93: '&#147;', 0x94: '&#148;', 0x95: '&#149;', 0x96: '&#150;', 0x97: '&#151;', 0x98: '&#152;', 0x99: '&#153;', 0x9a: '&#154;', 0x9b: '&#155;', 0x9c: '&#156;', 0x9d: '&#157;', 0x9e: '&#158;', 0x9f: '&#159;'})
 		else:
 			string = string.replace("&", "&amp;")
 			string = string.replace("<", "&lt;")
 			string = string.replace(">", "&gt;")
 			string = string.replace('"', "&quot;")
 			for c in "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1f\x7f\x80\x81\x82\x83\x84\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f":
-				string = string.replace(c, "&#%d;" % ord(c))
+				string = string.replace(c, "&#{};".format(ord(c)))
 			return string
 
 
@@ -147,7 +153,7 @@ def notimplemented(function):
 	implementation.
 	"""
 	def wrapper(self, *args, **kwargs):
-		raise NotImplementedError("method %s() not implemented in %r" % (function.__name__, self.__class__))
+		raise NotImplementedError("method {}() not implemented in {!r}".format(function.__name__, self.__class__))
 	wrapper.__dict__.update(function.__dict__)
 	wrapper.__doc__ = function.__doc__
 	wrapper.__name__ = function.__name__
@@ -188,7 +194,7 @@ class _propclass_Meta(type):
 		return inst
 
 
-class propclass(property):
+class propclass(property, metaclass=_propclass_Meta):
 	'''
 	:class:`propclass` provides an alternate way to define properties.
 
@@ -207,7 +213,6 @@ class propclass(property):
 			def __delete__(self):
 				self._name = None
 	'''
-	__metaclass__ = _propclass_Meta
 
 
 class Pool(object):
@@ -226,25 +231,28 @@ class Pool(object):
 		"""
 		Register :var:`object` in the pool. :var:`object` can be a module, a
 		dictionary or a :class:`Pool` objects (with registers the pool as a base
-		pool. If :var:`object` is a module and has an attribute :attr:`__bases__`
+		pool). If :var:`object` is a module and has an attribute :attr:`__bases__`
 		(being a sequence of other modules) this attribute will be used to
 		initialize :var:`self` base pool.
 		"""
 		if isinstance(object, types.ModuleType):
-			self._attrs.update(object.__dict__)
-			if hasattr(object, "__bases__"):
-				for base in object.__bases__:
-					if not isinstance(base, Pool):
-						base = self.__class__(base)
-					self.register(base)
+			self.register(object.__dict__)
 		elif isinstance(object, dict):
-			for (key, value) in object.iteritems():
-				try:
-					self._attrs[key] = value
-				except TypeError:
-					pass
+			for (key, value) in object.items():
+				if key == "__bases__":
+					for base in value:
+						if not isinstance(base, Pool):
+							base = self.__class__(base)
+						self.bases.append(base)
+				elif not isinstance(value, (types.ModuleType, dict)):
+					try:
+						self._attrs[key] = value
+					except TypeError:
+						pass
 		elif isinstance(object, Pool):
 			self.bases.append(object)
+		elif isinstance(object, type):
+			self._attrs[object.__name__] = object
 
 	def __getitem__(self, key):
 		try:
@@ -277,7 +285,7 @@ class Pool(object):
 		return copy
 
 	def __repr__(self):
-		return "<%s.%s object with %d items at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, len(self._attrs), id(self))
+		return "<{}.{} object with {} items at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, len(self._attrs), id(self))
 
 
 def iterone(item):
@@ -305,13 +313,13 @@ class Iterator(object):
 	def __iter__(self):
 		return self
 
-	def next(self):
-		return self.iterator.next()
+	def __next__(self):
+		return next(self.iterator)
 
 	# We can't implement :meth:`__len__`, because if such an object is passed to
 	# :class:`list`, :meth:`__len__` would be called, exhausting the iterator
 
-	def __nonzero__(self):
+	def __bool__(self):
 		for node in self:
 			return True
 		return False
@@ -364,7 +372,37 @@ class Const(object):
 		self._name = name
 
 	def __repr__(self):
-		return "%s.%s" % (self.__module__, self._name)
+		return "{}.{}".format(self.__module__, self._name)
+
+
+class FlagAction(argparse.Action):
+	"""
+	:class:`FlagAction` can be use with :mod:`argparse` for options that
+	represent flags. An options can have a value like ``yes`` or ``no`` for the
+	correspending boolean value, or if the value is omitted it is the inverted
+	default value (i.e. specifying the option toggles it).
+	"""
+	true_choices = ("1", "true", "yes", "on")
+	false_choices = ("0", "false", "no", "off")
+
+	def __init__(self, option_strings, dest, default=False, help=None):
+		super().__init__(option_strings=option_strings, dest=dest, default="yes" if default else "no", help=help, metavar="yes|no", const="no" if default else "yes", type=self.str2bool, nargs="?")
+
+	# implementing this prevents :meth:`__repr__` from generating in infinite recursion
+	def _get_kwargs(self):
+		return [(key, getattr(self, key)) for key in ("option_strings", "dest", "default", "help")]
+
+	def str2bool(self, value):
+		value = value.lower()
+		if value in self.true_choices:
+			return True
+		elif value in self.false_choices:
+			return False
+		else:
+			raise argparse.ArgumentTypeError("invalid flag value: {!r} (use any of {})".format(value, ", ".join(self.true_choices + self.false_choices)))
+
+	def __call__(self, parser, namespace, values, option_string=None):
+		setattr(namespace, self.dest, values)
 
 
 def tokenizepi(string):
@@ -409,7 +447,7 @@ def gzip(data, compresslevel=9):
 	Compresses the byte string :var:`data` with gzip using the compression level
 	:var:`compresslevel`.
 	"""
-	stream = cStringIO.StringIO()
+	stream = io.BytesIO()
 	compressor = gzip_.GzipFile(filename="", mode="wb", fileobj=stream, compresslevel=compresslevel)
 	compressor.write(data)
 	compressor.close()
@@ -420,7 +458,7 @@ def gunzip(data):
 	"""
 	Uncompresses the byte string :var:`data` with gzip.
 	"""
-	stream = cStringIO.StringIO(data)
+	stream = io.BytesIO(data)
 	compressor = gzip_.GzipFile(filename="", mode="rb", fileobj=stream)
 	return compressor.read()
 
@@ -449,6 +487,143 @@ def itersplitat(string, positions):
 		yield part
 
 
+def module(code, filename="unnamed.py", name=None):
+	"""
+	Create a module from the Python source code :var:`code`. :var:`filename` will
+	be used as the filename for the module and :var:`name` as the module name
+	(defaulting to the filename part of :var:`filename`).
+	"""
+	if name is None:
+		name = os.path.splitext(os.path.basename(filename))[0]
+	mod = types.ModuleType(name)
+	mod.__file__ = filename
+	code = compile(code, filename, "exec")
+	exec(code, mod.__dict__)
+	return mod
+
+
+def javaexpr(obj):
+	"""
+	Return a Java expression for the object :var:`obj`.
+	"""
+
+	from ll import ul4c
+
+	if obj is None:
+		return "null"
+	elif obj is True:
+		return "true"
+	elif obj is False:
+		return "false"
+	elif isinstance(obj, str):
+		v = []
+		specialchars = {"\r": "\\r", "\n": "\\n", "\t": "\\t", "\f": "\\f", "\b": "\\b", '"': '\\"', "\\": "\\\\"}
+		for c in obj:
+			try:
+				v.append(specialchars[c])
+			except KeyError:
+				oc = ord(c)
+				v.append(c if 32 <= oc < 128 else "\\u{:04x}".format(oc))
+		return '"{}"'.format("".join(v))
+	elif isinstance(obj, datetime.datetime): # check ``datetime`` before ``date``, as ``datetime`` is a subclass of ``date``
+		return "com.livinglogic.ul4.Utils.makeDate({0.year}, {0.month}, {0.day}, {0.hour}, {0.minute}, {0.second}, {0.microsecond})".format(obj)
+	elif isinstance(obj, datetime.date):
+		return "com.livinglogic.ul4.Utils.makeDate({0.year}, {0.month}, {0.day})".format(obj)
+	elif isinstance(obj, color.Color):
+		return "new com.livinglogic.ul4.Color({}, {}, {}, {})".format(*obj)
+	elif isinstance(obj, float):
+		return repr(obj)
+	elif isinstance(obj, int):
+		if -0x8000000 <= obj <= 0xffffffff:
+			return repr(obj).rstrip("lL")
+		elif -0x800000000000000 <= obj <= 0xffffffffffffffff:
+			return repr(obj)
+		else:
+			return 'new BigInteger("{}")'.format(obj)
+		return repr(obj)
+	elif isinstance(obj, collections.Sequence):
+		return "java.util.Arrays.asList({})".format(", ".join(javaexpr(item) for item in obj))
+	elif isinstance(obj, collections.Mapping):
+		return "com.livinglogic.ul4.Utils.makeMap({})".format(", ".join("{}, {}".format(javaexpr(key), javaexpr(value)) for (key, value) in obj.items()))
+	elif isinstance(obj, ul4c.Template):
+		return 'new com.livinglogic.ul4.JSPTemplate() {{ public String getName() {{ return {}; }} public void render(java.io.Writer out, java.util.Map<String, Object> variables) throws java.io.IOException {{ {} }} }}'.format(javaexpr(obj.name), " ".join(line.strip() for line in obj.javasource().splitlines()))
+	else:
+		raise TypeError("can't handle object of type {}".format(type(obj)))
+
+
+class SysInfo(object):
+	"""
+	A :class:`SysInfo` object contains information about the host, user, python
+	version and script. Available attributes are ``host_name``, ``host_fqdn``,
+	``host_ip``, ``host_sysname``, ``host_nodename``, ``host_release``,
+	``host_version``, ``host_machine``, ``user_name``, ``user_uid``, ``user_gid``,
+	``user_gecos``, ``user_dir``, ``user_shell``, ``python_executable``,
+	``python_version``, ``pid`` and ``scriptname``.
+
+	:class:`SysInfo` object also support a mimimal dictionary interface (i.e.
+	:meth:`__getitem__` and :meth:`__iter__`).
+	"""
+
+	_keys = {"host_name", "host_fqdn", "host_ip", "host_sysname", "host_nodename", "host_release", "host_version", "host_machine", "python_executable", "python_version", "pid", "scriptname"}
+
+	def __init__(self):
+		import socket, pwd
+
+		self.host_name = socket.gethostname()
+		self.host_fqdn = self.host_name
+		self.host_ip = socket.gethostbyname(self.host_name)
+		(self.host_sysname, self.host_nodename, self.host_release, self.host_version, self.host_machine) = os.uname()
+		(self.user_name, _, self.user_uid, self.user_gid, self.user_gecos, self.user_dir, self.user_shell) = pwd.getpwuid(os.getuid())
+		self.python_executable = sys.executable
+		self.python_version = ("{}.{}.{}" if sys.version_info.micro else "{}.{}").format(*sys.version_info)
+		self.pid = os.getpid()
+		main = sys.modules["__main__"]
+		if hasattr(main, "__file__"):
+			self.scriptname = os.path.join(_curdir, main.__file__)
+		else:
+			self.scriptname = "<shell>"
+
+	def __getitem__(self, key):
+		if key in self._keys:
+			return getattr(self, key)
+		raise KeyError(key)
+
+	def __iter__(self):
+		return iter(self._keys)
+
+
+def prettycsv(rows, padding="   "):
+	"""
+	Format table :var:`rows`.
+
+	:var:`rows` must be a list of lists of strings (e.g. as produced by the
+	:mod:`cvs` module). :var:`padding` is the padding between columns.
+
+	:func:`prettycsv` is a generator.
+	"""
+
+	def width(row, i):
+		try:
+			return len(row[i])
+		except IndexError:
+			return 0
+
+	maxlen = max(len(row) for row in rows)
+	lengths = [max(width(row, i) for row in rows) for i in range(maxlen)]
+	for row in rows:
+		lasti = len(row)-1
+		for (i, (w, f)) in enumerate(zip(lengths, row)):
+			if i:
+				yield padding
+			if i == lasti:
+				f = f.rstrip() # don't add padding to the last column
+			else:
+				f = "{0:<{1}}".format(f, w)
+			yield f
+		yield "\n"
+
+
+
 class JSMinUnterminatedComment(Exception):
 	pass
 
@@ -463,7 +638,6 @@ def jsmin(input):
 	"""
 	Minimizes the Javascript source :var:`input`.
 	"""
-
 	indata = iter(input.replace("\r", "\n"))
 
 	# Copy the input to the output, deleting the characters which are
@@ -484,7 +658,7 @@ def jsmin(input):
 		var.lookahead = None
 		if c is None:
 			try:
-				c = indata.next()
+				c = next(indata)
 			except StopIteration:
 				return "" # EOF
 		if c >= " " or c == "\n":

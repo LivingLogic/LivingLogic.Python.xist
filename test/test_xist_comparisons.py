@@ -1,8 +1,8 @@
 #! /usr/bin/env/python
 # -*- coding: utf-8 -*-
 
-## Copyright 1999-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2010 by Walter Dörwald
+## Copyright 1999-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -36,7 +36,7 @@ def test_texteq():
 	assert xsc.Text() == xsc.Text()
 	assert xsc.Text(1) == xsc.Text(1)
 	assert xsc.Text("1") == xsc.Text(1)
-	assert xsc.Text(u"1") == xsc.Text(1)
+	assert xsc.Text("1") == xsc.Text(1)
 	assert xsc.Text("") != xsc.Text(1)
 
 
@@ -44,7 +44,7 @@ def test_commenteq():
 	assert xsc.Comment() == xsc.Comment()
 	assert xsc.Comment(1) == xsc.Comment(1)
 	assert xsc.Comment("1") == xsc.Comment(1)
-	assert xsc.Comment(u"1") == xsc.Comment(1)
+	assert xsc.Comment("1") == xsc.Comment(1)
 	assert xsc.Comment("") != xsc.Comment(1)
 
 
@@ -52,7 +52,7 @@ def test_doctypeeq():
 	assert xsc.DocType() == xsc.DocType()
 	assert xsc.DocType(1) == xsc.DocType(1)
 	assert xsc.DocType("1") == xsc.DocType(1)
-	assert xsc.DocType(u"1") == xsc.DocType(1)
+	assert xsc.DocType("1") == xsc.DocType(1)
 	assert xsc.DocType("") != xsc.DocType(1)
 
 

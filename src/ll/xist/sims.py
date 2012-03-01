@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-## Copyright 1999-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2010 by Walter Dörwald
+## Copyright 1999-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -36,9 +36,9 @@ class EmptyElementWithContentWarning(SIMSWarning):
 		self.node = node
 
 	def __str__(self):
-		s = "element %r" % self.node
+		s = "element {!r}".format(self.node)
 		if self.node.startloc is not None:
-			s += " at %s" % self.node.startloc
+			s += " at {}".format(self.node.startloc)
 		s += " has EMPTY content model, but has content"
 		return s
 
@@ -55,7 +55,7 @@ class WrongElementWarning(SIMSWarning):
 		self.elements = elements
 
 	def __str__(self):
-		return "element %r may not contain element %r" % (self.node, self.badnode)
+		return "element {!r} may not contain element {!r}".format(self.node, self.badnode)
 
 
 class ElementWarning(SIMSWarning):
@@ -69,7 +69,7 @@ class ElementWarning(SIMSWarning):
 		self.badnode = badnode
 
 	def __str__(self):
-		return "element %r may not contain other elements" % self.node
+		return "element {!r} may not contain other elements".format(self.node)
 
 
 class IllegalTextWarning(SIMSWarning):
@@ -82,7 +82,7 @@ class IllegalTextWarning(SIMSWarning):
 		self.badnode = badnode
 
 	def __str__(self):
-		return "element %r may not contain text nodes" % self.node
+		return "element {!r} may not contain text nodes".format(self.node)
 
 
 def badtext(node):
@@ -174,7 +174,7 @@ class Elements(object):
 		self.elements = elements
 
 	def __repr__(self):
-		return "Elements(%s)" % ", ".join("%s.%s" % (cls.__module__, cls.__name__) for cls in self.elements)
+		return "Elements({})".format(", ".join("{0.__module__}.{0.__name__}".format(cls) for cls in self.elements))
 
 	def checkvalid(self, node):
 		"""
@@ -187,7 +187,7 @@ class Elements(object):
 					warnings.warn(IllegalTextWarning(node, child))
 				elif isinstance(child, xsc.Element) and node.xmlns is not None and not isinstance(child, self.elements):
 					if ns is None: # Calculate the first time we need it
-						ns = set(el.xmlns for el in self.elements if el.xmlns is not None)
+						ns = {el.xmlns for el in self.elements if el.xmlns is not None}
 					if child.xmlns in ns:
 						warnings.warn(WrongElementWarning(node, child, self.elements))
 
@@ -208,7 +208,7 @@ class ElementsOrText(Elements):
 		self.elements = elements
 
 	def __repr__(self):
-		return "ElementsOrText(%s)" % ", ".join("%s.%s" % (cls.__module__, cls.__name__) for cls in self.elements)
+		return "ElementsOrText({})".format(", ".join("{0.__module__}.{0.__name__}".format(cls) for cls in self.elements))
 
 	def checkvalid(self, node):
 		"""
@@ -219,7 +219,7 @@ class ElementsOrText(Elements):
 			for child in node.content:
 				if isinstance(child, xsc.Element) and node.xmlns is not None and not isinstance(child, self.elements):
 					if ns is None: # Calculate the first time we need it
-						ns = set(el.xmlns for el in self.elements if el.xmlns is not None)
+						ns = {el.xmlns for el in self.elements if el.xmlns is not None}
 					if child.xmlns in ns:
 						warnings.warn(WrongElementWarning(node, child, self.elements))
 

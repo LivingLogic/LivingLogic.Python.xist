@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## Copyright 2004-2010 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 2004-2010 by Walter Dörwald
+## Copyright 2004-2011 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 2004-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -62,7 +62,7 @@ The same example for SQL Server might look like this::
 				htmlspecials.plaintable(
 					toxic.code("""
 						set @i = 1;
-				   
+
 						declare @row_name varchar(100);
 						declare person_cursor cursor for
 							select name from person where name like @search
@@ -89,7 +89,7 @@ The same example for SQL Server might look like this::
 					""")
 				)
 			)
-			return e.convert(converter) 
+			return e.convert(converter)
 
 	print toxic.xml2sqs(search().conv().string(encoding"us-ascii")).encode("us-ascii")
 
@@ -147,20 +147,20 @@ one above looks like this::
 When the file is saved as :file:`search.sqlxsc` then parsing the file,
 transforming it and printing the function body works like this::
 
-	from ll.xist import parsers
+	from ll.xist import parse
 	from ll.xist.ns import html, htmlspecials
 	from ll import toxic
 
-	node = parsers.parsefile("search.sqlxsc")
+	node = parse.tree(parse.File("search.sqlxsc"), parse.Expat(ns=True), parse.Node())
 	node = node.conv()
 	print toxic.xml2ora(node.string(encoding="us-ascii")).encode("us-ascii")
 '''
 
 
-import cStringIO
+import io
 
 from ll import misc
-from ll.xist import xsc, publishers
+from ll.xist import xsc
 
 
 __docformat__ = "reStructuredText"
@@ -181,26 +181,26 @@ def _stringifyoracle(string, nchar=False):
 		if ord(c) < 32:
 			if current:
 				if nchar:
-					yield u"N'%s'" % u"".join(current)
+					yield "N'{}'".format("".join(current))
 				else:
-					yield u"'%s'" % u"".join(current)
+					yield "'{}'".format("".join(current))
 				current = []
-			yield u"chr(%d)" % ord(c)
+			yield "chr({})".format(ord(c))
 		else:
-			if c == u"'":
-				c = u"''"
+			if c == "'":
+				c = "''"
 			current.append(c)
 			if len(current) > 1000:
 				if nchar:
-					yield u"N'%s'" % u"".join(current)
+					yield "N'{}'".format("".join(current))
 				else:
-					yield u"'%s'" % u"".join(current)
+					yield "'{}'".format("".join(current))
 				current = []
 	if current:
 		if nchar:
-			yield u"N'%s'" % u"".join(current)
+			yield "N'{}'".format("".join(current))
 		else:
-			yield u"'%s'" % u"".join(current)
+			yield "'{}'".format("".join(current))
 
 
 def _compile_oracle(string):
@@ -211,7 +211,7 @@ def _compile_oracle(string):
 	foundargs = []
 	foundvars = []
 	foundsql = []
-	foundtype = u"clob"
+	foundtype = "clob"
 
 	for (t, s) in misc.tokenizepi(string):
 		if t is None:
@@ -230,58 +230,58 @@ def _compile_oracle(string):
 			foundproc = True
 		else:
 			# Treat unknown PIs as text
-			foundsql.append((-1, u"<?%s %s?>" % (t, s)))
+			foundsql.append((-1, "<?{} {}?>".format(t, s)))
 
 	result = []
 	if foundargs:
-		result.append(u"(\n\t%s\n)\n" % u",\n\t".join(foundargs))
+		result.append("(\n\t{}\n)\n".format(",\n\t".join(foundargs)))
 	plaintype = foundtype
-	if u"(" in plaintype:
-		plaintype = plaintype[:plaintype.find(u"(")]
+	if "(" in plaintype:
+		plaintype = plaintype[:plaintype.find("(")]
 	isclob = plaintype.lower() in ("clob", "nclob")
 	if not foundproc:
-		result.append(u"return %s\n" % plaintype)
-	result.append(u"as\n")
+		result.append("return {}\n".format(plaintype))
+	result.append("as\n")
 	if not foundproc:
-		result.append(u"\tc_out %s;\n" % foundtype)
+		result.append("\tc_out {};\n".format(foundtype))
 	if foundvars:
-		result.append(u"\t%s\n" % u"".join(foundvars))
-	nchar = foundtype.lower().startswith(u"n")
+		result.append("\t{}\n".format("".join(foundvars)))
+	nchar = foundtype.lower().startswith("n")
 	if isclob:
-		for arg in (u"clob", u"varchar2"):
-			result.append(u"\tprocedure write(p_text in %s%s)\n" % (plaintype.rstrip(u"clob"), arg))
-			result.append(u"\tas\n")
-			result.append(u"\t\tbegin\n")
-			if arg == u"clob":
-				result.append(u"\t\t\tif p_text is not null and length(p_text) != 0 then\n")
-				result.append(u"\t\t\t\tdbms_lob.append(c_out, p_text);\n")
+		for arg in ("clob", "varchar2"):
+			result.append("\tprocedure write(p_text in {}{})\n".format(plaintype.rstrip("clob"), arg))
+			result.append("\tas\n")
+			result.append("\t\tbegin\n")
+			if arg == "clob":
+				result.append("\t\t\tif p_text is not null and length(p_text) != 0 then\n")
+				result.append("\t\t\t\tdbms_lob.append(c_out, p_text);\n")
 			else:
-				result.append(u"\t\t\tif p_text is not null then\n")
-				result.append(u"\t\t\t\tdbms_lob.writeappend(c_out, length(p_text), p_text);\n")
-			result.append(u"\t\tend if;\n")
-			result.append(u"\tend;\n")
-	result.append(u"begin\n")
+				result.append("\t\t\tif p_text is not null then\n")
+				result.append("\t\t\t\tdbms_lob.writeappend(c_out, length(p_text), p_text);\n")
+			result.append("\t\tend if;\n")
+			result.append("\tend;\n")
+	result.append("begin\n")
 	if isclob:
-		result.append(u"\tdbms_lob.createtemporary(c_out, true);\n")
+		result.append("\tdbms_lob.createtemporary(c_out, true);\n")
 	for (mode, string) in foundsql:
 		if mode == -1:
 			for s in _stringifyoracle(string, nchar):
 				if isclob:
-					result.append(u"\twrite(%s);\n" % s)
+					result.append("\twrite({});\n".format(s))
 				else:
-					result.append(u"\tc_out := c_out || %s;\n" % s)
+					result.append("\tc_out := c_out || {};\n".format(s))
 		elif mode == 0:
 			result.append(string)
-			result.append(u"\n")
+			result.append("\n")
 		else: # mode == 1
 			if isclob:
-				result.append(u"\twrite(%s);\n" % string)
+				result.append("\twrite({});\n".format(string))
 			else:
-				result.append(u"\tc_out := c_out || %s;\n" % string)
+				result.append("\tc_out := c_out || {};\n".format(string))
 	if not foundproc:
-		result.append(u"\treturn c_out;\n")
-	result.append(u"end;\n")
-	return u"".join(result)
+		result.append("\treturn c_out;\n")
+	result.append("end;\n")
+	return "".join(result)
 
 
 def _compile_sqlserver(string):
@@ -311,29 +311,29 @@ def _compile_sqlserver(string):
 			foundproc = True
 		else:
 			# Treat unknown PIs as text
-			foundsql.append((-1, "<?%s %s?>" % (t, s)))
+			foundsql.append((-1, "<?{} {}?>".format(t, s)))
 
 	result = []
 	if foundargs:
-		result.append("(\n\t%s\n)\n" % u",\n\t".join(foundargs))
+		result.append("(\n\t{}\n)\n".format(",\n\t".join(foundargs)))
 	if not foundproc:
-		result.append("returns %s\n" % foundtype)
+		result.append("returns {}\n".format(foundtype))
 	result.append("as\n")
 	result.append("begin\n")
 	if not foundproc:
-		result.append("\tdeclare @c_out %s;\n" % foundtype)
+		result.append("\tdeclare @c_out {};\n".format(foundtype))
 		result.append("\tset @c_out = '';\n")
 	if foundvars:
-		result.append("\t%s\n" % u"".join(foundvars))
+		result.append("\t{}\n".format("".join(foundvars)))
 	for (mode, string) in foundsql:
 		if mode == -1:
-			string = "'%s'" % string.replace("'", "''")
-			result.append("\tset @c_out = @c_out + %s;\n" % string)
+			string = "'{}'" .format(string.replace("'", "''"))
+			result.append("\tset @c_out = @c_out + {};\n".format(string))
 		elif mode == 0:
 			result.append(string)
 			result.append("\n")
 		else: # mode == 1
-			result.append("\tset @c_out = @c_out + set @c_out = @c_out + convert(varchar, isnull(%s, ''));\n" % string)
+			result.append("\tset @c_out = @c_out + set @c_out = @c_out + convert(varchar, isnull({}, ''));\n".format(string))
 	if not foundproc:
 		result.append("\treturn @c_out;\n")
 	result.append("end;\n")
@@ -348,10 +348,10 @@ def compile(string, mode="oracle"):
 	either ``"oracle"`` or ``"sqlserver".
 	"""
 	if mode == "oracle":
-		return  _compile_oracle(string)
+		return _compile_oracle(string)
 	elif mode == "sqlserver":
 		return _compile_sqlserver(string)
-	raise ValueError("unknown mode %r" % mode)
+	raise ValueError("unknown mode {!r}".format(mode))
 
 
 def prettify(string, mode="oracle"):
@@ -389,7 +389,7 @@ def prettify(string, mode="oracle"):
 			"end": (-1, 0),
 		}
 	else:
-		raise ValueError("unknown mode %r" % mode)
+		raise ValueError("unknown mode {!r}".format(mode))
 	indent = 0
 	firstafteras = False
 	for line in lines:
@@ -404,7 +404,7 @@ def prettify(string, mode="oracle"):
 				# as followed by begin has same indentation
 				pre = -1
 			indent = max(0, indent+pre)
-			newlines.append("%s%s" % ("\t"*indent, line))
+			newlines.append("\t"*indent + line)
 			indent = max(0, indent+post)
 			if prefix == "as":
 				firstafteras = True

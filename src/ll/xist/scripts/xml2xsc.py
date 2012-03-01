@@ -1,16 +1,101 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## Copyright 1999-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2010 by Walter Dörwald
+## Copyright 1999-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
 ## See ll/__init__.py for the license
 
 
-import sys, optparse
+"""
+Purpose
+-------
 
+``xml2xsc`` is a script that generates an XIST namespace module from one or more
+XML files. ``xml2xsc`` will output an XIST element class for each element it
+encounters in any of the XML files. The attributes and model information
+``xml2xsc`` assigns to an element will be collected from each occurence of the
+element in the XML files, so the XML files should cover as many different cases
+as possible.
+
+
+Options
+-------
+
+``xml2xsc`` supports the following options:
+
+	``urls``
+		Zero or more URLs (or filenames) of XML files to be parsed. If no URL is
+		given stdin will be read.
+
+	``-p``, ``--parser`` : ``etree`` or ``lxml``
+		Which XML parser should be used from parsing the XML files? (``etree`` is
+		the default, ``lxml`` requires that lxml_ is installed)
+
+	``-s``, ``--shareattrs`` : ``none``, ``dupes``, ``all``
+		Should attributes be shared among the elements? ``none`` means that each
+		element will have its own standalone :class:`Attrs` class directly derived
+		from :class:`ll.xist.Elements.Attrs`. For ``dupes`` each attribute that is
+		used by more than one element will be moved into its own :class:`Attrs`
+		class. For ``all`` this will be done for all attributes.
+
+	``-m``, ``--model`` : ``no``, ``simple``, ``fullall``, ``fullonce``
+		Add model information to the namespace. ``no`` doesn't add any model
+		information. ``simple`` only adds ``model = False`` or ``model = True``
+		(i.e. only the information whether the element must be empty or not).
+		``fullall`` adds a :mod:`ll.xist.sims` model object to each element class.
+		``fullonce`` adds full model information to, but reuses model objects for
+		elements which have the same model.
+
+	``-x``, ``--defaultxmlns``
+		The default namespace name. All elements that don't belong to any
+		namespace will be assigned to this namespace.
+
+	.. _lxml: http://lxml.de/
+
+
+Example
+-------
+
+Suppose we have the following XML file (named ``foo.xml``)::
+
+	<x a="0"><x b="1"/><y/></x>
+
+Then we can generate a skeleton XIST namespace from it with the following command::
+
+	xml2xsc foo.xml -xhttp://xmlns.example.org/ -mfullonce
+
+The output will be::
+
+	# -*- coding: ascii -*-
+
+
+	from ll.xist import xsc, sims
+
+
+	xmlns = 'http://xmlns.example.org/'
+
+
+	class x(xsc.Element):
+		xmlns = xmlns
+		class Attrs(xsc.Element.Attrs):
+			class a(xsc.TextAttr): pass
+			class b(xsc.TextAttr): pass
+
+
+	class y(xsc.Element): xmlns = xmlns
+
+
+	x.model = sims.Elements(y, x)
+	y.model = sims.Empty()
+"""
+
+
+import sys, argparse, io
+
+from ll import misc, url
 from ll.xist import xsc, xnd, sims
 
 
@@ -37,40 +122,28 @@ def getelementname(node):
 	return (name, xmlns)
 
 
-def etree2xnd(sims, node):
-	ns = xnd.Module()
-	elements = {} # maps (name, xmlns) to (xnd.Element, content set, attrname->xnd.Attr map)
-	procinsts = {} # maps name to xnd.ProcInst
-
+def addetree2xnd(ns, node, elements):
+	# Iterate through the tree and collect which elements are encountered and how they are nested
 	for path in iterpath(node):
 		node = path[-1]
 		if "Element" in type(node).__name__:
 			(name, xmlns) = getelementname(node)
-			try:
-				entry = elements[(name, xmlns)]
-			except KeyError:
-				xndnode = xnd.Element(name, xmlns=xmlns)
-				entry = elements[(name, xmlns)] = (xndnode, set(), {})
-				ns(xndnode)
+			if (name, xmlns) in ns.elements:
+				xndnode = ns.elements[(name, xmlns)]
 			else:
-				xndnode = entry[0]
+				xndnode = xnd.Element(name, xmlns=xmlns)
+				ns += xndnode
+				elements[(name, xmlns)] = set()
 			for attrname in node.keys():
-				if not attrname.startswith("{") and attrname not in entry[2]:
-					attr = xnd.Attr(attrname, type=xsc.TextAttr)
-					entry[0](attr)
-					entry[2][attrname] = attr
+				if not attrname.startswith("{") and attrname not in xndnode.attrs:
+					xndnode += xnd.Attr(attrname, type=xsc.TextAttr)
 		elif "ProcessingInstruction" in type(node).__name__:
 			name = node.target
-			try:
-				xndnode = procinsts[name]
-			except KeyError:
-				procinst = xnd.ProcInst(name)
-				procinsts[name] = procinst
-				xndnode = procinst
-			ns(xndnode)
+			if name not in ns.procinsts:
+				ns += xnd.ProcInst(name)
 		elif "Comment" in type(node).__name__:
 			xndnode = "#comment"
-		elif isinstance(node, basestring):
+		elif isinstance(node, str):
 			if node.isspace():
 				xndnode = "#whitespace"
 			else:
@@ -79,60 +152,76 @@ def etree2xnd(sims, node):
 			parent = path[-2]
 			if "Element" in type(parent).__name__:
 				parententry = elements[getelementname(parent)]
-				parententry[1].add(xndnode)
+				parententry.add(xndnode)
+
+
+def makexnd(urls, parser="etree", shareattrs="dupes", model="simple", defaultxmlns=None):
+	elements = {} # maps (name, xmlns) to content set
+	ns = xnd.Module(defaultxmlns=defaultxmlns, model=model)
+	with url.Context():
+		if not urls:
+			urls = [sys.stdin]
+		for u in urls:
+			if isinstance(u, url.URL):
+				u = u.openread()
+			elif isinstance(u, str):
+				u = io.BytesIO(u.encode("utf-8"))
+			elif isinstance(u, bytes):
+				u = io.BytesIO(u)
+			if parser == "etree":
+				from xml.etree import cElementTree
+				node = cElementTree.parse(u).getroot()
+			elif parser == "lxml":
+				from lxml import etree
+				node = etree.parse(u).getroot()
+			else:
+				raise ValueError("unknown parser {!r}".format(parser))
+			addetree2xnd(ns, node, elements)
 
 	# Put sims info into the element definitions
-	if sims == "none":
+	if model == "none":
 		pass
-	elif sims == "simple":
-		for entry in elements.itervalues():
-			entry[0].modeltype = bool(entry[1])
-	elif sims == "full":
-		for entry in elements.itervalues():
-			if not entry[1]:
-				entry[0].modeltype = "sims.Empty"
+	elif model == "simple":
+		for (fullname, modelset) in elements.items():
+			ns.elements[fullname].modeltype = bool(modelset)
+	elif model in ("fullall", "fullonce"):
+		for (fullname, modelset) in elements.items():
+			element = ns.elements[fullname]
+			if not modelset:
+				element.modeltype = "sims.Empty"
 			else:
-				elements = [el for el in entry[1] if isinstance(el, xnd.Element)]
+				elements = [el for el in modelset if isinstance(el, xnd.Element)]
 				if not elements:
-					if "#text" in entry[1]:
-						entry[0].modeltype = "sims.NoElements"
+					if "#text" in modelset:
+						element.modeltype = "sims.NoElements"
 					else:
-						entry[0].modeltype = "sims.NoElementsOrText"
+						element.modeltype = "sims.NoElementsOrText"
 				else:
-					if "#text" in entry[1]:
-						entry[0].modeltype = "sims.ElementsOrText"
+					if "#text" in modelset:
+						element.modeltype = "sims.ElementsOrText"
 					else:
-						entry[0].modeltype = "sims.Elements"
-					entry[0].modelargs = elements
+						element.modeltype = "sims.Elements"
+					element.modelargs = elements
 	else:
-		raise ValueError("unknown sims mode %r" % sims)
+		raise ValueError("unknown sims mode {!r}".format(model))
+
+	if shareattrs=="dupes":
+		ns.shareattrs(False)
+	elif shareattrs=="all":
+		ns.shareattrs(True)
 	return ns
 
 
-def stream2xnd(stream, sims="simple", parser="etree"):
-	if parser == "etree":
-		from xml.etree import cElementTree
-		node = cElementTree.parse(stream).getroot()
-	elif parser == "lxml":
-		from lxml import etree
-		node = etree.parse(stream).getroot()
-	else:
-		raise ValueError("unknown parser %r" % parser)
-	
-	return etree2xnd(sims, node)
-
-
 def main(args=None):
-	p = optparse.OptionParser(usage="usage: %prog [options] <input.xml >output.py")
-	p.add_option("-p", "--parser", dest="parser", help="parser module to use for XML parsing (etree or lxml)", choices=("etree", "lxml"), default="etree")
-	choices = ["none", "simple", "full"]
-	p.add_option("-s", "--sims", dest="sims", help="Create sims info? (%s)" % ", ".join(choices), metavar="MODE", default="simple")
+	p = argparse.ArgumentParser(description="Convert XML files to XIST namespace (on stdout)", epilog="For more info see http://www.livinglogic.de/Python/xist/scripts/xml2xsc.html")
+	p.add_argument("urls", metavar="urls", type=url.URL, help="URLs of XML files to be parsed (default stdin)", nargs="*")
+	p.add_argument("-p", "--parser", dest="parser", help="parser module to use for XML parsing (default: %(default)s)", choices=("etree", "lxml"), default="etree")
+	p.add_argument("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements? (default: %(default)s)", choices=("none", "dupes", "all"), default="dupes")
+	p.add_argument("-m", "--model", dest="model", help="Create sims info? (default: %(default)s)", choices=("none", "simple", "fullall", "fullonce"), default="simple")
+	p.add_argument("-x", "--defaultxmlns", dest="defaultxmlns", metavar="NAME", help="Force elements without a namespace into this namespace")
 
-	(options, args) = p.parse_args(args)
-	if len(args) != 0:
-		p.error("incorrect number of arguments")
-		return 1
-	print stream2xnd(sys.stdin, sims=options.sims, parser=options.parser).aspy()
+	args = p.parse_args(args)
+	print(makexnd(**args.__dict__))
 
 
 if __name__ == "__main__":

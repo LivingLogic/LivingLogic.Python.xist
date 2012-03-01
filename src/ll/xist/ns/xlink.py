@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-## Copyright 1999-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2010 by Walter Dörwald
+## Copyright 1999-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -20,13 +20,13 @@ from ll.xist import xsc
 __docformat__ = "reStructuredText"
 
 
-xmlns  = "http://www.w3.org/1999/xlink"
+xmlns = "http://www.w3.org/1999/xlink"
 
 
 class Attrs(xsc.Attrs):
 	class type(xsc.TextAttr):
 		xmlns = xmlns
-		values = (u"simple", u"extended", u"locator", u"arc", u"resource", u"title")
+		values = ("simple", "extended", "locator", "arc", "resource", "title")
 
 	class href(xsc.URLAttr):
 		xmlns = xmlns
@@ -42,14 +42,14 @@ class Attrs(xsc.Attrs):
 
 	class show(xsc.TextAttr):
 		xmlns = xmlns
-		values = (u"new", u"replace", u"embed", u"other", u"none")
+		values = ("new", "replace", "embed", "other", "none")
 
 	class label(xsc.TextAttr):
 		xmlns = xmlns
 
 	class actuate(xsc.TextAttr):
 		xmlns = xmlns
-		values = (u"onLoad", u"onRequest", u"other", u"none")
+		values = ("onLoad", "onRequest", "other", "none")
 
 	class from_(xsc.TextAttr):
 		xmlns = xmlns

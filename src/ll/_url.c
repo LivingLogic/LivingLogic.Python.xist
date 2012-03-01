@@ -1,6 +1,6 @@
 /*
-** Copyright 2002-2010 by LivingLogic AG, Bayreuth, Germany.
-** Copyright 2002-2010 by Walter Dörwald
+** Copyright 2002-2011 by LivingLogic AG, Bayreuth, Germany.
+** Copyright 2002-2011 by Walter Dörwald
 **
 ** All Rights Reserved
 **
@@ -26,9 +26,9 @@ static PyObject *escape(PyObject *self, PyObject *args)
 	unsigned char *s;
 	unsigned char *starts;
 	unsigned char *ends;
-	char *r;
-	char *startr;
-	char *endr;
+	Py_UNICODE *r;
+	Py_UNICODE *startr;
+	Py_UNICODE *endr;
 	int newsize;
 
 	if (!PyArg_ParseTuple(args, "O|s:escape", &str, &safe))
@@ -44,8 +44,8 @@ static PyObject *escape(PyObject *self, PyObject *args)
 		return NULL;
 	}
 
-	starts = PyString_AS_STRING(str);
-	ends = starts + PyString_GET_SIZE(str);
+	starts = PyBytes_AS_STRING(str);
+	ends = starts + PyBytes_GET_SIZE(str);
 
 	for (newsize = 0, s = starts; s < ends; ++s)
 	{
@@ -55,11 +55,11 @@ static PyObject *escape(PyObject *self, PyObject *args)
 			newsize += 3;
 	}
 
-	res = PyString_FromStringAndSize(NULL, newsize);
+	res = PyUnicode_FromStringAndSize(NULL, newsize);
 	if (res)
 	{
-		startr = PyString_AS_STRING(res);
-		endr = startr + PyString_GET_SIZE(res);
+		startr = PyUnicode_AS_UNICODE(res);
+		endr = startr + PyUnicode_GET_SIZE(res);
 
 		for (s = starts, r = startr; s < ends;)
 		{
@@ -140,7 +140,7 @@ static PyObject *unescape(PyObject *self, PyObject *args)
 		else
 		{
 			char buffer[100];
-			if (pos+3>len || (in[pos+1] == 'u' && pos+6>len))
+			if (pos+3>len)
 			{
 				sprintf(buffer, "truncated escape at position %d", pos);
 				if (PyErr_Warn(PyExc_UserWarning, buffer))
@@ -151,34 +151,6 @@ static PyObject *unescape(PyObject *self, PyObject *args)
 				/* copy the characters literally */
 				while (pos<len)
 					*out++ = in[pos++];
-			}
-			else if (in[pos+1] == 'u')
-			{
-				if ((!isxdigit(in[pos+2])) || (!isxdigit(in[pos+3])) ||
-				    (!isxdigit(in[pos+4])) || (!isxdigit(in[pos+5])))
-				{
-					int k;
-					sprintf(buffer, "malformed escape at position %d", pos);
-					if (PyErr_Warn(PyExc_UserWarning, buffer) < 0)
-					{
-						PyMem_Free(res);
-						return NULL;
-					}
-
-					for (k = 0; k < 6; ++k)
-						*out++ = in[pos + k];
-				}
-				else
-				{
-					int k;
-					for (k = 0; k < 4; ++k)
-						buffer[k] = in[pos + k + 2];
-
-					buffer[4] = '\0';
-
-					widechar_to_utf8(strtol(buffer, NULL, 16), &out);
-				}
-				pos += 6;
 			}
 			else
 			{
@@ -225,7 +197,7 @@ static PyObject *unescape(PyObject *self, PyObject *args)
 
 int appendempty(PyObject *newpath, int *pos)
 {
-	PyObject *newsegment = Py_BuildValue("(u#)", pos, 0); /* pos is ignored */
+	PyObject *newsegment = PyUnicode_FromString("");
 	if (!newsegment)
 	{
 		Py_DECREF(newpath);
@@ -245,15 +217,15 @@ Internal helper function for normalizing a path list";
  * code is:
 	new_path_segments = []
 	l = len(path_segments)
-	for i in xrange(l):
+	for i in range(l):
 		segment = path_segments[i]
-		if segment==(".",) or segment==("",):
+		if segment=="." or segment=="":
 			if i==l-1:
-				new_path_segments.append(("",))
-		elif segment==("..",) and len(new_path_segments) and new_path_segments[-1]!=("..",):
+				new_path_segments.append("")
+		elif segment==".." and len(new_path_segments) and new_path_segments[-1]!="..":
 			new_path_segments.pop()
 			if i==l-1:
-				new_path_segments.append(("",))
+				new_path_segments.append("")
 		else:
 			new_path_segments.append(segment)
 	return new_path_segments
@@ -282,50 +254,36 @@ static PyObject *normalizepath(PyObject *self, PyObject *path)
 	for (in = 0; in < pathsize; ++in)
 	{
 		PyObject *segment = PyList_GET_ITEM(path, in);
-		PyObject *dir;
-		int segmentsize;
+		int seglen;
 
-		if (!PyTuple_CheckExact(segment) || (((segmentsize = PyTuple_GET_SIZE(segment)) != 1) && (segmentsize != 2)))
-		{
-			PyErr_SetString(PyExc_TypeError, "path entries must be tuples with 1 or 2 entries");
-			Py_DECREF(newpath);
-			return NULL;
-		}
-		dir = PyTuple_GET_ITEM(segment, 0);
-		if (!PyUnicode_CheckExact(dir))
+		if (!PyUnicode_CheckExact(segment))
 		{
 			PyErr_SetString(PyExc_TypeError, "path entry directory must be unicode");
 			Py_DECREF(newpath);
 			return NULL;
 		}
-		if (segmentsize == 1) /* we can only optimize it, if it doesn't have params */
+		seglen = PyUnicode_GET_SIZE(segment);
+		if ((seglen==0) || ((seglen==1) && (PyUnicode_AS_UNICODE(segment)[0] == '.'))) /* skip '' and '.' */
 		{
-			int dirlen = PyUnicode_GET_SIZE(dir);
-			if ((dirlen==0) || ((dirlen==1) && (PyUnicode_AS_UNICODE(dir)[0] == '.'))) /* skip '' and '.' */
+			if (in==pathsize-1) /* add empty terminating segment */
+				if (!appendempty(newpath, &out))
+					return NULL;
+			continue; /* skip output */
+		}
+		else if ((seglen == 2) && (PyUnicode_AS_UNICODE(segment)[0] == '.') && (PyUnicode_AS_UNICODE(segment)[1] == '.') && out) /* drop '..' and a previous real directory name */
+		{
+			PyObject *lastnewsegment = PyTuple_GET_ITEM(newpath, out-1);
+
+			if (!((PyUnicode_GET_SIZE(lastnewsegment) == 2) && /* check that previous name is not '..' */
+					(PyUnicode_AS_UNICODE(lastnewsegment)[0] == '.') &&
+					(PyUnicode_AS_UNICODE(lastnewsegment)[1] == '.')))
 			{
+				Py_DECREF(lastnewsegment);
+				PyTuple_SET_ITEM(newpath, --out, NULL); /* drop previous */
 				if (in==pathsize-1) /* add empty terminating segment */
 					if (!appendempty(newpath, &out))
 						return NULL;
 				continue; /* skip output */
-			}
-			else if ((dirlen == 2) && (PyUnicode_AS_UNICODE(dir)[0] == '.') && (PyUnicode_AS_UNICODE(dir)[1] == '.') && out) /* drop '..' and a previous real directory name */
-			{
-				PyObject *lastnewsegment = PyTuple_GET_ITEM(newpath, out-1);
-				int lastnewsegmentsize = PyTuple_GET_SIZE(lastnewsegment);
-				PyObject *lastnewsegmentdir = PyTuple_GET_ITEM(lastnewsegment, 0);
-
-				if (!((lastnewsegmentsize==1) && /* check that previous name is not '..' */
-						(PyUnicode_GET_SIZE(lastnewsegmentdir) == 2) &&
-						(PyUnicode_AS_UNICODE(lastnewsegmentdir)[0] == '.') &&
-						(PyUnicode_AS_UNICODE(lastnewsegmentdir)[1] == '.')))
-				{
-					Py_DECREF(lastnewsegment);
-					PyTuple_SET_ITEM(newpath, --out, NULL); /* drop previous */
-					if (in==pathsize-1) /* add empty terminating segment */
-						if (!appendempty(newpath, &out))
-							return NULL;
-					continue; /* skip output */
-				}
 			}
 		}
 		PyTuple_SET_ITEM(newpath, out++, segment); /* append segment to output */
@@ -359,11 +317,20 @@ static PyMethodDef _functions[] =
 	{NULL, NULL}
 };
 
-void
-#ifdef WIN32
-__declspec(dllexport)
-#endif
-init_url(void)
+static struct PyModuleDef _urlmodule = {
+	PyModuleDef_HEAD_INIT,
+	"_url",
+	0, /* module doc */
+	-1,
+	_functions,
+	NULL,
+	NULL,
+	NULL,
+	NULL
+};
+
+PyMODINIT_FUNC
+PyInit__url(void)
 {
-	Py_InitModule("_url", _functions);
+	return PyModule_Create(&_urlmodule);
 }

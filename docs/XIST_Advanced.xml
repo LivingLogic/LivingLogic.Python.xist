@@ -1,9 +1,9 @@
-<wrap>
+<spc:wrap xmlns="http://xmlns.livinglogic.de/xist/ns/doc" xmlns:spc="http://xmlns.livinglogic.de/xist/ns/specials">
 <section><h>Converter contexts</h>
 
 <p>Converter contexts can be used to pass around information in recursive
 calls to the <meth>convert</meth> and <meth>mapped</meth> methods.
-A <pyref module="ll.xist.converters" class="Converter"><class>Converter</class></pyref>
+A <pyref module="ll.xist.xsc" class="Converter"><class>Converter</class></pyref>
 object will be passed in all calls, so this object is the place to store
 information. However if each element, procinst and entity class decided on its
 own which attributes names to use, name collisions would be inevitale. To avoid
@@ -152,7 +152,7 @@ class bold(xsc.Element):
 		elif converter.target.xmlns == fo.xmlns:
 			node = converter.target.inline(self.content, font_weight="bold")
 		else:
-			raise TypeError("unsupported conversion target %r" % converter.target)
+			raise TypeError("unsupported conversion target {!r}".format(converter.target))
 		return node.convert(converter)
 </prog>
 </example>
@@ -224,4 +224,4 @@ order.</p>
 <p>For more info see the <pyref module="ll.xist.sims"><mod>sims</mod></pyref>
 module.</p>
 </section>
-</wrap>
+</spc:wrap>

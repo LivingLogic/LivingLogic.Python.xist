@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## Copyright 1999-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2010 by Walter Dörwald
+## Copyright 1999-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -10,27 +10,44 @@
 
 
 """
-Module that uses the w3m browser to generate a text version
-of a doc fragment.
-Usage: python doc2txt.py spam.xml spam.txt
-       to generate spam.txt from spam.xml
+``doc2txt`` is a script that converts an XML files using XIST doc vocabulary
+(i.e. the :mod:`ll.xist.ns.doc` namespace module) into plain text (by using
+:func:`ll.xist.ns.html.astext`.
+
+``doc2txt`` supports the following options:
+
+	``-t``, ``--title``
+		The title for the document
+
+	``-w``, ``--width``
+		The width of the formatted text output (default 72)
+
+The input is read from stdin and printed to stdout.
+
+Note that ``doc2txt`` needs an installed elinks_ browser.
+
+	.. _elinks: http://elinks.or.cz/
+
+Example
+-------
+
+The following generates ``spam.txt`` from ``spam.xml`` formatted to 80 columns::
+
+	$ doc2txt <spam.xml >spam.txt -w80
 """
+
+
+import sys, argparse
+
+from ll.xist import xsc, parse
+from ll.xist.ns import html, doc
 
 
 __docformat__ = "reStructuredText"
 
 
-import sys, getopt
-
-from ll.xist import xsc, parsers, converters
-from ll.xist.ns import html, doc, text
-
-
-__docformat__ = "plaintext"
-
-
-def xsc2txt(infilename, outfilename, title, width):
-	e = parsers.parseFile(infilename, prefixes=xsc.DocPrefixes())
+def xsc2txt(instream, outstream, title, width):
+	e = parse.tree(parse.Stream(instream), parse.SGMLOP(), parse.NS(doc), parse.Node(pool=xsc.docpool()))
 
 	if title is None:
 		title = xsc.Null
@@ -42,29 +59,19 @@ def xsc2txt(infilename, outfilename, title, width):
 		)
 	)
 
-	e = e.conv(target=text)
+	e = e.conv()
 
-	file = open(outfilename, "wb")
-	file.write(html.astext(e, width=width))
-	file.close()
+	outstream.write(html.astext(e, width=width))
 
 
 def main(args=None):
-	if args is None:
-		args = sys.argv[1:]
-	title = None
-	width = 72
-	(options, args) = getopt.getopt(args, "t:i:w:", ["title=", "import=", "width="])
+	p = argparse.ArgumentParser(description="Convert an XML file (on stdin) using the ll.xist.ns.doc namespace into plain text and print it (on stdout)", epilog="For more info see http://www.livinglogic.de/Python/xist/scripts/doc2txt.html")
+	p.add_argument("-t", "--title", dest="title", help="Title for the document")
+	p.add_argument("-w", "--width", dest="width", help="Width of the plain text output (default %(default)s)", type=int, default=72)
 
-	for (option, value) in options:
-		if option=="-t" or option=="--title":
-			title = value
-		elif option=="-i" or option=="--import":
-			__import__(value)
-		if option=="-w" or option=="--width":
-			width = int(value)
+	args = p.parse_args()
 
-	xsc2txt(args[0], args[1], title, width)
+	xsc2txt(sys.stdin, sys.stdout, args.title, args.width)
 
 
 if __name__ == "__main__":

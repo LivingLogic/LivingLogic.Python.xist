@@ -1,12 +1,396 @@
+Migrating to version 3.26
+=========================
+
+Changes to UL4
+--------------
+
+*	The UL4 function ``enumerate`` has been renamed to ``enum``.
+
+
+Migrating to version 3.25
+=========================
+
+Changes to XIST
+---------------
+
+*	The :meth:`compact` method has been renamed to :meth:`compacted` to avoid
+	collisions with the ``compact`` attribute in HTML elements.
+
+
+Migrating to version 3.24
+=========================
+
+Changes to :mod:`ll.xist.ns.ul4`
+--------------------------------
+
+*	:class:`ll.xist.ns.ul4.attr_if` is now an :class:`ll.xist.xsc.AttrElement`
+	subclass. Change your code from::
+
+		html.div(id=(ul4.attr_if("foo"), "bar"))
+
+	to::
+
+		html.div(id=ul4.attr_if("bar", cond="foo"))
+
+*	:class:`ll.xist.ns.ul4.attr_ifnn` has been removed. Replace it with the
+	equivalent :class:`attr_if` call.
+
+
+Migrating to version 3.23
+=========================
+
+Changes to :mod:`ll.ul4c`
+-------------------------
+
+*	The module global functions :func:`ll.ul4c.compile`, :func:`ll.ul4c.load` and
+	:func:`ll.ul4c.loads` have been removed. Instead of them the :class:`Template`
+	constructor and the class methods :meth:`load` and :meth:`loads` can be used.
+
+
+Migrating to version 3.20
+=========================
+
+Changes to :mod:`ll.orasql`
+---------------------------
+
+*	The :var:`schema` argument used by various methods in :mod:`ll.orasql` has
+	been replaced by a :var:`owner` argument that can be :const:`None` (for the
+	current user), the constant :const:`ALL` for all users (which uses the
+	``DBA_*`` variant of various meta data views if possible or the ``ALL_*``
+	variants otherwise) and a specific user name.
+
+
+Migrating to version 3.19
+=========================
+
+Changes to :mod:`ll.orasql`
+---------------------------
+
+*	:mod:`ll.orasql` now requires cx_Oracle 5.1 (i.e. ``UNICODE`` mode is no
+	longer used).
+
+*	If the :var:`readlobs` option is false for :mod:`ll.orasql` cursors, the
+	CLOBs/BLOBs returned will be wrapped into something that behaves like a
+	Python file. The original :class:`LOB` object is available as the ``value``
+	attribute of the returned wrapper object::
+
+		db = orasql.connect("user/pwd@db")
+		c = db.cursor()
+		c.execute("select theclob from thetable")
+		row = c.fetchone()
+		print row[0].value.read()
+
+
+Migrating to version 3.18
+=========================
+
+Changes to ``db2ul4``
+---------------------
+
+*	The variables available in UL4 templates used by ``db2ul4`` have changed.
+	Instead of a ``connect`` object, there are now three objects for each
+	supported database (i.e. ``oracle``, ``sqlite`` and ``mysql``). To update
+	your template replace::
+
+		connect["oracle:user/pwd@db"]
+
+	with::
+
+		oracle["user/pwd@db"]
+
+Changes to scripts
+------------------
+
+*	The script ``doc2txt`` now reads from ``stdin`` and writes to ``stdout``
+	instead of requiring file names on the command line.
+
+
+Migrating to version 3.17
+=========================
+
+Changes to :mod:`ll.misc`
+-------------------------
+
+*	:func:`ll.misc.javastring` has been renamed to :func:`ll.misc.javaexpr`.
+
+*	The UL4 method ``format`` is now a function instead.
+
+
+Migrating to version 3.16
+=========================
+
+Changes to :mod:`ll.misc`
+-------------------------
+
+*	:func:`ll.misc.flag` is gone. If the function is still required, here is
+	the source::
+
+		def flag(value):
+			if value in ("1", "true", "yes"):
+				return True
+			elif value in ("0", "false", "no"):
+				return False
+			raise ValueError("unknown flag value")
+
+
+Migrating to version 3.15
+=========================
+
+Changes to :mod:`ll.xist.ns.jsp`
+--------------------------------
+
+*	:func:`ll.xist.ns.jsp.javastring` has been move to :mod:`ll.misc`.
+
+
+Migrating to version 3.14
+=========================
+
+Changes to :mod:`ll.ul4c`
+-------------------------
+
+*	Date constants now need a ``@`` as a prefix. I.e. chance ``2010-11-03T`` to
+	``@2010-11-03T`` etc.
+
+*	The :var:`function` argument for :meth:`ul4c.Template.pythonsource` is gone.
+	The output will always be a full function.
+
+
+Migrating to version 3.12
+=========================
+
+Changes to :mod:`ll.sisyphus`
+-----------------------------
+
+*	The maximum allowed runtime for jobs is now a hard limit. Previously a
+	running job that exceeded the maximum allowed runtime would only be killed
+	when the next job was started. Now the job will kill itself immediately after
+	``maxtime`` seconds. This means you *might* have to adjust your ``maxtime``
+	setting.
+
+*	The default location of log files has changed again. Now ``~/ll.sisyphus/``
+	is used as the base directory instead of ``~/ll.sisyphus/log/``.
+
+
+Migrating to version 3.11
+=========================
+
+Changes to :mod:`ll.sisyphus`
+-----------------------------
+
+*	The method :meth:`logLoop` is gone. Replace::
+
+		self.logLoop("done")
+
+	with::
+
+		return "done"
+
+*	The method :meth:`logProgress` is gone. Replace::
+
+		self.logProgress("parsing XML file")
+
+	with::
+
+		self.log("parsing XML file")
+
+	You might also add tags to the logging call via::
+
+		self.log.xml("parsing XML")
+
+	(This adds the tag ``"xml"`` to the log line.)
+
+*	The method :meth:`logError` is gone. Replace::
+
+		self.logError("Can't parse XML file")
+
+	with::
+
+		self.log.error("Can't parse XML file")
+
+	If the object passed to ``self.log`` is an exception, the logging call will
+	add the ``exc`` tag automatically.
+
+*	:class:`sisyphus.Job` no longer has a constructor. Configuration is now done
+	via class attributes. Replace::
+
+		class TransmogrifyStuff(sisyphus.Job):
+			def __init__(self, connectstring):
+				sisyphus.Job.__init__(self, 30, "ACME_TransmogrifyStuff", raiseerrors=True)
+
+	with::
+
+		class TransmogrifyStuff(sisyphus.Job):
+			projectname = "ACME.MyProject"
+			jobname = "TransmogrifyStuff"
+			maxtime = 30
+
+*	The default location of run/log files has changed. Now ``~/ll.sisyphus/log``
+	is used for log files and ``~/ll.sisyphus/run`` is used for run files.
+
+
+Migrating to version 3.10
+=========================
+
+Changes to the required Python version
+--------------------------------------
+
+Python 2.7 is required now.
+
+Changes to :mod:`ll.make`
+-------------------------
+
+*	:mod:`ll.make` uses :mod:`argparse` now.
+
+*	:meth:`ll.make.Project.optionparser` has been renamed to :meth:`argparser`
+	and returns a :class:`argparse.ArgumentParser` object now.
+
+*	:meth:`ll.make.Project.parseoptions` has been renamed to :meth:`parseargs`
+	and returns a :class:`argparse.Namespace` object now.
+
+Changes to :mod:`ll.daemon`
+---------------------------
+
+*	:mod:`ll.daemon` uses :mod:`argparse` now. :meth:`ll.daemon.Daemon.optionparser`
+	has been renamed to :meth:`argparser`.
+
+
+Migrating to version 3.9
+========================
+
+Changes to :mod:`ll.xist.ns.html`
+---------------------------------
+
+*	:class:`ll.xist.ns.html.html` will no longer change the ``lang`` and
+	``xml:lang`` attributes. This functionality has been moved to the new element
+	:class:`ll.xist.ns.htmlspecials.html`. Furthermore this new element will not
+	change an attribute if this attribute has already been set.
+
+	So if you need the functionality replace any use of
+	:class:`ll.xist.ns.html.html` with :class:`ll.xist.ns.htmlspecials.html`.
+
+*	:class:`ll.xist.ns.html.title` no longer does any manipulation of its content.
+
+	If you needed this functionality, you can copy it from the old ``title``
+	element and put it into your own element class.
+
+
+Migrating to version 3.8
+========================
+
+Changes to parsing
+------------------
+
+*	The parsing infrastructure has been completely rewritten to be more modular
+	and to support iterative parsing (similar to `ElementTree`__). Now parsing
+	XML is done in a pipeline approach.
+
+	__ http://effbot.org/zone/element-iterparse.htm
+
+	Previously parsing a string looked like this::
+
+		>>> from ll.xist import xsc, parsers
+		>>> from ll.xist.ns import html
+		>>> source = "<a href='http://www.python.org/'>Python</a>"
+		>>> doc = parsers.parsestring(source, pool=xsc.Pool(html))
+
+	Now this is done the following way::
+
+		>>> from ll.xist import xsc, parse
+		>>> from ll.xist.ns import html
+		>>> source = "<a href='http://www.python.org/'>Python</a>"
+		>>> doc = parse.tree(
+		... 	parse.String(source)
+		... 	parse.Expat()
+		... 	parse.NS(html)
+		... 	parse.Node(pool=xsc.Pool(html))
+		... )
+
+	For more info see the module :mod:`ll.xist.parse`.
+
+*	Something that no longer works is parsing XML where elements from different
+	namespaces use the same namespace prefix. You will either have to rewrite
+	your XML or implement a new class for the parsing pipeline that handles
+	namespaces prefixes *and* instantiating XIST classes (i.e. a combination
+	of what :class:`ll.xist.parse.NS` and :class:`ll.xist.parse.Node` do).
+
+*	The module :mod:`ll.xist.parsers` has been renamed to :mod:`parse`.
+
+*	The module :mod:`ll.xist.presenters` has been renamed to :mod:`present`.
+
+*	The classes :class:`ll.xist.converters.Converter` and
+	:class:`ll.xist.publishers.Publisher` have been moved to :mod:`ll.xist.xsc`.
+	The modules :mod:`ll.xist.converters` and :mod:`ll.xist.publishers` no longer
+	exist.
+
+Changes to XISTs walk filters
+-----------------------------
+
+*	The walk methods :meth:`walknode` and :meth:`walkpath` have been renamed to
+	:meth:`walknodes` and :meth:`walkpaths`. The class :class:`WalkFilter` has
+	been moved to :mod:`ll.xist.xfind`.
+
+Changes to :mod:`ll.url`
+------------------------
+
+*	:class:`ll.url.Path` has been simplified: Path segments are strings instead
+	of tuples. If you need the path parameters (i.e. part after ``;`` in a path
+	segment) you have to split the segment yourself.
+
+*	:meth:`ll.url.URL.import_` is gone. As a replacement :func:`misc.module` can
+	be used, i.e. replace::
+
+		>>> from ll import url
+		>>> u = url.File("foo.py")
+		>>> m = u.import_(mode="always")
+
+	with::
+
+		>>> from ll import url, misc
+		>>> u = url.File("foo.py")
+		>>> m = misc.module(u.openread().read(), u.local())
+
+	However, note that :meth:`ll.url.URL.import_` has been reintroduced in 3.8.1
+	based on :func:`misc.import`. This means that the mode argument is no longer
+	supported.
+
+*	ssh URLs now required to standalone :mod:`execnet` package__. The
+	``ssh_config`` parameter for ssh URLs is gone.
+
+	__ http://codespeak.net/execnet/
+
+Changes to :mod:`ll.make`
+-------------------------
+
+*	The two classes :class:`ll.make.PoolAction` and
+	:class:`ll.make.XISTPoolAction` have been dropped. To update your code,
+	replace::
+
+		make.XISTPoolAction(html)
+
+	with::
+
+		make.ObjectAction(xsc.Pool).call(html)
+
+*	The class :class:`XISTParseAction` has been removed. This action can be
+	replaced by a combination of :class:`ObjectAction`, :class:`CallAction` and
+	:class:`CallAttrAction` using the new parsing infrastructure.
+
+Other changes
+-------------
+
+*	:class:`ll.xist.ns.specials.z` has been moved to the :mod:`ll.xist.ns.doc`
+	module.
+
+
 Migrating to version 3.7
 ========================
 
 Changes to the make module
 --------------------------
 
-*	The division operator is no longer implemented, so instead of::
+*	The division operator for actions is no longer implemented, so instead of::
 
-		t1 = make.FileAction(key=url.URL("foo.txt"))
+		t1 = make.FileAction(key=url.URL("file:foo.txt"))
 		t2 = t1 /
 		     make.DecodeAction("iso-8859-1") /
 		     make.EncodeAction("utf-8") /
@@ -42,23 +426,22 @@ Changes to the color module
 
 *	The following :class:`Color` properties have been dropped: ``r4``, ``g4``,
 	``b4``, ``a4``, ``r8``, ``g8``, ``b8``, ``a8``, ``r``, ``g``, ``b``,  ``a``
-	``int4``, ``int8``, ``rgb4``, ``rgba4``, ``rgb8``, and ``rgba8`` have been
-	dropped. The new methods ``r``, ``g``, ``b`` and ``a`` return the 8 bit
-	component values.
+	``int4``, ``int8``, ``rgb4``, ``rgba4``, ``rgb8``, and ``rgba8``. The new
+	methods ``r``, ``g``, ``b`` and ``a`` return the 8 bit component values.
 
 *	The class methods ``fromhsva`` and ``fromhlsa`` have been renamed to
 	``fromhsv`` and ``fromhls``.
 
-*	The property ``css`` has been dropped instead the CSS string is returned
-	by ``__str__``.
+*	The property ``css`` has been dropped. The CSS string is returned by
+	``__str__`` now.
 
-*	Dividing color now does a scalar division. Blending colors is now done with
+*	Dividing colors now does a scalar division. Blending colors is now done with
 	the modulo operator.
 
 Removal of XPIT
 ---------------
 
-*	The XPIT tamplating language has been removed. You should replace all your
+*	The XPIT templating language has been removed. You should replace all your
 	XPIT templates with UL4 templates.
 
 
@@ -123,7 +506,7 @@ Changes to XIST
 					+html.p("The foo page!")
 
 	(i.e. wrap the outermost ``with`` block in another ``with xsc.build()``
-	block.) 
+	block.)
 
 
 Migrating to version 3.3
@@ -150,6 +533,7 @@ Changes to the make module
 
 Changes to TOXIC
 ----------------
+
 *	TOXIC has been split into a compiler and an XIST namespace module. Instead
 	of calling the function :func:`ll.xist.ns.toxic.xml2ora` you now have to use
 	:func:`ll.toxicc.compile`. (However using TOXIC with :mod:`ll.make` hasn't
@@ -184,7 +568,7 @@ Changes to URL handling
 
 URLs containing processing instructions will no longer be transformed in
 any way. If you need the old behaviour you can wrap the initial part of
-the attribute value into an :class:`specials.url` PI.
+the attribute value into a :class:`specials.url` PI.
 
 
 Migrating to version 3.0
@@ -222,7 +606,7 @@ The death of namespace modules
 ------------------------------
 
 It's no longer possible to turn modules into namespaces. Element classes belong
-to a namespace (in the XML sense) simpy if their ``xmlns`` attribute have the
+to a namespace (in the XML sense) simply if their ``xmlns`` attribute have the
 same value. So a module definition like this::
 
 	from ll.xist import xsc
@@ -261,8 +645,8 @@ following names have changed:
 *	``olist`` to ``ol``;
 *	``ulist`` to ``ul``;
 *	``dlist`` to ``dl``;
-*	``item`` to ``li`` or ``dd`` (depending on whether it's inside an :class:`ol`,
-	:class:`ul` or :class:`dl`);
+*	``item`` to ``li`` or ``dd`` (depending on whether it's inside an
+	:class:`ol`, :class:`ul` or :class:`dl`);
 *	``term`` to ``dt``;
 *	``link`` to ``a``.
 
@@ -346,7 +730,7 @@ modes you can use the methods :meth:`walknode`, :meth:`walkpath` or
 :meth:`walkindex` instead of using the cursor yielded by :meth:`walk`.
 
 The node methods :meth:`find` and :meth:`findfirst` have been removed. Use
-``xsc.Frag(node.walk(...)`` or ``node.walk(...)[0]`` instead.
+``xsc.Frag(node.walk(...))`` or ``node.walk(...)[0]`` instead.
 
 Changes to publishing
 ---------------------
@@ -387,7 +771,7 @@ Changes to :mod:`ll.xist.ns.code`
 
 The code in a :class:`ll.xist.ns.code.pyexec` object is no longer executed at
 construction time, but at conversion time. So if you relied on this fact (e.g.
-to make a namespace available for parsing the rest of the XML file) you will
+to make a namespace available for parsing of the rest of the XML file) you will
 have to change your code.
 
 Removed namespaces
@@ -446,7 +830,7 @@ Other minor changes
 :class:`ll.xist.ns.specials.ignore`.
 
 :class:`ll.xist.xfind.item` no longer handles slices. If you've used that
-functionality, you may now use slices on XFind operators, and materilize the
+functionality, you may now use slices on XFind operators, and materialize the
 result, i.e. replace ``xfind.slice(foo, 1, -1)`` with ``list(foo[1:-1])``, if
 ``foo`` is an XFind operator. Otherwise you can use ``list(foo)[1:-1]``.
 
@@ -459,7 +843,7 @@ Changes to :mod:`ll.xist.xfind`
 
 The functions :func:`xfind.first` and :func:`xfind.last` now use
 :func:`xfind.item`, so they will raise an :exc:`IndexError` when no default
-value is passed. To get the old behaviour, simply pass ``None`` as the default.
+value is passed. To get the old behaviour, simply pass :const:`None` as the default.
 
 
 Migrating to version 2.6
@@ -490,7 +874,7 @@ presentation API directly (instead of the node method :meth:`repr`).
 Parsing HTML
 ------------
 
-Parsing HTML is now done via libxml2's HTML parser, instead of using µTidyLib of
+Parsing HTML is now done via libxml2's HTML parser, instead of using ÂµTidyLib of
 mxTidy. You can no longer pass arguments to tidy. Only the boolean values of the
 :var:`tidy` argument will be used. There are no other visible changes to the API
 but the result of parsing might have changed.
@@ -518,7 +902,7 @@ The boolean class attribute :attr:`empty` for element classes has been replaced
 by an object :attr:`model`. :attr:`empty` is still supported, but issues a
 :class:`PendingDeprecationWarning`. If you don't want to specify a proper
 content model for your own elements you can replace ``empty = False`` with
-``model = True`` (which is a shortcut for ``model = sims.Any()``) and 
+``model = True`` (which is a shortcut for ``model = sims.Any()``) and
 ``empty = True`` with ``model = False`` (which is a shortcut for
 ``model = sims.Empty()``).
 
@@ -604,8 +988,8 @@ The three arguments :var:`elementmode`, :var:`entitymode` and
 Changed namespaces
 ------------------
 
-The character reference classes from :mod:`ll.xist.ns.html` have been moved to a
-separate namespace :mod:`ll.xist.ns.chars`.
+The character reference classes from :mod:`ll.xist.ns.html` have been moved
+to a separate namespace :mod:`ll.xist.ns.chars`.
 
 The processing instructions :class:`eval_` and :class:`exec_` from the
 :mod:`ll.xist.ns.code` module have been renamed to :class:`pyeval` and
@@ -661,8 +1045,8 @@ specified in the publisher.
 :class:`autoimg` changes
 ------------------------
 
-:class:`ll.xist.htmlspecials.autoimg` will no longer touches existing ``width``
-or ``height`` attributes, so e.g. setting the width to twice the image size via
+:class:`ll.xist.htmlspecials.autoimg` will no longer touch existing ``width`` or
+`height`` attributes, so e.g. setting the width to twice the image size via
 ``width="2*%(width)s"`` no longer works. You have to implement your own version
 of :class:`autoimg` if you need this.
 
@@ -712,10 +1096,10 @@ Adding element classes to the namespace is now done with the :class:`Namespace`
 classmethod :meth:`update`. If you want the turn a namespace into a module, you
 can use the classmethod :meth:`makemod` instead of :meth:`update`, i.e. replace::
 
-	xmlns = xsc.Namespace("foo", "http://www.foo.com/", vars()
+	xmlns = xsc.Namespace("foo", "http://www.foo.com/", vars())
 
 with::
-	
+
 	class xmlns(xsc.Namespace):
 		xmlname = "foo"
 		xmlurl = "http://www.foo.com/"
@@ -807,7 +1191,7 @@ Global attributes are supported now, e.g. the attributes ``xml:lang`` and
 
 	from ll.xist import xsc
 	from ll.xist.ns import html, xml
-	
+
 	node = html.html(
 		content,
 		{(xml, "lang"): "en", (xml, "space"): "preserve"},

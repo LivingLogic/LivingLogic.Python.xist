@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-## Copyright 1999-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2010 by Walter Dörwald
+## Copyright 1999-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -34,7 +34,7 @@ __docformat__ = "reStructuredText"
 def _isstyle(path):
 	if path:
 		node = path[-1]
-		return (isinstance(node, html.style) and unicode(node.attrs["type"]) == "text/css") or (isinstance(node, html.link) and unicode(node.attrs["rel"]) == "stylesheet")
+		return (isinstance(node, html.style) and str(node.attrs["type"]) == "text/css") or (isinstance(node, html.link) and str(node.attrs["rel"]) == "stylesheet")
 	return False
 
 
@@ -45,7 +45,7 @@ def replaceurls(stylesheet, replacer):
 	be replaced with the result.
 	"""
 	def newreplacer(u):
-		return unicode(replacer(url.URL(u)))
+		return str(replacer(url.URL(u)))
 	cssutils.replaceUrls(stylesheet, newreplacer)
 
 
@@ -60,7 +60,7 @@ def geturls(stylesheet):
 def _getmedia(stylesheet):
 	while stylesheet is not None:
 		if stylesheet.media is not None:
-			return set(mq.mediaType for mq in stylesheet.media)
+			return {mq.mediaType for mq in stylesheet.media}
 		stylesheet = stylesheet.parentStyleSheet
 	return None
 
@@ -126,9 +126,9 @@ def iterrules(node, base=None, media=None, title=None):
 	def matchlink(node):
 		if node.attrs.media.hasmedia(media):
 			if title is None:
-				if "title" not in node.attrs and "alternate" not in unicode(node.attrs.rel).split():
+				if "title" not in node.attrs and "alternate" not in str(node.attrs.rel).split():
 					return True
-			elif not node.attrs.title.isfancy() and unicode(node.attrs.title) == title and "alternate" in unicode(node.attrs.rel).split():
+			elif not node.attrs.title.isfancy() and str(node.attrs.title) == title and "alternate" in str(node.attrs.rel).split():
 				return True
 		return False
 
@@ -137,16 +137,16 @@ def iterrules(node, base=None, media=None, title=None):
 			if title is None:
 				if "title" not in node.attrs:
 					return True
-			elif unicode(node.attrs.title) == title:
+			elif str(node.attrs.title) == title:
 				return True
 		return False
 
 	def doiter(node):
-		for cssnode in node.walknode(_isstyle):
+		for cssnode in node.walknodes(_isstyle):
 			if isinstance(cssnode, html.style):
 				href = str(base) if base is not None else None
 				if matchstyle(cssnode):
-					stylesheet = cssutils.parseString(unicode(cssnode.content), href=href, media=unicode(cssnode.attrs.media))
+					stylesheet = cssutils.parseString(str(cssnode.content), href=href, media=str(cssnode.attrs.media))
 					for rule in _doimport(media, stylesheet, base):
 						yield rule
 			else: # link
@@ -157,7 +157,7 @@ def iterrules(node, base=None, media=None, title=None):
 					if matchlink(cssnode):
 						with contextlib.closing(href.open("rb")) as r:
 							s = r.read()
-						stylesheet = cssutils.parseString(unicode(s), href=str(href), media=unicode(cssnode.attrs.media))
+						stylesheet = cssutils.parseString(str(s), href=str(href), media=str(cssnode.attrs.media))
 						for rule in _doimport(media, stylesheet, href):
 							yield rule
 	return misc.Iterator(doiter(node))
@@ -169,10 +169,11 @@ def applystylesheets(node, base=None, media=None, title=None):
 	CSS (from :class:`html.link` and :class:`html.style` elements and their
 	``@import``\ed stylesheets) and puts the resulting style properties into
 	the ``style`` attribute of every affected element instead.
-	
+
 	For the meaning of :var:`base`, :var:`media` and :var:`title` see
 	:func:`iterrules`.
 	"""
+
 	def iterstyles(node, rules):
 		for data in rules:
 			yield data
@@ -185,14 +186,14 @@ def applystylesheets(node, base=None, media=None, title=None):
 				yield (
 					(1, 0, 0, 0),
 					xfind.IsSelector(node),
-					cssutils.parseString(u"*{%s}" % style).cssRules[0].style # parse the style out of the style attribute
+					cssutils.parseString("*{{{}}}".format(style)).cssRules[0].style # parse the style out of the style attribute
 				)
 
 	rules = []
 	for (i, rule) in enumerate(iterrules(node, base=base, media=media, title=title)):
 		for sel in rule.selectorList:
 			rules.append((sel.specificity, selector(sel), rule.style))
-	rules.sort(key=lambda(spec, sel, rule): spec)
+	rules.sort(key=lambda spec_sel_rule: spec_sel_rule[0])
 	count = 0
 	for path in node.walk(xsc.Element):
 		del path[-1][_isstyle] # drop style sheet nodes
@@ -203,7 +204,7 @@ def applystylesheets(node, base=None, media=None, title=None):
 					for prop in style:
 						styles[prop.name] = (count, prop.cssText)
 						count += 1
-			style = " ".join("%s;" % value for (count, value) in sorted(styles.itervalues()))
+			style = " ".join("{};".format(value) for (count, value) in sorted(styles.values()))
 			if style:
 				path[-1].attrs["style"] = style
 
@@ -226,11 +227,11 @@ def _is_nth_node(iterator, node, index):
 				return i % 2 == 0
 		return False
 	else:
-		if not isinstance(index, (int, long)):
+		if not isinstance(index, int):
 			try:
 				index = int(index)
 			except ValueError:
-				raise ValueError("illegal argument %r" % index)
+				raise ValueError("illegal argument {!r}".format(index))
 			else:
 				if index < 1:
 					return False
@@ -256,11 +257,11 @@ def _is_nth_last_node(iterator, node, index):
 				pos = i
 		return pos is None or (i-pos) % 2 == 0
 	else:
-		if not isinstance(index, (int, long)):
+		if not isinstance(index, int):
 			try:
 				index = int(index)
 			except ValueError:
-				raise ValueError("illegal argument %r" % index)
+				raise ValueError("illegal argument {!r}".format(index))
 			else:
 				if index < 1:
 					return False
@@ -302,7 +303,7 @@ class CSSHasAttributeSelector(CSSWeightedSelector):
 		return False
 
 	def __str__(self):
-		return "%s(%r)" % (self.__class__.__name__, self.attributename)
+		return "{}({!r})".format(self.__class__.__name__, self.attributename)
 
 
 class CSSAttributeListSelector(CSSWeightedSelector):
@@ -320,11 +321,11 @@ class CSSAttributeListSelector(CSSWeightedSelector):
 			node = path[-1]
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attributename):
 				attr = node.attrs.get_xml(self.attributename)
-				return self.attributevalue in unicode(attr).split()
+				return self.attributevalue in str(attr).split()
 		return False
 
 	def __str__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.attributename, self.attributevalue)
+		return "{}({!r}, {!r})".format(self.__class__.__name__, self.attributename, self.attributevalue)
 
 
 class CSSAttributeLangSelector(CSSWeightedSelector):
@@ -342,13 +343,13 @@ class CSSAttributeLangSelector(CSSWeightedSelector):
 			node = path[-1]
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attributename):
 				attr = node.attrs.get_xml(self.attributename)
-				parts = unicode(attr).split("-", 1)
+				parts = str(attr).split("-", 1)
 				if parts:
 					return parts[0] == self.attributevalue
 		return False
 
 	def __str__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.attributename, self.attributevalue)
+		return "{}({!r}, {!r})".format(self.__class__.__name__, self.attributename, self.attributevalue)
 
 
 class CSSFirstChildSelector(CSSWeightedSelector):
@@ -484,7 +485,7 @@ class CSSLinkSelector(CSSWeightedSelector):
 		return False
 
 	def __str__(self):
-		return "%s()" % self.__class__.__name__
+		return "{}()".format(self.__class__.__name__)
 
 
 class CSSInvalidPseudoSelector(CSSWeightedSelector):
@@ -492,7 +493,7 @@ class CSSInvalidPseudoSelector(CSSWeightedSelector):
 		return False
 
 	def __str__(self):
-		return "%s()" % self.__class__.__name__
+		return "{}()".format(self.__class__.__name__)
 
 
 class CSSHoverSelector(CSSInvalidPseudoSelector):
@@ -527,7 +528,7 @@ class CSSFunctionSelector(CSSWeightedSelector):
 		self.value = value
 
 	def __str__(self):
-		return "%s(%r)" % (self.__class__.__name__, self.value)
+		return "{}({!r})".format(self.__class__.__name__, self.value)
 
 
 class CSSNthChildSelector(CSSFunctionSelector):
@@ -634,7 +635,7 @@ class CSSAdjacentSiblingCombinator(xfind.BinaryCombinator):
 		return False
 
 	def __str__(self):
-		return "%s(%s, %s)" % (self.__class__.__name__, self.left, self.right)
+		return "{}({}, {})".format(self.__class__.__name__, self.left, self.right)
 
 
 class CSSGeneralSiblingCombinator(xfind.BinaryCombinator):
@@ -655,7 +656,7 @@ class CSSGeneralSiblingCombinator(xfind.BinaryCombinator):
 		return False
 
 	def __str__(self):
-		return "%s(%s, %s)" % (self.__class__.__name__, self.left, self.right)
+		return "{}({}, {})".format(self.__class__.__name__, self.left, self.right)
 
 
 _pseudoname2class = {
@@ -692,12 +693,12 @@ def selector(selectors, prefixes=None):
 	may be a mapping mapping namespace prefixes to namespace names.
 	"""
 
-	if isinstance(selectors, basestring):
+	if isinstance(selectors, str):
 		if prefixes is not None:
-			prefixes = dict((key, xsc.nsname(value)) for (key, value) in prefixes.iteritems())
-			selectors = "%s\n%s{}" % ("\n".join("@namespace %s %r;" % (key if key is not None else "", value) for (key, value) in prefixes.iteritems()), selectors)
+			prefixes = dict((key, xsc.nsname(value)) for (key, value) in prefixes.items())
+			selectors = "{}\n{}{{}}".format("\n".join("@namespace {} {!r};".format(key if key is not None else "", value) for (key, value) in prefixes.items()), selectors)
 		else:
-			selectors = "%s{}" % selectors
+			selectors = "{}{{}}".format(selectors)
 		for rule in cssutils.CSSParser().parseString(selectors).cssRules:
 			if isinstance(rule, css.CSSStyleRule):
 				selectors = rule.selectorList.seq
@@ -709,7 +710,7 @@ def selector(selectors, prefixes=None):
 	elif isinstance(selectors, css.Selector):
 		selectors = [selectors]
 	else:
-		raise TypeError("can't handle %r" % type(selectors))
+		raise TypeError("can't handle {!r}".format(type(selectors)))
 	orcombinators = []
 	for selector in selectors:
 		rule = root = CSSTypeSelector()
@@ -759,13 +760,13 @@ def selector(selectors, prefixes=None):
 					try:
 						rule.selectors.append(_function2class[v.lstrip(":").rstrip("(")]())
 					except KeyError:
-						raise ValueError("unknown function %s" % v)
+						raise ValueError("unknown function {}".format(v))
 					rule.function = v
 				else:
 					try:
 						rule.selectors.append(_pseudoname2class[v.lstrip(":")]())
 					except KeyError:
-						raise ValueError("unknown pseudo-class %s" % v)
+						raise ValueError("unknown pseudo-class {}".format(v))
 			elif t == "NUMBER":
 				# can only appear in a function => set the function value
 				rule.selectors[-1].value = v

@@ -78,7 +78,7 @@ def getnow():
 def httpdate(dt):
 	"""
 	Return a string suitable for a "Last-Modified" and "Expires" header.
-	
+
 	:var:`dt` is a :class:`datetime.datetime` object. If ``:var:`dt`.tzinfo`` is
 	:const:`None` :var:`dt` is assumed to be in the local timezone (using the
 	current UTC offset which might be different from the one used by :var:`dt`).
@@ -87,19 +87,19 @@ def httpdate(dt):
 		dt += datetime.timedelta(seconds=[time.timezone, time.altzone][time.daylight])
 	else:
 		dt -= dt.tzinfo.utcoffset(dt)
-	return "%s, %02d %3s %4d %02d:%02d:%02d GMT" % (weekdayname[dt.weekday()], dt.day, monthname[dt.month], dt.year, dt.hour, dt.minute, dt.second)
+	return "{}, {:02d} {:3s} {:4d} {:02d}:{:02d}:{:02d} GMT".format(weekdayname[dt.weekday()], dt.day, monthname[dt.month], dt.year, dt.hour, dt.minute, dt.second)
 
 
 class Connect(object):
 	"""
 	:class:`Connect` objects can be used as decorators that wraps a function
 	that needs a database connection.
-	
+
 	If calling the wrapped function results in a database exception that has
 	been caused by a lost connection to the database or similar problems,
 	the function is retried with a new database connection.
 	"""
-	_badoracleexceptions = set((
+	_badoracleexceptions = {
 		28,    # your session has been killed
 		1012,  # not logged on
 		1014,  # Oracle shutdown in progress
@@ -117,7 +117,7 @@ class Connect(object):
 		12540, # TNS:internal limit restriction exceeded
 		12541, # TNS:no listener
 		12543, # TNS:destination host unreachable
-	))
+	}
 
 	def __init__(self, connectstring=None, pool=None, retry=3, **kwargs):
 		"""
@@ -175,12 +175,12 @@ class Connect(object):
 
 	def __call__(self, func):
 		def wrapper(*args, **kwargs):
-			for i in xrange(self.retry):
+			for i in range(self.retry):
 				connection = self._getconnection()
 				try:
 					# This only works if func is using the same connection
 					return func(*args, **kwargs)
-				except orasql.DatabaseError, exc:
+				except orasql.DatabaseError as exc:
 					if i<self.retry-1 and self._isbadoracleexception(exc):
 						# Drop bad connection and retry
 						self._dropconnection(connection)
@@ -220,7 +220,7 @@ class Call(object):
 		:var:`p_encoding` (a string), :var:`p_etag` (a string) and
 		:var:`p_cachecontrol` (a string) are mapped to the appropriate CherryPy
 		response headers. If :var:`p_etag` is not specified a value is calculated.
-	
+
 		If the procedure/function raised a PL/SQL exception with a code between
 		20200 and 20599, 20000 will be substracted from this value and the
 		resulting value will be used as the HTTP response code, i.e. 20404 will
@@ -237,7 +237,7 @@ class Call(object):
 					result = self.callable(cursor, *args, **kwargs)
 				cursor.connection.commit()
 				return result
-			except orasql.DatabaseError, exc:
+			except orasql.DatabaseError as exc:
 				if exc.args:
 					code = getattr(exc[0], "code", 0)
 					if 20200 <= code <= 20599:
@@ -248,6 +248,12 @@ class Call(object):
 		now = getnow()
 		(body, result) = call(*args, **kwargs)
 
+		# Get response body
+		if "c_out" in result:
+			body = result.c_out
+		if hasattr(body, "read"):
+			body = body.read()
+
 		# Set HTTP headers from parameters
 		expires = result.get("p_expires", None)
 		if expires is not None:
@@ -255,18 +261,17 @@ class Call(object):
 		lastmodified = result.get("p_lastmodified", None)
 		if lastmodified is not None:
 			cherrypy.response.headers["Last-Modified"] = httpdate(lastmodified)
-		encoding = None
-		if isinstance(result, unicode):
-			encoding = "utf-8"
-			result = result.encoding(encoding)
 		mimetype = result.get("p_mimetype", None)
-		if mimetype is not None:
-			if encoding is None:
-				encoding = result.get("p_encoding", None)
-			if encoding is not None:
-				cherrypy.response.headers["Content-Type"] = "%s; charset=%s" % (mimetype, encoding)
-			else:
-				cherrypy.response.headers["Content-Type"] = mimetype
+		if mimetype is None:
+			mimetype = "text/html" if isinstance(body, str) else "application/octet-stream"
+
+		encoding = result.get("p_encoding", None)
+		if encoding is None and isinstance(body, str):
+			encoding = "utf-8"
+		if encoding is not None:
+			cherrypy.response.headers["Content-Type"] = "{}; charset={}".format(mimetype, encoding)
+		else:
+			cherrypy.response.headers["Content-Type"] = mimetype
 		hasetag = False
 		etag = result.get("p_etag", None)
 		if etag is not None:
@@ -281,14 +286,10 @@ class Call(object):
 		if status is not None:
 			cherrypy.response.status = status
 
-		# Get response body
-		if "c_out" in result:
-			body = result.c_out
-			if hasattr(result, "read"):
-				result = result.read()
-			if not hasetag:
-				cherrypy.response.headers["ETag"] = '"%x"' % hash(body)
+		# Set ETag
+		if not hasetag:
+			cherrypy.response.headers["ETag"] = '"{:x}"'.format(hash(body))
 
-		if hasattr(body, "read"):
-			body = body.read()
+		if isinstance(body, str):
+			body = body.encode(encoding)
 		return body

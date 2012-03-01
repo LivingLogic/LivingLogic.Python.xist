@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-## Copyright 2009-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2009-2010 by Walter Dörwald
+## Copyright 2009-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2009-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -10,7 +10,7 @@
 
 __docformat__ = "reStructuredText"
 
-import os, optparse, collections, contextlib
+import os, collections, contextlib
 
 from ll import url
 from ll.xist import xsc, sims
@@ -176,7 +176,8 @@ class BaseElement(xsc.Element):
 		class class_(xsc.TextAttr):
 			"``class`` is used to transmit individuality information forward."
 			xmlname = "class"
-	
+
+
 # Root Element
 class document(BaseElement):
 	class Attrs(BaseElement.Attrs):
@@ -388,19 +389,28 @@ class field_body(BaseElement):
 
 
 class option_list(BaseElement):
-	pass
+	def convert(self, converter):
+		e = doc.dl(self.content)
+		return e.convert(converter)
 
 
 class option_list_item(BaseElement):
-	pass
+	def convert(self, converter):
+		e = self.content
+		return e.convert(converter)
 
 
 class option_group(BaseElement):
-	pass
-
-
-class option(BaseElement):
-	pass
+	def convert(self, converter):
+		e = doc.dt()
+		for o in self[option]:
+			if e:
+				e.append(", ")
+			e2 = doc.lit(doc.option(o[option_string][0].content))
+			for oa in o[option_argument]:
+				e2.append("=", oa.content)
+			e.append(e2)
+		return e.convert(converter)
 
 
 class option_string(BaseElement):
@@ -414,7 +424,9 @@ class option_argument(BaseElement):
 
 
 class description(BaseElement):
-	pass
+	def convert(self, converter):
+		e = doc.dd(self.content)
+		return e.convert(converter)
 
 
 class literal_block(BaseElement):
@@ -561,7 +573,8 @@ class system_message(BaseElement):
 
 	def convert(self, converter):
 		# A warning has already been issued by docutils, we don't have to do anything
-		return xsc.Null 
+		return xsc.Null
+
 
 class raw(BaseElement):
 	class Attrs(BaseElement.Attrs):
@@ -928,8 +941,7 @@ class ReSTConversionWarning(Warning):
 class ReSTConverter(object):
 	def __init__(self):
 		from ll.xist.ns import doc, abbr
-		self.namedrefs = collections.defaultdict()
-		self.namedrefs.default_factory = list
+		self.namedrefs = collections.defaultdict(list)
 		self.unnamedrefs = []
 		self.doc = doc
 		self.abbr = abbr
@@ -999,7 +1011,7 @@ class ReSTConverter(object):
 			warnings.warn(ReSTConversionWarning(str(node)))
 			return xsc.Null # ignore system messages
 		else:
-			raise TypeError("can't handle %r" % node.__class__)
+			raise TypeError("can't handle {!r}".format(node.__class__))
 
 
 def fromstring(string, base=None, **options):
@@ -1008,7 +1020,7 @@ def fromstring(string, base=None, **options):
 
 	def toxist(node):
 		if isinstance(node, nodes.Text):
-			return xsc.Text(unicode(node.astext()))
+			return xsc.Text(str(node.astext()))
 		else:
 			e = elements[node.__class__.__name__](toxist(child) for child in node.children)
 			e.startloc = xsc.Location(node.source, node.line)

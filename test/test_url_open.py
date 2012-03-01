@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## Copyright 2005-2010 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 2005-2010 by Walter Dörwald
+## Copyright 2005-2011 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 2005-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
 ## See ll/__init__.py for the license
 
 
-import os, warnings, datetime
-
-import py.test
+import os, datetime
 
 from ll import url
+
+import py.test
 
 
 def setup_module(module):
@@ -25,6 +25,7 @@ def teardown_module(module):
 
 
 def test_rename():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)
@@ -39,10 +40,12 @@ def test_rename():
 			assert not u2.exists()
 
 	yield check, __file__.rstrip("c")
+	yield check, url.URL(__file__.rstrip("c"))
 	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/"
 
 
 def test_link():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)
@@ -61,6 +64,7 @@ def test_link():
 
 
 def test_symlink():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)
@@ -78,6 +82,7 @@ def test_symlink():
 
 
 def test_chmod():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)
@@ -87,8 +92,8 @@ def test_chmod():
 					r.write("testing ...")
 				finally:
 					r.close()
-				u.chmod(0444)
-				assert u.stat().st_mode & 0777 == 0444
+				u.chmod(0o444)
+				assert u.stat().st_mode & 0o777 == 0o444
 			finally:
 				u.remove()
 
@@ -97,6 +102,7 @@ def test_chmod():
 
 
 def test_chown():
+	@py.test.mark.net
 	def check(u1, u2, owner, group):
 		with context:
 			u1 = url.URL(u1)
@@ -119,7 +125,7 @@ def test_chown():
 					assert u1.group() == group
 					assert u2.owner() == owner
 					assert u2.group() == group
-		
+
 					u2.chown(owner, group)
 					assert u1.owner() == owner
 					assert u1.group() == group
@@ -134,6 +140,7 @@ def test_chown():
 
 
 def test_size():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)
@@ -145,6 +152,7 @@ def test_size():
 
 
 def test_imagesize():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)
@@ -156,6 +164,7 @@ def test_imagesize():
 
 
 def test_mimetype():
+	@py.test.mark.net
 	def check(u, mt):
 		with context:
 			u = url.URL(u)
@@ -167,6 +176,7 @@ def test_mimetype():
 
 
 def test_readline():
+	@py.test.mark.net
 	def check(u, firstline):
 		with context:
 			u = url.URL(u)
@@ -193,11 +203,12 @@ def test_readline():
 
 
 def test_iter():
+	@py.test.mark.net
 	def check(u, firstline):
 		with context:
 			u = url.URL(u)
 			r = u.open()
-			assert r.next() == firstline
+			assert next(r) == firstline
 			list(r)
 
 	yield check, __file__.rstrip("c"), "#!/usr/bin/env python\n"
@@ -205,7 +216,24 @@ def test_iter():
 	yield check, "http://www.livinglogic.de/Python/", '<?xml version="1.0" encoding="utf-8"?>\n'
 
 
+def test_autocreate_dir():
+	@py.test.mark.net
+	def check(u):
+		with context:
+			try:
+				u = url.URL(u)
+				with u.openwrite() as f:
+					f.write("Hurz!")
+			finally:
+				u.remove()
+				u.withoutfile().rmdir()
+
+	yield check, "gurk/hurz.txt"
+	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/gurk/hurz.txt"
+
+
 def test_seek_tell():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)
@@ -229,6 +257,7 @@ def test_seek_tell():
 
 
 def test_truncate():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)/"foo"
@@ -247,6 +276,7 @@ def test_truncate():
 
 
 def test_owner():
+	@py.test.mark.net
 	def check(u, owner):
 		with context:
 			u = url.URL(u)
@@ -259,30 +289,33 @@ def test_owner():
 
 
 def test_stat():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)
 			stat = u.stat()
 			assert stat.st_size > 1000
-			assert stat.st_mode & 0600 == 0600
+			assert stat.st_mode & 0o600 == 0o600
 
 	yield check, url.File(__file__)/"../README.rst"
 	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst"
 
 
 def test_group():
+	@py.test.mark.net
 	def check(u, *groups):
 		with context:
 			u = url.URL(u)
 			assert u.group() in groups
 			assert u.stat().st_gid == u.gid()
 
-	yield check, __file__, "users", "staff"
+	yield check, __file__, "users", "staff", "walter"
 	yield check, "/", "root", "admin"
 	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", "livpython"
 
 
 def test_cdate():
+	@py.test.mark.net
 	def check(u, *args):
 		with context:
 			assert url.URL(u).cdate() >= datetime.datetime(*args)
@@ -292,6 +325,7 @@ def test_cdate():
 
 
 def test_mdate():
+	@py.test.mark.net
 	def check(u, *args):
 		with context:
 			u = url.URL(u)
@@ -303,6 +337,7 @@ def test_mdate():
 
 
 def test_adate():
+	@py.test.mark.net
 	def check(u, *args):
 		with context:
 			assert url.URL(u).adate() >= datetime.datetime(*args)
@@ -312,6 +347,7 @@ def test_adate():
 
 
 def test_exists():
+	@py.test.mark.net
 	def check(u, exists):
 		with context:
 			u = url.URL(u)
@@ -325,6 +361,7 @@ def test_exists():
 
 
 def test_isfile():
+	@py.test.mark.net
 	def check(u, isfile):
 		with context:
 			u = url.URL(u)
@@ -340,6 +377,7 @@ def test_isfile():
 
 
 def test_isdir():
+	@py.test.mark.net
 	def check(u, isdir):
 		with context:
 			u = url.URL(u)
@@ -355,6 +393,7 @@ def test_isdir():
 
 
 def test_islink():
+	@py.test.mark.net
 	def check(u, islink):
 		with context:
 			u = url.URL(u)
@@ -367,6 +406,7 @@ def test_islink():
 
 
 def test_ismount():
+	@py.test.mark.net
 	def check(u, ismount):
 		with context:
 			u = url.URL(u)
@@ -381,6 +421,7 @@ def test_ismount():
 
 
 def test_access():
+	@py.test.mark.net
 	def check(u, mode, result):
 		with context:
 			u = url.URL(u)
@@ -393,11 +434,12 @@ def test_access():
 
 
 def test_resheaders():
+	@py.test.mark.net
 	def check(u, headers):
 		with context:
 			u = url.URL(u)
 			realheaders = u.resheaders()
-			for (k, v) in headers.iteritems():
+			for (k, v) in headers.items():
 				assert realheaders[k] == v
 
 	yield check, url.File(__file__)/"../README.rst", {"Content-type": "application/octet-stream"}
@@ -406,6 +448,7 @@ def test_resheaders():
 
 
 def test_resdata():
+	@py.test.mark.net
 	def check(u, firstline):
 		with context:
 			u = url.URL(u)
@@ -416,13 +459,14 @@ def test_resdata():
 
 
 def test_mkdir_rmdir():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)/"foo/"
-			u.mkdir(0755)
+			u.mkdir(0o755)
 			try:
 				assert u.isdir()
-				assert u.stat().st_mode & 0777 == 0755
+				assert u.stat().st_mode & 0o777 == 0o755
 			finally:
 				u.rmdir()
 
@@ -431,13 +475,14 @@ def test_mkdir_rmdir():
 
 
 def test_makedirs():
+	@py.test.mark.net
 	def check(u):
 		with context:
 			u = url.URL(u)/"foo/bar/"
-			u.makedirs(0755)
+			u.makedirs(0o755)
 			try:
 				assert u.isdir()
-				assert u.stat().st_mode & 0777 == 0755
+				assert u.stat().st_mode & 0o777 == 0o755
 			finally:
 				u.rmdir()
 				(u/"../").rmdir()
@@ -447,6 +492,7 @@ def test_makedirs():
 
 
 def test_dir():
+	@py.test.mark.net
 	def check(u, pu, isfile):
 		with context:
 			u = url.URL(u)
@@ -466,6 +512,7 @@ def test_dir():
 
 
 def test_walk():
+	@py.test.mark.net
 	def check(u, pu, isfile):
 		with context:
 			u = url.URL(u)
@@ -484,9 +531,9 @@ def test_walk():
 	yield check, "ll/xist/ns/", "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/src/", False
 
 
-def test_ssh_config():
-	ssh_config = "/private/etc/ssh_config"
-	if not os.path.exists(ssh_config):
-		ssh_config = "/etc/ssh_config"
+@py.test.mark.net
+def test_ssh_params():
 	with context:
-		assert url.URL("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/").isdir(ssh_config=ssh_config) is True
+		u = url.URL("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/")
+		assert u.isdir(remotepython="python2.5") is True
+		assert u.isdir(nice=20) is True

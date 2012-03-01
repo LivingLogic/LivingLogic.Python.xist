@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-## Copyright 1999-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2010 by Walter Dörwald
+## Copyright 1999-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -26,9 +26,9 @@ class Code(object):
 	def __init__(self, text, ignorefirst=False):
 		# get the individual lines; ignore "\r" as this would mess up whitespace handling later
 		# use list comprehension to get a list and not a Frag
-		lines = [ line for line in text.replace(u"\r", u"").splitlines() ]
+		lines = [ line for line in text.replace("\r", "").splitlines() ]
 		# split of the whitespace at the beginning of each line
-		for i in xrange(len(lines)):
+		for i in range(len(lines)):
 			line = lines[i]
 			rest = line.lstrip()
 			white = line[:len(line)-len(rest)]
@@ -44,14 +44,14 @@ class Code(object):
 		if ignorefirst and lines and lines[0][0]:
 			raise ValueError("can't ignore the first line, as it does contain whitespace")
 		# find the shortest whitespace in non empty lines
-		shortestlen = sys.maxint
-		for i in xrange(ignorefirst, len(lines)):
+		shortestlen = sys.maxsize
+		for i in range(ignorefirst, len(lines)):
 			if lines[i][1]:
 				shortestlen = min(shortestlen, len(lines[i][0]))
 		# remove the common whitespace; a check is done, whether the common whitespace is the same in all lines
 		common = None
 		if shortestlen:
-			for i in xrange(ignorefirst, len(lines)):
+			for i in range(ignorefirst, len(lines)):
 				if lines[i][1]:
 					test = lines[i][0][:shortestlen]
 					if common is not None:
@@ -60,23 +60,23 @@ class Code(object):
 					common = test
 					lines[i][0] = lines[i][0][shortestlen:]
 				else:
-					lines[i][0] = u""
+					lines[i][0] = ""
 		self.lines = lines
 
 	def indent(self):
 		for line in self.lines:
-			line[0] = u"\t" + line[0]
+			line[0] = "\t" + line[0]
 
-	def funcify(self, name=u"__"):
+	def funcify(self, name="__"):
 		self.indent()
-		self.lines.insert(0, [u"", u"def %s(converter):" % name])
+		self.lines.insert(0, ["", "def {}(converter):".format(name)])
 
 	def asstring(self):
 		v = []
 		for line in self.lines:
 			v.extend(line)
-			v.append(u"\n")
-		return u"".join(v)
+			v.append("\n")
+		return "".join(v)
 
 
 class _base(xsc.ProcInst):
@@ -103,7 +103,7 @@ class pyexec(_base):
 	def convert(self, converter):
 		code = Code(self.content, True)
 		sandbox = converter[self].sandbox
-		exec code.asstring() in sandbox # requires Python 2.0b2 (and doesn't really work)
+		exec(code.asstring(), sandbox) # requires Python 2.0b2 (and doesn't really work)
 		return xsc.Null
 
 
@@ -132,5 +132,5 @@ class pyeval(_base):
 		code = Code(self.content, True)
 		code.funcify()
 		sandbox = converter[self].sandbox
-		exec code.asstring() in sandbox # requires Python 2.0b2 (and doesn't really work)
+		exec(code.asstring(), sandbox) # requires Python 2.0b2 (and doesn't really work)
 		return xsc.tonode(sandbox["__"](converter)).convert(converter)

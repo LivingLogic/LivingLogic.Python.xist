@@ -1,6 +1,6 @@
 /*
-** Copyright 2007-2010 by LivingLogic AG, Bayreuth/Germany.
-** Copyright 2007-2010 by Walter Dörwald
+** Copyright 2007-2011 by LivingLogic AG, Bayreuth/Germany.
+** Copyright 2007-2011 by Walter Dörwald
 **
 ** All Rights Reserved
 **
@@ -60,7 +60,7 @@ static int STRINGLIB_PARSEPSEUDOATTR(const STRINGLIB_CHAR *s, const STRINGLIB_CH
 		++s;
 	if (s == end) /* don't know yet */
 		return 0;
-	
+
 	quote = *s;
 
 	if (quote != '"' && quote != '\'')

@@ -1,8 +1,8 @@
 #! /usr/bin/env/python
 # -*- coding: utf-8 -*-
 
-## Copyright 2009-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2009-2010 by Walter Dörwald
+## Copyright 2009-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2009-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -79,8 +79,12 @@ def test_mul():
 	assert color.Color(0x12, 0x34, 0x56)*2 == color.Color(0x24, 0x68, 0xac)
 
 
-def test_div():
+def test_truediv():
 	assert color.Color(0x24, 0x68, 0xac)/2 == color.Color(0x12, 0x34, 0x56)
+
+
+def test_floordiv():
+	assert color.Color(0x25, 0x69, 0xad)//2 == color.Color(0x12, 0x34, 0x56)
 
 
 def test_mod():

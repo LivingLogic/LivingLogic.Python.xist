@@ -1,9 +1,114 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys, os, optparse, codecs
+"""
+``db2ul4`` is a script that can be used for rendering database content into
+a UL4 template.
+
+
+Options
+-------
+
+``db2ul4`` supports the following options:
+
+	``templates``
+		One or more template files. A file named ``-`` will be treated as
+		standard input. The first file in the list is the main template, i.e. the
+		one that gets rendered. All templates will be available in the main
+		template as the ``templates`` dictionary. The keys are the base names
+		of the files (i.e. ``foo.ul4`` will be ``templates.foo``; stdin will be
+		``templates.stdin``).
+
+	``-i``, ``--inputencoding``
+		The encoding of the templates files (default ``utf-8``)
+
+	``-o``, ``--outputencoding``
+		The encoding used for the rendered output (default ``utf-8``)
+
+
+Template variables
+------------------
+
+Inside the template the following variables are available:
+
+	``templates``
+		A dictionary containing all the templates specified on the command line.
+
+	``encoding``
+		The encoding specified via the :option:`--outputencoding` option.
+
+	``system``
+		A dict-like object that maps system commands to their output, e.g. the
+		template::
+
+			<?print system["whoami"]?>
+
+		will output the user name.
+
+	``oracle``
+		A dict-like object that maps Oracle connect strings to connection objects.
+
+	``mysql``
+		A dict-like object that maps MySQL connect strings to connection objects.
+		A MySQL connect string is a string of the form ``user/pwd@host/db``.
+
+	``sqlite``
+		A dict-like object that maps SQLite connect strings to connection objects.
+		The connect string will be passed directly to :func:`sqlite3.connect`.
+
+All connection objects are itself dict-like objects providing two keys:
+
+	``iter``
+		A dict-like object that maps SQL queries to iterators over the
+		result records.
+
+	``list``
+		A dict-like object that maps SQL queries to a list of result records.
+
+A record in turn is a dict-like object mapping field names to field values.
+
+
+Example
+-------
+
+This example shows how to connect to an Oracle database and output the content
+of a ``person`` table into an XML file.
+
+Suppose we have a database table that looks like this::
+
+	create table person
+	(
+		id integer not null,
+		firstname varchar2(200),
+		lastname varchar2(200)
+	);
+
+Then we can use the following template to output the table into an XML file::
+
+	<?xml version='1.0' encoding='<?print encoding?>'?>
+	<?code db = oracle["user/pwd@db"]?>
+	<persons>
+		<?for p in db.iter["select id, firstname, lastname from person order by 2, 1"]?>
+			<person id="<?printx p.id?>">
+				<firstname><?printx p.firstname?></firstname>
+				<lastname><?printx p.lastname?></lastname>
+			</person>
+		<?end for?>
+	</persons>
+
+If we put the template into the file ``person.ul4`` we can call ``db2ul4`` like
+this::
+
+	db2ul4 -o=utf-8 person.ul4 >person.xml
+"""
+
+
+import sys, os, argparse, codecs
 
 from ll import ul4c
+
+
+__docformat__ = "reStructuredText"
 
 
 class System(object):
@@ -31,7 +136,10 @@ class QueryIter(object):
 		return c
 
 
-class DB(object):
+class Connection(object):
+	def __init__(self, connection):
+		self.connection = connection
+
 	def __getitem__(self, key):
 		if key == "iter":
 			return QueryIter(self.connection)
@@ -41,61 +149,46 @@ class DB(object):
 			raise KeyError(key)
 
 
-class Oracle(DB):
-	def __init__(self, connectstring):
+class Oracle(object):
+	def __getitem__(self, connectstring):
 		from ll import orasql
-		self.connection = orasql.connect(connectstring, readlobs=True)
+		return Connection(orasql.connect(connectstring, readlobs=True))
 
 
-class SQLite(DB):
-	def __init__(self, connectstring):
+class SQLite(object):
+	def __getitem__(self, connectstring):
 		import sqlite3
 		connection = sqlite3.connect(connectstring)
 		class Row(sqlite3.Row):
 			def __getitem__(self, key):
-				if isinstance(key, unicode):
+				if isinstance(key, str):
 					key = key.encode("ascii")
 				return sqlite3.Row.__getitem__(self, key)
 		connection.row_factory = Row
-		self.connection = connection
+		return Connection(connection)
 
 
-class MySQL(DB):
-	def __init__(self, connectstring):
+class MySQL(object):
+	def __getitem__(self, connectstring):
 		import MySQLdb
 		from MySQLdb import cursors
 		(user, host) = connectstring.split("@")
 		(user, passwd) = user.split("/")
 		(host, db) = host.split("/")
-		self.connection = MySQLdb.connect(user=user, passwd=passwd, host=host, db=db, use_unicode=True, cursorclass=cursors.DictCursor)
-
-
-class Connect(object):
-	def __getitem__(self, connectstring):
-		(type, sep, connectstring) = connectstring.partition(":")
-		if type == "oracle":
-			return Oracle(connectstring)
-		elif type == "sqlite":
-			return SQLite(connectstring)
-		elif type == "mysql":
-			return MySQL(connectstring)
-		else:
-			return KeyError(connectstring)
+		return Connection(MySQLdb.connect(user=user, passwd=passwd, host=host, db=db, use_unicode=True, cursorclass=cursors.DictCursor))
 
 
 def main(args=None):
-	p = optparse.OptionParser(usage="usage: %prog [options] maintemplate [subtemplate1 subtemplate2 ...]")
-	p.add_option("-i", "--inputencoding", dest="inputencoding", help="Encoding for template sources", default="utf-8", metavar="ENCODING")
-	p.add_option("-o", "--outputencoding", dest="outputencoding", help="Encoding for output", default="utf-8", metavar="ENCODING")
+	p = argparse.ArgumentParser(description="render UL4 templates containing SQL statements", epilog="For more info see http://www.livinglogic.de/Python/scripts/db2ul4.html")
+	p.add_argument("templates", metavar="template", help="templates to be used", nargs="+")
+	p.add_argument("-i", "--inputencoding", dest="inputencoding", help="Encoding for template sources (default %(default)s)", default="utf-8", metavar="ENCODING")
+	p.add_argument("-o", "--outputencoding", dest="outputencoding", help="Encoding for output (default %(default)s)", default="utf-8", metavar="ENCODING")
 
-	(options, args) = p.parse_args(args)
-	if len(args) < 1:
-		p.error("incorrect number of arguments")
-		return 1
+	args = p.parse_args(args)
 
 	templates = {}
 	maintemplate = None
-	for templatename in args:
+	for templatename in args.templates:
 		if templatename == "-":
 			templatestream = sys.stdin
 			templatename = "stdin"
@@ -104,13 +197,21 @@ def main(args=None):
 			templatename = os.path.basename(templatename)
 			if os.path.extsep in templatename:
 				templatename = templatename.rpartition(os.extsep)[0]
-		template = ul4c.compile(templatestream.read().decode(options.inputencoding))
+		template = ul4c.Template(templatestream.read().decode(args.inputencoding), templatename)
+		# The first template is the main template
 		if maintemplate is None:
 			maintemplate = template
 		templates[templatename] = template
 
-	vars = dict(connect=Connect(), system=System(), encoding=options.outputencoding, templates=templates)
-	for part in codecs.iterencode(maintemplate.render(**vars), options.outputencoding):
+	vars = dict(
+		oracle=Oracle(),
+		sqlite=SQLite(),
+		mysql=MySQL(),
+		system=System(),
+		encoding=args.outputencoding,
+		templates=templates,
+	)
+	for part in codecs.iterencode(maintemplate.render(**vars), args.outputencoding):
 		sys.stdout.write(part)
 
 

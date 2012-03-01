@@ -48,8 +48,8 @@ XIST also includes the following modules and packages:
 *	:mod:`ll.ul4c` is compiler for a templating language with similar capabilities
 	to `Django's templating language`__. ``UL4`` templates are compiled to an
 	internal bytecode format, which makes it possible to implement template
-	renderers in other languages and makes the template code "secure" (i.e.
-	template code can't open or delete files).
+	renderers in other languages (Java and Javascript are supported) and makes
+	the template code "secure" (i.e. template code can't open or delete files).
 
 	__ http://www.djangoproject.com/documentation/templates/
 
@@ -163,7 +163,7 @@ RFC 2396
 HTTP
 FTP
 ssh
-py.execnet
+execnet
 
 # xml_codec
 XML
@@ -209,7 +209,7 @@ PL/SQL
 """
 
 try:
-	news = list(open("NEWS.rst", "r"))
+	news = list(open("NEWS.rst", "r", encoding="utf-8"))
 except IOError:
 	description = DESCRIPTION.strip()
 else:
@@ -217,28 +217,29 @@ else:
 	underlines = [i for (i, line) in enumerate(news) if line.startswith("---")]
 	news = news[underlines[0]-1:underlines[1]-1]
 	news = "".join(news)
-	descr = "%s\n\n\n%s" % (DESCRIPTION.strip(), news)
+	description = "{}\n\n\n{}".format(DESCRIPTION.strip(), news)
 
 	# Get rid of text roles PyPI doesn't know about
-	descr = re.subn(":[a-z]+:`([a-zA-Z0-9_.]+)`", "``\\1``", descr)[0]
+	description = re.subn(":[a-z]+:`([-a-zA-Z0-9_.]+)`", "``\\1``", description)[0]
 
 	# Expand tabs (so they won't show up as 8 spaces in the Windows installer)
-	descr = descr.expandtabs(2)
+	description = description.expandtabs(2)
 
 args = dict(
 	name="ll-xist",
-	version="3.7.7",
+	version="4.0",
 	description="Extensible HTML/XML generator, cross-platform templating language, Oracle utilities and various other tools",
-	long_description=descr,
+	long_description=description,
 	author="Walter Doerwald",
 	author_email="walter@livinglogic.de",
 	url="http://www.livinglogic.de/Python/xist/",
 	download_url="http://www.livinglogic.de/Python/Download.html#xist",
 	license="MIT",
-	classifiers=sorted(set(c for c in CLASSIFIERS.strip().splitlines() if c.strip() and not c.strip().startswith("#"))),
-	keywords=", ".join(sorted(set(k.strip() for k in KEYWORDS.strip().splitlines() if k.strip() and not k.strip().startswith("#")))),
+	classifiers=sorted({c for c in CLASSIFIERS.strip().splitlines() if c.strip() and not c.strip().startswith("#")}),
+	keywords=", ".join(sorted({k.strip() for k in KEYWORDS.strip().splitlines() if k.strip() and not k.strip().startswith("#")})),
 	package_dir={"": "src"},
 	packages=["ll", "ll.scripts", "ll.xist", "ll.xist.ns", "ll.xist.scripts", "ll.orasql", "ll.orasql.scripts"],
+	package_data={"ll.xist": ["data/js/*.js", "data/px/*.gif"]},
 	ext_modules=[
 		tools.Extension("ll._url", ["src/ll/_url.c"]),
 		tools.Extension("ll._ansistyle", ["src/ll/_ansistyle.c"]),
@@ -251,6 +252,7 @@ args = dict(
 			"uls = ll.scripts.uls:main",
 			"ucp = ll.scripts.ucp:main",
 			"ucat = ll.scripts.ucat:main",
+			"uhpp = ll.xist.scripts.uhpp:main",
 			"db2ul4 = ll.scripts.db2ul4:main",
 			"dtd2xsc = ll.xist.scripts.dtd2xsc:main",
 			"tld2xsc = ll.xist.scripts.tld2xsc:main",
@@ -269,6 +271,7 @@ args = dict(
 		"scripts/uls.py",
 		"scripts/ucp.py",
 		"scripts/ucat.py",
+		"scripts/uhpp.py",
 		"scripts/db2ul4.py",
 		"scripts/dtd2xsc.py",
 		"scripts/tld2xsc.py",
@@ -283,10 +286,10 @@ args = dict(
 		"scripts/orafind.py",
 	],
 	install_requires=[
-		"cssutils == 0.9.5.1",
+		"cssutils > 0.9.7, < 0.9.9",
 	],
 	extras_require = {
-		"oracle":  ["cx_Oracle >= 5.0.1"],
+		"oracle":  ["cx_Oracle >= 5.1, < 5.2"],
 	},
 	namespace_packages=["ll"],
 	zip_safe=False,

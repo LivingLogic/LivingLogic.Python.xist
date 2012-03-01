@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-## Copyright 1999-2010 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2010 by Walter Dörwald
+## Copyright 1999-2011 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2011 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -14,6 +14,7 @@ and classes for the XML declaration.
 """
 
 
+from ll import xml_codec
 from ll.xist import xsc, sims
 
 
@@ -26,7 +27,7 @@ xmlns = xsc.xml_xmlns
 class Attrs(xsc.Attrs):
 	class space(xsc.TextAttr):
 		xmlns = xmlns
-		values = (u"default", u"preserve")
+		values = ("default", "preserve")
 
 	class lang(xsc.TextAttr):
 		xmlns = xmlns
@@ -37,19 +38,26 @@ class Attrs(xsc.Attrs):
 
 class XML(xsc.ProcInst):
 	"""
-	XML declaration. The encoding will be automatically set when publishing
-	(by the XML codec).
+	XML declaration. The encoding will be automatically set when publishing.
 	"""
 	xmlname = "xml"
 
 	def __init__(self, version="1.0", encoding="utf-8", standalone=None):
 		v = []
-		v.append(u'version="%s"' % version) # According to http://www.w3.org/TR/2000/REC-xml-20001006#NT-XMLDecl version is required
+		v.append('version="{}"'.format(version)) # According to http://www.w3.org/TR/2000/REC-xml-20001006#NT-XMLDecl version is required
 		if encoding is not None:
-			v.append(u'encoding="%s"' % encoding)
+			v.append('encoding="{}"'.format(encoding))
 		if standalone is not None:
-			v.append(u'standalone="%s"' % ("yes" if standalone else "no"))
-		xsc.ProcInst.__init__(self, u" ".join(v))
+			v.append('standalone="{}"'.format("yes" if standalone else "no"))
+		xsc.ProcInst.__init__(self, " ".join(v))
+
+	def publish(self, publisher):
+		if publisher.validate:
+			self.checkvalid()
+		xml = "<?xml {}?>".format(self.content)
+		if publisher.encoding is not None:
+			xml = xml_codec._fixencoding(xml, str(publisher.encoding))
+		yield publisher.encode(xml)
 
 
 class XMLStyleSheet(xsc.ProcInst):
