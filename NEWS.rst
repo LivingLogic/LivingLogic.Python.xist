@@ -1,7 +1,7 @@
 Changes in 3.7.7 (released 03/01/2012)
 --------------------------------------
 
-*	Added the attributes ``allowFullScreen`` and ``flashvars`` to
+*	Added the attributes ``allowfullscreen`` and ``flashvars`` to
 	:class:`ll.xist.ns.html.embed`.
 
 
