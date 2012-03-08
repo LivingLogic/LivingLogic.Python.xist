@@ -1322,12 +1322,12 @@ class PythonSource(object):
 		self._line(opcode.location, "r{op.r1:d} = enumerate(r{op.r2:d})".format(op=opcode))
 	def _dispatch_callfunc1_enumfl(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = ul4c._enumfl(r{op.r2:d})".format(op=opcode))
-	def _dispatch_callfunc1_firstlast(self, opcode):
-		self._line(opcode.location, "r{op.r1:d} = ul4c._firstlast(r{op.r2:d})".format(op=opcode))
-	def _dispatch_callfunc1_first(self, opcode):
-		self._line(opcode.location, "r{op.r1:d} = ul4c._first(r{op.r2:d})".format(op=opcode))
-	def _dispatch_callfunc1_last(self, opcode):
-		self._line(opcode.location, "r{op.r1:d} = ul4c._last(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_isfirstlast(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = ul4c._isfirstlast(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_isfirst(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = ul4c._isfirst(r{op.r2:d})".format(op=opcode))
+	def _dispatch_callfunc1_islast(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = ul4c._islast(r{op.r2:d})".format(op=opcode))
 	def _dispatch_callfunc1_isnone(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d} is None".format(op=opcode))
 	def _dispatch_callfunc1_isstr(self, opcode):
@@ -1976,7 +1976,7 @@ class JavaSource(object):
 			raise UnknownFunctionError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callfunc1(self, opcode):
-		if opcode.arg in {"xmlescape", "csv", "repr", "enumerate", "first", "last", "enumfl", "chr", "ord", "hex", "oct", "bin", "sorted", "range", "type", "json", "reversed", "randrange", "randchoice", "abs", "str"}:
+		if opcode.arg in {"xmlescape", "csv", "repr", "enumerate", "isfirstlast", "isfirst", "islast", "enumfl", "chr", "ord", "hex", "oct", "bin", "sorted", "range", "type", "json", "reversed", "randrange", "randchoice", "abs", "str"}:
 			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "int":
 			self._do("r{op.r1} = com.livinglogic.ul4.Utils.toInteger(r{op.r2});".format(op=opcode))
@@ -3311,9 +3311,9 @@ def _enumfl(obj):
 		i += 1
 
 
-def _firstlast(obj):
+def _isfirstlast(obj):
 	"""
-	Helper for the ``firstlast`` function.
+	Helper for the ``isfirstlast`` function.
 	"""
 	lastitem = None
 	first = True
@@ -3333,9 +3333,9 @@ def _firstlast(obj):
 			first = False
 
 
-def _first(obj):
+def _isfirst(obj):
 	"""
-	Helper for the ``first`` function.
+	Helper for the ``isfirst`` function.
 	"""
 	first = True
 	for item in obj:
@@ -3343,9 +3343,9 @@ def _first(obj):
 		first = False
 
 
-def _last(obj):
+def _islast(obj):
 	"""
-	Helper for the ``last`` function.
+	Helper for the ``islast`` function.
 	"""
 	lastitem = None
 	it = iter(obj)

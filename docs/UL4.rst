@@ -626,17 +626,17 @@ is returned. If ``v`` is not given, it defaults to ``None``.
 or dictionary.
 
 
-``firstlast``
-:::::::::::::
+``isfirstlast``
+:::::::::::::::
 
 Iterates through items of the argument (which must be iterable, i.e. a string,
 a list or dictionary) and gives information about whether the item is the first
 and/or last in the iterable. For example the following code::
 
-	<?for (f, l, c) in firstlast("foo")?>
-		<?if f?>[<?end if?>
+	<?for (first, last, c) in isfirstlast("foo")?>
+		<?if first?>[<?end if?>
 		(<?print c?>)
-		<?if l?>]<?end if?>
+		<?if last?>]<?end if?>
 	<?end for?>
 
 prints::
@@ -644,15 +644,15 @@ prints::
 	[(f)(o)(o)]
 
 
-``first``
-:::::::::
+``isfirst``
+:::::::::::
 
 Iterates through items of the argument (which must be iterable, i.e. a string,
 a list or dictionary) and gives information about whether the item is the first
 in the iterable. For example the following code::
 
-	<?for (f, c) in first("foo")?>
-		<?if f?>[<?end if?>
+	<?for (first, c) in isfirst("foo")?>
+		<?if first?>[<?end if?>
 		(<?print c?>)
 	<?end for?>
 
@@ -661,16 +661,16 @@ prints::
 	[(f)(o)(o)
 
 
-``last``
-::::::::
+``islast``
+::::::::::
 
 Iterates through items of the argument (which must be iterable, i.e. a string,
 a list or dictionary) and gives information about whether the item is the last
 in the iterable. For example the following code::
 
-	<?for (l, c) in firstlast("foo")?>
+	<?for (last, c) in islast("foo")?>
 		(<?print c?>)
-		<?if l?>]<?end if?>
+		<?if last?>]<?end if?>
 	<?end for?>
 
 prints::
@@ -678,13 +678,13 @@ prints::
 	(f)(o)(o)]
 
 
-``enum``
-::::::::
+``enumerate``
+:::::::::::::
 
 Enumerates the items of the argument (which must be iterable, i.e. a string,
 a list or dictionary). For example the following code::
 
-	<?for (i, c) in enum("foo")?>
+	<?for (i, c) in enumerate("foo")?>
 		(<?print c?>=<?print i?>)
 	<?end for?>
 
@@ -696,15 +696,15 @@ prints::
 ``enumfl``
 ::::::::::
 
-This function is a combination of ``firstlast`` and ``enum``. It iterates
+This function is a combination of ``isfirstlast`` and ``enumerate``. It iterates
 through items of the argument (which must be iterable, i.e. a string, a list
 or dictionary) and gives information about whether the item is the first
 and/or last in the iterable and its position. For example the following code::
 
-	<?for (i, f, l, c) in enumfl("foo")?>
-		<?if f?>[<?end if?>
-		(<?print c?>=<?print i?>)
-		<?if l?>]<?end if?>
+	<?for (index, first, last, c) in enumfl("foo")?>
+		<?if first?>[<?end if?>
+		(<?print c?>=<?print index?>)
+		<?if last?>]<?end if?>
 	<?end for?>
 
 prints::

@@ -27,8 +27,8 @@ Changes in 4.0 (released ??/??/2012)
 *	The orasql script ``orafind`` no longer has an :option:`-e`/:option:`--encoding`
 	option.
 
-*	The following new functions have been added to UL4: ``first``, ``last``,
-	``firstlast``, ``enumfl``. They are variants of ``enumerate`` that give
+*	The following new functions have been added to UL4: ``isfirst``, ``islast``,
+	``isfirstlast``, ``enumfl``. They are variants of ``enumerate`` that give
 	information about whether the item is the first and/or last item.
 
 *	:class:`ll.orasql.LOBStream` has a new method :meth:`seek`.

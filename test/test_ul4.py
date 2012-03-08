@@ -1079,11 +1079,11 @@ def test_function_enumfl():
 
 
 @py.test.mark.ul4
-def test_function_firstlast():
-	code = "<?for (f, l, value) in firstlast(data)?><?if f?>[<?end if?>(<?print value?>)<?if l?>]<?end if?><?end for?>"
+def test_function_isfirstlast():
+	code = "<?for (f, l, value) in isfirstlast(data)?><?if f?>[<?end if?>(<?print value?>)<?if l?>]<?end if?><?end for?>"
 	for r in all_renderers:
-		yield raises, "firstlast.*unknown", r("<?print firstlast()?>")
-		yield raises, "firstlast.*unknown", r("<?print firstlast(1, 2)?>")
+		yield raises, "isfirstlast.*unknown", r("<?print isfirstlast()?>")
+		yield raises, "isfirstlast.*unknown", r("<?print isfirstlast(1, 2)?>")
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=None)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=True)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=False)
@@ -1096,11 +1096,11 @@ def test_function_firstlast():
 
 
 @py.test.mark.ul4
-def test_function_first():
-	code = "<?for (f, value) in first(data)?><?if f?>[<?end if?>(<?print value?>)<?end for?>"
+def test_function_isfirst():
+	code = "<?for (f, value) in isfirst(data)?><?if f?>[<?end if?>(<?print value?>)<?end for?>"
 	for r in all_renderers:
-		yield raises, "first.*unknown", r("<?print first()?>")
-		yield raises, "first.*unknown", r("<?print first(1, 2)?>")
+		yield raises, "isfirst.*unknown", r("<?print isfirst()?>")
+		yield raises, "isfirst.*unknown", r("<?print isfirst(1, 2)?>")
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=None)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=True)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=False)
@@ -1113,11 +1113,11 @@ def test_function_first():
 
 
 @py.test.mark.ul4
-def test_function_last():
-	code = "<?for (l, value) in last(data)?>(<?print value?>)<?if l?>]<?end if?><?end for?>"
+def test_function_islast():
+	code = "<?for (l, value) in islast(data)?>(<?print value?>)<?if l?>]<?end if?><?end for?>"
 	for r in all_renderers:
-		yield raises, "last.*unknown", r("<?print last()?>")
-		yield raises, "last.*unknown", r("<?print last(1, 2)?>")
+		yield raises, "islast.*unknown", r("<?print islast()?>")
+		yield raises, "islast.*unknown", r("<?print islast(1, 2)?>")
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=None)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=True)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=False)

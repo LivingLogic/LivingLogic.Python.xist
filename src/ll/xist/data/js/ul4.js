@@ -784,7 +784,7 @@ var ul4 = {
 		return result;
 	},
 
-	_fu_first: function(obj)
+	_fu_isfirst: function(obj)
 	{
 		var iter = this._iter(obj);
 		var isfirst = true;
@@ -799,7 +799,7 @@ var ul4 = {
 		return result;
 	},
 
-	_fu_last: function(obj)
+	_fu_islast: function(obj)
 	{
 		var iter = this._iter(obj);
 		var lastitem = iter();
@@ -816,7 +816,7 @@ var ul4 = {
 		return result;
 	},
 
-	_fu_firstlast: function(obj)
+	_fu_isfirstlast: function(obj)
 	{
 		var iter = this._iter(obj);
 		var isfirst = true;
