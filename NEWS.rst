@@ -39,8 +39,11 @@ Changes in 4.0 (released ??/??/2012)
 *	Added the attributes ``allowfullscreen`` and ``flashvars`` to
 	:class:`ll.xist.ns.html.embed`.
 
-*	The :meth:`isdir` method now allows returns ``False`` for real (i.e.
-	non-file or ssh) URLs.
+*	The :meth:`isdir` method now always returns ``False`` for real (i.e.
+	non-file or ssh) URLs. This allows stuff like::
+
+		ucp http://www.python.org/ftp/python/2.7.2/Python-2.7.2.tar.bz2 \
+		    ssh://user@www.example.org/~/src/
 
 
 Changes in 3.25 (released 08/12/2011)
