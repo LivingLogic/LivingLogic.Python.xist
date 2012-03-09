@@ -180,7 +180,7 @@ def test_readline():
 	def check(u, firstline):
 		with context:
 			u = url.URL(u)
-			r = u.open("r", encoding="utf-8")
+			r = u.open(mode="r", encoding="utf-8")
 			canseektell = hasattr(r, "tell") and hasattr(r, "seek")
 			assert r.readline() == firstline
 			if canseektell:
