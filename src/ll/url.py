@@ -1234,6 +1234,7 @@ class FileResource(Resource):
 
 	def __iter__(self):
 		return iter(self.file)
+
 	def size(self):
 		# Forward to the connection
 		return LocalSchemeDefinition._connection.size(self.url)
