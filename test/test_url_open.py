@@ -107,7 +107,7 @@ def test_chown():
 		with context:
 			u1 = url.URL(u1)
 			u2 = url.URL(u2)
-			r = u1.open(mode="wb")
+			r = u1.open("wb")
 			try:
 				try:
 					r.write(b"foo")
@@ -144,7 +144,7 @@ def test_size():
 	def check(u):
 		with context:
 			u = url.URL(u)
-			assert len(u.open(mode="rb").read()) == u.open(mode="rb").size() == u.size() == 601
+			assert len(u.open("rb").read()) == u.open("rb").size() == u.size() == 601
 
 	yield check, "~/checkouts/LivingLogic.Python.WWW/site/images/favicon.gif"
 	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/images/favicon.gif"
@@ -180,7 +180,7 @@ def test_readline():
 	def check(u, firstline):
 		with context:
 			u = url.URL(u)
-			r = u.open(mode="rb")
+			r = u.open("rb")
 			canseektell = hasattr(r, "tell") and hasattr(r, "seek")
 			if canseektell:
 				try:
@@ -194,12 +194,12 @@ def test_readline():
 				assert r.readline() == firstline
 				r.seek(0)
 			else:
-				r = u.open(mode="rb") # reopen
+				r = u.open("rb") # reopen
 			assert r.read(len(firstline)) == firstline
 			if canseektell:
 				r.seek(0)
 			else:
-				r = u.open(mode="rb") # reopen
+				r = u.open("rb") # reopen
 			assert r.read().startswith(firstline)
 
 	yield check, __file__.rstrip("c"), b"#!/usr/bin/env python\n"
@@ -212,7 +212,7 @@ def test_iter():
 	def check(u, firstline):
 		with context:
 			u = url.URL(u)
-			r = u.open(mode="rb")
+			r = u.open("rb")
 			assert next(iter(r)) == firstline
 			list(r)
 
@@ -242,7 +242,7 @@ def test_seek_tell():
 	def check(u):
 		with context:
 			u = url.URL(u)
-			r = u.open(mode="rb")
+			r = u.open("rb")
 			r.read()
 			assert r.tell() == 601
 			r.seek(0)
@@ -267,12 +267,12 @@ def test_truncate():
 		with context:
 			u = url.URL(u)/"foo"
 			try:
-				r = u.open(mode="wb")
+				r = u.open("wb")
 				r.write(b"testing...")
 				r.seek(-3, os.SEEK_CUR)
 				r.truncate()
 				r.close()
-				assert u.open(mode="rb").read() == b"testing"
+				assert u.open("rb").read() == b"testing"
 			finally:
 				u.remove()
 

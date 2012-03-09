@@ -644,8 +644,8 @@ class LocalConnection(Connection):
 	def walkdirs(self, url, pattern=None):
 		return self._walk(self._url2filename(url), "", pattern, (False, True))
 
-	def open(self, url, **kwargs):
-		return FileResource(url, **kwargs)
+	def open(self, url, *args, **kwargs):
+		return FileResource(url, *args, **kwargs)
 
 
 class SshConnection(Connection):
@@ -1211,19 +1211,19 @@ class FileResource(Resource):
 	"""
 	A subclass of :class:`Resource` that handles local files.
 	"""
-	def __init__(self, url, *args, **kwargs):
+	def __init__(self, url, mode="rb", *args, **kwargs):
 		url = URL(url)
-		name = os.path.expanduser(url.local())
+		self.name = os.path.expanduser(url.local())
+		self.mode = mode
 		try:
-			file = open(name, *args, **kwargs)
+			file = open(self.name, mode, *args, **kwargs)
 		except IOError as exc:
-			mode = args[0] if args else kwargs.get("mode", "rb")
 			if "w" not in mode or exc.errno != 2: # didn't work for some other reason than a non existing directory
 				raise
 			(splitpath, splitname) = os.path.split(name)
 			if splitpath:
 				os.makedirs(splitpath)
-				file = open(name, *args, **kwargs)
+				file = open(self.name, *args, **kwargs)
 			else:
 				raise # we don't have a directory to make so pass the error on
 		self.file = file
@@ -1252,15 +1252,19 @@ class RemoteFileResource(Resource):
 	A subclass of :class:`Resource` that handles remote files (those using
 	the ``ssh`` scheme).
 	"""
-	def __init__(self, connection, url, *args, **kwargs):
+	def __init__(self, connection, url, mode="rb", *args, **kwargs):
 		self.connection = connection
 		self.url = URL(url)
+		self.mode = mode
 		self.args = args
 		self.kwargs = kwargs
 		self.closed = False
 		filename = self.connection._url2filename(url)
 		self.name = str(self.url)
-		self.remoteid = self._send(filename, "open", *args, **kwargs)
+		self.remoteid = self._send(filename, "open", mode, *args, **kwargs)
+
+	def __repr__(self):
+		return "<{0} {1.__class__.__module__}.{1.__class__.__name__} {1.name}, mode {1.mode} at {3:#x}>".format("closed" if self.closed else "open", self, id(self))
 
 	def _send(self, filename, cmd, *args, **kwargs):
 		if self.closed:
@@ -1528,7 +1532,7 @@ class SshSchemeDefinition(SchemeDefinition):
 		return (connection, kwargs)
 
 	def open(self, url, mode="rb", context=None, remotepython=None, nice=None):
-		(connection, kwargs) = self._connect(url, context, remotepython=remotepython, nice=nice)
+		(connection, kwargs) = self._connect(url, context=context, remotepython=remotepython, nice=nice)
 		return RemoteFileResource(connection, url, mode, **kwargs)
 
 	def closeall(self, context):
@@ -2720,7 +2724,7 @@ class URL(object):
 		"""
 		return self._connect(context, **kwargs)[0]
 
-	def open(self, context=None, *args, **kwargs):
+	def open(self, *args, **kwargs):
 		"""
 		Open :var:`self` for reading or writing. :meth:`open` returns a
 		:class:`Resource` object.
@@ -2750,14 +2754,17 @@ class URL(object):
 			:var:`nice`
 				Nice level for the remove python (used by ``ssh`` URLs)
 		"""
-		(connection, kwargs) = self._connect(context=context, **kwargs)
+		(connection, kwargs) = self._connect(**kwargs)
+		if "context" in kwargs:
+			kwargs = kwargs.copy()
+			del kwargs["context"]
 		return connection.open(self, *args, **kwargs)
 
-	def openread(self, context=None, *args, **kwargs):
-		return self.open(context, mode="rb", *args, **kwargs)
+	def openread(self, *args, **kwargs):
+		return self.open(mode="rb", *args, **kwargs)
 
-	def openwrite(self, context=None, *args, **kwargs):
-		return self.open(context, mode="wb", *args, **kwargs)
+	def openwrite(self, *args, **kwargs):
+		return self.open(mode="wb", *args, **kwargs)
 
 	def __getattr__(self, name):
 		"""
