@@ -263,11 +263,11 @@ def test_truncate():
 			u = url.URL(u)/"foo"
 			try:
 				r = u.open("wb")
-				r.write("testing...")
+				r.write(b"testing...")
 				r.seek(-3, os.SEEK_CUR)
 				r.truncate()
 				r.close()
-				assert u.open().read() == "testing"
+				assert u.open("rb").read() == b"testing"
 			finally:
 				u.remove()
 
