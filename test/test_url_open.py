@@ -310,7 +310,7 @@ def test_group():
 			assert u.stat().st_gid == u.gid()
 
 	yield check, __file__, "users", "staff", "walter"
-	yield check, "/", "root", "admin"
+	yield check, "/", "root", "admin", "wheel"
 	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", "livpython"
 
 
