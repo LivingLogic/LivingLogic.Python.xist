@@ -9,7 +9,7 @@
 ## See ll/__init__.py for the license
 
 
-import os, datetime
+import io, os, datetime
 
 from ll import url
 
@@ -107,7 +107,7 @@ def test_chown():
 		with context:
 			u1 = url.URL(u1)
 			u2 = url.URL(u2)
-			r = u1.open("wb")
+			r = u1.open(mode="wb")
 			try:
 				try:
 					r.write("foo")
@@ -144,7 +144,7 @@ def test_size():
 	def check(u):
 		with context:
 			u = url.URL(u)
-			assert len(u.open().read()) == u.open().size() == u.size() == 601
+			assert len(u.open(mode="rb").read()) == u.open(mode="rb").size() == u.size() == 601
 
 	yield check, "~/checkouts/LivingLogic.Python.WWW/site/images/favicon.gif"
 	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/images/favicon.gif"
@@ -180,8 +180,13 @@ def test_readline():
 	def check(u, firstline):
 		with context:
 			u = url.URL(u)
-			r = u.open(mode="r", encoding="utf-8")
+			r = u.open(mode="rb")
 			canseektell = hasattr(r, "tell") and hasattr(r, "seek")
+			if canseektell:
+				try:
+					r.tell()
+				except io.UnsupportedOperation:
+					canseektell = False
 			assert r.readline() == firstline
 			if canseektell:
 				assert r.tell() == len(firstline)
@@ -189,17 +194,17 @@ def test_readline():
 				assert r.readline() == firstline
 				r.seek(0)
 			else:
-				r = u.open("r", encoding="utf-8") # reopen
+				r = u.open(mode="rb") # reopen
 			assert r.read(len(firstline)) == firstline
 			if canseektell:
 				r.seek(0)
 			else:
-				r = u.open("r", encoding="utf-8") # reopen
+				r = u.open(mode="rb") # reopen
 			assert r.read().startswith(firstline)
 
-	yield check, __file__.rstrip("c"), "#!/usr/bin/env python\n"
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", "#! /usr/bin/env python\n"
-	yield check, "http://www.livinglogic.de/Python/", '<?xml version="1.0" encoding="utf-8"?>\n'
+	yield check, __file__.rstrip("c"), b"#!/usr/bin/env python\n"
+	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", b"#! /usr/bin/env python\n"
+	yield check, "http://www.livinglogic.de/Python/", b'<?xml version="1.0" encoding="utf-8"?>\n'
 
 
 def test_iter():
@@ -207,13 +212,13 @@ def test_iter():
 	def check(u, firstline):
 		with context:
 			u = url.URL(u)
-			r = u.open()
-			assert next(r) == firstline
+			r = u.open(mode="rb")
+			assert next(iter(r)) == firstline
 			list(r)
 
-	yield check, __file__.rstrip("c"), "#!/usr/bin/env python\n"
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", "#! /usr/bin/env python\n"
-	yield check, "http://www.livinglogic.de/Python/", '<?xml version="1.0" encoding="utf-8"?>\n'
+	yield check, __file__.rstrip("c"), b"#!/usr/bin/env python\n"
+	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", b"#! /usr/bin/env python\n"
+	yield check, "http://www.livinglogic.de/Python/", b'<?xml version="1.0" encoding="utf-8"?>\n'
 
 
 def test_autocreate_dir():

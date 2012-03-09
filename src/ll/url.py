@@ -828,9 +828,13 @@ class SshConnection(Connection):
 					except StopIteration:
 						del iterators[filename]
 						raise
+				elif cmdname == "next":
+					data = next(files[filename])
 				else:
 					data = getattr(files[filename], cmdname)
 					data = data(*args, **kwargs)
+			except StopIteration as exc:
+				channel.send((True, pickle.dumps(exc)))
 			except Exception as exc:
 				if exc.__class__.__module__ != "exceptions":
 					raise
@@ -1006,13 +1010,13 @@ class URLConnection(Connection):
 		return url.open().size()
 
 	def imagesize(self, url):
-		return url.open().imagesize()
+		return url.open(mode="rb").imagesize()
 
 	def mdate(self, url):
-		return url.open().mdate()
+		return url.open(mode="rb").mdate()
 
 	def resheaders(self, url):
-		return url.open().resheaders()
+		return url.open(mode="rb").resheaders()
 
 	def isdir(self, url):
 		# URLs never are directories (even if they might be (for URLs ending in ``/``), there's no way to call :meth:`listdir`)
@@ -1228,6 +1232,8 @@ class FileResource(Resource):
 	def __getattr__(self, name):
 		return getattr(self.file, name)
 
+	def __iter__(self):
+		return iter(self.file)
 	def size(self):
 		# Forward to the connection
 		return LocalSchemeDefinition._connection.size(self.url)
@@ -1371,9 +1377,6 @@ class URLResource(Resource):
 			self._stream = None
 			self.closed = True
 
-	def __iter__(self):
-		return iter(self._stream)
-
 	def finalurl(self):
 		return self._finalurl
 
@@ -1408,7 +1411,7 @@ class URLResource(Resource):
 		return self._buffer.getvalue()
 
 	def imagesize(self):
-		img = Image.open(io.StringIO(self.resdata())) # Requires PIL
+		img = Image.open(io.BytesIO(self.resdata())) # Requires PIL
 		return img.size
 
 	def __iter__(self):
