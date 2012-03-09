@@ -535,5 +535,5 @@ def test_walk():
 def test_ssh_params():
 	with context:
 		u = url.URL("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/")
-		assert u.isdir(remotepython="python2.5") is True
+		assert u.isdir(remotepython="/usr/local/bin/python3.2") is True
 		assert u.isdir(nice=20) is True

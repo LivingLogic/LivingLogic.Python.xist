@@ -650,7 +650,8 @@ class LocalConnection(Connection):
 
 class SshConnection(Connection):
 	remote_code = """
-		import os, urllib.request, pickle, fnmatch
+		import os, pickle, fnmatch
+		from urllib import request
 
 		files = {}
 		iterators = {}
@@ -685,7 +686,7 @@ class SshConnection(Connection):
 				relchildname = os.path.join(name, childname)
 				isdir = os.path.isdir(ful4childname)
 				if (pattern is None or fnmatch.fnmatch(childname, pattern)) and which[isdir]:
-					url = urllib.pathname2url(relchildname)
+					url = request.pathname2url(relchildname)
 					if isdir:
 						url += "/"
 					yield url
@@ -705,7 +706,7 @@ class SshConnection(Connection):
 		while True:
 			(filename, cmdname, args, kwargs) = channel.receive()
 			if isinstance(filename, str):
-				filename = os.path.expanduser(urllib.request.url2pathname(filename))
+				filename = os.path.expanduser(request.url2pathname(filename))
 			data = None
 			try:
 				if cmdname == "open":
@@ -823,7 +824,7 @@ class SshConnection(Connection):
 					iterators[data] = iterator
 				elif cmdname == "iteratornext":
 					try:
-						data = iterators[filename].next()
+						data = next(iterators[filename])
 					except StopIteration:
 						del iterators[filename]
 						raise
@@ -860,9 +861,7 @@ class SshConnection(Connection):
 
 	def _send(self, filename, cmd, *args, **kwargs):
 		if self._channel is None:
-			server = "ssh={}".format(self.server)
-			if self.remotepython is not None:
-				server += "//python={}".format(self.remotepython)
+			server = "ssh={}//python={}".format(self.server, self.remotepython if self.remotepython is not None else "python3")
 			if self.nice is not None:
 				server += "//nice={}".format(self.nice)
 			gateway = execnet.makegateway(server) # This requires ``execnet`` (http://codespeak.net/execnet/)
