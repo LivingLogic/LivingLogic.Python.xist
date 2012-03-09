@@ -237,7 +237,7 @@ def test_seek_tell():
 	def check(u):
 		with context:
 			u = url.URL(u)
-			r = u.open()
+			r = u.open(mode="r")
 			r.read()
 			assert r.tell() == 601
 			r.seek(0)
@@ -262,12 +262,12 @@ def test_truncate():
 		with context:
 			u = url.URL(u)/"foo"
 			try:
-				r = u.open("wb")
+				r = u.open(mode="wb")
 				r.write(b"testing...")
 				r.seek(-3, os.SEEK_CUR)
 				r.truncate()
 				r.close()
-				assert u.open("rb").read() == b"testing"
+				assert u.open(mode="rb").read() == b"testing"
 			finally:
 				u.remove()
 
