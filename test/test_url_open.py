@@ -180,7 +180,7 @@ def test_readline():
 	def check(u, firstline):
 		with context:
 			u = url.URL(u)
-			r = u.open()
+			r = u.open("r", encoding="utf-8")
 			canseektell = hasattr(r, "tell") and hasattr(r, "seek")
 			assert r.readline() == firstline
 			if canseektell:
@@ -189,12 +189,12 @@ def test_readline():
 				assert r.readline() == firstline
 				r.seek(0)
 			else:
-				r = u.open() # reopen
+				r = u.open("r", encoding="utf-8") # reopen
 			assert r.read(len(firstline)) == firstline
 			if canseektell:
 				r.seek(0)
 			else:
-				r = u.open() # reopen
+				r = u.open("r", encoding="utf-8") # reopen
 			assert r.read().startswith(firstline)
 
 	yield check, __file__.rstrip("c"), "#!/usr/bin/env python\n"
