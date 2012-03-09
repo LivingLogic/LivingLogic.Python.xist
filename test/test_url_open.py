@@ -89,7 +89,7 @@ def test_chmod():
 			r = u.open("wb")
 			try:
 				try:
-					r.write("testing ...")
+					r.write(b"testing ...")
 				finally:
 					r.close()
 				u.chmod(0o444)
@@ -110,7 +110,7 @@ def test_chown():
 			r = u1.open(mode="wb")
 			try:
 				try:
-					r.write("foo")
+					r.write(b"foo")
 				finally:
 					r.close()
 				try:
