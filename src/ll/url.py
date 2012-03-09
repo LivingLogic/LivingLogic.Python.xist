@@ -179,7 +179,7 @@ class Context(object):
 		self.prev = threadlocalcontext.context
 		threadlocalcontext.context = self
 
-	def __exit__(self, type, value, traceback):
+	def __exit__(self, *exc_info):
 		threadlocalcontext.context = self.prev
 		del self.prev
 		self.closeall()
