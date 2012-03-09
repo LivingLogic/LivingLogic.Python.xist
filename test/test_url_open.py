@@ -237,7 +237,7 @@ def test_seek_tell():
 	def check(u):
 		with context:
 			u = url.URL(u)
-			r = u.open(mode="r")
+			r = u.open(mode="rb")
 			r.read()
 			assert r.tell() == 601
 			r.seek(0)
@@ -250,7 +250,7 @@ def test_seek_tell():
 			assert r.tell() == 500
 			r.seek(101, os.SEEK_CUR)
 			assert r.tell() == 601
-			assert r.read() == ""
+			assert r.read() == b""
 
 	yield check, "~/checkouts/LivingLogic.Python.WWW/site/images/favicon.gif"
 	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/images/favicon.gif"
