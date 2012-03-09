@@ -1203,8 +1203,14 @@ class Resource(object):
 		self.seek(pos)
 		return imagesize
 
+	def __enter__(self):
+		return self
+
+	def __exit__(self, *exc_info):
+		self.close()
+
 	def __repr__(self):
-		return "<{0} {1.__class__.__module__}.{1.__class__.__name__} {1.name}, mode {1.mode} at {2:#x}>".format("closed" if self.closed else "open", self, id(self))
+		return "<{0} {1.__class__.__module__}.{1.__class__.__name__} {1.name}, mode {1.mode!r} at {2:#x}>".format("closed" if self.closed else "open", self, id(self))
 
 
 class FileResource(Resource):
@@ -1234,6 +1240,10 @@ class FileResource(Resource):
 
 	def __iter__(self):
 		return iter(self.file)
+
+	def close(self):
+		if not self.file.closed:
+			self.file.close()
 
 	def size(self):
 		# Forward to the connection
@@ -1265,7 +1275,7 @@ class RemoteFileResource(Resource):
 		self.remoteid = self._send(filename, "open", mode, *args, **kwargs)
 
 	def __repr__(self):
-		return "<{0} {1.__class__.__module__}.{1.__class__.__name__} {1.name}, mode {1.mode} at {3:#x}>".format("closed" if self.closed else "open", self, id(self))
+		return "<{0} {1.__class__.__module__}.{1.__class__.__name__} {1.name}, mode {1.mode!r} at {2:#x}>".format("closed" if self.closed else "open", self, id(self))
 
 	def _send(self, filename, cmd, *args, **kwargs):
 		if self.closed:
