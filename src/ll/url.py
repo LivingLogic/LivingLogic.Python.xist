@@ -38,7 +38,8 @@ These three levels of functionality are implemented in three classes:
 
 import sys, os, urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, types, mimetypes, io, warnings
 import datetime, cgi, fnmatch, pickle, errno, threading
-from email import message, utils
+import email
+from email import utils
 
 # don't fail when :mod:`pwd` or :mod:`grp` can't be imported, because if this
 # doesn't work, we're probably on Windows and :func:`os.chown` won't work anyway.
@@ -347,7 +348,7 @@ class Connection(object):
 		"""
 		Return the MIME headers for the file/resource :var:`url`.
 		"""
-		return message.Message(io.StringIO("Content-Type: {}\nContent-Length: {}\nLast-modified: {}\n".format(self.mimetype(url), self.size(url), httpdate(self.mdate(url)))))
+		return email.message_from_string("Content-Type: {}\nContent-Length: {}\nLast-modified: {}\n".format(self.mimetype(url), self.size(url), httpdate(self.mdate(url))))
 
 	@misc.notimplemented
 	def remove(self, url):
