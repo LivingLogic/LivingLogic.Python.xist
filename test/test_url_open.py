@@ -32,7 +32,7 @@ def test_rename():
 			u2 = u/"foo"
 			r = u2.open("wb")
 			try:
-				r.write("testing...")
+				r.write(b"testing...")
 				r.close()
 				assert u2.exists()
 			finally:
