@@ -16,18 +16,10 @@ from ll import url
 import py.test
 
 
-def setup_module(module):
-	module.context = url.Context()
-
-
-def teardown_module(module):
-	del module.context
-
-
 def test_rename():
 	@py.test.mark.net
 	def check(u):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			u2 = u/"foo"
 			r = u2.open("wb")
@@ -47,7 +39,7 @@ def test_rename():
 def test_link():
 	@py.test.mark.net
 	def check(u):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			u2 = u/"foo"
 			try:
@@ -66,7 +58,7 @@ def test_link():
 def test_symlink():
 	@py.test.mark.net
 	def check(u):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			u2 = u/"foo"
 			try:
@@ -84,7 +76,7 @@ def test_symlink():
 def test_chmod():
 	@py.test.mark.net
 	def check(u):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			r = u.open("wb")
 			try:
@@ -104,7 +96,7 @@ def test_chmod():
 def test_chown():
 	@py.test.mark.net
 	def check(u1, u2, owner, group):
-		with context:
+		with url.Context():
 			u1 = url.URL(u1)
 			u2 = url.URL(u2)
 			r = u1.open("wb")
@@ -142,7 +134,7 @@ def test_chown():
 def test_size():
 	@py.test.mark.net
 	def check(u):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			assert len(u.open("rb").read()) == u.open("rb").size() == u.size() == 601
 
@@ -154,7 +146,7 @@ def test_size():
 def test_imagesize():
 	@py.test.mark.net
 	def check(u):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			assert u.imagesize() == (16, 16)
 
@@ -166,7 +158,7 @@ def test_imagesize():
 def test_mimetype():
 	@py.test.mark.net
 	def check(u, mt):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			assert u.mimetype() == u.open().mimetype() == mt
 
@@ -178,7 +170,7 @@ def test_mimetype():
 def test_readline():
 	@py.test.mark.net
 	def check(u, firstline):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			r = u.open("rb")
 			canseektell = hasattr(r, "tell") and hasattr(r, "seek")
@@ -210,7 +202,7 @@ def test_readline():
 def test_iter():
 	@py.test.mark.net
 	def check(u, firstline):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			r = u.open("rb")
 			assert next(iter(r)) == firstline
@@ -224,7 +216,7 @@ def test_iter():
 def test_autocreate_dir():
 	@py.test.mark.net
 	def check(u):
-		with context:
+		with url.Context():
 			try:
 				u = url.URL(u)
 				with u.openwrite() as f:
@@ -240,7 +232,7 @@ def test_autocreate_dir():
 def test_seek_tell():
 	@py.test.mark.net
 	def check(u):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			r = u.open("rb")
 			r.read()
@@ -264,7 +256,7 @@ def test_seek_tell():
 def test_truncate():
 	@py.test.mark.net
 	def check(u):
-		with context:
+		with url.Context():
 			u = url.URL(u)/"foo"
 			try:
 				r = u.open("wb")
@@ -283,7 +275,7 @@ def test_truncate():
 def test_owner():
 	@py.test.mark.net
 	def check(u, owner):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			assert u.owner() == owner
 			assert u.stat().st_uid == u.uid()
@@ -296,7 +288,7 @@ def test_owner():
 def test_stat():
 	@py.test.mark.net
 	def check(u):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			stat = u.stat()
 			assert stat.st_size > 1000
@@ -309,7 +301,7 @@ def test_stat():
 def test_group():
 	@py.test.mark.net
 	def check(u, *groups):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			assert u.group() in groups
 			assert u.stat().st_gid == u.gid()
@@ -322,7 +314,7 @@ def test_group():
 def test_cdate():
 	@py.test.mark.net
 	def check(u, *args):
-		with context:
+		with url.Context():
 			assert url.URL(u).cdate() >= datetime.datetime(*args)
 
 	yield check, __file__.rstrip("c"), 2006, 10, 24
@@ -332,7 +324,7 @@ def test_cdate():
 def test_mdate():
 	@py.test.mark.net
 	def check(u, *args):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			assert u.mdate() == u.open().mdate() >= datetime.datetime(*args)
 
@@ -344,7 +336,7 @@ def test_mdate():
 def test_adate():
 	@py.test.mark.net
 	def check(u, *args):
-		with context:
+		with url.Context():
 			assert url.URL(u).adate() >= datetime.datetime(*args)
 
 	yield check, __file__.rstrip("c"), 2006, 10, 24
@@ -354,7 +346,7 @@ def test_adate():
 def test_exists():
 	@py.test.mark.net
 	def check(u, exists):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			assert u.exists() == exists
 
@@ -368,7 +360,7 @@ def test_exists():
 def test_isfile():
 	@py.test.mark.net
 	def check(u, isfile):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			assert u.isfile() == isfile
 
@@ -384,7 +376,7 @@ def test_isfile():
 def test_isdir():
 	@py.test.mark.net
 	def check(u, isdir):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			assert u.isdir() == isdir
 
@@ -400,7 +392,7 @@ def test_isdir():
 def test_islink():
 	@py.test.mark.net
 	def check(u, islink):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			assert u.islink() == islink
 
@@ -413,7 +405,7 @@ def test_islink():
 def test_ismount():
 	@py.test.mark.net
 	def check(u, ismount):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			assert u.ismount() == ismount
 
@@ -428,7 +420,7 @@ def test_ismount():
 def test_access():
 	@py.test.mark.net
 	def check(u, mode, result):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			assert u.access(mode) == result
 
@@ -441,7 +433,7 @@ def test_access():
 def test_resheaders():
 	@py.test.mark.net
 	def check(u, headers):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			realheaders = u.resheaders()
 			for (k, v) in headers.items():
@@ -455,7 +447,7 @@ def test_resheaders():
 def test_resdata():
 	@py.test.mark.net
 	def check(u, firstline):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			realdata = u.open("rb").resdata()
 			assert realdata.splitlines(True)[0] == firstline
@@ -466,7 +458,7 @@ def test_resdata():
 def test_mkdir_rmdir():
 	@py.test.mark.net
 	def check(u):
-		with context:
+		with url.Context():
 			u = url.URL(u)/"foo/"
 			u.mkdir(0o755)
 			try:
@@ -482,7 +474,7 @@ def test_mkdir_rmdir():
 def test_makedirs():
 	@py.test.mark.net
 	def check(u):
-		with context:
+		with url.Context():
 			u = url.URL(u)/"foo/bar/"
 			u.makedirs(0o755)
 			try:
@@ -499,7 +491,7 @@ def test_makedirs():
 def test_dir():
 	@py.test.mark.net
 	def check(u, pu, isfile):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			pu = url.URL(pu)
 			assert u in pu.listdir()
@@ -519,7 +511,7 @@ def test_dir():
 def test_walk():
 	@py.test.mark.net
 	def check(u, pu, isfile):
-		with context:
+		with url.Context():
 			u = url.URL(u)
 			pu = url.URL(pu)
 			assert any(u==wu for wu in pu.walk())
@@ -538,7 +530,7 @@ def test_walk():
 
 @py.test.mark.net
 def test_ssh_params():
-	with context:
+	with url.Context():
 		u = url.URL("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/")
 		assert u.isdir(remotepython="/usr/local/bin/python3.2") is True
 		assert u.isdir(nice=20) is True
