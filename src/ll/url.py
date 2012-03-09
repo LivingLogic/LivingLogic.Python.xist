@@ -1014,6 +1014,10 @@ class URLConnection(Connection):
 	def resheaders(self, url):
 		return url.open().resheaders()
 
+	def isdir(self, url):
+		# URLs never are directories (even if they might be (for URLs ending in ``/``), there's no way to call :meth:`listdir`)
+		return False
+
 	def open(self, url, mode="rb", headers=None, data=None):
 		if mode != "rb":
 			raise NotImplementedError("mode {0!r} not supported".format(mode))
