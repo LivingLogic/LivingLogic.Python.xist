@@ -1742,7 +1742,7 @@ class JavaSource(object):
 				lastloc = opcode.location
 				(line, col) = lastloc.pos()
 				tag = lastloc.tag
-				self._do("/* <?{}?> tag at position {} (line {}, col {}, template {}): {} */".format(lastloc.type, lastloc.starttag+1, line, col, lastloc.name, repr(tag)[1+isinstance(tag, str):-1]))
+				self._do("/* <?{}?> tag at position {} (line {}, col {}, template {}): {} */".format(lastloc.type, lastloc.starttag+1, line, col, lastloc.name, repr(tag)[1:-1]))
 			try:
 				getattr(self, "_dispatch_{}".format(opcode.code))(opcode)
 			except AttributeError:
