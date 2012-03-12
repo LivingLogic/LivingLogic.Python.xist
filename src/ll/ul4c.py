@@ -553,7 +553,7 @@ class Opcode(object):
 			"callmeth3": "r{op.r1!r} = r{op.r3!r}.{op.arg}(r{op.r3!r}, r{op.r4!r}, r{op.r5!r})",
 			"callmethkw": "r{op.r1!r} = r{op.r2!r}.{op.arg}(**r{op.r3!r})",
 			"render": "render r{op.r1!r}(r{op.r2!r})",
-			"def": "def {op.arg}(vars)",
+			"def": "def {op.arg}(**vars)",
 			"enddef": "endfor",
 		}
 		try:
