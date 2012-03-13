@@ -9,8 +9,6 @@
 ## See ll/__init__.py for the license
 
 
-
-
 import sys, os, re, datetime, io, json, contextlib, tempfile, collections, shutil, subprocess, pkg_resources
 
 import py.test
