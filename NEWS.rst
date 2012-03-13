@@ -16,14 +16,18 @@ Changes in 4.0 (released ??/??/2012)
 	This change has one visible result: :class:`ll.xist.parse.Tidy` objects now
 	emit namespaced events.
 
+*	Generating the final Javascript source code for UL4 templates is now done in
+	Javascript itself.
+
+*	A new module :mod:`ul4on` has been added. This module provides function for
+	encoding and decoding a lightweight machine-readable formaat for serializing
+	the object types supported by UL4.
+
 *	The XIST node method :meth:`sorted` has been removed, as it no longer makes
 	sense, because with Python 3 nodes might be uncomparable.
 
 *	UL4 stacktraces now use exception chaining to report the exception location
 	in nested templates.
-
-*	Generating the final Javascript source code for UL4 templates is now done in
-	Javascript itself.
 
 *	Th support for ``%u`` escapes in URLs has been removed.
 
