@@ -1,15 +1,46 @@
+/*!
+ * UL4 JavaScript Library
+ * http://www.livinglogic.de/Python/ul4c/
+ *
+ * Copyright 2011-2012 by LivingLogic AG, Bayreuth/Germany
+ * Copyright 2011-2012 by Walter Dörwald
+ *
+ * All Rights Reserved
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 var ul4 = {
 	// Functions with the ``_op_`` prefix implement UL4 opcodes
+
+	// Addition: num + num, string + string
 	_op_add: function(obj1, obj2)
 	{
 		return obj1 + obj2;
 	},
 
+	// Substraction: num - num
 	_op_sub: function(obj1, obj2)
 	{
 		return obj1 - obj2;
 	},
 
+	// Multiplication: num * num, int * str, str * int, int * list, list * int
 	_op_mul: function(obj1, obj2)
 	{
 		if (this._fu_isint(obj1) || this._fu_isbool(obj1))
@@ -45,16 +76,19 @@ var ul4 = {
 		return obj1 * obj2;
 	},
 
+	// Truncating division
 	_op_floordiv: function(obj1, obj2)
 	{
 		return Math.floor(obj1 / obj2);
 	},
 
+	// "Real" division
 	_op_truediv: function(obj1, obj2)
 	{
 		return obj1 / obj2;
 	},
 
+	// Modulo (this is non-trivial, because it follows the Python semantic of ``-5 % 2`` being ``1``)
 	_op_mod: function(obj1, obj2)
 	{
 		var div = Math.floor(obj1 / obj2);
@@ -68,11 +102,13 @@ var ul4 = {
 		return obj1 - div * obj2;
 	},
 
+	// Negation
 	_op_neg: function(obj)
 	{
 		return -obj;
 	},
 
+	// Containment test: string in string, obj in list, key in dict, value in rgb
 	_op_contains: function(obj, container)
 	{
 		if (typeof(obj) === "string" && typeof(container) === "string")
@@ -99,21 +135,25 @@ var ul4 = {
 		throw "argument of type '" + this._fu_type(container) + "' is not iterable";
 	},
 
+	// Comparison operator ==
 	_op_eq: function(obj1, obj2)
 	{
 		return obj1 === obj2;
 	},
 
+	// Comparison operator <
 	_op_lt: function(obj1, obj2)
 	{
 		return obj1 < obj2;
 	},
 
+	// Comparison operator <=
 	_op_le: function(obj1, obj2)
 	{
 		return obj1 <= obj2;
 	},
 
+	// Item access: dict[key], list[index], string[index], color[index]
 	_op_getitem: function(container, key)
 	{
 		if (this._fu_isdict(container))
@@ -154,6 +194,7 @@ var ul4 = {
 		throw "getitem() needs a sequence or dict";
 	},
 
+	// List/String slicing: string[start:stop], list[start:stop]
 	_op_getslice: function(container, start, stop)
 	{
 		if (start === null)
@@ -164,56 +205,68 @@ var ul4 = {
 	},
 
 	// Functions with the ``_fu_`` prefix implement UL4 functions
+
+	// Check if ``obj`` is ``None``
 	_fu_isnone: function(obj)
 	{
 		return obj === null;
 	},
 
+	// Check if ``obj`` is a boolean
 	_fu_isbool: function(obj)
 	{
 		return typeof(obj) == "boolean";
 	},
 
+	// Check if ``obj`` is a int
 	_fu_isint: function(obj)
 	{
 		return (typeof(obj) == "number") && Math.round(obj) == obj;
 	},
 
+	// Check if ``obj`` is a float
 	_fu_isfloat: function(obj)
 	{
 		return (typeof(obj) == "number") && Math.round(obj) != obj;
 	},
 
+	// Check if ``obj`` is a string
 	_fu_isstr: function(obj)
 	{
 		return typeof(obj) == "string";
 	},
 
+	// Check if ``obj`` is a date
 	_fu_isdate: function(obj)
 	{
 		return Object.prototype.toString.call(obj) == "[object Date]";
 	},
 
+	// Check if ``obj`` is a color
 	_fu_iscolor: function(obj)
 	{
 		return Object.prototype.toString.call(obj) == "[object Object]" && !!obj.__iscolor__;
 	},
 
+	// Check if ``obj`` is a template
 	_fu_istemplate: function(obj)
 	{
 		return Object.prototype.toString.call(obj) == "[object Object]" && !!obj.__istemplate__;
 	},
 
+	// Check if ``obj`` is a list
 	_fu_islist: function(obj)
 	{
 		return Object.prototype.toString.call(obj) == "[object Array]";
 	},
 
+	// Check if ``obj`` is a dict
 	_fu_isdict: function(obj)
 	{
 		return Object.prototype.toString.call(obj) == "[object Object]" && !obj.__iscolor__ && !obj.__istemplate__;
 	},
 
+	// Convert ``obj`` to bool, according to its "truth value"
 	_fu_bool: function(obj)
 	{
 		if (obj === null || obj === false || obj === 0 || obj === "")
@@ -232,11 +285,13 @@ var ul4 = {
 		}
 	},
 
+	// Create a color object from the red, green, blue and alpha values ``r``, ``g``, ``b`` and ``b``
 	_fu_rgb: function(r, g, b, a)
 	{
 		return this.Color.create(255*r, 255*g, 255*b, typeof(a) == "undefined" ? 0xff : (255*a));
 	},
 
+	// Return the type of ``obj`` as a string
 	_fu_type: function(obj)
 	{
 		if (obj === null)
@@ -260,6 +315,7 @@ var ul4 = {
 		return null;
 	},
 
+	// Convert ``obj`` to a string
 	_fu_str: function(obj)
 	{
 		if (typeof(obj) === "string")
@@ -315,6 +371,7 @@ var ul4 = {
 		return "?";
 	},
 
+	// Convert ``obj`` to an integer (if ``base`` is given ``obj`` must be a string and ``base`` is the base for the conversion (default is 10))
 	_fu_int: function(obj, base)
 	{
 		var result;
@@ -346,6 +403,7 @@ var ul4 = {
 		}
 	},
 
+	// Convert ``obj`` to a float
 	_fu_float: function(obj)
 	{
 		if (typeof(obj) == "string")
@@ -359,6 +417,7 @@ var ul4 = {
 		throw "float() argument must be a string or a number";
 	},
 
+	// Convert ``obj`` to a list
 	_fu_list: function(obj)
 	{
 		if (typeof(obj) == "string" || this._fu_islist(obj))
@@ -394,6 +453,7 @@ var ul4 = {
 		throw "list() requires an iterable";
 	},
 
+	// Return the length of ``obj``
 	_fu_len: function(obj)
 	{
 		if (typeof(obj) == "string" || this._fu_islist(obj))
@@ -408,6 +468,7 @@ var ul4 = {
 		throw "object of type '" + this._fu_type(obj) + "' has no len()";
 	},
 
+	// Return a string representation of ``obj``: This should be a valid UL4 expression
 	_fu_repr: function(obj)
 	{
 		if (obj === null)
@@ -463,6 +524,7 @@ var ul4 = {
 		return "?";
 	},
 
+	// Format ``obj`` using the format string ``format``
 	_fu_format: function(obj, format)
 	{
 		var weekdays1 = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -572,6 +634,7 @@ var ul4 = {
 		}
 	},
 
+	// Convert ``obj`` to a string and escape the characters ``&``, ``<``, ``>``, ``'`` and ``"`` with their XML character/entity reference
 	_fu_xmlescape: function(obj)
 	{
 		obj = this._fu_str(obj);
@@ -583,6 +646,7 @@ var ul4 = {
 		return obj;
 	},
 
+	// Convert ``obj`` to a string suitable for output into a CSV file
 	_fu_csv: function(obj)
 	{
 		if (obj === null)
@@ -594,6 +658,7 @@ var ul4 = {
 		return obj;
 	},
 
+	// Return a string containing one charcter with the codepoint ``obj``
 	_fu_chr: function(obj)
 	{
 		if (typeof(obj) != "number")
@@ -601,6 +666,7 @@ var ul4 = {
 		return String.fromCharCode(obj)
 	},
 
+	// Return the codepoint for the one and only character in the string ``obj``
 	_fu_ord: function(obj)
 	{
 		if (typeof(obj) != "string" || obj.length != 1)
@@ -608,6 +674,7 @@ var ul4 = {
 		return obj.charCodeAt(0);
 	},
 
+	// Convert an integer to a hexadecimal string
 	_fu_hex: function(obj)
 	{
 		if (typeof(obj) != "number")
@@ -618,6 +685,7 @@ var ul4 = {
 			return "0x" + obj.toString(16);
 	},
 
+	// Convert an integer to a octal string
 	_fu_oct: function(obj)
 	{
 		if (typeof(obj) != "number")
@@ -628,6 +696,7 @@ var ul4 = {
 			return "0o" + obj.toString(8);
 	},
 
+	// Convert an integer to a binary string
 	_fu_bin: function(obj)
 	{
 		if (typeof(obj) != "number")
@@ -638,6 +707,7 @@ var ul4 = {
 			return "0b" + obj.toString(2);
 	},
 
+	// Return a sorted version of ``obj``
 	_fu_sorted: function(obj)
 	{
 		var result = this._fu_list(obj);
@@ -645,6 +715,7 @@ var ul4 = {
 		return result;
 	},
 
+	// Return a iterable object iterating from ``start`` upto (but not including) ``stop`` with a step size of ``step``
 	_fu_range: function(start, stop, step)
 	{
 		var lower, higher;
@@ -673,6 +744,7 @@ var ul4 = {
 		return result;
 	},
 
+	// Encodes ``obj`` in the Javascript Object Notation (see http://json.org/; with support for dates, colors and templates)
 	_fu_json: function(obj)
 	{
 		if (obj === null)
@@ -725,13 +797,14 @@ var ul4 = {
 		{
 			return "ul4._fu_rgb(" + obj.r + ", " + obj.g + ", " + obj.b + ", " + obj.a + ")";
 		}
-		else if (this.istemplate(obj))
+		else if (this._fu_istemplate(obj))
 		{
-			return "ul4.Template.create('" + obj.name + "', " + obj.render.toString() + ")";
+			return "ul4.Template.loads(" + ul4._fu_repr(obj.dumps()) + ")";
 		}
 		throw "json() requires a serializable object";
 	},
 
+	// Return a reverse iterator over ``obj``
 	_fu_reversed: function(obj)
 	{
 		if (typeof(obj) != "string" && !this._fu_islist(obj)) // We don't have to materialize strings or lists
@@ -745,6 +818,7 @@ var ul4 = {
 		return result;
 	},
 
+	// Return a randomly select item from ``range(start, stop, step)``
 	_fu_randrange: function(start, stop, step)
 	{
 		var width = stop-start;
@@ -761,6 +835,7 @@ var ul4 = {
 		return start + step*Math.floor(value * n);
 	},
 
+	// Return a random item/char from the list/string ``obj``
 	_fu_randchoice: function(obj)
 	{
 		var iscolor = this._fu_iscolor(obj);
@@ -771,6 +846,7 @@ var ul4 = {
 		return obj[Math.floor(Math.random() * obj.length)];
 	},
 
+	// Return an iterator over ``[index, item]`` lists from the iterable object ``obj``
 	_fu_enumerate: function(obj)
 	{
 		var iter = this._iter(obj);
@@ -784,6 +860,7 @@ var ul4 = {
 		return result;
 	},
 
+	// Return an iterator over ``[isfirst, item]`` lists from the iterable object ``obj`` (``isfirst`` is true for the first item, false otherwise)
 	_fu_isfirst: function(obj)
 	{
 		var iter = this._iter(obj);
@@ -799,6 +876,7 @@ var ul4 = {
 		return result;
 	},
 
+	// Return an iterator over ``[islast, item]`` lists from the iterable object ``obj`` (``islast`` is true for the last item, false otherwise)
 	_fu_islast: function(obj)
 	{
 		var iter = this._iter(obj);
@@ -816,6 +894,7 @@ var ul4 = {
 		return result;
 	},
 
+	// Return an iterator over ``[isfirst, islast, item]`` lists from the iterable object ``obj`` (``isfirst`` is true for the first item, ``islast`` is true for the last item. Both are false otherwise)
 	_fu_isfirstlast: function(obj)
 	{
 		var iter = this._iter(obj);
@@ -835,6 +914,7 @@ var ul4 = {
 		return result;
 	},
 
+	// Return an iterator over ``[index, isfirst, islast, item]`` lists from the iterable object ``obj`` (``isfirst`` is true for the first item, ``islast`` is true for the last item. Both are false otherwise)
 	_fu_enumfl: function(obj)
 	{
 		var iter = this._iter(obj);
@@ -855,6 +935,7 @@ var ul4 = {
 		return result;
 	},
 
+	// Return an iterator over lists, where the i'th list consists of all i'th items from the arguments (terminating when the shortest argument ends)
 	_fu_zip: function()
 	{
 		var iters = [];
@@ -877,11 +958,13 @@ var ul4 = {
 		return result;
 	},
 
+	// Return the absolute value for the number ``obj``
 	_fu_abs: function(obj)
 	{
 		return Math.abs(obj);
 	},
 
+	// Return a ``Date`` object for the current time in UTC
 	_fu_utcnow: function()
 	{
 		var now = new Date();
@@ -889,6 +972,7 @@ var ul4 = {
 		return new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds(), now.getUTCMilliseconds());
 	},
 
+	// Return a ``Color`` object from the hue, luminescence, saturation and alpha values ``h``, ``l``, ``s`` and ``a`` (i.e. using the HLS color model)
 	_fu_hls: function(h, l, s, a)
 	{
 		var _v = function(m1, m2, hue)
@@ -916,6 +1000,7 @@ var ul4 = {
 		return this._fu_rgb(_v(m1, m2, h+1/3), _v(m1, m2, h), _v(m1, m2, h-1/3), a);
 	},
 
+	// Return a ``Color`` object from the hue, saturation, value and alpha values ``h``, ``s``, ``v`` and ``a`` (i.e. using the HSV color model)
 	_fu_hsv: function(h, s, v, a)
 	{
 		if (typeof(a) === "undefined")
@@ -1529,25 +1614,816 @@ var ul4 = {
 		}
 	},
 
-
 	Template: {
 		__istemplate__: true,
+		version: "16",
 
-		create: function(name, render)
+		// A class for reading a template object from a string containing the template in binary format
+		_reader: {
+			// Creates a new reader for reading from the string ``data``
+			create: function(data)
+			{
+				var reader = ul4._clone(this);
+				reader.data = data;
+				reader.pos = 0;
+				return reader;
+			},
+
+			// Read a line from buffer
+			readline: function()
+			{
+				var s = "";
+				for (;;)
+				{
+					var c = this.data.charAt(this.pos++);
+					s += c;
+					if (!c || (c === "\n"))
+						return s;
+				}
+			},
+
+			// Read a character from the buffer
+			readchar: function()
+			{
+				return this.data.charAt(this.pos++);
+			},
+
+			// Read a character from the buffer and ensure that it is a carriage return
+			readcr: function()
+			{
+				var c = this.readchar();
+				if (c !== "\n")
+					throw "invalid linefeed " + ul4._fu_repr(c) + " at position " + this.pos;
+			},
+
+			// Read a character from the buffer and ensure that it is '|'
+			readsep: function()
+			{
+				var c = this.readchar();
+				if (c !== "|")
+					throw "invalid separator, expected " + ul4._fu_repr("|") + ", got " + ul4._fu_repr(c) + " at position " + this.pos;
+			},
+
+			// Read an integer from the buffer (prefixed with ``prefix`` (if ``prefix`` is not ``null``))
+			readint: function(prefix)
+			{
+				if (prefix !== null)
+				{
+					var c = this.data.substr(this.pos, prefix.length);
+					this.pos += prefix.length;
+					if (c != prefix)
+						throw "invalid prefix, expected " + ul4._fu_repr(prefix) + ", got " + ul4._fu_repr(c) + " at position " + this.pos;
+				}
+				var i = null;
+				for (;;)
+				{
+					var c = this.readchar();
+					if (c === "|")
+						return i;
+					var cc = c.charCodeAt(0);
+					if ((cc >= 48) && (cc <= 57))
+					{
+						if (i === null)
+							i = 0;
+						i = 10*i + (cc-48);
+					}
+					else
+						throw "invalid separator, expected " + ul4._fu_repr("|") + ", got " + ul4._fu_repr(c) + " at position " + this.pos;
+				}
+			},
+
+			// Read a string from the buffer (prefixed with ``prefix`` (if ``prefix`` is not ``null``))
+			readstr: function(prefix)
+			{
+				if (prefix !== null)
+				{
+					var c = this.data.substr(this.pos, prefix.length);
+					this.pos += prefix.length;
+					if (c !== prefix)
+						throw "invalid prefix, expected " + ul4._fu_repr(prefix) + ", got " + ul4._fu_repr(c) + " at position " + this.pos;
+				}
+				var i = null;
+				for (;;)
+				{
+					var c = this.readchar();
+					if (c === "|")
+					{
+						if (i === null)
+							return null;
+						break;
+					}
+					var cc = c.charCodeAt(0);
+					if ((cc >= 48) && (cc <= 57))
+					{
+						if (i === null)
+							i = 0;
+						i = 10*i + (cc-48);
+					}
+					else
+						throw "invalid separator, expected " + ul4._fu_repr("|") + ", got " + ul4._fu_repr(c) + " at position " + this.pos;
+				}
+				var result = this.data.substr(this.pos, i);
+				this.pos += i;
+				if (result.length !== i)
+					throw "short read";
+				this.readsep();
+				return result;
+			}
+		},
+
+		// Create a new sub template object from ``this`` for the opcodes starting at the index ``start`` and ending at the index ``stop-1`` the the opcodes in ``this``
+		createinner: function(start, stop)
 		{
 			var template = ul4._clone(this);
-			template.name = name;
-			template.render = render;
+			// The attributes ``startdelim``, ``enddelim``, ``source``, and ``opcodes`` will be inherited from this.
+			template.name = this.opcodes[start].arg;
+			template.startindex = start+1;
+			template.stopindex = stop-1;
+			template._makefunction();
 			return template;
 		},
 
+		// A "class method" that returns a new ``Template`` object loaded from the binary format in ``data``
+		loads: function(data)
+		{
+			var template = ul4._clone(this);
+			template._data = data;
+			var reader = this._reader.create(data);
+			var header = reader.readline();
+			if (header.trim() != "ul4")
+				throw "invalid header, expected " + ul4._fu_repr("ul4") + ", got " + ul4._fu_repr(header) + " at position " + this.pos;
+			var version = reader.readline();
+			if (version.trim() != this.version)
+				throw "invalid version, expected " + ul4._fu_repr(this.version) + ", got " + ul4._fu_repr(header) + " at position " + this.pos;
+			template.name = reader.readstr("N");
+			var defnames = [ template.name ];
+			reader.readcr();
+			template.startdelim = reader.readstr("SD");
+			reader.readcr();
+			template.enddelim = reader.readstr("ED");
+			reader.readcr();
+			template.source = reader.readstr("SRC");
+			reader.readcr();
+			template.opcodes = [];
+			var opcodecount = reader.readint("n");
+			reader.readcr();
+
+			var location = null;
+			while (opcodecount--)
+			{
+				var r1 = reader.readint(null);
+				var r2 = reader.readint(null);
+				var r3 = reader.readint(null);
+				var r4 = reader.readint(null);
+				var r5 = reader.readint(null);
+				var code = reader.readstr("C");
+				var arg = reader.readstr("A");
+				var locspec = reader.readchar();
+				if (locspec === "^")
+				{
+					if (location === null)
+						throw "no previous location at position" + reader.pos;
+				}
+				else if (locspec === "*")
+				{
+					reader.readsep();
+					location = {
+						source: template.source,
+						name: defnames[defnames.length-1],
+						type: reader.readstr("T"),
+						starttag: reader.readint("st"),
+						endtag: reader.readint("et"),
+						startcode: reader.readint("sc"),
+						endcode: reader.readint("ec")
+					};
+				}
+				else
+					throw "invalid location spec " + ul4._fu_repr(locspec) + " at position " + reader.pos;
+				reader.readcr();
+				template.opcodes.push({code: code, r1: r1, r2: r2, r3: r3, r4: r4, r5: r5, arg: arg, location: location});
+				if (code === "def")
+					defnames.push(arg);
+				else if (code === "enddef")
+					defnames.pop();
+			}
+			template.startindex = 0;
+			template.stopindex = template.opcodes.length;
+			template._makefunction();
+			return template;
+		},
+
+		// A class for converting a template object into binary format
+		_writer: {
+			// Create a new write object
+			create: function()
+			{
+				var writer = ul4._clone(this);
+				writer.data = [];
+				return writer;
+			},
+
+			// Write the string ``string`` to the buffer
+			write: function(string)
+			{
+				if (string !== null)
+					this.data.push(string);
+			},
+
+			// Write the number ``number`` to the buffer (prefixed with ``prefix`` if it is not ``null``)
+			writeint: function(prefix, number)
+			{
+				if (prefix !== null)
+					this.data.push(prefix);
+				if (number !== null)
+					this.data.push("" + number);
+				this.data.push("|");
+			},
+
+			// Write the string ``string`` to the buffer (prefixed with ``prefix`` if it is not ``null``)
+			writestr: function(prefix, string)
+			{
+				this.data.push(prefix);
+				if (string !== null)
+				{
+					this.data.push("" + string.length);
+					this.data.push("|");
+					this.data.push(string);
+				}
+				this.data.push("|");
+			},
+
+			// Returned the complete string written to the buffer
+			finish: function()
+			{
+				return this.data.join("");
+			}
+		},
+
+		// Return the binary format for the ``Template`` object ``this``
+		dumps: function()
+		{
+			var writer = this._writer.create();
+
+			var startpos = this.opcodes[this.startindex].location.starttag;
+			var stoppos = this.opcodes[this.stopindex-1].location.endtag;
+
+			writer.write("ul4\n");
+			writer.write(this.version + "\n");
+			writer.writestr("N", this.name);
+			writer.write("\n");
+			writer.writestr("SD", this.startdelim);
+			writer.write("\n");
+			writer.writestr("ED", this.enddelim);
+			writer.write("\n");
+			writer.writestr("SRC", this.source.substring(startpos, stoppos));
+			writer.write("\n");
+			writer.writeint("n", this.stopindex-this.startindex);
+			writer.write("\n");
+			var lastlocation = null;
+			for (var i = this.startindex; i < this.stopindex; ++i)
+			{
+				var opcode = this.opcodes[i];
+				writer.writeint(null, opcode.r1);
+				writer.writeint(null, opcode.r2);
+				writer.writeint(null, opcode.r3);
+				writer.writeint(null, opcode.r4);
+				writer.writeint(null, opcode.r5);
+				writer.writestr("C", opcode.code);
+				writer.writestr("A", opcode.arg);
+				if (opcode.location !== lastlocation)
+				{
+					lastlocation = opcode.location;
+					writer.write("*|");
+					writer.writestr("T", lastlocation.type);
+					writer.writeint("st", lastlocation.starttag-startpos);
+					writer.writeint("et", lastlocation.endtag-startpos);
+					writer.writeint("sc", lastlocation.startcode-ostartpos);
+					writer.writeint("ec", lastlocation.endcode-startpos);
+				}
+				else
+					writer.write("^");
+				writer.write("\n");
+			}
+			return writer.finish();
+		},
+
+		// Render the template ``this`` using ``vars`` as the template variables and return the rendered string
 		renders: function(vars)
 		{
 			return this.render(vars).join("");
+		},
+
+		// Render the template ``this`` using ``vars`` as the template variables and return the the output as a string array
+		render: function(vars)
+		{
+			if (typeof(vars) == "undefined")
+				vars = {};
+			return this._jsfunction(vars);
+		},
+
+		// Convert the template to Javascript source code, create a function for it and attach it to the ``_jsfunction`` attribute
+		_makefunction: function()
+		{
+			var lines = [];
+			var indent = 0;
+			var opendefs = []; // currently active nested inner templates (i.e. the index of their def opcode)
+			var loopvarcounter = 0;
+
+			var startpos = this.opcodes[this.startindex].location.starttag;
+			var stoppos = this.opcodes[this.stopindex-1].location.endtag;
+
+			function line(source)
+			{
+				for (var i = 0; i < indent; ++i)
+					lines.push("\t");
+				lines.push(source);
+				lines.push("\n");
+			}
+
+			line("(function(vars)");
+			line("{");
+			indent++;
+
+			// Include template source as a comment
+			line("//@@@ BEGIN template source");
+			var sourcelines = this.source.substring(startpos, stoppos).split("\n");
+			var width = ("" + (sourcelines.length+1)).length;
+			for (var i = 0; i < sourcelines.length; ++i)
+				line("// " + ul4._lpad(""+(i+1), " ", width) + ": " + sourcelines[i]);
+
+			// Initialize output buffer and registers
+			line("//@@@ BEGIN template code");
+			line("var out = [];");
+			line("var r0 = null, r1 = null, r2 = null, r3 = null, r4 = null, r5 = null, r6 = null, r7 = null, r8 = null, r9 = null;");
+
+			var lastloc = null;
+
+			// Loop over opcodes
+			for (var i = this.startindex; i < this.stopindex; ++i)
+			{
+				var opcode = this.opcodes[i];
+
+				if (opcode.code === "def")
+				{
+					// Remember where the subtemplate started and its name
+					opendefs.push({index: i, name: opcode.arg});
+				}
+				else if (opcode.code === "enddef")
+				{
+					var def = opendefs.pop();
+					// Have we returned to the outermost nesting level?
+					if (!opendefs.length)
+					{
+						line("// <?def?>/<?end def?> tags at positions " + (this.opcodes[def.index].location.starttag-startpos) + ":" + (opcode.location.endtag-startpos) + " (template " + this.name + ")");
+						// Create a template from the opcodes between the matching ``def`` and ``enddef`` opcodes
+						line("vars[" + ul4._fu_json(def.name) + "] = this.createinner(" + def.index + ", " + (i+1) + ");");
+					}
+				}
+				else if (!opendefs.length) // only produce source code for the outermost level of template nesting
+				{
+					// Opcode is from a new tag -> show the location as a comment
+					if (opcode.code !== null && opcode.location != lastloc)
+					{
+						lastloc = opcode.location;
+
+						var s = lastloc.source.substring(lastloc.starttag, lastloc.endtag);
+						s = ul4._fu_repr(s);
+						s = s.substring(1, s.length-1);
+						line("// <?" + lastloc.type + "?> tag at positions " + (lastloc.starttag-startpos) + ":" + (lastloc.endtag-startpos) + " (template " + this.name + "): " + s);
+					}
+
+					// Output Javascript code for opcode
+					switch (opcode.code)
+					{
+						case null:
+							line("out.push(" + ul4._fu_json(opcode.location.source.substring(opcode.location.startcode, opcode.location.endcode)) + ");");
+							break;
+						case "loadstr":
+							line("r" + opcode.r1 + " = " + ul4._fu_json(opcode.arg) + ";");
+							break;
+						case "loadint":
+						case "loadfloat":
+							line("r" + opcode.r1 + " = " + opcode.arg + ";");
+							break;
+						case "loadnone":
+							line("r" + opcode.r1 + " = null;");
+							break;
+						case "loadfalse":
+							line("r" + opcode.r1 + " = false;");
+							break;
+						case "loadtrue":
+							line("r" + opcode.r1 + " = true;");
+							break;
+						case "loaddate":
+							var args = opcode.arg.split(/[-:T.]/);
+							line("r" + opcode.r1 + " = new Date(" + parseInt(args[0]) + ", " + (parseInt(args[1])-1) + ", " + parseInt(args[2]) + ", " + parseInt(args[3]) + ", " + parseInt(args[4]) + ", " + parseInt(args[5]) + ", " + (parseInt(args[6])/1000) + ");");
+							break;
+						case "loadcolor":
+							line("r" + opcode.r1 + " = ul4.Color.create(0x" + opcode.arg.substring(0, 2) + ", 0x" + opcode.arg.substring(2, 4) + ", 0x" + opcode.arg.substring(4, 6) + ", 0x" + opcode.arg.substring(6, 8) + ");");
+							break;
+						case "buildlist":
+							line("r" + opcode.r1 + " = [];");
+							break;
+						case "builddict":
+							line("r" + opcode.r1 + " = {};");
+							break;
+						case "addlist":
+							line("r" + opcode.r1 + ".push(r" + opcode.r2 + ");");
+							break;
+						case "adddict":
+							line("r" + opcode.r1 + "[r" + opcode.r2 + "] = r" + opcode.r3 + ";");
+							break;
+						case "updatedict":
+							line("for (var key in r" + opcode.r2 + ")");
+							indent++;
+							line("r" + opcode.r1 + "[key] = r" + opcode.r2 + "[key];");
+							indent--;
+							break;
+						case "loadvar":
+							line("r" + opcode.r1 + " = ul4._op_getitem(vars, " + ul4._fu_json(opcode.arg) + ");");
+							break;
+						case "storevar":
+							line("vars[" + ul4._fu_json(opcode.arg) + "] = r" + opcode.r1 + ";");
+							break;
+						case "addvar":
+							line("vars[" + ul4._fu_json(opcode.arg) + "] = ul4._op_add(vars[" + ul4._fu_json(opcode.arg) + "], r" + opcode.r1 + ");");
+							break;
+						case "subvar":
+							line("vars[" + ul4._fu_json(opcode.arg) + "] = ul4._op_sub(vars[" + ul4._fu_json(opcode.arg) + "], r" + opcode.r1 + ");");
+							break;
+						case "mulvar":
+							line("vars[" + ul4._fu_json(opcode.arg) + "] = ul4._op_mul(vars[" + ul4._fu_json(opcode.arg) + "], r" + opcode.r1 + ");");
+							break;
+						case "truedivvar":
+							line("vars[" + ul4._fu_json(opcode.arg) + "] = ul4._op_truediv(vars[" + ul4._fu_json(opcode.arg) + "], r" + opcode.r1 + ");");
+							break;
+						case "floordivvar":
+							line("vars[" + ul4._fu_json(opcode.arg) + "] = ul4._op_floordiv(vars[" + ul4._fu_json(opcode.arg) + "], r" + opcode.r1 + ");");
+							break;
+						case "modvar":
+							line("vars[" + ul4._fu_json(opcode.arg) + "] = ul4._op_mod(vars[" + ul4._fu_json(opcode.arg) + "], r" + opcode.r1 + ");");
+							break;
+						case "delvar":
+							line("vars[" + ul4._fu_json(opcode.arg) + "] = undefined;");
+							break;
+						case "getattr":
+							line("r" + opcode.r1 + " = ul4._op_getitem(r" + opcode.r2 + ", " + ul4._fu_json(opcode.arg) + ");");
+							break;
+						case "getitem":
+							line("r" + opcode.r1 + " = ul4._op_getitem(r" + opcode.r2 + ", r" + opcode.r3 + ");");
+							break;
+						case "getslice12":
+							line("r" + opcode.r1 + " = ul4._op_getslice(r" + opcode.r2 + ", r" + opcode.r3 + ", r" + opcode.r4 + ");");
+							break;
+						case "getslice1":
+							line("r" + opcode.r1 + " = ul4._op_getslice(r" + opcode.r2 + ", r" + opcode.r3 + ", null);");
+							break;
+						case "getslice2":
+							line("r" + opcode.r1 + " = ul4._op_getslice(r" + opcode.r2 + ", null, r" + opcode.r3 + ");");
+							break;
+						case "print":
+							line("out.push(ul4._fu_str(r" + opcode.r1 + "));");
+							break;
+						case "printx":
+							line("out.push(ul4._fu_xmlescape(r" + opcode.r1 + "));");
+							break;
+						case "for":
+							loopvarcounter++;
+							line("for (var iter" + loopvarcounter + " = ul4._iter(r" + opcode.r2 + ");;)");
+							line("{");
+							indent++;
+							line("r" + opcode.r1 + " = iter" + loopvarcounter + "();");
+							line("if (r" + opcode.r1 + " === null)");
+							indent++;
+							line("break;")
+							indent--;
+							line("r" + opcode.r1 + " = r" + opcode.r1 + "[0];");
+							break;
+						case "endfor":
+							indent--;
+							line("}");
+							break;
+						// ``def`` and ``enddef`` opcodes are handled outside the switch statement
+						// case "def":
+						// case "enddef":
+						case "break":
+							line("break;");
+							break;
+						case "continue":
+							line("continue;");
+							break;
+						case "not":
+							line("r" + opcode.r1 + " = !ul4._fu_bool(r" + opcode.r2 + ");");
+							break;
+						case "neg":
+							line("r" + opcode.r1 + " = ul4._op_neg(r" + opcode.r2 + ");");
+							break;
+						case "contains":
+							line("r" + opcode.r1 + " = ul4._op_contains(r" + opcode.r2 + ", r" + opcode.r3 + ");");
+							break;
+						case "notcontains":
+							line("r" + opcode.r1 + " = !ul4._op_contains(r" + opcode.r2 + ", r" + opcode.r3 + ");");
+							break;
+						case "eq":
+							line("r" + opcode.r1 + " = ul4._op_eq(r" + opcode.r2 + ", r" + opcode.r3 + ");");
+							break;
+						case "ne":
+							line("r" + opcode.r1 + " = !ul4._op_eq(r" + opcode.r2 + ", r" + opcode.r3 + ");");
+							break;
+						case "lt":
+							line("r" + opcode.r1 + " = ul4._op_lt(r" + opcode.r2 + ", r" + opcode.r3 + ");");
+							break;
+						case "le":
+							line("r" + opcode.r1 + " = ul4._op_le(r" + opcode.r2 + ", r" + opcode.r3 + ");");
+							break;
+						case "gt":
+							line("r" + opcode.r1 + " = !ul4._op_le(r" + opcode.r2 + ", r" + opcode.r3 + ");");
+							break;
+						case "ge":
+							line("r" + opcode.r1 + " = !ul4._op_lt(r" + opcode.r2 + ", r" + opcode.r3 + ");");
+							break;
+						case "add":
+							line("r" + opcode.r1 + " = ul4._op_add(r" + opcode.r2 + ", r" + opcode.r3 + ");");
+							break;
+						case "sub":
+							line("r" + opcode.r1 + " = ul4._op_sub(r" + opcode.r2 + ", r" + opcode.r3 + ");");
+							break;
+						case "mul":
+							line("r" + opcode.r1 + " = ul4._op_mul(r" + opcode.r2 + ", r" + opcode.r3 + ");");
+							break;
+						case "floordiv":
+							line("r" + opcode.r1 + " = ul4._op_floordiv(r" + opcode.r2 + ", r" + opcode.r3 + ");");
+							break;
+						case "truediv":
+							line("r" + opcode.r1 + " = ul4._op_truediv(r" + opcode.r2 + ", r" + opcode.r3 + ");");
+							break;
+						case "mod":
+							line("r" + opcode.r1 + " = ul4._op_mod(r" + opcode.r2 + ", r" + opcode.r3 + ");");
+							break;
+						case "and":
+							line("r" + opcode.r1 + " = ul4._fu_bool(r" + opcode.r3 + ") ? r" + opcode.r2 + " : r" + opcode.r3 + ");");
+							break;
+						case "or":
+							line("r" + opcode.r1 + " = ul4._fu_bool(r" + opcode.r2 + ") ? r" + opcode.r2 + " : r" + opcode.r3 + ");");
+							break;
+						case "callfunc0":
+							switch (opcode.arg)
+							{
+								case "now":
+									line("r" + opcode.r1 + " = new Date();");
+									break;
+								case "utcnow":
+									line("r" + opcode.r1 + " = ul4._fu_utcnow();");
+									break;
+								case "random":
+									line("r" + opcode.r1 + " = Math.random();");
+									break;
+								case "vars":
+									line("r" + opcode.r1 + " = vars;");
+									break;
+								default:
+									throw "function named " + opcode.arg + " unknown";
+							}
+							break;
+						case "callfunc1":
+							switch (opcode.arg)
+							{
+								case "xmlescape":
+								case "csv":
+								case "repr":
+								case "enumerate":
+								case "chr":
+								case "ord":
+								case "hex":
+								case "oct":
+								case "bin":
+								case "sorted":
+								case "type":
+								case "json":
+								case "reversed":
+								case "randchoice":
+								case "str":
+								case "int":
+								case "float":
+								case "bool":
+								case "len":
+								case "isstr":
+								case "isint":
+								case "isfloat":
+								case "isbool":
+								case "isdate":
+								case "islist":
+								case "isdict":
+								case "istemplate":
+								case "iscolor":
+								case "abs":
+									line("r" + opcode.r1 + " = ul4._fu_" + opcode.arg + "(r" + opcode.r2 + ");");
+									break;
+								case "range":
+								case "randrange":
+									line("r" + opcode.r1 + " = ul4._fu_" + opcode.arg + "(0, r" + opcode.r2 + ", 1);");
+									break;
+								case "isnone":
+									line("r" + opcode.r1 + " = (r" + opcode.r2 + " === null);");
+									break;
+								case "get":
+									line("r" + opcode.r1 + " = ul4._me_get(vars, r" + opcode.r2 + ");");
+									break;
+								default:
+									throw "function named " + opcode.arg + " unknown";
+							}
+							break;
+						case "callfunc2":
+							switch (opcode.arg)
+							{
+								case "format":
+								case "zip":
+								case "int":
+									line("r" + opcode.r1 + " = ul4._fu_" + opcode.arg + "(r" + opcode.r2 + ", r" + opcode.r3 + ");");
+									break;
+								case "range":
+								case "randrange":
+									line("r" + opcode.r1 + " = ul4._fu_" + opcode.arg + "(r" + opcode.r2 + ", r" + opcode.r3 + ", 1);");
+									break;
+								case "get":
+									line("r" + opcode.r1 + " = ul4._me_get(vars, r" + opcode.r2 + ", r" + opcode.r3 + ");");
+									break;
+								default:
+									throw "function named " + opcode.arg + " unknown";
+							}
+							break;
+						case "callfunc3":
+							switch (opcode.arg)
+							{
+								case "range":
+								case "zip":
+								case "randrange":
+									line("r" + opcode.r1 + " = ul4._fu_" + opcode.arg + "(r" + opcode.r2 + ", r" + opcode.r3 + ", r" + opcode.r4 + ");");
+									break;
+								case "rgb":
+								case "hls":
+								case "hsv":
+									line("r" + opcode.r1 + " = ul4._fu_" + opcode.arg + "(r" + opcode.r2 + ", r" + opcode.r3 + ", r" + opcode.r4 + ", 1.0);");
+									break;
+								default:
+									throw "function named " + opcode.arg + " unknown";
+							}
+							break;
+						case "callfunc4":
+							switch (opcode.arg)
+							{
+								case "rgb":
+								case "hls":
+								case "hsv":
+									line("r" + opcode.r1 + " = ul4._fu_" + opcode.arg + "(r" + opcode.r2 + ", r" + opcode.r3 + ", r" + opcode.r4 + ", r" + opcode.r5 + ");");
+									break;
+								default:
+									throw "function named " + opcode.arg + " unknown";
+							}
+							break;
+						case "callmeth0":
+							switch (opcode.arg)
+							{
+								case "strip":
+								case "lstrip":
+								case "rstrip":
+								case "upper":
+								case "lower":
+								case "capitalize":
+								case "items":
+								case "isoformat":
+								case "mimeformat":
+								case "day":
+								case "month":
+								case "year":
+								case "hour":
+								case "minute":
+								case "second":
+								case "microsecond":
+								case "weekday":
+								case "yearday":
+								case "r":
+								case "g":
+								case "b":
+								case "a":
+								case "lum":
+								case "hls":
+								case "hlsa":
+								case "hsv":
+								case "hsva":
+									line("r" + opcode.r1 + " = ul4._me_" + opcode.arg + "(r" + opcode.r2 + ");");
+									break;
+								case "split":
+								case "rsplit":
+									line("r" + opcode.r1 + " = ul4._me_" + opcode.arg + "(r" + opcode.r2 + ", null, null);");
+									break;
+								case "render":
+									line("r" + opcode.r1 + " = " + opcode.r2 + ".renders({});");
+									break;
+								default:
+									throw "method named " + opcode.arg + " unknown";
+							}
+							break;
+						case "callmeth1":
+							switch (opcode.arg)
+							{
+								case "join":
+								case "strip":
+								case "lstrip":
+								case "rstrip":
+								case "startswith":
+								case "endswith":
+								case "withlum":
+								case "witha":
+									line("r" + opcode.r1 + " = ul4._me_" + opcode.arg + "(r" + opcode.r2 + ", r" + opcode.r3 + ");");
+									break;
+								case "split":
+								case "rsplit":
+								case "get":
+									line("r" + opcode.r1 + " = ul4._me_" + opcode.arg + "(r" + opcode.r2 + ", r" + opcode.r3 + ", null);");
+									break;
+								case "find":
+								case "rfind":
+									line("r" + opcode.r1 + " = ul4._me_" + opcode.arg + "(r" + opcode.r2 + ", r" + opcode.r3 + ", null, null);");
+									break;
+								default:
+									throw "method named " + opcode.arg + " unknown";
+							}
+							break;
+						case "callmeth2":
+							switch (opcode.arg)
+							{
+								case "split":
+								case "rsplit":
+								case "replace":
+								case "get":
+									line("r" + opcode.r1 + " = ul4._me_" + opcode.arg + "(r" + opcode.r2 + ", r" + opcode.r3 + ", r" + opcode.r4 + ");");
+									break;
+								case "find":
+								case "rfind":
+									line("r" + opcode.r1 + " = ul4._me_" + opcode.arg + "(r" + opcode.r2 + ", r" + opcode.r3 + ", r" + opcode.r4 + ", null);");
+									break;
+								default:
+									throw "method named " + opcode.arg + " unknown";
+							}
+							break;
+						case "callmeth3":
+							switch (opcode.arg)
+							{
+								case "find":
+								case "rfind":
+									line("r" + opcode.r1 + " = ul4._me_" + opcode.arg + "(r" + opcode.r2 + ", r" + opcode.r3 + ", r" + opcode.r4 + ", r" + opcode.r5 + ");");
+									break;
+								default:
+									throw "method named " + opcode.arg + " unknown";
+							}
+							break;
+						case "callmethkw":
+							switch (opcode.arg)
+							{
+								case "render":
+									line("r" + opcode.r1 + " = r" + opcode.r2 + ".renders(r" + opcode.r3 + ");");
+									break;
+								default:
+									throw "method named " + opcode.arg + " unknown";
+							}
+							break;
+						case "if":
+							line("if (ul4._fu_bool(r" + opcode.r1 + "))");
+							line("{");
+							indent++;
+							break;
+						case "else":
+							indent--;
+							line("}");
+							line("else");
+							line("{");
+							indent++;
+							break;
+						case "end if":
+							indent--;
+							line("}");
+							break;
+						case "render":
+							line("out = out.concat(r" + opcode.r1 + ".render(r" + opcode.r2 + "));");
+							break;
+						default:
+							throw "opcode named " + opcode.type + " unknown";
+					}
+				}
+			}
+
+			// Return completed output
+			line("return out;");
+			line("//@@@ END template code");
+
+			indent--;
+			line("})");
+			this._jsfunction = eval(lines.join(""));
 		}
 	},
 
-		/// Helper functions
+	/// Helper functions
 
 	// Crockford style object creation
 	_clone: function(obj)

@@ -22,6 +22,9 @@ Changes in 4.0 (released ??/??/2012)
 *	UL4 stacktraces now use exception chaining to report the exception location
 	in nested templates.
 
+*	Generating the final Javascript source code for UL4 templates is now done in
+	Javascript itself.
+
 *	Th support for ``%u`` escapes in URLs has been removed.
 
 *	The orasql script ``orafind`` no longer has an :option:`-e`/:option:`--encoding`
