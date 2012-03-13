@@ -136,6 +136,7 @@ def _load(stream, typecode, keys):
 
 
 class StreamBuffer(object):
+	# Internal helper class that wraps a file-like object and provides buffering
 	def __init__(self, stream, bufsize=1024*1024):
 		self.stream = stream
 		self.bufsize = bufsize
