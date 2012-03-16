@@ -1229,7 +1229,7 @@ class FileResource(Resource):
 			(splitpath, splitname) = os.path.split(self.name)
 			if splitpath:
 				os.makedirs(splitpath)
-				file = open(self.name, *args, **kwargs)
+				file = open(self.name, mode, *args, **kwargs)
 			else:
 				raise # we don't have a directory to make so pass the error on
 		self.file = file
