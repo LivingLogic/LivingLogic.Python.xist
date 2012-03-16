@@ -27,7 +27,7 @@ def flatten(data):
 		return data
 
 
-def test_all():
+def test_loads_dumps():
 	def check(data):
 		data2 = ul4on.loads(ul4on.dumps(data))
 		assert flatten(data2) == flatten(data)
