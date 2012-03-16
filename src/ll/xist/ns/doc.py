@@ -51,7 +51,7 @@ def getdoc(thing, format):
 	text = "\n".join(lines)
 
 	if inspect.ismethod(thing):
-		fmt = "METHOD-DOCSTRING({0}.{1.im_class.__name__}.{1.__name__})"
+		fmt = "METHOD-DOCSTRING({0}.{1.__class__.__name__}.{1.__name__})"
 	elif isinstance(thing, property):
 		fmt = "PROPERTY-DOCSTRING({0}.{1})"
 	elif inspect.isfunction(thing):
