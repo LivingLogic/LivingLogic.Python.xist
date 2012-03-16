@@ -17,6 +17,7 @@ import py.test
 
 
 def flatten(data):
+	# This is use to be able to compare templates (by comparing their output)
 	if isinstance(data, ul4c.Template):
 		return data.renders()
 	elif isinstance(data, list):
@@ -45,3 +46,28 @@ def test_loads_dumps():
 	yield check, t
 	yield check, [1, 2, 3]
 	yield check, {None: 42, 1: 2, "foo": "bar", "baz": datetime.datetime.now(), "gurk": ["hurz"], "template": t}
+
+
+def test_encoder_list():
+	enc = ul4on.Encoder(io.StringIO())
+
+	with enc.list():
+		for i in range(10):
+			with enc.list():
+				enc.write(i)
+
+	assert ul4on.loads(enc.getvalue()) == [[i] for i in range(10)]
+
+
+def test_encoder_dict():
+	enc = ul4on.Encoder(io.StringIO())
+
+	with enc.dict():
+		enc.write("eins")
+		enc.write(1)
+		enc.write("zwei")
+		enc.write(2)
+		enc.write("drei")
+		enc.write(3)
+
+	assert ul4on.loads(enc.getvalue()) == dict(eins=1, zwei=2, drei=3)

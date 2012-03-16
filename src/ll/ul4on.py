@@ -18,7 +18,7 @@ from the standard library.
 """
 
 
-import datetime, collections, io
+import datetime, collections, io, contextlib
 
 from ll import color, misc, ul4c
 
@@ -143,6 +143,77 @@ def _load(stream, typecode, keys):
 				data[key] = item
 	else:
 		raise ValueError("broken stream: unknown typecode {!r}".format(typecode))
+
+
+class Encoder(object):
+	"""
+	An :class:`Encoder` object can be used to write list or dictionaries to a
+	stream incrementally.
+	"""
+	def __init__(self, stream):
+		"""
+		Create an :class:`Encoder` object for writing to the file-like object
+		:var:`stream` incrementally. :var:`stream` will be available as the
+		instance attribute with the same name.
+		"""
+		self.stream = stream
+
+	def write(self, obj):
+		"""
+		Write the object :var:`obj` to the stream
+		"""
+		dump(obj, self.stream)
+
+	@contextlib.contextmanager
+	def list(self):
+		"""
+		This methods is a context manager and can be used for outputting a list incrementally
+		like this::
+
+			enc = ul4on.Encoder(io.StringIO())
+
+			with enc.list():
+				for i in range(10):
+					enc.write(i)
+
+		This is equivalent to::
+
+			enc.write(range(10))
+		"""
+		self.stream.write("[")
+		yield
+		self.stream.write("]")
+
+	@contextlib.contextmanager
+	def dict(self):
+		"""
+		This methods is a context manager and can be used for outputting a dict incrementally
+		like this::
+
+			enc = ul4on.Encoder(io.StringIO())
+
+			with enc.dict():
+				enc.write("eins")
+				enc.write(1)
+				enc.write("zwei")
+				enc.write(2)
+				enc.write("drei")
+				enc.write(3)
+
+		This is equivalent to::
+
+			enc.write(dict(eins=1, zwei=2, drei=3))
+		"""
+		self.stream.write("{")
+		yield
+		self.stream.write("}")
+
+	def getvalue(self):
+		"""
+		If the wrapped stream is a :class:`StringIO` stream :meth:`getvalue` can be used
+		to get the content of the stream.
+		"""
+		return self.stream.getvalue()
 
 
 class StreamBuffer(object):
