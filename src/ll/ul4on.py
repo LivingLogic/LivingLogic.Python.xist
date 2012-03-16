@@ -11,7 +11,7 @@
 
 """
 This module provides function for encoding and decoding a lightweight
-machine-readable formaat for serializing the object types supported by UL4.
+machine-readable format for serializing the object types supported by UL4.
 
 It provides an API similar to that of the modules :mod:`pickle` and :mod:`json`
 from the standard library.
