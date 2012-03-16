@@ -1387,7 +1387,6 @@ def astext(node, encoding="iso-8859-1", width=72):
 		"-codepage {}".format(encoding),
 		"-width {}".format(width),
 		"-force-html",
-		"-verbose 0",
 	]
 
 	text = node.bytes(encoding=encoding)
