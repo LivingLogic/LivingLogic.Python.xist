@@ -20,7 +20,7 @@ from the standard library.
 
 import datetime, collections, io
 
-from ll import color, misc
+from ll import color, misc, ul4c
 
 
 def iterdump(obj):
@@ -35,11 +35,16 @@ def iterdump(obj):
 	elif isinstance(obj, int):
 		yield "i{}|".format(str(obj))
 	elif isinstance(obj, str):
-		yield "s{}|{}".format(len(obj), obj)
+		yield "s{}|".format(len(obj))
+		yield obj
 	elif isinstance(obj, color.Color):
 		yield "c{:02x}{:02x}{:02x}{:02x}".format(obj.r(), obj.g(), obj.b(), obj.a())
 	elif isinstance(obj, datetime.datetime):
 		yield obj.strftime("d%Y%m%d%H%M%S%f")
+	elif isinstance(obj, ul4c.Template):
+		output = obj.dumps()
+		yield "t{}|".format(len(output))
+		yield output
 	elif isinstance(obj, collections.Sequence):
 		yield "["
 		for item in obj:
@@ -101,14 +106,18 @@ def _load(stream, typecode, keys):
 	elif typecode == "i":
 		return _readint(stream)
 	elif typecode == "s":
-		count = _readint(stream)
-		return stream.read(count)
+		size = _readint(stream)
+		return stream.read(size)
 	elif typecode == "c":
 		data = stream.read(8)
 		return color.Color(*(int(x, 16) for x in misc.itersplitat(data, (2, 4, 6))))
 	elif typecode == "d":
 		data = stream.read(20)
 		return datetime.datetime(*map(int, misc.itersplitat(data, (4, 6, 8, 10, 12, 14))))
+	elif typecode == "t":
+		size = _readint(stream)
+		data = stream.read(size)
+		return ul4c.Template.loads(data)
 	elif typecode == "[":
 		data = []
 		while True:
