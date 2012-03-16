@@ -1226,7 +1226,7 @@ class FileResource(Resource):
 		except IOError as exc:
 			if "w" not in mode or exc.errno != 2: # didn't work for some other reason than a non existing directory
 				raise
-			(splitpath, splitname) = os.path.split(name)
+			(splitpath, splitname) = os.path.split(self.name)
 			if splitpath:
 				os.makedirs(splitpath)
 				file = open(self.name, *args, **kwargs)
