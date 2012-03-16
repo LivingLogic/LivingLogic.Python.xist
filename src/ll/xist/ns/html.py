@@ -1384,8 +1384,8 @@ def astext(node, encoding="iso-8859-1", width=72):
 
 	options = [
 		"-dump 1",
-		"-dump-charset {}".format(encoding),
-		"-dump-width {}".format(width),
+		"-codepage {}".format(encoding),
+		"-width {}".format(width),
 		"-force-html",
 		"-no-home",
 		"-no-numbering",
@@ -1395,7 +1395,7 @@ def astext(node, encoding="iso-8859-1", width=72):
 
 	text = node.bytes(encoding=encoding)
 
-	cmd = "elinks {}".format(" ".join(options))
+	cmd = "links {}".format(" ".join(options))
 	p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
 	p.stdin.write(text)
 	p.stdin.close()

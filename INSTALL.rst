@@ -13,7 +13,7 @@ To use XIST you need the following software packages:
 
 	*	`lxml`_ (if you want to parse "broken" HTML);
 
-	*	`elinks`_ (if you want want to use the function
+	*	`links`_ (if you want want to use the function
 		:func:`ll.xist.ns.html.astext`);
 
 	*	`cx_Oracle`_ (if you want to use :mod:`ll.orasql`);
@@ -32,7 +32,7 @@ To use XIST you need the following software packages:
 	.. _Python Imaging Library: http://www.pythonware.com/products/pil/
 	.. _PIL port to Python 3: http://www.lfd.uci.edu/~gohlke/pythonlibs/#pil
 	.. _lxml: http://lxml.de/
-	.. _elinks: http://elinks.or.cz/
+	.. _links: http://links.twibright.com/
 	.. _cx_Oracle: http://cx-oracle.sourceforge.net/
 	.. _setuptools: http://peak.telecommunity.com/DevCenter/setuptools
 	.. _pytest: http://pytest.org/latest/
