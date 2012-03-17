@@ -16,7 +16,7 @@ __ http://www.w3.org/TR/html4/loose.dtd
 """
 
 
-import os, cgi, tempfile
+import os, cgi, tempfile, subprocess
 
 from ll.xist import xsc, sims
 
@@ -1385,7 +1385,11 @@ def astext(node, encoding="iso-8859-1", width=72):
 	try:
 		f.write(text)
 		f.close()
-		text = os.popen("links -codepage {} -width {} -force-html -dump {}".format(encoding, width, f.name)).read()
+		p = subprocess.Popen("links -codepage {} -width {} -force-html -dump {}".format(encoding, width, f.name), shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
+		p.stdin.write(text)
+		p.stdin.close()
+		text = p.stdout.read().decode("iso-8859-1")
+		p.stdout.close()
 	finally:
 		os.remove(f.name)
 	return text
