@@ -1364,17 +1364,7 @@ def astext(node, encoding="iso-8859-1", width=72):
 		)
 
 	def decorate(node, converter):
-		if isinstance(node, xsc.Text):
-			node = node.replace("\N{EM DASH}", "--")
-			node = node.replace("\N{EN DASH}", "-")
-			node = node.replace("\u200b", "")
-			node = node.replace("\N{GREEK CAPITAL LETTER ALPHA}", "Alpha")
-			node = node.replace("\N{GREEK CAPITAL LETTER BETA}", "Beta")
-			node = node.replace("\N{GREEK CAPITAL LETTER GAMMA}", "Gamma")
-			node = node.replace("\N{GREEK SMALL LETTER ALPHA}", "alpha")
-			node = node.replace("\N{GREEK SMALL LETTER BETA}", "beta")
-			node = node.replace("\N{GREEK SMALL LETTER GAMMA}", "gamma")
-		elif isinstance(node, (h1, h2)):
+		if isinstance(node, (h1, h2)):
 			node = decorateheader(node, converter, "=")
 		elif isinstance(node, (h3, h4, h5, h6)):
 			node = decorateheader(node, converter, "-")
