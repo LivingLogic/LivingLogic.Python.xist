@@ -1337,12 +1337,12 @@ class nobr(xsc.Element): # deprecated
 
 def astext(node, encoding="iso-8859-1", width=72):
 	"""
-	Return the node :var:`node` as a formatted plain string. :var:`node` must
+	Return the node :var:`node` as a formatted string. :var:`node` must
 	contain an HTML tree.
 
-	This requires that elinks__ is installed.
+	This requires that `links 2`__ is installed.
 
-	__ http://elinks.or.cz/
+		__ http://links.twibright.com/
 
 	:var:`encoding` specifies the output encoding. :var:`width` specifies the
 	output width.
@@ -1388,7 +1388,7 @@ def astext(node, encoding="iso-8859-1", width=72):
 		p = subprocess.Popen("links -codepage {} -width {} -force-html -dump {}".format(encoding, width, f.name), shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
 		p.stdin.write(text)
 		p.stdin.close()
-		text = p.stdout.read().decode("iso-8859-1")
+		text = p.stdout.read().decode(encoding)
 		p.stdout.close()
 	finally:
 		os.remove(f.name)
