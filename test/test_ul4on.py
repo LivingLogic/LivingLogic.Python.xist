@@ -9,7 +9,7 @@
 ## See ll/__init__.py for the license
 
 
-import io, os, datetime
+import io, os, datetime, math
 
 from ll import ul4on, ul4c, color
 
@@ -38,6 +38,7 @@ def test_loads_dumps():
 	yield check, False
 	yield check, True
 	yield check, 42
+	yield check, math.pi
 	yield check, "gurk"
 	yield check, color.Color(0x66, 0x99, 0xcc, 0xff)
 	yield check, datetime.datetime.now()

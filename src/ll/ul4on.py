@@ -33,7 +33,9 @@ def iterdump(obj):
 	elif isinstance(obj, bool):
 		yield "bT" if obj else "bF"
 	elif isinstance(obj, int):
-		yield "i{}|".format(str(obj))
+		yield "i{}|".format(obj)
+	elif isinstance(obj, float):
+		yield "f{!r}|".format(obj)
 	elif isinstance(obj, str):
 		yield "s{}|".format(len(obj))
 		yield obj
@@ -105,6 +107,14 @@ def _load(stream, typecode, keys):
 			raise ValueError("broken stream: expected 'T' or 'F' for bool; got {!r}".format(value))
 	elif typecode == "i":
 		return _readint(stream)
+	elif typecode == "f":
+		chars = []
+		while True:
+			c = stream.read(1)
+			if c == "|":
+				return float("".join(chars))
+			else:
+				chars.append(c)
 	elif typecode == "s":
 		size = _readint(stream)
 		return stream.read(size)
