@@ -20,7 +20,7 @@ Changes in 4.0 (released ??/??/2012)
 	Javascript itself.
 
 *	A new module :mod:`ul4on` has been added. This module provides function for
-	encoding and decoding a lightweight machine-readable formaat for serializing
+	encoding and decoding a lightweight machine-readable format for serializing
 	the object types supported by UL4.
 
 *	The XIST node method :meth:`sorted` has been removed, as it no longer makes
