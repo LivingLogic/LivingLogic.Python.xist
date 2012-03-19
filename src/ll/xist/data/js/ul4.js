@@ -1814,7 +1814,7 @@ var ul4 = {
 
 		// A class for converting a template object into binary format
 		_writer: {
-			// Create a new write object
+			// Create a new writer object
 			create: function()
 			{
 				var writer = ul4._clone(this);
