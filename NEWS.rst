@@ -23,29 +23,12 @@ Changes in 4.0 (released ??/??/2012)
 	encoding and decoding a lightweight machine-readable format for serializing
 	the object types supported by UL4.
 
-*	The XIST node method :meth:`sorted` has been removed, as it no longer makes
-	sense, because with Python 3 nodes might be uncomparable.
-
-*	UL4 stacktraces now use exception chaining to report the exception location
-	in nested templates.
-
-*	Th support for ``%u`` escapes in URLs has been removed.
-
-*	The function :func:`html.astext` now uses the newer `links 2`_
-
-	.. _links 2: http://links.twibright.com/
-
-*	The orasql script ``orafind`` no longer has an :option:`-e`/:option:`--encoding`
-	option.
-
 *	The following new functions have been added to UL4: ``isfirst``, ``islast``,
 	``isfirstlast``, ``enumfl``. They are variants of ``enumerate`` that give
 	information about whether the item is the first and/or last item.
 
-*	:class:`ll.orasql.LOBStream` has a new method :meth:`seek`.
-
-*	:class:`ll.make.FileAction` supports encoding/decoding when writing/reading
-	the file. For this use the :var:`encoding` and :var:`errors` arguments.
+*	UL4 stacktraces now use exception chaining to report the exception location
+	in nested templates.
 
 *	Added the attributes ``allowfullscreen`` and ``flashvars`` to
 	:class:`ll.xist.ns.html.embed`.
@@ -55,6 +38,23 @@ Changes in 4.0 (released ??/??/2012)
 
 		ucp http://www.python.org/ftp/python/2.7.2/Python-2.7.2.tar.bz2 \
 		    ssh://user@www.example.org/~/src/
+
+*	:class:`ll.orasql.LOBStream` has a new method :meth:`seek`.
+
+*	:class:`ll.make.FileAction` supports encoding/decoding when writing/reading
+	the file. For this use the :var:`encoding` and :var:`errors` arguments.
+
+*	The XIST node method :meth:`sorted` has been removed, as it no longer makes
+	sense, because with Python 3 nodes might be uncomparable.
+
+*	Th support for ``%u`` escapes in URLs has been removed.
+
+*	The function :func:`html.astext` now uses the newer `links 2`_
+
+	.. _links 2: http://links.twibright.com/
+
+*	The orasql script ``orafind`` no longer has an :option:`-e`/:option:`--encoding`
+	option.
 
 
 Changes in 3.25 (released 08/12/2011)
