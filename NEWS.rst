@@ -31,7 +31,7 @@ Changes in 4.0 (released ??/??/2012)
 
 *	Th support for ``%u`` escapes in URLs has been removed.
 
-*	The function :func:`html.astext` now uses the new` links 2`_
+*	The function :func:`html.astext` now uses the newer `links 2`_
 
 	.. _links 2: http://links.twibright.com/
 
