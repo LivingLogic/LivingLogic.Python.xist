@@ -54,11 +54,11 @@ The following example illustrates the use of this module::
 			self.log("fetching data from {!r}".format(self.url))
 			data = urllib.urlopen(self.url).read()
 			datasize = len(data)
-			self.log("writing file {!r} ({} bytes)".format(self.tmpname, datasize))
+			self.log("writing file {!r} ({:,} bytes)".format(self.tmpname, datasize))
 			open(self.tmpname, "wb").write(data)
 			self.log("renaming file {!r} to {!r}".format(self.tmpname, self.officialname))
 			os.rename(self.tmpname, self.officialname)
-			return "cached {!r} as {!r} ({} bytes)".format(self.url, self.officialname, datasize)
+			return "cached {!r} as {!r} ({:,} bytes)".format(self.url, self.officialname, datasize)
 
 	if __name__=="__main__":
 		sisyphus.executewithargs(Fetch())

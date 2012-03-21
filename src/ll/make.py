@@ -621,7 +621,7 @@ class FileAction(TransformAction):
 		"""
 		Write :var:`data` to the file and return it.
 		"""
-		project.writestep(self, "Writing ", len(data), " ", ("bytes" if isinstance(data, bytes) else "chars"), " to ", project.strkey(self.key))
+		project.writestep(self, "Writing ", format(len(data), ","), " ", ("bytes" if isinstance(data, bytes) else "chars"), " to ", project.strkey(self.key))
 		with contextlib.closing(self.key.open(mode="wb" if self.encoding is None else "w", encoding=self.encoding, errors=self.errors)) as file:
 			file.write(data)
 			project.fileswritten += 1
@@ -1384,9 +1384,9 @@ class Project(dict):
 		elif data is None:
 			return s4data("None")
 		elif isinstance(data, bytes):
-			return s4data("bytes ({}b)".format(len(data)))
+			return s4data("bytes ({:,}b)".format(len(data)))
 		elif isinstance(data, str):
-			return s4data("chars ({}c)".format(len(data)))
+			return s4data("chars ({:,}c)".format(len(data)))
 		else:
 			dataclass = data.__class__
 			fmt = "{0.__module__}.{0.__name__} @ {1:#x}" if dataclass.__module__ != "__builtin__" else "{0.__name__} @ {1:#x}"

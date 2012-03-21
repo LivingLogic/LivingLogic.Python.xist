@@ -80,9 +80,9 @@ Copy multiple files into a new or existing directory (and give a progress
 report)::
 
 	$ ucp foo.txt bar.txt baz.txt dir/ -v
-	ucp: foo.txt -> dir/foo.txt (1114 bytes)
-	ucp: bar.txt -> dir/bar.txt (2916 bytes)
-	ucp: baz.txt -> dir/baz.txt (35812 bytes)
+	ucp: foo.txt -> dir/foo.txt (1,114 bytes)
+	ucp: bar.txt -> dir/bar.txt (2,916 bytes)
+	ucp: baz.txt -> dir/baz.txt (35,812 bytes)
 
 Recursively copy the schema objects in an Oracle database to a local directory::
 
@@ -172,7 +172,7 @@ def main(args=None):
 						raise
 				else:
 					if args.verbose:
-						msg = astyle.style_default(astyle.style_url(str(urlwrite)), " (", str(size), " bytes)")
+						msg = astyle.style_default(astyle.style_url(str(urlwrite)), " ({:,} bytes)".format(size))
 						stderr.writeln(msg)
 			else:
 				if args.verbose:
