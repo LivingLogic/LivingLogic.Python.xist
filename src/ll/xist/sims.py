@@ -10,6 +10,18 @@
 
 """
 This module contains classes for a very simple validation model.
+
+Validation is specified like this::
+
+	class inner(xsc.Element):
+		model = sims.NoElements()
+
+	class outer(xsc.Element):
+		model = sims.Elements(inner)
+
+With this configuration :class:`inner` elements may only contain text and
+:class:`outer` elements may only contain :class:`inner` elements. Everything
+else will issue warnings when parsing or publishing.
 """
 
 
