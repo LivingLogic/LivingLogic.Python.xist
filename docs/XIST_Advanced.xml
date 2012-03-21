@@ -132,7 +132,7 @@ method has an attribute <lit>target</lit> which is a module or pool and
 specifies the target namespace to which <self/> should be converted.</p>
 
 <p>You can check which conversion is wanted by checking e.g. the
-<lit>xmlns</lit> atribute. Once this is determined you can use element classes
+<lit>xmlns</lit> attribute. Once this is determined you can use element classes
 from the target to create the required &xml; object tree. This makes it possible
 to customize the conversion by passing a chained pool to the
 <meth>convert</meth> method that extends an existing namespace.</p>
