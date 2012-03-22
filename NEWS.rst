@@ -19,7 +19,7 @@ Changes in 4.0 (released ??/??/2012)
 *	Generating the final Javascript source code for UL4 templates is now done in
 	Javascript itself.
 
-*	A new module :mod:`ul4on` has been added. This module provides function for
+*	A new module :mod:`ul4on` has been added. This module provides functions for
 	encoding and decoding a lightweight machine-readable format for serializing
 	the object types supported by UL4.
 
