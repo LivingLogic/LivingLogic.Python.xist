@@ -13,7 +13,7 @@ To use XIST you need the following software packages:
 
 	*	`lxml`_ (if you want to parse "broken" HTML);
 
-	*	`links`_ (if you want want to use the function
+	*	`links`_ (if you want to use the function
 		:func:`ll.xist.ns.html.astext`);
 
 	*	`cx_Oracle`_ (if you want to use :mod:`ll.orasql`);
