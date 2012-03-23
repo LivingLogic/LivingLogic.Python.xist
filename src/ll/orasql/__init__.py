@@ -2008,9 +2008,9 @@ class Callable(MixinNormalDates, MixinCodeDDL, Object):
 				t = type(arg)
 		except KeyError:
 			raise TypeError("can't handle parameter {} of type {} with value {!r} in {!r}".format(arginfo.name, arginfo.datatype, arg, self))
-		if isinstance(arg, str): # ``str`` is treated as binary data, always wrap it in a ``BLOB``
+		if isinstance(arg, bytes): # ``bytes`` is treated as binary data, always wrap it in a ``BLOB``
 			t = BLOB
-		elif isinstance(arg, str) and len(arg) >= 4000:
+		elif isinstance(arg, str) and len(arg) >= 2000:
 			t = CLOB
 		var = cursor.var(t)
 		var.setvalue(0, arg)
