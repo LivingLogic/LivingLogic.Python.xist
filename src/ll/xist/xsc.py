@@ -28,13 +28,6 @@ try:
 except ImportError:
 	astyle = None
 
-# IPython/ipipe support
-try:
-	import ipipe
-except ImportError:
-	ipipe = None
-
-
 __docformat__ = "reStructuredText"
 
 
@@ -1367,100 +1360,6 @@ class Node(object, metaclass=_Node_Meta):
 			return self
 
 
-###
-### Helper functions for ipipe
-###
-
-
-if ipipe is not None:
-	def _ipipe_type(node):
-		"The type of the node"
-		if node is Null:
-			return "null"
-		elif isinstance(node, Element):
-			return "element"
-		elif isinstance(node, ProcInst):
-			return "procinst"
-		elif isinstance(node, CharRef):
-			return "charref"
-		elif isinstance(node, Entity):
-			return "entity"
-		elif isinstance(node, Text):
-			return "text"
-		elif isinstance(node, Comment):
-			return "comment"
-		elif isinstance(node, DocType):
-			return "doctype"
-		elif isinstance(node, Attr):
-			return "attr"
-		elif isinstance(node, Frag):
-			return "frag"
-		return ipipe.noitem
-	_ipipe_type.__xname__ = "type"
-
-
-	def _ipipe_ns(node):
-		"The namespace"
-		return node.xmlns
-	_ipipe_ns.__xname__ = "ns"
-
-
-	def _ipipe_name(node):
-		"The element/procinst/entity/attribute name of the node"
-		if isinstance(node, (Element, ProcInst, Entity, Attr)):
-			return "{0.__class__.__module__}.{0.__fullname__}".format(node)
-		return ipipe.noitem
-	_ipipe_name.__xname__ = "name"
-
-
-	def _ipipe_childrencount(node):
-		"The number of child nodes"
-		if isinstance(node, Element):
-			return len(node.content)
-		elif isinstance(node, Frag):
-			return len(node)
-		return ipipe.noitem
-	_ipipe_childrencount.__xname__ = "# children"
-
-
-	def _ipipe_attrscount(node):
-		"The number of attribute nodes"
-		if isinstance(node, Element):
-			return len(node.attrs)
-		return ipipe.noitem
-	_ipipe_attrscount.__xname__ = "# attrs"
-
-
-	def _ipipe_content(node):
-		"The text content"
-		if isinstance(node, CharacterData):
-			return str(node.content)
-		elif isinstance(node, Attr):
-			return str(node)
-		return ipipe.noitem
-	_ipipe_content.__xname__ = "content"
-
-
-	@ipipe.xrepr.when_type(_Node_Meta)
-	def repr_nodeclass(self, mode="default"):
-		yield (astyle.style_type_type, "{0.__module__}.{0.__fullname__}".format(self))
-
-
-	@ipipe.xattrs.when_type(Node)
-	def xattrs_nodeclass(self, mode="default"):
-		yield ipipe.AttributeDescriptor("startloc", doc="the location in the XML file")
-		yield ipipe.FunctionDescriptor(_ipipe_type)
-		yield ipipe.AttributeDescriptor("xmlns", doc="the XML namespace of the node")
-		yield ipipe.FunctionDescriptor(_ipipe_name, "name")
-		yield ipipe.FunctionDescriptor(_ipipe_content, "content")
-		if mode == "detail":
-			yield ipipe.IterAttributeDescriptor("content", "the element content")
-			yield ipipe.IterAttributeDescriptor("attrs", "the element attributes")
-		else:
-			yield ipipe.FunctionDescriptor(_ipipe_childrencount, "children")
-			yield ipipe.FunctionDescriptor(_ipipe_attrscount, "attrs")
-
-
 class CharacterData(Node):
 	"""
 	Base class for XML character data (:class:`Text`, :class:`ProcInst`,
@@ -1473,6 +1372,9 @@ class CharacterData(Node):
 
 	def __init__(self, *content):
 		self._content = "".join(str(x) for x in content)
+
+	def _repr_pretty_(self, p, cycle):
+		p.text("{}.{}({!r})".format(self.__class__.__module__, self.__class__.__name__, self.content))
 
 	def __getstate__(self):
 		return self._content
@@ -1629,7 +1531,7 @@ class CharacterData(Node):
 			loc = " (from {})".format(self.startloc)
 		else:
 			loc = ""
-		return "<{0.__class__.__module__}.{0.__fullname__} content={0.content!r}{1} at {2:#x}>".format(self, loc, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__fullname__} content={0.content!r}{1} at {2:#x}>".format(self, loc, id(self))
 
 
 class Text(CharacterData):
@@ -1644,6 +1546,12 @@ class Text(CharacterData):
 
 	def __str__(self):
 		return self._content
+
+	def _repr_pretty_(self, p, cycle):
+		if len(p.group_stack) <= 2:
+			p.text("xsc.Text({!r})".format(self._content))
+		else:
+			p.text(repr(self._content))
 
 	def publish(self, publisher):
 		yield publisher.encodetext(self._content)
@@ -1673,6 +1581,19 @@ class Frag(Node, list):
 				list.extend(self, child)
 			elif child is not Null:
 				list.append(self, child)
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("xsc.Frag(...)")
+		else:
+			with p.group(3, "xsc.Frag(", ")"):
+				for (i, child) in enumerate(self):
+					if i:
+						p.text(",")
+						p.breakable()
+					else:
+						p.breakable("")
+					p.pretty(child)
 
 	def __enter__(self):
 		return threadlocalnodehandler.handler.enter(self)
@@ -1986,7 +1907,7 @@ class Frag(Node, list):
 		else:
 			info = "{} children".format(l)
 		loc = " (from {})".format(self.startloc) if self.startloc is not None else ""
-		return "<{0.__class__.__module__}.{0.__fullname__} object ({1}){2} at {3:#x}>".format(self, info, loc, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__fullname__} object ({1}){2} at {3:#x}>".format(self, info, loc, id(self))
 
 
 class Comment(CharacterData):
@@ -2089,7 +2010,7 @@ class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
 			loc = " (from {})".format(self.startloc)
 		else:
 			loc = ""
-		return "<{0.__class__.__module__}.{0.__fullname__} procinst content={0.content!r}{1} at {2:#x}>".format(self, loc, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__fullname__} procinst content={0.content!r}{1} at {2:#x}>".format(self, loc, id(self))
 
 	def __mul__(self, n):
 		return Node.__mul__(self, n) # don't inherit ``CharacterData.__mul__``
@@ -2102,6 +2023,9 @@ class Null(CharacterData):
 	"""
 	node that does not contain anything.
 	"""
+
+	def _repr_pretty_(self, p, cycle):
+		p.text("xsc.Null")
 
 	@classmethod
 	def _str(cls, fullname=True, xml=True, decorate=True):
@@ -2193,6 +2117,19 @@ class Attr(Frag, metaclass=_Attr_Meta):
 				return True
 		return False
 
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("{}.{}(...)".format(self.__class__.__module__, self.__class__.__name__))
+		else:
+			with p.group(3, "{}.{}(".format(self.__class__.__module__, self.__class__.__name__), ")"):
+				for (i, child) in enumerate(self):
+					if i:
+						p.text(",")
+						p.breakable()
+					else:
+						p.breakable("")
+					p.pretty(child)
+
 	@classmethod
 	def _str(cls, fullname=True, xml=True, decorate=True):
 		return cls._strbase(fullname=fullname, xml=xml)
@@ -2256,7 +2193,7 @@ class Attr(Frag, metaclass=_Attr_Meta):
 		else:
 			info = "{} children".format(l)
 		loc = " (from {})".format(self.startloc) if self.startloc is not None else ""
-		return "<{0.__class__.__module__}.{0.__fullname__} attr object ({1}){2} at {3:#x}>".format(self, info, loc, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__fullname__} attr object ({1}){2} at {3:#x}>".format(self, info, loc, id(self))
 
 
 class TextAttr(Attr):
@@ -2482,6 +2419,45 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		# set attributes, this might overwrite (or delete) default attributes
 		self.update(_content, **attrs)
 
+	@staticmethod
+	def _sortorder(cls):
+		return (getattr(cls, "xmlorder", "\uffff"), nsclark(cls.xmlns) + cls.xmlname)
+
+	def _repr_pretty_content_(self, p, first=True):
+		for attr in sorted(self.values(), key=self._sortorder):
+			if first:
+				p.breakable("")
+				first = False
+			else:
+				p.text(",")
+				p.breakable()
+			if attr.xmlns is not None:
+				attrname = "{}.{}".format(attr.__class__.__module__, attr.__class__.__fullname__)
+			else:
+				attrname = attr.__class__.__name__
+			if len(attr) == 1:
+				p.text(attrname)
+				p.text("=")
+				p.pretty(attr[0])
+			else:
+				with p.group(3, "{}=(".format(attrname), ")"):
+					attrfirst = True
+					for attrchild in attr:
+						if attrfirst:
+							p.breakable("")
+							attrfirst = False
+						else:
+							p.text(",")
+							p.breakable()
+						p.pretty(attrchild)
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("{}.{}(...)".format(self.__class__.__module__, self.__class__.__fullname__))
+		else:
+			with p.group(3, "{}.{}(".format(self.__class__.__module__, self.__class__.__fullname__), ")"):
+				self._repr_pretty_content_(p, True)
+
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and dict.__eq__(self, other)
 
@@ -2571,11 +2547,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		if publisher.validate:
 			self.checkvalid()
 
-		def clarkname(attr):
-			return nsclark(attr.xmlns) + attr.xmlname
-
-		# Output the attributes sorted by their "clark" name to get deterministic output
-		for value in sorted(self.values(), key=clarkname):
+		for value in sorted(self.values(), key=self._sortorder):
 			for part in value.publish(publisher):
 				yield part
 
@@ -2950,7 +2922,19 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 			loc = " (from {})".format(self.startloc)
 		else:
 			loc = ""
-		return "<{0.__class__.__module__}.{0.__fullname__} attrs {1}{2} at {3:#x}>".format(self, info, loc, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__fullname__} attrs {1}{2} at {3:#x}>".format(self, info, loc, id(self))
+
+
+# Work around a bug in IPython ``pretty`` module: The pretty printer registered for ``dict`` is found before our :meth:`_repr_pretty_` method
+try:
+	from IPython.lib import pretty
+except ImportError:
+	pass
+else:
+	def _attrsprinter(obj, p, cycle):
+		obj._repr_pretty_(p, cycle)
+	pretty.for_type(Attrs, _attrsprinter)
+	del _attrsprinter
 
 
 def _patchclassnames(dict, name):
@@ -3040,6 +3024,24 @@ class Element(Node, metaclass=_Element_Meta):
 				newcontent.append(child)
 		self.content = Frag(*newcontent)
 		self.attrs.update(attrs)
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("{}.{}(...)".format(self.__class__.__module__, self.__class__.__name__))
+		else:
+			text = "{}.{}(".format(self.__class__.__module__, self.__class__.__name__)
+			with p.group(3, text, ")"):
+				first = True
+				for child in self:
+					if first:
+						p.breakable("")
+						first = False
+					else:
+						p.text(",")
+						p.breakable()
+					p.pretty(child)
+
+				self.attrs._repr_pretty_content_(p, first)
 
 	def __getstate__(self):
 		attrs = {}
@@ -3422,7 +3424,7 @@ class Element(Node, metaclass=_Element_Meta):
 			loc = " (from {})".format(self.startloc)
 		else:
 			loc = ""
-		return "<{0.__class__.__module__}.{0.__fullname__} element object ({1}/{2}){3} at {4:#x}>".format(self, infoc, infoa, loc, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__fullname__} element object ({1}/{2}){3} at {4:#x}>".format(self, infoc, infoa, loc, id(self))
 
 
 class AttrElement(Element):
@@ -3476,6 +3478,9 @@ class Entity(Node, metaclass=_Entity_Meta):
 
 	register = None
 
+	def _repr_pretty_(self, p, cycle):
+		p.text("{}.{}()".format(self.__class__.__module__, self.__class__.__name__))
+
 	@classmethod
 	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = cls._strbase(fullname=fullname, xml=xml)
@@ -3502,7 +3507,7 @@ class Entity(Node, metaclass=_Entity_Meta):
 			loc = " (from {})".format(self.startloc)
 		else:
 			loc = ""
-		return "<{0.__class__.__module__}.{0.__fullname__} entity object{1} at {2:#x}>".format(self, loc, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__fullname__} entity object{1} at {2:#x}>".format(self, loc, id(self))
 
 
 class _CharRef_Meta(type(Entity)): # don't subclass Text.__metaclass__, as this is redundant
@@ -3520,6 +3525,9 @@ class CharRef(Text, Entity, metaclass=_CharRef_Meta):
 	def __init__(self):
 		Text.__init__(self, chr(self.codepoint))
 		Entity.__init__(self)
+
+	def _repr_pretty_(self, p, cycle):
+		p.text("{}.{}()".format(self.__class__.__module__, self.__class__.__name__))
 
 	def __getnewargs__(self):
 		return ()
@@ -4200,16 +4208,3 @@ class Location(object):
 
 	def __ne__(self, other):
 		return not self==other
-
-	def __xattrs__(self, mode="default"):
-		return ("url", "line", "col")
-
-	def __xrepr__(self, mode="default"):
-		for part in ipipe.xrepr(self.url, mode):
-			yield part
-		yield (astyle.style_default, ":")
-		for part in ipipe.xrepr(self.line, mode):
-			yield part
-		yield (astyle.style_default, ":")
-		for part in ipipe.xrepr(self.col, mode):
-			yield part

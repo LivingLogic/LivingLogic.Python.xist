@@ -222,11 +222,11 @@ class meta(xsc.Element):
 	model = sims.Empty()
 
 	class Attrs(i18nattrs):
-		class id(xsc.IDAttr): pass
-		class http_equiv(xsc.TextAttr): xmlname = "http-equiv"
-		class name(xsc.TextAttr): pass
-		class content(xsc.TextAttr): required = True
-		class scheme(xsc.TextAttr): pass
+		class id(xsc.IDAttr): xmlorder = "a"
+		class http_equiv(xsc.TextAttr): xmlorder = "b"; xmlname = "http-equiv"
+		class name(xsc.TextAttr): xmlorder = "c"
+		class content(xsc.TextAttr): xmlorder = "d"; required = True
+		class scheme(xsc.TextAttr): xmlorder = "e"
 
 	def publish(self, publisher):
 		if "http_equiv" in self.attrs and not self.attrs.http_equiv.isfancy():

@@ -1999,12 +1999,6 @@ class Query(dict):
 		values = map(str, values)
 		self.setdefault(key, []).extend(values)
 
-	def __xrepr__(self, mode="default"):
-		if mode == "cell":
-			yield (astyle.style_url, str(self))
-		else:
-			yield (astyle.style_url, repr(self))
-
 
 class URL(object):
 	"""
@@ -2829,12 +2823,6 @@ class URL(object):
 			return iter(self/self.listdir())
 		else:
 			return iter(self.open())
-
-	def __xrepr__(self, mode="default"):
-		if mode == "cell":
-			yield (astyle.style_url, str(self))
-		else:
-			yield (astyle.style_url, repr(self))
 
 
 warnings.filterwarnings("always", module="url")

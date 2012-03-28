@@ -257,11 +257,6 @@ class Line(object):
 	def __iter__(self):
 		return iter(defaultpresenter(self.node))
 
-	def __xattrs__(self, mode="default"):
-		if mode == "detail":
-			return ("node", "loc", "path", "content")
-		return ("loc", "path", "content")
-
 
 class TreePresenter(Presenter):
 	"""

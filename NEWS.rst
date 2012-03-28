@@ -19,6 +19,26 @@ Changes in 4.0 (released ??/??/2012)
 *	Generating the final Javascript source code for UL4 templates is now done in
 	Javascript itself.
 
+*	Support for the old ``ipipe`` infrastructure has been removed. Support for
+	IPythons new pretty printing infrastructure has been added. Output looks like
+	this::
+
+		In [1]: from ll.xist.ns import xml, html
+		In [2]: html.a(
+		   ...:         'gurk',
+		   ...:         xml.Attrs(lang='de'),
+		   ...:         class_='link',
+		   ...:         href='http://www.example.org/',
+		   ...:         id='dings42',
+		   ...: )
+		Out[2]:
+		ll.xist.ns.html.a(
+		   'gurk',
+		   class_='link',
+		   id='dings42',
+		   ll.xist.ns.xml.Attrs.lang='de',
+		   href='http://www.example.org/')
+
 *	A new module :mod:`ul4on` has been added. This module provides functions for
 	encoding and decoding a lightweight machine-readable format for serializing
 	the object types supported by UL4.
@@ -29,6 +49,11 @@ Changes in 4.0 (released ??/??/2012)
 
 *	UL4 stacktraces now use exception chaining to report the exception location
 	in nested templates.
+
+*	The sort order for attributes when publishing can be overwritten by setting
+	the ``xmlorder`` class attribute to a string. This string will be used for
+	sorting the attribute. Attributes that have ``xmlorder`` set will always be
+	published before those that don't.
 
 *	:class:`ll.orasql.Index` now uses the ``*_INDEXES`` views to get a list of
 	all indexes and ``LOB`` indexes are filtered out, since they will be recreated

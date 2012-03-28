@@ -426,37 +426,6 @@ class Action(object):
 					if myinput == input:
 						yield [self, myinput]
 
-	def __xattrs__(self, mode="default"):
-		if mode == "default":
-			return (_ipipe_type, _ipipe_key)
-		return dir(self)
-
-	def __xrepr__(self, mode="default"):
-		if mode in ("cell", "default"):
-			name = self.__class__.__name__
-			if name.endswith("Action"):
-				name = name[:-6]
-			yield (s4action, name)
-			if self.key is not None:
-				yield (astyle.style_default, "(")
-				key = self.key
-				if isinstance(key, url.URL) and key.islocal():
-					here = url.here()
-					home = url.home()
-					s = str(key)
-					test = str(key.relative(here))
-					if len(test) < len(s):
-						s = test
-					test = "~/{}".format(key.relative(home))
-					if len(test) < len(s):
-						s = test
-				else:
-					s = str(key)
-				yield (s4key, s)
-				yield (astyle.style_default, ")")
-		else:
-			yield (astyle.style_default, repr(self))
-
 
 class ObjectAction(Action):
 	"""
