@@ -34,10 +34,10 @@ Changes in 4.0 (released ??/??/2012)
 		Out[2]:
 		ll.xist.ns.html.a(
 		   'gurk',
-		   class_='link',
-		   id='dings42',
 		   ll.xist.ns.xml.Attrs.lang='de',
-		   href='http://www.example.org/')
+		   class_='link',
+		   href='http://www.example.org/',
+		   id='dings42')
 
 *	A new module :mod:`ul4on` has been added. This module provides functions for
 	encoding and decoding a lightweight machine-readable format for serializing

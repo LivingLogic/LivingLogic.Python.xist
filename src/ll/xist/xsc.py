@@ -2925,7 +2925,9 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		return "<{0.__class__.__module__}.{0.__class__.__fullname__} attrs {1}{2} at {3:#x}>".format(self, info, loc, id(self))
 
 
-# Work around a bug in IPython ``pretty`` module: The pretty printer registered for ``dict`` is found before our :meth:`_repr_pretty_` method
+# FIXME: This will hopefully be unneccessary in the future
+# Work around a bug in IPythons ``pretty`` module:
+# The pretty printer registered for ``dict`` is found before our :meth:`_repr_pretty_` method
 try:
 	from IPython.lib import pretty
 except ImportError:
