@@ -1210,7 +1210,7 @@ class Resource(object):
 		self.close()
 
 	def __repr__(self):
-		return "<{0} {1.__class__.__module__}.{1.__class__.__name__} {1.name}, mode {1.mode!r} at {2:#x}>".format("closed" if self.closed else "open", self, id(self))
+		return "<{0} {1.__class__.__module__}.{1.__class__.__name__} {1.name}, mode {1.mode!r} at {2:#x}>".format("closed" if self.isclosed() else "open", self, id(self))
 
 
 class FileResource(Resource):
@@ -1242,8 +1242,12 @@ class FileResource(Resource):
 		return iter(self.file)
 
 	def close(self):
-		if not self.file.closed:
+		if self.file is not None:
 			self.file.close()
+			self.file = None
+
+	def isclosed(self):
+		return self.file is None
 
 	def size(self):
 		# Forward to the connection
@@ -1285,6 +1289,9 @@ class RemoteFileResource(Resource):
 		if self.connection is not None:
 			self._send(self.remoteid, "close")
 			self.connection = None # close the channel too as there are no longer any meaningful operations
+
+	def isclosed(self):
+		return self.connection is None
 
 	def read(self, size=-1):
 		return self._send(self.remoteid, "read", size)
@@ -1350,8 +1357,6 @@ class URLResource(Resource):
 		self.reqheaders = headers
 		self.reqdata = data
 		self._finalurl = None
-		self.closed = False
-		self._stream = None
 		if data is not None:
 			data = urllib.parse.urlencode(data)
 		if headers is None:
@@ -1385,10 +1390,12 @@ class URLResource(Resource):
 		return call
 
 	def close(self):
-		if not self.closed:
+		if self._stream is not None:
 			self._stream.close()
 			self._stream = None
-			self.closed = True
+
+	def isclosed(self):
+		return self._stream is None
 
 	def finalurl(self):
 		return self._finalurl
