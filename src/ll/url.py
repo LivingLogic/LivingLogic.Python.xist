@@ -1269,24 +1269,22 @@ class RemoteFileResource(Resource):
 		self.mode = mode
 		self.args = args
 		self.kwargs = kwargs
-		self.closed = False
 		filename = self.connection._url2filename(url)
 		self.name = str(self.url)
 		self.remoteid = self._send(filename, "open", mode, *args, **kwargs)
 
 	def __repr__(self):
-		return "<{0} {1.__class__.__module__}.{1.__class__.__name__} {1.name}, mode {1.mode!r} at {2:#x}>".format("closed" if self.closed else "open", self, id(self))
+		return "<{0} {1.__class__.__module__}.{1.__class__.__name__} {1.name}, mode {1.mode!r} at {2:#x}>".format("closed" if self.connection is None else "open", self, id(self))
 
 	def _send(self, filename, cmd, *args, **kwargs):
-		if self.closed:
+		if self.connection is None:
 			raise ValueError("I/O operation on closed file")
 		return self.connection._send(filename, cmd, *args, **kwargs)
 
 	def close(self):
-		if not self.closed:
+		if self.connection is not None:
 			self._send(self.remoteid, "close")
 			self.connection = None # close the channel too as there are no longer any meaningful operations
-			self.closed = True
 
 	def read(self, size=-1):
 		return self._send(self.remoteid, "read", size)
