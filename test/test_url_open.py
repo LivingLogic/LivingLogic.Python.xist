@@ -220,7 +220,7 @@ def test_autocreate_dir():
 			try:
 				u = url.URL(u)
 				with u.openwrite() as f:
-					f.write("Hurz!")
+					f.write(b"Hurz!")
 			finally:
 				u.remove()
 				u.withoutfile().rmdir()
