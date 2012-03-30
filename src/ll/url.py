@@ -1210,7 +1210,7 @@ class Resource(object):
 		self.close()
 
 	def __repr__(self):
-		return "<{0} {1.__class__.__module__}.{1.__class__.__name__} {1.name}, mode {1.mode!r} at {2:#x}>".format("closed" if self.isclosed() else "open", self, id(self))
+		return "<{0} {1.__class__.__module__}.{1.__class__.__name__} {1.name}, mode {1.mode!r} at {2:#x}>".format("closed" if self.closed else "open", self, id(self))
 
 
 class FileResource(Resource):
@@ -1246,7 +1246,8 @@ class FileResource(Resource):
 			self.file.close()
 			self.file = None
 
-	def isclosed(self):
+	@property
+	def closed(self):
 		return self.file is None
 
 	def size(self):
@@ -1290,7 +1291,8 @@ class RemoteFileResource(Resource):
 			self._send(self.remoteid, "close")
 			self.connection = None # close the channel too as there are no longer any meaningful operations
 
-	def isclosed(self):
+	@property
+	def closed(self):
 		return self.connection is None
 
 	def read(self, size=-1):
@@ -1394,7 +1396,8 @@ class URLResource(Resource):
 			self._stream.close()
 			self._stream = None
 
-	def isclosed(self):
+	@property
+	def closed(self):
 		return self._stream is None
 
 	def finalurl(self):
