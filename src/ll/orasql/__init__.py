@@ -2018,12 +2018,7 @@ class Callable(MixinNormalDates, MixinCodeDDL, Object):
 
 	def _unwraparg(self, arginfo, cursor, value):
 		if isinstance(value, LOB):
-			if arginfo.datatype == "clob":
-				return _decodeclob(value, cursor.connection.encoding, cursor.readlobs)
-			elif arginfo.datatype == "nclob":
-				return _decodeclob(value, cursor.connection.nencoding, cursor.readlobs)
-			elif arginfo.datatype == "blob":
-				return _decodeblob(value, cursor.readlobs)
+			value = _decodelob(value, cursor.readlobs)
 		return value
 
 	def _makerecord(self, cursor, args):
