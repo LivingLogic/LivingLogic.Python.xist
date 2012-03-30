@@ -105,11 +105,9 @@ def test_chown():
 					r.write(b"foo")
 				finally:
 					r.close()
-				try:
-					# Might have been left over from previous run
+				# Might have been left over from previous run
+				if u2.exists():
 					u2.remove()
-				except Exception:
-					pass
 				try:
 					u1.symlink(u2)
 					u2.lchown(owner, group)
