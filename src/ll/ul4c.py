@@ -2862,29 +2862,27 @@ class ForParser(ExprParser):
 	def for1(self, _0, iter, _1, _2, _3, cont):
 		return For(_0.start, cont.end, [iter], cont)
 
-	@spark.production('for ::= ( name , name ) in expr0')
-	def for2a(self, _0, iter1, _1, iter2, _2, _3, cont):
-		return For(_0.start, cont.end, [iter1, iter2], cont)
+	@spark.production('buildfor ::= ( name , name')
+	def buildfor(self, _0, iter1, _1, iter2):
+		return For(_0.start, iter1.end, [iter1, iter2], None)
 
-	@spark.production('for ::= ( name , name , ) in expr0')
-	def for2b(self, _0, iter1, _1, iter2, _2, _3, _4, cont):
-		return For(_0.start, cont.end, [iter1, iter2], cont)
+	@spark.production('buildfor ::= buildfor , name')
+	def addfor(self, for_, _0, iter3):
+		for_.iter.append(iter3)
+		for_.end = iter3.end
+		return for_
 
-	@spark.production('for ::= ( name , name , name ) in expr0')
-	def for3a(self, _0, iter1, _1, iter2, _2, iter3, _3, _4, cont):
-		return For(_0.start, cont.end, [iter1, iter2, iter3], cont)
+	@spark.production('for ::= buildfor ) in expr0')
+	def finishfor(self, for_, _0, _1, cont):
+		for_.end = cont.end
+		for_.cont = cont
+		return for_
 
-	@spark.production('for ::= ( name , name , name , ) in expr0')
-	def for3b(self, _0, iter1, _1, iter2, _2, iter3, _3, _4, _5, cont):
-		return For(_0.start, cont.end, [iter1, iter2, iter3], cont)
-
-	@spark.production('for ::= ( name , name , name , name ) in expr0')
-	def for4a(self, _0, iter1, _1, iter2, _2, iter3, _3, iter4, _5, _6, cont):
-		return For(_0.start, cont.end, [iter1, iter2, iter3, iter4], cont)
-
-	@spark.production('for ::= ( name , name , name , name , ) in expr0')
-	def for4b(self, _0, iter1, _1, iter2, _2, iter3, _3, iter4, _5, _6, cont):
-		return For(_0.start, cont.end, [iter1, iter2, iter3, iter4], cont)
+	@spark.production('for ::= buildfor , ) in expr0')
+	def finishfor1(self, for_, _0, _1, _2, cont):
+		for_.end = cont.end
+		for_.cont = cont
+		return for_
 
 
 class StmtParser(ExprParser):
