@@ -580,7 +580,7 @@ class Template(object):
 	Rendering the template can be done with the methods :meth:`render` (which
 	is a generator) or :meth:`renders` (which returns a string).
 	"""
-	version = "16"
+	version = "17"
 
 	def __init__(self, source=None, name="unnamed", startdelim="<?", enddelim="?>"):
 		"""
