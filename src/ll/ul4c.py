@@ -348,6 +348,10 @@ class Opcode(object):
 		Similar to ``getslice12`` except that the start index is always 0 and the
 		end index is in register :attr:`r3`.
 
+	``"getslice"``:
+		Similar to ``getslice12`` except that the start index is always 0 and the
+		end index always the length of the object.
+
 	``"not"``:
 		Invert the truth value of the object in register :attr:`r2` and stores the
 		resulting bool in the register :attr:`r1`.
@@ -521,6 +525,7 @@ class Opcode(object):
 			"endif": "endif",
 			"getattr": "r{op.r1!r} = getattr(r{op.r2!r}, {op.arg!r})",
 			"getitem": "r{op.r1!r} = r{op.r2!r}[r{op.r3!r}]",
+			"getslice": "r{op.r1!r} = r{op.r2!r}[:]",
 			"getslice1": "r{op.r1!r} = r{op.r2!r}[r{op.r3!r}:]",
 			"getslice2": "r{op.r1!r} = r{op.r2!r}[:r{op.r3!r}]",
 			"getslice12": "r{op.r1!r} = r{op.r2!r}[r{op.r3!r}:r{op.r4!r}]",
@@ -1147,6 +1152,8 @@ class PythonSource(object):
 		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}[r{op.r3:d}:]".format(op=opcode))
 	def _dispatch_getslice2(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}[:r{op.r3:d}]".format(op=opcode))
+	def _dispatch_getslice(self, opcode):
+		self._line(opcode.location, "r{op.r1:d} = r{op.r2:d}[:]".format(op=opcode))
 	def _dispatch_print(self, opcode):
 		self._line(opcode.location, "if r{op.r1:d} is not None: yield str(r{op.r1:d})".format(op=opcode))
 	def _dispatch_printx(self, opcode):
@@ -1602,6 +1609,9 @@ class JavaSource(object):
 	def _dispatch_getslice2(self, opcode):
 		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getSlice(r{op.r2}, null, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
+	def _dispatch_getslice(self, opcode):
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getSlice(r{op.r2}, null, null);".format(op=opcode))
+		self._usereg(opcode.r1)
 	def _dispatch_print(self, opcode):
 		self._do(self.output("com.livinglogic.ul4.Utils.str(r{op.r1})".format(op=opcode)))
 	def _dispatch_printx(self, opcode):
@@ -2035,7 +2045,7 @@ class GetAttr(AST):
 		return r
 
 
-class GetSlice12(AST):
+class GetSlice(AST):
 	def __init__(self, start, end, obj, index1, index2):
 		AST.__init__(self, start, end)
 		self.obj = obj
@@ -2047,11 +2057,24 @@ class GetSlice12(AST):
 
 	def compile(self, template):
 		r1 = self.obj.compile(template)
-		r2 = self.index1.compile(template)
-		r3 = self.index2.compile(template)
-		template.opcode("getslice12", r1=r1, r2=r1, r3=r2, r4=r3)
-		template._freereg(r2)
-		template._freereg(r3)
+		if self.index1 is not None:
+			if self.index2 is not None:
+				r2 = self.index1.compile(template)
+				r3 = self.index2.compile(template)
+				template.opcode("getslice12", r1=r1, r2=r1, r3=r2, r4=r3)
+				template._freereg(r2)
+				template._freereg(r3)
+			else:
+				r2 = self.index1.compile(template)
+				template.opcode("getslice1", r1=r1, r2=r1, r3=r2)
+				template._freereg(r2)
+		else:
+			if self.index2 is not None:
+				r2 = self.index2.compile(template)
+				template.opcode("getslice2", r1=r1, r2=r1, r3=r2)
+				template._freereg(r2)
+			else:
+				template.opcode("getslice", r1=r1, r2=r1)
 		return r1
 
 
@@ -2100,14 +2123,6 @@ class Binary(AST):
 
 class GetItem(Binary):
 	opcode = "getitem"
-
-
-class GetSlice1(Binary):
-	opcode = "getslice1"
-
-
-class GetSlice2(Binary):
-	opcode = "getslice2"
 
 
 class EQ(Binary):
@@ -2712,19 +2727,25 @@ class ExprParser(spark.Parser):
 	def expr_getslice12(self, expr, _0, index1, _1, index2, _2):
 		if isinstance(expr, Const) and isinstance(index1, Const) and isinstance(index2, Const): # Constant folding
 			return self.makeconst(expr.start, _2.end, expr.value[index1.value:index2.value])
-		return GetSlice12(expr.start, _2.end, expr, index1, index2)
+		return GetSlice(expr.start, _2.end, expr, index1, index2)
 
 	@spark.production('expr8 ::= expr8 [ expr0 : ]')
 	def expr_getslice1(self, expr, _0, index1, _1, _2):
 		if isinstance(expr, Const) and isinstance(index1, Const): # Constant folding
 			return self.makeconst(expr.start, _2.end, expr.value[index1.value:])
-		return GetSlice1(expr.start, _2.end, expr, index1)
+		return GetSlice(expr.start, _2.end, expr, index1, None)
 
 	@spark.production('expr8 ::= expr8 [ : expr0 ]')
 	def expr_getslice2(self, expr, _0, _1, index2, _2):
 		if isinstance(expr, Const) and isinstance(index2, Const): # Constant folding
 			return self.makeconst(expr.start, _2.end, expr.value[:index2.value])
-		return GetSlice2(expr.start, _2.end, expr, index2)
+		return GetSlice(expr.start, _2.end, expr, None, index2)
+
+	@spark.production('expr8 ::= expr8 [ : ]')
+	def expr_getslice(self, expr, _0, _1, _2):
+		if isinstance(expr, Const): # Constant folding
+			return self.makeconst(expr.start, _2.end, expr.value[:])
+		return GetSlice(expr.start, _2.end, expr, None, None)
 
 	@spark.production('expr7 ::= - expr7')
 	def expr_neg(self, _0, expr):

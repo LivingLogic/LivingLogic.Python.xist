@@ -2081,6 +2081,9 @@ var ul4 = {
 						case "getslice2":
 							line("r" + opcode.r1 + " = ul4._op_getslice(r" + opcode.r2 + ", null, r" + opcode.r3 + ");");
 							break;
+						case "getslice":
+							line("r" + opcode.r1 + " = ul4._op_getslice(r" + opcode.r2 + ", null, null);");
+							break;
 						case "print":
 							line("out.push(ul4._fu_str(r" + opcode.r1 + "));");
 							break;

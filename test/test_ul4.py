@@ -827,6 +827,14 @@ def test_getslice2():
 
 
 @py.test.mark.ul4
+def test_getslice():
+	for r in all_renderers:
+		yield eq, "gurk", r("<?print 'gurk'[:]?>")
+		yield eq, "gurk", r("<?print x[:]?>", x="gurk")
+		yield eq, "[1, 2]", r("<?print x[:]?>", x=[1, 2])
+
+
+@py.test.mark.ul4
 def test_nested():
 	sc = "4"
 	sv = "x"
