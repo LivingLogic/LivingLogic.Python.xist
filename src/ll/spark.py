@@ -82,8 +82,7 @@ class Scanner(metaclass=_Scanner_Meta):
 		cls.res = res
 
 	def error(self, s, pos):
-		print("Lexical error at position {}".format(pos))
-		raise SystemExit
+		raise SyntaxError("Lexical error at position {}".format(pos))
 
 	def tokenize(self, s):
 		start = 0
@@ -265,8 +264,7 @@ class Parser(metaclass=_Parser_Meta):
 		return None
 
 	def error(self, token):
-		print("Syntax error at or near '{}' token".format(token))
-		raise SystemExit
+		raise SyntaxError("Lexical error near {}".format(token))
 
 	def parse(self, tokens):
 		sets = [ [(1,0), (2,0)] ]
