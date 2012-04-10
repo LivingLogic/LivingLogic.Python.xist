@@ -2552,9 +2552,6 @@ class ExprParser(spark.Parser):
 	def typestring(self, token):
 		return token.type
 
-	def error(self, token):
-		raise SyntaxError(token)
-
 	def makeconst(self, start, end, value):
 		if value is None:
 			return None_(start, end)
