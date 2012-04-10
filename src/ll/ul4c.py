@@ -1994,26 +1994,40 @@ class Name(AST):
 
 
 class For(AST):
-	def __init__(self, iter, cont):
-		self.iter = iter
+	def __init__(self, cont, varname):
 		self.cont = cont
+		self.varname = varname
 
 	def __repr__(self):
-		return "{}({!r}, {!r})".format(self.__class__.__name__, self.iter, self.cont)
+		return "{}({!r}, {!r})".format(self.__class__.__name__, self.cont, self.varname)
 
 	def compile(self, template):
 		rc = self.cont.compile(template)
 		ri = template._allocreg()
 		template.opcode("for", r1=ri, r2=rc)
-		if isinstance(self.iter, list):
-			rii = template._allocreg()
-			for (i, iter) in enumerate(self.iter):
-				template.opcode("loadint", r1=rii, arg=str(i))
-				template.opcode("getitem", r1=rii, r2=ri, r3=rii)
-				template.opcode("storevar", r1=rii, arg=iter.name)
-			template._freereg(rii)
-		else:
-			template.opcode("storevar", r1=ri, arg=self.iter.name)
+		template.opcode("storevar", r1=ri, arg=self.varname.name)
+		template._freereg(ri)
+		template._freereg(rc)
+
+
+class ForUnpack(AST):
+	def __init__(self, cont, *varnames):
+		self.cont = cont
+		self.varnames = list(varnames)
+
+	def __repr__(self):
+		return "{}({!r}, {})".format(self.__class__.__name__, self.cont, repr(self.varnames)[1:-1])
+
+	def compile(self, template):
+		rc = self.cont.compile(template)
+		ri = template._allocreg()
+		template.opcode("for", r1=ri, r2=rc)
+		rii = template._allocreg()
+		for (i, varname) in enumerate(self.varnames):
+			template.opcode("loadint", r1=rii, arg=str(i))
+			template.opcode("getitem", r1=rii, r2=ri, r3=rii)
+			template.opcode("storevar", r1=rii, arg=varname.name)
+		template._freereg(rii)
 		template._freereg(ri)
 		template._freereg(rc)
 
@@ -2840,19 +2854,19 @@ class ForParser(ExprParser):
 
 	@spark.production('for ::= name in expr0')
 	def for0(self, iter, _0, cont):
-		return For(iter, cont)
+		return For(cont, iter)
 
 	@spark.production('for ::= ( name , ) in expr0')
-	def for1(self, _0, iter, _1, _2, _3, cont):
-		return For([iter], cont)
+	def for1(self, _0, varname, _1, _2, _3, cont):
+		return ForUnpack(cont, varname)
 
 	@spark.production('buildfor ::= ( name , name')
-	def buildfor(self, _0, iter1, _1, iter2):
-		return For([iter1, iter2], None)
+	def buildfor(self, _0, varname1, _1, varname2):
+		return ForUnpack(None, varname1, varname2)
 
 	@spark.production('buildfor ::= buildfor , name')
-	def addfor(self, for_, _0, iter3):
-		for_.iter.append(iter3)
+	def addfor(self, for_, _0, varname3):
+		for_.varnames.append(varname3)
 		return for_
 
 	@spark.production('for ::= buildfor ) in expr0')
