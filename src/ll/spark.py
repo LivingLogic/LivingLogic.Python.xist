@@ -102,8 +102,7 @@ class Scanner(metaclass=_Scanner_Meta):
 
 	@token(r'( . | \n )+')
 	def default(self, start, end, s):
-		print("Specification error: unmatched input")
-		raise SystemExit
+		raise SyntaxError("Specification error: unmatched input")
 
 #
 #  Extracted from Parser and made global so that [un]picking works.
