@@ -127,9 +127,7 @@ class Error(Exception):
 
 
 class LexicalError(Exception):
-	def __init__(self, start, end, input):
-		self.start = start
-		self.end = end
+	def __init__(self, input):
 		self.input = input
 
 	def __str__(self):
@@ -1844,13 +1842,11 @@ class JavaSource(object):
 ###
 
 class Token(object):
-	def __init__(self, start, end, type):
-		self.start = start
-		self.end = end
+	def __init__(self, type):
 		self.type = type
 
 	def __repr__(self):
-		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.type)
+		return "{}({!r})".format(self.__class__.__name__, self.type)
 
 	def __str__(self):
 		return self.type
@@ -1861,9 +1857,6 @@ class AST(object):
 	Baseclass for all syntax tree nodes.
 	"""
 
-	def __init__(self, start, end):
-		self.start = start
-		self.end = end
 
 
 class Const(AST):
@@ -1872,7 +1865,7 @@ class Const(AST):
 	"""
 
 	def __repr__(self):
-		return "{}({!r}, {!r})".format(self.__class__.__name__, self.start, self.end)
+		return "{}()".format(self.__class__.__name__)
 
 	def compile(self, template):
 		r = template._allocreg()
@@ -1896,12 +1889,11 @@ class False_(Const):
 
 
 class Value(Const):
-	def __init__(self, start, end, value):
-		Const.__init__(self, start, end)
+	def __init__(self, value):
 		self.value = value
 
 	def __repr__(self):
-		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.value)
+		return "{}({!r})".format(self.__class__.__name__, self.value)
 
 	def compile(self, template):
 		r = template._allocreg()
@@ -1945,12 +1937,11 @@ class Color(Value):
 
 
 class List(AST):
-	def __init__(self, start, end, *items):
-		AST.__init__(self, start, end)
+	def __init__(self, *items):
 		self.items = list(items)
 
 	def __repr__(self):
-		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, repr(self.items)[1:-1])
+		return "{}({!r})".format(self.__class__.__name__, repr(self.items)[1:-1])
 
 	def compile(self, template):
 		r = template._allocreg()
@@ -1963,12 +1954,11 @@ class List(AST):
 
 
 class Dict(AST):
-	def __init__(self, start, end, *items):
-		AST.__init__(self, start, end)
+	def __init__(self, *items):
 		self.items = list(items)
 
 	def __repr__(self):
-		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, repr(self.items)[1:-1])
+		return "{}({!r})".format(self.__class__.__name__, repr(self.items)[1:-1])
 
 	def compile(self, template):
 		r = template._allocreg()
@@ -1991,12 +1981,11 @@ class Dict(AST):
 class Name(AST):
 	type = "name"
 
-	def __init__(self, start, end, name):
-		AST.__init__(self, start, end)
+	def __init__(self, name):
 		self.name = name
 
 	def __repr__(self):
-		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.name)
+		return "{}({!r})".format(self.__class__.__name__, self.name)
 
 	def compile(self, template):
 		r = template._allocreg()
@@ -2005,13 +1994,12 @@ class Name(AST):
 
 
 class For(AST):
-	def __init__(self, start, end, iter, cont):
-		AST.__init__(self, start, end)
+	def __init__(self, iter, cont):
 		self.iter = iter
 		self.cont = cont
 
 	def __repr__(self):
-		return "{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.iter, self.cont)
+		return "{}({!r}, {!r})".format(self.__class__.__name__, self.iter, self.cont)
 
 	def compile(self, template):
 		rc = self.cont.compile(template)
@@ -2031,13 +2019,12 @@ class For(AST):
 
 
 class GetAttr(AST):
-	def __init__(self, start, end, obj, attr):
-		AST.__init__(self, start, end)
+	def __init__(self, obj, attr):
 		self.obj = obj
 		self.attr = attr
 
 	def __repr__(self):
-		return "{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.obj, self.attr)
+		return "{}({!r}, {!r})".format(self.__class__.__name__, self.obj, self.attr)
 
 	def compile(self, template):
 		r = self.obj.compile(template)
@@ -2046,14 +2033,13 @@ class GetAttr(AST):
 
 
 class GetSlice(AST):
-	def __init__(self, start, end, obj, index1, index2):
-		AST.__init__(self, start, end)
+	def __init__(self, obj, index1, index2):
 		self.obj = obj
 		self.index1 = index1
 		self.index2 = index2
 
 	def __repr__(self):
-		return "{}({!r}, {!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.obj, self.index1, self.index2)
+		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.obj, self.index1, self.index2)
 
 	def compile(self, template):
 		r1 = self.obj.compile(template)
@@ -2081,12 +2067,11 @@ class GetSlice(AST):
 class Unary(AST):
 	opcode = None
 
-	def __init__(self, start, end, obj):
-		AST.__init__(self, start, end)
+	def __init__(self, obj):
 		self.obj = obj
 
 	def __repr__(self):
-		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.obj)
+		return "{}({!r})".format(self.__class__.__name__, self.obj)
 
 	def compile(self, template):
 		r = self.obj.compile(template)
@@ -2105,13 +2090,12 @@ class Neg(Unary):
 class Binary(AST):
 	opcode = None
 
-	def __init__(self, start, end, obj1, obj2):
-		AST.__init__(self, start, end)
+	def __init__(self, obj1, obj2):
 		self.obj1 = obj1
 		self.obj2 = obj2
 
 	def __repr__(self):
-		return "{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.obj1, self.obj2)
+		return "{}({!r}, {!r})".format(self.__class__.__name__, self.obj1, self.obj2)
 
 	def compile(self, template):
 		r1 = self.obj1.compile(template)
@@ -2192,13 +2176,12 @@ class Mod(Binary):
 class ChangeVar(AST):
 	opcode = None
 
-	def __init__(self, start, end, name, value):
-		AST.__init__(self, start, end)
+	def __init__(self, name, value):
 		self.name = name
 		self.value = value
 
 	def __repr__(self):
-		return "{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.name, self.value)
+		return "{}({!r}, {!r})".format(self.__class__.__name__, self.name, self.value)
 
 	def compile(self, template):
 		r = self.value.compile(template)
@@ -2235,28 +2218,26 @@ class ModVar(ChangeVar):
 
 
 class DelVar(AST):
-	def __init__(self, start, end, name):
-		AST.__init__(self, start, end)
+	def __init__(self, name):
 		self.name = name
 
 	def __repr__(self):
-		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.name)
+		return "{}({!r})".format(self.__class__.__name__, self.name)
 
 	def compile(self, template):
 		template.opcode("delvar", arg=self.name.name)
 
 
 class CallFunc(AST):
-	def __init__(self, start, end, name, args):
-		AST.__init__(self, start, end)
+	def __init__(self, name, args):
 		self.name = name
 		self.args = args
 
 	def __repr__(self):
 		if self.args:
-			return "{}({!r}, {!r}, {!r}, {})".format(self.__class__.__name__, self.start, self.end, self.name, repr(self.args)[1:-1])
+			return "{}({!r}, {})".format(self.__class__.__name__, self.name, repr(self.args)[1:-1])
 		else:
-			return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.name)
+			return "{}({!r})".format(self.__class__.__name__, self.name)
 
 	def compile(self, template):
 		if len(self.args) == 0:
@@ -2274,17 +2255,16 @@ class CallFunc(AST):
 
 
 class CallMeth(AST):
-	def __init__(self, start, end, name, obj, args):
-		AST.__init__(self, start, end)
+	def __init__(self, name, obj, args):
 		self.name = name
 		self.obj = obj
 		self.args = args
 
 	def __repr__(self):
 		if self.args:
-			return "{}({!r}, {!r}, {!r}, {!r}, {})".format(self.__class__.__name__, self.start, self.end, self.name, self.obj, repr(self.args)[1:-1])
+			return "{}({!r}, {!r}, {})".format(self.__class__.__name__, self.name, self.obj, repr(self.args)[1:-1])
 		else:
-			return "{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.name, self.obj)
+			return "{}({!r}, {!r})".format(self.__class__.__name__, self.name, self.obj)
 
 	def compile(self, template):
 		if len(self.args) > 3:
@@ -2298,14 +2278,13 @@ class CallMeth(AST):
 
 
 class CallMethKeywords(AST):
-	def __init__(self, start, end, name, obj, args):
-		AST.__init__(self, start, end)
+	def __init__(self, name, obj, args):
 		self.name = name
 		self.obj = obj
 		self.args = args
 
 	def __repr__(self):
-		return "{}({!r}, {!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.start, self.end, self.name, self.obj, self.args)
+		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.name, self.obj, self.args)
 
 	def compile(self, template):
 		ra = template._allocreg()
@@ -2330,13 +2309,12 @@ class CallMethKeywords(AST):
 
 
 class Render(AST):
-	def __init__(self, start, end, template, *variables):
-		AST.__init__(self, start, end)
+	def __init__(self, template, *variables):
 		self.template = template
 		self.variables = list(variables)
 
 	def __repr__(self):
-		return "{}({!r}, {!r}, {!r}, {})".format(self.__class__.__name__, self.start, self.end, self.template, repr(self.variables)[1:-1])
+		return "{}({!r}, {})".format(self.__class__.__name__, self.template, repr(self.variables)[1:-1])
 
 	def compile(self, template):
 		ra = template._allocreg()
@@ -2382,77 +2360,75 @@ class Scanner(spark.Scanner):
 	# Color tokens must be in the order of decreasing length
 	@spark.token("\\#[0-9a-fA-F]{8}", "default")
 	def color8(self, start, end, s):
-		self.rv.append(Color(start, end, color.Color(int(s[1:3], 16), int(s[3:5], 16), int(s[5:7], 16), int(s[7:], 16))))
+		self.rv.append(Color(color.Color(int(s[1:3], 16), int(s[3:5], 16), int(s[5:7], 16), int(s[7:], 16))))
 
 	@spark.token("\\#[0-9a-fA-F]{6}", "default")
 	def color6(self, start, end, s):
-		self.rv.append(Color(start, end, color.Color(int(s[1:3], 16), int(s[3:5], 16), int(s[5:], 16))))
+		self.rv.append(Color(color.Color(int(s[1:3], 16), int(s[3:5], 16), int(s[5:], 16))))
 
 	@spark.token("\\#[0-9a-fA-F]{4}", "default")
 	def color4(self, start, end, s):
-		self.rv.append(Color(start, end, color.Color(17*int(s[1], 16), 17*int(s[2], 16), 17*int(s[3], 16), 17*int(s[4], 16))))
+		self.rv.append(Color(color.Color(17*int(s[1], 16), 17*int(s[2], 16), 17*int(s[3], 16), 17*int(s[4], 16))))
 
 	@spark.token("\\#[0-9a-fA-F]{3}", "default")
 	def color3(self, start, end, s):
-		self.rv.append(Color(start, end, color.Color(17*int(s[1], 16), 17*int(s[2], 16), 17*int(s[3], 16))))
+		self.rv.append(Color(color.Color(17*int(s[1], 16), 17*int(s[2], 16), 17*int(s[3], 16))))
 
 	@spark.token("@\\d{4}-\\d{2}-\\d{2}T(\\d{2}:\\d{2}(:\\d{2}(\\.\\d{6})?)?)?", "default")
 	def date(self, start, end, s):
-		self.rv.append(Date(start, end, datetime.datetime(*map(int, [_f for _f in datesplitter.split(s[1:]) if _f]))))
+		self.rv.append(Date(datetime.datetime(*map(int, [_f for _f in datesplitter.split(s[1:]) if _f]))))
 
 	@spark.token("\\(|\\)|\\[|\\]|\\{|\\}|\\.|,|==|\\!=|<=|<|>=|>|=|\\+=|\\-=|\\*=|//=|/=|%=|%|:|\\+|-|\\*\\*|\\*|//|/", "default")
 	def token(self, start, end, s):
-		self.rv.append(Token(start, end, s))
+		self.rv.append(Token(s))
 
 	@spark.token("[a-zA-Z_][\\w]*", "default")
 	def name(self, start, end, s):
 		if s in ("in", "not", "or", "and", "del"):
-			self.rv.append(Token(start, end, s))
+			self.rv.append(Token(s))
 		elif s == "None":
-			self.rv.append(None_(start, end))
+			self.rv.append(None_())
 		elif s == "True":
-			self.rv.append(True_(start, end))
+			self.rv.append(True_())
 		elif s == "False":
-			self.rv.append(False_(start, end))
+			self.rv.append(False_())
 		else:
-			self.rv.append(Name(start, end, s))
+			self.rv.append(Name(s))
 
 	# We don't have negatve numbers, this is handled by constant folding in the AST for unary minus
 	@spark.token("\\d+\\.\\d*([eE][+-]?\\d+)?", "default")
 	@spark.token("\\d+(\\.\\d*)?[eE][+-]?\\d+", "default")
 	def float(self, start, end, s):
-		self.rv.append(Float(start, end, float(s)))
+		self.rv.append(Float(float(s)))
 
 	@spark.token("0[xX][\\da-fA-F]+", "default")
 	def hexint(self, start, end, s):
-		self.rv.append(Int(start, end, int(s[2:], 16)))
+		self.rv.append(Int(int(s[2:], 16)))
 
 	@spark.token("0[oO][0-7]+", "default")
 	def octint(self, start, end, s):
-		self.rv.append(Int(start, end, int(s[2:], 8)))
+		self.rv.append(Int(int(s[2:], 8)))
 
 	@spark.token("0[bB][01]+", "default")
 	def binint(self, start, end, s):
-		self.rv.append(Int(start, end, int(s[2:], 2)))
+		self.rv.append(Int(int(s[2:], 2)))
 
 	@spark.token("\\d+", "default")
 	def int(self, start, end, s):
-		self.rv.append(Int(start, end, int(s)))
+		self.rv.append(Int(int(s)))
 
 	@spark.token("'", "default")
 	def beginstr1(self, start, end, s):
 		self.mode = "str1"
-		self.start = start
 
 	@spark.token('"', "default")
 	def beginstr2(self, start, end, s):
 		self.mode = "str2"
-		self.start = start
 
 	@spark.token("'", "str1")
 	@spark.token('"', "str2")
 	def endstr(self, start, end, s):
-		self.rv.append(Str(self.start, end, "".join(self.collectstr)))
+		self.rv.append(Str("".join(self.collectstr)))
 		self.collectstr = []
 		self.mode = "default"
 
@@ -2518,10 +2494,10 @@ class Scanner(spark.Scanner):
 
 	@spark.token("(.|\\n)+", "default", "str1", "str2")
 	def default(self, start, end, s):
-		raise LexicalError(start, end, s)
+		raise LexicalError(s)
 
 	def error(self, start, end, s):
-		raise LexicalError(start, end, s)
+		raise LexicalError(s)
 
 
 ###
@@ -2552,21 +2528,21 @@ class ExprParser(spark.Parser):
 	def typestring(self, token):
 		return token.type
 
-	def makeconst(self, start, end, value):
+	def makeconst(self, value):
 		if value is None:
-			return None_(start, end)
+			return None_()
 		elif value is True:
-			return True_(start, end)
+			return True_()
 		elif value is False:
-			return False_(start, end)
+			return False_()
 		elif isinstance(value, int):
-			return Int(start, end, value)
+			return Int(value)
 		elif isinstance(value, float):
-			return Float(start, end, value)
+			return Float(value)
 		elif isinstance(value, str):
-			return Str(start, end, value)
+			return Str(value)
 		elif isinstance(value, color.Color):
-			return Color(start, end, value)
+			return Color(value)
 		else:
 			raise TypeError("can't convert {!r}".format(value))
 
@@ -2589,60 +2565,53 @@ class ExprParser(spark.Parser):
 
 	@spark.production('expr11 ::= [ ]')
 	def expr_emptylist(self, _0, _1):
-		return List(_0.start, _1.end)
+		return List()
 
 	@spark.production('buildlist ::= [ expr0')
 	def expr_buildlist(self, _0, expr):
-		return List(_0.start, expr.end, expr)
+		return List(expr)
 
 	@spark.production('buildlist ::= buildlist , expr0')
 	def expr_addlist(self, list, _0, expr):
 		list.items.append(expr)
-		list.end = expr.end
 		return list
 
 	@spark.production('expr11 ::= buildlist ]')
 	def expr_finishlist(self, list, _0):
-		list.end = _0.end
 		return list
 
 	@spark.production('expr11 ::= buildlist , ]')
 	def expr_finishlist1(self, list, _0, _1):
-		list.end = _1.end
 		return list
 
 	@spark.production('expr11 ::= { }')
 	def expr_emptydict(self, _0, _1):
-		return Dict(_0.start, _1.end)
+		return Dict()
 
 	@spark.production('builddict ::= { expr0 : expr0')
 	def expr_builddict(self, _0, exprkey, _1, exprvalue):
-		return Dict(_0.start, exprvalue.end, (exprkey, exprvalue))
+		return Dict((exprkey, exprvalue))
 
 	@spark.production('builddict ::= { ** expr0')
 	def expr_builddictupdate(self, _0, _1, expr):
-		return Dict(_0.start, expr.end, (expr,))
+		return Dict((expr,))
 
 	@spark.production('builddict ::= builddict , expr0 : expr0')
 	def expr_adddict(self, dict, _0, exprkey, _1, exprvalue):
 		dict.items.append((exprkey, exprvalue))
-		dict.end = exprvalue.end
 		return dict
 
 	@spark.production('builddict ::= builddict , ** expr0')
 	def expr_updatedict(self, dict, _0, _1, expr):
 		dict.items.append((expr,))
-		dict.end = expr.end
 		return dict
 
 	@spark.production('expr11 ::= builddict }')
 	def expr_finishdict(self, dict, _0):
-		dict.end = _0.end
 		return dict
 
 	@spark.production('expr11 ::= builddict , }')
 	def expr_finishdict1(self, dict, _0, _1):
-		dict.end = _1.end
 		return dict
 
 	@spark.production('expr11 ::= ( expr0 )')
@@ -2651,206 +2620,203 @@ class ExprParser(spark.Parser):
 
 	@spark.production('expr10 ::= name ( )')
 	def expr_callfunc0(self, name, _0, _1):
-		return CallFunc(name.start, _1.end, name, [])
+		return CallFunc(name, [])
 
 	@spark.production('expr10 ::= name ( expr0 )')
 	def expr_callfunc1(self, name, _0, arg0, _1):
-		return CallFunc(name.start, _1.end, name, [arg0])
+		return CallFunc(name, [arg0])
 
 	@spark.production('expr10 ::= name ( expr0 , expr0 )')
 	def expr_callfunc2(self, name, _0, arg0, _1, arg1, _2):
-		return CallFunc(name.start, _2.end, name, [arg0, arg1])
+		return CallFunc(name, [arg0, arg1])
 
 	@spark.production('expr10 ::= name ( expr0 , expr0 , expr0 )')
 	def expr_callfunc3(self, name, _0, arg0, _1, arg1, _2, arg2, _3):
-		return CallFunc(name.start, _3.end, name, [arg0, arg1, arg2])
+		return CallFunc(name, [arg0, arg1, arg2])
 
 	@spark.production('expr10 ::= name ( expr0 , expr0 , expr0 , expr0 )')
 	def expr_callfunc4(self, name, _0, arg0, _1, arg1, _2, arg2, _3, arg3, _4):
-		return CallFunc(name.start, _4.end, name, [arg0, arg1, arg2, arg3])
+		return CallFunc(name, [arg0, arg1, arg2, arg3])
 
 	@spark.production('expr9 ::= expr9 . name')
 	def expr_getattr(self, expr, _0, name):
-		return GetAttr(expr.start, name.end, expr, name)
+		return GetAttr(expr, name)
 
 	@spark.production('expr9 ::= expr9 . name ( )')
 	def expr_callmeth0(self, expr, _0, name, _1, _2):
-		return CallMeth(expr.start, _2.end, name, expr, [])
+		return CallMeth(name, expr, [])
 
 	@spark.production('expr9 ::= expr9 . name ( expr0 )')
 	def expr_callmeth1(self, expr, _0, name, _1, arg1, _2):
-		return CallMeth(expr.start, _2.end, name, expr, [arg1])
+		return CallMeth(name, expr, [arg1])
 
 	@spark.production('expr9 ::= expr9 . name ( expr0 , expr0 )')
 	def expr_callmeth2(self, expr, _0, name, _1, arg1, _2, arg2, _3):
-		return CallMeth(expr.start, _3.end, name, expr, [arg1, arg2])
+		return CallMeth(name, expr, [arg1, arg2])
 
 	@spark.production('expr9 ::= expr9 . name ( expr0 , expr0 , expr0 )')
 	def expr_callmeth3(self, expr, _0, name, _1, arg1, _2, arg2, _3, arg3, _4):
-		return CallMeth(expr.start, _4.end, name, expr, [arg1, arg2, arg3])
+		return CallMeth(name, expr, [arg1, arg2, arg3])
 
 	@spark.production('callmethkw ::= expr9 . name ( name = expr0')
 	def methkw_startname(self, expr, _0, methname, _1, argname, _2, argvalue):
-		return CallMethKeywords(expr.start, argvalue.end, methname, expr, [(argname, argvalue)])
+		return CallMethKeywords(methname, expr, [(argname, argvalue)])
 
 	@spark.production('callmethkw ::= expr9 . name ( ** expr0')
 	def methkw_startdict(self, expr, _0, methname, _1, _2, argvalue):
-		return CallMethKeywords(expr.start, argvalue.end, methname, expr, [(argvalue,)])
+		return CallMethKeywords(methname, expr, [(argvalue,)])
 
 	@spark.production('callmethkw ::= callmethkw , name = expr0')
 	def methkw_buildname(self, call, _0, argname, _1, argvalue):
 		call.args.append((argname, argvalue))
-		call.end = argvalue.end
 		return call
 
 	@spark.production('callmethkw ::= callmethkw , ** expr0')
 	def methkw_builddict(self, call, _0, _1, argvalue):
 		call.args.append((argvalue,))
-		call.end = argvalue.end
 		return call
 
 	@spark.production('expr9 ::= callmethkw )')
 	def methkw_finish(self, call, _0):
-		call.end = _0.end
 		return call
 
 	@spark.production('expr9 ::= expr9 [ expr0 ]')
 	def expr_getitem(self, expr, _0, key, _1):
 		if isinstance(expr, Const) and isinstance(key, Const): # Constant folding
-			return self.makeconst(expr.start, _1.end, expr.value[key.value])
-		return GetItem(expr.start, _1.end, expr, key)
+			return self.makeconst(expr.value[key.value])
+		return GetItem(expr, key)
 
 	@spark.production('expr8 ::= expr8 [ expr0 : expr0 ]')
 	def expr_getslice12(self, expr, _0, index1, _1, index2, _2):
 		if isinstance(expr, Const) and isinstance(index1, Const) and isinstance(index2, Const): # Constant folding
-			return self.makeconst(expr.start, _2.end, expr.value[index1.value:index2.value])
-		return GetSlice(expr.start, _2.end, expr, index1, index2)
+			return self.makeconst(expr.value[index1.value:index2.value])
+		return GetSlice(expr, index1, index2)
 
 	@spark.production('expr8 ::= expr8 [ expr0 : ]')
 	def expr_getslice1(self, expr, _0, index1, _1, _2):
 		if isinstance(expr, Const) and isinstance(index1, Const): # Constant folding
-			return self.makeconst(expr.start, _2.end, expr.value[index1.value:])
-		return GetSlice(expr.start, _2.end, expr, index1, None)
+			return self.makeconst(expr.value[index1.value:])
+		return GetSlice(expr, index1, None)
 
 	@spark.production('expr8 ::= expr8 [ : expr0 ]')
 	def expr_getslice2(self, expr, _0, _1, index2, _2):
 		if isinstance(expr, Const) and isinstance(index2, Const): # Constant folding
-			return self.makeconst(expr.start, _2.end, expr.value[:index2.value])
-		return GetSlice(expr.start, _2.end, expr, None, index2)
+			return self.makeconst(expr.value[:index2.value])
+		return GetSlice(expr, None, index2)
 
 	@spark.production('expr8 ::= expr8 [ : ]')
 	def expr_getslice(self, expr, _0, _1, _2):
 		if isinstance(expr, Const): # Constant folding
-			return self.makeconst(expr.start, _2.end, expr.value[:])
-		return GetSlice(expr.start, _2.end, expr, None, None)
+			return self.makeconst(expr.value[:])
+		return GetSlice(expr, None, None)
 
 	@spark.production('expr7 ::= - expr7')
 	def expr_neg(self, _0, expr):
 		if isinstance(expr, Const): # Constant folding
-			return self.makeconst(_0.start, expr.end, -expr.value)
-		return Neg(_0.start, expr.end, expr)
+			return self.makeconst(-expr.value)
+		return Neg(expr)
 
 	@spark.production('expr6 ::= expr6 * expr6')
 	def expr_mul(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
-			return self.makeconst(obj1.start, obj2.end, obj1.value * obj2.value)
-		return Mul(obj1.start, obj2.end, obj1, obj2)
+			return self.makeconst(obj1.value * obj2.value)
+		return Mul(obj1, obj2)
 
 	@spark.production('expr6 ::= expr6 // expr6')
 	def expr_floordiv(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
-			return self.makeconst(obj1.start, obj2.end, obj1.value // obj2.value)
-		return FloorDiv(obj1.start, obj2.end, obj1, obj2)
+			return self.makeconst(obj1.value // obj2.value)
+		return FloorDiv(obj1, obj2)
 
 	@spark.production('expr6 ::= expr6 / expr6')
 	def expr_truediv(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
-			return self.makeconst(obj1.start, obj2.end, obj1.value / obj2.value)
-		return TrueDiv(obj1.start, obj2.end, obj1, obj2)
+			return self.makeconst(obj1.value / obj2.value)
+		return TrueDiv(obj1, obj2)
 
 	@spark.production('expr6 ::= expr6 % expr6')
 	def expr_mod(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
-			return self.makeconst(obj1.start, obj2.end, obj1.value % obj2.value)
-		return Mod(obj1.start, obj2.end, obj1, obj2)
+			return self.makeconst(obj1.value % obj2.value)
+		return Mod(obj1, obj2)
 
 	@spark.production('expr5 ::= expr5 + expr5')
 	def expr_add(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
-			return self.makeconst(obj1.start, obj2.end, obj1.value + obj2.value)
-		return Add(obj1.start, obj2.end, obj1, obj2)
+			return self.makeconst(obj1.value + obj2.value)
+		return Add(obj1, obj2)
 
 	@spark.production('expr5 ::= expr5 - expr5')
 	def expr_sub(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
-			return self.makeconst(obj1.start, obj2.end, obj1.value - obj2.value)
-		return Sub(obj1.start, obj2.end, obj1, obj2)
+			return self.makeconst(obj1.value - obj2.value)
+		return Sub(obj1, obj2)
 
 	@spark.production('expr4 ::= expr4 == expr4')
 	def expr_eq(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
-			return self.makeconst(obj1.start, obj2.end, obj1.value == obj2.value)
-		return EQ(obj1.start, obj2.end, obj1, obj2)
+			return self.makeconst(obj1.value == obj2.value)
+		return EQ(obj1, obj2)
 
 	@spark.production('expr4 ::= expr4 != expr4')
 	def expr_ne(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
-			return self.makeconst(obj1.start, obj2.end, obj1.value != obj2.value)
-		return NE(obj1.start, obj2.end, obj1, obj2)
+			return self.makeconst(obj1.value != obj2.value)
+		return NE(obj1, obj2)
 
 	@spark.production('expr4 ::= expr4 < expr4')
 	def expr_lt(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
-			return self.makeconst(obj1.start, obj2.end, obj1.value < obj2.value)
-		return LT(obj1.start, obj2.end, obj1, obj2)
+			return self.makeconst(obj1.value < obj2.value)
+		return LT(obj1, obj2)
 
 	@spark.production('expr4 ::= expr4 <= expr4')
 	def expr_le(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
-			return self.makeconst(obj1.start, obj2.end, obj1.value <= obj2.value)
-		return LE(obj1.start, obj2.end, obj1, obj2)
+			return self.makeconst(obj1.value <= obj2.value)
+		return LE(obj1, obj2)
 
 	@spark.production('expr4 ::= expr4 > expr4')
 	def expr_gt(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
-			return self.makeconst(obj1.start, obj2.end, obj1.value > obj2.value)
-		return GT(obj1.start, obj2.end, obj1, obj2)
+			return self.makeconst(obj1.value > obj2.value)
+		return GT(obj1, obj2)
 
 	@spark.production('expr4 ::= expr4 >= expr4')
 	def expr_ge(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
-			return self.makeconst(obj1.start, obj2.end, obj1.value >= obj2.value)
-		return GE(obj1.start, obj2.end, obj1, obj2)
+			return self.makeconst(obj1.value >= obj2.value)
+		return GE(obj1, obj2)
 
 	@spark.production('expr3 ::= expr3 in expr3')
 	def expr_contains(self, obj, _0, container):
 		if isinstance(obj, Const) and isinstance(container, Const): # Constant folding
-			return self.makeconst(obj.start, container.end, obj.value in container.value)
-		return Contains(obj.start, container.end, obj, container)
+			return self.makeconst(obj.value in container.value)
+		return Contains(obj, container)
 
 	@spark.production('expr3 ::= expr3 not in expr3')
 	def expr_notcontains(self, obj, _0, _1, container):
 		if isinstance(obj, Const) and isinstance(container, Const): # Constant folding
-			return self.makeconst(obj.start, container.end, obj.value not in container.value)
-		return NotContains(obj.start, container.end, obj, container)
+			return self.makeconst(obj.value not in container.value)
+		return NotContains(obj, container)
 
 	@spark.production('expr2 ::= not expr2')
 	def expr_not(self, _0, expr):
 		if isinstance(expr, Const): # Constant folding
-			return self.makeconst(_0.start, expr.end, not expr.value)
-		return Not(_0.start, expr.end, expr)
+			return self.makeconst(not expr.value)
+		return Not(expr)
 
 	@spark.production('expr1 ::= expr1 and expr1')
 	def expr_and(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
-			return self.makeconst(obj1.start, obj2.end, bool(obj1.value and obj2.value))
-		return And(obj1.start, obj2.end, obj1, obj2)
+			return self.makeconst(obj1.value and obj2.value)
+		return And(obj1, obj2)
 
 	@spark.production('expr0 ::= expr0 or expr0')
 	def expr_or(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
-			return self.makeconst(obj1.start, obj2.end, bool(obj1.value or obj2.value))
-		return Or(obj1.start, obj2.end, obj1, obj2)
+			return self.makeconst(obj1.value or obj2.value)
+		return Or(obj1, obj2)
 
 	# These rules make operators of different precedences interoperable, by allowing an expression to "drop" its precedence.
 	@spark.production('expr10 ::= expr11')
@@ -2874,31 +2840,28 @@ class ForParser(ExprParser):
 
 	@spark.production('for ::= name in expr0')
 	def for0(self, iter, _0, cont):
-		return For(iter.start, cont.end, iter, cont)
+		return For(iter, cont)
 
 	@spark.production('for ::= ( name , ) in expr0')
 	def for1(self, _0, iter, _1, _2, _3, cont):
-		return For(_0.start, cont.end, [iter], cont)
+		return For([iter], cont)
 
 	@spark.production('buildfor ::= ( name , name')
 	def buildfor(self, _0, iter1, _1, iter2):
-		return For(_0.start, iter1.end, [iter1, iter2], None)
+		return For([iter1, iter2], None)
 
 	@spark.production('buildfor ::= buildfor , name')
 	def addfor(self, for_, _0, iter3):
 		for_.iter.append(iter3)
-		for_.end = iter3.end
 		return for_
 
 	@spark.production('for ::= buildfor ) in expr0')
 	def finishfor(self, for_, _0, _1, cont):
-		for_.end = cont.end
 		for_.cont = cont
 		return for_
 
 	@spark.production('for ::= buildfor , ) in expr0')
 	def finishfor1(self, for_, _0, _1, _2, cont):
-		for_.end = cont.end
 		for_.cont = cont
 		return for_
 
@@ -2909,35 +2872,35 @@ class StmtParser(ExprParser):
 
 	@spark.production('stmt ::= name = expr0')
 	def stmt_assign(self, name, _0, value):
-		return StoreVar(name.start, value.end, name, value)
+		return StoreVar(name, value)
 
 	@spark.production('stmt ::= name += expr0')
 	def stmt_iadd(self, name, _0, value):
-		return AddVar(name.start, value.end, name, value)
+		return AddVar(name, value)
 
 	@spark.production('stmt ::= name -= expr0')
 	def stmt_isub(self, name, _0, value):
-		return SubVar(name.start, value.end, name, value)
+		return SubVar(name, value)
 
 	@spark.production('stmt ::= name *= expr0')
 	def stmt_imul(self, name, _0, value):
-		return MulVar(name.start, value.end, name, value)
+		return MulVar(name, value)
 
 	@spark.production('stmt ::= name /= expr0')
 	def stmt_itruediv(self, name, _0, value):
-		return TrueDivVar(name.start, value.end, name, value)
+		return TrueDivVar(name, value)
 
 	@spark.production('stmt ::= name //= expr0')
 	def stmt_ifloordiv(self, name, _0, value):
-		return FloorDivVar(name.start, value.end, name, value)
+		return FloorDivVar(name, value)
 
 	@spark.production('stmt ::= name %= expr0')
 	def stmt_imod(self, name, _0, value):
-		return ModVar(name.start, value.end, name, value)
+		return ModVar(name, value)
 
 	@spark.production('stmt ::= del name')
 	def stmt_del(self, _0, name):
-		return DelVar(_0.start, name.end, name)
+		return DelVar(name)
 
 
 class RenderParser(ExprParser):
@@ -2946,36 +2909,32 @@ class RenderParser(ExprParser):
 
 	@spark.production('render ::= expr0 ( )')
 	def emptyrender(self, template, _0, _1):
-		return Render(template.start, _1.end, template)
+		return Render(template)
 
 	@spark.production('buildrender ::= expr0 ( name = expr0')
 	def startrender(self, template, _0, argname, _1, argvalue):
-		return Render(template.start, argvalue.end, template, (argname, argvalue))
+		return Render(template, (argname, argvalue))
 
 	@spark.production('buildrender ::= expr0 ( ** expr0')
 	def startrenderupdate(self, template, _0, _1, arg):
-		return Render(template.start, arg.end, template, (arg, ))
+		return Render(template, (arg, ))
 
 	@spark.production('buildrender ::= buildrender , name = expr0')
 	def buildrender(self, render, _0, argname, _1, argvalue):
 		render.variables.append((argname, argvalue))
-		render.end = argvalue.end
 		return render
 
 	@spark.production('buildrender ::= buildrender , ** expr0')
 	def buildrenderupdate(self, render, _0, _1, arg):
 		render.variables.append((arg,))
-		render.end = arg.end
 		return render
 
 	@spark.production('render ::= buildrender )')
 	def finishrender(self, render, _0):
-		render.end = _0.end
 		return render
 
 	@spark.production('render ::= buildrender , )')
 	def finishrender1(self, render, _0, _1):
-		render.end = _1.end
 		return render
 
 
