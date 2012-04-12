@@ -1954,6 +1954,7 @@ def universaltemplate():
 		<?print x[1:2]?>
 		<?print x[1:]?>
 		<?print x[:2]?>
+		<?print x[:]?>
 		<?printx x?>
 		<?for x in "12"?><?print x?><?break?><?continue?><?end for?>
 		<?print not x?>
