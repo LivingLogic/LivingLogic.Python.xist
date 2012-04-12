@@ -3119,7 +3119,7 @@ def _type(obj):
 		return "date"
 	elif isinstance(obj, color.Color):
 		return "color"
-	elif isinstace(obj, Template):
+	elif isinstance(obj, Template):
 		return "template"
 	elif isinstance(obj, collections.Mapping):
 		return "dict"
