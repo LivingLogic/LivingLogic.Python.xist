@@ -1475,9 +1475,9 @@ def test_function_bin():
 	for r in all_renderers:
 		yield raises, "bin.*unknown", r("<?print bin()?>")
 		yield raises, "bin.*unknown", r("<?print bin(1, 2)?>")
-		yield eq, "0b0", r(code, data=0)
-		yield eq, "0b11", r(code, data=3)
-		yield eq, "-0b1111", r(code, data=-15)
+		yield eq, "0b0", r(code, data=0b0)
+		yield eq, "0b11", r(code, data=0b11)
+		yield eq, "-0b1111", r(code, data=-0b1111)
 
 
 @py.test.mark.ul4
