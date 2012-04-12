@@ -1746,7 +1746,7 @@ class JavaSource(object):
 		elif opcode.arg == "islist":
 			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof java.util.List));".format(op=opcode))
 		elif opcode.arg == "isdict":
-			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof java.util.Map));".format(op=opcode))
+			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof java.util.Map) && !(r{op.r2} instanceof com.livinglogic.ul4.Template));".format(op=opcode))
 		elif opcode.arg == "istemplate":
 			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof com.livinglogic.ul4.Template));".format(op=opcode))
 		elif opcode.arg == "iscolor":
@@ -3119,14 +3119,14 @@ def _type(obj):
 		return "date"
 	elif isinstance(obj, color.Color):
 		return "color"
-	elif isinstance(obj, collections.Mapping):
+	elif isinstance(obj, collections.Mapping) and not isinstance(obj, Template):
 		return "dict"
+	elif isinstance(obj, color.Color):
+		return "color"
 	elif isinstance(obj, collections.Sequence):
 		return "list"
 	elif hasattr(obj, "__call__"):
 		return "template"
-	elif isinstance(obj, color.Color):
-		return "color"
 	return None
 
 
