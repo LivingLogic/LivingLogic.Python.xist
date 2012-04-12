@@ -1690,8 +1690,8 @@ def test_method_render():
 
 
 @py.test.mark.ul4
-def test_method_isoformat():
-	t = datetime.datetime(2010, 0o2, 22, 12, 34, 56)
+def test_method_mimeformat():
+	t = datetime.datetime(2010, 2, 22, 12, 34, 56)
 	for r in all_renderers:
 		yield eq, 'Mon, 22 Feb 2010 12:34:56 GMT', r(r"<?print data.mimeformat()?>", data=t)
 
