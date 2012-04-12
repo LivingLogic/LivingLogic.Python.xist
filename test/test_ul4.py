@@ -1501,6 +1501,7 @@ def test_function_sorted():
 		yield raises, "sorted.*unknown", r("<?print sorted(1, 2)?>")
 		yield eq, "gkru", r(code, data="gurk")
 		yield eq, "24679", r(code, data="92746")
+		yield eq, "172342", r(code, data=(42, 17, 23))
 		yield eq, "012", r(code, data={0: "zero", 1: "one", 2: "two"})
 
 
