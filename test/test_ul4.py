@@ -868,6 +868,15 @@ def test_precedence():
 		yield eq, "42", r('<?print data.value.value[0]?>', data=dict(value=dict(value=[42])))
 		yield eq, "42", r('<?print data.value.value[0].value.value[0]?>', data=dict(value=dict(value=[dict(value=dict(value=[42]))])))
 
+@py.test.mark.ul4
+def test_associativity():
+	for r in all_renderers:
+		yield eq, "9", r('<?print 2+3+4?>')
+		yield eq, "-5", r('<?print 2-3-4?>')
+		yield eq, "20", r('<?print 2*3*4?>')
+		yield eq, "2.0", r('<?print 24/6/2?>')
+		yield eq, "2", r('<?print 24//6//2?>')
+
 
 @py.test.mark.ul4
 def test_bracket():
