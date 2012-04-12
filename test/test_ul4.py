@@ -389,11 +389,12 @@ def test_string():
 @py.test.mark.ul4
 def test_date():
 	for r in all_renderers:
-		yield eq, '2000-02-29', r('<?print @2000-02-29T.isoformat()?>')
-		yield eq, '2000-02-29T12:34:00', r('<?print @2000-02-29T12:34.isoformat()?>')
-		yield eq, '2000-02-29T12:34:56', r('<?print @2000-02-29T12:34:56.isoformat()?>')
-		yield eq, '2000-02-29T12:34:56.987000', r('<?print @2000-02-29T12:34:56.987000.isoformat()?>') # JS and Java only supports milliseconds
-		yield eq, 'yes', r('<?if @2000-02-29T12:34:56.987654?>yes<?else?>no<?end if?>')
+		yield eq, '2000-02-29', r('<?print @(2000-02-29).isoformat()?>')
+		yield eq, '2000-02-29', r('<?print @(2000-02-29T).isoformat()?>')
+		yield eq, '2000-02-29T12:34:00', r('<?print @(2000-02-29T12:34).isoformat()?>')
+		yield eq, '2000-02-29T12:34:56', r('<?print @(2000-02-29T12:34:56).isoformat()?>')
+		yield eq, '2000-02-29T12:34:56.987000', r('<?print @(2000-02-29T12:34:56.987000).isoformat()?>') # JS and Java only supports milliseconds
+		yield eq, 'yes', r('<?if @(2000-02-29T12:34:56.987654)?>yes<?else?>no<?end if?>')
 
 
 @py.test.mark.ul4
@@ -1373,10 +1374,10 @@ def test_function_repr():
 		if r is not RenderJS:
 			yield evaleq, [1, 2, 3], r(code, data=(1, 2, 3))
 		yield evaleq, {"a": 1, "b": 2}, r(code, data={"a": 1, "b": 2})
-		yield eq, "@2011-02-07T12:34:56.123000", r(code, data=datetime.datetime(2011, 2, 7, 12, 34, 56, 123000))
-		yield eq, "@2011-02-07T12:34:56", r(code, data=datetime.datetime(2011, 2, 7, 12, 34, 56))
-		yield eq, "@2011-02-07T", r(code, data=datetime.datetime(2011, 2, 7))
-		yield eq, "@2011-02-07T", r(code, data=datetime.date(2011, 2, 7))
+		yield eq, "@(2011-02-07T12:34:56.123000)", r(code, data=datetime.datetime(2011, 2, 7, 12, 34, 56, 123000))
+		yield eq, "@(2011-02-07T12:34:56)", r(code, data=datetime.datetime(2011, 2, 7, 12, 34, 56))
+		yield eq, "@(2011-02-07)", r(code, data=datetime.datetime(2011, 2, 7))
+		yield eq, "@(2011-02-07)", r(code, data=datetime.date(2011, 2, 7))
 
 
 @py.test.mark.ul4
@@ -1791,67 +1792,67 @@ def test_method_rfind():
 @py.test.mark.ul4
 def test_method_day():
 	for r in all_renderers:
-		yield eq, '12', r('<?print @2010-05-12T.day()?>')
+		yield eq, '12', r('<?print @(2010-05-12).day()?>')
 		yield eq, '12', r('<?print d.day()?>', d=datetime.date(2010, 5, 12))
 
 
 @py.test.mark.ul4
 def test_method_month():
 	for r in all_renderers:
-		yield eq, '5', r('<?print @2010-05-12T.month()?>')
+		yield eq, '5', r('<?print @(2010-05-12).month()?>')
 		yield eq, '5', r('<?print d.month()?>', d=datetime.date(2010, 5, 12))
 
 
 @py.test.mark.ul4
 def test_method_year():
 	for r in all_renderers:
-		yield eq, '5', r('<?print @2010-05-12T.month()?>')
+		yield eq, '5', r('<?print @(2010-05-12).month()?>')
 		yield eq, '5', r('<?print d.month()?>', d=datetime.date(2010, 5, 12))
 
 
 @py.test.mark.ul4
 def test_method_hour():
 	for r in all_renderers:
-		yield eq, '16', r('<?print @2010-05-12T16:47:56.hour()?>')
+		yield eq, '16', r('<?print @(2010-05-12T16:47:56).hour()?>')
 		yield eq, '16', r('<?print d.hour()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
 
 
 @py.test.mark.ul4
 def test_method_minute():
 	for r in all_renderers:
-		yield eq, '47', r('<?print @2010-05-12T16:47:56.minute()?>')
+		yield eq, '47', r('<?print @(2010-05-12T16:47:56).minute()?>')
 		yield eq, '47', r('<?print d.minute()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
 
 
 @py.test.mark.ul4
 def test_method_second():
 	for r in all_renderers:
-		yield eq, '56', r('<?print @2010-05-12T16:47:56.second()?>')
+		yield eq, '56', r('<?print @(2010-05-12T16:47:56).second()?>')
 		yield eq, '56', r('<?print d.second()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
 
 
 @py.test.mark.ul4
 def test_method_microsecond():
 	for r in all_renderers:
-		yield eq, '123000', r('<?print @2010-05-12T16:47:56.123000.microsecond()?>')
+		yield eq, '123000', r('<?print @(2010-05-12T16:47:56.123000).microsecond()?>')
 		yield eq, '123000', r('<?print d.microsecond()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56, 123000))
 
 
 @py.test.mark.ul4
 def test_method_weekday():
 	for r in all_renderers:
-		yield eq, '2', r('<?print @2010-05-12T.weekday()?>')
+		yield eq, '2', r('<?print @(2010-05-12).weekday()?>')
 		yield eq, '2', r('<?print d.weekday()?>', d=datetime.date(2010, 5, 12))
 
 
 @py.test.mark.ul4
 def test_method_yearday():
 	for r in all_renderers:
-		yield eq, '1', r('<?print @2010-01-01T.yearday()?>')
-		yield eq, '366', r('<?print @2008-12-31T.yearday()?>')
-		yield eq, '365', r('<?print @2010-12-31T.yearday()?>')
-		yield eq, '132', r('<?print @2010-05-12T.yearday()?>')
-		yield eq, '132', r('<?print @2010-05-12T16:47:56.yearday()?>')
+		yield eq, '1', r('<?print @(2010-01-01).yearday()?>')
+		yield eq, '366', r('<?print @(2008-12-31).yearday()?>')
+		yield eq, '365', r('<?print @(2010-12-31).yearday()?>')
+		yield eq, '132', r('<?print @(2010-05-12).yearday()?>')
+		yield eq, '132', r('<?print @(2010-05-12T16:47:56).yearday()?>')
 		yield eq, '132', r('<?print d.yearday()?>', d=datetime.date(2010, 5, 12))
 		yield eq, '132', r('<?print d.yearday()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
 
@@ -1927,7 +1928,7 @@ def universaltemplate():
 		<?code x = None?>
 		<?code x = False?>
 		<?code x = True?>
-		<?code x = @2009-01-04T?>
+		<?code x = @(2009-01-04)?>
 		<?code x = #0063a8?>
 		<?code x = [42]?>
 		<?code x = {"fortytwo": 42}?>

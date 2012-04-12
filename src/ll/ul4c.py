@@ -2388,9 +2388,9 @@ class Scanner(spark.Scanner):
 	def color3(self, start, end, s):
 		self.rv.append(Color(color.Color(17*int(s[1], 16), 17*int(s[2], 16), 17*int(s[3], 16))))
 
-	@spark.token("@\\d{4}-\\d{2}-\\d{2}T(\\d{2}:\\d{2}(:\\d{2}(\\.\\d{6})?)?)?", "default")
+	@spark.token("@\\(\\d{4}-\\d{2}-\\d{2}(T(\\d{2}:\\d{2}(:\\d{2}(\\.\\d{6})?)?)?)?\\)", "default")
 	def date(self, start, end, s):
-		self.rv.append(Date(datetime.datetime(*map(int, [_f for _f in datesplitter.split(s[1:]) if _f]))))
+		self.rv.append(Date(datetime.datetime(*map(int, [_f for _f in datesplitter.split(s[2:-1]) if _f]))))
 
 	@spark.token("\\(|\\)|\\[|\\]|\\{|\\}|\\.|,|==|\\!=|<=|<|>=|>|=|\\+=|\\-=|\\*=|//=|/=|%=|%|:|\\+|-|\\*\\*|\\*|//|/", "default")
 	def token(self, start, end, s):
@@ -2965,11 +2965,10 @@ def _repr(obj):
 	elif isinstance(obj, datetime.datetime):
 		s = str(obj.isoformat())
 		if s.endswith("T00:00:00"):
-			return "@{}T".format(s[:-9])
-		else:
-			return "@" + s
+			s = s[:-9]
+		return "@({})".format(s)
 	elif isinstance(obj, datetime.date):
-		return "@{}T".format(obj.isoformat())
+		return "@({})".format(obj.isoformat())
 	elif isinstance(obj, color.Color):
 		if obj[3] == 0xff:
 			s = "#{:02x}{:02x}{:02x}".format(obj[0], obj[1], obj[2])

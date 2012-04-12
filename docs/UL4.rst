@@ -140,13 +140,13 @@ Date constants
 Date objects have a date and time including microseconds. Date constants can be
 created like this:
 
-	*	``@2008-12-24T``
+	*	``@(2008-12-24)``
 
-	*	``@2008-12-24T12:34``
+	*	``@(2008-12-24T12:34)``
 
-	*	``@2008-12-24T12:34:56``
+	*	``@(2008-12-24T12:34:56)``
 
-	*	``@2008-12-24T12:34:56.987654``
+	*	``@(2008-12-24T12:34:56.987654)``
 
 
 Color constants
@@ -216,7 +216,7 @@ Python statements.
 The ``print`` tag outputs the value of a variable or any other expression. If
 the expression doesn't evaluate to a string it will be converted to a string
 first. The format of the string depends on the renderer, but should follow
-Python's ``unicode()`` output as much as possible (except that for ``None`` no
+Python's ``str()`` output as much as possible (except that for ``None`` no
 output may be produced)::
 
 	<h1><?print person.lastname?>, <?print person.firstname?></h1>
@@ -243,7 +243,7 @@ with an ``<?end for?>`` tag::
 	<?end for?>
 	</ul>
 
-In ``for`` loops tuple unpacking is supported for tuples of length 1, 2 and 3,
+In ``for`` loops tuple unpacking is supported for tuples of length 1, 2, 3 and 4,
 so you can do the following::
 
 	<?for (key, value) in items?>
@@ -336,7 +336,7 @@ For example the following template will output ``40``::
 ``render``
 ----------
 
-The render tag allows one template to call other templates. The following Python
+The ``render`` tag allows one template to call other templates. The following Python
 code demonstrates this::
 
 	from ll import ul4c
@@ -378,7 +378,7 @@ I.e. templates can be passed just like any other object as a variable.
 
 ``def``
 -------
-The def tag defined a new template as a variable. Usage looks like this::
+The ```def`` tag defined a new template as a variable. Usage looks like this::
 
 	<?def quote?>"<?print text?>"<?end def?>
 
@@ -391,7 +391,7 @@ the outermost template::
 ``note``
 --------
 
-A note tag is a comment, i.e. the content of the tag will be completely ignored.
+A ``note`` tag is a comment, i.e. the content of the tag will be completely ignored.
 
 
 Expressions
@@ -988,7 +988,7 @@ above (except for the linefeeds of course)::
 
 	<?code weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']?>
 	<?code months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']?>
-	<?code t = @2010-02-22T17:38:40.123456?>
+	<?code t = @(2010-02-22T17:38:40.123456)?>
 	<?print weekdays[t.weekday()]?>,
 	<?print format(t.day(), '02')?>
 	<?print months[t.month()-1]?>
@@ -1005,10 +1005,10 @@ above (except for the linefeeds of course)::
 ``yearday`` is a date method. It returns the number of days since the beginning
 of the year, so::
 
-	<?print @2010-01-01T.yearday()?>
+	<?print @(2010-01-01).yearday()?>
 
-prints ``1`` and
+prints ``1`` and::
 
-	<?print 2010-12-31T.yearday()?>
+	<?print @(2010-12-31).yearday()?>
 
 prints ``365``.

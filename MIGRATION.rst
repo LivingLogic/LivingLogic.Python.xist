@@ -1,10 +1,16 @@
-Migrating to version 3.26
-=========================
+Migrating to version 4.0
+========================
+
+Changes to the required Python version
+--------------------------------------
+
+Python 3.2 is required now.
 
 Changes to UL4
 --------------
 
-*	The UL4 function ``enumerate`` has been renamed to ``enum``.
+*	Date constants in UL4 have changed again. They are now written like this:
+	``@(2012-04-12)`` or ``@(2012-04-12T12:34:56)``.
 
 
 Migrating to version 3.25

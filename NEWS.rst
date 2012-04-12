@@ -47,6 +47,9 @@ Changes in 4.0 (released ??/??/2012)
 	``isfirstlast``, ``enumfl``. They are variants of ``enumerate`` that give
 	information about whether the item is the first and/or last item.
 
+*	Date constants in UL4 have changed again. They are now written like this:
+	``@(2012-04-12)`` or ``@(2012-04-12T12:34:56)``.
+
 *	UL4 stacktraces now use exception chaining to report the exception location
 	in nested templates.
 
