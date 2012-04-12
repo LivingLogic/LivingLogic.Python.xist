@@ -1350,7 +1350,7 @@ class PythonSource(object):
 	def _dispatch_callfunc1_isdict(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, collections.Mapping)".format(op=opcode))
 	def _dispatch_callfunc1_istemplate(self, opcode):
-		self._line(opcode.location, "r{op.r1:d} = hasattr(r{op.r2:d}, '__call__')".format(op=opcode)) # this supports normal generators too
+		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, ul4c.Template)".format(op=opcode))
 	def _dispatch_callfunc1_iscolor(self, opcode):
 		self._line(opcode.location, "r{op.r1:d} = isinstance(r{op.r2:d}, color.Color)".format(op=opcode))
 	def _dispatch_callfunc1_repr(self, opcode):
@@ -3119,14 +3119,14 @@ def _type(obj):
 		return "date"
 	elif isinstance(obj, color.Color):
 		return "color"
-	elif isinstance(obj, collections.Mapping) and not isinstance(obj, Template):
+	elif isinstace(obj, Template):
+		return "template"
+	elif isinstance(obj, collections.Mapping):
 		return "dict"
 	elif isinstance(obj, color.Color):
 		return "color"
 	elif isinstance(obj, collections.Sequence):
 		return "list"
-	elif hasattr(obj, "__call__"):
-		return "template"
 	return None
 
 
