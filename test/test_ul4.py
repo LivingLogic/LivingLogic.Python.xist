@@ -1507,25 +1507,25 @@ def test_function_sorted():
 
 @py.test.mark.ul4
 def test_function_range():
-	code1 = "<?for i in range(data)?><?print i?><?end for?>"
-	code2 = "<?for i in range(data[0], data[1])?><?print i?><?end for?>"
-	code3 = "<?for i in range(data[0], data[1], data[2])?><?print i?><?end for?>"
+	code1 = "<?for i in range(data)?><?print i?>;<?end for?>"
+	code2 = "<?for i in range(data[0], data[1])?><?print i?>;<?end for?>"
+	code3 = "<?for i in range(data[0], data[1], data[2])?><?print i?>;<?end for?>"
 
 	for r in all_renderers:
 		yield raises, "range.*unknown", r("<?print range()?>")
 		yield eq, "", r(code1, data=-10)
 		yield eq, "", r(code1, data=0)
-		yield eq, "0", r(code1, data=1)
-		yield eq, "01234", r(code1, data=5)
+		yield eq, "0;", r(code1, data=1)
+		yield eq, "0;1;2;3;4;", r(code1, data=5)
 		yield eq, "", r(code2, data=[0, -10])
 		yield eq, "", r(code2, data=[0, 0])
-		yield eq, "01234", r(code2, data=[0, 5])
-		yield eq, "-5-4-3-2-101234", r(code2, data=[-5, 5])
+		yield eq, "0;1;2;3;4;", r(code2, data=[0, 5])
+		yield eq, "-5;-4;-3;-2;-1;0;1;2;3;4;", r(code2, data=[-5, 5])
 		yield eq, "", r(code3, data=[0, -10, 1])
 		yield eq, "", r(code3, data=[0, 0, 1])
-		yield eq, "02468", r(code3, data=[0, 10, 2])
+		yield eq, "0;2;4;6;8;", r(code3, data=[0, 10, 2])
 		yield eq, "", r(code3, data=[0, 10, -2])
-		yield eq, "108642", r(code3, data=[10, 0, -2])
+		yield eq, "10;8;6;4;2;", r(code3, data=[10, 0, -2])
 		yield eq, "", r(code3, data=[10, 0, 2])
 
 
