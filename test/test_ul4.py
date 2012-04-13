@@ -317,9 +317,8 @@ def test_true():
 @py.test.mark.ul4
 def test_int():
 	for r in all_renderers:
-		yield eq, '0', r('<?print 0?>')
-		yield eq, '42', r('<?print 42?>')
-		yield eq, '-42', r('<?print -42?>')
+		for value in (0, 42, -42, 0x7ffffff, 0x8000000, -0x8000000, -0x8000001, 0x7ffffffffffffff, 0x800000000000000, -0x800000000000000, -0x800000000000001, 9999999999, -9999999999, 99999999999999999999, -99999999999999999999):
+			yield eq, str(value), r('<?print {}?>'.format(value))
 		yield eq, '255', r('<?print 0xff?>')
 		yield eq, '255', r('<?print 0Xff?>')
 		yield eq, '-255', r('<?print -0xff?>')
