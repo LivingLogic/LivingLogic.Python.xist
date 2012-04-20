@@ -212,6 +212,36 @@ For consuming event streams there are three functions:
 	:func:`itertree`
 		This generator builds a tree like :func:`tree`, but returns events
 		during certain steps in the parsing process.
+
+
+Example
+-------
+
+The following example shows a custom function in the pipeline that lowercases
+all element and attribute names::
+
+	from ll.xist import xsc, parse
+	from ll.xist.ns import html
+
+	def lowertag(input):
+		for (event, data) in input:
+			if event in {"enterstarttag", "leavestarttag", "endtag", "enterattr", "leaveattr"}:
+				data = data.lower()
+			yield (event, data)
+
+	e = parse.tree(
+		parse.String("<A HREF='gurk'><B>gurk</B></A>"),
+		parse.Expat(),
+		lowertag,
+		parse.NS(html),
+		parse.Node(pool=xsc.Pool(html))
+	)
+
+	print e.bytes()
+
+This scripts outputs::
+
+	<a href="gurk"><b>gurk</b></a>
 """
 
 
