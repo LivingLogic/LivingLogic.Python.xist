@@ -217,7 +217,7 @@ For consuming event streams there are three functions:
 Example
 -------
 
-The following example shows a custom function in the pipeline that lowercases
+The following example shows a custom generator in the pipeline that lowercases
 all element and attribute names::
 
 	from ll.xist import xsc, parse
