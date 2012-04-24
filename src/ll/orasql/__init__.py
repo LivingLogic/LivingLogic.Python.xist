@@ -1643,9 +1643,9 @@ class Index(MixinNormalDates, Object):
 		Return the :class:`Table` :var:`self` belongs to.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select table_name from {}_indexes where table_owner=nvl(:owner, user) and index_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute("select table_name, decode(table_owner, user, null, table_owner) as table_owner from {}_indexes where owner=nvl(:owner, user) and index_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
-		return Table(rec.table_name, self.owner, connection)
+		return Table(rec.table_name, rec.table_owner, connection)
 
 
 class UniqueConstraint(Constraint):

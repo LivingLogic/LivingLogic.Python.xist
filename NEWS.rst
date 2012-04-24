@@ -60,7 +60,8 @@ Changes in 4.0 (released ??/??/2012)
 
 *	:class:`ll.orasql.Index` now uses the ``*_INDEXES`` views to get a list of
 	all indexes and ``LOB`` indexes are filtered out, since they will be recreated
-	with the LOB itself.
+	with the LOB itself. The method :meth:`table` has been fixed for indexes that
+	belong to a different user than the index.
 
 *	Added the attributes ``allowfullscreen`` and ``flashvars`` to
 	:class:`ll.xist.ns.html.embed`.
