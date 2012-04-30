@@ -12,218 +12,256 @@
 """
 This module provides functions for encoding and decoding a lightweight
 machine-readable format for serializing the object types supported by UL4.
+It is extensible to allow encoding/decoding arbitrary instances (i.e. it is
+basically a reimplementation of :mod:`pickle`, but with string input/output
+instead of bytes and with an eye towards cross-plattform support).
 
-It provides an API similar to that of the modules :mod:`pickle` and :mod:`json`
-from the standard library.
+Example
+-------
+
+::
+
+from ll import ul4on
+
+@ul4on.register("com.example.person")
+class Person:
+	def __init__(self, firstname=None, lastname=None):
+		self.firstname = firstname
+		self.lastname = lastname
+
+	def ul4ondump(self, encoder):
+		encoder.dump(self.firstname)
+		encoder.dump(self.lastname)
+
+	def ul4onload(self, decoder)
+		self.firstname = decoder.load()
+		self.lastname = decoder.load()
+
+otto = Person("Otto", "Normalverbraucher")
+
+
 """
 
 
 import datetime, collections, io, contextlib
 
-from ll import color, misc, ul4c
+from ll import color, misc
 
 
-def iterdump(obj):
+_registry = {}
+
+
+def register(name):
 	"""
-	Return an iterator that provides a piecewise serialization of :var:`obj`
-	into the UL4ON format.
+	This decorator can be used to register the decorated class with the
+	:mod:`ll.ul4on` serialization machinery.
+
+	:var:`name` must be a globally unique name for the class. To avoid
+	name collisions Java's class naming system should be used (i.e. an
+	inverted domain name like ``com.example.foo.bar``).
+
+	:var:`name` will be stored in the class attribute ``ul4onname``.
 	"""
-	if obj is None:
-		yield "n"
-	elif isinstance(obj, bool):
-		yield "bT" if obj else "bF"
-	elif isinstance(obj, int):
-		yield "i{}|".format(obj)
-	elif isinstance(obj, float):
-		yield "f{!r}|".format(obj)
-	elif isinstance(obj, str):
-		yield "s{}|".format(len(obj))
-		yield obj
-	elif isinstance(obj, color.Color):
-		yield "c{:02x}{:02x}{:02x}{:02x}".format(obj.r(), obj.g(), obj.b(), obj.a())
-	elif isinstance(obj, datetime.datetime):
-		yield obj.strftime("d%Y%m%d%H%M%S%f")
-	elif isinstance(obj, ul4c.Template):
-		output = obj.dumps()
-		yield "t{}|".format(len(output))
-		yield output
-	elif isinstance(obj, collections.Sequence):
-		yield "["
-		for item in obj:
-			for output in iterdump(item):
-				yield output
-		yield "]"
-	elif isinstance(obj, collections.Mapping):
-		yield "{"
-		for (key, item) in obj.items():
-			for output in iterdump(key):
-				yield output
-			for output in iterdump(item):
-				yield output
-		yield "}"
+	def registration(cls):
+		cls.ul4onname = name
+		_registry[name] = cls
+		return cls
+	return registration
 
 
-def dumps(obj):
-	"""
-	Serialize :var:`obj` as an UL4ON formatted string.
-	"""
-	return "".join(iterdump(obj))
-
-
-def dump(obj, stream):
-	"""
-	Serialize :var:`obj` as an UL4ON formatted stream to :var:`stream`.
-
-	:var:`stream` must provide a :meth:`write` method.
-	"""
-	for part in iterdump(obj):
-		stream.write(part)
-
-
-def _readint(stream):
-	i = 0
-	while True:
-		c = stream.read(1)
-		if c == "|":
-			return i
-		elif c.isdigit():
-			i = 10*i+int(c)
-		else:
-			raise ValueError("broken stream: expected digit or '|', got {!r}".format(c))
-
-
-def _load(stream, typecode, keys):
-	if typecode is None:
-		typecode = stream.read(1)
-	if typecode == "n":
-		return None
-	elif typecode == "b":
-		value = stream.read(1)
-		if value == "T":
-			return True
-		elif value == "F":
-			return False
-		else:
-			raise ValueError("broken stream: expected 'T' or 'F' for bool; got {!r}".format(value))
-	elif typecode == "i":
-		return _readint(stream)
-	elif typecode == "f":
-		chars = []
-		while True:
-			c = stream.read(1)
-			if c == "|":
-				return float("".join(chars))
-			else:
-				chars.append(c)
-	elif typecode == "s":
-		size = _readint(stream)
-		return stream.read(size)
-	elif typecode == "c":
-		data = stream.read(8)
-		return color.Color(*(int(x, 16) for x in misc.itersplitat(data, (2, 4, 6))))
-	elif typecode == "d":
-		data = stream.read(20)
-		return datetime.datetime(*map(int, misc.itersplitat(data, (4, 6, 8, 10, 12, 14))))
-	elif typecode == "t":
-		size = _readint(stream)
-		data = stream.read(size)
-		return ul4c.Template.loads(data)
-	elif typecode == "[":
-		data = []
-		while True:
-			c = stream.read(1)
-			if c == "]":
-				return data
-			else:
-				item = _load(stream, c, keys)
-				data.append(item)
-	elif typecode == "{":
-		data = {}
-		while True:
-			c = stream.read(1)
-			if c == "}":
-				return data
-			else:
-				key = _load(stream, c, keys)
-				if key in keys:
-					key = keys[key]
-				else:
-					keys[key] = key
-				item = _load(stream, None, keys)
-				data[key] = item
-	else:
-		raise ValueError("broken stream: unknown typecode {!r}".format(typecode))
-
-
-class Encoder(object):
-	"""
-	An :class:`Encoder` object can be used to write list or dictionaries to a
-	stream incrementally.
-	"""
+class Encoder:
 	def __init__(self, stream):
 		"""
-		Create an :class:`Encoder` object for writing to the file-like object
-		:var:`stream` incrementally. :var:`stream` will be available as the
-		instance attribute with the same name.
+		Create an encoder for serializing objects to  :var:`self.stream`.
+
+		:var:`stream` must provide a :meth:`write` method.
 		"""
 		self.stream = stream
+		self._objects = []
+		self._id2index = {}
 
-	def write(self, obj):
+	def _record(self, obj):
+		# Record that we've written this object and in which position
+		self._id2index[id(obj)] = len(self._objects)
+		self._objects.append(obj)
+
+	def dump(self, obj):
 		"""
-		Write the object :var:`obj` to the stream
+		Serialize :var:`obj` as an UL4ON formatted stream.
 		"""
-		dump(obj, self.stream)
+		# Have we written this object already?
+		if id(obj) in self._id2index:
+			# Yes: Store a backreference to the object
+			self.stream.write("^{}|".format(self._id2index[id(obj)]))
+		else:
+			# No: Write the object itself
+			# We're not using backreferences, if the object itself has a shorter dump
+			if obj is None:
+				self.stream.write("n")
+			elif isinstance(obj, bool):
+				self.stream.write("bT" if obj else "bF")
+			elif isinstance(obj, int):
+				self.stream.write("i{}|".format(obj))
+			elif isinstance(obj, float):
+				self.stream.write("f{!r}|".format(obj))
+			elif isinstance(obj, str):
+				self._record(obj)
+				self.stream.write("S{}|".format(len(obj)))
+				self.stream.write(obj)
+			elif isinstance(obj, color.Color):
+				self._record(obj)
+				self.stream.write("C{:02x}{:02x}{:02x}{:02x}".format(obj.r(), obj.g(), obj.b(), obj.a()))
+			elif isinstance(obj, datetime.datetime):
+				self._record(obj)
+				self.stream.write(obj.strftime("T%Y%m%d%H%M%S%f"))
+			elif isinstance(obj, collections.Sequence):
+				self._record(obj)
+				self.stream.write("L")
+				for item in obj:
+					self.dump(item)
+				self.stream.write(".")
+			elif isinstance(obj, collections.Mapping):
+				self._record(obj)
+				self.stream.write("D")
+				for (key, item) in obj.items():
+					self.dump(key)
+					self.dump(item)
+				self.stream.write(".")
+			else:
+				self._record(obj)
+				self.stream.write("O{}|".format(len(obj.ul4onname)))
+				self.stream.write(obj.ul4onname)
+				obj.ul4ondump(self)
 
-	@contextlib.contextmanager
-	def list(self):
+
+class Decoder:
+	def __init__(self, stream):
 		"""
-		This methods is a context manager and can be used for outputting a list incrementally
-		like this::
+		Create a decoder for deserializing objects from  :var:`self.stream`.
 
-			enc = ul4on.Encoder(io.StringIO())
-
-			with enc.list():
-				for i in range(10):
-					enc.write(i)
-
-		This is equivalent to::
-
-			enc.write(range(10))
+		:var:`stream` must provide a :meth:`read` method.
 		"""
-		self.stream.write("[")
-		yield
-		self.stream.write("]")
+		self.stream = stream
+		self._objects = []
+		self._keycache = {}
 
-	@contextlib.contextmanager
-	def dict(self):
+	def load(self):
 		"""
-		This methods is a context manager and can be used for outputting a dict incrementally
-		like this::
-
-			enc = ul4on.Encoder(io.StringIO())
-
-			with enc.dict():
-				enc.write("eins")
-				enc.write(1)
-				enc.write("zwei")
-				enc.write(2)
-				enc.write("drei")
-				enc.write(3)
-
-		This is equivalent to::
-
-			enc.write(dict(eins=1, zwei=2, drei=3))
+		Deserialize the next object in the stream and return it.
 		"""
-		self.stream.write("{")
-		yield
-		self.stream.write("}")
+		return self._load(None)
 
-	def getvalue(self):
-		"""
-		If the wrapped stream is a :class:`StringIO` stream :meth:`getvalue` can be used
-		to get the content of the stream.
-		"""
-		return self.stream.getvalue()
+	def _readint(self):
+		i = 0
+		while True:
+			c = self.stream.read(1)
+			if c == "|":
+				return i
+			elif c.isdigit():
+				i = 10*i+int(c)
+			else:
+				raise ValueError("broken stream: expected digit or '|', got {!r}".format(c))
+
+	def _loading(self, obj):
+		self._objects.append(obj)
+
+	def _load(self, typecode):
+		if typecode is None:
+			typecode = self.stream.read(1)
+		if typecode == "^":
+			position = self._readint()
+			return self._objects[position]
+		elif typecode in "nN":
+			if typecode == "N":
+				self._loading(None)
+			return None
+		elif typecode in "bB":
+			value = self.stream.read(1)
+			if value == "T":
+				value = True
+			elif value == "F":
+				value = False
+			else:
+				raise ValueError("broken stream: expected 'T' or 'F' for bool; got {!r}".format(value))
+			if typecode == "B":
+				self._loading(value)
+			return value
+		elif typecode in "iI":
+			value = self._readint()
+			if typecode == "I":
+				self._loading(value)
+			return value
+		elif typecode in "fF":
+			chars = []
+			while True:
+				c = self.stream.read(1)
+				if c == "|":
+					value = float("".join(chars))
+					break
+				else:
+					chars.append(c)
+			if typecode == "F":
+				self._loading(value)
+			return value
+		elif typecode in "sS":
+			size = self._readint()
+			value = self.stream.read(size)
+			if typecode == "S":
+				self._loading(value)
+			return value
+		elif typecode in "cC":
+			data = self.stream.read(8)
+			value = color.Color(*(int(x, 16) for x in misc.itersplitat(data, (2, 4, 6))))
+			if typecode == "C":
+				self._loading(value)
+			return value
+		elif typecode in "tT":
+			data = self.stream.read(20)
+			value = datetime.datetime(*map(int, misc.itersplitat(data, (4, 6, 8, 10, 12, 14))))
+			if typecode == "T":
+				self._loading(value)
+			return value
+		elif typecode in "lL":
+			value = []
+			if typecode == "L":
+				self._loading(value)
+			while True:
+				c = self.stream.read(1)
+				if c == ".":
+					return value
+				else:
+					item = self._load(c)
+					value.append(item)
+		elif typecode in "dD":
+			value = {}
+			if typecode == "D":
+				self._loading(value)
+			while True:
+				c = self.stream.read(1)
+				if c == ".":
+					return value
+				else:
+					key = self._load(c)
+					if key in keys:
+						key = self._keycache[key]
+					else:
+						self._keycache[key] = key
+					item = self._load(None)
+					value[key] = item
+		elif typecode in "oO":
+			size = self._readint()
+			name = self.stream.read(size)
+			try:
+				cls = _registry[name]
+			except KeyError:
+				raise TypeError("can't decode object of type {}".format(name))
+			obj = cls()
+			if typecode == "O":
+				self._loading(obj)
+			obj.ul4onload(self)
+			return obj
+		else:
+			raise ValueError("broken stream: unknown typecode {!r}".format(typecode))
 
 
 class StreamBuffer(object):
@@ -247,6 +285,24 @@ class StreamBuffer(object):
 			return result
 
 
+def dumps(obj):
+	"""
+	Serialize :var:`obj` as an UL4ON formatted string.
+	"""
+	stream = io.StringIO()
+	Encoder(stream).dump(obj)
+	return stream.getvalue()
+
+
+def dump(obj, stream):
+	"""
+	Serialize :var:`obj` as an UL4ON formatted stream to :var:`stream`.
+
+	:var:`stream` must provide a :meth:`write` method.
+	"""
+	Encoder(stream).dump(obj)
+
+
 def loadclob(clob, bufsize=1024*1024):
 	"""
 	Deserialize :var:`clob` (which must be an :mod:`cx_Oracle` ``CLOB`` variable
@@ -255,7 +311,7 @@ def loadclob(clob, bufsize=1024*1024):
 	:var:`bufsize` specifies the chunk size for reading the underlying ``CLOB``
 	object.
 	"""
-	return _load(StreamBuffer(clob, bufsize), None, {})
+	return Decoder(StreamBuffer(clob, bufsize)).load()
 
 
 def loads(string):
@@ -263,7 +319,7 @@ def loads(string):
 	Deserialize :var:`string` (which must be a string containing an UL4ON
 	formatted object) to a Python object.
 	"""
-	return _load(io.StringIO(string), None, {})
+	return Decoder(io.StringIO(string)).load()
 
 
 def load(stream):
@@ -271,4 +327,4 @@ def load(stream):
 	Deserialize :var:`stream` (which must be file-like object with a :meth:`read`
 	method containing an UL4ON formatted object) to a Python object.
 	"""
-	return _load(stream, None, {})
+	return Decoder(stream).load()

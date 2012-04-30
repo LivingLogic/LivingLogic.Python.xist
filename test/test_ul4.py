@@ -1868,21 +1868,21 @@ def test_method_yearday():
 def test_render():
 	t = ul4c.Template('<?print prefix?><?print data?><?print suffix?>')
 	for r in all_renderers:
-		yield eq, '(f)(o)(o)', r('<?for c in data?><?render t(data=c, prefix="(", suffix=")")?><?end for?>', t=t, data='foo')
-		yield eq, '(f)(o)(o)', r('<?for c in data?><?render t(data=c, **{"prefix": "(", "suffix": ")"})?><?end for?>', t=t, data='foo')
+		yield eq, '(f)(o)(o)', r('<?for c in data?><?render t.render(data=c, prefix="(", suffix=")")?><?end for?>', t=t, data='foo')
+		yield eq, '(f)(o)(o)', r('<?for c in data?><?render t.render(data=c, **{"prefix": "(", "suffix": ")"})?><?end for?>', t=t, data='foo')
 
 
 @py.test.mark.ul4
 def test_render_var():
 	t = ul4c.Template('<?code x += 1?><?print x?>')
 	for r in all_renderers:
-		yield eq, '42,43,42', r('<?print x?>,<?render t(x=x)?>,<?print x?>', t=t, x=42)
+		yield eq, '42,43,42', r('<?print x?>,<?render t.render(x=x)?>,<?print x?>', t=t, x=42)
 
 
 @py.test.mark.ul4
 def test_def():
 	for r in all_renderers:
-		yield eq, 'foo', r('<?def lower?><?print x.lower()?><?end def?><?print lower.render(x="FOO")?>')
+		yield eq, 'foo', r('<?def lower?><?print x.lower()?><?end def?><?print lower.renders(x="FOO")?>')
 
 
 @py.test.mark.ul4
@@ -1894,12 +1894,12 @@ def test_parse():
 @py.test.mark.ul4
 def test_nested_exceptions():
 	tmpl1 = ul4c.Template("<?print 2*x?>")
-	tmpl2 = ul4c.Template("<?render tmpl1(x=x)?>")
-	tmpl3 = ul4c.Template("<?render tmpl2(tmpl1=tmpl1, x=x)?>")
+	tmpl2 = ul4c.Template("<?render tmpl1.render(x=x)?>")
+	tmpl3 = ul4c.Template("<?render tmpl2.render(tmpl1=tmpl1, x=x)?>")
 
 	for r in all_python_renderers:
 		msg = "TypeError: unsupported operand type\\(s\\) for \\*: 'int' and 'NoneType'|.* \\* .* not supported"
-		yield raises, msg, r("<?render tmpl3(tmpl1=tmpl1, tmpl2=tmpl2, x=x)?>", tmpl1=tmpl1, tmpl2=tmpl2, tmpl3=tmpl3, x=None)
+		yield raises, msg, r("<?render tmpl3.render(tmpl1=tmpl1, tmpl2=tmpl2, x=x)?>", tmpl1=tmpl1, tmpl2=tmpl2, tmpl3=tmpl3, x=None)
 
 
 @py.test.mark.ul4

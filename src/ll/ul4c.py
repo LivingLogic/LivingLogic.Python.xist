@@ -25,34 +25,35 @@ __docformat__ = "reStructuredText"
 
 import re, datetime, io, locale, json, collections
 
-from ll import spark, color, misc
+from ll import spark, color, misc, ul4on
 
 
 # Regular expression used for splitting dates in isoformat
 datesplitter = re.compile("[-T:.]")
 
 
+# Use internally by the UL4ON decoder to map names to classes
+_names2classes = {}
+
 ###
 ### Location information
 ###
 
+@ul4on.register("de.livinglogic.ul4.location")
 class Location(object):
 	"""
 	A :class:`Location` object contains information about the location of a
 	template tag.
 	"""
-	__slots__ = ("source", "name", "type", "starttag", "endtag", "startcode", "endcode")
+	__slots__ = ("source", "type", "starttag", "endtag", "startcode", "endcode")
 
-	def __init__(self, source, name, type, starttag, endtag, startcode, endcode):
+	def __init__(self, source=None, type=None, starttag=None, endtag=None, startcode=None, endcode=None):
 		"""
 		Create a new :class:`Location` object. The arguments have the following
 		meaning:
 
 			:var:`source`
 				The complete source string
-
-			:var:`name`
-				The name of the template the location belongs to.
 
 			:var:`type`
 				The tag type (i.e. ``"for"``, ``"if"``, etc. or ``None`` for
@@ -71,7 +72,6 @@ class Location(object):
 				The end position of the tag code.
 		"""
 		self.source = source
-		self.name = name
 		self.type = type
 		self.starttag = starttag
 		self.endtag = endtag
@@ -79,7 +79,7 @@ class Location(object):
 		self.endcode = endcode
 
 	def __getitem__(self, key):
-		if key in {"name", "type", "starttag", "endtag", "startcode", "endcode"}:
+		if key in {"source", "type", "starttag", "endtag", "startcode", "endcode"}:
 			return getattr(self, key)
 		raise KeyError(key)
 
@@ -103,7 +103,23 @@ class Location(object):
 
 	def __str__(self):
 		(line, col) = self.pos()
-		return "{!r} at {} (line {}, col {}, template {})".format(self.tag, self.starttag+1, line, col, self.name)
+		return "{!r} at {} (line {}, col {})".format(self.tag, self.starttag+1, line, col)
+
+	def ul4ondump(self, encoder):
+		encoder.dump(self.source)
+		encoder.dump(self.type)
+		encoder.dump(self.starttag)
+		encoder.dump(self.endtag)
+		encoder.dump(self.startcode)
+		encoder.dump(self.endcode)
+
+	def ul4onload(self, decoder):
+		self.source = decoder.load()
+		self.type = decoder.load()
+		self.starttag = decoder.load()
+		self.endtag = decoder.load()
+		self.startcode = decoder.load()
+		self.endcode = decoder.load()
 
 
 ###
@@ -192,28 +208,6 @@ class UnknownMethodError(Exception):
 		return "method {!r} unknown".format(self.methname)
 
 
-class UnknownOpcodeError(Exception):
-	"""
-	Exception that is raised when an unknown opcode is encountered by the renderer.
-	"""
-
-	def __init__(self, opcode):
-		self.opcode = opcode
-
-	def __str__(self):
-		return "opcode {!r} unknown".format(self.opcode)
-
-
-class OutOfRegistersError(Exception):
-	"""
-	Exception that is raised by the compiler when there are no more free
-	registers. This might happen with complex expressions in tag code.
-	"""
-
-	def __str__(self):
-		return "out of registers"
-
-
 ###
 ### opcode class
 ###
@@ -246,7 +240,6 @@ class Opcode(object):
 		is not a string, it will be converted to a string first.)
 
 	``"loadnone"``:
-		Load the constant ``None`` into register :attr:`r1`.
 
 	``"loadfalse"``:
 		Load the constant :const:`False` into register :attr:`r1`.
@@ -565,9 +558,896 @@ class Opcode(object):
 			raise UnknownOpcodeError(self.code)
 
 
-class Template(object):
+###
+### Compiler stuff: Tokens and nodes for the AST
+###
+
+class Token(object):
+	def __init__(self, location, type):
+		self.location = location
+		self.type = type
+
+	def __repr__(self):
+		return "{}({!r})".format(self.__class__.__name__, self.type)
+
+	def __str__(self):
+		return self.type
+
+
+class AST(object):
 	"""
-	A template object is normally creating by passing the template source to the
+	Baseclass for all syntax tree nodes.
+	"""
+	def __init__(self, location=None):
+		self.location = location
+
+	def ul4ondump(self, encoder):
+		encoder.dump(self.location)
+
+	def ul4onload(self, decoder):
+		self.location = decoder.load()
+
+
+@ul4on.register("de.livinglogic.ul4.text")
+class Text(AST):
+	def __init__(self, location=None, text=None):
+		super().__init__(location)
+		self.text = text
+
+	def python(self, indent):
+		return "{}yield {!r}\n".format(indent*"\t", self.text)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.text)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.text = decoder.load()
+
+
+class Const(AST):
+	"""
+	Common baseclass for all constants (used for type testing in constant folding)
+	"""
+
+	def __repr__(self):
+		return "{}()".format(self.__class__.__name__)
+
+
+@ul4on.register("de.livinglogic.ul4.none")
+class None_(Const):
+	"""
+	The constant ``None``.
+	"""
+
+	type = "none"
+	value = None
+
+	def python(self, indent):
+		return "None"
+
+
+@ul4on.register("de.livinglogic.ul4.true")
+class True_(Const):
+	"""
+	The boolean constant ``True``.
+	"""
+
+	type = "true"
+	value = True
+
+	def python(self, indent):
+		return "True"
+
+
+@ul4on.register("de.livinglogic.ul4.false")
+class False_(Const):
+	"""
+	The boolean constant ``False``.
+	"""
+
+	type = "false"
+	value = False
+
+	def python(self, indent):
+		return "False"
+
+
+class Value(Const):
+	def __init__(self, location=None, value=None):
+		super().__init__(location)
+		self.value = value
+
+	def __repr__(self):
+		return "{}({!r})".format(self.__class__.__name__, self.value)
+
+	def python(self, indent):
+		return repr(self.value)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.value)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.value = decoder.load()
+
+
+@ul4on.register("de.livinglogic.ul4.int")
+class Int(Value):
+	type = "int"
+
+
+@ul4on.register("de.livinglogic.ul4.float")
+class Float(Value):
+	type = "float"
+
+
+@ul4on.register("de.livinglogic.ul4.str")
+class Str(Value):
+	type = "str"
+
+
+@ul4on.register("de.livinglogic.ul4.date")
+class Date(Value):
+	type = "date"
+
+
+@ul4on.register("de.livinglogic.ul4.color")
+class Color(Value):
+	type = "color"
+
+	def python(self, indent):
+		return "color.{!r}".format(self.value)
+
+
+@ul4on.register("de.livinglogic.ul4.list")
+class List(AST):
+	def __init__(self, location=None, *items):
+		super().__init__(location)
+		self.items = list(items)
+
+	def __repr__(self):
+		return "{}({!r})".format(self.__class__.__name__, repr(self.items)[1:-1])
+
+	def python(self, indent):
+		return "[{}]".format(", ".join(item.python(indent) for item in self.items))
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.items)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.items = decoder.load()
+
+
+@ul4on.register("de.livinglogic.ul4.dict")
+class Dict(AST):
+	def __init__(self, location=None, *items):
+		super().__init__(location)
+		self.items = list(items)
+
+	def __repr__(self):
+		return "{}({!r})".format(self.__class__.__name__, repr(self.items)[1:-1])
+
+	def python(self, indent):
+		return "ul4c._makedict({})".format(", ".join("({})".format(" ".join(v.python(indent)+"," for v in item)) for item in self.items))
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.items)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.items = map(tuple, decoder.load())
+
+
+@ul4on.register("de.livinglogic.ul4.loadvar")
+class Name(AST):
+	type = "name"
+
+	def __init__(self, location=None, name=None):
+		super().__init__(location)
+		self.name = name
+
+	def __repr__(self):
+		return "{}({!r})".format(self.__class__.__name__, self.name)
+
+	def python(self, indent):
+		return "vars[{!r}]".format(self.name)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.name)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.name = decoder.load()
+
+
+class Block(AST):
+	def __init__(self, location=None):
+		super().__init__(location)
+		self.content = []
+
+	def append(self, item):
+		self.content.append(item)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.content)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.content = decoder.load()
+
+
+@ul4on.register("de.livinglogic.ul4.iee")
+class IfElIfElse(Block):
+	def __init__(self, location=None, condition=None):
+		super().__init__(location)
+		if condition is not None:
+			self.newblock(If(condition))
+
+	def append(self, item):
+		self.content[-1].append(item)
+
+	def newblock(self, block):
+		self.content.append(block)
+
+	def python(self, indent):
+		v = []
+		for node in self.content:
+			v.append(node.python(indent))
+		return "".join(v)
+
+
+@ul4on.register("de.livinglogic.ul4.if")
+class If(Block):
+	def __init__(self, location=None, condition=None):
+		super().__init__(location)
+		self.condition = condition
+
+	def python(self, indent):
+		v = []
+		v.append("{}if {}:\n".format(indent*"\t", self.condition.python(indent)))
+		indent += 1
+		for node in self.content:
+			v.append(node.python(indent))
+		return "".join(v)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.condition)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.condition = decoder.load()
+
+
+@ul4on.register("de.livinglogic.ul4.elif")
+class ElIf(Block):
+	def __init__(self, location=None, condition=None):
+		super().__init__(location)
+		self.condition = condition
+
+	def python(self, indent):
+		v = []
+		v.append("{}elif {}:\n".format(indent*"\t", self.condition.python(indent)))
+		indent += 1
+		for node in self.content:
+			v.append(node.python(indent))
+		return "".join(v)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.condition)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.condition = decoder.load()
+
+
+@ul4on.register("de.livinglogic.ul4.else")
+class Else(Block):
+	def python(self, indent=None):
+		v = []
+		v.append("{}else:\n".format(indent*"\t"))
+		indent += 1
+		for node in self.content:
+			v.append(node.python(indent))
+		return "".join(v)
+
+
+@ul4on.register("de.livinglogic.ul4.for")
+class For(Block):
+	def __init__(self, location=None, cont=None, varname=None):
+		super().__init__(location)
+		self.cont = cont
+		self.varname = varname
+
+	def __repr__(self):
+		return "{}({!r}, {!r})".format(self.__class__.__name__, self.cont, self.varname)
+
+	def python(self, indent):
+		v = []
+		v.append("{}for vars[{!r}] in {}:\n".format(indent*"\t", self.varname, self.cont.python(indent)))
+		indent += 1
+		for node in self.content:
+			v.append(node.python(indent))
+		return "".join(v)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.cont)
+		encoder.dump(self.varname)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.cont = decoder.load()
+		self.varname = decoder.load()
+
+
+@ul4on.register("de.livinglogic.ul4.foru")
+class ForUnpack(Block):
+	def __init__(self, location=None, cont=None, *varnames):
+		super().__init__(location)
+		self.cont = cont
+		self.varnames = list(varnames)
+
+	def __repr__(self):
+		return "{}({!r}, {})".format(self.__class__.__name__, self.cont, repr(self.varnames)[1:-1])
+
+	def python(self, indent):
+		v = []
+		v.append("{}for ({}) in {}:\n".format(indent*"\t", " ".join("vars[{!r}],".format(varname) for varname in self.varnames), self.cont.python(indent)))
+		indent += 1
+		for node in self.content:
+			v.append(node.python(indent))
+		return "".join(v)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.cont)
+		encoder.dump(self.varnames)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.cont = decoder.load()
+		self.varnames = decoder.load()
+
+
+@ul4on.register("de.livinglogic.ul4.break")
+class Break(AST):
+	def python(self, indent):
+		return "{}break\n".format(indent*"\t")
+
+
+@ul4on.register("de.livinglogic.ul4.continue")
+class Continue(AST):
+	def python(self, indent):
+		return "{}continue\n".format(indent*"\t")
+
+
+@ul4on.register("de.livinglogic.ul4.getattr")
+class GetAttr(AST):
+	def __init__(self, location=None, obj=None, attrname=None):
+		super().__init__(location)
+		self.obj = obj
+		self.attrname = attrname
+
+	def __repr__(self):
+		return "{}({!r}, {!r})".format(self.__class__.__name__, self.obj, self.attrname)
+
+	def python(self, indent):
+		return "{}[{!r}]".format(self.obj.python(indent), self.attrname)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.obj)
+		encoder.dump(self.attrname)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.obj = decoder.load()
+		self.attrname = decoder.load()
+
+
+@ul4on.register("de.livinglogic.ul4.getslice")
+class GetSlice(AST):
+	def __init__(self, location=None, obj=None, index1=None, index2=None):
+		super().__init__(location)
+		self.obj = obj
+		self.index1 = index1
+		self.index2 = index2
+
+	def __repr__(self):
+		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.obj, self.index1, self.index2)
+
+	def python(self, indent):
+		return "{}[{}:{}]".format(self.obj.python(indent), self.index1.python(indent) if self.index1 is not None else "", self.index2.python(indent) if self.index2 is not None else "")
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.obj)
+		encoder.dump(self.index1)
+		encoder.dump(self.index2)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.obj = decoder.load()
+		self.index1 = decoder.load()
+		self.index2 = decoder.load()
+
+
+class Unary(AST):
+	def __init__(self, location=None, obj=None):
+		super().__init__(location)
+		self.obj = obj
+
+	def __repr__(self):
+		return "{}({!r})".format(self.__class__.__name__, self.obj)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.obj)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.obj = decoder.load()
+
+
+@ul4on.register("de.livinglogic.ul4.not")
+class Not(Unary):
+	def python(self, indent):
+		return " not ({})".format(self.obj.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.neg")
+class Neg(Unary):
+	def python(self, indent):
+		return " -({})".format(self.obj.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.print")
+class Print(Unary):
+	def python(self, indent):
+		return "{}yield ul4c._str({})\n".format(indent*"\t", self.obj.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.printx")
+class PrintX(Unary):
+	def python(self, indent):
+		return "{}yield ul4c._xmlescape({})\n".format(indent*"\t", self.obj.python(indent))
+
+
+class Binary(AST):
+	def __init__(self, location=None, obj1=None, obj2=None):
+		super().__init__(location)
+		self.obj1 = obj1
+		self.obj2 = obj2
+
+	def __repr__(self):
+		return "{}({!r}, {!r})".format(self.__class__.__name__, self.obj1, self.obj2)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.obj1)
+		encoder.dump(self.obj2)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.obj1 = decoder.load()
+		self.obj2 = decoder.load()
+
+
+@ul4on.register("de.livinglogic.ul4.getitem")
+class GetItem(Binary):
+	def python(self, indent):
+		return "{}[{}]".format(self.obj1.python(indent), self.obj2.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.eq")
+class EQ(Binary):
+	def python(self, indent):
+		return "({}) == ({})".format(self.obj1.python(indent), self.obj2.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.ne")
+class NE(Binary):
+	def python(self, indent):
+		return "({}) != ({})".format(self.obj1.python(indent), self.obj2.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.lt")
+class LT(Binary):
+	def python(self, indent):
+		return "({}) < ({})".format(self.obj1.python(indent), self.obj2.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.le")
+class LE(Binary):
+	def python(self, indent):
+		return "({}) <= ({})".format(self.obj1.python(indent), self.obj2.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.gt")
+class GT(Binary):
+	def python(self, indent):
+		return "({}) > ({})".format(self.obj1.python(indent), self.obj2.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.ge")
+class GE(Binary):
+	def python(self, indent):
+		return "({}) >= ({})".format(self.obj1.python(indent), self.obj2.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.contains")
+class Contains(Binary):
+	def python(self, indent):
+		return "({}) in ({})".format(self.obj1.python(indent), self.obj2.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.notcontains")
+class NotContains(Binary):
+	def python(self, indent):
+		return "({}) not in ({})".format(self.obj1.python(indent), self.obj2.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.add")
+class Add(Binary):
+	def python(self, indent):
+		return "({}) + ({})".format(self.obj1.python(indent), self.obj2.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.sub")
+class Sub(Binary):
+	def python(self, indent):
+		return "({}) - ({})".format(self.obj1.python(indent), self.obj2.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.mul")
+class Mul(Binary):
+	def python(self, indent):
+		return "({}) * ({})".format(self.obj1.python(indent), self.obj2.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.floordiv")
+class FloorDiv(Binary):
+	def python(self, indent):
+		return "({}) // ({})".format(self.obj1.python(indent), self.obj2.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.truediv")
+class TrueDiv(Binary):
+	def python(self, indent):
+		return "({}) / ({})".format(self.obj1.python(indent), self.obj2.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.or")
+class Or(Binary):
+	def python(self, indent):
+		return "({}) or ({})".format(self.obj1.python(indent), self.obj2.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.and")
+class And(Binary):
+	def python(self, indent):
+		return "({}) and ({})".format(self.obj1.python(indent), self.obj2.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.mod")
+class Mod(Binary):
+	def python(self, indent):
+		return "({}) % ({})".format(self.obj1.python(indent), self.obj2.python(indent))
+
+
+class ChangeVar(AST):
+	def __init__(self, location=None, name=None, value=None):
+		super().__init__(location)
+		self.name = name
+		self.value = value
+
+	def __repr__(self):
+		return "{}({!r}, {!r})".format(self.__class__.__name__, self.name, self.value)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.name)
+		encoder.dump(self.value)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.name = decoder.load()
+		self.value = decoder.load()
+
+
+@ul4on.register("de.livinglogic.ul4.storevar")
+class StoreVar(ChangeVar):
+	def python(self, indent):
+		return "{}vars[{!r}] = {}\n".format(indent*"\t", self.name, self.value.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.addvar")
+class AddVar(ChangeVar):
+	def python(self, indent):
+		return "{}vars[{!r}] += {}\n".format(indent*"\t", self.name, self.value.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.subvar")
+class SubVar(ChangeVar):
+	def python(self, indent):
+		return "{}vars[{!r}] -= {}\n".format(indent*"\t", self.name, self.value.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.mulvar")
+class MulVar(ChangeVar):
+	def python(self, indent):
+		return "{}vars[{!r}] *= {}\n".format(indent*"\t", self.name, self.value.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.floordivvar")
+class FloorDivVar(ChangeVar):
+	def python(self, indent):
+		return "{}vars[{!r}] //= {}\n".format(indent*"\t", self.name, self.value.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.truedivvar")
+class TrueDivVar(ChangeVar):
+	def python(self, indent):
+		return "{}vars[{!r}] /= {}\n".format(indent*"\t", self.name, self.value.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.modvar")
+class ModVar(ChangeVar):
+	def python(self, indent):
+		return "{}vars[{!r}] %= {}\n".format(indent*"\t", self.name, self.value.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.delvar")
+class DelVar(AST):
+	def __init__(self, location=None, name=None):
+		super().__init__(location)
+		self.name = name
+
+	def __repr__(self):
+		return "{}({!r})".format(self.__class__.__name__, self.name)
+
+	def python(self, indent):
+		return "{}del vars[{!r}]\n".format(indent*"\t", self.name)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.name)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.name = decoder.load()
+
+
+@ul4on.register("de.livinglogic.ul4.callfunc")
+class CallFunc(AST):
+	def __init__(self, location=None, funcname=None, *args):
+		super().__init__(location)
+		self.funcname = funcname
+		self.args = list(args)
+
+	def __repr__(self):
+		if self.args:
+			return "{}({!r}, {})".format(self.__class__.__name__, self.funcname, repr(self.args)[1:-1])
+		else:
+			return "{}({!r})".format(self.__class__.__name__, self.funcname)
+
+	def python(self, indent):
+		functions = dict(
+			now="datetime.datetime.now({})".format,
+			utcnow="datetime.datetime.utcnow({})".format,
+			vars="vars".format,
+			random="random.random({})".format,
+			xmlescape="ul4c._xmlescape({})".format,
+			csv="ul4c._csv({})".format,
+			json="ul4c._json({})".format,
+			str="ul4c._str({})".format,
+			int="int({})".format,
+			float="float({})".format,
+			bool="bool({})".format,
+			len="len({})".format,
+			abs="abs({})".format,
+			enumerate="enumerate({})".format,
+			enumfl="ul4c._enumfl({})".format,
+			isfirstlast="ul4c._isfirstlast({})".format,
+			isfirst="ul4c._isfirst({})".format,
+			islast="ul4c._islast({})".format,
+			isnone="{} is None".format,
+			isstr="isinstance({}, str)".format,
+			isint="ul4c._isint({})".format,
+			isfloat="isinstance({}, float)".format,
+			isbool="isinstance({}, bool)".format,
+			isdate="isinstance({}, (datetime.datetime, datetime.date))".format,
+			islist="ul4c._islist({})".format,
+			isdict="isinstance({}, collections.Mapping)".format,
+			istemplate="isinstance({}, ul4c.Template)".format,
+			iscolor="isinstance({}, color.Color)".format,
+			repr="ul4c._repr({})".format,
+			get="vars.get({})".format,
+			chr="chr({})".format,
+			ord="ord({})".format,
+			hex="hex({})".format,
+			oct="oct({})".format,
+			bin="bin({})".format,
+			sorted="sorted({})".format,
+			range="range({})".format,
+			type="ul4c._type({})".format,
+			reversed="reversed({})".format,
+			randrange="random.randrange({})".format,
+			randchoice="random.randchoice({})".format,
+			format="format({})".format,
+			zip="zip({})".format,
+			rgb="color.Color.fromrgb({})".format,
+			hls="color.Color.fromhls({})".format,
+			hsv="color.Color.fromhsv({})".format,
+		)
+		try:
+			formatter = functions[self.funcname]
+		except KeyError:
+			raise UnknownFunctionError(self.funcname)
+		return formatter(", ".join(arg.python(indent) for arg in self.args))
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.funcname)
+		encoder.dump(self.args)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.funcname = decoder.load()
+		self.args = decoder.load()
+
+
+@ul4on.register("de.livinglogic.ul4.callmeth")
+class CallMeth(AST):
+	def __init__(self, location=None, methname=None, obj=None, *args):
+		super().__init__(location)
+		self.methname = methname
+		self.obj = obj
+		self.args = list(args)
+
+	def __repr__(self):
+		if self.args:
+			return "{}({!r}, {!r}, {})".format(self.__class__.__name__, self.methname, self.obj, repr(self.args)[1:-1])
+		else:
+			return "{}({!r}, {!r})".format(self.__class__.__name__, self.methname, self.obj)
+
+	def python(self, indent):
+		methods = dict(
+			split="({}).split({})".format,
+			rsplit="({}).rsplit({})".format,
+			strip="({}).strip({})".format,
+			rstrip="({}).rstrip({})".format,
+			find="({}).find({})".format,
+			rfind="({}).rfind({})".format,
+			startswith="({}).startswith({})".format,
+			endswith="({}).endswith({})".format,
+			upper="({}).upper({})".format,
+			lower="({}).lower({})".format,
+			capitalize="({}).capitalize({})".format,
+			replace="({}).replace({})".format,
+			r="({}).r({})".format,
+			g="({}).g({})".format,
+			b="({}).b({})".format,
+			a="({}).a({})".format,
+			hls="({}).hls({})".format,
+			hlsa="({}).hlsa({})".format,
+			hsv="({}).hsv({})".format,
+			hsva="({}).hsva({})".format,
+			lum="({}).lum({})".format,
+			weekday="({}).weekday({})".format,
+			items="({}).items({})".format,
+			join="({}).join(ul4c._str(item) for item in {})".format,
+			renders="({}).renders({})".format,
+			mimeformat="ul4c._mimeformat({}, {})".format,
+			isoformat="ul4c._isoformat({}, {})".format,
+			yearday="ul4c._yearday({}, {})".format,
+			get="({}).get({})".format,
+			withlum="({}).withlum({})".format,
+			witha="({}).witha({})".format,
+			day="({}).day".format,
+			month="({}).month".format,
+			year="({}).year".format,
+			hour="({}).hour".format,
+			minute="({}).minute".format,
+			second="({}).second".format,
+			microsecond="({}).microsecond".format,
+		)
+		try:
+			formatter = methods[self.methname]
+		except KeyError:
+			raise UnknownMethodError(self.methname)
+		return formatter(self.obj.python(indent), ", ".join(arg.python(indent) for arg in self.args))
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.methname)
+		encoder.dump(self.obj)
+		encoder.dump(self.args)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.methname = decoder.load()
+		self.obj = decoder.load()
+		self.args = decoder.load()
+
+
+@ul4on.register("de.livinglogic.ul4.callmethkw")
+class CallMethKeywords(AST):
+	def __init__(self, location=None, methname=None, obj=None, *args):
+		super().__init__(location)
+		self.methname = methname
+		self.obj = obj
+		self.args = list(args)
+
+	def __repr__(self):
+		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.methname, self.obj, self.args)
+
+	def python(self, indent):
+		if self.methname == "renders":
+			args = []
+			for arg in self.args:
+				if len(arg) == 1:
+					args.append("({},)".format(arg[0].python(indent)))
+				else:
+					args.append("({!r}, {})".format(arg[0], arg[1].python(indent)))
+			args = "ul4c._makedict({})".format(", ".join(args))
+			return "({}).renders(**{})".format(self.obj.python(indent), args)
+		else:
+			# The ``render`` method can only be used in the ``render`` tag, where it is handled separately
+			raise UnknownMethodError(self.methname)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.methname)
+		encoder.dump(self.obj)
+		encoder.dump(self.args)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.methname = decoder.load()
+		self.obj = decoder.load()
+		self.args = map(tuple, decoder.load())
+
+
+@ul4on.register("de.livinglogic.ul4.render")
+class Render(Unary):
+	def __repr__(self):
+		return "{}({!r})".format(self.__class__.__name__, self.obj)
+
+	def python(self, indent):
+		if isinstance(self.obj, (CallMeth, CallMethKeywords)) and self.obj.methname == "render":
+			v = []
+			if self.obj.args:
+				args = []
+				for arg in self.obj.args:
+					if len(arg) == 1:
+						args.append(arg[0].python(indent))
+					else:
+						args.append("({!r}, {})".format(arg[0], arg[1].python(indent)))
+				args = "**ul4c._makedict({})".format(", ".join(args))
+			else:
+				args = ""
+			v.append("{}for part in ({})({}):\n".format(indent*"\t", self.obj.obj.python(indent), args))
+			v.append("{}\tyield part\n".format(indent*"\t"))
+			return "".join(v)
+		else:
+			return "{}yield ul4c._str({})\n".format(indent*"\t", self.obj.python(indent))
+
+
+@ul4on.register("de.livinglogic.ul4.template")
+class Template(Block):
+	"""
+	A template object is normally created by passing the template source to the
 	constructor. It can also be loaded from the compiled format via the class
 	methods :meth:`load` (from a stream) or :meth:`loads` (from a string).
 
@@ -589,18 +1469,40 @@ class Template(object):
 		exception messages and should be a valid Python identifier.
 
 		"""
+		super().__init__(None)
 		self.startdelim = startdelim
 		self.enddelim = enddelim
 		self.name = name
 		self.source = None
-		self.opcodes = None
-		# The following is used for converting the opcodes back to executable Python code
+		# The following is used for converting the AST back to executable Python code
 		self._pythonfunction = None
 		if source is not None:
 			self._compile(source, name, startdelim, enddelim)
 
+	def ul4ondump(self, encoder):
+		encoder.dump("ul4")
+		encoder.dump(self.version)
+		encoder.dump(self.source)
+		encoder.dump(self.name)
+		encoder.dump(self.startdelim)
+		encoder.dump(self.enddelim)
+		super().ul4ondump(encoder)
+
+	def ul4onload(self, decoder):
+		header = decoder.load()
+		if header != "ul4":
+			raise ValueError("invalid header, expected 'ul4', got {!r}".format(header))
+		version = decoder.load()
+		if version != self.version:
+			raise ValueError("invalid version, expected {!r}, got {!r}".format(self.version, version))
+		self.source = decoder.load()
+		self.name = decoder.load()
+		self.startdelim = decoder.load()
+		self.enddelim = decoder.load()
+		super().ul4onload(decoder)
+
 	def __getitem__(self, key):
-		if key in {"startdelim", "enddelim", "source", "opcodes"}:
+		if key in {"source", "name", "content", "startdelim", "enddelim"}:
 			return getattr(self, key)
 		raise KeyError(key)
 
@@ -610,106 +1512,8 @@ class Template(object):
 		The class method :meth:`loads` loads the template from string :var:`data`.
 		:var:`data` must contain the template in compiled format.
 		"""
-		defnames = [] # Names of nested templates
 
-		def _readint(prefix):
-			if prefix is not None:
-				c = stream.read(len(prefix))
-				if c != prefix:
-					raise ValueError("invalid prefix, expected {!r}, got {!r}".format(prefix, c))
-			i = None
-			while True:
-				c = stream.read(1)
-				if c.isdigit():
-					if i is None:
-						i = 0
-					i = 10*i+int(c)
-				elif c == "|":
-					return i
-				else:
-					raise ValueError("invalid separator, expected '|', got {!r}".format(c))
-
-		def _readstr(prefix):
-			if prefix is not None:
-				c = stream.read(len(prefix))
-				if c != prefix:
-					raise ValueError("invalid prefix, expected {!r}, got {!r}".format(prefix, c))
-			i = None
-			while True:
-				c = stream.read(1)
-				if c.isdigit():
-					if i is None:
-						i = 0
-					i = 10*i+int(c)
-				elif c == "|":
-					if i is None:
-						return None
-					break
-				else:
-					raise ValueError("invalid separator, expected '|', got {!r}".format(c))
-			s = stream.read(i)
-			if len(s) != i:
-				raise ValueError("short read")
-			c = stream.read(1)
-			if c != "|":
-				raise ValueError("invalid separator, expected '|', got {!r}".format(c))
-			return s
-
-		def _readcr():
-			c = stream.read(1)
-			if c != "\n":
-				raise ValueError("invalid linefeed {!r}".format(c))
-
-		self = cls()
-		stream = io.StringIO(data)
-		header = stream.readline()
-		header = header.rstrip()
-		if header != "ul4":
-			raise ValueError("invalid header, expected 'ul4', got {!r}".format(header))
-		version = stream.readline()
-		version = version.rstrip()
-		if version != self.version:
-			raise ValueError("invalid version, expected {!r}, got {!r}".format(self.version, version))
-		self.name = _readstr("N")
-		defnames.append(self.name)
-		_readcr()
-		self.startdelim = _readstr("SD")
-		_readcr()
-		self.enddelim = _readstr("ED")
-		_readcr()
-		self.source = _readstr("SRC")
-		self.opcodes = []
-		_readcr()
-		count = _readint("n")
-		_readcr()
-		location = None
-		while count:
-			r1 = _readint(None)
-			r2 = _readint(None)
-			r3 = _readint(None)
-			r4 = _readint(None)
-			r5 = _readint(None)
-			code = _readstr("C")
-			arg = _readstr("A")
-			locspec = stream.read(1)
-			if code == "enddef":
-				defnames.pop()
-			if locspec == "^":
-				if location is None:
-					raise ValueError("no previous location")
-			elif locspec == "*":
-				locspec2 = stream.read(1)
-				if locspec2 != "|":
-					raise ValueError("invalid location spec {!r}".format(locspec + locspec2))
-				location = Location(self.source, defnames[-1], _readstr("T"), _readint("st"), _readint("et"), _readint("sc"), _readint("ec"))
-			else:
-				raise ValueError("invalid location spec {!r}".format(locspec))
-			_readcr()
-			count -= 1
-			self.opcodes.append(Opcode(code, r1, r2, r3, r4, r5, arg, location))
-			if code == "def":
-				defnames.append(arg)
-		return self
+		return ul4on.loads(data)
 
 	@classmethod
 	def load(cls, stream):
@@ -717,102 +1521,66 @@ class Template(object):
 		The class method :meth:`load` loads the template from the stream
 		:var:`stream`. The stream must contain the template in compiled format.
 		"""
-		return cls.loads(stream.read())
-
-	def iterdump(self):
-		"""
-		This generator outputs the template in compiled format.
-		"""
-		def _writeint(prefix, number):
-			if prefix is not None:
-				yield prefix
-			if number is not None:
-				yield str(number)
-			yield "|"
-
-		def _writestr(prefix, string):
-			yield prefix
-			if string is not None:
-				yield str(len(string))
-				yield "|"
-				yield string
-			yield "|"
-
-		yield "ul4\n{}\n".format(self.version)
-		for p in _writestr("N", self.name): yield p
-		yield "\n"
-		for p in _writestr("SD", self.startdelim): yield p
-		yield "\n"
-		for p in _writestr("ED", self.enddelim): yield p
-		yield "\n"
-		for p in _writestr("SRC", self.source): yield p
-		yield "\n"
-		for p in _writeint("n", len(self.opcodes)): yield p
-		yield "\n"
-		lastlocation = None
-		for opcode in self.opcodes:
-			for p in _writeint(None, opcode.r1): yield p
-			for p in _writeint(None, opcode.r2): yield p
-			for p in _writeint(None, opcode.r3): yield p
-			for p in _writeint(None, opcode.r4): yield p
-			for p in _writeint(None, opcode.r5): yield p
-			for p in _writestr("C", opcode.code): yield p
-			for p in _writestr("A", opcode.arg): yield p
-			if opcode.location is not lastlocation:
-				lastlocation = opcode.location
-				yield "*|"
-				for p in _writestr("T", lastlocation.type): yield p
-				for p in _writeint("st", lastlocation.starttag): yield p
-				for p in _writeint("et", lastlocation.endtag): yield p
-				for p in _writeint("sc", lastlocation.startcode): yield p
-				for p in _writeint("ec", lastlocation.endcode): yield p
-			else:
-				yield "^"
-			yield "\n"
+		return ul4on.load(stream)
 
 	def dump(self, stream):
 		"""
 		:meth:`dump` dumps the template in compiled format to the stream
 		:var:`stream`.
 		"""
-		for part in self.iterdump():
-			stream.write(part)
+		ul4on.dump(stream)
 
 	def dumps(self):
 		"""
 		:meth:`dumps` returns the template in compiled format (as a string).
 		"""
-		return "".join(self.iterdump())
+		return ul4on.dumps(self)
 
-	def render(self, **variables):
+	def python(self, indent):
+		v = []
+		v.append("{}def template(**vars):\n".format(indent*"\t"))
+		indent += 1
+		v.append("{}import datetime, random\n".format(indent*"\t"))
+		v.append("{}from ll import ul4c, misc, color\n".format(indent*"\t"))
+		v.append("{}if 0:\n".format(indent*"\t"))
+		v.append("{}\tyield\n".format(indent*"\t"))
+		for node in self.content:
+			v.append(node.python(indent))
+		indent -= 1
+		v.append("{}template.__name__ = {!r}\n".format(indent*"\t", self.name))
+		v.append("{}vars[{!r}] = template\n".format(indent*"\t", self.name))
+		return "".join(v)
+
+	def render(self, **vars):
 		"""
 		Render the template iteratively (i.e. this is a generator).
-		:var:`variables` contains the top level variables available to the
+		:var:`vars` contains the top level variables available to the
 		template code.
 		"""
-		return self.pythonfunction()(**variables)
+		return self.pythonfunction()(**vars)
 
-	def renders(self, **variables):
+	def renders(self, **vars):
 		"""
-		Render the template as a string. :var:`variables` contains the top level
+		Render the template as a string. :var:`vars` contains the top level
 		variables available to the template code.
 		"""
-		return "".join(self.pythonfunction()(**variables))
+		return "".join(self.pythonfunction()(**vars))
 
 	def pythonfunction(self):
 		"""
 		Return a Python generator that can be called to render the template. The
-		argument signature of the function will be ``**variables``.
+		argument signature of the function will be ``**vars``.
 		"""
 		if self._pythonfunction is None:
 			code = self.pythonsource()
 			ns = {}
 			exec(code, ns)
 			self._pythonfunction = ns[self.name]
+			self._pythonfunction.source = self.source
 		return self._pythonfunction
 
-	def __call__(self, **variables):
-		return self.pythonfunction()(**variables)
+	def __call__(self, **vars):
+		return self.pythonfunction()(**vars)
 
 	def pythonsource(self, *args, **kwargs):
 		"""
@@ -820,7 +1588,15 @@ class Template(object):
 		and :var:`kwargs` will be passed on to the :class:`PythonSource` object
 		which creates the sourcecode. See its constructor for more info.
 		"""
-		return str(PythonSource(self, *args, **kwargs))
+		v = []
+		v.append("def {}(**vars):\n".format(self.name))
+		v.append("\timport datetime, random\n")
+		v.append("\tfrom ll import ul4c, misc, color\n")
+		v.append("\tif 0:\n")
+		v.append("\t\tyield\n")
+		for node in self.content:
+			v.append(node.python(1))
+		return "".join(v)
 
 	def jssource(self):
 		"""
@@ -872,29 +1648,14 @@ class Template(object):
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
-				yield Location(source, None, None, pos, match.start(), pos, match.start())
+				yield Location(source, None, pos, match.start(), pos, match.start())
 			type = source[match.start(1):match.end(1)]
 			if type != "note":
-				yield Location(source, None, type, match.start(), match.end(), match.start(3), match.end(3))
+				yield Location(source, type, match.start(), match.end(), match.start(3), match.end(3))
 			pos = match.end()
 		end = len(source)
 		if pos != end:
-			yield Location(source, None, None, pos, end, pos, end)
-
-	def _allocreg(self):
-		"""
-		Allocates a free register from the pool of available registers.
-		"""
-		try:
-			return self.registers.pop()
-		except KeyError:
-			raise OutOfRegistersError()
-
-	def _freereg(self, register):
-		"""
-		Returns the register :var:`register` to the pool of available registers.
-		"""
-		self.registers.add(register)
+			yield Location(source, None, pos, end, pos, end)
 
 	def opcode(self, code, r1=None, r2=None, r3=None, r4=None, r5=None, arg=None):
 		"""
@@ -915,7 +1676,6 @@ class Template(object):
 		parseexpr = ExprParser(scanner).compile
 		parsestmt = StmtParser(scanner).compile
 		parsefor = ForParser(scanner).compile
-		parserender = RenderParser(scanner).compile
 
 		# This stack stores for each nested for/if/elif/else/def the following information:
 		# 1) Which construct we're in (i.e. "if" or "for")
@@ -923,101 +1683,87 @@ class Template(object):
 		# For ifs:
 		# 3) How many if's or elif's we have seen (this is used for simulating elif's via nested if's, for each additional elif, we have one more endif to add)
 		# 4) Whether we've already seen the else
-		stack = []
+		stack = [self]
 
 		self.source = source
-		self.opcodes = []
+
+		if source is None:
+			return
 
 		for location in self._tokenize(source, name, startdelim, enddelim):
-			self.location = location
 			try:
 				if location.type is None:
-					self.opcode(None)
+					stack[-1].append(Text(location, location.code))
 				elif location.type == "print":
-					r = parseexpr(self)
-					self.opcode("print", r1=r)
+					stack[-1].append(Print(location, parseexpr(location)))
 				elif location.type == "printx":
-					r = parseexpr(self)
-					self.opcode("printx", r1=r)
+					stack[-1].append(PrintX(location, parseexpr(location)))
 				elif location.type == "code":
-					parsestmt(self)
+					stack[-1].append(parsestmt(location))
 				elif location.type == "if":
-					r = parseexpr(self)
-					self.opcode("if", r1=r)
-					stack.append(("if", location, 1, False))
+					block = IfElIfElse(location, parseexpr(location))
+					stack[-1].append(block)
+					stack.append(block)
 				elif location.type == "elif":
-					if not stack or stack[-1][0] != "if":
-						raise BlockError("elif doesn't match any if")
-					elif stack[-1][3]:
-						raise BlockError("else already seen in elif")
-					self.opcode("else")
-					r = parseexpr(self)
-					self.opcode("if", r1=r)
-					stack[-1] = ("if", stack[-1][1], stack[-1][2]+1, False)
+					if not isinstance(stack[-1], IfElIfElse):
+						raise BlockError("elif doesn't match and if")
+					elif isinstance(stack[-1].content[-1], Else):
+						raise BlockError("else already seen in if")
+					stack[-1].newblock(ElIf(location, parseexpr(location)))
 				elif location.type == "else":
-					if not stack or stack[-1][0] != "if":
-						raise BlockError("else doesn't match any if")
-					elif stack[-1][3]:
-						raise BlockError("duplicate else")
-					self.opcode("else")
-					stack[-1] = ("if", stack[-1][1], stack[-1][2], True)
+					if not isinstance(stack[-1], IfElIfElse):
+						raise BlockError("else doesn't match and if")
+					elif isinstance(stack[-1].content[-1], Else):
+						raise BlockError("else already seen in if")
+					stack[-1].newblock(Else(location))
 				elif location.type == "end":
-					if not stack:
+					if len(stack) <= 1:
 						raise BlockError("not in any block")
 					code = location.code
 					if code:
 						if code == "if":
-							if stack[-1][0] != "if":
+							if not isinstance(stack[-1], IfElIfElse):
 								raise BlockError("endif doesn't match any if")
 						elif code == "for":
-							if stack[-1][0] != "for":
+							if not isinstance(stack[-1], (For, ForUnpack)):
 								raise BlockError("endfor doesn't match any for")
 						elif code == "def":
-							if stack[-1][0] != "def":
+							if not isinstance(stack[-1], Template):
 								raise BlockError("enddef doesn't match any def")
 						else:
 							raise BlockError("illegal end value {!r}".format(code))
-					last = stack.pop()
-					if last[0] == "if":
-						for i in range(last[2]):
-							self.opcode("endif")
-					elif last[0] == "for":
-						self.opcode("endfor")
-					else: # last[0] == "def":
-						self.opcode("enddef")
+					stack.pop()
 				elif location.type == "for":
-					parsefor(self)
-					stack.append(("for", location))
+					block = parsefor(location)
+					stack[-1].append(block)
+					stack.append(block)
 				elif location.type == "break":
-					if not any(entry[0] == "for" for entry in stack):
-						raise BlockError("break outside of for loop")
-					self.opcode("break")
+					for block in reversed(stack):
+						if isinstance(block, (For, ForUnpack)):
+							break
+						elif isinstance(block, Template):
+							raise BlockError("break outside of for loop")
+					stack[-1].append(Break(location))
 				elif location.type == "continue":
-					if not any(entry[0] == "for" for entry in stack):
-						raise BlockError("continue outside of for loop")
-					self.opcode("continue")
+					for block in reversed(stack):
+						if isinstance(block, (For, ForUnpack)):
+							break
+						elif isinstance(block, Template):
+							raise BlockError("continue outside of for loop")
+					stack[-1].append(Continue(location))
 				elif location.type == "render":
-					parserender(self)
+					stack[-1].append(Render(location, parseexpr(location)))
 				elif location.type == "def":
-					self.opcode("def", arg=location.code)
-					stack.append(("def", location))
+					block = Template(None, location.code, self.startdelim, self.enddelim)
+					block.location = location
+					stack[-1].append(block)
+					stack.append(block)
 				else: # Can't happen
 					raise ValueError("unknown tag {!r}".format(location.type))
 			except Exception as exc:
 				raise Error(location) from exc
-			finally:
-				del self.location
-		if stack:
-			raise Error(stack[-1][1]) from BlockError("block unclosed")
-
-		# Do an extra loop over the opcodes to fix the template names in the location objects
-		defnames = [name] # This stack stores the names of the nested templates.
-		for opcode in self.opcodes:
-			if opcode.code == "enddef":
-				defnames.pop()
-			opcode.location.name = defnames[-1]
-			if opcode.code == "def":
-				defnames.append(opcode.arg)
+		if len(stack) > 1:
+			raise Error(stack[-1].location) from BlockError("block unclosed")
 
 	def __str__(self):
 		return "\n".join(self.format())
@@ -1054,7 +1800,7 @@ class PythonSource(object):
 		self.lines2locs = []
 		self.defs = [] # Stack for currently open def opcodes
 		self.lastopcode = None
-		self.lastlocation = Location(self.template.source, self.template.name, None, 0, 0, 0, 0)
+		self.lastlocation = Location(self.template.source, None, 0, 0, 0, 0)
 
 		self._line(self.lastlocation, "def {}(**variables):".format(self.template.name))
 		self.indent += 1
@@ -1553,10 +2299,10 @@ class JavaSource(object):
 		self._do("r{op.r1} = true;".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_loaddate(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.makeDate({date});".format(op=opcode, date=", ".join(str(int(p)) for p in datesplitter.split(opcode.arg))))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.makeDate({date});".format(op=opcode, date=", ".join(str(int(p)) for p in datesplitter.split(opcode.arg))))
 		self._usereg(opcode.r1)
 	def _dispatch_loadcolor(self, opcode):
-		self._do("r{op.r1} = new com.livinglogic.ul4.Color(0x{r}, 0x{g}, 0x{b}, 0x{a});".format(op=opcode, r=opcode.arg[:2], g=opcode.arg[2:4], b=opcode.arg[4:6], a=opcode.arg[6:]))
+		self._do("r{op.r1} = new de.livinglogic.ul4.Color(0x{r}, 0x{g}, 0x{b}, 0x{a});".format(op=opcode, r=opcode.arg[:2], g=opcode.arg[2:4], b=opcode.arg[4:6], a=opcode.arg[6:]))
 		self._usereg(opcode.r1)
 	def _dispatch_buildlist(self, opcode):
 		self._do("r{op.r1} = new java.util.ArrayList();".format(op=opcode))
@@ -1574,49 +2320,49 @@ class JavaSource(object):
 		self._do("((java.util.Map)r{op.r1}).putAll((java.util.Map)r{op.r2});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_loadvar(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getItem({var}, {arg});".format(op=opcode, var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg)))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.getItem({var}, {arg});".format(op=opcode, var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg)))
 		self._usereg(opcode.r1)
 	def _dispatch_storevar(self, opcode):
 		self._do("{var}.put({arg}, r{op.r1});".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_addvar(self, opcode):
-		self._do("{var}.put({arg}, com.livinglogic.ul4.Utils.add({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
+		self._do("{var}.put({arg}, de.livinglogic.ul4.Utils.add({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_subvar(self, opcode):
-		self._do("{var}.put({arg}, com.livinglogic.ul4.Utils.sub({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
+		self._do("{var}.put({arg}, de.livinglogic.ul4.Utils.sub({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_mulvar(self, opcode):
-		self._do("{var}.put({arg}, com.livinglogic.ul4.Utils.mul({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
+		self._do("{var}.put({arg}, de.livinglogic.ul4.Utils.mul({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_truedivvar(self, opcode):
-		self._do("{var}.put({arg}, com.livinglogic.ul4.Utils.truediv({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
+		self._do("{var}.put({arg}, de.livinglogic.ul4.Utils.truediv({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_floordivvar(self, opcode):
-		self._do("{var}.put({arg}, com.livinglogic.ul4.Utils.floordiv({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
+		self._do("{var}.put({arg}, de.livinglogic.ul4.Utils.floordiv({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_modvar(self, opcode):
-		self._do("{var}.put({arg}, com.livinglogic.ul4.Utils.mod({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
+		self._do("{var}.put({arg}, de.livinglogic.ul4.Utils.mod({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_delvar(self, opcode):
 		self._do("{var}.remove({arg});".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg)))
 	def _dispatch_getattr(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getItem(r{op.r2}, {arg});".format(op=opcode, arg=misc.javaexpr(opcode.arg)))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.getItem(r{op.r2}, {arg});".format(op=opcode, arg=misc.javaexpr(opcode.arg)))
 		self._usereg(opcode.r1)
 	def _dispatch_getitem(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getItem(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.getItem(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_getslice12(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getSlice(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.getSlice(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_getslice1(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getSlice(r{op.r2}, r{op.r3}, null);".format(op=opcode))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.getSlice(r{op.r2}, r{op.r3}, null);".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_getslice2(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getSlice(r{op.r2}, null, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.getSlice(r{op.r2}, null, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_getslice(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getSlice(r{op.r2}, null, null);".format(op=opcode))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.getSlice(r{op.r2}, null, null);".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_print(self, opcode):
-		self._do(self.output("com.livinglogic.ul4.Utils.str(r{op.r1})".format(op=opcode)))
+		self._do(self.output("de.livinglogic.ul4.Utils.str(r{op.r1})".format(op=opcode)))
 	def _dispatch_printx(self, opcode):
-		self._do(self.output("com.livinglogic.ul4.Utils.xmlescape(r{op.r1})".format(op=opcode)))
+		self._do(self.output("de.livinglogic.ul4.Utils.xmlescape(r{op.r1})".format(op=opcode)))
 	def _dispatch_for(self, opcode):
 		varcounter = self._stack[-1].varcounter
-		self._do("for (java.util.Iterator iterator{count} = com.livinglogic.ul4.Utils.iterator(r{op.r2}); iterator{count}.hasNext();)".format(op=opcode, count=varcounter))
+		self._do("for (java.util.Iterator iterator{count} = de.livinglogic.ul4.Utils.iterator(r{op.r2}); iterator{count}.hasNext();)".format(op=opcode, count=varcounter))
 		self._do("{")
 		self._do(1)
 		self._do("r{op.r1} = iterator{count}.next();".format(op=opcode, count=varcounter))
@@ -1630,7 +2376,7 @@ class JavaSource(object):
 	def _dispatch_enddef(self, opcode):
 		level = self._stack.pop()
 		# define new template object
-		self._do('{var}.put({arg}, new com.livinglogic.ul4.JSPTemplate()'.format(var=self._stack[-1].variables, arg=misc.javaexpr(level.name)))
+		self._do('{var}.put({arg}, new de.livinglogic.ul4.JSPTemplate()'.format(var=self._stack[-1].variables, arg=misc.javaexpr(level.name)))
 		self._do("{")
 		self._do(1)
 		self._do("public String getName()")
@@ -1657,64 +2403,64 @@ class JavaSource(object):
 	def _dispatch_continue(self, opcode):
 		self._do("continue;")
 	def _dispatch_not(self, opcode):
-		self._do("r{op.r1} = !com.livinglogic.ul4.Utils.getBool(r{op.r2});".format(op=opcode))
+		self._do("r{op.r1} = !de.livinglogic.ul4.Utils.getBool(r{op.r2});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_neg(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.neg(r{op.r2});".format(op=opcode))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.neg(r{op.r2});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_contains(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.contains(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.contains(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_notcontains(self, opcode):
-		self._do("r{op.r1} = !com.livinglogic.ul4.Utils.contains(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = !de.livinglogic.ul4.Utils.contains(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_eq(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.eq(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.eq(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_ne(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.ne(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.ne(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_lt(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.lt(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.lt(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_le(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.le(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.le(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_gt(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.gt(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.gt(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_ge(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.ge(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.ge(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_add(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.add(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.add(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_sub(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.sub(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.sub(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_mul(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.mul(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.mul(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_floordiv(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.floordiv(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.floordiv(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_truediv(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.truediv(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.truediv(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_and(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getBool(r{op.r3}) ? r{op.r2} : r{op.r3};".format(op=opcode))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.getBool(r{op.r3}) ? r{op.r2} : r{op.r3};".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_or(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getBool(r{op.r2}) ? r{op.r2} : r{op.r3};".format(op=opcode))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.getBool(r{op.r2}) ? r{op.r2} : r{op.r3};".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_mod(self, opcode):
-		self._do("r{op.r1} = com.livinglogic.ul4.Utils.mod(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = de.livinglogic.ul4.Utils.mod(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_callfunc0(self, opcode):
 		if opcode.arg == "now":
 			self._do("r{op.r1} = new java.util.Date();".format(op=opcode))
 		elif opcode.arg in {"utcnow", "random"}:
-			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}();".format(op=opcode))
+			self._do("r{op.r1} = de.livinglogic.ul4.Utils.{op.arg}();".format(op=opcode))
 		elif opcode.arg == "vars":
 			self._do("r{op.r1} = {var};".format(op=opcode, var=self._stack[-1].variables))
 		else:
@@ -1722,15 +2468,15 @@ class JavaSource(object):
 		self._usereg(opcode.r1)
 	def _dispatch_callfunc1(self, opcode):
 		if opcode.arg in {"xmlescape", "csv", "repr", "enumerate", "isfirstlast", "isfirst", "islast", "enumfl", "chr", "ord", "hex", "oct", "bin", "sorted", "range", "type", "json", "reversed", "randrange", "randchoice", "abs", "str"}:
-			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
+			self._do("r{op.r1} = de.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "int":
-			self._do("r{op.r1} = com.livinglogic.ul4.Utils.toInteger(r{op.r2});".format(op=opcode))
+			self._do("r{op.r1} = de.livinglogic.ul4.Utils.toInteger(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "float":
-			self._do("r{op.r1} = com.livinglogic.ul4.Utils.toFloat(r{op.r2});".format(op=opcode))
+			self._do("r{op.r1} = de.livinglogic.ul4.Utils.toFloat(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "bool":
-			self._do("r{op.r1} = com.livinglogic.ul4.Utils.getBool(r{op.r2});".format(op=opcode))
+			self._do("r{op.r1} = de.livinglogic.ul4.Utils.getBool(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "len":
-			self._do("r{op.r1} = com.livinglogic.ul4.Utils.length(r{op.r2});".format(op=opcode))
+			self._do("r{op.r1} = de.livinglogic.ul4.Utils.length(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "isnone":
 			self._do("r{op.r1} = (r{op.r2} == null);".format(op=opcode))
 		elif opcode.arg == "isstr":
@@ -1746,11 +2492,11 @@ class JavaSource(object):
 		elif opcode.arg == "islist":
 			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof java.util.List));".format(op=opcode))
 		elif opcode.arg == "isdict":
-			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof java.util.Map) && !(r{op.r2} instanceof com.livinglogic.ul4.Template));".format(op=opcode))
+			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof java.util.Map) && !(r{op.r2} instanceof de.livinglogic.ul4.Template));".format(op=opcode))
 		elif opcode.arg == "istemplate":
-			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof com.livinglogic.ul4.Template));".format(op=opcode))
+			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof de.livinglogic.ul4.Template));".format(op=opcode))
 		elif opcode.arg == "iscolor":
-			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof com.livinglogic.ul4.Color));".format(op=opcode))
+			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof de.livinglogic.ul4.Color));".format(op=opcode))
 		elif opcode.arg == "get":
 			self._do("r{op.r1} = {var}.get(r{op.r2});".format(op=opcode, var=self._stack[-1].variables))
 		else:
@@ -1758,9 +2504,9 @@ class JavaSource(object):
 		self._usereg(opcode.r1)
 	def _dispatch_callfunc2(self, opcode):
 		if opcode.arg in {"format", "range", "zip", "randrange"}:
-			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
+			self._do("r{op.r1} = de.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
 		elif opcode.arg == "int":
-			self._do("r{op.r1} = com.livinglogic.ul4.Utils.toInteger(r{op.r2}, r{op.r3});".format(op=opcode))
+			self._do("r{op.r1} = de.livinglogic.ul4.Utils.toInteger(r{op.r2}, r{op.r3});".format(op=opcode))
 		elif opcode.arg == "get":
 			self._do("r{op.r1} = {var}.containsKey(r{op.r2}) ? {var}.get(r{op.r2}) : r{op.r3};".format(op=opcode, var=self._stack[-1].variables))
 		else:
@@ -1768,33 +2514,33 @@ class JavaSource(object):
 		self._usereg(opcode.r1)
 	def _dispatch_callfunc3(self, opcode):
 		if opcode.arg in {"range", "zip", "rgb", "hls", "hsv", "randrange"}:
-			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+			self._do("r{op.r1} = de.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 		else:
 			raise UnknownFunctionError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callfunc4(self, opcode):
 		if opcode.arg in {"rgb", "hls", "hsv"}:
-			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
+			self._do("r{op.r1} = de.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
 		else:
 			raise UnknownFunctionError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callmeth0(self, opcode):
 		if opcode.arg in {"split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "items", "isoformat", "mimeformat", "day", "month", "year", "hour", "minute", "second", "microsecond", "weekday", "yearday"}:
-			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
+			self._do("r{op.r1} = de.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
 		elif opcode.arg in {"r", "g", "b", "a"}:
-			self._do("r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).get{arg}();".format(op=opcode, arg=opcode.arg.upper()))
+			self._do("r{op.r1} = ((de.livinglogic.ul4.Color)r{op.r2}).get{arg}();".format(op=opcode, arg=opcode.arg.upper()))
 		elif opcode.arg in {"hls", "hlsa", "hsv", "hsva"}:
-			self._do("r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).{op.arg}();".format(op=opcode))
+			self._do("r{op.r1} = ((de.livinglogic.ul4.Color)r{op.r2}).{op.arg}();".format(op=opcode))
 		elif opcode.arg == "lum":
-			self._do("r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).lum();".format(op=opcode))
+			self._do("r{op.r1} = ((de.livinglogic.ul4.Color)r{op.r2}).lum();".format(op=opcode))
 		elif opcode.arg == "render":
-			self._do("r{op.r1} = ((com.livinglogic.ul4.Template)r{op.r2}).renders(null);".format(op=opcode))
+			self._do("r{op.r1} = ((de.livinglogic.ul4.Template)r{op.r2}).renders(null);".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callmeth1(self, opcode):
 		if opcode.arg in {"join", "split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "rfind", "withlum", "witha"}:
-			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
+			self._do("r{op.r1} = de.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
 		elif opcode.arg == "get":
 			self._do("r{op.r1} = ((java.util.Map)r{op.r2}).get(r{op.r3});".format(op=opcode))
 		else:
@@ -1802,7 +2548,7 @@ class JavaSource(object):
 		self._usereg(opcode.r1)
 	def _dispatch_callmeth2(self, opcode):
 		if opcode.arg in {"split", "rsplit", "find", "rfind", "replace"}:
-			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+			self._do("r{op.r1} = de.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 		elif opcode.arg == "get":
 			self._do("r{op.r1} = ((java.util.Map)r{op.r2}).containsKey(r{op.r3}) ? ((java.util.Map)r{op.r2}).get(r{op.r3}) : r{op.r4};".format(op=opcode))
 		else:
@@ -1810,18 +2556,18 @@ class JavaSource(object):
 		self._usereg(opcode.r1)
 	def _dispatch_callmeth3(self, opcode):
 		if opcode.arg in {"find", "rfind"}:
-			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
+			self._do("r{op.r1} = de.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callmethkw(self, opcode):
 		if opcode.arg == "render":
-			self._do("r{op.r1} = ((com.livinglogic.ul4.Template)r{op.r2}).renders((java.util.Map)r{op.r3});".format(op=opcode))
+			self._do("r{op.r1} = ((de.livinglogic.ul4.Template)r{op.r2}).renders((java.util.Map)r{op.r3});".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_if(self, opcode):
-		self._do("if (com.livinglogic.ul4.Utils.getBool(r{op.r1}))".format(op=opcode))
+		self._do("if (de.livinglogic.ul4.Utils.getBool(r{op.r1}))".format(op=opcode))
 		self._do("{")
 		self._do(1)
 	def _dispatch_else(self, opcode):
@@ -1834,522 +2580,7 @@ class JavaSource(object):
 		self._do(-1)
 		self._do("}")
 	def _dispatch_render(self, opcode):
-		self._do("((com.livinglogic.ul4.Template)r{op.r1}).render(out, (java.util.Map)r{op.r2});".format(op=opcode))
-
-
-###
-### Compiler stuff: Tokens and nodes for the AST
-###
-
-class Token(object):
-	def __init__(self, type):
-		self.type = type
-
-	def __repr__(self):
-		return "{}({!r})".format(self.__class__.__name__, self.type)
-
-	def __str__(self):
-		return self.type
-
-
-class AST(object):
-	"""
-	Baseclass for all syntax tree nodes.
-	"""
-
-
-
-class Const(AST):
-	"""
-	Common baseclass for all constants (used for type testing in constant folding)
-	"""
-
-	def __repr__(self):
-		return "{}()".format(self.__class__.__name__)
-
-	def compile(self, template):
-		r = template._allocreg()
-		template.opcode("load{}".format(self.type), r1=r)
-		return r
-
-
-class None_(Const):
-	type = "none"
-	value = None
-
-
-class True_(Const):
-	type = "true"
-	value = True
-
-
-class False_(Const):
-	type = "false"
-	value = False
-
-
-class Value(Const):
-	def __init__(self, value):
-		self.value = value
-
-	def __repr__(self):
-		return "{}({!r})".format(self.__class__.__name__, self.value)
-
-	def compile(self, template):
-		r = template._allocreg()
-		template.opcode("load{}".format(self.type), r1=r, arg=str(self.value))
-		return r
-
-
-class Int(Value):
-	type = "int"
-
-
-class Float(Value):
-	type = "float"
-
-	def compile(self, template):
-		r = template._allocreg()
-		template.opcode("load{}".format(self.type), r1=r, arg=repr(self.value))
-		return r
-
-
-class Str(Value):
-	type = "str"
-
-
-class Date(Value):
-	type = "date"
-
-	def compile(self, template):
-		r = template._allocreg()
-		template.opcode("load{}".format(self.type), r1=r, arg=self.value.isoformat())
-		return r
-
-
-class Color(Value):
-	type = "color"
-
-	def compile(self, template):
-		r = template._allocreg()
-		template.opcode("load{}".format(self.type), r1=r, arg="{:02x}{:02x}{:02x}{:02x}".format(*self.value))
-		return r
-
-
-class List(AST):
-	def __init__(self, *items):
-		self.items = list(items)
-
-	def __repr__(self):
-		return "{}({!r})".format(self.__class__.__name__, repr(self.items)[1:-1])
-
-	def compile(self, template):
-		r = template._allocreg()
-		template.opcode("buildlist", r1=r)
-		for item in self.items:
-			ri = item.compile(template)
-			template.opcode("addlist", r1=r, r2=ri)
-			template._freereg(ri)
-		return r
-
-
-class Dict(AST):
-	def __init__(self, *items):
-		self.items = list(items)
-
-	def __repr__(self):
-		return "{}({!r})".format(self.__class__.__name__, repr(self.items)[1:-1])
-
-	def compile(self, template):
-		r = template._allocreg()
-		template.opcode("builddict", r1=r)
-		for item in self.items:
-			if len(item) == 1:
-				rd = item[0].compile(template)
-				template.opcode("updatedict", r1=r, r2=rd)
-				template._freereg(rd)
-			else:
-				(key, value) = item
-				rk = key.compile(template)
-				rv = value.compile(template)
-				template.opcode("adddict", r1=r, r2=rk, r3=rv)
-				template._freereg(rk)
-				template._freereg(rv)
-		return r
-
-
-class Name(AST):
-	type = "name"
-
-	def __init__(self, name):
-		self.name = name
-
-	def __repr__(self):
-		return "{}({!r})".format(self.__class__.__name__, self.name)
-
-	def compile(self, template):
-		r = template._allocreg()
-		template.opcode("loadvar", r1=r, arg=self.name)
-		return r
-
-
-class For(AST):
-	def __init__(self, cont, varname):
-		self.cont = cont
-		self.varname = varname
-
-	def __repr__(self):
-		return "{}({!r}, {!r})".format(self.__class__.__name__, self.cont, self.varname)
-
-	def compile(self, template):
-		rc = self.cont.compile(template)
-		ri = template._allocreg()
-		template.opcode("for", r1=ri, r2=rc)
-		template.opcode("storevar", r1=ri, arg=self.varname.name)
-		template._freereg(ri)
-		template._freereg(rc)
-
-
-class ForUnpack(AST):
-	def __init__(self, cont, *varnames):
-		self.cont = cont
-		self.varnames = list(varnames)
-
-	def __repr__(self):
-		return "{}({!r}, {})".format(self.__class__.__name__, self.cont, repr(self.varnames)[1:-1])
-
-	def compile(self, template):
-		rc = self.cont.compile(template)
-		ri = template._allocreg()
-		template.opcode("for", r1=ri, r2=rc)
-		rii = template._allocreg()
-		for (i, varname) in enumerate(self.varnames):
-			template.opcode("loadint", r1=rii, arg=str(i))
-			template.opcode("getitem", r1=rii, r2=ri, r3=rii)
-			template.opcode("storevar", r1=rii, arg=varname.name)
-		template._freereg(rii)
-		template._freereg(ri)
-		template._freereg(rc)
-
-
-class GetAttr(AST):
-	def __init__(self, obj, attr):
-		self.obj = obj
-		self.attr = attr
-
-	def __repr__(self):
-		return "{}({!r}, {!r})".format(self.__class__.__name__, self.obj, self.attr)
-
-	def compile(self, template):
-		r = self.obj.compile(template)
-		template.opcode("getattr", r1=r, r2=r, arg=self.attr.name)
-		return r
-
-
-class GetSlice(AST):
-	def __init__(self, obj, index1, index2):
-		self.obj = obj
-		self.index1 = index1
-		self.index2 = index2
-
-	def __repr__(self):
-		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.obj, self.index1, self.index2)
-
-	def compile(self, template):
-		r1 = self.obj.compile(template)
-		if self.index1 is not None:
-			if self.index2 is not None:
-				r2 = self.index1.compile(template)
-				r3 = self.index2.compile(template)
-				template.opcode("getslice12", r1=r1, r2=r1, r3=r2, r4=r3)
-				template._freereg(r2)
-				template._freereg(r3)
-			else:
-				r2 = self.index1.compile(template)
-				template.opcode("getslice1", r1=r1, r2=r1, r3=r2)
-				template._freereg(r2)
-		else:
-			if self.index2 is not None:
-				r2 = self.index2.compile(template)
-				template.opcode("getslice2", r1=r1, r2=r1, r3=r2)
-				template._freereg(r2)
-			else:
-				template.opcode("getslice", r1=r1, r2=r1)
-		return r1
-
-
-class Unary(AST):
-	opcode = None
-
-	def __init__(self, obj):
-		self.obj = obj
-
-	def __repr__(self):
-		return "{}({!r})".format(self.__class__.__name__, self.obj)
-
-	def compile(self, template):
-		r = self.obj.compile(template)
-		template.opcode(self.opcode, r1=r, r2=r)
-		return r
-
-
-class Not(Unary):
-	opcode = "not"
-
-
-class Neg(Unary):
-	opcode = "neg"
-
-
-class Binary(AST):
-	opcode = None
-
-	def __init__(self, obj1, obj2):
-		self.obj1 = obj1
-		self.obj2 = obj2
-
-	def __repr__(self):
-		return "{}({!r}, {!r})".format(self.__class__.__name__, self.obj1, self.obj2)
-
-	def compile(self, template):
-		r1 = self.obj1.compile(template)
-		r2 = self.obj2.compile(template)
-		template.opcode(self.opcode, r1=r1, r2=r1, r3=r2)
-		template._freereg(r2)
-		return r1
-
-
-class GetItem(Binary):
-	opcode = "getitem"
-
-
-class EQ(Binary):
-	opcode = "eq"
-
-
-class NE(Binary):
-	opcode = "ne"
-
-
-class LT(Binary):
-	opcode = "lt"
-
-
-class LE(Binary):
-	opcode = "le"
-
-
-class GT(Binary):
-	opcode = "gt"
-
-
-class GE(Binary):
-	opcode = "ge"
-
-
-class Contains(Binary):
-	opcode = "contains"
-
-
-class NotContains(Binary):
-	opcode = "notcontains"
-
-
-class Add(Binary):
-	opcode = "add"
-
-
-class Sub(Binary):
-	opcode = "sub"
-
-
-class Mul(Binary):
-	opcode = "mul"
-
-
-class FloorDiv(Binary):
-	opcode = "floordiv"
-
-
-class TrueDiv(Binary):
-	opcode = "truediv"
-
-
-class Or(Binary):
-	opcode = "or"
-
-
-class And(Binary):
-	opcode = "and"
-
-
-class Mod(Binary):
-	opcode = "mod"
-
-
-class ChangeVar(AST):
-	opcode = None
-
-	def __init__(self, name, value):
-		self.name = name
-		self.value = value
-
-	def __repr__(self):
-		return "{}({!r}, {!r})".format(self.__class__.__name__, self.name, self.value)
-
-	def compile(self, template):
-		r = self.value.compile(template)
-		template.opcode(self.opcode, r1=r, arg=self.name.name)
-		template._freereg(r)
-
-
-class StoreVar(ChangeVar):
-	opcode = "storevar"
-
-
-class AddVar(ChangeVar):
-	opcode = "addvar"
-
-
-class SubVar(ChangeVar):
-	opcode = "subvar"
-
-
-class MulVar(ChangeVar):
-	opcode = "mulvar"
-
-
-class TrueDivVar(ChangeVar):
-	opcode = "truedivvar"
-
-
-class FloorDivVar(ChangeVar):
-	opcode = "floordivvar"
-
-
-class ModVar(ChangeVar):
-	opcode = "modvar"
-
-
-class DelVar(AST):
-	def __init__(self, name):
-		self.name = name
-
-	def __repr__(self):
-		return "{}({!r})".format(self.__class__.__name__, self.name)
-
-	def compile(self, template):
-		template.opcode("delvar", arg=self.name.name)
-
-
-class CallFunc(AST):
-	def __init__(self, name, args):
-		self.name = name
-		self.args = args
-
-	def __repr__(self):
-		if self.args:
-			return "{}({!r}, {})".format(self.__class__.__name__, self.name, repr(self.args)[1:-1])
-		else:
-			return "{}({!r})".format(self.__class__.__name__, self.name)
-
-	def compile(self, template):
-		if len(self.args) == 0:
-			r = template._allocreg()
-			template.opcode("callfunc0", r1=r, arg=self.name.name)
-			return r
-		elif len(self.args) > 4:
-			raise ValueError("{} function arguments not supported".format(len(self.args)))
-		else:
-			rs = [arg.compile(template) for arg in self.args]
-			template.opcode("callfunc{}".format(len(self.args)), rs[0], *rs, arg=self.name.name)
-			for i in range(1, len(self.args)):
-				template._freereg(rs[i])
-			return rs[0]
-
-
-class CallMeth(AST):
-	def __init__(self, name, obj, args):
-		self.name = name
-		self.obj = obj
-		self.args = args
-
-	def __repr__(self):
-		if self.args:
-			return "{}({!r}, {!r}, {})".format(self.__class__.__name__, self.name, self.obj, repr(self.args)[1:-1])
-		else:
-			return "{}({!r}, {!r})".format(self.__class__.__name__, self.name, self.obj)
-
-	def compile(self, template):
-		if len(self.args) > 3:
-			raise ValueError("{} method arguments not supported".format(len(self.args)))
-		ro = self.obj.compile(template)
-		rs = [arg.compile(template) for arg in self.args]
-		template.opcode("callmeth{}".format(len(self.args)), ro, ro, *rs, **dict(arg=self.name.name))
-		for r in rs:
-			template._freereg(r)
-		return ro
-
-
-class CallMethKeywords(AST):
-	def __init__(self, name, obj, args):
-		self.name = name
-		self.obj = obj
-		self.args = args
-
-	def __repr__(self):
-		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.name, self.obj, self.args)
-
-	def compile(self, template):
-		ra = template._allocreg()
-		template.opcode("builddict", r1=ra)
-		for item in self.args:
-			if len(item) == 1:
-				rd = item[0].compile(template)
-				template.opcode("updatedict", r1=ra, r2=rd)
-				template._freereg(rd)
-			else:
-				(key, value) = item
-				rv = value.compile(template)
-				rk = template._allocreg()
-				template.opcode("loadstr", r1=rk, arg=key.name)
-				template.opcode("adddict", r1=ra, r2=rk, r3=rv)
-				template._freereg(rk)
-				template._freereg(rv)
-		ro = self.obj.compile(template)
-		template.opcode("callmethkw", r1=ro, r2=ro, r3=ra, arg=self.name.name)
-		template._freereg(ra)
-		return ro
-
-
-class Render(AST):
-	def __init__(self, template, *variables):
-		self.template = template
-		self.variables = list(variables)
-
-	def __repr__(self):
-		return "{}({!r}, {})".format(self.__class__.__name__, self.template, repr(self.variables)[1:-1])
-
-	def compile(self, template):
-		ra = template._allocreg()
-		template.opcode("builddict", r1=ra)
-		for item in self.variables:
-			if len(item) == 1:
-				rd = item[0].compile(template)
-				template.opcode("updatedict", r1=ra, r2=rd)
-				template._freereg(rd)
-			else:
-				(key, value) = item
-				rv = value.compile(template)
-				rk = template._allocreg()
-				template.opcode("loadstr", r1=rk, arg=key.name)
-				template.opcode("adddict", r1=ra, r2=rk, r3=rv)
-				template._freereg(rk)
-				template._freereg(rv)
-		rt = self.template.compile(template)
-		template.opcode("render", r1=rt, r2=ra)
-		template._freereg(rt)
-		template._freereg(ra)
+		self._do("((de.livinglogic.ul4.Template)r{op.r1}).render(out, (java.util.Map)r{op.r2});".format(op=opcode))
 
 
 ###
@@ -2360,6 +2591,7 @@ class Scanner(spark.Scanner):
 	reflags = re.UNICODE
 
 	def tokenize(self, location):
+		self.location = location
 		self.collectstr = []
 		self.rv = []
 		self.start = 0
@@ -2374,62 +2606,62 @@ class Scanner(spark.Scanner):
 	# Color tokens must be in the order of decreasing length
 	@spark.token("\\#[0-9a-fA-F]{8}", "default")
 	def color8(self, start, end, s):
-		self.rv.append(Color(color.Color(int(s[1:3], 16), int(s[3:5], 16), int(s[5:7], 16), int(s[7:], 16))))
+		self.rv.append(Color(self.location, color.Color(int(s[1:3], 16), int(s[3:5], 16), int(s[5:7], 16), int(s[7:], 16))))
 
 	@spark.token("\\#[0-9a-fA-F]{6}", "default")
 	def color6(self, start, end, s):
-		self.rv.append(Color(color.Color(int(s[1:3], 16), int(s[3:5], 16), int(s[5:], 16))))
+		self.rv.append(Color(self.location, color.Color(int(s[1:3], 16), int(s[3:5], 16), int(s[5:], 16))))
 
 	@spark.token("\\#[0-9a-fA-F]{4}", "default")
 	def color4(self, start, end, s):
-		self.rv.append(Color(color.Color(17*int(s[1], 16), 17*int(s[2], 16), 17*int(s[3], 16), 17*int(s[4], 16))))
+		self.rv.append(Color(self.location, color.Color(17*int(s[1], 16), 17*int(s[2], 16), 17*int(s[3], 16), 17*int(s[4], 16))))
 
 	@spark.token("\\#[0-9a-fA-F]{3}", "default")
 	def color3(self, start, end, s):
-		self.rv.append(Color(color.Color(17*int(s[1], 16), 17*int(s[2], 16), 17*int(s[3], 16))))
+		self.rv.append(Color(self.location, color.Color(17*int(s[1], 16), 17*int(s[2], 16), 17*int(s[3], 16))))
 
 	@spark.token("@\\(\\d{4}-\\d{2}-\\d{2}(T(\\d{2}:\\d{2}(:\\d{2}(\\.\\d{6})?)?)?)?\\)", "default")
 	def date(self, start, end, s):
-		self.rv.append(Date(datetime.datetime(*map(int, [_f for _f in datesplitter.split(s[2:-1]) if _f]))))
+		self.rv.append(Date(self.location, datetime.datetime(*map(int, [_f for _f in datesplitter.split(s[2:-1]) if _f]))))
 
 	@spark.token("\\(|\\)|\\[|\\]|\\{|\\}|\\.|,|==|\\!=|<=|<|>=|>|=|\\+=|\\-=|\\*=|//=|/=|%=|%|:|\\+|-|\\*\\*|\\*|//|/", "default")
 	def token(self, start, end, s):
-		self.rv.append(Token(s))
+		self.rv.append(Token(self.location, s))
 
 	@spark.token("[a-zA-Z_][\\w]*", "default")
 	def name(self, start, end, s):
 		if s in ("in", "not", "or", "and", "del"):
-			self.rv.append(Token(s))
+			self.rv.append(Token(self.location, s))
 		elif s == "None":
-			self.rv.append(None_())
+			self.rv.append(None_(self.location))
 		elif s == "True":
-			self.rv.append(True_())
+			self.rv.append(True_(self.location))
 		elif s == "False":
-			self.rv.append(False_())
+			self.rv.append(False_(self.location))
 		else:
-			self.rv.append(Name(s))
+			self.rv.append(Name(self.location, s))
 
 	# We don't have negatve numbers, this is handled by constant folding in the AST for unary minus
 	@spark.token("\\d+\\.\\d*([eE][+-]?\\d+)?", "default")
 	@spark.token("\\d+(\\.\\d*)?[eE][+-]?\\d+", "default")
 	def float(self, start, end, s):
-		self.rv.append(Float(float(s)))
+		self.rv.append(Float(self.location, float(s)))
 
 	@spark.token("0[xX][\\da-fA-F]+", "default")
 	def hexint(self, start, end, s):
-		self.rv.append(Int(int(s[2:], 16)))
+		self.rv.append(Int(self.location, int(s[2:], 16)))
 
 	@spark.token("0[oO][0-7]+", "default")
 	def octint(self, start, end, s):
-		self.rv.append(Int(int(s[2:], 8)))
+		self.rv.append(Int(self.location, int(s[2:], 8)))
 
 	@spark.token("0[bB][01]+", "default")
 	def binint(self, start, end, s):
-		self.rv.append(Int(int(s[2:], 2)))
+		self.rv.append(Int(self.location, int(s[2:], 2)))
 
 	@spark.token("\\d+", "default")
 	def int(self, start, end, s):
-		self.rv.append(Int(int(s)))
+		self.rv.append(Int(self.location, int(s)))
 
 	@spark.token("'", "default")
 	def beginstr1(self, start, end, s):
@@ -2442,7 +2674,7 @@ class Scanner(spark.Scanner):
 	@spark.token("'", "str1")
 	@spark.token('"', "str2")
 	def endstr(self, start, end, s):
-		self.rv.append(Str("".join(self.collectstr)))
+		self.rv.append(Str(self.location, "".join(self.collectstr)))
 		self.collectstr = []
 		self.mode = "default"
 
@@ -2526,37 +2758,33 @@ class ExprParser(spark.Parser):
 		spark.Parser.__init__(self)
 		self.scanner = scanner
 
-	def compile(self, template):
-		location = template.location
+	def compile(self, location):
+		self.location = location
 		if not location.code:
 			raise ValueError(self.emptyerror)
-		template.registers = set(range(10))
 		try:
-			ast = self.parse(self.scanner.tokenize(location))
-			return ast.compile(template)
+			return self.parse(self.scanner.tokenize(location))
 		except Exception as exc:
 			raise Error(location) from exc
-		finally:
-			del template.registers
 
 	def typestring(self, token):
 		return token.type
 
 	def makeconst(self, value):
 		if value is None:
-			return None_()
+			return None_(self.location)
 		elif value is True:
-			return True_()
+			return True_(self.location)
 		elif value is False:
-			return False_()
+			return False_(self.location)
 		elif isinstance(value, int):
-			return Int(value)
+			return Int(self.location, value)
 		elif isinstance(value, float):
-			return Float(value)
+			return Float(self.location, value)
 		elif isinstance(value, str):
-			return Str(value)
+			return Str(self.location, value)
 		elif isinstance(value, color.Color):
-			return Color(value)
+			return Color(self.location, value)
 		else:
 			raise TypeError("can't convert {!r}".format(value))
 
@@ -2579,11 +2807,11 @@ class ExprParser(spark.Parser):
 
 	@spark.production('expr11 ::= [ ]')
 	def expr_emptylist(self, _0, _1):
-		return List()
+		return List(self.location)
 
 	@spark.production('buildlist ::= [ expr0')
 	def expr_buildlist(self, _0, expr):
-		return List(expr)
+		return List(self.location, expr)
 
 	@spark.production('buildlist ::= buildlist , expr0')
 	def expr_addlist(self, list, _0, expr):
@@ -2600,15 +2828,15 @@ class ExprParser(spark.Parser):
 
 	@spark.production('expr11 ::= { }')
 	def expr_emptydict(self, _0, _1):
-		return Dict()
+		return Dict(self.location)
 
 	@spark.production('builddict ::= { expr0 : expr0')
 	def expr_builddict(self, _0, exprkey, _1, exprvalue):
-		return Dict((exprkey, exprvalue))
+		return Dict(self.location, (exprkey, exprvalue))
 
 	@spark.production('builddict ::= { ** expr0')
 	def expr_builddictupdate(self, _0, _1, expr):
-		return Dict((expr,))
+		return Dict(self.location, (expr,))
 
 	@spark.production('builddict ::= builddict , expr0 : expr0')
 	def expr_adddict(self, dict, _0, exprkey, _1, exprvalue):
@@ -2634,55 +2862,55 @@ class ExprParser(spark.Parser):
 
 	@spark.production('expr10 ::= name ( )')
 	def expr_callfunc0(self, name, _0, _1):
-		return CallFunc(name, [])
+		return CallFunc(self.location, name.name)
 
 	@spark.production('expr10 ::= name ( expr0 )')
 	def expr_callfunc1(self, name, _0, arg0, _1):
-		return CallFunc(name, [arg0])
+		return CallFunc(self.location, name.name, arg0)
 
 	@spark.production('expr10 ::= name ( expr0 , expr0 )')
 	def expr_callfunc2(self, name, _0, arg0, _1, arg1, _2):
-		return CallFunc(name, [arg0, arg1])
+		return CallFunc(self.location, name.name, arg0, arg1)
 
 	@spark.production('expr10 ::= name ( expr0 , expr0 , expr0 )')
 	def expr_callfunc3(self, name, _0, arg0, _1, arg1, _2, arg2, _3):
-		return CallFunc(name, [arg0, arg1, arg2])
+		return CallFunc(self.location, name.name, arg0, arg1, arg2)
 
 	@spark.production('expr10 ::= name ( expr0 , expr0 , expr0 , expr0 )')
 	def expr_callfunc4(self, name, _0, arg0, _1, arg1, _2, arg2, _3, arg3, _4):
-		return CallFunc(name, [arg0, arg1, arg2, arg3])
+		return CallFunc(self.location, name.name, arg0, arg1, arg2, arg3)
 
 	@spark.production('expr9 ::= expr9 . name')
 	def expr_getattr(self, expr, _0, name):
-		return GetAttr(expr, name)
+		return GetAttr(self.location, expr, name.name)
 
 	@spark.production('expr9 ::= expr9 . name ( )')
 	def expr_callmeth0(self, expr, _0, name, _1, _2):
-		return CallMeth(name, expr, [])
+		return CallMeth(self.location, name.name, expr)
 
 	@spark.production('expr9 ::= expr9 . name ( expr0 )')
 	def expr_callmeth1(self, expr, _0, name, _1, arg1, _2):
-		return CallMeth(name, expr, [arg1])
+		return CallMeth(self.location, name.name, expr, arg1)
 
 	@spark.production('expr9 ::= expr9 . name ( expr0 , expr0 )')
 	def expr_callmeth2(self, expr, _0, name, _1, arg1, _2, arg2, _3):
-		return CallMeth(name, expr, [arg1, arg2])
+		return CallMeth(self.location, name.name, expr, arg1, arg2)
 
 	@spark.production('expr9 ::= expr9 . name ( expr0 , expr0 , expr0 )')
 	def expr_callmeth3(self, expr, _0, name, _1, arg1, _2, arg2, _3, arg3, _4):
-		return CallMeth(name, expr, [arg1, arg2, arg3])
+		return CallMeth(self.location, name.name, expr, arg1, arg2, arg3)
 
 	@spark.production('callmethkw ::= expr9 . name ( name = expr0')
 	def methkw_startname(self, expr, _0, methname, _1, argname, _2, argvalue):
-		return CallMethKeywords(methname, expr, [(argname, argvalue)])
+		return CallMethKeywords(self.location, methname.name, expr, (argname.name, argvalue))
 
 	@spark.production('callmethkw ::= expr9 . name ( ** expr0')
 	def methkw_startdict(self, expr, _0, methname, _1, _2, argvalue):
-		return CallMethKeywords(methname, expr, [(argvalue,)])
+		return CallMethKeywords(self.location, methname.name, expr, (argvalue,))
 
 	@spark.production('callmethkw ::= callmethkw , name = expr0')
 	def methkw_buildname(self, call, _0, argname, _1, argvalue):
-		call.args.append((argname, argvalue))
+		call.args.append((argname.name, argvalue))
 		return call
 
 	@spark.production('callmethkw ::= callmethkw , ** expr0')
@@ -2698,139 +2926,139 @@ class ExprParser(spark.Parser):
 	def expr_getitem(self, expr, _0, key, _1):
 		if isinstance(expr, Const) and isinstance(key, Const): # Constant folding
 			return self.makeconst(expr.value[key.value])
-		return GetItem(expr, key)
+		return GetItem(self.location, expr, key)
 
 	@spark.production('expr8 ::= expr8 [ expr0 : expr0 ]')
 	def expr_getslice12(self, expr, _0, index1, _1, index2, _2):
 		if isinstance(expr, Const) and isinstance(index1, Const) and isinstance(index2, Const): # Constant folding
 			return self.makeconst(expr.value[index1.value:index2.value])
-		return GetSlice(expr, index1, index2)
+		return GetSlice(self.location, expr, index1, index2)
 
 	@spark.production('expr8 ::= expr8 [ expr0 : ]')
 	def expr_getslice1(self, expr, _0, index1, _1, _2):
 		if isinstance(expr, Const) and isinstance(index1, Const): # Constant folding
 			return self.makeconst(expr.value[index1.value:])
-		return GetSlice(expr, index1, None)
+		return GetSlice(self.location, expr, index1, None)
 
 	@spark.production('expr8 ::= expr8 [ : expr0 ]')
 	def expr_getslice2(self, expr, _0, _1, index2, _2):
 		if isinstance(expr, Const) and isinstance(index2, Const): # Constant folding
 			return self.makeconst(expr.value[:index2.value])
-		return GetSlice(expr, None, index2)
+		return GetSlice(self.location, expr, None, index2)
 
 	@spark.production('expr8 ::= expr8 [ : ]')
 	def expr_getslice(self, expr, _0, _1, _2):
 		if isinstance(expr, Const): # Constant folding
 			return self.makeconst(expr.value[:])
-		return GetSlice(expr, None, None)
+		return GetSlice(self.location, expr, None, None)
 
 	@spark.production('expr7 ::= - expr7')
 	def expr_neg(self, _0, expr):
 		if isinstance(expr, Const): # Constant folding
 			return self.makeconst(-expr.value)
-		return Neg(expr)
+		return Neg(self.location, expr)
 
 	@spark.production('expr6 ::= expr6 * expr6')
 	def expr_mul(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.value * obj2.value)
-		return Mul(obj1, obj2)
+		return Mul(self.location, obj1, obj2)
 
 	@spark.production('expr6 ::= expr6 // expr6')
 	def expr_floordiv(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.value // obj2.value)
-		return FloorDiv(obj1, obj2)
+		return FloorDiv(self.location, obj1, obj2)
 
 	@spark.production('expr6 ::= expr6 / expr6')
 	def expr_truediv(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.value / obj2.value)
-		return TrueDiv(obj1, obj2)
+		return TrueDiv(self.location, obj1, obj2)
 
 	@spark.production('expr6 ::= expr6 % expr6')
 	def expr_mod(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.value % obj2.value)
-		return Mod(obj1, obj2)
+		return Mod(self.location, obj1, obj2)
 
 	@spark.production('expr5 ::= expr5 + expr5')
 	def expr_add(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.value + obj2.value)
-		return Add(obj1, obj2)
+		return Add(self.location, obj1, obj2)
 
 	@spark.production('expr5 ::= expr5 - expr5')
 	def expr_sub(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.value - obj2.value)
-		return Sub(obj1, obj2)
+		return Sub(self.location, obj1, obj2)
 
 	@spark.production('expr4 ::= expr4 == expr4')
 	def expr_eq(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.value == obj2.value)
-		return EQ(obj1, obj2)
+		return EQ(self.location, obj1, obj2)
 
 	@spark.production('expr4 ::= expr4 != expr4')
 	def expr_ne(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.value != obj2.value)
-		return NE(obj1, obj2)
+		return NE(self.location, obj1, obj2)
 
 	@spark.production('expr4 ::= expr4 < expr4')
 	def expr_lt(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.value < obj2.value)
-		return LT(obj1, obj2)
+		return LT(self.location, obj1, obj2)
 
 	@spark.production('expr4 ::= expr4 <= expr4')
 	def expr_le(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.value <= obj2.value)
-		return LE(obj1, obj2)
+		return LE(self.location, obj1, obj2)
 
 	@spark.production('expr4 ::= expr4 > expr4')
 	def expr_gt(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.value > obj2.value)
-		return GT(obj1, obj2)
+		return GT(self.location, obj1, obj2)
 
 	@spark.production('expr4 ::= expr4 >= expr4')
 	def expr_ge(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.value >= obj2.value)
-		return GE(obj1, obj2)
+		return GE(self.location, obj1, obj2)
 
 	@spark.production('expr3 ::= expr3 in expr3')
 	def expr_contains(self, obj, _0, container):
 		if isinstance(obj, Const) and isinstance(container, Const): # Constant folding
 			return self.makeconst(obj.value in container.value)
-		return Contains(obj, container)
+		return Contains(self.location, obj, container)
 
 	@spark.production('expr3 ::= expr3 not in expr3')
 	def expr_notcontains(self, obj, _0, _1, container):
 		if isinstance(obj, Const) and isinstance(container, Const): # Constant folding
 			return self.makeconst(obj.value not in container.value)
-		return NotContains(obj, container)
+		return NotContains(self.location, obj, container)
 
 	@spark.production('expr2 ::= not expr2')
 	def expr_not(self, _0, expr):
 		if isinstance(expr, Const): # Constant folding
 			return self.makeconst(not expr.value)
-		return Not(expr)
+		return Notself.location, (expr)
 
 	@spark.production('expr1 ::= expr1 and expr1')
 	def expr_and(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.value and obj2.value)
-		return And(obj1, obj2)
+		return And(self.location, obj1, obj2)
 
 	@spark.production('expr0 ::= expr0 or expr0')
 	def expr_or(self, obj1, _0, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const): # Constant folding
 			return self.makeconst(obj1.value or obj2.value)
-		return Or(obj1, obj2)
+		return Or(self.location, obj1, obj2)
 
 	# These rules make operators of different precedences interoperable, by allowing an expression to "drop" its precedence.
 	@spark.production('expr10 ::= expr11')
@@ -2854,19 +3082,19 @@ class ForParser(ExprParser):
 
 	@spark.production('for ::= name in expr0')
 	def for0(self, iter, _0, cont):
-		return For(cont, iter)
+		return For(self.location, cont, iter.name)
 
 	@spark.production('for ::= ( name , ) in expr0')
 	def for1(self, _0, varname, _1, _2, _3, cont):
-		return ForUnpack(cont, varname)
+		return ForUnpack(self.location, cont, varname.name)
 
 	@spark.production('buildfor ::= ( name , name')
 	def buildfor(self, _0, varname1, _1, varname2):
-		return ForUnpack(None, varname1, varname2)
+		return ForUnpack(self.location, None, varname1.name, varname2.name)
 
 	@spark.production('buildfor ::= buildfor , name')
 	def addfor(self, for_, _0, varname3):
-		for_.varnames.append(varname3)
+		for_.varnames.append(varname3.name)
 		return for_
 
 	@spark.production('for ::= buildfor ) in expr0')
@@ -2886,75 +3114,59 @@ class StmtParser(ExprParser):
 
 	@spark.production('stmt ::= name = expr0')
 	def stmt_assign(self, name, _0, value):
-		return StoreVar(name, value)
+		return StoreVar(self.location, name.name, value)
 
 	@spark.production('stmt ::= name += expr0')
 	def stmt_iadd(self, name, _0, value):
-		return AddVar(name, value)
+		return AddVar(self.location, name.name, value)
 
 	@spark.production('stmt ::= name -= expr0')
 	def stmt_isub(self, name, _0, value):
-		return SubVar(name, value)
+		return SubVar(self.location, name.name, value)
 
 	@spark.production('stmt ::= name *= expr0')
 	def stmt_imul(self, name, _0, value):
-		return MulVar(name, value)
+		return MulVar(self.location, name.name, value)
 
 	@spark.production('stmt ::= name /= expr0')
 	def stmt_itruediv(self, name, _0, value):
-		return TrueDivVar(name, value)
+		return TrueDivVar(self.location, name.name, value)
 
 	@spark.production('stmt ::= name //= expr0')
 	def stmt_ifloordiv(self, name, _0, value):
-		return FloorDivVar(name, value)
+		return FloorDivVar(self.location, name.name, value)
 
 	@spark.production('stmt ::= name %= expr0')
 	def stmt_imod(self, name, _0, value):
-		return ModVar(name, value)
+		return ModVar(self.location, name.name, value)
 
 	@spark.production('stmt ::= del name')
 	def stmt_del(self, _0, name):
-		return DelVar(name)
-
-
-class RenderParser(ExprParser):
-	emptyerror = "render statement required"
-	start = "render"
-
-	@spark.production('render ::= expr0 ( )')
-	def emptyrender(self, template, _0, _1):
-		return Render(template)
-
-	@spark.production('buildrender ::= expr0 ( name = expr0')
-	def startrender(self, template, _0, argname, _1, argvalue):
-		return Render(template, (argname, argvalue))
-
-	@spark.production('buildrender ::= expr0 ( ** expr0')
-	def startrenderupdate(self, template, _0, _1, arg):
-		return Render(template, (arg, ))
-
-	@spark.production('buildrender ::= buildrender , name = expr0')
-	def buildrender(self, render, _0, argname, _1, argvalue):
-		render.variables.append((argname, argvalue))
-		return render
-
-	@spark.production('buildrender ::= buildrender , ** expr0')
-	def buildrenderupdate(self, render, _0, _1, arg):
-		render.variables.append((arg,))
-		return render
-
-	@spark.production('render ::= buildrender )')
-	def finishrender(self, render, _0):
-		return render
-
-	@spark.production('render ::= buildrender , )')
-	def finishrender1(self, render, _0, _1):
-		return render
+		return DelVar(self.location, name.name)
 
 
 ###
 ### Helper functions used at template runtime
 ###
+
+def _makedict(*items):
+	result = {}
+	for item in items:
+		if len(item) == 1:
+			result.update(item[0])
+		else:
+			result[item[0]] = item[1]
+	return result
+
+def _str(obj):
+	"""
+	Helper for the ``str`` function.
+	"""
+	if obj is None:
+		return ""
+	else:
+		return str(obj)
+
 
 def _repr(obj):
 	"""
@@ -2988,6 +3200,16 @@ def _repr(obj):
 		return repr(obj)
 
 
+def _xmlescape(obj):
+	"""
+	Helper for the ``xmlescape`` function.
+	"""
+	if obj is None:
+		return ""
+	else:
+		return misc.xmlescape(str(obj))
+
+
 def _json(obj):
 	"""
 	Helper for the ``json`` function.
@@ -3010,6 +3232,20 @@ def _json(obj):
 		return obj.jssource()
 	else:
 		raise TypeError("can't handle object of type {}".format(type(obj)))
+
+
+def _isint(obj):
+	"""
+	Helper for the ``isint`` function.
+	"""
+	return isinstance(obj, int) and not isinstance(obj, bool)
+
+
+def _islist(obj):
+	"""
+	Helper for the ``islist`` function.
+	"""
+	return isinstance(obj, mapping.Sequence) and not isinstance(obj, color.Color)
 
 
 def _enumfl(obj):
