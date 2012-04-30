@@ -1451,7 +1451,7 @@ class Template(Block):
 	"""
 	version = "17"
 
-	def __init__(self, source=None, name="unnamed", startdelim="<?", enddelim="?>"):
+	def __init__(self, source=None, name=None, startdelim="<?", enddelim="?>"):
 		"""
 		Create a :class:`Template` object. If :var:`source` is ``None``, the
 		:class:`Template` remains uninitialized, otherwise :var:`source` will be
@@ -1519,7 +1519,7 @@ class Template(Block):
 		:meth:`dump` dumps the template in compiled format to the stream
 		:var:`stream`.
 		"""
-		ul4on.dump(stream)
+		ul4on.dump(self, stream)
 
 	def dumps(self):
 		"""
@@ -1538,8 +1538,9 @@ class Template(Block):
 		for node in self.content:
 			v.append(node.python(indent))
 		indent -= 1
-		v.append("{}template.__name__ = {!r}\n".format(indent*"\t", self.name))
-		v.append("{}vars[{!r}] = template\n".format(indent*"\t", self.name))
+		name = self.name if self.name is not None else "unnamed"
+		v.append("{}template.__name__ = {!r}\n".format(indent*"\t", name))
+		v.append("{}vars[{!r}] = template\n".format(indent*"\t", name))
 		return "".join(v)
 
 	def render(self, **vars):
@@ -1566,7 +1567,7 @@ class Template(Block):
 			code = self.pythonsource()
 			ns = {}
 			exec(code, ns)
-			self._pythonfunction = ns[self.name]
+			self._pythonfunction = ns[self.name if self.name is not None else "unnamed"]
 			self._pythonfunction.source = self.source
 		return self._pythonfunction
 
@@ -1580,7 +1581,7 @@ class Template(Block):
 		which creates the sourcecode. See its constructor for more info.
 		"""
 		v = []
-		v.append("def {}(**vars):\n".format(self.name))
+		v.append("def {}(**vars):\n".format(self.name if self.name is not None else "unnamed"))
 		v.append("\timport datetime, random\n")
 		v.append("\tfrom ll import ul4c, misc, color\n")
 		v.append("\tif 0:\n")
@@ -1610,7 +1611,8 @@ class Template(Block):
 		(but without trailing newlines). :var:`indent` can be used to specify how
 		to indent blocks (defaulting to ``"\\t"``).
 		"""
-		yield "def {}(**vars) {{".format(self.name)
+		name = self.name if self.name is not None else "unnamed"
+		yield "def {}(**vars) {{".format(name)
 		i = 1
 		for opcode in self.opcodes:
 			if opcode.code in ("else", "endif", "endfor", "enddef"):
@@ -1627,7 +1629,7 @@ class Template(Block):
 				i += 1
 		yield "}"
 
-	def _tokenize(self, source, name, startdelim, enddelim):
+	def _tokenize(self, source, startdelim, enddelim):
 		"""
 		Tokenize the template source code :var:`source` into tags and non-tag
 		text. :var:`startdelim` and :var:`enddelim` are used as the tag delimiters.
@@ -1681,7 +1683,7 @@ class Template(Block):
 		if source is None:
 			return
 
-		for location in self._tokenize(source, name, startdelim, enddelim):
+		for location in self._tokenize(source, startdelim, enddelim):
 			try:
 				if location.type is None:
 					stack[-1].append(Text(location))
