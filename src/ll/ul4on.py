@@ -38,8 +38,6 @@ class Person:
 		self.lastname = decoder.load()
 
 otto = Person("Otto", "Normalverbraucher")
-
-
 """
 
 
@@ -168,7 +166,7 @@ class Decoder:
 	def _load(self, typecode):
 		if typecode is None:
 			typecode = self.stream.read(1)
-		elif typecode == "^":
+		if typecode == "^":
 			position = self._readint()
 			return self._objects[position]
 		elif typecode in "nN":
