@@ -590,20 +590,11 @@ class AST(object):
 
 @ul4on.register("de.livinglogic.ul4.text")
 class Text(AST):
-	def __init__(self, location=None, text=None):
+	def __init__(self, location=None):
 		super().__init__(location)
-		self.text = text
 
 	def python(self, indent):
-		return "{}yield {!r}\n".format(indent*"\t", self.text)
-
-	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
-		encoder.dump(self.text)
-
-	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
-		self.text = decoder.load()
+		return "{}yield {!r}\n".format(indent*"\t", self.location.code)
 
 
 class Const(AST):
@@ -784,7 +775,7 @@ class Block(AST):
 		self.content = decoder.load()
 
 
-@ul4on.register("de.livinglogic.ul4.iee")
+@ul4on.register("de.livinglogic.ul4.ieie")
 class IfElIfElse(Block):
 	def __init__(self, location=None, condition=None):
 		super().__init__(location)
@@ -1693,7 +1684,7 @@ class Template(Block):
 		for location in self._tokenize(source, name, startdelim, enddelim):
 			try:
 				if location.type is None:
-					stack[-1].append(Text(location, location.code))
+					stack[-1].append(Text(location))
 				elif location.type == "print":
 					stack[-1].append(Print(location, parseexpr(location)))
 				elif location.type == "printx":
