@@ -127,8 +127,8 @@ class Encoder:
 				self.stream.write(".")
 			else:
 				self._record(obj)
-				self.stream.write("O{}|".format(len(obj.ul4onname)))
-				self.stream.write(obj.ul4onname)
+				self.stream.write("O")
+				self.dump(obj.ul4onname)
 				obj.ul4ondump(self)
 
 
@@ -247,8 +247,7 @@ class Decoder:
 					item = self._load(None)
 					value[key] = item
 		elif typecode in "oO":
-			size = self._readint()
-			name = self.stream.read(size)
+			name = self._load(None)
 			try:
 				cls = _registry[name]
 			except KeyError:
