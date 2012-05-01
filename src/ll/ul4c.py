@@ -578,11 +578,23 @@ class AST(object):
 	"""
 	Baseclass for all syntax tree nodes.
 	"""
+	# used in :meth:`format` to decide if we need brackets around an operator
+	precedence = None
+	associative = True
+
 	def __init__(self, location=None):
 		self.location = location
 
 	def __str__(self):
 		return self.format(0)
+
+	def _formatop(self, op):
+		if op.precedence < self.precedence:
+			return "({})".format(op.format(0))
+		elif op.precedence == self.precedence and (not isinstance(op, self.__class__) or not self.associative):
+			return "({})".format(op.format(0))
+		else:
+			return op.format(0)
 
 	@misc.notimplemented
 	def format(self, indent):
@@ -621,6 +633,7 @@ class Const(AST):
 	"""
 	Common baseclass for all constants (used for type testing in constant folding)
 	"""
+	precedence = 11
 
 	def __repr__(self):
 		return "{}()".format(self.__class__.__name__)
@@ -729,6 +742,8 @@ class Color(Value):
 
 @ul4on.register("de.livinglogic.ul4.list")
 class List(AST):
+	precedence = 11
+
 	def __init__(self, location=None, *items):
 		super().__init__(location)
 		self.items = list(items)
@@ -753,6 +768,8 @@ class List(AST):
 
 @ul4on.register("de.livinglogic.ul4.dict")
 class Dict(AST):
+	precedence = 11
+
 	def __init__(self, location=None, *items):
 		super().__init__(location)
 		self.items = list(items)
@@ -784,6 +801,7 @@ class Dict(AST):
 @ul4on.register("de.livinglogic.ul4.loadvar")
 class Name(AST):
 	type = "name"
+	precedence = 11
 
 	def __init__(self, location=None, name=None):
 		super().__init__(location)
@@ -839,7 +857,7 @@ class IfElIfElse(Block):
 	def __init__(self, location=None, condition=None):
 		super().__init__(location)
 		if condition is not None:
-			self.newblock(If(condition))
+			self.newblock(If(location, condition))
 
 	def append(self, item):
 		self.content[-1].append(item)
@@ -1010,6 +1028,9 @@ class Continue(AST):
 
 @ul4on.register("de.livinglogic.ul4.getattr")
 class GetAttr(AST):
+	precedence = 9
+	associative = False
+
 	def __init__(self, location=None, obj=None, attrname=None):
 		super().__init__(location)
 		self.obj = obj
@@ -1019,7 +1040,7 @@ class GetAttr(AST):
 		return "{}({!r}, {!r})".format(self.__class__.__name__, self.obj, self.attrname)
 
 	def format(self, indent):
-		return "{}.{}".format(self.obj.format(indent), self.attrname)
+		return "{}.{}".format(self._formatop(self.obj), self.attrname)
 
 	def formatpython(self, indent):
 		return "{}[{!r}]".format(self.obj.formatpython(indent), self.attrname)
@@ -1037,6 +1058,9 @@ class GetAttr(AST):
 
 @ul4on.register("de.livinglogic.ul4.getslice")
 class GetSlice(AST):
+	precedence = 8
+	associative = False
+
 	def __init__(self, location=None, obj=None, index1=None, index2=None):
 		super().__init__(location)
 		self.obj = obj
@@ -1047,7 +1071,7 @@ class GetSlice(AST):
 		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.obj, self.index1, self.index2)
 
 	def format(self, indent):
-		return "{}[{}:{}]".format(self.obj.format(indent), self.index1.format(indent) if self.index1 is not None else "", self.index2.format(indent) if self.index2 is not None else "")
+		return "{}[{}:{}]".format(self._formatop(self.obj), self.index1.format(indent) if self.index1 is not None else "", self.index2.format(indent) if self.index2 is not None else "")
 
 	def formatpython(self, indent):
 		return "{}[{}:{}]".format(self.obj.formatpython(indent), self.index1.formatpython(indent) if self.index1 is not None else "", self.index2.formatpython(indent) if self.index2 is not None else "")
@@ -1084,8 +1108,10 @@ class Unary(AST):
 
 @ul4on.register("de.livinglogic.ul4.not")
 class Not(Unary):
+	precedence = 2
+
 	def format(self, indent):
-		return " not ({})".format(self.obj.format(indent))
+		return " not ".format(self._formatop(self.obj))
 
 	def formatpython(self, indent):
 		return " not ({})".format(self.obj.formatpython(indent))
@@ -1093,8 +1119,10 @@ class Not(Unary):
 
 @ul4on.register("de.livinglogic.ul4.neg")
 class Neg(Unary):
+	precedence = 7
+
 	def format(self, indent):
-		return " -({})".format(self.obj.format(indent))
+		return " -{}".format(self._formatop(self.obj))
 
 	def formatpython(self, indent):
 		return " -({})".format(self.obj.formatpython(indent))
@@ -1140,17 +1168,23 @@ class Binary(AST):
 
 @ul4on.register("de.livinglogic.ul4.getitem")
 class GetItem(Binary):
+	precedence = 9
+	associative = False
+
 	def format(self, indent):
-		return "{}[{}]".format(self.obj1.format(indent), self.obj2.format(indent))
+		return "{}[{}]".format(self._formatop(self.obj1), self.obj2.format(indent))
 
 	def formatpython(self, indent):
-		return "{}[{}]".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+		return "({})[{}]".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.eq")
 class EQ(Binary):
+	precedence = 4
+	associative = False
+
 	def format(self, indent):
-		return "({}) == ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+		return "{} == {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
 	def formatpython(self, indent):
 		return "({}) == ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
@@ -1158,8 +1192,11 @@ class EQ(Binary):
 
 @ul4on.register("de.livinglogic.ul4.ne")
 class NE(Binary):
+	precedence = 4
+	associative = False
+
 	def format(self, indent):
-		return "({}) != ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+		return "{} != {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
 	def formatpython(self, indent):
 		return "({}) != ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
@@ -1167,8 +1204,11 @@ class NE(Binary):
 
 @ul4on.register("de.livinglogic.ul4.lt")
 class LT(Binary):
+	precedence = 4
+	associative = False
+
 	def format(self, indent):
-		return "({}) < ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+		return "{} < {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
 	def formatpython(self, indent):
 		return "({}) < ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
@@ -1176,8 +1216,11 @@ class LT(Binary):
 
 @ul4on.register("de.livinglogic.ul4.le")
 class LE(Binary):
+	precedence = 4
+	associative = False
+
 	def format(self, indent):
-		return "({}) <= ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+		return "{} <= {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
 	def formatpython(self, indent):
 		return "({}) <= ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
@@ -1185,8 +1228,11 @@ class LE(Binary):
 
 @ul4on.register("de.livinglogic.ul4.gt")
 class GT(Binary):
+	precedence = 4
+	associative = False
+
 	def format(self, indent):
-		return "({}) > ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+		return "{} > {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
 	def formatpython(self, indent):
 		return "({}) > ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
@@ -1194,8 +1240,11 @@ class GT(Binary):
 
 @ul4on.register("de.livinglogic.ul4.ge")
 class GE(Binary):
+	precedence = 4
+	associative = False
+
 	def format(self, indent):
-		return "({}) >= ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+		return "{} >= {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
 	def formatpython(self, indent):
 		return "({}) >= ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
@@ -1203,8 +1252,11 @@ class GE(Binary):
 
 @ul4on.register("de.livinglogic.ul4.contains")
 class Contains(Binary):
+	precedence = 3
+	associative = False
+
 	def format(self, indent):
-		return "({}) in ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+		return "{} in {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
 	def formatpython(self, indent):
 		return "({}) in ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
@@ -1212,8 +1264,11 @@ class Contains(Binary):
 
 @ul4on.register("de.livinglogic.ul4.notcontains")
 class NotContains(Binary):
+	precedence = 3
+	associative = False
+
 	def format(self, indent):
-		return "({}) not in ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+		return "{} not in {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
 	def formatpython(self, indent):
 		return "({}) not in ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
@@ -1221,8 +1276,10 @@ class NotContains(Binary):
 
 @ul4on.register("de.livinglogic.ul4.add")
 class Add(Binary):
+	precedence = 5
+
 	def format(self, indent):
-		return "({}) + ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+		return "{}+{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
 	def formatpython(self, indent):
 		return "({}) + ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
@@ -1230,8 +1287,11 @@ class Add(Binary):
 
 @ul4on.register("de.livinglogic.ul4.sub")
 class Sub(Binary):
+	precedence = 5
+	associative = False
+
 	def format(self, indent):
-		return "({}) - ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+		return "{}-{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
 	def formatpython(self, indent):
 		return "({}) - ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
@@ -1239,8 +1299,10 @@ class Sub(Binary):
 
 @ul4on.register("de.livinglogic.ul4.mul")
 class Mul(Binary):
+	precedence = 6
+
 	def format(self, indent):
-		return "({}) * ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+		return "{}*{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
 	def formatpython(self, indent):
 		return "({}) * ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
@@ -1248,8 +1310,11 @@ class Mul(Binary):
 
 @ul4on.register("de.livinglogic.ul4.floordiv")
 class FloorDiv(Binary):
+	precedence = 6
+	associative = False
+
 	def format(self, indent):
-		return "({}) // ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+		return "{}//{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
 	def formatpython(self, indent):
 		return "({}) // ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
@@ -1257,35 +1322,45 @@ class FloorDiv(Binary):
 
 @ul4on.register("de.livinglogic.ul4.truediv")
 class TrueDiv(Binary):
+	precedence = 6
+	associative = False
+
 	def format(self, indent):
-		return "({}) / ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+		return "{}/{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
 	def formatpython(self, indent):
 		return "({}) / ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.or")
-class Or(Binary):
-	def format(self, indent):
-		return "({}) or ({})".format(self.obj1.format(indent), self.obj2.format(indent))
-
-	def formatpython(self, indent):
-		return "({}) or ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
-
-
 @ul4on.register("de.livinglogic.ul4.and")
 class And(Binary):
+	precedence = 1
+
 	def format(self, indent):
-		return "({}) and ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+		return "{} and {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
 	def formatpython(self, indent):
 		return "({}) and ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
+@ul4on.register("de.livinglogic.ul4.or")
+class Or(Binary):
+	precedence = 0
+
+	def format(self, indent):
+		return "{} or {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
+
+	def formatpython(self, indent):
+		return "({}) or ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+
+
 @ul4on.register("de.livinglogic.ul4.mod")
 class Mod(Binary):
+	precedence = 6
+	associative = False
+
 	def format(self, indent):
-		return "({}) % ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+		return "{}%{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
 	def formatpython(self, indent):
 		return "({}) % ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
@@ -1400,6 +1475,9 @@ class DelVar(AST):
 
 @ul4on.register("de.livinglogic.ul4.callfunc")
 class CallFunc(AST):
+	precedence = 10
+	associative = False
+
 	def __init__(self, location=None, funcname=None, *args):
 		super().__init__(location)
 		self.funcname = funcname
@@ -1482,6 +1560,9 @@ class CallFunc(AST):
 
 @ul4on.register("de.livinglogic.ul4.callmeth")
 class CallMeth(AST):
+	precedence = 9
+	associative = False
+
 	def __init__(self, location=None, methname=None, obj=None, *args):
 		super().__init__(location)
 		self.methname = methname
@@ -1495,7 +1576,7 @@ class CallMeth(AST):
 			return "{}({!r}, {!r})".format(self.__class__.__name__, self.methname, self.obj)
 
 	def format(self, indent):
-		return "{}.{}({})".format(self.obj.format(indent), self.methname, ", ".join(arg.format(indent) for arg in self.args))
+		return "({}).{}({})".format(self._formatop(self.obj), self.methname, ", ".join(arg.format(indent) for arg in self.args))
 
 	def formatpython(self, indent):
 		methods = dict(
@@ -1559,6 +1640,9 @@ class CallMeth(AST):
 
 @ul4on.register("de.livinglogic.ul4.callmethkw")
 class CallMethKeywords(AST):
+	precedence = 9
+	associative = False
+
 	def __init__(self, location=None, methname=None, obj=None, *args):
 		super().__init__(location)
 		self.methname = methname
@@ -1575,7 +1659,7 @@ class CallMethKeywords(AST):
 				args.append("**{}".format(arg[0].format(indent)))
 			else:
 				args.append("{}={}".format(arg[0], arg[1].format(indent)))
-		return "{}.{}({})".format(self.obj.format(indent), self.methname, ", ".join(args))
+		return "{}.{}({})".format(self._formatop(self.obj), self.methname, ", ".join(args))
 
 	def formatpython(self, indent):
 		if self.methname == "renders":
