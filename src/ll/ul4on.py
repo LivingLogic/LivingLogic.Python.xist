@@ -254,7 +254,7 @@ class Decoder:
 				# So we push null to the backreference list for now and put the right object in this spot,
 				# once we've created it (This shouldn't be a problem, because during the time the backreference
 				# is wrong, only the class name is read, so our object won't be refenced).
-				oldpos = len(self.objects)
+				oldpos = len(self._objects)
 				self._loading(None)
 			name = self._load(None)
 			try:
@@ -264,7 +264,7 @@ class Decoder:
 			obj = cls()
 			# Fix object in backreference list
 			if typecode == "O":
-				self.objects[oldpos] = obj
+				self._objects[oldpos] = obj
 			obj.ul4onload(self)
 			return obj
 		else:
