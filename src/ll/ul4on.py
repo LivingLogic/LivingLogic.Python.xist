@@ -247,14 +247,24 @@ class Decoder:
 					item = self._load(None)
 					value[key] = item
 		elif typecode in "oO":
+			if typecode == "O":
+				# We have a problem here:
+				# We have to record the object we're loading *now*, so that it is available for backreferences.
+				# However until we've read the UL4ON name of the class, we can't create the object.
+				# So we push null to the backreference list for now and put the right object in this spot,
+				# once we've created it (This shouldn't be a problem, because during the time the backreference
+				# is wrong, only the class name is read, so our object won't be refenced).
+				oldpos = len(self.objects)
+				self._loading(None)
 			name = self._load(None)
 			try:
 				cls = _registry[name]
 			except KeyError:
 				raise TypeError("can't decode object of type {}".format(name))
 			obj = cls()
+			# Fix object in backreference list
 			if typecode == "O":
-				self._loading(obj)
+				self.objects[oldpos] = obj
 			obj.ul4onload(self)
 			return obj
 		else:
