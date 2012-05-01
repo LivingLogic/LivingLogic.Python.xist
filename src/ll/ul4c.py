@@ -1471,7 +1471,6 @@ class Template(Block):
 			self._compile(source, name, startdelim, enddelim)
 
 	def ul4ondump(self, encoder):
-		encoder.dump("ul4")
 		encoder.dump(self.version)
 		encoder.dump(self.source)
 		encoder.dump(self.name)
@@ -1480,9 +1479,6 @@ class Template(Block):
 		super().ul4ondump(encoder)
 
 	def ul4onload(self, decoder):
-		header = decoder.load()
-		if header != "ul4":
-			raise ValueError("invalid header, expected 'ul4', got {!r}".format(header))
 		version = decoder.load()
 		if version != self.version:
 			raise ValueError("invalid version, expected {!r}, got {!r}".format(self.version, version))
