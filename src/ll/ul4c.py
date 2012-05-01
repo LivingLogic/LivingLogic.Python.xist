@@ -581,6 +581,23 @@ class AST(object):
 	def __init__(self, location=None):
 		self.location = location
 
+	def __str__(self):
+		return self.format(0)
+
+	@misc.notimplemented
+	def format(self, indent):
+		"""
+		Format :var:`self` (with the indentation level :var:`indent`).
+
+		This is used by :meth:`__str__.
+		"""
+
+	@misc.notimplemented
+	def formatpython(self, indent):
+		"""
+		Format :var:`self` into valid Python source code.
+		"""
+
 	def ul4ondump(self, encoder):
 		encoder.dump(self.location)
 
@@ -592,6 +609,9 @@ class AST(object):
 class Text(AST):
 	def __init__(self, location=None):
 		super().__init__(location)
+
+	def format(self, indent):
+		return "{}text {!r}\n".format(indent*"\t", self.location.code)
 
 	def formatpython(self, indent):
 		return "{}yield {!r}\n".format(indent*"\t", self.location.code)
@@ -615,6 +635,9 @@ class None_(Const):
 	type = "none"
 	value = None
 
+	def format(self, indent):
+		return "None"
+
 	def formatpython(self, indent):
 		return "None"
 
@@ -627,6 +650,9 @@ class True_(Const):
 
 	type = "true"
 	value = True
+
+	def format(self, indent):
+		return "True"
 
 	def formatpython(self, indent):
 		return "True"
@@ -641,6 +667,9 @@ class False_(Const):
 	type = "false"
 	value = False
 
+	def format(self, indent):
+		return "False"
+
 	def formatpython(self, indent):
 		return "False"
 
@@ -652,6 +681,9 @@ class Value(Const):
 
 	def __repr__(self):
 		return "{}({!r})".format(self.__class__.__name__, self.value)
+
+	def format(self, indent):
+		return _repr(self.value)
 
 	def formatpython(self, indent):
 		return repr(self.value)
@@ -689,6 +721,8 @@ class Date(Value):
 class Color(Value):
 	type = "color"
 
+	# No need to overwrite :meth:`format`
+
 	def formatpython(self, indent):
 		return "color.{!r}".format(self.value)
 
@@ -701,6 +735,9 @@ class List(AST):
 
 	def __repr__(self):
 		return "{}({!r})".format(self.__class__.__name__, repr(self.items)[1:-1])
+
+	def format(self, indent):
+		return "[{}]".format(", ".join(item.format(indent) for item in self.items))
 
 	def formatpython(self, indent):
 		return "[{}]".format(", ".join(item.formatpython(indent) for item in self.items))
@@ -722,6 +759,15 @@ class Dict(AST):
 
 	def __repr__(self):
 		return "{}({!r})".format(self.__class__.__name__, repr(self.items)[1:-1])
+
+	def formatpython(self, indent):
+		v = []
+		for item in items:
+			if len(item) == 2:
+				v.append("{}={}".format(item[0], item[1].format(indent)))
+			else:
+				v.append("**{}".format(item[0].format(indent)))
+		return "{{{}}}".format(", ".join(v))
 
 	def formatpython(self, indent):
 		return "ul4c._makedict({})".format(", ".join("({})".format(" ".join(v.formatpython(indent)+"," for v in item)) for item in self.items))
@@ -746,6 +792,9 @@ class Name(AST):
 	def __repr__(self):
 		return "{}({!r})".format(self.__class__.__name__, self.name)
 
+	def format(self, indent):
+		return self.name
+
 	def formatpython(self, indent):
 		return "vars[{!r}]".format(self.name)
 
@@ -765,6 +814,16 @@ class Block(AST):
 
 	def append(self, item):
 		self.content.append(item)
+
+	def format(self, indent):
+		v = []
+		v.append("{}{{\n".format(indent*"\t"))
+		indent += 1
+		for node in self.content:
+			v.append(node.format(indent))
+		indent -= 1
+		v.append("{}}}\n".format(indent*"\t"))
+		return "".join(v)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -788,6 +847,12 @@ class IfElIfElse(Block):
 	def newblock(self, block):
 		self.content.append(block)
 
+	def format(self, indent):
+		v = []
+		for node in self.content:
+			v.append(node.format(indent))
+		return "".join(v)
+
 	def formatpython(self, indent):
 		v = []
 		for node in self.content:
@@ -800,6 +865,9 @@ class If(Block):
 	def __init__(self, location=None, condition=None):
 		super().__init__(location)
 		self.condition = condition
+
+	def format(self, indent):
+		return "{}if {}\n{}".format(indent*"\t", self.condition.format(indent), super().format(indent))
 
 	def formatpython(self, indent):
 		v = []
@@ -824,6 +892,9 @@ class ElIf(Block):
 		super().__init__(location)
 		self.condition = condition
 
+	def format(self, indent):
+		return "{}elif {}\n{}".format(indent*"\t", self.condition.format(indent), super().format(indent))
+
 	def formatpython(self, indent):
 		v = []
 		v.append("{}elif {}:\n".format(indent*"\t", self.condition.formatpython(indent)))
@@ -843,7 +914,10 @@ class ElIf(Block):
 
 @ul4on.register("de.livinglogic.ul4.else")
 class Else(Block):
-	def python(self, indent=None):
+	def format(self, indent):
+		return "{}else\n{}".format(indent*"\t", super().format(indent))
+
+	def formatpython(self, indent):
 		v = []
 		v.append("{}else:\n".format(indent*"\t"))
 		indent += 1
@@ -861,6 +935,9 @@ class For(Block):
 
 	def __repr__(self):
 		return "{}({!r}, {!r})".format(self.__class__.__name__, self.cont, self.varname)
+
+	def format(self, indent):
+		return "{}for {} in {}\n{}".format(indent*"\t", self.varname, self.cont.format(indent), super().format(indent))
 
 	def formatpython(self, indent):
 		v = []
@@ -891,6 +968,9 @@ class ForUnpack(Block):
 	def __repr__(self):
 		return "{}({!r}, {})".format(self.__class__.__name__, self.cont, repr(self.varnames)[1:-1])
 
+	def format(self, indent):
+		return "{}for ({}) in {}\n{}".format(indent*"\t", ", ".join(self.varnames), self.cont.format(indent), super().format(indent))
+
 	def formatpython(self, indent):
 		v = []
 		v.append("{}for ({}) in {}:\n".format(indent*"\t", " ".join("vars[{!r}],".format(varname) for varname in self.varnames), self.cont.formatpython(indent)))
@@ -912,12 +992,18 @@ class ForUnpack(Block):
 
 @ul4on.register("de.livinglogic.ul4.break")
 class Break(AST):
+	def format(self, indent):
+		return "{}break\n".format(indent*"\t")
+
 	def formatpython(self, indent):
 		return "{}break\n".format(indent*"\t")
 
 
 @ul4on.register("de.livinglogic.ul4.continue")
 class Continue(AST):
+	def format(self, indent):
+		return "{}continue\n".format(indent*"\t")
+
 	def formatpython(self, indent):
 		return "{}continue\n".format(indent*"\t")
 
@@ -931,6 +1017,9 @@ class GetAttr(AST):
 
 	def __repr__(self):
 		return "{}({!r}, {!r})".format(self.__class__.__name__, self.obj, self.attrname)
+
+	def format(self, indent):
+		return "{}.{}".format(self.obj.format(indent), self.attrname)
 
 	def formatpython(self, indent):
 		return "{}[{!r}]".format(self.obj.formatpython(indent), self.attrname)
@@ -956,6 +1045,9 @@ class GetSlice(AST):
 
 	def __repr__(self):
 		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.obj, self.index1, self.index2)
+
+	def format(self, indent):
+		return "{}[{}:{}]".format(self.obj.format(indent), self.index1.format(indent) if self.index1 is not None else "", self.index2.format(indent) if self.index2 is not None else "")
 
 	def formatpython(self, indent):
 		return "{}[{}:{}]".format(self.obj.formatpython(indent), self.index1.formatpython(indent) if self.index1 is not None else "", self.index2.formatpython(indent) if self.index2 is not None else "")
@@ -992,24 +1084,36 @@ class Unary(AST):
 
 @ul4on.register("de.livinglogic.ul4.not")
 class Not(Unary):
+	def format(self, indent):
+		return " not ({})".format(self.obj.format(indent))
+
 	def formatpython(self, indent):
 		return " not ({})".format(self.obj.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.neg")
 class Neg(Unary):
+	def format(self, indent):
+		return " -({})".format(self.obj.format(indent))
+
 	def formatpython(self, indent):
 		return " -({})".format(self.obj.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.print")
 class Print(Unary):
+	def format(self, indent):
+		return "{}print {}\n".format(indent*"\t", self.obj.format(indent))
+
 	def formatpython(self, indent):
 		return "{}yield ul4c._str({})\n".format(indent*"\t", self.obj.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.printx")
 class PrintX(Unary):
+	def format(self, indent):
+		return "{}printx {}\n".format(indent*"\t", self.obj.format(indent))
+
 	def formatpython(self, indent):
 		return "{}yield ul4c._xmlescape({})\n".format(indent*"\t", self.obj.formatpython(indent))
 
@@ -1036,102 +1140,153 @@ class Binary(AST):
 
 @ul4on.register("de.livinglogic.ul4.getitem")
 class GetItem(Binary):
+	def format(self, indent):
+		return "{}[{}]".format(self.obj1.format(indent), self.obj2.format(indent))
+
 	def formatpython(self, indent):
 		return "{}[{}]".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.eq")
 class EQ(Binary):
+	def format(self, indent):
+		return "({}) == ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+
 	def formatpython(self, indent):
 		return "({}) == ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.ne")
 class NE(Binary):
+	def format(self, indent):
+		return "({}) != ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+
 	def formatpython(self, indent):
 		return "({}) != ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.lt")
 class LT(Binary):
+	def format(self, indent):
+		return "({}) < ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+
 	def formatpython(self, indent):
 		return "({}) < ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.le")
 class LE(Binary):
+	def format(self, indent):
+		return "({}) <= ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+
 	def formatpython(self, indent):
 		return "({}) <= ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.gt")
 class GT(Binary):
+	def format(self, indent):
+		return "({}) > ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+
 	def formatpython(self, indent):
 		return "({}) > ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.ge")
 class GE(Binary):
+	def format(self, indent):
+		return "({}) >= ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+
 	def formatpython(self, indent):
 		return "({}) >= ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.contains")
 class Contains(Binary):
+	def format(self, indent):
+		return "({}) in ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+
 	def formatpython(self, indent):
 		return "({}) in ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.notcontains")
 class NotContains(Binary):
+	def format(self, indent):
+		return "({}) not in ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+
 	def formatpython(self, indent):
 		return "({}) not in ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.add")
 class Add(Binary):
+	def format(self, indent):
+		return "({}) + ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+
 	def formatpython(self, indent):
 		return "({}) + ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.sub")
 class Sub(Binary):
+	def format(self, indent):
+		return "({}) - ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+
 	def formatpython(self, indent):
 		return "({}) - ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.mul")
 class Mul(Binary):
+	def format(self, indent):
+		return "({}) * ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+
 	def formatpython(self, indent):
 		return "({}) * ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.floordiv")
 class FloorDiv(Binary):
+	def format(self, indent):
+		return "({}) // ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+
 	def formatpython(self, indent):
 		return "({}) // ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.truediv")
 class TrueDiv(Binary):
+	def format(self, indent):
+		return "({}) / ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+
 	def formatpython(self, indent):
 		return "({}) / ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.or")
 class Or(Binary):
+	def format(self, indent):
+		return "({}) or ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+
 	def formatpython(self, indent):
 		return "({}) or ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.and")
 class And(Binary):
+	def format(self, indent):
+		return "({}) and ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+
 	def formatpython(self, indent):
 		return "({}) and ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.mod")
 class Mod(Binary):
+	def format(self, indent):
+		return "({}) % ({})".format(self.obj1.format(indent), self.obj2.format(indent))
+
 	def formatpython(self, indent):
 		return "({}) % ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
@@ -1158,42 +1313,63 @@ class ChangeVar(AST):
 
 @ul4on.register("de.livinglogic.ul4.storevar")
 class StoreVar(ChangeVar):
+	def format(self, indent):
+		return "{}{} = {}\n".format(indent*"\t", self.name, self.value.format(indent))
+
 	def formatpython(self, indent):
 		return "{}vars[{!r}] = {}\n".format(indent*"\t", self.name, self.value.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.addvar")
 class AddVar(ChangeVar):
+	def format(self, indent):
+		return "{}{} += {}\n".format(indent*"\t", self.name, self.value.format(indent))
+
 	def formatpython(self, indent):
 		return "{}vars[{!r}] += {}\n".format(indent*"\t", self.name, self.value.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.subvar")
 class SubVar(ChangeVar):
+	def format(self, indent):
+		return "{}{} -= {}\n".format(indent*"\t", self.name, self.value.format(indent))
+
 	def formatpython(self, indent):
 		return "{}vars[{!r}] -= {}\n".format(indent*"\t", self.name, self.value.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.mulvar")
 class MulVar(ChangeVar):
+	def format(self, indent):
+		return "{}{} *= {}\n".format(indent*"\t", self.name, self.value.format(indent))
+
 	def formatpython(self, indent):
 		return "{}vars[{!r}] *= {}\n".format(indent*"\t", self.name, self.value.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.floordivvar")
 class FloorDivVar(ChangeVar):
+	def format(self, indent):
+		return "{}{} //= {}\n".format(indent*"\t", self.name, self.value.format(indent))
+
 	def formatpython(self, indent):
 		return "{}vars[{!r}] //= {}\n".format(indent*"\t", self.name, self.value.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.truedivvar")
 class TrueDivVar(ChangeVar):
+	def format(self, indent):
+		return "{}{} /= {}\n".format(indent*"\t", self.name, self.value.format(indent))
+
 	def formatpython(self, indent):
 		return "{}vars[{!r}] /= {}\n".format(indent*"\t", self.name, self.value.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.modvar")
 class ModVar(ChangeVar):
+	def format(self, indent):
+		return "{}{} %= {}\n".format(indent*"\t", self.name, self.value.format(indent))
+
 	def formatpython(self, indent):
 		return "{}vars[{!r}] %= {}\n".format(indent*"\t", self.name, self.value.formatpython(indent))
 
@@ -1206,6 +1382,9 @@ class DelVar(AST):
 
 	def __repr__(self):
 		return "{}({!r})".format(self.__class__.__name__, self.name)
+
+	def format(self, indent):
+		return "{}del {}\n".format(indent*"\t", self.name)
 
 	def formatpython(self, indent):
 		return "{}del vars[{!r}]\n".format(indent*"\t", self.name)
@@ -1231,6 +1410,9 @@ class CallFunc(AST):
 			return "{}({!r}, {})".format(self.__class__.__name__, self.funcname, repr(self.args)[1:-1])
 		else:
 			return "{}({!r})".format(self.__class__.__name__, self.funcname)
+
+	def format(self, indent):
+		return "{}({})".format(self.funcname, ", ".join(arg.format(indent) for arg in self.args))
 
 	def formatpython(self, indent):
 		functions = dict(
@@ -1312,6 +1494,9 @@ class CallMeth(AST):
 		else:
 			return "{}({!r}, {!r})".format(self.__class__.__name__, self.methname, self.obj)
 
+	def format(self, indent):
+		return "{}.{}({})".format(self.obj.format(indent), self.methname, ", ".join(arg.format(indent) for arg in self.args))
+
 	def formatpython(self, indent):
 		methods = dict(
 			split="({}).split({})".format,
@@ -1383,6 +1568,15 @@ class CallMethKeywords(AST):
 	def __repr__(self):
 		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.methname, self.obj, self.args)
 
+	def format(self, indent):
+		args = []
+		for arg in self.args:
+			if len(arg) == 1:
+				args.append("**{}".format(arg[0].format(indent)))
+			else:
+				args.append("{}={}".format(arg[0], arg[1].format(indent)))
+		return "{}.{}({})".format(self.obj.format(indent), self.methname, ", ".join(args))
+
 	def formatpython(self, indent):
 		if self.methname == "renders":
 			args = []
@@ -1414,6 +1608,9 @@ class CallMethKeywords(AST):
 class Render(Unary):
 	def __repr__(self):
 		return "{}({!r})".format(self.__class__.__name__, self.obj)
+
+	def format(self, indent):
+		return "{}render {}\n".format(indent*"\t", self.obj.format(indent))
 
 	def formatpython(self, indent):
 		if isinstance(self.obj, (CallMeth, CallMethKeywords)) and self.obj.methname == "render":
@@ -1523,6 +1720,18 @@ class Template(Block):
 		"""
 		return ul4on.dumps(self)
 
+	def format(self, indent):
+		v = []
+		name = self.name if self.name is not None else "unnamed"
+		v.append("{}def {}()\n".format(indent*"\t", name))
+		v.append("{}{{\n".format(indent*"\t"))
+		indent += 1
+		for node in self.content:
+			v.append(node.format(indent))
+		indent -= 1
+		v.append("{}}}\n".format(indent*"\t"))
+		return "".join(v)
+
 	def formatpython(self, indent):
 		v = []
 		v.append("{}def template(**vars):\n".format(indent*"\t"))
@@ -1600,30 +1809,6 @@ class Template(Block):
 		which creates the sourcecode. See its constructor for more info.
 		"""
 		return str(JavaSource(self, *args, **kwargs))
-
-	def format(self, indent="\t"):
-		"""
-		Format the list of opcodes. This is a generator yielding lines to be output
-		(but without trailing newlines). :var:`indent` can be used to specify how
-		to indent blocks (defaulting to ``"\\t"``).
-		"""
-		name = self.name if self.name is not None else "unnamed"
-		yield "def {}(**vars) {{".format(name)
-		i = 1
-		for opcode in self.opcodes:
-			if opcode.code in ("else", "endif", "endfor", "enddef"):
-				i -= 1
-			if opcode.code in ("endif", "endfor", "enddef"):
-				yield "{}}}".format(i*indent)
-			elif opcode.code in ("for", "if", "def"):
-				yield "{}{} {{".format(i*indent, opcode)
-			elif opcode.code == "else":
-				yield "{}}} else {{".format(i*indent)
-			else:
-				yield "{}{}".format(i*indent, opcode)
-			if opcode.code in ("for", "if", "else", "def"):
-				i += 1
-		yield "}"
 
 	def _tokenize(self, source, startdelim, enddelim):
 		"""
@@ -1754,11 +1939,8 @@ class Template(Block):
 		if len(stack) > 1:
 			raise Error(stack[-1].location) from BlockError("block unclosed")
 
-	def __str__(self):
-		return "\n".join(self.format())
-
 	def __repr__(self):
-		return "<{}.{} object with {} opcodes at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, len(self.opcodes), id(self))
+		return "<{}.{} object at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, id(self))
 
 
 ###
