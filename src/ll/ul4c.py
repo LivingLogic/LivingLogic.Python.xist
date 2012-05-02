@@ -35,7 +35,16 @@ datesplitter = re.compile("[-T:.]")
 # Use internally by the UL4ON decoder to map names to classes
 _names2classes = {}
 
-class ObjectAsDict:
+
+def register(name):
+	def registration(cls):
+		ul4on.register("de.livingLogic.ul4." + name)(cls)
+		cls.type = name
+		return cls
+	return registration
+
+
+class Object:
 	fields = {}
 
 	def __getitem__(self, key):
@@ -47,8 +56,8 @@ class ObjectAsDict:
 ### Location information
 ###
 
-@ul4on.register("de.livinglogic.ul4.location")
-class Location(ObjectAsDict):
+@register("location")
+class Location(Object):
 	"""
 	A :class:`Location` object contains information about the location of a
 	template tag.
@@ -578,7 +587,7 @@ class Token(object):
 		return self.type
 
 
-class AST(ObjectAsDict):
+class AST(Object):
 	"""
 	Baseclass for all syntax tree nodes.
 	"""
@@ -629,7 +638,7 @@ class AST(ObjectAsDict):
 		self.location = decoder.load()
 
 
-@ul4on.register("de.livinglogic.ul4.text")
+@register("text")
 class Text(AST):
 	def __init__(self, location=None):
 		super().__init__(location)
@@ -651,13 +660,12 @@ class Const(AST):
 		return "{}()".format(self.__class__.__name__)
 
 
-@ul4on.register("de.livinglogic.ul4.none")
+@register("none")
 class None_(Const):
 	"""
 	The constant ``None``.
 	"""
 
-	type = "none"
 	value = None
 
 	def format(self, indent):
@@ -667,13 +675,12 @@ class None_(Const):
 		return "None"
 
 
-@ul4on.register("de.livinglogic.ul4.true")
+@register("true")
 class True_(Const):
 	"""
 	The boolean constant ``True``.
 	"""
 
-	type = "true"
 	value = True
 
 	def format(self, indent):
@@ -683,13 +690,12 @@ class True_(Const):
 		return "True"
 
 
-@ul4on.register("de.livinglogic.ul4.false")
+@register("false")
 class False_(Const):
 	"""
 	The boolean constant ``False``.
 	"""
 
-	type = "false"
 	value = False
 
 	def format(self, indent):
@@ -724,29 +730,29 @@ class Value(Const):
 		self.value = decoder.load()
 
 
-@ul4on.register("de.livinglogic.ul4.int")
+@register("int")
 class Int(Value):
-	type = "int"
+	pass
 
 
-@ul4on.register("de.livinglogic.ul4.float")
+@register("float")
 class Float(Value):
-	type = "float"
+	pass
 
 
-@ul4on.register("de.livinglogic.ul4.str")
+@register("str")
 class Str(Value):
-	type = "str"
+	pass
 
 
-@ul4on.register("de.livinglogic.ul4.date")
+@register("date")
 class Date(Value):
-	type = "date"
+	pass
 
 
-@ul4on.register("de.livinglogic.ul4.color")
+@register("color")
 class Color(Value):
-	type = "color"
+	pass
 
 	# No need to overwrite :meth:`format`
 
@@ -754,7 +760,7 @@ class Color(Value):
 		return "color.{!r}".format(self.value)
 
 
-@ul4on.register("de.livinglogic.ul4.list")
+@register("list")
 class List(AST):
 	precedence = 11
 	fields = AST.fields.union({"items"})
@@ -781,7 +787,7 @@ class List(AST):
 		self.items = decoder.load()
 
 
-@ul4on.register("de.livinglogic.ul4.dict")
+@register("dict")
 class Dict(AST):
 	precedence = 11
 	fields = AST.fields.union({"items"})
@@ -814,9 +820,8 @@ class Dict(AST):
 		self.items = map(tuple, decoder.load())
 
 
-@ul4on.register("de.livinglogic.ul4.loadvar")
-class Name(AST):
-	type = "name"
+@register("var")
+class Var(AST):
 	precedence = 11
 	fields = AST.fields.union({"name"})
 
@@ -871,7 +876,7 @@ class Block(AST):
 		self.content = decoder.load()
 
 
-@ul4on.register("de.livinglogic.ul4.ieie")
+@register("ieie")
 class IfElIfElse(Block):
 	def __init__(self, location=None, condition=None):
 		super().__init__(location)
@@ -897,7 +902,7 @@ class IfElIfElse(Block):
 		return "".join(v)
 
 
-@ul4on.register("de.livinglogic.ul4.if")
+@register("if")
 class If(Block):
 	fields = Block.fields.union({"condition"})
 
@@ -925,7 +930,7 @@ class If(Block):
 		self.condition = decoder.load()
 
 
-@ul4on.register("de.livinglogic.ul4.elif")
+@register("elif")
 class ElIf(Block):
 	fields = Block.fields.union({"condition"})
 
@@ -953,7 +958,7 @@ class ElIf(Block):
 		self.condition = decoder.load()
 
 
-@ul4on.register("de.livinglogic.ul4.else")
+@register("else")
 class Else(Block):
 	def format(self, indent):
 		return "{}else\n{}".format(indent*"\t", super().format(indent))
@@ -967,7 +972,7 @@ class Else(Block):
 		return "".join(v)
 
 
-@ul4on.register("de.livinglogic.ul4.for")
+@register("for")
 class For(Block):
 	fields = Block.fields.union({"container", "varname"})
 
@@ -1001,7 +1006,7 @@ class For(Block):
 		self.varname = decoder.load()
 
 
-@ul4on.register("de.livinglogic.ul4.foru")
+@register("foru")
 class ForUnpack(Block):
 	fields = Block.fields.union({"container", "varnames"})
 
@@ -1035,7 +1040,7 @@ class ForUnpack(Block):
 		self.varnames = decoder.load()
 
 
-@ul4on.register("de.livinglogic.ul4.break")
+@register("break")
 class Break(AST):
 	def format(self, indent):
 		return "{}break\n".format(indent*"\t")
@@ -1044,7 +1049,7 @@ class Break(AST):
 		return "{}break\n".format(indent*"\t")
 
 
-@ul4on.register("de.livinglogic.ul4.continue")
+@register("continue")
 class Continue(AST):
 	def format(self, indent):
 		return "{}continue\n".format(indent*"\t")
@@ -1053,7 +1058,7 @@ class Continue(AST):
 		return "{}continue\n".format(indent*"\t")
 
 
-@ul4on.register("de.livinglogic.ul4.getattr")
+@register("getattr")
 class GetAttr(AST):
 	precedence = 9
 	associative = False
@@ -1084,7 +1089,7 @@ class GetAttr(AST):
 		self.attrname = decoder.load()
 
 
-@ul4on.register("de.livinglogic.ul4.getslice")
+@register("getslice")
 class GetSlice(AST):
 	precedence = 8
 	associative = False
@@ -1137,7 +1142,7 @@ class Unary(AST):
 		self.obj = decoder.load()
 
 
-@ul4on.register("de.livinglogic.ul4.not")
+@register("not")
 class Not(Unary):
 	precedence = 2
 
@@ -1148,7 +1153,7 @@ class Not(Unary):
 		return " not ({})".format(self.obj.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.neg")
+@register("neg")
 class Neg(Unary):
 	precedence = 7
 
@@ -1159,7 +1164,7 @@ class Neg(Unary):
 		return " -({})".format(self.obj.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.print")
+@register("print")
 class Print(Unary):
 	def format(self, indent):
 		return "{}print {}\n".format(indent*"\t", self.obj.format(indent))
@@ -1168,7 +1173,7 @@ class Print(Unary):
 		return "{}yield ul4c._str({})\n".format(indent*"\t", self.obj.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.printx")
+@register("printx")
 class PrintX(Unary):
 	def format(self, indent):
 		return "{}printx {}\n".format(indent*"\t", self.obj.format(indent))
@@ -1199,7 +1204,7 @@ class Binary(AST):
 		self.obj2 = decoder.load()
 
 
-@ul4on.register("de.livinglogic.ul4.getitem")
+@register("getitem")
 class GetItem(Binary):
 	precedence = 9
 	associative = False
@@ -1211,7 +1216,7 @@ class GetItem(Binary):
 		return "({})[{}]".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.eq")
+@register("eq")
 class EQ(Binary):
 	precedence = 4
 	associative = False
@@ -1223,7 +1228,7 @@ class EQ(Binary):
 		return "({}) == ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.ne")
+@register("ne")
 class NE(Binary):
 	precedence = 4
 	associative = False
@@ -1235,7 +1240,7 @@ class NE(Binary):
 		return "({}) != ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.lt")
+@register("lt")
 class LT(Binary):
 	precedence = 4
 	associative = False
@@ -1247,7 +1252,7 @@ class LT(Binary):
 		return "({}) < ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.le")
+@register("le")
 class LE(Binary):
 	precedence = 4
 	associative = False
@@ -1259,7 +1264,7 @@ class LE(Binary):
 		return "({}) <= ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.gt")
+@register("gt")
 class GT(Binary):
 	precedence = 4
 	associative = False
@@ -1271,7 +1276,7 @@ class GT(Binary):
 		return "({}) > ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.ge")
+@register("ge")
 class GE(Binary):
 	precedence = 4
 	associative = False
@@ -1283,7 +1288,7 @@ class GE(Binary):
 		return "({}) >= ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.contains")
+@register("contains")
 class Contains(Binary):
 	precedence = 3
 	associative = False
@@ -1295,7 +1300,7 @@ class Contains(Binary):
 		return "({}) in ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.notcontains")
+@register("notcontains")
 class NotContains(Binary):
 	precedence = 3
 	associative = False
@@ -1307,7 +1312,7 @@ class NotContains(Binary):
 		return "({}) not in ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.add")
+@register("add")
 class Add(Binary):
 	precedence = 5
 
@@ -1318,7 +1323,7 @@ class Add(Binary):
 		return "({}) + ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.sub")
+@register("sub")
 class Sub(Binary):
 	precedence = 5
 	associative = False
@@ -1330,7 +1335,7 @@ class Sub(Binary):
 		return "({}) - ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.mul")
+@register("mul")
 class Mul(Binary):
 	precedence = 6
 
@@ -1341,7 +1346,7 @@ class Mul(Binary):
 		return "({}) * ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.floordiv")
+@register("floordiv")
 class FloorDiv(Binary):
 	precedence = 6
 	associative = False
@@ -1353,7 +1358,7 @@ class FloorDiv(Binary):
 		return "({}) // ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.truediv")
+@register("truediv")
 class TrueDiv(Binary):
 	precedence = 6
 	associative = False
@@ -1365,7 +1370,7 @@ class TrueDiv(Binary):
 		return "({}) / ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.and")
+@register("and")
 class And(Binary):
 	precedence = 1
 
@@ -1376,7 +1381,7 @@ class And(Binary):
 		return "({}) and ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.or")
+@register("or")
 class Or(Binary):
 	precedence = 0
 
@@ -1387,7 +1392,7 @@ class Or(Binary):
 		return "({}) or ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.mod")
+@register("mod")
 class Mod(Binary):
 	precedence = 6
 	associative = False
@@ -1421,7 +1426,7 @@ class ChangeVar(AST):
 		self.value = decoder.load()
 
 
-@ul4on.register("de.livinglogic.ul4.storevar")
+@register("storevar")
 class StoreVar(ChangeVar):
 	def format(self, indent):
 		return "{}{} = {}\n".format(indent*"\t", self.varname, self.value.format(indent))
@@ -1430,7 +1435,7 @@ class StoreVar(ChangeVar):
 		return "{}vars[{!r}] = {}\n".format(indent*"\t", self.varname, self.value.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.addvar")
+@register("addvar")
 class AddVar(ChangeVar):
 	def format(self, indent):
 		return "{}{} += {}\n".format(indent*"\t", self.varname, self.value.format(indent))
@@ -1439,7 +1444,7 @@ class AddVar(ChangeVar):
 		return "{}vars[{!r}] += {}\n".format(indent*"\t", self.varname, self.value.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.subvar")
+@register("subvar")
 class SubVar(ChangeVar):
 	def format(self, indent):
 		return "{}{} -= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
@@ -1448,7 +1453,7 @@ class SubVar(ChangeVar):
 		return "{}vars[{!r}] -= {}\n".format(indent*"\t", self.varname, self.value.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.mulvar")
+@register("mulvar")
 class MulVar(ChangeVar):
 	def format(self, indent):
 		return "{}{} *= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
@@ -1457,7 +1462,7 @@ class MulVar(ChangeVar):
 		return "{}vars[{!r}] *= {}\n".format(indent*"\t", self.varname, self.value.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.floordivvar")
+@register("floordivvar")
 class FloorDivVar(ChangeVar):
 	def format(self, indent):
 		return "{}{} //= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
@@ -1466,7 +1471,7 @@ class FloorDivVar(ChangeVar):
 		return "{}vars[{!r}] //= {}\n".format(indent*"\t", self.varname, self.value.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.truedivvar")
+@register("truedivvar")
 class TrueDivVar(ChangeVar):
 	def format(self, indent):
 		return "{}{} /= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
@@ -1475,7 +1480,7 @@ class TrueDivVar(ChangeVar):
 		return "{}vars[{!r}] /= {}\n".format(indent*"\t", self.varname, self.value.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.modvar")
+@register("modvar")
 class ModVar(ChangeVar):
 	def format(self, indent):
 		return "{}{} %= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
@@ -1484,7 +1489,7 @@ class ModVar(ChangeVar):
 		return "{}vars[{!r}] %= {}\n".format(indent*"\t", self.varname, self.value.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.delvar")
+@register("delvar")
 class DelVar(AST):
 	fields = AST.fields.union({"varname"})
 
@@ -1510,7 +1515,7 @@ class DelVar(AST):
 		self.varname = decoder.load()
 
 
-@ul4on.register("de.livinglogic.ul4.callfunc")
+@register("callfunc")
 class CallFunc(AST):
 	precedence = 10
 	associative = False
@@ -1596,7 +1601,7 @@ class CallFunc(AST):
 		self.args = decoder.load()
 
 
-@ul4on.register("de.livinglogic.ul4.callmeth")
+@register("callmeth")
 class CallMeth(AST):
 	precedence = 9
 	associative = False
@@ -1677,7 +1682,7 @@ class CallMeth(AST):
 		self.args = decoder.load()
 
 
-@ul4on.register("de.livinglogic.ul4.callmethkw")
+@register("callmethkw")
 class CallMethKeywords(AST):
 	precedence = 9
 	associative = False
@@ -1728,7 +1733,7 @@ class CallMethKeywords(AST):
 		self.args = map(tuple, decoder.load())
 
 
-@ul4on.register("de.livinglogic.ul4.render")
+@register("render")
 class Render(Unary):
 	def __repr__(self):
 		return "{}({!r})".format(self.__class__.__name__, self.obj)
@@ -1756,7 +1761,7 @@ class Render(Unary):
 			return "{}yield ul4c._str({})\n".format(indent*"\t", self.obj.formatpython(indent))
 
 
-@ul4on.register("de.livinglogic.ul4.template")
+@register("template")
 class Template(Block):
 	"""
 	A template object is normally created by passing the template source to the
@@ -2930,7 +2935,7 @@ class Scanner(spark.Scanner):
 		elif s == "False":
 			self.rv.append(False_(self.location))
 		else:
-			self.rv.append(Name(self.location, s))
+			self.rv.append(Var(self.location, s))
 
 	# We don't have negatve numbers, this is handled by constant folding in the AST for unary minus
 	@spark.token("\\d+\\.\\d*([eE][+-]?\\d+)?", "default")
@@ -3092,7 +3097,7 @@ class ExprParser(spark.Parser):
 	@spark.production('expr11 ::= float')
 	@spark.production('expr11 ::= date')
 	@spark.production('expr11 ::= color')
-	@spark.production('expr11 ::= name')
+	@spark.production('expr11 ::= var')
 	def expr_atom(self, atom):
 		return atom
 
@@ -3151,55 +3156,55 @@ class ExprParser(spark.Parser):
 	def expr_bracket(self, _0, expr, _1):
 		return expr
 
-	@spark.production('expr10 ::= name ( )')
-	def expr_callfunc0(self, name, _0, _1):
-		return CallFunc(self.location, name.name)
+	@spark.production('expr10 ::= var ( )')
+	def expr_callfunc0(self, var, _0, _1):
+		return CallFunc(self.location, var.name)
 
-	@spark.production('expr10 ::= name ( expr0 )')
-	def expr_callfunc1(self, name, _0, arg0, _1):
-		return CallFunc(self.location, name.name, arg0)
+	@spark.production('expr10 ::= var ( expr0 )')
+	def expr_callfunc1(self, var, _0, arg0, _1):
+		return CallFunc(self.location, var.name, arg0)
 
-	@spark.production('expr10 ::= name ( expr0 , expr0 )')
-	def expr_callfunc2(self, name, _0, arg0, _1, arg1, _2):
-		return CallFunc(self.location, name.name, arg0, arg1)
+	@spark.production('expr10 ::= var ( expr0 , expr0 )')
+	def expr_callfunc2(self, var, _0, arg0, _1, arg1, _2):
+		return CallFunc(self.location, var.name, arg0, arg1)
 
-	@spark.production('expr10 ::= name ( expr0 , expr0 , expr0 )')
-	def expr_callfunc3(self, name, _0, arg0, _1, arg1, _2, arg2, _3):
-		return CallFunc(self.location, name.name, arg0, arg1, arg2)
+	@spark.production('expr10 ::= var ( expr0 , expr0 , expr0 )')
+	def expr_callfunc3(self, var, _0, arg0, _1, arg1, _2, arg2, _3):
+		return CallFunc(self.location, var.name, arg0, arg1, arg2)
 
-	@spark.production('expr10 ::= name ( expr0 , expr0 , expr0 , expr0 )')
-	def expr_callfunc4(self, name, _0, arg0, _1, arg1, _2, arg2, _3, arg3, _4):
-		return CallFunc(self.location, name.name, arg0, arg1, arg2, arg3)
+	@spark.production('expr10 ::= var ( expr0 , expr0 , expr0 , expr0 )')
+	def expr_callfunc4(self, var, _0, arg0, _1, arg1, _2, arg2, _3, arg3, _4):
+		return CallFunc(self.location, var.name, arg0, arg1, arg2, arg3)
 
-	@spark.production('expr9 ::= expr9 . name')
-	def expr_getattr(self, expr, _0, name):
-		return GetAttr(self.location, expr, name.name)
+	@spark.production('expr9 ::= expr9 . var')
+	def expr_getattr(self, expr, _0, var):
+		return GetAttr(self.location, expr, var.name)
 
-	@spark.production('expr9 ::= expr9 . name ( )')
-	def expr_callmeth0(self, expr, _0, name, _1, _2):
-		return CallMeth(self.location, name.name, expr)
+	@spark.production('expr9 ::= expr9 . var ( )')
+	def expr_callmeth0(self, expr, _0, var, _1, _2):
+		return CallMeth(self.location, var.name, expr)
 
-	@spark.production('expr9 ::= expr9 . name ( expr0 )')
-	def expr_callmeth1(self, expr, _0, name, _1, arg1, _2):
-		return CallMeth(self.location, name.name, expr, arg1)
+	@spark.production('expr9 ::= expr9 . var ( expr0 )')
+	def expr_callmeth1(self, expr, _0, var, _1, arg1, _2):
+		return CallMeth(self.location, var.name, expr, arg1)
 
-	@spark.production('expr9 ::= expr9 . name ( expr0 , expr0 )')
-	def expr_callmeth2(self, expr, _0, name, _1, arg1, _2, arg2, _3):
-		return CallMeth(self.location, name.name, expr, arg1, arg2)
+	@spark.production('expr9 ::= expr9 . var ( expr0 , expr0 )')
+	def expr_callmeth2(self, expr, _0, var, _1, arg1, _2, arg2, _3):
+		return CallMeth(self.location, var.name, expr, arg1, arg2)
 
-	@spark.production('expr9 ::= expr9 . name ( expr0 , expr0 , expr0 )')
-	def expr_callmeth3(self, expr, _0, name, _1, arg1, _2, arg2, _3, arg3, _4):
-		return CallMeth(self.location, name.name, expr, arg1, arg2, arg3)
+	@spark.production('expr9 ::= expr9 . var ( expr0 , expr0 , expr0 )')
+	def expr_callmeth3(self, expr, _0, var, _1, arg1, _2, arg2, _3, arg3, _4):
+		return CallMeth(self.location, var.name, expr, arg1, arg2, arg3)
 
-	@spark.production('callmethkw ::= expr9 . name ( name = expr0')
+	@spark.production('callmethkw ::= expr9 . var ( var = expr0')
 	def methkw_startname(self, expr, _0, methname, _1, argname, _2, argvalue):
 		return CallMethKeywords(self.location, methname.name, expr, (argname.name, argvalue))
 
-	@spark.production('callmethkw ::= expr9 . name ( ** expr0')
+	@spark.production('callmethkw ::= expr9 . var ( ** expr0')
 	def methkw_startdict(self, expr, _0, methname, _1, _2, argvalue):
 		return CallMethKeywords(self.location, methname.name, expr, (argvalue,))
 
-	@spark.production('callmethkw ::= callmethkw , name = expr0')
+	@spark.production('callmethkw ::= callmethkw , var = expr0')
 	def methkw_buildname(self, call, _0, argname, _1, argvalue):
 		call.args.append((argname.name, argvalue))
 		return call
@@ -3371,19 +3376,19 @@ class ForParser(ExprParser):
 	emptyerror = "loop expression required"
 	start = "for"
 
-	@spark.production('for ::= name in expr0')
+	@spark.production('for ::= var in expr0')
 	def for0(self, iter, _0, cont):
 		return For(self.location, cont, iter.name)
 
-	@spark.production('for ::= ( name , ) in expr0')
+	@spark.production('for ::= ( var , ) in expr0')
 	def for1(self, _0, varname, _1, _2, _3, cont):
 		return ForUnpack(self.location, cont, varname.name)
 
-	@spark.production('buildfor ::= ( name , name')
+	@spark.production('buildfor ::= ( var , var')
 	def buildfor(self, _0, varname1, _1, varname2):
 		return ForUnpack(self.location, None, varname1.name, varname2.name)
 
-	@spark.production('buildfor ::= buildfor , name')
+	@spark.production('buildfor ::= buildfor , var')
 	def addfor(self, for_, _0, varname3):
 		for_.varnames.append(varname3.name)
 		return for_
@@ -3403,37 +3408,37 @@ class StmtParser(ExprParser):
 	emptyerror = "statement required"
 	start = "stmt"
 
-	@spark.production('stmt ::= name = expr0')
-	def stmt_assign(self, name, _0, value):
-		return StoreVar(self.location, name.name, value)
+	@spark.production('stmt ::= var = expr0')
+	def stmt_assign(self, var, _0, value):
+		return StoreVar(self.location, var.name, value)
 
-	@spark.production('stmt ::= name += expr0')
-	def stmt_iadd(self, name, _0, value):
-		return AddVar(self.location, name.name, value)
+	@spark.production('stmt ::= var += expr0')
+	def stmt_iadd(self, var, _0, value):
+		return AddVar(self.location, var.name, value)
 
-	@spark.production('stmt ::= name -= expr0')
-	def stmt_isub(self, name, _0, value):
-		return SubVar(self.location, name.name, value)
+	@spark.production('stmt ::= var -= expr0')
+	def stmt_isub(self, var, _0, value):
+		return SubVar(self.location, var.name, value)
 
-	@spark.production('stmt ::= name *= expr0')
-	def stmt_imul(self, name, _0, value):
-		return MulVar(self.location, name.name, value)
+	@spark.production('stmt ::= var *= expr0')
+	def stmt_imul(self, var, _0, value):
+		return MulVar(self.location, var.name, value)
 
-	@spark.production('stmt ::= name /= expr0')
-	def stmt_itruediv(self, name, _0, value):
-		return TrueDivVar(self.location, name.name, value)
+	@spark.production('stmt ::= var /= expr0')
+	def stmt_itruediv(self, var, _0, value):
+		return TrueDivVar(self.location, var.name, value)
 
-	@spark.production('stmt ::= name //= expr0')
-	def stmt_ifloordiv(self, name, _0, value):
-		return FloorDivVar(self.location, name.name, value)
+	@spark.production('stmt ::= var //= expr0')
+	def stmt_ifloordiv(self, var, _0, value):
+		return FloorDivVar(self.location, var.name, value)
 
-	@spark.production('stmt ::= name %= expr0')
-	def stmt_imod(self, name, _0, value):
-		return ModVar(self.location, name.name, value)
+	@spark.production('stmt ::= var %= expr0')
+	def stmt_imod(self, var, _0, value):
+		return ModVar(self.location, var.name, value)
 
-	@spark.production('stmt ::= del name')
-	def stmt_del(self, _0, name):
-		return DelVar(self.location, name.name)
+	@spark.production('stmt ::= del var')
+	def stmt_del(self, _0, var):
+		return DelVar(self.location, var.name)
 
 
 ###
