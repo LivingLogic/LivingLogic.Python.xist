@@ -63,7 +63,7 @@ class Location(Object):
 	template tag.
 	"""
 	__slots__ = ("source", "type", "starttag", "endtag", "startcode", "endcode")
-	fields = set(__slots__)
+	fields = {"source", "type", "starttag", "endtag", "startcode", "endcode", "tag", "code"}
 
 	def __init__(self, source=None, type=None, starttag=None, endtag=None, startcode=None, endcode=None):
 		"""
