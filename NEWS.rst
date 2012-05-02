@@ -66,6 +66,8 @@ Changes in 4.0 (released ??/??/2012)
 *	Added the attributes ``allowfullscreen`` and ``flashvars`` to
 	:class:`ll.xist.ns.html.embed`.
 
+*	Added the attribute ``allowfullscreen`` to  :class:`ll.xist.ns.html.iframe`.
+
 *	The :meth:`isdir` method now always returns ``False`` for real (i.e.
 	non-file or ssh) URLs. This allows stuff like::
 
