@@ -322,6 +322,7 @@ class iframe(xsc.Element):
 		class hspace(xsc.IntAttr): pass # deprecated
 		class vspace(xsc.IntAttr): pass # deprecated
 		class bordercolor(xsc.ColorAttr): pass # deprecated
+		class allowfullscreen(xsc.TextAttr): pass # deprecated
 
 
 class noframes(xsc.Element):
