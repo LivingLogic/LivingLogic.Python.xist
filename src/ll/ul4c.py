@@ -35,17 +35,26 @@ datesplitter = re.compile("[-T:.]")
 # Use internally by the UL4ON decoder to map names to classes
 _names2classes = {}
 
+class ObjectAsDict:
+	fields = {}
+
+	def __getitem__(self, key):
+		if key in self.fields:
+			return getattr(self, key)
+		raise KeyError(key)
+
 ###
 ### Location information
 ###
 
 @ul4on.register("de.livinglogic.ul4.location")
-class Location(object):
+class Location(ObjectAsDict):
 	"""
 	A :class:`Location` object contains information about the location of a
 	template tag.
 	"""
 	__slots__ = ("source", "type", "starttag", "endtag", "startcode", "endcode")
+	fields = set(__slots__)
 
 	def __init__(self, source=None, type=None, starttag=None, endtag=None, startcode=None, endcode=None):
 		"""
@@ -77,11 +86,6 @@ class Location(object):
 		self.endtag = endtag
 		self.startcode = startcode
 		self.endcode = endcode
-
-	def __getitem__(self, key):
-		if key in {"source", "type", "starttag", "endtag", "startcode", "endcode"}:
-			return getattr(self, key)
-		raise KeyError(key)
 
 	@property
 	def code(self):
@@ -574,7 +578,7 @@ class Token(object):
 		return self.type
 
 
-class AST(object):
+class AST(ObjectAsDict):
 	"""
 	Baseclass for all syntax tree nodes.
 	"""
@@ -582,11 +586,19 @@ class AST(object):
 	precedence = None
 	associative = True
 
+	# Set of attributes available via :meth:`getitem`.
+	fields = {"location"}
+
 	def __init__(self, location=None):
 		self.location = location
 
 	def __str__(self):
 		return self.format(0)
+
+	def __getitem__(self, key):
+		if key in self.fields:
+			return getattr(self, key)
+		raise KeyError(key)
 
 	def _formatop(self, op):
 		if op.precedence < self.precedence:
@@ -688,6 +700,8 @@ class False_(Const):
 
 
 class Value(Const):
+	fields = Const.fields.union({"value"})
+
 	def __init__(self, location=None, value=None):
 		super().__init__(location)
 		self.value = value
@@ -743,6 +757,7 @@ class Color(Value):
 @ul4on.register("de.livinglogic.ul4.list")
 class List(AST):
 	precedence = 11
+	fields = AST.fields.union({"items"})
 
 	def __init__(self, location=None, *items):
 		super().__init__(location)
@@ -769,6 +784,7 @@ class List(AST):
 @ul4on.register("de.livinglogic.ul4.dict")
 class Dict(AST):
 	precedence = 11
+	fields = AST.fields.union({"items"})
 
 	def __init__(self, location=None, *items):
 		super().__init__(location)
@@ -802,6 +818,7 @@ class Dict(AST):
 class Name(AST):
 	type = "name"
 	precedence = 11
+	fields = AST.fields.union({"name"})
 
 	def __init__(self, location=None, name=None):
 		super().__init__(location)
@@ -826,6 +843,8 @@ class Name(AST):
 
 
 class Block(AST):
+	fields = AST.fields.union({"content"})
+
 	def __init__(self, location=None):
 		super().__init__(location)
 		self.content = []
@@ -880,6 +899,8 @@ class IfElIfElse(Block):
 
 @ul4on.register("de.livinglogic.ul4.if")
 class If(Block):
+	fields = Block.fields.union({"condition"})
+
 	def __init__(self, location=None, condition=None):
 		super().__init__(location)
 		self.condition = condition
@@ -906,6 +927,8 @@ class If(Block):
 
 @ul4on.register("de.livinglogic.ul4.elif")
 class ElIf(Block):
+	fields = Block.fields.union({"condition"})
+
 	def __init__(self, location=None, condition=None):
 		super().__init__(location)
 		self.condition = condition
@@ -946,20 +969,22 @@ class Else(Block):
 
 @ul4on.register("de.livinglogic.ul4.for")
 class For(Block):
-	def __init__(self, location=None, cont=None, varname=None):
+	fields = Block.fields.union({"container", "varname"})
+
+	def __init__(self, location=None, container=None, varname=None):
 		super().__init__(location)
-		self.cont = cont
+		self.container = container
 		self.varname = varname
 
 	def __repr__(self):
-		return "{}({!r}, {!r})".format(self.__class__.__name__, self.cont, self.varname)
+		return "{}({!r}, {!r})".format(self.__class__.__name__, self.container, self.varname)
 
 	def format(self, indent):
-		return "{}for {} in {}\n{}".format(indent*"\t", self.varname, self.cont.format(indent), super().format(indent))
+		return "{}for {} in {}\n{}".format(indent*"\t", self.varname, self.container.format(indent), super().format(indent))
 
 	def formatpython(self, indent):
 		v = []
-		v.append("{}for vars[{!r}] in {}:\n".format(indent*"\t", self.varname, self.cont.formatpython(indent)))
+		v.append("{}for vars[{!r}] in {}:\n".format(indent*"\t", self.varname, self.container.formatpython(indent)))
 		indent += 1
 		for node in self.content:
 			v.append(node.formatpython(indent))
@@ -967,31 +992,33 @@ class For(Block):
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
-		encoder.dump(self.cont)
+		encoder.dump(self.container)
 		encoder.dump(self.varname)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
-		self.cont = decoder.load()
+		self.container = decoder.load()
 		self.varname = decoder.load()
 
 
 @ul4on.register("de.livinglogic.ul4.foru")
 class ForUnpack(Block):
-	def __init__(self, location=None, cont=None, *varnames):
+	fields = Block.fields.union({"container", "varnames"})
+
+	def __init__(self, location=None, container=None, *varnames):
 		super().__init__(location)
-		self.cont = cont
+		self.container = container
 		self.varnames = list(varnames)
 
 	def __repr__(self):
-		return "{}({!r}, {})".format(self.__class__.__name__, self.cont, repr(self.varnames)[1:-1])
+		return "{}({!r}, {})".format(self.__class__.__name__, self.container, repr(self.varnames)[1:-1])
 
 	def format(self, indent):
-		return "{}for ({}) in {}\n{}".format(indent*"\t", ", ".join(self.varnames), self.cont.format(indent), super().format(indent))
+		return "{}for ({}) in {}\n{}".format(indent*"\t", ", ".join(self.varnames), self.container.format(indent), super().format(indent))
 
 	def formatpython(self, indent):
 		v = []
-		v.append("{}for ({}) in {}:\n".format(indent*"\t", " ".join("vars[{!r}],".format(varname) for varname in self.varnames), self.cont.formatpython(indent)))
+		v.append("{}for ({}) in {}:\n".format(indent*"\t", " ".join("vars[{!r}],".format(varname) for varname in self.varnames), self.container.formatpython(indent)))
 		indent += 1
 		for node in self.content:
 			v.append(node.formatpython(indent))
@@ -999,12 +1026,12 @@ class ForUnpack(Block):
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
-		encoder.dump(self.cont)
+		encoder.dump(self.container)
 		encoder.dump(self.varnames)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
-		self.cont = decoder.load()
+		self.container = decoder.load()
 		self.varnames = decoder.load()
 
 
@@ -1030,6 +1057,7 @@ class Continue(AST):
 class GetAttr(AST):
 	precedence = 9
 	associative = False
+	fields = AST.fields.union({"obj", "attrname"})
 
 	def __init__(self, location=None, obj=None, attrname=None):
 		super().__init__(location)
@@ -1060,6 +1088,7 @@ class GetAttr(AST):
 class GetSlice(AST):
 	precedence = 8
 	associative = False
+	fields = AST.fields.union({"obj", "index1", "index2"})
 
 	def __init__(self, location=None, obj=None, index1=None, index2=None):
 		super().__init__(location)
@@ -1090,6 +1119,8 @@ class GetSlice(AST):
 
 
 class Unary(AST):
+	fields = AST.fields.union({"obj"})
+
 	def __init__(self, location=None, obj=None):
 		super().__init__(location)
 		self.obj = obj
@@ -1147,6 +1178,8 @@ class PrintX(Unary):
 
 
 class Binary(AST):
+	fields = AST.fields.union({"obj1", "obj2"})
+
 	def __init__(self, location=None, obj1=None, obj2=None):
 		super().__init__(location)
 		self.obj1 = obj1
@@ -1367,116 +1400,121 @@ class Mod(Binary):
 
 
 class ChangeVar(AST):
-	def __init__(self, location=None, name=None, value=None):
+	fields = AST.fields.union({"varname", "value"})
+
+	def __init__(self, location=None, varname=None, value=None):
 		super().__init__(location)
-		self.name = name
+		self.varname = varname
 		self.value = value
 
 	def __repr__(self):
-		return "{}({!r}, {!r})".format(self.__class__.__name__, self.name, self.value)
+		return "{}({!r}, {!r})".format(self.__class__.__name__, self.varname, self.value)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
-		encoder.dump(self.name)
+		encoder.dump(self.varname)
 		encoder.dump(self.value)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
-		self.name = decoder.load()
+		self.varname = decoder.load()
 		self.value = decoder.load()
 
 
 @ul4on.register("de.livinglogic.ul4.storevar")
 class StoreVar(ChangeVar):
 	def format(self, indent):
-		return "{}{} = {}\n".format(indent*"\t", self.name, self.value.format(indent))
+		return "{}{} = {}\n".format(indent*"\t", self.varname, self.value.format(indent))
 
 	def formatpython(self, indent):
-		return "{}vars[{!r}] = {}\n".format(indent*"\t", self.name, self.value.formatpython(indent))
+		return "{}vars[{!r}] = {}\n".format(indent*"\t", self.varname, self.value.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.addvar")
 class AddVar(ChangeVar):
 	def format(self, indent):
-		return "{}{} += {}\n".format(indent*"\t", self.name, self.value.format(indent))
+		return "{}{} += {}\n".format(indent*"\t", self.varname, self.value.format(indent))
 
 	def formatpython(self, indent):
-		return "{}vars[{!r}] += {}\n".format(indent*"\t", self.name, self.value.formatpython(indent))
+		return "{}vars[{!r}] += {}\n".format(indent*"\t", self.varname, self.value.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.subvar")
 class SubVar(ChangeVar):
 	def format(self, indent):
-		return "{}{} -= {}\n".format(indent*"\t", self.name, self.value.format(indent))
+		return "{}{} -= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
 
 	def formatpython(self, indent):
-		return "{}vars[{!r}] -= {}\n".format(indent*"\t", self.name, self.value.formatpython(indent))
+		return "{}vars[{!r}] -= {}\n".format(indent*"\t", self.varname, self.value.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.mulvar")
 class MulVar(ChangeVar):
 	def format(self, indent):
-		return "{}{} *= {}\n".format(indent*"\t", self.name, self.value.format(indent))
+		return "{}{} *= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
 
 	def formatpython(self, indent):
-		return "{}vars[{!r}] *= {}\n".format(indent*"\t", self.name, self.value.formatpython(indent))
+		return "{}vars[{!r}] *= {}\n".format(indent*"\t", self.varname, self.value.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.floordivvar")
 class FloorDivVar(ChangeVar):
 	def format(self, indent):
-		return "{}{} //= {}\n".format(indent*"\t", self.name, self.value.format(indent))
+		return "{}{} //= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
 
 	def formatpython(self, indent):
-		return "{}vars[{!r}] //= {}\n".format(indent*"\t", self.name, self.value.formatpython(indent))
+		return "{}vars[{!r}] //= {}\n".format(indent*"\t", self.varname, self.value.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.truedivvar")
 class TrueDivVar(ChangeVar):
 	def format(self, indent):
-		return "{}{} /= {}\n".format(indent*"\t", self.name, self.value.format(indent))
+		return "{}{} /= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
 
 	def formatpython(self, indent):
-		return "{}vars[{!r}] /= {}\n".format(indent*"\t", self.name, self.value.formatpython(indent))
+		return "{}vars[{!r}] /= {}\n".format(indent*"\t", self.varname, self.value.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.modvar")
 class ModVar(ChangeVar):
 	def format(self, indent):
-		return "{}{} %= {}\n".format(indent*"\t", self.name, self.value.format(indent))
+		return "{}{} %= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
 
 	def formatpython(self, indent):
-		return "{}vars[{!r}] %= {}\n".format(indent*"\t", self.name, self.value.formatpython(indent))
+		return "{}vars[{!r}] %= {}\n".format(indent*"\t", self.varname, self.value.formatpython(indent))
 
 
 @ul4on.register("de.livinglogic.ul4.delvar")
 class DelVar(AST):
-	def __init__(self, location=None, name=None):
+	fields = AST.fields.union({"varname"})
+
+	def __init__(self, location=None, varname=None):
 		super().__init__(location)
-		self.name = name
+		self.varname = varname
 
 	def __repr__(self):
-		return "{}({!r})".format(self.__class__.__name__, self.name)
+		return "{}({!r})".format(self.__class__.__name__, self.varname)
 
 	def format(self, indent):
-		return "{}del {}\n".format(indent*"\t", self.name)
+		return "{}del {}\n".format(indent*"\t", self.varname)
 
 	def formatpython(self, indent):
-		return "{}del vars[{!r}]\n".format(indent*"\t", self.name)
+		return "{}del vars[{!r}]\n".format(indent*"\t", self.varname)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
-		encoder.dump(self.name)
+		encoder.dump(self.varname)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
-		self.name = decoder.load()
+		self.varname = decoder.load()
 
 
 @ul4on.register("de.livinglogic.ul4.callfunc")
 class CallFunc(AST):
 	precedence = 10
 	associative = False
+	fields = AST.fields.union({"funcname", "args"})
 
 	def __init__(self, location=None, funcname=None, *args):
 		super().__init__(location)
@@ -1562,6 +1600,7 @@ class CallFunc(AST):
 class CallMeth(AST):
 	precedence = 9
 	associative = False
+	fields = AST.fields.union({"methname", "obj", "args"})
 
 	def __init__(self, location=None, methname=None, obj=None, *args):
 		super().__init__(location)
@@ -1604,7 +1643,7 @@ class CallMeth(AST):
 			weekday="({}).weekday({})".format,
 			items="({}).items({})".format,
 			join="({}).join(ul4c._str(item) for item in {})".format,
-			renders="({}).renders({})".format,
+			renders="''.join(({})({}))".format,
 			mimeformat="ul4c._mimeformat({}, {})".format,
 			isoformat="ul4c._isoformat({}, {})".format,
 			yearday="ul4c._yearday({}, {})".format,
@@ -1642,6 +1681,7 @@ class CallMeth(AST):
 class CallMethKeywords(AST):
 	precedence = 9
 	associative = False
+	fields = AST.fields.union({"methname", "obj", "args"})
 
 	def __init__(self, location=None, methname=None, obj=None, *args):
 		super().__init__(location)
@@ -1670,7 +1710,7 @@ class CallMethKeywords(AST):
 				else:
 					args.append("({!r}, {})".format(arg[0], arg[1].formatpython(indent)))
 			args = "ul4c._makedict({})".format(", ".join(args))
-			return "({}).renders(**{})".format(self.obj.formatpython(indent), args)
+			return "''.join(({})(**{}))".format(self.obj.formatpython(indent), args)
 		else:
 			# The ``render`` method can only be used in the ``render`` tag, where it is handled separately
 			raise UnknownMethodError(self.methname)
@@ -1731,6 +1771,7 @@ class Template(Block):
 	is a generator) or :meth:`renders` (which returns a string).
 	"""
 	version = "17"
+	fields = Block.fields.union({"source", "name", "startdelim", "enddelim"})
 
 	def __init__(self, source=None, name=None, startdelim="<?", enddelim="?>"):
 		"""
@@ -1768,11 +1809,6 @@ class Template(Block):
 		self.startdelim = decoder.load()
 		self.enddelim = decoder.load()
 		super().ul4onload(decoder)
-
-	def __getitem__(self, key):
-		if key in {"source", "name", "content", "startdelim", "enddelim"}:
-			return getattr(self, key)
-		raise KeyError(key)
 
 	@classmethod
 	def loads(cls, data):
