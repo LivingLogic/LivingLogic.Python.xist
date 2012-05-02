@@ -1910,20 +1910,25 @@ def test_note():
 
 @py.test.mark.ul4
 def test_templateattributes():
-	s = "<?print x?>"
-	t = ul4c.Template(s)
+	s1 = "<?print x?>"
+	t1 = ul4c.Template(s1)
+
+	s2 = "<?print 42?>"
+	t2 = ul4c.Template(s2)
 
 	for r in all_python_renderers:
-		yield eq, "<?", r("<?print template.startdelim?>", template=t)
-		yield eq, "?>", r("<?print template.enddelim?>", template=t)
-		yield eq, s, r("<?print template.source?>", template=t)
-		yield eq, "2", r("<?print len(template.opcodes)?>", template=t)
-		yield eq, "loadvar", r("<?print template.opcodes[0].code?>", template=t)
-		yield eq, "0", r("<?print template.opcodes[0].r1?>", template=t)
-		yield eq, "", r("<?print template.opcodes[0].r2?>", template=t)
-		yield eq, "x", r("<?print template.opcodes[0].arg?>", template=t)
-		yield eq, s, r("<?code loc = template.opcodes[0].location?><?print template.source[loc.starttag:loc.endtag]?>", template=t)
-		yield eq, "x", r("<?code loc = template.opcodes[0].location?><?print template.source[loc.startcode:loc.endcode]?>", template=t)
+		yield eq, "<?", r("<?print template.startdelim?>", template=t1)
+		yield eq, "?>", r("<?print template.enddelim?>", template=t1)
+		yield eq, s1, r("<?print template.source?>", template=t1)
+		yield eq, "1", r("<?print len(template.content)?>", template=t1)
+		yield eq, "print", r("<?print template.content[0].type?>", template=t1)
+		yield eq, s1, r("<?print template.content[0].location.tag?>", template=t1)
+		yield eq, "x", r("<?print template.content[0].location.code?>", template=t1)
+		yield eq, "loadvar", r("<?print template.content[0].obj.type?>", template=t1)
+		yield eq, "x", r("<?print template.content[0].obj.name?>", template=t1)
+		yield eq, "printx", r("<?print template.content[0].type?>", template=t2)
+		yield eq, "int", r("<?print template.content[0].obj.type?>", template=t2)
+		yield eq, "42", r("<?print template.content[0].obj.value?>", template=t2)
 
 
 def universaltemplate():
