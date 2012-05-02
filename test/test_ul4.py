@@ -1983,9 +1983,9 @@ def universaltemplate():
 		<?print x.find(1, 2)?>
 		<?print x.find(1, 2, 3)?>
 		<?if x?>gurk<?elif y?>hurz<?else?>hinz<?end if?>
-		<?render x(a=1, b=2)?>
+		<?render x.render(a=1, b=2)?>
 		<?def x?>foo<?end def?>
-		<?render x()?>
+		<?render x.render()?>
 	""")
 
 
