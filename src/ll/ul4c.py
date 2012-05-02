@@ -777,9 +777,9 @@ class Dict(AST):
 	def __repr__(self):
 		return "{}({!r})".format(self.__class__.__name__, repr(self.items)[1:-1])
 
-	def formatpython(self, indent):
+	def format(self, indent):
 		v = []
-		for item in items:
+		for item in self.items:
 			if len(item) == 2:
 				v.append("{}={}".format(item[0], item[1].format(indent)))
 			else:
