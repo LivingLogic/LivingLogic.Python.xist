@@ -253,7 +253,7 @@ class Decoder:
 				# However until we've read the UL4ON name of the class, we can't create the object.
 				# So we push null to the backreference list for now and put the right object in this spot,
 				# once we've created it (This shouldn't be a problem, because during the time the backreference
-				# is wrong, only the class name is read, so our object won't be refenced).
+				# is wrong, only the class name is read, so our object won't be referenced).
 				oldpos = len(self._objects)
 				self._loading(None)
 			name = self._load(None)
