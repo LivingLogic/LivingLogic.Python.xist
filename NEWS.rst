@@ -40,8 +40,8 @@ Changes in 4.0 (released ??/??/2012)
 		   id='dings42')
 
 *	A new module :mod:`ul4on` has been added. This module provides functions for
-	encoding and decoding a lightweight machine-readable format for serializing
-	the object types supported by UL4.
+	encoding and decoding a lightweight machine-readable text format for
+	serializing the object types supported by UL4.
 
 *	The following new functions have been added to UL4: ``isfirst``, ``islast``,
 	``isfirstlast``, ``enumfl``. They are variants of ``enumerate`` that give
