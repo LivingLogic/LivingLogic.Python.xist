@@ -1633,6 +1633,7 @@ class CallMeth(AST):
 			split="({}).split({})".format,
 			rsplit="({}).rsplit({})".format,
 			strip="({}).strip({})".format,
+			lstrip="({}).lstrip({})".format,
 			rstrip="({}).rstrip({})".format,
 			find="({}).find({})".format,
 			rfind="({}).rfind({})".format,
