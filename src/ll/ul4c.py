@@ -803,13 +803,19 @@ class Dict(AST):
 		v = []
 		for item in self.items:
 			if len(item) == 2:
-				v.append("{}={}".format(item[0], item[1].format(indent)))
+				v.append("{}: {}".format(item[0], item[1].format(indent)))
 			else:
 				v.append("**{}".format(item[0].format(indent)))
 		return "{{{}}}".format(", ".join(v))
 
 	def formatpython(self, indent):
-		return "ul4c._makedict({})".format(", ".join("({})".format(" ".join(v.formatpython(indent)+"," for v in item)) for item in self.items))
+		v = []
+		for item in self.items:
+			if len(item) == 1:
+				v.append("({},)".format(item[0].format(indent)))
+			else:
+				v.append("({}, {})".format(item[0].format(indent), item[1].format(indent)))
+		return "ul4c._makedict({})".format(", ".join(v))
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1748,7 +1754,7 @@ class Render(Unary):
 				args = []
 				for arg in self.obj.args:
 					if len(arg) == 1:
-						args.append(arg[0].formatpython(indent))
+						args.append("({},)".format(arg[0].formatpython(indent)))
 					else:
 						args.append("({!r}, {})".format(arg[0], arg[1].formatpython(indent)))
 				args = "**ul4c._makedict({})".format(", ".join(args))
