@@ -1678,14 +1678,14 @@ def test_method_replace():
 
 
 @py.test.mark.ul4
-def test_method_render():
+def test_method_renders():
 	for r in all_renderers:
 		t = ul4c.Template('(<?print data?>)')
-		yield eq, '(GURK)', r("<?print t.render(data='gurk').upper()?>", t=t)
-		yield eq, '(GURK)', r("<?print t.render(**{'data': 'gurk'}).upper()?>", t=t)
+		yield eq, '(GURK)', r("<?print t.renders(data='gurk').upper()?>", t=t)
+		yield eq, '(GURK)', r("<?print t.renders(**{'data': 'gurk'}).upper()?>", t=t)
 
 		t = ul4c.Template('(gurk)')
-		yield eq, '(GURK)', r("<?print t.render().upper()?>", t=t)
+		yield eq, '(GURK)', r("<?print t.renders().upper()?>", t=t)
 
 
 @py.test.mark.ul4
