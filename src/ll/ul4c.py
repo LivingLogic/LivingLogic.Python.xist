@@ -817,7 +817,7 @@ class Dict(AST):
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
-		self.items = map(tuple, decoder.load())
+		self.items = [tuple(item) for item in decoder.load()]
 
 
 @register("var")
@@ -1730,7 +1730,7 @@ class CallMethKeywords(AST):
 		super().ul4onload(decoder)
 		self.methname = decoder.load()
 		self.obj = decoder.load()
-		self.args = map(tuple, decoder.load())
+		self.args = [tuple(arg) for arg in decoder.load()]
 
 
 @register("render")
