@@ -3402,12 +3402,12 @@ class ForParser(ExprParser):
 
 	@spark.production('for ::= buildfor ) in expr0')
 	def finishfor(self, for_, _0, _1, cont):
-		for_.cont = cont
+		for_.container = cont
 		return for_
 
 	@spark.production('for ::= buildfor , ) in expr0')
 	def finishfor1(self, for_, _0, _1, _2, cont):
-		for_.cont = cont
+		for_.container = cont
 		return for_
 
 
