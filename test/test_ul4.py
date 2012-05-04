@@ -1061,36 +1061,41 @@ def test_function_len():
 
 @py.test.mark.ul4
 def test_function_enumerate():
-	code = "<?for (i, value) in enumerate(data)?>(<?print value?>=<?print i?>)<?end for?>"
+	code1 = "<?for (i, value) in enumerate(data)?>(<?print value?>=<?print i?>)<?end for?>"
+	code2 = "<?for (i, value) in enumerate(data, 42)?>(<?print value?>=<?print i?>)<?end for?>"
+
 	for r in all_renderers:
 		yield raises, "argument", r("<?print enumerate()?>")
 		yield raises, "argument", r("<?print enumerate(1, 2)?>")
-		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=None)
-		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=True)
-		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=False)
-		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=42)
-		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=4.2)
-		yield eq, "(f=0)(o=1)(o=2)", r(code, data="foo")
-		yield eq, "(foo=0)(bar=1)", r(code, data=["foo", "bar"])
-		yield eq, "(foo=0)", r(code, data=dict(foo=True))
-		yield eq, "", r(code, data="")
+		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code1, data=None)
+		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code1, data=True)
+		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code1, data=False)
+		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code1, data=42)
+		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code1, data=4.2)
+		yield eq, "(f=0)(o=1)(o=2)", r(code1, data="foo")
+		yield eq, "(foo=0)(bar=1)", r(code1, data=["foo", "bar"])
+		yield eq, "(foo=0)", r(code1, data=dict(foo=True))
+		yield eq, "", r(code1, data="")
+		yield eq, "(f=42)(o=43)(o=44)", r(code2, data="foo")
 
 
 @py.test.mark.ul4
 def test_function_enumfl():
-	code = "<?for (i, f, l, value) in enumfl(data)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>"
+	code1 = "<?for (i, f, l, value) in enumfl(data)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>"
+	code2 = "<?for (i, f, l, value) in enumfl(data, 42)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>"
 	for r in all_renderers:
 		yield raises, "argument", r("<?print enumfl()?>")
-		yield raises, "argument", r("<?print enumfl(1, 2)?>")
-		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=None)
-		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=True)
-		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=False)
-		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=42)
-		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=4.2)
-		yield eq, "[(f=0)(o=1)(o=2)]", r(code, data="foo")
-		yield eq, "[(foo=0)(bar=1)]", r(code, data=["foo", "bar"])
-		yield eq, "[(foo=0)]", r(code, data=dict(foo=True))
-		yield eq, "", r(code, data="")
+		yield raises, "argument", r("<?print enumfl(1, 2, 3)?>")
+		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code1, data=None)
+		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code1, data=True)
+		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code1, data=False)
+		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code1, data=42)
+		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code1, data=4.2)
+		yield eq, "[(f=0)(o=1)(o=2)]", r(code1, data="foo")
+		yield eq, "[(foo=0)(bar=1)]", r(code1, data=["foo", "bar"])
+		yield eq, "[(foo=0)]", r(code1, data=dict(foo=True))
+		yield eq, "", r(code1, data="")
+		yield eq, "[(f=42)(o=43)(o=44)]", r(code2, data="foo")
 
 
 @py.test.mark.ul4

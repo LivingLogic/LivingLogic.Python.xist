@@ -47,6 +47,9 @@ Changes in 4.0 (released ??/??/2012)
 	``isfirstlast``, ``enumfl``. They are variants of ``enumerate`` that give
 	information about whether the item is the first and/or last item.
 
+*	The UL4 function ``enumerate`` now supports 1 or 2 arguments (the second
+	argument being the start value).
+
 *	Date constants in UL4 have changed again. They are now written like this:
 	``@(2012-04-12)`` or ``@(2012-04-12T12:34:56)``.
 

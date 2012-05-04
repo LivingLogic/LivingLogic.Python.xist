@@ -3583,7 +3583,7 @@ def _islist(obj):
 	"""
 	Helper for the ``islist`` function.
 	"""
-	return isinstance(obj, collections.Sequence) and not isinstance(obj, color.Color)
+	return isinstance(obj, collections.Sequence) and not isinstance(obj, str) and not isinstance(obj, color.Color)
 
 
 def _isdict(obj):
@@ -3607,13 +3607,13 @@ def _istemplate(obj):
 	return isinstance(obj, Template)
 
 
-def _enumfl(obj):
+def _enumfl(obj, start=0):
 	"""
 	Helper for the ``enumfl`` function.
 	"""
 	lastitem = None
 	first = True
-	i = 0
+	i = start
 	it = iter(obj)
 	try:
 		item = next(it)
