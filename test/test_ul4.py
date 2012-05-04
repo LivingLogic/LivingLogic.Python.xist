@@ -1913,7 +1913,7 @@ def test_templateattributes():
 	s1 = "<?print x?>"
 	t1 = ul4c.Template(s1)
 
-	s2 = "<?print 42?>"
+	s2 = "<?printx 42?>"
 	t2 = ul4c.Template(s2)
 
 	for r in all_python_renderers:
