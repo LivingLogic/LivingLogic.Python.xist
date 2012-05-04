@@ -1924,7 +1924,7 @@ def test_templateattributes():
 		yield eq, "print", r("<?print template.content[0].type?>", template=t1)
 		yield eq, s1, r("<?print template.content[0].location.tag?>", template=t1)
 		yield eq, "x", r("<?print template.content[0].location.code?>", template=t1)
-		yield eq, "loadvar", r("<?print template.content[0].obj.type?>", template=t1)
+		yield eq, "var", r("<?print template.content[0].obj.type?>", template=t1)
 		yield eq, "x", r("<?print template.content[0].obj.name?>", template=t1)
 		yield eq, "printx", r("<?print template.content[0].type?>", template=t2)
 		yield eq, "int", r("<?print template.content[0].obj.type?>", template=t2)
