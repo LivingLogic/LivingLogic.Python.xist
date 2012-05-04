@@ -57,7 +57,7 @@ class Render(object):
 class RenderPython(Render):
 	def renders(self):
 		template = ul4c.Template(self.source)
-		print("Testing Python template:".format(self.filename, self.lineno))
+		print("Testing Python template ({}, line {}):".format(self.filename, self.lineno))
 		print(template.pythonsource())
 		return template.renders(**self.variables)
 
@@ -1893,9 +1893,9 @@ def test_parse():
 
 @py.test.mark.ul4
 def test_nested_exceptions():
-	tmpl1 = ul4c.Template("<?print 2*x?>")
-	tmpl2 = ul4c.Template("<?render tmpl1.render(x=x)?>")
-	tmpl3 = ul4c.Template("<?render tmpl2.render(tmpl1=tmpl1, x=x)?>")
+	tmpl1 = ul4c.Template("<?print 2*x?>", "tmpl1")
+	tmpl2 = ul4c.Template("<?render tmpl1.render(x=x)?>", "tmpl2")
+	tmpl3 = ul4c.Template("<?render tmpl2.render(tmpl1=tmpl1, x=x)?>", "tmpl3")
 
 	for r in all_python_renderers:
 		msg = "TypeError: unsupported operand type\\(s\\) for \\*: 'int' and 'NoneType'|.* \\* .* not supported"
