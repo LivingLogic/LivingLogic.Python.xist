@@ -895,8 +895,8 @@ def test_function_now():
 	now = str(datetime.datetime.now())
 
 	for r in all_renderers:
-		yield raises, "now.*unknown", r("<?print now(1)?>")
-		yield raises, "now.*unknown", r("<?print now(1, 2)?>")
+		yield raises, "argument", r("<?print now(1)?>")
+		yield raises, "argument", r("<?print now(1, 2)?>")
 		yield le, now, r("<?print now()?>")
 
 
@@ -905,8 +905,8 @@ def test_function_utcnow():
 	utcnow = str(datetime.datetime.utcnow())
 
 	for r in all_renderers:
-		yield raises, "utcnow.*unknown", r("<?print utcnow(1)?>")
-		yield raises, "utcnow.*unknown", r("<?print utcnow(1, 2)?>")
+		yield raises, "argument", r("<?print utcnow(1)?>")
+		yield raises, "argument", r("<?print utcnow(1, 2)?>")
 		utcnowfromtemplate = r("<?print utcnow()?>")
 		# JS and Java only have milliseconds precision, but this shouldn't lead to problems here, as rendering the template takes longer than a millisecond
 		yield le, utcnow, utcnowfromtemplate
@@ -917,8 +917,8 @@ def test_function_vars():
 	code = "<?if var in vars()?>yes<?else?>no<?end if?>"
 
 	for r in all_renderers:
-		yield raises, "vars.*unknown", r("<?print vars(1)?>")
-		yield raises, "vars.*unknown", r("<?print vars(1, 2)?>")
+		yield raises, "argument", r("<?print vars(1)?>")
+		yield raises, "argument", r("<?print vars(1, 2)?>")
 		yield eq, "yes", r(code, var="spam", spam="eggs")
 		yield eq, "no", r(code, var="nospam", spam="eggs")
 
@@ -926,15 +926,15 @@ def test_function_vars():
 @py.test.mark.ul4
 def test_function_random():
 	for r in all_renderers:
-		yield raises, "random.*unknown", r("<?print random(1)?>")
-		yield raises, "random.*unknown", r("<?print random(1, 2)?>")
+		yield raises, "argument", r("<?print random(1)?>")
+		yield raises, "argument", r("<?print random(1, 2)?>")
 		yield eq, "ok", r("<?code r = random()?><?if r>=0 and r<1?>ok<?else?>fail<?end if?>")
 
 
 @py.test.mark.ul4
 def test_function_randrange():
 	for r in all_renderers:
-		yield raises, "randrange.*unknown", r("<?print randrange()?>")
+		yield raises, "argument", r("<?print randrange()?>")
 		yield eq, "ok", r("<?code r = randrange(4)?><?if r>=0 and r<4?>ok<?else?>fail<?end if?>")
 		yield eq, "ok", r("<?code r = randrange(17, 23)?><?if r>=17 and r<23?>ok<?else?>fail<?end if?>")
 		yield eq, "ok", r("<?code r = randrange(17, 23, 2)?><?if r>=17 and r<23 and r%2?>ok<?else?>fail<?end if?>")
@@ -943,7 +943,7 @@ def test_function_randrange():
 @py.test.mark.ul4
 def test_function_randchoice():
 	for r in all_renderers:
-		yield raises, "randchoice.*unknown", r("<?print randchoice()?>")
+		yield raises, "argument", r("<?print randchoice()?>")
 		yield eq, "ok", r("<?code r = randchoice('abc')?><?if r in 'abc'?>ok<?else?>fail<?end if?>")
 		yield eq, "ok", r("<?code s = [17, 23, 42]?><?code r = randchoice(s)?><?if r in s?>ok<?else?>fail<?end if?>")
 		yield eq, "ok", r("<?code s = #12345678?><?code sl = [0x12, 0x34, 0x56, 0x78]?><?code r = randchoice(s)?><?if r in sl?>ok<?else?>fail<?end if?>")
@@ -952,16 +952,16 @@ def test_function_randchoice():
 @py.test.mark.ul4
 def test_function_xmlescape():
 	for r in all_renderers:
-		yield raises, "xmlescape.*unknown", r("<?print xmlescape()?>")
-		yield raises, "xmlescape.*unknown", r("<?print xmlescape(1, 2)?>")
+		yield raises, "argument", r("<?print xmlescape()?>")
+		yield raises, "argument", r("<?print xmlescape(1, 2)?>")
 		yield eq, "&lt;&lt;&gt;&gt;&amp;&#39;&quot;gurk", r("<?print xmlescape(data)?>", data='<<>>&\'"gurk')
 
 
 @py.test.mark.ul4
 def test_function_csv():
 	for r in all_renderers:
-		yield raises, "csv.*unknown", r("<?print csv()?>")
-		yield raises, "csv.*unknown", r("<?print csv(1, 2)?>")
+		yield raises, "argument", r("<?print csv()?>")
+		yield raises, "argument", r("<?print csv(1, 2)?>")
 		yield eq, "", r("<?print csv(data)?>", data=None)
 		yield eq, "False", r("<?print csv(data)?>", data=False)
 		yield eq, "True", r("<?print csv(data)?>", data=True)
@@ -976,8 +976,8 @@ def test_function_csv():
 @py.test.mark.ul4
 def test_function_json():
 	for r in all_renderers:
-		yield raises, "json.*unknown", r("<?print json()?>")
-		yield raises, "json.*unknown", r("<?print json(1, 2)?>")
+		yield raises, "argument", r("<?print json()?>")
+		yield raises, "argument", r("<?print json(1, 2)?>")
 		yield eq, "null", r("<?print json(data)?>", data=None)
 		yield eq, "false", r("<?print json(data)?>", data=False)
 		yield eq, "true", r("<?print json(data)?>", data=True)
@@ -994,8 +994,8 @@ def test_function_json():
 def test_function_str():
 	code = "<?print str(data)?>"
 	for r in all_renderers:
-		yield raises, "str.*unknown", r("<?print str()?>")
-		yield raises, "str.*unknown", r("<?print str(1, 2)?>")
+		yield raises, "argument", r("<?print str()?>")
+		yield raises, "argument", r("<?print str(1, 2)?>")
 		yield eq, "", r(code, data=None)
 		yield eq, "True", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1010,8 +1010,8 @@ def test_function_str():
 @py.test.mark.ul4
 def test_function_int():
 	for r in all_renderers:
-		yield raises, "int.*unknown", RenderPython("<?print int()?>")
-		yield raises, "int.*unknown", RenderPython("<?print int(1, 2, 3)?>")
+		yield raises, "argument", RenderPython("<?print int()?>")
+		yield raises, "argument", RenderPython("<?print int(1, 2, 3)?>")
 		yield raises, "int\\(\\) argument must be a string or a number|int\\(null\\) not supported", RenderPython("<?print int(data)?>", data=None)
 		yield raises, "invalid literal for int|NumberFormatException", RenderPython("<?print int(data)?>", data="foo")
 		yield eq, "1", r("<?print int(data)?>", data=True)
@@ -1027,8 +1027,8 @@ def test_function_float():
 	code = "<?print float(data)?>"
 
 	for r in all_renderers:
-		yield raises, "float.*unknown", r("<?print float()?>")
-		yield raises, "float.*unknown", r("<?print float(1, 2, 3)?>")
+		yield raises, "argument", r("<?print float()?>")
+		yield raises, "argument", r("<?print float(1, 2, 3)?>")
 		yield raises, "float\\(\\) argument must be a string or a number|float\\(null\\) not supported", r(code, data=None)
 		yield eq, "4.2", r(code, data=4.2)
 		if r is not RenderJS:
@@ -1047,8 +1047,8 @@ def test_function_float():
 def test_function_len():
 	code = "<?print len(data)?>"
 	for r in all_renderers:
-		yield raises, "len.*unknown", r("<?print len()?>")
-		yield raises, "len.*unknown", r("<?print len(1, 2)?>")
+		yield raises, "argument", r("<?print len()?>")
+		yield raises, "argument", r("<?print len(1, 2)?>")
 		yield raises, "has no len\\(\\)|len\\(.*\\) not supported", r(code, data=None)
 		yield raises, "has no len\\(\\)|len\\(.*\\) not supported", r(code, data=True)
 		yield raises, "has no len\\(\\)|len\\(.*\\) not supported", r(code, data=False)
@@ -1063,8 +1063,8 @@ def test_function_len():
 def test_function_enumerate():
 	code = "<?for (i, value) in enumerate(data)?>(<?print value?>=<?print i?>)<?end for?>"
 	for r in all_renderers:
-		yield raises, "enumerate.*unknown", r("<?print enumerate()?>")
-		yield raises, "enumerate.*unknown", r("<?print enumerate(1, 2)?>")
+		yield raises, "argument", r("<?print enumerate()?>")
+		yield raises, "argument", r("<?print enumerate(1, 2)?>")
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=None)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=True)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=False)
@@ -1080,8 +1080,8 @@ def test_function_enumerate():
 def test_function_enumfl():
 	code = "<?for (i, f, l, value) in enumfl(data)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>"
 	for r in all_renderers:
-		yield raises, "enumfl.*unknown", r("<?print enumfl()?>")
-		yield raises, "enumfl.*unknown", r("<?print enumfl(1, 2)?>")
+		yield raises, "argument", r("<?print enumfl()?>")
+		yield raises, "argument", r("<?print enumfl(1, 2)?>")
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=None)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=True)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=False)
@@ -1097,8 +1097,8 @@ def test_function_enumfl():
 def test_function_isfirstlast():
 	code = "<?for (f, l, value) in isfirstlast(data)?><?if f?>[<?end if?>(<?print value?>)<?if l?>]<?end if?><?end for?>"
 	for r in all_renderers:
-		yield raises, "isfirstlast.*unknown", r("<?print isfirstlast()?>")
-		yield raises, "isfirstlast.*unknown", r("<?print isfirstlast(1, 2)?>")
+		yield raises, "argument", r("<?print isfirstlast()?>")
+		yield raises, "argument", r("<?print isfirstlast(1, 2)?>")
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=None)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=True)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=False)
@@ -1114,8 +1114,8 @@ def test_function_isfirstlast():
 def test_function_isfirst():
 	code = "<?for (f, value) in isfirst(data)?><?if f?>[<?end if?>(<?print value?>)<?end for?>"
 	for r in all_renderers:
-		yield raises, "isfirst.*unknown", r("<?print isfirst()?>")
-		yield raises, "isfirst.*unknown", r("<?print isfirst(1, 2)?>")
+		yield raises, "argument", r("<?print isfirst()?>")
+		yield raises, "argument", r("<?print isfirst(1, 2)?>")
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=None)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=True)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=False)
@@ -1131,8 +1131,8 @@ def test_function_isfirst():
 def test_function_islast():
 	code = "<?for (l, value) in islast(data)?>(<?print value?>)<?if l?>]<?end if?><?end for?>"
 	for r in all_renderers:
-		yield raises, "islast.*unknown", r("<?print islast()?>")
-		yield raises, "islast.*unknown", r("<?print islast(1, 2)?>")
+		yield raises, "argument", r("<?print islast()?>")
+		yield raises, "argument", r("<?print islast(1, 2)?>")
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=None)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=True)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=False)
@@ -1148,8 +1148,8 @@ def test_function_islast():
 def test_function_isnone():
 	code = "<?print isnone(data)?>"
 	for r in all_renderers:
-		yield raises, "isnone.*unknown", r("<?print isnone()?>")
-		yield raises, "isnone.*unknown", r("<?print isnone(1, 2)?>")
+		yield raises, "argument", r("<?print isnone()?>")
+		yield raises, "argument", r("<?print isnone(1, 2)?>")
 		yield eq, "True", r(code, data=None)
 		yield eq, "False", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1169,8 +1169,8 @@ def test_function_isbool():
 	code = "<?print isbool(data)?>"
 
 	for r in all_renderers:
-		yield raises, "isbool.*unknown", r("<?print isbool()?>")
-		yield raises, "isbool.*unknown", r("<?print isbool(1, 2)?>")
+		yield raises, "argument", r("<?print isbool()?>")
+		yield raises, "argument", r("<?print isbool(1, 2)?>")
 		yield eq, "False", r(code, data=None)
 		yield eq, "True", r(code, data=True)
 		yield eq, "True", r(code, data=False)
@@ -1190,8 +1190,8 @@ def test_function_isint():
 	code = "<?print isint(data)?>"
 
 	for r in all_renderers:
-		yield raises, "isint.*unknown", r("<?print isint()?>")
-		yield raises, "isint.*unknown", r("<?print isint(1, 2)?>")
+		yield raises, "argument", r("<?print isint()?>")
+		yield raises, "argument", r("<?print isint(1, 2)?>")
 		yield eq, "False", r(code, data=None)
 		yield eq, "False", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1211,8 +1211,8 @@ def test_function_isfloat():
 	code = "<?print isfloat(data)?>"
 
 	for r in all_renderers:
-		yield raises, "isfloat.*unknown", r("<?print isfloat()?>")
-		yield raises, "isfloat.*unknown", r("<?print isfloat(1, 2)?>")
+		yield raises, "argument", r("<?print isfloat()?>")
+		yield raises, "argument", r("<?print isfloat(1, 2)?>")
 		yield eq, "False", r(code, data=None)
 		yield eq, "False", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1232,8 +1232,8 @@ def test_function_isstr():
 	code = "<?print isstr(data)?>"
 
 	for r in all_renderers:
-		yield raises, "isstr.*unknown", r("<?print isstr()?>")
-		yield raises, "isstr.*unknown", r("<?print isstr(1, 2)?>")
+		yield raises, "argument", r("<?print isstr()?>")
+		yield raises, "argument", r("<?print isstr(1, 2)?>")
 		yield eq, "False", r(code, data=None)
 		yield eq, "False", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1253,8 +1253,8 @@ def test_function_isdate():
 	code = "<?print isdate(data)?>"
 
 	for r in all_renderers:
-		yield raises, "isdate.*unknown", r("<?print isdate()?>")
-		yield raises, "isdate.*unknown", r("<?print isdate(1, 2)?>")
+		yield raises, "argument", r("<?print isdate()?>")
+		yield raises, "argument", r("<?print isdate(1, 2)?>")
 		yield eq, "False", r(code, data=None)
 		yield eq, "False", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1274,8 +1274,8 @@ def test_function_islist():
 	code = "<?print islist(data)?>"
 
 	for r in all_renderers:
-		yield raises, "islist.*unknown", r("<?print islist()?>")
-		yield raises, "islist.*unknown", r("<?print islist(1, 2)?>")
+		yield raises, "argument", r("<?print islist()?>")
+		yield raises, "argument", r("<?print islist(1, 2)?>")
 		yield eq, "False", r(code, data=None)
 		yield eq, "False", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1296,8 +1296,8 @@ def test_function_isdict():
 	code = "<?print isdict(data)?>"
 
 	for r in all_renderers:
-		yield raises, "isdict.*unknown", r("<?print isdict()?>")
-		yield raises, "isdict.*unknown", r("<?print isdict(1, 2)?>")
+		yield raises, "argument", r("<?print isdict()?>")
+		yield raises, "argument", r("<?print isdict(1, 2)?>")
 		yield eq, "False", r(code, data=None)
 		yield eq, "False", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1318,8 +1318,8 @@ def test_function_istemplate():
 	code = "<?print istemplate(data)?>"
 
 	for r in all_renderers:
-		yield raises, "istemplate.*unknown", r("<?print istemplate()?>")
-		yield raises, "istemplate.*unknown", r("<?print istemplate(1, 2)?>")
+		yield raises, "argument", r("<?print istemplate()?>")
+		yield raises, "argument", r("<?print istemplate(1, 2)?>")
 		yield eq, "False", r(code, data=None)
 		yield eq, "False", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1339,8 +1339,8 @@ def test_function_iscolor():
 	code = "<?print iscolor(data)?>"
 
 	for r in all_renderers:
-		yield raises, "iscolor.*unknown", r("<?print iscolor()?>")
-		yield raises, "iscolor.*unknown", r("<?print iscolor(1, 2)?>")
+		yield raises, "argument", r("<?print iscolor()?>")
+		yield raises, "argument", r("<?print iscolor(1, 2)?>")
 		yield eq, "False", r(code, data=None)
 		yield eq, "False", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1358,7 +1358,7 @@ def test_function_iscolor():
 @py.test.mark.ul4
 def test_function_get():
 	for r in all_renderers:
-		yield raises, "get.*unknown", r("<?print get()?>")
+		yield raises, "argument", r("<?print get()?>")
 		yield eq, "", r("<?print get('x')?>")
 		yield eq, "42", r("<?print get('x')?>", x=42)
 		yield eq, "17", r("<?print get('x', 17)?>")
@@ -1370,8 +1370,8 @@ def test_function_repr():
 	code = "<?print repr(data)?>"
 
 	for r in all_renderers:
-		yield raises, "repr.*unknown", r("<?print repr()?>")
-		yield raises, "repr.*unknown", r("<?print repr(1, 2)?>")
+		yield raises, "argument", r("<?print repr()?>")
+		yield raises, "argument", r("<?print repr(1, 2)?>")
 		yield eq, "None", r(code, data=None)
 		yield eq, "True", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1422,8 +1422,8 @@ def test_function_chr():
 	code = "<?print chr(data)?>"
 
 	for r in all_renderers:
-		yield raises, "chr.*unknown", r("<?print chr()?>")
-		yield raises, "chr.*unknown", r("<?print chr(1, 2)?>")
+		yield raises, "argument", r("<?print chr()?>")
+		yield raises, "argument", r("<?print chr(1, 2)?>")
 		yield eq, "\x00", r(code, data=0)
 		yield eq, "a", r(code, data=ord("a"))
 		yield eq, "\u20ac", r(code, data=0x20ac)
@@ -1434,8 +1434,8 @@ def test_function_ord():
 	code = "<?print ord(data)?>"
 
 	for r in all_renderers:
-		yield raises, "ord.*unknown", r("<?print ord()?>")
-		yield raises, "ord.*unknown", r("<?print ord(1, 2)?>")
+		yield raises, "argument", r("<?print ord()?>")
+		yield raises, "argument", r("<?print ord(1, 2)?>")
 		yield eq, "0", r(code, data="\x00")
 		yield eq, str(ord("a")), r(code, data="a")
 		yield eq, str(0x20ac), r(code, data="\u20ac")
@@ -1446,8 +1446,8 @@ def test_function_hex():
 	code = "<?print hex(data)?>"
 
 	for r in all_renderers:
-		yield raises, "hex.*unknown", r("<?print hex()?>")
-		yield raises, "hex.*unknown", r("<?print hex(1, 2)?>")
+		yield raises, "argument", r("<?print hex()?>")
+		yield raises, "argument", r("<?print hex(1, 2)?>")
 		yield eq, "0x0", r(code, data=0)
 		yield eq, "0xff", r(code, data=0xff)
 		yield eq, "0xffff", r(code, data=0xffff)
@@ -1459,8 +1459,8 @@ def test_function_oct():
 	code = "<?print oct(data)?>"
 
 	for r in all_renderers:
-		yield raises, "oct.*unknown", r("<?print oct()?>")
-		yield raises, "oct.*unknown", r("<?print oct(1, 2)?>")
+		yield raises, "argument", r("<?print oct()?>")
+		yield raises, "argument", r("<?print oct(1, 2)?>")
 		yield eq, "0o0", r(code, data=0)
 		yield eq, "0o77", r(code, data=0o77)
 		yield eq, "0o7777", r(code, data=0o7777)
@@ -1472,8 +1472,8 @@ def test_function_bin():
 	code = "<?print bin(data)?>"
 
 	for r in all_renderers:
-		yield raises, "bin.*unknown", r("<?print bin()?>")
-		yield raises, "bin.*unknown", r("<?print bin(1, 2)?>")
+		yield raises, "argument", r("<?print bin()?>")
+		yield raises, "argument", r("<?print bin(1, 2)?>")
 		yield eq, "0b0", r(code, data=0b0)
 		yield eq, "0b11", r(code, data=0b11)
 		yield eq, "-0b1111", r(code, data=-0b1111)
@@ -1484,8 +1484,8 @@ def test_function_abs():
 	code = "<?print abs(data)?>"
 
 	for r in all_renderers:
-		yield raises, "abs.*unknown", r("<?print abs()?>")
-		yield raises, "abs.*unknown", r("<?print abs(1, 2)?>")
+		yield raises, "argument", r("<?print abs()?>")
+		yield raises, "argument", r("<?print abs(1, 2)?>")
 		yield eq, "0", r(code, data=0)
 		yield eq, "42", r(code, data=42)
 		yield eq, "42", r(code, data=-42)
@@ -1496,8 +1496,7 @@ def test_function_sorted():
 	code = "<?for i in sorted(data)?><?print i?><?end for?>"
 
 	for r in all_renderers:
-		yield raises, "sorted.*unknown", r("<?print sorted()?>")
-		yield raises, "sorted.*unknown", r("<?print sorted(1, 2)?>")
+		yield raises, "argument", r("<?print sorted()?>")
 		yield eq, "gkru", r(code, data="gurk")
 		yield eq, "24679", r(code, data="92746")
 		yield eq, "172342", r(code, data=(42, 17, 23))
@@ -1511,7 +1510,7 @@ def test_function_range():
 	code3 = "<?for i in range(data[0], data[1], data[2])?><?print i?>;<?end for?>"
 
 	for r in all_renderers:
-		yield raises, "range.*unknown", r("<?print range()?>")
+		yield raises, "argument", r("<?print range()?>")
 		yield eq, "", r(code1, data=-10)
 		yield eq, "", r(code1, data=0)
 		yield eq, "0;", r(code1, data=1)
@@ -1530,11 +1529,14 @@ def test_function_range():
 
 @py.test.mark.ul4
 def test_function_zip():
+	code0 = "<?for i in zip()?><?print i?>;<?end for?>"
+	code1 = "<?for (ix, ) in zip(x)?><?print ix?>;<?end for?>"
 	code2 = "<?for (ix, iy) in zip(x, y)?><?print ix?>-<?print iy?>;<?end for?>"
 	code3 = "<?for (ix, iy, iz) in zip(x, y, z)?><?print ix?>-<?print iy?>+<?print iz?>;<?end for?>"
 
 	for r in all_renderers:
-		yield raises, "zip.*unknown", r("<?print zip(1)?>")
+		yield eq, "", r(code0)
+		yield eq, "1;2;", r(code1, x=[1, 2])
 		yield eq, "", r(code2, x=[], y=[])
 		yield eq, "1-3;2-4;", r(code2, x=[1, 2], y=[3, 4])
 		yield eq, "1-4;2-5;", r(code2, x=[1, 2, 3], y=[4, 5])
@@ -1548,8 +1550,8 @@ def test_function_type():
 	code = "<?print type(x)?>"
 
 	for r in all_renderers:
-		yield raises, "type.*unknown", r("<?print type()?>")
-		yield raises, "type.*unknown", r("<?print type(1, 2)?>")
+		yield raises, "argument", r("<?print type()?>")
+		yield raises, "argument", r("<?print type(1, 2)?>")
 		yield eq, "none", r(code, x=None)
 		yield eq, "bool", r(code, x=False)
 		yield eq, "bool", r(code, x=True)
@@ -1572,8 +1574,8 @@ def test_function_reversed():
 	code = "<?for i in reversed(x)?>(<?print i?>)<?end for?>"
 
 	for r in all_renderers:
-		yield raises, "reversed.*unknown", r("<?print reversed()?>")
-		yield raises, "reversed.*unknown", r("<?print reversed(1, 2)?>")
+		yield raises, "argument", r("<?print reversed()?>")
+		yield raises, "argument", r("<?print reversed(1, 2)?>")
 		yield eq, "(3)(2)(1)", r(code, x="123")
 		yield eq, "(3)(2)(1)", r(code, x=[1, 2, 3])
 		yield eq, "(3)(2)(1)", r(code, x=(1, 2, 3))

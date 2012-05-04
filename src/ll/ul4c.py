@@ -1561,16 +1561,16 @@ class CallFunc(AST):
 			isfirstlast="ul4c._isfirstlast({})".format,
 			isfirst="ul4c._isfirst({})".format,
 			islast="ul4c._islast({})".format,
-			isnone="{} is None".format,
-			isstr="isinstance({}, str)".format,
+			isnone="ul4c._isnone({})".format,
+			isstr="ul4c._isstr({})".format,
 			isint="ul4c._isint({})".format,
-			isfloat="isinstance({}, float)".format,
-			isbool="isinstance({}, bool)".format,
-			isdate="isinstance({}, (datetime.datetime, datetime.date))".format,
+			isfloat="ul4c._isfloat({})".format,
+			isbool="ul4c._isbool({})".format,
+			isdate="ul4c._isdate({})".format,
 			islist="ul4c._islist({})".format,
-			isdict="isinstance({}, collections.Mapping)".format,
-			istemplate="isinstance({}, ul4c.Template)".format,
-			iscolor="isinstance({}, color.Color)".format,
+			isdict="ul4c._isdict({})".format,
+			iscolor="ul4c._iscolor({})".format,
+			istemplate="ul4c._istemplate({})".format,
 			repr="ul4c._repr({})".format,
 			get="vars.get({})".format,
 			chr="chr({})".format,
@@ -3537,6 +3537,20 @@ def _json(obj):
 		raise TypeError("can't handle object of type {}".format(type(obj)))
 
 
+def _isnone(obj):
+	"""
+	Helper for the ``isnone`` function.
+	"""
+	return obj is None
+
+
+def _isbool(obj):
+	"""
+	Helper for the ``isbool`` function.
+	"""
+	return isinstance(obj, bool)
+
+
 def _isint(obj):
 	"""
 	Helper for the ``isint`` function.
@@ -3544,11 +3558,53 @@ def _isint(obj):
 	return isinstance(obj, int) and not isinstance(obj, bool)
 
 
+def _isfloat(obj):
+	"""
+	Helper for the ``isfloat`` function.
+	"""
+	return isinstance(obj, float)
+
+
+def _isstr(obj):
+	"""
+	Helper for the ``isstr`` function.
+	"""
+	return isinstance(obj, str)
+
+
+def _isdate(obj):
+	"""
+	Helper for the ``isdate`` function.
+	"""
+	return isinstance(obj, (datetime.datetime, datetime.date))
+
+
 def _islist(obj):
 	"""
 	Helper for the ``islist`` function.
 	"""
-	return isinstance(obj, mapping.Sequence) and not isinstance(obj, color.Color)
+	return isinstance(obj, collections.Sequence) and not isinstance(obj, color.Color)
+
+
+def _isdict(obj):
+	"""
+	Helper for the ``isdict`` function.
+	"""
+	return isinstance(obj, collections.Mapping) and not isinstance(obj, Template)
+
+
+def _iscolor(obj):
+	"""
+	Helper for the ``iscolor`` function.
+	"""
+	return isinstance(obj, color.Color)
+
+
+def _istemplate(obj):
+	"""
+	Helper for the ``istemplate`` function.
+	"""
+	return isinstance(obj, Template)
 
 
 def _enumfl(obj):
