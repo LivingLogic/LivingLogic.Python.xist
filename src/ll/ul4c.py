@@ -596,7 +596,7 @@ class AST(Object):
 	associative = True
 
 	# Set of attributes available via :meth:`getitem`.
-	fields = {"location"}
+	fields = {"location", "type"}
 
 	def __init__(self, location=None):
 		self.location = location
