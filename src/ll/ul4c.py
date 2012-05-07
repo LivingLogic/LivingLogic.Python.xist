@@ -2018,7 +2018,7 @@ class Template(Block):
 					stack[-1].newblock(ElIf(location, parseexpr(location)))
 				elif location.type == "else":
 					if not isinstance(stack[-1], IfElIfElse):
-						raise BlockError("else doesn't match and if")
+						raise BlockError("else doesn't match any if")
 					elif isinstance(stack[-1].content[-1], Else):
 						raise BlockError("else already seen in if")
 					stack[-1].newblock(Else(location))
