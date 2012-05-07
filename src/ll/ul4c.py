@@ -1545,7 +1545,7 @@ class CallFunc(AST):
 		functions = dict(
 			now="datetime.datetime.now({})".format,
 			utcnow="datetime.datetime.utcnow({})".format,
-			vars="vars".format,
+			vars="ul4c._vars(vars, {})".format,
 			random="random.random({})".format,
 			xmlescape="ul4c._xmlescape({})".format,
 			csv="ul4c._csv({})".format,
@@ -1583,7 +1583,7 @@ class CallFunc(AST):
 			type="ul4c._type({})".format,
 			reversed="reversed({})".format,
 			randrange="random.randrange({})".format,
-			randchoice="random.randchoice({})".format,
+			randchoice="random.choice({})".format,
 			format="format({})".format,
 			zip="zip({})".format,
 			rgb="color.Color.fromrgb({})".format,
@@ -3460,6 +3460,13 @@ def _makedict(*items):
 		else:
 			result[item[0]] = item[1]
 	return result
+
+def _vars(vars):
+	"""
+	Helper for the ``vars`` function.
+	"""
+	return vars
+
 
 def _str(obj=None):
 	"""
