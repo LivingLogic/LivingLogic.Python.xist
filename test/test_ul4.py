@@ -588,7 +588,7 @@ def test_block_errors():
 	yield raises, "BlockError: else doesn't match any if", RenderPython('<?else?>')
 	yield raises, "BlockError: block unclosed", RenderPython('<?if data?>')
 	yield raises, "BlockError: block unclosed", RenderPython('<?if data?><?else?>')
-	yield raises, "BlockError: duplicate else", RenderPython('<?if data?><?else?><?else?>')
+	yield raises, "BlockError: else already seen in if", RenderPython('<?if data?><?else?><?else?>')
 	yield raises, "BlockError: else already seen in if", RenderPython('<?if data?><?else?><?elif data?>')
 	yield raises, "BlockError: else already seen in if", RenderPython('<?if data?><?elif data?><?elif data?><?else?><?elif data?>')
 
@@ -600,7 +600,7 @@ def test_empty():
 	yield raises, "expression required", RenderPython('<<?if x?><?elif?><?end if?>')
 	yield raises, "loop expression required", RenderPython('<?for?>')
 	yield raises, "statement required", RenderPython('<?code?>')
-	yield raises, "render statement required", RenderPython('<?render?>')
+	yield raises, "expression required", RenderPython('<?render?>')
 
 
 @py.test.mark.ul4
