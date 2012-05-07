@@ -50,6 +50,9 @@ Changes in 4.0 (released ??/??/2012)
 *	The UL4 function ``enumerate`` now supports 1 or 2 arguments (the second
 	argument being the start value).
 
+*	The UL4 functions ``str``, ``bool``, ``int`` and ``float`` now support being
+	called without arguments (just like in Python).
+
 *	Date constants in UL4 have changed again. They are now written like this:
 	``@(2012-04-12)`` or ``@(2012-04-12T12:34:56)``.
 

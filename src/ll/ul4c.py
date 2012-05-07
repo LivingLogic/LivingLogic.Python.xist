@@ -3461,7 +3461,7 @@ def _makedict(*items):
 			result[item[0]] = item[1]
 	return result
 
-def _str(obj):
+def _str(obj=None):
 	"""
 	Helper for the ``str`` function.
 	"""

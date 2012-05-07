@@ -994,8 +994,8 @@ def test_function_json():
 def test_function_str():
 	code = "<?print str(data)?>"
 	for r in all_renderers:
-		yield raises, "argument", r("<?print str()?>")
 		yield raises, "argument", r("<?print str(1, 2)?>")
+		yield eq, "", r("<?print str()?>")
 		yield eq, "", r(code, data=None)
 		yield eq, "True", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1010,10 +1010,10 @@ def test_function_str():
 @py.test.mark.ul4
 def test_function_int():
 	for r in all_renderers:
-		yield raises, "argument", RenderPython("<?print int()?>")
 		yield raises, "argument", RenderPython("<?print int(1, 2, 3)?>")
 		yield raises, "int\\(\\) argument must be a string or a number|int\\(null\\) not supported", RenderPython("<?print int(data)?>", data=None)
 		yield raises, "invalid literal for int|NumberFormatException", RenderPython("<?print int(data)?>", data="foo")
+		yield eq, "0", r("<?print int()?>")
 		yield eq, "1", r("<?print int(data)?>", data=True)
 		yield eq, "0", r("<?print int(data)?>", data=False)
 		yield eq, "42", r("<?print int(data)?>", data=42)
@@ -1027,9 +1027,9 @@ def test_function_float():
 	code = "<?print float(data)?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print float()?>")
 		yield raises, "argument", r("<?print float(1, 2, 3)?>")
 		yield raises, "float\\(\\) argument must be a string or a number|float\\(null\\) not supported", r(code, data=None)
+		yield rq, "0.0", r("<?print float()?>")
 		yield eq, "4.2", r(code, data=4.2)
 		if r is not RenderJS:
 			yield eq, "1.0", r(code, data=True)
@@ -1066,7 +1066,7 @@ def test_function_enumerate():
 
 	for r in all_renderers:
 		yield raises, "argument", r("<?print enumerate()?>")
-		yield raises, "argument", r("<?print enumerate(1, 2)?>")
+		yield raises, "argument", r("<?print enumerate(1, 2, 3)?>")
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code1, data=None)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code1, data=True)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code1, data=False)
