@@ -536,8 +536,8 @@ def test_for_unpacking():
 	]
 
 	for r in all_renderers:
-		yield eq, '(spam)(gurk)(hinz)', r('<?for (a,) in data?>(<?print a?>)<?end for?>', data=data)
-		yield eq, '(spam,eggs)(gurk,hurz)(hinz,kunz)', r('<?for (a, b) in data?>(<?print a?>,<?print b?>)<?end for?>', data=data)
+		yield eq, '(spam)(gurk)(hinz)', r('<?for (a,) in data?>(<?print a?>)<?end for?>', data=[item[:1] for item in data])
+		yield eq, '(spam,eggs)(gurk,hurz)(hinz,kunz)', r('<?for (a, b) in data?>(<?print a?>,<?print b?>)<?end for?>', data=[item[:2] for item in data])
 		yield eq, '(spam,eggs,17)(gurk,hurz,23)(hinz,kunz,42)', r('<?for (a, b, c) in data?>(<?print a?>,<?print b?>,<?print c?>)<?end for?>', data=data)
 
 
@@ -1029,7 +1029,7 @@ def test_function_float():
 	for r in all_renderers:
 		yield raises, "argument", r("<?print float(1, 2, 3)?>")
 		yield raises, "float\\(\\) argument must be a string or a number|float\\(null\\) not supported", r(code, data=None)
-		yield rq, "0.0", r("<?print float()?>")
+		yield eq, "0.0", r("<?print float()?>")
 		yield eq, "4.2", r(code, data=4.2)
 		if r is not RenderJS:
 			yield eq, "1.0", r(code, data=True)
