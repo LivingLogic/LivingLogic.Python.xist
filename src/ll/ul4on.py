@@ -150,15 +150,13 @@ class Decoder:
 		return self._load(None)
 
 	def _readint(self):
-		i = 0
+		buffer = []
 		while True:
 			c = self.stream.read(1)
 			if c == "|":
-				return i
-			elif c.isdigit():
-				i = 10*i+int(c)
+				return int("".join(buffer))
 			else:
-				raise ValueError("broken stream: expected digit or '|', got {!r}".format(c))
+				buffer.append(c)
 
 	def _loading(self, obj):
 		self._objects.append(obj)
