@@ -589,8 +589,8 @@ def test_block_errors():
 	yield raises, "BlockError: block unclosed", RenderPython('<?if data?>')
 	yield raises, "BlockError: block unclosed", RenderPython('<?if data?><?else?>')
 	yield raises, "BlockError: duplicate else", RenderPython('<?if data?><?else?><?else?>')
-	yield raises, "BlockError: else already seen in elif", RenderPython('<?if data?><?else?><?elif data?>')
-	yield raises, "BlockError: else already seen in elif", RenderPython('<?if data?><?elif data?><?elif data?><?else?><?elif data?>')
+	yield raises, "BlockError: else already seen in if", RenderPython('<?if data?><?else?><?elif data?>')
+	yield raises, "BlockError: else already seen in if", RenderPython('<?if data?><?elif data?><?elif data?><?else?><?elif data?>')
 
 
 @py.test.mark.ul4
