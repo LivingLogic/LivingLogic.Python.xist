@@ -3461,6 +3461,7 @@ def _makedict(*items):
 			result[item[0]] = item[1]
 	return result
 
+
 def _vars(vars):
 	"""
 	Helper for the ``vars`` function.
