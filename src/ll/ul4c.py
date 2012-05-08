@@ -195,9 +195,7 @@ class BlockError(Exception):
 
 class UnknownFunctionError(Exception):
 	"""
-	Exception that is raised by the renderer if the function to be executed by
-	the ``callfunc0``, ``callfunc1``, ``callfunc2``, ``callfunc3`` or
-	``callfunc4`` opcodes is unknown.
+	Exception that is raised by the renderer if the function to be executed is unknown.
 	"""
 
 	def __init__(self, funcname):
@@ -209,9 +207,7 @@ class UnknownFunctionError(Exception):
 
 class UnknownMethodError(Exception):
 	"""
-	Exception that is raised by the renderer if the method to be executed by the
-	``callmeth0``, ``callmeth1``, ``callmeth2``  or ``callmeth3`` opcodes is
-	unknown.
+	Exception that is raised by the renderer if the method to be executed is unknown.
 	"""
 
 	def __init__(self, methname):
@@ -631,6 +627,12 @@ class AST(Object):
 		Format :var:`self` into valid Python source code.
 		"""
 
+	@misc.notimplemented
+	def formatjava(self, indent):
+		"""
+		Format :var:`self` into valid Java source code.
+		"""
+
 	def ul4ondump(self, encoder):
 		encoder.dump(self.location)
 
@@ -648,6 +650,9 @@ class Text(AST):
 
 	def formatpython(self, indent):
 		return "{}yield {!r}\n".format(indent*"\t", self.location.code)
+
+	def formatjava(self, indent):
+		return "{}context.write({});\n".format(indent*"\t", misc.javaexpr(self.location.code))
 
 
 class Const(AST):
@@ -674,6 +679,9 @@ class None_(Const):
 	def formatpython(self, indent):
 		return "None"
 
+	def formatjava(self, indent):
+		return "null"
+
 
 @register("true")
 class True_(Const):
@@ -689,6 +697,9 @@ class True_(Const):
 	def formatpython(self, indent):
 		return "True"
 
+	def formatjava(self, indent):
+		return "true"
+
 
 @register("false")
 class False_(Const):
@@ -703,6 +714,9 @@ class False_(Const):
 
 	def formatpython(self, indent):
 		return "False"
+
+	def formatjava(self, indent):
+		return "false"
 
 
 class Value(Const):
@@ -720,6 +734,9 @@ class Value(Const):
 
 	def formatpython(self, indent):
 		return repr(self.value)
+
+	def formatjava(self, indent):
+		return misc.javaexpr(self.value)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -752,9 +769,7 @@ class Date(Value):
 
 @register("color")
 class Color(Value):
-	pass
-
-	# No need to overwrite :meth:`format`
+	# No need to overwrite :meth:`format` or :meth:`formatjava`
 
 	def formatpython(self, indent):
 		return "color.{!r}".format(self.value)
@@ -777,6 +792,9 @@ class List(AST):
 
 	def formatpython(self, indent):
 		return "[{}]".format(", ".join(item.formatpython(indent) for item in self.items))
+
+	def formatjava(self, indent):
+		return "java.util.Arrays.asList({})".format(", ".join(item.formatjava(indent) for item in self.items))
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -817,6 +835,13 @@ class Dict(AST):
 				v.append("({}, {})".format(item[0].format(indent), item[1].format(indent)))
 		return "ul4c._makedict({})".format(", ".join(v))
 
+	def formatjava(self, indent):
+		v = ["new com.livinglogic.ul4.MapMaker()"]
+		for item in self.items:
+			v.append(".add({})".format(", ".join(arg.format(indent) for arg in item)))
+		v.append(".getMap()")
+		return "".join(v)
+
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
 		encoder.dump(self.items)
@@ -843,6 +868,9 @@ class Var(AST):
 
 	def formatpython(self, indent):
 		return "vars[{!r}]".format(self.name)
+
+	def formatjava(self, indent):
+		return "context.get({})".format(misc.javaexpr(self.name))
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -907,6 +935,12 @@ class IfElIfElse(Block):
 			v.append(node.formatpython(indent))
 		return "".join(v)
 
+	def formatjava(self, indent):
+		v = []
+		for node in self.content:
+			v.append(node.formatjava(indent))
+		return "".join(v)
+
 
 @register("if")
 class If(Block):
@@ -925,6 +959,17 @@ class If(Block):
 		indent += 1
 		for node in self.content:
 			v.append(node.formatpython(indent))
+		return "".join(v)
+
+	def formatjava(self, indent):
+		v = []
+		v.append("{}if ({})\n".format(indent*"\t", self.condition.formatjava(indent)))
+		v.append("{}{{\n".format(indent*"\t"))
+		indent += 1
+		for node in self.content:
+			v.append(node.formatpython(indent))
+		indent -= 1
+		v.append("{}}}\n".format(indent*"\t"))
 		return "".join(v)
 
 	def ul4ondump(self, encoder):
@@ -955,6 +1000,17 @@ class ElIf(Block):
 			v.append(node.formatpython(indent))
 		return "".join(v)
 
+	def formatjava(self, indent):
+		v = []
+		v.append("{}else if ({})\n".format(indent*"\t", self.condition.formatjava(indent)))
+		v.append("{}{{\n".format(indent*"\t"))
+		indent += 1
+		for node in self.content:
+			v.append(node.formatpython(indent))
+		indent -= 1
+		v.append("{}}}\n".format(indent*"\t"))
+		return "".join(v)
+
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
 		encoder.dump(self.condition)
@@ -975,6 +1031,17 @@ class Else(Block):
 		indent += 1
 		for node in self.content:
 			v.append(node.formatpython(indent))
+		return "".join(v)
+
+	def formatjava(self, indent):
+		v = []
+		v.append("{}else\n".format(indent*"\t"))
+		v.append("{}{{\n".format(indent*"\t"))
+		indent += 1
+		for node in self.content:
+			v.append(node.formatpython(indent))
+		indent -= 1
+		v.append("{}}}\n".format(indent*"\t"))
 		return "".join(v)
 
 
@@ -999,6 +1066,18 @@ class For(Block):
 		indent += 1
 		for node in self.content:
 			v.append(node.formatpython(indent))
+		return "".join(v)
+
+	def formatjava(self, indent):
+		v = []
+		v.append("{indent}for (Iterator iter{id:x} = com.livinglogic.ul4.Utils.iterator({container}); iter{id:x}.hasNext();)\n".format(indent=indent*"\t", id=id(self), container=self.container.formatjava(indent)))
+		v.append("{}{{\n".format(indent*"\t"))
+		indent += 1
+		v.append("{}com.livinglogic.ul4.ForNormal.unpackLoopVariable(context, iter{:x}.next(), {});\n".format(indent*"\t", id(self), misc.javaexpr(self.varname)))
+		for node in self.content:
+			v.append(node.formatjava(indent))
+		indent -= 1
+		v.append("{}}}\n".format(indent*"\t"))
 		return "".join(v)
 
 	def ul4ondump(self, encoder):
@@ -1035,6 +1114,19 @@ class ForUnpack(Block):
 			v.append(node.formatpython(indent))
 		return "".join(v)
 
+	def formatjava(self, indent):
+		v = []
+		v.append("{indent}for (Iterator iter{id:x} = com.livinglogic.ul4.Utils.iterator({container}); iter{id:x}.hasNext();)\n".format(indent=indent*"\t", id=id(self), container=self.container.formatjava(indent)))
+		v.append("{}{{\n".format(indent*"\t"))
+		indent += 1
+		varnames = "java.util.Arrays.asList({})".format(", ".join(misc.javaexpr(varname) for varname in self.varnames))
+		v.append("{}com.livinglogic.ul4.ForUnpack.unpackLoopVariable(context, iter{:x}.next(), {});\n".format(indent*"\t", id(self), varnames))
+		for node in self.content:
+			v.append(node.formatjava(indent))
+		indent -= 1
+		v.append("{}}}\n".format(indent*"\t"))
+		return "".join(v)
+
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
 		encoder.dump(self.container)
@@ -1054,6 +1146,9 @@ class Break(AST):
 	def formatpython(self, indent):
 		return "{}break\n".format(indent*"\t")
 
+	def formatjava(self, indent):
+		return "{}break;\n".format(indent*"\t")
+
 
 @register("continue")
 class Continue(AST):
@@ -1062,6 +1157,9 @@ class Continue(AST):
 
 	def formatpython(self, indent):
 		return "{}continue\n".format(indent*"\t")
+
+	def formatjava(self, indent):
+		return "{}continue;\n".format(indent*"\t")
 
 
 @register("getattr")
@@ -1083,6 +1181,9 @@ class GetAttr(AST):
 
 	def formatpython(self, indent):
 		return "{}[{!r}]".format(self.obj.formatpython(indent), self.attrname)
+
+	def formatjava(self, indent):
+		return "com.livinglogic.ul4.Utils.getItem({}, {})".format(self.obj.formatjava(indent), misc.javaexpr(self.attrname))
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1115,6 +1216,9 @@ class GetSlice(AST):
 
 	def formatpython(self, indent):
 		return "{}[{}:{}]".format(self.obj.formatpython(indent), self.index1.formatpython(indent) if self.index1 is not None else "", self.index2.formatpython(indent) if self.index2 is not None else "")
+
+	def formatjava(self, indent):
+		return "com.livinglogic.ul4.Utils.getSlice({}, {}, {})".format(self.obj.formatjava(indent), self.index1.formatjava(indent) if self.index1 is not None else "null", self.index2.formatjava(indent) if self.index2 is not None else "null")
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1153,10 +1257,13 @@ class Not(Unary):
 	precedence = 2
 
 	def format(self, indent):
-		return " not ".format(self._formatop(self.obj))
+		return "not ".format(self._formatop(self.obj))
 
 	def formatpython(self, indent):
-		return " not ({})".format(self.obj.formatpython(indent))
+		return "not ({})".format(self.obj.formatpython(indent))
+
+	def formatjava(self, indent):
+		return "com.livinglogic.ul4.Utils.not({})".format(self.obj.formatjava(indent))
 
 
 @register("neg")
@@ -1164,10 +1271,13 @@ class Neg(Unary):
 	precedence = 7
 
 	def format(self, indent):
-		return " -{}".format(self._formatop(self.obj))
+		return "-{}".format(self._formatop(self.obj))
 
 	def formatpython(self, indent):
-		return " -({})".format(self.obj.formatpython(indent))
+		return "-({})".format(self.obj.formatpython(indent))
+
+	def formatjava(self, indent):
+		return "com.livinglogic.ul4.Utils.neg({})".format(self.obj.formatjava(indent))
 
 
 @register("print")
@@ -1178,6 +1288,9 @@ class Print(Unary):
 	def formatpython(self, indent):
 		return "{}yield ul4c._str({})\n".format(indent*"\t", self.obj.formatpython(indent))
 
+	def formatjava(self, indent):
+		return "{}context.write(com.livinglogic.ul4.Utils.str({});\n".format(indent*"\t", self.obj.formatjava(indent))
+
 
 @register("printx")
 class PrintX(Unary):
@@ -1186,6 +1299,9 @@ class PrintX(Unary):
 
 	def formatpython(self, indent):
 		return "{}yield ul4c._xmlescape({})\n".format(indent*"\t", self.obj.formatpython(indent))
+
+	def formatjava(self, indent):
+		return "{}context.write(com.livinglogic.ul4.Utils.xmlescape({});\n".format(indent*"\t", self.obj.formatjava(indent))
 
 
 class Binary(AST):
@@ -1221,6 +1337,9 @@ class GetItem(Binary):
 	def formatpython(self, indent):
 		return "({})[{}]".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
+	def formatjava(self, indent):
+		return "com.livinglogic.ul4.Utils.getItem({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+
 
 @register("eq")
 class EQ(Binary):
@@ -1232,6 +1351,9 @@ class EQ(Binary):
 
 	def formatpython(self, indent):
 		return "({}) == ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+
+	def formatjava(self, indent):
+		return "com.livinglogic.ul4.Utils.eq({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("ne")
@@ -1245,6 +1367,9 @@ class NE(Binary):
 	def formatpython(self, indent):
 		return "({}) != ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
+	def formatjava(self, indent):
+		return "com.livinglogic.ul4.Utils.ne({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+
 
 @register("lt")
 class LT(Binary):
@@ -1256,6 +1381,9 @@ class LT(Binary):
 
 	def formatpython(self, indent):
 		return "({}) < ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+
+	def formatjava(self, indent):
+		return "com.livinglogic.ul4.Utils.lt({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("le")
@@ -1269,6 +1397,9 @@ class LE(Binary):
 	def formatpython(self, indent):
 		return "({}) <= ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
+	def formatjava(self, indent):
+		return "com.livinglogic.ul4.Utils.le({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+
 
 @register("gt")
 class GT(Binary):
@@ -1280,6 +1411,9 @@ class GT(Binary):
 
 	def formatpython(self, indent):
 		return "({}) > ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+
+	def formatjava(self, indent):
+		return "com.livinglogic.ul4.Utils.gt({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("ge")
@@ -1293,6 +1427,9 @@ class GE(Binary):
 	def formatpython(self, indent):
 		return "({}) >= ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
+	def formatjava(self, indent):
+		return "com.livinglogic.ul4.Utils.ge({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+
 
 @register("contains")
 class Contains(Binary):
@@ -1304,6 +1441,9 @@ class Contains(Binary):
 
 	def formatpython(self, indent):
 		return "({}) in ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+
+	def formatjava(self, indent):
+		return "com.livinglogic.ul4.Utils.contains({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("notcontains")
@@ -1317,6 +1457,9 @@ class NotContains(Binary):
 	def formatpython(self, indent):
 		return "({}) not in ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
+	def formatjava(self, indent):
+		return "com.livinglogic.ul4.Utils.notcontains({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+
 
 @register("add")
 class Add(Binary):
@@ -1327,6 +1470,9 @@ class Add(Binary):
 
 	def formatpython(self, indent):
 		return "({}) + ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+
+	def formatjava(self, indent):
+		return "com.livinglogic.ul4.Utils.add({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("sub")
@@ -1340,6 +1486,9 @@ class Sub(Binary):
 	def formatpython(self, indent):
 		return "({}) - ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
+	def formatjava(self, indent):
+		return "com.livinglogic.ul4.Utils.sub({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+
 
 @register("mul")
 class Mul(Binary):
@@ -1350,6 +1499,9 @@ class Mul(Binary):
 
 	def formatpython(self, indent):
 		return "({}) * ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+
+	def formatjava(self, indent):
+		return "com.livinglogic.ul4.Utils.mul({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("floordiv")
@@ -1363,6 +1515,9 @@ class FloorDiv(Binary):
 	def formatpython(self, indent):
 		return "({}) // ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
+	def formatjava(self, indent):
+		return "com.livinglogic.ul4.Utils.floordiv({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+
 
 @register("truediv")
 class TrueDiv(Binary):
@@ -1375,6 +1530,9 @@ class TrueDiv(Binary):
 	def formatpython(self, indent):
 		return "({}) / ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
+	def formatjava(self, indent):
+		return "com.livinglogic.ul4.Utils.truediv({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+
 
 @register("and")
 class And(Binary):
@@ -1385,6 +1543,9 @@ class And(Binary):
 
 	def formatpython(self, indent):
 		return "({}) and ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+
+	def formatjava(self, indent):
+		return "com.livinglogic.ul4.Utils.getBool(context.push({})) ? context.pop({}) : context.pop()".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 
 @register("or")
@@ -1397,6 +1558,9 @@ class Or(Binary):
 	def formatpython(self, indent):
 		return "({}) or ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
+	def formatjava(self, indent):
+		return "com.livinglogic.ul4.Utils.getBool(context.push({})) ? context.pop() : context.pop({})".format(self.obj2.formatpython(indent), self.obj1.formatpython(indent))
+
 
 @register("mod")
 class Mod(Binary):
@@ -1408,6 +1572,9 @@ class Mod(Binary):
 
 	def formatpython(self, indent):
 		return "({}) % ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+
+	def formatjava(self, indent):
+		return "com.livinglogic.ul4.Utils.mod({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 class ChangeVar(AST):
@@ -1440,6 +1607,9 @@ class StoreVar(ChangeVar):
 	def formatpython(self, indent):
 		return "{}vars[{!r}] = {}\n".format(indent*"\t", self.varname, self.value.formatpython(indent))
 
+	def formatjava(self, indent):
+		return "context.set({}, {});".format(misc.javaexpr(self.varname), self.value.formatjava(indent))
+
 
 @register("addvar")
 class AddVar(ChangeVar):
@@ -1448,6 +1618,10 @@ class AddVar(ChangeVar):
 
 	def formatpython(self, indent):
 		return "{}vars[{!r}] += {}\n".format(indent*"\t", self.varname, self.value.formatpython(indent))
+
+	def formatjava(self, indent):
+		varname = misc.javaexpr(self.varname)
+		return "context.set({}, com.livinglogic.ul4.Utils.add(context.get({}), {}));".format(varname, varname, self.value.formatjava(indent))
 
 
 @register("subvar")
@@ -1458,6 +1632,10 @@ class SubVar(ChangeVar):
 	def formatpython(self, indent):
 		return "{}vars[{!r}] -= {}\n".format(indent*"\t", self.varname, self.value.formatpython(indent))
 
+	def formatjava(self, indent):
+		varname = misc.javaexpr(self.varname)
+		return "context.set({}, com.livinglogic.ul4.Utils.sub(context.get({}), {}));".format(varname, varname, self.value.formatjava(indent))
+
 
 @register("mulvar")
 class MulVar(ChangeVar):
@@ -1466,6 +1644,10 @@ class MulVar(ChangeVar):
 
 	def formatpython(self, indent):
 		return "{}vars[{!r}] *= {}\n".format(indent*"\t", self.varname, self.value.formatpython(indent))
+
+	def formatjava(self, indent):
+		varname = misc.javaexpr(self.varname)
+		return "context.set({}, com.livinglogic.ul4.Utils.mul(context.get({}), {}));".format(varname, varname, self.value.formatjava(indent))
 
 
 @register("floordivvar")
@@ -1476,6 +1658,10 @@ class FloorDivVar(ChangeVar):
 	def formatpython(self, indent):
 		return "{}vars[{!r}] //= {}\n".format(indent*"\t", self.varname, self.value.formatpython(indent))
 
+	def formatjava(self, indent):
+		varname = misc.javaexpr(self.varname)
+		return "context.set({}, com.livinglogic.ul4.Utils.floordiv(context.get({}), {}));".format(varname, varname, self.value.formatjava(indent))
+
 
 @register("truedivvar")
 class TrueDivVar(ChangeVar):
@@ -1485,6 +1671,10 @@ class TrueDivVar(ChangeVar):
 	def formatpython(self, indent):
 		return "{}vars[{!r}] /= {}\n".format(indent*"\t", self.varname, self.value.formatpython(indent))
 
+	def formatjava(self, indent):
+		varname = misc.javaexpr(self.varname)
+		return "context.set({}, com.livinglogic.ul4.Utils.truediv(context.get({}), {}));".format(varname, varname, self.value.formatjava(indent))
+
 
 @register("modvar")
 class ModVar(ChangeVar):
@@ -1493,6 +1683,10 @@ class ModVar(ChangeVar):
 
 	def formatpython(self, indent):
 		return "{}vars[{!r}] %= {}\n".format(indent*"\t", self.varname, self.value.formatpython(indent))
+
+	def formatjava(self, indent):
+		varname = misc.javaexpr(self.varname)
+		return "context.set({}, com.livinglogic.ul4.Utils.mod(context.get({}), {}));".format(varname, varname, self.value.formatjava(indent))
 
 
 @register("delvar")
@@ -1511,6 +1705,9 @@ class DelVar(AST):
 
 	def formatpython(self, indent):
 		return "{}del vars[{!r}]\n".format(indent*"\t", self.varname)
+
+	def formatjava(self, indent):
+		return "context.remove({});".format(misc.javaexpr(self.varname))
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1595,6 +1792,61 @@ class CallFunc(AST):
 		except KeyError:
 			raise UnknownFunctionError(self.funcname)
 		return formatter(", ".join(arg.formatpython(indent) for arg in self.args))
+
+	def formatjava(self, indent):
+		functions = dict(
+			now="com.livinglogic.ul4.Utils.now({})".format,
+			utcnow="com.livinglogic.ul4.Utils.now({})".format,
+			vars="variables".format,
+			random="com.livinglogic.ul4.Utils.random({})".format,
+			xmlescape="com.livinglogic.ul4.Utils.xmlescape({})".format,
+			csv="com.livinglogic.ul4.Utils.csv({})".format,
+			json="com.livinglogic.ul4.Utils.json({})".format,
+			str="com.livinglogic.ul4.Utils.str({})".format,
+			int="com.livinglogic.ul4.Utils.int({})".format,
+			float="com.livinglogic.ul4.Utils.float({})".format,
+			bool="com.livinglogic.ul4.Utils.getBool({})".format,
+			len="com.livinglogic.ul4.Utils.len({})".format,
+			abs="com.livinglogic.ul4.Utils.abs({})".format,
+			enumerate="com.livinglogic.ul4.Utils.enumerate({})".format,
+			enumfl="com.livinglogic.ul4.Utils.enumfl({})".format,
+			isfirstlast="com.livinglogic.ul4.Utils.isfirstlast({})".format,
+			isfirst="com.livinglogic.ul4.Utils.isfirst({})".format,
+			islast="com.livinglogic.ul4.Utils.islast({})".format,
+			isnone="com.livinglogic.ul4.Utils.isnone({})".format,
+			isstr="com.livinglogic.ul4.Utils.isstr({})".format,
+			isint="com.livinglogic.ul4.Utils.isint({})".format,
+			isfloat="com.livinglogic.ul4.Utils.isfloat({})".format,
+			isbool="com.livinglogic.ul4.Utils.isbool({})".format,
+			isdate="com.livinglogic.ul4.Utils.isdate({})".format,
+			islist="com.livinglogic.ul4.Utils.islist({})".format,
+			isdict="com.livinglogic.ul4.Utils.isdict({})".format,
+			iscolor="com.livinglogic.ul4.Utils.iscolor({})".format,
+			istemplate="com.livinglogic.ul4.Utils.istemplate({})".format,
+			repr="com.livinglogic.ul4.Utils.repr({})".format,
+			get="variables.get({})".format,
+			chr="com.livinglogic.ul4.Utils.chr({})".format,
+			ord="com.livinglogic.ul4.Utils.ord({})".format,
+			hex="com.livinglogic.ul4.Utils.hex({})".format,
+			oct="com.livinglogic.ul4.Utils.oct({})".format,
+			bin="com.livinglogic.ul4.Utils.bin({})".format,
+			sorted="com.livinglogic.ul4.Utils.sorted({})".format,
+			range="com.livinglogic.ul4.Utils.range({})".format,
+			type="com.livinglogic.ul4.Utils.type({})".format,
+			reversed="com.livinglogic.ul4.Utils.reversed({})".format,
+			randrange="com.livinglogic.ul4.Utils.randrange({})".format,
+			randchoice="com.livinglogic.ul4.Utils.randchoice({})".format,
+			format="com.livinglogic.ul4.Utils.format({})".format,
+			zip="com.livinglogic.ul4.Utils.zip({})".format,
+			rgb="com.livinglogic.ul4.Color.fromrgb({})".format,
+			hls="com.livinglogic.ul4.Color.fromhls({})".format,
+			hsv="com.livinglogic.ul4.Color.fromhsv({})".format,
+		)
+		try:
+			formatter = functions[self.funcname]
+		except KeyError:
+			raise UnknownFunctionError(self.funcname)
+		return formatter(", ".join(arg.formatjava(indent) for arg in self.args))
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1880,6 +2132,32 @@ class Template(Block):
 		v.append("{}vars[{!r}] = template\n".format(indent*"\t", name))
 		return "".join(v)
 
+	def _java(self, indent):
+		v = []
+		v.append("new com.livinglogic.ul4.CompiledTemplate()\n")
+		v.append("{}{{\n".format(indent*"\t"))
+		indent += 1
+		v.append("{}public String getName()\n".format(indent*"\t"))
+		v.append("{}{{\n".format(indent*"\t"))
+		indent += 1
+		v.append("{}return {};\n".format(indent*"\t", misc.javaexpr(self.name if self.name is not None else "unnamed")))
+		indent -= 1
+		v.append("{}}}\n".format(indent*"\t"))
+		v.append("\n")
+		v.append("{}public void render(EvaluationContext context) throws java.io.IOException\n".format(indent*"\t"))
+		v.append("{}{{\n".format(indent*"\t"))
+		indent += 1
+		for node in self.content:
+			v.append(node.formatjava(indent))
+		indent -= 1
+		v.append("{}}}\n".format(indent*"\t"))
+		indent -= 1
+		v.append("{}}}".format(indent*"\t"))
+		return "".join(v)
+
+	def formatjava(self, indent):
+		return "{}variables.put({}, {});\n".format(indent*"\t", misc.javaexpr(self.name if self.name is not None else "unnamed"), self._java(indent))
+
 	def render(self, **vars):
 		"""
 		Render the template iteratively (i.e. this is a generator).
@@ -1911,11 +2189,9 @@ class Template(Block):
 	def __call__(self, **vars):
 		return self.pythonfunction()(**vars)
 
-	def pythonsource(self, *args, **kwargs):
+	def pythonsource(self):
 		"""
-		Return the template as Python source code. All arguments in :var:`args`
-		and :var:`kwargs` will be passed on to the :class:`PythonSource` object
-		which creates the sourcecode. See its constructor for more info.
+		Return the template as Python source code.
 		"""
 		v = []
 		v.append("def {}(**vars):\n".format(self.name if self.name is not None else "unnamed"))
@@ -1934,13 +2210,19 @@ class Template(Block):
 		"""
 		return str(JavascriptSource(self))
 
-	def javasource(self, *args, **kwargs):
+	def javasource(self, indent=0, interpreted=True):
 		"""
-		Return the template as Java source code. All arguments in :var:`args`
-		and :var:`kwargs` will be passed on to the :class:`JavaSource` object
-		which creates the sourcecode. See its constructor for more info.
+		Return the template as Java source code.
+
+		:var:`indent` is the indentation level.
+
+		:var:`interpreted` can be used the specify whether a ``CompiledTemplate``
+		or an ``InterpretedTemplate`` will be used.
 		"""
-		return str(JavaSource(self, *args, **kwargs))
+		if interpreted:
+			return self._java(indent)
+		else:
+			return "new com.livinglogic.ul4.InterpretedTemplate.loads({})\n".format(misc.javaexpr(self.dumps()))
 
 	def _tokenize(self, source, startdelim, enddelim):
 		"""
@@ -2602,10 +2884,10 @@ class JavaSource(object):
 		self._do("r{op.r1} = true;".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_loaddate(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.makeDate({date});".format(op=opcode, date=", ".join(str(int(p)) for p in datesplitter.split(opcode.arg))))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.makeDate({date});".format(op=opcode, date=", ".join(str(int(p)) for p in datesplitter.split(opcode.arg))))
 		self._usereg(opcode.r1)
 	def _dispatch_loadcolor(self, opcode):
-		self._do("r{op.r1} = new de.livinglogic.ul4.Color(0x{r}, 0x{g}, 0x{b}, 0x{a});".format(op=opcode, r=opcode.arg[:2], g=opcode.arg[2:4], b=opcode.arg[4:6], a=opcode.arg[6:]))
+		self._do("r{op.r1} = new com.livinglogic.ul4.Color(0x{r}, 0x{g}, 0x{b}, 0x{a});".format(op=opcode, r=opcode.arg[:2], g=opcode.arg[2:4], b=opcode.arg[4:6], a=opcode.arg[6:]))
 		self._usereg(opcode.r1)
 	def _dispatch_buildlist(self, opcode):
 		self._do("r{op.r1} = new java.util.ArrayList();".format(op=opcode))
@@ -2623,49 +2905,49 @@ class JavaSource(object):
 		self._do("((java.util.Map)r{op.r1}).putAll((java.util.Map)r{op.r2});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_loadvar(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.getItem({var}, {arg});".format(op=opcode, var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg)))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getItem({var}, {arg});".format(op=opcode, var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg)))
 		self._usereg(opcode.r1)
 	def _dispatch_storevar(self, opcode):
 		self._do("{var}.put({arg}, r{op.r1});".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_addvar(self, opcode):
-		self._do("{var}.put({arg}, de.livinglogic.ul4.Utils.add({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
+		self._do("{var}.put({arg}, com.livinglogic.ul4.Utils.add({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_subvar(self, opcode):
-		self._do("{var}.put({arg}, de.livinglogic.ul4.Utils.sub({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
+		self._do("{var}.put({arg}, com.livinglogic.ul4.Utils.sub({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_mulvar(self, opcode):
-		self._do("{var}.put({arg}, de.livinglogic.ul4.Utils.mul({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
+		self._do("{var}.put({arg}, com.livinglogic.ul4.Utils.mul({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_truedivvar(self, opcode):
-		self._do("{var}.put({arg}, de.livinglogic.ul4.Utils.truediv({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
+		self._do("{var}.put({arg}, com.livinglogic.ul4.Utils.truediv({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_floordivvar(self, opcode):
-		self._do("{var}.put({arg}, de.livinglogic.ul4.Utils.floordiv({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
+		self._do("{var}.put({arg}, com.livinglogic.ul4.Utils.floordiv({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_modvar(self, opcode):
-		self._do("{var}.put({arg}, de.livinglogic.ul4.Utils.mod({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
+		self._do("{var}.put({arg}, com.livinglogic.ul4.Utils.mod({var}.get({arg}), r{op.r1}));".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg), op=opcode))
 	def _dispatch_delvar(self, opcode):
 		self._do("{var}.remove({arg});".format(var=self._stack[-1].variables, arg=misc.javaexpr(opcode.arg)))
 	def _dispatch_getattr(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.getItem(r{op.r2}, {arg});".format(op=opcode, arg=misc.javaexpr(opcode.arg)))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getItem(r{op.r2}, {arg});".format(op=opcode, arg=misc.javaexpr(opcode.arg)))
 		self._usereg(opcode.r1)
 	def _dispatch_getitem(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.getItem(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getItem(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_getslice12(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.getSlice(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getSlice(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_getslice1(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.getSlice(r{op.r2}, r{op.r3}, null);".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getSlice(r{op.r2}, r{op.r3}, null);".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_getslice2(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.getSlice(r{op.r2}, null, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getSlice(r{op.r2}, null, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_getslice(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.getSlice(r{op.r2}, null, null);".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getSlice(r{op.r2}, null, null);".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_print(self, opcode):
-		self._do(self.output("de.livinglogic.ul4.Utils.str(r{op.r1})".format(op=opcode)))
+		self._do(self.output("com.livinglogic.ul4.Utils.str(r{op.r1})".format(op=opcode)))
 	def _dispatch_printx(self, opcode):
-		self._do(self.output("de.livinglogic.ul4.Utils.xmlescape(r{op.r1})".format(op=opcode)))
+		self._do(self.output("com.livinglogic.ul4.Utils.xmlescape(r{op.r1})".format(op=opcode)))
 	def _dispatch_for(self, opcode):
 		varcounter = self._stack[-1].varcounter
-		self._do("for (java.util.Iterator iterator{count} = de.livinglogic.ul4.Utils.iterator(r{op.r2}); iterator{count}.hasNext();)".format(op=opcode, count=varcounter))
+		self._do("for (java.util.Iterator iterator{count} = com.livinglogic.ul4.Utils.iterator(r{op.r2}); iterator{count}.hasNext();)".format(op=opcode, count=varcounter))
 		self._do("{")
 		self._do(1)
 		self._do("r{op.r1} = iterator{count}.next();".format(op=opcode, count=varcounter))
@@ -2679,7 +2961,7 @@ class JavaSource(object):
 	def _dispatch_enddef(self, opcode):
 		level = self._stack.pop()
 		# define new template object
-		self._do('{var}.put({arg}, new de.livinglogic.ul4.JSPTemplate()'.format(var=self._stack[-1].variables, arg=misc.javaexpr(level.name)))
+		self._do('{var}.put({arg}, new com.livinglogic.ul4.CompiledTemplate()'.format(var=self._stack[-1].variables, arg=misc.javaexpr(level.name)))
 		self._do("{")
 		self._do(1)
 		self._do("public String getName()")
@@ -2706,64 +2988,64 @@ class JavaSource(object):
 	def _dispatch_continue(self, opcode):
 		self._do("continue;")
 	def _dispatch_not(self, opcode):
-		self._do("r{op.r1} = !de.livinglogic.ul4.Utils.getBool(r{op.r2});".format(op=opcode))
+		self._do("r{op.r1} = !com.livinglogic.ul4.Utils.getBool(r{op.r2});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_neg(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.neg(r{op.r2});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.neg(r{op.r2});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_contains(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.contains(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.contains(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_notcontains(self, opcode):
-		self._do("r{op.r1} = !de.livinglogic.ul4.Utils.contains(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = !com.livinglogic.ul4.Utils.contains(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_eq(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.eq(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.eq(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_ne(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.ne(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.ne(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_lt(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.lt(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.lt(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_le(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.le(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.le(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_gt(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.gt(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.gt(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_ge(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.ge(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.ge(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_add(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.add(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.add(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_sub(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.sub(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.sub(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_mul(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.mul(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.mul(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_floordiv(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.floordiv(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.floordiv(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_truediv(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.truediv(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.truediv(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_and(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.getBool(r{op.r3}) ? r{op.r2} : r{op.r3};".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getBool(r{op.r3}) ? r{op.r2} : r{op.r3};".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_or(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.getBool(r{op.r2}) ? r{op.r2} : r{op.r3};".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.getBool(r{op.r2}) ? r{op.r2} : r{op.r3};".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_mod(self, opcode):
-		self._do("r{op.r1} = de.livinglogic.ul4.Utils.mod(r{op.r2}, r{op.r3});".format(op=opcode))
+		self._do("r{op.r1} = com.livinglogic.ul4.Utils.mod(r{op.r2}, r{op.r3});".format(op=opcode))
 		self._usereg(opcode.r1)
 	def _dispatch_callfunc0(self, opcode):
 		if opcode.arg == "now":
 			self._do("r{op.r1} = new java.util.Date();".format(op=opcode))
 		elif opcode.arg in {"utcnow", "random"}:
-			self._do("r{op.r1} = de.livinglogic.ul4.Utils.{op.arg}();".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}();".format(op=opcode))
 		elif opcode.arg == "vars":
 			self._do("r{op.r1} = {var};".format(op=opcode, var=self._stack[-1].variables))
 		else:
@@ -2771,15 +3053,15 @@ class JavaSource(object):
 		self._usereg(opcode.r1)
 	def _dispatch_callfunc1(self, opcode):
 		if opcode.arg in {"xmlescape", "csv", "repr", "enumerate", "isfirstlast", "isfirst", "islast", "enumfl", "chr", "ord", "hex", "oct", "bin", "sorted", "range", "type", "json", "reversed", "randrange", "randchoice", "abs", "str"}:
-			self._do("r{op.r1} = de.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "int":
-			self._do("r{op.r1} = de.livinglogic.ul4.Utils.toInteger(r{op.r2});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.toInteger(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "float":
-			self._do("r{op.r1} = de.livinglogic.ul4.Utils.toFloat(r{op.r2});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.toFloat(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "bool":
-			self._do("r{op.r1} = de.livinglogic.ul4.Utils.getBool(r{op.r2});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.getBool(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "len":
-			self._do("r{op.r1} = de.livinglogic.ul4.Utils.length(r{op.r2});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.length(r{op.r2});".format(op=opcode))
 		elif opcode.arg == "isnone":
 			self._do("r{op.r1} = (r{op.r2} == null);".format(op=opcode))
 		elif opcode.arg == "isstr":
@@ -2795,11 +3077,11 @@ class JavaSource(object):
 		elif opcode.arg == "islist":
 			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof java.util.List));".format(op=opcode))
 		elif opcode.arg == "isdict":
-			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof java.util.Map) && !(r{op.r2} instanceof de.livinglogic.ul4.Template));".format(op=opcode))
+			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof java.util.Map) && !(r{op.r2} instanceof com.livinglogic.ul4.Template));".format(op=opcode))
 		elif opcode.arg == "istemplate":
-			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof de.livinglogic.ul4.Template));".format(op=opcode))
+			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof com.livinglogic.ul4.Template));".format(op=opcode))
 		elif opcode.arg == "iscolor":
-			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof de.livinglogic.ul4.Color));".format(op=opcode))
+			self._do("r{op.r1} = ((r{op.r2} != null) && (r{op.r2} instanceof com.livinglogic.ul4.Color));".format(op=opcode))
 		elif opcode.arg == "get":
 			self._do("r{op.r1} = {var}.get(r{op.r2});".format(op=opcode, var=self._stack[-1].variables))
 		else:
@@ -2807,9 +3089,9 @@ class JavaSource(object):
 		self._usereg(opcode.r1)
 	def _dispatch_callfunc2(self, opcode):
 		if opcode.arg in {"format", "range", "zip", "randrange"}:
-			self._do("r{op.r1} = de.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
 		elif opcode.arg == "int":
-			self._do("r{op.r1} = de.livinglogic.ul4.Utils.toInteger(r{op.r2}, r{op.r3});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.toInteger(r{op.r2}, r{op.r3});".format(op=opcode))
 		elif opcode.arg == "get":
 			self._do("r{op.r1} = {var}.containsKey(r{op.r2}) ? {var}.get(r{op.r2}) : r{op.r3};".format(op=opcode, var=self._stack[-1].variables))
 		else:
@@ -2817,33 +3099,33 @@ class JavaSource(object):
 		self._usereg(opcode.r1)
 	def _dispatch_callfunc3(self, opcode):
 		if opcode.arg in {"range", "zip", "rgb", "hls", "hsv", "randrange"}:
-			self._do("r{op.r1} = de.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 		else:
 			raise UnknownFunctionError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callfunc4(self, opcode):
 		if opcode.arg in {"rgb", "hls", "hsv"}:
-			self._do("r{op.r1} = de.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
 		else:
 			raise UnknownFunctionError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callmeth0(self, opcode):
 		if opcode.arg in {"split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "items", "isoformat", "mimeformat", "day", "month", "year", "hour", "minute", "second", "microsecond", "weekday", "yearday"}:
-			self._do("r{op.r1} = de.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2});".format(op=opcode))
 		elif opcode.arg in {"r", "g", "b", "a"}:
-			self._do("r{op.r1} = ((de.livinglogic.ul4.Color)r{op.r2}).get{arg}();".format(op=opcode, arg=opcode.arg.upper()))
+			self._do("r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).get{arg}();".format(op=opcode, arg=opcode.arg.upper()))
 		elif opcode.arg in {"hls", "hlsa", "hsv", "hsva"}:
-			self._do("r{op.r1} = ((de.livinglogic.ul4.Color)r{op.r2}).{op.arg}();".format(op=opcode))
+			self._do("r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).{op.arg}();".format(op=opcode))
 		elif opcode.arg == "lum":
-			self._do("r{op.r1} = ((de.livinglogic.ul4.Color)r{op.r2}).lum();".format(op=opcode))
+			self._do("r{op.r1} = ((com.livinglogic.ul4.Color)r{op.r2}).lum();".format(op=opcode))
 		elif opcode.arg == "render":
-			self._do("r{op.r1} = ((de.livinglogic.ul4.Template)r{op.r2}).renders(null);".format(op=opcode))
+			self._do("r{op.r1} = ((com.livinglogic.ul4.Template)r{op.r2}).renders(null);".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callmeth1(self, opcode):
 		if opcode.arg in {"join", "split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find", "rfind", "withlum", "witha"}:
-			self._do("r{op.r1} = de.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3});".format(op=opcode))
 		elif opcode.arg == "get":
 			self._do("r{op.r1} = ((java.util.Map)r{op.r2}).get(r{op.r3});".format(op=opcode))
 		else:
@@ -2851,7 +3133,7 @@ class JavaSource(object):
 		self._usereg(opcode.r1)
 	def _dispatch_callmeth2(self, opcode):
 		if opcode.arg in {"split", "rsplit", "find", "rfind", "replace"}:
-			self._do("r{op.r1} = de.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4});".format(op=opcode))
 		elif opcode.arg == "get":
 			self._do("r{op.r1} = ((java.util.Map)r{op.r2}).containsKey(r{op.r3}) ? ((java.util.Map)r{op.r2}).get(r{op.r3}) : r{op.r4};".format(op=opcode))
 		else:
@@ -2859,18 +3141,18 @@ class JavaSource(object):
 		self._usereg(opcode.r1)
 	def _dispatch_callmeth3(self, opcode):
 		if opcode.arg in {"find", "rfind"}:
-			self._do("r{op.r1} = de.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
+			self._do("r{op.r1} = com.livinglogic.ul4.Utils.{op.arg}(r{op.r2}, r{op.r3}, r{op.r4}, r{op.r5});".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_callmethkw(self, opcode):
 		if opcode.arg == "render":
-			self._do("r{op.r1} = ((de.livinglogic.ul4.Template)r{op.r2}).renders((java.util.Map)r{op.r3});".format(op=opcode))
+			self._do("r{op.r1} = ((com.livinglogic.ul4.Template)r{op.r2}).renders((java.util.Map)r{op.r3});".format(op=opcode))
 		else:
 			raise UnknownMethodError(opcode.arg)
 		self._usereg(opcode.r1)
 	def _dispatch_if(self, opcode):
-		self._do("if (de.livinglogic.ul4.Utils.getBool(r{op.r1}))".format(op=opcode))
+		self._do("if (com.livinglogic.ul4.Utils.getBool(r{op.r1}))".format(op=opcode))
 		self._do("{")
 		self._do(1)
 	def _dispatch_else(self, opcode):
@@ -2883,7 +3165,7 @@ class JavaSource(object):
 		self._do(-1)
 		self._do("}")
 	def _dispatch_render(self, opcode):
-		self._do("((de.livinglogic.ul4.Template)r{op.r1}).render(out, (java.util.Map)r{op.r2});".format(op=opcode))
+		self._do("((com.livinglogic.ul4.Template)r{op.r1}).render(out, (java.util.Map)r{op.r2});".format(op=opcode))
 
 
 ###

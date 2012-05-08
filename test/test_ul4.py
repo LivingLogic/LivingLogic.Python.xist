@@ -175,7 +175,7 @@ class RenderJava(Render):
 
 class RenderJavaSourceCompiledByPython(RenderJava):
 	codetemplate = """
-	com.livinglogic.ul4.Template template = new com.livinglogic.ul4.JSPTemplate()
+	com.livinglogic.ul4.Template template = new com.livinglogic.ul4.CompiledTemplate()
 	{
 		public String getName()
 		{

@@ -546,7 +546,7 @@ def javaexpr(obj):
 	elif isinstance(obj, collections.Mapping):
 		return "com.livinglogic.ul4.Utils.makeMap({})".format(", ".join("{}, {}".format(javaexpr(key), javaexpr(value)) for (key, value) in obj.items()))
 	elif isinstance(obj, ul4c.Template):
-		return 'new com.livinglogic.ul4.JSPTemplate() {{ public String getName() {{ return {}; }} public void render(java.io.Writer out, java.util.Map<String, Object> variables) throws java.io.IOException {{ {} }} }}'.format(javaexpr(obj.name), " ".join(line.strip() for line in obj.javasource().splitlines()))
+		return 'new com.livinglogic.ul4.CompiledTemplate() {{ public String getName() {{ return {}; }} public void render(java.io.Writer out, java.util.Map<String, Object> variables) throws java.io.IOException {{ {} }} }}'.format(javaexpr(obj.name), " ".join(line.strip() for line in obj.javasource().splitlines()))
 	else:
 		raise TypeError("can't handle object of type {}".format(type(obj)))
 
