@@ -1545,7 +1545,7 @@ class And(Binary):
 		return "({}) and ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.getBool(context.push({})) ? context.pop({}) : context.pop()".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+		return "com.livinglogic.ul4.Utils.getBool(context.push({})) ? context.pop({}) : context.pop()".format(self.obj2.formatjava(indent), self.obj1.formatjava(indent))
 
 
 @register("or")
@@ -1559,7 +1559,7 @@ class Or(Binary):
 		return "({}) or ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.getBool(context.push({})) ? context.pop() : context.pop({})".format(self.obj2.formatpython(indent), self.obj1.formatpython(indent))
+		return "com.livinglogic.ul4.Utils.getBool(context.push({})) ? context.pop() : context.pop({})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("mod")
