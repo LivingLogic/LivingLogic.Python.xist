@@ -38,7 +38,7 @@ _names2classes = {}
 
 def register(name):
 	def registration(cls):
-		ul4on.register("de.livingLogic.ul4." + name)(cls)
+		ul4on.register("de.livinglogic.ul4." + name)(cls)
 		cls.type = name
 		return cls
 	return registration
@@ -1257,7 +1257,7 @@ class Not(Unary):
 	precedence = 2
 
 	def format(self, indent):
-		return "not ".format(self._formatop(self.obj))
+		return "not {}".format(self._formatop(self.obj))
 
 	def formatpython(self, indent):
 		return "not ({})".format(self.obj.formatpython(indent))
@@ -1927,6 +1927,16 @@ class CallMeth(AST):
 		except KeyError:
 			raise UnknownMethodError(self.methname)
 		return formatter(self.obj.formatpython(indent), ", ".join(arg.formatpython(indent) for arg in self.args))
+
+	def formatjava(self, indent):
+		functions = dict(
+			now="com.livinglogic.ul4.Utils.now({})".format,
+		)
+		try:
+			formatter = functions[self.methname]
+		except KeyError:
+			raise UnknownFunctionError(self.methname)
+		return formatter(self.obj.formatjava(indent), ", ".join(arg.formatjava(indent) for arg in self.args))
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)

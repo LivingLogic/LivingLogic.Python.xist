@@ -516,15 +516,18 @@ def javaexpr(obj):
 	elif obj is False:
 		return "false"
 	elif isinstance(obj, str):
-		v = []
-		specialchars = {"\r": "\\r", "\n": "\\n", "\t": "\\t", "\f": "\\f", "\b": "\\b", '"': '\\"', "\\": "\\\\"}
-		for c in obj:
-			try:
-				v.append(specialchars[c])
-			except KeyError:
-				oc = ord(c)
-				v.append(c if 32 <= oc < 128 else "\\u{:04x}".format(oc))
-		return '"{}"'.format("".join(v))
+		if len(obj) > 10000: # Otherwise javac complains about ``constant string too long`` (the upper limit is 65535 UTF-8 bytes)
+			return "new StringBuilder(){}.toString()".format("".join(".append({})".format(javaexpr(obj[i:i+10000])) for i in range(0, len(obj), 10000)))
+		else:
+			v = []
+			specialchars = {"\r": "\\r", "\n": "\\n", "\t": "\\t", "\f": "\\f", "\b": "\\b", '"': '\\"', "\\": "\\\\"}
+			for c in obj:
+				try:
+					v.append(specialchars[c])
+				except KeyError:
+					oc = ord(c)
+					v.append(c if 32 <= oc < 128 else "\\u{:04x}".format(oc))
+			return '"{}"'.format("".join(v))
 	elif isinstance(obj, datetime.datetime): # check ``datetime`` before ``date``, as ``datetime`` is a subclass of ``date``
 		return "com.livinglogic.ul4.Utils.makeDate({0.year}, {0.month}, {0.day}, {0.hour}, {0.minute}, {0.second}, {0.microsecond})".format(obj)
 	elif isinstance(obj, datetime.date):
