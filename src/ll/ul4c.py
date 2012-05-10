@@ -2230,9 +2230,9 @@ class Template(Block):
 		or an ``InterpretedTemplate`` will be used.
 		"""
 		if interpreted:
-			return self._java(indent)
+			return "com.livinglogic.ul4.InterpretedTemplate.loads({})\n".format(misc.javaexpr(self.dumps()))
 		else:
-			return "new com.livinglogic.ul4.InterpretedTemplate.loads({})\n".format(misc.javaexpr(self.dumps()))
+			return self._java(indent)
 
 	def _tokenize(self, source, startdelim, enddelim):
 		"""
