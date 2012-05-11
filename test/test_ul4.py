@@ -107,7 +107,7 @@ class RenderJava(Render):
 	public class UL4Test
 	{
 		@SuppressWarnings("unchecked")
-		public static void main(String[] args) throws java.io.IOException, java.io.UnsupportedEncodingException
+		public static void main(String[] args) throws java.io.IOException, java.io.UnsupportedEncodingException, org.antlr.runtime.RecognitionException
 		{
 			%(source)s
 		}
@@ -209,7 +209,7 @@ class RenderJavaCompiledTemplateByPython(RenderJava):
 
 class RenderJavaInterpretedTemplateByJava(RenderJava):
 	codetemplate = """
-	com.livinglogic.ul4.InterpretedTemplate template = new InterpretedTemplate((%(source)s);
+	com.livinglogic.ul4.InterpretedTemplate template = new com.livinglogic.ul4.InterpretedTemplate(%(source)s);
 	java.util.Map<String, Object> variables = %(variables)s;
 	String output = template.renders(variables);
 	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
@@ -229,7 +229,7 @@ all_python_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump)
 # FIXME: The following really takes a long time to run: 
 #all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaInterpretedTemplateByPython, RenderJavaCompiledTemplateByPython, RenderJavaInterpretedTemplateByJava)
 all_renderers = all_python_renderers
-all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJavaInterpretedTemplateByPython)
+all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJavaInterpretedTemplateByPython, RenderJavaInterpretedTemplateByJava)
 
 
 def eq(expected, render):
