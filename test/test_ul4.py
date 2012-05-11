@@ -124,11 +124,6 @@ class RenderJava(Render):
 				msg = line[len(prefix1):].strip()
 			elif line.startswith(prefix2):
 				msg = line[len(prefix2):].strip()
-			else:
-				continue
-			if msg == "Traceback (most recent call last):": # This is a Jython exception, the message is in the last line
-				msg = lines[-1]
-				break
 		if msg is not None:
 			print(output, file=sys.stderr)
 			raise RuntimeError(msg)
@@ -157,7 +152,7 @@ class RenderJava(Render):
 		try:
 			source = self.maincodetemplate % dict(source=source)
 			source = self.formatsource(source)
-			print(source.encode("utf-8"))
+			print(source)
 			with open(os.path.join(tempdir, "UL4Test.java"), "wb") as f:
 				f.write(source.encode("utf-8"))
 			os.system("cd {}; javac -encoding utf-8 UL4Test.java".format(tempdir))
@@ -166,26 +161,16 @@ class RenderJava(Render):
 		finally:
 			shutil.rmtree(tempdir)
 		# Check if we have an exception
-		self.findexception(stdout)
-		self.findexception(stderr)
+		self.findexception(stdout.decode("utf-8"))
+		self.findexception(stderr.decode("utf-8"))
 		if stderr:
 			print(stderr, file=sys.stderr)
 		return stdout.decode("utf-8")
 
 
-class RenderJavaSourceCompiledByPython(RenderJava):
+class RenderJavaInterpretedTemplateByPython(RenderJava):
 	codetemplate = """
-	com.livinglogic.ul4.Template template = new com.livinglogic.ul4.CompiledTemplate()
-	{
-		public String getName()
-		{
-			return "unnamed";
-		}
-		public void render(java.io.Writer out, java.util.Map<String, Object> variables) throws java.io.IOException
-		{
-			%(template)s
-		}
-	};
+	com.livinglogic.ul4.InterpretedTemplate template = %(template)s;
 	java.util.Map<String, Object> variables = %(variables)s;
 	String output = template.renders(variables);
 	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
@@ -196,16 +181,35 @@ class RenderJavaSourceCompiledByPython(RenderJava):
 
 	def renders(self):
 		# Check the Java version
-		print("Testing Java code ({}, line {}):".format(self.filename, self.lineno))
+		print("Testing Java InterpretedTemplate (compiled by Python) ({}, line {}):".format(self.filename, self.lineno))
+		templatesource = ul4c.Template(self.source).javasource(interpreted=True)
+		java = self.codetemplate % dict(variables=misc.javaexpr(self.variables), template=templatesource)
+		return self.runsource(java)
+
+
+class RenderJavaCompiledTemplateByPython(RenderJava):
+	codetemplate = """
+	com.livinglogic.ul4.Template template = %(template)s;
+	java.util.Map<String, Object> variables = %(variables)s;
+	String output = template.renders(variables);
+	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
+	// Use ``System.out.write`` to make sure the output is in UTF-8
+	byte[] outputBytes = output.getBytes("utf-8");
+	System.out.write(outputBytes, 0, outputBytes.length);
+	"""
+
+	def renders(self):
+		# Check the Java version
+		print("Testing Java CompiledTemplate (compiled by Python) ({}, line {}):".format(self.filename, self.lineno))
 		template = ul4c.Template(self.source)
-		java = template.javasource(indent=4)
+		java = template.javasource(interpreted=False)
 		java = self.codetemplate % dict(variables=misc.javaexpr(self.variables), template=java)
 		return self.runsource(java)
 
 
-class RenderJavaLoadByJava(RenderJava):
+class RenderJavaInterpretedTemplateByJava(RenderJava):
 	codetemplate = """
-	com.livinglogic.ul4.InterpretedTemplate template = com.livinglogic.ul4.InterpretedTemplate.load(%(dump)s);
+	com.livinglogic.ul4.InterpretedTemplate template = new InterpretedTemplate((%(source)s);
 	java.util.Map<String, Object> variables = %(variables)s;
 	String output = template.renders(variables);
 	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
@@ -216,38 +220,16 @@ class RenderJavaLoadByJava(RenderJava):
 
 	def renders(self):
 		# Check the Java version
-		print("Testing Java InterpretedTemplate (interpreted mode, compiled by Python) ({}, line {}):".format(self.filename, self.lineno))
-		template = ul4c.Template(self.source)
-		dump = template.dumps()
-		java = self.codetemplate % dict(variables=misc.javaexpr(self.variables), dump=misc.javaexpr(dump))
-		return self.runsource(java)
-
-
-class RenderJavaSourceCompiledByJava(RenderJava):
-	codetemplate = """
-	com.livinglogic.ul4.InterpretedTemplate template = com.livinglogic.ul4.Compiler.compile(%(source)s);
-	System.err.println("Generate Java code:");
-	System.err.println(template.javaSource());
-	com.livinglogic.ul4.JSPTemplate compiledTemplate = template.compileToJava();
-	java.util.Map<String, Object> variables = %(variables)s;
-	String output = compiledTemplate.renders(variables);
-	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
-	// Use ``System.out.write`` to make sure the output is in UTF-8
-	byte[] outputBytes = output.getBytes("utf-8");
-	System.out.write(outputBytes, 0, outputBytes.length);
-	"""
-
-	def renders(self):
-		# Check the Java version
-		print("Testing Java InterpretedTemplate (compiled mode, compiled by Java) ({}, line {}):".format(self.filename, self.lineno))
+		print("Testing Java InterpretedTemplate (compiled by Java) ({}, line {}):".format(self.filename, self.lineno))
 		java = self.codetemplate % dict(source=misc.javaexpr(self.source), variables=misc.javaexpr(self.variables))
 		return self.runsource(java)
 
 
 all_python_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump)
 # FIXME: The following really takes a long time to run: 
-#all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaSourceCompiledByPython, RenderJavaLoadByJava, RenderJavaSourceCompiledByJava)
+#all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaInterpretedTemplateByPython, RenderJavaCompiledTemplateByPython, RenderJavaInterpretedTemplateByJava)
 all_renderers = all_python_renderers
+all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJavaInterpretedTemplateByPython)
 
 
 def eq(expected, render):
