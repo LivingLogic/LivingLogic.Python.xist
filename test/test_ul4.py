@@ -340,7 +340,7 @@ def test_float():
 @py.test.mark.ul4
 def test_string():
 	for r in all_renderers:
-		yield raises, "Unterminated string", r('<?print "?>')
+		yield raises, "Unterminated string|mismatched character|MismatchedTokenException", r('<?print "?>')
 		yield eq, 'foo', r('<?print "foo"?>')
 		yield eq, '\n', r('<?print "\\n"?>')
 		yield eq, '\r', r('<?print "\\r"?>')
@@ -763,9 +763,9 @@ def test_getitem():
 		yield eq, "u", r("<?print x[1]?>", x="gurk")
 		yield eq, "u", r("<?print 'gurk'[-3]?>")
 		yield eq, "u", r("<?print x[-3]?>", x="gurk")
-		yield raises, "IndexError", r("<?print 'gurk'[4]?>")
+		yield raises, "index out of range|IndexError", r("<?print 'gurk'[4]?>")
 		yield raises, "index (4 )?out of range", r("<?print x[4]?>", x="gurk")
-		yield raises, "IndexError", r("<?print 'gurk'[-5]?>")
+		yield raises, "index out of range|IndexError", r("<?print 'gurk'[-5]?>")
 		yield raises, "index (-5 )?out of range", r("<?print x[-5]?>", x="gurk")
 
 
