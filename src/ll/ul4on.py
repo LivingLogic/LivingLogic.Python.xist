@@ -11,7 +11,9 @@
 
 """
 This module provides functions for encoding and decoding a lightweight
-machine-readable format for serializing the object types supported by UL4.
+machine-readable text-based format for serializing the object types supported
+by UL4.
+
 It is extensible to allow encoding/decoding arbitrary instances (i.e. it is
 basically a reimplementation of :mod:`pickle`, but with string input/output
 instead of bytes and with an eye towards cross-plattform support).
