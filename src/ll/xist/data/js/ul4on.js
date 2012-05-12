@@ -36,10 +36,11 @@
 var ul4on = {
 	_registry: {},
 
-	register: function(name, object)
+	// Register the object ``obj`` under the name ``name`` with the UL4ON machinery
+	register: function(name, obj)
 	{
-		object.ul4onname = name;
-		this._registry[name] = function(){return object.create();};
+		obj.ul4onname = name;
+		this._registry[name] = function(){return obj.create();};
 	},
 
 	// Return a string that contains the object ``obj`` in the UL4ON serialization format
