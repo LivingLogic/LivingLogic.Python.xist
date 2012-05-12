@@ -5,8 +5,13 @@
  * Copyright 2012 by LivingLogic AG, Bayreuth/Germany
  * Copyright 2012 by Walter Dörwald
  *
- * This library provides functions for encoding and decoding a lightweight
- * machine-readable format for serializing the object types supported by UL4.
+ * This module provides functions for encoding and decoding a lightweight
+ * machine-readable text-based format for serializing the object types supported
+ * by UL4.
+ *
+ * It is extensible to allow encoding/decoding arbitrary instances (i.e. it is
+ * basically a reimplementation of :mod:`pickle`, but with string input/output
+ * instead of bytes and with an eye towards cross-plattform support).
  *
  * All Rights Reserved
  *
@@ -29,148 +34,37 @@
  * THE SOFTWARE.
  */
 var ul4on = {
+	_registry: {},
+
+	register: function(name, class_, factory)
+	{
+		this._registry[name] = factory;
+		class_.ul4onname = name;
+	},
+
 	// Return a string that contains the object ``obj`` in the UL4ON serialization format
 	dumps: function(obj)
 	{
-		var writer = this._writer.create();
-		this._dump(obj, writer);
-		return writer.finish();
+		var encoder = this.Encoder.create();
+		encoder.dump(obj);
+		return encoder.finish();
 	},
 
 	// Load an object from the string ``data``. ``data`` must contain the object in the UL4ON serialization format
 	loads: function(data)
 	{
-		return this._load(this._reader.create(data));
+		var decoder = this.Decoder.create(data);
+		return decoder.load();
 	},
 
-	// Internal helper for ``dumps``: output the object ``obj`` to the writer ``writer``
-	_dump: function(obj, writer)
-	{
-		if (obj === null)
-			writer.write("n");
-		else if (typeof(obj) == "boolean")
-			writer.write(obj ? "bT" : "bF");
-		else if (typeof(obj) == "number")
-			writer.writenumber((Math.round(obj) == obj) ? "i" : "f", obj);
-		else if (typeof(obj) == "string")
-		{
-			writer.writenumber("s", obj.length);
-			writer.write(obj);
-		}
-		else if (ul4._fu_iscolor(obj))
-		{
-			writer.write("c", obj.length);
-			if (obj.r < 0x10)
-				writer.write("0");
-			writer.write(obj.r.toString(16));
-			if (obj.g < 0x10)
-				writer.write("0");
-			writer.write(obj.g.toString(16));
-			if (obj.b < 0x10)
-				writer.write("0");
-			writer.write(obj.b.toString(16));
-			if (obj.a < 0x10)
-				writer.write("0");
-			writer.write(obj.a.toString(16));
-		}
-		else if (ul4._fu_isdate(obj))
-			writer.write(ul4._fu_format(obj, "d%Y%m%d%H%M%S%f"))
-		else if (ul4._fu_istemplate(obj))
-		{
-			var output = obj.dumps();
-			writer.writenumber("t", output.length);
-			writer.write(output);
-		}
-		else if (ul4._fu_islist(obj))
-		{
-			writer.write("[");
-			for (var i in obj)
-				this._dump(obj[i], writer);
-			writer.write("]");
-		}
-		else if (ul4._fu_isdict(obj))
-		{
-			writer.write("{");
-			for (var key in obj)
-			{
-				this._dump(key, writer);
-				this._dump(obj[key], writer);
-			}
-			writer.write("}");
-		}
-		else
-			throw "can't handle object";
-	},
-
-	// Helper function for ``loads``: Read the next object from ``reader``.
-	_load: function(reader)
-	{
-		debugger;
-		var typecode = reader.readchar();
-
-		switch (typecode)
-		{
-			case "n":
-				return null;
-			case "b":
-				var value = reader.readchar();
-				if (value == "T")
-					return true;
-				else if (value == "F")
-					return false;
-				else
-					throw "wrong value for boolean, expected " + ul4._fu_repr("T") + " or " + ul4._fu_repr("F") + ", got " + ul4._fu_repr(value) + " at position " + reader.pos;
-			case "i":
-			case "f":
-				return reader.readnumber();
-			case "s":
-				var size = reader.readnumber();
-				return reader.read(size);
-			case "c":
-				var value = reader.read(8);
-				return ul4.Color.create(parseInt(value.substring(0, 2), 16), parseInt(value.substring(2, 4), 16), parseInt(value.substring(4, 6), 16), parseInt(value.substring(6, 8), 16));
-			case "d":
-				var value = reader.read(20);
-				return new Date(parseInt(value.substring(0, 4)), parseInt(value.substring(4, 6)) + 1, parseInt(value.substring(6, 8)), parseInt(value.substring(8, 10)), parseInt(value.substring(10, 12)), parseInt(value.substring(12, 14)), parseInt(value.substring(14, 17)));
-			case "t":
-				var size = reader.readnumber();
-				return ul4.Templates.loads(reader.read(size));
-			case "[":
-				var result = [];
-				for (;;)
-				{
-					typecode = reader.readchar();
-					if (typecode == "]")
-						return result;
-					reader.backup();
-					var value = this._load(reader);
-					result.push(value);
-				}
-			case "{":
-				var result = {};
-				for (;;)
-				{
-					typecode = reader.readchar();
-					if (typecode == "}")
-						return result;
-					reader.backup();
-					var key = this._load(reader);
-					var value = this._load(reader);
-					result[key] = value;
-				}
-			default:
-				throw "unknown typecode " + ul4._fu_repr(typecode) + " at position " + reader.pos;
-		}
-	},
-
-	// Helper "class" for output
-	_writer: {
-		// Create a new writer object
+	// Helper "class" for encoding
+	Encoder: {
+		// Create a new Encoder object
 		create: function()
 		{
-			var writer = ul4._clone(this);
-			writer.data = [];
-			return writer;
+			var encoder = ul4._clone(this);
+			encoder.data = [];
+			return encoder;
 		},
 
 		// Write the string ``string`` to the buffer
@@ -179,12 +73,10 @@ var ul4on = {
 			this.data.push(string);
 		},
 
-		// Write the number ``number`` to the buffer (prefixed with ``prefix``)
-		writenumber: function(prefix, number)
+		// Write the number ``number`` to the buffer
+		writenumber: function(number)
 		{
-			this.data.push(prefix);
-			if (number !== null)
-				this.data.push("" + number);
+			this.data.push("" + number);
 			this.data.push("|");
 		},
 
@@ -192,18 +84,81 @@ var ul4on = {
 		finish: function()
 		{
 			return this.data.join("");
-		}
+		},
+
+		dump: function(obj)
+		{
+			if (obj === null)
+				this.write("n");
+			else if (typeof(obj) == "boolean")
+				this.write(obj ? "bT" : "bF");
+			else if (typeof(obj) == "number")
+			{
+				this.write((Math.round(obj) == obj) ? "i" : "f");
+				this.writenumber(obj);
+			}
+			else if (typeof(obj) == "string")
+			{
+				this.write("s");
+				this.writenumber(obj.length);
+				this.write(obj);
+			}
+			else if (ul4._fu_iscolor(obj))
+			{
+				this.write("c", obj.length);
+				if (obj.r < 0x10)
+					this.write("0");
+				this.write(obj.r.toString(16));
+				if (obj.g < 0x10)
+					this.write("0");
+				this.write(obj.g.toString(16));
+				if (obj.b < 0x10)
+					this.write("0");
+				this.write(obj.b.toString(16));
+				if (obj.a < 0x10)
+					this.write("0");
+				this.write(obj.a.toString(16));
+			}
+			else if (ul4._fu_isdate(obj))
+				this.write(ul4._fu_format(obj, "t%Y%m%d%H%M%S%f"));
+			else if (obj.ul4onname && obj.ul4ondump)
+			{
+				this.write("o");
+				this.dump(obj.ul4onname);
+				obj.ul4ondump(this);
+			}
+			else if (ul4._fu_islist(obj))
+			{
+				this.write("l");
+				for (var i in obj)
+					this.dump(obj[i]);
+				this.write(".");
+			}
+			else if (ul4._fu_isdict(obj))
+			{
+				this.write("d");
+				for (var key in obj)
+				{
+					this.dump(key);
+					this.dump(obj[key]);
+				}
+				this.write(".");
+			}
+			else
+				throw "can't handle object";
+		},
 	},
 
-	// Helper "class" for reading
-	_reader: {
-		// Creates a new reader for reading from the string ``data``
+	// Helper "class" for decoding
+	Decoder: {
+		// Creates a new decoder for reading from the string ``data``
 		create: function(data)
 		{
-			var reader = ul4._clone(this);
-			reader.data = data;
-			reader.pos = 0;
-			return reader;
+			var decoder = ul4._clone(this);
+			decoder.data = data;
+			decoder.pos = 0;
+			decoder.backrefs = [];
+			return decoder;
 		},
 
 		// Read a character from the buffer
@@ -246,5 +201,103 @@ var ul4on = {
 					value += c;
 			}
 		},
+
+		// Helper function for ``loads``: Read the next object from ``reader``.
+		load: function()
+		{
+			var typecode = this.readchar();
+			var result;
+
+			switch (typecode)
+			{
+				case "^":
+					return this.backrefs[this.readnumber()];
+				case "n":
+				case "N":
+					if (typecode == "N")
+						this.backrefs.append(null);
+					return null;
+				case "b":
+				case "B":
+					result = this.readchar();
+					if (result == "T")
+						result = true;
+					else if (result == "F")
+						result = false;
+					else
+						throw "wrong value for boolean, expected " + ul4._fu_repr("T") + " or " + ul4._fu_repr("F") + ", got " + ul4._fu_repr(result) + " at position " + this.pos;
+					if (typecode == "B")
+						this.backrefs.append(result);
+				case "i":
+				case "I":
+				case "f":
+				case "F":
+					result = this.readnumber();
+					if (typecode == "I" || typecode == "F")
+						this.backrefs.append(result);
+					return result;
+				case "s":
+				case "S":
+					var size = this.readnumber();
+					result = this.read(size);
+					if (typecode == "S")
+						this.backrefs.append(result);
+					return result;
+				case "c":
+				case "C":
+					result = this.read(8);
+					result = ul4.Color.create(parseInt(result.substring(0, 2), 16), parseInt(result.substring(2, 4), 16), parseInt(result.substring(4, 6), 16), parseInt(result.substring(6, 8), 16));
+					if (typecode == "C")
+						this.backrefs.append(result);
+					return result;
+				case "t":
+				case "T":
+					result = this.read(20);
+					result = new Date(parseInt(result.substring(0, 4)), parseInt(result.substring(4, 6)) + 1, parseInt(result.substring(6, 8)), parseInt(result.substring(8, 10)), parseInt(result.substring(10, 12)), parseInt(result.substring(12, 14)), parseInt(result.substring(14, 17)));
+					if (typecode == "T")
+						this.backrefs.append(result);
+					return result;
+				case "l":
+				case "L":
+					result = [];
+					if (typecode == "L")
+						this.backrefs.append(result);
+					for (;;)
+					{
+						typecode = this.readchar();
+						if (typecode == ".")
+							return result;
+						this.backup();
+						result.push(this.load());
+					}
+					return result;
+				case "d":
+				case "D":
+					result = {};
+					if (typecode == "D")
+						this.backrefs.append(result);
+					for (;;)
+					{
+						typecode = this.readchar();
+						if (typecode == ".")
+							return result;
+						this.backup();
+						var key = this.load();
+						var value = this.load();
+						result[key] = value;
+					}
+					return result;
+				case "o":
+				case "O":
+					var name = this.load();
+					result = ul4on._registry[name]();
+					if (typecode == "O")
+						this.backrefs.append(result);
+					result.ul4onload(this);
+					return result;
+				default:
+					throw "unknown typecode " + ul4._fu_repr(typecode) + " at position " + this.pos;
+			}
+		}
 	}
 }
