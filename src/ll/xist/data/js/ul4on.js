@@ -202,7 +202,7 @@ var ul4on = {
 			}
 		},
 
-		// Helper function for ``loads``: Read the next object from ``reader``.
+		// Load the next object from the buffer
 		load: function()
 		{
 			var typecode = this.readchar();
