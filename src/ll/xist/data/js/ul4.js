@@ -25,7 +25,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+/*jslint vars: true */
 var ul4 = {
+	version: "17",
+
 	// Functions with the ``_op_`` prefix implement UL4 opcodes
 
 	// Addition: num + num, string + string
@@ -49,13 +53,13 @@ var ul4 = {
 			{
 				if (obj1 < 0)
 					throw "mul() repetition counter must be positive";
-				return this._str_repeat(obj2, obj1)
+				return this._str_repeat(obj2, obj1);
 			}
 			else if (this._fu_islist(obj2))
 			{
 				if (obj1 < 0)
 					throw "mul() repetition counter must be positive";
-				return this._list_repeat(obj2, obj1)
+				return this._list_repeat(obj2, obj1);
 			}
 		}
 		else if (this._fu_isint(obj2) || this._fu_isbool(obj2))
@@ -64,13 +68,13 @@ var ul4 = {
 			{
 				if (obj2 < 0)
 					throw "mul() repetition counter must be positive";
-				return this._str_repeat(obj1, obj2)
+				return this._str_repeat(obj1, obj2);
 			}
 			else if (this._fu_islist(obj1))
 			{
 				if (obj2 < 0)
 					throw "mul() repetition counter must be positive";
-				return this._list_repeat(obj1, obj2)
+				return this._list_repeat(obj1, obj2);
 			}
 		}
 		return obj1 * obj2;
@@ -94,7 +98,7 @@ var ul4 = {
 		var div = Math.floor(obj1 / obj2);
 		var mod = obj1 - div * obj2;
 
-		if (mod != 0 && ((obj2 < 0 && mod > 0) || (obj2 > 0 && mod < 0)))
+		if (mod !== 0 && ((obj2 < 0 && mod > 0) || (obj2 > 0 && mod < 0)))
 		{
 			mod += obj2;
 			--div;
@@ -108,16 +112,22 @@ var ul4 = {
 		return -obj;
 	},
 
+	// Not
+	_op_not: function(obj)
+	{
+		return !obj;
+	},
+
 	// Containment test: string in string, obj in list, key in dict, value in rgb
 	_op_contains: function(obj, container)
 	{
 		if (typeof(obj) === "string" && typeof(container) === "string")
 		{
-			return container.indexOf(obj) != -1;
+			return container.indexOf(obj) !== -1;
 		}
 		else if (this._fu_islist(container))
 		{
-			return container.indexOf(obj) != -1;
+			return container.indexOf(obj) !== -1;
 		}
 		else if (this._fu_isdict(container))
 		{
@@ -130,7 +140,7 @@ var ul4 = {
 		}
 		else if (this._fu_iscolor(container))
 		{
-			return container.r == obj || container.g == obj || container.b == obj || container.a == obj;
+			return container.r === obj || container.g === obj || container.b === obj || container.a === obj;
 		}
 		throw "argument of type '" + this._fu_type(container) + "' is not iterable";
 	},
@@ -139,6 +149,12 @@ var ul4 = {
 	_op_eq: function(obj1, obj2)
 	{
 		return obj1 === obj2;
+	},
+
+	// Comparison operator !=
+	_op_ne: function(obj1, obj2)
+	{
+		return obj1 !== obj2;
 	},
 
 	// Comparison operator <
@@ -151,6 +167,18 @@ var ul4 = {
 	_op_le: function(obj1, obj2)
 	{
 		return obj1 <= obj2;
+	},
+
+	// Comparison operator >
+	_op_gt: function(obj1, obj2)
+	{
+		return obj1 > obj2;
+	},
+
+	// Comparison operator >=
+	_op_ge: function(obj1, obj2)
+	{
+		return obj1 >= obj2;
 	},
 
 	// Item access: dict[key], list[index], string[index], color[index]
@@ -197,9 +225,9 @@ var ul4 = {
 	// List/String slicing: string[start:stop], list[start:stop]
 	_op_getslice: function(container, start, stop)
 	{
-		if (start === null)
+		if (typeof(start) === "undefined" || start === null)
 			start = 0;
-		if (stop === null)
+		if (typeof(stop) === "undefined" || stop === null)
 			stop = container.length;
 		return container.slice(start, stop);
 	},
@@ -209,72 +237,105 @@ var ul4 = {
 	// Check if ``obj`` is ``None``
 	_fu_isnone: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "isnone() requires 1 argument, " + arguments.length + " given";
+
 		return obj === null;
 	},
 
 	// Check if ``obj`` is a boolean
 	_fu_isbool: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "isbool() requires 1 argument, " + arguments.length + " given";
+
 		return typeof(obj) == "boolean";
 	},
 
 	// Check if ``obj`` is a int
 	_fu_isint: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "isint() requires 1 argument, " + arguments.length + " given";
+
 		return (typeof(obj) == "number") && Math.round(obj) == obj;
 	},
 
 	// Check if ``obj`` is a float
 	_fu_isfloat: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "isfloat() requires 1 argument, " + arguments.length + " given";
+
 		return (typeof(obj) == "number") && Math.round(obj) != obj;
 	},
 
 	// Check if ``obj`` is a string
 	_fu_isstr: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "isstr() requires 1 argument, " + arguments.length + " given";
+
 		return typeof(obj) == "string";
 	},
 
 	// Check if ``obj`` is a date
 	_fu_isdate: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "isdate() requires 1 argument, " + arguments.length + " given";
+
 		return Object.prototype.toString.call(obj) == "[object Date]";
 	},
 
 	// Check if ``obj`` is a color
 	_fu_iscolor: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "iscolor() requires 1 argument, " + arguments.length + " given";
+
 		return Object.prototype.toString.call(obj) == "[object Object]" && !!obj.__iscolor__;
 	},
 
 	// Check if ``obj`` is a template
 	_fu_istemplate: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "istemplate() requires 1 argument, " + arguments.length + " given";
+
 		return Object.prototype.toString.call(obj) == "[object Object]" && !!obj.__istemplate__;
 	},
 
 	// Check if ``obj`` is a list
 	_fu_islist: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "list() requires 1 argument, " + arguments.length + " given";
+
 		return Object.prototype.toString.call(obj) == "[object Array]";
 	},
 
 	// Check if ``obj`` is a dict
 	_fu_isdict: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "isdict() requires 1 argument, " + arguments.length + " given";
+
 		return Object.prototype.toString.call(obj) == "[object Object]" && !obj.__iscolor__ && !obj.__istemplate__;
 	},
 
 	// Convert ``obj`` to bool, according to its "truth value"
 	_fu_bool: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "bool() requires 1 argument, " + arguments.length + " given";
+
 		if (obj === null || obj === false || obj === 0 || obj === "")
 			return false;
 		else
 		{
 			if (this._fu_islist(obj))
-				return obj.length != 0;
+				return obj.length !== 0;
 			else if (this._fu_isdict(obj))
 			{
 				for (var key in obj)
@@ -288,12 +349,18 @@ var ul4 = {
 	// Create a color object from the red, green, blue and alpha values ``r``, ``g``, ``b`` and ``b``
 	_fu_rgb: function(r, g, b, a)
 	{
+		if (arguments.length < 3 || arguments.length > 4)
+			throw "rgb() requires 3-4 argument, " + arguments.length + " given";
+
 		return this.Color.create(255*r, 255*g, 255*b, typeof(a) == "undefined" ? 0xff : (255*a));
 	},
 
 	// Return the type of ``obj`` as a string
 	_fu_type: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "type() requires 1 argument, " + arguments.length + " given";
+
 		if (obj === null)
 			return "none";
 		else if (obj === false || obj === true)
@@ -318,6 +385,9 @@ var ul4 = {
 	// Convert ``obj`` to a string
 	_fu_str: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "str() requires 1 argument, " + arguments.length + " given";
+
 		if (typeof(obj) === "string")
 			return obj;
 		else if (obj === null)
@@ -374,6 +444,9 @@ var ul4 = {
 	// Convert ``obj`` to an integer (if ``base`` is given ``obj`` must be a string and ``base`` is the base for the conversion (default is 10))
 	_fu_int: function(obj, base)
 	{
+		if (arguments.length < 1 || arguments.length > 2)
+			throw "int() requires 1-2 arguments, " + arguments.length + " given";
+
 		var result;
 		if (typeof(base) !== "undefined")
 		{
@@ -406,20 +479,26 @@ var ul4 = {
 	// Convert ``obj`` to a float
 	_fu_float: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "float() requires 1 argument, " + arguments.length + " given";
+
 		if (typeof(obj) == "string")
 			return parseFloat(obj);
 		else if (typeof(obj) == "number")
 			return obj;
 		else if (obj === true)
-			return 1.;
+			return 1.0;
 		else if (obj === false)
-			return 0.;
+			return 0.0;
 		throw "float() argument must be a string or a number";
 	},
 
 	// Convert ``obj`` to a list
 	_fu_list: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "list() requires 1 argument, " + arguments.length + " given";
+
 		if (typeof(obj) == "string" || this._fu_islist(obj))
 		{
 			var result = [];
@@ -456,6 +535,9 @@ var ul4 = {
 	// Return the length of ``obj``
 	_fu_len: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "len() requires 1 argument, " + arguments.length + " given";
+
 		if (typeof(obj) == "string" || this._fu_islist(obj))
 			return obj.length;
 		else if (this._fu_isdict(obj))
@@ -468,9 +550,12 @@ var ul4 = {
 		throw "object of type '" + this._fu_type(obj) + "' has no len()";
 	},
 
-	// Return a string representation of ``obj``: This should be a valid UL4 expression
+	// Return a string representation of ``obj``: This should be an object supported by UL4
 	_fu_repr: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "repr() requires 1 argument, " + arguments.length + " given";
+
 		if (obj === null)
 			return "None";
 		else if (obj === false)
@@ -495,9 +580,9 @@ var ul4 = {
 		{
 			var v = [];
 			v.push("[");
-			for (var i in obj)
+			for (var i = 0; i < obj.length; ++i)
 			{
-				if (i != 0)
+				if (i !== 0)
 					v.push(", ");
 				v.push(this._fu_repr(obj[i]));
 			}
@@ -527,6 +612,9 @@ var ul4 = {
 	// Format ``obj`` using the format string ``format``
 	_fu_format: function(obj, format)
 	{
+		if (arguments.length != 2)
+			throw "format() requires 2 arguments, " + arguments.length + " given";
+
 		var weekdays1 = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 		var weekdays2 = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 		var months1 = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -637,6 +725,9 @@ var ul4 = {
 	// Convert ``obj`` to a string and escape the characters ``&``, ``<``, ``>``, ``'`` and ``"`` with their XML character/entity reference
 	_fu_xmlescape: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "xmlescape() requires 1 argument, " + arguments.length + " given";
+
 		obj = this._fu_str(obj);
 		obj = obj.replace(/&/g, "&amp;");
 		obj = obj.replace(/</g, "&lt;");
@@ -649,6 +740,9 @@ var ul4 = {
 	// Convert ``obj`` to a string suitable for output into a CSV file
 	_fu_csv: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "csv() requires 1 argument, " + arguments.length + " given";
+
 		if (obj === null)
 			return "";
 		else if (typeof(obj) !== "string")
@@ -661,14 +755,20 @@ var ul4 = {
 	// Return a string containing one charcter with the codepoint ``obj``
 	_fu_chr: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "chr() requires 1 argument, " + arguments.length + " given";
+
 		if (typeof(obj) != "number")
 			throw "chr() requires an int";
-		return String.fromCharCode(obj)
+		return String.fromCharCode(obj);
 	},
 
 	// Return the codepoint for the one and only character in the string ``obj``
 	_fu_ord: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "ord() requires 1 argument, " + arguments.length + " given";
+
 		if (typeof(obj) != "string" || obj.length != 1)
 			throw "ord() requires a string of length 1";
 		return obj.charCodeAt(0);
@@ -677,6 +777,9 @@ var ul4 = {
 	// Convert an integer to a hexadecimal string
 	_fu_hex: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "hex() requires 1 argument, " + arguments.length + " given";
+
 		if (typeof(obj) != "number")
 			throw "hex() requires an int";
 		if (obj < 0)
@@ -688,6 +791,9 @@ var ul4 = {
 	// Convert an integer to a octal string
 	_fu_oct: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "oct() requires 1 argument, " + arguments.length + " given";
+
 		if (typeof(obj) != "number")
 			throw "oct() requires an int";
 		if (obj < 0)
@@ -699,6 +805,9 @@ var ul4 = {
 	// Convert an integer to a binary string
 	_fu_bin: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "bin() requires 1 argument, " + arguments.length + " given";
+
 		if (typeof(obj) != "number")
 			throw "bin() requires an int";
 		if (obj < 0)
@@ -710,6 +819,9 @@ var ul4 = {
 	// Return a sorted version of ``obj``
 	_fu_sorted: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "sorted() requires 1 argument, " + arguments.length + " given";
+
 		var result = this._fu_list(obj);
 		result.sort();
 		return result;
@@ -718,6 +830,18 @@ var ul4 = {
 	// Return a iterable object iterating from ``start`` upto (but not including) ``stop`` with a step size of ``step``
 	_fu_range: function(start, stop, step)
 	{
+		if (arguments.length < 1 || arguments.length > 3)
+			throw "range() requires 1-3 arguments, " + arguments.length + " given";
+
+		if (typeof(step) == "undefined")
+		{
+			step = 1;
+			if (typeof(stop) == "undefined")
+			{
+				stop = start;
+				start = 0;
+			}
+		}
 		var lower, higher;
 		if (step === 0)
 			throw "range() requires a step argument != 0";
@@ -739,7 +863,7 @@ var ul4 = {
 			if (i >= length)
 				return null;
 			return [start + (i++) * step];
-		}
+		};
 		result.__iter__ = true;
 		return result;
 	},
@@ -747,6 +871,9 @@ var ul4 = {
 	// Encodes ``obj`` in the Javascript Object Notation (see http://json.org/; with support for dates, colors and templates)
 	_fu_json: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "json() requires 1 argument, " + arguments.length + " given";
+
 		if (obj === null)
 			return "null";
 		else if (obj === false)
@@ -765,7 +892,7 @@ var ul4 = {
 			v.push("[");
 			for (var i in obj)
 			{
-				if (i != 0)
+				if (i !== 0)
 					v.push(", ");
 				v.push(this._fu_json(obj[i]));
 			}
@@ -795,7 +922,7 @@ var ul4 = {
 		}
 		else if (this._fu_iscolor(obj))
 		{
-			return "ul4._fu_rgb(" + obj.r + ", " + obj.g + ", " + obj.b + ", " + obj.a + ")";
+			return "ul4.Color.create(" + obj.value.r + ", " + obj.value.g + ", " + obj.value.b + ", " + obj.value.a + ")";
 		}
 		else if (this._fu_istemplate(obj))
 		{
@@ -807,13 +934,16 @@ var ul4 = {
 	// Return a reverse iterator over ``obj``
 	_fu_reversed: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "reversed() requires 1 argument, " + arguments.length + " given";
+
 		if (typeof(obj) != "string" && !this._fu_islist(obj)) // We don't have to materialize strings or lists
 			obj = this._fu_list(obj);
 		var i = obj.length-1;
 		var result = function()
 		{
 			return i >= 0 ? [obj[i--]] : null;
-		}
+		};
 		result.__iter__ = true;
 		return result;
 	},
@@ -821,6 +951,18 @@ var ul4 = {
 	// Return a randomly select item from ``range(start, stop, step)``
 	_fu_randrange: function(start, stop, step)
 	{
+		if (arguments.length < 1 || arguments.length > 3)
+			throw "randrange() requires 1-3 arguments, " + arguments.length + " given";
+
+		if (typeof(step) === "undefined")
+		{
+			step =-1;
+			if (typeof(stop) === "undefined")
+			{
+				stop = start;
+				start = 0;
+			}
+		}
 		var width = stop-start;
 
 		var value = Math.random();
@@ -838,6 +980,9 @@ var ul4 = {
 	// Return a random item/char from the list/string ``obj``
 	_fu_randchoice: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "randchoice() requires 1 argument, " + arguments.length + " given";
+
 		var iscolor = this._fu_iscolor(obj);
 		if (typeof(obj) !== "string" && !this._fu_islist(obj) && !iscolor)
 			throw "randchoice() requires a string or list";
@@ -849,13 +994,16 @@ var ul4 = {
 	// Return an iterator over ``[index, item]`` lists from the iterable object ``obj``
 	_fu_enumerate: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "enumerate() requires 1 argument, " + arguments.length + " given";
+
 		var iter = this._iter(obj);
 		var i = 0;
 		var result = function()
 		{
 			var inner = iter();
 			return inner !== null ? [[i++, inner[0]]] : null;
-		}
+		};
 		result.__iter__ = true;
 		return result;
 	},
@@ -863,6 +1011,9 @@ var ul4 = {
 	// Return an iterator over ``[isfirst, item]`` lists from the iterable object ``obj`` (``isfirst`` is true for the first item, false otherwise)
 	_fu_isfirst: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "isfirst() requires 1 argument, " + arguments.length + " given";
+
 		var iter = this._iter(obj);
 		var isfirst = true;
 		var result = function()
@@ -871,7 +1022,7 @@ var ul4 = {
 			var result = inner !== null ? [[isfirst, inner[0]]] : null;
 			isfirst = false;
 			return result;
-		}
+		};
 		result.__iter__ = true;
 		return result;
 	},
@@ -879,6 +1030,9 @@ var ul4 = {
 	// Return an iterator over ``[islast, item]`` lists from the iterable object ``obj`` (``islast`` is true for the last item, false otherwise)
 	_fu_islast: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "islast() requires 1 argument, " + arguments.length + " given";
+
 		var iter = this._iter(obj);
 		var lastitem = iter();
 		var result = function()
@@ -889,7 +1043,7 @@ var ul4 = {
 			var result = [[inner === null, lastitem[0]]];
 			lastitem = inner;
 			return result;
-		}
+		};
 		result.__iter__ = true;
 		return result;
 	},
@@ -897,6 +1051,9 @@ var ul4 = {
 	// Return an iterator over ``[isfirst, islast, item]`` lists from the iterable object ``obj`` (``isfirst`` is true for the first item, ``islast`` is true for the last item. Both are false otherwise)
 	_fu_isfirstlast: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "isfirstlast() requires 1 argument, " + arguments.length + " given";
+
 		var iter = this._iter(obj);
 		var isfirst = true;
 		var lastitem = iter();
@@ -909,7 +1066,7 @@ var ul4 = {
 			lastitem = inner;
 			isfirst = false;
 			return result;
-		}
+		};
 		result.__iter__ = true;
 		return result;
 	},
@@ -917,6 +1074,9 @@ var ul4 = {
 	// Return an iterator over ``[index, isfirst, islast, item]`` lists from the iterable object ``obj`` (``isfirst`` is true for the first item, ``islast`` is true for the last item. Both are false otherwise)
 	_fu_enumfl: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "enumfl() requires 1 argument, " + arguments.length + " given";
+
 		var iter = this._iter(obj);
 		var i = 0;
 		var isfirst = true;
@@ -930,7 +1090,7 @@ var ul4 = {
 			lastitem = inner;
 			isfirst = false;
 			return result;
-		}
+		};
 		result.__iter__ = true;
 		return result;
 	},
@@ -938,35 +1098,62 @@ var ul4 = {
 	// Return an iterator over lists, where the i'th list consists of all i'th items from the arguments (terminating when the shortest argument ends)
 	_fu_zip: function()
 	{
-		var iters = [];
-		for (var i = 0; i < arguments.length; ++i)
-			iters.push(this._iter(arguments[i]));
-
-		var result = function()
+		var result;
+		if (arguments.length)
 		{
-			var items = [];
-			for (var i in iters)
+			var iters = [];
+			for (var i = 0; i < arguments.length; ++i)
+				iters.push(this._iter(arguments[i]));
+
+			result = function()
 			{
-				var item = iters[i]();
-				if (item === null)
-					return null;
-				items.push(item[0]);
+				var items = [];
+				for (var i in iters)
+				{
+					var item = iters[i]();
+					if (item === null)
+						return null;
+					items.push(item[0]);
+				}
+				return [items];
+			};
+		}
+		else
+		{
+			result = function()
+			{
+				return null;
 			}
-			return [items];
 		}
 		result.__iter__ = true;
+
 		return result;
 	},
 
 	// Return the absolute value for the number ``obj``
 	_fu_abs: function(obj)
 	{
+		if (arguments.length != 1)
+			throw "abs() requires 1 argument, " + arguments.length + " given";
+
 		return Math.abs(obj);
+	},
+
+	// Return a ``Date`` object for the current time
+	_fu_now: function()
+	{
+		if (arguments.length != 0)
+			throw "now() requires 0 arguments, " + arguments.length + " given";
+
+		return new Date();
 	},
 
 	// Return a ``Date`` object for the current time in UTC
 	_fu_utcnow: function()
 	{
+		if (arguments.length != 0)
+			throw "utcnow() requires 0 arguments, " + arguments.length + " given";
+
 		var now = new Date();
 		// FIXME: The timezone is wrong for the new ``Date`` object.
 		return new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds(), now.getUTCMilliseconds());
@@ -975,6 +1162,12 @@ var ul4 = {
 	// Return a ``Color`` object from the hue, luminescence, saturation and alpha values ``h``, ``l``, ``s`` and ``a`` (i.e. using the HLS color model)
 	_fu_hls: function(h, l, s, a)
 	{
+		if (arguments.length < 3 || arguments.length > 4)
+			throw "hls() requires 3-4 arguments, " + arguments.length + " given";
+
+		if (typeof(a) === "undefined")
+			a = 1;
+
 		var _v = function(m1, m2, hue)
 		{
 			hue = hue % 1.0;
@@ -990,12 +1183,12 @@ var ul4 = {
 		var m1, m2;
 		if (typeof(a) === "undefined")
 			a = 1;
-		if (s == 0.0)
-		    return this._fu_rgb(l, l, l, a);
+		if (s === 0.0)
+			return this._fu_rgb(l, l, l, a);
 		if (l <= 0.5)
-		    m2 = l * (1.0+s);
+			m2 = l * (1.0+s);
 		else
-		    m2 = l+s-(l*s);
+			m2 = l+s-(l*s);
 		m1 = 2.0*l - m2;
 		return this._fu_rgb(_v(m1, m2, h+1/3), _v(m1, m2, h), _v(m1, m2, h-1/3), a);
 	},
@@ -1003,9 +1196,13 @@ var ul4 = {
 	// Return a ``Color`` object from the hue, saturation, value and alpha values ``h``, ``s``, ``v`` and ``a`` (i.e. using the HSV color model)
 	_fu_hsv: function(h, s, v, a)
 	{
+		if (arguments.length < 3 || arguments.length > 4)
+			throw "hsv() requires 3-4 arguments, " + arguments.length + " given";
+
 		if (typeof(a) === "undefined")
 			a = 1;
-		if (s == 0.0)
+
+		if (s === 0.0)
 			return this._fu_rgb(v, v, v, a);
 		var i = Math.floor(h*6.0);
 		var f = (h*6.0) - i;
@@ -1533,9 +1730,9 @@ var ul4 = {
 
 		hls: function()
 		{
-			var r = this.r/255.;
-			var g = this.g/255.;
-			var b = this.b/255.;
+			var r = this.r/255.0;
+			var g = this.g/255.0;
+			var b = this.b/255.0;
 			var maxc = Math.max(r, g, b);
 			var minc = Math.min(r, g, b);
 			var h, l, s;
@@ -1564,14 +1761,14 @@ var ul4 = {
 		hlsa: function()
 		{
 			var hls = this.hls();
-			return hls.concat(this.a/255.);
+			return hls.concat(this.a/255.0);
 		},
 
 		hsv: function()
 		{
-			var r = this.r/255.;
-			var g = this.g/255.;
-			var b = this.b/255.;
+			var r = this.r/255.0;
+			var g = this.g/255.0;
+			var b = this.b/255.0;
 			var maxc = Math.max(r, g, b);
 			var minc = Math.min(r, g, b);
 			var v = maxc;
@@ -1595,7 +1792,7 @@ var ul4 = {
 		hsva: function()
 		{
 			var hsv = this.hsv();
-			return hsv.concat(this.a/255.);
+			return hsv.concat(this.a/255.0);
 		},
 
 		witha: function(a)
@@ -1614,7 +1811,7 @@ var ul4 = {
 		}
 	},
 
-	Template: {
+	InterpretedTemplate_old_unused_deleteme: {
 		__istemplate__: true,
 		version: "16",
 
@@ -2098,7 +2295,7 @@ var ul4 = {
 							line("r" + opcode.r1 + " = iter" + loopvarcounter + "();");
 							line("if (r" + opcode.r1 + " === null)");
 							indent++;
-							line("break;")
+							line("break;");
 							indent--;
 							line("r" + opcode.r1 + " = r" + opcode.r1 + "[0];");
 							break;
@@ -2434,7 +2631,19 @@ var ul4 = {
 		function F(){};
 		F.prototype = obj;
 		var result = new F();
+		result.__prototype__ = obj;
+		result.__id__ = ul4.Proto._nextid++;
 		return result;
+	},
+
+	// Clone an object and extend it
+	_inherit: function(baseobj, attrs)
+	{
+		var newobj = ul4._clone(baseobj);
+		attrs = attrs || {};
+		for (var name in attrs)
+			newobj[name] = attrs[name];
+		return newobj;
 	},
 
 	// Return an iterator for ``obj``
@@ -2446,7 +2655,7 @@ var ul4 = {
 			var result = function()
 			{
 				return (i < obj.length) ? [obj[i++]] : null;
-			}
+			};
 			result.__iter__ = true;
 			return result;
 		}
@@ -2461,7 +2670,7 @@ var ul4 = {
 				if (i >= keys.length)
 					return null;
 				return [keys[i++]];
-			}
+			};
 			result.__iter__ = true;
 			return result;
 		}
@@ -2499,14 +2708,16 @@ var ul4 = {
 		var minute = obj.getMinutes();
 		var second = obj.getSeconds();
 		var ms = obj.getMilliseconds();
-		var result = "@" + year + "-" + this._lpad(month.toString(), "0", 2) + "-" + this._lpad(day.toString(), "0", 2) + "T";
+		var result = "@(" + year + "-" + this._lpad(month.toString(), "0", 2) + "-" + this._lpad(day.toString(), "0", 2);
 
 		if (hour || minute || second || ms)
 		{
-			result += this._lpad(hour.toString(), "0", 2) + ":" + this._lpad(minute.toString(), "0", 2) + ":" + this._lpad(second.toString(), "0", 2);
+			result += "T" + this._lpad(hour.toString(), "0", 2) + ":" + this._lpad(minute.toString(), "0", 2) + ":" + this._lpad(second.toString(), "0", 2);
 			if (ms)
 				result += "." + this._lpad(ms.toString(), "0", 3) + "000";
 		}
+		result += ")";
+
 		return result;
 	},
 
@@ -2670,4 +2881,1205 @@ var ul4 = {
 			string = string + pad;
 		return string;
 	}
-}
+};
+
+ul4.Proto = {
+	__prototype__: null,
+	__id__: 0,
+	_nextid: 1,
+	isa: function(type)
+	{
+		if (this === type)
+			return true;
+		if (this.__prototype__ === null)
+			return false;
+		return this.__prototype__.isa(type);
+	}
+};
+
+ul4.Location = ul4._inherit(
+	ul4.Proto,
+	{
+		create: function(source, type, starttag, endtag, startcode, endcode)
+		{
+			var location = ul4._clone(this);
+			location.source = source;
+			location.type = type;
+			location.starttag = starttag;
+			location.endtag = endtag;
+			location.startcode = startcode;
+			location.endcode = endcode;
+
+			return location;
+		},
+		ul4ondump: function(encoder)
+		{
+			encoder.dump(this.source);
+			encoder.dump(this.type);
+			encoder.dump(this.starttag);
+			encoder.dump(this.endtag);
+			encoder.dump(this.startcode);
+			encoder.dump(this.endcode);
+		},
+		ul4onload: function(decoder)
+		{
+			this.source = decoder.load();
+			this.type = decoder.load();
+			this.starttag = decoder.load();
+			this.endtag = decoder.load();
+			this.startcode = decoder.load();
+			this.endcode = decoder.load();
+		}
+	}
+);
+
+ul4.Stack = ul4._inherit(
+	ul4.Proto,
+	{
+		create: function()
+		{
+			var stack = ul4._clone(this);
+			stack.stack = [];
+			return stack;
+		},
+		push: function(obj)
+		{
+			this.stack.push(obj);
+			return obj;
+		},
+		pop: function(obj)
+		{
+			var result = this.stack.pop();
+			return (typeof(ob) === "undefined") ? result : obj;
+		}
+	}
+);
+
+ul4.AST = ul4._inherit(
+	ul4.Proto,
+	{
+		create: function(location)
+		{
+			var ast = ul4._clone(this);
+			ast.location = location;
+			return ast;
+		},
+		_name: function()
+		{
+			var name = this.ul4onname.split(".");
+			return name[name.length-1];
+		},
+		_line: function(indent, line)
+		{
+			return ul4._op_mul("\t", indent) + line + "\n";
+		},
+		_formatop: function(op)
+		{
+			if (op.precedence < this.precedence)
+				return "(" + op.format(0) + ")";
+			else if (op.precedence === this.precedence && (op.ul4onname !== this.ul4onname || !this.associative))
+				return "(" + op.format(0) + ")";
+			else
+				return op.format(0);
+		},
+		toString: function()
+		{
+			return this.format(0);
+		},
+		ul4ondump: function(encoder)
+		{
+			encoder.dump(this.location);
+		},
+		ul4onload: function(decoder)
+		{
+			this.location = decoder.load();
+		},
+		// used in ``format``/``_formatop`` to decide if we need brackets around an operator
+		precedence: null,
+		associative: true
+	}
+);
+
+ul4.Text = ul4._inherit(
+	ul4.AST,
+	{
+		text: function()
+		{
+			return this.location.source.substring(this.location.startcode, this.location.endcode);
+		},
+		formatjs: function(indent)
+		{
+			return this._line(indent, "output.push(" + ul4._fu_json(this.text()) + ");");
+		},
+		format: function(indent)
+		{
+			return this._line(indent, "text " + ul4._fu_repr(this.text()));
+		}
+	}
+);
+
+ul4.LoadNone = ul4._inherit(
+	ul4.AST,
+	{
+		formatjs: function(indent)
+		{
+			return "null";
+		},
+		format: function(indent)
+		{
+			return "None";
+		},
+		precedence: 11
+	}
+);
+
+ul4.LoadTrue = ul4._inherit(
+	ul4.AST,
+	{
+		formatjs: function(indent)
+		{
+			return "true";
+		},
+		format: function(indent)
+		{
+			return "True";
+		},
+		precedence: 11
+	}
+);
+
+ul4.LoadFalse = ul4._inherit(
+	ul4.AST,
+	{
+		formatjs: function(indent)
+		{
+			return "false";
+		},
+		format: function(indent)
+		{
+			return "False";
+		},
+		precedence: 11
+	}
+);
+
+ul4.LoadConst = ul4._inherit(
+	ul4.AST,
+	{
+		create: function(location, value)
+		{
+			var constant = ul4.AST.create.call(this, location);
+			constant.value = value;
+			return constant;
+		},
+		ul4ondump: function(encoder)
+		{
+			ul4.AST.ul4ondump.call(this, encoder);
+			encoder.dump(this.value);
+		},
+		ul4onload: function(decoder)
+		{
+			ul4.AST.ul4onload.call(this, decoder);
+			this.value = decoder.load();
+		},
+		formatjs: function(indent)
+		{
+			return ul4._fu_json(this.value);
+		},
+		format: function(indent)
+		{
+			return ul4._fu_repr(this.value);
+		},
+		precedence: 11
+	}
+);
+
+ul4.LoadInt = ul4._inherit(ul4.LoadConst);
+
+ul4.LoadFloat = ul4._inherit(ul4.LoadConst);
+
+ul4.LoadStr = ul4._inherit(ul4.LoadConst);
+
+ul4.LoadColor = ul4._inherit(ul4.LoadConst);
+
+ul4.LoadDate = ul4._inherit(ul4.LoadConst);
+
+ul4.LoadVar = ul4._inherit(
+	ul4.AST,
+	{
+		create: function(location, varname)
+		{
+			var variable = ul4.AST.create.call(this, location);
+			variable.varname = varname;
+			return variable;
+		},
+		ul4ondump: function(encoder)
+		{
+			ul4.AST.ul4ondump.call(this, encoder);
+			encoder.dump(this.varname);
+		},
+		ul4onload: function(decoder)
+		{
+			ul4.AST.ul4onload.call(this, decoder);
+			this.varname = decoder.load();
+		},
+		formatjs: function(indent)
+		{
+			return "vars[" + ul4._fu_json(this.varname) + "]";
+		},
+		format: function(indent)
+		{
+			return this.varname;
+		},
+		precedence: 11
+	}
+);
+
+ul4.Unary = ul4._inherit(
+	ul4.AST,
+	{
+		create: function(location, obj)
+		{
+			var unary = ul4.AST.create.call(this, location);
+			unary.obj = obj;
+			return unary;
+		},
+		ul4ondump: function(encoder)
+		{
+			ul4.AST.ul4ondump.call(this, encoder);
+			encoder.dump(this.obj);
+		},
+		ul4onload: function(decoder)
+		{
+			ul4.AST.ul4onload.call(this, decoder);
+			this.obj = decoder.load();
+		},
+		formatjs: function(indent)
+		{
+			return "ul4._op_" + this._name() + "(" + this.obj.formatjs(indent) + ")";
+		}
+	}
+);
+
+ul4.Neg = ul4._inherit(
+	ul4.Unary,
+	{
+		format: function(indent)
+		{
+			return "-" + this._formatop(this.obj);
+		},
+		precedence: 7
+	}
+);
+
+ul4.Not = ul4._inherit(
+	ul4.Unary,
+	{
+		format: function(indent)
+		{
+			return "not " + this._formatop(this.obj);
+		},
+		precedence: 2
+	}
+);
+
+ul4.Print = ul4._inherit(
+	ul4.Unary,
+	{
+		formatjs: function(indent)
+		{
+			return this._line(indent, "output.push(ul4._fu_str(" + this.obj.formatjs(indent) + "));");
+		},
+		format: function(indent)
+		{
+			return this._line(indent, "print " + this.obj.format(indent));
+		}
+	}
+);
+
+ul4.PrintX = ul4._inherit(
+	ul4.Unary,
+	{
+		formatjs: function(indent)
+		{
+			return this._line(indent, "output.push(ul4._fu_xmlescape(" + this.obj.formatjs(indent) + "));");
+		},
+		format: function(indent)
+		{
+			return this._line(indent, "printx " + this.obj.format(indent));
+		}
+	}
+);
+
+ul4.Binary = ul4._inherit(
+	ul4.AST,
+	{
+		create: function(location, obj1, obj2)
+		{
+			var binary = ul4.AST.create.call(this, location);
+			binary.obj1 = obj1;
+			binary.obj2 = obj2;
+			return binary;
+		},
+		ul4ondump: function(encoder)
+		{
+			ul4.AST.ul4ondump.call(this, encoder);
+			encoder.dump(this.obj1);
+			encoder.dump(this.obj2);
+		},
+		ul4onload: function(decoder)
+		{
+			ul4.AST.ul4onload.call(this, decoder);
+			this.obj1 = decoder.load();
+			this.obj2 = decoder.load();
+		},
+		formatjs: function(indent)
+		{
+			return "ul4._op_" + this._name() + "(" + this.obj1.formatjs(indent) + ", " + this.obj2.formatjs(indent) + ")";
+		}
+	}
+);
+
+ul4.GetItem = ul4._inherit(
+	ul4.Binary,
+	{
+		format: function(indent)
+		{
+			return this._formatop(this.obj1) + "[" + this.obj2.format(0) + "]";
+		},
+		precedence: 9,
+		associative: false
+	}
+);
+
+ul4.EQ = ul4._inherit(
+	ul4.Binary,
+	{
+		format: function(indent)
+		{
+			return this._formatop(this.obj1) + " == " + this._formatop(this.obj2);
+		},
+		precedence: 4,
+		associative: false
+	}
+);
+
+ul4.NE = ul4._inherit(
+	ul4.Binary,
+	{
+		format: function(indent)
+		{
+			return this._formatop(this.obj1) + " != " + this._formatop(this.obj2);
+		},
+		precedence: 4,
+		associative: false
+	}
+);
+
+ul4.LT = ul4._inherit(
+	ul4.Binary,
+	{
+		format: function(indent)
+		{
+			return this._formatop(this.obj1) + " < " + this._formatop(this.obj2);
+		},
+		precedence: 4,
+		associative: false
+	}
+);
+
+ul4.LE = ul4._inherit(
+	ul4.Binary,
+	{
+		format: function(indent)
+		{
+			return this._formatop(this.obj1) + " <= " + this._formatop(this.obj2);
+		},
+		precedence: 4,
+		associative: false
+	}
+);
+
+ul4.GT = ul4._inherit(
+	ul4.Binary,
+	{
+		format: function(indent)
+		{
+			return this._formatop(this.obj1) + " > " + this._formatop(this.obj2);
+		},
+		precedence: 4,
+		associative: false
+	}
+);
+
+ul4.GE = ul4._inherit(
+	ul4.Binary,
+	{
+		format: function(indent)
+		{
+			return this._formatop(this.obj1) + " >= " + this._formatop(this.obj2);
+		},
+		precedence: 4,
+		associative: false
+	}
+);
+
+ul4.Contains = ul4._inherit(
+	ul4.Binary,
+	{
+		format: function(indent)
+		{
+			return this._formatop(this.obj1) + " in " + this._formatop(this.obj2);
+		},
+		precedence: 3,
+		associative: false
+	}
+);
+
+ul4.NotContains = ul4._inherit(
+	ul4.Binary,
+	{
+		format: function(indent)
+		{
+			return this._formatop(this.obj1) + " not in " + this._formatop(this.obj2);
+		},
+		precedence: 3,
+		associative: false
+	}
+);
+
+ul4.Add = ul4._inherit(
+	ul4.Binary,
+	{
+		format: function(indent)
+		{
+			return this._formatop(this.obj1) + " + " + this._formatop(this.obj2);
+		},
+		precedence: 5
+	}
+);
+
+ul4.Sub = ul4._inherit(
+	ul4.Binary,
+	{
+		format: function(indent)
+		{
+			return this._formatop(this.obj1) + " - " + this._formatop(this.obj2);
+		},
+		precedence: 5,
+		associative: false
+	}
+);
+
+ul4.Mul = ul4._inherit(
+	ul4.Binary,
+	{
+		format: function(indent)
+		{
+			return this._formatop(this.obj1) + " * " + this._formatop(this.obj2);
+		},
+		precedence: 6
+	}
+);
+
+ul4.FloorDiv = ul4._inherit(
+	ul4.Binary,
+	{
+		format: function(indent)
+		{
+			return this._formatop(this.obj1) + " // " + this._formatop(this.obj2);
+		},
+		precedence: 6,
+		associative: false
+	}
+);
+
+ul4.TrueDiv = ul4._inherit(
+	ul4.Binary,
+	{
+		format: function(indent)
+		{
+			return this._formatop(this.obj1) + " / " + this._formatop(this.obj2);
+		},
+		precedence: 6,
+		associative: false
+	}
+);
+
+ul4.Mod = ul4._inherit(
+	ul4.Binary,
+	{
+		format: function(indent)
+		{
+			return this._formatop(this.obj1) + " % " + this._formatop(this.obj2);
+		},
+		precedence: 6,
+		associative: false
+	}
+);
+
+ul4.And = ul4._inherit(
+	ul4.Binary,
+	{
+		formatjs: function(indent)
+		{
+			return "ul4._fu_bool(stack.push(" + this.obj2.formatjs(indent) + ")) ? stack.pop(" + this.obj1.formatjs(indent) + ") : stack.pop()";
+		},
+		format: function(indent)
+		{
+			return this._formatop(this.obj1) + " and " + this._formatop(this.obj2);
+		},
+		precedence: 1
+	}
+);
+
+ul4.Or = ul4._inherit(
+	ul4.Binary,
+	{
+		formatjs: function(indent)
+		{
+			return "ul4._fu_bool(stack.push(" + this.obj1.formatjs(indent) + ")) ? stack.pop() : stack.pop(" + this.obj2.formatjs(indent) + ")";
+		},
+		format: function(indent)
+		{
+			return this._formatop(this.obj1) + " or " + this._formatop(this.obj2);
+		},
+		precedence: 0
+	}
+);
+
+ul4.GetAttr = ul4._inherit(
+	ul4.AST,
+	{
+		create: function(location, obj, attrname)
+		{
+			var getattr = ul4.AST.create.call(this, location);
+			getattr.obj = obj;
+			getattr.attrname = attrname;
+			return getattr;
+		},
+		ul4ondump: function(encoder)
+		{
+			ul4.AST.ul4ondump.call(this, encoder);
+			encoder.dump(this.obj);
+			encoder.dump(this.attrname);
+		},
+		ul4onload: function(decoder)
+		{
+			ul4.AST.ul4onload.call(this, decoder);
+			this.obj = decoder.load();
+			this.attrname = decoder.load();
+		},
+		formatjs: function(indent)
+		{
+			return "ul4._op_getitem(" + this.obj.formatjs(indent) + ", " + ul4._fu_repr(this.attrname) + ")";
+		},
+		format: function(indent)
+		{
+			return this._formatop(this.obj) + "." + this.attrname;
+		},
+		precedence: 9,
+		associative: false
+	}
+);
+
+ul4.CallFunc = ul4._inherit(
+	ul4.AST,
+	{
+		create: function(location, funcname, args)
+		{
+			var callfunc = ul4.AST.create.call(this, location);
+			callfunc.funcname = funcname;
+			callfunc.args = args;
+			return callfunc;
+		},
+		ul4ondump: function(encoder)
+		{
+			ul4.AST.ul4ondump.call(this, encoder);
+			encoder.dump(this.funcname);
+			encoder.dump(this.args);
+		},
+		ul4onload: function(decoder)
+		{
+			ul4.AST.ul4onload.call(this, decoder);
+			this.funcname = decoder.load();
+			this.args = decoder.load();
+		},
+		formatjs: function(indent)
+		{
+			if (this.funcname === "vars")
+				return "vars";
+			var v = [];
+			for (var i in this.args)
+				v.push(this.args[i].formatjs(indent));
+			return "ul4._fu_" + this.funcname + "(" + v.join(", ") + ")";
+		},
+		format: function(indent)
+		{
+			var v = [];
+			for (var i in this.args)
+				v.push(this.args[i].format(indent));
+			return this.funcname + "(" + v.join(", ") + ")";
+		},
+		precedence: 10,
+		associative: false
+	}
+);
+
+ul4.ChangeVar = ul4._inherit(
+	ul4.AST,
+	{
+		create: function(location, varname, value)
+		{
+			var changevar = ul4.AST.create.call(this, location);
+			changevar.varname = varname;
+			changevar.value = value;
+			return changevar;
+		},
+		ul4ondump: function(encoder)
+		{
+			ul4.AST.ul4ondump.call(this, encoder);
+			encoder.dump(this.varname);
+			encoder.dump(this.value);
+		},
+		ul4onload: function(decoder)
+		{
+			ul4.AST.ul4onload.call(this, decoder);
+			this.varname = decoder.load();
+			this.value = decoder.load();
+		}
+	}
+);
+
+ul4.StoreVar = ul4._inherit(
+	ul4.ChangeVar,
+	{
+		format: function(indent)
+		{
+			return this._line(indent, this.varname + " = " + this.value.format(indent));
+		},
+		formatjs: function(indent)
+		{
+			return this._line(indent, "vars[" + ul4._fu_json(this.varname) + "] = " + this.value.formatjs(indent) + ");");
+		}
+	}
+);
+
+ul4.AddVar = ul4._inherit(
+	ul4.ChangeVar,
+	{
+		format: function(indent)
+		{
+			return this._line(indent, this.varname + " += " + this.value.format(indent));
+		},
+		formatjs: function(indent)
+		{
+			var varname = ul4._fu_json(this.varname);
+			return this._line(indent, "vars[" + varname + "] = ul4._op_add(vars[" + varname + "], " + this.value.formatjs(indent) + "));");
+		}
+	}
+);
+
+ul4.SubVar = ul4._inherit(
+	ul4.ChangeVar,
+	{
+		format: function(indent)
+		{
+			return this._line(indent, this.varname + " -= " + this.value.format(indent));
+		},
+		formatjs: function(indent)
+		{
+			var varname = ul4._fu_json(this.varname);
+			return this._line(indent, "vars[" + varname + "] = ul4._op_sub(vars[" + varname + "], " + this.value.formatjs(indent) + "));");
+		}
+	}
+);
+
+ul4.MulVar = ul4._inherit(
+	ul4.ChangeVar,
+	{
+		format: function(indent)
+		{
+			return this._line(indent, this.varname + " *= " + this.value.format(indent));
+		},
+		formatjs: function(indent)
+		{
+			var varname = ul4._fu_json(this.varname);
+			return this._line(indent, "vars[" + varname + "] = ul4._op_mul(vars[" + varname + "], " + this.value.formatjs(indent) + "));");
+		}
+	}
+);
+
+ul4.TrueDivVar = ul4._inherit(
+	ul4.ChangeVar,
+	{
+		format: function(indent)
+		{
+			return this._line(indent, this.varname + " /= " + this.value.format(indent));
+		},
+		formatjs: function(indent)
+		{
+			var varname = ul4._fu_json(this.varname);
+			return this._line(indent, "vars[" + varname + "] = ul4._op_truediv(vars[" + varname + "], " + this.value.formatjs(indent) + "));");
+		}
+	}
+);
+
+ul4.FloorDivVar = ul4._inherit(
+	ul4.ChangeVar,
+	{
+		format: function(indent)
+		{
+			return this._line(indent, this.varname + " //= " + this.value.format(indent));
+		},
+		formatjs: function(indent)
+		{
+			var varname = ul4._fu_json(this.varname);
+			return this._line(indent, "vars[" + varname + "] = ul4._op_floordiv(vars[" + varname + "], " + this.value.formatjs(indent) + "));");
+		}
+	}
+);
+
+ul4.ModVar = ul4._inherit(
+	ul4.ChangeVar,
+	{
+		format: function(indent)
+		{
+			return this._line(indent, this.varname + " %= " + this.value.format(indent));
+		},
+		formatjs: function(indent)
+		{
+			var varname = ul4._fu_json(this.varname);
+			return this._line(indent, "context.put(" + varname + ", ul4._op_mod(context.get(" + varname + "), " + this.value.formatjs(indent) + "));");
+		}
+	}
+);
+
+ul4.DelVar = ul4._inherit(
+	ul4.AST,
+	{
+		create: function(location, varname)
+		{
+			var delvar = ul4.AST.create.call(this, location);
+			delvar.varname = varname;
+			return delvar;
+		},
+		ul4ondump: function(encoder)
+		{
+			ul4.AST.ul4ondump.call(this, encoder);
+			encoder.dump(this.varname);
+		},
+		ul4onload: function(decoder)
+		{
+			ul4.AST.ul4onload.call(this, decoder);
+			this.varname = decoder.load();
+		},
+		format: function(indent)
+		{
+			return this._line(indent, "del " + this.varname);
+		},
+		formatjs: function(indent)
+		{
+			return this._line(indent, "vars[" + ul4._fu_json(this.varname) + "] = null;");
+		}
+	}
+);
+
+ul4.Block = ul4._inherit(
+	ul4.AST,
+	{
+		create: function(location)
+		{
+			var block = ul4.AST.create.call(this, location);
+			block.content = [];
+			return block;
+		},
+		ul4ondump: function(encoder)
+		{
+			ul4.AST.ul4ondump.call(this, encoder);
+			encoder.dump(this.content);
+		},
+		ul4onload: function(decoder)
+		{
+			ul4.AST.ul4onload.call(this, decoder);
+			this.content = decoder.load();
+		}
+	}
+);
+
+ul4.Block = ul4._inherit(
+	ul4.AST,
+	{
+		create: function(location)
+		{
+			var block = ul4.AST.create.call(this, location);
+			block.content = [];
+			return block;
+		},
+		ul4ondump: function(encoder)
+		{
+			ul4.AST.ul4ondump.call(this, encoder);
+			encoder.dump(this.content);
+		},
+		ul4onload: function(decoder)
+		{
+			ul4.AST.ul4onload.call(this, decoder);
+			this.content = decoder.load();
+		},
+		_formatjs_content: function(indent)
+		{
+			var v = [];
+			for (var i in this.content)
+				v.push(this.content[i].formatjs(indent));
+			return v.join("");
+		},
+		format: function(indent)
+		{
+			var v = [];
+			v.push(this._line(indent, "{"));
+			++indent;
+			for (var i in this.content)
+				v.push(this.content[i].format(indent));
+			--indent;
+			v.push(this._line(indent, "}"));
+			return v.join("");
+		}
+	}
+);
+
+ul4.ForNormal = ul4._inherit(
+	ul4.Block,
+	{
+		create: function(location, container, varname)
+		{
+			var fornormal = ul4.Block.create.call(this, location);
+			fornormal.container = container;
+			fornormal.varname = varname;
+			return fornormal;
+		},
+		ul4ondump: function(encoder)
+		{
+			ul4.Block.ul4ondump.call(this, encoder);
+			encoder.dump(this.container);
+			encoder.dump(this.varname);
+		},
+		ul4onload: function(decoder)
+		{
+			ul4.Block.ul4onload.call(this, decoder);
+			this.container = decoder.load();
+			this.varname = decoder.load();
+		},
+		formatjs: function(indent)
+		{
+			var v = [];
+			v.push(this._line(indent, "for (var iter" + this.__id__ + " = ul4._iter(" + this.container.formatjs(indent) + ");;)"));
+			v.push(this._line(indent, "{"));
+			++indent;
+			v.push(this._line(indent, "var item" + this.__id__ + " = iter" + this.__id__ + "();"));
+			v.push(this._line(indent, "if (item" + this.__id__ + " === null)"));
+			v.push(this._line(indent+1, "break;"));
+			v.push(this._line(indent, "vars[" + ul4._fu_json(this.varname) + "] = item" + this.__id__ + "[0];"));
+			v.push(this._formatjs_content(indent));
+			--indent;
+			v.push(this._line(indent, "}"));
+			return v.join("");
+		},
+		format: function(indent)
+		{
+			return this._line(indent, "for " + this.varname + " in " + this.container.format(indent)) + ul4.Block.format.call(this, indent);
+		}
+	}
+);
+
+ul4.ForUnpack = ul4._inherit(
+	ul4.Block,
+	{
+		create: function(location, container, varnames)
+		{
+			var fornormal = ul4.Block.create.call(this, location);
+			fornormal.container = container;
+			fornormal.varnames = varnames;
+			return fornormal;
+		},
+		ul4ondump: function(encoder)
+		{
+			ul4.Block.ul4ondump.call(this, encoder);
+			encoder.dump(this.container);
+			encoder.dump(this.varnames);
+		},
+		ul4onload: function(decoder)
+		{
+			ul4.Block.ul4onload.call(this, decoder);
+			this.container = decoder.load();
+			this.varnames = decoder.load();
+		},
+		formatjs: function(indent)
+		{
+			var v = [];
+			v.push(this._line(indent, "for (var iter" + this.__id__ + " = ul4._iter(" + this.container.formatjs(indent) + ");;)"));
+			v.push(this._line(indent, "{"));
+			++indent;
+			v.push(this._line(indent, "var item" + this.__id__ + " = iter" + this.__id__ + "();"));
+			v.push(this._line(indent, "if (item" + this.__id__ + " === null)"));
+			v.push(this._line(indent+1, "break;"));
+			v.push(this._line(indent, "var items" + this.__id__ + " = ul4._fu_list(item" + this.__id__ + "[0]);"));
+			v.push(this._line(indent, "if (items" + this.__id__ + ".length != " + this.varnames.length + ")"));
+			v.push(this._line(indent+1, "throw 'mismatched for loop unpacking: " + this.varnames.length + " varnames, ' + items" + this.__id__ + ".length + ' items';"));
+			for (var i = 0; i < this.varnames.length; ++i)
+				v.push(this._line(indent, "vars[" + ul4._fu_json(this.varnames[i]) + "] = items" + this.__id__ + "[" + i + "];"));
+			v.push(this._formatjs_content(indent));
+			--indent;
+			v.push(this._line(indent, "}"));
+			return v.join("");
+		},
+		format: function(indent)
+		{
+			return this._line(indent, "for (" + this.varnames.join(", ") + ") in " + this.container.format(indent)) + ul4.Block.format.call(this, indent);
+		}
+	}
+);
+
+ul4.Break = ul4._inherit(
+	ul4.AST,
+	{
+		formatjs: function(indent)
+		{
+			return this._line(indent, "break;");
+		},
+		format: function(indent)
+		{
+			return this._line(indent, "break");
+		}
+	}
+);
+
+ul4.Continue = ul4._inherit(
+	ul4.AST,
+	{
+		formatjs: function(indent)
+		{
+			return this._line(indent, "continue;");
+		},
+		format: function(indent)
+		{
+			return this._line(indent, "continue");
+		}
+	}
+);
+
+ul4.IfElIfElse = ul4._inherit(
+	ul4.Block,
+	{
+		formatjs: function(indent)
+		{
+			return this._formatjs_content(indent);
+		},
+		format: function(indent)
+		{
+			var v = [];
+			for (var i in this.content)
+				v.push(this.content[i].format(indent));
+			return v.join("");
+		}
+	}
+);
+
+ul4.ConditionalBlock = ul4._inherit(
+	ul4.Block,
+	{
+		create: function(location, condition)
+		{
+			var block = ul4.Block.create.call(this, location);
+			block.condition = condition;
+			return block;
+		},
+		ul4ondump: function(encoder)
+		{
+			ul4.Block.ul4ondump.call(this, encoder);
+			encoder.dump(this.condition);
+		},
+		ul4onload: function(decoder)
+		{
+			ul4.Block.ul4onload.call(this, decoder);
+			this.condition = decoder.load();
+		},
+		formatjs: function(indent)
+		{
+			var v = [];
+			v.push(this._line(indent, this._sourcejs + " (ul4._fu_bool(" + this.condition.formatjs(indent) + "))"));
+			v.push(this._line(indent, "{"));
+			v.push(this._formatjs_content(indent+1));
+			v.push(this._line(indent, "}"));
+			return v.join("");
+		},
+		format: function(indent)
+		{
+			return this._line(indent, this._name() + " " + this.condition.format(indent)) + ul4.Block.format.call(this, indent);
+		}
+	}
+);
+
+ul4.If = ul4._inherit(
+	ul4.ConditionalBlock,
+	{
+		_sourcejs: "if"
+	}
+);
+
+ul4.ElIf = ul4._inherit(
+	ul4.ConditionalBlock,
+	{
+		_sourcejs: "else if"
+	}
+);
+
+ul4.Else = ul4._inherit(
+	ul4.Block,
+	{
+		formatjs: function(indent)
+		{
+			var v = [];
+			v.push(this._line(indent, "else"));
+			v.push(this._line(indent, "{"));
+			v.push(this._formatjs_content(indent+1));
+			v.push(this._line(indent, "}"));
+			return v.join("");
+		},
+		format: function(indent)
+		{
+			return this._line(indent, "else") + ul4.Block.format.call(this, indent);
+		}
+	}
+);
+
+ul4.Template = ul4._inherit(
+	ul4.Block,
+	{
+		create: function(location, source, name, startdelim, enddelim)
+		{
+			var template = ul4.Block.create.call(this, location);
+			template.source = source;
+			template.name = name;
+			template.startdelim = startdelim;
+			template.enddelim = enddelim;
+			template._function = null;
+			return template;
+		},
+		ul4ondump: function(encoder)
+		{
+			encoder.dump(ul4.version);
+			encoder.dump(this.source);
+			encoder.dump(this.name);
+			encoder.dump(this.startdelim);
+			encoder.dump(this.enddelim);
+			ul4.Block.ul4ondump.call(this, encoder);
+		},
+		ul4onload: function(decoder)
+		{
+			var version = decoder.load();
+			if (version !== ul4.version)
+				throw "invalid version, expected " + ul4.version + ", got " + version;
+			this.source = decoder.load();
+			this.name = decoder.load();
+			this.startdelim = decoder.load();
+			this.enddelim = decoder.load();
+			ul4.Block.ul4onload.call(this, decoder);
+		},
+		formatjs: function(indent)
+		{
+			var v = [];
+			v.push(this._line(indent, "vars[" + ul4._fu_json(this.name) + "] = function(vars)"));
+			v.push(this._line(indent, "{"));
+			v.push(this._line(indent+1, "var stack = ul4.Stack.create();"));
+			v.push(this._line(indent+1, "var output = [];"));
+			v.push(this._formatjs_content(indent+1));
+			v.push(this._line(indent, "};"));
+			return v.join("");
+		},
+		format: function(indent)
+		{
+			return this._line(indent, "def " + (this.name !== null ? this.name : "unnamed")) + ul4.Block.format.call(this, indent);
+		},
+		_makefunction: function()
+		{
+			var v = [];
+			v.push(this._line(0, "(function(vars)"));
+			v.push(this._line(0, "{"));
+			v.push(this._line(1, "var stack = ul4.Stack.create();"));
+			v.push(this._line(1, "var output = [];"));
+			v.push(this._formatjs_content(1));
+			v.push(this._line(1, "return output;"));
+			v.push(this._line(0, "})"));
+			var source = v.join("");
+			return eval(source);
+		},
+		render: function(vars)
+		{
+			vars = vars || {};
+			if (this._function === null)
+				this._function = this._makefunction();
+			return this._function(vars);
+		},
+		renders: function(vars)
+		{
+			return this.render(vars).join("");
+		},
+		loads: function(string)
+		{
+			return ul4on.loads(string);
+		},
+		__istemplate__: true // used by ``istemplate()``
+	}
+);
+
+ul4on.register("de.livinglogic.ul4.location", ul4.Location);
+ul4on.register("de.livinglogic.ul4.text", ul4.Text);
+ul4on.register("de.livinglogic.ul4.null", ul4.LoadNone);
+ul4on.register("de.livinglogic.ul4.false", ul4.LoadFalse);
+ul4on.register("de.livinglogic.ul4.true", ul4.LoadTrue);
+ul4on.register("de.livinglogic.ul4.int", ul4.LoadInt);
+ul4on.register("de.livinglogic.ul4.float", ul4.LoadFloat);
+ul4on.register("de.livinglogic.ul4.str", ul4.LoadStr);
+ul4on.register("de.livinglogic.ul4.color", ul4.LoadColor);
+ul4on.register("de.livinglogic.ul4.date", ul4.LoadDate);
+ul4on.register("de.livinglogic.ul4.var", ul4.LoadVar);
+ul4on.register("de.livinglogic.ul4.not", ul4.Not);
+ul4on.register("de.livinglogic.ul4.neg", ul4.Neg);
+ul4on.register("de.livinglogic.ul4.print", ul4.Print);
+ul4on.register("de.livinglogic.ul4.printx", ul4.PrintX);
+ul4on.register("de.livinglogic.ul4.getitem", ul4.GetItem);
+ul4on.register("de.livinglogic.ul4.eq", ul4.EQ);
+ul4on.register("de.livinglogic.ul4.ne", ul4.NE);
+ul4on.register("de.livinglogic.ul4.lt", ul4.LT);
+ul4on.register("de.livinglogic.ul4.le", ul4.LE);
+ul4on.register("de.livinglogic.ul4.gt", ul4.GT);
+ul4on.register("de.livinglogic.ul4.ge", ul4.GE);
+ul4on.register("de.livinglogic.ul4.notcontains", ul4.NotContains);
+ul4on.register("de.livinglogic.ul4.contains", ul4.Contains);
+ul4on.register("de.livinglogic.ul4.add", ul4.Add);
+ul4on.register("de.livinglogic.ul4.sub", ul4.Sub);
+ul4on.register("de.livinglogic.ul4.mul", ul4.Mul);
+ul4on.register("de.livinglogic.ul4.floordiv", ul4.FloorDiv);
+ul4on.register("de.livinglogic.ul4.truediv", ul4.TrueDiv);
+ul4on.register("de.livinglogic.ul4.mod", ul4.Mod);
+ul4on.register("de.livinglogic.ul4.and", ul4.And);
+ul4on.register("de.livinglogic.ul4.or", ul4.Or);
+ul4on.register("de.livinglogic.ul4.getattr", ul4.GetAttr);
+ul4on.register("de.livinglogic.ul4.callfunc", ul4.CallFunc);
+ul4on.register("de.livinglogic.ul4.storevar", ul4.StoreVar);
+ul4on.register("de.livinglogic.ul4.addvar", ul4.AddVar);
+ul4on.register("de.livinglogic.ul4.subvar", ul4.SubVar);
+ul4on.register("de.livinglogic.ul4.mulvar", ul4.MulVar);
+ul4on.register("de.livinglogic.ul4.truedivvar", ul4.TrueDivVar);
+ul4on.register("de.livinglogic.ul4.floordivvar", ul4.FloorDivVar);
+ul4on.register("de.livinglogic.ul4.modvar", ul4.ModVar);
+ul4on.register("de.livinglogic.ul4.delvar", ul4.DelVar);
+ul4on.register("de.livinglogic.ul4.for", ul4.ForNormal);
+ul4on.register("de.livinglogic.ul4.foru", ul4.ForUnpack);
+ul4on.register("de.livinglogic.ul4.break", ul4.Break);
+ul4on.register("de.livinglogic.ul4.continue", ul4.Continue);
+ul4on.register("de.livinglogic.ul4.ieie", ul4.IfElIfElse);
+ul4on.register("de.livinglogic.ul4.if", ul4.If);
+ul4on.register("de.livinglogic.ul4.elif", ul4.ElIf);
+ul4on.register("de.livinglogic.ul4.else", ul4.Else);
+ul4on.register("de.livinglogic.ul4.template", ul4.Template);

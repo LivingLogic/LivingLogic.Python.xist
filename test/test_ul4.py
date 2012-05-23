@@ -94,12 +94,15 @@ class RenderJS(Render):
 		with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 			f.write(js.encode("utf-8"))
 			f.flush()
-			result = os.popen("d8 {} {}".format(pkg_resources.resource_filename("ll.xist", "data/"), f.name), "rb").read()
-		result = result.decode("utf-8")[:-1] # Drop the "\n"
+			dir = pkg_resources.resource_filename("ll.xist", "data/")
+			proc = subprocess.Popen(["d8", dir+"/js/ul4on.js", dir+"/js/ul4.js", f.name], stdout=subprocess.PIPE)
+			(stdout, stderr) = proc.communicate()
+			# result = os.popen("d8 {}/js/ul4on.js {}/js/ul4.js {}".format(dir, dir, f.name), "r").read()
+		stdout = stdout.decode("utf-8").rstrip() # Drop the "\n"
 		# Check if we have an exception
-		if result.endswith("^"):
-			raise RuntimeError(result.splitlines()[0])
-		return result
+		if stdout.endswith("^"):
+			raise RuntimeError(stdout.splitlines()[0])
+		return stdout
 
 
 class RenderJava(Render):
@@ -156,8 +159,8 @@ class RenderJava(Render):
 			with open(os.path.join(tempdir, "UL4Test.java"), "wb") as f:
 				f.write(source.encode("utf-8"))
 			os.system("cd {}; javac -encoding utf-8 UL4Test.java".format(tempdir))
-			pipe = subprocess.Popen("cd {}; java UL4Test".format(tempdir), stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-			(stdout, stderr) = pipe.communicate()
+			proc = subprocess.Popen("cd {}; java UL4Test".format(tempdir), stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+			(stdout, stderr) = proc.communicate()
 		finally:
 			shutil.rmtree(tempdir)
 		# Check if we have an exception
@@ -229,7 +232,8 @@ all_python_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump)
 # FIXME: The following really takes a long time to run: 
 #all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaInterpretedTemplateByPython, RenderJavaCompiledTemplateByPython, RenderJavaInterpretedTemplateByJava)
 all_renderers = all_python_renderers
-all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJavaInterpretedTemplateByPython, RenderJavaInterpretedTemplateByJava)
+all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaInterpretedTemplateByPython, RenderJavaInterpretedTemplateByJava)
+all_renderers = (RenderJS,)
 
 
 def eq(expected, render):

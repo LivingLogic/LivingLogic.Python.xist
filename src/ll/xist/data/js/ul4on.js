@@ -65,6 +65,9 @@ var ul4on = {
 		{
 			var encoder = ul4._clone(this);
 			encoder.data = [];
+			encoder._strings2index = {};
+			encoder._ids2index = {};
+			encoder._backrefs = 0;
 			return encoder;
 		},
 
@@ -100,9 +103,19 @@ var ul4on = {
 			}
 			else if (typeof(obj) == "string")
 			{
-				this.write("s");
-				this.writenumber(obj.length);
-				this.write(obj);
+				var index = this._strings2index[obj];
+				if (typeof(index) != "undefined")
+				{
+					this.write("^");
+					this.writenumber(index);
+				}
+				else
+				{
+					this._strings2index[obj] = this._backrefs++;
+					this.write("S");
+					this.writenumber(obj.length);
+					this.write(obj);
+				}
 			}
 			else if (ul4._fu_iscolor(obj))
 			{
@@ -122,11 +135,21 @@ var ul4on = {
 			}
 			else if (ul4._fu_isdate(obj))
 				this.write(ul4._fu_format(obj, "t%Y%m%d%H%M%S%f"));
-			else if (obj.ul4onname && obj.ul4ondump)
+			else if (obj.__id__ && obj.ul4onname && obj.ul4ondump)
 			{
-				this.write("o");
-				this.dump(obj.ul4onname);
-				obj.ul4ondump(this);
+				var index = this._ids2index[obj.__id__];
+				if (typeof(index) != "undefined")
+				{
+					this.write("^");
+					this.writenumber(index);
+				}
+				else
+				{
+					this._ids2index[obj.__id__] = this._backrefs++;
+					this.write("O");
+					this.dump(obj.ul4onname);
+					obj.ul4ondump(this);
+				}
 			}
 			else if (ul4._fu_islist(obj))
 			{
@@ -208,65 +231,64 @@ var ul4on = {
 		{
 			var typecode = this.readchar();
 			var result;
-
 			switch (typecode)
 			{
 				case "^":
 					return this.backrefs[this.readnumber()];
 				case "n":
 				case "N":
-					if (typecode == "N")
-						this.backrefs.append(null);
+					if (typecode === "N")
+						this.backrefs.push(null);
 					return null;
 				case "b":
 				case "B":
 					result = this.readchar();
-					if (result == "T")
+					if (result === "T")
 						result = true;
-					else if (result == "F")
+					else if (result === "F")
 						result = false;
 					else
 						throw "wrong value for boolean, expected " + ul4._fu_repr("T") + " or " + ul4._fu_repr("F") + ", got " + ul4._fu_repr(result) + " at position " + this.pos;
-					if (typecode == "B")
-						this.backrefs.append(result);
+					if (typecode === "B")
+						this.backrefs.push(result);
 				case "i":
 				case "I":
 				case "f":
 				case "F":
 					result = this.readnumber();
-					if (typecode == "I" || typecode == "F")
-						this.backrefs.append(result);
+					if (typecode === "I" || typecode === "F")
+						this.backrefs.push(result);
 					return result;
 				case "s":
 				case "S":
 					var size = this.readnumber();
 					result = this.read(size);
-					if (typecode == "S")
-						this.backrefs.append(result);
+					if (typecode === "S")
+						this.backrefs.push(result);
 					return result;
 				case "c":
 				case "C":
 					result = this.read(8);
 					result = ul4.Color.create(parseInt(result.substring(0, 2), 16), parseInt(result.substring(2, 4), 16), parseInt(result.substring(4, 6), 16), parseInt(result.substring(6, 8), 16));
-					if (typecode == "C")
-						this.backrefs.append(result);
+					if (typecode === "C")
+						this.backrefs.push(result);
 					return result;
 				case "t":
 				case "T":
 					result = this.read(20);
 					result = new Date(parseInt(result.substring(0, 4)), parseInt(result.substring(4, 6)) + 1, parseInt(result.substring(6, 8)), parseInt(result.substring(8, 10)), parseInt(result.substring(10, 12)), parseInt(result.substring(12, 14)), parseInt(result.substring(14, 17)));
-					if (typecode == "T")
-						this.backrefs.append(result);
+					if (typecode === "T")
+						this.backrefs.push(result);
 					return result;
 				case "l":
 				case "L":
 					result = [];
-					if (typecode == "L")
-						this.backrefs.append(result);
+					if (typecode === "L")
+						this.backrefs.push(result);
 					for (;;)
 					{
 						typecode = this.readchar();
-						if (typecode == ".")
+						if (typecode === ".")
 							return result;
 						this.backup();
 						result.push(this.load());
@@ -275,12 +297,12 @@ var ul4on = {
 				case "d":
 				case "D":
 					result = {};
-					if (typecode == "D")
-						this.backrefs.append(result);
+					if (typecode === "D")
+						this.backrefs.push(result);
 					for (;;)
 					{
 						typecode = this.readchar();
-						if (typecode == ".")
+						if (typecode === ".")
 							return result;
 						this.backup();
 						var key = this.load();
@@ -290,10 +312,19 @@ var ul4on = {
 					return result;
 				case "o":
 				case "O":
+					var oldpos = null;
+					if (typecode === "O")
+					{
+						oldpos = this.backrefs.length;
+						this.backrefs.push(null);
+					}
 					var name = this.load();
-					result = ul4on._registry[name]();
-					if (typecode == "O")
-						this.backrefs.append(result);
+					var proto = ul4on._registry[name];
+					if (typeof(proto) === "undefined")
+						throw "can't load object of type " + ul4._fu_repr(name);
+					result = proto();
+					if (typecode === "O")
+						this.backrefs[oldpos] = result;
 					result.ul4onload(this);
 					return result;
 				default:
