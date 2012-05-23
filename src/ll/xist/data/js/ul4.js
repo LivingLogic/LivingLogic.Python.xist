@@ -3526,6 +3526,50 @@ ul4.CallFunc = ul4._inherit(
 	}
 );
 
+ul4.CallMeth = ul4._inherit(
+	ul4.AST,
+	{
+		create: function(location, methname, obj, args)
+		{
+			var callfunc = ul4.AST.create.call(this, location);
+			callfunc.methname = methname;
+			callfunc.obj = obj;
+			callfunc.args = args;
+			return callfunc;
+		},
+		ul4ondump: function(encoder)
+		{
+			ul4.AST.ul4ondump.call(this, encoder);
+			encoder.dump(this.methname);
+			encoder.dump(this.obj);
+			encoder.dump(this.args);
+		},
+		ul4onload: function(decoder)
+		{
+			ul4.AST.ul4onload.call(this, decoder);
+			this.methname = decoder.load();
+			this.obj = decoder.load();
+			this.args = decoder.load();
+		},
+		formatjs: function(indent)
+		{
+			var v = [this.obj.formatjs(indent)];
+			for (var i in this.args)
+				v.push(this.args[i].formatjs(indent));
+			return "ul4._me_" + this.methname + "(" + v.join(", ") + ")";
+		},
+		format: function(indent)
+		{
+			var v = [];
+			for (var i in this.args)
+				v.push(this.args[i].format(indent));
+			return this._formatop(this.obj) + "." + this.methname + "(" + v.join(", ") + ")";
+		},
+		precedence: 10,
+		associative: false
+	}
+);
+
 ul4.ChangeVar = ul4._inherit(
 	ul4.AST,
 	{
@@ -3560,7 +3604,7 @@ ul4.StoreVar = ul4._inherit(
 		},
 		formatjs: function(indent)
 		{
-			return this._line(indent, "vars[" + ul4._fu_json(this.varname) + "] = " + this.value.formatjs(indent) + ");");
+			return this._line(indent, "vars[" + ul4._fu_json(this.varname) + "] = " + this.value.formatjs(indent) + ";");
 		}
 	}
 );
@@ -3575,7 +3619,7 @@ ul4.AddVar = ul4._inherit(
 		formatjs: function(indent)
 		{
 			var varname = ul4._fu_json(this.varname);
-			return this._line(indent, "vars[" + varname + "] = ul4._op_add(vars[" + varname + "], " + this.value.formatjs(indent) + "));");
+			return this._line(indent, "vars[" + varname + "] = ul4._op_add(vars[" + varname + "], " + this.value.formatjs(indent) + ");");
 		}
 	}
 );
@@ -3590,7 +3634,7 @@ ul4.SubVar = ul4._inherit(
 		formatjs: function(indent)
 		{
 			var varname = ul4._fu_json(this.varname);
-			return this._line(indent, "vars[" + varname + "] = ul4._op_sub(vars[" + varname + "], " + this.value.formatjs(indent) + "));");
+			return this._line(indent, "vars[" + varname + "] = ul4._op_sub(vars[" + varname + "], " + this.value.formatjs(indent) + ");");
 		}
 	}
 );
@@ -3605,7 +3649,7 @@ ul4.MulVar = ul4._inherit(
 		formatjs: function(indent)
 		{
 			var varname = ul4._fu_json(this.varname);
-			return this._line(indent, "vars[" + varname + "] = ul4._op_mul(vars[" + varname + "], " + this.value.formatjs(indent) + "));");
+			return this._line(indent, "vars[" + varname + "] = ul4._op_mul(vars[" + varname + "], " + this.value.formatjs(indent) + ");");
 		}
 	}
 );
@@ -3620,7 +3664,7 @@ ul4.TrueDivVar = ul4._inherit(
 		formatjs: function(indent)
 		{
 			var varname = ul4._fu_json(this.varname);
-			return this._line(indent, "vars[" + varname + "] = ul4._op_truediv(vars[" + varname + "], " + this.value.formatjs(indent) + "));");
+			return this._line(indent, "vars[" + varname + "] = ul4._op_truediv(vars[" + varname + "], " + this.value.formatjs(indent) + ");");
 		}
 	}
 );
@@ -3635,7 +3679,7 @@ ul4.FloorDivVar = ul4._inherit(
 		formatjs: function(indent)
 		{
 			var varname = ul4._fu_json(this.varname);
-			return this._line(indent, "vars[" + varname + "] = ul4._op_floordiv(vars[" + varname + "], " + this.value.formatjs(indent) + "));");
+			return this._line(indent, "vars[" + varname + "] = ul4._op_floordiv(vars[" + varname + "], " + this.value.formatjs(indent) + ");");
 		}
 	}
 );
@@ -3650,7 +3694,7 @@ ul4.ModVar = ul4._inherit(
 		formatjs: function(indent)
 		{
 			var varname = ul4._fu_json(this.varname);
-			return this._line(indent, "context.put(" + varname + ", ul4._op_mod(context.get(" + varname + "), " + this.value.formatjs(indent) + "));");
+			return this._line(indent, "vars[" + varname + "] = ul4._op_mod(vars[" + varname + "], " + this.value.formatjs(indent) + ");");
 		}
 	}
 );
@@ -4066,6 +4110,7 @@ ul4on.register("de.livinglogic.ul4.and", ul4.And);
 ul4on.register("de.livinglogic.ul4.or", ul4.Or);
 ul4on.register("de.livinglogic.ul4.getattr", ul4.GetAttr);
 ul4on.register("de.livinglogic.ul4.callfunc", ul4.CallFunc);
+ul4on.register("de.livinglogic.ul4.callmeth", ul4.CallMeth);
 ul4on.register("de.livinglogic.ul4.storevar", ul4.StoreVar);
 ul4on.register("de.livinglogic.ul4.addvar", ul4.AddVar);
 ul4on.register("de.livinglogic.ul4.subvar", ul4.SubVar);
