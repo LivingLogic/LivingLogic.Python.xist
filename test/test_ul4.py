@@ -98,7 +98,7 @@ class RenderJS(Render):
 			proc = subprocess.Popen(["d8", dir+"/js/ul4on.js", dir+"/js/ul4.js", f.name], stdout=subprocess.PIPE)
 			(stdout, stderr) = proc.communicate()
 			# result = os.popen("d8 {}/js/ul4on.js {}/js/ul4.js {}".format(dir, dir, f.name), "r").read()
-		stdout = stdout.decode("utf-8").rstrip() # Drop the "\n"
+		stdout = stdout.decode("utf-8").rstrip("\n") # Drop the "\n"
 		# Check if we have an exception
 		if stdout.endswith("^"):
 			raise RuntimeError(stdout.splitlines()[0])
