@@ -276,7 +276,7 @@ var ul4on = {
 				case "t":
 				case "T":
 					result = this.read(20);
-					result = new Date(parseInt(result.substring(0, 4)), parseInt(result.substring(4, 6)) + 1, parseInt(result.substring(6, 8)), parseInt(result.substring(8, 10)), parseInt(result.substring(10, 12)), parseInt(result.substring(12, 14)), parseInt(result.substring(14, 17)));
+					result = new Date(parseInt(result.substring(0, 4)), parseInt(result.substring(4, 6)) - 1, parseInt(result.substring(6, 8)), parseInt(result.substring(8, 10)), parseInt(result.substring(10, 12)), parseInt(result.substring(12, 14)), parseInt(result.substring(14, 17)));
 					if (typecode === "T")
 						this.backrefs.push(result);
 					return result;
