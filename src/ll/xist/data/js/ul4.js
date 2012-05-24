@@ -3104,6 +3104,43 @@ ul4.LoadColor = ul4._inherit(ul4.LoadConst);
 
 ul4.LoadDate = ul4._inherit(ul4.LoadConst);
 
+ul4.List = ul4._inherit(
+	ul4.AST,
+	{
+		create: function(location)
+		{
+			var list = ul4.AST.create.call(this, location);
+			list.content = [];
+			return list;
+		},
+		ul4ondump: function(encoder)
+		{
+			ul4.AST.ul4ondump.call(this, encoder);
+			encoder.dump(this.content);
+		},
+		ul4onload: function(decoder)
+		{
+			ul4.AST.ul4onload.call(this, decoder);
+			this.content = decoder.load();
+		},
+		formatjs: function(indent)
+		{
+			var v= [];
+			for (var i in this.content)
+				v.push(this.content[i].formatjs(indent));
+			return "[" + v.join(", ") + "]";
+		},
+		format: function(indent)
+		{
+			var v= [];
+			for (var i in this.content)
+				v.push(this.content[i].format(indent));
+			return "[" + v.join(", ") + "]";
+		},
+		precedence: 11
+	}
+);
+
 ul4.LoadVar = ul4._inherit(
 	ul4.AST,
 	{
@@ -4086,6 +4123,7 @@ ul4on.register("de.livinglogic.ul4.float", ul4.LoadFloat);
 ul4on.register("de.livinglogic.ul4.str", ul4.LoadStr);
 ul4on.register("de.livinglogic.ul4.color", ul4.LoadColor);
 ul4on.register("de.livinglogic.ul4.date", ul4.LoadDate);
+ul4on.register("de.livinglogic.ul4.list", ul4.List);
 ul4on.register("de.livinglogic.ul4.var", ul4.LoadVar);
 ul4on.register("de.livinglogic.ul4.not", ul4.Not);
 ul4on.register("de.livinglogic.ul4.neg", ul4.Neg);
