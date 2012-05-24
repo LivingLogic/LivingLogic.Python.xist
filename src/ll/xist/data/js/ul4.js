@@ -922,7 +922,7 @@ var ul4 = {
 		}
 		else if (this._fu_iscolor(obj))
 		{
-			return "ul4.Color.create(" + obj.value.r + ", " + obj.value.g + ", " + obj.value.b + ", " + obj.value.a + ")";
+			return "ul4.Color.create(" + obj.r + ", " + obj.g + ", " + obj.b + ", " + obj.a + ")";
 		}
 		else if (this._fu_istemplate(obj))
 		{
@@ -1405,9 +1405,9 @@ var ul4 = {
 
 	_me_find: function(string, searchstring, start, stop)
 	{
-		if (start === null)
+		if (typeof(start) === "undefined" || start === null)
 			start = 0;
-		if (stop === null)
+		if (typeof(stop) === "undefined" || stop === null)
 			stop = string.length;
 		if (start !== 0 || stop !== string.length)
 			string = string.substring(start, stop);
@@ -1419,9 +1419,9 @@ var ul4 = {
 
 	_me_rfind: function(string, searchstring, start, stop)
 	{
-		if (start === null)
+		if (typeof(start) === "undefined" || start === null)
 			start = 0;
-		if (stop === null)
+		if (typeof(stop) === "undefined" || stop === null)
 			stop = string.length;
 		if (start !== 0 || stop !== string.length)
 			string = string.substring(start, stop);
