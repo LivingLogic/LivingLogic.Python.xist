@@ -2864,6 +2864,23 @@ var ul4 = {
 		return '"' + result + '"';
 	},
 
+	_makedict: function()
+	{
+		var result = {};
+		for (var i in arguments)
+		{
+			var item = arguments[i];
+			if (item.length == 2)
+				result[item[0]] = item[1];
+			else
+			{
+				for (var key in item[0])
+					result[key] = item[0][key];
+			}
+		}
+		return result;
+	},
+
 	_lpad: function(string, pad, len)
 	{
 		if (typeof(string) === "number")
@@ -3110,32 +3127,81 @@ ul4.List = ul4._inherit(
 		create: function(location)
 		{
 			var list = ul4.AST.create.call(this, location);
-			list.content = [];
+			list.items = [];
 			return list;
 		},
 		ul4ondump: function(encoder)
 		{
 			ul4.AST.ul4ondump.call(this, encoder);
-			encoder.dump(this.content);
+			encoder.dump(this.items);
 		},
 		ul4onload: function(decoder)
 		{
 			ul4.AST.ul4onload.call(this, decoder);
-			this.content = decoder.load();
+			this.items = decoder.load();
 		},
 		formatjs: function(indent)
 		{
-			var v= [];
-			for (var i in this.content)
-				v.push(this.content[i].formatjs(indent));
+			var v = [];
+			for (var i in this.items)
+				v.push(this.items[i].formatjs(indent));
 			return "[" + v.join(", ") + "]";
 		},
 		format: function(indent)
 		{
-			var v= [];
-			for (var i in this.content)
-				v.push(this.content[i].format(indent));
+			var v = [];
+			for (var i in this.items)
+				v.push(this.items[i].format(indent));
 			return "[" + v.join(", ") + "]";
+		},
+		precedence: 11
+	}
+);
+
+ul4.Dict = ul4._inherit(
+	ul4.AST,
+	{
+		create: function(location)
+		{
+			var dict = ul4.AST.create.call(this, location);
+			dict.items = [];
+			return dict;
+		},
+		ul4ondump: function(encoder)
+		{
+			ul4.AST.ul4ondump.call(this, encoder);
+			encoder.dump(this.items);
+		},
+		ul4onload: function(decoder)
+		{
+			ul4.AST.ul4onload.call(this, decoder);
+			this.items = decoder.load();
+		},
+		formatjs: function(indent)
+		{
+			var v = [];
+			for (var i in this.items)
+			{
+				var item = this.items[i];
+				if (item.length == 2)
+					v.push("[" + item[0].formatjs(indent) + ", " + item[1].formatjs(indent) + "]");
+				else
+					v.push("[" + item[0].formatjs(indent) + "]");
+			}
+			return "ul4._makedict(" + v.join(", ") + ")";
+		},
+		format: function(indent)
+		{
+			var v = [];
+			for (var i in this.items)
+			{
+				var item = this.items[i];
+				if (item.length == 2)
+					v.push(item[0].format(indent) + ": " + item[1].format(indent));
+				else
+					v.push("**" + item[0].format(indent));
+			}
+			return "{" + v.join(", ") + "}";
 		},
 		precedence: 11
 	}
@@ -4124,6 +4190,7 @@ ul4on.register("de.livinglogic.ul4.str", ul4.LoadStr);
 ul4on.register("de.livinglogic.ul4.color", ul4.LoadColor);
 ul4on.register("de.livinglogic.ul4.date", ul4.LoadDate);
 ul4on.register("de.livinglogic.ul4.list", ul4.List);
+ul4on.register("de.livinglogic.ul4.dict", ul4.Dict);
 ul4on.register("de.livinglogic.ul4.var", ul4.LoadVar);
 ul4on.register("de.livinglogic.ul4.not", ul4.Not);
 ul4on.register("de.livinglogic.ul4.neg", ul4.Neg);
