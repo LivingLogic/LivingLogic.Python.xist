@@ -237,8 +237,7 @@ var ul4 = {
 	// Check if ``obj`` is ``None``
 	_fu_isnone: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "isnone() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("isnone", arguments, 1);
 
 		return obj === null;
 	},
@@ -246,8 +245,7 @@ var ul4 = {
 	// Check if ``obj`` is a boolean
 	_fu_isbool: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "isbool() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("isbool", arguments, 1);
 
 		return typeof(obj) == "boolean";
 	},
@@ -255,8 +253,7 @@ var ul4 = {
 	// Check if ``obj`` is a int
 	_fu_isint: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "isint() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("isint", arguments, 1);
 
 		return (typeof(obj) == "number") && Math.round(obj) == obj;
 	},
@@ -264,8 +261,7 @@ var ul4 = {
 	// Check if ``obj`` is a float
 	_fu_isfloat: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "isfloat() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("isfloat", arguments, 1);
 
 		return (typeof(obj) == "number") && Math.round(obj) != obj;
 	},
@@ -273,8 +269,7 @@ var ul4 = {
 	// Check if ``obj`` is a string
 	_fu_isstr: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "isstr() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("isstr", arguments, 1);
 
 		return typeof(obj) == "string";
 	},
@@ -282,8 +277,7 @@ var ul4 = {
 	// Check if ``obj`` is a date
 	_fu_isdate: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "isdate() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("isdate", arguments, 1);
 
 		return Object.prototype.toString.call(obj) == "[object Date]";
 	},
@@ -291,8 +285,7 @@ var ul4 = {
 	// Check if ``obj`` is a color
 	_fu_iscolor: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "iscolor() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("iscolor", arguments, 1);
 
 		return Object.prototype.toString.call(obj) == "[object Object]" && !!obj.__iscolor__;
 	},
@@ -300,8 +293,7 @@ var ul4 = {
 	// Check if ``obj`` is a template
 	_fu_istemplate: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "istemplate() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("istemplate", arguments, 1);
 
 		return Object.prototype.toString.call(obj) == "[object Object]" && !!obj.__istemplate__;
 	},
@@ -309,8 +301,7 @@ var ul4 = {
 	// Check if ``obj`` is a list
 	_fu_islist: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "list() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("islist", arguments, 1);
 
 		return Object.prototype.toString.call(obj) == "[object Array]";
 	},
@@ -318,8 +309,7 @@ var ul4 = {
 	// Check if ``obj`` is a dict
 	_fu_isdict: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "isdict() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("isdict", arguments, 1);
 
 		return Object.prototype.toString.call(obj) == "[object Object]" && !obj.__iscolor__ && !obj.__istemplate__;
 	},
@@ -327,8 +317,7 @@ var ul4 = {
 	// Convert ``obj`` to bool, according to its "truth value"
 	_fu_bool: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "bool() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("bool", arguments, 1);
 
 		if (obj === null || obj === false || obj === 0 || obj === "")
 			return false;
@@ -349,8 +338,7 @@ var ul4 = {
 	// Create a color object from the red, green, blue and alpha values ``r``, ``g``, ``b`` and ``b``
 	_fu_rgb: function(r, g, b, a)
 	{
-		if (arguments.length < 3 || arguments.length > 4)
-			throw "rgb() requires 3-4 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("rgb", arguments, 3, 4);
 
 		return this.Color.create(255*r, 255*g, 255*b, typeof(a) == "undefined" ? 0xff : (255*a));
 	},
@@ -358,8 +346,7 @@ var ul4 = {
 	// Return the type of ``obj`` as a string
 	_fu_type: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "type() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("type", arguments, 1);
 
 		if (obj === null)
 			return "none";
@@ -385,8 +372,7 @@ var ul4 = {
 	// Convert ``obj`` to a string
 	_fu_str: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "str() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("str", arguments, 1);
 
 		if (typeof(obj) === "string")
 			return obj;
@@ -444,8 +430,7 @@ var ul4 = {
 	// Convert ``obj`` to an integer (if ``base`` is given ``obj`` must be a string and ``base`` is the base for the conversion (default is 10))
 	_fu_int: function(obj, base)
 	{
-		if (arguments.length < 1 || arguments.length > 2)
-			throw "int() requires 1-2 arguments, " + arguments.length + " given";
+		ul4._checkfuncargs("int", arguments, 1, 2);
 
 		var result;
 		if (typeof(base) !== "undefined")
@@ -479,8 +464,7 @@ var ul4 = {
 	// Convert ``obj`` to a float
 	_fu_float: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "float() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("float", arguments, 1);
 
 		if (typeof(obj) == "string")
 			return parseFloat(obj);
@@ -496,8 +480,7 @@ var ul4 = {
 	// Convert ``obj`` to a list
 	_fu_list: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "list() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("list", arguments, 1);
 
 		if (typeof(obj) == "string" || this._fu_islist(obj))
 		{
@@ -535,8 +518,7 @@ var ul4 = {
 	// Return the length of ``obj``
 	_fu_len: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "len() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("len", arguments, 1);
 
 		if (typeof(obj) == "string" || this._fu_islist(obj))
 			return obj.length;
@@ -553,8 +535,7 @@ var ul4 = {
 	// Return a string representation of ``obj``: This should be an object supported by UL4
 	_fu_repr: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "repr() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("repr", arguments, 1);
 
 		if (obj === null)
 			return "None";
@@ -612,8 +593,7 @@ var ul4 = {
 	// Format ``obj`` using the format string ``format``
 	_fu_format: function(obj, format)
 	{
-		if (arguments.length != 2)
-			throw "format() requires 2 arguments, " + arguments.length + " given";
+		ul4._checkfuncargs("format", arguments, 2);
 
 		var weekdays1 = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 		var weekdays2 = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -725,8 +705,7 @@ var ul4 = {
 	// Convert ``obj`` to a string and escape the characters ``&``, ``<``, ``>``, ``'`` and ``"`` with their XML character/entity reference
 	_fu_xmlescape: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "xmlescape() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("xmlescape", arguments, 1);
 
 		obj = this._fu_str(obj);
 		obj = obj.replace(/&/g, "&amp;");
@@ -740,8 +719,7 @@ var ul4 = {
 	// Convert ``obj`` to a string suitable for output into a CSV file
 	_fu_csv: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "csv() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("csv", arguments, 1);
 
 		if (obj === null)
 			return "";
@@ -755,8 +733,7 @@ var ul4 = {
 	// Return a string containing one charcter with the codepoint ``obj``
 	_fu_chr: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "chr() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("chr", arguments, 1);
 
 		if (typeof(obj) != "number")
 			throw "chr() requires an int";
@@ -766,8 +743,7 @@ var ul4 = {
 	// Return the codepoint for the one and only character in the string ``obj``
 	_fu_ord: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "ord() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("ord", arguments, 1);
 
 		if (typeof(obj) != "string" || obj.length != 1)
 			throw "ord() requires a string of length 1";
@@ -777,8 +753,7 @@ var ul4 = {
 	// Convert an integer to a hexadecimal string
 	_fu_hex: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "hex() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("hex", arguments, 1);
 
 		if (typeof(obj) != "number")
 			throw "hex() requires an int";
@@ -791,8 +766,7 @@ var ul4 = {
 	// Convert an integer to a octal string
 	_fu_oct: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "oct() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("oct", arguments, 1);
 
 		if (typeof(obj) != "number")
 			throw "oct() requires an int";
@@ -805,8 +779,7 @@ var ul4 = {
 	// Convert an integer to a binary string
 	_fu_bin: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "bin() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("bin", arguments, 1);
 
 		if (typeof(obj) != "number")
 			throw "bin() requires an int";
@@ -819,8 +792,7 @@ var ul4 = {
 	// Return a sorted version of ``obj``
 	_fu_sorted: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "sorted() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("sorted", arguments, 1);
 
 		var result = this._fu_list(obj);
 		result.sort();
@@ -830,8 +802,7 @@ var ul4 = {
 	// Return a iterable object iterating from ``start`` upto (but not including) ``stop`` with a step size of ``step``
 	_fu_range: function(start, stop, step)
 	{
-		if (arguments.length < 1 || arguments.length > 3)
-			throw "range() requires 1-3 arguments, " + arguments.length + " given";
+		ul4._checkfuncargs("range", arguments, 1, 3);
 
 		if (typeof(step) == "undefined")
 		{
@@ -871,8 +842,7 @@ var ul4 = {
 	// Encodes ``obj`` in the Javascript Object Notation (see http://json.org/; with support for dates, colors and templates)
 	_fu_json: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "json() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("json", arguments, 1);
 
 		if (obj === null)
 			return "null";
@@ -934,8 +904,7 @@ var ul4 = {
 	// Return a reverse iterator over ``obj``
 	_fu_reversed: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "reversed() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("reversed", arguments, 1);
 
 		if (typeof(obj) != "string" && !this._fu_islist(obj)) // We don't have to materialize strings or lists
 			obj = this._fu_list(obj);
@@ -951,8 +920,7 @@ var ul4 = {
 	// Return a randomly select item from ``range(start, stop, step)``
 	_fu_randrange: function(start, stop, step)
 	{
-		if (arguments.length < 1 || arguments.length > 3)
-			throw "randrange() requires 1-3 arguments, " + arguments.length + " given";
+		ul4._checkfuncargs("randrange", arguments, 1, 3);
 
 		if (typeof(step) === "undefined")
 		{
@@ -980,8 +948,7 @@ var ul4 = {
 	// Return a random item/char from the list/string ``obj``
 	_fu_randchoice: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "randchoice() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("randchoice", arguments, 1);
 
 		var iscolor = this._fu_iscolor(obj);
 		if (typeof(obj) !== "string" && !this._fu_islist(obj) && !iscolor)
@@ -994,8 +961,7 @@ var ul4 = {
 	// Return an iterator over ``[index, item]`` lists from the iterable object ``obj``
 	_fu_enumerate: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "enumerate() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("enumerate", arguments, 1);
 
 		var iter = this._iter(obj);
 		var i = 0;
@@ -1011,8 +977,7 @@ var ul4 = {
 	// Return an iterator over ``[isfirst, item]`` lists from the iterable object ``obj`` (``isfirst`` is true for the first item, false otherwise)
 	_fu_isfirst: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "isfirst() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("isfirst", arguments, 1);
 
 		var iter = this._iter(obj);
 		var isfirst = true;
@@ -1030,8 +995,7 @@ var ul4 = {
 	// Return an iterator over ``[islast, item]`` lists from the iterable object ``obj`` (``islast`` is true for the last item, false otherwise)
 	_fu_islast: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "islast() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("islast", arguments, 1);
 
 		var iter = this._iter(obj);
 		var lastitem = iter();
@@ -1051,8 +1015,7 @@ var ul4 = {
 	// Return an iterator over ``[isfirst, islast, item]`` lists from the iterable object ``obj`` (``isfirst`` is true for the first item, ``islast`` is true for the last item. Both are false otherwise)
 	_fu_isfirstlast: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "isfirstlast() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("isfirstlast", arguments, 1);
 
 		var iter = this._iter(obj);
 		var isfirst = true;
@@ -1074,8 +1037,7 @@ var ul4 = {
 	// Return an iterator over ``[index, isfirst, islast, item]`` lists from the iterable object ``obj`` (``isfirst`` is true for the first item, ``islast`` is true for the last item. Both are false otherwise)
 	_fu_enumfl: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "enumfl() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("enumfl", arguments, 1);
 
 		var iter = this._iter(obj);
 		var i = 0;
@@ -1133,8 +1095,7 @@ var ul4 = {
 	// Return the absolute value for the number ``obj``
 	_fu_abs: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "abs() requires 1 argument, " + arguments.length + " given";
+		ul4._checkfuncargs("abs", arguments, 1);
 
 		return Math.abs(obj);
 	},
@@ -1142,8 +1103,7 @@ var ul4 = {
 	// Return a ``Date`` object for the current time
 	_fu_now: function()
 	{
-		if (arguments.length != 0)
-			throw "now() requires 0 arguments, " + arguments.length + " given";
+		ul4._checkfuncargs("now", arguments, 0);
 
 		return new Date();
 	},
@@ -1151,8 +1111,7 @@ var ul4 = {
 	// Return a ``Date`` object for the current time in UTC
 	_fu_utcnow: function()
 	{
-		if (arguments.length != 0)
-			throw "utcnow() requires 0 arguments, " + arguments.length + " given";
+		ul4._checkfuncargs("utcnow", arguments, 0);
 
 		var now = new Date();
 		// FIXME: The timezone is wrong for the new ``Date`` object.
@@ -1162,8 +1121,7 @@ var ul4 = {
 	// Return a ``Color`` object from the hue, luminescence, saturation and alpha values ``h``, ``l``, ``s`` and ``a`` (i.e. using the HLS color model)
 	_fu_hls: function(h, l, s, a)
 	{
-		if (arguments.length < 3 || arguments.length > 4)
-			throw "hls() requires 3-4 arguments, " + arguments.length + " given";
+		ul4._checkfuncargs("hls", arguments, 3, 4);
 
 		if (typeof(a) === "undefined")
 			a = 1;
@@ -1196,8 +1154,7 @@ var ul4 = {
 	// Return a ``Color`` object from the hue, saturation, value and alpha values ``h``, ``s``, ``v`` and ``a`` (i.e. using the HSV color model)
 	_fu_hsv: function(h, s, v, a)
 	{
-		if (arguments.length < 3 || arguments.length > 4)
-			throw "hsv() requires 3-4 arguments, " + arguments.length + " given";
+		ul4._checkfuncargs("hsv", arguments, 3, 4);
 		if (typeof(a) === "undefined")
 			a = 1;
 
@@ -1228,8 +1185,7 @@ var ul4 = {
 	// Functions with the ``_me_`` prefix implement UL4 methods
 	_me_replace: function(string, searchstring, replacestring, count)
 	{
-		if (arguments.length < 3 || arguments.length > 4)
-			throw "replace() requires 2-3 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("replace", arguments.length, 2, 3);
 		if (typeof(count) === "undefined")
 			count = string.length;
 
@@ -1251,8 +1207,7 @@ var ul4 = {
 
 	_me_strip: function(string, stripchars)
 	{
-		if (arguments.length != 2)
-			throw "strip() requires 1 argument, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("strip", arguments.length, 1);
 		if (typeof(string) !== "string")
 			throw "strip() requires a string";
 		if (typeof(stripchars) === "undefined")
@@ -1269,8 +1224,7 @@ var ul4 = {
 
 	_me_lstrip: function(string, stripchars)
 	{
-		if (arguments.length != 2)
-			throw "lstrip() requires 1 argument, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("lstrip", arguments.length, 1);
 		if (typeof(string) !== "string")
 			throw "lstrip() requires a string";
 		if (typeof(stripchars) === "undefined")
@@ -1285,8 +1239,7 @@ var ul4 = {
 
 	_me_rstrip: function(string, stripchars)
 	{
-		if (arguments.length != 2)
-			throw "rstrip() requires 1 argument, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("rstrip", arguments.length, 1);
 		if (typeof(string) !== "string")
 			throw "rstrip() requires a string";
 		if (typeof(stripchars) === "undefined")
@@ -1301,8 +1254,7 @@ var ul4 = {
 
 	_me_split: function(string, sep, count)
 	{
-		if (arguments.length < 1 || arguments.length > 3)
-			throw "split() requires 0-2 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("split", arguments.length, 0, 2);
 		if (typeof(string) !== "string")
 			throw "split() requires a string";
 		if (typeof(sep) === "undefined")
@@ -1362,8 +1314,7 @@ var ul4 = {
 
 	_me_rsplit: function(string, sep, count)
 	{
-		if (arguments.length < 1 || arguments.length > 3)
-			throw "rsplit() requires 0-2 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("rsplit", arguments.length, 0, 2);
 		if (typeof(string) !== "string")
 			throw "rsplit() requires a string as first argument";
 		if (typeof(sep) === "undefined")
@@ -1426,13 +1377,12 @@ var ul4 = {
 
 	_me_find: function(string, searchstring, start, stop)
 	{
-		if (arguments.length < 2 || arguments.length > 4)
-			throw "find() requires 1-3 arguments, " + (arguments.length-1) + " given";
-
+		ul4._checkmethargs("find", arguments.length, 1, 3);
 		if (typeof(start) === "undefined" || start === null)
 			start = 0;
 		if (typeof(stop) === "undefined" || stop === null)
 			stop = string.length;
+
 		if (start !== 0 || stop !== string.length)
 			string = string.substring(start, stop);
 		var result = string.indexOf(searchstring);
@@ -1443,13 +1393,12 @@ var ul4 = {
 
 	_me_rfind: function(string, searchstring, start, stop)
 	{
-		if (arguments.length < 2 || arguments.length > 4)
-			throw "rfind() requires 1-3 arguments, " + (arguments.length-1) + " given";
-
+		ul4._checkmethargs("rfind", arguments.length, 1, 3);
 		if (typeof(start) === "undefined" || start === null)
 			start = 0;
 		if (typeof(stop) === "undefined" || stop === null)
 			stop = string.length;
+
 		if (start !== 0 || stop !== string.length)
 			string = string.substring(start, stop);
 		var result = string.lastIndexOf(searchstring);
@@ -1460,8 +1409,7 @@ var ul4 = {
 
 	_me_lower: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "lower() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("lower", arguments.length, 0);
 		if (typeof(obj) != "string")
 			throw "lower() requires a string";
 
@@ -1470,8 +1418,7 @@ var ul4 = {
 
 	_me_upper: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "upper() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("upper", arguments.length, 0);
 		if (typeof(obj) != "string")
 			throw "upper() requires a string";
 
@@ -1480,11 +1427,10 @@ var ul4 = {
 
 	_me_capitalize: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "capitalize() requires 0 arguments, " + (arguments.length-1) + " given";
-
+		ul4._checkmethargs("capitalize", arguments.length, 0);
 		if (typeof(obj) != "string")
 			throw "capitalize() requires a string";
+
 		if (obj.length)
 			obj = obj[0].toUpperCase() + obj.slice(1).toLowerCase();
 		return obj;
@@ -1492,8 +1438,7 @@ var ul4 = {
 
 	_me_get: function(container, key, defaultvalue)
 	{
-		if (arguments.length < 2 || arguments.length > 3)
-			throw "get() requires 1-2 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("get", arguments.length, 1, 2);
 		if (!this._fu_isdict(container))
 			throw "get() requires a dict";
 
@@ -1509,11 +1454,10 @@ var ul4 = {
 
 	_me_items: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "items() requires 0 arguments, " + (arguments.length-1) + " given";
-
+		ul4._checkmethargs("items", arguments.length, 0);
 		if (!this._fu_isdict(obj))
 			throw "items() requires a dict";
+
 		var result = [];
 		for (var key in obj)
 			result.push([key, obj[key]]);
@@ -1522,8 +1466,7 @@ var ul4 = {
 
 	_me_join: function(sep, container)
 	{
-		if (arguments.length != 2)
-			throw "join() requires 1 argument, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("join", arguments.length, 1);
 		if (typeof(sep) !== "string")
 			throw "join() requires a string";
 
@@ -1534,8 +1477,7 @@ var ul4 = {
 
 	_me_startswith: function(string, prefix)
 	{
-		if (arguments.length != 2)
-			throw "startswith() requires 1 argument, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("startswith", arguments.length, 1);
 		if (typeof(string) !== "string" || typeof(prefix) !== "string")
 			throw "startswith() requires two strings";
 
@@ -1544,8 +1486,7 @@ var ul4 = {
 
 	_me_endswith: function(string, suffix)
 	{
-		if (arguments.length != 2)
-			throw "endswith() requires 1 argument, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("endswith", arguments.length, 1);
 		if (typeof(string) !== "string" || typeof(suffix) !== "string")
 			throw "endswith() requires two strings";
 
@@ -1554,8 +1495,7 @@ var ul4 = {
 
 	_me_isoformat: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "isoformat() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("isoformat", arguments.length, 0);
 		if (!this._fu_isdate(obj))
 			throw "isoformat() requires a date";
 
@@ -1575,8 +1515,7 @@ var ul4 = {
 
 	_me_mimeformat: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "mimeformat() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("mimeformat", arguments.length, 0);
 		if (!this._fu_isdate(obj))
 			throw "mimeformat() requires a date";
 
@@ -1588,8 +1527,7 @@ var ul4 = {
 
 	_me_year: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "year() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("year", arguments, 0);
 		if (!this._fu_isdate(obj))
 			throw "year() requires a date";
 
@@ -1598,8 +1536,7 @@ var ul4 = {
 
 	_me_month: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "month() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("month", arguments, 0);
 		if (!this._fu_isdate(obj))
 			throw "month() requires a date";
 
@@ -1608,8 +1545,7 @@ var ul4 = {
 
 	_me_day: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "day() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("day", arguments, 0);
 		if (!this._fu_isdate(obj))
 			throw "day() requires a date";
 
@@ -1618,8 +1554,7 @@ var ul4 = {
 
 	_me_hour: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "hour() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("hour", arguments, 0);
 		if (!this._fu_isdate(obj))
 			throw "hour() requires a date";
 
@@ -1628,8 +1563,7 @@ var ul4 = {
 
 	_me_minute: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "mimute() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("mimute", arguments, 0);
 		if (!this._fu_isdate(obj))
 			throw "minute() requires a date";
 
@@ -1638,8 +1572,7 @@ var ul4 = {
 
 	_me_second: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "second() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("second", arguments, 0);
 		if (!this._fu_isdate(obj))
 			throw "second() requires a date";
 
@@ -1648,8 +1581,7 @@ var ul4 = {
 
 	_me_microsecond: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "microsecond() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("microsecond", arguments, 0);
 		if (!this._fu_isdate(obj))
 			throw "micosecond() requires a date";
 
@@ -1658,8 +1590,7 @@ var ul4 = {
 
 	_me_weekday: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "weekday() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("weekday", arguments, 0);
 		if (!this._fu_isdate(obj))
 			throw "weekday() requires a date";
 
@@ -1669,8 +1600,7 @@ var ul4 = {
 
 	_isleap: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "isleap() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("isleap", arguments, 0);
 		if (!this._fu_isdate(obj))
 			throw "isleap() requires a date";
 
@@ -1679,8 +1609,7 @@ var ul4 = {
 
 	_me_yearday: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "yearday() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("yearday", arguments, 0);
 		if (!this._fu_isdate(obj))
 			throw "yearday() requires a date";
 
@@ -1718,8 +1647,7 @@ var ul4 = {
 	// Color methods
 	_me_r: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "r() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("r", arguments, 0);
 		if (!this._fu_iscolor(obj))
 			throw "r() requires a color";
 
@@ -1728,8 +1656,7 @@ var ul4 = {
 
 	_me_g: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "g() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("g", arguments, 0);
 		if (!this._fu_iscolor(obj))
 			throw "g() requires a color";
 
@@ -1738,8 +1665,7 @@ var ul4 = {
 
 	_me_b: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "b() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("b", arguments, 0);
 		if (!this._fu_iscolor(obj))
 			throw "b() requires a color";
 
@@ -1748,8 +1674,7 @@ var ul4 = {
 
 	_me_a: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "a() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("a", arguments, 0);
 		if (!this._fu_iscolor(obj))
 			throw "a() requires a color";
 
@@ -1758,8 +1683,7 @@ var ul4 = {
 
 	_me_lum: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "lum() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("lum", arguments, 0);
 		if (!this._fu_iscolor(obj))
 			throw "lum() requires a color";
 
@@ -1768,8 +1692,7 @@ var ul4 = {
 
 	_me_hls: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "hls() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("hls", arguments, 0);
 		if (!this._fu_iscolor(obj))
 			throw "hls() requires a color";
 
@@ -1778,8 +1701,7 @@ var ul4 = {
 
 	_me_hlsa: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "hlsa() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("hlsa", arguments, 0);
 		if (!this._fu_iscolor(obj))
 			throw "hlsa() requires a color";
 
@@ -1788,8 +1710,7 @@ var ul4 = {
 
 	_me_hsv: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "hsv() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("hsv", arguments, 0);
 		if (!this._fu_iscolor(obj))
 			throw "hsv() requires a color";
 
@@ -1798,8 +1719,7 @@ var ul4 = {
 
 	_me_hsva: function(obj)
 	{
-		if (arguments.length != 1)
-			throw "hsva() requires 0 arguments, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("hsva", arguments, 0);
 		if (!this._fu_iscolor(obj))
 			throw "hsva() requires a color";
 
@@ -1808,8 +1728,7 @@ var ul4 = {
 
 	_me_witha: function(obj, newa)
 	{
-		if (arguments.length != 2)
-			throw "witha() requires 1 argument, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("witha", arguments, 1);
 		if (!this._fu_iscolor(obj))
 			throw "witha() requires a color";
 
@@ -1818,8 +1737,7 @@ var ul4 = {
 
 	_me_withlum: function(obj, newlum)
 	{
-		if (arguments.length != 2)
-			throw "withlum() requires 1 argument, " + (arguments.length-1) + " given";
+		ul4._checkmethargs("withlum", arguments, 1);
 		if (!this._fu_iscolor(obj))
 			throw "withlum() requires a color";
 
@@ -3014,6 +2932,32 @@ var ul4 = {
 		while (string.length < len)
 			string = string + pad;
 		return string;
+	},
+
+	_checkfuncargs: function(funcname, args, min, max)
+	{
+		if (typeof(max) === "undefined")
+			max = min;
+		if (args.length < min || args.length > max)
+		{
+			if (min == max)
+				throw "function " + funcname + "() requires " + min + " argument" + (min!==1 ? "s" : "") + ", " + args.length + " given";
+			else
+				throw "function " + funcname + "() requires " + min + "-" + max + " arguments, " + args.length + " given";
+		}
+	},
+
+	_checkmethargs: function(methname, args, min, max)
+	{
+		if (typeof(max) === "undefined")
+			max = min;
+		if ((args.length-1) < min || (args.length-1) > max)
+		{
+			if (min == max)
+				throw "method " + methname + "() requires " + min + " argument" + (min!==1 ? "s" : "") + ", " + (args.length-1) + " given";
+			else
+				throw "method " + methname + "() requires " + min + "-" + max + " arguments, " + (args.length-1) + " given";
+		}
 	}
 };
 
