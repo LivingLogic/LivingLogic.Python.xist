@@ -4181,7 +4181,7 @@ ul4.Template = ul4._inherit(
 
 ul4on.register("de.livinglogic.ul4.location", ul4.Location);
 ul4on.register("de.livinglogic.ul4.text", ul4.Text);
-ul4on.register("de.livinglogic.ul4.null", ul4.LoadNone);
+ul4on.register("de.livinglogic.ul4.none", ul4.LoadNone);
 ul4on.register("de.livinglogic.ul4.false", ul4.LoadFalse);
 ul4on.register("de.livinglogic.ul4.true", ul4.LoadTrue);
 ul4on.register("de.livinglogic.ul4.int", ul4.LoadInt);
