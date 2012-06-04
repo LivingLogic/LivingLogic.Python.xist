@@ -240,7 +240,7 @@ class Decoder:
 					return value
 				else:
 					key = self._load(c)
-					if key in keys:
+					if key in self._keycache:
 						key = self._keycache[key]
 					else:
 						self._keycache[key] = key
