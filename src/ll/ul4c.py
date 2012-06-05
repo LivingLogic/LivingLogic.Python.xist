@@ -23,7 +23,7 @@ to implement template renderers in multiple programming languages.
 __docformat__ = "reStructuredText"
 
 
-import re, datetime, io, locale, json, collections
+import re, datetime, io, urllib.parse as urlparse, json, collections
 
 from ll import spark, color, misc, ul4on
 
@@ -1748,6 +1748,8 @@ class CallFunc(AST):
 			csv="ul4c._csv({})".format,
 			asjson="ul4c._asjson({})".format,
 			fromjson="ul4c._fromjson({})".format,
+			asul4on="ul4c._asul4on({})".format,
+			fromul4on="ul4c._fromul4on({})".format,
 			str="ul4c._str({})".format,
 			int="int({})".format,
 			float="float({})".format,
@@ -3245,14 +3247,14 @@ def _urlquote(obj):
 	"""
 	Helper for the ``urlquote`` function.
 	"""
-	return urllib.quote_plus(obj)
+	return urlparse.quote_plus(obj)
 
 
 def _urlunquote(obj):
 	"""
 	Helper for the ``urlunquote`` function.
 	"""
-	return urllib.unquote_plus(obj)
+	return urlparse.unquote_plus(obj)
 
 
 def _mimeformat(obj):
