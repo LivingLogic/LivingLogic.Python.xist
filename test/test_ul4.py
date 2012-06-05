@@ -1978,7 +1978,7 @@ def test_templateattributes():
 
 @py.test.mark.ul4
 def test_templateattributes_localtemplate():
-	source = "<?def lower?><?print t.lower?><?end def?>"
+	source = "<?def lower?><?print t.lower()?><?end def?>"
 
 	for r in all_renderers:
 		yield eq, "<?print t.lower?>", r(source + "<?print lower.source?>")
