@@ -2070,6 +2070,7 @@ class Template(Block):
 		self.name = name
 		self.source = None
 		# The following is used for converting the AST back to executable Python code
+		self._subtemplatesbyid = None
 		self._pythonfunction = None
 		if source is not None:
 			self._compile(source, name, startdelim, enddelim)
@@ -2135,20 +2136,19 @@ class Template(Block):
 		return "".join(v)
 
 	def formatpython(self, indent):
-		v = []
-		v.append("{}def template(**vars):\n".format(indent*"\t"))
-		indent += 1
-		v.append("{}import datetime, random\n".format(indent*"\t"))
-		v.append("{}from ll import ul4c, misc, color\n".format(indent*"\t"))
-		v.append("{}if 0:\n".format(indent*"\t"))
-		v.append("{}\tyield\n".format(indent*"\t"))
-		for node in self.content:
-			v.append(node.formatpython(indent))
-		indent -= 1
-		name = self.name if self.name is not None else "unnamed"
-		v.append("{}template.__name__ = {!r}\n".format(indent*"\t", name))
-		v.append("{}vars[{!r}] = template\n".format(indent*"\t", name))
-		return "".join(v)
+		return "{}vars[{!r}] = self._getsubtemplate({!r})\n".format(indent*"\t", self.name if self.name is not None else "unnamed", id(self))
+
+	def _getsubtemplate(self, tid):
+		if self._subtemplatesbyid is None:
+			self._subtemplatesbyid = {}
+			def add(block):
+				for child in block.content:
+					if isinstance(child, Template):
+						self._subtemplatesbyid[id(child)] = child
+					elif isinstance(child, Block):
+						add(child)
+			add(self)
+		return self._subtemplatesbyid[tid]
 
 	def _java(self, indent):
 		v = []
@@ -2182,14 +2182,14 @@ class Template(Block):
 		:var:`vars` contains the top level variables available to the
 		template code.
 		"""
-		return self.pythonfunction()(**vars)
+		return self.pythonfunction()(self, vars)
 
 	def renders(self, **vars):
 		"""
 		Render the template as a string. :var:`vars` contains the top level
 		variables available to the template code.
 		"""
-		return "".join(self.pythonfunction()(**vars))
+		return "".join(self.pythonfunction()(self, vars))
 
 	def pythonfunction(self):
 		"""
@@ -2205,14 +2205,14 @@ class Template(Block):
 		return self._pythonfunction
 
 	def __call__(self, **vars):
-		return self.pythonfunction()(**vars)
+		return self.pythonfunction()(self, vars)
 
 	def pythonsource(self):
 		"""
 		Return the template as Python source code.
 		"""
 		v = []
-		v.append("def {}(**vars):\n".format(self.name if self.name is not None else "unnamed"))
+		v.append("def {}(self, vars):\n".format(self.name if self.name is not None else "unnamed"))
 		v.append("\timport datetime, random\n")
 		v.append("\tfrom ll import ul4c, misc, color\n")
 		v.append("\tif 0:\n")
@@ -2338,7 +2338,11 @@ class Template(Block):
 								raise BlockError("enddef doesn't match any def")
 						else:
 							raise BlockError("illegal end value {!r}".format(code))
-					stack.pop()
+					last = stack.pop()
+					# Fix source attribute of sub template
+					if isinstance(last, Template):
+						# ``source`` does not include the ``<?def?>``/``<?end def?>`` tags
+						last.source = last.location.source[last.location.endtag:location.starttag]
 				elif location.type == "for":
 					block = parsefor(location)
 					stack[-1].append(block)

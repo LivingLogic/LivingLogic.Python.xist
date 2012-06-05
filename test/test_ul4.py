@@ -303,7 +303,11 @@ def test_true():
 @py.test.mark.ul4
 def test_int():
 	for r in all_renderers:
-		for value in (0, 42, -42, 0x7ffffff, 0x8000000, -0x8000000, -0x8000001, 0x7ffffffffffffff, 0x800000000000000, -0x800000000000000, -0x800000000000001, 9999999999, -9999999999, 99999999999999999999, -99999999999999999999):
+		values = (0, 42, -42, 0x7ffffff, 0x8000000, -0x8000000, -0x8000001)
+		if r is not RenderJS:
+			# Since Javascript has no real integers the following would lead to rounding errors
+			values += (0x7ffffffffffffff, 0x800000000000000, -0x800000000000000, -0x800000000000001, 9999999999, -9999999999, 99999999999999999999, -99999999999999999999)
+		for value in values:
 			yield eq, str(value), r('<?print {}?>'.format(value))
 		yield eq, '255', r('<?print 0xff?>')
 		yield eq, '255', r('<?print 0Xff?>')
@@ -991,9 +995,9 @@ def test_function_fromjson():
 		yield eq, "True", r(code, data="true")
 		yield eq, "42", r(code, data="42")
 		# no check for float
-		yield eq, '"abc"', r(code, data='"abc"')
+		yield contains, ('"abc"', "'abc'"), r(code, data='"abc"')
 		yield eq, '[1, 2, 3]', r(code, data="[1, 2, 3]")
-		yield eq, '{"one": 1}', r(code, data='{"one": 1}')
+		yield contains, ('{"one": 1}', "{'one': 1}"), r(code, data='{"one": 1}')
 
 
 @py.test.mark.ul4
@@ -1010,9 +1014,9 @@ def test_function_ul4on():
 		yield eq, "True", r(code, data=True)
 		yield eq, "42", r(code, data=42)
 		# no check for float
-		yield eq, '"abc"', r(code, data="abc")
+		yield contains, ('"abc"', "'abc'"), r(code, data="abc")
 		yield eq, '[1, 2, 3]', r(code, data=[1, 2, 3])
-		yield eq, '{"one": 1}', r(code, data={'one': 1})
+		yield contains, ('{"one": 1}', "{'one': 1}"), r(code, data={'one': 1})
 
 
 @py.test.mark.ul4
@@ -1957,7 +1961,7 @@ def test_templateattributes():
 	s2 = "<?printx 42?>"
 	t2 = ul4c.Template(s2)
 
-	for r in all_python_renderers:
+	for r in all_renderers:
 		yield eq, "<?", r("<?print template.startdelim?>", template=t1)
 		yield eq, "?>", r("<?print template.enddelim?>", template=t1)
 		yield eq, s1, r("<?print template.source?>", template=t1)
@@ -1970,6 +1974,15 @@ def test_templateattributes():
 		yield eq, "printx", r("<?print template.content[0].type?>", template=t2)
 		yield eq, "int", r("<?print template.content[0].obj.type?>", template=t2)
 		yield eq, "42", r("<?print template.content[0].obj.value?>", template=t2)
+
+
+@py.test.mark.ul4
+def test_templateattributes_localtemplate():
+	source = "<?def lower?><?print t.lower?><?end def?>"
+
+	for r in all_renderers:
+		yield eq, "<?print t.lower?>", r(source + "<?print lower.source?>")
+		yield eq, "lower", r(source + "<?print lower.name?>")
 
 
 def universaltemplate():
