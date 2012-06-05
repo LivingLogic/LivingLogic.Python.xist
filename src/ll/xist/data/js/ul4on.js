@@ -251,6 +251,7 @@ var ul4on = {
 						throw "wrong value for boolean, expected " + ul4._fu_repr("T") + " or " + ul4._fu_repr("F") + ", got " + ul4._fu_repr(result) + " at position " + this.pos;
 					if (typecode === "B")
 						this.backrefs.push(result);
+					return result;
 				case "i":
 				case "I":
 				case "f":
