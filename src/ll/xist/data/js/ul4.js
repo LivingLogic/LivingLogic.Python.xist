@@ -2350,15 +2350,19 @@ ul4.AST = ul4._inherit(
 		},
 		ul4ondump: function(encoder)
 		{
-			encoder.dump(this.location);
+			for (var i in this._ul4onattrs)
+				encoder.dump(this[this._ul4onattrs[i]]);
 		},
 		ul4onload: function(decoder)
 		{
-			this.location = decoder.load();
+			for (var i in this._ul4onattrs)
+				this[this._ul4onattrs[i]] = decoder.load();
 		},
 		// used in ``format``/``_formatop`` to decide if we need brackets around an operator
 		precedence: null,
-		associative: true
+		associative: true,
+		// used in ul4ondump/ul4ondump to automatically dump these attributes
+		_ul4onattrs: ["location"]
 	}
 );
 
@@ -2434,16 +2438,7 @@ ul4.LoadConst = ul4._inherit(
 			constant.value = value;
 			return constant;
 		},
-		ul4ondump: function(encoder)
-		{
-			ul4.AST.ul4ondump.call(this, encoder);
-			encoder.dump(this.value);
-		},
-		ul4onload: function(decoder)
-		{
-			ul4.AST.ul4onload.call(this, decoder);
-			this.value = decoder.load();
-		},
+		_ul4onattrs: ul4.AST._ul4onattrs.concat(["value"]),
 		formatjs: function(indent)
 		{
 			return ul4._fu_asjson(this.value);
@@ -2475,16 +2470,7 @@ ul4.List = ul4._inherit(
 			list.items = [];
 			return list;
 		},
-		ul4ondump: function(encoder)
-		{
-			ul4.AST.ul4ondump.call(this, encoder);
-			encoder.dump(this.items);
-		},
-		ul4onload: function(decoder)
-		{
-			ul4.AST.ul4onload.call(this, decoder);
-			this.items = decoder.load();
-		},
+		_ul4onattrs: ul4.AST._ul4onattrs.concat(["items"]),
 		formatjs: function(indent)
 		{
 			var v = [];
@@ -2512,16 +2498,7 @@ ul4.Dict = ul4._inherit(
 			dict.items = [];
 			return dict;
 		},
-		ul4ondump: function(encoder)
-		{
-			ul4.AST.ul4ondump.call(this, encoder);
-			encoder.dump(this.items);
-		},
-		ul4onload: function(decoder)
-		{
-			ul4.AST.ul4onload.call(this, decoder);
-			this.items = decoder.load();
-		},
+		_ul4onattrs: ul4.AST._ul4onattrs.concat(["items"]),
 		formatjs: function(indent)
 		{
 			var v = [];
@@ -2561,16 +2538,7 @@ ul4.LoadVar = ul4._inherit(
 			variable.varname = varname;
 			return variable;
 		},
-		ul4ondump: function(encoder)
-		{
-			ul4.AST.ul4ondump.call(this, encoder);
-			encoder.dump(this.varname);
-		},
-		ul4onload: function(decoder)
-		{
-			ul4.AST.ul4onload.call(this, decoder);
-			this.varname = decoder.load();
-		},
+		_ul4onattrs: ul4.AST._ul4onattrs.concat(["varname"]),
 		formatjs: function(indent)
 		{
 			return "vars[" + ul4._fu_asjson(this.varname) + "]";
@@ -2592,16 +2560,7 @@ ul4.Unary = ul4._inherit(
 			unary.obj = obj;
 			return unary;
 		},
-		ul4ondump: function(encoder)
-		{
-			ul4.AST.ul4ondump.call(this, encoder);
-			encoder.dump(this.obj);
-		},
-		ul4onload: function(decoder)
-		{
-			ul4.AST.ul4onload.call(this, decoder);
-			this.obj = decoder.load();
-		},
+		_ul4onattrs: ul4.AST._ul4onattrs.concat(["obj"]),
 		formatjs: function(indent)
 		{
 			return "ul4._op_" + this._name() + "(" + this.obj.formatjs(indent) + ")";
@@ -2669,18 +2628,7 @@ ul4.Binary = ul4._inherit(
 			binary.obj2 = obj2;
 			return binary;
 		},
-		ul4ondump: function(encoder)
-		{
-			ul4.AST.ul4ondump.call(this, encoder);
-			encoder.dump(this.obj1);
-			encoder.dump(this.obj2);
-		},
-		ul4onload: function(decoder)
-		{
-			ul4.AST.ul4onload.call(this, decoder);
-			this.obj1 = decoder.load();
-			this.obj2 = decoder.load();
-		},
+		_ul4onattrs: ul4.AST._ul4onattrs.concat(["obj1", "obj2"]),
 		formatjs: function(indent)
 		{
 			return "ul4._op_" + this._name() + "(" + this.obj1.formatjs(indent) + ", " + this.obj2.formatjs(indent) + ")";
@@ -2906,18 +2854,7 @@ ul4.GetAttr = ul4._inherit(
 			getattr.attrname = attrname;
 			return getattr;
 		},
-		ul4ondump: function(encoder)
-		{
-			ul4.AST.ul4ondump.call(this, encoder);
-			encoder.dump(this.obj);
-			encoder.dump(this.attrname);
-		},
-		ul4onload: function(decoder)
-		{
-			ul4.AST.ul4onload.call(this, decoder);
-			this.obj = decoder.load();
-			this.attrname = decoder.load();
-		},
+		_ul4onattrs: ul4.AST._ul4onattrs.concat(["obj", "attrname"]),
 		formatjs: function(indent)
 		{
 			return "ul4._op_getitem(" + this.obj.formatjs(indent) + ", " + ul4._fu_repr(this.attrname) + ")";
@@ -2941,18 +2878,7 @@ ul4.CallFunc = ul4._inherit(
 			callfunc.args = args;
 			return callfunc;
 		},
-		ul4ondump: function(encoder)
-		{
-			ul4.AST.ul4ondump.call(this, encoder);
-			encoder.dump(this.funcname);
-			encoder.dump(this.args);
-		},
-		ul4onload: function(decoder)
-		{
-			ul4.AST.ul4onload.call(this, decoder);
-			this.funcname = decoder.load();
-			this.args = decoder.load();
-		},
+		_ul4onattrs: ul4.AST._ul4onattrs.concat(["funcname", "args"]),
 		formatjs: function(indent)
 		{
 			if (this.funcname === "vars" || this.funcname === "get")
@@ -2993,20 +2919,7 @@ ul4.GetSlice = ul4._inherit(
 			getslice.index2 = index2;
 			return getslice;
 		},
-		ul4ondump: function(encoder)
-		{
-			ul4.AST.ul4ondump.call(this, encoder);
-			encoder.dump(this.obj);
-			encoder.dump(this.index1);
-			encoder.dump(this.index2);
-		},
-		ul4onload: function(decoder)
-		{
-			ul4.AST.ul4onload.call(this, decoder);
-			this.obj = decoder.load();
-			this.index1 = decoder.load();
-			this.index2 = decoder.load();
-		},
+		_ul4onattrs: ul4.AST._ul4onattrs.concat(["obj", "index1", "index2"]),
 		format: function(indent)
 		{
 			return this._formatop(this.obj) + "[" + (this.index1 !== null ? this.index1.format(indent) : "") + ":" + (this.index2 !== null ? this.index2.format(indent) : "") + "]";
@@ -3031,20 +2944,7 @@ ul4.CallMeth = ul4._inherit(
 			callfunc.args = args;
 			return callfunc;
 		},
-		ul4ondump: function(encoder)
-		{
-			ul4.AST.ul4ondump.call(this, encoder);
-			encoder.dump(this.methname);
-			encoder.dump(this.obj);
-			encoder.dump(this.args);
-		},
-		ul4onload: function(decoder)
-		{
-			ul4.AST.ul4onload.call(this, decoder);
-			this.methname = decoder.load();
-			this.obj = decoder.load();
-			this.args = decoder.load();
-		},
+		_ul4onattrs: ul4.AST._ul4onattrs.concat(["methname", "obj", "args"]),
 		formatjs: function(indent)
 		{
 			var v = [this.obj.formatjs(indent)];
@@ -3075,20 +2975,7 @@ ul4.CallMethKeywords = ul4._inherit(
 			callfunc.args = args;
 			return callfunc;
 		},
-		ul4ondump: function(encoder)
-		{
-			ul4.AST.ul4ondump.call(this, encoder);
-			encoder.dump(this.methname);
-			encoder.dump(this.obj);
-			encoder.dump(this.args);
-		},
-		ul4onload: function(decoder)
-		{
-			ul4.AST.ul4onload.call(this, decoder);
-			this.methname = decoder.load();
-			this.obj = decoder.load();
-			this.args = decoder.load();
-		},
+		_ul4onattrs: ul4.AST._ul4onattrs.concat(["methname", "obj", "args"]),
 		format: function(indent)
 		{
 			var v = [];
@@ -3152,18 +3039,7 @@ ul4.ChangeVar = ul4._inherit(
 			changevar.value = value;
 			return changevar;
 		},
-		ul4ondump: function(encoder)
-		{
-			ul4.AST.ul4ondump.call(this, encoder);
-			encoder.dump(this.varname);
-			encoder.dump(this.value);
-		},
-		ul4onload: function(decoder)
-		{
-			ul4.AST.ul4onload.call(this, decoder);
-			this.varname = decoder.load();
-			this.value = decoder.load();
-		}
+		_ul4onattrs: ul4.AST._ul4onattrs.concat(["varname", "value"])
 	}
 );
 
@@ -3280,16 +3156,7 @@ ul4.DelVar = ul4._inherit(
 			delvar.varname = varname;
 			return delvar;
 		},
-		ul4ondump: function(encoder)
-		{
-			ul4.AST.ul4ondump.call(this, encoder);
-			encoder.dump(this.varname);
-		},
-		ul4onload: function(decoder)
-		{
-			ul4.AST.ul4onload.call(this, decoder);
-			this.varname = decoder.load();
-		},
+		_ul4onattrs: ul4.AST._ul4onattrs.concat(["varname"]),
 		format: function(indent)
 		{
 			return this._line(indent, "del " + this.varname);
@@ -3310,38 +3177,7 @@ ul4.Block = ul4._inherit(
 			block.content = [];
 			return block;
 		},
-		ul4ondump: function(encoder)
-		{
-			ul4.AST.ul4ondump.call(this, encoder);
-			encoder.dump(this.content);
-		},
-		ul4onload: function(decoder)
-		{
-			ul4.AST.ul4onload.call(this, decoder);
-			this.content = decoder.load();
-		}
-	}
-);
-
-ul4.Block = ul4._inherit(
-	ul4.AST,
-	{
-		create: function(location)
-		{
-			var block = ul4.AST.create.call(this, location);
-			block.content = [];
-			return block;
-		},
-		ul4ondump: function(encoder)
-		{
-			ul4.AST.ul4ondump.call(this, encoder);
-			encoder.dump(this.content);
-		},
-		ul4onload: function(decoder)
-		{
-			ul4.AST.ul4onload.call(this, decoder);
-			this.content = decoder.load();
-		},
+		_ul4onattrs: ul4.AST._ul4onattrs.concat(["content"]),
 		_formatjs_content: function(indent)
 		{
 			var v = [];
@@ -3373,18 +3209,7 @@ ul4.ForNormal = ul4._inherit(
 			fornormal.varname = varname;
 			return fornormal;
 		},
-		ul4ondump: function(encoder)
-		{
-			ul4.Block.ul4ondump.call(this, encoder);
-			encoder.dump(this.container);
-			encoder.dump(this.varname);
-		},
-		ul4onload: function(decoder)
-		{
-			ul4.Block.ul4onload.call(this, decoder);
-			this.container = decoder.load();
-			this.varname = decoder.load();
-		},
+		_ul4onattrs: ul4.Block._ul4onattrs.concat(["container", "varname"]),
 		formatjs: function(indent)
 		{
 			var v = [];
@@ -3417,18 +3242,7 @@ ul4.ForUnpack = ul4._inherit(
 			fornormal.varnames = varnames;
 			return fornormal;
 		},
-		ul4ondump: function(encoder)
-		{
-			ul4.Block.ul4ondump.call(this, encoder);
-			encoder.dump(this.container);
-			encoder.dump(this.varnames);
-		},
-		ul4onload: function(decoder)
-		{
-			ul4.Block.ul4onload.call(this, decoder);
-			this.container = decoder.load();
-			this.varnames = decoder.load();
-		},
+		_ul4onattrs: ul4.Block._ul4onattrs.concat(["container", "varnames"]),
 		formatjs: function(indent)
 		{
 			var v = [];
@@ -3509,16 +3323,7 @@ ul4.ConditionalBlock = ul4._inherit(
 			block.condition = condition;
 			return block;
 		},
-		ul4ondump: function(encoder)
-		{
-			ul4.Block.ul4ondump.call(this, encoder);
-			encoder.dump(this.condition);
-		},
-		ul4onload: function(decoder)
-		{
-			ul4.Block.ul4onload.call(this, decoder);
-			this.condition = decoder.load();
-		},
+		_ul4onattrs: ul4.Block._ul4onattrs.concat(["condition"]),
 		formatjs: function(indent)
 		{
 			var v = [];
