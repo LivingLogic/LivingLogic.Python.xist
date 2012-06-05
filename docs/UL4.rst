@@ -3,7 +3,7 @@ format. A template defines placeholders for data output and basic logic (like
 loops and conditional blocks), that define how the final rendered output will
 look.
 
-:mod:`ll.ul4c` compiles a template to a bytecode format, which makes it possible
+:mod:`ll.ul4c` compiles a template to an internal format, which makes it possible
 to implement renderers for these templates in multiple programming languages.
 
 Currently there's a compiler and renderer in Python and a
@@ -38,7 +38,7 @@ like this::
 
 	from ll import ul4c
 
-	code = u'''<?if data?>
+	code = '''<?if data?>
 	<ul>
 	<?for item in data?>
 	<li><?print xmlescape(item)?></li>
@@ -48,7 +48,7 @@ like this::
 
 	tmpl = ul4c.Template(code)
 
-	print tmpl.renders(data=[u"Python", u"Java", u"PHP", u"C++"])
+	print(tmpl.renders(data=["Python", "Java", "Javascript", "PHP"]))
 
 The variables that should be available to the template code can be passed to the
 method :meth:`Template.renders` as keyword arguments. :meth:`renders` returns
@@ -342,10 +342,10 @@ code demonstrates this::
 	from ll import ul4c
 
 	# Template 1
-	source1 = u"""\
+	source1 = """\
 	<?if data?>\
 	<ul>
-	<?for i in data?><?render itemtmpl(item=i)?><?end for?>\
+	<?for i in data?><?render itemtmpl.render(item=i)?><?end for?>\
 	</ul>
 	<?end if?>\
 	"""
@@ -353,27 +353,28 @@ code demonstrates this::
 	tmpl1 = ul4c.Template(source1)
 
 	# Template 2
-	source2 = u"<li><?print xmlescape(item)?></li>\n"
+	source2 = "<li><?print xmlescape(item)?></li>\n"
 
 	tmpl2 = ul4c.Template(source2)
 
 	# Data object for the outer template
-	data = [u"Python", u"Java", u"PHP"]
+	data = ["Python", "Java", "Javascript", "PHP"]
 
-	print tmpl1.renders(itemtmpl=tmpl2, data=data)
+	print(tmpl1.renders(itemtmpl=tmpl2, data=data))
 
 This will output::
 
 	<ul>
 	<li>Python</li>
 	<li>Java</li>
+	<li>Javascript</li>
 	<li>PHP</li>
 	</ul>
 
 I.e. templates can be passed just like any other object as a variable.
-``<?render itemtmpl(item=i)?>`` renders the ``itemtmpl`` template and passes the
-``i`` variable, which will be available in the inner template under the name
-``item``.
+``<?render itemtmpl.render(item=i)?>`` renders the ``itemtmpl`` template and
+passes the ``i`` variable, which will be available in the inner template under
+the name ``item``.
 
 
 ``def``
@@ -385,7 +386,7 @@ The ```def`` tag defined a new template as a variable. Usage looks like this::
 This template can be called like any other template, that has been passed to
 the outermost template::
 
-	<?render quote(text="foo")?>
+	<?render quote.render(text="foo")?>
 
 
 ``note``
@@ -451,13 +452,13 @@ in the data object::
 
 	from ll import ul4c
 	tmpl = ul4c.Template("<?print data.foo?>")
-	print tmpl.renders(data=dict(foo="bar"))
+	print(tmpl.renders(data=dict(foo="bar")))
 
 However getitem style access in the template is still possible::
 
 	from ll import ul4c
 	tmpl = ul4c.Template("<?print data['foo']?>")
-	print tmpl.renders(data=dict(foo="bar"))
+	print(tmpl.renders(data=dict(foo="bar")))
 
 
 Functions
@@ -610,6 +611,18 @@ is a CSS expression (e.g. ``"#fff"``).
 ``repr(foo)`` converts ``foo`` to a string representation that is useful for
 debugging proposes. The output is a constant expression that could be used to
 recreate the object.
+
+
+``asjson``
+::::::::::
+
+``asjson(foo)`` returns a JSON representation of the object ``foo``.
+
+
+``fromjson``
+::::::::::::
+
+``fromjson(foo)`` decodes the JSON string ``foo`` and returns the resulting object.
 
 
 ``get``
@@ -814,6 +827,24 @@ recognized ``None`` is returned.)
 	*	three arguments, the red, green and blue values. The alpha value will be
 		set to 255;
 	*	four arguments, the red, green, blue and alpha values.
+
+
+``random``
+::::::::::
+
+``random`` returns a random floating point number between 0 and 1.
+
+
+``randchoice``
+::::::::::::::
+
+``randchoice`` returns a random item from its argument (which must be list or string)
+
+
+``randchoice``
+::::::::::::::
+
+``random`` returns a random item from its argument (which must be list or string).
 
 
 Methods

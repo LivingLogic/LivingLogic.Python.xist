@@ -36,14 +36,11 @@ XIST also includes the following modules and packages:
 
 *	:mod:`ll.ul4c` is compiler for a templating language with similar capabilities
 	to `Django's templating language`__. ``UL4`` templates are compiled to an
-	internal bytecode format, which makes it possible to implement template
-	renderers in other languages and makes the template code "secure" (i.e.
-	template code can't open or delete files).
+	internal format, which makes it possible to implement template renderers
+	in other languages and makes the template code "secure" (i.e. template code
+	can't open or delete files).
 
 	__ http://www.djangoproject.com/documentation/templates/
-
-*	:mod:`ll.astyle` can be used for colored terminal output (via ANSI escape
-	sequences).
 
 *	:mod:`ll.color` provides classes and functions for handling RGB color values.
 	This includes the ability to convert between different color models
@@ -54,9 +51,12 @@ XIST also includes the following modules and packages:
 
 *	:mod:`ll.sisyphus` provides classes for running Python scripts as cron jobs.
 
-*	:mod:`ll.daemon` can be used on UNIX to fork a daemon process.
-
 *	:mod:`ll.xml_codec` contains a complete codec for encoding and decoding XML.
+
+*	:mod:`ll.astyle` can be used for colored terminal output (via ANSI escape
+	sequences).
+
+*	:mod:`ll.daemon` can be used on UNIX to fork a daemon process.
 
 
 Documentation

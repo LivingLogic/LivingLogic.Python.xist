@@ -47,6 +47,12 @@ Changes in 4.0 (released ??/??/2012)
 	``isfirstlast``, ``enumfl``. They are variants of ``enumerate`` that give
 	information about whether the item is the first and/or last item.
 
+*	The following new functions have been added to UL4: ``urlquote`` and ``urlunquote``.
+	They encode/decode the ``%``-escaped form of URL query parameters.
+
+*	The UL4 function ``json`` has been renamed to ``asjson`` and the following new
+	UL4 functions have been added: ``fromjson``, ``asul4on`` and ``fromul4on``.
+
 *	The UL4 function ``enumerate`` now supports 1 or 2 arguments (the second
 	argument being the start value).
 

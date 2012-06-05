@@ -88,9 +88,9 @@ class RenderJS(Render):
 		# Check the Javascript version (this requires an installed ``d8`` shell from V8 (http://code.google.com/p/v8/))
 		template = ul4c.Template(self.source)
 		js = template.jssource()
-		js = "template = {};\ndata = {};\nprint(template.renders(data));\n".format(js, ul4c._json(self.variables))
+		js = "template = {};\ndata = {};\nprint(template.renders(data));\n".format(js, ul4c._asjson(self.variables))
 		print("Testing Javascript code compiled by Python ({}, line {}):".format(self.filename, self.lineno))
-		print(js.encode("utf-8"))
+		print(js)
 		with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 			f.write(js.encode("utf-8"))
 			f.flush()
@@ -98,9 +98,9 @@ class RenderJS(Render):
 			proc = subprocess.Popen(["d8", dir+"/js/ul4on.js", dir+"/js/ul4.js", f.name], stdout=subprocess.PIPE)
 			(stdout, stderr) = proc.communicate()
 			# result = os.popen("d8 {}/js/ul4on.js {}/js/ul4.js {}".format(dir, dir, f.name), "r").read()
-		stdout = stdout.decode("utf-8").rstrip("\n") # Drop the "\n"
+		stdout = stdout.decode("utf-8")[:-1] # Drop the "\n"
 		# Check if we have an exception
-		if stdout.endswith("^"):
+		if stdout.endswith("^\n"):
 			raise RuntimeError(stdout.splitlines()[0])
 		return stdout
 
@@ -361,7 +361,7 @@ def test_string():
 		yield eq, '\u20ac', r('''<?print "\\u20ac"?>''')
 		yield eq, "a\nb", r('<?print "a\nb"?>')
 		for c in "\x00\x80\u0100\u3042\n\r\t\f\b\a\e\"":
-			yield eq, c, r('<?print obj?>', obj=c) # This tests :func:`misc.javaexpr` for Java and :func:`ul4c._json` for JS
+			yield eq, c, r('<?print obj?>', obj=c) # This tests :func:`misc.javaexpr` for Java and :func:`ul4c._asjson` for JS
 
 		# Test literal control characters
 		yield eq, 'gu\n\r\trk', r("<?print 'gu\n\r\trk'?>")
@@ -483,7 +483,8 @@ def test_code_modvar():
 @py.test.mark.ul4
 def test_code_delvar():
 	for r in all_renderers:
-		yield raises, "(KeyError|not found)", r('<?code x = 1729?><?code del x?><?print x?>')
+		if r is not RenderJS:
+			yield raises, "(KeyError|not found)", r('<?code x = 1729?><?code del x?><?print x?>')
 
 
 @py.test.mark.ul4
@@ -859,9 +860,12 @@ def test_associativity():
 		yield eq, "9", r('<?print 2+3+4?>')
 		yield eq, "-5", r('<?print 2-3-4?>')
 		yield eq, "24", r('<?print 2*3*4?>')
-		yield eq, "2.0", r('<?print 24/6/2?>')
-		yield eq, "2", r('<?print 24//6//2?>')
-
+		if r is not RenderJS:
+			yield eq, "2.0", r('<?print 24/6/2?>')
+			yield eq, "2", r('<?print 24//6//2?>')
+		else:
+			yield evaleq, 2.0, r('<?print 24/6/2?>')
+			yield evaleq, 2, r('<?print 24//6//2?>')
 
 @py.test.mark.ul4
 def test_bracket():
@@ -960,20 +964,55 @@ def test_function_csv():
 
 
 @py.test.mark.ul4
-def test_function_json():
+def test_function_asjson():
 	for r in all_renderers:
-		yield raises, "argument", r("<?print json()?>")
-		yield raises, "argument", r("<?print json(1, 2)?>")
-		yield eq, "null", r("<?print json(data)?>", data=None)
-		yield eq, "false", r("<?print json(data)?>", data=False)
-		yield eq, "true", r("<?print json(data)?>", data=True)
-		yield eq, "42", r("<?print json(data)?>", data=42)
+		yield raises, "argument", r("<?print asjson()?>")
+		yield raises, "argument", r("<?print asjson(1, 2)?>")
+		yield eq, "null", r("<?print asjson(data)?>", data=None)
+		yield eq, "false", r("<?print asjson(data)?>", data=False)
+		yield eq, "true", r("<?print asjson(data)?>", data=True)
+		yield eq, "42", r("<?print asjson(data)?>", data=42)
 		# no check for float
-		yield eq, '"abc"', r("<?print json(data)?>", data="abc")
-		yield eq, '[1, 2, 3]', r("<?print json(data)?>", data=[1, 2, 3])
-		yield eq, '[1, 2, 3]', r("<?print json(data)?>", data=PseudoList([1, 2, 3]))
-		yield eq, '{"one": 1}', r("<?print json(data)?>", data={"one": 1})
-		yield eq, '{"one": 1}', r("<?print json(data)?>", data=PseudoDict({"one": 1}))
+		yield eq, '"abc"', r("<?print asjson(data)?>", data="abc")
+		yield eq, '[1, 2, 3]', r("<?print asjson(data)?>", data=[1, 2, 3])
+		yield eq, '[1, 2, 3]', r("<?print asjson(data)?>", data=PseudoList([1, 2, 3]))
+		yield eq, '{"one": 1}', r("<?print asjson(data)?>", data={"one": 1})
+		yield eq, '{"one": 1}', r("<?print asjson(data)?>", data=PseudoDict({"one": 1}))
+
+
+@py.test.mark.ul4
+def test_function_fromjson():
+	code = "<?print repr(fromjson(data))?>"
+	for r in all_renderers:
+		yield raises, "argument", r("<?print fromjson()?>")
+		yield raises, "argument", r("<?print fromjson(1, 2)?>")
+		yield eq, "None", r(code, data="null")
+		yield eq, "False", r(code, data="false")
+		yield eq, "True", r(code, data="true")
+		yield eq, "42", r(code, data="42")
+		# no check for float
+		yield eq, '"abc"', r(code, data='"abc"')
+		yield eq, '[1, 2, 3]', r(code, data="[1, 2, 3]")
+		yield eq, '{"one": 1}', r(code, data='{"one": 1}')
+
+
+@py.test.mark.ul4
+def test_function_ul4on():
+	code = "<?print repr(fromul4on(asul4on(data)))?>"
+
+	for r in all_renderers:
+		yield raises, "argument", r("<?print asul4on()?>")
+		yield raises, "argument", r("<?print asul4on(1, 2)?>")
+		yield raises, "argument", r("<?print fromul4on()?>")
+		yield raises, "argument", r("<?print fromul4on(1, 2)?>")
+		yield eq, "None", r(code, data=None)
+		yield eq, "False", r(code, data=False)
+		yield eq, "True", r(code, data=True)
+		yield eq, "42", r(code, data=42)
+		# no check for float
+		yield eq, '"abc"', r(code, data="abc")
+		yield eq, '[1, 2, 3]', r(code, data=[1, 2, 3])
+		yield eq, '{"one": 1}', r(code, data={'one': 1})
 
 
 @py.test.mark.ul4
@@ -1015,14 +1054,15 @@ def test_function_float():
 	for r in all_renderers:
 		yield raises, "argument", r("<?print float(1, 2, 3)?>")
 		yield raises, "float\\(\\) argument must be a string or a number|float\\(null\\) not supported", r(code, data=None)
-		yield eq, "0.0", r("<?print float()?>")
 		yield eq, "4.2", r(code, data=4.2)
 		if r is not RenderJS:
+			yield eq, "0.0", r("<?print float()?>")
 			yield eq, "1.0", r(code, data=True)
 			yield eq, "0.0", r(code, data=False)
 			yield eq, "42.0", r(code, data=42)
 			yield eq, "42.0", r(code, data="42")
 		else:
+			yield evaleq, 0.0, r("<?print float()?>")
 			yield evaleq, 1.0, r(code, data=True)
 			yield evaleq, 0.0, r(code, data=False)
 			yield evaleq, 42.0, r(code, data=42)
@@ -1516,6 +1556,14 @@ def test_function_range():
 		yield eq, "", r(code3, data=[0, 10, -2])
 		yield eq, "10;8;6;4;2;", r(code3, data=[10, 0, -2])
 		yield eq, "", r(code3, data=[10, 0, 2])
+
+
+@py.test.mark.ul4
+def test_function_urlquote():
+	for r in all_renderers:
+		yield eq, "gurk", r("<?print urlquote('gurk')?>")
+		yield eq, "%3C%3D%3E%2B%3F", r("<?print urlquote('<=>+?')?>")
+		yield eq, "%7F%C3%BF%EF%BF%BF", r("<?print urlquote('\u007f\u00ff\uffff')?>")
 
 
 @py.test.mark.ul4
