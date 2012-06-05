@@ -188,6 +188,8 @@ var ul4on = {
 		// Read a character from the buffer
 		readchar: function()
 		{
+			if (this.pos >= this.data.length)
+				throw "UL4 decoder at EOF";
 			return this.data.charAt(this.pos++);
 		},
 
