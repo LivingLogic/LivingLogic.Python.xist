@@ -2060,7 +2060,7 @@ class Template(Block):
 	is a generator) or :meth:`renders` (which returns a string).
 	"""
 	version = "17"
-	fields = Block.fields.union({"source", "name", "startdelim", "enddelim"})
+	fields = Block.fields.union({"source", "name", "startdelim", "enddelim", "endlocation"})
 
 	def __init__(self, source=None, name=None, startdelim="<?", enddelim="?>"):
 		"""
@@ -2074,6 +2074,7 @@ class Template(Block):
 		# ``location`` will remain ``None`` for a top level template
 		# For a subtemplate it will be set to the location of the ``<?def?>`` tag in :meth:`_compile`
 		super().__init__(None)
+		self.endlocation = None # The location of the ``<?end def?>`` tag (or ``None`` for a top level template)
 		self.startdelim = startdelim
 		self.enddelim = enddelim
 		self.name = name
@@ -2103,7 +2104,9 @@ class Template(Block):
 		encoder.dump(self.name)
 		encoder.dump(self.startdelim)
 		encoder.dump(self.enddelim)
-		super().ul4ondump(encoder)
+		encoder.dump(self.location)
+		encoder.dump(self.endlocation)
+		encoder.dump(self.content)
 
 	def ul4onload(self, decoder):
 		version = decoder.load()
@@ -2113,7 +2116,9 @@ class Template(Block):
 		self.name = decoder.load()
 		self.startdelim = decoder.load()
 		self.enddelim = decoder.load()
-		super().ul4onload(decoder)
+		self.location = decoder.load()
+		self.endlocation = decoder.load()
+		self.content = decoder.load()
 
 	@classmethod
 	def loads(cls, data):
@@ -2374,10 +2379,9 @@ class Template(Block):
 						else:
 							raise BlockError("illegal end value {!r}".format(code))
 					last = stack.pop()
-					# Fix source attribute of sub template
+					# Set ``endlocation`` of sub template
 					if isinstance(last, Template):
-						# ``source`` does not include the ``<?def?>``/``<?end def?>`` tags
-						last.source = last.location.source[last.location.endtag:location.starttag]
+						last.endlocation = location
 				elif location.type == "for":
 					block = parsefor(location)
 					stack[-1].append(block)
@@ -2400,7 +2404,8 @@ class Template(Block):
 					stack[-1].append(Render(location, parseexpr(location)))
 				elif location.type == "def":
 					block = Template(None, location.code, self.startdelim, self.enddelim)
-					block.location = location
+					block.location = location # Set start ``location`` of sub template
+					block.source = self.source # The source of the top level template (so that the offsets in :class:`Location` are correct)
 					stack[-1].append(block)
 					stack.append(block)
 				else: # Can't happen

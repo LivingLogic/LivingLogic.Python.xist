@@ -229,11 +229,11 @@ class RenderJavaInterpretedTemplateByJava(RenderJava):
 
 
 all_python_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump)
-# FIXME: The following really takes a long time to run: 
+# FIXME: The following really takes a long time to run:
 #all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaInterpretedTemplateByPython, RenderJavaCompiledTemplateByPython, RenderJavaInterpretedTemplateByJava)
 all_renderers = all_python_renderers
-all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaInterpretedTemplateByPython, RenderJavaInterpretedTemplateByJava)
-all_renderers = (RenderJS,)
+# all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJavaInterpretedTemplateByPython, RenderJavaInterpretedTemplateByJava)
+# all_renderers = (RenderJS,)
 
 
 def eq(expected, render):
@@ -1981,7 +1981,8 @@ def test_templateattributes_localtemplate():
 	source = "<?def lower?><?print t.lower()?><?end def?>"
 
 	for r in all_renderers:
-		yield eq, "<?print t.lower()?>", r(source + "<?print lower.source?>")
+		yield eq, source + "<?print lower.source?>", r(source + "<?print lower.source?>")
+		yield eq, source, r(source + "<?print lower.source[lower.location.starttag:lower.endlocation.endtag]?>")
 		yield eq, "lower", r(source + "<?print lower.name?>")
 
 
