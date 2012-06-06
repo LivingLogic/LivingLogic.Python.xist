@@ -884,10 +884,11 @@ class Var(AST):
 
 
 class Block(AST):
-	fields = AST.fields.union({"content"})
+	fields = AST.fields.union({"endlocation", "content"})
 
 	def __init__(self, location=None):
 		super().__init__(location)
+		self.endlocation = None
 		self.content = []
 
 	def append(self, item):
@@ -910,10 +911,12 @@ class Block(AST):
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
+		encoder.dump(self.endlocation)
 		encoder.dump(self.content)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
+		self.endlocation = decoder.load()
 		self.content = decoder.load()
 
 
@@ -928,6 +931,8 @@ class IfElIfElse(Block):
 		self.content[-1].append(item)
 
 	def newblock(self, block):
+		if self.content:
+			self.content[-1].endlocation = block.location
 		self.content.append(block)
 
 	def format(self, indent):
@@ -2071,10 +2076,9 @@ class Template(Block):
 		exception messages and should be a valid Python identifier.
 
 		"""
-		# ``location`` will remain ``None`` for a top level template
-		# For a subtemplate it will be set to the location of the ``<?def?>`` tag in :meth:`_compile`
+		# ``location``/``endlocation`` will remain ``None`` for a top level template
+		# For a subtemplate ``location`` will be set to the location of the ``<?def?>`` tag in :meth:`_compile` and ``endlocation`` wil be the location of the ``<?end def?>`` tag
 		super().__init__(None)
-		self.endlocation = None # The location of the ``<?end def?>`` tag (or ``None`` for a top level template)
 		self.startdelim = startdelim
 		self.enddelim = enddelim
 		self.name = name
@@ -2303,13 +2307,6 @@ class Template(Block):
 		if pos != end:
 			yield Location(source, None, pos, end, pos, end)
 
-	def opcode(self, code, r1=None, r2=None, r3=None, r4=None, r5=None, arg=None):
-		"""
-		Creates an :class:`Opcode` object and appends it to :var:`self`\s list of
-		opcodes.
-		"""
-		self.opcodes.append(Opcode(code, r1, r2, r3, r4, r5, arg, self.location))
-
 	def _compile(self, source, name, startdelim, enddelim):
 		"""
 		Compile the template source code :var:`source` into opcodes.
@@ -2379,9 +2376,10 @@ class Template(Block):
 						else:
 							raise BlockError("illegal end value {!r}".format(code))
 					last = stack.pop()
-					# Set ``endlocation`` of sub template
-					if isinstance(last, Template):
-						last.endlocation = location
+					# Set ``endlocation`` of block
+					last.endlocation = location
+					if isinstance(last, IfElIfElse):
+						last.content[-1].endlocation = location
 				elif location.type == "for":
 					block = parsefor(location)
 					stack[-1].append(block)
