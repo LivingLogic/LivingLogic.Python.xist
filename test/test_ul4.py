@@ -1981,7 +1981,7 @@ def test_templateattributes_localtemplate():
 	source = "<?def lower?><?print t.lower()?><?end def?>"
 
 	for r in all_renderers:
-		yield eq, "<?print t.lower?>", r(source + "<?print lower.source?>")
+		yield eq, "<?print t.lower()?>", r(source + "<?print lower.source?>")
 		yield eq, "lower", r(source + "<?print lower.name?>")
 
 
