@@ -233,7 +233,7 @@ all_python_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump)
 #all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaInterpretedTemplateByPython, RenderJavaCompiledTemplateByPython, RenderJavaInterpretedTemplateByJava)
 all_renderers = all_python_renderers
 # all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJavaInterpretedTemplateByPython, RenderJavaInterpretedTemplateByJava)
-# all_renderers = (RenderJS,)
+all_renderers = (RenderJS,)
 
 
 def eq(expected, render):

@@ -196,7 +196,7 @@ var ul4 = {
 	// Item access: dict[key], list[index], string[index], color[index]
 	_op_getitem: function(container, key)
 	{
-		if (this._fu_isdict(container))
+		if (Object.prototype.toString.call(container) === "[object Object]")
 		{
 			var result = container[key];
 			if (typeof(result) === "undefined")
@@ -2344,6 +2344,10 @@ ul4.AST = ul4._inherit(
 			else
 				return op.format(0);
 		},
+		_add2template: function(template)
+		{
+			template._asts[this.__id__] = this;
+		},
 		toString: function()
 		{
 			return this.format(0);
@@ -3174,10 +3178,17 @@ ul4.Block = ul4._inherit(
 		create: function(location)
 		{
 			var block = ul4.AST.create.call(this, location);
+			block.endlocation = null;
 			block.content = [];
 			return block;
 		},
-		_ul4onattrs: ul4.AST._ul4onattrs.concat(["content"]),
+		_ul4onattrs: ul4.AST._ul4onattrs.concat(["endlocation", "content"]),
+		_add2template: function(template)
+		{
+			ul4.AST._add2template.call(this, template);
+			for (var i in this.content)
+				this.content[i]._add2template(template);
+		},
 		_formatjs_content: function(indent)
 		{
 			var v = [];
@@ -3379,11 +3390,14 @@ ul4.Template = ul4._inherit(
 		create: function(location, source, name, startdelim, enddelim)
 		{
 			var template = ul4.Block.create.call(this, location);
+			template.endlocation = null;
 			template.source = source;
 			template.name = name;
 			template.startdelim = startdelim;
 			template.enddelim = enddelim;
-			template._function = null;
+			template._jssource = null;
+			template._jsfunction = null;
+			template._asts = null;
 			return template;
 		},
 		ul4ondump: function(encoder)
@@ -3408,37 +3422,43 @@ ul4.Template = ul4._inherit(
 		},
 		formatjs: function(indent)
 		{
-			var v = [];
-			v.push(this._line(indent, "vars[" + ul4._fu_asjson(this.name) + "] = function(vars)"));
-			v.push(this._line(indent, "{"));
-			v.push(this._line(indent+1, "var stack = ul4.Stack.create();"));
-			v.push(this._line(indent+1, "var out = [];"));
-			v.push(this._formatjs_content(indent+1));
-			v.push(this._line(indent, "};"));
-			return v.join("");
+			return this._line(indent, "vars[" + ul4._fu_asjson(this.name) + "] = self._getast(" + this.__id__ + ");");
 		},
 		format: function(indent)
 		{
 			return this._line(indent, "def " + (this.name !== null ? this.name : "unnamed")) + ul4.Block.format.call(this, indent);
 		},
-		_jssource: function()
+		_getast: function(id)
 		{
-			var v = [];
-			v.push(this._line(0, "(function(vars)"));
-			v.push(this._line(0, "{"));
-			v.push(this._line(1, "var stack = ul4.Stack.create();"));
-			v.push(this._line(1, "var out = [];"));
-			v.push(this._formatjs_content(1));
-			v.push(this._line(1, "return out;"));
-			v.push(this._line(0, "})"));
-			return v.join("");
+			if (this._asts === null)
+			{
+				this._asts = {};
+				this._add2template(this);
+			}
+			return this._asts[id];
+		},
+		jssource: function()
+		{
+			if (this._jssource === null)
+			{
+				var v = [];
+				v.push(this._line(0, "(function(self, vars)"));
+				v.push(this._line(0, "{"));
+				v.push(this._line(1, "var stack = ul4.Stack.create();"));
+				v.push(this._line(1, "var out = [];"));
+				v.push(this._formatjs_content(1));
+				v.push(this._line(1, "return out;"));
+				v.push(this._line(0, "})"));
+				this._jssource = v.join("");
+			}
+			return this._jssource;
 		},
 		render: function(vars)
 		{
 			vars = vars || {};
-			if (this._function === null)
-				this._function = eval(this._jssource());
-			return this._function(vars);
+			if (this._jsfunction === null)
+				this._jsfunction = eval(this.jssource());
+			return this._jsfunction(this, vars);
 		},
 		renders: function(vars)
 		{
@@ -3452,60 +3472,67 @@ ul4.Template = ul4._inherit(
 	}
 );
 
-ul4on.register("de.livinglogic.ul4.location", ul4.Location);
-ul4on.register("de.livinglogic.ul4.text", ul4.Text);
-ul4on.register("de.livinglogic.ul4.none", ul4.LoadNone);
-ul4on.register("de.livinglogic.ul4.false", ul4.LoadFalse);
-ul4on.register("de.livinglogic.ul4.true", ul4.LoadTrue);
-ul4on.register("de.livinglogic.ul4.int", ul4.LoadInt);
-ul4on.register("de.livinglogic.ul4.float", ul4.LoadFloat);
-ul4on.register("de.livinglogic.ul4.str", ul4.LoadStr);
-ul4on.register("de.livinglogic.ul4.color", ul4.LoadColor);
-ul4on.register("de.livinglogic.ul4.date", ul4.LoadDate);
-ul4on.register("de.livinglogic.ul4.list", ul4.List);
-ul4on.register("de.livinglogic.ul4.dict", ul4.Dict);
-ul4on.register("de.livinglogic.ul4.var", ul4.LoadVar);
-ul4on.register("de.livinglogic.ul4.not", ul4.Not);
-ul4on.register("de.livinglogic.ul4.neg", ul4.Neg);
-ul4on.register("de.livinglogic.ul4.print", ul4.Print);
-ul4on.register("de.livinglogic.ul4.printx", ul4.PrintX);
-ul4on.register("de.livinglogic.ul4.getitem", ul4.GetItem);
-ul4on.register("de.livinglogic.ul4.eq", ul4.EQ);
-ul4on.register("de.livinglogic.ul4.ne", ul4.NE);
-ul4on.register("de.livinglogic.ul4.lt", ul4.LT);
-ul4on.register("de.livinglogic.ul4.le", ul4.LE);
-ul4on.register("de.livinglogic.ul4.gt", ul4.GT);
-ul4on.register("de.livinglogic.ul4.ge", ul4.GE);
-ul4on.register("de.livinglogic.ul4.notcontains", ul4.NotContains);
-ul4on.register("de.livinglogic.ul4.contains", ul4.Contains);
-ul4on.register("de.livinglogic.ul4.add", ul4.Add);
-ul4on.register("de.livinglogic.ul4.sub", ul4.Sub);
-ul4on.register("de.livinglogic.ul4.mul", ul4.Mul);
-ul4on.register("de.livinglogic.ul4.floordiv", ul4.FloorDiv);
-ul4on.register("de.livinglogic.ul4.truediv", ul4.TrueDiv);
-ul4on.register("de.livinglogic.ul4.mod", ul4.Mod);
-ul4on.register("de.livinglogic.ul4.and", ul4.And);
-ul4on.register("de.livinglogic.ul4.or", ul4.Or);
-ul4on.register("de.livinglogic.ul4.getslice", ul4.GetSlice);
-ul4on.register("de.livinglogic.ul4.getattr", ul4.GetAttr);
-ul4on.register("de.livinglogic.ul4.callfunc", ul4.CallFunc);
-ul4on.register("de.livinglogic.ul4.callmeth", ul4.CallMeth);
-ul4on.register("de.livinglogic.ul4.callmethkw", ul4.CallMethKeywords);
-ul4on.register("de.livinglogic.ul4.render", ul4.Render);
-ul4on.register("de.livinglogic.ul4.storevar", ul4.StoreVar);
-ul4on.register("de.livinglogic.ul4.addvar", ul4.AddVar);
-ul4on.register("de.livinglogic.ul4.subvar", ul4.SubVar);
-ul4on.register("de.livinglogic.ul4.mulvar", ul4.MulVar);
-ul4on.register("de.livinglogic.ul4.truedivvar", ul4.TrueDivVar);
-ul4on.register("de.livinglogic.ul4.floordivvar", ul4.FloorDivVar);
-ul4on.register("de.livinglogic.ul4.modvar", ul4.ModVar);
-ul4on.register("de.livinglogic.ul4.delvar", ul4.DelVar);
-ul4on.register("de.livinglogic.ul4.for", ul4.ForNormal);
-ul4on.register("de.livinglogic.ul4.foru", ul4.ForUnpack);
-ul4on.register("de.livinglogic.ul4.break", ul4.Break);
-ul4on.register("de.livinglogic.ul4.continue", ul4.Continue);
-ul4on.register("de.livinglogic.ul4.ieie", ul4.IfElIfElse);
-ul4on.register("de.livinglogic.ul4.if", ul4.If);
-ul4on.register("de.livinglogic.ul4.elif", ul4.ElIf);
-ul4on.register("de.livinglogic.ul4.else", ul4.Else);
-ul4on.register("de.livinglogic.ul4.template", ul4.Template);
+(function(){
+	var register = function(name, object)
+	{
+		object.type = name;
+		ul4on.register("de.livinglogic.ul4." + name, object);
+	};
+	register("location", ul4.Location);
+	register("text", ul4.Text);
+	register("none", ul4.LoadNone);
+	register("false", ul4.LoadFalse);
+	register("true", ul4.LoadTrue);
+	register("int", ul4.LoadInt);
+	register("float", ul4.LoadFloat);
+	register("str", ul4.LoadStr);
+	register("color", ul4.LoadColor);
+	register("date", ul4.LoadDate);
+	register("list", ul4.List);
+	register("dict", ul4.Dict);
+	register("var", ul4.LoadVar);
+	register("not", ul4.Not);
+	register("neg", ul4.Neg);
+	register("print", ul4.Print);
+	register("printx", ul4.PrintX);
+	register("getitem", ul4.GetItem);
+	register("eq", ul4.EQ);
+	register("ne", ul4.NE);
+	register("lt", ul4.LT);
+	register("le", ul4.LE);
+	register("gt", ul4.GT);
+	register("ge", ul4.GE);
+	register("notcontains", ul4.NotContains);
+	register("contains", ul4.Contains);
+	register("add", ul4.Add);
+	register("sub", ul4.Sub);
+	register("mul", ul4.Mul);
+	register("floordiv", ul4.FloorDiv);
+	register("truediv", ul4.TrueDiv);
+	register("mod", ul4.Mod);
+	register("and", ul4.And);
+	register("or", ul4.Or);
+	register("getslice", ul4.GetSlice);
+	register("getattr", ul4.GetAttr);
+	register("callfunc", ul4.CallFunc);
+	register("callmeth", ul4.CallMeth);
+	register("callmethkw", ul4.CallMethKeywords);
+	register("render", ul4.Render);
+	register("storevar", ul4.StoreVar);
+	register("addvar", ul4.AddVar);
+	register("subvar", ul4.SubVar);
+	register("mulvar", ul4.MulVar);
+	register("truedivvar", ul4.TrueDivVar);
+	register("floordivvar", ul4.FloorDivVar);
+	register("modvar", ul4.ModVar);
+	register("delvar", ul4.DelVar);
+	register("for", ul4.ForNormal);
+	register("foru", ul4.ForUnpack);
+	register("break", ul4.Break);
+	register("continue", ul4.Continue);
+	register("ieie", ul4.IfElIfElse);
+	register("if", ul4.If);
+	register("elif", ul4.ElIf);
+	register("else", ul4.Else);
+	register("template", ul4.Template);
+})();
