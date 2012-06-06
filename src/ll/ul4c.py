@@ -116,7 +116,7 @@ class Location(Object):
 
 	def __str__(self):
 		(line, col) = self.pos()
-		return "{!r} at {} (line {}, col {})".format(self.tag, self.starttag+1, line, col)
+		return "{!r} at {}:{} (line {}, col {})".format(self.tag, self.starttag, self.endtag, line, col)
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.source)
@@ -150,8 +150,6 @@ class Error(Exception):
 		return "<{}.{} in {} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.location, id(self))
 
 	def __str__(self):
-		path = []
-
 		return "in {}".format(self.location)
 
 
@@ -613,6 +611,10 @@ class AST(Object):
 		else:
 			return op.format(0)
 
+	def _add2template(self, template):
+		# Helper methods for adding all top level AST nodes to a map
+		template._astsbyid[id(self)] = self
+
 	@misc.notimplemented
 	def format(self, indent):
 		"""
@@ -649,7 +651,7 @@ class Text(AST):
 		return "{}text {!r}\n".format(indent*"\t", self.location.code)
 
 	def formatpython(self, indent):
-		return "{i}# literal at position {l.starttag}:{l.endtag}\n{i}yield {l.code!r}\n".format(i=indent*"\t", l=self.location)
+		return "{i}# literal at position {l.starttag}:{l.endtag} ({id})\n{i}yield {l.code!r}\n".format(i=indent*"\t", id=id(self), l=self.location)
 
 	def formatjava(self, indent):
 		return "{}context.write({});\n".format(indent*"\t", misc.javaexpr(self.location.code))
@@ -901,6 +903,11 @@ class Block(AST):
 		v.append("{}}}\n".format(indent*"\t"))
 		return "".join(v)
 
+	def _add2template(self, template):
+		super()._add2template(template)
+		for node in self.content:
+			node._add2template(template)
+
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
 		encoder.dump(self.content)
@@ -954,7 +961,7 @@ class If(Block):
 		return "{}if {}\n{}".format(indent*"\t", self.condition.format(indent), super().format(indent))
 
 	def formatpython(self, indent):
-		v = ["{i}# <?if?> tag at position {l.starttag}:{l.endtag}\n".format(i=indent*"\t", l=self.location)]
+		v = ["{i}# <?if?> tag at position {l.starttag}:{l.endtag} ({id})\n".format(i=indent*"\t", id=id(self), l=self.location)]
 		v.append("{}if {}:\n".format(indent*"\t", self.condition.formatpython(indent)))
 		indent += 1
 		for node in self.content:
@@ -993,7 +1000,7 @@ class ElIf(Block):
 		return "{}elif {}\n{}".format(indent*"\t", self.condition.format(indent), super().format(indent))
 
 	def formatpython(self, indent):
-		v = ["{i}# <?elif?> tag at position {l.starttag}:{l.endtag}\n".format(i=indent*"\t", l=self.location)]
+		v = ["{i}# <?elif?> tag at position {l.starttag}:{l.endtag} ({id})\n".format(i=indent*"\t", id=id(self), l=self.location)]
 		v.append("{}elif {}:\n".format(indent*"\t", self.condition.formatpython(indent)))
 		indent += 1
 		for node in self.content:
@@ -1026,7 +1033,7 @@ class Else(Block):
 		return "{}else\n{}".format(indent*"\t", super().format(indent))
 
 	def formatpython(self, indent):
-		v = ["{i}# <?else?> tag at position {l.starttag}:{l.endtag}\n".format(i=indent*"\t", l=self.location)]
+		v = ["{i}# <?else?> tag at position {l.starttag}:{l.endtag} ({id})\n".format(i=indent*"\t", id=id(self), l=self.location)]
 		v.append("{}else:\n".format(indent*"\t"))
 		indent += 1
 		for node in self.content:
@@ -1061,7 +1068,7 @@ class For(Block):
 		return "{}for {} in {}\n{}".format(indent*"\t", self.varname, self.container.format(indent), super().format(indent))
 
 	def formatpython(self, indent):
-		v = ["{i}# <?for?> tag at position {l.starttag}:{l.endtag}\n".format(i=indent*"\t", l=self.location)]
+		v = ["{i}# <?for?> tag at position {l.starttag}:{l.endtag} ({id})\n".format(i=indent*"\t", id=id(self), l=self.location)]
 		v.append("{}for vars[{!r}] in {}:\n".format(indent*"\t", self.varname, self.container.formatpython(indent)))
 		indent += 1
 		for node in self.content:
@@ -1107,7 +1114,7 @@ class ForUnpack(Block):
 		return "{}for ({}) in {}\n{}".format(indent*"\t", ", ".join(self.varnames), self.container.format(indent), super().format(indent))
 
 	def formatpython(self, indent):
-		v = ["{i}# <?for?> tag at position {l.starttag}:{l.endtag}\n".format(i=indent*"\t", l=self.location)]
+		v = ["{i}# <?for?> tag at position {l.starttag}:{l.endtag} ({id})\n".format(i=indent*"\t", id=id(self), l=self.location)]
 		v.append("{}for ({}) in {}:\n".format(indent*"\t", " ".join("vars[{!r}],".format(varname) for varname in self.varnames), self.container.formatpython(indent)))
 		indent += 1
 		for node in self.content:
@@ -1144,7 +1151,7 @@ class Break(AST):
 		return "{}break\n".format(indent*"\t")
 
 	def formatpython(self, indent):
-		return "{i}# <?break?> tag at position {l.starttag}:{l.endtag}\n{i}continue\n".format(i=indent*"\t", l=self.location)
+		return "{i}# <?break?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}break\n".format(i=indent*"\t", id=id(self), l=self.location)
 
 	def formatjava(self, indent):
 		return "{}break;\n".format(indent*"\t")
@@ -1156,7 +1163,7 @@ class Continue(AST):
 		return "{}continue\n".format(indent*"\t")
 
 	def formatpython(self, indent):
-		return "{i}# <?continue?> tag at position {l.starttag}:{l.endtag}\n{i}continue\n".format(i=indent*"\t", l=self.location)
+		return "{i}# <?continue?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}continue\n".format(i=indent*"\t", id=id(self), l=self.location)
 
 	def formatjava(self, indent):
 		return "{}continue;\n".format(indent*"\t")
@@ -1286,7 +1293,7 @@ class Print(Unary):
 		return "{}print {}\n".format(indent*"\t", self.obj.format(indent))
 
 	def formatpython(self, indent):
-		return "{i}# <?print?> tag at position {l.starttag}:{l.endtag}\n{i}yield ul4c._str({o})\n".format(i=indent*"\t", o=self.obj.formatpython(indent), l=self.location)
+		return "{i}# <?print?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._str({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
 		return "{}context.write(com.livinglogic.ul4.Utils.str({});\n".format(indent*"\t", self.obj.formatjava(indent))
@@ -1298,7 +1305,7 @@ class PrintX(Unary):
 		return "{}printx {}\n".format(indent*"\t", self.obj.format(indent))
 
 	def formatpython(self, indent):
-		return "{i}# <?printx?> tag at position {l.starttag}:{l.endtag}\n{i}yield ul4c._xmlescape({o})\n".format(i=indent*"\t", o=self.obj.formatpython(indent), l=self.location)
+		return "{i}# <?printx?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._xmlescape({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
 		return "{}context.write(com.livinglogic.ul4.Utils.xmlescape({});\n".format(indent*"\t", self.obj.formatjava(indent))
@@ -1605,7 +1612,7 @@ class StoreVar(ChangeVar):
 		return "{}{} = {}\n".format(indent*"\t", self.varname, self.value.format(indent))
 
 	def formatpython(self, indent):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag}\n{i}vars[{n!r}] = {v}\n".format(i=indent*"\t", n=self.varname, v=self.value.formatpython(indent), l=self.location)
+		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] = {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
 		return "context.set({}, {});".format(misc.javaexpr(self.varname), self.value.formatjava(indent))
@@ -1617,7 +1624,7 @@ class AddVar(ChangeVar):
 		return "{}{} += {}\n".format(indent*"\t", self.varname, self.value.format(indent))
 
 	def formatpython(self, indent):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag}\n{i}vars[{n!r}] += {v}\n".format(i=indent*"\t", n=self.varname, v=self.value.formatpython(indent), l=self.location)
+		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] += {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
 		varname = misc.javaexpr(self.varname)
@@ -1630,7 +1637,7 @@ class SubVar(ChangeVar):
 		return "{}{} -= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
 
 	def formatpython(self, indent):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag}\n{i}vars[{n!r}] -= {v}\n".format(i=indent*"\t", n=self.varname, v=self.value.formatpython(indent), l=self.location)
+		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] -= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
 		varname = misc.javaexpr(self.varname)
@@ -1643,7 +1650,7 @@ class MulVar(ChangeVar):
 		return "{}{} *= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
 
 	def formatpython(self, indent):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag}\n{i}vars[{n!r}] *= {v}\n".format(i=indent*"\t", n=self.varname, v=self.value.formatpython(indent), l=self.location)
+		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] *= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
 		varname = misc.javaexpr(self.varname)
@@ -1656,7 +1663,7 @@ class FloorDivVar(ChangeVar):
 		return "{}{} //= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
 
 	def formatpython(self, indent):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag}\n{i}vars[{n!r}] //= {v}\n".format(i=indent*"\t", n=self.varname, v=self.value.formatpython(indent), l=self.location)
+		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] //= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
 		varname = misc.javaexpr(self.varname)
@@ -1669,7 +1676,7 @@ class TrueDivVar(ChangeVar):
 		return "{}{} /= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
 
 	def formatpython(self, indent):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag}\n{i}vars[{n!r}] /= {v}\n".format(i=indent*"\t", n=self.varname, v=self.value.formatpython(indent), l=self.location)
+		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] /= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
 		varname = misc.javaexpr(self.varname)
@@ -1682,7 +1689,7 @@ class ModVar(ChangeVar):
 		return "{}{} %= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
 
 	def formatpython(self, indent):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag}\n{i}vars[{n!r}] %= {v}\n".format(i=indent*"\t", n=self.varname, v=self.value.formatpython(indent), l=self.location)
+		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] %= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
 		varname = misc.javaexpr(self.varname)
@@ -1704,7 +1711,7 @@ class DelVar(AST):
 		return "{}del {}\n".format(indent*"\t", self.varname)
 
 	def formatpython(self, indent):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag}\n{i}del vars[{n!r}]\n".format(i=indent*"\t", n=self.varname, l=self.location)
+		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}del vars[{n!r}]\n".format(i=indent*"\t", id=id(self), n=self.varname, l=self.location)
 
 	def formatjava(self, indent):
 		return "context.remove({});".format(misc.javaexpr(self.varname))
@@ -2020,7 +2027,7 @@ class Render(Unary):
 
 	def formatpython(self, indent):
 		if isinstance(self.obj, (CallMeth, CallMethKeywords)) and self.obj.methname == "render":
-			v = ["{i}# <?render?> tag at position {l.starttag}:{l.endtag}\n".format(i=indent*"\t", l=self.location)]
+			v = ["{i}# <?render?> tag at position {l.starttag}:{l.endtag} ({id})\n".format(i=indent*"\t", id=id(self), l=self.location)]
 			if self.obj.args:
 				args = []
 				for arg in self.obj.args:
@@ -2035,7 +2042,7 @@ class Render(Unary):
 			v.append("{}\tyield part\n".format(indent*"\t"))
 			return "".join(v)
 		else:
-			return "{i}# <?render?> tag at position {l.starttag}:{l.endtag}\n{i}yield ul4c._str({o})\n".format(i=indent*"\t", o=self.obj.formatpython(indent), l=self.location)
+			return "{i}# <?render?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._str({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)
 
 
 @register("template")
@@ -2064,14 +2071,29 @@ class Template(Block):
 		exception messages and should be a valid Python identifier.
 
 		"""
+		# ``location`` will remain ``None`` for a top level template
+		# For a subtemplate it will be set to the location of the ``<?def?>`` tag in :meth:`_compile`
 		super().__init__(None)
 		self.startdelim = startdelim
 		self.enddelim = enddelim
 		self.name = name
 		self.source = None
-		# The following is used for converting the AST back to executable Python code
-		self._subtemplatesbyid = None
+
+		# The following attributes (``_astsbyid``, ``_pythonsource`` and ``_pythonfunction``)
+		# are used for converting the AST back to executable Python code
+		# They will be initialized when required
+
+		# ``_astsbyid`` maps the id of the AST node to the ast node itself
+		# It is used in :meth:`Template.format` (to give the generated Python source code access to the subtemplate)
+		# and for proper exception chaining (when and exception occur in the template, comments in the
+		# generated source code allow finding the offending AST node)
+		self._astsbyid = None
+		# Python source code generated for the template
+		self._pythonsource = None
+		# A compiled Python function implementing the template logic
 		self._pythonfunction = None
+
+		# If we have source code compile it
 		if source is not None:
 			self._compile(source, name, startdelim, enddelim)
 
@@ -2136,19 +2158,27 @@ class Template(Block):
 		return "".join(v)
 
 	def formatpython(self, indent):
-		return "{i}# <?def?> tag at position {l.starttag}:{l.endtag}\n{i}vars[{n!r}] = self._getsubtemplate({id!r})\n".format(i=indent*"\t", n=self.name if self.name is not None else "unnamed", id=id(self), l=self.location)
+		return "{i}# <?def?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] = self._getast({id})\n".format(i=indent*"\t", n=self.name if self.name is not None else "unnamed", id=id(self), l=self.location)
 
-	def _getsubtemplate(self, tid):
-		if self._subtemplatesbyid is None:
-			self._subtemplatesbyid = {}
-			def add(block):
-				for child in block.content:
-					if isinstance(child, Template):
-						self._subtemplatesbyid[id(child)] = child
-					elif isinstance(child, Block):
-						add(child)
-			add(self)
-		return self._subtemplatesbyid[tid]
+	def _getast(self, astid):
+		if self._astsbyid is None:
+			self._astsbyid = {}
+			self._add2template(self)
+		return self._astsbyid[astid]
+
+	def _handleexc(self, exc):
+		source = [line.strip() for line in self._pythonsource.splitlines()]
+		lineno = exc.__traceback__.tb_lineno-1
+		for line in reversed(source[:lineno]):
+			if line.startswith("#"):
+				ast = self._getast(int(line.rpartition(" ")[2][1:-1])) # extract the id from the comment and fetch the appropriate node
+				break
+		else:
+			raise # shouldn't happen -> reraise original
+		if ast.location is None:
+			raise # shouldn't happen, as a ``<?def?>`` tag itself can't result in any exceptions -> reraise original
+		else:
+			raise Error(ast.location) from exc
 
 	def _java(self, indent):
 		v = []
@@ -2197,11 +2227,11 @@ class Template(Block):
 		argument signature of the function will be ``**vars``.
 		"""
 		if self._pythonfunction is None:
-			code = self.pythonsource()
+			name = self.name if self.name is not None else "unnamed"
+			source = self.pythonsource()
 			ns = {}
-			exec(code, ns)
-			self._pythonfunction = ns[self.name if self.name is not None else "unnamed"]
-			self._pythonfunction.source = self.source
+			exec(source, ns)
+			self._pythonfunction = ns[name]
 		return self._pythonfunction
 
 	def __call__(self, **vars):
@@ -2211,15 +2241,20 @@ class Template(Block):
 		"""
 		Return the template as Python source code.
 		"""
-		v = []
-		v.append("def {}(self, vars):\n".format(self.name if self.name is not None else "unnamed"))
-		v.append("\timport datetime, random\n")
-		v.append("\tfrom ll import ul4c, misc, color\n")
-		v.append("\tif 0:\n")
-		v.append("\t\tyield\n")
-		for node in self.content:
-			v.append(node.formatpython(1))
-		return "".join(v)
+		if self._pythonsource is None:
+			v = []
+			v.append("def {}(self, vars):\n".format(self.name if self.name is not None else "unnamed"))
+			v.append("\timport datetime, random\n")
+			v.append("\tfrom ll import ul4c, misc, color\n")
+			v.append("\tif 0:\n")
+			v.append("\t\tyield\n")
+			v.append("\ttry:\n")
+			for node in self.content:
+				v.append(node.formatpython(2))
+			v.append("\texcept Exception as exc:\n")
+			v.append("\t\t\tself._handleexc(exc)\n")
+			self._pythonsource = "".join(v)
+		return self._pythonsource
 
 	def jssource(self):
 		"""
