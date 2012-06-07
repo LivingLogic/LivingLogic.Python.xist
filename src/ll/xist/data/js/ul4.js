@@ -2536,20 +2536,20 @@ ul4.Dict = ul4._inherit(
 ul4.LoadVar = ul4._inherit(
 	ul4.AST,
 	{
-		create: function(location, varname)
+		create: function(location, name)
 		{
 			var variable = ul4.AST.create.call(this, location);
-			variable.varname = varname;
+			variable.name = name;
 			return variable;
 		},
-		_ul4onattrs: ul4.AST._ul4onattrs.concat(["varname"]),
+		_ul4onattrs: ul4.AST._ul4onattrs.concat(["name"]),
 		formatjs: function(indent)
 		{
-			return "vars[" + ul4._fu_asjson(this.varname) + "]";
+			return "vars[" + ul4._fu_asjson(this.name) + "]";
 		},
 		format: function(indent)
 		{
-			return this.varname;
+			return this.name;
 		},
 		precedence: 11
 	}
