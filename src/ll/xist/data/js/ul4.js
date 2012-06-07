@@ -2271,7 +2271,17 @@ ul4.Location = ul4._inherit(
 			location.endtag = endtag;
 			location.startcode = startcode;
 			location.endcode = endcode;
-
+			// Unfortunately Javascript doesn't have what other languages call properties, so we must create real attributes here
+			if (typeof(source) != "undefined")
+			{
+				location.tag = source.substring(starttag, endtag);
+				location.code = source.substring(startcode, endcode);
+			}
+			else
+			{
+				location.tag = null;
+				location.code = null;
+			}
 			return location;
 		},
 		ul4ondump: function(encoder)
@@ -2291,6 +2301,9 @@ ul4.Location = ul4._inherit(
 			this.endtag = decoder.load();
 			this.startcode = decoder.load();
 			this.endcode = decoder.load();
+
+			this.tag = this.source.substring(this.starttag, this.endtag);
+			this.code = this.source.substring(this.startcode, this.endcode);
 		}
 	}
 );
