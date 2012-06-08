@@ -100,7 +100,7 @@ class RenderJS(Render):
 			# result = os.popen("d8 {}/js/ul4on.js {}/js/ul4.js {}".format(dir, dir, f.name), "r").read()
 		stdout = stdout.decode("utf-8")[:-1] # Drop the "\n"
 		# Check if we have an exception
-		if stdout.endswith("^\n"):
+		if proc.returncode:
 			raise RuntimeError(stdout.splitlines()[0])
 		return stdout
 
@@ -230,7 +230,7 @@ class RenderJavaInterpretedTemplateByJava(RenderJava):
 
 all_python_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump)
 # FIXME: The following really takes a long time to run:
-#all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaInterpretedTemplateByPython, RenderJavaCompiledTemplateByPython, RenderJavaInterpretedTemplateByJava)
+# all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaInterpretedTemplateByPython, RenderJavaCompiledTemplateByPython, RenderJavaInterpretedTemplateByJava)
 all_renderers = all_python_renderers
 # all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJavaInterpretedTemplateByPython, RenderJavaInterpretedTemplateByJava)
 all_renderers = (RenderJS,)
