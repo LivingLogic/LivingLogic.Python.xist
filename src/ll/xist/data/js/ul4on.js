@@ -156,7 +156,7 @@ var ul4on = {
 				this.write("l");
 				for (var i in obj)
 					this.dump(obj[i]);
-				this.write(".");
+				this.write("]");
 			}
 			else if (ul4._fu_isdict(obj))
 			{
@@ -166,7 +166,7 @@ var ul4on = {
 					this.dump(key);
 					this.dump(obj[key]);
 				}
-				this.write(".");
+				this.write("}");
 			}
 			else
 				throw "can't handle object";
@@ -291,7 +291,7 @@ var ul4on = {
 					for (;;)
 					{
 						typecode = this.readchar();
-						if (typecode === ".")
+						if (typecode === "]")
 							return result;
 						this.backup();
 						result.push(this.load());
@@ -305,7 +305,7 @@ var ul4on = {
 					for (;;)
 					{
 						typecode = this.readchar();
-						if (typecode === ".")
+						if (typecode === "}")
 							return result;
 						this.backup();
 						var key = this.load();

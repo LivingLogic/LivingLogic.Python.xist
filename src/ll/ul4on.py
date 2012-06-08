@@ -119,14 +119,14 @@ class Encoder:
 				self.stream.write("L")
 				for item in obj:
 					self.dump(item)
-				self.stream.write(".")
+				self.stream.write("]")
 			elif isinstance(obj, collections.Mapping):
 				self._record(obj)
 				self.stream.write("D")
 				for (key, item) in obj.items():
 					self.dump(key)
 					self.dump(item)
-				self.stream.write(".")
+				self.stream.write("}")
 			else:
 				self._record(obj)
 				self.stream.write("O")
@@ -225,7 +225,7 @@ class Decoder:
 				self._loading(value)
 			while True:
 				c = self.stream.read(1)
-				if c == ".":
+				if c == "]":
 					return value
 				else:
 					item = self._load(c)
@@ -236,7 +236,7 @@ class Decoder:
 				self._loading(value)
 			while True:
 				c = self.stream.read(1)
-				if c == ".":
+				if c == "}":
 					return value
 				else:
 					key = self._load(c)
