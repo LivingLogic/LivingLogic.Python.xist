@@ -1082,7 +1082,7 @@ class For(Block):
 
 	def formatjava(self, indent):
 		v = []
-		v.append("{indent}for (Iterator iter{id:x} = com.livinglogic.ul4.Utils.iterator({container}); iter{id:x}.hasNext();)\n".format(indent=indent*"\t", id=id(self), container=self.container.formatjava(indent)))
+		v.append("{indent}for (java.util.Iterator iter{id:x} = com.livinglogic.ul4.Utils.iterator({container}); iter{id:x}.hasNext();)\n".format(indent=indent*"\t", id=id(self), container=self.container.formatjava(indent)))
 		v.append("{}{{\n".format(indent*"\t"))
 		indent += 1
 		v.append("{}com.livinglogic.ul4.ForNormal.unpackLoopVariable(context, iter{:x}.next(), {});\n".format(indent*"\t", id(self), misc.javaexpr(self.varname)))
@@ -1128,7 +1128,7 @@ class ForUnpack(Block):
 
 	def formatjava(self, indent):
 		v = []
-		v.append("{indent}for (Iterator iter{id:x} = com.livinglogic.ul4.Utils.iterator({container}); iter{id:x}.hasNext();)\n".format(indent=indent*"\t", id=id(self), container=self.container.formatjava(indent)))
+		v.append("{indent}for (java.util.Iterator iter{id:x} = com.livinglogic.ul4.Utils.iterator({container}); iter{id:x}.hasNext();)\n".format(indent=indent*"\t", id=id(self), container=self.container.formatjava(indent)))
 		v.append("{}{{\n".format(indent*"\t"))
 		indent += 1
 		varnames = "java.util.Arrays.asList({})".format(", ".join(misc.javaexpr(varname) for varname in self.varnames))
