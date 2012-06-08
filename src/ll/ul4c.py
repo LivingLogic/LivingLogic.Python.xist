@@ -2201,7 +2201,7 @@ class Template(Block):
 		indent -= 1
 		v.append("{}}}\n".format(indent*"\t"))
 		v.append("\n")
-		v.append("{}public void render(EvaluationContext context) throws java.io.IOException\n".format(indent*"\t"))
+		v.append("{}public void render(com.livinglogic.ul4.EvaluationContext context) throws java.io.IOException\n".format(indent*"\t"))
 		v.append("{}{{\n".format(indent*"\t"))
 		indent += 1
 		for node in self.content:
