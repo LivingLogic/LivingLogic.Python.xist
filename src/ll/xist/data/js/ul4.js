@@ -2124,6 +2124,9 @@ var ul4 = {
 				case "\t":
 					result += "\\t";
 					break;
+				case "\\":
+					result += "\\\\";
+					break;
 				case '"':
 					result += '\\"';
 					break;
