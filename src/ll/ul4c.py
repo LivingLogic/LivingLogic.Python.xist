@@ -975,11 +975,11 @@ class If(Block):
 
 	def formatjava(self, indent):
 		v = []
-		v.append("{}if ({})\n".format(indent*"\t", self.condition.formatjava(indent)))
+		v.append("{}if (com.livinglogic.ul4.Utils.getBool({}))\n".format(indent*"\t", self.condition.formatjava(indent)))
 		v.append("{}{{\n".format(indent*"\t"))
 		indent += 1
 		for node in self.content:
-			v.append(node.formatpython(indent))
+			v.append(node.formatjava(indent))
 		indent -= 1
 		v.append("{}}}\n".format(indent*"\t"))
 		return "".join(v)
@@ -1014,11 +1014,11 @@ class ElIf(Block):
 
 	def formatjava(self, indent):
 		v = []
-		v.append("{}else if ({})\n".format(indent*"\t", self.condition.formatjava(indent)))
+		v.append("{}else if (com.livinglogic.ul4.Utils.getBool({}))\n".format(indent*"\t", self.condition.formatjava(indent)))
 		v.append("{}{{\n".format(indent*"\t"))
 		indent += 1
 		for node in self.content:
-			v.append(node.formatpython(indent))
+			v.append(node.formatjava(indent))
 		indent -= 1
 		v.append("{}}}\n".format(indent*"\t"))
 		return "".join(v)
