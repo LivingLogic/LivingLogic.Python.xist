@@ -290,8 +290,8 @@ def test_javaexpr():
 	assert "java.util.Arrays.asList()" == misc.javaexpr(())
 	assert "java.util.Arrays.asList(1, 2, 3)" == misc.javaexpr([1, 2, 3])
 	# dict
-	assert "com.livinglogic.ul4.Utils.makeMap()" == misc.javaexpr({})
-	assert "com.livinglogic.ul4.Utils.makeMap(1, 2)" == misc.javaexpr({1: 2})
+	assert "com.livinglogic.utils.MapUtils.makeMap()" == misc.javaexpr({})
+	assert "com.livinglogic.utils.MapUtils.makeMap(1, 2)" == misc.javaexpr({1: 2})
 
 
 def test_prettycsv():
