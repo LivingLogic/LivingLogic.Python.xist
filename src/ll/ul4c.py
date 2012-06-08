@@ -1301,7 +1301,7 @@ class Print(Unary):
 		return "{i}# <?print?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._str({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		return "{}context.write(com.livinglogic.ul4.Utils.str({});\n".format(indent*"\t", self.obj.formatjava(indent))
+		return "{}context.write(com.livinglogic.ul4.Utils.str({}));\n".format(indent*"\t", self.obj.formatjava(indent))
 
 
 @register("printx")
@@ -1313,7 +1313,7 @@ class PrintX(Unary):
 		return "{i}# <?printx?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._xmlescape({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		return "{}context.write(com.livinglogic.ul4.Utils.xmlescape({});\n".format(indent*"\t", self.obj.formatjava(indent))
+		return "{}context.write(com.livinglogic.ul4.Utils.xmlescape({}));\n".format(indent*"\t", self.obj.formatjava(indent))
 
 
 class Binary(AST):
