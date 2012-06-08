@@ -1570,6 +1570,14 @@ def test_function_urlquote():
 
 
 @py.test.mark.ul4
+def test_function_urlunquote():
+	for r in all_renderers:
+		yield eq, "gurk", r("<?print urlunquote('gurk')?>")
+		yield eq, "<=>+?", r("<?print urlunquote('%3C%3D%3E%2B%3F')?>")
+		yield eq, "\u007f\u00ff\uffff", r("<?print urlunquote('%7F%C3%BF%EF%BF%BF')?>")
+
+
+@py.test.mark.ul4
 def test_function_zip():
 	code0 = "<?for i in zip()?><?print i?>;<?end for?>"
 	code1 = "<?for (ix, ) in zip(x)?><?print ix?>;<?end for?>"
