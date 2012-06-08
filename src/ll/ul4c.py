@@ -2282,7 +2282,7 @@ class Template(Block):
 		or an ``InterpretedTemplate`` will be used.
 		"""
 		if interpreted:
-			return "com.livinglogic.ul4.InterpretedTemplate.loads({})\n".format(misc.javaexpr(self.dumps()))
+			return "com.livinglogic.ul4.InterpretedTemplate.loads({})".format(misc.javaexpr(self.dumps()))
 		else:
 			return self._java(indent)
 
