@@ -1740,6 +1740,12 @@ var ul4 = {
 		}
 	},
 
+	_me_renders: function(obj)
+	{
+		ul4._checkmethargs("renders", arguments, 0);
+		return obj.renders({});
+	},
+
 	// Color methods
 	_me_r: function(obj)
 	{
