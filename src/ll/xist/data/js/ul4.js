@@ -196,14 +196,7 @@ var ul4 = {
 	// Item access: dict[key], list[index], string[index], color[index]
 	_op_getitem: function(container, key)
 	{
-		if (Object.prototype.toString.call(container) === "[object Object]")
-		{
-			var result = container[key];
-			if (typeof(result) === "undefined")
-				throw "key " + this._fu_repr(key) + " not found";
-			return result;
-		}
-		else if (typeof(container) === "string" || this._fu_islist(container))
+		if (typeof(container) === "string" || this._fu_islist(container))
 		{
 			var orgkey = key;
 			if (key < 0)
@@ -212,7 +205,7 @@ var ul4 = {
 				throw "index " + this._fu_repr(orgkey) + " out of range";
 			return container[key];
 		}
-		else if (this._fu_iscolor(container))
+		else if (this._fu_iscolor(container)) // test this before the generic object test
 		{
 			var orgkey = key;
 			if (key < 0)
@@ -230,6 +223,13 @@ var ul4 = {
 				default:
 					throw "index " + this._fu_repr(orgkey) + " out of range";
 			}
+		}
+		else if (Object.prototype.toString.call(container) === "[object Object]")
+		{
+			var result = container[key];
+			if (typeof(result) === "undefined")
+				throw "key " + this._fu_repr(key) + " not found";
+			return result;
 		}
 		throw "getitem() needs a sequence or dict";
 	},
