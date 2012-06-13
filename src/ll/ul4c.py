@@ -832,15 +832,15 @@ class Dict(AST):
 		v = []
 		for item in self.items:
 			if len(item) == 1:
-				v.append("({},)".format(item[0].format(indent)))
+				v.append("({},)".format(item[0].formatpython(indent)))
 			else:
-				v.append("({}, {})".format(item[0].format(indent), item[1].format(indent)))
+				v.append("({}, {})".format(item[0].formatpython(indent), item[1].formatpython(indent)))
 		return "ul4c._makedict({})".format(", ".join(v))
 
 	def formatjava(self, indent):
 		v = ["new com.livinglogic.ul4.MapMaker()"]
 		for item in self.items:
-			v.append(".add({})".format(", ".join(arg.format(indent) for arg in item)))
+			v.append(".add({})".format(", ".join(arg.formatjava(indent) for arg in item)))
 		v.append(".getMap()")
 		return "".join(v)
 
@@ -1821,7 +1821,7 @@ class CallFunc(AST):
 			asjson="com.livinglogic.ul4.Utils.asjson({})".format,
 			fromjson="com.livinglogic.ul4.Utils.fromjson({})".format,
 			str="com.livinglogic.ul4.Utils.str({})".format,
-			int="com.livinglogic.ul4.Utils.int({})".format,
+			int="com.livinglogic.ul4.Utils.toInteger({})".format,
 			float="com.livinglogic.ul4.Utils.float({})".format,
 			bool="com.livinglogic.ul4.Utils.getBool({})".format,
 			len="com.livinglogic.ul4.Utils.len({})".format,
@@ -1949,14 +1949,52 @@ class CallMeth(AST):
 		return formatter(self.obj.formatpython(indent), ", ".join(arg.formatpython(indent) for arg in self.args))
 
 	def formatjava(self, indent):
-		functions = dict(
-			now="com.livinglogic.ul4.Utils.now({})".format,
+		methods = dict(
+			split="com.livinglogic.ul4.Utils.split({})".format,
+			rsplit="com.livinglogic.ul4.Utils.rsplit({})".format,
+			strip="com.livinglogic.ul4.Utils.strip({})".format,
+			lstrip="com.livinglogic.ul4.Utils.lstrip({})".format,
+			rstrip="com.livinglogic.ul4.Utils.rstrip({})".format,
+			find="com.livinglogic.ul4.Utils.find({})".format,
+			rfind="com.livinglogic.ul4.Utils.rfind({})".format,
+			startswith="com.livinglogic.ul4.Utils.startswith({})".format,
+			endswith="com.livinglogic.ul4.Utils.endswith({})".format,
+			upper="com.livinglogic.ul4.Utils.upper({})".format,
+			lower="com.livinglogic.ul4.Utils.lower({})".format,
+			capitalize="com.livinglogic.ul4.Utils.capitalize({})".format,
+			replace="com.livinglogic.ul4.Utils.replace({})".format,
+			r="com.livinglogic.ul4.Utils.r({})".format,
+			g="com.livinglogic.ul4.Utils.g({})".format,
+			b="com.livinglogic.ul4.Utils.b({})".format,
+			a="com.livinglogic.ul4.Utils.a({})".format,
+			hls="com.livinglogic.ul4.Utils.hls({})".format,
+			hlsa="com.livinglogic.ul4.Utils.hlsa({})".format,
+			hsv="com.livinglogic.ul4.Utils.hsv({})".format,
+			hsva="com.livinglogic.ul4.Utils.hsva({})".format,
+			lum="com.livinglogic.ul4.Utils.lum({})".format,
+			weekday="com.livinglogic.ul4.Utils.weekday({})".format,
+			items="com.livinglogic.ul4.Utils.items({})".format,
+			join="com.livinglogic.ul4.Utils.join({})".format,
+			renders="com.livinglogic.ul4.Utils.renders({})".format,
+			mimeformat="com.livinglogic.ul4.Utils.mimeformat({})".format,
+			isoformat="com.livinglogic.ul4.Utils.isoformat({})".format,
+			yearday="com.livinglogic.ul4.Utils.yearday({})".format,
+			get="com.livinglogic.ul4.Utils.get({})".format,
+			withlum="com.livinglogic.ul4.Utils.withlum({})".format,
+			witha="com.livinglogic.ul4.Utils.witha({})".format,
+			day="com.livinglogic.ul4.Utils.day({})".format,
+			month="com.livinglogic.ul4.Utils.month({})".format,
+			year="com.livinglogic.ul4.Utils.year({})".format,
+			hour="com.livinglogic.ul4.Utils.hour({})".format,
+			minute="com.livinglogic.ul4.Utils.minute({})".format,
+			second="com.livinglogic.ul4.Utils.second({})".format,
+			microsecond="com.livinglogic.ul4.Utils.microsecond({})".format,
 		)
 		try:
-			formatter = functions[self.methname]
+			formatter = methods[self.methname]
 		except KeyError:
-			raise UnknownFunctionError(self.methname)
-		return formatter(self.obj.formatjava(indent), ", ".join(arg.formatjava(indent) for arg in self.args))
+			raise UnknownMethodError(self.methname)
+		return formatter(", ".join(arg.formatjava(indent) for arg in [self.obj] + self.args))
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -2009,6 +2047,21 @@ class CallMethKeywords(AST):
 			# The ``render`` method can only be used in the ``render`` tag, where it is handled separately
 			raise UnknownMethodError(self.methname)
 
+	def formatjava(self, indent):
+		v = []
+		for arg in self.args:
+			if len(arg) == 1:
+				v.append(".add({})".format(arg[0].formatjava(indent)))
+			else:
+				v.append(".add({}, {})".format(misc.javaexpr(arg[0]), arg[1].formatjava(indent)))
+		args = "new com.livinglogic.ul4.MapMaker(){}.getMap()".format("".join(v))
+		if self.methname == "renders":
+			return "((Template){}).renders({})".format(self.obj.formatjava(indent), args)
+		elif self.methname == "render":
+			return "((Template){}).render(content.getWriter(), {})".format(self.obj.formatjava(indent), args)
+		else:
+			raise UnknownMethodError(self.methname)
+
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
 		encoder.dump(self.methname)
@@ -2048,6 +2101,9 @@ class Render(Unary):
 			return "".join(v)
 		else:
 			return "{i}# <?render?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._str({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)
+
+	def formatjava(self, indent):
+		return "{}{};\n".format(indent*"\t", self.obj.formatjava(indent))
 
 
 @register("template")
@@ -2213,7 +2269,7 @@ class Template(Block):
 		return "".join(v)
 
 	def formatjava(self, indent):
-		return "{}variables.put({}, {});\n".format(indent*"\t", misc.javaexpr(self.name if self.name is not None else "unnamed"), self._java(indent))
+		return "{}context.put({}, {});\n".format(indent*"\t", misc.javaexpr(self.name if self.name is not None else "unnamed"), self._java(indent))
 
 	def render(self, **vars):
 		"""

@@ -158,14 +158,18 @@ class RenderJava(Render):
 			print(source)
 			with open(os.path.join(tempdir, "UL4Test.java"), "wb") as f:
 				f.write(source.encode("utf-8"))
-			os.system("cd {}; javac -encoding utf-8 UL4Test.java".format(tempdir))
+			proc = subprocess.Popen("cd {}; javac -encoding utf-8 UL4Test.java".format(tempdir), stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+			(stdout, stderr) = proc.communicate()
+			# Check if we have an exception
+			self.findexception(stdout.decode("utf-8"))
+			self.findexception(stderr.decode("utf-8"))
 			proc = subprocess.Popen("cd {}; java UL4Test".format(tempdir), stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 			(stdout, stderr) = proc.communicate()
+			# Check if we have an exception
+			self.findexception(stdout.decode("utf-8"))
+			self.findexception(stderr.decode("utf-8"))
 		finally:
 			shutil.rmtree(tempdir)
-		# Check if we have an exception
-		self.findexception(stdout.decode("utf-8"))
-		self.findexception(stderr.decode("utf-8"))
 		if stderr:
 			print(stderr, file=sys.stderr)
 		return stdout.decode("utf-8")
@@ -232,7 +236,7 @@ all_python_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump)
 # FIXME: The following really takes a long time to run:
 # all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaInterpretedTemplateByPython, RenderJavaCompiledTemplateByPython, RenderJavaInterpretedTemplateByJava)
 all_renderers = all_python_renderers
-all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS)
+all_renderers = (RenderJavaCompiledTemplateByPython,)
 
 
 def eq(expected, render):
@@ -413,6 +417,7 @@ def test_dict():
 	for r in all_renderers:
 		yield eq, '', r('<?for (key, value) in {}.items()?><?print key?>:<?print value?>\n<?end for?>')
 		yield eq, '1:2\n', r('<?for (key, value) in {1:2}.items()?><?print key?>:<?print value?>\n<?end for?>')
+		yield eq, '1:#fff\n', r('<?for (key, value) in {1:#fff}.items()?><?print key?>:<?print value?>\n<?end for?>')
 		yield eq, '1:2\n', r('<?for (key, value) in {1:2,}.items()?><?print key?>:<?print value?>\n<?end for?>')
 		# With duplicate keys, later ones simply overwrite earlier ones
 		yield eq, '1:3\n', r('<?for (key, value) in {1:2, 1: 3}.items()?><?print key?>:<?print value?>\n<?end for?>')
@@ -1969,18 +1974,19 @@ def test_templateattributes():
 	t2 = ul4c.Template(s2)
 
 	for r in all_renderers:
-		yield eq, "<?", r("<?print template.startdelim?>", template=t1)
-		yield eq, "?>", r("<?print template.enddelim?>", template=t1)
-		yield eq, s1, r("<?print template.source?>", template=t1)
-		yield eq, "1", r("<?print len(template.content)?>", template=t1)
-		yield eq, "print", r("<?print template.content[0].type?>", template=t1)
-		yield eq, s1, r("<?print template.content[0].location.tag?>", template=t1)
-		yield eq, "x", r("<?print template.content[0].location.code?>", template=t1)
-		yield eq, "var", r("<?print template.content[0].obj.type?>", template=t1)
-		yield eq, "x", r("<?print template.content[0].obj.name?>", template=t1)
-		yield eq, "printx", r("<?print template.content[0].type?>", template=t2)
-		yield eq, "int", r("<?print template.content[0].obj.type?>", template=t2)
-		yield eq, "42", r("<?print template.content[0].obj.value?>", template=t2)
+		if r is not RenderJavaCompiledTemplateByPython:
+			yield eq, "<?", r("<?print template.startdelim?>", template=t1)
+			yield eq, "?>", r("<?print template.enddelim?>", template=t1)
+			yield eq, s1, r("<?print template.source?>", template=t1)
+			yield eq, "1", r("<?print len(template.content)?>", template=t1)
+			yield eq, "print", r("<?print template.content[0].type?>", template=t1)
+			yield eq, s1, r("<?print template.content[0].location.tag?>", template=t1)
+			yield eq, "x", r("<?print template.content[0].location.code?>", template=t1)
+			yield eq, "var", r("<?print template.content[0].obj.type?>", template=t1)
+			yield eq, "x", r("<?print template.content[0].obj.name?>", template=t1)
+			yield eq, "printx", r("<?print template.content[0].type?>", template=t2)
+			yield eq, "int", r("<?print template.content[0].obj.type?>", template=t2)
+			yield eq, "42", r("<?print template.content[0].obj.value?>", template=t2)
 
 
 @py.test.mark.ul4
@@ -1988,10 +1994,11 @@ def test_templateattributes_localtemplate():
 	source = "<?def lower?><?print t.lower()?><?end def?>"
 
 	for r in all_renderers:
-		yield eq, source + "<?print lower.source?>", r(source + "<?print lower.source?>")
-		yield eq, source, r(source + "<?print lower.source[lower.location.starttag:lower.endlocation.endtag]?>")
-		yield eq, "<?print t.lower()?>", r(source + "<?print lower.source[lower.location.endtag:lower.endlocation.starttag]?>")
-		yield eq, "lower", r(source + "<?print lower.name?>")
+		if r is not RenderJavaCompiledTemplateByPython:
+			yield eq, source + "<?print lower.source?>", r(source + "<?print lower.source?>")
+			yield eq, source, r(source + "<?print lower.source[lower.location.starttag:lower.endlocation.endtag]?>")
+			yield eq, "<?print t.lower()?>", r(source + "<?print lower.source[lower.location.endtag:lower.endlocation.starttag]?>")
+			yield eq, "lower", r(source + "<?print lower.name?>")
 
 
 def universaltemplate():
