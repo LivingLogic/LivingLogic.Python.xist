@@ -1853,10 +1853,10 @@ var ul4 = {
 		create: function(r, g, b, a)
 		{
 			var c = ul4._clone(this);
-			c.r = r;
-			c.g = g;
-			c.b = b;
-			c.a = a;
+			c.r = typeof(r) !== "undefined" ? r : 0;
+			c.g = typeof(g) !== "undefined" ? g : 0;
+			c.b = typeof(b) !== "undefined" ? b : 0;
+			c.a = typeof(a) !== "undefined" ? a : 255;
 			return c;
 		},
 
