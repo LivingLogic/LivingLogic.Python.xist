@@ -206,7 +206,7 @@ var ul4on = {
 		// "unread" one character
 		backup: function()
 		{
-			this.pos--;
+			--this.pos;
 		},
 
 		// Read a number from the buffer
