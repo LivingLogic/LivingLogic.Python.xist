@@ -1387,7 +1387,7 @@ class Project(dict):
 
 		self.stepsexecuted += 1
 		if self.showregistration is not None and isinstance(target, self.showregistration):
-			self.writestacklevel(0, self.strcounter(self.stepsexecuted), " Registered ", self.strkey(target.key))
+			self.writestacklevel(0, self.strcounter(self.stepsexecuted), " Registered ", self.strkey(key))
 
 		return target
 
