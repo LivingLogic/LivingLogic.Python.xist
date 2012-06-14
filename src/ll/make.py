@@ -1367,10 +1367,10 @@ class Project(dict):
 		Add the action :var:`target` to :var:`self` as a target and register it
 		under the key :var:`key`.
 		"""
-		if key in self:
-			self.warn(RedefinedTargetWarning(key), 5)
 		if isinstance(key, url.URL) and key.islocal():
 			key = key.abs(scheme="file")
+		if key in self:
+			self.warn(RedefinedTargetWarning(key), 5)
 		target.key = key
 		super().__setitem__(key, target)
 
