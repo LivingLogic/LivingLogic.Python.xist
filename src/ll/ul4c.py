@@ -654,7 +654,7 @@ class Text(AST):
 		return "{i}# literal at position {l.starttag}:{l.endtag} ({id})\n{i}yield {l.code!r}\n".format(i=indent*"\t", id=id(self), l=self.location)
 
 	def formatjava(self, indent):
-		return "{}context.write({});\n".format(indent*"\t", misc.javaexpr(self.location.code))
+		return "{i}context.write({t});\n".format(i=indent*"\t", t=misc.javaexpr(self.location.code))
 
 
 class Const(AST):
@@ -975,6 +975,7 @@ class If(Block):
 
 	def formatjava(self, indent):
 		v = []
+		v.append("{}// {}\n".format(indent*"\t", repr(self.location.tag)[1:-1]))
 		v.append("{}if (com.livinglogic.ul4.Utils.getBool({}))\n".format(indent*"\t", self.condition.formatjava(indent)))
 		v.append("{}{{\n".format(indent*"\t"))
 		indent += 1
@@ -1014,6 +1015,7 @@ class ElIf(Block):
 
 	def formatjava(self, indent):
 		v = []
+		v.append("{}// {}\n".format(indent*"\t", repr(self.location.tag)[1:-1]))
 		v.append("{}else if (com.livinglogic.ul4.Utils.getBool({}))\n".format(indent*"\t", self.condition.formatjava(indent)))
 		v.append("{}{{\n".format(indent*"\t"))
 		indent += 1
@@ -1047,6 +1049,7 @@ class Else(Block):
 
 	def formatjava(self, indent):
 		v = []
+		v.append("{}// {}\n".format(indent*"\t", repr(self.location.tag)[1:-1]))
 		v.append("{}else\n".format(indent*"\t"))
 		v.append("{}{{\n".format(indent*"\t"))
 		indent += 1
@@ -1057,13 +1060,55 @@ class Else(Block):
 		return "".join(v)
 
 
-@register("for")
 class For(Block):
-	fields = Block.fields.union({"container", "varname"})
+	fields = Block.fields.union({"container"})
 
-	def __init__(self, location=None, container=None, varname=None):
+	def __init__(self, location=None, container=None):
 		super().__init__(location)
 		self.container = container
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.container)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.container = decoder.load()
+
+	def formatjava(self, indent):
+		v = []
+		v.append("{}// {}\n".format(indent*"\t", repr(self.location.tag)[1:-1]))
+		v.append("{indent}for (java.util.Iterator iter{id:x} = com.livinglogic.ul4.Utils.iterator({container}); iter{id:x}.hasNext();)\n".format(indent=indent*"\t", id=id(self), container=self.container.formatjava(indent)))
+		v.append("{}{{\n".format(indent*"\t"))
+		indent += 1
+		v.append("{}com.livinglogic.ul4.{}.unpackLoopVariable(context, iter{:x}.next(), {});\n".format(indent*"\t", self.__class__.__name__, id(self), misc.javaexpr(self.varname)))
+		v.append("{}try\n".format(indent*"\t"))
+		v.append("{}{{\n".format(indent*"\t"))
+		indent += 1
+		for node in self.content:
+			v.append(node.formatjava(indent))
+		indent -= 1
+		v.append("{}}}\n".format(indent*"\t"))
+		v.append("{}catch (com.livinglogic.ul4.BreakException ex)\n".format(indent*"\t"))
+		v.append("{}{{\n".format(indent*"\t"))
+		indent += 1
+		v.append("{}break;\n".format(indent*"\t"))
+		indent -= 1
+		v.append("{}}}\n".format(indent*"\t"))
+		v.append("{}catch (com.livinglogic.ul4.ContinueException ex)\n".format(indent*"\t"))
+		v.append("{}{{\n".format(indent*"\t"))
+		v.append("{}}}\n".format(indent*"\t"))
+		indent -= 1
+		v.append("{}}}\n".format(indent*"\t"))
+		return "".join(v)
+
+
+@register("for")
+class ForNormal(For):
+	fields = For.fields.union({"varname"})
+
+	def __init__(self, location=None, container=None, varname=None):
+		super().__init__(location, container)
 		self.varname = varname
 
 	def __repr__(self):
@@ -1080,36 +1125,21 @@ class For(Block):
 			v.append(node.formatpython(indent))
 		return "".join(v)
 
-	def formatjava(self, indent):
-		v = []
-		v.append("{indent}for (java.util.Iterator iter{id:x} = com.livinglogic.ul4.Utils.iterator({container}); iter{id:x}.hasNext();)\n".format(indent=indent*"\t", id=id(self), container=self.container.formatjava(indent)))
-		v.append("{}{{\n".format(indent*"\t"))
-		indent += 1
-		v.append("{}com.livinglogic.ul4.ForNormal.unpackLoopVariable(context, iter{:x}.next(), {});\n".format(indent*"\t", id(self), misc.javaexpr(self.varname)))
-		for node in self.content:
-			v.append(node.formatjava(indent))
-		indent -= 1
-		v.append("{}}}\n".format(indent*"\t"))
-		return "".join(v)
-
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
-		encoder.dump(self.container)
 		encoder.dump(self.varname)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
-		self.container = decoder.load()
 		self.varname = decoder.load()
 
 
 @register("foru")
-class ForUnpack(Block):
-	fields = Block.fields.union({"container", "varnames"})
+class ForUnpack(For):
+	fields = For.fields.union({"varnames"})
 
 	def __init__(self, location=None, container=None, *varnames):
-		super().__init__(location)
-		self.container = container
+		super().__init__(location, container)
 		self.varnames = list(varnames)
 
 	def __repr__(self):
@@ -1126,27 +1156,12 @@ class ForUnpack(Block):
 			v.append(node.formatpython(indent))
 		return "".join(v)
 
-	def formatjava(self, indent):
-		v = []
-		v.append("{indent}for (java.util.Iterator iter{id:x} = com.livinglogic.ul4.Utils.iterator({container}); iter{id:x}.hasNext();)\n".format(indent=indent*"\t", id=id(self), container=self.container.formatjava(indent)))
-		v.append("{}{{\n".format(indent*"\t"))
-		indent += 1
-		varnames = "java.util.Arrays.asList({})".format(", ".join(misc.javaexpr(varname) for varname in self.varnames))
-		v.append("{}com.livinglogic.ul4.ForUnpack.unpackLoopVariable(context, iter{:x}.next(), {});\n".format(indent*"\t", id(self), varnames))
-		for node in self.content:
-			v.append(node.formatjava(indent))
-		indent -= 1
-		v.append("{}}}\n".format(indent*"\t"))
-		return "".join(v)
-
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
-		encoder.dump(self.container)
 		encoder.dump(self.varnames)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
-		self.container = decoder.load()
 		self.varnames = decoder.load()
 
 
@@ -1159,7 +1174,7 @@ class Break(AST):
 		return "{i}# <?break?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}break\n".format(i=indent*"\t", id=id(self), l=self.location)
 
 	def formatjava(self, indent):
-		return "{}break;\n".format(indent*"\t")
+		return "{i}// {s}\n{i}break;\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1])
 
 
 @register("continue")
@@ -1171,7 +1186,7 @@ class Continue(AST):
 		return "{i}# <?continue?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}continue\n".format(i=indent*"\t", id=id(self), l=self.location)
 
 	def formatjava(self, indent):
-		return "{}continue;\n".format(indent*"\t")
+		return "{i}// {s}\n{i}continue;\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1])
 
 
 @register("getattr")
@@ -1301,7 +1316,7 @@ class Print(Unary):
 		return "{i}# <?print?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._str({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		return "{}context.write(com.livinglogic.ul4.Utils.str({}));\n".format(indent*"\t", self.obj.formatjava(indent))
+		return "{i}// {s}\n{i}context.write(com.livinglogic.ul4.Utils.str({v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], v=self.obj.formatjava(indent))
 
 
 @register("printx")
@@ -1313,7 +1328,7 @@ class PrintX(Unary):
 		return "{i}# <?printx?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._xmlescape({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		return "{}context.write(com.livinglogic.ul4.Utils.xmlescape({}));\n".format(indent*"\t", self.obj.formatjava(indent))
+		return "{i}// {s}\n{i}context.write(com.livinglogic.ul4.Utils.xmlescape({v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], v=self.obj.formatjava(indent))
 
 
 class Binary(AST):
@@ -1620,7 +1635,7 @@ class StoreVar(ChangeVar):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] = {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		return "context.set({}, {});".format(misc.javaexpr(self.varname), self.value.formatjava(indent))
+		return "{i}// {s}\n{i}context.set({n}, {v});\n".format(i=indent*"\t", n=misc.javaexpr(self.varname), s=repr(self.location.tag)[1:-1], v=self.value.formatjava(indent))
 
 
 @register("addvar")
@@ -1632,8 +1647,7 @@ class AddVar(ChangeVar):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] += {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		varname = misc.javaexpr(self.varname)
-		return "context.set({}, com.livinglogic.ul4.Utils.add(context.get({}), {}));".format(varname, varname, self.value.formatjava(indent))
+		return "{i}// {s}\n{i}context.set({n}, com.livinglogic.ul4.Utils.add(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
 
 
 @register("subvar")
@@ -1645,8 +1659,7 @@ class SubVar(ChangeVar):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] -= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		varname = misc.javaexpr(self.varname)
-		return "context.set({}, com.livinglogic.ul4.Utils.sub(context.get({}), {}));".format(varname, varname, self.value.formatjava(indent))
+		return "{i}// {s}\n{i}context.set({n}, com.livinglogic.ul4.Utils.sub(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
 
 
 @register("mulvar")
@@ -1658,8 +1671,7 @@ class MulVar(ChangeVar):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] *= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		varname = misc.javaexpr(self.varname)
-		return "context.set({}, com.livinglogic.ul4.Utils.mul(context.get({}), {}));".format(varname, varname, self.value.formatjava(indent))
+		return "{i}// {s}\n{i}context.set({n}, com.livinglogic.ul4.Utils.mul(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
 
 
 @register("floordivvar")
@@ -1671,8 +1683,7 @@ class FloorDivVar(ChangeVar):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] //= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		varname = misc.javaexpr(self.varname)
-		return "context.set({}, com.livinglogic.ul4.Utils.floordiv(context.get({}), {}));".format(varname, varname, self.value.formatjava(indent))
+		return "{i}// {s}\n{i}context.set({n}, com.livinglogic.ul4.Utils.floordiv(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
 
 
 @register("truedivvar")
@@ -1684,8 +1695,7 @@ class TrueDivVar(ChangeVar):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] /= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		varname = misc.javaexpr(self.varname)
-		return "context.set({}, com.livinglogic.ul4.Utils.truediv(context.get({}), {}));".format(varname, varname, self.value.formatjava(indent))
+		return "{i}// {s}\n{i}context.set({n}, com.livinglogic.ul4.Utils.truediv(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
 
 
 @register("modvar")
@@ -1697,8 +1707,7 @@ class ModVar(ChangeVar):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] %= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		varname = misc.javaexpr(self.varname)
-		return "context.set({}, com.livinglogic.ul4.Utils.mod(context.get({}), {}));".format(varname, varname, self.value.formatjava(indent))
+		return "{i}// {s}\n{i}context.set({n}, com.livinglogic.ul4.Utils.mod(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
 
 
 @register("delvar")
@@ -1719,7 +1728,7 @@ class DelVar(AST):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}del vars[{n!r}]\n".format(i=indent*"\t", id=id(self), n=self.varname, l=self.location)
 
 	def formatjava(self, indent):
-		return "context.remove({});".format(misc.javaexpr(self.varname))
+		return "{i}// {s}\n{i}context.remove({n});\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname))
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -2056,9 +2065,9 @@ class CallMethKeywords(AST):
 				v.append(".add({}, {})".format(misc.javaexpr(arg[0]), arg[1].formatjava(indent)))
 		args = "new com.livinglogic.ul4.MapMaker(){}.getMap()".format("".join(v))
 		if self.methname == "renders":
-			return "((Template){}).renders({})".format(self.obj.formatjava(indent), args)
+			return "((com.livinglogic.ul4.Template){}).renders({})".format(self.obj.formatjava(indent), args)
 		elif self.methname == "render":
-			return "((Template){}).render(content.getWriter(), {})".format(self.obj.formatjava(indent), args)
+			return "((com.livinglogic.ul4.Template){}).render(context.getWriter(), {})".format(self.obj.formatjava(indent), args)
 		else:
 			raise UnknownMethodError(self.methname)
 
@@ -2103,7 +2112,7 @@ class Render(Unary):
 			return "{i}# <?render?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._str({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		return "{}{};\n".format(indent*"\t", self.obj.formatjava(indent))
+		return "{i}// {s}\n{i}{o};\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], o=self.obj.formatjava(indent))
 
 
 @register("template")
@@ -2269,7 +2278,7 @@ class Template(Block):
 		return "".join(v)
 
 	def formatjava(self, indent):
-		return "{}context.put({}, {});\n".format(indent*"\t", misc.javaexpr(self.name if self.name is not None else "unnamed"), self._java(indent))
+		return "{i}// {s}\n{i}context.put(\n{i}\t{n},\n{i}\t{c}\n{i});\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.name if self.name is not None else "unnamed"), c=self._java(indent))
 
 	def render(self, **vars):
 		"""
@@ -2972,7 +2981,7 @@ class ForParser(ExprParser):
 
 	@spark.production('for ::= var in expr0')
 	def for0(self, iter, _0, cont):
-		return For(self.location, cont, iter.name)
+		return ForNormal(self.location, cont, iter.name)
 
 	@spark.production('for ::= ( var , ) in expr0')
 	def for1(self, _0, varname, _1, _2, _3, cont):
