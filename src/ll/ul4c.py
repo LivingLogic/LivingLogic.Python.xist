@@ -1081,7 +1081,7 @@ class For(Block):
 		v.append("{indent}for (java.util.Iterator iter{id:x} = com.livinglogic.ul4.Utils.iterator({container}); iter{id:x}.hasNext();)\n".format(indent=indent*"\t", id=id(self), container=self.container.formatjava(indent)))
 		v.append("{}{{\n".format(indent*"\t"))
 		indent += 1
-		v.append("{}com.livinglogic.ul4.{}.unpackLoopVariable(context, iter{:x}.next(), {});\n".format(indent*"\t", self.__class__.__name__, id(self), misc.javaexpr(self.varname)))
+		v.append("{}com.livinglogic.ul4.{}.unpackLoopVariable(context, iter{:x}.next(), {});\n".format(indent*"\t", self.__class__.__name__, id(self), self._javavarnames()))
 		v.append("{}try\n".format(indent*"\t"))
 		v.append("{}{{\n".format(indent*"\t"))
 		indent += 1
@@ -1125,6 +1125,9 @@ class ForNormal(For):
 			v.append(node.formatpython(indent))
 		return "".join(v)
 
+	def _javavarnames(self):
+		return misc.javaexpr(self.varname)
+
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
 		encoder.dump(self.varname)
@@ -1155,6 +1158,9 @@ class ForUnpack(For):
 		for node in self.content:
 			v.append(node.formatpython(indent))
 		return "".join(v)
+
+	def _javavarnames(self):
+		return "java.util.Arrays.asList({})".format(", ".join(misc.javaexpr(varname) for vorname in self.varnames))
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
