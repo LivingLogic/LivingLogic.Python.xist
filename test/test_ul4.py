@@ -139,7 +139,7 @@ class RenderJava(Render):
 		newlines = []
 		for line in string.strip().splitlines(False):
 			line = line.strip()
-			if line == "}":
+			if line == "}" or line == "};":
 				indent -= 1
 			if line:
 				newlines.append(indent*"\t" + line + "\n")
