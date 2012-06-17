@@ -1635,7 +1635,7 @@ class StoreVar(ChangeVar):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] = {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		return "{i}// {s}\n{i}context.set({n}, {v});\n".format(i=indent*"\t", n=misc.javaexpr(self.varname), s=repr(self.location.tag)[1:-1], v=self.value.formatjava(indent))
+		return "{i}// {s}\n{i}context.put({n}, {v});\n".format(i=indent*"\t", n=misc.javaexpr(self.varname), s=repr(self.location.tag)[1:-1], v=self.value.formatjava(indent))
 
 
 @register("addvar")
@@ -1647,7 +1647,7 @@ class AddVar(ChangeVar):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] += {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		return "{i}// {s}\n{i}context.set({n}, com.livinglogic.ul4.Utils.add(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
+		return "{i}// {s}\n{i}context.put({n}, com.livinglogic.ul4.Utils.add(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
 
 
 @register("subvar")
@@ -1659,7 +1659,7 @@ class SubVar(ChangeVar):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] -= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		return "{i}// {s}\n{i}context.set({n}, com.livinglogic.ul4.Utils.sub(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
+		return "{i}// {s}\n{i}context.put({n}, com.livinglogic.ul4.Utils.sub(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
 
 
 @register("mulvar")
@@ -1671,7 +1671,7 @@ class MulVar(ChangeVar):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] *= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		return "{i}// {s}\n{i}context.set({n}, com.livinglogic.ul4.Utils.mul(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
+		return "{i}// {s}\n{i}context.put({n}, com.livinglogic.ul4.Utils.mul(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
 
 
 @register("floordivvar")
@@ -1683,7 +1683,7 @@ class FloorDivVar(ChangeVar):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] //= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		return "{i}// {s}\n{i}context.set({n}, com.livinglogic.ul4.Utils.floordiv(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
+		return "{i}// {s}\n{i}context.put({n}, com.livinglogic.ul4.Utils.floordiv(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
 
 
 @register("truedivvar")
@@ -1695,7 +1695,7 @@ class TrueDivVar(ChangeVar):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] /= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		return "{i}// {s}\n{i}context.set({n}, com.livinglogic.ul4.Utils.truediv(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
+		return "{i}// {s}\n{i}context.put({n}, com.livinglogic.ul4.Utils.truediv(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
 
 
 @register("modvar")
@@ -1707,7 +1707,7 @@ class ModVar(ChangeVar):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] %= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		return "{i}// {s}\n{i}context.set({n}, com.livinglogic.ul4.Utils.mod(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
+		return "{i}// {s}\n{i}context.put({n}, com.livinglogic.ul4.Utils.mod(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
 
 
 @register("delvar")
@@ -2265,7 +2265,6 @@ class Template(Block):
 		v.append("{}return {};\n".format(indent*"\t", misc.javaexpr(self.name if self.name is not None else "unnamed")))
 		indent -= 1
 		v.append("{}}}\n".format(indent*"\t"))
-		v.append("\n")
 		v.append("{}public void render(com.livinglogic.ul4.EvaluationContext context) throws java.io.IOException\n".format(indent*"\t"))
 		v.append("{}{{\n".format(indent*"\t"))
 		indent += 1
