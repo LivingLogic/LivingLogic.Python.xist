@@ -1160,7 +1160,7 @@ class ForUnpack(For):
 		return "".join(v)
 
 	def _javavarnames(self):
-		return "java.util.Arrays.asList({})".format(", ".join(misc.javaexpr(varname) for vorname in self.varnames))
+		return "java.util.Arrays.asList({})".format(", ".join(misc.javaexpr(varname) for varname in self.varnames))
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
