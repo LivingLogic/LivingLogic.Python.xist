@@ -254,6 +254,7 @@ argumentmismatchmessage = [
 	# Javascript argument mismatch exception messages
 	"requires \\d+(-\\d+)? arguments?, \\d+ given",
 	# Java compiler errors for argument mismatches
+	"cannot find symbol",
 	"cannot be applied",
 	"The method .* is not applicable for the arguments",
 ]
