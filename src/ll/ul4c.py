@@ -1829,7 +1829,7 @@ class CallFunc(AST):
 		functions = dict(
 			now="com.livinglogic.ul4.Utils.now({})".format,
 			utcnow="com.livinglogic.ul4.Utils.now({})".format,
-			vars="variables".format,
+			vars="context.getVariables({})".format,
 			random="com.livinglogic.ul4.Utils.random({})".format,
 			xmlescape="com.livinglogic.ul4.Utils.xmlescape({})".format,
 			csv="com.livinglogic.ul4.Utils.csv({})".format,
