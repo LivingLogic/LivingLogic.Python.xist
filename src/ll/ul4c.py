@@ -1837,7 +1837,7 @@ class CallFunc(AST):
 			fromjson="com.livinglogic.ul4.Utils.fromjson({})".format,
 			str="com.livinglogic.ul4.Utils.str({})".format,
 			int="com.livinglogic.ul4.Utils.toInteger({})".format,
-			float="com.livinglogic.ul4.Utils.float({})".format,
+			float="com.livinglogic.ul4.Utils.toFloat({})".format,
 			bool="com.livinglogic.ul4.Utils.getBool({})".format,
 			len="com.livinglogic.ul4.Utils.len({})".format,
 			abs="com.livinglogic.ul4.Utils.abs({})".format,
