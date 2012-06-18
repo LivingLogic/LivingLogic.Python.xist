@@ -101,6 +101,7 @@ class RenderJS(Render):
 		stderr = stderr.decode("utf-8")
 		# Check if we have an exception
 		if proc.returncode:
+			print(stdout, file=sys.stdout)
 			print(stderr, file=sys.stderr)
 			raise RuntimeError((stderr or stdout).splitlines()[0])
 		return stdout[:-1] # Drop the "\n"
@@ -255,6 +256,7 @@ argumentmismatchmessage = [
 	# Java compiler errors for argument mismatches
 	"cannot find symbol",
 	"cannot be applied",
+	"The method .* is not applicable for the arguments",
 ]
 argumentmismatchmessage = "({})".format("|".join(argumentmismatchmessage))
 
