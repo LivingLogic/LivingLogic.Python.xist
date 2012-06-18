@@ -1857,7 +1857,7 @@ class CallFunc(AST):
 			iscolor="com.livinglogic.ul4.Utils.iscolor({})".format,
 			istemplate="com.livinglogic.ul4.Utils.istemplate({})".format,
 			repr="com.livinglogic.ul4.Utils.repr({})".format,
-			get="context.get({})".format,
+			get="com.livinglogic.ul4.Utils.get(context.getVariables(), {})".format,
 			chr="com.livinglogic.ul4.Utils.chr({})".format,
 			ord="com.livinglogic.ul4.Utils.ord({})".format,
 			hex="com.livinglogic.ul4.Utils.hex({})".format,
