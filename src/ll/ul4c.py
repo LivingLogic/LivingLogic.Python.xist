@@ -1835,6 +1835,8 @@ class CallFunc(AST):
 			csv="com.livinglogic.ul4.Utils.csv({})".format,
 			asjson="com.livinglogic.ul4.Utils.asjson({})".format,
 			fromjson="com.livinglogic.ul4.Utils.fromjson({})".format,
+			asul4on="com.livinglogic.ul4on.Utils.dumps({})".format,
+			fromul4on="com.livinglogic.ul4on.Utils.loads({})".format,
 			str="com.livinglogic.ul4.Utils.str({})".format,
 			int="com.livinglogic.ul4.Utils.toInteger({})".format,
 			float="com.livinglogic.ul4.Utils.toFloat({})".format,
