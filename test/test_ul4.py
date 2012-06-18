@@ -95,14 +95,15 @@ class RenderJS(Render):
 			f.write(js.encode("utf-8"))
 			f.flush()
 			dir = pkg_resources.resource_filename("ll.xist", "data/")
-			proc = subprocess.Popen(["d8", dir+"/js/ul4on.js", dir+"/js/ul4.js", f.name], stdout=subprocess.PIPE)
+			proc = subprocess.Popen("d8 {dir}/js/ul4on.js {dir}/js/ul4.js {fn}".format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 			(stdout, stderr) = proc.communicate()
-			# result = os.popen("d8 {}/js/ul4on.js {}/js/ul4.js {}".format(dir, dir, f.name), "r").read()
-		stdout = stdout.decode("utf-8")[:-1] # Drop the "\n"
+		stdout = stdout.decode("utf-8")
+		stderr = stderr.decode("utf-8")
 		# Check if we have an exception
 		if proc.returncode:
-			raise RuntimeError(stdout.splitlines()[0])
-		return stdout
+			print(stderr, file=sys.stderr)
+			raise RuntimeError((stderr or stdout).splitlines()[0])
+		return stdout[:-1] # Drop the "\n"
 
 
 class RenderJava(Render):
@@ -160,13 +161,13 @@ class RenderJava(Render):
 				f.write(source.encode("utf-8"))
 			proc = subprocess.Popen("cd {}; javac -encoding utf-8 UL4Test.java".format(tempdir), stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 			(stdout, stderr) = proc.communicate()
-			# Check if we have an exception
-			self.findexception(stdout.decode("utf-8"))
-			self.findexception(stderr.decode("utf-8"))
+			if proc.returncode:
+				stderr = stderr.decode("utf-8")
+				print(stderr, file=sys.stderr)
+				raise RuntimeError(stderr.splitlines()[0])
 			proc = subprocess.Popen("cd {}; java UL4Test".format(tempdir), stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 			(stdout, stderr) = proc.communicate()
 			# Check if we have an exception
-			self.findexception(stdout.decode("utf-8"))
 			self.findexception(stderr.decode("utf-8"))
 		finally:
 			shutil.rmtree(tempdir)
@@ -239,6 +240,25 @@ all_renderers = all_python_renderers
 all_renderers = (RenderJavaCompiledTemplateByPython,)
 
 
+argumentmismatchmessage = [
+	# Python argument mismatch exception messages
+	"takes exactly \\d+ (positional )?arguments?",
+	"expected \\d+ arguments?",
+	"Required argument .* not found",
+	"takes exactly one argument",
+	"expected at least \\d+ arguments",
+	"takes at most \\d+ (positional )?arguments?",
+	"takes at least \\d+ argument",
+	"takes no arguments",
+	# Javascript argument mismatch exception messages
+	"requires \\d+(-\\d+)? arguments?, \\d+ given",
+	# Java compiler errors for argument mismatches
+	"cannot find symbol",
+	"cannot be applied",
+]
+argumentmismatchmessage = "({})".format("|".join(argumentmismatchmessage))
+
+
 def eq(expected, render):
 	got = render.renders() # Put this on an extra line, so that py.test executes it only once
 	assert expected == got
@@ -270,7 +290,8 @@ def raises(msg, render):
 	try:
 		render.renders()
 	except Exception as exc:
-		assert any(re.search(msg, "{0.__class__.__module__}.{0.__class__.__name__}: {0}".format(subexc)) is not None for subexc in exceptionchain(exc))
+		exceptionmsgs = ["{0.__class__.__module__}.{0.__class__.__name__}: {0}".format(subexc) for subexc in exceptionchain(exc)]
+		assert any(re.search(msg, exceptionmsg) is not None for exceptionmsg in exceptionmsgs)
 	else:
 		py.test.fail("failed to raise exception")
 
@@ -893,8 +914,8 @@ def test_function_now():
 	now = str(datetime.datetime.now())
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print now(1)?>")
-		yield raises, "argument", r("<?print now(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print now(1)?>")
+		yield raises, argumentmismatchmessage, r("<?print now(1, 2)?>")
 		yield le, now, r("<?print now()?>")
 
 
@@ -903,8 +924,8 @@ def test_function_utcnow():
 	utcnow = str(datetime.datetime.utcnow())
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print utcnow(1)?>")
-		yield raises, "argument", r("<?print utcnow(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print utcnow(1)?>")
+		yield raises, argumentmismatchmessage, r("<?print utcnow(1, 2)?>")
 		utcnowfromtemplate = r("<?print utcnow()?>")
 		# JS and Java only have milliseconds precision, but this shouldn't lead to problems here, as rendering the template takes longer than a millisecond
 		yield le, utcnow, utcnowfromtemplate
@@ -915,8 +936,8 @@ def test_function_vars():
 	code = "<?if var in vars()?>yes<?else?>no<?end if?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print vars(1)?>")
-		yield raises, "argument", r("<?print vars(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print vars(1)?>")
+		yield raises, argumentmismatchmessage, r("<?print vars(1, 2)?>")
 		yield eq, "yes", r(code, var="spam", spam="eggs")
 		yield eq, "no", r(code, var="nospam", spam="eggs")
 
@@ -924,15 +945,15 @@ def test_function_vars():
 @py.test.mark.ul4
 def test_function_random():
 	for r in all_renderers:
-		yield raises, "argument", r("<?print random(1)?>")
-		yield raises, "argument", r("<?print random(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print random(1)?>")
+		yield raises, argumentmismatchmessage, r("<?print random(1, 2)?>")
 		yield eq, "ok", r("<?code r = random()?><?if r>=0 and r<1?>ok<?else?>fail<?end if?>")
 
 
 @py.test.mark.ul4
 def test_function_randrange():
 	for r in all_renderers:
-		yield raises, "argument", r("<?print randrange()?>")
+		yield raises, argumentmismatchmessage, r("<?print randrange()?>")
 		yield eq, "ok", r("<?code r = randrange(4)?><?if r>=0 and r<4?>ok<?else?>fail<?end if?>")
 		yield eq, "ok", r("<?code r = randrange(17, 23)?><?if r>=17 and r<23?>ok<?else?>fail<?end if?>")
 		yield eq, "ok", r("<?code r = randrange(17, 23, 2)?><?if r>=17 and r<23 and r%2?>ok<?else?>fail<?end if?>")
@@ -941,7 +962,7 @@ def test_function_randrange():
 @py.test.mark.ul4
 def test_function_randchoice():
 	for r in all_renderers:
-		yield raises, "argument", r("<?print randchoice()?>")
+		yield raises, argumentmismatchmessage, r("<?print randchoice()?>")
 		yield eq, "ok", r("<?code r = randchoice('abc')?><?if r in 'abc'?>ok<?else?>fail<?end if?>")
 		yield eq, "ok", r("<?code s = [17, 23, 42]?><?code r = randchoice(s)?><?if r in s?>ok<?else?>fail<?end if?>")
 		yield eq, "ok", r("<?code s = #12345678?><?code sl = [0x12, 0x34, 0x56, 0x78]?><?code r = randchoice(s)?><?if r in sl?>ok<?else?>fail<?end if?>")
@@ -950,16 +971,16 @@ def test_function_randchoice():
 @py.test.mark.ul4
 def test_function_xmlescape():
 	for r in all_renderers:
-		yield raises, "argument", r("<?print xmlescape()?>")
-		yield raises, "argument", r("<?print xmlescape(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print xmlescape()?>")
+		yield raises, argumentmismatchmessage, r("<?print xmlescape(1, 2)?>")
 		yield eq, "&lt;&lt;&gt;&gt;&amp;&#39;&quot;gurk", r("<?print xmlescape(data)?>", data='<<>>&\'"gurk')
 
 
 @py.test.mark.ul4
 def test_function_csv():
 	for r in all_renderers:
-		yield raises, "argument", r("<?print csv()?>")
-		yield raises, "argument", r("<?print csv(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print csv()?>")
+		yield raises, argumentmismatchmessage, r("<?print csv(1, 2)?>")
 		yield eq, "", r("<?print csv(data)?>", data=None)
 		yield eq, "False", r("<?print csv(data)?>", data=False)
 		yield eq, "True", r("<?print csv(data)?>", data=True)
@@ -974,8 +995,8 @@ def test_function_csv():
 @py.test.mark.ul4
 def test_function_asjson():
 	for r in all_renderers:
-		yield raises, "argument", r("<?print asjson()?>")
-		yield raises, "argument", r("<?print asjson(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print asjson()?>")
+		yield raises, argumentmismatchmessage, r("<?print asjson(1, 2)?>")
 		yield eq, "null", r("<?print asjson(data)?>", data=None)
 		yield eq, "false", r("<?print asjson(data)?>", data=False)
 		yield eq, "true", r("<?print asjson(data)?>", data=True)
@@ -992,8 +1013,8 @@ def test_function_asjson():
 def test_function_fromjson():
 	code = "<?print repr(fromjson(data))?>"
 	for r in all_renderers:
-		yield raises, "argument", r("<?print fromjson()?>")
-		yield raises, "argument", r("<?print fromjson(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print fromjson()?>")
+		yield raises, argumentmismatchmessage, r("<?print fromjson(1, 2)?>")
 		yield eq, "None", r(code, data="null")
 		yield eq, "False", r(code, data="false")
 		yield eq, "True", r(code, data="true")
@@ -1009,10 +1030,10 @@ def test_function_ul4on():
 	code = "<?print repr(fromul4on(asul4on(data)))?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print asul4on()?>")
-		yield raises, "argument", r("<?print asul4on(1, 2)?>")
-		yield raises, "argument", r("<?print fromul4on()?>")
-		yield raises, "argument", r("<?print fromul4on(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print asul4on()?>")
+		yield raises, argumentmismatchmessage, r("<?print asul4on(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print fromul4on()?>")
+		yield raises, argumentmismatchmessage, r("<?print fromul4on(1, 2)?>")
 		yield eq, "None", r(code, data=None)
 		yield eq, "False", r(code, data=False)
 		yield eq, "True", r(code, data=True)
@@ -1027,7 +1048,7 @@ def test_function_ul4on():
 def test_function_str():
 	code = "<?print str(data)?>"
 	for r in all_renderers:
-		yield raises, "argument", r("<?print str(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print str(1, 2)?>")
 		yield eq, "", r("<?print str()?>")
 		yield eq, "", r(code, data=None)
 		yield eq, "True", r(code, data=True)
@@ -1043,7 +1064,7 @@ def test_function_str():
 @py.test.mark.ul4
 def test_function_int():
 	for r in all_renderers:
-		yield raises, "argument", RenderPython("<?print int(1, 2, 3)?>")
+		yield raises, argumentmismatchmessage, RenderPython("<?print int(1, 2, 3)?>")
 		yield raises, "int\\(\\) argument must be a string or a number|int\\(null\\) not supported", RenderPython("<?print int(data)?>", data=None)
 		yield raises, "invalid literal for int|NumberFormatException", RenderPython("<?print int(data)?>", data="foo")
 		yield eq, "0", r("<?print int()?>")
@@ -1060,7 +1081,7 @@ def test_function_float():
 	code = "<?print float(data)?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print float(1, 2, 3)?>")
+		yield raises, argumentmismatchmessage, r("<?print float(1, 2, 3)?>")
 		yield raises, "float\\(\\) argument must be a string or a number|float\\(null\\) not supported", r(code, data=None)
 		yield eq, "4.2", r(code, data=4.2)
 		if r is not RenderJS:
@@ -1081,8 +1102,8 @@ def test_function_float():
 def test_function_len():
 	code = "<?print len(data)?>"
 	for r in all_renderers:
-		yield raises, "argument", r("<?print len()?>")
-		yield raises, "argument", r("<?print len(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print len()?>")
+		yield raises, argumentmismatchmessage, r("<?print len(1, 2)?>")
 		yield raises, "has no len\\(\\)|len\\(.*\\) not supported", r(code, data=None)
 		yield raises, "has no len\\(\\)|len\\(.*\\) not supported", r(code, data=True)
 		yield raises, "has no len\\(\\)|len\\(.*\\) not supported", r(code, data=False)
@@ -1099,8 +1120,8 @@ def test_function_enumerate():
 	code2 = "<?for (i, value) in enumerate(data, 42)?>(<?print value?>=<?print i?>)<?end for?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print enumerate()?>")
-		yield raises, "argument", r("<?print enumerate(1, 2, 3)?>")
+		yield raises, argumentmismatchmessage, r("<?print enumerate()?>")
+		yield raises, argumentmismatchmessage, r("<?print enumerate(1, 2, 3)?>")
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code1, data=None)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code1, data=True)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code1, data=False)
@@ -1118,8 +1139,8 @@ def test_function_enumfl():
 	code1 = "<?for (i, f, l, value) in enumfl(data)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>"
 	code2 = "<?for (i, f, l, value) in enumfl(data, 42)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>"
 	for r in all_renderers:
-		yield raises, "argument", r("<?print enumfl()?>")
-		yield raises, "argument", r("<?print enumfl(1, 2, 3)?>")
+		yield raises, argumentmismatchmessage, r("<?print enumfl()?>")
+		yield raises, argumentmismatchmessage, r("<?print enumfl(1, 2, 3)?>")
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code1, data=None)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code1, data=True)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code1, data=False)
@@ -1136,8 +1157,8 @@ def test_function_enumfl():
 def test_function_isfirstlast():
 	code = "<?for (f, l, value) in isfirstlast(data)?><?if f?>[<?end if?>(<?print value?>)<?if l?>]<?end if?><?end for?>"
 	for r in all_renderers:
-		yield raises, "argument", r("<?print isfirstlast()?>")
-		yield raises, "argument", r("<?print isfirstlast(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print isfirstlast()?>")
+		yield raises, argumentmismatchmessage, r("<?print isfirstlast(1, 2)?>")
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=None)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=True)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=False)
@@ -1153,8 +1174,8 @@ def test_function_isfirstlast():
 def test_function_isfirst():
 	code = "<?for (f, value) in isfirst(data)?><?if f?>[<?end if?>(<?print value?>)<?end for?>"
 	for r in all_renderers:
-		yield raises, "argument", r("<?print isfirst()?>")
-		yield raises, "argument", r("<?print isfirst(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print isfirst()?>")
+		yield raises, argumentmismatchmessage, r("<?print isfirst(1, 2)?>")
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=None)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=True)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=False)
@@ -1170,8 +1191,8 @@ def test_function_isfirst():
 def test_function_islast():
 	code = "<?for (l, value) in islast(data)?>(<?print value?>)<?if l?>]<?end if?><?end for?>"
 	for r in all_renderers:
-		yield raises, "argument", r("<?print islast()?>")
-		yield raises, "argument", r("<?print islast(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print islast()?>")
+		yield raises, argumentmismatchmessage, r("<?print islast(1, 2)?>")
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=None)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=True)
 		yield raises, "is not iterable|iter\\(.*\\) not supported", r(code, data=False)
@@ -1187,8 +1208,8 @@ def test_function_islast():
 def test_function_isnone():
 	code = "<?print isnone(data)?>"
 	for r in all_renderers:
-		yield raises, "argument", r("<?print isnone()?>")
-		yield raises, "argument", r("<?print isnone(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print isnone()?>")
+		yield raises, argumentmismatchmessage, r("<?print isnone(1, 2)?>")
 		yield eq, "True", r(code, data=None)
 		yield eq, "False", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1208,8 +1229,8 @@ def test_function_isbool():
 	code = "<?print isbool(data)?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print isbool()?>")
-		yield raises, "argument", r("<?print isbool(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print isbool()?>")
+		yield raises, argumentmismatchmessage, r("<?print isbool(1, 2)?>")
 		yield eq, "False", r(code, data=None)
 		yield eq, "True", r(code, data=True)
 		yield eq, "True", r(code, data=False)
@@ -1229,8 +1250,8 @@ def test_function_isint():
 	code = "<?print isint(data)?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print isint()?>")
-		yield raises, "argument", r("<?print isint(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print isint()?>")
+		yield raises, argumentmismatchmessage, r("<?print isint(1, 2)?>")
 		yield eq, "False", r(code, data=None)
 		yield eq, "False", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1250,8 +1271,8 @@ def test_function_isfloat():
 	code = "<?print isfloat(data)?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print isfloat()?>")
-		yield raises, "argument", r("<?print isfloat(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print isfloat()?>")
+		yield raises, argumentmismatchmessage, r("<?print isfloat(1, 2)?>")
 		yield eq, "False", r(code, data=None)
 		yield eq, "False", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1271,8 +1292,8 @@ def test_function_isstr():
 	code = "<?print isstr(data)?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print isstr()?>")
-		yield raises, "argument", r("<?print isstr(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print isstr()?>")
+		yield raises, argumentmismatchmessage, r("<?print isstr(1, 2)?>")
 		yield eq, "False", r(code, data=None)
 		yield eq, "False", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1292,8 +1313,8 @@ def test_function_isdate():
 	code = "<?print isdate(data)?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print isdate()?>")
-		yield raises, "argument", r("<?print isdate(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print isdate()?>")
+		yield raises, argumentmismatchmessage, r("<?print isdate(1, 2)?>")
 		yield eq, "False", r(code, data=None)
 		yield eq, "False", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1313,8 +1334,8 @@ def test_function_islist():
 	code = "<?print islist(data)?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print islist()?>")
-		yield raises, "argument", r("<?print islist(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print islist()?>")
+		yield raises, argumentmismatchmessage, r("<?print islist(1, 2)?>")
 		yield eq, "False", r(code, data=None)
 		yield eq, "False", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1335,8 +1356,8 @@ def test_function_isdict():
 	code = "<?print isdict(data)?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print isdict()?>")
-		yield raises, "argument", r("<?print isdict(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print isdict()?>")
+		yield raises, argumentmismatchmessage, r("<?print isdict(1, 2)?>")
 		yield eq, "False", r(code, data=None)
 		yield eq, "False", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1357,8 +1378,8 @@ def test_function_istemplate():
 	code = "<?print istemplate(data)?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print istemplate()?>")
-		yield raises, "argument", r("<?print istemplate(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print istemplate()?>")
+		yield raises, argumentmismatchmessage, r("<?print istemplate(1, 2)?>")
 		yield eq, "False", r(code, data=None)
 		yield eq, "False", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1378,8 +1399,8 @@ def test_function_iscolor():
 	code = "<?print iscolor(data)?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print iscolor()?>")
-		yield raises, "argument", r("<?print iscolor(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print iscolor()?>")
+		yield raises, argumentmismatchmessage, r("<?print iscolor(1, 2)?>")
 		yield eq, "False", r(code, data=None)
 		yield eq, "False", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1397,7 +1418,7 @@ def test_function_iscolor():
 @py.test.mark.ul4
 def test_function_get():
 	for r in all_renderers:
-		yield raises, "argument", r("<?print get()?>")
+		yield raises, argumentmismatchmessage, r("<?print get()?>")
 		yield eq, "", r("<?print get('x')?>")
 		yield eq, "42", r("<?print get('x')?>", x=42)
 		yield eq, "17", r("<?print get('x', 17)?>")
@@ -1409,8 +1430,8 @@ def test_function_repr():
 	code = "<?print repr(data)?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print repr()?>")
-		yield raises, "argument", r("<?print repr(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print repr()?>")
+		yield raises, argumentmismatchmessage, r("<?print repr(1, 2)?>")
 		yield eq, "None", r(code, data=None)
 		yield eq, "True", r(code, data=True)
 		yield eq, "False", r(code, data=False)
@@ -1461,8 +1482,8 @@ def test_function_chr():
 	code = "<?print chr(data)?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print chr()?>")
-		yield raises, "argument", r("<?print chr(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print chr()?>")
+		yield raises, argumentmismatchmessage, r("<?print chr(1, 2)?>")
 		yield eq, "\x00", r(code, data=0)
 		yield eq, "a", r(code, data=ord("a"))
 		yield eq, "\u20ac", r(code, data=0x20ac)
@@ -1473,8 +1494,8 @@ def test_function_ord():
 	code = "<?print ord(data)?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print ord()?>")
-		yield raises, "argument", r("<?print ord(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print ord()?>")
+		yield raises, argumentmismatchmessage, r("<?print ord(1, 2)?>")
 		yield eq, "0", r(code, data="\x00")
 		yield eq, str(ord("a")), r(code, data="a")
 		yield eq, str(0x20ac), r(code, data="\u20ac")
@@ -1485,8 +1506,8 @@ def test_function_hex():
 	code = "<?print hex(data)?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print hex()?>")
-		yield raises, "argument", r("<?print hex(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print hex()?>")
+		yield raises, argumentmismatchmessage, r("<?print hex(1, 2)?>")
 		yield eq, "0x0", r(code, data=0)
 		yield eq, "0xff", r(code, data=0xff)
 		yield eq, "0xffff", r(code, data=0xffff)
@@ -1498,8 +1519,8 @@ def test_function_oct():
 	code = "<?print oct(data)?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print oct()?>")
-		yield raises, "argument", r("<?print oct(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print oct()?>")
+		yield raises, argumentmismatchmessage, r("<?print oct(1, 2)?>")
 		yield eq, "0o0", r(code, data=0)
 		yield eq, "0o77", r(code, data=0o77)
 		yield eq, "0o7777", r(code, data=0o7777)
@@ -1511,8 +1532,8 @@ def test_function_bin():
 	code = "<?print bin(data)?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print bin()?>")
-		yield raises, "argument", r("<?print bin(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print bin()?>")
+		yield raises, argumentmismatchmessage, r("<?print bin(1, 2)?>")
 		yield eq, "0b0", r(code, data=0b0)
 		yield eq, "0b11", r(code, data=0b11)
 		yield eq, "-0b1111", r(code, data=-0b1111)
@@ -1523,8 +1544,8 @@ def test_function_abs():
 	code = "<?print abs(data)?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print abs()?>")
-		yield raises, "argument", r("<?print abs(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print abs()?>")
+		yield raises, argumentmismatchmessage, r("<?print abs(1, 2)?>")
 		yield eq, "0", r(code, data=0)
 		yield eq, "42", r(code, data=42)
 		yield eq, "42", r(code, data=-42)
@@ -1535,7 +1556,7 @@ def test_function_sorted():
 	code = "<?for i in sorted(data)?><?print i?><?end for?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print sorted()?>")
+		yield raises, argumentmismatchmessage, r("<?print sorted()?>")
 		yield eq, "gkru", r(code, data="gurk")
 		yield eq, "24679", r(code, data="92746")
 		yield eq, "172342", r(code, data=(42, 17, 23))
@@ -1549,7 +1570,7 @@ def test_function_range():
 	code3 = "<?for i in range(data[0], data[1], data[2])?><?print i?>;<?end for?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print range()?>")
+		yield raises, argumentmismatchmessage, r("<?print range()?>")
 		yield eq, "", r(code1, data=-10)
 		yield eq, "", r(code1, data=0)
 		yield eq, "0;", r(code1, data=1)
@@ -1605,8 +1626,8 @@ def test_function_type():
 	code = "<?print type(x)?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print type()?>")
-		yield raises, "argument", r("<?print type(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print type()?>")
+		yield raises, argumentmismatchmessage, r("<?print type(1, 2)?>")
 		yield eq, "none", r(code, x=None)
 		yield eq, "bool", r(code, x=False)
 		yield eq, "bool", r(code, x=True)
@@ -1629,8 +1650,8 @@ def test_function_reversed():
 	code = "<?for i in reversed(x)?>(<?print i?>)<?end for?>"
 
 	for r in all_renderers:
-		yield raises, "argument", r("<?print reversed()?>")
-		yield raises, "argument", r("<?print reversed(1, 2)?>")
+		yield raises, argumentmismatchmessage, r("<?print reversed()?>")
+		yield raises, argumentmismatchmessage, r("<?print reversed(1, 2)?>")
 		yield eq, "(3)(2)(1)", r(code, x="123")
 		yield eq, "(3)(2)(1)", r(code, x=[1, 2, 3])
 		yield eq, "(3)(2)(1)", r(code, x=(1, 2, 3))

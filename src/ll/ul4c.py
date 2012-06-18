@@ -1054,7 +1054,7 @@ class Else(Block):
 		v.append("{}{{\n".format(indent*"\t"))
 		indent += 1
 		for node in self.content:
-			v.append(node.formatpython(indent))
+			v.append(node.formatjava(indent))
 		indent -= 1
 		v.append("{}}}\n".format(indent*"\t"))
 		return "".join(v)
@@ -1767,8 +1767,8 @@ class CallFunc(AST):
 
 	def formatpython(self, indent):
 		functions = dict(
-			now="datetime.datetime.now({})".format,
-			utcnow="datetime.datetime.utcnow({})".format,
+			now="ul4c._now({})".format,
+			utcnow="ul4c._utcnow({})".format,
 			vars="ul4c._vars(vars, {})".format,
 			random="random.random({})".format,
 			xmlescape="ul4c._xmlescape({})".format,
@@ -3068,6 +3068,20 @@ def _vars(vars):
 	Helper for the ``vars`` function.
 	"""
 	return vars
+
+
+def _now():
+	"""
+	Helper for the ``now`` function.
+	"""
+	return datetime.datetime.now()
+
+
+def _utcnow():
+	"""
+	Helper for the ``utcnow`` function.
+	"""
+	return datetime.datetime.utcnow()
 
 
 def _str(obj=None):
