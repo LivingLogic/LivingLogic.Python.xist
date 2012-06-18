@@ -976,7 +976,7 @@ class If(Block):
 	def formatjava(self, indent):
 		v = []
 		v.append("{}// {}\n".format(indent*"\t", repr(self.location.tag)[1:-1]))
-		v.append("{}if (com.livinglogic.ul4.Utils.getBool({}))\n".format(indent*"\t", self.condition.formatjava(indent)))
+		v.append("{}if (com.livinglogic.ul4.FunctionBool.call({}))\n".format(indent*"\t", self.condition.formatjava(indent)))
 		v.append("{}{{\n".format(indent*"\t"))
 		indent += 1
 		for node in self.content:
@@ -1016,7 +1016,7 @@ class ElIf(Block):
 	def formatjava(self, indent):
 		v = []
 		v.append("{}// {}\n".format(indent*"\t", repr(self.location.tag)[1:-1]))
-		v.append("{}else if (com.livinglogic.ul4.Utils.getBool({}))\n".format(indent*"\t", self.condition.formatjava(indent)))
+		v.append("{}else if (com.livinglogic.ul4.FunctionBool.call({}))\n".format(indent*"\t", self.condition.formatjava(indent)))
 		v.append("{}{{\n".format(indent*"\t"))
 		indent += 1
 		for node in self.content:
@@ -1322,7 +1322,7 @@ class Print(Unary):
 		return "{i}# <?print?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._str({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		return "{i}// {s}\n{i}context.write(com.livinglogic.ul4.Utils.str({v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], v=self.obj.formatjava(indent))
+		return "{i}// {s}\n{i}context.write(com.livinglogic.ul4.FunctionStr.call({v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], v=self.obj.formatjava(indent))
 
 
 @register("printx")
@@ -1334,7 +1334,7 @@ class PrintX(Unary):
 		return "{i}# <?printx?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._xmlescape({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		return "{i}// {s}\n{i}context.write(com.livinglogic.ul4.Utils.xmlescape({v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], v=self.obj.formatjava(indent))
+		return "{i}// {s}\n{i}context.write(com.livinglogic.ul4.FunctionXMLEscape.call({v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], v=self.obj.formatjava(indent))
 
 
 class Binary(AST):
@@ -1578,7 +1578,7 @@ class And(Binary):
 		return "({}) and ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.getBool(context.push({})) ? context.pop({}) : context.pop()".format(self.obj2.formatjava(indent), self.obj1.formatjava(indent))
+		return "com.livinglogic.ul4.FunctionBool.call(context.push({})) ? context.pop({}) : context.pop()".format(self.obj2.formatjava(indent), self.obj1.formatjava(indent))
 
 
 @register("or")
@@ -1592,7 +1592,7 @@ class Or(Binary):
 		return "({}) or ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.getBool(context.push({})) ? context.pop() : context.pop({})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+		return "com.livinglogic.ul4.FunctionBool.call(context.push({})) ? context.pop() : context.pop({})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("mod")
@@ -1827,54 +1827,54 @@ class CallFunc(AST):
 
 	def formatjava(self, indent):
 		functions = dict(
-			now="com.livinglogic.ul4.Utils.now({})".format,
-			utcnow="com.livinglogic.ul4.Utils.now({})".format,
+			now="com.livinglogic.ul4.FunctionNow.call({})".format,
+			utcnow="com.livinglogic.ul4.FunctionUTCNow.call({})".format,
 			vars="context.getVariables({})".format,
-			random="com.livinglogic.ul4.Utils.random({})".format,
-			xmlescape="com.livinglogic.ul4.Utils.xmlescape({})".format,
-			csv="com.livinglogic.ul4.Utils.csv({})".format,
-			asjson="com.livinglogic.ul4.Utils.asjson({})".format,
-			fromjson="com.livinglogic.ul4.Utils.fromjson({})".format,
-			asul4on="com.livinglogic.ul4on.Utils.dumps({})".format,
-			fromul4on="com.livinglogic.ul4on.Utils.loads({})".format,
-			str="com.livinglogic.ul4.Utils.str({})".format,
-			int="com.livinglogic.ul4.Utils.toInteger({})".format,
-			float="com.livinglogic.ul4.Utils.toFloat({})".format,
-			bool="com.livinglogic.ul4.Utils.getBool({})".format,
-			len="com.livinglogic.ul4.Utils.len({})".format,
-			abs="com.livinglogic.ul4.Utils.abs({})".format,
-			enumerate="com.livinglogic.ul4.Utils.enumerate({})".format,
-			enumfl="com.livinglogic.ul4.Utils.enumfl({})".format,
-			isfirstlast="com.livinglogic.ul4.Utils.isfirstlast({})".format,
-			isfirst="com.livinglogic.ul4.Utils.isfirst({})".format,
-			islast="com.livinglogic.ul4.Utils.islast({})".format,
-			isnone="com.livinglogic.ul4.Utils.isnone({})".format,
-			isstr="com.livinglogic.ul4.Utils.isstr({})".format,
-			isint="com.livinglogic.ul4.Utils.isint({})".format,
-			isfloat="com.livinglogic.ul4.Utils.isfloat({})".format,
-			isbool="com.livinglogic.ul4.Utils.isbool({})".format,
-			isdate="com.livinglogic.ul4.Utils.isdate({})".format,
-			islist="com.livinglogic.ul4.Utils.islist({})".format,
-			isdict="com.livinglogic.ul4.Utils.isdict({})".format,
-			iscolor="com.livinglogic.ul4.Utils.iscolor({})".format,
-			istemplate="com.livinglogic.ul4.Utils.istemplate({})".format,
-			repr="com.livinglogic.ul4.Utils.repr({})".format,
-			get="com.livinglogic.ul4.Utils.get(context.getVariables(), {})".format,
-			chr="com.livinglogic.ul4.Utils.chr({})".format,
-			ord="com.livinglogic.ul4.Utils.ord({})".format,
-			hex="com.livinglogic.ul4.Utils.hex({})".format,
-			oct="com.livinglogic.ul4.Utils.oct({})".format,
-			bin="com.livinglogic.ul4.Utils.bin({})".format,
-			sorted="com.livinglogic.ul4.Utils.sorted({})".format,
-			range="com.livinglogic.ul4.Utils.range({})".format,
-			type="com.livinglogic.ul4.Utils.type({})".format,
-			reversed="com.livinglogic.ul4.Utils.reversed({})".format,
-			randrange="com.livinglogic.ul4.Utils.randrange({})".format,
-			randchoice="com.livinglogic.ul4.Utils.randchoice({})".format,
-			format="com.livinglogic.ul4.Utils.format({})".format,
-			zip="com.livinglogic.ul4.Utils.zip({})".format,
-			urlquote="com.livinglogic.ul4.Utils.urlquote({})".format,
-			urlunquote="com.livinglogic.ul4.Utils.urlunquote({})".format,
+			random="com.livinglogic.ul4.Utils.FunctionRandom.call({})".format,
+			xmlescape="com.livinglogic.ul4.Utils.FunctionXMLEscape.call({})".format,
+			csv="com.livinglogic.ul4.FunctionCSV.call({})".format,
+			asjson="com.livinglogic.ul4.FunctionAsJSON.call({})".format,
+			fromjson="com.livinglogic.ul4.FunctionFromJSON.call({})".format,
+			asul4on="com.livinglogic.ul4.FunctionAsUL4ON.call({})".format,
+			fromul4on="com.livinglogic.ul4.FunctionFromUL4ON.call({})".format,
+			str="com.livinglogic.ul4.FunctionStr.call({})".format,
+			int="com.livinglogic.ul4.FunctionInt.call({})".format,
+			float="com.livinglogic.ul4.FunctionFloat.call({})".format,
+			bool="com.livinglogic.ul4.FunctionBool.call({})".format,
+			len="com.livinglogic.ul4.FunctionLen.call({})".format,
+			abs="com.livinglogic.ul4.FunctionAbs.call({})".format,
+			enumerate="com.livinglogic.ul4.FunctionEnumerate.call({})".format,
+			enumfl="com.livinglogic.ul4.FunctionEnumFL.call({})".format,
+			isfirstlast="com.livinglogic.ul4.FunctionIsFirstLast.call({})".format,
+			isfirst="com.livinglogic.ul4.FunctionIsFirst.call({})".format,
+			islast="com.livinglogic.ul4.FunctionIsLast.call({})".format,
+			isnone="com.livinglogic.ul4.FunctionIsNone.call({})".format,
+			isstr="com.livinglogic.ul4.FunctionIsStr.call({})".format,
+			isint="com.livinglogic.ul4.FunctionIsInt.call({})".format,
+			isfloat="com.livinglogic.ul4.FunctionIsFloat.call({})".format,
+			isbool="com.livinglogic.ul4.FunctionIsBool.call({})".format,
+			isdate="com.livinglogic.ul4.FunctionIsDate.call({})".format,
+			islist="com.livinglogic.ul4.FunctionIsList.call({})".format,
+			isdict="com.livinglogic.ul4.FunctionIsDict.call({})".format,
+			iscolor="com.livinglogic.ul4.FunctionIsColor.call({})".format,
+			istemplate="com.livinglogic.ul4.FunctionIsTemplate.call({})".format,
+			repr="com.livinglogic.ul4.FunctionRepr.call({})".format,
+			get="com.livinglogic.ul4.get(context.getVariables(), {})".format,
+			chr="com.livinglogic.ul4.FunctionChr.call({})".format,
+			ord="com.livinglogic.ul4.FunctionOrd.call({})".format,
+			hex="com.livinglogic.ul4.FunctionHex.call({})".format,
+			oct="com.livinglogic.ul4.FunctionOct.call({})".format,
+			bin="com.livinglogic.ul4.FunctionBin.call({})".format,
+			sorted="com.livinglogic.ul4.FunctionSorted.call({})".format,
+			range="com.livinglogic.ul4.FunctionRange.call({})".format,
+			type="com.livinglogic.ul4.FunctionType.call({})".format,
+			reversed="com.livinglogic.ul4.FunctionReversed.call({})".format,
+			randrange="com.livinglogic.ul4.FunctionRandRange.call({})".format,
+			randchoice="com.livinglogic.ul4.FunctionRandChoice.call({})".format,
+			format="com.livinglogic.ul4.FunctionFormat.call({})".format,
+			zip="com.livinglogic.ul4.FunctionZip.call({})".format,
+			urlquote="com.livinglogic.ul4.FunctionURLQuote.call({})".format,
+			urlunquote="com.livinglogic.ul4.FunctionURLUnQuote({})".format,
 			rgb="com.livinglogic.ul4.Color.fromrgb({})".format,
 			hls="com.livinglogic.ul4.Color.fromhls({})".format,
 			hsv="com.livinglogic.ul4.Color.fromhsv({})".format,
