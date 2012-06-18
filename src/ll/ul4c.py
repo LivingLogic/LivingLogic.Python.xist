@@ -1874,10 +1874,10 @@ class CallFunc(AST):
 			format="com.livinglogic.ul4.FunctionFormat.call({})".format,
 			zip="com.livinglogic.ul4.FunctionZip.call({})".format,
 			urlquote="com.livinglogic.ul4.FunctionURLQuote.call({})".format,
-			urlunquote="com.livinglogic.ul4.FunctionURLUnQuote({})".format,
-			rgb="com.livinglogic.ul4.Color.fromrgb({})".format,
-			hls="com.livinglogic.ul4.Color.fromhls({})".format,
-			hsv="com.livinglogic.ul4.Color.fromhsv({})".format,
+			urlunquote="com.livinglogic.ul4.FunctionURLUnquote.call({})".format,
+			rgb="com.livinglogic.ul4.FunctionRGB.call({})".format,
+			hls="com.livinglogic.ul4.FunctionHLS.call({})".format,
+			hsv="com.livinglogic.ul4.FunctionHSV.call({})".format,
 		)
 		try:
 			formatter = functions[self.funcname]
