@@ -1999,7 +1999,7 @@ class CallMeth(AST):
 			mimeformat="com.livinglogic.ul4.Utils.mimeformat({})".format,
 			isoformat="com.livinglogic.ul4.Utils.isoformat({})".format,
 			yearday="com.livinglogic.ul4.Utils.yearday({})".format,
-			get="com.livinglogic.ul4.Utils.get({})".format,
+			get="com.livinglogic.ul4.MethodGet.call({})".format,
 			withlum="com.livinglogic.ul4.Utils.withlum({})".format,
 			witha="com.livinglogic.ul4.Utils.witha({})".format,
 			day="com.livinglogic.ul4.Utils.day({})".format,
