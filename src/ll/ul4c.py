@@ -1859,7 +1859,7 @@ class CallFunc(AST):
 			iscolor="com.livinglogic.ul4.FunctionIsColor.call({})".format,
 			istemplate="com.livinglogic.ul4.FunctionIsTemplate.call({})".format,
 			repr="com.livinglogic.ul4.FunctionRepr.call({})".format,
-			get="com.livinglogic.ul4.get(context.getVariables(), {})".format,
+			get="com.livinglogic.ul4.FunctionGet.call(context.getVariables(){})".format,
 			chr="com.livinglogic.ul4.FunctionChr.call({})".format,
 			ord="com.livinglogic.ul4.FunctionOrd.call({})".format,
 			hex="com.livinglogic.ul4.FunctionHex.call({})".format,
@@ -1883,7 +1883,10 @@ class CallFunc(AST):
 			formatter = functions[self.funcname]
 		except KeyError:
 			raise UnknownFunctionError(self.funcname)
-		return formatter(", ".join(arg.formatjava(indent) for arg in self.args))
+		if self.funcname == "get":
+			return formatter("".join(", " + arg.formatjava(indent) for arg in self.args))
+		else:
+			return formatter(", ".join(arg.formatjava(indent) for arg in self.args))
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
