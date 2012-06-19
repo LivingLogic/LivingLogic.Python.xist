@@ -567,17 +567,13 @@ class CodePresenter(Presenter):
 	def _text(self, text):
 		# Find the simplest object to display
 		try:
-			s = text.encode("us-ascii")
-		except UnicodeError:
-			s = text
-		try:
-			i = int(s)
+			i = int(text)
 		except ValueError:
 			pass
 		else:
-			if str(i) == s:
-				s = i
-		return s
+			if str(i) == text:
+				text = i
+		return text
 
 	def presentFrag(self, node):
 		name = s4frag(s4ns(node.__class__.__module__), ".", s4fragname(node.__fullname__))
