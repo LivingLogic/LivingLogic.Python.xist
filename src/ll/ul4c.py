@@ -1607,7 +1607,7 @@ class Mod(Binary):
 		return "({}) % ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.mod({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+		return "com.livinglogic.ul4.Mod.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 class ChangeVar(AST):
