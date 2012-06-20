@@ -682,7 +682,7 @@ class None_(Const):
 		return "None"
 
 	def formatjava(self, indent):
-		return "null"
+		return "((Object)null)" # Make sure that call always dispatch to the most generic version
 
 
 @register("true")
