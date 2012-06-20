@@ -1505,7 +1505,7 @@ class Add(Binary):
 		return "({}) + ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.add({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+		return "com.livinglogic.ul4.Add.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("sub")
@@ -1520,7 +1520,7 @@ class Sub(Binary):
 		return "({}) - ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.sub({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+		return "com.livinglogic.ul4.Sub.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("mul")
@@ -1534,7 +1534,7 @@ class Mul(Binary):
 		return "({}) * ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.mul({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+		return "com.livinglogic.ul4.Mul.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("floordiv")
@@ -1549,7 +1549,7 @@ class FloorDiv(Binary):
 		return "({}) // ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.floordiv({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+		return "com.livinglogic.ul4.FloorDiv.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("truediv")
@@ -1564,7 +1564,7 @@ class TrueDiv(Binary):
 		return "({}) / ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.truediv({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+		return "com.livinglogic.ul4.TrueDiv.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("and")
