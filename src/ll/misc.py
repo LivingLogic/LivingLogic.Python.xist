@@ -542,7 +542,7 @@ def javaexpr(obj):
 		elif -0x800000000000000 <= obj <= 0xffffffffffffffff:
 			return repr(obj)
 		else:
-			return 'new BigInteger("{}")'.format(obj)
+			return 'new java.math.BigInteger("{}")'.format(obj)
 		return repr(obj)
 	elif isinstance(obj, collections.Sequence):
 		return "java.util.Arrays.asList({})".format(", ".join(javaexpr(item) for item in obj))
