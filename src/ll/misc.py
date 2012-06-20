@@ -538,9 +538,9 @@ def javaexpr(obj):
 		return repr(obj)
 	elif isinstance(obj, int):
 		if -0x8000000 <= obj <= 0xffffffff:
-			return repr(obj).rstrip("lL")
-		elif -0x800000000000000 <= obj <= 0xffffffffffffffff:
 			return repr(obj)
+		elif -0x800000000000000 <= obj <= 0xffffffffffffffff:
+			return repr(obj) + "L"
 		else:
 			return 'new java.math.BigInteger("{}")'.format(obj)
 		return repr(obj)
