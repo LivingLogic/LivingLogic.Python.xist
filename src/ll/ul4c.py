@@ -1296,7 +1296,7 @@ class Not(Unary):
 		return "not ({})".format(self.obj.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.not({})".format(self.obj.formatjava(indent))
+		return "com.livinglogic.ul4.Not.call({})".format(self.obj.formatjava(indent))
 
 
 @register("neg")
