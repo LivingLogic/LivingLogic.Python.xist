@@ -1973,7 +1973,7 @@ class CallMeth(AST):
 			split="com.livinglogic.ul4.MethodSplit.call({})".format,
 			rsplit="com.livinglogic.ul4.MethodRSplit.call({})".format,
 			strip="com.livinglogic.ul4.MethodStrip.call({})".format,
-			lstrip="com.livinglogic.ul4.MethodLstrip.call({})".format,
+			lstrip="com.livinglogic.ul4.MethodLStrip.call({})".format,
 			rstrip="com.livinglogic.ul4.MethodRStrip.call({})".format,
 			find="com.livinglogic.ul4.MethodFind.call({})".format,
 			rfind="com.livinglogic.ul4.MethodRFind.call({})".format,
