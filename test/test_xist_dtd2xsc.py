@@ -11,6 +11,8 @@
 
 import types
 
+import pytest
+
 from ll.xist import xsc, xnd, sims
 from ll.xist.scripts import dtd2xsc
 
@@ -32,6 +34,7 @@ def dtd2mod(s, shareattrs=None, **kwargs):
 	return mod
 
 
+@pytest.mark.lxml
 def test_convert():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT foo (bar+)>
@@ -87,6 +90,7 @@ def test_convert():
 	assert ns.bar.Attrs.bar_422.values == ("bar_42a", "bar_42b")
 
 
+@pytest.mark.lxml
 def test_charref():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT foo EMPTY>
@@ -97,6 +101,7 @@ def test_charref():
 	assert ns.bar.codepoint == 0xff
 
 
+@pytest.mark.lxml
 def test_keyword():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT foo EMPTY>
@@ -110,6 +115,7 @@ def test_keyword():
 	assert ns.foo.Attrs.class_.xmlname == "class"
 
 
+@pytest.mark.lxml
 def test_quotes():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT foo EMPTY>
@@ -118,6 +124,7 @@ def test_quotes():
 	assert ns.foo.xmlns == '"'
 
 
+@pytest.mark.lxml
 def test_unicode():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT foo EMPTY>
@@ -126,6 +133,7 @@ def test_unicode():
 	assert ns.foo.xmlns == '\u3042'
 
 
+@pytest.mark.lxml
 def test_unicodequotes():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT foo EMPTY>
@@ -134,6 +142,7 @@ def test_unicodequotes():
 	assert ns.foo.xmlns == '"\u3042"'
 
 
+@pytest.mark.lxml
 def test_badelementname():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT class EMPTY>
@@ -142,6 +151,7 @@ def test_badelementname():
 	assert issubclass(ns.class_, xsc.Element)
 
 
+@pytest.mark.lxml
 def test_shareattrsnone():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT foo (bar)>
@@ -157,6 +167,7 @@ def test_shareattrsnone():
 	assert not hasattr(ns, "baz")
 
 
+@pytest.mark.lxml
 def test_shareattrsdupes():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT foo (bar)>
@@ -178,6 +189,7 @@ def test_shareattrsdupes():
 	assert ns.bar.Attrs.baz2.required
 
 
+@pytest.mark.lxml
 def test_shareattrsall():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT foo (bar)>
