@@ -128,7 +128,7 @@ def getxmlns(dtd):
 		for attrdecl in elemdecl.iterattributes():
 			if attrdecl.name=="xmlns" or ":" in attrdecl.name:
 				if attrdecl.default == "fixed":
-					found.add(attrdecl.defaultValue)
+					found.add(attrdecl.default_value)
 					continue # skip a namespace declaration
 	return found
 
@@ -167,7 +167,7 @@ def adddtd2xnd(ns, dtd):
 					values = None
 				elif not values:
 					values = None
-			default = attrdecl.defaultValue
+			default = attrdecl.default_value
 			if attrdecl.default == "required":
 				required = True
 			else:
