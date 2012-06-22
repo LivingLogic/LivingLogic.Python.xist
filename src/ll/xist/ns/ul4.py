@@ -64,7 +64,7 @@ class attr_if(xsc.AttrElement):
 	UL4 ``if`` around its content.
 	"""
 
-	class Attrs(xsc.Attrs):
+	class Attrs(xsc.Element.Attrs):
 		class cond(xsc.TextAttr): required = True
 
 	def publish(self, publisher):
