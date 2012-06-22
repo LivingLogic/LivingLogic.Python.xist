@@ -1358,21 +1358,21 @@ class Node(object):
 class Tidy(object):
 	"""
 	A :class:`Tidy` object parses (potentially ill-formed) HTML from a source
-	into a (namespaced) event stream by using lxml__'s HTML parser::
+	into a (non-namespaced) event stream by using lxml__'s HTML parser::
 
 		>>> from ll.xist import parse
 		>>> list(parse.events(parse.URL("http://www.yahoo.com/"), parse.Tidy()))
 		[('url', URL('http://de.yahoo.com/?p=us')),
-		 ('enterstarttagns', ('html', 'http://www.w3.org/1999/xhtml')),
-		 ('enterattrns', ('lang', None)),
-		 ('text', 'de-DE'),
-		 ('leaveattrns', ('lang', None)),
-		 ('enterattrns', ('class', None)),
+		 ('enterstarttag', 'html'),
+		 ('enterattr', 'class'),
 		 ('text', 'y-fp-bg y-fp-pg-grad  bkt708'),
-		 ('leaveattrns', ('class', None)),
-		 ('enterattrns', ('style', None)),
-		 ('leaveattrns', ('style', None)),
-		 ('leavestarttagns', ('html', 'http://www.w3.org/1999/xhtml')),
+		 ('leaveattr', 'class'),
+		 ('enterattr', 'lang'),
+		 ('text', 'de-DE'),
+		 ('leaveattr', 'lang'),
+		 ('enterattr', 'style'),
+		 ('leaveattr', 'style'),
+		 ('leavestarttag', 'html'),
 		...
 
 	__ http://lxml.de/

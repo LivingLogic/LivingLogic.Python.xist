@@ -18,7 +18,7 @@ import pytest
 
 from ll import url
 from ll.xist import xsc, parse, xfind
-from ll.xist.ns import xml, chars, html, ihtml, specials, ruby, doc
+from ll.xist.ns import xml, chars, html, xlink, ihtml, specials, ruby, doc
 
 
 class a(xsc.Element):
@@ -283,9 +283,16 @@ def test_expat_doctype():
 
 
 def test_htmlparse_base():
-	e = parse.tree(b"<a href='gurk.gif'/>", parse.Tidy(), parse.Node(base="hurz/index.html"))
+	e = parse.tree(b"<a href='gurk.gif'/>", parse.Tidy(), parse.NS(html), parse.Node(base="hurz/index.html"))
 	e = e.walknodes(html.a)[0]
 	assert str(e.attrs.href) == "hurz/gurk.gif"
+
+
+def test_parse_tidy_attrs():
+	e = parse.tree(b"<a xmlns:xl='http://www.w3.org/1999/xlink' xml:lang='de' xl:href='gurk.gif' href='gurk.gif'/>", parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(html, xml, xlink)))
+	a = e.walknodes(html.a)[0]
+	assert str(a.attrs[xml.Attrs.lang]) == "de"
+	assert str(a.attrs[xlink.Attrs.href]) == "gurk.gif"
 
 
 def test_parse_tidy_empty():

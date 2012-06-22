@@ -13,8 +13,7 @@ Changes in 4.0 (released ??/??/2012)
 	.. _libxml2: http://www.xmlsoft.org/
 	.. _lxml: http://lxml.de/
 
-	This change has one visible result: :class:`ll.xist.parse.Tidy` objects now
-	emit namespaced events.
+	This change shouldn't have any visible consequences.
 
 *	Generating the final Javascript source code for UL4 templates is now done in
 	Javascript itself.
