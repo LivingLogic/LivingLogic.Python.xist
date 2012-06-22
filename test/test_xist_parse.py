@@ -282,12 +282,14 @@ def test_expat_doctype():
 	assert e[0].content == 'a' # Internal subset gets dropped
 
 
+@pytest.mark.lxml
 def test_htmlparse_base():
 	e = parse.tree(b"<a href='gurk.gif'/>", parse.Tidy(), parse.NS(html), parse.Node(base="hurz/index.html"))
 	e = e.walknodes(html.a)[0]
 	assert str(e.attrs.href) == "hurz/gurk.gif"
 
 
+@pytest.mark.lxml
 def test_parse_tidy_attrs():
 	e = parse.tree(b"<a xmlns:xl='http://www.w3.org/1999/xlink' xml:lang='de' xl:href='gurk.gif' href='gurk.gif'/>", parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(html, xml, xlink)))
 	a = e.walknodes(html.a)[0]
@@ -296,6 +298,7 @@ def test_parse_tidy_attrs():
 	assert str(a.attrs[xlink.Attrs.href]) == "gurk.gif"
 
 
+@pytest.mark.lxml
 def test_parse_tidy_empty():
 	e = parse.tree(b"", parse.Tidy(), parse.NS(), parse.Node())
 	assert not e
