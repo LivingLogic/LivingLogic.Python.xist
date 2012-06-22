@@ -268,8 +268,12 @@ def test_javaexpr():
 	assert "false" == misc.javaexpr(False)
 	# int
 	assert "42" == misc.javaexpr(42)
-	assert str(1<<32) == misc.javaexpr(1<<32)
-	assert 'new BigInteger("{}")'.format(1<<64) == misc.javaexpr(1<<64)
+	assert str((1<<31)-1) == misc.javaexpr((1<<31)-1)
+	assert str(1<<31)+"L" == misc.javaexpr(1<<31)
+	assert str(-(1<<31)) == misc.javaexpr(-(1<<31))
+	assert str(-(1<<31)-1)+"L" == misc.javaexpr(-(1<<31)-1)
+	assert str((1<<63)-1) + "L" == misc.javaexpr((1<<63)-1)
+	assert 'new java.math.BigInteger("{}")'.format(1<<64) == misc.javaexpr(1<<64)
 	# float
 	assert "42.5" == misc.javaexpr(42.5)
 	assert "1e+20" == misc.javaexpr(1e20)
