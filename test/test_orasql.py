@@ -19,28 +19,37 @@ from ll.orasql.scripts import oracreate, oradrop, oradiff, oramerge, oragrant, o
 
 dbname = os.environ.get("LL_ORASQL_TEST_CONNECT") # Need a connectstring as environment var
 
-
 # here all objects are collected, so we don't need to call :meth:`iterobjects` multiple times
-objlist = []
-objdict = {}
+class Data:
+	def __init__(self, dbname):
+		self.dbname = dbname
+		self._objlist = None
+		self._objdict = None
 
-def setup_module(module):
-	if dbname:
-		db = orasql.connect(dbname)
-		# get all definitions
-		# (this tests that :meth:`iterobjects`, :meth:`iterreferences` and :meth:`iterreferencedby` run to completion)
-		module.objdict = {}
-		for obj in db.iterobjects(None):
-			if obj.owner is None:
-				module.objlist.append(obj)
-				references = [o for o in obj.iterreferences() if o.owner is None]
-				referencedby = [o for o in obj.iterreferencedby() if o.owner is None]
-				module.objdict[obj] = (references, referencedby)
+	def _make(self):
+			self._objlist = []
+			self._objdict = []
+			db = orasql.connect(self.dbname)
+			# get all definitions
+			# (this tests that :meth:`iterobjects`, :meth:`iterreferences` and :meth:`iterreferencedby` run to completion)
+			for obj in db.iterobjects(None):
+				if obj.owner is None:
+					self._objlist.append(obj)
+					references = [o for o in obj.iterreferences() if o.owner is None]
+					referencedby = [o for o in obj.iterreferencedby() if o.owner is None]
+					self._objdict[obj] = (references, referencedby)
 
+	def objlist(self):
+		if dbname and self._objlist is None:
+			self._make()
+		return self._objlist
 
-def teardown_module(module):
-	module.objlist = []
-	module.objdict = {}
+	def objdict(self):
+		if dbname and self._objdict is None:
+			self._make()
+		return self._objdict
+
+data = Data(dbname)
 
 
 def readlob(value, size=None):
@@ -231,8 +240,8 @@ def test_procedure_nonexistant():
 def test_createorder():
 	# check that the default output order of :meth:`iterobjects` (i.e. create order) works
 	done = set()
-	for obj in objlist:
-		for refobj in objdict[obj][0]:
+	for obj in data.objlist():
+		for refobj in data.objdict()[obj][0]:
 			assert refobj in done
 		done.add(obj)
 
