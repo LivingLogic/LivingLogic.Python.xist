@@ -13,7 +13,7 @@ import sys, unittest, io
 
 from xml.parsers import expat
 
-import py.test
+import pytest
 
 from ll import url
 from ll.xist import xsc, css, present, sims, xnd, xfind
@@ -59,7 +59,7 @@ def test_append():
 		check_lenunicode(node, 6, "123456")
 		node.append(html.p.Attrs.id(7))
 		check_lenunicode(node, 7, "1234567")
-		with py.test.raises(TypeError):
+		with pytest.raises(TypeError):
 			node.append(xml.Attrs(lang=8))
 
 
@@ -472,7 +472,7 @@ def test_defaultattributes():
 	node = Test()
 	assert "withdef" in node.attrs
 	assert "withoutdef" not in node.attrs
-	with py.test.raises(xsc.IllegalAttrError):
+	with pytest.raises(xsc.IllegalAttrError):
 		"illegal" in node.attrs
 	node = Test(withdef=None)
 	assert "withdef" not in node.attrs
@@ -595,7 +595,7 @@ def test_withsep():
 
 def test_allowedattr():
 	assert html.a.Attrs.allowedattr("href") is html.a.Attrs.href
-	with py.test.raises(xsc.IllegalAttrError):
+	with pytest.raises(xsc.IllegalAttrError):
 		html.a.Attrs.allowedattr("gurk")
 	assert html.a.Attrs.allowedattr(xml.Attrs.lang) is xml.Attrs.lang
 
@@ -693,7 +693,7 @@ def test_getitem():
 			i = e[xsc.Text]
 			assert str(next(i)) == "foo"
 			assert str(next(i)) == "baz"
-			with py.test.raises(StopIteration):
+			with pytest.raises(StopIteration):
 				next(i)
 
 		# list
@@ -742,9 +742,9 @@ def test_setitem():
 			node = cls(html.div("foo", html.div({attr: "gurk"}), "bar"))
 			node[[0, 1, attr]] = "hurz"
 			assert str(node[[0, 1, attr]]) == "hurz"
-			with py.test.raises(ValueError):
+			with pytest.raises(ValueError):
 				node[[]] = None
-			with py.test.raises(ValueError):
+			with pytest.raises(ValueError):
 				del node[[]]
 
 

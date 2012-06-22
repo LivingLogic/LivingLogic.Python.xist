@@ -14,7 +14,7 @@ from xml.etree import cElementTree
 from xml import sax
 from xml.parsers import expat
 
-import py.test
+import pytest
 
 from ll import url
 from ll.xist import xsc, parse, xfind
@@ -125,7 +125,7 @@ def test_parserequiredattrs(recwarn):
 		parse.tree(b'<Test/>', parse.Expat(), parse.NS(xmlns), parse.Node())
 		w = recwarn.pop(xsc.RequiredAttrMissingWarning)
 
-	with py.test.raises(xsc.IllegalElementError):
+	with pytest.raises(xsc.IllegalElementError):
 		parse.tree(b'<Test required="foo"/>', parse.Expat(), parse.NS(xmlns), parse.Node())
 
 
@@ -223,7 +223,7 @@ def test_xmlns():
 	assert isinstance(e[0][0], ihtml.a)
 
 	s = "<a><a xmlns={!r}/></a>".format(ihtml.xmlns).encode("utf-8")
-	with py.test.raises(xsc.IllegalElementError):
+	with pytest.raises(xsc.IllegalElementError):
 		parse.tree(s, parse.Expat(), parse.NS(html), parse.Node(pool=xsc.Pool(ihtml)))
 	e = parse.tree(s, parse.Expat(), parse.NS(html), parse.Node(pool=xsc.Pool(html, ihtml)))
 	assert isinstance(e[0], html.a)
@@ -232,7 +232,7 @@ def test_xmlns():
 	s = "<z xmlns={!r}/>".format(doc.xmlns).encode("utf-8")
 	e = parse.tree(s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool(doc.z)))
 	assert isinstance(e[0], doc.z)
-	with py.test.raises(xsc.IllegalElementError):
+	with pytest.raises(xsc.IllegalElementError):
 		parse.tree(s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool()))
 
 
@@ -329,7 +329,7 @@ def test_streamsource():
 	assert parsed == expect
 
 
-@py.test.mark.net
+@pytest.mark.net
 def test_urlsource():
 	expect = url.URL("http://www.python.org/").openread().read()
 	source = parse.URL("http://www.python.org/", bufsize=32)
@@ -359,7 +359,7 @@ def test_expat_events_on_exception():
 	assert next(i) == ("leavestarttag", "x")
 	assert next(i) == ("position", (0, 4))
 	assert next(i) == ("endtag", "x")
-	with py.test.raises(expat.ExpatError):
+	with pytest.raises(expat.ExpatError):
 		next(i)
 
 
@@ -374,7 +374,7 @@ def test_expat_no_multiple_text_events():
 	assert next(i) == ("text", "gurk & hurz & hinz & kunz")
 	assert next(i) == ("position", (0, 40))
 	assert next(i) == ("endtag", "a")
-	with py.test.raises(StopIteration):
+	with pytest.raises(StopIteration):
 		next(i)
 
 
@@ -386,6 +386,6 @@ def test_sgmlop_no_multiple_text_events():
 	assert next(i) == ("leavestarttag", "a")
 	assert next(i) == ("text", "gurk & hurz & hinz & kunz")
 	assert next(i) == ("endtag", "a")
-	with py.test.raises(StopIteration):
+	with pytest.raises(StopIteration):
 		next(i)
 

@@ -10,7 +10,7 @@ develop:
 
 
 test: install
-	py.test
+	python$(PYVERSION) -mpytest
 
 
 dist:

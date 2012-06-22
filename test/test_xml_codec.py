@@ -9,7 +9,7 @@
 ## See ll/__init__.py for the license
 
 
-import py.test
+import pytest
 
 import codecs
 
@@ -72,7 +72,7 @@ def test_detectencoding_str():
 	assert xml_codec._detectencoding(b"<?xml\rversion='1.0' ?>") == "utf-8"
 	assert xml_codec._detectencoding(b"<?xml\rversion='1.0' Encoding='x'") is None # encoding not recognized (might come later)
 	assert xml_codec._detectencoding(b"<?xml\rVersion='1.0'") is None
-	with py.test.raises(ValueError):
+	with pytest.raises(ValueError):
 		xml_codec._detectencoding(b"<?xml\rversion='1.0' encoding=''") # empty encoding
 	assert xml_codec._detectencoding(b"<", False) is None
 	assert xml_codec._detectencoding(b"<", True) == "utf-8"
@@ -201,7 +201,7 @@ def test_decoder():
 	yield checkdecl, "cp1252"
 
 	# No recursion
-	with py.test.raises(ValueError):
+	with pytest.raises(ValueError):
 		b"<?xml version='1.0' encoding='xml'?><gurk/>".decode("xml")
 
 
@@ -238,5 +238,5 @@ def test_encoder():
 	yield check, "cp1252"
 
 	# No recursion
-	with py.test.raises(ValueError):
+	with pytest.raises(ValueError):
 		"<?xml version='1.0' encoding='xml'?><gurk/>".encode("xml")

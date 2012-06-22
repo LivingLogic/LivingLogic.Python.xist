@@ -8,7 +8,7 @@
 ##
 ## See ll/__init__.py for the license
 
-import py.test
+import pytest
 
 from ll.xist import xsc, xfind
 from ll.xist.ns import html, xml
@@ -106,13 +106,13 @@ def test_walkgetitem():
 	isdiv = xfind.FindTypeAll(html.div)
 	assert str(e.walknodes(isdiv)[0]) == "123"
 	assert str(e.walknodes(isdiv)[-1]) == "3"
-	with py.test.raises(IndexError):
+	with pytest.raises(IndexError):
 		e.walknodes(isdiv)[3]
-	with py.test.raises(IndexError):
+	with pytest.raises(IndexError):
 		e.walknodes(isdiv)[-4]
 	assert str(e.walkpaths(isdiv)[0][-1]) == "123"
 	assert str(e.walkpaths(isdiv)[-1][-1]) == "3"
-	with py.test.raises(IndexError):
+	with pytest.raises(IndexError):
 		e.walkpaths(isdiv)[3]
-	with py.test.raises(IndexError):
+	with pytest.raises(IndexError):
 		e.walkpaths(isdiv)[-4]

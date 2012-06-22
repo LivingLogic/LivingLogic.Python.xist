@@ -9,7 +9,7 @@
 ## See ll/__init__.py for the license
 
 
-import py.test
+import pytest
 
 from ll import url
 from ll.xist import xsc
@@ -140,7 +140,7 @@ def test_scopecheck():
 			+xsc.Text("hurz")
 			+detox.end("for")
 
-	with py.test.raises(SyntaxError):
+	with pytest.raises(SyntaxError):
 		makeoutput(e, "gurk")
 
 

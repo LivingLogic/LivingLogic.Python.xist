@@ -9,7 +9,7 @@
 ## See ll/__init__.py for the license
 
 
-import py.test
+import pytest
 
 from ll import misc
 from ll.xist import xsc, xfind, parse
@@ -327,9 +327,9 @@ def test_item():
 	assert str(e[xsc.Text][9]) == "9"
 	assert str(e[xsc.Text][-1]) == "9"
 	assert str(e[xsc.Text][-10]) == "0"
-	with py.test.raises(IndexError):
+	with pytest.raises(IndexError):
 		e[xsc.Text][10]
-	with py.test.raises(IndexError):
+	with pytest.raises(IndexError):
 		e[xsc.Text][-11]
 	assert str(misc.item(e[xsc.Text], 10, "x")) == "x"
 	assert str(misc.item(e[xsc.Text], -11, "x")) == "x"

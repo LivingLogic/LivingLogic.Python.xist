@@ -13,11 +13,11 @@ import io, os, datetime
 
 from ll import url
 
-import py.test
+import pytest
 
 
 def test_rename():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)
@@ -37,7 +37,7 @@ def test_rename():
 
 
 def test_link():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)
@@ -56,7 +56,7 @@ def test_link():
 
 
 def test_symlink():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)
@@ -74,7 +74,7 @@ def test_symlink():
 
 
 def test_chmod():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)
@@ -94,7 +94,7 @@ def test_chmod():
 
 
 def test_chown():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u1, u2, owner, group):
 		with url.Context():
 			u1 = url.URL(u1)
@@ -130,7 +130,7 @@ def test_chown():
 
 
 def test_size():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)
@@ -142,7 +142,7 @@ def test_size():
 
 
 def test_imagesize():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)
@@ -154,7 +154,7 @@ def test_imagesize():
 
 
 def test_mimetype():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u, mt):
 		with url.Context():
 			u = url.URL(u)
@@ -166,7 +166,7 @@ def test_mimetype():
 
 
 def test_readline():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u, firstline):
 		with url.Context():
 			u = url.URL(u)
@@ -198,7 +198,7 @@ def test_readline():
 
 
 def test_iter():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u, firstline):
 		with url.Context():
 			u = url.URL(u)
@@ -212,7 +212,7 @@ def test_iter():
 
 
 def test_autocreate_dir():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			try:
@@ -228,7 +228,7 @@ def test_autocreate_dir():
 
 
 def test_seek_tell():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)
@@ -252,7 +252,7 @@ def test_seek_tell():
 
 
 def test_truncate():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)/"foo"
@@ -271,7 +271,7 @@ def test_truncate():
 
 
 def test_owner():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u, owner):
 		with url.Context():
 			u = url.URL(u)
@@ -284,7 +284,7 @@ def test_owner():
 
 
 def test_stat():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)
@@ -297,7 +297,7 @@ def test_stat():
 
 
 def test_group():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u, *groups):
 		with url.Context():
 			u = url.URL(u)
@@ -310,7 +310,7 @@ def test_group():
 
 
 def test_cdate():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u, *args):
 		with url.Context():
 			assert url.URL(u).cdate() >= datetime.datetime(*args)
@@ -320,7 +320,7 @@ def test_cdate():
 
 
 def test_mdate():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u, *args):
 		with url.Context():
 			u = url.URL(u)
@@ -332,7 +332,7 @@ def test_mdate():
 
 
 def test_adate():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u, *args):
 		with url.Context():
 			assert url.URL(u).adate() >= datetime.datetime(*args)
@@ -342,7 +342,7 @@ def test_adate():
 
 
 def test_exists():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u, exists):
 		with url.Context():
 			u = url.URL(u)
@@ -356,7 +356,7 @@ def test_exists():
 
 
 def test_isfile():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u, isfile):
 		with url.Context():
 			u = url.URL(u)
@@ -372,7 +372,7 @@ def test_isfile():
 
 
 def test_isdir():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u, isdir):
 		with url.Context():
 			u = url.URL(u)
@@ -388,7 +388,7 @@ def test_isdir():
 
 
 def test_islink():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u, islink):
 		with url.Context():
 			u = url.URL(u)
@@ -401,7 +401,7 @@ def test_islink():
 
 
 def test_ismount():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u, ismount):
 		with url.Context():
 			u = url.URL(u)
@@ -416,7 +416,7 @@ def test_ismount():
 
 
 def test_access():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u, mode, result):
 		with url.Context():
 			u = url.URL(u)
@@ -429,7 +429,7 @@ def test_access():
 
 
 def test_resheaders():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u, headers):
 		with url.Context():
 			u = url.URL(u)
@@ -443,7 +443,7 @@ def test_resheaders():
 
 
 def test_resdata():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u, firstline):
 		with url.Context():
 			u = url.URL(u)
@@ -454,7 +454,7 @@ def test_resdata():
 
 
 def test_mkdir_rmdir():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)/"foo/"
@@ -470,7 +470,7 @@ def test_mkdir_rmdir():
 
 
 def test_makedirs():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)/"foo/bar/"
@@ -487,7 +487,7 @@ def test_makedirs():
 
 
 def test_dir():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u, pu, isfile):
 		with url.Context():
 			u = url.URL(u)
@@ -507,7 +507,7 @@ def test_dir():
 
 
 def test_walk():
-	@py.test.mark.net
+	@pytest.mark.net
 	def check(u, pu, isfile):
 		with url.Context():
 			u = url.URL(u)
@@ -526,7 +526,7 @@ def test_walk():
 	yield check, "ll/xist/ns/", "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/src/", False
 
 
-@py.test.mark.net
+@pytest.mark.net
 def test_ssh_params():
 	with url.Context():
 		u = url.URL("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/")

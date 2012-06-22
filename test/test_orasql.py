@@ -11,13 +11,14 @@
 
 import sys, os, datetime
 
-import py.test
+import pytest
 
 from ll import orasql, url
 from ll.orasql.scripts import oracreate, oradrop, oradiff, oramerge, oragrant, orafind
 
 
 dbname = os.environ.get("LL_ORASQL_TEST_CONNECT") # Need a connectstring as environment var
+
 
 # here all objects are collected, so we don't need to call :meth:`iterobjects` multiple times
 class Data:
@@ -27,17 +28,17 @@ class Data:
 		self._objdict = None
 
 	def _make(self):
-			self._objlist = []
-			self._objdict = []
-			db = orasql.connect(self.dbname)
-			# get all definitions
-			# (this tests that :meth:`iterobjects`, :meth:`iterreferences` and :meth:`iterreferencedby` run to completion)
-			for obj in db.iterobjects(None):
-				if obj.owner is None:
-					self._objlist.append(obj)
-					references = [o for o in obj.iterreferences() if o.owner is None]
-					referencedby = [o for o in obj.iterreferencedby() if o.owner is None]
-					self._objdict[obj] = (references, referencedby)
+		self._objlist = []
+		self._objdict = {}
+		db = orasql.connect(self.dbname)
+		# get all definitions
+		# (this tests that :meth:`iterobjects`, :meth:`iterreferences` and :meth:`iterreferencedby` run to completion)
+		for obj in db.iterobjects(None):
+			if obj.owner is None:
+				self._objlist.append(obj)
+				references = [o for o in obj.iterreferences() if o.owner is None]
+				referencedby = [o for o in obj.iterreferencedby() if o.owner is None]
+				self._objdict[obj] = (references, referencedby)
 
 	def objlist(self):
 		if dbname and self._objlist is None:
@@ -48,6 +49,7 @@ class Data:
 		if dbname and self._objdict is None:
 			self._make()
 		return self._objdict
+
 
 data = Data(dbname)
 
@@ -62,13 +64,13 @@ def readlob(value, size=None):
 	return "".join(result)
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_connect():
 	db = orasql.connect(dbname)
 	assert isinstance(db, orasql.Connection)
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_connection_connectstring():
 	db = orasql.connect(dbname)
 	user = dbname.split("/")[0]
@@ -76,57 +78,57 @@ def test_connection_connectstring():
 	assert "{}@{}".format(user, name) == db.connectstring()
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_connection_itertables():
 	db = orasql.connect(dbname)
 	list(db.itertables(None))
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_connection_itersequences():
 	db = orasql.connect(dbname)
 	list(db.itersequences(None))
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_connection_iterfks():
 	db = orasql.connect(dbname)
 	list(db.iterfks(None))
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_connection_iterprivileges():
 	db = orasql.connect(dbname)
 	list(db.iterprivileges(None))
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_connection_iterusers():
 	db = orasql.connect(dbname)
 	list(db.iterusers())
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_referenceconsistency():
-	for (obj, (references, referencedby)) in objdict.items():
+	for (obj, (references, referencedby)) in data.objdict().items():
 		for refobj in references:
 			# check that :meth:`iterobjects` returned everything from this schema
-			assert refobj.owner is not None or refobj in objdict
+			assert refobj.owner is not None or refobj in data.objdict()
 			# check that the referenced object points back to this one (via referencedby)
 			if refobj.owner is None:
-				assert obj in objdict[refobj][1]
+				assert obj in data.objdict()[refobj][1]
 
 		# do the inverted check
 		for refobj in referencedby:
-			assert refobj.owner is not None or refobj in objdict
+			assert refobj.owner is not None or refobj in data.objdict()
 			if refobj.owner is None:
-				assert obj in objdict[refobj][0]
+				assert obj in data.objdict()[refobj][0]
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_ddl():
 	# check various ddl methods
-	for obj in objdict:
+	for obj in data.objdict():
 		obj.createddl()
 		if isinstance(obj, orasql.Sequence):
 			obj.createddlcopy()
@@ -136,26 +138,26 @@ def test_ddl():
 			obj.disableddl()
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_repr():
 	# check that each repr method works
-	for obj in objdict:
+	for obj in data.objdict():
 		repr(obj)
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_cudate():
 	# check that cdate/udate method works
-	for obj in objdict:
+	for obj in data.objdict():
 		cdate = obj.cdate()
 		assert cdate is None or isinstance(cdate, datetime.datetime)
 		udate = obj.udate()
 		assert udate is None or isinstance(udate, datetime.datetime)
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_table_columns():
-	for obj in objdict:
+	for obj in data.objdict():
 		if isinstance(obj, orasql.Table):
 			for col in obj.itercolumns():
 				# comments are not output by :meth:`iterobjects`, so we have to call :meth:`iterreferences`
@@ -173,9 +175,9 @@ def test_table_columns():
 				assert col.table() == obj
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_table_comments():
-	for obj in objdict:
+	for obj in data.objdict():
 		if isinstance(obj, orasql.Table):
 			# comments are output by :meth:`iterobjects`, but not for materialized views
 			if obj.ismview():
@@ -183,20 +185,20 @@ def test_table_comments():
 					assert obj in com.iterreferences()
 			else:
 				for com in obj.itercomments():
-					assert obj in objdict[com][0]
+					assert obj in data.objdict()[com][0]
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_table_constraints():
-	for obj in objdict:
+	for obj in data.objdict():
 		if isinstance(obj, orasql.Table):
 			for con in obj.iterconstraints():
-				assert obj in objdict[con][0]
+				assert obj in data.objdict()[con][0]
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_table_records():
-	for obj in objdict:
+	for obj in data.objdict():
 		if isinstance(obj, orasql.Table):
 			# fetch only a few records
 			for (i, rec) in enumerate(obj.iterrecords()):
@@ -204,16 +206,16 @@ def test_table_records():
 					break
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_table_mview():
-	for obj in objdict:
+	for obj in data.objdict():
 		if isinstance(obj, orasql.Table):
 			assert (obj.mview() is not None) == obj.ismview()
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_constraints():
-	for obj in objdict:
+	for obj in data.objdict():
 		if isinstance(obj, orasql.Constraint):
 			obj.table()
 			if isinstance(obj, orasql.ForeignKey):
@@ -221,22 +223,22 @@ def test_constraints():
 				list(obj.itercolumns())
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_procedure_arguments():
-	for obj in objdict:
+	for obj in data.objdict():
 		if isinstance(obj, orasql.Procedure):
 			list(obj.iterarguments())
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_procedure_nonexistant():
 	if dbname:
 		db = orasql.connect(dbname)
-		with py.test.raises(orasql.SQLObjectNotFoundError):
+		with pytest.raises(orasql.SQLObjectNotFoundError):
 			orasql.Procedure("DOESNOTEXIST")(db.cursor())
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_createorder():
 	# check that the default output order of :meth:`iterobjects` (i.e. create order) works
 	done = set()
@@ -246,7 +248,7 @@ def test_createorder():
 		done.add(obj)
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_scripts_oracreate():
 	if dbname:
 		# Test oracreate without executing anything
@@ -254,7 +256,7 @@ def test_scripts_oracreate():
 		oracreate.main(args.split())
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_scripts_oradrop():
 	if dbname:
 		# Test oradrop without executing anything
@@ -262,7 +264,7 @@ def test_scripts_oradrop():
 		oradrop.main(args.split())
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_scripts_oradiff():
 	if dbname:
 		# Test oradiff (not really: we will not get any differences)
@@ -274,7 +276,7 @@ def test_scripts_oradiff():
 			oradiff.main(args.split())
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_scripts_oramerge():
 	if dbname:
 		# Test oramerge (not really: we will not get any differences)
@@ -282,7 +284,7 @@ def test_scripts_oramerge():
 		oramerge.main(args.split())
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_scripts_oragrant():
 	if dbname:
 		# Test oragrant
@@ -290,7 +292,7 @@ def test_scripts_oragrant():
 		oragrant.main(args.split())
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_scripts_orafind():
 	if dbname:
 		# Test orafind
@@ -298,47 +300,47 @@ def test_scripts_orafind():
 		orafind.main(args.split())
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_callprocedure():
 	if dbname:
 		db = orasql.connect(dbname)
 		proc = db.getobject("orasql_testprocedure")
-		result = proc(db.cursor(readlobs=True), c_user="py.test", p_in="abcäöü", p_inout="abc"*10000)
+		result = proc(db.cursor(readlobs=True), c_user="pytest", p_in="abcäöü", p_inout="abc"*10000)
 		assert result.p_in == "abcäöü"
 		assert result.p_out == "ABCÄÖÜ"
 		assert result.p_inout == "ABC"*10000 + "abcäöü"
 	
-		result = proc(db.cursor(readlobs=False), c_user="py.test", p_in="abcäöü", p_inout="abc"*10000)
+		result = proc(db.cursor(readlobs=False), c_user="pytest", p_in="abcäöü", p_inout="abc"*10000)
 		assert result.p_in == "abcäöü"
 		assert result.p_out == "ABCÄÖÜ"
 		assert readlob(result.p_inout, 8192) == "ABC"*10000 + "abcäöü"
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_callfunction():
 	if dbname:
 		db = orasql.connect(dbname)
 		func = db.getobject("orasql_testfunction")
-		(result, args) = func(db.cursor(readlobs=True), c_user="py.test", p_in="abcäöü", p_inout="abc"*10000)
+		(result, args) = func(db.cursor(readlobs=True), c_user="pytest", p_in="abcäöü", p_inout="abc"*10000)
 		assert result == "ABCÄÖÜ"
 		assert args.p_in == "abcäöü"
 		assert args.p_out == "ABCÄÖÜ"
 		assert args.p_inout == "ABC"*10000 + "abcäöü"
 
-		(result, args) = func(db.cursor(readlobs=False), c_user="py.test", p_in="abcäöü", p_inout="abc"*10000)
+		(result, args) = func(db.cursor(readlobs=False), c_user="pytest", p_in="abcäöü", p_inout="abc"*10000)
 		assert result == "ABCÄÖÜ"
 		assert args.p_in == "abcäöü"
 		assert args.p_out == "ABCÄÖÜ"
 		assert readlob(args.p_inout, 8192) == "ABC"*10000 + "abcäöü"
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_clob_fromprocedure():
 	if dbname:
 		db = orasql.connect(dbname)
 		proc = db.getobject("orasql_testprocedure")
 		def check(sizearg):
-			result = proc(db.cursor(readlobs=False), c_user="py.test", p_in="abcäöü", p_inout="abc"*10000)
+			result = proc(db.cursor(readlobs=False), c_user="pytest", p_in="abcäöü", p_inout="abc"*10000)
 			assert readlob(result.p_inout, sizearg) == "ABC"*10000 + "abcäöü"
 			assert result.p_inout.read() == ""
 		yield check, 1
@@ -348,9 +350,9 @@ def test_clob_fromprocedure():
 		yield check, None
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_fetch():
-	for obj in objdict:
+	for obj in data.objdict():
 		if isinstance(obj, orasql.Table):
 			# fetch only a few records
 			db = orasql.connect(dbname)
@@ -364,7 +366,7 @@ def test_fetch():
 			break
 
 
-@py.test.mark.db
+@pytest.mark.db
 def test_url():
 	u = url.URL("oracle://{}/".format(dbname.replace("/", ":")))
 	assert u.isdir()

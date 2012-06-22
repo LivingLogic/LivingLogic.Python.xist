@@ -13,8 +13,6 @@ import io, os, datetime, math
 
 from ll import ul4on, ul4c, color
 
-import py.test
-
 
 def flatten(data):
 	# This is use to be able to compare templates (by comparing their output)

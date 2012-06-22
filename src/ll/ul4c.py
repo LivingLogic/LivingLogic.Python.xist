@@ -1216,7 +1216,7 @@ class GetAttr(AST):
 		return "{}[{!r}]".format(self.obj.formatpython(indent), self.attrname)
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.getItem({}, {})".format(self.obj.formatjava(indent), misc.javaexpr(self.attrname))
+		return "com.livinglogic.ul4.GetAttr.call({}, {})".format(self.obj.formatjava(indent), misc.javaexpr(self.attrname))
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1251,7 +1251,7 @@ class GetSlice(AST):
 		return "{}[{}:{}]".format(self.obj.formatpython(indent), self.index1.formatpython(indent) if self.index1 is not None else "", self.index2.formatpython(indent) if self.index2 is not None else "")
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.getSlice({}, {}, {})".format(self.obj.formatjava(indent), self.index1.formatjava(indent) if self.index1 is not None else "null", self.index2.formatjava(indent) if self.index2 is not None else "null")
+		return "com.livinglogic.ul4.GetSlice.call({}, {}, {})".format(self.obj.formatjava(indent), self.index1.formatjava(indent) if self.index1 is not None else "null", self.index2.formatjava(indent) if self.index2 is not None else "null")
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1310,7 +1310,7 @@ class Neg(Unary):
 		return "-({})".format(self.obj.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.neg({})".format(self.obj.formatjava(indent))
+		return "com.livinglogic.ul4.Neg.call({})".format(self.obj.formatjava(indent))
 
 
 @register("print")
@@ -1371,7 +1371,7 @@ class GetItem(Binary):
 		return "({})[{}]".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.getItem({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+		return "com.livinglogic.ul4.GetItem.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("eq")
@@ -1386,7 +1386,7 @@ class EQ(Binary):
 		return "({}) == ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.eq({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+		return "com.livinglogic.ul4.EQ.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("ne")
@@ -1401,7 +1401,7 @@ class NE(Binary):
 		return "({}) != ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.ne({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+		return "com.livinglogic.ul4.NE.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("lt")
@@ -1416,7 +1416,7 @@ class LT(Binary):
 		return "({}) < ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.lt({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+		return "com.livinglogic.ul4.LT.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("le")
@@ -1431,7 +1431,7 @@ class LE(Binary):
 		return "({}) <= ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.le({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+		return "com.livinglogic.ul4.LE.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("gt")
@@ -1446,7 +1446,7 @@ class GT(Binary):
 		return "({}) > ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.gt({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+		return "com.livinglogic.ul4.GT.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("ge")
@@ -1461,7 +1461,7 @@ class GE(Binary):
 		return "({}) >= ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.ge({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+		return "com.livinglogic.ul4.GE.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("contains")
@@ -1476,7 +1476,7 @@ class Contains(Binary):
 		return "({}) in ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.contains({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+		return "com.livinglogic.ul4.Contains.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("notcontains")
@@ -1491,7 +1491,7 @@ class NotContains(Binary):
 		return "({}) not in ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Utils.notcontains({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+		return "com.livinglogic.ul4.NotContains.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("add")
@@ -2077,9 +2077,9 @@ class CallMethKeywords(AST):
 				v.append(".add({}, {})".format(misc.javaexpr(arg[0]), arg[1].formatjava(indent)))
 		args = "new com.livinglogic.ul4.MapMaker(){}.getMap()".format("".join(v))
 		if self.methname == "renders":
-			return "((com.livinglogic.ul4.Template){}).renders({})".format(self.obj.formatjava(indent), args)
+			return "com.livinglogic.ul4.KeywordMethodRenderS.call({}, {})".format(self.obj.formatjava(indent), args)
 		elif self.methname == "render":
-			return "((com.livinglogic.ul4.Template){}).render(context.getWriter(), {})".format(self.obj.formatjava(indent), args)
+			return "com.livinglogic.ul4.KeywordMethodRender.call(context.getWriter(), {}, {})".format(self.obj.formatjava(indent), args)
 		else:
 			raise UnknownMethodError(self.methname)
 

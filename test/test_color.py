@@ -9,8 +9,6 @@
 ## See ll/__init__.py for the license
 
 
-import py.test
-
 from ll import color
 
 
