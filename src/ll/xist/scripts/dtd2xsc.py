@@ -124,7 +124,7 @@ __docformat__ = "reStructuredText"
 def getxmlns(dtd):
 	# Extract the value of all fixed ``xmlns`` attributes
 	found = set()
-	for elemdecl in dtd.iterelements():
+	for elemdecl in dtd.iterelements(): # This requires ``lxml`` version 2.4
 		for attrdecl in elemdecl.iterattributes():
 			if attrdecl.name=="xmlns" or ":" in attrdecl.name:
 				if attrdecl.default == "fixed":
@@ -135,8 +135,8 @@ def getxmlns(dtd):
 
 def adddtd2xnd(ns, dtd):
 	# Appends DTD information from :var:`dtd` to the :class:`xnd.Module` object
-	from lxml import etree
-	dtd = etree.DTD(dtd) # This requires ``lxml``
+	from lxml import etree # This requires lxml (http://lxml.de/)
+	dtd = etree.DTD(dtd)
 
 	# try to guess the namespace name from the dtd
 	xmlns = getxmlns(dtd)
