@@ -114,8 +114,6 @@ The output will be::
 
 import sys, os.path, argparse, io, operator
 
-from lxml import etree
-
 from ll import misc, url
 from ll.xist import xsc, parse, xnd
 
@@ -137,6 +135,7 @@ def getxmlns(dtd):
 
 def adddtd2xnd(ns, dtd):
 	# Appends DTD information from :var:`dtd` to the :class:`xnd.Module` object
+	from lxml import etree
 	dtd = etree.DTD(dtd) # This requires ``lxml``
 
 	# try to guess the namespace name from the dtd
