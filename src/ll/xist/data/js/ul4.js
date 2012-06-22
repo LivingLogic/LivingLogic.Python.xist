@@ -41,19 +41,25 @@ var ul4 = {
 	// Addition: num + num, string + string
 	_op_add: function(obj1, obj2)
 	{
+		if (obj1 === null || obj2 === null)
+			throw this._fu_type(obj1) + " + " + this._fu_type(obj2) + " not supported";
 		return obj1 + obj2;
 	},
 
 	// Substraction: num - num
 	_op_sub: function(obj1, obj2)
 	{
+		if (obj1 === null || obj2 === null)
+			throw this._fu_type(obj1) + " - " + this._fu_type(obj2) + " not supported";
 		return obj1 - obj2;
 	},
 
 	// Multiplication: num * num, int * str, str * int, int * list, list * int
 	_op_mul: function(obj1, obj2)
 	{
-		if (this._fu_isint(obj1) || this._fu_isbool(obj1))
+		if (obj1 === null || obj2 === null)
+			throw this._fu_type(obj1) + " * " + this._fu_type(obj2) + " not supported";
+		else if (this._fu_isint(obj1) || this._fu_isbool(obj1))
 		{
 			if (typeof(obj2) === "string")
 			{
@@ -89,12 +95,16 @@ var ul4 = {
 	// Truncating division
 	_op_floordiv: function(obj1, obj2)
 	{
+		if (obj1 === null || obj2 === null)
+			throw this._fu_type(obj1) + " // " + this._fu_type(obj2) + " not supported";
 		return Math.floor(obj1 / obj2);
 	},
 
 	// "Real" division
 	_op_truediv: function(obj1, obj2)
 	{
+		if (obj1 === null || obj2 === null)
+			throw this._fu_type(obj1) + " / " + this._fu_type(obj2) + " not supported";
 		return obj1 / obj2;
 	},
 
