@@ -1406,30 +1406,19 @@ class Tidy(object):
 				yield event
 		elif "Element" in name:
 			elementname = node.tag
-			if elementname.startswith("{"):
-				(elementxmlns, sep, elementname) = elementname[1:].partition("}")
-				element = None
-				elok = True
-			else:
-				elementxmlns = html.xmlns
-				element = getattr(html, elementname, None)
-				elok = element is not None
+			element = getattr(html, elementname, None)
+			elok = element is not None
 			if elok: # Output events for the start tag, if the element is known
-				yield ("enterstarttagns", (elementname, elementxmlns))
+				yield ("enterstarttag", elementname)
 				for (attrname, attrvalue) in sorted(node.items()):
-					if attrname.startswith("{"):
-						(attrxmlns, sep, attrname) = attrname[1:].partition("}")
-						atok = True
-					else:
-						attrxmlns = None
-						# Output the attribute if: all attributes should be output, or it isn't an HTML element, or the attribute is known
-						atok = not self.skipbad or element is None or element.Attrs.isallowed_xml(attrname)
+					# Output the attribute if: all attributes should be output, or it isn't an HTML element, or the attribute is known
+					atok = not self.skipbad or element is None or element.Attrs.isallowed_xml(attrname)
 					if atok:
-						yield ("enterattrns", (attrname, attrxmlns))
+						yield ("enterattr", attrname)
 						if attrvalue:
 							yield ("text", attrvalue)
-						yield ("leaveattrns", (attrname, attrxmlns))
-				yield ("leavestarttagns", (elementname, elementxmlns))
+						yield ("leaveattr", attrname)
+				yield ("leavestarttag", elementname)
 			if node.text:
 				yield ("text", node.text)
 			for child in node:
@@ -1438,7 +1427,7 @@ class Tidy(object):
 				if hasattr(child, "tail") and child.tail:
 					yield ("text", child.tail)
 			if elok: # Output events for the end tag, if the element is known
-				yield ("endtagns", (elementname, elementxmlns))
+				yield ("endtag", elementname)
 		elif "ProcessingInstruction" in name:
 			yield ("procinst", (node.target, node.text))
 		elif "Comment" in name:
