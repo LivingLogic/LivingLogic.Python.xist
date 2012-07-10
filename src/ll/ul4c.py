@@ -840,7 +840,10 @@ class Dict(AST):
 	def formatjava(self, indent):
 		v = ["new com.livinglogic.ul4.MapMaker()"]
 		for item in self.items:
-			v.append(".add({})".format(", ".join(arg.formatjava(indent) for arg in item)))
+			if len(item) == 1:
+				v.append(".add((Map){})".format(item[0].formatjava(indent)))
+			else:
+				v.append(".add({}, {})".format(item[0].formatjava(indent), item[1].formatjava(indent)))
 		v.append(".getMap()")
 		return "".join(v)
 
@@ -2072,7 +2075,7 @@ class CallMethKeywords(AST):
 		v = []
 		for arg in self.args:
 			if len(arg) == 1:
-				v.append(".add({})".format(arg[0].formatjava(indent)))
+				v.append(".add((Map){})".format(arg[0].formatjava(indent)))
 			else:
 				v.append(".add({}, {})".format(misc.javaexpr(arg[0]), arg[1].formatjava(indent)))
 		args = "new com.livinglogic.ul4.MapMaker(){}.getMap()".format("".join(v))
