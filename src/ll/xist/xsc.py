@@ -3041,8 +3041,8 @@ class Element(Node, metaclass=_Element_Meta):
 			attrs[key] = Frag(value)
 		return (self.content, attrs)
 
-	def __setstate__(self, xxx_todo_changeme):
-		(content, attrs) = xxx_todo_changeme
+	def __setstate__(self, data):
+		(content, attrs) = data
 		self.content = content
 		self.attrs = self.Attrs()
 		for (key, value) in attrs.items():
