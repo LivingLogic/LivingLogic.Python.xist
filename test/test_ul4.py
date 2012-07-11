@@ -238,7 +238,6 @@ all_python_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump)
 # FIXME: The following really takes a long time to run:
 all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaInterpretedTemplateByPython, RenderJavaCompiledTemplateByPython, RenderJavaInterpretedTemplateByJava)
 all_renderers = all_python_renderers
-all_renderers = (RenderJavaCompiledTemplateByPython,)
 
 with_all_renderers = pytest.mark.parametrize(("r",), [(r,) for r in all_renderers])
 
