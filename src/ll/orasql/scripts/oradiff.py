@@ -60,9 +60,6 @@ Options
 		and with ``collapse`` trailing and leading whitespace will be ignored and
 		stretches of whitespace will be treated as a single space.
 
-	``-e``, ``--encoding`` : encoding
-		The encoding of the output (default is ``utf-8``).
-
 Example
 -------
 
@@ -151,7 +148,7 @@ class Line(object):
 		return hash(self.compareline)
 
 
-def showudiff(out, obj, ddl1, ddl2, connection1, connection2, encoding="utf-8", context=3, timeformat="%c"):
+def showudiff(out, obj, ddl1, ddl2, connection1, connection2, context=3, timeformat="%c"):
 	def header(prefix, style, connection):
 		return style("{} {!r} in {}: {}".format(prefix, obj, connection.connectstring(), gettimestamp(obj, connection, timeformat)))
 
@@ -166,14 +163,14 @@ def showudiff(out, obj, ddl1, ddl2, connection1, connection2, encoding="utf-8", 
 		for (tag, i1, i2, j1, j2) in group:
 			if tag == "equal":
 				for line in ddl1[i1:i2]:
-					out.writeln(" {}".format(line.originalline).encode(encoding))
+					out.writeln(" {}".format(line.originalline))
 				continue
 			if tag == "replace" or tag == "delete":
 				for line in ddl1[i1:i2]:
-					out.writeln(s4removedline("-", line.originalline.encode(encoding)))
+					out.writeln(s4removedline("-", line.originalline))
 			if tag == "replace" or tag == "insert":
 				for line in ddl2[j1:j2]:
-					out.writeln(s4addedline("+", line.originalline.encode(encoding)))
+					out.writeln(s4addedline("+", line.originalline))
 
 
 def main(args=None):
@@ -186,7 +183,6 @@ def main(args=None):
 	p.add_argument("-n", "--context", dest="context", help="Number of context lines (default %(default)s)", type=int, default=2)
 	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' or 'SYS_EXPORT_SCHEMA_' in their name? (default %(default)s)", default=False, action=misc.FlagAction)
 	p.add_argument("-b", "--blank", dest="blank", help="How to treat whitespace (default %(default)s)", default="literal", choices=("literal", "trail", "lead", "both", "collapse"))
-	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for output (default %(default)s)", default="utf-8")
 
 	args = p.parse_args(args)
 
@@ -241,7 +237,7 @@ def main(args=None):
 				stdout.write(ddl)
 		elif args.mode == "udiff":
 			ddl = getcanonicalddl(obj.createddl(connection1), args.blank)
-			showudiff(stdout, obj, ddl, [], connection1, connection2, args.encoding, args.context)
+			showudiff(stdout, obj, ddl, [], connection1, connection2, args.context)
 
 	onlyin2 = objects2 - objects1
 	for (i, obj) in enumerate(onlyin2):
@@ -256,7 +252,7 @@ def main(args=None):
 				stdout.write(ddl)
 		elif args.mode == "udiff":
 			ddl = getcanonicalddl(obj.createddl(connection2), args.blank)
-			showudiff(stdout, obj, [], ddl, connection1, connection2, args.encoding, args.context)
+			showudiff(stdout, obj, [], ddl, connection1, connection2, args.context)
 
 	common = objects1 & objects2
 	for (i, obj) in enumerate(common):
@@ -273,7 +269,7 @@ def main(args=None):
 				stdout.writeln(comment(df(obj), ": different"))
 				stdout.write(obj.createddl(connection2))
 			elif args.mode == "udiff":
-				showudiff(stdout, obj, ddl1c, ddl2c, connection1, connection2, args.encoding, args.context)
+				showudiff(stdout, obj, ddl1c, ddl2c, connection1, connection2, args.context)
 
 
 if __name__ == "__main__":

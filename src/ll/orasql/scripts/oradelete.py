@@ -52,9 +52,6 @@ Options
 		If given, errors occuring while the database is read or written will be
 		ignored.
 
-	``-e``, ``--encoding`` : encoding
-		The encoding of the output (if ``-x`` is not given; default is ``utf-8``).
-
 	``-t``, ``--truncate`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		If given the script uses the ``TRUNCATE`` command instead of the ``DELETE``
 		command.
@@ -92,7 +89,6 @@ def main(args=None):
 	p.add_argument("-x", "--execute", dest="execute", action=misc.FlagAction, help="immediately execute the commands instead of printing them? (default %(default)s)")
 	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' or 'SYS_EXPORT_SCHEMA_' in their name? (default %(default)s)", default=False, action="store_true")
 	p.add_argument("-i", "--ignore", dest="ignore", help="Ignore errors? (default %(default)s)", default=False, action=misc.FlagAction)
-	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for output (default %(default)s)", default="utf-8")
 	p.add_argument("-t", "--truncate", dest="truncate", help="Truncate tables (instead of deleting)? (default %(default)s)", default=False, action=misc.FlagAction)
 	p.add_argument(      "--include", dest="include", metavar="REGEXP", help="Include only objects whose name contains PATTERN (default: %(default)s)", type=re.compile)
 	p.add_argument(      "--exclude", dest="exclude", metavar="REGEXP", help="Exclude objects whose name contains PATTERN (default: %(default)s)", type=re.compile)
@@ -148,7 +144,7 @@ def main(args=None):
 					sql = "truncate table {};\n".format(obj.name)
 				else:
 					sql = "delete from {};\n".format(obj.name)
-				stdout.write(sql.encode(args.encoding))
+				stdout.write(sql)
 	if not args.truncate:
 		connection.commit()
 
@@ -175,7 +171,7 @@ def main(args=None):
 						stderr.writeln("oradelete.py: ", s4error("{}: {}".format(exc.__class__, str(exc).strip())))
 				else:
 					sql = obj.dropddl(term=True) + obj.createddl(term=True)
-					stdout.write(sql.encode(args.encoding))
+					stdout.write(sql)
 
 if __name__ == "__main__":
 	sys.exit(main())

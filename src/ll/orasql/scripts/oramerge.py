@@ -48,9 +48,6 @@ Options
 		``SYS_EXPORT_SCHEMA_`` in their name will be skipped (otherwise these
 		objects will be considered as merge candidates).
 
-	``-e``, ``--encoding`` : encoding
-		The encoding of the output (default is ``utf-8``).
-
 
 Example
 -------
@@ -152,7 +149,6 @@ def main(args=None):
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-c", "--color", dest="color", help="Color output (default: %(default)s)", default="auto", choices=("yes", "no", "auto"))
 	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' in their name? (default: %(default)s)", action=misc.FlagAction, default=False)
-	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for output (default: %(default)s)", default="utf-8")
 
 	args = p.parse_args(args)
 
@@ -343,15 +339,15 @@ def main(args=None):
 				lines = []
 				file1 = open(filename1, "wb")
 				try:
-					write(file1, ddl1.encode(args.encoding))
+					write(file1, ddl1)
 
 					file2 = open(filename2, "wb")
 					try:
-						write(file2, ddl2.encode(args.encoding))
+						write(file2, ddl2)
 
 						file3 = open(filename3, "wb")
 						try:
-							write(file3, ddl3.encode(args.encoding))
+							write(file3, ddl3)
 
 							# do the diffing
 							proc = subprocess.Popen(["diff3", "-m", filename3, filename1, filename2], stdout=subprocess.PIPE)

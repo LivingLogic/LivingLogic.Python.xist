@@ -46,9 +46,6 @@ Options
 	``-r``, ``--read-lobs`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		If given, ``CLOB``\s will be read when printing search results.
 
-	``-e``, ``--encoding`` : encoding
-		The encoding of the command line arguments (default is ``utf-8``).
-
 Example
 -------
 

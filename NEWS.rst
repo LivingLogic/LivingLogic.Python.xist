@@ -39,18 +39,19 @@ Changes in 4.0 (released ??/??/2012)
 		   id='dings42')
 
 *	A new module :mod:`ul4on` has been added. This module provides functions for
-	encoding and decoding a lightweight machine-readable text format for
-	serializing the object types supported by UL4.
+	encoding and decoding a lightweight extensible machine-readable text format
+	for serializing the object types supported by UL4.
 
 *	The following new functions have been added to UL4: ``isfirst``, ``islast``,
 	``isfirstlast``, ``enumfl``. They are variants of ``enumerate`` that give
 	information about whether the item is the first and/or last item.
 
-*	The following new functions have been added to UL4: ``urlquote`` and ``urlunquote``.
-	They encode/decode the ``%``-escaped form of URL query parameters.
+*	The following new functions have been added to UL4: ``urlquote`` and
+	``urlunquote``. They encode/decode the ``%``-escaped form of URL query
+	parameters.
 
-*	The UL4 function ``json`` has been renamed to ``asjson`` and the following new
-	UL4 functions have been added: ``fromjson``, ``asul4on`` and ``fromul4on``.
+*	The UL4 function ``json`` has been renamed to ``asjson`` and the following
+	new UL4 functions have been added: ``fromjson``, ``asul4on`` and ``fromul4on``.
 
 *	The UL4 function ``enumerate`` now supports 1 or 2 arguments (the second
 	argument being the start value).
@@ -99,8 +100,16 @@ Changes in 4.0 (released ??/??/2012)
 
 	.. _links 2: http://links.twibright.com/
 
-*	The orasql script ``orafind`` no longer has an :option:`-e`/:option:`--encoding`
-	option.
+*	The scripts ``oracreate``, ``oradrop``, ``oradelete``, ``oradiff``,
+	``oramerge``, ``oragrant``, ``orafind`` and ``uhpp`` no longer have an
+	:option:`-e`/:option:`--encoding` option. They always use Pythons output
+	encoding.
+
+*	The options :option:`-i`/:option:`--inputencoding` and
+	:option:`-o`/:option:`--outputencoding` of the script ``db2ul4`` have been
+	replaced with an option :option:`-e`/:option:`--encoding` for the encoding
+	of the template files. For printing the result Pythons output encoding is
+	used.
 
 
 Changes in 3.25 (released 08/12/2011)

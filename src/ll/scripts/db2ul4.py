@@ -22,9 +22,6 @@ Options
 	``-i``, ``--inputencoding``
 		The encoding of the templates files (default ``utf-8``)
 
-	``-o``, ``--outputencoding``
-		The encoding used for the rendered output (default ``utf-8``)
-
 
 Template variables
 ------------------
@@ -35,7 +32,7 @@ Inside the template the following variables are available:
 		A dictionary containing all the templates specified on the command line.
 
 	``encoding``
-		The encoding specified via the :option:`--outputencoding` option.
+		The output encoding.
 
 	``system``
 		A dict-like object that maps system commands to their output, e.g. the
@@ -103,7 +100,7 @@ this::
 """
 
 
-import sys, os, argparse, codecs
+import sys, os, argparse, codecs, keyword
 
 from ll import ul4c
 
@@ -178,11 +175,17 @@ class MySQL(object):
 		return Connection(MySQLdb.connect(user=user, passwd=passwd, host=host, db=db, use_unicode=True, cursorclass=cursors.DictCursor))
 
 
+def fixname(name):
+	newname = "".join(c for (i, c) in enumerate(name) if (c.isalnum() if i else c.isalpha()))
+	while keyword.iskeyword(newname):
+		newname += "_"
+	return newname
+
+
 def main(args=None):
 	p = argparse.ArgumentParser(description="render UL4 templates containing SQL statements", epilog="For more info see http://www.livinglogic.de/Python/scripts/db2ul4.html")
 	p.add_argument("templates", metavar="template", help="templates to be used", nargs="+")
-	p.add_argument("-i", "--inputencoding", dest="inputencoding", help="Encoding for template sources (default %(default)s)", default="utf-8", metavar="ENCODING")
-	p.add_argument("-o", "--outputencoding", dest="outputencoding", help="Encoding for output (default %(default)s)", default="utf-8", metavar="ENCODING")
+	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for template sources (default %(default)s)", default="utf-8", metavar="ENCODING")
 
 	args = p.parse_args(args)
 
@@ -193,11 +196,11 @@ def main(args=None):
 			templatestream = sys.stdin
 			templatename = "stdin"
 		else:
-			templatestream = open(templatename, "rb")
+			templatestream = open(templatename, "r", encoding=args.encoding)
 			templatename = os.path.basename(templatename)
 			if os.path.extsep in templatename:
 				templatename = templatename.rpartition(os.extsep)[0]
-		template = ul4c.Template(templatestream.read().decode(args.inputencoding), templatename)
+		template = ul4c.Template(templatestream.read(), fixname(templatename))
 		# The first template is the main template
 		if maintemplate is None:
 			maintemplate = template
@@ -208,10 +211,10 @@ def main(args=None):
 		sqlite=SQLite(),
 		mysql=MySQL(),
 		system=System(),
-		encoding=args.outputencoding,
 		templates=templates,
+		encoding=sys.stdout.encoding,
 	)
-	for part in codecs.iterencode(maintemplate.render(**vars), args.outputencoding):
+	for part in maintemplate.render(**vars):
 		sys.stdout.write(part)
 
 

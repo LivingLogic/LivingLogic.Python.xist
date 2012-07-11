@@ -55,9 +55,6 @@ Options
 		If true, errors occuring while the database is read or written will be
 		ignored.
 
-	``-e``, ``--encoding`` : encoding
-		The encoding of the output (if ``-x`` is not given; default is ``utf-8``).
-
 	``--include`` : regexp
 		Only include objects in the output if their name contains the regular
 		expression.
@@ -92,7 +89,6 @@ def main(args=None):
 	p.add_argument("-x", "--execute", dest="execute", help="immediately execute the commands instead of printing them? (default %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' in their name? (default %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-i", "--ignore", dest="ignore", help="Ignore errors? (default %(default)s)", default=False, action=misc.FlagAction)
-	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for output (default %(default)s)", default="utf-8")
 	p.add_argument(      "--include", dest="include", metavar="REGEXP", help="Include only objects whose name contains PATTERN (default: %(default)s)", type=re.compile)
 	p.add_argument(      "--exclude", dest="exclude", metavar="REGEXP", help="Exclude objects whose name contains PATTERN (default: %(default)s)", type=re.compile)
 
@@ -155,7 +151,7 @@ def main(args=None):
 			if args.execute:
 				ddls.append((obj, ddl))
 			else:
-				stdout.write(ddl.encode(args.encoding))
+				stdout.write(ddl)
 
 	# Execute DDL
 	if args.execute:

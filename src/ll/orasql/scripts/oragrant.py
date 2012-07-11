@@ -54,9 +54,6 @@ Options
 		the original one. The default is to grant all privileges to the original
 		grantee.
 
-	``-e``, ``--encoding`` : encoding
-		The encoding of the output (if ``-x`` is not given; default is ``utf-8``).
-
 	``--include`` : regexp
 		Only include objects in the output if their name contains the regular
 		expression.
@@ -99,7 +96,6 @@ def main(args=None):
 	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' or 'SYS_EXPORT_SCHEMA_' in their name? (default %(default)s)", default=False, action="store_true")
 	p.add_argument("-i", "--ignore", dest="ignore", help="Ignore errors? (default %(default)s)", default=False, action=misc.FlagAction)
 	p.add_argument("-m", "--mapgrantee", dest="mapgrantee", help="Map grantees (Python expression: list or dict)", default="True")
-	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for output (default %(default)s)", default="utf-8")
 	p.add_argument(      "--include", dest="include", metavar="REGEXP", help="Include only objects whose name contains PATTERN (default: %(default)s)", type=re.compile)
 	p.add_argument(      "--exclude", dest="exclude", metavar="REGEXP", help="Exclude objects whose name contains PATTERN (default: %(default)s)", type=re.compile)
 
@@ -161,7 +157,7 @@ def main(args=None):
 							raise
 						stderr.writeln("oragrant.py: ", s4error("{}: {}".format(exc.__class__.__name__, str(exc).strip())))
 				else:
-					stdout.writeln(ddl.encode(args.encoding))
+					stdout.writeln(ddl)
 					stdout.writeln()
 
 

@@ -29,15 +29,13 @@ Options
 	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		Output parse warnings?
 
-	``-e``, ``--encoding``
-		Encoding for output (default utf-8)
-
 	``-c``, ``--compact`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		Compact HTML before printing (i.e. remove whitespace nodes)?
 
 
 Examples
 --------
+
 Pretty print stdin::
 
 	$ cat foo.html | uhpp
@@ -56,7 +54,7 @@ import sys, re, argparse, contextlib, errno
 
 from ll import misc, url
 from ll.xist import xsc, parse
-from ll.xist.ns import html
+from ll.xist.ns import xml, html
 
 __docformat__ = "reStructuredText"
 
@@ -64,16 +62,15 @@ __docformat__ = "reStructuredText"
 def main(args=None):
 	def printone(u):
 		source = parse.URL(u) if isinstance(u, url.URL) else parse.Stream(u)
-		node = parse.tree(source, parse.Tidy(skipbad=True), parse.NS(html), parse.Node(base="", pool=xsc.Pool(html)))
+		node = parse.tree(source, parse.Tidy(skipbad=True), parse.NS(html), parse.Node(base="", pool=xsc.Pool(html, xml)))
 		if args.compact:
 			node = node.normalized().compacted()
 		node = node.pretty()
-		print(node.bytes(encoding=args.encoding))
+		print(node.string(encoding=sys.stdout.encoding))
 
 	p = argparse.ArgumentParser(description="pretty print HTML files", epilog="For more info see http://www.livinglogic.de/Python/scripts/uxpp.html")
 	p.add_argument("urls", metavar="url", help="URLs to be pretty printed", nargs="*", type=url.URL)
 	p.add_argument("-v", "--verbose", dest="verbose", help="Ouput parse warnings?", action=misc.FlagAction, default=False)
-	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for output (default: %(default)s)", default="utf-8")
 	p.add_argument("-c", "--compact", dest="compact", help="Compact HTML before pretty printing (default: %(default)s)", action=misc.FlagAction, default=False)
 
 	args = p.parse_args(args)
@@ -85,7 +82,7 @@ def main(args=None):
 			for u in args.urls:
 				printone(u)
 		else:
-			printone(sys.stdin)
+			printone(sys.stdin.buffer)
 
 
 if __name__ == "__main__":
