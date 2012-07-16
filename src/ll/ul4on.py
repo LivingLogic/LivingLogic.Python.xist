@@ -42,10 +42,12 @@ class Person:
 otto = Person("Otto", "Normalverbraucher")
 """
 
-
 import datetime, collections, io, contextlib
 
 from ll import color, misc
+
+
+__docformat__ = "reStructuredText"
 
 
 _registry = {}
