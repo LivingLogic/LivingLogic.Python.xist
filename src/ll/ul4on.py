@@ -12,34 +12,115 @@
 """
 This module provides functions for encoding and decoding a lightweight
 machine-readable text-based format for serializing the object types supported
-by UL4.
+by UL4. It is extensible to allow encoding/decoding arbitrary instances
+(i.e. it is basically a reimplementation of :mod:`pickle`, but with string
+input/output instead of bytes and with an eye towards cross-plattform support).
 
-It is extensible to allow encoding/decoding arbitrary instances (i.e. it is
-basically a reimplementation of :mod:`pickle`, but with string input/output
-instead of bytes and with an eye towards cross-plattform support).
+Basic usage follows the API design of :mod:`pickle`, :mod:`json`, etc. and
+supports most builtin Python types::
 
-Example
--------
+	>>> from ll import ul4on
+	>>> ul4on.dumps(None)
+	'n'
+	>>> ul4on.loads('n')
+	>>> ul4on.dumps(False)
+	'bF'
+	>>> ul4on.loads('bF')
+	False
+	>>> ul4on.dumps(42)
+	'i42|'
+	>>> ul4on.loads('i42|')
+	42
+	>>> ul4on.dumps(42.5)
+	'f42.5|'
+	>>> ul4on.loads('f42.5|')
+	42.5
+	>>> ul4on.dumps('foo')
+	'S3|foo'
+	>>> ul4on.loads('S3|foo')
+	'foo'
+	>>> import datetime
+	>>> ul4on.dumps(datetime.datetime.now())
+	'T20120716170817230158'
+	>>> ul4on.loads('T20120716170817230158')
+	datetime.datetime(2012, 7, 16, 17, 8, 17, 230158)
 
-::
+It also supports :class:`Color` objects from :mod:`ll.color`::
 
-from ll import ul4on
+	>>> from ll import color
+	>>> ul4on.dumps(color.red)
+	'Cff0000ff'
+	>>> ul4on.loads('Cff0000ff')
+	Color(0xff, 0x00, 0x00)
 
-@ul4on.register("com.example.person")
-class Person:
-	def __init__(self, firstname=None, lastname=None):
-		self.firstname = firstname
-		self.lastname = lastname
+Lists and dictionaries are also supported::
 
-	def ul4ondump(self, encoder):
-		encoder.dump(self.firstname)
-		encoder.dump(self.lastname)
+	>>> ul4on.dumps([1, 2, 3])
+	'Li1|i2|i3|]'
+	>>> ul4on.loads('Li1|i2|i3|]')
+	[1, 2, 3]
+	>>> ul4on.dumps(dict(one=1, two=2))
+	'DS3|twoi2|S3|onei1|}'
+	>>> ul4on.loads('DS3|twoi2|S3|onei1|}')
+	{'one': 1, 'two': 2}
 
-	def ul4onload(self, decoder)
-		self.firstname = decoder.load()
-		self.lastname = decoder.load()
+:mod:`ll.ul4on` can also handle recursive data structures::
 
-otto = Person("Otto", "Normalverbraucher")
+	>>> r = []
+	>>> r.append(r)
+	>>> ul4on.dumps(r)
+	'L^0|]'
+	>>> r2 = ul4on.loads('L^0|]')
+	>>> r2
+	[[...]]
+	>>> r2 is r2[0]
+	True
+	>>> r = {}
+	>>> r['recursive'] = r
+	>>> ul4on.dumps(r)
+	'DS9|recursive^0|}'
+	>>> r2 = ul4on.loads('DS9|recursive^0|}')
+	>>> r2
+	{'recursive': {...}}
+	>>> r2['recursive'] is r2
+	True
+
+UL4ON is extensible. It supports serializing arbitrary instances by registering
+the class with the UL4ON serialization machinery::
+
+	from ll import ul4on
+
+	@ul4on.register("com.example.person")
+	class Person:
+		def __init__(self, firstname=None, lastname=None):
+			self.firstname = firstname
+			self.lastname = lastname
+
+		def __repr__(self):
+			return "<Person firstname={!r} lastname={!r}>".format(self.firstname, self.lastname)
+
+		def ul4ondump(self, encoder):
+			encoder.dump(self.firstname)
+			encoder.dump(self.lastname)
+
+		def ul4onload(self, decoder):
+			self.firstname = decoder.load()
+			self.lastname = decoder.load()
+
+	jd = Person("John", "Doe")
+	output = ul4on.dumps(jd)
+	print("UL4ON dump:")
+	print(output)
+	jd2 = ul4on.loads(output)
+	print("Loaded:")
+	print(jd2)
+
+This script outputs::
+
+	UL4ON dump:
+	OS18|com.example.personS4|JohnS3|Doe
+	Loaded:
+	<Person firstname='John' lastname='Doe'>
 """
 
 import datetime, collections, io, contextlib
