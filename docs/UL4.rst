@@ -622,7 +622,21 @@ recreate the object.
 ``fromjson``
 ::::::::::::
 
-``fromjson(foo)`` decodes the JSON string ``foo`` and returns the resulting object.
+``fromjson(foo)`` decodes the JSON string ``foo`` and returns the resulting
+object.
+
+
+``asul4on``
+:::::::::::
+
+``asul4on(foo)`` returns the UL4ON representation of the object ``foo``.
+
+
+``fromul4on``
+:::::::::::::
+
+``fromul4on(foo)`` decodes the UL4ON string ``foo`` and returns the resulting
+object.
 
 
 ``get``
@@ -746,7 +760,8 @@ If the argument is not a string, it will be converted to a string first.
 ``sorted``
 ::::::::::
 
-``sorted`` returns a sorted list with the items from it's argument. For example::
+``sorted`` returns a sorted list with the items from it's argument. For
+example::
 
 	<?for c in sorted('bar')?><?print c?><?end for?>
 
@@ -838,7 +853,8 @@ recognized ``None`` is returned.)
 ``randchoice``
 ::::::::::::::
 
-``randchoice`` returns a random item from its argument (which must be list or string)
+``randchoice`` returns a random item from its argument (which must be list or
+string)
 
 
 ``randchoice``
