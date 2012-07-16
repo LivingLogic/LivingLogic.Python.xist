@@ -1386,9 +1386,7 @@ def astext(node, encoding="iso-8859-1", width=72):
 	try:
 		f.write(text)
 		f.close()
-		p = subprocess.Popen("links -codepage {} -width {} -force-html -dump {}".format(encoding, width, f.name), shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
-		p.stdin.write(text)
-		p.stdin.close()
+		p = subprocess.Popen("links -codepage {} -width {} -force-html -dump {}".format(encoding, width, f.name), shell=True, stdout=subprocess.PIPE, close_fds=True)
 		text = p.stdout.read().decode(encoding)
 		p.stdout.close()
 	finally:
