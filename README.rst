@@ -35,7 +35,7 @@ XIST also includes the following modules and packages:
 	-	Query results will be put into Record objects, where database fields
 		are accessible as object attributes.
 
-	-	The :class:`Connection`` class provides methods for iterating through the
+	-	The ``Connection`` class provides methods for iterating through the
 		database metadata.
 
 	-	Importing the modules adds support for URLs with the scheme ``oracle`` to
