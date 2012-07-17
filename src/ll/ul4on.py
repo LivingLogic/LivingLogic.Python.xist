@@ -16,6 +16,13 @@ by UL4. It is extensible to allow encoding/decoding arbitrary instances
 (i.e. it is basically a reimplementation of :mod:`pickle`, but with string
 input/output instead of bytes and with an eye towards cross-plattform support).
 
+There are implementations for Python (this module), Java_, Javascript_ and
+PHP_ (as part of the UL4 packages for those languages).
+
+.. _Java: http://hg.livinglogic.de/LivingLogic.Java.ul4/
+.. _Javascript: http://hg.livinglogic.de/LivingLogic.Javascript.ul4/
+.. _PHP: http://hg.livinglogic.de/LivingLogic.PHP.ul4/
+
 Basic usage follows the API design of :mod:`pickle`, :mod:`json`, etc. and
 supports most builtin Python types::
 

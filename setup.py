@@ -21,14 +21,24 @@ transform the XML tree (e.g. into HTML). XIST can be considered
 
 XIST also includes the following modules and packages:
 
-*	:mod:`ll.make` is an object oriented make replacement. Like make it allows
-	you to specify dependencies between files and actions to be executed
-	when files don't exist or are out of date with respect to one
-	of their sources. But unlike make you can do this in a object oriented
-	way and targets are not only limited to files.
+*	:mod:`ll.ul4c` is compiler for a cross-platform templating language with
+	similar capabilities to `Django's templating language`__. ``UL4`` templates
+	are compiled to an internal format, which makes it possible to implement template
+	renderers in other languages and makes the template code "secure" (i.e.
+	template code can't open or delete files).
 
-*	:mod:`ll.url` provides classes for parsing and constructing RFC 2396
-	compliant URLs.
+	__ http://www.djangoproject.com/documentation/templates/
+
+	There are implementations for Python, Java, Javascript and PHP.
+
+*	:mod:`ll.ul4on` module provides functions for encoding and decoding a
+	lightweight machine-readable text-based format for serializing the object
+	types supported by UL4. It is extensible to allow encoding/decoding arbitrary
+	instances (i.e. it is basically a reimplementation of :mod:`pickle`, but with
+	string input/output instead of bytes and with an eye towards cross-plattform
+	support).
+
+	There are implementations for Python, Java, Javascript and PHP.
 
 *	:mod:`ll.orasql` provides utilities for working with cx_Oracle_:
 
@@ -45,32 +55,33 @@ XIST also includes the following modules and packages:
 
 	.. _cx_Oracle: http://cx-oracle.sourceforge.net/
 
-*	:mod:`ll.ul4c` is compiler for a templating language with similar capabilities
-	to `Django's templating language`__. ``UL4`` templates are compiled to an
-	internal bytecode format, which makes it possible to implement template
-	renderers in other languages (Java and Javascript are supported) and makes
-	the template code "secure" (i.e. template code can't open or delete files).
-
-	__ http://www.djangoproject.com/documentation/templates/
-
-*	:mod:`ll.astyle` can be used for colored terminal output (via ANSI escape
-	sequences).
+*	:mod:`ll.make` is an object oriented make replacement. Like make it allows
+	you to specify dependencies between files and actions to be executed
+	when files don't exist or are out of date with respect to one
+	of their sources. But unlike make you can do this in a object oriented
+	way and targets are not only limited to files.
 
 *	:mod:`ll.color` provides classes and functions for handling RGB color values.
 	This includes the ability to convert between different color models
 	(RGB, HSV, HLS) as well as to and from CSS format, and several functions
 	for modifying and mixing colors.
 
+*	:mod:`ll.sisyphus` provides classes for running Python scripts as cron jobs.
+
+*	:mod:`ll.url` provides classes for parsing and constructing RFC 2396
+	compliant URLs.
+
+*	:mod:`ll.nightshade` can be used to serve the output of PL/SQL
+	functions/procedures with CherryPy__.
+
 *	:mod:`ll.misc` provides several small utility functions and classes.
 
-*	:mod:`ll.sisyphus` provides classes for running Python scripts as cron jobs.
+*	:mod:`ll.astyle` can be used for colored terminal output (via ANSI escape
+	sequences).
 
 *	:mod:`ll.daemon` can be used on UNIX to fork a daemon process.
 
 *	:mod:`ll.xml_codec` contains a complete codec for encoding and decoding XML.
-
-*	:mod:`ll.nightshade` can be used to serve the output of PL/SQL
-	functions/procedures with CherryPy__.
 
 __ http://www.cherrypy.org/
 """
@@ -239,7 +250,7 @@ args = dict(
 	keywords=", ".join(sorted({k.strip() for k in KEYWORDS.strip().splitlines() if k.strip() and not k.strip().startswith("#")})),
 	package_dir={"": "src"},
 	packages=["ll", "ll.scripts", "ll.xist", "ll.xist.ns", "ll.xist.scripts", "ll.orasql", "ll.orasql.scripts"],
-	package_data={"ll.xist": ["data/js/*.js", "data/px/*.gif"]},
+	package_data={"ll.xist": ["data/px/*.gif"]},
 	ext_modules=[
 		tools.Extension("ll._url", ["src/ll/_url.c"]),
 		tools.Extension("ll._ansistyle", ["src/ll/_ansistyle.c"]),
