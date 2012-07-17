@@ -109,18 +109,14 @@ the class with the UL4ON serialization machinery::
 
 	jd = Person("John", "Doe")
 	output = ul4on.dumps(jd)
-	print("UL4ON dump:")
-	print(output)
+	print("Dump:", output)
 	jd2 = ul4on.loads(output)
-	print("Loaded:")
-	print(jd2)
+	print("Loaded:", jd2)
 
 This script outputs::
 
-	UL4ON dump:
-	OS18|com.example.personS4|JohnS3|Doe
-	Loaded:
-	<Person firstname='John' lastname='Doe'>
+	Dump: OS18|com.example.personS4|JohnS3|Doe
+	Loaded: <Person firstname='John' lastname='Doe'>
 """
 
 import datetime, collections, io, contextlib
