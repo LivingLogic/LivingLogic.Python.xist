@@ -9,32 +9,32 @@ transform the XML tree (e.g. into HTML). XIST can be considered
 
 XIST also includes the following modules and packages:
 
-*	:mod:`ll.make` is an object oriented make replacement. Like make it allows
+*	``ll.make`` is an object oriented make replacement. Like make it allows
 	you to specify dependencies between files and actions to be executed
 	when files don't exist or are out of date with respect to one
 	of their sources. But unlike make you can do this in a object oriented
 	way and targets are not only limited to files, but you can implement
 	e.g. dependencies on database records.
 
-*	:mod:`ll.url` provides classes for parsing and constructing RFC 2396
+*	``ll.url`` provides classes for parsing and constructing RFC 2396
 	compliant URLs.
 
-*	:mod:`ll.orasql` provides utilities for working with cx_Oracle_:
+*	``ll.orasql`` provides utilities for working with cx_Oracle_:
 
 	-	It allows calling functions and procedures with keyword arguments.
 
 	-	Query results will be put into Record objects, where database fields
 		are accessible as object attributes.
 
-	-	The :class:`Connection` class provides methods for iterating through the
+	-	The ``Connection`` class provides methods for iterating through the
 		database metadata.
 
 	-	Importing the module adds support for URLs with the scheme ``oracle`` to
-		:mod:`ll.url`.
+		``ll.url``.
 
 	.. _cx_Oracle: http://cx-oracle.sourceforge.net/
 
-*	:mod:`ll.ul4c` is compiler for a templating language with similar capabilities
+*	``ll.ul4c`` is compiler for a templating language with similar capabilities
 	to `Django's templating language`__. ``UL4`` templates are compiled to an
 	internal format, which makes it possible to implement template renderers
 	in other languages and makes the template code "secure" (i.e. template code
@@ -42,21 +42,21 @@ XIST also includes the following modules and packages:
 
 	__ http://www.djangoproject.com/documentation/templates/
 
-*	:mod:`ll.color` provides classes and functions for handling RGB color values.
+*	``ll.color`` provides classes and functions for handling RGB color values.
 	This includes the ability to convert between different color models
 	(RGB, HSV, HLS) as well as to and from CSS format, and several functions
 	for modifying and mixing colors.
 
-*	:mod:`ll.misc` provides several small utility functions and classes.
+*	``ll.misc`` provides several small utility functions and classes.
 
-*	:mod:`ll.sisyphus` provides classes for running Python scripts as cron jobs.
+*	``ll.sisyphus`` provides classes for running Python scripts as cron jobs.
 
-*	:mod:`ll.xml_codec` contains a complete codec for encoding and decoding XML.
+*	``ll.xml_codec`` contains a complete codec for encoding and decoding XML.
 
-*	:mod:`ll.astyle` can be used for colored terminal output (via ANSI escape
+*	``ll.astyle`` can be used for colored terminal output (via ANSI escape
 	sequences).
 
-*	:mod:`ll.daemon` can be used on UNIX to fork a daemon process.
+*	``ll.daemon`` can be used on UNIX to fork a daemon process.
 
 
 Documentation
@@ -93,6 +93,15 @@ XIST is available via ftp_, http_ or from the cheeseshop_.
 .. _ftp: ftp://ftp.livinglogic.de/pub/livinglogic/xist/
 .. _http: http://ftp.livinglogic.de/xist/
 .. _cheeseshop: http://cheeseshop.python.org/pypi/ll-xist
+
+
+Source
+------
+
+Sourcecode is available in a `Mercurial repository`_ or via BitBucket_.
+
+.. _Mercurial repository: http://hg.livinglogic.de/LivingLogic.Python.xist/
+.. _BitBucket: https://bitbucket.org/doerwalter/livinglogic.python.xist
 
 
 Mailing lists
