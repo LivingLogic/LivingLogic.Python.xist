@@ -34,8 +34,8 @@ XIST also includes the following modules and packages:
 
 	.. _cx_Oracle: http://cx-oracle.sourceforge.net/
 
-*	``ll.ul4c`` is compiler for a templating language with similar capabilities
-	to `Django's templating language`__. ``UL4`` templates are compiled to an
+*	``ll.ul4c`` is a compiler for a templating language with similar capabilities
+	to `Django's templating language`__. UL4 templates are compiled to an
 	internal format, which makes it possible to implement template renderers
 	in other languages and makes the template code "secure" (i.e. template code
 	can't open or delete files).
