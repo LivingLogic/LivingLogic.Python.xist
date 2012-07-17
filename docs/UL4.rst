@@ -3,14 +3,16 @@ format. A template defines placeholders for data output and basic logic (like
 loops and conditional blocks), that define how the final rendered output will
 look.
 
-:mod:`ll.ul4c` compiles a template to an internal format, which makes it possible
-to implement renderers for these templates in multiple programming languages.
+:mod:`ll.ul4c` compiles a template to an internal format, which makes it
+possible to implement renderers for these templates in multiple programming
+languages.
 
-Currently there's a compiler and renderer in Python and a
-`compiler and renderer in Java`__. Also compilation to Javascript is supported
-in both the Python and the Java compiler.
+Apart from this Python implementaion there are implementations for Java_ (both a
+compiler and renderer), Javascript_ (renderer only) and PHP_ (renderer only).
 
-__ http://hg.livinglogic.de/LivingLogic.Java.ul4/
+.. _Java: http://hg.livinglogic.de/LivingLogic.Java.ul4/
+.. _Javascript: http://hg.livinglogic.de/LivingLogic.Javascript.ul4/
+.. _PHP: http://hg.livinglogic.de/LivingLogic.PHP.ul4/
 
 
 Embedding

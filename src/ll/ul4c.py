@@ -14,10 +14,9 @@ format. A template defines placeholders for data output and basic logic (like
 loops and conditional blocks), that define how the final rendered output will
 look.
 
-:mod:`ll.ul4c` compiles a template to an internal format, which makes it possible
-to implement template renderers in multiple programming languages.
+:mod:`ll.ul4c` compiles a template to an internal format, which makes it
+possible to implement template renderers in multiple programming languages.
 """
-
 
 
 __docformat__ = "reStructuredText"
