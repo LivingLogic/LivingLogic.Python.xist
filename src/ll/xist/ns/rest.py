@@ -1015,7 +1015,9 @@ class ReSTConverter(object):
 
 
 def fromstring(string, base=None, **options):
-	doc = core.publish_doctree(string, source_path=base, settings_overrides=options)
+	realoptions = dict(tab_width=3)
+	realoptions.update(options)
+	doc = core.publish_doctree(string, source_path=base, settings_overrides=realoptions)
 	elements = globals()
 
 	def toxist(node):
