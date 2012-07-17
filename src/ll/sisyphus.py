@@ -67,7 +67,7 @@ You will find the log files for this job in ``~/ll.sisyphus/ACME.FooBar/Fetch/``
 """
 
 
-import sys, os, signal, fcntl, codecs, traceback, errno, pprint, datetime, re, contextlib, argparse
+import sys, os, signal, fcntl, codecs, traceback, errno, pprint, datetime, re, contextlib, argparse, tokenize
 
 from ll import url, ul4c, misc
 
@@ -182,18 +182,11 @@ class Job(object):
 		the same directory as the current logfile that's more than
 		``keepfilelogs`` days old) will be removed at the end of the job.
 
-	``inputencoding`` : :option:`--inputencoding`
-		The encoding to be used for data that is supposed to be unicode, but isn't
-		(e.g. host/user/network info, lines passed to ``self.log`` etc.)
-
-	``inputerrors`` : :option:`--inputerrors`
-		Decoding error handler name (goes with ``inputencoding``)
-
-	``outputencoding`` : :option:`--outputencoding`
+	``encoding`` : :option:`--encoding`
 		The encoding to be used for the logfile.
 
-	``outputerrors`` : :option:`--outputerrors`
-		Encoding error handler name (goes with ``outputencoding``)
+	``errors`` : :option:`--errors`
+		Encoding error handler name (goes with ``encoding``)
 
 	Command line arguments take precedence over instance attributes (if
 	:func:`executewithargs` is used) and those take precedence over class
@@ -222,11 +215,8 @@ class Job(object):
 
 	keepfilelogs = 30
 
-	inputencoding = "utf-8"
-	inputerrors = "literaldecode"
-
-	outputencoding = "utf-8"
-	outputerrors = "strict"
+	encoding = "utf-8"
+	errors = "strict"
 
 	def execute(self):
 		"""
@@ -248,18 +238,16 @@ class Job(object):
 		This can be overwritten in subclasses to add more arguments.
 		"""
 		p = argparse.ArgumentParser(description=self.argdescription, epilog="For more info see http://www.livinglogic.de/Python/sisyphus/")
-		p.add_argument("-p", "--projectname", dest="projectname", metavar="NAME", help="The name of the project this job belongs to (default: %(default)s)", type=self._string, default=self.projectname)
-		p.add_argument("-j", "--jobname", dest="jobname", metavar="NAME", help="The name of the job (default: %(default)s)", type=self._string, default=self.jobname if self.jobname is not None else self.__class__.__name__)
+		p.add_argument("-p", "--projectname", dest="projectname", metavar="NAME", help="The name of the project this job belongs to (default: %(default)s)", default=self.projectname)
+		p.add_argument("-j", "--jobname", dest="jobname", metavar="NAME", help="The name of the job (default: %(default)s)", default=self.jobname if self.jobname is not None else self.__class__.__name__)
 		p.add_argument("-m", "--maxtime", dest="maxtime", metavar="SECONDS", help="Maximum number of seconds the job is allowed to run (default: %(default)s)", type=int, default=self.maxtime)
 		p.add_argument(      "--fork", dest="fork", help="Fork the process and do the work in the child process? (default: %(default)s)", action=misc.FlagAction, default=self.fork)
 		p.add_argument("-f", "--log2file", dest="log2file", help="Should the job log into a file? (default: %(default)s)", action=misc.FlagAction, default=self.log2file)
 		p.add_argument("-o", "--log2stdout", dest="log2stdout", help="Should the job log to stdout? (default: %(default)s)", action=misc.FlagAction, default=self.log2stdout)
 		p.add_argument("-e", "--log2stderr", dest="log2stderr", help="Should the job log to stderr? (default: %(default)s)", action=misc.FlagAction, default=self.log2stderr)
 		p.add_argument(      "--keepfilelogs", dest="keepfilelogs", metavar="DAYS", help="Number of days log files are kept (default: %(default)s)", type=float, default=self.keepfilelogs)
-		p.add_argument(      "--inputencoding", dest="inputencoding", metavar="ENCODING", help="Encoding for system data (i.e. crontab etc.) (default: %(default)s)", default=self.inputencoding)
-		p.add_argument(      "--inputerrors", dest="inputerrors", metavar="METHOD", help="Error handling method for encoding errors in system data (default: %(default)s)", default=self.inputerrors)
-		p.add_argument(      "--outputencoding", dest="outputencoding", metavar="ENCODING", help="Encoding for the log file (default: %(default)s)", default=self.outputencoding)
-		p.add_argument(      "--outputerrors", dest="outputerrors", metavar="METHOD", help="Error handling method for encoding errors in log texts (default: %(default)s)", default=self.outputerrors)
+		p.add_argument(      "--encoding", dest="encoding", metavar="ENCODING", help="Encoding for the log file (default: %(default)s)", default=self.encoding)
+		p.add_argument(      "--errors", dest="errors", metavar="METHOD", help="Error handling method for encoding errors in log texts (default: %(default)s)", default=self.errors)
 		p.add_argument(      "--noisykills", dest="noisykills", help="Should a message be printed if the maximum runtime is exceeded? (default: %(default)s)", action=misc.FlagAction, default=self.noisykills)
 		return p
 
@@ -280,10 +268,8 @@ class Job(object):
 		self.log2stdout = args.log2stdout
 		self.log2stderr = args.log2stderr
 		self.keepfilelogs = datetime.timedelta(days=args.keepfilelogs)
-		self.inputencoding = args.inputencoding
-		self.inputerrors = args.inputerrors
-		self.outputencoding = args.outputencoding
-		self.outputerrors = args.outputerrors
+		self.encoding = args.encoding
+		self.errors = args.errors
 		return args
 
 	def _alarm_fork(self, signum, frame):
@@ -311,9 +297,9 @@ class Job(object):
 		Handle executing the job including handling of duplicate or hanging jobs.
 		"""
 		self.info = AttrDict()
-		self.info.sysinfo = misc.SysInfo(self.inputencoding, self.inputerrors)
-		self.info.projectname = self._string(self.projectname)
-		self.info.jobname = self._string(self.jobname)
+		self.info.sysinfo = misc.SysInfo()
+		self.info.projectname = self.projectname
+		self.info.jobname = self.jobname
 		self.info.maxtime = self.maxtime
 		self._prefix = ""
 
@@ -367,7 +353,7 @@ class Job(object):
 				raise
 			else:
 				# log the result
-				self.log.sisyphus.result.ok(self._string(result))
+				self.log.sisyphus.result.ok(result)
 			finally:
 				if self._logfile is not None:
 					self._logfile.close()
@@ -397,20 +383,18 @@ class Job(object):
 		if self.log2file or self.log2stdout or self.log2stderr:
 			timestamp = datetime.datetime.now()
 			for text in texts:
-				text = self._string(text)
 				if isinstance(text, BaseException):
 					if "exc" not in tags:
 						tags += ("exc",)
-					tb = "".join(map(self._string, traceback.format_tb(sys.exc_info()[-1])))
+					tb = "".join(traceback.format_tb(sys.exc_info()[-1]))
 					text = "{tb}\n{exc}".format(tb=tb, exc=self._exc(text))
 				elif not isinstance(text, str):
-					text = self._string(pprint.pformat(text))
+					text = pprint.pformat(text)
 				lines = text.splitlines()
 				if lines and not lines[-1].strip():
 					del lines[-1]
 				for line in lines:
 					text = self._formatlogline.renders(line=self._prefix+line, time=timestamp, tags=tags, **self.info)
-					text = text.encode(self.outputencoding, self.outputerrors)
 					if self.log2file:
 						self._logfile.write(text)
 						self._logfile.flush()
@@ -426,20 +410,11 @@ class Job(object):
 		"""
 		Reads the source code of the script into ``self.source``.
 		"""
+		scriptname = self.info.sysinfo.scriptname.rstrip("c")
 		try:
-			with open(self.info.sysinfo.scriptname.rstrip("c"), "rb") as f:
-				source = f.read()
-				lines = source.splitlines()
-				# find encoding in the first two lines
-				encoding = self.inputencoding
-				if lines and lines[0].startswith(codecs.BOM_UTF8):
-					encoding = "utf-8"
-				else:
-					for line in lines[:2]:
-						match = encodingdeclaration.search(line)
-						if match is not None:
-							encoding = match.group(1)
-				self.source = source.decode(encoding, self.inputerrors)
+			encoding = tokenize.detect_encoding(open(scriptname, "rb").readline)[0]
+			with open(scriptname, "r", encoding=encoding, errors="replace") as f:
+				self.source = f.read()
 		except IOError: # Script might have called ``os.chdir()`` before
 			self.source = None
 
@@ -447,7 +422,7 @@ class Job(object):
 		"""
 		Reads the current crontab into ``self.crontab``.
 		"""
-		self.crontab = self._string(os.popen("crontab -l 2>/dev/null").read())
+		self.crontab = os.popen("crontab -l 2>/dev/null").read()
 
 	def _createlog(self):
 		"""
@@ -460,7 +435,7 @@ class Job(object):
 			# Create the log file
 			logfilename = ul4c.Template(self.logfilename, "logfilename").renders(**self.info)
 			lf = self._logfilename = url.File(logfilename).abs()
-			self._logfile = lf.openwrite()
+			self._logfile = lf.openwrite(encoding=self.encoding, errors=self.errors)
 			if self.loglinkname is not None:
 				# Create the log link
 				loglinkname = ul4c.Template(self.loglinkname, "loglinkname").renders(**self.info)
@@ -498,14 +473,6 @@ class Job(object):
 						removedany = True
 					self.log.sisyphus.info("Removing logfile {}".format(fileurl.local()))
 					fileurl.remove()
-
-	def _string(self, s):
-		"""
-		Convert :var:`s` to unicode if it's a :class:`str`.
-		"""
-		if isinstance(s, str):
-			s = s.decode(self.inputencoding, self.inputerrors)
-		return s
 
 	def _exc(self, exc):
 		"""
