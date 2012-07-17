@@ -23,19 +23,19 @@ XIST also includes the following modules and packages:
 
 *	:mod:`ll.ul4c` is compiler for a cross-platform templating language with
 	similar capabilities to `Django's templating language`__. ``UL4`` templates
-	are compiled to an internal format, which makes it possible to implement template
-	renderers in other languages and makes the template code "secure" (i.e.
-	template code can't open or delete files).
+	are compiled to an internal format, which makes it possible to implement
+	template renderers in other languages and makes the template code "secure"
+	(i.e. template code can't open or delete files).
 
 	__ http://www.djangoproject.com/documentation/templates/
 
 	There are implementations for Python, Java, Javascript and PHP.
 
-*	:mod:`ll.ul4on` module provides functions for encoding and decoding a
-	lightweight machine-readable text-based format for serializing the object
-	types supported by UL4. It is extensible to allow encoding/decoding arbitrary
-	instances (i.e. it is basically a reimplementation of :mod:`pickle`, but with
-	string input/output instead of bytes and with an eye towards cross-plattform
+*	:mod:`ll.ul4on` provides functions for encoding and decoding a lightweight
+	machine-readable text-based format for serializing the object types supported
+	by UL4. It is extensible to allow encoding/decoding arbitrary instances
+	(i.e. it is basically a reimplementation of :mod:`pickle`, but with string
+	input/output instead of bytes and with an eye towards cross-plattform
 	support).
 
 	There are implementations for Python, Java, Javascript and PHP.
