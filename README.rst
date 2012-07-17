@@ -19,11 +19,11 @@ XIST also includes the following modules and packages:
 
 	There are implementations for Python, Java, Javascript and PHP.
 
-*	The ``ll.ul4on`` module provides functions for encoding and decoding a
-	lightweight machine-readable text-based format for serializing the object
-	types supported by UL4. It is extensible to allow encoding/decoding arbitrary
-	instances (i.e. it is basically a reimplementation of ``pickle``, but with
-	string input/output instead of bytes and with an eye towards cross-plattform
+*	``ll.ul4on`` provides functions for encoding and decoding a lightweight
+	machine-readable text-based format for serializing the object types supported
+	by UL4. It is extensible to allow encoding/decoding arbitrary instances
+	(i.e. it is basically a reimplementation of ``pickle``, but with string
+	input/output instead of bytes and with an eye towards cross-plattform
 	support).
 
 	There are implementations for Python, Java, Javascript and PHP.
