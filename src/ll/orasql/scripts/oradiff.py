@@ -173,6 +173,14 @@ def showudiff(out, obj, ddl1, ddl2, connection1, connection2, context=3, timefor
 					out.writeln(s4addedline("+", line.originalline))
 
 
+def filteredenumerate(sequence, objset):
+	i = 0
+	for obj in sequence:
+		if obj in objset:
+			yield (i, obj)
+			i += 1
+
+
 def main(args=None):
 	p = argparse.ArgumentParser(description="compare two Oracle database schemas", epilog="For more info see http://www.livinglogic.de/Python/orasql/scripts/oradiff.html")
 	p.add_argument("connectstring1", help="First schema")
@@ -198,8 +206,9 @@ def main(args=None):
 	connection1 = orasql.connect(args.connectstring1)
 	connection2 = orasql.connect(args.connectstring2)
 
-	def fetch(connection):
-		objects = set()
+	def fetch(connection, mode="flat"):
+		objectset = set()
+		objectlist = []
 
 		def keep(obj):
 			if obj.owner is not None:
@@ -210,7 +219,7 @@ def main(args=None):
 				return False
 			return True
 
-		for (i, obj) in enumerate(connection.iterobjects(owner=None, mode="flat")):
+		for (i, obj) in enumerate(connection.iterobjects(owner=None, mode=mode)):
 			keepdef = keep(obj)
 			if args.verbose:
 				msg = astyle.style_default("oradiff.py: ", cs(connection), ": fetching #{} ".format(i+1), df(obj))
@@ -218,14 +227,19 @@ def main(args=None):
 					msg = astyle.style_default(msg, " ", s4warning("(skipped)"))
 				stderr.writeln(msg)
 			if keepdef:
-				objects.add(obj)
-		return objects
+				objectset.add(obj)
+				objectlist.append(obj)
+		return (objectset, objectlist)
 
-	objects1 = fetch(connection1)
-	objects2 = fetch(connection2)
+	(objectset1, objectlist1) = fetch(connection1, mode="drop")
+	(objectset2, objectlist2) = fetch(connection2, mode="create")
 
-	onlyin1 = objects1 - objects2
-	for (i, obj) in enumerate(onlyin1):
+	# If we output in full mode the resulting SQL script should be usable, so
+	# we try to iterate the object in approprate order
+
+	# Objects only in database 1
+	onlyin1 = objectset1 - objectset2
+	for (i, obj) in filteredenumerate(objectlist1, onlyin1):
 		if args.verbose:
 			stderr.writeln("oradiff.py: only in ", cs(connection1), " #{}/{} ".format(i+1, len(onlyin1)), df(obj))
 		if args.mode == "brief":
@@ -239,8 +253,9 @@ def main(args=None):
 			ddl = getcanonicalddl(obj.createddl(connection1), args.blank)
 			showudiff(stdout, obj, ddl, [], connection1, connection2, args.context)
 
-	onlyin2 = objects2 - objects1
-	for (i, obj) in enumerate(onlyin2):
+	# Objects only in database 2
+	onlyin2 = objectset2 - objectset1
+	for (i, obj) in filteredenumerate(objectlist2, onlyin2):
 		if args.verbose:
 			stderr.writeln("oradiff.py: only in ", cs(connection2), " #{}/{} ".format(i+1, len(onlyin2)), df(obj))
 		if args.mode == "brief":
@@ -254,8 +269,9 @@ def main(args=None):
 			ddl = getcanonicalddl(obj.createddl(connection2), args.blank)
 			showudiff(stdout, obj, [], ddl, connection1, connection2, args.context)
 
-	common = objects1 & objects2
-	for (i, obj) in enumerate(common):
+	# Objects in database 1 and database 2
+	common = objectset1 & objectset2
+	for (i, obj) in filteredenumerate(objectlist2, common):
 		if args.verbose:
 			stderr.writeln("oradiff.py: diffing #{}/{} ".format(i+1, len(common)), df(obj))
 		ddl1 = obj.createddl(connection1)

@@ -116,6 +116,10 @@ Changes in 4.0 (released ??/??/2012)
 	:class:`ll.sisyphus.Job` have been replaced with option
 	:option:`--encoding`/:option:`--errors` for the encoding of the log files.
 
+*	``oradiff`` now iterates through the object in correct order, so if you're
+	running ``oradiff`` with ``-mfull`` the output shouldn't produce any errors
+	when executed.
+
 
 Changes in 3.25 (released 08/12/2011)
 -------------------------------------
