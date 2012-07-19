@@ -1647,11 +1647,11 @@ class Index(MixinNormalDates, Object):
 				for parameter in parameters:
 					if foundparameter:
 						if foundparameter.lower() in ("datastore", "lexer", "stoplist", "wordlist"):
-							(prefowner, sep, prefname) = parameter.partition(".")
+							(prefowner, sep, prefname) = parameter.strip().partition(".")
 							if sep:
-								yield Preference(prefname.strip().upper(), prefowner)
+								yield Preference(prefname.upper(), prefowner)
 							else:
-								yield Preference(prefowner.strip().upper())
+								yield Preference(prefowner.upper())
 						foundparameter = None
 					elif parameter.lower() in ("datastore", "lexer", "stoplist", "wordlist"):
 						foundparameter = parameter
