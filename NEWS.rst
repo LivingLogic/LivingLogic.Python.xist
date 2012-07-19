@@ -126,7 +126,7 @@ Changes in 4.0 (released ??/??/2012)
 
 *	:mod:`ll.orasql` now ignores indexes of type ``IOT - TOP``.
 
-*	:mod:`ll.orasql` can now handle primary key where the underlying index has
+*	:mod:`ll.orasql` can now handle primary keys where the underlying index has
 	a different name.
 
 
