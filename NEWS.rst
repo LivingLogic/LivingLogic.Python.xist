@@ -124,6 +124,8 @@ Changes in 4.0 (released ??/??/2012)
 
 *	:mod:`ll.orasql.Preference` has been added.
 
+*	:mod:`ll.orasql` now ignores indexes of type ``IOT - TOP``.
+
 
 Changes in 3.25 (released 08/12/2011)
 -------------------------------------
