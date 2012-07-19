@@ -1645,14 +1645,15 @@ class Index(MixinNormalDates, Object):
 				parameters = re.split('\\b(datastore|memory|lexer|stoplist|wordlist)\\b', rec.parameters, flags=re.IGNORECASE)
 				foundparameter = None
 				for parameter in parameters:
-					if foundparameter and foundparameter.lower() in ("datastore", "lexer"):
-						(prefowner, sep, prefname) = parameter.partition(".")
-						if sep:
-							yield Preference(prefname.strip().upper(), prefowner)
-						else:
-							yield Preference(prefowner.strip().upper())
+					if foundparameter:
+						if foundparameter.lower() in ("datastore", "lexer", "stoplist", "wordlist"):
+							(prefowner, sep, prefname) = parameter.partition(".")
+							if sep:
+								yield Preference(prefname.strip().upper(), prefowner)
+							else:
+								yield Preference(prefowner.strip().upper())
 						foundparameter = None
-					elif parameter.lower() in ("datastore", "lexer"):
+					elif parameter.lower() in ("datastore", "lexer", "stoplist", "wordlist"):
 						foundparameter = parameter
 
 			for obj in super().iterreferences(connection):
