@@ -120,6 +120,10 @@ Changes in 4.0 (released ??/??/2012)
 	running ``oradiff`` with ``-mfull`` the output shouldn't produce any errors
 	when executed.
 
+*	:mod:`ll.orasql.Index` can now handle domain indexes.
+
+*	:mod:`ll.orasql.Preference` has been added.
+
 
 Changes in 3.25 (released 08/12/2011)
 -------------------------------------
