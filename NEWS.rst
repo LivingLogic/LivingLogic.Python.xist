@@ -132,6 +132,10 @@ Changes in 4.0 (released ??/??/2012)
 *	:mod:`ll.orasql` no ignores tables with names starting with ``DR$``
 	(i.e. those created by Oracle Text Search).
 
+*	Attributes of :class:`ll.misc.SysInfo` instances are now calculated on
+	demand. With this change only one instance of :class:`ll.misc.SysInfo` is
+	required. This instance is :class:`ll.misc.sysinfo`.
+
 
 Changes in 3.25 (released 08/12/2011)
 -------------------------------------

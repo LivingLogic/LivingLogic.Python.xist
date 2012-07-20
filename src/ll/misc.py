@@ -561,30 +561,156 @@ class SysInfo(object):
 	``host_ip``, ``host_sysname``, ``host_nodename``, ``host_release``,
 	``host_version``, ``host_machine``, ``user_name``, ``user_uid``, ``user_gid``,
 	``user_gecos``, ``user_dir``, ``user_shell``, ``python_executable``,
-	``python_version``, ``pid`` and ``scriptname``.
+	``python_version``, ``pid``, ``scriptname`` and ``shortscriptname``.
 
 	:class:`SysInfo` object also support a mimimal dictionary interface (i.e.
 	:meth:`__getitem__` and :meth:`__iter__`).
+
+	One module global instance named :var:`sysinfo` is created at module import
+	time.
 	"""
 
-	_keys = {"host_name", "host_fqdn", "host_ip", "host_sysname", "host_nodename", "host_release", "host_version", "host_machine", "python_executable", "python_version", "pid", "scriptname"}
+	_keys = {"host_name", "host_fqdn", "host_ip", "host_sysname", "host_nodename", "host_release", "host_version", "host_machine", "python_executable", "python_version", "pid", "scriptname", "shortscriptname"}
 
 	def __init__(self):
-		import socket, pwd
+		# Use ``object`` as a marker for "not initialized"
+		self._host_name = object
+		self._host_fqdn = object
+		self._host_ip = object
+		self._host_sysname = object
+		self._host_nodename = object
+		self._host_release = object
+		self._host_version = object
+		self._host_machine = object
+		self._pid = object
+		self._scriptname = object
+		self._shortscriptname = object
 
-		self.host_name = socket.gethostname()
-		self.host_fqdn = self.host_name
-		self.host_ip = socket.gethostbyname(self.host_name)
-		(self.host_sysname, self.host_nodename, self.host_release, self.host_version, self.host_machine) = os.uname()
-		(self.user_name, _, self.user_uid, self.user_gid, self.user_gecos, self.user_dir, self.user_shell) = pwd.getpwuid(os.getuid())
-		self.python_executable = sys.executable
-		self.python_version = ("{}.{}.{}" if sys.version_info.micro else "{}.{}").format(*sys.version_info)
-		self.pid = os.getpid()
-		main = sys.modules["__main__"]
-		if hasattr(main, "__file__"):
-			self.scriptname = os.path.join(_curdir, main.__file__)
-		else:
-			self.scriptname = "<shell>"
+	@property
+	def host_name(self):
+		if self._host_name is object:
+			print("debug host_name")
+			import socket
+			self._host_name = socket.gethostname()
+		return self._host_name
+
+	@property
+	def host_fqdn(self):
+		return self.host_name
+
+	@property
+	def host_ip(self):
+		if self._host_ip is object:
+			print("debug host_ip")
+			import socket
+			self._host_ip = socket.gethostbyname(self.host_name)
+		return self._host_ip
+
+	def _make_host_info(self):
+		(self._host_sysname, self._host_nodename, self._host_release, self._host_version, self._host_machine) = os.uname()
+
+	@property
+	def host_sysname(self):
+		if self._host_sysname is object:
+			self._make_host_info()
+		return self._host_sysname
+
+	@property
+	def host_nodename(self):
+		if self._host_nodename is object:
+			self._make_host_info()
+		return self._host_nodename
+
+	@property
+	def host_release(self):
+		if self._host_release is object:
+			self._make_host_info()
+		return self._host_release
+
+	@property
+	def host_version(self):
+		if self._host_version is object:
+			self._make_host_info()
+		return self._host_version
+
+	@property
+	def host_machine(self):
+		if self._host_machine is object:
+			self._make_host_info()
+		return self._host_machine
+
+	def _make_user_info(self):
+		import pwd
+		(self._user_name, _, self._user_uid, self._user_gid, self._user_gecos, self._user_dir, self._user_shell) = pwd.getpwuid(os.getuid())
+
+	@property
+	def user_name(self):
+		if self._user_name is object:
+			self._make_user_info()
+		return self._user_name
+
+	@property
+	def user_uid(self):
+		if self._user_uid is object:
+			self._make_user_info()
+		return self._user_uid
+
+	@property
+	def user_gid(self):
+		if self._user_gid is object:
+			self._make_user_info()
+		return self._user_gid
+
+	@property
+	def user_gecos(self):
+		if self._user_gecos is object:
+			self._make_user_info()
+		return self._user_gecos
+
+	@property
+	def user_dir(self):
+		if self._user_dir is object:
+			self._make_user_info()
+		return self._user_dir
+
+	@property
+	def user_shell(self):
+		if self._user_she is object:
+			self._make_user_info()
+		return self._user_shell
+
+	@property
+	def python_executable(self):
+		return sys.executable
+
+	@property
+	def python_version(self):
+		return ("{}.{}.{}" if sys.version_info.micro else "{}.{}").format(*sys.version_info)
+
+	@property
+	def pid(self):
+		return os.getpid()
+
+	@property
+	def scriptname(self):
+		if self._scriptname is object:
+			main = sys.modules["__main__"]
+			if hasattr(main, "__file__"):
+				self._scriptname = os.path.join(_curdir, main.__file__)
+			else:
+				self._scriptname = "<shell>"
+		return self._scriptname
+
+	@property
+	def shortscriptname(self):
+		if self._shortscriptname is object:
+			scriptname = self.scriptname
+			if scriptname != "<shell>":
+				userhome = os.path.expanduser("~")
+				if scriptname.startswith(userhome+"/"):
+					scriptname = "~" + scriptname[len(userhome):]
+			self._shortscriptname = scriptname
+		return self._shortscriptname
 
 	def __getitem__(self, key):
 		if key in self._keys:
@@ -593,6 +719,10 @@ class SysInfo(object):
 
 	def __iter__(self):
 		return iter(self._keys)
+
+
+# Single instance
+sysinfo = SysInfo()
 
 
 def prettycsv(rows, padding="   "):

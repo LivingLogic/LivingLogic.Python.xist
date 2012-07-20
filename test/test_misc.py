@@ -298,6 +298,23 @@ def test_javaexpr():
 	assert "com.livinglogic.utils.MapUtils.makeMap(1, 2)" == misc.javaexpr({1: 2})
 
 
+def test_sysinfo():
+	# At least make sure that we don't produce exceptions by accessing each attribute once
+	misc.sysinfo.host_name
+	misc.sysinfo.host_fqdn
+	misc.sysinfo.host_ip
+	misc.sysinfo.host_sysname
+	misc.sysinfo.host_nodename
+	misc.sysinfo.host_release
+	misc.sysinfo.host_version
+	misc.sysinfo.host_machine
+	misc.sysinfo.python_executable
+	misc.sysinfo.python_version
+	misc.sysinfo.pid
+	misc.sysinfo.scriptname
+	misc.sysinfo.shortscriptname
+
+
 def test_prettycsv():
 	assert "".join(misc.prettycsv([["a", "b", "c"], ["abc", "defg", "hijkl"]])) == "a     b      c\nabc   defg   hijkl\n"
 	assert "".join(misc.prettycsv([["a", "b "], ["abc", "def"]])) == "a     b\nabc   def\n"
