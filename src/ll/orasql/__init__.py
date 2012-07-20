@@ -1011,7 +1011,7 @@ class Object(object, metaclass=_Object_meta):
 				``DBA_OBJECTS``)
 
 			username : string
-				All objects belonging the the specified user
+				All objects belonging to the specified user
 		"""
 		cursor = connection.cursor()
 		if owner is None:
@@ -1037,7 +1037,7 @@ class Object(object, metaclass=_Object_meta):
 				``DBA_OBJECTS``)
 
 			username : string
-				All objects belonging the the specified user
+				All objects belonging to the specified user
 		"""
 		return (cls(name[0], name[1], connection) for name in cls.iternames(connection, owner))
 
