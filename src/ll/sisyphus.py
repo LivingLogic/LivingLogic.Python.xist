@@ -75,12 +75,6 @@ from ll import url, ul4c, misc
 __docformat__ = "reStructuredText"
 
 
-def literaldecode(exc):
-	return ("".join("[%02x]" % ord(c) for c in exc.object[exc.start:exc.end]), exc.end)
-
-codecs.register_error("literaldecode", literaldecode)
-
-
 encodingdeclaration = re.compile(r"coding[:=]\s*([-\w.]+)")
 
 
