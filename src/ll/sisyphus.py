@@ -299,7 +299,7 @@ class Job(object):
 			try:
 				fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
 			except IOError as exc:
-				if exc[0] not in (errno.EACCES, errno.EAGAIN): # some other error
+				if exc.errno not in (errno.EACCES, errno.EAGAIN): # some other error
 					raise
 				# The previous invocation of the job is still running
 				return # Return without calling :meth:`execute`
