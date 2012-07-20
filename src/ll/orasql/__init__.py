@@ -1015,11 +1015,11 @@ class Object(object, metaclass=_Object_meta):
 		"""
 		cursor = connection.cursor()
 		if owner is None:
-			cursor.execute("select null as owner, object_name from user_objects where lower(object_type) = :type and object_name not like 'BIN$%' order by object_name", type=cls.type)
+			cursor.execute("select null as owner, object_name from user_objects where lower(object_type) = :type and object_name not like 'BIN$%' and object_name not like 'DR$%' order by object_name", type=cls.type)
 		elif owner is ALL:
-			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from {}_objects where lower(object_type) = :type and object_name not like 'BIN$%' order by owner, object_name".format(cursor.ddprefix()), type=cls.type)
+			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from {}_objects where lower(object_type) = :type and object_name not like 'BIN$%' and object_name not like 'DR$%' order by owner, object_name".format(cursor.ddprefix()), type=cls.type)
 		else:
-			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from {}_objects where lower(object_type) = :type and object_name not like 'BIN$%' and owner=:owner order by owner, object_name".format(cursor.ddprefix()), type=cls.type, owner=owner)
+			cursor.execute("select decode(owner, user, null, owner) as owner, object_name from {}_objects where lower(object_type) = :type and object_name not like 'BIN$%' and object_name not like 'DR$%' and owner=:owner order by owner, object_name".format(cursor.ddprefix()), type=cls.type, owner=owner)
 		return ((row.object_name, row.owner) for row in cursor)
 
 	@classmethod
