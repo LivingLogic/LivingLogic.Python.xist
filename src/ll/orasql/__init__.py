@@ -337,17 +337,27 @@ class Connection(Connection):
 
 		:var:`readlobs` : bool or integer
 			If :var:`readlobs` is :const:`False` all cursor fetches return
-			:class:`CLOBStream` or :class:`BLOBStream` objects. If :var:`readlobs`
-			is an :class:`int` :class:`LOB`s with a maximum size of :var:`readlobs`
-			will be returned as :class:`str`/:class:`unicode` objects. If
-			:var:`readlobs` is :const:`True` all :class:`LOB` values will be
-			returned as strings.
+			:class:`CLOBStream` or :class:`BLOBStream` objects for LOB object.
+			If :var:`readlobs` is an :class:`int` LOBs with a maximum size of
+			:var:`readlobs` will be returned as :class:`bytes`/:class:`str` objects.
+			If :var:`readlobs` is :const:`True` all LOB values will be
+			returned as :class:`bytes`/:class:`str` objects.
+
+		Furthermore the ``clientinfo`` will be automatically set to the name
+		of the currently running script (except if the :var:`clientinfo` keyword
+		argument is given and :const:`None`).
 		"""
 		if "readlobs" in kwargs:
 			kwargs = kwargs.copy()
 			self.readlobs = kwargs.pop("readlobs", False)
 		else:
 			self.readlobs = False
+		if "clientinfo" not in kwargs:
+			kwargs = kwargs.copy()
+			kwargs["clientinfo"] = misc.sysinfo.shortscriptname[-64:]
+		elif kwargs["clientinfo"] is None:
+			kwargs = kwargs.copy()
+			del kwargs["clientinfo"]
 		super().__init__(*args, **kwargs)
 		self.mode = kwargs.get("mode")
 		self._ddprefix = None # Do we have access to the ``DBA_*`` views?

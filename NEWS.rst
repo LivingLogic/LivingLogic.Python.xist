@@ -136,6 +136,10 @@ Changes in 4.0 (released ??/??/2012)
 	demand. With this change only one instance of :class:`ll.misc.SysInfo` is
 	required. This instance is :class:`ll.misc.sysinfo`.
 
+*	When connecting to the database :mod:`ll.orasql` sets the ``client_info``
+	attribute to the name of the running script (unless ``clientinfo=None`` is
+	passed to the :func:`connect` call).
+
 
 Changes in 3.25 (released 08/12/2011)
 -------------------------------------
