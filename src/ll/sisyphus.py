@@ -485,10 +485,7 @@ class Job(object):
 		try:
 			strexc = str(exc)
 		except UnicodeError:
-			try:
-				strexc = str(exc).decode("iso-8859-1") # latin-1 might be wrong, but it will not produce an exception
-			except Exception:
-				strexc = "?"
+			strexc = "?"
 		return fmt.format(exc, strexc)
 
 
