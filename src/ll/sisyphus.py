@@ -75,9 +75,6 @@ from ll import url, ul4c, misc
 __docformat__ = "reStructuredText"
 
 
-encodingdeclaration = re.compile(r"coding[:=]\s*([-\w.]+)")
-
-
 class MaximumRuntimeExceeded(Exception):
 	def __init__(self, maxtime):
 		self.maxtime = maxtime
