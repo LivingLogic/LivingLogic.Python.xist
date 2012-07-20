@@ -1225,11 +1225,11 @@ class Table(MixinNormalDates, Object):
 		# Skip tables that are materialized views
 		cursor = connection.cursor()
 		if owner is None:
-			cursor.execute("select null as owner, table_name from user_tables where table_name not like 'BIN$%' minus select null as owner, mview_name as table_name from user_mviews order by table_name")
+			cursor.execute("select null as owner, table_name from user_tables where table_name not like 'BIN$%' and table_name not like 'DR$%' minus select null as owner, mview_name as table_name from user_mviews order by table_name")
 		elif owner is ALL:
-			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {0}_tables where table_name not like 'BIN$%' minus select decode(owner, user, null, owner) as owner, mview_name as table_name from {0}_mviews order by owner, table_name".format(cursor.ddprefix()))
+			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {0}_tables where table_name not like 'BIN$%' and table_name not like 'DR$%' minus select decode(owner, user, null, owner) as owner, mview_name as table_name from {0}_mviews order by owner, table_name".format(cursor.ddprefix()))
 		else:
-			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {0}_tables where table_name not like 'BIN$%' and owner=:owner minus select decode(owner, user, null, owner) as owner, mview_name as table_name from {0}_mviews where owner=:owner order by table_name".format(cursor.ddprefix()), owner=owner)
+			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {0}_tables where table_name not like 'BIN$%' and table_name not like 'DR$%' and owner=:owner minus select decode(owner, user, null, owner) as owner, mview_name as table_name from {0}_mviews where owner=:owner order by table_name".format(cursor.ddprefix()), owner=owner)
 		return ((row.table_name, row.owner) for row in cursor)
 
 	def itercolumns(self, connection=None):

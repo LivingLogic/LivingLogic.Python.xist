@@ -129,6 +129,9 @@ Changes in 4.0 (released ??/??/2012)
 *	:mod:`ll.orasql` can now handle primary keys where the underlying index has
 	a different name.
 
+*	:mod:`ll.orasql` no ignores tables with names starting with ``DR$``
+	(i.e. those created by Oracle Text Search).
+
 
 Changes in 3.25 (released 08/12/2011)
 -------------------------------------
