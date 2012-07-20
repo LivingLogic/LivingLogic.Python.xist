@@ -279,7 +279,7 @@ class Job(object):
 			self.log.sisyphus.result.kill("Terminated child after {}".format(maxtime))
 			self._logfile.close()
 		if self.noisykills:
-			print("Terminated forked job {} (pid {}) after {}".format(self.info.sysinfo.scriptname, self.info.sysinfo.pid, maxtime))
+			print("Terminated forked job {} (pid {}) after {}".format(misc.sysinfo.scriptname, misc.sysinfo.pid, maxtime))
 		os._exit(1)
 
 	def _alarm_nofork(self, signum, frame):
@@ -289,7 +289,7 @@ class Job(object):
 			self.log.sisyphus.result.kill("Terminated after {}".format(maxtime))
 			self._logfile.close()
 		if self.noisykills:
-			print("Terminated job {} (pid {}) after {}".format(self.info.sysinfo.scriptname, self.info.sysinfo.pid, maxtime))
+			print("Terminated job {} (pid {}) after {}".format(misc.sysinfo.scriptname, misc.sysinfo.pid, maxtime))
 		os._exit(1)
 
 	def _handleexecution(self):
@@ -297,14 +297,14 @@ class Job(object):
 		Handle executing the job including handling of duplicate or hanging jobs.
 		"""
 		self.info = AttrDict()
-		self.info.sysinfo = misc.SysInfo()
+		self.info.sysinfo = misc.sysinfo
 		self.info.projectname = self.projectname
 		self.info.jobname = self.jobname
 		self.info.maxtime = self.maxtime
 		self._prefix = ""
 
 		# Obtain a lock on the script file to make sure we're the only one running
-		with open(self.info.sysinfo.scriptname, "rb") as f:
+		with open(misc.sysinfo.scriptname, "rb") as f:
 			try:
 				fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
 			except IOError as exc:
@@ -323,7 +323,7 @@ class Job(object):
 			self._formatlogline = ul4c.Template(self.formatlogline.replace("\n", "").replace("\r", "") + "\n", "formatlogline") # Log line formatting template
 			self._createlog() # Create log file and link
 
-			self.log.sisyphus.init("{} (max time {}; pid {})".format(self.info.sysinfo.scriptname, datetime.timedelta(seconds=self.maxtime), self.info.sysinfo.pid))
+			self.log.sisyphus.init("{} (max time {}; pid {})".format(misc.sysinfo.scriptname, datetime.timedelta(seconds=self.maxtime), misc.sysinfo.pid))
 
 			if self.fork: # Forking mode?
 				# Fork the process; the child will do the work; the parent will monitor the maximum runtime
@@ -410,7 +410,7 @@ class Job(object):
 		"""
 		Reads the source code of the script into ``self.source``.
 		"""
-		scriptname = self.info.sysinfo.scriptname.rstrip("c")
+		scriptname = misc.sysinfo.scriptname.rstrip("c")
 		try:
 			encoding = tokenize.detect_encoding(open(scriptname, "rb").readline)[0]
 			with open(scriptname, "r", encoding=encoding, errors="replace") as f:
@@ -435,7 +435,7 @@ class Job(object):
 			# Create the log file
 			logfilename = ul4c.Template(self.logfilename, "logfilename").renders(**self.info)
 			lf = self._logfilename = url.File(logfilename).abs()
-			self._logfile = lf.openwrite(encoding=self.encoding, errors=self.errors)
+			self._logfile = lf.open(mode="w", encoding=self.encoding, errors=self.errors)
 			if self.loglinkname is not None:
 				# Create the log link
 				loglinkname = ul4c.Template(self.loglinkname, "loglinkname").renders(**self.info)
@@ -444,7 +444,7 @@ class Job(object):
 				try:
 					lf.symlink(ll)
 				except OSError as exc:
-					if exc[0] == errno.EEXIST:
+					if exc.errno == errno.EEXIST:
 						ll.remove()
 						lf.symlink(ll)
 					else:
