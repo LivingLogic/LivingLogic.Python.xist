@@ -1000,7 +1000,7 @@ class Object(object, metaclass=_Object_meta):
 	def iternames(cls, connection, owner=ALL):
 		"""
 		Generator that yields the names of all objects of this type. The argument
-		:var:`owner` specifies whos objects are yielded:
+		:var:`owner` specifies whose objects are yielded:
 		
 			:const:`None`
 				All objects belonging to the current user (i.e. via the view
@@ -1026,7 +1026,7 @@ class Object(object, metaclass=_Object_meta):
 	def iterobjects(cls, connection, owner=ALL):
 		"""
 		Generator that yields all objects of this type in the current users schema.
-		The argument :var:`owner` specifies whos objects are yielded:
+		The argument :var:`owner` specifies whose objects are yielded:
 		
 			:const:`None`
 				All objects belonging to the current user (i.e. via the view
