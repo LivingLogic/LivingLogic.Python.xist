@@ -204,7 +204,7 @@ class Job(object):
 
 	noisykills = False
 
-	logfilename = "~/ll.sisyphus/<?print projectname?>/<?print jobname?>/<?print starttime.format('%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog"
+	logfilename = "~/ll.sisyphus/<?print projectname?>/<?print jobname?>/<?print format(starttime, '%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog"
 	loglinkname = "~/ll.sisyphus/<?print projectname?>/<?print jobname?>/current.sisyphuslog"
 
 	log2file = True
