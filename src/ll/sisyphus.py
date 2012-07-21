@@ -413,7 +413,8 @@ class Job(object):
 		"""
 		Reads the current crontab into ``self.crontab``.
 		"""
-		self.crontab = os.popen("crontab -l 2>/dev/null").read()
+		with os.popen("crontab -l 2>/dev/null") as f:
+			self.crontab = f.read()
 
 	def _createlog(self):
 		"""
