@@ -323,7 +323,7 @@ class Job(object):
 					# set a signal to kill the child process after the maximum runtime
 					signal.signal(signal.SIGALRM, self._alarm_fork)
 					signal.alarm(self.maxtime)
-					os.wait() # Wait for the child process to terminate
+					os.waitpid(pid, 0) # Wait for the child process to terminate
 					return # Exit normally
 				self.log.sisyphus.init("forked worker child (child pid {})".format(os.getpid()))
 			else: # We didn't fork
