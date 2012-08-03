@@ -140,6 +140,9 @@ Changes in 4.0 (released ??/??/2012)
 	attribute to the name of the running script (unless ``clientinfo=None`` is
 	passed to the :func:`connect` call).
 
+*	:class:`ll.xist.ns.specials.loremipsum` now repeats the text if the specified
+	``len`` attribute is greater that the length of the lorem ipsum text.
+
 
 Changes in 3.25 (released 08/12/2011)
 -------------------------------------
