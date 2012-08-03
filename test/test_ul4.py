@@ -1882,7 +1882,7 @@ def test_method_find(r):
 	eq('-1', r('<?print s.find("ks")?>', s=s))
 	eq('2', r('<?print s.find("rk")?>', s=s))
 	eq('2', r('<?print s.find("rk", 2)?>', s=s))
-	eq('2', r('<?print s.find("rk", -3)?>', s=s))
+	eq('6', r('<?print s.find("rk", -3)?>', s=s))
 	eq('2', r('<?print s.find("rk", 2, 4)?>', s=s))
 	eq('6', r('<?print s.find("rk", 4, 8)?>', s=s))
 	eq('5', r('<?print s.find("ur", -4, -1)?>', s=s))
