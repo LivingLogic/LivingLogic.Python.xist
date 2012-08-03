@@ -840,7 +840,7 @@ class Dict(AST):
 		v = ["new com.livinglogic.ul4.MapMaker()"]
 		for item in self.items:
 			if len(item) == 1:
-				v.append(".add((Map){})".format(item[0].formatjava(indent)))
+				v.append(".add((java.util.Map){})".format(item[0].formatjava(indent)))
 			else:
 				v.append(".add({}, {})".format(item[0].formatjava(indent), item[1].formatjava(indent)))
 		v.append(".getMap()")
