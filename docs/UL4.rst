@@ -961,6 +961,7 @@ the string/item can't be found. For example ``"foobar".find("bar")`` returns 3.
 The optional second and third argument specify the start and end position for
 the search.
 
+
 ``rfind``
 :::::::::
 
