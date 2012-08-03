@@ -470,19 +470,19 @@ Functions
 
 
 ``now``
-:::::::
+"""""""
 
 ``now()`` returns the current date and time as a date object.
 
 
 ``utcnow``
-::::::::::
+""""""""""
 
 ``utcnow()`` returns the current date and time as a date object in UTC.
 
 
 ``vars``
-::::::::
+""""""""
 
 ``vars()`` returns a dictionary containing all currently defined variables
 (i.e. variables passed to the template, defined via ``<?code?>`` tags or as
@@ -490,13 +490,13 @@ loop variables).
 
 
 ``random``
-::::::::::
+""""""""""
 
 ``random()`` returns a random float value between 0 (included) and 1 (excluded).
 
 
 ``randrange``
-:::::::::::::
+"""""""""""""
 
 ``randrange(start, stop, step)`` returns a random integer value between ``start``
 (included) and ``stop`` (excluded). ``step`` specifies the step size (i.e.
@@ -505,13 +505,13 @@ when ``r`` is the random value, ``(r-start) % step`` will always be ``0``.
 
 
 ``randchoice``
-::::::::::::::
+""""""""""""""
 
 ``randchoice(seq)`` returns a random item from the sequence ``seq``.
 
 
 ``isnone``
-::::::::::
+""""""""""
 
 ``isnone(foo)`` returns ``True`` if ``foo`` is ``None``, else ``False`` is
 returned::
@@ -520,70 +520,70 @@ returned::
 
 
 ``isbool``
-::::::::::
+""""""""""
 
 ``isbool(foo)`` returns ``True`` if ``foo`` is ``True`` or ``False``, else
 ``False`` is returned.
 
 
 ``isint``
-:::::::::
+"""""""""
 
 ``isint(foo)`` returns ``True`` if ``foo`` is an integer object, else ``False``
 is returned.
 
 
 ``isfloat``
-:::::::::::
+"""""""""""
 
 ``isfloat(foo)`` returns ``True`` if ``foo`` is a float object, else ``False``
 is returned.
 
 
 ``isstr``
-:::::::::
+"""""""""
 
 ``isstr(foo)`` returns ``True`` if ``foo`` is a string object, else ``False``
 is returned.
 
 
 ``isdate``
-::::::::::
+""""""""""
 
 ``isdate(foo)`` returns ``True`` if ``foo`` is a date object, else ``False``
 is returned.
 
 
 ``islist``
-::::::::::
+""""""""""
 
 ``islist(foo)`` returns ``True`` if ``foo`` is a list object, else ``False``
 is returned.
 
 
 ``isdict``
-::::::::::
+""""""""""
 
 ``isdict(foo)`` returns ``True`` if ``foo`` is a dictionary object, else
 ``False`` is returned.
 
 
 ``iscolor``
-:::::::::::
+"""""""""""
 
 ``iscolor(foo)`` returns ``True`` if ``foo`` is a color object, else ``False``
 is returned.
 
 
 ``bool``
-::::::::
+""""""""
 
 ``bool(foo)`` converts ``foo`` to an boolean. I.e. ``True`` or ``False`` is
 returned according to the truth value of ``foo``.
 
 
 ``int``
-:::::::
+"""""""
 
 ``int(foo)`` converts ``foo`` to an integer. ``foo`` can be a string, a float,
 a boolean or an integer. ``int`` can also be called with two arguments. In this
@@ -592,14 +592,14 @@ the conversion.
 
 
 ``float``
-:::::::::
+"""""""""
 
 ``float(foo)`` converts ``foo`` to a float. ``foo`` can be a string, a float,
 a boolean or an integer.
 
 
 ``str``
-:::::::
+"""""""
 
 ``str(foo)`` converts ``foo`` to a string. If ``foo`` is ``None`` the result
 will be the empty string. For lists and dictionaries the exact format is
@@ -608,7 +608,7 @@ is a CSS expression (e.g. ``"#fff"``).
 
 
 ``repr``
-::::::::
+""""""""
 
 ``repr(foo)`` converts ``foo`` to a string representation that is useful for
 debugging proposes. The output is a constant expression that could be used to
@@ -616,47 +616,47 @@ recreate the object.
 
 
 ``asjson``
-::::::::::
+""""""""""
 
 ``asjson(foo)`` returns a JSON representation of the object ``foo``.
 
 
 ``fromjson``
-::::::::::::
+""""""""""""
 
 ``fromjson(foo)`` decodes the JSON string ``foo`` and returns the resulting
 object.
 
 
 ``asul4on``
-:::::::::::
+"""""""""""
 
 ``asul4on(foo)`` returns the UL4ON representation of the object ``foo``.
 
 
 ``fromul4on``
-:::::::::::::
+"""""""""""""
 
 ``fromul4on(foo)`` decodes the UL4ON string ``foo`` and returns the resulting
 object.
 
 
 ``get``
-:::::::
+"""""""
 
 ``get(k, v)`` returns the global variable named ``k`` if it exists, else ``v``
 is returned. If ``v`` is not given, it defaults to ``None``.
 
 
 ``len``
-:::::::
+"""""""
 
 ``len(foo)`` returns the length of a string, or the number of items in a list
 or dictionary.
 
 
 ``isfirstlast``
-:::::::::::::::
+"""""""""""""""
 
 Iterates through items of the argument (which must be iterable, i.e. a string,
 a list or dictionary) and gives information about whether the item is the first
@@ -674,7 +674,7 @@ prints::
 
 
 ``isfirst``
-:::::::::::
+"""""""""""
 
 Iterates through items of the argument (which must be iterable, i.e. a string,
 a list or dictionary) and gives information about whether the item is the first
@@ -691,7 +691,7 @@ prints::
 
 
 ``islast``
-::::::::::
+""""""""""
 
 Iterates through items of the argument (which must be iterable, i.e. a string,
 a list or dictionary) and gives information about whether the item is the last
@@ -708,7 +708,7 @@ prints::
 
 
 ``enumerate``
-:::::::::::::
+"""""""""""""
 
 Enumerates the items of the argument (which must be iterable, i.e. a string,
 a list or dictionary). For example the following code::
@@ -723,7 +723,7 @@ prints::
 
 
 ``enumfl``
-::::::::::
+""""""""""
 
 This function is a combination of ``isfirstlast`` and ``enumerate``. It iterates
 through items of the argument (which must be iterable, i.e. a string, a list
@@ -742,7 +742,7 @@ prints::
 
 
 ``xmlescape``
-:::::::::::::
+"""""""""""""
 
 ``xmlescape`` takes a string as an argument. It returns a new string where the
 characters ``&``, ``<``, ``>``, ``'`` and ``"`` are replaced with the
@@ -760,7 +760,7 @@ If the argument is not a string, it will be converted to a string first.
 
 
 ``sorted``
-::::::::::
+""""""""""
 
 ``sorted`` returns a sorted list with the items from it's argument. For
 example::
@@ -776,7 +776,7 @@ and colors.
 
 
 ``chr``
-:::::::
+"""""""
 
 ``chr(x)`` returns a one-character string with a character with the codepoint
 ``x``. ``x`` must be an integer. For example ``<?print chr(0x61)?>`` outputs
@@ -784,7 +784,7 @@ and colors.
 
 
 ``ord``
-:::::::
+"""""""
 
 The argument for ``ord`` must be a one-character string. ``ord`` returns the
 codepoint of that character as an integer. For example ``<?print ord('a')?>``
@@ -792,28 +792,28 @@ outputs ``97``.
 
 
 ``hex``
-:::::::
+"""""""
 
 Return the hexadecimal representation of the integer argument (with a leading
 ``0x``). For example ``<?print hex(42)?>`` outputs ``0x2a``.
 
 
 ``oct``
-:::::::
+"""""""
 
 Return the octal representation of the integer argument (with a leading ``0o``).
 For example ``<?print oct(42)?>`` outputs ``0o52``.
 
 
 ``bin``
-:::::::
+"""""""
 
 Return the binary representation of the integer argument (with a leading ``0b``).
 For example ``<?print bin(42)?>`` outputs ``0b101010``.
 
 
 ``range``
-::::::::::
+""""""""""
 
 ``range`` returns an object that can be iterated and will produce consecutive
 integers up to the specified argument. With two arguments the first is the start
@@ -828,7 +828,7 @@ outputs::
 
 
 ``type``
-::::::::
+""""""""
 
 ``type`` returns the type of the object as a string. Possible return values are
 ``"none"``, ``"bool"``, ``"int"``, ``"float"``, ``"str"``, ``"list"``,
@@ -837,7 +837,7 @@ recognized ``None`` is returned.)
 
 
 ``rgb``
-:::::::
+"""""""
 
 ``rgb`` returns a color object. It can be called with
 
@@ -847,20 +847,20 @@ recognized ``None`` is returned.)
 
 
 ``random``
-::::::::::
+""""""""""
 
 ``random`` returns a random floating point number between 0 and 1.
 
 
 ``randchoice``
-::::::::::::::
+""""""""""""""
 
 ``randchoice`` returns a random item from its argument (which must be list or
 string)
 
 
 ``randchoice``
-::::::::::::::
+""""""""""""""
 
 ``random`` returns a random item from its argument (which must be list or string).
 
@@ -873,7 +873,7 @@ object).
 
 
 ``upper``
-:::::::::
+"""""""""
 
 The ``upper`` method of strings returns an uppercase version of the string for
 which it's called::
@@ -886,35 +886,35 @@ prints::
 
 
 ``lower``
-:::::::::
+"""""""""
 
 The ``lower`` method of strings returns an lowercase version of the string for
 which it's called.
 
 
 ``capitalize``
-::::::::::::::
+""""""""""""""
 
 The ``capitalize`` method of strings returns a copy of the string for with its
 first letter capitalized.
 
 
 ``startswith``
-::::::::::::::
+""""""""""""""
 
 ``x.startswith(y)`` returns ``True`` if the string ``x`` starts with the string
 ``y`` and ``False`` otherwise.
 
 
 ``endswith``
-::::::::::::::
+""""""""""""""
 
 ``x.endswith(y)`` returns ``True`` if the string ``x`` ends with the string
 ``y`` and ``False`` otherwise.
 
 
 ``strip``
-:::::::::
+"""""""""
 
 The string method ``strip`` returns a copy of the string with leading and
 trailing whitespace removed. If an argument ``chars`` is given and not ``None``,
@@ -922,7 +922,7 @@ characters in ``chars`` will be removed instead.
 
 
 ``lstrip``
-::::::::::
+""""""""""
 
 The string method ``lstrip`` returns a copy of the string with leading
 whitespace removed. If an argument ``chars`` is given and not ``None``,
@@ -930,7 +930,7 @@ characters in ``chars`` will be removed instead.
 
 
 ``rstrip``
-::::::::::
+""""""""""
 
 The string method ``rstrip`` returns a copy of the string with trailing
 whitespace removed. If an argument ``chars`` is given and not ``None``,
@@ -938,7 +938,7 @@ characters in ``chars`` will be removed instead.
 
 
 ``split``
-:::::::::
+"""""""""
 The string method ``split`` splits the string into separate "words" and returns
 the resulting list. Without any arguments, the string is split on whitespace
 characters. With one argument the argument specifies the separator to use. The
@@ -946,14 +946,14 @@ second optional argument specifies the maximum number of splits to do.
 
 
 ``rsplit``
-::::::::::
+""""""""""
 The string method ``rsplit`` works like ``split``, except that splitting starts
 from the end (which is only relevant when the maximum number of splits is
 given).
 
 
 ``find``
-::::::::
+""""""""
 
 This method searches for a substring of the string or an item in a list
 and returns the position of the first appearance of the substring/item or -1 if
@@ -963,20 +963,20 @@ the search.
 
 
 ``rfind``
-:::::::::
+"""""""""
 
 This method works like ``find`` but searches from the end.
 
 
 ``replace``
-:::::::::::
+"""""""""""
 
 This string method replace has two arguments. It returns a new string where
 each occurrence of the first argument is replaced by the second argument.
 
 
 ``get``
-:::::::
+"""""""
 
 ``get`` is a dictionary method. ``d.get(k, v)`` returns ``d[k]`` if the key
 ``k`` is in ``d``, else ``v`` is returned. If ``v`` is not given, it defaults
@@ -984,7 +984,7 @@ to ``None``.
 
 
 ``join``
-::::::::
+""""""""
 
 ``join`` is a string method. It returns a concatentation of the strings in the
 argument sequence with the string itself as the separator, i.e.::
@@ -997,7 +997,7 @@ outputs::
 
 
 ``render``
-::::::::::
+""""""""""
 
 The ``render`` method of template objects renders the template and returns the
 output as a string. The parameter can be passed via keyword argument or via the
@@ -1009,7 +1009,7 @@ output as a string. The parameter can be passed via keyword argument or via the
 
 
 ``isoformat``
-:::::::::::::
+"""""""""""""
 
 ``isoformat`` is a date method. It returns the date object in ISO 8601 format,
 i.e.::
@@ -1022,7 +1022,7 @@ might output::
 
 
 ``mimeformat``
-::::::::::::::
+""""""""""""""
 
 ``mimeformat`` is a date method. It returns the date object in MIME format
 (assuming the date object is in UTC), i.e.::
@@ -1035,7 +1035,7 @@ might output::
 
 
 ``day``, ``month``, ``year``, ``hour``, ``minute``, ``second``, ``microsecond``, ``weekday``
-::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Those methods are date methods. They return a specific attribute of a date
 object. For example the following reproduces the ``mimeformat`` output from
@@ -1055,7 +1055,7 @@ above (except for the linefeeds of course)::
 
 
 ``yearday``
-:::::::::::
+"""""""""""
 
 ``yearday`` is a date method. It returns the number of days since the beginning
 of the year, so::
