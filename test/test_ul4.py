@@ -1898,7 +1898,7 @@ def test_method_find(r):
 	eq('6', r('<?print l.find("r", -3, -1)?>', l=l))
 	eq('-1', r('<?print l.find("r", 2, 2)?>', l=l))
 	eq('-1', r('<?print l.find("r", 7)?>', l=l))
-	eq('1', r('<?print l.rfind(None)?>', l=[0, None, 1, None, 2, None, 3, None]))
+	eq('1', r('<?print l.find(None)?>', l=[0, None, 1, None, 2, None, 3, None]))
 
 
 @pytest.mark.ul4
