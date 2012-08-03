@@ -955,11 +955,16 @@ given).
 ``find``
 ::::::::
 
-This string method searches for a substring of the string for which it's called
-and returns the position of the first appearance of the substring or -1 if
-the string can't be found. For example ``"foobar".find("bar")`` returns 3.
+This method searches for a substring of the string or an item in a list
+and returns the position of the first appearance of the substring/item or -1 if
+the string/item can't be found. For example ``"foobar".find("bar")`` returns 3.
 The optional second and third argument specify the start and end position for
 the search.
+
+``rfind``
+:::::::::
+
+This method works like ``find`` but searches from the end.
 
 
 ``replace``

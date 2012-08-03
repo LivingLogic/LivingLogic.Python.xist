@@ -65,6 +65,8 @@ Changes in 4.0 (released ??/??/2012)
 *	UL4 stacktraces now use exception chaining to report the exception location
 	in nested templates.
 
+*	The UL4 methods ``find`` and ``rfind`` now support lists and tuples.
+
 *	The sort order for attributes when publishing can be overwritten by setting
 	the ``xmlorder`` class attribute to a string. This string will be used for
 	sorting the attribute. Attributes that have ``xmlorder`` set will always be

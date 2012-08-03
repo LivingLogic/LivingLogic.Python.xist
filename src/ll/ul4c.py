@@ -1929,8 +1929,8 @@ class CallMeth(AST):
 			strip="({}).strip({})".format,
 			lstrip="({}).lstrip({})".format,
 			rstrip="({}).rstrip({})".format,
-			find="({}).find({})".format,
-			rfind="({}).rfind({})".format,
+			find="ul4c._find({}, {})".format,
+			rfind="ul4c._rfind({}, {})".format,
 			startswith="({}).startswith({})".format,
 			endswith="({}).endswith({})".format,
 			upper="({}).upper({})".format,
@@ -3389,6 +3389,36 @@ def _urlunquote(obj):
 	Helper for the ``urlunquote`` function.
 	"""
 	return urlparse.unquote_plus(obj)
+
+
+def _find(obj, sub, start=None, end=None):
+	"""
+	Helper for the ``find`` method.
+	"""
+	if isinstance(obj, str):
+		return obj.find(sub, start, end)
+	else:
+		try:
+			if end is None:
+				if start is None:
+					return obj.index(sub)
+				return obj.index(sub, start)
+			return obj.index(sub, start, end)
+		except ValueError:
+			return -1
+
+
+def _rfind(obj, sub, start=None, end=None):
+	"""
+	Helper for the ``rfind`` method.
+	"""
+	if isinstance(obj, str):
+		return obj.rfind(sub, start, end)
+	else:
+		for i in reversed(range(*slice(start, end).indices(len(obj)))):
+			if obj[i] == sub:
+				return i
+		return -1
 
 
 def _mimeformat(obj):

@@ -1878,25 +1878,43 @@ def test_method_join(r):
 @pytest.mark.ul4
 @with_all_renderers
 def test_method_find(r):
-	eq('-1', r('<?print s.find("ks")?>', s="gurkgurk"))
-	eq('2', r('<?print s.find("rk")?>', s="gurkgurk"))
-	eq('2', r('<?print s.find("rk", 2)?>', s="gurkgurk"))
-	eq('2', r('<?print s.find("rk", 2, 4)?>', s="gurkgurk"))
-	eq('6', r('<?print s.find("rk", 4, 8)?>', s="gurkgurk"))
-	eq('-1', r('<?print s.find("rk", 2, 3)?>', s="gurkgurk"))
-	eq('-1', r('<?print s.find("rk", 7)?>', s="gurkgurk"))
+	s = "gurkgurk"
+	eq('-1', r('<?print s.find("ks")?>', s=s))
+	eq('2', r('<?print s.find("rk")?>', s=s))
+	eq('2', r('<?print s.find("rk", 2)?>', s=s))
+	eq('2', r('<?print s.find("rk", 2, 4)?>', s=s))
+	eq('6', r('<?print s.find("rk", 4, 8)?>', s=s))
+	eq('-1', r('<?print s.find("rk", 2, 3)?>', s=s))
+	eq('-1', r('<?print s.find("rk", 7)?>', s=s))
+	l = list("gurkgurk")
+	eq('-1', r('<?print l.find("x")?>', l=l))
+	eq('2', r('<?print l.find("r")?>', l=l))
+	eq('2', r('<?print l.find("r", 2)?>', l=l))
+	eq('2', r('<?print l.find("r", 2, 4)?>', l=l))
+	eq('6', r('<?print l.find("r", 4, 8)?>', l=l))
+	eq('-1', r('<?print l.find("r", 2, 2)?>', l=l))
+	eq('-1', r('<?print l.find("r", 7)?>', l=l))
 
 
 @pytest.mark.ul4
 @with_all_renderers
 def test_method_rfind(r):
-	eq('-1', r('<?print s.rfind("ks")?>', s="gurkgurk"))
-	eq('6', r('<?print s.rfind("rk")?>', s="gurkgurk"))
-	eq('6', r('<?print s.rfind("rk", 2)?>', s="gurkgurk"))
-	eq('2', r('<?print s.rfind("rk", 2, 4)?>', s="gurkgurk"))
-	eq('6', r('<?print s.rfind("rk", 4, 8)?>', s="gurkgurk"))
-	eq('-1', r('<?print s.rfind("rk", 2, 3)?>', s="gurkgurk"))
-	eq('-1', r('<?print s.rfind("rk", 7)?>', s="gurkgurk"))
+	s = "gurkgurk"
+	eq('-1', r('<?print s.rfind("ks")?>', s=s))
+	eq('6', r('<?print s.rfind("rk")?>', s=s))
+	eq('6', r('<?print s.rfind("rk", 2)?>', s=s))
+	eq('2', r('<?print s.rfind("rk", 2, 4)?>', s=s))
+	eq('6', r('<?print s.rfind("rk", 4, 8)?>', s=s))
+	eq('-1', r('<?print s.rfind("rk", 2, 3)?>', s=s))
+	eq('-1', r('<?print s.rfind("rk", 7)?>', s=s))
+	l = list("gurkgurk")
+	eq('-1', r('<?print l.rfind("x")?>', l=l))
+	eq('6', r('<?print l.rfind("r")?>', l=l))
+	eq('6', r('<?print l.rfind("r", 2)?>', l=l))
+	eq('2', r('<?print l.rfind("r", 2, 4)?>', l=l))
+	eq('6', r('<?print l.rfind("r", 4, 8)?>', l=l))
+	eq('-1', r('<?print l.rfind("r", 2, 2)?>', l=l))
+	eq('-1', r('<?print l.rfind("r", 7)?>', l=l))
 
 
 @pytest.mark.ul4
