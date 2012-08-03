@@ -653,7 +653,7 @@ class Text(AST):
 		return "{i}# literal at position {l.starttag}:{l.endtag} ({id})\n{i}yield {l.code!r}\n".format(i=indent*"\t", id=id(self), l=self.location)
 
 	def formatjava(self, indent):
-		return "{i}context.write({t});\n".format(i=indent*"\t", t=misc.javaexpr(self.location.code))
+		return "{i}// literal at position {l.starttag}:{l.endtag}\n{i}context.write({t});\n".format(i=indent*"\t", t=misc.javaexpr(self.location.code), l=self.location)
 
 
 class Const(AST):
