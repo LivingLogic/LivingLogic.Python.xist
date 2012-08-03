@@ -94,8 +94,8 @@ class RenderJS(Render):
 		with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 			f.write(js.encode("utf-8"))
 			f.flush()
-			dir = pkg_resources.resource_filename("ll.xist", "data/")
-			proc = subprocess.Popen("d8 {dir}/js/ul4on.js {dir}/js/ul4.js {fn}".format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+			dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
+			proc = subprocess.Popen("d8 {dir}/ul4on.js {dir}/ul4.js {fn}".format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 			(stdout, stderr) = proc.communicate()
 		stdout = stdout.decode("utf-8")
 		stderr = stderr.decode("utf-8")
@@ -237,7 +237,7 @@ class RenderJavaInterpretedTemplateByJava(RenderJava):
 all_python_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump)
 # FIXME: The following really takes a long time to run:
 all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaInterpretedTemplateByPython, RenderJavaCompiledTemplateByPython, RenderJavaInterpretedTemplateByJava)
-all_renderers = all_python_renderers
+# all_renderers = all_python_renderers
 
 with_all_renderers = pytest.mark.parametrize(("r",), [(r,) for r in all_renderers])
 
@@ -1882,18 +1882,23 @@ def test_method_find(r):
 	eq('-1', r('<?print s.find("ks")?>', s=s))
 	eq('2', r('<?print s.find("rk")?>', s=s))
 	eq('2', r('<?print s.find("rk", 2)?>', s=s))
+	eq('2', r('<?print s.find("rk", -3)?>', s=s))
 	eq('2', r('<?print s.find("rk", 2, 4)?>', s=s))
 	eq('6', r('<?print s.find("rk", 4, 8)?>', s=s))
+	eq('5', r('<?print s.find("ur", -4, -1)?>', s=s))
 	eq('-1', r('<?print s.find("rk", 2, 3)?>', s=s))
 	eq('-1', r('<?print s.find("rk", 7)?>', s=s))
 	l = list("gurkgurk")
 	eq('-1', r('<?print l.find("x")?>', l=l))
 	eq('2', r('<?print l.find("r")?>', l=l))
 	eq('2', r('<?print l.find("r", 2)?>', l=l))
+	eq('2', r('<?print l.find("r", -3)?>', l=l))
 	eq('2', r('<?print l.find("r", 2, 4)?>', l=l))
 	eq('6', r('<?print l.find("r", 4, 8)?>', l=l))
+	eq('6', r('<?print l.find("r", -3, -1)?>', l=l))
 	eq('-1', r('<?print l.find("r", 2, 2)?>', l=l))
 	eq('-1', r('<?print l.find("r", 7)?>', l=l))
+	eq('1', r('<?print l.rfind(None)?>', l=[0, None, 1, None, 2, None, 3, None]))
 
 
 @pytest.mark.ul4
@@ -1905,6 +1910,7 @@ def test_method_rfind(r):
 	eq('6', r('<?print s.rfind("rk", 2)?>', s=s))
 	eq('2', r('<?print s.rfind("rk", 2, 4)?>', s=s))
 	eq('6', r('<?print s.rfind("rk", 4, 8)?>', s=s))
+	eq('5', r('<?print s.rfind("ur", -4, -1)?>', s=s))
 	eq('-1', r('<?print s.rfind("rk", 2, 3)?>', s=s))
 	eq('-1', r('<?print s.rfind("rk", 7)?>', s=s))
 	l = list("gurkgurk")
@@ -1913,8 +1919,10 @@ def test_method_rfind(r):
 	eq('6', r('<?print l.rfind("r", 2)?>', l=l))
 	eq('2', r('<?print l.rfind("r", 2, 4)?>', l=l))
 	eq('6', r('<?print l.rfind("r", 4, 8)?>', l=l))
+	eq('6', r('<?print l.rfind("r", -3, -1)?>', l=l))
 	eq('-1', r('<?print l.rfind("r", 2, 2)?>', l=l))
 	eq('-1', r('<?print l.rfind("r", 7)?>', l=l))
+	eq('7', r('<?print l.rfind(None)?>', l=[0, None, 1, None, 2, None, 3, None]))
 
 
 @pytest.mark.ul4
