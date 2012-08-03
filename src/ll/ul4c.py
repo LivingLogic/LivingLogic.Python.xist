@@ -2074,7 +2074,7 @@ class CallMethKeywords(AST):
 		v = []
 		for arg in self.args:
 			if len(arg) == 1:
-				v.append(".add((Map){})".format(arg[0].formatjava(indent)))
+				v.append(".add((java.util.Map){})".format(arg[0].formatjava(indent)))
 			else:
 				v.append(".add({}, {})".format(misc.javaexpr(arg[0]), arg[1].formatjava(indent)))
 		args = "new com.livinglogic.ul4.MapMaker(){}.getMap()".format("".join(v))
