@@ -759,6 +759,22 @@ If the argument is not a string, it will be converted to a string first.
 ``<?printx foo?>`` is a shortcut for ``<?print xmlescape(foo)?>``.
 
 
+``min``
+"""""""
+
+``min`` returns the minimum value of its two or more arguments. If it's called
+with one argument, this argument must be iterable and ``min`` returns the minimum
+value of this argument.
+
+
+``max``
+"""""""
+
+``max`` returns the maximum value of its two or more arguments. If it's called
+with one argument, this argument must be iterable and ``max`` returns the maximum
+value of this argument.
+
+
 ``sorted``
 """"""""""
 

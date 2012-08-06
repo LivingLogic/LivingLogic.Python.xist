@@ -67,6 +67,8 @@ Changes in 4.0 (released ??/??/2012)
 
 *	The UL4 methods ``find`` and ``rfind`` now support lists and tuples.
 
+*	Two new UL4 functions have been added: ``min`` and ``max``.
+
 *	The sort order for attributes when publishing can be overwritten by setting
 	the ``xmlorder`` class attribute to a string. This string will be used for
 	sorting the attribute. Attributes that have ``xmlorder`` set will always be

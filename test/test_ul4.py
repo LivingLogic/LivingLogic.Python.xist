@@ -237,7 +237,7 @@ class RenderJavaInterpretedTemplateByJava(RenderJava):
 all_python_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump)
 # FIXME: The following really takes a long time to run:
 all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaInterpretedTemplateByPython, RenderJavaCompiledTemplateByPython, RenderJavaInterpretedTemplateByJava)
-# all_renderers = all_python_renderers
+all_renderers = all_python_renderers
 
 with_all_renderers = pytest.mark.parametrize(("r",), [(r,) for r in all_renderers])
 
@@ -254,7 +254,7 @@ argumentmismatchmessage = [
 	"takes no arguments",
 	"expected at least \\d+ arguments",
 	# Javascript argument mismatch exception messages
-	"requires \\d+(-\\d+)? arguments?, \\d+ given",
+	"requires (at least \\d+|\\d+(-\\d+)?) arguments?, \\d+ given",
 	# Java compiler errors for argument mismatches
 	"cannot find symbol",
 	"cannot be applied",
@@ -1679,6 +1679,28 @@ def test_function_reversed(r):
 	eq("(3)(2)(1)", r(code, x="123"))
 	eq("(3)(2)(1)", r(code, x=[1, 2, 3]))
 	eq("(3)(2)(1)", r(code, x=(1, 2, 3)))
+
+
+@pytest.mark.ul4
+@with_all_renderers
+def test_function_min(r):
+	raises(argumentmismatchmessage, r("<?print min()?>"))
+	eq("1", r("<?print min('123')?>"))
+	eq("1", r("<?print min(1, 2, 3)?>"))
+	eq("0", r("<?print min(0, False, 1, True)?>"))
+	eq("False", r("<?print min(False, 0, True, 1)?>"))
+	eq("False", r("<?print min([False, 0, True, 1])?>"))
+
+
+@pytest.mark.ul4
+@with_all_renderers
+def test_function_max(r):
+	raises(argumentmismatchmessage, r("<?print max()?>"))
+	eq("3", r("<?print max('123')?>"))
+	eq("3", r("<?print max(1, 2, 3)?>"))
+	eq("1", r("<?print max(0, False, 1, True)?>"))
+	eq("True", r("<?print max(False, 0, True, 1)?>"))
+	eq("True", r("<?print max([False, 0, True, 1])?>"))
 
 
 @pytest.mark.ul4
