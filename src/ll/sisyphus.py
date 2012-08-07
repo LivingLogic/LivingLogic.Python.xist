@@ -14,9 +14,7 @@
 
 There will be no more than one sisyphus job of a certain name running at every
 given time. A job has a maximum allowed runtime. If this maximum is exceeded,
-the job will kill itself.
-
-In addition to that, job execution can be logged.
+the job will kill itself. In addition to that, job execution can be logged.
 
 To use this module, you must derive your own class from :class:`Job` and
 implement the :meth:`execute` method.
