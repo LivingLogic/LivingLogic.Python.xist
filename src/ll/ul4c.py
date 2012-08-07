@@ -2173,7 +2173,7 @@ class Template(Block):
 
 		# ``_astsbyid`` maps the id of the AST node to the ast node itself
 		# It is used in :meth:`Template.format` (to give the generated Python source code access to the subtemplate)
-		# and for proper exception chaining (when and exception occur in the template, comments in the
+		# and for proper exception chaining (when an exception occurs in the template, comments in the
 		# generated source code allow finding the offending AST node)
 		self._astsbyid = None
 		# Python source code generated for the template
