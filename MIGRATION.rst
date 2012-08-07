@@ -12,7 +12,7 @@ Changes to UL4
 *	Date constants in UL4 have changed again. They are now written like this:
 	``@(2012-04-12)`` or ``@(2012-04-12T12:34:56)``.
 
-*	The function ``json`` has been renamed to ``asjson``
+*	The function ``json`` has been renamed to ``asjson``.
 
 *	The ``<?render?>`` tag in UL4 now looks like a method call instead of a
 	function call. I.e. ``<?render t(a=17, b=23)?>`` has changed to
