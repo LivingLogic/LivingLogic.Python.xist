@@ -1685,6 +1685,7 @@ def test_function_reversed(r):
 @with_all_renderers
 def test_function_min(r):
 	raises(argumentmismatchmessage, r("<?print min()?>"))
+	raises("empty sequence", r("<?print min([])?>"))
 	eq("1", r("<?print min('123')?>"))
 	eq("1", r("<?print min(1, 2, 3)?>"))
 	eq("0", r("<?print min(0, False, 1, True)?>"))
@@ -1696,6 +1697,7 @@ def test_function_min(r):
 @with_all_renderers
 def test_function_max(r):
 	raises(argumentmismatchmessage, r("<?print max()?>"))
+	raises("empty sequence", r("<?print max([])?>"))
 	eq("3", r("<?print max('123')?>"))
 	eq("3", r("<?print max(1, 2, 3)?>"))
 	eq("1", r("<?print max(0, False, 1, True)?>"))
