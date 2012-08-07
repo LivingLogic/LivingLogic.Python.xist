@@ -51,6 +51,7 @@ class Object:
 			return getattr(self, key)
 		raise KeyError(key)
 
+
 ###
 ### Location information
 ###
