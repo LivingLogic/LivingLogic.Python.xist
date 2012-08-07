@@ -1,4 +1,4 @@
-Changes in 4.0 (released ??/??/2012)
+Changes in 4.0 (released 08/08/2012)
 ------------------------------------
 
 *	The source has been ported to Python 3. From now on XIST is a Python 3 only
@@ -20,26 +20,6 @@ Changes in 4.0 (released ??/??/2012)
 
 *	Generating the final Javascript source code for UL4 templates is now done in
 	Javascript itself.
-
-*	Support for the old ``ipipe`` infrastructure has been removed. Support for
-	IPythons new pretty printing infrastructure has been added. Output looks like
-	this::
-
-		In [1]: from ll.xist.ns import xml, html
-		In [2]: html.a(
-		   ...:         'gurk',
-		   ...:         xml.Attrs(lang='de'),
-		   ...:         class_='link',
-		   ...:         href='http://www.example.org/',
-		   ...:         id='dings42',
-		   ...: )
-		Out[2]:
-		ll.xist.ns.html.a(
-		   'gurk',
-		   ll.xist.ns.xml.Attrs.lang='de',
-		   class_='link',
-		   href='http://www.example.org/',
-		   id='dings42')
 
 *	A new module :mod:`ul4on` has been added. This module provides functions for
 	encoding and decoding a lightweight extensible machine-readable text format
@@ -81,10 +61,25 @@ Changes in 4.0 (released ??/??/2012)
 	used for sorting the attribute. Attributes that have ``xmlorder`` set will
 	always be published before those that don't.
 
-*	:class:`ll.orasql.Index` now uses the ``*_INDEXES`` views to get a list of
-	all indexes and ``LOB`` indexes are filtered out, since they will be recreated
-	with the LOB itself. The method :meth:`table` has been fixed for indexes that
-	belong to a different user than the index.
+*	Support for the old ``ipipe`` infrastructure has been removed. Support for
+	IPythons new pretty printing infrastructure has been added. Output looks like
+	this::
+
+		In [1]: from ll.xist.ns import xml, html
+		In [2]: html.a(
+		   ...:         'gurk',
+		   ...:         xml.Attrs(lang='de'),
+		   ...:         class_='link',
+		   ...:         href='http://www.example.org/',
+		   ...:         id='dings42',
+		   ...: )
+		Out[2]:
+		ll.xist.ns.html.a(
+		   'gurk',
+		   ll.xist.ns.xml.Attrs.lang='de',
+		   class_='link',
+		   href='http://www.example.org/',
+		   id='dings42')
 
 *	Added the attributes ``allowfullscreen`` and ``flashvars`` to
 	:class:`ll.xist.ns.html.embed`.
@@ -96,6 +91,11 @@ Changes in 4.0 (released ??/??/2012)
 
 		ucp http://www.python.org/ftp/python/2.7.2/Python-2.7.2.tar.bz2 \
 		    ssh://user@www.example.org/~/src/
+
+*	:class:`ll.orasql.Index` now uses the ``*_INDEXES`` views to get a list of
+	all indexes and ``LOB`` indexes are filtered out, since they will be recreated
+	with the LOB itself. The method :meth:`table` has been fixed for indexes that
+	belong to a different user than the index.
 
 *	:class:`ll.orasql.LOBStream` has a new method :meth:`seek`.
 
