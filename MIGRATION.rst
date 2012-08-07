@@ -12,6 +12,32 @@ Changes to UL4
 *	Date constants in UL4 have changed again. They are now written like this:
 	``@(2012-04-12)`` or ``@(2012-04-12T12:34:56)``.
 
+*	The function ``json`` has been renamed to ``asjson``
+
+*	The ``<?render?>`` tag in UL4 now looks like a method call instead of a
+	function call. I.e. ``<?render t(a=17, b=23)?>`` has changed to
+	``<?render t.render(a=17, b=23)?>``.
+
+Changes to scripts
+------------------
+
+*	The scripts ``oracreate``, ``oradrop``, ``oradelete``, ``oradiff``,
+	``oramerge``, ``oragrant``, ``orafind`` and ``uhpp`` no longer have an
+	:option:`-e`/:option:`--encoding` option. They always use Pythons output
+	encoding.
+
+*	The options :option:`-i`/:option:`--inputencoding` and
+	:option:`-o`/:option:`--outputencoding` of the script ``db2ul4`` have been
+	replaced with an option :option:`-e`/:option:`--encoding` for the encoding
+	of the template files. For printing the result Pythons output encoding is
+	used.
+
+*	The options :option:`--inputencoding`,/:option:`--inputerrors` and
+	:option:`--outputencoding`/:option:`--outputerrors` of
+	:class:`ll.sisyphus.Job` have been replaced with option
+	:option:`--encoding`/:option:`--errors` for the encoding of the log files.
+
+
 
 Migrating to version 3.25
 =========================
