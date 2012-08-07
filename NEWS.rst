@@ -15,7 +15,7 @@ Changes in 4.0 (released ??/??/2012)
 
 	This change shouldn't have any visible consequences.
 
-*	UL4 templates are no longer compiled to a byte code, instead the AST is
+*	UL4 templates are no longer compiled to byte code, instead the AST is
 	evaluated or converted to the target sourcecode directly.
 
 *	Generating the final Javascript source code for UL4 templates is now done in
@@ -76,10 +76,10 @@ Changes in 4.0 (released ??/??/2012)
 
 *	Two new UL4 functions have been added: ``min`` and ``max``.
 
-*	The sort order for attributes when publishing can be overwritten by setting
-	the ``xmlorder`` class attribute to a string. This string will be used for
-	sorting the attribute. Attributes that have ``xmlorder`` set will always be
-	published before those that don't.
+*	The sort order for attributes when publishing XIST trees can be overwritten
+	by setting the ``xmlorder`` class attribute to a string. This string will be
+	used for sorting the attribute. Attributes that have ``xmlorder`` set will
+	always be published before those that don't.
 
 *	:class:`ll.orasql.Index` now uses the ``*_INDEXES`` views to get a list of
 	all indexes and ``LOB`` indexes are filtered out, since they will be recreated
