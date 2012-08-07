@@ -234,12 +234,21 @@ class RenderJavaInterpretedTemplateByJava(RenderJava):
 		return self.runsource(java)
 
 
-all_python_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump)
 # FIXME: The following really takes a long time to run:
-all_renderers = (RenderPython, RenderPythonDumpS, RenderPythonDump, RenderJS, RenderJavaInterpretedTemplateByPython, RenderJavaCompiledTemplateByPython, RenderJavaInterpretedTemplateByJava)
-all_renderers = all_python_renderers
+all_renderers =  [
+	("python", RenderPython),
+	("python_dumps", RenderPythonDumpS),
+	("python_dump", RenderPythonDump),
+	("js", RenderJS),
+	("java_interpreted_by_python", RenderJavaInterpretedTemplateByPython),
+	("java_compiled_by_python", RenderJavaCompiledTemplateByPython),
+	("java_interpreted_by_java", RenderJavaInterpretedTemplateByJava),
+]
 
-with_all_renderers = pytest.mark.parametrize(("r",), [(r,) for r in all_renderers])
+
+def pytest_generate_tests(metafunc):
+	if "r" in metafunc.funcargnames:
+		metafunc.parametrize("r", [r for (id, r) in all_renderers], ids=[id for (id, r) in all_renderers])
 
 
 argumentmismatchmessage = [
@@ -303,35 +312,30 @@ def raises(msg, render):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_text(r):
 	eq('gurk', r('gurk'))
 	eq('g\xfcrk', r('g\xfcrk'))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_none(r):
 	eq('', r('<?print None?>'))
 	eq('no', r('<?if None?>yes<?else?>no<?end if?>'))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_false(r):
 	eq('False', r('<?print False?>'))
 	eq('no', r('<?if False?>yes<?else?>no<?end if?>'))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_true(r):
 	eq('True', r('<?print True?>'))
 	eq('yes', r('<?if True?>yes<?else?>no<?end if?>'))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_int(r):
 	values = (0, 42, -42, 0x7ffffff, 0x8000000, -0x8000000, -0x8000001)
 	if r is not RenderJS:
@@ -358,7 +362,6 @@ def test_int(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_float(r):
 	# str() output might differ slightly between Python and JS, so eval the output again for tests
 	evaleq(0.0, r('<?print 0.?>'))
@@ -376,7 +379,6 @@ def test_float(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_string(r):
 	raises("Unterminated string|mismatched character|MismatchedTokenException", r('<?print "?>'))
 	eq('foo', r('<?print "foo"?>'))
@@ -406,7 +408,6 @@ def test_string(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_date(r):
 	eq('2000-02-29', r('<?print @(2000-02-29).isoformat()?>'))
 	eq('2000-02-29', r('<?print @(2000-02-29T).isoformat()?>'))
@@ -417,7 +418,6 @@ def test_date(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_color(r):
 	eq('255,255,255,255', r('<?code c = #fff?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>'))
 	eq('255,255,255,255', r('<?code c = #ffffff?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>'))
@@ -428,7 +428,6 @@ def test_color(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_list(r):
 	eq('', r('<?for item in []?><?print item?>;<?end for?>'))
 	eq('1;', r('<?for item in [1]?><?print item?>;<?end for?>'))
@@ -440,7 +439,6 @@ def test_list(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_dict(r):
 	eq('', r('<?for (key, value) in {}.items()?><?print key?>:<?print value?>\n<?end for?>'))
 	eq('1:2\n', r('<?for (key, value) in {1:2}.items()?><?print key?>:<?print value?>\n<?end for?>'))
@@ -456,14 +454,12 @@ def test_dict(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_code_storevar(r):
 	eq('42', r('<?code x = 42?><?print x?>'))
 	eq('xyzzy', r('<?code x = "xyzzy"?><?print x?>'))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_code_addvar(r):
 	for x in (17, 17., False, True):
 		for y in (23, 23., False, True):
@@ -472,7 +468,6 @@ def test_code_addvar(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_code_subvar(r):
 	for x in (17, 17., False, True):
 		for y in (23, 23., False, True):
@@ -480,7 +475,6 @@ def test_code_subvar(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_code_mulvar(r):
 	for x in (17, 17., False, True):
 		for y in (23, 23., False, True):
@@ -492,7 +486,6 @@ def test_code_mulvar(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_code_floordivvar(r):
 	for x in (5, -5, 5.0, -5.0, 4, -4, 4.0, -4.0, False, True):
 		for y in (2, -2, 2.0, -2.0, True):
@@ -500,7 +493,6 @@ def test_code_floordivvar(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_code_truedivvar(r):
 	for x in (5, -5, 5.0, -5.0, 4, -4, 4.0, -4.0, False, True):
 		for y in (2, -2, 2.0, -2.0, True):
@@ -508,7 +500,6 @@ def test_code_truedivvar(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_code_modvar(r):
 	for x in (1729, 1729.0, -1729, -1729.0, False, True):
 		for y in (23, 23., -23, -23.0, True):
@@ -516,41 +507,35 @@ def test_code_modvar(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_code_delvar(r):
 	if r is not RenderJS:
 		raises("(KeyError|not found)", r('<?code x = 1729?><?code del x?><?print x?>'))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_for_string(r):
 	eq('', r('<?for c in data?>(<?print c?>)<?end for?>', data=""))
 	eq('(g)(u)(r)(k)', r('<?for c in data?>(<?print c?>)<?end for?>', data="gurk"))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_for_list(r):
 	eq('', r('<?for c in data?>(<?print c?>)<?end for?>', data=""))
 	eq('(g)(u)(r)(k)', r('<?for c in data?>(<?print c?>)<?end for?>', data=["g", "u", "r", "k"]))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_for_dict(r):
 	eq('', r('<?for c in data?>(<?print c?>)<?end for?>', data={}))
 	eq('(a)(b)(c)', r('<?for c in sorted(data)?>(<?print c?>)<?end for?>', data=dict(a=1, b=2, c=3)))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_for_nested(r):
 	eq('[(1)(2)][(3)(4)]', r('<?for list in data?>[<?for n in list?>(<?print n?>)<?end for?>]<?end for?>', data=[[1, 2], [3, 4]]))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_for_unpacking(r):
 	data = [
 		("spam", "eggs", 17),
@@ -564,37 +549,31 @@ def test_for_unpacking(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_break(r):
 	eq('1, 2, ', r('<?for i in [1,2,3]?><?print i?>, <?if i==2?><?break?><?end if?><?end for?>'))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_break_nested(r):
 	eq('1, 1, 2, 1, 2, 3, ', r('<?for i in [1,2,3,4]?><?for j in [1,2,3,4]?><?print j?>, <?if j>=i?><?break?><?end if?><?end for?><?if i>=3?><?break?><?end if?><?end for?>'))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_continue(r):
 	eq('1, 3, ', r('<?for i in [1,2,3]?><?if i==2?><?continue?><?end if?><?print i?>, <?end for?>'))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_continue_nested(r):
 	eq('1, 3, \n1, 3, \n', r('<?for i in [1,2,3]?><?if i==2?><?continue?><?end if?><?for j in [1,2,3]?><?if j==2?><?continue?><?end if?><?print j?>, <?end for?>\n<?end for?>'))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_if(r):
 	eq('42', r('<?if data?><?print data?><?end if?>', data=42))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_else(r):
 	eq('42', r('<?if data?><?print data?><?else?>no<?end if?>', data=42))
 	eq('no', r('<?if data?><?print data?><?else?>no<?end if?>', data=0))
@@ -626,7 +605,6 @@ def test_empty():
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_add(r):
 	values = (17, 23, 1., -1.)
 
@@ -638,7 +616,6 @@ def test_add(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_sub(r):
 	values = (17, 23, 1., -1.)
 
@@ -648,7 +625,6 @@ def test_sub(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_mul(r):
 	values = (17, 23, 1., -1.)
 
@@ -663,21 +639,18 @@ def test_mul(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_truediv(r):
 	eq("0.5", r('<?print 1/2?>'))
 	eq("0.5", r('<?code x=1?><?code y=2?><?print x/y?>'))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_floordiv(r):
 	eq("0", r('<?print 1//2?>'))
 	eq("0", r('<?code x=1?><?code y=2?><?print x//y?>'))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_mod(r):
 	values = (17, 23, 17., 23.)
 
@@ -688,7 +661,6 @@ def test_mod(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_eq(r):
 	values = (17, 23, 17., 23.)
 
@@ -699,7 +671,6 @@ def test_eq(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_ne(r):
 	values = (17, 23, 17., 23.)
 
@@ -710,7 +681,6 @@ def test_ne(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_lt(r):
 	values = (17, 23, 17., 23.)
 
@@ -721,7 +691,6 @@ def test_lt(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_le(r):
 	values = (17, 23, 17., 23.)
 
@@ -732,7 +701,6 @@ def test_le(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_gt(r):
 	values = (17, 23, 17., 23.)
 
@@ -743,7 +711,6 @@ def test_gt(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_ge(r):
 	values = (17, 23, 17., 23.)
 
@@ -754,7 +721,6 @@ def test_ge(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_contains(r):
 	code = '<?print x in y?>'
 
@@ -769,7 +735,6 @@ def test_contains(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_notcontains(r):
 	code = '<?print x not in y?>'
 
@@ -784,7 +749,6 @@ def test_notcontains(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_and(r):
 	eq("False", r('<?print x and y?>', x=False, y=False))
 	eq("False", r('<?print x and y?>', x=False, y=True))
@@ -792,7 +756,6 @@ def test_and(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_or(r):
 	eq("False", r('<?print x or y?>', x=False, y=False))
 	eq("True", r('<?print x or y?>', x=False, y=True))
@@ -800,14 +763,12 @@ def test_or(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_not(r):
 	eq("True", r('<?print not x?>', x=False))
 	eq("False", r('<?print not x?>', x=42))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_getitem(r):
 	eq("u", r("<?print 'gurk'[1]?>"))
 	eq("u", r("<?print x[1]?>", x="gurk"))
@@ -820,7 +781,6 @@ def test_getitem(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_getslice12(r):
 	eq("ur", r("<?print 'gurk'[1:3]?>"))
 	eq("ur", r("<?print x[1:3]?>", x="gurk"))
@@ -833,7 +793,6 @@ def test_getslice12(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_getslice1(r):
 	eq("urk", r("<?print 'gurk'[1:]?>"))
 	eq("urk", r("<?print x[1:]?>", x="gurk"))
@@ -846,7 +805,6 @@ def test_getslice1(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_getslice2(r):
 	eq("gur", r("<?print 'gurk'[:3]?>"))
 	eq("gur", r("<?print x[:3]?>", x="gurk"))
@@ -859,7 +817,6 @@ def test_getslice2(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_getslice(r):
 	eq("gurk", r("<?print 'gurk'[:]?>"))
 	eq("gurk", r("<?print x[:]?>", x="gurk"))
@@ -867,7 +824,6 @@ def test_getslice(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_nested(r):
 	sc = "4"
 	sv = "x"
@@ -884,7 +840,6 @@ def test_nested(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_precedence(r):
 	eq("14", r('<?print 2+3*4?>'))
 	eq("20", r('<?print (2+3)*4?>'))
@@ -899,7 +854,6 @@ def test_precedence(r):
 	eq("42", r('<?print data.value.value[0].value.value[0]?>', data=dict(value=dict(value=[dict(value=dict(value=[42]))]))))
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_associativity(r):
 	eq("9", r('<?print 2+3+4?>'))
 	eq("-5", r('<?print 2-3-4?>'))
@@ -912,7 +866,6 @@ def test_associativity(r):
 		evaleq(2, r('<?print 24//6//2?>'))
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_bracket(r):
 	sc = "4"
 	sv = "x"
@@ -925,18 +878,15 @@ def test_bracket(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_now(r):
 	now = str(datetime.datetime.now())
 
-	for r in all_renderers:
-		raises(argumentmismatchmessage, r("<?print now(1)?>"))
-		raises(argumentmismatchmessage, r("<?print now(1, 2)?>"))
-		le(now, r("<?print now()?>"))
+	raises(argumentmismatchmessage, r("<?print now(1)?>"))
+	raises(argumentmismatchmessage, r("<?print now(1, 2)?>"))
+	le(now, r("<?print now()?>"))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_utcnow(r):
 	utcnow = str(datetime.datetime.utcnow())
 
@@ -948,7 +898,6 @@ def test_function_utcnow(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_vars(r):
 	code = "<?if var in vars()?>yes<?else?>no<?end if?>"
 
@@ -959,7 +908,6 @@ def test_function_vars(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_random(r):
 	raises(argumentmismatchmessage, r("<?print random(1)?>"))
 	raises(argumentmismatchmessage, r("<?print random(1, 2)?>"))
@@ -967,7 +915,6 @@ def test_function_random(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_randrange(r):
 	raises(argumentmismatchmessage, r("<?print randrange()?>"))
 	eq("ok", r("<?code r = randrange(4)?><?if r>=0 and r<4?>ok<?else?>fail<?end if?>"))
@@ -976,7 +923,6 @@ def test_function_randrange(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_randchoice(r):
 	raises(argumentmismatchmessage, r("<?print randchoice()?>"))
 	eq("ok", r("<?code r = randchoice('abc')?><?if r in 'abc'?>ok<?else?>fail<?end if?>"))
@@ -985,7 +931,6 @@ def test_function_randchoice(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_xmlescape(r):
 	raises(argumentmismatchmessage, r("<?print xmlescape()?>"))
 	raises(argumentmismatchmessage, r("<?print xmlescape(1, 2)?>"))
@@ -993,7 +938,6 @@ def test_function_xmlescape(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_csv(r):
 	raises(argumentmismatchmessage, r("<?print csv()?>"))
 	raises(argumentmismatchmessage, r("<?print csv(1, 2)?>"))
@@ -1009,7 +953,6 @@ def test_function_csv(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_asjson(r):
 	raises(argumentmismatchmessage, r("<?print asjson()?>"))
 	raises(argumentmismatchmessage, r("<?print asjson(1, 2)?>"))
@@ -1026,7 +969,6 @@ def test_function_asjson(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_fromjson(r):
 	code = "<?print repr(fromjson(data))?>"
 	raises(argumentmismatchmessage, r("<?print fromjson()?>"))
@@ -1042,7 +984,6 @@ def test_function_fromjson(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_ul4on(r):
 	code = "<?print repr(fromul4on(asul4on(data)))?>"
 
@@ -1061,7 +1002,6 @@ def test_function_ul4on(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_str(r):
 	code = "<?print str(data)?>"
 
@@ -1079,7 +1019,6 @@ def test_function_str(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_int(r):
 	raises(argumentmismatchmessage, RenderPython("<?print int(1, 2, 3)?>"))
 	raises("int\\(\\) argument must be a string or a number|int\\(null\\) not supported", RenderPython("<?print int(data)?>", data=None))
@@ -1094,7 +1033,6 @@ def test_function_int(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_float(r):
 	code = "<?print float(data)?>"
 
@@ -1116,7 +1054,6 @@ def test_function_float(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_len(r):
 	code = "<?print len(data)?>"
 
@@ -1133,7 +1070,6 @@ def test_function_len(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_enumerate(r):
 	code1 = "<?for (i, value) in enumerate(data)?>(<?print value?>=<?print i?>)<?end for?>"
 	code2 = "<?for (i, value) in enumerate(data, 42)?>(<?print value?>=<?print i?>)<?end for?>"
@@ -1153,7 +1089,6 @@ def test_function_enumerate(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_enumfl(r):
 	code1 = "<?for (i, f, l, value) in enumfl(data)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>"
 	code2 = "<?for (i, f, l, value) in enumfl(data, 42)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>"
@@ -1173,7 +1108,6 @@ def test_function_enumfl(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_isfirstlast(r):
 	code = "<?for (f, l, value) in isfirstlast(data)?><?if f?>[<?end if?>(<?print value?>)<?if l?>]<?end if?><?end for?>"
 
@@ -1191,7 +1125,6 @@ def test_function_isfirstlast(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_isfirst(r):
 	code = "<?for (f, value) in isfirst(data)?><?if f?>[<?end if?>(<?print value?>)<?end for?>"
 
@@ -1209,7 +1142,6 @@ def test_function_isfirst(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_islast(r):
 	code = "<?for (l, value) in islast(data)?>(<?print value?>)<?if l?>]<?end if?><?end for?>"
 
@@ -1227,7 +1159,6 @@ def test_function_islast(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_isnone(r):
 	code = "<?print isnone(data)?>"
 
@@ -1248,7 +1179,6 @@ def test_function_isnone(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_isbool(r):
 	code = "<?print isbool(data)?>"
 
@@ -1269,7 +1199,6 @@ def test_function_isbool(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_isint(r):
 	code = "<?print isint(data)?>"
 
@@ -1290,7 +1219,6 @@ def test_function_isint(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_isfloat(r):
 	code = "<?print isfloat(data)?>"
 
@@ -1311,7 +1239,6 @@ def test_function_isfloat(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_isstr(r):
 	code = "<?print isstr(data)?>"
 
@@ -1332,7 +1259,6 @@ def test_function_isstr(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_isdate(r):
 	code = "<?print isdate(data)?>"
 
@@ -1353,7 +1279,6 @@ def test_function_isdate(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_islist(r):
 	code = "<?print islist(data)?>"
 
@@ -1375,7 +1300,6 @@ def test_function_islist(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_isdict(r):
 	code = "<?print isdict(data)?>"
 
@@ -1397,7 +1321,6 @@ def test_function_isdict(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_istemplate(r):
 	code = "<?print istemplate(data)?>"
 
@@ -1418,7 +1341,6 @@ def test_function_istemplate(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_iscolor(r):
 	code = "<?print iscolor(data)?>"
 
@@ -1439,7 +1361,6 @@ def test_function_iscolor(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_get(r):
 	raises(argumentmismatchmessage, r("<?print get()?>"))
 	eq("", r("<?print get('x')?>"))
@@ -1449,7 +1370,6 @@ def test_function_get(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_repr(r):
 	code = "<?print repr(data)?>"
 
@@ -1472,7 +1392,6 @@ def test_function_repr(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_format(r):
 	t = datetime.datetime(2011, 2, 6, 12, 34, 56, 987000)
 	code = "<?print format(data, format)?>"
@@ -1502,7 +1421,6 @@ def test_method_format(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_chr(r):
 	code = "<?print chr(data)?>"
 
@@ -1514,7 +1432,6 @@ def test_function_chr(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_ord(r):
 	code = "<?print ord(data)?>"
 
@@ -1526,7 +1443,6 @@ def test_function_ord(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_hex(r):
 	code = "<?print hex(data)?>"
 
@@ -1539,7 +1455,6 @@ def test_function_hex(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_oct(r):
 	code = "<?print oct(data)?>"
 
@@ -1552,7 +1467,6 @@ def test_function_oct(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_bin(r):
 	code = "<?print bin(data)?>"
 
@@ -1564,7 +1478,6 @@ def test_function_bin(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_abs(r):
 	code = "<?print abs(data)?>"
 
@@ -1576,7 +1489,6 @@ def test_function_abs(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_sorted(r):
 	code = "<?for i in sorted(data)?><?print i?><?end for?>"
 
@@ -1588,7 +1500,6 @@ def test_function_sorted(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_range(r):
 	code1 = "<?for i in range(data)?><?print i?>;<?end for?>"
 	code2 = "<?for i in range(data[0], data[1])?><?print i?>;<?end for?>"
@@ -1612,7 +1523,6 @@ def test_function_range(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_urlquote(r):
 	eq("gurk", r("<?print urlquote('gurk')?>"))
 	eq("%3C%3D%3E%2B%3F", r("<?print urlquote('<=>+?')?>"))
@@ -1620,7 +1530,6 @@ def test_function_urlquote(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_urlunquote(r):
 	eq("gurk", r("<?print urlunquote('gurk')?>"))
 	eq("<=>+?", r("<?print urlunquote('%3C%3D%3E%2B%3F')?>"))
@@ -1628,7 +1537,6 @@ def test_function_urlunquote(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_zip(r):
 	code0 = "<?for i in zip()?><?print i?>;<?end for?>"
 	code1 = "<?for (ix, ) in zip(x)?><?print ix?>;<?end for?>"
@@ -1646,7 +1554,6 @@ def test_function_zip(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_type(r):
 	code = "<?print type(x)?>"
 
@@ -1670,7 +1577,6 @@ def test_function_type(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_reversed(r):
 	code = "<?for i in reversed(x)?>(<?print i?>)<?end for?>"
 
@@ -1682,7 +1588,6 @@ def test_function_reversed(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_min(r):
 	raises(argumentmismatchmessage, r("<?print min()?>"))
 	raises("empty sequence", r("<?print min([])?>"))
@@ -1694,7 +1599,6 @@ def test_function_min(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_max(r):
 	raises(argumentmismatchmessage, r("<?print max()?>"))
 	raises("empty sequence", r("<?print max([])?>"))
@@ -1706,81 +1610,69 @@ def test_function_max(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_rgb(r):
 	eq("#369", r("<?print repr(rgb(0.2, 0.4, 0.6))?>"))
 	eq("#369c", r("<?print repr(rgb(0.2, 0.4, 0.6, 0.8))?>"))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_hls(r):
 	eq("#fff", r("<?print repr(hls(0, 1, 0))?>"))
 	eq("#fff0", r("<?print repr(hls(0, 1, 0, 0))?>"))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_function_hsv(r):
 	eq("#fff", r("<?print repr(hsv(0, 0, 1))?>"))
 	eq("#fff0", r("<?print repr(hsv(0, 0, 1, 0))?>"))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_upper(r):
 	eq("GURK", r("<?print 'gurk'.upper()?>"))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_lower(r):
 	eq("gurk", r("<?print 'GURK'.lower()?>"))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_capitalize(r):
 	eq("Gurk", r("<?print 'gURK'.capitalize()?>"))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_startswith(r):
 	eq("True", r("<?print 'gurkhurz'.startswith('gurk')?>"))
 	eq("False", r("<?print 'gurkhurz'.startswith('hurz')?>"))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_endswith(r):
 	eq("True", r("<?print 'gurkhurz'.endswith('hurz')?>"))
 	eq("False", r("<?print 'gurkhurz'.endswith('gurk')?>"))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_strip(r):
 	eq("gurk", r(r"<?print obj.strip()?>", obj=' \t\r\ngurk \t\r\n'))
 	eq("gurk", r(r"<?print obj.strip('xyz')?>", obj='xyzzygurkxyzzy'))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_lstrip(r):
 	eq("gurk \t\r\n", r("<?print obj.lstrip()?>", obj=" \t\r\ngurk \t\r\n"))
 	eq("gurkxyzzy", r("<?print obj.lstrip(arg)?>", obj="xyzzygurkxyzzy", arg="xyz"))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_rstrip(r):
 	eq(" \t\r\ngurk", r("<?print obj.rstrip()?>", obj=" \t\r\ngurk \t\r\n"))
 	eq("xyzzygurk", r("<?print obj.rstrip(arg)?>", obj="xyzzygurkxyzzy", arg="xyz"))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_split(r):
 	eq("(f)(o)(o)", r("<?for item in obj.split()?>(<?print item?>)<?end for?>", obj=" \t\r\nf \t\r\no \t\r\no \t\r\n"))
 	eq("(f)(o \t\r\no \t\r\n)", r("<?for item in obj.split(None, 1)?>(<?print item?>)<?end for?>", obj=" \t\r\nf \t\r\no \t\r\no \t\r\n"))
@@ -1789,7 +1681,6 @@ def test_method_split(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_rsplit(r):
 	eq("(f)(o)(o)", r("<?for item in obj.rsplit()?>(<?print item?>)<?end for?>", obj=" \t\r\nf \t\r\no \t\r\no \t\r\n"))
 	eq("( \t\r\nf \t\r\no)(o)", r("<?for item in obj.rsplit(None, 1)?>(<?print item?>)<?end for?>", obj=" \t\r\nf \t\r\no \t\r\no \t\r\n"))
@@ -1798,13 +1689,11 @@ def test_method_rsplit(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_replace(r):
 	eq('goork', r(r"<?print 'gurk'.replace('u', 'oo')?>"))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_renders(r):
 	t = ul4c.Template('(<?print data?>)')
 	eq('(GURK)', r("<?print t.renders(data='gurk').upper()?>", t=t))
@@ -1815,7 +1704,6 @@ def test_method_renders(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_mimeformat(r):
 	t = datetime.datetime(2010, 2, 22, 12, 34, 56)
 
@@ -1823,7 +1711,6 @@ def test_method_mimeformat(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_get(r):
 	eq("42", r("<?print {}.get('foo', 42)?>"))
 	eq("17", r("<?print {'foo': 17}.get('foo', 42)?>"))
@@ -1832,7 +1719,6 @@ def test_method_get(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_r_g_b_a(r):
 	eq('0x11', r('<?code c = #123?><?print hex(c.r())?>'))
 	eq('0x22', r('<?code c = #123?><?print hex(c.g())?>'))
@@ -1841,7 +1727,6 @@ def test_method_r_g_b_a(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_hls(r):
 	eq('0', r('<?code c = #fff?><?print int(c.hls()[0])?>'))
 	eq('1', r('<?code c = #fff?><?print int(c.hls()[1])?>'))
@@ -1849,7 +1734,6 @@ def test_method_hls(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_hlsa(r):
 	eq('0', r('<?code c = #fff?><?print int(c.hlsa()[0])?>'))
 	eq('1', r('<?code c = #fff?><?print int(c.hlsa()[1])?>'))
@@ -1858,7 +1742,6 @@ def test_method_hlsa(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_hsv(r):
 	eq('0', r('<?code c = #fff?><?print int(c.hsv()[0])?>'))
 	eq('0', r('<?code c = #fff?><?print int(c.hsv()[1])?>'))
@@ -1866,7 +1749,6 @@ def test_method_hsv(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_hsva(r):
 	eq('0', r('<?code c = #fff?><?print int(c.hsva()[0])?>'))
 	eq('0', r('<?code c = #fff?><?print int(c.hsva()[1])?>'))
@@ -1875,32 +1757,27 @@ def test_method_hsva(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_lum(r):
 	eq('True', r('<?print #fff.lum() == 1?>'))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_withlum(r):
 	eq('#fff', r('<?print #000.withlum(1)?>'))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_witha(r):
 	eq('#0063a82a', r('<?print repr(#0063a8.witha(42))?>'))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_join(r):
 	eq('1,2,3,4', r('<?print ",".join("1234")?>'))
 	eq('1,2,3,4', r('<?print ",".join([1, 2, 3, 4])?>'))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_find(r):
 	s = "gurkgurk"
 	eq('-1', r('<?print s.find("ks")?>', s=s))
@@ -1926,7 +1803,6 @@ def test_method_find(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_rfind(r):
 	s = "gurkgurk"
 	eq('-1', r('<?print s.rfind("ks")?>', s=s))
@@ -1951,63 +1827,54 @@ def test_method_rfind(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_day(r):
 	eq('12', r('<?print @(2010-05-12).day()?>'))
 	eq('12', r('<?print d.day()?>', d=datetime.date(2010, 5, 12)))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_month(r):
 	eq('5', r('<?print @(2010-05-12).month()?>'))
 	eq('5', r('<?print d.month()?>', d=datetime.date(2010, 5, 12)))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_year(r):
 	eq('5', r('<?print @(2010-05-12).month()?>'))
 	eq('5', r('<?print d.month()?>', d=datetime.date(2010, 5, 12)))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_hour(r):
 	eq('16', r('<?print @(2010-05-12T16:47:56).hour()?>'))
 	eq('16', r('<?print d.hour()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56)))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_minute(r):
 	eq('47', r('<?print @(2010-05-12T16:47:56).minute()?>'))
 	eq('47', r('<?print d.minute()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56)))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_second(r):
 	eq('56', r('<?print @(2010-05-12T16:47:56).second()?>'))
 	eq('56', r('<?print d.second()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56)))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_microsecond(r):
 	eq('123000', r('<?print @(2010-05-12T16:47:56.123000).microsecond()?>'))
 	eq('123000', r('<?print d.microsecond()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56, 123000)))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_weekday(r):
 	eq('2', r('<?print @(2010-05-12).weekday()?>'))
 	eq('2', r('<?print d.weekday()?>', d=datetime.date(2010, 5, 12)))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_method_yearday(r):
 	eq('1', r('<?print @(2010-01-01).yearday()?>'))
 	eq('366', r('<?print @(2008-12-31).yearday()?>'))
@@ -2019,7 +1886,6 @@ def test_method_yearday(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_render(r):
 	t = ul4c.Template('<?print prefix?><?print data?><?print suffix?>')
 
@@ -2028,7 +1894,6 @@ def test_render(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_render_var(r):
 	t = ul4c.Template('<?code x += 1?><?print x?>')
 
@@ -2036,19 +1901,16 @@ def test_render_var(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_def(r):
 	eq('foo', r('<?def lower?><?print x.lower()?><?end def?><?print lower.renders(x="FOO")?>'))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_parse(r):
 	eq('42', r('<?print data.Noner?>', data=dict(Noner=42)))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_nested_exceptions(r):
 	tmpl1 = ul4c.Template("<?print 2*x?>", "tmpl1")
 	tmpl2 = ul4c.Template("<?render tmpl1.render(x=x)?>", "tmpl2")
@@ -2059,13 +1921,11 @@ def test_nested_exceptions(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_note(r):
 	eq("foo", r("f<?note This is?>o<?note a comment?>o"))
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_templateattributes(r):
 	s1 = "<?print x?>"
 	t1 = ul4c.Template(s1)
@@ -2089,7 +1949,6 @@ def test_templateattributes(r):
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_templateattributes_localtemplate(r):
 	source = "<?def lower?><?print t.lower()?><?end def?>"
 
@@ -2194,7 +2053,6 @@ def test_javasource():
 
 
 @pytest.mark.ul4
-@with_all_renderers
 def test_attr_if(r):
 	cond = ul4.attr_if(html.a("gu'\"rk"), cond="cond")
 
