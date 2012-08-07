@@ -65,6 +65,10 @@ Changes in 4.0 (released ??/??/2012)
 *	Date constants in UL4 have changed again. They are now written like this:
 	``@(2012-04-12)`` or ``@(2012-04-12T12:34:56)``.
 
+*	The ``<?render?>`` tag in UL4 now looks like a method call instead of a
+	function call. I.e. ``<?render t(a=17, b=23)?>`` has changed to
+	``<?render t.render(a=17, b=23)?>``.
+
 *	UL4 stacktraces now use exception chaining to report the exception location
 	in nested templates.
 
