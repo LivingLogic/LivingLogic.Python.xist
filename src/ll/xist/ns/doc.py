@@ -208,7 +208,7 @@ def explain(thing, name=None, format=None, context=[]):
 			if testname.endswith("__"):
 				visibility = "special"
 
-	# Determine whether thing has a docstring
+	# Determine whether ``thing`` has a docstring
 	if format is None and inspect.ismodule(thing):
 		format = getattr(thing, "__docformat__", "plaintext").split()[0]
 	doc = getdoc(thing, format)
@@ -259,7 +259,7 @@ def explain(thing, name=None, format=None, context=[]):
 		bases = xsc.Frag()
 		if len(thing.__bases__):
 			for baseclass in thing.__bases__:
-				if baseclass.__module__ in ("__builtin__", "exceptions"):
+				if baseclass.__module__ in ("builtins", "exceptions"):
 					ref = class_(baseclass.__name__)
 				else:
 					try:
