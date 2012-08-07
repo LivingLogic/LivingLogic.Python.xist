@@ -260,7 +260,7 @@ argumentmismatchmessage = [
 	"cannot be applied",
 	"The method .* is not applicable for the arguments",
 	# Java exception messages for argument mismatches
-	"expects (exactly \\d+|\\d+-\\d+) arguments?, \\d+ given",
+	"expects (at least \\d+|exactly \\d+|\\d+-\\d+) arguments?, \\d+ given",
 ]
 argumentmismatchmessage = "({})".format("|".join(argumentmismatchmessage))
 
