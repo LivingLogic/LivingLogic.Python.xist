@@ -15,6 +15,9 @@ Changes in 4.0 (released ??/??/2012)
 
 	This change shouldn't have any visible consequences.
 
+*	UL4 templates are no longer compiled to a byte code, instead the AST is
+	evaluated or converted to the target sourcecode directly.
+
 *	Generating the final Javascript source code for UL4 templates is now done in
 	Javascript itself.
 
@@ -133,7 +136,7 @@ Changes in 4.0 (released ??/??/2012)
 *	:mod:`ll.orasql` can now handle primary keys where the underlying index has
 	a different name.
 
-*	:mod:`ll.orasql` no ignores tables with names starting with ``DR$``
+*	:mod:`ll.orasql` now ignores tables with names starting with ``DR$``
 	(i.e. those created by Oracle Text Search).
 
 *	Attributes of :class:`ll.misc.SysInfo` instances are now calculated on
