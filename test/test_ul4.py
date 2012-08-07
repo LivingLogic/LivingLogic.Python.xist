@@ -234,7 +234,6 @@ class RenderJavaInterpretedTemplateByJava(RenderJava):
 		return self.runsource(java)
 
 
-# FIXME: The following really takes a long time to run:
 all_renderers =  [
 	("python", RenderPython),
 	("python_dumps", RenderPythonDumpS),
