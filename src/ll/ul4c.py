@@ -161,14 +161,6 @@ class LexicalError(Exception):
 		return "Unmatched input {!r}".format(self.input)
 
 
-class SyntaxError(Exception):
-	def __init__(self, token):
-		self.token = token
-
-	def __str__(self):
-		return "Lexical error near {!r}".format(str(self.token))
-
-
 class UnterminatedStringError(Exception):
 	"""
 	Exception that is raised by the parser when a string constant is not
