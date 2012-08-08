@@ -583,7 +583,7 @@ class Token(object):
 
 class AST(Object):
 	"""
-	Baseclass for all syntax tree nodes.
+	Base class for all syntax tree nodes.
 	"""
 	# used in :meth:`format` to decide if we need brackets around an operator
 	precedence = None
@@ -644,6 +644,9 @@ class AST(Object):
 
 @register("text")
 class Text(AST):
+	"""
+	AST node for literal text.
+	"""
 	def __init__(self, location=None):
 		super().__init__(location)
 
@@ -670,7 +673,7 @@ class Const(AST):
 @register("none")
 class None_(Const):
 	"""
-	The constant ``None``.
+	AST node for loading the constant ``None``.
 	"""
 
 	value = None
@@ -688,7 +691,7 @@ class None_(Const):
 @register("true")
 class True_(Const):
 	"""
-	The boolean constant ``True``.
+	AST node for loading the boolean constant ``True``.
 	"""
 
 	value = True
@@ -706,7 +709,7 @@ class True_(Const):
 @register("false")
 class False_(Const):
 	"""
-	The boolean constant ``False``.
+	AST node for loading the boolean constant ``False``.
 	"""
 
 	value = False
@@ -722,6 +725,9 @@ class False_(Const):
 
 
 class Value(Const):
+	"""
+	Base class for all AST nodes that load a constant value.
+	"""
 	fields = Const.fields.union({"value"})
 
 	def __init__(self, location=None, value=None):
@@ -751,26 +757,38 @@ class Value(Const):
 
 @register("int")
 class Int(Value):
-	pass
+	"""
+	AST node for loading an integer constant.
+	"""
 
 
 @register("float")
 class Float(Value):
-	pass
+	"""
+	AST node for loading a float constant.
+	"""
 
 
 @register("str")
 class Str(Value):
-	pass
+	"""
+	AST node for loading a string constant.
+	"""
 
 
 @register("date")
 class Date(Value):
-	pass
+	"""
+	AST node for loading a date constant.
+	"""
 
 
 @register("color")
 class Color(Value):
+	"""
+	AST node for loading a color constant.
+	"""
+
 	# No need to overwrite :meth:`format` or :meth:`formatjava`
 
 	def formatpython(self, indent):
@@ -779,6 +797,10 @@ class Color(Value):
 
 @register("list")
 class List(AST):
+	"""
+	AST nodes for loading a list object.
+	"""
+
 	precedence = 11
 	fields = AST.fields.union({"items"})
 
@@ -809,6 +831,10 @@ class List(AST):
 
 @register("dict")
 class Dict(AST):
+	"""
+	AST nodes for loading a dict object.
+	"""
+
 	precedence = 11
 	fields = AST.fields.union({"items"})
 
@@ -858,6 +884,10 @@ class Dict(AST):
 
 @register("var")
 class Var(AST):
+	"""
+	AST nodes for loading a variable.
+	"""
+
 	precedence = 11
 	fields = AST.fields.union({"name"})
 
@@ -887,6 +917,14 @@ class Var(AST):
 
 
 class Block(AST):
+	"""
+	Base class for all AST nodes that are blocks.
+
+	A block contains a sequence of AST nodes that are executed sequencially.
+	A block may execute its content zero (e.g. an ``<?if?>`` block) or more times
+	(e.g. a ``<?for?>`` block).
+	"""
+
 	fields = AST.fields.union({"endlocation", "content"})
 
 	def __init__(self, location=None):
@@ -925,6 +963,13 @@ class Block(AST):
 
 @register("ieie")
 class IfElIfElse(Block):
+	"""
+	AST node for an conditional block.
+
+	The content of the :class:`IfElIfElse` block is one :class:`If` block
+	followed by zero or more :class:`ElIf` blocks followed by zero or one
+	:class:`Else` block.
+	"""
 	def __init__(self, location=None, condition=None):
 		super().__init__(location)
 		if condition is not None:
@@ -959,6 +1004,10 @@ class IfElIfElse(Block):
 
 @register("if")
 class If(Block):
+	"""
+	AST node for an ``<?if?>`` block.
+	"""
+
 	fields = Block.fields.union({"condition"})
 
 	def __init__(self, location=None, condition=None):
@@ -999,6 +1048,10 @@ class If(Block):
 
 @register("elif")
 class ElIf(Block):
+	"""
+	AST node for an ``<?elif?>`` block.
+	"""
+
 	fields = Block.fields.union({"condition"})
 
 	def __init__(self, location=None, condition=None):
@@ -1039,6 +1092,10 @@ class ElIf(Block):
 
 @register("else")
 class Else(Block):
+	"""
+	AST node for an ``<?else?>`` block.
+	"""
+
 	def format(self, indent):
 		return "{}else\n{}".format(indent*"\t", super().format(indent))
 
@@ -1064,6 +1121,10 @@ class Else(Block):
 
 
 class For(Block):
+	"""
+	Base classes for the two versions of ``<?for?>`` blocks.
+	"""
+
 	fields = Block.fields.union({"container"})
 
 	def __init__(self, location=None, container=None):
@@ -1108,6 +1169,10 @@ class For(Block):
 
 @register("for")
 class ForNormal(For):
+	"""
+	AST node for a normal ``<?for?>`` block with one loop variable.
+	"""
+
 	fields = For.fields.union({"varname"})
 
 	def __init__(self, location=None, container=None, varname=None):
@@ -1142,6 +1207,11 @@ class ForNormal(For):
 
 @register("foru")
 class ForUnpack(For):
+	"""
+	AST node for a ``<?for?>`` block where the loop variable is unpacked into
+	several variables.
+	"""
+
 	fields = For.fields.union({"varnames"})
 
 	def __init__(self, location=None, container=None, *varnames):
@@ -1176,6 +1246,10 @@ class ForUnpack(For):
 
 @register("break")
 class Break(AST):
+	"""
+	AST node for a ``<?break?>`` inside a ``<?for?>`` block.
+	"""
+
 	def format(self, indent):
 		return "{}break\n".format(indent*"\t")
 
@@ -1188,6 +1262,10 @@ class Break(AST):
 
 @register("continue")
 class Continue(AST):
+	"""
+	AST node for a ``<?continue?>`` inside a ``<?for?>`` block.
+	"""
+
 	def format(self, indent):
 		return "{}continue\n".format(indent*"\t")
 
@@ -1200,6 +1278,12 @@ class Continue(AST):
 
 @register("getattr")
 class GetAttr(AST):
+	"""
+	AST node for getting an attribute from an object.
+
+	The object is loaded from the AST node :var:`obj` and the attribute name
+	is stored in the string :var:`attrname`.
+	"""
 	precedence = 9
 	associative = False
 	fields = AST.fields.union({"obj", "attrname"})
@@ -1234,6 +1318,16 @@ class GetAttr(AST):
 
 @register("getslice")
 class GetSlice(AST):
+	"""
+	AST node for getting a slice from a list or string object.
+
+	The object is loaded from the AST node :var:`obj` and the start and stop
+	indices from the AST node :var:`index1` and :var:`index2`. :var:`index1`
+	and :var:`index2` may also be :const:`None` (for missing slice indices,
+	which default to the 0 for the start index and the length of the sequence
+	for the end index).
+	"""
+
 	precedence = 8
 	associative = False
 	fields = AST.fields.union({"obj", "index1", "index2"})
@@ -1270,6 +1364,10 @@ class GetSlice(AST):
 
 
 class Unary(AST):
+	"""
+	Base class for all AST nodes implementing unary operators.
+	"""
+
 	fields = AST.fields.union({"obj"})
 
 	def __init__(self, location=None, obj=None):
@@ -1290,6 +1388,10 @@ class Unary(AST):
 
 @register("not")
 class Not(Unary):
+	"""
+	AST node for the unary ``not`` operator.
+	"""
+
 	precedence = 2
 
 	def format(self, indent):
@@ -1304,6 +1406,10 @@ class Not(Unary):
 
 @register("neg")
 class Neg(Unary):
+	"""
+	AST node for the unary negation (i.e. "-") operator.
+	"""
+
 	precedence = 7
 
 	def format(self, indent):
@@ -1318,6 +1424,10 @@ class Neg(Unary):
 
 @register("print")
 class Print(Unary):
+	"""
+	AST node for a ``<?print?>`` tag.
+	"""
+
 	def format(self, indent):
 		return "{}print {}\n".format(indent*"\t", self.obj.format(indent))
 
@@ -1330,6 +1440,10 @@ class Print(Unary):
 
 @register("printx")
 class PrintX(Unary):
+	"""
+	AST node for a ``<?printx?>`` tag.
+	"""
+
 	def format(self, indent):
 		return "{}printx {}\n".format(indent*"\t", self.obj.format(indent))
 
@@ -1341,6 +1455,10 @@ class PrintX(Unary):
 
 
 class Binary(AST):
+	"""
+	Base class for all AST nodes implementing binary operators.
+	"""
+
 	fields = AST.fields.union({"obj1", "obj2"})
 
 	def __init__(self, location=None, obj1=None, obj2=None):
@@ -1364,6 +1482,13 @@ class Binary(AST):
 
 @register("getitem")
 class GetItem(Binary):
+	"""
+	AST node for subscripting operator.
+
+	The object (which must be a list, string or dict) is loaded from the AST
+	node :var:`obj1` and the index/key is loaded from the AST node :var:`obj2`.
+	"""
+
 	precedence = 9
 	associative = False
 
@@ -1379,6 +1504,10 @@ class GetItem(Binary):
 
 @register("eq")
 class EQ(Binary):
+	"""
+	AST node for the binary ``==`` comparison operator.
+	"""
+
 	precedence = 4
 	associative = False
 
@@ -1394,6 +1523,10 @@ class EQ(Binary):
 
 @register("ne")
 class NE(Binary):
+	"""
+	AST node for the binary ``!=`` comparison operator.
+	"""
+
 	precedence = 4
 	associative = False
 
@@ -1409,6 +1542,10 @@ class NE(Binary):
 
 @register("lt")
 class LT(Binary):
+	"""
+	AST node for the binary ``<`` comparison operator.
+	"""
+
 	precedence = 4
 	associative = False
 
@@ -1424,6 +1561,10 @@ class LT(Binary):
 
 @register("le")
 class LE(Binary):
+	"""
+	AST node for the binary ``<=`` comparison operator.
+	"""
+
 	precedence = 4
 	associative = False
 
@@ -1439,6 +1580,10 @@ class LE(Binary):
 
 @register("gt")
 class GT(Binary):
+	"""
+	AST node for the binary ``>`` comparison operator.
+	"""
+
 	precedence = 4
 	associative = False
 
@@ -1454,6 +1599,10 @@ class GT(Binary):
 
 @register("ge")
 class GE(Binary):
+	"""
+	AST node for the binary ``>=`` comparison operator.
+	"""
+
 	precedence = 4
 	associative = False
 
@@ -1469,6 +1618,14 @@ class GE(Binary):
 
 @register("contains")
 class Contains(Binary):
+	"""
+	AST node for the binary containment testing operator.
+
+	The item/key object is loaded from the AST node :var:`obj1` and the container
+	object (which must be a list, string or dict) is loaded from the AST node
+	:var:`obj2`.
+	"""
+
 	precedence = 3
 	associative = False
 
@@ -1484,6 +1641,14 @@ class Contains(Binary):
 
 @register("notcontains")
 class NotContains(Binary):
+	"""
+	AST node for the inverted containment testing operator.
+
+	The item/key object is loaded from the AST node :var:`obj1` and the container
+	object (which must be a list, string or dict) is loaded from the AST node
+	:var:`obj2`.
+	"""
+
 	precedence = 3
 	associative = False
 
@@ -1499,6 +1664,10 @@ class NotContains(Binary):
 
 @register("add")
 class Add(Binary):
+	"""
+	AST node for the binary addition operator.
+	"""
+
 	precedence = 5
 
 	def format(self, indent):
@@ -1513,6 +1682,10 @@ class Add(Binary):
 
 @register("sub")
 class Sub(Binary):
+	"""
+	AST node for the binary substraction operator.
+	"""
+
 	precedence = 5
 	associative = False
 
@@ -1528,6 +1701,10 @@ class Sub(Binary):
 
 @register("mul")
 class Mul(Binary):
+	"""
+	AST node for the binary multiplication operator.
+	"""
+
 	precedence = 6
 
 	def format(self, indent):
@@ -1542,6 +1719,10 @@ class Mul(Binary):
 
 @register("floordiv")
 class FloorDiv(Binary):
+	"""
+	AST node for the binary truncating division operator.
+	"""
+
 	precedence = 6
 	associative = False
 
@@ -1557,6 +1738,10 @@ class FloorDiv(Binary):
 
 @register("truediv")
 class TrueDiv(Binary):
+	"""
+	AST node for the binary true division operator.
+	"""
+
 	precedence = 6
 	associative = False
 
@@ -1572,6 +1757,10 @@ class TrueDiv(Binary):
 
 @register("and")
 class And(Binary):
+	"""
+	AST node for the binary ``and`` operator.
+	"""
+
 	precedence = 1
 
 	def format(self, indent):
@@ -1586,6 +1775,10 @@ class And(Binary):
 
 @register("or")
 class Or(Binary):
+	"""
+	AST node for the binary ``or`` operator.
+	"""
+
 	precedence = 0
 
 	def format(self, indent):
@@ -1600,6 +1793,10 @@ class Or(Binary):
 
 @register("mod")
 class Mod(Binary):
+	"""
+	AST node for the binary modulo operator.
+	"""
+
 	precedence = 6
 	associative = False
 
@@ -1614,6 +1811,14 @@ class Mod(Binary):
 
 
 class ChangeVar(AST):
+	"""
+	Baseclass for all AST nodes that store or modify a variable.
+
+	The variable name is stored in the string :var:`varname` and the value that
+	will be stored or be used to modify the stored value is loaded from the
+	AST node :var:`value`.
+	"""
+
 	fields = AST.fields.union({"varname", "value"})
 
 	def __init__(self, location=None, varname=None, value=None):
@@ -1637,6 +1842,10 @@ class ChangeVar(AST):
 
 @register("storevar")
 class StoreVar(ChangeVar):
+	"""
+	AST node that stores a value into a variable.
+	"""
+
 	def format(self, indent):
 		return "{}{} = {}\n".format(indent*"\t", self.varname, self.value.format(indent))
 
@@ -1649,6 +1858,10 @@ class StoreVar(ChangeVar):
 
 @register("addvar")
 class AddVar(ChangeVar):
+	"""
+	AST node that adds a value to a variable (i.e. the ``+=`` operator).
+	"""
+
 	def format(self, indent):
 		return "{}{} += {}\n".format(indent*"\t", self.varname, self.value.format(indent))
 
@@ -1661,6 +1874,10 @@ class AddVar(ChangeVar):
 
 @register("subvar")
 class SubVar(ChangeVar):
+	"""
+	AST node that substracts a value from a variable (i.e. the ``-=`` operator).
+	"""
+
 	def format(self, indent):
 		return "{}{} -= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
 
@@ -1673,6 +1890,10 @@ class SubVar(ChangeVar):
 
 @register("mulvar")
 class MulVar(ChangeVar):
+	"""
+	AST node that multiplies a variable by a value (i.e. the ``*=`` operator).
+	"""
+
 	def format(self, indent):
 		return "{}{} *= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
 
@@ -1685,6 +1906,11 @@ class MulVar(ChangeVar):
 
 @register("floordivvar")
 class FloorDivVar(ChangeVar):
+	"""
+	AST node that divides a variable by a value (truncating to an integer value;
+	i.e. the ``//=`` operator).
+	"""
+
 	def format(self, indent):
 		return "{}{} //= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
 
@@ -1697,6 +1923,10 @@ class FloorDivVar(ChangeVar):
 
 @register("truedivvar")
 class TrueDivVar(ChangeVar):
+	"""
+	AST node that divides a variable by a value (i.e. the ``/=`` operator).
+	"""
+
 	def format(self, indent):
 		return "{}{} /= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
 
@@ -1709,6 +1939,10 @@ class TrueDivVar(ChangeVar):
 
 @register("modvar")
 class ModVar(ChangeVar):
+	"""
+	AST node for the ``%=`` operator.
+	"""
+
 	def format(self, indent):
 		return "{}{} %= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
 
@@ -1721,6 +1955,12 @@ class ModVar(ChangeVar):
 
 @register("delvar")
 class DelVar(AST):
+	"""
+	AST node for deleting a variable.
+
+	The name of the variable is stored in the string :var:`varname`.
+	"""
+
 	fields = AST.fields.union({"varname"})
 
 	def __init__(self, location=None, varname=None):
@@ -1750,6 +1990,13 @@ class DelVar(AST):
 
 @register("callfunc")
 class CallFunc(AST):
+	"""
+	AST node for calling a function.
+
+	The function name is stored in the string :var:`funcname`. The list of
+	arguments is loaded from the list of AST nodes :var:`args`.
+	"""
+
 	precedence = 10
 	associative = False
 	fields = AST.fields.union({"funcname", "args"})
@@ -1908,6 +2155,14 @@ class CallFunc(AST):
 
 @register("callmeth")
 class CallMeth(AST):
+	"""
+	AST node for calling a method.
+
+	The method name is stored in the string :var:`methname`. The object for which
+	the method will be called is loaded from the AST node :var:`obj` and the list
+	of arguments is loaded from the list of AST nodes :var:`args`.
+	"""
+
 	precedence = 9
 	associative = False
 	fields = AST.fields.union({"methname", "obj", "args"})
@@ -2039,6 +2294,19 @@ class CallMeth(AST):
 
 @register("callmethkw")
 class CallMethKeywords(AST):
+	"""
+	AST node for calling a method with keyword arguments.
+
+	The method name is stored in the string :var:`methname`. The object for which
+	the method will be called is loaded from the AST node :var:`obj` and the list
+	of arguments is loaded :var:`args`. :var:`args` is a list of either:
+
+	*	1-item tuples containing an AST node: this is used for the ``**arg``
+		argument variant;
+	*	2-item tuples containing an argument name and an AST node: this is used
+		for the ``name=arg`` variant.
+	"""
+
 	precedence = 9
 	associative = False
 	fields = AST.fields.union({"methname", "obj", "args"})
@@ -2105,6 +2373,10 @@ class CallMethKeywords(AST):
 
 @register("render")
 class Render(Unary):
+	"""
+	AST node for the ``<?render?>`` tag.
+	"""
+
 	def __repr__(self):
 		return "{}({!r})".format(self.__class__.__name__, self.obj)
 
@@ -2147,6 +2419,9 @@ class Template(Block):
 
 	Rendering the template can be done with the methods :meth:`render` (which
 	is a generator) or :meth:`renders` (which returns a string).
+
+	A :class:`Template` object is itself an AST node. Evaluating it will store
+	the template object under its name in the local variables.
 	"""
 	version = "17"
 	fields = Block.fields.union({"source", "name", "startdelim", "enddelim", "endlocation"})
@@ -2161,7 +2436,7 @@ class Template(Block):
 
 		"""
 		# ``location``/``endlocation`` will remain ``None`` for a top level template
-		# For a subtemplate ``location`` will be set to the location of the ``<?def?>`` tag in :meth:`_compile` and ``endlocation`` wil be the location of the ``<?end def?>`` tag
+		# For a subtemplate ``location`` will be set to the location of the ``<?def?>`` tag in :meth:`_compile` and ``endlocation`` will be the location of the ``<?end def?>`` tag
 		super().__init__(None)
 		self.startdelim = startdelim
 		self.enddelim = enddelim
