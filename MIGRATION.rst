@@ -1,3 +1,20 @@
+Migrating to version 4.1
+========================
+
+Changes to :mod:`ll.make`
+-------------------------
+
+*	The support for Growl notifications in :mod:`ll.make` on the Mac has been
+	replaced by support for Mountain Lions Notification Center. 
+
+	The option has been renamed from :option:`--growl` to :option:`--notify`.
+
+	For this to work you need to have terminal-notifier__ installed in its
+	standard location (``/Applications/terminal-notifier.app``).
+
+	__ https://github.com/alloy/terminal-notifier
+
+
 Migrating to version 4.0
 ========================
 

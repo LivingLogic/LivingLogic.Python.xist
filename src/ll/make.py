@@ -1115,6 +1115,9 @@ class Project(dict):
 	is responsible for initiating the build process and for generating a report
 	about the progress of the build process.
 	"""
+
+	name = "ll.make"
+
 	def __init__(self):
 		super().__init__()
 		self.actionscalled = 0
@@ -1143,7 +1146,7 @@ class Project(dict):
 		self.showtime = self._getenvbool("LL_MAKE_SHOWTIME", True)
 		self.showtimestamps = self._getenvbool("LL_MAKE_SHOWTIMESTAMPS", False)
 		self.showdata = self._getenvbool("LL_MAKE_SHOWDATA", False)
-		self.growl = self._getenvbool("LL_MAKE_GROWL", False)
+		self.notify = self._getenvbool("LL_MAKE_NOTIFY", False)
 
 	def __repr__(self):
 		return "<{}.{} with {} targets at {:#x}>".format(self.__module__, self.__class__.__name__, len(self), id(self))
@@ -1480,7 +1483,7 @@ class Project(dict):
 		p.add_argument("targets", metavar="target", help="Target to be built", nargs="*")
 		p.add_argument("-x", "--ignoreerrors", dest="ignoreerrors", help="Ignore errors? (default: %(default)s)", action=misc.FlagAction, default=self.ignoreerrors)
 		p.add_argument("-c", "--color", dest="color", help="Use colored output? (default: %(default)s)", action=misc.FlagAction, default=self.color)
-		p.add_argument("-g", "--growl", dest="growl", help="Issue growl notification after the build? (default: %(default)s)", action=misc.FlagAction, default=self.growl)
+		p.add_argument("-y", "--notify", dest="notify", help="Issue notification after the build? (default: %(default)s)", action=misc.FlagAction, default=self.notify)
 		p.add_argument("-a", "--showaction", dest="showaction", help="Show actions? (default: %(default)s)", choices=actions, default=action2name(self.showaction))
 		p.add_argument("-s", "--showstep", dest="showstep", help="Show steps? (default: %(default)s)", choices=actions, default=action2name(self.showstep))
 		p.add_argument("-n", "--shownote", dest="shownote", help="Show notes? (default: %(default)s)", choices=actions, default=action2name(self.shownote))
@@ -1499,7 +1502,7 @@ class Project(dict):
 		args = p.parse_args(args)
 		self.ignoreerrors = args.ignoreerrors
 		self.color = args.color
-		self.growl = args.growl
+		self.notify = args.notify
 		self.showaction = args.showaction
 		self.showstep = args.showstep
 		self.shownote = args.shownote
@@ -1566,8 +1569,8 @@ class Project(dict):
 			if self.showsummary:
 				args = []
 				self.write(
-					"built ",
-					s4action(self.__class__.__module__, ".", self.__class__.__name__),
+					"built project ",
+					s4action(self.name),
 					": ",
 					s4data(format(len(self))),
 					" registered targets; ",
@@ -1589,27 +1592,8 @@ class Project(dict):
 				if self.showtime:
 					self.write(" [t+", self.strtimedelta(now-self.starttime), "]")
 				self.writeln()
-			if self.growl:
-				try:
-					module = sys.modules[self.__class__.__module__]
-				except KeyError:
-					filename = "???.py"
-				else:
-					filename = os.path.abspath(module.__file__)
-				cmd = "growlnotify -i py -n ll.make 'll.make done in {}'".format(self.strtimedelta(now-self.starttime))
-				import subprocess
-				pipe = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE).stdin
-				def write(s):
-					pipe.write(s.encode("utf-8"))
-				write("{}\n".format(filename))
-				write("{}.{}\n".format(self.__class__.__module__, self.__class__.__name__))
-				write("{:,} registered targets, ".format(len(self)))
-				write("{:,} actions called, ".format(self.actionscalled))
-				write("{:,} steps executed, ".format(self.stepsexecuted))
-				write("{:,} files/{:,} bytes read, ".format(self.filesread, self.bytesread))
-				write("{:,} files/{:,} bytes written, ".format(self.fileswritten, self.byteswritten))
-				write("{:,} actions failed".format(self.actionsfailed))
-				pipe.close()
+			if self.notify:
+				self.donotify(now-self.starttime)
 
 	def buildwithargs(self, args=None):
 		"""
@@ -1646,6 +1630,33 @@ class Project(dict):
 		Output an error.
 		"""
 		self.write(*texts)
+
+	def donotify(self, duration):
+		msgs = []
+		if self.stepsexecuted:
+			msgs.append("{:,} steps".format(self.stepsexecuted))
+		if self.fileswritten:
+			msgs.append("{:,} files".format(self.fileswritten))
+		if self.byteswritten:
+			msgs.append("{:,} bytes".format(self.byteswritten))
+		if not msgs:
+			msgs.append("nothing to do")
+
+		cmd = [
+			"/Applications/terminal-notifier.app/Contents/MacOS/terminal-notifier",
+			"-title",
+			self.name,
+			"-subtitle",
+			"done in {}".format(self.strtimedelta(duration)),
+			"-message",
+			"; ".join(msgs),
+			"-group",
+			misc.sysinfo.scriptname,
+		]
+
+		import subprocess
+		with open("/dev/null", "wb") as f:
+			status = subprocess.call(cmd, stdout=f)
 
 	def warn(self, warning, stacklevel):
 		"""
