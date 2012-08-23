@@ -31,6 +31,8 @@ this::
 	from ll import make
 
 	class MyProject(make.Project):
+		name = "Acme.MyProject"
+
 		def create(self):
 			make.Project.create(self)
 			source = self.add(make.FileAction("foo.txt"))
@@ -1116,6 +1118,7 @@ class Project(dict):
 	about the progress of the build process.
 	"""
 
+	# Will be used in log messages and notifications
 	name = "ll.make"
 
 	def __init__(self):
