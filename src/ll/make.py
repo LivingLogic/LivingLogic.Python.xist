@@ -1565,38 +1565,41 @@ class Project(dict):
 
 			self.buildno += 1 # increment build number so that actions that stored the old one can detect a new build round
 
-			for target in targets:
-				data = self._get(target, bigcrunch)
-			now = datetime.datetime.utcnow()
+			success = False
+			try:
+				for target in targets:
+					data = self._get(target, bigcrunch)
 
-			if self.showsummary:
-				args = []
-				self.write(
-					"built project ",
-					s4action(self.name),
-					": ",
-					s4data(format(len(self))),
-					" registered targets; ",
-					s4data(format(self.actionscalled)),
-					" actions called; ",
-					s4data(format(self.stepsexecuted)),
-					" steps executed; ",
-					s4data(format(self.filesread)),
-					" files/",
-					s4data(format(self.bytesread)),
-					" bytes read; ",
-					s4data(format(self.fileswritten)),
-					" files/",
-					s4data(format(self.byteswritten)),
-					" bytes written; ",
-					s4data(format(self.actionsfailed)),
-					" actions failed",
-				)
-				if self.showtime:
-					self.write(" [t+", self.strtimedelta(now-self.starttime), "]")
-				self.writeln()
-			if self.notify:
-				self.donotify(now-self.starttime)
+				if self.showsummary:
+					args = []
+					self.write(
+						"built project ",
+						s4action(self.name),
+						": ",
+						s4data(format(len(self))),
+						" registered targets; ",
+						s4data(format(self.actionscalled)),
+						" actions called; ",
+						s4data(format(self.stepsexecuted)),
+						" steps executed; ",
+						s4data(format(self.filesread)),
+						" files/",
+						s4data(format(self.bytesread)),
+						" bytes read; ",
+						s4data(format(self.fileswritten)),
+						" files/",
+						s4data(format(self.byteswritten)),
+						" bytes written; ",
+						s4data(format(self.actionsfailed)),
+						" actions failed",
+					)
+					if self.showtime:
+						self.write(" [t+", self.strtimedelta(datetime.datetime.utcnow()-self.starttime), "]")
+					self.writeln()
+				success = True
+			finally:
+				if self.notify:
+					self.donotify(datetime.datetime.utcnow()-self.starttime, success)
 
 	def buildwithargs(self, args=None):
 		"""
@@ -1634,7 +1637,7 @@ class Project(dict):
 		"""
 		self.write(*texts)
 
-	def donotify(self, duration):
+	def donotify(self, duration, success):
 		msgs = []
 		if self.stepsexecuted:
 			msgs.append("{:,} steps".format(self.stepsexecuted))
@@ -1650,7 +1653,7 @@ class Project(dict):
 			"-title",
 			self.name,
 			"-subtitle",
-			"done in {}".format(self.strtimedelta(duration)),
+			"{} {}".format("done in" if success else "failed after", self.strtimedelta(duration)),
 			"-message",
 			"; ".join(msgs),
 			"-group",
