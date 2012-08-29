@@ -7,6 +7,9 @@ Changes in 4.1 (released ??/??/2012)
 
 	__ https://github.com/alloy/terminal-notifier
 
+*	Java conversion of :class:`ll.ul4c.And` has been fixed to evaluate the second
+	operand only when the result isn't clear from the first.
+
 
 Changes in 4.0 (released 08/08/2012)
 ------------------------------------
