@@ -77,7 +77,7 @@ can be produced by source objects:
 		The event data is a byte string.
 
 	``"str"``
-		The event data is a Jstring. This event is produced by :class:`Decoder`
+		The event data is a string. This event is produced by :class:`Decoder`
 		objects. Note that the only predefined pipeline objects that can handle
 		``"str"`` events are :class:`Encoder` objects.
 
