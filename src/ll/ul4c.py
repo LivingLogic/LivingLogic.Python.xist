@@ -22,7 +22,7 @@ possible to implement template renderers in multiple programming languages.
 __docformat__ = "reStructuredText"
 
 
-import re, datetime, io, urllib.parse as urlparse, json, collections
+import re, datetime, urllib.parse as urlparse, json, collections
 
 from ll import spark, color, misc, ul4on
 
