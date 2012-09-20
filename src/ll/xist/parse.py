@@ -27,10 +27,10 @@ Parsing a simple HTML string might e.g. look like this::
 	>>> from ll.xist.ns import html
 	>>> source = "<a href='http://www.python.org/'>Python</a>"
 	>>> doc = parse.tree(
-	... 	parse.String(source)
-	... 	parse.Expat()
-	... 	parse.NS(html)
-	... 	parse.Node(pool=xsc.Pool(html))
+	... 	parse.String(source),
+	... 	parse.Expat(),
+	... 	parse.NS(html),
+	... 	parse.Node(pool=xsc.Pool(html)),
 	... )
 	>>> doc.bytes()
 	'<a href="http://www.python.org/">Python</a>'
