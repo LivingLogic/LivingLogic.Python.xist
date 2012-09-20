@@ -796,7 +796,8 @@ class Expat(Parser):
 			if loc:
 				self._buffer.append((self.evposition, loc))
 			self._buffer.append((evtype, evdata))
-			self._currentloc = loc
+			if loc:
+				self._currentloc = loc
 
 	def _flush(self, force):
 		# Flush ``self._buffer`` as far as possible
