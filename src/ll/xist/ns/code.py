@@ -103,7 +103,7 @@ class pyexec(_base):
 	def convert(self, converter):
 		code = Code(self.content, True)
 		sandbox = converter[self].sandbox
-		exec(code.asstring(), sandbox) # requires Python 2.0b2 (and doesn't really work)
+		exec(code.string(), sandbox) # requires Python 2.0b2 (and doesn't really work)
 		return xsc.Null
 
 
