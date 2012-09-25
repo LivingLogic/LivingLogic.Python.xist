@@ -189,7 +189,7 @@ class end(xsc.ProcInst):
 	"""
 
 
-# The name of al available processing instructions
+# The name of all available processing instructions
 targets = {value.xmlname for value in vars().values() if isinstance(value, xsc._ProcInst_Meta)}
 
 
