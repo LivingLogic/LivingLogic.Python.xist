@@ -863,7 +863,7 @@ class Publisher(object):
 
 		self.__errors = [ "xmlcharrefreplace" ]
 
-		self.publishxmlns = False
+		self._publishxmlns = False
 		self._ns2prefix.clear()
 		self._prefix2ns.clear()
 
