@@ -39,8 +39,8 @@ Creating an ``oradd`` file can be done like this::
 
 The content of the generated file ``data.oradd`` will look like this::
 
-	{'keys': ['per_id'], 'args': {'per_id': 0, 'per_firstname': u'Max', 'per_lastname': u'Mustermann'}, 'name': 'person_insert'}
-	{'keys': ['per_id', 'con_id'], 'args': {'per_id': 0, 'con_id': 1, 'con_type': u'email', 'con_value': u'max@example.org'}, 'name': 'contact_insert'}
+	{'keys': ['per_id'], 'args': {'per_id': 0, 'per_firstname': 'Max', 'per_lastname': 'Mustermann'}, 'name': 'person_insert'}
+	{'keys': ['per_id', 'con_id'], 'args': {'per_id': 0, 'con_id': 1, 'con_type': 'email', 'con_value': 'max@example.org'}, 'name': 'contact_insert'}
 
 i.e. it's just one Python ``repr`` of a dictionary per line (there's also the
 option of using UL4ON as the output format).
@@ -82,9 +82,9 @@ printed for display purposes, the original format is on one line)::
 		'name': 'person_insert',
 		'args': {
 			'per_id': 0,
-			'per_firstname': u'Max',
-			'per_lastname': u'Mustermann',
-			per_created: u'sysdate'
+			'per_firstname': 'Max',
+			'per_lastname': 'Mustermann',
+			per_created: 'sysdate'
 		},
 		'keys': ['per_id'],
 		'sqls': ['per_created'],
