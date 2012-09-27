@@ -13,6 +13,9 @@ Changes in 4.1 (released ??/??/2012)
 *	:class:`ll.ul4on.Decoder` now raises an ``EOFError`` when reading from an
 	empty stream.
 
+*	A new script has been added: ``oradd.py`` can be used for importing data into
+	an Oracle database (via procedure calls).
+
 
 Changes in 4.0 (released 08/08/2012)
 ------------------------------------
