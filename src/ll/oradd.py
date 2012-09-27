@@ -149,7 +149,7 @@ it supports the following command line options:
 """
 
 # We're importing ``datetime``, so that it's available to ``eval()``
-import sys, StringIO, argparse, operator, collections, contextlib, datetime
+import sys, io, argparse, operator, collections, contextlib, datetime
 
 import cx_Oracle
 
@@ -196,7 +196,7 @@ def dump(name, **kwargs):
 	"""
 	keys = [key for (key, value) in kwargs.items() if isinstance(value, Key)]
 	sqls = [key for (key, value) in kwargs.items() if isinstance(value, SQL)]
-	for (key, value) in kwargs.iteritems():
+	for (key, value) in kwargs.items():
 		if isinstance(value, (Key, SQL)):
 			kwargs[key] = value.value()
 	result = dict(name=name, args=kwargs)
@@ -212,7 +212,7 @@ def dumps_oradd(name, **kwargs):
 	Return the dump of a procedure call to the procedure named ``name`` with the
 	parameters ``kwargs`` in oradd native format as a string.
 	"""
-	return u"{!r}\n".format(dump(name, **kwargs))
+	return "{!r}\n".format(dump(name, **kwargs))
 
 
 def dump_oradd(stream, name, **kwargs):
@@ -269,7 +269,7 @@ def loads_ul4on(string):
 	This function is generator. It's output can be passed to :func:`importdata`.
 	"""
 	from ll import ul4on
-	stream = StringIO.StringIO(string)
+	stream = io.StringIO(string)
 	while True:
 		try:
 			yield ul4on.load(stream)
@@ -311,7 +311,7 @@ def importdata(data, cursor):
 		sqls = set(record.get("sqls", []))
 		queryargvalues = {}
 		queryargvars = {}
-		for (argname, argvalue) in args.iteritems():
+		for (argname, argvalue) in args.items():
 			if argname in keys:
 				queryargvalues[argname] = ":{}".format(argname)
 				if argvalue in allkeys:
@@ -321,7 +321,7 @@ def importdata(data, cursor):
 			elif argname in sqls:
 				queryargvalues[argname] = argvalue
 				# no value
-			elif isinstance(argvalue, unicode) and len(argvalue) >= 4000:
+			elif isinstance(argvalue, str) and len(argvalue) >= 4000:
 				queryargvalues[argname] = ":{}".format(argname)
 				var = cursor.var(cx_Oracle.CLOB)
 				var.setvalue(0, argvalue)
@@ -329,12 +329,12 @@ def importdata(data, cursor):
 			else:
 				queryargvalues[argname] = ":{}".format(argname)
 				queryargvars[argname] = argvalue
-		query = "begin {}({}); end;".format(name, ", ".join("{}=>{}".format(*argitem) for argitem in queryargvalues.iteritems()))
+		query = "begin {}({}); end;".format(name, ", ".join("{}=>{}".format(*argitem) for argitem in queryargvalues.items()))
 		cursor.execute(query, queryargvars)
 
 		newkeyvalues = {}
 		oldkeyvalues = {}
-		for (argname, argvalue) in args.iteritems():
+		for (argname, argvalue) in args.items():
 			if argname in keys:
 				if argvalue in allkeys:
 					oldkeyvalues[argname] = allkeys[argvalue]
@@ -360,7 +360,7 @@ def main(args=None):
 	def formatdata(data):
 		args = []
 		newkeys = []
-		for (argname, argvalue) in data["args"].iteritems():
+		for (argname, argvalue) in data["args"].items():
 			if argname in data["newkeyvalues"]:
 				args.append("{}=?".format(argname))
 				newkeys.append("{}={}".format(argname, data["newkeyvalues"][argname]))
@@ -379,7 +379,7 @@ def main(args=None):
 		for (i, data) in enumerate(importdata(loader(args.file), db.cursor()), start=1):
 			if args.verbose >= 1:
 				if args.verbose >= 3:
-					print "#{}: {}".format(i, formatdata(data))
+					print("#{}: {}".format(i, formatdata(data)))
 				else:
 					sys.stdout.write(".")
 					sys.stdout.flush()
@@ -387,18 +387,18 @@ def main(args=None):
 		db.commit()
 	finally:
 		if 1 <= args.verbose <= 2:
-			print
+			print()
 
 	if args.verbose >= 2:
-		totalcount = sum(counts.itervalues())
+		totalcount = sum(counts.values())
 		l1 = len(str(totalcount))
 		l2 = max(len(procname) for procname in counts)
-		print
+		print()
 		print("Summary")
 		print("="*(l1+1+l2))
 		print("{:>{}} procedure".format("#", l1))
 		print("{} {}".format("-"*l1, "-"*l2))
-		for (procname, count) in sorted(counts.iteritems(), key=operator.itemgetter(1)):
+		for (procname, count) in sorted(iter(counts.items()), key=operator.itemgetter(1)):
 			print("{:>{}} {}".format(count, l1, procname))
 		print("{} {}".format("-"*l1, "-"*l2))
 		print("{:>{}} (total calls)".format(totalcount, l1))
