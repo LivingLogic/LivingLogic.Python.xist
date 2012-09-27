@@ -398,7 +398,7 @@ def main(args=None):
 		print("="*(l1+1+l2))
 		print("{:>{}} procedure".format("#", l1))
 		print("{} {}".format("-"*l1, "-"*l2))
-		for (procname, count) in sorted(iter(counts.items()), key=operator.itemgetter(1)):
+		for (procname, count) in sorted(counts.items(), key=operator.itemgetter(1)):
 			print("{:>{}} {}".format(count, l1, procname))
 		print("{} {}".format("-"*l1, "-"*l2))
 		print("{:>{}} (total calls)".format(totalcount, l1))
