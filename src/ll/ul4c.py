@@ -762,23 +762,27 @@ class Else(Block):
 		return "".join(v)
 
 
+@register("for")
 class For(Block):
 	"""
-	Base classes for the two versions of ``<?for?>`` blocks.
+	AST node for a ``<?for?>`` loop variable.
 	"""
 
-	fields = Block.fields.union({"container"})
+	fields = Block.fields.union({"varname", "container"})
 
-	def __init__(self, location=None, container=None):
+	def __init__(self, location=None, varname=None, container=None):
 		super().__init__(location)
+		self.varname = varname
 		self.container = container
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
+		encoder.dump(self.varname)
 		encoder.dump(self.container)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
+		self.varname = decoder.load()
 		self.container = decoder.load()
 
 	def formatjava(self, indent):
@@ -808,82 +812,30 @@ class For(Block):
 		v.append("{}}}\n".format(indent*"\t"))
 		return "".join(v)
 
-
-@register("for")
-class ForNormal(For):
-	"""
-	AST node for a normal ``<?for?>`` block with one loop variable.
-	"""
-
-	fields = For.fields.union({"varname"})
-
-	def __init__(self, location=None, container=None, varname=None):
-		super().__init__(location, container)
-		self.varname = varname
-
-	def __repr__(self):
-		return "{}({!r}, {!r})".format(self.__class__.__name__, self.container, self.varname)
-
 	def format(self, indent):
-		return "{}for {} in {}\n{}".format(indent*"\t", self.varname, self.container.format(indent), super().format(indent))
+		def formatname(name):
+			if isinstance(name, str):
+				return name
+			elif len(name) == 1:
+				return "({},)".format(formatname(name[0]))
+			else:
+				return "({})".format(", ".join(formatname(name) for name in name))
+		return "{}for {} in {}\n{}".format(indent*"\t", formatname(self.varname), self.container.format(indent), super().format(indent))
 
 	def formatpython(self, indent):
 		v = ["{i}# <?for?> tag at position {l.starttag}:{l.endtag} ({id})\n".format(i=indent*"\t", id=id(self), l=self.location)]
-		v.append("{}for vars[{!r}] in {}:\n".format(indent*"\t", self.varname, self.container.formatpython(indent)))
+		def formatname(name):
+			if isinstance(name, str):
+				return "vars[{!r}]".format(name)
+			elif len(name) == 1:
+				return "({},)".format(formatname(name[0]))
+			else:
+				return "({})".format(", ".join(formatname(name) for name in name))
+		v.append("{}for {} in {}:\n".format(indent*"\t", formatname(self.varname), self.container.formatpython(indent)))
 		indent += 1
 		for node in self.content:
 			v.append(node.formatpython(indent))
 		return "".join(v)
-
-	def _javavarnames(self):
-		return misc.javaexpr(self.varname)
-
-	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
-		encoder.dump(self.varname)
-
-	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
-		self.varname = decoder.load()
-
-
-@register("foru")
-class ForUnpack(For):
-	"""
-	AST node for a ``<?for?>`` block where the loop variable is unpacked into
-	several variables.
-	"""
-
-	fields = For.fields.union({"varnames"})
-
-	def __init__(self, location=None, container=None, *varnames):
-		super().__init__(location, container)
-		self.varnames = list(varnames)
-
-	def __repr__(self):
-		return "{}({!r}, {})".format(self.__class__.__name__, self.container, repr(self.varnames)[1:-1])
-
-	def format(self, indent):
-		return "{}for ({}) in {}\n{}".format(indent*"\t", ", ".join(self.varnames), self.container.format(indent), super().format(indent))
-
-	def formatpython(self, indent):
-		v = ["{i}# <?for?> tag at position {l.starttag}:{l.endtag} ({id})\n".format(i=indent*"\t", id=id(self), l=self.location)]
-		v.append("{}for ({}) in {}:\n".format(indent*"\t", " ".join("vars[{!r}],".format(varname) for varname in self.varnames), self.container.formatpython(indent)))
-		indent += 1
-		for node in self.content:
-			v.append(node.formatpython(indent))
-		return "".join(v)
-
-	def _javavarnames(self):
-		return "java.util.Arrays.asList({})".format(", ".join(misc.javaexpr(varname) for varname in self.varnames))
-
-	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
-		encoder.dump(self.varnames)
-
-	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
-		self.varnames = decoder.load()
 
 
 @register("break")
@@ -2368,7 +2320,7 @@ class Template(Block):
 							if not isinstance(stack[-1], IfElIfElse):
 								raise BlockError("endif doesn't match any if")
 						elif code == "for":
-							if not isinstance(stack[-1], (For, ForUnpack)):
+							if not isinstance(stack[-1], For):
 								raise BlockError("endfor doesn't match any for")
 						elif code == "def":
 							if not isinstance(stack[-1], Template):
@@ -2386,14 +2338,14 @@ class Template(Block):
 					stack.append(block)
 				elif location.type == "break":
 					for block in reversed(stack):
-						if isinstance(block, (For, ForUnpack)):
+						if isinstance(block, For):
 							break
 						elif isinstance(block, Template):
 							raise BlockError("break outside of for loop")
 					stack[-1].append(Break(location))
 				elif location.type == "continue":
 					for block in reversed(stack):
-						if isinstance(block, (For, ForUnpack)):
+						if isinstance(block, For):
 							break
 						elif isinstance(block, Template):
 							raise BlockError("continue outside of for loop")
@@ -2914,32 +2866,33 @@ class ForParser(ExprParser):
 	emptyerror = "loop expression required"
 	start = "for"
 
-	@spark.production('for ::= var in expr0')
-	def for0(self, iter, _0, cont):
-		return ForNormal(self.location, cont, iter.name)
+	@spark.production('for ::= varname in expr0')
+	def for_(self, varname, _0, cont):
+		return For(self.location, varname, cont)
 
-	@spark.production('for ::= ( var , ) in expr0')
-	def for1(self, _0, varname, _1, _2, _3, cont):
-		return ForUnpack(self.location, cont, varname.name)
+	@spark.production('varname ::= var')
+	def name(self, var):
+		return var.name
 
-	@spark.production('buildfor ::= ( var , var')
-	def buildfor(self, _0, varname1, _1, varname2):
-		return ForUnpack(self.location, None, varname1.name, varname2.name)
+	@spark.production('varname ::= ( varname , )')
+	def name1(self, _0, varname, _1, _2):
+		return (varname,)
 
-	@spark.production('buildfor ::= buildfor , var')
-	def addfor(self, for_, _0, varname3):
-		for_.varnames.append(varname3.name)
-		return for_
+	@spark.production('buildvarname ::= ( varname , varname')
+	def buildname(self, _0, varname1, _1, varname2):
+		return (varname1, varname2)
 
-	@spark.production('for ::= buildfor ) in expr0')
-	def finishfor(self, for_, _0, _1, cont):
-		for_.container = cont
-		return for_
+	@spark.production('buildvarname ::= buildvarname , varname')
+	def addname(self, buildvarname, _0, varname):
+		return buildvarname + (varname,)
 
-	@spark.production('for ::= buildfor , ) in expr0')
-	def finishfor1(self, for_, _0, _1, _2, cont):
-		for_.container = cont
-		return for_
+	@spark.production('varname ::= buildvarname )')
+	def finishname0(self, buildvarname, _0):
+		return buildvarname
+
+	@spark.production('varname ::= buildvarname , )')
+	def finishname1(self, buildvarname, _0, _1):
+		return buildvarname
 
 
 class StmtParser(ExprParser):

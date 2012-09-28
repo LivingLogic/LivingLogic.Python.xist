@@ -530,7 +530,7 @@ def test_for_dict(r):
 
 
 @pytest.mark.ul4
-def test_for_nested(r):
+def test_for_nested_loop(r):
 	eq('[(1)(2)][(3)(4)]', r('<?for list in data?>[<?for n in list?>(<?print n?>)<?end for?>]<?end for?>', data=[[1, 2], [3, 4]]))
 
 
@@ -539,12 +539,23 @@ def test_for_unpacking(r):
 	data = [
 		("spam", "eggs", 17),
 		("gurk", "hurz", 23),
-		("hinz", "kunz", 42)
+		("hinz", "kunz", 42),
 	]
 
 	eq('(spam)(gurk)(hinz)', r('<?for (a,) in data?>(<?print a?>)<?end for?>', data=[item[:1] for item in data]))
 	eq('(spam,eggs)(gurk,hurz)(hinz,kunz)', r('<?for (a, b) in data?>(<?print a?>,<?print b?>)<?end for?>', data=[item[:2] for item in data]))
 	eq('(spam,eggs,17)(gurk,hurz,23)(hinz,kunz,42)', r('<?for (a, b, c) in data?>(<?print a?>,<?print b?>,<?print c?>)<?end for?>', data=data))
+
+
+@pytest.mark.ul4
+def test_for_nested_unpacking(r):
+	data = [
+		(("spam", "eggs"), (17,), None),
+		(("gurk", "hurz"), (23,), False),
+		(("hinz", "kunz"), (42,), True),
+	]
+
+	eq('(spam,eggs,17,)(gurk,hurz,23,False)(hinz,kunz,42,True)', r('<?for ((a, b), (c,), d) in data?>(<?print a?>,<?print b?>,<?print c?>,<?print d?>)<?end for?>', data=data))
 
 
 @pytest.mark.ul4
