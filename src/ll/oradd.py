@@ -19,7 +19,7 @@ Creating an ``oradd`` file can be done like this::
 
 	from ll import oradd
 
-	with open("data.oradd", "wb") as f:
+	with open("data.oradd", "w", encoding="utf-8") as f:
 		per_id = oradd.Key()
 		oradd.dump_oradd(
 			f,
@@ -152,6 +152,9 @@ it supports the following command line options:
 import sys, io, argparse, operator, collections, contextlib, datetime
 
 import cx_Oracle
+
+
+__docformat__ = "reStructuredText"
 
 
 class Key(object):
