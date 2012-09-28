@@ -1,6 +1,8 @@
 Changes in 4.1 (released ??/??/2012)
 ------------------------------------
 
+*	Loop variable unpacking in UL4 now allows arbitrary nesting.
+
 *	The support for Growl notifications in :mod:`ll.make` on the Mac has been
 	replaced by support for Mountain Lions Notification Center via
 	terminal-notifier__.
