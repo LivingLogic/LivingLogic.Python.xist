@@ -2017,7 +2017,7 @@ class Template(Block):
 	A :class:`Template` object is itself an AST node. Evaluating it will store
 	the template object under its name in the local variables.
 	"""
-	version = "17"
+	version = "18"
 	fields = Block.fields.union({"source", "name", "startdelim", "enddelim", "endlocation"})
 
 	def __init__(self, source=None, name=None, startdelim="<?", enddelim="?>"):
