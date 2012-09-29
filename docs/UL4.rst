@@ -245,12 +245,15 @@ with an ``<?end for?>`` tag::
 	<?end for?>
 	</ul>
 
-In ``for`` loops tuple unpacking is supported for tuples of length 1, 2, 3 and 4,
-so you can do the following::
+In ``for`` loops variable unpacking is supported, so you can do the following::
 
-	<?for (key, value) in items?>
+	<?for (key, value) in dict.items()?>
 
-if ``items`` is an iterable containing lists with two elements.
+if ``dict`` is a dictionary.
+
+This unpacking can be arbitrarily nested, i.e. the following is possible too::
+
+	<?for (i, (key, value)) in enumerate(dict.items())?>
 
 
 ``break``

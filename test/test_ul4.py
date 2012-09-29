@@ -238,10 +238,10 @@ all_renderers =  [
 	("python", RenderPython),
 	("python_dumps", RenderPythonDumpS),
 	("python_dump", RenderPythonDump),
-	("js", RenderJS),
-	("java_interpreted_by_python", RenderJavaInterpretedTemplateByPython),
-	("java_compiled_by_python", RenderJavaCompiledTemplateByPython),
-	("java_interpreted_by_java", RenderJavaInterpretedTemplateByJava),
+	# ("js", RenderJS),
+	# ("java_interpreted_by_python", RenderJavaInterpretedTemplateByPython),
+	# ("java_compiled_by_python", RenderJavaCompiledTemplateByPython),
+	# ("java_interpreted_by_java", RenderJavaInterpretedTemplateByJava),
 ]
 
 
@@ -456,6 +456,9 @@ def test_dict(r):
 def test_code_storevar(r):
 	eq('42', r('<?code x = 42?><?print x?>'))
 	eq('xyzzy', r('<?code x = "xyzzy"?><?print x?>'))
+	eq('42', r('<?code (x,) = [42]?><?print x?>'))
+	eq('17,23', r('<?code (x,y) = [17, 23]?><?print x?>,<?print y?>'))
+	eq('17,23,37,42,105', r('<?code ((v, w), (x,), (y,), z) = [[17, 23], [37], [42], 105]?><?print v?>,<?print w?>,<?print x?>,<?print y?>,<?print z?>'))
 
 
 @pytest.mark.ul4

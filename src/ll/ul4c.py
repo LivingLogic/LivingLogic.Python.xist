@@ -813,25 +813,11 @@ class For(Block):
 		return "".join(v)
 
 	def format(self, indent):
-		def formatname(name):
-			if isinstance(name, str):
-				return name
-			elif len(name) == 1:
-				return "({},)".format(formatname(name[0]))
-			else:
-				return "({})".format(", ".join(formatname(name) for name in name))
-		return "{}for {} in {}\n{}".format(indent*"\t", formatname(self.varname), self.container.format(indent), super().format(indent))
+		return "{}for {} in {}\n{}".format(indent*"\t", formatnestednameul4(self.varname), self.container.format(indent), super().format(indent))
 
 	def formatpython(self, indent):
 		v = ["{i}# <?for?> tag at position {l.starttag}:{l.endtag} ({id})\n".format(i=indent*"\t", id=id(self), l=self.location)]
-		def formatname(name):
-			if isinstance(name, str):
-				return "vars[{!r}]".format(name)
-			elif len(name) == 1:
-				return "({},)".format(formatname(name[0]))
-			else:
-				return "({})".format(", ".join(formatname(name) for name in name))
-		v.append("{}for {} in {}:\n".format(indent*"\t", formatname(self.varname), self.container.formatpython(indent)))
+		v.append("{}for {} in {}:\n".format(indent*"\t", formatnestednamepython(self.varname), self.container.formatpython(indent)))
 		indent += 1
 		for node in self.content:
 			v.append(node.formatpython(indent))
@@ -1441,13 +1427,13 @@ class StoreVar(ChangeVar):
 	"""
 
 	def format(self, indent):
-		return "{}{} = {}\n".format(indent*"\t", self.varname, self.value.format(indent))
+		return "{}{} = {}\n".format(indent*"\t", formatnestednameul4(self.varname), self.value.format(indent))
 
 	def formatpython(self, indent):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] = {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
+		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}{n} = {v}\n".format(i=indent*"\t", id=id(self), n=formatnestednamepython(self.varname), v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		return "{i}// {s}\n{i}context.put({n}, {v});\n".format(i=indent*"\t", n=misc.javaexpr(self.varname), s=repr(self.location.tag)[1:-1], v=self.value.formatjava(indent))
+		return "{i}// {s}\n{i}Utils.unpackVariables(context.getVariables(), {n}, {v});\n".format(i=indent*"\t", n=misc.javaexpr(self.varname), s=repr(self.location.tag)[1:-1], v=self.value.formatjava(indent))
 
 
 @register("addvar")
@@ -2591,6 +2577,30 @@ class ExprParser(spark.Parser):
 	def expr_atom(self, atom):
 		return atom
 
+	@spark.production('nestedname ::= var')
+	def nestedname(self, var):
+		return var.name
+
+	@spark.production('nestedname ::= ( nestedname , )')
+	def nestedname1(self, _0, name, _1, _2):
+		return (name,)
+
+	@spark.production('buildnestedname ::= ( nestedname , nestedname')
+	def buildnestedname(self, _0, name1, _1, name2):
+		return (name1, name2)
+
+	@spark.production('buildnestedname ::= buildnestedname , nestedname')
+	def addnestedname(self, buildname, _0, name):
+		return buildname + (name,)
+
+	@spark.production('nestedname ::= buildnestedname )')
+	def finishnestedname0(self, buildname, _0):
+		return buildname
+
+	@spark.production('nestedname ::= buildnestedname , )')
+	def finishnestedname1(self, buildname, _0, _1):
+		return buildname
+
 	@spark.production('expr11 ::= [ ]')
 	def expr_emptylist(self, _0, _1):
 		return List(self.location)
@@ -2866,42 +2876,18 @@ class ForParser(ExprParser):
 	emptyerror = "loop expression required"
 	start = "for"
 
-	@spark.production('for ::= varname in expr0')
-	def for_(self, varname, _0, cont):
-		return For(self.location, varname, cont)
-
-	@spark.production('varname ::= var')
-	def name(self, var):
-		return var.name
-
-	@spark.production('varname ::= ( varname , )')
-	def name1(self, _0, varname, _1, _2):
-		return (varname,)
-
-	@spark.production('buildvarname ::= ( varname , varname')
-	def buildname(self, _0, varname1, _1, varname2):
-		return (varname1, varname2)
-
-	@spark.production('buildvarname ::= buildvarname , varname')
-	def addname(self, buildvarname, _0, varname):
-		return buildvarname + (varname,)
-
-	@spark.production('varname ::= buildvarname )')
-	def finishname0(self, buildvarname, _0):
-		return buildvarname
-
-	@spark.production('varname ::= buildvarname , )')
-	def finishname1(self, buildvarname, _0, _1):
-		return buildvarname
+	@spark.production('for ::= nestedname in expr0')
+	def for_(self, name, _0, cont):
+		return For(self.location, name, cont)
 
 
 class StmtParser(ExprParser):
 	emptyerror = "statement required"
 	start = "stmt"
 
-	@spark.production('stmt ::= var = expr0')
-	def stmt_assign(self, var, _0, value):
-		return StoreVar(self.location, var.name, value)
+	@spark.production('stmt ::= nestedname = expr0')
+	def stmt_assign(self, name, _0, value):
+		return StoreVar(self.location, name, value)
 
 	@spark.production('stmt ::= var += expr0')
 	def stmt_iadd(self, var, _0, value):
@@ -2944,6 +2930,24 @@ def _makedict(*items):
 		else:
 			result[item[0]] = item[1]
 	return result
+
+
+def formatnestednameul4(name):
+	if isinstance(name, str):
+		return name
+	elif len(name) == 1:
+		return "({},)".format(formatnestednameul4(name[0]))
+	else:
+		return "({})".format(", ".join(formatnestednameul4(name) for name in name))
+
+
+def formatnestednamepython(name):
+	if isinstance(name, str):
+		return "vars[{!r}]".format(name)
+	elif len(name) == 1:
+		return "({},)".format(formatnestednamepython(name[0]))
+	else:
+		return "({})".format(", ".join(formatnestednamepython(name) for name in name))
 
 
 def _vars(vars):
