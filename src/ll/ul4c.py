@@ -791,7 +791,7 @@ class For(Block):
 		v.append("{indent}for (java.util.Iterator iter{id:x} = com.livinglogic.ul4.Utils.iterator({container}); iter{id:x}.hasNext();)\n".format(indent=indent*"\t", id=id(self), container=self.container.formatjava(indent)))
 		v.append("{}{{\n".format(indent*"\t"))
 		indent += 1
-		v.append("{}com.livinglogic.ul4.Utils.unpackVariable(context, {}, iter{:x}.next());\n".format(indent*"\t", misc.javaexpr(self.varname), id(self)))
+		v.append("{}com.livinglogic.ul4.Utils.unpackVariable(context.getVariables(), {}, iter{:x}.next());\n".format(indent*"\t", misc.javaexpr(self.varname), id(self)))
 		v.append("{}try\n".format(indent*"\t"))
 		v.append("{}{{\n".format(indent*"\t"))
 		indent += 1
