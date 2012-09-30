@@ -1433,7 +1433,7 @@ class StoreVar(ChangeVar):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}{n} = {v}\n".format(i=indent*"\t", id=id(self), n=formatnestednamepython(self.varname), v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
-		return "{i}// {s}\n{i}Utils.unpackVariables(context.getVariables(), {n}, {v});\n".format(i=indent*"\t", n=misc.javaexpr(self.varname), s=repr(self.location.tag)[1:-1], v=self.value.formatjava(indent))
+		return "{i}// {s}\n{i}com.livinglogic.ul4.Utils.unpackVariable(context.getVariables(), {n}, {v});\n".format(i=indent*"\t", n=misc.javaexpr(self.varname), s=repr(self.location.tag)[1:-1], v=self.value.formatjava(indent))
 
 
 @register("addvar")
