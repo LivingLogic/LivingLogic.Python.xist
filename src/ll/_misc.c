@@ -329,7 +329,7 @@ static PyObject *count(PyObject *self, PyObject *iterable)
 			Py_DECREF(iter);
 			if (PyErr_Occurred())
 				return NULL;
-			return PyInt_FromSize_t(count);
+			return PyLong_FromSsize_t(count);
 		}
 	}
 }
