@@ -148,6 +148,12 @@ class Job(object):
 	``noisykills`` : :option:`--noisykills`
 		Should a message be printed when the maximum runtime is exceeded?
 
+	``notify`` : :option:`-n` or :option:`--notify`
+		Should a notification be issued to the OS X Notification center?
+		(done via terminal-notifier__).
+
+		__ https://github.com/alloy/terminal-notifier
+
 	``logfilename`` : :option:`--logfilename`
 		Path/name of the logfile for this job as an UL4 template. Variables
 		available in the template include ``user_name``, ``projectname``,
@@ -192,6 +198,7 @@ class Job(object):
 	fork = True
 
 	noisykills = False
+	notify = False
 
 	logfilename = "~/ll.sisyphus/<?print projectname?>/<?print jobname?>/<?print format(starttime, '%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog"
 	loglinkname = "~/ll.sisyphus/<?print projectname?>/<?print jobname?>/current.sisyphuslog"
@@ -238,6 +245,7 @@ class Job(object):
 		p.add_argument(      "--encoding", dest="encoding", metavar="ENCODING", help="Encoding for the log file (default: %(default)s)", default=self.encoding)
 		p.add_argument(      "--errors", dest="errors", metavar="METHOD", help="Error handling method for encoding errors in log texts (default: %(default)s)", default=self.errors)
 		p.add_argument(      "--noisykills", dest="noisykills", help="Should a message be printed if the maximum runtime is exceeded? (default: %(default)s)", action=misc.FlagAction, default=self.noisykills)
+		p.add_argument("-n", "--notify", dest="notify", help="Should a notification be issued to the OS X notification center? (default: %(default)s)", action=misc.FlagAction, default=self.notify)
 		return p
 
 	def parseargs(self, args=None):
@@ -259,6 +267,7 @@ class Job(object):
 		self.keepfilelogs = datetime.timedelta(days=args.keepfilelogs)
 		self.encoding = args.encoding
 		self.errors = args.errors
+		self.notify = args.notify
 		return args
 
 	def _alarm_fork(self, signum, frame):
@@ -329,6 +338,8 @@ class Job(object):
 				signal.signal(signal.SIGALRM, self._alarm_nofork)
 				signal.alarm(self.maxtime)
 
+			if self.notify:
+				self.notifystart()
 			try:
 				with url.Context():
 					result = self.execute()
@@ -344,11 +355,63 @@ class Job(object):
 				# log the result
 				self.log.sisyphus.result.ok(result)
 			finally:
+				if self.notify:
+					self.notifyfinish(datetime.datetime.now()-self.info.starttime, result)
 				if self._logfile is not None:
 					self._logfile.close()
 				fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
 			if self.fork:
 				os._exit(0)
+
+	def strtimedelta(self, delta):
+		"""
+		Return a nicely formatted string for the :class:`datetime.timedelta`
+		value :var:`delta`. :var:`delta` may also be :const:`None` in with case
+		``"0"`` will be returned.
+		"""
+		if delta is None:
+			return "0"
+		rest = delta.seconds
+
+		(rest, secs) = divmod(rest, 60)
+		(rest, mins) = divmod(rest, 60)
+		rest += delta.days*24
+
+		secs += delta.microseconds/1000000.
+		if rest:
+			return "{:d}:{:02d}:{:06.3f}h".format(rest, mins, secs)
+		elif mins:
+			return "{:02d}:{:06.3f}m".format(mins, secs)
+		else:
+			return "{:.3f}s".format(secs)
+
+	def notifystart(self):
+		cmd = [
+			"/Applications/terminal-notifier.app/Contents/MacOS/terminal-notifier",
+			"-remove",
+			misc.sysinfo.scriptname,
+		]
+
+		import subprocess
+		with open("/dev/null", "wb") as f:
+			status = subprocess.call(cmd, stdout=f)
+
+	def notifyfinish(self, duration, result):
+		cmd = [
+			"/Applications/terminal-notifier.app/Contents/MacOS/terminal-notifier",
+			"-title",
+			"{} {}".format(self.projectname, self.jobname),
+			"-subtitle",
+			"finished after {}".format(self.strtimedelta(duration)),
+			"-message",
+			result,
+			"-group",
+			misc.sysinfo.scriptname,
+		]
+
+		import subprocess
+		with open("/dev/null", "wb") as f:
+			status = subprocess.call(cmd, stdout=f)
 
 	@contextlib.contextmanager
 	def prefix(self, prefix):

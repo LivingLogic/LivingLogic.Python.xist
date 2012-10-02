@@ -1666,7 +1666,7 @@ class Project(dict):
 			"-title",
 			self.name,
 			"-subtitle",
-			"{} {}".format("done in" if success else "failed after", self.strtimedelta(duration)),
+			"{} {}".format("finished after" if success else "failed after", self.strtimedelta(duration)),
 			"-message",
 			"; ".join(msgs),
 			"-group",
