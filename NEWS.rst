@@ -3,7 +3,7 @@ Changes in 4.1 (released ??/??/2012)
 
 *	Loop variable unpacking in UL4 now allows arbitrary nesting.
 
-*	Variable assignment in UL4 now allows variable unpacking two, i.e.
+*	Variable assignment in UL4 now allows variable unpacking too, i.e.
 	``(a, b) = (17, 23)``.
 
 *	The support for Growl notifications in :mod:`ll.make` on the Mac has been
