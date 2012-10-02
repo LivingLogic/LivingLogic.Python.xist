@@ -1567,6 +1567,8 @@ class Project(dict):
 
 			success = False
 			try:
+				if self.notify:
+					self.notifystart()
 				for target in targets:
 					data = self._get(target, bigcrunch)
 
@@ -1599,7 +1601,7 @@ class Project(dict):
 				success = True
 			finally:
 				if self.notify:
-					self.donotify(datetime.datetime.utcnow()-self.starttime, success)
+					self.notifyfinish(datetime.datetime.utcnow()-self.starttime, success)
 
 	def buildwithargs(self, args=None):
 		"""
@@ -1637,7 +1639,18 @@ class Project(dict):
 		"""
 		self.write(*texts)
 
-	def donotify(self, duration, success):
+	def notifystart(self):
+		cmd = [
+			"/Applications/terminal-notifier.app/Contents/MacOS/terminal-notifier",
+			"-remove",
+			misc.sysinfo.scriptname,
+		]
+
+		import subprocess
+		with open("/dev/null", "wb") as f:
+			status = subprocess.call(cmd, stdout=f)
+
+	def notifyfinish(self, duration, success):
 		msgs = []
 		if self.stepsexecuted:
 			msgs.append("{:,} steps".format(self.stepsexecuted))
