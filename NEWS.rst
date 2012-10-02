@@ -1,4 +1,4 @@
-Changes in 4.1 (released ??/??/2012)
+Changes in 4.1 (released 10/02/2012)
 ------------------------------------
 
 *	Loop variable unpacking in UL4 now allows arbitrary nesting.
