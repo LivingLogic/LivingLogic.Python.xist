@@ -1,3 +1,10 @@
+Changes in 4.1.1 (released 10/04/2012)
+--------------------------------------
+
+*	Fixed a bug in the UL4 handling of slices. (``('0' + str(x))[-2:]`` didn't
+	work correctly.)
+
+
 Changes in 4.1 (released 10/02/2012)
 ------------------------------------
 

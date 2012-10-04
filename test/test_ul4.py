@@ -239,9 +239,9 @@ all_renderers =  [
 	("python_dumps", RenderPythonDumpS),
 	("python_dump", RenderPythonDump),
 	("js", RenderJS),
-	("java_interpreted_by_python", RenderJavaInterpretedTemplateByPython),
-	("java_compiled_by_python", RenderJavaCompiledTemplateByPython),
-	("java_interpreted_by_java", RenderJavaInterpretedTemplateByJava),
+	# ("java_interpreted_by_python", RenderJavaInterpretedTemplateByPython),
+	# ("java_compiled_by_python", RenderJavaCompiledTemplateByPython),
+	# ("java_interpreted_by_java", RenderJavaInterpretedTemplateByJava),
 ]
 
 
@@ -828,6 +828,8 @@ def test_getslice2(r):
 	eq("gurk", r("<?print x[:10]?>", x="gurk"))
 	eq("", r("<?print 'gurk'[:-5]?>"))
 	eq("", r("<?print x[:-5]?>", x="gurk"))
+	eq("05", r("<?print ('0' + str(x))[-2:]?>", x=5))
+	eq("15", r("<?print ('0' + str(x))[-2:]?>", x=15))
 
 
 @pytest.mark.ul4
