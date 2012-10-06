@@ -239,7 +239,7 @@ Template code
 
 The template code tries to mimic Python syntax as far as possible, but is
 limited to what is required for templates and does not allow executing arbitrary
-Python statements.
+Python statements. In some spots it also borrows Javascript semantics.
 
 :mod:`ll.ul4c` supports the following tag types:
 
