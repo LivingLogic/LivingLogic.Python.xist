@@ -217,6 +217,22 @@ With this it's possible to copy the content of one dictionary into another new
 one. Keys are set from left to right, so later values overwrite former ones, so
 ``{1: 2, 1: 3}[1]`` and ``{1: 2, **{1: 3}}[1]`` will both return ``3`` not ``2``.
 
+It is also possible to create a dictionary with a dictionary comprehension::
+
+	{ c.upper() : "(" + c + ")" for c in "hurz" if c < "u"}
+
+This will create the dictionary::
+
+	{ "H": "(h)", "R": "(r)"}
+
+The ``if`` condition is optional, i.e.::
+
+	{ c.upper() : "(" + c + ")" for c in "hurz"}
+
+will create the dictionary::
+
+	{ "H": "(h)", "R": "(r)", "U": "(u)", "Z": "(z)"}
+
 
 Template code
 =============
