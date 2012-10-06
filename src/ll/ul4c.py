@@ -520,14 +520,6 @@ class ListComp(AST):
 
 	def formatjava(self, indent):
 		raise NotImplementedError
-		v = ["new com.livinglogic.ul4.MapMaker()"]
-		for item in self.items:
-			if len(item) == 1:
-				v.append(".add((java.util.Map){})".format(item[0].formatjava(indent)))
-			else:
-				v.append(".add({}, {})".format(item[0].formatjava(indent), item[1].formatjava(indent)))
-		v.append(".getMap()")
-		return "".join(v)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -651,14 +643,6 @@ class DictComp(AST):
 
 	def formatjava(self, indent):
 		raise NotImplementedError
-		v = ["new com.livinglogic.ul4.MapMaker()"]
-		for item in self.items:
-			if len(item) == 1:
-				v.append(".add((java.util.Map){})".format(item[0].formatjava(indent)))
-			else:
-				v.append(".add({}, {})".format(item[0].formatjava(indent), item[1].formatjava(indent)))
-		v.append(".getMap()")
-		return "".join(v)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
