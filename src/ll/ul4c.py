@@ -471,10 +471,83 @@ class List(AST):
 		self.items = decoder.load()
 
 
+@register("listcomp")
+class ListComp(AST):
+	"""
+	AST node for list comprehension.
+	"""
+
+	precedence = 11
+	fields = AST.fields.union({"item", "varname", "container", "condition"})
+
+	def __init__(self, location=None, item=None, varname=None, container=None, condition=None):
+		super().__init__(location)
+		self.item = item
+		self.varname = varname
+		self.container = container
+		self.condition = condition
+
+	def __repr__(self):
+		return "{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.item, self.varname, self.container, self.condition)
+
+	def format(self, indent):
+		v = []
+		v.append("[ ")
+		v.append(self.item.format(indent))
+		v.append(" for ")
+		v.append(formatnestednameul4(self.varname))
+		v.append(" in ")
+		v.append(self.container.format(indent))
+		if self.condition is not None:
+			v.append(" if ")
+			v.append(self.condition.format(indent))
+		v.append(" ]")
+		return "".join(v)
+
+	def formatpython(self, indent):
+		v = []
+		v.append("[ ")
+		v.append(self.item.formatpython(indent))
+		v.append(" for ")
+		v.append(formatnestednamepython(self.varname))
+		v.append(" in ")
+		v.append(self.container.formatpython(indent))
+		if self.condition is not None:
+			v.append(" if ")
+			v.append(self.condition.formatpython(indent))
+		v.append(" ]")
+		return "".join(v)
+
+	def formatjava(self, indent):
+		raise NotImplementedError
+		v = ["new com.livinglogic.ul4.MapMaker()"]
+		for item in self.items:
+			if len(item) == 1:
+				v.append(".add((java.util.Map){})".format(item[0].formatjava(indent)))
+			else:
+				v.append(".add({}, {})".format(item[0].formatjava(indent), item[1].formatjava(indent)))
+		v.append(".getMap()")
+		return "".join(v)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.item)
+		encoder.dump(self.varname)
+		encoder.dump(self.container)
+		encoder.dump(self.condition)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.item = decoder.load()
+		self.varname = decoder.load()
+		self.container = decoder.load()
+		self.condition = decoder.load()
+
+
 @register("dict")
 class Dict(AST):
 	"""
-	AST nodes for loading a dict object.
+	AST node for loading a dict object.
 	"""
 
 	precedence = 11
@@ -522,6 +595,86 @@ class Dict(AST):
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
 		self.items = [tuple(item) for item in decoder.load()]
+
+
+@register("dictcomp")
+class DictComp(AST):
+	"""
+	AST node for dictionary comprehension.
+	"""
+
+	precedence = 11
+	fields = AST.fields.union({"key", "value", "varname", "container", "condition"})
+
+	def __init__(self, location=None, key=None, value=None, varname=None, container=None, condition=None):
+		super().__init__(location)
+		self.key = key
+		self.value = value
+		self.varname = varname
+		self.container = container
+		self.condition = condition
+
+	def __repr__(self):
+		return "{}({!r}, {!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.key, self.value, self.varname, self.container, self.condition)
+
+	def format(self, indent):
+		v = []
+		v.append("{ ")
+		v.append(self.key.format(indent))
+		v.append(" : ")
+		v.append(self.value.format(indent))
+		v.append(" for ")
+		v.append(formatnestednameul4(self.varname))
+		v.append(" in ")
+		v.append(self.container.format(indent))
+		if self.condition is not None:
+			v.append(" if ")
+			v.append(self.condition.format(indent))
+		v.append(" }")
+		return "".join(v)
+
+	def formatpython(self, indent):
+		v = []
+		v.append("{ ")
+		v.append(self.key.formatpython(indent))
+		v.append(" : ")
+		v.append(self.value.formatpython(indent))
+		v.append(" for ")
+		v.append(formatnestednamepython(self.varname))
+		v.append(" in ")
+		v.append(self.container.formatpython(indent))
+		if self.condition is not None:
+			v.append(" if ")
+			v.append(self.condition.formatpython(indent))
+		v.append(" }")
+		return "".join(v)
+
+	def formatjava(self, indent):
+		raise NotImplementedError
+		v = ["new com.livinglogic.ul4.MapMaker()"]
+		for item in self.items:
+			if len(item) == 1:
+				v.append(".add((java.util.Map){})".format(item[0].formatjava(indent)))
+			else:
+				v.append(".add({}, {})".format(item[0].formatjava(indent), item[1].formatjava(indent)))
+		v.append(".getMap()")
+		return "".join(v)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.key)
+		encoder.dump(self.value)
+		encoder.dump(self.varname)
+		encoder.dump(self.container)
+		encoder.dump(self.condition)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.key = decoder.load()
+		self.value = decoder.load()
+		self.varname = decoder.load()
+		self.container = decoder.load()
+		self.condition = decoder.load()
 
 
 @register("var")
@@ -2402,7 +2555,7 @@ class Scanner(spark.Scanner):
 
 	@spark.token("[a-zA-Z_][\\w]*", "default")
 	def name(self, start, end, s):
-		if s in ("in", "not", "or", "and", "del"):
+		if s in ("for", "if", "in", "not", "or", "and", "del"):
 			self.rv.append(Token(self.location, s))
 		elif s == "None":
 			self.rv.append(None_(self.location))
@@ -2622,6 +2775,14 @@ class ExprParser(spark.Parser):
 	def expr_finishlist1(self, list, _0, _1):
 		return list
 
+	@spark.production('expr11 ::= [ expr0 for nestedname in expr0 ]')
+	def expr_listcomp0(self, _0, item, _1, varname, _2, container, _3):
+		return ListComp(self.location, item, varname, container)
+
+	@spark.production('expr11 ::= [ expr0 for nestedname in expr0 if expr0 ]')
+	def expr_listcomp1(self, _0, item, _1, varname, _2, container, _3, condition, _4):
+		return ListComp(self.location, item, varname, container, condition)
+
 	@spark.production('expr11 ::= { }')
 	def expr_emptydict(self, _0, _1):
 		return Dict(self.location)
@@ -2651,6 +2812,14 @@ class ExprParser(spark.Parser):
 	@spark.production('expr11 ::= builddict , }')
 	def expr_finishdict1(self, dict, _0, _1):
 		return dict
+
+	@spark.production('expr11 ::= { expr0 : expr0 for nestedname in expr0 }')
+	def expr_dictcomp0(self, _0, key, _1, value, _2, varname, _3, container, _4):
+		return DictComp(self.location, key, value, varname, container)
+
+	@spark.production('expr11 ::= { expr0 : expr0 for nestedname in expr0 if expr0 }')
+	def expr_dictcomp1(self, _0, key, _1, value, _2, varname, _3, container, _4, condition, _5):
+		return DictComp(self.location, key, value, varname, container, condition)
 
 	@spark.production('expr11 ::= ( expr0 )')
 	def expr_bracket(self, _0, expr, _1):

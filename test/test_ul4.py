@@ -437,6 +437,13 @@ def test_list(r):
 	eq('yes', r('<?if [1]?>yes<?else?>no<?end if?>'))
 
 
+
+@pytest.mark.ul4
+def test_listcomp(r):
+	eq("[2, 6]", r("<?code d = [2*i for i in range(4) if i%2]?><?print d?>"))
+	eq("[0, 2, 4, 6]", r("<?code d = [2*i for i in range(4)]?><?print d?>"))
+
+
 @pytest.mark.ul4
 def test_dict(r):
 	eq('', r('<?for (key, value) in {}.items()?><?print key?>:<?print value?>\n<?end for?>'))
@@ -450,6 +457,13 @@ def test_dict(r):
 	eq('1:4\n', r('<?for (key, value) in {1:1, **{1:2}, 1:3, **{1:4}}.items()?><?print key?>:<?print value?>\n<?end for?>'))
 	eq('no', r('<?if {}?>yes<?else?>no<?end if?>'))
 	eq('yes', r('<?if {1:2}?>yes<?else?>no<?end if?>'))
+
+
+@pytest.mark.ul4
+def test_dictcomp(r):
+	eq("", r("<?code d = {i:2*i for i in range(10) if i%2}?><?if 2 in d?><?print d[2]?><?end if?>"))
+	eq("6", r("<?code d = {i:2*i for i in range(10) if i%2}?><?if 3 in d?><?print d[3]?><?end if?>"))
+	eq("6", r("<?code d = {i:2*i for i in range(10)}?><?print d[3]?>"))
 
 
 @pytest.mark.ul4

@@ -180,6 +180,22 @@ Lists can be created like this:
 
 	*	``[None, 42, "foo", [False, True]]``
 
+It is also possible to create a list with a list comprehension::
+
+	["(" + c.upper() + ")" for c in "hurz" if c < "u"]
+
+This will create the list::
+
+	["(H)", "(R)"]
+
+The ``if`` condition is optional, i.e.::
+
+	["(" + c.upper() + ")" for c in "hurz"]
+
+will create the list::
+
+	["(H)", "(U)", "(R)", "(Z)"]
+
 
 Dictionary constants
 --------------------
