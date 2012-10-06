@@ -461,9 +461,10 @@ def test_dict(r):
 
 @pytest.mark.ul4
 def test_dictcomp(r):
-	eq("", r("<?code d = {i:2*i for i in range(10) if i%2}?><?if 2 in d?><?print d[2]?><?end if?>"))
-	eq("6", r("<?code d = {i:2*i for i in range(10) if i%2}?><?if 3 in d?><?print d[3]?><?end if?>"))
-	eq("6", r("<?code d = {i:2*i for i in range(10)}?><?print d[3]?>"))
+	# JS only supports string keys
+	eq("", r("<?code d = {str(i):2*i for i in range(10) if i%2}?><?if '2' in d?><?print d['2']?><?end if?>"))
+	eq("6", r("<?code d = {str(i):2*i for i in range(10) if i%2}?><?if '3' in d?><?print d['3']?><?end if?>"))
+	eq("6", r("<?code d = {str(i):2*i for i in range(10)}?><?print d['3']?>"))
 
 
 @pytest.mark.ul4
