@@ -1736,6 +1736,7 @@ class CallFunc(AST):
 		functions = dict(
 			now="ul4c._now({})".format,
 			utcnow="ul4c._utcnow({})".format,
+			date="datetime.datetime({})".format,
 			vars="ul4c._vars(vars, {})".format,
 			random="random.random({})".format,
 			xmlescape="ul4c._xmlescape({})".format,
@@ -1798,6 +1799,7 @@ class CallFunc(AST):
 		functions = dict(
 			now="com.livinglogic.ul4.FunctionNow.call({})".format,
 			utcnow="com.livinglogic.ul4.FunctionUTCNow.call({})".format,
+			date="com.livinglogic.ul4.FunctionDate.call({})".format,
 			vars="com.livinglogic.ul4.FunctionVars.call(context.getVariables(){})".format,
 			random="com.livinglogic.ul4.FunctionRandom.call({})".format,
 			xmlescape="com.livinglogic.ul4.FunctionXMLEscape.call({})".format,
@@ -2813,21 +2815,22 @@ class ExprParser(spark.Parser):
 	def expr_callfunc0(self, var, _0, _1):
 		return CallFunc(self.location, var.name)
 
-	@spark.production('expr10 ::= var ( expr0 )')
-	def expr_callfunc1(self, var, _0, arg0, _1):
-		return CallFunc(self.location, var.name, arg0)
+	@spark.production('buildfunccall ::= var ( expr0')
+	def expr_buildcallfunc(self, var, _0, arg):
+		return CallFunc(self.location, var.name, arg)
 
-	@spark.production('expr10 ::= var ( expr0 , expr0 )')
-	def expr_callfunc2(self, var, _0, arg0, _1, arg1, _2):
-		return CallFunc(self.location, var.name, arg0, arg1)
+	@spark.production('buildfunccall ::= buildfunccall , expr0')
+	def expr_addcallfunc(self, funccall, _0, arg):
+		funccall.args.append(arg)
+		return funccall
 
-	@spark.production('expr10 ::= var ( expr0 , expr0 , expr0 )')
-	def expr_callfunc3(self, var, _0, arg0, _1, arg1, _2, arg2, _3):
-		return CallFunc(self.location, var.name, arg0, arg1, arg2)
+	@spark.production('expr10 ::= buildfunccall )')
+	def expr_finishcallfunc0(self, funccall, _0):
+		return funccall
 
-	@spark.production('expr10 ::= var ( expr0 , expr0 , expr0 , expr0 )')
-	def expr_callfunc4(self, var, _0, arg0, _1, arg1, _2, arg2, _3, arg3, _4):
-		return CallFunc(self.location, var.name, arg0, arg1, arg2, arg3)
+	@spark.production('expr10 ::= buildfunccall , )')
+	def expr_finishcallfunc1(self, funccall, _0, _1):
+		return funccall
 
 	@spark.production('expr9 ::= expr9 . var')
 	def expr_getattr(self, expr, _0, var):

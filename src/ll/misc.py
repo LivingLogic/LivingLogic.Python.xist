@@ -529,9 +529,9 @@ def javaexpr(obj):
 					v.append(c if 32 <= oc < 128 else "\\u{:04x}".format(oc))
 			return '"{}"'.format("".join(v))
 	elif isinstance(obj, datetime.datetime): # check ``datetime`` before ``date``, as ``datetime`` is a subclass of ``date``
-		return "com.livinglogic.ul4.Utils.makeDate({0.year}, {0.month}, {0.day}, {0.hour}, {0.minute}, {0.second}, {0.microsecond})".format(obj)
+		return "com.livinglogic.ul4.FunctionDate.call({0.year}, {0.month}, {0.day}, {0.hour}, {0.minute}, {0.second}, {0.microsecond})".format(obj)
 	elif isinstance(obj, datetime.date):
-		return "com.livinglogic.ul4.Utils.makeDate({0.year}, {0.month}, {0.day})".format(obj)
+		return "com.livinglogic.ul4.FunctionDate.call({0.year}, {0.month}, {0.day})".format(obj)
 	elif isinstance(obj, color.Color):
 		return "new com.livinglogic.ul4.Color({}, {}, {}, {})".format(*obj)
 	elif isinstance(obj, float):

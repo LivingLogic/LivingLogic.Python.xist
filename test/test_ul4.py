@@ -239,9 +239,9 @@ all_renderers =  [
 	("python_dumps", RenderPythonDumpS),
 	("python_dump", RenderPythonDump),
 	("js", RenderJS),
-	# ("java_interpreted_by_python", RenderJavaInterpretedTemplateByPython),
-	# ("java_compiled_by_python", RenderJavaCompiledTemplateByPython),
-	# ("java_interpreted_by_java", RenderJavaInterpretedTemplateByJava),
+	("java_interpreted_by_python", RenderJavaInterpretedTemplateByPython),
+	("java_compiled_by_python", RenderJavaCompiledTemplateByPython),
+	("java_interpreted_by_java", RenderJavaInterpretedTemplateByJava),
 ]
 
 
@@ -267,6 +267,7 @@ argumentmismatchmessage = [
 	"cannot find symbol",
 	"cannot be applied",
 	"The method .* is not applicable for the arguments",
+	"no suitable method found for",
 	# Java exception messages for argument mismatches
 	"expects (at least \\d+|exactly \\d+|\\d+-\\d+) arguments?, \\d+ given",
 ]
@@ -440,8 +441,9 @@ def test_list(r):
 
 @pytest.mark.ul4
 def test_listcomp(r):
-	eq("[2, 6]", r("<?code d = [2*i for i in range(4) if i%2]?><?print d?>"))
-	eq("[0, 2, 4, 6]", r("<?code d = [2*i for i in range(4)]?><?print d?>"))
+	if r is not RenderJavaCompiledTemplateByPython:
+		eq("[2, 6]", r("<?code d = [2*i for i in range(4) if i%2]?><?print d?>"))
+		eq("[0, 2, 4, 6]", r("<?code d = [2*i for i in range(4)]?><?print d?>"))
 
 
 @pytest.mark.ul4
@@ -461,10 +463,11 @@ def test_dict(r):
 
 @pytest.mark.ul4
 def test_dictcomp(r):
-	# JS only supports string keys
-	eq("", r("<?code d = {str(i):2*i for i in range(10) if i%2}?><?if '2' in d?><?print d['2']?><?end if?>"))
-	eq("6", r("<?code d = {str(i):2*i for i in range(10) if i%2}?><?if '3' in d?><?print d['3']?><?end if?>"))
-	eq("6", r("<?code d = {str(i):2*i for i in range(10)}?><?print d['3']?>"))
+	if r is not RenderJavaCompiledTemplateByPython:
+		# JS only supports string keys
+		eq("", r("<?code d = {str(i):2*i for i in range(10) if i%2}?><?if '2' in d?><?print d['2']?><?end if?>"))
+		eq("6", r("<?code d = {str(i):2*i for i in range(10) if i%2}?><?if '3' in d?><?print d['3']?><?end if?>"))
+		eq("6", r("<?code d = {str(i):2*i for i in range(10)}?><?print d['3']?>"))
 
 
 @pytest.mark.ul4
@@ -926,6 +929,15 @@ def test_function_utcnow(r):
 	utcnowfromtemplate = r("<?print utcnow()?>")
 	# JS and Java only have milliseconds precision, but this shouldn't lead to problems here, as rendering the template takes longer than a millisecond
 	le(utcnow, utcnowfromtemplate)
+
+
+@pytest.mark.ul4
+def test_function_date(r):
+	eq("@(2012-10-06)", r("<?print repr(date(2012, 10, 6))?>"))
+	eq("@(2012-10-06T12:00:00)", r("<?print repr(date(2012, 10, 6, 12))?>"))
+	eq("@(2012-10-06T12:34:00)", r("<?print repr(date(2012, 10, 6, 12, 34))?>"))
+	eq("@(2012-10-06T12:34:56)", r("<?print repr(date(2012, 10, 6, 12, 34, 56))?>"))
+	eq("@(2012-10-06T12:34:56.987000)", r("<?print repr(date(2012, 10, 6, 12, 34, 56, 987000))?>"))
 
 
 @pytest.mark.ul4
