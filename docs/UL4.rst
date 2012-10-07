@@ -516,6 +516,14 @@ Functions
 ``utcnow()`` returns the current date and time as a date object in UTC.
 
 
+``date``
+""""""""
+
+``date()`` creates a date object from the parameter passed in. ``date()``
+supports from three parameters (year, month, day) upto seven parameters
+(year, month, day, hour, minute, second, microsecond).
+
+
 ``vars``
 """"""""
 

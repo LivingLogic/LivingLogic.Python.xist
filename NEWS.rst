@@ -3,6 +3,8 @@ Changes in 4.2 (released ??/??/2012)
 
 *	UL4 templates now support list and dictionary comprehension.
 
+*	A new UL4 function ``date`` has been added.
+
 
 Changes in 4.1.1 (released 10/04/2012)
 --------------------------------------
