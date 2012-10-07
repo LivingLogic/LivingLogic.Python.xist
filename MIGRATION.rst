@@ -1,3 +1,14 @@
+Migrating to version 4.2
+========================
+
+Changes to :mod:`ll.ul4c`
+-------------------------
+
+*	The UL4 method ``join`` no longer calls ``str`` on the items in the argument
+	list. Replace ``sep.join(iterable)`` with ``sep.join(str(i) for i in iterable)``
+	when you have an argument list that contains non-strings.
+
+
 Migrating to version 4.1
 ========================
 

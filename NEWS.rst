@@ -1,9 +1,13 @@
 Changes in 4.2 (released ??/??/2012)
 ------------------------------------
 
-*	UL4 templates now support list and dictionary comprehension.
+*	UL4 templates now support list and dictionary comprehension als well as
+	generator expressions.
 
 *	A new UL4 function ``date`` has been added.
+
+*	The UL4 method ``join`` no longer calls ``str`` on the items in the argument
+	list.
 
 
 Changes in 4.1.1 (released 10/04/2012)

@@ -169,8 +169,8 @@ The variants with 3 or 6 hex digits will create a color object with an alpha
 value of 255.
 
 
-List constants
---------------
+Lists
+-----
 
 Lists can be created like this:
 
@@ -197,8 +197,8 @@ will create the list::
 	["(H)", "(U)", "(R)", "(Z)"]
 
 
-Dictionary constants
---------------------
+Dictionaries
+------------
 
 Dictionaries can be created like this:
 
@@ -496,6 +496,20 @@ However getitem style access in the template is still possible::
 	from ll import ul4c
 	tmpl = ul4c.Template("<?print data['foo']?>")
 	print(tmpl.renders(data=dict(foo="bar")))
+
+UL4 also supports generator expressions::
+
+	<?print ", ".join("(" + c + ")" for c in "gurk")?>
+
+will output::
+
+	(g), (u), (r), (k)
+
+Outside of function/method arguments brackets are required around generator
+expressions::
+
+	<?code ge = ("(" + c + ")" for c in "gurk")?>
+	<?print ", ".join(ge)?>
 
 
 Functions
@@ -1048,7 +1062,7 @@ to ``None``.
 ``join`` is a string method. It returns a concatentation of the strings in the
 argument sequence with the string itself as the separator, i.e.::
 
-	<?print "+".join([1, 2, 3, 4])?>
+	<?print "+".join(["1", "2", "3", "4"])?>
 
 outputs::
 

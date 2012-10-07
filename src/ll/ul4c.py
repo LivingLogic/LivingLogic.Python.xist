@@ -661,6 +661,71 @@ class DictComp(AST):
 		self.condition = decoder.load()
 
 
+@register("genexpr")
+class GenExpr(AST):
+	"""
+	AST node for a generator expression.
+	"""
+
+	precedence = 11
+	fields = AST.fields.union({"item", "varname", "container", "condition"})
+
+	def __init__(self, location=None, item=None, varname=None, container=None, condition=None):
+		super().__init__(location)
+		self.item = item
+		self.varname = varname
+		self.container = container
+		self.condition = condition
+
+	def __repr__(self):
+		return "{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.item, self.varname, self.container, self.condition)
+
+	def format(self, indent):
+		v = []
+		v.append("( ")
+		v.append(self.item.format(indent))
+		v.append(" for ")
+		v.append(formatnestednameul4(self.varname))
+		v.append(" in ")
+		v.append(self.container.format(indent))
+		if self.condition is not None:
+			v.append(" if ")
+			v.append(self.condition.format(indent))
+		v.append(" )")
+		return "".join(v)
+
+	def formatpython(self, indent):
+		v = []
+		v.append("( ")
+		v.append(self.item.formatpython(indent))
+		v.append(" for ")
+		v.append(formatnestednamepython(self.varname))
+		v.append(" in ")
+		v.append(self.container.formatpython(indent))
+		if self.condition is not None:
+			v.append(" if ")
+			v.append(self.condition.formatpython(indent))
+		v.append(" )")
+		return "".join(v)
+
+	def formatjava(self, indent):
+		raise NotImplementedError
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.item)
+		encoder.dump(self.varname)
+		encoder.dump(self.container)
+		encoder.dump(self.condition)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.item = decoder.load()
+		self.varname = decoder.load()
+		self.container = decoder.load()
+		self.condition = decoder.load()
+
+
 @register("var")
 class Var(AST):
 	"""
@@ -2807,6 +2872,26 @@ class ExprParser(spark.Parser):
 	def expr_dictcomp1(self, _0, key, _1, value, _2, varname, _3, container, _4, condition, _5):
 		return DictComp(self.location, key, value, varname, container, condition)
 
+	@spark.production('expr11 ::= ( expr0 for nestedname in expr0 )')
+	def expr_genexp0(self, _0, item, _1, varname, _2, container, _3):
+		return GenExpr(self.location, item, varname, container)
+
+	@spark.production('expr11 ::= ( expr0 for nestedname in expr0 if expr0 )')
+	def expr_genexp1(self, _0, item, _1, varname, _2, container, _3, condition, _4):
+		return GenExpr(self.location, item, varname, container, condition)
+
+	@spark.production('exprarg ::= expr0')
+	def expr_arg(self, expr):
+		return expr
+
+	@spark.production('exprarg ::= expr0 for nestedname in expr0')
+	def expr_arg_genexp0(self, item, _0, varname, _1, container):
+		return GenExpr(self.location, item, varname, container)
+
+	@spark.production('exprarg ::= expr0 for nestedname in expr0 if expr0')
+	def expr_arg_genexp1(self, item, _0, varname, _1, container, _2, condition):
+		return GenExpr(self.location, item, varname, container, condition)
+
 	@spark.production('expr11 ::= ( expr0 )')
 	def expr_bracket(self, _0, expr, _1):
 		return expr
@@ -2815,11 +2900,11 @@ class ExprParser(spark.Parser):
 	def expr_callfunc0(self, var, _0, _1):
 		return CallFunc(self.location, var.name)
 
-	@spark.production('buildfunccall ::= var ( expr0')
+	@spark.production('buildfunccall ::= var ( exprarg')
 	def expr_buildcallfunc(self, var, _0, arg):
 		return CallFunc(self.location, var.name, arg)
 
-	@spark.production('buildfunccall ::= buildfunccall , expr0')
+	@spark.production('buildfunccall ::= buildfunccall , exprarg')
 	def expr_addcallfunc(self, funccall, _0, arg):
 		funccall.args.append(arg)
 		return funccall
@@ -2840,32 +2925,32 @@ class ExprParser(spark.Parser):
 	def expr_callmeth0(self, expr, _0, var, _1, _2):
 		return CallMeth(self.location, var.name, expr)
 
-	@spark.production('expr9 ::= expr9 . var ( expr0 )')
+	@spark.production('expr9 ::= expr9 . var ( exprarg )')
 	def expr_callmeth1(self, expr, _0, var, _1, arg1, _2):
 		return CallMeth(self.location, var.name, expr, arg1)
 
-	@spark.production('expr9 ::= expr9 . var ( expr0 , expr0 )')
+	@spark.production('expr9 ::= expr9 . var ( exprarg , exprarg )')
 	def expr_callmeth2(self, expr, _0, var, _1, arg1, _2, arg2, _3):
 		return CallMeth(self.location, var.name, expr, arg1, arg2)
 
-	@spark.production('expr9 ::= expr9 . var ( expr0 , expr0 , expr0 )')
+	@spark.production('expr9 ::= expr9 . var ( exprarg , exprarg , exprarg )')
 	def expr_callmeth3(self, expr, _0, var, _1, arg1, _2, arg2, _3, arg3, _4):
 		return CallMeth(self.location, var.name, expr, arg1, arg2, arg3)
 
-	@spark.production('callmethkw ::= expr9 . var ( var = expr0')
+	@spark.production('callmethkw ::= expr9 . var ( var = exprarg')
 	def methkw_startname(self, expr, _0, methname, _1, argname, _2, argvalue):
 		return CallMethKeywords(self.location, methname.name, expr, (argname.name, argvalue))
 
-	@spark.production('callmethkw ::= expr9 . var ( ** expr0')
+	@spark.production('callmethkw ::= expr9 . var ( ** exprarg')
 	def methkw_startdict(self, expr, _0, methname, _1, _2, argvalue):
 		return CallMethKeywords(self.location, methname.name, expr, (argvalue,))
 
-	@spark.production('callmethkw ::= callmethkw , var = expr0')
+	@spark.production('callmethkw ::= callmethkw , var = exprarg')
 	def methkw_buildname(self, call, _0, argname, _1, argvalue):
 		call.args.append((argname.name, argvalue))
 		return call
 
-	@spark.production('callmethkw ::= callmethkw , ** expr0')
+	@spark.production('callmethkw ::= callmethkw , ** exprarg')
 	def methkw_builddict(self, call, _0, _1, argvalue):
 		call.args.append((argvalue,))
 		return call

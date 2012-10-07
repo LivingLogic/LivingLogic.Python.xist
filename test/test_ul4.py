@@ -447,6 +447,15 @@ def test_listcomp(r):
 
 
 @pytest.mark.ul4
+def test_genexpr(r):
+	if r is not RenderJavaCompiledTemplateByPython:
+		eq("2, 6", r("<?code ge = (str(2*i) for i in range(4) if i%2)?><?print ', '.join(ge)?>"))
+		eq("2, 6", r("<?print ', '.join(str(2*i) for i in range(4) if i%2)?>"))
+		eq("0, 2, 4, 6", r("<?print ', '.join(str(2*i) for i in range(4))?>"))
+		eq("0, 2, 4, 6", r("<?print ', '.join((str(2*i) for i in range(4)))?>"))
+
+
+@pytest.mark.ul4
 def test_dict(r):
 	eq('', r('<?for (key, value) in {}.items()?><?print key?>:<?print value?>\n<?end for?>'))
 	eq('1:2\n', r('<?for (key, value) in {1:2}.items()?><?print key?>:<?print value?>\n<?end for?>'))
@@ -1817,7 +1826,7 @@ def test_method_witha(r):
 @pytest.mark.ul4
 def test_method_join(r):
 	eq('1,2,3,4', r('<?print ",".join("1234")?>'))
-	eq('1,2,3,4', r('<?print ",".join([1, 2, 3, 4])?>'))
+	eq('1,2,3,4', r('<?print ",".join(["1", "2", "3", "4"])?>'))
 
 
 @pytest.mark.ul4
