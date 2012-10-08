@@ -252,15 +252,18 @@ def pytest_generate_tests(metafunc):
 
 argumentmismatchmessage = [
 	# Python argument mismatch exception messages
-	"takes exactly \\d+ (positional )?arguments?",
+	"takes exactly \\d+ (positional )?arguments?", # < 3.3
 	"expected \\d+ arguments?",
 	"Required argument .* not found",
-	"takes exactly one argument",
-	"expected at least \\d+ arguments",
+	"takes exactly (one|\\d+) arguments?",
+	"expected at least \\d+ arguments", # < 3.3
 	"takes at most \\d+ (positional )?arguments?",
-	"takes at least \\d+ argument",
+	"takes at least \\d+ argument", #  < 3.3
 	"takes no arguments",
 	"expected at least \\d+ arguments",
+	"missing \\d+ required positional arguments?", # 3.3
+	"takes \\d+ positional arguments? but \\d+ (was|were) given", # 3.3
+	"takes from \\d+ to \\d+ positional arguments but \\d+ (was|were) given", # 3.3
 	# Javascript argument mismatch exception messages
 	"requires (at least \\d+|\\d+(-\\d+)?) arguments?, \\d+ given",
 	# Java compiler errors for argument mismatches
