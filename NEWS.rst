@@ -9,6 +9,10 @@ Changes in 4.2 (released ??/??/2012)
 *	The UL4 method ``join`` no longer calls ``str`` on the items in the argument
 	list.
 
+*	The UL4 function format now supports a third argument: the language for
+	formatting dates. So ``format(date(2012, 10, 10), '%A', 'de')`` outputs
+	``Mittwoch``.
+
 
 Changes in 4.1.1 (released 10/04/2012)
 --------------------------------------

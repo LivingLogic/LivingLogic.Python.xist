@@ -22,7 +22,7 @@ possible to implement template renderers in multiple programming languages.
 __docformat__ = "reStructuredText"
 
 
-import re, datetime, urllib.parse as urlparse, json, collections
+import re, datetime, urllib.parse as urlparse, json, collections, locale
 
 from ll import spark, color, misc, ul4on
 
@@ -1846,7 +1846,7 @@ class CallFunc(AST):
 			reversed="reversed({})".format,
 			randrange="random.randrange({})".format,
 			randchoice="random.choice({})".format,
-			format="format({})".format,
+			format="ul4c._format({})".format,
 			zip="zip({})".format,
 			urlquote="ul4c._urlquote({})".format,
 			urlunquote="ul4c._urlunquote({})".format,
@@ -3220,6 +3220,28 @@ def _str(obj=None):
 		return ""
 	else:
 		return str(obj)
+
+
+def _format(obj, fmt, lang=None):
+	"""
+	Helper for the ``format`` function.
+	"""
+	if isinstance(obj, (datetime.date, datetime.time, datetime.timedelta)):
+		if lang is None:
+			lang = "en"
+		oldlocale = locale.getlocale()
+		try:
+			for candidate in (locale.normalize(lang), locale.normalize("en"), ""):
+				try:
+					locale.setlocale(locale.LC_ALL, candidate)
+					return format(obj, fmt)
+				except locale.Error:
+					if not candidate:
+						raise
+		finally:
+			locale.setlocale(locale.LC_ALL, oldlocale)
+	else:
+		return format(obj, fmt)
 
 
 def _repr(obj):
