@@ -1445,7 +1445,7 @@ def test_function_repr(r):
 @pytest.mark.ul4
 def test_function_format(r):
 	t = datetime.datetime(2011, 1, 25, 13, 34, 56, 987000)
-	code2 = "<?print format(data, format).strip()?>"
+	code2 = "<?print format(data, format)?>"
 	code3 = "<?print format(data, format, lang)?>"
 
 	eq("2011", r(code2, format="%Y", data=t))
@@ -1482,7 +1482,8 @@ def test_function_format(r):
 	eq("2", r(code2, format="%w", data=t))
 	eq("04", r(code2, format="%W", data=t))
 	eq("11", r(code2, format="%y", data=t))
-	eq("Tue 25 Jan 2011 01:34:56 PM", r(code2, format="%c", data=t))
+	# Dont' test %c, as it's output is too unpredictable across Linux/Mac OS X
+	# eq("Tue 25 Jan 2011 01:34:56 PM", r(code2, format="%c", data=t))
 	eq("01/25/2011", r(code2, format="%x", data=t))
 	eq("01/25/2011", r(code3, format="%x", data=t, lang=None))
 	eq("01/25/2011", r(code3, format="%x", data=t, lang="en"))
