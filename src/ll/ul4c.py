@@ -519,7 +519,18 @@ class ListComp(AST):
 		return "".join(v)
 
 	def formatjava(self, indent):
-		raise NotImplementedError
+		v = []
+		v.append("(new com.livinglogic.ul4.Execution()")
+		v.append("{public Object execute(com.livinglogic.ul4.EvaluationContext context){")
+		v.append("java.util.List result = new java.util.ArrayList();")
+		v.append("java.util.Iterator iter = com.livinglogic.ul4.Utils.iterator({});".format(self.container.formatjava(indent)))
+		v.append("while (iter.hasNext()){")
+		v.append("com.livinglogic.ul4.Utils.unpackVariable(context.getVariables(), {}, iter.next());".format(misc.javaexpr(self.varname)))
+		if self.condition is not None:
+			v.append("if (com.livinglogic.ul4.FunctionBool.call({}))".format(self.condition.formatjava(indent)))
+		v.append("result.add({});".format(self.item.formatjava(indent)))
+		v.append("}return result;}}).execute(context)")
+		return "".join(v)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -642,7 +653,18 @@ class DictComp(AST):
 		return "".join(v)
 
 	def formatjava(self, indent):
-		raise NotImplementedError
+		v = []
+		v.append("(new com.livinglogic.ul4.Execution()")
+		v.append("{public Object execute(com.livinglogic.ul4.EvaluationContext context){")
+		v.append("java.util.Map result = new java.util.HashMap();")
+		v.append("java.util.Iterator iter = com.livinglogic.ul4.Utils.iterator({});".format(self.container.formatjava(indent)))
+		v.append("while (iter.hasNext()){")
+		v.append("com.livinglogic.ul4.Utils.unpackVariable(context.getVariables(), {}, iter.next());\n".format(misc.javaexpr(self.varname)))
+		if self.condition is not None:
+			v.append("if (com.livinglogic.ul4.FunctionBool.call({}))".format(self.condition.formatjava(indent)))
+		v.append("result.put({}, {});".format(self.key.formatjava(indent), self.value.formatjava(indent)))
+		v.append("}return result;}}).execute(context)")
+		return "".join(v)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -709,7 +731,34 @@ class GenExpr(AST):
 		return "".join(v)
 
 	def formatjava(self, indent):
-		raise NotImplementedError
+		v = []
+		v.append("(")
+		v.append("new com.livinglogic.ul4.Execution()")
+		v.append("{")
+		v.append("public Object execute(final com.livinglogic.ul4.EvaluationContext context)")
+		v.append("{")
+		v.append("final java.util.Iterator baseIterator = com.livinglogic.ul4.Utils.iterator({});".format(self.container.formatjava(indent)))
+		v.append("return new com.livinglogic.ul4.FilteredIterator(){")
+		v.append("protected void fetchNext()")
+		v.append("{")
+		v.append("while (baseIterator.hasNext())")
+		v.append("{")
+		v.append("com.livinglogic.ul4.Utils.unpackVariable(context.getVariables(), {}, baseIterator.next());".format(misc.javaexpr(self.varname)))
+		if self.condition is not None:
+			v.append("if (com.livinglogic.ul4.FunctionBool.call({}))".format(self.condition.formatjava(indent)))
+			v.append("{")
+		v.append("haveNextItem({});".format(self.item.formatjava(indent)))
+		v.append("return;")
+		if self.condition is not None:
+			v.append("}")
+		v.append("}")
+		v.append("noNextItem();")
+		v.append("}")
+		v.append("};")
+		v.append("}")
+		v.append("}")
+		v.append(").execute(context)")
+		return "".join(v)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1552,7 +1601,7 @@ class And(Binary):
 		return "({}) and ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "(!com.livinglogic.ul4.FunctionBool.call(context.push({}))) ? context.pop() : context.pop({})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+		return "new com.livinglogic.ul4.Execution(){{public Object execute(com.livinglogic.ul4.EvaluationContext context){{Object obj1 = {}; return (!com.livinglogic.ul4.FunctionBool.call(obj1)) ? obj1  : {};}}}}.execute(context)".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("or")
@@ -1570,7 +1619,7 @@ class Or(Binary):
 		return "({}) or ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
-		return "com.livinglogic.ul4.FunctionBool.call(context.push({})) ? context.pop() : context.pop({})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
+		return "new com.livinglogic.ul4.Execution(){{public Object execute(com.livinglogic.ul4.EvaluationContext context){{Object obj1 = {}; return com.livinglogic.ul4.FunctionBool.call(obj1) ? obj1  : {};}}}}.execute(context)".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("mod")
@@ -1991,8 +2040,9 @@ class CallMeth(AST):
 			hsva="({}).hsva({})".format,
 			lum="({}).lum({})".format,
 			weekday="({}).weekday({})".format,
+			week="ul4c._week({}, {})".format,
 			items="({}).items({})".format,
-			join="({}).join(ul4c._str(item) for item in {})".format,
+			join="({}).join({})".format,
 			renders="''.join(({})({}))".format,
 			mimeformat="ul4c._mimeformat({}, {})".format,
 			isoformat="ul4c._isoformat({}, {})".format,
@@ -2038,6 +2088,7 @@ class CallMeth(AST):
 			hsv="com.livinglogic.ul4.MethodHSV.call({})".format,
 			hsva="com.livinglogic.ul4.MethodHSVA.call({})".format,
 			lum="com.livinglogic.ul4.MethodLum.call({})".format,
+			week="com.livinglogic.ul4.MethodWeek.call({})".format,
 			weekday="com.livinglogic.ul4.MethodWeekday.call({})".format,
 			items="com.livinglogic.ul4.MethodItems.call({})".format,
 			join="com.livinglogic.ul4.MethodJoin.call({})".format,
@@ -3577,6 +3628,25 @@ def _yearday(obj):
 	Helper for the ``yearday`` method.
 	"""
 	return (obj - obj.__class__(obj.year, 1, 1)).days+1
+
+
+def _week(obj, firstweekday=None):
+	"""
+	Helper for the ``week`` method.
+	"""
+	if firstweekday is None:
+		firstweekday = 0
+	else:
+		firstweekday %= 7
+	jan1 = obj.__class__(obj.year, 1, 1)
+	yearday = (obj - jan1).days+7
+	jan1weekday = jan1.weekday()
+	while jan1weekday != firstweekday:
+		yearday -= 1
+		jan1weekday += 1
+		if jan1weekday == 7:
+			jan1weekday = 0
+	return yearday//7
 
 
 def _isoformat(obj):

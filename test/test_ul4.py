@@ -441,21 +441,18 @@ def test_list(r):
 	eq('yes', r('<?if [1]?>yes<?else?>no<?end if?>'))
 
 
-
 @pytest.mark.ul4
 def test_listcomp(r):
-	if r is not RenderJavaCompiledTemplateByPython:
-		eq("[2, 6]", r("<?code d = [2*i for i in range(4) if i%2]?><?print d?>"))
-		eq("[0, 2, 4, 6]", r("<?code d = [2*i for i in range(4)]?><?print d?>"))
+	eq("[2, 6]", r("<?code d = [2*i for i in range(4) if i%2]?><?print d?>"))
+	eq("[0, 2, 4, 6]", r("<?code d = [2*i for i in range(4)]?><?print d?>"))
 
 
 @pytest.mark.ul4
 def test_genexpr(r):
-	if r is not RenderJavaCompiledTemplateByPython:
-		eq("2, 6", r("<?code ge = (str(2*i) for i in range(4) if i%2)?><?print ', '.join(ge)?>"))
-		eq("2, 6", r("<?print ', '.join(str(2*i) for i in range(4) if i%2)?>"))
-		eq("0, 2, 4, 6", r("<?print ', '.join(str(2*i) for i in range(4))?>"))
-		eq("0, 2, 4, 6", r("<?print ', '.join((str(2*i) for i in range(4)))?>"))
+	eq("2, 6:", r("<?code ge = (str(2*i) for i in range(4) if i%2)?><?print ', '.join(ge)?>:<?print ', '.join(ge)?>"))
+	eq("2, 6", r("<?print ', '.join(str(2*i) for i in range(4) if i%2)?>"))
+	eq("0, 2, 4, 6", r("<?print ', '.join(str(2*i) for i in range(4))?>"))
+	eq("0, 2, 4, 6", r("<?print ', '.join((str(2*i) for i in range(4)))?>"))
 
 
 @pytest.mark.ul4
@@ -475,11 +472,10 @@ def test_dict(r):
 
 @pytest.mark.ul4
 def test_dictcomp(r):
-	if r is not RenderJavaCompiledTemplateByPython:
-		# JS only supports string keys
-		eq("", r("<?code d = {str(i):2*i for i in range(10) if i%2}?><?if '2' in d?><?print d['2']?><?end if?>"))
-		eq("6", r("<?code d = {str(i):2*i for i in range(10) if i%2}?><?if '3' in d?><?print d['3']?><?end if?>"))
-		eq("6", r("<?code d = {str(i):2*i for i in range(10)}?><?print d['3']?>"))
+	# JS only supports string keys
+	eq("", r("<?code d = {str(i):2*i for i in range(10) if i%2}?><?if '2' in d?><?print d['2']?><?end if?>"))
+	eq("6", r("<?code d = {str(i):2*i for i in range(10) if i%2}?><?if '3' in d?><?print d['3']?><?end if?>"))
+	eq("6", r("<?code d = {str(i):2*i for i in range(10)}?><?print d['3']?>"))
 
 
 @pytest.mark.ul4
@@ -1448,27 +1444,27 @@ def test_function_repr(r):
 
 @pytest.mark.ul4
 def test_function_format(r):
-	t = datetime.datetime(2011, 1, 24, 13, 34, 56, 987000)
+	t = datetime.datetime(2011, 1, 25, 13, 34, 56, 987000)
 	code2 = "<?print format(data, format)?>"
 	code3 = "<?print format(data, format, lang)?>"
 
 	eq("2011", r(code2, format="%Y", data=t))
 	eq("01", r(code2, format="%m", data=t))
-	eq("24", r(code2, format="%d", data=t))
+	eq("25", r(code2, format="%d", data=t))
 	eq("13", r(code2, format="%H", data=t))
 	eq("34", r(code2, format="%M", data=t))
 	eq("56", r(code2, format="%S", data=t))
 	eq("987000", r(code2, format="%f", data=t))
-	eq("Mon", r(code2, format="%a", data=t))
-	eq("Mon", r(code3, format="%a", data=t, lang=None))
-	eq("Mon", r(code3, format="%a", data=t, lang="en"))
-	eq("Mo", r(code3, format="%a", data=t, lang="de"))
-	eq("Mo", r(code3, format="%a", data=t, lang="de_DE"))
-	eq("Monday", r(code2, format="%A", data=t))
-	eq("Monday", r(code3, format="%A", data=t, lang=None))
-	eq("Monday", r(code3, format="%A", data=t, lang="en"))
-	eq("Montag", r(code3, format="%A", data=t, lang="de"))
-	eq("Montag", r(code3, format="%A", data=t, lang="de_DE"))
+	eq("Tue", r(code2, format="%a", data=t))
+	eq("Tue", r(code3, format="%a", data=t, lang=None))
+	eq("Tue", r(code3, format="%a", data=t, lang="en"))
+	eq("Di", r(code3, format="%a", data=t, lang="de"))
+	eq("Di", r(code3, format="%a", data=t, lang="de_DE"))
+	eq("Tuesday", r(code2, format="%A", data=t))
+	eq("Tuesday", r(code3, format="%A", data=t, lang=None))
+	eq("Tuesday", r(code3, format="%A", data=t, lang="en"))
+	eq("Dienstag", r(code3, format="%A", data=t, lang="de"))
+	eq("Dienstag", r(code3, format="%A", data=t, lang="de_DE"))
 	eq("Jan", r(code2, format="%b", data=t))
 	eq("Jan", r(code3, format="%b", data=t, lang=None))
 	eq("Jan", r(code3, format="%b", data=t, lang="en"))
@@ -1480,18 +1476,18 @@ def test_function_format(r):
 	eq("Januar", r(code3, format="%B", data=t, lang="de"))
 	eq("Januar", r(code3, format="%B", data=t, lang="de_DE"))
 	eq("01", r(code2, format="%I", data=t))
-	eq("024", r(code2, format="%j", data=t))
+	eq("025", r(code2, format="%j", data=t))
 	eq("PM", r(code2, format="%p", data=t))
 	eq("04", r(code2, format="%U", data=t))
-	eq("1", r(code2, format="%w", data=t))
+	eq("2", r(code2, format="%w", data=t))
 	eq("04", r(code2, format="%W", data=t))
 	eq("11", r(code2, format="%y", data=t))
-	eq("Mon Jan 24 13:34:56 2011", r(code2, format="%c", data=t))
-	eq("01/24/2011", r(code2, format="%x", data=t))
-	eq("01/24/2011", r(code3, format="%x", data=t, lang=None))
-	eq("01/24/2011", r(code3, format="%x", data=t, lang="en"))
-	eq("24.01.2011", r(code3, format="%x", data=t, lang="de"))
-	eq("24.01.2011", r(code3, format="%x", data=t, lang="de_DE"))
+	eq("Tue Jan 25 13:34:56 2011", r(code2, format="%c", data=t))
+	eq("01/25/2011", r(code2, format="%x", data=t))
+	eq("01/25/2011", r(code3, format="%x", data=t, lang=None))
+	eq("01/25/2011", r(code3, format="%x", data=t, lang="en"))
+	eq("25.01.2011", r(code3, format="%x", data=t, lang="de"))
+	eq("25.01.2011", r(code3, format="%x", data=t, lang="de_DE"))
 	eq("13:34:56", r(code2, format="%X", data=t))
 	eq("13:34:56", r(code3, format="%X", data=t, lang=None))
 	eq("13:34:56", r(code3, format="%X", data=t, lang="en"))
@@ -1952,6 +1948,16 @@ def test_method_microsecond(r):
 def test_method_weekday(r):
 	eq('2', r('<?print @(2010-05-12).weekday()?>'))
 	eq('2', r('<?print d.weekday()?>', d=datetime.date(2010, 5, 12)))
+
+
+@pytest.mark.ul4
+def test_method_week(r):
+	eq('0', r('<?print @(2012-01-01).week()?>'))
+	eq('0', r('<?print @(2012-01-01).week(0)?>'))
+	eq('1', r('<?print @(2012-01-01).week(6)?>'))
+	eq('1', r('<?print @(2012-01-02).week()?>'))
+	eq('1', r('<?print @(2012-01-02).week(0)?>'))
+	eq('1', r('<?print @(2012-01-02).week(6)?>'))
 
 
 @pytest.mark.ul4

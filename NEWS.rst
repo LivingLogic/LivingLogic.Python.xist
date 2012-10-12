@@ -13,6 +13,12 @@ Changes in 4.2 (released ??/??/2012)
 	formatting dates. So ``format(date(2012, 10, 10), '%A', 'de')`` outputs
 	``Mittwoch``.
 
+*	UL4 date objects now have a new ``week`` method. This method returns the
+	week number of the year. It supports one argument: the weekday number
+	(0 for Monday, ... 6 for Sunday) that should be considered the start day
+	of the week. All days in a new year preceding the first week start day are
+	considered to be in week 0. The week start day defaults to 0 (Monday).
+
 
 Changes in 4.1.1 (released 10/04/2012)
 --------------------------------------
