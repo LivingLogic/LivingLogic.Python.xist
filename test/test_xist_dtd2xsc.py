@@ -18,7 +18,7 @@ from ll.xist.scripts import dtd2xsc
 
 
 def dtd2mod(s, shareattrs=None, **kwargs):
-	xnd = dtd2xsc.urls2xnd([s], encoding="iso-8859-1", model="fullonce", **kwargs)
+	xnd = dtd2xsc.urls2xnd([s], encoding="utf-8", model="fullonce", **kwargs)
 
 	if shareattrs is not None:
 		xnd.shareattrs(shareattrs)
