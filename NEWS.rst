@@ -1,7 +1,7 @@
 Changes in 4.2 (released ??/??/2012)
 ------------------------------------
 
-*	UL4 templates now support list and dictionary comprehension als well as
+*	UL4 templates now support list and dictionary comprehension as well as
 	generator expressions.
 
 *	A new UL4 function ``date`` has been added.
