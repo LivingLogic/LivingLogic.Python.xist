@@ -1918,6 +1918,8 @@ class CallFunc(AST):
 			now="com.livinglogic.ul4.FunctionNow.call({})".format,
 			utcnow="com.livinglogic.ul4.FunctionUTCNow.call({})".format,
 			date="com.livinglogic.ul4.FunctionDate.call({})".format,
+			timedelta="com.livinglogic.ul4.FunctionTimeDelta.call({})".format,
+			monthdelta="com.livinglogic.ul4.FunctionMonthDelta.call({})".format,
 			vars="com.livinglogic.ul4.FunctionVars.call(context.getVariables(){})".format,
 			random="com.livinglogic.ul4.FunctionRandom.call({})".format,
 			xmlescape="com.livinglogic.ul4.FunctionXMLEscape.call({})".format,
