@@ -3691,4 +3691,3 @@ def _timedelta(days=0, seconds=0, microseconds=0):
 	Helper for the ``timedelta`` method.
 	"""
 	return datetime.timedelta(days, seconds, microseconds)
-
