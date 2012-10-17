@@ -3443,7 +3443,7 @@ def _ismonthdelta(obj):
 	"""
 	Helper for the ``ismonthdelta`` function.
 	"""
-	return isinstance(obj, monthdelta)
+	return isinstance(obj, misc.monthdelta)
 
 
 def _islist(obj):
