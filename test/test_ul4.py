@@ -265,7 +265,7 @@ all_renderers =  [
 	("python", render_python),
 	("python_dumps", render_python_dumps),
 	("python_dump", render_python_dump),
-	("js", render_js),
+	# ("js", render_js),
 	("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
 	("java_compiled_by_python", render_java_compiledtemplate_by_python),
 	("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
@@ -821,6 +821,10 @@ def test_eq(r):
 			assert str(x == y) == r('<?print {} == {}?>'.format(x, y))
 			assert str(x == y) == r(code, x=x, y=y)
 
+	assert "True" == r(code, x=misc.timedelta(0), y=misc.timedelta(0))
+	assert "False" == r(code, x=misc.timedelta(0), y=misc.timedelta(1))
+	assert "False" == r(code, x=misc.timedelta(0), y=misc.timedelta(0, 1))
+	assert "False" == r(code, x=misc.timedelta(0), y=misc.timedelta(0, 0, 1))
 	assert "True" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(0))
 	assert "False" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(1))
 
@@ -835,6 +839,10 @@ def test_ne(r):
 			assert str(x != y) == r('<?print {} != {}?>'.format(x, y))
 			assert str(x != y) == r(code, x=x, y=y)
 
+	assert "False" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0))
+	assert "True" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(1))
+	assert "True" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 1))
+	assert "True" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 0, 1))
 	assert "False" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(0))
 	assert "True" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(1))
 
@@ -849,6 +857,10 @@ def test_lt(r):
 			assert str(x < y) == r('<?print {} < {}?>'.format(x, y))
 			assert str(x < y) == r(code, x=x, y=y)
 
+	assert "False" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0))
+	assert "True" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(1))
+	assert "True" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 1))
+	assert "True" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 0, 1))
 	assert "False" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(0))
 	assert "True" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(1))
 
@@ -863,6 +875,10 @@ def test_le(r):
 			assert str(x <= y) == r('<?print {} <= {}?>'.format(x, y))
 			assert str(x <= y) == r(code, x=x, y=y)
 
+	assert "True" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(1))
+	assert "False" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(0))
+	assert "False" == r(code, x=datetime.timedelta(0, 1), y=datetime.timedelta(0))
+	assert "False" == r(code, x=datetime.timedelta(0, 0, 1), y=datetime.timedelta(0))
 	assert "True" == r(code, x=misc.monthdelta(1), y=misc.monthdelta(1))
 	assert "False" == r(code, x=misc.monthdelta(1), y=misc.monthdelta(0))
 
@@ -877,6 +893,10 @@ def test_gt(r):
 			assert str(x > y) == r('<?print {} > {}?>'.format(x, y))
 			assert str(x > y) == r(code, x=x, y=y)
 
+	assert "False" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(1))
+	assert "True" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(0))
+	assert "True" == r(code, x=datetime.timedelta(0, 1), y=datetime.timedelta(0))
+	assert "True" == r(code, x=datetime.timedelta(0, 0, 1), y=datetime.timedelta(0))
 	assert "False" == r(code, x=misc.monthdelta(1), y=misc.monthdelta(1))
 	assert "True" == r(code, x=misc.monthdelta(1), y=misc.monthdelta(0))
 
@@ -891,6 +911,10 @@ def test_ge(r):
 			assert str(x >= y) == r('<?print {} >= {}?>'.format(x, y))
 			assert str(x >= y) == r(code, x=x, y=y)
 
+	assert "True" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0))
+	assert "False" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(1))
+	assert "False" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 1))
+	assert "False" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 0, 1))
 	assert "True" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(0))
 	assert "False" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(1))
 

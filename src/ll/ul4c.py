@@ -1943,6 +1943,8 @@ class CallFunc(AST):
 			isfloat="com.livinglogic.ul4.FunctionIsFloat.call({})".format,
 			isbool="com.livinglogic.ul4.FunctionIsBool.call({})".format,
 			isdate="com.livinglogic.ul4.FunctionIsDate.call({})".format,
+			istimedelta="com.livinglogic.ul4.FunctionIsTimeDelta.call({})".format,
+			ismonthdelta="com.livinglogic.ul4.FunctionIsMonthDelta.call({})".format,
 			islist="com.livinglogic.ul4.FunctionIsList.call({})".format,
 			isdict="com.livinglogic.ul4.FunctionIsDict.call({})".format,
 			iscolor="com.livinglogic.ul4.FunctionIsColor.call({})".format,
