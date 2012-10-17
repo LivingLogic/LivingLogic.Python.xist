@@ -636,7 +636,7 @@ def test_else(r):
 def test_block_errors(r):
 	with raises("block unclosed"):
 		r('<?for x in data?>')
-	with raises("endif doesn't match any if"):
+	with raises("for ended by endif|endif doesn't match any if"):
 		r('<?for x in data?><?end if?>')
 	with raises("not in any block"):
 		r('<?end?>')
