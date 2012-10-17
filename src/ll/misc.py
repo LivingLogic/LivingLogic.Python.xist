@@ -727,6 +727,115 @@ class SysInfo(object):
 sysinfo = SysInfo()
 
 
+class monthdelta(object):
+	"""
+	:class:`monthdelta` objects can be used to add months/years to a
+	:class:`datetime.datetime` or :class:`datetime.date` object. If the resulting
+	day falls out of the range of valid days for the target month, the last day
+	for the target month will be used instead::
+
+	>>> import datetime
+	>>> from ll import misc
+	>>> datetime.date(2000, 1, 31) + misc.monthdelta(1)
+	datetime.date(2000, 2, 29)
+	"""
+
+	__slots__ = ("months",)
+
+	def __init__(self, months=0):
+		self.months = months
+
+	def __bool__(self):
+		return self.months != 0
+
+	def __eq__(self, other):
+		return isinstance(other, monthdelta) and self.months == other.months
+
+	def __ne__(self, other):
+		return not isinstance(other, monthdelta) or self.months != other.months
+
+	def __lt__(self, other):
+		if not isinstance(other, monthdelta):
+			raise TypeError("unorderable types: {0.__class__.__module__}.{0.__class__.__qualname__}() < {1.__class__.__module__}.{1.__class__.__qualname__}()".format(self, other))
+		return self.months < other.months
+
+	def __le__(self, other):
+		if not isinstance(other, monthdelta):
+			raise TypeError("unorderable types: {0.__class__.__module__}.{0.__class__.__qualname__}() <= {1.__class__.__module__}.{1.__class__.__qualname__}()".format(self, other))
+		return self.months <= other.months
+
+	def __gt__(self, other):
+		if not isinstance(other, monthdelta):
+			raise TypeError("unorderable types: {0.__class__.__module__}.{0.__class__.__qualname__}() > {1.__class__.__module__}.{1.__class__.__qualname__}()".format(self, other))
+		return self.months > other.months
+
+	def __ge__(self, other):
+		if not isinstance(other, monthdelta):
+			raise TypeError("unorderable types: {0.__class__.__module__}.{0.__class__.__qualname__}() >= {1.__class__.__module__}.{1.__class__.__qualname__}()".format(self, other))
+		return self.months >= other.months
+
+	def __add__(self, other):
+		if isinstance(other, monthdelta):
+			return monthdelta(self.months+other.months)
+		elif isinstance(other, (datetime.datetime, datetime.date)):
+			year = other.year
+			month = other.month + self.months
+			(years_add, month) = divmod(month-1, 12)
+			month += 1
+			year += years_add
+			day = other.day
+			while True:
+				try:
+					return other.replace(year=year, month=month, day=day)
+				except ValueError:
+					day -= 1
+					if day == 1:
+						raise
+		else:
+			return NotImplemented
+
+	def __radd__(self, other):
+		return self.__add__(other)
+
+	def __sub__(self, other):
+		if isinstance(other, monthdelta):
+			return monthdelta(self.months-other.months)
+		else:
+			return NotImplemented
+
+	def __rsub__(self, other):
+		return other + (-self)
+
+	def __neg__(self):
+		return monthdelta(-self.months)
+
+	def __mul__(self, other):
+		if isinstance(other, int) and not isinstance(other, monthdelta):
+			return monthdelta(self.months*other)
+		else:
+			return NotImplemented
+
+	def __rmul__(self, other):
+		return self.__mul__(other)
+
+	def __floordiv__(self, other):
+		if isinstance(other, int) and not isinstance(other, monthdelta):
+			return monthdelta(self.months//other)
+		else:
+			return NotImplemented
+
+	def __str__(self):
+		m = self.months
+		return "{} month{}".format(m, "s" if m != 1 and m != -1 else "")
+
+	def __repr__(self):
+		m = self.months
+		if m:
+			return "monthdelta({})".format(m)
+		else:
+			return "monthdelta()"
+
+
 def prettycsv(rows, padding="   "):
 	"""
 	Format table :var:`rows`.

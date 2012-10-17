@@ -9,7 +9,7 @@
 ## See ll/__init__.py for the license
 
 
-import sys, os, re, datetime, io, json, contextlib, tempfile, collections, shutil, subprocess, contextlib
+import sys, os, re, datetime, io, json, contextlib, tempfile, collections, shutil, subprocess
 
 import pytest
 
@@ -43,6 +43,9 @@ class PseudoList(collections.Sequence):
 
 
 def render_python(__, **variables):
+	"""
+	Compile the template from the source ``__`` and render it with the variables ``variables``.
+	"""
 	template = ul4c.Template(__)
 	f = sys._getframe(1)
 	print("Testing Python template ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
@@ -51,6 +54,11 @@ def render_python(__, **variables):
 
 
 def render_python_dumps(__, **variables):
+	"""
+	Compile the template from the source ``__``, create a string dump from it,
+	recreate the template from the dump string and render it with the variables
+	``variables``.
+	"""
 	template = ul4c.Template(__)
 	template = ul4c.Template.loads(template.dumps()) # Recreate the template from the binary dump
 	f = sys._getframe(1)
@@ -60,6 +68,10 @@ def render_python_dumps(__, **variables):
 
 
 def render_python_dump(__, **variables):
+	"""
+	Compile the template from the source ``__``, dump it to a stream, recreate
+	the template from the dump and render it with the variables ``variables``.
+	"""
 	template = ul4c.Template(__)
 	stream = io.StringIO()
 	template.dump(stream)
@@ -72,7 +84,12 @@ def render_python_dump(__, **variables):
 
 
 def render_js(__, **variables):
-	# Check the Javascript version (this requires an installed ``d8`` shell from V8 (http://code.google.com/p/v8/))
+	"""
+	Compile the template from the source ``__``, and generate Javascript source
+	from it that renders the template with the variables ``variables``.
+
+	(this requires an installed ``d8`` shell from V8 (http://code.google.com/p/v8/))
+	"""
 	template = ul4c.Template(__)
 	js = template.jssource()
 	js = "template = {};\ndata = {};\nprint(template.renders(data));\n".format(js, ul4c._asjson(variables))
@@ -168,6 +185,14 @@ def java_runsource(source):
 
 
 def render_java_interpretedtemplate_by_python(__, **variables):
+	"""
+	Compile the template from the source ``__``, and generate Java source that
+	recreates the template from the Python generated dump and renders the
+	template with the variables ``variables``.
+
+	(this requires an installed Java compiler and the Java UL4 jar)
+	"""
+
 	codetemplate = """
 	com.livinglogic.ul4.InterpretedTemplate template = %(template)s;
 	java.util.Map<String, Object> variables = %(variables)s;
@@ -186,6 +211,14 @@ def render_java_interpretedtemplate_by_python(__, **variables):
 
 
 def render_java_compiledtemplate_by_python(__, **variables):
+	"""
+	Compile the template from the source ``__``, and generate Java source that
+	contains the template in compiled form and renders the template with the
+	variables ``variables``.
+
+	(this requires an installed Java compiler and the Java UL4 jar)
+	"""
+
 	codetemplate = """
 	com.livinglogic.ul4.Template template = %(template)s;
 	java.util.Map<String, Object> variables = %(variables)s;
@@ -205,6 +238,13 @@ def render_java_compiledtemplate_by_python(__, **variables):
 
 
 def render_java_interpretedtemplate_by_java(__, **variables):
+	"""
+	Generate Java source that compiles the template source ``__`` and renders the
+	template with the variables ``variables``.
+
+	(this requires an installed Java compiler and the Java UL4 jar)
+	"""
+
 	codetemplate = """
 	com.livinglogic.ul4.InterpretedTemplate template = new com.livinglogic.ul4.InterpretedTemplate(%(source)s);
 	java.util.Map<String, Object> variables = %(variables)s;
@@ -225,10 +265,10 @@ all_renderers =  [
 	("python", render_python),
 	("python_dumps", render_python_dumps),
 	("python_dump", render_python_dump),
-	("js", render_js),
-	("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
-	("java_compiled_by_python", render_java_compiledtemplate_by_python),
-	("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
+	# ("js", render_js),
+	# ("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
+	# ("java_compiled_by_python", render_java_compiledtemplate_by_python),
+	# ("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
 ]
 
 
@@ -264,39 +304,25 @@ argumentmismatchmessage = [
 argumentmismatchmessage = "({})".format("|".join(argumentmismatchmessage))
 
 
-def eq(expected, got):
-	assert expected == got
+class raises(object):
+	def __init__(self, msg):
+		self.msg = re.compile(msg)
 
+	def exceptionchain(self, exc):
+		while exc is not None:
+			yield exc
+			exc = exc.__cause__
 
-def evaleq(expected, got):
-	got = eval(got)
-	assert expected == got
+	def __enter__(self):
+		pass
 
-
-def contains(expected, got):
-	assert got in expected
-
-
-def le(expected, got):
-	assert expected <= got
-
-
-def exceptionchain(exc):
-	while exc is not None:
-		yield exc
-		exc = exc.__cause__
-
-
-@contextlib.contextmanager
-def raises(msg):
-	try:
-		yield
-	except Exception as exc:
-		# Check that an exception is raised that matches a regexp
-		exceptionmsgs = map(str, exceptionchain(exc))
-		assert any(re.search(msg, exceptionmsg) is not None for exceptionmsg in exceptionmsgs)
-	else:
-		pytest.fail("failed to raise exception")
+	def __exit__(self, type, value, traceback):
+		if value is None:
+			pytest.fail("failed to raise exception")
+		# Check that any exception in the ``__cause__`` chain of the raised one matches a regexp
+		exceptionmsgs = [str(exc) for exc in self.exceptionchain(value)]
+		assert any(self.msg.search(msg) is not None for msg in exceptionmsgs)
+		return True # Don't propagate exception
 
 
 @pytest.mark.ul4
@@ -524,7 +550,7 @@ def test_code_modvar(r):
 @pytest.mark.ul4
 def test_code_delvar(r):
 	if r is not render_js:
-		with raises("(KeyError|not found)"):
+		with raises("(x|not found)"):
 			r('<?code x = 1729?><?code del x?><?print x?>')
 
 
@@ -667,6 +693,12 @@ def test_add(r):
 	assert "2 days, 0:00:00" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(1))
 	assert "1 day, 0:00:01" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(0, 1))
 	assert "1 day, 0:00:00.000001" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(0, 0, 1))
+	assert "2 months" == r(code, x=ul4c.monthdelta(1), y=ul4c.monthdelta(1))
+	assert "2000-02-01 00:00:00" == r(code, x=datetime.datetime(2000, 1, 1), y=ul4c.monthdelta(1))
+	assert "1999-11-30 00:00:00" == r(code, x=datetime.datetime(2000, 1, 31), y=ul4c.monthdelta(-2))
+	assert "2000-03-29 00:00:00" == r(code, x=datetime.datetime(2000, 2, 29), y=ul4c.monthdelta(1))
+	assert "2001-02-28 00:00:00" == r(code, x=datetime.datetime(2000, 2, 29), y=ul4c.monthdelta(12))
+	assert "2001-02-28 00:00:00" == r(code, x=ul4c.monthdelta(12), y=datetime.datetime(2000, 2, 29))
 
 
 @pytest.mark.ul4
@@ -677,6 +709,7 @@ def test_sub(r):
 	for x in values:
 		for y in values:
 			assert x - y == eval(r(code, x=x, y=y))
+
 	assert "2012-10-16 00:00:00" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(1))
 	assert "2011-10-17 00:00:00" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(366))
 	assert "2012-10-16 12:00:00" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 12*60*60))
@@ -689,6 +722,11 @@ def test_sub(r):
 	assert "23:59:59.999999" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(0, 0, 1))
 	assert "-1 day, 23:59:59" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 1))
 	assert "-1 day, 23:59:59.999999" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 0, 1))
+	assert "2000-01-01 00:00:00" == r(code, x=datetime.datetime(2000, 2, 1), y=ul4c.monthdelta(1))
+	assert "2000-02-29 00:00:00" == r(code, x=datetime.datetime(1999, 12, 31), y=ul4c.monthdelta(-2))
+	assert "2000-02-29 00:00:00" == r(code, x=datetime.datetime(2000, 3, 29), y=ul4c.monthdelta(1))
+	assert "1999-02-28 00:00:00" == r(code, x=datetime.datetime(2000, 2, 29), y=ul4c.monthdelta(12))
+	assert "-1 month" == r(code, x=ul4c.monthdelta(2), y=ul4c.monthdelta(3))
 
 
 @pytest.mark.ul4
@@ -703,6 +741,8 @@ def test_neg(r):
 	assert "-1 day, 0:00:00" == r(code, x=datetime.timedelta(1))
 	assert "-1 day, 23:59:59" == r(code, x=datetime.timedelta(0, 1))
 	assert "-1 day, 23:59:59.999999" == r(code, x=datetime.timedelta(0, 0, 1))
+	assert "0 months" == r(code, x=ul4c.monthdelta())
+	assert "-1 month" == r(code, x=ul4c.monthdelta(1))
 	# This checks constant folding
 	assert "0" == r("<?print -False?>")
 	assert "-1" == r("<?print -True?>")
@@ -732,6 +772,8 @@ def test_mul(r):
 	assert "2 days, 0:00:00" == r(code, x=datetime.timedelta(0, 12*60*60), y=4)
 	assert "0:00:02" == r(code, x=datetime.timedelta(0, 0, 500000), y=4)
 	assert "12:00:00" == r(code, x=datetime.timedelta(1), y=0.5)
+	assert "4 months" == r(code, x=4, y=ul4c.monthdelta(1))
+	assert "4 months" == r(code, x=ul4c.monthdelta(1), y=4)
 
 
 @pytest.mark.ul4
@@ -756,6 +798,7 @@ def test_truediv(r):
 def test_floordiv(r):
 	assert "0" == r('<?print 1//2?>')
 	assert "0" == r('<?code x=1?><?code y=2?><?print x//y?>')
+	assert "1 month" == r('<?print x//y?>', x=ul4c.monthdelta(3), y=2)
 
 
 @pytest.mark.ul4
@@ -770,12 +813,18 @@ def test_mod(r):
 
 @pytest.mark.ul4
 def test_eq(r):
-	values = (17, 23, 17., 23.)
+	numbervalues = (17, 23, 17., 23.)
 
-	for x in values:
-		for y in values:
+	for x in numbervalues:
+		for y in numbervalues:
 			assert str(x == y) == r('<?print {} == {}?>'.format(x, y))
 			assert str(x == y) == r('<?print x == y?>', x=x, y=y)
+
+	md1 = ul4c.monthdelta(0)
+	md2 = ul4c.monthdelta(1)
+
+	assert "True" == r('<?print x == y?>', x=md1, y=md1)
+	assert "False" == r('<?print x == y?>', x=md1, y=md2)
 
 
 @pytest.mark.ul4
@@ -787,6 +836,12 @@ def test_ne(r):
 			assert str(x != y) == r('<?print {} != {}?>'.format(x, y))
 			assert str(x != y) == r('<?print x != y?>', x=x, y=y)
 
+	md1 = ul4c.monthdelta(0)
+	md2 = ul4c.monthdelta(1)
+
+	assert "False" == r('<?print x != y?>', x=md1, y=md1)
+	assert "True" == r('<?print x != y?>', x=md1, y=md2)
+
 
 @pytest.mark.ul4
 def test_lt(r):
@@ -796,6 +851,12 @@ def test_lt(r):
 		for y in values:
 			assert str(x < y) == r('<?print {} < {}?>'.format(x, y))
 			assert str(x < y) == r('<?print x < y?>', x=x, y=y)
+
+	md1 = ul4c.monthdelta(0)
+	md2 = ul4c.monthdelta(1)
+
+	assert "False" == r('<?print x < y?>', x=md1, y=md1)
+	assert "True" == r('<?print x < y?>', x=md1, y=md2)
 
 
 @pytest.mark.ul4
@@ -807,6 +868,12 @@ def test_le(r):
 			assert str(x <= y) == r('<?print {} <= {}?>'.format(x, y))
 			assert str(x <= y) == r('<?print x <= y?>', x=x, y=y)
 
+	md1 = ul4c.monthdelta(1)
+	md2 = ul4c.monthdelta(0)
+
+	assert "True" == r('<?print x <= y?>', x=md1, y=md1)
+	assert "False" == r('<?print x <= y?>', x=md1, y=md2)
+
 
 @pytest.mark.ul4
 def test_gt(r):
@@ -817,6 +884,12 @@ def test_gt(r):
 			assert str(x > y) == r('<?print {} > {}?>'.format(x, y))
 			assert str(x > y) == r('<?print x > y?>', x=x, y=y)
 
+	md1 = ul4c.monthdelta(1)
+	md2 = ul4c.monthdelta(0)
+
+	assert "False" == r('<?print x > y?>', x=md1, y=md1)
+	assert "True" == r('<?print x > y?>', x=md1, y=md2)
+
 
 @pytest.mark.ul4
 def test_ge(r):
@@ -826,6 +899,12 @@ def test_ge(r):
 		for y in values:
 			assert str(x >= y) == r('<?print {} >= {}?>'.format(x, y))
 			assert str(x >= y) == r('<?print x >= y?>', x=x, y=y)
+
+	md1 = ul4c.monthdelta(0)
+	md2 = ul4c.monthdelta(1)
+
+	assert "True" == r('<?print x >= y?>', x=md1, y=md1)
+	assert "False" == r('<?print x >= y?>', x=md1, y=md2)
 
 
 @pytest.mark.ul4
@@ -1010,9 +1089,8 @@ def test_function_utcnow(r):
 		r("<?print utcnow(1)?>")
 	with raises(argumentmismatchmessage):
 		r("<?print utcnow(1, 2)?>")
-	utcnowfromtemplate = r("<?print utcnow()?>")
 	# JS and Java only have milliseconds precision, but this shouldn't lead to problems here, as rendering the template takes longer than a millisecond
-	le(utcnow, utcnowfromtemplate)
+	assert utcnow <= r("<?print utcnow()?>")
 
 
 @pytest.mark.ul4
@@ -1026,6 +1104,8 @@ def test_function_date(r):
 
 @pytest.mark.ul4
 def test_function_timedelta(r):
+	with raises(argumentmismatchmessage):
+		r("<?print timedelta(1, 2, 3, 4)?>")
 	assert "0:00:01" == r("<?print timedelta(0, 0, 1000000)?>")
 	assert "1 day, 0:00:00" == r("<?print timedelta(0, 0, 24*60*60*1000000)?>")
 	assert "1 day, 0:00:00" == r("<?print timedelta(0, 24*60*60)?>")
@@ -1034,6 +1114,16 @@ def test_function_timedelta(r):
 	assert "0:00:00.500000" == r("<?print timedelta(0.5/(24*60*60))?>")
 	assert "-1 day, 12:00:00" == r("<?print timedelta(-0.5)?>")
 	assert "-1 day, 23:59:59.500000" == r("<?print timedelta(0, -0.5)?>")
+
+
+@pytest.mark.ul4
+def test_function_monthdelta(r):
+	with raises(argumentmismatchmessage):
+		r("<?print monthdelta(1, 2)?>")
+	assert "0 months" == r("<?print monthdelta()?>")
+	assert "2 months" == r("<?print monthdelta(2)?>")
+	assert "1 month" == r("<?print monthdelta(1)?>")
+	assert "-1 month" == r("<?print monthdelta(-1)?>")
 
 
 @pytest.mark.ul4
@@ -1148,13 +1238,13 @@ def test_function_ul4on(r):
 		r("<?print fromul4on()?>")
 	with raises(argumentmismatchmessage):
 		r("<?print fromul4on(1, 2)?>")
-	eq("None", r(code, data=None))
-	eq("False", r(code, data=False))
-	eq("True", r(code, data=True))
-	eq("42", r(code, data=42))
+	assert "None" == r(code, data=None)
+	assert "False" == r(code, data=False)
+	assert "True" == r(code, data=True)
+	assert "42" == r(code, data=42)
 	# no check for float
 	assert r(code, data="abc") in ('"abc"', "'abc'")
-	eq('[1, 2, 3]', r(code, data=[1, 2, 3]))
+	assert '[1, 2, 3]' == r(code, data=[1, 2, 3])
 	assert r(code, data={'one': 1}) in ('{"one": 1}', "{'one': 1}")
 
 
@@ -1185,6 +1275,31 @@ def test_function_str(r):
 	assert "0:00:00.000001" == r("<?print timedelta(0, 0, 1)?>")
 	assert "-1 day, 23:59:59" == r("<?print timedelta(0, -1)?>")
 	assert "-1 day, 23:59:59.999999" == r("<?print timedelta(0, 0, -1)?>")
+
+
+@pytest.mark.ul4
+def test_function_bool(r):
+	with raises(argumentmismatchmessage):
+		r("<?print bool(1, 2)?>")
+	assert "False" == r("<?print bool()?>")
+	code = "<?print bool(data)?>"
+	assert "True" == r(code, data=True)
+	assert "False" == r(code, data=False)
+	assert "False" == r(code, data=0)
+	assert "True" == r(code, data=42)
+	assert "False" == r(code, data=0.0)
+	assert "True" == r(code, data=42.5)
+	assert "False" == r(code, data="")
+	assert "True" == r(code, data="gurk")
+	assert "False" == r(code, data=[])
+	assert "True" == r(code, data=["gurk"])
+	assert "False" == r(code, data={})
+	assert "True" == r(code, data={"gurk": "hurz"})
+	assert "True" == r(code, data=datetime.datetime.now())
+	assert "False" == r(code, data=datetime.timedelta())
+	assert "True" == r(code, data=datetime.timedelta(1))
+	assert "False" == r(code, data=ul4c.monthdelta())
+	assert "True" == r(code, data=ul4c.monthdelta(1))
 
 
 @pytest.mark.ul4
@@ -1390,6 +1505,7 @@ def test_function_isnone(r):
 	assert "False" == r(code, data="foo")
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta(1))
+	assert "False" == r(code, data=ul4c.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
@@ -1413,6 +1529,7 @@ def test_function_isbool(r):
 	assert "False" == r(code, data="foo")
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta(1))
+	assert "False" == r(code, data=ul4c.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
@@ -1436,6 +1553,7 @@ def test_function_isint(r):
 	assert "False" == r(code, data="foo")
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta(1))
+	assert "False" == r(code, data=ul4c.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
@@ -1459,6 +1577,7 @@ def test_function_isfloat(r):
 	assert "False" == r(code, data="foo")
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta(1))
+	assert "False" == r(code, data=ul4c.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
@@ -1482,6 +1601,7 @@ def test_function_isstr(r):
 	assert "True" == r(code, data="foo")
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta(1))
+	assert "False" == r(code, data=ul4c.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
@@ -1505,6 +1625,7 @@ def test_function_isdate(r):
 	assert "False" == r(code, data="foo")
 	assert "True" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta(1))
+	assert "False" == r(code, data=ul4c.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
@@ -1528,6 +1649,7 @@ def test_function_islist(r):
 	assert "False" == r(code, data="foo")
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta(1))
+	assert "False" == r(code, data=ul4c.monthdelta(1))
 	assert "True" == r(code, data=())
 	assert "True" == r(code, data=[])
 	assert "True" == r(code, data=PseudoList([]))
@@ -1552,6 +1674,7 @@ def test_function_isdict(r):
 	assert "False" == r(code, data="foo")
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta(1))
+	assert "False" == r(code, data=ul4c.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "True" == r(code, data={})
@@ -1576,6 +1699,7 @@ def test_function_istemplate(r):
 	assert "False" == r(code, data="foo")
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta(1))
+	assert "False" == r(code, data=ul4c.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
@@ -1599,6 +1723,7 @@ def test_function_iscolor(r):
 	assert "False" == r(code, data="foo")
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta(1))
+	assert "False" == r(code, data=ul4c.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
@@ -1622,6 +1747,31 @@ def test_function_istimedelta(r):
 	assert "False" == r(code, data="foo")
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "True" == r(code, data=datetime.timedelta(1))
+	assert "False" == r(code, data=ul4c.monthdelta(1))
+	assert "False" == r(code, data=())
+	assert "False" == r(code, data=[])
+	assert "False" == r(code, data={})
+	assert "False" == r(code, data=ul4c.Template(""))
+	assert "False" == r(code, data=color.red)
+
+
+@pytest.mark.ul4
+def test_function_ismonthdelta(r):
+	code = "<?print ismonthdelta(data)?>"
+
+	with raises(argumentmismatchmessage):
+		r("<?print ismonthdelta()?>")
+	with raises(argumentmismatchmessage):
+		r("<?print ismonthdelta(1, 2)?>")
+	assert "False" == r(code, data=None)
+	assert "False" == r(code, data=True)
+	assert "False" == r(code, data=False)
+	assert "False" == r(code, data=42)
+	assert "False" == r(code, data=4.2)
+	assert "False" == r(code, data="foo")
+	assert "False" == r(code, data=datetime.datetime.now())
+	assert "False" == r(code, data=datetime.timedelta(1))
+	assert "True" == r(code, data=ul4c.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
@@ -1652,7 +1802,7 @@ def test_function_repr(r):
 	assert "False" == r(code, data=False)
 	assert "42" == r(code, data=42)
 	assert 42.5 == eval(r(code, data=42.5))
-	contains(('"foo"', "'foo'"), r(code, data="foo"))
+	assert r(code, data="foo") in ('"foo"', "'foo'")
 	assert [1, 2, 3] == eval(r(code, data=[1, 2, 3]))
 	if r is not render_js:
 		assert [1, 2, 3] == eval(r(code, data=(1, 2, 3)))
@@ -2255,7 +2405,7 @@ def test_nested_exceptions(r):
 	tmpl2 = ul4c.Template("<?render tmpl1.render(x=x)?>", "tmpl2")
 	tmpl3 = ul4c.Template("<?render tmpl2.render(tmpl1=tmpl1, x=x)?>", "tmpl3")
 
-	with raises("TypeError: unsupported operand type\\(s\\) for \\*: 'int' and 'NoneType'|.* \\* .* not supported"):
+	with raises("unsupported operand type|not supported"):
 		r("<?render tmpl3.render(tmpl1=tmpl1, tmpl2=tmpl2, x=x)?>", tmpl1=tmpl1, tmpl2=tmpl2, tmpl3=tmpl3, x=None)
 
 

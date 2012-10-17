@@ -495,7 +495,7 @@ class ListComp(AST):
 		v.append("[ ")
 		v.append(self.item.format(indent))
 		v.append(" for ")
-		v.append(formatnestednameul4(self.varname))
+		v.append(_formatnestednameul4(self.varname))
 		v.append(" in ")
 		v.append(self.container.format(indent))
 		if self.condition is not None:
@@ -509,7 +509,7 @@ class ListComp(AST):
 		v.append("[ ")
 		v.append(self.item.formatpython(indent))
 		v.append(" for ")
-		v.append(formatnestednamepython(self.varname))
+		v.append(_formatnestednamepython(self.varname))
 		v.append(" in ")
 		v.append(self.container.formatpython(indent))
 		if self.condition is not None:
@@ -627,7 +627,7 @@ class DictComp(AST):
 		v.append(" : ")
 		v.append(self.value.format(indent))
 		v.append(" for ")
-		v.append(formatnestednameul4(self.varname))
+		v.append(_formatnestednameul4(self.varname))
 		v.append(" in ")
 		v.append(self.container.format(indent))
 		if self.condition is not None:
@@ -643,7 +643,7 @@ class DictComp(AST):
 		v.append(" : ")
 		v.append(self.value.formatpython(indent))
 		v.append(" for ")
-		v.append(formatnestednamepython(self.varname))
+		v.append(_formatnestednamepython(self.varname))
 		v.append(" in ")
 		v.append(self.container.formatpython(indent))
 		if self.condition is not None:
@@ -707,7 +707,7 @@ class GenExpr(AST):
 		v.append("( ")
 		v.append(self.item.format(indent))
 		v.append(" for ")
-		v.append(formatnestednameul4(self.varname))
+		v.append(_formatnestednameul4(self.varname))
 		v.append(" in ")
 		v.append(self.container.format(indent))
 		if self.condition is not None:
@@ -721,7 +721,7 @@ class GenExpr(AST):
 		v.append("( ")
 		v.append(self.item.formatpython(indent))
 		v.append(" for ")
-		v.append(formatnestednamepython(self.varname))
+		v.append(_formatnestednamepython(self.varname))
 		v.append(" in ")
 		v.append(self.container.formatpython(indent))
 		if self.condition is not None:
@@ -1064,11 +1064,11 @@ class For(Block):
 		return "".join(v)
 
 	def format(self, indent):
-		return "{}for {} in {}\n{}".format(indent*"\t", formatnestednameul4(self.varname), self.container.format(indent), super().format(indent))
+		return "{}for {} in {}\n{}".format(indent*"\t", _formatnestednameul4(self.varname), self.container.format(indent), super().format(indent))
 
 	def formatpython(self, indent):
 		v = ["{i}# <?for?> tag at position {l.starttag}:{l.endtag} ({id})\n".format(i=indent*"\t", id=id(self), l=self.location)]
-		v.append("{}for {} in {}:\n".format(indent*"\t", formatnestednamepython(self.varname), self.container.formatpython(indent)))
+		v.append("{}for {} in {}:\n".format(indent*"\t", _formatnestednamepython(self.varname), self.container.formatpython(indent)))
 		indent += 1
 		for node in self.content:
 			v.append(node.formatpython(indent))
@@ -1678,10 +1678,10 @@ class StoreVar(ChangeVar):
 	"""
 
 	def format(self, indent):
-		return "{}{} = {}\n".format(indent*"\t", formatnestednameul4(self.varname), self.value.format(indent))
+		return "{}{} = {}\n".format(indent*"\t", _formatnestednameul4(self.varname), self.value.format(indent))
 
 	def formatpython(self, indent):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}{n} = {v}\n".format(i=indent*"\t", id=id(self), n=formatnestednamepython(self.varname), v=self.value.formatpython(indent), l=self.location)
+		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}{n} = {v}\n".format(i=indent*"\t", id=id(self), n=_formatnestednamepython(self.varname), v=self.value.formatpython(indent), l=self.location)
 
 	def formatjava(self, indent):
 		return "{i}// {s}\n{i}com.livinglogic.ul4.Utils.unpackVariable(context.getVariables(), {n}, {v});\n".format(i=indent*"\t", n=misc.javaexpr(self.varname), s=repr(self.location.tag)[1:-1], v=self.value.formatjava(indent))
@@ -1851,7 +1851,8 @@ class CallFunc(AST):
 			now="ul4c._now({})".format,
 			utcnow="ul4c._utcnow({})".format,
 			date="datetime.datetime({})".format,
-			timedelta="datetime.timedelta({})".format,
+			timedelta="ul4c._timedelta({})".format,
+			monthdelta="ul4c.monthdelta({})".format,
 			vars="ul4c._vars(vars, {})".format,
 			random="random.random({})".format,
 			xmlescape="ul4c._xmlescape({})".format,
@@ -1878,6 +1879,7 @@ class CallFunc(AST):
 			isbool="ul4c._isbool({})".format,
 			isdate="ul4c._isdate({})".format,
 			istimedelta="ul4c._istimedelta({})".format,
+			ismonthdelta="ul4c._ismonthdelta({})".format,
 			islist="ul4c._islist({})".format,
 			isdict="ul4c._isdict({})".format,
 			iscolor="ul4c._iscolor({})".format,
@@ -2456,7 +2458,7 @@ class Template(Block):
 			for node in self.content:
 				v.append(node.formatpython(2))
 			v.append("\texcept Exception as exc:\n")
-			v.append("\t\t\tself._handleexc(exc)\n")
+			v.append("\t\tself._handleexc(exc)\n")
 			self._pythonsource = "".join(v)
 		return self._pythonsource
 
@@ -3226,22 +3228,22 @@ def _makedict(*items):
 	return result
 
 
-def formatnestednameul4(name):
+def _formatnestednameul4(name):
 	if isinstance(name, str):
 		return name
 	elif len(name) == 1:
-		return "({},)".format(formatnestednameul4(name[0]))
+		return "({},)".format(_formatnestednameul4(name[0]))
 	else:
-		return "({})".format(", ".join(formatnestednameul4(name) for name in name))
+		return "({})".format(", ".join(_formatnestednameul4(name) for name in name))
 
 
-def formatnestednamepython(name):
+def _formatnestednamepython(name):
 	if isinstance(name, str):
 		return "vars[{!r}]".format(name)
 	elif len(name) == 1:
-		return "({},)".format(formatnestednamepython(name[0]))
+		return "({},)".format(_formatnestednamepython(name[0]))
 	else:
-		return "({})".format(", ".join(formatnestednamepython(name) for name in name))
+		return "({})".format(", ".join(_formatnestednamepython(name) for name in name))
 
 
 def _vars(vars):
@@ -3435,6 +3437,13 @@ def _istimedelta(obj):
 	Helper for the ``istimedelta`` function.
 	"""
 	return isinstance(obj, datetime.timedelta)
+
+
+def _ismonthdelta(obj):
+	"""
+	Helper for the ``ismonthdelta`` function.
+	"""
+	return isinstance(obj, monthdelta)
 
 
 def _islist(obj):
@@ -3673,3 +3682,11 @@ def _isoformat(obj):
 	if result.endswith(suffix):
 		return result[:-len(suffix)]
 	return result
+
+
+def _timedelta(days=0, seconds=0, microseconds=0):
+	"""
+	Helper for the ``timedelta`` method.
+	"""
+	return datetime.timedelta(days, seconds, microseconds)
+

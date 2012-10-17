@@ -23,6 +23,16 @@ Changes in 4.2 (released ??/??/2012)
 	templates: They can be created with the ``timedelta`` function and can be
 	type tested for with ``istimedelta``.
 
+*	Added a new class :class:`ll.misc.monthdelta`. :class:`monthdelta` objects
+	can be used to add months/years to a :class:`datetime.datetime` or
+	:class:`datetime.date` object. If the resulting day falls out of the range of
+	valid days for the target month, the last day for the target month will be
+	used instead.
+
+*	:class:`monthdelta` objects are now supported in UL4 templates: They can be
+	created with the ``monthdelta`` function and can be type tested for with
+	``ismonthdelta``.
+
 
 Changes in 4.1.1 (released 10/04/2012)
 --------------------------------------
