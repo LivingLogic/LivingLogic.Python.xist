@@ -3350,11 +3350,11 @@ def _asjson(obj):
 	if isinstance(obj, (bool, int, float, str)):
 		return json.dumps(obj)
 	elif isinstance(obj, datetime.datetime):
-		return format(obj, "new Date({}, {}, {}, {}, {}, {}, {})".format(obj.year, obj.month-1, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond//1000))
+		return "new Date({}, {}, {}, {}, {}, {}, {})".format(obj.year, obj.month-1, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond//1000)
 	elif isinstance(obj, datetime.date):
-		return format(obj, "new Date({}, {}, {})".format(obj.year, obj.month-1, obj.day))
+		return "new Date({}, {}, {})".format(obj.year, obj.month-1, obj.day)
 	elif isinstance(obj, datetime.timedelta):
-		return format(obj, "ul4.TimeDelta.create({}, {}, {})".format(obj.days, obj.seconds, obj.microseconds))
+		return "ul4.TimeDelta.create({}, {}, {})".format(obj.days, obj.seconds, obj.microseconds)
 	elif isinstance(obj, color.Color):
 		return "ul4.Color.create({}, {}, {}, {})".format(*obj)
 	elif isinstance(obj, collections.Mapping):
