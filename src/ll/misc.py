@@ -748,6 +748,9 @@ class monthdelta(object):
 	def __bool__(self):
 		return self.months != 0
 
+	def __hash__(self):
+		return self.months
+
 	def __eq__(self, other):
 		return isinstance(other, monthdelta) and self.months == other.months
 
