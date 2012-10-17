@@ -607,29 +607,29 @@ def test_else(r):
 
 
 @pytest.mark.ul4
-def test_block_errors():
-	with raises("BlockError: block unclosed"):
-		render_python('<?for x in data?>')
-	with raises("BlockError: endif doesn't match any if"):
-		render_python('<?for x in data?><?end if?>')
-	with raises("BlockError: not in any block"):
-		render_python('<?end?>')
-	with raises("BlockError: not in any block"):
-		render_python('<?end for?>')
-	with raises("BlockError: not in any block"):
-		render_python('<?end if?>')
-	with raises("BlockError: else doesn't match any if"):
-		render_python('<?else?>')
-	with raises("BlockError: block unclosed"):
-		render_python('<?if data?>')
-	with raises("BlockError: block unclosed"):
-		render_python('<?if data?><?else?>')
-	with raises("BlockError: else already seen in if"):
-		render_python('<?if data?><?else?><?else?>')
-	with raises("BlockError: else already seen in if"):
-		render_python('<?if data?><?else?><?elif data?>')
-	with raises("BlockError: else already seen in if"):
-		render_python('<?if data?><?elif data?><?elif data?><?else?><?elif data?>')
+def test_block_errors(r):
+	with raises("block unclosed"):
+		r('<?for x in data?>')
+	with raises("endif doesn't match any if"):
+		r('<?for x in data?><?end if?>')
+	with raises("not in any block"):
+		r('<?end?>')
+	with raises("not in any block"):
+		r('<?end for?>')
+	with raises("not in any block"):
+		r('<?end if?>')
+	with raises("else doesn't match any if"):
+		r('<?else?>')
+	with raises("block unclosed"):
+		r('<?if data?>')
+	with raises("block unclosed"):
+		r('<?if data?><?else?>')
+	with raises("else already seen in if"):
+		r('<?if data?><?else?><?else?>')
+	with raises("else already seen in if"):
+		r('<?if data?><?else?><?elif data?>')
+	with raises("else already seen in if"):
+		r('<?if data?><?elif data?><?elif data?><?else?><?elif data?>')
 
 
 @pytest.mark.ul4
