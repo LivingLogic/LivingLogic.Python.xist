@@ -693,12 +693,12 @@ def test_add(r):
 	assert "2 days, 0:00:00" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(1))
 	assert "1 day, 0:00:01" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(0, 1))
 	assert "1 day, 0:00:00.000001" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(0, 0, 1))
-	assert "2 months" == r(code, x=ul4c.monthdelta(1), y=ul4c.monthdelta(1))
-	assert "2000-02-01 00:00:00" == r(code, x=datetime.datetime(2000, 1, 1), y=ul4c.monthdelta(1))
-	assert "1999-11-30 00:00:00" == r(code, x=datetime.datetime(2000, 1, 31), y=ul4c.monthdelta(-2))
-	assert "2000-03-29 00:00:00" == r(code, x=datetime.datetime(2000, 2, 29), y=ul4c.monthdelta(1))
-	assert "2001-02-28 00:00:00" == r(code, x=datetime.datetime(2000, 2, 29), y=ul4c.monthdelta(12))
-	assert "2001-02-28 00:00:00" == r(code, x=ul4c.monthdelta(12), y=datetime.datetime(2000, 2, 29))
+	assert "2 months" == r(code, x=misc.monthdelta(1), y=misc.monthdelta(1))
+	assert "2000-02-01 00:00:00" == r(code, x=datetime.datetime(2000, 1, 1), y=misc.monthdelta(1))
+	assert "1999-11-30 00:00:00" == r(code, x=datetime.datetime(2000, 1, 31), y=misc.monthdelta(-2))
+	assert "2000-03-29 00:00:00" == r(code, x=datetime.datetime(2000, 2, 29), y=misc.monthdelta(1))
+	assert "2001-02-28 00:00:00" == r(code, x=datetime.datetime(2000, 2, 29), y=misc.monthdelta(12))
+	assert "2001-02-28 00:00:00" == r(code, x=misc.monthdelta(12), y=datetime.datetime(2000, 2, 29))
 
 
 @pytest.mark.ul4
@@ -722,11 +722,11 @@ def test_sub(r):
 	assert "23:59:59.999999" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(0, 0, 1))
 	assert "-1 day, 23:59:59" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 1))
 	assert "-1 day, 23:59:59.999999" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 0, 1))
-	assert "2000-01-01 00:00:00" == r(code, x=datetime.datetime(2000, 2, 1), y=ul4c.monthdelta(1))
-	assert "2000-02-29 00:00:00" == r(code, x=datetime.datetime(1999, 12, 31), y=ul4c.monthdelta(-2))
-	assert "2000-02-29 00:00:00" == r(code, x=datetime.datetime(2000, 3, 29), y=ul4c.monthdelta(1))
-	assert "1999-02-28 00:00:00" == r(code, x=datetime.datetime(2000, 2, 29), y=ul4c.monthdelta(12))
-	assert "-1 month" == r(code, x=ul4c.monthdelta(2), y=ul4c.monthdelta(3))
+	assert "2000-01-01 00:00:00" == r(code, x=datetime.datetime(2000, 2, 1), y=misc.monthdelta(1))
+	assert "2000-02-29 00:00:00" == r(code, x=datetime.datetime(1999, 12, 31), y=misc.monthdelta(-2))
+	assert "2000-02-29 00:00:00" == r(code, x=datetime.datetime(2000, 3, 29), y=misc.monthdelta(1))
+	assert "1999-02-28 00:00:00" == r(code, x=datetime.datetime(2000, 2, 29), y=misc.monthdelta(12))
+	assert "-1 month" == r(code, x=misc.monthdelta(2), y=misc.monthdelta(3))
 
 
 @pytest.mark.ul4
@@ -741,8 +741,8 @@ def test_neg(r):
 	assert "-1 day, 0:00:00" == r(code, x=datetime.timedelta(1))
 	assert "-1 day, 23:59:59" == r(code, x=datetime.timedelta(0, 1))
 	assert "-1 day, 23:59:59.999999" == r(code, x=datetime.timedelta(0, 0, 1))
-	assert "0 months" == r(code, x=ul4c.monthdelta())
-	assert "-1 month" == r(code, x=ul4c.monthdelta(1))
+	assert "0 months" == r(code, x=misc.monthdelta())
+	assert "-1 month" == r(code, x=misc.monthdelta(1))
 	# This checks constant folding
 	assert "0" == r("<?print -False?>")
 	assert "-1" == r("<?print -True?>")
@@ -772,8 +772,8 @@ def test_mul(r):
 	assert "2 days, 0:00:00" == r(code, x=datetime.timedelta(0, 12*60*60), y=4)
 	assert "0:00:02" == r(code, x=datetime.timedelta(0, 0, 500000), y=4)
 	assert "12:00:00" == r(code, x=datetime.timedelta(1), y=0.5)
-	assert "4 months" == r(code, x=4, y=ul4c.monthdelta(1))
-	assert "4 months" == r(code, x=ul4c.monthdelta(1), y=4)
+	assert "4 months" == r(code, x=4, y=misc.monthdelta(1))
+	assert "4 months" == r(code, x=misc.monthdelta(1), y=4)
 
 
 @pytest.mark.ul4
@@ -798,7 +798,7 @@ def test_truediv(r):
 def test_floordiv(r):
 	assert "0" == r('<?print 1//2?>')
 	assert "0" == r('<?code x=1?><?code y=2?><?print x//y?>')
-	assert "1 month" == r('<?print x//y?>', x=ul4c.monthdelta(3), y=2)
+	assert "1 month" == r('<?print x//y?>', x=misc.monthdelta(3), y=2)
 
 
 @pytest.mark.ul4
@@ -820,8 +820,8 @@ def test_eq(r):
 			assert str(x == y) == r('<?print {} == {}?>'.format(x, y))
 			assert str(x == y) == r('<?print x == y?>', x=x, y=y)
 
-	md1 = ul4c.monthdelta(0)
-	md2 = ul4c.monthdelta(1)
+	md1 = misc.monthdelta(0)
+	md2 = misc.monthdelta(1)
 
 	assert "True" == r('<?print x == y?>', x=md1, y=md1)
 	assert "False" == r('<?print x == y?>', x=md1, y=md2)
@@ -836,8 +836,8 @@ def test_ne(r):
 			assert str(x != y) == r('<?print {} != {}?>'.format(x, y))
 			assert str(x != y) == r('<?print x != y?>', x=x, y=y)
 
-	md1 = ul4c.monthdelta(0)
-	md2 = ul4c.monthdelta(1)
+	md1 = misc.monthdelta(0)
+	md2 = misc.monthdelta(1)
 
 	assert "False" == r('<?print x != y?>', x=md1, y=md1)
 	assert "True" == r('<?print x != y?>', x=md1, y=md2)
@@ -852,8 +852,8 @@ def test_lt(r):
 			assert str(x < y) == r('<?print {} < {}?>'.format(x, y))
 			assert str(x < y) == r('<?print x < y?>', x=x, y=y)
 
-	md1 = ul4c.monthdelta(0)
-	md2 = ul4c.monthdelta(1)
+	md1 = misc.monthdelta(0)
+	md2 = misc.monthdelta(1)
 
 	assert "False" == r('<?print x < y?>', x=md1, y=md1)
 	assert "True" == r('<?print x < y?>', x=md1, y=md2)
@@ -868,8 +868,8 @@ def test_le(r):
 			assert str(x <= y) == r('<?print {} <= {}?>'.format(x, y))
 			assert str(x <= y) == r('<?print x <= y?>', x=x, y=y)
 
-	md1 = ul4c.monthdelta(1)
-	md2 = ul4c.monthdelta(0)
+	md1 = misc.monthdelta(1)
+	md2 = misc.monthdelta(0)
 
 	assert "True" == r('<?print x <= y?>', x=md1, y=md1)
 	assert "False" == r('<?print x <= y?>', x=md1, y=md2)
@@ -884,8 +884,8 @@ def test_gt(r):
 			assert str(x > y) == r('<?print {} > {}?>'.format(x, y))
 			assert str(x > y) == r('<?print x > y?>', x=x, y=y)
 
-	md1 = ul4c.monthdelta(1)
-	md2 = ul4c.monthdelta(0)
+	md1 = misc.monthdelta(1)
+	md2 = misc.monthdelta(0)
 
 	assert "False" == r('<?print x > y?>', x=md1, y=md1)
 	assert "True" == r('<?print x > y?>', x=md1, y=md2)
@@ -900,8 +900,8 @@ def test_ge(r):
 			assert str(x >= y) == r('<?print {} >= {}?>'.format(x, y))
 			assert str(x >= y) == r('<?print x >= y?>', x=x, y=y)
 
-	md1 = ul4c.monthdelta(0)
-	md2 = ul4c.monthdelta(1)
+	md1 = misc.monthdelta(0)
+	md2 = misc.monthdelta(1)
 
 	assert "True" == r('<?print x >= y?>', x=md1, y=md1)
 	assert "False" == r('<?print x >= y?>', x=md1, y=md2)
@@ -1298,8 +1298,8 @@ def test_function_bool(r):
 	assert "True" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta())
 	assert "True" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=ul4c.monthdelta())
-	assert "True" == r(code, data=ul4c.monthdelta(1))
+	assert "False" == r(code, data=misc.monthdelta())
+	assert "True" == r(code, data=misc.monthdelta(1))
 
 
 @pytest.mark.ul4
@@ -1505,7 +1505,7 @@ def test_function_isnone(r):
 	assert "False" == r(code, data="foo")
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=ul4c.monthdelta(1))
+	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
@@ -1529,7 +1529,7 @@ def test_function_isbool(r):
 	assert "False" == r(code, data="foo")
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=ul4c.monthdelta(1))
+	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
@@ -1553,7 +1553,7 @@ def test_function_isint(r):
 	assert "False" == r(code, data="foo")
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=ul4c.monthdelta(1))
+	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
@@ -1577,7 +1577,7 @@ def test_function_isfloat(r):
 	assert "False" == r(code, data="foo")
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=ul4c.monthdelta(1))
+	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
@@ -1601,7 +1601,7 @@ def test_function_isstr(r):
 	assert "True" == r(code, data="foo")
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=ul4c.monthdelta(1))
+	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
@@ -1625,7 +1625,7 @@ def test_function_isdate(r):
 	assert "False" == r(code, data="foo")
 	assert "True" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=ul4c.monthdelta(1))
+	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
@@ -1649,7 +1649,7 @@ def test_function_islist(r):
 	assert "False" == r(code, data="foo")
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=ul4c.monthdelta(1))
+	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "True" == r(code, data=())
 	assert "True" == r(code, data=[])
 	assert "True" == r(code, data=PseudoList([]))
@@ -1674,7 +1674,7 @@ def test_function_isdict(r):
 	assert "False" == r(code, data="foo")
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=ul4c.monthdelta(1))
+	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "True" == r(code, data={})
@@ -1699,7 +1699,7 @@ def test_function_istemplate(r):
 	assert "False" == r(code, data="foo")
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=ul4c.monthdelta(1))
+	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
@@ -1723,7 +1723,7 @@ def test_function_iscolor(r):
 	assert "False" == r(code, data="foo")
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=ul4c.monthdelta(1))
+	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
@@ -1747,7 +1747,7 @@ def test_function_istimedelta(r):
 	assert "False" == r(code, data="foo")
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "True" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=ul4c.monthdelta(1))
+	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
@@ -1771,7 +1771,7 @@ def test_function_ismonthdelta(r):
 	assert "False" == r(code, data="foo")
 	assert "False" == r(code, data=datetime.datetime.now())
 	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "True" == r(code, data=ul4c.monthdelta(1))
+	assert "True" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})

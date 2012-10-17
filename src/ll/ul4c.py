@@ -1852,7 +1852,7 @@ class CallFunc(AST):
 			utcnow="ul4c._utcnow({})".format,
 			date="datetime.datetime({})".format,
 			timedelta="ul4c._timedelta({})".format,
-			monthdelta="ul4c.monthdelta({})".format,
+			monthdelta="misc.monthdelta({})".format,
 			vars="ul4c._vars(vars, {})".format,
 			random="random.random({})".format,
 			xmlescape="ul4c._xmlescape({})".format,
