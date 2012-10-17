@@ -813,98 +813,86 @@ def test_mod(r):
 
 @pytest.mark.ul4
 def test_eq(r):
+	code = '<?print x == y?>'
 	numbervalues = (17, 23, 17., 23.)
 
 	for x in numbervalues:
 		for y in numbervalues:
 			assert str(x == y) == r('<?print {} == {}?>'.format(x, y))
-			assert str(x == y) == r('<?print x == y?>', x=x, y=y)
+			assert str(x == y) == r(code, x=x, y=y)
 
-	md1 = misc.monthdelta(0)
-	md2 = misc.monthdelta(1)
-
-	assert "True" == r('<?print x == y?>', x=md1, y=md1)
-	assert "False" == r('<?print x == y?>', x=md1, y=md2)
+	assert "True" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(0))
+	assert "False" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(1))
 
 
 @pytest.mark.ul4
 def test_ne(r):
+	code = '<?print x != y?>'
 	values = (17, 23, 17., 23.)
 
 	for x in values:
 		for y in values:
 			assert str(x != y) == r('<?print {} != {}?>'.format(x, y))
-			assert str(x != y) == r('<?print x != y?>', x=x, y=y)
+			assert str(x != y) == r(code, x=x, y=y)
 
-	md1 = misc.monthdelta(0)
-	md2 = misc.monthdelta(1)
-
-	assert "False" == r('<?print x != y?>', x=md1, y=md1)
-	assert "True" == r('<?print x != y?>', x=md1, y=md2)
+	assert "False" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(0))
+	assert "True" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(1))
 
 
 @pytest.mark.ul4
 def test_lt(r):
+	code = '<?print x < y?>'
 	values = (17, 23, 17., 23.)
 
 	for x in values:
 		for y in values:
 			assert str(x < y) == r('<?print {} < {}?>'.format(x, y))
-			assert str(x < y) == r('<?print x < y?>', x=x, y=y)
+			assert str(x < y) == r(code, x=x, y=y)
 
-	md1 = misc.monthdelta(0)
-	md2 = misc.monthdelta(1)
-
-	assert "False" == r('<?print x < y?>', x=md1, y=md1)
-	assert "True" == r('<?print x < y?>', x=md1, y=md2)
+	assert "False" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(0))
+	assert "True" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(1))
 
 
 @pytest.mark.ul4
 def test_le(r):
+	code = '<?print x <= y?>'
 	values = (17, 23, 17., 23.)
 
 	for x in values:
 		for y in values:
 			assert str(x <= y) == r('<?print {} <= {}?>'.format(x, y))
-			assert str(x <= y) == r('<?print x <= y?>', x=x, y=y)
+			assert str(x <= y) == r(code, x=x, y=y)
 
-	md1 = misc.monthdelta(1)
-	md2 = misc.monthdelta(0)
-
-	assert "True" == r('<?print x <= y?>', x=md1, y=md1)
-	assert "False" == r('<?print x <= y?>', x=md1, y=md2)
+	assert "True" == r(code, x=misc.monthdelta(1), y=misc.monthdelta(1))
+	assert "False" == r(code, x=misc.monthdelta(1), y=misc.monthdelta(0))
 
 
 @pytest.mark.ul4
 def test_gt(r):
+	code = '<?print x > y?>'
 	values = (17, 23, 17., 23.)
 
 	for x in values:
 		for y in values:
 			assert str(x > y) == r('<?print {} > {}?>'.format(x, y))
-			assert str(x > y) == r('<?print x > y?>', x=x, y=y)
+			assert str(x > y) == r(code, x=x, y=y)
 
-	md1 = misc.monthdelta(1)
-	md2 = misc.monthdelta(0)
-
-	assert "False" == r('<?print x > y?>', x=md1, y=md1)
-	assert "True" == r('<?print x > y?>', x=md1, y=md2)
+	assert "False" == r(code, x=misc.monthdelta(1), y=misc.monthdelta(1))
+	assert "True" == r(code, x=misc.monthdelta(1), y=misc.monthdelta(0))
 
 
 @pytest.mark.ul4
 def test_ge(r):
+	code = '<?print x >= y?>'
 	values = (17, 23, 17., 23.)
 
 	for x in values:
 		for y in values:
 			assert str(x >= y) == r('<?print {} >= {}?>'.format(x, y))
-			assert str(x >= y) == r('<?print x >= y?>', x=x, y=y)
+			assert str(x >= y) == r(code, x=x, y=y)
 
-	md1 = misc.monthdelta(0)
-	md2 = misc.monthdelta(1)
-
-	assert "True" == r('<?print x >= y?>', x=md1, y=md1)
-	assert "False" == r('<?print x >= y?>', x=md1, y=md2)
+	assert "True" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(0))
+	assert "False" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(1))
 
 
 @pytest.mark.ul4
