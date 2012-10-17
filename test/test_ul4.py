@@ -1273,7 +1273,7 @@ def test_function_str(r):
 	assert "42" == r(code, data=42)
 	assert "4.2" == r(code, data=4.2)
 	assert "foo" == r(code, data="foo")
-	assert "2011-02-09" == r(code, data=datetime.date(2011, 2, 9))
+	assert "2011-02-09 00:00:00" == r(code, data=datetime.datetime(2011, 2, 9))
 	assert "2011-02-09 12:34:56" == r(code, data=datetime.datetime(2011, 2, 9, 12, 34, 56))
 	assert "2011-02-09 12:34:56.987000" == r(code, data=datetime.datetime(2011, 2, 9, 12, 34, 56, 987000))
 	assert "0:00:00" == r("<?print timedelta()?>")
