@@ -1851,6 +1851,7 @@ class CallFunc(AST):
 			now="ul4c._now({})".format,
 			utcnow="ul4c._utcnow({})".format,
 			date="datetime.datetime({})".format,
+			timedelta="datetime.timedelta({})".format,
 			vars="ul4c._vars(vars, {})".format,
 			random="random.random({})".format,
 			xmlescape="ul4c._xmlescape({})".format,
@@ -1876,6 +1877,7 @@ class CallFunc(AST):
 			isfloat="ul4c._isfloat({})".format,
 			isbool="ul4c._isbool({})".format,
 			isdate="ul4c._isdate({})".format,
+			istimedelta="ul4c._istimedelta({})".format,
 			islist="ul4c._islist({})".format,
 			isdict="ul4c._isdict({})".format,
 			iscolor="ul4c._iscolor({})".format,
@@ -3308,6 +3310,8 @@ def _repr(obj):
 		return "@({})".format(s)
 	elif isinstance(obj, datetime.date):
 		return "@({})".format(obj.isoformat())
+	elif isinstance(obj, datetime.timedelta):
+		return repr(obj).partition(".")[-1]
 	elif isinstance(obj, color.Color):
 		if obj[3] == 0xff:
 			s = "#{:02x}{:02x}{:02x}".format(obj[0], obj[1], obj[2])
@@ -3349,6 +3353,8 @@ def _asjson(obj):
 		return format(obj, "new Date({}, {}, {}, {}, {}, {}, {})".format(obj.year, obj.month-1, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond//1000))
 	elif isinstance(obj, datetime.date):
 		return format(obj, "new Date({}, {}, {})".format(obj.year, obj.month-1, obj.day))
+	elif isinstance(obj, datetime.timedelta):
+		return format(obj, "ul4.TimeDelta.create({}, {}, {})".format(obj.days, obj.seconds, obj.microseconds))
 	elif isinstance(obj, color.Color):
 		return "ul4.Color.create({}, {}, {}, {})".format(*obj)
 	elif isinstance(obj, collections.Mapping):
@@ -3422,6 +3428,13 @@ def _isdate(obj):
 	Helper for the ``isdate`` function.
 	"""
 	return isinstance(obj, (datetime.datetime, datetime.date))
+
+
+def _istimedelta(obj):
+	"""
+	Helper for the ``istimedelta`` function.
+	"""
+	return isinstance(obj, datetime.timedelta)
 
 
 def _islist(obj):
@@ -3557,6 +3570,8 @@ def _type(obj):
 		return "float"
 	elif isinstance(obj, (datetime.datetime, datetime.date)):
 		return "date"
+	elif isinstance(obj, datetime.timedelta):
+		return "timedelta"
 	elif isinstance(obj, color.Color):
 		return "color"
 	elif isinstance(obj, Template):

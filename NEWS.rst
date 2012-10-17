@@ -19,6 +19,10 @@ Changes in 4.2 (released ??/??/2012)
 	of the week. All days in a new year preceding the first week start day are
 	considered to be in week 0. The week start day defaults to 0 (Monday).
 
+*	:class:`datetime.timedelta` objects are now completely supported in UL4
+	templates: They can be created with the ``timedelta`` function and can be
+	type tested for with ``istimedelta``.
+
 
 Changes in 4.1.1 (released 10/04/2012)
 --------------------------------------
