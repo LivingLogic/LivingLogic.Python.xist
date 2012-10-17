@@ -821,10 +821,10 @@ def test_eq(r):
 			assert str(x == y) == r('<?print {} == {}?>'.format(x, y))
 			assert str(x == y) == r(code, x=x, y=y)
 
-	assert "True" == r(code, x=misc.timedelta(0), y=misc.timedelta(0))
-	assert "False" == r(code, x=misc.timedelta(0), y=misc.timedelta(1))
-	assert "False" == r(code, x=misc.timedelta(0), y=misc.timedelta(0, 1))
-	assert "False" == r(code, x=misc.timedelta(0), y=misc.timedelta(0, 0, 1))
+	assert "True" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0))
+	assert "False" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(1))
+	assert "False" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 1))
+	assert "False" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 0, 1))
 	assert "True" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(0))
 	assert "False" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(1))
 
