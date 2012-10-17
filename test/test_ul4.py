@@ -293,7 +293,7 @@ def raises(msg):
 		yield
 	except Exception as exc:
 		# Check that an exception is raised that matches a regexp
-		exceptionmsgs = ["{0.__class__.__module__}.{0.__class__.__name__}: {0}".format(subexc) for subexc in exceptionchain(exc)]
+		exceptionmsgs = map(str, exceptionchain(exc))
 		assert any(re.search(msg, exceptionmsg) is not None for exceptionmsg in exceptionmsgs)
 	else:
 		pytest.fail("failed to raise exception")
