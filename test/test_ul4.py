@@ -882,10 +882,14 @@ def test_getitem(r):
 	assert "u" == r("<?print x[1]?>", x="gurk")
 	assert "u" == r("<?print 'gurk'[-3]?>")
 	assert "u" == r("<?print x[-3]?>", x="gurk")
-	raises("index out of range|IndexError", r("<?print 'gurk'[4]?>"))
-	raises("index (4 )?out of range", r("<?print x[4]?>", x="gurk"))
-	raises("index out of range|IndexError", r("<?print 'gurk'[-5]?>"))
-	raises("index (-5 )?out of range", r("<?print x[-5]?>", x="gurk"))
+	with raises("index out of range|IndexError"):
+		r("<?print 'gurk'[4]?>")
+	with raises("index (4 )?out of range"):
+		r("<?print x[4]?>", x="gurk")
+	with raises("index out of range|IndexError"):
+		r("<?print 'gurk'[-5]?>")
+	with raises("index (-5 )?out of range"):
+		r("<?print x[-5]?>", x="gurk")
 
 
 @pytest.mark.ul4
