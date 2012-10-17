@@ -652,7 +652,7 @@ def test_block_errors(r):
 		r('<?if data?><?else?>')
 	with raises("duplicate else in if/elif/else chain|else already seen in if"):
 		r('<?if data?><?else?><?else?>')
-	with raises("else already seen in if"):
+	with raises("elif can't follow else in if/elif/else chain|else already seen in if"):
 		r('<?if data?><?else?><?elif data?>')
 	with raises("else already seen in if"):
 		r('<?if data?><?elif data?><?elif data?><?else?><?elif data?>')
