@@ -78,38 +78,6 @@ static PyObject *escape(PyObject *self, PyObject *args)
 	return res;
 }
 
-static void widechar_to_utf8(unsigned long widechar, char **out)
-{
-	unsigned long first_bits = 0;
-	int trail = 0;
-
-	if (widechar >= 0x80)
-	{
-		if (widechar < 0x00000800)
-		{
-			first_bits = 0xc0;
-			trail = 1;
-		}
-		else if (widechar < 0x00010000)
-		{
-			first_bits = 0xe0;
-			trail = 2;
-		}
-	}
-
-	{
-		int i;
-		for (i = trail; i; --i)
-		{
-			(*out)[i] = (char)((widechar & 0x3f) | 0x80);
-			widechar >>= 6;
-		}
-		(*out)[0] = (char) (widechar | first_bits);
-	}
-
-	*out += trail + 1;
-}
-
 static char unescape__doc__[] =
 "unescape(string) -> unicode\n\
 \n\
