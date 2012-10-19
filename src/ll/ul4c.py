@@ -3361,6 +3361,8 @@ def _asjson(obj):
 		return "new Date({}, {}, {})".format(obj.year, obj.month-1, obj.day)
 	elif isinstance(obj, datetime.timedelta):
 		return "ul4.TimeDelta.create({}, {}, {})".format(obj.days, obj.seconds, obj.microseconds)
+	elif isinstance(obj, misc.monthdelta):
+		return "ul4.MonthDelta.create({})".format(obj.months)
 	elif isinstance(obj, color.Color):
 		return "ul4.Color.create({}, {}, {}, {})".format(*obj)
 	elif isinstance(obj, collections.Mapping):
