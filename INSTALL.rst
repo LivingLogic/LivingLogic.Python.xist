@@ -11,7 +11,7 @@ To use XIST you need the following software packages:
 		calculation); (As long as the PIL isn't ported to Python 3, you can use this
 		`PIL port to Python 3`_)
 
-	*	`lxml`_ (if you want to parse "broken" HTML);
+	*	`lxml`_ (if you want to parse "broken" HTML; at least version 3.0);
 
 	*	`links`_ (if you want to use the function
 		:func:`ll.xist.ns.html.astext`);
