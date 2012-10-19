@@ -3585,6 +3585,8 @@ def _type(obj):
 		return "date"
 	elif isinstance(obj, datetime.timedelta):
 		return "timedelta"
+	elif isinstance(obj, misc.monthdelta):
+		return "monthdelta"
 	elif isinstance(obj, color.Color):
 		return "color"
 	elif isinstance(obj, Template):

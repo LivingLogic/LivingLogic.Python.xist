@@ -2052,6 +2052,8 @@ def test_function_type(r):
 	assert "str" == r(code, x="foo")
 	assert "date" == r(code, x=datetime.datetime.now())
 	assert "date" == r(code, x=datetime.date.today())
+	assert "timedelta" == r(code, x=datetime.timedelta())
+	assert "monthdelta" == r(code, x=misc.monthdelta())
 	assert "list" == r(code, x=(1, 2))
 	assert "list" == r(code, x=[1, 2])
 	assert "list" == r(code, x=PseudoList([1, 2]))
