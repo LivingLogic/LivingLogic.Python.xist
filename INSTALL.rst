@@ -3,7 +3,7 @@ Requirements
 
 To use XIST you need the following software packages:
 
-	*	`Python 3.2`_;
+	*	`Python 3.3`_;
 
 	*	`cssutils`_;
 
@@ -18,23 +18,23 @@ To use XIST you need the following software packages:
 
 	*	`cx_Oracle`_ (if you want to use :mod:`ll.orasql`);
 
-	*	`setuptools`_ (if you want to install this package as an egg);
+	*	`distribute`_ (if you want to install this package as an egg);
 
-	*	`pytest`_ (if you want to run the test suite; at least version 1.3.2)
+	*	`pytest`_ (if you want to run the test suite)
 
 	*	`execnet`_ (if you want to use ssh URLs)
 
 	*	and a C compiler supported by distutils, if you want to install the
 		source distribution.
 
-	.. _Python 3.2: http://www.python.org/
+	.. _Python 3.3: http://www.python.org/
 	.. _cssutils: http://cthedot.de/cssutils/
 	.. _Python Imaging Library: http://www.pythonware.com/products/pil/
 	.. _PIL port to Python 3: http://www.lfd.uci.edu/~gohlke/pythonlibs/#pil
 	.. _lxml: http://lxml.de/
 	.. _links: http://links.twibright.com/
 	.. _cx_Oracle: http://cx-oracle.sourceforge.net/
-	.. _setuptools: http://peak.telecommunity.com/DevCenter/setuptools
+	.. _distribute: http://pypi.python.org/pypi/distribute
 	.. _pytest: http://pytest.org/latest/
 	.. _execnet: http://codespeak.net/execnet/
 
