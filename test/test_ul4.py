@@ -736,7 +736,7 @@ def test_neg(r):
 	assert "0" == r(code, x=False)
 	assert "-1" == r(code, x=True)
 	assert "-17" == r(code, x=17)
-	assert "-17.0" == r(code, x=17.0)
+	assert "-42.5" == r(code, x=42.5)
 	assert "0:00:00" == r(code, x=datetime.timedelta())
 	assert "-1 day, 0:00:00" == r(code, x=datetime.timedelta(1))
 	assert "-1 day, 23:59:59" == r(code, x=datetime.timedelta(0, 1))
@@ -747,7 +747,7 @@ def test_neg(r):
 	assert "0" == r("<?print -False?>")
 	assert "-1" == r("<?print -True?>")
 	assert "-2" == r("<?print -2?>")
-	assert "-2.0" == r("<?print -2.0?>")
+	assert "-2.5" == r("<?print -2.5?>")
 
 @pytest.mark.ul4
 def test_mul(r):
