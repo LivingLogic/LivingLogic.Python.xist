@@ -16,7 +16,7 @@ from ll import url
 import pytest
 
 
-def test_rename():
+def test_remove():
 	@pytest.mark.net
 	def check(u):
 		with url.Context():
