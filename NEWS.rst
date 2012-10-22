@@ -1,4 +1,4 @@
-Changes in 4.2 (released ??/??/2012)
+Changes in 4.2 (released 10/22/2012)
 ------------------------------------
 
 *	UL4 templates now support list and dictionary comprehension as well as
