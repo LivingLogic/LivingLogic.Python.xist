@@ -35,6 +35,18 @@ class Color(tuple):
 		return tuple.__new__(cls, (max(0, min(int(r), 255)), max(0, min(int(g), 255)), max(0, min(int(b), 255)), max(0, min(int(a), 255))))
 
 	@classmethod
+	def fromrepr(cls, s):
+		if len(s) == 9:
+			return cls(int(s[1:3], 16), int(s[3:5], 16), int(s[5:7], 16), int(s[7:], 16))
+		elif len(s) == 7:
+			return cls(int(s[1:3], 16), int(s[3:5], 16), int(s[5:], 16))
+		elif len(s) == 5:
+			return cls(17*int(s[1], 16), 17*int(s[2], 16), 17*int(s[3], 16), 17*int(s[4], 16))
+		elif len(s) == 4:
+			return cls(17*int(s[1], 16), 17*int(s[2], 16), 17*int(s[3], 16))
+		raise ValueError("can't interpret {} as color repr value".format(s))
+
+	@classmethod
 	def fromcss(cls, s):
 		"""
 		Create a :class:`Color` object from the CSS__ color string :var:`s`.

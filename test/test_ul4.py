@@ -403,20 +403,18 @@ def test_string(r):
 	assert '\f' == r('<?print "\\f"?>')
 	assert '\b' == r('<?print "\\b"?>')
 	assert '\a' == r('<?print "\\a"?>')
-	assert '\x1b' == r('<?print "\\e"?>')
 	assert '\x00' == r('<?print "\\x00"?>')
 	assert '"' == r('<?print "\\""?>')
 	assert "'" == r('<?print "\\\'"?>')
 	assert '\u20ac' == r('<?print "\u20ac"?>')
 	assert '\xff' == r('<?print "\\xff"?>')
 	assert '\u20ac' == r('''<?print "\\u20ac"?>''')
-	assert "a\nb" == r('<?print "a\nb"?>')
-	for c in "\x00\x80\u0100\u3042\n\r\t\f\b\a\e\"":
+	for c in "\x00\x80\u0100\u3042\n\r\t\f\b\a\"":
 		assert c == r('<?print obj?>', obj=c) # This tests :func:`misc.javaexpr` for Java and :func:`ul4c._asjson` for JS
 
-	# Test literal control characters
-	assert 'gu\n\r\trk' == r("<?print 'gu\n\r\trk'?>")
-	assert 'gu\n\r\t\\rk' == r(r"<?print 'gu\n\r\t\\rk'?>")
+	# Test literal control characters (but '\r' and '\n' are not allowed)
+	assert 'gu\trk' == r("<?print 'gu\trk'?>")
+	assert 'gu\t\\rk' == r(r"<?print 'gu\t\\rk'?>")
 
 	assert 'no' == r('<?if ""?>yes<?else?>no<?end if?>')
 	assert 'yes' == r('<?if "foo"?>yes<?else?>no<?end if?>')
@@ -465,6 +463,7 @@ def test_genexpr(r):
 	assert "2, 6" == r("<?print ', '.join(str(2*i) for i in range(4) if i%2)?>")
 	assert "0, 2, 4, 6" == r("<?print ', '.join(str(2*i) for i in range(4))?>")
 	assert "0, 2, 4, 6" == r("<?print ', '.join((str(2*i) for i in range(4)))?>")
+	assert "0:g; 1:r; 2:k" == r("<?for (i, c2) in enumerate(c for c in 'gurk' if c != 'u')?><?if i?>; <?end if?><?print i?>:<?print c2?><?end for?>")
 
 
 @pytest.mark.ul4
@@ -973,11 +972,11 @@ def test_getitem(r):
 	assert "u" == r("<?print x[1]?>", x="gurk")
 	assert "u" == r("<?print 'gurk'[-3]?>")
 	assert "u" == r("<?print x[-3]?>", x="gurk")
-	with raises("index out of range|IndexError"):
+	with raises("index (4 )?out of range|IndexError"):
 		r("<?print 'gurk'[4]?>")
 	with raises("index (4 )?out of range"):
 		r("<?print x[4]?>", x="gurk")
-	with raises("index out of range|IndexError"):
+	with raises("index (-5 )?out of range|IndexError"):
 		r("<?print 'gurk'[-5]?>")
 	with raises("index (-5 )?out of range"):
 		r("<?print x[-5]?>", x="gurk")
@@ -2447,7 +2446,7 @@ def test_templateattributes(r):
 		assert "var" == r("<?print template.content[0].obj.type?>", template=t1)
 		assert "x" == r("<?print template.content[0].obj.name?>", template=t1)
 		assert "printx" == r("<?print template.content[0].type?>", template=t2)
-		assert "int" == r("<?print template.content[0].obj.type?>", template=t2)
+		assert "const" == r("<?print template.content[0].obj.type?>", template=t2)
 		assert "42" == r("<?print template.content[0].obj.value?>", template=t2)
 
 
