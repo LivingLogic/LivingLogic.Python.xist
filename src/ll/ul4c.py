@@ -592,7 +592,7 @@ class GenExpr(AST):
 
 	def format(self, indent):
 		v = []
-		v.append("( ")
+		v.append("(")
 		v.append(self.item.format(indent))
 		v.append(" for ")
 		v.append(_formatnestednameul4(self.varname))
@@ -601,7 +601,7 @@ class GenExpr(AST):
 		if self.condition is not None:
 			v.append(" if ")
 			v.append(self.condition.format(indent))
-		v.append(" )")
+		v.append(")")
 		return "".join(v)
 
 	def formatpython(self, indent):
@@ -1732,7 +1732,13 @@ class CallFunc(AST):
 			return "{}({!r})".format(self.__class__.__name__, self.funcname)
 
 	def format(self, indent):
-		return "{}({})".format(self.funcname, ", ".join(arg.format(indent) for arg in self.args))
+		args = []
+		for arg in self.args:
+			s = arg.format(indent)
+			if isinstance(arg, GenExpr):
+				s = s[1:-1]
+			args.append(s)
+		return "{}({})".format(self.funcname, ", ".join(args))
 
 	def formatpython(self, indent):
 		functions = dict(
@@ -1909,7 +1915,13 @@ class CallMeth(AST):
 			return "{}({!r}, {!r})".format(self.__class__.__name__, self.methname, self.obj)
 
 	def format(self, indent):
-		return "({}).{}({})".format(self._formatop(self.obj), self.methname, ", ".join(arg.format(indent) for arg in self.args))
+		args = []
+		for arg in self.args:
+			s = arg.format(indent)
+			if isinstance(arg, GenExpr):
+				s = s[1:-1]
+			args.append(s)
+		return "({}).{}({})".format(self._formatop(self.obj), self.methname, ", ".join(args))
 
 	def formatpython(self, indent):
 		methods = dict(
