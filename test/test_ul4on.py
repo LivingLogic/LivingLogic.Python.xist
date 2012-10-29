@@ -11,7 +11,7 @@
 
 import io, os, datetime, math
 
-from ll import ul4on, ul4c, color
+from ll import ul4on, ul4c, color, misc
 
 
 def flatten(data):
@@ -40,8 +40,10 @@ def test_loads_dumps():
 	yield check, "gurk"
 	yield check, color.Color(0x66, 0x99, 0xcc, 0xff)
 	yield check, datetime.datetime.now()
+	yield check, datetime.timedelta(-1, 1, 1)
+	yield check, misc.monthdelta(-1)
 	yield check, []
 	yield check, {}
 	yield check, t
 	yield check, [1, 2, 3]
-	yield check, {None: 42, 1: 2, "foo": "bar", "baz": datetime.datetime.now(), "gurk": ["hurz"], "template": t}
+	yield check, {None: 42, 1: 2, "foo": "bar", "baz": datetime.datetime.now(), "td": datetime.timedelta(-1, 1, 1), "md": misc.monthdelta(-1), "gurk": ["hurz"], "template": t}

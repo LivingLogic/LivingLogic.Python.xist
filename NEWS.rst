@@ -14,6 +14,9 @@ Changes in 4.3 (released ??/??/2012)
 *	All AST nodes for loading constants have been merged into a single class
 	:class:`Const`.
 
+*	:mod:`ll.ul4on` can now read and write :class:`datetime.timedelta` and
+	:class:`misc.monthdelta` objects.
+
 
 Changes in 4.2 (released 10/22/2012)
 ------------------------------------

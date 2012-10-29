@@ -197,9 +197,15 @@ class Encoder:
 			elif isinstance(obj, color.Color):
 				self._record(obj)
 				self.stream.write("C{:02x}{:02x}{:02x}{:02x}".format(obj.r(), obj.g(), obj.b(), obj.a()))
-			elif isinstance(obj, datetime.datetime):
+			elif isinstance(obj, (datetime.datetime, datetime.date)):
 				self._record(obj)
-				self.stream.write(obj.strftime("T%Y%m%d%H%M%S%f"))
+				self.stream.write(obj.strftime("Z%Y%m%d%H%M%S%f"))
+			elif isinstance(obj, datetime.timedelta):
+				self._record(obj)
+				self.stream.write("T{}|{}|{}|".format(obj.days, obj.seconds, obj.microseconds))
+			elif isinstance(obj, misc.monthdelta):
+				self._record(obj)
+				self.stream.write("M{}|".format(obj.months))
 			elif isinstance(obj, collections.Sequence):
 				self._record(obj)
 				self.stream.write("L")
@@ -301,10 +307,24 @@ class Decoder:
 			if typecode == "C":
 				self._loading(value)
 			return value
-		elif typecode in "tT":
+		elif typecode in "zZ":
 			data = self.stream.read(20)
 			value = datetime.datetime(*map(int, misc.itersplitat(data, (4, 6, 8, 10, 12, 14))))
+			if typecode == "Z":
+				self._loading(value)
+			return value
+		elif typecode in "tT":
+			days = self._readint()
+			seconds = self._readint()
+			microseconds = self._readint()
+			value = datetime.timedelta(days, seconds, microseconds)
 			if typecode == "T":
+				self._loading(value)
+			return value
+		elif typecode in "mM":
+			months = self._readint()
+			value = misc.monthdelta(months)
+			if typecode == "M":
 				self._loading(value)
 			return value
 		elif typecode in "lL":
