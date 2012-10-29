@@ -26,7 +26,7 @@ import re, datetime, urllib.parse as urlparse, json, collections, locale
 
 import antlr3
 
-from ll import spark, color, misc, ul4on
+from ll import color, misc, ul4on
 
 
 # Regular expression used for splitting dates in isoformat
