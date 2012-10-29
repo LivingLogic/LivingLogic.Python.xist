@@ -8,6 +8,9 @@ install:
 develop:
 	python$(PYVERSION) setup.py develop
 
+parser:
+	java org.antlr.Tool src/ll/UL4.g
+	python3.2 -c 'import sys; d = open("src/ll/UL4Lexer.py", "r").read(); d=d.replace(chr(117)+chr(34), chr(34)); open("src/ll/UL4Lexer.py", "w").write(d)'
 
 test: install
 	python$(PYVERSION) -mpytest
