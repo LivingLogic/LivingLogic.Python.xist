@@ -35,6 +35,10 @@ except RecognitionException as e:
     raise
 }
 
+UNDEFINED
+	: 'Undefined'
+	;
+
 NONE
 	: 'None'
 	;
@@ -139,6 +143,10 @@ UNICODE4_ESC
 
 /* Rules common to all tags */
 
+undefined returns [node]
+	: UNDEFINED { $node = ul4c.Const(self.location, ul4c.Undefined); }
+	;
+
 none returns [node]
 	: NONE { $node = ul4c.Const(self.location, None); }
 	;
@@ -176,7 +184,8 @@ name returns [node]
 	;
 
 literal returns [node]
-	: e_none=none { $node = $e_none.node; }
+	: e_undefined=undefined { $node = $e_undefined.node; }
+	| e_none=none { $node = $e_none.node; }
 	| e_false=false_ { $node = $e_false.node; }
 	| e_true=true_ { $node = $e_true.node; }
 	| e_int=int_ { $node = $e_int.node; }
@@ -557,5 +566,4 @@ statement returns [node]
 	| n=name '/=' e=expr1 EOF { $node = ul4c.TrueDivVar(self.location, $n.text, $e.node); }
 	| n=name '//=' e=expr1 EOF { $node = ul4c.FloorDivVar(self.location, $n.text, $e.node); }
 	| n=name '%=' e=expr1 EOF { $node = ul4c.ModVar(self.location, $n.text, $e.node); }
-	| 'del' n=name EOF { $node = ul4c.DelVar(self.location, $n.text); }
 	;

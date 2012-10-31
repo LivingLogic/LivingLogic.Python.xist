@@ -332,6 +332,12 @@ def test_text(r):
 
 
 @pytest.mark.ul4
+def test_undefined(r):
+	assert '' == r('<?print Undefined?>')
+	assert 'no' == r('<?if Undefined?>yes<?else?>no<?end if?>')
+
+
+@pytest.mark.ul4
 def test_none(r):
 	assert '' == r('<?print None?>')
 	assert 'no' == r('<?if None?>yes<?else?>no<?end if?>')
@@ -972,14 +978,10 @@ def test_getitem(r):
 	assert "u" == r("<?print x[1]?>", x="gurk")
 	assert "u" == r("<?print 'gurk'[-3]?>")
 	assert "u" == r("<?print x[-3]?>", x="gurk")
-	with raises("index (4 )?out of range|IndexError"):
-		r("<?print 'gurk'[4]?>")
-	with raises("index (4 )?out of range"):
-		r("<?print x[4]?>", x="gurk")
-	with raises("index (-5 )?out of range|IndexError"):
-		r("<?print 'gurk'[-5]?>")
-	with raises("index (-5 )?out of range"):
-		r("<?print x[-5]?>", x="gurk")
+	assert "" == r("<?print 'gurk'[4]?>")
+	assert "" == r("<?print x[4]?>", x="gurk")
+	assert "" == r("<?print 'gurk'[-5]?>")
+	assert "" == r("<?print x[-5]?>", x="gurk")
 
 
 @pytest.mark.ul4
@@ -1501,6 +1503,58 @@ def test_function_islast(r):
 
 
 @pytest.mark.ul4
+def test_function_isundefined(r):
+	code = "<?print isundefined(data)?>"
+
+	with raises(argumentmismatchmessage):
+		r("<?print isundefined()?>")
+	with raises(argumentmismatchmessage):
+		r("<?print isundefined(1, 2)?>")
+	assert "True" == r(code)
+	assert "True" == r(code, data=ul4c.Undefined)
+	assert "False" == r(code, data=None)
+	assert "False" == r(code, data=True)
+	assert "False" == r(code, data=False)
+	assert "False" == r(code, data=42)
+	assert "False" == r(code, data=4.2)
+	assert "False" == r(code, data="foo")
+	assert "False" == r(code, data=datetime.datetime.now())
+	assert "False" == r(code, data=datetime.timedelta(1))
+	assert "False" == r(code, data=misc.monthdelta(1))
+	assert "False" == r(code, data=())
+	assert "False" == r(code, data=[])
+	assert "False" == r(code, data={})
+	assert "False" == r(code, data=ul4c.Template(""))
+	assert "False" == r(code, data=color.red)
+
+
+@pytest.mark.ul4
+def test_function_isdefined(r):
+	code = "<?print isdefined(data)?>"
+
+	with raises(argumentmismatchmessage):
+		r("<?print isdefined()?>")
+	with raises(argumentmismatchmessage):
+		r("<?print isdefined(1, 2)?>")
+	assert "False" == r(code)
+	assert "False" == r(code, data=ul4c.Undefined)
+	assert "True" == r(code, data=None)
+	assert "True" == r(code, data=True)
+	assert "True" == r(code, data=False)
+	assert "True" == r(code, data=42)
+	assert "True" == r(code, data=4.2)
+	assert "True" == r(code, data="foo")
+	assert "True" == r(code, data=datetime.datetime.now())
+	assert "True" == r(code, data=datetime.timedelta(1))
+	assert "True" == r(code, data=misc.monthdelta(1))
+	assert "True" == r(code, data=())
+	assert "True" == r(code, data=[])
+	assert "True" == r(code, data={})
+	assert "True" == r(code, data=ul4c.Template(""))
+	assert "True" == r(code, data=color.red)
+
+
+@pytest.mark.ul4
 def test_function_isnone(r):
 	code = "<?print isnone(data)?>"
 
@@ -1508,6 +1562,8 @@ def test_function_isnone(r):
 		r("<?print isnone()?>")
 	with raises(argumentmismatchmessage):
 		r("<?print isnone(1, 2)?>")
+	assert "False" == r(code)
+	assert "False" == r(code, data=ul4c.Undefined)
 	assert "True" == r(code, data=None)
 	assert "False" == r(code, data=True)
 	assert "False" == r(code, data=False)
@@ -1532,6 +1588,8 @@ def test_function_isbool(r):
 		r("<?print isbool()?>")
 	with raises(argumentmismatchmessage):
 		r("<?print isbool(1, 2)?>")
+	assert "False" == r(code)
+	assert "False" == r(code, data=ul4c.Undefined)
 	assert "False" == r(code, data=None)
 	assert "True" == r(code, data=True)
 	assert "True" == r(code, data=False)
@@ -1556,6 +1614,8 @@ def test_function_isint(r):
 		r("<?print isint()?>")
 	with raises(argumentmismatchmessage):
 		r("<?print isint(1, 2)?>")
+	assert "False" == r(code)
+	assert "False" == r(code, data=ul4c.Undefined)
 	assert "False" == r(code, data=None)
 	assert "False" == r(code, data=True)
 	assert "False" == r(code, data=False)
@@ -1580,6 +1640,8 @@ def test_function_isfloat(r):
 		r("<?print isfloat()?>")
 	with raises(argumentmismatchmessage):
 		r("<?print isfloat(1, 2)?>")
+	assert "False" == r(code)
+	assert "False" == r(code, data=ul4c.Undefined)
 	assert "False" == r(code, data=None)
 	assert "False" == r(code, data=True)
 	assert "False" == r(code, data=False)
@@ -1604,6 +1666,8 @@ def test_function_isstr(r):
 		r("<?print isstr()?>")
 	with raises(argumentmismatchmessage):
 		r("<?print isstr(1, 2)?>")
+	assert "False" == r(code)
+	assert "False" == r(code, data=ul4c.Undefined)
 	assert "False" == r(code, data=None)
 	assert "False" == r(code, data=True)
 	assert "False" == r(code, data=False)
@@ -1628,6 +1692,8 @@ def test_function_isdate(r):
 		r("<?print isdate()?>")
 	with raises(argumentmismatchmessage):
 		r("<?print isdate(1, 2)?>")
+	assert "False" == r(code)
+	assert "False" == r(code, data=ul4c.Undefined)
 	assert "False" == r(code, data=None)
 	assert "False" == r(code, data=True)
 	assert "False" == r(code, data=False)
@@ -1652,6 +1718,8 @@ def test_function_islist(r):
 		r("<?print islist()?>")
 	with raises(argumentmismatchmessage):
 		r("<?print islist(1, 2)?>")
+	assert "False" == r(code)
+	assert "False" == r(code, data=ul4c.Undefined)
 	assert "False" == r(code, data=None)
 	assert "False" == r(code, data=True)
 	assert "False" == r(code, data=False)
@@ -1677,6 +1745,8 @@ def test_function_isdict(r):
 		r("<?print isdict()?>")
 	with raises(argumentmismatchmessage):
 		r("<?print isdict(1, 2)?>")
+	assert "False" == r(code)
+	assert "False" == r(code, data=ul4c.Undefined)
 	assert "False" == r(code, data=None)
 	assert "False" == r(code, data=True)
 	assert "False" == r(code, data=False)
@@ -1702,6 +1772,8 @@ def test_function_istemplate(r):
 		r("<?print istemplate()?>")
 	with raises(argumentmismatchmessage):
 		r("<?print istemplate(1, 2)?>")
+	assert "False" == r(code)
+	assert "False" == r(code, data=ul4c.Undefined)
 	assert "False" == r(code, data=None)
 	assert "False" == r(code, data=True)
 	assert "False" == r(code, data=False)
@@ -1726,6 +1798,8 @@ def test_function_iscolor(r):
 		r("<?print iscolor()?>")
 	with raises(argumentmismatchmessage):
 		r("<?print iscolor(1, 2)?>")
+	assert "False" == r(code)
+	assert "False" == r(code, data=ul4c.Undefined)
 	assert "False" == r(code, data=None)
 	assert "False" == r(code, data=True)
 	assert "False" == r(code, data=False)
@@ -1750,6 +1824,8 @@ def test_function_istimedelta(r):
 		r("<?print istimedelta()?>")
 	with raises(argumentmismatchmessage):
 		r("<?print istimedelta(1, 2)?>")
+	assert "False" == r(code)
+	assert "False" == r(code, data=ul4c.Undefined)
 	assert "False" == r(code, data=None)
 	assert "False" == r(code, data=True)
 	assert "False" == r(code, data=False)
@@ -1774,6 +1850,8 @@ def test_function_ismonthdelta(r):
 		r("<?print ismonthdelta()?>")
 	with raises(argumentmismatchmessage):
 		r("<?print ismonthdelta(1, 2)?>")
+	assert "False" == r(code)
+	assert "False" == r(code, data=ul4c.Undefined)
 	assert "False" == r(code, data=None)
 	assert "False" == r(code, data=True)
 	assert "False" == r(code, data=False)
@@ -2467,6 +2545,8 @@ def universaltemplate():
 		<?code x = 'gurk'?>
 		<?code x = 42?>
 		<?code x = 4.2?>
+		<?code x = Undefined?>
+		<?code x = ReallyUndefined?>
 		<?code x = None?>
 		<?code x = False?>
 		<?code x = True?>
@@ -2482,7 +2562,6 @@ def universaltemplate():
 		<?code x /= 42?>
 		<?code x //= 42?>
 		<?code x %= 42?>
-		<?code del x?>
 		<?print x.gurk?>
 		<?print x["gurk"]?>
 		<?print x[1:2]?>

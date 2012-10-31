@@ -511,6 +511,8 @@ def javaexpr(obj):
 
 	if obj is None:
 		return "null"
+	elif obj is ul4c.Undefined:
+		return "com.livinglogic.ul4.Undefined.undefined"
 	elif obj is True:
 		return "true"
 	elif obj is False:

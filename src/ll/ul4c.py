@@ -26,7 +26,7 @@ import re, datetime, urllib.parse as urlparse, json, collections, locale
 
 import antlr3
 
-from ll import color, misc, ul4on
+from ll import color, misc
 
 
 # Regular expression used for splitting dates in isoformat
@@ -38,6 +38,7 @@ _names2classes = {}
 
 
 def register(name):
+	from ll import ul4on
 	def registration(cls):
 		ul4on.register("de.livinglogic.ul4." + name)(cls)
 		cls.type = name
@@ -193,6 +194,24 @@ class UnknownMethodError(Exception):
 
 
 ###
+### The ``Undefined`` singleton
+###
+
+class Undefined(object):
+	def __repr__(self):
+		return "Undefined"
+
+	def __str__(self):
+		return "Undefined"
+
+	def __bool__(self):
+		return False
+
+
+Undefined = Undefined()
+
+
+###
 ### Compiler stuff: Tokens and nodes for the AST
 ###
 
@@ -303,7 +322,9 @@ class Const(AST):
 		return _repr(self.value)
 
 	def formatpython(self, indent):
-		if isinstance(self.value, color.Color):
+		if self.value is Undefined:
+			return "ul4c.Undefined"
+		elif isinstance(self.value, color.Color):
 			return "color.{!r}".format(self.value)
 		return repr(self.value)
 
@@ -379,32 +400,18 @@ class ListComp(AST):
 		return "{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.item, self.varname, self.container, self.condition)
 
 	def format(self, indent):
-		v = []
-		v.append("[ ")
-		v.append(self.item.format(indent))
-		v.append(" for ")
-		v.append(_formatnestednameul4(self.varname))
-		v.append(" in ")
-		v.append(self.container.format(indent))
+		s = "[{} for {} in".format(self.item.format(indent), _formatnestednameul4(self.varname), self.container.format(indent))
 		if self.condition is not None:
-			v.append(" if ")
-			v.append(self.condition.format(indent))
-		v.append(" ]")
-		return "".join(v)
+			s += " if {}".format(self.condition.format(indent))
+		s += "]"
+		return s
 
 	def formatpython(self, indent):
-		v = []
-		v.append("[ ")
-		v.append(self.item.formatpython(indent))
-		v.append(" for ")
-		v.append(_formatnestednamepython(self.varname))
-		v.append(" in ")
-		v.append(self.container.formatpython(indent))
+		s = "[{} for {} in {}".format(self.item.formatpython(indent), _formatnestednamepython(self.varname), self.container.formatpython(indent))
 		if self.condition is not None:
-			v.append(" if ")
-			v.append(self.condition.formatpython(indent))
-		v.append(" ]")
-		return "".join(v)
+			s += " if {}".format(self.condition.formatpython(indent))
+		s += "]"
+		return s
 
 	def formatjava(self, indent):
 		v = []
@@ -509,36 +516,18 @@ class DictComp(AST):
 		return "{}({!r}, {!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.key, self.value, self.varname, self.container, self.condition)
 
 	def format(self, indent):
-		v = []
-		v.append("{ ")
-		v.append(self.key.format(indent))
-		v.append(" : ")
-		v.append(self.value.format(indent))
-		v.append(" for ")
-		v.append(_formatnestednameul4(self.varname))
-		v.append(" in ")
-		v.append(self.container.format(indent))
+		s = "{{{} : {} for {} in {}".format(self.key.format(indent), self.value.format(indent), _formatnestednameul4(self.varname), self.container.format(indent))
 		if self.condition is not None:
-			v.append(" if ")
-			v.append(self.condition.format(indent))
-		v.append(" }")
-		return "".join(v)
+			s += " if {}".format(self.condition.format(indent))
+		s += "}"
+		return s
 
 	def formatpython(self, indent):
-		v = []
-		v.append("{ ")
-		v.append(self.key.formatpython(indent))
-		v.append(" : ")
-		v.append(self.value.formatpython(indent))
-		v.append(" for ")
-		v.append(_formatnestednamepython(self.varname))
-		v.append(" in ")
-		v.append(self.container.formatpython(indent))
+		s = "{{{} : {} for {} in {}".format(self.key.formatpython(indent), self.value.formatpython(indent), _formatnestednamepython(self.varname), self.container.formatpython(indent))
 		if self.condition is not None:
-			v.append(" if ")
-			v.append(self.condition.formatpython(indent))
-		v.append(" }")
-		return "".join(v)
+			s += " if {}".format(self.condition.formatpython(indent))
+		s += "}"
+		return s
 
 	def formatjava(self, indent):
 		v = []
@@ -591,32 +580,18 @@ class GenExpr(AST):
 		return "{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.item, self.varname, self.container, self.condition)
 
 	def format(self, indent):
-		v = []
-		v.append("(")
-		v.append(self.item.format(indent))
-		v.append(" for ")
-		v.append(_formatnestednameul4(self.varname))
-		v.append(" in ")
-		v.append(self.container.format(indent))
+		s = "({} for {} in {}".format(self.item.format(indent), _formatnestednameul4(self.varname), self.container.format(indent))
 		if self.condition is not None:
-			v.append(" if ")
-			v.append(self.condition.format(indent))
-		v.append(")")
-		return "".join(v)
+			s += " if {}".format(self.condition.format(indent))
+		s += ")"
+		return s
 
 	def formatpython(self, indent):
-		v = []
-		v.append("( ")
-		v.append(self.item.formatpython(indent))
-		v.append(" for ")
-		v.append(_formatnestednamepython(self.varname))
-		v.append(" in ")
-		v.append(self.container.formatpython(indent))
+		s = "({} for {} in {}".format(self.item.formatpython(indent), _formatnestednamepython(self.varname), self.container.formatpython(indent))
 		if self.condition is not None:
-			v.append(" if ")
-			v.append(self.condition.formatpython(indent))
-		v.append(" )")
-		return "".join(v)
+			s += " if {}".format(self.condition.formatpython(indent))
+		s += ")"
+		return s
 
 	def formatjava(self, indent):
 		v = []
@@ -683,7 +658,7 @@ class Var(AST):
 		return self.name
 
 	def formatpython(self, indent):
-		return "vars[{!r}]".format(self.name)
+		return "ul4c._getitem(vars, {!r})".format(self.name)
 
 	def formatjava(self, indent):
 		return "context.get({})".format(misc.javaexpr(self.name))
@@ -1019,7 +994,7 @@ class GetAttr(AST):
 		return "{}.{}".format(self._formatop(self.obj), self.attrname)
 
 	def formatpython(self, indent):
-		return "{}[{!r}]".format(self.obj.formatpython(indent), self.attrname)
+		return "ul4c._getitem({}, {!r})".format(self.obj.formatpython(indent), self.attrname)
 
 	def formatjava(self, indent):
 		return "com.livinglogic.ul4.GetAttr.call({}, {})".format(self.obj.formatjava(indent), misc.javaexpr(self.attrname))
@@ -1215,7 +1190,7 @@ class GetItem(Binary):
 		return "{}[{}]".format(self._formatop(self.obj1), self.obj2.format(indent))
 
 	def formatpython(self, indent):
-		return "({})[{}]".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+		return "ul4c._getitem({}, {})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
 	def formatjava(self, indent):
 		return "com.livinglogic.ul4.GetItem.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
@@ -1672,41 +1647,6 @@ class ModVar(ChangeVar):
 		return "{i}// {s}\n{i}context.put({n}, com.livinglogic.ul4.Mod.call(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
 
 
-@register("delvar")
-class DelVar(AST):
-	"""
-	AST node for deleting a variable.
-
-	The name of the variable is stored in the string :var:`varname`.
-	"""
-
-	fields = AST.fields.union({"varname"})
-
-	def __init__(self, location=None, varname=None):
-		super().__init__(location)
-		self.varname = varname
-
-	def __repr__(self):
-		return "{}({!r})".format(self.__class__.__name__, self.varname)
-
-	def format(self, indent):
-		return "{}del {}\n".format(indent*"\t", self.varname)
-
-	def formatpython(self, indent):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}del vars[{n!r}]\n".format(i=indent*"\t", id=id(self), n=self.varname, l=self.location)
-
-	def formatjava(self, indent):
-		return "{i}// {s}\n{i}context.remove({n});\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname))
-
-	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
-		encoder.dump(self.varname)
-
-	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
-		self.varname = decoder.load()
-
-
 @register("callfunc")
 class CallFunc(AST):
 	"""
@@ -1766,6 +1706,8 @@ class CallFunc(AST):
 			isfirstlast="ul4c._isfirstlast({})".format,
 			isfirst="ul4c._isfirst({})".format,
 			islast="ul4c._islast({})".format,
+			isundefined="ul4c._isundefined({})".format,
+			isdefined="ul4c._isdefined({})".format,
 			isnone="ul4c._isnone({})".format,
 			isstr="ul4c._isstr({})".format,
 			isint="ul4c._isint({})".format,
@@ -2232,7 +2174,7 @@ class Template(Block):
 		The class method :meth:`loads` loads the template from string :var:`data`.
 		:var:`data` must contain the template in compiled format.
 		"""
-
+		from ll import ul4on
 		return ul4on.loads(data)
 
 	@classmethod
@@ -2241,6 +2183,7 @@ class Template(Block):
 		The class method :meth:`load` loads the template from the stream
 		:var:`stream`. The stream must contain the template in compiled format.
 		"""
+		from ll import ul4on
 		return ul4on.load(stream)
 
 	def dump(self, stream):
@@ -2248,12 +2191,14 @@ class Template(Block):
 		:meth:`dump` dumps the template in compiled format to the stream
 		:var:`stream`.
 		"""
+		from ll import ul4on
 		ul4on.dump(self, stream)
 
 	def dumps(self):
 		"""
 		:meth:`dumps` returns the template in compiled format (as a string).
 		"""
+		from ll import ul4on
 		return ul4on.dumps(self)
 
 	def format(self, indent):
@@ -2568,6 +2513,16 @@ def _formatnestednamepython(name):
 		return "({})".format(", ".join(_formatnestednamepython(name) for name in name))
 
 
+def _getitem(container, key):
+	"""
+	Helper for the ``getitem`` operator.
+	"""
+	try:
+		return container[key]
+	except (KeyError, IndexError):
+		return Undefined
+
+
 def _vars(vars):
 	"""
 	Helper for the ``vars`` function.
@@ -2594,6 +2549,8 @@ def _str(obj=None):
 	Helper for the ``str`` function.
 	"""
 	if obj is None:
+		return ""
+	elif obj is Undefined:
 		return ""
 	else:
 		return str(obj)
@@ -2671,6 +2628,8 @@ def _asjson(obj):
 	"""
 	if obj is None:
 		return "null"
+	elif obj is Undefined:
+		return "{}.undefined"
 	if isinstance(obj, (bool, int, float, str)):
 		return json.dumps(obj)
 	elif isinstance(obj, datetime.datetime):
@@ -2704,6 +2663,7 @@ def _asul4on(obj):
 	"""
 	Helper for the ``asul4on`` function.
 	"""
+	from ll import ul4on
 	return ul4on.dumps(obj)
 
 
@@ -2711,7 +2671,22 @@ def _fromul4on(obj):
 	"""
 	Helper for the ``fromul4on`` function.
 	"""
+	from ll import ul4on
 	return ul4on.loads(obj)
+
+
+def _isundefined(obj):
+	"""
+	Helper for the ``isundefined`` function.
+	"""
+	return obj is Undefined
+
+
+def _isdefined(obj):
+	"""
+	Helper for the ``isdefined`` function.
+	"""
+	return obj is not Undefined
 
 
 def _isnone(obj):

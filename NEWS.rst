@@ -8,6 +8,18 @@ Changes in 4.3 (released ??/??/2012)
 	.. _ANTLR: http://www.antlr.org/
 	.. _spark: http://pages.cpsc.ucalgary.ca/~aycock/spark/
 
+*	Accessing non-existant variables in UL4 templates now no longer raises an
+	exception but returns the special object ``Undefined``. The same is true for
+	accessing non-existant dictionary keys or list indexes that are out of range.
+
+	In a boolean context ``Undefined`` is treated as false and ``str(Undefined)``
+	returns the empty string.
+
+*	Two new UL4 functions have been added: ``isundefined`` returns whether the
+	argument is the ``Undefined`` object or not. ``isdefined`` has the inverted
+	logic, i.e. it returns ``True`` if the argument is *not* the ``Undefined``
+	object.
+
 *	The characters CR and LF are no longer allowed in UL4 string constants.
 	Furthermore the escape sequence ``\e`` is no longer supported.
 
@@ -15,7 +27,8 @@ Changes in 4.3 (released ??/??/2012)
 	:class:`Const`.
 
 *	:mod:`ll.ul4on` can now read and write :class:`datetime.timedelta` and
-	:class:`misc.monthdelta` objects.
+	:class:`misc.monthdelta` objects as well as the new ``Undefined`` object
+	from UL4 (:class:`ll.ul4c.Undefined`).
 
 
 Changes in 4.2 (released 10/22/2012)
