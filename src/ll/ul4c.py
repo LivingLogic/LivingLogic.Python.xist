@@ -1775,6 +1775,8 @@ class CallFunc(AST):
 			isfirstlast="com.livinglogic.ul4.FunctionIsFirstLast.call({})".format,
 			isfirst="com.livinglogic.ul4.FunctionIsFirst.call({})".format,
 			islast="com.livinglogic.ul4.FunctionIsLast.call({})".format,
+			isundefined="com.livinglogic.ul4.FunctionIsUndefined.call({})".format,
+			isdefined="com.livinglogic.ul4.FunctionIsDefined.call({})".format,
 			isnone="com.livinglogic.ul4.FunctionIsNone.call({})".format,
 			isstr="com.livinglogic.ul4.FunctionIsStr.call({})".format,
 			isint="com.livinglogic.ul4.FunctionIsInt.call({})".format,
