@@ -1,4 +1,4 @@
-# $ANTLR 3.4 src/ll/UL4.g 2012-10-29 17:47:35
+# $ANTLR 3.4 src/ll/UL4.g 2012-11-01 10:45:15
 
 import sys
 from antlr3 import *
@@ -2525,7 +2525,7 @@ class UL4Parser(Parser):
                               
                     node =  e
                     for i in range(count):
-                    	node =  ul4c.Neg(self.location, node)
+                    	node =  ul4c.Neg.make(self.location, node)
                     		
 
 
@@ -2662,7 +2662,7 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            node =  cls(self.location, node, e2) 
+                            node =  cls.make(self.location, node, e2) 
 
 
 
@@ -2776,7 +2776,7 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            node = cls(self.location, node, e2) 
+                            node = cls.make(self.location, node, e2) 
 
 
 
@@ -2945,7 +2945,7 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            node =  cls(self.location, node, e2) 
+                            node =  cls.make(self.location, node, e2) 
 
 
 
@@ -3040,7 +3040,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node =  cls(self.location, node, e2) 
+                        node =  cls.make(self.location, node, e2) 
 
 
 
@@ -3103,7 +3103,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node =  ul4c.Not(self.location, e) 
+                        node =  ul4c.Not.make(self.location, e) 
 
 
 
@@ -3184,7 +3184,7 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            node =  ul4c.And(self.location, node, e2) 
+                            node =  ul4c.And.make(self.location, node, e2) 
 
 
 
@@ -3256,7 +3256,7 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            node =  ul4c.Or(self.location, node, e2) 
+                            node =  ul4c.Or.make(self.location, node, e2) 
 
 
 

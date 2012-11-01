@@ -592,7 +592,7 @@ when ``r`` is the random value, ``(r-start) % step`` will always be ``0``.
 ``isdefined``
 """""""""""""
 
-``isuefined(foo)`` returns ``False`` if ``foo`` is ``Undefined``, else
+``isdefined(foo)`` returns ``False`` if ``foo`` is ``Undefined``, else
 ``True`` is returned::
 
 	data is <?if isdefined(data)?>defined<?else?>undefined<?end if?>!

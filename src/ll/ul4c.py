@@ -1035,6 +1035,21 @@ class GetSlice(AST):
 	def __repr__(self):
 		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.obj, self.index1, self.index2)
 
+	@classmethod
+	def make(cls, location, obj, index1, index2):
+		if isinstance(obj, Const):
+			if index1 is None:
+				if index2 is None:
+					return Const(location, obj[:])
+				elif isinstance(index2, Const):
+					return Const(location, obj[:index2.value])
+			elif isinstance(index1, Const):
+				if index2 is None:
+					return Const(location, obj[index1.value:])
+				elif isinstance(index2, Const):
+					return Const(location, obj[index1.value:index2.value])
+		return cls(location, obj, index1, index2)
+
 	def format(self, indent):
 		return "{}[{}:{}]".format(self._formatop(self.obj), self.index1.format(indent) if self.index1 is not None else "", self.index2.format(indent) if self.index2 is not None else "")
 
@@ -1079,6 +1094,12 @@ class Unary(AST):
 		super().ul4onload(decoder)
 		self.obj = decoder.load()
 
+	@classmethod
+	def make(cls, location, obj):
+		if isinstance(obj, Const):
+			return Const(location, cls.evaluate(obj.value))
+		return cls(location, obj)
+
 
 @register("not")
 class Not(Unary):
@@ -1087,6 +1108,10 @@ class Not(Unary):
 	"""
 
 	precedence = 2
+
+	@classmethod
+	def evaluate(cls, obj):
+		return not obj
 
 	def format(self, indent):
 		return "not {}".format(self._formatop(self.obj))
@@ -1105,6 +1130,10 @@ class Neg(Unary):
 	"""
 
 	precedence = 7
+
+	@classmethod
+	def evaluate(cls, obj):
+		return -obj
 
 	def format(self, indent):
 		return "-{}".format(self._formatop(self.obj))
@@ -1173,6 +1202,12 @@ class Binary(AST):
 		self.obj1 = decoder.load()
 		self.obj2 = decoder.load()
 
+	@classmethod
+	def make(cls, location, obj1, obj2):
+		if isinstance(obj1, Const) and isinstance(obj2, Const):
+			return Const(location, cls.evaluate(obj1.value, obj2.value))
+		return cls(location, obj1, obj2)
+
 
 @register("getitem")
 class GetItem(Binary):
@@ -1185,6 +1220,10 @@ class GetItem(Binary):
 
 	precedence = 9
 	associative = False
+
+	@classmethod
+	def evaluate(cls, obj1, obj2):
+		return obj1[obj2]
 
 	def format(self, indent):
 		return "{}[{}]".format(self._formatop(self.obj1), self.obj2.format(indent))
@@ -1205,6 +1244,10 @@ class EQ(Binary):
 	precedence = 4
 	associative = False
 
+	@classmethod
+	def evaluate(cls, obj1, obj2):
+		return obj1 == obj2
+
 	def format(self, indent):
 		return "{} == {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
@@ -1223,6 +1266,10 @@ class NE(Binary):
 
 	precedence = 4
 	associative = False
+
+	@classmethod
+	def evaluate(cls, obj1, obj2):
+		return obj1 != obj2
 
 	def format(self, indent):
 		return "{} != {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
@@ -1243,6 +1290,10 @@ class LT(Binary):
 	precedence = 4
 	associative = False
 
+	@classmethod
+	def evaluate(cls, obj1, obj2):
+		return obj1 < obj2
+
 	def format(self, indent):
 		return "{} < {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
@@ -1261,6 +1312,10 @@ class LE(Binary):
 
 	precedence = 4
 	associative = False
+
+	@classmethod
+	def evaluate(cls, obj1, obj2):
+		return obj1 <= obj2
 
 	def format(self, indent):
 		return "{} <= {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
@@ -1281,6 +1336,10 @@ class GT(Binary):
 	precedence = 4
 	associative = False
 
+	@classmethod
+	def evaluate(cls, obj1, obj2):
+		return obj1 > obj2
+
 	def format(self, indent):
 		return "{} > {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
@@ -1299,6 +1358,10 @@ class GE(Binary):
 
 	precedence = 4
 	associative = False
+
+	@classmethod
+	def evaluate(cls, obj1, obj2):
+		return obj1 >= obj2
 
 	def format(self, indent):
 		return "{} >= {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
@@ -1323,6 +1386,10 @@ class Contains(Binary):
 	precedence = 3
 	associative = False
 
+	@classmethod
+	def evaluate(cls, obj1, obj2):
+		return obj1 in obj2
+
 	def format(self, indent):
 		return "{} in {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
@@ -1346,6 +1413,10 @@ class NotContains(Binary):
 	precedence = 3
 	associative = False
 
+	@classmethod
+	def evaluate(cls, obj1, obj2):
+		return obj1 not in obj2
+
 	def format(self, indent):
 		return "{} not in {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
@@ -1363,6 +1434,10 @@ class Add(Binary):
 	"""
 
 	precedence = 5
+
+	@classmethod
+	def evaluate(cls, obj1, obj2):
+		return obj1 + obj2
 
 	def format(self, indent):
 		return "{}+{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
@@ -1383,6 +1458,10 @@ class Sub(Binary):
 	precedence = 5
 	associative = False
 
+	@classmethod
+	def evaluate(cls, obj1, obj2):
+		return obj1 - obj2
+
 	def format(self, indent):
 		return "{}-{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
@@ -1400,6 +1479,10 @@ class Mul(Binary):
 	"""
 
 	precedence = 6
+
+	@classmethod
+	def evaluate(cls, obj1, obj2):
+		return obj1 * obj2
 
 	def format(self, indent):
 		return "{}*{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
@@ -1420,6 +1503,10 @@ class FloorDiv(Binary):
 	precedence = 6
 	associative = False
 
+	@classmethod
+	def evaluate(cls, obj1, obj2):
+		return obj1 // obj2
+
 	def format(self, indent):
 		return "{}//{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
@@ -1439,6 +1526,10 @@ class TrueDiv(Binary):
 	precedence = 6
 	associative = False
 
+	@classmethod
+	def evaluate(cls, obj1, obj2):
+		return obj1 / obj2
+
 	def format(self, indent):
 		return "{}/{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
@@ -1456,6 +1547,10 @@ class And(Binary):
 	"""
 
 	precedence = 1
+
+	@classmethod
+	def evaluate(cls, obj1, obj2):
+		return obj1 and obj2
 
 	def format(self, indent):
 		return "{} and {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
@@ -1475,6 +1570,10 @@ class Or(Binary):
 
 	precedence = 0
 
+	@classmethod
+	def evaluate(cls, obj1, obj2):
+		return obj1 or obj2
+
 	def format(self, indent):
 		return "{} or {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
@@ -1493,6 +1592,10 @@ class Mod(Binary):
 
 	precedence = 6
 	associative = False
+
+	@classmethod
+	def evaluate(cls, obj1, obj2):
+		return obj1 % obj2
 
 	def format(self, indent):
 		return "{}%{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
