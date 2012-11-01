@@ -460,7 +460,7 @@ combinations are supported:
 		the key ``b``. Note that some implementations might support keys other
 		than strings too. (The Python and Java renderer do for example.)
 
-If the specified key doesn't exist or the index is out out range for the string
+If the specified key doesn't exist or the index is out of range for the string
 or list, the special object ``Undefined`` is returned.
 
 Slices are also supported (for list and string objects). As in Python one or
