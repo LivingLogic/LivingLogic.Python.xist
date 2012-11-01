@@ -71,6 +71,7 @@ code:
 	*	color objects
 	*	The "null" value (``None``)
 	*	boolean values (``True`` and ``False``)
+	*	the ``Undefined`` variable
 	*	lists
 	*	dictionaries
 	*	templates
@@ -234,6 +235,14 @@ will create the dictionary::
 	{ "H": "(h)", "R": "(r)", "U": "(u)", "Z": "(z)"}
 
 
+The ``Undefined`` object
+------------------------
+
+The object ``Undefined`` will be returned when a non-existant variable, a
+non-existant dictionary entry or an index that is out of range for a list/string
+is accessed.
+
+
 Template code
 =============
 
@@ -306,12 +315,13 @@ innermost running loop.
 
 The ``if`` tag can be used to output a part of the template only when a
 condition is true. The end of the ``if`` block must be marked with an
-``<?end if?>`` tag. The truth value of an object is the same as in Python:
+``<?end if?>`` tag. The truth value of an object is mostly the same as in Python:
 
 	*	``None`` is false.
 	*	The integer ``0`` and the float value ``0.0`` are false.
 	*	Empty strings, lists and dictionaries are false.
 	*	``False`` is false.
+	*	``Undefined`` is false.
 	*	Anything else is true.
 
 For example we can output the person list only if there are any persons::
@@ -450,6 +460,9 @@ combinations are supported:
 		the key ``b``. Note that some implementations might support keys other
 		than strings too. (The Python and Java renderer do for example.)
 
+If the specified key doesn't exist or the index is out out range for the string
+or list, the special object ``Undefined`` is returned.
+
 Slices are also supported (for list and string objects). As in Python one or
 both of the indexes may be missing to start at the first or end at the last
 character/item. Negative indexes are relative to the end. Indexes that are out
@@ -462,11 +475,11 @@ of bounds are simply clipped:
 The following binary operators are supported: ``+``, ``-``, ``*``, ``/`` (true
 division), ``//`` (truncating division) and ``&`` (modulo).
 
-The usual boolean operators ``not``, ``and`` and ``or`` are supported. However
-``and`` and ``or`` don't short-circuit, i.e. both operands will be evaluated.
-However both ``and`` and ``or`` always return one of the operands). For example,
-the following code will output the ``data.title`` object if it's true, else
-``data.id`` will be output::
+The usual boolean operators ``not``, ``and`` and ``or`` are supported. ``and``
+and ``or`` work like in Python, i.e. they short-circuit, if they result is
+clear from the first operand, the seconds won't be evaluated and they always
+return one of the operands). For example, the following code will output the
+``data.title`` object if it's true, else ``data.id`` will be output::
 
 	<?print xmlescape(data.title or data.id)?>
 
@@ -567,6 +580,24 @@ when ``r`` is the random value, ``(r-start) % step`` will always be ``0``.
 ``randchoice(seq)`` returns a random item from the sequence ``seq``.
 
 
+``isundefined``
+"""""""""""""""
+
+``isundefined(foo)`` returns ``True`` if ``foo`` is ``Undefined``, else
+``False`` is returned::
+
+	data is <?if isundefined(data)?>undefined<?else?>defined<?end if?>!
+
+
+``isdefined``
+"""""""""""""
+
+``isuefined(foo)`` returns ``False`` if ``foo`` is ``Undefined``, else
+``True`` is returned::
+
+	data is <?if isdefined(data)?>defined<?else?>undefined<?end if?>!
+
+
 ``isnone``
 """"""""""
 
@@ -658,10 +689,10 @@ a boolean or an integer.
 ``str``
 """""""
 
-``str(foo)`` converts ``foo`` to a string. If ``foo`` is ``None`` the result
-will be the empty string. For lists and dictionaries the exact format is
-undefined, but should follow Python's repr format. For color objects the result
-is a CSS expression (e.g. ``"#fff"``).
+``str(foo)`` converts ``foo`` to a string. If ``foo`` is ``None`` or ``Undefined``
+the result will be the empty string. For lists and dictionaries the exact format
+is undefined, but should follow Python's repr format. For color objects the
+result is a CSS expression (e.g. ``"#fff"``).
 
 
 ``repr``
