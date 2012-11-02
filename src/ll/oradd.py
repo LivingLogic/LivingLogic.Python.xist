@@ -297,7 +297,7 @@ def load_ul4on(stream):
 def importdata(data, cursor):
 	"""
 	Import the data ``data`` produced by :func:`loads_oradd`, :func:`load_oradd`,
-	:func:`loads_ulon` or :funct:`load_ul4on` into the database. ``cursor`` must
+	:func:`loads_ulon` or :func:`load_ul4on` into the database. ``cursor`` must
 	be a :mod:`cx_Oracle` cursor.
 
 	:func:`importdata` is itself a generator. For each procedure call it produces
