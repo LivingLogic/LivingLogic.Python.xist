@@ -64,17 +64,17 @@ Supported data types
 The following object types can be passed as variables to be used by the template
 code:
 
-	*	strings
-	*	integers
-	*	floats
-	*	date objects
-	*	color objects
-	*	The "null" value (``None``)
-	*	boolean values (``True`` and ``False``)
-	*	the ``Undefined`` variable
-	*	lists
-	*	dictionaries
-	*	templates
+*	strings
+*	integers
+*	floats
+*	date objects
+*	color objects
+*	The "null" value (``None``)
+*	boolean values (``True`` and ``False``)
+*	the ``Undefined`` variable
+*	lists
+*	dictionaries
+*	templates
 
 This is similar to what JSON_ supports (except for date objects, color objects
 and templates).
@@ -126,15 +126,15 @@ Strings are delimited with single or double quotes and support all escape
 sequences that Python supports (except ``\N{}``). Strings constants are always
 unicode objects, so ``\uXXXX`` escaping is possible. Examples:
 
-	* ``"abc"`` and ``'abc'``;
+* ``"abc"`` and ``'abc'``;
 
-	*	``"'"`` and ``'\''`` are single quotes;
+*	``"'"`` and ``'\''`` are single quotes;
 
-	*	``'"'`` and ``"\""`` are double quotes;
+*	``'"'`` and ``"\""`` are double quotes;
 
-	*	``"\n"`` is a line feed and ``"\t"`` is a tab;
+*	``"\n"`` is a line feed and ``"\t"`` is a tab;
 
-	*	``"\x61"`` and ``"\u0061"`` are lowercase "a"s;
+*	``"\x61"`` and ``"\u0061"`` are lowercase "a"s;
 
 
 Date constants
@@ -143,13 +143,13 @@ Date constants
 Date objects have a date and time including microseconds. Date constants can be
 created like this:
 
-	*	``@(2008-12-24)``
+*	``@(2008-12-24)``
 
-	*	``@(2008-12-24T12:34)``
+*	``@(2008-12-24T12:34)``
 
-	*	``@(2008-12-24T12:34:56)``
+*	``@(2008-12-24T12:34:56)``
 
-	*	``@(2008-12-24T12:34:56.987654)``
+*	``@(2008-12-24T12:34:56.987654)``
 
 
 Color constants
@@ -158,13 +158,13 @@ Color constants
 Color values are 8 bit red, green, blue and alpha values. Color constants can
 be created like this:
 
-	*	``#fff``
+*	``#fff``
 
-	*	``#fff8``
+*	``#fff8``
 
-	*	``#0063a8``
+*	``#0063a8``
 
-	*	``#0063a880``
+*	``#0063a880``
 
 The variants with 3 or 6 hex digits will create a color object with an alpha
 value of 255.
@@ -175,11 +175,11 @@ Lists
 
 Lists can be created like this:
 
-	*	``[]``
+*	``[]``
 
-	*	``[1, 2, 3]``
+*	``[1, 2, 3]``
 
-	*	``[None, 42, "foo", [False, True]]``
+*	``[None, 42, "foo", [False, True]]``
 
 It is also possible to create a list with a list comprehension::
 
@@ -203,11 +203,11 @@ Dictionaries
 
 Dictionaries can be created like this:
 
-	*	``{}``
+*	``{}``
 
-	*	``{1: 2, 3: 4}``
+*	``{1: 2, 3: 4}``
 
-	*	``{"foo": 17, "bar": 23}``
+*	``{"foo": 17, "bar": 23}``
 
 Also Python ``**`` syntax for passing keyword arguments is supported for
 creating dictionaries::
@@ -317,12 +317,12 @@ The ``if`` tag can be used to output a part of the template only when a
 condition is true. The end of the ``if`` block must be marked with an
 ``<?end if?>`` tag. The truth value of an object is mostly the same as in Python:
 
-	*	``None`` is false.
-	*	The integer ``0`` and the float value ``0.0`` are false.
-	*	Empty strings, lists and dictionaries are false.
-	*	``False`` is false.
-	*	``Undefined`` is false.
-	*	Anything else is true.
+*	``None`` is false.
+*	The integer ``0`` and the float value ``0.0`` are false.
+*	Empty strings, lists and dictionaries are false.
+*	``False`` is false.
+*	``Undefined`` is false.
+*	Anything else is true.
 
 For example we can output the person list only if there are any persons::
 
@@ -364,14 +364,14 @@ The ``code`` tag can be used to define or modify variables. Apart from the
 assigment operator ``=``, the following augmented assignment operators are
 supported:
 
-	*	``+=`` (adds a value to the variable)
-	*	``-=`` (subtracts a value from the variable)
-	*	``*=`` (multiplies the variable by a value)
-	*	``/=`` (divides the variable by a value)
-	*	``//=`` (divides the variable by a value, rounding down to the next
-		smallest integer)
-	*	``&=`` (Does a modulo operation and replaces the variable value with the
-		result)
+*	``+=`` (adds a value to the variable)
+*	``-=`` (subtracts a value from the variable)
+*	``*=`` (multiplies the variable by a value)
+*	``/=`` (divides the variable by a value)
+*	``//=`` (divides the variable by a value, rounding down to the next
+	smallest integer)
+*	``&=`` (Does a modulo operation and replaces the variable value with the
+	result)
 
 For example the following template will output ``40``::
 
@@ -449,16 +449,16 @@ Expressions
 element access is available, i.e. in the expression ``a[b]`` the following type
 combinations are supported:
 
-	*	string, integer: Returns the ``b``\th character from the string ``a``.
-		Note that negative ``b`` values are supported and are relative to the end,
-		so ``a[-1]`` is the last character.
+*	string, integer: Returns the ``b``\th character from the string ``a``.
+	Note that negative ``b`` values are supported and are relative to the end,
+	so ``a[-1]`` is the last character.
 
-	*	list, integer: Returns the ``b``\th list entry of the list ``a``. Negative
-		``b`` values are supported too.
+*	list, integer: Returns the ``b``\th list entry of the list ``a``. Negative
+	``b`` values are supported too.
 
-	*	dict, string: Return the value from the dictionary ``a`` corresponding to
-		the key ``b``. Note that some implementations might support keys other
-		than strings too. (The Python and Java renderer do for example.)
+*	dict, string: Return the value from the dictionary ``a`` corresponding to
+	the key ``b``. Note that some implementations might support keys other
+	than strings too. (The Python and Java renderer do for example.)
 
 If the specified key doesn't exist or the index is out of range for the string
 or list, the special object ``Undefined`` is returned.
@@ -468,9 +468,9 @@ both of the indexes may be missing to start at the first or end at the last
 character/item. Negative indexes are relative to the end. Indexes that are out
 of bounds are simply clipped:
 
-	*	``<?print "Hello, World!"[7:-1]?>`` prints ``World``.
+*	``<?print "Hello, World!"[7:-1]?>`` prints ``World``.
 
-	*	``<?print "Hello, World!"[:-8]?>`` prints ``Hello``.
+*	``<?print "Hello, World!"[:-8]?>`` prints ``Hello``.
 
 The following binary operators are supported: ``+``, ``-``, ``*``, ``/`` (true
 division), ``//`` (truncating division) and ``&`` (modulo).
@@ -489,11 +489,11 @@ supported.
 Containment test via the ``in`` operator can be done, in the expression
 ``a in b`` the following type combinations are supported:
 
-	*	string, string: Checks whether ``a`` is a substring of ``b``.
-	*	any object, list: Checks whether the object ``a`` is in the list ``b``
-		(comparison is done by value not by identity)
-	*	string, dict: Checks whether the key ``a`` is in the dictionary ``b``.
-		(Note that some implementations might support keys other than strings too.)
+*	string, string: Checks whether ``a`` is a substring of ``b``.
+*	any object, list: Checks whether the object ``a`` is in the list ``b``
+	(comparison is done by value not by identity)
+*	string, dict: Checks whether the key ``a`` is in the dictionary ``b``.
+	(Note that some implementations might support keys other than strings too.)
 
 The inverted containment test (via ``not in``) is available too.
 
@@ -549,6 +549,50 @@ Functions
 ``date()`` creates a date object from the parameter passed in. ``date()``
 supports from three parameters (year, month, day) upto seven parameters
 (year, month, day, hour, minute, second, microsecond).
+
+
+``timedelta``
+"""""""""""""
+
+``timedelta`` returns an object that represents a timespan. ``timedelta``
+allows from zero to three arguments specifying the numbers of days, seconds and
+microseconds. Passing negative values or values that are out of bounds (e.g.
+24*60*60+1 seconds) is allowed. Arguments default to 0, i.e. ``timedelta()``
+returns the timespan for "0 days, 0 seconds, 0 microseconds". In a boolean
+context this object is treated as false (i.e. ``bool(timedelta()))`` returns
+``False``). The following arithmetic operations are supported::
+
+*	``date`` + ``timedelta``
+*	``date`` - ``timedelta``
+*	``timedelta`` + ``timedelta``
+*	``timedelta`` - ``timedelta``
+*	``number`` * ``timedelta``
+*	``timedelta`` * ``number``
+*	``timedelta`` / ``number``
+*	``timedelta`` // ``int``
+
+
+``monthdelta``
+""""""""""""""
+
+``monthdelta`` returns an object that represents a timespan of a number of
+months. ``monthdelta`` allows from zero or one arguments. With zero arguments
+``monthdelta`` returns the timespan for "0 months". In a boolean context this
+object is treated as false (i.e. ``bool(monthdelta()))`` or
+``bool(monthdelta(0)))`` return ``False``). The following arithmetic operations
+are supported::
+
+*	``date`` + ``monthdelta``
+*	``date`` - ``monthdelta``
+*	``monthdelta`` + ``monthdelta``
+*	``monthdelta`` - ``monthdelta``
+*	``int`` * ``monthdelta``
+*	``monthdelta`` // ``int``
+
+For the operations involving ``date`` objects, if the resulting day falls out of
+the range of valid days for the target month, the last day for the target month
+will be used instead, i.e. ``<?print @(2000-01-31) + monthdelta(1)?>`` prints
+``2000-02-29 00:00:00``.
 
 
 ``vars``
@@ -642,6 +686,20 @@ is returned.
 is returned.
 
 
+``istimedelta``
+"""""""""""""""
+
+``istimedelta(foo)`` returns ``True`` if ``foo`` is a timedelta object, else
+``False`` is returned.
+
+
+``ismonthdelta``
+"""""""""""""""
+
+``ismonthdelta(foo)`` returns ``True`` if ``foo`` is a monthdelta object, else
+``False`` is returned.
+
+
 ``islist``
 """"""""""
 
@@ -667,7 +725,8 @@ is returned.
 """"""""
 
 ``bool(foo)`` converts ``foo`` to an boolean. I.e. ``True`` or ``False`` is
-returned according to the truth value of ``foo``.
+returned according to the truth value of ``foo``. Calling ``bool`` without
+arguments returns ``False``.
 
 
 ``int``
@@ -676,14 +735,14 @@ returned according to the truth value of ``foo``.
 ``int(foo)`` converts ``foo`` to an integer. ``foo`` can be a string, a float,
 a boolean or an integer. ``int`` can also be called with two arguments. In this
 case the first argument must be a string and the second is the number base for
-the conversion.
+the conversion. Calling ``int`` without arguments returns ``0``.
 
 
 ``float``
 """""""""
 
 ``float(foo)`` converts ``foo`` to a float. ``foo`` can be a string, a float,
-a boolean or an integer.
+a boolean or an integer. Calling ``float`` without arguments returns ``0.0``.
 
 
 ``str``
@@ -692,7 +751,8 @@ a boolean or an integer.
 ``str(foo)`` converts ``foo`` to a string. If ``foo`` is ``None`` or ``Undefined``
 the result will be the empty string. For lists and dictionaries the exact format
 is undefined, but should follow Python's repr format. For color objects the
-result is a CSS expression (e.g. ``"#fff"``).
+result is a CSS expression (e.g. ``"#fff"``). Calling ``str`` without arguments
+returns the empty string.
 
 
 ``repr``
@@ -945,9 +1005,9 @@ recognized ``None`` is returned.)
 
 ``rgb`` returns a color object. It can be called with
 
-	*	three arguments, the red, green and blue values. The alpha value will be
-		set to 255;
-	*	four arguments, the red, green, blue and alpha values.
+*	three arguments, the red, green and blue values. The alpha value will be
+	set to 255;
+*	four arguments, the red, green, blue and alpha values.
 
 
 ``random``
