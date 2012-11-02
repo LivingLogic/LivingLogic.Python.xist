@@ -247,7 +247,7 @@ class IsInstanceSelector(Selector):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(html.a):
 		... 	print node.attrs.href, node.attrs.title
 		...
@@ -300,7 +300,7 @@ class hasname(Selector):
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
 		>>> for node in doc.walknodes(xfind.hasname("img")):
 		... 	print node.bytes()
 		...
