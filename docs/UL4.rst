@@ -694,7 +694,7 @@ is returned.
 
 
 ``ismonthdelta``
-"""""""""""""""
+""""""""""""""""
 
 ``ismonthdelta(foo)`` returns ``True`` if ``foo`` is a monthdelta object, else
 ``False`` is returned.
