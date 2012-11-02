@@ -424,7 +424,7 @@ empty = IsEmptySelector()
 
 class OnlyChildSelector(Selector):
 	"""
-	Selector that selects all node that are the only child of their parents::
+	Selector that selects all nodes that are the only child of their parents::
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
