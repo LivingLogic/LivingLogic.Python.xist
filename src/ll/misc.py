@@ -738,10 +738,10 @@ class monthdelta(object):
 	day falls out of the range of valid days for the target month, the last day
 	for the target month will be used instead::
 
-	>>> import datetime
-	>>> from ll import misc
-	>>> datetime.date(2000, 1, 31) + misc.monthdelta(1)
-	datetime.date(2000, 2, 29)
+		>>> import datetime
+		>>> from ll import misc
+		>>> datetime.date(2000, 1, 31) + misc.monthdelta(1)
+		datetime.date(2000, 2, 29)
 	"""
 
 	__slots__ = ("months",)
