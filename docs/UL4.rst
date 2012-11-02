@@ -476,10 +476,10 @@ The following binary operators are supported: ``+``, ``-``, ``*``, ``/`` (true
 division), ``//`` (truncating division) and ``&`` (modulo).
 
 The usual boolean operators ``not``, ``and`` and ``or`` are supported. ``and``
-and ``or`` work like in Python, i.e. they short-circuit, if they result is
-clear from the first operand, the seconds won't be evaluated and they always
-return one of the operands). For example, the following code will output the
-``data.title`` object if it's true, else ``data.id`` will be output::
+and ``or`` work like in Python, i.e. they short-circuit, i.e. if they result is
+clear from the first operand the seconds won't be evaluated, Furthermore they
+always return one of the operands). For example, the following code will output
+the ``data.title`` object if it's true, else ``data.id`` will be output::
 
 	<?print xmlescape(data.title or data.id)?>
 
