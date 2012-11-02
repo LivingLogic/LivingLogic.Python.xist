@@ -320,6 +320,8 @@ condition is true. The end of the ``if`` block must be marked with an
 *	``None`` is false.
 *	The integer ``0`` and the float value ``0.0`` are false.
 *	Empty strings, lists and dictionaries are false.
+*	``timedelta`` and ``monthdelta`` objects for an empty timespan (i.e.
+	``timedelta(0, 0, 0)`` and ``monthdelta(0)``) are false.
 *	``False`` is false.
 *	``Undefined`` is false.
 *	Anything else is true.
