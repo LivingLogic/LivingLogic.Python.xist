@@ -10,7 +10,8 @@ Changes in 4.3 (released ??/??/2012)
 
 *	Accessing non-existant variables in UL4 templates now no longer raises an
 	exception but returns the special object ``Undefined``. The same is true for
-	accessing non-existant dictionary keys or list indexes that are out of range.
+	accessing non-existant dictionary keys or list/string indexes that are out of
+	range.
 
 	In a boolean context ``Undefined`` is treated as false and ``str(Undefined)``
 	returns the empty string.
