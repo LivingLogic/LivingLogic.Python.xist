@@ -681,7 +681,7 @@ class SysInfo(object):
 
 	@property
 	def user_shell(self):
-		if self._user_she is object:
+		if self._user_shell is object:
 			self._make_user_info()
 		return self._user_shell
 
