@@ -292,7 +292,7 @@ def explain(thing, name=None, format=None, context=[]):
 		all = []
 		properties = []
 		classes = []
-		for varname in thing.__dict__.keys():
+		for varname in thing.__dict__:
 			obj = getattr(thing, varname)
 			if isinstance(obj, property):
 				properties.append((obj, varname))
@@ -304,7 +304,7 @@ def explain(thing, name=None, format=None, context=[]):
 				else:
 					classes.append((obj, varname))
 					_append(all, obj, varname)
-			elif inspect.ismethod(obj):
+			elif inspect.isfunction(obj):
 				# skip the method if it's a property getter, setter or deleter
 				for (prop, name) in properties:
 					if obj.__func__==prop.fget or obj.__func__==prop.fset or obj.__func__==prop.fdel:
