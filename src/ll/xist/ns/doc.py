@@ -307,7 +307,7 @@ def explain(thing, name=None, format=None, context=[]):
 			elif inspect.isfunction(obj):
 				# skip the method if it's a property getter, setter or deleter
 				for (prop, name) in properties:
-					if obj.__func__==prop.fget or obj.__func__==prop.fset or obj.__func__==prop.fdel:
+					if obj==prop.fget or obj==prop.fset or obj==prop.fdel:
 						break
 				else:
 					_append(all, obj, varname)
