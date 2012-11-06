@@ -2281,6 +2281,16 @@ def test_method_mimeformat(r):
 
 
 @pytest.mark.ul4
+def test_method_items(r):
+	assert "a:42;b:17;c:23;" == r("<?for (key, value) in sorted(data.items())?><?print key?>:<?print value?>;<?end for?>", data=dict(a=42, b=17, c=23))
+
+
+@pytest.mark.ul4
+def test_method_values(r):
+	assert "17;23;42;" == r("<?for value in sorted(data.values())?><?print value?>;<?end for?>", data=dict(a=42, b=17, c=23))
+
+
+@pytest.mark.ul4
 def test_method_get(r):
 	assert "42" == r("<?print {}.get('foo', 42)?>")
 	assert "17" == r("<?print {'foo': 17}.get('foo', 42)?>")

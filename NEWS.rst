@@ -1,3 +1,13 @@
+Changes in 4.3.1 (released 11/06/2012)
+--------------------------------------
+
+*	Added a method ``values`` to UL4 for dictionaries.
+
+*	Fixed a bug in ``ll.misc.SysInfo.user_shell``.
+
+*	Fixed function :func:`ll.xist.ns.doc.explain` for methods.
+
+
 Changes in 4.3 (released 11/02/2012)
 ------------------------------------
 
