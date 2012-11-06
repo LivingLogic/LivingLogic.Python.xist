@@ -2723,6 +2723,8 @@ def _xmlescape(obj):
 	"""
 	if obj is None:
 		return ""
+	elif obj is Undefined:
+		return ""
 	else:
 		return misc.xmlescape(str(obj))
 
