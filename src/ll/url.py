@@ -51,7 +51,7 @@ except ImportError:
 try:
 	import execnet
 except ImportError:
-	execnet = None
+	pass
 
 try:
 	from PIL import Image
