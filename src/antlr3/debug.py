@@ -257,7 +257,7 @@ class DebugTreeAdaptor(TreeAdaptor):
 
 
     def simulateTreeConstruction(self, t):
-	"""^(A B C): emit create A, create B, add child, ..."""
+        """^(A B C): emit create A, create B, add child, ..."""
         self.dbg.createNode(t)
         for i in range(self.adaptor.getChildCount(t)):
             child = self.adaptor.getChild(t, i)
@@ -413,7 +413,7 @@ class DebugEventListener(object):
     PROTOCOL_VERSION = "2"
 
     def enterRule(self, grammarFileName, ruleName):
-	"""The parser has just entered a rule. No decision has been made about
+        """The parser has just entered a rule. No decision has been made about
         which alt is predicted.  This is fired AFTER init actions have been
         executed.  Attributes are defined and available etc...
         The grammarFileName allows composite grammars to jump around among
@@ -424,25 +424,25 @@ class DebugEventListener(object):
 
 
     def enterAlt(self, alt):
-	"""Because rules can have lots of alternatives, it is very useful to
+        """Because rules can have lots of alternatives, it is very useful to
         know which alt you are entering.  This is 1..n for n alts.
         """
         pass
 
 
     def exitRule(self, grammarFileName, ruleName):
-	"""This is the last thing executed before leaving a rule.  It is
+        """This is the last thing executed before leaving a rule.  It is
         executed even if an exception is thrown.  This is triggered after
         error reporting and recovery have occurred (unless the exception is
         not caught in this rule).  This implies an "exitAlt" event.
         The grammarFileName allows composite grammars to jump around among
         multiple grammar files.
-	"""
+        """
         pass
 
 
     def enterSubRule(self, decisionNumber):
-	"""Track entry into any (...) subrule other EBNF construct"""
+        """Track entry into any (...) subrule other EBNF construct"""
         pass
 
 
@@ -451,7 +451,7 @@ class DebugEventListener(object):
 
 
     def enterDecision(self, decisionNumber):
-	"""Every decision, fixed k or arbitrary, has an enter/exit event
+        """Every decision, fixed k or arbitrary, has an enter/exit event
         so that a GUI can easily track what LT/consume events are
         associated with prediction.  You will see a single enter/exit
         subrule but multiple enter/exit decision events, one for each
@@ -465,40 +465,40 @@ class DebugEventListener(object):
 
 
     def consumeToken(self, t):
-	"""An input token was consumed; matched by any kind of element.
+        """An input token was consumed; matched by any kind of element.
         Trigger after the token was matched by things like match(), matchAny().
-	"""
+        """
         pass
 
 
     def consumeHiddenToken(self, t):
-	"""An off-channel input token was consumed.
+        """An off-channel input token was consumed.
         Trigger after the token was matched by things like match(), matchAny().
         (unless of course the hidden token is first stuff in the input stream).
-	"""
+        """
         pass
 
 
     def LT(self, i, t):
-	"""Somebody (anybody) looked ahead.  Note that this actually gets
+        """Somebody (anybody) looked ahead.  Note that this actually gets
         triggered by both LA and LT calls.  The debugger will want to know
         which Token object was examined.  Like consumeToken, this indicates
         what token was seen at that depth.  A remote debugger cannot look
         ahead into a file it doesn't have so LT events must pass the token
         even if the info is redundant.
-	"""
+        """
         pass
 
 
     def mark(self, marker):
-	"""The parser is going to look arbitrarily ahead; mark this location,
+        """The parser is going to look arbitrarily ahead; mark this location,
         the token stream's marker is sent in case you need it.
-	"""
+        """
         pass
 
 
     def rewind(self, marker=None):
-	"""After an arbitrairly long lookahead as with a cyclic DFA (or with
+        """After an arbitrairly long lookahead as with a cyclic DFA (or with
         any backtrack), this informs the debugger that stream should be
         rewound to the position associated with marker.
 
@@ -515,19 +515,19 @@ class DebugEventListener(object):
 
 
     def location(self, line, pos):
-	"""To watch a parser move through the grammar, the parser needs to
+        """To watch a parser move through the grammar, the parser needs to
         inform the debugger what line/charPos it is passing in the grammar.
         For now, this does not know how to switch from one grammar to the
         other and back for island grammars etc...
 
         This should also allow breakpoints because the debugger can stop
         the parser whenever it hits this line/pos.
-	"""
+        """
         pass
 
 
     def recognitionException(self, e):
-	"""A recognition exception occurred such as NoViableAltException.  I made
+        """A recognition exception occurred such as NoViableAltException.  I made
         this a generic event so that I can alter the exception hierachy later
         without having to alter all the debug objects.
 
@@ -555,39 +555,39 @@ class DebugEventListener(object):
         The sequence for this rule (with no viable alt in the subrule) for
         input 'c c' (there are 3 tokens) is:
 
-		commence
-		LT(1)
-		enterRule b
-		location 7 1
-		enter decision 3
-		LT(1)
-		exit decision 3
-		enterAlt1
-		location 7 5
-		LT(1)
-		consumeToken [c/<4>,1:0]
-		location 7 7
-		enterSubRule 2
-		enter decision 2
-		LT(1)
-		LT(1)
-		recognitionException NoViableAltException 2 1 2
-		exit decision 2
-		exitSubRule 2
-		beginResync
-		LT(1)
-		consumeToken [c/<4>,1:1]
-		LT(1)
-		endResync
-		LT(-1)
-		exitRule b
-		terminate
-	"""
+                commence
+                LT(1)
+                enterRule b
+                location 7 1
+                enter decision 3
+                LT(1)
+                exit decision 3
+                enterAlt1
+                location 7 5
+                LT(1)
+                consumeToken [c/<4>,1:0]
+                location 7 7
+                enterSubRule 2
+                enter decision 2
+                LT(1)
+                LT(1)
+                recognitionException NoViableAltException 2 1 2
+                exit decision 2
+                exitSubRule 2
+                beginResync
+                LT(1)
+                consumeToken [c/<4>,1:1]
+                LT(1)
+                endResync
+                LT(-1)
+                exitRule b
+                terminate
+        """
         pass
 
 
     def beginResync(self):
-	"""Indicates the recognizer is about to consume tokens to resynchronize
+        """Indicates the recognizer is about to consume tokens to resynchronize
         the parser.  Any consume events from here until the recovered event
         are not part of the parse--they are dead tokens.
         """
@@ -595,30 +595,30 @@ class DebugEventListener(object):
 
     
     def endResync(self):
-	"""Indicates that the recognizer has finished consuming tokens in order
+        """Indicates that the recognizer has finished consuming tokens in order
         to resychronize.  There may be multiple beginResync/endResync pairs
         before the recognizer comes out of errorRecovery mode (in which
         multiple errors are suppressed).  This will be useful
         in a gui where you want to probably grey out tokens that are consumed
         but not matched to anything in grammar.  Anything between
         a beginResync/endResync pair was tossed out by the parser.
-	"""
+        """
         pass
 
 
     def semanticPredicate(self, result, predicate):
-	"""A semantic predicate was evaluate with this result and action text"""
+        """A semantic predicate was evaluate with this result and action text"""
         pass
 
 
     def commence(self):
-	"""Announce that parsing has begun.  Not technically useful except for
+        """Announce that parsing has begun.  Not technically useful except for
         sending events over a socket.  A GUI for example will launch a thread
         to connect and communicate with a remote parser.  The thread will want
         to notify the GUI when a connection is made.  ANTLR parsers
         trigger this upon entry to the first rule (the ruleLevel is used to
         figure this out).
-	"""
+        """
         pass
 
 
@@ -627,7 +627,7 @@ class DebugEventListener(object):
         remote debugging listeners that it's time to quit.  When the rule
         invocation level goes to zero at the end of a rule, we are done
         parsing.
-	"""
+        """
         pass
 
 
@@ -646,10 +646,10 @@ class DebugEventListener(object):
 
 
     def LT(self, i, t):
-	"""The tree parser lookedahead.  If the type is UP or DOWN,
+        """The tree parser lookedahead.  If the type is UP or DOWN,
         then the ID is not really meaningful as it's fixed--there is
         just one UP node and one DOWN navigation node.
-	"""
+        """
         pass
 
 
@@ -657,7 +657,7 @@ class DebugEventListener(object):
     ## A S T  E v e n t s
 
     def nilNode(self, t):
-	"""A nil was created (even nil nodes have a unique ID...
+        """A nil was created (even nil nodes have a unique ID...
         they are not "null" per se).  As of 4/28/2006, this
         seems to be uniquely triggered when starting a new subtree
         such as when entering a subrule in automatic mode and when
@@ -665,29 +665,29 @@ class DebugEventListener(object):
 
         If you are receiving this event over a socket via
         RemoteDebugEventSocketListener then only t.ID is set.
-	"""
+        """
         pass
 
 
     def errorNode(self, t):
-	"""Upon syntax error, recognizers bracket the error with an error node
+        """Upon syntax error, recognizers bracket the error with an error node
         if they are building ASTs.
         """
         pass
 
 
     def createNode(self, node, token=None):
-	"""Announce a new node built from token elements such as type etc...
+        """Announce a new node built from token elements such as type etc...
 
         If you are receiving this event over a socket via
         RemoteDebugEventSocketListener then only t.ID, type, text are
         set.
-	"""
+        """
         pass
 
 
     def becomeRoot(self, newRoot, oldRoot):
-	"""Make a node the new root of an existing root.
+        """Make a node the new root of an existing root.
 
         Note: the newRootID parameter is possibly different
         than the TreeAdaptor.becomeRoot() newRoot parameter.
@@ -702,12 +702,12 @@ class DebugEventListener(object):
         RemoteDebugEventSocketListener then only IDs are set.
 
         @see antlr3.tree.TreeAdaptor.becomeRoot()
-	"""
+        """
         pass
 
 
     def addChild(self, root, child):
-	"""Make childID a child of rootID.
+        """Make childID a child of rootID.
 
         If you are receiving this event over a socket via
         RemoteDebugEventSocketListener then only IDs are set.
@@ -718,11 +718,11 @@ class DebugEventListener(object):
 
 
     def setTokenBoundaries(self, t, tokenStartIndex, tokenStopIndex):
-	"""Set the token start/stop token index for a subtree root or node.
+        """Set the token start/stop token index for a subtree root or node.
 
         If you are receiving this event over a socket via
         RemoteDebugEventSocketListener then only t.ID is set.
-	"""
+        """
         pass
 
 
@@ -847,7 +847,7 @@ class DebugEventSocketProxy(DebugEventListener):
 
         self.grammarFileName = recognizer.getGrammarFileName()
 
-	# Almost certainly the recognizer will have adaptor set, but
+        # Almost certainly the recognizer will have adaptor set, but
         # we don't know how to cast it (Parser or TreeParser) to get
         # the adaptor field.  Must be set with a constructor. :(
         self.adaptor = adaptor
@@ -1062,7 +1062,7 @@ class DebugEventSocketProxy(DebugEventListener):
 #         buf.append(tokenIndex);
 #         serializeText(buf, text);
 
-	
+        
     ## A S T  E v e n t s
 
     def nilNode(self, t):
