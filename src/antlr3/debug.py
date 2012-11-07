@@ -47,9 +47,10 @@ class DebugParser(Parser):
 
 
     def setDebugListener(self, dbg):
-	"""Provide a new debug event listener for this parser.  Notify the
+        """
+        Provide a new debug event listener for this parser.  Notify the
         input stream too that it should send events to this listener.
-	"""
+        """
 
         if hasattr(self.input, 'dbg'):
             self.input.dbg = dbg
