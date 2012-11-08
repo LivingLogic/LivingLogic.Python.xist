@@ -1,4 +1,4 @@
-Changes in 4.4 (released ??/??/2012)
+Changes in 4.4 (released 11/08/2012)
 ------------------------------------
 
 *	Python 3.3 is required now (as the code uses ``yield from`` and ``__qualname``).
