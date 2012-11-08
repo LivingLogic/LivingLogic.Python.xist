@@ -6,6 +6,8 @@ Changes in 4.4 (released 11/08/2012)
 *	:file:`ll/__init__.py` has been removed, i.e. XIST is now a PEP 420
 	compatible namespace package.
 
+*	Fixed tab/space mix in :file:`antlr3/debug.py`.
+
 
 Changes in 4.3.1 (released 11/06/2012)
 --------------------------------------
