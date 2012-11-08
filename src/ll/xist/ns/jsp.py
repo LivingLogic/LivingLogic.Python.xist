@@ -5,7 +5,7 @@
 ##
 ## All Rights Reserved
 ##
-## See ll/__init__.py for the license
+## See ll/xist/__init__.py for the license
 
 
 """
@@ -31,8 +31,7 @@ class directive(xsc.Element):
 	def publish(self, publisher):
 		yield publisher.encode("<%@ ")
 		yield publisher.encode(self._publishname(publisher))
-		for part in self.attrs.publish(publisher):
-			yield part
+		yield from self.attrs.publish(publisher)
 		yield publisher.encode("%>")
 
 

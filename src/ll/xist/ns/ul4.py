@@ -5,7 +5,7 @@
 ##
 ## All Rights Reserved
 ##
-## See ll/__init__.py for the license
+## See ll/xist/__init__.py for the license
 
 
 from ll import misc
@@ -69,16 +69,14 @@ class attr_if(xsc.AttrElement):
 
 	def publish(self, publisher):
 		yield publisher.encode('<?if {cond}?>'.format(cond=str(self.attrs.cond)))
-		for part in self.content.publish(publisher):
-			yield part
+		yield from self.content.publish(publisher)
 		yield publisher.encode('<?end if?>')
 
 	def publishattr(self, publisher, attr):
 		publisher.inattr += 1
 		yield publisher.encode('<?if {cond}?> {name}="'.format(cond=str(self.attrs.cond), name=attr._publishname(publisher)))
 		publisher.pushtextfilter(misc.xmlescape_attr)
-		for part in self.content.publish(publisher):
-			yield part
+		yield from self.content.publish(publisher)
 		publisher.poptextfilter()
 		yield publisher.encode('"<?end if?>')
 		publisher.inattr -= 1

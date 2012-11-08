@@ -6,7 +6,7 @@
 ##
 ## All Rights Reserved
 ##
-## See ll/__init__.py for the license
+## See ll/xist/__init__.py for the license
 
 
 import sys, io, os, datetime, math, tempfile, shutil, subprocess

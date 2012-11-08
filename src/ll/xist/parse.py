@@ -5,7 +5,7 @@
 ##
 ## All Rights Reserved
 ##
-## See ll/__init__.py for the license
+## See ll/xist/__init__.py for the license
 
 
 """
@@ -493,8 +493,7 @@ class ETree(object):
 			if node.text:
 				yield ("text", node.text)
 			for child in node:
-				for event in self._asxist(child):
-					yield event
+				yield from self._asxist(child)
 				if hasattr(child, "tail") and child.tail:
 					yield ("text", child.tail)
 			yield ("endtagns", (elementname, elementxmlns))
@@ -509,8 +508,7 @@ class ETree(object):
 		object passed as :var:`data` to the constructor.
 		"""
 		yield ("url", self.url)
-		for event in self._asxist(self.data):
-			yield event
+		yield from self._asxist(self.data)
 
 
 ###
@@ -758,12 +756,10 @@ class Expat(Parser):
 						self._parser.Parse(data, False)
 					except Exception as exc:
 						# In case of an exception we want to output the events we have gathered so far, before reraising the exception
-						for event in self._flush(True):
-							yield event
+						yield from self._flush(True)
 						raise exc
 					else:
-						for event in self._flush(False):
-							yield event
+						yield from self._flush(False)
 				elif evtype == "url":
 					yield (self.evurl, data)
 				else:
@@ -771,12 +767,10 @@ class Expat(Parser):
 			try:
 				self._parser.Parse(b"", True)
 			except Exception as exc:
-				for event in self._flush(True):
-					yield event
+				yield from self._flush(True)
 				raise exc
 			else:
-				for event in self._flush(True):
-					yield event
+				yield from self._flush(True)
 		finally:
 			del self._buffer
 			del self._currentloc
@@ -802,13 +796,11 @@ class Expat(Parser):
 	def _flush(self, force):
 		# Flush ``self._buffer`` as far as possible
 		if force or not self._buffer or self._buffer[-1][0] != self.evtext:
-			for event in self._buffer:
-				yield event
+			yield from self._buffer
 			del self._buffer[:]
 		else:
 			# hold back the last text event, because there might be more
-			for event in self._buffer[:-1]:
-				yield event
+			yield from self._buffer[:-1]
 			del self._buffer[:-1]
 
 	def _getname(self, name):
@@ -909,20 +901,17 @@ class SGMLOP(Parser):
 						self._parser.feed(data)
 					except Exception as exc:
 						# In case of an exception we want to output the events we have gathered so far, before reraising the exception
-						for event in self._flush(True):
-							yield event
+						yield from self._flush(True)
 						self._parser.close()
 						raise exc
 					else:
-						for event in self._flush(False):
-							yield event
+						yield from self._flush(False)
 				elif evtype == "url":
 					yield (self.evurl, data)
 				else:
 					raise UnknownEventError(self, (evtype, data))
 			self._parser.close()
-			for event in self._flush(True):
-				yield event
+			yield from self._flush(True)
 		finally:
 			del self._hadtext
 			del self._buffer
@@ -939,13 +928,11 @@ class SGMLOP(Parser):
 	def _flush(self, force):
 		# Flush ``self._buffer`` as far as possible
 		if force or not self._buffer or self._buffer[-1][0] != self.evtext:
-			for event in self._buffer:
-				yield event
+			yield from self._buffer
 			del self._buffer[:]
 		else:
 			# hold back the last text event, because there might be more
-			for event in self._buffer[:-1]:
-				yield event
+			yield from self._buffer[:-1]
 			del self._buffer[:-1]
 
 	def handle_comment(self, data):
@@ -1047,8 +1034,7 @@ class NS(object):
 				handler = getattr(self, evtype)
 			except AttributeError:
 				raise UnknownEventError(self, (evtype, data))
-			for event in handler(data):
-				yield event
+			yield from handler(data)
 
 	def url(self, data):
 		yield ("url", data)
@@ -1171,8 +1157,7 @@ class NS(object):
 			else:
 				xmlns = None
 			yield ("enterattrns", (attrname, xmlns))
-			for event in attrvalue:
-				yield event
+			yield from attrvalue
 			yield ("leaveattrns", (attrname, xmlns))
 		yield ("leavestarttagns", data)
 		self._newprefixes = self._attrs = self._attr = None
@@ -1403,8 +1388,7 @@ class Tidy(object):
 		from ll.xist.ns import html
 		name = type(node).__name__
 		if "ElementTree" in name:
-			for event in self._asxist(node.getroot()):
-				yield event
+			yield from self._asxist(node.getroot())
 		elif "Element" in name:
 			elementname = node.tag
 			element = getattr(html, elementname, None)
@@ -1423,8 +1407,7 @@ class Tidy(object):
 			if node.text:
 				yield ("text", node.text)
 			for child in node:
-				for event in self._asxist(child):
-					yield event
+				yield from self._asxist(child)
 				if hasattr(child, "tail") and child.tail:
 					yield ("text", child.tail)
 			if elok: # Output events for the end tag, if the element is known
@@ -1456,8 +1439,7 @@ class Tidy(object):
 		if data:
 			parser = etree.HTMLParser(encoding=self.encoding)
 			doc = etree.parse(io.BytesIO(data), parser)
-			for event in self._asxist(doc):
-				yield event
+			yield from self._asxist(doc)
 
 
 ###

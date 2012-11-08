@@ -5,7 +5,7 @@
 ##
 ## All Rights Reserved
 ##
-## See ll/__init__.py for the license
+## See ll/xist/__init__.py for the license
 
 
 """
@@ -164,7 +164,6 @@ class Context(object):
 	The method :meth:`Converter.__getitem__` will return a unique instance of
 	this class.
 	"""
-	__fullname__ = "Context"
 
 
 ###
@@ -911,15 +910,14 @@ class Publisher(object):
 
 class _Node_Meta(type):
 	def __new__(cls, name, bases, dict):
-		dict["__fullname__"] = name
 		if "register" not in dict:
 			dict["register"] = True
 		if "xmlname" not in dict:
-			dict["xmlname"] = name.rsplit(".", 1)[-1]
+			dict["xmlname"] = name
 		return type.__new__(cls, name, bases, dict)
 
 	def __repr__(self):
-		return "<class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
+		return "<class {0.__module__}:{0.__qualname__} at {1:#x}>".format(self, id(self))
 
 	def __truediv__(self, other):
 		from ll.xist import xfind
@@ -979,7 +977,7 @@ class Node(object, metaclass=_Node_Meta):
 	prettyindentafter = 0
 
 	def __repr__(self):
-		return "<{0.__module__}:{0.__fullname__} object at {1:#x}>".format(self, id(self))
+		return "<{0.__module__}:{0.__qualname__} object at {1:#x}>".format(self, id(self))
 
 	def __ne__(self, other):
 		return not self == other
@@ -998,7 +996,7 @@ class Node(object, metaclass=_Node_Meta):
 		if xml:
 			name = cls.xmlname
 		elif fullname:
-			name = cls.__fullname__
+			name = cls.__qualname__
 		else:
 			name = cls.__name__
 		v.append(name)
@@ -1531,7 +1529,7 @@ class CharacterData(Node):
 			loc = " (from {})".format(self.startloc)
 		else:
 			loc = ""
-		return "<{0.__class__.__module__}.{0.__class__.__fullname__} content={0.content!r}{1} at {2:#x}>".format(self, loc, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} content={0.content!r}{1} at {2:#x}>".format(self, loc, id(self))
 
 
 class Text(CharacterData):
@@ -1670,8 +1668,7 @@ class Frag(Node, list):
 
 	def publish(self, publisher):
 		for child in self:
-			for part in child.publish(publisher):
-				yield part
+			yield from child.publish(publisher)
 
 	def __getitem__(self, index):
 		"""
@@ -1907,7 +1904,7 @@ class Frag(Node, list):
 		else:
 			info = "{} children".format(l)
 		loc = " (from {})".format(self.startloc) if self.startloc is not None else ""
-		return "<{0.__class__.__module__}.{0.__class__.__fullname__} object ({1}){2} at {3:#x}>".format(self, info, loc, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} object ({1}){2} at {3:#x}>".format(self, info, loc, id(self))
 
 
 class Comment(CharacterData):
@@ -1936,7 +1933,7 @@ class Comment(CharacterData):
 
 class _DocType_Meta(type(Node)):
 	def __repr__(self):
-		return "<doctype class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
+		return "<doctype class {0.__module__}:{0.__qualname__} at {1:#x}>".format(self, id(self))
 
 
 class DocType(CharacterData, metaclass=_DocType_Meta):
@@ -1968,7 +1965,7 @@ class _ProcInst_Meta(type(Node)):
 		return self
 
 	def __repr__(self):
-		return "<procinst class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
+		return "<procinst class {0.__module__}:{0.__qualname__} at {1:#x}>".format(self, id(self))
 
 
 class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
@@ -2010,7 +2007,7 @@ class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
 			loc = " (from {})".format(self.startloc)
 		else:
 			loc = ""
-		return "<{0.__class__.__module__}.{0.__class__.__fullname__} procinst content={0.content!r}{1} at {2:#x}>".format(self, loc, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} procinst content={0.content!r}{1} at {2:#x}>".format(self, loc, id(self))
 
 	def __mul__(self, n):
 		return Node.__mul__(self, n) # don't inherit ``CharacterData.__mul__``
@@ -2073,7 +2070,7 @@ class _Attr_Meta(type(Frag)):
 		return self
 
 	def __repr__(self):
-		return "<attribute class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
+		return "<attribute class {0.__module__}:{0.__qualname__} at {1:#x}>".format(self, id(self))
 
 
 class Attr(Frag, metaclass=_Attr_Meta):
@@ -2169,14 +2166,12 @@ class Attr(Frag, metaclass=_Attr_Meta):
 		if publisher.validate:
 			self.checkvalid()
 		if len(self)==1 and isinstance(self[0], AttrElement):
-			for part in self[0].publishattr(publisher, self):
-				yield part
+			yield from self[0].publishattr(publisher, self)
 		else:
 			publisher.inattr += 1
 			yield publisher.encode(' {}="'.format(self._publishname(publisher)))
 			publisher.pushtextfilter(misc.xmlescape_attr)
-			for part in self._publishattrvalue(publisher):
-				yield part
+			yield from self._publishattrvalue(publisher)
 			publisher.poptextfilter()
 			yield publisher.encode('"')
 			publisher.inattr -= 1
@@ -2193,7 +2188,7 @@ class Attr(Frag, metaclass=_Attr_Meta):
 		else:
 			info = "{} children".format(l)
 		loc = " (from {})".format(self.startloc) if self.startloc is not None else ""
-		return "<{0.__class__.__module__}.{0.__class__.__fullname__} attr object ({1}){2} at {3:#x}>".format(self, info, loc, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} attr object ({1}){2} at {3:#x}>".format(self, info, loc, id(self))
 
 
 class TextAttr(Attr):
@@ -2239,8 +2234,7 @@ class BoolAttr(Attr):
 		if publisher.validate:
 			self.checkvalid()
 		if len(self)==1 and isinstance(self[0], AttrElement):
-			for part in self[0].publishboolattr(publisher, self):
-				yield part
+			yield from self[0].publishboolattr(publisher, self)
 		else:
 			publisher.inattr += 1
 			name = self._publishname(publisher)
@@ -2290,11 +2284,9 @@ class StyleAttr(Attr):
 			from ll.xist import css
 			def reltobase(u):
 				return u.relative(publisher.base)
-			for part in Frag(self._transform(reltobase)).publish(publisher):
-				yield part
+			yield from Frag(self._transform(reltobase)).publish(publisher)
 		else:
-			for part in super(StyleAttr, self)._publishattrvalue(publisher):
-				yield part
+			yield from super(StyleAttr, self)._publishattrvalue(publisher)
 
 	def urls(self, base=None):
 		"""
@@ -2395,7 +2387,7 @@ class _Attrs_Meta(type(Node)):
 		return self
 
 	def __repr__(self):
-		return "<attrs class {0.__module__}:{0.__fullname__} with {1} attrs at {2:#x}>".format(self, len(self._bypyname), id(self))
+		return "<attrs class {0.__module__}:{0.__qualname__} with {1} attrs at {2:#x}>".format(self, len(self._bypyname), id(self))
 
 	def __contains__(self, key):
 		if isinstance(key, str):
@@ -2432,7 +2424,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 				p.text(",")
 				p.breakable()
 			if attr.xmlns is not None:
-				attrname = "{}.{}".format(attr.__class__.__module__, attr.__class__.__fullname__)
+				attrname = "{}.{}".format(attr.__class__.__module__, attr.__class__.__qualname__)
 			else:
 				attrname = attr.__class__.__name__
 			if len(attr) == 1:
@@ -2453,9 +2445,9 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 
 	def _repr_pretty_(self, p, cycle):
 		if cycle:
-			p.text("{}.{}(...)".format(self.__class__.__module__, self.__class__.__fullname__))
+			p.text("{}.{}(...)".format(self.__class__.__module__, self.__class__.__qualname__))
 		else:
-			with p.group(3, "{}.{}(".format(self.__class__.__module__, self.__class__.__fullname__), ")"):
+			with p.group(3, "{}.{}(".format(self.__class__.__module__, self.__class__.__qualname__), ")"):
 				self._repr_pretty_content_(p, True)
 
 	def __eq__(self, other):
@@ -2472,9 +2464,6 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		if value.default:
 			cls._defaultattrsxml[value.xmlname] = value
 			cls._defaultattrspy[value.__name__] = value
-		# fix classname (but don't patch inherited attributes)
-		if "." not in value.__fullname__:
-			value.__fullname__ = "{}.{}".format(cls.__fullname__, value.__fullname__)
 
 	def _create(self):
 		node = self.__class__() # "virtual" constructor
@@ -2548,8 +2537,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 			self.checkvalid()
 
 		for value in sorted(self.values(), key=self._sortorder):
-			for part in value.publish(publisher):
-				yield part
+			yield from value.publish(publisher)
 
 	def __str__(self):
 		return ""
@@ -2922,28 +2910,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 			loc = " (from {})".format(self.startloc)
 		else:
 			loc = ""
-		return "<{0.__class__.__module__}.{0.__class__.__fullname__} attrs {1}{2} at {3:#x}>".format(self, info, loc, id(self))
-
-
-def _patchclassnames(dict, name):
-	# If an :class:`Attrs` class has been provided patch up its class names
-	try:
-		attrs = dict["Attrs"]
-	except KeyError:
-		pass
-	else:
-		attrs.__fullname__ = "{}.Attrs".format(name)
-		for (key, value) in attrs.__dict__.items():
-			if isinstance(value, _Attr_Meta):
-				value.__fullname__ = "{}.{}".format(name, value.__fullname__)
-
-	# If a Context has been provided patch up its class names
-	try:
-		context = dict["Context"]
-	except KeyError:
-		pass
-	else:
-		context.__fullname__ = "{}.{}".format(name, context.__fullname__)
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} attrs {1}{2} at {3:#x}>".format(self, info, loc, id(self))
 
 
 class _Element_Meta(type(Node)):
@@ -2951,14 +2918,13 @@ class _Element_Meta(type(Node)):
 		if "model" in dict and isinstance(dict["model"], bool):
 			from ll.xist import sims
 			dict["model"] = sims.Any() if dict["model"] else sims.Empty()
-		_patchclassnames(dict, name)
 		self = super(_Element_Meta, cls).__new__(cls, name, bases, dict)
 		if dict.get("register") is not None:
 			threadlocalpool.pool.register(self)
 		return self
 
 	def __repr__(self):
-		return "<element class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
+		return "<element class {0.__module__}:{0.__qualname__} at {1:#x}>".format(self, id(self))
 
 
 class Element(Node, metaclass=_Element_Meta):
@@ -3037,7 +3003,7 @@ class Element(Node, metaclass=_Element_Meta):
 			if key.xmlns is None:
 				key = key.__name__
 			else:
-				key = (key.__module__, key.__fullname__)
+				key = (key.__module__, key.__qualname__)
 			attrs[key] = Frag(value)
 		return (self.content, attrs)
 
@@ -3207,12 +3173,10 @@ class Element(Node, metaclass=_Element_Meta):
 					yield publisher.encode('"')
 			# reset the note, so the next element won't create the attributes again
 			publisher._publishxmlns = False
-		for part in self.attrs.publish(publisher):
-			yield part
+		yield from self.attrs.publish(publisher)
 		if len(self):
 			yield publisher.encode(">")
-			for part in self.content.publish(publisher):
-				yield part
+			yield from self.content.publish(publisher)
 			yield publisher.encode("</")
 			yield publisher.encode(name)
 			yield publisher.encode(">")
@@ -3412,7 +3376,7 @@ class Element(Node, metaclass=_Element_Meta):
 			loc = " (from {})".format(self.startloc)
 		else:
 			loc = ""
-		return "<{0.__class__.__module__}.{0.__class__.__fullname__} element object ({1}/{2}){3} at {4:#x}>".format(self, infoc, infoa, loc, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} element object ({1}/{2}){3} at {4:#x}>".format(self, infoc, infoa, loc, id(self))
 
 
 class AttrElement(Element):
@@ -3455,7 +3419,7 @@ class _Entity_Meta(type(Node)):
 		return self
 
 	def __repr__(self):
-		return "<entity class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
+		return "<entity class {0.__module__}:{0.__qualname__} at {1:#x}>".format(self, id(self))
 
 
 class Entity(Node, metaclass=_Entity_Meta):
@@ -3495,12 +3459,12 @@ class Entity(Node, metaclass=_Entity_Meta):
 			loc = " (from {})".format(self.startloc)
 		else:
 			loc = ""
-		return "<{0.__class__.__module__}.{0.__class__.__fullname__} entity object{1} at {2:#x}>".format(self, loc, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} entity object{1} at {2:#x}>".format(self, loc, id(self))
 
 
 class _CharRef_Meta(type(Entity)): # don't subclass Text.__metaclass__, as this is redundant
 	def __repr__(self):
-		return "<charref class {0.__module__}:{0.__fullname__} at {1:#x}>".format(self, id(self))
+		return "<charref class {0.__module__}:{0.__qualname__} at {1:#x}>".format(self, id(self))
 
 
 class CharRef(Text, Entity, metaclass=_CharRef_Meta):

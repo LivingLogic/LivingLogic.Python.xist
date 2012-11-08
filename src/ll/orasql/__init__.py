@@ -6,7 +6,7 @@
 ##
 ## All Rights Reserved
 ##
-## See ll/__init__.py for the license
+## See ll/xist/__init__.py for the license
 
 
 """
@@ -417,8 +417,7 @@ class Connection(Connection):
 		tables = Table.iterobjects(self, owner)
 
 		if mode == "flat":
-			for table in tables:
-				yield table
+			yield from tables
 		else:
 			done = set()
 
@@ -433,12 +432,10 @@ class Connection(Connection):
 						except KeyError:
 							pass
 						else:
-							for t in do(t2):
-								yield t
+							yield from do(t2)
 					yield table
 			for table in tables.values():
-				for t in do(table):
-					yield t
+				yield from do(table)
 
 	def itersequences(self, owner=ALL):
 		"""
@@ -509,11 +506,9 @@ class Connection(Connection):
 
 		def do(obj):
 			if mode == "create":
-				for subobj in obj.iterreferencesall(self, done):
-					yield subobj
+				yield from obj.iterreferencesall(self, done)
 			elif mode == "drop":
-				for subobj in obj.iterreferencedbyall(self, done):
-					yield subobj
+				yield from obj.iterreferencedbyall(self, done)
 			else:
 				if obj not in done:
 					done.add(obj)
@@ -521,44 +516,37 @@ class Connection(Connection):
 
 		def dosequences():
 			for sequence in Sequence.iterobjects(self, owner):
-				for obj in do(sequence):
-					yield obj
+				yield from do(sequence)
 
 		def dotables():
 			for table in Table.iterobjects(self, owner):
 				if mode == "create" or mode == "flat":
-					for obj in do(table):
-						yield obj
+					yield from do(table)
 
 				# Primary key
 				pk = table.pk()
 				if pk is not None:
-					for obj in do(pk):
-						yield obj
+					yield from do(pk)
 
 				# Comments
 				for comment in table.itercomments():
 					# No dependency checks neccessary, but use ``do`` anyway
-					for obj in do(comment):
-						yield obj
+					yield from do(comment)
 
 				if mode == "drop":
-					for obj in do(table):
-						yield obj
+					yield from do(table)
 
 		def dorest():
 			for type in (UniqueConstraint, ForeignKey, Preference, Index, Synonym, View, MaterializedView, Function, Procedure, Package, PackageBody, Type, Trigger, JavaSource):
 				for obj in type.iterobjects(self, owner):
-					for subobj in do(obj):
-						yield subobj
+					yield from do(obj)
 
 		funcs = [dosequences, dotables, dorest]
 		if mode == "drop":
 			funcs = reversed(funcs)
 
 		for func in funcs:
-			for obj in func():
-				yield obj
+			yield from func()
 
 	def _getobject(self, name, owner=None):
 		cursor = self.cursor()
@@ -952,8 +940,7 @@ class Object(object, metaclass=_Object_meta):
 		if self not in done:
 			done.add(self)
 			for obj in self.iterreferences(connection):
-				for subobj in obj.iterreferencesall(connection, done):
-					yield subobj
+				yield from obj.iterreferencesall(connection, done)
 			yield self
 
 	def iterreferencedby(self, connection=None):
@@ -985,8 +972,7 @@ class Object(object, metaclass=_Object_meta):
 		if self not in done:
 			done.add(self)
 			for obj in self.iterreferencedby(connection):
-				for subobj in obj.iterreferencedbyall(connection, done):
-					yield subobj
+				yield from obj.iterreferencedbyall(connection, done)
 			yield self
 
 	def getconnection(self, connection):
@@ -1296,10 +1282,8 @@ class Table(MixinNormalDates, Object):
 
 	def iterreferencedby(self, connection=None):
 		if not self.ismview(connection):
-			for obj in self.itercomments(connection):
-				yield obj
-			for obj in self.iterconstraints(connection):
-				yield obj
+			yield from self.itercomments(connection)
+			yield from self.iterconstraints(connection)
 		for obj in super().iterreferencedby(connection):
 			# skip the materialized view
 			if not isinstance(obj, MaterializedView) or obj.name != self.name or obj.owner != self.owner:
@@ -1666,8 +1650,7 @@ class Index(MixinNormalDates, Object):
 					elif parameter.lower() in ("datastore", "lexer", "stoplist", "wordlist"):
 						foundparameter = parameter
 
-			for obj in super().iterreferences(connection):
-				yield obj
+			yield from super().iterreferences(connection)
 
 	def table(self, connection=None):
 		"""
@@ -2069,8 +2052,7 @@ class Callable(MixinNormalDates, MixinCodeDDL, Object):
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		self._calcargs(cursor)
-		for arginfo in self._argsbypos:
-			yield arginfo
+		yield from self._argsbypos
 
 
 class Procedure(Callable):

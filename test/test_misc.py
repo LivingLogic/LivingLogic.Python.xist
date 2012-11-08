@@ -6,7 +6,7 @@
 ##
 ## All Rights Reserved
 ##
-## See ll/__init__.py for the license
+## See ll/xist/__init__.py for the license
 
 
 import sys, re
@@ -86,8 +86,7 @@ def test_xmlescape_attr():
 
 def test_item():
 	def err(n):
-		for i in range(n):
-			yield i
+		yield from range(n)
 		raise SyntaxError
 
 	e = iter(range(10))

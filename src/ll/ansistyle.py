@@ -6,7 +6,7 @@
 ##
 ## All Rights Reserved
 ##
-## See ll/__init__.py for the license
+## See ll/xist/__init__.py for the license
 
 
 r"""
@@ -126,8 +126,7 @@ class Colorizer(object):
 					yield string
 			else:
 				self.pushcolor(self._colors[-1]) # duplicate current color
-				for part in self.feed(*string):
-					yield part
+				yield from self.feed(*string)
 				self.popcolor()
 
 
@@ -158,8 +157,7 @@ class Text(list):
 		This generator yields the strings that will make up the final colorized string.
 		"""
 		colorizer = Colorizer(colored)
-		for part in colorizer.feed(self, None):
-			yield part
+		yield from colorizer.feed(self, None)
 
 	def string(self, colored=True):
 		"""

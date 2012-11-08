@@ -6,7 +6,7 @@
 ##
 ## All Rights Reserved
 ##
-## See ll/__init__.py for the license
+## See ll/xist/__init__.py for the license
 
 
 """
@@ -406,8 +406,7 @@ class Action(object):
 		"""
 		for input in self:
 			yield input
-			for subinput in input.iterallinputs():
-				yield subinput
+			yield from input.iterallinputs()
 
 	def findpaths(self, input):
 		"""
@@ -480,10 +479,8 @@ class CollectAction(TransformAction):
 		return self
 
 	def __iter__(self):
-		for input in TransformAction.__iter__(self):
-			yield input
-		for input in self.otherinputs:
-			yield input
+		yield from TransformAction.__iter__(self)
+		yield from self.otherinputs
 
 	@report
 	def get(self, project, since):
@@ -750,8 +747,7 @@ class GetAttrAction(TransformAction):
 		self.attrname = attrname
 
 	def __iter__(self):
-		for input in TransformAction.__iter__(self):
-			yield input
+		yield from TransformAction.__iter__(self)
 		yield self.attrname
 
 	def getkwargs(self):
@@ -776,10 +772,8 @@ class CallAction(Action):
 
 	def __iter__(self):
 		yield self.func
-		for input in self.args:
-			yield input
-		for input in self.kwargs.values():
-			yield input
+		yield from self.args
+		yield from self.kwargs.values()
 
 	def getargs(self):
 		return (self.func,) + self.args
@@ -822,10 +816,8 @@ class CallAttrAction(Action):
 	def __iter__(self):
 		yield self.obj
 		yield self.attrname
-		for input in self.args:
-			yield input
-		for input in self.kwargs.values():
-			yield input
+		yield from self.args
+		yield from self.kwargs.values()
 
 	def getargs(self):
 		return (self.obj, self.attrname) + self.args
@@ -875,8 +867,7 @@ class ModeAction(TransformAction):
 		self.mode = mode
 
 	def __iter__(self):
-		for input in TransformAction.__iter__(self):
-			yield input
+		yield from TransformAction.__iter__(self)
 		yield self.mode
 
 	def getkwargs(self):
@@ -910,8 +901,7 @@ class OwnerAction(TransformAction):
 		self.group = group
 
 	def __iter__(self):
-		for input in TransformAction.__iter__(self):
-			yield input
+		yield from TransformAction.__iter__(self)
 		yield self.user
 		yield self.group
 
@@ -966,10 +956,8 @@ class ModuleAction(TransformAction):
 		return self
 
 	def __iter__(self):
-		for input in TransformAction.__iter__(self):
-			yield input
-		for input in self.inputs:
-			yield input
+		yield from TransformAction.__iter__(self)
+		yield from self.inputs
 
 	def execute(self, project, data):
 		key = self.getkey()

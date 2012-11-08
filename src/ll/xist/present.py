@@ -5,7 +5,7 @@
 ##
 ## All Rights Reserved
 ##
-## See ll/__init__.py for the license
+## See ll/xist/__init__.py for the license
 
 
 """
@@ -295,8 +295,7 @@ class TreePresenter(Presenter):
 		self._inattr = 0
 		self._path = [] # numerical path
 
-		for line in self.node.present(self):
-			yield line
+		yield from self.node.present(self)
 
 		del self._inattr
 		del self._path
@@ -329,12 +328,11 @@ class TreePresenter(Presenter):
 	def presentFrag(self, node):
 		if self._inattr:
 			for child in node:
-				for text in child.present(self):
-					yield text
+				yield from child.present(self)
 		else:
 			indent = self.strindent(len(self._path))
 			ns = s4ns(node.__class__.__module__)
-			name = s4fragname(node.__fullname__)
+			name = s4fragname(node.__qualname__)
 			if len(node):
 				yield Line(
 					node,
@@ -344,8 +342,7 @@ class TreePresenter(Presenter):
 				)
 				self._path.append(0)
 				for child in node:
-					for line in child.present(self):
-						yield line
+					yield from child.present(self)
 					self._path[-1] += 1
 				self._path.pop(-1)
 				yield Line(
@@ -367,17 +364,16 @@ class TreePresenter(Presenter):
 			for (attrclass, attrvalue) in node.items():
 				yield " "
 				if attrclass.xmlns is not None:
-					yield s4attr(s4ns(self.text(str(attrclass.__module__))), ":", s4attrname(self.text(str(attrclass.__fullname__))))
+					yield s4attr(s4ns(self.text(str(attrclass.__module__))), ":", s4attrname(self.text(str(attrclass.__qualname__))))
 				else:
 					yield s4attrname(self.text(str(attrclass.__name__)))
 				yield s4attr('="')
-				for text in attrvalue.present(self):
-					yield text
+				yield from attrvalue.present(self)
 				yield s4attr('"')
 		else:
 			indent = self.strindent(len(self._path))
 			ns = s4ns(node.__class__.__module__)
-			name = s4attrsname(node.__fullname__)
+			name = s4attrsname(node.__qualname__)
 			yield Line(
 				node,
 				node.startloc,
@@ -387,8 +383,7 @@ class TreePresenter(Presenter):
 			self._path.append(None)
 			for (attrclass, attrvalue) in node.items():
 				self._path[-1] = attrclass
-				for line in attrvalue.present(self):
-					yield line
+				yield from attrvalue.present(self)
 			self._path.pop()
 			yield Line(
 				node,
@@ -399,17 +394,15 @@ class TreePresenter(Presenter):
 
 	def presentElement(self, node):
 		ns = s4ns(node.__class__.__module__)
-		name = s4elementname(node.__fullname__)
+		name = s4elementname(node.__qualname__)
 		if self._inattr:
 			yield s4element("<", ns, ":", name)
 			self._inattr += 1
-			for text in node.attrs.present(self):
-				yield text
+			yield from node.attrs.present(self)
 			self._inattr -= 1
 			if len(node):
 				yield s4element(">")
-				for text in node.content.present(self):
-					yield text
+				yield from node.content.present(self)
 				yield s4element("</", ns, ":", name, ">")
 			else:
 				yield s4element("/>")
@@ -431,8 +424,7 @@ class TreePresenter(Presenter):
 				)
 				self._path.append(0)
 				for child in node:
-					for line in child.present(self):
-						yield line
+					yield from child.present(self)
 					self._path[-1] += 1
 				self._path.pop()
 				yield Line(
@@ -454,7 +446,7 @@ class TreePresenter(Presenter):
 		if not self._inattr:
 			indent = self.strindent(len(self._path))
 			ns = s4ns(node.__class__.__module__)
-			name = s4nullname(node.__fullname__)
+			name = s4nullname(node.__qualname__)
 			yield Line(
 				node,
 				node.startloc,
@@ -467,12 +459,11 @@ class TreePresenter(Presenter):
 			yield s4attrvalue(self.text(node.content))
 		else:
 			lines = node.content.splitlines(True)
-			for line in self._domultiline(node, lines, 0, strtext):
-				yield line
+			yield from self._domultiline(node, lines, 0, strtext)
 
 	def presentEntity(self, node):
 		ns = s4ns(node.__class__.__module__)
-		name = s4entityname(node.__fullname__)
+		name = s4entityname(node.__qualname__)
 		if self._inattr:
 			yield s4entity("&", ns, ":", name, ";")
 		else:
@@ -486,7 +477,7 @@ class TreePresenter(Presenter):
 
 	def presentProcInst(self, node):
 		ns = s4ns(node.__class__.__module__)
-		name = s4procinsttarget(node.__fullname__)
+		name = s4procinsttarget(node.__qualname__)
 		if self._inattr:
 			yield s4procinst("<?", ns, ":", name, " ", s4procinstcontent(self.text(node.content)), "?>")
 		else:
@@ -495,8 +486,7 @@ class TreePresenter(Presenter):
 			lines = node.content.splitlines()
 			if len(lines)>1:
 				lines.insert(0, "")
-			for line in self._domultiline(node, lines, 1, s4procinstcontent, head, tail):
-				yield line
+			yield from self._domultiline(node, lines, 1, s4procinstcontent, head, tail)
 
 	def presentComment(self, node):
 		if self._inattr:
@@ -505,8 +495,7 @@ class TreePresenter(Presenter):
 			head = s4comment("<!--")
 			tail = s4comment("-->")
 			lines = node.content.splitlines()
-			for line in self._domultiline(node, lines, 1, s4commenttext, head, tail):
-				yield line
+			yield from self._domultiline(node, lines, 1, s4commenttext, head, tail)
 
 	def presentDocType(self, node):
 		if self._inattr:
@@ -515,8 +504,7 @@ class TreePresenter(Presenter):
 			head = s4doctype("<!DOCTYPE ")
 			tail = s4doctype(">")
 			lines = node.content.splitlines()
-			for line in self._domultiline(node, lines, 1, s4doctypetext, head, tail):
-				yield line
+			yield from self._domultiline(node, lines, 1, s4doctypetext, head, tail)
 
 	def presentAttr(self, node):
 		return self.presentFrag(node)
@@ -549,8 +537,7 @@ class CodePresenter(Presenter):
 		self._inattr = 0
 		self._level = 0
 		self._path = []
-		for line in self.node.present(self):
-			yield line
+		yield from self.node.present(self)
 		del self._path
 		del self._level
 		del self._inattr
@@ -576,7 +563,7 @@ class CodePresenter(Presenter):
 		return text
 
 	def presentFrag(self, node):
-		name = s4frag(s4ns(node.__class__.__module__), ".", s4fragname(node.__fullname__))
+		name = s4frag(s4ns(node.__class__.__module__), ".", s4fragname(node.__qualname__))
 		if len(node):
 			if not self._inattr: # skip "(" for attributes, they will be added by presentElement()
 				yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "("))
@@ -584,8 +571,7 @@ class CodePresenter(Presenter):
 			self._path.append(0)
 			for (i, child) in enumerate(node):
 				if i==len(node)-1:
-					for line in child.present(self):
-						yield line
+					yield from child.present(self)
 				else:
 					lines = list(child.present(self))
 					for (j, line) in enumerate(lines):
@@ -619,7 +605,7 @@ class CodePresenter(Presenter):
 		return attrtext
 
 	def presentAttrs(self, node):
-		name = s4attrs(s4ns(node.__class__.__module__), ".", s4attrsname(node.__fullname__))
+		name = s4attrs(s4ns(node.__class__.__module__), ".", s4attrsname(node.__qualname__))
 		if len(node):
 			globalattrs = {}
 			localattrs = {}
@@ -635,7 +621,7 @@ class CodePresenter(Presenter):
 				yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), "{"))
 				for (i, (attrclass, attrvalue)) in enumerate(iter(globalattrs.items())):
 					self._path.append(attrclass)
-					attrname = astyle.style_default(s4ns(attrclass.__module__), ".", s4attrname(attrclass.__fullname__))
+					attrname = astyle.style_default(s4ns(attrclass.__module__), ".", s4attrname(attrclass.__qualname__))
 					self._inattr += 1
 					attrtext = self._formatattrvalue(attrvalue)
 					self._inattr -= 1
@@ -666,15 +652,14 @@ class CodePresenter(Presenter):
 			yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "()"))
 
 	def presentElement(self, node):
-		name = s4element(s4ns(node.__class__.__module__), ".", s4elementname(node.__fullname__))
+		name = s4element(s4ns(node.__class__.__module__), ".", s4elementname(node.__qualname__))
 		if len(node.content) or len(node.attrs):
 			yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "("))
 			self._level += 1
 			self._path.append(0)
 			for (i, child) in enumerate(node):
 				if i==len(node)-1 and not node.attrs:
-					for line in child.present(self):
-						yield line
+					yield from child.present(self)
 				else:
 					lines = list(child.present(self))
 					for (j, line) in enumerate(lines):
@@ -696,7 +681,7 @@ class CodePresenter(Presenter):
 				yield Line(node.attrs, node.attrs.startloc, self._path[:], astyle.style_default(self._indent(), "{"))
 				for (i, (attrclass, attrvalue)) in enumerate(iter(globalattrs.items())):
 					self._path.append(attrclass)
-					attrname = astyle.style_default(s4ns(attrclass.__module__), ".", s4attrname(attrclass.__fullname__))
+					attrname = astyle.style_default(s4ns(attrclass.__module__), ".", s4attrname(attrclass.__qualname__))
 					self._inattr += 1
 					attrtext = self._formatattrvalue(attrvalue)
 					self._inattr -= 1
@@ -727,7 +712,7 @@ class CodePresenter(Presenter):
 			yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "()"))
 
 	def presentNull(self, node):
-		name = s4null(s4ns(node.__class__.__module__), ".", s4nullname(node.__fullname__))
+		name = s4null(s4ns(node.__class__.__module__), ".", s4nullname(node.__qualname__))
 		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name))
 
 	def presentText(self, node):
@@ -738,19 +723,19 @@ class CodePresenter(Presenter):
 		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), formatter(repr(self._text(node.content)))))
 
 	def presentEntity(self, node):
-		name = s4entity(s4ns(node.__class__.__module__), ".", s4entityname(node.__fullname__))
+		name = s4entity(s4ns(node.__class__.__module__), ".", s4entityname(node.__qualname__))
 		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "()"))
 
 	def presentProcInst(self, node):
-		name = s4procinst(s4ns(node.__class__.__module__), ".", s4procinsttarget(node.__fullname__))
+		name = s4procinst(s4ns(node.__class__.__module__), ".", s4procinsttarget(node.__qualname__))
 		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "(", s4procinstcontent(repr(self._text(node.content))), ")"))
 
 	def presentComment(self, node):
-		name = s4comment(s4ns(node.__class__.__module__), ".", node.__fullname__)
+		name = s4comment(s4ns(node.__class__.__module__), ".", node.__qualname__)
 		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "(", s4commenttext(repr(self._text(node.content))), ")"))
 
 	def presentDocType(self, node):
-		name = s4doctype(s4ns(node.__class__.__module__), ".", node.__fullname__)
+		name = s4doctype(s4ns(node.__class__.__module__), ".", node.__qualname__)
 		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "(", s4doctypetext(repr(self._text(node.content))), ")"))
 
 	def presentAttr(self, node):

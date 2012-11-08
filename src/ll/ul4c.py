@@ -5,7 +5,7 @@
 ##
 ## All Rights Reserved
 ##
-## See ll/__init__.py for the license
+## See ll/xist/__init__.py for the license
 
 
 """
@@ -2188,8 +2188,7 @@ class Render(Unary):
 				args = "**ul4c._makedict({})".format(", ".join(args))
 			else:
 				args = ""
-			v.append("{}for part in ({})({}):\n".format(indent*"\t", self.obj.obj.formatpython(indent), args))
-			v.append("{}\tyield part\n".format(indent*"\t"))
+			v.append("{}yield from ({})({})\n".format(indent*"\t", self.obj.obj.formatpython(indent), args))
 			return "".join(v)
 		else:
 			return "{i}# <?render?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._str({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)

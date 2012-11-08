@@ -3,7 +3,7 @@ Requirements
 
 To use XIST you need the following software packages:
 
-	*	`Python 3.2`_;
+	*	`Python 3.3`_;
 
 	*	`cssutils`_;
 

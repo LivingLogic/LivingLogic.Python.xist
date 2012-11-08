@@ -5,7 +5,7 @@
 ##
 ## All Rights Reserved
 ##
-## See ll/__init__.py for the license
+## See ll/xist/__init__.py for the license
 
 
 """
@@ -76,8 +76,7 @@ class WalkFilter(object):
 			path.append(None)
 			for child in node:
 				path[-1] = child
-				for result in self._walk(path):
-					yield result
+				yield from self._walk(path)
 			path.pop()
 		else:
 			for option in self.filterpath(path):
@@ -86,16 +85,14 @@ class WalkFilter(object):
 						path.append(None)
 						for child in node:
 							path[-1] = child
-							for result in self._walk(path):
-								yield result
+							yield from self._walk(path)
 						path.pop()
 				elif option is enterattrs:
 					if isinstance(node, xsc.Element):
 						path.append(None)
 						for child in node.attrs.values():
 							path[-1] = child
-							for result in self._walk(path):
-								yield result
+							yield from self._walk(path)
 						path.pop()
 				elif option:
 					yield path

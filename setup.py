@@ -239,7 +239,7 @@ else:
 
 args = dict(
 	name="ll-xist",
-	version="4.3.1",
+	version="4.4",
 	description="Extensible HTML/XML generator, cross-platform templating language, Oracle utilities and various other tools",
 	long_description=description,
 	author="Walter Doerwald",
@@ -300,10 +300,9 @@ args = dict(
 	install_requires=[
 		"cssutils == 0.9.8",
 	],
-	extras_require = {
+	extras_require={
 		"oracle":  ["cx_Oracle >= 5.1, < 5.2"],
 	},
-	namespace_packages=["ll"],
 	zip_safe=False,
 	dependency_links=[
 		"http://cx-oracle.sourceforge.net/", # cx_Oracle

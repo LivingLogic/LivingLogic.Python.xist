@@ -5,7 +5,7 @@
 ##
 ## All Rights Reserved
 ##
-## See ll/__init__.py for the license
+## See ll/xist/__init__.py for the license
 
 
 """
@@ -263,7 +263,7 @@ def explain(thing, name=None, format=None, context=[]):
 					ref = class_(baseclass.__name__)
 				else:
 					try:
-						baseclassname = baseclass.__fullname__
+						baseclassname = baseclass.__qualname__
 					except AttributeError:
 						baseclassname = baseclass.__name__
 					if thing.__module__ != baseclass.__module__:

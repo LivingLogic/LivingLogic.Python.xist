@@ -5,7 +5,7 @@
 ##
 ## All Rights Reserved
 ##
-## See ll/__init__.py for the license
+## See ll/xist/__init__.py for the license
 
 
 """
@@ -85,12 +85,10 @@ def _doimport(wantmedia, parentsheet, base):
 					text = r.read()
 				sheet = css.CSSStyleSheet(href=str(href), media=havemedia, parentStyleSheet=parentsheet)
 				sheet.cssText = text
-				for rule in _doimport(wantmedia, sheet, href):
-					yield rule
+				yield from _doimport(wantmedia, sheet, href)
 			elif rule.type == css.CSSRule.MEDIA_RULE:
 				if wantmedia in (mq.mediaType for mq in rule.media):
-					for subrule in rule.cssRules:
-						yield subrule
+					yield from rule.cssRules
 			elif rule.type == css.CSSRule.STYLE_RULE:
 				yield rule
 
@@ -147,8 +145,7 @@ def iterrules(node, base=None, media=None, title=None):
 				href = str(base) if base is not None else None
 				if matchstyle(cssnode):
 					stylesheet = cssutils.parseString(str(cssnode.content), href=href, media=str(cssnode.attrs.media))
-					for rule in _doimport(media, stylesheet, base):
-						yield rule
+					yield from _doimport(media, stylesheet, base)
 			else: # link
 				if "href" in cssnode.attrs:
 					href = cssnode.attrs["href"].asURL()
@@ -158,8 +155,7 @@ def iterrules(node, base=None, media=None, title=None):
 						with contextlib.closing(href.open("rb")) as r:
 							s = r.read()
 						stylesheet = cssutils.parseString(str(s), href=str(href), media=str(cssnode.attrs.media))
-						for rule in _doimport(media, stylesheet, href):
-							yield rule
+						yield from _doimport(media, stylesheet, href)
 	return misc.Iterator(doiter(node))
 
 
@@ -175,8 +171,7 @@ def applystylesheets(node, base=None, media=None, title=None):
 	"""
 
 	def iterstyles(node, rules):
-		for data in rules:
-			yield data
+		yield from rules
 		# According to CSS 2.1 (http://www.w3.org/TR/CSS21/cascade.html#specificity)
 		# style attributes have the highest weight, so we yield it last
 		# (CSS 3 uses the same weight)
