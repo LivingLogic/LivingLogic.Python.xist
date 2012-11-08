@@ -1,7 +1,8 @@
 Changes in 4.4 (released 11/08/2012)
 ------------------------------------
 
-*	Python 3.3 is required now (as the code uses ``yield from`` and ``__qualname``).
+*	Python 3.3 is required now (as the code uses ``yield from`` and
+	``__qualname__``).
 
 *	:file:`ll/__init__.py` has been removed, i.e. XIST is now a PEP 420
 	compatible namespace package.
