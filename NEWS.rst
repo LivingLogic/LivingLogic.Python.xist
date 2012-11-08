@@ -1,3 +1,9 @@
+Changes in 4.4.1 (released ??/??/2012)
+--------------------------------------
+
+*	The UL4 function format now swallos all exceptions produced by :mod:`locale`.
+
+
 Changes in 4.4 (released 11/08/2012)
 ------------------------------------
 
