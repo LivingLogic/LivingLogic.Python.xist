@@ -50,6 +50,8 @@ def render_python(__, **variables):
 	f = sys._getframe(1)
 	print("Testing Python template ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
 	print(template.pythonsource())
+	print("with variables:")
+	print(repr(variables))
 	return template.renders(**variables)
 
 
@@ -64,6 +66,8 @@ def render_python_dumps(__, **variables):
 	f = sys._getframe(1)
 	print("Testing Python template loaded from string ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
 	print(template.pythonsource())
+	print("with variables:")
+	print(repr(variables))
 	return template.renders(**variables)
 
 
@@ -80,6 +84,8 @@ def render_python_dump(__, **variables):
 	template = ul4c.Template.load(stream) # Recreate the template from the stream
 	print("Testing Python template loaded from stream ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
 	print(template.pythonsource())
+	print("with variables:")
+	print(repr(variables))
 	return template.renders(**variables)
 
 
@@ -96,6 +102,8 @@ def render_js(__, **variables):
 	f = sys._getframe(1)
 	print("Testing Javascript code compiled by Python ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
 	print(js)
+	print("with variables:")
+	print(repr(variables))
 	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 		f.write(js.encode("utf-8"))
 		f.flush()
@@ -273,7 +281,7 @@ all_renderers =  [
 
 
 def pytest_generate_tests(metafunc):
-	if "r" in metafunc.funcargnames:
+	if "r" in metafunc.fixturenames:
 		metafunc.parametrize("r", [r for (id, r) in all_renderers], ids=[id for (id, r) in all_renderers])
 
 
@@ -1913,7 +1921,7 @@ def test_function_repr(r):
 
 
 @pytest.mark.ul4
-def test_function_format(r):
+def test_function_format_date(r):
 	t = datetime.datetime(2011, 1, 25, 13, 34, 56, 987000)
 	code2 = "<?print format(data, format)?>"
 	code3 = "<?print format(data, format, lang)?>"
@@ -1964,6 +1972,38 @@ def test_function_format(r):
 	assert "13:34:56" == r(code3, format="%X", data=t, lang="de")
 	assert "13:34:56" == r(code3, format="%X", data=t, lang="de_DE")
 	assert "%" == r(code2, format="%%", data=t)
+
+
+@pytest.mark.ul4
+def test_function_format_int(r):
+	code2 = "<?print format(data, format)?>"
+	code3 = "<?print format(data, format, lang)?>"
+
+	formatstrings = [
+		"",
+		"",
+		"5",
+		"05",
+		"05",
+		"+05",
+		"+8b",
+		"+#10b",
+		"o",
+		"+#x",
+		"+#X",
+		"<5",
+		">5",
+		"?>5",
+		"^5",
+		"?= 5",
+		"?= #11b",
+	]
+
+	for f in formatstrings:
+		assert format(42, f) == r(code2, data=42, format=f)
+		if "c" not in f:
+			assert format(-42, f) == r(code2, data=-42, format=f)
+	assert format(True, "05") == r(code2, data=True, format="05")
 
 
 @pytest.mark.ul4
