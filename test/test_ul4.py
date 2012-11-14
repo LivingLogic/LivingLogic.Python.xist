@@ -295,7 +295,8 @@ argumentmismatchmessage = [
 	"takes at most \\d+ (positional )?arguments?",
 	"takes at least \\d+ argument", #  < 3.3
 	"takes no arguments",
-	"expected at least \\d+ arguments",
+	"expected at least \\d+ arguments?",
+	"expected at most \\d+ arguments?, got \\d+",
 	"missing \\d+ required positional arguments?", # 3.3
 	"takes \\d+ positional arguments? but \\d+ (was|were) given", # 3.3
 	"takes from \\d+ to \\d+ positional arguments but \\d+ (was|were) given", # 3.3
