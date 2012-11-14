@@ -2134,6 +2134,8 @@ def test_function_range(r):
 
 	with raises(argumentmismatchmessage):
 		r("<?print range()?>")
+	with raises(argumentmismatchmessage):
+		r("<?print range(1, 2, 3, 4)?>")
 	assert "" == r(code1, data=-10)
 	assert "" == r(code1, data=0)
 	assert "0;" == r(code1, data=1)
