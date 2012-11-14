@@ -1387,6 +1387,34 @@ def test_function_len(r):
 
 
 @pytest.mark.ul4
+def test_function_any(r):
+	with raises(argumentmismatchmessage):
+		r("<?print any()?>")
+	with raises(argumentmismatchmessage):
+		r("<?print any(1, 2)?>")
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		r("<?print any(data)?>", data=None)
+	assert "False" == r("<?print any('')?>")
+	assert "True" == r("<?print any('foo')?>")
+	assert "True" == r("<?print any(i > 7 for i in range(10))?>")
+	assert "False" == r("<?print any(i > 17 for i in range(10))?>")
+
+
+@pytest.mark.ul4
+def test_function_all(r):
+	with raises(argumentmismatchmessage):
+		r("<?print all()?>")
+	with raises(argumentmismatchmessage):
+		r("<?print all(1, 2)?>")
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		r("<?print all(data)?>", data=None)
+	assert "True" == r("<?print all('')?>")
+	assert "True" == r("<?print all('foo')?>")
+	assert "False" == r("<?print all(i < 7 for i in range(10))?>")
+	assert "True" == r("<?print all(i < 17 for i in range(10))?>")
+
+
+@pytest.mark.ul4
 def test_function_enumerate(r):
 	code1 = "<?for (i, value) in enumerate(data)?>(<?print value?>=<?print i?>)<?end for?>"
 	code2 = "<?for (i, value) in enumerate(data, 42)?>(<?print value?>=<?print i?>)<?end for?>"
