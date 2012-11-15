@@ -52,13 +52,7 @@ supports most builtin Python types::
 	>>> ul4on.loads('T20120716170817230158')
 	datetime.datetime(2012, 7, 16, 17, 8, 17, 230158)
 
-It also supports the ``Undefined`` singleton from :mod:`ll.ul4c`::
-
-	>>> from ll import ul4c
-	>>> ul4on.dumps(ul4c.Undefined)
-	'u'
-
-Furthermore supports :class:`Color` objects from :mod:`ll.color`::
+It also supports :class:`Color` objects from :mod:`ll.color`::
 
 	>>> from ll import color
 	>>> ul4on.dumps(color.red)
@@ -191,8 +185,6 @@ class Encoder:
 			# We're not using backreferences, if the object itself has a shorter dump
 			if obj is None:
 				self.stream.write("n")
-			elif obj is ul4c.Undefined:
-				self.stream.write("u")
 			elif isinstance(obj, bool):
 				self.stream.write("bT" if obj else "bF")
 			elif isinstance(obj, int):
@@ -276,11 +268,6 @@ class Decoder:
 			if typecode == "N":
 				self._loading(None)
 			return None
-		elif typecode in "uU":
-			from ll import ul4c
-			if typecode == "U":
-				self._loading(ul4c.Undefined)
-			return ul4c.Undefined
 		elif typecode in "bB":
 			value = self.stream.read(1)
 			if value == "T":

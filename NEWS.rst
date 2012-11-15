@@ -3,6 +3,8 @@ Changes in 4.5 (released ??/??/2012)
 
 *	Added UL4 functions ``any`` and ``all``.
 
+*	UL4ON can no longer serialize undefined values.
+
 *	The UL4 function format now swallows all exceptions produced by :mod:`locale`.
 
 
