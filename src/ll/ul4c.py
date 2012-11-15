@@ -255,10 +255,7 @@ class AST(Object):
 	associative = True
 
 	# Set of attributes available via :meth:`getitem`.
-	fields = {"location", "type"}
-
-	def __init__(self, location=None):
-		self.location = location
+	fields = {"type"}
 
 	def __str__(self):
 		return self.format(0)
@@ -300,6 +297,18 @@ class AST(Object):
 		Format :var:`self` into valid Java source code.
 		"""
 
+
+class Tag(AST):
+	"""
+	Base class for all syntax tree nodes that are the top level node in a
+	template tag.
+	"""
+	# Set of attributes available via :meth:`getitem`.
+	fields = AST.fields.union({"location"})
+
+	def __init__(self, location=None):
+		self.location = location
+
 	def ul4ondump(self, encoder):
 		encoder.dump(self.location)
 
@@ -308,13 +317,10 @@ class AST(Object):
 
 
 @register("text")
-class Text(AST):
+class Text(Tag):
 	"""
 	AST node for literal text.
 	"""
-	def __init__(self, location=None):
-		super().__init__(location)
-
 	def format(self, indent):
 		return "{}text {!r}\n".format(indent*"\t", self.location.code)
 
@@ -333,17 +339,14 @@ class Const(AST):
 	precedence = 11
 	fields = AST.fields.union({"value"})
 
-	def __init__(self, location=None, value=None):
-		super().__init__(location)
+	def __init__(self, value=None):
 		self.value = value
 
 	def format(self, indent):
 		return _repr(self.value)
 
 	def formatpython(self, indent):
-		if self.value is Undefined:
-			return "ul4c.Undefined"
-		elif isinstance(self.value, color.Color):
+		if isinstance(self.value, color.Color):
 			return "color.{!r}".format(self.value)
 		return repr(self.value)
 
@@ -354,11 +357,9 @@ class Const(AST):
 			return misc.javaexpr(self.value)
 
 	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
 		encoder.dump(self.value)
 
 	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
 		self.value = decoder.load()
 
 	def __repr__(self):
@@ -374,8 +375,7 @@ class List(AST):
 	precedence = 11
 	fields = AST.fields.union({"items"})
 
-	def __init__(self, location=None, *items):
-		super().__init__(location)
+	def __init__(self, *items):
 		self.items = list(items)
 
 	def __repr__(self):
@@ -391,11 +391,9 @@ class List(AST):
 		return "java.util.Arrays.asList({})".format(", ".join(item.formatjava(indent) for item in self.items))
 
 	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
 		encoder.dump(self.items)
 
 	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
 		self.items = decoder.load()
 
 
@@ -408,8 +406,8 @@ class ListComp(AST):
 	precedence = 11
 	fields = AST.fields.union({"item", "varname", "container", "condition"})
 
-	def __init__(self, location=None, item=None, varname=None, container=None, condition=None):
-		super().__init__(location)
+	def __init__(self, item=None, varname=None, container=None, condition=None):
+		super().__init__()
 		self.item = item
 		self.varname = varname
 		self.container = container
@@ -447,14 +445,12 @@ class ListComp(AST):
 		return "".join(v)
 
 	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
 		encoder.dump(self.item)
 		encoder.dump(self.varname)
 		encoder.dump(self.container)
 		encoder.dump(self.condition)
 
 	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
 		self.item = decoder.load()
 		self.varname = decoder.load()
 		self.container = decoder.load()
@@ -470,8 +466,7 @@ class Dict(AST):
 	precedence = 11
 	fields = AST.fields.union({"items"})
 
-	def __init__(self, location=None, *items):
-		super().__init__(location)
+	def __init__(self, *items):
 		self.items = list(items)
 
 	def __repr__(self):
@@ -506,11 +501,9 @@ class Dict(AST):
 		return "".join(v)
 
 	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
 		encoder.dump(self.items)
 
 	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
 		self.items = [tuple(item) for item in decoder.load()]
 
 
@@ -523,8 +516,7 @@ class DictComp(AST):
 	precedence = 11
 	fields = AST.fields.union({"key", "value", "varname", "container", "condition"})
 
-	def __init__(self, location=None, key=None, value=None, varname=None, container=None, condition=None):
-		super().__init__(location)
+	def __init__(self, key=None, value=None, varname=None, container=None, condition=None):
 		self.key = key
 		self.value = value
 		self.varname = varname
@@ -563,7 +555,6 @@ class DictComp(AST):
 		return "".join(v)
 
 	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
 		encoder.dump(self.key)
 		encoder.dump(self.value)
 		encoder.dump(self.varname)
@@ -571,7 +562,6 @@ class DictComp(AST):
 		encoder.dump(self.condition)
 
 	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
 		self.key = decoder.load()
 		self.value = decoder.load()
 		self.varname = decoder.load()
@@ -588,8 +578,7 @@ class GenExpr(AST):
 	precedence = 11
 	fields = AST.fields.union({"item", "varname", "container", "condition"})
 
-	def __init__(self, location=None, item=None, varname=None, container=None, condition=None):
-		super().__init__(location)
+	def __init__(self, item=None, varname=None, container=None, condition=None):
 		self.item = item
 		self.varname = varname
 		self.container = container
@@ -643,14 +632,12 @@ class GenExpr(AST):
 		return "".join(v)
 
 	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
 		encoder.dump(self.item)
 		encoder.dump(self.varname)
 		encoder.dump(self.container)
 		encoder.dump(self.condition)
 
 	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
 		self.item = decoder.load()
 		self.varname = decoder.load()
 		self.container = decoder.load()
@@ -666,8 +653,7 @@ class Var(AST):
 	precedence = 11
 	fields = AST.fields.union({"name"})
 
-	def __init__(self, location=None, name=None):
-		super().__init__(location)
+	def __init__(self, name=None):
 		self.name = name
 
 	def __repr__(self):
@@ -683,24 +669,22 @@ class Var(AST):
 		return "context.get({})".format(misc.javaexpr(self.name))
 
 	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
 		encoder.dump(self.name)
 
 	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
 		self.name = decoder.load()
 
 
-class Block(AST):
+class Block(Tag):
 	"""
 	Base class for all AST nodes that are blocks.
 
-	A block contains a sequence of AST nodes that are executed sequencially.
+	A block contains a sequence of tags that are executed sequencially.
 	A block may execute its content zero (e.g. an ``<?if?>`` block) or more times
 	(e.g. a ``<?for?>`` block).
 	"""
 
-	fields = AST.fields.union({"endlocation", "content"})
+	fields = Tag.fields.union({"endlocation", "content"})
 
 	def __init__(self, location=None):
 		super().__init__(location)
@@ -952,13 +936,17 @@ class For(Block):
 		v = ["{i}# <?for?> tag at position {l.starttag}:{l.endtag} ({id})\n".format(i=indent*"\t", id=id(self), l=self.location)]
 		v.append("{}for {} in {}:\n".format(indent*"\t", _formatnestednamepython(self.varname), self.container.formatpython(indent)))
 		indent += 1
-		for node in self.content:
-			v.append(node.formatpython(indent))
+		if self.content:
+			for node in self.content:
+				v.append(node.formatpython(indent))
+		else:
+			# Make sure we have a proper loop body
+			v.append("{}pass\n".format(indent*"\t"))
 		return "".join(v)
 
 
 @register("break")
-class Break(AST):
+class Break(Tag):
 	"""
 	AST node for a ``<?break?>`` inside a ``<?for?>`` block.
 	"""
@@ -974,7 +962,7 @@ class Break(AST):
 
 
 @register("continue")
-class Continue(AST):
+class Continue(Tag):
 	"""
 	AST node for a ``<?continue?>`` inside a ``<?for?>`` block.
 	"""
@@ -1001,8 +989,7 @@ class GetAttr(AST):
 	associative = False
 	fields = AST.fields.union({"obj", "attrname"})
 
-	def __init__(self, location=None, obj=None, attrname=None):
-		super().__init__(location)
+	def __init__(self, obj=None, attrname=None):
 		self.obj = obj
 		self.attrname = attrname
 
@@ -1019,12 +1006,10 @@ class GetAttr(AST):
 		return "com.livinglogic.ul4.GetAttr.call({}, {})".format(self.obj.formatjava(indent), misc.javaexpr(self.attrname))
 
 	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
 		encoder.dump(self.obj)
 		encoder.dump(self.attrname)
 
 	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
 		self.obj = decoder.load()
 		self.attrname = decoder.load()
 
@@ -1045,8 +1030,7 @@ class GetSlice(AST):
 	associative = False
 	fields = AST.fields.union({"obj", "index1", "index2"})
 
-	def __init__(self, location=None, obj=None, index1=None, index2=None):
-		super().__init__(location)
+	def __init__(self, obj=None, index1=None, index2=None):
 		self.obj = obj
 		self.index1 = index1
 		self.index2 = index2
@@ -1055,19 +1039,20 @@ class GetSlice(AST):
 		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.obj, self.index1, self.index2)
 
 	@classmethod
-	def make(cls, location, obj, index1, index2):
+	def make(cls, obj, index1, index2):
+		# We don't have to check for undefined results here, because this can't happen with slices
 		if isinstance(obj, Const):
 			if index1 is None:
 				if index2 is None:
-					return Const(location, obj[:])
+					return Const(obj[:])
 				elif isinstance(index2, Const):
-					return Const(location, obj[:index2.value])
+					return Const(obj[:index2.value])
 			elif isinstance(index1, Const):
 				if index2 is None:
-					return Const(location, obj[index1.value:])
+					return Const(obj[index1.value:])
 				elif isinstance(index2, Const):
-					return Const(location, obj[index1.value:index2.value])
-		return cls(location, obj, index1, index2)
+					return Const(obj[index1.value:index2.value])
+		return cls(obj, index1, index2)
 
 	def format(self, indent):
 		return "{}[{}:{}]".format(self._formatop(self.obj), self.index1.format(indent) if self.index1 is not None else "", self.index2.format(indent) if self.index2 is not None else "")
@@ -1079,13 +1064,11 @@ class GetSlice(AST):
 		return "com.livinglogic.ul4.GetSlice.call({}, {}, {})".format(self.obj.formatjava(indent), self.index1.formatjava(indent) if self.index1 is not None else "null", self.index2.formatjava(indent) if self.index2 is not None else "null")
 
 	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
 		encoder.dump(self.obj)
 		encoder.dump(self.index1)
 		encoder.dump(self.index2)
 
 	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
 		self.obj = decoder.load()
 		self.index1 = decoder.load()
 		self.index2 = decoder.load()
@@ -1098,26 +1081,25 @@ class Unary(AST):
 
 	fields = AST.fields.union({"obj"})
 
-	def __init__(self, location=None, obj=None):
-		super().__init__(location)
+	def __init__(self, obj=None):
 		self.obj = obj
 
 	def __repr__(self):
 		return "{}({!r})".format(self.__class__.__name__, self.obj)
 
 	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
 		encoder.dump(self.obj)
 
 	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
 		self.obj = decoder.load()
 
 	@classmethod
-	def make(cls, location, obj):
+	def make(cls, obj):
 		if isinstance(obj, Const):
-			return Const(location, cls.evaluate(obj.value))
-		return cls(location, obj)
+			result = cls.evaluate(obj.value)
+			if not isinstance(result, Undefined):
+				return Const(result)
+		return cls(obj)
 
 
 @register("not")
@@ -1164,8 +1146,24 @@ class Neg(Unary):
 		return "com.livinglogic.ul4.Neg.call({})".format(self.obj.formatjava(indent))
 
 
+class UnaryTag(Tag):
+	fields = Tag.fields.union({"obj"})
+
+	def __init__(self, location=None, obj=None):
+		super().__init__(location)
+		self.obj = obj
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.obj)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.obj = decoder.load()
+
+
 @register("print")
-class Print(Unary):
+class Print(UnaryTag):
 	"""
 	AST node for a ``<?print?>`` tag.
 	"""
@@ -1181,7 +1179,7 @@ class Print(Unary):
 
 
 @register("printx")
-class PrintX(Unary):
+class PrintX(UnaryTag):
 	"""
 	AST node for a ``<?printx?>`` tag.
 	"""
@@ -1203,8 +1201,7 @@ class Binary(AST):
 
 	fields = AST.fields.union({"obj1", "obj2"})
 
-	def __init__(self, location=None, obj1=None, obj2=None):
-		super().__init__(location)
+	def __init__(self, obj1=None, obj2=None):
 		self.obj1 = obj1
 		self.obj2 = obj2
 
@@ -1212,20 +1209,20 @@ class Binary(AST):
 		return "{}({!r}, {!r})".format(self.__class__.__name__, self.obj1, self.obj2)
 
 	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
 		encoder.dump(self.obj1)
 		encoder.dump(self.obj2)
 
 	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
 		self.obj1 = decoder.load()
 		self.obj2 = decoder.load()
 
 	@classmethod
-	def make(cls, location, obj1, obj2):
+	def make(cls, obj1, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const):
-			return Const(location, cls.evaluate(obj1.value, obj2.value))
-		return cls(location, obj1, obj2)
+			result = cls.evaluate(obj1.value, obj2.value)
+			if not isinstance(result, Undefined):
+				return Const(result)
+		return cls(obj1, obj2)
 
 
 @register("getitem")
@@ -1626,7 +1623,7 @@ class Mod(Binary):
 		return "com.livinglogic.ul4.Mod.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
-class ChangeVar(AST):
+class ChangeVar(Tag):
 	"""
 	Baseclass for all AST nodes that store or modify a variable.
 
@@ -1635,7 +1632,7 @@ class ChangeVar(AST):
 	AST node :var:`value`.
 	"""
 
-	fields = AST.fields.union({"varname", "value"})
+	fields = Tag.fields.union({"varname", "value"})
 
 	def __init__(self, location=None, varname=None, value=None):
 		super().__init__(location)
@@ -1782,8 +1779,7 @@ class CallFunc(AST):
 	associative = False
 	fields = AST.fields.union({"funcname", "args"})
 
-	def __init__(self, location=None, funcname=None, *args):
-		super().__init__(location)
+	def __init__(self, funcname=None, *args):
 		self.funcname = funcname
 		self.args = list(args)
 
@@ -1948,12 +1944,10 @@ class CallFunc(AST):
 			return formatter(", ".join(arg.formatjava(indent) for arg in self.args))
 
 	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
 		encoder.dump(self.funcname)
 		encoder.dump(self.args)
 
 	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
 		self.funcname = decoder.load()
 		self.args = decoder.load()
 
@@ -1972,8 +1966,7 @@ class CallMeth(AST):
 	associative = False
 	fields = AST.fields.union({"methname", "obj", "args"})
 
-	def __init__(self, location=None, methname=None, obj=None, *args):
-		super().__init__(location)
+	def __init__(self, methname=None, obj=None, *args):
 		self.methname = methname
 		self.obj = obj
 		self.args = list(args)
@@ -2095,13 +2088,11 @@ class CallMeth(AST):
 		return formatter(", ".join(arg.formatjava(indent) for arg in [self.obj] + self.args))
 
 	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
 		encoder.dump(self.methname)
 		encoder.dump(self.obj)
 		encoder.dump(self.args)
 
 	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
 		self.methname = decoder.load()
 		self.obj = decoder.load()
 		self.args = decoder.load()
@@ -2126,8 +2117,7 @@ class CallMethKeywords(AST):
 	associative = False
 	fields = AST.fields.union({"methname", "obj", "args"})
 
-	def __init__(self, location=None, methname=None, obj=None, *args):
-		super().__init__(location)
+	def __init__(self, methname=None, obj=None, *args):
 		self.methname = methname
 		self.obj = obj
 		self.args = list(args)
@@ -2174,20 +2164,18 @@ class CallMethKeywords(AST):
 			raise UnknownMethodError(self.methname)
 
 	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
 		encoder.dump(self.methname)
 		encoder.dump(self.obj)
 		encoder.dump(self.args)
 
 	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
 		self.methname = decoder.load()
 		self.obj = decoder.load()
 		self.args = [tuple(arg) for arg in decoder.load()]
 
 
 @register("render")
-class Render(Unary):
+class Render(UnaryTag):
 	"""
 	AST node for the ``<?render?>`` tag.
 	"""
@@ -2237,7 +2225,7 @@ class Template(Block):
 	A :class:`Template` object is itself an AST node. Evaluating it will store
 	the template object under its name in the local variables.
 	"""
-	version = "20"
+	version = "21"
 	fields = Block.fields.union({"source", "name", "startdelim", "enddelim", "endlocation"})
 
 	def __init__(self, source=None, name=None, startdelim="<?", enddelim="?>"):
@@ -2815,14 +2803,14 @@ def _isundefined(obj):
 	"""
 	Helper for the ``isundefined`` function.
 	"""
-	return obj is Undefined
+	return isinstance(obj, Undefined)
 
 
 def _isdefined(obj):
 	"""
 	Helper for the ``isdefined`` function.
 	"""
-	return obj is not Undefined
+	return not isinstance(obj, Undefined)
 
 
 def _isnone(obj):
