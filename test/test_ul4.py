@@ -1393,7 +1393,7 @@ def test_function_any(r):
 		r("<?print any()?>")
 	with raises(argumentmismatchmessage):
 		r("<?print any(1, 2)?>")
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("is not iterable|any\\(.*\\) not supported"):
 		r("<?print any(data)?>", data=None)
 	assert "False" == r("<?print any('')?>")
 	assert "True" == r("<?print any('foo')?>")
@@ -1407,7 +1407,7 @@ def test_function_all(r):
 		r("<?print all()?>")
 	with raises(argumentmismatchmessage):
 		r("<?print all(1, 2)?>")
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("is not iterable|all\\(.*\\) not supported"):
 		r("<?print all(data)?>", data=None)
 	assert "True" == r("<?print all('')?>")
 	assert "True" == r("<?print all('foo')?>")
