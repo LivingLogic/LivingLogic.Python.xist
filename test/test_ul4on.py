@@ -158,10 +158,6 @@ def pytest_generate_tests(metafunc):
 		metafunc.parametrize("t", [t for (id, t) in all_transports], ids=[id for (id, t) in all_transports])
 
 
-def test_undefined(t):
-	assert ul4c.Undefined is t(ul4c.Undefined)
-
-
 def test_none(t):
 	assert None is t(None)
 
