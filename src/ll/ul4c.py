@@ -194,21 +194,40 @@ class UnknownMethodError(Exception):
 
 
 ###
-### The ``Undefined`` singleton
+### Various versions of undefined objects
 ###
 
 class Undefined(object):
-	def __repr__(self):
-		return "Undefined"
-
-	def __str__(self):
-		return "Undefined"
-
 	def __bool__(self):
 		return False
 
+	def __iter__(self):
+		raise TypeError("{!r} doesn't support iteration".format(self))
 
-Undefined = Undefined()
+	def __len__(self):
+		raise AttributeError("{!r} has no len()".format(self))
+
+	def __getattr__(self, key):
+		raise AttributeError("{!r} has no attribute {!r}".format(self, key))
+
+	def __getitem__(self, key):
+		raise TypeError("{!r} doesn't support indexing (key={!r})".format(self, key))
+
+
+class UndefinedKey(Undefined):
+	def __init__(self, key):
+		self.__key = key
+
+	def __repr__(self):
+		return "undefined object for key {!r}".format(self.__key)
+
+
+class UndefinedIndex(Undefined):
+	def __init__(self, index):
+		self.__index = index
+
+	def __repr__(self):
+		return "undefined object at index {!r}".format(self.__index)
 
 
 ###
@@ -2629,8 +2648,10 @@ def _getitem(container, key):
 	"""
 	try:
 		return container[key]
-	except (KeyError, IndexError):
-		return Undefined
+	except KeyError:
+		return UndefinedKey(key)
+	except IndexError:
+		return UndefinedIndex(key)
 
 
 def _vars(vars):
@@ -2660,7 +2681,7 @@ def _str(obj=None):
 	"""
 	if obj is None:
 		return ""
-	elif obj is Undefined:
+	elif isinstance(obj, Undefined):
 		return ""
 	else:
 		return str(obj)

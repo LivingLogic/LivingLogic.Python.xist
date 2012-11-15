@@ -3,9 +3,14 @@ Changes in 4.5 (released ??/??/2012)
 
 *	Added UL4 functions ``any`` and ``all``.
 
-*	UL4ON can no longer serialize undefined values.
+*	To improve UL4 exception messages there are now several undefined objects,
+	which give information about which key/name/index resulted in the undefined
+	object being created.
 
-*	The UL4 function format now swallows all exceptions produced by :mod:`locale`.
+*	UL4ON can no longer read or write undefined values.
+
+*	The UL4 function ``format`` now swallows all exceptions produced by
+	:mod:`locale`.
 
 
 Changes in 4.4 (released 11/08/2012)
