@@ -97,7 +97,7 @@ For a list of old features and bugfixes read ``OLDNEWS`` or the
 
 __ http://www.livinglogic.de/Python/xist/OldHistory.html
 
-For the license read ``__init__.py``.
+For the license read ``xist/__init__.py``.
 
 
 Download
