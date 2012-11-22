@@ -58,12 +58,7 @@ try:
 except ImportError:
 	pass
 
-try:
-	from . import astyle
-except ImportError:
-	from ll import astyle
-
-from ll import misc
+from ll import astyle, misc
 
 
 __docformat__ = "reStructuredText"

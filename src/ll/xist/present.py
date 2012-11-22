@@ -28,7 +28,7 @@ except ImportError:
 
 from ll import misc, url
 
-from . import xsc
+from ll.xist import xsc
 
 
 __docformat__ = "reStructuredText"

@@ -51,12 +51,7 @@ this::
 
 import sys, os, os.path, argparse, warnings, re, datetime, io, errno, tempfile, operator, types, pickle, gc, contextlib, gzip
 
-from ll import misc, url
-
-try:
-	from . import astyle
-except ImportError:
-	from ll import astyle
+from ll import misc, url, astyle
 
 
 __docformat__ = "reStructuredText"
