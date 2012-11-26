@@ -26,8 +26,6 @@ node = xsc.Frag(
 		)
 	)
 )
-
-print node.conv().bytes(encoding="us-ascii")
 </prog>
 
 <p> You can also use <lit>with</lit> blocks (and the unary <lit>+</lit> operator) to generate the same &html;:</p>
@@ -53,8 +51,47 @@ with xsc.build():
 							+xsc.Text(""http://www.python.org/"")
 						+xsc.Text("Python home page")
 					+xsc.Text(".")
+</prog>
 
-print node.conv().bytes(encoding="us-ascii")
+</section>
+
+
+<section><h>Printing &html;</h>
+
+<p>When you have an XIST tree you can print it with the <meth>print</meth> method like this:</p>
+
+<prog>
+from ll.xist import xsc
+from ll.xist.ns import html, xml, meta
+
+node = xsc.Frag(
+	xml.XML(),
+	html.DocTypeXHTML10transitional(),
+	html.html(
+		html.head(
+			meta.contenttype(),
+			html.title("Example page")
+		),
+		html.body(
+			html.h1("Welcome to the example page"),
+			html.p(
+				"This example page has a link to the ",
+				html.a("Python home page", href="http://www.python.org/"),
+				"."
+			)
+		)
+	)
+)
+
+print(node.string(encoding="us-ascii"))
+</prog>
+
+<p>When you want to save this into a file, use the <meth>bytes</meth> method
+instead of <meth>string</meth>:</p>
+
+<prog>
+with open("example.xml", "wb") as f:
+	f.write(node.bytes(encoding="us-ascii"))
 </prog>
 
 </section>
@@ -97,7 +134,7 @@ node = xsc.Frag(
 	)
 )
 
-print node.conv().bytes(encoding="us-ascii")
+print(node.conv().string(encoding="us-ascii"))
 </prog>
 
 </section>
@@ -136,7 +173,7 @@ inside links on Python's homepage:</p>
 <prompt>... </prompt><input>	parse.Node()</input>
 <prompt>... </prompt><input>)</input>
 <prompt>&gt;&gt;&gt; </prompt><input>for img in node.walknodes(html.a/html.img):</input>
-<prompt>... </prompt><input>   print img.attrs.src</input>
+<prompt>... </prompt><input>   print(img.attrs.src)</input>
 <prompt>... </prompt><input></input>
 http://www.python.org/images/python-logo.gif
 http://www.python.org/images/trans.gif
@@ -156,7 +193,7 @@ following:</p>
 <prompt>... </prompt><input>	parse.Node()</input>
 <prompt>... </prompt><input>)</input>
 <prompt>&gt;&gt;&gt; </prompt><input>for path in node.walkpaths(html.a/html.img):</input>
-<prompt>... </prompt><input>   print path[-2].attrs.href, path[-1].attrs.src</input>
+<prompt>... </prompt><input>   print(path[-2].attrs.href, path[-1].attrs.src)</input>
 http://www.python.org/ http://www.python.org/images/python-logo.gif
 http://www.python.org/#left%2dhand%2dnavigation http://www.python.org/images/trans.gif
 http://www.python.org/#content%2dbody http://www.python.org/images/trans.gif
@@ -221,7 +258,7 @@ makes it possible to output an &xist; tree as usable Python source code:</p>
 <prompt>... </prompt><input>	parse.Expat(ns=True),</input>
 <prompt>... </prompt><input>	parse.Node()</input>
 <prompt>... </prompt><input>)</input>
-<prompt>&gt;&gt;&gt;</prompt> <input>print present.CodePresenter(node)</input>
+<prompt>&gt;&gt;&gt;</prompt> <input>print(present.CodePresenter(node))</input>
 ll.xist.xsc.Frag(
 	ll.xist.ns.html.html(
 		ll.xist.ns.html.head(
@@ -307,7 +344,7 @@ with xsc.build():
 				+section(title="Source Code Encoding")
 				+section(title="The Interactive Startup File")
 
-print document.conv().bytes()
+print(document.conv().string())
 </prog>
 
 <p>The output of this script will be:</p>
