@@ -1105,6 +1105,21 @@ class Node(object, metaclass=_Node_Meta):
 
 		:meth:`__str__` can be used everywhere where a plain string
 		representation of the node is required.
+
+		For example::
+
+			>>> from ll.xist.ns import html
+			>>> e = html.html(
+			...    html.head(
+			...       html.title("The page")
+			...    ),
+			...    html.body(
+			...       html.h1("The header"),
+			...       html.p("The content", class_="content")
+			...    )
+			... )
+			>>> print(e)
+			The pageThe headerThe content
 		"""
 		pass
 
@@ -1169,7 +1184,8 @@ class Node(object, metaclass=_Node_Meta):
 
 	def iterbytes(self, base=None, publisher=None, **publishargs):
 		"""
-		A generator that will produce this node as a serialized byte string.
+		A generator that will produce this node as a serialized byte string. (i.e.
+		it will output what the method :meth:`bytes` outputs, but incremetally).
 
 		For the possible parameters see the :class:`ll.xist.xsc.Publisher`
 		constructor.
@@ -1181,10 +1197,20 @@ class Node(object, metaclass=_Node_Meta):
 
 	def bytes(self, base=None, publisher=None, **publishargs):
 		"""
-		Return :var:`self` as a serialized byte string.
+		Return :var:`self` as a serialized bytes object.
 
 		For the possible parameters see the :class:`ll.xist.xsc.Publisher`
 		constructor.
+
+		For example::
+
+			>>> from ll.xist.ns import html
+			>>> e = html.div(
+			...    html.h1("The header"),
+			...    html.p("The content", class_="content")
+			... )
+			>>> print(e.bytes())
+			b'<div><h1>The header</h1><p class="content">The content</p></div>'
 		"""
 		if publisher is None:
 			publisher = Publisher(**publishargs)
@@ -1193,7 +1219,8 @@ class Node(object, metaclass=_Node_Meta):
 
 	def iterstring(self, base=None, publisher=None, **publishargs):
 		"""
-		A generator that will produce a serialized byte string of :var:`self`.
+		A generator that will produce a serialized string of :var:`self` (i.e.
+		it will output what the method :meth:`string` outputs, but incremetally).
 
 		For the possible parameters see the :class:`ll.xist.xsc.Publisher`
 		constructor.
@@ -1205,10 +1232,20 @@ class Node(object, metaclass=_Node_Meta):
 
 	def string(self, base=None, publisher=None, **publishargs):
 		"""
-		Return a serialized unicode string for :var:`self`.
+		Return a serialized (unicode) string for :var:`self`.
 
 		For the possible parameters see the :class:`ll.xist.xsc.Publisher`
 		constructor.
+
+		For example::
+
+			>>> from ll.xist.ns import html
+			>>> e = html.div(
+			...    html.h1("The header"),
+			...    html.p("The content", class_="content")
+			... )
+			>>> print(e.string())
+			<div><h1>The header</h1><p class="content">The content</p></div>
 		"""
 		if publisher is None:
 			publisher = Publisher(**publishargs)
@@ -2098,7 +2135,7 @@ class Attr(Frag, metaclass=_Attr_Meta):
 		...       lang="en"
 		...    )
 		... )
-		>>> print node.bytes()
+		>>> print(node.string())
 		<img alt="EGGS" src="<?php echo 'eggs.gif'?>" />
 	"""
 	required = False
@@ -3033,7 +3070,7 @@ class Element(Node, metaclass=_Element_Meta):
 					+html.li("I see and I believe.")
 					+html.li("I do and I understand.")
 					xsc.add(class_="quote")
-			print node.bytes()
+			print(node.bytes())
 		"""
 		threadlocalnodehandler.handler.enter(self)
 		return self
