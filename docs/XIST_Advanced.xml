@@ -52,7 +52,7 @@ from ll.xist import xsc
 from ll.xist.ns import html
 
 pool = xsc.Pool(html)
-print pool.img
+print(pool.img)
 </prog>
 </example>
 
@@ -69,7 +69,7 @@ from ll.xist.ns import html, svg
 
 hpool = xsc.Pool(html)
 spool = xsc.Pool(svg, hpool)
-print spool.img
+print(spool.img)
 </prog>
 </example>
 
@@ -109,7 +109,7 @@ from ll.xist import xsc
 import html2
 
 pool = xsc.Pool(html2)
-print pool.a, pool.b
+print(pool.a, pool.b)
 </prog>
 </example>
 
@@ -164,11 +164,11 @@ Other targets can be specified via the <var>target</var> argument in the
 <tty>
 <prompt>>>> </prompt><input>from ll.xist.ns import html, fo</input>
 <prompt>>>> </prompt><input>import foo</input> # This is the code from above
-<prompt>>>> </prompt><input>print foo.bold("foo").conv().bytes()</input>
+<prompt>>>> </prompt><input>print(foo.bold("foo").conv().string())</input>
 <![CDATA[<b>foo</b>]]>
-<prompt>>>> </prompt><input>print foo.bold("foo").conv(target=html).bytes()</input>
+<prompt>>>> </prompt><input>print(foo.bold("foo").conv(target=html).string())</input>
 <![CDATA[<b>foo</b>]]>
-<prompt>>>> </prompt><input>print foo.bold("foo").conv(target=fo).bytes()</input>
+<prompt>>>> </prompt><input>print(foo.bold("foo").conv(target=fo).string())</input>
 <![CDATA[<inline font-weight="bold">foo</inline>]]>
 </tty>
 </section>
@@ -185,7 +185,7 @@ code doesn't contain any illegal tag nesting (i.e. something bad like
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = html.p(html.p(u"foo"))</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.bytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print(node.string())</input>
 /Users/walter/checkouts/LivingLogic.Python.xist/src/ll/xist/sims.py:222: \
 WrongElementWarning: element &lt;ll.xist.ns.html.p element object (1 child/no attrs) at 0x270b30&gt; \
 may not contain element &lt;ll.xist.ns.html.p element object (1 child/no attrs) at 0x69850&gt;
