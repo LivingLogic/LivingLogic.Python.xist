@@ -2690,7 +2690,7 @@ def _format(obj, fmt, lang=None):
 					return format(obj, fmt)
 				except locale.Error:
 					if not candidate:
-						raise
+						return format(obj, fmt)
 		finally:
 			try:
 				locale.setlocale(locale.LC_ALL, oldlocale)
