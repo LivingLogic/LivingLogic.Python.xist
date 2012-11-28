@@ -1570,9 +1570,8 @@ class Index(MixinNormalDates, Object):
 		cursor.execute("select aie.column_expression, aic.column_name from {0}_ind_columns aic, {0}_ind_expressions aie where aic.index_owner=aie.index_owner(+) and aic.index_name=aie.index_name(+) and aic.column_position=aie.column_position(+) and aic.index_owner=nvl(:owner, user) and aic.index_name=:name order by aic.column_position".format(cursor.ddprefix()), owner=self.owner, name=self.name)
 		code = "create{} index {} on {} ({})".format(unique, indexname, tablename, ", ".join(r.column_expression or r.column_name for r in cursor))
 		if rec.index_type == "DOMAIN":
-			parameters = rec.parameters
-			if parameters:
-				parameters = " parameters ('{}')".format(parameters.replace("'", "''"))
+			if rec.parameters:
+				parameters = " parameters ('{}')".format(rec.parameters.replace("'", "''"))
 			else:
 				parameters = ""
 			code += " indextype is {}.{}{}".format(rec.ityp_owner, rec.ityp_name, parameters)
