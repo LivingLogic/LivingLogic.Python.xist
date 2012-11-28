@@ -3199,7 +3199,7 @@ class Element(Node, metaclass=_Element_Meta):
 		yield publisher.encode(name)
 		# we're the first element to be published, so we have to create the xmlns attributes
 		if publisher._publishxmlns:
-			for (xmlns, prefix) in publisher._ns2prefix.items():
+			for (xmlns, prefix) in sorted(publisher._ns2prefix.items(), key=lambda item: item[1] or ""):
 				if xmlns not in publisher.hidexmlns:
 					yield publisher.encode(" xmlns")
 					if prefix is not None:
