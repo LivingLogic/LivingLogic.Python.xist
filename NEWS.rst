@@ -12,6 +12,8 @@ Changes in 4.5 (released ??/??/2012)
 *	The UL4 function ``format`` now swallows all exceptions produced by
 	:mod:`locale`.
 
+*	Oracle URLs now support reading and writing bytes.
+
 
 Changes in 4.4 (released 11/08/2012)
 ------------------------------------

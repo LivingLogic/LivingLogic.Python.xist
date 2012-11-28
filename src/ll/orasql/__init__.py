@@ -2760,10 +2760,17 @@ class OracleFileResource(url_.Resource):
 		self.name = str(self.url)
 
 		if "w" in self.mode:
-			self.stream = io.StringIO()
+			if "b" in self.mode:
+				self.stream = io.BytesIO()
+			else:
+				self.stream = io.StringIO()
 		else:
 			code = self.connection._objectfromurl(url).createddl(self.connection.dbconnection, term=False)
-			self.stream = io.StringIO(code)
+			if "b" in self.mode:
+				code = code.encode("utf-8")
+				self.stream = io.BytesIO(code)
+			else:
+				self.stream = io.StringIO(code)
 
 	def read(self, size=-1):
 		if self.closed:
@@ -2789,6 +2796,8 @@ class OracleFileResource(url_.Resource):
 			if "w" in self.mode:
 				obj = self._objectfromurl()
 				code = self.stream.getvalue()
+				if isinstance(code, bytes):
+					code = code.decode("utf-8")
 				code = obj.fixname(code)
 				cursor = self.connection.dbconnection.cursor()
 				cursor.execute(code)
