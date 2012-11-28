@@ -385,4 +385,4 @@ def test_url():
 	u.owner()
 	u.cdate()
 	u.mdate()
-	assert "orasql_testprocedure" in u.openread().read().lower()
+	assert "orasql_testprocedure" in u.open("r").read().lower()
