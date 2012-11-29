@@ -955,18 +955,6 @@ Supported arguments are iterable objects, i.e. strings, lists, dictionaries
 and colors.
 
 
-``any``
-"""""""
-``any`` requires an iterable argument. It returns ``True`` if any item in the
-iterable is true. If the iterable is empty, returns ``False``.
-
-
-``all``
-"""""""
-``all`` requires an iterable argument. It returns ``True`` if al items in the
-iterable is true. If the iterable is empty, returns ``True`` too.
-
-
 ``chr``
 """""""
 
