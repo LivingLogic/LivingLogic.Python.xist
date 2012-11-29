@@ -14,6 +14,13 @@ Changes in 4.5 (released ??/??/2012)
 
 *	Oracle URLs now support reading and writing bytes.
 
+*	Because of problems with `distribute`_/`pip`_ and `pytest`_
+	:file:`ll/__init__.py` has been reintroduced.
+
+	.. _distribute: http://pypi.python.org/pypi/distribute
+	.. _pip: http://www.pip-installer.org/
+	.. _pytest: http://pytest.org/latest/
+
 
 Changes in 4.4 (released 11/08/2012)
 ------------------------------------
