@@ -1,4 +1,4 @@
-Changes in 4.5 (released 10/29/2012)
+Changes in 4.5 (released 11/29/2012)
 ------------------------------------
 
 *	Added UL4 functions ``any`` and ``all``.
