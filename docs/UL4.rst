@@ -809,14 +809,14 @@ or dictionary.
 """""""
 
 ``any(foo)`` returns ``True`` if any of the items in the iterable ``foo`` is
-true. Otherwiese ``False`` is returns. If ``foo`` is empty ``False`` is returned.
+true. Otherwise ``False`` is returns. If ``foo`` is empty ``False`` is returned.
 
 
 ``all``
 """""""
 
 ``all(foo)`` returns ``True`` if all of the items in the iterable ``foo`` are
-true. Otherwiese ``False`` is returns. If ``foo`` is empty ``True`` is returned.
+true. Otherwise ``False`` is returns. If ``foo`` is empty ``True`` is returned.
 
 
 ``isfirstlast``
