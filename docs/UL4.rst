@@ -1176,16 +1176,16 @@ outputs::
 	1+2+3+4
 
 
-``render``
-""""""""""
+``renders``
+"""""""""""
 
-The ``render`` method of template objects renders the template and returns the
+The ``renders`` method of template objects renders the template and returns the
 output as a string. The parameter can be passed via keyword argument or via the
 ``**`` syntax::
 
-	<?code output = template.render(a=17, b=23)?>
+	<?code output = template.renders(a=17, b=23)?>
 	<?code data = {'a': 17, 'b': 23)?>
-	<?code output = template.render(**data)?>
+	<?code output = template.renders(**data)?>
 
 
 ``isoformat``
