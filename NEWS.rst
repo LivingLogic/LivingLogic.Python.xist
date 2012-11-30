@@ -1,3 +1,9 @@
+Changes in 4.6 (released ??/??/2012)
+------------------------------------
+
+*	:class:`ll.xist.xfind.Selector` no longer enters attributes.
+
+
 Changes in 4.5 (released 11/29/2012)
 ------------------------------------
 

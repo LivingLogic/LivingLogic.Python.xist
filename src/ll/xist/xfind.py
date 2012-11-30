@@ -174,7 +174,7 @@ class Selector(WalkFilter):
 		pass
 
 	def filterpath(self, path):
-		return (True, entercontent, enterattrs) if self.matchpath(path) else (entercontent, enterattrs)
+		return (self.matchpath(path), entercontent)
 
 	def __truediv__(self, other):
 		"""
