@@ -821,8 +821,12 @@ class Publisher(object):
 		self._ns2prefix.clear()
 		self._prefix2ns.clear()
 		# iterate through every node in the tree
-		for n in node.walknodes(Node):
+		for n in node.walknodes(Element):
 			self.getobjectprefix(n)
+			for attrvalue in n.attrs.values():
+				self.getobjectprefix(attrvalue)
+				for child in attrvalue:
+					self.getobjectprefix(child)
 		# Add the prefixes forced by ``self.showxmlns``
 		for xmlns in self.showxmlns:
 			self.getnamespaceprefix(xmlns)
