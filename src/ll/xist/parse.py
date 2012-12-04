@@ -1510,7 +1510,7 @@ def tree(*pipeline, validate=True):
 	return stack[0]
 
 
-def itertree(*pipeline, **kwargs):
+def itertree(*pipeline, events=("endelementnode",), filter=None, validate=True):
 	"""
 	Parse the event stream :var:`pipeline` iteratively.
 
@@ -1548,26 +1548,24 @@ def itertree(*pipeline, **kwargs):
 		http://www.python.org/images/worldmap.jpg --> http://wiki.python.org/moin/Languages
 		http://www.python.org/images/success/tribon.jpg --> http://www.python.org/about/success/tribon/
 	"""
-	events_ = kwargs.get("events", ("endelementnode",))
-	validate = kwargs.get("validate", True)
-	filter = xfind.makewalkfilter(kwargs.get("filter", None))
-
 	path = [xsc.Frag()]
-	for (evtype, node) in events(*pipeline):
+	filter = xfind.makewalkfilter(filter)
+	from ll.xist import parse # Import ourselves to gain access to the :func:`events` function (which is shadowed by the paramter of the same name)
+	for (evtype, node) in parse.events(*pipeline):
 		if evtype == "startelementnode":
 			path[-1].append(node)
 			path.append(node)
-			if evtype in events_ and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
+			if evtype in events and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
 				yield (evtype, path)
 		elif evtype == "endelementnode":
 			if validate:
 				node.checkvalid()
-			if evtype in events_ and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
+			if evtype in events and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
 				yield (evtype, path)
 			path.pop()
 		else:
 			path[-1].append(node)
 			path.append(node)
-			if evtype in events_ and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
+			if evtype in events and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
 				yield (evtype, path)
 			path.pop()
