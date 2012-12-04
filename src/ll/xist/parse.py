@@ -1468,7 +1468,7 @@ def events(*pipeline):
 	return output
 
 
-def tree(*pipeline, **kwargs):
+def tree(*pipeline, validate=True):
 	"""
 	Return a tree of XIST nodes from the event stream :var:`pipeline`.
 
@@ -1477,7 +1477,6 @@ def tree(*pipeline, **kwargs):
 	``"textnode"``, ``"startelementnode"``, ``"endelementnode"``,
 	``"procinstnode"`` and ``"entitynode"``.
 
-	:var:`kwargs` supports one keyword argument: :var:`validate`.
 	If :var:`validate` is true, the tree is validated, i.e. it is checked if
 	the structure of the tree is valid (according to the :var:`model` attribute
 	of each element node), if all required attributes are specified and all
@@ -1498,7 +1497,6 @@ def tree(*pipeline, **kwargs):
 		<ll.xist.ns.html.html element object (5 children/2 attrs) (from http://www.python.org/:3:0) at 0x1028eb3d0>
 	"""
 	stack = [xsc.Frag()]
-	validate = kwargs.get("validate", True)
 	for (evtype, node) in events(*pipeline):
 		if evtype == "startelementnode":
 			stack[-1].append(node)
