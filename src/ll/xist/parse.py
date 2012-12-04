@@ -237,7 +237,7 @@ all element and attribute names::
 		parse.Node(pool=xsc.Pool(html))
 	)
 
-	print e.bytes()
+	print(e.string())
 
 This scripts outputs::
 
@@ -1540,7 +1540,7 @@ def itertree(*pipeline, **kwargs):
 		... 	parse.Node(pool=xsc.Pool(xml, html, chars)),
 		... 	filter=html.a/html.img
 		... ):
-		... 	print path[-1].attrs.src, "-->", path[-2].attrs.href
+		... 	print(path[-1].attrs.src, "-->", path[-2].attrs.href)
 		http://www.python.org/images/python-logo.gif --> http://www.python.org/
 		http://www.python.org/images/trans.gif --> http://www.python.org/#left%2Dhand%2Dnavigation
 		http://www.python.org/images/trans.gif --> http://www.python.org/#content%2Dbody
