@@ -3,6 +3,9 @@ Changes in 4.6 (released ??/??/2012)
 
 *	:class:`ll.xist.xfind.Selector` no longer enters attributes.
 
+*	:class:`ll.misc.monthdelta` now supports the :func:`abs` function (i.e.
+	``abs(monthdelta(-1))`` returns ``monthdelta(1)``.)
+
 
 Changes in 4.5 (released 11/29/2012)
 ------------------------------------

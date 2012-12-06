@@ -816,6 +816,9 @@ class monthdelta(object):
 	def __neg__(self):
 		return monthdelta(-self.months)
 
+	def __abs__(self):
+		return monthdelta(abs(self.months))
+
 	def __mul__(self, other):
 		if isinstance(other, int) and not isinstance(other, monthdelta):
 			return monthdelta(self.months*other)
