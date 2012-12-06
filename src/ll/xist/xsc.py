@@ -909,7 +909,7 @@ class Publisher(object):
 ###
 
 class Cursor(object):
-	def __init__(self, node, *selectors, entercontent=True, enterattrs=False, enterattr=True, startelementnode=True, endelementnode=False, startattrnode=True, endattrnode=False):
+	def __init__(self, node, *selectors, entercontent=True, enterattrs=False, enterattr=False, startelementnode=True, endelementnode=False, startattrnode=True, endattrnode=False):
 		self.root = self.node = node
 		self.path = [node]
 		from ll.xist import xfind
