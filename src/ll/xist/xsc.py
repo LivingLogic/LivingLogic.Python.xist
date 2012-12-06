@@ -909,6 +909,35 @@ class Publisher(object):
 
 
 ###
+### Cursor for the :meth:`walk` method
+###
+
+class Cursor(object):
+	def __init__(self, node, *selectors, entercontent=True, enterattrs=False, enterattr=True, startelementnode=True, endelementnode=False, startattrnode=True, endattrnode=False):
+		self.root = self.node = node
+		self.path = [node]
+		from ll.xist import xfind
+		self.filter = xfind.selector(*selectors)
+		self.event = None
+		self.entercontent = self._entercontent = entercontent
+		self.enterattrs = self._enterattrs = enterattrs
+		self.enterattr = self._enterattr = enterattr
+		self.startelementnode = self._startelementnode = startelementnode
+		self.endelementnode = self._endelementnode = endelementnode
+		self.startattrnode = self._startattrnode = startattrnode
+		self.endattrnode = self._endattrnode = endattrnode
+
+	def restore(self):
+		self.entercontent = self._entercontent
+		self.enterattrs = self._enterattrs
+		self.enterattr = self._enterattr
+		self.startelementnode = self._startelementnode
+		self.endelementnode = self._endelementnode
+		self.startattrnode = self._startattrnode
+		self.endattrnode = self._endattrnode
+
+
+###
 ### The DOM classes
 ###
 
@@ -922,6 +951,10 @@ class _Node_Meta(type):
 
 	def __repr__(self):
 		return "<class {0.__module__}:{0.__qualname__} at {1:#x}>".format(self, id(self))
+
+	def __contains__(self, path):
+		from ll.xist import xfind
+		return path in xfind.IsInstanceSelector(self)
 
 	def __truediv__(self, other):
 		from ll.xist import xfind
@@ -1267,7 +1300,12 @@ class Node(object, metaclass=_Node_Meta):
 			publisher = Publisher(**publishargs)
 		return publisher.write(stream, self, base)
 
-	def walk(self, walkfilter=None):
+	def _walk(self, cursor):
+		if cursor.path in cursor.filter:
+			yield cursor
+			cursor.restore()
+
+	def walk(self, *selectors, entercontent=True, enterattrs=False, enterattr=True, startelementnode=True, endelementnode=False, startattrnode=True, endattrnode=False):
 		"""
 		Return an iterator for traversing the tree rooted at :var:`self`.
 
@@ -1308,25 +1346,26 @@ class Node(object, metaclass=_Node_Meta):
 		across calls to :meth:`next`.
 		"""
 		from ll.xist import xfind
-		return xfind.makewalkfilter(walkfilter).walk(self)
+		cursor = Cursor(self, *selectors, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, startelementnode=startelementnode, endelementnode=endelementnode, startattrnode=startattrnode, endattrnode=endattrnode)
+		return self._walk(cursor)
 
-	def walknodes(self, walkfilter=None):
+	def walknodes(self, *selectors, entercontent=True, enterattrs=False, enterattr=True, startelementnode=True, endelementnode=False, startattrnode=True, endattrnode=False):
 		"""
 		Return an iterator for traversing the tree. :var:`filter` works the same
 		as the :var:`walkfilter` argument for :meth:`walk`. The items produced
 		by the iterator are the nodes themselves.
 		"""
-		from ll.xist import xfind
-		return xfind.makewalkfilter(walkfilter).walknodes(self)
+		cursor = Cursor(self, *selectors, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, startelementnode=startelementnode, endelementnode=endelementnode, startattrnode=startattrnode, endattrnode=endattrnode)
+		return misc.Iterator(cursor.path[-1] for cursor in self._walk(cursor))
 
-	def walkpaths(self, walkfilter=None):
+	def walkpaths(self, *selectors, entercontent=True, enterattrs=False, enterattr=True, startelementnode=True, endelementnode=False, startattrnode=True, endattrnode=False):
 		"""
 		Return an iterator for traversing the tree. :var:`walkfilter` works
 		the same as the :var:`walkfilter` argument for :meth:`walk`. The items
 		produced by the iterator are copies of the path.
 		"""
-		from ll.xist import xfind
-		return xfind.makewalkfilter(walkfilter).walkpaths(self)
+		cursor = Cursor(self, *selectors, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, startelementnode=startelementnode, endelementnode=endelementnode, startattrnode=startattrnode, endattrnode=endattrnode)
+		return misc.Iterator(cursor.path[:] for cursor in self._walk(cursor))
 
 	def compacted(self):
 		"""
@@ -1604,6 +1643,12 @@ class Text(CharacterData):
 	def pretty(self, level=0, indent="\t"):
 		return self
 
+	def _walk(self, cursor):
+		if cursor.path in cursor.filter:
+			cursor.event = "textnode"
+			yield cursor
+			cursor.restore()
+
 
 class Frag(Node, list):
 	"""
@@ -1731,13 +1776,13 @@ class Frag(Node, list):
 			return node
 		else:
 			from ll.xist import xfind
-			def iterate(matcher):
+			def iterate(selector):
 				path = [self, None]
 				for child in self:
 					path[-1] = child
-					if matcher(path):
+					if path in selector:
 						yield child
-			return misc.Iterator(iterate(xfind.makewalkfilter(index).matchpath))
+			return misc.Iterator(iterate(xfind.selector(index)))
 
 	def __setitem__(self, index, value):
 		"""
@@ -1766,13 +1811,13 @@ class Frag(Node, list):
 			list.__setitem__(self, index, Frag(value))
 		else:
 			from ll.xist import xfind
-			matcher = xfind.makewalkfilter(index).matchpath
+			selector = xfind.selector(index)
 			value = Frag(value)
 			newcontent = []
 			path = [self, None]
 			for child in self:
 				path[-1] = child
-				if matcher(path):
+				if path in selector:
 					newcontent.extend(value)
 				else:
 					newcontent.append(child)
@@ -1798,8 +1843,8 @@ class Frag(Node, list):
 			list.__delitem__(self, index)
 		else:
 			from ll.xist import xfind
-			matcher = xfind.makewalkfilter(index).matchpath
-			list.__setitem__(self, slice(0, len(self)), [child for child in self if not matcher([self, child])])
+			selector = xfind.selector(index)
+			list.__setitem__(self, slice(0, len(self)), [child for child in self if [self, child] not in selector])
 
 	def __mul__(self, factor):
 		"""
@@ -1936,6 +1981,16 @@ class Frag(Node, list):
 			level += child.prettyindentafter
 		return node
 
+
+	def _walk(self, cursor):
+		# ``Frag``\s don't get tested
+		cursor.path.append(None)
+		for child in self:
+			cursor.path[-1] = cursor.node = child
+			yield from child._walk(cursor)
+		cursor.path.pop()
+		cursor.node = cursor.path[-1]
+
 	def __repr__(self):
 		l = len(self)
 		if l==0:
@@ -1971,6 +2026,12 @@ class Comment(CharacterData):
 			yield publisher.encode(content)
 			yield publisher.encode("-->")
 
+	def _walk(self, cursor):
+		if cursor.path in cursor.filter:
+			cursor.event = "commentnode"
+			yield cursor
+			cursor.restore()
+
 
 class _DocType_Meta(type(Node)):
 	def __repr__(self):
@@ -1985,6 +2046,9 @@ class DocType(CharacterData, metaclass=_DocType_Meta):
 	def convert(self, converter):
 		return self
 
+	def __str__(self):
+		return ""
+
 	def present(self, presenter):
 		return presenter.presentDocType(self) # return a generator-iterator
 
@@ -1994,8 +2058,11 @@ class DocType(CharacterData, metaclass=_DocType_Meta):
 			yield publisher.encode(self.content)
 			yield publisher.encode(">")
 
-	def __str__(self):
-		return ""
+	def _walk(self, cursor):
+		if cursor.path in cursor.filter:
+			cursor.event = "doctype"
+			yield cursor
+			cursor.restore()
 
 
 class _ProcInst_Meta(type(Node)):
@@ -2040,6 +2107,12 @@ class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
 			raise IllegalProcInstFormatError(self)
 		yield publisher.encode("<?{} {}?>".format(self.xmlname, content))
 
+	def _walk(self, cursor):
+		if cursor.path in cursor.filter:
+			cursor.event = "procinstnode"
+			yield cursor
+			cursor.restore()
+
 	def __str__(self):
 		return ""
 
@@ -2081,6 +2154,12 @@ class Null(CharacterData):
 
 	def present(self, presenter):
 		return presenter.presentNull(self) # return a generator-iterator
+
+	def _walk(self, cursor):
+		if cursor.path in cursor.filter:
+			cursor.event = "nullnode"
+			yield cursor
+			cursor.restore()
 
 	def __str__(self):
 		return ""
@@ -2219,6 +2298,25 @@ class Attr(Frag, metaclass=_Attr_Meta):
 
 	def pretty(self, level=0, indent="\t"):
 		return self.clone()
+
+	def _walk(self, cursor):
+		if cursor.startattrnode and cursor.path in cursor.filter:
+			cursor.event = "startattrnode"
+			yield cursor
+			# The user may have altered ``cursor`` attributes outside the generator
+			enterattr = cursor.enterattr
+			endattrnode = cursor.endattrnode
+			cursor.restore()
+		else:
+			# These are the initial options
+			enterattr = cursor.enterattr
+			endattrnode = cursor.endattrnode
+		if enterattr:
+			yield from Frag._walk(self, cursor)
+		if endattrnode and cursor.path in cursor.filter:
+			cursor.event = "endattrnode"
+			yield cursor
+			cursor.restore()
 
 	def __repr__(self):
 		l = len(self)
@@ -2939,6 +3037,14 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		names = self._fixnames_xml(names)
 		return self.filtered(isok)
 
+	def _walk(self, cursor):
+		cursor.path.append(None)
+		for child in self.values():
+			cursor.path[-1] = cursor.node = child
+			yield from child._walk(cursor)
+		cursor.path.pop()
+		cursor.node = cursor.path[-1]
+
 	def __repr__(self):
 		l = len(self)
 		if l==0:
@@ -3260,13 +3366,13 @@ class Element(Node, metaclass=_Element_Meta):
 			return self.content[index]
 		else:
 			from ll.xist import xfind
-			def iterate(matcher):
+			def iterate(selector):
 				path = [self, None]
 				for child in self:
 					path[-1] = child
-					if matcher(path):
+					if path in selector:
 						yield child
-			return misc.Iterator(iterate(xfind.makewalkfilter(index).matchpath))
+			return misc.Iterator(iterate(xfind.selector(index)))
 
 	def __setitem__(self, index, value):
 		"""
@@ -3279,13 +3385,13 @@ class Element(Node, metaclass=_Element_Meta):
 			self.content[index] = value
 		else:
 			from ll.xist import xfind
-			matcher = xfind.makewalkfilter(index).matchpath
+			selector = xfind.selector(index)
 			value = Frag(value)
 			newcontent = []
 			path = [self, None]
 			for child in self:
 				path[-1] = child
-				if matcher(path):
+				if path in selector:
 					newcontent.extend(value)
 				else:
 					newcontent.append(child)
@@ -3302,8 +3408,8 @@ class Element(Node, metaclass=_Element_Meta):
 			del self.content[index]
 		else:
 			from ll.xist import xfind
-			matcher = xfind.makewalkfilter(index).matchpath
-			self.content = Frag(child for child in self if not matcher([self, child]))
+			selector = xfind.selector(index)
+			self.content = Frag(child for child in self if [self, child] not in selector)
 
 	def __iadd__(self, other):
 		self.extend(other)
@@ -3397,6 +3503,30 @@ class Element(Node, metaclass=_Element_Meta):
 		if orglevel>0:
 			node = Frag(indent*orglevel, node)
 		return node
+
+	def _walk(self, cursor):
+		startelementnode = cursor.startelementnode
+		if startelementnode and cursor.path in cursor.filter:
+			cursor.event = "startelementnode"
+			yield cursor
+			# The user may have altered ``cursor`` attributes outside the generator
+			entercontent = cursor.entercontent
+			enterattrs = cursor.enterattrs
+			endelementnode = cursor.endelementnode
+			cursor.restore()
+		else:
+			# These are the initial options
+			entercontent = cursor.entercontent
+			enterattrs = cursor.enterattrs
+			endelementnode = cursor.endelementnode
+		if entercontent:
+			yield from self.content._walk(cursor)
+		if enterattrs:
+			yield from self.attrs._walk(cursor)
+		if endelementnode and cursor.path in cursor.filter:
+			cursor.event = "endelementnode"
+			yield cursor
+			cursor.restore()
 
 	def __repr__(self):
 		lc = len(self.content)
@@ -3494,6 +3624,12 @@ class Entity(Node, metaclass=_Entity_Meta):
 		yield publisher.encode("&")
 		yield publisher.encode(self.xmlname)
 		yield publisher.encode(";")
+
+	def _walk(self, cursor):
+		if cursor.path in cursor.filter:
+			cursor.event = "entitynode"
+			yield cursor
+			cursor.restore()
 
 	def __repr__(self):
 		if self.startloc is not None:

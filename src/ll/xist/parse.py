@@ -1549,23 +1549,23 @@ def itertree(*pipeline, events=("endelementnode",), filter=None, validate=True):
 		http://www.python.org/images/success/tribon.jpg --> http://www.python.org/about/success/tribon/
 	"""
 	path = [xsc.Frag()]
-	filter = xfind.makewalkfilter(filter)
-	from ll.xist import parse # Import ourselves to gain access to the :func:`events` function (which is shadowed by the paramter of the same name)
+	filter = xfind.selector(filter)
+	from ll.xist import parse # Import ourselves to gain access to the :func:`events` function (which is shadowed by the parameter of the same name)
 	for (evtype, node) in parse.events(*pipeline):
 		if evtype == "startelementnode":
 			path[-1].append(node)
 			path.append(node)
-			if evtype in events and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
+			if evtype in events and path in filter:
 				yield (evtype, path)
 		elif evtype == "endelementnode":
 			if validate:
 				node.checkvalid()
-			if evtype in events and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
+			if evtype in events and path in filter:
 				yield (evtype, path)
 			path.pop()
 		else:
 			path[-1].append(node)
 			path.append(node)
-			if evtype in events and filter.matchpath(path): # FIXME: This requires that the ``WalkFilter`` is in fact a ``Selector``
+			if evtype in events and path in filter:
 				yield (evtype, path)
 			path.pop()

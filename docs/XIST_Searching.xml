@@ -161,7 +161,7 @@ follows:</p>
 
 <example><h>Searching for <class>img</class> inside <class>a</class> with an xfind expression</h>
 <prog>
-for path in node.walk(html.a/html.img):
+for path in node.walkpaths(html.a/html.img):
 	print path[-2].attrs.href, path[-1].attrs.src
 </prog>
 </example>

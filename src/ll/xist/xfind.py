@@ -20,7 +20,7 @@ __ http://www.w3.org/TR/xpath
 """
 
 
-import collections
+import builtins, collections
 
 from ll import misc
 from ll.xist import xsc
@@ -30,191 +30,88 @@ __docformat__ = "reStructuredText"
 
 
 ###
-### Magic constants for tree traversal
+### function for creating a :class:`Selector` object
 ###
 
-entercontent = misc.Const("entercontent")
-enterattrs = misc.Const("enterattrs")
+def selector(*objs):
+	if not objs:
+		return any
+	if len(objs) == 1:
+		obj = objs[0]
+		if isinstance(obj, Selector):
+			return obj
+		if isinstance(obj, xsc._Node_Meta):
+			return IsInstanceSelector(obj)
+		elif isinstance(obj, tuple):
+			return selector(*obj)
+		elif isinstance(obj, xsc.Node):
+			return IsSelector(obj)
+		elif isinstance(obj, collections.Callable):
+			return CallableSelector(obj)
+		elif obj is None:
+			return any
+		else:
+			raise TypeError("can't convert {0!r} to selector".format(obj))
+	elif all(isinstance(sel, type) for sel in objs):
+		return IsInstanceSelector(*objs)
+	return OrCombinator(*objs)
 
 
 ###
 ### Tree traversal filters
 ###
 
-class WalkFilter(object):
-	"""
-	A :class:`WalkFilter` can be passed to the :meth:`walk` method of nodes to
-	specify how to traverse the tree and which nodes to output.
-	"""
-
-	@misc.notimplemented
-	def filternode(self, node):
-		pass
-
-	def filterpath(self, path):
-		return self.filternode(path[-1])
-
-	def walk(self, node):
-		return misc.Iterator(self._walk([node]))
-
-	def walknodes(self, node):
-		def iterate(path):
-			for path in self._walk(path):
-				yield path[-1]
-		return misc.Iterator(iterate([node]))
-
-	def walkpaths(self, node):
-		def iterate(path):
-			for path in self._walk(path):
-				yield path[:]
-		return misc.Iterator(iterate([node]))
-
-	def _walk(self, path):
-		node = path[-1]
-		# ``Frag``\s don't get tested
-		if isinstance(node, xsc.Frag) and not isinstance(node, xsc.Attr):
-			path.append(None)
-			for child in node:
-				path[-1] = child
-				yield from self._walk(path)
-			path.pop()
-		else:
-			for option in self.filterpath(path):
-				if option is entercontent:
-					if isinstance(node, (xsc.Frag, xsc.Element)):
-						path.append(None)
-						for child in node:
-							path[-1] = child
-							yield from self._walk(path)
-						path.pop()
-				elif option is enterattrs:
-					if isinstance(node, xsc.Element):
-						path.append(None)
-						for child in node.attrs.values():
-							path[-1] = child
-							yield from self._walk(path)
-						path.pop()
-				elif option:
-					yield path
-
-
-class FindType(WalkFilter):
-	"""
-	Tree traversal filter that finds nodes of a certain type on the first level
-	of the tree without decending further down.
-	"""
-	def __init__(self, *types):
-		self.types = types
-
-	def filternode(self, node):
-		return (isinstance(node, self.types), )
-
-
-class FindTypeAll(WalkFilter):
-	"""
-	Tree traversal filter that finds nodes of a certain type searching the
-	complete tree.
-	"""
-	def __init__(self, *types):
-		self.types = types
-
-	def filternode(self, node):
-		return (isinstance(node, self.types), entercontent)
-
-
-class FindTypeAllAttrs(WalkFilter):
-	"""
-	Tree traversal filter that finds nodes of a certain type searching the
-	complete tree (including attributes).
-	"""
-	def __init__(self, *types):
-		self.types = types
-
-	def filternode(self, node):
-		return (isinstance(node, self.types), entercontent, enterattrs)
-
-
-class FindTypeTop(WalkFilter):
-	"""
-	Tree traversal filter that finds nodes of a certain type searching the
-	complete tree, but traversal of the children of a node is skipped if this
-	node is of the specified type.
-	"""
-	def __init__(self, *types):
-		self.types = types
-
-	def filternode(self, node):
-		if isinstance(node, self.types):
-			return (True,)
-		else:
-			return (entercontent,)
-
-
-class ConstantWalkFilter(WalkFilter):
-	"""
-	Tree traversal filter that returns the same value for all nodes.
-	"""
-	def __init__(self, value):
-		self.value = value
-
-	def filterpath(self, path):
-		return self.value
-
-
-class Selector(WalkFilter):
+class Selector(object):
 	"""
 	Base class for all tree traversal filters that visit the complete tree.
 	Whether a node gets output can be specified by overwriting the
-	:meth:`matchpath` method. Selectors can be combined with various operations
-	(see methods below).
+	:meth:`__contains__` method. Selectors can be combined with various
+	operations (see methods below).
 	"""
 
 	@misc.notimplemented
-	def matchpath(self, path):
+	def __contains__(self, path):
 		pass
-
-	def filterpath(self, path):
-		return (self.matchpath(path), entercontent)
 
 	def __truediv__(self, other):
 		"""
 		Create a :class:`ChildCombinator` with :var:`self` as the left hand
 		selector and :var:`other` as the right hand selector.
 		"""
-		return ChildCombinator(self, makewalkfilter(other))
+		return ChildCombinator(self, selector(other))
 
 	def __floordiv__(self, other):
 		"""
 		Create a :class:`DescendantCombinator` with :var:`self` as the left hand
 		selector and :var:`other` as the right hand selector.
 		"""
-		return DescendantCombinator(self, makewalkfilter(other))
+		return DescendantCombinator(self, selector(other))
 
 	def __mul__(self, other):
 		"""
 		Create an :class:`AdjacentSiblingCombinator` with :var:`self` as the left
 		hand selector and :var:`other` as the right hand selector.
 		"""
-		return AdjacentSiblingCombinator(self, makewalkfilter(other))
+		return AdjacentSiblingCombinator(self, selector(other))
 
 	def __pow__(self, other):
 		"""
 		Create a :class:`GeneralSiblingCombinator` with :var:`self` as the left
 		hand selector and :var:`other` as the right hand selector.
 		"""
-		return GeneralSiblingCombinator(self, makewalkfilter(other))
+		return GeneralSiblingCombinator(self, selector(other))
 
 	def __and__(self, other):
 		"""
 		Create an :class:`AndCombinator` from :var:`self` and :var:`other`.
 		"""
-		return AndCombinator(self, makewalkfilter(other))
+		return AndCombinator(self, selector(other))
 
 	def __or__(self, other):
 		"""
 		Create an :class:`OrCombinator` from :var:`self` and :var:`other`.
 		"""
-		return OrCombinator(self, makewalkfilter(other))
+		return OrCombinator(self, selector(other))
 
 	def __invert__(self):
 		"""
@@ -223,16 +120,23 @@ class Selector(WalkFilter):
 		return NotCombinator(self)
 
 
+
 class AnySelector(Selector):
 	"""
 	Selector that selects all nodes.
 	"""
 
-	def matchpath(self, path):
+	def __contains__(self, path):
 		return True
 
+	def __and__(self, other):
+		return selector(other)
 
-any_ = AnySelector()
+	def __or__(self, other):
+		return self
+
+
+any = AnySelector()
 
 
 class IsInstanceSelector(Selector):
@@ -261,13 +165,11 @@ class IsInstanceSelector(Selector):
 	def __init__(self, *types):
 		self.types = types
 
-	def matchpath(self, path):
-		if path:
-			return isinstance(path[-1], self.types)
-		return False
+	def __contains__(self, path):
+		return isinstance(path[-1], self.types)
 
 	def __or__(self, other):
-		# If other is a type check too, combine self and other into one isinstance instance
+		# If ``other`` is a type check too, combine ``self`` and ``other`` into one :class:`IsInstanceSelector` object
 		if isinstance(other, xsc._Node_Meta):
 			return IsInstanceSelector(*(self.types + (other,)))
 		elif isinstance(other, IsInstanceSelector):
@@ -310,14 +212,12 @@ class hasname(Selector):
 		self.name = name
 		self.xmlns = xsc.nsname(xmlns)
 
-	def matchpath(self, path):
-		if path:
-			node = path[-1]
-			if self.xmlns is not None:
-				return isinstance(node, xsc.Element) and node.__class__.__name__ == self.name and node.xmlns == self.xmlns
-			else:
-				return isinstance(node, (xsc.Element, xsc.ProcInst, xsc.Entity)) and node.__class__.__name__ == self.name
-		return False
+	def __contains__(self, path):
+		node = path[-1]
+		if self.xmlns is not None:
+			return isinstance(node, xsc.Element) and node.__class__.__name__ == self.name and node.xmlns == self.xmlns
+		else:
+			return isinstance(node, (xsc.Element, xsc.ProcInst, xsc.Entity)) and node.__class__.__name__ == self.name
 
 	def __str__(self):
 		if self.xmlns is not None:
@@ -335,14 +235,12 @@ class hasname_xml(Selector):
 		self.name = name
 		self.xmlns = xsc.nsname(xmlns)
 
-	def matchpath(self, path):
-		if path:
-			node = path[-1]
-			if self.xmlns is not None:
-				return isinstance(node, xsc.Element) and node.xmlname == self.name and node.xmlns == self.xmlns
-			else:
-				return isinstance(node, (xsc.Element, xsc.ProcInst, xsc.Entity)) and node.xmlname == self.name
-		return False
+	def __contains__(self, path):
+		node = path[-1]
+		if self.xmlns is not None:
+			return isinstance(node, xsc.Element) and node.xmlname == self.name and node.xmlns == self.xmlns
+		else:
+			return isinstance(node, (xsc.Element, xsc.ProcInst, xsc.Entity)) and node.xmlname == self.name
 
 	def __str__(self):
 		if self.xmlns is not None:
@@ -371,8 +269,8 @@ class IsSelector(Selector):
 	def __init__(self, node):
 		self.node = node
 
-	def matchpath(self, path):
-		return path and path[-1] is self.node
+	def __contains__(self, path):
+		return path[-1] is self.node
 
 	def __str__(self):
 		return "{0.__class__.__name__}({0.node!r})".format(self)
@@ -382,7 +280,7 @@ class IsRootSelector(Selector):
 	"""
 	Selector that selects the node that is the root of the traversal.
 	"""
-	def matchpath(self, path):
+	def __contains__(self, path):
 		return len(path) == 1
 
 
@@ -408,11 +306,10 @@ class IsEmptySelector(Selector):
 		...
 	"""
 
-	def matchpath(self, path):
-		if path:
-			node = path[-1]
-			if isinstance(node, (xsc.Element, xsc.Frag)):
-				return len(node) == 0
+	def __contains__(self, path):
+		node = path[-1]
+		if isinstance(node, (xsc.Element, xsc.Frag)):
+			return len(node) == 0
 		return False
 
 
@@ -436,7 +333,7 @@ class OnlyChildSelector(Selector):
 		...
 	"""
 
-	def matchpath(self, path):
+	def __contains__(self, path):
 		if len(path) >= 2:
 			parent = path[-2]
 			if isinstance(parent, (xsc.Frag, xsc.Element)):
@@ -468,7 +365,7 @@ class OnlyOfTypeSelector(Selector):
 		...
 	"""
 
-	def matchpath(self, path):
+	def __contains__(self, path):
 		if len(path) >= 2:
 			node = path[-1]
 			parent = path[-2]
@@ -505,13 +402,12 @@ class hasattr(Selector):
 	def __init__(self, *attrnames):
 		self.attrnames = attrnames
 
-	def matchpath(self, path):
-		if path:
-			node = path[-1]
-			if isinstance(node, xsc.Element):
-				for attrname in self.attrnames:
-					if node.Attrs.isallowed(attrname) and node.attrs.has(attrname):
-						return True
+	def __contains__(self, path):
+		node = path[-1]
+		if isinstance(node, xsc.Element):
+			for attrname in self.attrnames:
+				if node.Attrs.isallowed(attrname) and node.attrs.has(attrname):
+					return True
 		return False
 
 	def __str__(self):
@@ -527,13 +423,12 @@ class hasattr_xml(Selector):
 	def __init__(self, *attrnames):
 		self.attrnames = attrnames
 
-	def matchpath(self, path):
-		if path:
-			node = path[-1]
-			if isinstance(node, xsc.Element):
-				for attrname in self.attrnames:
-					if node.Attrs.isallowed_xml(attrname) and node.attrs.has_xml(attrname):
-						return True
+	def __contains__(self, path):
+		node = path[-1]
+		if isinstance(node, xsc.Element):
+			for attrname in self.attrnames:
+				if node.Attrs.isallowed_xml(attrname) and node.attrs.has_xml(attrname):
+					return True
 		return False
 
 	def __str__(self):
@@ -564,13 +459,12 @@ class attrhasvalue(Selector):
 			raise ValueError("need at least one attribute value")
 		self.attrvalues = attrvalues
 
-	def matchpath(self, path):
-		if path:
-			node = path[-1]
-			if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
-				attr = node.attrs.get(self.attrname)
-				if not attr.isfancy(): # if there are PIs, say no
-					return str(attr) in self.attrvalues
+	def __contains__(self, path):
+		node = path[-1]
+		if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
+			attr = node.attrs.get(self.attrname)
+			if not attr.isfancy(): # if there are PIs, say no
+				return str(attr) in self.attrvalues
 		return False
 
 	def __str__(self):
@@ -589,13 +483,12 @@ class attrhasvalue_xml(Selector):
 			raise ValueError("need at least one attribute value")
 		self.attrvalues = attrvalues
 
-	def matchpath(self, path):
-		if path:
-			node = path[-1]
-			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
-				attr = node.attrs.get_xml(self.attrname)
-				if not attr.isfancy(): # if there are PIs, say no
-					return str(attr) in self.attrvalues
+	def __contains__(self, path):
+		node = path[-1]
+		if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
+			attr = node.attrs.get_xml(self.attrname)
+			if not attr.isfancy(): # if there are PIs, say no
+				return str(attr) in self.attrvalues
 		return False
 
 	def __str__(self):
@@ -629,13 +522,12 @@ class attrcontains(Selector):
 			raise ValueError("need at least one attribute value")
 		self.attrvalues = attrvalues
 
-	def matchpath(self, path):
-		if path:
-			node = path[-1]
-			if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
-				attr = node.attrs.get(self.attrname)
-				if not attr.isfancy(): # if there are PIs, say no
-					return any(attrvalue in str(attr) for attrvalue in self.attrvalues)
+	def __contains__(self, path):
+		node = path[-1]
+		if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
+			attr = node.attrs.get(self.attrname)
+			if not attr.isfancy(): # if there are PIs, say no
+				return builtins.any(attrvalue in str(attr) for attrvalue in self.attrvalues)
 		return False
 
 	def __str__(self):
@@ -654,13 +546,12 @@ class attrcontains_xml(Selector):
 			raise ValueError("need at least one attribute value")
 		self.attrvalues = attrvalues
 
-	def matchpath(self, path):
-		if path:
-			node = path[-1]
-			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
-				attr = node.attrs.get_xml(self.attrname)
-				if not attr.isfancy(): # if there are PIs, say no
-					return any(attrvalue in str(attr) for attrvalue in self.attrvalues)
+	def __contains__(self, path):
+		node = path[-1]
+		if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
+			attr = node.attrs.get_xml(self.attrname)
+			if not attr.isfancy(): # if there are PIs, say no
+				return builtins.any(attrvalue in str(attr) for attrvalue in self.attrvalues)
 		return False
 
 	def __str__(self):
@@ -690,13 +581,12 @@ class attrstartswith(Selector):
 			raise ValueError("need at least one attribute value")
 		self.attrvalues = attrvalues
 
-	def matchpath(self, path):
-		if path:
-			node = path[-1]
-			if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
-				attr = node.attrs.get(self.attrname)
-				if not attr.isfancy(): # if there are PIs, say no
-					return any(str(attr).startswith(attrvalue) for attrvalue in self.attrvalues)
+	def __contains__(self, path):
+		node = path[-1]
+		if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
+			attr = node.attrs.get(self.attrname)
+			if not attr.isfancy(): # if there are PIs, say no
+				return builtins.any(str(attr).startswith(attrvalue) for attrvalue in self.attrvalues)
 		return False
 
 	def __str__(self):
@@ -715,13 +605,12 @@ class attrstartswith_xml(Selector):
 			raise ValueError("need at least one attribute value")
 		self.attrvalues = attrvalues
 
-	def matchpath(self, path):
-		if path:
-			node = path[-1]
-			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
-				attr = node.attrs.get_xml(self.attrname)
-				if not attr.isfancy(): # if there are PIs, say no
-					return any(str(attr).startswith(attrvalue) for attrvalue in self.attrvalues)
+	def __contains__(self, path):
+		node = path[-1]
+		if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
+			attr = node.attrs.get_xml(self.attrname)
+			if not attr.isfancy(): # if there are PIs, say no
+				return builtins.any(str(attr).startswith(attrvalue) for attrvalue in self.attrvalues)
 		return False
 
 	def __str__(self):
@@ -754,13 +643,12 @@ class attrendswith(Selector):
 			raise ValueError("need at least one attribute value")
 		self.attrvalues = attrvalues
 
-	def matchpath(self, path):
-		if path:
-			node = path[-1]
-			if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
-				attr = node.attrs.get(self.attrname)
-				if not attr.isfancy(): # if there are PIs, say no
-					return any(str(attr).endswith(attrvalue) for attrvalue in self.attrvalues)
+	def __contains__(self, path):
+		node = path[-1]
+		if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
+			attr = node.attrs.get(self.attrname)
+			if not attr.isfancy(): # if there are PIs, say no
+				return builtins.any(str(attr).endswith(attrvalue) for attrvalue in self.attrvalues)
 		return False
 
 	def __str__(self):
@@ -779,13 +667,12 @@ class attrendswith_xml(Selector):
 			raise ValueError("need at least one attribute value")
 		self.attrvalues = attrvalues
 
-	def matchpath(self, path):
-		if path:
-			node = path[-1]
-			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
-				attr = node.attrs.get_xml(self.attrname)
-				if not attr.isfancy(): # if there are PIs, say no
-					return any(str(attr).endswith(attrvalue) for attrvalue in self.attrvalues)
+	def __contains__(self, path):
+		node = path[-1]
+		if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
+			attr = node.attrs.get_xml(self.attrname)
+			if not attr.isfancy(): # if there are PIs, say no
+				return builtins.any(str(attr).endswith(attrvalue) for attrvalue in self.attrvalues)
 		return False
 
 	def __str__(self):
@@ -811,13 +698,12 @@ class hasid(Selector):
 			raise ValueError("need at least one id")
 		self.ids = ids
 
-	def matchpath(self, path):
-		if path:
-			node = path[-1]
-			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml("id"):
-				attr = node.attrs.get_xml("id")
-				if not attr.isfancy():
-					return str(attr) in self.ids
+	def __contains__(self, path):
+		node = path[-1]
+		if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml("id"):
+			attr = node.attrs.get_xml("id")
+			if not attr.isfancy():
+				return str(attr) in self.ids
 		return False
 
 	def __str__(self):
@@ -847,13 +733,12 @@ class hasclass(Selector):
 			raise ValueError("need at least one classname")
 		self.classnames = classnames
 
-	def matchpath(self, path):
-		if path:
-			node = path[-1]
-			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml("class"):
-				attr = node.attrs.get_xml("class")
-				if not attr.isfancy():
-					return any(classname in str(attr).split() for classname in self.classnames)
+	def __contains__(self, path):
+		node = path[-1]
+		if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml("class"):
+			attr = node.attrs.get_xml("class")
+			if not attr.isfancy():
+				return builtins.any(classname in str(attr).split() for classname in self.classnames)
 		return False
 
 	def __str__(self):
@@ -875,8 +760,8 @@ class InAttrSelector(Selector):
 		python programming language object oriented web free source
 		...
 	"""
-	def matchpath(self, path):
-		return any(isinstance(node, xsc.Attr) for node in path)
+	def __contains__(self, path):
+		return builtins.any(isinstance(node, xsc.Attr) for node in path)
 
 	def __str__(self):
 		return "inattr"
@@ -934,9 +819,9 @@ class ChildCombinator(BinaryCombinator):
 		<img id="skiptocontent" alt="skip to content" src="http://www.python.org/images/trans.gif" border="0" />
 		<img alt="success story photo" class="success" src="http://www.python.org/images/success/nasa.jpg" />
 	"""
-	def matchpath(self, path):
-		if path and self.right.matchpath(path):
-			return self.left.matchpath(path[:-1])
+	def __contains__(self, path):
+		if len(path) > 1 and path in self.right:
+			return path[:-1] in self.left
 		return False
 
 	symbol = " / "
@@ -963,11 +848,11 @@ class DescendantCombinator(BinaryCombinator):
 		<img id="skiptocontent" alt="skip to content" src="http://www.python.org/images/trans.gif" border="0" />
 		<img alt="success story photo" class="success" src="http://www.python.org/images/success/nasa.jpg" />
 	"""
-	def matchpath(self, path):
-		if path and self.right.matchpath(path):
-			while path:
+	def __contains__(self, path):
+		if path in self.right:
+			while len(path) > 1:
 				path = path[:-1]
-				if self.left.matchpath(path):
+				if path in self.left:
 					return True
 		return False
 
@@ -1004,8 +889,8 @@ class AdjacentSiblingCombinator(BinaryCombinator):
 		<a href="http://www.pycon.it/registration/" class="reference">registration online</a>
 	"""
 
-	def matchpath(self, path):
-		if len(path) >= 2 and self.right.matchpath(path):
+	def __contains__(self, path):
+		if len(path) > 1 and path in self.right:
 			# Find sibling
 			node = path[-1]
 			sibling = None
@@ -1014,7 +899,7 @@ class AdjacentSiblingCombinator(BinaryCombinator):
 					break
 				sibling = child
 			if sibling is not None:
-				return self.left.matchpath(path[:-1]+[sibling])
+				return path[:-1]+[sibling] in self.left
 		return False
 
 	symbol = " * "
@@ -1046,13 +931,13 @@ class GeneralSiblingCombinator(BinaryCombinator):
 		...
 	"""
 
-	def matchpath(self, path):
-		if len(path) >= 2 and self.right.matchpath(path):
+	def __contains__(self, path):
+		if len(path) > 1 and path in self.right:
 			node = path[-1]
 			for child in path[-2]:
 				if child is node: # no previous siblings
 					return False
-				if self.left.matchpath(path[:-1]+[child]):
+				if path[:-1]+[child] in self.left:
 					return True
 		return False
 
@@ -1067,14 +952,15 @@ class ChainedCombinator(Combinator):
 	symbol = None
 
 	def __init__(self, *selectors):
-		self.selectors = selectors
+		self.selectors = tuple(selector(sel) for sel in selectors)
 
 	def __str__(self):
 		v = []
-		for selector in self.selectors:
-			s = str(selector)
-			if isinstance(selector, Combinator) and not isinstance(selector, self.__class__):
-				s = "({})".format(s)
+		for sel in self.selectors:
+			if isinstance(sel, Combinator) and not isinstance(sel, self.__class__):
+				s = "({})".format(sel)
+			else:
+				s = str(sel)
 			v.append(s)
 		return self.symbol.join(v)
 
@@ -1108,13 +994,13 @@ class OrCombinator(ChainedCombinator):
 		...
 	"""
 
-	def matchpath(self, path):
-		return any(selector.matchpath(path) for selector in self.selectors)
+	def __contains__(self, path):
+		return builtins.any(path in sel for sel in self.selectors)
 
 	symbol = " | "
 
 	def __or__(self, other):
-		return OrCombinator(*(self.selectors + (makewalkfilter(other),)))
+		return OrCombinator(*(self.selectors + (selector(other),)))
 
 
 class AndCombinator(ChainedCombinator):
@@ -1137,11 +1023,11 @@ class AndCombinator(ChainedCombinator):
 		<input id="submit" value="search" name="submit" type="submit" class="input-button" />
 	"""
 
-	def matchpath(self, path):
-		return all(selector.matchpath(path) for selector in self.selectors)
+	def __contains__(self, path):
+		return all(path in sel for sel in self.selectors)
 
 	def __and__(self, other):
-		return AndCombinator(*(self.selectors + (makewalkfilter(other),)))
+		return AndCombinator(*(self.selectors + (selector(other),)))
 
 	symbol = " & "
 
@@ -1168,8 +1054,8 @@ class NotCombinator(Combinator):
 	def __init__(self, selector):
 		self.selector = selector
 
-	def matchpath(self, path):
-		return not self.selector.matchpath(path)
+	def __contains__(self, path):
+		return path not in self.selector
 
 	def __str__(self):
 		if isinstance(self.selector, Combinator) and not isinstance(self.selector, NotCombinator):
@@ -1209,7 +1095,7 @@ class CallableSelector(Selector):
 	def __init__(self, func):
 		self.func = func
 
-	def matchpath(self, path):
+	def __contains__(self, path):
 		return self.func(path)
 
 	def __str__(self):
@@ -1228,8 +1114,8 @@ class nthchild(Selector):
 	def __init__(self, index):
 		self.index = index
 
-	def matchpath(self, path):
-		if len(path) >= 2:
+	def __contains__(self, path):
+		if len(path) > 1:
 			if self.index in ("even", "odd"):
 				for (i, child) in enumerate(path[-2]):
 					if child is path[-1]:
@@ -1272,8 +1158,8 @@ class nthoftype(Selector):
 			if isinstance(child, types):
 				yield child
 
-	def matchpath(self, path):
-		if len(path) >= 2:
+	def __contains__(self, path):
+		if len(path) > 1:
 			if self.index in ("even", "odd"):
 				for (i, child) in enumerate(self._find(path)):
 					if child is path[-1]:
@@ -1290,20 +1176,3 @@ class nthoftype(Selector):
 			return "{0.__class__.__name__}({0.index!r}, {1})".format(self, ", ".join("{0.__module__}.{0.__name__}".format(type) for type in self.types))
 		else:
 			return "{0.__class__.__name__}({0.index!r})".format(self)
-
-
-def makewalkfilter(obj):
-	if not isinstance(obj, WalkFilter):
-		if isinstance(obj, xsc._Node_Meta):
-			obj = IsInstanceSelector(obj)
-		elif isinstance(obj, xsc.Node):
-			obj = IsSelector(obj)
-		elif isinstance(obj, collections.Callable):
-			obj = CallableSelector(obj)
-		elif isinstance(obj, tuple):
-			obj = ConstantWalkFilter(obj)
-		elif obj is None:
-			obj = any_
-		else:
-			raise TypeError("can't convert {0!r} to selector".format(obj))
-	return obj
