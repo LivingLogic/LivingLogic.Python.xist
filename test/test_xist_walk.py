@@ -76,6 +76,15 @@ def test_walkpaths_topdown_textonlyinattr():
 	assert ["div", "div.class.i", "div.class.i.#", "div.tr", "div.tr.id.b", "div.tr.id.b.#", "div.tr.th", "div.tr.td"] == iterpath2str(node.walkpaths(textonlyinattr, enterattrs=True, enterattr=True))
 
 
+def test_walk_cursor():
+	nodes = []
+	for c in node.walk(xsc.Element):
+		if isinstance(c.node, html.tr):
+			c.entercontent = False # Don't enter the ``tr`` element
+		nodes.append(c.path[:])
+	assert ["div", "div.tr"] == iterpath2str(nodes)
+
+
 def test_walkgetitem():
 	e = html.div(
 		1,
