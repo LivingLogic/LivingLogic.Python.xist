@@ -63,7 +63,7 @@ def test_walkpaths_topdown_all():
 	assert ["div", "div.class", "div.tr", "div.tr.id", "div.tr.th", "div.tr.th.#", "div.tr.td", "div.tr.td.#"] == iterpath2str(node.walkpaths(xsc.Element, xsc.Attr, xsc.Text, enterattrs=True))
 
 def test_walkpaths_topdown_textonlyinattr():
-	# Elements, attributes and texts top down (including elements in attributes, but text only if they are in attributes)
+	# Elements, attributes and texts top down (including elements in attributes, but text only if it is inside attributes)
 	def textonlyinattr(path):
 		node = path[-1]
 		if isinstance(node, xsc.Element):
