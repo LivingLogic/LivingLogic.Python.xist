@@ -2548,7 +2548,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 
 	@staticmethod
 	def _sortorder(cls):
-		return (getattr(cls, "xmlorder", "\uffff"), nsclark(cls.xmlns) + cls.xmlname)
+		return (getattr(cls, "xmlorder", "\U0010ffff"), nsclark(cls.xmlns) + cls.xmlname)
 
 	def _repr_pretty_content_(self, p, first=True):
 		for attr in sorted(self.values(), key=self._sortorder):
