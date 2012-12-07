@@ -16,27 +16,26 @@ from ll.xist import xsc, xfind, parse
 from ll.xist.ns import html
 
 
-def xfindnode():
-	return xsc.Frag(
+node = xsc.Frag(
+	html.div(
+		html.h1("The ", html.em("important"), " headline"),
+		html.p("The ", html.em("first"), " paragraph."),
+		html.p("The ", html.em("second"), " ", html.em("important"), " paragraph."),
+		align="left",
+	),
+	html.div(
+		html.h1("The headline", html.img(src="root:gurk.gif")),
+		html.p("The ", html.em("first"), " paragraph."),
 		html.div(
-			html.h1("The ", html.em("important"), " headline"),
-			html.p("The ", html.em("first"), " paragraph."),
+			html.h2("The ", html.em("important"), " headline"),
 			html.p("The ", html.em("second"), " ", html.em("important"), " paragraph."),
-			align="left",
+			id="id42",
 		),
-		html.div(
-			html.h1("The headline", html.img(src="root:gurk.gif")),
-			html.p("The ", html.em("first"), " paragraph."),
-			html.div(
-				html.h2("The ", html.em("important"), " headline"),
-				html.p("The ", html.em("second"), " ", html.em("important"), " paragraph."),
-				id="id42",
-			),
-			html.div(id="id23"),
-			class_="foo",
-		),
-		html.p(html.em("only")),
-	)
+		html.div(id="id23"),
+		class_="foo",
+	),
+	html.p(html.em("only")),
+)
 
 
 def test_levels():
@@ -64,7 +63,6 @@ def test_levels():
 
 
 def test_isinstance():
-	node = xfindnode()
 	res = list(node.walknodes(html.h1))
 	assert len(res) == 2
 	assert res[0] is node[0][0]
@@ -86,8 +84,6 @@ def test_isinstance():
 
 
 def test_hasname():
-	node = xfindnode()
-
 	def check(expr, res):
 		assert [str(e) for e in node.walknodes(expr)] == res
 	result = ["important", "first", "second", "important", "first", "important", "second", "important", "only"]
@@ -102,9 +98,8 @@ def test_hasname():
 
 
 def test_is():
-	node = xfindnode()
-
-	# Frags will be put into the path, but the walk filter will not be called for the Frag,
+	# Frags will be put into the path (but only as the root of the path),
+	# but the walk filter will not be called for the Frag,
 	# so when the first call happens there are already two nodes in the path
 	# This is done on purpose: filters should not have to special case Frags
 	res = list(node.walknodes(node))
@@ -116,7 +111,6 @@ def test_is():
 
 
 def test_isroot():
-	node = xfindnode()
 	res = list(node.walknodes(xfind.isroot))
 	assert len(res) == 0
 
@@ -126,7 +120,6 @@ def test_isroot():
 
 
 def test_empty():
-	node = xfindnode()
 	res = list(node.walknodes(xfind.empty))
 	assert len(res) == 2
 	assert res[0] is node[1][0][-1]
@@ -134,14 +127,12 @@ def test_empty():
 
 
 def test_onlychild():
-	node = xfindnode()
 	res = list(node.walknodes(xfind.onlychild & html.em))
 	assert len(res) == 1
 	assert res[0] is node[2][0]
 
 
 def test_onlyoftype():
-	node = xfindnode()
 	res = list(node.walknodes(xfind.onlyoftype & html.h1))
 	assert len(res) == 2
 	assert res[0] is node[0][0]
@@ -158,8 +149,6 @@ def test_onlyoftype():
 
 
 def test_hasattr():
-	node = xfindnode()
-
 	# hasattr
 	res = list(node.walknodes(xfind.hasattr("class_")))
 	assert len(res) == 1
@@ -184,8 +173,6 @@ def test_hasattr():
 
 
 def test_attrhasvalue():
-	node = xfindnode()
-
 	def check(expected, attrname, *attrvalues):
 		for selector in (xfind.attrhasvalue, xfind.attrhasvalue_xml):
 			got = list(node.walknodes(selector(attrname, *attrvalues)))
@@ -202,8 +189,6 @@ def test_attrhasvalue():
 
 
 def test_attrcontains():
-	node = xfindnode()
-
 	def check(expected, attrname, *attrvalues):
 		for selector in (xfind.attrcontains, xfind.attrcontains_xml):
 			got = list(node.walknodes(selector(attrname, *attrvalues)))
@@ -220,8 +205,6 @@ def test_attrcontains():
 
 
 def test_attrstartswith():
-	node = xfindnode()
-
 	def check(expected, attrname, *attrvalues):
 		for selector in (xfind.attrstartswith, xfind.attrstartswith_xml):
 			got = list(node.walknodes(selector(attrname, *attrvalues)))
@@ -239,8 +222,6 @@ def test_attrstartswith():
 
 
 def test_attrendswith():
-	node = xfindnode()
-
 	def check(expected, attrname, *attrvalues):
 		for selector in (xfind.attrendswith, xfind.attrendswith_xml):
 			got = list(node.walknodes(selector(attrname, *attrvalues)))
@@ -258,14 +239,12 @@ def test_attrendswith():
 
 
 def test_hasid():
-	node = xfindnode()
 	res = list(node.walknodes(xfind.hasid("id42")))
 	assert len(res) == 1
 	assert res[0] is node[1][2]
 
 
 def test_hasclass():
-	node = xfindnode()
 	res = list(node.walknodes(xfind.hasclass("foo")))
 	assert len(res) == 1
 	assert res[0] is node[1]
