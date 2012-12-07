@@ -528,7 +528,7 @@ class CSSFunctionSelector(CSSWeightedSelector):
 
 class CSSNthChildSelector(CSSFunctionSelector):
 	"""
-	A :class:`CSSNthChildSelector` selector selects all element node that are
+	A :class:`CSSNthChildSelector` selector selects all element nodes that are
 	the n-th element among their siblings.
 	"""
 	def __contains__(self, path):
@@ -541,7 +541,7 @@ class CSSNthChildSelector(CSSFunctionSelector):
 
 class CSSNthLastChildSelector(CSSFunctionSelector):
 	"""
-	A :class:`CSSNthLastChildSelector` selector selects all element node that are
+	A :class:`CSSNthLastChildSelector` selector selects all element nodes that are
 	the n-th last element among their siblings.
 	"""
 	def __contains__(self, path):
@@ -612,8 +612,8 @@ class CSSTypeSelector(xfind.Selector):
 class CSSAdjacentSiblingCombinator(xfind.BinaryCombinator):
 	"""
 	A :class:`CSSAdjacentSiblingCombinator` works similar to an
-	:class:`AdjacentSiblingCombinator` except that only preceding *elements*
-	are considered.
+	:class:`xfind.AdjacentSiblingCombinator` except that only preceding
+	*elements* are considered.
 	"""
 
 	def __contains__(self, path):
