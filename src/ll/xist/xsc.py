@@ -1301,7 +1301,7 @@ class Node(object, metaclass=_Node_Meta):
 			yield cursor
 			cursor.restore()
 
-	def walk(self, *selectors, entercontent=True, enterattrs=False, enterattr=True, startelementnode=True, endelementnode=False, startattrnode=True, endattrnode=False):
+	def walk(self, *selectors, entercontent=True, enterattrs=False, enterattr=False, startelementnode=True, endelementnode=False, startattrnode=True, endattrnode=False):
 		"""
 		Return an iterator for traversing the tree rooted at :var:`self`.
 
@@ -1345,7 +1345,7 @@ class Node(object, metaclass=_Node_Meta):
 		cursor = Cursor(self, *selectors, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, startelementnode=startelementnode, endelementnode=endelementnode, startattrnode=startattrnode, endattrnode=endattrnode)
 		return self._walk(cursor)
 
-	def walknodes(self, *selectors, entercontent=True, enterattrs=False, enterattr=True, startelementnode=True, endelementnode=False, startattrnode=True, endattrnode=False):
+	def walknodes(self, *selectors, entercontent=True, enterattrs=False, enterattr=False, startelementnode=True, endelementnode=False, startattrnode=True, endattrnode=False):
 		"""
 		Return an iterator for traversing the tree. :var:`filter` works the same
 		as the :var:`walkfilter` argument for :meth:`walk`. The items produced
@@ -1354,7 +1354,7 @@ class Node(object, metaclass=_Node_Meta):
 		cursor = Cursor(self, *selectors, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, startelementnode=startelementnode, endelementnode=endelementnode, startattrnode=startattrnode, endattrnode=endattrnode)
 		return misc.Iterator(cursor.path[-1] for cursor in self._walk(cursor))
 
-	def walkpaths(self, *selectors, entercontent=True, enterattrs=False, enterattr=True, startelementnode=True, endelementnode=False, startattrnode=True, endattrnode=False):
+	def walkpaths(self, *selectors, entercontent=True, enterattrs=False, enterattr=False, startelementnode=True, endelementnode=False, startattrnode=True, endattrnode=False):
 		"""
 		Return an iterator for traversing the tree. :var:`walkfilter` works
 		the same as the :var:`walkfilter` argument for :meth:`walk`. The items
