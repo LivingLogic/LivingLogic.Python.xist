@@ -34,32 +34,33 @@ node = html.div(
 )
 
 
-def dowalk(*args, **kwargs):
-	def path2str(path):
-		return ".".join("#" if isinstance(node, xsc.Text) else node.xmlname for node in path)
+def path2str(path):
+	return ".".join("#" if isinstance(node, xsc.Text) else node.xmlname for node in path)
 
-	return [path2str(s) for s in node.walkpaths(*args, **kwargs)]
+
+def iterpath2str(iter):
+	return [path2str(s) for s in iter]
 
 
 def test_walkpaths_topdown():
 	# Elements top down
-	assert ["div", "div.tr", "div.tr.th", "div.tr.td"] == dowalk(xsc.Element)
+	assert ["div", "div.tr", "div.tr.th", "div.tr.td"] == iterpath2str(node.walkpaths(xsc.Element))
 
 def test_walkpaths_bottomup():
 	# Elements bottom up
-	assert ["div.tr.th", "div.tr.td", "div.tr", "div"] == dowalk(xsc.Element, startelementnode=False, endelementnode=True)
+	assert ["div.tr.th", "div.tr.td", "div.tr", "div"] == iterpath2str(node.walkpaths(xsc.Element, startelementnode=False, endelementnode=True))
 
 def test_walkpaths_topdown_attributes():
 	# Elements top down (including elements in attributes)
-	assert ["div", "div.class.i", "div.tr", "div.tr.id.b", "div.tr.th", "div.tr.td"] == dowalk(xsc.Element, enterattrs=True, enterattr=True)
+	assert ["div", "div.class.i", "div.tr", "div.tr.id.b", "div.tr.th", "div.tr.td"] == iterpath2str(node.walkpaths(xsc.Element, enterattrs=True, enterattr=True))
 
 def test_walkpaths_bottomup_attributes():
 	# Elements bottom up (including elements in attributes)
-	assert ["div.class.i", "div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr", "div"] == dowalk(xsc.Element, enterattrs=True, enterattr=True, startelementnode=False, endelementnode=True)
+	assert ["div.class.i", "div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr", "div"] == iterpath2str(node.walkpaths(xsc.Element, enterattrs=True, enterattr=True, startelementnode=False, endelementnode=True))
 
 def test_walkpaths_topdown_all():
 	# Elements, attributes and texts top down (including elements in attributes)
-	assert ["div", "div.class", "div.tr", "div.tr.id", "div.tr.th", "div.tr.th.#", "div.tr.td", "div.tr.td.#"] == dowalk(xsc.Element, xsc.Attr, xsc.Text, enterattrs=True)
+	assert ["div", "div.class", "div.tr", "div.tr.id", "div.tr.th", "div.tr.th.#", "div.tr.td", "div.tr.td.#"] == iterpath2str(node.walkpaths(xsc.Element, xsc.Attr, xsc.Text, enterattrs=True))
 
 def test_walkpaths_topdown_textonlyinattr():
 	# Elements, attributes and texts top down (including elements in attributes, but text only if they are in attributes)
@@ -72,7 +73,7 @@ def test_walkpaths_topdown_textonlyinattr():
 		else:
 			return False
 
-	assert ["div", "div.class.i", "div.class.i.#", "div.tr", "div.tr.id.b", "div.tr.id.b.#", "div.tr.th", "div.tr.td"] == dowalk(textonlyinattr, enterattrs=True, enterattr=True)
+	assert ["div", "div.class.i", "div.class.i.#", "div.tr", "div.tr.id.b", "div.tr.id.b.#", "div.tr.th", "div.tr.td"] == iterpath2str(node.walkpaths(textonlyinattr, enterattrs=True, enterattr=True))
 
 
 def test_walkgetitem():
