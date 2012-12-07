@@ -636,7 +636,7 @@ class CSSAdjacentSiblingCombinator(xfind.BinaryCombinator):
 class CSSGeneralSiblingCombinator(xfind.BinaryCombinator):
 	"""
 	A :class:`CSSGeneralSiblingCombinator` works similar to an
-	:class:`GeneralSiblingCombinator` except that only preceding *elements*
+	:class:`xfind.GeneralSiblingCombinator` except that only preceding *elements*
 	are considered.
 	"""
 
@@ -682,8 +682,8 @@ _function2class = {
 
 def selector(selectors, prefixes=None):
 	"""
-	Create a walk filter that will yield all nodes that match the specified
-	CSS expression. :var:`selectors` can be a string or a
+	Create a :class:`xfind.Selector` object that matches all nodes that match
+	the specified CSS selector expression. :var:`selectors` can be a string or a
 	:class:`cssutils.css.selector.Selector` object. :var:`prefixes`
 	may be a mapping mapping namespace prefixes to namespace names.
 	"""
