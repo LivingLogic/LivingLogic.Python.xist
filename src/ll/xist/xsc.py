@@ -3515,10 +3515,10 @@ class Element(Node, metaclass=_Element_Meta):
 			entercontent = cursor.entercontent
 			enterattrs = cursor.enterattrs
 			endelementnode = cursor.endelementnode
-		if entercontent:
-			yield from self.content._walk(cursor)
 		if enterattrs:
 			yield from self.attrs._walk(cursor)
+		if entercontent:
+			yield from self.content._walk(cursor)
 		if endelementnode and cursor.path in cursor.filter:
 			cursor.event = "endelementnode"
 			yield cursor
