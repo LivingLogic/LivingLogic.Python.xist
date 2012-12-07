@@ -80,6 +80,8 @@ def test_isinstance():
 	yield check, list(node.walknodes(xfind.IsInstanceSelector(html.h1) | html.h2))
 	yield check, list(node.walknodes(html.h1 | xfind.IsInstanceSelector(html.h2)))
 	yield check, list(node.walknodes(html.h1 | html.h2))
+	yield check, list(node.walknodes(html.h1, html.h2))
+	yield check, list(node.walknodes(html.h1, html.h2, ~xfind.any))
 	yield check, list(node.walknodes(xsc.Element & ~(xsc.Text | html.p | html.div | html.em | html.img)))
 
 
