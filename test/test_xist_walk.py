@@ -18,23 +18,13 @@ import xist_common as common
 
 def test_walk_coverage():
 	node = common.createfrag()
-	class Filter(xfind.WalkFilter):
-		def filternode(self, node):
-			return (True, xfind.enterattrs, xfind.entercontent, True)
 
 	# call only for code coverage
-	for path in node.walk(Filter()):
+	for c in node.walk(entercontent=True, enterattrs=True, enterattr=True, startelementnode=True, endelementnode=True, startattrnode=True, endattrnode=True):
 		pass
 
 
-def test_walk_result():
-	def check(node, filter, result):
-		filter = filter()
-		def path2str(path):
-			return ".".join("#" if isinstance(node, xsc.Text) else node.xmlname for node in path)
-
-		assert [path2str(s) for s in node.walkpaths(filter)] == result
-
+def dowalk(*args, **kwargs):
 	node = html.div(
 		html.tr(
 			html.th("gurk"),
@@ -44,53 +34,39 @@ def test_walk_result():
 		class_=html.i("hinz")
 	)
 
-	class filtertopdown(xfind.WalkFilter):
-		def filternode(self, node):
-			return (isinstance(node, xsc.Element), xfind.entercontent)
+	def path2str(path):
+		return ".".join("#" if isinstance(node, xsc.Text) else node.xmlname for node in path)
 
-	class filterbottomup(xfind.WalkFilter):
-		def filternode(self, node):
-			return (xfind.entercontent, isinstance(node, xsc.Element))
+	return [path2str(s) for s in node.walkpaths(*args, **kwargs)]
 
-	class filtertopdownattrs(xfind.WalkFilter):
-		def filternode(self, node):
-			return (isinstance(node, xsc.Element), xfind.enterattrs, xfind.entercontent)
 
-	class filterbottomupattrs(xfind.WalkFilter):
-		def filternode(self, node):
-			return (xfind.enterattrs, xfind.entercontent, isinstance(node, xsc.Element))
+def test_walk_result():
+	# Elements top down
+	assert ["div", "div.tr", "div.tr.th", "div.tr.td"] == dowalk(xsc.Element)
 
-	class filtertopdowntextonlyinattr(xfind.WalkFilter):
-		def filterpath(self, path):
-			for node in path:
-				if isinstance(node, xsc.Attr):
-					inattr = True
-					break
-			else:
-				inattr = False
-			node = path[-1]
-			if isinstance(node, xsc.Element):
-				return (True, xfind.enterattrs, xfind.entercontent)
-			if inattr and isinstance(node, xsc.Text):
-				return (True, )
-			else:
-				return (xfind.entercontent, )
+	# Elements bottom up
+	assert ["div.tr.th", "div.tr.td", "div.tr", "div"] == dowalk(xsc.Element, startelementnode=False, endelementnode=True)
 
-	class filtertopdownattrwithoutcontent(xfind.WalkFilter):
-		def filternode(self, node):
-			if isinstance(node, xsc.Element):
-				return (True, xfind.entercontent, xfind.enterattrs)
-			elif isinstance(node, (xsc.Attr, xsc.Text)):
-				return (True, )
-			else:
-				return (xfind.entercontent, )
+	# Elements top down (including elements in attributes)
+	assert ["div", "div.class.i", "div.tr", "div.tr.id.b", "div.tr.th", "div.tr.td"] == dowalk(xsc.Element, enterattrs=True, enterattr=True)
 
-	yield check, node, filtertopdown, ["div", "div.tr", "div.tr.th", "div.tr.td"]
-	yield check, node, filterbottomup, ["div.tr.th", "div.tr.td", "div.tr", "div"]
-	yield check, node, filtertopdownattrs, ["div", "div.class.i", "div.tr", "div.tr.id.b", "div.tr.th", "div.tr.td"]
-	yield check, node, filterbottomupattrs, ["div.class.i", "div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr", "div"]
-	yield check, node, filtertopdowntextonlyinattr, ["div", "div.class.i", "div.class.i.#", "div.tr", "div.tr.id.b", "div.tr.id.b.#", "div.tr.th", "div.tr.td"]
-	yield check, node, filtertopdownattrwithoutcontent, ["div", "div.tr", "div.tr.th", "div.tr.th.#", "div.tr.td", "div.tr.td.#", "div.tr.id", "div.class"]
+	# Elements bottom up (including elements in attributes)
+	assert ["div.class.i", "div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr", "div"] == dowalk(xsc.Element, enterattrs=True, enterattr=True, startelementnode=False, endelementnode=True)
+
+	# Elements, attributes and texts top down (including elements in attributes)
+	assert ["div", "div.class", "div.tr", "div.tr.id", "div.tr.th", "div.tr.th.#", "div.tr.td", "div.tr.td.#"] == dowalk(xsc.Element, xsc.Attr, xsc.Text, enterattrs=True)
+
+	def textonlyinattr(path):
+		node = path[-1]
+		if isinstance(node, xsc.Element):
+			return True
+		if isinstance(node, xsc.Text) and any(isinstance(node, xsc.Attr) for node in path):
+			return True
+		else:
+			return False
+
+	# Elements, attributes and texts top down (including elements in attributes, but text only if they are in attributes)
+	assert ["div", "div.class.i", "div.class.i.#", "div.tr", "div.tr.id.b", "div.tr.id.b.#", "div.tr.th", "div.tr.td"] == dowalk(textonlyinattr, enterattrs=True, enterattr=True)
 
 
 def test_walkgetitem():
@@ -103,13 +79,17 @@ def test_walkgetitem():
 			)
 		)
 	)
-	isdiv = xfind.FindTypeAll(html.div)
+	isdiv = xfind.selector(html.div)
+
+	# Test ``walknodes``
 	assert str(e.walknodes(isdiv)[0]) == "123"
 	assert str(e.walknodes(isdiv)[-1]) == "3"
 	with pytest.raises(IndexError):
 		e.walknodes(isdiv)[3]
 	with pytest.raises(IndexError):
 		e.walknodes(isdiv)[-4]
+
+	# Test ``walkpaths``
 	assert str(e.walkpaths(isdiv)[0][-1]) == "123"
 	assert str(e.walkpaths(isdiv)[-1][-1]) == "3"
 	with pytest.raises(IndexError):
