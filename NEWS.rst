@@ -6,6 +6,13 @@ Changes in 4.6 (released ??/??/2012)
 *	:class:`ll.misc.monthdelta` now supports the :func:`abs` function (i.e.
 	``abs(monthdelta(-1))`` returns ``monthdelta(1)``.)
 
+*	Slicing XIST elements now returns a sliced element, instead of a slice from
+	the content :class:`Frag`::
+
+		>>> from ll.xist.ns import html
+		>>> html.ul(html.li(i) for i in range(5))[1:3].string()
+		'<ul><li>1</li><li>2</li></ul>'
+
 
 Changes in 4.5 (released 11/29/2012)
 ------------------------------------

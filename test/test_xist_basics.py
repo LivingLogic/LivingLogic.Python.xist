@@ -670,12 +670,12 @@ def test_getitem():
 		assert e[-1] == xsc.Text(5)
 
 		# slice
-		assert e[:] == xsc.Frag(range(6))
-		assert e[:2] == xsc.Frag(0, 1)
-		assert e[-2:] == xsc.Frag(4, 5)
-		assert e[::2] == xsc.Frag(0, 2, 4)
-		assert e[1::2] == xsc.Frag(1, 3, 5)
-		assert e[::-1] == xsc.Frag(range(5, -1, -1))
+		assert e[:] == cls(range(6))
+		assert e[:2] == cls(0, 1)
+		assert e[-2:] == cls(4, 5)
+		assert e[::2] == cls(0, 2, 4)
+		assert e[1::2] == cls(1, 3, 5)
+		assert e[::-1] == cls(range(5, -1, -1))
 
 		# selector
 		e = cls((html.dt(i), html.dd(2*i)) for i in range(3))
@@ -699,7 +699,7 @@ def test_getitem():
 		# list
 		for attr in ("class_", xml.Attrs.lang):
 			node = cls(html.div("foo", html.div("bar", {attr: "gurk"}), "baz"))
-			assert node[[]] == node[:]
+			assert node[[]] is node
 			assert str(node[[0, 1]]) == "bar"
 			assert str(node[[0, 1, attr]]) == "gurk"
 

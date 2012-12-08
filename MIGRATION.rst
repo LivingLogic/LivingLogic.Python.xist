@@ -1,3 +1,30 @@
+Migrating to version 4.6
+========================
+
+Changes to :mod:`ll.xist`
+-------------------------
+
+*	Slicing XIST elements now returns a sliced element, instead of a slice from
+	the content :class:`Frag`::
+
+		>>> from ll.xist.ns import html
+		>>> html.ul(html.li(i) for i in range(5))[1:3].string()
+		'<ul><li>1</li><li>2</li></ul>'
+
+	To get a slice from the content simply use::
+
+		>>> html.ul(html.li(i) for i in range(5)).content[1:3].string()
+
+
+Migrating to version 4.4
+========================
+
+Changes to the required Python version
+--------------------------------------
+
+Python 3.3 is required now.
+
+
 Migrating to version 4.2
 ========================
 

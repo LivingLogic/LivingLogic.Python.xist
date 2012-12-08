@@ -3364,8 +3364,15 @@ class Element(Node, metaclass=_Element_Meta):
 		"""
 		if isinstance(index, (str, _Attr_Meta)):
 			return self.attrs[index]
-		elif isinstance(index, (list, int, slice)):
+		elif isinstance(index, int):
 			return self.content[index]
+		elif isinstance(index, list):
+			if index:
+				return self.content[index]
+			else:
+				return self
+		elif isinstance(index, slice):
+			return self.__class__(self.content[index], self.attrs)
 		else:
 			from ll.xist import xfind
 			def iterate(selector):
