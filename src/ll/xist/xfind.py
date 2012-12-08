@@ -30,7 +30,7 @@ __docformat__ = "reStructuredText"
 
 
 ###
-### function for creating a :class:`Selector` object
+### Function for creating a :class:`Selector` object.
 ###
 
 def selector(*objs):
@@ -58,7 +58,7 @@ def selector(*objs):
 
 
 ###
-### Tree traversal filters
+### Selectors for the :meth:`walk` method.
 ###
 
 class Selector(object):

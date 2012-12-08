@@ -912,6 +912,7 @@ class Cursor(object):
 	def __init__(self, node, *selectors, entercontent=True, enterattrs=False, enterattr=False, startelementnode=True, endelementnode=False, startattrnode=True, endattrnode=False):
 		self.root = self.node = node
 		self.path = [node]
+		self.index = []
 		from ll.xist import xfind
 		self.filter = xfind.selector(*selectors)
 		self.event = None
@@ -1347,18 +1348,18 @@ class Node(object, metaclass=_Node_Meta):
 
 	def walknodes(self, *selectors, entercontent=True, enterattrs=False, enterattr=False, startelementnode=True, endelementnode=False, startattrnode=True, endattrnode=False):
 		"""
-		Return an iterator for traversing the tree. :var:`filter` works the same
-		as the :var:`walkfilter` argument for :meth:`walk`. The items produced
-		by the iterator are the nodes themselves.
+		Return an iterator for traversing the tree. The arguments have the same
+		meaning as those for :meth:`walk`. The items produced by the iterator
+		are the nodes themselves.
 		"""
 		cursor = Cursor(self, *selectors, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, startelementnode=startelementnode, endelementnode=endelementnode, startattrnode=startattrnode, endattrnode=endattrnode)
 		return misc.Iterator(cursor.path[-1] for cursor in self._walk(cursor))
 
 	def walkpaths(self, *selectors, entercontent=True, enterattrs=False, enterattr=False, startelementnode=True, endelementnode=False, startattrnode=True, endattrnode=False):
 		"""
-		Return an iterator for traversing the tree. :var:`walkfilter` works
-		the same as the :var:`walkfilter` argument for :meth:`walk`. The items
-		produced by the iterator are copies of the path.
+		Return an iterator for traversing the tree. The arguments have the same
+		meaning as those for :meth:`walk`. The items produced by the iterator
+		are copies of the path.
 		"""
 		cursor = Cursor(self, *selectors, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, startelementnode=startelementnode, endelementnode=endelementnode, startattrnode=startattrnode, endattrnode=endattrnode)
 		return misc.Iterator(cursor.path[:] for cursor in self._walk(cursor))
@@ -1981,10 +1982,13 @@ class Frag(Node, list):
 	def _walk(self, cursor):
 		# ``Frag``\s don't get tested
 		cursor.path.append(None)
+		cursor.index.append(-1)
 		for child in self:
 			cursor.path[-1] = cursor.node = child
+			cursor.index[-1] += 1
 			yield from child._walk(cursor)
 		cursor.path.pop()
+		cursor.index.pop()
 		cursor.node = cursor.path[-1]
 
 	def __repr__(self):
@@ -3035,10 +3039,13 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 
 	def _walk(self, cursor):
 		cursor.path.append(None)
+		cursor.index.append(None)
 		for child in self.values():
 			cursor.path[-1] = cursor.node = child
+			cursor.index[-1] = child.xmlname if child.xmlns is None else (child.xmlname, child.xmlns)
 			yield from child._walk(cursor)
 		cursor.path.pop()
+		cursor.index.pop()
 		cursor.node = cursor.path[-1]
 
 	def __repr__(self):
@@ -3126,10 +3133,9 @@ class Element(Node, metaclass=_Element_Meta):
 		if cycle:
 			p.text("{}.{}(...)".format(self.__class__.__module__, self.__class__.__name__))
 		else:
-			text = "{}.{}(".format(self.__class__.__module__, self.__class__.__name__)
-			with p.group(3, text, ")"):
+			with p.group(3, "{}.{}(".format(self.__class__.__module__, self.__class__.__name__), ")"):
 				first = True
-				for child in self:
+				for child in self.content:
 					if first:
 						p.breakable("")
 						first = False
