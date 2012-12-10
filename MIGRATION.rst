@@ -14,6 +14,7 @@ Changes to :mod:`ll.xist`
 	To get a slice from the content simply use::
 
 		>>> html.ul(html.li(i) for i in range(5)).content[1:3].string()
+		'<li>1</li><li>2</li>'
 
 
 Migrating to version 4.4
