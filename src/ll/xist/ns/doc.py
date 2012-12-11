@@ -134,36 +134,44 @@ def _namekey(obj, name):
 
 
 def _codeheader(thing, name, type):
-	(args, varargs, varkw, defaults) = inspect.getargspec(thing)
+	# FullArgSpec(args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults, annotations)
+	spec = inspect.getfullargspec(thing)
+	# kwonlyargs, kwonlydefaults
 	sig = xsc.Frag()
-	offset = len(args)
-	if defaults is not None:
-		offset -= len(defaults)
-	for i in range(len(args)):
+	offset = len(spec.args)
+	if spec.defaults is not None:
+		offset -= len(spec.defaults)
+	for (i, arg) in enumerate(spec.args):
 		if i == 0:
 			if issubclass(type, meth):
-				if args[i] == "self":
+				if arg == "self":
 					sig.append(var(self()))
-				elif args[i] == "cls":
+				elif arg == "cls":
 					sig.append(var(cls()))
 				else:
-					sig.append(var(args[i]))
+					sig.append(var(arg))
 			else:
-				sig.append(var(args[i]))
+				sig.append(var(arg))
 		else:
 			if sig:
 				sig.append(", ")
-			sig.append(var(args[i]))
+			sig.append(var(arg))
 		if i >= offset:
-			sig.append("=", lit(repr(defaults[i-offset])))
-	if varargs:
+			sig.append("=", lit(repr(spec.defaults[i-offset])))
+	if spec.varargs:
 		if sig:
 			sig.append(", ")
-		sig.append("*", var(varargs))
-	if varkw:
+		sig.append("*", var(spec.varargs))
+	if spec.varkw:
 		if sig:
 			sig.append(", ")
-		sig.append("**", var(varkw))
+		sig.append("**", var(spec.varkw))
+	for (i, arg) in enumerate(spec.kwonlyargs):
+		if sig:
+			sig.append(", ")
+		sig.append(var(arg))
+		if arg in spec.kwonlydefaults:
+			sig.append("=", lit(repr(spec.kwonlydefaults[arg])))
 	sig.insert(0, type(name), "\u200b(") # use "ZERO WIDTH SPACE" to allow linebreaks
 	sig.append(")")
 	return sig
