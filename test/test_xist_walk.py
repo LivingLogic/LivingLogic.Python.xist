@@ -16,14 +16,6 @@ from ll.xist.ns import html, xml
 import xist_common as common
 
 
-def test_walk_coverage():
-	node = common.createfrag()
-
-	# call only for code coverage
-	for c in node.walk(entercontent=True, enterattrs=True, enterattr=True, startelementnode=True, endelementnode=True, startattrnode=True, endattrnode=True):
-		pass
-
-
 node = html.div(
 	html.tr(
 		html.th("gurk"),
@@ -42,25 +34,38 @@ def iterpath2str(iter):
 	return [path2str(s) for s in iter]
 
 
+def test_walk_coverage():
+	node = common.createfrag()
+
+	# call only for code coverage
+	for c in node.walk(entercontent=True, enterattrs=True, enterattr=True, startelementnode=True, endelementnode=True, startattrnode=True, endattrnode=True):
+		pass
+
+
 def test_walkpaths_topdown():
 	# Elements top down
 	assert ["div", "div.tr", "div.tr.th", "div.tr.td"] == iterpath2str(node.walkpaths(xsc.Element))
+
 
 def test_walkpaths_bottomup():
 	# Elements bottom up
 	assert ["div.tr.th", "div.tr.td", "div.tr", "div"] == iterpath2str(node.walkpaths(xsc.Element, startelementnode=False, endelementnode=True))
 
+
 def test_walkpaths_topdown_attributes():
 	# Elements top down (including elements in attributes)
 	assert ["div", "div.class.i", "div.tr", "div.tr.id.b", "div.tr.th", "div.tr.td"] == iterpath2str(node.walkpaths(xsc.Element, enterattrs=True, enterattr=True))
+
 
 def test_walkpaths_bottomup_attributes():
 	# Elements bottom up (including elements in attributes)
 	assert ["div.class.i", "div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr", "div"] == iterpath2str(node.walkpaths(xsc.Element, enterattrs=True, enterattr=True, startelementnode=False, endelementnode=True))
 
+
 def test_walkpaths_topdown_all():
 	# Elements, attributes and texts top down (including elements in attributes)
 	assert ["div", "div.class", "div.tr", "div.tr.id", "div.tr.th", "div.tr.th.#", "div.tr.td", "div.tr.td.#"] == iterpath2str(node.walkpaths(xsc.Element, xsc.Attr, xsc.Text, enterattrs=True))
+
 
 def test_walkpaths_topdown_textonlyinattr():
 	# Elements, attributes and texts top down (including elements in attributes, but text only if it is inside attributes)
