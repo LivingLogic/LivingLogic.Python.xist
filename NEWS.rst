@@ -1,10 +1,11 @@
 Changes in 4.6 (released ??/??/2012)
 ------------------------------------
 
-*	:class:`ll.xist.xfind.Selector` no longer enters attributes.
-
-*	:class:`ll.misc.monthdelta` now supports the :func:`abs` function (i.e.
-	``abs(monthdelta(-1))`` returns ``monthdelta(1)``.)
+*	The :meth:`walk` method in XIST has been changed: The return value is a
+	cursor object that provides information about the path and can be used to
+	skip subtrees in the traversal. Filters can no longer influence which parts
+	of the trees are traversed, only whether a node ist returned by the iterator
+	or not.
 
 *	Slicing XIST elements now returns a sliced element, instead of a slice from
 	the content :class:`Frag`::
@@ -12,6 +13,9 @@ Changes in 4.6 (released ??/??/2012)
 		>>> from ll.xist.ns import html
 		>>> html.ul(html.li(i) for i in range(5))[1:3].string()
 		'<ul><li>1</li><li>2</li></ul>'
+
+*	:class:`ll.misc.monthdelta` now supports the :func:`abs` function (i.e.
+	``abs(monthdelta(-1))`` returns ``monthdelta(1)``.)
 
 
 Changes in 4.5 (released 11/29/2012)
