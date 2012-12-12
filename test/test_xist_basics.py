@@ -128,9 +128,9 @@ def test_standardmethods():
 	for node in common.allnodes():
 		node.compacted()
 		node.normalized()
-		list(node.walk(entercontent=True, enterattrs=True, enterattr=None, startelementnode=True, endelementnode=True, startattrnode=True, endattrnode=True))
-		list(node.walknodes(entercontent=True, enterattrs=True, enterattr=None, startelementnode=True, endelementnode=True, startattrnode=True, endattrnode=True))
-		list(node.walkpaths(entercontent=True, enterattrs=True, enterattr=None, startelementnode=True, endelementnode=True, startattrnode=True, endattrnode=True))
+		list(node.walk(entercontent=True, enterattrs=True, enterattr=None, enterelementnode=True, leaveelementnode=True, enterattrnode=True, leaveattrnode=True))
+		list(node.walknodes(entercontent=True, enterattrs=True, enterattr=None, enterelementnode=True, leaveelementnode=True, enterattrnode=True, leaveattrnode=True))
+		list(node.walkpaths(entercontent=True, enterattrs=True, enterattr=None, enterelementnode=True, leaveelementnode=True, enterattrnode=True, leaveattrnode=True))
 		node.pretty()
 		node.clone()
 		node.conv()

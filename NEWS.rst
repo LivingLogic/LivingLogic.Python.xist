@@ -7,6 +7,9 @@ Changes in 4.6 (released ??/??/2012)
 	of the trees are traversed, only whether a node is returned by the iterator
 	or not.
 
+*	The XIST parse events have been renamed: The ``"start*"`` events to
+	``"enter*"`` and the ``"end*"`` events to ``"leave*"``.
+
 *	Slicing XIST elements now returns a sliced element, instead of a slice from
 	the content :class:`Frag`::
 

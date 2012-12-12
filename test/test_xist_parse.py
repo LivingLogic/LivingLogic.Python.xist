@@ -356,9 +356,9 @@ def test_itertree_large():
 			yield "<li>{}</li>".format(i).encode("utf-8")
 		yield "</ul>".encode("utf-8")
 
-	for (i, (evtype, path)) in enumerate(parse.itertree(parse.Iter(xml()), parse.Expat(ns=True), parse.Node(), filter=html.li)):
-		assert int(str(path[-1])) == i
-		path[-2].content.clear()
+	for (i, c) in enumerate(parse.itertree(parse.Iter(xml()), parse.Expat(ns=True), parse.Node(), filter=html.li)):
+		assert int(str(c.node)) == i
+		c.path[-2].content.clear()
 
 
 def test_expat_events_on_exception():

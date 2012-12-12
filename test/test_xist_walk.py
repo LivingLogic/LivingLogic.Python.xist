@@ -38,7 +38,7 @@ def test_walk_coverage():
 	node = common.createfrag()
 
 	# call only for code coverage
-	for c in node.walk(entercontent=True, enterattrs=True, enterattr=True, startelementnode=True, endelementnode=True, startattrnode=True, endattrnode=True):
+	for c in node.walk(entercontent=True, enterattrs=True, enterattr=True, enterelementnode=True, leaveelementnode=True, enterattrnode=True, leaveattrnode=True):
 		pass
 
 
@@ -49,7 +49,7 @@ def test_walkpaths_topdown():
 
 def test_walkpaths_bottomup():
 	# Elements bottom up
-	assert ["div.tr.th", "div.tr.td", "div.tr", "div"] == iterpath2str(node.walkpaths(xsc.Element, startelementnode=False, endelementnode=True))
+	assert ["div.tr.th", "div.tr.td", "div.tr", "div"] == iterpath2str(node.walkpaths(xsc.Element, enterelementnode=False, leaveelementnode=True))
 
 
 def test_walkpaths_topdown_attributes():
@@ -59,7 +59,7 @@ def test_walkpaths_topdown_attributes():
 
 def test_walkpaths_bottomup_attributes():
 	# Elements bottom up (including elements in attributes)
-	assert ["div.class.i", "div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr", "div"] == iterpath2str(node.walkpaths(xsc.Element, enterattrs=True, enterattr=True, startelementnode=False, endelementnode=True))
+	assert ["div.class.i", "div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr", "div"] == iterpath2str(node.walkpaths(xsc.Element, enterattrs=True, enterattr=True, enterelementnode=False, leaveelementnode=True))
 
 
 def test_walkpaths_topdown_all():

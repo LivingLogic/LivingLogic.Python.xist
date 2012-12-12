@@ -32,7 +32,7 @@ Parsing a simple HTML string might e.g. look like this::
 	... 	parse.NS(html),
 	... 	parse.Node(pool=xsc.Pool(html)),
 	... )
-	>>> doc.bytes()
+	>>> doc.string()
 	'<a href="http://www.python.org/">Python</a>'
 
 A source object is an iterable object that produces the input byte string for
@@ -184,12 +184,12 @@ following events are used:
 	``"textnode"``
 		Text data. The event data is an instance of :class:`ll.xist.xsc.Text`.
 
-	``"startelementnode"``
+	``"enterelementnode"``
 		The beginning of an element. The event data is an instance of
 		:class:`ll.xist.xsc.Element` (or rather one of its subclasses). The
 		attributes of the element object are set, but the element has no content.
 
-	``"endelementnode"``
+	``"leaveelementnode"``
 		The end of an element. The event data is an instance of
 		:class:`ll.xist.xsc.Element`.
 
@@ -1180,15 +1180,15 @@ class Node(object):
 		... 	parse.NS(html),
 		... 	parse.Node(pool=xsc.Pool(html))
 		... ))
-		[(u'startelementnode',
+		[(u'enterelementnode',
 		  <ll.xist.ns.html.a element object (no children/1 attr) (from STRING:0:0) at 0x1026e6a10>),
 		 (u'textnode',
 		  <ll.xist.xsc.Text content=u'Python' (from STRING:0:39) at 0x102566b48>),
-		 (u'endelementnode',
+		 (u'leaveelementnode',
 		  <ll.xist.ns.html.a element object (no children/1 attr) (from STRING:0:0) at 0x1026e6a10>)]
 
 	The event data of all events are XIST nodes. The element node from the
-	``"startelementnode"`` event already has all attributes set. There will be
+	``"enterelementnode"`` event already has all attributes set. There will be
 	no events for attributes.
 	"""
 	def __init__(self, pool=None, base=None, loc=True):
@@ -1318,14 +1318,14 @@ class Node(object):
 	def leavestarttagns(self, data):
 		node = self._stack[-1]
 		node.parsed(self, "leavestarttagns")
-		return ("startelementnode", node)
+		return ("enterelementnode", node)
 
 	def endtagns(self, data):
 		node = self._stack.pop()
 		if self.loc:
 			node.endloc = xsc.Location(self._url, *self._position)
 		node.parsed(self, "endtagns")
-		return ("endelementnode", node)
+		return ("leaveelementnode", node)
 
 	def procinst(self, data):
 		node = self.pool.procinst_xml(*data)
@@ -1474,7 +1474,7 @@ def tree(*pipeline, validate=True):
 
 	:var:`pipeline` must output only events that contain XIST nodes, i.e. the
 	event types ``"xmldeclnode"``, ``"doctypenode"``, ``"commentnode"``,
-	``"textnode"``, ``"startelementnode"``, ``"endelementnode"``,
+	``"textnode"``, ``"enterelementnode"``, ``"leaveelementnode"``,
 	``"procinstnode"`` and ``"entitynode"``.
 
 	If :var:`validate` is true, the tree is validated, i.e. it is checked if
@@ -1498,10 +1498,10 @@ def tree(*pipeline, validate=True):
 	"""
 	stack = [xsc.Frag()]
 	for (evtype, node) in events(*pipeline):
-		if evtype == "startelementnode":
+		if evtype == "enterelementnode":
 			stack[-1].append(node)
 			stack.append(node)
-		elif evtype == "endelementnode":
+		elif evtype == "leaveelementnode":
 			if validate:
 				node.checkvalid()
 			stack.pop()
@@ -1510,7 +1510,7 @@ def tree(*pipeline, validate=True):
 	return stack[0]
 
 
-def itertree(*pipeline, events=("endelementnode",), filter=None, validate=True):
+def itertree(*pipeline, events=("leaveelementnode",), filter=None, validate=True):
 	"""
 	Parse the event stream :var:`pipeline` iteratively.
 
@@ -1522,10 +1522,10 @@ def itertree(*pipeline, events=("endelementnode",), filter=None, validate=True):
 	Which events and paths are produced depends on the keyword arguments
 	:var:`events` and :var:`filter`. :var:`events`  specifies which events you
 	want to see (possible event types are ``"xmldeclnode"``, ``"doctypenode"``,
-	``"commentnode"``, ``"textnode"``, ``"startelementnode"``,
-	``"endelementnode"``, ``"procinstnode"`` and ``"entitynode"``). The default
-	is to only produce ``"endelementnode"`` events. (Note that for
-	``"startelementnode"`` events, the attributes of the element have been set,
+	``"commentnode"``, ``"textnode"``, ``"enterelementnode"``,
+	``"leaveelementnode"``, ``"procinstnode"`` and ``"entitynode"``). The default
+	is to only produce ``"leaveelementnode"`` events. (Note that for
+	``"enterelementnode"`` events, the attributes of the element have been set,
 	but the element is still empty). :var:`filter` specifies an XIST walk filter
 	(see the :mod:`ll.xist.xfind` module for more info on walk filters) to filter
 	which paths are output. The default is to output all paths.
@@ -1534,38 +1534,38 @@ def itertree(*pipeline, events=("endelementnode",), filter=None, validate=True):
 
 		>>> from ll.xist import xsc, parse
 		>>> from ll.xist.ns import xml, html, chars
-		>>> for (evtype, path) in parse.itertree(
+		>>> 
+		... for c in parse.itertree(
 		... 	parse.URL("http://www.python.org/"),
 		... 	parse.Expat(ns=True),
 		... 	parse.Node(pool=xsc.Pool(xml, html, chars)),
 		... 	filter=html.a/html.img
 		... ):
-		... 	print(path[-1].attrs.src, "-->", path[-2].attrs.href)
+		... 	print(c.path[-1].attrs.src, "-->", c.path[-2].attrs.href)
 		http://www.python.org/images/python-logo.gif --> http://www.python.org/
 		http://www.python.org/images/trans.gif --> http://www.python.org/#left%2Dhand%2Dnavigation
 		http://www.python.org/images/trans.gif --> http://www.python.org/#content%2Dbody
 		http://www.python.org/images/donate.png --> http://www.python.org/psf/donations/
 		http://www.python.org/images/worldmap.jpg --> http://wiki.python.org/moin/Languages
-		http://www.python.org/images/success/tribon.jpg --> http://www.python.org/about/success/tribon/
+		http://www.python.org/images/success/nasa.jpg --> http://www.python.org/about/success/usa/
 	"""
-	path = [xsc.Frag()]
-	filter = xfind.selector(filter)
+	cursor = xsc.Cursor(xsc.Frag(), *(filter,))
 	from ll.xist import parse # Import ourselves to gain access to the :func:`events` function (which is shadowed by the parameter of the same name)
 	for (evtype, node) in parse.events(*pipeline):
-		if evtype == "startelementnode":
-			path[-1].append(node)
-			path.append(node)
-			if evtype in events and path in filter:
-				yield (evtype, path)
-		elif evtype == "endelementnode":
+		if evtype == "enterelementnode":
+			cursor.path[-1].append(node)
+			cursor.path.append(node)
+			if evtype in events and cursor.path in cursor.selector:
+				yield cursor
+		elif evtype == "leaveelementnode":
 			if validate:
 				node.checkvalid()
-			if evtype in events and path in filter:
-				yield (evtype, path)
-			path.pop()
+			if evtype in events and cursor.path in cursor.selector:
+				yield cursor
+			cursor.path.pop()
 		else:
-			path[-1].append(node)
-			path.append(node)
-			if evtype in events and path in filter:
-				yield (evtype, path)
-			path.pop()
+			cursor.path[-1].append(node)
+			cursor.path.append(node)
+			if evtype in events and cursor.path in cursor.selector:
+				yield cursor
+			cursor.path.pop()

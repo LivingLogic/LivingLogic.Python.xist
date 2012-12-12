@@ -936,8 +936,8 @@ class Cursor(object):
 
 	``event``
 		A string that specifies which event is currently handled. Possible values
-		are: ``"startelementnode"``, ``"endelementnode"``, ``"startattrnode"``,
-		``"endattrnode"``, ``"textnode"``, ``"commentnode"``, ``"doctypenode"``,
+		are: ``"enterelementnode"``, ``"leaveelementnode"``, ``"enterattrnode"``,
+		``"leaveattrnode"``, ``"textnode"``, ``"commentnode"``, ``"doctypenode"``,
 		``"procinstnode"``, ``"entitynode"`` and ``"nullnode"``.
 
 	The attribute ``selector`` contains the selector that was created from the
@@ -958,31 +958,31 @@ class Cursor(object):
 		Should the content of the attributes of an element be entered? (This is
 		only relevant if ``enterattrs`` is true.)
 
-	``startelementnode``
-		Should the generator yield a ``"startelementnode"`` event (i.e. return
+	``enterelementnode``
+		Should the generator yield a ``"enterelementnode"`` event (i.e. return
 		before entering the content or attributes of an element)?
 
-	``endelementnode``
-		Should the generator yield an ``"endelementnode"`` event (i.e. return
+	``leaveelementnode``
+		Should the generator yield an ``"leaveelementnode"`` event (i.e. return
 		after entering the content or attributes of an element)?
 
-	``startattrnode``
-		Should the generator yield a ``"startattrnode"`` event (i.e. return
+	``enterattrnode``
+		Should the generator yield a ``"enterattrnode"`` event (i.e. return
 		before entering the content of an attribute)? This is only relevant if
 		``enterattrs`` is true.
 
-	``endattrnode``
-		Should the generator yield an ``"endattrnode"`` event (i.e. return
+	``leaveattrnode``
+		Should the generator yield an ``"leaveattrnode"`` event (i.e. return
 		after entering the content of an attribute)? This is only relevant if
 		``enterattrs`` is true. Furthermore if ``enterattr`` is false, the
-		behaviour is essentially the same as for ``startattrnode``.
+		behaviour is essentially the same as for ``enterattrnode``.
 
 	Note that if any of these attributes is changed by the code consuming the
 	generator, this new value will be used for the next traversal step once the
 	generator is resumed and will be reset to its initial value (specified in
 	the constructor) afterwards.
 	"""
-	def __init__(self, node, *selectors, entercontent=True, enterattrs=False, enterattr=False, startelementnode=True, endelementnode=False, startattrnode=True, endattrnode=False):
+	def __init__(self, node, *selectors, entercontent=True, enterattrs=False, enterattr=False, enterelementnode=True, leaveelementnode=False, enterattrnode=True, leaveattrnode=False):
 		"""
 		Create a new :class:`Cursor` object for a tree traversal rooted at the node
 		:var:`node`.
@@ -991,8 +991,8 @@ class Cursor(object):
 		for filtering which nodes should be return from the tree traversal.
 
 		The arguments :var:`entercontent`, :var:`enterattrs`, :var:`enterattr`,
-		:var:`startelementnode`, :var:`endelementnode`, :var:`startattrnode` and
-		:var:`endattrnode` are used as the initial values for the attributes of
+		:var:`enterelementnode`, :var:`leaveelementnode`, :var:`enterattrnode` and
+		:var:`leaveattrnode` are used as the initial values for the attributes of
 		the same name. (see the class docstring for info about their use).
 		"""
 		self.root = self.node = node
@@ -1004,24 +1004,24 @@ class Cursor(object):
 		self.entercontent = self._entercontent = entercontent
 		self.enterattrs = self._enterattrs = enterattrs
 		self.enterattr = self._enterattr = enterattr
-		self.startelementnode = self._startelementnode = startelementnode
-		self.endelementnode = self._endelementnode = endelementnode
-		self.startattrnode = self._startattrnode = startattrnode
-		self.endattrnode = self._endattrnode = endattrnode
+		self.enterelementnode = self._enterelementnode = enterelementnode
+		self.leaveelementnode = self._leaveelementnode = leaveelementnode
+		self.enterattrnode = self._enterattrnode = enterattrnode
+		self.leaveattrnode = self._leaveattrnode = leaveattrnode
 
 	def restore(self):
 		"""
 		Restore the attributes ``entercontent``, ``enterattrs``, ``enterattr``,
-		``startelementnode``, ``endelementnode``, ``startattrnode`` and
-		``endattrnode`` to their initial value.
+		``enterelementnode``, ``leaveelementnode``, ``enterattrnode`` and
+		``leaveattrnode`` to their initial value.
 		"""
 		self.entercontent = self._entercontent
 		self.enterattrs = self._enterattrs
 		self.enterattr = self._enterattr
-		self.startelementnode = self._startelementnode
-		self.endelementnode = self._endelementnode
-		self.startattrnode = self._startattrnode
-		self.endattrnode = self._endattrnode
+		self.enterelementnode = self._enterelementnode
+		self.leaveelementnode = self._leaveelementnode
+		self.enterattrnode = self._enterattrnode
+		self.leaveattrnode = self._leaveattrnode
 
 
 ###
@@ -1392,7 +1392,7 @@ class Node(object, metaclass=_Node_Meta):
 			yield cursor
 			cursor.restore()
 
-	def walk(self, *selectors, entercontent=True, enterattrs=False, enterattr=False, startelementnode=True, endelementnode=False, startattrnode=True, endattrnode=False):
+	def walk(self, *selectors, entercontent=True, enterattrs=False, enterattr=False, enterelementnode=True, leaveelementnode=False, enterattrnode=True, leaveattrnode=False):
 		"""
 		Return an iterator for traversing the tree rooted at :var:`self`.
 
@@ -1402,8 +1402,8 @@ class Node(object, metaclass=_Node_Meta):
 
 		:var:`selectors` is used for filtering which nodes to return from the
 		iterator. The arguments :var:`entercontent`, :var:`enterattrs`,
-		:var:`enterattr`, :var:`startelementnode`, :var:`endelementnode`,
-		:var:`startattrnode` and :var:`endattrnode` specify how the tree should
+		:var:`enterattr`, :var:`enterelementnode`, :var:`leaveelementnode`,
+		:var:`enterattrnode` and :var:`leaveattrnode` specify how the tree should
 		be traversed. For more information see the :class:`Cursor` class.
 
 		Note that the :class:`Cursor` object is reused by :meth:`walk`, so you
@@ -1447,25 +1447,25 @@ class Node(object, metaclass=_Node_Meta):
 			'Input your text here: (just a test)'
 		"""
 		from ll.xist import xfind
-		cursor = Cursor(self, *selectors, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, startelementnode=startelementnode, endelementnode=endelementnode, startattrnode=startattrnode, endattrnode=endattrnode)
+		cursor = Cursor(self, *selectors, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, enterelementnode=enterelementnode, leaveelementnode=leaveelementnode, enterattrnode=enterattrnode, leaveattrnode=leaveattrnode)
 		return self._walk(cursor)
 
-	def walknodes(self, *selectors, entercontent=True, enterattrs=False, enterattr=False, startelementnode=True, endelementnode=False, startattrnode=True, endattrnode=False):
+	def walknodes(self, *selectors, entercontent=True, enterattrs=False, enterattr=False, enterelementnode=True, leaveelementnode=False, enterattrnode=True, leaveattrnode=False):
 		"""
 		Return an iterator for traversing the tree. The arguments have the same
 		meaning as those for :meth:`walk`. The items produced by the iterator
 		are the nodes themselves.
 		"""
-		cursor = Cursor(self, *selectors, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, startelementnode=startelementnode, endelementnode=endelementnode, startattrnode=startattrnode, endattrnode=endattrnode)
+		cursor = Cursor(self, *selectors, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, enterelementnode=enterelementnode, leaveelementnode=leaveelementnode, enterattrnode=enterattrnode, leaveattrnode=leaveattrnode)
 		return misc.Iterator(cursor.path[-1] for cursor in self._walk(cursor))
 
-	def walkpaths(self, *selectors, entercontent=True, enterattrs=False, enterattr=False, startelementnode=True, endelementnode=False, startattrnode=True, endattrnode=False):
+	def walkpaths(self, *selectors, entercontent=True, enterattrs=False, enterattr=False, enterelementnode=True, leaveelementnode=False, enterattrnode=True, leaveattrnode=False):
 		"""
 		Return an iterator for traversing the tree. The arguments have the same
 		meaning as those for :meth:`walk`. The items produced by the iterator
 		are copies of the path.
 		"""
-		cursor = Cursor(self, *selectors, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, startelementnode=startelementnode, endelementnode=endelementnode, startattrnode=startattrnode, endattrnode=endattrnode)
+		cursor = Cursor(self, *selectors, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, enterelementnode=enterelementnode, leaveelementnode=leaveelementnode, enterattrnode=enterattrnode, leaveattrnode=leaveattrnode)
 		return misc.Iterator(cursor.path[:] for cursor in self._walk(cursor))
 
 	def compacted(self):
@@ -2404,21 +2404,21 @@ class Attr(Frag, metaclass=_Attr_Meta):
 		return self.clone()
 
 	def _walk(self, cursor):
-		if cursor.startattrnode and cursor.path in cursor.selector:
-			cursor.event = "startattrnode"
+		if cursor.enterattrnode and cursor.path in cursor.selector:
+			cursor.event = "enterattrnode"
 			yield cursor
 			# The user may have altered ``cursor`` attributes outside the generator
 			enterattr = cursor.enterattr
-			endattrnode = cursor.endattrnode
+			leaveattrnode = cursor.leaveattrnode
 			cursor.restore()
 		else:
 			# These are the initial options
 			enterattr = cursor.enterattr
-			endattrnode = cursor.endattrnode
+			leaveattrnode = cursor.leaveattrnode
 		if enterattr:
 			yield from Frag._walk(self, cursor)
-		if endattrnode and cursor.path in cursor.selector:
-			cursor.event = "endattrnode"
+		if leaveattrnode and cursor.path in cursor.selector:
+			cursor.event = "leaveattrnode"
 			yield cursor
 			cursor.restore()
 
@@ -3618,26 +3618,26 @@ class Element(Node, metaclass=_Element_Meta):
 		return node
 
 	def _walk(self, cursor):
-		startelementnode = cursor.startelementnode
-		if startelementnode and cursor.path in cursor.selector:
-			cursor.event = "startelementnode"
+		enterelementnode = cursor.enterelementnode
+		if enterelementnode and cursor.path in cursor.selector:
+			cursor.event = "enterelementnode"
 			yield cursor
 			# The user may have altered ``cursor`` attributes outside the generator
 			entercontent = cursor.entercontent
 			enterattrs = cursor.enterattrs
-			endelementnode = cursor.endelementnode
+			leaveelementnode = cursor.leaveelementnode
 			cursor.restore()
 		else:
 			# These are the initial options
 			entercontent = cursor.entercontent
 			enterattrs = cursor.enterattrs
-			endelementnode = cursor.endelementnode
+			leaveelementnode = cursor.leaveelementnode
 		if enterattrs:
 			yield from self.attrs._walk(cursor)
 		if entercontent:
 			yield from self.content._walk(cursor)
-		if endelementnode and cursor.path in cursor.selector:
-			cursor.event = "endelementnode"
+		if leaveelementnode and cursor.path in cursor.selector:
+			cursor.event = "leaveelementnode"
 			yield cursor
 			cursor.restore()
 
