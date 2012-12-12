@@ -11,10 +11,12 @@
 """
 This module contains XFind and CSS selectors and related classes and functions.
 
-A selector is a XIST tree traversal filter that traverses the complete XML tree
-and outputs those nodes specified by the selector. Selectors can be combined
-with various operations and form a language comparable to XPath__ but
-implemented as Python expressions.
+A selector specifies a condition that a node in an XIST tree must satisfy to
+match the selector. For example the method :meth:`Node.walk` will only output
+nodes that match the specified selector.
+
+Selectors can be combined with various operations and form a language comparable
+to XPath__ but implemented as Python expressions.
 
 __ http://www.w3.org/TR/xpath
 """
@@ -34,6 +36,32 @@ __docformat__ = "reStructuredText"
 ###
 
 def selector(*objs):
+	"""
+	Create a :class:`Selector` object from :var:`objs`.
+
+	If :var:`objs` is empty (i.e. :func:`selector` is called without arguments)
+	``any`` is returned (which matches every node).
+
+	If more than one argument is passed (or the argument is a tuple), an
+	:class:`OrCombinator` is returned.
+
+	Otherwise the following steps are taken for the single argument ``obj``:
+
+	*	if ``obj`` already is a :class:`Selector` object it is returned unchanged;
+
+	*	if ``obj`` is a :class:`Node` subclass, an :class:`IsInstanceSelector`
+		is returned (which matches if the node is an instance of this class);
+
+	*	if ``obj`` is a :class:`Node` instance, an :class:`IsSelector` is returned
+		(which matches only ``obj``);
+
+	*	if ``obj`` is callable a :class:`CallableSelector` is returned
+		(where matching is done by calling ``obj``);
+
+	*	if ``obj`` is ``None`` ``any`` will be returned;
+
+	*	otherwise :func:`selector` will raise a :exc:`TypeError`.
+	"""
 	if not objs:
 		return any
 	if len(objs) == 1:
@@ -63,15 +91,20 @@ def selector(*objs):
 
 class Selector(object):
 	"""
-	Base class for all tree traversal filters that visit the complete tree.
-	Whether a node gets output can be specified by overwriting the
+	A selector specifies a condition that a node in an XIST tree must satisfy
+	to match the selector.
+
+	Whether a node matches the selector can be specified by overwriting the
 	:meth:`__contains__` method. Selectors can be combined with various
 	operations (see methods below).
 	"""
 
 	@misc.notimplemented
 	def __contains__(self, path):
-		pass
+		"""
+		Return whether ``path`` (which is a list of XIST nodes from the root of
+		the tree to the node in question) matches the selector.
+		"""
 
 	def __truediv__(self, other):
 		"""
@@ -124,6 +157,9 @@ class Selector(object):
 class AnySelector(Selector):
 	"""
 	Selector that selects all nodes.
+
+	An instance of this class named ``any`` will be created, i.e. you can use
+	`xfind.any`.
 	"""
 
 	def __contains__(self, path):
@@ -143,7 +179,7 @@ class IsInstanceSelector(Selector):
 	"""
 	Selector that selects all nodes that are instances of the specified type.
 	You can either create an :class:`IsInstanceSelector` object directly
-	or simply pass a class to a function that expects a walk filter (this class
+	or simply pass a class to a function that expects a selector (this class
 	will be automatically wrapped in an :class:`IsInstanceSelector`)::
 
 		>>> from ll.xist import xsc, parse, xfind
@@ -255,7 +291,7 @@ class IsSelector(Selector):
 	with other selectors via :class:`ChildCombinator` or
 	:class:`DescendantCombinator` selectors to select children of this specific
 	node. You can either create an :class:`IsSelector` directly or simply pass
-	a node to a function that expects a walk filter::
+	a node to a function that expects a selector::
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html
@@ -1070,7 +1106,7 @@ class CallableSelector(Selector):
 	callable to select nodes. The callable gets passed the path and must return
 	a bool specifying whether this path is selected. A :class:`CallableSelector`
 	is created implicitely whenever a callable is passed to a method that
-	expects a walk filter.
+	expects a selector.
 
 	The following example outputs all links that point outside the ``python.org``
 	domain::

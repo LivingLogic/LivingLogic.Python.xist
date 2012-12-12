@@ -82,8 +82,8 @@ threadlocalnodehandler = ThreadLocalNodeHander()
 
 class build(object):
 	"""
-	A :class:`build` object can be used as a ``with`` block handler to create a
-	new XIST tree::
+	A :class:`build` object can be used as a context handler to create a new
+	XIST tree::
 
 		with xsc.build():
 			with html.ul() as e:
@@ -117,8 +117,8 @@ class build(object):
 
 class addattr(object):
 	"""
-	An :class:`addattr` object can be used as a ``with`` block handler to modify
-	an attribute of an element::
+	An :class:`addattr` object can be used as a context handler to modify an
+	attribute of an element::
 
 		with xsc.build():
 			with html.div() as e:
@@ -909,12 +909,97 @@ class Publisher(object):
 ###
 
 class Cursor(object):
+	"""
+	A :class:`Cursor` object is used by the :meth:`walk` method during tree
+	traversal. It contains information about the state of the traversal and can
+	be used to influence which parts of the tree are traversed and in which order.
+
+	Information about the state of the traversal is provided in the following
+	attributes:
+
+	``root``
+		The node where traversal has been started (i.e. the object for which the
+		:meth:`walk` method has been called)
+
+	``node``
+		The current node being traversed.
+
+	``path``
+		A list of nodes that contains the path through the tree from the root to
+		the current node (i.e. ``path[0] is root`` and ``path[-1] is node``)
+
+	``index``
+		A path of indices (e.g. ``[0, 1]`` if the current node is the second child
+		of the first child of the root). Inside attributes the index path will
+		contain the name of the attribute (or a (attribute name, namespace name)
+		tuple inside a global attribute).
+
+	``event``
+		A string that specifies which event is currently handled. Possible values
+		are: ``"startelementnode"``, ``"endelementnode"``, ``"startattrnode"``,
+		``"endattrnode"``, ``"textnode"``, ``"commentnode"``, ``"doctypenode"``,
+		``"procinstnode"``, ``"entitynode"`` and ``"nullnode"``.
+
+	The attribute ``selector`` contains the selector that was created from the
+	:var:`selectors` argument to the constructor (by calling
+	:meth:`xfind.selector`). Only nodes matching this selector will ever be
+	yielded from :meth:`walk`.
+
+	The following attributes specify which part of the tree should be traversed:
+
+	``entercontent``
+		Should the content of an element be entered?
+
+	``enterattrs``
+		Should the attributes of an element be entered? (Note that the attributes
+		will always be entered before the content.)
+
+	``enterattr``
+		Should the content of the attributes of an element be entered? (This is
+		only relevant if ``enterattrs`` is true.)
+
+	``startelementnode``
+		Should the generator yield a ``"startelementnode"`` event (i.e. return
+		before entering the content or attributes of an element)?
+
+	``endelementnode``
+		Should the generator yield an ``"endelementnode"`` event (i.e. return
+		after entering the content or attributes of an element)?
+
+	``startattrnode``
+		Should the generator yield a ``"startattrnode"`` event (i.e. return
+		before entering the content of an attribute)? This is only relevant if
+		``enterattrs`` is true.
+
+	``endattrnode``
+		Should the generator yield an ``"endattrnode"`` event (i.e. return
+		after entering the content of an attribute)? This is only relevant if
+		``enterattrs`` is true. Furthermore if ``enterattr`` is false, the
+		behaviour is essentially the same as for ``startattrnode``.
+
+	Note that if any of these attributes is changed by the code consuming the
+	generator, this new value will be used for the next traversal step once the
+	generator is resumed and will be reset to its initial value (specified in
+	the constructor) afterwards.
+	"""
 	def __init__(self, node, *selectors, entercontent=True, enterattrs=False, enterattr=False, startelementnode=True, endelementnode=False, startattrnode=True, endattrnode=False):
+		"""
+		Create a new :class:`Cursor` object for a tree traversal rooted at the node
+		:var:`node`.
+
+		:var:`selectors` is passed to :func:`xfind.selector` to create a selector
+		for filtering which nodes should be return from the tree traversal.
+
+		The arguments :var:`entercontent`, :var:`enterattrs`, :var:`enterattr`,
+		:var:`startelementnode`, :var:`endelementnode`, :var:`startattrnode` and
+		:var:`endattrnode` are used as the initial values for the attributes of
+		the same name. (see the class docstring for info about their use).
+		"""
 		self.root = self.node = node
 		self.path = [node]
 		self.index = []
 		from ll.xist import xfind
-		self.filter = xfind.selector(*selectors)
+		self.selector = xfind.selector(*selectors)
 		self.event = None
 		self.entercontent = self._entercontent = entercontent
 		self.enterattrs = self._enterattrs = enterattrs
@@ -925,6 +1010,11 @@ class Cursor(object):
 		self.endattrnode = self._endattrnode = endattrnode
 
 	def restore(self):
+		"""
+		Restore the attributes ``entercontent``, ``enterattrs``, ``enterattr``,
+		``startelementnode``, ``endelementnode``, ``startattrnode`` and
+		``endattrnode`` to their initial value.
+		"""
 		self.entercontent = self._entercontent
 		self.enterattrs = self._enterattrs
 		self.enterattr = self._enterattr
@@ -1298,7 +1388,7 @@ class Node(object, metaclass=_Node_Meta):
 		return publisher.write(stream, self, base)
 
 	def _walk(self, cursor):
-		if cursor.path in cursor.filter:
+		if cursor.path in cursor.selector:
 			yield cursor
 			cursor.restore()
 
@@ -1306,41 +1396,19 @@ class Node(object, metaclass=_Node_Meta):
 		"""
 		Return an iterator for traversing the tree rooted at :var:`self`.
 
-		:var:`walkfilter` is used for specifying whether or not a node should be
-		yielded and when the children of this node should be traversed. If
-		:var:`walkfilter` is callable, it will be called for each node visited
-		during the traversal. A path (i.e. a list of all nodes from the root to
-		the current node) will be passed to the filter on each call and the
-		filter must return a sequence of "node handling options". If
-		:var:`walkfilter` is not callable, it must be a sequence of node
-		handling options that will be used for all visited nodes.
+		Each item produced by the iterator is a :class:`Cursor` object.
+		It contains information about the state of the traversal and can be used
+		to influence which parts of the tree are traversed and in which order.
 
-		Entries in this returned sequence can be the following:
+		:var:`selectors` is used for filtering which nodes to return from the
+		iterator. The arguments :var:`entercontent`, :var:`enterattrs`,
+		:var:`enterattr`, :var:`startelementnode`, :var:`endelementnode`,
+		:var:`startattrnode` and :var:`endattrnode` specify how the tree should
+		be traversed. For more information see the :class:`Cursor` class.
 
-		:const:`True`
-			This tells :meth:`walk` to yield this node from the iterator.
-
-		:const:`False`
-			Don't yield this node from the iterator.
-
-		:const:`xfind.enterattrs`
-			This is a global constant in :mod:`ll.xist.xfind` and tells :meth:`walk`
-			to traverse the attributes of this node (if it's an :class:`Element`,
-			otherwise this option will be ignored).
-
-		:const:`xfind.entercontent`
-			This is a global constant in :mod:`ll.xist.xfind` and tells :meth:`walk`
-			to traverse the child nodes of this node (if it's an :class:`Element`,
-			otherwise this option will be ignored).
-
-		These options will be executed in the order they are specified in the
-		sequence, so to get a top down traversal of a tree (without entering
-		attributes), ``(True, xfind.entercontent)`` can be used. For a bottom up
-		traversal ``(xfind.entercontent, True)`` can be used.
-
-		Each item produced by the iterator is a path list. :meth:`walk` reuses
-		this list, so you can't rely on the value of the list being the same
-		across calls to :meth:`next`.
+		Note that the :class:`Cursor` object is reused by :meth:`walk`, so you
+		can't rely on any attributes remaining the same across calls to
+		:func:`next`.
 		"""
 		from ll.xist import xfind
 		cursor = Cursor(self, *selectors, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, startelementnode=startelementnode, endelementnode=endelementnode, startattrnode=startattrnode, endattrnode=endattrnode)
@@ -1641,7 +1709,7 @@ class Text(CharacterData):
 		return self
 
 	def _walk(self, cursor):
-		if cursor.path in cursor.filter:
+		if cursor.path in cursor.selector:
 			cursor.event = "textnode"
 			yield cursor
 			cursor.restore()
@@ -2027,7 +2095,7 @@ class Comment(CharacterData):
 			yield publisher.encode("-->")
 
 	def _walk(self, cursor):
-		if cursor.path in cursor.filter:
+		if cursor.path in cursor.selector:
 			cursor.event = "commentnode"
 			yield cursor
 			cursor.restore()
@@ -2059,8 +2127,8 @@ class DocType(CharacterData, metaclass=_DocType_Meta):
 			yield publisher.encode(">")
 
 	def _walk(self, cursor):
-		if cursor.path in cursor.filter:
-			cursor.event = "doctype"
+		if cursor.path in cursor.selector:
+			cursor.event = "doctypenode"
 			yield cursor
 			cursor.restore()
 
@@ -2108,7 +2176,7 @@ class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
 		yield publisher.encode("<?{} {}?>".format(self.xmlname, content))
 
 	def _walk(self, cursor):
-		if cursor.path in cursor.filter:
+		if cursor.path in cursor.selector:
 			cursor.event = "procinstnode"
 			yield cursor
 			cursor.restore()
@@ -2156,7 +2224,7 @@ class Null(CharacterData):
 		return presenter.presentNull(self) # return a generator-iterator
 
 	def _walk(self, cursor):
-		if cursor.path in cursor.filter:
+		if cursor.path in cursor.selector:
 			cursor.event = "nullnode"
 			yield cursor
 			cursor.restore()
@@ -2300,7 +2368,7 @@ class Attr(Frag, metaclass=_Attr_Meta):
 		return self.clone()
 
 	def _walk(self, cursor):
-		if cursor.startattrnode and cursor.path in cursor.filter:
+		if cursor.startattrnode and cursor.path in cursor.selector:
 			cursor.event = "startattrnode"
 			yield cursor
 			# The user may have altered ``cursor`` attributes outside the generator
@@ -2313,7 +2381,7 @@ class Attr(Frag, metaclass=_Attr_Meta):
 			endattrnode = cursor.endattrnode
 		if enterattr:
 			yield from Frag._walk(self, cursor)
-		if endattrnode and cursor.path in cursor.filter:
+		if endattrnode and cursor.path in cursor.selector:
 			cursor.event = "endattrnode"
 			yield cursor
 			cursor.restore()
@@ -3515,7 +3583,7 @@ class Element(Node, metaclass=_Element_Meta):
 
 	def _walk(self, cursor):
 		startelementnode = cursor.startelementnode
-		if startelementnode and cursor.path in cursor.filter:
+		if startelementnode and cursor.path in cursor.selector:
 			cursor.event = "startelementnode"
 			yield cursor
 			# The user may have altered ``cursor`` attributes outside the generator
@@ -3532,7 +3600,7 @@ class Element(Node, metaclass=_Element_Meta):
 			yield from self.attrs._walk(cursor)
 		if entercontent:
 			yield from self.content._walk(cursor)
-		if endelementnode and cursor.path in cursor.filter:
+		if endelementnode and cursor.path in cursor.selector:
 			cursor.event = "endelementnode"
 			yield cursor
 			cursor.restore()
@@ -3635,7 +3703,7 @@ class Entity(Node, metaclass=_Entity_Meta):
 		yield publisher.encode(";")
 
 	def _walk(self, cursor):
-		if cursor.path in cursor.filter:
+		if cursor.path in cursor.selector:
 			cursor.event = "entitynode"
 			yield cursor
 			cursor.restore()
