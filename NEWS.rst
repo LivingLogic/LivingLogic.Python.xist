@@ -4,7 +4,7 @@ Changes in 4.6 (released ??/??/2012)
 *	The :meth:`walk` method in XIST has been changed: The return value is a
 	cursor object that provides information about the path and can be used to
 	skip subtrees in the traversal. Filters can no longer influence which parts
-	of the trees are traversed, only whether a node ist returned by the iterator
+	of the trees are traversed, only whether a node is returned by the iterator
 	or not.
 
 *	Slicing XIST elements now returns a sliced element, instead of a slice from
