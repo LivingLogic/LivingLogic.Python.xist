@@ -1409,6 +1409,42 @@ class Node(object, metaclass=_Node_Meta):
 		Note that the :class:`Cursor` object is reused by :meth:`walk`, so you
 		can't rely on any attributes remaining the same across calls to
 		:func:`next`.
+
+		The following example shows how to extract the text of an HTML ``label``
+		element for an input element with a specified HTML id::
+
+			from ll import misc
+			from ll.xist import xsc, xfind
+			from ll.xist.ns import html
+
+			def label(doc, id):
+				label = misc.first(doc.walk(xfind.attrhasvalue_xml("for", id)), None)
+				if label is None:
+					return None
+				texts = []
+				for c in label.node.walk(html.textarea, xsc.Text):
+					if isinstance(c.node, html.textarea):
+						c.entercontent = False
+					else:
+						texts.append(str(c.node))
+				return " ".join("".join(texts).split()).strip()
+
+			doc = html.div(
+				html.p(
+					html.label(
+						"Input your text here: ",
+						html.textarea("Default value", rows=20, cols=80, id="foo"),
+						" (just a test)",
+						for_="foo",
+					)
+				)
+			)
+
+			print(repr(label(doc, "foo")))
+
+		This will output::
+
+			'Input your text here: (just a test)'
 		"""
 		from ll.xist import xfind
 		cursor = Cursor(self, *selectors, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, startelementnode=startelementnode, endelementnode=endelementnode, startattrnode=startattrnode, endattrnode=endattrnode)
