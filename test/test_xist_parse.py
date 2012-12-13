@@ -399,4 +399,3 @@ def test_sgmlop_no_multiple_text_events():
 	assert next(i) == ("endtag", "a")
 	with pytest.raises(StopIteration):
 		next(i)
-
