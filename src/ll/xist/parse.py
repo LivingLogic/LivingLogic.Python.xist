@@ -1510,36 +1510,29 @@ def tree(*pipeline, validate=True):
 	return stack[0]
 
 
-def itertree(*pipeline, events=("leaveelementnode",), filter=None, validate=True):
+def itertree(*pipeline, entercontent=True, enterattrs=False, enterattr=False, enterelementnode=False, leaveelementnode=True, enterattrnode=True, leaveattrnode=False, selector=None, validate=True):
 	"""
 	Parse the event stream :var:`pipeline` iteratively.
 
 	:func:`itertree` still builds a tree, but it returns a iterator of
-	``(event type, path)`` tuples that track changes to the tree as it is built.
-	``path`` is a list containing the path from the root ``Frag`` object to the
-	node being worked on.
+	:class:`xsc.Cursor` objects that tracks changes to the tree as it is built.
 
-	Which events and paths are produced depends on the keyword arguments
-	:var:`events` and :var:`filter`. :var:`events`  specifies which events you
-	want to see (possible event types are ``"xmldeclnode"``, ``"doctypenode"``,
-	``"commentnode"``, ``"textnode"``, ``"enterelementnode"``,
-	``"leaveelementnode"``, ``"procinstnode"`` and ``"entitynode"``). The default
-	is to only produce ``"leaveelementnode"`` events. (Note that for
-	``"enterelementnode"`` events, the attributes of the element have been set,
-	but the element is still empty). :var:`filter` specifies an XIST walk filter
-	(see the :mod:`ll.xist.xfind` module for more info on walk filters) to filter
-	which paths are output. The default is to output all paths.
+	:var:`validate` specifies whether each node should be validated after it has
+	been fully parsed.
+
+	The rest of the arguments can be used to control when :func:`itertree`
+	returns to the calling code. For an explanation of their meaning see the
+	class :class:`xsc.Cursor`.
 
 	Example::
 
 		>>> from ll.xist import xsc, parse
 		>>> from ll.xist.ns import xml, html, chars
-		>>> 
-		... for c in parse.itertree(
+		>>> for c in parse.itertree(
 		... 	parse.URL("http://www.python.org/"),
 		... 	parse.Expat(ns=True),
 		... 	parse.Node(pool=xsc.Pool(xml, html, chars)),
-		... 	filter=html.a/html.img
+		... 	selector=html.a/html.img
 		... ):
 		... 	print(c.path[-1].attrs.src, "-->", c.path[-2].attrs.href)
 		http://www.python.org/images/python-logo.gif --> http://www.python.org/
@@ -1549,23 +1542,48 @@ def itertree(*pipeline, events=("leaveelementnode",), filter=None, validate=True
 		http://www.python.org/images/worldmap.jpg --> http://wiki.python.org/moin/Languages
 		http://www.python.org/images/success/nasa.jpg --> http://www.python.org/about/success/usa/
 	"""
-	cursor = xsc.Cursor(xsc.Frag(), *(filter,))
-	from ll.xist import parse # Import ourselves to gain access to the :func:`events` function (which is shadowed by the parameter of the same name)
-	for (evtype, node) in parse.events(*pipeline):
+	selector = xfind.selector(selector)
+	cursor = xsc.Cursor(xsc.Frag(), entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, enterelementnode=enterelementnode, leaveelementnode=leaveelementnode, enterattrnode=enterattrnode, leaveattrnode=leaveattrnode)
+	cursor.index.append(0)
+	skipelement = None # If this is not ``None``, we're currently skipping past the content of this element
+	for (evtype, node) in events(*pipeline):
+		cursor.event = evtype
 		if evtype == "enterelementnode":
 			cursor.path[-1].append(node)
 			cursor.path.append(node)
-			if evtype in events and cursor.path in cursor.selector:
+			cursor.node = node
+			enterattrs = cursor.enterattrs
+			entercontent = cursor.entercontent
+			if cursor.enterelementnode and cursor.path in selector and skipelement is None:
 				yield cursor
+				enterattrs = cursor.enterattrs
+				entercontent = cursor.entercontent
+				cursor.restore()
+			if enterattrs:
+				yield from node.attrs._walk(cursor)
+			cursor.index.append(0)
+			if not entercontent and skipelement is None:
+				# Skip all events until we leave this element
+				skipelement = cursor.node
 		elif evtype == "leaveelementnode":
 			if validate:
 				node.checkvalid()
-			if evtype in events and cursor.path in cursor.selector:
+			cursor.index.pop()
+			if skipelement is cursor.node:
+				skipelement = None
+			if cursor.leaveelementnode and cursor.path in selector and skipelement is None:
 				yield cursor
+				cursor.restore()
 			cursor.path.pop()
+			cursor.node = cursor.path[-1]
+			cursor.index[-1] += 1
 		else:
 			cursor.path[-1].append(node)
 			cursor.path.append(node)
-			if evtype in events and cursor.path in cursor.selector:
+			cursor.node = node
+			if cursor.path in selector and skipelement is None:
 				yield cursor
+				cursor.restore()
 			cursor.path.pop()
+			cursor.node = cursor.path[-1]
+			cursor.index[-1] += 1

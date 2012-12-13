@@ -821,7 +821,7 @@ class Publisher(object):
 		self._ns2prefix.clear()
 		self._prefix2ns.clear()
 		# iterate through every node in the tree
-		for n in node.walknodes(Element, Attr, enterattrs=True, enterattr=True):
+		for n in node.walknodes(Element, Attr, enterattrs=True):
 			self.getobjectprefix(n)
 		# Add the prefixes forced by ``self.showxmlns``
 		for xmlns in self.showxmlns:
@@ -940,11 +940,6 @@ class Cursor(object):
 		``"leaveattrnode"``, ``"textnode"``, ``"commentnode"``, ``"doctypenode"``,
 		``"procinstnode"``, ``"entitynode"`` and ``"nullnode"``.
 
-	The attribute ``selector`` contains the selector that was created from the
-	:var:`selectors` argument to the constructor (by calling
-	:meth:`xfind.selector`). Only nodes matching this selector will ever be
-	yielded from :meth:`walk`.
-
 	The following attributes specify which part of the tree should be traversed:
 
 	``entercontent``
@@ -982,13 +977,10 @@ class Cursor(object):
 	generator is resumed and will be reset to its initial value (specified in
 	the constructor) afterwards.
 	"""
-	def __init__(self, node, *selectors, entercontent=True, enterattrs=False, enterattr=False, enterelementnode=True, leaveelementnode=False, enterattrnode=True, leaveattrnode=False):
+	def __init__(self, node, entercontent=True, enterattrs=False, enterattr=False, enterelementnode=True, leaveelementnode=False, enterattrnode=True, leaveattrnode=False):
 		"""
 		Create a new :class:`Cursor` object for a tree traversal rooted at the node
 		:var:`node`.
-
-		:var:`selectors` is passed to :func:`xfind.selector` to create a selector
-		for filtering which nodes should be return from the tree traversal.
 
 		The arguments :var:`entercontent`, :var:`enterattrs`, :var:`enterattr`,
 		:var:`enterelementnode`, :var:`leaveelementnode`, :var:`enterattrnode` and
@@ -998,8 +990,6 @@ class Cursor(object):
 		self.root = self.node = node
 		self.path = [node]
 		self.index = []
-		from ll.xist import xfind
-		self.selector = xfind.selector(*selectors)
 		self.event = None
 		self.entercontent = self._entercontent = entercontent
 		self.enterattrs = self._enterattrs = enterattrs
@@ -1388,9 +1378,8 @@ class Node(object, metaclass=_Node_Meta):
 		return publisher.write(stream, self, base)
 
 	def _walk(self, cursor):
-		if cursor.path in cursor.selector:
-			yield cursor
-			cursor.restore()
+		yield cursor
+		cursor.restore()
 
 	def walk(self, *selectors, entercontent=True, enterattrs=False, enterattr=False, enterelementnode=True, leaveelementnode=False, enterattrnode=True, leaveattrnode=False):
 		"""
@@ -1446,9 +1435,12 @@ class Node(object, metaclass=_Node_Meta):
 
 			'Input your text here: (just a test)'
 		"""
-		from ll.xist import xfind
-		cursor = Cursor(self, *selectors, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, enterelementnode=enterelementnode, leaveelementnode=leaveelementnode, enterattrnode=enterattrnode, leaveattrnode=leaveattrnode)
-		return self._walk(cursor)
+		cursor = Cursor(self, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, enterelementnode=enterelementnode, leaveelementnode=leaveelementnode, enterattrnode=enterattrnode, leaveattrnode=leaveattrnode)
+		if selectors:
+			from ll.xist import xfind
+			return xfind.filter(self._walk(cursor), *selectors)
+		else:
+			return self._walk(cursor)
 
 	def walknodes(self, *selectors, entercontent=True, enterattrs=False, enterattr=False, enterelementnode=True, leaveelementnode=False, enterattrnode=True, leaveattrnode=False):
 		"""
@@ -1456,8 +1448,10 @@ class Node(object, metaclass=_Node_Meta):
 		meaning as those for :meth:`walk`. The items produced by the iterator
 		are the nodes themselves.
 		"""
-		cursor = Cursor(self, *selectors, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, enterelementnode=enterelementnode, leaveelementnode=leaveelementnode, enterattrnode=enterattrnode, leaveattrnode=leaveattrnode)
-		return misc.Iterator(cursor.path[-1] for cursor in self._walk(cursor))
+		cursor = Cursor(self, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, enterelementnode=enterelementnode, leaveelementnode=leaveelementnode, enterattrnode=enterattrnode, leaveattrnode=leaveattrnode)
+		from ll.xist import xfind
+		selector = xfind.selector(*selectors)
+		return misc.Iterator(cursor.path[-1] for cursor in self._walk(cursor) if cursor.path in selector)
 
 	def walkpaths(self, *selectors, entercontent=True, enterattrs=False, enterattr=False, enterelementnode=True, leaveelementnode=False, enterattrnode=True, leaveattrnode=False):
 		"""
@@ -1465,8 +1459,10 @@ class Node(object, metaclass=_Node_Meta):
 		meaning as those for :meth:`walk`. The items produced by the iterator
 		are copies of the path.
 		"""
-		cursor = Cursor(self, *selectors, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, enterelementnode=enterelementnode, leaveelementnode=leaveelementnode, enterattrnode=enterattrnode, leaveattrnode=leaveattrnode)
-		return misc.Iterator(cursor.path[:] for cursor in self._walk(cursor))
+		cursor = Cursor(self, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, enterelementnode=enterelementnode, leaveelementnode=leaveelementnode, enterattrnode=enterattrnode, leaveattrnode=leaveattrnode)
+		from ll.xist import xfind
+		selector = xfind.selector(*selectors)
+		return misc.Iterator(cursor.path[:] for cursor in self._walk(cursor) if cursor.path in selector)
 
 	def compacted(self):
 		"""
@@ -1745,10 +1741,9 @@ class Text(CharacterData):
 		return self
 
 	def _walk(self, cursor):
-		if cursor.path in cursor.selector:
-			cursor.event = "textnode"
-			yield cursor
-			cursor.restore()
+		cursor.event = "textnode"
+		yield cursor
+		cursor.restore()
 
 
 class Frag(Node, list):
@@ -2131,10 +2126,9 @@ class Comment(CharacterData):
 			yield publisher.encode("-->")
 
 	def _walk(self, cursor):
-		if cursor.path in cursor.selector:
-			cursor.event = "commentnode"
-			yield cursor
-			cursor.restore()
+		cursor.event = "commentnode"
+		yield cursor
+		cursor.restore()
 
 
 class _DocType_Meta(type(Node)):
@@ -2163,10 +2157,9 @@ class DocType(CharacterData, metaclass=_DocType_Meta):
 			yield publisher.encode(">")
 
 	def _walk(self, cursor):
-		if cursor.path in cursor.selector:
-			cursor.event = "doctypenode"
-			yield cursor
-			cursor.restore()
+		cursor.event = "doctypenode"
+		yield cursor
+		cursor.restore()
 
 
 class _ProcInst_Meta(type(Node)):
@@ -2212,10 +2205,9 @@ class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
 		yield publisher.encode("<?{} {}?>".format(self.xmlname, content))
 
 	def _walk(self, cursor):
-		if cursor.path in cursor.selector:
-			cursor.event = "procinstnode"
-			yield cursor
-			cursor.restore()
+		cursor.event = "procinstnode"
+		yield cursor
+		cursor.restore()
 
 	def __str__(self):
 		return ""
@@ -2260,10 +2252,9 @@ class Null(CharacterData):
 		return presenter.presentNull(self) # return a generator-iterator
 
 	def _walk(self, cursor):
-		if cursor.path in cursor.selector:
-			cursor.event = "nullnode"
-			yield cursor
-			cursor.restore()
+		cursor.event = "nullnode"
+		yield cursor
+		cursor.restore()
 
 	def __str__(self):
 		return ""
@@ -2404,7 +2395,7 @@ class Attr(Frag, metaclass=_Attr_Meta):
 		return self.clone()
 
 	def _walk(self, cursor):
-		if cursor.enterattrnode and cursor.path in cursor.selector:
+		if cursor.enterattrnode:
 			cursor.event = "enterattrnode"
 			yield cursor
 			# The user may have altered ``cursor`` attributes outside the generator
@@ -2417,7 +2408,7 @@ class Attr(Frag, metaclass=_Attr_Meta):
 			leaveattrnode = cursor.leaveattrnode
 		if enterattr:
 			yield from Frag._walk(self, cursor)
-		if leaveattrnode and cursor.path in cursor.selector:
+		if leaveattrnode:
 			cursor.event = "leaveattrnode"
 			yield cursor
 			cursor.restore()
@@ -3619,7 +3610,7 @@ class Element(Node, metaclass=_Element_Meta):
 
 	def _walk(self, cursor):
 		enterelementnode = cursor.enterelementnode
-		if enterelementnode and cursor.path in cursor.selector:
+		if enterelementnode:
 			cursor.event = "enterelementnode"
 			yield cursor
 			# The user may have altered ``cursor`` attributes outside the generator
@@ -3636,7 +3627,7 @@ class Element(Node, metaclass=_Element_Meta):
 			yield from self.attrs._walk(cursor)
 		if entercontent:
 			yield from self.content._walk(cursor)
-		if leaveelementnode and cursor.path in cursor.selector:
+		if leaveelementnode:
 			cursor.event = "leaveelementnode"
 			yield cursor
 			cursor.restore()
@@ -3739,10 +3730,9 @@ class Entity(Node, metaclass=_Entity_Meta):
 		yield publisher.encode(";")
 
 	def _walk(self, cursor):
-		if cursor.path in cursor.selector:
-			cursor.event = "entitynode"
-			yield cursor
-			cursor.restore()
+		cursor.event = "entitynode"
+		yield cursor
+		cursor.restore()
 
 	def __repr__(self):
 		if self.startloc is not None:
