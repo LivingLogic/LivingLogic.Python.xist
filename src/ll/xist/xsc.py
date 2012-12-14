@@ -210,7 +210,7 @@ class RequiredAttrMissingWarning(Warning):
 		self.reqattrs = reqattrs
 
 	def __str__(self):
-		return "Required attribute{} {} missing in {}".format(("s" if len(self.reqattrs) > 1 else ""), ", ".join(repr(attr) for attr in self.reqattrs), self.attrs._str(fullname=True, xml=False, decorate=False))
+		return "Required attribute{} {} missing in {}".format(("s" if len(self.reqattrs) > 1 else ""), ", ".join(repr(attr.xmlname) if attr.xmlns is None else repr("{{{}}}{}".format(attr.xmlns, attr.xmlname)) for attr in self.reqattrs), self.attrs._str(fullname=True, xml=False, decorate=False))
 
 
 class IllegalPrefixError(Error, LookupError):
