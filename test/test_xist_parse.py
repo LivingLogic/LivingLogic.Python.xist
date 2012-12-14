@@ -361,6 +361,19 @@ def test_itertree_large():
 		c.path[-2].content.clear()
 
 
+def test_itertree_skip():
+	def xml():
+		yield "<ul xmlns='{}'>".format(html.xmlns).encode("utf-8")
+		for i in range(10):
+			yield "<li>{}</li>".format(i).encode("utf-8")
+		yield "</ul>".encode("utf-8")
+
+	for (i, c) in enumerate(parse.itertree(parse.Iter(xml()), parse.Expat(ns=True), parse.Node(), enterelementnode=True)):
+		if isinstance(c.node, html.ul):
+			c.entercontent = False
+		assert not isinstance(c.node, html.li)
+
+
 def test_expat_events_on_exception():
 	# Test that all collected events are output before an exception is thrown
 	i = parse.events(b"<x/>schrott", parse.Expat())

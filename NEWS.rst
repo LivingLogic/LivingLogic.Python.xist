@@ -3,15 +3,18 @@ Changes in 4.6 (released ??/??/2012)
 
 *	The :meth:`walk` method in XIST has been changed: The return value is a
 	cursor object that provides information about the path and can be used to
-	skip subtrees in the traversal. Filters can no longer influence which parts
-	of the trees are traversed, only whether a node is returned by the iterator
-	or not.
-
-*	The XIST parse events have been renamed: The ``"start*"`` events to
-	``"enter*"`` and the ``"end*"`` events to ``"leave*"``.
+	skip subtrees in the traversal. Filters (which are called selectors now)
+	can no longer influence which parts of the trees are traversed, only whether
+	a node is returned by the iterator or not.
 
 *	:func:`ll.xist.parse.itertree` now supports the same interface is the
 	:meth:`walk` method.
+
+*	A new function :func:`xfind.filter` has been added that filters the output
+	of :meth:`walk` or :func:`itertree` against a :class:`Selector` object.
+
+*	The XIST parse events have been renamed: The ``"start*"`` events to
+	``"enter*"`` and the ``"end*"`` events to ``"leave*"``.
 
 *	Slicing XIST elements now returns a sliced element, instead of a slice from
 	the content :class:`Frag`::

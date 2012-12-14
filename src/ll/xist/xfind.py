@@ -32,6 +32,34 @@ __docformat__ = "reStructuredText"
 
 
 ###
+### Function for filtering a :class:`xsc.Cursor` iterator against a :class:`Selector`.
+###
+
+def filter(iter, *selectors):
+	"""
+	Filter an iterator over :class:`xsc.Cursor` objects against a
+	:class:`Selector` object.
+
+	Example::
+
+		>>> from ll.xist import xsc, parse, xfind
+		>>> from ll.xist.ns import html, xml
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Tidy(),
+		... 	parse.NS(html),
+		... 	parse.Node(pool=xsc.Pool(html, xml))
+		... )
+		>>> [c.node.string() for c in xfind.filter(doc.walk(), html.b, html.br)]
+		['<b>Firaxis Games:</b>', '<br />', '<br />', '<br />']
+	"""
+	sel = selector(*selectors)
+	for cursor in iter:
+		if cursor.path in sel:
+			yield cursor
+
+
+###
 ### Function for creating a :class:`Selector` object.
 ###
 
