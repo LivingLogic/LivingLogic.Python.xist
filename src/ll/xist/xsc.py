@@ -2822,7 +2822,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 	def __delattr__(self, name):
 		sup = super(Attrs, self)
 		if name in sup.__getattribute__("_bypyname"): # avoid recursion
-			return self.__detitem__(name)
+			return self.__delitem__(name)
 		else:
 			return sup.__delattr__(name)
 
