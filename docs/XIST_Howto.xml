@@ -72,8 +72,7 @@ __init__(self, *content, **attrs)
 <p>Positional arguments (i.e. items in <var>content</var>)
 will be the child nodes of the element node. Keyword arguments will be attributes.
 You can pass most of Python's builtin types to such a constructor.
-Strings (<class>str</class> and <class>unicode</class>) and integers
-will be automatically converted to
+Strings and integers will be automatically converted to
 <pyref module="ll.xist.xsc" class="Text"><class>Text</class></pyref> objects.
 Constructing an &html; element works like this:</p>
 <example><h>The first example</h>
@@ -193,8 +192,8 @@ of the object.</p>
 <example><h>Using the new element</h>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>node = cool("Python")</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.conv().bytes()</input>
-&lt;b&gt;Python is cool!&lt;/b&gt;
+<prompt>&gt;&gt;&gt; </prompt><input>print(node.conv().bytes())</input>
+b'&lt;b&gt;Python is cool!&lt;/b&gt;'
 </tty>
 </example>
 
@@ -219,8 +218,8 @@ class python(xsc.Element):
 <p>Now we can do the following:</p>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>node = cool(python())</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.conv().bytes()</input>
-&lt;b&gt;&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is cool!&lt;/b&gt;
+<prompt>&gt;&gt;&gt; </prompt><input>print(node.conv().bytes())</input>
+b'&lt;b&gt;&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is cool!&lt;/b&gt;'
 </tty>
 <p>But if we forget to call
 <pyref module="ll.xist.xsc" class="Node" method="convert"><meth>convert</meth></pyref>
@@ -234,8 +233,8 @@ class cool(xsc.Element):
 <p>we would get:</p>
 <prog>
 &gt;&gt;&gt; node = cool(python())
-&gt;&gt;&gt; print node.conv().bytes()
-&lt;b&gt;&lt;python&gt;&lt;/python&gt; is cool!&lt;/b&gt;
+&gt;&gt;&gt; print(node.conv().bytes())
+b'&lt;b&gt;&lt;python&gt;&lt;/python&gt; is cool!&lt;/b&gt;'
 </prog>
 
 <p>Furthermore <meth>convert</meth> should never modify <self/>, because
