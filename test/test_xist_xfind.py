@@ -99,9 +99,9 @@ def test_hasname():
 
 def test_is():
 	# Frags will be put into the path (but only as the root of the path),
-	# but the walk filter will not be called for the Frag,
-	# so when the first call happens there are already two nodes in the path
-	# This is done on purpose: filters should not have to special case Frags
+	# but the selector will not be called for the Frag, so when the first call
+	# happens there are already two nodes in the path. This is done on purpose:
+	# selectors should not have to special case Frags
 	res = list(node.walknodes(node))
 	assert len(res) == 0
 
