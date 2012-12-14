@@ -788,6 +788,14 @@ def test_delitem():
 		del e[1::2]
 		assert e == cls(0, 2, 4)
 
+		e = cls(range(6))
+		del e[lambda p:int(str(p[-1])) % 2]
+		assert e == cls(0, 2, 4)
+
+		e = cls(html.b(i) if i%2 else html.a(i) for i in range(6))
+		del e[html.b]
+		assert e == cls(html.a(0), html.a(2), html.a(4))
+
 
 def test_clone():
 	for cls in (xsc.Frag, html.div):
