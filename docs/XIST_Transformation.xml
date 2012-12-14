@@ -1,13 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <spc:wrap xmlns="http://xmlns.livinglogic.de/xist/ns/doc" xmlns:spc="http://xmlns.livinglogic.de/xist/ns/specials">
 <p>Apart from the <pyref module="ll.xist.xsc" class="Node" method="convert"><meth>convert</meth></pyref>
-method, &xist; provides many tools for manipulating an &xml; tree.</p>
+method, &xist; provides several tools for manipulating an &xml; tree.</p>
 
 
 <section><h>The <meth>withsep</meth> method</h>
 
 <p>The method <pyref module="ll.xist.xsc" class="Frag" method="withsep"><meth>withsep</meth></pyref>
-can be used to put a seperator node between the child nodes of an
+can be used to put a separator node between the child nodes of an
 <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref>
 or a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:</p>
 
@@ -15,8 +15,8 @@ or a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:</p>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = html.div(range(10))</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.withsep(", ").bytes()</input>
-&lt;div&gt;0, 1, 2, 3, 4, 5, 6, 7, 8, 9&lt;/div&gt;
+<prompt>&gt;&gt;&gt; </prompt><input>print(node.withsep(", ").string())</input>
+<![CDATA[<div>0, 1, 2, 3, 4, 5, 6, 7, 8, 9</div>]]>
 </tty>
 
 </section>
@@ -32,27 +32,24 @@ or <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:</p>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = html.div(range(10))</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.shuffled().withsep(", ").bytes()</input>
-&lt;div&gt;8, 1, 3, 6, 7, 5, 2, 9, 4, 0&lt;/div&gt;
+<prompt>&gt;&gt;&gt; </prompt><input>print(node.shuffled().withsep(", ").string())</input>
+<![CDATA[<div>8, 1, 3, 6, 7, 5, 2, 9, 4, 0</div>]]>
 </tty>
 
 </section>
 
 
-<section><h>The <meth>reversed</meth> and <meth>sorted</meth> methods</h>
+<section><h>The <meth>reversed</meth> method</h>
 
-<p>There are methods named <pyref module="ll.xist.xsc" class="Frag" method="reversed"><meth>reversed</meth></pyref>
-and <pyref module="ll.xist.xsc" class="Frag" method="sorted"><meth>sorted</meth></pyref> that
-return a reversed or sorted version of an element or fragment:</p>
+<p>The method <pyref module="ll.xist.xsc" class="Frag" method="reversed"><meth>reversed</meth></pyref>
+returns a reversed version of an element or fragment:</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>def key(n):</input>
-<prompt>... </prompt><input>	return str(n)</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = html.div(8,4,2,1,9,6,3,0,7,5)</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.sorted(key=key).reversed().withsep(",").bytes()</input>
-&lt;div&gt;9,8,7,6,5,4,3,2,1,0&lt;/div&gt;
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.div(range(10))</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print(node.reversed().withsep(",").string())</input>
+<![CDATA[<div>9,8,7,6,5,4,3,2,1,0</div>]]>
 </tty>
 
 </section>
@@ -70,8 +67,8 @@ from ll.xist import xsc, parse
 
 def p2p(node, converter):
 	if isinstance(node, xsc.Text):
-		node = node.replace(u"Python", u"Parrot")
-		node = node.replace(u"python", u"parrot")
+		node = node.replace("Python", "Parrot")
+		node = node.replace("python", "parrot")
 	return node
 
 node = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
