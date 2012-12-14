@@ -1857,7 +1857,8 @@ class Frag(Node, list):
 		Return the :var:`index`'th node of the content of the fragment. If
 		:var:`index` is a list :meth:`__getitem__` will work recursively.
 		If :var:`index` is an empty list, :var:`self` will be returned.
-		:meth:`__getitem__` also supports walk filters.
+		:meth:`__getitem__` also supports selectors (i.e. :class:`xfind.Selector`
+		objects).
 		"""
 		if isinstance(index, list):
 			node = self
@@ -1887,7 +1888,8 @@ class Frag(Node, list):
 		If  :var:`index` is a list :meth:`__setitem__` will be applied to the
 		innermost index after traversing the rest of :var:`index` recursively.
 		If :var:`index` is an empty list, an exception will be raised.
-		:meth:`__setitem__` also supports walk filters.
+		:meth:`__setitem__` also supports selectors (i.e. :class:`xfind.Selector`
+		objects).
 		"""
 		if isinstance(index, list):
 			if not index:
@@ -1925,8 +1927,9 @@ class Frag(Node, list):
 		is a list, the innermost index will be deleted, after traversing the rest
 		of :var:`index` recursively. If :var:`index` is an empty list, an
 		exception will be raised. Anything except :class:`list`, :class:`int` and
-		:class:`slice` objects will be turned into a walk filter and any child
-		node matching this filter will be deleted from :var:`self`.
+		:class:`slice` objects will be turned into a selector (i.e. an
+		:class:`xfind.Selector` objects) and any child node matching this selector
+		will be deleted from :var:`self`.
 		"""
 		if isinstance(index, list):
 			if not index:
