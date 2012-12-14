@@ -1545,7 +1545,7 @@ def itertree(*pipeline, entercontent=True, enterattrs=False, enterattr=False, en
 	selector = xfind.selector(selector)
 	cursor = xsc.Cursor(xsc.Frag(), entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, enterelementnode=enterelementnode, leaveelementnode=leaveelementnode, enterattrnode=enterattrnode, leaveattrnode=leaveattrnode)
 	cursor.index.append(0)
-	skipelement = None # If this is not ``None``, we're currently skipping past the content of this element
+	skipcontent = None # If this is not ``None``, we're currently skipping past the content of this element
 	for (evtype, node) in events(*pipeline):
 		cursor.event = evtype
 		if evtype == "enterelementnode":
@@ -1554,7 +1554,7 @@ def itertree(*pipeline, entercontent=True, enterattrs=False, enterattr=False, en
 			cursor.node = node
 			enterattrs = cursor.enterattrs
 			entercontent = cursor.entercontent
-			if cursor.enterelementnode and cursor.path in selector and skipelement is None:
+			if cursor.enterelementnode and cursor.path in selector and skipcontent is None:
 				yield cursor
 				enterattrs = cursor.enterattrs
 				entercontent = cursor.entercontent
@@ -1562,16 +1562,16 @@ def itertree(*pipeline, entercontent=True, enterattrs=False, enterattr=False, en
 			if enterattrs:
 				yield from node.attrs._walk(cursor)
 			cursor.index.append(0)
-			if not entercontent and skipelement is None:
+			if not entercontent and skipcontent is None:
 				# Skip all events until we leave this element
-				skipelement = cursor.node
+				skipcontent = cursor.node
 		elif evtype == "leaveelementnode":
 			if validate:
 				node.checkvalid()
 			cursor.index.pop()
-			if skipelement is cursor.node:
-				skipelement = None
-			if cursor.leaveelementnode and cursor.path in selector and skipelement is None:
+			if skipcontent is cursor.node:
+				skipcontent = None
+			if cursor.leaveelementnode and cursor.path in selector and skipcontent is None:
 				yield cursor
 				cursor.restore()
 			cursor.path.pop()
@@ -1581,7 +1581,7 @@ def itertree(*pipeline, entercontent=True, enterattrs=False, enterattr=False, en
 			cursor.path[-1].append(node)
 			cursor.path.append(node)
 			cursor.node = node
-			if cursor.path in selector and skipelement is None:
+			if cursor.path in selector and skipcontent is None:
 				yield cursor
 				cursor.restore()
 			cursor.path.pop()
