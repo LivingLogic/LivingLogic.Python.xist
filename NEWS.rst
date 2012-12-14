@@ -1599,8 +1599,8 @@ Changes in 3.0 (released 01/07/2008)
 	and their ``@import``\ed stylesheets) and putting the styles into ``style``
 	attributes of the affected elements instead.
 
-*	The function :func:`selector` return a tree walk filter from a CSS selector
-	passed as a string.
+*	The function :func:`selector` returns a tree walk filter from a CSS selector
+	passed in as a string.
 
 *	Constructing trees can now be done with ``with`` blocks. Code looks like
 	this::
