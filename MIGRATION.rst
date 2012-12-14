@@ -4,6 +4,40 @@ Migrating to version 4.6
 Changes to :mod:`ll.xist`
 -------------------------
 
+*	The :meth:`walk` method has been changed to return a :class:`Cursor` object
+	instead of the path, so you have to replace::
+
+		for path in doc.walk(...):
+			# use path
+
+	with::
+
+		for cursor in doc.walk(...):
+			# use cursor.path
+
+*	Furthermore walk filters have been removed. Determining whether an XIST tree
+	is traversed top down or bottom up can instead by specified via distinct
+	parameters to the :meth:`walk` method. Replace::
+
+		for path in doc.walk((xfind.entercontent, xfind.enterattrs, True)):
+			...
+
+	with::
+
+		for cursor in doc.walk(entercontent=True, enterattrs=True, startelementnode=False, endelementnode=True):
+			...
+
+	If you want to enter an element only when a condition is true, you can do
+	that by modifying the approprate cursor attribute inside your loop::
+
+		for cursor in doc.walk(entercontent=True, enterattrs=True):
+			if isinstance(cursor.node, html.script, html.textarea):
+				cursor.entercontent = False
+			...
+
+*	:func:`ll.xist.parse.itertree` now returns :class:`Cursor` objects too,
+	instead of path lists.
+
 *	Slicing XIST elements now returns a sliced element, instead of a slice from
 	the content :class:`Frag`::
 
