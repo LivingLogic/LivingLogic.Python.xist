@@ -282,8 +282,7 @@ when <lit><var>stage</var>=="cache"</lit>, so it would still be part of the cach
 and would be converted to &html; on every request.</dd>
 <dt><var>target</var></dt><dd><var>target</var> (which defaults to
 <pyref module="ll.xist.ns.html"><mod>ll.xist.ns.html</mod></pyref>) specifies what the output should be.
-Values must be <pyref module="ll.xist.xsc" class="Namespace">namespace subclasses</pyref>
-(see below for an explanation of namespaces).</dd>
+Values must be namespace modules (see below for an explanation of namespaces).</dd>
 <dt><var>lang</var></dt><dd><p><var>lang</var> (which defaults to <lit>None</lit>) is the language
 in which the result tree should be. This can be used in the <meth>convert</meth> method
 to implement different conversions for different languages, e.g.:</p>
@@ -291,11 +290,11 @@ to implement different conversions for different languages, e.g.:</p>
 class note(xsc.Element):
 	def convert(self, converter):
 		if converter.lang==u"de":
-			title = u"Anmerkung"
+			title = "Anmerkung"
 		elif converter.lang==u"en":
-			title = u"Note"
+			title = "Note"
 		else:
-			title = u"???"
+			title = "???"
 		node = xsc.Frag(
 			html.h1(title),
 			html.div(self.content)
@@ -316,15 +315,15 @@ a dictionary interface or by accessing the &xml; attributes as Python attributes
 of the elements <lit>attrs</lit> attribute:</p>
 <example>
 <tty>
-<prompt>&gt;&gt;&gt; </prompt><input>node = html.a(u"Python", href=u"http://www.python.org/")</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node[u"href"].bytes()</input>
- href="http://www.python.org/"
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.a("Python", href="http://www.python.org/")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print(node.bytes())</input>
+b'&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt;'
 <prompt>&gt;&gt;&gt; </prompt><input>del node.attrs.href</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node[u"href"].bytes()</input>
-
-<prompt>&gt;&gt;&gt; </prompt><input>node[u"href"] = u"http://www.python.org"</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.attrs.href.bytes()</input>
- href="http://www.python.org/"
+<prompt>&gt;&gt;&gt; </prompt><input>print(node.bytes())</input>
+b'&lt;a&gt;Python&lt;/a&gt;'
+<prompt>&gt;&gt;&gt; </prompt><input>node["href"] = "http://www.python.org"</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print(node.bytes())</input>
+b'&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt;'
 </tty>
 </example>
 
@@ -370,9 +369,9 @@ import random
 if random.random() &lt; 0.5:
 	class_ = None
 else:
-	class_ = u"foo"
+	class_ = "foo"
 
-node = html.div(u"foo", class_=class_)
+node = html.div("foo", class_=class_)
 </prog>
 
 <p>In 50% of the cases the generated <class>div</class> element will not
@@ -394,10 +393,10 @@ class cool(xsc.Element):
 		class adj(xsc.TextAttr): pass
 
 	def convert(self, converter):
-		node = xsc.Frag(self.content, u" is")
-		if u"adj" in self.attrs:
-			node.append(u" ", html.em(self.attrs.adj))
-		node.append(u" cool!")
+		node = xsc.Frag(self.content, " is")
+		if "adj" in self.attrs:
+			node.append(" ", html.em(self.attrs.adj))
+		node.append(" cool!")
 		return node.convert(converter)
 </prog>
 </example>
@@ -422,13 +421,13 @@ the class attribute <lit>default</lit>:</p>
 class cool(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
 		class adj(xsc.TextAttr):
-			default = u"absolutely"
+			default = "absolutely"
 
 	def convert(self, converter):
-		node = xsc.Frag(self.content, u" is")
-		if u"adj" in self.attrs:
-			node.append(u" ", html.em(self[u"adj"]))
-		node.append(u" cool!")
+		node = xsc.Frag(self.content, " is")
+		if "adj" in self.attrs:
+			node.append(" ", html.em(self.attrs.adj))
+		node.append(" cool!")
 		return node.convert(converter)
 </prog>
 </example>
@@ -439,8 +438,8 @@ class cool(xsc.Element):
 <example><h>Using default attributes</h>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>node = cool(python())</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.conv().bytes()</input>
-&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is &lt;em&gt;absolutely&lt;/em&gt; cool!
+<prompt>&gt;&gt;&gt; </prompt><input>print(node.conv().bytes())</input>
+b'&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is &lt;em&gt;absolutely&lt;/em&gt; cool!'
 </tty>
 </example>
 
@@ -451,8 +450,8 @@ as the attribute value:</p>
 <example><h>Removing default attributes</h>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>node = cool(python(), adj=None)</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.conv().bytes()</input>
-&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is cool!
+<prompt>&gt;&gt;&gt; </prompt><input>print(node.conv().bytes())</input>
+b'&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is cool!'
 </tty>
 </example>
 
@@ -469,41 +468,31 @@ class cool(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
 		class adj(xsc.TextAttr):
 			default = "absolutely"
-			values = (u"absolutely", u"totally", u"very")
+			values = ("absolutely", "totally", "very")
 
 	def convert(self, converter):
-		node = xsc.Frag(self.content, u" is")
-		if u"adj" in self.attrs:
-			node.append(" ", html.em(self[u"adj"]))
-		node.append(u" cool!")
+		node = xsc.Frag(self.content, " is")
+		if "adj" in self.attrs:
+			node.append(" ", html.em(self.attrs.adj))
+		node.append(" cool!")
 		return node.convert(converter)
 </prog>
 </example>
 
 <p>These values won't be checked when we create our <class>cool</class>
 instance. Only when this node is parsed from a file will the warning
-be issued:</p>
-
-<tty>
-<prompt>&gt;&gt;&gt; </prompt><input>s = '&lt;cool adj="pretty"&gt;&lt;python/&gt;&lt;/cool&gt;'</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = parse.parsestring(s)</input>
-/Users/walter/checkouts/LivingLogic.Python.xist/src/ll/xist/xsc.py:2006: \
-IllegalAttrValueWarning: Attribute value u'pretty' not allowed for __main__:cool.Attrs.adj
-  warnings.warn(IllegalAttrValueWarning(self))
-</tty>
-
-<p>The warning will also be issued if we publish such a node,
+be issued. The warning will also be issued if we publish such a node,
 but note that for warnings Python's warning framework is used,
 so the warning will be printed only once (but of course
 you can change that with <func>warnings.filterwarnings</func>):</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>node = cool(python(), adj=u"pretty")</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.bytes()</input>
-/Users/walter/checkouts/LivingLogic.Python.xist/src/ll/xist/xsc.py:2006: \
-IllegalAttrValueWarning: Attribute value u'pretty' not allowed for __main__:cool.Attrs.adj
+<prompt>&gt;&gt;&gt; </prompt><input>print(node.bytes())</input>
+/Users/walter/checkouts/LivingLogic.Python.xist/src/ll/xist/xsc.py:2368: \
+IllegalAttrValueWarning: Attribute value 'pretty' not allowed for __main__:cool.Attrs.adj
   warnings.warn(IllegalAttrValueWarning(self))
-&lt;cool adj="very"&gt;&lt;python /&gt;&lt;/cool&gt;
+b'&lt;cool adj="very"&gt;&lt;python /&gt;&lt;/cool&gt;'
 </tty>
 
 </section>
@@ -520,8 +509,8 @@ is such an attribute, so we'll get:</p>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = html.img(src="eggs.png")</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.bytes()</input>
-/home/walter/pythonroot/ll/xist/xsc.py:2046: \
+<prompt>&gt;&gt;&gt; </prompt><input>print(node.bytes())</input>
+/Users/walter/checkouts/LivingLogic.Python.xist/src/ll/xist/xsc.py:2770: \
 RequiredAttrMissingWarning: Required attribute 'alt' missing in ll.xist.ns.html:img.Attrs.
   warnings.warn(errors.RequiredAttrMissingWarning(self, attrs.keys()))
 &lt;img src="eggs.png" /&gt;
@@ -550,13 +539,13 @@ class python(xsc.Element):
 	xmlns = xmlns
 
 	def convert(self, converter):
-		return html.a(u"Python", href=u"http://www.python.org/")
+		return html.a("Python", href="http://www.python.org/")
 
 class cool(xsc.Element):
 	xmlns = xmlns
 
 	def convert(self, converter):
-		node = html.b(self.content, u" is cool!")
+		node = html.b(self.content, " is cool!")
 		return node.convert(converter)
 </prog>
 </example>
@@ -585,13 +574,13 @@ with xsc.Pool() as pool:
 		xmlns = xmlns
 
 		def convert(self, converter):
-			return html.a(u"Python", href=u"http://www.python.org/")
+			return html.a("Python", href="http://www.python.org/")
 
 	class cool(xsc.Element):
 		xmlns = xmlns
 
 		def convert(self, converter):
-			node = html.b(self.content, u" is cool!")
+			node = html.b(self.content, " is cool!")
 			return node.convert(converter)
 </prog>
 </example>
@@ -600,7 +589,7 @@ with xsc.Pool() as pool:
 
 <example><h>Parsing &xml;</h>
 <prog><![CDATA[
-s = '<cool xmlns="http://xmlns.example.org/foo"><python/></cool>'
+s = b'<cool xmlns="http://xmlns.example.org/foo"><python/></cool>'
 
 node = parse.tree(s, parse.Expat(ns=True), pool)
 ]]></prog>
@@ -611,7 +600,7 @@ between namespace names and namespace prefixes:</p>
 
 <example><h>Parsing &xml; with predefined prefix mapping</h>
 <prog><![CDATA[
-s = '<cool><python/></cool>'
+s = b'<cool><python/></cool>'
 
 node = parse.tree(s, parse.Expat(), parse.NS("http://xmlns.example.org/foo"), pool)
 ]]></prog>
@@ -619,7 +608,7 @@ node = parse.tree(s, parse.Expat(), parse.NS("http://xmlns.example.org/foo"), po
 
 <p>If you have many elements, registering them in a pool becomes cumbersome.
 In this case you can put your element classes into a module and then
-register all elements in the the module:</p>
+register all elements in the module:</p>
 
 <example><h>Registering modules in a pool</h>
 <prog>
@@ -681,9 +670,9 @@ from ll.xist.ns import html
 class html(xsc.Entity):
 	def convert(self, converter):
 		return html.abbr(
-			u"HTML",
-			title=u"Hypertext Markup Language",
-			lang=u"en"
+			"HTML",
+			title="Hypertext Markup Language",
+			lang="en"
 		)
 </prog>
 </example>
@@ -757,7 +746,7 @@ returns the complete 8-bit &xml; string.</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = html.div(u"äöü", html.br(), u"ÄÖÜ")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.div("äöü", html.br(), "ÄÖÜ")</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node.write(open("foo.html", "wb"), encoding="ascii")</input>
 </tty>
 
@@ -779,9 +768,9 @@ comments or processing instructions you'll get an exception):</p>
 <prompt>&gt;&gt;&gt; </prompt><input>s = "A\xe4\u03a9\u8a9e"</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = html.div(s)</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node.bytes(encoding="ascii")</input>
-b'&lt;div&gt;A&#228;&#937;&#35486;&lt;/div&gt;'
+<![CDATA[b'<div>;A&#228;&#937;&#35486;</div>;']]>
 <prompt>&gt;&gt;&gt; </prompt><input>node.bytes(encoding="iso-8859-1")</input>
-b'&lt;div&gt;A\xe4&#937;&#35486;&lt;/div&gt;'
+<![CDATA[b'<div>;A\xe4&#937;&#35486;</div>;']]>
 <prompt>&gt;&gt;&gt; </prompt><input>xsc.Comment(s).bytes(encoding="ascii")</input>
 Traceback (most recent call last):
 <rep>...</rep>
@@ -798,9 +787,8 @@ or an <pyref module="ll.xist.ns.meta" class="contenttype">&html; meta header</py
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import xml, meta</input>
 <prompt>&gt;&gt;&gt; </prompt><input>e = xsc.Frag(xml.XML(), u"\n", meta.contenttype())</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print e.conv().bytes(encoding="iso-8859-15")</input>
-&lt;?xml version='1.0' encoding='iso-8859-15'?&gt;
-&lt;meta content="text/html; charset=iso-8859-15" http-equiv="Content-Type" /&gt;
+<prompt>&gt;&gt;&gt; </prompt><input>e.conv().bytes(encoding="iso-8859-15")</input>
+<![CDATA[b'<?xml version="1.0" encoding="iso-8859-15"?>\n<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15" />']]>
 </tty>
 </section>
 
@@ -843,7 +831,7 @@ e = html.html(
 	)
 )
 
-print e.bytes(prefixdefault=True)
+print(e.bytes(prefixdefault=True))
 </prog>
 </example>
 
@@ -932,7 +920,7 @@ argument to specify an explicit prefix for each namespace. So we could change
 the publishing statement from our example above to:</p>
 
 <prog>
-print e.bytes(prefixes={http://www.w3.org/1999/xhtml": None, "http://www.w3.org/1999/xlink": "xl"})
+print(e.bytes(prefixes={"http://www.w3.org/1999/xhtml": None, "http://www.w3.org/1999/xlink": "xl"}))
 </prog>
 
 <p>which would give us the output:</p>
@@ -950,20 +938,20 @@ print e.bytes(prefixes={http://www.w3.org/1999/xhtml": None, "http://www.w3.org/
 <p>Note that we can shorten the publishing call from above to:</p>
 
 <prog>
-print e.bytes(prefixes={html.xmlns: None, xlink.xmlns: "xl"})
+print(e.bytes(prefixes={html.xmlns: None, xlink.xmlns: "xl"}))
 </prog>
 
 <p>or even to:</p>
 
 <prog>
-print e.bytes(prefixes={html: None, xlink: "xl"})
+print(e.bytes(prefixes={html: None, xlink: "xl"}))
 </prog>
 
 <p>Furthermore it's possible to suppress output of namespace declarations
 for certain namespaces by using the <var>hidexmlns</var> argument:</p>
 
 <prog>
-print e.bytes(prefixes={html: None, xlink: "xl"}, hidexmlns=(html, xlink))
+print(e.bytes(prefixes={html: None, xlink: "xl"}, hidexmlns=(html, xlink)))
 </prog>
 
 <p>This will output:</p>
