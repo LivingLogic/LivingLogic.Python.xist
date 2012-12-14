@@ -6,7 +6,7 @@ calls to the <meth>convert</meth> and <meth>mapped</meth> methods.
 A <pyref module="ll.xist.xsc" class="Converter"><class>Converter</class></pyref>
 object will be passed in all calls, so this object is the place to store
 information. However if each element, procinst and entity class decided on its
-own which attributes names to use, name collisions would be inevitale. To avoid
+own which attributes names to use, name collisions would be inevitable. To avoid
 this, the following system is used.</p>
 
 <p>When a class wants to store information in a converter, it has to define
@@ -80,7 +80,7 @@ will again give the output
 
 <p>It's possible to get automatic pool chaining. If a module has an attribute
 <lit>__bases__</lit> (which must be a sequence of modules), they will
-automatically be wrapped in a pool and used as the base pools for the pool
+be wrapped in a pool automatically and used as the base pools for the pool
 created for the first module. This makes it possible to <z>overwrite</z> element
 classes in existing namespaces. For example to replace the <class>a</class>
 class in <mod>ll.xist.ns.html</mod>, put the following into a module
