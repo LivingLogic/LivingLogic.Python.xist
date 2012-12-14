@@ -177,8 +177,8 @@ Other targets can be specified via the <var>target</var> argument in the
 <section><h>Validation and content models</h>
 
 <p>When generating &html; you might want to make sure that your generated
-code doesn't contain any illegal tag nesting (i.e. something bad like
-<markup>&lt;p&gt;&lt;p&gt;foo&lt;/p&gt;&lt;/p&gt;</markup>). The module
+code doesn't contain any illegal element nesting (i.e. something bad like
+<markup>&lt;p&gt;&lt;p&gt;foo&lt;/p&gt;&lt;/p&gt;</markup> in &html;). The module
 <mod>ll.xist.ns.html</mod> does this automatically:</p>
 
 <example>
