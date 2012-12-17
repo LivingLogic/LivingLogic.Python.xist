@@ -9,7 +9,7 @@
 
 
 """
-This module contains XFind and CSS selectors and related classes and functions.
+This module contains XFind  selectors and related classes and functions.
 
 A selector specifies a condition that a node in an XIST tree must satisfy to
 match the selector. For example the method :meth:`Node.walk` will only output
@@ -43,12 +43,11 @@ def filter(iter, *selectors):
 	Example::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import html, xml
+		>>> from ll.xist.ns import xml, html, chars
 		>>> doc = parse.tree(
 		... 	parse.URL("http://www.python.org/"),
-		... 	parse.Tidy(),
-		... 	parse.NS(html),
-		... 	parse.Node(pool=xsc.Pool(html, xml))
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
 		... )
 		>>> [c.node.string() for c in xfind.filter(doc.walk(), html.b, html.br)]
 		['<b>Firaxis Games:</b>', '<br />', '<br />', '<br />']
@@ -211,10 +210,14 @@ class IsInstanceSelector(Selector):
 	will be automatically wrapped in an :class:`IsInstanceSelector`)::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(html.a):
-		... 	print node.attrs.href, node.attrs.title
+		... 	print(node.attrs.href, node.attrs.title)
 		...
 		http://www.python.org/
 		http://www.python.org/#left%2Dhand%2Dnavigation
@@ -262,10 +265,14 @@ class hasname(Selector):
 	from the specified namespace::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(xfind.hasname("img")):
-		... 	print node.bytes()
+		... 	print(node.string())
 		...
 		<img border="0" src="http://www.python.org/images/python-logo.gif" alt="homepage" id="logo" />
 		<img border="0" id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" />
@@ -322,10 +329,14 @@ class IsSelector(Selector):
 	a node to a function that expects a selector::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(doc[0]/xsc.Element):
-		... 	print repr(node)
+		... 	print(repr(node))
 		...
 		<ll.xist.ns.html.head element object (13 children/no attrs) (from http://www.python.org/:6:?) at 0xb6c82f4c>
 		<ll.xist.ns.html.body element object (19 children/no attrs) (from http://www.python.org/:26:?) at 0xb6c3154c>
@@ -356,10 +367,14 @@ class IsEmptySelector(Selector):
 	Selector that selects all empty elements or fragments::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(xfind.empty):
-		... 	print node.bytes()
+		... 	print(node.string())
 		...
 		<meta content="text/html; charset=utf-8" http-equiv="content-type" />
 		<meta content="python programming language object oriented web free source" name="keywords" />
@@ -385,10 +400,14 @@ class OnlyChildSelector(Selector):
 	Selector that selects all nodes that are the only child of their parents::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(xfind.onlychild & html.a):
-		... 	print node.bytes()
+		... 	print(node.string())
 		...
 		<a accesskey="2" href="http://www.python.org/#left%2dhand%2dnavigation"><img id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" border="0" /></a>
 		<a accesskey="3" href="http://www.python.org/#content%2dbody"><img id="skiptocontent" alt="skip to content" src="http://www.python.org/images/trans.gif" border="0" /></a>
@@ -417,10 +436,14 @@ class OnlyOfTypeSelector(Selector):
 	their siblings::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(xfind.onlyoftype & xsc.Element):
-		... 	print repr(node)
+		... 	print(repr(node))
 		...
 		<ll.xist.ns.html.html element object (2 children/1 attr) (from http://www.python.org/:4:?) at 0xb6d6e7ec>
 		<ll.xist.ns.html.head element object (13 children/no attrs) (from http://www.python.org/:6:?) at 0xb6cc1f8c>
@@ -455,10 +478,14 @@ class hasattr(Selector):
 	the attribute class can be passed::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(xfind.hasattr(xml.Attrs.lang)):
-		... 	print repr(node)
+		... 	print(repr(node))
 		...
 		<ll.xist.ns.html.html element object (2 children/2 attrs) (from http://www.python.org/:4:?) at 0xb6d71d4c>
 	"""
@@ -507,10 +534,14 @@ class attrhasvalue(Selector):
 	containing non-text) will not be considered::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(xfind.attrhasvalue("rel", "stylesheet")):
-		... 	print node.attrs.href
+		... 	print(node.attrs.href)
 		...
 		http://www.python.org/styles/screen-switcher-default.css
 		http://www.python.org/styles/netscape4.css
@@ -567,10 +598,14 @@ class attrcontains(Selector):
 	attributes (i.e. those containing non-text) will not be considered::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(xfind.attrcontains("rel", "stylesheet")):
-		... 	print node.attrs.rel, node.attrs.href
+		... 	print(node.attrs.rel, node.attrs.href)
 		...
 
 		stylesheet http://www.python.org/styles/screen-switcher-default.css
@@ -630,10 +665,14 @@ class attrstartswith(Selector):
 	(i.e. those containing non-text) will not be considered::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(xfind.attrstartswith("class_", "input-")):
-		... 	print node.bytes()
+		... 	print(node.string())
 		...
 		<input class="input-text" id="q" type="text" name="q" />
 		<input value="search" class="input-button" id="submit" type="submit" name="submit" />
@@ -689,10 +728,14 @@ class attrendswith(Selector):
 	(i.e. those containing non-text) will not be considered::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(xfind.attrendswith("href", ".css")):
-		... 	print node.attrs.href
+		... 	print(node.attrs.href)
 		...
 		http://www.python.org/styles/screen-switcher-default.css
 		http://www.python.org/styles/netscape4.css
@@ -749,10 +792,14 @@ class hasid(Selector):
 	if the specified values::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(xfind.hasid("logo")):
-		... 	print node.bytes()
+		... 	print(node.string())
 		...
 		<img border="0" alt="homepage" id="logo" src="http://www.python.org/images/python-logo.gif" />
 	"""
@@ -780,10 +827,14 @@ class hasclass(Selector):
 	one of the specified values::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(xfind.hasclass("reference")):
-		... 	print node.bytes()
+		... 	print(node.string())
 		...
 		<a class="reference" href="http://www.python.org/search">Advanced Search</a>
 		<a href="http://www.python.org/about/success/rackspace" class="reference">Rackspace</a>
@@ -814,10 +865,14 @@ class InAttrSelector(Selector):
 	Selector that selects all attribute nodes and nodes inside of attributes::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(xfind.inattr & xsc.Text):
-		... 	print node.bytes()
+		... 	print node.string()
 		...
 		text/html; charset=utf-8
 		content-type
@@ -873,10 +928,14 @@ class ChildCombinator(BinaryCombinator):
 	(``/``)::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(html.a/html.img):
-		... 	print node.bytes()
+		... 	print(node.string())
 		...
 		<img src="http://www.python.org/images/python-logo.gif" alt="homepage" id="logo" border="0" />
 		<img id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" border="0" />
@@ -903,10 +962,14 @@ class DescendantCombinator(BinaryCombinator):
 	operator (``//``)::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(html.div//html.img):
-		... 	print node.bytes()
+		... 	print(node.string())
 		...
 		<img id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" border="0" />
 		<img id="skiptocontent" alt="skip to content" src="http://www.python.org/images/trans.gif" border="0" />
@@ -936,10 +999,14 @@ class AdjacentSiblingCombinator(BinaryCombinator):
 	element::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(html.h2*html.p/html.a):
-		... 	print node.bytes()
+		... 	print(node.string())
 		...
 		<a href="http://www.scipy.org/SciPy2007" class="reference">SciPy Conference</a>
 		<a href="https://www.enthought.com/scipy07/" class="reference">early registration</a>
@@ -982,10 +1049,14 @@ class GeneralSiblingCombinator(BinaryCombinator):
 	link among their preceding siblings)::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(html.a**html.a):
-		... 	print node.bytes()
+		... 	print(node.string())
 		...
 		<a href="http://www.python.org/about/success/ilm" class="reference">Industrial Light and Magic</a>
 		<a href="http://www.python.org/about/success/astra" class="reference">AstraZeneca</a>
@@ -1036,10 +1107,14 @@ class OrCombinator(ChainedCombinator):
 	:class:`OrCombinator` can be created with the binary or operator (``|``)::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(xfind.hasattr("href") | xfind.hasattr("src")):
-		... 	print node.attrs.href if "href" in node.Attrs else node.attrs.src
+		... 	print(node.attrs.href if "href" in node.Attrs else node.attrs.src)
 		...
 		http://www.python.org/channews.rdf
 		http://aspn.activestate.com/ASPN/Cookbook/Python/index_rss
@@ -1075,10 +1150,14 @@ class AndCombinator(ChainedCombinator):
 	(``&``)::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(html.input & xfind.hasattr("id")):
-		... 	print node.bytes()
+		... 	print(node.string())
 		...
 		<input id="domains" name="domains" value="www.python.org" type="hidden" />
 		<input id="sitesearch" name="sitesearch" value="www.python.org" type="hidden" />
@@ -1107,10 +1186,14 @@ class NotCombinator(Combinator):
 	attribute::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(html.img & ~xfind.hasattr("border")):
-		... 	print node.bytes()
+		... 	print(node.string())
 		...
 		<img alt="success story photo" class="success" src="http://www.python.org/images/success/nasa.jpg" />
 	"""
@@ -1140,12 +1223,16 @@ class CallableSelector(Selector):
 	domain::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
-		>>> def foreignlink(path):
-		... 	return path and isinstance(path[-1], html.a) and not path[-1].attrs.href.asURL().server.endswith(".python.org")
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
+		>>> def isextlink(path):
+		... 	return isinstance(path[-1], html.a) and not path[-1].attrs.href.asURL().server.endswith(".python.org")
 		...
-		>>> for node in doc.walknodes(foreignlink):
+		>>> for node in doc.walknodes(isextlink):
 		... 	print node.bytes()
 		...
 		<a href="http://youtube.com/" class="reference">YouTube.com</a>
@@ -1204,10 +1291,14 @@ class nthoftype(Selector):
 	explicitly. If no types are passed the type of the node itself is used::
 
 		>>> from ll.xist import xsc, parse, xfind
-		>>> from ll.xist.ns import xml, html
-		>>> doc = parse.tree(parse.URL("http://www.python.org"), parse.Tidy(), parse.NS(html), parse.Node(pool=xsc.Pool(xml, html)))
+		>>> from ll.xist.ns import xml, html, chars
+		>>> doc = parse.tree(
+		... 	parse.URL("http://www.python.org/"),
+		... 	parse.Expat(ns=True),
+		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
+		... )
 		>>> for node in doc.walknodes(xfind.nthoftype(0, html.h2)):
-		... 	print node.bytes()
+		... 	print(node.string())
 		...
 		<h2 class="news">Python 3.2 alpha 2 released</h2>
 	"""
