@@ -1,4 +1,4 @@
-Changes in 4.6 (released ??/??/2012)
+Changes in 4.6 (released 12/18/2012)
 ------------------------------------
 
 *	The :meth:`walk` method in XIST has been changed: The return value is a
