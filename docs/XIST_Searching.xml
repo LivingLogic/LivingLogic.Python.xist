@@ -9,8 +9,9 @@ tree and finding nodes in the tree: The methods <meth>walk</meth>,
 
 <p>The method <pyref module="ll.xist.xsc" class="Node" method="walk"><meth>walk</meth></pyref>
 is a generator. When called without any arguments it visits each node in the
-tree once. Parent nodes are yielded before their children, and no attribute nodes
-are yielded.</p>
+tree once. Furthermore without arguments parent nodes are yielded before their
+children, and no attribute nodes are yielded. (This can however be changed
+by passing certain arguments to <pyref module="ll.xist.xsc" class="Node" method="walk"><meth>walk</meth></pyref>.)</p>
 
 <p>What <pyref module="ll.xist.xsc" class="Node" method="walk"><meth>walk</meth></pyref>
 outputs is a <pyref module="ll.xist.xsc" class="Cursor"><class>Cursor</class></pyref>
@@ -23,7 +24,7 @@ object has the following attributes:</p>
 <dt><lit>root</lit></dt>
 <dd>The node where traversal has been started (i.e. the object for which the
 <pyref module="ll.xist.xsc" class="Node" method="walk"><meth>walk</meth></pyref>
-has been called).</dd>
+method has been called).</dd>
 <dt><lit>node</lit></dt>
 <dd>The current node being traversed.</dd>
 <dt><lit>path</lit></dt>
@@ -36,15 +37,15 @@ child of the first child of the root). Inside attributes the index path will
 contain the name of the attribute (or a (attribute name, namespace name) tuple
 inside a global attribute).</dd>
 <dt><lit>event</lit></dt>
-<dd>A string that specifies which event is currently handled. Possible values
-are: <lit>"enterelementnode"</lit>, <lit>"leaveelementnode"</lit>,
+<dd>A string that specifies which event is currently being handled. Possible
+values are: <lit>"enterelementnode"</lit>, <lit>"leaveelementnode"</lit>,
 <lit>"enterattrnode"</lit>, <lit>"leaveattrnode"</lit>, <lit>"textnode"</lit>,
 <lit>"commentnode"</lit>, <lit>"doctypenode"</lit>, <lit>"procinstnode"</lit>,
 <lit>"entitynode"</lit> and <lit>"nullnode"</lit>.
 </dd>
 </dl>
 
-<p>The following examples show the basic usage of the
+<p>The following example shows the basic usage of the
 <pyref module="ll.xist.xsc" class="Node" method="walk"><meth>walk</meth></pyref>
 method:</p>
 
@@ -65,7 +66,7 @@ textnode <ll.xist.xsc.Text content='2' at 0x5b1760>]]>
 </tty>
 </example>
 
-<p>The following example shows usage of the <lit>path</lit> attribute:</p>
+<p>The <lit>path</lit> attribute can be used like this:</p>
 
 <example><h>Using the <lit>path</lit> attribute</h>
 <tty>
@@ -196,7 +197,7 @@ before it visits the attributes and content of the element)? The cursor attribut
 <dt><lit>leaveelementnode</lit> (default <lit>False</lit>)</dt>
 <dd>Should the generator yield the cursor after it has visited an element? The
 cursor attribute <lit>event</lit> will have the value <lit>"leaveelementnode"</lit>
-in this case. Passing <lit>enterelementnode=False, leaveelement=False</lit> to
+in this case. Passing <lit>enterelementnode=False, leaveelementnode=True</lit> to
 <pyref module="ll.xist.xsc" class="Node" method="walk"><meth>walk</meth></pyref>
 will change "top down" traversal into "bottom up".</dd>
 
@@ -224,28 +225,28 @@ is true.</dd>
 <prompt>&gt;&gt;&gt; </prompt> <input>for cursor in e.walk(entercontent=True, enterattrs=True, enterattr=True,</input>
 <prompt>... </prompt> 	<input> enterelementnode=True, leaveelementnode=True,</input>
 <prompt>... </prompt> 	<input> enterattrnode=True, leaveattrnode=True):</input>
-<prompt>... </prompt> <input>	print("{0}{1.event} {1.node!r}".format("\t"*(len(cursor.path)-1), cursor))</input>
+<prompt>... </prompt> <input>	print("{0}{1.event} {1.index} {1.node!r}".format("\t"*(len(cursor.path)-1), cursor))</input>
 <prompt>... </prompt> <input></input>
-<![CDATA[enterelementnode <ll.xist.ns.html.ul element object (3 children/no attrs) at 0x425e50>
-	enterelementnode <ll.xist.ns.html.li element object (1 child/1 attr) at 0x438850>
-		enterattrnode <ll.xist.ns.html.coreattrs.class_ attr object (1 child) at 0x44df90>
-			textnode <ll.xist.xsc.Text content='li-0' at 0x5997d8>
-		leaveattrnode <ll.xist.ns.html.coreattrs.class_ attr object (1 child) at 0x44df90>
-		textnode <ll.xist.xsc.Text content='0' at 0x599760>
-	leaveelementnode <ll.xist.ns.html.li element object (1 child/1 attr) at 0x438850>
-	enterelementnode <ll.xist.ns.html.li element object (1 child/1 attr) at 0x598870>
-		enterattrnode <ll.xist.ns.html.coreattrs.class_ attr object (1 child) at 0x58b780>
-			textnode <ll.xist.xsc.Text content='li-1' at 0x5999b8>
-		leaveattrnode <ll.xist.ns.html.coreattrs.class_ attr object (1 child) at 0x58b780>
-		textnode <ll.xist.xsc.Text content='1' at 0x599850>
-	leaveelementnode <ll.xist.ns.html.li element object (1 child/1 attr) at 0x598870>
-	enterelementnode <ll.xist.ns.html.li element object (1 child/1 attr) at 0x5988f0>
-		enterattrnode <ll.xist.ns.html.coreattrs.class_ attr object (1 child) at 0x58b690>
-			textnode <ll.xist.xsc.Text content='li-2' at 0x599b20>
-		leaveattrnode <ll.xist.ns.html.coreattrs.class_ attr object (1 child) at 0x58b690>
-		textnode <ll.xist.xsc.Text content='2' at 0x599a30>
-	leaveelementnode <ll.xist.ns.html.li element object (1 child/1 attr) at 0x5988f0>
-leaveelementnode <ll.xist.ns.html.ul element object (3 children/no attrs) at 0x425e50>]]></tty>
+<![CDATA[enterelementnode [] <ll.xist.ns.html.ul element object (3 children/no attrs) at 0x4cbe50>
+	enterelementnode [0] <ll.xist.ns.html.li element object (1 child/1 attr) at 0x4de850>
+		enterattrnode [0, 'class'] <ll.xist.ns.html.coreattrs.class_ attr object (1 child) at 0x4f2f90>
+			textnode [0, 'class', 0] <ll.xist.xsc.Text content='li-0' at 0x63f800>
+		leaveattrnode [0, 'class'] <ll.xist.ns.html.coreattrs.class_ attr object (1 child) at 0x4f2f90>
+		textnode [0, 0] <ll.xist.xsc.Text content='0' at 0x63f788>
+	leaveelementnode [0] <ll.xist.ns.html.li element object (1 child/1 attr) at 0x4de850>
+	enterelementnode [1] <ll.xist.ns.html.li element object (1 child/1 attr) at 0x63e870>
+		enterattrnode [1, 'class'] <ll.xist.ns.html.coreattrs.class_ attr object (1 child) at 0x631780>
+			textnode [1, 'class', 0] <ll.xist.xsc.Text content='li-1' at 0x63f9e0>
+		leaveattrnode [1, 'class'] <ll.xist.ns.html.coreattrs.class_ attr object (1 child) at 0x631780>
+		textnode [1, 0] <ll.xist.xsc.Text content='1' at 0x63f878>
+	leaveelementnode [1] <ll.xist.ns.html.li element object (1 child/1 attr) at 0x63e870>
+	enterelementnode [2] <ll.xist.ns.html.li element object (1 child/1 attr) at 0x63e8f0>
+		enterattrnode [2, 'class'] <ll.xist.ns.html.coreattrs.class_ attr object (1 child) at 0x631690>
+			textnode [2, 'class', 0] <ll.xist.xsc.Text content='li-2' at 0x63fb48>
+		leaveattrnode [2, 'class'] <ll.xist.ns.html.coreattrs.class_ attr object (1 child) at 0x631690>
+		textnode [2, 0] <ll.xist.xsc.Text content='2' at 0x63fa58>
+	leaveelementnode [2] <ll.xist.ns.html.li element object (1 child/1 attr) at 0x63e8f0>
+leaveelementnode [] <ll.xist.ns.html.ul element object (3 children/no attrs) at 0x4cbe50>]]></tty>
 </example>
 
 </section>
@@ -264,7 +265,7 @@ example the content of <class>html.li</class> elements is skipped if they have a
 <prompt>&gt;&gt;&gt; </prompt> <input>for cursor in e.walk():</input>
 <prompt>... </prompt> <input>	if isinstance(cursor.node, html.li) and "class_" in cursor.node.attrs:</input>
 <prompt>... </prompt> <input>		cursor.entercontent = False</input>
-<prompt>... </prompt> <input>	print("{0}{1.event} {1.node!r}".format("\t"*(len(cursor.path)-1(, cursor))</input>
+<prompt>... </prompt> <input>	print("{0}{1.event} {1.node!r}".format("\t"*(len(cursor.path)-1), cursor))</input>
 <prompt>... </prompt> <input></input>
 <![CDATA[enterelementnode <ll.xist.ns.html.ul element object (3 children/no attrs) at 0x495790>
 	enterelementnode <ll.xist.ns.html.li element object (1 child/1 attr) at 0x4958d0>
@@ -296,7 +297,7 @@ value that has been passed to <pyref module="ll.xist.xsc" class="Node" method="w
 <section><h>The methods <meth>walknodes</meth> and <meth>walkpaths</meth></h>
 
 <p>In addition to <pyref module="ll.xist.xsc" class="Node" method="walk"><meth>walk</meth></pyref>
-two other methods are provided: <pyref module="ll.xist.xsc" class="Node" method="walknodes"><meth>walknodes</meth></pyref>
+two other methods are available: <pyref module="ll.xist.xsc" class="Node" method="walknodes"><meth>walknodes</meth></pyref>
 and <pyref module="ll.xist.xsc" class="Node" method="walkpaths"><meth>walkpaths</meth></pyref>.</p>
 
 <p>These generators don't produce a cursor object like <pyref module="ll.xist.xsc" class="Node" method="walk"><meth>walk</meth></pyref> does.
@@ -401,7 +402,7 @@ of any of the classes:</p>
 <example><h>Finding all headers on the Python home page</h>
 <prog>
 from ll.xist import xsc, parse
-from ll.xist.ns import xml, html
+from ll.xist.ns import xml, html, chars
 
 doc = parse.tree(
 	parse.URL("http://www.python.org"),
@@ -409,8 +410,8 @@ doc = parse.tree(
 	parse.Node(pool=xsc.Pool(xml, html, chars))
 )
 
-for node in doc.walknodes(html.h1, html.h2, html.h3):
-	print(node.attrs.href)
+for node in doc.walknodes(html.h1, html.h2, html.h3, html.h4, html.h5, html.h6):
+	print(node.string())
 </prog>
 </example>
 
@@ -420,9 +421,25 @@ for node in doc.walknodes(html.h1, html.h2, html.h3):
 <![CDATA[<h1 id="logoheader">
     <a accesskey="1" href="http://www.python.org/" id="logolink">
       <img alt="homepage" border="0" id="logo" src="http://www.python.org/images/python-logo.gif" />
-    </a>
+   </a>
   </h1>
+<h4><a href="http://www.python.org/about/help/">Help</a></h4>
+<h4><a href="http://pypi.python.org/pypi" title="Repository of Python Software">Package Index</a></h4>
+<h4><a href="http://www.python.org/download/releases/2.7.3/">Quick Links (2.7.3)</a></h4>
+<h4><a href="http://www.python.org/download/releases/3.3.0/">Quick Links (3.3.0)</a></h4>
+<h4><a href="http://www.python.org/community/jobs/" title="Employers and Job Openings">Python Jobs</a></h4>
+<h4><a href="http://www.python.org/community/merchandise/" title="T-shirts &amp; more; a portion goes to the PSF">Python Merchandise</a></h4>
+<h4><a href="http://wiki.python.org/moin/" style="margin-top: 1.5em">Python Wiki</a></h4>
+<h4><a href="http://blog.python.org/" style="margin-top: 1.5em">Python Insider Blog</a></h4>
+<h4><a href="http://wiki.python.org/moin/Python2orPython3" style="margin-top: 1.5em">Python 2 or 3?</a></h4>
+<h4><a href="http://www.python.org/psf/donations/" style="color: #D58228; margin-top: 1.5em">Help Fund Python</a></h4>
+<h4><a href="http://wiki.python.org/moin/Languages">Non-English Resources</a></h4>
 <h1 class="pageheading">Python Programming Language – Official Website</h1>
+<h4>Support the Python Community</h4>
+<h4><a href="http://wiki.python.org/moin/Python2orPython3">Python 3</a> Poll</h4>
+<h4>NASA uses Python...</h4>
+<h4>What they are saying...</h4>
+<h4>Using Python For...</h4>
 <h2 class="news">Python 3.3.0 released</h2>
 <h2 class="news">Third rc for Python 3.3.0 released</h2>
 <h2 class="news">Python Software Foundation announces Distinguished Service Award</h2>
@@ -571,7 +588,7 @@ module.</p>
 
 <section><h>&css; selectors</h>
 
-<p>It's also possible to use &css; selectors als selectors for the
+<p>It's also possible to use &css; selectors as selectors for the
 <pyref module="ll.xist.xsc" class="Node" method="walk"><meth>walk</meth></pyref>
 method. The module <pyref module="ll.xist.css"><mod>ll.xist.css</mod></pyref>
 provides a function <func>selector</func> that turns a &css; selector expression
