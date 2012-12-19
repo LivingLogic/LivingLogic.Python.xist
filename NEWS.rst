@@ -1,3 +1,11 @@
+Changes in 4.7 (released ??/??/2012)
+------------------------------------
+
+*	If the view ``ctx_preferences`` doesn't exist :meth:`orasql.Preference.itername``
+	now will simply return an empty iterator instead of failing with an Oracle
+	exception ``ORA-00942: table or view does not exist``.
+
+
 Changes in 4.6 (released 12/18/2012)
 ------------------------------------
 

@@ -2555,13 +2555,20 @@ class Preference(Object):
 		Generator that yields the names of all preferences.
 		"""
 		cursor = connection.cursor()
-		if owner is None:
-			cursor.execute("select null as owner, pre_name from ctx_preferences where pre_owner=user order by pre_name")
-		elif owner is ALL:
-			cursor.execute("select pre_owner as owner, pre_name from ctx_preferences order by pre_owner, pre_name")
+		try:
+			if owner is None:
+				cursor.execute("select null as owner, pre_name from ctx_preferences where pre_owner=user order by pre_name")
+			elif owner is ALL:
+				cursor.execute("select pre_owner as owner, pre_name from ctx_preferences order by pre_owner, pre_name")
+			else:
+				cursor.execute("select decode(pre_owner, user, null, pre_owner) as owner, pre_name from ctx_preferences where pre_owner=:owner order by pre_name", owner=owner)
+		except DatabaseError as exc:
+			if exc.args[0].code == 942: # ORA-00942: table or view does not exist
+				return iter(())
+			else:
+				raise
 		else:
-			cursor.execute("select decode(pre_owner, user, null, pre_owner) as owner, pre_name from ctx_preferences where pre_owner=:owner order by pre_name", owner=owner)
-		return ((row.pre_name, row.owner) for row in cursor)
+			return ((row.pre_name, row.owner) for row in cursor)
 
 	@classmethod
 	def iterobjects(cls, connection, owner=ALL):
