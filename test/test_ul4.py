@@ -515,7 +515,8 @@ def test_date(r):
 	assert '2000-02-29' == r('<?print @(2000-02-29T).isoformat()?>')
 	assert '2000-02-29T12:34:00' == r('<?print @(2000-02-29T12:34).isoformat()?>')
 	assert '2000-02-29T12:34:56' == r('<?print @(2000-02-29T12:34:56).isoformat()?>')
-	assert '2000-02-29T12:34:56.987000' == r('<?print @(2000-02-29T12:34:56.987000).isoformat()?>') # JS and Java only supports milliseconds
+	if r is not render_php:
+		assert '2000-02-29T12:34:56.987000' == r('<?print @(2000-02-29T12:34:56.987000).isoformat()?>') # JS and Java only supports milliseconds
 	assert 'yes' == r('<?if @(2000-02-29T12:34:56.987654)?>yes<?else?>no<?end if?>')
 
 
