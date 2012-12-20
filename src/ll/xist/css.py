@@ -34,7 +34,7 @@ __docformat__ = "reStructuredText"
 def _isstyle(path):
 	if path:
 		node = path[-1]
-		return (isinstance(node, html.style) and str(node.attrs["type"]) == "text/css") or (isinstance(node, html.link) and str(node.attrs["rel"]) == "stylesheet")
+		return (isinstance(node, html.style) and str(node.attrs["type"]) == "text/css") or (isinstance(node, html.link) and "stylesheet" in str(node.attrs["rel"]).split())
 	return False
 
 
