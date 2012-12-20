@@ -138,7 +138,7 @@ def render_php(__, **variables):
 		f.flush()
 		dir = os.path.expanduser("~/checkouts/LivingLogic.PHP.ul4")
 		# dir = os.path.expanduser("~/eclipse/workspace/LivingLogic.PHP.ul4")
-		proc = subprocess.Popen("php -n -d include_path={dir} {fn}".format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		proc = subprocess.Popen("php -n -d include_path={dir} -d date.timezone=Europe/Berlin {fn}".format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		(stdout, stderr) = proc.communicate()
 	stdout = stdout.decode("utf-8")
 	stderr = stderr.decode("utf-8")
