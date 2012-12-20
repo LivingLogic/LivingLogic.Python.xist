@@ -102,8 +102,6 @@ def render_js(__, **variables):
 	f = sys._getframe(1)
 	print("Testing Javascript code compiled by Python ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
 	print(js)
-	print("with variables:")
-	print(repr(variables))
 	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 		f.write(js.encode("utf-8"))
 		f.flush()
@@ -131,8 +129,6 @@ def render_php(__, **variables):
 	f = sys._getframe(1)
 	print("Testing PHP code compiled by Python ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
 	print(php)
-	print("with variables:")
-	print(repr(variables))
 	with tempfile.NamedTemporaryFile(mode="wb", suffix=".php") as f:
 		f.write(php.encode("utf-8"))
 		f.flush()
