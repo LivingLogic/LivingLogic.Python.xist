@@ -437,8 +437,9 @@ def test_true(r):
 @pytest.mark.ul4
 def test_int(r):
 	values = (0, 42, -42, 0x7ffffff, 0x8000000, -0x8000000, -0x8000001)
-	if r is not render_js:
+	if r is not render_js and r is not render_php:
 		# Since Javascript has no real integers the following would lead to rounding errors
+		# And PHP doesn't have any support for big integers (except for some GMP wrappers, that may not be installed)
 		values += (0x7ffffffffffffff, 0x800000000000000, -0x800000000000000, -0x800000000000001, 9999999999, -9999999999, 99999999999999999999, -99999999999999999999)
 	for value in values:
 		assert str(value) == r('<?print {}?>'.format(value))
