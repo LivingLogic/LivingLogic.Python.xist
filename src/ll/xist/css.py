@@ -34,7 +34,7 @@ __docformat__ = "reStructuredText"
 def _isstyle(path):
 	if path:
 		node = path[-1]
-		return (isinstance(node, html.style) and str(node.attrs["type"]) == "text/css") or (isinstance(node, html.link) and "stylesheet" in str(node.attrs["rel"]).split())
+		return isinstance(node, (html.style, html.link)) and str(node.attrs.type) == "text/css"
 	return False
 
 
@@ -148,13 +148,11 @@ def iterrules(node, base=None, media=None, title=None):
 					yield from _doimport(media, stylesheet, base)
 			else: # link
 				if "href" in cssnode.attrs:
-					href = cssnode.attrs["href"].asURL()
+					href = cssnode.attrs.href.asURL()
 					if base is not None:
 						href = base/href
 					if matchlink(cssnode):
-						with contextlib.closing(href.open("rb")) as r:
-							s = r.read()
-						stylesheet = cssutils.parseString(str(s), href=str(href), media=str(cssnode.attrs.media))
+						stylesheet = cssutils.parseUrl(str(href), media=str(cssnode.attrs.media))
 						yield from _doimport(media, stylesheet, href)
 	return misc.Iterator(doiter(node))
 
@@ -176,7 +174,7 @@ def applystylesheets(node, base=None, media=None, title=None):
 		# style attributes have the highest weight, so we yield it last
 		# (CSS 3 uses the same weight)
 		if "style" in node.attrs:
-			style = node.attrs["style"]
+			style = node.attrs.style
 			if not style.isfancy():
 				yield (
 					(1, 0, 0, 0),
@@ -201,7 +199,7 @@ def applystylesheets(node, base=None, media=None, title=None):
 						count += 1
 			style = " ".join("{};".format(value) for (count, value) in sorted(styles.values()))
 			if style:
-				cursor.node.attrs["style"] = style
+				cursor.node.attrs.style = style
 
 
 ###
