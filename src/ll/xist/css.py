@@ -12,7 +12,7 @@
 This module contains functions related to the handling of CSS.
 """
 
-import os, contextlib
+import os, contextlib, operator
 
 try:
 	import cssutils
@@ -183,10 +183,10 @@ def applystylesheets(node, base=None, media=None, title=None):
 				)
 
 	rules = []
-	for (i, rule) in enumerate(iterrules(node, base=base, media=media, title=title)):
+	for rule in iterrules(node, base=base, media=media, title=title):
 		for sel in rule.selectorList:
 			rules.append((sel.specificity, selector(sel), rule.style))
-	rules.sort(key=lambda spec_sel_rule: spec_sel_rule[0])
+	rules.sort(key=operator.itemgetter(0))
 	count = 0
 	for cursor in node.walk(xsc.Element):
 		del cursor.node[_isstyle] # drop style sheet nodes
