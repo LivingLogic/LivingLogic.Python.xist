@@ -1193,7 +1193,8 @@ def test_function_date(r):
 	assert "@(2012-10-06T12:00:00)" == r("<?print repr(date(2012, 10, 6, 12))?>")
 	assert "@(2012-10-06T12:34:00)" == r("<?print repr(date(2012, 10, 6, 12, 34))?>")
 	assert "@(2012-10-06T12:34:56)" == r("<?print repr(date(2012, 10, 6, 12, 34, 56))?>")
-	assert "@(2012-10-06T12:34:56.987000)" == r("<?print repr(date(2012, 10, 6, 12, 34, 56, 987000))?>")
+	if r is not render_php:
+		assert "@(2012-10-06T12:34:56.987000)" == r("<?print repr(date(2012, 10, 6, 12, 34, 56, 987000))?>")
 
 
 @pytest.mark.ul4
