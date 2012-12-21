@@ -2176,6 +2176,8 @@ def test_function_abs(r):
 	assert "0" == r(code, data=0)
 	assert "42" == r(code, data=42)
 	assert "42" == r(code, data=-42)
+	assert "1 month" == r(code, data=misc.monthdelta(-1))
+	assert "1 day, 0:00:01.000001" == r(code, data=datetime.timedelta(-1, -1, -1))
 
 
 @pytest.mark.ul4
