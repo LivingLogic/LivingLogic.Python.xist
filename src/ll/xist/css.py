@@ -179,7 +179,7 @@ def applystylesheets(node, base=None, media=None, title=None):
 				yield (
 					(1, 0, 0, 0),
 					xfind.IsSelector(node),
-					cssutils.parseString("*{{{}}}".format(style)).cssRules[0].style # parse the style out of the style attribute
+					cssutils.parseStyle(str(style)) # parse the style out of the style attribute
 				)
 
 	rules = []
