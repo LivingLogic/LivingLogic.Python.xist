@@ -120,7 +120,7 @@ def render_js(__, **variables):
 
 def render_php(__, **variables):
 	template = ul4c.Template(__)
-	php = r"""<?php 
+	php = r"""<?php
 	include_once 'com/livinglogic/ul4/ul4.php';
 	$template = \com\livinglogic\ul4\InterpretedTemplate::loads({});
 	$variables = {};
