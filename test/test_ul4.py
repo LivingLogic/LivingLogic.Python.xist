@@ -774,8 +774,9 @@ def test_add(r):
 	assert "2013-10-17 00:00:00" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(365))
 	assert "2012-10-17 12:00:00" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 12*60*60))
 	assert "2012-10-17 00:00:01" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 1))
-	assert "2012-10-17 00:00:00.500000" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 0, 500000))
-	assert "2012-10-17 00:00:00.001000" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 0, 1000))
+	if r is not render_php:
+		assert "2012-10-17 00:00:00.500000" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 0, 500000))
+		assert "2012-10-17 00:00:00.001000" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 0, 1000))
 	assert "2 days, 0:00:00" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(1))
 	assert "1 day, 0:00:01" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(0, 1))
 	assert "1 day, 0:00:00.000001" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(0, 0, 1))
@@ -800,8 +801,9 @@ def test_sub(r):
 	assert "2011-10-17 00:00:00" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(366))
 	assert "2012-10-16 12:00:00" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 12*60*60))
 	assert "2012-10-16 23:59:59" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 1))
-	assert "2012-10-16 23:59:59.500000" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 0, 500000))
-	assert "2012-10-16 23:59:59.999000" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 0, 1000))
+	if r is not render_php:
+		assert "2012-10-16 23:59:59.500000" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 0, 500000))
+		assert "2012-10-16 23:59:59.999000" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 0, 1000))
 	assert "0:00:00" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(1))
 	assert "1 day, 0:00:00" == r(code, x=datetime.timedelta(2), y=datetime.timedelta(1))
 	assert "23:59:59" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(0, 1))
