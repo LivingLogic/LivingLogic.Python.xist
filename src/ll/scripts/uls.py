@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 
-## Copyright 2009-2012 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 2009-2012 by Walter Dörwald
+## Copyright 2009-2013 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 2009-2013 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
