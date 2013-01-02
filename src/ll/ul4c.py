@@ -33,10 +33,6 @@ from ll import color, misc
 datesplitter = re.compile("[-T:.]")
 
 
-# Use internally by the UL4ON decoder to map names to classes
-_names2classes = {}
-
-
 def register(name):
 	from ll import ul4on
 	def registration(cls):
