@@ -297,7 +297,7 @@ def render_java_compiledtemplate_by_python(__, **variables):
 	"""
 
 	codetemplate = """
-	com.livinglogic.ul4.Template template = %(template)s;
+	com.livinglogic.ul4.CompiledTemplate template = %(template)s;
 	java.util.Map<String, Object> variables = %(variables)s;
 	String output = template.renders(variables);
 	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
@@ -344,9 +344,9 @@ all_renderers = [
 	("python_dump", render_python_dump),
 	("js", render_js),
 	# ("php", render_php),
-	# ("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
-	# ("java_compiled_by_python", render_java_compiledtemplate_by_python),
-	# ("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
+	("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
+	("java_compiled_by_python", render_java_compiledtemplate_by_python),
+	("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
 ]
 
 
