@@ -1,6 +1,11 @@
 Changes in 4.7 (released ??/??/2012)
 ------------------------------------
 
+*	A variable ``self`` is now autoamtically defined in all UL4 templates. This
+	variable refers to the template itself. However this variable will not be
+	included in ``vars()``. A new function ``allvars()`` has been added, that
+	*does* include ``self``.
+
 *	If the view ``ctx_preferences`` doesn't exist :meth:`orasql.Preference.itername``
 	now will simply return an empty iterator instead of failing with an Oracle
 	exception ``ORA-00942: table or view does not exist``.

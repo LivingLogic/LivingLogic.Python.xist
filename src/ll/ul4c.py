@@ -659,7 +659,7 @@ class Var(AST):
 		return self.name
 
 	def formatpython(self, indent):
-		return "ul4c._getitem(vars, {!r})".format(self.name)
+		return "ul4c._getitem(allvars, {!r})".format(self.name)
 
 	def formatjava(self, indent):
 		return "context.get({})".format(misc.javaexpr(self.name))
@@ -1801,7 +1801,8 @@ class CallFunc(AST):
 			date="datetime.datetime({})".format,
 			timedelta="ul4c._timedelta({})".format,
 			monthdelta="misc.monthdelta({})".format,
-			vars="ul4c._vars(vars, {})".format,
+			vars="ul4c._vars(allvars, {})".format,
+			allvars="ul4c._allvars(allvars, {})".format,
 			random="random.random({})".format,
 			xmlescape="ul4c._xmlescape({})".format,
 			csv="ul4c._csv({})".format,
@@ -1837,7 +1838,7 @@ class CallFunc(AST):
 			iscolor="ul4c._iscolor({})".format,
 			istemplate="ul4c._istemplate({})".format,
 			repr="ul4c._repr({})".format,
-			get="vars.get({})".format,
+			get="allvars.get({})".format,
 			chr="chr({})".format,
 			ord="ord({})".format,
 			hex="hex({})".format,
@@ -1873,6 +1874,7 @@ class CallFunc(AST):
 			timedelta="com.livinglogic.ul4.FunctionTimeDelta.call({})".format,
 			monthdelta="com.livinglogic.ul4.FunctionMonthDelta.call({})".format,
 			vars="com.livinglogic.ul4.FunctionVars.call(context.getVariables(){})".format,
+			allvars="com.livinglogic.ul4.FunctionAllVars.call(context.getAllVariables(){})".format,
 			random="com.livinglogic.ul4.FunctionRandom.call({})".format,
 			xmlescape="com.livinglogic.ul4.FunctionXMLEscape.call({})".format,
 			csv="com.livinglogic.ul4.FunctionCSV.call({})".format,
@@ -1908,7 +1910,7 @@ class CallFunc(AST):
 			iscolor="com.livinglogic.ul4.FunctionIsColor.call({})".format,
 			istemplate="com.livinglogic.ul4.FunctionIsTemplate.call({})".format,
 			repr="com.livinglogic.ul4.FunctionRepr.call({})".format,
-			get="com.livinglogic.ul4.FunctionGet.call(context.getVariables(){})".format,
+			get="com.livinglogic.ul4.FunctionGet.call(context.getAllVariables(){})".format,
 			chr="com.livinglogic.ul4.FunctionChr.call({})".format,
 			ord="com.livinglogic.ul4.FunctionOrd.call({})".format,
 			hex="com.livinglogic.ul4.FunctionHex.call({})".format,
@@ -1934,7 +1936,7 @@ class CallFunc(AST):
 			formatter = functions[self.funcname]
 		except KeyError:
 			raise UnknownFunctionError(self.funcname)
-		if self.funcname in ("get", "vars"):
+		if self.funcname in ("get", "vars", "allvars"):
 			return formatter("".join(", " + arg.formatjava(indent) for arg in self.args))
 		else:
 			return formatter(", ".join(arg.formatjava(indent) for arg in self.args))
@@ -2412,8 +2414,9 @@ class Template(Block):
 		if self._pythonsource is None:
 			v = []
 			v.append("def {}(self, vars):\n".format(self.name if self.name is not None else "unnamed"))
-			v.append("\timport datetime, random\n")
+			v.append("\timport datetime, random, collections\n")
 			v.append("\tfrom ll import ul4c, misc, color\n")
+			v.append("\tallvars = collections.ChainMap(vars, {'self': self})\n")
 			v.append("\tif 0:\n")
 			v.append("\t\tyield\n")
 			v.append("\ttry:\n")
@@ -2488,12 +2491,7 @@ class Template(Block):
 		self.startdelim = startdelim
 		self.enddelim = enddelim
 
-		# This stack stores for each nested for/if/elif/else/def the following information:
-		# 1) Which construct we're in (i.e. "if" or "for")
-		# 2) The start location of the construct
-		# For ifs:
-		# 3) How many if's or elif's we have seen (this is used for simulating elif's via nested if's, for each additional elif, we have one more endif to add)
-		# 4) Whether we've already seen the else
+		# This stack stores the nested for/if/elif/else/def blocks
 		stack = [self]
 
 		self.source = source
@@ -2638,11 +2636,18 @@ def _getitem(container, key):
 		return UndefinedIndex(key)
 
 
-def _vars(vars):
+def _vars(allvars):
 	"""
 	Helper for the ``vars`` function.
 	"""
-	return vars
+	return allvars.maps[0]
+
+
+def _allvars(allvars):
+	"""
+	Helper for the ``allvars`` function.
+	"""
+	return allvars
 
 
 def _now():

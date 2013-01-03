@@ -338,15 +338,15 @@ def render_java_interpretedtemplate_by_java(__, **variables):
 	return java_runsource(java)
 
 
-all_renderers =  [
-#	("python", render_python),
-#	("python_dumps", render_python_dumps),
-#	("python_dump", render_python_dump),
-#	("js", render_js),
-	("php", render_php),
-#	("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
-#	("java_compiled_by_python", render_java_compiledtemplate_by_python),
-#	("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
+all_renderers = [
+	("python", render_python),
+	("python_dumps", render_python_dumps),
+	("python_dump", render_python_dump),
+	("js", render_js),
+	# ("php", render_php),
+	# ("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
+	# ("java_compiled_by_python", render_java_compiledtemplate_by_python),
+	# ("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
 ]
 
 
@@ -1233,6 +1233,20 @@ def test_function_vars(r):
 		r("<?print vars(1, 2)?>")
 	assert "yes" == r(code, var="spam", spam="eggs")
 	assert "no" == r(code, var="nospam", spam="eggs")
+	assert "no" == r(code, var="self", spam="eggs")
+
+
+@pytest.mark.ul4
+def test_function_allvars(r):
+	code = "<?if var in allvars()?>yes<?else?>no<?end if?>"
+
+	with raises(argumentmismatchmessage):
+		r("<?print allvars(1)?>")
+	with raises(argumentmismatchmessage):
+		r("<?print allvars(1, 2)?>")
+	assert "yes" == r(code, var="spam", spam="eggs")
+	assert "no" == r(code, var="nospam", spam="eggs")
+	assert "yes" == r(code, var="self", spam="eggs")
 
 
 @pytest.mark.ul4
@@ -1977,6 +1991,7 @@ def test_function_get(r):
 	assert "42" == r("<?print get('x')?>", x=42)
 	assert "17" == r("<?print get('x', 17)?>")
 	assert "42" == r("<?print get('x', 17)?>", x=42)
+	assert "True" == r("<?print istemplate(get('self'))?>")
 
 
 @pytest.mark.ul4
@@ -2632,6 +2647,13 @@ def test_render_var(r):
 @pytest.mark.ul4
 def test_def(r):
 	assert 'foo' == r('<?def lower?><?print x.lower()?><?end def?><?print lower.renders(x="FOO")?>')
+
+
+@pytest.mark.ul4
+def test_self(r):
+	assert "True" == r("<?print istemplate(self)?>")
+	assert "x" == r("<?def x?><?print self.name?><?end def?><?render x.render()?>")
+	assert "42" == r("<?code self = 42?><?print self?>")
 
 
 @pytest.mark.ul4
