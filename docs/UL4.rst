@@ -527,6 +527,13 @@ expressions::
 	<?print ", ".join(ge)?>
 
 
+The variable ``self``
+---------------------
+
+A UL4 template can use the variable ``self`` to refer to the template itself.
+This variable is automatically defined inside the template.
+
+
 Functions
 ---------
 
@@ -602,7 +609,14 @@ will be used instead, i.e. ``<?print @(2000-01-31) + monthdelta(1)?>`` prints
 
 ``vars()`` returns a dictionary containing all currently defined variables
 (i.e. variables passed to the template, defined via ``<?code?>`` tags or as
-loop variables).
+loop variables). ``vars()`` does not contain the automatic variable ``self``.
+
+
+``allvars``
+"""""""""""
+
+``allvars()`` works similar to ``vars()``, but does contain the automatic
+variable ``self``.
 
 
 ``random``
