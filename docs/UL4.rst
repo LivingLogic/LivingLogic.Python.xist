@@ -585,7 +585,7 @@ context this object is treated as false (i.e. ``bool(timedelta()))`` returns
 """"""""""""""
 
 ``monthdelta`` returns an object that represents a timespan of a number of
-months. ``monthdelta`` allows from zero or one arguments. With zero arguments
+months. ``monthdelta`` allows zero or one arguments. With zero arguments
 ``monthdelta`` returns the timespan for "0 months". In a boolean context this
 object is treated as false (i.e. ``bool(monthdelta()))`` or
 ``bool(monthdelta(0)))`` return ``False``). The following arithmetic operations
