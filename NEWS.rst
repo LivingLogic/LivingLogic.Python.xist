@@ -1,10 +1,13 @@
-Changes in 4.7 (released ??/??/2012)
+Changes in 4.7 (released ??/??/2013)
 ------------------------------------
 
 *	A variable ``self`` is now autoamtically defined in all UL4 templates. This
 	variable refers to the template itself. However this variable will not be
-	included in ``vars()``. A new function ``allvars()`` has been added, that
+	included in ``vars()``. A new function ``allvars()`` has been added that
 	*does* include ``self``.
+
+*	UL4 templates now support lexical scopes. A locally defined subtemplate can
+	access all local variables of the template in which it is defined.
 
 *	If the view ``ctx_preferences`` doesn't exist :meth:`orasql.Preference.itername``
 	now will simply return an empty iterator instead of failing with an Oracle

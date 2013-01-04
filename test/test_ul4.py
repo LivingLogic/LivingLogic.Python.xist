@@ -342,11 +342,11 @@ all_renderers = [
 	("python", render_python),
 	("python_dumps", render_python_dumps),
 	("python_dump", render_python_dump),
-	("js", render_js),
+	# ("js", render_js),
 	# ("php", render_php),
-	("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
-	("java_compiled_by_python", render_java_compiledtemplate_by_python),
-	("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
+	# ("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
+	# ("java_compiled_by_python", render_java_compiledtemplate_by_python),
+	# ("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
 ]
 
 
@@ -2701,6 +2701,7 @@ def test_templateattributes(r):
 
 @pytest.mark.ul4
 def test_templateattributes_localtemplate(r):
+	# This checks that template attributes work on a closure
 	source = "<?def lower?><?print t.lower()?><?end def?>"
 
 	if r is not render_java_compiledtemplate_by_python:
@@ -2708,6 +2709,13 @@ def test_templateattributes_localtemplate(r):
 		assert source == r(source + "<?print lower.source[lower.location.starttag:lower.endlocation.endtag]?>")
 		assert "<?print t.lower()?>" == r(source + "<?print lower.source[lower.location.endtag:lower.endlocation.starttag]?>")
 		assert "lower" == r(source + "<?print lower.name?>")
+
+
+@pytest.mark.ul4
+def test_nestedscopes(r):
+	assert "0;1;2;" == r("<?for i in range(3)?><?def x?><?print i?>;<?end def?><?render x.render()?><?end for?>")
+	assert "1;" == r("<?for i in range(3)?><?if i == 1?><?def x?><?print i?>;<?end def?><?end if?><?end for?><?render x.render()?>")
+	assert "1" == r("<?code i = 1?><?def x?><?print i?><?end def?><?code i = 2?><?render x.render()?>")
 
 
 def universaltemplate():

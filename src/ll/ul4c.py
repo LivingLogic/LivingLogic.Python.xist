@@ -2329,7 +2329,7 @@ class Template(Block):
 		return "".join(v)
 
 	def formatpython(self, indent):
-		return "{i}# <?def?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] = self._getast({id})\n".format(i=indent*"\t", n=self.name if self.name is not None else "unnamed", id=id(self), l=self.location)
+		return "{i}# <?def?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] = ul4c.TemplateClosure(self._getast({id}), vars)\n".format(i=indent*"\t", n=self.name if self.name is not None else "unnamed", id=id(self), l=self.location)
 
 	def _getast(self, astid):
 		if self._astsbyid is None:
@@ -2590,6 +2590,51 @@ class Template(Block):
 
 	def __repr__(self):
 		return "<{}.{} object at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, id(self))
+
+
+class TemplateClosure(Object):
+	fields = {"location", "endlocation", "name", "source", "startdelim", "enddelim", "content"}
+
+	def __init__(self, template, vars):
+		self.template = template
+		self.vars = vars.copy()
+
+	def __call__(self, **vars):
+		return self.template.render(**collections.ChainMap(vars, self.vars))
+
+	def render(self, **vars):
+		return self.template.render(**collections.ChainMap(vars, self.vars))
+
+	def renders(self, **vars):
+		return self.template.renders(**collections.ChainMap(vars, self.vars))
+
+	@property
+	def location(self):
+		return self.template.location
+
+	@property
+	def endlocation(self):
+		return self.template.endlocation
+
+	@property
+	def name(self):
+		return self.template.name
+
+	@property
+	def source(self):
+		return self.template.source
+
+	@property
+	def startdelim(self):
+		return self.template.startdelim
+
+	@property
+	def enddelim(self):
+		return self.template.enddelim
+
+	@property
+	def content(self):
+		return self.template.content
 
 
 ###
@@ -2895,7 +2940,7 @@ def _istemplate(obj):
 	"""
 	Helper for the ``istemplate`` function.
 	"""
-	return isinstance(obj, Template)
+	return isinstance(obj, (Template, TemplateClosure))
 
 
 def _enumfl(obj, start=0):
