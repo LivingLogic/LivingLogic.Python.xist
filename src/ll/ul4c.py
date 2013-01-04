@@ -2063,8 +2063,8 @@ class CallMeth(AST):
 			items="com.livinglogic.ul4.MethodItems.call({})".format,
 			values="com.livinglogic.ul4.MethodValues.call({})".format,
 			join="com.livinglogic.ul4.MethodJoin.call({})".format,
-			render="com.livinglogic.ul4.MethodRender.call(context.getWriter(), {})".format,
-			renders="com.livinglogic.ul4.MethodRenderS.call({})".format,
+			render="com.livinglogic.ul4.MethodRender.call(context, {})".format,
+			renders="com.livinglogic.ul4.MethodRenderS.call(context, {})".format,
 			mimeformat="com.livinglogic.ul4.MethodMIMEFormat.call({})".format,
 			isoformat="com.livinglogic.ul4.MethodISOFormat.call({})".format,
 			yearday="com.livinglogic.ul4.MethodYearday.call({})".format,
@@ -2155,9 +2155,9 @@ class CallMethKeywords(AST):
 				v.append(".add({}, {})".format(misc.javaexpr(arg[0]), arg[1].formatjava(indent)))
 		args = "new com.livinglogic.ul4.MapMaker(){}.getMap()".format("".join(v))
 		if self.methname == "renders":
-			return "com.livinglogic.ul4.KeywordMethodRenderS.call({}, {})".format(self.obj.formatjava(indent), args)
+			return "com.livinglogic.ul4.KeywordMethodRenderS.call(context, {}, {})".format(self.obj.formatjava(indent), args)
 		elif self.methname == "render":
-			return "com.livinglogic.ul4.KeywordMethodRender.call(context.getWriter(), {}, {})".format(self.obj.formatjava(indent), args)
+			return "com.livinglogic.ul4.KeywordMethodRender.call(context, {}, {})".format(self.obj.formatjava(indent), args)
 		else:
 			raise UnknownMethodError(self.methname)
 
