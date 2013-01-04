@@ -2362,7 +2362,7 @@ class Template(Block):
 		v.append("{}return {};\n".format(indent*"\t", misc.javaexpr(self.name if self.name is not None else "unnamed")))
 		indent -= 1
 		v.append("{}}}\n".format(indent*"\t"))
-		v.append("{}public void render(com.livinglogic.ul4.EvaluationContext context) throws java.io.IOException\n".format(indent*"\t"))
+		v.append("{}public void renderImpl(com.livinglogic.ul4.EvaluationContext context) throws java.io.IOException\n".format(indent*"\t"))
 		v.append("{}{{\n".format(indent*"\t"))
 		indent += 1
 		for node in self.content:
@@ -2374,7 +2374,20 @@ class Template(Block):
 		return "".join(v)
 
 	def formatjava(self, indent):
-		return "{i}// {s}\n{i}context.put(\n{i}\t{n},\n{i}\tnew com.livinglogic.ul4.TemplateClosure(\n{i}\t\t{c},\n{i}\t\tcontext.getVariables()\n{i}\t)\n{i});\n ".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.name if self.name is not None else "unnamed"), c=self._java(indent))
+		v = []
+		v.append("{i}// {s}\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1]))
+		v.append("{i}context.put(\n".format(i=indent*"\t"))
+		indent += 1
+		v.append("{i}{n},\n".format(i=indent*"\t", n=misc.javaexpr(self.name if self.name is not None else "unnamed")))
+		v.append("{i}new com.livinglogic.ul4.TemplateClosure(\n".format(i=indent*"\t"))
+		indent += 1
+		v.append("{i}{c},\n".format(i=indent*"\t", c=self._java(indent)))
+		v.append("{i}context.getVariables()\n".format(i=indent*"\t"))
+		indent -= 1
+		v.append("{i})\n".format(i=indent*"\t"))
+		indent -= 1
+		v.append("{i});\n".format(i=indent*"\t"))
+		return "".join(v)
 
 	def render(self, **vars):
 		"""
