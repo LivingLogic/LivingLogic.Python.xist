@@ -212,11 +212,11 @@ def java_formatsource(string):
 	newlines = []
 	for line in string.strip().splitlines(False):
 		line = line.strip()
-		if line == "}" or line == "};":
+		if line in {"}", ")", "};", "},", ");", "),"}:
 			indent -= 1
 		if line:
 			newlines.append(indent*"\t" + line + "\n")
-		if line == "{":
+		if line == "{" or line.endswith("("):
 			indent += 1
 	return "".join(newlines)
 
