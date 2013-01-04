@@ -2374,7 +2374,7 @@ class Template(Block):
 		return "".join(v)
 
 	def formatjava(self, indent):
-		return "{i}// {s}\n{i}context.put(\n{i}\tnew com.livinglogic.ul4.TemplateClosure(\n{i}\t\t{n},\n{i}\t\t{c}\n{i}\t)\n{i});\n ".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.name if self.name is not None else "unnamed"), c=self._java(indent))
+		return "{i}// {s}\n{i}context.put(\n{i}\t{n},\n{i}\tnew com.livinglogic.ul4.TemplateClosure(\n{i}\t\t{c},\n{i}\t\tcontext.getVariables()\n{i}\t)\n{i});\n ".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.name if self.name is not None else "unnamed"), c=self._java(indent))
 
 	def render(self, **vars):
 		"""
