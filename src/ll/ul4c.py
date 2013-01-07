@@ -2694,13 +2694,13 @@ class TemplateClosure(Object):
 		self.vars = vars.copy()
 
 	def __call__(self, **vars):
-		return self.template.pythonfunction()(self, collections.ChainMap(vars, self.vars))
+		return self.template.renders(**collections.ChainMap(vars, self.vars))
 
 	def render(self, **vars):
-		return self.template.pythonfunction()(self, collections.ChainMap(vars, self.vars))
+		return self.template.render(**collections.ChainMap(vars, self.vars))
 
 	def renders(self, **vars):
-		return "".join(self.template.pythonfunction()(self, collections.ChainMap(vars, self.vars)))
+		return self.template.renders(**collections.ChainMap(vars, self.vars))
 
 	def _handleexc(self, exc):
 		self.template._handleexc(exc)
