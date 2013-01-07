@@ -22,7 +22,7 @@ possible to implement template renderers in multiple programming languages.
 __docformat__ = "reStructuredText"
 
 
-import re, datetime, urllib.parse as urlparse, json, collections, locale
+import re, datetime, urllib.parse as urlparse, json, collections, locale, itertools, random, datetime
 
 import antlr3
 
@@ -226,6 +226,8 @@ class UndefinedIndex(Undefined):
 		return "undefined object at index {!r}".format(self.__index)
 
 
+
+
 ###
 ### Compiler stuff: Tokens and nodes for the AST
 ###
@@ -287,12 +289,6 @@ class AST(Object):
 		Format :var:`self` into valid Python source code.
 		"""
 
-	@misc.notimplemented
-	def formatjava(self, indent):
-		"""
-		Format :var:`self` into valid Java source code.
-		"""
-
 
 class Tag(AST):
 	"""
@@ -323,9 +319,6 @@ class Text(Tag):
 	def formatpython(self, indent):
 		return "{i}# literal at position {l.starttag}:{l.endtag} ({id})\n{i}yield {l.code!r}\n".format(i=indent*"\t", id=id(self), l=self.location)
 
-	def formatjava(self, indent):
-		return "{i}// literal at position {l.starttag}:{l.endtag}\n{i}context.write({t});\n".format(i=indent*"\t", t=misc.javaexpr(self.location.code), l=self.location)
-
 
 @register("const")
 class Const(AST):
@@ -339,18 +332,12 @@ class Const(AST):
 		self.value = value
 
 	def format(self, indent):
-		return _repr(self.value)
+		return Template.function_repr(None, self.value)
 
 	def formatpython(self, indent):
 		if isinstance(self.value, color.Color):
 			return "color.{!r}".format(self.value)
 		return repr(self.value)
-
-	def formatjava(self, indent):
-		if self.value is None:
-			return "((Object)null)" # Make sure that call always dispatch to the most generic version
-		else:
-			return misc.javaexpr(self.value)
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.value)
@@ -382,9 +369,6 @@ class List(AST):
 
 	def formatpython(self, indent):
 		return "[{}]".format(", ".join(item.formatpython(indent) for item in self.items))
-
-	def formatjava(self, indent):
-		return "java.util.Arrays.asList({})".format(", ".join(item.formatjava(indent) for item in self.items))
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.items)
@@ -425,20 +409,6 @@ class ListComp(AST):
 			s += " if {}".format(self.condition.formatpython(indent))
 		s += "]"
 		return s
-
-	def formatjava(self, indent):
-		v = []
-		v.append("(new com.livinglogic.ul4.Execution()")
-		v.append("{public Object execute(com.livinglogic.ul4.EvaluationContext context){")
-		v.append("java.util.List result = new java.util.ArrayList();")
-		v.append("java.util.Iterator iter = com.livinglogic.ul4.Utils.iterator({});".format(self.container.formatjava(indent)))
-		v.append("while (iter.hasNext()){")
-		v.append("com.livinglogic.ul4.Utils.unpackVariable(context.getVariables(), {}, iter.next());".format(misc.javaexpr(self.varname)))
-		if self.condition is not None:
-			v.append("if (com.livinglogic.ul4.FunctionBool.call({}))".format(self.condition.formatjava(indent)))
-		v.append("result.add({});".format(self.item.formatjava(indent)))
-		v.append("}return result;}}).execute(context)")
-		return "".join(v)
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.item)
@@ -486,16 +456,6 @@ class Dict(AST):
 				v.append("({}, {})".format(item[0].formatpython(indent), item[1].formatpython(indent)))
 		return "ul4c._makedict({})".format(", ".join(v))
 
-	def formatjava(self, indent):
-		v = ["new com.livinglogic.ul4.MapMaker()"]
-		for item in self.items:
-			if len(item) == 1:
-				v.append(".add((java.util.Map){})".format(item[0].formatjava(indent)))
-			else:
-				v.append(".add({}, {})".format(item[0].formatjava(indent), item[1].formatjava(indent)))
-		v.append(".getMap()")
-		return "".join(v)
-
 	def ul4ondump(self, encoder):
 		encoder.dump(self.items)
 
@@ -535,20 +495,6 @@ class DictComp(AST):
 			s += " if {}".format(self.condition.formatpython(indent))
 		s += "}"
 		return s
-
-	def formatjava(self, indent):
-		v = []
-		v.append("(new com.livinglogic.ul4.Execution()")
-		v.append("{public Object execute(com.livinglogic.ul4.EvaluationContext context){")
-		v.append("java.util.Map result = new java.util.HashMap();")
-		v.append("java.util.Iterator iter = com.livinglogic.ul4.Utils.iterator({});".format(self.container.formatjava(indent)))
-		v.append("while (iter.hasNext()){")
-		v.append("com.livinglogic.ul4.Utils.unpackVariable(context.getVariables(), {}, iter.next());\n".format(misc.javaexpr(self.varname)))
-		if self.condition is not None:
-			v.append("if (com.livinglogic.ul4.FunctionBool.call({}))".format(self.condition.formatjava(indent)))
-		v.append("result.put({}, {});".format(self.key.formatjava(indent), self.value.formatjava(indent)))
-		v.append("}return result;}}).execute(context)")
-		return "".join(v)
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.key)
@@ -597,36 +543,6 @@ class GenExpr(AST):
 		s += ")"
 		return s
 
-	def formatjava(self, indent):
-		v = []
-		v.append("(")
-		v.append("new com.livinglogic.ul4.Execution()")
-		v.append("{")
-		v.append("public Object execute(final com.livinglogic.ul4.EvaluationContext context)")
-		v.append("{")
-		v.append("final java.util.Iterator baseIterator = com.livinglogic.ul4.Utils.iterator({});".format(self.container.formatjava(indent)))
-		v.append("return new com.livinglogic.ul4.FilteredIterator(){")
-		v.append("protected void fetchNext()")
-		v.append("{")
-		v.append("while (baseIterator.hasNext())")
-		v.append("{")
-		v.append("com.livinglogic.ul4.Utils.unpackVariable(context.getVariables(), {}, baseIterator.next());".format(misc.javaexpr(self.varname)))
-		if self.condition is not None:
-			v.append("if (com.livinglogic.ul4.FunctionBool.call({}))".format(self.condition.formatjava(indent)))
-			v.append("{")
-		v.append("haveNextItem({});".format(self.item.formatjava(indent)))
-		v.append("return;")
-		if self.condition is not None:
-			v.append("}")
-		v.append("}")
-		v.append("noNextItem();")
-		v.append("}")
-		v.append("};")
-		v.append("}")
-		v.append("}")
-		v.append(").execute(context)")
-		return "".join(v)
-
 	def ul4ondump(self, encoder):
 		encoder.dump(self.item)
 		encoder.dump(self.varname)
@@ -660,9 +576,6 @@ class Var(AST):
 
 	def formatpython(self, indent):
 		return "ul4c._getitem(allvars, {!r})".format(self.name)
-
-	def formatjava(self, indent):
-		return "context.get({})".format(misc.javaexpr(self.name))
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.name)
@@ -750,12 +663,6 @@ class IfElIfElse(Block):
 			v.append(node.formatpython(indent))
 		return "".join(v)
 
-	def formatjava(self, indent):
-		v = []
-		for node in self.content:
-			v.append(node.formatjava(indent))
-		return "".join(v)
-
 
 @register("if")
 class If(Block):
@@ -778,18 +685,6 @@ class If(Block):
 		indent += 1
 		for node in self.content:
 			v.append(node.formatpython(indent))
-		return "".join(v)
-
-	def formatjava(self, indent):
-		v = []
-		v.append("{}// {}\n".format(indent*"\t", repr(self.location.tag)[1:-1]))
-		v.append("{}if (com.livinglogic.ul4.FunctionBool.call({}))\n".format(indent*"\t", self.condition.formatjava(indent)))
-		v.append("{}{{\n".format(indent*"\t"))
-		indent += 1
-		for node in self.content:
-			v.append(node.formatjava(indent))
-		indent -= 1
-		v.append("{}}}\n".format(indent*"\t"))
 		return "".join(v)
 
 	def ul4ondump(self, encoder):
@@ -824,18 +719,6 @@ class ElIf(Block):
 			v.append(node.formatpython(indent))
 		return "".join(v)
 
-	def formatjava(self, indent):
-		v = []
-		v.append("{}// {}\n".format(indent*"\t", repr(self.location.tag)[1:-1]))
-		v.append("{}else if (com.livinglogic.ul4.FunctionBool.call({}))\n".format(indent*"\t", self.condition.formatjava(indent)))
-		v.append("{}{{\n".format(indent*"\t"))
-		indent += 1
-		for node in self.content:
-			v.append(node.formatjava(indent))
-		indent -= 1
-		v.append("{}}}\n".format(indent*"\t"))
-		return "".join(v)
-
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
 		encoder.dump(self.condition)
@@ -862,18 +745,6 @@ class Else(Block):
 			v.append(node.formatpython(indent))
 		return "".join(v)
 
-	def formatjava(self, indent):
-		v = []
-		v.append("{}// {}\n".format(indent*"\t", repr(self.location.tag)[1:-1]))
-		v.append("{}else\n".format(indent*"\t"))
-		v.append("{}{{\n".format(indent*"\t"))
-		indent += 1
-		for node in self.content:
-			v.append(node.formatjava(indent))
-		indent -= 1
-		v.append("{}}}\n".format(indent*"\t"))
-		return "".join(v)
-
 
 @register("for")
 class For(Block):
@@ -897,33 +768,6 @@ class For(Block):
 		super().ul4onload(decoder)
 		self.varname = decoder.load()
 		self.container = decoder.load()
-
-	def formatjava(self, indent):
-		v = []
-		v.append("{}// {}\n".format(indent*"\t", repr(self.location.tag)[1:-1]))
-		v.append("{indent}for (java.util.Iterator iter{id:x} = com.livinglogic.ul4.Utils.iterator({container}); iter{id:x}.hasNext();)\n".format(indent=indent*"\t", id=id(self), container=self.container.formatjava(indent)))
-		v.append("{}{{\n".format(indent*"\t"))
-		indent += 1
-		v.append("{}com.livinglogic.ul4.Utils.unpackVariable(context.getVariables(), {}, iter{:x}.next());\n".format(indent*"\t", misc.javaexpr(self.varname), id(self)))
-		v.append("{}try\n".format(indent*"\t"))
-		v.append("{}{{\n".format(indent*"\t"))
-		indent += 1
-		for node in self.content:
-			v.append(node.formatjava(indent))
-		indent -= 1
-		v.append("{}}}\n".format(indent*"\t"))
-		v.append("{}catch (com.livinglogic.ul4.BreakException ex)\n".format(indent*"\t"))
-		v.append("{}{{\n".format(indent*"\t"))
-		indent += 1
-		v.append("{}break;\n".format(indent*"\t"))
-		indent -= 1
-		v.append("{}}}\n".format(indent*"\t"))
-		v.append("{}catch (com.livinglogic.ul4.ContinueException ex)\n".format(indent*"\t"))
-		v.append("{}{{\n".format(indent*"\t"))
-		v.append("{}}}\n".format(indent*"\t"))
-		indent -= 1
-		v.append("{}}}\n".format(indent*"\t"))
-		return "".join(v)
 
 	def format(self, indent):
 		return "{}for {} in {}\n{}".format(indent*"\t", _formatnestednameul4(self.varname), self.container.format(indent), super().format(indent))
@@ -953,9 +797,6 @@ class Break(Tag):
 	def formatpython(self, indent):
 		return "{i}# <?break?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}break\n".format(i=indent*"\t", id=id(self), l=self.location)
 
-	def formatjava(self, indent):
-		return "{i}// {s}\n{i}break;\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1])
-
 
 @register("continue")
 class Continue(Tag):
@@ -968,9 +809,6 @@ class Continue(Tag):
 
 	def formatpython(self, indent):
 		return "{i}# <?continue?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}continue\n".format(i=indent*"\t", id=id(self), l=self.location)
-
-	def formatjava(self, indent):
-		return "{i}// {s}\n{i}continue;\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1])
 
 
 @register("getattr")
@@ -997,9 +835,6 @@ class GetAttr(AST):
 
 	def formatpython(self, indent):
 		return "ul4c._getitem({}, {!r})".format(self.obj.formatpython(indent), self.attrname)
-
-	def formatjava(self, indent):
-		return "com.livinglogic.ul4.GetAttr.call({}, {})".format(self.obj.formatjava(indent), misc.javaexpr(self.attrname))
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.obj)
@@ -1055,9 +890,6 @@ class GetSlice(AST):
 
 	def formatpython(self, indent):
 		return "({})[{}:{}]".format(self.obj.formatpython(indent), self.index1.formatpython(indent) if self.index1 is not None else "", self.index2.formatpython(indent) if self.index2 is not None else "")
-
-	def formatjava(self, indent):
-		return "com.livinglogic.ul4.GetSlice.call({}, {}, {})".format(self.obj.formatjava(indent), self.index1.formatjava(indent) if self.index1 is not None else "null", self.index2.formatjava(indent) if self.index2 is not None else "null")
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.obj)
@@ -1116,9 +948,6 @@ class Not(Unary):
 	def formatpython(self, indent):
 		return "not ({})".format(self.obj.formatpython(indent))
 
-	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Not.call({})".format(self.obj.formatjava(indent))
-
 
 @register("neg")
 class Neg(Unary):
@@ -1137,9 +966,6 @@ class Neg(Unary):
 
 	def formatpython(self, indent):
 		return "-({})".format(self.obj.formatpython(indent))
-
-	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Neg.call({})".format(self.obj.formatjava(indent))
 
 
 class UnaryTag(Tag):
@@ -1168,10 +994,7 @@ class Print(UnaryTag):
 		return "{}print {}\n".format(indent*"\t", self.obj.format(indent))
 
 	def formatpython(self, indent):
-		return "{i}# <?print?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._str({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)
-
-	def formatjava(self, indent):
-		return "{i}// {s}\n{i}context.write(com.livinglogic.ul4.FunctionStr.call({v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], v=self.obj.formatjava(indent))
+		return "{i}# <?print?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield self.function_str(allvars, {o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)
 
 
 @register("printx")
@@ -1185,9 +1008,6 @@ class PrintX(UnaryTag):
 
 	def formatpython(self, indent):
 		return "{i}# <?printx?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._xmlescape({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)
-
-	def formatjava(self, indent):
-		return "{i}// {s}\n{i}context.write(com.livinglogic.ul4.FunctionXMLEscape.call({v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], v=self.obj.formatjava(indent))
 
 
 class Binary(AST):
@@ -1243,9 +1063,6 @@ class GetItem(Binary):
 	def formatpython(self, indent):
 		return "ul4c._getitem({}, {})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
-	def formatjava(self, indent):
-		return "com.livinglogic.ul4.GetItem.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
-
 
 @register("eq")
 class EQ(Binary):
@@ -1265,9 +1082,6 @@ class EQ(Binary):
 
 	def formatpython(self, indent):
 		return "({}) == ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
-
-	def formatjava(self, indent):
-		return "com.livinglogic.ul4.EQ.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("ne")
@@ -1289,9 +1103,6 @@ class NE(Binary):
 	def formatpython(self, indent):
 		return "({}) != ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
-	def formatjava(self, indent):
-		return "com.livinglogic.ul4.NE.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
-
 
 @register("lt")
 class LT(Binary):
@@ -1311,9 +1122,6 @@ class LT(Binary):
 
 	def formatpython(self, indent):
 		return "({}) < ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
-
-	def formatjava(self, indent):
-		return "com.livinglogic.ul4.LT.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("le")
@@ -1335,9 +1143,6 @@ class LE(Binary):
 	def formatpython(self, indent):
 		return "({}) <= ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
-	def formatjava(self, indent):
-		return "com.livinglogic.ul4.LE.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
-
 
 @register("gt")
 class GT(Binary):
@@ -1358,9 +1163,6 @@ class GT(Binary):
 	def formatpython(self, indent):
 		return "({}) > ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
-	def formatjava(self, indent):
-		return "com.livinglogic.ul4.GT.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
-
 
 @register("ge")
 class GE(Binary):
@@ -1380,9 +1182,6 @@ class GE(Binary):
 
 	def formatpython(self, indent):
 		return "({}) >= ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
-
-	def formatjava(self, indent):
-		return "com.livinglogic.ul4.GE.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("contains")
@@ -1408,9 +1207,6 @@ class Contains(Binary):
 	def formatpython(self, indent):
 		return "({}) in ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
-	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Contains.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
-
 
 @register("notcontains")
 class NotContains(Binary):
@@ -1435,9 +1231,6 @@ class NotContains(Binary):
 	def formatpython(self, indent):
 		return "({}) not in ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
-	def formatjava(self, indent):
-		return "com.livinglogic.ul4.NotContains.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
-
 
 @register("add")
 class Add(Binary):
@@ -1456,9 +1249,6 @@ class Add(Binary):
 
 	def formatpython(self, indent):
 		return "({}) + ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
-
-	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Add.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("sub")
@@ -1480,9 +1270,6 @@ class Sub(Binary):
 	def formatpython(self, indent):
 		return "({}) - ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
-	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Sub.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
-
 
 @register("mul")
 class Mul(Binary):
@@ -1501,9 +1288,6 @@ class Mul(Binary):
 
 	def formatpython(self, indent):
 		return "({}) * ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
-
-	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Mul.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("floordiv")
@@ -1525,9 +1309,6 @@ class FloorDiv(Binary):
 	def formatpython(self, indent):
 		return "({}) // ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
-	def formatjava(self, indent):
-		return "com.livinglogic.ul4.FloorDiv.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
-
 
 @register("truediv")
 class TrueDiv(Binary):
@@ -1548,9 +1329,6 @@ class TrueDiv(Binary):
 	def formatpython(self, indent):
 		return "({}) / ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
-	def formatjava(self, indent):
-		return "com.livinglogic.ul4.TrueDiv.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
-
 
 @register("and")
 class And(Binary):
@@ -1569,9 +1347,6 @@ class And(Binary):
 
 	def formatpython(self, indent):
 		return "({}) and ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
-
-	def formatjava(self, indent):
-		return "new com.livinglogic.ul4.Execution(){{public Object execute(com.livinglogic.ul4.EvaluationContext context){{Object obj1 = {}; return (!com.livinglogic.ul4.FunctionBool.call(obj1)) ? obj1  : {};}}}}.execute(context)".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 @register("or")
@@ -1592,9 +1367,6 @@ class Or(Binary):
 	def formatpython(self, indent):
 		return "({}) or ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
 
-	def formatjava(self, indent):
-		return "new com.livinglogic.ul4.Execution(){{public Object execute(com.livinglogic.ul4.EvaluationContext context){{Object obj1 = {}; return com.livinglogic.ul4.FunctionBool.call(obj1) ? obj1  : {};}}}}.execute(context)".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
-
 
 @register("mod")
 class Mod(Binary):
@@ -1614,9 +1386,6 @@ class Mod(Binary):
 
 	def formatpython(self, indent):
 		return "({}) % ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
-
-	def formatjava(self, indent):
-		return "com.livinglogic.ul4.Mod.call({}, {})".format(self.obj1.formatjava(indent), self.obj2.formatjava(indent))
 
 
 class ChangeVar(Tag):
@@ -1661,9 +1430,6 @@ class StoreVar(ChangeVar):
 	def formatpython(self, indent):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}{n} = {v}\n".format(i=indent*"\t", id=id(self), n=_formatnestednamepython(self.varname), v=self.value.formatpython(indent), l=self.location)
 
-	def formatjava(self, indent):
-		return "{i}// {s}\n{i}com.livinglogic.ul4.Utils.unpackVariable(context.getVariables(), {n}, {v});\n".format(i=indent*"\t", n=misc.javaexpr(self.varname), s=repr(self.location.tag)[1:-1], v=self.value.formatjava(indent))
-
 
 @register("addvar")
 class AddVar(ChangeVar):
@@ -1676,9 +1442,6 @@ class AddVar(ChangeVar):
 
 	def formatpython(self, indent):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] += {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
-
-	def formatjava(self, indent):
-		return "{i}// {s}\n{i}context.put({n}, com.livinglogic.ul4.Add.call(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
 
 
 @register("subvar")
@@ -1693,9 +1456,6 @@ class SubVar(ChangeVar):
 	def formatpython(self, indent):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] -= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
-	def formatjava(self, indent):
-		return "{i}// {s}\n{i}context.put({n}, com.livinglogic.ul4.Sub.call(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
-
 
 @register("mulvar")
 class MulVar(ChangeVar):
@@ -1708,9 +1468,6 @@ class MulVar(ChangeVar):
 
 	def formatpython(self, indent):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] *= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
-
-	def formatjava(self, indent):
-		return "{i}// {s}\n{i}context.put({n}, com.livinglogic.ul4.Mul.call(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
 
 
 @register("floordivvar")
@@ -1726,9 +1483,6 @@ class FloorDivVar(ChangeVar):
 	def formatpython(self, indent):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] //= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
-	def formatjava(self, indent):
-		return "{i}// {s}\n{i}context.put({n}, com.livinglogic.ul4.FloorDiv.call(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
-
 
 @register("truedivvar")
 class TrueDivVar(ChangeVar):
@@ -1741,9 +1495,6 @@ class TrueDivVar(ChangeVar):
 
 	def formatpython(self, indent):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] /= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
-
-	def formatjava(self, indent):
-		return "{i}// {s}\n{i}context.put({n}, com.livinglogic.ul4.TrueDiv.call(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
 
 
 @register("modvar")
@@ -1758,9 +1509,6 @@ class ModVar(ChangeVar):
 	def formatpython(self, indent):
 		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] %= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
 
-	def formatjava(self, indent):
-		return "{i}// {s}\n{i}context.put({n}, com.livinglogic.ul4.Mod.call(context.get({n}), {v}));\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], n=misc.javaexpr(self.varname), v=self.value.formatjava(indent))
-
 
 @register("callfunc")
 class CallFunc(AST):
@@ -1773,17 +1521,20 @@ class CallFunc(AST):
 
 	precedence = 10
 	associative = False
-	fields = AST.fields.union({"funcname", "args"})
+	fields = AST.fields.union({"funcname", "args", "kwargs"})
 
-	def __init__(self, funcname=None, *args):
+	def __init__(self, funcname=None, *args, **kwargs):
 		self.funcname = funcname
 		self.args = list(args)
+		self.kwargs = list(kwargs.items())
 
 	def __repr__(self):
-		if self.args:
-			return "{}({!r}, {})".format(self.__class__.__name__, self.funcname, repr(self.args)[1:-1])
-		else:
-			return "{}({!r})".format(self.__class__.__name__, self.funcname)
+		args = itertools.chain(
+			(repr(self.funcname),),
+			(repr(arg) for arg in self.args),
+			("{}={!r}".format(argname, argvalue) for (argname, argvalue) in self.kwargs)
+		)
+		return "{}({})".format(self.__class__.__name__, ", ".join(args))
 
 	def format(self, indent):
 		args = []
@@ -1792,162 +1543,30 @@ class CallFunc(AST):
 			if isinstance(arg, GenExpr):
 				s = s[1:-1]
 			args.append(s)
+		for (argname, argvalue) in self.kwargs:
+			s = argvalue.format(indent)
+			if isinstance(arg, GenExpr):
+				s = s[1:-1]
+			args.append("{}={}".format(argname, s))
 		return "{}({})".format(self.funcname, ", ".join(args))
 
 	def formatpython(self, indent):
-		functions = dict(
-			now="ul4c._now({})".format,
-			utcnow="ul4c._utcnow({})".format,
-			date="datetime.datetime({})".format,
-			timedelta="ul4c._timedelta({})".format,
-			monthdelta="misc.monthdelta({})".format,
-			vars="ul4c._vars(allvars, {})".format,
-			allvars="ul4c._allvars(allvars, {})".format,
-			random="random.random({})".format,
-			xmlescape="ul4c._xmlescape({})".format,
-			csv="ul4c._csv({})".format,
-			asjson="ul4c._asjson({})".format,
-			fromjson="ul4c._fromjson({})".format,
-			asul4on="ul4c._asul4on({})".format,
-			fromul4on="ul4c._fromul4on({})".format,
-			str="ul4c._str({})".format,
-			int="int({})".format,
-			float="float({})".format,
-			bool="bool({})".format,
-			len="len({})".format,
-			abs="abs({})".format,
-			enumerate="enumerate({})".format,
-			enumfl="ul4c._enumfl({})".format,
-			any="any({})".format,
-			all="all({})".format,
-			isfirstlast="ul4c._isfirstlast({})".format,
-			isfirst="ul4c._isfirst({})".format,
-			islast="ul4c._islast({})".format,
-			isundefined="ul4c._isundefined({})".format,
-			isdefined="ul4c._isdefined({})".format,
-			isnone="ul4c._isnone({})".format,
-			isstr="ul4c._isstr({})".format,
-			isint="ul4c._isint({})".format,
-			isfloat="ul4c._isfloat({})".format,
-			isbool="ul4c._isbool({})".format,
-			isdate="ul4c._isdate({})".format,
-			istimedelta="ul4c._istimedelta({})".format,
-			ismonthdelta="ul4c._ismonthdelta({})".format,
-			islist="ul4c._islist({})".format,
-			isdict="ul4c._isdict({})".format,
-			iscolor="ul4c._iscolor({})".format,
-			istemplate="ul4c._istemplate({})".format,
-			repr="ul4c._repr({})".format,
-			get="allvars.get({})".format,
-			chr="chr({})".format,
-			ord="ord({})".format,
-			hex="hex({})".format,
-			oct="oct({})".format,
-			bin="bin({})".format,
-			min="min({})".format,
-			max="max({})".format,
-			sorted="sorted({})".format,
-			range="range({})".format,
-			type="ul4c._type({})".format,
-			reversed="reversed({})".format,
-			randrange="random.randrange({})".format,
-			randchoice="random.choice({})".format,
-			format="ul4c._format({})".format,
-			zip="zip({})".format,
-			urlquote="ul4c._urlquote({})".format,
-			urlunquote="ul4c._urlunquote({})".format,
-			rgb="color.Color.fromrgb({})".format,
-			hls="color.Color.fromhls({})".format,
-			hsv="color.Color.fromhsv({})".format,
-		)
-		try:
-			formatter = functions[self.funcname]
-		except KeyError:
-			raise UnknownFunctionError(self.funcname)
-		return formatter(", ".join(arg.formatpython(indent) for arg in self.args))
-
-	def formatjava(self, indent):
-		functions = dict(
-			now="com.livinglogic.ul4.FunctionNow.call({})".format,
-			utcnow="com.livinglogic.ul4.FunctionUTCNow.call({})".format,
-			date="com.livinglogic.ul4.FunctionDate.call({})".format,
-			timedelta="com.livinglogic.ul4.FunctionTimeDelta.call({})".format,
-			monthdelta="com.livinglogic.ul4.FunctionMonthDelta.call({})".format,
-			vars="com.livinglogic.ul4.FunctionVars.call(context.getVariables(){})".format,
-			allvars="com.livinglogic.ul4.FunctionAllVars.call(context.getAllVariables(){})".format,
-			random="com.livinglogic.ul4.FunctionRandom.call({})".format,
-			xmlescape="com.livinglogic.ul4.FunctionXMLEscape.call({})".format,
-			csv="com.livinglogic.ul4.FunctionCSV.call({})".format,
-			asjson="com.livinglogic.ul4.FunctionAsJSON.call({})".format,
-			fromjson="com.livinglogic.ul4.FunctionFromJSON.call({})".format,
-			asul4on="com.livinglogic.ul4.FunctionAsUL4ON.call({})".format,
-			fromul4on="com.livinglogic.ul4.FunctionFromUL4ON.call({})".format,
-			str="com.livinglogic.ul4.FunctionStr.call({})".format,
-			int="com.livinglogic.ul4.FunctionInt.call({})".format,
-			float="com.livinglogic.ul4.FunctionFloat.call({})".format,
-			bool="com.livinglogic.ul4.FunctionBool.call({})".format,
-			len="com.livinglogic.ul4.FunctionLen.call({})".format,
-			abs="com.livinglogic.ul4.FunctionAbs.call({})".format,
-			enumerate="com.livinglogic.ul4.FunctionEnumerate.call({})".format,
-			enumfl="com.livinglogic.ul4.FunctionEnumFL.call({})".format,
-			any="com.livinglogic.ul4.FunctionAny.call({})".format,
-			all="com.livinglogic.ul4.FunctionAll.call({})".format,
-			isfirstlast="com.livinglogic.ul4.FunctionIsFirstLast.call({})".format,
-			isfirst="com.livinglogic.ul4.FunctionIsFirst.call({})".format,
-			islast="com.livinglogic.ul4.FunctionIsLast.call({})".format,
-			isundefined="com.livinglogic.ul4.FunctionIsUndefined.call({})".format,
-			isdefined="com.livinglogic.ul4.FunctionIsDefined.call({})".format,
-			isnone="com.livinglogic.ul4.FunctionIsNone.call({})".format,
-			isstr="com.livinglogic.ul4.FunctionIsStr.call({})".format,
-			isint="com.livinglogic.ul4.FunctionIsInt.call({})".format,
-			isfloat="com.livinglogic.ul4.FunctionIsFloat.call({})".format,
-			isbool="com.livinglogic.ul4.FunctionIsBool.call({})".format,
-			isdate="com.livinglogic.ul4.FunctionIsDate.call({})".format,
-			istimedelta="com.livinglogic.ul4.FunctionIsTimeDelta.call({})".format,
-			ismonthdelta="com.livinglogic.ul4.FunctionIsMonthDelta.call({})".format,
-			islist="com.livinglogic.ul4.FunctionIsList.call({})".format,
-			isdict="com.livinglogic.ul4.FunctionIsDict.call({})".format,
-			iscolor="com.livinglogic.ul4.FunctionIsColor.call({})".format,
-			istemplate="com.livinglogic.ul4.FunctionIsTemplate.call({})".format,
-			repr="com.livinglogic.ul4.FunctionRepr.call({})".format,
-			get="com.livinglogic.ul4.FunctionGet.call(context.getAllVariables(){})".format,
-			chr="com.livinglogic.ul4.FunctionChr.call({})".format,
-			ord="com.livinglogic.ul4.FunctionOrd.call({})".format,
-			hex="com.livinglogic.ul4.FunctionHex.call({})".format,
-			oct="com.livinglogic.ul4.FunctionOct.call({})".format,
-			bin="com.livinglogic.ul4.FunctionBin.call({})".format,
-			min="com.livinglogic.ul4.FunctionMin.call({})".format,
-			max="com.livinglogic.ul4.FunctionMax.call({})".format,
-			sorted="com.livinglogic.ul4.FunctionSorted.call({})".format,
-			range="com.livinglogic.ul4.FunctionRange.call({})".format,
-			type="com.livinglogic.ul4.FunctionType.call({})".format,
-			reversed="com.livinglogic.ul4.FunctionReversed.call({})".format,
-			randrange="com.livinglogic.ul4.FunctionRandRange.call({})".format,
-			randchoice="com.livinglogic.ul4.FunctionRandChoice.call({})".format,
-			format="com.livinglogic.ul4.FunctionFormat.call({})".format,
-			zip="com.livinglogic.ul4.FunctionZip.call({})".format,
-			urlquote="com.livinglogic.ul4.FunctionURLQuote.call({})".format,
-			urlunquote="com.livinglogic.ul4.FunctionURLUnquote.call({})".format,
-			rgb="com.livinglogic.ul4.FunctionRGB.call({})".format,
-			hls="com.livinglogic.ul4.FunctionHLS.call({})".format,
-			hsv="com.livinglogic.ul4.FunctionHSV.call({})".format,
-		)
-		try:
-			formatter = functions[self.funcname]
-		except KeyError:
-			raise UnknownFunctionError(self.funcname)
-		if self.funcname in ("get", "vars", "allvars"):
-			return formatter("".join(", " + arg.formatjava(indent) for arg in self.args))
-		else:
-			return formatter(", ".join(arg.formatjava(indent) for arg in self.args))
+		args = []
+		for arg in self.args:
+			args.append(arg.formatpython(indent))
+		for (argname, argvalue) in self.kwargs:
+			args.append("{}={}".format(argname, argvalue.formatpython(indent)))
+		return "self.function_{}(allvars, {})".format(self.funcname, ", ".join(args))
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.funcname)
 		encoder.dump(self.args)
+		encoder.dump(self.kwargs)
 
 	def ul4onload(self, decoder):
 		self.funcname = decoder.load()
 		self.args = decoder.load()
+		self.kwargs = [tuple(arg) for arg in decoder.load()]
 
 
 @register("callmeth")
@@ -2034,57 +1653,6 @@ class CallMeth(AST):
 			raise UnknownMethodError(self.methname)
 		return formatter(self.obj.formatpython(indent), ", ".join(arg.formatpython(indent) for arg in self.args))
 
-	def formatjava(self, indent):
-		methods = dict(
-			split="com.livinglogic.ul4.MethodSplit.call({})".format,
-			rsplit="com.livinglogic.ul4.MethodRSplit.call({})".format,
-			strip="com.livinglogic.ul4.MethodStrip.call({})".format,
-			lstrip="com.livinglogic.ul4.MethodLStrip.call({})".format,
-			rstrip="com.livinglogic.ul4.MethodRStrip.call({})".format,
-			find="com.livinglogic.ul4.MethodFind.call({})".format,
-			rfind="com.livinglogic.ul4.MethodRFind.call({})".format,
-			startswith="com.livinglogic.ul4.MethodStartsWith.call({})".format,
-			endswith="com.livinglogic.ul4.MethodEndsWith.call({})".format,
-			upper="com.livinglogic.ul4.MethodUpper.call({})".format,
-			lower="com.livinglogic.ul4.MethodLower.call({})".format,
-			capitalize="com.livinglogic.ul4.MethodCapitalize.call({})".format,
-			replace="com.livinglogic.ul4.MethodReplace.call({})".format,
-			r="com.livinglogic.ul4.MethodR.call({})".format,
-			g="com.livinglogic.ul4.MethodG.call({})".format,
-			b="com.livinglogic.ul4.MethodB.call({})".format,
-			a="com.livinglogic.ul4.MethodA.call({})".format,
-			hls="com.livinglogic.ul4.MethodHLS.call({})".format,
-			hlsa="com.livinglogic.ul4.MethodHLSA.call({})".format,
-			hsv="com.livinglogic.ul4.MethodHSV.call({})".format,
-			hsva="com.livinglogic.ul4.MethodHSVA.call({})".format,
-			lum="com.livinglogic.ul4.MethodLum.call({})".format,
-			week="com.livinglogic.ul4.MethodWeek.call({})".format,
-			weekday="com.livinglogic.ul4.MethodWeekday.call({})".format,
-			items="com.livinglogic.ul4.MethodItems.call({})".format,
-			values="com.livinglogic.ul4.MethodValues.call({})".format,
-			join="com.livinglogic.ul4.MethodJoin.call({})".format,
-			render="com.livinglogic.ul4.MethodRender.call(context, {})".format,
-			renders="com.livinglogic.ul4.MethodRenderS.call(context, {})".format,
-			mimeformat="com.livinglogic.ul4.MethodMIMEFormat.call({})".format,
-			isoformat="com.livinglogic.ul4.MethodISOFormat.call({})".format,
-			yearday="com.livinglogic.ul4.MethodYearday.call({})".format,
-			get="com.livinglogic.ul4.MethodGet.call({})".format,
-			withlum="com.livinglogic.ul4.MethodWithLum.call({})".format,
-			witha="com.livinglogic.ul4.MethodWithA.call({})".format,
-			day="com.livinglogic.ul4.MethodDay.call({})".format,
-			month="com.livinglogic.ul4.MethodMonth.call({})".format,
-			year="com.livinglogic.ul4.MethodYear.call({})".format,
-			hour="com.livinglogic.ul4.MethodHour.call({})".format,
-			minute="com.livinglogic.ul4.MethodMinute.call({})".format,
-			second="com.livinglogic.ul4.MethodSecond.call({})".format,
-			microsecond="com.livinglogic.ul4.MethodMicrosecond.call({})".format,
-		)
-		try:
-			formatter = methods[self.methname]
-		except KeyError:
-			raise UnknownMethodError(self.methname)
-		return formatter(", ".join(arg.formatjava(indent) for arg in [self.obj] + self.args))
-
 	def ul4ondump(self, encoder):
 		encoder.dump(self.methname)
 		encoder.dump(self.obj)
@@ -2146,21 +1714,6 @@ class CallMethKeywords(AST):
 			# The ``render`` method can only be used in the ``render`` tag, where it is handled separately
 			raise UnknownMethodError(self.methname)
 
-	def formatjava(self, indent):
-		v = []
-		for arg in self.args:
-			if len(arg) == 1:
-				v.append(".add((java.util.Map){})".format(arg[0].formatjava(indent)))
-			else:
-				v.append(".add({}, {})".format(misc.javaexpr(arg[0]), arg[1].formatjava(indent)))
-		args = "new com.livinglogic.ul4.MapMaker(){}.getMap()".format("".join(v))
-		if self.methname == "renders":
-			return "com.livinglogic.ul4.KeywordMethodRenderS.call(context, {}, {})".format(self.obj.formatjava(indent), args)
-		elif self.methname == "render":
-			return "com.livinglogic.ul4.KeywordMethodRender.call(context, {}, {})".format(self.obj.formatjava(indent), args)
-		else:
-			raise UnknownMethodError(self.methname)
-
 	def ul4ondump(self, encoder):
 		encoder.dump(self.methname)
 		encoder.dump(self.obj)
@@ -2200,14 +1753,443 @@ class Render(UnaryTag):
 			v.append("{}yield from ({})({})\n".format(indent*"\t", self.obj.obj.formatpython(indent), args))
 			return "".join(v)
 		else:
-			return "{i}# <?render?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._str({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)
+			return "{i}# <?render?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield self.function_str(allvars, {o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)
 
-	def formatjava(self, indent):
-		return "{i}// {s}\n{i}{o};\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1], o=self.obj.formatjava(indent))
+
+class Callable(object):
+	"""
+	Base class that implements all UL4 functions as methods.
+	"""
+
+	def __getattr__(self, name):
+		if name.startswith("function_"):
+			raise UnknownFunctionError(name[9:])
+		else:
+			raise AttributeError(name)
+
+	@classmethod
+	def function_vars(cls, allvars):
+		return allvars.maps[0]
+
+	@classmethod
+	def function_allvars(cls, allvars):
+		return allvars
+
+	@classmethod
+	def function_get(cls, allvars, name, default=None):
+		return allvars.get(name, default)
+
+	@classmethod
+	def function_now(cls, allvars):
+		return datetime.datetime.now()
+
+	@classmethod
+	def function_utcnow(cls, allvars):
+		return datetime.datetime.utcnow()
+
+	@classmethod
+	def function_date(cls, allvars, year, month, day, hour=0, minute=0, second=0, microsecond=0):
+		return datetime.datetime(year, month, day, hour, minute, second, microsecond)
+
+	@classmethod
+	def function_timedelta(cls, allvars, days=0, seconds=0, microseconds=0):
+		return datetime.timedelta(days, seconds, microseconds)
+
+	@classmethod
+	def function_monthdelta(cls, allvars, months=0):
+		return misc.monthdelta(months)
+
+	@classmethod
+	def function_random(cls, allvars, ):
+		return random.random()
+
+	@classmethod
+	def function_xmlescape(cls, allvars, obj):
+		if obj is None:
+			return ""
+		elif isinstance(obj, Undefined):
+			return ""
+		else:
+			return misc.xmlescape(str(obj))
+
+	@classmethod
+	def function_csv(cls, allvars, obj):
+		if obj is None:
+			return ""
+		elif isinstance(obj, Undefined):
+			return ""
+		elif not isinstance(obj, str):
+			obj = cls.function_repr(allvars, obj)
+		if any(c in obj for c in ',"\n'):
+			return '"{}"'.format(obj.replace('"', '""'))
+		return obj
+
+	@classmethod
+	def function_asjson(cls, allvars, obj):
+		if obj is None:
+			return "null"
+		elif isinstance(obj, Undefined):
+			return "{}.undefined"
+		if isinstance(obj, (bool, int, float, str)):
+			return json.dumps(obj)
+		elif isinstance(obj, datetime.datetime):
+			return "new Date({}, {}, {}, {}, {}, {}, {})".format(obj.year, obj.month-1, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond//1000)
+		elif isinstance(obj, datetime.date):
+			return "new Date({}, {}, {})".format(obj.year, obj.month-1, obj.day)
+		elif isinstance(obj, datetime.timedelta):
+			return "ul4.TimeDelta.create({}, {}, {})".format(obj.days, obj.seconds, obj.microseconds)
+		elif isinstance(obj, misc.monthdelta):
+			return "ul4.MonthDelta.create({})".format(obj.months)
+		elif isinstance(obj, color.Color):
+			return "ul4.Color.create({}, {}, {}, {})".format(*obj)
+		elif isinstance(obj, collections.Mapping):
+			return "{{{}}}".format(", ".join("{}: {}".format(cls.function_asjson(allvars, key), cls.function_asjson(allvars, value)) for (key, value) in obj.items()))
+		elif isinstance(obj, collections.Sequence):
+			return "[{}]".format(", ".join(cls.function_asjson(allvars, item) for item in obj))
+		elif isinstance(obj, Template):
+			return obj.jssource()
+		else:
+			raise TypeError("can't handle object of type {}".format(type(obj)))
+
+	@classmethod
+	def function_fromjson(cls, allvars, string):
+		return json.loads(string)
+
+	@classmethod
+	def function_asul4on(cls, allvars, obj):
+		from ll import ul4on
+		return ul4on.dumps(obj)
+
+	@classmethod
+	def function_fromul4on(cls, allvars, string):
+		from ll import ul4on
+		return ul4on.loads(string)
+
+	@classmethod
+	def function_str(cls, allvars, obj=""):
+		if obj is None:
+			return ""
+		elif isinstance(obj, Undefined):
+			return ""
+		else:
+			return str(obj)
+
+	@classmethod
+	def function_int(cls, allvars, obj=0, base=None):
+		if base is None:
+			return int(obj)
+		else:
+			return int(obj, base)
+
+	@classmethod
+	def function_float(cls, allvars, obj=0.0):
+		return float(obj)
+
+	@classmethod
+	def function_bool(cls, allvars, obj=False):
+		return bool(obj)
+
+	@classmethod
+	def function_len(cls, allvars, sequence):
+		return len(sequence)
+
+	@classmethod
+	def function_abs(cls, allvars, number):
+		return abs(number)
+
+	@classmethod
+	def function_any(cls, allvars, iterable):
+		return any(iterable)
+
+	@classmethod
+	def function_all(cls, allvars, iterable):
+		return all(iterable)
+
+	@classmethod
+	def function_enumerate(cls, allvars, iterable, start=0):
+		return enumerate(iterable, start)
+
+	@classmethod
+	def function_enumfl(cls, allvars, iterable, start=0):
+		lastitem = None
+		first = True
+		i = start
+		it = iter(iterable)
+		try:
+			item = next(it)
+		except StopIteration:
+			return
+		while True:
+			try:
+				(lastitem, item) = (item, next(it))
+			except StopIteration:
+				yield (i, first, True, item) # Items haven't been swapped yet
+				return
+			else:
+				yield (i, first, False, lastitem)
+				first = False
+			i += 1
+
+	@classmethod
+	def function_isfirstlast(cls, allvars, iterable):
+		lastitem = None
+		first = True
+		it = iter(iterable)
+		try:
+			item = next(it)
+		except StopIteration:
+			return
+		while True:
+			try:
+				(lastitem, item) = (item, next(it))
+			except StopIteration:
+				yield (first, True, item) # Items haven't been swapped yet
+				return
+			else:
+				yield (first, False, lastitem)
+				first = False
+
+	@classmethod
+	def function_isfirst(cls, allvars, iterable):
+		first = True
+		for item in iterable:
+			yield (first, item)
+			first = False
+
+	@classmethod
+	def function_islast(cls, allvars, iterable):
+		lastitem = None
+		it = iter(iterable)
+		try:
+			item = next(it)
+		except StopIteration:
+			return
+		while True:
+			try:
+				(lastitem, item) = (item, next(it))
+			except StopIteration:
+				yield (True, item) # Items haven't been swapped yet
+				return
+			else:
+				yield (False, lastitem)
+
+	@classmethod
+	def function_isundefined(cls, allvars, obj):
+		return isinstance(obj, Undefined)
+
+	@classmethod
+	def function_isdefined(cls, allvars, obj):
+		return not isinstance(obj, Undefined)
+
+	@classmethod
+	def function_isnone(cls, allvars, obj):
+		return obj is None
+
+	@classmethod
+	def function_isstr(cls, allvars, obj):
+		return isinstance(obj, str)
+
+	@classmethod
+	def function_isint(cls, allvars, obj):
+		return isinstance(obj, int) and not isinstance(obj, bool)
+
+	@classmethod
+	def function_isfloat(cls, allvars, obj):
+		return isinstance(obj, float)
+
+	@classmethod
+	def function_isbool(cls, allvars, obj):
+		return isinstance(obj, bool)
+
+	@classmethod
+	def function_isdate(cls, allvars, obj):
+		return isinstance(obj, (datetime.datetime, datetime.date))
+
+	@classmethod
+	def function_istimedelta(cls, allvars, obj):
+		return isinstance(obj, datetime.timedelta)
+
+	@classmethod
+	def function_ismonthdelta(cls, allvars, obj):
+		return isinstance(obj, misc.monthdelta)
+
+	@classmethod
+	def function_islist(cls, allvars, obj):
+		return isinstance(obj, collections.Sequence) and not isinstance(obj, str) and not isinstance(obj, color.Color)
+
+	@classmethod
+	def function_isdict(cls, allvars, obj):
+		return isinstance(obj, collections.Mapping) and not isinstance(obj, Template)
+
+	@classmethod
+	def function_iscolor(cls, allvars, obj):
+		return isinstance(obj, color.Color)
+
+	@classmethod
+	def function_istemplate(cls, allvars, obj):
+		return isinstance(obj, (Template, TemplateClosure))
+
+	@classmethod
+	def function_repr(cls, allvars, obj):
+		if isinstance(obj, str):
+			return repr(obj)
+		elif isinstance(obj, datetime.datetime):
+			s = str(obj.isoformat())
+			if s.endswith("T00:00:00"):
+				s = s[:-9]
+			return "@({})".format(s)
+		elif isinstance(obj, datetime.date):
+			return "@({})".format(obj.isoformat())
+		elif isinstance(obj, datetime.timedelta):
+			return repr(obj).partition(".")[-1]
+		elif isinstance(obj, color.Color):
+			if obj[3] == 0xff:
+				s = "#{:02x}{:02x}{:02x}".format(obj[0], obj[1], obj[2])
+				if s[1]==s[2] and s[3]==s[4] and s[5]==s[6]:
+					return "#{}{}{}".format(s[1], s[3], s[5])
+				return s
+			else:
+				s = "#{:02x}{:02x}{:02x}{:02x}".format(*obj)
+				if s[1]==s[2] and s[3]==s[4] and s[5]==s[6] and s[7]==s[8]:
+					return "#{}{}{}{}".format(s[1], s[3], s[5], s[7])
+				return s
+		elif isinstance(obj, collections.Sequence):
+			return "[{}]".format(", ".join(cls.function_repr(allvars, item) for item in obj))
+		elif isinstance(obj, collections.Mapping):
+			return "{{{}}}".format(", ".join("{}: {}".format(cls.function_repr(allvars, key), cls.function_repr(allvars, value)) for (key, value) in obj.items()))
+		else:
+			return repr(obj)
+
+
+	@classmethod
+	def function_chr(cls, allvars, i):
+		return chr(i)
+
+	@classmethod
+	def function_ord(cls, allvars, c):
+		return ord(c)
+
+	@classmethod
+	def function_hex(cls, allvars, number):
+		return hex(number)
+
+	@classmethod
+	def function_oct(cls, allvars, number):
+		return oct(number)
+
+	@classmethod
+	def function_bin(cls, allvars, number):
+		return bin(number)
+
+	@classmethod
+	def function_min(cls, allvars, *args):
+		return min(*args)
+
+	@classmethod
+	def function_max(cls, allvars, *args):
+		return max(*args)
+
+	@classmethod
+	def function_sorted(cls, allvars, iterable):
+		return sorted(iterable)
+
+	@classmethod
+	def function_range(cls, allvars, *args):
+		return range(*args)
+
+	@classmethod
+	def function_type(cls, allvars, obj):
+		if obj is None:
+			return "none"
+		elif isinstance(obj, str):
+			return "str"
+		elif isinstance(obj, bool):
+			return "bool"
+		elif isinstance(obj, int):
+			return "int"
+		elif isinstance(obj, float):
+			return "float"
+		elif isinstance(obj, (datetime.datetime, datetime.date)):
+			return "date"
+		elif isinstance(obj, datetime.timedelta):
+			return "timedelta"
+		elif isinstance(obj, misc.monthdelta):
+			return "monthdelta"
+		elif isinstance(obj, color.Color):
+			return "color"
+		elif isinstance(obj, Template):
+			return "template"
+		elif isinstance(obj, collections.Mapping):
+			return "dict"
+		elif isinstance(obj, color.Color):
+			return "color"
+		elif isinstance(obj, collections.Sequence):
+			return "list"
+		return None
+
+
+	@classmethod
+	def function_reversed(cls, allvars, sequence):
+		return reversed(sequence)
+
+	@classmethod
+	def function_randrange(cls, allvars, *args):
+		return random.randrange(*args)
+
+	@classmethod
+	def function_randchoice(cls, allvars, sequence):
+		return random.choice(sequence)
+
+	@classmethod
+	def function_format(cls, allvars, obj, fmt, lang=None):
+		if isinstance(obj, (datetime.date, datetime.time, datetime.timedelta)):
+			if lang is None:
+				lang = "en"
+			oldlocale = locale.getlocale()
+			try:
+				for candidate in (locale.normalize(lang), locale.normalize("en"), ""):
+					try:
+						locale.setlocale(locale.LC_ALL, candidate)
+						return format(obj, fmt)
+					except locale.Error:
+						if not candidate:
+							return format(obj, fmt)
+			finally:
+				try:
+					locale.setlocale(locale.LC_ALL, oldlocale)
+				except locale.Error:
+					pass
+		else:
+			return format(obj, fmt)
+
+
+	@classmethod
+	def function_zip(cls, allvars, *iterables):
+		return zip(*iterables)
+
+	@classmethod
+	def function_urlquote(cls, allvars, string):
+		return urlparse.quote_plus(string)
+
+	@classmethod
+	def function_urlunquote(cls, allvars, string):
+		return urlparse.unquote_plus(string)
+
+	@classmethod
+	def function_rgb(cls, allvars, r, g, b, a=1.0):
+		return color.Color.fromrgb(r, g, b, a)
+
+	@classmethod
+	def function_hls(cls, allvars, h, l, s, a=1.0):
+		return color.Color.fromhls(h, l, s, a)
+
+	@classmethod
+	def function_hsv(cls, allvars, h, s, v, a=1.0):
+		return color.Color.fromhsv(h, s, v, a)
 
 
 @register("template")
-class Template(Block):
+class Template(Block, Callable):
 	"""
 	A template object is normally created by passing the template source to the
 	constructor. It can also be loaded from the compiled format via the class
@@ -2351,44 +2333,6 @@ class Template(Block):
 		else:
 			raise Error(ast.location) from exc
 
-	def _java(self, indent):
-		v = []
-		v.append("new com.livinglogic.ul4.CompiledTemplate()\n")
-		v.append("{}{{\n".format(indent*"\t"))
-		indent += 1
-		v.append("{}public String getName()\n".format(indent*"\t"))
-		v.append("{}{{\n".format(indent*"\t"))
-		indent += 1
-		v.append("{}return {};\n".format(indent*"\t", misc.javaexpr(self.name if self.name is not None else "unnamed")))
-		indent -= 1
-		v.append("{}}}\n".format(indent*"\t"))
-		v.append("{}public void renderImpl(com.livinglogic.ul4.EvaluationContext context) throws java.io.IOException\n".format(indent*"\t"))
-		v.append("{}{{\n".format(indent*"\t"))
-		indent += 1
-		for node in self.content:
-			v.append(node.formatjava(indent))
-		indent -= 1
-		v.append("{}}}\n".format(indent*"\t"))
-		indent -= 1
-		v.append("{}}}".format(indent*"\t"))
-		return "".join(v)
-
-	def formatjava(self, indent):
-		v = []
-		v.append("{i}// {s}\n".format(i=indent*"\t", s=repr(self.location.tag)[1:-1]))
-		v.append("{i}context.put(\n".format(i=indent*"\t"))
-		indent += 1
-		v.append("{i}{n},\n".format(i=indent*"\t", n=misc.javaexpr(self.name if self.name is not None else "unnamed")))
-		v.append("{i}new com.livinglogic.ul4.TemplateClosure(\n".format(i=indent*"\t"))
-		indent += 1
-		v.append("{i}{c},\n".format(i=indent*"\t", c=self._java(indent)))
-		v.append("{i}context.getVariables()\n".format(i=indent*"\t"))
-		indent -= 1
-		v.append("{i})\n".format(i=indent*"\t"))
-		indent -= 1
-		v.append("{i});\n".format(i=indent*"\t"))
-		return "".join(v)
-
 	def render(self, **vars):
 		"""
 		Render the template iteratively (i.e. this is a generator).
@@ -2427,7 +2371,7 @@ class Template(Block):
 		if self._pythonsource is None:
 			v = []
 			v.append("def {}(self, vars):\n".format(self.name if self.name is not None else "unnamed"))
-			v.append("\timport datetime, random, collections\n")
+			v.append("\timport datetime, collections\n")
 			v.append("\tfrom ll import ul4c, misc, color\n")
 			v.append("\tallvars = collections.ChainMap(vars, {'self': self})\n")
 			v.append("\tif 0:\n")
@@ -2445,21 +2389,13 @@ class Template(Block):
 		Return the template as the source code of a Javascript function. A
 		:class:`JavascriptSource` object will be used to generated the sourcecode.
 		"""
-		return "ul4.Template.loads({})".format(_asjson(self.dumps()))
+		return "ul4.Template.loads({})".format(self.function_asjson(None, self.dumps()))
 
-	def javasource(self, indent=0, interpreted=True):
+	def javasource(self):
 		"""
 		Return the template as Java source code.
-
-		:var:`indent` is the indentation level.
-
-		:var:`interpreted` can be used the specify whether a ``CompiledTemplate``
-		or an ``InterpretedTemplate`` will be used.
 		"""
-		if interpreted:
-			return "com.livinglogic.ul4.InterpretedTemplate.loads({})".format(misc.javaexpr(self.dumps()))
-		else:
-			return self._java(indent)
+		return "com.livinglogic.ul4.InterpretedTemplate.loads({})".format(misc.javaexpr(self.dumps()))
 
 	def _tokenize(self, source, startdelim, enddelim):
 		"""
@@ -2694,403 +2630,9 @@ def _getitem(container, key):
 		return UndefinedIndex(key)
 
 
-def _vars(allvars):
-	"""
-	Helper for the ``vars`` function.
-	"""
-	return allvars.maps[0]
-
-
-def _allvars(allvars):
-	"""
-	Helper for the ``allvars`` function.
-	"""
-	return allvars
-
-
-def _now():
-	"""
-	Helper for the ``now`` function.
-	"""
-	return datetime.datetime.now()
-
-
-def _utcnow():
-	"""
-	Helper for the ``utcnow`` function.
-	"""
-	return datetime.datetime.utcnow()
-
-
-def _str(obj=None):
-	"""
-	Helper for the ``str`` function.
-	"""
-	if obj is None:
-		return ""
-	elif isinstance(obj, Undefined):
-		return ""
-	else:
-		return str(obj)
-
-
-def _format(obj, fmt, lang=None):
-	"""
-	Helper for the ``format`` function.
-	"""
-	if isinstance(obj, (datetime.date, datetime.time, datetime.timedelta)):
-		if lang is None:
-			lang = "en"
-		oldlocale = locale.getlocale()
-		try:
-			for candidate in (locale.normalize(lang), locale.normalize("en"), ""):
-				try:
-					locale.setlocale(locale.LC_ALL, candidate)
-					return format(obj, fmt)
-				except locale.Error:
-					if not candidate:
-						return format(obj, fmt)
-		finally:
-			try:
-				locale.setlocale(locale.LC_ALL, oldlocale)
-			except locale.Error:
-				pass
-	else:
-		return format(obj, fmt)
-
-
-def _repr(obj):
-	"""
-	Helper for the ``repr`` function.
-	"""
-	if isinstance(obj, str):
-		return repr(obj)
-	elif isinstance(obj, datetime.datetime):
-		s = str(obj.isoformat())
-		if s.endswith("T00:00:00"):
-			s = s[:-9]
-		return "@({})".format(s)
-	elif isinstance(obj, datetime.date):
-		return "@({})".format(obj.isoformat())
-	elif isinstance(obj, datetime.timedelta):
-		return repr(obj).partition(".")[-1]
-	elif isinstance(obj, color.Color):
-		if obj[3] == 0xff:
-			s = "#{:02x}{:02x}{:02x}".format(obj[0], obj[1], obj[2])
-			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6]:
-				return "#{}{}{}".format(s[1], s[3], s[5])
-			return s
-		else:
-			s = "#{:02x}{:02x}{:02x}{:02x}".format(*obj)
-			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6] and s[7]==s[8]:
-				return "#{}{}{}{}".format(s[1], s[3], s[5], s[7])
-			return s
-	elif isinstance(obj, collections.Sequence):
-		return "[{}]".format(", ".join(_repr(item) for item in obj))
-	elif isinstance(obj, collections.Mapping):
-		return "{{{}}}".format(", ".join("{}: {}".format(_repr(key), _repr(value)) for (key, value) in obj.items()))
-	else:
-		return repr(obj)
-
-
-def _xmlescape(obj):
-	"""
-	Helper for the ``xmlescape`` function.
-	"""
-	if obj is None:
-		return ""
-	elif isinstance(obj, Undefined):
-		return ""
-	else:
-		return misc.xmlescape(str(obj))
-
-
-def _asjson(obj):
-	"""
-	Helper for the ``asjson`` function.
-	"""
-	if obj is None:
-		return "null"
-	elif obj is Undefined:
-		return "{}.undefined"
-	if isinstance(obj, (bool, int, float, str)):
-		return json.dumps(obj)
-	elif isinstance(obj, datetime.datetime):
-		return "new Date({}, {}, {}, {}, {}, {}, {})".format(obj.year, obj.month-1, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond//1000)
-	elif isinstance(obj, datetime.date):
-		return "new Date({}, {}, {})".format(obj.year, obj.month-1, obj.day)
-	elif isinstance(obj, datetime.timedelta):
-		return "ul4.TimeDelta.create({}, {}, {})".format(obj.days, obj.seconds, obj.microseconds)
-	elif isinstance(obj, misc.monthdelta):
-		return "ul4.MonthDelta.create({})".format(obj.months)
-	elif isinstance(obj, color.Color):
-		return "ul4.Color.create({}, {}, {}, {})".format(*obj)
-	elif isinstance(obj, collections.Mapping):
-		return "{{{}}}".format(", ".join("{}: {}".format(_asjson(key), _asjson(value)) for (key, value) in obj.items()))
-	elif isinstance(obj, collections.Sequence):
-		return "[{}]".format(", ".join(_asjson(item) for item in obj))
-	elif isinstance(obj, Template):
-		return obj.jssource()
-	else:
-		raise TypeError("can't handle object of type {}".format(type(obj)))
-
-
-def _fromjson(obj):
-	"""
-	Helper for the ``fromjson`` function.
-	"""
-	return json.loads(obj)
-
-
-def _asul4on(obj):
-	"""
-	Helper for the ``asul4on`` function.
-	"""
-	from ll import ul4on
-	return ul4on.dumps(obj)
-
-
-def _fromul4on(obj):
-	"""
-	Helper for the ``fromul4on`` function.
-	"""
-	from ll import ul4on
-	return ul4on.loads(obj)
-
-
-def _isundefined(obj):
-	"""
-	Helper for the ``isundefined`` function.
-	"""
-	return isinstance(obj, Undefined)
-
-
-def _isdefined(obj):
-	"""
-	Helper for the ``isdefined`` function.
-	"""
-	return not isinstance(obj, Undefined)
-
-
-def _isnone(obj):
-	"""
-	Helper for the ``isnone`` function.
-	"""
-	return obj is None
-
-
-def _isbool(obj):
-	"""
-	Helper for the ``isbool`` function.
-	"""
-	return isinstance(obj, bool)
-
-
-def _isint(obj):
-	"""
-	Helper for the ``isint`` function.
-	"""
-	return isinstance(obj, int) and not isinstance(obj, bool)
-
-
-def _isfloat(obj):
-	"""
-	Helper for the ``isfloat`` function.
-	"""
-	return isinstance(obj, float)
-
-
-def _isstr(obj):
-	"""
-	Helper for the ``isstr`` function.
-	"""
-	return isinstance(obj, str)
-
-
-def _isdate(obj):
-	"""
-	Helper for the ``isdate`` function.
-	"""
-	return isinstance(obj, (datetime.datetime, datetime.date))
-
-
-def _istimedelta(obj):
-	"""
-	Helper for the ``istimedelta`` function.
-	"""
-	return isinstance(obj, datetime.timedelta)
-
-
-def _ismonthdelta(obj):
-	"""
-	Helper for the ``ismonthdelta`` function.
-	"""
-	return isinstance(obj, misc.monthdelta)
-
-
-def _islist(obj):
-	"""
-	Helper for the ``islist`` function.
-	"""
-	return isinstance(obj, collections.Sequence) and not isinstance(obj, str) and not isinstance(obj, color.Color)
-
-
-def _isdict(obj):
-	"""
-	Helper for the ``isdict`` function.
-	"""
-	return isinstance(obj, collections.Mapping) and not isinstance(obj, Template)
-
-
-def _iscolor(obj):
-	"""
-	Helper for the ``iscolor`` function.
-	"""
-	return isinstance(obj, color.Color)
-
-
-def _istemplate(obj):
-	"""
-	Helper for the ``istemplate`` function.
-	"""
-	return isinstance(obj, (Template, TemplateClosure))
-
-
-def _enumfl(obj, start=0):
-	"""
-	Helper for the ``enumfl`` function.
-	"""
-	lastitem = None
-	first = True
-	i = start
-	it = iter(obj)
-	try:
-		item = next(it)
-	except StopIteration:
-		return
-	while True:
-		try:
-			(lastitem, item) = (item, next(it))
-		except StopIteration:
-			yield (i, first, True, item) # Items haven't been swapped yet
-			return
-		else:
-			yield (i, first, False, lastitem)
-			first = False
-		i += 1
-
-
-def _isfirstlast(obj):
-	"""
-	Helper for the ``isfirstlast`` function.
-	"""
-	lastitem = None
-	first = True
-	it = iter(obj)
-	try:
-		item = next(it)
-	except StopIteration:
-		return
-	while True:
-		try:
-			(lastitem, item) = (item, next(it))
-		except StopIteration:
-			yield (first, True, item) # Items haven't been swapped yet
-			return
-		else:
-			yield (first, False, lastitem)
-			first = False
-
-
-def _isfirst(obj):
-	"""
-	Helper for the ``isfirst`` function.
-	"""
-	first = True
-	for item in obj:
-		yield (first, item)
-		first = False
-
-
-def _islast(obj):
-	"""
-	Helper for the ``islast`` function.
-	"""
-	lastitem = None
-	it = iter(obj)
-	try:
-		item = next(it)
-	except StopIteration:
-		return
-	while True:
-		try:
-			(lastitem, item) = (item, next(it))
-		except StopIteration:
-			yield (True, item) # Items haven't been swapped yet
-			return
-		else:
-			yield (False, lastitem)
-
-
-def _csv(obj):
-	"""
-	Helper for the ``csv`` function.
-	"""
-	if obj is None:
-		return ""
-	elif not isinstance(obj, str):
-		obj = _repr(obj)
-	if any(c in obj for c in ',"\n'):
-		return '"{}"'.format(obj.replace('"', '""'))
-	return obj
-
-
-def _type(obj):
-	"""
-	Helper for the ``type`` function.
-	"""
-	if obj is None:
-		return "none"
-	elif isinstance(obj, str):
-		return "str"
-	elif isinstance(obj, bool):
-		return "bool"
-	elif isinstance(obj, int):
-		return "int"
-	elif isinstance(obj, float):
-		return "float"
-	elif isinstance(obj, (datetime.datetime, datetime.date)):
-		return "date"
-	elif isinstance(obj, datetime.timedelta):
-		return "timedelta"
-	elif isinstance(obj, misc.monthdelta):
-		return "monthdelta"
-	elif isinstance(obj, color.Color):
-		return "color"
-	elif isinstance(obj, Template):
-		return "template"
-	elif isinstance(obj, collections.Mapping):
-		return "dict"
-	elif isinstance(obj, color.Color):
-		return "color"
-	elif isinstance(obj, collections.Sequence):
-		return "list"
-	return None
-
-
-def _urlquote(obj):
-	"""
-	Helper for the ``urlquote`` function.
-	"""
-	return urlparse.quote_plus(obj)
-
-
-def _urlunquote(obj):
-	"""
-	Helper for the ``urlunquote`` function.
-	"""
-	return urlparse.unquote_plus(obj)
-
+###
+### Python functions that implement UL4 methods
+###
 
 def _find(obj, sub, start=None, end=None):
 	"""
@@ -3167,9 +2709,3 @@ def _isoformat(obj):
 		return result[:-len(suffix)]
 	return result
 
-
-def _timedelta(days=0, seconds=0, microseconds=0):
-	"""
-	Helper for the ``timedelta`` method.
-	"""
-	return datetime.timedelta(days, seconds, microseconds)

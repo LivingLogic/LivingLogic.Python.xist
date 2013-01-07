@@ -282,35 +282,8 @@ def render_java_interpretedtemplate_by_python(__, **variables):
 
 	f = sys._getframe(1)
 	print("Testing Java InterpretedTemplate (compiled by Python) ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	templatesource = ul4c.Template(__).javasource(interpreted=True)
+	templatesource = ul4c.Template(__).javasource()
 	java = codetemplate % dict(variables=misc.javaexpr(variables), template=templatesource)
-	return java_runsource(java)
-
-
-def render_java_compiledtemplate_by_python(__, **variables):
-	"""
-	Compile the template from the source ``__``, and generate Java source that
-	contains the template in compiled form and renders the template with the
-	variables ``variables``.
-
-	(this requires an installed Java compiler and the Java UL4 jar)
-	"""
-
-	codetemplate = """
-	com.livinglogic.ul4.CompiledTemplate template = %(template)s;
-	java.util.Map<String, Object> variables = %(variables)s;
-	String output = template.renders(variables);
-	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
-	// Use ``System.out.write`` to make sure the output is in UTF-8
-	byte[] outputBytes = output.getBytes("utf-8");
-	System.out.write(outputBytes, 0, outputBytes.length);
-	"""
-
-	f = sys._getframe(1)
-	print("Testing Java CompiledTemplate (compiled by Python) ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	template = ul4c.Template(__)
-	java = template.javasource(interpreted=False)
-	java = codetemplate % dict(variables=misc.javaexpr(variables), template=java)
 	return java_runsource(java)
 
 
@@ -342,10 +315,9 @@ all_renderers = [
 	("python", render_python),
 	("python_dumps", render_python_dumps),
 	("python_dump", render_python_dump),
-	("js", render_js),
+	# ("js", render_js),
 	# ("php", render_php),
 	("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
-	("java_compiled_by_python", render_java_compiledtemplate_by_python),
 	("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
 ]
 
@@ -358,6 +330,7 @@ def pytest_generate_tests(metafunc):
 argumentmismatchmessage = [
 	# Python argument mismatch exception messages
 	"takes exactly \\d+ (positional )?arguments?", # < 3.3
+	"got an unexpected keyword argument",
 	"expected \\d+ arguments?",
 	"Required argument .* not found",
 	"takes exactly (one|\\d+) arguments?",
@@ -372,13 +345,10 @@ argumentmismatchmessage = [
 	"takes from \\d+ to \\d+ positional arguments but \\d+ (was|were) given", # 3.3
 	# Javascript argument mismatch exception messages
 	"requires (at least \\d+|\\d+(-\\d+)?) arguments?, \\d+ given",
-	# Java compiler errors for argument mismatches
-	"cannot find symbol",
-	"cannot be applied",
-	"The method .* is not applicable for the arguments",
-	"no suitable method found for",
 	# Java exception messages for argument mismatches
-	"expects (at least \\d+|exactly \\d+|\\d+-\\d+) arguments?, \\d+ given",
+	"required \\w+\\(\\) argument \"\\w+\" \\(position \\d+\\) missing",
+	"\\w+\\(\\) doesn't support an argument named \"\\w+\"",
+	"expects (at least \\d+|at most \\d+ positional|exactly \\d+|\\d+-\\d+) arguments?, \\d+ given",
 ]
 argumentmismatchmessage = "({})".format("|".join(argumentmismatchmessage))
 
@@ -1174,6 +1144,8 @@ def test_function_now(r):
 		r("<?print now(1)?>")
 	with raises(argumentmismatchmessage):
 		r("<?print now(1, 2)?>")
+	with raises(argumentmismatchmessage):
+		r("<?print now(foo=1)?>")
 	assert now <= r("<?print now()?>")
 
 
@@ -1185,6 +1157,8 @@ def test_function_utcnow(r):
 		r("<?print utcnow(1)?>")
 	with raises(argumentmismatchmessage):
 		r("<?print utcnow(1, 2)?>")
+	with raises(argumentmismatchmessage):
+		r("<?print utcnow(foo=1)?>")
 	# JS and Java only have milliseconds precision, but this shouldn't lead to problems here, as rendering the template takes longer than a millisecond
 	assert utcnow <= r("<?print utcnow()?>")
 
@@ -1200,9 +1174,19 @@ def test_function_date(r):
 
 
 @pytest.mark.ul4
+def test_function_date_kwargs(r):
+	assert "@(2012-10-06)" == r("<?print repr(date(2012, 10, day=6))?>")
+	assert "@(2012-10-06)" == r("<?print repr(date(2012, month=10, day=6))?>")
+	assert "@(2012-10-06)" == r("<?print repr(date(year=2012, month=10, day=6))?>")
+
+
+@pytest.mark.ul4
 def test_function_timedelta(r):
 	with raises(argumentmismatchmessage):
 		r("<?print timedelta(1, 2, 3, 4)?>")
+	assert "1 day, 0:00:00" == r("<?print timedelta(1)?>")
+	assert "-1 day, 0:00:00" == r("<?print timedelta(-1)?>")
+	assert "2 days, 0:00:00" == r("<?print timedelta(2)?>")
 	assert "0:00:01" == r("<?print timedelta(0, 0, 1000000)?>")
 	assert "1 day, 0:00:00" == r("<?print timedelta(0, 0, 24*60*60*1000000)?>")
 	assert "1 day, 0:00:00" == r("<?print timedelta(0, 24*60*60)?>")
@@ -1211,6 +1195,23 @@ def test_function_timedelta(r):
 	assert "0:00:00.500000" == r("<?print timedelta(0.5/(24*60*60))?>")
 	assert "-1 day, 12:00:00" == r("<?print timedelta(-0.5)?>")
 	assert "-1 day, 23:59:59.500000" == r("<?print timedelta(0, -0.5)?>")
+	assert "0:00:01" == r("<?print timedelta(0, 1)?>")
+	assert "0:01:00" == r("<?print timedelta(0, 60)?>")
+	assert "1:00:00" == r("<?print timedelta(0, 60*60)?>")
+	assert "1 day, 1:01:01.000001" == r("<?print timedelta(1, 60*60+60+1, 1)?>")
+	assert "0:00:00.000001" == r("<?print timedelta(0, 0, 1)?>")
+	assert "-1 day, 23:59:59" == r("<?print timedelta(0, -1)?>")
+	assert "-1 day, 23:59:59.999999" == r("<?print timedelta(0, 0, -1)?>")
+
+
+@pytest.mark.ul4
+def test_function_timedelta_kwargs(r):
+	assert "1 day, 0:00:00" == r("<?print timedelta(days=1)?>")
+	assert "0:00:01" == r("<?print timedelta(0, seconds=1)?>")
+	assert "0:00:01" == r("<?print timedelta(days=0, seconds=1)?>")
+	assert "0:00:00.000001" == r("<?print timedelta(0, 0, microseconds=1)?>")
+	assert "0:00:00.000001" == r("<?print timedelta(0, seconds=0, microseconds=1)?>")
+	assert "0:00:00.000001" == r("<?print timedelta(days=0, seconds=0, microseconds=1)?>")
 
 
 @pytest.mark.ul4
@@ -1221,6 +1222,11 @@ def test_function_monthdelta(r):
 	assert "2 months" == r("<?print monthdelta(2)?>")
 	assert "1 month" == r("<?print monthdelta(1)?>")
 	assert "-1 month" == r("<?print monthdelta(-1)?>")
+
+
+@pytest.mark.ul4
+def test_function_monthdelta_kwargs(r):
+	assert "1 month" == r("<?print monthdelta(months=1)?>")
 
 
 @pytest.mark.ul4
@@ -1237,6 +1243,12 @@ def test_function_vars(r):
 
 
 @pytest.mark.ul4
+def test_function_vars_kwargs(r):
+	with raises(argumentmismatchmessage):
+		r("<?print vars(foo=1)?>")
+
+
+@pytest.mark.ul4
 def test_function_allvars(r):
 	code = "<?if var in allvars()?>yes<?else?>no<?end if?>"
 
@@ -1250,12 +1262,24 @@ def test_function_allvars(r):
 
 
 @pytest.mark.ul4
+def test_function_allvars_kwargs(r):
+	with raises(argumentmismatchmessage):
+		r("<?print allvars(foo=1)?>")
+
+
+@pytest.mark.ul4
 def test_function_random(r):
 	with raises(argumentmismatchmessage):
 		r("<?print random(1)?>")
 	with raises(argumentmismatchmessage):
 		r("<?print random(1, 2)?>")
 	assert "ok" == r("<?code r = random()?><?if r>=0 and r<1?>ok<?else?>fail<?end if?>")
+
+
+@pytest.mark.ul4
+def test_function_random_kwargs(r):
+	with raises(argumentmismatchmessage):
+		r("<?print random(foo=1)?>")
 
 
 @pytest.mark.ul4
@@ -1277,12 +1301,22 @@ def test_function_randchoice(r):
 
 
 @pytest.mark.ul4
+def test_function_randchoice_kwargs(r):
+	assert "ok" == r("<?code s = [17, 23, 42]?><?code r = randchoice(sequence=s)?><?if r in s?>ok<?else?>fail<?end if?>")
+
+
+@pytest.mark.ul4
 def test_function_xmlescape(r):
 	with raises(argumentmismatchmessage):
 		r("<?print xmlescape()?>")
 	with raises(argumentmismatchmessage):
 		r("<?print xmlescape(1, 2)?>")
 	assert "&lt;&lt;&gt;&gt;&amp;&#39;&quot;gurk" == r("<?print xmlescape(data)?>", data='<<>>&\'"gurk')
+
+
+@pytest.mark.ul4
+def test_function_xmlescape_kwargs(r):
+	assert "42" == r("<?print xmlescape(obj=data)?>", data=42)
 
 
 @pytest.mark.ul4
@@ -1300,6 +1334,11 @@ def test_function_csv(r):
 	assert '"a,b,c"' == r("<?print csv(data)?>", data="a,b,c")
 	assert '"a""b""c"' == r("<?print csv(data)?>", data='a"b"c')
 	assert '"a\nb\nc"' == r("<?print csv(data)?>", data="a\nb\nc")
+
+
+@pytest.mark.ul4
+def test_function_csv_kwargs(r):
+	assert "42" == r("<?print csv(obj=data)?>", data=42)
 
 
 @pytest.mark.ul4
@@ -1321,6 +1360,11 @@ def test_function_asjson(r):
 
 
 @pytest.mark.ul4
+def test_function_asjson_kwargs(r):
+	assert "42" == r("<?print asjson(obj=data)?>", data=42)
+
+
+@pytest.mark.ul4
 def test_function_fromjson(r):
 	code = "<?print repr(fromjson(data))?>"
 	with raises(argumentmismatchmessage):
@@ -1335,6 +1379,11 @@ def test_function_fromjson(r):
 	assert r(code, data='"abc"') in ('"abc"', "'abc'")
 	assert '[1, 2, 3]' == r(code, data="[1, 2, 3]")
 	assert r(code, data='{"one": 1}') in ('{"one": 1}', "{'one': 1}")
+
+
+@pytest.mark.ul4
+def test_function_fromjson_kwargs(r):
+	assert "42" == r("<?print fromjson(string=data)?>", data="42")
 
 
 @pytest.mark.ul4
@@ -1360,6 +1409,11 @@ def test_function_ul4on(r):
 
 
 @pytest.mark.ul4
+def test_function_ul4on_kwargs(r):
+	assert "42" == r("<?print repr(fromul4on(string=asul4on(obj=data)))?>", data=42)
+
+
+@pytest.mark.ul4
 def test_function_str(r):
 	code = "<?print str(data)?>"
 
@@ -1376,17 +1430,22 @@ def test_function_str(r):
 	assert "2011-02-09 12:34:56" == r(code, data=datetime.datetime(2011, 2, 9, 12, 34, 56))
 	if r is not render_php:
 		assert "2011-02-09 12:34:56.987000" == r(code, data=datetime.datetime(2011, 2, 9, 12, 34, 56, 987000))
-	assert "0:00:00" == r("<?print timedelta()?>")
-	assert "1 day, 0:00:00" == r("<?print timedelta(1)?>")
-	assert "-1 day, 0:00:00" == r("<?print timedelta(-1)?>")
-	assert "2 days, 0:00:00" == r("<?print timedelta(2)?>")
-	assert "0:00:01" == r("<?print timedelta(0, 1)?>")
-	assert "0:01:00" == r("<?print timedelta(0, 60)?>")
-	assert "1:00:00" == r("<?print timedelta(0, 60*60)?>")
-	assert "1 day, 1:01:01.000001" == r("<?print timedelta(1, 60*60+60+1, 1)?>")
-	assert "0:00:00.000001" == r("<?print timedelta(0, 0, 1)?>")
-	assert "-1 day, 23:59:59" == r("<?print timedelta(0, -1)?>")
-	assert "-1 day, 23:59:59.999999" == r("<?print timedelta(0, 0, -1)?>")
+	assert "0:00:00" == r(code, data=datetime.timedelta())
+	assert "1 day, 0:00:00" == r(code, data=datetime.timedelta(1))
+	assert "-1 day, 0:00:00" == r(code, data=datetime.timedelta(-1))
+	assert "2 days, 0:00:00" == r(code, data=datetime.timedelta(2))
+	assert "0:00:01" == r(code, data=datetime.timedelta(0, 1))
+	assert "0:01:00" == r(code, data=datetime.timedelta(0, 60))
+	assert "1:00:00" == r(code, data=datetime.timedelta(0, 60*60))
+	assert "1 day, 1:01:01.000001" == r(code, data=datetime.timedelta(1, 60*60+60+1, 1))
+	assert "0:00:00.000001" == r(code, data=datetime.timedelta(0, 0, 1))
+	assert "-1 day, 23:59:59" == r(code, data=datetime.timedelta(0, -1))
+	assert "-1 day, 23:59:59.999999" == r(code, data=datetime.timedelta(0, 0, -1))
+
+
+@pytest.mark.ul4
+def test_function_str_kwargs(r):
+	assert "42" == r("<?print str(obj=data)?>", data=42)
 
 
 @pytest.mark.ul4
@@ -1415,6 +1474,11 @@ def test_function_bool(r):
 
 
 @pytest.mark.ul4
+def test_function_bool_kwargs(r):
+	assert "True" == r("<?print bool(obj=data)?>", data=42)
+
+
+@pytest.mark.ul4
 def test_function_int(r):
 	with raises(argumentmismatchmessage):
 		r("<?print int(1, 2, 3)?>")
@@ -1429,6 +1493,13 @@ def test_function_int(r):
 	assert "4" == r("<?print int(data)?>", data=4.2)
 	assert "42" == r("<?print int(data)?>", data="42")
 	assert "66" == r("<?print int(data, 16)?>", data="42")
+
+
+@pytest.mark.ul4
+def test_function_int_kwargs(r):
+	assert "42" == r("<?print int(obj=data)?>", data=42)
+	assert "42" == r("<?print int(data, base=None)?>", data=42)
+	assert "42" == r("<?print int(obj=data, base=None)?>", data=42)
 
 
 @pytest.mark.ul4
@@ -1455,6 +1526,14 @@ def test_function_float(r):
 
 
 @pytest.mark.ul4
+def test_function_float_kwargs(r):
+	if r is not render_js:
+		assert "42.0" == r("<?print float(obj=data)?>", data=42)
+	else:
+		assert 42.0 == eval(r("<?print float(obj=data)?>", data=42))
+
+
+@pytest.mark.ul4
 def test_function_len(r):
 	code = "<?print len(data)?>"
 
@@ -1475,6 +1554,11 @@ def test_function_len(r):
 	assert "42" == r(code, data=42*"?")
 	assert "42" == r(code, data=42*[None])
 	assert "42" == r(code, data=dict.fromkeys(range(42)))
+
+
+@pytest.mark.ul4
+def test_function_len_kwargs(r):
+	assert "42" == r("<?print len(sequence=data)?>", data=42*"?")
 
 
 @pytest.mark.ul4
@@ -1532,6 +1616,13 @@ def test_function_enumerate(r):
 
 
 @pytest.mark.ul4
+def test_function_enumerate_kwargs(r):
+	assert "(f=0)(o=1)(o=2)" == r("<?for (i, value) in enumerate(iterable=data)?>(<?print value?>=<?print i?>)<?end for?>", data="foo")
+	assert "(f=42)(o=43)(o=44)" == r("<?for (i, value) in enumerate(data, start=42)?>(<?print value?>=<?print i?>)<?end for?>", data="foo")
+	assert "(f=42)(o=43)(o=44)" == r("<?for (i, value) in enumerate(iterable=data, start=42)?>(<?print value?>=<?print i?>)<?end for?>", data="foo")
+
+
+@pytest.mark.ul4
 def test_function_enumfl(r):
 	code1 = "<?for (i, f, l, value) in enumfl(data)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>"
 	code2 = "<?for (i, f, l, value) in enumfl(data, 42)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>"
@@ -1555,6 +1646,13 @@ def test_function_enumfl(r):
 	assert "[(foo=0)]" == r(code1, data=dict(foo=True))
 	assert "" == r(code1, data="")
 	assert "[(f=42)(o=43)(o=44)]" == r(code2, data="foo")
+
+
+@pytest.mark.ul4
+def test_function_enumfl_kwargs(r):
+	assert "[(f=0)(o=1)(o=2)]" == r("<?for (i, f, l, value) in enumfl(iterable=data)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>", data="foo")
+	assert "[(f=42)(o=43)(o=44)]" == r("<?for (i, f, l, value) in enumfl(data, start=42)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>", data="foo")
+	assert "[(f=42)(o=43)(o=44)]" == r("<?for (i, f, l, value) in enumfl(iterable=data, start=42)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>", data="foo")
 
 
 @pytest.mark.ul4
@@ -1582,6 +1680,11 @@ def test_function_isfirstlast(r):
 
 
 @pytest.mark.ul4
+def test_function_isfirstlast_kwargs(r):
+	assert "[(f)(o)(o)]" == r("<?for (f, l, value) in isfirstlast(iterable=data)?><?if f?>[<?end if?>(<?print value?>)<?if l?>]<?end if?><?end for?>", data="foo")
+
+
+@pytest.mark.ul4
 def test_function_isfirst(r):
 	code = "<?for (f, value) in isfirst(data)?><?if f?>[<?end if?>(<?print value?>)<?end for?>"
 
@@ -1606,6 +1709,11 @@ def test_function_isfirst(r):
 
 
 @pytest.mark.ul4
+def test_function_isfirst_kwargs(r):
+	assert "[(f)(o)(o)" == r("<?for (f, value) in isfirst(iterable=data)?><?if f?>[<?end if?>(<?print value?>)<?end for?>", data="foo")
+
+
+@pytest.mark.ul4
 def test_function_islast(r):
 	code = "<?for (l, value) in islast(data)?>(<?print value?>)<?if l?>]<?end if?><?end for?>"
 
@@ -1627,6 +1735,11 @@ def test_function_islast(r):
 	assert "(foo)(bar)]" == r(code, data=["foo", "bar"])
 	assert "(foo)]" == r(code, data=dict(foo=True))
 	assert "" == r(code, data="")
+
+
+@pytest.mark.ul4
+def test_function_islast_kwargs(r):
+	assert "(f)(o)(o)]" == r("<?for (l, value) in islast(iterable=data)?>(<?print value?>)<?if l?>]<?end if?><?end for?>", data="foo")
 
 
 @pytest.mark.ul4
@@ -1655,6 +1768,11 @@ def test_function_isundefined(r):
 
 
 @pytest.mark.ul4
+def test_function_isundefined_kwargs(r):
+	assert "False" == r("<?print isundefined(obj=data)?>", data=None)
+
+
+@pytest.mark.ul4
 def test_function_isdefined(r):
 	code = "<?print isdefined(data)?>"
 
@@ -1677,6 +1795,11 @@ def test_function_isdefined(r):
 	assert "True" == r(code, data={})
 	assert "True" == r(code, data=ul4c.Template(""))
 	assert "True" == r(code, data=color.red)
+
+
+@pytest.mark.ul4
+def test_function_isdefined_kwargs(r):
+	assert "True" == r("<?print isdefined(obj=data)?>", data=None)
 
 
 @pytest.mark.ul4
@@ -1705,6 +1828,11 @@ def test_function_isnone(r):
 
 
 @pytest.mark.ul4
+def test_function_isnone_kwargs(r):
+	assert "True" == r("<?print isnone(obj=data)?>", data=None)
+
+
+@pytest.mark.ul4
 def test_function_isbool(r):
 	code = "<?print isbool(data)?>"
 
@@ -1727,6 +1855,11 @@ def test_function_isbool(r):
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r(code, data=color.red)
+
+
+@pytest.mark.ul4
+def test_function_isbool_kwargs(r):
+	assert "False" == r("<?print isbool(obj=data)?>", data=None)
 
 
 @pytest.mark.ul4
@@ -1755,6 +1888,11 @@ def test_function_isint(r):
 
 
 @pytest.mark.ul4
+def test_function_isint_kwargs(r):
+	assert "False" == r("<?print isint(obj=data)?>", data=None)
+
+
+@pytest.mark.ul4
 def test_function_isfloat(r):
 	code = "<?print isfloat(data)?>"
 
@@ -1777,6 +1915,11 @@ def test_function_isfloat(r):
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r(code, data=color.red)
+
+
+@pytest.mark.ul4
+def test_function_isfloat_kwargs(r):
+	assert "False" == r("<?print isfloat(obj=data)?>", data=None)
 
 
 @pytest.mark.ul4
@@ -1805,6 +1948,11 @@ def test_function_isstr(r):
 
 
 @pytest.mark.ul4
+def test_function_isstr_kwargs(r):
+	assert "False" == r("<?print isstr(obj=data)?>", data=None)
+
+
+@pytest.mark.ul4
 def test_function_isdate(r):
 	code = "<?print isdate(data)?>"
 
@@ -1827,6 +1975,11 @@ def test_function_isdate(r):
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r(code, data=color.red)
+
+
+@pytest.mark.ul4
+def test_function_isdate_kwargs(r):
+	assert "False" == r("<?print isdate(obj=data)?>", data=None)
 
 
 @pytest.mark.ul4
@@ -1857,6 +2010,11 @@ def test_function_islist(r):
 
 
 @pytest.mark.ul4
+def test_function_islist_kwargs(r):
+	assert "False" == r("<?print islist(obj=data)?>", data=None)
+
+
+@pytest.mark.ul4
 def test_function_isdict(r):
 	code = "<?print isdict(data)?>"
 
@@ -1881,6 +2039,11 @@ def test_function_isdict(r):
 	assert "True" == r(code, data=PseudoDict({}))
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r(code, data=color.red)
+
+
+@pytest.mark.ul4
+def test_function_isdict_kwargs(r):
+	assert "False" == r("<?print isdict(obj=data)?>", data=None)
 
 
 @pytest.mark.ul4
@@ -1909,6 +2072,11 @@ def test_function_istemplate(r):
 
 
 @pytest.mark.ul4
+def test_function_istemplate_kwargs(r):
+	assert "False" == r("<?print istemplate(obj=data)?>", data=None)
+
+
+@pytest.mark.ul4
 def test_function_iscolor(r):
 	code = "<?print iscolor(data)?>"
 
@@ -1931,6 +2099,10 @@ def test_function_iscolor(r):
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "True" == r(code, data=color.red)
+
+@pytest.mark.ul4
+def test_function_iscolor_kwargs(r):
+	assert "False" == r("<?print iscolor(obj=data)?>", data=None)
 
 
 @pytest.mark.ul4
@@ -1959,6 +2131,11 @@ def test_function_istimedelta(r):
 
 
 @pytest.mark.ul4
+def test_function_istimedelta_kwargs(r):
+	assert "False" == r("<?print istimedelta(obj=data)?>", data=None)
+
+
+@pytest.mark.ul4
 def test_function_ismonthdelta(r):
 	code = "<?print ismonthdelta(data)?>"
 
@@ -1984,6 +2161,11 @@ def test_function_ismonthdelta(r):
 
 
 @pytest.mark.ul4
+def test_function_ismonthdelta_kwargs(r):
+	assert "False" == r("<?print ismonthdelta(obj=data)?>", data=None)
+
+
+@pytest.mark.ul4
 def test_function_get(r):
 	with raises(argumentmismatchmessage):
 		r("<?print get()?>")
@@ -1992,6 +2174,13 @@ def test_function_get(r):
 	assert "17" == r("<?print get('x', 17)?>")
 	assert "42" == r("<?print get('x', 17)?>", x=42)
 	assert "True" == r("<?print istemplate(get('self'))?>")
+
+
+@pytest.mark.ul4
+def test_function_get_kwargs(r):
+	assert "42" == r("<?print get(name='x')?>", x=42)
+	assert "42" == r("<?print get('x', default=17)?>", x=42)
+	assert "42" == r("<?print get(name='x', default=17)?>", x=42)
 
 
 @pytest.mark.ul4
@@ -2027,6 +2216,11 @@ def test_function_repr(r):
 	assert "timedelta(0, 0, 500000)" == r(code, data=datetime.timedelta(0, 0.5))
 	assert "timedelta(-1, 43200)" == r(code, data=datetime.timedelta(-0.5))
 	assert "timedelta(-1, 86399, 500000)" == r(code, data=datetime.timedelta(0, -0.5))
+
+
+@pytest.mark.ul4
+def test_function_repr_kwargs(r):
+	assert "None" == r("<?print repr(obj=data)?>", data=None)
 
 
 @pytest.mark.ul4
@@ -2116,6 +2310,15 @@ def test_function_format_int(r):
 
 
 @pytest.mark.ul4
+def test_function_format_kwargs(r):
+	assert "42" == r("<?print format(data, fmt=format)?>", format="", data=42)
+	assert "42" == r("<?print format(obj=data, fmt=format)?>", format="", data=42)
+	assert "42" == r("<?print format(data, format, lang=lang)?>", format="", data=42, lang="de")
+	assert "42" == r("<?print format(data, fmt=format, lang=lang)?>", format="", data=42, lang="de")
+	assert "42" == r("<?print format(obj=data, fmt=format, lang=lang)?>", format="", data=42, lang="de")
+
+
+@pytest.mark.ul4
 def test_function_chr(r):
 	code = "<?print chr(data)?>"
 
@@ -2129,6 +2332,11 @@ def test_function_chr(r):
 
 
 @pytest.mark.ul4
+def test_function_chr_kwargs(r):
+	assert "\x00" == r("<?print chr(i=data)?>", data=0)
+
+
+@pytest.mark.ul4
 def test_function_ord(r):
 	code = "<?print ord(data)?>"
 
@@ -2139,6 +2347,11 @@ def test_function_ord(r):
 	assert "0" == r(code, data="\x00")
 	assert str(ord("a")) == r(code, data="a")
 	assert str(0x20ac) == r(code, data="\u20ac")
+
+
+@pytest.mark.ul4
+def test_function_ord_kwargs(r):
+	assert "0" == r("<?print ord(c=data)?>", data="\x00")
 
 
 @pytest.mark.ul4
@@ -2156,6 +2369,11 @@ def test_function_hex(r):
 
 
 @pytest.mark.ul4
+def test_function_hex_kwargs(r):
+	assert "0x0" == r("<?print hex(number=data)?>", data=0)
+
+
+@pytest.mark.ul4
 def test_function_oct(r):
 	code = "<?print oct(data)?>"
 
@@ -2170,6 +2388,11 @@ def test_function_oct(r):
 
 
 @pytest.mark.ul4
+def test_function_oct_kwargs(r):
+	assert "0o0" == r("<?print oct(number=data)?>", data=0)
+
+
+@pytest.mark.ul4
 def test_function_bin(r):
 	code = "<?print bin(data)?>"
 
@@ -2180,6 +2403,11 @@ def test_function_bin(r):
 	assert "0b0" == r(code, data=0b0)
 	assert "0b11" == r(code, data=0b11)
 	assert "-0b1111" == r(code, data=-0b1111)
+
+
+@pytest.mark.ul4
+def test_function_bin_kwargs(r):
+	assert "0b0" == r("<?print bin(number=data)?>", data=0)
 
 
 @pytest.mark.ul4
@@ -2198,6 +2426,11 @@ def test_function_abs(r):
 
 
 @pytest.mark.ul4
+def test_function_abs_kwargs(r):
+	assert "0" == r("<?print abs(number=data)?>", data=0)
+
+
+@pytest.mark.ul4
 def test_function_sorted(r):
 	code = "<?for i in sorted(data)?><?print i?><?end for?>"
 
@@ -2207,6 +2440,11 @@ def test_function_sorted(r):
 	assert "24679" == r(code, data="92746")
 	assert "172342" == r(code, data=(42, 17, 23))
 	assert "012" == r(code, data={0: "zero", 1: "one", 2: "two"})
+
+
+@pytest.mark.ul4
+def test_function_sorted_kwargs(r):
+	assert "123" == r("<?for i in sorted(iterable=data)?><?print i?><?end for?>", data="321")
 
 
 @pytest.mark.ul4
@@ -2243,10 +2481,20 @@ def test_function_urlquote(r):
 
 
 @pytest.mark.ul4
+def test_function_urlquote_kwargs(r):
+	assert "gurk" == r("<?print urlquote(string='gurk')?>")
+
+
+@pytest.mark.ul4
 def test_function_urlunquote(r):
 	assert "gurk" == r("<?print urlunquote('gurk')?>")
 	assert "<=>+?" == r("<?print urlunquote('%3C%3D%3E%2B%3F')?>")
 	assert "\u007f\u00ff\uffff" == r("<?print urlunquote('%7F%C3%BF%EF%BF%BF')?>")
+
+
+@pytest.mark.ul4
+def test_function_urlunquote_kwargs(r):
+	assert "gurk" == r("<?print urlunquote(string='gurk')?>")
 
 
 @pytest.mark.ul4
@@ -2294,6 +2542,11 @@ def test_function_type(r):
 
 
 @pytest.mark.ul4
+def test_function_type_kwargs(r):
+	assert "none" == r("<?print type(obj=x)?>", x=None)
+
+
+@pytest.mark.ul4
 def test_function_reversed(r):
 	code = "<?for i in reversed(x)?>(<?print i?>)<?end for?>"
 
@@ -2304,6 +2557,11 @@ def test_function_reversed(r):
 	assert "(3)(2)(1)" == r(code, x="123")
 	assert "(3)(2)(1)" == r(code, x=[1, 2, 3])
 	assert "(3)(2)(1)" == r(code, x=(1, 2, 3))
+
+
+@pytest.mark.ul4
+def test_function_reversed(r):
+	assert "(3)(2)(1)" == r("<?for i in reversed(sequence=x)?>(<?print i?>)<?end for?>", x=(1, 2, 3))
 
 
 @pytest.mark.ul4
@@ -2339,15 +2597,48 @@ def test_function_rgb(r):
 
 
 @pytest.mark.ul4
+def test_function_rgb_kwargs(r):
+	assert "#369" == r("<?print repr(rgb(0.2, 0.4, b=0.6))?>")
+	assert "#369" == r("<?print repr(rgb(0.2, g=0.4, b=0.6))?>")
+	assert "#369" == r("<?print repr(rgb(r=0.2, g=0.4, b=0.6))?>")
+	assert "#369c" == r("<?print repr(rgb(0.2, 0.4, 0.6, a=0.8))?>")
+	assert "#369c" == r("<?print repr(rgb(0.2, 0.4, b=0.6, a=0.8))?>")
+	assert "#369c" == r("<?print repr(rgb(0.2, g=0.4, b=0.6, a=0.8))?>")
+	assert "#369c" == r("<?print repr(rgb(r=0.2, g=0.4, b=0.6, a=0.8))?>")
+
+
+@pytest.mark.ul4
 def test_function_hls(r):
 	assert "#fff" == r("<?print repr(hls(0, 1, 0))?>")
 	assert "#fff0" == r("<?print repr(hls(0, 1, 0, 0))?>")
 
 
 @pytest.mark.ul4
+def test_function_hls_kwargs(r):
+	assert "#fff" == r("<?print repr(hls(0, 1, s=0))?>")
+	assert "#fff" == r("<?print repr(hls(0, l=1, s=0))?>")
+	assert "#fff" == r("<?print repr(hls(h=0, l=1, s=0))?>")
+	assert "#fff0" == r("<?print repr(hls(0, 1, 0, a=0))?>")
+	assert "#fff0" == r("<?print repr(hls(0, 1, s=0, a=0))?>")
+	assert "#fff0" == r("<?print repr(hls(0, l=1, s=0, a=0))?>")
+	assert "#fff0" == r("<?print repr(hls(h=0, l=1, s=0, a=0))?>")
+
+
+@pytest.mark.ul4
 def test_function_hsv(r):
 	assert "#fff" == r("<?print repr(hsv(0, 0, 1))?>")
 	assert "#fff0" == r("<?print repr(hsv(0, 0, 1, 0))?>")
+
+
+@pytest.mark.ul4
+def test_function_hsv_kwargs(r):
+	assert "#fff" == r("<?print repr(hsv(0, 0, v=1))?>")
+	assert "#fff" == r("<?print repr(hsv(0, s=0, v=1))?>")
+	assert "#fff" == r("<?print repr(hsv(h=0, s=0, v=1))?>")
+	assert "#fff0" == r("<?print repr(hsv(0, 0, 1, a=0))?>")
+	assert "#fff0" == r("<?print repr(hsv(0, 0, v=1, a=0))?>")
+	assert "#fff0" == r("<?print repr(hsv(0, s=0, v=1, a=0))?>")
+	assert "#fff0" == r("<?print repr(hsv(h=0, s=0, v=1, a=0))?>")
 
 
 @pytest.mark.ul4
@@ -2684,19 +2975,18 @@ def test_templateattributes(r):
 	s2 = "<?printx 42?>"
 	t2 = ul4c.Template(s2)
 
-	if r is not render_java_compiledtemplate_by_python:
-		assert "<?" == r("<?print template.startdelim?>", template=t1)
-		assert "?>" == r("<?print template.enddelim?>", template=t1)
-		assert s1 == r("<?print template.source?>", template=t1)
-		assert "1" == r("<?print len(template.content)?>", template=t1)
-		assert "print" == r("<?print template.content[0].type?>", template=t1)
-		assert s1 == r("<?print template.content[0].location.tag?>", template=t1)
-		assert "x" == r("<?print template.content[0].location.code?>", template=t1)
-		assert "var" == r("<?print template.content[0].obj.type?>", template=t1)
-		assert "x" == r("<?print template.content[0].obj.name?>", template=t1)
-		assert "printx" == r("<?print template.content[0].type?>", template=t2)
-		assert "const" == r("<?print template.content[0].obj.type?>", template=t2)
-		assert "42" == r("<?print template.content[0].obj.value?>", template=t2)
+	assert "<?" == r("<?print template.startdelim?>", template=t1)
+	assert "?>" == r("<?print template.enddelim?>", template=t1)
+	assert s1 == r("<?print template.source?>", template=t1)
+	assert "1" == r("<?print len(template.content)?>", template=t1)
+	assert "print" == r("<?print template.content[0].type?>", template=t1)
+	assert s1 == r("<?print template.content[0].location.tag?>", template=t1)
+	assert "x" == r("<?print template.content[0].location.code?>", template=t1)
+	assert "var" == r("<?print template.content[0].obj.type?>", template=t1)
+	assert "x" == r("<?print template.content[0].obj.name?>", template=t1)
+	assert "printx" == r("<?print template.content[0].type?>", template=t2)
+	assert "const" == r("<?print template.content[0].obj.type?>", template=t2)
+	assert "42" == r("<?print template.content[0].obj.value?>", template=t2)
 
 
 @pytest.mark.ul4
@@ -2704,11 +2994,10 @@ def test_templateattributes_localtemplate(r):
 	# This checks that template attributes work on a closure
 	source = "<?def lower?><?print t.lower()?><?end def?>"
 
-	if r is not render_java_compiledtemplate_by_python:
-		assert source + "<?print lower.source?>" == r(source + "<?print lower.source?>")
-		assert source == r(source + "<?print lower.source[lower.location.starttag:lower.endlocation.endtag]?>")
-		assert "<?print t.lower()?>" == r(source + "<?print lower.source[lower.location.endtag:lower.endlocation.starttag]?>")
-		assert "lower" == r(source + "<?print lower.name?>")
+	assert source + "<?print lower.source?>" == r(source + "<?print lower.source?>")
+	assert source == r(source + "<?print lower.source[lower.location.starttag:lower.endlocation.endtag]?>")
+	assert "<?print t.lower()?>" == r(source + "<?print lower.source[lower.location.endtag:lower.endlocation.starttag]?>")
+	assert "lower" == r(source + "<?print lower.name?>")
 
 
 @pytest.mark.ul4

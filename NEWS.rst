@@ -9,6 +9,9 @@ Changes in 4.7 (released ??/??/2013)
 *	UL4 templates now support lexical scopes. A locally defined subtemplate can
 	access all local variables of the template in which it is defined.
 
+*	UL4 functions now suport keyword arguments, e.g.
+	``format(now(), fmt="%Y-%m-%d", lang="en")``.
+
 *	If the view ``ctx_preferences`` doesn't exist :meth:`orasql.Preference.itername``
 	now will simply return an empty iterator instead of failing with an Oracle
 	exception ``ORA-00942: table or view does not exist``.

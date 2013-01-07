@@ -555,7 +555,7 @@ def javaexpr(obj):
 	elif isinstance(obj, collections.Mapping):
 		return "com.livinglogic.utils.MapUtils.makeMap({})".format(", ".join("{}, {}".format(javaexpr(key), javaexpr(value)) for (key, value) in obj.items()))
 	elif isinstance(obj, ul4c.Template):
-		return obj.javasource(interpreted=True)
+		return obj.javasource()
 	else:
 		raise TypeError("can't handle object of type {}".format(type(obj)))
 
