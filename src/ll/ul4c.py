@@ -2702,9 +2702,6 @@ class TemplateClosure(Object):
 	def renders(self, **vars):
 		return self.template.renders(**collections.ChainMap(vars, self.vars))
 
-	def _handleexc(self, exc):
-		self.template._handleexc(exc)
-
 	@property
 	def location(self):
 		return self.template.location
