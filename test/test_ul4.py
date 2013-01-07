@@ -2644,7 +2644,7 @@ def test_method_get(r):
 	assert "17" == r("<?print {'foo': 17}.get('foo')?>")
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "17" == r("<?print {'foo': 17}.get(name='foo', default=42)?>")
+	assert "17" == r("<?print {'foo': 17}.get(key='foo', default=42)?>")
 
 
 @pytest.mark.ul4

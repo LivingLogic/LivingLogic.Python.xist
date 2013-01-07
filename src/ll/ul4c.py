@@ -2293,8 +2293,8 @@ class Callable(object):
 		return (obj - obj.__class__(obj.year, 1, 1)).days+1
 
 	@classmethod
-	def method_get(cls, allvars, obj, name, default=None):
-		return obj.get(name, default)
+	def method_get(cls, allvars, obj, key, default=None):
+		return obj.get(key, default)
 
 	@classmethod
 	def method_withlum(cls, allvars, obj, lum):
