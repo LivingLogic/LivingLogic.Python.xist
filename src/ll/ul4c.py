@@ -1516,25 +1516,35 @@ class CallFunc(AST):
 	AST node for calling a function.
 
 	The function name is stored in the string :var:`funcname`. The list of
-	arguments is loaded from the list of AST nodes :var:`args`.
+	positional arguments is loaded from the list of AST nodes :var:`args`.
+	Keyword arguments are in :var:`kwargs`. `var`:remargs` is the AST node
+	for the ``*`` argument (and may by ``None`` if there is no ``*`` argument).
+	`var`:remkwargs` is the AST node for the ``**`` argument (and may by ``None``
+	if there is no ``**`` argument)
 	"""
 
 	precedence = 10
 	associative = False
-	fields = AST.fields.union({"funcname", "args", "kwargs"})
+	fields = AST.fields.union({"funcname", "args", "kwargs", "remargs", "remkwargs"})
 
-	def __init__(self, funcname=None, *args, **kwargs):
+	def __init__(self, funcname=None):
 		self.funcname = funcname
-		self.args = list(args)
-		self.kwargs = list(kwargs.items())
+		self.args = []
+		self.kwargs = []
+		self.remargs = None
+		self.remkwargs = None
 
 	def __repr__(self):
-		args = itertools.chain(
+		args = [
 			(repr(self.funcname),),
 			(repr(arg) for arg in self.args),
 			("{}={!r}".format(argname, argvalue) for (argname, argvalue) in self.kwargs)
-		)
-		return "{}({})".format(self.__class__.__name__, ", ".join(args))
+		]
+		if self.remargs is not None:
+			args.append(("*{}".format(repr(self.remargs)),))
+		if self.remkwargs is not None:
+			args.append(("**{}".format(repr(self.remkwargs)),))
+		return "{}({})".format(self.__class__.__name__, ", ".join(itertools.chain(args)))
 
 	def format(self, indent):
 		args = []
@@ -1548,6 +1558,10 @@ class CallFunc(AST):
 			if isinstance(arg, GenExpr):
 				s = s[1:-1]
 			args.append("{}={}".format(argname, s))
+		if self.remargs is not None:
+			args.append("*{}".format(self.remargs.format(indent)))
+		if self.remkwargs is not None:
+			args.append("**{}".format(self.remkwargs.format(indent)))
 		return "{}({})".format(self.funcname, ", ".join(args))
 
 	def formatpython(self, indent):
@@ -1556,17 +1570,25 @@ class CallFunc(AST):
 			args.append(arg.formatpython(indent))
 		for (argname, argvalue) in self.kwargs:
 			args.append("{}={}".format(argname, argvalue.formatpython(indent)))
+		if self.remargs is not None:
+			args.append("*{}".format(self.remargs.formatpython(indent)))
+		if self.remkwargs is not None:
+			args.append("**{}".format(self.remkwargs.formatpython(indent)))
 		return "self.function_{}(allvars, {})".format(self.funcname, ", ".join(args))
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.funcname)
 		encoder.dump(self.args)
 		encoder.dump(self.kwargs)
+		encoder.dump(self.remargs)
+		encoder.dump(self.remkwargs)
 
 	def ul4onload(self, decoder):
 		self.funcname = decoder.load()
 		self.args = decoder.load()
 		self.kwargs = [tuple(arg) for arg in decoder.load()]
+		self.remargs = decoder.load()
+		self.remkwargs = decoder.load()
 
 
 @register("callmeth")
@@ -1576,153 +1598,80 @@ class CallMeth(AST):
 
 	The method name is stored in the string :var:`methname`. The object for which
 	the method will be called is loaded from the AST node :var:`obj` and the list
-	of arguments is loaded from the list of AST nodes :var:`args`.
+	of arguments is loaded from the list of AST nodes :var:`args`. Keyword
+	arguments are in :var:`kwargs`. `var`:remargs` is the AST node for the ``*``
+	argument (and may by ``None`` if there is no ``*`` argument).
+	`var`:remkwargs` is the AST node for the ``**`` argument (and may by ``None``
+	if there is no ``**`` argument)
+
 	"""
 
 	precedence = 9
 	associative = False
 	fields = AST.fields.union({"methname", "obj", "args"})
 
-	def __init__(self, methname=None, obj=None, *args):
+	def __init__(self, methname=None, obj=None):
 		self.methname = methname
 		self.obj = obj
-		self.args = list(args)
+		self.args = []
+		self.kwargs = []
+		self.remargs = None
+		self.remkwargs = None
 
 	def __repr__(self):
-		if self.args:
-			return "{}({!r}, {!r}, {})".format(self.__class__.__name__, self.methname, self.obj, repr(self.args)[1:-1])
-		else:
-			return "{}({!r}, {!r})".format(self.__class__.__name__, self.methname, self.obj)
+		args = [
+			(repr(self.methname), repr(self.obj)),
+			(repr(arg) for arg in self.args),
+			("{}={!r}".format(argname, argvalue) for (argname, argvalue) in self.kwargs)
+		]
+		if self.remargs is not None:
+			args.append(("*{}".format(repr(self.remargs)),))
+		if self.remkwargs is not None:
+			args.append(("**{}".format(repr(self.remkwargs)),))
+		return "{}({})".format(self.__class__.__name__, ", ".join(itertools.chain(args)))
 
 	def format(self, indent):
 		args = []
-		for arg in self.args:
-			s = arg.format(indent)
-			if isinstance(arg, GenExpr):
-				s = s[1:-1]
-			args.append(s)
+		if len(self.args) == 1 and isinstance(self.args[0], GenExpr) and not self.kwargs and self.remargs is None and self.remkwargs is None:
+			args.append(self.args[0].format(indent)[1:-1])
+		else:
+			for arg in self.args:
+				args.append(arg.format(indent))
+			for (argname, argvalue) in self.kwargs:
+				args.append("{}={}".format(argname, argvalue.format(indent)))
+			if self.remargs is not None:
+				args.append("*{}".format(self.remargs.format(indent)))
+			if self.remkwargs is not None:
+				args.append("**{}".format(self.remkwargs.format(indent)))
 		return "({}).{}({})".format(self._formatop(self.obj), self.methname, ", ".join(args))
 
 	def formatpython(self, indent):
-		methods = dict(
-			split="({}).split({})".format,
-			rsplit="({}).rsplit({})".format,
-			strip="({}).strip({})".format,
-			lstrip="({}).lstrip({})".format,
-			rstrip="({}).rstrip({})".format,
-			find="ul4c._find({}, {})".format,
-			rfind="ul4c._rfind({}, {})".format,
-			startswith="({}).startswith({})".format,
-			endswith="({}).endswith({})".format,
-			upper="({}).upper({})".format,
-			lower="({}).lower({})".format,
-			capitalize="({}).capitalize({})".format,
-			replace="({}).replace({})".format,
-			r="({}).r({})".format,
-			g="({}).g({})".format,
-			b="({}).b({})".format,
-			a="({}).a({})".format,
-			hls="({}).hls({})".format,
-			hlsa="({}).hlsa({})".format,
-			hsv="({}).hsv({})".format,
-			hsva="({}).hsva({})".format,
-			lum="({}).lum({})".format,
-			weekday="({}).weekday({})".format,
-			week="ul4c._week({}, {})".format,
-			items="({}).items({})".format,
-			values="({}).values({})".format,
-			join="({}).join({})".format,
-			renders="''.join(({})({}))".format,
-			mimeformat="ul4c._mimeformat({}, {})".format,
-			isoformat="ul4c._isoformat({}, {})".format,
-			yearday="ul4c._yearday({}, {})".format,
-			get="({}).get({})".format,
-			withlum="({}).withlum({})".format,
-			witha="({}).witha({})".format,
-			day="({}).day".format,
-			month="({}).month".format,
-			year="({}).year".format,
-			hour="({}).hour".format,
-			minute="({}).minute".format,
-			second="({}).second".format,
-			microsecond="({}).microsecond".format,
-		)
-		try:
-			formatter = methods[self.methname]
-		except KeyError:
-			raise UnknownMethodError(self.methname)
-		return formatter(self.obj.formatpython(indent), ", ".join(arg.formatpython(indent) for arg in self.args))
+		args = []
+		for arg in self.args:
+			args.append(arg.formatpython(indent))
+		for (argname, argvalue) in self.kwargs:
+			args.append("{}={}".format(argname, argvalue.formatpython(indent)))
+		if self.remargs is not None:
+			args.append("*{}".format(self.remargs.formatpython(indent)))
+		if self.remkwargs is not None:
+			args.append("**{}".format(self.remkwargs.formatpython(indent)))
+		return "self.method_{}(allvars, {}, {})".format(self.methname, self.obj.formatpython(indent), ", ".join(args))
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.methname)
 		encoder.dump(self.obj)
 		encoder.dump(self.args)
+		encoder.dump(self.kwargs)
+		encoder.dump(self.remargs)
+		encoder.dump(self.remkwargs)
 
 	def ul4onload(self, decoder):
 		self.methname = decoder.load()
 		self.obj = decoder.load()
 		self.args = decoder.load()
-
-
-@register("callmethkw")
-class CallMethKeywords(AST):
-	"""
-	AST node for calling a method with keyword arguments.
-
-	The method name is stored in the string :var:`methname`. The object for which
-	the method will be called is loaded from the AST node :var:`obj` and the list
-	of arguments is loaded :var:`args`. :var:`args` is a list of either:
-
-	*	1-item tuples containing an AST node: this is used for the ``**arg``
-		argument variant;
-	*	2-item tuples containing an argument name and an AST node: this is used
-		for the ``name=arg`` variant.
-	"""
-
-	precedence = 9
-	associative = False
-	fields = AST.fields.union({"methname", "obj", "args"})
-
-	def __init__(self, methname=None, obj=None, *args):
-		self.methname = methname
-		self.obj = obj
-		self.args = list(args)
-
-	def __repr__(self):
-		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.methname, self.obj, self.args)
-
-	def format(self, indent):
-		args = []
-		for arg in self.args:
-			if len(arg) == 1:
-				args.append("**{}".format(arg[0].format(indent)))
-			else:
-				args.append("{}={}".format(arg[0], arg[1].format(indent)))
-		return "{}.{}({})".format(self._formatop(self.obj), self.methname, ", ".join(args))
-
-	def formatpython(self, indent):
-		if self.methname == "renders":
-			args = []
-			for arg in self.args:
-				if len(arg) == 1:
-					args.append("({},)".format(arg[0].formatpython(indent)))
-				else:
-					args.append("({!r}, {})".format(arg[0], arg[1].formatpython(indent)))
-			args = "ul4c._makedict({})".format(", ".join(args))
-			return "''.join(({})(**{}))".format(self.obj.formatpython(indent), args)
-		else:
-			# The ``render`` method can only be used in the ``render`` tag, where it is handled separately
-			raise UnknownMethodError(self.methname)
-
-	def ul4ondump(self, encoder):
-		encoder.dump(self.methname)
-		encoder.dump(self.obj)
-		encoder.dump(self.args)
-
-	def ul4onload(self, decoder):
-		self.methname = decoder.load()
-		self.obj = decoder.load()
-		self.args = [tuple(arg) for arg in decoder.load()]
+		self.kwargs = [tuple(arg) for arg in decoder.load()]
+		self.remargs = decoder.load()
+		self.remkwargs = decoder.load()
 
 
 @register("render")
@@ -1738,22 +1687,11 @@ class Render(UnaryTag):
 		return "{}render {}\n".format(indent*"\t", self.obj.format(indent))
 
 	def formatpython(self, indent):
-		if isinstance(self.obj, (CallMeth, CallMethKeywords)) and self.obj.methname == "render":
-			v = ["{i}# <?render?> tag at position {l.starttag}:{l.endtag} ({id})\n".format(i=indent*"\t", id=id(self), l=self.location)]
-			if self.obj.args:
-				args = []
-				for arg in self.obj.args:
-					if len(arg) == 1:
-						args.append("({},)".format(arg[0].formatpython(indent)))
-					else:
-						args.append("({!r}, {})".format(arg[0], arg[1].formatpython(indent)))
-				args = "**ul4c._makedict({})".format(", ".join(args))
-			else:
-				args = ""
-			v.append("{}yield from ({})({})\n".format(indent*"\t", self.obj.obj.formatpython(indent), args))
-			return "".join(v)
+		if isinstance(self.obj, CallMeth) and self.obj.methname == "render":
+			code = "yield from {}".format(self.obj.formatpython(indent))
 		else:
-			return "{i}# <?render?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield self.function_str(allvars, {o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)
+			code = "yield self.function_str(allvars, {})".format(self.obj.formatpython(indent))
+		return "{i}# <?render?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}{c}\n".format(i=indent*"\t", id=id(self), c=code, l=self.location)
 
 
 class Callable(object):
@@ -1764,6 +1702,8 @@ class Callable(object):
 	def __getattr__(self, name):
 		if name.startswith("function_"):
 			raise UnknownFunctionError(name[9:])
+		elif name.startswith("method_"):
+			raise UnknownMethodError(name[7:])
 		else:
 			raise AttributeError(name)
 
@@ -2187,6 +2127,211 @@ class Callable(object):
 	def function_hsv(cls, allvars, h, s, v, a=1.0):
 		return color.Color.fromhsv(h, s, v, a)
 
+	@classmethod
+	def method_split(cls, allvars, obj, sep=None, count=None):
+		return obj.split(sep, count if count is not None else -1)
+
+	@classmethod
+	def method_rsplit(cls, allvars, obj, sep=None, count=None):
+		return obj.rsplit(sep, count if count is not None else -1)
+
+	@classmethod
+	def method_strip(cls, allvars, obj, chars=None):
+		return obj.strip(chars)
+
+	@classmethod
+	def method_lstrip(cls, allvars, obj, chars=None):
+		return obj.lstrip(chars)
+
+	@classmethod
+	def method_rstrip(cls, allvars, obj, chars=None):
+		return obj.rstrip(chars)
+
+	@classmethod
+	def method_find(cls, allvars, obj, sub, start=None, end=None):
+		if isinstance(obj, str):
+			return obj.find(sub, start, end)
+		else:
+			try:
+				if end is None:
+					if start is None:
+						return obj.index(sub)
+					return obj.index(sub, start)
+				return obj.index(sub, start, end)
+			except ValueError:
+				return -1
+
+	@classmethod
+	def method_rfind(cls, allvars, obj, sub, start=None, end=None):
+		if isinstance(obj, str):
+			return obj.rfind(sub, start, end)
+		else:
+			for i in reversed(range(*slice(start, end).indices(len(obj)))):
+				if obj[i] == sub:
+					return i
+			return -1
+
+	@classmethod
+	def method_startswith(cls, allvars, obj, prefix):
+		return obj.startswith(prefix)
+
+	@classmethod
+	def method_endswith(cls, allvars, obj, suffix):
+		return obj.endswith(suffix)
+
+	@classmethod
+	def method_upper(cls, allvars, obj):
+		return obj.upper()
+
+	@classmethod
+	def method_lower(cls, allvars, obj):
+		return obj.lower()
+
+	@classmethod
+	def method_capitalize(cls, allvars, obj):
+		return obj.capitalize()
+
+	@classmethod
+	def method_replace(cls, allvars, obj, old, new, count=None):
+		if count is None:
+			return obj.replace(old, new)
+		else:
+			return obj.replace(old, new, count)
+
+	@classmethod
+	def method_r(cls, allvars, obj):
+		return obj.r()
+
+	@classmethod
+	def method_g(cls, allvars, obj):
+		return obj.g()
+
+	@classmethod
+	def method_b(cls, allvars, obj):
+		return obj.b()
+
+	@classmethod
+	def method_a(cls, allvars, obj):
+		return obj.a()
+
+	@classmethod
+	def method_hls(cls, allvars, obj):
+		return obj.hls()
+
+	@classmethod
+	def method_hlsa(cls, allvars, obj):
+		return obj.hlsa()
+
+	@classmethod
+	def method_hsv(cls, allvars, obj):
+		return obj.hsv()
+
+	@classmethod
+	def method_hsva(cls, allvars, obj):
+		return obj.hsva()
+
+	@classmethod
+	def method_lum(cls, allvars, obj):
+		return obj.lum()
+
+	@classmethod
+	def method_weekday(cls, allvars, obj):
+		return obj.weekday()
+
+	@classmethod
+	def method_week(cls, allvars, obj, firstweekday=None):
+		if firstweekday is None:
+			firstweekday = 0
+		else:
+			firstweekday %= 7
+		jan1 = obj.__class__(obj.year, 1, 1)
+		yearday = (obj - jan1).days+7
+		jan1weekday = jan1.weekday()
+		while jan1weekday != firstweekday:
+			yearday -= 1
+			jan1weekday += 1
+			if jan1weekday == 7:
+				jan1weekday = 0
+		return yearday//7
+
+	@classmethod
+	def method_items(cls, allvars, obj):
+		return obj.items()
+
+	@classmethod
+	def method_values(cls, allvars, obj):
+		return obj.values()
+
+	@classmethod
+	def method_join(cls, allvars, obj, iterable):
+		return obj.join(iterable)
+
+	@classmethod
+	def method_render(cls, allvars, obj, **vars):
+		return obj.render(**vars)
+
+	@classmethod
+	def method_renders(cls, allvars, obj, **vars):
+		return obj.renders(**vars)
+
+	@classmethod
+	def method_mimeformat(cls, allvars, obj):
+		weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+		monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+		return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(obj, weekdayname[obj.weekday()], monthname[obj.month])
+
+	@classmethod
+	def method_isoformat(cls, allvars, obj):
+		result = obj.isoformat()
+		suffix = "T00:00:00"
+		if result.endswith(suffix):
+			return result[:-len(suffix)]
+		return result
+
+	@classmethod
+	def method_yearday(cls, allvars, obj):
+		return (obj - obj.__class__(obj.year, 1, 1)).days+1
+
+	@classmethod
+	def method_get(cls, allvars, obj, name, default=None):
+		return obj.get(name, default)
+
+	@classmethod
+	def method_withlum(cls, allvars, obj, lum):
+		return obj.withlum(lum)
+
+	@classmethod
+	def method_witha(cls, allvars, obj, a):
+		return obj.witha(a)
+
+	@classmethod
+	def method_day(cls, allvars, obj):
+		return obj.day
+
+	@classmethod
+	def method_month(cls, allvars, obj):
+		return obj.month
+
+	@classmethod
+	def method_year(cls, allvars, obj):
+		return obj.year
+
+	@classmethod
+	def method_hour(cls, allvars, obj):
+		return obj.hour
+
+	@classmethod
+	def method_minute(cls, allvars, obj):
+		return obj.minute
+
+	@classmethod
+	def method_second(cls, allvars, obj):
+		return obj.second
+
+	@classmethod
+	def method_microsecond(cls, allvars, obj):
+		return obj.microsecond
+
 
 @register("template")
 class Template(Block, Callable):
@@ -2205,7 +2350,7 @@ class Template(Block, Callable):
 	A :class:`Template` object is itself an AST node. Evaluating it will store
 	the template object under its name in the local variables.
 	"""
-	version = "21"
+	version = "22"
 	fields = Block.fields.union({"source", "name", "startdelim", "enddelim", "endlocation"})
 
 	def __init__(self, source=None, name=None, startdelim="<?", enddelim="?>"):
@@ -2549,13 +2694,16 @@ class TemplateClosure(Object):
 		self.vars = vars.copy()
 
 	def __call__(self, **vars):
-		return self.template.render(**collections.ChainMap(vars, self.vars))
+		return self.template.pythonfunction()(self, collections.ChainMap(vars, self.vars))
 
 	def render(self, **vars):
-		return self.template.render(**collections.ChainMap(vars, self.vars))
+		return self.template.pythonfunction()(self, collections.ChainMap(vars, self.vars))
 
 	def renders(self, **vars):
-		return self.template.renders(**collections.ChainMap(vars, self.vars))
+		return "".join(self.template.pythonfunction()(self, collections.ChainMap(vars, self.vars)))
+
+	def _handleexc(self, exc):
+		self.template._handleexc(exc)
 
 	@property
 	def location(self):
@@ -2628,84 +2776,3 @@ def _getitem(container, key):
 		return UndefinedKey(key)
 	except IndexError:
 		return UndefinedIndex(key)
-
-
-###
-### Python functions that implement UL4 methods
-###
-
-def _find(obj, sub, start=None, end=None):
-	"""
-	Helper for the ``find`` method.
-	"""
-	if isinstance(obj, str):
-		return obj.find(sub, start, end)
-	else:
-		try:
-			if end is None:
-				if start is None:
-					return obj.index(sub)
-				return obj.index(sub, start)
-			return obj.index(sub, start, end)
-		except ValueError:
-			return -1
-
-
-def _rfind(obj, sub, start=None, end=None):
-	"""
-	Helper for the ``rfind`` method.
-	"""
-	if isinstance(obj, str):
-		return obj.rfind(sub, start, end)
-	else:
-		for i in reversed(range(*slice(start, end).indices(len(obj)))):
-			if obj[i] == sub:
-				return i
-		return -1
-
-
-def _mimeformat(obj):
-	"""
-	Helper for the ``mimeformat`` method.
-	"""
-	weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-	monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-	return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(obj, weekdayname[obj.weekday()], monthname[obj.month])
-
-
-def _yearday(obj):
-	"""
-	Helper for the ``yearday`` method.
-	"""
-	return (obj - obj.__class__(obj.year, 1, 1)).days+1
-
-
-def _week(obj, firstweekday=None):
-	"""
-	Helper for the ``week`` method.
-	"""
-	if firstweekday is None:
-		firstweekday = 0
-	else:
-		firstweekday %= 7
-	jan1 = obj.__class__(obj.year, 1, 1)
-	yearday = (obj - jan1).days+7
-	jan1weekday = jan1.weekday()
-	while jan1weekday != firstweekday:
-		yearday -= 1
-		jan1weekday += 1
-		if jan1weekday == 7:
-			jan1weekday = 0
-	return yearday//7
-
-
-def _isoformat(obj):
-	"""
-	Helper for the ``isoformat`` method.
-	"""
-	result = obj.isoformat()
-	suffix = "T00:00:00"
-	if result.endswith(suffix):
-		return result[:-len(suffix)]
-	return result
-

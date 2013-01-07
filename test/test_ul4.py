@@ -1137,6 +1137,18 @@ def test_bracket(r):
 
 
 @pytest.mark.ul4
+def test_callfunc_args(r):
+	assert "@(2013-01-07)" == r("<?print repr(date(2013, 1, 7))?>")
+	assert "@(2013-01-07)" == r("<?print repr(date(2013, 1, day=7))?>")
+	assert "@(2013-01-07)" == r("<?print repr(date(2013, month=1, day=7))?>")
+	assert "@(2013-01-07)" == r("<?print repr(date(year=2013, month=1, day=7))?>")
+	assert "@(2013-01-07)" == r("<?print repr(date(2013, *[1, 7]))?>")
+	assert "@(2013-01-07)" == r("<?print repr(date(*[2013, 1, 7]))?>")
+	assert "@(2013-01-07)" == r("<?print repr(date(year=2013, **{'month': 1, 'day': 7}))?>")
+	assert "@(2013-01-07)" == r("<?print repr(date(2013, *[1], **{'day': 7}))?>")
+
+
+@pytest.mark.ul4
 def test_function_now(r):
 	now = str(datetime.datetime.now())
 
@@ -1172,12 +1184,8 @@ def test_function_date(r):
 	if r is not render_php:
 		assert "@(2012-10-06T12:34:56.987000)" == r("<?print repr(date(2012, 10, 6, 12, 34, 56, 987000))?>")
 
-
-@pytest.mark.ul4
-def test_function_date_kwargs(r):
-	assert "@(2012-10-06)" == r("<?print repr(date(2012, 10, day=6))?>")
-	assert "@(2012-10-06)" == r("<?print repr(date(2012, month=10, day=6))?>")
-	assert "@(2012-10-06)" == r("<?print repr(date(year=2012, month=10, day=6))?>")
+	# Make sure that the parameters have the same name in all implementations
+	assert "@(2012-10-06T12:34:56)" == r("<?print repr(date(year=2012, month=10, day=6, hour=12, minute=34, second=56, microsecond=0))?>")
 
 
 @pytest.mark.ul4
@@ -1203,14 +1211,7 @@ def test_function_timedelta(r):
 	assert "-1 day, 23:59:59" == r("<?print timedelta(0, -1)?>")
 	assert "-1 day, 23:59:59.999999" == r("<?print timedelta(0, 0, -1)?>")
 
-
-@pytest.mark.ul4
-def test_function_timedelta_kwargs(r):
-	assert "1 day, 0:00:00" == r("<?print timedelta(days=1)?>")
-	assert "0:00:01" == r("<?print timedelta(0, seconds=1)?>")
-	assert "0:00:01" == r("<?print timedelta(days=0, seconds=1)?>")
-	assert "0:00:00.000001" == r("<?print timedelta(0, 0, microseconds=1)?>")
-	assert "0:00:00.000001" == r("<?print timedelta(0, seconds=0, microseconds=1)?>")
+	# Make sure that the parameters have the same name in all implementations
 	assert "0:00:00.000001" == r("<?print timedelta(days=0, seconds=0, microseconds=1)?>")
 
 
@@ -1223,9 +1224,7 @@ def test_function_monthdelta(r):
 	assert "1 month" == r("<?print monthdelta(1)?>")
 	assert "-1 month" == r("<?print monthdelta(-1)?>")
 
-
-@pytest.mark.ul4
-def test_function_monthdelta_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "1 month" == r("<?print monthdelta(months=1)?>")
 
 
@@ -1237,15 +1236,11 @@ def test_function_vars(r):
 		r("<?print vars(1)?>")
 	with raises(argumentmismatchmessage):
 		r("<?print vars(1, 2)?>")
+	with raises(argumentmismatchmessage):
+		r("<?print vars(foo=1)?>")
 	assert "yes" == r(code, var="spam", spam="eggs")
 	assert "no" == r(code, var="nospam", spam="eggs")
 	assert "no" == r(code, var="self", spam="eggs")
-
-
-@pytest.mark.ul4
-def test_function_vars_kwargs(r):
-	with raises(argumentmismatchmessage):
-		r("<?print vars(foo=1)?>")
 
 
 @pytest.mark.ul4
@@ -1256,15 +1251,11 @@ def test_function_allvars(r):
 		r("<?print allvars(1)?>")
 	with raises(argumentmismatchmessage):
 		r("<?print allvars(1, 2)?>")
+	with raises(argumentmismatchmessage):
+		r("<?print allvars(foo=1)?>")
 	assert "yes" == r(code, var="spam", spam="eggs")
 	assert "no" == r(code, var="nospam", spam="eggs")
 	assert "yes" == r(code, var="self", spam="eggs")
-
-
-@pytest.mark.ul4
-def test_function_allvars_kwargs(r):
-	with raises(argumentmismatchmessage):
-		r("<?print allvars(foo=1)?>")
 
 
 @pytest.mark.ul4
@@ -1273,19 +1264,17 @@ def test_function_random(r):
 		r("<?print random(1)?>")
 	with raises(argumentmismatchmessage):
 		r("<?print random(1, 2)?>")
-	assert "ok" == r("<?code r = random()?><?if r>=0 and r<1?>ok<?else?>fail<?end if?>")
-
-
-@pytest.mark.ul4
-def test_function_random_kwargs(r):
 	with raises(argumentmismatchmessage):
 		r("<?print random(foo=1)?>")
+	assert "ok" == r("<?code r = random()?><?if r>=0 and r<1?>ok<?else?>fail<?end if?>")
 
 
 @pytest.mark.ul4
 def test_function_randrange(r):
 	with raises(argumentmismatchmessage):
 		r("<?print randrange()?>")
+	with raises(argumentmismatchmessage):
+		r("<?print randrange(foo=1)?>")
 	assert "ok" == r("<?code r = randrange(4)?><?if r>=0 and r<4?>ok<?else?>fail<?end if?>")
 	assert "ok" == r("<?code r = randrange(17, 23)?><?if r>=17 and r<23?>ok<?else?>fail<?end if?>")
 	assert "ok" == r("<?code r = randrange(17, 23, 2)?><?if r>=17 and r<23 and r%2?>ok<?else?>fail<?end if?>")
@@ -1299,9 +1288,7 @@ def test_function_randchoice(r):
 	assert "ok" == r("<?code s = [17, 23, 42]?><?code r = randchoice(s)?><?if r in s?>ok<?else?>fail<?end if?>")
 	assert "ok" == r("<?code s = #12345678?><?code sl = [0x12, 0x34, 0x56, 0x78]?><?code r = randchoice(s)?><?if r in sl?>ok<?else?>fail<?end if?>")
 
-
-@pytest.mark.ul4
-def test_function_randchoice_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "ok" == r("<?code s = [17, 23, 42]?><?code r = randchoice(sequence=s)?><?if r in s?>ok<?else?>fail<?end if?>")
 
 
@@ -1313,9 +1300,7 @@ def test_function_xmlescape(r):
 		r("<?print xmlescape(1, 2)?>")
 	assert "&lt;&lt;&gt;&gt;&amp;&#39;&quot;gurk" == r("<?print xmlescape(data)?>", data='<<>>&\'"gurk')
 
-
-@pytest.mark.ul4
-def test_function_xmlescape_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "42" == r("<?print xmlescape(obj=data)?>", data=42)
 
 
@@ -1335,9 +1320,7 @@ def test_function_csv(r):
 	assert '"a""b""c"' == r("<?print csv(data)?>", data='a"b"c')
 	assert '"a\nb\nc"' == r("<?print csv(data)?>", data="a\nb\nc")
 
-
-@pytest.mark.ul4
-def test_function_csv_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "42" == r("<?print csv(obj=data)?>", data=42)
 
 
@@ -1358,9 +1341,7 @@ def test_function_asjson(r):
 	assert '{"one": 1}' == r("<?print asjson(data)?>", data={"one": 1})
 	assert '{"one": 1}' == r("<?print asjson(data)?>", data=PseudoDict({"one": 1}))
 
-
-@pytest.mark.ul4
-def test_function_asjson_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "42" == r("<?print asjson(obj=data)?>", data=42)
 
 
@@ -1380,9 +1361,7 @@ def test_function_fromjson(r):
 	assert '[1, 2, 3]' == r(code, data="[1, 2, 3]")
 	assert r(code, data='{"one": 1}') in ('{"one": 1}', "{'one': 1}")
 
-
-@pytest.mark.ul4
-def test_function_fromjson_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "42" == r("<?print fromjson(string=data)?>", data="42")
 
 
@@ -1407,9 +1386,7 @@ def test_function_ul4on(r):
 	assert '[1, 2, 3]' == r(code, data=[1, 2, 3])
 	assert r(code, data={'one': 1}) in ('{"one": 1}', "{'one': 1}")
 
-
-@pytest.mark.ul4
-def test_function_ul4on_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "42" == r("<?print repr(fromul4on(string=asul4on(obj=data)))?>", data=42)
 
 
@@ -1442,9 +1419,7 @@ def test_function_str(r):
 	assert "-1 day, 23:59:59" == r(code, data=datetime.timedelta(0, -1))
 	assert "-1 day, 23:59:59.999999" == r(code, data=datetime.timedelta(0, 0, -1))
 
-
-@pytest.mark.ul4
-def test_function_str_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "42" == r("<?print str(obj=data)?>", data=42)
 
 
@@ -1472,9 +1447,7 @@ def test_function_bool(r):
 	assert "False" == r(code, data=misc.monthdelta())
 	assert "True" == r(code, data=misc.monthdelta(1))
 
-
-@pytest.mark.ul4
-def test_function_bool_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "True" == r("<?print bool(obj=data)?>", data=42)
 
 
@@ -1494,11 +1467,7 @@ def test_function_int(r):
 	assert "42" == r("<?print int(data)?>", data="42")
 	assert "66" == r("<?print int(data, 16)?>", data="42")
 
-
-@pytest.mark.ul4
-def test_function_int_kwargs(r):
-	assert "42" == r("<?print int(obj=data)?>", data=42)
-	assert "42" == r("<?print int(data, base=None)?>", data=42)
+	# Make sure that the parameters have the same name in all implementations
 	assert "42" == r("<?print int(obj=data, base=None)?>", data=42)
 
 
@@ -1517,6 +1486,9 @@ def test_function_float(r):
 		assert "0.0" == r(code, data=False)
 		assert "42.0" == r(code, data=42)
 		assert "42.0" == r(code, data="42")
+
+		# Make sure that the parameters have the same name in all implementations
+		assert "42.0" == r("<?print float(obj=data)?>", data=42)
 	else:
 		assert 0.0 == eval(r("<?print float()?>"))
 		assert 1.0 == eval(r(code, data=True))
@@ -1524,12 +1496,7 @@ def test_function_float(r):
 		assert 42.0 == eval(r(code, data=42))
 		assert 42.0 == eval(r(code, data="42"))
 
-
-@pytest.mark.ul4
-def test_function_float_kwargs(r):
-	if r is not render_js:
-		assert "42.0" == r("<?print float(obj=data)?>", data=42)
-	else:
+		# Make sure that the parameters have the same name in all implementations
 		assert 42.0 == eval(r("<?print float(obj=data)?>", data=42))
 
 
@@ -1555,9 +1522,7 @@ def test_function_len(r):
 	assert "42" == r(code, data=42*[None])
 	assert "42" == r(code, data=dict.fromkeys(range(42)))
 
-
-@pytest.mark.ul4
-def test_function_len_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "42" == r("<?print len(sequence=data)?>", data=42*"?")
 
 
@@ -1574,6 +1539,9 @@ def test_function_any(r):
 	assert "True" == r("<?print any(i > 7 for i in range(10))?>")
 	assert "False" == r("<?print any(i > 17 for i in range(10))?>")
 
+	# Make sure that the parameters have the same name in all implementations
+	assert "False" == r("<?print any(iterable=(i > 17 for i in range(10)))?>")
+
 
 @pytest.mark.ul4
 def test_function_all(r):
@@ -1587,6 +1555,9 @@ def test_function_all(r):
 	assert "True" == r("<?print all('foo')?>")
 	assert "False" == r("<?print all(i < 7 for i in range(10))?>")
 	assert "True" == r("<?print all(i < 17 for i in range(10))?>")
+
+	# Make sure that the parameters have the same name in all implementations
+	assert "True" == r("<?print all(iterable=(i < 17 for i in range(10)))?>")
 
 
 @pytest.mark.ul4
@@ -1614,11 +1585,7 @@ def test_function_enumerate(r):
 	assert "" == r(code1, data="")
 	assert "(f=42)(o=43)(o=44)" == r(code2, data="foo")
 
-
-@pytest.mark.ul4
-def test_function_enumerate_kwargs(r):
-	assert "(f=0)(o=1)(o=2)" == r("<?for (i, value) in enumerate(iterable=data)?>(<?print value?>=<?print i?>)<?end for?>", data="foo")
-	assert "(f=42)(o=43)(o=44)" == r("<?for (i, value) in enumerate(data, start=42)?>(<?print value?>=<?print i?>)<?end for?>", data="foo")
+	# Make sure that the parameters have the same name in all implementations
 	assert "(f=42)(o=43)(o=44)" == r("<?for (i, value) in enumerate(iterable=data, start=42)?>(<?print value?>=<?print i?>)<?end for?>", data="foo")
 
 
@@ -1647,11 +1614,7 @@ def test_function_enumfl(r):
 	assert "" == r(code1, data="")
 	assert "[(f=42)(o=43)(o=44)]" == r(code2, data="foo")
 
-
-@pytest.mark.ul4
-def test_function_enumfl_kwargs(r):
-	assert "[(f=0)(o=1)(o=2)]" == r("<?for (i, f, l, value) in enumfl(iterable=data)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>", data="foo")
-	assert "[(f=42)(o=43)(o=44)]" == r("<?for (i, f, l, value) in enumfl(data, start=42)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>", data="foo")
+	# Make sure that the parameters have the same name in all implementations
 	assert "[(f=42)(o=43)(o=44)]" == r("<?for (i, f, l, value) in enumfl(iterable=data, start=42)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>", data="foo")
 
 
@@ -1678,9 +1641,7 @@ def test_function_isfirstlast(r):
 	assert "[(foo)]" == r(code, data=dict(foo=True))
 	assert "" == r(code, data="")
 
-
-@pytest.mark.ul4
-def test_function_isfirstlast_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "[(f)(o)(o)]" == r("<?for (f, l, value) in isfirstlast(iterable=data)?><?if f?>[<?end if?>(<?print value?>)<?if l?>]<?end if?><?end for?>", data="foo")
 
 
@@ -1707,9 +1668,7 @@ def test_function_isfirst(r):
 	assert "[(foo)" == r(code, data=dict(foo=True))
 	assert "" == r(code, data="")
 
-
-@pytest.mark.ul4
-def test_function_isfirst_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "[(f)(o)(o)" == r("<?for (f, value) in isfirst(iterable=data)?><?if f?>[<?end if?>(<?print value?>)<?end for?>", data="foo")
 
 
@@ -1736,9 +1695,7 @@ def test_function_islast(r):
 	assert "(foo)]" == r(code, data=dict(foo=True))
 	assert "" == r(code, data="")
 
-
-@pytest.mark.ul4
-def test_function_islast_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "(f)(o)(o)]" == r("<?for (l, value) in islast(iterable=data)?>(<?print value?>)<?if l?>]<?end if?><?end for?>", data="foo")
 
 
@@ -1766,9 +1723,7 @@ def test_function_isundefined(r):
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r(code, data=color.red)
 
-
-@pytest.mark.ul4
-def test_function_isundefined_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "False" == r("<?print isundefined(obj=data)?>", data=None)
 
 
@@ -1796,9 +1751,7 @@ def test_function_isdefined(r):
 	assert "True" == r(code, data=ul4c.Template(""))
 	assert "True" == r(code, data=color.red)
 
-
-@pytest.mark.ul4
-def test_function_isdefined_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "True" == r("<?print isdefined(obj=data)?>", data=None)
 
 
@@ -1826,9 +1779,7 @@ def test_function_isnone(r):
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r(code, data=color.red)
 
-
-@pytest.mark.ul4
-def test_function_isnone_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "True" == r("<?print isnone(obj=data)?>", data=None)
 
 
@@ -1856,9 +1807,7 @@ def test_function_isbool(r):
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r(code, data=color.red)
 
-
-@pytest.mark.ul4
-def test_function_isbool_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "False" == r("<?print isbool(obj=data)?>", data=None)
 
 
@@ -1886,9 +1835,7 @@ def test_function_isint(r):
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r(code, data=color.red)
 
-
-@pytest.mark.ul4
-def test_function_isint_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "False" == r("<?print isint(obj=data)?>", data=None)
 
 
@@ -1916,9 +1863,7 @@ def test_function_isfloat(r):
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r(code, data=color.red)
 
-
-@pytest.mark.ul4
-def test_function_isfloat_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "False" == r("<?print isfloat(obj=data)?>", data=None)
 
 
@@ -1946,9 +1891,7 @@ def test_function_isstr(r):
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r(code, data=color.red)
 
-
-@pytest.mark.ul4
-def test_function_isstr_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "False" == r("<?print isstr(obj=data)?>", data=None)
 
 
@@ -1976,9 +1919,7 @@ def test_function_isdate(r):
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r(code, data=color.red)
 
-
-@pytest.mark.ul4
-def test_function_isdate_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "False" == r("<?print isdate(obj=data)?>", data=None)
 
 
@@ -2008,9 +1949,7 @@ def test_function_islist(r):
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r(code, data=color.red)
 
-
-@pytest.mark.ul4
-def test_function_islist_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "False" == r("<?print islist(obj=data)?>", data=None)
 
 
@@ -2040,9 +1979,7 @@ def test_function_isdict(r):
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r(code, data=color.red)
 
-
-@pytest.mark.ul4
-def test_function_isdict_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "False" == r("<?print isdict(obj=data)?>", data=None)
 
 
@@ -2070,9 +2007,7 @@ def test_function_istemplate(r):
 	assert "True" == r(code, data=ul4c.Template(""))
 	assert "False" == r(code, data=color.red)
 
-
-@pytest.mark.ul4
-def test_function_istemplate_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "False" == r("<?print istemplate(obj=data)?>", data=None)
 
 
@@ -2100,8 +2035,7 @@ def test_function_iscolor(r):
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "True" == r(code, data=color.red)
 
-@pytest.mark.ul4
-def test_function_iscolor_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "False" == r("<?print iscolor(obj=data)?>", data=None)
 
 
@@ -2129,9 +2063,7 @@ def test_function_istimedelta(r):
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r(code, data=color.red)
 
-
-@pytest.mark.ul4
-def test_function_istimedelta_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "False" == r("<?print istimedelta(obj=data)?>", data=None)
 
 
@@ -2159,9 +2091,7 @@ def test_function_ismonthdelta(r):
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r(code, data=color.red)
 
-
-@pytest.mark.ul4
-def test_function_ismonthdelta_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "False" == r("<?print ismonthdelta(obj=data)?>", data=None)
 
 
@@ -2175,11 +2105,7 @@ def test_function_get(r):
 	assert "42" == r("<?print get('x', 17)?>", x=42)
 	assert "True" == r("<?print istemplate(get('self'))?>")
 
-
-@pytest.mark.ul4
-def test_function_get_kwargs(r):
-	assert "42" == r("<?print get(name='x')?>", x=42)
-	assert "42" == r("<?print get('x', default=17)?>", x=42)
+	# Make sure that the parameters have the same name in all implementations
 	assert "42" == r("<?print get(name='x', default=17)?>", x=42)
 
 
@@ -2217,9 +2143,7 @@ def test_function_repr(r):
 	assert "timedelta(-1, 43200)" == r(code, data=datetime.timedelta(-0.5))
 	assert "timedelta(-1, 86399, 500000)" == r(code, data=datetime.timedelta(0, -0.5))
 
-
-@pytest.mark.ul4
-def test_function_repr_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "None" == r("<?print repr(obj=data)?>", data=None)
 
 
@@ -2311,10 +2235,6 @@ def test_function_format_int(r):
 
 @pytest.mark.ul4
 def test_function_format_kwargs(r):
-	assert "42" == r("<?print format(data, fmt=format)?>", format="", data=42)
-	assert "42" == r("<?print format(obj=data, fmt=format)?>", format="", data=42)
-	assert "42" == r("<?print format(data, format, lang=lang)?>", format="", data=42, lang="de")
-	assert "42" == r("<?print format(data, fmt=format, lang=lang)?>", format="", data=42, lang="de")
 	assert "42" == r("<?print format(obj=data, fmt=format, lang=lang)?>", format="", data=42, lang="de")
 
 
@@ -2330,9 +2250,7 @@ def test_function_chr(r):
 	assert "a" == r(code, data=ord("a"))
 	assert "\u20ac" == r(code, data=0x20ac)
 
-
-@pytest.mark.ul4
-def test_function_chr_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "\x00" == r("<?print chr(i=data)?>", data=0)
 
 
@@ -2348,9 +2266,7 @@ def test_function_ord(r):
 	assert str(ord("a")) == r(code, data="a")
 	assert str(0x20ac) == r(code, data="\u20ac")
 
-
-@pytest.mark.ul4
-def test_function_ord_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "0" == r("<?print ord(c=data)?>", data="\x00")
 
 
@@ -2367,9 +2283,7 @@ def test_function_hex(r):
 	assert "0xffff" == r(code, data=0xffff)
 	assert "-0xffff" == r(code, data=-0xffff)
 
-
-@pytest.mark.ul4
-def test_function_hex_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "0x0" == r("<?print hex(number=data)?>", data=0)
 
 
@@ -2386,9 +2300,7 @@ def test_function_oct(r):
 	assert "0o7777" == r(code, data=0o7777)
 	assert "-0o7777" == r(code, data=-0o7777)
 
-
-@pytest.mark.ul4
-def test_function_oct_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "0o0" == r("<?print oct(number=data)?>", data=0)
 
 
@@ -2424,9 +2336,7 @@ def test_function_abs(r):
 	assert "1 month" == r(code, data=misc.monthdelta(-1))
 	assert "1 day, 0:00:01.000001" == r(code, data=datetime.timedelta(-1, -1, -1))
 
-
-@pytest.mark.ul4
-def test_function_abs_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "0" == r("<?print abs(number=data)?>", data=0)
 
 
@@ -2441,9 +2351,7 @@ def test_function_sorted(r):
 	assert "172342" == r(code, data=(42, 17, 23))
 	assert "012" == r(code, data={0: "zero", 1: "one", 2: "two"})
 
-
-@pytest.mark.ul4
-def test_function_sorted_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "123" == r("<?for i in sorted(iterable=data)?><?print i?><?end for?>", data="321")
 
 
@@ -2479,9 +2387,7 @@ def test_function_urlquote(r):
 	assert "%3C%3D%3E%2B%3F" == r("<?print urlquote('<=>+?')?>")
 	assert "%7F%C3%BF%EF%BF%BF" == r("<?print urlquote('\u007f\u00ff\uffff')?>")
 
-
-@pytest.mark.ul4
-def test_function_urlquote_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "gurk" == r("<?print urlquote(string='gurk')?>")
 
 
@@ -2491,9 +2397,7 @@ def test_function_urlunquote(r):
 	assert "<=>+?" == r("<?print urlunquote('%3C%3D%3E%2B%3F')?>")
 	assert "\u007f\u00ff\uffff" == r("<?print urlunquote('%7F%C3%BF%EF%BF%BF')?>")
 
-
-@pytest.mark.ul4
-def test_function_urlunquote_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "gurk" == r("<?print urlunquote(string='gurk')?>")
 
 
@@ -2540,9 +2444,7 @@ def test_function_type(r):
 	assert "template" == r(code, x=ul4c.Template(""))
 	assert "color" == r(code, x=color.red)
 
-
-@pytest.mark.ul4
-def test_function_type_kwargs(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "none" == r("<?print type(obj=x)?>", x=None)
 
 
@@ -2558,9 +2460,7 @@ def test_function_reversed(r):
 	assert "(3)(2)(1)" == r(code, x=[1, 2, 3])
 	assert "(3)(2)(1)" == r(code, x=(1, 2, 3))
 
-
-@pytest.mark.ul4
-def test_function_reversed(r):
+	# Make sure that the parameters have the same name in all implementations
 	assert "(3)(2)(1)" == r("<?for i in reversed(sequence=x)?>(<?print i?>)<?end for?>", x=(1, 2, 3))
 
 
@@ -2595,15 +2495,7 @@ def test_function_rgb(r):
 	assert "#369" == r("<?print repr(rgb(0.2, 0.4, 0.6))?>")
 	assert "#369c" == r("<?print repr(rgb(0.2, 0.4, 0.6, 0.8))?>")
 
-
-@pytest.mark.ul4
-def test_function_rgb_kwargs(r):
-	assert "#369" == r("<?print repr(rgb(0.2, 0.4, b=0.6))?>")
-	assert "#369" == r("<?print repr(rgb(0.2, g=0.4, b=0.6))?>")
-	assert "#369" == r("<?print repr(rgb(r=0.2, g=0.4, b=0.6))?>")
-	assert "#369c" == r("<?print repr(rgb(0.2, 0.4, 0.6, a=0.8))?>")
-	assert "#369c" == r("<?print repr(rgb(0.2, 0.4, b=0.6, a=0.8))?>")
-	assert "#369c" == r("<?print repr(rgb(0.2, g=0.4, b=0.6, a=0.8))?>")
+	# Make sure that the parameters have the same name in all implementations
 	assert "#369c" == r("<?print repr(rgb(r=0.2, g=0.4, b=0.6, a=0.8))?>")
 
 
@@ -2612,15 +2504,7 @@ def test_function_hls(r):
 	assert "#fff" == r("<?print repr(hls(0, 1, 0))?>")
 	assert "#fff0" == r("<?print repr(hls(0, 1, 0, 0))?>")
 
-
-@pytest.mark.ul4
-def test_function_hls_kwargs(r):
-	assert "#fff" == r("<?print repr(hls(0, 1, s=0))?>")
-	assert "#fff" == r("<?print repr(hls(0, l=1, s=0))?>")
-	assert "#fff" == r("<?print repr(hls(h=0, l=1, s=0))?>")
-	assert "#fff0" == r("<?print repr(hls(0, 1, 0, a=0))?>")
-	assert "#fff0" == r("<?print repr(hls(0, 1, s=0, a=0))?>")
-	assert "#fff0" == r("<?print repr(hls(0, l=1, s=0, a=0))?>")
+	# Make sure that the parameters have the same name in all implementations
 	assert "#fff0" == r("<?print repr(hls(h=0, l=1, s=0, a=0))?>")
 
 
@@ -2629,15 +2513,7 @@ def test_function_hsv(r):
 	assert "#fff" == r("<?print repr(hsv(0, 0, 1))?>")
 	assert "#fff0" == r("<?print repr(hsv(0, 0, 1, 0))?>")
 
-
-@pytest.mark.ul4
-def test_function_hsv_kwargs(r):
-	assert "#fff" == r("<?print repr(hsv(0, 0, v=1))?>")
-	assert "#fff" == r("<?print repr(hsv(0, s=0, v=1))?>")
-	assert "#fff" == r("<?print repr(hsv(h=0, s=0, v=1))?>")
-	assert "#fff0" == r("<?print repr(hsv(0, 0, 1, a=0))?>")
-	assert "#fff0" == r("<?print repr(hsv(0, 0, v=1, a=0))?>")
-	assert "#fff0" == r("<?print repr(hsv(0, s=0, v=1, a=0))?>")
+	# Make sure that the parameters have the same name in all implementations
 	assert "#fff0" == r("<?print repr(hsv(h=0, s=0, v=1, a=0))?>")
 
 
@@ -2661,11 +2537,17 @@ def test_method_startswith(r):
 	assert "True" == r("<?print 'gurkhurz'.startswith('gurk')?>")
 	assert "False" == r("<?print 'gurkhurz'.startswith('hurz')?>")
 
+	# Make sure that the parameters have the same name in all implementations
+	assert "True" == r("<?print 'gurkhurz'.startswith(prefix='gurk')?>")
+
 
 @pytest.mark.ul4
 def test_method_endswith(r):
 	assert "True" == r("<?print 'gurkhurz'.endswith('hurz')?>")
 	assert "False" == r("<?print 'gurkhurz'.endswith('gurk')?>")
+
+	# Make sure that the parameters have the same name in all implementations
+	assert "True" == r("<?print 'gurkhurz'.endswith(suffix='hurz')?>")
 
 
 @pytest.mark.ul4
@@ -2673,17 +2555,26 @@ def test_method_strip(r):
 	assert "gurk" == r(r"<?print obj.strip()?>", obj=' \t\r\ngurk \t\r\n')
 	assert "gurk" == r(r"<?print obj.strip('xyz')?>", obj='xyzzygurkxyzzy')
 
+	# Make sure that the parameters have the same name in all implementations
+	assert "gurk" == r(r"<?print obj.strip(chars='xyz')?>", obj='xyzzygurkxyzzy')
+
 
 @pytest.mark.ul4
 def test_method_lstrip(r):
 	assert "gurk \t\r\n" == r("<?print obj.lstrip()?>", obj=" \t\r\ngurk \t\r\n")
 	assert "gurkxyzzy" == r("<?print obj.lstrip(arg)?>", obj="xyzzygurkxyzzy", arg="xyz")
 
+	# Make sure that the parameters have the same name in all implementations
+	assert "gurkxyzzy" == r("<?print obj.lstrip(chars=arg)?>", obj="xyzzygurkxyzzy", arg="xyz")
+
 
 @pytest.mark.ul4
 def test_method_rstrip(r):
 	assert " \t\r\ngurk" == r("<?print obj.rstrip()?>", obj=" \t\r\ngurk \t\r\n")
 	assert "xyzzygurk" == r("<?print obj.rstrip(arg)?>", obj="xyzzygurkxyzzy", arg="xyz")
+
+	# Make sure that the parameters have the same name in all implementations
+	assert "xyzzygurk" == r("<?print obj.rstrip(chars=arg)?>", obj="xyzzygurkxyzzy", arg="xyz")
 
 
 @pytest.mark.ul4
@@ -2693,6 +2584,9 @@ def test_method_split(r):
 	assert "()(f)(o)(o)()" == r("<?for item in obj.split(arg)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
 	assert "()(f)(oxxoxx)" == r("<?for item in obj.split(arg, 2)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
 
+	# Make sure that the parameters have the same name in all implementations
+	assert "()(f)(oxxoxx)" == r("<?for item in obj.split(sep=arg, count=2)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
+
 
 @pytest.mark.ul4
 def test_method_rsplit(r):
@@ -2701,10 +2595,18 @@ def test_method_rsplit(r):
 	assert "()(f)(o)(o)()" == r("<?for item in obj.rsplit(arg)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
 	assert "(xxfxxo)(o)()" == r("<?for item in obj.rsplit(arg, 2)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
 
+	# Make sure that the parameters have the same name in all implementations
+	assert "(xxfxxo)(o)()" == r("<?for item in obj.rsplit(sep=arg, count=2)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
+
 
 @pytest.mark.ul4
 def test_method_replace(r):
-	assert 'goork' == r(r"<?print 'gurk'.replace('u', 'oo')?>")
+	assert 'goork' == r("<?print 'gurk'.replace('u', 'oo')?>")
+	assert 'fuuuu' == r("<?print 'foo'.replace('o', 'uu', None)?>")
+	assert 'fuuo' == r("<?print 'foo'.replace('o', 'uu', 1)?>")
+
+	# Make sure that the parameters have the same name in all implementations
+	assert 'fuuo' == r("<?print 'foo'.replace(old='o', new='uu', count=1)?>")
 
 
 @pytest.mark.ul4
@@ -2740,6 +2642,9 @@ def test_method_get(r):
 	assert "17" == r("<?print {'foo': 17}.get('foo', 42)?>")
 	assert "" == r("<?print {}.get('foo')?>")
 	assert "17" == r("<?print {'foo': 17}.get('foo')?>")
+
+	# Make sure that the parameters have the same name in all implementations
+	assert "17" == r("<?print {'foo': 17}.get(name='foo', default=42)?>")
 
 
 @pytest.mark.ul4
@@ -2789,16 +2694,25 @@ def test_method_lum(r):
 def test_method_withlum(r):
 	assert '#fff' == r('<?print #000.withlum(1)?>')
 
+	# Make sure that the parameters have the same name in all implementations
+	assert '#fff' == r('<?print #000.withlum(lum=1)?>')
+
 
 @pytest.mark.ul4
 def test_method_witha(r):
 	assert '#0063a82a' == r('<?print repr(#0063a8.witha(42))?>')
+
+	# Make sure that the parameters have the same name in all implementations
+	assert '#0063a82a' == r('<?print repr(#0063a8.witha(a=42))?>')
 
 
 @pytest.mark.ul4
 def test_method_join(r):
 	assert '1,2,3,4' == r('<?print ",".join("1234")?>')
 	assert '1,2,3,4' == r('<?print ",".join(["1", "2", "3", "4"])?>')
+
+	# Make sure that the parameters have the same name in all implementations
+	assert '1,2,3,4' == r('<?print ",".join(iterable="1234"])?>')
 
 
 @pytest.mark.ul4
@@ -2825,6 +2739,9 @@ def test_method_find(r):
 	assert '-1' == r('<?print l.find("r", 7)?>', l=l)
 	assert '1' == r('<?print l.find(None)?>', l=[0, None, 1, None, 2, None, 3, None])
 
+	# Make sure that the parameters have the same name in all implementations
+	assert '2' == r('<?print s.find(sub="rk", start=2, end=4)?>', s=s)
+
 
 @pytest.mark.ul4
 def test_method_rfind(r):
@@ -2848,6 +2765,9 @@ def test_method_rfind(r):
 	assert '-1' == r('<?print l.rfind("r", 2, 2)?>', l=l)
 	assert '-1' == r('<?print l.rfind("r", 7)?>', l=l)
 	assert '7' == r('<?print l.rfind(None)?>', l=[0, None, 1, None, 2, None, 3, None])
+
+	# Make sure that the parameters have the same name in all implementations
+	assert '2' == r('<?print s.rfind(sub="rk", start=2, end=4)?>', s=s)
 
 
 @pytest.mark.ul4
@@ -2907,6 +2827,9 @@ def test_method_week(r):
 	assert '1' == r('<?print @(2012-01-02).week()?>')
 	assert '1' == r('<?print @(2012-01-02).week(0)?>')
 	assert '1' == r('<?print @(2012-01-02).week(6)?>')
+
+	# Make sure that the parameters have the same name in all implementations
+	assert '1' == r('<?print @(2012-01-02).week(firstweekday=0)?>')
 
 
 @pytest.mark.ul4

@@ -9,7 +9,7 @@ Changes in 4.7 (released ??/??/2013)
 *	UL4 templates now support lexical scopes. A locally defined subtemplate can
 	access all local variables of the template in which it is defined.
 
-*	UL4 functions now suport keyword arguments, e.g.
+*	UL4 functions and methods now suport keyword arguments, e.g.
 	``format(now(), fmt="%Y-%m-%d", lang="en")``.
 
 *	UL4 template can no longer be converted to Java ``CompiledTemplate`` object.
