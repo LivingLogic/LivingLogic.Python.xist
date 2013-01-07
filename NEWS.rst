@@ -12,6 +12,10 @@ Changes in 4.7 (released ??/??/2013)
 *	UL4 functions now suport keyword arguments, e.g.
 	``format(now(), fmt="%Y-%m-%d", lang="en")``.
 
+*	UL4 template can no longer be converted to Java ``CompiledTemplate`` object.
+	(However converting it to an ``InterpretedTemplate`` is of course still
+	supported).
+
 *	If the view ``ctx_preferences`` doesn't exist :meth:`orasql.Preference.itername``
 	now will simply return an empty iterator instead of failing with an Oracle
 	exception ``ORA-00942: table or view does not exist``.
