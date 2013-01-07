@@ -2712,7 +2712,7 @@ def test_method_join(r):
 	assert '1,2,3,4' == r('<?print ",".join(["1", "2", "3", "4"])?>')
 
 	# Make sure that the parameters have the same name in all implementations
-	assert '1,2,3,4' == r('<?print ",".join(iterable="1234"])?>')
+	assert '1,2,3,4' == r('<?print ",".join(iterable="1234")?>')
 
 
 @pytest.mark.ul4
