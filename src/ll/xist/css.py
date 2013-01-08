@@ -195,6 +195,8 @@ def applystylesheets(node, base=None, media=None, title=None):
 			for (spec, sel, style) in iterstyles(cursor.node, rules):
 				if cursor.path in sel:
 					for prop in style:
+						# Properties from later rules overwrite those from earlier ones
+						# We're storing the count so that sorting keeps the order
 						styles[prop.name] = (count, prop.cssText)
 						count += 1
 			style = " ".join("{};".format(value) for (count, value) in sorted(styles.values()))
