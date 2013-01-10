@@ -444,11 +444,11 @@ the outermost template::
 A ``note`` tag is a comment, i.e. the content of the tag will be completely ignored.
 
 
-The variable ``self``
----------------------
+The variable ``stack``
+----------------------
 
-A UL4 template can use the variable ``self`` to refer to the template itself.
-This variable is automatically defined inside the template.
+A UL4 template can use the variable ``stack``, which is a call stack of the
+currently executing template. So ``stack[-1]`` for example is the template itself.
 
 
 Nested scopes
@@ -626,14 +626,8 @@ will be used instead, i.e. ``<?print @(2000-01-31) + monthdelta(1)?>`` prints
 
 ``vars()`` returns a dictionary containing all currently defined variables
 (i.e. variables passed to the template, defined via ``<?code?>`` tags or as
-loop variables). ``vars()`` does not contain the automatic variable ``self``.
-
-
-``allvars``
-"""""""""""
-
-``allvars()`` works similar to ``vars()``, but does contain the automatic
-variable ``self``.
+loop variables). This does include variables from the encoding scope and the
+global variable ``stack``.
 
 
 ``random``

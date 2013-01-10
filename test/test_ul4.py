@@ -317,8 +317,8 @@ all_renderers = [
 	# ("python_dump", render_python_dump),
 	# ("js", render_js),
 	# ("php", render_php),
-	("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
-	("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
+	# ("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
+	# ("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
 ]
 
 
@@ -1239,21 +1239,6 @@ def test_function_vars(r):
 		r("<?print vars(1, 2)?>")
 	with raises(argumentmismatchmessage):
 		r("<?print vars(foo=1)?>")
-	assert "yes" == r(code, var="spam", spam="eggs")
-	assert "no" == r(code, var="nospam", spam="eggs")
-	assert "no" == r(code, var="stack", spam="eggs")
-
-
-@pytest.mark.ul4
-def test_function_allvars(r):
-	code = "<?if var in allvars()?>yes<?else?>no<?end if?>"
-
-	with raises(argumentmismatchmessage):
-		r("<?print allvars(1)?>")
-	with raises(argumentmismatchmessage):
-		r("<?print allvars(1, 2)?>")
-	with raises(argumentmismatchmessage):
-		r("<?print allvars(foo=1)?>")
 	assert "yes" == r(code, var="spam", spam="eggs")
 	assert "no" == r(code, var="nospam", spam="eggs")
 	assert "yes" == r(code, var="stack", spam="eggs")

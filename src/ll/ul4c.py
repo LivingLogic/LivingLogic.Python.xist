@@ -575,7 +575,7 @@ class Var(AST):
 		return self.name
 
 	def formatpython(self, indent):
-		return "ul4c._getitem(allvars, {!r})".format(self.name)
+		return "ul4c._getitem(vars, {!r})".format(self.name)
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.name)
@@ -994,7 +994,7 @@ class Print(UnaryTag):
 		return "{}print {}\n".format(indent*"\t", self.obj.format(indent))
 
 	def formatpython(self, indent):
-		return "{i}# <?print?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield self.function_str(allvars, {o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)
+		return "{i}# <?print?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield self.function_str(vars, {o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)
 
 
 @register("printx")
@@ -1574,7 +1574,7 @@ class CallFunc(AST):
 			args.append("*{}".format(self.remargs.formatpython(indent)))
 		if self.remkwargs is not None:
 			args.append("**{}".format(self.remkwargs.formatpython(indent)))
-		return "stack[0].function_{}(allvars, {})".format(self.funcname, ", ".join(args))
+		return "stack[0].function_{}(vars, {})".format(self.funcname, ", ".join(args))
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.funcname)
@@ -1690,7 +1690,7 @@ class Render(UnaryTag):
 		if isinstance(self.obj, CallMeth) and self.obj.methname == "render":
 			code = "yield from {}".format(self.obj.formatpython(indent))
 		else:
-			code = "yield self.function_str(allvars, {})".format(self.obj.formatpython(indent))
+			code = "yield self.function_str(vars, {})".format(self.obj.formatpython(indent))
 		return "{i}# <?render?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}{c}\n".format(i=indent*"\t", id=id(self), c=code, l=self.location)
 
 
@@ -1708,43 +1708,39 @@ class Callable(object):
 			raise AttributeError(name)
 
 	@classmethod
-	def function_vars(cls, allvars):
-		return allvars.maps[0]
+	def function_vars(cls, vars):
+		return vars
 
 	@classmethod
-	def function_allvars(cls, allvars):
-		return allvars
+	def function_get(cls, vars, name, default=None):
+		return vars.get(name, default)
 
 	@classmethod
-	def function_get(cls, allvars, name, default=None):
-		return allvars.get(name, default)
-
-	@classmethod
-	def function_now(cls, allvars):
+	def function_now(cls, vars):
 		return datetime.datetime.now()
 
 	@classmethod
-	def function_utcnow(cls, allvars):
+	def function_utcnow(cls, vars):
 		return datetime.datetime.utcnow()
 
 	@classmethod
-	def function_date(cls, allvars, year, month, day, hour=0, minute=0, second=0, microsecond=0):
+	def function_date(cls, vars, year, month, day, hour=0, minute=0, second=0, microsecond=0):
 		return datetime.datetime(year, month, day, hour, minute, second, microsecond)
 
 	@classmethod
-	def function_timedelta(cls, allvars, days=0, seconds=0, microseconds=0):
+	def function_timedelta(cls, vars, days=0, seconds=0, microseconds=0):
 		return datetime.timedelta(days, seconds, microseconds)
 
 	@classmethod
-	def function_monthdelta(cls, allvars, months=0):
+	def function_monthdelta(cls, vars, months=0):
 		return misc.monthdelta(months)
 
 	@classmethod
-	def function_random(cls, allvars, ):
+	def function_random(cls, vars, ):
 		return random.random()
 
 	@classmethod
-	def function_xmlescape(cls, allvars, obj):
+	def function_xmlescape(cls, vars, obj):
 		if obj is None:
 			return ""
 		elif isinstance(obj, Undefined):
@@ -1753,19 +1749,19 @@ class Callable(object):
 			return misc.xmlescape(str(obj))
 
 	@classmethod
-	def function_csv(cls, allvars, obj):
+	def function_csv(cls, vars, obj):
 		if obj is None:
 			return ""
 		elif isinstance(obj, Undefined):
 			return ""
 		elif not isinstance(obj, str):
-			obj = cls.function_repr(allvars, obj)
+			obj = cls.function_repr(vars, obj)
 		if any(c in obj for c in ',"\n'):
 			return '"{}"'.format(obj.replace('"', '""'))
 		return obj
 
 	@classmethod
-	def function_asjson(cls, allvars, obj):
+	def function_asjson(cls, vars, obj):
 		if obj is None:
 			return "null"
 		elif isinstance(obj, Undefined):
@@ -1783,30 +1779,30 @@ class Callable(object):
 		elif isinstance(obj, color.Color):
 			return "ul4.Color.create({}, {}, {}, {})".format(*obj)
 		elif isinstance(obj, collections.Mapping):
-			return "{{{}}}".format(", ".join("{}: {}".format(cls.function_asjson(allvars, key), cls.function_asjson(allvars, value)) for (key, value) in obj.items()))
+			return "{{{}}}".format(", ".join("{}: {}".format(cls.function_asjson(vars, key), cls.function_asjson(vars, value)) for (key, value) in obj.items()))
 		elif isinstance(obj, collections.Sequence):
-			return "[{}]".format(", ".join(cls.function_asjson(allvars, item) for item in obj))
+			return "[{}]".format(", ".join(cls.function_asjson(vars, item) for item in obj))
 		elif isinstance(obj, Template):
 			return obj.jssource()
 		else:
 			raise TypeError("can't handle object of type {}".format(type(obj)))
 
 	@classmethod
-	def function_fromjson(cls, allvars, string):
+	def function_fromjson(cls, vars, string):
 		return json.loads(string)
 
 	@classmethod
-	def function_asul4on(cls, allvars, obj):
+	def function_asul4on(cls, vars, obj):
 		from ll import ul4on
 		return ul4on.dumps(obj)
 
 	@classmethod
-	def function_fromul4on(cls, allvars, string):
+	def function_fromul4on(cls, vars, string):
 		from ll import ul4on
 		return ul4on.loads(string)
 
 	@classmethod
-	def function_str(cls, allvars, obj=""):
+	def function_str(cls, vars, obj=""):
 		if obj is None:
 			return ""
 		elif isinstance(obj, Undefined):
@@ -1815,42 +1811,42 @@ class Callable(object):
 			return str(obj)
 
 	@classmethod
-	def function_int(cls, allvars, obj=0, base=None):
+	def function_int(cls, vars, obj=0, base=None):
 		if base is None:
 			return int(obj)
 		else:
 			return int(obj, base)
 
 	@classmethod
-	def function_float(cls, allvars, obj=0.0):
+	def function_float(cls, vars, obj=0.0):
 		return float(obj)
 
 	@classmethod
-	def function_bool(cls, allvars, obj=False):
+	def function_bool(cls, vars, obj=False):
 		return bool(obj)
 
 	@classmethod
-	def function_len(cls, allvars, sequence):
+	def function_len(cls, vars, sequence):
 		return len(sequence)
 
 	@classmethod
-	def function_abs(cls, allvars, number):
+	def function_abs(cls, vars, number):
 		return abs(number)
 
 	@classmethod
-	def function_any(cls, allvars, iterable):
+	def function_any(cls, vars, iterable):
 		return any(iterable)
 
 	@classmethod
-	def function_all(cls, allvars, iterable):
+	def function_all(cls, vars, iterable):
 		return all(iterable)
 
 	@classmethod
-	def function_enumerate(cls, allvars, iterable, start=0):
+	def function_enumerate(cls, vars, iterable, start=0):
 		return enumerate(iterable, start)
 
 	@classmethod
-	def function_enumfl(cls, allvars, iterable, start=0):
+	def function_enumfl(cls, vars, iterable, start=0):
 		lastitem = None
 		first = True
 		i = start
@@ -1871,7 +1867,7 @@ class Callable(object):
 			i += 1
 
 	@classmethod
-	def function_isfirstlast(cls, allvars, iterable):
+	def function_isfirstlast(cls, vars, iterable):
 		lastitem = None
 		first = True
 		it = iter(iterable)
@@ -1890,14 +1886,14 @@ class Callable(object):
 				first = False
 
 	@classmethod
-	def function_isfirst(cls, allvars, iterable):
+	def function_isfirst(cls, vars, iterable):
 		first = True
 		for item in iterable:
 			yield (first, item)
 			first = False
 
 	@classmethod
-	def function_islast(cls, allvars, iterable):
+	def function_islast(cls, vars, iterable):
 		lastitem = None
 		it = iter(iterable)
 		try:
@@ -1914,63 +1910,63 @@ class Callable(object):
 				yield (False, lastitem)
 
 	@classmethod
-	def function_isundefined(cls, allvars, obj):
+	def function_isundefined(cls, vars, obj):
 		return isinstance(obj, Undefined)
 
 	@classmethod
-	def function_isdefined(cls, allvars, obj):
+	def function_isdefined(cls, vars, obj):
 		return not isinstance(obj, Undefined)
 
 	@classmethod
-	def function_isnone(cls, allvars, obj):
+	def function_isnone(cls, vars, obj):
 		return obj is None
 
 	@classmethod
-	def function_isstr(cls, allvars, obj):
+	def function_isstr(cls, vars, obj):
 		return isinstance(obj, str)
 
 	@classmethod
-	def function_isint(cls, allvars, obj):
+	def function_isint(cls, vars, obj):
 		return isinstance(obj, int) and not isinstance(obj, bool)
 
 	@classmethod
-	def function_isfloat(cls, allvars, obj):
+	def function_isfloat(cls, vars, obj):
 		return isinstance(obj, float)
 
 	@classmethod
-	def function_isbool(cls, allvars, obj):
+	def function_isbool(cls, vars, obj):
 		return isinstance(obj, bool)
 
 	@classmethod
-	def function_isdate(cls, allvars, obj):
+	def function_isdate(cls, vars, obj):
 		return isinstance(obj, (datetime.datetime, datetime.date))
 
 	@classmethod
-	def function_istimedelta(cls, allvars, obj):
+	def function_istimedelta(cls, vars, obj):
 		return isinstance(obj, datetime.timedelta)
 
 	@classmethod
-	def function_ismonthdelta(cls, allvars, obj):
+	def function_ismonthdelta(cls, vars, obj):
 		return isinstance(obj, misc.monthdelta)
 
 	@classmethod
-	def function_islist(cls, allvars, obj):
+	def function_islist(cls, vars, obj):
 		return isinstance(obj, collections.Sequence) and not isinstance(obj, str) and not isinstance(obj, color.Color)
 
 	@classmethod
-	def function_isdict(cls, allvars, obj):
+	def function_isdict(cls, vars, obj):
 		return isinstance(obj, collections.Mapping) and not isinstance(obj, Template)
 
 	@classmethod
-	def function_iscolor(cls, allvars, obj):
+	def function_iscolor(cls, vars, obj):
 		return isinstance(obj, color.Color)
 
 	@classmethod
-	def function_istemplate(cls, allvars, obj):
+	def function_istemplate(cls, vars, obj):
 		return isinstance(obj, (Template, TemplateClosure))
 
 	@classmethod
-	def function_repr(cls, allvars, obj):
+	def function_repr(cls, vars, obj):
 		if isinstance(obj, str):
 			return repr(obj)
 		elif isinstance(obj, datetime.datetime):
@@ -1994,51 +1990,51 @@ class Callable(object):
 					return "#{}{}{}{}".format(s[1], s[3], s[5], s[7])
 				return s
 		elif isinstance(obj, collections.Sequence):
-			return "[{}]".format(", ".join(cls.function_repr(allvars, item) for item in obj))
+			return "[{}]".format(", ".join(cls.function_repr(vars, item) for item in obj))
 		elif isinstance(obj, collections.Mapping):
-			return "{{{}}}".format(", ".join("{}: {}".format(cls.function_repr(allvars, key), cls.function_repr(allvars, value)) for (key, value) in obj.items()))
+			return "{{{}}}".format(", ".join("{}: {}".format(cls.function_repr(vars, key), cls.function_repr(vars, value)) for (key, value) in obj.items()))
 		else:
 			return repr(obj)
 
 
 	@classmethod
-	def function_chr(cls, allvars, i):
+	def function_chr(cls, vars, i):
 		return chr(i)
 
 	@classmethod
-	def function_ord(cls, allvars, c):
+	def function_ord(cls, vars, c):
 		return ord(c)
 
 	@classmethod
-	def function_hex(cls, allvars, number):
+	def function_hex(cls, vars, number):
 		return hex(number)
 
 	@classmethod
-	def function_oct(cls, allvars, number):
+	def function_oct(cls, vars, number):
 		return oct(number)
 
 	@classmethod
-	def function_bin(cls, allvars, number):
+	def function_bin(cls, vars, number):
 		return bin(number)
 
 	@classmethod
-	def function_min(cls, allvars, *args):
+	def function_min(cls, vars, *args):
 		return min(*args)
 
 	@classmethod
-	def function_max(cls, allvars, *args):
+	def function_max(cls, vars, *args):
 		return max(*args)
 
 	@classmethod
-	def function_sorted(cls, allvars, iterable):
+	def function_sorted(cls, vars, iterable):
 		return sorted(iterable)
 
 	@classmethod
-	def function_range(cls, allvars, *args):
+	def function_range(cls, vars, *args):
 		return range(*args)
 
 	@classmethod
-	def function_type(cls, allvars, obj):
+	def function_type(cls, vars, obj):
 		if obj is None:
 			return "none"
 		elif isinstance(obj, str):
@@ -2069,19 +2065,19 @@ class Callable(object):
 
 
 	@classmethod
-	def function_reversed(cls, allvars, sequence):
+	def function_reversed(cls, vars, sequence):
 		return reversed(sequence)
 
 	@classmethod
-	def function_randrange(cls, allvars, *args):
+	def function_randrange(cls, vars, *args):
 		return random.randrange(*args)
 
 	@classmethod
-	def function_randchoice(cls, allvars, sequence):
+	def function_randchoice(cls, vars, sequence):
 		return random.choice(sequence)
 
 	@classmethod
-	def function_format(cls, allvars, obj, fmt, lang=None):
+	def function_format(cls, vars, obj, fmt, lang=None):
 		if isinstance(obj, (datetime.date, datetime.time, datetime.timedelta)):
 			if lang is None:
 				lang = "en"
@@ -2104,27 +2100,27 @@ class Callable(object):
 
 
 	@classmethod
-	def function_zip(cls, allvars, *iterables):
+	def function_zip(cls, vars, *iterables):
 		return zip(*iterables)
 
 	@classmethod
-	def function_urlquote(cls, allvars, string):
+	def function_urlquote(cls, vars, string):
 		return urlparse.quote_plus(string)
 
 	@classmethod
-	def function_urlunquote(cls, allvars, string):
+	def function_urlunquote(cls, vars, string):
 		return urlparse.unquote_plus(string)
 
 	@classmethod
-	def function_rgb(cls, allvars, r, g, b, a=1.0):
+	def function_rgb(cls, vars, r, g, b, a=1.0):
 		return color.Color.fromrgb(r, g, b, a)
 
 	@classmethod
-	def function_hls(cls, allvars, h, l, s, a=1.0):
+	def function_hls(cls, vars, h, l, s, a=1.0):
 		return color.Color.fromhls(h, l, s, a)
 
 	@classmethod
-	def function_hsv(cls, allvars, h, s, v, a=1.0):
+	def function_hsv(cls, vars, h, s, v, a=1.0):
 		return color.Color.fromhsv(h, s, v, a)
 
 	@classmethod
@@ -2487,14 +2483,16 @@ class Template(Block, Callable):
 		:var:`vars` contains the top level variables available to the
 		template code.
 		"""
-		return self._render([], vars)
+		stack = []
+		vars = collections.ChainMap(vars, {'stack': stack})
+		return self._render(stack, vars)
 
 	def renders(self, **vars):
 		"""
 		Render the template as a string. :var:`vars` contains the top level
 		variables available to the template code.
 		"""
-		return "".join(self._render([], vars))
+		return "".join(self.render(**vars))
 
 	def pythonfunction(self):
 		"""
@@ -2519,9 +2517,8 @@ class Template(Block, Callable):
 		if self._pythonsource is None:
 			v = []
 			v.append("def {}(self, stack, vars):\n".format(self.name if self.name is not None else "unnamed"))
-			v.append("\timport datetime, collections\n")
+			v.append("\timport datetime\n")
 			v.append("\tfrom ll import ul4c, misc, color\n")
-			v.append("\tallvars = collections.ChainMap(vars, {'stack': stack})\n")
 			v.append("\tif 0:\n")
 			v.append("\t\tyield\n")
 			v.append("\ttry:\n")
@@ -2697,7 +2694,8 @@ class TemplateClosure(Object):
 
 	def __init__(self, template, vars):
 		self.template = template
-		self.vars = vars.copy()
+		# Freeze variable of the currently running template
+		self.vars = collections.ChainMap(vars.maps[0].copy(), *vars.maps[1:])
 
 	def _render(self, stack, vars):
 		return self.template._render(stack, collections.ChainMap(vars, self.vars))

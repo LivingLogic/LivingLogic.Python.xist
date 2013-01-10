@@ -1,10 +1,9 @@
 Changes in 4.7 (released ??/??/2013)
 ------------------------------------
 
-*	A variable ``stack`` is now autoamtically defined in all UL4 templates. This
+*	A variable ``stack`` is now automatically defined in all UL4 templates. This
 	list contains a stack of the currently executing UL4 templates. ``stack[-1]``
-	is the current template. ``stack`` will not be included in ``vars()``. A new
-	function ``allvars()`` has been added that *does* include ``stack``.
+	is the current template.
 
 *	UL4 templates now support lexical scopes. A locally defined subtemplate can
 	access all local variables of the template in which it is defined.
