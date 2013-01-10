@@ -1574,7 +1574,7 @@ class CallFunc(AST):
 			args.append("*{}".format(self.remargs.formatpython(indent)))
 		if self.remkwargs is not None:
 			args.append("**{}".format(self.remkwargs.formatpython(indent)))
-		return "self.function_{}(allvars, {})".format(self.funcname, ", ".join(args))
+		return "stack[0].function_{}(allvars, {})".format(self.funcname, ", ".join(args))
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.funcname)
@@ -1655,7 +1655,7 @@ class CallMeth(AST):
 			args.append("*{}".format(self.remargs.formatpython(indent)))
 		if self.remkwargs is not None:
 			args.append("**{}".format(self.remkwargs.formatpython(indent)))
-		return "self.method_{}(allvars, {}, {})".format(self.methname, self.obj.formatpython(indent), ", ".join(args))
+		return "stack[0].method_{}(stack, {}, {})".format(self.methname, self.obj.formatpython(indent), ", ".join(args))
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.methname)
@@ -2128,27 +2128,27 @@ class Callable(object):
 		return color.Color.fromhsv(h, s, v, a)
 
 	@classmethod
-	def method_split(cls, allvars, obj, sep=None, count=None):
+	def method_split(cls, stack, obj, sep=None, count=None):
 		return obj.split(sep, count if count is not None else -1)
 
 	@classmethod
-	def method_rsplit(cls, allvars, obj, sep=None, count=None):
+	def method_rsplit(cls, stack, obj, sep=None, count=None):
 		return obj.rsplit(sep, count if count is not None else -1)
 
 	@classmethod
-	def method_strip(cls, allvars, obj, chars=None):
+	def method_strip(cls, stack, obj, chars=None):
 		return obj.strip(chars)
 
 	@classmethod
-	def method_lstrip(cls, allvars, obj, chars=None):
+	def method_lstrip(cls, stack, obj, chars=None):
 		return obj.lstrip(chars)
 
 	@classmethod
-	def method_rstrip(cls, allvars, obj, chars=None):
+	def method_rstrip(cls, stack, obj, chars=None):
 		return obj.rstrip(chars)
 
 	@classmethod
-	def method_find(cls, allvars, obj, sub, start=None, end=None):
+	def method_find(cls, stack, obj, sub, start=None, end=None):
 		if isinstance(obj, str):
 			return obj.find(sub, start, end)
 		else:
@@ -2162,7 +2162,7 @@ class Callable(object):
 				return -1
 
 	@classmethod
-	def method_rfind(cls, allvars, obj, sub, start=None, end=None):
+	def method_rfind(cls, stack, obj, sub, start=None, end=None):
 		if isinstance(obj, str):
 			return obj.rfind(sub, start, end)
 		else:
@@ -2172,74 +2172,74 @@ class Callable(object):
 			return -1
 
 	@classmethod
-	def method_startswith(cls, allvars, obj, prefix):
+	def method_startswith(cls, stack, obj, prefix):
 		return obj.startswith(prefix)
 
 	@classmethod
-	def method_endswith(cls, allvars, obj, suffix):
+	def method_endswith(cls, stack, obj, suffix):
 		return obj.endswith(suffix)
 
 	@classmethod
-	def method_upper(cls, allvars, obj):
+	def method_upper(cls, stack, obj):
 		return obj.upper()
 
 	@classmethod
-	def method_lower(cls, allvars, obj):
+	def method_lower(cls, stack, obj):
 		return obj.lower()
 
 	@classmethod
-	def method_capitalize(cls, allvars, obj):
+	def method_capitalize(cls, stack, obj):
 		return obj.capitalize()
 
 	@classmethod
-	def method_replace(cls, allvars, obj, old, new, count=None):
+	def method_replace(cls, stack, obj, old, new, count=None):
 		if count is None:
 			return obj.replace(old, new)
 		else:
 			return obj.replace(old, new, count)
 
 	@classmethod
-	def method_r(cls, allvars, obj):
+	def method_r(cls, stack, obj):
 		return obj.r()
 
 	@classmethod
-	def method_g(cls, allvars, obj):
+	def method_g(cls, stack, obj):
 		return obj.g()
 
 	@classmethod
-	def method_b(cls, allvars, obj):
+	def method_b(cls, stack, obj):
 		return obj.b()
 
 	@classmethod
-	def method_a(cls, allvars, obj):
+	def method_a(cls, stack, obj):
 		return obj.a()
 
 	@classmethod
-	def method_hls(cls, allvars, obj):
+	def method_hls(cls, stack, obj):
 		return obj.hls()
 
 	@classmethod
-	def method_hlsa(cls, allvars, obj):
+	def method_hlsa(cls, stack, obj):
 		return obj.hlsa()
 
 	@classmethod
-	def method_hsv(cls, allvars, obj):
+	def method_hsv(cls, stack, obj):
 		return obj.hsv()
 
 	@classmethod
-	def method_hsva(cls, allvars, obj):
+	def method_hsva(cls, stack, obj):
 		return obj.hsva()
 
 	@classmethod
-	def method_lum(cls, allvars, obj):
+	def method_lum(cls, stack, obj):
 		return obj.lum()
 
 	@classmethod
-	def method_weekday(cls, allvars, obj):
+	def method_weekday(cls, stack, obj):
 		return obj.weekday()
 
 	@classmethod
-	def method_week(cls, allvars, obj, firstweekday=None):
+	def method_week(cls, stack, obj, firstweekday=None):
 		if firstweekday is None:
 			firstweekday = 0
 		else:
@@ -2255,33 +2255,33 @@ class Callable(object):
 		return yearday//7
 
 	@classmethod
-	def method_items(cls, allvars, obj):
+	def method_items(cls, stack, obj):
 		return obj.items()
 
 	@classmethod
-	def method_values(cls, allvars, obj):
+	def method_values(cls, stack, obj):
 		return obj.values()
 
 	@classmethod
-	def method_join(cls, allvars, obj, iterable):
+	def method_join(cls, stack, obj, iterable):
 		return obj.join(iterable)
 
 	@classmethod
-	def method_render(cls, allvars, obj, **vars):
-		return obj.render(**vars)
+	def method_render(cls, stack, obj, **vars):
+		return obj._render(stack, vars)
 
 	@classmethod
-	def method_renders(cls, allvars, obj, **vars):
-		return obj.renders(**vars)
+	def method_renders(cls, stack, obj, **vars):
+		return "".join(obj._render(stack, vars))
 
 	@classmethod
-	def method_mimeformat(cls, allvars, obj):
+	def method_mimeformat(cls, stack, obj):
 		weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 		monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 		return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(obj, weekdayname[obj.weekday()], monthname[obj.month])
 
 	@classmethod
-	def method_isoformat(cls, allvars, obj):
+	def method_isoformat(cls, stack, obj):
 		result = obj.isoformat()
 		suffix = "T00:00:00"
 		if result.endswith(suffix):
@@ -2289,47 +2289,47 @@ class Callable(object):
 		return result
 
 	@classmethod
-	def method_yearday(cls, allvars, obj):
+	def method_yearday(cls, stack, obj):
 		return (obj - obj.__class__(obj.year, 1, 1)).days+1
 
 	@classmethod
-	def method_get(cls, allvars, obj, key, default=None):
+	def method_get(cls, stack, obj, key, default=None):
 		return obj.get(key, default)
 
 	@classmethod
-	def method_withlum(cls, allvars, obj, lum):
+	def method_withlum(cls, stack, obj, lum):
 		return obj.withlum(lum)
 
 	@classmethod
-	def method_witha(cls, allvars, obj, a):
+	def method_witha(cls, stack, obj, a):
 		return obj.witha(a)
 
 	@classmethod
-	def method_day(cls, allvars, obj):
+	def method_day(cls, stack, obj):
 		return obj.day
 
 	@classmethod
-	def method_month(cls, allvars, obj):
+	def method_month(cls, stack, obj):
 		return obj.month
 
 	@classmethod
-	def method_year(cls, allvars, obj):
+	def method_year(cls, stack, obj):
 		return obj.year
 
 	@classmethod
-	def method_hour(cls, allvars, obj):
+	def method_hour(cls, stack, obj):
 		return obj.hour
 
 	@classmethod
-	def method_minute(cls, allvars, obj):
+	def method_minute(cls, stack, obj):
 		return obj.minute
 
 	@classmethod
-	def method_second(cls, allvars, obj):
+	def method_second(cls, stack, obj):
 		return obj.second
 
 	@classmethod
-	def method_microsecond(cls, allvars, obj):
+	def method_microsecond(cls, stack, obj):
 		return obj.microsecond
 
 
@@ -2456,7 +2456,7 @@ class Template(Block, Callable):
 		return "".join(v)
 
 	def formatpython(self, indent):
-		return "{i}# <?def?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] = ul4c.TemplateClosure(self._getast({id}), vars)\n".format(i=indent*"\t", n=self.name if self.name is not None else "unnamed", id=id(self), l=self.location)
+		return "{i}# <?def?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] = ul4c.TemplateClosure(stack[-1]._getast({id}), vars)\n".format(i=indent*"\t", n=self.name if self.name is not None else "unnamed", id=id(self), l=self.location)
 
 	def _getast(self, astid):
 		if self._astsbyid is None:
@@ -2478,20 +2478,23 @@ class Template(Block, Callable):
 		else:
 			raise Error(ast.location) from exc
 
+	def _render(self, stack, vars):
+		return self.pythonfunction()(self, stack, vars)
+
 	def render(self, **vars):
 		"""
 		Render the template iteratively (i.e. this is a generator).
 		:var:`vars` contains the top level variables available to the
 		template code.
 		"""
-		return self.pythonfunction()(self, vars)
+		return self._render([], vars)
 
 	def renders(self, **vars):
 		"""
 		Render the template as a string. :var:`vars` contains the top level
 		variables available to the template code.
 		"""
-		return "".join(self.pythonfunction()(self, vars))
+		return "".join(self._render([], vars))
 
 	def pythonfunction(self):
 		"""
@@ -2507,7 +2510,7 @@ class Template(Block, Callable):
 		return self._pythonfunction
 
 	def __call__(self, **vars):
-		return self.pythonfunction()(self, vars)
+		return self.pythonfunction()(self, [], vars)
 
 	def pythonsource(self):
 		"""
@@ -2515,17 +2518,20 @@ class Template(Block, Callable):
 		"""
 		if self._pythonsource is None:
 			v = []
-			v.append("def {}(self, vars):\n".format(self.name if self.name is not None else "unnamed"))
+			v.append("def {}(self, stack, vars):\n".format(self.name if self.name is not None else "unnamed"))
 			v.append("\timport datetime, collections\n")
 			v.append("\tfrom ll import ul4c, misc, color\n")
-			v.append("\tallvars = collections.ChainMap(vars, {'self': self})\n")
+			v.append("\tallvars = collections.ChainMap(vars, {'stack': stack})\n")
 			v.append("\tif 0:\n")
 			v.append("\t\tyield\n")
 			v.append("\ttry:\n")
+			v.append("\t\tstack.append(self)\n")
 			for node in self.content:
 				v.append(node.formatpython(2))
 			v.append("\texcept Exception as exc:\n")
-			v.append("\t\tself._handleexc(exc)\n")
+			v.append("\t\tstack[-1]._handleexc(exc)\n")
+			v.append("\tfinally:\n")
+			v.append("\t\tstack.pop()\n")
 			self._pythonsource = "".join(v)
 		return self._pythonsource
 
@@ -2693,14 +2699,8 @@ class TemplateClosure(Object):
 		self.template = template
 		self.vars = vars.copy()
 
-	def __call__(self, **vars):
-		return "".join(self.render(**vars))
-
-	def render(self, **vars):
-		return self.template.pythonfunction()(self.template, collections.ChainMap(vars, self.vars))
-
-	def renders(self, **vars):
-		return "".join(self.render(**vars))
+	def _render(self, stack, vars):
+		return self.template._render(stack, collections.ChainMap(vars, self.vars))
 
 	@property
 	def location(self):

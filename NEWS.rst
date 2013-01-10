@@ -1,10 +1,10 @@
 Changes in 4.7 (released ??/??/2013)
 ------------------------------------
 
-*	A variable ``self`` is now autoamtically defined in all UL4 templates. This
-	variable refers to the template itself. However this variable will not be
-	included in ``vars()``. A new function ``allvars()`` has been added that
-	*does* include ``self``.
+*	A variable ``stack`` is now autoamtically defined in all UL4 templates. This
+	list contains a stack of the currently executing UL4 templates. ``stack[-1]``
+	is the current template. ``stack`` will not be included in ``vars()``. A new
+	function ``allvars()`` has been added that *does* include ``stack``.
 
 *	UL4 templates now support lexical scopes. A locally defined subtemplate can
 	access all local variables of the template in which it is defined.
@@ -12,7 +12,7 @@ Changes in 4.7 (released ??/??/2013)
 *	UL4 functions and methods now suport keyword arguments, e.g.
 	``format(now(), fmt="%Y-%m-%d", lang="en")``.
 
-*	UL4 template can no longer be converted to Java ``CompiledTemplate`` object.
+*	UL4 templates can no longer be converted to Java ``CompiledTemplate`` objects.
 	(However converting it to an ``InterpretedTemplate`` is of course still
 	supported).
 

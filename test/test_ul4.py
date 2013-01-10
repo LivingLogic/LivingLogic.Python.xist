@@ -98,7 +98,7 @@ def render_js(__, **variables):
 	"""
 	template = ul4c.Template(__)
 	js = template.jssource()
-	js = "template = {};\ndata = {};\nprint(template.renders(data));\n".format(js, ul4c._asjson(variables))
+	js = "template = {};\ndata = {};\nprint(template.renders(data));\n".format(js, ul4c.Template.function_asjson({}, variables))
 	f = sys._getframe(1)
 	print("Testing Javascript code compiled by Python ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
 	print(js)
@@ -313,8 +313,8 @@ def render_java_interpretedtemplate_by_java(__, **variables):
 
 all_renderers = [
 	("python", render_python),
-	("python_dumps", render_python_dumps),
-	("python_dump", render_python_dump),
+	# ("python_dumps", render_python_dumps),
+	# ("python_dump", render_python_dump),
 	# ("js", render_js),
 	# ("php", render_php),
 	("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
@@ -345,6 +345,7 @@ argumentmismatchmessage = [
 	"takes from \\d+ to \\d+ positional arguments but \\d+ (was|were) given", # 3.3
 	# Javascript argument mismatch exception messages
 	"requires (at least \\d+|\\d+(-\\d+)?) arguments?, \\d+ given",
+	"required \\w+\\(\\) argument missing",
 	# Java exception messages for argument mismatches
 	"required \\w+\\(\\) argument \"\\w+\" \\(position \\d+\\) missing",
 	"\\w+\\(\\) doesn't support an argument named \"\\w+\"",
@@ -466,7 +467,7 @@ def test_string(r):
 	assert '\xff' == r('<?print "\\xff"?>')
 	assert '\u20ac' == r('''<?print "\\u20ac"?>''')
 	for c in "\x00\x80\u0100\u3042\n\r\t\f\b\a\"":
-		assert c == r('<?print obj?>', obj=c) # This tests :func:`misc.javaexpr` for Java and :func:`ul4c._asjson` for JS
+		assert c == r('<?print obj?>', obj=c) # This tests :func:`misc.javaexpr` for Java and :func:`ul4c.Template.function_asjson` for JS
 
 	# Test literal control characters (but '\r' and '\n' are not allowed)
 	assert 'gu\trk' == r("<?print 'gu\trk'?>")
@@ -1240,7 +1241,7 @@ def test_function_vars(r):
 		r("<?print vars(foo=1)?>")
 	assert "yes" == r(code, var="spam", spam="eggs")
 	assert "no" == r(code, var="nospam", spam="eggs")
-	assert "no" == r(code, var="self", spam="eggs")
+	assert "no" == r(code, var="stack", spam="eggs")
 
 
 @pytest.mark.ul4
@@ -1255,7 +1256,7 @@ def test_function_allvars(r):
 		r("<?print allvars(foo=1)?>")
 	assert "yes" == r(code, var="spam", spam="eggs")
 	assert "no" == r(code, var="nospam", spam="eggs")
-	assert "yes" == r(code, var="self", spam="eggs")
+	assert "yes" == r(code, var="stack", spam="eggs")
 
 
 @pytest.mark.ul4
@@ -2103,7 +2104,7 @@ def test_function_get(r):
 	assert "42" == r("<?print get('x')?>", x=42)
 	assert "17" == r("<?print get('x', 17)?>")
 	assert "42" == r("<?print get('x', 17)?>", x=42)
-	assert "True" == r("<?print istemplate(get('self'))?>")
+	assert "True" == r("<?print islist(get('stack'))?>")
 
 	# Make sure that the parameters have the same name in all implementations
 	assert "42" == r("<?print get(name='x', default=17)?>", x=42)
@@ -2864,10 +2865,11 @@ def test_def(r):
 
 
 @pytest.mark.ul4
-def test_self(r):
-	assert "True" == r("<?print istemplate(self)?>")
-	assert "x" == r("<?def x?><?print self.name?><?end def?><?render x.render()?>")
-	assert "42" == r("<?code self = 42?><?print self?>")
+def test_stack(r):
+	assert "True" == r("<?print istemplate(stack[-1])?>")
+	assert "x" == r("<?def x?><?print stack[-1].name?><?end def?><?render x.render()?>")
+	assert "42" == r("<?code stack = 42?><?print stack?>")
+	assert "42" == r("<?code stack = 42?><?def x?><?print stack?><?end def?><?render x.render()?>")
 
 
 @pytest.mark.ul4
@@ -2928,7 +2930,7 @@ def test_nestedscopes(r):
 	assert "0;1;2;" == r("<?for i in range(3)?><?def x?><?print i?>;<?end def?><?render x.render()?><?end for?>")
 	assert "1;" == r("<?for i in range(3)?><?if i == 1?><?def x?><?print i?>;<?end def?><?end if?><?end for?><?render x.render()?>")
 	assert "1" == r("<?code i = 1?><?def x?><?print i?><?end def?><?code i = 2?><?render x.render()?>")
-	assert "1" == r("<?code i = 1?><?def x?><?def x?><?print i?><?end def?><?code i = 2?><?render x.render()?><?end def?><?code i = 3?><?render x.render()?>")
+	assert "1" == r("<?code i = 1?><?def x?><?def y?><?print i?><?end def?><?code i = 2?><?render y.render()?><?end def?><?code i = 3?><?render x.render()?>")
 
 
 def universaltemplate():
