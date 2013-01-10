@@ -17,6 +17,10 @@ from ll import ul4c, color, misc
 from ll.xist.ns import html, ul4
 
 
+def removews(source):
+	return "".join(line.strip() for line in source.strip().splitlines())
+
+
 class PseudoDict(collections.Mapping):
 	def __init__(self, dict):
 		self.dict = dict
@@ -313,12 +317,12 @@ def render_java_interpretedtemplate_by_java(__, **variables):
 
 all_renderers = [
 	("python", render_python),
-	# ("python_dumps", render_python_dumps),
-	# ("python_dump", render_python_dump),
+	("python_dumps", render_python_dumps),
+	("python_dump", render_python_dump),
 	# ("js", render_js),
 	# ("php", render_php),
-	# ("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
-	# ("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
+	("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
+	("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
 ]
 
 
@@ -2838,13 +2842,6 @@ def test_render(r):
 
 
 @pytest.mark.ul4
-def test_render_var(r):
-	t = ul4c.Template('<?code x += 1?><?print x?>')
-
-	assert '42,43,42' == r('<?print x?>,<?render t.render(x=x)?>,<?print x?>', t=t, x=42)
-
-
-@pytest.mark.ul4
 def test_def(r):
 	assert 'foo' == r('<?def lower?><?print x.lower()?><?end def?><?print lower.renders(x="FOO")?>')
 
@@ -2912,10 +2909,55 @@ def test_templateattributes_localtemplate(r):
 
 @pytest.mark.ul4
 def test_nestedscopes(r):
-	assert "0;1;2;" == r("<?for i in range(3)?><?def x?><?print i?>;<?end def?><?render x.render()?><?end for?>")
-	assert "1;" == r("<?for i in range(3)?><?if i == 1?><?def x?><?print i?>;<?end def?><?end if?><?end for?><?render x.render()?>")
-	assert "1" == r("<?code i = 1?><?def x?><?print i?><?end def?><?code i = 2?><?render x.render()?>")
-	assert "1" == r("<?code i = 1?><?def x?><?def y?><?print i?><?end def?><?code i = 2?><?render y.render()?><?end def?><?code i = 3?><?render x.render()?>")
+	# Subtemplates can see the local variables from their parents
+	source = """
+	<?for i in range(3)?>
+		<?def x?>
+			<?print i?>!
+		<?end def?>
+		<?render x.render()?>
+	<?end for?>
+	"""
+	assert "0!1!2!" == r(removews(source))
+
+	# Subtemplates see the state of the variable at the point of the ``<?def?>`` tag,
+	# so the following code will use ``i = 1`` instead of ``i = 2`` even if the subtemplate is called after the variable has been changed.
+	source = """
+	<?code i = 1?>
+	<?def x?>
+		<?print i?>
+	<?end def?>
+	<?code i = 2?>
+	<?render x.render()?>
+	"""
+	assert "1" == r(removews(source))
+
+
+	# This shows the difference between local variables and variables from the parent.
+	# ``x`` is passed to the subtemplate, so it will always the the current value instead of the one when it is defined
+	# (Furthermore ``y += 1`` will load the variable from the parent but store it as a local variable)
+	source = """
+	<?def outer?>
+		<?def inner?>
+			<?code x += 1?>
+			<?code y += 1?>
+			<?print x?>!
+			<?print y?>!
+		<?end def?>
+		<?code x += 1?>
+		<?code y += 1?>
+		<?render inner.render(x=x)?>
+		<?print x?>!
+		<?print y?>!
+	<?end def?>
+	<?code x += 1?>
+	<?code y += 1?>
+	<?render outer.render(x=x)?>
+	<?print x?>!
+	<?print y?>!
+	"""
+
+	assert "45!43!44!43!43!43!" == r(removews(source), x=42, y=42)
 
 
 def universaltemplate():
