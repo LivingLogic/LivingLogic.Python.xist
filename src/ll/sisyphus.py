@@ -73,14 +73,6 @@ from ll import url, ul4c, misc
 __docformat__ = "reStructuredText"
 
 
-class MaximumRuntimeExceeded(Exception):
-	def __init__(self, maxtime):
-		self.maxtime = maxtime
-
-	def __str__(self):
-		return "maximum runtime of {} seconds exceeded".format(self.maxtime)
-
-
 class Job(object):
 	"""
 	A Job object executes a task once.
@@ -236,7 +228,7 @@ class Job(object):
 		p = argparse.ArgumentParser(description=self.argdescription, epilog="For more info see http://www.livinglogic.de/Python/sisyphus/")
 		p.add_argument("-p", "--projectname", dest="projectname", metavar="NAME", help="The name of the project this job belongs to (default: %(default)s)", default=self.projectname)
 		p.add_argument("-j", "--jobname", dest="jobname", metavar="NAME", help="The name of the job (default: %(default)s)", default=self.jobname if self.jobname is not None else self.__class__.__name__)
-		p.add_argument("-m", "--maxtime", dest="maxtime", metavar="SECONDS", help="Maximum number of seconds the job is allowed to run (default: %(default)s)", type=int, default=self.maxtime)
+		p.add_argument("-m", "--maxtime", dest="maxtime", metavar="SECONDS", help="Maximum number of seconds the job is allowed to run (default: %(default)s)", type=int, default=self.getmaxtime_seconds())
 		p.add_argument(      "--fork", dest="fork", help="Fork the process and do the work in the child process? (default: %(default)s)", action=misc.FlagAction, default=self.fork)
 		p.add_argument("-f", "--log2file", dest="log2file", help="Should the job log into a file? (default: %(default)s)", action=misc.FlagAction, default=self.log2file)
 		p.add_argument("-o", "--log2stdout", dest="log2stdout", help="Should the job log to stdout? (default: %(default)s)", action=misc.FlagAction, default=self.log2stdout)
@@ -270,9 +262,21 @@ class Job(object):
 		self.notify = args.notify
 		return args
 
+	def getmaxtime(self):
+		if isinstance(self.maxtime, datetime.timedelta):
+			return self.maxtime
+		else:
+			return datetime.timedelta(seconds=self.maxtime)
+
+	def getmaxtime_seconds(self):
+		if isinstance(self.maxtime, datetime.timedelta):
+			return int(self.maxtime.total_seconds())
+		else:
+			return self.maxtime
+
 	def _alarm_fork(self, signum, frame):
 		os.kill(self.killpid, signal.SIGTERM) # Kill our child
-		maxtime = datetime.timedelta(seconds=self.maxtime)
+		maxtime = self.getmaxtime()
 		if self._logfile is not None:
 			self.log.sisyphus.result.kill("Terminated child after {}".format(maxtime))
 			self._logfile.close()
@@ -282,7 +286,7 @@ class Job(object):
 
 	def _alarm_nofork(self, signum, frame):
 		self._prefix = ""
-		maxtime = datetime.timedelta(seconds=self.maxtime)
+		maxtime = self.getmaxtime()
 		if self._logfile is not None:
 			self.log.sisyphus.result.kill("Terminated after {}".format(maxtime))
 			self._logfile.close()
@@ -321,7 +325,7 @@ class Job(object):
 			self._formatlogline = ul4c.Template(self.formatlogline.replace("\n", "").replace("\r", "") + "\n", "formatlogline") # Log line formatting template
 			self._createlog() # Create log file and link
 
-			self.log.sisyphus.init("{} (max time {}; pid {})".format(misc.sysinfo.scriptname, datetime.timedelta(seconds=self.maxtime), misc.sysinfo.pid))
+			self.log.sisyphus.init("{} (max time {}; pid {})".format(misc.sysinfo.scriptname, self.getmaxtime(), misc.sysinfo.pid))
 
 			if self.fork: # Forking mode?
 				# Fork the process; the child will do the work; the parent will monitor the maximum runtime
@@ -329,14 +333,14 @@ class Job(object):
 				if pid: # We are the parent process
 					# set a signal to kill the child process after the maximum runtime
 					signal.signal(signal.SIGALRM, self._alarm_fork)
-					signal.alarm(self.maxtime)
+					signal.alarm(self.getmaxtime_seconds())
 					os.waitpid(pid, 0) # Wait for the child process to terminate
 					return # Exit normally
 				self.log.sisyphus.init("forked worker child (child pid {})".format(os.getpid()))
 			else: # We didn't fork
 				# set a signal to kill ourselves after the maximum runtime
 				signal.signal(signal.SIGALRM, self._alarm_nofork)
-				signal.alarm(self.maxtime)
+				signal.alarm(self.getmaxtime_seconds())
 
 			if self.notify:
 				self.notifystart()

@@ -19,6 +19,9 @@ Changes in 4.7 (released ??/??/2013)
 	now will simply return an empty iterator instead of failing with an Oracle
 	exception ``ORA-00942: table or view does not exist``.
 
+*	For sisyphus jobs, the class attribute ``maxtime`` can now be set to a
+	``datetime.timedelta`` object.
+
 
 Changes in 4.6 (released 12/18/2012)
 ------------------------------------
