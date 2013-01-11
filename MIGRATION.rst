@@ -4,7 +4,7 @@ Migrating to version 4.7
 Changes to UL4
 --------------
 
-*	Compiling a UL4 template to a Java ``CompiledTemplate`` is now longer
+*	Compiling a UL4 template to a Java ``CompiledTemplate`` is no longer
 	supported (i.e. ``template.javasource(interpreted=False)`` no longer works.
 	Use ``template.javasource()`` instead (which creates Java sourcecode for
 	an ``InterpretedTemplate``).
