@@ -1,4 +1,4 @@
-Changes in 4.7 (released ??/??/2013)
+Changes in 4.7 (released 01/11/2013)
 ------------------------------------
 
 *	A variable ``stack`` is now automatically defined in all UL4 templates. This
