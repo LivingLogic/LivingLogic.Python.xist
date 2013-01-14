@@ -22,7 +22,7 @@ possible to implement template renderers in multiple programming languages.
 __docformat__ = "reStructuredText"
 
 
-import re, datetime, urllib.parse as urlparse, json, collections, locale, itertools, random, datetime
+import re, datetime, urllib.parse as urlparse, json, collections, locale, itertools, random, datetime, unicodedata
 
 import antlr3
 
@@ -313,11 +313,31 @@ class Text(Tag):
 	"""
 	AST node for literal text.
 	"""
+	fields = AST.fields.union({"text"})
+
+	def __init__(self, location=None, text=None):
+		Tag.__init__(self, location)
+		self._text = text
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self._text)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self._text = decoder.load()
+
+	@property
+	def text(self):
+		# If ``text`` is ``None``, we output the text from the location info.
+		# This is done to minimize the size of the UL4ON dump.
+		return self._text if self._text is not None else self.location.code
+
 	def format(self, indent):
-		return "{}text {!r}\n".format(indent*"\t", self.location.code)
+		return "{}text {!r}\n".format(indent*"\t", self.text)
 
 	def formatpython(self, indent):
-		return "{i}# literal at position {l.starttag}:{l.endtag} ({id})\n{i}yield {l.code!r}\n".format(i=indent*"\t", id=id(self), l=self.location)
+		return "{i}# literal at position {l.starttag}:{l.endtag} ({id})\n{i}yield {t!r}\n".format(i=indent*"\t", id=id(self), l=self.location, t=self.text)
 
 
 @register("const")
@@ -1628,7 +1648,7 @@ class CallMeth(AST):
 			args.append(("*{}".format(repr(self.remargs)),))
 		if self.remkwargs is not None:
 			args.append(("**{}".format(repr(self.remkwargs)),))
-		return "{}({})".format(self.__class__.__name__, ", ".join(itertools.chain(args)))
+		return "{}({})".format(self.__class__.__name__, ", ".join(itertools.chain(*args)))
 
 	def format(self, indent):
 		args = []
@@ -2346,10 +2366,10 @@ class Template(Block, Callable):
 	A :class:`Template` object is itself an AST node. Evaluating it will store
 	the template object under its name in the local variables.
 	"""
-	version = "22"
+	version = "23"
 	fields = Block.fields.union({"source", "name", "startdelim", "enddelim", "endlocation"})
 
-	def __init__(self, source=None, name=None, startdelim="<?", enddelim="?>"):
+	def __init__(self, source=None, name=None, keepws=True, startdelim="<?", enddelim="?>"):
 		"""
 		Create a :class:`Template` object. If :var:`source` is ``None``, the
 		:class:`Template` remains uninitialized, otherwise :var:`source` will be
@@ -2361,6 +2381,7 @@ class Template(Block, Callable):
 		# ``location``/``endlocation`` will remain ``None`` for a top level template
 		# For a subtemplate ``location`` will be set to the location of the ``<?def?>`` tag in :meth:`_compile` and ``endlocation`` will be the location of the ``<?end def?>`` tag
 		super().__init__(None)
+		self.keepws = keepws
 		self.startdelim = startdelim
 		self.enddelim = enddelim
 		self.name = name
@@ -2388,6 +2409,7 @@ class Template(Block, Callable):
 		encoder.dump(self.version)
 		encoder.dump(self.source)
 		encoder.dump(self.name)
+		encoder.dump(self.keepws)
 		encoder.dump(self.startdelim)
 		encoder.dump(self.enddelim)
 		encoder.dump(self.location)
@@ -2400,6 +2422,7 @@ class Template(Block, Callable):
 			raise ValueError("invalid version, expected {!r}, got {!r}".format(self.version, version))
 		self.source = decoder.load()
 		self.name = decoder.load()
+		self.keepws = decoder.load()
 		self.startdelim = decoder.load()
 		self.enddelim = decoder.load()
 		self.location = decoder.load()
@@ -2608,7 +2631,11 @@ class Template(Block, Callable):
 		for location in self._tokenize(source, startdelim, enddelim):
 			try:
 				if location.type is None:
-					stack[-1].append(Text(location))
+					s = location.code
+					if not self.keepws:
+						s = "".join(line.lstrip() for line in s.splitlines())
+					if s:
+						stack[-1].append(Text(location, s if s!=location.code else None))
 				elif location.type == "print":
 					stack[-1].append(Print(location, parseexpr(location)))
 				elif location.type == "printx":
@@ -2673,7 +2700,7 @@ class Template(Block, Callable):
 				elif location.type == "render":
 					stack[-1].append(Render(location, parseexpr(location)))
 				elif location.type == "def":
-					block = Template(None, location.code, self.startdelim, self.enddelim)
+					block = Template(None, location.code, self.keepws, self.startdelim, self.enddelim)
 					block.location = location # Set start ``location`` of sub template
 					block.source = self.source # The source of the top level template (so that the offsets in :class:`Location` are correct)
 					stack[-1].append(block)

@@ -17,10 +17,6 @@ from ll import ul4c, color, misc
 from ll.xist.ns import html, ul4
 
 
-def removews(source):
-	return "".join(line.strip() for line in source.strip().splitlines())
-
-
 class PseudoDict(collections.Mapping):
 	def __init__(self, dict):
 		self.dict = dict
@@ -46,11 +42,11 @@ class PseudoList(collections.Sequence):
 		return len(self.list)
 
 
-def render_python(__, **variables):
+def render_python(__, *, keepws=True, **variables):
 	"""
 	Compile the template from the source ``__`` and render it with the variables ``variables``.
 	"""
-	template = ul4c.Template(__)
+	template = ul4c.Template(__, keepws=keepws)
 	f = sys._getframe(1)
 	print("Testing Python template ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
 	print(template.pythonsource())
@@ -59,13 +55,13 @@ def render_python(__, **variables):
 	return template.renders(**variables)
 
 
-def render_python_dumps(__, **variables):
+def render_python_dumps(__, *, keepws=True, **variables):
 	"""
 	Compile the template from the source ``__``, create a string dump from it,
 	recreate the template from the dump string and render it with the variables
 	``variables``.
 	"""
-	template = ul4c.Template(__)
+	template = ul4c.Template(__, keepws=keepws)
 	template = ul4c.Template.loads(template.dumps()) # Recreate the template from the binary dump
 	f = sys._getframe(1)
 	print("Testing Python template loaded from string ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
@@ -75,12 +71,12 @@ def render_python_dumps(__, **variables):
 	return template.renders(**variables)
 
 
-def render_python_dump(__, **variables):
+def render_python_dump(__, *, keepws=True, **variables):
 	"""
 	Compile the template from the source ``__``, dump it to a stream, recreate
 	the template from the dump and render it with the variables ``variables``.
 	"""
-	template = ul4c.Template(__)
+	template = ul4c.Template(__, keepws=keepws)
 	stream = io.StringIO()
 	template.dump(stream)
 	stream.seek(0)
@@ -93,14 +89,14 @@ def render_python_dump(__, **variables):
 	return template.renders(**variables)
 
 
-def render_js(__, **variables):
+def render_js(__, *, keepws=True, **variables):
 	"""
 	Compile the template from the source ``__``, and generate Javascript source
 	from it that renders the template with the variables ``variables``.
 
 	(this requires an installed ``d8`` shell from V8 (http://code.google.com/p/v8/))
 	"""
-	template = ul4c.Template(__)
+	template = ul4c.Template(__, keepws=keepws)
 	js = template.jssource()
 	js = "template = {};\ndata = {};\nprint(template.renders(data));\n".format(js, ul4c.Template.function_asjson({}, variables))
 	f = sys._getframe(1)
@@ -265,7 +261,7 @@ def java_runsource(source):
 
 
 
-def render_java_interpretedtemplate_by_python(__, **variables):
+def render_java_interpretedtemplate_by_python(__, *, keepws=True, **variables):
 	"""
 	Compile the template from the source ``__``, and generate Java source that
 	recreates the template from the Python generated dump and renders the
@@ -286,12 +282,12 @@ def render_java_interpretedtemplate_by_python(__, **variables):
 
 	f = sys._getframe(1)
 	print("Testing Java InterpretedTemplate (compiled by Python) ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	templatesource = ul4c.Template(__).javasource()
+	templatesource = ul4c.Template(__, keepws=keepws).javasource()
 	java = codetemplate % dict(variables=misc.javaexpr(variables), template=templatesource)
 	return java_runsource(java)
 
 
-def render_java_interpretedtemplate_by_java(__, **variables):
+def render_java_interpretedtemplate_by_java(__, keepws=True, **variables):
 	"""
 	Generate Java source that compiles the template source ``__`` and renders the
 	template with the variables ``variables``.
@@ -300,7 +296,7 @@ def render_java_interpretedtemplate_by_java(__, **variables):
 	"""
 
 	codetemplate = """
-	com.livinglogic.ul4.InterpretedTemplate template = new com.livinglogic.ul4.InterpretedTemplate(%(source)s);
+	com.livinglogic.ul4.InterpretedTemplate template = new com.livinglogic.ul4.InterpretedTemplate(%(source)s, %(keepws)s);
 	java.util.Map<String, Object> variables = %(variables)s;
 	String output = template.renders(variables);
 	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
@@ -311,7 +307,7 @@ def render_java_interpretedtemplate_by_java(__, **variables):
 
 	f = sys._getframe(1)
 	print("Testing Java InterpretedTemplate (compiled by Java) ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	java = codetemplate % dict(source=misc.javaexpr(__), variables=misc.javaexpr(variables))
+	java = codetemplate % dict(source=misc.javaexpr(__), variables=misc.javaexpr(variables), keepws=misc.javaexpr(keepws))
 	return java_runsource(java)
 
 
@@ -383,6 +379,8 @@ class raises(object):
 def test_text(r):
 	assert 'gurk' == r('gurk')
 	assert 'g\xfcrk' ==  r('g\xfcrk')
+	assert 'gurk' == r('gurk', keepws=False)
+	assert 'g\tu rk' == r('g\t\n\t u \n  r\n\t\tk', keepws=False)
 
 
 @pytest.mark.ul4
@@ -2918,7 +2916,7 @@ def test_nestedscopes(r):
 		<?render x.render()?>
 	<?end for?>
 	"""
-	assert "0!1!2!" == r(removews(source))
+	assert "0!1!2!" == r(source, keepws=False)
 
 	# Subtemplates see the state of the variable at the point of the ``<?def?>`` tag,
 	# so the following code will use ``i = 1`` instead of ``i = 2`` even if the subtemplate is called after the variable has been changed.
@@ -2930,7 +2928,7 @@ def test_nestedscopes(r):
 	<?code i = 2?>
 	<?render x.render()?>
 	"""
-	assert "1" == r(removews(source))
+	assert "1" == r(source, keepws=False)
 
 
 	# This shows the difference between local variables and variables from the parent.
@@ -2957,7 +2955,7 @@ def test_nestedscopes(r):
 	<?print y?>!
 	"""
 
-	assert "45!43!44!43!43!43!" == r(removews(source), x=42, y=42)
+	assert "45!43!44!43!43!43!" == r(source, keepws=False, x=42, y=42)
 
 
 def universaltemplate():

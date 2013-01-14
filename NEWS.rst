@@ -1,3 +1,10 @@
+Changes in 4.8 (released ??/??/2013)
+------------------------------------
+
+*	Linefeeds and indentation in the literal text for UL4 templates can now be
+	ignored by specifying ``keepws=False`` in the template constructor.
+
+
 Changes in 4.7 (released 01/11/2013)
 ------------------------------------
 
