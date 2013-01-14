@@ -1282,3 +1282,41 @@ prints ``1`` and::
 	<?print @(2010-12-31).yearday()?>
 
 prints ``365``.
+
+
+Delimiters
+==========
+
+It is possible to specify alternative delimiters from the template tags::
+
+	>>> from ll import ul4c
+	>>> t = ul4c.Template(
+	... 	"{{for i in range(10)}}{{print i}};{{end for}}",
+	... 	startdelim="{{",
+	... 	enddelim="}}"
+	... )
+	>>> t.renders()
+	'0;1;2;3;4;5;6;7;8;9;'
+
+
+Whitespace
+==========
+
+Normally the literal text between template tags will be output as it is. However
+it is possible to specify that linefeeds and the following indentation should be
+ignored. This is done with the parameter ``keepws``::
+
+	>>> from ll import ul4c
+	>>> t = ul4c.Template("""
+	... 	<?for i in range(10)?>
+	... 		<?print i?>
+	... 		;
+	... 	<?end for?>
+	... """, keepws=False)
+	>>> t.renders()
+	'0;1;2;3;4;5;6;7;8;9;'
+
+Using ``keepws=True`` (the default) the output would include al the line feeds
+and whitespace::
+
+	'\n\t\n\t\t0\n\t\t;\n\t\n\t\t1\n\t\t;\n\t\n\t\t2...
