@@ -2375,11 +2375,15 @@ class Template(Block, Callable):
 		:class:`Template` remains uninitialized, otherwise :var:`source` will be
 		compiled (using :var:`startdelim` and :var:`enddelim` as the tag
 		delimiters). :var:`name` is the name of the template. It will be used in
-		exception messages and should be a valid Python identifier.
-
+		exception messages and should be a valid Python identifier. If
+		:var:`keepws` is false linefeeds and indentation will be ignored in the
+		literal text (i.e. the text between the tags). However trailing whitespace
+		at the end of the line will be honored regardless of the value of
+		:var:`keepws`.
 		"""
 		# ``location``/``endlocation`` will remain ``None`` for a top level template
-		# For a subtemplate ``location`` will be set to the location of the ``<?def?>`` tag in :meth:`_compile` and ``endlocation`` will be the location of the ``<?end def?>`` tag
+		# For a subtemplate ``location`` will be set to the location of the ``<?def?>`` tag
+		# in :meth:`_compile` and ``endlocation`` will be the location of the ``<?end def?>`` tag
 		super().__init__(None)
 		self.keepws = keepws
 		self.startdelim = startdelim
