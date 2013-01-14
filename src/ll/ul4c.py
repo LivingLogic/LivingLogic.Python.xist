@@ -51,6 +51,63 @@ class Object:
 		raise KeyError(key)
 
 
+def _repr(obj):
+	if isinstance(obj, str):
+		return repr(obj)
+	elif isinstance(obj, datetime.datetime):
+		s = str(obj.isoformat())
+		if s.endswith("T00:00:00"):
+			s = s[:-9]
+		return "@({})".format(s)
+	elif isinstance(obj, datetime.date):
+		return "@({})".format(obj.isoformat())
+	elif isinstance(obj, datetime.timedelta):
+		return repr(obj).partition(".")[-1]
+	elif isinstance(obj, color.Color):
+		if obj[3] == 0xff:
+			s = "#{:02x}{:02x}{:02x}".format(obj[0], obj[1], obj[2])
+			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6]:
+				return "#{}{}{}".format(s[1], s[3], s[5])
+			return s
+		else:
+			s = "#{:02x}{:02x}{:02x}{:02x}".format(*obj)
+			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6] and s[7]==s[8]:
+				return "#{}{}{}{}".format(s[1], s[3], s[5], s[7])
+			return s
+	elif isinstance(obj, collections.Sequence):
+		return "[{}]".format(", ".join(_repr(item) for item in obj))
+	elif isinstance(obj, collections.Mapping):
+		return "{{{}}}".format(", ".join("{}: {}".format(_repr(key), _repr(value)) for (key, value) in obj.items()))
+	else:
+		return repr(obj)
+
+
+def _asjson(obj):
+	if obj is None:
+		return "null"
+	elif isinstance(obj, Undefined):
+		return "{}.undefined"
+	if isinstance(obj, (bool, int, float, str)):
+		return json.dumps(obj)
+	elif isinstance(obj, datetime.datetime):
+		return "new Date({}, {}, {}, {}, {}, {}, {})".format(obj.year, obj.month-1, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond//1000)
+	elif isinstance(obj, datetime.date):
+		return "new Date({}, {}, {})".format(obj.year, obj.month-1, obj.day)
+	elif isinstance(obj, datetime.timedelta):
+		return "ul4.TimeDelta.create({}, {}, {})".format(obj.days, obj.seconds, obj.microseconds)
+	elif isinstance(obj, misc.monthdelta):
+		return "ul4.MonthDelta.create({})".format(obj.months)
+	elif isinstance(obj, color.Color):
+		return "ul4.Color.create({}, {}, {}, {})".format(*obj)
+	elif isinstance(obj, collections.Mapping):
+		return "{{{}}}".format(", ".join("{}: {}".format(_asjson(key), _asjson(value)) for (key, value) in obj.items()))
+	elif isinstance(obj, collections.Sequence):
+		return "[{}]".format(", ".join(_asjson(item) for item in obj))
+	elif isinstance(obj, Template):
+		return obj.jssource()
+	else:
+		raise TypeError("can't handle object of type {}".format(type(obj)))
+
 ###
 ### Location information
 ###
@@ -226,8 +283,6 @@ class UndefinedIndex(Undefined):
 		return "undefined object at index {!r}".format(self.__index)
 
 
-
-
 ###
 ### Compiler stuff: Tokens and nodes for the AST
 ###
@@ -255,9 +310,6 @@ class AST(Object):
 	# Set of attributes available via :meth:`getitem`.
 	fields = {"type"}
 
-	def __str__(self):
-		return self.format(0)
-
 	def __getitem__(self, key):
 		if key in self.fields:
 			return getattr(self, key)
@@ -265,18 +317,18 @@ class AST(Object):
 
 	def _formatop(self, op):
 		if op.precedence < self.precedence:
-			return "({})".format(op.format(0))
+			return "({})".format(op.format(0, True))
 		elif op.precedence == self.precedence and (not isinstance(op, self.__class__) or not self.associative):
-			return "({})".format(op.format(0))
+			return "({})".format(op.format(0, True))
 		else:
-			return op.format(0)
+			return op.format(0, True)
 
 	def _add2template(self, template):
 		# Helper methods for adding all top level AST nodes to a map
 		template._astsbyid[id(self)] = self
 
 	@misc.notimplemented
-	def format(self, indent):
+	def format(self, indent, keepws):
 		"""
 		Format :var:`self` (with the indentation level :var:`indent`).
 
@@ -284,7 +336,7 @@ class AST(Object):
 		"""
 
 	@misc.notimplemented
-	def formatpython(self, indent):
+	def formatpython(self, indent, keepws):
 		"""
 		Format :var:`self` into valid Python source code.
 		"""
@@ -313,31 +365,31 @@ class Text(Tag):
 	"""
 	AST node for literal text.
 	"""
-	fields = AST.fields.union({"text"})
 
-	def __init__(self, location=None, text=None):
-		Tag.__init__(self, location)
-		self._text = text
+	def text(self, keepws):
+		# If ``keepws`` is true, we output the literal text from the location info.
+		# Otherwise we have to strip linefeeds and indentation
+		text = self.location.code
+		if not keepws:
+			text = "".join(line.lstrip() for line in text.splitlines())
+		return text
 
-	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
-		encoder.dump(self._text)
+	def __repr__(self):
+		return "{}({!r})".format(self.__class__.__name__, self.location.code)
 
-	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
-		self._text = decoder.load()
+	def format(self, indent, keepws):
+		text = self.text(keepws)
+		if text:
+			return "{}text {!r}\n".format(indent*"\t", self.text(keepws))
+		else:
+			return ""
 
-	@property
-	def text(self):
-		# If ``text`` is ``None``, we output the text from the location info.
-		# This is done to minimize the size of the UL4ON dump.
-		return self._text if self._text is not None else self.location.code
-
-	def format(self, indent):
-		return "{}text {!r}\n".format(indent*"\t", self.text)
-
-	def formatpython(self, indent):
-		return "{i}# literal at position {l.starttag}:{l.endtag} ({id})\n{i}yield {t!r}\n".format(i=indent*"\t", id=id(self), l=self.location, t=self.text)
+	def formatpython(self, indent, keepws):
+		text = self.text(keepws)
+		if text:
+			return "{i}# literal at position {l.starttag}:{l.endtag} ({id})\n{i}yield {t!r}\n".format(i=indent*"\t", id=id(self), l=self.location, t=text)
+		else:
+			return "{i}# ignored literal at position {l.starttag}:{l.endtag} ({id})\n\n".format(i=indent*"\t", id=id(self), l=self.location)
 
 
 @register("const")
@@ -351,10 +403,10 @@ class Const(AST):
 	def __init__(self, value=None):
 		self.value = value
 
-	def format(self, indent):
-		return Template.function_repr(None, self.value)
+	def format(self, indent, keepws):
+		return _repr(self.value)
 
-	def formatpython(self, indent):
+	def formatpython(self, indent, keepws):
 		if isinstance(self.value, color.Color):
 			return "color.{!r}".format(self.value)
 		return repr(self.value)
@@ -384,11 +436,11 @@ class List(AST):
 	def __repr__(self):
 		return "{}({!r})".format(self.__class__.__name__, repr(self.items)[1:-1])
 
-	def format(self, indent):
-		return "[{}]".format(", ".join(item.format(indent) for item in self.items))
+	def format(self, indent, keepws):
+		return "[{}]".format(", ".join(item.format(indent, keepws) for item in self.items))
 
-	def formatpython(self, indent):
-		return "[{}]".format(", ".join(item.formatpython(indent) for item in self.items))
+	def formatpython(self, indent, keepws):
+		return "[{}]".format(", ".join(item.formatpython(indent, keepws) for item in self.items))
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.items)
@@ -416,17 +468,17 @@ class ListComp(AST):
 	def __repr__(self):
 		return "{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.item, self.varname, self.container, self.condition)
 
-	def format(self, indent):
-		s = "[{} for {} in".format(self.item.format(indent), _formatnestednameul4(self.varname), self.container.format(indent))
+	def format(self, indent, keepws):
+		s = "[{} for {} in".format(self.item.format(indent, keepws), _formatnestednameul4(self.varname), self.container.format(indent, keepws))
 		if self.condition is not None:
-			s += " if {}".format(self.condition.format(indent))
+			s += " if {}".format(self.condition.format(indent, keepws))
 		s += "]"
 		return s
 
-	def formatpython(self, indent):
-		s = "[{} for {} in {}".format(self.item.formatpython(indent), _formatnestednamepython(self.varname), self.container.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		s = "[{} for {} in {}".format(self.item.formatpython(indent, keepws), _formatnestednamepython(self.varname), self.container.formatpython(indent, keepws))
 		if self.condition is not None:
-			s += " if {}".format(self.condition.formatpython(indent))
+			s += " if {}".format(self.condition.formatpython(indent, keepws))
 		s += "]"
 		return s
 
@@ -458,22 +510,22 @@ class Dict(AST):
 	def __repr__(self):
 		return "{}({!r})".format(self.__class__.__name__, repr(self.items)[1:-1])
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		v = []
 		for item in self.items:
 			if len(item) == 2:
-				v.append("{}: {}".format(item[0], item[1].format(indent)))
+				v.append("{}: {}".format(item[0], item[1].format(indent, keepws)))
 			else:
-				v.append("**{}".format(item[0].format(indent)))
+				v.append("**{}".format(item[0].format(indent, keepws)))
 		return "{{{}}}".format(", ".join(v))
 
-	def formatpython(self, indent):
+	def formatpython(self, indent, keepws):
 		v = []
 		for item in self.items:
 			if len(item) == 1:
-				v.append("({},)".format(item[0].formatpython(indent)))
+				v.append("({},)".format(item[0].formatpython(indent, keepws)))
 			else:
-				v.append("({}, {})".format(item[0].formatpython(indent), item[1].formatpython(indent)))
+				v.append("({}, {})".format(item[0].formatpython(indent, keepws), item[1].formatpython(indent, keepws)))
 		return "ul4c._makedict({})".format(", ".join(v))
 
 	def ul4ondump(self, encoder):
@@ -502,17 +554,17 @@ class DictComp(AST):
 	def __repr__(self):
 		return "{}({!r}, {!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.key, self.value, self.varname, self.container, self.condition)
 
-	def format(self, indent):
-		s = "{{{} : {} for {} in {}".format(self.key.format(indent), self.value.format(indent), _formatnestednameul4(self.varname), self.container.format(indent))
+	def format(self, indent, keepws):
+		s = "{{{} : {} for {} in {}".format(self.key.format(indent, keepws), self.value.format(indent, keepws), _formatnestednameul4(self.varname), self.container.format(indent, keepws))
 		if self.condition is not None:
-			s += " if {}".format(self.condition.format(indent))
+			s += " if {}".format(self.condition.format(indent, keepws))
 		s += "}"
 		return s
 
-	def formatpython(self, indent):
-		s = "{{{} : {} for {} in {}".format(self.key.formatpython(indent), self.value.formatpython(indent), _formatnestednamepython(self.varname), self.container.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		s = "{{{} : {} for {} in {}".format(self.key.formatpython(indent, keepws), self.value.formatpython(indent, keepws), _formatnestednamepython(self.varname), self.container.formatpython(indent, keepws))
 		if self.condition is not None:
-			s += " if {}".format(self.condition.formatpython(indent))
+			s += " if {}".format(self.condition.formatpython(indent, keepws))
 		s += "}"
 		return s
 
@@ -549,17 +601,17 @@ class GenExpr(AST):
 	def __repr__(self):
 		return "{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.item, self.varname, self.container, self.condition)
 
-	def format(self, indent):
-		s = "({} for {} in {}".format(self.item.format(indent), _formatnestednameul4(self.varname), self.container.format(indent))
+	def format(self, indent, keepws):
+		s = "({} for {} in {}".format(self.item.format(indent, keepws), _formatnestednameul4(self.varname), self.container.format(indent, keepws))
 		if self.condition is not None:
-			s += " if {}".format(self.condition.format(indent))
+			s += " if {}".format(self.condition.format(indent, keepws))
 		s += ")"
 		return s
 
-	def formatpython(self, indent):
-		s = "({} for {} in {}".format(self.item.formatpython(indent), _formatnestednamepython(self.varname), self.container.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		s = "({} for {} in {}".format(self.item.formatpython(indent, keepws), _formatnestednamepython(self.varname), self.container.formatpython(indent, keepws))
 		if self.condition is not None:
-			s += " if {}".format(self.condition.formatpython(indent))
+			s += " if {}".format(self.condition.formatpython(indent, keepws))
 		s += ")"
 		return s
 
@@ -591,10 +643,10 @@ class Var(AST):
 	def __repr__(self):
 		return "{}({!r})".format(self.__class__.__name__, self.name)
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		return self.name
 
-	def formatpython(self, indent):
+	def formatpython(self, indent, keepws):
 		return "ul4c._getitem(vars, {!r})".format(self.name)
 
 	def ul4ondump(self, encoder):
@@ -623,12 +675,12 @@ class Block(Tag):
 	def append(self, item):
 		self.content.append(item)
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		v = []
 		v.append("{}{{\n".format(indent*"\t"))
 		indent += 1
 		for node in self.content:
-			v.append(node.format(indent))
+			v.append(node.format(indent, keepws))
 		indent -= 1
 		v.append("{}}}\n".format(indent*"\t"))
 		return "".join(v)
@@ -671,16 +723,16 @@ class IfElIfElse(Block):
 			self.content[-1].endlocation = block.location
 		self.content.append(block)
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		v = []
 		for node in self.content:
-			v.append(node.format(indent))
+			v.append(node.format(indent, keepws))
 		return "".join(v)
 
-	def formatpython(self, indent):
+	def formatpython(self, indent, keepws):
 		v = []
 		for node in self.content:
-			v.append(node.formatpython(indent))
+			v.append(node.formatpython(indent, keepws))
 		return "".join(v)
 
 
@@ -696,15 +748,15 @@ class If(Block):
 		super().__init__(location)
 		self.condition = condition
 
-	def format(self, indent):
-		return "{}if {}\n{}".format(indent*"\t", self.condition.format(indent), super().format(indent))
+	def format(self, indent, keepws):
+		return "{}if {}\n{}".format(indent*"\t", self.condition.format(indent, keepws), super().format(indent, keepws))
 
-	def formatpython(self, indent):
+	def formatpython(self, indent, keepws):
 		v = ["{i}# <?if?> tag at position {l.starttag}:{l.endtag} ({id})\n".format(i=indent*"\t", id=id(self), l=self.location)]
-		v.append("{}if {}:\n".format(indent*"\t", self.condition.formatpython(indent)))
+		v.append("{}if {}:\n".format(indent*"\t", self.condition.formatpython(indent, keepws)))
 		indent += 1
 		for node in self.content:
-			v.append(node.formatpython(indent))
+			v.append(node.formatpython(indent, keepws))
 		return "".join(v)
 
 	def ul4ondump(self, encoder):
@@ -728,15 +780,15 @@ class ElIf(Block):
 		super().__init__(location)
 		self.condition = condition
 
-	def format(self, indent):
-		return "{}elif {}\n{}".format(indent*"\t", self.condition.format(indent), super().format(indent))
+	def format(self, indent, keepws):
+		return "{}elif {}\n{}".format(indent*"\t", self.condition.format(indent, keepws), super().format(indent, keepws))
 
-	def formatpython(self, indent):
+	def formatpython(self, indent, keepws):
 		v = ["{i}# <?elif?> tag at position {l.starttag}:{l.endtag} ({id})\n".format(i=indent*"\t", id=id(self), l=self.location)]
-		v.append("{}elif {}:\n".format(indent*"\t", self.condition.formatpython(indent)))
+		v.append("{}elif {}:\n".format(indent*"\t", self.condition.formatpython(indent, keepws)))
 		indent += 1
 		for node in self.content:
-			v.append(node.formatpython(indent))
+			v.append(node.formatpython(indent, keepws))
 		return "".join(v)
 
 	def ul4ondump(self, encoder):
@@ -754,15 +806,15 @@ class Else(Block):
 	AST node for an ``<?else?>`` block.
 	"""
 
-	def format(self, indent):
-		return "{}else\n{}".format(indent*"\t", super().format(indent))
+	def format(self, indent, keepws):
+		return "{}else\n{}".format(indent*"\t", super().format(indent, keepws))
 
-	def formatpython(self, indent):
+	def formatpython(self, indent, keepws):
 		v = ["{i}# <?else?> tag at position {l.starttag}:{l.endtag} ({id})\n".format(i=indent*"\t", id=id(self), l=self.location)]
 		v.append("{}else:\n".format(indent*"\t"))
 		indent += 1
 		for node in self.content:
-			v.append(node.formatpython(indent))
+			v.append(node.formatpython(indent, keepws))
 		return "".join(v)
 
 
@@ -789,16 +841,16 @@ class For(Block):
 		self.varname = decoder.load()
 		self.container = decoder.load()
 
-	def format(self, indent):
-		return "{}for {} in {}\n{}".format(indent*"\t", _formatnestednameul4(self.varname), self.container.format(indent), super().format(indent))
+	def format(self, indent, keepws):
+		return "{}for {} in {}\n{}".format(indent*"\t", _formatnestednameul4(self.varname), self.container.format(indent, keepws), super().format(indent, keepws))
 
-	def formatpython(self, indent):
+	def formatpython(self, indent, keepws):
 		v = ["{i}# <?for?> tag at position {l.starttag}:{l.endtag} ({id})\n".format(i=indent*"\t", id=id(self), l=self.location)]
-		v.append("{}for {} in {}:\n".format(indent*"\t", _formatnestednamepython(self.varname), self.container.formatpython(indent)))
+		v.append("{}for {} in {}:\n".format(indent*"\t", _formatnestednamepython(self.varname), self.container.formatpython(indent, keepws)))
 		indent += 1
 		if self.content:
 			for node in self.content:
-				v.append(node.formatpython(indent))
+				v.append(node.formatpython(indent, keepws))
 		else:
 			# Make sure we have a proper loop body
 			v.append("{}pass\n".format(indent*"\t"))
@@ -811,10 +863,13 @@ class Break(Tag):
 	AST node for a ``<?break?>`` inside a ``<?for?>`` block.
 	"""
 
-	def format(self, indent):
+	def __repr__(self):
+		return "{}()".format(self.__class__.__name__)
+
+	def format(self, indent, keepws):
 		return "{}break\n".format(indent*"\t")
 
-	def formatpython(self, indent):
+	def formatpython(self, indent, keepws):
 		return "{i}# <?break?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}break\n".format(i=indent*"\t", id=id(self), l=self.location)
 
 
@@ -824,10 +879,13 @@ class Continue(Tag):
 	AST node for a ``<?continue?>`` inside a ``<?for?>`` block.
 	"""
 
-	def format(self, indent):
+	def __repr__(self):
+		return "{}()".format(self.__class__.__name__)
+
+	def format(self, indent, keepws):
 		return "{}continue\n".format(indent*"\t")
 
-	def formatpython(self, indent):
+	def formatpython(self, indent, keepws):
 		return "{i}# <?continue?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}continue\n".format(i=indent*"\t", id=id(self), l=self.location)
 
 
@@ -850,11 +908,11 @@ class GetAttr(AST):
 	def __repr__(self):
 		return "{}({!r}, {!r})".format(self.__class__.__name__, self.obj, self.attrname)
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		return "{}.{}".format(self._formatop(self.obj), self.attrname)
 
-	def formatpython(self, indent):
-		return "ul4c._getitem({}, {!r})".format(self.obj.formatpython(indent), self.attrname)
+	def formatpython(self, indent, keepws):
+		return "ul4c._getitem({}, {!r})".format(self.obj.formatpython(indent, keepws), self.attrname)
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.obj)
@@ -905,11 +963,11 @@ class GetSlice(AST):
 					return Const(obj[index1.value:index2.value])
 		return cls(obj, index1, index2)
 
-	def format(self, indent):
-		return "{}[{}:{}]".format(self._formatop(self.obj), self.index1.format(indent) if self.index1 is not None else "", self.index2.format(indent) if self.index2 is not None else "")
+	def format(self, indent, keepws):
+		return "{}[{}:{}]".format(self._formatop(self.obj), self.index1.format(indent, keepws) if self.index1 is not None else "", self.index2.format(indent, keepws) if self.index2 is not None else "")
 
-	def formatpython(self, indent):
-		return "({})[{}:{}]".format(self.obj.formatpython(indent), self.index1.formatpython(indent) if self.index1 is not None else "", self.index2.formatpython(indent) if self.index2 is not None else "")
+	def formatpython(self, indent, keepws):
+		return "({})[{}:{}]".format(self.obj.formatpython(indent, keepws), self.index1.formatpython(indent, keepws) if self.index1 is not None else "", self.index2.formatpython(indent, keepws) if self.index2 is not None else "")
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.obj)
@@ -962,11 +1020,11 @@ class Not(Unary):
 	def evaluate(cls, obj):
 		return not obj
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		return "not {}".format(self._formatop(self.obj))
 
-	def formatpython(self, indent):
-		return "not ({})".format(self.obj.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		return "not ({})".format(self.obj.formatpython(indent, keepws))
 
 
 @register("neg")
@@ -981,11 +1039,11 @@ class Neg(Unary):
 	def evaluate(cls, obj):
 		return -obj
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		return "-{}".format(self._formatop(self.obj))
 
-	def formatpython(self, indent):
-		return "-({})".format(self.obj.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		return "-({})".format(self.obj.formatpython(indent, keepws))
 
 
 class UnaryTag(Tag):
@@ -994,6 +1052,9 @@ class UnaryTag(Tag):
 	def __init__(self, location=None, obj=None):
 		super().__init__(location)
 		self.obj = obj
+
+	def __repr__(self):
+		return "{}({!r})".format(self.__class__.__name__, self.obj)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1010,11 +1071,11 @@ class Print(UnaryTag):
 	AST node for a ``<?print?>`` tag.
 	"""
 
-	def format(self, indent):
-		return "{}print {}\n".format(indent*"\t", self.obj.format(indent))
+	def format(self, indent, keepws):
+		return "{}print {}\n".format(indent*"\t", self.obj.format(indent, keepws))
 
-	def formatpython(self, indent):
-		return "{i}# <?print?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield self.function_str(vars, {o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)
+	def formatpython(self, indent, keepws):
+		return "{i}# <?print?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield self.function_str(vars, {o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent, keepws), l=self.location)
 
 
 @register("printx")
@@ -1023,11 +1084,11 @@ class PrintX(UnaryTag):
 	AST node for a ``<?printx?>`` tag.
 	"""
 
-	def format(self, indent):
-		return "{}printx {}\n".format(indent*"\t", self.obj.format(indent))
+	def format(self, indent, keepws):
+		return "{}printx {}\n".format(indent*"\t", self.obj.format(indent, keepws))
 
-	def formatpython(self, indent):
-		return "{i}# <?printx?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._xmlescape({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent), l=self.location)
+	def formatpython(self, indent, keepws):
+		return "{i}# <?printx?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._xmlescape({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent, keepws), l=self.location)
 
 
 class Binary(AST):
@@ -1077,11 +1138,11 @@ class GetItem(Binary):
 	def evaluate(cls, obj1, obj2):
 		return obj1[obj2]
 
-	def format(self, indent):
-		return "{}[{}]".format(self._formatop(self.obj1), self.obj2.format(indent))
+	def format(self, indent, keepws):
+		return "{}[{}]".format(self._formatop(self.obj1), self.obj2.format(indent, keepws))
 
-	def formatpython(self, indent):
-		return "ul4c._getitem({}, {})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		return "ul4c._getitem({}, {})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("eq")
@@ -1097,11 +1158,11 @@ class EQ(Binary):
 	def evaluate(cls, obj1, obj2):
 		return obj1 == obj2
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		return "{} == {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
-	def formatpython(self, indent):
-		return "({}) == ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		return "({}) == ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("ne")
@@ -1117,11 +1178,11 @@ class NE(Binary):
 	def evaluate(cls, obj1, obj2):
 		return obj1 != obj2
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		return "{} != {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
-	def formatpython(self, indent):
-		return "({}) != ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		return "({}) != ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("lt")
@@ -1137,11 +1198,11 @@ class LT(Binary):
 	def evaluate(cls, obj1, obj2):
 		return obj1 < obj2
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		return "{} < {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
-	def formatpython(self, indent):
-		return "({}) < ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		return "({}) < ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("le")
@@ -1157,11 +1218,11 @@ class LE(Binary):
 	def evaluate(cls, obj1, obj2):
 		return obj1 <= obj2
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		return "{} <= {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
-	def formatpython(self, indent):
-		return "({}) <= ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		return "({}) <= ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("gt")
@@ -1177,11 +1238,11 @@ class GT(Binary):
 	def evaluate(cls, obj1, obj2):
 		return obj1 > obj2
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		return "{} > {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
-	def formatpython(self, indent):
-		return "({}) > ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		return "({}) > ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("ge")
@@ -1197,11 +1258,11 @@ class GE(Binary):
 	def evaluate(cls, obj1, obj2):
 		return obj1 >= obj2
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		return "{} >= {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
-	def formatpython(self, indent):
-		return "({}) >= ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		return "({}) >= ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("contains")
@@ -1221,11 +1282,11 @@ class Contains(Binary):
 	def evaluate(cls, obj1, obj2):
 		return obj1 in obj2
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		return "{} in {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
-	def formatpython(self, indent):
-		return "({}) in ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		return "({}) in ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("notcontains")
@@ -1245,11 +1306,11 @@ class NotContains(Binary):
 	def evaluate(cls, obj1, obj2):
 		return obj1 not in obj2
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		return "{} not in {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
-	def formatpython(self, indent):
-		return "({}) not in ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		return "({}) not in ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("add")
@@ -1264,11 +1325,11 @@ class Add(Binary):
 	def evaluate(cls, obj1, obj2):
 		return obj1 + obj2
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		return "{}+{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
-	def formatpython(self, indent):
-		return "({}) + ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		return "({}) + ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("sub")
@@ -1284,11 +1345,11 @@ class Sub(Binary):
 	def evaluate(cls, obj1, obj2):
 		return obj1 - obj2
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		return "{}-{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
-	def formatpython(self, indent):
-		return "({}) - ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		return "({}) - ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("mul")
@@ -1303,11 +1364,11 @@ class Mul(Binary):
 	def evaluate(cls, obj1, obj2):
 		return obj1 * obj2
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		return "{}*{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
-	def formatpython(self, indent):
-		return "({}) * ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		return "({}) * ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("floordiv")
@@ -1323,11 +1384,11 @@ class FloorDiv(Binary):
 	def evaluate(cls, obj1, obj2):
 		return obj1 // obj2
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		return "{}//{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
-	def formatpython(self, indent):
-		return "({}) // ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		return "({}) // ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("truediv")
@@ -1343,11 +1404,11 @@ class TrueDiv(Binary):
 	def evaluate(cls, obj1, obj2):
 		return obj1 / obj2
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		return "{}/{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
-	def formatpython(self, indent):
-		return "({}) / ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		return "({}) / ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("and")
@@ -1362,11 +1423,11 @@ class And(Binary):
 	def evaluate(cls, obj1, obj2):
 		return obj1 and obj2
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		return "{} and {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
-	def formatpython(self, indent):
-		return "({}) and ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		return "({}) and ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("or")
@@ -1381,11 +1442,11 @@ class Or(Binary):
 	def evaluate(cls, obj1, obj2):
 		return obj1 or obj2
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		return "{} or {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
-	def formatpython(self, indent):
-		return "({}) or ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		return "({}) or ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("mod")
@@ -1401,11 +1462,11 @@ class Mod(Binary):
 	def evaluate(cls, obj1, obj2):
 		return obj1 % obj2
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		return "{}%{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
 
-	def formatpython(self, indent):
-		return "({}) % ({})".format(self.obj1.formatpython(indent), self.obj2.formatpython(indent))
+	def formatpython(self, indent, keepws):
+		return "({}) % ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 class ChangeVar(Tag):
@@ -1444,11 +1505,11 @@ class StoreVar(ChangeVar):
 	AST node that stores a value into a variable.
 	"""
 
-	def format(self, indent):
-		return "{}{} = {}\n".format(indent*"\t", _formatnestednameul4(self.varname), self.value.format(indent))
+	def format(self, indent, keepws):
+		return "{}{} = {}\n".format(indent*"\t", _formatnestednameul4(self.varname), self.value.format(indent, keepws))
 
-	def formatpython(self, indent):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}{n} = {v}\n".format(i=indent*"\t", id=id(self), n=_formatnestednamepython(self.varname), v=self.value.formatpython(indent), l=self.location)
+	def formatpython(self, indent, keepws):
+		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}{n} = {v}\n".format(i=indent*"\t", id=id(self), n=_formatnestednamepython(self.varname), v=self.value.formatpython(indent, keepws), l=self.location)
 
 
 @register("addvar")
@@ -1457,11 +1518,11 @@ class AddVar(ChangeVar):
 	AST node that adds a value to a variable (i.e. the ``+=`` operator).
 	"""
 
-	def format(self, indent):
-		return "{}{} += {}\n".format(indent*"\t", self.varname, self.value.format(indent))
+	def format(self, indent, keepws):
+		return "{}{} += {}\n".format(indent*"\t", self.varname, self.value.format(indent, keepws))
 
-	def formatpython(self, indent):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] += {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
+	def formatpython(self, indent, keepws):
+		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] += {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent, keepws), l=self.location)
 
 
 @register("subvar")
@@ -1470,11 +1531,11 @@ class SubVar(ChangeVar):
 	AST node that substracts a value from a variable (i.e. the ``-=`` operator).
 	"""
 
-	def format(self, indent):
-		return "{}{} -= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
+	def format(self, indent, keepws):
+		return "{}{} -= {}\n".format(indent*"\t", self.varname, self.value.format(indent, keepws))
 
-	def formatpython(self, indent):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] -= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
+	def formatpython(self, indent, keepws):
+		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] -= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent, keepws), l=self.location)
 
 
 @register("mulvar")
@@ -1483,11 +1544,11 @@ class MulVar(ChangeVar):
 	AST node that multiplies a variable by a value (i.e. the ``*=`` operator).
 	"""
 
-	def format(self, indent):
-		return "{}{} *= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
+	def format(self, indent, keepws):
+		return "{}{} *= {}\n".format(indent*"\t", self.varname, self.value.format(indent, keepws))
 
-	def formatpython(self, indent):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] *= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
+	def formatpython(self, indent, keepws):
+		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] *= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent, keepws), l=self.location)
 
 
 @register("floordivvar")
@@ -1497,11 +1558,11 @@ class FloorDivVar(ChangeVar):
 	i.e. the ``//=`` operator).
 	"""
 
-	def format(self, indent):
-		return "{}{} //= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
+	def format(self, indent, keepws):
+		return "{}{} //= {}\n".format(indent*"\t", self.varname, self.value.format(indent, keepws))
 
-	def formatpython(self, indent):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] //= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
+	def formatpython(self, indent, keepws):
+		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] //= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent, keepws), l=self.location)
 
 
 @register("truedivvar")
@@ -1510,11 +1571,11 @@ class TrueDivVar(ChangeVar):
 	AST node that divides a variable by a value (i.e. the ``/=`` operator).
 	"""
 
-	def format(self, indent):
-		return "{}{} /= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
+	def format(self, indent, keepws):
+		return "{}{} /= {}\n".format(indent*"\t", self.varname, self.value.format(indent, keepws))
 
-	def formatpython(self, indent):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] /= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
+	def formatpython(self, indent, keepws):
+		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] /= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent, keepws), l=self.location)
 
 
 @register("modvar")
@@ -1523,11 +1584,11 @@ class ModVar(ChangeVar):
 	AST node for the ``%=`` operator.
 	"""
 
-	def format(self, indent):
-		return "{}{} %= {}\n".format(indent*"\t", self.varname, self.value.format(indent))
+	def format(self, indent, keepws):
+		return "{}{} %= {}\n".format(indent*"\t", self.varname, self.value.format(indent, keepws))
 
-	def formatpython(self, indent):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] %= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent), l=self.location)
+	def formatpython(self, indent, keepws):
+		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] %= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent, keepws), l=self.location)
 
 
 @register("callfunc")
@@ -1566,34 +1627,34 @@ class CallFunc(AST):
 			args.append(("**{}".format(repr(self.remkwargs)),))
 		return "{}({})".format(self.__class__.__name__, ", ".join(itertools.chain(args)))
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		args = []
 		for arg in self.args:
-			s = arg.format(indent)
+			s = arg.format(indent, keepws)
 			if isinstance(arg, GenExpr):
 				s = s[1:-1]
 			args.append(s)
 		for (argname, argvalue) in self.kwargs:
-			s = argvalue.format(indent)
+			s = argvalue.format(indent, keepws)
 			if isinstance(arg, GenExpr):
 				s = s[1:-1]
 			args.append("{}={}".format(argname, s))
 		if self.remargs is not None:
-			args.append("*{}".format(self.remargs.format(indent)))
+			args.append("*{}".format(self.remargs.format(indent, keepws)))
 		if self.remkwargs is not None:
-			args.append("**{}".format(self.remkwargs.format(indent)))
+			args.append("**{}".format(self.remkwargs.format(indent, keepws)))
 		return "{}({})".format(self.funcname, ", ".join(args))
 
-	def formatpython(self, indent):
+	def formatpython(self, indent, keepws):
 		args = []
 		for arg in self.args:
-			args.append(arg.formatpython(indent))
+			args.append(arg.formatpython(indent, keepws))
 		for (argname, argvalue) in self.kwargs:
-			args.append("{}={}".format(argname, argvalue.formatpython(indent)))
+			args.append("{}={}".format(argname, argvalue.formatpython(indent, keepws)))
 		if self.remargs is not None:
-			args.append("*{}".format(self.remargs.formatpython(indent)))
+			args.append("*{}".format(self.remargs.formatpython(indent, keepws)))
 		if self.remkwargs is not None:
-			args.append("**{}".format(self.remkwargs.formatpython(indent)))
+			args.append("**{}".format(self.remkwargs.formatpython(indent, keepws)))
 		return "stack[0].function_{}(vars, {})".format(self.funcname, ", ".join(args))
 
 	def ul4ondump(self, encoder):
@@ -1650,32 +1711,32 @@ class CallMeth(AST):
 			args.append(("**{}".format(repr(self.remkwargs)),))
 		return "{}({})".format(self.__class__.__name__, ", ".join(itertools.chain(*args)))
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		args = []
 		if len(self.args) == 1 and isinstance(self.args[0], GenExpr) and not self.kwargs and self.remargs is None and self.remkwargs is None:
-			args.append(self.args[0].format(indent)[1:-1])
+			args.append(self.args[0].format(indent, keepws)[1:-1])
 		else:
 			for arg in self.args:
-				args.append(arg.format(indent))
+				args.append(arg.format(indent, keepws))
 			for (argname, argvalue) in self.kwargs:
-				args.append("{}={}".format(argname, argvalue.format(indent)))
+				args.append("{}={}".format(argname, argvalue.format(indent, keepws)))
 			if self.remargs is not None:
-				args.append("*{}".format(self.remargs.format(indent)))
+				args.append("*{}".format(self.remargs.format(indent, keepws)))
 			if self.remkwargs is not None:
-				args.append("**{}".format(self.remkwargs.format(indent)))
+				args.append("**{}".format(self.remkwargs.format(indent, keepws)))
 		return "({}).{}({})".format(self._formatop(self.obj), self.methname, ", ".join(args))
 
-	def formatpython(self, indent):
+	def formatpython(self, indent, keepws):
 		args = []
 		for arg in self.args:
-			args.append(arg.formatpython(indent))
+			args.append(arg.formatpython(indent, keepws))
 		for (argname, argvalue) in self.kwargs:
-			args.append("{}={}".format(argname, argvalue.formatpython(indent)))
+			args.append("{}={}".format(argname, argvalue.formatpython(indent, keepws)))
 		if self.remargs is not None:
-			args.append("*{}".format(self.remargs.formatpython(indent)))
+			args.append("*{}".format(self.remargs.formatpython(indent, keepws)))
 		if self.remkwargs is not None:
-			args.append("**{}".format(self.remkwargs.formatpython(indent)))
-		return "stack[0].method_{}(stack, {}, {})".format(self.methname, self.obj.formatpython(indent), ", ".join(args))
+			args.append("**{}".format(self.remkwargs.formatpython(indent, keepws)))
+		return "stack[0].method_{}(stack, {}, {})".format(self.methname, self.obj.formatpython(indent, keepws), ", ".join(args))
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.methname)
@@ -1700,17 +1761,14 @@ class Render(UnaryTag):
 	AST node for the ``<?render?>`` tag.
 	"""
 
-	def __repr__(self):
-		return "{}({!r})".format(self.__class__.__name__, self.obj)
+	def format(self, indent, keepws):
+		return "{}render {}\n".format(indent*"\t", self.obj.format(indent, keepws))
 
-	def format(self, indent):
-		return "{}render {}\n".format(indent*"\t", self.obj.format(indent))
-
-	def formatpython(self, indent):
+	def formatpython(self, indent, keepws):
 		if isinstance(self.obj, CallMeth) and self.obj.methname == "render":
-			code = "yield from {}".format(self.obj.formatpython(indent))
+			code = "yield from {}".format(self.obj.formatpython(indent, keepws))
 		else:
-			code = "yield self.function_str(vars, {})".format(self.obj.formatpython(indent))
+			code = "yield self.function_str(vars, {})".format(self.obj.formatpython(indent, keepws))
 		return "{i}# <?render?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}{c}\n".format(i=indent*"\t", id=id(self), c=code, l=self.location)
 
 
@@ -1775,37 +1833,14 @@ class Callable(object):
 		elif isinstance(obj, Undefined):
 			return ""
 		elif not isinstance(obj, str):
-			obj = cls.function_repr(vars, obj)
+			obj = _repr(obj)
 		if any(c in obj for c in ',"\n'):
 			return '"{}"'.format(obj.replace('"', '""'))
 		return obj
 
 	@classmethod
 	def function_asjson(cls, vars, obj):
-		if obj is None:
-			return "null"
-		elif isinstance(obj, Undefined):
-			return "{}.undefined"
-		if isinstance(obj, (bool, int, float, str)):
-			return json.dumps(obj)
-		elif isinstance(obj, datetime.datetime):
-			return "new Date({}, {}, {}, {}, {}, {}, {})".format(obj.year, obj.month-1, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond//1000)
-		elif isinstance(obj, datetime.date):
-			return "new Date({}, {}, {})".format(obj.year, obj.month-1, obj.day)
-		elif isinstance(obj, datetime.timedelta):
-			return "ul4.TimeDelta.create({}, {}, {})".format(obj.days, obj.seconds, obj.microseconds)
-		elif isinstance(obj, misc.monthdelta):
-			return "ul4.MonthDelta.create({})".format(obj.months)
-		elif isinstance(obj, color.Color):
-			return "ul4.Color.create({}, {}, {}, {})".format(*obj)
-		elif isinstance(obj, collections.Mapping):
-			return "{{{}}}".format(", ".join("{}: {}".format(cls.function_asjson(vars, key), cls.function_asjson(vars, value)) for (key, value) in obj.items()))
-		elif isinstance(obj, collections.Sequence):
-			return "[{}]".format(", ".join(cls.function_asjson(vars, item) for item in obj))
-		elif isinstance(obj, Template):
-			return obj.jssource()
-		else:
-			raise TypeError("can't handle object of type {}".format(type(obj)))
+		return _asjson(obj)
 
 	@classmethod
 	def function_fromjson(cls, vars, string):
@@ -1987,35 +2022,7 @@ class Callable(object):
 
 	@classmethod
 	def function_repr(cls, vars, obj):
-		if isinstance(obj, str):
-			return repr(obj)
-		elif isinstance(obj, datetime.datetime):
-			s = str(obj.isoformat())
-			if s.endswith("T00:00:00"):
-				s = s[:-9]
-			return "@({})".format(s)
-		elif isinstance(obj, datetime.date):
-			return "@({})".format(obj.isoformat())
-		elif isinstance(obj, datetime.timedelta):
-			return repr(obj).partition(".")[-1]
-		elif isinstance(obj, color.Color):
-			if obj[3] == 0xff:
-				s = "#{:02x}{:02x}{:02x}".format(obj[0], obj[1], obj[2])
-				if s[1]==s[2] and s[3]==s[4] and s[5]==s[6]:
-					return "#{}{}{}".format(s[1], s[3], s[5])
-				return s
-			else:
-				s = "#{:02x}{:02x}{:02x}{:02x}".format(*obj)
-				if s[1]==s[2] and s[3]==s[4] and s[5]==s[6] and s[7]==s[8]:
-					return "#{}{}{}{}".format(s[1], s[3], s[5], s[7])
-				return s
-		elif isinstance(obj, collections.Sequence):
-			return "[{}]".format(", ".join(cls.function_repr(vars, item) for item in obj))
-		elif isinstance(obj, collections.Mapping):
-			return "{{{}}}".format(", ".join("{}: {}".format(cls.function_repr(vars, key), cls.function_repr(vars, value)) for (key, value) in obj.items()))
-		else:
-			return repr(obj)
-
+		return _repr(obj)
 
 	@classmethod
 	def function_chr(cls, vars, i):
@@ -2083,7 +2090,6 @@ class Callable(object):
 			return "list"
 		return None
 
-
 	@classmethod
 	def function_reversed(cls, vars, sequence):
 		return reversed(sequence)
@@ -2117,7 +2123,6 @@ class Callable(object):
 					pass
 		else:
 			return format(obj, fmt)
-
 
 	@classmethod
 	def function_zip(cls, vars, *iterables):
@@ -2385,7 +2390,7 @@ class Template(Block, Callable):
 		# For a subtemplate ``location`` will be set to the location of the ``<?def?>`` tag
 		# in :meth:`_compile` and ``endlocation`` will be the location of the ``<?end def?>`` tag
 		super().__init__(None)
-		self.keepws = keepws
+		self._keepws = keepws
 		self.startdelim = startdelim
 		self.enddelim = enddelim
 		self.name = name
@@ -2408,6 +2413,9 @@ class Template(Block, Callable):
 		# If we have source code compile it
 		if source is not None:
 			self._compile(source, name, startdelim, enddelim)
+
+	def __str__(self):
+		return self.format(0, self._keepws)
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.version)
@@ -2432,6 +2440,16 @@ class Template(Block, Callable):
 		self.location = decoder.load()
 		self.endlocation = decoder.load()
 		self.content = decoder.load()
+
+	def _get_keepws(self):
+		return self._keepws
+
+	def _set_keepws(self, keepws):
+		if bool(self._keepws) != bool(keepws):
+			self._keepws = keepws
+			self._pythonsource = self._pythonfunction = None
+
+	keepws = property(_get_keepws, _set_keepws)
 
 	@classmethod
 	def loads(cls, data):
@@ -2466,19 +2484,19 @@ class Template(Block, Callable):
 		from ll import ul4on
 		return ul4on.dumps(self)
 
-	def format(self, indent):
+	def format(self, indent, keepws):
 		v = []
 		name = self.name if self.name is not None else "unnamed"
 		v.append("{}def {}()\n".format(indent*"\t", name))
 		v.append("{}{{\n".format(indent*"\t"))
 		indent += 1
 		for node in self.content:
-			v.append(node.format(indent))
+			v.append(node.format(indent, keepws))
 		indent -= 1
 		v.append("{}}}\n".format(indent*"\t"))
 		return "".join(v)
 
-	def formatpython(self, indent):
+	def formatpython(self, indent, keepws):
 		return "{i}# <?def?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] = ul4c.TemplateClosure(stack[-1]._getast({id}), vars)\n".format(i=indent*"\t", n=self.name if self.name is not None else "unnamed", id=id(self), l=self.location)
 
 	def _getast(self, astid):
@@ -2551,7 +2569,7 @@ class Template(Block, Callable):
 			v.append("\ttry:\n")
 			v.append("\t\tstack.append(self)\n")
 			for node in self.content:
-				v.append(node.formatpython(2))
+				v.append(node.formatpython(2, self._keepws))
 			v.append("\texcept Exception as exc:\n")
 			v.append("\t\tstack[-1]._handleexc(exc)\n")
 			v.append("\tfinally:\n")
@@ -2564,7 +2582,7 @@ class Template(Block, Callable):
 		Return the template as the source code of a Javascript function. A
 		:class:`JavascriptSource` object will be used to generated the sourcecode.
 		"""
-		return "ul4.Template.loads({})".format(self.function_asjson(None, self.dumps()))
+		return "ul4.Template.loads({})".format(_asjson(self.dumps()))
 
 	def javasource(self):
 		"""
@@ -2635,11 +2653,7 @@ class Template(Block, Callable):
 		for location in self._tokenize(source, startdelim, enddelim):
 			try:
 				if location.type is None:
-					s = location.code
-					if not self.keepws:
-						s = "".join(line.lstrip() for line in s.splitlines())
-					if s:
-						stack[-1].append(Text(location, s if s!=location.code else None))
+						stack[-1].append(Text(location))
 				elif location.type == "print":
 					stack[-1].append(Print(location, parseexpr(location)))
 				elif location.type == "printx":

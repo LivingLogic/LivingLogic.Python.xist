@@ -315,10 +315,10 @@ all_renderers = [
 	("python", render_python),
 	("python_dumps", render_python_dumps),
 	("python_dump", render_python_dump),
-	("js", render_js),
+	# ("js", render_js),
 	# ("php", render_php),
-	("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
-	("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
+	# ("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
+	# ("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
 ]
 
 
@@ -2958,7 +2958,7 @@ def test_nestedscopes(r):
 	assert "45!43!44!43!43!43!" == r(source, keepws=False, x=42, y=42)
 
 
-def universaltemplate():
+def universaltemplate(keepws=True):
 	return ul4c.Template("""
 		text
 		<?code x = 'gurk'?>
@@ -3024,13 +3024,30 @@ def universaltemplate():
 
 @pytest.mark.ul4
 def test_strtemplate():
-	t = universaltemplate()
+	t = universaltemplate(True)
 	str(t)
+	repr(t)
+
+
+@pytest.mark.ul4
+def test_keepws():
+	s = """
+		<?for i in range(10)?>
+			<?print i?>
+			;
+		<?end for?>
+	"""
+	t = ul4c.Template(s, keepws=True)
+	output1 = t.renders()
+	t.keepws = False
+	output2 = t.renders()
+	assert output1 != output2
+	assert "".join(output1.split()) == output2
 
 
 @pytest.mark.ul4
 def test_pythonsource():
-	t = universaltemplate()
+	t = universaltemplate(True)
 	t.pythonsource()
 
 
