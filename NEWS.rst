@@ -1,4 +1,4 @@
-Changes in 4.8 (released ??/??/2013)
+Changes in 4.8 (released 01/15/2013)
 ------------------------------------
 
 *	Linefeeds and indentation in the literal text for UL4 templates can now be
