@@ -899,7 +899,7 @@ class If(Block):
 		self.condition = condition
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} condition={0.condition!r} {1} at {2:#x}>".format(self, ", ..." if self.content else "", id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} condition={0.condition!r} {1} at {2:#x}>".format(self, " ..." if self.content else "", id(self))
 
 	def _repr_pretty_(self, p, cycle):
 		if cycle:
@@ -954,7 +954,7 @@ class ElIf(Block):
 		self.condition = condition
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} condition={0.condition!r} {1} at {2:#x}>".format(self, ", ..." if self.content else "", id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} condition={0.condition!r} {1} at {2:#x}>".format(self, " ..." if self.content else "", id(self))
 
 	def _repr_pretty_(self, p, cycle):
 		if cycle:
@@ -1042,7 +1042,7 @@ class For(Block):
 		self.container = container
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} varname={0.varname!r} container={0.container!r} {} at {2:#x}>".format(self, " ..." if self.content else "")
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} varname={0.varname!r} container={0.container!r} {1} at {2:#x}>".format(self, " ..." if self.content else "", id(self))
 
 	def _repr_pretty_(self, p, cycle):
 		if cycle:
@@ -2056,7 +2056,6 @@ class CallMeth(AST):
 	argument (and may by ``None`` if there is no ``*`` argument).
 	`var`:remkwargs` is the AST node for the ``**`` argument (and may by ``None``
 	if there is no ``**`` argument)
-
 	"""
 
 	precedence = 9
@@ -2071,17 +2070,15 @@ class CallMeth(AST):
 		self.remargs = None
 		self.remkwargs = None
 
-
 	def __repr__(self):
 		args = [
-			(repr(self.methname), repr(self.obj)),
 			(repr(arg) for arg in self.args),
 			("{}={!r}".format(argname, argvalue) for (argname, argvalue) in self.kwargs)
 		]
 		if self.remargs is not None:
-			args.append(("*{}".format(repr(self.remargs)),))
+			args.append(("*{!r}".format(self.remargs),))
 		if self.remkwargs is not None:
-			args.append(("**{}".format(repr(self.remkwargs)),))
+			args.append(("**{!r}".format(self.remkwargs),))
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} methname={0.methname!r} obj={0.obj!r} {1} at {2:#x}>".format(self, " ".join(itertools.chain(*args)), id(self))
 
 	def _repr_pretty_(self, p, cycle):
@@ -2100,7 +2097,7 @@ class CallMeth(AST):
 					p.pretty(arg)
 				for (argname, arg) in self.kwargs:
 					p.breakable()
-					p.text("{!r}=".format(argname))
+					p.text("{}=".format(argname))
 					p.pretty(arg)
 				if self.remargs is not None:
 					p.breakable()
