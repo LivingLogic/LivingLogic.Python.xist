@@ -1,3 +1,13 @@
+Changes in 4.8.1 (released 01/16/2013)
+--------------------------------------
+
+*	Fixed a bug in UL4 templates when a template called a top-level template
+	which in turn called its own subtemplate.
+
+*	Fixed and enhanced ``repr`` output of UL4 templates and added support
+	for IPython pretty printing framewwork.
+
+
 Changes in 4.8 (released 01/15/2013)
 ------------------------------------
 

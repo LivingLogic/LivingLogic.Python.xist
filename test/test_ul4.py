@@ -2974,6 +2974,9 @@ def universaltemplate(keepws=True):
 		<?code x = [42]?>
 		<?code x = {"fortytwo": 42}?>
 		<?code x = {**{"fortytwo": 42}}?>
+		<?code x = [x for x in range(10) if i % 2]?>
+		<?code x = {x : x*x for x in range(10) if i % 2}?>
+		<?code x = (x for x in range(10) if i % 2)?>
 		<?code x = y?>
 		<?code x += 42?>
 		<?code x -= 42?>
@@ -3046,6 +3049,17 @@ def test_keepws():
 
 
 @pytest.mark.ul4
+def test_keepws_nested(r):
+	s1 = "<?def nested1?>1n\n<?render second.render()?><?end def?>1\n<?render nested1.render(second=second)?>"
+	t2 = ul4c.Template("<?def nested2?>2n\n<?end def?>2\n<?render nested2.render()?>", keepws=False)
+
+	assert "1\n1n\n22n" == r(s1, keepws=True, second=t2)
+
+	t2.keepws = True
+	assert "11n2\n2n\n" == r(s1, keepws=False, second=t2)
+
+
+@pytest.mark.ul4
 def test_pythonsource():
 	t = universaltemplate(True)
 	t.pythonsource()
@@ -3067,6 +3081,13 @@ def test_jssource():
 def test_javasource():
 	t = universaltemplate()
 	t.javasource()
+
+
+@pytest.mark.ul4
+def test_repr():
+	t = universaltemplate(True)
+	for node in t.iternodes():
+		repr(t)
 
 
 @pytest.mark.ul4

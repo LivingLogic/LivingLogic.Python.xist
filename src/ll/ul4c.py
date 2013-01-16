@@ -287,18 +287,6 @@ class UndefinedIndex(Undefined):
 ### Compiler stuff: Tokens and nodes for the AST
 ###
 
-class Token(object):
-	def __init__(self, location, type):
-		self.location = location
-		self.type = type
-
-	def __repr__(self):
-		return "{}({!r})".format(self.__class__.__name__, self.type)
-
-	def __str__(self):
-		return self.type
-
-
 class AST(Object):
 	"""
 	Base class for all syntax tree nodes.
@@ -315,6 +303,15 @@ class AST(Object):
 			return getattr(self, key)
 		raise KeyError(key)
 
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} at {1:#x}>".format(self, id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		p.text(repr(self))
+
+	def iternodes(self):
+		yield self
+
 	def _formatop(self, op):
 		if op.precedence < self.precedence:
 			return "({})".format(op.format(0, True))
@@ -322,10 +319,6 @@ class AST(Object):
 			return "({})".format(op.format(0, True))
 		else:
 			return op.format(0, True)
-
-	def _add2template(self, template):
-		# Helper methods for adding all top level AST nodes to a map
-		template._astsbyid[id(self)] = self
 
 	@misc.notimplemented
 	def format(self, indent, keepws):
@@ -375,7 +368,7 @@ class Text(Tag):
 		return text
 
 	def __repr__(self):
-		return "{}({!r})".format(self.__class__.__name__, self.location.code)
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.location.code!r} at {1:#x}>".format(self, id(self))
 
 	def format(self, indent, keepws):
 		text = self.text(keepws)
@@ -418,7 +411,7 @@ class Const(AST):
 		self.value = decoder.load()
 
 	def __repr__(self):
-		return "Const({!r})".format(self.value)
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {!r} at {1:#x}>".format(self, id(self))
 
 
 @register("list")
@@ -433,8 +426,28 @@ class List(AST):
 	def __init__(self, *items):
 		self.items = list(items)
 
+	def iternodes(self):
+		yield self
+		for item in self.items:
+			yield from item.iternodes()
+
 	def __repr__(self):
-		return "{}({!r})".format(self.__class__.__name__, repr(self.items)[1:-1])
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.items!r} at {1:#x}>".format(self, id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("{0.__class__.__module__}.{0.__class__.__qualname__}(...)".format(self))
+		else:
+			with p.group(4, "{0.__class__.__module__}.{0.__class__.__qualname__}(".format(self), ")"):
+				for (i, item) in enumerate(self.items):
+					if i:
+						p.text(",")
+						p.breakable()
+					else:
+						p.breakable("")
+					p.pretty(item)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
 
 	def format(self, indent, keepws):
 		return "[{}]".format(", ".join(item.format(indent, keepws) for item in self.items))
@@ -466,7 +479,41 @@ class ListComp(AST):
 		self.condition = condition
 
 	def __repr__(self):
-		return "{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.item, self.varname, self.container, self.condition)
+		s = "<{0.__class__.__module__}.{0.__class__.__qualname__} item={0.item!r} varname={0.varname!r} container={0.container!r}".format(self)
+		if self.condition is not None:
+			s += " condition={0.condition!r}".format(self)
+		return s + " at {:#x}>".format(id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("{0.__class__.__module__}.{0.__class__.__qualname__}(...)".format(self))
+		else:
+			with p.group(4, "{0.__class__.__module__}.{0.__class__.__qualname__}(".format(self), ")"):
+				p.breakable("")
+				p.text("item=")
+				p.pretty(self.item)
+				p.text(",")
+				p.breakable()
+				p.text("varname=")
+				p.pretty(self.varname)
+				p.text(",")
+				p.breakable()
+				p.text("container=")
+				p.pretty(self.container)
+				if self.condition is not None:
+					p.text(",")
+					p.breakable()
+					p.text("condition=")
+					p.pretty(self.condition)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
+
+	def iternodes(self):
+		yield self
+		yield from self.item.iternodes()
+		yield from self.container.iternodes()
+		if self.condition is not None:
+			yield from self.condition.iternodes()
 
 	def format(self, indent, keepws):
 		s = "[{} for {} in".format(self.item.format(indent, keepws), _formatnestednameul4(self.varname), self.container.format(indent, keepws))
@@ -508,7 +555,30 @@ class Dict(AST):
 		self.items = list(items)
 
 	def __repr__(self):
-		return "{}({!r})".format(self.__class__.__name__, repr(self.items)[1:-1])
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.items!r} at {1:#x}>".format(self, id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				for item in self.items:
+					p.breakable()
+					if len(item) == 2:
+						p.pretty(item[0])
+						p.text("=")
+						p.pretty(item[1])
+					else:
+						p.text("**")
+						p.pretty(item)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
+
+	def iternodes(self):
+		yield self
+		for item in self.items:
+			for subitem in item:
+				yield from subitem.iternodes()
 
 	def format(self, indent, keepws):
 		v = []
@@ -552,7 +622,42 @@ class DictComp(AST):
 		self.condition = condition
 
 	def __repr__(self):
-		return "{}({!r}, {!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.key, self.value, self.varname, self.container, self.condition)
+		s = "<{0.__class__.__module__}.{0.__class__.__qualname__} key={0.key!r} value={0.value!r} varname={0.varname!r} container={0.container!r}".format(self)
+		if self.condition is not None:
+			s += " {0.condition!r}".format(self)
+		return s + " at {:#x}>".format(id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				p.breakable()
+				p.text("key=")
+				p.pretty(self.key)
+				p.breakable()
+				p.text("value=")
+				p.pretty(self.value)
+				p.breakable()
+				p.text("varname=")
+				p.pretty(self.varname)
+				p.breakable()
+				p.text("container=")
+				p.pretty(self.container)
+				if self.condition is not None:
+					p.breakable()
+					p.text("condition=")
+					p.pretty(self.condition)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
+
+	def iternodes(self):
+		yield self
+		yield from self.key.iternodes()
+		yield from self.value.iternodes()
+		yield from self.container.iternodes()
+		if self.condition is not None:
+			yield from self.condition.iternodes()
 
 	def format(self, indent, keepws):
 		s = "{{{} : {} for {} in {}".format(self.key.format(indent, keepws), self.value.format(indent, keepws), _formatnestednameul4(self.varname), self.container.format(indent, keepws))
@@ -599,7 +704,38 @@ class GenExpr(AST):
 		self.condition = condition
 
 	def __repr__(self):
-		return "{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.item, self.varname, self.container, self.condition)
+		s = "<{0.__class__.__module__}.{0.__class__.__qualname__} item={0.item!r} varname={0.varname!r} container={0.container!r}".format(self)
+		if self.condition is not None:
+			s += " condition={0.condition!r}".format(self)
+		return s + " at {:#x}>".format(id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				p.breakable()
+				p.text("item=")
+				p.pretty(self.item)
+				p.breakable()
+				p.text("varname=")
+				p.pretty(self.varname)
+				p.breakable()
+				p.text("container=")
+				p.pretty(self.container)
+				if self.condition is not None:
+					p.breakable()
+					p.text("condition=")
+					p.pretty(self.condition)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
+
+	def iternodes(self):
+		yield self
+		yield from self.item.iternodes()
+		yield from self.container.iternodes()
+		if self.condition is not None:
+			yield from self.condition.iternodes()
 
 	def format(self, indent, keepws):
 		s = "({} for {} in {}".format(self.item.format(indent, keepws), _formatnestednameul4(self.varname), self.container.format(indent, keepws))
@@ -641,13 +777,13 @@ class Var(AST):
 		self.name = name
 
 	def __repr__(self):
-		return "{}({!r})".format(self.__class__.__name__, self.name)
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.name!r} at {1:#x}>".format(self, id(self))
 
 	def format(self, indent, keepws):
 		return self.name
 
 	def formatpython(self, indent, keepws):
-		return "ul4c._getitem(vars, {!r})".format(self.name)
+		return "ul4c._getitem(allvars, {!r})".format(self.name)
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.name)
@@ -672,6 +808,11 @@ class Block(Tag):
 		self.endlocation = None
 		self.content = []
 
+	def iternodes(self):
+		yield self
+		for node in self.content:
+			yield from node.iternodes()
+
 	def append(self, item):
 		self.content.append(item)
 
@@ -684,11 +825,6 @@ class Block(Tag):
 		indent -= 1
 		v.append("{}}}\n".format(indent*"\t"))
 		return "".join(v)
-
-	def _add2template(self, template):
-		super()._add2template(template)
-		for node in self.content:
-			node._add2template(template)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -714,6 +850,20 @@ class IfElIfElse(Block):
 		super().__init__(location)
 		if condition is not None:
 			self.newblock(If(location, condition))
+
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {1} at {2:#x}>".format(self, repr(self.content)[1:-1], id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				for node in self.content:
+					p.breakable()
+					p.pretty(node)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
 
 	def append(self, item):
 		self.content[-1].append(item)
@@ -748,6 +898,29 @@ class If(Block):
 		super().__init__(location)
 		self.condition = condition
 
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} condition={0.condition!r} {1} at {2:#x}>".format(self, ", ..." if self.content else "", id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				p.breakable()
+				p.text("condition=")
+				p.pretty(self.condition)
+				for node in self.content:
+					p.breakable()
+					p.pretty(node)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
+
+	def iternodes(self):
+		yield self
+		yield from self.condition.iternodes()
+		for node in self.content:
+			yield from node.iternodes()
+
 	def format(self, indent, keepws):
 		return "{}if {}\n{}".format(indent*"\t", self.condition.format(indent, keepws), super().format(indent, keepws))
 
@@ -780,6 +953,29 @@ class ElIf(Block):
 		super().__init__(location)
 		self.condition = condition
 
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} condition={0.condition!r} {1} at {2:#x}>".format(self, ", ..." if self.content else "", id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				p.breakable()
+				p.text("condition=")
+				p.pretty(self.condition)
+				for node in self.content:
+					p.breakable()
+					p.pretty(node)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
+
+	def iternodes(self):
+		yield self
+		yield from self.condition.iternodes()
+		for node in self.content:
+			yield from node.iternodes()
+
 	def format(self, indent, keepws):
 		return "{}elif {}\n{}".format(indent*"\t", self.condition.format(indent, keepws), super().format(indent, keepws))
 
@@ -806,6 +1002,20 @@ class Else(Block):
 	AST node for an ``<?else?>`` block.
 	"""
 
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} condition={0.condition!r} at {1:#x}>".format(self, id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				for node in self.content:
+					p.breakable()
+					p.pretty(node)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
+
 	def format(self, indent, keepws):
 		return "{}else\n{}".format(indent*"\t", super().format(indent, keepws))
 
@@ -830,6 +1040,32 @@ class For(Block):
 		super().__init__(location)
 		self.varname = varname
 		self.container = container
+
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} varname={0.varname!r} container={0.container!r} {} at {2:#x}>".format(self, " ..." if self.content else "")
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				p.breakable()
+				p.text("varname=")
+				p.pretty(self.varname)
+				p.breakable()
+				p.text("container=")
+				p.pretty(self.container)
+				for node in self.content:
+					p.breakable()
+					p.pretty(node)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
+
+	def iternodes(self):
+		yield self
+		yield from self.container.iternodes()
+		for node in self.content:
+			yield from node.iternodes()
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -863,9 +1099,6 @@ class Break(Tag):
 	AST node for a ``<?break?>`` inside a ``<?for?>`` block.
 	"""
 
-	def __repr__(self):
-		return "{}()".format(self.__class__.__name__)
-
 	def format(self, indent, keepws):
 		return "{}break\n".format(indent*"\t")
 
@@ -878,9 +1111,6 @@ class Continue(Tag):
 	"""
 	AST node for a ``<?continue?>`` inside a ``<?for?>`` block.
 	"""
-
-	def __repr__(self):
-		return "{}()".format(self.__class__.__name__)
 
 	def format(self, indent, keepws):
 		return "{}continue\n".format(indent*"\t")
@@ -906,7 +1136,25 @@ class GetAttr(AST):
 		self.attrname = attrname
 
 	def __repr__(self):
-		return "{}({!r}, {!r})".format(self.__class__.__name__, self.obj, self.attrname)
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} obj={0.obj!r}, attrname={0.attrname!r} at {1:#x}>".format(self, id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				p.breakable()
+				p.text("obj=")
+				p.pretty(self.obj)
+				p.breakable()
+				p.text("attrname=")
+				p.pretty(self.attrname)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
+
+	def iternodes(self):
+		yield self
+		yield from self.obj.iternodes()
 
 	def format(self, indent, keepws):
 		return "{}.{}".format(self._formatop(self.obj), self.attrname)
@@ -944,8 +1192,33 @@ class GetSlice(AST):
 		self.index1 = index1
 		self.index2 = index2
 
+	def iternodes(self):
+		yield self
+		yield from self.obj.iternodes()
+		if self.index1 is not None:
+			yield from self.index1.iternodes()
+		if self.index2 is not None:
+			yield from self.index2.iternodes()
+
 	def __repr__(self):
-		return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.obj, self.index1, self.index2)
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} obj={0.obj!r} index1={0.index1!r} index2={0.index2!r} at {1:#x}>".format(self, id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				p.breakable()
+				p.text("obj=")
+				p.pretty(self.obj)
+				p.breakable()
+				p.text("index1=")
+				p.pretty(self.index1)
+				p.breakable()
+				p.text("index2=")
+				p.pretty(self.index2)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
 
 	@classmethod
 	def make(cls, obj, index1, index2):
@@ -990,8 +1263,22 @@ class Unary(AST):
 	def __init__(self, obj=None):
 		self.obj = obj
 
+	def iternodes(self):
+		yield self
+		yield from self.obj.iternodes()
+
 	def __repr__(self):
-		return "{}({!r})".format(self.__class__.__name__, self.obj)
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.obj!r} at {1:#x}>".format(self, id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				p.breakable()
+				p.pretty(self.obj)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.obj)
@@ -1054,7 +1341,21 @@ class UnaryTag(Tag):
 		self.obj = obj
 
 	def __repr__(self):
-		return "{}({!r})".format(self.__class__.__name__, self.obj)
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.obj!r} at {1:#x}>".format(self, id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				p.breakable()
+				p.pretty(self.obj)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
+
+	def iternodes(self):
+		yield self
+		yield from self.obj.iternodes()
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1102,8 +1403,25 @@ class Binary(AST):
 		self.obj1 = obj1
 		self.obj2 = obj2
 
+	def iternodes(self):
+		yield self
+		yield from self.obj1.iternodes()
+		yield from self.obj2.iternodes()
+
 	def __repr__(self):
-		return "{}({!r}, {!r})".format(self.__class__.__name__, self.obj1, self.obj2)
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.obj1!r} {0.obj2!r} at {1:#x}>".format(self, id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				p.breakable()
+				p.pretty(self.obj1)
+				p.breakable()
+				p.pretty(self.obj2)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.obj1)
@@ -1486,7 +1804,25 @@ class ChangeVar(Tag):
 		self.value = value
 
 	def __repr__(self):
-		return "{}({!r}, {!r})".format(self.__class__.__name__, self.varname, self.value)
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} varname={0.varname!r} value={0.value!r} at {1:#x}>".format(self, id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				p.breakable()
+				p.text("varname=")
+				p.pretty(self.obj1)
+				p.text("value=")
+				p.breakable()
+				p.pretty(self.obj2)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
+
+	def iternodes(self):
+		yield self
+		yield from self.value.iternodes()
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1625,7 +1961,43 @@ class CallFunc(AST):
 			args.append(("*{}".format(repr(self.remargs)),))
 		if self.remkwargs is not None:
 			args.append(("**{}".format(repr(self.remkwargs)),))
-		return "{}({})".format(self.__class__.__name__, ", ".join(itertools.chain(args)))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} funcname={0.funcname!r} {1} at {2:#x}>".format(self, " ".join(itertools.chain(*args)), id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				p.breakable()
+				p.pretty(self.funcname)
+				for arg in self.args:
+					p.breakable()
+					p.pretty(arg)
+				for (argname, arg) in self.kwargs:
+					p.breakable()
+					p.text("{}=".format(argname))
+					p.pretty(arg)
+				if self.remargs is not None:
+					p.breakable()
+					p.text("*")
+					p.pretty(self.remargs)
+				if self.remkwargs is not None:
+					p.breakable()
+					p.text("**")
+					p.pretty(self.remkwargs)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
+
+	def iternodes(self):
+		yield self
+		for arg in self.args:
+			yield from arg.iternodes()
+		for (argname, arg) in self.kwargs:
+			yield from arg.iternodes()
+		if self.remargs is not None:
+			yield from self.remargs.iternodes()
+		if self.remkwargs is not None:
+			yield from self.remkwargs.iternodes()
 
 	def format(self, indent, keepws):
 		args = []
@@ -1699,6 +2071,7 @@ class CallMeth(AST):
 		self.remargs = None
 		self.remkwargs = None
 
+
 	def __repr__(self):
 		args = [
 			(repr(self.methname), repr(self.obj)),
@@ -1709,7 +2082,48 @@ class CallMeth(AST):
 			args.append(("*{}".format(repr(self.remargs)),))
 		if self.remkwargs is not None:
 			args.append(("**{}".format(repr(self.remkwargs)),))
-		return "{}({})".format(self.__class__.__name__, ", ".join(itertools.chain(*args)))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} methname={0.methname!r} obj={0.obj!r} {1} at {2:#x}>".format(self, " ".join(itertools.chain(*args)), id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				p.breakable()
+				p.text("methname=")
+				p.pretty(self.methname)
+				p.breakable()
+				p.text("obj=")
+				p.pretty(self.obj)
+				for arg in self.args:
+					p.breakable()
+					p.pretty(arg)
+				for (argname, arg) in self.kwargs:
+					p.breakable()
+					p.text("{!r}=".format(argname))
+					p.pretty(arg)
+				if self.remargs is not None:
+					p.breakable()
+					p.text("*")
+					p.pretty(self.remargs)
+				if self.remkwargs is not None:
+					p.breakable()
+					p.text("**")
+					p.pretty(self.remkwargs)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
+
+	def iternodes(self):
+		yield self
+		yield from self.obj.iternodes()
+		for arg in self.args:
+			yield from arg.iternodes()
+		for (argname, arg) in self.kwargs:
+			yield from arg.iternodes()
+		if self.remargs is not None:
+			yield from self.remargs.iternodes()
+		if self.remkwargs is not None:
+			yield from self.remkwargs.iternodes()
 
 	def format(self, indent, keepws):
 		args = []
@@ -2404,7 +2818,7 @@ class Template(Block, Callable):
 		# It is used in :meth:`Template.format` (to give the generated Python source code access to the subtemplate)
 		# and for proper exception chaining (when an exception occurs in the template, comments in the
 		# generated source code allow finding the offending AST node)
-		self._astsbyid = None
+		self._astsbyid = {}
 		# Python source code generated for the template
 		self._pythonsource = None
 		# A compiled Python function implementing the template logic
@@ -2414,8 +2828,43 @@ class Template(Block, Callable):
 		if source is not None:
 			self._compile(source, name, startdelim, enddelim)
 
+	def __repr__(self):
+		s = "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} keepws={0.keepws!r}".format(self)
+		if self.startdelim != "<?":
+			s += " startdelim={0.startdelim!r}".format(self)
+		if self.enddelim != "?>":
+			s += " enddelim={0.enddelim!r}".format(self)
+		if self.content:
+			s + " ..."
+		return s + " at {:#x}>".format(id(self))
+
 	def __str__(self):
 		return self.format(0, self._keepws)
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				p.breakable()
+				p.text("name=")
+				p.pretty(self.name)
+				p.breakable()
+				p.text("keepws=")
+				p.pretty(self.keepws)
+				if self.startdelim != "<?":
+					p.breakable()
+					p.text("startdelim=")
+					p.pretty(self.startdelim)
+				if self.enddelim != "?>":
+					p.breakable()
+					p.text("enddelim=")
+					p.pretty(self.enddelim)
+				for node in self.content:
+					p.breakable()
+					p.pretty(node)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.version)
@@ -2446,8 +2895,10 @@ class Template(Block, Callable):
 
 	def _set_keepws(self, keepws):
 		if bool(self._keepws) != bool(keepws):
-			self._keepws = keepws
-			self._pythonsource = self._pythonfunction = None
+			for node in self.iternodes():
+				if isinstance(node, Template):
+					node._keepws = keepws
+					node._pythonsource = node._pythonfunction = None
 
 	keepws = property(_get_keepws, _set_keepws)
 
@@ -2500,10 +2951,14 @@ class Template(Block, Callable):
 		return "{i}# <?def?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] = ul4c.TemplateClosure(stack[-1]._getast({id}), vars)\n".format(i=indent*"\t", n=self.name if self.name is not None else "unnamed", id=id(self), l=self.location)
 
 	def _getast(self, astid):
-		if self._astsbyid is None:
-			self._astsbyid = {}
-			self._add2template(self)
-		return self._astsbyid[astid]
+		try:
+			return self._astsbyid[astid]
+		except KeyError:
+			for node in self.iternodes():
+				if id(node) == astid:
+					self._astsbyid[astid] = node
+					return node
+			raise
 
 	def _handleexc(self, exc):
 		source = [line.strip() for line in self._pythonsource.splitlines()]
@@ -2562,12 +3017,13 @@ class Template(Block, Callable):
 		if self._pythonsource is None:
 			v = []
 			v.append("def {}(self, stack, vars):\n".format(self.name if self.name is not None else "unnamed"))
-			v.append("\timport datetime\n")
+			v.append("\timport datetime, collections\n")
 			v.append("\tfrom ll import ul4c, misc, color\n")
 			v.append("\tif 0:\n")
 			v.append("\t\tyield\n")
 			v.append("\ttry:\n")
 			v.append("\t\tstack.append(self)\n")
+			v.append("\t\tallvars = collections.ChainMap(vars, {'stack': stack})\n")
 			for node in self.content:
 				v.append(node.formatpython(2, self._keepws))
 			v.append("\texcept Exception as exc:\n")
@@ -2730,17 +3186,14 @@ class Template(Block, Callable):
 		if len(stack) > 1:
 			raise Error(stack[-1].location) from BlockError("block unclosed")
 
-	def __repr__(self):
-		return "<{}.{} object at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, id(self))
-
 
 class TemplateClosure(Object):
 	fields = {"location", "endlocation", "name", "source", "startdelim", "enddelim", "content"}
 
 	def __init__(self, template, vars):
 		self.template = template
-		# Freeze variable of the currently running template
-		self.vars = collections.ChainMap(vars.maps[0].copy(), *vars.maps[1:])
+		# Freeze variables of the currently running templates
+		self.vars = vars.copy()
 
 	def _render(self, stack, vars):
 		return self.template._render(stack, collections.ChainMap(vars, self.vars))
