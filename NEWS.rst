@@ -1,5 +1,5 @@
-Changes in 4.8.1 (released 01/16/2013)
---------------------------------------
+Changes in 4.9 (released 01/17/2013)
+------------------------------------
 
 *	Fixed a bug in UL4 templates when a template called a top-level template
 	which in turn called its own subtemplate.
