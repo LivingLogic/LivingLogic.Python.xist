@@ -1766,7 +1766,7 @@ class Frag(Node, list):
 		if cycle:
 			p.text("xsc.Frag(...)")
 		else:
-			with p.group(3, "xsc.Frag(", ")"):
+			with p.group(4, "xsc.Frag(", ")"):
 				for (i, child) in enumerate(self):
 					if i:
 						p.text(",")
@@ -2336,7 +2336,7 @@ class Attr(Frag, metaclass=_Attr_Meta):
 		if cycle:
 			p.text("{}.{}(...)".format(self.__class__.__module__, self.__class__.__name__))
 		else:
-			with p.group(3, "{}.{}(".format(self.__class__.__module__, self.__class__.__name__), ")"):
+			with p.group(4, "{}.{}(".format(self.__class__.__module__, self.__class__.__name__), ")"):
 				for (i, child) in enumerate(self):
 					if i:
 						p.text(",")
@@ -2669,7 +2669,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 				p.text("=")
 				p.pretty(attr[0])
 			else:
-				with p.group(3, "{}=(".format(attrname), ")"):
+				with p.group(4, "{}=(".format(attrname), ")"):
 					attrfirst = True
 					for attrchild in attr:
 						if attrfirst:
@@ -2684,7 +2684,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		if cycle:
 			p.text("{}.{}(...)".format(self.__class__.__module__, self.__class__.__qualname__))
 		else:
-			with p.group(3, "{}.{}(".format(self.__class__.__module__, self.__class__.__qualname__), ")"):
+			with p.group(4, "{}.{}(".format(self.__class__.__module__, self.__class__.__qualname__), ")"):
 				self._repr_pretty_content_(p, True)
 
 	def __eq__(self, other):
@@ -3231,7 +3231,7 @@ class Element(Node, metaclass=_Element_Meta):
 		if cycle:
 			p.text("{}.{}(...)".format(self.__class__.__module__, self.__class__.__name__))
 		else:
-			with p.group(3, "{}.{}(".format(self.__class__.__module__, self.__class__.__name__), ")"):
+			with p.group(4, "{}.{}(".format(self.__class__.__module__, self.__class__.__name__), ")"):
 				first = True
 				for child in self.content:
 					if first:
