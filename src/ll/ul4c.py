@@ -2912,7 +2912,7 @@ class Template(Block, Callable):
 	A :class:`Template` object is itself an AST node. Evaluating it will store
 	the template object under its name in the local variables.
 	"""
-	version = "23"
+	version = "24"
 	fields = Block.fields.union({"source", "name", "startdelim", "enddelim", "endlocation"})
 
 	def __init__(self, source=None, name=None, keepws=True, startdelim="<?", enddelim="?>"):
