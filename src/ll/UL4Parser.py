@@ -1,4 +1,4 @@
-# $ANTLR 3.4 src/ll/UL4.g 2013-01-07 15:07:34
+# $ANTLR 3.4 src/ll/UL4.g 2013-01-17 15:59:24
 
 import sys
 from antlr3 import *
@@ -1698,568 +1698,8 @@ class UL4Parser(Parser):
 
 
 
-    # $ANTLR start "expr10"
-    # src/ll/UL4.g:320:1: expr10 returns [node] : (a= atom |n= name '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) ')' );
-    def expr10(self, ):
-        node = None
-
-
-        a = None
-
-        n = None
-
-        rkwargs = None
-
-        rargs = None
-
-        a1 = None
-
-        a2 = None
-
-        an3 = None
-
-        av3 = None
-
-        an1 = None
-
-        av1 = None
-
-        an2 = None
-
-        av2 = None
-
-
-        try:
-            try:
-                # src/ll/UL4.g:321:2: (a= atom |n= name '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) ')' )
-                alt29 = 2
-                LA29_0 = self.input.LA(1)
-
-                if ((COLOR <= LA29_0 <= DATE) or (FALSE <= LA29_0 <= FLOAT) or LA29_0 == INT or LA29_0 == NONE or LA29_0 == STRING or LA29_0 == TRUE or LA29_0 == 27 or LA29_0 == 49 or LA29_0 == 57) :
-                    alt29 = 1
-                elif (LA29_0 == NAME) :
-                    LA29_2 = self.input.LA(2)
-
-                    if (LA29_2 == EOF or (24 <= LA29_2 <= 25) or (28 <= LA29_2 <= 29) or LA29_2 == 32 or (34 <= LA29_2 <= 35) or (37 <= LA29_2 <= 39) or (42 <= LA29_2 <= 44) or (46 <= LA29_2 <= 56) or LA29_2 == 58) :
-                        alt29 = 1
-                    elif (LA29_2 == 27) :
-                        alt29 = 2
-                    else:
-                        if self._state.backtracking > 0:
-                            raise BacktrackingFailed
-
-
-                        nvae = NoViableAltException("", 29, 2, self.input)
-
-                        raise nvae
-
-
-                else:
-                    if self._state.backtracking > 0:
-                        raise BacktrackingFailed
-
-
-                    nvae = NoViableAltException("", 29, 0, self.input)
-
-                    raise nvae
-
-
-                if alt29 == 1:
-                    # src/ll/UL4.g:321:4: a= atom
-                    pass 
-                    self._state.following.append(self.FOLLOW_atom_in_expr101557)
-                    a = self.atom()
-
-                    self._state.following.pop()
-
-                    if self._state.backtracking == 0:
-                        pass
-                        node =  a 
-
-
-
-
-                elif alt29 == 2:
-                    # src/ll/UL4.g:323:3: n= name '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) ')'
-                    pass 
-                    self._state.following.append(self.FOLLOW_name_in_expr101568)
-                    n = self.name()
-
-                    self._state.following.pop()
-
-                    self.match(self.input, 27, self.FOLLOW_27_in_expr101572)
-
-                    if self._state.backtracking == 0:
-                        pass
-                        node =  ul4c.CallFunc(((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0]) 
-
-
-
-                    # src/ll/UL4.g:325:3: (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? )
-                    alt28 = 5
-                    LA28 = self.input.LA(1)
-                    if LA28 == 28:
-                        alt28 = 1
-                    elif LA28 == 30:
-                        alt28 = 2
-                    elif LA28 == 29:
-                        alt28 = 3
-                    elif LA28 == COLOR or LA28 == DATE or LA28 == FALSE or LA28 == FLOAT or LA28 == INT or LA28 == NONE or LA28 == STRING or LA28 == TRUE or LA28 == 27 or LA28 == 35 or LA28 == 49 or LA28 == 55 or LA28 == 57:
-                        alt28 = 4
-                    elif LA28 == NAME:
-                        LA28_5 = self.input.LA(2)
-
-                        if ((24 <= LA28_5 <= 25) or (27 <= LA28_5 <= 29) or LA28_5 == 32 or (34 <= LA28_5 <= 35) or (37 <= LA28_5 <= 39) or (43 <= LA28_5 <= 44) or (46 <= LA28_5 <= 49) or (51 <= LA28_5 <= 52) or (54 <= LA28_5 <= 56)) :
-                            alt28 = 4
-                        elif (LA28_5 == 45) :
-                            alt28 = 5
-                        else:
-                            if self._state.backtracking > 0:
-                                raise BacktrackingFailed
-
-
-                            nvae = NoViableAltException("", 28, 5, self.input)
-
-                            raise nvae
-
-
-                    else:
-                        if self._state.backtracking > 0:
-                            raise BacktrackingFailed
-
-
-                        nvae = NoViableAltException("", 28, 0, self.input)
-
-                        raise nvae
-
-
-                    if alt28 == 1:
-                        # src/ll/UL4.g:327:3: 
-                        pass 
-
-                    elif alt28 == 2:
-                        # src/ll/UL4.g:329:4: '**' rkwargs= exprarg ( ',' )?
-                        pass 
-                        self.match(self.input, 30, self.FOLLOW_30_in_expr101597)
-
-                        self._state.following.append(self.FOLLOW_exprarg_in_expr101601)
-                        rkwargs = self.exprarg()
-
-                        self._state.following.pop()
-
-                        if self._state.backtracking == 0:
-                            pass
-                            node.remkwargs = rkwargs; 
-
-
-
-                        # src/ll/UL4.g:330:4: ( ',' )?
-                        alt16 = 2
-                        LA16_0 = self.input.LA(1)
-
-                        if (LA16_0 == 34) :
-                            alt16 = 1
-                        if alt16 == 1:
-                            # src/ll/UL4.g:330:4: ','
-                            pass 
-                            self.match(self.input, 34, self.FOLLOW_34_in_expr101608)
-
-
-
-
-
-                    elif alt28 == 3:
-                        # src/ll/UL4.g:333:4: '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )?
-                        pass 
-                        self.match(self.input, 29, self.FOLLOW_29_in_expr101623)
-
-                        self._state.following.append(self.FOLLOW_exprarg_in_expr101627)
-                        rargs = self.exprarg()
-
-                        self._state.following.pop()
-
-                        if self._state.backtracking == 0:
-                            pass
-                            node.remargs = rargs; 
-
-
-
-                        # src/ll/UL4.g:334:4: ( ',' '**' rkwargs= exprarg )?
-                        alt17 = 2
-                        LA17_0 = self.input.LA(1)
-
-                        if (LA17_0 == 34) :
-                            LA17_1 = self.input.LA(2)
-
-                            if (LA17_1 == 30) :
-                                alt17 = 1
-                        if alt17 == 1:
-                            # src/ll/UL4.g:335:5: ',' '**' rkwargs= exprarg
-                            pass 
-                            self.match(self.input, 34, self.FOLLOW_34_in_expr101640)
-
-                            self.match(self.input, 30, self.FOLLOW_30_in_expr101646)
-
-                            self._state.following.append(self.FOLLOW_exprarg_in_expr101650)
-                            rkwargs = self.exprarg()
-
-                            self._state.following.pop()
-
-                            if self._state.backtracking == 0:
-                                pass
-                                node.remkwargs = rkwargs; 
-
-
-
-
-
-
-                        # src/ll/UL4.g:338:4: ( ',' )?
-                        alt18 = 2
-                        LA18_0 = self.input.LA(1)
-
-                        if (LA18_0 == 34) :
-                            alt18 = 1
-                        if alt18 == 1:
-                            # src/ll/UL4.g:338:4: ','
-                            pass 
-                            self.match(self.input, 34, self.FOLLOW_34_in_expr101663)
-
-
-
-
-
-                    elif alt28 == 4:
-                        # src/ll/UL4.g:341:4: a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )?
-                        pass 
-                        self._state.following.append(self.FOLLOW_exprarg_in_expr101680)
-                        a1 = self.exprarg()
-
-                        self._state.following.pop()
-
-                        if self._state.backtracking == 0:
-                            pass
-                            node.args.append(a1); 
-
-
-
-                        # src/ll/UL4.g:342:4: ( ',' a2= exprarg )*
-                        while True: #loop19
-                            alt19 = 2
-                            LA19_0 = self.input.LA(1)
-
-                            if (LA19_0 == 34) :
-                                LA19_1 = self.input.LA(2)
-
-                                if (LA19_1 == NAME) :
-                                    LA19_3 = self.input.LA(3)
-
-                                    if ((24 <= LA19_3 <= 25) or (27 <= LA19_3 <= 29) or LA19_3 == 32 or (34 <= LA19_3 <= 35) or (37 <= LA19_3 <= 39) or (43 <= LA19_3 <= 44) or (46 <= LA19_3 <= 49) or (51 <= LA19_3 <= 52) or (54 <= LA19_3 <= 56)) :
-                                        alt19 = 1
-
-
-                                elif ((COLOR <= LA19_1 <= DATE) or (FALSE <= LA19_1 <= FLOAT) or LA19_1 == INT or LA19_1 == NONE or LA19_1 == STRING or LA19_1 == TRUE or LA19_1 == 27 or LA19_1 == 35 or LA19_1 == 49 or LA19_1 == 55 or LA19_1 == 57) :
-                                    alt19 = 1
-
-
-
-
-                            if alt19 == 1:
-                                # src/ll/UL4.g:343:5: ',' a2= exprarg
-                                pass 
-                                self.match(self.input, 34, self.FOLLOW_34_in_expr101693)
-
-                                self._state.following.append(self.FOLLOW_exprarg_in_expr101701)
-                                a2 = self.exprarg()
-
-                                self._state.following.pop()
-
-                                if self._state.backtracking == 0:
-                                    pass
-                                    node.args.append(a2); 
-
-
-
-
-                            else:
-                                break #loop19
-
-
-                        # src/ll/UL4.g:346:4: ( ',' an3= name '=' av3= exprarg )*
-                        while True: #loop20
-                            alt20 = 2
-                            LA20_0 = self.input.LA(1)
-
-                            if (LA20_0 == 34) :
-                                LA20_1 = self.input.LA(2)
-
-                                if (LA20_1 == NAME) :
-                                    alt20 = 1
-
-
-
-
-                            if alt20 == 1:
-                                # src/ll/UL4.g:347:5: ',' an3= name '=' av3= exprarg
-                                pass 
-                                self.match(self.input, 34, self.FOLLOW_34_in_expr101720)
-
-                                self._state.following.append(self.FOLLOW_name_in_expr101728)
-                                an3 = self.name()
-
-                                self._state.following.pop()
-
-                                self.match(self.input, 45, self.FOLLOW_45_in_expr101730)
-
-                                self._state.following.append(self.FOLLOW_exprarg_in_expr101734)
-                                av3 = self.exprarg()
-
-                                self._state.following.pop()
-
-                                if self._state.backtracking == 0:
-                                    pass
-                                    node.kwargs.append((((an3 is not None) and [self.input.toString(an3.start,an3.stop)] or [None])[0], av3)); 
-
-
-
-
-                            else:
-                                break #loop20
-
-
-                        # src/ll/UL4.g:350:4: ( ',' '*' rargs= exprarg )?
-                        alt21 = 2
-                        LA21_0 = self.input.LA(1)
-
-                        if (LA21_0 == 34) :
-                            LA21_1 = self.input.LA(2)
-
-                            if (LA21_1 == 29) :
-                                alt21 = 1
-                        if alt21 == 1:
-                            # src/ll/UL4.g:351:5: ',' '*' rargs= exprarg
-                            pass 
-                            self.match(self.input, 34, self.FOLLOW_34_in_expr101753)
-
-                            self.match(self.input, 29, self.FOLLOW_29_in_expr101759)
-
-                            self._state.following.append(self.FOLLOW_exprarg_in_expr101763)
-                            rargs = self.exprarg()
-
-                            self._state.following.pop()
-
-                            if self._state.backtracking == 0:
-                                pass
-                                node.remargs = rargs; 
-
-
-
-
-
-
-                        # src/ll/UL4.g:354:4: ( ',' '**' rkwargs= exprarg )?
-                        alt22 = 2
-                        LA22_0 = self.input.LA(1)
-
-                        if (LA22_0 == 34) :
-                            LA22_1 = self.input.LA(2)
-
-                            if (LA22_1 == 30) :
-                                alt22 = 1
-                        if alt22 == 1:
-                            # src/ll/UL4.g:355:5: ',' '**' rkwargs= exprarg
-                            pass 
-                            self.match(self.input, 34, self.FOLLOW_34_in_expr101782)
-
-                            self.match(self.input, 30, self.FOLLOW_30_in_expr101788)
-
-                            self._state.following.append(self.FOLLOW_exprarg_in_expr101792)
-                            rkwargs = self.exprarg()
-
-                            self._state.following.pop()
-
-                            if self._state.backtracking == 0:
-                                pass
-                                node.remkwargs = rkwargs; 
-
-
-
-
-
-
-                        # src/ll/UL4.g:358:4: ( ',' )?
-                        alt23 = 2
-                        LA23_0 = self.input.LA(1)
-
-                        if (LA23_0 == 34) :
-                            alt23 = 1
-                        if alt23 == 1:
-                            # src/ll/UL4.g:358:4: ','
-                            pass 
-                            self.match(self.input, 34, self.FOLLOW_34_in_expr101805)
-
-
-
-
-
-                    elif alt28 == 5:
-                        # src/ll/UL4.g:361:4: an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )?
-                        pass 
-                        self._state.following.append(self.FOLLOW_name_in_expr101822)
-                        an1 = self.name()
-
-                        self._state.following.pop()
-
-                        self.match(self.input, 45, self.FOLLOW_45_in_expr101824)
-
-                        self._state.following.append(self.FOLLOW_exprarg_in_expr101828)
-                        av1 = self.exprarg()
-
-                        self._state.following.pop()
-
-                        if self._state.backtracking == 0:
-                            pass
-                            node.kwargs.append((((an1 is not None) and [self.input.toString(an1.start,an1.stop)] or [None])[0], av1)); 
-
-
-
-                        # src/ll/UL4.g:362:4: ( ',' an2= name '=' av2= exprarg )*
-                        while True: #loop24
-                            alt24 = 2
-                            LA24_0 = self.input.LA(1)
-
-                            if (LA24_0 == 34) :
-                                LA24_1 = self.input.LA(2)
-
-                                if (LA24_1 == NAME) :
-                                    alt24 = 1
-
-
-
-
-                            if alt24 == 1:
-                                # src/ll/UL4.g:363:5: ',' an2= name '=' av2= exprarg
-                                pass 
-                                self.match(self.input, 34, self.FOLLOW_34_in_expr101841)
-
-                                self._state.following.append(self.FOLLOW_name_in_expr101849)
-                                an2 = self.name()
-
-                                self._state.following.pop()
-
-                                self.match(self.input, 45, self.FOLLOW_45_in_expr101851)
-
-                                self._state.following.append(self.FOLLOW_exprarg_in_expr101855)
-                                av2 = self.exprarg()
-
-                                self._state.following.pop()
-
-                                if self._state.backtracking == 0:
-                                    pass
-                                    node.kwargs.append((((an2 is not None) and [self.input.toString(an2.start,an2.stop)] or [None])[0], av2)); 
-
-
-
-
-                            else:
-                                break #loop24
-
-
-                        # src/ll/UL4.g:366:4: ( ',' '*' rargs= exprarg )?
-                        alt25 = 2
-                        LA25_0 = self.input.LA(1)
-
-                        if (LA25_0 == 34) :
-                            LA25_1 = self.input.LA(2)
-
-                            if (LA25_1 == 29) :
-                                alt25 = 1
-                        if alt25 == 1:
-                            # src/ll/UL4.g:367:5: ',' '*' rargs= exprarg
-                            pass 
-                            self.match(self.input, 34, self.FOLLOW_34_in_expr101874)
-
-                            self.match(self.input, 29, self.FOLLOW_29_in_expr101880)
-
-                            self._state.following.append(self.FOLLOW_exprarg_in_expr101884)
-                            rargs = self.exprarg()
-
-                            self._state.following.pop()
-
-                            if self._state.backtracking == 0:
-                                pass
-                                node.remargs = rargs; 
-
-
-
-
-
-
-                        # src/ll/UL4.g:370:4: ( ',' '**' rkwargs= exprarg )?
-                        alt26 = 2
-                        LA26_0 = self.input.LA(1)
-
-                        if (LA26_0 == 34) :
-                            LA26_1 = self.input.LA(2)
-
-                            if (LA26_1 == 30) :
-                                alt26 = 1
-                        if alt26 == 1:
-                            # src/ll/UL4.g:371:5: ',' '**' rkwargs= exprarg
-                            pass 
-                            self.match(self.input, 34, self.FOLLOW_34_in_expr101903)
-
-                            self.match(self.input, 30, self.FOLLOW_30_in_expr101909)
-
-                            self._state.following.append(self.FOLLOW_exprarg_in_expr101913)
-                            rkwargs = self.exprarg()
-
-                            self._state.following.pop()
-
-                            if self._state.backtracking == 0:
-                                pass
-                                node.remkwargs = rkwargs; 
-
-
-
-
-
-
-                        # src/ll/UL4.g:374:4: ( ',' )?
-                        alt27 = 2
-                        LA27_0 = self.input.LA(1)
-
-                        if (LA27_0 == 34) :
-                            alt27 = 1
-                        if alt27 == 1:
-                            # src/ll/UL4.g:374:4: ','
-                            pass 
-                            self.match(self.input, 34, self.FOLLOW_34_in_expr101926)
-
-
-
-
-
-
-
-                    self.match(self.input, 28, self.FOLLOW_28_in_expr101935)
-
-
-
-                       
-            except RecognitionException as e:
-                raise
-
-        finally:
-            pass
-        return node
-
-    # $ANTLR end "expr10"
-
-
-
     # $ANTLR start "expr9"
-    # src/ll/UL4.g:380:1: expr9 returns [node] : e1= expr10 ( '.' n= name ( '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) ')' )? | '[' ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? ) ']' )* ;
+    # src/ll/UL4.g:320:1: expr9 returns [node] : e1= atom ( '.' n= name | '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) ')' | '[' ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? ) ']' )* ;
     def expr9(self, ):
         node = None
 
@@ -2301,11 +1741,11 @@ class UL4Parser(Parser):
         	
         try:
             try:
-                # src/ll/UL4.g:388:2: (e1= expr10 ( '.' n= name ( '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) ')' )? | '[' ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? ) ']' )* )
-                # src/ll/UL4.g:389:3: e1= expr10 ( '.' n= name ( '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) ')' )? | '[' ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? ) ']' )*
+                # src/ll/UL4.g:328:2: (e1= atom ( '.' n= name | '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) ')' | '[' ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? ) ']' )* )
+                # src/ll/UL4.g:329:3: e1= atom ( '.' n= name | '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) ')' | '[' ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? ) ']' )*
                 pass 
-                self._state.following.append(self.FOLLOW_expr10_in_expr91964)
-                e1 = self.expr10()
+                self._state.following.append(self.FOLLOW_atom_in_expr91566)
+                e1 = self.atom()
 
                 self._state.following.pop()
 
@@ -2315,92 +1755,151 @@ class UL4Parser(Parser):
 
 
 
-                # src/ll/UL4.g:390:3: ( '.' n= name ( '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) ')' )? | '[' ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? ) ']' )*
-                while True: #loop48
-                    alt48 = 3
-                    LA48_0 = self.input.LA(1)
+                # src/ll/UL4.g:330:3: ( '.' n= name | '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) ')' | '[' ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? ) ']' )*
+                while True: #loop33
+                    alt33 = 4
+                    LA33 = self.input.LA(1)
+                    if LA33 == 37:
+                        alt33 = 1
+                    elif LA33 == 27:
+                        alt33 = 2
+                    elif LA33 == 49:
+                        alt33 = 3
 
-                    if (LA48_0 == 37) :
-                        alt48 = 1
-                    elif (LA48_0 == 49) :
-                        alt48 = 2
-
-
-                    if alt48 == 1:
-                        # src/ll/UL4.g:392:4: '.' n= name ( '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) ')' )?
+                    if alt33 == 1:
+                        # src/ll/UL4.g:332:4: '.' n= name
                         pass 
-                        self.match(self.input, 37, self.FOLLOW_37_in_expr91980)
+                        self.match(self.input, 37, self.FOLLOW_37_in_expr91582)
 
-                        self._state.following.append(self.FOLLOW_name_in_expr91987)
+                        self._state.following.append(self.FOLLOW_name_in_expr91589)
                         n = self.name()
 
                         self._state.following.pop()
 
-                        # src/ll/UL4.g:394:4: ( '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) ')' )?
-                        alt43 = 2
-                        LA43_0 = self.input.LA(1)
-
-                        if (LA43_0 == 27) :
-                            alt43 = 1
-                        if alt43 == 1:
-                            # src/ll/UL4.g:396:5: '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) ')'
-                            pass 
-                            self.match(self.input, 27, self.FOLLOW_27_in_expr92004)
-
-                            if self._state.backtracking == 0:
-                                pass
-                                callmeth = True; node =  ul4c.CallMeth(((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], node) 
+                        if self._state.backtracking == 0:
+                            pass
+                            node =  ul4c.GetAttr(node, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0]) 
 
 
 
-                            # src/ll/UL4.g:397:5: (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? )
-                            alt42 = 5
-                            LA42 = self.input.LA(1)
-                            if LA42 == 28:
-                                alt42 = 1
-                            elif LA42 == 30:
-                                alt42 = 2
-                            elif LA42 == 29:
-                                alt42 = 3
-                            elif LA42 == COLOR or LA42 == DATE or LA42 == FALSE or LA42 == FLOAT or LA42 == INT or LA42 == NONE or LA42 == STRING or LA42 == TRUE or LA42 == 27 or LA42 == 35 or LA42 == 49 or LA42 == 55 or LA42 == 57:
-                                alt42 = 4
-                            elif LA42 == NAME:
-                                LA42_5 = self.input.LA(2)
 
-                                if ((24 <= LA42_5 <= 25) or (27 <= LA42_5 <= 29) or LA42_5 == 32 or (34 <= LA42_5 <= 35) or (37 <= LA42_5 <= 39) or (43 <= LA42_5 <= 44) or (46 <= LA42_5 <= 49) or (51 <= LA42_5 <= 52) or (54 <= LA42_5 <= 56)) :
-                                    alt42 = 4
-                                elif (LA42_5 == 45) :
-                                    alt42 = 5
-                                else:
-                                    if self._state.backtracking > 0:
-                                        raise BacktrackingFailed
+                    elif alt33 == 2:
+                        # src/ll/UL4.g:336:4: '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) ')'
+                        pass 
+                        self.match(self.input, 27, self.FOLLOW_27_in_expr91605)
+
+                        if self._state.backtracking == 0:
+                            pass
+                            node =  ul4c.CallMeth(node.obj, node.attrname) if isinstance(node, ul4c.GetAttr) else ul4c.CallFunc(node) 
 
 
-                                    nvae = NoViableAltException("", 42, 5, self.input)
 
-                                    raise nvae
+                        # src/ll/UL4.g:337:4: (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? )
+                        alt28 = 5
+                        LA28 = self.input.LA(1)
+                        if LA28 == 28:
+                            alt28 = 1
+                        elif LA28 == 30:
+                            alt28 = 2
+                        elif LA28 == 29:
+                            alt28 = 3
+                        elif LA28 == COLOR or LA28 == DATE or LA28 == FALSE or LA28 == FLOAT or LA28 == INT or LA28 == NONE or LA28 == STRING or LA28 == TRUE or LA28 == 27 or LA28 == 35 or LA28 == 49 or LA28 == 55 or LA28 == 57:
+                            alt28 = 4
+                        elif LA28 == NAME:
+                            LA28_5 = self.input.LA(2)
 
-
+                            if ((24 <= LA28_5 <= 25) or (27 <= LA28_5 <= 29) or LA28_5 == 32 or (34 <= LA28_5 <= 35) or (37 <= LA28_5 <= 39) or (43 <= LA28_5 <= 44) or (46 <= LA28_5 <= 49) or (51 <= LA28_5 <= 52) or (54 <= LA28_5 <= 56)) :
+                                alt28 = 4
+                            elif (LA28_5 == 45) :
+                                alt28 = 5
                             else:
                                 if self._state.backtracking > 0:
                                     raise BacktrackingFailed
 
 
-                                nvae = NoViableAltException("", 42, 0, self.input)
+                                nvae = NoViableAltException("", 28, 5, self.input)
 
                                 raise nvae
 
 
-                            if alt42 == 1:
-                                # src/ll/UL4.g:399:5: 
-                                pass 
+                        else:
+                            if self._state.backtracking > 0:
+                                raise BacktrackingFailed
 
-                            elif alt42 == 2:
-                                # src/ll/UL4.g:401:6: '**' rkwargs= exprarg ( ',' )?
-                                pass 
-                                self.match(self.input, 30, self.FOLLOW_30_in_expr92039)
 
-                                self._state.following.append(self.FOLLOW_exprarg_in_expr92043)
+                            nvae = NoViableAltException("", 28, 0, self.input)
+
+                            raise nvae
+
+
+                        if alt28 == 1:
+                            # src/ll/UL4.g:339:4: 
+                            pass 
+
+                        elif alt28 == 2:
+                            # src/ll/UL4.g:341:5: '**' rkwargs= exprarg ( ',' )?
+                            pass 
+                            self.match(self.input, 30, self.FOLLOW_30_in_expr91635)
+
+                            self._state.following.append(self.FOLLOW_exprarg_in_expr91639)
+                            rkwargs = self.exprarg()
+
+                            self._state.following.pop()
+
+                            if self._state.backtracking == 0:
+                                pass
+                                node.remkwargs = rkwargs; 
+
+
+
+                            # src/ll/UL4.g:342:5: ( ',' )?
+                            alt16 = 2
+                            LA16_0 = self.input.LA(1)
+
+                            if (LA16_0 == 34) :
+                                alt16 = 1
+                            if alt16 == 1:
+                                # src/ll/UL4.g:342:5: ','
+                                pass 
+                                self.match(self.input, 34, self.FOLLOW_34_in_expr91647)
+
+
+
+
+
+                        elif alt28 == 3:
+                            # src/ll/UL4.g:345:5: '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )?
+                            pass 
+                            self.match(self.input, 29, self.FOLLOW_29_in_expr91665)
+
+                            self._state.following.append(self.FOLLOW_exprarg_in_expr91669)
+                            rargs = self.exprarg()
+
+                            self._state.following.pop()
+
+                            if self._state.backtracking == 0:
+                                pass
+                                node.remargs = rargs; 
+
+
+
+                            # src/ll/UL4.g:346:5: ( ',' '**' rkwargs= exprarg )?
+                            alt17 = 2
+                            LA17_0 = self.input.LA(1)
+
+                            if (LA17_0 == 34) :
+                                LA17_1 = self.input.LA(2)
+
+                                if (LA17_1 == 30) :
+                                    alt17 = 1
+                            if alt17 == 1:
+                                # src/ll/UL4.g:347:6: ',' '**' rkwargs= exprarg
+                                pass 
+                                self.match(self.input, 34, self.FOLLOW_34_in_expr91684)
+
+                                self.match(self.input, 30, self.FOLLOW_30_in_expr91691)
+
+                                self._state.following.append(self.FOLLOW_exprarg_in_expr91695)
                                 rkwargs = self.exprarg()
 
                                 self._state.following.pop()
@@ -2411,27 +1910,139 @@ class UL4Parser(Parser):
 
 
 
-                                # src/ll/UL4.g:402:6: ( ',' )?
-                                alt30 = 2
-                                LA30_0 = self.input.LA(1)
-
-                                if (LA30_0 == 34) :
-                                    alt30 = 1
-                                if alt30 == 1:
-                                    # src/ll/UL4.g:402:6: ','
-                                    pass 
-                                    self.match(self.input, 34, self.FOLLOW_34_in_expr92052)
 
 
 
+                            # src/ll/UL4.g:350:5: ( ',' )?
+                            alt18 = 2
+                            LA18_0 = self.input.LA(1)
 
-
-                            elif alt42 == 3:
-                                # src/ll/UL4.g:405:6: '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )?
+                            if (LA18_0 == 34) :
+                                alt18 = 1
+                            if alt18 == 1:
+                                # src/ll/UL4.g:350:5: ','
                                 pass 
-                                self.match(self.input, 29, self.FOLLOW_29_in_expr92073)
+                                self.match(self.input, 34, self.FOLLOW_34_in_expr91710)
 
-                                self._state.following.append(self.FOLLOW_exprarg_in_expr92077)
+
+
+
+
+                        elif alt28 == 4:
+                            # src/ll/UL4.g:353:5: a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )?
+                            pass 
+                            self._state.following.append(self.FOLLOW_exprarg_in_expr91730)
+                            a1 = self.exprarg()
+
+                            self._state.following.pop()
+
+                            if self._state.backtracking == 0:
+                                pass
+                                node.args.append(a1); 
+
+
+
+                            # src/ll/UL4.g:354:5: ( ',' a2= exprarg )*
+                            while True: #loop19
+                                alt19 = 2
+                                LA19_0 = self.input.LA(1)
+
+                                if (LA19_0 == 34) :
+                                    LA19_1 = self.input.LA(2)
+
+                                    if (LA19_1 == NAME) :
+                                        LA19_3 = self.input.LA(3)
+
+                                        if ((24 <= LA19_3 <= 25) or (27 <= LA19_3 <= 29) or LA19_3 == 32 or (34 <= LA19_3 <= 35) or (37 <= LA19_3 <= 39) or (43 <= LA19_3 <= 44) or (46 <= LA19_3 <= 49) or (51 <= LA19_3 <= 52) or (54 <= LA19_3 <= 56)) :
+                                            alt19 = 1
+
+
+                                    elif ((COLOR <= LA19_1 <= DATE) or (FALSE <= LA19_1 <= FLOAT) or LA19_1 == INT or LA19_1 == NONE or LA19_1 == STRING or LA19_1 == TRUE or LA19_1 == 27 or LA19_1 == 35 or LA19_1 == 49 or LA19_1 == 55 or LA19_1 == 57) :
+                                        alt19 = 1
+
+
+
+
+                                if alt19 == 1:
+                                    # src/ll/UL4.g:355:6: ',' a2= exprarg
+                                    pass 
+                                    self.match(self.input, 34, self.FOLLOW_34_in_expr91745)
+
+                                    self._state.following.append(self.FOLLOW_exprarg_in_expr91754)
+                                    a2 = self.exprarg()
+
+                                    self._state.following.pop()
+
+                                    if self._state.backtracking == 0:
+                                        pass
+                                        node.args.append(a2); 
+
+
+
+
+                                else:
+                                    break #loop19
+
+
+                            # src/ll/UL4.g:358:5: ( ',' an3= name '=' av3= exprarg )*
+                            while True: #loop20
+                                alt20 = 2
+                                LA20_0 = self.input.LA(1)
+
+                                if (LA20_0 == 34) :
+                                    LA20_1 = self.input.LA(2)
+
+                                    if (LA20_1 == NAME) :
+                                        alt20 = 1
+
+
+
+
+                                if alt20 == 1:
+                                    # src/ll/UL4.g:359:6: ',' an3= name '=' av3= exprarg
+                                    pass 
+                                    self.match(self.input, 34, self.FOLLOW_34_in_expr91776)
+
+                                    self._state.following.append(self.FOLLOW_name_in_expr91785)
+                                    an3 = self.name()
+
+                                    self._state.following.pop()
+
+                                    self.match(self.input, 45, self.FOLLOW_45_in_expr91787)
+
+                                    self._state.following.append(self.FOLLOW_exprarg_in_expr91791)
+                                    av3 = self.exprarg()
+
+                                    self._state.following.pop()
+
+                                    if self._state.backtracking == 0:
+                                        pass
+                                        node.kwargs.append((((an3 is not None) and [self.input.toString(an3.start,an3.stop)] or [None])[0], av3)); 
+
+
+
+
+                                else:
+                                    break #loop20
+
+
+                            # src/ll/UL4.g:362:5: ( ',' '*' rargs= exprarg )?
+                            alt21 = 2
+                            LA21_0 = self.input.LA(1)
+
+                            if (LA21_0 == 34) :
+                                LA21_1 = self.input.LA(2)
+
+                                if (LA21_1 == 29) :
+                                    alt21 = 1
+                            if alt21 == 1:
+                                # src/ll/UL4.g:363:6: ',' '*' rargs= exprarg
+                                pass 
+                                self.match(self.input, 34, self.FOLLOW_34_in_expr91813)
+
+                                self.match(self.input, 29, self.FOLLOW_29_in_expr91820)
+
+                                self._state.following.append(self.FOLLOW_exprarg_in_expr91824)
                                 rargs = self.exprarg()
 
                                 self._state.following.pop()
@@ -2442,357 +2053,187 @@ class UL4Parser(Parser):
 
 
 
-                                # src/ll/UL4.g:406:6: ( ',' '**' rkwargs= exprarg )?
-                                alt31 = 2
-                                LA31_0 = self.input.LA(1)
-
-                                if (LA31_0 == 34) :
-                                    LA31_1 = self.input.LA(2)
-
-                                    if (LA31_1 == 30) :
-                                        alt31 = 1
-                                if alt31 == 1:
-                                    # src/ll/UL4.g:407:7: ',' '**' rkwargs= exprarg
-                                    pass 
-                                    self.match(self.input, 34, self.FOLLOW_34_in_expr92094)
-
-                                    self.match(self.input, 30, self.FOLLOW_30_in_expr92102)
-
-                                    self._state.following.append(self.FOLLOW_exprarg_in_expr92106)
-                                    rkwargs = self.exprarg()
-
-                                    self._state.following.pop()
-
-                                    if self._state.backtracking == 0:
-                                        pass
-                                        node.remkwargs = rkwargs; 
 
 
 
+                            # src/ll/UL4.g:366:5: ( ',' '**' rkwargs= exprarg )?
+                            alt22 = 2
+                            LA22_0 = self.input.LA(1)
 
+                            if (LA22_0 == 34) :
+                                LA22_1 = self.input.LA(2)
 
-
-                                # src/ll/UL4.g:410:6: ( ',' )?
-                                alt32 = 2
-                                LA32_0 = self.input.LA(1)
-
-                                if (LA32_0 == 34) :
-                                    alt32 = 1
-                                if alt32 == 1:
-                                    # src/ll/UL4.g:410:6: ','
-                                    pass 
-                                    self.match(self.input, 34, self.FOLLOW_34_in_expr92123)
-
-
-
-
-
-                            elif alt42 == 4:
-                                # src/ll/UL4.g:413:6: a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )?
+                                if (LA22_1 == 30) :
+                                    alt22 = 1
+                            if alt22 == 1:
+                                # src/ll/UL4.g:367:6: ',' '**' rkwargs= exprarg
                                 pass 
-                                self._state.following.append(self.FOLLOW_exprarg_in_expr92146)
-                                a1 = self.exprarg()
+                                self.match(self.input, 34, self.FOLLOW_34_in_expr91846)
+
+                                self.match(self.input, 30, self.FOLLOW_30_in_expr91853)
+
+                                self._state.following.append(self.FOLLOW_exprarg_in_expr91857)
+                                rkwargs = self.exprarg()
 
                                 self._state.following.pop()
 
                                 if self._state.backtracking == 0:
                                     pass
-                                    node.args.append(a1); 
+                                    node.remkwargs = rkwargs; 
 
 
 
-                                # src/ll/UL4.g:414:6: ( ',' a2= exprarg )*
-                                while True: #loop33
-                                    alt33 = 2
-                                    LA33_0 = self.input.LA(1)
 
-                                    if (LA33_0 == 34) :
-                                        LA33_1 = self.input.LA(2)
 
-                                        if (LA33_1 == NAME) :
-                                            LA33_3 = self.input.LA(3)
 
-                                            if ((24 <= LA33_3 <= 25) or (27 <= LA33_3 <= 29) or LA33_3 == 32 or (34 <= LA33_3 <= 35) or (37 <= LA33_3 <= 39) or (43 <= LA33_3 <= 44) or (46 <= LA33_3 <= 49) or (51 <= LA33_3 <= 52) or (54 <= LA33_3 <= 56)) :
-                                                alt33 = 1
+                            # src/ll/UL4.g:370:5: ( ',' )?
+                            alt23 = 2
+                            LA23_0 = self.input.LA(1)
 
-
-                                        elif ((COLOR <= LA33_1 <= DATE) or (FALSE <= LA33_1 <= FLOAT) or LA33_1 == INT or LA33_1 == NONE or LA33_1 == STRING or LA33_1 == TRUE or LA33_1 == 27 or LA33_1 == 35 or LA33_1 == 49 or LA33_1 == 55 or LA33_1 == 57) :
-                                            alt33 = 1
-
-
-
-
-                                    if alt33 == 1:
-                                        # src/ll/UL4.g:415:7: ',' a2= exprarg
-                                        pass 
-                                        self.match(self.input, 34, self.FOLLOW_34_in_expr92163)
-
-                                        self._state.following.append(self.FOLLOW_exprarg_in_expr92173)
-                                        a2 = self.exprarg()
-
-                                        self._state.following.pop()
-
-                                        if self._state.backtracking == 0:
-                                            pass
-                                            node.args.append(a2); 
-
-
-
-
-                                    else:
-                                        break #loop33
-
-
-                                # src/ll/UL4.g:418:6: ( ',' an3= name '=' av3= exprarg )*
-                                while True: #loop34
-                                    alt34 = 2
-                                    LA34_0 = self.input.LA(1)
-
-                                    if (LA34_0 == 34) :
-                                        LA34_1 = self.input.LA(2)
-
-                                        if (LA34_1 == NAME) :
-                                            alt34 = 1
-
-
-
-
-                                    if alt34 == 1:
-                                        # src/ll/UL4.g:419:7: ',' an3= name '=' av3= exprarg
-                                        pass 
-                                        self.match(self.input, 34, self.FOLLOW_34_in_expr92198)
-
-                                        self._state.following.append(self.FOLLOW_name_in_expr92208)
-                                        an3 = self.name()
-
-                                        self._state.following.pop()
-
-                                        self.match(self.input, 45, self.FOLLOW_45_in_expr92210)
-
-                                        self._state.following.append(self.FOLLOW_exprarg_in_expr92214)
-                                        av3 = self.exprarg()
-
-                                        self._state.following.pop()
-
-                                        if self._state.backtracking == 0:
-                                            pass
-                                            node.kwargs.append((((an3 is not None) and [self.input.toString(an3.start,an3.stop)] or [None])[0], av3)); 
-
-
-
-
-                                    else:
-                                        break #loop34
-
-
-                                # src/ll/UL4.g:422:6: ( ',' '*' rargs= exprarg )?
-                                alt35 = 2
-                                LA35_0 = self.input.LA(1)
-
-                                if (LA35_0 == 34) :
-                                    LA35_1 = self.input.LA(2)
-
-                                    if (LA35_1 == 29) :
-                                        alt35 = 1
-                                if alt35 == 1:
-                                    # src/ll/UL4.g:423:7: ',' '*' rargs= exprarg
-                                    pass 
-                                    self.match(self.input, 34, self.FOLLOW_34_in_expr92239)
-
-                                    self.match(self.input, 29, self.FOLLOW_29_in_expr92247)
-
-                                    self._state.following.append(self.FOLLOW_exprarg_in_expr92251)
-                                    rargs = self.exprarg()
-
-                                    self._state.following.pop()
-
-                                    if self._state.backtracking == 0:
-                                        pass
-                                        node.remargs = rargs; 
-
-
-
-
-
-
-                                # src/ll/UL4.g:426:6: ( ',' '**' rkwargs= exprarg )?
-                                alt36 = 2
-                                LA36_0 = self.input.LA(1)
-
-                                if (LA36_0 == 34) :
-                                    LA36_1 = self.input.LA(2)
-
-                                    if (LA36_1 == 30) :
-                                        alt36 = 1
-                                if alt36 == 1:
-                                    # src/ll/UL4.g:427:7: ',' '**' rkwargs= exprarg
-                                    pass 
-                                    self.match(self.input, 34, self.FOLLOW_34_in_expr92276)
-
-                                    self.match(self.input, 30, self.FOLLOW_30_in_expr92284)
-
-                                    self._state.following.append(self.FOLLOW_exprarg_in_expr92288)
-                                    rkwargs = self.exprarg()
-
-                                    self._state.following.pop()
-
-                                    if self._state.backtracking == 0:
-                                        pass
-                                        node.remkwargs = rkwargs; 
-
-
-
-
-
-
-                                # src/ll/UL4.g:430:6: ( ',' )?
-                                alt37 = 2
-                                LA37_0 = self.input.LA(1)
-
-                                if (LA37_0 == 34) :
-                                    alt37 = 1
-                                if alt37 == 1:
-                                    # src/ll/UL4.g:430:6: ','
-                                    pass 
-                                    self.match(self.input, 34, self.FOLLOW_34_in_expr92305)
-
-
-
-
-
-                            elif alt42 == 5:
-                                # src/ll/UL4.g:433:6: an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )?
+                            if (LA23_0 == 34) :
+                                alt23 = 1
+                            if alt23 == 1:
+                                # src/ll/UL4.g:370:5: ','
                                 pass 
-                                self._state.following.append(self.FOLLOW_name_in_expr92328)
-                                an1 = self.name()
+                                self.match(self.input, 34, self.FOLLOW_34_in_expr91872)
 
-                                self._state.following.pop()
 
-                                self.match(self.input, 45, self.FOLLOW_45_in_expr92330)
 
-                                self._state.following.append(self.FOLLOW_exprarg_in_expr92334)
-                                av1 = self.exprarg()
+
+
+                        elif alt28 == 5:
+                            # src/ll/UL4.g:373:5: an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )?
+                            pass 
+                            self._state.following.append(self.FOLLOW_name_in_expr91892)
+                            an1 = self.name()
+
+                            self._state.following.pop()
+
+                            self.match(self.input, 45, self.FOLLOW_45_in_expr91894)
+
+                            self._state.following.append(self.FOLLOW_exprarg_in_expr91898)
+                            av1 = self.exprarg()
+
+                            self._state.following.pop()
+
+                            if self._state.backtracking == 0:
+                                pass
+                                node.kwargs.append((((an1 is not None) and [self.input.toString(an1.start,an1.stop)] or [None])[0], av1)); 
+
+
+
+                            # src/ll/UL4.g:374:5: ( ',' an2= name '=' av2= exprarg )*
+                            while True: #loop24
+                                alt24 = 2
+                                LA24_0 = self.input.LA(1)
+
+                                if (LA24_0 == 34) :
+                                    LA24_1 = self.input.LA(2)
+
+                                    if (LA24_1 == NAME) :
+                                        alt24 = 1
+
+
+
+
+                                if alt24 == 1:
+                                    # src/ll/UL4.g:375:6: ',' an2= name '=' av2= exprarg
+                                    pass 
+                                    self.match(self.input, 34, self.FOLLOW_34_in_expr91913)
+
+                                    self._state.following.append(self.FOLLOW_name_in_expr91922)
+                                    an2 = self.name()
+
+                                    self._state.following.pop()
+
+                                    self.match(self.input, 45, self.FOLLOW_45_in_expr91924)
+
+                                    self._state.following.append(self.FOLLOW_exprarg_in_expr91928)
+                                    av2 = self.exprarg()
+
+                                    self._state.following.pop()
+
+                                    if self._state.backtracking == 0:
+                                        pass
+                                        node.kwargs.append((((an2 is not None) and [self.input.toString(an2.start,an2.stop)] or [None])[0], av2)); 
+
+
+
+
+                                else:
+                                    break #loop24
+
+
+                            # src/ll/UL4.g:378:5: ( ',' '*' rargs= exprarg )?
+                            alt25 = 2
+                            LA25_0 = self.input.LA(1)
+
+                            if (LA25_0 == 34) :
+                                LA25_1 = self.input.LA(2)
+
+                                if (LA25_1 == 29) :
+                                    alt25 = 1
+                            if alt25 == 1:
+                                # src/ll/UL4.g:379:6: ',' '*' rargs= exprarg
+                                pass 
+                                self.match(self.input, 34, self.FOLLOW_34_in_expr91950)
+
+                                self.match(self.input, 29, self.FOLLOW_29_in_expr91957)
+
+                                self._state.following.append(self.FOLLOW_exprarg_in_expr91961)
+                                rargs = self.exprarg()
 
                                 self._state.following.pop()
 
                                 if self._state.backtracking == 0:
                                     pass
-                                    node.kwargs.append((((an1 is not None) and [self.input.toString(an1.start,an1.stop)] or [None])[0], av1)); 
-
-
-
-                                # src/ll/UL4.g:434:6: ( ',' an2= name '=' av2= exprarg )*
-                                while True: #loop38
-                                    alt38 = 2
-                                    LA38_0 = self.input.LA(1)
-
-                                    if (LA38_0 == 34) :
-                                        LA38_1 = self.input.LA(2)
-
-                                        if (LA38_1 == NAME) :
-                                            alt38 = 1
-
-
-
-
-                                    if alt38 == 1:
-                                        # src/ll/UL4.g:435:7: ',' an2= name '=' av2= exprarg
-                                        pass 
-                                        self.match(self.input, 34, self.FOLLOW_34_in_expr92351)
-
-                                        self._state.following.append(self.FOLLOW_name_in_expr92361)
-                                        an2 = self.name()
-
-                                        self._state.following.pop()
-
-                                        self.match(self.input, 45, self.FOLLOW_45_in_expr92363)
-
-                                        self._state.following.append(self.FOLLOW_exprarg_in_expr92367)
-                                        av2 = self.exprarg()
-
-                                        self._state.following.pop()
-
-                                        if self._state.backtracking == 0:
-                                            pass
-                                            node.kwargs.append((((an2 is not None) and [self.input.toString(an2.start,an2.stop)] or [None])[0], av2)); 
-
-
-
-
-                                    else:
-                                        break #loop38
-
-
-                                # src/ll/UL4.g:438:6: ( ',' '*' rargs= exprarg )?
-                                alt39 = 2
-                                LA39_0 = self.input.LA(1)
-
-                                if (LA39_0 == 34) :
-                                    LA39_1 = self.input.LA(2)
-
-                                    if (LA39_1 == 29) :
-                                        alt39 = 1
-                                if alt39 == 1:
-                                    # src/ll/UL4.g:439:7: ',' '*' rargs= exprarg
-                                    pass 
-                                    self.match(self.input, 34, self.FOLLOW_34_in_expr92392)
-
-                                    self.match(self.input, 29, self.FOLLOW_29_in_expr92400)
-
-                                    self._state.following.append(self.FOLLOW_exprarg_in_expr92404)
-                                    rargs = self.exprarg()
-
-                                    self._state.following.pop()
-
-                                    if self._state.backtracking == 0:
-                                        pass
-                                        node.remargs = rargs; 
+                                    node.remargs = rargs; 
 
 
 
 
 
 
-                                # src/ll/UL4.g:442:6: ( ',' '**' rkwargs= exprarg )?
-                                alt40 = 2
-                                LA40_0 = self.input.LA(1)
+                            # src/ll/UL4.g:382:5: ( ',' '**' rkwargs= exprarg )?
+                            alt26 = 2
+                            LA26_0 = self.input.LA(1)
 
-                                if (LA40_0 == 34) :
-                                    LA40_1 = self.input.LA(2)
+                            if (LA26_0 == 34) :
+                                LA26_1 = self.input.LA(2)
 
-                                    if (LA40_1 == 30) :
-                                        alt40 = 1
-                                if alt40 == 1:
-                                    # src/ll/UL4.g:443:7: ',' '**' rkwargs= exprarg
-                                    pass 
-                                    self.match(self.input, 34, self.FOLLOW_34_in_expr92429)
+                                if (LA26_1 == 30) :
+                                    alt26 = 1
+                            if alt26 == 1:
+                                # src/ll/UL4.g:383:6: ',' '**' rkwargs= exprarg
+                                pass 
+                                self.match(self.input, 34, self.FOLLOW_34_in_expr91983)
 
-                                    self.match(self.input, 30, self.FOLLOW_30_in_expr92437)
+                                self.match(self.input, 30, self.FOLLOW_30_in_expr91990)
 
-                                    self._state.following.append(self.FOLLOW_exprarg_in_expr92441)
-                                    rkwargs = self.exprarg()
+                                self._state.following.append(self.FOLLOW_exprarg_in_expr91994)
+                                rkwargs = self.exprarg()
 
-                                    self._state.following.pop()
+                                self._state.following.pop()
 
-                                    if self._state.backtracking == 0:
-                                        pass
-                                        node.remkwargs = rkwargs; 
-
-
+                                if self._state.backtracking == 0:
+                                    pass
+                                    node.remkwargs = rkwargs; 
 
 
 
 
-                                # src/ll/UL4.g:446:6: ( ',' )?
-                                alt41 = 2
-                                LA41_0 = self.input.LA(1)
 
-                                if (LA41_0 == 34) :
-                                    alt41 = 1
-                                if alt41 == 1:
-                                    # src/ll/UL4.g:446:6: ','
-                                    pass 
-                                    self.match(self.input, 34, self.FOLLOW_34_in_expr92458)
+
+                            # src/ll/UL4.g:386:5: ( ',' )?
+                            alt27 = 2
+                            LA27_0 = self.input.LA(1)
+
+                            if (LA27_0 == 34) :
+                                alt27 = 1
+                            if alt27 == 1:
+                                # src/ll/UL4.g:386:5: ','
+                                pass 
+                                self.match(self.input, 34, self.FOLLOW_34_in_expr92009)
 
 
 
@@ -2800,59 +2241,47 @@ class UL4Parser(Parser):
 
 
 
-                            self.match(self.input, 28, self.FOLLOW_28_in_expr92471)
+                        self.match(self.input, 28, self.FOLLOW_28_in_expr92020)
 
 
-
-
-                        if self._state.backtracking == 0:
-                            pass
-                                  
-                            if not callmeth:
-                            	node =  ul4c.GetAttr(node, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0])
-                            			
-
-
-
-
-                    elif alt48 == 2:
-                        # src/ll/UL4.g:455:4: '[' ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? ) ']'
+                    elif alt33 == 3:
+                        # src/ll/UL4.g:391:4: '[' ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? ) ']'
                         pass 
-                        self.match(self.input, 49, self.FOLLOW_49_in_expr92493)
+                        self.match(self.input, 49, self.FOLLOW_49_in_expr92034)
 
-                        # src/ll/UL4.g:456:4: ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? )
-                        alt47 = 2
-                        LA47_0 = self.input.LA(1)
+                        # src/ll/UL4.g:392:4: ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? )
+                        alt32 = 2
+                        LA32_0 = self.input.LA(1)
 
-                        if (LA47_0 == 42) :
-                            alt47 = 1
-                        elif ((COLOR <= LA47_0 <= DATE) or (FALSE <= LA47_0 <= FLOAT) or (INT <= LA47_0 <= NONE) or LA47_0 == STRING or LA47_0 == TRUE or LA47_0 == 27 or LA47_0 == 35 or LA47_0 == 49 or LA47_0 == 55 or LA47_0 == 57) :
-                            alt47 = 2
+                        if (LA32_0 == 42) :
+                            alt32 = 1
+                        elif ((COLOR <= LA32_0 <= DATE) or (FALSE <= LA32_0 <= FLOAT) or (INT <= LA32_0 <= NONE) or LA32_0 == STRING or LA32_0 == TRUE or LA32_0 == 27 or LA32_0 == 35 or LA32_0 == 49 or LA32_0 == 55 or LA32_0 == 57) :
+                            alt32 = 2
                         else:
                             if self._state.backtracking > 0:
                                 raise BacktrackingFailed
 
 
-                            nvae = NoViableAltException("", 47, 0, self.input)
+                            nvae = NoViableAltException("", 32, 0, self.input)
 
                             raise nvae
 
 
-                        if alt47 == 1:
-                            # src/ll/UL4.g:457:5: ':' (e2= expr1 )?
+                        if alt32 == 1:
+                            # src/ll/UL4.g:393:5: ':' (e2= expr1 )?
                             pass 
-                            self.match(self.input, 42, self.FOLLOW_42_in_expr92504)
+                            self.match(self.input, 42, self.FOLLOW_42_in_expr92045)
 
-                            # src/ll/UL4.g:458:5: (e2= expr1 )?
-                            alt44 = 2
-                            LA44_0 = self.input.LA(1)
+                            # src/ll/UL4.g:394:5: (e2= expr1 )?
+                            alt29 = 2
+                            LA29_0 = self.input.LA(1)
 
-                            if ((COLOR <= LA44_0 <= DATE) or (FALSE <= LA44_0 <= FLOAT) or (INT <= LA44_0 <= NONE) or LA44_0 == STRING or LA44_0 == TRUE or LA44_0 == 27 or LA44_0 == 35 or LA44_0 == 49 or LA44_0 == 55 or LA44_0 == 57) :
-                                alt44 = 1
-                            if alt44 == 1:
-                                # src/ll/UL4.g:459:6: e2= expr1
+                            if ((COLOR <= LA29_0 <= DATE) or (FALSE <= LA29_0 <= FLOAT) or (INT <= LA29_0 <= NONE) or LA29_0 == STRING or LA29_0 == TRUE or LA29_0 == 27 or LA29_0 == 35 or LA29_0 == 49 or LA29_0 == 55 or LA29_0 == 57) :
+                                alt29 = 1
+                            if alt29 == 1:
+                                # src/ll/UL4.g:395:6: e2= expr1
                                 pass 
-                                self._state.following.append(self.FOLLOW_expr1_in_expr92519)
+                                self._state.following.append(self.FOLLOW_expr1_in_expr92060)
                                 e2 = self.expr1()
 
                                 self._state.following.pop()
@@ -2873,10 +2302,10 @@ class UL4Parser(Parser):
 
 
 
-                        elif alt47 == 2:
-                            # src/ll/UL4.g:462:5: e2= expr1 ( ':' (e3= expr1 )? )?
+                        elif alt32 == 2:
+                            # src/ll/UL4.g:398:5: e2= expr1 ( ':' (e3= expr1 )? )?
                             pass 
-                            self._state.following.append(self.FOLLOW_expr1_in_expr92543)
+                            self._state.following.append(self.FOLLOW_expr1_in_expr92084)
                             e2 = self.expr1()
 
                             self._state.following.pop()
@@ -2887,16 +2316,16 @@ class UL4Parser(Parser):
 
 
 
-                            # src/ll/UL4.g:463:5: ( ':' (e3= expr1 )? )?
-                            alt46 = 2
-                            LA46_0 = self.input.LA(1)
+                            # src/ll/UL4.g:399:5: ( ':' (e3= expr1 )? )?
+                            alt31 = 2
+                            LA31_0 = self.input.LA(1)
 
-                            if (LA46_0 == 42) :
-                                alt46 = 1
-                            if alt46 == 1:
-                                # src/ll/UL4.g:464:6: ':' (e3= expr1 )?
+                            if (LA31_0 == 42) :
+                                alt31 = 1
+                            if alt31 == 1:
+                                # src/ll/UL4.g:400:6: ':' (e3= expr1 )?
                                 pass 
-                                self.match(self.input, 42, self.FOLLOW_42_in_expr92558)
+                                self.match(self.input, 42, self.FOLLOW_42_in_expr92099)
 
                                 if self._state.backtracking == 0:
                                     pass
@@ -2904,16 +2333,16 @@ class UL4Parser(Parser):
 
 
 
-                                # src/ll/UL4.g:465:6: (e3= expr1 )?
-                                alt45 = 2
-                                LA45_0 = self.input.LA(1)
+                                # src/ll/UL4.g:401:6: (e3= expr1 )?
+                                alt30 = 2
+                                LA30_0 = self.input.LA(1)
 
-                                if ((COLOR <= LA45_0 <= DATE) or (FALSE <= LA45_0 <= FLOAT) or (INT <= LA45_0 <= NONE) or LA45_0 == STRING or LA45_0 == TRUE or LA45_0 == 27 or LA45_0 == 35 or LA45_0 == 49 or LA45_0 == 55 or LA45_0 == 57) :
-                                    alt45 = 1
-                                if alt45 == 1:
-                                    # src/ll/UL4.g:466:7: e3= expr1
+                                if ((COLOR <= LA30_0 <= DATE) or (FALSE <= LA30_0 <= FLOAT) or (INT <= LA30_0 <= NONE) or LA30_0 == STRING or LA30_0 == TRUE or LA30_0 == 27 or LA30_0 == 35 or LA30_0 == 49 or LA30_0 == 55 or LA30_0 == 57) :
+                                    alt30 = 1
+                                if alt30 == 1:
+                                    # src/ll/UL4.g:402:7: e3= expr1
                                     pass 
-                                    self._state.following.append(self.FOLLOW_expr1_in_expr92577)
+                                    self._state.following.append(self.FOLLOW_expr1_in_expr92118)
                                     e3 = self.expr1()
 
                                     self._state.following.pop()
@@ -2939,11 +2368,11 @@ class UL4Parser(Parser):
 
 
 
-                        self.match(self.input, 50, self.FOLLOW_50_in_expr92606)
+                        self.match(self.input, 50, self.FOLLOW_50_in_expr92147)
 
 
                     else:
-                        break #loop48
+                        break #loop33
 
 
 
@@ -2962,7 +2391,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "expr8"
-    # src/ll/UL4.g:475:1: expr8 returns [node] : ( '-' )* e= expr9 ;
+    # src/ll/UL4.g:411:1: expr8 returns [node] : ( '-' )* e= expr9 ;
     def expr8(self, ):
         node = None
 
@@ -2975,22 +2404,22 @@ class UL4Parser(Parser):
         	
         try:
             try:
-                # src/ll/UL4.g:480:2: ( ( '-' )* e= expr9 )
-                # src/ll/UL4.g:481:3: ( '-' )* e= expr9
+                # src/ll/UL4.g:416:2: ( ( '-' )* e= expr9 )
+                # src/ll/UL4.g:417:3: ( '-' )* e= expr9
                 pass 
-                # src/ll/UL4.g:481:3: ( '-' )*
-                while True: #loop49
-                    alt49 = 2
-                    LA49_0 = self.input.LA(1)
+                # src/ll/UL4.g:417:3: ( '-' )*
+                while True: #loop34
+                    alt34 = 2
+                    LA34_0 = self.input.LA(1)
 
-                    if (LA49_0 == 35) :
-                        alt49 = 1
+                    if (LA34_0 == 35) :
+                        alt34 = 1
 
 
-                    if alt49 == 1:
-                        # src/ll/UL4.g:482:4: '-'
+                    if alt34 == 1:
+                        # src/ll/UL4.g:418:4: '-'
                         pass 
-                        self.match(self.input, 35, self.FOLLOW_35_in_expr82642)
+                        self.match(self.input, 35, self.FOLLOW_35_in_expr82183)
 
                         if self._state.backtracking == 0:
                             pass
@@ -3000,10 +2429,10 @@ class UL4Parser(Parser):
 
 
                     else:
-                        break #loop49
+                        break #loop34
 
 
-                self._state.following.append(self.FOLLOW_expr9_in_expr82655)
+                self._state.following.append(self.FOLLOW_expr9_in_expr82196)
                 e = self.expr9()
 
                 self._state.following.pop()
@@ -3034,7 +2463,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "expr7"
-    # src/ll/UL4.g:492:1: expr7 returns [node] : e1= expr8 ( ( '*' | '/' | '//' | '%' ) e2= expr8 )* ;
+    # src/ll/UL4.g:428:1: expr7 returns [node] : e1= expr8 ( ( '*' | '/' | '//' | '%' ) e2= expr8 )* ;
     def expr7(self, ):
         node = None
 
@@ -3046,10 +2475,10 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:493:2: (e1= expr8 ( ( '*' | '/' | '//' | '%' ) e2= expr8 )* )
-                # src/ll/UL4.g:494:3: e1= expr8 ( ( '*' | '/' | '//' | '%' ) e2= expr8 )*
+                # src/ll/UL4.g:429:2: (e1= expr8 ( ( '*' | '/' | '//' | '%' ) e2= expr8 )* )
+                # src/ll/UL4.g:430:3: e1= expr8 ( ( '*' | '/' | '//' | '%' ) e2= expr8 )*
                 pass 
-                self._state.following.append(self.FOLLOW_expr8_in_expr72678)
+                self._state.following.append(self.FOLLOW_expr8_in_expr72219)
                 e1 = self.expr8()
 
                 self._state.following.pop()
@@ -3060,43 +2489,43 @@ class UL4Parser(Parser):
 
 
 
-                # src/ll/UL4.g:495:3: ( ( '*' | '/' | '//' | '%' ) e2= expr8 )*
-                while True: #loop51
-                    alt51 = 2
-                    LA51_0 = self.input.LA(1)
+                # src/ll/UL4.g:431:3: ( ( '*' | '/' | '//' | '%' ) e2= expr8 )*
+                while True: #loop36
+                    alt36 = 2
+                    LA36_0 = self.input.LA(1)
 
-                    if (LA51_0 == 25 or LA51_0 == 29 or (38 <= LA51_0 <= 39)) :
-                        alt51 = 1
+                    if (LA36_0 == 25 or LA36_0 == 29 or (38 <= LA36_0 <= 39)) :
+                        alt36 = 1
 
 
-                    if alt51 == 1:
-                        # src/ll/UL4.g:496:4: ( '*' | '/' | '//' | '%' ) e2= expr8
+                    if alt36 == 1:
+                        # src/ll/UL4.g:432:4: ( '*' | '/' | '//' | '%' ) e2= expr8
                         pass 
-                        # src/ll/UL4.g:496:4: ( '*' | '/' | '//' | '%' )
-                        alt50 = 4
-                        LA50 = self.input.LA(1)
-                        if LA50 == 29:
-                            alt50 = 1
-                        elif LA50 == 38:
-                            alt50 = 2
-                        elif LA50 == 39:
-                            alt50 = 3
-                        elif LA50 == 25:
-                            alt50 = 4
+                        # src/ll/UL4.g:432:4: ( '*' | '/' | '//' | '%' )
+                        alt35 = 4
+                        LA35 = self.input.LA(1)
+                        if LA35 == 29:
+                            alt35 = 1
+                        elif LA35 == 38:
+                            alt35 = 2
+                        elif LA35 == 39:
+                            alt35 = 3
+                        elif LA35 == 25:
+                            alt35 = 4
                         else:
                             if self._state.backtracking > 0:
                                 raise BacktrackingFailed
 
 
-                            nvae = NoViableAltException("", 50, 0, self.input)
+                            nvae = NoViableAltException("", 35, 0, self.input)
 
                             raise nvae
 
 
-                        if alt50 == 1:
-                            # src/ll/UL4.g:497:5: '*'
+                        if alt35 == 1:
+                            # src/ll/UL4.g:433:5: '*'
                             pass 
-                            self.match(self.input, 29, self.FOLLOW_29_in_expr72695)
+                            self.match(self.input, 29, self.FOLLOW_29_in_expr72236)
 
                             if self._state.backtracking == 0:
                                 pass
@@ -3105,10 +2534,10 @@ class UL4Parser(Parser):
 
 
 
-                        elif alt50 == 2:
-                            # src/ll/UL4.g:499:5: '/'
+                        elif alt35 == 2:
+                            # src/ll/UL4.g:435:5: '/'
                             pass 
-                            self.match(self.input, 38, self.FOLLOW_38_in_expr72708)
+                            self.match(self.input, 38, self.FOLLOW_38_in_expr72249)
 
                             if self._state.backtracking == 0:
                                 pass
@@ -3117,10 +2546,10 @@ class UL4Parser(Parser):
 
 
 
-                        elif alt50 == 3:
-                            # src/ll/UL4.g:501:5: '//'
+                        elif alt35 == 3:
+                            # src/ll/UL4.g:437:5: '//'
                             pass 
-                            self.match(self.input, 39, self.FOLLOW_39_in_expr72721)
+                            self.match(self.input, 39, self.FOLLOW_39_in_expr72262)
 
                             if self._state.backtracking == 0:
                                 pass
@@ -3129,10 +2558,10 @@ class UL4Parser(Parser):
 
 
 
-                        elif alt50 == 4:
-                            # src/ll/UL4.g:503:5: '%'
+                        elif alt35 == 4:
+                            # src/ll/UL4.g:439:5: '%'
                             pass 
-                            self.match(self.input, 25, self.FOLLOW_25_in_expr72734)
+                            self.match(self.input, 25, self.FOLLOW_25_in_expr72275)
 
                             if self._state.backtracking == 0:
                                 pass
@@ -3143,7 +2572,7 @@ class UL4Parser(Parser):
 
 
 
-                        self._state.following.append(self.FOLLOW_expr8_in_expr72748)
+                        self._state.following.append(self.FOLLOW_expr8_in_expr72289)
                         e2 = self.expr8()
 
                         self._state.following.pop()
@@ -3156,7 +2585,7 @@ class UL4Parser(Parser):
 
 
                     else:
-                        break #loop51
+                        break #loop36
 
 
 
@@ -3175,7 +2604,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "expr6"
-    # src/ll/UL4.g:510:1: expr6 returns [node] : e1= expr7 ( ( '+' | '-' ) e2= expr7 )* ;
+    # src/ll/UL4.g:446:1: expr6 returns [node] : e1= expr7 ( ( '+' | '-' ) e2= expr7 )* ;
     def expr6(self, ):
         node = None
 
@@ -3187,10 +2616,10 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:511:2: (e1= expr7 ( ( '+' | '-' ) e2= expr7 )* )
-                # src/ll/UL4.g:512:3: e1= expr7 ( ( '+' | '-' ) e2= expr7 )*
+                # src/ll/UL4.g:447:2: (e1= expr7 ( ( '+' | '-' ) e2= expr7 )* )
+                # src/ll/UL4.g:448:3: e1= expr7 ( ( '+' | '-' ) e2= expr7 )*
                 pass 
-                self._state.following.append(self.FOLLOW_expr7_in_expr62776)
+                self._state.following.append(self.FOLLOW_expr7_in_expr62317)
                 e1 = self.expr7()
 
                 self._state.following.pop()
@@ -3201,40 +2630,40 @@ class UL4Parser(Parser):
 
 
 
-                # src/ll/UL4.g:513:3: ( ( '+' | '-' ) e2= expr7 )*
-                while True: #loop53
-                    alt53 = 2
-                    LA53_0 = self.input.LA(1)
+                # src/ll/UL4.g:449:3: ( ( '+' | '-' ) e2= expr7 )*
+                while True: #loop38
+                    alt38 = 2
+                    LA38_0 = self.input.LA(1)
 
-                    if (LA53_0 == 32 or LA53_0 == 35) :
-                        alt53 = 1
+                    if (LA38_0 == 32 or LA38_0 == 35) :
+                        alt38 = 1
 
 
-                    if alt53 == 1:
-                        # src/ll/UL4.g:514:4: ( '+' | '-' ) e2= expr7
+                    if alt38 == 1:
+                        # src/ll/UL4.g:450:4: ( '+' | '-' ) e2= expr7
                         pass 
-                        # src/ll/UL4.g:514:4: ( '+' | '-' )
-                        alt52 = 2
-                        LA52_0 = self.input.LA(1)
+                        # src/ll/UL4.g:450:4: ( '+' | '-' )
+                        alt37 = 2
+                        LA37_0 = self.input.LA(1)
 
-                        if (LA52_0 == 32) :
-                            alt52 = 1
-                        elif (LA52_0 == 35) :
-                            alt52 = 2
+                        if (LA37_0 == 32) :
+                            alt37 = 1
+                        elif (LA37_0 == 35) :
+                            alt37 = 2
                         else:
                             if self._state.backtracking > 0:
                                 raise BacktrackingFailed
 
 
-                            nvae = NoViableAltException("", 52, 0, self.input)
+                            nvae = NoViableAltException("", 37, 0, self.input)
 
                             raise nvae
 
 
-                        if alt52 == 1:
-                            # src/ll/UL4.g:515:5: '+'
+                        if alt37 == 1:
+                            # src/ll/UL4.g:451:5: '+'
                             pass 
-                            self.match(self.input, 32, self.FOLLOW_32_in_expr62793)
+                            self.match(self.input, 32, self.FOLLOW_32_in_expr62334)
 
                             if self._state.backtracking == 0:
                                 pass
@@ -3243,10 +2672,10 @@ class UL4Parser(Parser):
 
 
 
-                        elif alt52 == 2:
-                            # src/ll/UL4.g:517:5: '-'
+                        elif alt37 == 2:
+                            # src/ll/UL4.g:453:5: '-'
                             pass 
-                            self.match(self.input, 35, self.FOLLOW_35_in_expr62806)
+                            self.match(self.input, 35, self.FOLLOW_35_in_expr62347)
 
                             if self._state.backtracking == 0:
                                 pass
@@ -3257,7 +2686,7 @@ class UL4Parser(Parser):
 
 
 
-                        self._state.following.append(self.FOLLOW_expr7_in_expr62820)
+                        self._state.following.append(self.FOLLOW_expr7_in_expr62361)
                         e2 = self.expr7()
 
                         self._state.following.pop()
@@ -3270,7 +2699,7 @@ class UL4Parser(Parser):
 
 
                     else:
-                        break #loop53
+                        break #loop38
 
 
 
@@ -3289,7 +2718,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "expr5"
-    # src/ll/UL4.g:524:1: expr5 returns [node] : e1= expr6 ( ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) e2= expr6 )* ;
+    # src/ll/UL4.g:460:1: expr5 returns [node] : e1= expr6 ( ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) e2= expr6 )* ;
     def expr5(self, ):
         node = None
 
@@ -3301,10 +2730,10 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:525:2: (e1= expr6 ( ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) e2= expr6 )* )
-                # src/ll/UL4.g:526:3: e1= expr6 ( ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) e2= expr6 )*
+                # src/ll/UL4.g:461:2: (e1= expr6 ( ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) e2= expr6 )* )
+                # src/ll/UL4.g:462:3: e1= expr6 ( ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) e2= expr6 )*
                 pass 
-                self._state.following.append(self.FOLLOW_expr6_in_expr52848)
+                self._state.following.append(self.FOLLOW_expr6_in_expr52389)
                 e1 = self.expr6()
 
                 self._state.following.pop()
@@ -3315,47 +2744,47 @@ class UL4Parser(Parser):
 
 
 
-                # src/ll/UL4.g:527:3: ( ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) e2= expr6 )*
-                while True: #loop55
-                    alt55 = 2
-                    LA55_0 = self.input.LA(1)
+                # src/ll/UL4.g:463:3: ( ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) e2= expr6 )*
+                while True: #loop40
+                    alt40 = 2
+                    LA40_0 = self.input.LA(1)
 
-                    if (LA55_0 == 24 or (43 <= LA55_0 <= 44) or (46 <= LA55_0 <= 48)) :
-                        alt55 = 1
+                    if (LA40_0 == 24 or (43 <= LA40_0 <= 44) or (46 <= LA40_0 <= 48)) :
+                        alt40 = 1
 
 
-                    if alt55 == 1:
-                        # src/ll/UL4.g:528:4: ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) e2= expr6
+                    if alt40 == 1:
+                        # src/ll/UL4.g:464:4: ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) e2= expr6
                         pass 
-                        # src/ll/UL4.g:528:4: ( '==' | '!=' | '<' | '<=' | '>' | '>=' )
-                        alt54 = 6
-                        LA54 = self.input.LA(1)
-                        if LA54 == 46:
-                            alt54 = 1
-                        elif LA54 == 24:
-                            alt54 = 2
-                        elif LA54 == 43:
-                            alt54 = 3
-                        elif LA54 == 44:
-                            alt54 = 4
-                        elif LA54 == 47:
-                            alt54 = 5
-                        elif LA54 == 48:
-                            alt54 = 6
+                        # src/ll/UL4.g:464:4: ( '==' | '!=' | '<' | '<=' | '>' | '>=' )
+                        alt39 = 6
+                        LA39 = self.input.LA(1)
+                        if LA39 == 46:
+                            alt39 = 1
+                        elif LA39 == 24:
+                            alt39 = 2
+                        elif LA39 == 43:
+                            alt39 = 3
+                        elif LA39 == 44:
+                            alt39 = 4
+                        elif LA39 == 47:
+                            alt39 = 5
+                        elif LA39 == 48:
+                            alt39 = 6
                         else:
                             if self._state.backtracking > 0:
                                 raise BacktrackingFailed
 
 
-                            nvae = NoViableAltException("", 54, 0, self.input)
+                            nvae = NoViableAltException("", 39, 0, self.input)
 
                             raise nvae
 
 
-                        if alt54 == 1:
-                            # src/ll/UL4.g:529:5: '=='
+                        if alt39 == 1:
+                            # src/ll/UL4.g:465:5: '=='
                             pass 
-                            self.match(self.input, 46, self.FOLLOW_46_in_expr52865)
+                            self.match(self.input, 46, self.FOLLOW_46_in_expr52406)
 
                             if self._state.backtracking == 0:
                                 pass
@@ -3364,10 +2793,10 @@ class UL4Parser(Parser):
 
 
 
-                        elif alt54 == 2:
-                            # src/ll/UL4.g:531:5: '!='
+                        elif alt39 == 2:
+                            # src/ll/UL4.g:467:5: '!='
                             pass 
-                            self.match(self.input, 24, self.FOLLOW_24_in_expr52878)
+                            self.match(self.input, 24, self.FOLLOW_24_in_expr52419)
 
                             if self._state.backtracking == 0:
                                 pass
@@ -3376,10 +2805,10 @@ class UL4Parser(Parser):
 
 
 
-                        elif alt54 == 3:
-                            # src/ll/UL4.g:533:5: '<'
+                        elif alt39 == 3:
+                            # src/ll/UL4.g:469:5: '<'
                             pass 
-                            self.match(self.input, 43, self.FOLLOW_43_in_expr52891)
+                            self.match(self.input, 43, self.FOLLOW_43_in_expr52432)
 
                             if self._state.backtracking == 0:
                                 pass
@@ -3388,10 +2817,10 @@ class UL4Parser(Parser):
 
 
 
-                        elif alt54 == 4:
-                            # src/ll/UL4.g:535:5: '<='
+                        elif alt39 == 4:
+                            # src/ll/UL4.g:471:5: '<='
                             pass 
-                            self.match(self.input, 44, self.FOLLOW_44_in_expr52904)
+                            self.match(self.input, 44, self.FOLLOW_44_in_expr52445)
 
                             if self._state.backtracking == 0:
                                 pass
@@ -3400,10 +2829,10 @@ class UL4Parser(Parser):
 
 
 
-                        elif alt54 == 5:
-                            # src/ll/UL4.g:537:5: '>'
+                        elif alt39 == 5:
+                            # src/ll/UL4.g:473:5: '>'
                             pass 
-                            self.match(self.input, 47, self.FOLLOW_47_in_expr52917)
+                            self.match(self.input, 47, self.FOLLOW_47_in_expr52458)
 
                             if self._state.backtracking == 0:
                                 pass
@@ -3412,10 +2841,10 @@ class UL4Parser(Parser):
 
 
 
-                        elif alt54 == 6:
-                            # src/ll/UL4.g:539:5: '>='
+                        elif alt39 == 6:
+                            # src/ll/UL4.g:475:5: '>='
                             pass 
-                            self.match(self.input, 48, self.FOLLOW_48_in_expr52930)
+                            self.match(self.input, 48, self.FOLLOW_48_in_expr52471)
 
                             if self._state.backtracking == 0:
                                 pass
@@ -3426,7 +2855,7 @@ class UL4Parser(Parser):
 
 
 
-                        self._state.following.append(self.FOLLOW_expr6_in_expr52944)
+                        self._state.following.append(self.FOLLOW_expr6_in_expr52485)
                         e2 = self.expr6()
 
                         self._state.following.pop()
@@ -3439,7 +2868,7 @@ class UL4Parser(Parser):
 
 
                     else:
-                        break #loop55
+                        break #loop40
 
 
 
@@ -3458,7 +2887,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "expr4"
-    # src/ll/UL4.g:546:1: expr4 returns [node] : e1= expr5 ( ( 'not' )? 'in' e2= expr5 )? ;
+    # src/ll/UL4.g:482:1: expr4 returns [node] : e1= expr5 ( ( 'not' )? 'in' e2= expr5 )? ;
     def expr4(self, ):
         node = None
 
@@ -3470,10 +2899,10 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:547:2: (e1= expr5 ( ( 'not' )? 'in' e2= expr5 )? )
-                # src/ll/UL4.g:548:3: e1= expr5 ( ( 'not' )? 'in' e2= expr5 )?
+                # src/ll/UL4.g:483:2: (e1= expr5 ( ( 'not' )? 'in' e2= expr5 )? )
+                # src/ll/UL4.g:484:3: e1= expr5 ( ( 'not' )? 'in' e2= expr5 )?
                 pass 
-                self._state.following.append(self.FOLLOW_expr5_in_expr42972)
+                self._state.following.append(self.FOLLOW_expr5_in_expr42513)
                 e1 = self.expr5()
 
                 self._state.following.pop()
@@ -3484,14 +2913,14 @@ class UL4Parser(Parser):
 
 
 
-                # src/ll/UL4.g:549:3: ( ( 'not' )? 'in' e2= expr5 )?
-                alt57 = 2
-                LA57_0 = self.input.LA(1)
+                # src/ll/UL4.g:485:3: ( ( 'not' )? 'in' e2= expr5 )?
+                alt42 = 2
+                LA42_0 = self.input.LA(1)
 
-                if ((54 <= LA57_0 <= 55)) :
-                    alt57 = 1
-                if alt57 == 1:
-                    # src/ll/UL4.g:550:4: ( 'not' )? 'in' e2= expr5
+                if ((54 <= LA42_0 <= 55)) :
+                    alt42 = 1
+                if alt42 == 1:
+                    # src/ll/UL4.g:486:4: ( 'not' )? 'in' e2= expr5
                     pass 
                     if self._state.backtracking == 0:
                         pass
@@ -3499,16 +2928,16 @@ class UL4Parser(Parser):
 
 
 
-                    # src/ll/UL4.g:551:4: ( 'not' )?
-                    alt56 = 2
-                    LA56_0 = self.input.LA(1)
+                    # src/ll/UL4.g:487:4: ( 'not' )?
+                    alt41 = 2
+                    LA41_0 = self.input.LA(1)
 
-                    if (LA56_0 == 55) :
-                        alt56 = 1
-                    if alt56 == 1:
-                        # src/ll/UL4.g:552:5: 'not'
+                    if (LA41_0 == 55) :
+                        alt41 = 1
+                    if alt41 == 1:
+                        # src/ll/UL4.g:488:5: 'not'
                         pass 
-                        self.match(self.input, 55, self.FOLLOW_55_in_expr42994)
+                        self.match(self.input, 55, self.FOLLOW_55_in_expr42535)
 
                         if self._state.backtracking == 0:
                             pass
@@ -3519,9 +2948,9 @@ class UL4Parser(Parser):
 
 
 
-                    self.match(self.input, 54, self.FOLLOW_54_in_expr43007)
+                    self.match(self.input, 54, self.FOLLOW_54_in_expr42548)
 
-                    self._state.following.append(self.FOLLOW_expr5_in_expr43014)
+                    self._state.following.append(self.FOLLOW_expr5_in_expr42555)
                     e2 = self.expr5()
 
                     self._state.following.pop()
@@ -3551,7 +2980,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "expr3"
-    # src/ll/UL4.g:560:1: expr3 returns [node] : ( 'not' e= expr4 |e= expr4 );
+    # src/ll/UL4.g:496:1: expr3 returns [node] : ( 'not' e= expr4 |e= expr4 );
     def expr3(self, ):
         node = None
 
@@ -3561,30 +2990,30 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:561:2: ( 'not' e= expr4 |e= expr4 )
-                alt58 = 2
-                LA58_0 = self.input.LA(1)
+                # src/ll/UL4.g:497:2: ( 'not' e= expr4 |e= expr4 )
+                alt43 = 2
+                LA43_0 = self.input.LA(1)
 
-                if (LA58_0 == 55) :
-                    alt58 = 1
-                elif ((COLOR <= LA58_0 <= DATE) or (FALSE <= LA58_0 <= FLOAT) or (INT <= LA58_0 <= NONE) or LA58_0 == STRING or LA58_0 == TRUE or LA58_0 == 27 or LA58_0 == 35 or LA58_0 == 49 or LA58_0 == 57) :
-                    alt58 = 2
+                if (LA43_0 == 55) :
+                    alt43 = 1
+                elif ((COLOR <= LA43_0 <= DATE) or (FALSE <= LA43_0 <= FLOAT) or (INT <= LA43_0 <= NONE) or LA43_0 == STRING or LA43_0 == TRUE or LA43_0 == 27 or LA43_0 == 35 or LA43_0 == 49 or LA43_0 == 57) :
+                    alt43 = 2
                 else:
                     if self._state.backtracking > 0:
                         raise BacktrackingFailed
 
 
-                    nvae = NoViableAltException("", 58, 0, self.input)
+                    nvae = NoViableAltException("", 43, 0, self.input)
 
                     raise nvae
 
 
-                if alt58 == 1:
-                    # src/ll/UL4.g:562:3: 'not' e= expr4
+                if alt43 == 1:
+                    # src/ll/UL4.g:498:3: 'not' e= expr4
                     pass 
-                    self.match(self.input, 55, self.FOLLOW_55_in_expr33040)
+                    self.match(self.input, 55, self.FOLLOW_55_in_expr32581)
 
-                    self._state.following.append(self.FOLLOW_expr4_in_expr33046)
+                    self._state.following.append(self.FOLLOW_expr4_in_expr32587)
                     e = self.expr4()
 
                     self._state.following.pop()
@@ -3596,10 +3025,10 @@ class UL4Parser(Parser):
 
 
 
-                elif alt58 == 2:
-                    # src/ll/UL4.g:565:3: e= expr4
+                elif alt43 == 2:
+                    # src/ll/UL4.g:501:3: e= expr4
                     pass 
-                    self._state.following.append(self.FOLLOW_expr4_in_expr33057)
+                    self._state.following.append(self.FOLLOW_expr4_in_expr32598)
                     e = self.expr4()
 
                     self._state.following.pop()
@@ -3625,7 +3054,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "expr2"
-    # src/ll/UL4.g:570:1: expr2 returns [node] : e1= expr3 ( 'and' e2= expr3 )* ;
+    # src/ll/UL4.g:506:1: expr2 returns [node] : e1= expr3 ( 'and' e2= expr3 )* ;
     def expr2(self, ):
         node = None
 
@@ -3637,10 +3066,10 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:571:2: (e1= expr3 ( 'and' e2= expr3 )* )
-                # src/ll/UL4.g:572:3: e1= expr3 ( 'and' e2= expr3 )*
+                # src/ll/UL4.g:507:2: (e1= expr3 ( 'and' e2= expr3 )* )
+                # src/ll/UL4.g:508:3: e1= expr3 ( 'and' e2= expr3 )*
                 pass 
-                self._state.following.append(self.FOLLOW_expr3_in_expr23081)
+                self._state.following.append(self.FOLLOW_expr3_in_expr22622)
                 e1 = self.expr3()
 
                 self._state.following.pop()
@@ -3651,21 +3080,21 @@ class UL4Parser(Parser):
 
 
 
-                # src/ll/UL4.g:573:3: ( 'and' e2= expr3 )*
-                while True: #loop59
-                    alt59 = 2
-                    LA59_0 = self.input.LA(1)
+                # src/ll/UL4.g:509:3: ( 'and' e2= expr3 )*
+                while True: #loop44
+                    alt44 = 2
+                    LA44_0 = self.input.LA(1)
 
-                    if (LA59_0 == 51) :
-                        alt59 = 1
+                    if (LA44_0 == 51) :
+                        alt44 = 1
 
 
-                    if alt59 == 1:
-                        # src/ll/UL4.g:574:4: 'and' e2= expr3
+                    if alt44 == 1:
+                        # src/ll/UL4.g:510:4: 'and' e2= expr3
                         pass 
-                        self.match(self.input, 51, self.FOLLOW_51_in_expr23092)
+                        self.match(self.input, 51, self.FOLLOW_51_in_expr22633)
 
-                        self._state.following.append(self.FOLLOW_expr3_in_expr23099)
+                        self._state.following.append(self.FOLLOW_expr3_in_expr22640)
                         e2 = self.expr3()
 
                         self._state.following.pop()
@@ -3678,7 +3107,7 @@ class UL4Parser(Parser):
 
 
                     else:
-                        break #loop59
+                        break #loop44
 
 
 
@@ -3697,7 +3126,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "expr1"
-    # src/ll/UL4.g:580:1: expr1 returns [node] : e1= expr2 ( 'or' e2= expr2 )* ;
+    # src/ll/UL4.g:516:1: expr1 returns [node] : e1= expr2 ( 'or' e2= expr2 )* ;
     def expr1(self, ):
         node = None
 
@@ -3709,10 +3138,10 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:581:2: (e1= expr2 ( 'or' e2= expr2 )* )
-                # src/ll/UL4.g:582:3: e1= expr2 ( 'or' e2= expr2 )*
+                # src/ll/UL4.g:517:2: (e1= expr2 ( 'or' e2= expr2 )* )
+                # src/ll/UL4.g:518:3: e1= expr2 ( 'or' e2= expr2 )*
                 pass 
-                self._state.following.append(self.FOLLOW_expr2_in_expr13127)
+                self._state.following.append(self.FOLLOW_expr2_in_expr12668)
                 e1 = self.expr2()
 
                 self._state.following.pop()
@@ -3723,21 +3152,21 @@ class UL4Parser(Parser):
 
 
 
-                # src/ll/UL4.g:583:3: ( 'or' e2= expr2 )*
-                while True: #loop60
-                    alt60 = 2
-                    LA60_0 = self.input.LA(1)
+                # src/ll/UL4.g:519:3: ( 'or' e2= expr2 )*
+                while True: #loop45
+                    alt45 = 2
+                    LA45_0 = self.input.LA(1)
 
-                    if (LA60_0 == 56) :
-                        alt60 = 1
+                    if (LA45_0 == 56) :
+                        alt45 = 1
 
 
-                    if alt60 == 1:
-                        # src/ll/UL4.g:584:4: 'or' e2= expr2
+                    if alt45 == 1:
+                        # src/ll/UL4.g:520:4: 'or' e2= expr2
                         pass 
-                        self.match(self.input, 56, self.FOLLOW_56_in_expr13138)
+                        self.match(self.input, 56, self.FOLLOW_56_in_expr12679)
 
-                        self._state.following.append(self.FOLLOW_expr2_in_expr13145)
+                        self._state.following.append(self.FOLLOW_expr2_in_expr12686)
                         e2 = self.expr2()
 
                         self._state.following.pop()
@@ -3750,7 +3179,7 @@ class UL4Parser(Parser):
 
 
                     else:
-                        break #loop60
+                        break #loop45
 
 
 
@@ -3769,7 +3198,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "exprarg"
-    # src/ll/UL4.g:589:1: exprarg returns [node] : (ege= generatorexpression |e1= expr1 );
+    # src/ll/UL4.g:525:1: exprarg returns [node] : (ege= generatorexpression |e1= expr1 );
     def exprarg(self, ):
         node = None
 
@@ -3781,243 +3210,243 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:590:2: (ege= generatorexpression |e1= expr1 )
-                alt61 = 2
-                LA61 = self.input.LA(1)
-                if LA61 == 55:
-                    LA61_1 = self.input.LA(2)
+                # src/ll/UL4.g:526:2: (ege= generatorexpression |e1= expr1 )
+                alt46 = 2
+                LA46 = self.input.LA(1)
+                if LA46 == 55:
+                    LA46_1 = self.input.LA(2)
 
-                    if (self.synpred87_UL4()) :
-                        alt61 = 1
+                    if (self.synpred70_UL4()) :
+                        alt46 = 1
                     elif (True) :
-                        alt61 = 2
+                        alt46 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 61, 1, self.input)
+                        nvae = NoViableAltException("", 46, 1, self.input)
 
                         raise nvae
 
 
-                elif LA61 == 35:
-                    LA61_2 = self.input.LA(2)
+                elif LA46 == 35:
+                    LA46_2 = self.input.LA(2)
 
-                    if (self.synpred87_UL4()) :
-                        alt61 = 1
+                    if (self.synpred70_UL4()) :
+                        alt46 = 1
                     elif (True) :
-                        alt61 = 2
+                        alt46 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 61, 2, self.input)
+                        nvae = NoViableAltException("", 46, 2, self.input)
 
                         raise nvae
 
 
-                elif LA61 == NONE:
-                    LA61_3 = self.input.LA(2)
+                elif LA46 == NONE:
+                    LA46_3 = self.input.LA(2)
 
-                    if (self.synpred87_UL4()) :
-                        alt61 = 1
+                    if (self.synpred70_UL4()) :
+                        alt46 = 1
                     elif (True) :
-                        alt61 = 2
+                        alt46 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 61, 3, self.input)
+                        nvae = NoViableAltException("", 46, 3, self.input)
 
                         raise nvae
 
 
-                elif LA61 == FALSE:
-                    LA61_4 = self.input.LA(2)
+                elif LA46 == FALSE:
+                    LA46_4 = self.input.LA(2)
 
-                    if (self.synpred87_UL4()) :
-                        alt61 = 1
+                    if (self.synpred70_UL4()) :
+                        alt46 = 1
                     elif (True) :
-                        alt61 = 2
+                        alt46 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 61, 4, self.input)
+                        nvae = NoViableAltException("", 46, 4, self.input)
 
                         raise nvae
 
 
-                elif LA61 == TRUE:
-                    LA61_5 = self.input.LA(2)
+                elif LA46 == TRUE:
+                    LA46_5 = self.input.LA(2)
 
-                    if (self.synpred87_UL4()) :
-                        alt61 = 1
+                    if (self.synpred70_UL4()) :
+                        alt46 = 1
                     elif (True) :
-                        alt61 = 2
+                        alt46 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 61, 5, self.input)
+                        nvae = NoViableAltException("", 46, 5, self.input)
 
                         raise nvae
 
 
-                elif LA61 == INT:
-                    LA61_6 = self.input.LA(2)
+                elif LA46 == INT:
+                    LA46_6 = self.input.LA(2)
 
-                    if (self.synpred87_UL4()) :
-                        alt61 = 1
+                    if (self.synpred70_UL4()) :
+                        alt46 = 1
                     elif (True) :
-                        alt61 = 2
+                        alt46 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 61, 6, self.input)
+                        nvae = NoViableAltException("", 46, 6, self.input)
 
                         raise nvae
 
 
-                elif LA61 == FLOAT:
-                    LA61_7 = self.input.LA(2)
+                elif LA46 == FLOAT:
+                    LA46_7 = self.input.LA(2)
 
-                    if (self.synpred87_UL4()) :
-                        alt61 = 1
+                    if (self.synpred70_UL4()) :
+                        alt46 = 1
                     elif (True) :
-                        alt61 = 2
+                        alt46 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 61, 7, self.input)
+                        nvae = NoViableAltException("", 46, 7, self.input)
 
                         raise nvae
 
 
-                elif LA61 == STRING:
-                    LA61_8 = self.input.LA(2)
+                elif LA46 == STRING:
+                    LA46_8 = self.input.LA(2)
 
-                    if (self.synpred87_UL4()) :
-                        alt61 = 1
+                    if (self.synpred70_UL4()) :
+                        alt46 = 1
                     elif (True) :
-                        alt61 = 2
+                        alt46 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 61, 8, self.input)
+                        nvae = NoViableAltException("", 46, 8, self.input)
 
                         raise nvae
 
 
-                elif LA61 == DATE:
-                    LA61_9 = self.input.LA(2)
+                elif LA46 == DATE:
+                    LA46_9 = self.input.LA(2)
 
-                    if (self.synpred87_UL4()) :
-                        alt61 = 1
+                    if (self.synpred70_UL4()) :
+                        alt46 = 1
                     elif (True) :
-                        alt61 = 2
+                        alt46 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 61, 9, self.input)
+                        nvae = NoViableAltException("", 46, 9, self.input)
 
                         raise nvae
 
 
-                elif LA61 == COLOR:
-                    LA61_10 = self.input.LA(2)
+                elif LA46 == COLOR:
+                    LA46_10 = self.input.LA(2)
 
-                    if (self.synpred87_UL4()) :
-                        alt61 = 1
+                    if (self.synpred70_UL4()) :
+                        alt46 = 1
                     elif (True) :
-                        alt61 = 2
+                        alt46 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 61, 10, self.input)
+                        nvae = NoViableAltException("", 46, 10, self.input)
 
                         raise nvae
 
 
-                elif LA61 == NAME:
-                    LA61_11 = self.input.LA(2)
+                elif LA46 == NAME:
+                    LA46_11 = self.input.LA(2)
 
-                    if (self.synpred87_UL4()) :
-                        alt61 = 1
+                    if (self.synpred70_UL4()) :
+                        alt46 = 1
                     elif (True) :
-                        alt61 = 2
+                        alt46 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 61, 11, self.input)
+                        nvae = NoViableAltException("", 46, 11, self.input)
 
                         raise nvae
 
 
-                elif LA61 == 49:
-                    LA61_12 = self.input.LA(2)
+                elif LA46 == 49:
+                    LA46_12 = self.input.LA(2)
 
-                    if (self.synpred87_UL4()) :
-                        alt61 = 1
+                    if (self.synpred70_UL4()) :
+                        alt46 = 1
                     elif (True) :
-                        alt61 = 2
+                        alt46 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 61, 12, self.input)
+                        nvae = NoViableAltException("", 46, 12, self.input)
 
                         raise nvae
 
 
-                elif LA61 == 57:
-                    LA61_13 = self.input.LA(2)
+                elif LA46 == 57:
+                    LA46_13 = self.input.LA(2)
 
-                    if (self.synpred87_UL4()) :
-                        alt61 = 1
+                    if (self.synpred70_UL4()) :
+                        alt46 = 1
                     elif (True) :
-                        alt61 = 2
+                        alt46 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 61, 13, self.input)
+                        nvae = NoViableAltException("", 46, 13, self.input)
 
                         raise nvae
 
 
-                elif LA61 == 27:
-                    LA61_14 = self.input.LA(2)
+                elif LA46 == 27:
+                    LA46_14 = self.input.LA(2)
 
-                    if (self.synpred87_UL4()) :
-                        alt61 = 1
+                    if (self.synpred70_UL4()) :
+                        alt46 = 1
                     elif (True) :
-                        alt61 = 2
+                        alt46 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 61, 14, self.input)
+                        nvae = NoViableAltException("", 46, 14, self.input)
 
                         raise nvae
 
@@ -4027,15 +3456,15 @@ class UL4Parser(Parser):
                         raise BacktrackingFailed
 
 
-                    nvae = NoViableAltException("", 61, 0, self.input)
+                    nvae = NoViableAltException("", 46, 0, self.input)
 
                     raise nvae
 
 
-                if alt61 == 1:
-                    # src/ll/UL4.g:590:4: ege= generatorexpression
+                if alt46 == 1:
+                    # src/ll/UL4.g:526:4: ege= generatorexpression
                     pass 
-                    self._state.following.append(self.FOLLOW_generatorexpression_in_exprarg3169)
+                    self._state.following.append(self.FOLLOW_generatorexpression_in_exprarg2710)
                     ege = self.generatorexpression()
 
                     self._state.following.pop()
@@ -4047,10 +3476,10 @@ class UL4Parser(Parser):
 
 
 
-                elif alt61 == 2:
-                    # src/ll/UL4.g:591:4: e1= expr1
+                elif alt46 == 2:
+                    # src/ll/UL4.g:527:4: e1= expr1
                     pass 
-                    self._state.following.append(self.FOLLOW_expr1_in_exprarg3178)
+                    self._state.following.append(self.FOLLOW_expr1_in_exprarg2719)
                     e1 = self.expr1()
 
                     self._state.following.pop()
@@ -4076,7 +3505,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "expression"
-    # src/ll/UL4.g:594:1: expression returns [node] : (ege= generatorexpression EOF |e= expr1 EOF );
+    # src/ll/UL4.g:530:1: expression returns [node] : (ege= generatorexpression EOF |e= expr1 EOF );
     def expression(self, ):
         node = None
 
@@ -4088,243 +3517,243 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:595:2: (ege= generatorexpression EOF |e= expr1 EOF )
-                alt62 = 2
-                LA62 = self.input.LA(1)
-                if LA62 == 55:
-                    LA62_1 = self.input.LA(2)
+                # src/ll/UL4.g:531:2: (ege= generatorexpression EOF |e= expr1 EOF )
+                alt47 = 2
+                LA47 = self.input.LA(1)
+                if LA47 == 55:
+                    LA47_1 = self.input.LA(2)
 
-                    if (self.synpred88_UL4()) :
-                        alt62 = 1
+                    if (self.synpred71_UL4()) :
+                        alt47 = 1
                     elif (True) :
-                        alt62 = 2
+                        alt47 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 62, 1, self.input)
+                        nvae = NoViableAltException("", 47, 1, self.input)
 
                         raise nvae
 
 
-                elif LA62 == 35:
-                    LA62_2 = self.input.LA(2)
+                elif LA47 == 35:
+                    LA47_2 = self.input.LA(2)
 
-                    if (self.synpred88_UL4()) :
-                        alt62 = 1
+                    if (self.synpred71_UL4()) :
+                        alt47 = 1
                     elif (True) :
-                        alt62 = 2
+                        alt47 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 62, 2, self.input)
+                        nvae = NoViableAltException("", 47, 2, self.input)
 
                         raise nvae
 
 
-                elif LA62 == NONE:
-                    LA62_3 = self.input.LA(2)
+                elif LA47 == NONE:
+                    LA47_3 = self.input.LA(2)
 
-                    if (self.synpred88_UL4()) :
-                        alt62 = 1
+                    if (self.synpred71_UL4()) :
+                        alt47 = 1
                     elif (True) :
-                        alt62 = 2
+                        alt47 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 62, 3, self.input)
+                        nvae = NoViableAltException("", 47, 3, self.input)
 
                         raise nvae
 
 
-                elif LA62 == FALSE:
-                    LA62_4 = self.input.LA(2)
+                elif LA47 == FALSE:
+                    LA47_4 = self.input.LA(2)
 
-                    if (self.synpred88_UL4()) :
-                        alt62 = 1
+                    if (self.synpred71_UL4()) :
+                        alt47 = 1
                     elif (True) :
-                        alt62 = 2
+                        alt47 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 62, 4, self.input)
+                        nvae = NoViableAltException("", 47, 4, self.input)
 
                         raise nvae
 
 
-                elif LA62 == TRUE:
-                    LA62_5 = self.input.LA(2)
+                elif LA47 == TRUE:
+                    LA47_5 = self.input.LA(2)
 
-                    if (self.synpred88_UL4()) :
-                        alt62 = 1
+                    if (self.synpred71_UL4()) :
+                        alt47 = 1
                     elif (True) :
-                        alt62 = 2
+                        alt47 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 62, 5, self.input)
+                        nvae = NoViableAltException("", 47, 5, self.input)
 
                         raise nvae
 
 
-                elif LA62 == INT:
-                    LA62_6 = self.input.LA(2)
+                elif LA47 == INT:
+                    LA47_6 = self.input.LA(2)
 
-                    if (self.synpred88_UL4()) :
-                        alt62 = 1
+                    if (self.synpred71_UL4()) :
+                        alt47 = 1
                     elif (True) :
-                        alt62 = 2
+                        alt47 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 62, 6, self.input)
+                        nvae = NoViableAltException("", 47, 6, self.input)
 
                         raise nvae
 
 
-                elif LA62 == FLOAT:
-                    LA62_7 = self.input.LA(2)
+                elif LA47 == FLOAT:
+                    LA47_7 = self.input.LA(2)
 
-                    if (self.synpred88_UL4()) :
-                        alt62 = 1
+                    if (self.synpred71_UL4()) :
+                        alt47 = 1
                     elif (True) :
-                        alt62 = 2
+                        alt47 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 62, 7, self.input)
+                        nvae = NoViableAltException("", 47, 7, self.input)
 
                         raise nvae
 
 
-                elif LA62 == STRING:
-                    LA62_8 = self.input.LA(2)
+                elif LA47 == STRING:
+                    LA47_8 = self.input.LA(2)
 
-                    if (self.synpred88_UL4()) :
-                        alt62 = 1
+                    if (self.synpred71_UL4()) :
+                        alt47 = 1
                     elif (True) :
-                        alt62 = 2
+                        alt47 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 62, 8, self.input)
+                        nvae = NoViableAltException("", 47, 8, self.input)
 
                         raise nvae
 
 
-                elif LA62 == DATE:
-                    LA62_9 = self.input.LA(2)
+                elif LA47 == DATE:
+                    LA47_9 = self.input.LA(2)
 
-                    if (self.synpred88_UL4()) :
-                        alt62 = 1
+                    if (self.synpred71_UL4()) :
+                        alt47 = 1
                     elif (True) :
-                        alt62 = 2
+                        alt47 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 62, 9, self.input)
+                        nvae = NoViableAltException("", 47, 9, self.input)
 
                         raise nvae
 
 
-                elif LA62 == COLOR:
-                    LA62_10 = self.input.LA(2)
+                elif LA47 == COLOR:
+                    LA47_10 = self.input.LA(2)
 
-                    if (self.synpred88_UL4()) :
-                        alt62 = 1
+                    if (self.synpred71_UL4()) :
+                        alt47 = 1
                     elif (True) :
-                        alt62 = 2
+                        alt47 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 62, 10, self.input)
+                        nvae = NoViableAltException("", 47, 10, self.input)
 
                         raise nvae
 
 
-                elif LA62 == NAME:
-                    LA62_11 = self.input.LA(2)
+                elif LA47 == NAME:
+                    LA47_11 = self.input.LA(2)
 
-                    if (self.synpred88_UL4()) :
-                        alt62 = 1
+                    if (self.synpred71_UL4()) :
+                        alt47 = 1
                     elif (True) :
-                        alt62 = 2
+                        alt47 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 62, 11, self.input)
+                        nvae = NoViableAltException("", 47, 11, self.input)
 
                         raise nvae
 
 
-                elif LA62 == 49:
-                    LA62_12 = self.input.LA(2)
+                elif LA47 == 49:
+                    LA47_12 = self.input.LA(2)
 
-                    if (self.synpred88_UL4()) :
-                        alt62 = 1
+                    if (self.synpred71_UL4()) :
+                        alt47 = 1
                     elif (True) :
-                        alt62 = 2
+                        alt47 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 62, 12, self.input)
+                        nvae = NoViableAltException("", 47, 12, self.input)
 
                         raise nvae
 
 
-                elif LA62 == 57:
-                    LA62_13 = self.input.LA(2)
+                elif LA47 == 57:
+                    LA47_13 = self.input.LA(2)
 
-                    if (self.synpred88_UL4()) :
-                        alt62 = 1
+                    if (self.synpred71_UL4()) :
+                        alt47 = 1
                     elif (True) :
-                        alt62 = 2
+                        alt47 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 62, 13, self.input)
+                        nvae = NoViableAltException("", 47, 13, self.input)
 
                         raise nvae
 
 
-                elif LA62 == 27:
-                    LA62_14 = self.input.LA(2)
+                elif LA47 == 27:
+                    LA47_14 = self.input.LA(2)
 
-                    if (self.synpred88_UL4()) :
-                        alt62 = 1
+                    if (self.synpred71_UL4()) :
+                        alt47 = 1
                     elif (True) :
-                        alt62 = 2
+                        alt47 = 2
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 62, 14, self.input)
+                        nvae = NoViableAltException("", 47, 14, self.input)
 
                         raise nvae
 
@@ -4334,20 +3763,20 @@ class UL4Parser(Parser):
                         raise BacktrackingFailed
 
 
-                    nvae = NoViableAltException("", 62, 0, self.input)
+                    nvae = NoViableAltException("", 47, 0, self.input)
 
                     raise nvae
 
 
-                if alt62 == 1:
-                    # src/ll/UL4.g:595:4: ege= generatorexpression EOF
+                if alt47 == 1:
+                    # src/ll/UL4.g:531:4: ege= generatorexpression EOF
                     pass 
-                    self._state.following.append(self.FOLLOW_generatorexpression_in_expression3197)
+                    self._state.following.append(self.FOLLOW_generatorexpression_in_expression2738)
                     ege = self.generatorexpression()
 
                     self._state.following.pop()
 
-                    self.match(self.input, EOF, self.FOLLOW_EOF_in_expression3199)
+                    self.match(self.input, EOF, self.FOLLOW_EOF_in_expression2740)
 
                     if self._state.backtracking == 0:
                         pass
@@ -4356,15 +3785,15 @@ class UL4Parser(Parser):
 
 
 
-                elif alt62 == 2:
-                    # src/ll/UL4.g:596:4: e= expr1 EOF
+                elif alt47 == 2:
+                    # src/ll/UL4.g:532:4: e= expr1 EOF
                     pass 
-                    self._state.following.append(self.FOLLOW_expr1_in_expression3208)
+                    self._state.following.append(self.FOLLOW_expr1_in_expression2749)
                     e = self.expr1()
 
                     self._state.following.pop()
 
-                    self.match(self.input, EOF, self.FOLLOW_EOF_in_expression3210)
+                    self.match(self.input, EOF, self.FOLLOW_EOF_in_expression2751)
 
                     if self._state.backtracking == 0:
                         pass
@@ -4387,7 +3816,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "for_"
-    # src/ll/UL4.g:602:1: for_ returns [node] : n= nestedname 'in' e= expr1 EOF ;
+    # src/ll/UL4.g:538:1: for_ returns [node] : n= nestedname 'in' e= expr1 EOF ;
     def for_(self, ):
         node = None
 
@@ -4399,17 +3828,17 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:603:2: (n= nestedname 'in' e= expr1 EOF )
-                # src/ll/UL4.g:604:3: n= nestedname 'in' e= expr1 EOF
+                # src/ll/UL4.g:539:2: (n= nestedname 'in' e= expr1 EOF )
+                # src/ll/UL4.g:540:3: n= nestedname 'in' e= expr1 EOF
                 pass 
-                self._state.following.append(self.FOLLOW_nestedname_in_for_3235)
+                self._state.following.append(self.FOLLOW_nestedname_in_for_2776)
                 n = self.nestedname()
 
                 self._state.following.pop()
 
-                self.match(self.input, 54, self.FOLLOW_54_in_for_3239)
+                self.match(self.input, 54, self.FOLLOW_54_in_for_2780)
 
-                self._state.following.append(self.FOLLOW_expr1_in_for_3245)
+                self._state.following.append(self.FOLLOW_expr1_in_for_2786)
                 e = self.expr1()
 
                 self._state.following.pop()
@@ -4420,7 +3849,7 @@ class UL4Parser(Parser):
 
 
 
-                self.match(self.input, EOF, self.FOLLOW_EOF_in_for_3251)
+                self.match(self.input, EOF, self.FOLLOW_EOF_in_for_2792)
 
 
 
@@ -4438,7 +3867,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "statement"
-    # src/ll/UL4.g:613:1: statement returns [node] : (nn= nestedname '=' e= expr1 EOF |n= name '+=' e= expr1 EOF |n= name '-=' e= expr1 EOF |n= name '*=' e= expr1 EOF |n= name '/=' e= expr1 EOF |n= name '//=' e= expr1 EOF |n= name '%=' e= expr1 EOF );
+    # src/ll/UL4.g:549:1: statement returns [node] : (nn= nestedname '=' e= expr1 EOF |n= name '+=' e= expr1 EOF |n= name '-=' e= expr1 EOF |n= name '*=' e= expr1 EOF |n= name '/=' e= expr1 EOF |n= name '//=' e= expr1 EOF |n= name '%=' e= expr1 EOF );
     def statement(self, ):
         node = None
 
@@ -4452,64 +3881,64 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:614:2: (nn= nestedname '=' e= expr1 EOF |n= name '+=' e= expr1 EOF |n= name '-=' e= expr1 EOF |n= name '*=' e= expr1 EOF |n= name '/=' e= expr1 EOF |n= name '//=' e= expr1 EOF |n= name '%=' e= expr1 EOF )
-                alt63 = 7
-                LA63_0 = self.input.LA(1)
+                # src/ll/UL4.g:550:2: (nn= nestedname '=' e= expr1 EOF |n= name '+=' e= expr1 EOF |n= name '-=' e= expr1 EOF |n= name '*=' e= expr1 EOF |n= name '/=' e= expr1 EOF |n= name '//=' e= expr1 EOF |n= name '%=' e= expr1 EOF )
+                alt48 = 7
+                LA48_0 = self.input.LA(1)
 
-                if (LA63_0 == NAME) :
-                    LA63 = self.input.LA(2)
-                    if LA63 == 45:
-                        alt63 = 1
-                    elif LA63 == 33:
-                        alt63 = 2
-                    elif LA63 == 36:
-                        alt63 = 3
-                    elif LA63 == 31:
-                        alt63 = 4
-                    elif LA63 == 41:
-                        alt63 = 5
-                    elif LA63 == 40:
-                        alt63 = 6
-                    elif LA63 == 26:
-                        alt63 = 7
+                if (LA48_0 == NAME) :
+                    LA48 = self.input.LA(2)
+                    if LA48 == 45:
+                        alt48 = 1
+                    elif LA48 == 33:
+                        alt48 = 2
+                    elif LA48 == 36:
+                        alt48 = 3
+                    elif LA48 == 31:
+                        alt48 = 4
+                    elif LA48 == 41:
+                        alt48 = 5
+                    elif LA48 == 40:
+                        alt48 = 6
+                    elif LA48 == 26:
+                        alt48 = 7
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 63, 1, self.input)
+                        nvae = NoViableAltException("", 48, 1, self.input)
 
                         raise nvae
 
 
-                elif (LA63_0 == 27) :
-                    alt63 = 1
+                elif (LA48_0 == 27) :
+                    alt48 = 1
                 else:
                     if self._state.backtracking > 0:
                         raise BacktrackingFailed
 
 
-                    nvae = NoViableAltException("", 63, 0, self.input)
+                    nvae = NoViableAltException("", 48, 0, self.input)
 
                     raise nvae
 
 
-                if alt63 == 1:
-                    # src/ll/UL4.g:614:4: nn= nestedname '=' e= expr1 EOF
+                if alt48 == 1:
+                    # src/ll/UL4.g:550:4: nn= nestedname '=' e= expr1 EOF
                     pass 
-                    self._state.following.append(self.FOLLOW_nestedname_in_statement3272)
+                    self._state.following.append(self.FOLLOW_nestedname_in_statement2813)
                     nn = self.nestedname()
 
                     self._state.following.pop()
 
-                    self.match(self.input, 45, self.FOLLOW_45_in_statement3274)
+                    self.match(self.input, 45, self.FOLLOW_45_in_statement2815)
 
-                    self._state.following.append(self.FOLLOW_expr1_in_statement3278)
+                    self._state.following.append(self.FOLLOW_expr1_in_statement2819)
                     e = self.expr1()
 
                     self._state.following.pop()
 
-                    self.match(self.input, EOF, self.FOLLOW_EOF_in_statement3280)
+                    self.match(self.input, EOF, self.FOLLOW_EOF_in_statement2821)
 
                     if self._state.backtracking == 0:
                         pass
@@ -4518,22 +3947,22 @@ class UL4Parser(Parser):
 
 
 
-                elif alt63 == 2:
-                    # src/ll/UL4.g:615:4: n= name '+=' e= expr1 EOF
+                elif alt48 == 2:
+                    # src/ll/UL4.g:551:4: n= name '+=' e= expr1 EOF
                     pass 
-                    self._state.following.append(self.FOLLOW_name_in_statement3289)
+                    self._state.following.append(self.FOLLOW_name_in_statement2830)
                     n = self.name()
 
                     self._state.following.pop()
 
-                    self.match(self.input, 33, self.FOLLOW_33_in_statement3291)
+                    self.match(self.input, 33, self.FOLLOW_33_in_statement2832)
 
-                    self._state.following.append(self.FOLLOW_expr1_in_statement3295)
+                    self._state.following.append(self.FOLLOW_expr1_in_statement2836)
                     e = self.expr1()
 
                     self._state.following.pop()
 
-                    self.match(self.input, EOF, self.FOLLOW_EOF_in_statement3297)
+                    self.match(self.input, EOF, self.FOLLOW_EOF_in_statement2838)
 
                     if self._state.backtracking == 0:
                         pass
@@ -4542,22 +3971,22 @@ class UL4Parser(Parser):
 
 
 
-                elif alt63 == 3:
-                    # src/ll/UL4.g:616:4: n= name '-=' e= expr1 EOF
+                elif alt48 == 3:
+                    # src/ll/UL4.g:552:4: n= name '-=' e= expr1 EOF
                     pass 
-                    self._state.following.append(self.FOLLOW_name_in_statement3306)
+                    self._state.following.append(self.FOLLOW_name_in_statement2847)
                     n = self.name()
 
                     self._state.following.pop()
 
-                    self.match(self.input, 36, self.FOLLOW_36_in_statement3308)
+                    self.match(self.input, 36, self.FOLLOW_36_in_statement2849)
 
-                    self._state.following.append(self.FOLLOW_expr1_in_statement3312)
+                    self._state.following.append(self.FOLLOW_expr1_in_statement2853)
                     e = self.expr1()
 
                     self._state.following.pop()
 
-                    self.match(self.input, EOF, self.FOLLOW_EOF_in_statement3314)
+                    self.match(self.input, EOF, self.FOLLOW_EOF_in_statement2855)
 
                     if self._state.backtracking == 0:
                         pass
@@ -4566,22 +3995,22 @@ class UL4Parser(Parser):
 
 
 
-                elif alt63 == 4:
-                    # src/ll/UL4.g:617:4: n= name '*=' e= expr1 EOF
+                elif alt48 == 4:
+                    # src/ll/UL4.g:553:4: n= name '*=' e= expr1 EOF
                     pass 
-                    self._state.following.append(self.FOLLOW_name_in_statement3323)
+                    self._state.following.append(self.FOLLOW_name_in_statement2864)
                     n = self.name()
 
                     self._state.following.pop()
 
-                    self.match(self.input, 31, self.FOLLOW_31_in_statement3325)
+                    self.match(self.input, 31, self.FOLLOW_31_in_statement2866)
 
-                    self._state.following.append(self.FOLLOW_expr1_in_statement3329)
+                    self._state.following.append(self.FOLLOW_expr1_in_statement2870)
                     e = self.expr1()
 
                     self._state.following.pop()
 
-                    self.match(self.input, EOF, self.FOLLOW_EOF_in_statement3331)
+                    self.match(self.input, EOF, self.FOLLOW_EOF_in_statement2872)
 
                     if self._state.backtracking == 0:
                         pass
@@ -4590,22 +4019,22 @@ class UL4Parser(Parser):
 
 
 
-                elif alt63 == 5:
-                    # src/ll/UL4.g:618:4: n= name '/=' e= expr1 EOF
+                elif alt48 == 5:
+                    # src/ll/UL4.g:554:4: n= name '/=' e= expr1 EOF
                     pass 
-                    self._state.following.append(self.FOLLOW_name_in_statement3340)
+                    self._state.following.append(self.FOLLOW_name_in_statement2881)
                     n = self.name()
 
                     self._state.following.pop()
 
-                    self.match(self.input, 41, self.FOLLOW_41_in_statement3342)
+                    self.match(self.input, 41, self.FOLLOW_41_in_statement2883)
 
-                    self._state.following.append(self.FOLLOW_expr1_in_statement3346)
+                    self._state.following.append(self.FOLLOW_expr1_in_statement2887)
                     e = self.expr1()
 
                     self._state.following.pop()
 
-                    self.match(self.input, EOF, self.FOLLOW_EOF_in_statement3348)
+                    self.match(self.input, EOF, self.FOLLOW_EOF_in_statement2889)
 
                     if self._state.backtracking == 0:
                         pass
@@ -4614,22 +4043,22 @@ class UL4Parser(Parser):
 
 
 
-                elif alt63 == 6:
-                    # src/ll/UL4.g:619:4: n= name '//=' e= expr1 EOF
+                elif alt48 == 6:
+                    # src/ll/UL4.g:555:4: n= name '//=' e= expr1 EOF
                     pass 
-                    self._state.following.append(self.FOLLOW_name_in_statement3357)
+                    self._state.following.append(self.FOLLOW_name_in_statement2898)
                     n = self.name()
 
                     self._state.following.pop()
 
-                    self.match(self.input, 40, self.FOLLOW_40_in_statement3359)
+                    self.match(self.input, 40, self.FOLLOW_40_in_statement2900)
 
-                    self._state.following.append(self.FOLLOW_expr1_in_statement3363)
+                    self._state.following.append(self.FOLLOW_expr1_in_statement2904)
                     e = self.expr1()
 
                     self._state.following.pop()
 
-                    self.match(self.input, EOF, self.FOLLOW_EOF_in_statement3365)
+                    self.match(self.input, EOF, self.FOLLOW_EOF_in_statement2906)
 
                     if self._state.backtracking == 0:
                         pass
@@ -4638,22 +4067,22 @@ class UL4Parser(Parser):
 
 
 
-                elif alt63 == 7:
-                    # src/ll/UL4.g:620:4: n= name '%=' e= expr1 EOF
+                elif alt48 == 7:
+                    # src/ll/UL4.g:556:4: n= name '%=' e= expr1 EOF
                     pass 
-                    self._state.following.append(self.FOLLOW_name_in_statement3374)
+                    self._state.following.append(self.FOLLOW_name_in_statement2915)
                     n = self.name()
 
                     self._state.following.pop()
 
-                    self.match(self.input, 26, self.FOLLOW_26_in_statement3376)
+                    self.match(self.input, 26, self.FOLLOW_26_in_statement2917)
 
-                    self._state.following.append(self.FOLLOW_expr1_in_statement3380)
+                    self._state.following.append(self.FOLLOW_expr1_in_statement2921)
                     e = self.expr1()
 
                     self._state.following.pop()
 
-                    self.match(self.input, EOF, self.FOLLOW_EOF_in_statement3382)
+                    self.match(self.input, EOF, self.FOLLOW_EOF_in_statement2923)
 
                     if self._state.backtracking == 0:
                         pass
@@ -4797,43 +4226,43 @@ class UL4Parser(Parser):
 
 
 
-    # $ANTLR start "synpred87_UL4"
-    def synpred87_UL4_fragment(self, ):
+    # $ANTLR start "synpred70_UL4"
+    def synpred70_UL4_fragment(self, ):
         ege = None
 
 
-        # src/ll/UL4.g:590:4: (ege= generatorexpression )
-        # src/ll/UL4.g:590:4: ege= generatorexpression
+        # src/ll/UL4.g:526:4: (ege= generatorexpression )
+        # src/ll/UL4.g:526:4: ege= generatorexpression
         pass 
-        self._state.following.append(self.FOLLOW_generatorexpression_in_synpred87_UL43169)
+        self._state.following.append(self.FOLLOW_generatorexpression_in_synpred70_UL42710)
         ege = self.generatorexpression()
 
         self._state.following.pop()
 
 
 
-    # $ANTLR end "synpred87_UL4"
+    # $ANTLR end "synpred70_UL4"
 
 
 
-    # $ANTLR start "synpred88_UL4"
-    def synpred88_UL4_fragment(self, ):
+    # $ANTLR start "synpred71_UL4"
+    def synpred71_UL4_fragment(self, ):
         ege = None
 
 
-        # src/ll/UL4.g:595:4: (ege= generatorexpression EOF )
-        # src/ll/UL4.g:595:4: ege= generatorexpression EOF
+        # src/ll/UL4.g:531:4: (ege= generatorexpression EOF )
+        # src/ll/UL4.g:531:4: ege= generatorexpression EOF
         pass 
-        self._state.following.append(self.FOLLOW_generatorexpression_in_synpred88_UL43197)
+        self._state.following.append(self.FOLLOW_generatorexpression_in_synpred71_UL42738)
         ege = self.generatorexpression()
 
         self._state.following.pop()
 
-        self.match(self.input, EOF, self.FOLLOW_EOF_in_synpred88_UL43199)
+        self.match(self.input, EOF, self.FOLLOW_EOF_in_synpred71_UL42740)
 
 
 
-    # $ANTLR end "synpred88_UL4"
+    # $ANTLR end "synpred71_UL4"
 
 
 
@@ -4851,37 +4280,37 @@ class UL4Parser(Parser):
         self._state.backtracking -= 1
         return success
 
-    def synpred88_UL4(self):
-        self._state.backtracking += 1
-        start = self.input.mark()
-        try:
-            self.synpred88_UL4_fragment()
-        except BacktrackingFailed:
-            success = False
-        else:
-            success = True
-        self.input.rewind(start)
-        self._state.backtracking -= 1
-        return success
-
-    def synpred87_UL4(self):
-        self._state.backtracking += 1
-        start = self.input.mark()
-        try:
-            self.synpred87_UL4_fragment()
-        except BacktrackingFailed:
-            success = False
-        else:
-            success = True
-        self.input.rewind(start)
-        self._state.backtracking -= 1
-        return success
-
     def synpred22_UL4(self):
         self._state.backtracking += 1
         start = self.input.mark()
         try:
             self.synpred22_UL4_fragment()
+        except BacktrackingFailed:
+            success = False
+        else:
+            success = True
+        self.input.rewind(start)
+        self._state.backtracking -= 1
+        return success
+
+    def synpred71_UL4(self):
+        self._state.backtracking += 1
+        start = self.input.mark()
+        try:
+            self.synpred71_UL4_fragment()
+        except BacktrackingFailed:
+            success = False
+        else:
+            success = True
+        self.input.rewind(start)
+        self._state.backtracking -= 1
+        return success
+
+    def synpred70_UL4(self):
+        self._state.backtracking += 1
+        start = self.input.mark()
+        try:
+            self.synpred70_UL4_fragment()
         except BacktrackingFailed:
             success = False
         else:
@@ -5036,167 +4465,126 @@ class UL4Parser(Parser):
     FOLLOW_nestedname_in_nestedname1521 = frozenset([28, 34])
     FOLLOW_34_in_nestedname1532 = frozenset([28])
     FOLLOW_28_in_nestedname1537 = frozenset([1])
-    FOLLOW_atom_in_expr101557 = frozenset([1])
-    FOLLOW_name_in_expr101568 = frozenset([27])
-    FOLLOW_27_in_expr101572 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 28, 29, 30, 35, 49, 55, 57])
-    FOLLOW_30_in_expr101597 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr101601 = frozenset([28, 34])
-    FOLLOW_34_in_expr101608 = frozenset([28])
-    FOLLOW_29_in_expr101623 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr101627 = frozenset([28, 34])
-    FOLLOW_34_in_expr101640 = frozenset([30])
-    FOLLOW_30_in_expr101646 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr101650 = frozenset([28, 34])
-    FOLLOW_34_in_expr101663 = frozenset([28])
-    FOLLOW_exprarg_in_expr101680 = frozenset([28, 34])
-    FOLLOW_34_in_expr101693 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr101701 = frozenset([28, 34])
-    FOLLOW_34_in_expr101720 = frozenset([14])
-    FOLLOW_name_in_expr101728 = frozenset([45])
-    FOLLOW_45_in_expr101730 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr101734 = frozenset([28, 34])
-    FOLLOW_34_in_expr101753 = frozenset([29])
-    FOLLOW_29_in_expr101759 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr101763 = frozenset([28, 34])
-    FOLLOW_34_in_expr101782 = frozenset([30])
-    FOLLOW_30_in_expr101788 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr101792 = frozenset([28, 34])
-    FOLLOW_34_in_expr101805 = frozenset([28])
-    FOLLOW_name_in_expr101822 = frozenset([45])
-    FOLLOW_45_in_expr101824 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr101828 = frozenset([28, 34])
-    FOLLOW_34_in_expr101841 = frozenset([14])
-    FOLLOW_name_in_expr101849 = frozenset([45])
-    FOLLOW_45_in_expr101851 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr101855 = frozenset([28, 34])
-    FOLLOW_34_in_expr101874 = frozenset([29])
-    FOLLOW_29_in_expr101880 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr101884 = frozenset([28, 34])
-    FOLLOW_34_in_expr101903 = frozenset([30])
-    FOLLOW_30_in_expr101909 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr101913 = frozenset([28, 34])
-    FOLLOW_34_in_expr101926 = frozenset([28])
-    FOLLOW_28_in_expr101935 = frozenset([1])
-    FOLLOW_expr10_in_expr91964 = frozenset([1, 37, 49])
-    FOLLOW_37_in_expr91980 = frozenset([14])
-    FOLLOW_name_in_expr91987 = frozenset([1, 27, 37, 49])
-    FOLLOW_27_in_expr92004 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 28, 29, 30, 35, 49, 55, 57])
-    FOLLOW_30_in_expr92039 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr92043 = frozenset([28, 34])
-    FOLLOW_34_in_expr92052 = frozenset([28])
-    FOLLOW_29_in_expr92073 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr92077 = frozenset([28, 34])
-    FOLLOW_34_in_expr92094 = frozenset([30])
-    FOLLOW_30_in_expr92102 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr92106 = frozenset([28, 34])
-    FOLLOW_34_in_expr92123 = frozenset([28])
-    FOLLOW_exprarg_in_expr92146 = frozenset([28, 34])
-    FOLLOW_34_in_expr92163 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr92173 = frozenset([28, 34])
-    FOLLOW_34_in_expr92198 = frozenset([14])
-    FOLLOW_name_in_expr92208 = frozenset([45])
-    FOLLOW_45_in_expr92210 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr92214 = frozenset([28, 34])
-    FOLLOW_34_in_expr92239 = frozenset([29])
-    FOLLOW_29_in_expr92247 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr92251 = frozenset([28, 34])
-    FOLLOW_34_in_expr92276 = frozenset([30])
-    FOLLOW_30_in_expr92284 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr92288 = frozenset([28, 34])
-    FOLLOW_34_in_expr92305 = frozenset([28])
-    FOLLOW_name_in_expr92328 = frozenset([45])
-    FOLLOW_45_in_expr92330 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr92334 = frozenset([28, 34])
-    FOLLOW_34_in_expr92351 = frozenset([14])
-    FOLLOW_name_in_expr92361 = frozenset([45])
-    FOLLOW_45_in_expr92363 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr92367 = frozenset([28, 34])
-    FOLLOW_34_in_expr92392 = frozenset([29])
-    FOLLOW_29_in_expr92400 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr92404 = frozenset([28, 34])
-    FOLLOW_34_in_expr92429 = frozenset([30])
-    FOLLOW_30_in_expr92437 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_exprarg_in_expr92441 = frozenset([28, 34])
-    FOLLOW_34_in_expr92458 = frozenset([28])
-    FOLLOW_28_in_expr92471 = frozenset([1, 37, 49])
-    FOLLOW_49_in_expr92493 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 42, 49, 55, 57])
-    FOLLOW_42_in_expr92504 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 50, 55, 57])
-    FOLLOW_expr1_in_expr92519 = frozenset([50])
-    FOLLOW_expr1_in_expr92543 = frozenset([42, 50])
-    FOLLOW_42_in_expr92558 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 50, 55, 57])
-    FOLLOW_expr1_in_expr92577 = frozenset([50])
-    FOLLOW_50_in_expr92606 = frozenset([1, 37, 49])
-    FOLLOW_35_in_expr82642 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
-    FOLLOW_expr9_in_expr82655 = frozenset([1])
-    FOLLOW_expr8_in_expr72678 = frozenset([1, 25, 29, 38, 39])
-    FOLLOW_29_in_expr72695 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
-    FOLLOW_38_in_expr72708 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
-    FOLLOW_39_in_expr72721 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
-    FOLLOW_25_in_expr72734 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
-    FOLLOW_expr8_in_expr72748 = frozenset([1, 25, 29, 38, 39])
-    FOLLOW_expr7_in_expr62776 = frozenset([1, 32, 35])
-    FOLLOW_32_in_expr62793 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
-    FOLLOW_35_in_expr62806 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
-    FOLLOW_expr7_in_expr62820 = frozenset([1, 32, 35])
-    FOLLOW_expr6_in_expr52848 = frozenset([1, 24, 43, 44, 46, 47, 48])
-    FOLLOW_46_in_expr52865 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
-    FOLLOW_24_in_expr52878 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
-    FOLLOW_43_in_expr52891 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
-    FOLLOW_44_in_expr52904 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
-    FOLLOW_47_in_expr52917 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
-    FOLLOW_48_in_expr52930 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
-    FOLLOW_expr6_in_expr52944 = frozenset([1, 24, 43, 44, 46, 47, 48])
-    FOLLOW_expr5_in_expr42972 = frozenset([1, 54, 55])
-    FOLLOW_55_in_expr42994 = frozenset([54])
-    FOLLOW_54_in_expr43007 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
-    FOLLOW_expr5_in_expr43014 = frozenset([1])
-    FOLLOW_55_in_expr33040 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
-    FOLLOW_expr4_in_expr33046 = frozenset([1])
-    FOLLOW_expr4_in_expr33057 = frozenset([1])
-    FOLLOW_expr3_in_expr23081 = frozenset([1, 51])
-    FOLLOW_51_in_expr23092 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_expr3_in_expr23099 = frozenset([1, 51])
-    FOLLOW_expr2_in_expr13127 = frozenset([1, 56])
-    FOLLOW_56_in_expr13138 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_expr2_in_expr13145 = frozenset([1, 56])
-    FOLLOW_generatorexpression_in_exprarg3169 = frozenset([1])
-    FOLLOW_expr1_in_exprarg3178 = frozenset([1])
-    FOLLOW_generatorexpression_in_expression3197 = frozenset([])
-    FOLLOW_EOF_in_expression3199 = frozenset([1])
-    FOLLOW_expr1_in_expression3208 = frozenset([])
-    FOLLOW_EOF_in_expression3210 = frozenset([1])
-    FOLLOW_nestedname_in_for_3235 = frozenset([54])
-    FOLLOW_54_in_for_3239 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_expr1_in_for_3245 = frozenset([])
-    FOLLOW_EOF_in_for_3251 = frozenset([1])
-    FOLLOW_nestedname_in_statement3272 = frozenset([45])
-    FOLLOW_45_in_statement3274 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_expr1_in_statement3278 = frozenset([])
-    FOLLOW_EOF_in_statement3280 = frozenset([1])
-    FOLLOW_name_in_statement3289 = frozenset([33])
-    FOLLOW_33_in_statement3291 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_expr1_in_statement3295 = frozenset([])
-    FOLLOW_EOF_in_statement3297 = frozenset([1])
-    FOLLOW_name_in_statement3306 = frozenset([36])
-    FOLLOW_36_in_statement3308 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_expr1_in_statement3312 = frozenset([])
-    FOLLOW_EOF_in_statement3314 = frozenset([1])
-    FOLLOW_name_in_statement3323 = frozenset([31])
-    FOLLOW_31_in_statement3325 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_expr1_in_statement3329 = frozenset([])
-    FOLLOW_EOF_in_statement3331 = frozenset([1])
-    FOLLOW_name_in_statement3340 = frozenset([41])
-    FOLLOW_41_in_statement3342 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_expr1_in_statement3346 = frozenset([])
-    FOLLOW_EOF_in_statement3348 = frozenset([1])
-    FOLLOW_name_in_statement3357 = frozenset([40])
-    FOLLOW_40_in_statement3359 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_expr1_in_statement3363 = frozenset([])
-    FOLLOW_EOF_in_statement3365 = frozenset([1])
-    FOLLOW_name_in_statement3374 = frozenset([26])
-    FOLLOW_26_in_statement3376 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
-    FOLLOW_expr1_in_statement3380 = frozenset([])
-    FOLLOW_EOF_in_statement3382 = frozenset([1])
+    FOLLOW_atom_in_expr91566 = frozenset([1, 27, 37, 49])
+    FOLLOW_37_in_expr91582 = frozenset([14])
+    FOLLOW_name_in_expr91589 = frozenset([1, 27, 37, 49])
+    FOLLOW_27_in_expr91605 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 28, 29, 30, 35, 49, 55, 57])
+    FOLLOW_30_in_expr91635 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_exprarg_in_expr91639 = frozenset([28, 34])
+    FOLLOW_34_in_expr91647 = frozenset([28])
+    FOLLOW_29_in_expr91665 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_exprarg_in_expr91669 = frozenset([28, 34])
+    FOLLOW_34_in_expr91684 = frozenset([30])
+    FOLLOW_30_in_expr91691 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_exprarg_in_expr91695 = frozenset([28, 34])
+    FOLLOW_34_in_expr91710 = frozenset([28])
+    FOLLOW_exprarg_in_expr91730 = frozenset([28, 34])
+    FOLLOW_34_in_expr91745 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_exprarg_in_expr91754 = frozenset([28, 34])
+    FOLLOW_34_in_expr91776 = frozenset([14])
+    FOLLOW_name_in_expr91785 = frozenset([45])
+    FOLLOW_45_in_expr91787 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_exprarg_in_expr91791 = frozenset([28, 34])
+    FOLLOW_34_in_expr91813 = frozenset([29])
+    FOLLOW_29_in_expr91820 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_exprarg_in_expr91824 = frozenset([28, 34])
+    FOLLOW_34_in_expr91846 = frozenset([30])
+    FOLLOW_30_in_expr91853 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_exprarg_in_expr91857 = frozenset([28, 34])
+    FOLLOW_34_in_expr91872 = frozenset([28])
+    FOLLOW_name_in_expr91892 = frozenset([45])
+    FOLLOW_45_in_expr91894 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_exprarg_in_expr91898 = frozenset([28, 34])
+    FOLLOW_34_in_expr91913 = frozenset([14])
+    FOLLOW_name_in_expr91922 = frozenset([45])
+    FOLLOW_45_in_expr91924 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_exprarg_in_expr91928 = frozenset([28, 34])
+    FOLLOW_34_in_expr91950 = frozenset([29])
+    FOLLOW_29_in_expr91957 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_exprarg_in_expr91961 = frozenset([28, 34])
+    FOLLOW_34_in_expr91983 = frozenset([30])
+    FOLLOW_30_in_expr91990 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_exprarg_in_expr91994 = frozenset([28, 34])
+    FOLLOW_34_in_expr92009 = frozenset([28])
+    FOLLOW_28_in_expr92020 = frozenset([1, 27, 37, 49])
+    FOLLOW_49_in_expr92034 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 42, 49, 55, 57])
+    FOLLOW_42_in_expr92045 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 50, 55, 57])
+    FOLLOW_expr1_in_expr92060 = frozenset([50])
+    FOLLOW_expr1_in_expr92084 = frozenset([42, 50])
+    FOLLOW_42_in_expr92099 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 50, 55, 57])
+    FOLLOW_expr1_in_expr92118 = frozenset([50])
+    FOLLOW_50_in_expr92147 = frozenset([1, 27, 37, 49])
+    FOLLOW_35_in_expr82183 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
+    FOLLOW_expr9_in_expr82196 = frozenset([1])
+    FOLLOW_expr8_in_expr72219 = frozenset([1, 25, 29, 38, 39])
+    FOLLOW_29_in_expr72236 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
+    FOLLOW_38_in_expr72249 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
+    FOLLOW_39_in_expr72262 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
+    FOLLOW_25_in_expr72275 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
+    FOLLOW_expr8_in_expr72289 = frozenset([1, 25, 29, 38, 39])
+    FOLLOW_expr7_in_expr62317 = frozenset([1, 32, 35])
+    FOLLOW_32_in_expr62334 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
+    FOLLOW_35_in_expr62347 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
+    FOLLOW_expr7_in_expr62361 = frozenset([1, 32, 35])
+    FOLLOW_expr6_in_expr52389 = frozenset([1, 24, 43, 44, 46, 47, 48])
+    FOLLOW_46_in_expr52406 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
+    FOLLOW_24_in_expr52419 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
+    FOLLOW_43_in_expr52432 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
+    FOLLOW_44_in_expr52445 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
+    FOLLOW_47_in_expr52458 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
+    FOLLOW_48_in_expr52471 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
+    FOLLOW_expr6_in_expr52485 = frozenset([1, 24, 43, 44, 46, 47, 48])
+    FOLLOW_expr5_in_expr42513 = frozenset([1, 54, 55])
+    FOLLOW_55_in_expr42535 = frozenset([54])
+    FOLLOW_54_in_expr42548 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
+    FOLLOW_expr5_in_expr42555 = frozenset([1])
+    FOLLOW_55_in_expr32581 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 57])
+    FOLLOW_expr4_in_expr32587 = frozenset([1])
+    FOLLOW_expr4_in_expr32598 = frozenset([1])
+    FOLLOW_expr3_in_expr22622 = frozenset([1, 51])
+    FOLLOW_51_in_expr22633 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_expr3_in_expr22640 = frozenset([1, 51])
+    FOLLOW_expr2_in_expr12668 = frozenset([1, 56])
+    FOLLOW_56_in_expr12679 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_expr2_in_expr12686 = frozenset([1, 56])
+    FOLLOW_generatorexpression_in_exprarg2710 = frozenset([1])
+    FOLLOW_expr1_in_exprarg2719 = frozenset([1])
+    FOLLOW_generatorexpression_in_expression2738 = frozenset([])
+    FOLLOW_EOF_in_expression2740 = frozenset([1])
+    FOLLOW_expr1_in_expression2749 = frozenset([])
+    FOLLOW_EOF_in_expression2751 = frozenset([1])
+    FOLLOW_nestedname_in_for_2776 = frozenset([54])
+    FOLLOW_54_in_for_2780 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_expr1_in_for_2786 = frozenset([])
+    FOLLOW_EOF_in_for_2792 = frozenset([1])
+    FOLLOW_nestedname_in_statement2813 = frozenset([45])
+    FOLLOW_45_in_statement2815 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_expr1_in_statement2819 = frozenset([])
+    FOLLOW_EOF_in_statement2821 = frozenset([1])
+    FOLLOW_name_in_statement2830 = frozenset([33])
+    FOLLOW_33_in_statement2832 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_expr1_in_statement2836 = frozenset([])
+    FOLLOW_EOF_in_statement2838 = frozenset([1])
+    FOLLOW_name_in_statement2847 = frozenset([36])
+    FOLLOW_36_in_statement2849 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_expr1_in_statement2853 = frozenset([])
+    FOLLOW_EOF_in_statement2855 = frozenset([1])
+    FOLLOW_name_in_statement2864 = frozenset([31])
+    FOLLOW_31_in_statement2866 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_expr1_in_statement2870 = frozenset([])
+    FOLLOW_EOF_in_statement2872 = frozenset([1])
+    FOLLOW_name_in_statement2881 = frozenset([41])
+    FOLLOW_41_in_statement2883 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_expr1_in_statement2887 = frozenset([])
+    FOLLOW_EOF_in_statement2889 = frozenset([1])
+    FOLLOW_name_in_statement2898 = frozenset([40])
+    FOLLOW_40_in_statement2900 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_expr1_in_statement2904 = frozenset([])
+    FOLLOW_EOF_in_statement2906 = frozenset([1])
+    FOLLOW_name_in_statement2915 = frozenset([26])
+    FOLLOW_26_in_statement2917 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_expr1_in_statement2921 = frozenset([])
+    FOLLOW_EOF_in_statement2923 = frozenset([1])
     FOLLOW_list_in_synpred20_UL41385 = frozenset([1])
     FOLLOW_listcomprehension_in_synpred21_UL41394 = frozenset([1])
     FOLLOW_dict_in_synpred22_UL41403 = frozenset([1])
@@ -5208,9 +4596,9 @@ class UL4Parser(Parser):
     FOLLOW_nestedname_in_synpred26_UL41474 = frozenset([34])
     FOLLOW_34_in_synpred26_UL41476 = frozenset([28])
     FOLLOW_28_in_synpred26_UL41478 = frozenset([1])
-    FOLLOW_generatorexpression_in_synpred87_UL43169 = frozenset([1])
-    FOLLOW_generatorexpression_in_synpred88_UL43197 = frozenset([])
-    FOLLOW_EOF_in_synpred88_UL43199 = frozenset([1])
+    FOLLOW_generatorexpression_in_synpred70_UL42710 = frozenset([1])
+    FOLLOW_generatorexpression_in_synpred71_UL42738 = frozenset([])
+    FOLLOW_EOF_in_synpred71_UL42740 = frozenset([1])
 
 
 

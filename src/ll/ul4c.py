@@ -421,7 +421,7 @@ class Const(AST):
 		self.value = decoder.load()
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {!r} at {1:#x}>".format(self, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.value!r} at {1:#x}>".format(self, id(self))
 
 
 @register("list")
@@ -1386,7 +1386,7 @@ class Print(UnaryTag):
 		return "{}print {}\n".format(indent*"\t", self.obj.format(indent, keepws))
 
 	def formatpython(self, indent, keepws):
-		return "{i}# <?print?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield self.function_str(vars, {o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent, keepws), l=self.location)
+		return "{i}# <?print?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._str({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent, keepws), l=self.location)
 
 
 @register("printx")
@@ -1940,9 +1940,9 @@ class ModVar(ChangeVar):
 @register("callfunc")
 class CallFunc(AST):
 	"""
-	AST node for calling a function.
+	AST node for calling an function.
 
-	The function name is stored in the string :var:`funcname`. The list of
+	The object to be called is stored in the attribute :var:`obj`. The list of
 	positional arguments is loaded from the list of AST nodes :var:`args`.
 	Keyword arguments are in :var:`kwargs`. `var`:remargs` is the AST node
 	for the ``*`` argument (and may by ``None`` if there is no ``*`` argument).
@@ -1952,17 +1952,17 @@ class CallFunc(AST):
 
 	precedence = 10
 	associative = False
-	fields = AST.fields.union({"funcname", "args", "kwargs", "remargs", "remkwargs"})
+	fields = AST.fields.union({"obj", "args", "kwargs", "remargs", "remkwargs"})
 
-	def __init__(self, funcname=None):
-		self.funcname = funcname
+	def __init__(self, obj=None):
+		self.obj = obj
 		self.args = []
 		self.kwargs = []
 		self.remargs = None
 		self.remkwargs = None
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} funcname={0.methname!r}{1}{2}{3}{4} at {5:#x}>".format(
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} obj={0.obj!r}{1}{2}{3}{4} at {5:#x}>".format(
 			self,
 			"".join(" {!r}".format(arg) for arg in self.args),
 			"".join(" {}={!r}".format(argname, argvalue) for (argname, argvalue) in self.kwargs),
@@ -1976,7 +1976,8 @@ class CallFunc(AST):
 		else:
 			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
 				p.breakable()
-				p.pretty(self.funcname)
+				p.text("obj=")
+				p.pretty(self.obj)
 				for arg in self.args:
 					p.breakable()
 					p.pretty(arg)
@@ -1997,6 +1998,7 @@ class CallFunc(AST):
 
 	def iternodes(self):
 		yield self
+		yield from self.obj.iternodes()
 		for arg in self.args:
 			yield from arg.iternodes()
 		for (argname, arg) in self.kwargs:
@@ -2022,7 +2024,7 @@ class CallFunc(AST):
 			args.append("*{}".format(self.remargs.format(indent, keepws)))
 		if self.remkwargs is not None:
 			args.append("**{}".format(self.remkwargs.format(indent, keepws)))
-		return "{}({})".format(self.funcname, ", ".join(args))
+		return "{}({})".format(self.obj.format(indent, keepws), ", ".join(args))
 
 	def formatpython(self, indent, keepws):
 		args = []
@@ -2034,17 +2036,17 @@ class CallFunc(AST):
 			args.append("*{}".format(self.remargs.formatpython(indent, keepws)))
 		if self.remkwargs is not None:
 			args.append("**{}".format(self.remkwargs.formatpython(indent, keepws)))
-		return "stack[0].function_{}(vars, {})".format(self.funcname, ", ".join(args))
+		return "({}(vars, {}))".format(self.obj.formatpython(indent, keepws), ", ".join(args))
 
 	def ul4ondump(self, encoder):
-		encoder.dump(self.funcname)
+		encoder.dump(self.obj)
 		encoder.dump(self.args)
 		encoder.dump(self.kwargs)
 		encoder.dump(self.remargs)
 		encoder.dump(self.remkwargs)
 
 	def ul4onload(self, decoder):
-		self.funcname = decoder.load()
+		self.obj = decoder.load()
 		self.args = decoder.load()
 		self.kwargs = [tuple(arg) for arg in decoder.load()]
 		self.remargs = decoder.load()
@@ -2067,11 +2069,11 @@ class CallMeth(AST):
 
 	precedence = 9
 	associative = False
-	fields = AST.fields.union({"methname", "obj", "args"})
+	fields = AST.fields.union({"obj", "methname", "args", "kwargs", "remargs", "remkwargs"})
 
-	def __init__(self, methname=None, obj=None):
-		self.methname = methname
+	def __init__(self, obj=None, methname=None):
 		self.obj = obj
+		self.methname = methname
 		self.args = []
 		self.kwargs = []
 		self.remargs = None
@@ -2117,7 +2119,6 @@ class CallMeth(AST):
 
 	def iternodes(self):
 		yield self
-		yield from self.obj.iternodes()
 		for arg in self.args:
 			yield from arg.iternodes()
 		for (argname, arg) in self.kwargs:
@@ -2152,7 +2153,7 @@ class CallMeth(AST):
 			args.append("*{}".format(self.remargs.formatpython(indent, keepws)))
 		if self.remkwargs is not None:
 			args.append("**{}".format(self.remkwargs.formatpython(indent, keepws)))
-		return "stack[0].method_{}(stack, {}, {})".format(self.methname, self.obj.formatpython(indent, keepws), ", ".join(args))
+		return "self.methods[{!r}](stack, {}, {})".format(self.methname, self.obj.formatpython(indent, keepws), ", ".join(args))
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.methname)
@@ -2184,585 +2185,714 @@ class Render(UnaryTag):
 		if isinstance(self.obj, CallMeth) and self.obj.methname == "render":
 			code = "yield from {}".format(self.obj.formatpython(indent, keepws))
 		else:
-			code = "yield self.function_str(vars, {})".format(self.obj.formatpython(indent, keepws))
+			code = "yield ul4c._str(vars, {})".format(self.obj.formatpython(indent, keepws))
 		return "{i}# <?render?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}{c}\n".format(i=indent*"\t", id=id(self), c=code, l=self.location)
 
 
 class Callable(object):
 	"""
-	Base class that implements all UL4 functions as methods.
+	Base class that collects all UL4 functions and methods in the class
+	attributes ``functions`` and ``methods``.
 	"""
 
-	def __getattr__(self, name):
-		if name.startswith("function_"):
-			raise UnknownFunctionError(name[9:])
-		elif name.startswith("method_"):
-			raise UnknownMethodError(name[7:])
-		else:
-			raise AttributeError(name)
+	functions = {}
+	methods = {}
 
 	@classmethod
-	def function_vars(cls, vars):
-		return vars
+	def makefunction(cls, f):
+		name = f.__name__
+		if name.startswith("_function_"):
+			name = name[10:]
+		cls.functions[name] = f
+		return f
 
 	@classmethod
-	def function_get(cls, vars, name, default=None):
-		return vars.get(name, default)
+	def makemethod(cls, f):
+		name = f.__name__
+		if name.startswith("_method_"):
+			name = name[8:]
+		cls.methods[name] = f
+		return f
 
-	@classmethod
-	def function_now(cls, vars):
-		return datetime.datetime.now()
 
-	@classmethod
-	def function_utcnow(cls, vars):
-		return datetime.datetime.utcnow()
+###
+### Functions & methods
+###
 
-	@classmethod
-	def function_date(cls, vars, year, month, day, hour=0, minute=0, second=0, microsecond=0):
-		return datetime.datetime(year, month, day, hour, minute, second, microsecond)
+@Callable.makefunction
+def _function_vars(vars):
+	return vars
 
-	@classmethod
-	def function_timedelta(cls, vars, days=0, seconds=0, microseconds=0):
-		return datetime.timedelta(days, seconds, microseconds)
 
-	@classmethod
-	def function_monthdelta(cls, vars, months=0):
-		return misc.monthdelta(months)
+@Callable.makefunction
+def _function_get(vars, name, default=None):
+	return vars.get(name, default)
 
-	@classmethod
-	def function_random(cls, vars, ):
-		return random.random()
 
-	@classmethod
-	def function_xmlescape(cls, vars, obj):
-		return _xmlescape(obj)
+@Callable.makefunction
+def _function_now(vars):
+	return datetime.datetime.now()
 
-	@classmethod
-	def function_csv(cls, vars, obj):
-		if obj is None:
-			return ""
-		elif isinstance(obj, Undefined):
-			return ""
-		elif not isinstance(obj, str):
-			obj = _repr(obj)
-		if any(c in obj for c in ',"\n'):
-			return '"{}"'.format(obj.replace('"', '""'))
-		return obj
 
-	@classmethod
-	def function_asjson(cls, vars, obj):
-		return _asjson(obj)
+@Callable.makefunction
+def _function_utcnow(vars):
+	return datetime.datetime.utcnow()
 
-	@classmethod
-	def function_fromjson(cls, vars, string):
-		return json.loads(string)
 
-	@classmethod
-	def function_asul4on(cls, vars, obj):
-		from ll import ul4on
-		return ul4on.dumps(obj)
+@Callable.makefunction
+def _function_date(vars, year, month, day, hour=0, minute=0, second=0, microsecond=0):
+	return datetime.datetime(year, month, day, hour, minute, second, microsecond)
 
-	@classmethod
-	def function_fromul4on(cls, vars, string):
-		from ll import ul4on
-		return ul4on.loads(string)
 
-	@classmethod
-	def function_str(cls, vars, obj=""):
-		if obj is None:
-			return ""
-		elif isinstance(obj, Undefined):
-			return ""
-		else:
-			return str(obj)
+@Callable.makefunction
+def _function_timedelta(vars, days=0, seconds=0, microseconds=0):
+	return datetime.timedelta(days, seconds, microseconds)
 
-	@classmethod
-	def function_int(cls, vars, obj=0, base=None):
-		if base is None:
-			return int(obj)
-		else:
-			return int(obj, base)
 
-	@classmethod
-	def function_float(cls, vars, obj=0.0):
-		return float(obj)
+@Callable.makefunction
+def _function_monthdelta(vars, months=0):
+	return misc.monthdelta(months)
 
-	@classmethod
-	def function_bool(cls, vars, obj=False):
-		return bool(obj)
 
-	@classmethod
-	def function_len(cls, vars, sequence):
-		return len(sequence)
+@Callable.makefunction
+def _function_random(vars):
+	return random.random()
 
-	@classmethod
-	def function_abs(cls, vars, number):
-		return abs(number)
 
-	@classmethod
-	def function_any(cls, vars, iterable):
-		return any(iterable)
+@Callable.makefunction
+def _function_xmlescape(vars, obj):
+	return _xmlescape(obj)
 
-	@classmethod
-	def function_all(cls, vars, iterable):
-		return all(iterable)
 
-	@classmethod
-	def function_enumerate(cls, vars, iterable, start=0):
-		return enumerate(iterable, start)
+@Callable.makefunction
+def _function_csv(vars, obj):
+	if obj is None:
+		return ""
+	elif isinstance(obj, Undefined):
+		return ""
+	elif not isinstance(obj, str):
+		obj = _repr(obj)
+	if any(c in obj for c in ',"\n'):
+		return '"{}"'.format(obj.replace('"', '""'))
+	return obj
 
-	@classmethod
-	def function_enumfl(cls, vars, iterable, start=0):
-		lastitem = None
-		first = True
-		i = start
-		it = iter(iterable)
+
+def _str(obj=""):
+	if obj is None:
+		return ""
+	elif isinstance(obj, Undefined):
+		return ""
+	else:
+		return str(obj)
+
+@Callable.makefunction
+def _function_asjson(vars, obj):
+	return _asjson(obj)
+
+
+@Callable.makefunction
+def _function_fromjson(vars, string):
+	from ll import ul4on
+	return json.loads(string)
+
+
+@Callable.makefunction
+def _function_asul4on(vars, obj):
+	from ll import ul4on
+	return ul4on.dumps(obj)
+
+
+@Callable.makefunction
+def _function_fromul4on(vars, string):
+	from ll import ul4on
+	return ul4on.loads(string)
+
+
+@Callable.makefunction
+def _function_str(vars, obj=""):
+	return _str(obj)
+
+
+@Callable.makefunction
+def _function_int(vars, obj=0, base=None):
+	if base is None:
+		return int(obj)
+	else:
+		return int(obj, base)
+
+
+@Callable.makefunction
+def _function_float(vars, obj=0.0):
+	return float(obj)
+
+
+@Callable.makefunction
+def _function_bool(vars, obj=False):
+	return bool(obj)
+
+
+@Callable.makefunction
+def _function_len(vars, sequence):
+	return len(sequence)
+
+
+@Callable.makefunction
+def _function_abs(vars, number):
+	return abs(number)
+
+
+@Callable.makefunction
+def _function_any(vars, iterable):
+	return any(iterable)
+
+
+@Callable.makefunction
+def _function_all(vars, iterable):
+	return all(iterable)
+
+
+@Callable.makefunction
+def _function_enumerate(vars, iterable, start=0):
+	return enumerate(iterable, start)
+
+
+@Callable.makefunction
+def _function_enumfl(vars, iterable, start=0):
+	lastitem = None
+	first = True
+	i = start
+	it = iter(iterable)
+	try:
+		item = next(it)
+	except StopIteration:
+		return
+	while True:
 		try:
-			item = next(it)
+			(lastitem, item) = (item, next(it))
 		except StopIteration:
+			yield (i, first, True, item) # Items haven't been swapped yet
 			return
-		while True:
-			try:
-				(lastitem, item) = (item, next(it))
-			except StopIteration:
-				yield (i, first, True, item) # Items haven't been swapped yet
-				return
-			else:
-				yield (i, first, False, lastitem)
-				first = False
-			i += 1
+		else:
+			yield (i, first, False, lastitem)
+			first = False
+		i += 1
 
-	@classmethod
-	def function_isfirstlast(cls, vars, iterable):
-		lastitem = None
-		first = True
-		it = iter(iterable)
+
+@Callable.makefunction
+def _function_isfirstlast(vars, iterable):
+	lastitem = None
+	first = True
+	it = iter(iterable)
+	try:
+		item = next(it)
+	except StopIteration:
+		return
+	while True:
 		try:
-			item = next(it)
+			(lastitem, item) = (item, next(it))
 		except StopIteration:
+			yield (first, True, item) # Items haven't been swapped yet
 			return
-		while True:
-			try:
-				(lastitem, item) = (item, next(it))
-			except StopIteration:
-				yield (first, True, item) # Items haven't been swapped yet
-				return
-			else:
-				yield (first, False, lastitem)
-				first = False
-
-	@classmethod
-	def function_isfirst(cls, vars, iterable):
-		first = True
-		for item in iterable:
-			yield (first, item)
+		else:
+			yield (first, False, lastitem)
 			first = False
 
-	@classmethod
-	def function_islast(cls, vars, iterable):
-		lastitem = None
-		it = iter(iterable)
+
+@Callable.makefunction
+def _function_isfirst(vars, iterable):
+	first = True
+	for item in iterable:
+		yield (first, item)
+		first = False
+
+
+@Callable.makefunction
+def _function_islast(vars, iterable):
+	lastitem = None
+	it = iter(iterable)
+	try:
+		item = next(it)
+	except StopIteration:
+		return
+	while True:
 		try:
-			item = next(it)
+			(lastitem, item) = (item, next(it))
 		except StopIteration:
+			yield (True, item) # Items haven't been swapped yet
 			return
-		while True:
-			try:
-				(lastitem, item) = (item, next(it))
-			except StopIteration:
-				yield (True, item) # Items haven't been swapped yet
-				return
-			else:
-				yield (False, lastitem)
+		else:
+			yield (False, lastitem)
 
-	@classmethod
-	def function_isundefined(cls, vars, obj):
-		return isinstance(obj, Undefined)
 
-	@classmethod
-	def function_isdefined(cls, vars, obj):
-		return not isinstance(obj, Undefined)
+@Callable.makefunction
+def _function_isundefined(vars, obj):
+	return isinstance(obj, Undefined)
 
-	@classmethod
-	def function_isnone(cls, vars, obj):
-		return obj is None
 
-	@classmethod
-	def function_isstr(cls, vars, obj):
-		return isinstance(obj, str)
+@Callable.makefunction
+def _function_isdefined(vars, obj):
+	return not isinstance(obj, Undefined)
 
-	@classmethod
-	def function_isint(cls, vars, obj):
-		return isinstance(obj, int) and not isinstance(obj, bool)
 
-	@classmethod
-	def function_isfloat(cls, vars, obj):
-		return isinstance(obj, float)
+@Callable.makefunction
+def _function_isnone(vars, obj):
+	return obj is None
 
-	@classmethod
-	def function_isbool(cls, vars, obj):
-		return isinstance(obj, bool)
 
-	@classmethod
-	def function_isdate(cls, vars, obj):
-		return isinstance(obj, (datetime.datetime, datetime.date))
+@Callable.makefunction
+def _function_isstr(vars, obj):
+	return isinstance(obj, str)
 
-	@classmethod
-	def function_istimedelta(cls, vars, obj):
-		return isinstance(obj, datetime.timedelta)
 
-	@classmethod
-	def function_ismonthdelta(cls, vars, obj):
-		return isinstance(obj, misc.monthdelta)
+@Callable.makefunction
+def _function_isint(vars, obj):
+	return isinstance(obj, int) and not isinstance(obj, bool)
 
-	@classmethod
-	def function_islist(cls, vars, obj):
-		return isinstance(obj, collections.Sequence) and not isinstance(obj, str) and not isinstance(obj, color.Color)
 
-	@classmethod
-	def function_isdict(cls, vars, obj):
-		return isinstance(obj, collections.Mapping) and not isinstance(obj, Template)
+@Callable.makefunction
+def _function_isfloat(vars, obj):
+	return isinstance(obj, float)
 
-	@classmethod
-	def function_iscolor(cls, vars, obj):
-		return isinstance(obj, color.Color)
 
-	@classmethod
-	def function_istemplate(cls, vars, obj):
-		return isinstance(obj, (Template, TemplateClosure))
+@Callable.makefunction
+def _function_isbool(vars, obj):
+	return isinstance(obj, bool)
 
-	@classmethod
-	def function_repr(cls, vars, obj):
-		return _repr(obj)
 
-	@classmethod
-	def function_chr(cls, vars, i):
-		return chr(i)
+@Callable.makefunction
+def _function_isdate(vars, obj):
+	return isinstance(obj, (datetime.datetime, datetime.date))
 
-	@classmethod
-	def function_ord(cls, vars, c):
-		return ord(c)
 
-	@classmethod
-	def function_hex(cls, vars, number):
-		return hex(number)
+@Callable.makefunction
+def _function_istimedelta(vars, obj):
+	return isinstance(obj, datetime.timedelta)
 
-	@classmethod
-	def function_oct(cls, vars, number):
-		return oct(number)
 
-	@classmethod
-	def function_bin(cls, vars, number):
-		return bin(number)
+@Callable.makefunction
+def _function_ismonthdelta(vars, obj):
+	return isinstance(obj, misc.monthdelta)
 
-	@classmethod
-	def function_min(cls, vars, *args):
-		return min(*args)
 
-	@classmethod
-	def function_max(cls, vars, *args):
-		return max(*args)
+@Callable.makefunction
+def _function_islist(vars, obj):
+	return isinstance(obj, collections.Sequence) and not isinstance(obj, str) and not isinstance(obj, color.Color)
 
-	@classmethod
-	def function_sorted(cls, vars, iterable):
-		return sorted(iterable)
 
-	@classmethod
-	def function_range(cls, vars, *args):
-		return range(*args)
+@Callable.makefunction
+def _function_isdict(vars, obj):
+	return isinstance(obj, collections.Mapping) and not isinstance(obj, Template)
 
-	@classmethod
-	def function_type(cls, vars, obj):
-		if obj is None:
-			return "none"
-		elif isinstance(obj, str):
-			return "str"
-		elif isinstance(obj, bool):
-			return "bool"
-		elif isinstance(obj, int):
-			return "int"
-		elif isinstance(obj, float):
-			return "float"
-		elif isinstance(obj, (datetime.datetime, datetime.date)):
-			return "date"
-		elif isinstance(obj, datetime.timedelta):
-			return "timedelta"
-		elif isinstance(obj, misc.monthdelta):
-			return "monthdelta"
-		elif isinstance(obj, color.Color):
-			return "color"
-		elif isinstance(obj, Template):
-			return "template"
-		elif isinstance(obj, collections.Mapping):
-			return "dict"
-		elif isinstance(obj, color.Color):
-			return "color"
-		elif isinstance(obj, collections.Sequence):
-			return "list"
-		return None
 
-	@classmethod
-	def function_reversed(cls, vars, sequence):
-		return reversed(sequence)
+@Callable.makefunction
+def _function_iscolor(vars, obj):
+	return isinstance(obj, color.Color)
 
-	@classmethod
-	def function_randrange(cls, vars, *args):
-		return random.randrange(*args)
 
-	@classmethod
-	def function_randchoice(cls, vars, sequence):
-		return random.choice(sequence)
+@Callable.makefunction
+def _function_istemplate(vars, obj):
+	return isinstance(obj, (Template, TemplateClosure))
 
-	@classmethod
-	def function_format(cls, vars, obj, fmt, lang=None):
-		if isinstance(obj, (datetime.date, datetime.time, datetime.timedelta)):
-			if lang is None:
-				lang = "en"
-			oldlocale = locale.getlocale()
-			try:
-				for candidate in (locale.normalize(lang), locale.normalize("en"), ""):
-					try:
-						locale.setlocale(locale.LC_ALL, candidate)
-						return format(obj, fmt)
-					except locale.Error:
-						if not candidate:
-							return format(obj, fmt)
-			finally:
+
+@Callable.makefunction
+def _function_isfunction(vars, obj):
+	return callable(obj)
+
+
+@Callable.makefunction
+def _function_repr(vars, obj):
+	return _repr(obj)
+
+
+@Callable.makefunction
+def _function_chr(vars, i):
+	return chr(i)
+
+
+@Callable.makefunction
+def _function_ord(vars, c):
+	return ord(c)
+
+
+@Callable.makefunction
+def _function_hex(vars, number):
+	return hex(number)
+
+
+@Callable.makefunction
+def _function_oct(vars, number):
+	return oct(number)
+
+
+@Callable.makefunction
+def _function_bin(vars, number):
+	return bin(number)
+
+
+@Callable.makefunction
+def _function_min(vars, *args):
+	return min(*args)
+
+
+@Callable.makefunction
+def _function_max(vars, *args):
+	return max(*args)
+
+
+@Callable.makefunction
+def _function_sorted(vars, iterable):
+	return sorted(iterable)
+
+
+@Callable.makefunction
+def _function_range(vars, *args):
+	return range(*args)
+
+
+@Callable.makefunction
+def _function_type(vars, obj):
+	if obj is None:
+		return "none"
+	elif isinstance(obj, str):
+		return "str"
+	elif isinstance(obj, bool):
+		return "bool"
+	elif isinstance(obj, int):
+		return "int"
+	elif isinstance(obj, float):
+		return "float"
+	elif isinstance(obj, (datetime.datetime, datetime.date)):
+		return "date"
+	elif isinstance(obj, datetime.timedelta):
+		return "timedelta"
+	elif isinstance(obj, misc.monthdelta):
+		return "monthdelta"
+	elif isinstance(obj, color.Color):
+		return "color"
+	elif isinstance(obj, Template):
+		return "template"
+	elif isinstance(obj, collections.Mapping):
+		return "dict"
+	elif isinstance(obj, color.Color):
+		return "color"
+	elif isinstance(obj, collections.Sequence):
+		return "list"
+	return None
+
+
+@Callable.makefunction
+def _function_reversed(vars, sequence):
+	return reversed(sequence)
+
+
+@Callable.makefunction
+def _function_randrange(vars, *args):
+	return random.randrange(*args)
+
+
+@Callable.makefunction
+def _function_randchoice(vars, sequence):
+	return random.choice(sequence)
+
+
+@Callable.makefunction
+def _function_format(vars, obj, fmt, lang=None):
+	if isinstance(obj, (datetime.date, datetime.time, datetime.timedelta)):
+		if lang is None:
+			lang = "en"
+		oldlocale = locale.getlocale()
+		try:
+			for candidate in (locale.normalize(lang), locale.normalize("en"), ""):
 				try:
-					locale.setlocale(locale.LC_ALL, oldlocale)
+					locale.setlocale(locale.LC_ALL, candidate)
+					return format(obj, fmt)
 				except locale.Error:
-					pass
-		else:
-			return format(obj, fmt)
-
-	@classmethod
-	def function_zip(cls, vars, *iterables):
-		return zip(*iterables)
-
-	@classmethod
-	def function_urlquote(cls, vars, string):
-		return urlparse.quote_plus(string)
-
-	@classmethod
-	def function_urlunquote(cls, vars, string):
-		return urlparse.unquote_plus(string)
-
-	@classmethod
-	def function_rgb(cls, vars, r, g, b, a=1.0):
-		return color.Color.fromrgb(r, g, b, a)
-
-	@classmethod
-	def function_hls(cls, vars, h, l, s, a=1.0):
-		return color.Color.fromhls(h, l, s, a)
-
-	@classmethod
-	def function_hsv(cls, vars, h, s, v, a=1.0):
-		return color.Color.fromhsv(h, s, v, a)
-
-	@classmethod
-	def method_split(cls, stack, obj, sep=None, count=None):
-		return obj.split(sep, count if count is not None else -1)
-
-	@classmethod
-	def method_rsplit(cls, stack, obj, sep=None, count=None):
-		return obj.rsplit(sep, count if count is not None else -1)
-
-	@classmethod
-	def method_strip(cls, stack, obj, chars=None):
-		return obj.strip(chars)
-
-	@classmethod
-	def method_lstrip(cls, stack, obj, chars=None):
-		return obj.lstrip(chars)
-
-	@classmethod
-	def method_rstrip(cls, stack, obj, chars=None):
-		return obj.rstrip(chars)
-
-	@classmethod
-	def method_find(cls, stack, obj, sub, start=None, end=None):
-		if isinstance(obj, str):
-			return obj.find(sub, start, end)
-		else:
+					if not candidate:
+						return format(obj, fmt)
+		finally:
 			try:
-				if end is None:
-					if start is None:
-						return obj.index(sub)
-					return obj.index(sub, start)
-				return obj.index(sub, start, end)
-			except ValueError:
-				return -1
+				locale.setlocale(locale.LC_ALL, oldlocale)
+			except locale.Error:
+				pass
+	else:
+		return format(obj, fmt)
 
-	@classmethod
-	def method_rfind(cls, stack, obj, sub, start=None, end=None):
-		if isinstance(obj, str):
-			return obj.rfind(sub, start, end)
-		else:
-			for i in reversed(range(*slice(start, end).indices(len(obj)))):
-				if obj[i] == sub:
-					return i
+
+@Callable.makefunction
+def _function_zip(vars, *iterables):
+	return zip(*iterables)
+
+
+@Callable.makefunction
+def _function_urlquote(vars, string):
+	return urlparse.quote_plus(string)
+
+
+@Callable.makefunction
+def _function_urlunquote(vars, string):
+	return urlparse.unquote_plus(string)
+
+
+@Callable.makefunction
+def _function_rgb(vars, r, g, b, a=1.0):
+	return color.Color.fromrgb(r, g, b, a)
+
+
+@Callable.makefunction
+def _function_hls(vars, h, l, s, a=1.0):
+	return color.Color.fromhls(h, l, s, a)
+
+
+@Callable.makefunction
+def _function_hsv(vars, h, s, v, a=1.0):
+	return color.Color.fromhsv(h, s, v, a)
+
+
+@Callable.makemethod
+def _method_split(stack, obj, sep=None, count=None):
+	return obj.split(sep, count if count is not None else -1)
+
+
+@Callable.makemethod
+def _method_rsplit(stack, obj, sep=None, count=None):
+	return obj.rsplit(sep, count if count is not None else -1)
+
+
+@Callable.makemethod
+def _method_strip(stack, obj, chars=None):
+	return obj.strip(chars)
+
+
+@Callable.makemethod
+def _method_lstrip(stack, obj, chars=None):
+	return obj.lstrip(chars)
+
+
+@Callable.makemethod
+def _method_rstrip(stack, obj, chars=None):
+	return obj.rstrip(chars)
+
+
+@Callable.makemethod
+def _method_find(stack, obj, sub, start=None, end=None):
+	if isinstance(obj, str):
+		return obj.find(sub, start, end)
+	else:
+		try:
+			if end is None:
+				if start is None:
+					return obj.index(sub)
+				return obj.index(sub, start)
+			return obj.index(sub, start, end)
+		except ValueError:
 			return -1
 
-	@classmethod
-	def method_startswith(cls, stack, obj, prefix):
-		return obj.startswith(prefix)
 
-	@classmethod
-	def method_endswith(cls, stack, obj, suffix):
-		return obj.endswith(suffix)
+@Callable.makemethod
+def _method_rfind(stack, obj, sub, start=None, end=None):
+	if isinstance(obj, str):
+		return obj.rfind(sub, start, end)
+	else:
+		for i in reversed(range(*slice(start, end).indices(len(obj)))):
+			if obj[i] == sub:
+				return i
+		return -1
 
-	@classmethod
-	def method_upper(cls, stack, obj):
-		return obj.upper()
 
-	@classmethod
-	def method_lower(cls, stack, obj):
-		return obj.lower()
+@Callable.makemethod
+def _method_startswith(stack, obj, prefix):
+	return obj.startswith(prefix)
 
-	@classmethod
-	def method_capitalize(cls, stack, obj):
-		return obj.capitalize()
 
-	@classmethod
-	def method_replace(cls, stack, obj, old, new, count=None):
-		if count is None:
-			return obj.replace(old, new)
-		else:
-			return obj.replace(old, new, count)
+@Callable.makemethod
+def _method_endswith(stack, obj, suffix):
+	return obj.endswith(suffix)
 
-	@classmethod
-	def method_r(cls, stack, obj):
-		return obj.r()
 
-	@classmethod
-	def method_g(cls, stack, obj):
-		return obj.g()
+@Callable.makemethod
+def _method_upper(stack, obj):
+	return obj.upper()
 
-	@classmethod
-	def method_b(cls, stack, obj):
-		return obj.b()
 
-	@classmethod
-	def method_a(cls, stack, obj):
-		return obj.a()
+@Callable.makemethod
+def _method_lower(stack, obj):
+	return obj.lower()
 
-	@classmethod
-	def method_hls(cls, stack, obj):
-		return obj.hls()
 
-	@classmethod
-	def method_hlsa(cls, stack, obj):
-		return obj.hlsa()
+@Callable.makemethod
+def _method_capitalize(stack, obj):
+	return obj.capitalize()
 
-	@classmethod
-	def method_hsv(cls, stack, obj):
-		return obj.hsv()
 
-	@classmethod
-	def method_hsva(cls, stack, obj):
-		return obj.hsva()
+@Callable.makemethod
+def _method_replace(stack, obj, old, new, count=None):
+	if count is None:
+		return obj.replace(old, new)
+	else:
+		return obj.replace(old, new, count)
 
-	@classmethod
-	def method_lum(cls, stack, obj):
-		return obj.lum()
 
-	@classmethod
-	def method_weekday(cls, stack, obj):
-		return obj.weekday()
+@Callable.makemethod
+def _method_r(stack, obj):
+	return obj.r()
 
-	@classmethod
-	def method_week(cls, stack, obj, firstweekday=None):
-		if firstweekday is None:
-			firstweekday = 0
-		else:
-			firstweekday %= 7
-		jan1 = obj.__class__(obj.year, 1, 1)
-		yearday = (obj - jan1).days+7
-		jan1weekday = jan1.weekday()
-		while jan1weekday != firstweekday:
-			yearday -= 1
-			jan1weekday += 1
-			if jan1weekday == 7:
-				jan1weekday = 0
-		return yearday//7
 
-	@classmethod
-	def method_items(cls, stack, obj):
-		return obj.items()
+@Callable.makemethod
+def _method_g(stack, obj):
+	return obj.g()
 
-	@classmethod
-	def method_values(cls, stack, obj):
-		return obj.values()
 
-	@classmethod
-	def method_join(cls, stack, obj, iterable):
-		return obj.join(iterable)
+@Callable.makemethod
+def _method_b(stack, obj):
+	return obj.b()
 
-	@classmethod
-	def method_render(cls, stack, obj, **vars):
-		return obj._render(stack, vars)
 
-	@classmethod
-	def method_renders(cls, stack, obj, **vars):
-		return "".join(obj._render(stack, vars))
+@Callable.makemethod
+def _method_a(stack, obj):
+	return obj.a()
 
-	@classmethod
-	def method_mimeformat(cls, stack, obj):
-		weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-		monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-		return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(obj, weekdayname[obj.weekday()], monthname[obj.month])
 
-	@classmethod
-	def method_isoformat(cls, stack, obj):
-		result = obj.isoformat()
-		suffix = "T00:00:00"
-		if result.endswith(suffix):
-			return result[:-len(suffix)]
-		return result
+@Callable.makemethod
+def _method_hls(stack, obj):
+	return obj.hls()
 
-	@classmethod
-	def method_yearday(cls, stack, obj):
-		return (obj - obj.__class__(obj.year, 1, 1)).days+1
 
-	@classmethod
-	def method_get(cls, stack, obj, key, default=None):
-		return obj.get(key, default)
+@Callable.makemethod
+def _method_hlsa(stack, obj):
+	return obj.hlsa()
 
-	@classmethod
-	def method_withlum(cls, stack, obj, lum):
-		return obj.withlum(lum)
 
-	@classmethod
-	def method_witha(cls, stack, obj, a):
-		return obj.witha(a)
+@Callable.makemethod
+def _method_hsv(stack, obj):
+	return obj.hsv()
 
-	@classmethod
-	def method_day(cls, stack, obj):
-		return obj.day
 
-	@classmethod
-	def method_month(cls, stack, obj):
-		return obj.month
+@Callable.makemethod
+def _method_hsva(stack, obj):
+	return obj.hsva()
 
-	@classmethod
-	def method_year(cls, stack, obj):
-		return obj.year
 
-	@classmethod
-	def method_hour(cls, stack, obj):
-		return obj.hour
+@Callable.makemethod
+def _method_lum(stack, obj):
+	return obj.lum()
 
-	@classmethod
-	def method_minute(cls, stack, obj):
-		return obj.minute
 
-	@classmethod
-	def method_second(cls, stack, obj):
-		return obj.second
+@Callable.makemethod
+def _method_weekday(stack, obj):
+	return obj.weekday()
 
-	@classmethod
-	def method_microsecond(cls, stack, obj):
-		return obj.microsecond
+
+@Callable.makemethod
+def _method_week(stack, obj, firstweekday=None):
+	if firstweekday is None:
+		firstweekday = 0
+	else:
+		firstweekday %= 7
+	jan1 = obj.__class__(obj.year, 1, 1)
+	yearday = (obj - jan1).days+7
+	jan1weekday = jan1.weekday()
+	while jan1weekday != firstweekday:
+		yearday -= 1
+		jan1weekday += 1
+		if jan1weekday == 7:
+			jan1weekday = 0
+	return yearday//7
+
+
+@Callable.makemethod
+def _method_items(stack, obj):
+	return obj.items()
+
+
+@Callable.makemethod
+def _method_values(stack, obj):
+	return obj.values()
+
+
+@Callable.makemethod
+def _method_join(stack, obj, iterable):
+	return obj.join(iterable)
+
+
+@Callable.makemethod
+def _method_render(stack, obj, **vars):
+	return obj._render(stack, vars)
+
+
+@Callable.makemethod
+def _method_renders(stack, obj, **vars):
+	return "".join(obj._render(stack, vars))
+
+
+@Callable.makemethod
+def _method_mimeformat(stack, obj):
+	weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+	monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+	return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(obj, weekdayname[obj.weekday()], monthname[obj.month])
+
+
+@Callable.makemethod
+def _method_isoformat(stack, obj):
+	result = obj.isoformat()
+	suffix = "T00:00:00"
+	if result.endswith(suffix):
+		return result[:-len(suffix)]
+	return result
+
+
+@Callable.makemethod
+def _method_yearday(stack, obj):
+	return (obj - obj.__class__(obj.year, 1, 1)).days+1
+
+
+@Callable.makemethod
+def _method_get(stack, obj, key, default=None):
+	return obj.get(key, default)
+
+
+@Callable.makemethod
+def _method_withlum(stack, obj, lum):
+	return obj.withlum(lum)
+
+
+@Callable.makemethod
+def _method_witha(stack, obj, a):
+	return obj.witha(a)
+
+
+@Callable.makemethod
+def _method_day(stack, obj):
+	return obj.day
+
+
+@Callable.makemethod
+def _method_month(stack, obj):
+	return obj.month
+
+
+@Callable.makemethod
+def _method_year(stack, obj):
+	return obj.year
+
+
+@Callable.makemethod
+def _method_hour(stack, obj):
+	return obj.hour
+
+
+@Callable.makemethod
+def _method_minute(stack, obj):
+	return obj.minute
+
+
+@Callable.makemethod
+def _method_second(stack, obj):
+	return obj.second
+
+
+@Callable.makemethod
+def _method_microsecond(stack, obj):
+	return obj.microsecond
 
 
 @register("template")
@@ -2981,7 +3111,7 @@ class Template(Block, Callable):
 		template code.
 		"""
 		stack = []
-		vars = collections.ChainMap(vars, {'stack': stack})
+		vars = collections.ChainMap(vars, self.functions, {'stack': stack})
 		return self._render(stack, vars)
 
 	def renders(self, **vars):
@@ -2993,8 +3123,7 @@ class Template(Block, Callable):
 
 	def pythonfunction(self):
 		"""
-		Return a Python generator that can be called to render the template. The
-		argument signature of the function will be ``**vars``.
+		Return a Python generator that can be called to render the template.
 		"""
 		if self._pythonfunction is None:
 			name = self.name if self.name is not None else "unnamed"
@@ -3003,9 +3132,6 @@ class Template(Block, Callable):
 			exec(source, ns)
 			self._pythonfunction = ns[name]
 		return self._pythonfunction
-
-	def __call__(self, **vars):
-		return self.pythonfunction()(self, [], vars)
 
 	def pythonsource(self):
 		"""
@@ -3020,7 +3146,7 @@ class Template(Block, Callable):
 			v.append("\t\tyield\n")
 			v.append("\ttry:\n")
 			v.append("\t\tstack.append(self)\n")
-			v.append("\t\tallvars = collections.ChainMap(vars, {'stack': stack})\n")
+			v.append("\t\tallvars = collections.ChainMap(vars, self.functions, {'stack': stack})\n")
 			for node in self.content:
 				v.append(node.formatpython(2, self._keepws))
 			v.append("\texcept Exception as exc:\n")

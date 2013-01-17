@@ -315,10 +315,10 @@ all_renderers = [
 	("python", render_python),
 	("python_dumps", render_python_dumps),
 	("python_dump", render_python_dump),
-	("js", render_js),
+	# ("js", render_js),
 	# ("php", render_php),
-	("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
-	("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
+	# ("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
+	# ("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
 ]
 
 
@@ -1720,6 +1720,7 @@ def test_function_isundefined(r):
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
+	assert "False" == r(code, data=ul4c.Template.functions["repr"])
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r(code, data=color.red)
 
@@ -1749,6 +1750,7 @@ def test_function_isdefined(r):
 	assert "True" == r(code, data=[])
 	assert "True" == r(code, data={})
 	assert "True" == r(code, data=ul4c.Template(""))
+	assert "True" == r(code, data=ul4c.Template.functions["repr"])
 	assert "True" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -1777,6 +1779,7 @@ def test_function_isnone(r):
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
+	assert "False" == r(code, data=ul4c.Template.functions["repr"])
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -1805,6 +1808,7 @@ def test_function_isbool(r):
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
+	assert "False" == r(code, data=ul4c.Template.functions["repr"])
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -1833,6 +1837,7 @@ def test_function_isint(r):
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
+	assert "False" == r(code, data=ul4c.Template.functions["repr"])
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -1861,6 +1866,7 @@ def test_function_isfloat(r):
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
+	assert "False" == r(code, data=ul4c.Template.functions["repr"])
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -1889,6 +1895,7 @@ def test_function_isstr(r):
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
+	assert "False" == r(code, data=ul4c.Template.functions["repr"])
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -1917,6 +1924,7 @@ def test_function_isdate(r):
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
+	assert "False" == r(code, data=ul4c.Template.functions["repr"])
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -1947,6 +1955,7 @@ def test_function_islist(r):
 	if r is not render_php:
 		assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
+	assert "False" == r(code, data=ul4c.Template.functions["repr"])
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -1977,6 +1986,7 @@ def test_function_isdict(r):
 	assert "True" == r(code, data={})
 	assert "True" == r(code, data=PseudoDict({}))
 	assert "False" == r(code, data=ul4c.Template(""))
+	assert "False" == r(code, data=ul4c.Template.functions["repr"])
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -2005,6 +2015,36 @@ def test_function_istemplate(r):
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
 	assert "True" == r(code, data=ul4c.Template(""))
+	assert "False" == r(code, data=ul4c.Template.functions["repr"])
+	assert "False" == r(code, data=color.red)
+
+	# Make sure that the parameters have the same name in all implementations
+	assert "False" == r("<?print istemplate(obj=data)?>", data=None)
+
+
+@pytest.mark.ul4
+def test_function_isfunction(r):
+	code = "<?print isfunction(data)?>"
+
+	with raises(argumentmismatchmessage):
+		r("<?print isfunction()?>")
+	with raises(argumentmismatchmessage):
+		r("<?print isfunction(1, 2)?>")
+	assert "False" == r(code)
+	assert "False" == r(code, data=None)
+	assert "False" == r(code, data=True)
+	assert "False" == r(code, data=False)
+	assert "False" == r(code, data=42)
+	assert "False" == r(code, data=4.2)
+	assert "False" == r(code, data="foo")
+	assert "False" == r(code, data=datetime.datetime.now())
+	assert "False" == r(code, data=datetime.timedelta(1))
+	assert "False" == r(code, data=misc.monthdelta(1))
+	assert "False" == r(code, data=())
+	assert "False" == r(code, data=[])
+	assert "False" == r(code, data={})
+	assert "False" == r(code, data=ul4c.Template(""))
+	assert "True" == r(code, data=ul4c.Template.functions["repr"])
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -2033,6 +2073,7 @@ def test_function_iscolor(r):
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
+	assert "False" == r(code, data=ul4c.Template.functions["repr"])
 	assert "True" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -2061,6 +2102,7 @@ def test_function_istimedelta(r):
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
+	assert "False" == r(code, data=ul4c.Template.functions["repr"])
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -2089,6 +2131,7 @@ def test_function_ismonthdelta(r):
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
+	assert "False" == r(code, data=ul4c.Template.functions["repr"])
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -2150,61 +2193,61 @@ def test_function_repr(r):
 @pytest.mark.ul4
 def test_function_format_date(r):
 	t = datetime.datetime(2011, 1, 25, 13, 34, 56, 987000)
-	code2 = "<?print format(data, format)?>"
-	code3 = "<?print format(data, format, lang)?>"
+	code2 = "<?print format(data, fmt)?>"
+	code3 = "<?print format(data, fmt, lang)?>"
 
-	assert "2011" == r(code2, format="%Y", data=t)
-	assert "01" == r(code2, format="%m", data=t)
-	assert "25" == r(code2, format="%d", data=t)
-	assert "13" == r(code2, format="%H", data=t)
-	assert "34" == r(code2, format="%M", data=t)
-	assert "56" == r(code2, format="%S", data=t)
-	assert "987000" == r(code2, format="%f", data=t)
-	assert "Tue" == r(code2, format="%a", data=t)
-	assert "Tue" == r(code3, format="%a", data=t, lang=None)
-	assert "Tue" == r(code3, format="%a", data=t, lang="en")
-	assert "Di" == r(code3, format="%a", data=t, lang="de")
-	assert "Di" == r(code3, format="%a", data=t, lang="de_DE")
-	assert "Tuesday" == r(code2, format="%A", data=t)
-	assert "Tuesday" == r(code3, format="%A", data=t, lang=None)
-	assert "Tuesday" == r(code3, format="%A", data=t, lang="en")
-	assert "Dienstag" == r(code3, format="%A", data=t, lang="de")
-	assert "Dienstag" == r(code3, format="%A", data=t, lang="de_DE")
-	assert "Jan" == r(code2, format="%b", data=t)
-	assert "Jan" == r(code3, format="%b", data=t, lang=None)
-	assert "Jan" == r(code3, format="%b", data=t, lang="en")
-	assert "Jan" == r(code3, format="%b", data=t, lang="de")
-	assert "Jan" == r(code3, format="%b", data=t, lang="de_DE")
-	assert "January" == r(code2, format="%B", data=t)
-	assert "January" == r(code3, format="%B", data=t, lang=None)
-	assert "January" == r(code3, format="%B", data=t, lang="en")
-	assert "Januar" == r(code3, format="%B", data=t, lang="de")
-	assert "Januar" == r(code3, format="%B", data=t, lang="de_DE")
-	assert "01" == r(code2, format="%I", data=t)
-	assert "025" == r(code2, format="%j", data=t)
-	assert "PM" == r(code2, format="%p", data=t)
-	assert "04" == r(code2, format="%U", data=t)
-	assert "2" == r(code2, format="%w", data=t)
-	assert "04" == r(code2, format="%W", data=t)
-	assert "11" == r(code2, format="%y", data=t)
-	assert r(code2, format="%c", data=t) in ("Tue Jan 25 13:34:56 2011", "Tue 25 Jan 2011 01:34:56 PM", "Tue 25 Jan 2011 01:34:56 PM ")
-	assert "01/25/2011" == r(code2, format="%x", data=t)
-	assert "01/25/2011" == r(code3, format="%x", data=t, lang=None)
-	assert "01/25/2011" == r(code3, format="%x", data=t, lang="en")
-	assert "25.01.2011" == r(code3, format="%x", data=t, lang="de")
-	assert "25.01.2011" == r(code3, format="%x", data=t, lang="de_DE")
-	assert r(code2, format="%X", data=t) in ("13:34:56", "01:34:56 PM")
-	assert r(code3, format="%X", data=t, lang=None) in ("13:34:56", "01:34:56 PM")
-	assert r(code3, format="%X", data=t, lang="en") in ("13:34:56", "01:34:56 PM")
-	assert "13:34:56" == r(code3, format="%X", data=t, lang="de")
-	assert "13:34:56" == r(code3, format="%X", data=t, lang="de_DE")
-	assert "%" == r(code2, format="%%", data=t)
+	assert "2011" == r(code2, fmt="%Y", data=t)
+	assert "01" == r(code2, fmt="%m", data=t)
+	assert "25" == r(code2, fmt="%d", data=t)
+	assert "13" == r(code2, fmt="%H", data=t)
+	assert "34" == r(code2, fmt="%M", data=t)
+	assert "56" == r(code2, fmt="%S", data=t)
+	assert "987000" == r(code2, fmt="%f", data=t)
+	assert "Tue" == r(code2, fmt="%a", data=t)
+	assert "Tue" == r(code3, fmt="%a", data=t, lang=None)
+	assert "Tue" == r(code3, fmt="%a", data=t, lang="en")
+	assert "Di" == r(code3, fmt="%a", data=t, lang="de")
+	assert "Di" == r(code3, fmt="%a", data=t, lang="de_DE")
+	assert "Tuesday" == r(code2, fmt="%A", data=t)
+	assert "Tuesday" == r(code3, fmt="%A", data=t, lang=None)
+	assert "Tuesday" == r(code3, fmt="%A", data=t, lang="en")
+	assert "Dienstag" == r(code3, fmt="%A", data=t, lang="de")
+	assert "Dienstag" == r(code3, fmt="%A", data=t, lang="de_DE")
+	assert "Jan" == r(code2, fmt="%b", data=t)
+	assert "Jan" == r(code3, fmt="%b", data=t, lang=None)
+	assert "Jan" == r(code3, fmt="%b", data=t, lang="en")
+	assert "Jan" == r(code3, fmt="%b", data=t, lang="de")
+	assert "Jan" == r(code3, fmt="%b", data=t, lang="de_DE")
+	assert "January" == r(code2, fmt="%B", data=t)
+	assert "January" == r(code3, fmt="%B", data=t, lang=None)
+	assert "January" == r(code3, fmt="%B", data=t, lang="en")
+	assert "Januar" == r(code3, fmt="%B", data=t, lang="de")
+	assert "Januar" == r(code3, fmt="%B", data=t, lang="de_DE")
+	assert "01" == r(code2, fmt="%I", data=t)
+	assert "025" == r(code2, fmt="%j", data=t)
+	assert "PM" == r(code2, fmt="%p", data=t)
+	assert "04" == r(code2, fmt="%U", data=t)
+	assert "2" == r(code2, fmt="%w", data=t)
+	assert "04" == r(code2, fmt="%W", data=t)
+	assert "11" == r(code2, fmt="%y", data=t)
+	assert r(code2, fmt="%c", data=t) in ("Tue Jan 25 13:34:56 2011", "Tue 25 Jan 2011 01:34:56 PM", "Tue 25 Jan 2011 01:34:56 PM ")
+	assert "01/25/2011" == r(code2, fmt="%x", data=t)
+	assert "01/25/2011" == r(code3, fmt="%x", data=t, lang=None)
+	assert "01/25/2011" == r(code3, fmt="%x", data=t, lang="en")
+	assert "25.01.2011" == r(code3, fmt="%x", data=t, lang="de")
+	assert "25.01.2011" == r(code3, fmt="%x", data=t, lang="de_DE")
+	assert r(code2, fmt="%X", data=t) in ("13:34:56", "01:34:56 PM")
+	assert r(code3, fmt="%X", data=t, lang=None) in ("13:34:56", "01:34:56 PM")
+	assert r(code3, fmt="%X", data=t, lang="en") in ("13:34:56", "01:34:56 PM")
+	assert "13:34:56" == r(code3, fmt="%X", data=t, lang="de")
+	assert "13:34:56" == r(code3, fmt="%X", data=t, lang="de_DE")
+	assert "%" == r(code2, fmt="%%", data=t)
 
 
 @pytest.mark.ul4
 def test_function_format_int(r):
-	code2 = "<?print format(data, format)?>"
-	code3 = "<?print format(data, format, lang)?>"
+	code2 = "<?print format(data, fmt)?>"
+	code3 = "<?print format(data, fmt, lang)?>"
 
 	formatstrings = [
 		"",
@@ -2227,15 +2270,15 @@ def test_function_format_int(r):
 	]
 
 	for f in formatstrings:
-		assert format(42, f) == r(code2, data=42, format=f)
+		assert format(42, f) == r(code2, data=42, fmt=f)
 		if "c" not in f:
-			assert format(-42, f) == r(code2, data=-42, format=f)
-	assert format(True, "05") == r(code2, data=True, format="05")
+			assert format(-42, f) == r(code2, data=-42, fmt=f)
+	assert format(True, "05") == r(code2, data=True, fmt="05")
 
 
 @pytest.mark.ul4
 def test_function_format_kwargs(r):
-	assert "42" == r("<?print format(obj=data, fmt=format, lang=lang)?>", format="", data=42, lang="de")
+	assert "42" == r("<?print format(obj=data, fmt=fmt, lang=lang)?>", fmt="", data=42, lang="de")
 
 
 @pytest.mark.ul4
@@ -2865,6 +2908,11 @@ def test_stack(r):
 
 
 @pytest.mark.ul4
+def test_pass_function(r):
+	assert "&lt;" == r("<?def x?><?print x('<')?><?end def?><?render x.render(x=xmlescape)?>")
+
+
+@pytest.mark.ul4
 def test_parse(r):
 	assert '42' == r('<?print data.Noner?>', data=dict(Noner=42))
 
@@ -3026,10 +3074,12 @@ def universaltemplate(keepws=True):
 		<?print range(1, 2)?>
 		<?print range(1, 2, 3)?>
 		<?print rgb(1, 2, 3, 4)?>
+		<?print repr(1, 2, x=17, y=23, *args, **kwargs)?>
 		<?print x.r()?>
 		<?print x.find(1)?>
 		<?print x.find(1, 2)?>
 		<?print x.find(1, 2, 3)?>
+		<?print x.find(1, 2, x=17, y=23, *args, **kwargs)?>
 		<?if x?>gurk<?elif y?>hurz<?else?>hinz<?end if?>
 		<?render x.render(a=1, b=2)?>
 		<?def x?>foo<?end def?>
@@ -3039,9 +3089,11 @@ def universaltemplate(keepws=True):
 
 @pytest.mark.ul4
 def test_strtemplate():
-	t = universaltemplate(True)
-	str(t)
-	repr(t)
+	t1 = universaltemplate(True)
+	str(t1)
+
+	t2 = universaltemplate(False)
+	str(t2)
 
 
 @pytest.mark.ul4
@@ -3073,14 +3125,20 @@ def test_keepws_nested(r):
 
 @pytest.mark.ul4
 def test_pythonsource():
-	t = universaltemplate(True)
-	t.pythonsource()
+	t1 = universaltemplate(True)
+	t1.pythonsource()
+
+	t2 = universaltemplate(False)
+	t2.pythonsource()
 
 
 @pytest.mark.ul4
 def test_pythonfunction():
-	t = universaltemplate()
-	t.pythonfunction()
+	t1 = universaltemplate(True)
+	t1.pythonfunction()
+
+	t1 = universaltemplate(False)
+	t1.pythonfunction()
 
 
 @pytest.mark.ul4

@@ -1,3 +1,10 @@
+Changes in 4.10 (released ??/??/2013)
+--------------------------------------
+
+*	UL4 functions are now real objects that can be passed to subtemplates as
+	arguments.
+
+
 Changes in 4.9.1 (released 01/17/2013)
 --------------------------------------
 

@@ -316,67 +316,7 @@ nestedname returns [varname]
 		')' 
 	;
 
-/* Function call */
-expr10 returns [node]
-	: a=atom { $node = $a.node; }
-	|
-		n=name
-		'(' { $node = ul4c.CallFunc($n.text); }
-		(
-			/* No arguments */
-		|
-			/* "**" argument only */
-			'**' rkwargs=exprarg { $node.remkwargs = $rkwargs.node; }
-			','?
-		|
-			/* "*" argument only (and maybe **) */
-			'*' rargs=exprarg { $node.remargs = $rargs.node; }
-			(
-				','
-				'**' rkwargs=exprarg { $node.remkwargs = $rkwargs.node; }
-			)?
-			','?
-		|
-			/* At least one positional argument */
-			a1=exprarg { $node.args.append($a1.node); }
-			(
-				','
-				a2=exprarg { $node.args.append($a2.node); }
-			)*
-			(
-				','
-				an3=name '=' av3=exprarg { $node.kwargs.append(($an3.text, $av3.node)); }
-			)*
-			(
-				','
-				'*' rargs=exprarg { $node.remargs = $rargs.node; }
-			)?
-			(
-				','
-				'**' rkwargs=exprarg { $node.remkwargs = $rkwargs.node; }
-			)?
-			','?
-		|
-			/* Keyword arguments only */
-			an1=name '=' av1=exprarg { $node.kwargs.append(($an1.text, $av1.node)); }
-			(
-				','
-				an2=name '=' av2=exprarg { $node.kwargs.append(($an2.text, $av2.node)); }
-			)*
-			(
-				','
-				'*' rargs=exprarg { $node.remargs = $rargs.node; }
-			)?
-			(
-				','
-				'**' rkwargs=exprarg { $node.remkwargs = $rkwargs.node; }
-			)?
-			','?
-		)
-		')' 
-	;
-
-/* Attribute access, method call, item access, slice access */
+/* Function/method call, attribute access, item access, slice access */
 expr9 returns [node]
 	@init
 	{
@@ -386,70 +326,66 @@ expr9 returns [node]
 		slice = False
 	}
 	:
-		e1=expr10 { $node = $e1.node; }
+		e1=atom { $node = $e1.node; }
 		(
-			/* Attribute access/method call */
+			/* Attribute access */
 			'.'
-			n=name
+			n=name { $node = ul4c.GetAttr($node, $n.text); }
+		|
+			/* Function/method call */
+			'(' { $node = ul4c.CallMeth($node.obj, $node.attrname) if isinstance($node, ul4c.GetAttr) else ul4c.CallFunc($node); }
 			(
-				/* Method call */
-				'(' { callmeth = True; $node = ul4c.CallMeth($n.text, $node); }
+				/* No arguments */
+			|
+				/* "**" argument only */
+				'**' rkwargs=exprarg { $node.remkwargs = $rkwargs.node; }
+				','?
+			|
+				/* "*" argument only (and maybe **) */
+				'*' rargs=exprarg { $node.remargs = $rargs.node; }
 				(
-					/* No arguments */
-				|
-					/* "**" argument only */
+					','
 					'**' rkwargs=exprarg { $node.remkwargs = $rkwargs.node; }
-					','?
-				|
-					/* "*" argument only (and maybe **) */
+				)?
+				','?
+			|
+				/* At least one positional argument */
+				a1=exprarg { $node.args.append($a1.node); }
+				(
+					','
+					a2=exprarg { $node.args.append($a2.node); }
+				)*
+				(
+					','
+					an3=name '=' av3=exprarg { $node.kwargs.append(($an3.text, $av3.node)); }
+				)*
+				(
+					','
 					'*' rargs=exprarg { $node.remargs = $rargs.node; }
-					(
-						','
-						'**' rkwargs=exprarg { $node.remkwargs = $rkwargs.node; }
-					)?
-					','?
-				|
-					/* At least one positional argument */
-					a1=exprarg { $node.args.append($a1.node); }
-					(
-						','
-						a2=exprarg { $node.args.append($a2.node); }
-					)*
-					(
-						','
-						an3=name '=' av3=exprarg { $node.kwargs.append(($an3.text, $av3.node)); }
-					)*
-					(
-						','
-						'*' rargs=exprarg { $node.remargs = $rargs.node; }
-					)?
-					(
-						','
-						'**' rkwargs=exprarg { $node.remkwargs = $rkwargs.node; }
-					)?
-					','?
-				|
-					/* Keyword arguments only */
-					an1=name '=' av1=exprarg { $node.kwargs.append(($an1.text, $av1.node)); }
-					(
-						','
-						an2=name '=' av2=exprarg { $node.kwargs.append(($an2.text, $av2.node)); }
-					)*
-					(
-						','
-						'*' rargs=exprarg { $node.remargs = $rargs.node; }
-					)?
-					(
-						','
-						'**' rkwargs=exprarg { $node.remkwargs = $rkwargs.node; }
-					)?
-					','?
-				)
-				')'
-			)? {
-				if not callmeth:
-					$node = ul4c.GetAttr($node, $n.text);
-			}
+				)?
+				(
+					','
+					'**' rkwargs=exprarg { $node.remkwargs = $rkwargs.node; }
+				)?
+				','?
+			|
+				/* Keyword arguments only */
+				an1=name '=' av1=exprarg { $node.kwargs.append(($an1.text, $av1.node)); }
+				(
+					','
+					an2=name '=' av2=exprarg { $node.kwargs.append(($an2.text, $av2.node)); }
+				)*
+				(
+					','
+					'*' rargs=exprarg { $node.remargs = $rargs.node; }
+				)?
+				(
+					','
+					'**' rkwargs=exprarg { $node.remkwargs = $rkwargs.node; }
+				)?
+				','?
+			)
+			')'
 		|
 			/* Item/slice access */
 			'['
