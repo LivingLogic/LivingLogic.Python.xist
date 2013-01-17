@@ -1952,16 +1952,13 @@ class CallFunc(AST):
 		self.remkwargs = None
 
 	def __repr__(self):
-		args = [
-			(repr(self.funcname),),
-			(repr(arg) for arg in self.args),
-			("{}={!r}".format(argname, argvalue) for (argname, argvalue) in self.kwargs)
-		]
-		if self.remargs is not None:
-			args.append(("*{}".format(repr(self.remargs)),))
-		if self.remkwargs is not None:
-			args.append(("**{}".format(repr(self.remkwargs)),))
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} funcname={0.funcname!r} {1} at {2:#x}>".format(self, " ".join(itertools.chain(*args)), id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} funcname={0.methname!r} {1}{2}{3}{4} at {5:#x}>".format(
+			self,
+			"".join(" {!r}".format(arg) for arg in self.args),
+			"".join(" {}={!r}".format(argname, argvalue) for (argname, argvalue) in self.kwargs),
+			" *{!r}".format(self.remargs) if self.remargs is not None else "",
+			" **{!r}".format(self.remkwargs) if self.remargs is not None else "",
+			id(self))
 
 	def _repr_pretty_(self, p, cycle):
 		if cycle:
@@ -2071,15 +2068,13 @@ class CallMeth(AST):
 		self.remkwargs = None
 
 	def __repr__(self):
-		args = [
-			(repr(arg) for arg in self.args),
-			("{}={!r}".format(argname, argvalue) for (argname, argvalue) in self.kwargs)
-		]
-		if self.remargs is not None:
-			args.append(("*{!r}".format(self.remargs),))
-		if self.remkwargs is not None:
-			args.append(("**{!r}".format(self.remkwargs),))
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} methname={0.methname!r} obj={0.obj!r} {1} at {2:#x}>".format(self, " ".join(itertools.chain(*args)), id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} methname={0.methname!r} obj={0.obj!r} {1}{2}{3}{4} at {5:#x}>".format(
+			self,
+			"".join(" {!r}".format(arg) for arg in self.args),
+			"".join(" {}={!r}".format(argname, argvalue) for (argname, argvalue) in self.kwargs),
+			" *{!r}".format(self.remargs) if self.remargs is not None else "",
+			" **{!r}".format(self.remkwargs) if self.remargs is not None else "",
+			id(self))
 
 	def _repr_pretty_(self, p, cycle):
 		if cycle:
