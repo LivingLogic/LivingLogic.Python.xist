@@ -108,6 +108,16 @@ def _asjson(obj):
 	else:
 		raise TypeError("can't handle object of type {}".format(type(obj)))
 
+
+def _xmlescape(obj):
+	if obj is None:
+		return ""
+	elif isinstance(obj, Undefined):
+		return ""
+	else:
+		return misc.xmlescape(str(obj))
+
+
 ###
 ### Location information
 ###
@@ -2225,12 +2235,7 @@ class Callable(object):
 
 	@classmethod
 	def function_xmlescape(cls, vars, obj):
-		if obj is None:
-			return ""
-		elif isinstance(obj, Undefined):
-			return ""
-		else:
-			return misc.xmlescape(str(obj))
+		return _xmlescape(obj)
 
 	@classmethod
 	def function_csv(cls, vars, obj):

@@ -1,3 +1,9 @@
+Changes in 4.9.1 (released 01/17/2013)
+--------------------------------------
+
+*	Fixed a bug the ``printx`` tag for UL4 templates.
+
+
 Changes in 4.9 (released 01/17/2013)
 ------------------------------------
 

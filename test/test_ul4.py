@@ -550,6 +550,18 @@ def test_dictcomp(r):
 
 
 @pytest.mark.ul4
+def test_print(r):
+	assert "" == r("<?print None?>")
+	assert "<foo>" == r("<?print '<foo>'?>")
+
+
+@pytest.mark.ul4
+def test_printx(r):
+	assert "" == r("<?printx None?>")
+	assert "&lt;foo&gt;" == r("<?printx '<foo>'?>")
+
+
+@pytest.mark.ul4
 def test_code_storevar(r):
 	assert '42' == r('<?code x = 42?><?print x?>')
 	assert 'xyzzy' == r('<?code x = "xyzzy"?><?print x?>')
