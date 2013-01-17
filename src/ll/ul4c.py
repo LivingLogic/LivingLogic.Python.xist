@@ -1952,7 +1952,7 @@ class CallFunc(AST):
 		self.remkwargs = None
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} funcname={0.methname!r} {1}{2}{3}{4} at {5:#x}>".format(
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} funcname={0.methname!r}{1}{2}{3}{4} at {5:#x}>".format(
 			self,
 			"".join(" {!r}".format(arg) for arg in self.args),
 			"".join(" {}={!r}".format(argname, argvalue) for (argname, argvalue) in self.kwargs),
@@ -2068,7 +2068,7 @@ class CallMeth(AST):
 		self.remkwargs = None
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} methname={0.methname!r} obj={0.obj!r} {1}{2}{3}{4} at {5:#x}>".format(
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} methname={0.methname!r} obj={0.obj!r}{1}{2}{3}{4} at {5:#x}>".format(
 			self,
 			"".join(" {!r}".format(arg) for arg in self.args),
 			"".join(" {}={!r}".format(argname, argvalue) for (argname, argvalue) in self.kwargs),
