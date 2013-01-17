@@ -5,7 +5,7 @@ Changes in 4.9 (released 01/17/2013)
 	which in turn called its own subtemplate.
 
 *	Fixed and enhanced ``repr`` output of UL4 templates and added support
-	for IPython pretty printing framewwork.
+	for IPythons pretty printing framewwork.
 
 
 Changes in 4.8 (released 01/15/2013)
