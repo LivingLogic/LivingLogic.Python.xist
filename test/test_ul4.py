@@ -98,7 +98,7 @@ def render_js(__, *, keepws=True, **variables):
 	"""
 	template = ul4c.Template(__, keepws=keepws)
 	js = template.jssource()
-	js = "template = {};\ndata = {};\nprint(template.renders(data));\n".format(js, ul4c.Template.function_asjson({}, variables))
+	js = "template = {};\ndata = {};\nprint(template.renders(data));\n".format(js, ul4c._asjson(variables))
 	f = sys._getframe(1)
 	print("Testing Javascript code compiled by Python ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
 	print(js)
@@ -315,7 +315,7 @@ all_renderers = [
 	("python", render_python),
 	("python_dumps", render_python_dumps),
 	("python_dump", render_python_dump),
-	# ("js", render_js),
+	("js", render_js),
 	# ("php", render_php),
 	# ("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
 	# ("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
@@ -469,7 +469,7 @@ def test_string(r):
 	assert '\xff' == r('<?print "\\xff"?>')
 	assert '\u20ac' == r('''<?print "\\u20ac"?>''')
 	for c in "\x00\x80\u0100\u3042\n\r\t\f\b\a\"":
-		assert c == r('<?print obj?>', obj=c) # This tests :func:`misc.javaexpr` for Java and :func:`ul4c.Template.function_asjson` for JS
+		assert c == r('<?print obj?>', obj=c) # This tests :func:`misc.javaexpr` for Java and :func:`ul4c._asjson` for JS
 
 	# Test literal control characters (but '\r' and '\n' are not allowed)
 	assert 'gu\trk' == r("<?print 'gu\trk'?>")
