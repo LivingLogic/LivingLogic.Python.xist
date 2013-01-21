@@ -1720,7 +1720,7 @@ def test_function_isundefined(r):
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
-	assert "False" == r(code, data=ul4c.Template.functions["repr"])
+	assert "False" == r("<?print isundefined(repr)?>")
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r(code, data=color.red)
 
@@ -1750,7 +1750,7 @@ def test_function_isdefined(r):
 	assert "True" == r(code, data=[])
 	assert "True" == r(code, data={})
 	assert "True" == r(code, data=ul4c.Template(""))
-	assert "True" == r(code, data=ul4c.Template.functions["repr"])
+	assert "True" == r("<?print isdefined(repr)?>")
 	assert "True" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -1779,7 +1779,7 @@ def test_function_isnone(r):
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r(code, data=ul4c.Template.functions["repr"])
+	assert "False" == r("<?print isnone(repr)?>")
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -1808,7 +1808,7 @@ def test_function_isbool(r):
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r(code, data=ul4c.Template.functions["repr"])
+	assert "False" == r("<?print isbool(repr)?>")
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -1837,7 +1837,7 @@ def test_function_isint(r):
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r(code, data=ul4c.Template.functions["repr"])
+	assert "False" == r("<?print isint(repr)?>")
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -1866,7 +1866,7 @@ def test_function_isfloat(r):
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r(code, data=ul4c.Template.functions["repr"])
+	assert "False" == r("<?print isfloat(repr)?>")
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -1895,7 +1895,7 @@ def test_function_isstr(r):
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r(code, data=ul4c.Template.functions["repr"])
+	assert "False" == r("<?print isstr(repr)?>")
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -1924,7 +1924,7 @@ def test_function_isdate(r):
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r(code, data=ul4c.Template.functions["repr"])
+	assert "False" == r("<?print isdate(repr)?>")
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -1955,7 +1955,7 @@ def test_function_islist(r):
 	if r is not render_php:
 		assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r(code, data=ul4c.Template.functions["repr"])
+	assert "False" == r("<?print islist(repr)?>")
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -1986,7 +1986,7 @@ def test_function_isdict(r):
 	assert "True" == r(code, data={})
 	assert "True" == r(code, data=PseudoDict({}))
 	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r(code, data=ul4c.Template.functions["repr"])
+	assert "False" == r("<?print isdict(repr)?>")
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -2015,7 +2015,7 @@ def test_function_istemplate(r):
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
 	assert "True" == r(code, data=ul4c.Template(""))
-	assert "False" == r(code, data=ul4c.Template.functions["repr"])
+	assert "False" == r("<?print istemplate(repr)?>")
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -2044,7 +2044,7 @@ def test_function_isfunction(r):
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
-	assert "True" == r(code, data=ul4c.Template.functions["repr"])
+	assert "True" == r("<?print isfunction(repr)?>")
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -2073,7 +2073,7 @@ def test_function_iscolor(r):
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r(code, data=ul4c.Template.functions["repr"])
+	assert "False" == r("<?print iscolor(repr)?>")
 	assert "True" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -2102,7 +2102,7 @@ def test_function_istimedelta(r):
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r(code, data=ul4c.Template.functions["repr"])
+	assert "False" == r("<?print istimedelta(repr)?>")
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -2131,7 +2131,7 @@ def test_function_ismonthdelta(r):
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r(code, data=ul4c.Template.functions["repr"])
+	assert "False" == r("<?print ismonthdelta(repr)?>")
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
