@@ -349,6 +349,7 @@ argumentmismatchmessage = [
 	# Java exception messages for argument mismatches
 	"required \\w+\\(\\) argument \"\\w+\" \\(position \\d+\\) missing",
 	"\\w+\\(\\) doesn't support an argument named \"\\w+\"",
+	"\\w+\\(\\) doesn't support keyword arguments",
 	"expects (at least \\d+|at most \\d+ positional|exactly \\d+|\\d+-\\d+) arguments?, \\d+ given",
 ]
 argumentmismatchmessage = "({})".format("|".join(argumentmismatchmessage))
