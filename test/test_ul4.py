@@ -317,8 +317,8 @@ all_renderers = [
 	("python_dump", render_python_dump),
 	("js", render_js),
 	# ("php", render_php),
-	# ("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
-	# ("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
+	("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
+	("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
 ]
 
 
