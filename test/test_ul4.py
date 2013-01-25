@@ -2973,7 +2973,8 @@ def test_self(r):
 @pytest.mark.ul4
 def test_pass_function(r):
 	assert "&lt;" == r("<?template x?><?print xe('<')?><?end template?><?render x.render(xe=xmlescape)?>")
-	assert "&lt;&lt;" == r("<?function xe?><?return xmlescape(s)?><?end function?><?template x?><?print xe(s='<')?><?end template?><?render x.render(xe=xe)?><?render x.render()?>")
+	assert "&lt;" == r("<?function xe?><?return xmlescape(s)?><?end function?><?template x?><?print xe(s='<')?><?end template?><?render x.render(xe=xe)?>")
+	assert "&lt;&lt;" == r("<?function xe?><?return xmlescape(s)?><?end function?><?template x?><?print xe(s='<')?><?end template?><?render x.render()?>")
 
 
 @pytest.mark.ul4
