@@ -18,6 +18,8 @@ Changes in 4.10 (released ??/??/2013)
 	``<?function?>``) are now real objects that can be passed to templates/functions
 	as arguments.
 
+*	The UL4 functions ``vars`` and ``get`` have been removed.
+
 
 Changes in 4.9.1 (released 01/17/2013)
 --------------------------------------
