@@ -1,8 +1,23 @@
 Changes in 4.10 (released ??/??/2013)
 --------------------------------------
 
-*	UL4 functions are now real objects that can be passed to subtemplates as
-	arguments.
+*	It's now possible to define UL4 functions that return a value::
+
+		>>> from ll import ul4c
+		>>> f = ul4c.Function("<?return 2*x?>")
+		>>> f(x=42)
+		84
+
+	Literal text (and the ``<?render?>`` tag) will be ignored inside functions.
+
+*	Functions can also be defined inside templates (via the tags ``<?function foo?>``
+	and ``<?end function?>``). The tag for defining template has been renamed from
+	``<?def foo?>``/``<?end def?>`` to ``<?template foo?>``/``<?end template?>``.
+	It's also possible to define templates inside function.
+
+*	UL4 functions (the builtin ones as well as any additional ones defined via
+	``<?function?>``) are now real objects that can be passed to templates/functions
+	as arguments.
 
 
 Changes in 4.9.1 (released 01/17/2013)

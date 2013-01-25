@@ -51,73 +51,6 @@ class Object:
 		raise KeyError(key)
 
 
-def _repr(obj):
-	if isinstance(obj, str):
-		return repr(obj)
-	elif isinstance(obj, datetime.datetime):
-		s = str(obj.isoformat())
-		if s.endswith("T00:00:00"):
-			s = s[:-9]
-		return "@({})".format(s)
-	elif isinstance(obj, datetime.date):
-		return "@({})".format(obj.isoformat())
-	elif isinstance(obj, datetime.timedelta):
-		return repr(obj).partition(".")[-1]
-	elif isinstance(obj, color.Color):
-		if obj[3] == 0xff:
-			s = "#{:02x}{:02x}{:02x}".format(obj[0], obj[1], obj[2])
-			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6]:
-				return "#{}{}{}".format(s[1], s[3], s[5])
-			return s
-		else:
-			s = "#{:02x}{:02x}{:02x}{:02x}".format(*obj)
-			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6] and s[7]==s[8]:
-				return "#{}{}{}{}".format(s[1], s[3], s[5], s[7])
-			return s
-	elif isinstance(obj, collections.Sequence):
-		return "[{}]".format(", ".join(_repr(item) for item in obj))
-	elif isinstance(obj, collections.Mapping):
-		return "{{{}}}".format(", ".join("{}: {}".format(_repr(key), _repr(value)) for (key, value) in obj.items()))
-	else:
-		return repr(obj)
-
-
-def _asjson(obj):
-	if obj is None:
-		return "null"
-	elif isinstance(obj, Undefined):
-		return "{}.undefined"
-	if isinstance(obj, (bool, int, float, str)):
-		return json.dumps(obj)
-	elif isinstance(obj, datetime.datetime):
-		return "new Date({}, {}, {}, {}, {}, {}, {})".format(obj.year, obj.month-1, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond//1000)
-	elif isinstance(obj, datetime.date):
-		return "new Date({}, {}, {})".format(obj.year, obj.month-1, obj.day)
-	elif isinstance(obj, datetime.timedelta):
-		return "ul4.TimeDelta.create({}, {}, {})".format(obj.days, obj.seconds, obj.microseconds)
-	elif isinstance(obj, misc.monthdelta):
-		return "ul4.MonthDelta.create({})".format(obj.months)
-	elif isinstance(obj, color.Color):
-		return "ul4.Color.create({}, {}, {}, {})".format(*obj)
-	elif isinstance(obj, collections.Mapping):
-		return "{{{}}}".format(", ".join("{}: {}".format(_asjson(key), _asjson(value)) for (key, value) in obj.items()))
-	elif isinstance(obj, collections.Sequence):
-		return "[{}]".format(", ".join(_asjson(item) for item in obj))
-	elif isinstance(obj, Template):
-		return obj.jssource()
-	else:
-		raise TypeError("can't handle object of type {}".format(type(obj)))
-
-
-def _xmlescape(obj):
-	if obj is None:
-		return ""
-	elif isinstance(obj, Undefined):
-		return ""
-	else:
-		return misc.xmlescape(str(obj))
-
-
 ###
 ### Location information
 ###
@@ -1402,6 +1335,19 @@ class PrintX(UnaryTag):
 		return "{i}# <?printx?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._xmlescape({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent, keepws), l=self.location)
 
 
+@register("return")
+class Return(UnaryTag):
+	"""
+	AST node for a ``<?return?>`` tag.
+	"""
+
+	def format(self, indent, keepws):
+		return "{}return {}\n".format(indent*"\t", self.obj.format(indent, keepws))
+
+	def formatpython(self, indent, keepws):
+		return "{i}# <?return?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}return {o}\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent, keepws), l=self.location)
+
+
 class Binary(AST):
 	"""
 	Base class for all AST nodes implementing binary operators.
@@ -2036,7 +1982,7 @@ class CallFunc(AST):
 			args.append("*{}".format(self.remargs.formatpython(indent, keepws)))
 		if self.remkwargs is not None:
 			args.append("**{}".format(self.remkwargs.formatpython(indent, keepws)))
-		return "({}(vars, {}))".format(self.obj.formatpython(indent, keepws), ", ".join(args))
+		return "({}({}))".format(self.obj.formatpython(indent, keepws), ", ".join(args))
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.obj)
@@ -2141,7 +2087,7 @@ class CallMeth(AST):
 				args.append("*{}".format(self.remargs.format(indent, keepws)))
 			if self.remkwargs is not None:
 				args.append("**{}".format(self.remkwargs.format(indent, keepws)))
-		return "({}).{}({})".format(self._formatop(self.obj), self.methname, ", ".join(args))
+		return "{}.{}({})".format(self._formatop(self.obj), self.methname, ", ".join(args))
 
 	def formatpython(self, indent, keepws):
 		args = []
@@ -2153,7 +2099,7 @@ class CallMeth(AST):
 			args.append("*{}".format(self.remargs.formatpython(indent, keepws)))
 		if self.remkwargs is not None:
 			args.append("**{}".format(self.remkwargs.formatpython(indent, keepws)))
-		return "self.methods[{!r}](stack, {}, {})".format(self.methname, self.obj.formatpython(indent, keepws), ", ".join(args))
+		return "self.methods[{!r}]({}, {})".format(self.methname, self.obj.formatpython(indent, keepws), ", ".join(args))
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.methname)
@@ -2189,747 +2135,34 @@ class Render(UnaryTag):
 		return "{i}# <?render?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}{c}\n".format(i=indent*"\t", id=id(self), c=code, l=self.location)
 
 
-class Callable(object):
+class Code(Block):
 	"""
-	Base class that collects all UL4 functions and methods in the class
-	attributes ``functions`` and ``methods``.
+	Base class of :class:`Template` and :class:`Function` that contains the
+	functionality common to both classes.
 	"""
+	fields = Block.fields.union({"source", "name", "keepws", "startdelim", "enddelim", "endlocation"})
+
+	version = "24"
 
 	functions = {}
 	methods = {}
 
-	@classmethod
-	def makefunction(cls, f):
-		name = f.__name__
-		if name.startswith("_function_"):
-			name = name[10:]
-		cls.functions[name] = f
-		return f
-
-	@classmethod
-	def makemethod(cls, f):
-		name = f.__name__
-		if name.startswith("_method_"):
-			name = name[8:]
-		cls.methods[name] = f
-		return f
-
-
-###
-### Functions & methods
-###
-
-@Callable.makefunction
-def _function_vars(vars):
-	return vars
-
-
-@Callable.makefunction
-def _function_get(vars, name, default=None):
-	return vars.get(name, default)
-
-
-@Callable.makefunction
-def _function_now(vars):
-	return datetime.datetime.now()
-
-
-@Callable.makefunction
-def _function_utcnow(vars):
-	return datetime.datetime.utcnow()
-
-
-@Callable.makefunction
-def _function_date(vars, year, month, day, hour=0, minute=0, second=0, microsecond=0):
-	return datetime.datetime(year, month, day, hour, minute, second, microsecond)
-
-
-@Callable.makefunction
-def _function_timedelta(vars, days=0, seconds=0, microseconds=0):
-	return datetime.timedelta(days, seconds, microseconds)
-
-
-@Callable.makefunction
-def _function_monthdelta(vars, months=0):
-	return misc.monthdelta(months)
-
-
-@Callable.makefunction
-def _function_random(vars):
-	return random.random()
-
-
-@Callable.makefunction
-def _function_xmlescape(vars, obj):
-	return _xmlescape(obj)
-
-
-@Callable.makefunction
-def _function_csv(vars, obj):
-	if obj is None:
-		return ""
-	elif isinstance(obj, Undefined):
-		return ""
-	elif not isinstance(obj, str):
-		obj = _repr(obj)
-	if any(c in obj for c in ',"\n'):
-		return '"{}"'.format(obj.replace('"', '""'))
-	return obj
-
-
-def _str(obj=""):
-	if obj is None:
-		return ""
-	elif isinstance(obj, Undefined):
-		return ""
-	else:
-		return str(obj)
-
-@Callable.makefunction
-def _function_asjson(vars, obj):
-	return _asjson(obj)
-
-
-@Callable.makefunction
-def _function_fromjson(vars, string):
-	from ll import ul4on
-	return json.loads(string)
-
-
-@Callable.makefunction
-def _function_asul4on(vars, obj):
-	from ll import ul4on
-	return ul4on.dumps(obj)
-
-
-@Callable.makefunction
-def _function_fromul4on(vars, string):
-	from ll import ul4on
-	return ul4on.loads(string)
-
-
-@Callable.makefunction
-def _function_str(vars, obj=""):
-	return _str(obj)
-
-
-@Callable.makefunction
-def _function_int(vars, obj=0, base=None):
-	if base is None:
-		return int(obj)
-	else:
-		return int(obj, base)
-
-
-@Callable.makefunction
-def _function_float(vars, obj=0.0):
-	return float(obj)
-
-
-@Callable.makefunction
-def _function_bool(vars, obj=False):
-	return bool(obj)
-
-
-@Callable.makefunction
-def _function_len(vars, sequence):
-	return len(sequence)
-
-
-@Callable.makefunction
-def _function_abs(vars, number):
-	return abs(number)
-
-
-@Callable.makefunction
-def _function_any(vars, iterable):
-	return any(iterable)
-
-
-@Callable.makefunction
-def _function_all(vars, iterable):
-	return all(iterable)
-
-
-@Callable.makefunction
-def _function_enumerate(vars, iterable, start=0):
-	return enumerate(iterable, start)
-
-
-@Callable.makefunction
-def _function_enumfl(vars, iterable, start=0):
-	lastitem = None
-	first = True
-	i = start
-	it = iter(iterable)
-	try:
-		item = next(it)
-	except StopIteration:
-		return
-	while True:
-		try:
-			(lastitem, item) = (item, next(it))
-		except StopIteration:
-			yield (i, first, True, item) # Items haven't been swapped yet
-			return
-		else:
-			yield (i, first, False, lastitem)
-			first = False
-		i += 1
-
-
-@Callable.makefunction
-def _function_isfirstlast(vars, iterable):
-	lastitem = None
-	first = True
-	it = iter(iterable)
-	try:
-		item = next(it)
-	except StopIteration:
-		return
-	while True:
-		try:
-			(lastitem, item) = (item, next(it))
-		except StopIteration:
-			yield (first, True, item) # Items haven't been swapped yet
-			return
-		else:
-			yield (first, False, lastitem)
-			first = False
-
-
-@Callable.makefunction
-def _function_isfirst(vars, iterable):
-	first = True
-	for item in iterable:
-		yield (first, item)
-		first = False
-
-
-@Callable.makefunction
-def _function_islast(vars, iterable):
-	lastitem = None
-	it = iter(iterable)
-	try:
-		item = next(it)
-	except StopIteration:
-		return
-	while True:
-		try:
-			(lastitem, item) = (item, next(it))
-		except StopIteration:
-			yield (True, item) # Items haven't been swapped yet
-			return
-		else:
-			yield (False, lastitem)
-
-
-@Callable.makefunction
-def _function_isundefined(vars, obj):
-	return isinstance(obj, Undefined)
-
-
-@Callable.makefunction
-def _function_isdefined(vars, obj):
-	return not isinstance(obj, Undefined)
-
-
-@Callable.makefunction
-def _function_isnone(vars, obj):
-	return obj is None
-
-
-@Callable.makefunction
-def _function_isstr(vars, obj):
-	return isinstance(obj, str)
-
-
-@Callable.makefunction
-def _function_isint(vars, obj):
-	return isinstance(obj, int) and not isinstance(obj, bool)
-
-
-@Callable.makefunction
-def _function_isfloat(vars, obj):
-	return isinstance(obj, float)
-
-
-@Callable.makefunction
-def _function_isbool(vars, obj):
-	return isinstance(obj, bool)
-
-
-@Callable.makefunction
-def _function_isdate(vars, obj):
-	return isinstance(obj, (datetime.datetime, datetime.date))
-
-
-@Callable.makefunction
-def _function_istimedelta(vars, obj):
-	return isinstance(obj, datetime.timedelta)
-
-
-@Callable.makefunction
-def _function_ismonthdelta(vars, obj):
-	return isinstance(obj, misc.monthdelta)
-
-
-@Callable.makefunction
-def _function_islist(vars, obj):
-	return isinstance(obj, collections.Sequence) and not isinstance(obj, str) and not isinstance(obj, color.Color)
-
-
-@Callable.makefunction
-def _function_isdict(vars, obj):
-	return isinstance(obj, collections.Mapping) and not isinstance(obj, Template)
-
-
-@Callable.makefunction
-def _function_iscolor(vars, obj):
-	return isinstance(obj, color.Color)
-
-
-@Callable.makefunction
-def _function_istemplate(vars, obj):
-	return isinstance(obj, (Template, TemplateClosure))
-
-
-@Callable.makefunction
-def _function_isfunction(vars, obj):
-	return callable(obj)
-
-
-@Callable.makefunction
-def _function_repr(vars, obj):
-	return _repr(obj)
-
-
-@Callable.makefunction
-def _function_chr(vars, i):
-	return chr(i)
-
-
-@Callable.makefunction
-def _function_ord(vars, c):
-	return ord(c)
-
-
-@Callable.makefunction
-def _function_hex(vars, number):
-	return hex(number)
-
-
-@Callable.makefunction
-def _function_oct(vars, number):
-	return oct(number)
-
-
-@Callable.makefunction
-def _function_bin(vars, number):
-	return bin(number)
-
-
-@Callable.makefunction
-def _function_min(vars, *args):
-	return min(*args)
-
-
-@Callable.makefunction
-def _function_max(vars, *args):
-	return max(*args)
-
-
-@Callable.makefunction
-def _function_sorted(vars, iterable):
-	return sorted(iterable)
-
-
-@Callable.makefunction
-def _function_range(vars, *args):
-	return range(*args)
-
-
-@Callable.makefunction
-def _function_type(vars, obj):
-	if obj is None:
-		return "none"
-	elif isinstance(obj, str):
-		return "str"
-	elif isinstance(obj, bool):
-		return "bool"
-	elif isinstance(obj, int):
-		return "int"
-	elif isinstance(obj, float):
-		return "float"
-	elif isinstance(obj, (datetime.datetime, datetime.date)):
-		return "date"
-	elif isinstance(obj, datetime.timedelta):
-		return "timedelta"
-	elif isinstance(obj, misc.monthdelta):
-		return "monthdelta"
-	elif isinstance(obj, color.Color):
-		return "color"
-	elif isinstance(obj, Template):
-		return "template"
-	elif isinstance(obj, collections.Mapping):
-		return "dict"
-	elif isinstance(obj, color.Color):
-		return "color"
-	elif isinstance(obj, collections.Sequence):
-		return "list"
-	return None
-
-
-@Callable.makefunction
-def _function_reversed(vars, sequence):
-	return reversed(sequence)
-
-
-@Callable.makefunction
-def _function_randrange(vars, *args):
-	return random.randrange(*args)
-
-
-@Callable.makefunction
-def _function_randchoice(vars, sequence):
-	return random.choice(sequence)
-
-
-@Callable.makefunction
-def _function_format(vars, obj, fmt, lang=None):
-	if isinstance(obj, (datetime.date, datetime.time, datetime.timedelta)):
-		if lang is None:
-			lang = "en"
-		oldlocale = locale.getlocale()
-		try:
-			for candidate in (locale.normalize(lang), locale.normalize("en"), ""):
-				try:
-					locale.setlocale(locale.LC_ALL, candidate)
-					return format(obj, fmt)
-				except locale.Error:
-					if not candidate:
-						return format(obj, fmt)
-		finally:
-			try:
-				locale.setlocale(locale.LC_ALL, oldlocale)
-			except locale.Error:
-				pass
-	else:
-		return format(obj, fmt)
-
-
-@Callable.makefunction
-def _function_zip(vars, *iterables):
-	return zip(*iterables)
-
-
-@Callable.makefunction
-def _function_urlquote(vars, string):
-	return urlparse.quote_plus(string)
-
-
-@Callable.makefunction
-def _function_urlunquote(vars, string):
-	return urlparse.unquote_plus(string)
-
-
-@Callable.makefunction
-def _function_rgb(vars, r, g, b, a=1.0):
-	return color.Color.fromrgb(r, g, b, a)
-
-
-@Callable.makefunction
-def _function_hls(vars, h, l, s, a=1.0):
-	return color.Color.fromhls(h, l, s, a)
-
-
-@Callable.makefunction
-def _function_hsv(vars, h, s, v, a=1.0):
-	return color.Color.fromhsv(h, s, v, a)
-
-
-@Callable.makemethod
-def _method_split(stack, obj, sep=None, count=None):
-	return obj.split(sep, count if count is not None else -1)
-
-
-@Callable.makemethod
-def _method_rsplit(stack, obj, sep=None, count=None):
-	return obj.rsplit(sep, count if count is not None else -1)
-
-
-@Callable.makemethod
-def _method_strip(stack, obj, chars=None):
-	return obj.strip(chars)
-
-
-@Callable.makemethod
-def _method_lstrip(stack, obj, chars=None):
-	return obj.lstrip(chars)
-
-
-@Callable.makemethod
-def _method_rstrip(stack, obj, chars=None):
-	return obj.rstrip(chars)
-
-
-@Callable.makemethod
-def _method_find(stack, obj, sub, start=None, end=None):
-	if isinstance(obj, str):
-		return obj.find(sub, start, end)
-	else:
-		try:
-			if end is None:
-				if start is None:
-					return obj.index(sub)
-				return obj.index(sub, start)
-			return obj.index(sub, start, end)
-		except ValueError:
-			return -1
-
-
-@Callable.makemethod
-def _method_rfind(stack, obj, sub, start=None, end=None):
-	if isinstance(obj, str):
-		return obj.rfind(sub, start, end)
-	else:
-		for i in reversed(range(*slice(start, end).indices(len(obj)))):
-			if obj[i] == sub:
-				return i
-		return -1
-
-
-@Callable.makemethod
-def _method_startswith(stack, obj, prefix):
-	return obj.startswith(prefix)
-
-
-@Callable.makemethod
-def _method_endswith(stack, obj, suffix):
-	return obj.endswith(suffix)
-
-
-@Callable.makemethod
-def _method_upper(stack, obj):
-	return obj.upper()
-
-
-@Callable.makemethod
-def _method_lower(stack, obj):
-	return obj.lower()
-
-
-@Callable.makemethod
-def _method_capitalize(stack, obj):
-	return obj.capitalize()
-
-
-@Callable.makemethod
-def _method_replace(stack, obj, old, new, count=None):
-	if count is None:
-		return obj.replace(old, new)
-	else:
-		return obj.replace(old, new, count)
-
-
-@Callable.makemethod
-def _method_r(stack, obj):
-	return obj.r()
-
-
-@Callable.makemethod
-def _method_g(stack, obj):
-	return obj.g()
-
-
-@Callable.makemethod
-def _method_b(stack, obj):
-	return obj.b()
-
-
-@Callable.makemethod
-def _method_a(stack, obj):
-	return obj.a()
-
-
-@Callable.makemethod
-def _method_hls(stack, obj):
-	return obj.hls()
-
-
-@Callable.makemethod
-def _method_hlsa(stack, obj):
-	return obj.hlsa()
-
-
-@Callable.makemethod
-def _method_hsv(stack, obj):
-	return obj.hsv()
-
-
-@Callable.makemethod
-def _method_hsva(stack, obj):
-	return obj.hsva()
-
-
-@Callable.makemethod
-def _method_lum(stack, obj):
-	return obj.lum()
-
-
-@Callable.makemethod
-def _method_weekday(stack, obj):
-	return obj.weekday()
-
-
-@Callable.makemethod
-def _method_week(stack, obj, firstweekday=None):
-	if firstweekday is None:
-		firstweekday = 0
-	else:
-		firstweekday %= 7
-	jan1 = obj.__class__(obj.year, 1, 1)
-	yearday = (obj - jan1).days+7
-	jan1weekday = jan1.weekday()
-	while jan1weekday != firstweekday:
-		yearday -= 1
-		jan1weekday += 1
-		if jan1weekday == 7:
-			jan1weekday = 0
-	return yearday//7
-
-
-@Callable.makemethod
-def _method_items(stack, obj):
-	return obj.items()
-
-
-@Callable.makemethod
-def _method_values(stack, obj):
-	return obj.values()
-
-
-@Callable.makemethod
-def _method_join(stack, obj, iterable):
-	return obj.join(iterable)
-
-
-@Callable.makemethod
-def _method_render(stack, obj, **vars):
-	return obj._render(stack, vars)
-
-
-@Callable.makemethod
-def _method_renders(stack, obj, **vars):
-	return "".join(obj._render(stack, vars))
-
-
-@Callable.makemethod
-def _method_mimeformat(stack, obj):
-	weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-	monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-	return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(obj, weekdayname[obj.weekday()], monthname[obj.month])
-
-
-@Callable.makemethod
-def _method_isoformat(stack, obj):
-	result = obj.isoformat()
-	suffix = "T00:00:00"
-	if result.endswith(suffix):
-		return result[:-len(suffix)]
-	return result
-
-
-@Callable.makemethod
-def _method_yearday(stack, obj):
-	return (obj - obj.__class__(obj.year, 1, 1)).days+1
-
-
-@Callable.makemethod
-def _method_get(stack, obj, key, default=None):
-	return obj.get(key, default)
-
-
-@Callable.makemethod
-def _method_withlum(stack, obj, lum):
-	return obj.withlum(lum)
-
-
-@Callable.makemethod
-def _method_witha(stack, obj, a):
-	return obj.witha(a)
-
-
-@Callable.makemethod
-def _method_day(stack, obj):
-	return obj.day
-
-
-@Callable.makemethod
-def _method_month(stack, obj):
-	return obj.month
-
-
-@Callable.makemethod
-def _method_year(stack, obj):
-	return obj.year
-
-
-@Callable.makemethod
-def _method_hour(stack, obj):
-	return obj.hour
-
-
-@Callable.makemethod
-def _method_minute(stack, obj):
-	return obj.minute
-
-
-@Callable.makemethod
-def _method_second(stack, obj):
-	return obj.second
-
-
-@Callable.makemethod
-def _method_microsecond(stack, obj):
-	return obj.microsecond
-
-
-@register("template")
-class Template(Block, Callable):
-	"""
-	A template object is normally created by passing the template source to the
-	constructor. It can also be loaded from the compiled format via the class
-	methods :meth:`load` (from a stream) or :meth:`loads` (from a string).
-
-	The compiled format can be generated with the methods :meth:`dump` (which
-	dumps the format to a stream) or :meth:`dumps` (which returns a string with
-	the compiled format).
-
-	Rendering the template can be done with the methods :meth:`render` (which
-	is a generator) or :meth:`renders` (which returns a string).
-
-	A :class:`Template` object is itself an AST node. Evaluating it will store
-	the template object under its name in the local variables.
-	"""
-	version = "24"
-	fields = Block.fields.union({"source", "name", "startdelim", "enddelim", "endlocation"})
-
 	def __init__(self, source=None, name=None, keepws=True, startdelim="<?", enddelim="?>"):
 		"""
-		Create a :class:`Template` object. If :var:`source` is ``None``, the
-		:class:`Template` remains uninitialized, otherwise :var:`source` will be
+		Create a :class:`Code` object. If :var:`source` is ``None``, the
+		:class:`Code` remains uninitialized, otherwise :var:`source` will be
 		compiled (using :var:`startdelim` and :var:`enddelim` as the tag
-		delimiters). :var:`name` is the name of the template. It will be used in
-		exception messages and should be a valid Python identifier. If
+		delimiters). :var:`name` is the name of the template/function. It will be
+		used in exception messages and should be a valid Python identifier. If
 		:var:`keepws` is false linefeeds and indentation will be ignored in the
-		literal text (i.e. the text between the tags). However trailing whitespace
-		at the end of the line will be honored regardless of the value of
-		:var:`keepws`.
+		literal text in templates (i.e. the text between the tags). However
+		trailing whitespace at the end of the line will be honored regardless of
+		the value of :var:`keepws`. Literal text (and ``<?render?>`` tags) wil
+		always be ignored inside functions.
 		"""
-		# ``location``/``endlocation`` will remain ``None`` for a top level template
-		# For a subtemplate ``location`` will be set to the location of the ``<?def?>`` tag
-		# in :meth:`_compile` and ``endlocation`` will be the location of the ``<?end def?>`` tag
+		# ``location``/``endlocation`` will remain ``None`` for a top level template/function
+		# For a subtemplate/subfunction ``location`` will be set to the location of the ``<?template?>``/``<?function?>`` tag
+		# in :meth:`_compile` and ``endlocation`` will be the location of the ``<?end template?>``/``<?end function?>`` tag
 		super().__init__(None)
 		self._keepws = keepws
 		self.startdelim = startdelim
@@ -2942,13 +2175,14 @@ class Template(Block, Callable):
 		# They will be initialized when required
 
 		# ``_astsbyid`` maps the id of the AST node to the ast node itself
-		# It is used in :meth:`Template.format` (to give the generated Python source code access to the subtemplate)
-		# and for proper exception chaining (when an exception occurs in the template, comments in the
+		# It is used in :meth:`Template.format` and :meth:`Function.format`
+		# (to give the generated Python source code access to the subtemplate/subfunction)
+		# and for proper exception chaining (when an exception occurs, comments in the
 		# generated source code allow finding the offending AST node)
 		self._astsbyid = {}
-		# Python source code generated for the template
+		# Python source code generated for the template/function
 		self._pythonsource = None
-		# A compiled Python function implementing the template logic
+		# A compiled Python function implementing the template/function logic
 		self._pythonfunction = None
 
 		# If we have source code compile it
@@ -3023,7 +2257,7 @@ class Template(Block, Callable):
 	def _set_keepws(self, keepws):
 		if bool(self._keepws) != bool(keepws):
 			for node in self.iternodes():
-				if isinstance(node, Template):
+				if isinstance(node, (Template, Function)):
 					node._keepws = keepws
 					node._pythonsource = node._pythonfunction = None
 
@@ -3032,8 +2266,9 @@ class Template(Block, Callable):
 	@classmethod
 	def loads(cls, data):
 		"""
-		The class method :meth:`loads` loads the template from string :var:`data`.
-		:var:`data` must contain the template in compiled format.
+		The class method :meth:`loads` loads the template/function from string
+		:var:`data`. :var:`data` must contain the template/function in compiled
+		UL4ON format.
 		"""
 		from ll import ul4on
 		return ul4on.loads(data)
@@ -3041,143 +2276,39 @@ class Template(Block, Callable):
 	@classmethod
 	def load(cls, stream):
 		"""
-		The class method :meth:`load` loads the template from the stream
-		:var:`stream`. The stream must contain the template in compiled format.
+		The class method :meth:`load` loads the template/function from the stream
+		:var:`stream`. The stream must contain the template/function in compiled
+		UL4ON format.
 		"""
 		from ll import ul4on
 		return ul4on.load(stream)
 
 	def dump(self, stream):
 		"""
-		:meth:`dump` dumps the template in compiled format to the stream
-		:var:`stream`.
+		:meth:`dump` dumps the template/function in compiled UL4ON format to the
+		stream :var:`stream`.
 		"""
 		from ll import ul4on
 		ul4on.dump(self, stream)
 
 	def dumps(self):
 		"""
-		:meth:`dumps` returns the template in compiled format (as a string).
+		:meth:`dumps` returns the template/function in compiled UL4ON format
+		(as a string).
 		"""
 		from ll import ul4on
 		return ul4on.dumps(self)
 
-	def format(self, indent, keepws):
-		v = []
-		name = self.name if self.name is not None else "unnamed"
-		v.append("{}def {}()\n".format(indent*"\t", name))
-		v.append("{}{{\n".format(indent*"\t"))
-		indent += 1
-		for node in self.content:
-			v.append(node.format(indent, keepws))
-		indent -= 1
-		v.append("{}}}\n".format(indent*"\t"))
-		return "".join(v)
-
-	def formatpython(self, indent, keepws):
-		return "{i}# <?def?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] = ul4c.TemplateClosure(stack[-1]._getast({id}), vars)\n".format(i=indent*"\t", n=self.name if self.name is not None else "unnamed", id=id(self), l=self.location)
-
-	def _getast(self, astid):
-		try:
-			return self._astsbyid[astid]
-		except KeyError:
-			for node in self.iternodes():
-				if id(node) == astid:
-					self._astsbyid[astid] = node
-					return node
-			raise
-
-	def _handleexc(self, exc):
-		source = [line.strip() for line in self._pythonsource.splitlines()]
-		lineno = exc.__traceback__.tb_lineno-1
-		for line in reversed(source[:lineno]):
-			if line.startswith("#"):
-				ast = self._getast(int(line.rpartition(" ")[2][1:-1])) # extract the id from the comment and fetch the appropriate node
-				break
-		else:
-			raise # shouldn't happen -> reraise original
-		if ast.location is None:
-			raise # shouldn't happen, as a ``<?def?>`` tag itself can't result in any exceptions -> reraise original
-		else:
-			raise Error(ast.location) from exc
-
-	def _render(self, stack, vars):
-		return self.pythonfunction()(self, stack, vars)
-
-	def render(self, **vars):
-		"""
-		Render the template iteratively (i.e. this is a generator).
-		:var:`vars` contains the top level variables available to the
-		template code.
-		"""
-		stack = []
-		vars = collections.ChainMap(vars, self.functions, {'stack': stack})
-		return self._render(stack, vars)
-
-	def renders(self, **vars):
-		"""
-		Render the template as a string. :var:`vars` contains the top level
-		variables available to the template code.
-		"""
-		return "".join(self.render(**vars))
-
-	def pythonfunction(self):
-		"""
-		Return a Python generator that can be called to render the template.
-		"""
-		if self._pythonfunction is None:
-			name = self.name if self.name is not None else "unnamed"
-			source = self.pythonsource()
-			ns = {}
-			exec(source, ns)
-			self._pythonfunction = ns[name]
-		return self._pythonfunction
-
-	def pythonsource(self):
-		"""
-		Return the template as Python source code.
-		"""
-		if self._pythonsource is None:
-			v = []
-			v.append("def {}(self, stack, vars):\n".format(self.name if self.name is not None else "unnamed"))
-			v.append("\timport datetime, collections\n")
-			v.append("\tfrom ll import ul4c, misc, color\n")
-			v.append("\tif 0:\n")
-			v.append("\t\tyield\n")
-			v.append("\ttry:\n")
-			v.append("\t\tstack.append(self)\n")
-			v.append("\t\tallvars = collections.ChainMap(vars, self.functions, {'stack': stack})\n")
-			for node in self.content:
-				v.append(node.formatpython(2, self._keepws))
-			v.append("\texcept Exception as exc:\n")
-			v.append("\t\tstack[-1]._handleexc(exc)\n")
-			v.append("\tfinally:\n")
-			v.append("\t\tstack.pop()\n")
-			self._pythonsource = "".join(v)
-		return self._pythonsource
-
-	def jssource(self):
-		"""
-		Return the template as the source code of a Javascript function. A
-		:class:`JavascriptSource` object will be used to generated the sourcecode.
-		"""
-		return "ul4.Template.loads({})".format(_asjson(self.dumps()))
-
-	def javasource(self):
-		"""
-		Return the template as Java source code.
-		"""
-		return "com.livinglogic.ul4.InterpretedTemplate.loads({})".format(misc.javaexpr(self.dumps()))
-
 	def _tokenize(self, source, startdelim, enddelim):
 		"""
-		Tokenize the template source code :var:`source` into tags and non-tag
-		text. :var:`startdelim` and :var:`enddelim` are used as the tag delimiters.
+		Tokenize the template/function source code :var:`source` into tags and
+		non-tag text. :var:`startdelim` and :var:`enddelim` are used as the tag
+		delimiters.
 
 		This is a generator which produces :class:`Location` objects for each tag
 		or non-tag text. It will be called by :meth:`_compile` internally.
 		"""
-		pattern = "{}(printx|print|code|for|if|elif|else|end|break|continue|render|def|note)(\s*((.|\\n)*?)\s*)?{}".format(re.escape(startdelim), re.escape(enddelim))
+		pattern = "{}(printx|print|code|for|if|elif|else|end|break|continue|render|template|function|return|note)(\s*((.|\\n)*?)\s*)?{}".format(re.escape(startdelim), re.escape(enddelim))
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
@@ -3205,15 +2336,17 @@ class Template(Block, Callable):
 
 	def _compile(self, source, name, startdelim, enddelim):
 		"""
-		Compile the template source code :var:`source` into opcodes.
+		Compile the template/function source code :var:`source` into an AST.
 		:var:`startdelim` and :var:`enddelim` are used as the tag delimiters.
 		"""
 		self.name = name
 		self.startdelim = startdelim
 		self.enddelim = enddelim
 
-		# This stack stores the nested for/if/elif/else/def blocks
+		# This stack stores the nested for/if/elif/else/template/function blocks
 		stack = [self]
+		# This is a stack of the ``Template``/``Function`` objects
+		callablestack = [self]
 
 		self.source = source
 
@@ -3232,6 +2365,8 @@ class Template(Block, Callable):
 		for location in self._tokenize(source, startdelim, enddelim):
 			try:
 				if location.type is None:
+					# Literal text will be ignored in functions
+					if isinstance(callablestack[-1], Template):
 						stack[-1].append(Text(location))
 				elif location.type == "print":
 					stack[-1].append(Print(location, parseexpr(location)))
@@ -3266,9 +2401,12 @@ class Template(Block, Callable):
 						elif code == "for":
 							if not isinstance(stack[-1], For):
 								raise BlockError("endfor doesn't match any for")
-						elif code == "def":
+						elif code == "template":
 							if not isinstance(stack[-1], Template):
-								raise BlockError("enddef doesn't match any def")
+								raise BlockError("endtemplate doesn't match any template")
+						elif code == "function":
+							if not isinstance(stack[-1], Function):
+								raise BlockError("endfunction doesn't match any function")
 						else:
 							raise BlockError("illegal end value {!r}".format(code))
 					last = stack.pop()
@@ -3276,6 +2414,8 @@ class Template(Block, Callable):
 					last.endlocation = location
 					if isinstance(last, IfElIfElse):
 						last.content[-1].endlocation = location
+					if isinstance(last, (Template, Function)):
+						callablestack.pop()
 				elif location.type == "for":
 					block = parsefor(location)
 					stack[-1].append(block)
@@ -3284,24 +2424,38 @@ class Template(Block, Callable):
 					for block in reversed(stack):
 						if isinstance(block, For):
 							break
-						elif isinstance(block, Template):
+						elif isinstance(block, (Template, Function)):
 							raise BlockError("break outside of for loop")
 					stack[-1].append(Break(location))
 				elif location.type == "continue":
 					for block in reversed(stack):
 						if isinstance(block, For):
 							break
-						elif isinstance(block, Template):
+						elif isinstance(block, (Template, Function)):
 							raise BlockError("continue outside of for loop")
 					stack[-1].append(Continue(location))
 				elif location.type == "render":
-					stack[-1].append(Render(location, parseexpr(location)))
-				elif location.type == "def":
+					# ``<?render?>`` tags will be ignored inside functions
+					if isinstance(callablestack[-1], Template):
+						stack[-1].append(Render(location, parseexpr(location)))
+				elif location.type == "template":
 					block = Template(None, location.code, self.keepws, self.startdelim, self.enddelim)
 					block.location = location # Set start ``location`` of sub template
 					block.source = self.source # The source of the top level template (so that the offsets in :class:`Location` are correct)
 					stack[-1].append(block)
 					stack.append(block)
+					callablestack.append(block)
+				elif location.type == "function":
+					block = Function(None, location.code, self.keepws, self.startdelim, self.enddelim)
+					block.location = location # Set start ``location`` of function
+					block.source = self.source # The source of the top level template/function (so that the offsets in :class:`Location` are correct)
+					stack[-1].append(block)
+					stack.append(block)
+					callablestack.append(block)
+				elif location.type == "return":
+					if isinstance(callablestack[-1], Template):
+						raise BlockError("return in template")
+					stack[-1].append(Return(location, parseexpr(location)))
 				else: # Can't happen
 					raise ValueError("unknown tag {!r}".format(location.type))
 			except Exception as exc:
@@ -3309,50 +2463,1056 @@ class Template(Block, Callable):
 		if len(stack) > 1:
 			raise Error(stack[-1].location) from BlockError("block unclosed")
 
+	def _getast(self, astid):
+		try:
+			return self._astsbyid[astid]
+		except KeyError:
+			for node in self.iternodes():
+				if id(node) == astid:
+					self._astsbyid[astid] = node
+					return node
+			raise
+
+	def _handleexc(self, exc):
+		source = [line.strip() for line in self._pythonsource.splitlines()]
+		lineno = exc.__traceback__.tb_lineno-1
+		for line in reversed(source[:lineno]):
+			if line.startswith("#"):
+				ast = self._getast(int(line.rpartition(" ")[2][1:-1])) # extract the id from the comment and fetch the appropriate node
+				break
+		else:
+			raise # shouldn't happen -> reraise original
+		if ast.location is None:
+			raise # shouldn't happen, as a ``<?template?>``/``<?function?>`` tag itself can't result in any exceptions -> reraise original
+		else:
+			raise Error(ast.location) from exc
+
+	@classmethod
+	def makefunction(cls, f):
+		name = f.__name__
+		if name.startswith("_"):
+			name = name[1:]
+		cls.functions[name] = f
+		return f
+
+	@classmethod
+	def makemethod(cls, f):
+		name = f.__name__
+		if name.startswith("_"):
+			name = name[1:]
+		cls.methods[name] = f
+		return f
+
+
+###
+### Functions & methods
+###
+
+@Code.makefunction
+def _str(obj=""):
+	if obj is None:
+		return ""
+	elif isinstance(obj, Undefined):
+		return ""
+	else:
+		return str(obj)
+
+
+@Code.makefunction
+def _repr(obj):
+	if isinstance(obj, str):
+		return repr(obj)
+	elif isinstance(obj, datetime.datetime):
+		s = str(obj.isoformat())
+		if s.endswith("T00:00:00"):
+			s = s[:-9]
+		return "@({})".format(s)
+	elif isinstance(obj, datetime.date):
+		return "@({})".format(obj.isoformat())
+	elif isinstance(obj, datetime.timedelta):
+		return repr(obj).partition(".")[-1]
+	elif isinstance(obj, color.Color):
+		if obj[3] == 0xff:
+			s = "#{:02x}{:02x}{:02x}".format(obj[0], obj[1], obj[2])
+			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6]:
+				return "#{}{}{}".format(s[1], s[3], s[5])
+			return s
+		else:
+			s = "#{:02x}{:02x}{:02x}{:02x}".format(*obj)
+			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6] and s[7]==s[8]:
+				return "#{}{}{}{}".format(s[1], s[3], s[5], s[7])
+			return s
+	elif isinstance(obj, collections.Sequence):
+		return "[{}]".format(", ".join(_repr(item) for item in obj))
+	elif isinstance(obj, collections.Mapping):
+		return "{{{}}}".format(", ".join("{}: {}".format(_repr(key), _repr(value)) for (key, value) in obj.items()))
+	else:
+		return repr(obj)
+
+
+@Code.makefunction
+def _now():
+	return datetime.datetime.now()
+
+
+@Code.makefunction
+def _utcnow():
+	return datetime.datetime.utcnow()
+
+
+@Code.makefunction
+def _date(year, month, day, hour=0, minute=0, second=0, microsecond=0):
+	return datetime.datetime(year, month, day, hour, minute, second, microsecond)
+
+
+@Code.makefunction
+def _timedelta(days=0, seconds=0, microseconds=0):
+	return datetime.timedelta(days, seconds, microseconds)
+
+
+@Code.makefunction
+def _monthdelta(months=0):
+	return misc.monthdelta(months)
+
+
+@Code.makefunction
+def _random():
+	return random.random()
+
+
+@Code.makefunction
+def _xmlescape(obj):
+	if obj is None:
+		return ""
+	elif isinstance(obj, Undefined):
+		return ""
+	else:
+		return misc.xmlescape(str(obj))
+
+
+@Code.makefunction
+def _csv(obj):
+	if obj is None:
+		return ""
+	elif isinstance(obj, Undefined):
+		return ""
+	elif not isinstance(obj, str):
+		obj = _repr(obj)
+	if any(c in obj for c in ',"\n'):
+		return '"{}"'.format(obj.replace('"', '""'))
+	return obj
+
+
+@Code.makefunction
+def _asjson(obj):
+	if obj is None:
+		return "null"
+	elif isinstance(obj, Undefined):
+		return "{}.undefined"
+	if isinstance(obj, (bool, int, float, str)):
+		return json.dumps(obj)
+	elif isinstance(obj, datetime.datetime):
+		return "new Date({}, {}, {}, {}, {}, {}, {})".format(obj.year, obj.month-1, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond//1000)
+	elif isinstance(obj, datetime.date):
+		return "new Date({}, {}, {})".format(obj.year, obj.month-1, obj.day)
+	elif isinstance(obj, datetime.timedelta):
+		return "ul4.TimeDelta.create({}, {}, {})".format(obj.days, obj.seconds, obj.microseconds)
+	elif isinstance(obj, misc.monthdelta):
+		return "ul4.MonthDelta.create({})".format(obj.months)
+	elif isinstance(obj, color.Color):
+		return "ul4.Color.create({}, {}, {}, {})".format(*obj)
+	elif isinstance(obj, collections.Mapping):
+		return "{{{}}}".format(", ".join("{}: {}".format(_asjson(key), _asjson(value)) for (key, value) in obj.items()))
+	elif isinstance(obj, collections.Sequence):
+		return "[{}]".format(", ".join(_asjson(item) for item in obj))
+	elif isinstance(obj, Template):
+		return obj.jssource()
+	else:
+		raise TypeError("can't handle object of type {}".format(type(obj)))
+
+
+@Code.makefunction
+def _fromjson(string):
+	from ll import ul4on
+	return json.loads(string)
+
+
+@Code.makefunction
+def _asul4on(obj):
+	from ll import ul4on
+	return ul4on.dumps(obj)
+
+
+@Code.makefunction
+def _fromul4on(string):
+	from ll import ul4on
+	return ul4on.loads(string)
+
+
+@Code.makefunction
+def _int(obj=0, base=None):
+	if base is None:
+		return int(obj)
+	else:
+		return int(obj, base)
+
+
+@Code.makefunction
+def _float(obj=0.0):
+	return float(obj)
+
+
+@Code.makefunction
+def _bool(obj=False):
+	return bool(obj)
+
+
+@Code.makefunction
+def _len(sequence):
+	return len(sequence)
+
+
+@Code.makefunction
+def _abs(number):
+	return abs(number)
+
+
+@Code.makefunction
+def _any(iterable):
+	return any(iterable)
+
+
+@Code.makefunction
+def _all(iterable):
+	return all(iterable)
+
+
+@Code.makefunction
+def _enumerate(iterable, start=0):
+	return enumerate(iterable, start)
+
+
+@Code.makefunction
+def _enumfl(iterable, start=0):
+	lastitem = None
+	first = True
+	i = start
+	it = iter(iterable)
+	try:
+		item = next(it)
+	except StopIteration:
+		return
+	while True:
+		try:
+			(lastitem, item) = (item, next(it))
+		except StopIteration:
+			yield (i, first, True, item) # Items haven't been swapped yet
+			return
+		else:
+			yield (i, first, False, lastitem)
+			first = False
+		i += 1
+
+
+@Code.makefunction
+def _isfirstlast(iterable):
+	lastitem = None
+	first = True
+	it = iter(iterable)
+	try:
+		item = next(it)
+	except StopIteration:
+		return
+	while True:
+		try:
+			(lastitem, item) = (item, next(it))
+		except StopIteration:
+			yield (first, True, item) # Items haven't been swapped yet
+			return
+		else:
+			yield (first, False, lastitem)
+			first = False
+
+
+@Code.makefunction
+def _isfirst(iterable):
+	first = True
+	for item in iterable:
+		yield (first, item)
+		first = False
+
+
+@Code.makefunction
+def _islast(iterable):
+	lastitem = None
+	it = iter(iterable)
+	try:
+		item = next(it)
+	except StopIteration:
+		return
+	while True:
+		try:
+			(lastitem, item) = (item, next(it))
+		except StopIteration:
+			yield (True, item) # Items haven't been swapped yet
+			return
+		else:
+			yield (False, lastitem)
+
+
+@Code.makefunction
+def _isundefined(obj):
+	return isinstance(obj, Undefined)
+
+
+@Code.makefunction
+def _isdefined(obj):
+	return not isinstance(obj, Undefined)
+
+
+@Code.makefunction
+def _isnone(obj):
+	return obj is None
+
+
+@Code.makefunction
+def _isstr(obj):
+	return isinstance(obj, str)
+
+
+@Code.makefunction
+def _isint(obj):
+	return isinstance(obj, int) and not isinstance(obj, bool)
+
+
+@Code.makefunction
+def _isfloat(obj):
+	return isinstance(obj, float)
+
+
+@Code.makefunction
+def _isbool(obj):
+	return isinstance(obj, bool)
+
+
+@Code.makefunction
+def _isdate(obj):
+	return isinstance(obj, (datetime.datetime, datetime.date))
+
+
+@Code.makefunction
+def _istimedelta(obj):
+	return isinstance(obj, datetime.timedelta)
+
+
+@Code.makefunction
+def _ismonthdelta(obj):
+	return isinstance(obj, misc.monthdelta)
+
+
+@Code.makefunction
+def _islist(obj):
+	return isinstance(obj, collections.Sequence) and not isinstance(obj, str) and not isinstance(obj, color.Color)
+
+
+@Code.makefunction
+def _isdict(obj):
+	return isinstance(obj, collections.Mapping) and not isinstance(obj, Template)
+
+
+@Code.makefunction
+def _iscolor(obj):
+	return isinstance(obj, color.Color)
+
+
+@Code.makefunction
+def _istemplate(obj):
+	return isinstance(obj, (Template, TemplateClosure))
+
+
+@Code.makefunction
+def _isfunction(obj):
+	return callable(obj)
+
+
+@Code.makefunction
+def _chr(i):
+	return chr(i)
+
+
+@Code.makefunction
+def _ord(c):
+	return ord(c)
+
+
+@Code.makefunction
+def _hex(number):
+	return hex(number)
+
+
+@Code.makefunction
+def _oct(number):
+	return oct(number)
+
+
+@Code.makefunction
+def _bin(number):
+	return bin(number)
+
+
+@Code.makefunction
+def _min(*args):
+	return min(*args)
+
+
+@Code.makefunction
+def _max(*args):
+	return max(*args)
+
+
+@Code.makefunction
+def _sorted(iterable):
+	return sorted(iterable)
+
+
+@Code.makefunction
+def _range(*args):
+	return range(*args)
+
+
+@Code.makefunction
+def _type(obj):
+	if obj is None:
+		return "none"
+	elif isinstance(obj, str):
+		return "str"
+	elif isinstance(obj, bool):
+		return "bool"
+	elif isinstance(obj, int):
+		return "int"
+	elif isinstance(obj, float):
+		return "float"
+	elif isinstance(obj, (datetime.datetime, datetime.date)):
+		return "date"
+	elif isinstance(obj, datetime.timedelta):
+		return "timedelta"
+	elif isinstance(obj, misc.monthdelta):
+		return "monthdelta"
+	elif isinstance(obj, color.Color):
+		return "color"
+	elif isinstance(obj, Template):
+		return "template"
+	elif isinstance(obj, collections.Mapping):
+		return "dict"
+	elif isinstance(obj, color.Color):
+		return "color"
+	elif isinstance(obj, collections.Sequence):
+		return "list"
+	return None
+
+
+@Code.makefunction
+def _reversed(sequence):
+	return reversed(sequence)
+
+
+@Code.makefunction
+def _randrange(*args):
+	return random.randrange(*args)
+
+
+@Code.makefunction
+def _randchoice(sequence):
+	return random.choice(sequence)
+
+
+@Code.makefunction
+def _format(obj, fmt, lang=None):
+	if isinstance(obj, (datetime.date, datetime.time, datetime.timedelta)):
+		if lang is None:
+			lang = "en"
+		oldlocale = locale.getlocale()
+		try:
+			for candidate in (locale.normalize(lang), locale.normalize("en"), ""):
+				try:
+					locale.setlocale(locale.LC_ALL, candidate)
+					return format(obj, fmt)
+				except locale.Error:
+					if not candidate:
+						return format(obj, fmt)
+		finally:
+			try:
+				locale.setlocale(locale.LC_ALL, oldlocale)
+			except locale.Error:
+				pass
+	else:
+		return format(obj, fmt)
+
+
+@Code.makefunction
+def _zip(*iterables):
+	return zip(*iterables)
+
+
+@Code.makefunction
+def _urlquote(string):
+	return urlparse.quote_plus(string)
+
+
+@Code.makefunction
+def _urlunquote(string):
+	return urlparse.unquote_plus(string)
+
+
+@Code.makefunction
+def _rgb(r, g, b, a=1.0):
+	return color.Color.fromrgb(r, g, b, a)
+
+
+@Code.makefunction
+def _hls(h, l, s, a=1.0):
+	return color.Color.fromhls(h, l, s, a)
+
+
+@Code.makefunction
+def _hsv(h, s, v, a=1.0):
+	return color.Color.fromhsv(h, s, v, a)
+
+
+@Code.makemethod
+def _split(obj, sep=None, count=None):
+	return obj.split(sep, count if count is not None else -1)
+
+
+@Code.makemethod
+def _rsplit(obj, sep=None, count=None):
+	return obj.rsplit(sep, count if count is not None else -1)
+
+
+@Code.makemethod
+def _strip(obj, chars=None):
+	return obj.strip(chars)
+
+
+@Code.makemethod
+def _lstrip(obj, chars=None):
+	return obj.lstrip(chars)
+
+
+@Code.makemethod
+def _rstrip(obj, chars=None):
+	return obj.rstrip(chars)
+
+
+@Code.makemethod
+def _find(obj, sub, start=None, end=None):
+	if isinstance(obj, str):
+		return obj.find(sub, start, end)
+	else:
+		try:
+			if end is None:
+				if start is None:
+					return obj.index(sub)
+				return obj.index(sub, start)
+			return obj.index(sub, start, end)
+		except ValueError:
+			return -1
+
+
+@Code.makemethod
+def _rfind(obj, sub, start=None, end=None):
+	if isinstance(obj, str):
+		return obj.rfind(sub, start, end)
+	else:
+		for i in reversed(range(*slice(start, end).indices(len(obj)))):
+			if obj[i] == sub:
+				return i
+		return -1
+
+
+@Code.makemethod
+def _startswith(obj, prefix):
+	return obj.startswith(prefix)
+
+
+@Code.makemethod
+def _endswith(obj, suffix):
+	return obj.endswith(suffix)
+
+
+@Code.makemethod
+def _upper(obj):
+	return obj.upper()
+
+
+@Code.makemethod
+def _lower(obj):
+	return obj.lower()
+
+
+@Code.makemethod
+def _capitalize(obj):
+	return obj.capitalize()
+
+
+@Code.makemethod
+def _replace(obj, old, new, count=None):
+	if count is None:
+		return obj.replace(old, new)
+	else:
+		return obj.replace(old, new, count)
+
+
+@Code.makemethod
+def _r(obj):
+	return obj.r()
+
+
+@Code.makemethod
+def _g(obj):
+	return obj.g()
+
+
+@Code.makemethod
+def _b(obj):
+	return obj.b()
+
+
+@Code.makemethod
+def _a(obj):
+	return obj.a()
+
+
+@Code.makemethod
+def _hls(obj):
+	return obj.hls()
+
+
+@Code.makemethod
+def _hlsa(obj):
+	return obj.hlsa()
+
+
+@Code.makemethod
+def _hsv(obj):
+	return obj.hsv()
+
+
+@Code.makemethod
+def _hsva(obj):
+	return obj.hsva()
+
+
+@Code.makemethod
+def _lum(obj):
+	return obj.lum()
+
+
+@Code.makemethod
+def _weekday(obj):
+	return obj.weekday()
+
+
+@Code.makemethod
+def _week(obj, firstweekday=None):
+	if firstweekday is None:
+		firstweekday = 0
+	else:
+		firstweekday %= 7
+	jan1 = obj.__class__(obj.year, 1, 1)
+	yearday = (obj - jan1).days+7
+	jan1weekday = jan1.weekday()
+	while jan1weekday != firstweekday:
+		yearday -= 1
+		jan1weekday += 1
+		if jan1weekday == 7:
+			jan1weekday = 0
+	return yearday//7
+
+
+@Code.makemethod
+def _items(obj):
+	return obj.items()
+
+
+@Code.makemethod
+def _values(obj):
+	return obj.values()
+
+
+@Code.makemethod
+def _join(obj, iterable):
+	return obj.join(iterable)
+
+
+@Code.makemethod
+def _render(obj, **vars):
+	return obj.render(**vars)
+
+
+@Code.makemethod
+def _renders(obj, **vars):
+	return obj.renders(**vars)
+
+
+@Code.makemethod
+def _mimeformat(obj):
+	weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+	monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+	return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(obj, weekdayname[obj.weekday()], monthname[obj.month])
+
+
+@Code.makemethod
+def _isoformat(obj):
+	result = obj.isoformat()
+	suffix = "T00:00:00"
+	if result.endswith(suffix):
+		return result[:-len(suffix)]
+	return result
+
+
+@Code.makemethod
+def _yearday(obj):
+	return (obj - obj.__class__(obj.year, 1, 1)).days+1
+
+
+@Code.makemethod
+def _get(obj, key, default=None):
+	return obj.get(key, default)
+
+
+@Code.makemethod
+def _withlum(obj, lum):
+	return obj.withlum(lum)
+
+
+@Code.makemethod
+def _witha(obj, a):
+	return obj.witha(a)
+
+
+@Code.makemethod
+def _day(obj):
+	return obj.day
+
+
+@Code.makemethod
+def _month(obj):
+	return obj.month
+
+
+@Code.makemethod
+def _year(obj):
+	return obj.year
+
+
+@Code.makemethod
+def _hour(obj):
+	return obj.hour
+
+
+@Code.makemethod
+def _minute(obj):
+	return obj.minute
+
+
+@Code.makemethod
+def _second(obj):
+	return obj.second
+
+
+@Code.makemethod
+def _microsecond(obj):
+	return obj.microsecond
+
+
+@register("template")
+class Template(Code):
+	"""
+	A template object is normally created by passing the template source to the
+	constructor. It can also be loaded from the compiled format via the class
+	methods :meth:`load` (from a stream) or :meth:`loads` (from a string).
+
+	The compiled format can be generated with the methods :meth:`dump` (which
+	dumps the format to a stream) or :meth:`dumps` (which returns a string with
+	the compiled format).
+
+	Rendering the template can be done with the methods :meth:`render` (which
+	is a generator) or :meth:`renders` (which returns a string).
+
+	A :class:`Template` object is itself an AST node. Evaluating it will store
+	the template object under its name in the local variables.
+	"""
+
+	def format(self, indent, keepws):
+		v = []
+		name = self.name if self.name is not None else "unnamed"
+		v.append("{}template {}()\n".format(indent*"\t", name))
+		v.append("{}{{\n".format(indent*"\t"))
+		indent += 1
+		for node in self.content:
+			v.append(node.format(indent, keepws))
+		indent -= 1
+		v.append("{}}}\n".format(indent*"\t"))
+		return "".join(v)
+
+	def formatpython(self, indent, keepws):
+		return "{i}# <?template?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] = ul4c.TemplateClosure(self._getast({id}), vars)\n".format(i=indent*"\t", n=self.name if self.name is not None else "unnamed", id=id(self), l=self.location)
+
+	def render(self, **vars):
+		"""
+		Render the template iteratively (i.e. this is a generator).
+		:var:`vars` contains the top level variables available to the
+		template code.
+		"""
+		return self.pythonfunction()(self, vars)
+
+	def renders(self, **vars):
+		"""
+		Render the template as a string. :var:`vars` contains the top level
+		variables available to the template code.
+		"""
+		return "".join(self.pythonfunction()(self, vars))
+
+	def pythonfunction(self):
+		"""
+		Return a Python generator that can be called to render the template.
+		"""
+		if self._pythonfunction is None:
+			name = self.name if self.name is not None else "unnamed"
+			source = self.pythonsource()
+			ns = {}
+			exec(source, ns)
+			self._pythonfunction = ns[name]
+		return self._pythonfunction
+
+	def pythonsource(self):
+		"""
+		Return the template as Python source code.
+		"""
+		if self._pythonsource is None:
+			v = []
+			v.append("def {}(self, vars):\n".format(self.name if self.name is not None else "unnamed"))
+			v.append("\timport datetime, collections\n")
+			v.append("\tfrom ll import ul4c, misc, color\n")
+			v.append("\tif 0:\n")
+			v.append("\t\tyield\n")
+			v.append("\ttry:\n")
+			v.append("\t\tallvars = ul4c._AllVars(vars, self.functions, {'self': self})\n")
+			for node in self.content:
+				v.append(node.formatpython(2, self._keepws))
+			v.append("\texcept Exception as exc:\n")
+			v.append("\t\tself._handleexc(exc)\n")
+			self._pythonsource = "".join(v)
+		return self._pythonsource
+
+	def jssource(self):
+		"""
+		Return the template as the source code of a Javascript function.
+		"""
+		return "ul4.Template.loads({})".format(_asjson(self.dumps()))
+
+	def javasource(self):
+		"""
+		Return the template as Java source code.
+		"""
+		return "com.livinglogic.ul4.InterpretedTemplate.loads({})".format(misc.javaexpr(self.dumps()))
+
 
 class TemplateClosure(Object):
 	fields = {"location", "endlocation", "name", "source", "startdelim", "enddelim", "content"}
 
 	def __init__(self, template, vars):
 		self.template = template
-		# Freeze variables of the currently running templates
+		# Freeze variables of the currently running templates/functions
 		self.vars = vars.copy()
 
-	def _render(self, stack, vars):
-		return self.template._render(stack, collections.ChainMap(vars, self.vars))
+	def render(self, **vars):
+		return self.template.render(**collections.ChainMap(vars, self.vars))
 
-	@property
-	def location(self):
-		return self.template.location
+	def renders(self, **vars):
+		return self.template.renders(**collections.ChainMap(vars, self.vars))
 
-	@property
-	def endlocation(self):
-		return self.template.endlocation
+	def __getattr__(self, name):
+		return getattr(self.template, name)
 
-	@property
-	def name(self):
-		return self.template.name
+	def __repr__(self):
+		s = "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} keepws={0.keepws!r}".format(self)
+		if self.startdelim != "<?":
+			s += " startdelim={0.startdelim!r}".format(self)
+		if self.enddelim != "?>":
+			s += " enddelim={0.enddelim!r}".format(self)
+		if self.content:
+			s + " ..."
+		return s + " at {:#x}>".format(id(self))
 
-	@property
-	def source(self):
-		return self.template.source
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				p.breakable()
+				p.text("name=")
+				p.pretty(self.name)
+				p.breakable()
+				p.text("keepws=")
+				p.pretty(self.keepws)
+				if self.startdelim != "<?":
+					p.breakable()
+					p.text("startdelim=")
+					p.pretty(self.startdelim)
+				if self.enddelim != "?>":
+					p.breakable()
+					p.text("enddelim=")
+					p.pretty(self.enddelim)
+				for node in self.content:
+					p.breakable()
+					p.pretty(node)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
 
-	@property
-	def startdelim(self):
-		return self.template.startdelim
 
-	@property
-	def enddelim(self):
-		return self.template.enddelim
+@register("function")
+class Function(Code):
+	"""
+	A function object is normally created by passing the function source to the
+	constructor. It can also be loaded from the compiled format via the class
+	methods :meth:`load` (from a stream) or :meth:`loads` (from a string).
 
-	@property
-	def content(self):
-		return self.template.content
+	The compiled format can be generated with the methods :meth:`dump` (which
+	dumps the format to a stream) or :meth:`dumps` (which returns a string with
+	the compiled format).
+
+	A :class:`Function` object can be called like a normal Python function.
+
+	A :class:`Function` object is itself an AST node. Evaluating it will store
+	the function object under its name in the local variables.
+	"""
+	def format(self, indent, keepws):
+		v = []
+		name = self.name if self.name is not None else "unnamed"
+		v.append("{}function {}()\n".format(indent*"\t", name))
+		v.append("{}{{\n".format(indent*"\t"))
+		indent += 1
+		for node in self.content:
+			v.append(node.format(indent, keepws))
+		indent -= 1
+		v.append("{}}}\n".format(indent*"\t"))
+		return "".join(v)
+
+	def formatpython(self, indent, keepws):
+		return "{i}# <?function?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] = ul4c.FunctionClosure(self._getast({id}), vars)\n".format(i=indent*"\t", n=self.name if self.name is not None else "unnamed", id=id(self), l=self.location)
+
+	def __call__(self, **vars):
+		"""
+		Call the function and return the resulting value. :var:`vars` contains
+		the top level variables available to the function code.
+		"""
+		return self.pythonfunction()(self, vars)
+
+	def pythonfunction(self):
+		"""
+		Return a Python function that can be called to execute the UL4 function.
+		"""
+		if self._pythonfunction is None:
+			name = self.name if self.name is not None else "unnamed"
+			source = self.pythonsource()
+			ns = {}
+			exec(source, ns)
+			self._pythonfunction = ns[name]
+		return self._pythonfunction
+
+	def pythonsource(self):
+		"""
+		Return the function as Python source code.
+		"""
+		if self._pythonsource is None:
+			v = []
+			v.append("def {}(self, vars):\n".format(self.name if self.name is not None else "unnamed"))
+			v.append("\timport datetime, collections\n")
+			v.append("\tfrom ll import ul4c, misc, color\n")
+			v.append("\ttry:\n")
+			v.append("\t\tallvars = ul4c._AllVars(vars, self.functions, {'self': self})\n")
+			for node in self.content:
+				v.append(node.formatpython(2, self._keepws))
+			v.append("\texcept Exception as exc:\n")
+			v.append("\t\tself._handleexc(exc)\n")
+			self._pythonsource = "".join(v)
+		return self._pythonsource
+
+	def jssource(self):
+		"""
+		Return the function as the source code of a Javascript function.
+		"""
+		return "ul4.Function.loads({})".format(_asjson(self.dumps()))
+
+	def javasource(self):
+		"""
+		Return the function as Java source code.
+		"""
+		return "com.livinglogic.ul4.InterpretedFunction.loads({})".format(misc.javaexpr(self.dumps()))
+
+
+class FunctionClosure(Object):
+	fields = {"location", "endlocation", "name", "source", "startdelim", "enddelim", "content"}
+
+	def __init__(self, function, vars):
+		self.function = function
+		# Freeze variables of the currently running templates/functions
+		self.vars = vars.copy()
+
+	def __call__(self, **vars):
+		return self.function(**collections.ChainMap(vars, self.vars))
+
+	def __getattr__(self, name):
+		return getattr(self.function, name)
+
+	def __repr__(self):
+		s = "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} keepws={0.keepws!r}".format(self)
+		if self.startdelim != "<?":
+			s += " startdelim={0.startdelim!r}".format(self)
+		if self.enddelim != "?>":
+			s += " enddelim={0.enddelim!r}".format(self)
+		if self.content:
+			s + " ..."
+		return s + " at {:#x}>".format(id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				p.breakable()
+				p.text("name=")
+				p.pretty(self.name)
+				p.breakable()
+				p.text("keepws=")
+				p.pretty(self.keepws)
+				if self.startdelim != "<?":
+					p.breakable()
+					p.text("startdelim=")
+					p.pretty(self.startdelim)
+				if self.enddelim != "?>":
+					p.breakable()
+					p.text("enddelim=")
+					p.pretty(self.enddelim)
+				for node in self.content:
+					p.breakable()
+					p.pretty(node)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
 
 
 ###
-### Helper functions used at template runtime
+### Helper classes/functions used at runtime
 ###
+
+class _AllVars(collections.ChainMap):
+	def __setitem__(self, key, value):
+		if key == "self":
+			raise ValueError("can't assign to self")
+		collections.ChainMap.__setitem__(self, key, value)
+
 
 def _makedict(*items):
 	result = {}
@@ -3375,7 +3535,7 @@ def _formatnestednameul4(name):
 
 def _formatnestednamepython(name):
 	if isinstance(name, str):
-		return "vars[{!r}]".format(name)
+		return "allvars[{!r}]".format(name)
 	elif len(name) == 1:
 		return "({},)".format(_formatnestednamepython(name[0]))
 	else:
