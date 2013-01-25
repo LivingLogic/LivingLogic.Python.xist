@@ -13,7 +13,7 @@ import sys, os, re, datetime, io, json, contextlib, tempfile, collections, shuti
 
 import pytest
 
-from ll import ul4c, color, misc
+from ll import ul4c, color, misc, ul4on
 from ll.xist.ns import html, ul4
 
 
@@ -100,7 +100,7 @@ def render_js(__, *, keepws=True, **variables):
 	js = template.jssource()
 	js = "template = {};\ndata = {};\nprint(template.renders(data));\n".format(js, ul4c._asjson(variables))
 	f = sys._getframe(1)
-	print("Testing Javascript code compiled by Python ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+	print("Testing Javascript template compiled by Python ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
 	print(js)
 	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 		f.write(js.encode("utf-8"))
@@ -127,7 +127,7 @@ def render_php(__, **variables):
 	print $template->renders($variables);
 	?>""".format(phpexpr(template.dumps()), phpexpr(variables))
 	f = sys._getframe(1)
-	print("Testing PHP code compiled by Python ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+	print("Testing PHP template compiled by Python ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
 	print(php)
 	with tempfile.NamedTemporaryFile(mode="wb", suffix=".php") as f:
 		f.write(php.encode("utf-8"))
@@ -357,6 +357,35 @@ def call_python_dump(__, *, keepws=True, **variables):
 	print("with variables:")
 	print(repr(variables))
 	return function(**variables)
+
+
+def call_js(__, *, keepws=True, **variables):
+	"""
+	Compile the function from the source ``__``, and generate Javascript source
+	from it and call it with the variables ``variables``.
+
+	(this requires an installed ``d8`` shell from V8 (http://code.google.com/p/v8/))
+	"""
+	function = ul4c.Function(__, keepws=keepws)
+	js = function.jssource()
+	js = "func = {};\ndata = {};\nprint(ul4on.dumps(func.call(data)));\n".format(js, ul4c._asjson(variables))
+	f = sys._getframe(1)
+	print("Testing Javascript function compiled by Python ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+	print(js)
+	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
+		f.write(js.encode("utf-8"))
+		f.flush()
+		dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
+		proc = subprocess.Popen("d8 {dir}/ul4on.js {dir}/ul4.js {fn}".format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		(stdout, stderr) = proc.communicate()
+	stdout = stdout.decode("utf-8")
+	stderr = stderr.decode("utf-8")
+	# Check if we have an exception
+	if proc.returncode:
+		print(stdout, file=sys.stdout)
+		print(stderr, file=sys.stderr)
+		raise RuntimeError((stderr or stdout).splitlines()[0])
+	return ul4on.loads(stdout)
 
 
 all_renderers = [
@@ -2944,7 +2973,7 @@ def test_self(r):
 @pytest.mark.ul4
 def test_pass_function(r):
 	assert "&lt;" == r("<?template x?><?print xe('<')?><?end template?><?render x.render(xe=xmlescape)?>")
-	assert "&lt;" == r("<?function xe?><?return xmlescape(s)?><?end function?><?template x?><?print xe(s='<')?><?end template?><?render x.render(xe=xe)?>")
+	assert "&lt;&lt;" == r("<?function xe?><?return xmlescape(s)?><?end function?><?template x?><?print xe(s='<')?><?end template?><?render x.render(xe=xe)?><?render x.render()?>")
 
 
 @pytest.mark.ul4
@@ -3172,6 +3201,11 @@ def test_function_value(c):
 @pytest.mark.ul4
 def test_function_multiple_returnvalues(c):
 	assert 84 == c("<?return 2*x?><?return 3*x?>", x=42)
+
+
+@pytest.mark.ul4
+def test_function_name(c):
+	assert "f" == c("<?function f?><?return self.name?><?end function?><?return f()?>")
 
 
 @pytest.mark.ul4
