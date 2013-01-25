@@ -1,3 +1,14 @@
+Migrating to version 4.10
+=========================
+
+Changes to UL4
+--------------
+
+*	Templates are now defined via ``<?template foo?>``/``<?end template?>``
+	instead of ``<?def foo?>``/``<?end def?>``.
+*	The UL4 functions ``vars`` and ``get`` have been removed.
+
+
 Migrating to version 4.7
 ========================
 
