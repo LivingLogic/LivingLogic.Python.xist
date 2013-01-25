@@ -1963,7 +1963,7 @@ class CallFunc(AST):
 			args.append(s)
 		for (argname, argvalue) in self.kwargs:
 			s = argvalue.format(indent, keepws)
-			if isinstance(arg, GenExpr):
+			if isinstance(argvalue, GenExpr):
 				s = s[1:-1]
 			args.append("{}={}".format(argname, s))
 		if self.remargs is not None:
