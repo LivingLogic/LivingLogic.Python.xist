@@ -2092,6 +2092,7 @@ def test_function_isfunction(r):
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "True" == r("<?print isfunction(repr)?>")
+	assert "True" == r("<?function f?><?return 42?><?end function?><?print isfunction(f)?>")
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
