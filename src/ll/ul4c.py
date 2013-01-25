@@ -1309,6 +1309,19 @@ class UnaryTag(Tag):
 		self.obj = decoder.load()
 
 
+@register("return")
+class Return(UnaryTag):
+	"""
+	AST node for a ``<?return?>`` tag.
+	"""
+
+	def format(self, indent, keepws):
+		return "{}return {}\n".format(indent*"\t", self.obj.format(indent, keepws))
+
+	def formatpython(self, indent, keepws):
+		return "{i}# <?return?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}return {o}\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent, keepws), l=self.location)
+
+
 @register("print")
 class Print(UnaryTag):
 	"""
@@ -1333,19 +1346,6 @@ class PrintX(UnaryTag):
 
 	def formatpython(self, indent, keepws):
 		return "{i}# <?printx?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._xmlescape({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent, keepws), l=self.location)
-
-
-@register("return")
-class Return(UnaryTag):
-	"""
-	AST node for a ``<?return?>`` tag.
-	"""
-
-	def format(self, indent, keepws):
-		return "{}return {}\n".format(indent*"\t", self.obj.format(indent, keepws))
-
-	def formatpython(self, indent, keepws):
-		return "{i}# <?return?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}return {o}\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent, keepws), l=self.location)
 
 
 class Binary(AST):
