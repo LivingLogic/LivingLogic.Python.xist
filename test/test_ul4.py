@@ -388,6 +388,56 @@ def call_js(__, *, keepws=True, **variables):
 	return ul4on.loads(stdout)
 
 
+def call_java_interpretedtemplate_by_python(__, *, keepws=True, **variables):
+	"""
+	Compile the function from the source ``__``, and generate Java source that
+	recreates the function from the Python generated dump and executes the
+	function with the variables ``variables``.
+
+	(this requires an installed Java compiler and the Java UL4 jar)
+	"""
+
+	codetemplate = """
+	com.livinglogic.ul4.InterpretedFunction function = %(function)s;
+	java.util.Map<String, Object> variables = %(variables)s;
+	Object output = function.call(variables);
+	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
+	// Use ``System.out.write`` to make sure the output is in UTF-8
+	byte[] outputBytes = com.livinglogic.ul4on.Utils.dumps(output).getBytes("utf-8");
+	System.out.write(outputBytes, 0, outputBytes.length);
+	"""
+
+	f = sys._getframe(1)
+	print("Testing Java InterpretedFunction (compiled by Python) ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+	functionsource = ul4c.Function(__, keepws=keepws).javasource()
+	java = codetemplate % dict(variables=misc.javaexpr(variables), function=functionsource)
+	return ul4on.loads(java_runsource(java))
+
+
+def call_java_interpretedtemplate_by_java(__, keepws=True, **variables):
+	"""
+	Generate Java source that compiles the function source ``__`` and executes the
+	function with the variables ``variables``.
+
+	(this requires an installed Java compiler and the Java UL4 jar)
+	"""
+
+	codetemplate = """
+	com.livinglogic.ul4.InterpretedFunction function = new com.livinglogic.ul4.InterpretedFunction(%(source)s, %(keepws)s);
+	java.util.Map<String, Object> variables = %(variables)s;
+	Object output = function.call(variables);
+	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
+	// Use ``System.out.write`` to make sure the output is in UTF-8
+	byte[] outputBytes = com.livinglogic.ul4on.Utils.dumps(output).getBytes("utf-8");
+	System.out.write(outputBytes, 0, outputBytes.length);
+	"""
+
+	f = sys._getframe(1)
+	print("Testing Java InterpretedFunction (compiled by Java) ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+	java = codetemplate % dict(source=misc.javaexpr(__), variables=misc.javaexpr(variables), keepws=misc.javaexpr(keepws))
+	return ul4on.loads(java_runsource(java))
+
+
 all_renderers = [
 	("python", render_python),
 	("python_dumps", render_python_dumps),
@@ -2964,8 +3014,6 @@ def test_def(r):
 
 @pytest.mark.ul4
 def test_self(r):
-	assert "True" == r("<?print istemplate(self)?>")
-	assert "x" == r("<?template x?><?print self.name?><?end template?><?render x.render()?>")
 	with raises("can't assign to self"):
 		assert "42" == r("<?code self = 42?><?print self?>")
 
@@ -3206,7 +3254,7 @@ def test_function_multiple_returnvalues(c):
 
 @pytest.mark.ul4
 def test_function_name(c):
-	assert "f" == c("<?function f?><?return self.name?><?end function?><?return f()?>")
+	assert "f" == c("<?function f?><?return f.name?><?end function?><?return f(f=f)?>")
 
 
 @pytest.mark.ul4
