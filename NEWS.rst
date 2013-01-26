@@ -20,6 +20,8 @@ Changes in 4.10 (released ??/??/2013)
 
 *	The UL4 functions ``vars`` and ``get`` have been removed.
 
+*	The automatic UL4 variable ``stack`` has been removed too.
+
 
 Changes in 4.9.1 (released 01/17/2013)
 --------------------------------------
