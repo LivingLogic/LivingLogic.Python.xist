@@ -6,7 +6,10 @@ Changes to UL4
 
 *	Templates are now defined via ``<?template foo?>``/``<?end template?>``
 	instead of ``<?def foo?>``/``<?end def?>``.
+
 *	The UL4 functions ``vars`` and ``get`` have been removed.
+
+*	The automatic UL4 variable ``stack`` has been removed too.
 
 
 Migrating to version 4.7
