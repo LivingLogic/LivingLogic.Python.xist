@@ -3298,7 +3298,7 @@ class Template(Code):
 			v.append("\tif 0:\n")
 			v.append("\t\tyield\n")
 			v.append("\ttry:\n")
-			v.append("\t\tallvars = ul4c._AllVars(vars, self.functions, {'self': self})\n")
+			v.append("\t\tallvars = ul4c._AllVars(vars, self.functions)\n")
 			for node in self.content:
 				v.append(node.formatpython(2, self._keepws))
 			v.append("\texcept Exception as exc:\n")
@@ -3432,7 +3432,7 @@ class Function(Code):
 			v.append("\timport datetime, collections\n")
 			v.append("\tfrom ll import ul4c, misc, color\n")
 			v.append("\ttry:\n")
-			v.append("\t\tallvars = ul4c._AllVars(vars, self.functions, {'self': self})\n")
+			v.append("\t\tallvars = ul4c._AllVars(vars, self.functions)\n")
 			for node in self.content:
 				v.append(node.formatpython(2, self._keepws))
 			v.append("\texcept Exception as exc:\n")
