@@ -40,17 +40,19 @@ like this::
 
 	from ll import ul4c
 
-	code = '''<?if data?>
-	<ul>
-	<?for item in data?>
-	<li><?print xmlescape(item)?></li>
-	<?end for?>
-	</ul>
-	<?end if?>'''
+	code = '''
+		<?if data?>
+			<ul>
+				<?for item in data?>
+					<li><?print item?></li>
+				<?end for?>
+			</ul>
+		<?end if?>
+	'''
 
-	tmpl = ul4c.Template(code)
+	template = ul4c.Template(code)
 
-	print(tmpl.renders(data=["Python", "Java", "Javascript", "PHP"]))
+	print(template.renders(data=["Python", "Java", "Javascript", "PHP"]))
 
 The variables that should be available to the template code can be passed to the
 method :meth:`Template.renders` as keyword arguments. :meth:`renders` returns
@@ -74,10 +76,10 @@ code:
 *	the ``Undefined`` variable
 *	lists
 *	dictionaries
-*	templates
+*	UL4 templates
 
-This is similar to what JSON_ supports (except for date objects, color objects
-and templates).
+This is similar to what JSON_ supports (except for date objects, color objects,
+UL4 templates).
 
 	.. _JSON: http://www.json.org/
 
@@ -426,14 +428,17 @@ passes the ``i`` variable, which will be available in the inner template under
 the name ``item``.
 
 
-``def``
--------
-The ```def`` tag defined a new template as a variable. Usage looks like this::
+``template``
+------------
 
-	<?def quote?>"<?print text?>"<?end def?>
+The ```template`` tag defined a new template as a variable. Usage looks like
+this::
 
-This template can be called like any other template, that has been passed to
-the outermost template::
+	<?template quote?>"<?print text?>"<?end template?>
+
+This defines a local variable ``quote`` that is a template object. This template
+can be called like any other template, that has been passed to the outermost
+template::
 
 	<?render quote.render(text="foo")?>
 
@@ -444,26 +449,19 @@ the outermost template::
 A ``note`` tag is a comment, i.e. the content of the tag will be completely ignored.
 
 
-The variable ``stack``
-----------------------
-
-A UL4 template can use the variable ``stack``, which is a call stack of the
-currently executing template. So ``stack[-1]`` for example is the template itself.
-
-
 Nested scopes
 -------------
 
 UL4 templates support lexical scopes. This means that a template that is defined
-(via ``<?def?>``) inside another template has access to the local variables of
-the outer template. The inner template sees that state of the variables at the
-point in time when the ``<?def?>`` tag was executed. The following example will
-output ``1``::
+(via ``<?template?>``) inside another template has access to the local variables
+of the outer template. The inner template sees that state of the variables at
+the point in time when the ``<?template?>`` tag was executed. The following
+example will output ``1``::
 
 	<?code i = 1?>
-	<?def x?>
+	<?template x?>
 		<?print i?>
-	<?end def?>
+	<?end template?>
 	<?code i = 2?>
 	<?render x.render()?>
 
@@ -490,7 +488,7 @@ If the specified key doesn't exist or the index is out of range for the string
 or list, the special object ``Undefined`` is returned.
 
 Slices are also supported (for list and string objects). As in Python one or
-both of the indexes may be missing to start at the first or end at the last
+both of the indexes may be missing to start at the first or end after the last
 character/item. Negative indexes are relative to the end. Indexes that are out
 of bounds are simply clipped:
 
@@ -519,7 +517,8 @@ Containment test via the ``in`` operator can be done, in the expression
 *	any object, list: Checks whether the object ``a`` is in the list ``b``
 	(comparison is done by value not by identity)
 *	string, dict: Checks whether the key ``a`` is in the dictionary ``b``.
-	(Note that some implementations might support keys other than strings too.)
+	(Note that some implementations might support keys other than strings too.
+	E.g. Python and Java do, Javascript doesn't.)
 
 The inverted containment test (via ``not in``) is available too.
 
@@ -615,8 +614,8 @@ are supported::
 *	``int`` * ``monthdelta``
 *	``monthdelta`` // ``int``
 
-For the operations involving ``date`` objects, if the resulting day falls out of
-the range of valid days for the target month, the last day for the target month
+For operation involving ``date`` objects, if the resulting day falls out of the
+range of valid days for the target month, the last day for the target month
 will be used instead, i.e. ``<?print @(2000-01-31) + monthdelta(1)?>`` prints
 ``2000-02-29 00:00:00``.
 
@@ -739,6 +738,13 @@ is returned.
 is returned.
 
 
+``istemplate``
+""""""""""""""
+
+``istemplate(foo)`` returns ``True`` if ``foo`` is a template object, else
+``False`` is returned.
+
+
 ``bool``
 """"""""
 
@@ -777,7 +783,7 @@ returns the empty string.
 """"""""
 
 ``repr(foo)`` converts ``foo`` to a string representation that is useful for
-debugging proposes. The output is a constant expression that could be used to
+debugging proposes. The output looks that the UL constant that could be used to
 recreate the object.
 
 
@@ -785,13 +791,16 @@ recreate the object.
 """"""""""
 
 ``asjson(foo)`` returns a JSON representation of the object ``foo``.
+(Date objects, color objects and templates are not supported by JSON, but
+``asjson`` will output the appropriate Javascript code for those objects)
 
 
 ``fromjson``
 """"""""""""
 
 ``fromjson(foo)`` decodes the JSON string ``foo`` and returns the resulting
-object.
+object. (Date objects, color objects and templates are not supported by
+``fromjson``).
 
 
 ``asul4on``
@@ -826,6 +835,23 @@ true. Otherwise ``False`` is returns. If ``foo`` is empty ``False`` is returned.
 
 ``all(foo)`` returns ``True`` if all of the items in the iterable ``foo`` are
 true. Otherwise ``False`` is returns. If ``foo`` is empty ``True`` is returned.
+
+
+``enumerate``
+"""""""""""""
+
+Enumerates the items of the argument (which must be iterable, i.e. a string,
+a list or dictionary) and for each item in the original iterable returns a two
+item list containing the item position and the item itself. For example the
+following code::
+
+	<?for (i, c) in enumerate("foo")?>
+		(<?print c?>=<?print i?>)
+	<?end for?>
+
+prints::
+
+	(f=0)(o=1)(o=2)
 
 
 ``isfirstlast``
@@ -880,25 +906,10 @@ prints::
 	(f)(o)(o)]
 
 
-``enumerate``
-"""""""""""""
-
-Enumerates the items of the argument (which must be iterable, i.e. a string,
-a list or dictionary). For example the following code::
-
-	<?for (i, c) in enumerate("foo")?>
-		(<?print c?>=<?print i?>)
-	<?end for?>
-
-prints::
-
-	(f=0)(o=1)(o=2)
-
-
 ``enumfl``
 """"""""""
 
-This function is a combination of ``isfirstlast`` and ``enumerate``. It iterates
+This function is a combination of ``enumerate`` and ``isfirstlast``. It iterates
 through items of the argument (which must be iterable, i.e. a string, a list
 or dictionary) and gives information about whether the item is the first
 and/or last in the iterable and its position. For example the following code::
@@ -918,8 +929,8 @@ prints::
 """""""""""""
 
 ``xmlescape`` takes a string as an argument. It returns a new string where the
-characters ``&``, ``<``, ``>``, ``'`` and ``"`` are replaced with the
-appropriate XML entity or character references. For example::
+characters ``&``, ``<``, ``>``, ``'`` and ``"`` have been replaced with the
+appropriate XML entity or character reference. For example::
 
 	<?print xmlescape("<'foo' & 'bar'>")?>
 
@@ -936,29 +947,28 @@ If the argument is not a string, it will be converted to a string first.
 """""""
 
 ``min`` returns the minimum value of its two or more arguments. If it's called
-with one argument, this argument must be iterable and ``min`` returns the minimum
-value of this argument.
+with one argument, this argument must be iterable and ``min`` returns the
+minimum value of this argument.
 
 
 ``max``
 """""""
 
 ``max`` returns the maximum value of its two or more arguments. If it's called
-with one argument, this argument must be iterable and ``max`` returns the maximum
-value of this argument.
+with one argument, this argument must be iterable and ``max`` returns the
+maximum value of this argument.
 
 
 ``sorted``
 """"""""""
 
-``sorted`` returns a sorted list with the items from it's argument. For
-example::
+``sorted`` returns a sorted list with the items from its argument. For example::
 
-	<?for c in sorted('bar')?><?print c?><?end for?>
+	<?for c in sorted('abracadabra')?><?print c?><?end for?>
 
 prints::
 
-	abr
+	aaaaabbcdrr
 
 Supported arguments are iterable objects, i.e. strings, lists, dictionaries
 and colors.
@@ -967,9 +977,9 @@ and colors.
 ``chr``
 """""""
 
-``chr(x)`` returns a one-character string with a character with the codepoint
-``x``. ``x`` must be an integer. For example ``<?print chr(0x61)?>`` outputs
-``a``.
+``chr(x)`` returns a one-character string containing the character with the
+codepoint ``x``. ``x`` must be an integer. For example ``<?print chr(0x61)?>``
+outputs ``a``.
 
 
 ``ord``
@@ -1009,20 +1019,20 @@ integers up to the specified argument. With two arguments the first is the start
 value and the second is the stop value. With three arguments the third one is
 the step size (which can be negative). For example the following template::
 
-	<?for i in range(2, 10, 2)?>(<?print i?>)<?end for?>
+	<?for i in range(4, 10, 2)?>(<?print i?>)<?end for?>
 
 outputs::
 
-	(2)(4)(6)(8)
+	(4)(6)(8)
 
 
 ``type``
 """"""""
 
 ``type`` returns the type of the object as a string. Possible return values are
-``"none"``, ``"bool"``, ``"int"``, ``"float"``, ``"str"``, ``"list"``,
-``"dict"``, ``"date"``, ``"color"`` and ``"template"``. (If the type isn't
-recognized ``None`` is returned.)
+``"undefined"``, ``"none"``, ``"bool"``, ``"int"``, ``"float"``, ``"str"``,
+``"list"``, ``"dict"``, ``"date"``, ``"color"``, ``"template"`` and
+``"function"``. (If the type isn't recognized ``None`` is returned.)
 
 
 ``rgb``
@@ -1160,8 +1170,9 @@ This method works like ``find`` but searches from the end.
 ``replace``
 """""""""""
 
-This string method replace has two arguments. It returns a new string where
-each occurrence of the first argument is replaced by the second argument.
+The string method ``replace`` has two arguments. It returns a new string where
+each occurrence of the first argument is replaced by the second argument, i.e.
+``"abracadabra".replace("ab", "ba")`` returns ``"baracadbara"``
 
 
 ``get``
@@ -1178,7 +1189,7 @@ to ``None``.
 ``join`` is a string method. It returns a concatentation of the strings in the
 argument sequence with the string itself as the separator, i.e.::
 
-	<?print "+".join(["1", "2", "3", "4"])?>
+	<?print "+".join("1234")?>
 
 outputs::
 
@@ -1247,8 +1258,8 @@ above (except for the linefeeds of course)::
 """"""""
 
 ``week`` is a date method. This method returns the week number of the year.
-It supports one argument: the weekday number (0 for Monday, ... 6 for Sunday)
-that should be considered the start day of the week. All days in a new year
+It supports one argument: the weekday number that should be considered the start
+day of the week (0 for Monday, ... 6 for Sunday). All days in a new year
 preceding the first week start day are considered to be in week 0. The week
 start day defaults to 0 (Monday).
 
@@ -1300,7 +1311,49 @@ ignored. This is done with the parameter ``keepws``::
 	>>> t.renders()
 	'0;1;2;3;4;5;6;7;8;9;'
 
-Using ``keepws=True`` (the default) the output would include al the line feeds
+Using ``keepws=True`` (the default) the output would include all the line feeds
 and whitespace::
 
 	'\n\t\n\t\t0\n\t\t;\n\t\n\t\t1\n\t\t;\n\t\n\t\t2...
+
+
+Functions
+=========
+
+Besides templates UL4 supports functions too. Where a template produces an
+output string by interleaving literal output and logic, a function returns a
+single value (via the ``<?return?>`` tag)::
+
+	from ll import ul4c
+
+	code = '''
+		<?for item in data?>
+			<?if "i" in item?>
+				<?return item?>
+			<?end if?>
+		<?end for?>
+	'''
+
+	function = ul4c.Function(code)
+
+	output = function(data=["Python", "Java", "Javascript", "PHP"]))
+
+With this, ``output`` will be the string ``"Javascript"``.
+
+
+It is also possible to define UL4 functions inside other functions or templates
+with the ``<?function?>`` tag::
+
+	<?function findindex?>
+		<?for (i, item) in enumerate(container)?>
+			<?if i == index?>
+				<?return item?>
+			<?end if?>
+		<?end for?>
+	<?end function?>
+	<?print findindex(index=2, container="spam")?>
+
+This will print ``a``.
+
+Inside such a function definition literal text and the ``<?render?>`` tag will
+be ignored.
