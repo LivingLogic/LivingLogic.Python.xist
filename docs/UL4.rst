@@ -621,15 +621,6 @@ will be used instead, i.e. ``<?print @(2000-01-31) + monthdelta(1)?>`` prints
 ``2000-02-29 00:00:00``.
 
 
-``vars``
-""""""""
-
-``vars()`` returns a dictionary containing all currently defined variables
-(i.e. variables passed to the template, defined via ``<?code?>`` tags or as
-loop variables). This does include variables from the encoding scope and the
-global variable ``stack``.
-
-
 ``random``
 """"""""""
 
@@ -814,13 +805,6 @@ object.
 
 ``fromul4on(foo)`` decodes the UL4ON string ``foo`` and returns the resulting
 object.
-
-
-``get``
-"""""""
-
-``get(k, v)`` returns the global variable named ``k`` if it exists, else ``v``
-is returned. If ``v`` is not given, it defaults to ``None``.
 
 
 ``len``
