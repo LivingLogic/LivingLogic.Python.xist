@@ -2599,7 +2599,9 @@ def test_function_type(r):
 	assert "dict" == r(code, x={1: 2})
 	assert "dict" == r(code, x=PseudoDict({1: 2}))
 	assert "template" == r(code, x=ul4c.Template(""))
+	assert "template" == r("<?template t?><?end template?><?print type(t)?>")
 	assert "function" == r("<?print type(repr)?>")
+	assert "function" == r("<?function f?><?end function?><?print type(f)?>")
 	assert "color" == r(code, x=color.red)
 
 	# Make sure that the parameters have the same name in all implementations

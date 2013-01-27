@@ -2902,7 +2902,7 @@ def _type(obj):
 		return "monthdelta"
 	elif isinstance(obj, color.Color):
 		return "color"
-	elif isinstance(obj, Template):
+	elif isinstance(obj, (Template, TemplateClosure)):
 		return "template"
 	elif isinstance(obj, collections.Mapping):
 		return "dict"
