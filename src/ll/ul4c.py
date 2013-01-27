@@ -2884,6 +2884,8 @@ def _range(*args):
 def _type(obj):
 	if obj is None:
 		return "none"
+	elif isinstance(obj, Undefined):
+		return "undefined"
 	elif isinstance(obj, str):
 		return "str"
 	elif isinstance(obj, bool):
@@ -2908,6 +2910,8 @@ def _type(obj):
 		return "color"
 	elif isinstance(obj, collections.Sequence):
 		return "list"
+	elif callable(obj):
+		return "function"
 	return None
 
 
