@@ -657,6 +657,9 @@ def test_listcomp(r):
 	assert "[2, 6]" == r("<?code d = [2*i for i in range(4) if i%2]?><?print d?>")
 	assert "[0, 2, 4, 6]" == r("<?code d = [2*i for i in range(4)]?><?print d?>")
 
+	# Make sure that the loop variables doesn't leak into the surrounding scope
+	assert "undefined" == r("<?code d = [2*i for i in range(4)]?><?print type(i)?>")
+
 
 @pytest.mark.ul4
 def test_genexpr(r):
@@ -665,6 +668,9 @@ def test_genexpr(r):
 	assert "0, 2, 4, 6" == r("<?print ', '.join(str(2*i) for i in range(4))?>")
 	assert "0, 2, 4, 6" == r("<?print ', '.join((str(2*i) for i in range(4)))?>")
 	assert "0:g; 1:r; 2:k" == r("<?for (i, c2) in enumerate(c for c in 'gurk' if c != 'u')?><?if i?>; <?end if?><?print i?>:<?print c2?><?end for?>")
+
+	# Make sure that the loop variables doesn't leak into the surrounding scope
+	assert "undefined" == r("<?code d = (2*i for i in range(4))?><?print type(i)?>")
 
 
 @pytest.mark.ul4
@@ -680,6 +686,9 @@ def test_dict(r):
 	assert '1:4\n' == r('<?for (key, value) in {1:1, **{1:2}, 1:3, **{1:4}}.items()?><?print key?>:<?print value?>\n<?end for?>')
 	assert 'no' == r('<?if {}?>yes<?else?>no<?end if?>')
 	assert 'yes' == r('<?if {1:2}?>yes<?else?>no<?end if?>')
+
+	# Make sure that the loop variables doesn't leak into the surrounding scope
+	assert "undefined" == r("<?code d = {i: 2*i for i in range(4)}?><?print type(i)?>")
 
 
 @pytest.mark.ul4
@@ -3014,12 +3023,6 @@ def test_render(r):
 @pytest.mark.ul4
 def test_def(r):
 	assert 'foo' == r('<?template lower?><?print x.lower()?><?end template?><?print lower.renders(x="FOO")?>')
-
-
-@pytest.mark.ul4
-def test_self(r):
-	with raises("can't assign to self"):
-		assert "42" == r("<?code self = 42?><?print self?>")
 
 
 @pytest.mark.ul4

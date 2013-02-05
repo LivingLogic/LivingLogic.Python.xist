@@ -218,6 +218,14 @@ class UndefinedKey(Undefined):
 		return "undefined object for key {!r}".format(self.__key)
 
 
+class UndefinedVariable(Undefined):
+	def __init__(self, name):
+		self.__name = name
+
+	def __repr__(self):
+		return "undefined variable {!r}".format(self.__name)
+
+
 class UndefinedIndex(Undefined):
 	def __init__(self, index):
 		self.__index = index
@@ -414,6 +422,7 @@ class ListComp(AST):
 	precedence = 11
 	fields = AST.fields.union({"item", "varname", "container", "condition"})
 
+
 	def __init__(self, item=None, varname=None, container=None, condition=None):
 		super().__init__()
 		self.item = item
@@ -466,10 +475,10 @@ class ListComp(AST):
 		return s
 
 	def formatpython(self, indent, keepws):
-		s = "[{} for {} in {}".format(self.item.formatpython(indent, keepws), _formatnestednamepython(self.varname), self.container.formatpython(indent, keepws))
+		s = "(lambda vars: [{} for {} in {}".format(self.item.formatpython(indent, keepws), _formatnestednamepython(self.varname), self.container.formatpython(indent, keepws))
 		if self.condition is not None:
 			s += " if {}".format(self.condition.formatpython(indent, keepws))
-		s += "]"
+		s += "])(collections.ChainMap({}, vars))" # Evaluate the listcomp in a new ``ChainMap``, so we can prevent the local variables from leaking
 		return s
 
 	def ul4ondump(self, encoder):
@@ -610,10 +619,10 @@ class DictComp(AST):
 		return s
 
 	def formatpython(self, indent, keepws):
-		s = "{{{} : {} for {} in {}".format(self.key.formatpython(indent, keepws), self.value.formatpython(indent, keepws), _formatnestednamepython(self.varname), self.container.formatpython(indent, keepws))
+		s = "(lambda vars: {{{} : {} for {} in {}".format(self.key.formatpython(indent, keepws), self.value.formatpython(indent, keepws), _formatnestednamepython(self.varname), self.container.formatpython(indent, keepws))
 		if self.condition is not None:
 			s += " if {}".format(self.condition.formatpython(indent, keepws))
-		s += "}"
+		s += "})(collections.ChainMap({}, vars))" # Evaluate the dictcomp in a new ``ChainMap``, so we can prevent the local variables from leaking
 		return s
 
 	def ul4ondump(self, encoder):
@@ -688,10 +697,10 @@ class GenExpr(AST):
 		return s
 
 	def formatpython(self, indent, keepws):
-		s = "({} for {} in {}".format(self.item.formatpython(indent, keepws), _formatnestednamepython(self.varname), self.container.formatpython(indent, keepws))
+		s = "(lambda vars:({} for {} in {}".format(self.item.formatpython(indent, keepws), _formatnestednamepython(self.varname), self.container.formatpython(indent, keepws))
 		if self.condition is not None:
 			s += " if {}".format(self.condition.formatpython(indent, keepws))
-		s += ")"
+		s += "))(collections.ChainMap({}, vars))" # Evaluate the generator expression in a new ``ChainMap``, so we can prevent the local variables from leaking
 		return s
 
 	def ul4ondump(self, encoder):
@@ -726,7 +735,7 @@ class Var(AST):
 		return self.name
 
 	def formatpython(self, indent, keepws):
-		return "ul4c._getitem(allvars, {!r})".format(self.name)
+		return "self._getvar(vars, {!r})".format(self.name)
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.name)
@@ -2487,6 +2496,15 @@ class Code(Block):
 		else:
 			raise Error(ast.location) from exc
 
+	def _getvar(self, vars, name):
+		try:
+			return vars[name]
+		except KeyError:
+			try:
+				return self.functions[name]
+			except KeyError:
+				return UndefinedVariable(name)
+
 	@classmethod
 	def makefunction(cls, f):
 		name = f.__name__
@@ -3302,7 +3320,6 @@ class Template(Code):
 			v.append("\tif 0:\n")
 			v.append("\t\tyield\n")
 			v.append("\ttry:\n")
-			v.append("\t\tallvars = ul4c._AllVars(vars, self.functions)\n")
 			for node in self.content:
 				v.append(node.formatpython(2, self._keepws))
 			v.append("\texcept Exception as exc:\n")
@@ -3436,7 +3453,6 @@ class Function(Code):
 			v.append("\timport datetime, collections\n")
 			v.append("\tfrom ll import ul4c, color\n")
 			v.append("\ttry:\n")
-			v.append("\t\tallvars = ul4c._AllVars(vars, self.functions)\n")
 			for node in self.content:
 				v.append(node.formatpython(2, self._keepws))
 			v.append("\texcept Exception as exc:\n")
@@ -3511,13 +3527,6 @@ class FunctionClosure(Object):
 ### Helper classes/functions used at runtime
 ###
 
-class _AllVars(collections.ChainMap):
-	def __setitem__(self, key, value):
-		if key == "self":
-			raise ValueError("can't assign to self")
-		collections.ChainMap.__setitem__(self, key, value)
-
-
 def _makedict(*items):
 	result = {}
 	for item in items:
@@ -3539,7 +3548,7 @@ def _formatnestednameul4(name):
 
 def _formatnestednamepython(name):
 	if isinstance(name, str):
-		return "allvars[{!r}]".format(name)
+		return "vars[{!r}]".format(name)
 	elif len(name) == 1:
 		return "({},)".format(_formatnestednamepython(name[0]))
 	else:
