@@ -3298,7 +3298,7 @@ class Template(Code):
 			v = []
 			v.append("def {}(self, vars):\n".format(self.name if self.name is not None else "unnamed"))
 			v.append("\timport datetime, collections\n")
-			v.append("\tfrom ll import ul4c, misc, color\n")
+			v.append("\tfrom ll import ul4c, color\n")
 			v.append("\tif 0:\n")
 			v.append("\t\tyield\n")
 			v.append("\ttry:\n")
@@ -3434,7 +3434,7 @@ class Function(Code):
 			v = []
 			v.append("def {}(self, vars):\n".format(self.name if self.name is not None else "unnamed"))
 			v.append("\timport datetime, collections\n")
-			v.append("\tfrom ll import ul4c, misc, color\n")
+			v.append("\tfrom ll import ul4c, color\n")
 			v.append("\ttry:\n")
 			v.append("\t\tallvars = ul4c._AllVars(vars, self.functions)\n")
 			for node in self.content:
