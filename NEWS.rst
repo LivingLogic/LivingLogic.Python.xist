@@ -13,8 +13,8 @@ Changes in 4.10 (released ??/??/2013)
 *	The UL4 tag ``<?code?>`` has been renamed to ``<?exe?>`` and may now contain
 	not only variable assigments, but any other expression.
 
-*	UL4 functions ``print`` and ``printx`` have been added that behave the same
-	as the approiate tags ``<?print?>`` and ``<?printx?>``, but can output an
+*	UL4 functions ``print`` and ``printx`` have been added. They behave like the
+	appropriate tags ``<?print?>`` and ``<?printx?>``, but can output an
 	arbitrary number of arguments.
 
 *	The tag ``<?render?>`` has been removed. To update your code replace 
