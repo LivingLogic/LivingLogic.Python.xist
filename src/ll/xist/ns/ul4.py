@@ -34,20 +34,10 @@ class printx(xsc.ProcInst):
 ### Processing instruction for statements
 ###
 
-class code(xsc.ProcInst):
+class exe(xsc.ProcInst):
 	"""
-	A :class:`code` processing instruction contains a statement (such as an
-	assignment or augmented assignment).
-	"""
-
-
-###
-### Processing instruction for calling sub-templates
-###
-
-class render(xsc.ProcInst):
-	"""
-	A :class:`render` processing instruction calls another template.
+	A :class:`exe` processing instruction contains a statement (such as an
+	assignment or augmented assignment) or expressions (with side effects).
 	"""
 
 
@@ -114,9 +104,10 @@ class else_(xsc.ProcInst):
 
 class end(xsc.ProcInst):
 	"""
-	Ends an :class:`if_` or :class:`for_`. The PI value may be the type of the
-	block (either ``"if"``, ``"for"`` or ``"def"``). If the value is empty the
-	innermost block will be closed without any checks for the type of block.
+	Ends an :class:`if_`, :class:`for_` or :class:`def_`. The PI value may be the
+	type of the block (either ``"if"``, ``"for"`` or ``"def"``). If the value is
+	empty the innermost block will be closed without any checks for the type of
+	block.
 	"""
 	prettyindentbefore = -1
 	prettyindentafter = 0
@@ -134,6 +125,10 @@ class break_(xsc.ProcInst):
 
 class continue_(xsc.ProcInst):
 	xmlname = "continue"
+
+
+class return_(xsc.ProcInst):
+	xmlname = "return"
 
 
 class def_(xsc.ProcInst):
