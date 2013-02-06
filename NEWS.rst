@@ -20,8 +20,8 @@ Changes in 4.10 (released ??/??/2013)
 *	The tag ``<?render?>`` has been removed. To update your code replace 
 	``<?render r.render()?>`` with ``<?exe r.render()?>``.
 
-*	The builtin UL4 functions are now real objects that can be passed to templates
-	as arguments.
+*	The builtin UL4 functions are now real objects that can be passed to
+	templates as arguments.
 
 *	The UL4 functions ``vars`` and ``get`` have been removed.
 
