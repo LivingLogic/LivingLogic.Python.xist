@@ -22,7 +22,7 @@ possible to implement template renderers in multiple programming languages.
 __docformat__ = "reStructuredText"
 
 
-import re, datetime, urllib.parse as urlparse, json, collections, locale, itertools, random, datetime, unicodedata
+import re, types, datetime, urllib.parse as urlparse, json, collections, locale, itertools, random, datetime, unicodedata
 
 import antlr3
 
@@ -2016,7 +2016,11 @@ class CallFunc(AST):
 			args.extend((yield from self.remargs.eval(keepws, vars)))
 		if self.remkwargs is not None:
 			kwargs.update((yield from self.remkwargs.eval(keepws, vars)))
-		return (yield from obj(*args, **kwargs))
+		result = obj(*args, **kwargs)
+		if isinstance(result, types.GeneratorType):
+			return (yield from result)
+		else:
+			return result
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.obj)
@@ -2144,7 +2148,11 @@ class CallMeth(AST):
 			args.extend((yield from self.remargs.eval(keepws, vars)))
 		if self.remkwargs is not None:
 			kwargs.update((yield from self.remkwargs.eval(keepws, vars)))
-		return (yield from self.methods[self.methname](obj, *args, **kwargs))
+		result = self.methods[self.methname](obj, *args, **kwargs)
+		if isinstance(result, types.GeneratorType):
+			return (yield from result)
+		else:
+			return result
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.methname)
@@ -3312,7 +3320,6 @@ class TemplateClosure(Object):
 		return self.template.renders(**collections.ChainMap(vars, self.vars))
 
 	def __call__(self, **vars):
-		yield from ()
 		return self.template(**collections.ChainMap(vars, self.vars))
 
 	def __getattr__(self, name):
