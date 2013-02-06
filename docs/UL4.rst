@@ -361,10 +361,11 @@ or::
 	<?end if?>
 
 
-``code``
---------
+``exe``
+-------
 
-The ``code`` tag can be used to define or modify variables. Apart from the
+The ``exe`` tag can contain statements that define or modify variables or
+expressions which will be evaluated for their side effects. Apart from the
 assigment operator ``=``, the following augmented assignment operators are
 supported:
 
@@ -379,68 +380,26 @@ supported:
 
 For example the following template will output ``40``::
 
-	<?code x = 17?>
-	<?code x += 23?>
+	<?exe x = 17?>
+	<?exe x += 23?>
 	<?print x?>
 
 
-``render``
-----------
+``def``
+-------
 
-The ``render`` tag allows one template to call other templates. The following Python
-code demonstrates this::
+The ```def`` tag defined a new template as a variable. Usage looks like this::
 
-	from ll import ul4c
-
-	# Template 1
-	source1 = """\
-	<?if data?>\
-	<ul>
-	<?for i in data?><?render itemtmpl.render(item=i)?><?end for?>\
-	</ul>
-	<?end if?>\
-	"""
-
-	tmpl1 = ul4c.Template(source1)
-
-	# Template 2
-	source2 = "<li><?print xmlescape(item)?></li>\n"
-
-	tmpl2 = ul4c.Template(source2)
-
-	# Data object for the outer template
-	data = ["Python", "Java", "Javascript", "PHP"]
-
-	print(tmpl1.renders(itemtmpl=tmpl2, data=data))
-
-This will output::
-
-	<ul>
-	<li>Python</li>
-	<li>Java</li>
-	<li>Javascript</li>
-	<li>PHP</li>
-	</ul>
-
-I.e. templates can be passed just like any other object as a variable.
-``<?render itemtmpl.render(item=i)?>`` renders the ``itemtmpl`` template and
-passes the ``i`` variable, which will be available in the inner template under
-the name ``item``.
-
-
-``template``
-------------
-
-The ```template`` tag defined a new template as a variable. Usage looks like
-this::
-
-	<?template quote?>"<?print text?>"<?end template?>
+	<?def quote?>"<?print text?>"<?end def?>
 
 This defines a local variable ``quote`` that is a template object. This template
 can be called like any other template, that has been passed to the outermost
 template::
 
-	<?render quote.render(text="foo")?>
+	<?exe quote.render(text="foo")?>
+
+(Here an ``<?exe?>`` tag is used. The expression in the ``<?exe?>`` tag is
+evaluated for the side effect of generating output)
 
 
 ``note``
@@ -458,11 +417,11 @@ of the outer template. The inner template sees that state of the variables at
 the point in time when the ``<?template?>`` tag was executed. The following
 example will output ``1``::
 
-	<?code i = 1?>
+	<?exe i = 1?>
 	<?template x?>
 		<?print i?>
 	<?end template?>
-	<?code i = 2?>
+	<?exe i = 2?>
 	<?render x.render()?>
 
 
@@ -546,7 +505,7 @@ will output::
 Outside of function/method arguments brackets are required around generator
 expressions::
 
-	<?code ge = ("(" + c + ")" for c in "gurk")?>
+	<?exe ge = ("(" + c + ")" for c in "gurk")?>
 	<?print ", ".join(ge)?>
 
 
@@ -1203,9 +1162,9 @@ The ``renders`` method of template objects renders the template and returns the
 output as a string. The parameter can be passed via keyword argument or via the
 ``**`` syntax::
 
-	<?code output = template.renders(a=17, b=23)?>
-	<?code data = {'a': 17, 'b': 23)?>
-	<?code output = template.renders(**data)?>
+	<?exe output = template.renders(a=17, b=23)?>
+	<?exe data = {'a': 17, 'b': 23)?>
+	<?exe output = template.renders(**data)?>
 
 
 ``isoformat``
@@ -1241,9 +1200,9 @@ Those methods are date methods. They return a specific attribute of a date
 object. For example the following reproduces the ``mimeformat`` output from
 above (except for the linefeeds of course)::
 
-	<?code weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']?>
-	<?code months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']?>
-	<?code t = @(2010-02-22T17:38:40.123456)?>
+	<?exe weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']?>
+	<?exe months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']?>
+	<?exe t = @(2010-02-22T17:38:40.123456)?>
 	<?print weekdays[t.weekday()]?>,
 	<?print format(t.day(), '02')?>
 	<?print months[t.month()-1]?>
@@ -1277,6 +1236,33 @@ prints ``1`` and::
 	<?print @(2010-12-31).yearday()?>
 
 prints ``365``.
+
+
+Templates as functions
+======================
+
+UL4 templates can be used as functions too. Calling a template as a function
+will ignore any output from the template. The return value will be the value of
+the first ``<?return?>`` tag::
+
+	from ll import ul4c
+
+	code = '''
+		<?for item in data?>
+			<?if "i" in item?>
+				<?return item?>
+			<?end if?>
+		<?end for?>
+	'''
+
+	function = ul4c.Function(code)
+
+	output = function(data=["Python", "Java", "Javascript", "PHP"]))
+
+With this, ``output`` will be the string ``"Javascript"``.
+
+
+When no ``<?return?>`` tag is encountered, ``None`` will be returned.
 
 
 Delimiters
@@ -1315,45 +1301,3 @@ Using ``keepws=True`` (the default) the output would include all the line feeds
 and whitespace::
 
 	'\n\t\n\t\t0\n\t\t;\n\t\n\t\t1\n\t\t;\n\t\n\t\t2...
-
-
-Functions
-=========
-
-Besides templates UL4 supports functions too. Where a template produces an
-output string by interleaving literal output and logic, a function returns a
-single value (via the ``<?return?>`` tag)::
-
-	from ll import ul4c
-
-	code = '''
-		<?for item in data?>
-			<?if "i" in item?>
-				<?return item?>
-			<?end if?>
-		<?end for?>
-	'''
-
-	function = ul4c.Function(code)
-
-	output = function(data=["Python", "Java", "Javascript", "PHP"]))
-
-With this, ``output`` will be the string ``"Javascript"``.
-
-
-It is also possible to define UL4 functions inside other functions or templates
-with the ``<?function?>`` tag::
-
-	<?function findindex?>
-		<?for (i, item) in enumerate(container)?>
-			<?if i == index?>
-				<?return item?>
-			<?end if?>
-		<?end for?>
-	<?end function?>
-	<?print findindex(index=2, container="spam")?>
-
-This will print ``a``.
-
-Inside such a function definition literal text and the ``<?render?>`` tag will
-be ignored.
