@@ -1,4 +1,4 @@
-# $ANTLR 3.4 src/ll/UL4.g 2013-02-06 15:18:22
+# $ANTLR 3.4 src/ll/UL4.g 2013-02-06 18:06:38
 
 import sys
 from antlr3 import *
@@ -129,7 +129,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node =  ul4c.Const(None) 
+                    node = ul4c.Const(None) 
 
 
 
@@ -163,7 +163,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node =  ul4c.Const(True) 
+                    node = ul4c.Const(True) 
 
 
 
@@ -197,7 +197,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node =  ul4c.Const(False) 
+                    node = ul4c.Const(False) 
 
 
 
@@ -233,7 +233,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node =  ul4c.Const(int(INT1.text, 0)) 
+                    node = ul4c.Const(int(INT1.text, 0)) 
 
 
 
@@ -269,7 +269,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node =  ul4c.Const(float(FLOAT2.text)) 
+                    node = ul4c.Const(float(FLOAT2.text)) 
 
 
 
@@ -305,7 +305,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node =  ul4c.Const(ast.literal_eval(STRING3.text)) 
+                    node = ul4c.Const(ast.literal_eval(STRING3.text)) 
 
 
 
@@ -341,7 +341,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node =  ul4c.Const(datetime.datetime(*map(int, [f for f in ul4c.datesplitter.split(DATE4.text[2:-1]) if f]))) 
+                    node = ul4c.Const(datetime.datetime(*map(int, [f for f in ul4c.datesplitter.split(DATE4.text[2:-1]) if f]))) 
 
 
 
@@ -377,7 +377,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node =  ul4c.Const(color.Color.fromrepr(COLOR5.text)) 
+                    node = ul4c.Const(color.Color.fromrepr(COLOR5.text)) 
 
 
 
@@ -423,7 +423,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    retval.node =  ul4c.Var(NAME6.text) 
+                    retval.node = ul4c.Var(NAME6.text) 
 
 
 
@@ -704,7 +704,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node =  ul4c.List() 
+                        node = ul4c.List() 
 
 
 
@@ -716,7 +716,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node =  ul4c.List() 
+                        node = ul4c.List() 
 
 
 
@@ -727,7 +727,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node.items.append(e1); 
+                        node.items.append(e1) 
 
 
 
@@ -757,7 +757,7 @@ class UL4Parser(Parser):
 
                             if self._state.backtracking == 0:
                                 pass
-                                node.items.append(e2); 
+                                node.items.append(e2) 
 
 
 
@@ -869,7 +869,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node =  ul4c.ListComp(item, n, container, _condition) 
+                    node = ul4c.ListComp(item, n, container, _condition) 
 
 
 
@@ -938,7 +938,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node =  (k, v) 
+                        node = (k, v) 
 
 
 
@@ -955,7 +955,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node =  (d,) 
+                        node = (d,) 
 
 
 
@@ -1026,7 +1026,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node =  ul4c.Dict() 
+                        node = ul4c.Dict() 
 
 
 
@@ -1038,7 +1038,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node =  ul4c.Dict() 
+                        node = ul4c.Dict() 
 
 
 
@@ -1049,7 +1049,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node.items.append(i1); 
+                        node.items.append(i1) 
 
 
 
@@ -1079,7 +1079,7 @@ class UL4Parser(Parser):
 
                             if self._state.backtracking == 0:
                                 pass
-                                node.items.append(i2); 
+                                node.items.append(i2) 
 
 
 
@@ -1200,7 +1200,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node =  ul4c.DictComp(key, value, n, container, _condition) 
+                    node = ul4c.DictComp(key, value, n, container, _condition) 
 
 
 
@@ -1288,7 +1288,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node =  ul4c.GenExpr(item, n, container, _condition) 
+                    node = ul4c.GenExpr(item, n, container, _condition) 
 
 
 
@@ -1605,7 +1605,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        varname =  (n0,) 
+                        varname = (n0,) 
 
 
 
@@ -1629,7 +1629,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        varname =  (n1, n2) 
+                        varname = (n1, n2) 
 
 
 
@@ -1659,7 +1659,7 @@ class UL4Parser(Parser):
 
                             if self._state.backtracking == 0:
                                 pass
-                                varname += (n3,); 
+                                varname += (n3,) 
 
 
 
@@ -1778,7 +1778,7 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            node =  ul4c.GetAttr(node, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0]) 
+                            node = ul4c.GetAttr(node, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0]) 
 
 
 
@@ -1790,7 +1790,7 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            node =  ul4c.CallMeth(node.obj, node.attrname) if isinstance(node, ul4c.GetAttr) else ul4c.CallFunc(node) 
+                            node = ul4c.CallMeth(node.obj, node.attrname) if isinstance(node, ul4c.GetAttr) else ul4c.CallFunc(node) 
 
 
 
@@ -1938,7 +1938,7 @@ class UL4Parser(Parser):
 
                             if self._state.backtracking == 0:
                                 pass
-                                node.args.append(a1); 
+                                node.args.append(a1) 
 
 
 
@@ -1975,7 +1975,7 @@ class UL4Parser(Parser):
 
                                     if self._state.backtracking == 0:
                                         pass
-                                        node.args.append(a2); 
+                                        node.args.append(a2) 
 
 
 
@@ -2017,7 +2017,7 @@ class UL4Parser(Parser):
 
                                     if self._state.backtracking == 0:
                                         pass
-                                        node.kwargs.append((((an3 is not None) and [self.input.toString(an3.start,an3.stop)] or [None])[0], av3)); 
+                                        node.kwargs.append((((an3 is not None) and [self.input.toString(an3.start,an3.stop)] or [None])[0], av3)) 
 
 
 
@@ -2118,7 +2118,7 @@ class UL4Parser(Parser):
 
                             if self._state.backtracking == 0:
                                 pass
-                                node.kwargs.append((((an1 is not None) and [self.input.toString(an1.start,an1.stop)] or [None])[0], av1)); 
+                                node.kwargs.append((((an1 is not None) and [self.input.toString(an1.start,an1.stop)] or [None])[0], av1)) 
 
 
 
@@ -2155,7 +2155,7 @@ class UL4Parser(Parser):
 
                                     if self._state.backtracking == 0:
                                         pass
-                                        node.kwargs.append((((an2 is not None) and [self.input.toString(an2.start,an2.stop)] or [None])[0], av2)); 
+                                        node.kwargs.append((((an2 is not None) and [self.input.toString(an2.start,an2.stop)] or [None])[0], av2)) 
 
 
 
@@ -2297,7 +2297,7 @@ class UL4Parser(Parser):
 
                             if self._state.backtracking == 0:
                                 pass
-                                node =  ul4c.GetSlice(node, None, index2) 
+                                node = ul4c.GetSlice(node, None, index2) 
 
 
 
@@ -2361,7 +2361,7 @@ class UL4Parser(Parser):
 
                             if self._state.backtracking == 0:
                                 pass
-                                node =  ul4c.GetSlice(node, index1, index2) if slice else ul4c.GetItem(node, index1) 
+                                node = ul4c.GetSlice(node, index1, index2) if slice else ul4c.GetItem(node, index1) 
 
 
 
@@ -2579,7 +2579,7 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            node =  cls(node, e2) 
+                            node = cls(node, e2) 
 
 
 
@@ -2862,7 +2862,7 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            node =  cls(node, e2) 
+                            node = cls(node, e2) 
 
 
 
@@ -2957,7 +2957,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node =  cls(node, e2) 
+                        node = cls(node, e2) 
 
 
 
@@ -3020,7 +3020,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node =  ul4c.Not(e) 
+                        node = ul4c.Not(e) 
 
 
 
@@ -3101,7 +3101,7 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            node =  ul4c.And(node, e2) 
+                            node = ul4c.And(node, e2) 
 
 
 
@@ -3173,7 +3173,7 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            node =  ul4c.Or(node, e2) 
+                            node = ul4c.Or(node, e2) 
 
 
 
@@ -3845,7 +3845,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node =  ul4c.For(self.location, n, e) 
+                    node = ul4c.For(self.location, n, e) 
 
 
 
@@ -3867,7 +3867,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "statement"
-    # src/ll/UL4.g:549:1: statement returns [node] : (nn= nestedname '=' e= expr1 EOF |n= name '+=' e= expr1 EOF |n= name '-=' e= expr1 EOF |n= name '*=' e= expr1 EOF |n= name '/=' e= expr1 EOF |n= name '//=' e= expr1 EOF |n= name '%=' e= expr1 EOF );
+    # src/ll/UL4.g:549:1: statement returns [node] : (nn= nestedname '=' e= expr1 EOF |n= name '+=' e= expr1 EOF |n= name '-=' e= expr1 EOF |n= name '*=' e= expr1 EOF |n= name '/=' e= expr1 EOF |n= name '//=' e= expr1 EOF |n= name '%=' e= expr1 EOF |e= expression EOF );
     def statement(self, ):
         node = None
 
@@ -3881,26 +3881,28 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:550:2: (nn= nestedname '=' e= expr1 EOF |n= name '+=' e= expr1 EOF |n= name '-=' e= expr1 EOF |n= name '*=' e= expr1 EOF |n= name '/=' e= expr1 EOF |n= name '//=' e= expr1 EOF |n= name '%=' e= expr1 EOF )
-                alt48 = 7
-                LA48_0 = self.input.LA(1)
+                # src/ll/UL4.g:550:2: (nn= nestedname '=' e= expr1 EOF |n= name '+=' e= expr1 EOF |n= name '-=' e= expr1 EOF |n= name '*=' e= expr1 EOF |n= name '/=' e= expr1 EOF |n= name '//=' e= expr1 EOF |n= name '%=' e= expr1 EOF |e= expression EOF )
+                alt48 = 8
+                LA48 = self.input.LA(1)
+                if LA48 == NAME:
+                    LA48_1 = self.input.LA(2)
 
-                if (LA48_0 == NAME) :
-                    LA48 = self.input.LA(2)
-                    if LA48 == 45:
+                    if (self.synpred72_UL4()) :
                         alt48 = 1
-                    elif LA48 == 33:
+                    elif (self.synpred73_UL4()) :
                         alt48 = 2
-                    elif LA48 == 36:
+                    elif (self.synpred74_UL4()) :
                         alt48 = 3
-                    elif LA48 == 31:
+                    elif (self.synpred75_UL4()) :
                         alt48 = 4
-                    elif LA48 == 41:
+                    elif (self.synpred76_UL4()) :
                         alt48 = 5
-                    elif LA48 == 40:
+                    elif (self.synpred77_UL4()) :
                         alt48 = 6
-                    elif LA48 == 26:
+                    elif (self.synpred78_UL4()) :
                         alt48 = 7
+                    elif (True) :
+                        alt48 = 8
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
@@ -3911,8 +3913,25 @@ class UL4Parser(Parser):
                         raise nvae
 
 
-                elif (LA48_0 == 27) :
-                    alt48 = 1
+                elif LA48 == 27:
+                    LA48_2 = self.input.LA(2)
+
+                    if (self.synpred72_UL4()) :
+                        alt48 = 1
+                    elif (True) :
+                        alt48 = 8
+                    else:
+                        if self._state.backtracking > 0:
+                            raise BacktrackingFailed
+
+
+                        nvae = NoViableAltException("", 48, 2, self.input)
+
+                        raise nvae
+
+
+                elif LA48 == COLOR or LA48 == DATE or LA48 == FALSE or LA48 == FLOAT or LA48 == INT or LA48 == NONE or LA48 == STRING or LA48 == TRUE or LA48 == 35 or LA48 == 49 or LA48 == 55 or LA48 == 57:
+                    alt48 = 8
                 else:
                     if self._state.backtracking > 0:
                         raise BacktrackingFailed
@@ -3942,7 +3961,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node =  ul4c.StoreVar(self.location, nn, e) 
+                        node = ul4c.StoreVar(self.location, nn, e) 
 
 
 
@@ -3966,7 +3985,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node =  ul4c.AddVar(self.location, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], e) 
+                        node = ul4c.AddVar(self.location, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], e) 
 
 
 
@@ -3990,7 +4009,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node =  ul4c.SubVar(self.location, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], e) 
+                        node = ul4c.SubVar(self.location, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], e) 
 
 
 
@@ -4014,7 +4033,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node =  ul4c.MulVar(self.location, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], e) 
+                        node = ul4c.MulVar(self.location, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], e) 
 
 
 
@@ -4038,7 +4057,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node =  ul4c.TrueDivVar(self.location, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], e) 
+                        node = ul4c.TrueDivVar(self.location, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], e) 
 
 
 
@@ -4062,7 +4081,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node =  ul4c.FloorDivVar(self.location, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], e) 
+                        node = ul4c.FloorDivVar(self.location, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], e) 
 
 
 
@@ -4086,7 +4105,24 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node =  ul4c.ModVar(self.location, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], e) 
+                        node = ul4c.ModVar(self.location, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], e) 
+
+
+
+
+                elif alt48 == 8:
+                    # src/ll/UL4.g:557:4: e= expression EOF
+                    pass 
+                    self._state.following.append(self.FOLLOW_expression_in_statement2932)
+                    e = self.expression()
+
+                    self._state.following.pop()
+
+                    self.match(self.input, EOF, self.FOLLOW_EOF_in_statement2934)
+
+                    if self._state.backtracking == 0:
+                        pass
+                        node = e 
 
 
 
@@ -4266,12 +4302,222 @@ class UL4Parser(Parser):
 
 
 
+    # $ANTLR start "synpred72_UL4"
+    def synpred72_UL4_fragment(self, ):
+        nn = None
 
-    def synpred26_UL4(self):
+        e = None
+
+
+        # src/ll/UL4.g:550:4: (nn= nestedname '=' e= expr1 EOF )
+        # src/ll/UL4.g:550:4: nn= nestedname '=' e= expr1 EOF
+        pass 
+        self._state.following.append(self.FOLLOW_nestedname_in_synpred72_UL42813)
+        nn = self.nestedname()
+
+        self._state.following.pop()
+
+        self.match(self.input, 45, self.FOLLOW_45_in_synpred72_UL42815)
+
+        self._state.following.append(self.FOLLOW_expr1_in_synpred72_UL42819)
+        e = self.expr1()
+
+        self._state.following.pop()
+
+        self.match(self.input, EOF, self.FOLLOW_EOF_in_synpred72_UL42821)
+
+
+
+    # $ANTLR end "synpred72_UL4"
+
+
+
+    # $ANTLR start "synpred73_UL4"
+    def synpred73_UL4_fragment(self, ):
+        n = None
+
+        e = None
+
+
+        # src/ll/UL4.g:551:4: (n= name '+=' e= expr1 EOF )
+        # src/ll/UL4.g:551:4: n= name '+=' e= expr1 EOF
+        pass 
+        self._state.following.append(self.FOLLOW_name_in_synpred73_UL42830)
+        n = self.name()
+
+        self._state.following.pop()
+
+        self.match(self.input, 33, self.FOLLOW_33_in_synpred73_UL42832)
+
+        self._state.following.append(self.FOLLOW_expr1_in_synpred73_UL42836)
+        e = self.expr1()
+
+        self._state.following.pop()
+
+        self.match(self.input, EOF, self.FOLLOW_EOF_in_synpred73_UL42838)
+
+
+
+    # $ANTLR end "synpred73_UL4"
+
+
+
+    # $ANTLR start "synpred74_UL4"
+    def synpred74_UL4_fragment(self, ):
+        n = None
+
+        e = None
+
+
+        # src/ll/UL4.g:552:4: (n= name '-=' e= expr1 EOF )
+        # src/ll/UL4.g:552:4: n= name '-=' e= expr1 EOF
+        pass 
+        self._state.following.append(self.FOLLOW_name_in_synpred74_UL42847)
+        n = self.name()
+
+        self._state.following.pop()
+
+        self.match(self.input, 36, self.FOLLOW_36_in_synpred74_UL42849)
+
+        self._state.following.append(self.FOLLOW_expr1_in_synpred74_UL42853)
+        e = self.expr1()
+
+        self._state.following.pop()
+
+        self.match(self.input, EOF, self.FOLLOW_EOF_in_synpred74_UL42855)
+
+
+
+    # $ANTLR end "synpred74_UL4"
+
+
+
+    # $ANTLR start "synpred75_UL4"
+    def synpred75_UL4_fragment(self, ):
+        n = None
+
+        e = None
+
+
+        # src/ll/UL4.g:553:4: (n= name '*=' e= expr1 EOF )
+        # src/ll/UL4.g:553:4: n= name '*=' e= expr1 EOF
+        pass 
+        self._state.following.append(self.FOLLOW_name_in_synpred75_UL42864)
+        n = self.name()
+
+        self._state.following.pop()
+
+        self.match(self.input, 31, self.FOLLOW_31_in_synpred75_UL42866)
+
+        self._state.following.append(self.FOLLOW_expr1_in_synpred75_UL42870)
+        e = self.expr1()
+
+        self._state.following.pop()
+
+        self.match(self.input, EOF, self.FOLLOW_EOF_in_synpred75_UL42872)
+
+
+
+    # $ANTLR end "synpred75_UL4"
+
+
+
+    # $ANTLR start "synpred76_UL4"
+    def synpred76_UL4_fragment(self, ):
+        n = None
+
+        e = None
+
+
+        # src/ll/UL4.g:554:4: (n= name '/=' e= expr1 EOF )
+        # src/ll/UL4.g:554:4: n= name '/=' e= expr1 EOF
+        pass 
+        self._state.following.append(self.FOLLOW_name_in_synpred76_UL42881)
+        n = self.name()
+
+        self._state.following.pop()
+
+        self.match(self.input, 41, self.FOLLOW_41_in_synpred76_UL42883)
+
+        self._state.following.append(self.FOLLOW_expr1_in_synpred76_UL42887)
+        e = self.expr1()
+
+        self._state.following.pop()
+
+        self.match(self.input, EOF, self.FOLLOW_EOF_in_synpred76_UL42889)
+
+
+
+    # $ANTLR end "synpred76_UL4"
+
+
+
+    # $ANTLR start "synpred77_UL4"
+    def synpred77_UL4_fragment(self, ):
+        n = None
+
+        e = None
+
+
+        # src/ll/UL4.g:555:4: (n= name '//=' e= expr1 EOF )
+        # src/ll/UL4.g:555:4: n= name '//=' e= expr1 EOF
+        pass 
+        self._state.following.append(self.FOLLOW_name_in_synpred77_UL42898)
+        n = self.name()
+
+        self._state.following.pop()
+
+        self.match(self.input, 40, self.FOLLOW_40_in_synpred77_UL42900)
+
+        self._state.following.append(self.FOLLOW_expr1_in_synpred77_UL42904)
+        e = self.expr1()
+
+        self._state.following.pop()
+
+        self.match(self.input, EOF, self.FOLLOW_EOF_in_synpred77_UL42906)
+
+
+
+    # $ANTLR end "synpred77_UL4"
+
+
+
+    # $ANTLR start "synpred78_UL4"
+    def synpred78_UL4_fragment(self, ):
+        n = None
+
+        e = None
+
+
+        # src/ll/UL4.g:556:4: (n= name '%=' e= expr1 EOF )
+        # src/ll/UL4.g:556:4: n= name '%=' e= expr1 EOF
+        pass 
+        self._state.following.append(self.FOLLOW_name_in_synpred78_UL42915)
+        n = self.name()
+
+        self._state.following.pop()
+
+        self.match(self.input, 26, self.FOLLOW_26_in_synpred78_UL42917)
+
+        self._state.following.append(self.FOLLOW_expr1_in_synpred78_UL42921)
+        e = self.expr1()
+
+        self._state.following.pop()
+
+        self.match(self.input, EOF, self.FOLLOW_EOF_in_synpred78_UL42923)
+
+
+
+    # $ANTLR end "synpred78_UL4"
+
+
+
+
+    def synpred76_UL4(self):
         self._state.backtracking += 1
         start = self.input.mark()
         try:
-            self.synpred26_UL4_fragment()
+            self.synpred76_UL4_fragment()
         except BacktrackingFailed:
             success = False
         else:
@@ -4293,11 +4539,24 @@ class UL4Parser(Parser):
         self._state.backtracking -= 1
         return success
 
-    def synpred71_UL4(self):
+    def synpred78_UL4(self):
         self._state.backtracking += 1
         start = self.input.mark()
         try:
-            self.synpred71_UL4_fragment()
+            self.synpred78_UL4_fragment()
+        except BacktrackingFailed:
+            success = False
+        else:
+            success = True
+        self.input.rewind(start)
+        self._state.backtracking -= 1
+        return success
+
+    def synpred77_UL4(self):
+        self._state.backtracking += 1
+        start = self.input.mark()
+        try:
+            self.synpred77_UL4_fragment()
         except BacktrackingFailed:
             success = False
         else:
@@ -4319,11 +4578,11 @@ class UL4Parser(Parser):
         self._state.backtracking -= 1
         return success
 
-    def synpred21_UL4(self):
+    def synpred24_UL4(self):
         self._state.backtracking += 1
         start = self.input.mark()
         try:
-            self.synpred21_UL4_fragment()
+            self.synpred24_UL4_fragment()
         except BacktrackingFailed:
             success = False
         else:
@@ -4332,11 +4591,11 @@ class UL4Parser(Parser):
         self._state.backtracking -= 1
         return success
 
-    def synpred24_UL4(self):
+    def synpred75_UL4(self):
         self._state.backtracking += 1
         start = self.input.mark()
         try:
-            self.synpred24_UL4_fragment()
+            self.synpred75_UL4_fragment()
         except BacktrackingFailed:
             success = False
         else:
@@ -4363,6 +4622,84 @@ class UL4Parser(Parser):
         start = self.input.mark()
         try:
             self.synpred23_UL4_fragment()
+        except BacktrackingFailed:
+            success = False
+        else:
+            success = True
+        self.input.rewind(start)
+        self._state.backtracking -= 1
+        return success
+
+    def synpred26_UL4(self):
+        self._state.backtracking += 1
+        start = self.input.mark()
+        try:
+            self.synpred26_UL4_fragment()
+        except BacktrackingFailed:
+            success = False
+        else:
+            success = True
+        self.input.rewind(start)
+        self._state.backtracking -= 1
+        return success
+
+    def synpred72_UL4(self):
+        self._state.backtracking += 1
+        start = self.input.mark()
+        try:
+            self.synpred72_UL4_fragment()
+        except BacktrackingFailed:
+            success = False
+        else:
+            success = True
+        self.input.rewind(start)
+        self._state.backtracking -= 1
+        return success
+
+    def synpred71_UL4(self):
+        self._state.backtracking += 1
+        start = self.input.mark()
+        try:
+            self.synpred71_UL4_fragment()
+        except BacktrackingFailed:
+            success = False
+        else:
+            success = True
+        self.input.rewind(start)
+        self._state.backtracking -= 1
+        return success
+
+    def synpred21_UL4(self):
+        self._state.backtracking += 1
+        start = self.input.mark()
+        try:
+            self.synpred21_UL4_fragment()
+        except BacktrackingFailed:
+            success = False
+        else:
+            success = True
+        self.input.rewind(start)
+        self._state.backtracking -= 1
+        return success
+
+    def synpred73_UL4(self):
+        self._state.backtracking += 1
+        start = self.input.mark()
+        try:
+            self.synpred73_UL4_fragment()
+        except BacktrackingFailed:
+            success = False
+        else:
+            success = True
+        self.input.rewind(start)
+        self._state.backtracking -= 1
+        return success
+
+    def synpred74_UL4(self):
+        self._state.backtracking += 1
+        start = self.input.mark()
+        try:
+            self.synpred74_UL4_fragment()
         except BacktrackingFailed:
             success = False
         else:
@@ -4585,6 +4922,8 @@ class UL4Parser(Parser):
     FOLLOW_26_in_statement2917 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
     FOLLOW_expr1_in_statement2921 = frozenset([])
     FOLLOW_EOF_in_statement2923 = frozenset([1])
+    FOLLOW_expression_in_statement2932 = frozenset([])
+    FOLLOW_EOF_in_statement2934 = frozenset([1])
     FOLLOW_list_in_synpred20_UL41385 = frozenset([1])
     FOLLOW_listcomprehension_in_synpred21_UL41394 = frozenset([1])
     FOLLOW_dict_in_synpred22_UL41403 = frozenset([1])
@@ -4599,6 +4938,34 @@ class UL4Parser(Parser):
     FOLLOW_generatorexpression_in_synpred70_UL42710 = frozenset([1])
     FOLLOW_generatorexpression_in_synpred71_UL42738 = frozenset([])
     FOLLOW_EOF_in_synpred71_UL42740 = frozenset([1])
+    FOLLOW_nestedname_in_synpred72_UL42813 = frozenset([45])
+    FOLLOW_45_in_synpred72_UL42815 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_expr1_in_synpred72_UL42819 = frozenset([])
+    FOLLOW_EOF_in_synpred72_UL42821 = frozenset([1])
+    FOLLOW_name_in_synpred73_UL42830 = frozenset([33])
+    FOLLOW_33_in_synpred73_UL42832 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_expr1_in_synpred73_UL42836 = frozenset([])
+    FOLLOW_EOF_in_synpred73_UL42838 = frozenset([1])
+    FOLLOW_name_in_synpred74_UL42847 = frozenset([36])
+    FOLLOW_36_in_synpred74_UL42849 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_expr1_in_synpred74_UL42853 = frozenset([])
+    FOLLOW_EOF_in_synpred74_UL42855 = frozenset([1])
+    FOLLOW_name_in_synpred75_UL42864 = frozenset([31])
+    FOLLOW_31_in_synpred75_UL42866 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_expr1_in_synpred75_UL42870 = frozenset([])
+    FOLLOW_EOF_in_synpred75_UL42872 = frozenset([1])
+    FOLLOW_name_in_synpred76_UL42881 = frozenset([41])
+    FOLLOW_41_in_synpred76_UL42883 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_expr1_in_synpred76_UL42887 = frozenset([])
+    FOLLOW_EOF_in_synpred76_UL42889 = frozenset([1])
+    FOLLOW_name_in_synpred77_UL42898 = frozenset([40])
+    FOLLOW_40_in_synpred77_UL42900 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_expr1_in_synpred77_UL42904 = frozenset([])
+    FOLLOW_EOF_in_synpred77_UL42906 = frozenset([1])
+    FOLLOW_name_in_synpred78_UL42915 = frozenset([26])
+    FOLLOW_26_in_synpred78_UL42917 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 19, 27, 35, 49, 55, 57])
+    FOLLOW_expr1_in_synpred78_UL42921 = frozenset([])
+    FOLLOW_EOF_in_synpred78_UL42923 = frozenset([1])
 
 
 

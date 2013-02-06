@@ -10,12 +10,23 @@ Changes in 4.10 (released ??/??/2013)
 
 	Normal output of the template will be ignored if it is used as a function.
 
+*	The UL4 tag ``<?code?>`` has been renamed to ``<?exe?>`` and may now contain
+	not only variable assigments, but any other expression.
+
+*	UL4 functions ``print`` and ``printx`` have been added that behave the same
+	as the approiate tags ``<?print?>`` and ``<?printx?>``, but can output an
+	arbitrary number of arguments.
+
+*	The tag ``<?render?>`` has been removed. To update your code replace 
+	``<?render r.render()?>`` with ``<?exe r.render()?>``.
+
 *	The builtin UL4 functions are now real objects that can be passed to templates
 	as arguments.
 
 *	The UL4 functions ``vars`` and ``get`` have been removed.
 
 *	The automatic UL4 variable ``stack`` has been removed too.
+
 
 
 Changes in 4.9.1 (released 01/17/2013)

@@ -313,64 +313,64 @@ def render_java_interpretedtemplate_by_java(__, keepws=True, **variables):
 
 def call_python(__, *, keepws=True, **variables):
 	"""
-	Compile the function from the source ``__``, call it with the variables ``variables`` and return the result.
+	Compile the template from the source ``__``, call it as a function with the variables ``variables`` and return the result.
 	"""
-	function = ul4c.Function(__, keepws=keepws)
+	template = ul4c.Template(__, keepws=keepws)
 	f = sys._getframe(1)
-	print("Testing Python function ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(function)
+	print("Testing Python template ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+	print(template)
 	print("with variables:")
 	print(repr(variables))
-	return function(**variables)
+	return template(**variables)
 
 
 def call_python_dumps(__, *, keepws=True, **variables):
 	"""
-	Compile the function from the source ``__``, create a string dump from it,
-	recreate the function from the dump string, call it with the variables
-	``variables`` and return the result.
+	Compile the template from the source ``__``, create a string dump from it,
+	recreate the template from the dump string, call it as a function with the
+	variables ``variables`` and return the result.
 	"""
-	function = ul4c.Function(__, keepws=keepws)
-	function = ul4c.Function.loads(function.dumps()) # Recreate the function from the binary dump
+	template = ul4c.Template(__, keepws=keepws)
+	template = ul4c.Template.loads(template.dumps()) # Recreate the template from the binary dump
 	f = sys._getframe(1)
-	print("Testing Python function loaded from string ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(function)
+	print("Testing Python template loaded from string ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+	print(template)
 	print("with variables:")
 	print(repr(variables))
-	return function(**variables)
+	return template(**variables)
 
 
 def call_python_dump(__, *, keepws=True, **variables):
 	"""
-	Compile the function from the source ``__``, dump it to a stream, recreate
-	the function from the dump, call it with the variables ``variables`` and
-	return the result.
+	Compile the template from the source ``__``, dump it to a stream, recreate
+	the template from the dump, call it as a function with the variables
+	``variables`` and return the result.
 	"""
-	function = ul4c.Function(__, keepws=keepws)
+	template = ul4c.Template(__, keepws=keepws)
 	stream = io.StringIO()
-	function.dump(stream)
+	template.dump(stream)
 	stream.seek(0)
 	f = sys._getframe(1)
-	function = ul4c.Function.load(stream) # Recreate the function from the stream
-	print("Testing Python function loaded from stream ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(function)
+	template = ul4c.Template.load(stream) # Recreate the template from the stream
+	print("Testing Python template loaded from stream ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+	print(template)
 	print("with variables:")
 	print(repr(variables))
-	return function(**variables)
+	return template(**variables)
 
 
 def call_js(__, *, keepws=True, **variables):
 	"""
-	Compile the function from the source ``__``, and generate Javascript source
-	from it and call it with the variables ``variables``.
+	Compile the template from the source ``__``, and generate Javascript source
+	from it and call it as a function with the variables ``variables``.
 
 	(this requires an installed ``d8`` shell from V8 (http://code.google.com/p/v8/))
 	"""
-	function = ul4c.Function(__, keepws=keepws)
-	js = function.jssource()
-	js = "func = {};\ndata = {};\nprint(ul4on.dumps(func.call(data)));\n".format(js, ul4c._asjson(variables))
+	template = ul4c.Template(__, keepws=keepws)
+	js = template.jssource()
+	js = "template = {};\ndata = {};\nprint(ul4on.dumps(template.call(data)));\n".format(js, ul4c._asjson(variables))
 	f = sys._getframe(1)
-	print("Testing Javascript function compiled by Python ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+	print("Testing Javascript template compiled by Python ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
 	print(js)
 	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 		f.write(js.encode("utf-8"))
@@ -633,11 +633,11 @@ def test_date(r):
 
 @pytest.mark.ul4
 def test_color(r):
-	assert '255,255,255,255' == r('<?code c = #fff?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
-	assert '255,255,255,255' == r('<?code c = #ffffff?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
-	assert '18,52,86,255' == r('<?code c = #123456?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
-	assert '17,34,51,68' == r('<?code c = #1234?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
-	assert '18,52,86,120' == r('<?code c = #12345678?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
+	assert '255,255,255,255' == r('<?exe c = #fff?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
+	assert '255,255,255,255' == r('<?exe c = #ffffff?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
+	assert '18,52,86,255' == r('<?exe c = #123456?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
+	assert '17,34,51,68' == r('<?exe c = #1234?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
+	assert '18,52,86,120' == r('<?exe c = #12345678?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
 	assert 'yes' == r('<?if #fff?>yes<?else?>no<?end if?>')
 
 
@@ -654,23 +654,23 @@ def test_list(r):
 
 @pytest.mark.ul4
 def test_listcomp(r):
-	assert "[2, 6]" == r("<?code d = [2*i for i in range(4) if i%2]?><?print d?>")
-	assert "[0, 2, 4, 6]" == r("<?code d = [2*i for i in range(4)]?><?print d?>")
+	assert "[2, 6]" == r("<?exe d = [2*i for i in range(4) if i%2]?><?print d?>")
+	assert "[0, 2, 4, 6]" == r("<?exe d = [2*i for i in range(4)]?><?print d?>")
 
 	# Make sure that the loop variables doesn't leak into the surrounding scope
-	assert "undefined" == r("<?code d = [2*i for i in range(4)]?><?print type(i)?>")
+	assert "undefined" == r("<?exe d = [2*i for i in range(4)]?><?print type(i)?>")
 
 
 @pytest.mark.ul4
 def test_genexpr(r):
-	assert "2, 6:" == r("<?code ge = (str(2*i) for i in range(4) if i%2)?><?print ', '.join(ge)?>:<?print ', '.join(ge)?>")
+	assert "2, 6:" == r("<?exe ge = (str(2*i) for i in range(4) if i%2)?><?print ', '.join(ge)?>:<?print ', '.join(ge)?>")
 	assert "2, 6" == r("<?print ', '.join(str(2*i) for i in range(4) if i%2)?>")
 	assert "0, 2, 4, 6" == r("<?print ', '.join(str(2*i) for i in range(4))?>")
 	assert "0, 2, 4, 6" == r("<?print ', '.join((str(2*i) for i in range(4)))?>")
 	assert "0:g; 1:r; 2:k" == r("<?for (i, c2) in enumerate(c for c in 'gurk' if c != 'u')?><?if i?>; <?end if?><?print i?>:<?print c2?><?end for?>")
 
 	# Make sure that the loop variables doesn't leak into the surrounding scope
-	assert "undefined" == r("<?code d = (2*i for i in range(4))?><?print type(i)?>")
+	assert "undefined" == r("<?exe d = (2*i for i in range(4))?><?print type(i)?>")
 
 
 @pytest.mark.ul4
@@ -688,15 +688,15 @@ def test_dict(r):
 	assert 'yes' == r('<?if {1:2}?>yes<?else?>no<?end if?>')
 
 	# Make sure that the loop variables doesn't leak into the surrounding scope
-	assert "undefined" == r("<?code d = {i: 2*i for i in range(4)}?><?print type(i)?>")
+	assert "undefined" == r("<?exe d = {i: 2*i for i in range(4)}?><?print type(i)?>")
 
 
 @pytest.mark.ul4
 def test_dictcomp(r):
 	# JS only supports string keys
-	assert "" == r("<?code d = {str(i):2*i for i in range(10) if i%2}?><?if '2' in d?><?print d['2']?><?end if?>")
-	assert "6" == r("<?code d = {str(i):2*i for i in range(10) if i%2}?><?if '3' in d?><?print d['3']?><?end if?>")
-	assert "6" == r("<?code d = {str(i):2*i for i in range(10)}?><?print d['3']?>")
+	assert "" == r("<?exe d = {str(i):2*i for i in range(10) if i%2}?><?if '2' in d?><?print d['2']?><?end if?>")
+	assert "6" == r("<?exe d = {str(i):2*i for i in range(10) if i%2}?><?if '3' in d?><?print d['3']?><?end if?>")
+	assert "6" == r("<?exe d = {str(i):2*i for i in range(10)}?><?print d['3']?>")
 
 
 @pytest.mark.ul4
@@ -712,67 +712,60 @@ def test_printx(r):
 
 
 @pytest.mark.ul4
-def test_code_storevar(r):
-	assert '42' == r('<?code x = 42?><?print x?>')
-	assert 'xyzzy' == r('<?code x = "xyzzy"?><?print x?>')
-	assert 'x,y' == r('<?code (x, y) = "xy"?><?print x?>,<?print y?>')
-	assert '42' == r('<?code (x,) = [42]?><?print x?>')
-	assert '17,23' == r('<?code (x,y) = [17, 23]?><?print x?>,<?print y?>')
-	assert '17,23,37,42,105' == r('<?code ((v, w), (x,), (y,), z) = [[17, 23], [37], [42], 105]?><?print v?>,<?print w?>,<?print x?>,<?print y?>,<?print z?>')
+def test_storevar(r):
+	assert '42' == r('<?exe x = 42?><?print x?>')
+	assert 'xyzzy' == r('<?exe x = "xyzzy"?><?print x?>')
+	assert 'x,y' == r('<?exe (x, y) = "xy"?><?print x?>,<?print y?>')
+	assert '42' == r('<?exe (x,) = [42]?><?print x?>')
+	assert '17,23' == r('<?exe (x,y) = [17, 23]?><?print x?>,<?print y?>')
+	assert '17,23,37,42,105' == r('<?exe ((v, w), (x,), (y,), z) = [[17, 23], [37], [42], 105]?><?print v?>,<?print w?>,<?print x?>,<?print y?>,<?print z?>')
 
 
 @pytest.mark.ul4
-def test_code_addvar(r):
+def test_addvar(r):
 	for x in (17, 17., False, True):
 		for y in (23, 23., False, True):
-			assert x + y == eval(r('<?code x = {}?><?code x += {}?><?print x?>'.format(x, y)))
-	assert 'xyzzy' == r('<?code x = "xyz"?><?code x += "zy"?><?print x?>')
+			assert x + y == eval(r('<?exe x = {}?><?exe x += {}?><?print x?>'.format(x, y)))
+	assert 'xyzzy' == r('<?exe x = "xyz"?><?exe x += "zy"?><?print x?>')
 
 
 @pytest.mark.ul4
-def test_code_subvar(r):
+def test_subvar(r):
 	for x in (17, 17., False, True):
 		for y in (23, 23., False, True):
-			assert x - y == eval(r('<?code x = {}?><?code x -= {}?><?print x?>'.format(x, y)))
+			assert x - y == eval(r('<?exe x = {}?><?exe x -= {}?><?print x?>'.format(x, y)))
 
 
 @pytest.mark.ul4
-def test_code_mulvar(r):
+def test_mulvar(r):
 	for x in (17, 17., False, True):
 		for y in (23, 23., False, True):
-			assert x * y == eval(r('<?code x = {}?><?code x *= {}?><?print x?>'.format(x, y)))
+			assert x * y == eval(r('<?exe x = {}?><?exe x *= {}?><?print x?>'.format(x, y)))
 	for x in (17, False, True):
 		y = "xyzzy"
-		assert x * y == r('<?code x = {}?><?code x *= {!r}?><?print x?>'.format(x, y))
-	assert 17*"xyzzy" == r('<?code x = "xyzzy"?><?code x *= 17?><?print x?>')
+		assert x * y == r('<?exe x = {}?><?exe x *= {!r}?><?print x?>'.format(x, y))
+	assert 17*"xyzzy" == r('<?exe x = "xyzzy"?><?exe x *= 17?><?print x?>')
 
 
 @pytest.mark.ul4
-def test_code_floordivvar(r):
+def test_floordivvar(r):
 	for x in (5, -5, 5.0, -5.0, 4, -4, 4.0, -4.0, False, True):
 		for y in (2, -2, 2.0, -2.0, True):
-			assert x // y == eval(r('<?code x = {}?><?code x //= {}?><?print x?>'.format(x, y)))
+			assert x // y == eval(r('<?exe x = {}?><?exe x //= {}?><?print x?>'.format(x, y)))
 
 
 @pytest.mark.ul4
-def test_code_truedivvar(r):
+def test_truedivvar(r):
 	for x in (5, -5, 5.0, -5.0, 4, -4, 4.0, -4.0, False, True):
 		for y in (2, -2, 2.0, -2.0, True):
-			assert x / y == eval(r('<?code x = {}?><?code x /= {}?><?print x?>'.format(x, y)))
+			assert x / y == eval(r('<?exe x = {}?><?exe x /= {}?><?print x?>'.format(x, y)))
 
 
 @pytest.mark.ul4
-def test_code_modvar(r):
+def test_modvar(r):
 	for x in (1729, 1729.0, -1729, -1729.0, False, True):
 		for y in (23, 23., -23, -23.0, True):
-			assert x % y == eval(r('<?code x = {}?><?code x %= {}?><?print x?>'.format(x, y)))
-
-
-@pytest.mark.ul4
-def test_code_delvar(r):
-	if r is not render_js:
-		with raises("(x|not found)"):
-			r('<?code x = 1729?><?code del x?><?print x?>')
+			assert x % y == eval(r('<?exe x = {}?><?exe x %= {}?><?print x?>'.format(x, y)))
 
 
 @pytest.mark.ul4
@@ -890,9 +883,7 @@ def test_empty():
 	with raises("loop expression required"):
 		render_python('<?for?>')
 	with raises("statement required"):
-		render_python('<?code?>')
-	with raises("expression required"):
-		render_python('<?render?>')
+		render_python('<?exe?>')
 
 
 @pytest.mark.ul4
@@ -903,7 +894,7 @@ def test_add(r):
 	for x in values:
 		for y in values:
 			assert x + y == eval(r(code, x=x, y=y)) # Using ``evaleq`` avoids problem with the nonexistant int/float distinction in JS
-	assert 'foobar' == r('<?code x="foo"?><?code y="bar"?><?print x+y?>')
+	assert 'foobar' == r('<?exe x="foo"?><?exe y="bar"?><?print x+y?>')
 	assert '(f)(o)(o)(b)(a)(r)' == r('<?for i in data.foo+data.bar?>(<?print i?>)<?end for?>', data=dict(foo="foo", bar="bar"))
 	assert "2012-10-18 00:00:00" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(1))
 	assert "2013-10-17 00:00:00" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(365))
@@ -981,8 +972,8 @@ def test_mul(r):
 		for y in values:
 			assert x * y == eval(r(code, x=x, y=y))
 	assert 17*"foo" == r('<?print 17*"foo"?>')
-	assert 17*"foo" == r('<?code x=17?><?code y="foo"?><?print x*y?>')
-	assert "foo"*17 == r('<?code x="foo"?><?code y=17?><?print x*y?>')
+	assert 17*"foo" == r('<?exe x=17?><?exe y="foo"?><?print x*y?>')
+	assert "foo"*17 == r('<?exe x="foo"?><?exe y=17?><?print x*y?>')
 	assert "foo"*17 == r('<?print "foo"*17?>')
 	assert "(foo)(bar)(foo)(bar)(foo)(bar)" == r('<?for i in 3*data?>(<?print i?>)<?end for?>', data=["foo", "bar"])
 	assert "0:00:00" == r(code, x=4, y=datetime.timedelta())
@@ -1004,7 +995,7 @@ def test_truediv(r):
 	code = "<?print x / y?>"
 
 	assert "0.5" == r('<?print 1/2?>')
-	assert "0.5" == r('<?code x=1?><?code y=2?><?print x/y?>')
+	assert "0.5" == r('<?exe x=1?><?exe y=2?><?print x/y?>')
 	assert "0:00:00" == r(code, x=datetime.timedelta(), y=4)
 	assert "2 days, 0:00:00" == r(code, x=datetime.timedelta(8), y=4)
 	assert "12:00:00" == r(code, x=datetime.timedelta(4), y=8)
@@ -1020,7 +1011,7 @@ def test_truediv(r):
 @pytest.mark.ul4
 def test_floordiv(r):
 	assert "0" == r('<?print 1//2?>')
-	assert "0" == r('<?code x=1?><?code y=2?><?print x//y?>')
+	assert "0" == r('<?exe x=1?><?exe y=2?><?print x//y?>')
 	assert "1 month" == r('<?print x//y?>', x=misc.monthdelta(3), y=2)
 
 
@@ -1260,7 +1251,7 @@ def test_nested(r):
 		n = n + n
 
 	assert str(n) == r('<?print {}?>'.format(sc))
-	assert str(n) == r('<?code x=4?><?print {}?>'.format(sv))
+	assert str(n) == r('<?exe x=4?><?print {}?>'.format(sv))
 
 
 @pytest.mark.ul4
@@ -1298,7 +1289,7 @@ def test_bracket(r):
 		sv = "({})".format(sv)
 
 	assert "4" == r('<?print {}?>'.format(sc))
-	assert "4" == r('<?code x=4?><?print {}?>'.format(sv))
+	assert "4" == r('<?exe x=4?><?print {}?>'.format(sv))
 
 
 @pytest.mark.ul4
@@ -1401,7 +1392,7 @@ def test_function_random(r):
 		r("<?print random(1, 2)?>")
 	with raises(argumentmismatchmessage):
 		r("<?print random(foo=1)?>")
-	assert "ok" == r("<?code r = random()?><?if r>=0 and r<1?>ok<?else?>fail<?end if?>")
+	assert "ok" == r("<?exe r = random()?><?if r>=0 and r<1?>ok<?else?>fail<?end if?>")
 
 
 @pytest.mark.ul4
@@ -1410,21 +1401,21 @@ def test_function_randrange(r):
 		r("<?print randrange()?>")
 	with raises(argumentmismatchmessage):
 		r("<?print randrange(foo=1)?>")
-	assert "ok" == r("<?code r = randrange(4)?><?if r>=0 and r<4?>ok<?else?>fail<?end if?>")
-	assert "ok" == r("<?code r = randrange(17, 23)?><?if r>=17 and r<23?>ok<?else?>fail<?end if?>")
-	assert "ok" == r("<?code r = randrange(17, 23, 2)?><?if r>=17 and r<23 and r%2?>ok<?else?>fail<?end if?>")
+	assert "ok" == r("<?exe r = randrange(4)?><?if r>=0 and r<4?>ok<?else?>fail<?end if?>")
+	assert "ok" == r("<?exe r = randrange(17, 23)?><?if r>=17 and r<23?>ok<?else?>fail<?end if?>")
+	assert "ok" == r("<?exe r = randrange(17, 23, 2)?><?if r>=17 and r<23 and r%2?>ok<?else?>fail<?end if?>")
 
 
 @pytest.mark.ul4
 def test_function_randchoice(r):
 	with raises(argumentmismatchmessage):
 		r("<?print randchoice()?>")
-	assert "ok" == r("<?code r = randchoice('abc')?><?if r in 'abc'?>ok<?else?>fail<?end if?>")
-	assert "ok" == r("<?code s = [17, 23, 42]?><?code r = randchoice(s)?><?if r in s?>ok<?else?>fail<?end if?>")
-	assert "ok" == r("<?code s = #12345678?><?code sl = [0x12, 0x34, 0x56, 0x78]?><?code r = randchoice(s)?><?if r in sl?>ok<?else?>fail<?end if?>")
+	assert "ok" == r("<?exe r = randchoice('abc')?><?if r in 'abc'?>ok<?else?>fail<?end if?>")
+	assert "ok" == r("<?exe s = [17, 23, 42]?><?exe r = randchoice(s)?><?if r in s?>ok<?else?>fail<?end if?>")
+	assert "ok" == r("<?exe s = #12345678?><?exe sl = [0x12, 0x34, 0x56, 0x78]?><?exe r = randchoice(s)?><?if r in sl?>ok<?else?>fail<?end if?>")
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "ok" == r("<?code s = [17, 23, 42]?><?code r = randchoice(sequence=s)?><?if r in s?>ok<?else?>fail<?end if?>")
+	assert "ok" == r("<?exe s = [17, 23, 42]?><?exe r = randchoice(sequence=s)?><?if r in s?>ok<?else?>fail<?end if?>")
 
 
 @pytest.mark.ul4
@@ -2817,40 +2808,40 @@ def test_method_get(r):
 
 @pytest.mark.ul4
 def test_method_r_g_b_a(r):
-	assert '0x11' == r('<?code c = #123?><?print hex(c.r())?>')
-	assert '0x22' == r('<?code c = #123?><?print hex(c.g())?>')
-	assert '0x33' == r('<?code c = #123?><?print hex(c.b())?>')
-	assert '0xff' == r('<?code c = #123?><?print hex(c.a())?>')
+	assert '0x11' == r('<?exe c = #123?><?print hex(c.r())?>')
+	assert '0x22' == r('<?exe c = #123?><?print hex(c.g())?>')
+	assert '0x33' == r('<?exe c = #123?><?print hex(c.b())?>')
+	assert '0xff' == r('<?exe c = #123?><?print hex(c.a())?>')
 
 
 @pytest.mark.ul4
 def test_method_hls(r):
-	assert '0' == r('<?code c = #fff?><?print int(c.hls()[0])?>')
-	assert '1' == r('<?code c = #fff?><?print int(c.hls()[1])?>')
-	assert '0' == r('<?code c = #fff?><?print int(c.hls()[2])?>')
+	assert '0' == r('<?exe c = #fff?><?print int(c.hls()[0])?>')
+	assert '1' == r('<?exe c = #fff?><?print int(c.hls()[1])?>')
+	assert '0' == r('<?exe c = #fff?><?print int(c.hls()[2])?>')
 
 
 @pytest.mark.ul4
 def test_method_hlsa(r):
-	assert '0' == r('<?code c = #fff?><?print int(c.hlsa()[0])?>')
-	assert '1' == r('<?code c = #fff?><?print int(c.hlsa()[1])?>')
-	assert '0' == r('<?code c = #fff?><?print int(c.hlsa()[2])?>')
-	assert '1' == r('<?code c = #fff?><?print int(c.hlsa()[3])?>')
+	assert '0' == r('<?exe c = #fff?><?print int(c.hlsa()[0])?>')
+	assert '1' == r('<?exe c = #fff?><?print int(c.hlsa()[1])?>')
+	assert '0' == r('<?exe c = #fff?><?print int(c.hlsa()[2])?>')
+	assert '1' == r('<?exe c = #fff?><?print int(c.hlsa()[3])?>')
 
 
 @pytest.mark.ul4
 def test_method_hsv(r):
-	assert '0' == r('<?code c = #fff?><?print int(c.hsv()[0])?>')
-	assert '0' == r('<?code c = #fff?><?print int(c.hsv()[1])?>')
-	assert '1' == r('<?code c = #fff?><?print int(c.hsv()[2])?>')
+	assert '0' == r('<?exe c = #fff?><?print int(c.hsv()[0])?>')
+	assert '0' == r('<?exe c = #fff?><?print int(c.hsv()[1])?>')
+	assert '1' == r('<?exe c = #fff?><?print int(c.hsv()[2])?>')
 
 
 @pytest.mark.ul4
 def test_method_hsva(r):
-	assert '0' == r('<?code c = #fff?><?print int(c.hsva()[0])?>')
-	assert '0' == r('<?code c = #fff?><?print int(c.hsva()[1])?>')
-	assert '1' == r('<?code c = #fff?><?print int(c.hsva()[2])?>')
-	assert '1' == r('<?code c = #fff?><?print int(c.hsva()[3])?>')
+	assert '0' == r('<?exe c = #fff?><?print int(c.hsva()[0])?>')
+	assert '0' == r('<?exe c = #fff?><?print int(c.hsva()[1])?>')
+	assert '1' == r('<?exe c = #fff?><?print int(c.hsva()[2])?>')
+	assert '1' == r('<?exe c = #fff?><?print int(c.hsva()[3])?>')
 
 
 @pytest.mark.ul4
@@ -3015,8 +3006,8 @@ def test_method_yearday(r):
 def test_render(r):
 	t = ul4c.Template('<?print prefix?><?print data?><?print suffix?>')
 
-	assert '(f)(o)(o)' == r('<?for c in data?><?render t.render(data=c, prefix="(", suffix=")")?><?end for?>', t=t, data='foo')
-	assert '(f)(o)(o)' == r('<?for c in data?><?render t.render(data=c, **{"prefix": "(", "suffix": ")"})?><?end for?>', t=t, data='foo')
+	assert '(f)(o)(o)' == r('<?for c in data?><?exe t.render(data=c, prefix="(", suffix=")")?><?end for?>', t=t, data='foo')
+	assert '(f)(o)(o)' == r('<?for c in data?><?exe t.render(data=c, **{"prefix": "(", "suffix": ")"})?><?end for?>', t=t, data='foo')
 
 
 @pytest.mark.ul4
@@ -3026,9 +3017,9 @@ def test_def(r):
 
 @pytest.mark.ul4
 def test_pass_function(r):
-	assert "&lt;" == r("<?def x?><?print xe('<')?><?end def?><?render x.render(xe=xmlescape)?>")
-	assert "&lt;" == r("<?def xe?><?return xmlescape(s)?><?end def?><?def x?><?print xe(s='<')?><?end def?><?render x.render(xe=xe)?>")
-	assert "&lt;" == r("<?def xe?><?return xmlescape(s)?><?end def?><?def x?><?print xe(s='<')?><?end def?><?render x.render()?>")
+	assert "&lt;" == r("<?def x?><?print xe('<')?><?end def?><?exe x.render(xe=xmlescape)?>")
+	assert "&lt;" == r("<?def xe?><?return xmlescape(s)?><?end def?><?def x?><?print xe(s='<')?><?end def?><?exe x.render(xe=xe)?>")
+	assert "&lt;" == r("<?def xe?><?return xmlescape(s)?><?end def?><?def x?><?print xe(s='<')?><?end def?><?exe x.render()?>")
 
 
 @pytest.mark.ul4
@@ -3039,11 +3030,11 @@ def test_parse(r):
 @pytest.mark.ul4
 def test_nested_exceptions(r):
 	tmpl1 = ul4c.Template("<?print 2*x?>", "tmpl1")
-	tmpl2 = ul4c.Template("<?render tmpl1.render(x=x)?>", "tmpl2")
-	tmpl3 = ul4c.Template("<?render tmpl2.render(tmpl1=tmpl1, x=x)?>", "tmpl3")
+	tmpl2 = ul4c.Template("<?exe tmpl1.render(x=x)?>", "tmpl2")
+	tmpl3 = ul4c.Template("<?exe tmpl2.render(tmpl1=tmpl1, x=x)?>", "tmpl3")
 
 	with raises("unsupported operand type|not supported"):
-		r("<?render tmpl3.render(tmpl1=tmpl1, tmpl2=tmpl2, x=x)?>", tmpl1=tmpl1, tmpl2=tmpl2, tmpl3=tmpl3, x=None)
+		r("<?exe tmpl3.render(tmpl1=tmpl1, tmpl2=tmpl2, x=x)?>", tmpl1=tmpl1, tmpl2=tmpl2, tmpl3=tmpl3, x=None)
 
 
 @pytest.mark.ul4
@@ -3092,7 +3083,7 @@ def test_nestedscopes(r):
 		<?def x?>
 			<?print i?>!
 		<?end def?>
-		<?render x.render()?>
+		<?exe x.render()?>
 	<?end for?>
 	"""
 	assert "0!1!2!" == r(source, keepws=False)
@@ -3100,12 +3091,12 @@ def test_nestedscopes(r):
 	# Subtemplates see the state of the variable at the point of the ``<?def?>`` tag,
 	# so the following code will use ``i = 1`` instead of ``i = 2`` even if the subtemplate is called after the variable has been changed.
 	source = """
-	<?code i = 1?>
+	<?exe i = 1?>
 	<?def x?>
 		<?print i?>
 	<?end def?>
-	<?code i = 2?>
-	<?render x.render()?>
+	<?exe i = 2?>
+	<?exe x.render()?>
 	"""
 	assert "1" == r(source, keepws=False)
 
@@ -3116,20 +3107,20 @@ def test_nestedscopes(r):
 	source = """
 	<?def outer?>
 		<?def inner?>
-			<?code x += 1?>
-			<?code y += 1?>
+			<?exe x += 1?>
+			<?exe y += 1?>
 			<?print x?>!
 			<?print y?>!
 		<?end def?>
-		<?code x += 1?>
-		<?code y += 1?>
-		<?render inner.render(x=x)?>
+		<?exe x += 1?>
+		<?exe y += 1?>
+		<?exe inner.render(x=x)?>
 		<?print x?>!
 		<?print y?>!
 	<?end def?>
-	<?code x += 1?>
-	<?code y += 1?>
-	<?render outer.render(x=x)?>
+	<?exe x += 1?>
+	<?exe y += 1?>
+	<?exe outer.render(x=x)?>
 	<?print x?>!
 	<?print y?>!
 	"""
@@ -3140,29 +3131,29 @@ def test_nestedscopes(r):
 def universaltemplate(keepws=True):
 	return ul4c.Template("""
 		text
-		<?code x = 'gurk'?>
-		<?code x = 42?>
-		<?code x = 4.2?>
-		<?code x = Undefined?>
-		<?code x = ReallyUndefined?>
-		<?code x = None?>
-		<?code x = False?>
-		<?code x = True?>
-		<?code x = @(2009-01-04)?>
-		<?code x = #0063a8?>
-		<?code x = [42]?>
-		<?code x = {"fortytwo": 42}?>
-		<?code x = {**{"fortytwo": 42}}?>
-		<?code x = [x for x in range(10) if i % 2]?>
-		<?code x = {x : x*x for x in range(10) if i % 2}?>
-		<?code x = (x for x in range(10) if i % 2)?>
-		<?code x = y?>
-		<?code x += 42?>
-		<?code x -= 42?>
-		<?code x *= 42?>
-		<?code x /= 42?>
-		<?code x //= 42?>
-		<?code x %= 42?>
+		<?exe x = 'gurk'?>
+		<?exe x = 42?>
+		<?exe x = 4.2?>
+		<?exe x = Undefined?>
+		<?exe x = ReallyUndefined?>
+		<?exe x = None?>
+		<?exe x = False?>
+		<?exe x = True?>
+		<?exe x = @(2009-01-04)?>
+		<?exe x = #0063a8?>
+		<?exe x = [42]?>
+		<?exe x = {"fortytwo": 42}?>
+		<?exe x = {**{"fortytwo": 42}}?>
+		<?exe x = [x for x in range(10) if i % 2]?>
+		<?exe x = {x : x*x for x in range(10) if i % 2}?>
+		<?exe x = (x for x in range(10) if i % 2)?>
+		<?exe x = y?>
+		<?exe x += 42?>
+		<?exe x -= 42?>
+		<?exe x *= 42?>
+		<?exe x /= 42?>
+		<?exe x //= 42?>
+		<?exe x %= 42?>
 		<?print x.gurk?>
 		<?print x["gurk"]?>
 		<?print x[1:2]?>
@@ -3200,10 +3191,10 @@ def universaltemplate(keepws=True):
 		<?print x.find(1, 2, 3)?>
 		<?print x.find(1, 2, x=17, y=23, *args, **kwargs)?>
 		<?if x?>gurk<?elif y?>hurz<?else?>hinz<?end if?>
-		<?render x.render(a=1, b=2)?>
+		<?exe x.render(a=1, b=2)?>
 		<?def x?>foo<?end def?>
 		<?def x?><?return x?><?end def?>
-		<?render x.render()?>
+		<?exe x.render()?>
 	""")
 
 
@@ -3234,8 +3225,8 @@ def test_keepws():
 
 @pytest.mark.ul4
 def test_keepws_nested(r):
-	s1 = "<?def nested1?>1n\n<?render second.render()?><?end def?>1\n<?render nested1.render(second=second)?>"
-	s2 = "<?def nested2?>2n\n<?end def?>2\n<?render nested2.render()?>"
+	s1 = "<?def nested1?>1n\n<?exe second.render()?><?end def?>1\n<?exe nested1.render(second=second)?>"
+	s2 = "<?def nested2?>2n\n<?end def?>2\n<?exe nested2.render()?>"
 
 	assert "1\n1n\n22n" == r(s1, keepws=True, second=ul4c.Template(s2, keepws=False))
 	assert "11n2\n2n\n" == r(s1, keepws=False, second=ul4c.Template(s2, keepws=True))
@@ -3263,8 +3254,8 @@ def test_function_name(c):
 
 @pytest.mark.ul4
 def test_function_closure(c):
-	assert 24 == c("<?code y=3?><?def inner?><?return 2*x*y?><?end def?><?return inner(x=4)?>")
-	assert 24 == c("<?def outer?><?code y=3?><?def inner?><?return 2*x*y?><?end def?><?return inner?><?end def?><?return outer()(x=4)?>")
+	assert 24 == c("<?exe y=3?><?def inner?><?return 2*x*y?><?end def?><?return inner(x=4)?>")
+	assert 24 == c("<?def outer?><?exe y=3?><?def inner?><?return 2*x*y?><?end def?><?return inner?><?end def?><?return outer()(x=4)?>")
 
 
 @pytest.mark.ul4

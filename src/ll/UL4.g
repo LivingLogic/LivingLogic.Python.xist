@@ -140,39 +140,39 @@ UNICODE4_ESC
 /* Rules common to all tags */
 
 none returns [node]
-	: NONE { $node = ul4c.Const(None); }
+	: NONE { $node = ul4c.Const(None) }
 	;
 
 true_ returns [node]
-	: TRUE { $node = ul4c.Const(True); }
+	: TRUE { $node = ul4c.Const(True) }
 	;
 
 false_ returns [node]
-	: FALSE { $node = ul4c.Const(False); }
+	: FALSE { $node = ul4c.Const(False) }
 	;
 
 int_ returns [node]
-	: INT { $node = ul4c.Const(int($INT.text, 0)); }
+	: INT { $node = ul4c.Const(int($INT.text, 0)) }
 	;
 
 float_ returns [node]
-	: FLOAT { $node = ul4c.Const(float($FLOAT.text)); }
+	: FLOAT { $node = ul4c.Const(float($FLOAT.text)) }
 	;
 
 string returns [node]
-	: STRING { $node = ul4c.Const(ast.literal_eval($STRING.text)); }
+	: STRING { $node = ul4c.Const(ast.literal_eval($STRING.text)) }
 	;
 
 date returns [node]
-	: DATE { $node = ul4c.Const(datetime.datetime(*map(int, [f for f in ul4c.datesplitter.split($DATE.text[2:-1]) if f]))); }
+	: DATE { $node = ul4c.Const(datetime.datetime(*map(int, [f for f in ul4c.datesplitter.split($DATE.text[2:-1]) if f]))) }
 	;
 
 color returns [node]
-	: COLOR { $node = ul4c.Const(color.Color.fromrepr($COLOR.text)); }
+	: COLOR { $node = ul4c.Const(color.Color.fromrepr($COLOR.text)) }
 	;
 
 name returns [node]
-	: NAME { $node = ul4c.Var($NAME.text); }
+	: NAME { $node = ul4c.Var($NAME.text) }
 	;
 
 literal returns [node]
@@ -191,13 +191,13 @@ literal returns [node]
 list returns [node]
 	:
 		'['
-		']' { $node = ul4c.List(); }
+		']' { $node = ul4c.List() }
 	|
-		'[' {$node = ul4c.List(); }
-		e1=expr1 { $node.items.append($e1.node); }
+		'[' {$node = ul4c.List() }
+		e1=expr1 { $node.items.append($e1.node) }
 		(
 			','
-			e2=expr1 { $node.items.append($e2.node); }
+			e2=expr1 { $node.items.append($e2.node) }
 		)*
 		','?
 		']'
@@ -219,7 +219,7 @@ listcomprehension returns [node]
 			'if'
 			condition=expr1 { _condition = $condition.node; }
 		)?
-		']' { $node = ul4c.ListComp($item.node, $n.varname, $container.node, _condition); }
+		']' { $node = ul4c.ListComp($item.node, $n.varname, $container.node, _condition) }
 	;
 
 /* Dict literal */
@@ -228,22 +228,22 @@ dictitem returns [node]
 	:
 		k=expr1
 		':'
-		v=expr1 { $node = ($k.node, $v.node); }
+		v=expr1 { $node = ($k.node, $v.node) }
 	|
 		'**'
-		d=expr1 { $node = ($d.node,); }
+		d=expr1 { $node = ($d.node,) }
 	;
 
 dict returns [node]
 	:
 		'{'
-		'}' { $node = ul4c.Dict(); }
+		'}' { $node = ul4c.Dict() }
 	|
-		'{' { $node = ul4c.Dict(); }
-		i1=dictitem { $node.items.append($i1.node); }
+		'{' { $node = ul4c.Dict() }
+		i1=dictitem { $node.items.append($i1.node) }
 		(
 			','
-			i2=dictitem { $node.items.append($i2.node); }
+			i2=dictitem { $node.items.append($i2.node) }
 		)*
 		','?
 		'}'
@@ -267,7 +267,7 @@ dictcomprehension returns [node]
 			'if'
 			condition=expr1 { _condition = $condition.node; }
 		)?
-		'}' { $node = ul4c.DictComp($key.node, $value.node, $n.varname, $container.node, _condition); }
+		'}' { $node = ul4c.DictComp($key.node, $value.node, $n.varname, $container.node, _condition) }
 	;
 
 generatorexpression returns [node]
@@ -284,7 +284,7 @@ generatorexpression returns [node]
 		(
 			'if'
 			condition=expr1 { _condition = $condition.node; }
-		)? { $node = ul4c.GenExpr($item.node, $n.varname, $container.node, _condition); }
+		)? { $node = ul4c.GenExpr($item.node, $n.varname, $container.node, _condition) }
 	;
 
 atom returns [node]
@@ -302,15 +302,15 @@ nestedname returns [varname]
 	:
 		n=name { $varname = $n.text; }
 	|
-		'(' n0=nestedname ',' ')' { $varname = ($n0.varname,); }
+		'(' n0=nestedname ',' ')' { $varname = ($n0.varname,) }
 	|
 		'('
 		n1=nestedname
 		','
-		n2=nestedname { $varname = ($n1.varname, $n2.varname); }
+		n2=nestedname { $varname = ($n1.varname, $n2.varname) }
 		(
 			','
-			n3=nestedname { $varname += ($n3.varname,); }
+			n3=nestedname { $varname += ($n3.varname,) }
 		)*
 		','?
 		')' 
@@ -330,10 +330,10 @@ expr9 returns [node]
 		(
 			/* Attribute access */
 			'.'
-			n=name { $node = ul4c.GetAttr($node, $n.text); }
+			n=name { $node = ul4c.GetAttr($node, $n.text) }
 		|
 			/* Function/method call */
-			'(' { $node = ul4c.CallMeth($node.obj, $node.attrname) if isinstance($node, ul4c.GetAttr) else ul4c.CallFunc($node); }
+			'(' { $node = ul4c.CallMeth($node.obj, $node.attrname) if isinstance($node, ul4c.GetAttr) else ul4c.CallFunc($node) }
 			(
 				/* No arguments */
 			|
@@ -350,14 +350,14 @@ expr9 returns [node]
 				','?
 			|
 				/* At least one positional argument */
-				a1=exprarg { $node.args.append($a1.node); }
+				a1=exprarg { $node.args.append($a1.node) }
 				(
 					','
-					a2=exprarg { $node.args.append($a2.node); }
+					a2=exprarg { $node.args.append($a2.node) }
 				)*
 				(
 					','
-					an3=name '=' av3=exprarg { $node.kwargs.append(($an3.text, $av3.node)); }
+					an3=name '=' av3=exprarg { $node.kwargs.append(($an3.text, $av3.node)) }
 				)*
 				(
 					','
@@ -370,10 +370,10 @@ expr9 returns [node]
 				','?
 			|
 				/* Keyword arguments only */
-				an1=name '=' av1=exprarg { $node.kwargs.append(($an1.text, $av1.node)); }
+				an1=name '=' av1=exprarg { $node.kwargs.append(($an1.text, $av1.node)) }
 				(
 					','
-					an2=name '=' av2=exprarg { $node.kwargs.append(($an2.text, $av2.node)); }
+					an2=name '=' av2=exprarg { $node.kwargs.append(($an2.text, $av2.node)) }
 				)*
 				(
 					','
@@ -393,7 +393,7 @@ expr9 returns [node]
 				':'
 				(
 					e2=expr1 { index2 = $e2.node; }
-				)? { $node = ul4c.GetSlice($node, None, index2); }
+				)? { $node = ul4c.GetSlice($node, None, index2) }
 			|
 				e2=expr1 { index1 = $e2.node; }
 				(
@@ -401,7 +401,7 @@ expr9 returns [node]
 					(
 						e3=expr1 { index2 = $e3.node; }
 					)?
-				)? { $node = ul4c.GetSlice($node, index1, index2) if slice else ul4c.GetItem($node, index1); }
+				)? { $node = ul4c.GetSlice($node, index1, index2) if slice else ul4c.GetItem($node, index1) }
 			)
 			']'
 		)*
@@ -438,7 +438,7 @@ expr7 returns [node]
 			|
 				'%' { cls = ul4c.Mod; }
 			)
-			e2=expr8 { $node = cls($node, $e2.node); }
+			e2=expr8 { $node = cls($node, $e2.node) }
 		)*
 	;
 
@@ -474,7 +474,7 @@ expr5 returns [node]
 			|
 				'>=' { cls = ul4c.GE; }
 			)
-			e2=expr6 { $node = cls($node, $e2.node); }
+			e2=expr6 { $node = cls($node, $e2.node) }
 		)*
 	;
 
@@ -488,7 +488,7 @@ expr4 returns [node]
 				'not' { cls = ul4c.NotContains; }
 			)?
 			'in'
-			e2=expr5 { $node = cls($node, $e2.node); }
+			e2=expr5 { $node = cls($node, $e2.node) }
 		)?
 	;
 
@@ -496,7 +496,7 @@ expr4 returns [node]
 expr3 returns [node]
 	:
 		'not'
-		e=expr4 { $node = ul4c.Not($e.node); }
+		e=expr4 { $node = ul4c.Not($e.node) }
 	|
 		e=expr4 { $node = $e.node; }
 	;
@@ -508,7 +508,7 @@ expr2 returns [node]
 		e1=expr3 { $node = $e1.node; }
 		(
 			'and'
-			e2=expr3 { $node = ul4c.And($node, $e2.node); }
+			e2=expr3 { $node = ul4c.And($node, $e2.node) }
 		)*
 	;
 
@@ -518,7 +518,7 @@ expr1 returns [node]
 		e1=expr2 { $node = $e1.node; }
 		(
 			'or'
-			e2=expr2 { $node = ul4c.Or($node, $e2.node); }
+			e2=expr2 { $node = ul4c.Or($node, $e2.node) }
 		)*
 	;
 
@@ -539,7 +539,7 @@ for_ returns [node]
 	:
 		n=nestedname
 		'in'
-		e=expr1 { $node = ul4c.For(self.location, $n.varname, $e.node); }
+		e=expr1 { $node = ul4c.For(self.location, $n.varname, $e.node) }
 		EOF
 	;
 
@@ -547,11 +547,12 @@ for_ returns [node]
 /* Additional rules for "code" tag */
 
 statement returns [node]
-	: nn=nestedname '=' e=expr1 EOF { $node = ul4c.StoreVar(self.location, $nn.varname, $e.node); }
-	| n=name '+=' e=expr1 EOF { $node = ul4c.AddVar(self.location, $n.text, $e.node); }
-	| n=name '-=' e=expr1 EOF { $node = ul4c.SubVar(self.location, $n.text, $e.node); }
-	| n=name '*=' e=expr1 EOF { $node = ul4c.MulVar(self.location, $n.text, $e.node); }
-	| n=name '/=' e=expr1 EOF { $node = ul4c.TrueDivVar(self.location, $n.text, $e.node); }
-	| n=name '//=' e=expr1 EOF { $node = ul4c.FloorDivVar(self.location, $n.text, $e.node); }
-	| n=name '%=' e=expr1 EOF { $node = ul4c.ModVar(self.location, $n.text, $e.node); }
+	: nn=nestedname '=' e=expr1 EOF { $node = ul4c.StoreVar(self.location, $nn.varname, $e.node) }
+	| n=name '+=' e=expr1 EOF { $node = ul4c.AddVar(self.location, $n.text, $e.node) }
+	| n=name '-=' e=expr1 EOF { $node = ul4c.SubVar(self.location, $n.text, $e.node) }
+	| n=name '*=' e=expr1 EOF { $node = ul4c.MulVar(self.location, $n.text, $e.node) }
+	| n=name '/=' e=expr1 EOF { $node = ul4c.TrueDivVar(self.location, $n.text, $e.node) }
+	| n=name '//=' e=expr1 EOF { $node = ul4c.FloorDivVar(self.location, $n.text, $e.node) }
+	| n=name '%=' e=expr1 EOF { $node = ul4c.ModVar(self.location, $n.text, $e.node) }
+	| e=expression EOF { $node = $e.node }
 	;
