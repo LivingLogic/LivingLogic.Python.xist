@@ -49,7 +49,7 @@ def render_python(__, *, keepws=True, **variables):
 	template = ul4c.Template(__, keepws=keepws)
 	f = sys._getframe(1)
 	print("Testing Python template ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(template.pythonsource())
+	print(template)
 	print("with variables:")
 	print(repr(variables))
 	return template.renders(**variables)
@@ -65,7 +65,7 @@ def render_python_dumps(__, *, keepws=True, **variables):
 	template = ul4c.Template.loads(template.dumps()) # Recreate the template from the binary dump
 	f = sys._getframe(1)
 	print("Testing Python template loaded from string ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(template.pythonsource())
+	print(template)
 	print("with variables:")
 	print(repr(variables))
 	return template.renders(**variables)
@@ -83,7 +83,7 @@ def render_python_dump(__, *, keepws=True, **variables):
 	f = sys._getframe(1)
 	template = ul4c.Template.load(stream) # Recreate the template from the stream
 	print("Testing Python template loaded from stream ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(template.pythonsource())
+	print(template)
 	print("with variables:")
 	print(repr(variables))
 	return template.renders(**variables)
@@ -318,7 +318,7 @@ def call_python(__, *, keepws=True, **variables):
 	function = ul4c.Function(__, keepws=keepws)
 	f = sys._getframe(1)
 	print("Testing Python function ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(function.pythonsource())
+	print(function)
 	print("with variables:")
 	print(repr(variables))
 	return function(**variables)
@@ -334,7 +334,7 @@ def call_python_dumps(__, *, keepws=True, **variables):
 	function = ul4c.Function.loads(function.dumps()) # Recreate the function from the binary dump
 	f = sys._getframe(1)
 	print("Testing Python function loaded from string ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(function.pythonsource())
+	print(function)
 	print("with variables:")
 	print(repr(variables))
 	return function(**variables)
@@ -353,7 +353,7 @@ def call_python_dump(__, *, keepws=True, **variables):
 	f = sys._getframe(1)
 	function = ul4c.Function.load(stream) # Recreate the function from the stream
 	print("Testing Python function loaded from stream ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(function.pythonsource())
+	print(function)
 	print("with variables:")
 	print(repr(variables))
 	return function(**variables)
@@ -442,10 +442,10 @@ all_renderers = [
 	("python", render_python),
 	("python_dumps", render_python_dumps),
 	("python_dump", render_python_dump),
-	("js", render_js),
+	# ("js", render_js),
 	# ("php", render_php),
-	("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
-	("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
+	# ("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
+	# ("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
 ]
 
 
@@ -453,10 +453,10 @@ all_callers = [
 	("python", call_python),
 	("python_dumps", call_python_dumps),
 	("python_dump", call_python_dump),
-	("js", call_js),
+	# ("js", call_js),
 	# ("php", call_php),
-	("java_interpreted_by_python", call_java_interpretedtemplate_by_python),
-	("java_interpreted_by_java", call_java_interpretedtemplate_by_java),
+	# ("java_interpreted_by_python", call_java_interpretedtemplate_by_python),
+	# ("java_interpreted_by_java", call_java_interpretedtemplate_by_java),
 ]
 
 
@@ -2178,9 +2178,9 @@ def test_function_isfunction(r):
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
 	assert "False" == r(code, data={})
-	assert "False" == r(code, data=ul4c.Template(""))
+	assert "True" == r(code, data=ul4c.Template(""))
 	assert "True" == r("<?print isfunction(repr)?>")
-	assert "True" == r("<?function f?><?return 42?><?end function?><?print isfunction(f)?>")
+	assert "True" == r("<?def f?><?return 42?><?end def?><?print isfunction(f)?>")
 	assert "False" == r(code, data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -2608,9 +2608,8 @@ def test_function_type(r):
 	assert "dict" == r(code, x={1: 2})
 	assert "dict" == r(code, x=PseudoDict({1: 2}))
 	assert "template" == r(code, x=ul4c.Template(""))
-	assert "template" == r("<?template t?><?end template?><?print type(t)?>")
+	assert "template" == r("<?def t?><?end def?><?print type(t)?>")
 	assert "function" == r("<?print type(repr)?>")
-	assert "function" == r("<?function f?><?end function?><?print type(f)?>")
 	assert "color" == r(code, x=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
@@ -3022,14 +3021,14 @@ def test_render(r):
 
 @pytest.mark.ul4
 def test_def(r):
-	assert 'foo' == r('<?template lower?><?print x.lower()?><?end template?><?print lower.renders(x="FOO")?>')
+	assert 'foo' == r('<?def lower?><?print x.lower()?><?end def?><?print lower.renders(x="FOO")?>')
 
 
 @pytest.mark.ul4
 def test_pass_function(r):
-	assert "&lt;" == r("<?template x?><?print xe('<')?><?end template?><?render x.render(xe=xmlescape)?>")
-	assert "&lt;" == r("<?function xe?><?return xmlescape(s)?><?end function?><?template x?><?print xe(s='<')?><?end template?><?render x.render(xe=xe)?>")
-	assert "&lt;" == r("<?function xe?><?return xmlescape(s)?><?end function?><?template x?><?print xe(s='<')?><?end template?><?render x.render()?>")
+	assert "&lt;" == r("<?def x?><?print xe('<')?><?end def?><?render x.render(xe=xmlescape)?>")
+	assert "&lt;" == r("<?def xe?><?return xmlescape(s)?><?end def?><?def x?><?print xe(s='<')?><?end def?><?render x.render(xe=xe)?>")
+	assert "&lt;" == r("<?def xe?><?return xmlescape(s)?><?end def?><?def x?><?print xe(s='<')?><?end def?><?render x.render()?>")
 
 
 @pytest.mark.ul4
@@ -3077,7 +3076,7 @@ def test_templateattributes(r):
 @pytest.mark.ul4
 def test_templateattributes_localtemplate(r):
 	# This checks that template attributes work on a closure
-	source = "<?template lower?><?print t.lower()?><?end template?>"
+	source = "<?def lower?><?print t.lower()?><?end def?>"
 
 	assert source + "<?print lower.source?>" == r(source + "<?print lower.source?>")
 	assert source == r(source + "<?print lower.source[lower.location.starttag:lower.endlocation.endtag]?>")
@@ -3090,21 +3089,21 @@ def test_nestedscopes(r):
 	# Subtemplates can see the local variables from their parents
 	source = """
 	<?for i in range(3)?>
-		<?template x?>
+		<?def x?>
 			<?print i?>!
-		<?end template?>
+		<?end def?>
 		<?render x.render()?>
 	<?end for?>
 	"""
 	assert "0!1!2!" == r(source, keepws=False)
 
-	# Subtemplates see the state of the variable at the point of the ``<?template?>`` tag,
+	# Subtemplates see the state of the variable at the point of the ``<?def?>`` tag,
 	# so the following code will use ``i = 1`` instead of ``i = 2`` even if the subtemplate is called after the variable has been changed.
 	source = """
 	<?code i = 1?>
-	<?template x?>
+	<?def x?>
 		<?print i?>
-	<?end template?>
+	<?end def?>
 	<?code i = 2?>
 	<?render x.render()?>
 	"""
@@ -3115,19 +3114,19 @@ def test_nestedscopes(r):
 	# ``x`` is passed to the subtemplate, so it will always the the current value instead of the one when it is defined
 	# (Furthermore ``y += 1`` will load the variable from the parent but store it as a local variable)
 	source = """
-	<?template outer?>
-		<?template inner?>
+	<?def outer?>
+		<?def inner?>
 			<?code x += 1?>
 			<?code y += 1?>
 			<?print x?>!
 			<?print y?>!
-		<?end template?>
+		<?end def?>
 		<?code x += 1?>
 		<?code y += 1?>
 		<?render inner.render(x=x)?>
 		<?print x?>!
 		<?print y?>!
-	<?end template?>
+	<?end def?>
 	<?code x += 1?>
 	<?code y += 1?>
 	<?render outer.render(x=x)?>
@@ -3202,8 +3201,8 @@ def universaltemplate(keepws=True):
 		<?print x.find(1, 2, x=17, y=23, *args, **kwargs)?>
 		<?if x?>gurk<?elif y?>hurz<?else?>hinz<?end if?>
 		<?render x.render(a=1, b=2)?>
-		<?template x?>foo<?end template?>
-		<?function x?><?return x?><?end function?>
+		<?def x?>foo<?end def?>
+		<?def x?><?return x?><?end def?>
 		<?render x.render()?>
 	""")
 
@@ -3235,13 +3234,11 @@ def test_keepws():
 
 @pytest.mark.ul4
 def test_keepws_nested(r):
-	s1 = "<?template nested1?>1n\n<?render second.render()?><?end template?>1\n<?render nested1.render(second=second)?>"
-	t2 = ul4c.Template("<?template nested2?>2n\n<?end template?>2\n<?render nested2.render()?>", keepws=False)
+	s1 = "<?def nested1?>1n\n<?render second.render()?><?end def?>1\n<?render nested1.render(second=second)?>"
+	s2 = "<?def nested2?>2n\n<?end def?>2\n<?render nested2.render()?>"
 
-	assert "1\n1n\n22n" == r(s1, keepws=True, second=t2)
-
-	t2.keepws = True
-	assert "11n2\n2n\n" == r(s1, keepws=False, second=t2)
+	assert "1\n1n\n22n" == r(s1, keepws=True, second=ul4c.Template(s2, keepws=False))
+	assert "11n2\n2n\n" == r(s1, keepws=False, second=ul4c.Template(s2, keepws=True))
 
 
 @pytest.mark.ul4
@@ -3261,31 +3258,13 @@ def test_function_multiple_returnvalues(c):
 
 @pytest.mark.ul4
 def test_function_name(c):
-	assert "f" == c("<?function f?><?return f.name?><?end function?><?return f(f=f)?>")
+	assert "f" == c("<?def f?><?return f.name?><?end def?><?return f(f=f)?>")
 
 
 @pytest.mark.ul4
 def test_function_closure(c):
-	assert 24 == c("<?code y=3?><?function inner?><?return 2*x*y?><?end function?><?return inner(x=4)?>")
-	assert 24 == c("<?function outer?><?code y=3?><?function inner?><?return 2*x*y?><?end function?><?return inner?><?end function?><?return outer()(x=4)?>")
-
-
-@pytest.mark.ul4
-def test_pythonsource():
-	t1 = universaltemplate(True)
-	t1.pythonsource()
-
-	t2 = universaltemplate(False)
-	t2.pythonsource()
-
-
-@pytest.mark.ul4
-def test_pythonfunction():
-	t1 = universaltemplate(True)
-	t1.pythonfunction()
-
-	t1 = universaltemplate(False)
-	t1.pythonfunction()
+	assert 24 == c("<?code y=3?><?def inner?><?return 2*x*y?><?end def?><?return inner(x=4)?>")
+	assert 24 == c("<?def outer?><?code y=3?><?def inner?><?return 2*x*y?><?end def?><?return inner?><?end def?><?return outer()(x=4)?>")
 
 
 @pytest.mark.ul4
@@ -3298,13 +3277,6 @@ def test_jssource():
 def test_javasource():
 	t = universaltemplate()
 	t.javasource()
-
-
-@pytest.mark.ul4
-def test_repr():
-	t = universaltemplate(True)
-	for node in t.iternodes():
-		repr(t)
 
 
 @pytest.mark.ul4

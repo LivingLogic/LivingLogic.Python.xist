@@ -420,7 +420,7 @@ expr8 returns [node]
 		e=expr9 {
 			$node = $e.node;
 			for i in range(count):
-				$node = ul4c.Neg.make($node);
+				$node = ul4c.Neg($node);
 		}
 	;
 
@@ -438,7 +438,7 @@ expr7 returns [node]
 			|
 				'%' { cls = ul4c.Mod; }
 			)
-			e2=expr8 { $node = cls.make($node, $e2.node); }
+			e2=expr8 { $node = cls($node, $e2.node); }
 		)*
 	;
 
@@ -452,7 +452,7 @@ expr6 returns [node]
 			|
 				'-' { cls = ul4c.Sub; }
 			)
-			e2=expr7 { $node = cls.make($node, $e2.node) }
+			e2=expr7 { $node = cls($node, $e2.node) }
 		)*
 	;
 
@@ -474,7 +474,7 @@ expr5 returns [node]
 			|
 				'>=' { cls = ul4c.GE; }
 			)
-			e2=expr6 { $node = cls.make($node, $e2.node); }
+			e2=expr6 { $node = cls($node, $e2.node); }
 		)*
 	;
 
@@ -488,7 +488,7 @@ expr4 returns [node]
 				'not' { cls = ul4c.NotContains; }
 			)?
 			'in'
-			e2=expr5 { $node = cls.make($node, $e2.node); }
+			e2=expr5 { $node = cls($node, $e2.node); }
 		)?
 	;
 
@@ -496,7 +496,7 @@ expr4 returns [node]
 expr3 returns [node]
 	:
 		'not'
-		e=expr4 { $node = ul4c.Not.make($e.node); }
+		e=expr4 { $node = ul4c.Not($e.node); }
 	|
 		e=expr4 { $node = $e.node; }
 	;
@@ -508,7 +508,7 @@ expr2 returns [node]
 		e1=expr3 { $node = $e1.node; }
 		(
 			'and'
-			e2=expr3 { $node = ul4c.And.make($node, $e2.node); }
+			e2=expr3 { $node = ul4c.And($node, $e2.node); }
 		)*
 	;
 
@@ -518,7 +518,7 @@ expr1 returns [node]
 		e1=expr2 { $node = $e1.node; }
 		(
 			'or'
-			e2=expr2 { $node = ul4c.Or.make($node, $e2.node); }
+			e2=expr2 { $node = ul4c.Or($node, $e2.node); }
 		)*
 	;
 

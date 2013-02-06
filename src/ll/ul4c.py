@@ -155,7 +155,7 @@ class Error(Exception):
 class BlockError(Exception):
 	"""
 	Exception that is raised by the compiler when an illegal block structure is
-	detected (e.g. an ``endif`` without a previous ``if``).
+	detected (e.g. an ``<?end if?>`` without a previous ``<?if?>``).
 	"""
 
 	def __init__(self, message):
@@ -165,28 +165,21 @@ class BlockError(Exception):
 		return self.message
 
 
-class UnknownFunctionError(Exception):
-	"""
-	Exception that is raised by the renderer if the function to be executed is unknown.
-	"""
+###
+### Exceptions used by the interpreted code for flow control
+###
 
-	def __init__(self, funcname):
-		self.funcname = funcname
-
-	def __str__(self):
-		return "function {!r} unknown".format(self.funcname)
+class BreakException(Exception):
+	pass
 
 
-class UnknownMethodError(Exception):
-	"""
-	Exception that is raised by the renderer if the method to be executed is unknown.
-	"""
+class ContinueException(Exception):
+	pass
 
-	def __init__(self, methname):
-		self.methname = methname
 
-	def __str__(self):
-		return "method {!r} unknown".format(self.methname)
+class ReturnException(Exception):
+	def __init__(self, value):
+		self.value = value
 
 
 ###
@@ -249,6 +242,10 @@ class AST(Object):
 	# Set of attributes available via :meth:`getitem`.
 	fields = {"type"}
 
+	# "Global" functions and methods. Functions in ``functions`` will be exposed to UL4 code
+	functions = {}
+	methods = {}
+
 	def __getitem__(self, key):
 		if key in self.fields:
 			return getattr(self, key)
@@ -260,19 +257,20 @@ class AST(Object):
 	def _repr_pretty_(self, p, cycle):
 		p.text(repr(self))
 
-	def iternodes(self):
-		yield self
-
 	def _formatop(self, op):
+		bracket = False
 		if op.precedence < self.precedence:
-			return "({})".format(op.format(0, True))
+			bracket = True
 		elif op.precedence == self.precedence and (not isinstance(op, self.__class__) or not self.associative):
-			return "({})".format(op.format(0, True))
-		else:
-			return op.format(0, True)
+			bracket = True
+		if bracket:
+			yield "("
+		yield from op._str(0, True)
+		if bracket:
+			yield ")"
 
 	@misc.notimplemented
-	def format(self, indent, keepws):
+	def _str(self, indent, keepws):
 		"""
 		Format :var:`self` (with the indentation level :var:`indent`).
 
@@ -280,10 +278,30 @@ class AST(Object):
 		"""
 
 	@misc.notimplemented
-	def formatpython(self, indent, keepws):
+	def eval(self, keepws, vars):
 		"""
-		Format :var:`self` into valid Python source code.
+		This evaluates the node.
+
+		This is a generator, which yields the text output of the node. If the
+		node returns a value (as most nodes do), this is done as the value of a
+		:exc:`StopIteration` exception.
 		"""
+
+	@classmethod
+	def makefunction(cls, f):
+		name = f.__name__
+		if name.startswith("_"):
+			name = name[1:]
+		cls.functions[name] = f
+		return f
+
+	@classmethod
+	def makemethod(cls, f):
+		name = f.__name__
+		if name.startswith("_"):
+			name = name[1:]
+		cls.methods[name] = f
+		return f
 
 
 class Tag(AST):
@@ -321,19 +339,14 @@ class Text(Tag):
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.location.code!r} at {1:#x}>".format(self, id(self))
 
-	def format(self, indent, keepws):
+	def _str(self, indent, keepws):
 		text = self.text(keepws)
 		if text:
-			return "{}text {!r}\n".format(indent*"\t", self.text(keepws))
-		else:
-			return ""
+			yield indent*"\t"
+			yield "text {!r}\n".format(text)
 
-	def formatpython(self, indent, keepws):
-		text = self.text(keepws)
-		if text:
-			return "{i}# literal at position {l.starttag}:{l.endtag} ({id})\n{i}yield {t!r}\n".format(i=indent*"\t", id=id(self), l=self.location, t=text)
-		else:
-			return "{i}# ignored literal at position {l.starttag}:{l.endtag} ({id})\n\n".format(i=indent*"\t", id=id(self), l=self.location)
+	def eval(self, keepws, vars):
+		yield self.text(keepws)
 
 
 @register("const")
@@ -347,13 +360,12 @@ class Const(AST):
 	def __init__(self, value=None):
 		self.value = value
 
-	def format(self, indent, keepws):
-		return _repr(self.value)
+	def _str(self, indent, keepws):
+		yield _repr(self.value)
 
-	def formatpython(self, indent, keepws):
-		if isinstance(self.value, color.Color):
-			return "color.{!r}".format(self.value)
-		return repr(self.value)
+	def eval(self, keepws, vars):
+		yield from ()
+		return self.value
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.value)
@@ -377,22 +389,16 @@ class List(AST):
 	def __init__(self, *items):
 		self.items = list(items)
 
-	def iternodes(self):
-		yield self
-		for item in self.items:
-			yield from item.iternodes()
-
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.items!r} at {1:#x}>".format(self, id(self))
 
 	def _repr_pretty_(self, p, cycle):
 		if cycle:
-			p.text("{0.__class__.__module__}.{0.__class__.__qualname__}(...)".format(self))
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
 		else:
-			with p.group(4, "{0.__class__.__module__}.{0.__class__.__qualname__}(".format(self), ")"):
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
 				for (i, item) in enumerate(self.items):
 					if i:
-						p.text(",")
 						p.breakable()
 					else:
 						p.breakable("")
@@ -400,11 +406,20 @@ class List(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def format(self, indent, keepws):
-		return "[{}]".format(", ".join(item.format(indent, keepws) for item in self.items))
+	def _str(self, indent, keepws):
+		yield "["
+		for (i, item) in enumerate(self.items):
+			if i:
+				yield ", "
+			yield from item._str(indent, keepws)
+		yield "]"
 
-	def formatpython(self, indent, keepws):
-		return "[{}]".format(", ".join(item.formatpython(indent, keepws) for item in self.items))
+	def eval(self, keepws, vars):
+		result = []
+		for item in self.items:
+			item = (yield from item.eval(keepws, vars))
+			result.append(item)
+		return result
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.items)
@@ -460,26 +475,28 @@ class ListComp(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def iternodes(self):
-		yield self
-		yield from self.item.iternodes()
-		yield from self.container.iternodes()
+	def _str(self, indent, keepws):
+		yield "["
+		yield from self.item._str(indent, keepws)
+		yield " for "
+		yield _formatnestednameul4(self.varname)
+		yield " in "
+		yield from self.container._str(indent, keepws)
 		if self.condition is not None:
-			yield from self.condition.iternodes()
+			yield " if "
+			yield from self.condition._str(indent, keepws)
+		yield "]"
 
-	def format(self, indent, keepws):
-		s = "[{} for {} in".format(self.item.format(indent, keepws), _formatnestednameul4(self.varname), self.container.format(indent, keepws))
-		if self.condition is not None:
-			s += " if {}".format(self.condition.format(indent, keepws))
-		s += "]"
-		return s
-
-	def formatpython(self, indent, keepws):
-		s = "(lambda vars: [{} for {} in {}".format(self.item.formatpython(indent, keepws), _formatnestednamepython(self.varname), self.container.formatpython(indent, keepws))
-		if self.condition is not None:
-			s += " if {}".format(self.condition.formatpython(indent, keepws))
-		s += "])(collections.ChainMap({}, vars))" # Evaluate the listcomp in a new ``ChainMap``, so we can prevent the local variables from leaking
-		return s
+	def eval(self, keepws, vars):
+		container = (yield from self.container.eval(keepws, vars))
+		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
+		result = []
+		for item in container:
+			_unpackvar(vars, self.varname, item)
+			if self.condition is None or (yield from self.condition.eval(keepws, vars)):
+				item = (yield from self.item.eval(keepws, vars))
+				result.append(item)
+		return result
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.item)
@@ -526,29 +543,31 @@ class Dict(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def iternodes(self):
-		yield self
-		for item in self.items:
-			for subitem in item:
-				yield from subitem.iternodes()
-
-	def format(self, indent, keepws):
-		v = []
-		for item in self.items:
+	def _str(self, indent, keepws):
+		yield "{"
+		for (i, item) in enumerate(self.items):
+			if i:
+				yield ", "
 			if len(item) == 2:
-				v.append("{}: {}".format(item[0], item[1].format(indent, keepws)))
+				yield from item[0]._str(indent, keepws)
+				yield ": "
+				yield from item[1]._str(indent, keepws)
 			else:
-				v.append("**{}".format(item[0].format(indent, keepws)))
-		return "{{{}}}".format(", ".join(v))
+				yield "**"
+				yield from item[0]._str(indent, keepws)
+		yield "}"
 
-	def formatpython(self, indent, keepws):
-		v = []
+	def eval(self, keepws, vars):
+		result = {}
 		for item in self.items:
 			if len(item) == 1:
-				v.append("({},)".format(item[0].formatpython(indent, keepws)))
+				item = (yield from item[0].eval(keepws, vars))
+				result.update(item)
 			else:
-				v.append("({}, {})".format(item[0].formatpython(indent, keepws), item[1].formatpython(indent, keepws)))
-		return "ul4c._makedict({})".format(", ".join(v))
+				key = (yield from item[0].eval(keepws, vars))
+				value = (yield from item[1].eval(keepws, vars))
+				result[key] = value
+		return result
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.items)
@@ -603,27 +622,31 @@ class DictComp(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def iternodes(self):
-		yield self
-		yield from self.key.iternodes()
-		yield from self.value.iternodes()
-		yield from self.container.iternodes()
+	def _str(self, indent, keepws):
+		yield "{"
+		yield from self.key._str(indent, keepws)
+		yield " : "
+		yield from self.value._str(indent, keepws)
+		yield " for "
+		yield _formatnestednameul4(self.varname)
+		yield " in "
+		yield from self.container._str(indent, keepws)
 		if self.condition is not None:
-			yield from self.condition.iternodes()
+			yield " if "
+			yield from self.condition._str(indent, keepws)
+		yield "]"
 
-	def format(self, indent, keepws):
-		s = "{{{} : {} for {} in {}".format(self.key.format(indent, keepws), self.value.format(indent, keepws), _formatnestednameul4(self.varname), self.container.format(indent, keepws))
-		if self.condition is not None:
-			s += " if {}".format(self.condition.format(indent, keepws))
-		s += "}"
-		return s
-
-	def formatpython(self, indent, keepws):
-		s = "(lambda vars: {{{} : {} for {} in {}".format(self.key.formatpython(indent, keepws), self.value.formatpython(indent, keepws), _formatnestednamepython(self.varname), self.container.formatpython(indent, keepws))
-		if self.condition is not None:
-			s += " if {}".format(self.condition.formatpython(indent, keepws))
-		s += "})(collections.ChainMap({}, vars))" # Evaluate the dictcomp in a new ``ChainMap``, so we can prevent the local variables from leaking
-		return s
+	def eval(self, keepws, vars):
+		container = (yield from self.container.eval(keepws, vars))
+		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
+		result = {}
+		for item in container:
+			_unpackvar(vars, self.varname, item)
+			if self.condition is None or (yield from self.condition.eval(keepws, vars)):
+				key = (yield from self.key.eval(keepws, vars))
+				value = (yield from self.value.eval(keepws, vars))
+				result[key] = value
+		return result
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.key)
@@ -682,26 +705,28 @@ class GenExpr(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def iternodes(self):
-		yield self
-		yield from self.item.iternodes()
-		yield from self.container.iternodes()
+	def _str(self, indent, keepws):
+		yield "("
+		yield from self.item._str(indent, keepws)
+		yield " for "
+		yield _formatnestednameul4(self.varname)
+		yield " in "
+		yield from self.container._str(indent, keepws)
 		if self.condition is not None:
-			yield from self.condition.iternodes()
+			yield " if "
+			yield from self.condition._str(indent, keepws)
+		yield ")"
 
-	def format(self, indent, keepws):
-		s = "({} for {} in {}".format(self.item.format(indent, keepws), _formatnestednameul4(self.varname), self.container.format(indent, keepws))
-		if self.condition is not None:
-			s += " if {}".format(self.condition.format(indent, keepws))
-		s += ")"
-		return s
-
-	def formatpython(self, indent, keepws):
-		s = "(lambda vars:({} for {} in {}".format(self.item.formatpython(indent, keepws), _formatnestednamepython(self.varname), self.container.formatpython(indent, keepws))
-		if self.condition is not None:
-			s += " if {}".format(self.condition.formatpython(indent, keepws))
-		s += "))(collections.ChainMap({}, vars))" # Evaluate the generator expression in a new ``ChainMap``, so we can prevent the local variables from leaking
-		return s
+	def eval(self, keepws, vars):
+		container = (yield from self.container.eval(keepws, vars))
+		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
+		def result():
+			for item in container:
+				_unpackvar(vars, self.varname, item)
+				if self.condition is None or (yield from self.condition.eval(keepws, vars)):
+					item = (yield from self.item.eval(keepws, vars))
+					yield item
+		return result()
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.item)
@@ -731,11 +756,18 @@ class Var(AST):
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.name!r} at {1:#x}>".format(self, id(self))
 
-	def format(self, indent, keepws):
-		return self.name
+	def _str(self, indent, keepws):
+		yield self.name
 
-	def formatpython(self, indent, keepws):
-		return "self._getvar(vars, {!r})".format(self.name)
+	def eval(self, keepws, vars):
+		yield from ()
+		try:
+			return vars[self.name]
+		except KeyError:
+			try:
+				return self.functions[self.name]
+			except KeyError:
+				return UndefinedVariable(self.name)
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.name)
@@ -760,23 +792,20 @@ class Block(Tag):
 		self.endlocation = None
 		self.content = []
 
-	def iternodes(self):
-		yield self
-		for node in self.content:
-			yield from node.iternodes()
-
 	def append(self, item):
 		self.content.append(item)
 
-	def format(self, indent, keepws):
-		v = []
-		v.append("{}{{\n".format(indent*"\t"))
-		indent += 1
+	def _str(self, indent, keepws):
+		if self.content:
+			for node in self.content:
+				yield from node._str(indent, keepws)
+		else:
+			yield indent*"\t"
+			yield "pass\n"
+
+	def eval(self, keepws, vars):
 		for node in self.content:
-			v.append(node.format(indent, keepws))
-		indent -= 1
-		v.append("{}}}\n".format(indent*"\t"))
-		return "".join(v)
+			yield from node.eval(keepws, vars)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -825,17 +854,11 @@ class IfElIfElse(Block):
 			self.content[-1].endlocation = block.location
 		self.content.append(block)
 
-	def format(self, indent, keepws):
-		v = []
+	def eval(self, keepws, vars):
 		for node in self.content:
-			v.append(node.format(indent, keepws))
-		return "".join(v)
-
-	def formatpython(self, indent, keepws):
-		v = []
-		for node in self.content:
-			v.append(node.formatpython(indent, keepws))
-		return "".join(v)
+			if isinstance(node, Else) or (yield from node.condition.eval(keepws, vars)):
+				yield from node.eval(keepws, vars)
+				break
 
 
 @register("if")
@@ -867,22 +890,12 @@ class If(Block):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def iternodes(self):
-		yield self
-		yield from self.condition.iternodes()
-		for node in self.content:
-			yield from node.iternodes()
-
-	def format(self, indent, keepws):
-		return "{}if {}\n{}".format(indent*"\t", self.condition.format(indent, keepws), super().format(indent, keepws))
-
-	def formatpython(self, indent, keepws):
-		v = ["{i}# <?if?> tag at position {l.starttag}:{l.endtag} ({id})\n".format(i=indent*"\t", id=id(self), l=self.location)]
-		v.append("{}if {}:\n".format(indent*"\t", self.condition.formatpython(indent, keepws)))
-		indent += 1
-		for node in self.content:
-			v.append(node.formatpython(indent, keepws))
-		return "".join(v)
+	def _str(self, indent, keepws):
+		yield indent*"\t"
+		yield "if "
+		yield from self.condition._str(indent, keepws)
+		yield ":\n"
+		yield from super()._str(indent+1, keepws)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -922,22 +935,12 @@ class ElIf(Block):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def iternodes(self):
-		yield self
-		yield from self.condition.iternodes()
-		for node in self.content:
-			yield from node.iternodes()
-
-	def format(self, indent, keepws):
-		return "{}elif {}\n{}".format(indent*"\t", self.condition.format(indent, keepws), super().format(indent, keepws))
-
-	def formatpython(self, indent, keepws):
-		v = ["{i}# <?elif?> tag at position {l.starttag}:{l.endtag} ({id})\n".format(i=indent*"\t", id=id(self), l=self.location)]
-		v.append("{}elif {}:\n".format(indent*"\t", self.condition.formatpython(indent, keepws)))
-		indent += 1
-		for node in self.content:
-			v.append(node.formatpython(indent, keepws))
-		return "".join(v)
+	def _str(self, indent, keepws):
+		yield indent*"\t"
+		yield "elif "
+		yield from self.condition._str(indent, keepws)
+		yield ":\n"
+		yield from super()._str(indent+1, keepws)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -968,16 +971,10 @@ class Else(Block):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def format(self, indent, keepws):
-		return "{}else\n{}".format(indent*"\t", super().format(indent, keepws))
-
-	def formatpython(self, indent, keepws):
-		v = ["{i}# <?else?> tag at position {l.starttag}:{l.endtag} ({id})\n".format(i=indent*"\t", id=id(self), l=self.location)]
-		v.append("{}else:\n".format(indent*"\t"))
-		indent += 1
-		for node in self.content:
-			v.append(node.formatpython(indent, keepws))
-		return "".join(v)
+	def _str(self, indent, keepws):
+		yield indent*"\t"
+		yield "else:\n"
+		yield from super()._str(indent+1, keepws)
 
 
 @register("for")
@@ -1013,12 +1010,6 @@ class For(Block):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def iternodes(self):
-		yield self
-		yield from self.container.iternodes()
-		for node in self.content:
-			yield from node.iternodes()
-
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
 		encoder.dump(self.varname)
@@ -1029,20 +1020,26 @@ class For(Block):
 		self.varname = decoder.load()
 		self.container = decoder.load()
 
-	def format(self, indent, keepws):
-		return "{}for {} in {}\n{}".format(indent*"\t", _formatnestednameul4(self.varname), self.container.format(indent, keepws), super().format(indent, keepws))
+	def _str(self, indent, keepws):
+		yield indent*"\t"
+		yield "for "
+		yield _formatnestednameul4(self.varname)
+		yield " in "
+		yield from self.container._str(indent, keepws)
+		yield ":\n"
+		yield from super()._str(indent+1, keepws)
 
-	def formatpython(self, indent, keepws):
-		v = ["{i}# <?for?> tag at position {l.starttag}:{l.endtag} ({id})\n".format(i=indent*"\t", id=id(self), l=self.location)]
-		v.append("{}for {} in {}:\n".format(indent*"\t", _formatnestednamepython(self.varname), self.container.formatpython(indent, keepws)))
-		indent += 1
-		if self.content:
-			for node in self.content:
-				v.append(node.formatpython(indent, keepws))
-		else:
-			# Make sure we have a proper loop body
-			v.append("{}pass\n".format(indent*"\t"))
-		return "".join(v)
+	def eval(self, keepws, vars):
+		container = (yield from self.container.eval(keepws, vars))
+		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
+		for item in container:
+			_unpackvar(vars, self.varname, item)
+			try:
+				yield from super().eval(keepws, vars)
+			except BreakException:
+				break
+			except ContinueException:
+				pass
 
 
 @register("break")
@@ -1051,11 +1048,13 @@ class Break(Tag):
 	AST node for a ``<?break?>`` inside a ``<?for?>`` block.
 	"""
 
-	def format(self, indent, keepws):
-		return "{}break\n".format(indent*"\t")
+	def _str(self, indent, keepws):
+		yield indent*"\t"
+		yield "break\n"
 
-	def formatpython(self, indent, keepws):
-		return "{i}# <?break?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}break\n".format(i=indent*"\t", id=id(self), l=self.location)
+	def eval(self, keepws, vars):
+		yield from ()
+		raise BreakException()
 
 
 @register("continue")
@@ -1064,11 +1063,13 @@ class Continue(Tag):
 	AST node for a ``<?continue?>`` inside a ``<?for?>`` block.
 	"""
 
-	def format(self, indent, keepws):
-		return "{}continue\n".format(indent*"\t")
+	def _str(self, indent, keepws):
+		yield indent*"\t"
+		yield "continue\n"
 
-	def formatpython(self, indent, keepws):
-		return "{i}# <?continue?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}continue\n".format(i=indent*"\t", id=id(self), l=self.location)
+	def eval(self, keepws, vars):
+		yield from ()
+		raise ContinueException()
 
 
 @register("getattr")
@@ -1104,15 +1105,17 @@ class GetAttr(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def iternodes(self):
-		yield self
-		yield from self.obj.iternodes()
+	def _str(self, indent, keepws):
+		yield from self._formatop(self.obj)
+		yield "."
+		yield self.attrname
 
-	def format(self, indent, keepws):
-		return "{}.{}".format(self._formatop(self.obj), self.attrname)
-
-	def formatpython(self, indent, keepws):
-		return "ul4c._getitem({}, {!r})".format(self.obj.formatpython(indent, keepws), self.attrname)
+	def eval(self, keepws, vars):
+		obj = (yield from self.obj.eval(keepws, vars))
+		try:
+			return obj[self.attrname]
+		except KeyError:
+			return UndefinedKey(self.attrname)
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.obj)
@@ -1144,14 +1147,6 @@ class GetSlice(AST):
 		self.index1 = index1
 		self.index2 = index2
 
-	def iternodes(self):
-		yield self
-		yield from self.obj.iternodes()
-		if self.index1 is not None:
-			yield from self.index1.iternodes()
-		if self.index2 is not None:
-			yield from self.index2.iternodes()
-
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} obj={0.obj!r} index1={0.index1!r} index2={0.index2!r} at {1:#x}>".format(self, id(self))
 
@@ -1172,27 +1167,31 @@ class GetSlice(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	@classmethod
-	def make(cls, obj, index1, index2):
-		# We don't have to check for undefined results here, because this can't happen with slices
-		if isinstance(obj, Const):
-			if index1 is None:
-				if index2 is None:
-					return Const(obj[:])
-				elif isinstance(index2, Const):
-					return Const(obj[:index2.value])
-			elif isinstance(index1, Const):
-				if index2 is None:
-					return Const(obj[index1.value:])
-				elif isinstance(index2, Const):
-					return Const(obj[index1.value:index2.value])
-		return cls(obj, index1, index2)
+	def _str(self, indent, keepws):
+		yield from self._formatop(self.obj)
+		yield "["
+		if self.index1 is not None:
+			yield from self.index1._str(indent, keepws)
+		yield ":"
+		if self.index2 is not None:
+			yield from self.index2._str(indent, keepws)
+		yield "]"
 
-	def format(self, indent, keepws):
-		return "{}[{}:{}]".format(self._formatop(self.obj), self.index1.format(indent, keepws) if self.index1 is not None else "", self.index2.format(indent, keepws) if self.index2 is not None else "")
-
-	def formatpython(self, indent, keepws):
-		return "({})[{}:{}]".format(self.obj.formatpython(indent, keepws), self.index1.formatpython(indent, keepws) if self.index1 is not None else "", self.index2.formatpython(indent, keepws) if self.index2 is not None else "")
+	def eval(self, keepws, vars):
+		obj = (yield from self.obj.eval(keepws, vars))
+		if self.index1 is not None:
+			index1 = (yield from self.index1.eval(keepws, vars))
+			if self.index2 is not None:
+				index2 = (yield from self.index2.eval(keepws, vars))
+				return obj[index1:index2]
+			else:
+				return obj[index1:]
+		else:
+			if self.index2 is not None:
+				index2 = (yield from self.index2.eval(keepws, vars))
+				return obj[:index2]
+			else:
+				return obj[:]
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.obj)
@@ -1215,10 +1214,6 @@ class Unary(AST):
 	def __init__(self, obj=None):
 		self.obj = obj
 
-	def iternodes(self):
-		yield self
-		yield from self.obj.iternodes()
-
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.obj!r} at {1:#x}>".format(self, id(self))
 
@@ -1238,14 +1233,6 @@ class Unary(AST):
 	def ul4onload(self, decoder):
 		self.obj = decoder.load()
 
-	@classmethod
-	def make(cls, obj):
-		if isinstance(obj, Const):
-			result = cls.evaluate(obj.value)
-			if not isinstance(result, Undefined):
-				return Const(result)
-		return cls(obj)
-
 
 @register("not")
 class Not(Unary):
@@ -1255,15 +1242,12 @@ class Not(Unary):
 
 	precedence = 2
 
-	@classmethod
-	def evaluate(cls, obj):
-		return not obj
+	def _str(self, indent, keepws):
+		yield "not "
+		yield from self._formatop(self.obj)
 
-	def format(self, indent, keepws):
-		return "not {}".format(self._formatop(self.obj))
-
-	def formatpython(self, indent, keepws):
-		return "not ({})".format(self.obj.formatpython(indent, keepws))
+	def eval(self, keepws, vars):
+		return not (yield from self.obj.eval(keepws, vars))
 
 
 @register("neg")
@@ -1274,15 +1258,12 @@ class Neg(Unary):
 
 	precedence = 7
 
-	@classmethod
-	def evaluate(cls, obj):
-		return -obj
+	def _str(self, indent, keepws):
+		yield "-"
+		yield from self._formatop(self.obj)
 
-	def format(self, indent, keepws):
-		return "-{}".format(self._formatop(self.obj))
-
-	def formatpython(self, indent, keepws):
-		return "-({})".format(self.obj.formatpython(indent, keepws))
+	def eval(self, keepws, vars):
+		return -(yield from self.obj.eval(keepws, vars))
 
 
 class UnaryTag(Tag):
@@ -1305,10 +1286,6 @@ class UnaryTag(Tag):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def iternodes(self):
-		yield self
-		yield from self.obj.iternodes()
-
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
 		encoder.dump(self.obj)
@@ -1324,11 +1301,15 @@ class Return(UnaryTag):
 	AST node for a ``<?return?>`` tag.
 	"""
 
-	def format(self, indent, keepws):
-		return "{}return {}\n".format(indent*"\t", self.obj.format(indent, keepws))
+	def _str(self, indent, keepws):
+		yield indent*"\t"
+		yield "return "
+		yield from self.obj._str(indent, keepws)
+		yield "\n"
 
-	def formatpython(self, indent, keepws):
-		return "{i}# <?return?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}return {o}\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent, keepws), l=self.location)
+	def eval(self, keepws, vars):
+		value = (yield from self.obj.eval(keepws, vars))
+		raise ReturnException(value)
 
 
 @register("print")
@@ -1337,11 +1318,14 @@ class Print(UnaryTag):
 	AST node for a ``<?print?>`` tag.
 	"""
 
-	def format(self, indent, keepws):
-		return "{}print {}\n".format(indent*"\t", self.obj.format(indent, keepws))
+	def _str(self, indent, keepws):
+		yield indent*"\t"
+		yield "print "
+		yield from self.obj._str(indent, keepws)
+		yield "\n"
 
-	def formatpython(self, indent, keepws):
-		return "{i}# <?print?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._str({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent, keepws), l=self.location)
+	def eval(self, keepws, vars):
+		yield _str((yield from self.obj.eval(keepws, vars)))
 
 
 @register("printx")
@@ -1350,11 +1334,14 @@ class PrintX(UnaryTag):
 	AST node for a ``<?printx?>`` tag.
 	"""
 
-	def format(self, indent, keepws):
-		return "{}printx {}\n".format(indent*"\t", self.obj.format(indent, keepws))
+	def _str(self, indent, keepws):
+		yield indent*"\t"
+		yield "printx "
+		yield from self.obj._str(indent, keepws)
+		yield "\n"
 
-	def formatpython(self, indent, keepws):
-		return "{i}# <?printx?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}yield ul4c._xmlescape({o})\n".format(i=indent*"\t", id=id(self), o=self.obj.formatpython(indent, keepws), l=self.location)
+	def eval(self, keepws, vars):
+		yield _xmlescape((yield from self.obj.eval(keepws, vars)))
 
 
 class Binary(AST):
@@ -1367,11 +1354,6 @@ class Binary(AST):
 	def __init__(self, obj1=None, obj2=None):
 		self.obj1 = obj1
 		self.obj2 = obj2
-
-	def iternodes(self):
-		yield self
-		yield from self.obj1.iternodes()
-		yield from self.obj2.iternodes()
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.obj1!r} {0.obj2!r} at {1:#x}>".format(self, id(self))
@@ -1396,14 +1378,6 @@ class Binary(AST):
 		self.obj1 = decoder.load()
 		self.obj2 = decoder.load()
 
-	@classmethod
-	def make(cls, obj1, obj2):
-		if isinstance(obj1, Const) and isinstance(obj2, Const):
-			result = cls.evaluate(obj1.value, obj2.value)
-			if not isinstance(result, Undefined):
-				return Const(result)
-		return cls(obj1, obj2)
-
 
 @register("getitem")
 class GetItem(Binary):
@@ -1421,11 +1395,21 @@ class GetItem(Binary):
 	def evaluate(cls, obj1, obj2):
 		return obj1[obj2]
 
-	def format(self, indent, keepws):
-		return "{}[{}]".format(self._formatop(self.obj1), self.obj2.format(indent, keepws))
+	def _str(self, indent, keepws):
+		yield from self.obj1._str(indent, keepws)
+		yield "["
+		yield from self.obj2._str(indent, keepws)
+		yield "]"
 
-	def formatpython(self, indent, keepws):
-		return "ul4c._getitem({}, {})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
+	def eval(self, keepws, vars):
+		obj1 = (yield from self.obj1.eval(keepws, vars))
+		obj2 = (yield from self.obj2.eval(keepws, vars))
+		try:
+			return obj1[obj2]
+		except KeyError:
+			return UndefinedKey(obj2)
+		except IndexError:
+			return UndefinedIndex(obj2)
 
 
 @register("eq")
@@ -1437,15 +1421,15 @@ class EQ(Binary):
 	precedence = 4
 	associative = False
 
-	@classmethod
-	def evaluate(cls, obj1, obj2):
+	def _str(self, indent, keepws):
+		yield from self._formatop(self.obj1)
+		yield " == "
+		yield from self._formatop(self.obj2)
+
+	def eval(self, keepws, vars):
+		obj1 = (yield from self.obj1.eval(keepws, vars))
+		obj2 = (yield from self.obj2.eval(keepws, vars))
 		return obj1 == obj2
-
-	def format(self, indent, keepws):
-		return "{} == {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
-
-	def formatpython(self, indent, keepws):
-		return "({}) == ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("ne")
@@ -1457,15 +1441,15 @@ class NE(Binary):
 	precedence = 4
 	associative = False
 
-	@classmethod
-	def evaluate(cls, obj1, obj2):
+	def _str(self, indent, keepws):
+		yield from self._formatop(self.obj1)
+		yield " 1= "
+		yield from self._formatop(self.obj2)
+
+	def eval(self, keepws, vars):
+		obj1 = (yield from self.obj1.eval(keepws, vars))
+		obj2 = (yield from self.obj2.eval(keepws, vars))
 		return obj1 != obj2
-
-	def format(self, indent, keepws):
-		return "{} != {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
-
-	def formatpython(self, indent, keepws):
-		return "({}) != ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("lt")
@@ -1477,15 +1461,15 @@ class LT(Binary):
 	precedence = 4
 	associative = False
 
-	@classmethod
-	def evaluate(cls, obj1, obj2):
+	def _str(self, indent, keepws):
+		yield from self._formatop(self.obj1)
+		yield " < "
+		yield from self._formatop(self.obj2)
+
+	def eval(self, keepws, vars):
+		obj1 = (yield from self.obj1.eval(keepws, vars))
+		obj2 = (yield from self.obj2.eval(keepws, vars))
 		return obj1 < obj2
-
-	def format(self, indent, keepws):
-		return "{} < {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
-
-	def formatpython(self, indent, keepws):
-		return "({}) < ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("le")
@@ -1497,15 +1481,15 @@ class LE(Binary):
 	precedence = 4
 	associative = False
 
-	@classmethod
-	def evaluate(cls, obj1, obj2):
+	def _str(self, indent, keepws):
+		yield from self._formatop(self.obj1)
+		yield " <= "
+		yield from self._formatop(self.obj2)
+
+	def eval(self, keepws, vars):
+		obj1 = (yield from self.obj1.eval(keepws, vars))
+		obj2 = (yield from self.obj2.eval(keepws, vars))
 		return obj1 <= obj2
-
-	def format(self, indent, keepws):
-		return "{} <= {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
-
-	def formatpython(self, indent, keepws):
-		return "({}) <= ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("gt")
@@ -1517,15 +1501,15 @@ class GT(Binary):
 	precedence = 4
 	associative = False
 
-	@classmethod
-	def evaluate(cls, obj1, obj2):
+	def _str(self, indent, keepws):
+		yield from self._formatop(self.obj1)
+		yield " > "
+		yield from self._formatop(self.obj2)
+
+	def eval(self, keepws, vars):
+		obj1 = (yield from self.obj1.eval(keepws, vars))
+		obj2 = (yield from self.obj2.eval(keepws, vars))
 		return obj1 > obj2
-
-	def format(self, indent, keepws):
-		return "{} > {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
-
-	def formatpython(self, indent, keepws):
-		return "({}) > ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("ge")
@@ -1537,15 +1521,15 @@ class GE(Binary):
 	precedence = 4
 	associative = False
 
-	@classmethod
-	def evaluate(cls, obj1, obj2):
+	def _str(self, indent, keepws):
+		yield from self._formatop(self.obj1)
+		yield " >= "
+		yield from self._formatop(self.obj2)
+
+	def eval(self, keepws, vars):
+		obj1 = (yield from self.obj1.eval(keepws, vars))
+		obj2 = (yield from self.obj2.eval(keepws, vars))
 		return obj1 >= obj2
-
-	def format(self, indent, keepws):
-		return "{} >= {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
-
-	def formatpython(self, indent, keepws):
-		return "({}) >= ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("contains")
@@ -1561,15 +1545,15 @@ class Contains(Binary):
 	precedence = 3
 	associative = False
 
-	@classmethod
-	def evaluate(cls, obj1, obj2):
+	def _str(self, indent, keepws):
+		yield from self._formatop(self.obj1)
+		yield " in "
+		yield from self._formatop(self.obj2)
+
+	def eval(self, keepws, vars):
+		obj1 = (yield from self.obj1.eval(keepws, vars))
+		obj2 = (yield from self.obj2.eval(keepws, vars))
 		return obj1 in obj2
-
-	def format(self, indent, keepws):
-		return "{} in {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
-
-	def formatpython(self, indent, keepws):
-		return "({}) in ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("notcontains")
@@ -1585,15 +1569,15 @@ class NotContains(Binary):
 	precedence = 3
 	associative = False
 
-	@classmethod
-	def evaluate(cls, obj1, obj2):
+	def _str(self, indent, keepws):
+		yield from self._formatop(self.obj1)
+		yield " not in "
+		yield from self._formatop(self.obj2)
+
+	def eval(self, keepws, vars):
+		obj1 = (yield from self.obj1.eval(keepws, vars))
+		obj2 = (yield from self.obj2.eval(keepws, vars))
 		return obj1 not in obj2
-
-	def format(self, indent, keepws):
-		return "{} not in {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
-
-	def formatpython(self, indent, keepws):
-		return "({}) not in ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("add")
@@ -1604,15 +1588,15 @@ class Add(Binary):
 
 	precedence = 5
 
-	@classmethod
-	def evaluate(cls, obj1, obj2):
+	def _str(self, indent, keepws):
+		yield from self._formatop(self.obj1)
+		yield "+"
+		yield from self._formatop(self.obj2)
+
+	def eval(self, keepws, vars):
+		obj1 = (yield from self.obj1.eval(keepws, vars))
+		obj2 = (yield from self.obj2.eval(keepws, vars))
 		return obj1 + obj2
-
-	def format(self, indent, keepws):
-		return "{}+{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
-
-	def formatpython(self, indent, keepws):
-		return "({}) + ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("sub")
@@ -1624,15 +1608,15 @@ class Sub(Binary):
 	precedence = 5
 	associative = False
 
-	@classmethod
-	def evaluate(cls, obj1, obj2):
+	def _str(self, indent, keepws):
+		yield from self._formatop(self.obj1)
+		yield "-"
+		yield from self._formatop(self.obj2)
+
+	def eval(self, keepws, vars):
+		obj1 = (yield from self.obj1.eval(keepws, vars))
+		obj2 = (yield from self.obj2.eval(keepws, vars))
 		return obj1 - obj2
-
-	def format(self, indent, keepws):
-		return "{}-{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
-
-	def formatpython(self, indent, keepws):
-		return "({}) - ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("mul")
@@ -1643,15 +1627,15 @@ class Mul(Binary):
 
 	precedence = 6
 
-	@classmethod
-	def evaluate(cls, obj1, obj2):
+	def _str(self, indent, keepws):
+		yield from self._formatop(self.obj1)
+		yield "*"
+		yield from self._formatop(self.obj2)
+
+	def eval(self, keepws, vars):
+		obj1 = (yield from self.obj1.eval(keepws, vars))
+		obj2 = (yield from self.obj2.eval(keepws, vars))
 		return obj1 * obj2
-
-	def format(self, indent, keepws):
-		return "{}*{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
-
-	def formatpython(self, indent, keepws):
-		return "({}) * ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("floordiv")
@@ -1663,15 +1647,15 @@ class FloorDiv(Binary):
 	precedence = 6
 	associative = False
 
-	@classmethod
-	def evaluate(cls, obj1, obj2):
+	def _str(self, indent, keepws):
+		yield from self._formatop(self.obj1)
+		yield "//"
+		yield from self._formatop(self.obj2)
+
+	def eval(self, keepws, vars):
+		obj1 = (yield from self.obj1.eval(keepws, vars))
+		obj2 = (yield from self.obj2.eval(keepws, vars))
 		return obj1 // obj2
-
-	def format(self, indent, keepws):
-		return "{}//{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
-
-	def formatpython(self, indent, keepws):
-		return "({}) // ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("truediv")
@@ -1683,15 +1667,15 @@ class TrueDiv(Binary):
 	precedence = 6
 	associative = False
 
-	@classmethod
-	def evaluate(cls, obj1, obj2):
+	def _str(self, indent, keepws):
+		yield from self._formatop(self.obj1)
+		yield "/"
+		yield from self._formatop(self.obj2)
+
+	def eval(self, keepws, vars):
+		obj1 = (yield from self.obj1.eval(keepws, vars))
+		obj2 = (yield from self.obj2.eval(keepws, vars))
 		return obj1 / obj2
-
-	def format(self, indent, keepws):
-		return "{}/{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
-
-	def formatpython(self, indent, keepws):
-		return "({}) / ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("and")
@@ -1702,15 +1686,17 @@ class And(Binary):
 
 	precedence = 1
 
-	@classmethod
-	def evaluate(cls, obj1, obj2):
-		return obj1 and obj2
+	def _str(self, indent, keepws):
+		yield from self._formatop(self.obj1)
+		yield " and "
+		yield from self._formatop(self.obj2)
 
-	def format(self, indent, keepws):
-		return "{} and {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
+	def eval(self, keepws, vars):
+		obj1 = (yield from self.obj1.eval(keepws, vars))
+		if not obj1:
+			return obj1
+		return (yield from self.obj2.eval(keepws, vars))
 
-	def formatpython(self, indent, keepws):
-		return "({}) and ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 @register("or")
@@ -1721,15 +1707,16 @@ class Or(Binary):
 
 	precedence = 0
 
-	@classmethod
-	def evaluate(cls, obj1, obj2):
-		return obj1 or obj2
+	def _str(self, indent, keepws):
+		yield from self._formatop(self.obj1)
+		yield " or "
+		yield from self._formatop(self.obj2)
 
-	def format(self, indent, keepws):
-		return "{} or {}".format(self._formatop(self.obj1), self._formatop(self.obj2))
-
-	def formatpython(self, indent, keepws):
-		return "({}) or ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
+	def eval(self, keepws, vars):
+		obj1 = (yield from self.obj1.eval(keepws, vars))
+		if obj1:
+			return obj1
+		return (yield from self.obj2.eval(keepws, vars))
 
 
 @register("mod")
@@ -1741,15 +1728,15 @@ class Mod(Binary):
 	precedence = 6
 	associative = False
 
-	@classmethod
-	def evaluate(cls, obj1, obj2):
+	def _str(self, indent, keepws):
+		yield from self._formatop(self.obj1)
+		yield "%"
+		yield from self._formatop(self.obj2)
+
+	def eval(self, keepws, vars):
+		obj1 = (yield from self.obj1.eval(keepws, vars))
+		obj2 = (yield from self.obj2.eval(keepws, vars))
 		return obj1 % obj2
-
-	def format(self, indent, keepws):
-		return "{}%{}".format(self._formatop(self.obj1), self._formatop(self.obj2))
-
-	def formatpython(self, indent, keepws):
-		return "({}) % ({})".format(self.obj1.formatpython(indent, keepws), self.obj2.formatpython(indent, keepws))
 
 
 class ChangeVar(Tag):
@@ -1785,10 +1772,6 @@ class ChangeVar(Tag):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def iternodes(self):
-		yield self
-		yield from self.value.iternodes()
-
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
 		encoder.dump(self.varname)
@@ -1806,11 +1789,16 @@ class StoreVar(ChangeVar):
 	AST node that stores a value into a variable.
 	"""
 
-	def format(self, indent, keepws):
-		return "{}{} = {}\n".format(indent*"\t", _formatnestednameul4(self.varname), self.value.format(indent, keepws))
+	def _str(self, indent, keepws):
+		yield indent*"\t"
+		yield _formatnestednameul4(self.varname)
+		yield " = "
+		yield from self.value._str(indent, keepws)
+		yield "\n"
 
-	def formatpython(self, indent, keepws):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}{n} = {v}\n".format(i=indent*"\t", id=id(self), n=_formatnestednamepython(self.varname), v=self.value.formatpython(indent, keepws), l=self.location)
+	def eval(self, keepws, vars):
+		value = (yield from self.value.eval(keepws, vars))
+		_unpackvar(vars, self.varname, value)
 
 
 @register("addvar")
@@ -1819,11 +1807,16 @@ class AddVar(ChangeVar):
 	AST node that adds a value to a variable (i.e. the ``+=`` operator).
 	"""
 
-	def format(self, indent, keepws):
-		return "{}{} += {}\n".format(indent*"\t", self.varname, self.value.format(indent, keepws))
+	def _str(self, indent, keepws):
+		yield indent*"\t"
+		yield _formatnestednameul4(self.varname)
+		yield " += "
+		yield from self.value._str(indent, keepws)
+		yield "\n"
 
-	def formatpython(self, indent, keepws):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] += {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent, keepws), l=self.location)
+	def eval(self, keepws, vars):
+		value = (yield from self.value.eval(keepws, vars))
+		vars[self.varname] += value
 
 
 @register("subvar")
@@ -1832,11 +1825,16 @@ class SubVar(ChangeVar):
 	AST node that substracts a value from a variable (i.e. the ``-=`` operator).
 	"""
 
-	def format(self, indent, keepws):
-		return "{}{} -= {}\n".format(indent*"\t", self.varname, self.value.format(indent, keepws))
+	def _str(self, indent, keepws):
+		yield indent*"\t"
+		yield _formatnestednameul4(self.varname)
+		yield " -= "
+		yield from self.value._str(indent, keepws)
+		yield "\n"
 
-	def formatpython(self, indent, keepws):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] -= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent, keepws), l=self.location)
+	def eval(self, keepws, vars):
+		value = (yield from self.value.eval(keepws, vars))
+		vars[self.varname] -= value
 
 
 @register("mulvar")
@@ -1845,11 +1843,16 @@ class MulVar(ChangeVar):
 	AST node that multiplies a variable by a value (i.e. the ``*=`` operator).
 	"""
 
-	def format(self, indent, keepws):
-		return "{}{} *= {}\n".format(indent*"\t", self.varname, self.value.format(indent, keepws))
+	def _str(self, indent, keepws):
+		yield indent*"\t"
+		yield _formatnestednameul4(self.varname)
+		yield " *= "
+		yield from self.value._str(indent, keepws)
+		yield "\n"
 
-	def formatpython(self, indent, keepws):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] *= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent, keepws), l=self.location)
+	def eval(self, keepws, vars):
+		value = (yield from self.value.eval(keepws, vars))
+		vars[self.varname] *= value
 
 
 @register("floordivvar")
@@ -1859,11 +1862,16 @@ class FloorDivVar(ChangeVar):
 	i.e. the ``//=`` operator).
 	"""
 
-	def format(self, indent, keepws):
-		return "{}{} //= {}\n".format(indent*"\t", self.varname, self.value.format(indent, keepws))
+	def _str(self, indent, keepws):
+		yield indent*"\t"
+		yield _formatnestednameul4(self.varname)
+		yield " //= "
+		yield from self.value._str(indent, keepws)
+		yield "\n"
 
-	def formatpython(self, indent, keepws):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] //= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent, keepws), l=self.location)
+	def eval(self, keepws, vars):
+		value = (yield from self.value.eval(keepws, vars))
+		vars[self.varname] //= value
 
 
 @register("truedivvar")
@@ -1872,11 +1880,16 @@ class TrueDivVar(ChangeVar):
 	AST node that divides a variable by a value (i.e. the ``/=`` operator).
 	"""
 
-	def format(self, indent, keepws):
-		return "{}{} /= {}\n".format(indent*"\t", self.varname, self.value.format(indent, keepws))
+	def _str(self, indent, keepws):
+		yield indent*"\t"
+		yield _formatnestednameul4(self.varname)
+		yield " /= "
+		yield from self.value._str(indent, keepws)
+		yield "\n"
 
-	def formatpython(self, indent, keepws):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] /= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent, keepws), l=self.location)
+	def eval(self, keepws, vars):
+		value = (yield from self.value.eval(keepws, vars))
+		vars[self.varname] /= value
 
 
 @register("modvar")
@@ -1885,11 +1898,16 @@ class ModVar(ChangeVar):
 	AST node for the ``%=`` operator.
 	"""
 
-	def format(self, indent, keepws):
-		return "{}{} %= {}\n".format(indent*"\t", self.varname, self.value.format(indent, keepws))
+	def _str(self, indent, keepws):
+		yield indent*"\t"
+		yield _formatnestednameul4(self.varname)
+		yield " %= "
+		yield from self.value._str(indent, keepws)
+		yield "\n"
 
-	def formatpython(self, indent, keepws):
-		return "{i}# <?code?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] %= {v}\n".format(i=indent*"\t", id=id(self), n=self.varname, v=self.value.formatpython(indent, keepws), l=self.location)
+	def eval(self, keepws, vars):
+		value = (yield from self.value.eval(keepws, vars))
+		vars[self.varname] %= value
 
 
 @register("callfunc")
@@ -1951,47 +1969,54 @@ class CallFunc(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def iternodes(self):
-		yield self
-		yield from self.obj.iternodes()
+	def _str(self, indent, keepws):
+		yield from self.obj._str(indent, keepws)
+		yield "("
+		first = True
 		for arg in self.args:
-			yield from arg.iternodes()
+			if first:
+				first = False
+			else:
+				yield ", "
+			yield from arg._str(indent, keepws)
+		for (argname, argvalue) in self.kwargs:
+			if first:
+				first = False
+			else:
+				yield ", "
+			yield argname
+			yield "="
+			yield from argvalue._str(indent, keepws)
+		if self.remargs is not None:
+			if first:
+				first = False
+			else:
+				yield ", "
+			yield "*"
+			yield from self.remargs._str(indent, keepws)
+		if self.remkwargs is not None:
+			if first:
+				first = False
+			else:
+				yield ", "
+			yield "**"
+			yield from self.remkwargs._str(indent, keepws)
+		yield ")"
+
+	def eval(self, keepws, vars):
+		obj = (yield from self.obj.eval(keepws, vars))
+		args = []
+		for arg in self.args:
+			arg = (yield from arg.eval(keepws, vars))
+			args.append(arg)
+		kwargs = {}
 		for (argname, arg) in self.kwargs:
-			yield from arg.iternodes()
+			kwargs[argname] = (yield from arg.eval(keepws, vars))
 		if self.remargs is not None:
-			yield from self.remargs.iternodes()
+			args.extend((yield from self.remargs.eval(keepws, vars)))
 		if self.remkwargs is not None:
-			yield from self.remkwargs.iternodes()
-
-	def format(self, indent, keepws):
-		args = []
-		for arg in self.args:
-			s = arg.format(indent, keepws)
-			if isinstance(arg, GenExpr):
-				s = s[1:-1]
-			args.append(s)
-		for (argname, argvalue) in self.kwargs:
-			s = argvalue.format(indent, keepws)
-			if isinstance(argvalue, GenExpr):
-				s = s[1:-1]
-			args.append("{}={}".format(argname, s))
-		if self.remargs is not None:
-			args.append("*{}".format(self.remargs.format(indent, keepws)))
-		if self.remkwargs is not None:
-			args.append("**{}".format(self.remkwargs.format(indent, keepws)))
-		return "{}({})".format(self.obj.format(indent, keepws), ", ".join(args))
-
-	def formatpython(self, indent, keepws):
-		args = []
-		for arg in self.args:
-			args.append(arg.formatpython(indent, keepws))
-		for (argname, argvalue) in self.kwargs:
-			args.append("{}={}".format(argname, argvalue.formatpython(indent, keepws)))
-		if self.remargs is not None:
-			args.append("*{}".format(self.remargs.formatpython(indent, keepws)))
-		if self.remkwargs is not None:
-			args.append("**{}".format(self.remkwargs.formatpython(indent, keepws)))
-		return "({}({}))".format(self.obj.formatpython(indent, keepws), ", ".join(args))
+			kwargs.update((yield from self.remkwargs.eval(keepws, vars)))
+		return obj(*args, **kwargs)
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.obj)
@@ -2072,43 +2097,54 @@ class CallMeth(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def iternodes(self):
-		yield self
+	def _str(self, indent, keepws):
+		yield from self._formatop(self.obj)
+		yield ".("
+		first = True
 		for arg in self.args:
-			yield from arg.iternodes()
-		for (argname, arg) in self.kwargs:
-			yield from arg.iternodes()
-		if self.remargs is not None:
-			yield from self.remargs.iternodes()
-		if self.remkwargs is not None:
-			yield from self.remkwargs.iternodes()
-
-	def format(self, indent, keepws):
-		args = []
-		if len(self.args) == 1 and isinstance(self.args[0], GenExpr) and not self.kwargs and self.remargs is None and self.remkwargs is None:
-			args.append(self.args[0].format(indent, keepws)[1:-1])
-		else:
-			for arg in self.args:
-				args.append(arg.format(indent, keepws))
-			for (argname, argvalue) in self.kwargs:
-				args.append("{}={}".format(argname, argvalue.format(indent, keepws)))
-			if self.remargs is not None:
-				args.append("*{}".format(self.remargs.format(indent, keepws)))
-			if self.remkwargs is not None:
-				args.append("**{}".format(self.remkwargs.format(indent, keepws)))
-		return "{}.{}({})".format(self._formatop(self.obj), self.methname, ", ".join(args))
-
-	def formatpython(self, indent, keepws):
-		args = []
-		for arg in self.args:
-			args.append(arg.formatpython(indent, keepws))
+			if first:
+				first = False
+			else:
+				yield ", "
+			yield from arg._str(indent, keepws)
 		for (argname, argvalue) in self.kwargs:
-			args.append("{}={}".format(argname, argvalue.formatpython(indent, keepws)))
+			if first:
+				first = False
+			else:
+				yield ", "
+			yield argname
+			yield "="
+			yield from argvalue._str(indent, keepws)
 		if self.remargs is not None:
-			args.append("*{}".format(self.remargs.formatpython(indent, keepws)))
+			if first:
+				first = False
+			else:
+				yield ", "
+			yield "*"
+			yield from self.remargs._str(indent, keepws)
 		if self.remkwargs is not None:
-			args.append("**{}".format(self.remkwargs.formatpython(indent, keepws)))
-		return "self.methods[{!r}]({}, {})".format(self.methname, self.obj.formatpython(indent, keepws), ", ".join(args))
+			if first:
+				first = False
+			else:
+				yield ", "
+			yield "**"
+			yield from self.remkwargs._str(indent, keepws)
+		yield ")"
+
+	def eval(self, keepws, vars):
+		obj = (yield from self.obj.eval(keepws, vars))
+		args = []
+		for arg in self.args:
+			arg = (yield from arg.eval(keepws, vars))
+			args.append(arg)
+		kwargs = {}
+		for (argname, arg) in self.kwargs:
+			kwargs[argname] = (yield from arg.eval(keepws, vars))
+		if self.remargs is not None:
+			args.extend((yield from self.remargs.eval(keepws, vars)))
+		if self.remkwargs is not None:
+			kwargs.update((yield from self.remkwargs.eval(keepws, vars)))
+		return self.methods[self.methname](obj, *args, **kwargs)
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.methname)
@@ -2133,66 +2169,67 @@ class Render(UnaryTag):
 	AST node for the ``<?render?>`` tag.
 	"""
 
-	def format(self, indent, keepws):
-		return "{}render {}\n".format(indent*"\t", self.obj.format(indent, keepws))
+	def _str(self, indent, keepws):
+		yield indent*"\t"
+		yield "render "
+		yield from self.obj._str(indent, keepws)
+		yield "\n"
 
-	def formatpython(self, indent, keepws):
+	def eval(self, keepws, vars):
 		if isinstance(self.obj, CallMeth) and self.obj.methname == "render":
-			code = "yield from {}".format(self.obj.formatpython(indent, keepws))
+			output = (yield from self.obj.eval(keepws, vars))
+			yield from output
 		else:
-			code = "yield ul4c._str(vars, {})".format(self.obj.formatpython(indent, keepws))
-		return "{i}# <?render?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}{c}\n".format(i=indent*"\t", id=id(self), c=code, l=self.location)
+			yield _str((yield from self.obj.eval(keepws, vars)))
 
 
-class Code(Block):
+@register("template")
+class Template(Block):
 	"""
-	Base class of :class:`Template` and :class:`Function` that contains the
-	functionality common to both classes.
+	A template object is normally created by passing the template source to the
+	constructor. It can also be loaded from the compiled format via the class
+	methods :meth:`load` (from a stream) or :meth:`loads` (from a string).
+
+	The compiled format can be generated with the methods :meth:`dump` (which
+	dumps the format to a stream) or :meth:`dumps` (which returns a string with
+	the compiled format).
+
+	Rendering the template can be done with the methods :meth:`render` (which
+	is a generator) or :meth:`renders` (which returns a string).
+
+	A :class:`Template` object is itself an AST node. Evaluating it will store
+	the template object under its name in the local variables.
+
+	A :class:`Template` can also be called as a function (returning the result
+	of the first ``<?return?>`` tag encountered. In this case all output of the
+	template will be ignored.
 	"""
 	fields = Block.fields.union({"source", "name", "keepws", "startdelim", "enddelim", "endlocation"})
 
 	version = "24"
 
-	functions = {}
-	methods = {}
-
 	def __init__(self, source=None, name=None, keepws=True, startdelim="<?", enddelim="?>"):
 		"""
-		Create a :class:`Code` object. If :var:`source` is ``None``, the
-		:class:`Code` remains uninitialized, otherwise :var:`source` will be
+		Create a :class:`Template` object. If :var:`source` is ``None``, the
+		:class:`Template` remains uninitialized, otherwise :var:`source` will be
 		compiled (using :var:`startdelim` and :var:`enddelim` as the tag
-		delimiters). :var:`name` is the name of the template/function. It will be
-		used in exception messages and should be a valid Python identifier. If
+		delimiters). :var:`name` is the name of the template. It will be used in
+		exception messages and should be a valid Python identifier. If
 		:var:`keepws` is false linefeeds and indentation will be ignored in the
 		literal text in templates (i.e. the text between the tags). However
 		trailing whitespace at the end of the line will be honored regardless of
-		the value of :var:`keepws`. Literal text (and ``<?render?>`` tags) wil
-		always be ignored inside functions.
+		the value of :var:`keepws`. Output will always be ignored when calling
+		a template as a function.
 		"""
-		# ``location``/``endlocation`` will remain ``None`` for a top level template/function
-		# For a subtemplate/subfunction ``location`` will be set to the location of the ``<?template?>``/``<?function?>`` tag
-		# in :meth:`_compile` and ``endlocation`` will be the location of the ``<?end template?>``/``<?end function?>`` tag
+		# ``location``/``endlocation`` will remain ``None`` for a top level template
+		# For a subtemplate/subfunction ``location`` will be set to the location of the ``<?template?>`` tag
+		# in :meth:`_compile` and ``endlocation`` will be the location of the ``<?end template?>`` tag
 		super().__init__(None)
-		self._keepws = keepws
+		self.keepws = keepws
 		self.startdelim = startdelim
 		self.enddelim = enddelim
 		self.name = name
 		self.source = None
-
-		# The following attributes (``_astsbyid``, ``_pythonsource`` and ``_pythonfunction``)
-		# are used for converting the AST back to executable Python code
-		# They will be initialized when required
-
-		# ``_astsbyid`` maps the id of the AST node to the ast node itself
-		# It is used in :meth:`Template.format` and :meth:`Function.format`
-		# (to give the generated Python source code access to the subtemplate/subfunction)
-		# and for proper exception chaining (when an exception occurs, comments in the
-		# generated source code allow finding the offending AST node)
-		self._astsbyid = {}
-		# Python source code generated for the template/function
-		self._pythonsource = None
-		# A compiled Python function implementing the template/function logic
-		self._pythonfunction = None
 
 		# If we have source code compile it
 		if source is not None:
@@ -2208,8 +2245,16 @@ class Code(Block):
 			s + " ..."
 		return s + " at {:#x}>".format(id(self))
 
+	def _str(self, indent, keepws):
+		yield indent*"\t"
+		yield "def "
+		yield self.name if self.name is not None else "unnamed"
+		yield ":\n"
+		indent += 1
+		yield from super()._str(indent, keepws)
+
 	def __str__(self):
-		return self.format(0, self._keepws)
+		return "".join(self._str(0, self.keepws))
 
 	def _repr_pretty_(self, p, cycle):
 		if cycle:
@@ -2260,18 +2305,6 @@ class Code(Block):
 		self.endlocation = decoder.load()
 		self.content = decoder.load()
 
-	def _get_keepws(self):
-		return self._keepws
-
-	def _set_keepws(self, keepws):
-		if bool(self._keepws) != bool(keepws):
-			for node in self.iternodes():
-				if isinstance(node, (Template, Function)):
-					node._keepws = keepws
-					node._pythonsource = node._pythonfunction = None
-
-	keepws = property(_get_keepws, _set_keepws)
-
 	@classmethod
 	def loads(cls, data):
 		"""
@@ -2308,6 +2341,44 @@ class Code(Block):
 		from ll import ul4on
 		return ul4on.dumps(self)
 
+	def render(self, **vars):
+		"""
+		Render the template iteratively (i.e. this is a generator).
+		:var:`vars` contains the top level variables available to the
+		template code.
+		"""
+		yield from Block.eval(self, self.keepws, vars)
+
+	def renders(self, **vars):
+		"""
+		Render the template as a string. :var:`vars` contains the top level
+		variables available to the template code.
+		"""
+		return "".join(self.render(**vars))
+
+	def __call__(self, **vars):
+		"""
+		Call the function and return the resulting value. :var:`vars` contains
+		the top level variables available to the function code.
+		"""
+		try:
+			for x in Block.eval(self, self.keepws, vars): # Bypass ``self.eval()`` which simply stores the object as a local variable
+				pass # Ignore all output
+		except ReturnException as ex:
+			return ex.value
+
+	def jssource(self):
+		"""
+		Return the template as the source code of a Javascript function.
+		"""
+		return "ul4.Template.loads({})".format(_asjson(self.dumps()))
+
+	def javasource(self):
+		"""
+		Return the template as Java source code.
+		"""
+		return "com.livinglogic.ul4.InterpretedTemplate.loads({})".format(misc.javaexpr(self.dumps()))
+
 	def _tokenize(self, source, startdelim, enddelim):
 		"""
 		Tokenize the template/function source code :var:`source` into tags and
@@ -2317,7 +2388,7 @@ class Code(Block):
 		This is a generator which produces :class:`Location` objects for each tag
 		or non-tag text. It will be called by :meth:`_compile` internally.
 		"""
-		pattern = "{}(printx|print|code|for|if|elif|else|end|break|continue|render|template|function|return|note)(\s*((.|\\n)*?)\s*)?{}".format(re.escape(startdelim), re.escape(enddelim))
+		pattern = "{}(printx|print|code|for|if|elif|else|end|break|continue|render|def|return|note)(\s*((.|\\n)*?)\s*)?{}".format(re.escape(startdelim), re.escape(enddelim))
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
@@ -2345,17 +2416,15 @@ class Code(Block):
 
 	def _compile(self, source, name, startdelim, enddelim):
 		"""
-		Compile the template/function source code :var:`source` into an AST.
+		Compile the template source code :var:`source` into an AST.
 		:var:`startdelim` and :var:`enddelim` are used as the tag delimiters.
 		"""
 		self.name = name
 		self.startdelim = startdelim
 		self.enddelim = enddelim
 
-		# This stack stores the nested for/if/elif/else/template/function blocks
+		# This stack stores the nested for/if/elif/else/def blocks
 		stack = [self]
-		# This is a stack of the ``Template``/``Function`` objects
-		callablestack = [self]
 
 		self.source = source
 
@@ -2374,9 +2443,7 @@ class Code(Block):
 		for location in self._tokenize(source, startdelim, enddelim):
 			try:
 				if location.type is None:
-					# Literal text will be ignored in functions
-					if isinstance(callablestack[-1], Template):
-						stack[-1].append(Text(location))
+					stack[-1].append(Text(location))
 				elif location.type == "print":
 					stack[-1].append(Print(location, parseexpr(location)))
 				elif location.type == "printx":
@@ -2410,12 +2477,9 @@ class Code(Block):
 						elif code == "for":
 							if not isinstance(stack[-1], For):
 								raise BlockError("endfor doesn't match any for")
-						elif code == "template":
+						elif code == "def":
 							if not isinstance(stack[-1], Template):
-								raise BlockError("endtemplate doesn't match any template")
-						elif code == "function":
-							if not isinstance(stack[-1], Function):
-								raise BlockError("endfunction doesn't match any function")
+								raise BlockError("enddef doesn't match any def")
 						else:
 							raise BlockError("illegal end value {!r}".format(code))
 					last = stack.pop()
@@ -2423,8 +2487,6 @@ class Code(Block):
 					last.endlocation = location
 					if isinstance(last, IfElIfElse):
 						last.content[-1].endlocation = location
-					if isinstance(last, (Template, Function)):
-						callablestack.pop()
 				elif location.type == "for":
 					block = parsefor(location)
 					stack[-1].append(block)
@@ -2433,37 +2495,25 @@ class Code(Block):
 					for block in reversed(stack):
 						if isinstance(block, For):
 							break
-						elif isinstance(block, (Template, Function)):
+						elif isinstance(block, Template):
 							raise BlockError("break outside of for loop")
 					stack[-1].append(Break(location))
 				elif location.type == "continue":
 					for block in reversed(stack):
 						if isinstance(block, For):
 							break
-						elif isinstance(block, (Template, Function)):
+						elif isinstance(block, Template):
 							raise BlockError("continue outside of for loop")
 					stack[-1].append(Continue(location))
 				elif location.type == "render":
-					# ``<?render?>`` tags will be ignored inside functions
-					if isinstance(callablestack[-1], Template):
-						stack[-1].append(Render(location, parseexpr(location)))
-				elif location.type == "template":
+					stack[-1].append(Render(location, parseexpr(location)))
+				elif location.type == "def":
 					block = Template(None, location.code, self.keepws, self.startdelim, self.enddelim)
 					block.location = location # Set start ``location`` of sub template
 					block.source = self.source # The source of the top level template (so that the offsets in :class:`Location` are correct)
 					stack[-1].append(block)
 					stack.append(block)
-					callablestack.append(block)
-				elif location.type == "function":
-					block = Function(None, location.code, self.keepws, self.startdelim, self.enddelim)
-					block.location = location # Set start ``location`` of function
-					block.source = self.source # The source of the top level template/function (so that the offsets in :class:`Location` are correct)
-					stack[-1].append(block)
-					stack.append(block)
-					callablestack.append(block)
 				elif location.type == "return":
-					if isinstance(callablestack[-1], Template):
-						raise BlockError("return in template")
 					stack[-1].append(Return(location, parseexpr(location)))
 				else: # Can't happen
 					raise ValueError("unknown tag {!r}".format(location.type))
@@ -2472,61 +2522,16 @@ class Code(Block):
 		if len(stack) > 1:
 			raise Error(stack[-1].location) from BlockError("block unclosed")
 
-	def _getast(self, astid):
-		try:
-			return self._astsbyid[astid]
-		except KeyError:
-			for node in self.iternodes():
-				if id(node) == astid:
-					self._astsbyid[astid] = node
-					return node
-			raise
-
-	def _handleexc(self, exc):
-		source = [line.strip() for line in self._pythonsource.splitlines()]
-		lineno = exc.__traceback__.tb_lineno-1
-		for line in reversed(source[:lineno]):
-			if line.startswith("#"):
-				ast = self._getast(int(line.rpartition(" ")[2][1:-1])) # extract the id from the comment and fetch the appropriate node
-				break
-		else:
-			raise # shouldn't happen -> reraise original
-		if ast.location is None:
-			raise # shouldn't happen, as a ``<?template?>``/``<?function?>`` tag itself can't result in any exceptions -> reraise original
-		else:
-			raise Error(ast.location) from exc
-
-	def _getvar(self, vars, name):
-		try:
-			return vars[name]
-		except KeyError:
-			try:
-				return self.functions[name]
-			except KeyError:
-				return UndefinedVariable(name)
-
-	@classmethod
-	def makefunction(cls, f):
-		name = f.__name__
-		if name.startswith("_"):
-			name = name[1:]
-		cls.functions[name] = f
-		return f
-
-	@classmethod
-	def makemethod(cls, f):
-		name = f.__name__
-		if name.startswith("_"):
-			name = name[1:]
-		cls.methods[name] = f
-		return f
+	def eval(self, keepws, vars):
+		yield from ()
+		vars[self.name] = TemplateClosure(self, vars)
 
 
 ###
 ### Functions & methods
 ###
 
-@Code.makefunction
+@AST.makefunction
 def _str(obj=""):
 	if obj is None:
 		return ""
@@ -2536,7 +2541,7 @@ def _str(obj=""):
 		return str(obj)
 
 
-@Code.makefunction
+@AST.makefunction
 def _repr(obj):
 	if isinstance(obj, str):
 		return repr(obj)
@@ -2568,37 +2573,37 @@ def _repr(obj):
 		return repr(obj)
 
 
-@Code.makefunction
+@AST.makefunction
 def _now():
 	return datetime.datetime.now()
 
 
-@Code.makefunction
+@AST.makefunction
 def _utcnow():
 	return datetime.datetime.utcnow()
 
 
-@Code.makefunction
+@AST.makefunction
 def _date(year, month, day, hour=0, minute=0, second=0, microsecond=0):
 	return datetime.datetime(year, month, day, hour, minute, second, microsecond)
 
 
-@Code.makefunction
+@AST.makefunction
 def _timedelta(days=0, seconds=0, microseconds=0):
 	return datetime.timedelta(days, seconds, microseconds)
 
 
-@Code.makefunction
+@AST.makefunction
 def _monthdelta(months=0):
 	return misc.monthdelta(months)
 
 
-@Code.makefunction
+@AST.makefunction
 def _random():
 	return random.random()
 
 
-@Code.makefunction
+@AST.makefunction
 def _xmlescape(obj):
 	if obj is None:
 		return ""
@@ -2608,7 +2613,7 @@ def _xmlescape(obj):
 		return misc.xmlescape(str(obj))
 
 
-@Code.makefunction
+@AST.makefunction
 def _csv(obj):
 	if obj is None:
 		return ""
@@ -2621,7 +2626,7 @@ def _csv(obj):
 	return obj
 
 
-@Code.makefunction
+@AST.makefunction
 def _asjson(obj):
 	if obj is None:
 		return "null"
@@ -2649,25 +2654,25 @@ def _asjson(obj):
 		raise TypeError("can't handle object of type {}".format(type(obj)))
 
 
-@Code.makefunction
+@AST.makefunction
 def _fromjson(string):
 	from ll import ul4on
 	return json.loads(string)
 
 
-@Code.makefunction
+@AST.makefunction
 def _asul4on(obj):
 	from ll import ul4on
 	return ul4on.dumps(obj)
 
 
-@Code.makefunction
+@AST.makefunction
 def _fromul4on(string):
 	from ll import ul4on
 	return ul4on.loads(string)
 
 
-@Code.makefunction
+@AST.makefunction
 def _int(obj=0, base=None):
 	if base is None:
 		return int(obj)
@@ -2675,42 +2680,42 @@ def _int(obj=0, base=None):
 		return int(obj, base)
 
 
-@Code.makefunction
+@AST.makefunction
 def _float(obj=0.0):
 	return float(obj)
 
 
-@Code.makefunction
+@AST.makefunction
 def _bool(obj=False):
 	return bool(obj)
 
 
-@Code.makefunction
+@AST.makefunction
 def _len(sequence):
 	return len(sequence)
 
 
-@Code.makefunction
+@AST.makefunction
 def _abs(number):
 	return abs(number)
 
 
-@Code.makefunction
+@AST.makefunction
 def _any(iterable):
 	return any(iterable)
 
 
-@Code.makefunction
+@AST.makefunction
 def _all(iterable):
 	return all(iterable)
 
 
-@Code.makefunction
+@AST.makefunction
 def _enumerate(iterable, start=0):
 	return enumerate(iterable, start)
 
 
-@Code.makefunction
+@AST.makefunction
 def _enumfl(iterable, start=0):
 	lastitem = None
 	first = True
@@ -2732,7 +2737,7 @@ def _enumfl(iterable, start=0):
 		i += 1
 
 
-@Code.makefunction
+@AST.makefunction
 def _isfirstlast(iterable):
 	lastitem = None
 	first = True
@@ -2752,7 +2757,7 @@ def _isfirstlast(iterable):
 			first = False
 
 
-@Code.makefunction
+@AST.makefunction
 def _isfirst(iterable):
 	first = True
 	for item in iterable:
@@ -2760,7 +2765,7 @@ def _isfirst(iterable):
 		first = False
 
 
-@Code.makefunction
+@AST.makefunction
 def _islast(iterable):
 	lastitem = None
 	it = iter(iterable)
@@ -2778,127 +2783,127 @@ def _islast(iterable):
 			yield (False, lastitem)
 
 
-@Code.makefunction
+@AST.makefunction
 def _isundefined(obj):
 	return isinstance(obj, Undefined)
 
 
-@Code.makefunction
+@AST.makefunction
 def _isdefined(obj):
 	return not isinstance(obj, Undefined)
 
 
-@Code.makefunction
+@AST.makefunction
 def _isnone(obj):
 	return obj is None
 
 
-@Code.makefunction
+@AST.makefunction
 def _isstr(obj):
 	return isinstance(obj, str)
 
 
-@Code.makefunction
+@AST.makefunction
 def _isint(obj):
 	return isinstance(obj, int) and not isinstance(obj, bool)
 
 
-@Code.makefunction
+@AST.makefunction
 def _isfloat(obj):
 	return isinstance(obj, float)
 
 
-@Code.makefunction
+@AST.makefunction
 def _isbool(obj):
 	return isinstance(obj, bool)
 
 
-@Code.makefunction
+@AST.makefunction
 def _isdate(obj):
 	return isinstance(obj, (datetime.datetime, datetime.date))
 
 
-@Code.makefunction
+@AST.makefunction
 def _istimedelta(obj):
 	return isinstance(obj, datetime.timedelta)
 
 
-@Code.makefunction
+@AST.makefunction
 def _ismonthdelta(obj):
 	return isinstance(obj, misc.monthdelta)
 
 
-@Code.makefunction
+@AST.makefunction
 def _islist(obj):
 	return isinstance(obj, collections.Sequence) and not isinstance(obj, str) and not isinstance(obj, color.Color)
 
 
-@Code.makefunction
+@AST.makefunction
 def _isdict(obj):
 	return isinstance(obj, collections.Mapping) and not isinstance(obj, Template)
 
 
-@Code.makefunction
+@AST.makefunction
 def _iscolor(obj):
 	return isinstance(obj, color.Color)
 
 
-@Code.makefunction
+@AST.makefunction
 def _istemplate(obj):
 	return isinstance(obj, (Template, TemplateClosure))
 
 
-@Code.makefunction
+@AST.makefunction
 def _isfunction(obj):
 	return callable(obj)
 
 
-@Code.makefunction
+@AST.makefunction
 def _chr(i):
 	return chr(i)
 
 
-@Code.makefunction
+@AST.makefunction
 def _ord(c):
 	return ord(c)
 
 
-@Code.makefunction
+@AST.makefunction
 def _hex(number):
 	return hex(number)
 
 
-@Code.makefunction
+@AST.makefunction
 def _oct(number):
 	return oct(number)
 
 
-@Code.makefunction
+@AST.makefunction
 def _bin(number):
 	return bin(number)
 
 
-@Code.makefunction
+@AST.makefunction
 def _min(*args):
 	return min(*args)
 
 
-@Code.makefunction
+@AST.makefunction
 def _max(*args):
 	return max(*args)
 
 
-@Code.makefunction
+@AST.makefunction
 def _sorted(iterable):
 	return sorted(iterable)
 
 
-@Code.makefunction
+@AST.makefunction
 def _range(*args):
 	return range(*args)
 
 
-@Code.makefunction
+@AST.makefunction
 def _type(obj):
 	if obj is None:
 		return "none"
@@ -2933,22 +2938,22 @@ def _type(obj):
 	return None
 
 
-@Code.makefunction
+@AST.makefunction
 def _reversed(sequence):
 	return reversed(sequence)
 
 
-@Code.makefunction
+@AST.makefunction
 def _randrange(*args):
 	return random.randrange(*args)
 
 
-@Code.makefunction
+@AST.makefunction
 def _randchoice(sequence):
 	return random.choice(sequence)
 
 
-@Code.makefunction
+@AST.makefunction
 def _format(obj, fmt, lang=None):
 	if isinstance(obj, (datetime.date, datetime.time, datetime.timedelta)):
 		if lang is None:
@@ -2971,62 +2976,62 @@ def _format(obj, fmt, lang=None):
 		return format(obj, fmt)
 
 
-@Code.makefunction
+@AST.makefunction
 def _zip(*iterables):
 	return zip(*iterables)
 
 
-@Code.makefunction
+@AST.makefunction
 def _urlquote(string):
 	return urlparse.quote_plus(string)
 
 
-@Code.makefunction
+@AST.makefunction
 def _urlunquote(string):
 	return urlparse.unquote_plus(string)
 
 
-@Code.makefunction
+@AST.makefunction
 def _rgb(r, g, b, a=1.0):
 	return color.Color.fromrgb(r, g, b, a)
 
 
-@Code.makefunction
+@AST.makefunction
 def _hls(h, l, s, a=1.0):
 	return color.Color.fromhls(h, l, s, a)
 
 
-@Code.makefunction
+@AST.makefunction
 def _hsv(h, s, v, a=1.0):
 	return color.Color.fromhsv(h, s, v, a)
 
 
-@Code.makemethod
+@AST.makemethod
 def _split(obj, sep=None, count=None):
 	return obj.split(sep, count if count is not None else -1)
 
 
-@Code.makemethod
+@AST.makemethod
 def _rsplit(obj, sep=None, count=None):
 	return obj.rsplit(sep, count if count is not None else -1)
 
 
-@Code.makemethod
+@AST.makemethod
 def _strip(obj, chars=None):
 	return obj.strip(chars)
 
 
-@Code.makemethod
+@AST.makemethod
 def _lstrip(obj, chars=None):
 	return obj.lstrip(chars)
 
 
-@Code.makemethod
+@AST.makemethod
 def _rstrip(obj, chars=None):
 	return obj.rstrip(chars)
 
 
-@Code.makemethod
+@AST.makemethod
 def _find(obj, sub, start=None, end=None):
 	if isinstance(obj, str):
 		return obj.find(sub, start, end)
@@ -3041,7 +3046,7 @@ def _find(obj, sub, start=None, end=None):
 			return -1
 
 
-@Code.makemethod
+@AST.makemethod
 def _rfind(obj, sub, start=None, end=None):
 	if isinstance(obj, str):
 		return obj.rfind(sub, start, end)
@@ -3052,32 +3057,32 @@ def _rfind(obj, sub, start=None, end=None):
 		return -1
 
 
-@Code.makemethod
+@AST.makemethod
 def _startswith(obj, prefix):
 	return obj.startswith(prefix)
 
 
-@Code.makemethod
+@AST.makemethod
 def _endswith(obj, suffix):
 	return obj.endswith(suffix)
 
 
-@Code.makemethod
+@AST.makemethod
 def _upper(obj):
 	return obj.upper()
 
 
-@Code.makemethod
+@AST.makemethod
 def _lower(obj):
 	return obj.lower()
 
 
-@Code.makemethod
+@AST.makemethod
 def _capitalize(obj):
 	return obj.capitalize()
 
 
-@Code.makemethod
+@AST.makemethod
 def _replace(obj, old, new, count=None):
 	if count is None:
 		return obj.replace(old, new)
@@ -3085,57 +3090,57 @@ def _replace(obj, old, new, count=None):
 		return obj.replace(old, new, count)
 
 
-@Code.makemethod
+@AST.makemethod
 def _r(obj):
 	return obj.r()
 
 
-@Code.makemethod
+@AST.makemethod
 def _g(obj):
 	return obj.g()
 
 
-@Code.makemethod
+@AST.makemethod
 def _b(obj):
 	return obj.b()
 
 
-@Code.makemethod
+@AST.makemethod
 def _a(obj):
 	return obj.a()
 
 
-@Code.makemethod
+@AST.makemethod
 def _hls(obj):
 	return obj.hls()
 
 
-@Code.makemethod
+@AST.makemethod
 def _hlsa(obj):
 	return obj.hlsa()
 
 
-@Code.makemethod
+@AST.makemethod
 def _hsv(obj):
 	return obj.hsv()
 
 
-@Code.makemethod
+@AST.makemethod
 def _hsva(obj):
 	return obj.hsva()
 
 
-@Code.makemethod
+@AST.makemethod
 def _lum(obj):
 	return obj.lum()
 
 
-@Code.makemethod
+@AST.makemethod
 def _weekday(obj):
 	return obj.weekday()
 
 
-@Code.makemethod
+@AST.makemethod
 def _week(obj, firstweekday=None):
 	if firstweekday is None:
 		firstweekday = 0
@@ -3152,39 +3157,39 @@ def _week(obj, firstweekday=None):
 	return yearday//7
 
 
-@Code.makemethod
+@AST.makemethod
 def _items(obj):
 	return obj.items()
 
 
-@Code.makemethod
+@AST.makemethod
 def _values(obj):
 	return obj.values()
 
 
-@Code.makemethod
+@AST.makemethod
 def _join(obj, iterable):
 	return obj.join(iterable)
 
 
-@Code.makemethod
+@AST.makemethod
 def _render(obj, **vars):
 	return obj.render(**vars)
 
 
-@Code.makemethod
+@AST.makemethod
 def _renders(obj, **vars):
 	return obj.renders(**vars)
 
 
-@Code.makemethod
+@AST.makemethod
 def _mimeformat(obj):
 	weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 	monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 	return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(obj, weekdayname[obj.weekday()], monthname[obj.month])
 
 
-@Code.makemethod
+@AST.makemethod
 def _isoformat(obj):
 	result = obj.isoformat()
 	suffix = "T00:00:00"
@@ -3193,151 +3198,59 @@ def _isoformat(obj):
 	return result
 
 
-@Code.makemethod
+@AST.makemethod
 def _yearday(obj):
 	return (obj - obj.__class__(obj.year, 1, 1)).days+1
 
 
-@Code.makemethod
+@AST.makemethod
 def _get(obj, key, default=None):
 	return obj.get(key, default)
 
 
-@Code.makemethod
+@AST.makemethod
 def _withlum(obj, lum):
 	return obj.withlum(lum)
 
 
-@Code.makemethod
+@AST.makemethod
 def _witha(obj, a):
 	return obj.witha(a)
 
 
-@Code.makemethod
+@AST.makemethod
 def _day(obj):
 	return obj.day
 
 
-@Code.makemethod
+@AST.makemethod
 def _month(obj):
 	return obj.month
 
 
-@Code.makemethod
+@AST.makemethod
 def _year(obj):
 	return obj.year
 
 
-@Code.makemethod
+@AST.makemethod
 def _hour(obj):
 	return obj.hour
 
 
-@Code.makemethod
+@AST.makemethod
 def _minute(obj):
 	return obj.minute
 
 
-@Code.makemethod
+@AST.makemethod
 def _second(obj):
 	return obj.second
 
 
-@Code.makemethod
+@AST.makemethod
 def _microsecond(obj):
 	return obj.microsecond
-
-
-@register("template")
-class Template(Code):
-	"""
-	A template object is normally created by passing the template source to the
-	constructor. It can also be loaded from the compiled format via the class
-	methods :meth:`load` (from a stream) or :meth:`loads` (from a string).
-
-	The compiled format can be generated with the methods :meth:`dump` (which
-	dumps the format to a stream) or :meth:`dumps` (which returns a string with
-	the compiled format).
-
-	Rendering the template can be done with the methods :meth:`render` (which
-	is a generator) or :meth:`renders` (which returns a string).
-
-	A :class:`Template` object is itself an AST node. Evaluating it will store
-	the template object under its name in the local variables.
-	"""
-
-	def format(self, indent, keepws):
-		v = []
-		name = self.name if self.name is not None else "unnamed"
-		v.append("{}template {}()\n".format(indent*"\t", name))
-		v.append("{}{{\n".format(indent*"\t"))
-		indent += 1
-		for node in self.content:
-			v.append(node.format(indent, keepws))
-		indent -= 1
-		v.append("{}}}\n".format(indent*"\t"))
-		return "".join(v)
-
-	def formatpython(self, indent, keepws):
-		return "{i}# <?template?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] = ul4c.TemplateClosure(self._getast({id}), vars)\n".format(i=indent*"\t", n=self.name if self.name is not None else "unnamed", id=id(self), l=self.location)
-
-	def render(self, **vars):
-		"""
-		Render the template iteratively (i.e. this is a generator).
-		:var:`vars` contains the top level variables available to the
-		template code.
-		"""
-		return self.pythonfunction()(self, vars)
-
-	def renders(self, **vars):
-		"""
-		Render the template as a string. :var:`vars` contains the top level
-		variables available to the template code.
-		"""
-		return "".join(self.pythonfunction()(self, vars))
-
-	def pythonfunction(self):
-		"""
-		Return a Python generator that can be called to render the template.
-		"""
-		if self._pythonfunction is None:
-			name = self.name if self.name is not None else "unnamed"
-			source = self.pythonsource()
-			ns = {}
-			exec(source, ns)
-			self._pythonfunction = ns[name]
-		return self._pythonfunction
-
-	def pythonsource(self):
-		"""
-		Return the template as Python source code.
-		"""
-		if self._pythonsource is None:
-			v = []
-			v.append("def {}(self, vars):\n".format(self.name if self.name is not None else "unnamed"))
-			v.append("\timport datetime, collections\n")
-			v.append("\tfrom ll import ul4c, color\n")
-			v.append("\tif 0:\n")
-			v.append("\t\tyield\n")
-			v.append("\ttry:\n")
-			for node in self.content:
-				v.append(node.formatpython(2, self._keepws))
-			v.append("\texcept Exception as exc:\n")
-			v.append("\t\tself._handleexc(exc)\n")
-			self._pythonsource = "".join(v)
-		return self._pythonsource
-
-	def jssource(self):
-		"""
-		Return the template as the source code of a Javascript function.
-		"""
-		return "ul4.Template.loads({})".format(_asjson(self.dumps()))
-
-	def javasource(self):
-		"""
-		Return the template as Java source code.
-		"""
-		return "com.livinglogic.ul4.InterpretedTemplate.loads({})".format(misc.javaexpr(self.dumps()))
 
 
 class TemplateClosure(Object):
@@ -3354,138 +3267,11 @@ class TemplateClosure(Object):
 	def renders(self, **vars):
 		return self.template.renders(**collections.ChainMap(vars, self.vars))
 
+	def __call__(self, **vars):
+		return self.template(**collections.ChainMap(vars, self.vars))
+
 	def __getattr__(self, name):
 		return getattr(self.template, name)
-
-	def __repr__(self):
-		s = "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} keepws={0.keepws!r}".format(self)
-		if self.startdelim != "<?":
-			s += " startdelim={0.startdelim!r}".format(self)
-		if self.enddelim != "?>":
-			s += " enddelim={0.enddelim!r}".format(self)
-		if self.content:
-			s + " ..."
-		return s + " at {:#x}>".format(id(self))
-
-	def _repr_pretty_(self, p, cycle):
-		if cycle:
-			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
-		else:
-			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
-				p.breakable()
-				p.text("name=")
-				p.pretty(self.name)
-				p.breakable()
-				p.text("keepws=")
-				p.pretty(self.keepws)
-				if self.startdelim != "<?":
-					p.breakable()
-					p.text("startdelim=")
-					p.pretty(self.startdelim)
-				if self.enddelim != "?>":
-					p.breakable()
-					p.text("enddelim=")
-					p.pretty(self.enddelim)
-				for node in self.content:
-					p.breakable()
-					p.pretty(node)
-				p.breakable()
-				p.text("at {:#x}".format(id(self)))
-
-
-@register("function")
-class Function(Code):
-	"""
-	A function object is normally created by passing the function source to the
-	constructor. It can also be loaded from the compiled format via the class
-	methods :meth:`load` (from a stream) or :meth:`loads` (from a string).
-
-	The compiled format can be generated with the methods :meth:`dump` (which
-	dumps the format to a stream) or :meth:`dumps` (which returns a string with
-	the compiled format).
-
-	A :class:`Function` object can be called like a normal Python function.
-
-	A :class:`Function` object is itself an AST node. Evaluating it will store
-	the function object under its name in the local variables.
-	"""
-	def format(self, indent, keepws):
-		v = []
-		name = self.name if self.name is not None else "unnamed"
-		v.append("{}function {}()\n".format(indent*"\t", name))
-		v.append("{}{{\n".format(indent*"\t"))
-		indent += 1
-		for node in self.content:
-			v.append(node.format(indent, keepws))
-		indent -= 1
-		v.append("{}}}\n".format(indent*"\t"))
-		return "".join(v)
-
-	def formatpython(self, indent, keepws):
-		return "{i}# <?function?> tag at position {l.starttag}:{l.endtag} ({id})\n{i}vars[{n!r}] = ul4c.FunctionClosure(self._getast({id}), vars)\n".format(i=indent*"\t", n=self.name if self.name is not None else "unnamed", id=id(self), l=self.location)
-
-	def __call__(self, **vars):
-		"""
-		Call the function and return the resulting value. :var:`vars` contains
-		the top level variables available to the function code.
-		"""
-		return self.pythonfunction()(self, vars)
-
-	def pythonfunction(self):
-		"""
-		Return a Python function that can be called to execute the UL4 function.
-		"""
-		if self._pythonfunction is None:
-			name = self.name if self.name is not None else "unnamed"
-			source = self.pythonsource()
-			ns = {}
-			exec(source, ns)
-			self._pythonfunction = ns[name]
-		return self._pythonfunction
-
-	def pythonsource(self):
-		"""
-		Return the function as Python source code.
-		"""
-		if self._pythonsource is None:
-			v = []
-			v.append("def {}(self, vars):\n".format(self.name if self.name is not None else "unnamed"))
-			v.append("\timport datetime, collections\n")
-			v.append("\tfrom ll import ul4c, color\n")
-			v.append("\ttry:\n")
-			for node in self.content:
-				v.append(node.formatpython(2, self._keepws))
-			v.append("\texcept Exception as exc:\n")
-			v.append("\t\tself._handleexc(exc)\n")
-			self._pythonsource = "".join(v)
-		return self._pythonsource
-
-	def jssource(self):
-		"""
-		Return the function as the source code of a Javascript function.
-		"""
-		return "ul4.Function.loads({})".format(_asjson(self.dumps()))
-
-	def javasource(self):
-		"""
-		Return the function as Java source code.
-		"""
-		return "com.livinglogic.ul4.InterpretedFunction.loads({})".format(misc.javaexpr(self.dumps()))
-
-
-class FunctionClosure(Object):
-	fields = {"location", "endlocation", "name", "source", "startdelim", "enddelim", "content"}
-
-	def __init__(self, function, vars):
-		self.function = function
-		# Freeze variables of the currently running templates/functions
-		self.vars = vars.copy()
-
-	def __call__(self, **vars):
-		return self.function(**collections.ChainMap(vars, self.vars))
-
-	def __getattr__(self, name):
-		return getattr(self.function, name)
 
 	def __repr__(self):
 		s = "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} keepws={0.keepws!r}".format(self)
@@ -3546,22 +3332,13 @@ def _formatnestednameul4(name):
 		return "({})".format(", ".join(_formatnestednameul4(name) for name in name))
 
 
-def _formatnestednamepython(name):
+def _unpackvar(vars, name, value):
 	if isinstance(name, str):
-		return "vars[{!r}]".format(name)
-	elif len(name) == 1:
-		return "({},)".format(_formatnestednamepython(name[0]))
+		vars[name] = value
 	else:
-		return "({})".format(", ".join(_formatnestednamepython(name) for name in name))
-
-
-def _getitem(container, key):
-	"""
-	Helper for the ``getitem`` operator.
-	"""
-	try:
-		return container[key]
-	except KeyError:
-		return UndefinedKey(key)
-	except IndexError:
-		return UndefinedIndex(key)
+		if len(name) > len(value):
+			raise TypeError("too many values to unpack (expected {})".format(len(name)))
+		elif len(name) < len(value):
+			raise TypeError("need more than {} value{} to unpack)".format(len(values), "ss" if len(values) != 1 else ""))
+		for (name, value) in zip(name, value):
+			_unpackvar(vars, name, value)

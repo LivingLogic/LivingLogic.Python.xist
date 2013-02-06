@@ -1,21 +1,16 @@
 Changes in 4.10 (released ??/??/2013)
 --------------------------------------
 
-*	It's now possible to define UL4 functions that return a value::
+*	It's now possible to use UL4 templates as functions::
 
 		>>> from ll import ul4c
-		>>> f = ul4c.Function("<?return 2*x?>")
+		>>> f = ul4c.Template("<?return 2*x?>")
 		>>> f(x=42)
 		84
 
-	Literal text (and the ``<?render?>`` tag) will be ignored inside functions.
+	Normal output of the template will be ignored if it is used as a function.
 
-*	Functions can also be defined inside templates (via the tags ``<?function foo?>``
-	and ``<?end function?>``). The tag for defining templates has been renamed from
-	``<?def foo?>``/``<?end def?>`` to ``<?template foo?>``/``<?end template?>``.
-
-*	UL4 functions (the builtin ones as well as any additional ones defined via
-	``<?function?>``) are now real objects that can be passed to templates/functions
+*	The builtin UL4 functions are now real objects that can be passed to templates
 	as arguments.
 
 *	The UL4 functions ``vars`` and ``get`` have been removed.
