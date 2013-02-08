@@ -23,6 +23,9 @@ Changes in 4.10 (released ??/??/2013)
 *	The builtin UL4 functions are now real objects that can be passed to
 	templates as arguments.
 
+*	The UL4 methods ``days``, ``seconds``, ``microseconds`` and ``months`` have
+	been added for ``timedelta``/``monthdelta`` objects.
+
 *	The UL4 functions ``vars`` and ``get`` have been removed.
 
 *	The automatic UL4 variable ``stack`` has been removed too.

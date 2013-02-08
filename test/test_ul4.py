@@ -3003,6 +3003,26 @@ def test_method_yearday(r):
 
 
 @pytest.mark.ul4
+def test_method_days(r):
+	assert '1' == r('<?print timedelta(1).days()?>')
+
+
+@pytest.mark.ul4
+def test_method_seconds(r):
+	assert '42' == r('<?print timedelta(0, 42).seconds()?>')
+
+
+@pytest.mark.ul4
+def test_method_microseconds(r):
+	assert '123000' == r('<?print timedelta(0, 0, 123000).microseconds()?>')
+
+
+@pytest.mark.ul4
+def test_method_months(r):
+	assert '17' == r('<?print monthdelta(17).months()?>')
+
+
+@pytest.mark.ul4
 def test_render(r):
 	t = ul4c.Template('<?print prefix?><?print data?><?print suffix?>')
 

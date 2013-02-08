@@ -3271,6 +3271,26 @@ def _microsecond(obj):
 	return obj.microsecond
 
 
+@AST.makemethod
+def _days(obj):
+	return obj.days
+
+
+@AST.makemethod
+def _seconds(obj):
+	return obj.seconds
+
+
+@AST.makemethod
+def _microseconds(obj):
+	return obj.microseconds
+
+
+@AST.makemethod
+def _months(obj):
+	return obj.months
+
+
 class TemplateClosure(Object):
 	fields = {"location", "endlocation", "name", "source", "startdelim", "enddelim", "content"}
 
