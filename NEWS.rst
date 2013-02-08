@@ -1,5 +1,5 @@
 Changes in 4.10 (released ??/??/2013)
---------------------------------------
+-------------------------------------
 
 *	It's now possible to use UL4 templates as functions::
 
