@@ -10,8 +10,9 @@ Changes in 4.10 (released ??/??/2013)
 
 	Normal output of the template will be ignored if it is used as a function.
 
-*	The UL4 tag ``<?code?>`` has been renamed to ``<?exe?>`` and may now contain
-	not only variable assigments, but any other expression.
+*	The UL4 tag ``<?code?>`` may now contain not only variable assigments, but
+	any other expression. Of course this makes only sense for expressions that
+	have side effects (e.g. a call to the ``render`` method).
 
 *	UL4 functions ``print`` and ``printx`` have been added. They behave like the
 	appropriate tags ``<?print?>`` and ``<?printx?>``, but can output an
