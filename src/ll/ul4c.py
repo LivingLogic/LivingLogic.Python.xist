@@ -1233,6 +1233,18 @@ class Unary(AST):
 	def ul4onload(self, decoder):
 		self.obj = decoder.load()
 
+	def eval(self, keepws, vars):
+		obj = (yield from self.obj.eval(keepws, vars))
+		return self.evalfold(obj)
+
+	@classmethod
+	def make(cls, obj):
+		if isinstance(obj, Const):
+			result = cls.evalfold(obj.value)
+			if not isinstance(result, Undefined):
+				return Const(result)
+		return cls(obj)
+
 
 @register("not")
 class Not(Unary):
@@ -1246,8 +1258,9 @@ class Not(Unary):
 		yield "not "
 		yield from self._formatop(self.obj)
 
-	def eval(self, keepws, vars):
-		return not (yield from self.obj.eval(keepws, vars))
+	@classmethod
+	def evalfold(cls, obj):
+		return not obj
 
 
 @register("neg")
@@ -1262,8 +1275,9 @@ class Neg(Unary):
 		yield "-"
 		yield from self._formatop(self.obj)
 
-	def eval(self, keepws, vars):
-		return -(yield from self.obj.eval(keepws, vars))
+	@classmethod
+	def evalfold(cls, obj):
+		return -obj
 
 
 class UnaryTag(Tag):
@@ -1378,6 +1392,19 @@ class Binary(AST):
 		self.obj1 = decoder.load()
 		self.obj2 = decoder.load()
 
+	def eval(self, keepws, vars):
+		obj1 = (yield from self.obj1.eval(keepws, vars))
+		obj2 = (yield from self.obj2.eval(keepws, vars))
+		return self.evalfold(obj1, obj2)
+
+	@classmethod
+	def make(cls, obj1, obj2):
+		if isinstance(obj1, Const) and isinstance(obj2, Const):
+			result = cls.evalfold(obj1.value, obj2.value)
+			if not isinstance(result, Undefined):
+				return Const(result)
+		return cls(obj1, obj2)
+
 
 @register("getitem")
 class GetItem(Binary):
@@ -1401,9 +1428,8 @@ class GetItem(Binary):
 		yield from self.obj2._str(indent, keepws)
 		yield "]"
 
-	def eval(self, keepws, vars):
-		obj1 = (yield from self.obj1.eval(keepws, vars))
-		obj2 = (yield from self.obj2.eval(keepws, vars))
+	@classmethod
+	def evalfold(cls, obj1, obj2):
 		try:
 			return obj1[obj2]
 		except KeyError:
@@ -1426,9 +1452,8 @@ class EQ(Binary):
 		yield " == "
 		yield from self._formatop(self.obj2)
 
-	def eval(self, keepws, vars):
-		obj1 = (yield from self.obj1.eval(keepws, vars))
-		obj2 = (yield from self.obj2.eval(keepws, vars))
+	@classmethod
+	def evalfold(cls, obj1, obj2):
 		return obj1 == obj2
 
 
@@ -1446,9 +1471,8 @@ class NE(Binary):
 		yield " 1= "
 		yield from self._formatop(self.obj2)
 
-	def eval(self, keepws, vars):
-		obj1 = (yield from self.obj1.eval(keepws, vars))
-		obj2 = (yield from self.obj2.eval(keepws, vars))
+	@classmethod
+	def evalfold(cls, obj1, obj2):
 		return obj1 != obj2
 
 
@@ -1466,9 +1490,8 @@ class LT(Binary):
 		yield " < "
 		yield from self._formatop(self.obj2)
 
-	def eval(self, keepws, vars):
-		obj1 = (yield from self.obj1.eval(keepws, vars))
-		obj2 = (yield from self.obj2.eval(keepws, vars))
+	@classmethod
+	def evalfold(cls, obj1, obj2):
 		return obj1 < obj2
 
 
@@ -1486,9 +1509,8 @@ class LE(Binary):
 		yield " <= "
 		yield from self._formatop(self.obj2)
 
-	def eval(self, keepws, vars):
-		obj1 = (yield from self.obj1.eval(keepws, vars))
-		obj2 = (yield from self.obj2.eval(keepws, vars))
+	@classmethod
+	def evalfold(cls, obj1, obj2):
 		return obj1 <= obj2
 
 
@@ -1506,9 +1528,8 @@ class GT(Binary):
 		yield " > "
 		yield from self._formatop(self.obj2)
 
-	def eval(self, keepws, vars):
-		obj1 = (yield from self.obj1.eval(keepws, vars))
-		obj2 = (yield from self.obj2.eval(keepws, vars))
+	@classmethod
+	def evalfold(cls, obj1, obj2):
 		return obj1 > obj2
 
 
@@ -1526,9 +1547,8 @@ class GE(Binary):
 		yield " >= "
 		yield from self._formatop(self.obj2)
 
-	def eval(self, keepws, vars):
-		obj1 = (yield from self.obj1.eval(keepws, vars))
-		obj2 = (yield from self.obj2.eval(keepws, vars))
+	@classmethod
+	def evalfold(cls, obj1, obj2):
 		return obj1 >= obj2
 
 
@@ -1550,9 +1570,8 @@ class Contains(Binary):
 		yield " in "
 		yield from self._formatop(self.obj2)
 
-	def eval(self, keepws, vars):
-		obj1 = (yield from self.obj1.eval(keepws, vars))
-		obj2 = (yield from self.obj2.eval(keepws, vars))
+	@classmethod
+	def evalfold(cls, obj1, obj2):
 		return obj1 in obj2
 
 
@@ -1574,9 +1593,8 @@ class NotContains(Binary):
 		yield " not in "
 		yield from self._formatop(self.obj2)
 
-	def eval(self, keepws, vars):
-		obj1 = (yield from self.obj1.eval(keepws, vars))
-		obj2 = (yield from self.obj2.eval(keepws, vars))
+	@classmethod
+	def evalfold(cls, obj1, obj2):
 		return obj1 not in obj2
 
 
@@ -1593,9 +1611,8 @@ class Add(Binary):
 		yield "+"
 		yield from self._formatop(self.obj2)
 
-	def eval(self, keepws, vars):
-		obj1 = (yield from self.obj1.eval(keepws, vars))
-		obj2 = (yield from self.obj2.eval(keepws, vars))
+	@classmethod
+	def evalfold(cls, obj1, obj2):
 		return obj1 + obj2
 
 
@@ -1613,9 +1630,8 @@ class Sub(Binary):
 		yield "-"
 		yield from self._formatop(self.obj2)
 
-	def eval(self, keepws, vars):
-		obj1 = (yield from self.obj1.eval(keepws, vars))
-		obj2 = (yield from self.obj2.eval(keepws, vars))
+	@classmethod
+	def evalfold(cls, obj1, obj2):
 		return obj1 - obj2
 
 
@@ -1632,9 +1648,8 @@ class Mul(Binary):
 		yield "*"
 		yield from self._formatop(self.obj2)
 
-	def eval(self, keepws, vars):
-		obj1 = (yield from self.obj1.eval(keepws, vars))
-		obj2 = (yield from self.obj2.eval(keepws, vars))
+	@classmethod
+	def evalfold(cls, obj1, obj2):
 		return obj1 * obj2
 
 
@@ -1652,9 +1667,8 @@ class FloorDiv(Binary):
 		yield "//"
 		yield from self._formatop(self.obj2)
 
-	def eval(self, keepws, vars):
-		obj1 = (yield from self.obj1.eval(keepws, vars))
-		obj2 = (yield from self.obj2.eval(keepws, vars))
+	@classmethod
+	def evalfold(cls, obj1, obj2):
 		return obj1 // obj2
 
 
@@ -1672,9 +1686,8 @@ class TrueDiv(Binary):
 		yield "/"
 		yield from self._formatop(self.obj2)
 
-	def eval(self, keepws, vars):
-		obj1 = (yield from self.obj1.eval(keepws, vars))
-		obj2 = (yield from self.obj2.eval(keepws, vars))
+	@classmethod
+	def evalfold(cls, obj1, obj2):
 		return obj1 / obj2
 
 
@@ -1690,6 +1703,10 @@ class And(Binary):
 		yield from self._formatop(self.obj1)
 		yield " and "
 		yield from self._formatop(self.obj2)
+
+	@classmethod
+	def evalfold(cls, obj1, obj2):
+		return obj1 and obj2
 
 	def eval(self, keepws, vars):
 		obj1 = (yield from self.obj1.eval(keepws, vars))
@@ -1712,6 +1729,10 @@ class Or(Binary):
 		yield " or "
 		yield from self._formatop(self.obj2)
 
+	@classmethod
+	def evalfold(cls, obj1, obj2):
+		return obj1 or obj2
+
 	def eval(self, keepws, vars):
 		obj1 = (yield from self.obj1.eval(keepws, vars))
 		if obj1:
@@ -1733,9 +1754,8 @@ class Mod(Binary):
 		yield "%"
 		yield from self._formatop(self.obj2)
 
-	def eval(self, keepws, vars):
-		obj1 = (yield from self.obj1.eval(keepws, vars))
-		obj2 = (yield from self.obj2.eval(keepws, vars))
+	@classmethod
+	def evalfold(cls, obj1, obj2):
 		return obj1 % obj2
 
 
