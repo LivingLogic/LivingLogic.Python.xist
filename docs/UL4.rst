@@ -361,10 +361,10 @@ or::
 	<?end if?>
 
 
-``exe``
--------
+``code``
+--------
 
-The ``exe`` tag can contain statements that define or modify variables or
+The ``code`` tag can contain statements that define or modify variables or
 expressions which will be evaluated for their side effects. Apart from the
 assigment operator ``=``, the following augmented assignment operators are
 supported:
@@ -380,8 +380,8 @@ supported:
 
 For example the following template will output ``40``::
 
-	<?exe x = 17?>
-	<?exe x += 23?>
+	<?code x = 17?>
+	<?code x += 23?>
 	<?print x?>
 
 
@@ -396,9 +396,9 @@ This defines a local variable ``quote`` that is a template object. This template
 can be called like any other template, that has been passed to the outermost
 template::
 
-	<?exe quote.render(text="foo")?>
+	<?code quote.render(text="foo")?>
 
-(Here an ``<?exe?>`` tag is used. The expression in the ``<?exe?>`` tag is
+(Here an ``<?code?>`` tag is used. The expression in the ``<?code?>`` tag is
 evaluated for the side effect of generating output)
 
 
@@ -417,11 +417,11 @@ of the outer template. The inner template sees that state of the variables at
 the point in time when the ``<?template?>`` tag was executed. The following
 example will output ``1``::
 
-	<?exe i = 1?>
+	<?code i = 1?>
 	<?template x?>
 		<?print i?>
 	<?end template?>
-	<?exe i = 2?>
+	<?code i = 2?>
 	<?render x.render()?>
 
 
@@ -505,7 +505,7 @@ will output::
 Outside of function/method arguments brackets are required around generator
 expressions::
 
-	<?exe ge = ("(" + c + ")" for c in "gurk")?>
+	<?code ge = ("(" + c + ")" for c in "gurk")?>
 	<?print ", ".join(ge)?>
 
 
@@ -1162,9 +1162,9 @@ The ``renders`` method of template objects renders the template and returns the
 output as a string. The parameter can be passed via keyword argument or via the
 ``**`` syntax::
 
-	<?exe output = template.renders(a=17, b=23)?>
-	<?exe data = {'a': 17, 'b': 23)?>
-	<?exe output = template.renders(**data)?>
+	<?code output = template.renders(a=17, b=23)?>
+	<?code data = {'a': 17, 'b': 23)?>
+	<?code output = template.renders(**data)?>
 
 
 ``isoformat``
@@ -1200,9 +1200,9 @@ Those methods are date methods. They return a specific attribute of a date
 object. For example the following reproduces the ``mimeformat`` output from
 above (except for the linefeeds of course)::
 
-	<?exe weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']?>
-	<?exe months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']?>
-	<?exe t = @(2010-02-22T17:38:40.123456)?>
+	<?code weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']?>
+	<?code months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']?>
+	<?code t = @(2010-02-22T17:38:40.123456)?>
 	<?print weekdays[t.weekday()]?>,
 	<?print format(t.day(), '02')?>
 	<?print months[t.month()-1]?>

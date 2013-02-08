@@ -2376,7 +2376,7 @@ class Template(Block):
 		This is a generator which produces :class:`Location` objects for each tag
 		or non-tag text. It will be called by :meth:`_compile` internally.
 		"""
-		pattern = "{}(printx|print|exe|for|if|elif|else|end|break|continue|def|return|note)(\s*((.|\\n)*?)\s*)?{}".format(re.escape(startdelim), re.escape(enddelim))
+		pattern = "{}(printx|print|code|for|if|elif|else|end|break|continue|def|return|note)(\s*((.|\\n)*?)\s*)?{}".format(re.escape(startdelim), re.escape(enddelim))
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
@@ -2436,7 +2436,7 @@ class Template(Block):
 					stack[-1].append(Print(location, parseexpr(location)))
 				elif location.type == "printx":
 					stack[-1].append(PrintX(location, parseexpr(location)))
-				elif location.type == "exe":
+				elif location.type == "code":
 					stack[-1].append(parsestmt(location))
 				elif location.type == "if":
 					block = IfElIfElse(location, parseexpr(location))
