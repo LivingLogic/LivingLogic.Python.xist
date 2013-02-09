@@ -3364,6 +3364,21 @@ def _months(obj):
 	return obj.months
 
 
+@AST.makemethod
+def _append(obj, item):
+	return obj.append(item)
+
+
+@AST.makemethod
+def _insert(obj, pos, item):
+	return obj.insert(pos, item)
+
+
+@AST.makemethod
+def _pop(obj, pos=-1):
+	return obj.pop(pos)
+
+
 class TemplateClosure(Object):
 	fields = {"location", "endlocation", "name", "source", "startdelim", "enddelim", "content"}
 

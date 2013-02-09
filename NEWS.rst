@@ -27,6 +27,8 @@ Changes in 4.10 (released ??/??/2013)
 *	The UL4 methods ``days``, ``seconds``, ``microseconds`` and ``months`` have
 	been added for ``timedelta``/``monthdelta`` objects.
 
+*	Lists in UL4 now support the methods ``append``, ``insert`` and ``pop``.
+
 *	The UL4 functions ``vars`` and ``get`` have been removed.
 
 *	The automatic UL4 variable ``stack`` has been removed too.

@@ -3025,6 +3025,21 @@ def test_method_months(r):
 
 
 @pytest.mark.ul4
+def test_method_append(r):
+	assert '42' == r('<?code l = []?><?code l.append(42)?><?print l[0]?>')
+
+
+@pytest.mark.ul4
+def test_method_insert(r):
+	assert '17;23;42;' == r('<?code l = []?><?code l.insert(0, 42)?><?code l.insert(0, 17)?><?code l.insert(1, 23)?><?print l[0]?>;<?print l[1]?>;<?print l[2]?>;')
+
+
+@pytest.mark.ul4
+def test_method_pop(r):
+	assert '42;17;23;' == r('<?code l = [17, 23, 42]?><?print l.pop()?>;<?print l.pop(-2)?>;<?print l.pop(0)?>;')
+
+
+@pytest.mark.ul4
 def test_render(r):
 	t = ul4c.Template('<?print prefix?><?print data?><?print suffix?>')
 
