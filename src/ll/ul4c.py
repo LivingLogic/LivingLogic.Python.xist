@@ -556,13 +556,9 @@ class Dict(AST):
 			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
 				for item in self.items:
 					p.breakable()
-					if len(item) == 2:
-						p.pretty(item[0])
-						p.text("=")
-						p.pretty(item[1])
-					else:
-						p.text("**")
-						p.pretty(item)
+					p.pretty(item[0])
+					p.text("=")
+					p.pretty(item[1])
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
@@ -571,26 +567,18 @@ class Dict(AST):
 		for (i, item) in enumerate(self.items):
 			if i:
 				yield ", "
-			if len(item) == 2:
-				yield from item[0]._str(indent, keepws)
-				yield ": "
-				yield from item[1]._str(indent, keepws)
-			else:
-				yield "**"
-				yield from item[0]._str(indent, keepws)
+			yield from item[0]._str(indent, keepws)
+			yield ": "
+			yield from item[1]._str(indent, keepws)
 		yield "}"
 
 	@handleeval
 	def eval(self, keepws, vars):
 		result = {}
 		for item in self.items:
-			if len(item) == 1:
-				item = (yield from item[0].eval(keepws, vars))
-				result.update(item)
-			else:
-				key = (yield from item[0].eval(keepws, vars))
-				value = (yield from item[1].eval(keepws, vars))
-				result[key] = value
+			key = (yield from item[0].eval(keepws, vars))
+			value = (yield from item[1].eval(keepws, vars))
+			result[key] = value
 		return result
 
 	def ul4ondump(self, encoder):
@@ -3438,16 +3426,6 @@ class TemplateClosure(Object):
 ###
 ### Helper classes/functions used at runtime
 ###
-
-def _makedict(*items):
-	result = {}
-	for item in items:
-		if len(item) == 1:
-			result.update(item[0])
-		else:
-			result[item[0]] = item[1]
-	return result
-
 
 def _formatnestednameul4(name):
 	if isinstance(name, str):

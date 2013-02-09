@@ -229,9 +229,6 @@ dictitem returns [node]
 		k=expr1
 		':'
 		v=expr1 { $node = ($k.node, $v.node) }
-	|
-		'**'
-		d=expr1 { $node = ($d.node,) }
 	;
 
 dict returns [node]

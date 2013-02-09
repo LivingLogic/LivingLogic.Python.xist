@@ -211,15 +211,6 @@ Dictionaries can be created like this:
 
 *	``{"foo": 17, "bar": 23}``
 
-Also Python ``**`` syntax for passing keyword arguments is supported for
-creating dictionaries::
-
-	{"foo": 17, "bar": 23, **{1: 2, 3: 4}}
-
-With this it's possible to copy the content of one dictionary into another new
-one. Keys are set from left to right, so later values overwrite former ones, so
-``{1: 2, 1: 3}[1]`` and ``{1: 2, **{1: 3}}[1]`` will both return ``3`` not ``2``.
-
 It is also possible to create a dictionary with a dictionary comprehension::
 
 	{ c.upper() : "(" + c + ")" for c in "hurz" if c < "u"}

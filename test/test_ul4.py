@@ -681,9 +681,6 @@ def test_dict(r):
 	assert '1:2\n' == r('<?for (key, value) in {1:2,}.items()?><?print key?>:<?print value?>\n<?end for?>')
 	# With duplicate keys, later ones simply overwrite earlier ones
 	assert '1:3\n' == r('<?for (key, value) in {1:2, 1: 3}.items()?><?print key?>:<?print value?>\n<?end for?>')
-	# Test **
-	assert '1:2\n' == r('<?for (key, value) in {**{1:2}}.items()?><?print key?>:<?print value?>\n<?end for?>')
-	assert '1:4\n' == r('<?for (key, value) in {1:1, **{1:2}, 1:3, **{1:4}}.items()?><?print key?>:<?print value?>\n<?end for?>')
 	assert 'no' == r('<?if {}?>yes<?else?>no<?end if?>')
 	assert 'yes' == r('<?if {1:2}?>yes<?else?>no<?end if?>')
 
@@ -3180,7 +3177,6 @@ def universaltemplate(keepws=True):
 		<?code x = #0063a8?>
 		<?code x = [42]?>
 		<?code x = {"fortytwo": 42}?>
-		<?code x = {**{"fortytwo": 42}}?>
 		<?code x = [x for x in range(10) if i % 2]?>
 		<?code x = {x : x*x for x in range(10) if i % 2}?>
 		<?code x = (x for x in range(10) if i % 2)?>

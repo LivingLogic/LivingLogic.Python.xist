@@ -31,6 +31,8 @@ Changes in 4.10 (released ??/??/2013)
 
 *	The UL4 functions ``vars`` and ``get`` have been removed.
 
+*	The ``**`` syntax has been removed for UL4 dict literals.
+
 *	The automatic UL4 variable ``stack`` has been removed too.
 
 
