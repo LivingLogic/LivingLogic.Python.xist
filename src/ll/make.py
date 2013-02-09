@@ -684,7 +684,7 @@ class PipeAction(TransformAction):
 	def __init__(self, input, command):
 		"""
 		Create a :class:`PipeAction` instance. :var:`command` is the shell command
-		to be executed (which must read it's input from sdtin and write its output
+		to be executed (which must read it's input from stdin and write its output
 		to stdout).
 		"""
 		TransformAction.__init__(self, input)
