@@ -1006,6 +1006,8 @@ def test_truediv(r):
 	assert "2 days, 0:00:00" == r(code, x=datetime.timedelta(8), y=4)
 	assert "12:00:00" == r(code, x=datetime.timedelta(4), y=8)
 	assert "0:00:00.500000" == r(code, x=datetime.timedelta(0, 4), y=8)
+	assert 2.0 == eval(r(code, x=datetime.timedelta(4), y=datetime.timedelta(2)))
+	assert 2.0 == eval(r(code, x=misc.monthdelta(4), y=misc.monthdelta(2)))
 
 
 @pytest.mark.ul4

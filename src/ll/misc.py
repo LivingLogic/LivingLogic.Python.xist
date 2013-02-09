@@ -829,8 +829,16 @@ class monthdelta(object):
 		return self.__mul__(other)
 
 	def __floordiv__(self, other):
-		if isinstance(other, int) and not isinstance(other, monthdelta):
+		if isinstance(other, int):
 			return monthdelta(self.months//other)
+		elif isinstance(other, monthdelta):
+			return self.months//other.months
+		else:
+			return NotImplemented
+
+	def __truediv__(self, other):
+		if isinstance(other, monthdelta):
+			return self.months/other.months
 		else:
 			return NotImplemented
 
