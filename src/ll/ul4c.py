@@ -245,6 +245,8 @@ def handleeval(f):
 	def wrapped(self, keepws, vars):
 		try:
 			return (yield from f(self, keepws, vars))
+		except (BreakException, ContinueException, ReturnException) as ex:
+			raise
 		except Exception as ex:
 			raise Error(self) from ex
 	return wrapped
