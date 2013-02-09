@@ -975,7 +975,7 @@ class ModuleAction(TransformAction):
 			project.importstack.append(self)
 			mod = misc.module(data, filename, name)
 		finally:
-			project.importstack.pop(-1)
+			project.importstack.pop()
 		return mod
 
 	@report
