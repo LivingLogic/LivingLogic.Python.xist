@@ -149,7 +149,17 @@ class Error(Exception):
 		return "<{}.{} in {} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.location, id(self))
 
 	def __str__(self):
-		return "in {}".format(self.location)
+		if isinstance(self.location, (Template, TemplateClosure)):
+			if self.location.name is not None:
+				return "in template {!r}".format(self.location.name)
+			else:
+				return "in unnamed template"
+		elif isinstance(self.location, Tag):
+			return "in {}".format(self.location.location)
+		elif isinstance(self.location, AST):
+			return "in {}".format("".join(self.location._str(0, True)))
+		else:
+			return "in {}".format(self.location)
 
 
 class BlockError(Exception):
@@ -228,8 +238,17 @@ class UndefinedIndex(Undefined):
 
 
 ###
-### Compiler stuff: Tokens and nodes for the AST
+### Compiler stuff: Nodes for the AST
 ###
+
+def handleeval(f):
+	def wrapped(self, keepws, vars):
+		try:
+			return (yield from f(self, keepws, vars))
+		except Exception as ex:
+			raise Error(self) from ex
+	return wrapped
+
 
 class AST(Object):
 	"""
@@ -414,6 +433,7 @@ class List(AST):
 			yield from item._str(indent, keepws)
 		yield "]"
 
+	@handleeval
 	def eval(self, keepws, vars):
 		result = []
 		for item in self.items:
@@ -487,6 +507,7 @@ class ListComp(AST):
 			yield from self.condition._str(indent, keepws)
 		yield "]"
 
+	@handleeval
 	def eval(self, keepws, vars):
 		container = (yield from self.container.eval(keepws, vars))
 		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
@@ -557,6 +578,7 @@ class Dict(AST):
 				yield from item[0]._str(indent, keepws)
 		yield "}"
 
+	@handleeval
 	def eval(self, keepws, vars):
 		result = {}
 		for item in self.items:
@@ -636,6 +658,7 @@ class DictComp(AST):
 			yield from self.condition._str(indent, keepws)
 		yield "]"
 
+	@handleeval
 	def eval(self, keepws, vars):
 		container = (yield from self.container.eval(keepws, vars))
 		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
@@ -717,6 +740,7 @@ class GenExpr(AST):
 			yield from self.condition._str(indent, keepws)
 		yield ")"
 
+	@handleeval
 	def eval(self, keepws, vars):
 		container = (yield from self.container.eval(keepws, vars))
 		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
@@ -759,6 +783,7 @@ class Var(AST):
 	def _str(self, indent, keepws):
 		yield self.name
 
+	@handleeval
 	def eval(self, keepws, vars):
 		yield from ()
 		try:
@@ -803,6 +828,7 @@ class Block(Tag):
 			yield indent*"\t"
 			yield "pass\n"
 
+	@handleeval
 	def eval(self, keepws, vars):
 		for node in self.content:
 			yield from node.eval(keepws, vars)
@@ -854,6 +880,7 @@ class IfElIfElse(Block):
 			self.content[-1].endlocation = block.location
 		self.content.append(block)
 
+	@handleeval
 	def eval(self, keepws, vars):
 		for node in self.content:
 			if isinstance(node, Else) or (yield from node.condition.eval(keepws, vars)):
@@ -1029,6 +1056,7 @@ class For(Block):
 		yield ":\n"
 		yield from super()._str(indent+1, keepws)
 
+	@handleeval
 	def eval(self, keepws, vars):
 		container = (yield from self.container.eval(keepws, vars))
 		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
@@ -1110,6 +1138,7 @@ class GetAttr(AST):
 		yield "."
 		yield self.attrname
 
+	@handleeval
 	def eval(self, keepws, vars):
 		obj = (yield from self.obj.eval(keepws, vars))
 		try:
@@ -1177,6 +1206,7 @@ class GetSlice(AST):
 			yield from self.index2._str(indent, keepws)
 		yield "]"
 
+	@handleeval
 	def eval(self, keepws, vars):
 		obj = (yield from self.obj.eval(keepws, vars))
 		if self.index1 is not None:
@@ -1233,6 +1263,7 @@ class Unary(AST):
 	def ul4onload(self, decoder):
 		self.obj = decoder.load()
 
+	@handleeval
 	def eval(self, keepws, vars):
 		obj = (yield from self.obj.eval(keepws, vars))
 		return self.evalfold(obj)
@@ -1321,6 +1352,7 @@ class Print(UnaryTag):
 		yield from self.obj._str(indent, keepws)
 		yield "\n"
 
+	@handleeval
 	def eval(self, keepws, vars):
 		yield _str((yield from self.obj.eval(keepws, vars)))
 
@@ -1337,6 +1369,7 @@ class PrintX(UnaryTag):
 		yield from self.obj._str(indent, keepws)
 		yield "\n"
 
+	@handleeval
 	def eval(self, keepws, vars):
 		yield _xmlescape((yield from self.obj.eval(keepws, vars)))
 
@@ -1353,6 +1386,7 @@ class Return(UnaryTag):
 		yield from self.obj._str(indent, keepws)
 		yield "\n"
 
+	@handleeval
 	def eval(self, keepws, vars):
 		value = (yield from self.obj.eval(keepws, vars))
 		raise ReturnException(value)
@@ -1392,6 +1426,7 @@ class Binary(AST):
 		self.obj1 = decoder.load()
 		self.obj2 = decoder.load()
 
+	@handleeval
 	def eval(self, keepws, vars):
 		obj1 = (yield from self.obj1.eval(keepws, vars))
 		obj2 = (yield from self.obj2.eval(keepws, vars))
@@ -1706,8 +1741,10 @@ class And(Binary):
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
+		# This is not called from ``eval``, as it doesn't short-circuit
 		return obj1 and obj2
 
+	@handleeval
 	def eval(self, keepws, vars):
 		obj1 = (yield from self.obj1.eval(keepws, vars))
 		if not obj1:
@@ -1731,8 +1768,10 @@ class Or(Binary):
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
+		# This is not called from ``eval``, as it doesn't short-circuit
 		return obj1 or obj2
 
+	@handleeval
 	def eval(self, keepws, vars):
 		obj1 = (yield from self.obj1.eval(keepws, vars))
 		if obj1:
@@ -1816,6 +1855,7 @@ class StoreVar(ChangeVar):
 		yield from self.value._str(indent, keepws)
 		yield "\n"
 
+	@handleeval
 	def eval(self, keepws, vars):
 		value = (yield from self.value.eval(keepws, vars))
 		_unpackvar(vars, self.varname, value)
@@ -1834,6 +1874,7 @@ class AddVar(ChangeVar):
 		yield from self.value._str(indent, keepws)
 		yield "\n"
 
+	@handleeval
 	def eval(self, keepws, vars):
 		value = (yield from self.value.eval(keepws, vars))
 		vars[self.varname] += value
@@ -1852,6 +1893,7 @@ class SubVar(ChangeVar):
 		yield from self.value._str(indent, keepws)
 		yield "\n"
 
+	@handleeval
 	def eval(self, keepws, vars):
 		value = (yield from self.value.eval(keepws, vars))
 		vars[self.varname] -= value
@@ -1870,6 +1912,7 @@ class MulVar(ChangeVar):
 		yield from self.value._str(indent, keepws)
 		yield "\n"
 
+	@handleeval
 	def eval(self, keepws, vars):
 		value = (yield from self.value.eval(keepws, vars))
 		vars[self.varname] *= value
@@ -1889,6 +1932,7 @@ class FloorDivVar(ChangeVar):
 		yield from self.value._str(indent, keepws)
 		yield "\n"
 
+	@handleeval
 	def eval(self, keepws, vars):
 		value = (yield from self.value.eval(keepws, vars))
 		vars[self.varname] //= value
@@ -1907,6 +1951,7 @@ class TrueDivVar(ChangeVar):
 		yield from self.value._str(indent, keepws)
 		yield "\n"
 
+	@handleeval
 	def eval(self, keepws, vars):
 		value = (yield from self.value.eval(keepws, vars))
 		vars[self.varname] /= value
@@ -1925,6 +1970,7 @@ class ModVar(ChangeVar):
 		yield from self.value._str(indent, keepws)
 		yield "\n"
 
+	@handleeval
 	def eval(self, keepws, vars):
 		value = (yield from self.value.eval(keepws, vars))
 		vars[self.varname] %= value
@@ -2023,6 +2069,7 @@ class CallFunc(AST):
 			yield from self.remkwargs._str(indent, keepws)
 		yield ")"
 
+	@handleeval
 	def eval(self, keepws, vars):
 		obj = (yield from self.obj.eval(keepws, vars))
 		args = []
@@ -2123,7 +2170,9 @@ class CallMeth(AST):
 
 	def _str(self, indent, keepws):
 		yield from self._formatop(self.obj)
-		yield ".("
+		yield "."
+		yield self.methname
+		yield "("
 		first = True
 		for arg in self.args:
 			if first:
@@ -2155,6 +2204,7 @@ class CallMeth(AST):
 			yield from self.remkwargs._str(indent, keepws)
 		yield ")"
 
+	@handleeval
 	def eval(self, keepws, vars):
 		obj = (yield from self.obj.eval(keepws, vars))
 		args = []
@@ -2528,6 +2578,7 @@ class Template(Block):
 		if len(stack) > 1:
 			raise Error(stack[-1].location) from BlockError("block unclosed")
 
+	@handleeval
 	def eval(self, keepws, vars):
 		yield from ()
 		vars[self.name] = TemplateClosure(self, vars)
