@@ -1649,7 +1649,7 @@ class Project(dict):
 			"-title",
 			self.name,
 			"-subtitle",
-			"{} {}".format("finished after" if success else "failed after", self.strtimedelta(duration)),
+			"{} after {}".format("finished" if success else "failed", self.strtimedelta(duration)),
 			"-message",
 			"; ".join(msgs),
 			"-group",
