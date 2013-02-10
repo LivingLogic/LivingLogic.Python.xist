@@ -151,13 +151,13 @@ class Error(Exception):
 	def __str__(self):
 		if isinstance(self.location, (Template, TemplateClosure)):
 			if self.location.name is not None:
-				return "in template {!r}".format(self.location.name)
+				return "in template named {}".format(self.location.name)
 			else:
 				return "in unnamed template"
 		elif isinstance(self.location, Tag):
-			return "in {}".format(self.location.location)
+			return "in tag {}".format(self.location.location)
 		elif isinstance(self.location, AST):
-			return "in {}".format("".join(self.location._str(0, True)))
+			return "in expression {}".format(self.location)
 		else:
 			return "in {}".format(self.location)
 
@@ -277,6 +277,9 @@ class AST(Object):
 
 	def _repr_pretty_(self, p, cycle):
 		p.text(repr(self))
+
+	def __str__(self):
+		return "".join(self._str(0, True)) # We don't know the ``keepws`` value, use ``True`` instead
 
 	def _formatop(self, op):
 		bracket = False
