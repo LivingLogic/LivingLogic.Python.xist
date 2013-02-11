@@ -61,13 +61,16 @@ class Location(Object):
 	A :class:`Location` object contains information about the location of a
 	template tag.
 	"""
-	__slots__ = ("source", "type", "starttag", "endtag", "startcode", "endcode")
-	fields = {"source", "type", "starttag", "endtag", "startcode", "endcode", "tag", "code"}
+	__slots__ = ("root", "source", "type", "starttag", "endtag", "startcode", "endcode")
+	fields = {"root", "source", "type", "starttag", "endtag", "startcode", "endcode", "tag", "code"}
 
-	def __init__(self, source=None, type=None, starttag=None, endtag=None, startcode=None, endcode=None):
+	def __init__(self, root=None, source=None, type=None, starttag=None, endtag=None, startcode=None, endcode=None):
 		"""
 		Create a new :class:`Location` object. The arguments have the following
 		meaning:
+
+			:var:`root`
+				The :class:`Template` object
 
 			:var:`source`
 				The complete source string
@@ -88,6 +91,7 @@ class Location(Object):
 			:var:`endcode`
 				The end position of the tag code.
 		"""
+		self.root = root
 		self.source = source
 		self.type = type
 		self.starttag = starttag
@@ -118,6 +122,7 @@ class Location(Object):
 		return "{!r} at {}:{} (line {}, col {})".format(self.tag, self.starttag, self.endtag, line, col)
 
 	def ul4ondump(self, encoder):
+		encoder.dump(self.root)
 		encoder.dump(self.source)
 		encoder.dump(self.type)
 		encoder.dump(self.starttag)
@@ -126,6 +131,7 @@ class Location(Object):
 		encoder.dump(self.endcode)
 
 	def ul4onload(self, decoder):
+		self.root = decoder.load()
 		self.source = decoder.load()
 		self.type = decoder.load()
 		self.starttag = decoder.load()
@@ -154,8 +160,6 @@ class Error(Exception):
 				return "in template named {}".format(self.location.name)
 			else:
 				return "in unnamed template"
-		elif isinstance(self.location, Tag):
-			return "in tag {}".format(self.location.location)
 		elif isinstance(self.location, AST):
 			return "in expression {}".format(self.location)
 		else:
@@ -242,9 +246,9 @@ class UndefinedIndex(Undefined):
 ###
 
 def handleeval(f):
-	def wrapped(self, keepws, vars):
+	def wrapped(self, vars):
 		try:
-			return (yield from f(self, keepws, vars))
+			return (yield from f(self, vars))
 		except (BreakException, ContinueException, ReturnException) as ex:
 			raise
 		except Exception as ex:
@@ -261,11 +265,14 @@ class AST(Object):
 	associative = True
 
 	# Set of attributes available via :meth:`getitem`.
-	fields = {"type"}
+	fields = {"type", "location"}
 
 	# "Global" functions and methods. Functions in ``functions`` will be exposed to UL4 code
 	functions = {}
 	methods = {}
+
+	def __init__(self, location=None):
+		self.location = location
 
 	def __getitem__(self, key):
 		if key in self.fields:
@@ -302,7 +309,7 @@ class AST(Object):
 		"""
 
 	@misc.notimplemented
-	def eval(self, keepws, vars):
+	def eval(self, vars):
 		"""
 		This evaluates the node.
 
@@ -310,6 +317,12 @@ class AST(Object):
 		node returns a value (as most nodes do), this is done as the value of a
 		:exc:`StopIteration` exception.
 		"""
+
+	def ul4ondump(self, encoder):
+		encoder.dump(self.location)
+
+	def ul4onload(self, decoder):
+		self.location = decoder.load()
 
 	@classmethod
 	def makefunction(cls, f):
@@ -328,35 +341,17 @@ class AST(Object):
 		return f
 
 
-class Tag(AST):
-	"""
-	Base class for all syntax tree nodes that are the top level node in a
-	template tag.
-	"""
-	# Set of attributes available via :meth:`getitem`.
-	fields = AST.fields.union({"location"})
-
-	def __init__(self, location=None):
-		self.location = location
-
-	def ul4ondump(self, encoder):
-		encoder.dump(self.location)
-
-	def ul4onload(self, decoder):
-		self.location = decoder.load()
-
-
 @register("text")
-class Text(Tag):
+class Text(AST):
 	"""
 	AST node for literal text.
 	"""
 
-	def text(self, keepws):
+	def text(self):
 		# If ``keepws`` is true, we output the literal text from the location info.
 		# Otherwise we have to strip linefeeds and indentation
 		text = self.location.code
-		if not keepws:
+		if not self.location.root.keepws:
 			text = "".join(line.lstrip() for line in text.splitlines())
 		return text
 
@@ -364,13 +359,13 @@ class Text(Tag):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.location.code!r} at {1:#x}>".format(self, id(self))
 
 	def _str(self, indent, keepws):
-		text = self.text(keepws)
+		text = self.text()
 		if text:
 			yield indent*"\t"
 			yield "text {!r}\n".format(text)
 
-	def eval(self, keepws, vars):
-		yield self.text(keepws)
+	def eval(self, vars):
+		yield self.text()
 
 
 @register("const")
@@ -381,20 +376,23 @@ class Const(AST):
 	precedence = 11
 	fields = AST.fields.union({"value"})
 
-	def __init__(self, value=None):
+	def __init__(self, location=None, value=None):
+		super().__init__(location)
 		self.value = value
 
 	def _str(self, indent, keepws):
 		yield _repr(self.value)
 
-	def eval(self, keepws, vars):
+	def eval(self, vars):
 		yield from ()
 		return self.value
 
 	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
 		encoder.dump(self.value)
 
 	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
 		self.value = decoder.load()
 
 	def __repr__(self):
@@ -410,7 +408,8 @@ class List(AST):
 	precedence = 11
 	fields = AST.fields.union({"items"})
 
-	def __init__(self, *items):
+	def __init__(self, location=None, *items):
+		super().__init__(location)
 		self.items = list(items)
 
 	def __repr__(self):
@@ -439,17 +438,19 @@ class List(AST):
 		yield "]"
 
 	@handleeval
-	def eval(self, keepws, vars):
+	def eval(self, vars):
 		result = []
 		for item in self.items:
-			item = (yield from item.eval(keepws, vars))
+			item = (yield from item.eval(vars))
 			result.append(item)
 		return result
 
 	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
 		encoder.dump(self.items)
 
 	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
 		self.items = decoder.load()
 
 
@@ -463,8 +464,8 @@ class ListComp(AST):
 	fields = AST.fields.union({"item", "varname", "container", "condition"})
 
 
-	def __init__(self, item=None, varname=None, container=None, condition=None):
-		super().__init__()
+	def __init__(self, location=None, item=None, varname=None, container=None, condition=None):
+		super().__init__(location)
 		self.item = item
 		self.varname = varname
 		self.container = container
@@ -513,24 +514,26 @@ class ListComp(AST):
 		yield "]"
 
 	@handleeval
-	def eval(self, keepws, vars):
-		container = (yield from self.container.eval(keepws, vars))
+	def eval(self, vars):
+		container = (yield from self.container.eval(vars))
 		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
 		result = []
 		for item in container:
 			_unpackvar(vars, self.varname, item)
-			if self.condition is None or (yield from self.condition.eval(keepws, vars)):
-				item = (yield from self.item.eval(keepws, vars))
+			if self.condition is None or (yield from self.condition.eval(vars)):
+				item = (yield from self.item.eval(vars))
 				result.append(item)
 		return result
 
 	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
 		encoder.dump(self.item)
 		encoder.dump(self.varname)
 		encoder.dump(self.container)
 		encoder.dump(self.condition)
 
 	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
 		self.item = decoder.load()
 		self.varname = decoder.load()
 		self.container = decoder.load()
@@ -546,7 +549,8 @@ class Dict(AST):
 	precedence = 11
 	fields = AST.fields.union({"items"})
 
-	def __init__(self, *items):
+	def __init__(self, location=None, *items):
+		super().__init__(location)
 		self.items = list(items)
 
 	def __repr__(self):
@@ -576,18 +580,20 @@ class Dict(AST):
 		yield "}"
 
 	@handleeval
-	def eval(self, keepws, vars):
+	def eval(self, vars):
 		result = {}
 		for item in self.items:
-			key = (yield from item[0].eval(keepws, vars))
-			value = (yield from item[1].eval(keepws, vars))
+			key = (yield from item[0].eval(vars))
+			value = (yield from item[1].eval(vars))
 			result[key] = value
 		return result
 
 	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
 		encoder.dump(self.items)
 
 	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
 		self.items = [tuple(item) for item in decoder.load()]
 
 
@@ -600,7 +606,8 @@ class DictComp(AST):
 	precedence = 11
 	fields = AST.fields.union({"key", "value", "varname", "container", "condition"})
 
-	def __init__(self, key=None, value=None, varname=None, container=None, condition=None):
+	def __init__(self, location=None, key=None, value=None, varname=None, container=None, condition=None):
+		super().__init__(location)
 		self.key = key
 		self.value = value
 		self.varname = varname
@@ -652,19 +659,20 @@ class DictComp(AST):
 		yield "]"
 
 	@handleeval
-	def eval(self, keepws, vars):
-		container = (yield from self.container.eval(keepws, vars))
+	def eval(self, vars):
+		container = (yield from self.container.eval(vars))
 		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
 		result = {}
 		for item in container:
 			_unpackvar(vars, self.varname, item)
-			if self.condition is None or (yield from self.condition.eval(keepws, vars)):
-				key = (yield from self.key.eval(keepws, vars))
-				value = (yield from self.value.eval(keepws, vars))
+			if self.condition is None or (yield from self.condition.eval(vars)):
+				key = (yield from self.key.eval(vars))
+				value = (yield from self.value.eval(vars))
 				result[key] = value
 		return result
 
 	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
 		encoder.dump(self.key)
 		encoder.dump(self.value)
 		encoder.dump(self.varname)
@@ -672,6 +680,7 @@ class DictComp(AST):
 		encoder.dump(self.condition)
 
 	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
 		self.key = decoder.load()
 		self.value = decoder.load()
 		self.varname = decoder.load()
@@ -688,7 +697,8 @@ class GenExpr(AST):
 	precedence = 11
 	fields = AST.fields.union({"item", "varname", "container", "condition"})
 
-	def __init__(self, item=None, varname=None, container=None, condition=None):
+	def __init__(self, location=None, item=None, varname=None, container=None, condition=None):
+		super().__init__(location)
 		self.item = item
 		self.varname = varname
 		self.container = container
@@ -734,24 +744,26 @@ class GenExpr(AST):
 		yield ")"
 
 	@handleeval
-	def eval(self, keepws, vars):
-		container = (yield from self.container.eval(keepws, vars))
+	def eval(self, vars):
+		container = (yield from self.container.eval(vars))
 		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
 		def result():
 			for item in container:
 				_unpackvar(vars, self.varname, item)
-				if self.condition is None or (yield from self.condition.eval(keepws, vars)):
-					item = (yield from self.item.eval(keepws, vars))
+				if self.condition is None or (yield from self.condition.eval(vars)):
+					item = (yield from self.item.eval(vars))
 					yield item
 		return result()
 
 	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
 		encoder.dump(self.item)
 		encoder.dump(self.varname)
 		encoder.dump(self.container)
 		encoder.dump(self.condition)
 
 	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
 		self.item = decoder.load()
 		self.varname = decoder.load()
 		self.container = decoder.load()
@@ -767,7 +779,8 @@ class Var(AST):
 	precedence = 11
 	fields = AST.fields.union({"name"})
 
-	def __init__(self, name=None):
+	def __init__(self, location=None, name=None):
+		super().__init__(location)
 		self.name = name
 
 	def __repr__(self):
@@ -777,7 +790,7 @@ class Var(AST):
 		yield self.name
 
 	@handleeval
-	def eval(self, keepws, vars):
+	def eval(self, vars):
 		yield from ()
 		try:
 			return vars[self.name]
@@ -788,22 +801,24 @@ class Var(AST):
 				return UndefinedVariable(self.name)
 
 	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
 		encoder.dump(self.name)
 
 	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
 		self.name = decoder.load()
 
 
-class Block(Tag):
+class Block(AST):
 	"""
 	Base class for all AST nodes that are blocks.
 
-	A block contains a sequence of tags that are executed sequencially.
+	A block contains a sequence of AST nodes that are executed sequencially.
 	A block may execute its content zero (e.g. an ``<?if?>`` block) or more times
 	(e.g. a ``<?for?>`` block).
 	"""
 
-	fields = Tag.fields.union({"endlocation", "content"})
+	fields = AST.fields.union({"endlocation", "content"})
 
 	def __init__(self, location=None):
 		super().__init__(location)
@@ -822,9 +837,9 @@ class Block(Tag):
 			yield "pass\n"
 
 	@handleeval
-	def eval(self, keepws, vars):
+	def eval(self, vars):
 		for node in self.content:
-			yield from node.eval(keepws, vars)
+			yield from node.eval(vars)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -874,10 +889,10 @@ class IfElIfElse(Block):
 		self.content.append(block)
 
 	@handleeval
-	def eval(self, keepws, vars):
+	def eval(self, vars):
 		for node in self.content:
-			if isinstance(node, Else) or (yield from node.condition.eval(keepws, vars)):
-				yield from node.eval(keepws, vars)
+			if isinstance(node, Else) or (yield from node.condition.eval(vars)):
+				yield from node.eval(vars)
 				break
 
 
@@ -1050,13 +1065,13 @@ class For(Block):
 		yield from super()._str(indent+1, keepws)
 
 	@handleeval
-	def eval(self, keepws, vars):
-		container = (yield from self.container.eval(keepws, vars))
+	def eval(self, vars):
+		container = (yield from self.container.eval(vars))
 		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
 		for item in container:
 			_unpackvar(vars, self.varname, item)
 			try:
-				yield from super().eval(keepws, vars)
+				yield from super().eval(vars)
 			except BreakException:
 				break
 			except ContinueException:
@@ -1064,7 +1079,7 @@ class For(Block):
 
 
 @register("break")
-class Break(Tag):
+class Break(AST):
 	"""
 	AST node for a ``<?break?>`` inside a ``<?for?>`` block.
 	"""
@@ -1073,13 +1088,13 @@ class Break(Tag):
 		yield indent*"\t"
 		yield "break\n"
 
-	def eval(self, keepws, vars):
+	def eval(self, vars):
 		yield from ()
 		raise BreakException()
 
 
 @register("continue")
-class Continue(Tag):
+class Continue(AST):
 	"""
 	AST node for a ``<?continue?>`` inside a ``<?for?>`` block.
 	"""
@@ -1088,7 +1103,7 @@ class Continue(Tag):
 		yield indent*"\t"
 		yield "continue\n"
 
-	def eval(self, keepws, vars):
+	def eval(self, vars):
 		yield from ()
 		raise ContinueException()
 
@@ -1105,7 +1120,8 @@ class GetAttr(AST):
 	associative = False
 	fields = AST.fields.union({"obj", "attrname"})
 
-	def __init__(self, obj=None, attrname=None):
+	def __init__(self, location=None, obj=None, attrname=None):
+		super().__init__(location)
 		self.obj = obj
 		self.attrname = attrname
 
@@ -1132,18 +1148,20 @@ class GetAttr(AST):
 		yield self.attrname
 
 	@handleeval
-	def eval(self, keepws, vars):
-		obj = (yield from self.obj.eval(keepws, vars))
+	def eval(self, vars):
+		obj = (yield from self.obj.eval(vars))
 		try:
 			return obj[self.attrname]
 		except KeyError:
 			return UndefinedKey(self.attrname)
 
 	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
 		encoder.dump(self.obj)
 		encoder.dump(self.attrname)
 
 	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
 		self.obj = decoder.load()
 		self.attrname = decoder.load()
 
@@ -1164,7 +1182,8 @@ class GetSlice(AST):
 	associative = False
 	fields = AST.fields.union({"obj", "index1", "index2"})
 
-	def __init__(self, obj=None, index1=None, index2=None):
+	def __init__(self, location=None, obj=None, index1=None, index2=None):
+		super().__init__(location)
 		self.obj = obj
 		self.index1 = index1
 		self.index2 = index2
@@ -1200,28 +1219,30 @@ class GetSlice(AST):
 		yield "]"
 
 	@handleeval
-	def eval(self, keepws, vars):
-		obj = (yield from self.obj.eval(keepws, vars))
+	def eval(self, vars):
+		obj = (yield from self.obj.eval(vars))
 		if self.index1 is not None:
-			index1 = (yield from self.index1.eval(keepws, vars))
+			index1 = (yield from self.index1.eval(vars))
 			if self.index2 is not None:
-				index2 = (yield from self.index2.eval(keepws, vars))
+				index2 = (yield from self.index2.eval(vars))
 				return obj[index1:index2]
 			else:
 				return obj[index1:]
 		else:
 			if self.index2 is not None:
-				index2 = (yield from self.index2.eval(keepws, vars))
+				index2 = (yield from self.index2.eval(vars))
 				return obj[:index2]
 			else:
 				return obj[:]
 
 	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
 		encoder.dump(self.obj)
 		encoder.dump(self.index1)
 		encoder.dump(self.index2)
 
 	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
 		self.obj = decoder.load()
 		self.index1 = decoder.load()
 		self.index2 = decoder.load()
@@ -1234,7 +1255,8 @@ class Unary(AST):
 
 	fields = AST.fields.union({"obj"})
 
-	def __init__(self, obj=None):
+	def __init__(self, location=None, obj=None):
+		super().__init__(location)
 		self.obj = obj
 
 	def __repr__(self):
@@ -1251,23 +1273,25 @@ class Unary(AST):
 				p.text("at {:#x}".format(id(self)))
 
 	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
 		encoder.dump(self.obj)
 
 	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
 		self.obj = decoder.load()
 
 	@handleeval
-	def eval(self, keepws, vars):
-		obj = (yield from self.obj.eval(keepws, vars))
+	def eval(self, vars):
+		obj = (yield from self.obj.eval(vars))
 		return self.evalfold(obj)
 
 	@classmethod
-	def make(cls, obj):
+	def make(cls, location, obj):
 		if isinstance(obj, Const):
 			result = cls.evalfold(obj.value)
 			if not isinstance(result, Undefined):
-				return Const(result)
-		return cls(obj)
+				return Const(location, result)
+		return cls(location, obj)
 
 
 @register("not")
@@ -1304,37 +1328,8 @@ class Neg(Unary):
 		return -obj
 
 
-class UnaryTag(Tag):
-	fields = Tag.fields.union({"obj"})
-
-	def __init__(self, location=None, obj=None):
-		super().__init__(location)
-		self.obj = obj
-
-	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.obj!r} at {1:#x}>".format(self, id(self))
-
-	def _repr_pretty_(self, p, cycle):
-		if cycle:
-			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
-		else:
-			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
-				p.breakable()
-				p.pretty(self.obj)
-				p.breakable()
-				p.text("at {:#x}".format(id(self)))
-
-	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
-		encoder.dump(self.obj)
-
-	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
-		self.obj = decoder.load()
-
-
 @register("print")
-class Print(UnaryTag):
+class Print(Unary):
 	"""
 	AST node for a ``<?print?>`` tag.
 	"""
@@ -1346,12 +1341,12 @@ class Print(UnaryTag):
 		yield "\n"
 
 	@handleeval
-	def eval(self, keepws, vars):
-		yield _str((yield from self.obj.eval(keepws, vars)))
+	def eval(self, vars):
+		yield _str((yield from self.obj.eval(vars)))
 
 
 @register("printx")
-class PrintX(UnaryTag):
+class PrintX(Unary):
 	"""
 	AST node for a ``<?printx?>`` tag.
 	"""
@@ -1363,12 +1358,12 @@ class PrintX(UnaryTag):
 		yield "\n"
 
 	@handleeval
-	def eval(self, keepws, vars):
-		yield _xmlescape((yield from self.obj.eval(keepws, vars)))
+	def eval(self, vars):
+		yield _xmlescape((yield from self.obj.eval(vars)))
 
 
 @register("return")
-class Return(UnaryTag):
+class Return(Unary):
 	"""
 	AST node for a ``<?return?>`` tag.
 	"""
@@ -1380,8 +1375,8 @@ class Return(UnaryTag):
 		yield "\n"
 
 	@handleeval
-	def eval(self, keepws, vars):
-		value = (yield from self.obj.eval(keepws, vars))
+	def eval(self, vars):
+		value = (yield from self.obj.eval(vars))
 		raise ReturnException(value)
 
 
@@ -1392,7 +1387,8 @@ class Binary(AST):
 
 	fields = AST.fields.union({"obj1", "obj2"})
 
-	def __init__(self, obj1=None, obj2=None):
+	def __init__(self, location=None, obj1=None, obj2=None):
+		super().__init__(location)
 		self.obj1 = obj1
 		self.obj2 = obj2
 
@@ -1412,26 +1408,28 @@ class Binary(AST):
 				p.text("at {:#x}".format(id(self)))
 
 	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
 		encoder.dump(self.obj1)
 		encoder.dump(self.obj2)
 
 	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
 		self.obj1 = decoder.load()
 		self.obj2 = decoder.load()
 
 	@handleeval
-	def eval(self, keepws, vars):
-		obj1 = (yield from self.obj1.eval(keepws, vars))
-		obj2 = (yield from self.obj2.eval(keepws, vars))
+	def eval(self, vars):
+		obj1 = (yield from self.obj1.eval(vars))
+		obj2 = (yield from self.obj2.eval(vars))
 		return self.evalfold(obj1, obj2)
 
 	@classmethod
-	def make(cls, obj1, obj2):
+	def make(cls, location, obj1, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const):
 			result = cls.evalfold(obj1.value, obj2.value)
 			if not isinstance(result, Undefined):
-				return Const(result)
-		return cls(obj1, obj2)
+				return Const(location, result)
+		return cls(location, obj1, obj2)
 
 
 @register("getitem")
@@ -1738,11 +1736,11 @@ class And(Binary):
 		return obj1 and obj2
 
 	@handleeval
-	def eval(self, keepws, vars):
-		obj1 = (yield from self.obj1.eval(keepws, vars))
+	def eval(self, vars):
+		obj1 = (yield from self.obj1.eval(vars))
 		if not obj1:
 			return obj1
-		return (yield from self.obj2.eval(keepws, vars))
+		return (yield from self.obj2.eval(vars))
 
 
 
@@ -1765,11 +1763,11 @@ class Or(Binary):
 		return obj1 or obj2
 
 	@handleeval
-	def eval(self, keepws, vars):
-		obj1 = (yield from self.obj1.eval(keepws, vars))
+	def eval(self, vars):
+		obj1 = (yield from self.obj1.eval(vars))
 		if obj1:
 			return obj1
-		return (yield from self.obj2.eval(keepws, vars))
+		return (yield from self.obj2.eval(vars))
 
 
 @register("mod")
@@ -1791,7 +1789,7 @@ class Mod(Binary):
 		return obj1 % obj2
 
 
-class ChangeVar(Tag):
+class ChangeVar(AST):
 	"""
 	Baseclass for all AST nodes that store or modify a variable.
 
@@ -1800,7 +1798,7 @@ class ChangeVar(Tag):
 	AST node :var:`value`.
 	"""
 
-	fields = Tag.fields.union({"varname", "value"})
+	fields = AST.fields.union({"varname", "value"})
 
 	def __init__(self, location=None, varname=None, value=None):
 		super().__init__(location)
@@ -1849,8 +1847,8 @@ class StoreVar(ChangeVar):
 		yield "\n"
 
 	@handleeval
-	def eval(self, keepws, vars):
-		value = (yield from self.value.eval(keepws, vars))
+	def eval(self, vars):
+		value = (yield from self.value.eval(vars))
 		_unpackvar(vars, self.varname, value)
 
 
@@ -1868,8 +1866,8 @@ class AddVar(ChangeVar):
 		yield "\n"
 
 	@handleeval
-	def eval(self, keepws, vars):
-		value = (yield from self.value.eval(keepws, vars))
+	def eval(self, vars):
+		value = (yield from self.value.eval(vars))
 		vars[self.varname] += value
 
 
@@ -1887,8 +1885,8 @@ class SubVar(ChangeVar):
 		yield "\n"
 
 	@handleeval
-	def eval(self, keepws, vars):
-		value = (yield from self.value.eval(keepws, vars))
+	def eval(self, vars):
+		value = (yield from self.value.eval(vars))
 		vars[self.varname] -= value
 
 
@@ -1906,8 +1904,8 @@ class MulVar(ChangeVar):
 		yield "\n"
 
 	@handleeval
-	def eval(self, keepws, vars):
-		value = (yield from self.value.eval(keepws, vars))
+	def eval(self, vars):
+		value = (yield from self.value.eval(vars))
 		vars[self.varname] *= value
 
 
@@ -1926,8 +1924,8 @@ class FloorDivVar(ChangeVar):
 		yield "\n"
 
 	@handleeval
-	def eval(self, keepws, vars):
-		value = (yield from self.value.eval(keepws, vars))
+	def eval(self, vars):
+		value = (yield from self.value.eval(vars))
 		vars[self.varname] //= value
 
 
@@ -1945,8 +1943,8 @@ class TrueDivVar(ChangeVar):
 		yield "\n"
 
 	@handleeval
-	def eval(self, keepws, vars):
-		value = (yield from self.value.eval(keepws, vars))
+	def eval(self, vars):
+		value = (yield from self.value.eval(vars))
 		vars[self.varname] /= value
 
 
@@ -1964,8 +1962,8 @@ class ModVar(ChangeVar):
 		yield "\n"
 
 	@handleeval
-	def eval(self, keepws, vars):
-		value = (yield from self.value.eval(keepws, vars))
+	def eval(self, vars):
+		value = (yield from self.value.eval(vars))
 		vars[self.varname] %= value
 
 
@@ -1986,7 +1984,8 @@ class CallFunc(AST):
 	associative = False
 	fields = AST.fields.union({"obj", "args", "kwargs", "remargs", "remkwargs"})
 
-	def __init__(self, obj=None):
+	def __init__(self, location=None, obj=None):
+		super().__init__(location)
 		self.obj = obj
 		self.args = []
 		self.kwargs = []
@@ -2063,19 +2062,19 @@ class CallFunc(AST):
 		yield ")"
 
 	@handleeval
-	def eval(self, keepws, vars):
-		obj = (yield from self.obj.eval(keepws, vars))
+	def eval(self, vars):
+		obj = (yield from self.obj.eval(vars))
 		args = []
 		for arg in self.args:
-			arg = (yield from arg.eval(keepws, vars))
+			arg = (yield from arg.eval(vars))
 			args.append(arg)
 		kwargs = {}
 		for (argname, arg) in self.kwargs:
-			kwargs[argname] = (yield from arg.eval(keepws, vars))
+			kwargs[argname] = (yield from arg.eval(vars))
 		if self.remargs is not None:
-			args.extend((yield from self.remargs.eval(keepws, vars)))
+			args.extend((yield from self.remargs.eval(vars)))
 		if self.remkwargs is not None:
-			kwargs.update((yield from self.remkwargs.eval(keepws, vars)))
+			kwargs.update((yield from self.remkwargs.eval(vars)))
 		result = obj(*args, **kwargs)
 		if isinstance(result, types.GeneratorType):
 			return (yield from result)
@@ -2083,6 +2082,7 @@ class CallFunc(AST):
 			return result
 
 	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
 		encoder.dump(self.obj)
 		encoder.dump(self.args)
 		encoder.dump(self.kwargs)
@@ -2090,6 +2090,7 @@ class CallFunc(AST):
 		encoder.dump(self.remkwargs)
 
 	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
 		self.obj = decoder.load()
 		self.args = decoder.load()
 		self.kwargs = [tuple(arg) for arg in decoder.load()]
@@ -2115,7 +2116,8 @@ class CallMeth(AST):
 	associative = False
 	fields = AST.fields.union({"obj", "methname", "args", "kwargs", "remargs", "remkwargs"})
 
-	def __init__(self, obj=None, methname=None):
+	def __init__(self, location=None, obj=None, methname=None):
+		super().__init__(location)
 		self.obj = obj
 		self.methname = methname
 		self.args = []
@@ -2198,19 +2200,19 @@ class CallMeth(AST):
 		yield ")"
 
 	@handleeval
-	def eval(self, keepws, vars):
-		obj = (yield from self.obj.eval(keepws, vars))
+	def eval(self, vars):
+		obj = (yield from self.obj.eval(vars))
 		args = []
 		for arg in self.args:
-			arg = (yield from arg.eval(keepws, vars))
+			arg = (yield from arg.eval(vars))
 			args.append(arg)
 		kwargs = {}
 		for (argname, arg) in self.kwargs:
-			kwargs[argname] = (yield from arg.eval(keepws, vars))
+			kwargs[argname] = (yield from arg.eval(vars))
 		if self.remargs is not None:
-			args.extend((yield from self.remargs.eval(keepws, vars)))
+			args.extend((yield from self.remargs.eval(vars)))
 		if self.remkwargs is not None:
-			kwargs.update((yield from self.remkwargs.eval(keepws, vars)))
+			kwargs.update((yield from self.remkwargs.eval(vars)))
 		result = self.methods[self.methname](obj, *args, **kwargs)
 		if isinstance(result, types.GeneratorType):
 			return (yield from result)
@@ -2218,6 +2220,7 @@ class CallMeth(AST):
 			return result
 
 	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
 		encoder.dump(self.methname)
 		encoder.dump(self.obj)
 		encoder.dump(self.args)
@@ -2226,6 +2229,7 @@ class CallMeth(AST):
 		encoder.dump(self.remkwargs)
 
 	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
 		self.methname = decoder.load()
 		self.obj = decoder.load()
 		self.args = decoder.load()
@@ -2333,6 +2337,7 @@ class Template(Block):
 				p.text("at {:#x}".format(id(self)))
 
 	def ul4ondump(self, encoder):
+		# Don't call ``super().ul4ondump()``, as we want the version to be first
 		encoder.dump(self.version)
 		encoder.dump(self.source)
 		encoder.dump(self.name)
@@ -2398,7 +2403,7 @@ class Template(Block):
 		:var:`vars` contains the top level variables available to the
 		template code.
 		"""
-		yield from super().eval(self.keepws, vars) # Bypass ``self.eval()`` which simply stores the object as a local variable
+		yield from super().eval(vars) # Bypass ``self.eval()`` which simply stores the object as a local variable
 
 	def renders(self, **vars):
 		"""
@@ -2413,7 +2418,7 @@ class Template(Block):
 		:var:`vars` contains the top level variables available to the template code.
 		"""
 		try:
-			for output in super().eval(self.keepws, vars): # Bypass ``self.eval()`` which simply stores the object as a local variable
+			for output in super().eval(vars): # Bypass ``self.eval()`` which simply stores the object as a local variable
 				pass # Ignore all output
 		except ReturnException as ex:
 			return ex.value
@@ -2443,14 +2448,14 @@ class Template(Block):
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
-				yield Location(source, None, pos, match.start(), pos, match.start())
+				yield Location(self, source, None, pos, match.start(), pos, match.start())
 			type = source[match.start(1):match.end(1)]
 			if type != "note":
-				yield Location(source, type, match.start(), match.end(), match.start(3), match.end(3))
+				yield Location(self, source, type, match.start(), match.end(), match.start(3), match.end(3))
 			pos = match.end()
 		end = len(source)
 		if pos != end:
-			yield Location(source, None, pos, end, pos, end)
+			yield Location(self, source, None, pos, end, pos, end)
 
 	def _parser(self, location, error):
 		from ll import UL4Lexer, UL4Parser
@@ -2572,7 +2577,7 @@ class Template(Block):
 			raise Error(stack[-1].location) from BlockError("block unclosed")
 
 	@handleeval
-	def eval(self, keepws, vars):
+	def eval(self, vars):
 		yield from ()
 		vars[self.name] = TemplateClosure(self, vars)
 

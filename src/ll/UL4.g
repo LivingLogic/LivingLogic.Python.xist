@@ -140,39 +140,39 @@ UNICODE4_ESC
 /* Rules common to all tags */
 
 none returns [node]
-	: NONE { $node = ul4c.Const(None) }
+	: NONE { $node = ul4c.Const(self.location, None) }
 	;
 
 true_ returns [node]
-	: TRUE { $node = ul4c.Const(True) }
+	: TRUE { $node = ul4c.Const(self.location, True) }
 	;
 
 false_ returns [node]
-	: FALSE { $node = ul4c.Const(False) }
+	: FALSE { $node = ul4c.Const(self.location, False) }
 	;
 
 int_ returns [node]
-	: INT { $node = ul4c.Const(int($INT.text, 0)) }
+	: INT { $node = ul4c.Const(self.location, int($INT.text, 0)) }
 	;
 
 float_ returns [node]
-	: FLOAT { $node = ul4c.Const(float($FLOAT.text)) }
+	: FLOAT { $node = ul4c.Const(self.location, float($FLOAT.text)) }
 	;
 
 string returns [node]
-	: STRING { $node = ul4c.Const(ast.literal_eval($STRING.text)) }
+	: STRING { $node = ul4c.Const(self.location, ast.literal_eval($STRING.text)) }
 	;
 
 date returns [node]
-	: DATE { $node = ul4c.Const(datetime.datetime(*map(int, [f for f in ul4c.datesplitter.split($DATE.text[2:-1]) if f]))) }
+	: DATE { $node = ul4c.Const(self.location, datetime.datetime(*map(int, [f for f in ul4c.datesplitter.split($DATE.text[2:-1]) if f]))) }
 	;
 
 color returns [node]
-	: COLOR { $node = ul4c.Const(color.Color.fromrepr($COLOR.text)) }
+	: COLOR { $node = ul4c.Const(self.location, color.Color.fromrepr($COLOR.text)) }
 	;
 
 name returns [node]
-	: NAME { $node = ul4c.Var($NAME.text) }
+	: NAME { $node = ul4c.Var(self.location, $NAME.text) }
 	;
 
 literal returns [node]
@@ -191,9 +191,9 @@ literal returns [node]
 list returns [node]
 	:
 		'['
-		']' { $node = ul4c.List() }
+		']' { $node = ul4c.List(self.location) }
 	|
-		'[' {$node = ul4c.List() }
+		'[' {$node = ul4c.List(self.location) }
 		e1=expr1 { $node.items.append($e1.node) }
 		(
 			','
@@ -219,7 +219,7 @@ listcomprehension returns [node]
 			'if'
 			condition=expr1 { _condition = $condition.node; }
 		)?
-		']' { $node = ul4c.ListComp($item.node, $n.varname, $container.node, _condition) }
+		']' { $node = ul4c.ListComp(self.location, $item.node, $n.varname, $container.node, _condition) }
 	;
 
 /* Dict literal */
@@ -234,9 +234,9 @@ dictitem returns [node]
 dict returns [node]
 	:
 		'{'
-		'}' { $node = ul4c.Dict() }
+		'}' { $node = ul4c.Dict(self.location) }
 	|
-		'{' { $node = ul4c.Dict() }
+		'{' { $node = ul4c.Dict(self.location) }
 		i1=dictitem { $node.items.append($i1.node) }
 		(
 			','
@@ -264,7 +264,7 @@ dictcomprehension returns [node]
 			'if'
 			condition=expr1 { _condition = $condition.node; }
 		)?
-		'}' { $node = ul4c.DictComp($key.node, $value.node, $n.varname, $container.node, _condition) }
+		'}' { $node = ul4c.DictComp(self.location, $key.node, $value.node, $n.varname, $container.node, _condition) }
 	;
 
 generatorexpression returns [node]
@@ -281,7 +281,7 @@ generatorexpression returns [node]
 		(
 			'if'
 			condition=expr1 { _condition = $condition.node; }
-		)? { $node = ul4c.GenExpr($item.node, $n.varname, $container.node, _condition) }
+		)? { $node = ul4c.GenExpr(self.location, $item.node, $n.varname, $container.node, _condition) }
 	;
 
 atom returns [node]
@@ -327,10 +327,10 @@ expr9 returns [node]
 		(
 			/* Attribute access */
 			'.'
-			n=name { $node = ul4c.GetAttr($node, $n.text) }
+			n=name { $node = ul4c.GetAttr(self.location, $node, $n.text) }
 		|
 			/* Function/method call */
-			'(' { $node = ul4c.CallMeth($node.obj, $node.attrname) if isinstance($node, ul4c.GetAttr) else ul4c.CallFunc($node) }
+			'(' { $node = ul4c.CallMeth(self.location, $node.obj, $node.attrname) if isinstance($node, ul4c.GetAttr) else ul4c.CallFunc(self.location, $node) }
 			(
 				/* No arguments */
 			|
@@ -390,7 +390,7 @@ expr9 returns [node]
 				':'
 				(
 					e2=expr1 { index2 = $e2.node; }
-				)? { $node = ul4c.GetSlice($node, None, index2) }
+				)? { $node = ul4c.GetSlice(self.location, $node, None, index2) }
 			|
 				e2=expr1 { index1 = $e2.node; }
 				(
@@ -398,7 +398,7 @@ expr9 returns [node]
 					(
 						e3=expr1 { index2 = $e3.node; }
 					)?
-				)? { $node = ul4c.GetSlice($node, index1, index2) if slice else ul4c.GetItem($node, index1) }
+				)? { $node = ul4c.GetSlice(self.location, $node, index1, index2) if slice else ul4c.GetItem(self.location, $node, index1) }
 			)
 			']'
 		)*
@@ -417,7 +417,7 @@ expr8 returns [node]
 		e=expr9 {
 			$node = $e.node;
 			for i in range(count):
-				$node = ul4c.Neg.make($node);
+				$node = ul4c.Neg.make(self.location, $node);
 		}
 	;
 
@@ -435,7 +435,7 @@ expr7 returns [node]
 			|
 				'%' { cls = ul4c.Mod; }
 			)
-			e2=expr8 { $node = cls.make($node, $e2.node) }
+			e2=expr8 { $node = cls.make(self.location, $node, $e2.node) }
 		)*
 	;
 
@@ -449,7 +449,7 @@ expr6 returns [node]
 			|
 				'-' { cls = ul4c.Sub; }
 			)
-			e2=expr7 { $node = cls.make($node, $e2.node) }
+			e2=expr7 { $node = cls.make(self.location, $node, $e2.node) }
 		)*
 	;
 
@@ -471,7 +471,7 @@ expr5 returns [node]
 			|
 				'>=' { cls = ul4c.GE; }
 			)
-			e2=expr6 { $node = cls.make($node, $e2.node) }
+			e2=expr6 { $node = cls.make(self.location, $node, $e2.node) }
 		)*
 	;
 
@@ -485,7 +485,7 @@ expr4 returns [node]
 				'not' { cls = ul4c.NotContains; }
 			)?
 			'in'
-			e2=expr5 { $node = cls.make($node, $e2.node) }
+			e2=expr5 { $node = cls.make(self.location, $node, $e2.node) }
 		)?
 	;
 
@@ -493,7 +493,7 @@ expr4 returns [node]
 expr3 returns [node]
 	:
 		'not'
-		e=expr4 { $node = ul4c.Not.make($e.node) }
+		e=expr4 { $node = ul4c.Not.make(self.location, $e.node) }
 	|
 		e=expr4 { $node = $e.node; }
 	;
@@ -505,7 +505,7 @@ expr2 returns [node]
 		e1=expr3 { $node = $e1.node; }
 		(
 			'and'
-			e2=expr3 { $node = ul4c.And($node, $e2.node) }
+			e2=expr3 { $node = ul4c.And(self.location, $node, $e2.node) }
 		)*
 	;
 
@@ -515,7 +515,7 @@ expr1 returns [node]
 		e1=expr2 { $node = $e1.node; }
 		(
 			'or'
-			e2=expr2 { $node = ul4c.Or($node, $e2.node) }
+			e2=expr2 { $node = ul4c.Or(self.location, $node, $e2.node) }
 		)*
 	;
 

@@ -1,4 +1,4 @@
-# $ANTLR 3.4 src/ll/UL4.g 2013-02-09 21:15:36
+# $ANTLR 3.4 src/ll/UL4.g 2013-02-11 13:12:33
 
 import sys
 from antlr3 import *
@@ -129,7 +129,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node = ul4c.Const(None) 
+                    node = ul4c.Const(self.location, None) 
 
 
 
@@ -163,7 +163,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node = ul4c.Const(True) 
+                    node = ul4c.Const(self.location, True) 
 
 
 
@@ -197,7 +197,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node = ul4c.Const(False) 
+                    node = ul4c.Const(self.location, False) 
 
 
 
@@ -233,7 +233,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node = ul4c.Const(int(INT1.text, 0)) 
+                    node = ul4c.Const(self.location, int(INT1.text, 0)) 
 
 
 
@@ -269,7 +269,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node = ul4c.Const(float(FLOAT2.text)) 
+                    node = ul4c.Const(self.location, float(FLOAT2.text)) 
 
 
 
@@ -305,7 +305,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node = ul4c.Const(ast.literal_eval(STRING3.text)) 
+                    node = ul4c.Const(self.location, ast.literal_eval(STRING3.text)) 
 
 
 
@@ -341,7 +341,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node = ul4c.Const(datetime.datetime(*map(int, [f for f in ul4c.datesplitter.split(DATE4.text[2:-1]) if f]))) 
+                    node = ul4c.Const(self.location, datetime.datetime(*map(int, [f for f in ul4c.datesplitter.split(DATE4.text[2:-1]) if f]))) 
 
 
 
@@ -377,7 +377,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node = ul4c.Const(color.Color.fromrepr(COLOR5.text)) 
+                    node = ul4c.Const(self.location, color.Color.fromrepr(COLOR5.text)) 
 
 
 
@@ -423,7 +423,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    retval.node = ul4c.Var(NAME6.text) 
+                    retval.node = ul4c.Var(self.location, NAME6.text) 
 
 
 
@@ -704,7 +704,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node = ul4c.List() 
+                        node = ul4c.List(self.location) 
 
 
 
@@ -716,7 +716,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node = ul4c.List() 
+                        node = ul4c.List(self.location) 
 
 
 
@@ -869,7 +869,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node = ul4c.ListComp(item, n, container, _condition) 
+                    node = ul4c.ListComp(self.location, item, n, container, _condition) 
 
 
 
@@ -990,7 +990,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node = ul4c.Dict() 
+                        node = ul4c.Dict(self.location) 
 
 
 
@@ -1002,7 +1002,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node = ul4c.Dict() 
+                        node = ul4c.Dict(self.location) 
 
 
 
@@ -1164,7 +1164,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node = ul4c.DictComp(key, value, n, container, _condition) 
+                    node = ul4c.DictComp(self.location, key, value, n, container, _condition) 
 
 
 
@@ -1252,7 +1252,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node = ul4c.GenExpr(item, n, container, _condition) 
+                    node = ul4c.GenExpr(self.location, item, n, container, _condition) 
 
 
 
@@ -1742,7 +1742,7 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            node = ul4c.GetAttr(node, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0]) 
+                            node = ul4c.GetAttr(self.location, node, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0]) 
 
 
 
@@ -1754,7 +1754,7 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            node = ul4c.CallMeth(node.obj, node.attrname) if isinstance(node, ul4c.GetAttr) else ul4c.CallFunc(node) 
+                            node = ul4c.CallMeth(self.location, node.obj, node.attrname) if isinstance(node, ul4c.GetAttr) else ul4c.CallFunc(self.location, node) 
 
 
 
@@ -2261,7 +2261,7 @@ class UL4Parser(Parser):
 
                             if self._state.backtracking == 0:
                                 pass
-                                node = ul4c.GetSlice(node, None, index2) 
+                                node = ul4c.GetSlice(self.location, node, None, index2) 
 
 
 
@@ -2325,7 +2325,7 @@ class UL4Parser(Parser):
 
                             if self._state.backtracking == 0:
                                 pass
-                                node = ul4c.GetSlice(node, index1, index2) if slice else ul4c.GetItem(node, index1) 
+                                node = ul4c.GetSlice(self.location, node, index1, index2) if slice else ul4c.GetItem(self.location, node, index1) 
 
 
 
@@ -2406,7 +2406,7 @@ class UL4Parser(Parser):
                               
                     node =  e
                     for i in range(count):
-                    	node =  ul4c.Neg.make(node)
+                    	node =  ul4c.Neg.make(self.location, node)
                     		
 
 
@@ -2543,7 +2543,7 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            node = cls.make(node, e2) 
+                            node = cls.make(self.location, node, e2) 
 
 
 
@@ -2657,7 +2657,7 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            node = cls.make(node, e2) 
+                            node = cls.make(self.location, node, e2) 
 
 
 
@@ -2826,7 +2826,7 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            node = cls.make(node, e2) 
+                            node = cls.make(self.location, node, e2) 
 
 
 
@@ -2921,7 +2921,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node = cls.make(node, e2) 
+                        node = cls.make(self.location, node, e2) 
 
 
 
@@ -2984,7 +2984,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node = ul4c.Not.make(e) 
+                        node = ul4c.Not.make(self.location, e) 
 
 
 
@@ -3065,7 +3065,7 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            node = ul4c.And(node, e2) 
+                            node = ul4c.And(self.location, node, e2) 
 
 
 
@@ -3137,7 +3137,7 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            node = ul4c.Or(node, e2) 
+                            node = ul4c.Or(self.location, node, e2) 
 
 
 
