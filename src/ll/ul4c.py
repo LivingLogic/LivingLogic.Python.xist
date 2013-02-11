@@ -286,7 +286,7 @@ class AST(Object):
 		p.text(repr(self))
 
 	def __str__(self):
-		return "".join(self._str(0, True)) # We don't know the ``keepws`` value, use ``True`` instead
+		return "".join(self._str(0))
 
 	def _formatop(self, op):
 		bracket = False
@@ -296,12 +296,12 @@ class AST(Object):
 			bracket = True
 		if bracket:
 			yield "("
-		yield from op._str(0, True)
+		yield from op._str(0)
 		if bracket:
 			yield ")"
 
 	@misc.notimplemented
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		"""
 		Format :var:`self` (with the indentation level :var:`indent`).
 
@@ -358,11 +358,8 @@ class Text(AST):
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.location.code!r} at {1:#x}>".format(self, id(self))
 
-	def _str(self, indent, keepws):
-		text = self.text()
-		if text:
-			yield indent*"\t"
-			yield "text {!r}\n".format(text)
+	def _str(self, indent):
+		yield "text {!r}\n".format(self.text())
 
 	def eval(self, vars):
 		yield self.text()
@@ -380,7 +377,7 @@ class Const(AST):
 		super().__init__(location)
 		self.value = value
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield _repr(self.value)
 
 	def eval(self, vars):
@@ -429,12 +426,12 @@ class List(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield "["
 		for (i, item) in enumerate(self.items):
 			if i:
 				yield ", "
-			yield from item._str(indent, keepws)
+			yield from item._str(indent)
 		yield "]"
 
 	@handleeval
@@ -501,16 +498,16 @@ class ListComp(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield "["
-		yield from self.item._str(indent, keepws)
+		yield from self.item._str(indent)
 		yield " for "
 		yield _formatnestednameul4(self.varname)
 		yield " in "
-		yield from self.container._str(indent, keepws)
+		yield from self.container._str(indent)
 		if self.condition is not None:
 			yield " if "
-			yield from self.condition._str(indent, keepws)
+			yield from self.condition._str(indent)
 		yield "]"
 
 	@handleeval
@@ -569,14 +566,14 @@ class Dict(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield "{"
 		for (i, item) in enumerate(self.items):
 			if i:
 				yield ", "
-			yield from item[0]._str(indent, keepws)
+			yield from item[0]._str(indent)
 			yield ": "
-			yield from item[1]._str(indent, keepws)
+			yield from item[1]._str(indent)
 		yield "}"
 
 	@handleeval
@@ -644,18 +641,18 @@ class DictComp(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield "{"
-		yield from self.key._str(indent, keepws)
+		yield from self.key._str(indent)
 		yield " : "
-		yield from self.value._str(indent, keepws)
+		yield from self.value._str(indent)
 		yield " for "
 		yield _formatnestednameul4(self.varname)
 		yield " in "
-		yield from self.container._str(indent, keepws)
+		yield from self.container._str(indent)
 		if self.condition is not None:
 			yield " if "
-			yield from self.condition._str(indent, keepws)
+			yield from self.condition._str(indent)
 		yield "]"
 
 	@handleeval
@@ -731,16 +728,16 @@ class GenExpr(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield "("
-		yield from self.item._str(indent, keepws)
+		yield from self.item._str(indent)
 		yield " for "
 		yield _formatnestednameul4(self.varname)
 		yield " in "
-		yield from self.container._str(indent, keepws)
+		yield from self.container._str(indent)
 		if self.condition is not None:
 			yield " if "
-			yield from self.condition._str(indent, keepws)
+			yield from self.condition._str(indent)
 		yield ")"
 
 	@handleeval
@@ -786,7 +783,7 @@ class Var(AST):
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.name!r} at {1:#x}>".format(self, id(self))
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield self.name
 
 	@handleeval
@@ -828,10 +825,11 @@ class Block(AST):
 	def append(self, item):
 		self.content.append(item)
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		if self.content:
 			for node in self.content:
-				yield from node._str(indent, keepws)
+				yield indent*"\t"
+				yield from node._str(indent)
 		else:
 			yield indent*"\t"
 			yield "pass\n"
@@ -925,12 +923,11 @@ class If(Block):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def _str(self, indent, keepws):
-		yield indent*"\t"
+	def _str(self, indent):
 		yield "if "
-		yield from self.condition._str(indent, keepws)
+		yield from self.condition._str(indent)
 		yield ":\n"
-		yield from super()._str(indent+1, keepws)
+		yield from super()._str(indent+1)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -970,12 +967,11 @@ class ElIf(Block):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def _str(self, indent, keepws):
-		yield indent*"\t"
+	def _str(self, indent):
 		yield "elif "
-		yield from self.condition._str(indent, keepws)
+		yield from self.condition._str(indent)
 		yield ":\n"
-		yield from super()._str(indent+1, keepws)
+		yield from super()._str(indent+1)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1006,10 +1002,9 @@ class Else(Block):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def _str(self, indent, keepws):
-		yield indent*"\t"
+	def _str(self, indent):
 		yield "else:\n"
-		yield from super()._str(indent+1, keepws)
+		yield from super()._str(indent+1)
 
 
 @register("for")
@@ -1055,14 +1050,13 @@ class For(Block):
 		self.varname = decoder.load()
 		self.container = decoder.load()
 
-	def _str(self, indent, keepws):
-		yield indent*"\t"
+	def _str(self, indent):
 		yield "for "
 		yield _formatnestednameul4(self.varname)
 		yield " in "
-		yield from self.container._str(indent, keepws)
+		yield from self.container._str(indent)
 		yield ":\n"
-		yield from super()._str(indent+1, keepws)
+		yield from super()._str(indent+1)
 
 	@handleeval
 	def eval(self, vars):
@@ -1084,8 +1078,7 @@ class Break(AST):
 	AST node for a ``<?break?>`` inside a ``<?for?>`` block.
 	"""
 
-	def _str(self, indent, keepws):
-		yield indent*"\t"
+	def _str(self, indent):
 		yield "break\n"
 
 	def eval(self, vars):
@@ -1099,8 +1092,7 @@ class Continue(AST):
 	AST node for a ``<?continue?>`` inside a ``<?for?>`` block.
 	"""
 
-	def _str(self, indent, keepws):
-		yield indent*"\t"
+	def _str(self, indent):
 		yield "continue\n"
 
 	def eval(self, vars):
@@ -1142,7 +1134,7 @@ class GetAttr(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield from self._formatop(self.obj)
 		yield "."
 		yield self.attrname
@@ -1208,14 +1200,14 @@ class GetSlice(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield from self._formatop(self.obj)
 		yield "["
 		if self.index1 is not None:
-			yield from self.index1._str(indent, keepws)
+			yield from self.index1._str(indent)
 		yield ":"
 		if self.index2 is not None:
-			yield from self.index2._str(indent, keepws)
+			yield from self.index2._str(indent)
 		yield "]"
 
 	@handleeval
@@ -1302,7 +1294,7 @@ class Not(Unary):
 
 	precedence = 2
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield "not "
 		yield from self._formatop(self.obj)
 
@@ -1319,7 +1311,7 @@ class Neg(Unary):
 
 	precedence = 7
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield "-"
 		yield from self._formatop(self.obj)
 
@@ -1334,10 +1326,9 @@ class Print(Unary):
 	AST node for a ``<?print?>`` tag.
 	"""
 
-	def _str(self, indent, keepws):
-		yield indent*"\t"
+	def _str(self, indent):
 		yield "print "
-		yield from self.obj._str(indent, keepws)
+		yield from self.obj._str(indent)
 		yield "\n"
 
 	@handleeval
@@ -1351,10 +1342,9 @@ class PrintX(Unary):
 	AST node for a ``<?printx?>`` tag.
 	"""
 
-	def _str(self, indent, keepws):
-		yield indent*"\t"
+	def _str(self, indent):
 		yield "printx "
-		yield from self.obj._str(indent, keepws)
+		yield from self.obj._str(indent)
 		yield "\n"
 
 	@handleeval
@@ -1368,10 +1358,9 @@ class Return(Unary):
 	AST node for a ``<?return?>`` tag.
 	"""
 
-	def _str(self, indent, keepws):
-		yield indent*"\t"
+	def _str(self, indent):
 		yield "return "
-		yield from self.obj._str(indent, keepws)
+		yield from self.obj._str(indent)
 		yield "\n"
 
 	@handleeval
@@ -1448,10 +1437,10 @@ class GetItem(Binary):
 	def evaluate(cls, obj1, obj2):
 		return obj1[obj2]
 
-	def _str(self, indent, keepws):
-		yield from self.obj1._str(indent, keepws)
+	def _str(self, indent):
+		yield from self.obj1._str(indent)
 		yield "["
-		yield from self.obj2._str(indent, keepws)
+		yield from self.obj2._str(indent)
 		yield "]"
 
 	@classmethod
@@ -1473,7 +1462,7 @@ class EQ(Binary):
 	precedence = 4
 	associative = False
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield from self._formatop(self.obj1)
 		yield " == "
 		yield from self._formatop(self.obj2)
@@ -1492,9 +1481,9 @@ class NE(Binary):
 	precedence = 4
 	associative = False
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield from self._formatop(self.obj1)
-		yield " 1= "
+		yield " != "
 		yield from self._formatop(self.obj2)
 
 	@classmethod
@@ -1511,7 +1500,7 @@ class LT(Binary):
 	precedence = 4
 	associative = False
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield from self._formatop(self.obj1)
 		yield " < "
 		yield from self._formatop(self.obj2)
@@ -1530,7 +1519,7 @@ class LE(Binary):
 	precedence = 4
 	associative = False
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield from self._formatop(self.obj1)
 		yield " <= "
 		yield from self._formatop(self.obj2)
@@ -1549,7 +1538,7 @@ class GT(Binary):
 	precedence = 4
 	associative = False
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield from self._formatop(self.obj1)
 		yield " > "
 		yield from self._formatop(self.obj2)
@@ -1568,7 +1557,7 @@ class GE(Binary):
 	precedence = 4
 	associative = False
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield from self._formatop(self.obj1)
 		yield " >= "
 		yield from self._formatop(self.obj2)
@@ -1591,7 +1580,7 @@ class Contains(Binary):
 	precedence = 3
 	associative = False
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield from self._formatop(self.obj1)
 		yield " in "
 		yield from self._formatop(self.obj2)
@@ -1614,7 +1603,7 @@ class NotContains(Binary):
 	precedence = 3
 	associative = False
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield from self._formatop(self.obj1)
 		yield " not in "
 		yield from self._formatop(self.obj2)
@@ -1632,7 +1621,7 @@ class Add(Binary):
 
 	precedence = 5
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield from self._formatop(self.obj1)
 		yield "+"
 		yield from self._formatop(self.obj2)
@@ -1651,7 +1640,7 @@ class Sub(Binary):
 	precedence = 5
 	associative = False
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield from self._formatop(self.obj1)
 		yield "-"
 		yield from self._formatop(self.obj2)
@@ -1669,7 +1658,7 @@ class Mul(Binary):
 
 	precedence = 6
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield from self._formatop(self.obj1)
 		yield "*"
 		yield from self._formatop(self.obj2)
@@ -1688,7 +1677,7 @@ class FloorDiv(Binary):
 	precedence = 6
 	associative = False
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield from self._formatop(self.obj1)
 		yield "//"
 		yield from self._formatop(self.obj2)
@@ -1707,7 +1696,7 @@ class TrueDiv(Binary):
 	precedence = 6
 	associative = False
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield from self._formatop(self.obj1)
 		yield "/"
 		yield from self._formatop(self.obj2)
@@ -1725,7 +1714,7 @@ class And(Binary):
 
 	precedence = 1
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield from self._formatop(self.obj1)
 		yield " and "
 		yield from self._formatop(self.obj2)
@@ -1752,7 +1741,7 @@ class Or(Binary):
 
 	precedence = 0
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield from self._formatop(self.obj1)
 		yield " or "
 		yield from self._formatop(self.obj2)
@@ -1779,7 +1768,7 @@ class Mod(Binary):
 	precedence = 6
 	associative = False
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield from self._formatop(self.obj1)
 		yield "%"
 		yield from self._formatop(self.obj2)
@@ -1839,11 +1828,10 @@ class StoreVar(ChangeVar):
 	AST node that stores a value into a variable.
 	"""
 
-	def _str(self, indent, keepws):
-		yield indent*"\t"
+	def _str(self, indent):
 		yield _formatnestednameul4(self.varname)
 		yield " = "
-		yield from self.value._str(indent, keepws)
+		yield from self.value._str(indent)
 		yield "\n"
 
 	@handleeval
@@ -1858,11 +1846,10 @@ class AddVar(ChangeVar):
 	AST node that adds a value to a variable (i.e. the ``+=`` operator).
 	"""
 
-	def _str(self, indent, keepws):
-		yield indent*"\t"
+	def _str(self, indent):
 		yield _formatnestednameul4(self.varname)
 		yield " += "
-		yield from self.value._str(indent, keepws)
+		yield from self.value._str(indent)
 		yield "\n"
 
 	@handleeval
@@ -1877,11 +1864,10 @@ class SubVar(ChangeVar):
 	AST node that substracts a value from a variable (i.e. the ``-=`` operator).
 	"""
 
-	def _str(self, indent, keepws):
-		yield indent*"\t"
+	def _str(self, indent):
 		yield _formatnestednameul4(self.varname)
 		yield " -= "
-		yield from self.value._str(indent, keepws)
+		yield from self.value._str(indent)
 		yield "\n"
 
 	@handleeval
@@ -1896,11 +1882,10 @@ class MulVar(ChangeVar):
 	AST node that multiplies a variable by a value (i.e. the ``*=`` operator).
 	"""
 
-	def _str(self, indent, keepws):
-		yield indent*"\t"
+	def _str(self, indent):
 		yield _formatnestednameul4(self.varname)
 		yield " *= "
-		yield from self.value._str(indent, keepws)
+		yield from self.value._str(indent)
 		yield "\n"
 
 	@handleeval
@@ -1916,11 +1901,10 @@ class FloorDivVar(ChangeVar):
 	i.e. the ``//=`` operator).
 	"""
 
-	def _str(self, indent, keepws):
-		yield indent*"\t"
+	def _str(self, indent):
 		yield _formatnestednameul4(self.varname)
 		yield " //= "
-		yield from self.value._str(indent, keepws)
+		yield from self.value._str(indent)
 		yield "\n"
 
 	@handleeval
@@ -1935,11 +1919,10 @@ class TrueDivVar(ChangeVar):
 	AST node that divides a variable by a value (i.e. the ``/=`` operator).
 	"""
 
-	def _str(self, indent, keepws):
-		yield indent*"\t"
+	def _str(self, indent):
 		yield _formatnestednameul4(self.varname)
 		yield " /= "
-		yield from self.value._str(indent, keepws)
+		yield from self.value._str(indent)
 		yield "\n"
 
 	@handleeval
@@ -1954,11 +1937,10 @@ class ModVar(ChangeVar):
 	AST node for the ``%=`` operator.
 	"""
 
-	def _str(self, indent, keepws):
-		yield indent*"\t"
+	def _str(self, indent):
 		yield _formatnestednameul4(self.varname)
 		yield " %= "
-		yield from self.value._str(indent, keepws)
+		yield from self.value._str(indent)
 		yield "\n"
 
 	@handleeval
@@ -2027,8 +2009,8 @@ class CallFunc(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def _str(self, indent, keepws):
-		yield from self.obj._str(indent, keepws)
+	def _str(self, indent):
+		yield from self.obj._str(indent)
 		yield "("
 		first = True
 		for arg in self.args:
@@ -2036,7 +2018,7 @@ class CallFunc(AST):
 				first = False
 			else:
 				yield ", "
-			yield from arg._str(indent, keepws)
+			yield from arg._str(indent)
 		for (argname, argvalue) in self.kwargs:
 			if first:
 				first = False
@@ -2044,21 +2026,21 @@ class CallFunc(AST):
 				yield ", "
 			yield argname
 			yield "="
-			yield from argvalue._str(indent, keepws)
+			yield from argvalue._str(indent)
 		if self.remargs is not None:
 			if first:
 				first = False
 			else:
 				yield ", "
 			yield "*"
-			yield from self.remargs._str(indent, keepws)
+			yield from self.remargs._str(indent)
 		if self.remkwargs is not None:
 			if first:
 				first = False
 			else:
 				yield ", "
 			yield "**"
-			yield from self.remkwargs._str(indent, keepws)
+			yield from self.remkwargs._str(indent)
 		yield ")"
 
 	@handleeval
@@ -2163,7 +2145,7 @@ class CallMeth(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def _str(self, indent, keepws):
+	def _str(self, indent):
 		yield from self._formatop(self.obj)
 		yield "."
 		yield self.methname
@@ -2174,7 +2156,7 @@ class CallMeth(AST):
 				first = False
 			else:
 				yield ", "
-			yield from arg._str(indent, keepws)
+			yield from arg._str(indent)
 		for (argname, argvalue) in self.kwargs:
 			if first:
 				first = False
@@ -2182,21 +2164,21 @@ class CallMeth(AST):
 				yield ", "
 			yield argname
 			yield "="
-			yield from argvalue._str(indent, keepws)
+			yield from argvalue._str(indent)
 		if self.remargs is not None:
 			if first:
 				first = False
 			else:
 				yield ", "
 			yield "*"
-			yield from self.remargs._str(indent, keepws)
+			yield from self.remargs._str(indent)
 		if self.remkwargs is not None:
 			if first:
 				first = False
 			else:
 				yield ", "
 			yield "**"
-			yield from self.remkwargs._str(indent, keepws)
+			yield from self.remkwargs._str(indent)
 		yield ")"
 
 	@handleeval
@@ -2300,16 +2282,11 @@ class Template(Block):
 			s + " ..."
 		return s + " at {:#x}>".format(id(self))
 
-	def _str(self, indent, keepws):
-		yield indent*"\t"
+	def _str(self, indent):
 		yield "def "
 		yield self.name if self.name is not None else "unnamed"
 		yield ":\n"
-		indent += 1
-		yield from super()._str(indent, keepws)
-
-	def __str__(self):
-		return "".join(self._str(0, self.keepws))
+		yield from super()._str(indent+1)
 
 	def _repr_pretty_(self, p, cycle):
 		if cycle:
