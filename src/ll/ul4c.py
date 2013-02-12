@@ -830,6 +830,7 @@ class Block(AST):
 			for node in self.content:
 				yield level*"\t"
 				yield from node._str(level)
+				yield "\n"
 		else:
 			yield level*"\t"
 			yield "pass\n"
@@ -1329,7 +1330,6 @@ class Print(Unary):
 	def _str(self, level):
 		yield "print "
 		yield from self.obj._str(level)
-		yield "\n"
 
 	@handleeval
 	def eval(self, vars):
@@ -1345,7 +1345,6 @@ class PrintX(Unary):
 	def _str(self, level):
 		yield "printx "
 		yield from self.obj._str(level)
-		yield "\n"
 
 	@handleeval
 	def eval(self, vars):
@@ -1361,7 +1360,6 @@ class Return(Unary):
 	def _str(self, level):
 		yield "return "
 		yield from self.obj._str(level)
-		yield "\n"
 
 	@handleeval
 	def eval(self, vars):
@@ -1832,7 +1830,6 @@ class StoreVar(ChangeVar):
 		yield _formatnestednameul4(self.varname)
 		yield " = "
 		yield from self.value._str(level)
-		yield "\n"
 
 	@handleeval
 	def eval(self, vars):
@@ -1850,7 +1847,6 @@ class AddVar(ChangeVar):
 		yield _formatnestednameul4(self.varname)
 		yield " += "
 		yield from self.value._str(level)
-		yield "\n"
 
 	@handleeval
 	def eval(self, vars):
@@ -1868,7 +1864,6 @@ class SubVar(ChangeVar):
 		yield _formatnestednameul4(self.varname)
 		yield " -= "
 		yield from self.value._str(level)
-		yield "\n"
 
 	@handleeval
 	def eval(self, vars):
@@ -1886,7 +1881,6 @@ class MulVar(ChangeVar):
 		yield _formatnestednameul4(self.varname)
 		yield " *= "
 		yield from self.value._str(level)
-		yield "\n"
 
 	@handleeval
 	def eval(self, vars):
@@ -1905,7 +1899,6 @@ class FloorDivVar(ChangeVar):
 		yield _formatnestednameul4(self.varname)
 		yield " //= "
 		yield from self.value._str(level)
-		yield "\n"
 
 	@handleeval
 	def eval(self, vars):
@@ -1923,7 +1916,6 @@ class TrueDivVar(ChangeVar):
 		yield _formatnestednameul4(self.varname)
 		yield " /= "
 		yield from self.value._str(level)
-		yield "\n"
 
 	@handleeval
 	def eval(self, vars):
@@ -1941,7 +1933,6 @@ class ModVar(ChangeVar):
 		yield _formatnestednameul4(self.varname)
 		yield " %= "
 		yield from self.value._str(level)
-		yield "\n"
 
 	@handleeval
 	def eval(self, vars):
