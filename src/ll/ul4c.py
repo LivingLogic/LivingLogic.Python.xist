@@ -2259,8 +2259,8 @@ class Template(Block):
 		a template as a function.
 		"""
 		# ``location``/``endlocation`` will remain ``None`` for a top level template
-		# For a subtemplate/subfunction ``location`` will be set to the location of the ``<?template?>`` tag
-		# in :meth:`_compile` and ``endlocation`` will be the location of the ``<?end template?>`` tag
+		# For a subtemplate/subfunction ``location`` will be set to the location of the ``<?def?>`` tag in :meth:`_compile`
+		# and ``endlocation`` will be the location of the ``<?end def?>`` tag
 		super().__init__(None)
 		self.keepws = keepws
 		self.startdelim = startdelim

@@ -403,15 +403,15 @@ Nested scopes
 -------------
 
 UL4 templates support lexical scopes. This means that a template that is defined
-(via ``<?template?>``) inside another template has access to the local variables
+(via ``<?def?>``) inside another template has access to the local variables
 of the outer template. The inner template sees that state of the variables at
-the point in time when the ``<?template?>`` tag was executed. The following
-example will output ``1``::
+the point in time when the ``<?def?>`` tag was executed. The following example
+will output ``1``::
 
 	<?code i = 1?>
-	<?template x?>
+	<?def x?>
 		<?print i?>
-	<?end template?>
+	<?end def?>
 	<?code i = 2?>
 	<?render x.render()?>
 
