@@ -242,8 +242,9 @@ class UndefinedIndex(Undefined):
 
 
 ###
-### Compiler stuff: Nodes for the AST
+### Helper functions
 ###
+
 
 def handleeval(f):
 	def wrapped(self, vars):
@@ -264,6 +265,23 @@ def _formatnestednameul4(name):
 	else:
 		return "({})".format(", ".join(_formatnestednameul4(name) for name in name))
 
+
+
+def _unpackvar(vars, name, value):
+	if isinstance(name, str):
+		vars[name] = value
+	else:
+		if len(name) > len(value):
+			raise TypeError("too many values to unpack (expected {})".format(len(name)))
+		elif len(name) < len(value):
+			raise TypeError("need more than {} value{} to unpack)".format(len(values), "ss" if len(values) != 1 else ""))
+		for (name, value) in zip(name, value):
+			_unpackvar(vars, name, value)
+
+
+###
+### Compiler stuff: Nodes for the AST
+###
 
 class AST(Object):
 	"""
@@ -3413,19 +3431,3 @@ class TemplateClosure(Object):
 					p.pretty(node)
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
-
-
-###
-### Helper classes/functions used at runtime
-###
-
-def _unpackvar(vars, name, value):
-	if isinstance(name, str):
-		vars[name] = value
-	else:
-		if len(name) > len(value):
-			raise TypeError("too many values to unpack (expected {})".format(len(name)))
-		elif len(name) < len(value):
-			raise TypeError("need more than {} value{} to unpack)".format(len(values), "ss" if len(values) != 1 else ""))
-		for (name, value) in zip(name, value):
-			_unpackvar(vars, name, value)
