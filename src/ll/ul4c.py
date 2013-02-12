@@ -160,10 +160,8 @@ class Error(Exception):
 				return "in template named {}".format(self.location.name)
 			else:
 				return "in unnamed template"
-		elif isinstance(self.location, AST):
-			return "in expression {}".format(self.location)
 		else:
-			return "in {}".format(self.location)
+			return "in {!r} in tag {}".format(str(self.location), self.location.location)
 
 
 class BlockError(Exception):
