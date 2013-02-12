@@ -356,7 +356,7 @@ class Text(AST):
 		return text
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.location.code!r} at {1:#x}>".format(self, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {1!r} at {2:#x}>".format(self, self.text(), id(self))
 
 	def _str(self, level):
 		yield "text {!r}\n".format(self.text())
