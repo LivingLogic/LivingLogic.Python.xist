@@ -256,6 +256,15 @@ def handleeval(f):
 	return wrapped
 
 
+def _formatnestednameul4(name):
+	if isinstance(name, str):
+		return name
+	elif len(name) == 1:
+		return "({},)".format(_formatnestednameul4(name[0]))
+	else:
+		return "({})".format(", ".join(_formatnestednameul4(name) for name in name))
+
+
 class AST(Object):
 	"""
 	Base class for all syntax tree nodes.
@@ -3409,15 +3418,6 @@ class TemplateClosure(Object):
 ###
 ### Helper classes/functions used at runtime
 ###
-
-def _formatnestednameul4(name):
-	if isinstance(name, str):
-		return name
-	elif len(name) == 1:
-		return "({},)".format(_formatnestednameul4(name[0]))
-	else:
-		return "({})".format(", ".join(_formatnestednameul4(name) for name in name))
-
 
 def _unpackvar(vars, name, value):
 	if isinstance(name, str):
