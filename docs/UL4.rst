@@ -1229,6 +1229,51 @@ prints ``1`` and::
 prints ``365``.
 
 
+``append``
+""""""""""
+
+``append`` is a list method. It adds its arguments to the end of the list for
+which it is called::
+
+	<?code v = [1, 2]?>
+	<?code v.append(3, 4)?>
+	<?print v?>
+
+prints ``[1, 2, 3, 4]``.
+
+
+``insert``
+""""""""""
+
+``insert`` is a list method. Its first argument in the insert position, the
+remaining arguments are the intems that will be inserted at that position, so::
+
+	<?code v = [1, 4]?>
+	<?code v.insert(1, 2, 3)?>
+	<?print v?>
+
+prints ``[1, 2, 3, 4]``.
+
+
+``pop``
+"""""""
+
+``pop`` is a list method. It removes the last item of the list and returns it.
+If an index is passed the item at that position is removed and returned.
+A negative index is treated as relative to the end of the list.
+
+
+``update``
+""""""""""
+
+``update`` is a dictionary method. It supports an arbitrary number of positional
+and keyword arguments. Each positional argument may be a dictionary, all the
+items in the dictionary will be copied to the target dictionary. A positional
+argument may also be an iterable of (key, value) pairs. These will also be copied
+to the target dictionary. After each positional argument is copied over in a last
+step the keyword arguments will be copied to the target dictionary.
+
+
 Templates as functions
 ======================
 
@@ -1251,7 +1296,6 @@ the first ``<?return?>`` tag::
 	output = function(data=["Python", "Java", "Javascript", "PHP"]))
 
 With this, ``output`` will be the string ``"Javascript"``.
-
 
 When no ``<?return?>`` tag is encountered, ``None`` will be returned.
 

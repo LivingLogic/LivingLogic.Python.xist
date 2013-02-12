@@ -4,14 +4,8 @@ Migrating to version 4.10
 Changes to UL4
 --------------
 
-*	The UL4 tag ``<?code?>`` has been renamed to ``<?exe?>`` and the tag
-	``<?render?>`` have been removed.
-
-	To update your code replace:
-
-	*	 ``<?code x = 42?>`` with ``<?exe x = 42?>`` and
-
-	*	``<?render r.render()?>`` with ``<?exe r.render()?>``.
+*	The UL4 tag ``<?render?>`` have been removed. To update your code replace
+	``<?render r.render()?>`` with ``<?exe r.render()?>``.
 
 *	The UL4 functions ``vars`` and ``get`` have been removed.
 

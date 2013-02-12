@@ -3023,17 +3023,26 @@ def test_method_months(r):
 
 @pytest.mark.ul4
 def test_method_append(r):
-	assert '42' == r('<?code l = []?><?code l.append(42)?><?print l[0]?>')
+	assert '[17, 23, 42]' == r('<?code l = [17]?><?code l.append(23, 42)?><?print l?>')
 
 
 @pytest.mark.ul4
 def test_method_insert(r):
-	assert '17;23;42;' == r('<?code l = []?><?code l.insert(0, 42)?><?code l.insert(0, 17)?><?code l.insert(1, 23)?><?print l[0]?>;<?print l[1]?>;<?print l[2]?>;')
+	assert '[1, 2, 3, 4]' == r('<?code l = [1,4]?><?code l.insert(1, 2, 3)?><?print l?>')
 
 
 @pytest.mark.ul4
 def test_method_pop(r):
 	assert '42;17;23;' == r('<?code l = [17, 23, 42]?><?print l.pop()?>;<?print l.pop(-2)?>;<?print l.pop(0)?>;')
+
+
+@pytest.mark.ul4
+def test_method_update(r):
+	assert '0' == r('<?code d = {}?><?code d.update()?><?print len(d)?>')
+	assert '1' == r('<?code d = {}?><?code d.update([["one", 1]])?><?print d.one?>')
+	assert '1' == r('<?code d = {}?><?code d.update({"one": 1})?><?print d.one?>')
+	assert '1' == r('<?code d = {}?><?code d.update(one=1)?><?print d.one?>')
+	assert '1' == r('<?code d = {}?><?code d.update([["one", 0]], {"one": 0}, one=1)?><?print d.one?>')
 
 
 @pytest.mark.ul4

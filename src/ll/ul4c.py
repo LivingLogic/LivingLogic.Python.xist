@@ -3329,18 +3329,25 @@ def _months(obj):
 
 
 @AST.makemethod
-def _append(obj, item):
-	return obj.append(item)
+def _append(obj, *items):
+	obj.extend(items)
 
 
 @AST.makemethod
-def _insert(obj, pos, item):
-	return obj.insert(pos, item)
+def _insert(obj, pos, *items):
+	obj[pos:pos] = items
 
 
 @AST.makemethod
 def _pop(obj, pos=-1):
 	return obj.pop(pos)
+
+
+@AST.makemethod
+def _update(obj, *others, **kwargs):
+	for other in others:
+		obj.update(other)
+	obj.update(**kwargs)
 
 
 class TemplateClosure(Object):

@@ -19,7 +19,7 @@ Changes in 4.10 (released ??/??/2013)
 	arbitrary number of arguments.
 
 *	The tag ``<?render?>`` has been removed. To update your code replace 
-	``<?render r.render()?>`` with ``<?exe r.render()?>``.
+	``<?render r.render()?>`` with ``<?code r.render()?>``.
 
 *	The builtin UL4 functions are now real objects that can be passed to
 	templates as arguments.
@@ -28,6 +28,8 @@ Changes in 4.10 (released ??/??/2013)
 	been added for ``timedelta``/``monthdelta`` objects.
 
 *	Lists in UL4 now support the methods ``append``, ``insert`` and ``pop``.
+
+*	Dictionaries in UL4 now support the method ``update``.
 
 *	The UL4 functions ``vars`` and ``get`` have been removed.
 
