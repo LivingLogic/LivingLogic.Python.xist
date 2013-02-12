@@ -2241,7 +2241,7 @@ class Template(Block):
 	of the first ``<?return?>`` tag encountered. In this case all output of the
 	template will be ignored.
 	"""
-	fields = Block.fields.union({"source", "name", "keepws", "startdelim", "enddelim", "endlocation"})
+	fields = Block.fields.union({"source", "name", "keepws", "startdelim", "enddelim"})
 
 	version = "24"
 
