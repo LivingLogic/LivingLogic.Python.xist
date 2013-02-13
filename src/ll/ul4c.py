@@ -148,20 +148,20 @@ class Error(Exception):
 	"""
 	Exception class that wraps another exception and provides a location.
 	"""
-	def __init__(self, location):
-		self.location = location
+	def __init__(self, node):
+		self.node = node
 
 	def __repr__(self):
-		return "<{}.{} in {} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.location, id(self))
+		return "<{}.{} in {} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.node, id(self))
 
 	def __str__(self):
-		if isinstance(self.location, (Template, TemplateClosure)):
-			if self.location.name is not None:
-				return "in template named {}".format(self.location.name)
+		if isinstance(self.node, (Template, TemplateClosure)):
+			if self.node.name is not None:
+				return "in template named {}".format(self.node.name)
 			else:
 				return "in unnamed template"
 		else:
-			return "in {!r} in tag {}".format(str(self.location), self.location.location)
+			return "in {!r} in tag {}".format(str(self.node), self.node.location)
 
 
 class BlockError(Exception):
@@ -250,19 +250,14 @@ def handleeval(f):
 			return (yield from f(self, vars))
 		except (BreakException, ContinueException, ReturnException) as ex:
 			raise
+		except Error as ex:
+			if ex.node.location is not self.location:
+				raise Error(self) from ex
+			else:
+				raise
 		except Exception as ex:
 			raise Error(self) from ex
 	return wrapped
-
-
-def _formatnestednameul4(name):
-	if isinstance(name, str):
-		return name
-	elif len(name) == 1:
-		return "({},)".format(_formatnestednameul4(name[0]))
-	else:
-		return "({})".format(", ".join(_formatnestednameul4(name) for name in name))
-
 
 
 def _unpackvar(vars, name, value):
@@ -285,19 +280,18 @@ class AST(Object):
 	"""
 	Base class for all syntax tree nodes.
 	"""
-	# used in :meth:`format` to decide if we need brackets around an operator
-	precedence = None
-	associative = True
 
 	# Set of attributes available via :meth:`getitem`.
-	fields = {"type", "location"}
+	fields = {"type", "location", "start", "end"}
 
 	# "Global" functions and methods. Functions in ``functions`` will be exposed to UL4 code
 	functions = {}
 	methods = {}
 
-	def __init__(self, location=None):
+	def __init__(self, location=None, start=None, end=None):
 		self.location = location
+		self.start = start
+		self.end = end
 
 	def __getitem__(self, key):
 		if key in self.fields:
@@ -311,27 +305,32 @@ class AST(Object):
 		p.text(repr(self))
 
 	def __str__(self):
-		return "".join(self._str(0))
+		v = []
+		level = 0
+		needlf = False
+		for code in self._str():
+			if code is None:
+				needlf = True
+			elif isinstance(code, int):
+				level += code
+			else:
+				if needlf:
+					v.append("\n")
+					v.append(level*"\t")
+					needlf = False
+				v.append(code)
+		if needlf:
+			v.append("\n")
+		return "".join(v)
 
-	def _formatop(self, op):
-		bracket = False
-		if op.precedence < self.precedence:
-			bracket = True
-		elif op.precedence == self.precedence and (not isinstance(op, self.__class__) or not self.associative):
-			bracket = True
-		if bracket:
-			yield "("
-		yield from op._str(0)
-		if bracket:
-			yield ")"
-
-	@misc.notimplemented
-	def _str(self, level):
-		"""
-		Format :var:`self` (with the indentation level :var:`level`).
-
-		This is used by :meth:`__str__.
-		"""
+	def _str(self):
+		# Format :var:`self`.
+		# This is used by :meth:`__str__.
+		# ``_str`` is a generator an may output:
+		# ``None``, which means: "add a line feed and an indentation here"
+		# an int, which means: add the int to the indentation level
+		# a string, which means: add this string to the output
+		yield self.location.root.source[self.start:self.end].replace("\r\n", " ").replace("\n", " ")
 
 	@misc.notimplemented
 	def eval(self, vars):
@@ -345,9 +344,13 @@ class AST(Object):
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.location)
+		encoder.dump(self.start)
+		encoder.dump(self.end)
 
 	def ul4onload(self, decoder):
 		self.location = decoder.load()
+		self.start = decoder.load()
+		self.end = decoder.load()
 
 	@classmethod
 	def makefunction(cls, f):
@@ -383,8 +386,8 @@ class Text(AST):
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {1!r} at {2:#x}>".format(self, self.text(), id(self))
 
-	def _str(self, level):
-		yield "text {!r}\n".format(self.text())
+	def _str(self):
+		yield "text {!r}".format(self.text())
 
 	def eval(self, vars):
 		yield self.text()
@@ -395,15 +398,11 @@ class Const(AST):
 	"""
 	Load a constant
 	"""
-	precedence = 11
 	fields = AST.fields.union({"value"})
 
-	def __init__(self, location=None, value=None):
-		super().__init__(location)
+	def __init__(self, location=None, start=None, end=None, value=None):
+		super().__init__(location, start, end)
 		self.value = value
-
-	def _str(self, level):
-		yield _repr(self.value)
 
 	def eval(self, vars):
 		yield from ()
@@ -427,11 +426,10 @@ class List(AST):
 	AST nodes for loading a list object.
 	"""
 
-	precedence = 11
 	fields = AST.fields.union({"items"})
 
-	def __init__(self, location=None, *items):
-		super().__init__(location)
+	def __init__(self, location=None, start=None, end=None, *items):
+		super().__init__(location, start, end)
 		self.items = list(items)
 
 	def __repr__(self):
@@ -450,14 +448,6 @@ class List(AST):
 					p.pretty(item)
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
-
-	def _str(self, level):
-		yield "["
-		for (i, item) in enumerate(self.items):
-			if i:
-				yield ", "
-			yield from item._str(level)
-		yield "]"
 
 	@handleeval
 	def eval(self, vars):
@@ -482,12 +472,11 @@ class ListComp(AST):
 	AST node for list comprehension.
 	"""
 
-	precedence = 11
 	fields = AST.fields.union({"item", "varname", "container", "condition"})
 
 
-	def __init__(self, location=None, item=None, varname=None, container=None, condition=None):
-		super().__init__(location)
+	def __init__(self, location=None, start=None, end=None, item=None, varname=None, container=None, condition=None):
+		super().__init__(location, start, end)
 		self.item = item
 		self.varname = varname
 		self.container = container
@@ -523,18 +512,6 @@ class ListComp(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def _str(self, level):
-		yield "["
-		yield from self.item._str(level)
-		yield " for "
-		yield _formatnestednameul4(self.varname)
-		yield " in "
-		yield from self.container._str(level)
-		if self.condition is not None:
-			yield " if "
-			yield from self.condition._str(level)
-		yield "]"
-
 	@handleeval
 	def eval(self, vars):
 		container = (yield from self.container.eval(vars))
@@ -568,11 +545,10 @@ class Dict(AST):
 	AST node for loading a dict object.
 	"""
 
-	precedence = 11
 	fields = AST.fields.union({"items"})
 
-	def __init__(self, location=None, *items):
-		super().__init__(location)
+	def __init__(self, location=None, start=None, end=None, *items):
+		super().__init__(location, start, end)
 		self.items = list(items)
 
 	def __repr__(self):
@@ -590,16 +566,6 @@ class Dict(AST):
 					p.pretty(item[1])
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
-
-	def _str(self, level):
-		yield "{"
-		for (i, item) in enumerate(self.items):
-			if i:
-				yield ", "
-			yield from item[0]._str(level)
-			yield ": "
-			yield from item[1]._str(level)
-		yield "}"
 
 	@handleeval
 	def eval(self, vars):
@@ -625,11 +591,10 @@ class DictComp(AST):
 	AST node for dictionary comprehension.
 	"""
 
-	precedence = 11
 	fields = AST.fields.union({"key", "value", "varname", "container", "condition"})
 
-	def __init__(self, location=None, key=None, value=None, varname=None, container=None, condition=None):
-		super().__init__(location)
+	def __init__(self, location=None, start=None, end=None, key=None, value=None, varname=None, container=None, condition=None):
+		super().__init__(location, start, end)
 		self.key = key
 		self.value = value
 		self.varname = varname
@@ -665,20 +630,6 @@ class DictComp(AST):
 					p.pretty(self.condition)
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
-
-	def _str(self, level):
-		yield "{"
-		yield from self.key._str(level)
-		yield " : "
-		yield from self.value._str(level)
-		yield " for "
-		yield _formatnestednameul4(self.varname)
-		yield " in "
-		yield from self.container._str(level)
-		if self.condition is not None:
-			yield " if "
-			yield from self.condition._str(level)
-		yield "]"
 
 	@handleeval
 	def eval(self, vars):
@@ -716,11 +667,10 @@ class GenExpr(AST):
 	AST node for a generator expression.
 	"""
 
-	precedence = 11
 	fields = AST.fields.union({"item", "varname", "container", "condition"})
 
-	def __init__(self, location=None, item=None, varname=None, container=None, condition=None):
-		super().__init__(location)
+	def __init__(self, location=None, start=None, end=None, item=None, varname=None, container=None, condition=None):
+		super().__init__(location, start, end)
 		self.item = item
 		self.varname = varname
 		self.container = container
@@ -752,18 +702,6 @@ class GenExpr(AST):
 					p.pretty(self.condition)
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
-
-	def _str(self, level):
-		yield "("
-		yield from self.item._str(level)
-		yield " for "
-		yield _formatnestednameul4(self.varname)
-		yield " in "
-		yield from self.container._str(level)
-		if self.condition is not None:
-			yield " if "
-			yield from self.condition._str(level)
-		yield ")"
 
 	@handleeval
 	def eval(self, vars):
@@ -798,18 +736,14 @@ class Var(AST):
 	AST nodes for loading a variable.
 	"""
 
-	precedence = 11
 	fields = AST.fields.union({"name"})
 
-	def __init__(self, location=None, name=None):
-		super().__init__(location)
+	def __init__(self, location=None, start=None, end=None, name=None):
+		super().__init__(location, start, end)
 		self.name = name
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.name!r} at {1:#x}>".format(self, id(self))
-
-	def _str(self, level):
-		yield self.name
 
 	@handleeval
 	def eval(self, vars):
@@ -842,23 +776,22 @@ class Block(AST):
 
 	fields = AST.fields.union({"endlocation", "content"})
 
-	def __init__(self, location=None):
-		super().__init__(location)
+	def __init__(self, location=None, start=None, end=None):
+		super().__init__(location, start, end)
 		self.endlocation = None
 		self.content = []
 
 	def append(self, item):
 		self.content.append(item)
 
-	def _str(self, level):
+	def _str(self):
 		if self.content:
 			for node in self.content:
-				yield level*"\t"
-				yield from node._str(level)
-				yield "\n"
+				yield from node._str()
+				yield None
 		else:
-			yield level*"\t"
-			yield "pass\n"
+			yield "pass"
+			yield None
 
 	@handleeval
 	def eval(self, vars):
@@ -885,10 +818,10 @@ class IfElIfElse(Block):
 	followed by zero or more :class:`ElIf` blocks followed by zero or one
 	:class:`Else` block.
 	"""
-	def __init__(self, location=None, condition=None):
-		super().__init__(location)
+	def __init__(self, location=None, start=None, end=None, condition=None):
+		super().__init__(location, start, end)
 		if condition is not None:
-			self.newblock(If(location, condition))
+			self.newblock(If(location, start, end, condition))
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {1} at {2:#x}>".format(self, repr(self.content)[1:-1], id(self))
@@ -912,6 +845,10 @@ class IfElIfElse(Block):
 			self.content[-1].endlocation = block.location
 		self.content.append(block)
 
+	def _str(self):
+		for node in self.content:
+			yield from node._str()
+
 	@handleeval
 	def eval(self, vars):
 		for node in self.content:
@@ -928,8 +865,8 @@ class If(Block):
 
 	fields = Block.fields.union({"condition"})
 
-	def __init__(self, location=None, condition=None):
-		super().__init__(location)
+	def __init__(self, location=None, start=None, end=None, condition=None):
+		super().__init__(location, start, end)
 		self.condition = condition
 
 	def __repr__(self):
@@ -949,11 +886,14 @@ class If(Block):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def _str(self, level):
+	def _str(self):
 		yield "if "
-		yield from self.condition._str(level)
-		yield ":\n"
-		yield from super()._str(level+1)
+		yield from AST._str(self)
+		yield ":"
+		yield None
+		yield +1
+		yield from super()._str()
+		yield -1
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -972,8 +912,8 @@ class ElIf(Block):
 
 	fields = Block.fields.union({"condition"})
 
-	def __init__(self, location=None, condition=None):
-		super().__init__(location)
+	def __init__(self, location=None, start=None, end=None, condition=None):
+		super().__init__(location, start, end)
 		self.condition = condition
 
 	def __repr__(self):
@@ -993,11 +933,14 @@ class ElIf(Block):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def _str(self, level):
+	def _str(self):
 		yield "elif "
-		yield from self.condition._str(level)
-		yield ":\n"
-		yield from super()._str(level+1)
+		yield from AST._str(self)
+		yield ":"
+		yield None
+		yield +1
+		yield from super()._str()
+		yield -1
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1015,7 +958,7 @@ class Else(Block):
 	"""
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} condition={0.condition!r} at {1:#x}>".format(self, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} at {1:#x}>".format(self, id(self))
 
 	def _repr_pretty_(self, p, cycle):
 		if cycle:
@@ -1028,9 +971,12 @@ class Else(Block):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	def _str(self, level):
-		yield "else:\n"
-		yield from super()._str(level+1)
+	def _str(self):
+		yield "else:"
+		yield None
+		yield +1
+		yield from super()._str()
+		yield -1
 
 
 @register("for")
@@ -1041,8 +987,8 @@ class For(Block):
 
 	fields = Block.fields.union({"varname", "container"})
 
-	def __init__(self, location=None, varname=None, container=None):
-		super().__init__(location)
+	def __init__(self, location=None, start=None, end=None, varname=None, container=None):
+		super().__init__(location, start, end)
 		self.varname = varname
 		self.container = container
 
@@ -1076,13 +1022,14 @@ class For(Block):
 		self.varname = decoder.load()
 		self.container = decoder.load()
 
-	def _str(self, level):
+	def _str(self):
 		yield "for "
-		yield _formatnestednameul4(self.varname)
-		yield " in "
-		yield from self.container._str(level)
-		yield ":\n"
-		yield from super()._str(level+1)
+		yield from AST._str(self)
+		yield ":"
+		yield None
+		yield +1
+		yield from super()._str()
+		yield -1
 
 	@handleeval
 	def eval(self, vars):
@@ -1104,8 +1051,8 @@ class Break(AST):
 	AST node for a ``<?break?>`` inside a ``<?for?>`` block.
 	"""
 
-	def _str(self, level):
-		yield "break\n"
+	def _str(self):
+		yield "break"
 
 	def eval(self, vars):
 		yield from ()
@@ -1118,8 +1065,8 @@ class Continue(AST):
 	AST node for a ``<?continue?>`` inside a ``<?for?>`` block.
 	"""
 
-	def _str(self, level):
-		yield "continue\n"
+	def _str(self):
+		yield "continue"
 
 	def eval(self, vars):
 		yield from ()
@@ -1134,12 +1081,10 @@ class GetAttr(AST):
 	The object is loaded from the AST node :var:`obj` and the attribute name
 	is stored in the string :var:`attrname`.
 	"""
-	precedence = 9
-	associative = False
 	fields = AST.fields.union({"obj", "attrname"})
 
-	def __init__(self, location=None, obj=None, attrname=None):
-		super().__init__(location)
+	def __init__(self, location=None, start=None, end=None, obj=None, attrname=None):
+		super().__init__(location, start, end)
 		self.obj = obj
 		self.attrname = attrname
 
@@ -1159,11 +1104,6 @@ class GetAttr(AST):
 				p.pretty(self.attrname)
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
-
-	def _str(self, level):
-		yield from self._formatop(self.obj)
-		yield "."
-		yield self.attrname
 
 	@handleeval
 	def eval(self, vars):
@@ -1196,12 +1136,10 @@ class GetSlice(AST):
 	for the end index).
 	"""
 
-	precedence = 8
-	associative = False
 	fields = AST.fields.union({"obj", "index1", "index2"})
 
-	def __init__(self, location=None, obj=None, index1=None, index2=None):
-		super().__init__(location)
+	def __init__(self, location=None, start=None, end=None, obj=None, index1=None, index2=None):
+		super().__init__(location, start, end)
 		self.obj = obj
 		self.index1 = index1
 		self.index2 = index2
@@ -1225,16 +1163,6 @@ class GetSlice(AST):
 				p.pretty(self.index2)
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
-
-	def _str(self, level):
-		yield from self._formatop(self.obj)
-		yield "["
-		if self.index1 is not None:
-			yield from self.index1._str(level)
-		yield ":"
-		if self.index2 is not None:
-			yield from self.index2._str(level)
-		yield "]"
 
 	@handleeval
 	def eval(self, vars):
@@ -1273,8 +1201,8 @@ class Unary(AST):
 
 	fields = AST.fields.union({"obj"})
 
-	def __init__(self, location=None, obj=None):
-		super().__init__(location)
+	def __init__(self, location=None, start=None, end=None, obj=None):
+		super().__init__(location, start, end)
 		self.obj = obj
 
 	def __repr__(self):
@@ -1304,12 +1232,12 @@ class Unary(AST):
 		return self.evalfold(obj)
 
 	@classmethod
-	def make(cls, location, obj):
+	def make(cls, location, start, end, obj):
 		if isinstance(obj, Const):
 			result = cls.evalfold(obj.value)
 			if not isinstance(result, Undefined):
-				return Const(location, result)
-		return cls(location, obj)
+				return Const(location, start, end, result)
+		return cls(location, start, end, obj)
 
 
 @register("not")
@@ -1318,11 +1246,6 @@ class Not(Unary):
 	AST node for the unary ``not`` operator.
 	"""
 
-	precedence = 2
-
-	def _str(self, level):
-		yield "not "
-		yield from self._formatop(self.obj)
 
 	@classmethod
 	def evalfold(cls, obj):
@@ -1335,11 +1258,6 @@ class Neg(Unary):
 	AST node for the unary negation (i.e. "-") operator.
 	"""
 
-	precedence = 7
-
-	def _str(self, level):
-		yield "-"
-		yield from self._formatop(self.obj)
 
 	@classmethod
 	def evalfold(cls, obj):
@@ -1352,9 +1270,9 @@ class Print(Unary):
 	AST node for a ``<?print?>`` tag.
 	"""
 
-	def _str(self, level):
+	def _str(self):
 		yield "print "
-		yield from self.obj._str(level)
+		yield from super()._str()
 
 	@handleeval
 	def eval(self, vars):
@@ -1367,9 +1285,9 @@ class PrintX(Unary):
 	AST node for a ``<?printx?>`` tag.
 	"""
 
-	def _str(self, level):
+	def _str(self):
 		yield "printx "
-		yield from self.obj._str(level)
+		yield from super()._str()
 
 	@handleeval
 	def eval(self, vars):
@@ -1382,9 +1300,9 @@ class Return(Unary):
 	AST node for a ``<?return?>`` tag.
 	"""
 
-	def _str(self, level):
+	def _str(self):
 		yield "return "
-		yield from self.obj._str(level)
+		yield from super()._str()
 
 	@handleeval
 	def eval(self, vars):
@@ -1399,8 +1317,8 @@ class Binary(AST):
 
 	fields = AST.fields.union({"obj1", "obj2"})
 
-	def __init__(self, location=None, obj1=None, obj2=None):
-		super().__init__(location)
+	def __init__(self, location=None, start=None, end=None, obj1=None, obj2=None):
+		super().__init__(location, start, end)
 		self.obj1 = obj1
 		self.obj2 = obj2
 
@@ -1436,12 +1354,12 @@ class Binary(AST):
 		return self.evalfold(obj1, obj2)
 
 	@classmethod
-	def make(cls, location, obj1, obj2):
+	def make(cls, location, start, end, obj1, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const):
 			result = cls.evalfold(obj1.value, obj2.value)
 			if not isinstance(result, Undefined):
-				return Const(location, result)
-		return cls(location, obj1, obj2)
+				return Const(location, start, end, result)
+		return cls(location, start, end, obj1, obj2)
 
 
 @register("getitem")
@@ -1453,18 +1371,10 @@ class GetItem(Binary):
 	node :var:`obj1` and the index/key is loaded from the AST node :var:`obj2`.
 	"""
 
-	precedence = 9
-	associative = False
 
 	@classmethod
 	def evaluate(cls, obj1, obj2):
 		return obj1[obj2]
-
-	def _str(self, level):
-		yield from self.obj1._str(level)
-		yield "["
-		yield from self.obj2._str(level)
-		yield "]"
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -1482,13 +1392,6 @@ class EQ(Binary):
 	AST node for the binary ``==`` comparison operator.
 	"""
 
-	precedence = 4
-	associative = False
-
-	def _str(self, level):
-		yield from self._formatop(self.obj1)
-		yield " == "
-		yield from self._formatop(self.obj2)
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -1501,13 +1404,6 @@ class NE(Binary):
 	AST node for the binary ``!=`` comparison operator.
 	"""
 
-	precedence = 4
-	associative = False
-
-	def _str(self, level):
-		yield from self._formatop(self.obj1)
-		yield " != "
-		yield from self._formatop(self.obj2)
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -1520,13 +1416,6 @@ class LT(Binary):
 	AST node for the binary ``<`` comparison operator.
 	"""
 
-	precedence = 4
-	associative = False
-
-	def _str(self, level):
-		yield from self._formatop(self.obj1)
-		yield " < "
-		yield from self._formatop(self.obj2)
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -1539,13 +1428,6 @@ class LE(Binary):
 	AST node for the binary ``<=`` comparison operator.
 	"""
 
-	precedence = 4
-	associative = False
-
-	def _str(self, level):
-		yield from self._formatop(self.obj1)
-		yield " <= "
-		yield from self._formatop(self.obj2)
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -1558,13 +1440,6 @@ class GT(Binary):
 	AST node for the binary ``>`` comparison operator.
 	"""
 
-	precedence = 4
-	associative = False
-
-	def _str(self, level):
-		yield from self._formatop(self.obj1)
-		yield " > "
-		yield from self._formatop(self.obj2)
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -1577,13 +1452,6 @@ class GE(Binary):
 	AST node for the binary ``>=`` comparison operator.
 	"""
 
-	precedence = 4
-	associative = False
-
-	def _str(self, level):
-		yield from self._formatop(self.obj1)
-		yield " >= "
-		yield from self._formatop(self.obj2)
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -1600,13 +1468,6 @@ class Contains(Binary):
 	:var:`obj2`.
 	"""
 
-	precedence = 3
-	associative = False
-
-	def _str(self, level):
-		yield from self._formatop(self.obj1)
-		yield " in "
-		yield from self._formatop(self.obj2)
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -1623,13 +1484,6 @@ class NotContains(Binary):
 	:var:`obj2`.
 	"""
 
-	precedence = 3
-	associative = False
-
-	def _str(self, level):
-		yield from self._formatop(self.obj1)
-		yield " not in "
-		yield from self._formatop(self.obj2)
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -1642,12 +1496,6 @@ class Add(Binary):
 	AST node for the binary addition operator.
 	"""
 
-	precedence = 5
-
-	def _str(self, level):
-		yield from self._formatop(self.obj1)
-		yield "+"
-		yield from self._formatop(self.obj2)
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -1660,13 +1508,6 @@ class Sub(Binary):
 	AST node for the binary substraction operator.
 	"""
 
-	precedence = 5
-	associative = False
-
-	def _str(self, level):
-		yield from self._formatop(self.obj1)
-		yield "-"
-		yield from self._formatop(self.obj2)
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -1679,12 +1520,6 @@ class Mul(Binary):
 	AST node for the binary multiplication operator.
 	"""
 
-	precedence = 6
-
-	def _str(self, level):
-		yield from self._formatop(self.obj1)
-		yield "*"
-		yield from self._formatop(self.obj2)
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -1697,13 +1532,6 @@ class FloorDiv(Binary):
 	AST node for the binary truncating division operator.
 	"""
 
-	precedence = 6
-	associative = False
-
-	def _str(self, level):
-		yield from self._formatop(self.obj1)
-		yield "//"
-		yield from self._formatop(self.obj2)
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -1716,13 +1544,6 @@ class TrueDiv(Binary):
 	AST node for the binary true division operator.
 	"""
 
-	precedence = 6
-	associative = False
-
-	def _str(self, level):
-		yield from self._formatop(self.obj1)
-		yield "/"
-		yield from self._formatop(self.obj2)
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -1735,12 +1556,6 @@ class And(Binary):
 	AST node for the binary ``and`` operator.
 	"""
 
-	precedence = 1
-
-	def _str(self, level):
-		yield from self._formatop(self.obj1)
-		yield " and "
-		yield from self._formatop(self.obj2)
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -1755,19 +1570,12 @@ class And(Binary):
 		return (yield from self.obj2.eval(vars))
 
 
-
 @register("or")
 class Or(Binary):
 	"""
 	AST node for the binary ``or`` operator.
 	"""
 
-	precedence = 0
-
-	def _str(self, level):
-		yield from self._formatop(self.obj1)
-		yield " or "
-		yield from self._formatop(self.obj2)
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -1788,13 +1596,6 @@ class Mod(Binary):
 	AST node for the binary modulo operator.
 	"""
 
-	precedence = 6
-	associative = False
-
-	def _str(self, level):
-		yield from self._formatop(self.obj1)
-		yield "%"
-		yield from self._formatop(self.obj2)
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -1812,8 +1613,8 @@ class ChangeVar(AST):
 
 	fields = AST.fields.union({"varname", "value"})
 
-	def __init__(self, location=None, varname=None, value=None):
-		super().__init__(location)
+	def __init__(self, location=None, start=None, end=None, varname=None, value=None):
+		super().__init__(location, start, end)
 		self.varname = varname
 		self.value = value
 
@@ -1851,11 +1652,6 @@ class StoreVar(ChangeVar):
 	AST node that stores a value into a variable.
 	"""
 
-	def _str(self, level):
-		yield _formatnestednameul4(self.varname)
-		yield " = "
-		yield from self.value._str(level)
-
 	@handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
@@ -1867,11 +1663,6 @@ class AddVar(ChangeVar):
 	"""
 	AST node that adds a value to a variable (i.e. the ``+=`` operator).
 	"""
-
-	def _str(self, level):
-		yield _formatnestednameul4(self.varname)
-		yield " += "
-		yield from self.value._str(level)
 
 	@handleeval
 	def eval(self, vars):
@@ -1885,11 +1676,6 @@ class SubVar(ChangeVar):
 	AST node that substracts a value from a variable (i.e. the ``-=`` operator).
 	"""
 
-	def _str(self, level):
-		yield _formatnestednameul4(self.varname)
-		yield " -= "
-		yield from self.value._str(level)
-
 	@handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
@@ -1901,11 +1687,6 @@ class MulVar(ChangeVar):
 	"""
 	AST node that multiplies a variable by a value (i.e. the ``*=`` operator).
 	"""
-
-	def _str(self, level):
-		yield _formatnestednameul4(self.varname)
-		yield " *= "
-		yield from self.value._str(level)
 
 	@handleeval
 	def eval(self, vars):
@@ -1920,11 +1701,6 @@ class FloorDivVar(ChangeVar):
 	i.e. the ``//=`` operator).
 	"""
 
-	def _str(self, level):
-		yield _formatnestednameul4(self.varname)
-		yield " //= "
-		yield from self.value._str(level)
-
 	@handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
@@ -1937,11 +1713,6 @@ class TrueDivVar(ChangeVar):
 	AST node that divides a variable by a value (i.e. the ``/=`` operator).
 	"""
 
-	def _str(self, level):
-		yield _formatnestednameul4(self.varname)
-		yield " /= "
-		yield from self.value._str(level)
-
 	@handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
@@ -1953,11 +1724,6 @@ class ModVar(ChangeVar):
 	"""
 	AST node for the ``%=`` operator.
 	"""
-
-	def _str(self, level):
-		yield _formatnestednameul4(self.varname)
-		yield " %= "
-		yield from self.value._str(level)
 
 	@handleeval
 	def eval(self, vars):
@@ -1978,12 +1744,10 @@ class CallFunc(AST):
 	if there is no ``**`` argument)
 	"""
 
-	precedence = 10
-	associative = False
 	fields = AST.fields.union({"obj", "args", "kwargs", "remargs", "remkwargs"})
 
-	def __init__(self, location=None, obj=None):
-		super().__init__(location)
+	def __init__(self, location=None, start=None, end=None, obj=None):
+		super().__init__(location, start, end)
 		self.obj = obj
 		self.args = []
 		self.kwargs = []
@@ -2024,40 +1788,6 @@ class CallFunc(AST):
 					p.pretty(self.remkwargs)
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
-
-	def _str(self, level):
-		yield from self.obj._str(level)
-		yield "("
-		first = True
-		for arg in self.args:
-			if first:
-				first = False
-			else:
-				yield ", "
-			yield from arg._str(level)
-		for (argname, argvalue) in self.kwargs:
-			if first:
-				first = False
-			else:
-				yield ", "
-			yield argname
-			yield "="
-			yield from argvalue._str(level)
-		if self.remargs is not None:
-			if first:
-				first = False
-			else:
-				yield ", "
-			yield "*"
-			yield from self.remargs._str(level)
-		if self.remkwargs is not None:
-			if first:
-				first = False
-			else:
-				yield ", "
-			yield "**"
-			yield from self.remkwargs._str(level)
-		yield ")"
 
 	@handleeval
 	def eval(self, vars):
@@ -2110,12 +1840,10 @@ class CallMeth(AST):
 	if there is no ``**`` argument)
 	"""
 
-	precedence = 9
-	associative = False
 	fields = AST.fields.union({"obj", "methname", "args", "kwargs", "remargs", "remkwargs"})
 
-	def __init__(self, location=None, obj=None, methname=None):
-		super().__init__(location)
+	def __init__(self, location=None, start=None, end=None, obj=None, methname=None):
+		super().__init__(location, start, end)
 		self.obj = obj
 		self.methname = methname
 		self.args = []
@@ -2160,42 +1888,6 @@ class CallMeth(AST):
 					p.pretty(self.remkwargs)
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
-
-	def _str(self, level):
-		yield from self._formatop(self.obj)
-		yield "."
-		yield self.methname
-		yield "("
-		first = True
-		for arg in self.args:
-			if first:
-				first = False
-			else:
-				yield ", "
-			yield from arg._str(level)
-		for (argname, argvalue) in self.kwargs:
-			if first:
-				first = False
-			else:
-				yield ", "
-			yield argname
-			yield "="
-			yield from argvalue._str(level)
-		if self.remargs is not None:
-			if first:
-				first = False
-			else:
-				yield ", "
-			yield "*"
-			yield from self.remargs._str(level)
-		if self.remkwargs is not None:
-			if first:
-				first = False
-			else:
-				yield ", "
-			yield "**"
-			yield from self.remkwargs._str(level)
-		yield ")"
 
 	@handleeval
 	def eval(self, vars):
@@ -2277,7 +1969,7 @@ class Template(Block):
 		# ``location``/``endlocation`` will remain ``None`` for a top level template
 		# For a subtemplate/subfunction ``location`` will be set to the location of the ``<?def?>`` tag in :meth:`_compile`
 		# and ``endlocation`` will be the location of the ``<?end def?>`` tag
-		super().__init__(None)
+		super().__init__(None, 0, 0)
 		self.keepws = keepws
 		self.startdelim = startdelim
 		self.enddelim = enddelim
@@ -2298,11 +1990,14 @@ class Template(Block):
 			s + " ..."
 		return s + " at {:#x}>".format(id(self))
 
-	def _str(self, level):
+	def _str(self):
 		yield "def "
 		yield self.name if self.name is not None else "unnamed"
-		yield ":\n"
-		yield from super()._str(level+1)
+		yield ":"
+		yield None
+		yield +1
+		yield from super()._str()
+		yield -1
 
 	def _repr_pretty_(self, p, cycle):
 		if cycle:
@@ -2492,15 +2187,15 @@ class Template(Block):
 		for location in self._tokenize(source, startdelim, enddelim):
 			try:
 				if location.type is None:
-					stack[-1].append(Text(location))
+					stack[-1].append(Text(location, location.startcode, location.endcode))
 				elif location.type == "print":
-					stack[-1].append(Print(location, parseexpr(location)))
+					stack[-1].append(Print(location, location.startcode, location.endcode, parseexpr(location)))
 				elif location.type == "printx":
-					stack[-1].append(PrintX(location, parseexpr(location)))
+					stack[-1].append(PrintX(location, location.startcode, location.endcode, parseexpr(location)))
 				elif location.type == "code":
 					stack[-1].append(parsestmt(location))
 				elif location.type == "if":
-					block = IfElIfElse(location, parseexpr(location))
+					block = IfElIfElse(location, location.startcode, location.endcode, parseexpr(location))
 					stack[-1].append(block)
 					stack.append(block)
 				elif location.type == "elif":
@@ -2508,13 +2203,13 @@ class Template(Block):
 						raise BlockError("elif doesn't match and if")
 					elif isinstance(stack[-1].content[-1], Else):
 						raise BlockError("else already seen in if")
-					stack[-1].newblock(ElIf(location, parseexpr(location)))
+					stack[-1].newblock(ElIf(location, location.startcode, location.endcode, parseexpr(location)))
 				elif location.type == "else":
 					if not isinstance(stack[-1], IfElIfElse):
 						raise BlockError("else doesn't match any if")
 					elif isinstance(stack[-1].content[-1], Else):
 						raise BlockError("else already seen in if")
-					stack[-1].newblock(Else(location))
+					stack[-1].newblock(Else(location, location.startcode, location.endcode))
 				elif location.type == "end":
 					if len(stack) <= 1:
 						raise BlockError("not in any block")
@@ -2546,28 +2241,30 @@ class Template(Block):
 							break
 						elif isinstance(block, Template):
 							raise BlockError("break outside of for loop")
-					stack[-1].append(Break(location))
+					stack[-1].append(Break(location, location.startcode, location.endcode))
 				elif location.type == "continue":
 					for block in reversed(stack):
 						if isinstance(block, For):
 							break
 						elif isinstance(block, Template):
 							raise BlockError("continue outside of for loop")
-					stack[-1].append(Continue(location))
+					stack[-1].append(Continue(location, location.startcode, location.endcode))
 				elif location.type == "def":
 					block = Template(None, location.code, self.keepws, self.startdelim, self.enddelim)
 					block.location = location # Set start ``location`` of sub template
 					block.source = self.source # The source of the top level template (so that the offsets in :class:`Location` are correct)
+					block.start = location.startcode
+					block.end = location.endcode
 					stack[-1].append(block)
 					stack.append(block)
 				elif location.type == "return":
-					stack[-1].append(Return(location, parseexpr(location)))
+					stack[-1].append(Return(location, location.startcode, location.endcode, parseexpr(location)))
 				else: # Can't happen
 					raise ValueError("unknown tag {!r}".format(location.type))
 			except Exception as exc:
-				raise Error(location) from exc
+				raise Error(self) from exc
 		if len(stack) > 1:
-			raise Error(stack[-1].location) from BlockError("block unclosed")
+			raise Error(stack[-1]) from BlockError("block unclosed")
 
 	@handleeval
 	def eval(self, vars):
