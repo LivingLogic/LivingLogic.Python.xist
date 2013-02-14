@@ -1880,10 +1880,10 @@ class CallFunc(AST):
 		if self.remkwargs is not None:
 			kwargs.update((yield from self.remkwargs.eval(vars)))
 		result = obj(*args, **kwargs)
-		if isinstance(result, types.GeneratorType):
-			return (yield from result)
-		else:
+		if isinstance(obj, (Template, TemplateClosure)):
 			return result
+		else:
+			return (yield from result)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -2370,51 +2370,61 @@ def function_printx(*values):
 
 @AST.makefunction
 def function_str(obj=""):
+	yield from ()
 	return _str(obj)
 
 
 @AST.makefunction
 def function_repr(obj):
+	yield from ()
 	return _repr(obj)
 
 
 @AST.makefunction
 def function_now():
+	yield from ()
 	return datetime.datetime.now()
 
 
 @AST.makefunction
 def function_utcnow():
+	yield from ()
 	return datetime.datetime.utcnow()
 
 
 @AST.makefunction
 def function_date(year, month, day, hour=0, minute=0, second=0, microsecond=0):
+	yield from ()
 	return datetime.datetime(year, month, day, hour, minute, second, microsecond)
 
 
 @AST.makefunction
 def function_timedelta(days=0, seconds=0, microseconds=0):
+	yield from ()
 	return datetime.timedelta(days, seconds, microseconds)
 
 
 @AST.makefunction
 def function_monthdelta(months=0):
+	yield from ()
 	return misc.monthdelta(months)
 
 
 @AST.makefunction
 def function_random():
+	yield from ()
 	return random.random()
 
 
 @AST.makefunction
 def function_xmlescape(obj):
+	yield from ()
 	return _xmlescape(obj)
 
 
 @AST.makefunction
 def function_csv(obj):
+	yield from ()
 	if obj is None:
 		return ""
 	elif isinstance(obj, Undefined):
@@ -2428,29 +2438,34 @@ def function_csv(obj):
 
 @AST.makefunction
 def function_asjson(obj):
+	yield from ()
 	return _asjson(obj)
 
 
 @AST.makefunction
 def function_fromjson(string):
 	from ll import ul4on
+	yield from ()
 	return json.loads(string)
 
 
 @AST.makefunction
 def function_asul4on(obj):
 	from ll import ul4on
+	yield from ()
 	return ul4on.dumps(obj)
 
 
 @AST.makefunction
 def function_fromul4on(string):
 	from ll import ul4on
+	yield from ()
 	return ul4on.loads(string)
 
 
 @AST.makefunction
 def function_int(obj=0, base=None):
+	yield from ()
 	if base is None:
 		return int(obj)
 	else:
@@ -2459,31 +2474,37 @@ def function_int(obj=0, base=None):
 
 @AST.makefunction
 def function_float(obj=0.0):
+	yield from ()
 	return float(obj)
 
 
 @AST.makefunction
 def function_bool(obj=False):
+	yield from ()
 	return bool(obj)
 
 
 @AST.makefunction
 def function_len(sequence):
+	yield from ()
 	return len(sequence)
 
 
 @AST.makefunction
 def function_abs(number):
+	yield from ()
 	return abs(number)
 
 
 @AST.makefunction
 def function_any(iterable):
+	yield from ()
 	return any(iterable)
 
 
 @AST.makefunction
 def function_all(iterable):
+	yield from ()
 	return all(iterable)
 
 
@@ -2575,126 +2596,151 @@ def function_islast(iterable):
 
 @AST.makefunction
 def function_isundefined(obj):
+	yield from ()
 	return isinstance(obj, Undefined)
 
 
 @AST.makefunction
 def function_isdefined(obj):
+	yield from ()
 	return not isinstance(obj, Undefined)
 
 
 @AST.makefunction
 def function_isnone(obj):
+	yield from ()
 	return obj is None
 
 
 @AST.makefunction
 def function_isstr(obj):
+	yield from ()
 	return isinstance(obj, str)
 
 
 @AST.makefunction
 def function_isint(obj):
+	yield from ()
 	return isinstance(obj, int) and not isinstance(obj, bool)
 
 
 @AST.makefunction
 def function_isfloat(obj):
+	yield from ()
 	return isinstance(obj, float)
 
 
 @AST.makefunction
 def function_isbool(obj):
+	yield from ()
 	return isinstance(obj, bool)
 
 
 @AST.makefunction
 def function_isdate(obj):
+	yield from ()
 	return isinstance(obj, (datetime.datetime, datetime.date))
 
 
 @AST.makefunction
 def function_istimedelta(obj):
+	yield from ()
 	return isinstance(obj, datetime.timedelta)
 
 
 @AST.makefunction
 def function_ismonthdelta(obj):
+	yield from ()
 	return isinstance(obj, misc.monthdelta)
 
 
 @AST.makefunction
 def function_islist(obj):
+	yield from ()
 	return isinstance(obj, collections.Sequence) and not isinstance(obj, str) and not isinstance(obj, color.Color)
 
 
 @AST.makefunction
 def function_isdict(obj):
+	yield from ()
 	return isinstance(obj, collections.Mapping) and not isinstance(obj, Template)
 
 
 @AST.makefunction
 def function_iscolor(obj):
+	yield from ()
 	return isinstance(obj, color.Color)
 
 
 @AST.makefunction
 def function_istemplate(obj):
+	yield from ()
 	return isinstance(obj, (Template, TemplateClosure))
 
 
 @AST.makefunction
 def function_isfunction(obj):
+	yield from ()
 	return callable(obj)
 
 
 @AST.makefunction
 def function_chr(i):
+	yield from ()
 	return chr(i)
 
 
 @AST.makefunction
 def function_ord(c):
+	yield from ()
 	return ord(c)
 
 
 @AST.makefunction
 def function_hex(number):
+	yield from ()
 	return hex(number)
 
 
 @AST.makefunction
 def function_oct(number):
+	yield from ()
 	return oct(number)
 
 
 @AST.makefunction
 def function_bin(number):
+	yield from ()
 	return bin(number)
 
 
 @AST.makefunction
 def function_min(*args):
+	yield from ()
 	return min(*args)
 
 
 @AST.makefunction
 def function_max(*args):
+	yield from ()
 	return max(*args)
 
 
 @AST.makefunction
 def function_sorted(iterable):
+	yield from ()
 	return sorted(iterable)
 
 
 @AST.makefunction
 def function_range(*args):
+	yield from ()
 	return range(*args)
 
 
 @AST.makefunction
 def function_type(obj):
+	yield from ()
 	if obj is None:
 		return "none"
 	elif isinstance(obj, Undefined):
@@ -2736,16 +2782,19 @@ def function_reversed(sequence):
 
 @AST.makefunction
 def function_randrange(*args):
+	yield from ()
 	return random.randrange(*args)
 
 
 @AST.makefunction
 def function_randchoice(sequence):
+	yield from ()
 	return random.choice(sequence)
 
 
 @AST.makefunction
 def function_format(obj, fmt, lang=None):
+	yield from ()
 	if isinstance(obj, (datetime.date, datetime.time, datetime.timedelta)):
 		if lang is None:
 			lang = "en"
@@ -2769,61 +2818,73 @@ def function_format(obj, fmt, lang=None):
 
 @AST.makefunction
 def function_zip(*iterables):
+	yield from ()
 	return zip(*iterables)
 
 
 @AST.makefunction
 def function_urlquote(string):
+	yield from ()
 	return urlparse.quote_plus(string)
 
 
 @AST.makefunction
 def function_urlunquote(string):
+	yield from ()
 	return urlparse.unquote_plus(string)
 
 
 @AST.makefunction
 def function_rgb(r, g, b, a=1.0):
+	yield from ()
 	return color.Color.fromrgb(r, g, b, a)
 
 
 @AST.makefunction
 def function_hls(h, l, s, a=1.0):
+	yield from ()
 	return color.Color.fromhls(h, l, s, a)
 
 
 @AST.makefunction
 def function_hsv(h, s, v, a=1.0):
+	yield from ()
 	return color.Color.fromhsv(h, s, v, a)
 
 
 @AST.makemethod
 def method_split(obj, sep=None, count=None):
+	yield from ()
 	return obj.split(sep, count if count is not None else -1)
 
 
 @AST.makemethod
 def method_rsplit(obj, sep=None, count=None):
+	yield from ()
 	return obj.rsplit(sep, count if count is not None else -1)
 
 
 @AST.makemethod
 def method_strip(obj, chars=None):
+	yield from ()
 	return obj.strip(chars)
 
 
 @AST.makemethod
 def method_lstrip(obj, chars=None):
+	yield from ()
 	return obj.lstrip(chars)
 
 
 @AST.makemethod
 def method_rstrip(obj, chars=None):
+	yield from ()
 	return obj.rstrip(chars)
 
 
 @AST.makemethod
 def method_find(obj, sub, start=None, end=None):
+	yield from ()
 	if isinstance(obj, str):
 		return obj.find(sub, start, end)
 	else:
@@ -2839,6 +2900,7 @@ def method_find(obj, sub, start=None, end=None):
 
 @AST.makemethod
 def method_rfind(obj, sub, start=None, end=None):
+	yield from ()
 	if isinstance(obj, str):
 		return obj.rfind(sub, start, end)
 	else:
@@ -2850,31 +2912,37 @@ def method_rfind(obj, sub, start=None, end=None):
 
 @AST.makemethod
 def method_startswith(obj, prefix):
+	yield from ()
 	return obj.startswith(prefix)
 
 
 @AST.makemethod
 def method_endswith(obj, suffix):
+	yield from ()
 	return obj.endswith(suffix)
 
 
 @AST.makemethod
 def method_upper(obj):
+	yield from ()
 	return obj.upper()
 
 
 @AST.makemethod
 def method_lower(obj):
+	yield from ()
 	return obj.lower()
 
 
 @AST.makemethod
 def method_capitalize(obj):
+	yield from ()
 	return obj.capitalize()
 
 
 @AST.makemethod
 def method_replace(obj, old, new, count=None):
+	yield from ()
 	if count is None:
 		return obj.replace(old, new)
 	else:
@@ -2883,56 +2951,67 @@ def method_replace(obj, old, new, count=None):
 
 @AST.makemethod
 def method_r(obj):
+	yield from ()
 	return obj.r()
 
 
 @AST.makemethod
 def method_g(obj):
+	yield from ()
 	return obj.g()
 
 
 @AST.makemethod
 def method_b(obj):
+	yield from ()
 	return obj.b()
 
 
 @AST.makemethod
 def method_a(obj):
+	yield from ()
 	return obj.a()
 
 
 @AST.makemethod
 def method_hls(obj):
+	yield from ()
 	return obj.hls()
 
 
 @AST.makemethod
 def method_hlsa(obj):
+	yield from ()
 	return obj.hlsa()
 
 
 @AST.makemethod
 def method_hsv(obj):
+	yield from ()
 	return obj.hsv()
 
 
 @AST.makemethod
 def method_hsva(obj):
+	yield from ()
 	return obj.hsva()
 
 
 @AST.makemethod
 def method_lum(obj):
+	yield from ()
 	return obj.lum()
 
 
 @AST.makemethod
 def method_weekday(obj):
+	yield from ()
 	return obj.weekday()
 
 
 @AST.makemethod
 def method_week(obj, firstweekday=None):
+	yield from ()
 	if firstweekday is None:
 		firstweekday = 0
 	else:
@@ -2962,6 +3041,7 @@ def method_values(obj):
 
 @AST.makemethod
 def method_join(obj, iterable):
+	yield from ()
 	return obj.join(iterable)
 
 
@@ -2972,11 +3052,13 @@ def method_render(obj, **vars):
 
 @AST.makemethod
 def method_renders(obj, **vars):
+	yield from ()
 	return obj.renders(**vars)
 
 
 @AST.makemethod
 def method_mimeformat(obj):
+	yield from ()
 	weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 	monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 	return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(obj, weekdayname[obj.weekday()], monthname[obj.month])
@@ -2984,6 +3066,7 @@ def method_mimeformat(obj):
 
 @AST.makemethod
 def method_isoformat(obj):
+	yield from ()
 	result = obj.isoformat()
 	suffix = "T00:00:00"
 	if result.endswith(suffix):
@@ -2993,26 +3076,31 @@ def method_isoformat(obj):
 
 @AST.makemethod
 def method_yearday(obj):
+	yield from ()
 	return (obj - obj.__class__(obj.year, 1, 1)).days+1
 
 
 @AST.makemethod
 def method_get(obj, key, default=None):
+	yield from ()
 	return obj.get(key, default)
 
 
 @AST.makemethod
 def method_withlum(obj, lum):
+	yield from ()
 	return obj.withlum(lum)
 
 
 @AST.makemethod
 def method_witha(obj, a):
+	yield from ()
 	return obj.witha(a)
 
 
 @AST.makemethod
 def method_day(obj):
+	yield from ()
 	return obj.day
 
 
@@ -3023,66 +3111,79 @@ def method_month(obj):
 
 @AST.makemethod
 def method_year(obj):
+	yield from ()
 	return obj.year
 
 
 @AST.makemethod
 def method_hour(obj):
+	yield from ()
 	return obj.hour
 
 
 @AST.makemethod
 def method_minute(obj):
+	yield from ()
 	return obj.minute
 
 
 @AST.makemethod
 def method_second(obj):
+	yield from ()
 	return obj.second
 
 
 @AST.makemethod
 def method_microsecond(obj):
+	yield from ()
 	return obj.microsecond
 
 
 @AST.makemethod
 def method_days(obj):
+	yield from ()
 	return obj.days
 
 
 @AST.makemethod
 def method_seconds(obj):
+	yield from ()
 	return obj.seconds
 
 
 @AST.makemethod
 def method_microseconds(obj):
+	yield from ()
 	return obj.microseconds
 
 
 @AST.makemethod
 def method_months(obj):
+	yield from ()
 	return obj.months
 
 
 @AST.makemethod
 def method_append(obj, *items):
+	yield from ()
 	obj.extend(items)
 
 
 @AST.makemethod
 def method_insert(obj, pos, *items):
+	yield from ()
 	obj[pos:pos] = items
 
 
 @AST.makemethod
 def method_pop(obj, pos=-1):
+	yield from ()
 	return obj.pop(pos)
 
 
 @AST.makemethod
 def method_update(obj, *others, **kwargs):
+	yield from ()
 	for other in others:
 		obj.update(other)
 	obj.update(**kwargs)
