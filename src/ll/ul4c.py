@@ -272,6 +272,82 @@ def _unpackvar(vars, name, value):
 			_unpackvar(vars, name, value)
 
 
+def _str(obj=""):
+	if obj is None:
+		return ""
+	elif isinstance(obj, Undefined):
+		return ""
+	else:
+		return str(obj)
+
+
+def _repr(obj):
+	if isinstance(obj, str):
+		return repr(obj)
+	elif isinstance(obj, datetime.datetime):
+		s = str(obj.isoformat())
+		if s.endswith("T00:00:00"):
+			s = s[:-9]
+		return "@({})".format(s)
+	elif isinstance(obj, datetime.date):
+		return "@({})".format(obj.isoformat())
+	elif isinstance(obj, datetime.timedelta):
+		return repr(obj).partition(".")[-1]
+	elif isinstance(obj, color.Color):
+		if obj[3] == 0xff:
+			s = "#{:02x}{:02x}{:02x}".format(obj[0], obj[1], obj[2])
+			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6]:
+				return "#{}{}{}".format(s[1], s[3], s[5])
+			return s
+		else:
+			s = "#{:02x}{:02x}{:02x}{:02x}".format(*obj)
+			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6] and s[7]==s[8]:
+				return "#{}{}{}{}".format(s[1], s[3], s[5], s[7])
+			return s
+	elif isinstance(obj, collections.Sequence):
+		return "[{}]".format(", ".join(_repr(item) for item in obj))
+	elif isinstance(obj, collections.Mapping):
+		return "{{{}}}".format(", ".join("{}: {}".format(_repr(key), _repr(value)) for (key, value) in obj.items()))
+	else:
+		return repr(obj)
+
+
+def _asjson(obj):
+	if obj is None:
+		return "null"
+	elif isinstance(obj, Undefined):
+		return "{}.undefined"
+	if isinstance(obj, (bool, int, float, str)):
+		return json.dumps(obj)
+	elif isinstance(obj, datetime.datetime):
+		return "new Date({}, {}, {}, {}, {}, {}, {})".format(obj.year, obj.month-1, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond//1000)
+	elif isinstance(obj, datetime.date):
+		return "new Date({}, {}, {})".format(obj.year, obj.month-1, obj.day)
+	elif isinstance(obj, datetime.timedelta):
+		return "ul4.TimeDelta.create({}, {}, {})".format(obj.days, obj.seconds, obj.microseconds)
+	elif isinstance(obj, misc.monthdelta):
+		return "ul4.MonthDelta.create({})".format(obj.months)
+	elif isinstance(obj, color.Color):
+		return "ul4.Color.create({}, {}, {}, {})".format(*obj)
+	elif isinstance(obj, collections.Mapping):
+		return "{{{}}}".format(", ".join("{}: {}".format(_asjson(key), _asjson(value)) for (key, value) in obj.items()))
+	elif isinstance(obj, collections.Sequence):
+		return "[{}]".format(", ".join(_asjson(item) for item in obj))
+	elif isinstance(obj, Template):
+		return obj.jssource()
+	else:
+		raise TypeError("can't handle object of type {}".format(type(obj)))
+
+
+def _xmlescape(obj):
+	if obj is None:
+		return ""
+	elif isinstance(obj, Undefined):
+		return ""
+	else:
+		return misc.xmlescape(str(obj))
+
+
 ###
 ### Compiler stuff: Nodes for the AST
 ###
@@ -355,16 +431,16 @@ class AST(Object):
 	@classmethod
 	def makefunction(cls, f):
 		name = f.__name__
-		if name.startswith("_"):
-			name = name[1:]
+		if name.startswith("function_"):
+			name = name[9:]
 		cls.functions[name] = f
 		return f
 
 	@classmethod
 	def makemethod(cls, f):
 		name = f.__name__
-		if name.startswith("_"):
-			name = name[1:]
+		if name.startswith("method_"):
+			name = name[7:]
 		cls.methods[name] = f
 		return f
 
@@ -2277,7 +2353,7 @@ class Template(Block):
 ###
 
 @AST.makefunction
-def _print(*values):
+def function_print(*values):
 	for (i, value) in enumerate(values):
 		if i:
 			yield " "
@@ -2285,7 +2361,7 @@ def _print(*values):
 
 
 @AST.makefunction
-def _printx(*values):
+def function_printx(*values):
 	for (i, value) in enumerate(values):
 		if i:
 			yield " "
@@ -2293,89 +2369,52 @@ def _printx(*values):
 
 
 @AST.makefunction
-def _str(obj=""):
-	if obj is None:
-		return ""
-	elif isinstance(obj, Undefined):
-		return ""
-	else:
-		return str(obj)
+def function_str(obj=""):
+	return _str(obj)
 
 
 @AST.makefunction
-def _repr(obj):
-	if isinstance(obj, str):
-		return repr(obj)
-	elif isinstance(obj, datetime.datetime):
-		s = str(obj.isoformat())
-		if s.endswith("T00:00:00"):
-			s = s[:-9]
-		return "@({})".format(s)
-	elif isinstance(obj, datetime.date):
-		return "@({})".format(obj.isoformat())
-	elif isinstance(obj, datetime.timedelta):
-		return repr(obj).partition(".")[-1]
-	elif isinstance(obj, color.Color):
-		if obj[3] == 0xff:
-			s = "#{:02x}{:02x}{:02x}".format(obj[0], obj[1], obj[2])
-			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6]:
-				return "#{}{}{}".format(s[1], s[3], s[5])
-			return s
-		else:
-			s = "#{:02x}{:02x}{:02x}{:02x}".format(*obj)
-			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6] and s[7]==s[8]:
-				return "#{}{}{}{}".format(s[1], s[3], s[5], s[7])
-			return s
-	elif isinstance(obj, collections.Sequence):
-		return "[{}]".format(", ".join(_repr(item) for item in obj))
-	elif isinstance(obj, collections.Mapping):
-		return "{{{}}}".format(", ".join("{}: {}".format(_repr(key), _repr(value)) for (key, value) in obj.items()))
-	else:
-		return repr(obj)
+def function_repr(obj):
+	return _repr(obj)
 
 
 @AST.makefunction
-def _now():
+def function_now():
 	return datetime.datetime.now()
 
 
 @AST.makefunction
-def _utcnow():
+def function_utcnow():
 	return datetime.datetime.utcnow()
 
 
 @AST.makefunction
-def _date(year, month, day, hour=0, minute=0, second=0, microsecond=0):
+def function_date(year, month, day, hour=0, minute=0, second=0, microsecond=0):
 	return datetime.datetime(year, month, day, hour, minute, second, microsecond)
 
 
 @AST.makefunction
-def _timedelta(days=0, seconds=0, microseconds=0):
+def function_timedelta(days=0, seconds=0, microseconds=0):
 	return datetime.timedelta(days, seconds, microseconds)
 
 
 @AST.makefunction
-def _monthdelta(months=0):
+def function_monthdelta(months=0):
 	return misc.monthdelta(months)
 
 
 @AST.makefunction
-def _random():
+def function_random():
 	return random.random()
 
 
 @AST.makefunction
-def _xmlescape(obj):
-	if obj is None:
-		return ""
-	elif isinstance(obj, Undefined):
-		return ""
-	else:
-		return misc.xmlescape(str(obj))
+def function_xmlescape(obj):
+	return _xmlescape(obj)
 
 
 @AST.makefunction
-def _csv(obj):
+def function_csv(obj):
 	if obj is None:
 		return ""
 	elif isinstance(obj, Undefined):
@@ -2388,53 +2427,30 @@ def _csv(obj):
 
 
 @AST.makefunction
-def _asjson(obj):
-	if obj is None:
-		return "null"
-	elif isinstance(obj, Undefined):
-		return "{}.undefined"
-	if isinstance(obj, (bool, int, float, str)):
-		return json.dumps(obj)
-	elif isinstance(obj, datetime.datetime):
-		return "new Date({}, {}, {}, {}, {}, {}, {})".format(obj.year, obj.month-1, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond//1000)
-	elif isinstance(obj, datetime.date):
-		return "new Date({}, {}, {})".format(obj.year, obj.month-1, obj.day)
-	elif isinstance(obj, datetime.timedelta):
-		return "ul4.TimeDelta.create({}, {}, {})".format(obj.days, obj.seconds, obj.microseconds)
-	elif isinstance(obj, misc.monthdelta):
-		return "ul4.MonthDelta.create({})".format(obj.months)
-	elif isinstance(obj, color.Color):
-		return "ul4.Color.create({}, {}, {}, {})".format(*obj)
-	elif isinstance(obj, collections.Mapping):
-		return "{{{}}}".format(", ".join("{}: {}".format(_asjson(key), _asjson(value)) for (key, value) in obj.items()))
-	elif isinstance(obj, collections.Sequence):
-		return "[{}]".format(", ".join(_asjson(item) for item in obj))
-	elif isinstance(obj, Template):
-		return obj.jssource()
-	else:
-		raise TypeError("can't handle object of type {}".format(type(obj)))
+def function_asjson(obj):
+	return _asjson(obj)
 
 
 @AST.makefunction
-def _fromjson(string):
+def function_fromjson(string):
 	from ll import ul4on
 	return json.loads(string)
 
 
 @AST.makefunction
-def _asul4on(obj):
+def function_asul4on(obj):
 	from ll import ul4on
 	return ul4on.dumps(obj)
 
 
 @AST.makefunction
-def _fromul4on(string):
+def function_fromul4on(string):
 	from ll import ul4on
 	return ul4on.loads(string)
 
 
 @AST.makefunction
-def _int(obj=0, base=None):
+def function_int(obj=0, base=None):
 	if base is None:
 		return int(obj)
 	else:
@@ -2442,43 +2458,43 @@ def _int(obj=0, base=None):
 
 
 @AST.makefunction
-def _float(obj=0.0):
+def function_float(obj=0.0):
 	return float(obj)
 
 
 @AST.makefunction
-def _bool(obj=False):
+def function_bool(obj=False):
 	return bool(obj)
 
 
 @AST.makefunction
-def _len(sequence):
+def function_len(sequence):
 	return len(sequence)
 
 
 @AST.makefunction
-def _abs(number):
+def function_abs(number):
 	return abs(number)
 
 
 @AST.makefunction
-def _any(iterable):
+def function_any(iterable):
 	return any(iterable)
 
 
 @AST.makefunction
-def _all(iterable):
+def function_all(iterable):
 	return all(iterable)
 
 
 @AST.makefunction
-def _enumerate(iterable, start=0):
+def function_enumerate(iterable, start=0):
 	yield from ()
 	return enumerate(iterable, start)
 
 
 @AST.makefunction
-def _enumfl(iterable, start=0):
+def function_enumfl(iterable, start=0):
 	yield from ()
 	def result(iterable):
 		lastitem = None
@@ -2503,7 +2519,7 @@ def _enumfl(iterable, start=0):
 
 
 @AST.makefunction
-def _isfirstlast(iterable):
+def function_isfirstlast(iterable):
 	yield from ()
 	def result(iterable):
 		lastitem = None
@@ -2526,7 +2542,7 @@ def _isfirstlast(iterable):
 
 
 @AST.makefunction
-def _isfirst(iterable):
+def function_isfirst(iterable):
 	yield from ()
 	def result(iterable):
 		first = True
@@ -2537,7 +2553,7 @@ def _isfirst(iterable):
 
 
 @AST.makefunction
-def _islast(iterable):
+def function_islast(iterable):
 	yield from ()
 	def result(iterable):
 		lastitem = None
@@ -2558,127 +2574,127 @@ def _islast(iterable):
 
 
 @AST.makefunction
-def _isundefined(obj):
+def function_isundefined(obj):
 	return isinstance(obj, Undefined)
 
 
 @AST.makefunction
-def _isdefined(obj):
+def function_isdefined(obj):
 	return not isinstance(obj, Undefined)
 
 
 @AST.makefunction
-def _isnone(obj):
+def function_isnone(obj):
 	return obj is None
 
 
 @AST.makefunction
-def _isstr(obj):
+def function_isstr(obj):
 	return isinstance(obj, str)
 
 
 @AST.makefunction
-def _isint(obj):
+def function_isint(obj):
 	return isinstance(obj, int) and not isinstance(obj, bool)
 
 
 @AST.makefunction
-def _isfloat(obj):
+def function_isfloat(obj):
 	return isinstance(obj, float)
 
 
 @AST.makefunction
-def _isbool(obj):
+def function_isbool(obj):
 	return isinstance(obj, bool)
 
 
 @AST.makefunction
-def _isdate(obj):
+def function_isdate(obj):
 	return isinstance(obj, (datetime.datetime, datetime.date))
 
 
 @AST.makefunction
-def _istimedelta(obj):
+def function_istimedelta(obj):
 	return isinstance(obj, datetime.timedelta)
 
 
 @AST.makefunction
-def _ismonthdelta(obj):
+def function_ismonthdelta(obj):
 	return isinstance(obj, misc.monthdelta)
 
 
 @AST.makefunction
-def _islist(obj):
+def function_islist(obj):
 	return isinstance(obj, collections.Sequence) and not isinstance(obj, str) and not isinstance(obj, color.Color)
 
 
 @AST.makefunction
-def _isdict(obj):
+def function_isdict(obj):
 	return isinstance(obj, collections.Mapping) and not isinstance(obj, Template)
 
 
 @AST.makefunction
-def _iscolor(obj):
+def function_iscolor(obj):
 	return isinstance(obj, color.Color)
 
 
 @AST.makefunction
-def _istemplate(obj):
+def function_istemplate(obj):
 	return isinstance(obj, (Template, TemplateClosure))
 
 
 @AST.makefunction
-def _isfunction(obj):
+def function_isfunction(obj):
 	return callable(obj)
 
 
 @AST.makefunction
-def _chr(i):
+def function_chr(i):
 	return chr(i)
 
 
 @AST.makefunction
-def _ord(c):
+def function_ord(c):
 	return ord(c)
 
 
 @AST.makefunction
-def _hex(number):
+def function_hex(number):
 	return hex(number)
 
 
 @AST.makefunction
-def _oct(number):
+def function_oct(number):
 	return oct(number)
 
 
 @AST.makefunction
-def _bin(number):
+def function_bin(number):
 	return bin(number)
 
 
 @AST.makefunction
-def _min(*args):
+def function_min(*args):
 	return min(*args)
 
 
 @AST.makefunction
-def _max(*args):
+def function_max(*args):
 	return max(*args)
 
 
 @AST.makefunction
-def _sorted(iterable):
+def function_sorted(iterable):
 	return sorted(iterable)
 
 
 @AST.makefunction
-def _range(*args):
+def function_range(*args):
 	return range(*args)
 
 
 @AST.makefunction
-def _type(obj):
+def function_type(obj):
 	if obj is None:
 		return "none"
 	elif isinstance(obj, Undefined):
@@ -2713,23 +2729,23 @@ def _type(obj):
 
 
 @AST.makefunction
-def _reversed(sequence):
+def function_reversed(sequence):
 	yield from ()
 	return reversed(sequence)
 
 
 @AST.makefunction
-def _randrange(*args):
+def function_randrange(*args):
 	return random.randrange(*args)
 
 
 @AST.makefunction
-def _randchoice(sequence):
+def function_randchoice(sequence):
 	return random.choice(sequence)
 
 
 @AST.makefunction
-def _format(obj, fmt, lang=None):
+def function_format(obj, fmt, lang=None):
 	if isinstance(obj, (datetime.date, datetime.time, datetime.timedelta)):
 		if lang is None:
 			lang = "en"
@@ -2752,62 +2768,62 @@ def _format(obj, fmt, lang=None):
 
 
 @AST.makefunction
-def _zip(*iterables):
+def function_zip(*iterables):
 	return zip(*iterables)
 
 
 @AST.makefunction
-def _urlquote(string):
+def function_urlquote(string):
 	return urlparse.quote_plus(string)
 
 
 @AST.makefunction
-def _urlunquote(string):
+def function_urlunquote(string):
 	return urlparse.unquote_plus(string)
 
 
 @AST.makefunction
-def _rgb(r, g, b, a=1.0):
+def function_rgb(r, g, b, a=1.0):
 	return color.Color.fromrgb(r, g, b, a)
 
 
 @AST.makefunction
-def _hls(h, l, s, a=1.0):
+def function_hls(h, l, s, a=1.0):
 	return color.Color.fromhls(h, l, s, a)
 
 
 @AST.makefunction
-def _hsv(h, s, v, a=1.0):
+def function_hsv(h, s, v, a=1.0):
 	return color.Color.fromhsv(h, s, v, a)
 
 
 @AST.makemethod
-def _split(obj, sep=None, count=None):
+def method_split(obj, sep=None, count=None):
 	return obj.split(sep, count if count is not None else -1)
 
 
 @AST.makemethod
-def _rsplit(obj, sep=None, count=None):
+def method_rsplit(obj, sep=None, count=None):
 	return obj.rsplit(sep, count if count is not None else -1)
 
 
 @AST.makemethod
-def _strip(obj, chars=None):
+def method_strip(obj, chars=None):
 	return obj.strip(chars)
 
 
 @AST.makemethod
-def _lstrip(obj, chars=None):
+def method_lstrip(obj, chars=None):
 	return obj.lstrip(chars)
 
 
 @AST.makemethod
-def _rstrip(obj, chars=None):
+def method_rstrip(obj, chars=None):
 	return obj.rstrip(chars)
 
 
 @AST.makemethod
-def _find(obj, sub, start=None, end=None):
+def method_find(obj, sub, start=None, end=None):
 	if isinstance(obj, str):
 		return obj.find(sub, start, end)
 	else:
@@ -2822,7 +2838,7 @@ def _find(obj, sub, start=None, end=None):
 
 
 @AST.makemethod
-def _rfind(obj, sub, start=None, end=None):
+def method_rfind(obj, sub, start=None, end=None):
 	if isinstance(obj, str):
 		return obj.rfind(sub, start, end)
 	else:
@@ -2833,32 +2849,32 @@ def _rfind(obj, sub, start=None, end=None):
 
 
 @AST.makemethod
-def _startswith(obj, prefix):
+def method_startswith(obj, prefix):
 	return obj.startswith(prefix)
 
 
 @AST.makemethod
-def _endswith(obj, suffix):
+def method_endswith(obj, suffix):
 	return obj.endswith(suffix)
 
 
 @AST.makemethod
-def _upper(obj):
+def method_upper(obj):
 	return obj.upper()
 
 
 @AST.makemethod
-def _lower(obj):
+def method_lower(obj):
 	return obj.lower()
 
 
 @AST.makemethod
-def _capitalize(obj):
+def method_capitalize(obj):
 	return obj.capitalize()
 
 
 @AST.makemethod
-def _replace(obj, old, new, count=None):
+def method_replace(obj, old, new, count=None):
 	if count is None:
 		return obj.replace(old, new)
 	else:
@@ -2866,57 +2882,57 @@ def _replace(obj, old, new, count=None):
 
 
 @AST.makemethod
-def _r(obj):
+def method_r(obj):
 	return obj.r()
 
 
 @AST.makemethod
-def _g(obj):
+def method_g(obj):
 	return obj.g()
 
 
 @AST.makemethod
-def _b(obj):
+def method_b(obj):
 	return obj.b()
 
 
 @AST.makemethod
-def _a(obj):
+def method_a(obj):
 	return obj.a()
 
 
 @AST.makemethod
-def _hls(obj):
+def method_hls(obj):
 	return obj.hls()
 
 
 @AST.makemethod
-def _hlsa(obj):
+def method_hlsa(obj):
 	return obj.hlsa()
 
 
 @AST.makemethod
-def _hsv(obj):
+def method_hsv(obj):
 	return obj.hsv()
 
 
 @AST.makemethod
-def _hsva(obj):
+def method_hsva(obj):
 	return obj.hsva()
 
 
 @AST.makemethod
-def _lum(obj):
+def method_lum(obj):
 	return obj.lum()
 
 
 @AST.makemethod
-def _weekday(obj):
+def method_weekday(obj):
 	return obj.weekday()
 
 
 @AST.makemethod
-def _week(obj, firstweekday=None):
+def method_week(obj, firstweekday=None):
 	if firstweekday is None:
 		firstweekday = 0
 	else:
@@ -2933,41 +2949,41 @@ def _week(obj, firstweekday=None):
 
 
 @AST.makemethod
-def _items(obj):
+def method_items(obj):
 	yield from ()
 	return obj.items()
 
 
 @AST.makemethod
-def _values(obj):
+def method_values(obj):
 	yield from ()
 	return obj.values()
 
 
 @AST.makemethod
-def _join(obj, iterable):
+def method_join(obj, iterable):
 	return obj.join(iterable)
 
 
 @AST.makemethod
-def _render(obj, **vars):
+def method_render(obj, **vars):
 	yield from obj.render(**vars)
 
 
 @AST.makemethod
-def _renders(obj, **vars):
+def method_renders(obj, **vars):
 	return obj.renders(**vars)
 
 
 @AST.makemethod
-def _mimeformat(obj):
+def method_mimeformat(obj):
 	weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 	monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 	return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(obj, weekdayname[obj.weekday()], monthname[obj.month])
 
 
 @AST.makemethod
-def _isoformat(obj):
+def method_isoformat(obj):
 	result = obj.isoformat()
 	suffix = "T00:00:00"
 	if result.endswith(suffix):
@@ -2976,97 +2992,97 @@ def _isoformat(obj):
 
 
 @AST.makemethod
-def _yearday(obj):
+def method_yearday(obj):
 	return (obj - obj.__class__(obj.year, 1, 1)).days+1
 
 
 @AST.makemethod
-def _get(obj, key, default=None):
+def method_get(obj, key, default=None):
 	return obj.get(key, default)
 
 
 @AST.makemethod
-def _withlum(obj, lum):
+def method_withlum(obj, lum):
 	return obj.withlum(lum)
 
 
 @AST.makemethod
-def _witha(obj, a):
+def method_witha(obj, a):
 	return obj.witha(a)
 
 
 @AST.makemethod
-def _day(obj):
+def method_day(obj):
 	return obj.day
 
 
 @AST.makemethod
-def _month(obj):
+def method_month(obj):
 	return obj.month
 
 
 @AST.makemethod
-def _year(obj):
+def method_year(obj):
 	return obj.year
 
 
 @AST.makemethod
-def _hour(obj):
+def method_hour(obj):
 	return obj.hour
 
 
 @AST.makemethod
-def _minute(obj):
+def method_minute(obj):
 	return obj.minute
 
 
 @AST.makemethod
-def _second(obj):
+def method_second(obj):
 	return obj.second
 
 
 @AST.makemethod
-def _microsecond(obj):
+def method_microsecond(obj):
 	return obj.microsecond
 
 
 @AST.makemethod
-def _days(obj):
+def method_days(obj):
 	return obj.days
 
 
 @AST.makemethod
-def _seconds(obj):
+def method_seconds(obj):
 	return obj.seconds
 
 
 @AST.makemethod
-def _microseconds(obj):
+def method_microseconds(obj):
 	return obj.microseconds
 
 
 @AST.makemethod
-def _months(obj):
+def method_months(obj):
 	return obj.months
 
 
 @AST.makemethod
-def _append(obj, *items):
+def method_append(obj, *items):
 	obj.extend(items)
 
 
 @AST.makemethod
-def _insert(obj, pos, *items):
+def method_insert(obj, pos, *items):
 	obj[pos:pos] = items
 
 
 @AST.makemethod
-def _pop(obj, pos=-1):
+def method_pop(obj, pos=-1):
 	return obj.pop(pos)
 
 
 @AST.makemethod
-def _update(obj, *others, **kwargs):
+def method_update(obj, *others, **kwargs):
 	for other in others:
 		obj.update(other)
 	obj.update(**kwargs)
