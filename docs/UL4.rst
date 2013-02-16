@@ -1299,6 +1299,9 @@ With this, ``output`` will be the string ``"Javascript"``.
 
 When no ``<?return?>`` tag is encountered, ``None`` will be returned.
 
+When a ``<?return?>`` tag is encountered when the template is used as a template,
+output will simply stop.
+
 
 Delimiters
 ==========

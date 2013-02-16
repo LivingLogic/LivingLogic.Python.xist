@@ -2167,7 +2167,10 @@ class Template(Block):
 		:var:`vars` contains the top level variables available to the
 		template code.
 		"""
-		yield from super().eval(vars) # Bypass ``self.eval()`` which simply stores the object as a local variable
+		try:
+			yield from super().eval(vars) # Bypass ``self.eval()`` which simply stores the object as a local variable
+		except ReturnException:
+			pass
 
 	def renders(self, **vars):
 		"""

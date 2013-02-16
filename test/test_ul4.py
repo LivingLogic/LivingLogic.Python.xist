@@ -3301,6 +3301,11 @@ def test_function_closure(c):
 
 
 @pytest.mark.ul4
+def test_return_in_template(r):
+	assert "gurk" == r("gurk<?return 42?>hurz")
+
+
+@pytest.mark.ul4
 def test_jssource():
 	t = universaltemplate()
 	t.jssource()
