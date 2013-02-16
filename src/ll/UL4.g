@@ -8,32 +8,32 @@ options
 
 @lexer::header
 {
-    from ll import ul4c
+	from ll import ul4c
 }
 
 @header
 {
-    import datetime, ast
-    from ll import ul4c, color
+	import datetime, ast
+	from ll import ul4c, color
 }
 
 @lexer::members {
 def reportError(self, e):
-   raise e
+	raise e
 }
 
 @members {
 def mismatch(self, input, ttype, follow):
-    raise MismatchedTokenException(ttype, input)
+	raise MismatchedTokenException(ttype, input)
 
 def recoverFromMismatchedSet(self, input, e, follow):
-    raise e
+	raise e
 
 def start(self, token):
-   return self.location.startcode + token.start
+	return self.location.startcode + token.start
 
 def end(self, token):
-   return self.location.startcode + token.stop + 1
+	return self.location.startcode + token.stop + 1
 }
 
 @rulecatch {
