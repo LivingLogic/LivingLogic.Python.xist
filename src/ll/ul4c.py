@@ -406,7 +406,7 @@ class AST(Object):
 		# ``None``, which means: "add a line feed and an indentation here"
 		# an int, which means: add the int to the indentation level
 		# a string, which means: add this string to the output
-		yield self.location.root.source[self.start:self.end].replace("\r\n", " ").replace("\n", " ")
+		yield self.location.source[self.start:self.end].replace("\r\n", " ").replace("\n", " ")
 
 	@misc.notimplemented
 	def eval(self, vars):
@@ -2101,16 +2101,14 @@ class Template(Block):
 				p.text("at {:#x}".format(id(self)))
 
 	def ul4ondump(self, encoder):
-		# Don't call ``super().ul4ondump()``, as we want the version to be first
+		# Don't call ``super().ul4ondump()`` first, as we want the version to be first
 		encoder.dump(self.version)
 		encoder.dump(self.source)
 		encoder.dump(self.name)
 		encoder.dump(self.keepws)
 		encoder.dump(self.startdelim)
 		encoder.dump(self.enddelim)
-		encoder.dump(self.location)
-		encoder.dump(self.endlocation)
-		encoder.dump(self.content)
+		super().ul4ondump(encoder)
 
 	def ul4onload(self, decoder):
 		version = decoder.load()
@@ -2121,9 +2119,7 @@ class Template(Block):
 		self.keepws = decoder.load()
 		self.startdelim = decoder.load()
 		self.enddelim = decoder.load()
-		self.location = decoder.load()
-		self.endlocation = decoder.load()
-		self.content = decoder.load()
+		super().ul4onload(decoder)
 
 	@classmethod
 	def loads(cls, data):
