@@ -398,9 +398,9 @@ def call_java_interpretedtemplate_by_python(__, *, keepws=True, **variables):
 	"""
 
 	codetemplate = """
-	com.livinglogic.ul4.InterpretedFunction function = %(function)s;
+	com.livinglogic.ul4.InterpretedTemplate template = %(template)s;
 	java.util.Map<String, Object> variables = %(variables)s;
-	Object output = function.call(variables);
+	Object output = template.call(variables);
 	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
 	// Use ``System.out.write`` to make sure the output is in UTF-8
 	byte[] outputBytes = com.livinglogic.ul4on.Utils.dumps(output).getBytes("utf-8");
@@ -408,9 +408,9 @@ def call_java_interpretedtemplate_by_python(__, *, keepws=True, **variables):
 	"""
 
 	f = sys._getframe(1)
-	print("Testing Java InterpretedFunction (compiled by Python) ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	functionsource = ul4c.Function(__, keepws=keepws).javasource()
-	java = codetemplate % dict(variables=misc.javaexpr(variables), function=functionsource)
+	print("Testing Java InterpretedTemplate (compiled by Python) ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+	templatesource = ul4c.Template(__, keepws=keepws).javasource()
+	java = codetemplate % dict(variables=misc.javaexpr(variables), template=templatesource)
 	return ul4on.loads(java_runsource(java))
 
 
@@ -423,9 +423,9 @@ def call_java_interpretedtemplate_by_java(__, keepws=True, **variables):
 	"""
 
 	codetemplate = """
-	com.livinglogic.ul4.InterpretedFunction function = new com.livinglogic.ul4.InterpretedFunction(%(source)s, %(keepws)s);
+	com.livinglogic.ul4.InterpretedTemplate template = new com.livinglogic.ul4.InterpretedTemplate(%(source)s, %(keepws)s);
 	java.util.Map<String, Object> variables = %(variables)s;
-	Object output = function.call(variables);
+	Object output = template.call(variables);
 	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
 	// Use ``System.out.write`` to make sure the output is in UTF-8
 	byte[] outputBytes = com.livinglogic.ul4on.Utils.dumps(output).getBytes("utf-8");
@@ -433,7 +433,7 @@ def call_java_interpretedtemplate_by_java(__, keepws=True, **variables):
 	"""
 
 	f = sys._getframe(1)
-	print("Testing Java InterpretedFunction (compiled by Java) ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+	print("Testing Java InterpretedTemplate (compiled by Java) ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
 	java = codetemplate % dict(source=misc.javaexpr(__), variables=misc.javaexpr(variables), keepws=misc.javaexpr(keepws))
 	return ul4on.loads(java_runsource(java))
 
