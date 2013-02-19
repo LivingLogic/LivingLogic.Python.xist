@@ -1,4 +1,4 @@
-# $ANTLR 3.4 src/ll/UL4.g 2013-02-16 13:40:09
+# $ANTLR 3.4 src/ll/UL4.g 2013-02-19 13:41:24
 
 import sys
 from antlr3 import *
@@ -664,13 +664,13 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "list"
-    # src/ll/UL4.g:196:1: list returns [node] : (bracket_open= '[' bracket_close= ']' |bracket_open= '[' e1= expr1 ( ',' e2= expr1 )* ( ',' )? bracket_close= ']' );
+    # src/ll/UL4.g:196:1: list returns [node] : (open= '[' close= ']' |open= '[' e1= expr1 ( ',' e2= expr1 )* ( ',' )? close= ']' );
     def list(self, ):
         node = None
 
 
-        bracket_open = None
-        bracket_close = None
+        open = None
+        close = None
         e1 = None
 
         e2 = None
@@ -678,7 +678,7 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:197:2: (bracket_open= '[' bracket_close= ']' |bracket_open= '[' e1= expr1 ( ',' e2= expr1 )* ( ',' )? bracket_close= ']' )
+                # src/ll/UL4.g:197:2: (open= '[' close= ']' |open= '[' e1= expr1 ( ',' e2= expr1 )* ( ',' )? close= ']' )
                 alt4 = 2
                 LA4_0 = self.input.LA(1)
 
@@ -710,27 +710,27 @@ class UL4Parser(Parser):
 
 
                 if alt4 == 1:
-                    # src/ll/UL4.g:198:3: bracket_open= '[' bracket_close= ']'
+                    # src/ll/UL4.g:198:3: open= '[' close= ']'
                     pass 
-                    bracket_open = self.match(self.input, 49, self.FOLLOW_49_in_list944)
+                    open = self.match(self.input, 49, self.FOLLOW_49_in_list944)
 
-                    bracket_close = self.match(self.input, 50, self.FOLLOW_50_in_list950)
+                    close = self.match(self.input, 50, self.FOLLOW_50_in_list950)
 
                     if self._state.backtracking == 0:
                         pass
-                        node = ul4c.List(self.location, self.start(bracket_open), self.end(bracket_close)) 
+                        node = ul4c.List(self.location, self.start(open), self.end(close)) 
 
 
 
 
                 elif alt4 == 2:
-                    # src/ll/UL4.g:201:3: bracket_open= '[' e1= expr1 ( ',' e2= expr1 )* ( ',' )? bracket_close= ']'
+                    # src/ll/UL4.g:201:3: open= '[' e1= expr1 ( ',' e2= expr1 )* ( ',' )? close= ']'
                     pass 
-                    bracket_open = self.match(self.input, 49, self.FOLLOW_49_in_list961)
+                    open = self.match(self.input, 49, self.FOLLOW_49_in_list961)
 
                     if self._state.backtracking == 0:
                         pass
-                        node = ul4c.List(self.location, self.start(bracket_open), None) 
+                        node = ul4c.List(self.location, self.start(open), None) 
 
 
 
@@ -794,11 +794,11 @@ class UL4Parser(Parser):
 
 
 
-                    bracket_close = self.match(self.input, 50, self.FOLLOW_50_in_list1005)
+                    close = self.match(self.input, 50, self.FOLLOW_50_in_list1005)
 
                     if self._state.backtracking == 0:
                         pass
-                        node.end = self.end(bracket_close) 
+                        node.end = self.end(close) 
 
 
 
@@ -817,13 +817,13 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "listcomprehension"
-    # src/ll/UL4.g:211:1: listcomprehension returns [node] : bracket_open= '[' item= expr1 'for' n= nestedname 'in' container= expr1 ( 'if' condition= expr1 )? bracket_close= ']' ;
+    # src/ll/UL4.g:211:1: listcomprehension returns [node] : open= '[' item= expr1 'for' n= nestedname 'in' container= expr1 ( 'if' condition= expr1 )? close= ']' ;
     def listcomprehension(self, ):
         node = None
 
 
-        bracket_open = None
-        bracket_close = None
+        open = None
+        close = None
         item = None
 
         n = None
@@ -838,10 +838,10 @@ class UL4Parser(Parser):
         	
         try:
             try:
-                # src/ll/UL4.g:216:2: (bracket_open= '[' item= expr1 'for' n= nestedname 'in' container= expr1 ( 'if' condition= expr1 )? bracket_close= ']' )
-                # src/ll/UL4.g:217:3: bracket_open= '[' item= expr1 'for' n= nestedname 'in' container= expr1 ( 'if' condition= expr1 )? bracket_close= ']'
+                # src/ll/UL4.g:216:2: (open= '[' item= expr1 'for' n= nestedname 'in' container= expr1 ( 'if' condition= expr1 )? close= ']' )
+                # src/ll/UL4.g:217:3: open= '[' item= expr1 'for' n= nestedname 'in' container= expr1 ( 'if' condition= expr1 )? close= ']'
                 pass 
-                bracket_open = self.match(self.input, 49, self.FOLLOW_49_in_listcomprehension1033)
+                open = self.match(self.input, 49, self.FOLLOW_49_in_listcomprehension1033)
 
                 self._state.following.append(self.FOLLOW_expr1_in_listcomprehension1039)
                 item = self.expr1()
@@ -887,11 +887,11 @@ class UL4Parser(Parser):
 
 
 
-                bracket_close = self.match(self.input, 50, self.FOLLOW_50_in_listcomprehension1088)
+                close = self.match(self.input, 50, self.FOLLOW_50_in_listcomprehension1088)
 
                 if self._state.backtracking == 0:
                     pass
-                    node = ul4c.ListComp(self.location, self.start(bracket_open), self.end(bracket_close), item, ((n is not None) and [n.varname] or [None])[0], container, _condition) 
+                    node = ul4c.ListComp(self.location, self.start(open), self.end(close), item, ((n is not None) and [n.varname] or [None])[0], container, _condition) 
 
 
 
@@ -960,13 +960,13 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "dict"
-    # src/ll/UL4.g:239:1: dict returns [node] : (brace_open= '{' brace_close= '}' |brace_open= '{' i1= dictitem ( ',' i2= dictitem )* ( ',' )? brace_close= '}' );
+    # src/ll/UL4.g:239:1: dict returns [node] : (open= '{' close= '}' |open= '{' i1= dictitem ( ',' i2= dictitem )* ( ',' )? close= '}' );
     def dict(self, ):
         node = None
 
 
-        brace_open = None
-        brace_close = None
+        open = None
+        close = None
         i1 = None
 
         i2 = None
@@ -974,7 +974,7 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:240:2: (brace_open= '{' brace_close= '}' |brace_open= '{' i1= dictitem ( ',' i2= dictitem )* ( ',' )? brace_close= '}' )
+                # src/ll/UL4.g:240:2: (open= '{' close= '}' |open= '{' i1= dictitem ( ',' i2= dictitem )* ( ',' )? close= '}' )
                 alt8 = 2
                 LA8_0 = self.input.LA(1)
 
@@ -1006,27 +1006,27 @@ class UL4Parser(Parser):
 
 
                 if alt8 == 1:
-                    # src/ll/UL4.g:241:3: brace_open= '{' brace_close= '}'
+                    # src/ll/UL4.g:241:3: open= '{' close= '}'
                     pass 
-                    brace_open = self.match(self.input, 57, self.FOLLOW_57_in_dict1144)
+                    open = self.match(self.input, 57, self.FOLLOW_57_in_dict1144)
 
-                    brace_close = self.match(self.input, 58, self.FOLLOW_58_in_dict1150)
+                    close = self.match(self.input, 58, self.FOLLOW_58_in_dict1150)
 
                     if self._state.backtracking == 0:
                         pass
-                        node = ul4c.Dict(self.location, self.start(brace_open), self.end(brace_close)) 
+                        node = ul4c.Dict(self.location, self.start(open), self.end(close)) 
 
 
 
 
                 elif alt8 == 2:
-                    # src/ll/UL4.g:244:3: brace_open= '{' i1= dictitem ( ',' i2= dictitem )* ( ',' )? brace_close= '}'
+                    # src/ll/UL4.g:244:3: open= '{' i1= dictitem ( ',' i2= dictitem )* ( ',' )? close= '}'
                     pass 
-                    brace_open = self.match(self.input, 57, self.FOLLOW_57_in_dict1161)
+                    open = self.match(self.input, 57, self.FOLLOW_57_in_dict1161)
 
                     if self._state.backtracking == 0:
                         pass
-                        node = ul4c.Dict(self.location, self.start(brace_open), None) 
+                        node = ul4c.Dict(self.location, self.start(open), None) 
 
 
 
@@ -1090,11 +1090,11 @@ class UL4Parser(Parser):
 
 
 
-                    brace_close = self.match(self.input, 58, self.FOLLOW_58_in_dict1205)
+                    close = self.match(self.input, 58, self.FOLLOW_58_in_dict1205)
 
                     if self._state.backtracking == 0:
                         pass
-                        node.end = self.end(brace_close) 
+                        node.end = self.end(close) 
 
 
 
@@ -1113,13 +1113,13 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "dictcomprehension"
-    # src/ll/UL4.g:254:1: dictcomprehension returns [node] : brace_open= '{' key= expr1 ':' value= expr1 'for' n= nestedname 'in' container= expr1 ( 'if' condition= expr1 )? brace_close= '}' ;
+    # src/ll/UL4.g:254:1: dictcomprehension returns [node] : open= '{' key= expr1 ':' value= expr1 'for' n= nestedname 'in' container= expr1 ( 'if' condition= expr1 )? close= '}' ;
     def dictcomprehension(self, ):
         node = None
 
 
-        brace_open = None
-        brace_close = None
+        open = None
+        close = None
         key = None
 
         value = None
@@ -1136,10 +1136,10 @@ class UL4Parser(Parser):
         	
         try:
             try:
-                # src/ll/UL4.g:259:2: (brace_open= '{' key= expr1 ':' value= expr1 'for' n= nestedname 'in' container= expr1 ( 'if' condition= expr1 )? brace_close= '}' )
-                # src/ll/UL4.g:260:3: brace_open= '{' key= expr1 ':' value= expr1 'for' n= nestedname 'in' container= expr1 ( 'if' condition= expr1 )? brace_close= '}'
+                # src/ll/UL4.g:259:2: (open= '{' key= expr1 ':' value= expr1 'for' n= nestedname 'in' container= expr1 ( 'if' condition= expr1 )? close= '}' )
+                # src/ll/UL4.g:260:3: open= '{' key= expr1 ':' value= expr1 'for' n= nestedname 'in' container= expr1 ( 'if' condition= expr1 )? close= '}'
                 pass 
-                brace_open = self.match(self.input, 57, self.FOLLOW_57_in_dictcomprehension1233)
+                open = self.match(self.input, 57, self.FOLLOW_57_in_dictcomprehension1233)
 
                 self._state.following.append(self.FOLLOW_expr1_in_dictcomprehension1239)
                 key = self.expr1()
@@ -1192,11 +1192,11 @@ class UL4Parser(Parser):
 
 
 
-                brace_close = self.match(self.input, 58, self.FOLLOW_58_in_dictcomprehension1298)
+                close = self.match(self.input, 58, self.FOLLOW_58_in_dictcomprehension1298)
 
                 if self._state.backtracking == 0:
                     pass
-                    node = ul4c.DictComp(self.location, self.start(brace_open), self.end(brace_close), key, value, ((n is not None) and [n.varname] or [None])[0], container, _condition) 
+                    node = ul4c.DictComp(self.location, self.start(open), self.end(close), key, value, ((n is not None) and [n.varname] or [None])[0], container, _condition) 
 
 
 
@@ -1721,13 +1721,12 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "expr9"
-    # src/ll/UL4.g:323:1: expr9 returns [node] : e1= atom ( '.' n= name | '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) paren_close= ')' | '[' ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? ) bracket_close= ']' )* ;
+    # src/ll/UL4.g:323:1: expr9 returns [node] : e1= atom ( '.' n= name | '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) close= ')' | '[' ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? ) close= ']' )* ;
     def expr9(self, ):
         node = None
 
 
-        paren_close = None
-        bracket_close = None
+        close = None
         e1 = None
 
         n = None
@@ -1765,8 +1764,8 @@ class UL4Parser(Parser):
         	
         try:
             try:
-                # src/ll/UL4.g:331:2: (e1= atom ( '.' n= name | '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) paren_close= ')' | '[' ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? ) bracket_close= ']' )* )
-                # src/ll/UL4.g:332:3: e1= atom ( '.' n= name | '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) paren_close= ')' | '[' ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? ) bracket_close= ']' )*
+                # src/ll/UL4.g:331:2: (e1= atom ( '.' n= name | '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) close= ')' | '[' ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? ) close= ']' )* )
+                # src/ll/UL4.g:332:3: e1= atom ( '.' n= name | '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) close= ')' | '[' ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? ) close= ']' )*
                 pass 
                 self._state.following.append(self.FOLLOW_atom_in_expr91582)
                 e1 = self.atom()
@@ -1779,7 +1778,7 @@ class UL4Parser(Parser):
 
 
 
-                # src/ll/UL4.g:333:3: ( '.' n= name | '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) paren_close= ')' | '[' ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? ) bracket_close= ']' )*
+                # src/ll/UL4.g:333:3: ( '.' n= name | '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) close= ')' | '[' ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? ) close= ']' )*
                 while True: #loop32
                     alt32 = 4
                     LA32 = self.input.LA(1)
@@ -1808,7 +1807,7 @@ class UL4Parser(Parser):
 
 
                     elif alt32 == 2:
-                        # src/ll/UL4.g:339:4: '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) paren_close= ')'
+                        # src/ll/UL4.g:339:4: '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) close= ')'
                         pass 
                         self.match(self.input, 27, self.FOLLOW_27_in_expr91621)
 
@@ -2265,17 +2264,17 @@ class UL4Parser(Parser):
 
 
 
-                        paren_close = self.match(self.input, 28, self.FOLLOW_28_in_expr92038)
+                        close = self.match(self.input, 28, self.FOLLOW_28_in_expr92038)
 
                         if self._state.backtracking == 0:
                             pass
-                            node.end = self.end(paren_close) 
+                            node.end = self.end(close) 
 
 
 
 
                     elif alt32 == 3:
-                        # src/ll/UL4.g:394:4: '[' ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? ) bracket_close= ']'
+                        # src/ll/UL4.g:394:4: '[' ( ':' (e2= expr1 )? |e2= expr1 ( ':' (e3= expr1 )? )? ) close= ']'
                         pass 
                         self.match(self.input, 49, self.FOLLOW_49_in_expr92054)
 
@@ -2398,11 +2397,11 @@ class UL4Parser(Parser):
 
 
 
-                        bracket_close = self.match(self.input, 50, self.FOLLOW_50_in_expr92169)
+                        close = self.match(self.input, 50, self.FOLLOW_50_in_expr92169)
 
                         if self._state.backtracking == 0:
                             pass
-                            node.end = self.end(bracket_close) 
+                            node.end = self.end(close) 
 
 
 

@@ -195,17 +195,17 @@ literal returns [node]
 /* List literals */
 list returns [node]
 	:
-		bracket_open='['
-		bracket_close=']' { $node = ul4c.List(self.location, self.start($bracket_open), self.end($bracket_close)) }
+		open='['
+		close=']' { $node = ul4c.List(self.location, self.start($open), self.end($close)) }
 	|
-		bracket_open='[' {$node = ul4c.List(self.location, self.start($bracket_open), None) }
+		open='[' {$node = ul4c.List(self.location, self.start($open), None) }
 		e1=expr1 { $node.items.append($e1.node) }
 		(
 			','
 			e2=expr1 { $node.items.append($e2.node) }
 		)*
 		','?
-		bracket_close=']' { $node.end = self.end($bracket_close) }
+		close=']' { $node.end = self.end($close) }
 	;
 
 listcomprehension returns [node]
@@ -214,7 +214,7 @@ listcomprehension returns [node]
 		_condition = None;
 	}
 	:
-		bracket_open='['
+		open='['
 		item=expr1
 		'for'
 		n=nestedname
@@ -224,7 +224,7 @@ listcomprehension returns [node]
 			'if'
 			condition=expr1 { _condition = $condition.node; }
 		)?
-		bracket_close=']' { $node = ul4c.ListComp(self.location, self.start($bracket_open), self.end($bracket_close), $item.node, $n.varname, $container.node, _condition) }
+		close=']' { $node = ul4c.ListComp(self.location, self.start($open), self.end($close), $item.node, $n.varname, $container.node, _condition) }
 	;
 
 /* Dict literal */
@@ -238,17 +238,17 @@ dictitem returns [node]
 
 dict returns [node]
 	:
-		brace_open='{'
-		brace_close='}' { $node = ul4c.Dict(self.location, self.start($brace_open), self.end($brace_close)) }
+		open='{'
+		close='}' { $node = ul4c.Dict(self.location, self.start($open), self.end($close)) }
 	|
-		brace_open='{' { $node = ul4c.Dict(self.location, self.start($brace_open), None) }
+		open='{' { $node = ul4c.Dict(self.location, self.start($open), None) }
 		i1=dictitem { $node.items.append($i1.node) }
 		(
 			','
 			i2=dictitem { $node.items.append($i2.node) }
 		)*
 		','?
-		brace_close='}' { $node.end = self.end($brace_close) }
+		close='}' { $node.end = self.end($close) }
 	;
 
 dictcomprehension returns [node]
@@ -257,7 +257,7 @@ dictcomprehension returns [node]
 		_condition = None;
 	}
 	:
-		brace_open='{'
+		open='{'
 		key=expr1
 		':'
 		value=expr1
@@ -269,7 +269,7 @@ dictcomprehension returns [node]
 			'if'
 			condition=expr1 { _condition = $condition.node; }
 		)?
-		brace_close='}' { $node = ul4c.DictComp(self.location, self.start($brace_open), self.end($brace_close), $key.node, $value.node, $n.varname, $container.node, _condition) }
+		close='}' { $node = ul4c.DictComp(self.location, self.start($open), self.end($close), $key.node, $value.node, $n.varname, $container.node, _condition) }
 	;
 
 generatorexpression returns [node]
@@ -388,7 +388,7 @@ expr9 returns [node]
 				)?
 				','?
 			)
-			paren_close=')' { $node.end = self.end($paren_close) }
+			close=')' { $node.end = self.end($close) }
 		|
 			/* Item/slice access */
 			'['
@@ -406,7 +406,7 @@ expr9 returns [node]
 					)?
 				)? { $node = ul4c.GetSlice(self.location, $node.start, None, $node, index1, index2) if slice else ul4c.GetItem(self.location, $e1.node.start, None, $node, index1) }
 			)
-			bracket_close=']' { $node.end = self.end($bracket_close) }
+			close=']' { $node.end = self.end($close) }
 		)*
 	;
 
