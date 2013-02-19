@@ -3143,9 +3143,8 @@ def test_nestedscopes(r):
 	"""
 	assert "1" == r(source, keepws=False)
 
-
 	# This shows the difference between local variables and variables from the parent.
-	# ``x`` is passed to the subtemplate, so it will always the the current value instead of the one when it is defined
+	# ``x`` is passed to the subtemplate, so it will always be the current value instead of the one when it is defined
 	# (Furthermore ``y += 1`` will load the variable from the parent but store it as a local variable)
 	source = """
 	<?def outer?>
