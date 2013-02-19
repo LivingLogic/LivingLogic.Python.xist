@@ -1705,6 +1705,7 @@ class ChangeVar(AST):
 				p.breakable()
 				p.text("varname=")
 				p.pretty(self.varname)
+				p.breakable()
 				p.text("value=")
 				p.breakable()
 				p.pretty(self.value)
