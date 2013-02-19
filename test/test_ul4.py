@@ -3131,7 +3131,7 @@ def test_nestedscopes(r):
 	"""
 	assert "0!1!2!" == r(source, keepws=False)
 
-	# Subtemplates see the state of the variable at the point of the ``<?def?>`` tag,
+	# Subtemplates see the state of the variable at the point after the ``<?def?>`` tag,
 	# so the following code will use ``i = 1`` instead of ``i = 2`` even if the subtemplate is called after the variable has been changed.
 	source = """
 	<?code i = 1?>
@@ -3142,6 +3142,17 @@ def test_nestedscopes(r):
 	<?code x.render()?>
 	"""
 	assert "1" == r(source, keepws=False)
+
+
+	# Subtemplates see themselves (i.e. the ``TemplateClosure`` object created for them), but no variables defined later
+	source = """
+	<?def x?>
+		<?print type(x)?>;<?print type(y)?>
+	<?end def?>
+	<?code y = 42?>
+	<?code x.render()?>
+	"""
+	assert "template;undefined" == r(source, keepws=False)
 
 	# This shows the difference between local variables and variables from the parent.
 	# ``x`` is passed to the subtemplate, so it will always be the current value instead of the one when it is defined
