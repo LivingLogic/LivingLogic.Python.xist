@@ -1704,10 +1704,10 @@ class ChangeVar(AST):
 			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
 				p.breakable()
 				p.text("varname=")
-				p.pretty(self.obj1)
+				p.pretty(self.varname)
 				p.text("value=")
 				p.breakable()
-				p.pretty(self.obj2)
+				p.pretty(self.value)
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
