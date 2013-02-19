@@ -47,11 +47,6 @@ def render_python(__, *, keepws=True, **variables):
 	Compile the template from the source ``__`` and render it with the variables ``variables``.
 	"""
 	template = ul4c.Template(__, keepws=keepws)
-	f = sys._getframe(1)
-	print("Testing Python template ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(template)
-	print("with variables:")
-	print(repr(variables))
 	return template.renders(**variables)
 
 
@@ -63,11 +58,6 @@ def render_python_dumps(__, *, keepws=True, **variables):
 	"""
 	template = ul4c.Template(__, keepws=keepws)
 	template = ul4c.Template.loads(template.dumps()) # Recreate the template from the binary dump
-	f = sys._getframe(1)
-	print("Testing Python template loaded from string ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(template)
-	print("with variables:")
-	print(repr(variables))
 	return template.renders(**variables)
 
 
@@ -80,12 +70,7 @@ def render_python_dump(__, *, keepws=True, **variables):
 	stream = io.StringIO()
 	template.dump(stream)
 	stream.seek(0)
-	f = sys._getframe(1)
 	template = ul4c.Template.load(stream) # Recreate the template from the stream
-	print("Testing Python template loaded from stream ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(template)
-	print("with variables:")
-	print(repr(variables))
 	return template.renders(**variables)
 
 
@@ -99,9 +84,6 @@ def render_js(__, *, keepws=True, **variables):
 	template = ul4c.Template(__, keepws=keepws)
 	js = template.jssource()
 	js = "template = {};\ndata = {};\nprint(template.renders(data));\n".format(js, ul4c._asjson(variables))
-	f = sys._getframe(1)
-	print("Testing Javascript template compiled by Python ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(js)
 	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 		f.write(js.encode("utf-8"))
 		f.flush()
@@ -126,9 +108,6 @@ def render_php(__, **variables):
 	$variables = {};
 	print $template->renders($variables);
 	?>""".format(phpexpr(template.dumps()), phpexpr(variables))
-	f = sys._getframe(1)
-	print("Testing PHP template compiled by Python ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(php)
 	with tempfile.NamedTemporaryFile(mode="wb", suffix=".php") as f:
 		f.write(php.encode("utf-8"))
 		f.flush()
@@ -240,7 +219,6 @@ def java_runsource(source):
 	try:
 		source = maincodetemplate % dict(source=source)
 		source = java_formatsource(source)
-		print(source)
 		with open(os.path.join(tempdir, "UL4Test.java"), "wb") as f:
 			f.write(source.encode("utf-8"))
 		proc = subprocess.Popen("cd {}; javac -encoding utf-8 UL4Test.java".format(tempdir), stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -280,8 +258,6 @@ def render_java_interpretedtemplate_by_python(__, *, keepws=True, **variables):
 	System.out.write(outputBytes, 0, outputBytes.length);
 	"""
 
-	f = sys._getframe(1)
-	print("Testing Java InterpretedTemplate (compiled by Python) ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
 	templatesource = ul4c.Template(__, keepws=keepws).javasource()
 	java = codetemplate % dict(variables=misc.javaexpr(variables), template=templatesource)
 	return java_runsource(java)
@@ -305,8 +281,6 @@ def render_java_interpretedtemplate_by_java(__, keepws=True, **variables):
 	System.out.write(outputBytes, 0, outputBytes.length);
 	"""
 
-	f = sys._getframe(1)
-	print("Testing Java InterpretedTemplate (compiled by Java) ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
 	java = codetemplate % dict(source=misc.javaexpr(__), variables=misc.javaexpr(variables), keepws=misc.javaexpr(keepws))
 	return java_runsource(java)
 
@@ -316,11 +290,6 @@ def call_python(__, *, keepws=True, **variables):
 	Compile the template from the source ``__``, call it as a function with the variables ``variables`` and return the result.
 	"""
 	template = ul4c.Template(__, keepws=keepws)
-	f = sys._getframe(1)
-	print("Testing Python template ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(template)
-	print("with variables:")
-	print(repr(variables))
 	return template(**variables)
 
 
@@ -332,11 +301,6 @@ def call_python_dumps(__, *, keepws=True, **variables):
 	"""
 	template = ul4c.Template(__, keepws=keepws)
 	template = ul4c.Template.loads(template.dumps()) # Recreate the template from the binary dump
-	f = sys._getframe(1)
-	print("Testing Python template loaded from string ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(template)
-	print("with variables:")
-	print(repr(variables))
 	return template(**variables)
 
 
@@ -350,12 +314,7 @@ def call_python_dump(__, *, keepws=True, **variables):
 	stream = io.StringIO()
 	template.dump(stream)
 	stream.seek(0)
-	f = sys._getframe(1)
 	template = ul4c.Template.load(stream) # Recreate the template from the stream
-	print("Testing Python template loaded from stream ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(template)
-	print("with variables:")
-	print(repr(variables))
 	return template(**variables)
 
 
@@ -369,9 +328,6 @@ def call_js(__, *, keepws=True, **variables):
 	template = ul4c.Template(__, keepws=keepws)
 	js = template.jssource()
 	js = "template = {};\ndata = {};\nprint(ul4on.dumps(template.call(data)));\n".format(js, ul4c._asjson(variables))
-	f = sys._getframe(1)
-	print("Testing Javascript template compiled by Python ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(js)
 	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 		f.write(js.encode("utf-8"))
 		f.flush()
@@ -407,8 +363,6 @@ def call_java_interpretedtemplate_by_python(__, *, keepws=True, **variables):
 	System.out.write(outputBytes, 0, outputBytes.length);
 	"""
 
-	f = sys._getframe(1)
-	print("Testing Java InterpretedTemplate (compiled by Python) ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
 	templatesource = ul4c.Template(__, keepws=keepws).javasource()
 	java = codetemplate % dict(variables=misc.javaexpr(variables), template=templatesource)
 	return ul4on.loads(java_runsource(java))
@@ -432,8 +386,6 @@ def call_java_interpretedtemplate_by_java(__, keepws=True, **variables):
 	System.out.write(outputBytes, 0, outputBytes.length);
 	"""
 
-	f = sys._getframe(1)
-	print("Testing Java InterpretedTemplate (compiled by Java) ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
 	java = codetemplate % dict(source=misc.javaexpr(__), variables=misc.javaexpr(variables), keepws=misc.javaexpr(keepws))
 	return ul4on.loads(java_runsource(java))
 
