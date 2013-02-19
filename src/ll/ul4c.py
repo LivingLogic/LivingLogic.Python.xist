@@ -1707,7 +1707,6 @@ class ChangeVar(AST):
 				p.pretty(self.varname)
 				p.breakable()
 				p.text("value=")
-				p.breakable()
 				p.pretty(self.value)
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
