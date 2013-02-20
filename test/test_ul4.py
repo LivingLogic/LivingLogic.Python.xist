@@ -2255,6 +2255,16 @@ def test_function_repr(r):
 
 
 @pytest.mark.ul4
+def test_function_print(r):
+	assert "gurk hurz hinz kunz" == r("<?code print('gurk', 'hurz', 'hinz', 'kunz')?>")
+
+
+@pytest.mark.ul4
+def test_function_printx(r):
+	assert "&lt;gurk&gt; &lt;hurz&gt; &lt;hinz&gt; &lt;kunz&gt;" == r("<?code print('<gurk>', '<hurz>', '<hinz>', '<kunz>')?>")
+
+
+@pytest.mark.ul4
 def test_function_format_date(r):
 	t = datetime.datetime(2011, 1, 25, 13, 34, 56, 987000)
 	code2 = "<?print format(data, fmt)?>"
