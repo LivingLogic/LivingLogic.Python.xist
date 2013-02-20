@@ -2261,7 +2261,7 @@ def test_function_print(r):
 
 @pytest.mark.ul4
 def test_function_printx(r):
-	assert "&lt;gurk&gt; &lt;hurz&gt; &lt;hinz&gt; &lt;kunz&gt;" == r("<?code print('<gurk>', '<hurz>', '<hinz>', '<kunz>')?>")
+	assert "&lt;gurk&gt; &lt;hurz&gt; &lt;hinz&gt; &lt;kunz&gt;" == r("<?code printx('<gurk>', '<hurz>', '<hinz>', '<kunz>')?>")
 
 
 @pytest.mark.ul4
