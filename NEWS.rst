@@ -1,7 +1,8 @@
 Changes in 4.10 (released ??/??/2013)
 -------------------------------------
 
-*	It's now possible to use UL4 templates as functions::
+*	It's now possible to use UL4 templates as functions by using the
+	``<?return?>`` tag::
 
 		>>> from ll import ul4c
 		>>> f = ul4c.Template("<?return 2*x?>")
@@ -14,12 +15,12 @@ Changes in 4.10 (released ??/??/2013)
 	any other expression. Of course this makes only sense for expressions that
 	have side effects (e.g. a call to the ``render`` method).
 
-*	UL4 functions ``print`` and ``printx`` have been added. They behave like the
-	appropriate tags ``<?print?>`` and ``<?printx?>``, but can output an
-	arbitrary number of arguments.
-
 *	The tag ``<?render?>`` has been removed. To update your code replace 
 	``<?render r.render()?>`` with ``<?code r.render()?>``.
+
+*	UL4 functions ``print`` and ``printx`` have been added. They behave like the
+	respective tags ``<?print?>`` and ``<?printx?>``, but can output an arbitrary
+	number of arguments.
 
 *	The builtin UL4 functions are now real objects that can be passed to
 	templates as arguments.
