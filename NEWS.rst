@@ -32,6 +32,8 @@ Changes in 4.10 (released ??/??/2013)
 
 *	Dictionaries in UL4 now support the method ``update``.
 
+*	The ``db2ul4`` script now supports a ``-w``/``--keepws`` argument.
+
 *	The UL4 functions ``vars`` and ``get`` have been removed.
 
 *	The ``**`` syntax has been removed for UL4 dict literals.

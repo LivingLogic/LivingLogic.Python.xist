@@ -102,7 +102,7 @@ this::
 
 import sys, os, argparse, codecs, keyword
 
-from ll import ul4c
+from ll import ul4c, misc
 
 
 __docformat__ = "reStructuredText"
@@ -186,6 +186,7 @@ def main(args=None):
 	p = argparse.ArgumentParser(description="render UL4 templates containing SQL statements", epilog="For more info see http://www.livinglogic.de/Python/scripts/db2ul4.html")
 	p.add_argument("templates", metavar="template", help="templates to be used", nargs="+")
 	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for template sources (default %(default)s)", default="utf-8", metavar="ENCODING")
+	p.add_argument("-w", "--keepws", dest="keepws", help="Keep linefeeds and indentation in template source? (default %(default)s)", action=misc.FlagAction, default=True)
 
 	args = p.parse_args(args)
 
@@ -200,7 +201,7 @@ def main(args=None):
 			templatename = os.path.basename(templatename)
 			if os.path.extsep in templatename:
 				templatename = templatename.rpartition(os.extsep)[0]
-		template = ul4c.Template(templatestream.read(), fixname(templatename))
+		template = ul4c.Template(templatestream.read(), fixname(templatename), keepws=args.keepws)
 		# The first template is the main template
 		if maintemplate is None:
 			maintemplate = template
