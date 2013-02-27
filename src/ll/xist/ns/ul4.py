@@ -34,9 +34,9 @@ class printx(xsc.ProcInst):
 ### Processing instruction for statements
 ###
 
-class exe(xsc.ProcInst):
+class code(xsc.ProcInst):
 	"""
-	A :class:`exe` processing instruction contains a statement (such as an
+	A :class:`code` processing instruction contains a statement (such as an
 	assignment or augmented assignment) or expressions (with side effects).
 	"""
 
