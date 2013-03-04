@@ -78,8 +78,8 @@ code:
 *	dictionaries
 *	UL4 templates
 
-This is similar to what JSON_ supports (except for date objects, color objects,
-UL4 templates).
+This is similar to what JSON_ supports (except for date objects, color objects
+and UL4 templates).
 
 	.. _JSON: http://www.json.org/
 
