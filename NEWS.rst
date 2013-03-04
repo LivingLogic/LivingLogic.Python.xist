@@ -1,4 +1,4 @@
-Changes in 4.10 (released ??/??/2013)
+Changes in 4.10 (released 03/04/2013)
 -------------------------------------
 
 *	It's now possible to use UL4 templates as functions by using the
@@ -9,7 +9,20 @@ Changes in 4.10 (released ??/??/2013)
 		>>> f(x=42)
 		84
 
+	It's also possible to call a template as a function inside another template::
+
+		>>> from ll import ul4c
+		>>> t = ul4c.Template("<?def x?><?return 42?><?end def?><?print x()?>")
+		>>> t.renders()
+		'42'
+
 	Normal output of the template will be ignored if it is used as a function.
+
+	If the template runs through to the end without encountering a ``<?return?>``
+	tag, ``None`` will be returned if the template is used as a function.
+
+	If the template is used as a template and a ``<?return?>`` tag is encountered
+	executing the template will be terminated (the return value will be ignored).
 
 *	The UL4 tag ``<?code?>`` may now contain not only variable assigments, but
 	any other expression. Of course this makes only sense for expressions that
