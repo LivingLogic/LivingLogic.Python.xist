@@ -24,11 +24,11 @@ does. For example ``<?print foo?>`` is a print tag (it prints the value of the
 variable ``foo``). A complete example template looks like this::
 
 	<?if data?>
-	<ul>
-	<?for item in data?>
-	<li><?print xmlescape(item)?></li>
-	<?end for?>
-	</ul>
+		<ul>
+			<?for item in data?>
+				<li><?print xmlescape(item)?></li>
+			<?end for?>
+		</ul>
 	<?end if?>
 
 (For text formats where the delimiters ``<?`` and ``?>`` collide with elements
