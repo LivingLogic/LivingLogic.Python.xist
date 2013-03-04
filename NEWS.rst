@@ -22,7 +22,7 @@ Changes in 4.10 (released 03/04/2013)
 	tag, ``None`` will be returned if the template is used as a function.
 
 	If the template is used as a template and a ``<?return?>`` tag is encountered
-	executing the template will be terminated (the return value will be ignored).
+	executing the template will be stopped (the return value will be ignored).
 
 *	The UL4 tag ``<?code?>`` may now contain not only variable assigments, but
 	any other expression. Of course this makes only sense for expressions that
