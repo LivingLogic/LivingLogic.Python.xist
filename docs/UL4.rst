@@ -1247,7 +1247,7 @@ prints ``[1, 2, 3, 4]``.
 """"""""""
 
 ``insert`` is a list method. Its first argument in the insert position, the
-remaining arguments are the intems that will be inserted at that position, so::
+remaining arguments are the items that will be inserted at that position, so::
 
 	<?code v = [1, 4]?>
 	<?code v.insert(1, 2, 3)?>
@@ -1280,17 +1280,17 @@ Templates as functions
 
 UL4 templates can be used as functions too. Calling a template as a function
 will ignore any output from the template. The return value will be the value of
-the first ``<?return?>`` tag::
+the first ``<?return?>`` tag encountered::
 
 	from ll import ul4c
 
-	code = '''
+	code = """
 		<?for item in data?>
 			<?if "i" in item?>
 				<?return item?>
 			<?end if?>
 		<?end for?>
-	'''
+	"""
 
 	function = ul4c.Function(code)
 
@@ -1300,15 +1300,14 @@ With this, ``output`` will be the string ``"Javascript"``.
 
 When no ``<?return?>`` tag is encountered, ``None`` will be returned.
 
-When a ``<?return?>`` tag is encountered when the template is used as a template,
-output will simply stop.
-
+When a ``<?return?>`` tag is encountered when the template is used as a
+template, output will simply stop and the return value will be ignored.
 
 
 Delimiters
 ==========
 
-It is possible to specify alternative delimiters from the template tags::
+It is possible to specify alternative delimiters for the template tags::
 
 	>>> from ll import ul4c
 	>>> t = ul4c.Template(
