@@ -1,3 +1,9 @@
+Changes in ?.?? (released ??/??/2013)
+-------------------------------------
+
+*	:class:`URL` objects are pickable now.
+
+
 Changes in 4.10 (released 03/04/2013)
 -------------------------------------
 

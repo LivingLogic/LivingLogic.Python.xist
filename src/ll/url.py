@@ -2792,6 +2792,8 @@ class URL(object):
 			>>> u.connect().size(u)
 			1584L
 		"""
+		if name.startswith("__") and name.endswith("__"):
+			raise AttributeError(name)
 		def realattr(*args, **kwargs):
 			try:
 				context = kwargs["context"]
