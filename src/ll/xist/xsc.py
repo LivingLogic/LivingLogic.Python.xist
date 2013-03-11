@@ -2378,7 +2378,7 @@ class Attr(Frag, metaclass=_Attr_Meta):
 
 		loc = " (from {})".format(self.startloc) if self.startloc is not None else ""
 
-		return "<{isglobal}attribute {self.__class__.__module__}.{self.__class__.__qualname__}{xmlname}{xmlns} ({childcount}){loc} at {id:#x}>".format(self=self, isglobal=isglobal, xmlname=xmlname, xmlns=xmlns, childcount=childcount, loc=loc, id=id(self))
+		return "<{isglobal}attribute {self.__class__.__module__}.{self.__class__.__qualname__}{xmlns}{xmlname} ({childcount}){loc} at {id:#x}>".format(self=self, isglobal=isglobal, xmlname=xmlname, xmlns=xmlns, childcount=childcount, loc=loc, id=id(self))
 
 
 class TextAttr(Attr):
@@ -3186,29 +3186,33 @@ class Element(Node, metaclass=_Element_Meta):
 		"""
 		self.content.insert(index, *items)
 
-	def convert(self, converter):
+	def _create(self):
 		node = self.__class__() # "virtual" constructor
-		node.content = self.content.convert(converter)
-		node.attrs = self.attrs.convert(converter)
 		if self.__class__ is Element:
 			node.xmlname = self.xmlname
 			node.xmlns = self.xmlns
+		return node
+
+	def convert(self, converter):
+		node = self._create()
+		node.content = self.content.convert(converter)
+		node.attrs = self.attrs.convert(converter)
 		return self._decoratenode(node)
 
 	def clone(self):
-		node = self.__class__() # "virtual" constructor
+		node = self._create()
 		node.content = self.content.clone() # this is faster than passing it in the constructor (no :func:`tonode` call)
 		node.attrs = self.attrs.clone()
 		return self._decoratenode(node)
 
 	def __copy__(self):
-		node = self.__class__()
+		node = self._create()
 		node.content = copy.copy(self.content)
 		node.attrs = copy.copy(self.attrs)
 		return self._decoratenode(node)
 
 	def __deepcopy__(self, memo=None):
-		node = self.__class__()
+		node = self._create()
 		if memo is None:
 			memo = {}
 		memo[id(self)] = node
@@ -3321,7 +3325,10 @@ class Element(Node, metaclass=_Element_Meta):
 			else:
 				return self
 		elif isinstance(index, slice):
-			return self.__class__(self.content[index], self.attrs)
+			result = self._create()
+			result.content = self.content[index]
+			result.attrs = self.attrs
+			return result
 		else:
 			from ll.xist import xfind
 			def iterate(selector):
@@ -3383,7 +3390,7 @@ class Element(Node, metaclass=_Element_Meta):
 		return iter(self.content)
 
 	def compacted(self):
-		node = self.__class__()
+		node = self._create()
 		node.content = self.content.compacted()
 		node.attrs = self.attrs.compacted()
 		return self._decoratenode(node)
@@ -3393,7 +3400,7 @@ class Element(Node, metaclass=_Element_Meta):
 		Return a version of :var:`self` with a separator node between the child
 		nodes of :var:`self`. For more info see :meth:`Frag.withsep`.
 		"""
-		node = self.__class__()
+		node = self._create()
 		node.attrs = self.attrs.clone()
 		node.content = self.content.withsep(separator, clone)
 		return node
@@ -3402,7 +3409,7 @@ class Element(Node, metaclass=_Element_Meta):
 		"""
 		Return a reversed version of :var:`self`.
 		"""
-		node = self.__class__()
+		node = self._create()
 		node.attrs = self.attrs.clone()
 		node.content = self.content.reversed()
 		return node
@@ -3411,7 +3418,7 @@ class Element(Node, metaclass=_Element_Meta):
 		"""
 		Return a filtered version of the :var:`self`.
 		"""
-		node = self.__class__()
+		node = self._create()
 		node.attrs = self.attrs.clone()
 		node.content = self.content.filtered(function)
 		return node
@@ -3420,7 +3427,7 @@ class Element(Node, metaclass=_Element_Meta):
 		"""
 		Return a shuffled version of the :var:`self`.
 		"""
-		node = self.__class__()
+		node = self._create()
 		node.attrs = self.attrs.clone()
 		node.content = self.content.shuffled()
 		return node
@@ -3431,22 +3438,21 @@ class Element(Node, metaclass=_Element_Meta):
 		node = function(self, converter)
 		assert isinstance(node, Node), "the mapped method returned the illegal object {!r} (type {!r}) when mapping {!r}".format(node, type(node), self)
 		if node is self:
-			node = self.__class__(self.content.mapped(function, converter))
+			node = self._create()
+			node.content = Frag(self.content.mapped(function, converter))
 			node.attrs = self.attrs.clone()
-			if self.__class__ is Element:
-				node.xmlname = self.xmlname
-				node.xmlns = self.xmlns
 		return node
 
 	def normalized(self):
-		node = self.__class__()
+		node = self._create()
 		node.attrs = self.attrs.normalized()
 		node.content = self.content.normalized()
 		return node
 
 	def pretty(self, level=0, indent="\t"):
 		orglevel = level # Remember the original indent level, so that any misconfiguration inside the element doesn't mess with the indentation
-		node = self.__class__(self.attrs)
+		node = self._create()
+		node.attrs.update(self.attrs)
 		if len(self):
 			# search for text content
 			for child in self:
@@ -3518,7 +3524,7 @@ class Element(Node, metaclass=_Element_Meta):
 			loc = " (from {})".format(self.startloc)
 		else:
 			loc = ""
-		return "<element {self.__class__.__module__}.{self.__class__.__qualname__}{xmlname}{xmlns} ({childcount}/{attrcount}){loc} at {id:#x}>".format(self=self, xmlname=xmlname, xmlns=xmlns, childcount=childcount, attrcount=attrcount, loc=loc, id=id(self))
+		return "<element {self.__class__.__module__}.{self.__class__.__qualname__}{xmlns}{xmlname} ({childcount}/{attrcount}){loc} at {id:#x}>".format(self=self, xmlname=xmlname, xmlns=xmlns, childcount=childcount, attrcount=attrcount, loc=loc, id=id(self))
 
 
 class AttrElement(Element):
