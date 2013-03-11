@@ -1361,25 +1361,18 @@ class Tidy(object):
 	__ http://lxml.de/
 	"""
 
-	def __init__(self, encoding=None, skipbad=False):
+	def __init__(self, encoding=None):
 		"""
 		Create a new :class:`Tidy` object. Parameters have the following meaning:
 
 		:var:`encoding` : string or :const:`None`
 			The encoding of the input. If :var:`encoding` is :const:`None` it will
 			be automatically detected by the HTML parser.
-
-		:var:`skipbad` : bool
-			If :var:`skipbad` is true, unknown elements (i.e. those not in the
-			:mod:`ll.xist.ns.html` namespace) will be skipped (i.e. instead of
-			the element its content will be output). Unknown attributes will be
-			skipped completely.
 		"""
 		self.encoding = encoding
-		self.skipbad = skipbad
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} skipbad={0.skipbad!r} at {1:#x}>".format(self, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
 
 	def _asxist(self, node):
 		from ll.xist.ns import html
@@ -1389,26 +1382,20 @@ class Tidy(object):
 		elif "Element" in name:
 			elementname = node.tag
 			element = getattr(html, elementname, None)
-			elok = element is not None
-			if elok: # Output events for the start tag, if the element is known
-				yield ("enterstarttag", elementname)
-				for (attrname, attrvalue) in sorted(node.items()):
-					# Output the attribute if: all attributes should be output, or it isn't an HTML element, or the attribute is known
-					atok = not self.skipbad or element is None or element.Attrs.isallowed_xml(attrname)
-					if atok:
-						yield ("enterattr", attrname)
-						if attrvalue:
-							yield ("text", attrvalue)
-						yield ("leaveattr", attrname)
-				yield ("leavestarttag", elementname)
+			yield ("enterstarttag", elementname)
+			for (attrname, attrvalue) in sorted(node.items()):
+				yield ("enterattr", attrname)
+				if attrvalue:
+					yield ("text", attrvalue)
+				yield ("leaveattr", attrname)
+			yield ("leavestarttag", elementname)
 			if node.text:
 				yield ("text", node.text)
 			for child in node:
 				yield from self._asxist(child)
 				if hasattr(child, "tail") and child.tail:
 					yield ("text", child.tail)
-			if elok: # Output events for the end tag, if the element is known
-				yield ("endtag", elementname)
+			yield ("endtag", elementname)
 		elif "ProcessingInstruction" in name:
 			yield ("procinst", (node.target, node.text))
 		elif "Comment" in name:
