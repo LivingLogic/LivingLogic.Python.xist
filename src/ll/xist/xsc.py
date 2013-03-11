@@ -1469,8 +1469,22 @@ class CharacterData(Node):
 	def __init__(self, *content):
 		self._content = "".join(str(x) for x in content)
 
+	def __repr__(self):
+		if self.startloc is not None:
+			loc = " (from {})".format(self.startloc)
+		else:
+			loc = ""
+		return "<{self.__class__.__module__}.{self.__class__.__name__} content={self.content!r}{loc} at {id:#x}>".format(self=self, loc=loc, id=id(self))
+
 	def _repr_pretty_(self, p, cycle):
-		p.text("{}.{}({!r})".format(self.__class__.__module__, self.__class__.__name__, self.content))
+		with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+			p.breakable()
+			p.text("content={!r}".format(self.content))
+			if self.startloc is not None:
+				p.breakable()
+				p.text("(from {})".format(self.startloc))
+			p.breakable()
+			p.text("at {:#x}".format(id(self)))
 
 	def __getstate__(self):
 		return self._content
@@ -1622,13 +1636,6 @@ class CharacterData(Node):
 	def upper(self):
 		return self.__class__(self._content.upper())
 
-	def __repr__(self):
-		if self.startloc is not None:
-			loc = " (from {})".format(self.startloc)
-		else:
-			loc = ""
-		return "<{self.__class__.__module__}.{self.__class__.__name__} content={self.content!r}{loc} at {id:#x}>".format(self=self, loc=loc, id=id(self))
-
 
 class Text(CharacterData):
 	"""
@@ -1642,12 +1649,6 @@ class Text(CharacterData):
 
 	def __str__(self):
 		return self._content
-
-	def _repr_pretty_(self, p, cycle):
-		if len(p.group_stack) <= 2:
-			p.text("xsc.Text({!r})".format(self._content))
-		else:
-			p.text(repr(self._content))
 
 	def publish(self, publisher):
 		yield publisher.encodetext(self._content)
@@ -1683,18 +1684,26 @@ class Frag(Node, list):
 			elif child is not Null:
 				list.append(self, child)
 
-	def _repr_pretty_(self, p, cycle):
-		if cycle:
-			p.text("xsc.Frag(...)")
+	def __repr__(self):
+		l = len(self)
+		if l==0:
+			childcount = "no children"
+		elif l==1:
+			childcount = "1 child"
 		else:
-			with p.group(4, "xsc.Frag(", ")"):
-				for (i, child) in enumerate(self):
-					if i:
-						p.text(",")
-						p.breakable()
-					else:
-						p.breakable("")
-					p.pretty(child)
+			childcount = "{} children".format(l)
+		loc = " (from {})".format(self.startloc) if self.startloc is not None else ""
+		return "<{self.__class__.__module__}.{self.__class__.__name__} object ({childcount}){loc} at {id:#x}>".format(self=self, childcount=childcount, loc=loc, id=id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+			if cycle:
+				p.text("...")
+			for child in self:
+				p.breakable()
+				p.pretty(child)
+			p.breakable()
+			p.text("at {:#x}".format(id(self)))
 
 	def __enter__(self):
 		return threadlocalnodehandler.handler.enter(self)
@@ -2001,7 +2010,6 @@ class Frag(Node, list):
 			level += child.prettyindentafter
 		return node
 
-
 	def _walk(self, cursor):
 		# ``Frag``\s don't get tested
 		cursor.path.append(None)
@@ -2013,17 +2021,6 @@ class Frag(Node, list):
 		cursor.path.pop()
 		cursor.index.pop()
 		cursor.node = cursor.path[-1]
-
-	def __repr__(self):
-		l = len(self)
-		if l==0:
-			childcount = "no children"
-		elif l==1:
-			childcount = "1 child"
-		else:
-			childcount = "{} children".format(l)
-		loc = " (from {})".format(self.startloc) if self.startloc is not None else ""
-		return "<{self.__class__.__module__}.{self.__class__.__name__} object ({childcount}){loc} at {id:#x}>".format(self=self, childcount=childcount, loc=loc, id=id(self))
 
 
 class Comment(CharacterData):
@@ -2111,6 +2108,27 @@ class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
 
 	register = None
 
+	def __repr__(self):
+		if self.xmlname != self.__class__.__name__:
+			xmlname = " xmlname={!r}".format(self.xmlname)
+		else:
+			xmlname = ""
+		if self.startloc is not None:
+			loc = " (from {})".format(self.startloc)
+		else:
+			loc = ""
+		return "<procinst {self.__class__.__module__}.{self.__class__.__qualname__}{xmlname} content={self.content!r}{loc} at {id:#x}>".format(self=self, xmlname=xmlname, loc=loc, id=id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		with p.group(4, "<procinst {0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+			if self.xmlname != self.__class__.__name__:
+				p.breakable()
+				p.text("xmlname={!r}".format(self.xmlname))
+			p.breakable()
+			p.text("content={!r}".format(self.content))
+			p.breakable()
+			p.text("at {:#x}".format(id(self)))
+
 	@classmethod
 	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = cls._strbase(fullname=fullname, xml=xml)
@@ -2140,17 +2158,6 @@ class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
 	def __str__(self):
 		return ""
 
-	def __repr__(self):
-		if self.xmlname != self.__class__.__name__:
-			xmlname = " xmlname={!r}".format(self.xmlname)
-		else:
-			xmlname = ""
-		if self.startloc is not None:
-			loc = " (from {})".format(self.startloc)
-		else:
-			loc = ""
-		return "<procinst {self.__class__.__module__}.{self.__class__.__qualname__}{xmlname} content={self.content!r}{loc} at {id:#x}>".format(self=self, xmlname=xmlname, loc=loc, id=id(self))
-
 	def __mul__(self, n):
 		return Node.__mul__(self, n) # don't inherit ``CharacterData.__mul__``
 
@@ -2163,8 +2170,11 @@ class Null(CharacterData):
 	node that does not contain anything.
 	"""
 
+	def __repr__(self):
+		return "ll.xist.xsc.Null"
+
 	def _repr_pretty_(self, p, cycle):
-		p.text("xsc.Null")
+		p.text("<{self.__class__.__module__}.{self.__class__.__qualname__} at {id:#x}>".format(self=self, id=id(self)))
 
 	@classmethod
 	def _str(cls, fullname=True, xml=True, decorate=True):
@@ -2190,9 +2200,6 @@ class Null(CharacterData):
 
 	def __str__(self):
 		return ""
-
-	def __repr__(self):
-		return "ll.xist.xsc.Null"
 
 
 Null = Null() # Singleton, the Python way
@@ -2262,6 +2269,53 @@ class Attr(Frag, metaclass=_Attr_Meta):
 	default = None
 	values = None
 
+	def __repr__(self):
+		if self.xmlname != self.__class__.__name__:
+			xmlname = " xmlname={!r}".format(self.xmlname)
+		else:
+			xmlname = ""
+
+		if self.xmlns is not None:
+			isglobal = "global "
+			xmlns = " xmlns={!r}".format(self.xmlns)
+		else:
+			isglobal = ""
+			xmlns = ""
+
+		l = len(self)
+		if l==0:
+			childcount = "no children"
+		elif l==1:
+			childcount = "1 child"
+		else:
+			childcount = "{} children".format(l)
+
+		loc = " (from {})".format(self.startloc) if self.startloc is not None else ""
+
+		return "<{isglobal}attribute {self.__class__.__module__}.{self.__class__.__qualname__}{xmlns}{xmlname} ({childcount}){loc} at {id:#x}>".format(self=self, isglobal=isglobal, xmlname=xmlname, xmlns=xmlns, childcount=childcount, loc=loc, id=id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		with p.group(4, "<{isglobal}attribute {self.__class__.__module__}.{self.__class__.__qualname__}".format(self=self, isglobal="global " if self.xmlns is not None else ""), ">"):
+			if self.xmlns is not None:
+				p.breakable()
+				p.text("xmlns={!r}".format(self.xmlns))
+			if self.xmlname != self.__class__.__name__:
+				p.breakable()
+				p.text("xmlname={!r}".format(self.xmlname))
+			if cycle:
+				p.breakable()
+				p.text("...")
+			else:
+				for child in self:
+					p.breakable()
+					p.pretty(child)
+			p.breakable()
+			p.text("at {:#x}".format(id(self)))
+
+	@classmethod
+	def _str(cls, fullname=True, xml=True, decorate=True):
+		return cls._strbase(fullname=fullname, xml=xml)
+
 	def isfancy(self):
 		"""
 		Return whether :var:`self` contains nodes other than :class:`Text`.
@@ -2270,23 +2324,6 @@ class Attr(Frag, metaclass=_Attr_Meta):
 			if not isinstance(child, Text):
 				return True
 		return False
-
-	def _repr_pretty_(self, p, cycle):
-		if cycle:
-			p.text("{}.{}(...)".format(self.__class__.__module__, self.__class__.__name__))
-		else:
-			with p.group(4, "{}.{}(".format(self.__class__.__module__, self.__class__.__name__), ")"):
-				for (i, child) in enumerate(self):
-					if i:
-						p.text(",")
-						p.breakable()
-					else:
-						p.breakable("")
-					p.pretty(child)
-
-	@classmethod
-	def _str(cls, fullname=True, xml=True, decorate=True):
-		return cls._strbase(fullname=fullname, xml=xml)
 
 	def present(self, presenter):
 		return presenter.presentAttr(self) # return a generator-iterator
@@ -2354,31 +2391,6 @@ class Attr(Frag, metaclass=_Attr_Meta):
 			cursor.event = "leaveattrnode"
 			yield cursor
 			cursor.restore()
-
-	def __repr__(self):
-		if self.xmlname != self.__class__.__name__:
-			xmlname = " xmlname={!r}".format(self.xmlname)
-		else:
-			xmlname = ""
-
-		if self.xmlns is not None:
-			isglobal = "global "
-			xmlns = " xmlns={!r}".format(self.xmlns)
-		else:
-			isglobal = ""
-			xmlns = ""
-
-		l = len(self)
-		if l==0:
-			childcount = "no children"
-		elif l==1:
-			childcount = "1 child"
-		else:
-			childcount = "{} children".format(l)
-
-		loc = " (from {})".format(self.startloc) if self.startloc is not None else ""
-
-		return "<{isglobal}attribute {self.__class__.__module__}.{self.__class__.__qualname__}{xmlns}{xmlname} ({childcount}){loc} at {id:#x}>".format(self=self, isglobal=isglobal, xmlname=xmlname, xmlns=xmlns, childcount=childcount, loc=loc, id=id(self))
 
 
 class TextAttr(Attr):
@@ -2614,8 +2626,8 @@ class _Attrs_Meta(type(Node)):
 
 class Attrs(Node, dict, metaclass=_Attrs_Meta):
 	"""
-	An attribute map. Allowed entries are specified through nested subclasses
-	of :class:`Attr`.
+	An attribute map. Predefined attribute can be declared through nested
+	subclasses of :class:`Attr`.
 	"""
 
 	def __init__(self, *args, **kwargs):
@@ -2626,44 +2638,38 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		# update attributes, this might overwrite (or delete) default attributes
 		self.update(*args, **kwargs)
 
-	@staticmethod
-	def _sortorder(cls):
-		return (getattr(cls, "xmlorder", "\U0010ffff"), nsclark(cls.xmlns) + cls.xmlname)
+	def __repr__(self):
+		l = len(self)
+		if l==0:
+			attrcount = "no attrs"
+		elif l==1:
+			attrcount = "1 attr"
+		else:
+			attrcount = "{} attrs".format(l)
+		if self.startloc is not None:
+			loc = " (from {})".format(self.startloc)
+		else:
+			loc = ""
+		return "<attributes {self.__class__.__module__}.{self.__class__.__qualname__} ({attrcount}){loc} at {id:#x}>".format(self=self, attrcount=attrcount, loc=loc, id=id(self))
 
-	def _repr_pretty_content_(self, p, first=True):
+	@staticmethod
+	def _sortorder(attrvalue):
+		return (getattr(attrvalue, "xmlorder", "\U0010ffff"), nsclark(attrvalue.xmlns) + attrvalue.xmlname)
+
+	def _repr_pretty_content_(self, p):
 		for attr in sorted(self.values(), key=self._sortorder):
-			if first:
-				p.breakable("")
-				first = False
-			else:
-				p.text(",")
-				p.breakable()
-			if attr.xmlns is not None:
-				attrname = "{}.{}".format(attr.__class__.__module__, attr.__class__.__qualname__)
-			else:
-				attrname = attr.__class__.__name__
-			if len(attr) == 1:
-				p.text(attrname)
-				p.text("=")
-				p.pretty(attr[0])
-			else:
-				with p.group(4, "{}=(".format(attrname), ")"):
-					attrfirst = True
-					for attrchild in attr:
-						if attrfirst:
-							p.breakable("")
-							attrfirst = False
-						else:
-							p.text(",")
-							p.breakable()
-						p.pretty(attrchild)
+			p.breakable()
+			p.pretty(attr)
 
 	def _repr_pretty_(self, p, cycle):
-		if cycle:
-			p.text("{}.{}(...)".format(self.__class__.__module__, self.__class__.__qualname__))
-		else:
-			with p.group(4, "{}.{}(".format(self.__class__.__module__, self.__class__.__qualname__), ")"):
-				self._repr_pretty_content_(p, True)
+		with p.group(4, "<attributes {self.__class__.__module__}.{self.__class__.__qualname__}".format(self=self), ">"):
+			if cycle:
+				p.breakable()
+				p.text("...")
+			else:
+				self._repr_pretty_content_(p)
+			p.breakable()
+			p.text("at {:#x}".format(id(self)))
 
 	def __eq__(self, other):
 		if not isinstance(other, Attrs):
@@ -2992,20 +2998,6 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		cursor.index.pop()
 		cursor.node = cursor.path[-1]
 
-	def __repr__(self):
-		l = len(self)
-		if l==0:
-			attrcount = "no attrs"
-		elif l==1:
-			attrcount = "1 attr"
-		else:
-			attrcount = "{} attrs".format(l)
-		if self.startloc is not None:
-			loc = " (from {})".format(self.startloc)
-		else:
-			loc = ""
-		return "<attributes {self.__class__.__module__}.{self.__class__.__qualname__} ({attrcount}){loc} at {id:#x}>".format(self=self, attrcount=attrcount, loc=loc, id=id(self))
-
 
 class _Element_Meta(type(Node)):
 	def __new__(cls, name, bases, dict):
@@ -3083,22 +3075,55 @@ class Element(Node, metaclass=_Element_Meta):
 		self.content = Frag(*contentargs)
 		self.attrs = self.Attrs(*attrargs, **attrs)
 
-	def _repr_pretty_(self, p, cycle):
-		if cycle:
-			p.text("{}.{}(...)".format(self.__class__.__module__, self.__class__.__name__))
+	def __repr__(self):
+		if self.xmlns is not None:
+			xmlns = " xmlns={!r}".format(self.xmlns)
 		else:
-			with p.group(4, "{}.{}(".format(self.__class__.__module__, self.__class__.__name__), ")"):
-				first = True
-				for child in self.content:
-					if first:
-						p.breakable("")
-						first = False
-					else:
-						p.text(",")
-						p.breakable()
-					p.pretty(child)
+			xmlns = ""
 
-				self.attrs._repr_pretty_content_(p, first)
+		if self.xmlname != self.__class__.__name__:
+			xmlname = " xmlname={!r}".format(self.xmlname)
+		else:
+			xmlname = ""
+
+		lc = len(self.content)
+		if lc==0:
+			childcount = "no children"
+		elif lc==1:
+			childcount = "1 child"
+		else:
+			childcount = "{} children".format(lc)
+		la = len(self.attrs)
+		if la==0:
+			attrcount = "no attrs"
+		elif la==1:
+			attrcount = "1 attr"
+		else:
+			attrcount = "{} attrs".format(la)
+		if self.startloc is not None:
+			loc = " (from {})".format(self.startloc)
+		else:
+			loc = ""
+		return "<element {self.__class__.__module__}.{self.__class__.__qualname__}{xmlns}{xmlname} ({childcount}/{attrcount}){loc} at {id:#x}>".format(self=self, xmlname=xmlname, xmlns=xmlns, childcount=childcount, attrcount=attrcount, loc=loc, id=id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		with p.group(4, "<element {self.__class__.__module__}.{self.__class__.__qualname__}".format(self=self), ">"):
+			if self.xmlns is not None:
+				p.breakable()
+				p.text("xmlns={!r}".format(self.xmlns))
+			if self.xmlname != self.__class__.__name__:
+				p.breakable()
+				p.text("xmlname={!r}".format(self.xmlname))
+			if cycle:
+				p.breakable()
+				p.text("...")
+			else:
+				for child in self.content:
+					p.breakable()
+					p.pretty(child)
+				self.attrs._repr_pretty_content_(p)
+			p.breakable()
+			p.text("at {:#x}".format(id(self)))
 
 	def __getstate__(self):
 		attrs = {key : (value.__class__.__module__, value.__class__.__qualname__, Frag(value)) for (key, value) in dict.items(self.attrs)}
@@ -3495,37 +3520,6 @@ class Element(Node, metaclass=_Element_Meta):
 			yield cursor
 			cursor.restore()
 
-	def __repr__(self):
-		if self.xmlname != self.__class__.__name__:
-			xmlname = " xmlname={!r}".format(self.xmlname)
-		else:
-			xmlname = ""
-
-		if self.xmlns is not None:
-			xmlns = " xmlns={!r}".format(self.xmlns)
-		else:
-			xmlns = ""
-
-		lc = len(self.content)
-		if lc==0:
-			childcount = "no children"
-		elif lc==1:
-			childcount = "1 child"
-		else:
-			childcount = "{} children".format(lc)
-		la = len(self.attrs)
-		if la==0:
-			attrcount = "no attrs"
-		elif la==1:
-			attrcount = "1 attr"
-		else:
-			attrcount = "{} attrs".format(la)
-		if self.startloc is not None:
-			loc = " (from {})".format(self.startloc)
-		else:
-			loc = ""
-		return "<element {self.__class__.__module__}.{self.__class__.__qualname__}{xmlns}{xmlname} ({childcount}/{attrcount}){loc} at {id:#x}>".format(self=self, xmlname=xmlname, xmlns=xmlns, childcount=childcount, attrcount=attrcount, loc=loc, id=id(self))
-
 
 class AttrElement(Element):
 	"""
@@ -3583,8 +3577,25 @@ class Entity(Node, metaclass=_Entity_Meta):
 
 	register = None
 
+	def __repr__(self):
+		if self.xmlname != self.__class__.__name__:
+			xmlname = " xmlname={!r}".format(self.xmlname)
+		else:
+			xmlname = ""
+
+		if self.startloc is not None:
+			loc = " (from {})".format(self.startloc)
+		else:
+			loc = ""
+		return "<entity {self.__class__.__module__}.{self.__class__.__qualname__}{xmlname}{loc} at {id:#x}>".format(self=self, xmlname=xmlname, loc=loc, id=id(self))
+
 	def _repr_pretty_(self, p, cycle):
-		p.text("{}.{}()".format(self.__class__.__module__, self.__class__.__name__))
+		with p.group(4, "<entity {0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+			if self.xmlname != self.__class__.__name__:
+				p.breakable()
+				p.text("xmlname={!r}".format(self.xmlname))
+			p.breakable()
+			p.text("at {:#x}".format(id(self)))
 
 	@classmethod
 	def _str(cls, fullname=True, xml=True, decorate=True):
@@ -3612,18 +3623,6 @@ class Entity(Node, metaclass=_Entity_Meta):
 		yield cursor
 		cursor.restore()
 
-	def __repr__(self):
-		if self.xmlname != self.__class__.__name__:
-			xmlname = " xmlname={!r}".format(self.xmlname)
-		else:
-			xmlname = ""
-
-		if self.startloc is not None:
-			loc = " (from {})".format(self.startloc)
-		else:
-			loc = ""
-		return "<entity {self.__class__.__module__}.{self.__class__.__qualname__}{xmlname}{loc} at {id:#x}>".format(self=self, xmlname=xmlname, loc=loc, id=id(self))
-
 
 class _CharRef_Meta(type(Entity)): # don't subclass type(Text), as this is redundant
 	def __repr__(self):
@@ -3645,8 +3644,27 @@ class CharRef(Text, Entity, metaclass=_CharRef_Meta):
 		Text.__init__(self, chr(self.codepoint))
 		Entity.__init__(self)
 
+	def __repr__(self):
+		if self.xmlname != self.__class__.__name__:
+			xmlname = " xmlname={!r}".format(self.xmlname)
+		else:
+			xmlname = ""
+
+		if self.startloc is not None:
+			loc = " (from {})".format(self.startloc)
+		else:
+			loc = ""
+		return "<charref {self.__class__.__module__}.{self.__class__.__qualname__}{xmlname} content={self.content!r}{loc} at {id:#x}>".format(self=self, xmlname=xmlname, loc=loc, id=id(self))
+
 	def _repr_pretty_(self, p, cycle):
-		p.text("{}.{}()".format(self.__class__.__module__, self.__class__.__name__))
+		with p.group(4, "<charref {0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+			if self.xmlname != self.__class__.__name__:
+				p.breakable()
+				p.text("xmlname={!r}".format(self.xmlname))
+			p.breakable()
+			p.text("codepoint={:#x}".format(self.codepoint))
+			p.breakable()
+			p.text("at {:#x}".format(id(self)))
 
 	def __getnewargs__(self):
 		return ()
@@ -3708,18 +3726,6 @@ class CharRef(Text, Entity, metaclass=_CharRef_Meta):
 
 	def upper(self):
 		return Text(self.content.upper())
-
-	def __repr__(self):
-		if self.xmlname != self.__class__.__name__:
-			xmlname = " xmlname={!r}".format(self.xmlname)
-		else:
-			xmlname = ""
-
-		if self.startloc is not None:
-			loc = " (from {})".format(self.startloc)
-		else:
-			loc = ""
-		return "<charref {self.__class__.__module__}.{self.__class__.__qualname__}{xmlname} content={self.content!r}{loc} at {id:#x}>".format(self=self, xmlname=xmlname, loc=loc, id=id(self))
 
 
 ###
