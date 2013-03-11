@@ -3212,6 +3212,9 @@ class Element(Node, metaclass=_Element_Meta):
 		node = self.__class__() # "virtual" constructor
 		node.content = self.content.convert(converter)
 		node.attrs = self.attrs.convert(converter)
+		if self.__class__ is Element:
+			node.xmlname = self.xmlname
+			node.xmlns = self.xmlns
 		return self._decoratenode(node)
 
 	def clone(self):
@@ -3452,6 +3455,9 @@ class Element(Node, metaclass=_Element_Meta):
 		if node is self:
 			node = self.__class__(self.content.mapped(function, converter))
 			node.attrs = self.attrs.clone()
+			if self.__class__ is Element:
+				node.xmlname = self.xmlname
+				node.xmlns = self.xmlns
 		return node
 
 	def normalized(self):

@@ -881,3 +881,28 @@ def test_with_addattr():
 			with xsc.addattr(html.ul.Attrs.id):
 				+xsc.Text("gurk")
 	assert e == html.ul(id="gurk")
+
+
+def test_unknownelement_convert():
+	node = xsc.Element()
+	node.xmlname = "x"
+	node.xmlns = "foo"
+
+	node = node.conv()
+
+	assert node.__class__ is xsc.Element
+	assert (node.xmlname, node.xmlns) == ("x", "foo")
+
+
+def test_unknownelement_mapped():
+	node = xsc.Element()
+	node.xmlname = "x"
+	node.xmlns = "foo"
+
+	def donothing(node, converter):
+		return node
+
+	node = node.mapped(donothing)
+
+	assert node.__class__ is xsc.Element
+	assert (node.xmlname, node.xmlns) == ("x", "foo")
