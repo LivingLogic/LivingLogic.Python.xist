@@ -3,6 +3,8 @@ Changes in ?.?? (released ??/??/2013)
 
 *	:class:`URL` objects are pickable now.
 
+*	:class:`ll.xist.parse.Tidy` no longer has a ``skipbad`` argument.
+
 
 Changes in 4.10 (released 03/04/2013)
 -------------------------------------
