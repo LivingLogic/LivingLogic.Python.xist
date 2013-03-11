@@ -2585,18 +2585,31 @@ class _Attrs_Meta(type(Node)):
 			attrcount = "{} attrs".format(l)
 		return "<attributes class {self.__module__}:{self.__qualname__} ({attrcount}) at {id:#x}>".format(self=self, attrcount=attrcount, id=id(self))
 
+	def _attrinfo(self, name):
+		if isinstance(name, str):
+			if name.startswith("{"):
+				name = name[1:].partition("}")
+				if name[1] is not None:
+					return (name[0], name[2], self._byxmlname.get((name[0], name[2]), Attr))
+			try:
+				attrclass = self._byxmlname[(None, name)]
+			except KeyError:
+				return (None, name, Attr)
+			else:
+				return (attrclass.xmlns or self.xmlns, attrclass.xmlname, attrclass)
+		elif isinstance(name, tuple):
+			xmlns = nsname(name[0])
+			return (xmlns, name[1], self._byxmlname.get((xmlns, name[1]), Attr))
+		elif isinstance(name, _Attr_Meta):
+			return (name.xmlns, name.xmlname, name)
+		elif isinstance(name, Attr):
+			return (name.xmlns, name.xmlname, name.__class__)
+		else:
+			raise TypeError("can't handle attribute name {!r}".format(name))
+
 	def __contains__(self, key):
-		if isinstance(key, str):
-			return key in self._byxmlname
-		elif isinstance(key, tuple):
-			if key[1] is not None:
-				return True
-			return key[0] in self._byxmlname
-		elif isinstance(key, (Attr, _Attr_Meta)):
-			if key.xmlns is not None:
-				return True
-			return key.xmlname in self._byxmlname
-		return False
+		(attrxmlns, attrname, attrclass) = self._attrinfo(key)
+		return (attrxmlns, attrname) in self._byxmlname
 
 
 class Attrs(Node, dict, metaclass=_Attrs_Meta):
@@ -2668,10 +2681,10 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 
 	@classmethod
 	def add(cls, value):
-		cls._byxmlname[value.xmlname] = value
-		cls._bypyname[value.__name__] = value
+		cls._byxmlname[(value.xmlns, value.xmlname)] = value
+		cls._bypyname[(value.xmlns, value.__name__)] = value
 		if value.default:
-			cls._defaultattrs[value.xmlname] = value
+			cls._defaultattrs[(value.xmlns, value.xmlname)] = value
 
 	def _create(self):
 		node = self.__class__() # "virtual" constructor
@@ -2719,12 +2732,12 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 			for subname in name:
 				node = node[subname]
 			return node
-		(attrname, attrclass) = self._attrinfo(name)
+		(attrxmlns, attrname, attrclass) = self._attrinfo(name)
 		try:
-			return dict.__getitem__(self, attrname)
+			return dict.__getitem__(self, (attrxmlns, attrname))
 		except KeyError: # if the attribute is not there generate a new empty one
-			attrvalue = self._makeattr(attrname, attrclass)
-			dict.__setitem__(self, attrname, attrvalue)
+			attrvalue = self._makeattr(attrxmlns, attrname, attrclass)
+			dict.__setitem__(self, (attrxmlns, attrname), attrvalue)
 			return attrvalue
 
 	def __setitem__(self, name, value):
@@ -2740,9 +2753,9 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 			for subname in name[:-1]:
 				node = node[subname]
 			node[name[-1]] = value
-		(attrname, attrclass) = self._attrinfo(name)
-		attrvalue = self._makeattr(attrname, attrclass, value)
-		dict.__setitem__(self, attrname, attrvalue)
+		(attrxmlns, attrname, attrclass) = self._attrinfo(name)
+		attrvalue = self._makeattr(attrxmlns, attrname, attrclass, value)
+		dict.__setitem__(self, (attrxmlns, attrname), attrvalue)
 
 	def __delitem__(self, name):
 		"""
@@ -2754,12 +2767,12 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 			for subname in name[:-1]:
 				node = node[subname]
 			del node[name[-1]]
-		(attrname, attrclass) = self._attrinfo(name)
-		dict.__delitem__(self, attrname)
+		(attrxmlns, attrname, attrclass) = self._attrinfo(name)
+		dict.__delitem__(self, (attrxmlns, attrname))
 
 	def __contains__(self, name):
-		(attrname, attrclass) = self._attrinfo(name)
-		return dict.__contains__(self, attrname) and bool(dict.__getitem__(self, attrname))
+		(attrxmlns, attrname, attrclass) = self._attrinfo(name)
+		return dict.__contains__(self, (attrxmlns, attrname)) and bool(dict.__getitem__(self, (attrxmlns, attrname)))
 
 	def convert(self, converter):
 		node = self._create()
@@ -2814,33 +2827,26 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 
 	@classmethod
 	def isdeclared(cls, name):
-		if isinstance(name, str):
-			return name in cls._byxmlname
-		elif isinstance(name, tuple):
-			if name[1] is not None:
-				return True
-			return name[0] in cls._byxmlname
-		elif isinstance(name, (Attr, _Attr_Meta)):
-			if name.xmlns is not None:
-				return True
-			return name.xmlname in cls._byxmlname
-		return False
+		(attrxmlns, attrname, attrclass) = cls._attrinfo(name)
+		return (attrxmlns, attrname) in cls._byxmlname
 
 	def __getattribute__(self, name):
-		if isinstance(name, str) and name in super().__getattribute__("_bypyname"):
-			return self[self._bypyname[name].xmlname]
+		xmlns = super().__getattribute__("xmlns")
+		_bypyname = super().__getattribute__("_bypyname")
+		if (xmlns, name) in _bypyname:
+			return self[_bypyname[(xmlns, name)]]
 		else:
 			return super().__getattribute__(name)
 
 	def __setattr__(self, name, value):
-		if isinstance(name, str) and name in self._bypyname:
+		if (self.xmlns, name) in self._bypyname:
 			self[self._pyname2xmlname(name)] = value
 		else:
 			super().__setattr__(name, value)
 
 	def __delattr__(self, name):
-		if isinstance(name, str) and name in self._bypyname:
-			del self[self._bypyname[name].xmlname]
+		if (self.xmlns, name) in self._bypyname:
+			del self[self._bypyname[(self.xmlns, name)]]
 		else:
 			super().__delattr__(name)
 
@@ -2853,8 +2859,8 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		"""
 		attrvalue = self[name]
 		if not attrvalue:
-			(attrname, attrclass) = self._attrinfo(name)
-			attrvalue = self._makeattr(attrname, attrclass, default) # pack the attribute into an attribute object
+			(attrxmlns, attrname, attrclass) = self._attrinfo(name)
+			attrvalue = self._makeattr(attrxmlns, attrname, attrclass, default) # pack the attribute into an attribute object
 		return attrvalue
 
 	def setdefault(self, name, default):
@@ -2897,48 +2903,22 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 
 	@classmethod
 	def _attrinfo(cls, name):
-		if isinstance(name, str):
-			try:
-				return (name, cls._byxmlname[name])
-			except KeyError:
-				return (name, Attr)
-		elif isinstance(name, tuple):
-			if name[1] is None:
-				try:
-					return (name[0], cls._byxmlname[name[0]])
-				except KeyError:
-					return (name[0], Attr)
-			else:
-				return ((name[0], nsname(name[1])), Attr)
-		elif isinstance(name, _Attr_Meta):
-			key = (name.xmlname, name.xmlns) if name.xmlns is not None else name.xmlname
-			return (key, name)
-		elif isinstance(name, Attr):
-			key = (name.xmlname, name.xmlns) if name.xmlns is not None else name.xmlname
-			return (key, name.__class__)
-		else:
-			raise TypeError("can't handle attribute name {!r}".format(name))
+		return cls.__class__._attrinfo(cls, name)
 
 	@classmethod
-	def _makeattr(cls, attrname, attrclass, value=None):
+	def _makeattr(cls, attrxmlns, attrname, attrclass, value=None):
 		attrvalue = attrclass(value)
 		if attrclass is Attr:
-			if isinstance(attrname, tuple):
-				attrvalue.xmlname = attrname[0]
-				attrvalue.xmlns = attrname[1]
-			else:
-				attrvalue.xmlname = attrname
-				attrvalue.xmlns = None
+			attrvalue.xmlns = attrxmlns
+			attrvalue.xmlname = attrname
 		return attrvalue
 
 	@classmethod
 	def _pyname2xmlname(cls, name):
-		if isinstance(name, str) and name in cls._bypyname:
-			attrclass = cls._bypyname[name]
-			if cls.xmlns is not None:
-				return (attrclass.xmlname, cls.xmlns)
-			else:
-				return attrclass.xmlname
+		# using ``cls.xmlns`` makes sure, that ``element(xml.Attrs(lang='de'))`` really creates a global attribute
+		# (because ``xml.Attrs`` and ``xml.Attrs.lang`` have ``xmlns`` set approprately)
+		if (cls.xmlns, name) in cls._bypyname:
+			return cls._bypyname[(cls.xmlns, name)]
 		return name
 
 	def __len__(self):
@@ -2975,10 +2955,8 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		# Helper for :meth:`withnames` and :meth:`withoutnames`
 		newnames = []
 		for name in names:
-			(name, attrclass) = self._attrinfo(name)
-			if isinstance(name, str):
-				name = (name, None)
-			newnames.append(name)
+			(attrxmlns, attrname, attrclass) = self._attrinfo(name)
+			newnames.append((attrxmlns, attrname))
 		return tuple(newnames)
 
 	def withnames(self, *names):
@@ -2987,7 +2965,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		in :var:`names` are kept, all others are removed.
 		"""
 		def isok(node):
-			return (node.xmlname, node.xmlns) in names
+			return (node.xmlns, node.xmlname) in names
 
 		names = self._fixnames(names)
 		return self.filtered(isok)
@@ -2998,7 +2976,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		in :var:`names` are removed.
 		"""
 		def isok(node):
-			return (node.xmlname, node.xmlns) not in names
+			return (node.xmlns, node.xmlname) not in names
 
 		names = self._fixnames(names)
 		return self.filtered(isok)
@@ -3781,7 +3759,7 @@ class Pool(misc.Pool):
 		if isinstance(object, type):
 			if issubclass(object, Element):
 				if object.register:
-					self._elementsbyname[(object.xmlname, object.xmlns)] = object
+					self._elementsbyname[(object.xmlns, object.xmlname)] = object
 			elif issubclass(object, ProcInst):
 				if object.register:
 					self._procinstsbyname[object.xmlname] = object
@@ -3790,7 +3768,7 @@ class Pool(misc.Pool):
 					self._entitiesbyname[object.xmlname] = object
 			elif issubclass(object, Attr):
 				if object.xmlns is not None and object.register:
-					self._attrsbyname[(object.xmlname, object.xmlns)] = object
+					self._attrsbyname[(object.xmlns, object.xmlname)] = object
 			elif issubclass(object, Attrs):
 				for attr in object.declaredattrs():
 					self.register(attr)
@@ -3851,14 +3829,14 @@ class Pool(misc.Pool):
 		seen = set()
 		for element in self._elementsbyname.values():
 			yield element
-			seen.add((element.xmlname, element.xmlns))
+			seen.add((element.xmlns, element.xmlname))
 		for base in self.bases:
 			for element in base.elements():
-				if (element.xmlname, element.xmlns) not in seen:
+				if (element.xmlns, element.xmlname) not in seen:
 					yield element
-					seen.add((element.xmlname, element.xmlns))
+					seen.add((element.xmlns, element.xmlname))
 
-	def elementclass(self, name, xmlns):
+	def elementclass(self, xmlns, name):
 		"""
 		Return the element class for the element with the XML name :var:`name`
 		and the namespace :var:`xmlns`. If the element can't be found an
@@ -3866,32 +3844,32 @@ class Pool(misc.Pool):
 		"""
 		xmlns = nsname(xmlns)
 		try:
-			return self._elementsbyname[(name, xmlns)]
+			return self._elementsbyname[(xmlns, name)]
 		except KeyError:
 			for base in self.bases:
-				result = base.elementclass(name, xmlns)
+				result = base.elementclass(xmlns, name)
 				if result is not Element:
 					return result
 		return Element
 
-	def element(self, name, xmlns):
+	def element(self, xmlns, name):
 		"""
 		Return an element object for the element type with the XML name
 		:var:`name` and the namespace :var:`xmlns`.
 		"""
 		xmlns = nsname(xmlns)
-		result = self.elementclass(name, xmlns)()
+		result = self.elementclass(xmlns, name)()
 		if result.__class__ is Element:
-			result.xmlname = name
 			result.xmlns = xmlns
+			result.xmlname = name
 		return result
 
-	def haselement(self, name, xmlns):
+	def haselement(self, xmlns, name):
 		"""
 		Is there a registered element class in :var:`self` for the element type
 		with the Python name :var:`name` and the namespace :var:`xmlns`?
 		"""
-		return (name, nsname(xmlns)) in self._elementsbyname or any(base.haselement(name, xmlns) for base in self.bases)
+		return (nsname(xmlns), name) in self._elementsbyname or any(base.haselement(xmlns, name) for base in self.bases)
 
 	def procinsts(self):
 		"""
@@ -3983,7 +3961,7 @@ class Pool(misc.Pool):
 		"""
 		return name in self._entitiesbyname or any(base.hasentity(name) for base in self.bases)
 
-	def attrkey(self, name, xmlns):
+	def attrkey(self, xmlns, name):
 		"""
 		Return the key that can be used to set the attribute with the name
 		:var:`name` and the namespace :var:`xmlns`. If :var:`self` (or one of the
@@ -3996,13 +3974,13 @@ class Pool(misc.Pool):
 			return name
 		xmlns = nsname(xmlns)
 		try:
-			return self._attrsbyname[(name, xmlns)]
+			return self._attrsbyname[(xmlns, name)]
 		except KeyError:
 			for base in self.bases:
 				result = base.attrkey(name, xmlns)
 				if isinstance(result, _Attr_Meta):
 					return result
-		return (name, xmlns)
+		return (xmlns, name)
 
 	def text(self, content):
 		"""

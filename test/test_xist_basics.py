@@ -314,10 +314,7 @@ def test_attributekeysvaluesitems():
 		assert list(node.attrs.declaredattrs()) == [attrclass]
 
 		if attrvalue:
-			if attrclass.xmlns is not None:
-				assert list(node.attrs.keys()) == [(attrclass.xmlname, attrclass.xmlns)]
-			else:
-				assert list(node.attrs.keys()) == [attrclass.xmlname]
+			assert list(node.attrs.keys()) == [(attrclass.xmlns, attrclass.xmlname)]
 		else:
 			assert list(node.attrs.keys()) == []
 
@@ -333,7 +330,7 @@ def test_attributekeysvaluesitems():
 		if attrvalue:
 			res = list(node.attrs.items())
 			assert len(res) == 1
-			assert res[0][0] == attrclass.xmlname
+			assert res[0][0] == (attrclass.xmlns, attrclass.xmlname)
 			assert res[0][1].__class__ is attrclass
 			assert str(res[0][1]) == attrvalue
 		else:
@@ -372,13 +369,13 @@ def test_attributeswithoutnames():
 		dir="ltr"
 	)
 	keys = set(node.attrs.keys())
-	keys.remove("class")
+	keys.remove((None, "class"))
 
 	keys1 = set(node.attrs.withoutnames("class").keys())
 	assert keys == keys1
 
-	keys.remove(("lang", xml.xmlns))
-	keys.remove(("base", xml.xmlns))
+	keys.remove((xml.xmlns, "lang"))
+	keys.remove((xml.xmlns, "base"))
 	keys2 = set(node.attrs.withoutnames("class", xml.Attrs.lang, xml.Attrs.base).keys())
 	assert keys == keys2
 
@@ -402,13 +399,13 @@ def test_attributeswithnames():
 
 	assert set(node.attrs.withnames("id").keys()) == set()
 
-	assert set(node.attrs.withnames("class").keys()) == {"class"}
+	assert set(node.attrs.withnames("class").keys()) == {(None, "class")}
 
-	assert set(node.attrs.withnames("lang", "align").keys()) == {"lang", "align"}
+	assert set(node.attrs.withnames("lang", "align").keys()) == {(None, "lang"), (None, "align")}
 
-	assert set(node.attrs.withnames(h1.Attrs.lang, "align").keys()) == {"lang", "align"}
+	assert set(node.attrs.withnames(h1.Attrs.lang, "align").keys()) == {(None, "lang"), (None, "align")}
 
-	assert set(node.attrs.withnames(html.h1.Attrs.lang, "align").keys()) == {"lang", "align"}
+	assert set(node.attrs.withnames(html.h1.Attrs.lang, "align").keys()) == {(None, "lang"), (None, "align")}
 
 	node = html.h1(
 		"gurk",
@@ -420,14 +417,14 @@ def test_attributeswithnames():
 
 	assert set(node.attrs.withnames("id").keys()) == set()
 
-	assert set(node.attrs.withnames("class").keys()) == {"class"}
+	assert set(node.attrs.withnames("class").keys()) == {(None, "class")}
 
-	assert set(node.attrs.withnames("lang", "align").keys()) == {"lang", "align"}
+	assert set(node.attrs.withnames("lang", "align").keys()) == {(None, "lang"), (None, "align")}
 
-	assert set(node.attrs.withnames(html.h1.Attrs.lang, "align").keys()) == {"lang", "align"}
+	assert set(node.attrs.withnames(html.h1.Attrs.lang, "align").keys()) == {(None, "lang"), (None, "align")}
 
 	# The actual attribute class is irrelevant, ``xmlname`` and ``xmlns`` determine the attributes identity
-	assert set(node.attrs.withnames(h1.Attrs.lang, "align").keys()) == {"lang", "align"}
+	assert set(node.attrs.withnames(h1.Attrs.lang, "align").keys()) == {(None, "lang"), (None, "align")}
 
 
 def test_defaultattributes():
@@ -463,7 +460,7 @@ def test_attributedictmethods():
 	node = Test(withoutdef=42)
 
 	check(
-		[ "withdef", "withoutdef" ],
+		[ (None, "withdef"), (None, "withoutdef") ],
 		list(node.attrs.keys()),
 	)
 	check(
@@ -471,7 +468,7 @@ def test_attributedictmethods():
 		list(node.attrs.values()),
 	)
 	check(
-		[ ("withdef", Test.Attrs.withdef(42)), ("withoutdef", Test.Attrs.withoutdef(42)) ],
+		[ ((None, "withdef"), Test.Attrs.withdef(42)), ((None, "withoutdef"), Test.Attrs.withoutdef(42)) ],
 		list(node.attrs.items()),
 	)
 
@@ -550,7 +547,9 @@ def test_isdeclared():
 	# Check XML/HTML attributes
 	assert html.a.Attrs.isdeclared("href")
 	assert not html.a.Attrs.isdeclared("gurk")
-	assert html.a.Attrs.isdeclared(xml.Attrs.lang)
+	assert not html.a.Attrs.isdeclared(xml.Attrs.lang)
+	assert xml.Attrs.isdeclared("{http://www.w3.org/XML/1998/namespace}lang")
+	assert xml.Attrs.isdeclared(xml.Attrs.lang)
 
 	# Check inherited attributes
 	assert htmlspecials.plaintable.Attrs.isdeclared("border")

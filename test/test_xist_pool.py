@@ -16,25 +16,25 @@ from ll.xist.ns import html, php, chars, abbr
 
 
 def test_basics_element():
-	def check(pool, xmlname, xmlns, cls):
-		assert pool.elementclass(xmlname, xmlns) is cls
-		e = pool.element(xmlname, xmlns)
-		assert (e.xmlname, e.xmlns) == (xmlname, xsc.nsname(xmlns))
+	def check(pool, xmlns, , xmlname, cls):
+		assert pool.elementclass(xmlns, xmlname) is cls
+		e = pool.element(xmlns, xmlname)
+		assert (e.xmlns, e.xmlname) == (xsc.nsname(xmlns), xmlname)
 
 	# empty pool
 	pool = xsc.Pool()
-	yield check, pool, "a", html, xsc.Element
+	yield check, pool, html, "a", xsc.Element
 
 	# register one element
 	pool = xsc.Pool(html.a)
-	yield check, pool, "a", html, html.a
-	yield check, pool, "b", html, xsc.Element
+	yield check, pool, html, "a", html.a
+	yield check, pool, html, "b", xsc.Element
 
 	# register a module
 	pool = xsc.Pool(html)
-	yield check, pool, "a", html, html.a
-	yield check, pool, "b", html, html.b
-	yield check, pool, "c", html, xsc.Element
+	yield check, pool, html, "a", html.a
+	yield check, pool, html, "b", html.b
+	yield check, pool, html, "c", xsc.Element
 
 
 def test_basics_procinst():
@@ -94,11 +94,11 @@ def test_names():
 
 	# elements
 	assert pool.element1 is element1
-	assert pool.elementclass("-element", "nix") is element1
-	assert pool.element("-element", "nix") == element1()
-	assert pool.elementclass("element1", "nix") is xsc.Element
+	assert pool.elementclass("nix", "-element") is element1
+	assert pool.element("nix", "-element") == element1()
+	assert pool.elementclass("nix", "element1") is xsc.Element
 	# make sure that the default pool didn't pick up the new class
-	assert xsc.threadlocalpool.pool.elementclass("-element", "nix") is xsc.Element
+	assert xsc.threadlocalpool.pool.elementclass("nix", "-element") is xsc.Element
 
 	# procinsts
 	assert pool.procinst1 is procinst1

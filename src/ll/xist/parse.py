@@ -150,23 +150,23 @@ parser does the namespace resolution):
 
 	``"enterstarttagns"``
 		The beginning of an element start tag in namespace mode.
-		The event data is an (element name, namespace name) tuple.
+		The event data is an (namespace name, element name) tuple.
 
 	``"leavestarttagns"``
 		The end of an element start tag in namespace mode. The event data is an
-		(element name, namespace name) tuple.
+		(namespace name, element name) tuple.
 
 	``"enterattrns"``
 		The beginning of an attribute in namespace mode. The event data is an
-		(element name, namespace name) tuple.
+		(namespace name, element name) tuple.
 
 	``"leaveattrns"``
 		The end of an attribute in namespace mode. The event data is an
-		(element name, namespace name) tuple.
+		(namespace name, element name) tuple.
 
 	``"endtagns"``
 		An element end tag in namespace mode. The event data is an
-		(element name, namespace name) tuple.
+		(namespace name, element name) tuple.
 
 Once XIST nodes have been instantiated (by :class:`Node` objects) the
 following events are used:
@@ -480,23 +480,23 @@ class ETree(object):
 				(elementxmlns, sep, elementname) = elementname[1:].partition("}")
 			else:
 				elementxmlns = self.defaultxmlns
-			yield ("enterstarttagns", (elementname, elementxmlns))
+			yield ("enterstarttagns", (elementxmlns, elementname))
 			for (attrname, attrvalue) in node.items():
 				if attrname.startswith("{"):
 					(attrxmlns, sep, attrname) = attrname[1:].partition("}")
 				else:
 					attrxmlns = None
-				yield ("enterattrns", (attrname, attrxmlns))
+				yield ("enterattrns", (attrxmlns, attrname))
 				yield ("text", attrvalue)
-				yield ("leaveattrns", (attrname, attrxmlns))
-			yield ("leavestarttagns", (elementname, elementxmlns))
+				yield ("leaveattrns", (attrxmlns, attrname))
+			yield ("leavestarttagns", (elementxmlns, elementname))
 			if node.text:
 				yield ("text", node.text)
 			for child in node:
 				yield from self._asxist(child)
 				if hasattr(child, "tail") and child.tail:
 					yield ("text", child.tail)
-			yield ("endtagns", (elementname, elementxmlns))
+			yield ("endtagns", (elementxmlns, elementname))
 		elif "ProcessingInstruction" in name:
 			yield ("procinst", (node.target, node.text))
 		elif "Comment" in name:
@@ -806,8 +806,8 @@ class Expat(Parser):
 	def _getname(self, name):
 		if self.ns:
 			if "\x01" in name:
-				return tuple(name.split("\x01")[::-1])
-			return (name, None)
+				return tuple(name.split("\x01"))
+			return (None, name)
 		return name
 
 	def _handle_startcdata(self):
@@ -986,14 +986,14 @@ class NS(object):
 		... ))
 		[('url', URL('STRING')),
 		 ('position', (0, 0)),
-		 ('enterstarttagns', (u'a', 'http://www.w3.org/1999/xhtml')),
-		 ('enterattrns', (u'href', None)),
-		 ('text', u'http://www.python.org/'),
-		 ('leaveattrns', (u'href', None)),
-		 ('leavestarttagns', (u'a', 'http://www.w3.org/1999/xhtml')),
+		 ('enterstarttagns', ('http://www.w3.org/1999/xhtml', 'a')),
+		 ('enterattrns', (None, 'href')),
+		 ('text', 'http://www.python.org/'),
+		 ('leaveattrns', (None, 'href')),
+		 ('leavestarttagns', ('http://www.w3.org/1999/xhtml', 'a')),
 		 ('position', (0, 39)),
-		 ('text', u'Python'),
-		 ('endtagns', (u'a', 'http://www.w3.org/1999/xhtml'))]
+		 ('text', 'Python'),
+		 ('endtagns', ('http://www.w3.org/1999/xhtml', 'a'))]
 	"""
 
 	def __init__(self, prefixes=None, **kwargs):
@@ -1025,7 +1025,7 @@ class NS(object):
 		for (prefix, xmlns) in kwargs.items():
 			make(prefix, xmlns)
 		self._newprefixes = self._attrs = self._attr = None
-		# A stack entry is an ``((elementname, namespacename), prefixdict)`` tuple
+		# A stack entry is an ``((namespacename, elementname), prefixdict)`` tuple
 		self._prefixstack = [(None, newprefixes)]
 
 	def __call__(self, input):
@@ -1137,7 +1137,7 @@ class NS(object):
 		prefix = prefix or None
 
 		try:
-			data = (name, prefixes[prefix])
+			data = (prefixes[prefix], name)
 		except KeyError:
 			raise xsc.IllegalPrefixError(prefix)
 
@@ -1156,9 +1156,9 @@ class NS(object):
 						raise xsc.IllegalPrefixError(attrprefix)
 			else:
 				xmlns = None
-			yield ("enterattrns", (attrname, xmlns))
+			yield ("enterattrns", (xmlns, attrname))
 			yield from attrvalue
-			yield ("leaveattrns", (attrname, xmlns))
+			yield ("leaveattrns", (xmlns, attrname))
 		yield ("leavestarttagns", data)
 		self._newprefixes = self._attrs = self._attr = None
 
