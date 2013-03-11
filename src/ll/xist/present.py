@@ -361,12 +361,12 @@ class TreePresenter(Presenter):
 
 	def presentAttrs(self, node):
 		if self._inattr:
-			for ((attrxmlns, attrname), attrvalue) in node.items():
+			for attrvalue in sorted(node.values(), key=xsc.Attrs._sortorder):
 				yield " "
-				if attrxmlns is None:
-					yield s4attrname(self.text(attrname))
+				if attrvalue.xmlns is None:
+					yield s4attrname(self.text(attrvalue.xmlname))
 				else:
-					yield s4attr("{", s4ns(self.text(attrxmlns)), "}", s4attrname(self.text(attrname)))
+					yield s4attr("{", s4ns(self.text(attrvalue.xmlns)), "}", s4attrname(self.text(attrvalue.xmlname)))
 				yield s4attr('="')
 				yield from attrvalue.present(self)
 				yield s4attr('"')
@@ -381,8 +381,8 @@ class TreePresenter(Presenter):
 				s4attrs(indent, "<", ns, ":", name, ">"),
 			)
 			self._path.append(None)
-			for ((attrxmlns, attrname), attrvalue) in node.items():
-				self._path[-1] = (attrxmlns, attrname)
+			for attrvalue in sorted(node.values(), key=xsc.Attrs._sortorder):
+				self._path[-1] = (attrvalue.xmlns, attrvalue.xmlname)
 				yield from attrvalue.present(self)
 			self._path.pop()
 			yield Line(
@@ -396,18 +396,27 @@ class TreePresenter(Presenter):
 		ns = s4ns(node.__class__.__module__)
 		name = s4elementname(node.__qualname__)
 		if self._inattr:
-			yield s4element("<", ns, ":", name)
+			if node.xmlns is not None:
+				yield s4element("<{", node.xmlns, "}", node.xmlname)
+			else:
+				yield s4element("<", node.xmlname)
 			self._inattr += 1
 			yield from node.attrs.present(self)
 			self._inattr -= 1
 			if len(node):
 				yield s4element(">")
 				yield from node.content.present(self)
-				yield s4element("</", ns, ":", name, ">")
+				if node.xmlns is not None:
+					yield s4element("</{", node.xmlns, "}", node.xmlname, ">")
+				else:
+					yield s4element("</", node.xmlname, "}")
 			else:
 				yield s4element("/>")
 		else:
-			firstline = s4element("<", ns, ":", name)
+			if node.xmlns is not None:
+				firstline = s4element("<{", node.xmlns, "}", node.xmlname)
+			else:
+				firstline = s4element("<", node.xmlname)
 			indent = self.strindent(len(self._path))
 
 			self._inattr += 1
@@ -427,11 +436,15 @@ class TreePresenter(Presenter):
 					yield from child.present(self)
 					self._path[-1] += 1
 				self._path.pop()
+				if node.xmlns is not None:
+					lastline = s4element(indent, "</{", node.xmlns, "}", node.xmlname, ">")
+				else:
+					lastline = s4element(indent, "</", node.xmlname, ">")
 				yield Line(
 					node,
 					node.endloc,
 					self._path[:],
-					s4element(indent, "</", ns, ":", name, ">"),
+					lastline,
 				)
 			else:
 				firstline.append(s4element("/>"))
@@ -462,26 +475,24 @@ class TreePresenter(Presenter):
 			yield from self._domultiline(node, lines, 0, strtext)
 
 	def presentEntity(self, node):
-		ns = s4ns(node.__class__.__module__)
-		name = s4entityname(node.__qualname__)
+		name = s4entityname(node.xmlname)
 		if self._inattr:
-			yield s4entity("&", ns, ":", name, ";")
+			yield s4entity("&", name, ";")
 		else:
 			indent = self.strindent(len(self._path))
 			yield Line(
 				node,
 				node.startloc,
 				self._path[:],
-				s4entity(indent, "&", ns, ":", name, ";"),
+				s4entity(indent, "&", name, ";"),
 			)
 
 	def presentProcInst(self, node):
-		ns = s4ns(node.__class__.__module__)
-		name = s4procinsttarget(node.__qualname__)
+		name = s4procinsttarget(node.xmlname)
 		if self._inattr:
-			yield s4procinst("<?", ns, ":", name, " ", s4procinstcontent(self.text(node.content)), "?>")
+			yield s4procinst("<?", name, " ", s4procinstcontent(self.text(node.content)), "?>")
 		else:
-			head = s4procinst("<?", ns, ":", name, " ")
+			head = s4procinst("<?", name, " ")
 			tail = s4procinst("?>")
 			lines = node.content.splitlines()
 			if len(lines)>1:
@@ -671,14 +682,14 @@ class CodePresenter(Presenter):
 
 			pyattrs = []
 			otherattrs = []
-			for ((attrxmlns, attrname), attrvalue) in node.attrs.items():
-				if node.attrs.isdeclared((attrxmlns, attrname)):
+			for attrvalue in sorted(node.attrs.values(), key=xsc.Attrs._sortorder):
+				if node.attrs.isdeclared(attrvalue):
 					pyattrs.append((attrvalue.__class__.__name__, attrvalue))
 				elif attrvalue.__class__ is xsc.Attr:
-					if attrxmlns is None:
-						otherattrs.append((repr(attrname), attrvalue))
+					if attrvalue.xmlns is None:
+						otherattrs.append((repr(attrvalue.xmlname), attrvalue))
 					else:
-						otherattrs.append((repr("{{{}}}{}".format(attrxmlns, attrname)), attrvalue))
+						otherattrs.append((repr("{{{}}}{}".format(attrvalue.xmlns, attrvalue.xmlname)), attrvalue))
 				else:
 					otherattrs.append(("{}.{}".format(attrvalue.__class__.__module__, attrvalue.__class__.__qualname__), attrvalue))
 
