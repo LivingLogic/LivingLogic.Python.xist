@@ -16,7 +16,7 @@ from ll.xist.ns import html, php, chars, abbr
 
 
 def test_basics_element():
-	def check(pool, xmlns, , xmlname, cls):
+	def check(pool, xmlns, xmlname, cls):
 		assert pool.elementclass(xmlns, xmlname) is cls
 		e = pool.element(xmlns, xmlname)
 		assert (e.xmlns, e.xmlname) == (xsc.nsname(xmlns), xmlname)
