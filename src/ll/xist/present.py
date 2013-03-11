@@ -674,13 +674,13 @@ class CodePresenter(Presenter):
 			for ((attrxmlns, attrname), attrvalue) in node.attrs.items():
 				if node.attrs.isdeclared((attrxmlns, attrname)):
 					pyattrs.append((attrvalue.__class__.__name__, attrvalue))
-				elif isinstance(attrvalue, xsc.Attr):
+				elif attrvalue.__class__ is xsc.Attr:
 					if attrxmlns is None:
 						otherattrs.append((repr(attrname), attrvalue))
 					else:
 						otherattrs.append((repr("{{{}}}{}".format(attrxmlns, attrname)), attrvalue))
 				else:
-					otherattrs.append(("{}{}".format(attrvalue.__class__.__module__, attrvalue.__class__.__qualname__), attrvalue))
+					otherattrs.append(("{}.{}".format(attrvalue.__class__.__module__, attrvalue.__class__.__qualname__), attrvalue))
 
 			if otherattrs:
 				yield Line(node.attrs, node.attrs.startloc, self._path[:], astyle.style_default(self._indent(), "{"))
