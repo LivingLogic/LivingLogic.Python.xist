@@ -259,8 +259,8 @@ class IsInstanceSelector(Selector):
 
 class hasname(Selector):
 	"""
-	Selector that selects all nodes that have a specified Python name (which
-	only selects elements, processing instructions and entities). Also a namespace
+	Selector that selects all nodes that have a specified name (which only
+	selects elements, processing instructions and entities). Also a namespace
 	name can be specified as a second argument, which will only select elements
 	from the specified namespace::
 
@@ -286,32 +286,9 @@ class hasname(Selector):
 	def __contains__(self, path):
 		node = path[-1]
 		if self.xmlns is not None:
-			return isinstance(node, xsc.Element) and node.__class__.__name__ == self.name and node.xmlns == self.xmlns
+			return isinstance(node, xsc.Element) and node.__class__.xmlname == self.name and node.xmlns == self.xmlns
 		else:
-			return isinstance(node, (xsc.Element, xsc.ProcInst, xsc.Entity)) and node.__class__.__name__ == self.name
-
-	def __str__(self):
-		if self.xmlns is not None:
-			return "{0.__class__.__name__}({0.name!r}, {0.xmlns!r})".format(self)
-		else:
-			return "{0.__class__.__name__}({0.name!r})".format(self)
-
-
-class hasname_xml(Selector):
-	"""
-	:class:`hasname_xml` works similar to :class:`hasname` except that the
-	specified name is treated as the XML name, not the Python name.
-	"""
-	def __init__(self, name, xmlns=None):
-		self.name = name
-		self.xmlns = xsc.nsname(xmlns)
-
-	def __contains__(self, path):
-		node = path[-1]
-		if self.xmlns is not None:
-			return isinstance(node, xsc.Element) and node.xmlname == self.name and node.xmlns == self.xmlns
-		else:
-			return isinstance(node, (xsc.Element, xsc.ProcInst, xsc.Entity)) and node.xmlname == self.name
+			return isinstance(node, (xsc.Element, xsc.ProcInst, xsc.Entity)) and node.__class__.xmlname == self.name
 
 	def __str__(self):
 		if self.xmlns is not None:
@@ -473,9 +450,9 @@ onlyoftype = OnlyOfTypeSelector()
 
 class hasattr(Selector):
 	"""
-	Selector that selects all element nodes that have an attribute with one
-	of the specified Python names. For selecting nodes with global attributes
-	the attribute class can be passed::
+	Selector that selects all element nodes that have an attribute with one of
+	the specified names. (Names can be strings, (attribute name, namespace name)
+	tuples or attribute classes or instances)::
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html, chars
@@ -497,7 +474,7 @@ class hasattr(Selector):
 		node = path[-1]
 		if isinstance(node, xsc.Element):
 			for attrname in self.attrnames:
-				if node.Attrs.isallowed(attrname) and node.attrs.has(attrname):
+				if attrname in node.attrs:
 					return True
 		return False
 
@@ -505,33 +482,13 @@ class hasattr(Selector):
 		return "{}({})".format(self.__class__.__name__, ", ".join(repr(attrname) for attrname in self.attrnames))
 
 
-class hasattr_xml(Selector):
-	"""
-	:class:`hasattr_xml` works similar to :class:`hasattr` except that the
-	specified names are treated as XML names instead of Python names.
-	"""
-
-	def __init__(self, *attrnames):
-		self.attrnames = attrnames
-
-	def __contains__(self, path):
-		node = path[-1]
-		if isinstance(node, xsc.Element):
-			for attrname in self.attrnames:
-				if node.Attrs.isallowed_xml(attrname) and node.attrs.has_xml(attrname):
-					return True
-		return False
-
-	def __str__(self):
-		return "{0.__class__.__name__}({1})".format(self, ", ".join(repr(attrname) for attrname in self.attrnames))
-
-
 class attrhasvalue(Selector):
 	"""
-	Selector that selects all element nodes where an attribute with the
-	specified Python name has one of the specified values. For global attributes
-	the attribute class can be passed. Note that "fancy" attributes (i.e. those
-	containing non-text) will not be considered::
+	Selector that selects all element nodes where an attribute with the specified
+	name has one of the specified values. (Names can be strings,
+	(attribute name, namespace name) tuples or attribute classes or instances).
+	Note that "fancy" attributes (i.e. those containing non-text) will not be
+	considered::
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html, chars
@@ -556,7 +513,7 @@ class attrhasvalue(Selector):
 
 	def __contains__(self, path):
 		node = path[-1]
-		if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
+		if isinstance(node, xsc.Element):
 			attr = node.attrs.get(self.attrname)
 			if not attr.isfancy(): # if there are PIs, say no
 				return str(attr) in self.attrvalues
@@ -566,36 +523,13 @@ class attrhasvalue(Selector):
 		return "{0.__class__.__name__}({0.attrname!r}, {1})".format(self, repr(self.attrvalues)[1:-1])
 
 
-class attrhasvalue_xml(Selector):
-	"""
-	:class:`attrhasvalue_xml` works similar to :class:`attrhasvalue` except that
-	the specified name is treated as an XML name instead of a Python name.
-	"""
-
-	def __init__(self, attrname, *attrvalues):
-		self.attrname = attrname
-		if not attrvalues:
-			raise ValueError("need at least one attribute value")
-		self.attrvalues = attrvalues
-
-	def __contains__(self, path):
-		node = path[-1]
-		if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
-			attr = node.attrs.get_xml(self.attrname)
-			if not attr.isfancy(): # if there are PIs, say no
-				return str(attr) in self.attrvalues
-		return False
-
-	def __str__(self):
-		return "{0.__class__.__name__}({0.attrname!1}, {0.attrvalue!r})".format(self)
-
-
 class attrcontains(Selector):
 	"""
-	Selector that selects all element nodes where an attribute with the
-	specified Python name contains one of the specified substrings in its value.
-	For global attributes the attribute class can be passed. Note that "fancy"
-	attributes (i.e. those containing non-text) will not be considered::
+	Selector that selects all element nodes where an attribute with the specified
+	name contains one of the specified substrings in its value. (Names can be
+	strings, (attribute name, namespace name) tuples or attribute classes or
+	instances). Note that "fancy" attributes (i.e. those containing non-text)
+	will not be considered::
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html, chars
@@ -623,32 +557,8 @@ class attrcontains(Selector):
 
 	def __contains__(self, path):
 		node = path[-1]
-		if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
+		if isinstance(node, xsc.Element):
 			attr = node.attrs.get(self.attrname)
-			if not attr.isfancy(): # if there are PIs, say no
-				return builtins.any(attrvalue in str(attr) for attrvalue in self.attrvalues)
-		return False
-
-	def __str__(self):
-		return "{0.__class__.__name__}({0.attrname!1}, {0.attrvalue!r})".format(self)
-
-
-class attrcontains_xml(Selector):
-	"""
-	:class:`attrcontains_xml` works similar to :class:`attrcontains` except that
-	the specified name is treated as an XML name instead of a Python name.
-	"""
-
-	def __init__(self, attrname, *attrvalues):
-		self.attrname = attrname
-		if not attrvalues:
-			raise ValueError("need at least one attribute value")
-		self.attrvalues = attrvalues
-
-	def __contains__(self, path):
-		node = path[-1]
-		if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
-			attr = node.attrs.get_xml(self.attrname)
 			if not attr.isfancy(): # if there are PIs, say no
 				return builtins.any(attrvalue in str(attr) for attrvalue in self.attrvalues)
 		return False
@@ -659,10 +569,11 @@ class attrcontains_xml(Selector):
 
 class attrstartswith(Selector):
 	"""
-	Selector that selects all element nodes where an attribute with the
-	specified Python name starts with any of the specified strings. For global
-	attributes the attribute class can be passed. Note that "fancy" attributes
-	(i.e. those containing non-text) will not be considered::
+	Selector that selects all element nodes where an attribute with the specified
+	name starts with any of the specified strings. (Names can be strings,
+	(attribute name, namespace name) tuples or attribute classes or instances).
+	Note that "fancy" attributes (i.e. those containing non-text) will not be
+	considered::
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html, chars
@@ -686,32 +597,8 @@ class attrstartswith(Selector):
 
 	def __contains__(self, path):
 		node = path[-1]
-		if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
+		if isinstance(node, xsc.Element):
 			attr = node.attrs.get(self.attrname)
-			if not attr.isfancy(): # if there are PIs, say no
-				return builtins.any(str(attr).startswith(attrvalue) for attrvalue in self.attrvalues)
-		return False
-
-	def __str__(self):
-		return "{0.__class__.__name__}({0.attrname!1}, {0.attrvalue!r})".format(self)
-
-
-class attrstartswith_xml(Selector):
-	"""
-	:class:`attrstartswith_xml` works similar to :class:`attrstartswith` except
-	that the specified name is treated as an XML name instead of a Python name.
-	"""
-
-	def __init__(self, attrname, *attrvalues):
-		self.attrname = attrname
-		if not attrvalues:
-			raise ValueError("need at least one attribute value")
-		self.attrvalues = attrvalues
-
-	def __contains__(self, path):
-		node = path[-1]
-		if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
-			attr = node.attrs.get_xml(self.attrname)
 			if not attr.isfancy(): # if there are PIs, say no
 				return builtins.any(str(attr).startswith(attrvalue) for attrvalue in self.attrvalues)
 		return False
@@ -722,10 +609,11 @@ class attrstartswith_xml(Selector):
 
 class attrendswith(Selector):
 	"""
-	Selector that selects all element nodes where an attribute with the
-	specified Python name ends with one of the specified strings. For global
-	attributes the attribute class can be passed. Note that "fancy" attributes
-	(i.e. those containing non-text) will not be considered::
+	Selector that selects all element nodes where an attribute with the specified
+	name ends with one of the specified strings. (Names can be strings,
+	(attribute name, namespace name) tuples or attribute classes or instances).
+	Note that "fancy" attributes (i.e. those containing non-text) will not be
+	considered::
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html, chars
@@ -752,32 +640,8 @@ class attrendswith(Selector):
 
 	def __contains__(self, path):
 		node = path[-1]
-		if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
+		if isinstance(node, xsc.Element):
 			attr = node.attrs.get(self.attrname)
-			if not attr.isfancy(): # if there are PIs, say no
-				return builtins.any(str(attr).endswith(attrvalue) for attrvalue in self.attrvalues)
-		return False
-
-	def __str__(self):
-		return "{0.__class__.__name__}({0.attrname!1}, {0.attrvalue!r})".format(self)
-
-
-class attrendswith_xml(Selector):
-	"""
-	:class:`attrendswith_xml` works similar to :class:`attrendswith` except that
-	the specified name is treated as an XML name instead of a Python name.
-	"""
-
-	def __init__(self, attrname, *attrvalues):
-		self.attrname = attrname
-		if not attrvalues:
-			raise ValueError("need at least one attribute value")
-		self.attrvalues = attrvalues
-
-	def __contains__(self, path):
-		node = path[-1]
-		if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
-			attr = node.attrs.get_xml(self.attrname)
 			if not attr.isfancy(): # if there are PIs, say no
 				return builtins.any(str(attr).endswith(attrvalue) for attrvalue in self.attrvalues)
 		return False
@@ -811,8 +675,8 @@ class hasid(Selector):
 
 	def __contains__(self, path):
 		node = path[-1]
-		if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml("id"):
-			attr = node.attrs.get_xml("id")
+		if isinstance(node, xsc.Element):
+			attr = node.attrs.get("id")
 			if not attr.isfancy():
 				return str(attr) in self.ids
 		return False
@@ -850,8 +714,8 @@ class hasclass(Selector):
 
 	def __contains__(self, path):
 		node = path[-1]
-		if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml("class"):
-			attr = node.attrs.get_xml("class")
+		if isinstance(node, xsc.Element):
+			attr = node.attrs.get("class")
 			if not attr.isfancy():
 				return builtins.any(classname in str(attr).split() for classname in self.classnames)
 		return False

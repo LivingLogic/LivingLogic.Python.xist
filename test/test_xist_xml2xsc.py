@@ -53,7 +53,7 @@ def test_attrs():
 	xml = "<foo a='1'><foo b='2'/></foo>"
 	mod = xml2mod([xml], parser=parser)
 
-	assert {a.xmlname for a in mod.foo.Attrs.allowedattrs()} == {"a", "b"}
+	assert {a.xmlname for a in mod.foo.Attrs.declaredattrs()} == {"a", "b"}
 
 
 def test_model1():
@@ -82,4 +82,4 @@ def test_multiple():
 	assert isinstance(mod.foo.model, sims.Elements)
 	assert mod.bar in mod.foo.model.elements
 	assert mod.baz in mod.foo.model.elements
-	assert {a.xmlname for a in mod.foo.Attrs.allowedattrs()} == {"a", "b"}
+	assert {a.xmlname for a in mod.foo.Attrs.declaredattrs()} == {"a", "b"}

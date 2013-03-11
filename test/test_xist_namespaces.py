@@ -18,7 +18,7 @@ def test_variousnamespaces():
 		for obj in vars(ns).values():
 			if isinstance(obj, type) and issubclass(obj, xsc.Element) and not issubclass(obj, skip):
 				node = obj()
-				for attrclass in node.attrs.allowedattrs():
+				for attrclass in node.attrs.declaredattrs():
 					if attrclass.required:
 						if attrclass.values:
 							node[attrclass] = attrclass.values[0]

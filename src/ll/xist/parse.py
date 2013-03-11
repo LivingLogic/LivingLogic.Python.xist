@@ -1251,7 +1251,7 @@ class Node(object):
 		return result
 
 	def entity(self, data):
-		node = self.pool.entity_xml(data)
+		node = self.pool.entity(data)
 		if self.loc:
 			node.startloc = xsc.Location(self._url, *self._position)
 		node.parsed(self, "entity")
@@ -1291,21 +1291,18 @@ class Node(object):
 		 	return ("textnode", node)
 
 	def enterstarttagns(self, data):
-		node = self.pool.element_xml(*data)
+		node = self.pool.element(*data)
 		if self.loc:
 			node.startloc = xsc.Location(self._url, *self._position)
 		self._stack.append(node)
 		node.parsed(self, "starttagns")
 
 	def enterattrns(self, data):
-		if data[1] is not None:
-			node = self.pool.attrclass_xml(*data)
-		else:
-			node = self._stack[-1].attrs.allowedattr_xml(data[0])
+		attrkey = self.pool.attrkey(*data)
+		self._stack[-1].attrs[attrkey] = ()
+		node = self._stack[-1].attrs[attrkey]
 		if self.loc:
 			node.startloc = xsc.Location(self._url, *self._position)
-		self._stack[-1].attrs[node] = ()
-		node = self._stack[-1].attrs[node]
 		self._stack.append(node)
 		self._inattr = True
 		node.parsed(self, "enterattrns")
@@ -1328,7 +1325,7 @@ class Node(object):
 		return ("leaveelementnode", node)
 
 	def procinst(self, data):
-		node = self.pool.procinst_xml(*data)
+		node = self.pool.procinst(*data)
 		if self.loc:
 			node.startloc = xsc.Location(self._url, *self._position)
 		node.parsed(self, "procinst")

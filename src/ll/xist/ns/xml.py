@@ -25,6 +25,8 @@ xmlns = xsc.xml_xmlns
 
 
 class Attrs(xsc.Attrs):
+	xmlns = xmlns
+
 	class space(xsc.TextAttr):
 		xmlns = xmlns
 		values = ("default", "preserve")

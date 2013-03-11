@@ -24,6 +24,8 @@ xmlns = "http://www.w3.org/1999/xlink"
 
 
 class Attrs(xsc.Attrs):
+	xmlns = xmlns
+
 	class type(xsc.TextAttr):
 		xmlns = xmlns
 		values = ("simple", "extended", "locator", "arc", "resource", "title")

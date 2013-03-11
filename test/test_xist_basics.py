@@ -161,11 +161,10 @@ def test_astext():
 
 def test_number():
 	node = html.div(class_=1234)
-	assert int(node["class_"]) == 1234
-	assert int(node["class_"]) == 1234
-	assert abs(float(node["class_"]) - 1234.) < 1e-2
+	assert int(node["class"]) == 1234
+	assert abs(float(node["class"]) - 1234.) < 1e-2
 	node = html.div(class_="1+1j")
-	compl = complex(node["class_"])
+	compl = complex(node["class"])
 	assert abs(compl.real - 1.) < 1e-2
 	assert abs(compl.imag - 1.) < 1e-2
 
@@ -305,15 +304,6 @@ def test_attrsclone():
 
 def test_attributes():
 	node = html.h1("gurk", {xml.Attrs.lang: "de"}, lang="de")
-	assert node.attrs.has("lang")
-	assert node.attrs.has_xml("lang")
-
-	assert node.attrs.has(html.h1.Attrs.lang)
-	assert node.attrs.has_xml(html.h1.Attrs.lang)
-
-	assert node.attrs.has(xml.Attrs.lang)
-	assert node.attrs.has_xml(xml.Attrs.lang)
-
 	assert "lang" in node.attrs
 	assert html.h1.Attrs.lang in node.attrs
 	assert xml.Attrs.lang in node.attrs
@@ -321,10 +311,13 @@ def test_attributes():
 
 def test_attributekeysvaluesitems():
 	def check(node, attrclass, attrvalue):
-		assert list(node.attrs.allowedattrs()) == [attrclass]
+		assert list(node.attrs.declaredattrs()) == [attrclass]
 
 		if attrvalue:
-			assert list(node.attrs.keys()) == [attrclass]
+			if attrclass.xmlns is not None:
+				assert list(node.attrs.keys()) == [(attrclass.xmlname, attrclass.xmlns)]
+			else:
+				assert list(node.attrs.keys()) == [attrclass.xmlname]
 		else:
 			assert list(node.attrs.keys()) == []
 
@@ -340,7 +333,7 @@ def test_attributekeysvaluesitems():
 		if attrvalue:
 			res = list(node.attrs.items())
 			assert len(res) == 1
-			assert res[0][0] is attrclass
+			assert res[0][0] == attrclass.xmlname
 			assert res[0][1].__class__ is attrclass
 			assert str(res[0][1]) == attrvalue
 		else:
@@ -379,33 +372,19 @@ def test_attributeswithoutnames():
 		dir="ltr"
 	)
 	keys = set(node.attrs.keys())
-	keys.remove(html.h1.Attrs.class_)
+	keys.remove("class")
 
-	keys1 = set(node.attrs.withoutnames("class_").keys())
+	keys1 = set(node.attrs.withoutnames("class").keys())
 	assert keys == keys1
 
-	keys.remove(xml.Attrs.lang)
-	keys.remove(xml.Attrs.base)
-	keys2 = set(node.attrs.withoutnames("class_", xml.Attrs.lang, xml.Attrs.base).keys())
+	keys.remove(("lang", xml.xmlns))
+	keys.remove(("base", xml.xmlns))
+	keys2 = set(node.attrs.withoutnames("class", xml.Attrs.lang, xml.Attrs.base).keys())
 	assert keys == keys2
 
 	# Check that non existing attrs are handled correctly
-	keys3 = set(node.attrs.withoutnames("class_", "src", xml.Attrs.lang, xml.Attrs.base).keys())
+	keys3 = set(node.attrs.withoutnames("class", "src", xml.Attrs.lang, xml.Attrs.base).keys())
 	assert keys == keys3
-
-
-def test_attributeswithoutnames_xml():
-	node = html.h1(
-		"gurk",
-		title="gurk",
-		class_="important",
-		id=42,
-	)
-	keys = set(node.attrs.keys())
-	keys.remove(html.h1.Attrs.class_)
-
-	keys1 = set(node.attrs.withoutnames_xml("class").keys())
-	assert keys == keys1
 
 
 def test_attributeswithnames():
@@ -423,13 +402,13 @@ def test_attributeswithnames():
 
 	assert set(node.attrs.withnames("id").keys()) == set()
 
-	assert set(node.attrs.withnames("class_").keys()) == {html.h1.Attrs.class_}
+	assert set(node.attrs.withnames("class").keys()) == {"class"}
 
-	assert set(node.attrs.withnames("lang", "align").keys()) == {h1.Attrs.lang, html.h1.Attrs.align}
+	assert set(node.attrs.withnames("lang", "align").keys()) == {"lang", "align"}
 
-	assert set(node.attrs.withnames(h1.Attrs.lang, "align").keys()) == {h1.Attrs.lang, html.h1.Attrs.align}
+	assert set(node.attrs.withnames(h1.Attrs.lang, "align").keys()) == {"lang", "align"}
 
-	assert set(node.attrs.withnames(html.h1.Attrs.lang, "align").keys()) == {h1.Attrs.lang, html.h1.Attrs.align}
+	assert set(node.attrs.withnames(html.h1.Attrs.lang, "align").keys()) == {"lang", "align"}
 
 	node = html.h1(
 		"gurk",
@@ -441,27 +420,14 @@ def test_attributeswithnames():
 
 	assert set(node.attrs.withnames("id").keys()) == set()
 
-	assert set(node.attrs.withnames("class_").keys()) == {html.h1.Attrs.class_}
+	assert set(node.attrs.withnames("class").keys()) == {"class"}
 
-	assert set(node.attrs.withnames("lang", "align").keys()) == {html.h1.Attrs.lang, html.h1.Attrs.align}
+	assert set(node.attrs.withnames("lang", "align").keys()) == {"lang", "align"}
 
-	# no h1.Attrs.lang
-	assert set(node.attrs.withnames(h1.Attrs.lang, "align").keys()) == {html.h1.Attrs.align}
+	assert set(node.attrs.withnames(html.h1.Attrs.lang, "align").keys()) == {"lang", "align"}
 
-	assert set(node.attrs.withnames(html.h1.Attrs.lang, "align").keys()) == {html.h1.Attrs.lang, html.h1.Attrs.align}
-
-
-def test_attributeswithnames_xml():
-	node = html.h1(
-		"gurk",
-		{xml.Attrs.space: 1},
-		lang="de",
-		class_="gurk",
-		align="right"
-	)
-	assert set(node.attrs.withnames_xml("class").keys()) == {html.h1.Attrs.class_}
-	assert set(node.attrs.withnames_xml(xml.Attrs.space).keys()) == {xml.Attrs.space}
-
+	# The actual attribute class is irrelevant, ``xmlname`` and ``xmlns`` determine the attributes identity
+	assert set(node.attrs.withnames(h1.Attrs.lang, "align").keys()) == {"lang", "align"}
 
 
 def test_defaultattributes():
@@ -472,8 +438,7 @@ def test_defaultattributes():
 	node = Test()
 	assert "withdef" in node.attrs
 	assert "withoutdef" not in node.attrs
-	with pytest.raises(xsc.IllegalAttrError):
-		"illegal" in node.attrs
+	assert "undeclared" not in node.attrs
 	node = Test(withdef=None)
 	assert "withdef" not in node.attrs
 
@@ -498,7 +463,7 @@ def test_attributedictmethods():
 	node = Test(withoutdef=42)
 
 	check(
-		[ Test.Attrs.withdef, Test.Attrs.withoutdef ],
+		[ "withdef", "withoutdef" ],
 		list(node.attrs.keys()),
 	)
 	check(
@@ -506,13 +471,13 @@ def test_attributedictmethods():
 		list(node.attrs.values()),
 	)
 	check(
-		[ (Test.Attrs.withdef, Test.Attrs.withdef(42)), (Test.Attrs.withoutdef, Test.Attrs.withoutdef(42)) ],
+		[ ("withdef", Test.Attrs.withdef(42)), ("withoutdef", Test.Attrs.withoutdef(42)) ],
 		list(node.attrs.items()),
 	)
 
 	check(
 		[ Test.Attrs.another, Test.Attrs.withdef, Test.Attrs.withoutdef ],
-		node.attrs.allowedattrs(),
+		node.attrs.declaredattrs(),
 	)
 
 
@@ -548,7 +513,7 @@ def test_fragattrdefault():
 	assert "testattr" not in node.conv().attrs
 
 
-def test_checkisallowed():
+def test_isdeclared():
 	class testelem(xsc.Element):
 		class Attrs(xsc.Element.Attrs):
 			class testattr(xsc.TextAttr):
@@ -567,20 +532,30 @@ def test_checkisallowed():
 			testattr = None
 
 	node = testelem()
-	assert node.attrs.isallowed("testattr") is True
-	assert node.attrs.isallowed("notestattr") is False
+	assert node.attrs.isdeclared("testattr")
+	assert not node.attrs.isdeclared("notestattr")
 
 	node = testelem2()
-	assert node.attrs.isallowed("testattr") is True
-	assert node.attrs.isallowed("notestattr") is False
+	assert node.attrs.isdeclared("testattr")
+	assert not node.attrs.isdeclared("notestattr")
 
 	node = testelem3()
-	assert node.attrs.isallowed("testattr") is True
-	assert node.attrs.isallowed("testattr3") is True
+	assert node.attrs.isdeclared("testattr")
+	assert node.attrs.isdeclared("testattr3")
 
 	node = testelem4()
-	assert node.attrs.isallowed("testattr") is False
-	assert node.attrs.isallowed("testattr3") is True
+	assert not node.attrs.isdeclared("testattr")
+	assert node.attrs.isdeclared("testattr3")
+
+	# Check XML/HTML attributes
+	assert html.a.Attrs.isdeclared("href")
+	assert not html.a.Attrs.isdeclared("gurk")
+	assert html.a.Attrs.isdeclared(xml.Attrs.lang)
+
+	# Check inherited attributes
+	assert htmlspecials.plaintable.Attrs.isdeclared("border")
+	assert htmlspecials.plaintable.Attrs.isdeclared(htmlspecials.plaintable.Attrs.border)
+	assert html.table.Attrs.isdeclared(htmlspecials.plaintable.Attrs.border)
 
 
 def test_withsep():
@@ -591,18 +566,6 @@ def test_withsep():
 		assert str(node.withsep(",")) == "1"
 		node = class_()
 		assert str(node.withsep(",")) == ""
-
-
-def test_allowedattr():
-	assert html.a.Attrs.allowedattr("href") is html.a.Attrs.href
-	with pytest.raises(xsc.IllegalAttrError):
-		html.a.Attrs.allowedattr("gurk")
-	assert html.a.Attrs.allowedattr(xml.Attrs.lang) is xml.Attrs.lang
-
-	# Check inherited attributes
-	assert htmlspecials.plaintable.Attrs.allowedattr("border") is htmlspecials.plaintable.Attrs.border
-	assert htmlspecials.plaintable.Attrs.allowedattr(htmlspecials.plaintable.Attrs.border) is htmlspecials.plaintable.Attrs.border
-	assert html.table.Attrs.allowedattr(htmlspecials.plaintable.Attrs.border) is html.table.Attrs.border
 
 
 def test_plaintableattrs():
@@ -697,7 +660,7 @@ def test_getitem():
 				next(i)
 
 		# list
-		for attr in ("class_", xml.Attrs.lang):
+		for attr in ("class", xml.Attrs.lang):
 			node = cls(html.div("foo", html.div("bar", {attr: "gurk"}), "baz"))
 			assert node[[]] is node
 			assert str(node[[0, 1]]) == "bar"
@@ -897,7 +860,7 @@ def test_with():
 
 	with xsc.build():
 		with html.p() as e:
-			xsc.add(dict(class_="foo"))
+			xsc.add({"class": "foo"})
 	assert e == html.p(class_="foo")
 
 	with xsc.build():

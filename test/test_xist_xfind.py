@@ -91,10 +91,6 @@ def test_hasname():
 	yield check, xfind.hasname("em", html), result
 	yield check, xfind.hasname("em", html.xmlns), result
 	yield check, xfind.hasname("em", "gurk"), []
-	yield check, xfind.hasname_xml("em"), result
-	yield check, xfind.hasname_xml("em", html), result
-	yield check, xfind.hasname_xml("em", html.xmlns), result
-	yield check, xfind.hasname_xml("em", "gurk"), []
 
 
 def test_is():
@@ -150,7 +146,7 @@ def test_onlyoftype():
 
 def test_hasattr():
 	# hasattr
-	res = list(node.walknodes(xfind.hasattr("class_")))
+	res = list(node.walknodes(xfind.hasattr("class")))
 	assert len(res) == 1
 	assert res[0] is node[1]
 
@@ -160,25 +156,13 @@ def test_hasattr():
 	assert res[1] is node[1][2]
 	assert res[2] is node[1][3]
 
-	# hasattr_xml
-	res = list(node.walknodes(xfind.hasattr_xml("class")))
-	assert len(res) == 1
-	assert res[0] is node[1]
-
-	res = list(node.walknodes(xfind.hasattr_xml(html.div.Attrs.id, html.div.Attrs.align)))
-	assert len(res) == 3
-	assert res[0] is node[0]
-	assert res[1] is node[1][2]
-	assert res[2] is node[1][3]
-
 
 def test_attrhasvalue():
 	def check(expected, attrname, *attrvalues):
-		for selector in (xfind.attrhasvalue, xfind.attrhasvalue_xml):
-			got = list(node.walknodes(selector(attrname, *attrvalues)))
-			assert len(got) == len(expected)
-			for (gotnode, expectednode) in zip(got, expected):
-				assert gotnode is expectednode
+		got = list(node.walknodes(xfind.attrhasvalue(attrname, *attrvalues)))
+		assert len(got) == len(expected)
+		for (gotnode, expectednode) in zip(got, expected):
+			assert gotnode is expectednode
 
 	yield check, [node[0]], "align", "left"
 	yield check, [node[0]], html.div.Attrs.align, "left"
@@ -190,51 +174,48 @@ def test_attrhasvalue():
 
 def test_attrcontains():
 	def check(expected, attrname, *attrvalues):
-		for selector in (xfind.attrcontains, xfind.attrcontains_xml):
-			got = list(node.walknodes(selector(attrname, *attrvalues)))
-			assert len(got) == len(expected)
-			for (gotnode, expectednode) in zip(got, expected):
-				assert gotnode is expectednode
+		got = list(node.walknodes(xfind.attrcontains(attrname, *attrvalues)))
+		assert len(got) == len(expected)
+		for (gotnode, expectednode) in zip(got, expected):
+			assert gotnode is expectednode
 
 	yield check, [node[0]], "align", "ef"
 	yield check, [node[0]], html.div.Attrs.align, "ef"
 	yield check, [node[0]], "align", "ri", "ef"
 	yield check, [], "align", "ri", "en"
 	yield check, [], "align", "x"
-	yield check, [], "gurk", "",
+	yield check, [], "gurk", "nix",
 
 
 def test_attrstartswith():
 	def check(expected, attrname, *attrvalues):
-		for selector in (xfind.attrstartswith, xfind.attrstartswith_xml):
-			got = list(node.walknodes(selector(attrname, *attrvalues)))
-			assert len(got) == len(expected)
-			for (gotnode, expectednode) in zip(got, expected):
-				assert gotnode is expectednode
+		got = list(node.walknodes(xfind.attrstartswith(attrname, *attrvalues)))
+		assert len(got) == len(expected)
+		for (gotnode, expectednode) in zip(got, expected):
+			assert gotnode is expectednode
 
 	yield check, [node[0]], "align", "le"
 	yield check, [node[0]], html.div.Attrs.align, "le"
 	yield check, [node[0]], "align", "ri", "ce", "le"
 	yield check, [], "align", "ri", "ce"
 	yield check, [], "align", "eft"
-	yield check, [], "gurk", ""
+	yield check, [], "gurk", "nix"
 	yield check, [node[1][0][1]], "src", "root:"
 
 
 def test_attrendswith():
 	def check(expected, attrname, *attrvalues):
-		for selector in (xfind.attrendswith, xfind.attrendswith_xml):
-			got = list(node.walknodes(selector(attrname, *attrvalues)))
-			assert len(got) == len(expected)
-			for (gotnode, expectednode) in zip(got, expected):
-				assert gotnode is expectednode
+		got = list(node.walknodes(xfind.attrendswith(attrname, *attrvalues)))
+		assert len(got) == len(expected)
+		for (gotnode, expectednode) in zip(got, expected):
+			assert gotnode is expectednode
 
 	yield check, [node[0]], "align", "ft"
 	yield check, [node[0]], html.div.Attrs.align, "ft"
 	yield check, [node[0]], "align", "ht", "er", "ft"
 	yield check, [], "align", "ht", "er"
 	yield check, [], "align", "lef"
-	yield check, [], "gurk", ""
+	yield check, [], "gurk", "nix"
 	yield check, [node[1][0][1]], "src", ".gif"
 
 

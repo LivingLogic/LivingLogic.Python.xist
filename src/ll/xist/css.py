@@ -190,7 +190,7 @@ def applystylesheets(node, base=None, media=None, title=None):
 	count = 0
 	for cursor in node.walk(xsc.Element):
 		del cursor.node[_isstyle] # drop style sheet nodes
-		if cursor.node.Attrs.isallowed("style"):
+		if cursor.node.Attrs.isdeclared("style"):
 			styles = {}
 			for (spec, sel, style) in iterstyles(cursor.node, rules):
 				if cursor.path in sel:
@@ -293,12 +293,12 @@ class CSSHasAttributeSelector(CSSWeightedSelector):
 	def __contains__(self, path):
 		if path:
 			node = path[-1]
-			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attributename):
-				return node.attrs.has_xml(self.attributename)
+			if isinstance(node, xsc.Element):
+				return node.attrs.has(self.attributename)
 		return False
 
 	def __str__(self):
-		return "{}({!r})".format(self.__class__.__name__, self.attributename)
+		return "{0.__class___.__qualname__}({0.attributename!r})".format(self)
 
 
 class CSSAttributeListSelector(CSSWeightedSelector):
@@ -314,13 +314,13 @@ class CSSAttributeListSelector(CSSWeightedSelector):
 	def __contains__(self, path):
 		if path:
 			node = path[-1]
-			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attributename):
-				attr = node.attrs.get_xml(self.attributename)
+			if isinstance(node, xsc.Element):
+				attr = node.attrs.get(self.attributename)
 				return self.attributevalue in str(attr).split()
 		return False
 
 	def __str__(self):
-		return "{}({!r}, {!r})".format(self.__class__.__name__, self.attributename, self.attributevalue)
+		return "{0.__class__.__qualname__}({0.attributename!r}, {0.attributevalue!r})".format(self)
 
 
 class CSSAttributeLangSelector(CSSWeightedSelector):
@@ -336,15 +336,15 @@ class CSSAttributeLangSelector(CSSWeightedSelector):
 	def __contains__(self, path):
 		if path:
 			node = path[-1]
-			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attributename):
-				attr = node.attrs.get_xml(self.attributename)
+			if isinstance(node, xsc.Element):
+				attr = node.attrs.get(self.attributename)
 				parts = str(attr).split("-", 1)
 				if parts:
 					return parts[0] == self.attributevalue
 		return False
 
 	def __str__(self):
-		return "{}({!r}, {!r})".format(self.__class__.__name__, self.attributename, self.attributevalue)
+		return "{0.__class__.__qualname__}({0.attributename!r}, {0.attributevalue!r})".format(self)
 
 
 class CSSFirstChildSelector(CSSWeightedSelector):
@@ -739,17 +739,17 @@ def selector(selectors, prefixes=None):
 			elif t == "attribute-selector":
 				attributename = v
 			elif t == "equals":
-				combinator = xfind.attrhasvalue_xml
+				combinator = xfind.attrhasvalue
 			elif t == "includes":
 				combinator = CSSAttributeListSelector
 			elif t == "dashmatch":
 				combinator = CSSAttributeLangSelector
 			elif t == "prefixmatch":
-				combinator = xfind.attrstartswith_xml
+				combinator = xfind.attrstartswith
 			elif t == "suffixmatch":
-				combinator = xfind.attrendswith_xml
+				combinator = xfind.attrendswith
 			elif t == "substringmatch":
-				combinator = xfind.attrcontains_xml
+				combinator = xfind.attrcontains
 			elif t == "pseudo-class":
 				if v.endswith("("):
 					try:

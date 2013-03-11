@@ -125,8 +125,10 @@ def test_parserequiredattrs(recwarn):
 		parse.tree(b'<Test/>', parse.Expat(), parse.NS(xmlns), parse.Node())
 		w = recwarn.pop(xsc.RequiredAttrMissingWarning)
 
-	with pytest.raises(xsc.IllegalElementError):
-		parse.tree(b'<Test required="foo"/>', parse.Expat(), parse.NS(xmlns), parse.Node())
+	node = parse.tree(b'<Test required="foo"/>', parse.Expat(), parse.NS(xmlns), parse.Node())
+	assert node[0].__class__ is xsc.Element
+	assert node[0].xmlname == "Test"
+	assert node[0].xmlns == xmlns
 
 
 def test_parsevalueattrs(recwarn):
@@ -223,8 +225,12 @@ def test_xmlns():
 	assert isinstance(e[0][0], ihtml.a)
 
 	s = "<a><a xmlns={!r}/></a>".format(ihtml.xmlns).encode("utf-8")
-	with pytest.raises(xsc.IllegalElementError):
-		parse.tree(s, parse.Expat(), parse.NS(html), parse.Node(pool=xsc.Pool(ihtml)))
+	e  = parse.tree(s, parse.Expat(), parse.NS(html), parse.Node(pool=xsc.Pool(ihtml)))
+	assert e[0].__class__ is xsc.Element
+	assert e[0].xmlname == "a"
+	assert e[0].xmlns == html.xmlns
+	assert isinstance(e[0][0], ihtml.a)
+
 	e = parse.tree(s, parse.Expat(), parse.NS(html), parse.Node(pool=xsc.Pool(html, ihtml)))
 	assert isinstance(e[0], html.a)
 	assert isinstance(e[0][0], ihtml.a)
@@ -232,8 +238,11 @@ def test_xmlns():
 	s = "<z xmlns={!r}/>".format(doc.xmlns).encode("utf-8")
 	e = parse.tree(s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool(doc.z)))
 	assert isinstance(e[0], doc.z)
-	with pytest.raises(xsc.IllegalElementError):
-		parse.tree(s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool()))
+
+	e = parse.tree(s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool()))
+	assert e[0].__class__ is xsc.Element
+	assert e[0].xmlname == "z"
+	assert e[0].xmlns == doc.xmlns
 
 
 def test_parseemptyattribute():
