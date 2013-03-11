@@ -67,7 +67,7 @@ def test_textcomment():
 
 def test_defaultpool():
 	pool = xsc.threadlocalpool.pool
-	assert pool.elementclass("a", html) is html.a
+	assert pool.elementclass(html, "a") is html.a
 	assert pool.procinstclass("php") is php.php
 	assert pool.entityclass("xist") is abbr.xist
 	assert pool.entityclass("euro") is chars.euro
@@ -123,10 +123,10 @@ def test_names():
 	assert xsc.threadlocalpool.pool.entityclass("-charref") is xsc.Entity
 
 	# attributes
-	assert pool.attrkey("-attr", "nix") is Attrs.attr
-	assert pool.attrkey("attr", "nix") == ("attr", "nix")
+	assert pool.attrkey("nix", "-attr") is Attrs.attr
+	assert pool.attrkey("nix", "attr") == ("nix", "attr")
 	# make sure that the default pool didn't pick up the new class
-	assert xsc.threadlocalpool.pool.attrkey("-attr", "nix") == ("-attr", "nix")
+	assert xsc.threadlocalpool.pool.attrkey("nix", "-attr") == ("nix", "-attr")
 
 
 def test_names2():
@@ -161,8 +161,8 @@ def test_stack():
 				xmlname = "foo"
 				xmlns = "nix"
 
-	assert r1.elementclass("foo", "nix") is foo1
-	assert r2.elementclass("foo", "nix") is foo2
+	assert r1.elementclass("nix", "foo") is foo1
+	assert r2.elementclass("nix", "foo") is foo2
 
 
 def test_chain():
@@ -180,13 +180,13 @@ def test_chain():
 		class bar(xsc.Element):
 			xmlns = "nix"
 
-	assert p1.elementclass("foo", "nix") is foo1
-	assert p1.elementclass("bar", "nix") is xsc.Element
-	assert p1.elementclass("baz", "nix") is baz
+	assert p1.elementclass("nix", "foo") is foo1
+	assert p1.elementclass("nix", "bar") is xsc.Element
+	assert p1.elementclass("nix", "baz") is baz
 
-	assert p2.elementclass("foo", "nix") is foo2
-	assert p2.elementclass("bar", "nix") is bar
-	assert p2.elementclass("baz", "nix") is baz
+	assert p2.elementclass("nix", "foo") is foo2
+	assert p2.elementclass("nix", "bar") is bar
+	assert p2.elementclass("nix", "baz") is baz
 
 
 def test_chain2():
@@ -199,7 +199,7 @@ def test_chain2():
 			xmlns = "nix"
 
 	p = xsc.Pool(p1, p2)
-	assert p.elementclass("foo2", "nix") is foo2
+	assert p.elementclass("nix", "foo2") is foo2
 
 
 def test_mixedattrnames():
