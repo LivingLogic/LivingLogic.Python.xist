@@ -1471,7 +1471,7 @@ class CharacterData(Node):
 
 	def __repr__(self):
 		if self.startloc is not None:
-			loc = " (from {})".format(self.startloc)
+			loc = " location={!r}".format(str(self.startloc))
 		else:
 			loc = ""
 		return "<{self.__class__.__module__}.{self.__class__.__name__} content={self.content!r}{loc} at {id:#x}>".format(self=self, loc=loc, id=id(self))
@@ -1482,7 +1482,7 @@ class CharacterData(Node):
 			p.text("content={!r}".format(self.content))
 			if self.startloc is not None:
 				p.breakable()
-				p.text("(from {})".format(self.startloc))
+				p.text("location={!r}".format(str(self.startloc)))
 			p.breakable()
 			p.text("at {:#x}".format(id(self)))
 
@@ -1692,11 +1692,14 @@ class Frag(Node, list):
 			childcount = "1 child"
 		else:
 			childcount = "{} children".format(l)
-		loc = " (from {})".format(self.startloc) if self.startloc is not None else ""
+		loc = " location={!r}".format(str(self.startloc)) if self.startloc is not None else ""
 		return "<{self.__class__.__module__}.{self.__class__.__name__} object ({childcount}){loc} at {id:#x}>".format(self=self, childcount=childcount, loc=loc, id=id(self))
 
 	def _repr_pretty_(self, p, cycle):
 		with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+			if self.startloc is not None:
+				p.breakable()
+				p.text("location={!r}".format(str(self.startloc)))
 			if cycle:
 				p.text("...")
 			for child in self:
@@ -2114,7 +2117,7 @@ class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
 		else:
 			xmlname = ""
 		if self.startloc is not None:
-			loc = " (from {})".format(self.startloc)
+			loc = " location={!r}".format(str(self.startloc))
 		else:
 			loc = ""
 		return "<procinst {self.__class__.__module__}.{self.__class__.__qualname__}{xmlname} content={self.content!r}{loc} at {id:#x}>".format(self=self, xmlname=xmlname, loc=loc, id=id(self))
@@ -2126,6 +2129,9 @@ class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
 				p.text("xmlname={!r}".format(self.xmlname))
 			p.breakable()
 			p.text("content={!r}".format(self.content))
+			if self.startloc is not None:
+				p.breakable()
+				p.text("location={!r}".format(str(self.startloc)))
 			p.breakable()
 			p.text("at {:#x}".format(id(self)))
 
@@ -2290,7 +2296,7 @@ class Attr(Frag, metaclass=_Attr_Meta):
 		else:
 			childcount = "{} children".format(l)
 
-		loc = " (from {})".format(self.startloc) if self.startloc is not None else ""
+		loc = " location={!r}".format(str(self.startloc)) if self.startloc is not None else ""
 
 		return "<{isglobal}attribute {self.__class__.__module__}.{self.__class__.__qualname__}{xmlns}{xmlname} ({childcount}){loc} at {id:#x}>".format(self=self, isglobal=isglobal, xmlname=xmlname, xmlns=xmlns, childcount=childcount, loc=loc, id=id(self))
 
@@ -2302,6 +2308,9 @@ class Attr(Frag, metaclass=_Attr_Meta):
 			if self.xmlname != self.__class__.__name__:
 				p.breakable()
 				p.text("xmlname={!r}".format(self.xmlname))
+			if self.startloc is not None:
+				p.breakable()
+				p.text("location={!r}".format(str(self.startloc)))
 			if cycle:
 				p.breakable()
 				p.text("...")
@@ -2647,7 +2656,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		else:
 			attrcount = "{} attrs".format(l)
 		if self.startloc is not None:
-			loc = " (from {})".format(self.startloc)
+			loc = " location={!r}".format(str(self.startloc))
 		else:
 			loc = ""
 		return "<attributes {self.__class__.__module__}.{self.__class__.__qualname__} ({attrcount}){loc} at {id:#x}>".format(self=self, attrcount=attrcount, loc=loc, id=id(self))
@@ -2663,6 +2672,9 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 
 	def _repr_pretty_(self, p, cycle):
 		with p.group(4, "<attributes {self.__class__.__module__}.{self.__class__.__qualname__}".format(self=self), ">"):
+			if self.startloc is not None:
+				p.breakable()
+				p.text("location={!r}".format(str(self.startloc)))
 			if cycle:
 				p.breakable()
 				p.text("...")
@@ -3101,7 +3113,7 @@ class Element(Node, metaclass=_Element_Meta):
 		else:
 			attrcount = "{} attrs".format(la)
 		if self.startloc is not None:
-			loc = " (from {})".format(self.startloc)
+			loc = " location={!r}".format(str(self.startloc))
 		else:
 			loc = ""
 		return "<element {self.__class__.__module__}.{self.__class__.__qualname__}{xmlns}{xmlname} ({childcount}/{attrcount}){loc} at {id:#x}>".format(self=self, xmlname=xmlname, xmlns=xmlns, childcount=childcount, attrcount=attrcount, loc=loc, id=id(self))
@@ -3114,6 +3126,9 @@ class Element(Node, metaclass=_Element_Meta):
 			if self.xmlname != self.__class__.__name__:
 				p.breakable()
 				p.text("xmlname={!r}".format(self.xmlname))
+			if self.startloc is not None:
+				p.breakable()
+				p.text("location={!r}".format(str(self.startloc)))
 			if cycle:
 				p.breakable()
 				p.text("...")
@@ -3584,7 +3599,7 @@ class Entity(Node, metaclass=_Entity_Meta):
 			xmlname = ""
 
 		if self.startloc is not None:
-			loc = " (from {})".format(self.startloc)
+			loc = " location={!r}".format(str(self.startloc))
 		else:
 			loc = ""
 		return "<entity {self.__class__.__module__}.{self.__class__.__qualname__}{xmlname}{loc} at {id:#x}>".format(self=self, xmlname=xmlname, loc=loc, id=id(self))
@@ -3594,6 +3609,9 @@ class Entity(Node, metaclass=_Entity_Meta):
 			if self.xmlname != self.__class__.__name__:
 				p.breakable()
 				p.text("xmlname={!r}".format(self.xmlname))
+			if self.startloc is not None:
+				p.breakable()
+				p.text("location={!r}".format(str(self.startloc)))
 			p.breakable()
 			p.text("at {:#x}".format(id(self)))
 
@@ -3651,7 +3669,7 @@ class CharRef(Text, Entity, metaclass=_CharRef_Meta):
 			xmlname = ""
 
 		if self.startloc is not None:
-			loc = " (from {})".format(self.startloc)
+			loc = " location={!r}".format(str(self.startloc))
 		else:
 			loc = ""
 		return "<charref {self.__class__.__module__}.{self.__class__.__qualname__}{xmlname} content={self.content!r}{loc} at {id:#x}>".format(self=self, xmlname=xmlname, loc=loc, id=id(self))
@@ -3661,6 +3679,9 @@ class CharRef(Text, Entity, metaclass=_CharRef_Meta):
 			if self.xmlname != self.__class__.__name__:
 				p.breakable()
 				p.text("xmlname={!r}".format(self.xmlname))
+			if self.startloc is not None:
+				p.breakable()
+				p.text("location={!r}".format(str(self.startloc)))
 			p.breakable()
 			p.text("codepoint={:#x}".format(self.codepoint))
 			p.breakable()
