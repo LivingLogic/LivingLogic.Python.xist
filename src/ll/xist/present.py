@@ -394,7 +394,7 @@ class TreePresenter(Presenter):
 			xmlns = node.xmlns
 		if self._inattr:
 			if xmlns is not None:
-				yield s4element("<{", xmlns, "}", node.xmlname)
+				yield s4element("<", s4ns("{", xmlns, "}"), node.xmlname)
 			else:
 				yield s4element("<", node.xmlname)
 			self._inattr += 1
@@ -404,14 +404,14 @@ class TreePresenter(Presenter):
 				yield s4element(">")
 				yield from node.content.present(self)
 				if xmlns is not None:
-					yield s4element("</{", xmlns, "}", node.xmlname, ">")
+					yield s4element("</", s4ns("{", xmlns, "}"), node.xmlname, ">")
 				else:
 					yield s4element("</", node.xmlname, "}")
 			else:
 				yield s4element("/>")
 		else:
 			if xmlns is not None:
-				firstline = s4element("<{", xmlns, "}", node.xmlname)
+				firstline = s4element("<", s4ns("{", xmlns, "}"), node.xmlname)
 			else:
 				firstline = s4element("<", node.xmlname)
 			indent = self.strindent(len(self._path))
@@ -434,7 +434,7 @@ class TreePresenter(Presenter):
 					self._path[-1] += 1
 				self._path.pop()
 				if xmlns is not None:
-					lastline = s4element(indent, "</{", xmlns, "}", node.xmlname, ">")
+					lastline = s4element(indent, "</", s4ns("{", xmlns, "}"), node.xmlname, ">")
 				else:
 					lastline = s4element(indent, "</", node.xmlname, ">")
 				yield Line(
