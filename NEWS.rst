@@ -51,7 +51,7 @@ Changes in ?.?? (released ??/??/2013)
 	object) are no longer the attribute classes, but the (namespace name,
 	attribute name) tuples::
 
-		>>> node = html.div({xml.Attrs.lang: 'de'}, id='i42', class_='foo')
+		>>> node = html.div({xml.Attrs.lang: 'de'}, id='id42', class_='foo')
 		>>> list(node.attrs.keys())
 		[('http://www.w3.org/XML/1998/namespace', 'lang'),
  		 (None, 'class'),
