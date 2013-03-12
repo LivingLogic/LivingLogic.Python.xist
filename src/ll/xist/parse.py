@@ -1128,7 +1128,7 @@ class NS(object):
 
 		if self._newprefixes:
 			prefixes = oldprefixes.copy()
-			newprefixes = {key: "".join(d for (t, d) in value if t == "text") for (key, value) in self._newprefixes.items()}
+			newprefixes = {key: "".join(d for (t, d) in value if t == "text") or None for (key, value) in self._newprefixes.items()}
 			prefixes.update(newprefixes)
 		else:
 			prefixes = oldprefixes
