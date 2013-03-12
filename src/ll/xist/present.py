@@ -386,10 +386,15 @@ class TreePresenter(Presenter):
 	def presentElement(self, node):
 		ns = s4ns(node.__class__.__module__)
 		name = s4elementname(node.__qualname__)
-		showns = node.xmlns is not None and (self.defaultxmlns is None or node.xmlns != self.defaultxmlns)
+		if node.xmlns is None:
+			xmlns = ""
+		elif self.defaultxmlns is not None and node.xmlns == self.defaultxmlns:
+			xmlns = None
+		else:
+			xmlns = node.xmlns
 		if self._inattr:
-			if showns:
-				yield s4element("<{", node.xmlns, "}", node.xmlname)
+			if xmlns is not None:
+				yield s4element("<{", xmlns, "}", node.xmlname)
 			else:
 				yield s4element("<", node.xmlname)
 			self._inattr += 1
@@ -398,15 +403,15 @@ class TreePresenter(Presenter):
 			if len(node):
 				yield s4element(">")
 				yield from node.content.present(self)
-				if showns:
-					yield s4element("</{", node.xmlns, "}", node.xmlname, ">")
+				if xmlns is not None:
+					yield s4element("</{", xmlns, "}", node.xmlname, ">")
 				else:
 					yield s4element("</", node.xmlname, "}")
 			else:
 				yield s4element("/>")
 		else:
-			if showns:
-				firstline = s4element("<{", node.xmlns, "}", node.xmlname)
+			if xmlns is not None:
+				firstline = s4element("<{", xmlns, "}", node.xmlname)
 			else:
 				firstline = s4element("<", node.xmlname)
 			indent = self.strindent(len(self._path))
@@ -428,8 +433,8 @@ class TreePresenter(Presenter):
 					yield from child.present(self)
 					self._path[-1] += 1
 				self._path.pop()
-				if showns:
-					lastline = s4element(indent, "</{", node.xmlns, "}", node.xmlname, ">")
+				if xmlns is not None:
+					lastline = s4element(indent, "</{", xmlns, "}", node.xmlname, ">")
 				else:
 					lastline = s4element(indent, "</", node.xmlname, ">")
 				yield Line(
