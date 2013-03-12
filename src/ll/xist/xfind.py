@@ -286,9 +286,9 @@ class hasname(Selector):
 	def __contains__(self, path):
 		node = path[-1]
 		if self.xmlns is not None:
-			return isinstance(node, xsc.Element) and node.__class__.xmlname == self.name and node.xmlns == self.xmlns
+			return isinstance(node, xsc.Element) and node.xmlname == self.name and node.xmlns == self.xmlns
 		else:
-			return isinstance(node, (xsc.Element, xsc.ProcInst, xsc.Entity)) and node.__class__.xmlname == self.name
+			return isinstance(node, (xsc.Element, xsc.ProcInst, xsc.Entity)) and node.xmlname == self.name
 
 	def __str__(self):
 		if self.xmlns is not None:
