@@ -3133,10 +3133,10 @@ class Element(Node, metaclass=_Element_Meta):
 				p.breakable()
 				p.text("...")
 			else:
+				self.attrs._repr_pretty_content_(p)
 				for child in self.content:
 					p.breakable()
 					p.pretty(child)
-				self.attrs._repr_pretty_content_(p)
 			p.breakable()
 			p.text("at {:#x}".format(id(self)))
 
