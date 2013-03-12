@@ -266,18 +266,22 @@ class TreePresenter(Presenter):
 	# When inside attributes the presenting methods yield astyle.Text objects
 	# Outside of attributes Line objects are yielded
 
-	def __init__(self, node, indent=None):
+	def __init__(self, node, indent=None, defaultxmlns=None):
 		"""
 		Create a :class:`TreePresenter` object for the XIST node :var:`node` using
 		:var:`indent` for indenting each tree level. If :var:`indent` is
 		:const:`None` use the value of the environment variable ``LL_XIST_INDENT``
 		as the indent string (falling back to a tab if the environment variable
 		doesn't exist).
+
+		If :var:`defaultxmlns` is not ``None``, elements from this namespace will
+		be output without any namespace name.
 		"""
 		Presenter.__init__(self, node)
 		if indent is None:
 			indent = os.environ.get("LL_XIST_INDENT", "\t")
 		self.indent = indent
+		self.defaultxmlns = xsc.nsname(defaultxmlns)
 
 	def __str__(self):
 		return "\n".join(str(line.content) for line in self)
@@ -395,8 +399,9 @@ class TreePresenter(Presenter):
 	def presentElement(self, node):
 		ns = s4ns(node.__class__.__module__)
 		name = s4elementname(node.__qualname__)
+		showns = node.xmlns is not None and (self.defaultxmlns is None or node.xmlns != self.defaultxmlns)
 		if self._inattr:
-			if node.xmlns is not None:
+			if showns:
 				yield s4element("<{", node.xmlns, "}", node.xmlname)
 			else:
 				yield s4element("<", node.xmlname)
@@ -406,14 +411,14 @@ class TreePresenter(Presenter):
 			if len(node):
 				yield s4element(">")
 				yield from node.content.present(self)
-				if node.xmlns is not None:
+				if showns:
 					yield s4element("</{", node.xmlns, "}", node.xmlname, ">")
 				else:
 					yield s4element("</", node.xmlname, "}")
 			else:
 				yield s4element("/>")
 		else:
-			if node.xmlns is not None:
+			if showns:
 				firstline = s4element("<{", node.xmlns, "}", node.xmlname)
 			else:
 				firstline = s4element("<", node.xmlname)
@@ -436,7 +441,7 @@ class TreePresenter(Presenter):
 					yield from child.present(self)
 					self._path[-1] += 1
 				self._path.pop()
-				if node.xmlns is not None:
+				if showns:
 					lastline = s4element(indent, "</{", node.xmlns, "}", node.xmlname, ">")
 				else:
 					lastline = s4element(indent, "</", node.xmlname, ">")
