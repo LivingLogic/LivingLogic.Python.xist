@@ -260,20 +260,6 @@ class Text(list):
 			stream.write(part)
 
 
-try:
-	import ipipe
-except ImportError:
-	pass
-else:
-	def xrepr_astyle_text(self, mode="default"):
-		yield (-1, True)
-		yield from self
-	try:
-		ipipe.xrepr.when_type(Text)(xrepr_astyle_text)
-	except Exception:
-		pass
-
-
 def streamstyle(stream, styled=None):
 	"""
 	If ``styled`` is ``None``, return whether ``stream`` refers to a terminal.

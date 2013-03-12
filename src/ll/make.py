@@ -255,19 +255,6 @@ def getoutputs(project, since, input):
 		return (input if since is bigbang else nodata, bigbang)
 
 
-def _ipipe_type(obj):
-	try:
-		return obj.type
-	except AttributeError:
-		return "{}.{}".format(obj.__class__.__module__, obj.__class__.__name__)
-_ipipe_type.__xname__ = "type"
-
-
-def _ipipe_key(obj):
-	return obj.getkey()
-_ipipe_key.__xname__ = "key"
-
-
 class Action(object):
 	"""
 	An :class:`Action` is responsible for transforming input data into output

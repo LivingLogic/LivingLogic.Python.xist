@@ -9,8 +9,8 @@
 
 
 """
-This module contains presenter classes, which are used for displaying XIST
-nodes on screen (either on the terminal or via :mod:`ipipe` browsers).
+This module contains presenter classes, which are used for formatting XIST
+trees into various formats.
 """
 
 
@@ -18,13 +18,6 @@ __docformat__ = "reStructuredText"
 
 
 import sys, os, keyword, codecs
-
-# IPython/ipipe support
-try:
-	import ipipe
-	table = ipipe.Table
-except ImportError:
-	table = object
 
 from ll import misc, url
 
@@ -172,7 +165,7 @@ def strtext(text):
 	return s4text(s4quote('"'), text, s4quote('"'))
 
 
-class Presenter(table):
+class Presenter(object):
 	"""
 	This class is the base of the presenter classes. It is abstract and only
 	serves as documentation for the methods.
@@ -761,26 +754,3 @@ class CodePresenter(Presenter):
 
 	def presentAttr(self, node):
 		return self.presentFrag(node)
-
-
-# used by the IPython displayhook below (set to :const:`None` to disable)
-defaultpresenter = TreePresenter
-
-try:
-	from IPython import ipapi, generics
-	import ipipe
-except Exception:
-	pass
-else:
-	if hasattr(ipipe, "display_tableobject"):
-		@generics.result_display.when_type(xsc.Node)
-		def displayhook(obj):
-			if defaultpresenter is not None:
-				return ipipe.display_tableobject(defaultpresenter(obj))
-			raise ipapi.TryNext
-	else:
-		@generics.result_display.when_type(xsc.Node)
-		def displayhook(obj):
-			if defaultpresenter is not None:
-				return ipipe.displayhook(None, defaultpresenter(obj))
-			raise ipapi.TryNext
