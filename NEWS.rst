@@ -1,9 +1,65 @@
 Changes in ?.?? (released ??/??/2013)
 -------------------------------------
 
-*	:class:`URL` objects are pickable now.
+*	XIST now allows arbitrary elements and attributes. :mod:`ll.xist.parse` will
+	parse any XML file, even if the pool object doesn't contain an element for
+	the element name, and even if an attribute name isn't declared for an element.
+
+	Undeclared elements will be instances of :class:`ll.xist.xsc.Element` with
+	the attributes ``xmlns`` and ``xmlname`` set accordingly and undeclared
+	attributes will be instances of :class:`ll.xist.xsc.Attr` (with proper
+	``xmlns`` and ``xmlname`` attributes).
+
+	This new feature requires several API changes which will be described below.
+
+*	Accessing an attribute via :meth:`__getattr__` (i.e.
+	``htmlelement.attrs.class_``) only works for attributes that are declared
+	for the class, all other attributes must be accessed via :meth:`__getitem__`
+	(i.e. ``htmlelement.attrs["class"]``). :meth:`__getitem__` always requires
+	the XML name of the attribute. :meth:`__getitem__` also allows an attribute
+	name for a global attribute in Clark notation (i.e.
+	``htmlelement.attrs["{http://www.w3.org/XML/1998/namespace}lang"]``). A global
+	attributes can also be accessed via a (namespace name, element name) tuple
+	(i.e. ``htmlelement.attrs[("http://www.w3.org/XML/1998/namespace", "lang")]``).
+	Using an attribute class or attribute object is also possible (i.e.
+	``htmlelement.attrs[xml.Attr.lang]`` or
+	``htmlelement.attrs[xml.Attr.lang('de')]``).
+
+*	Using :meth:`__setattr` to set attributes only works for declared attributes
+	too. using :meth:`__setitem` to set attributes supports the same kind of
+	arguments as :meth:`__getitem` does. For declared attributes the resulting
+	attribute object will always be an instance of the declared atrribute class.
+	For all other attributes it will be an instance of :class:`ll.xist.xsc.Attr`
+	except when an attribute class or instance is used as the key. In this case
+	the attribute will be an instance of that class.
+
+*	Testing whether an attribute is declared for an element is now done with the
+	method :meth:`isdeclared`. This method accepts the same type of arguments as
+	:meth:`__getitem__` or :meth:`__setitem__`. For global attributes this will
+	always return ``False``, except when it is called for an :class:`Attrs`
+	class for global attributes::
+
+		html.a.Attrs.isdeclared("{http://www.w3.org/XML/1998/namespace}lang")
+
+	returns ``False``, but::
+
+		xml.Attrs.isdeclared("{http://www.w3.org/XML/1998/namespace}lang")
+
+	returns ``True``.
+
+*	The keys in an attribute dictionary (i.e. an :class:`ll.xist.xsc.Attrs`
+	object) are no longer the attribute classes, but the (namespace name,
+	attribute name) tuples::
+
+		>>> node = html.div({xml.Attrs.lang: 'de'}, id='i42', class_='foo')
+		>>> list(node.attrs.keys())
+		[('http://www.w3.org/XML/1998/namespace', 'lang'),
+ 		 (None, 'class'),
+ 		 (None, 'id')]
 
 *	:class:`ll.xist.parse.Tidy` no longer has a ``skipbad`` argument.
+
+*	:class:`URL` objects are pickable now.
 
 
 Changes in 4.10 (released 03/04/2013)
