@@ -247,9 +247,6 @@ class Line(object):
 		self.path = path
 		self.content = content
 
-	def __iter__(self):
-		return iter(defaultpresenter(self.node))
-
 
 class TreePresenter(Presenter):
 	"""
@@ -280,10 +277,7 @@ class TreePresenter(Presenter):
 		return "\n".join(str(line.content) for line in self)
 
 	def strindent(self, level):
-		indent = self.indent
-		if indent == "\t":
-			indent = "   "
-		return s4tab(level*indent)
+		return s4tab(level*self.indent)
 
 	def text(self, text):
 		return repr(text)[1:-1]
