@@ -257,12 +257,10 @@ class IsInstanceSelector(Selector):
 			return "({})".format(" | ".join("{0.__module__}.{0.__name__}".format(type) for type in self.types))
 
 
-class hasname(Selector):
+class element(Selector):
 	"""
-	Selector that selects all nodes that have a specified name (which only
-	selects elements, processing instructions and entities). Also a namespace
-	name can be specified as a second argument, which will only select elements
-	from the specified namespace::
+	Selector that selects all elements that have a specified namespace name and
+	element name.::
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html, chars
@@ -271,7 +269,7 @@ class hasname(Selector):
 		... 	parse.Expat(ns=True),
 		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
 		... )
-		>>> for node in doc.walknodes(xfind.hasname("img")):
+		>>> for node in doc.walknodes(xfind.element(html, "img")):
 		... 	print(node.string())
 		...
 		<img border="0" src="http://www.python.org/images/python-logo.gif" alt="homepage" id="logo" />
@@ -279,22 +277,46 @@ class hasname(Selector):
 		<img border="0" id="skiptocontent" alt="skip to content" src="http://www.python.org/images/trans.gif" />
 		<img alt="success story photo" class="success" src="http://www.python.org/images/success/nasa.jpg" />
 	"""
-	def __init__(self, name, xmlns=None):
-		self.name = name
+	def __init__(self, xmlns, xmlname):
 		self.xmlns = xsc.nsname(xmlns)
+		self.xmlname = xmlname
 
 	def __contains__(self, path):
 		node = path[-1]
-		if self.xmlns is not None:
-			return isinstance(node, xsc.Element) and node.xmlname == self.name and node.xmlns == self.xmlns
-		else:
-			return isinstance(node, (xsc.Element, xsc.ProcInst, xsc.Entity)) and node.xmlname == self.name
+		return isinstance(node, xsc.Element) and node.xmlns == self.xmlns and node.xmlname == self.xmlname
 
 	def __str__(self):
-		if self.xmlns is not None:
-			return "{0.__class__.__name__}({0.name!r}, {0.xmlns!r})".format(self)
-		else:
-			return "{0.__class__.__name__}({0.name!r})".format(self)
+		return "{0.__class__.__name__}({0.name!r}, {0.xmlns!r})".format(self)
+
+
+class procinst(Selector):
+	"""
+	Selector that selects all processing instructions that have a specified name.
+	"""
+	def __init__(self, xmlname):
+		self.xmlname = xmlname
+
+	def __contains__(self, path):
+		node = path[-1]
+		return isinstance(node, xsc.ProcInst) and node.xmlname == self.xmlname
+
+	def __str__(self):
+		return "{0.__class__.__name__}({0.name!r})".format(self)
+
+
+class entity(Selector):
+	"""
+	Selector that selects all entities that have a specified name.
+	"""
+	def __init__(self, xmlname):
+		self.xmlname = xmlname
+
+	def __contains__(self, path):
+		node = path[-1]
+		return isinstance(node, xsc.Entity) and node.xmlname == self.xmlname
+
+	def __str__(self):
+		return "{0.__class__.__name__}({0.name!r})".format(self)
 
 
 class IsSelector(Selector):

@@ -13,7 +13,7 @@ import pytest
 
 from ll import misc
 from ll.xist import xsc, xfind, parse
-from ll.xist.ns import html
+from ll.xist.ns import html, php, abbr
 
 
 node = xsc.Frag(
@@ -35,6 +35,8 @@ node = xsc.Frag(
 		class_="foo",
 	),
 	html.p(html.em("only")),
+	php.php("echo $footer;"),
+	abbr.xist(),
 )
 
 
@@ -83,14 +85,28 @@ def test_isinstance():
 	yield check, list(node.walknodes(xsc.Element & ~(xsc.Text | html.p | html.div | html.em | html.img)))
 
 
-def test_hasname():
+def test_element():
 	def check(expr, res):
 		assert [str(e) for e in node.walknodes(expr)] == res
 	result = ["important", "first", "second", "important", "first", "important", "second", "important", "only"]
-	yield check, xfind.hasname("em"), result
-	yield check, xfind.hasname("em", html), result
-	yield check, xfind.hasname("em", html.xmlns), result
-	yield check, xfind.hasname("em", "gurk"), []
+	yield check, xfind.element(None, "gurk"), []
+	yield check, xfind.element("nix", "gurk"), []
+	yield check, xfind.element(html, "em"), result
+	yield check, xfind.element(html.xmlns, "em"), result
+
+
+def test_procinst():
+	def check(expr, res):
+		assert [e for e in node.walknodes(expr)] == res
+	yield check, xfind.procinst("foo"), []
+	yield check, xfind.procinst("php"), [node[-2]]
+
+
+def test_entity():
+	def check(expr, res):
+		assert [e for e in node.walknodes(expr)] == res
+	yield check, xfind.entity("foo"), []
+	yield check, xfind.entity("xist"), [node[-1]]
 
 
 def test_is():
