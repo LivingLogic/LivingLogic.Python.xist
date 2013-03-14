@@ -138,7 +138,7 @@ class Connect(object):
 
 	def _isbadoracleexception(self, exc):
 		if exc.args:
-			code = getattr(exc[0], "code", 0)
+			code = getattr(exc.args[0], "code", 0)
 			if code in self._badoracleexceptions:
 				return True
 		return False
