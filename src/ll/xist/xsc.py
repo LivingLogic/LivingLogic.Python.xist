@@ -950,6 +950,9 @@ class _Node_Meta(type):
 	def __repr__(self):
 		return "<class {self.__module__}:{self.__qualname__} at {id:#x}>".format(self=self, id=id(self))
 
+	def _repr_pretty_(self, p, cycle):
+		p.text(repr(self))
+
 	def __contains__(self, path):
 		from ll.xist import xfind
 		return path in xfind.IsInstanceSelector(self)
