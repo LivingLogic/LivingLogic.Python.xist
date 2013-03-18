@@ -24,8 +24,6 @@ from ll.xist import xsc, sims
 __docformat__ = "reStructuredText"
 
 
-object_ = object
-
 xmlns = "http://www.w3.org/1999/xhtml"
 
 
@@ -928,7 +926,7 @@ class map(xsc.Element):
 	xmlns = xmlns
 	class Attrs(i18nattrs, eventattrs):
 		class id(xsc.IDAttr): required = True
-		class class_(xsc.TextAttr): pass
+		class class_(xsc.TextAttr): xmlname = "class"
 		class style(StyleSheetAttr): pass
 		class title(TextAttr): pass
 		class name(xsc.TextAttr): pass
