@@ -54,8 +54,14 @@ Changes in ?.?? (released ??/??/2013)
 		>>> node = html.div({xml.Attrs.lang: 'de'}, id='id42', class_='foo')
 		>>> list(node.attrs.keys())
 		[('http://www.w3.org/XML/1998/namespace', 'lang'),
- 		 (None, 'class'),
- 		 (None, 'id')]
+		 (None, 'class'),
+		 (None, 'id')]
+
+*	For all methods that existed in Python/XML pairs (e.g. :meth:`withnames` and
+	:meth:`withnames_xml` in :class:`xsc.Attrs` or :meth:`elementclass` and
+	:meth:`elementclass_xml` in :class:`xsc.Pool` etc.) there is only one version
+	now: A method without the ``_xml`` suffix in the name, that accepts the
+	XML version of element or attribute names.
 
 *	:class:`ll.xist.parse.Tidy` no longer has a ``skipbad`` argument.
 
