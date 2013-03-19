@@ -1,6 +1,14 @@
 Changes in ?.?? (released ??/??/2013)
 -------------------------------------
 
+*	The HTML namespace (:mod:`ll.xist.ns.html`) has been updated to support the
+	current HTML5__ definition.
+
+	__ http://www.w3.org/TR/2012/CR-html5-20121217/
+
+	However old elements/attributes from the previous HTML namespace are still
+	supported.
+
 *	XIST now allows arbitrary elements and attributes. :mod:`ll.xist.parse` will
 	parse any XML file, even if the pool object doesn't contain an element for
 	the element name, and even if an attribute name isn't declared for an element.
@@ -61,7 +69,7 @@ Changes in ?.?? (released ??/??/2013)
 	:meth:`withnames_xml` in :class:`xsc.Attrs` or :meth:`elementclass` and
 	:meth:`elementclass_xml` in :class:`xsc.Pool` etc.) there is only one version
 	now: A method without the ``_xml`` suffix in the name, that accepts the
-	XML version of element or attribute names.
+	XML version of the name.
 
 *	:class:`ll.xist.parse.Tidy` no longer has a ``skipbad`` argument.
 
