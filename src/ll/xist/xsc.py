@@ -497,7 +497,7 @@ class Converter(object):
 				return context
 
 	def __setitem__(self, key, value):
-		self.context[key] = value
+		self.contexts[key] = value
 
 
 ###
