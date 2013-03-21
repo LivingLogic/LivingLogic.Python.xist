@@ -54,8 +54,6 @@ class XML(xsc.ProcInst):
 		xsc.ProcInst.__init__(self, " ".join(v))
 
 	def publish(self, publisher):
-		if publisher.validate:
-			self.checkvalid()
 		xml = "<?xml {}?>".format(self.content)
 		if publisher.encoding is not None:
 			xml = xml_codec._fixencoding(xml, str(publisher.encoding))
