@@ -1620,14 +1620,14 @@ class Text(CharacterData):
 	this node is published.
 	"""
 
+	def __str__(self):
+		return self._content
+
 	def _str(self):
 		return "text"
 
 	def convert(self, converter):
 		return self
-
-	def __str__(self):
-		return self._content
 
 	def publish(self, publisher):
 		yield publisher.encodetext(self._content)
@@ -1687,6 +1687,12 @@ class Frag(Node, list):
 			p.breakable()
 			p.text("at {:#x}".format(id(self)))
 
+	def __str__(self):
+		return "".join(str(child) for child in self)
+
+	def _str(self):
+		return "frag"
+
 	def __enter__(self):
 		return threadlocalnodehandler.handler.enter(self)
 
@@ -1696,9 +1702,6 @@ class Frag(Node, list):
 	def __call__(self, *content):
 		self.extend(content)
 		return self
-
-	def _str(self):
-		return "frag"
 
 	def _create(self):
 		"""
@@ -1749,9 +1752,6 @@ class Frag(Node, list):
 
 	def present(self, presenter):
 		return presenter.presentFrag(self) # return a generator-iterator
-
-	def __str__(self):
-		return "".join(str(child) for child in self)
 
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and list.__eq__(self, other)
@@ -2015,14 +2015,14 @@ class Comment(CharacterData):
 	An XML comment.
 	"""
 
+	def __str__(self):
+		return ""
+
 	def _str(self):
 		return "comment"
 
 	def convert(self, converter):
 		return self
-
-	def __str__(self):
-		return ""
 
 	def present(self, presenter):
 		return presenter.presentComment(self)  # return a generator-iterator
@@ -2122,6 +2122,9 @@ class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
 			p.breakable()
 			p.text("at {:#x}".format(id(self)))
 
+	def __str__(self):
+		return ""
+
 	def _str(self):
 		return "procinst {}".format(self.xmlname)
 
@@ -2142,9 +2145,6 @@ class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
 		yield cursor
 		cursor.restore()
 
-	def __str__(self):
-		return ""
-
 	def __mul__(self, n):
 		return Node.__mul__(self, n) # don't inherit ``CharacterData.__mul__``
 
@@ -2163,6 +2163,9 @@ class Null(CharacterData):
 	def _repr_pretty_(self, p, cycle):
 		p.text("<{self.__class__.__module__}.{self.__class__.__qualname__} at {id:#x}>".format(self=self, id=id(self)))
 
+	def __str__(self):
+		return ""
+
 	def _str(self):
 		return "null"
 
@@ -2180,9 +2183,6 @@ class Null(CharacterData):
 		cursor.event = "nullnode"
 		yield cursor
 		cursor.restore()
-
-	def __str__(self):
-		return ""
 
 
 Null = Null() # Singleton, the Python way
@@ -2661,6 +2661,12 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 			p.breakable()
 			p.text("at {:#x}".format(id(self)))
 
+	def __str__(self):
+		return ""
+
+	def _str(self):
+		return "attrs"
+
 	def __eq__(self, other):
 		if not isinstance(other, Attrs):
 			return False
@@ -2670,9 +2676,6 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 			if other[key] != value:
 				return False
 		return True
-
-	def _str(self):
-		return "attrs"
 
 	@classmethod
 	def add(cls, value):
@@ -2818,9 +2821,6 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 	def publish(self, publisher):
 		for value in sorted(self.values(), key=self._sortorder):
 			yield from value.publish(publisher)
-
-	def __str__(self):
-		return ""
 
 	@classmethod
 	def isdeclared(cls, name):
@@ -3119,6 +3119,12 @@ class Element(Node, metaclass=_Element_Meta):
 			p.breakable()
 			p.text("at {:#x}".format(id(self)))
 
+	def __str__(self):
+		return str(self.content)
+
+	def _str(self):
+		return "element {{{}}}{}".format(self.xmlns, self.xmlname)
+
 	def __getstate__(self):
 		attrs = {key : (value.__class__.__module__, value.__class__.__qualname__, Frag(value)) for (key, value) in dict.items(self.attrs)}
 		return (self.content, attrs)
@@ -3171,9 +3177,6 @@ class Element(Node, metaclass=_Element_Meta):
 
 	def __eq__(self, other):
 		return isinstance(other, Element) and self.xmlname == other.xmlname and self.xmlns == other.xmlns and self.content==other.content and self.attrs==other.attrs
-
-	def _str(self):
-		return "element {{{}}}{}".format(self.xmlns, self.xmlname)
 
 	def validate(self, recursive=True, path=None):
 		if path is None:
@@ -3235,9 +3238,6 @@ class Element(Node, metaclass=_Element_Meta):
 		node.content = copy.deepcopy(self.content, memo)
 		node.attrs = copy.deepcopy(self.attrs, memo)
 		return self._decoratenode(node)
-
-	def __str__(self):
-		return str(self.content)
 
 	def _addimagesizeattributes(self, url, widthattr=None, heightattr=None):
 		"""
