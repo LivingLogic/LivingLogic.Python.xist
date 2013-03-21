@@ -205,11 +205,12 @@ class RequiredAttrMissingWarning(Warning):
 	or publishing.
 	"""
 
-	def __init__(self, attr):
+	def __init__(self, attrs, attr):
+		self.attrs = attrs
 		self.attr = attr
 
 	def __str__(self):
-		return "Required attribute {} missing".format(nsclark(self.attr))
+		return "Required attribute {} missing in {!r}".format(nsclark(self.attr), self.attrs)
 
 
 class IllegalPrefixError(Error, LookupError):
@@ -281,6 +282,9 @@ class IllegalProcInstFormatError(Error):
 
 	def __str__(self):
 		return "processing instruction with content {!r} is illegal, as it contains '?>'".format(self.procinst.content)
+
+
+warnings.filterwarnings("always", category=Warning)
 
 
 ###
@@ -2815,7 +2819,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		path.pop()
 		# are there any required attributes remaining that haven't been specified? => issue warnings about it
 		for attr in attrs:
-			yield RequiredAttrMissingWarning(attr)
+			yield RequiredAttrMissingWarning(self, attr)
 
 	def publish(self, publisher):
 		for value in sorted(self.values(), key=self._sortorder):
