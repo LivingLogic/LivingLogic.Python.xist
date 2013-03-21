@@ -205,12 +205,15 @@ class RequiredAttrMissingWarning(Warning):
 	or publishing.
 	"""
 
-	def __init__(self, attrs, reqattrs):
-		self.attrs = attrs
-		self.reqattrs = reqattrs
+	def __init__(self, attr):
+		self.attr = attr
 
 	def __str__(self):
-		return "Required attribute{} {} missing".format(("s" if len(self.reqattrs) > 1 else ""), ", ".join(repr(attr.xmlname) if attr.xmlns is None else repr("{{{}}}{}".format(attr.xmlns, attr.xmlname)) for attr in self.reqattrs))
+		if self.attr.xmlns is None:
+			attrname = self.attr.xmlname
+		else:
+			attrname = "{{{}}}{}".format(self.attr.xmlns, self.attr.xmlname)
+		return "Required attribute {} missing".format(attrname)
 
 
 class IllegalPrefixError(Error, LookupError):
@@ -1691,7 +1694,7 @@ class Frag(Node, list):
 		return "".join(str(child) for child in self)
 
 	def _str(self):
-		return "frag"
+		return "fragment"
 
 	def __enter__(self):
 		return threadlocalnodehandler.handler.enter(self)
@@ -2126,7 +2129,7 @@ class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
 		return ""
 
 	def _str(self):
-		return "procinst {}".format(self.xmlname)
+		return "processing instruction {}".format(self.xmlname)
 
 	def convert(self, converter):
 		return self
@@ -2300,9 +2303,9 @@ class Attr(Frag, metaclass=_Attr_Meta):
 
 	def _str(self):
 		if self.xmlns is not None:
-			return "attr {{{}}}{}".format(self.xmlns, self.xmlname)
+			return "attribute {{{}}}{}".format(self.xmlns, self.xmlname)
 		else:
-			return "attr {}".format(self.xmlname)
+			return "attribute {}".format(self.xmlname)
 
 	def isfancy(self):
 		"""
@@ -2814,9 +2817,9 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 			except KeyError:
 				pass
 		path.pop()
-		# are there any required attributes remaining that haven't been specified? => warn about it
-		if attrs:
-			yield RequiredAttrMissingWarning(self, list(attrs))
+		# are there any required attributes remaining that haven't been specified? => issue warnings about it
+		for attr in attrs:
+			yield RequiredAttrMissingWarning(attr)
 
 	def publish(self, publisher):
 		for value in sorted(self.values(), key=self._sortorder):
@@ -4035,16 +4038,37 @@ def nsname(xmlns):
 	return xmlns
 
 
-def nsclark(xmlns):
+def nsclark(obj):
 	"""
-	Return a namespace name in Clark notation. :var:`xmlns` can be :const:`None`,
-	a string or a module.
+	Return a name in Clark notation. :var:`xmlns` can be :const:`None`,
+	a string or a module to return a namespace name, or a :class:`Node` instance
+	of subclass to return a namespace name + node name combination::
+
+		>>> from ll.xist import xsc
+		>>> from ll.xist.ns import html
+		>>> xsc.nsclark(None)
+		'{}'
+		>>> xsc.nsclark(html)
+		'{http://www.w3.org/1999/xhtml}'
+		>>> xsc.nsclark(html.a)
+		'{http://www.w3.org/1999/xhtml}a'
+		>>> xsc.nsclark(html.a())
+		'{http://www.w3.org/1999/xhtml}a'
 	"""
-	if xmlns is None:
+	if obj is None:
 		return "{}"
-	elif not isinstance(xmlns, str):
-		xmlns = xmlns.xmlns
-	return "{{{}}}".format(xmlns)
+	elif isinstance(obj, (Element, _Element_Meta)):
+		return "{{{}}}{}".format(obj.xmlns, obj.xmlname)
+	elif isinstance(obj, (Attr, _Attr_Meta)):
+		if obj.xmlns is None:
+			return obj.xmlname
+		else:
+			return "{{{}}}{}".format(obj.xmlns, obj.xmlname)
+	elif isinstance(obj, (Node, _Node_Meta)):
+		return obj.xmlname
+	elif not isinstance(obj, str):
+		return "{{{}}}".format(obj.xmlns)
+	return "{{{}}}".format(obj)
 
 
 # C0 Controls and Basic Latin
