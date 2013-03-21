@@ -124,6 +124,8 @@ class Transparent(object):
 	"""
 	This validator implements the "transparent" content model of HTML5:
 	"""
+	empty = False
+
 	def validate(self, path):
 		model = None
 		for parent in path[-2::-1]:
