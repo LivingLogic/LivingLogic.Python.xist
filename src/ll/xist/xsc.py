@@ -468,23 +468,36 @@ class Converter(object):
 		self.lastnode = state.node
 		return state
 
-	def __getitem__(self, obj):
+	def __getitem__(self, key):
 		"""
-		Return a context object for :var:`obj`, which should be an
-		:class:`ll.xist.xsc.Node` instance or subclass. Each of these classes
-		that defines its own :class:`Context` class gets a unique instance of
-		this class. This instance will be created on the first access and the
-		element can store information there that needs to be available across
-		calls to :meth:`convert`.
+		Return a context object for :var:`key`. Two variants are supported:
+
+		*	:var:`key` may be a string, in which case it should be a hierarchical
+			dot-separated name similar to Java package names (e.g.
+			``"org.example.project.handler"``). This helps avoid name collisions.
+			Context objects of this type must be explicitely created via
+			:meth:`__setitem__`.
+
+		*	:var:`key` may be a :class:`ll.xist.xsc.Node` instance or subclass.
+			Each of these classes that defines its own :class:`Context` class gets
+			a unique instance of this class. This instance will be created on the
+			first access and the element can store information there that needs to
+			be available across calls to :meth:`convert`.
 		"""
-		contextclass = obj.Context
-		# don't use :meth:`setdefault`, as constructing the context object might involve some overhead
-		try:
-			return self.contexts[contextclass]
-		except KeyError:
-			context = contextclass()
-			self.contexts[contextclass] = context
-			return context
+		if isinstance(key, str):
+			return self.contexts[key]
+		else:
+			contextclass = key.Context
+			# don't use :meth:`setdefault`, as constructing the context object might involve some overhead
+			try:
+				return self.contexts[contextclass]
+			except KeyError:
+				context = contextclass()
+				self.contexts[contextclass] = context
+				return context
+
+	def __setitem__(self, key, value):
+		self.context[key] = value
 
 
 ###
