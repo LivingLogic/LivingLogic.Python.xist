@@ -1480,18 +1480,19 @@ def tree(*pipeline, validate=True):
 		>>> doc[0]
 		<ll.xist.ns.html.html element object (5 children/2 attrs) (from http://www.python.org/:3:0) at 0x1028eb3d0>
 	"""
-	stack = [xsc.Frag()]
+	path = [xsc.Frag()]
 	for (evtype, node) in events(*pipeline):
 		if evtype == "enterelementnode":
-			stack[-1].append(node)
-			stack.append(node)
+			path[-1].append(node)
+			path.append(node)
 		elif evtype == "leaveelementnode":
 			if validate:
-				node.checkvalid()
-			stack.pop()
+				for warning in node.validate(False, path):
+					warnings.warn(warning)
+			path.pop()
 		else:
-			stack[-1].append(node)
-	return stack[0]
+			path[-1].append(node)
+	return path[0]
 
 
 def itertree(*pipeline, entercontent=True, enterattrs=False, enterattr=False, enterelementnode=False, leaveelementnode=True, enterattrnode=True, leaveattrnode=False, selector=None, validate=True):
@@ -1551,7 +1552,8 @@ def itertree(*pipeline, entercontent=True, enterattrs=False, enterattr=False, en
 				skipcontent = cursor.node
 		elif evtype == "leaveelementnode":
 			if validate:
-				node.checkvalid()
+				for warning in node.validate(False, cursor.path):
+					warnings.warn(warning)
 			cursor.index.pop()
 			if skipcontent is cursor.node:
 				skipcontent = None

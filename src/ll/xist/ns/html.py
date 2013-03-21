@@ -9,14 +9,12 @@
 
 
 """
-An XIST namespace that contains definitions for all the elements in
-`HTML 5`__ as well as some (deprecated) element that were in use in previous
-HTML versions.
+An XIST namespace that contains definitions for all the elements in `HTML5`_ as
+well as some (deprecated) elements that were in use in previous HTML versions.
 
 __ http://www.w3.org/TR/2012/CR-html5-20121217/
 
-
-For all deprecated elements and attributes to class attribute ``deprecated``
+For all deprecated elements and attributes the class attribute ``deprecated``
 is set to ``True``.
 """
 
@@ -76,7 +74,7 @@ class DocTypeXHTML11(xsc.DocType):
 
 class DocTypeHTML5(xsc.DocType):
 	"""
-	document type for HTML 4.0 transitional
+	document type for HTML5
 	"""
 	def __init__(self):
 		xsc.DocType.__init__(self, "html")
@@ -442,7 +440,6 @@ class CommonFormAttrs(GlobalAttrs):
 		"""
 
 
-
 ###
 ### Elements
 ###
@@ -673,7 +670,7 @@ class noscript(xsc.Element):
 	scripting is disabled.
 	"""
 	xmlns = xmlns
-	model = sims.Any() # FIXME: actually the content model is "transparent", i.e. the model of the parent
+	model = sims.Transparent()
 	class Attrs(GlobalAttrs):
 		pass
 
@@ -1093,7 +1090,7 @@ class a(xsc.Element):
 	been relevant, consisting of just the element's contents.
 	"""
 	xmlns = xmlns
-	model = sims.Any() # FIXME: actually the content model is "transparent", i.e. the model of the parent
+	model = sims.Transparent()
 	class Attrs(GlobalAttrs):
 		class href(xsc.URLAttr):
 			"""
@@ -1442,7 +1439,7 @@ class ins(xsc.Element):
 	An addition to the document.
 	"""
 	xmlns = xmlns
-	model = sims.Any() # FIXME: actually the content model is "transparent", i.e. the model of the parent
+	model = sims.Transparent()
 	class Attrs(GlobalAttrs):
 		class cite(xsc.URLAttr):
 			"""
@@ -1460,7 +1457,7 @@ class del_(xsc.Element):
 	"""
 	xmlns = xmlns
 	xmlname = "del"
-	model = sims.Any() # FIXME: actually the content model is "transparent", i.e. the model of the parent
+	model = sims.Transparent()
 	class Attrs(GlobalAttrs):
 		class cite(xsc.URLAttr):
 			"""
@@ -1922,7 +1919,7 @@ class canvas(xsc.Element):
 	for rendering graphs, game graphics, art, or other visual images on the fly.
 	"""
 	xmlns = xmlns
-	model = sims.Any() # FIXME: actually the content model is "transparent", i.e. the model of the parent
+	model = sims.Transparent()
 	class Attrs(GlobalAttrs):
 		class width(xsc.IntAttr):
 			"""
@@ -1940,7 +1937,7 @@ class map(xsc.Element):
 	The element represents its children.
 	"""
 	xmlns = xmlns
-	model = sims.Any() # FIXME: actually the content model is "transparent", i.e. the model of the parent
+	model = sims.Transparent()
 	class Attrs(GlobalAttrs):
 		class name(xsc.TextAttr):
 			"""

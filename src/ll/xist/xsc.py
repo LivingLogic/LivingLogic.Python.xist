@@ -196,7 +196,7 @@ class IllegalAttrValueWarning(Warning):
 
 	def __str__(self):
 		attr = self.attr
-		return "Attribute value {!r} not allowed for {}".format(str(attr), attr._str(fullname=True, xml=False, decorate=False))
+		return "Attribute value {!r} not allowed for {}".format(str(attr), attr._str())
 
 
 class RequiredAttrMissingWarning(Warning):
@@ -210,7 +210,7 @@ class RequiredAttrMissingWarning(Warning):
 		self.reqattrs = reqattrs
 
 	def __str__(self):
-		return "Required attribute{} {} missing in {}".format(("s" if len(self.reqattrs) > 1 else ""), ", ".join(repr(attr.xmlname) if attr.xmlns is None else repr("{{{}}}{}".format(attr.xmlns, attr.xmlname)) for attr in self.reqattrs), self.attrs._str(fullname=True, xml=False, decorate=False))
+		return "Required attribute{} {} missing".format(("s" if len(self.reqattrs) > 1 else ""), ", ".join(repr(attr.xmlname) if attr.xmlns is None else repr("{{{}}}{}".format(attr.xmlns, attr.xmlname)) for attr in self.reqattrs))
 
 
 class IllegalPrefixError(Error, LookupError):
@@ -227,20 +227,6 @@ class IllegalPrefixError(Error, LookupError):
 class MultipleRootsError(Error):
 	def __str__(self):
 		return "can't add namespace attributes: XML tree has multiple roots"
-
-
-class ElementNestingError(Error):
-	"""
-	Exception that is raised when an element has an illegal nesting
-	(e.g. ``<a><b></a></b>``)
-	"""
-
-	def __init__(self, expectedelement, foundelement):
-		self.expectedelement = expectedelement
-		self.foundelement = foundelement
-
-	def __str__(self):
-		return "mismatched element nesting (close tag for {} expected; close tag for {} found)".format(self.expectedelement._str(fullname=True, xml=False, decorate=True), self.foundelement._str(fullname=True, xml=False, decorate=True))
 
 
 class FileNotFoundWarning(Warning):
@@ -739,6 +725,9 @@ class Publisher(object):
 		Output the node :var:`node`. This method is a generator that will yield
 		the resulting XML byte sequence in fragments.
 		"""
+		if self.validate:
+			for warning in node.validate(True, [node]):
+				warnings.warn(warning)
 		self._ns2prefix.clear()
 		self._prefix2ns.clear()
 		# iterate through every node in the tree
@@ -1023,23 +1012,6 @@ class Node(object, metaclass=_Node_Meta):
 	xmlname = None
 	xmlns = None
 
-	@classmethod
-	def _strbase(cls, fullname, xml):
-		v = []
-		if fullname:
-			ns = cls.xmlns if xml else cls.__module__
-			if ns is not None:
-				v.append(ns)
-				v.append(":")
-		if xml:
-			name = cls.xmlname
-		elif fullname:
-			name = cls.__qualname__
-		else:
-			name = cls.__name__
-		v.append(name)
-		return "".join(v)
-
 	def __pos__(self):
 		threadlocalnodehandler.handler.add(self)
 
@@ -1202,7 +1174,7 @@ class Node(object, metaclass=_Node_Meta):
 		:var:`event` is the parser event that initiated the call.
 		"""
 
-	def checkvalid(self):
+	def validate(self, recursive=True, path=None):
 		"""
 		This method will be called when parsing or publishing to check whether
 		:var`self` is valid.
@@ -1210,6 +1182,7 @@ class Node(object, metaclass=_Node_Meta):
 		If :var:`self` is found to be invalid a warning should be issued through
 		the Python warning framework.
 		"""
+		yield from ()
 
 	@misc.notimplemented
 	def publish(self, publisher):
@@ -1647,6 +1620,9 @@ class Text(CharacterData):
 	this node is published.
 	"""
 
+	def _str(self):
+		return "text"
+
 	def convert(self, converter):
 		return self
 
@@ -1721,12 +1697,8 @@ class Frag(Node, list):
 		self.extend(content)
 		return self
 
-	@classmethod
-	def _str(cls, fullname=True, xml=True, decorate=True):
-		s = cls._strbase(fullname=fullname, xml=xml)
-		if decorate:
-			s = "<{}>".format(s)
-		return s
+	def _str(self):
+		return "frag"
 
 	def _create(self):
 		"""
@@ -1783,6 +1755,15 @@ class Frag(Node, list):
 
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and list.__eq__(self, other)
+
+	def validate(self, recursive=True, path=None):
+		if path is None:
+			path = []
+		path.append(None)
+		for child in self:
+			path[-1] = child
+			yield from child.validate(recursive, path)
+		path.pop()
 
 	def publish(self, publisher):
 		for child in self:
@@ -2034,6 +2015,9 @@ class Comment(CharacterData):
 	An XML comment.
 	"""
 
+	def _str(self):
+		return "comment"
+
 	def convert(self, converter):
 		return self
 
@@ -2138,12 +2122,8 @@ class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
 			p.breakable()
 			p.text("at {:#x}".format(id(self)))
 
-	@classmethod
-	def _str(cls, fullname=True, xml=True, decorate=True):
-		s = cls._strbase(fullname=fullname, xml=xml)
-		if decorate:
-			s = "<{}>".format(s)
-		return s
+	def _str(self):
+		return "procinst {}".format(self.xmlname)
 
 	def convert(self, converter):
 		return self
@@ -2152,8 +2132,6 @@ class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
 		return presenter.presentProcInst(self) # return a generator-iterator
 
 	def publish(self, publisher):
-		if publisher.validate:
-			self.checkvalid()
 		content = self.content
 		if "?>" in content:
 			raise IllegalProcInstFormatError(self)
@@ -2185,12 +2163,8 @@ class Null(CharacterData):
 	def _repr_pretty_(self, p, cycle):
 		p.text("<{self.__class__.__module__}.{self.__class__.__qualname__} at {id:#x}>".format(self=self, id=id(self)))
 
-	@classmethod
-	def _str(cls, fullname=True, xml=True, decorate=True):
-		s = cls._strbase(fullname=fullname, xml=xml)
-		if decorate:
-			s = "<{}>".format(s)
-		return s
+	def _str(self):
+		return "null"
 
 	def convert(self, converter):
 		return self
@@ -2324,9 +2298,11 @@ class Attr(Frag, metaclass=_Attr_Meta):
 			p.breakable()
 			p.text("at {:#x}".format(id(self)))
 
-	@classmethod
-	def _str(cls, fullname=True, xml=True, decorate=True):
-		return cls._strbase(fullname=fullname, xml=xml)
+	def _str(self):
+		if self.xmlns is not None:
+			return "attr={{{}}}{}".format(self.xmlns, self.xmlname)
+		else:
+			return "attr={}".format(self.xmlname)
 
 	def isfancy(self):
 		"""
@@ -2340,7 +2316,7 @@ class Attr(Frag, metaclass=_Attr_Meta):
 	def present(self, presenter):
 		return presenter.presentAttr(self) # return a generator-iterator
 
-	def checkvalid(self):
+	def validate(self, recursive=True, path=None):
 		"""
 		Check whether :var:`self` has an allowed value, i.e. one that is specified
 		in the class attribute ``values``. If the value is not allowed a warning
@@ -2349,11 +2325,14 @@ class Attr(Frag, metaclass=_Attr_Meta):
 		If :var:`self` is "fancy" (i.e. contains non-:class:`Text` nodes), no
 		check will be done.
 		"""
+		if path is None:
+			path = []
 		values = self.__class__.values
 		if self and isinstance(values, tuple) and not self.isfancy():
 			value = str(self)
 			if value not in values:
-				warnings.warn(IllegalAttrValueWarning(self))
+				yield IllegalAttrValueWarning(self)
+		yield from Frag.validate(self, True, path)
 
 	def _publishname(self, publisher):
 		if self.xmlns is not None:
@@ -2369,8 +2348,6 @@ class Attr(Frag, metaclass=_Attr_Meta):
 		return Frag.publish(self, publisher)
 
 	def publish(self, publisher):
-		if publisher.validate:
-			self.checkvalid()
 		if len(self)==1 and isinstance(self[0], AttrElement):
 			yield from self[0].publishattr(publisher, self)
 		else:
@@ -2445,8 +2422,6 @@ class BoolAttr(Attr):
 
 	# We can't simply overwrite :meth:`_publishattrvalue`, because for ``xhtml==0`` we don't output a "proper" attribute
 	def publish(self, publisher):
-		if publisher.validate:
-			self.checkvalid()
 		if len(self)==1 and isinstance(self[0], AttrElement):
 			yield from self[0].publishboolattr(publisher, self)
 		else:
@@ -2696,9 +2671,8 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 				return False
 		return True
 
-	@classmethod
-	def _str(cls, fullname=True, xml=True, decorate=True):
-		return cls._strbase(fullname=fullname, xml=xml)
+	def _str(self):
+		return "attrs"
 
 	@classmethod
 	def add(cls, value):
@@ -2822,24 +2796,26 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 	def present(self, presenter):
 		return presenter.presentAttrs(self) # return a generator-iterator
 
-	def checkvalid(self):
+	def validate(self, recursive=True, path=None):
+		if path is None:
+			path = []
 		# collect required attributes
 		attrs = {value for value in self.declaredattrs() if value.required}
+		path.append(None)
 		# Check each existing attribute and remove it from the list of required ones
 		for value in self.values():
-			value.checkvalid()
+			path[-1] = (value.xmlns, value.xmlname)
+			yield from value.validate(recursive, path)
 			try:
 				attrs.remove(value.__class__)
 			except KeyError:
 				pass
+		path.pop()
 		# are there any required attributes remaining that haven't been specified? => warn about it
 		if attrs:
-			warnings.warn(RequiredAttrMissingWarning(self, list(attrs)))
+			yield RequiredAttrMissingWarning(self, list(attrs))
 
 	def publish(self, publisher):
-		if publisher.validate:
-			self.checkvalid()
-
 		for value in sorted(self.values(), key=self._sortorder):
 			yield from value.publish(publisher)
 
@@ -3196,20 +3172,17 @@ class Element(Node, metaclass=_Element_Meta):
 	def __eq__(self, other):
 		return isinstance(other, Element) and self.xmlname == other.xmlname and self.xmlns == other.xmlns and self.content==other.content and self.attrs==other.attrs
 
-	@classmethod
-	def _str(cls, fullname=True, xml=True, decorate=True):
-		s = cls._strbase(fullname=fullname, xml=xml)
-		if decorate:
-			if cls.model is not None and cls.model.empty:
-				s = "<{}/>".format(s)
-			else:
-				s = "<{}>".format(s)
-		return s
+	def _str(self):
+		return "element {{{}}}{}".format(self.xmlns, self.xmlname)
 
-	def checkvalid(self):
+	def validate(self, recursive=True, path=None):
+		if path is None:
+			path = [self]
 		if self.model is not None:
-			self.model.checkvalid(self)
-		self.attrs.checkvalid()
+			yield from self.model.validate(path)
+		yield from self.attrs.validate(recursive, path)
+		if recursive:
+			yield from self.content.validate(recursive, path)
 
 	def append(self, *items):
 		"""
@@ -3339,8 +3312,6 @@ class Element(Node, metaclass=_Element_Meta):
 				yield publisher.encode("/>")
 
 	def publish(self, publisher):
-		if publisher.validate:
-			self.checkvalid()
 		if publisher.inattr:
 			# publish the content only when we are inside an attribute. This works much like using the plain string value,
 			# but even works with processing instructions, or what the abbreviation entities return
@@ -3618,12 +3589,8 @@ class Entity(Node, metaclass=_Entity_Meta):
 			p.breakable()
 			p.text("at {:#x}".format(id(self)))
 
-	@classmethod
-	def _str(cls, fullname=True, xml=True, decorate=True):
-		s = cls._strbase(fullname=fullname, xml=xml)
-		if decorate:
-			s = "&{};".format(s)
-		return s
+	def _str(self):
+		return "entity {}".format(self.xmlname)
 
 	def __eq__(self, other):
 		return isinstance(other, Entity) and self.xmlname == other.xmlname

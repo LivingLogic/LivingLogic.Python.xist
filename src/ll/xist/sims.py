@@ -44,15 +44,11 @@ class EmptyElementWithContentWarning(SIMSWarning):
 	(i.e. :attr:`model` is :class:`Empty`)
 	"""
 
-	def __init__(self, node):
-		self.node = node
+	def __init__(self, path):
+		self.path = path[:]
 
 	def __str__(self):
-		s = "element {!r}".format(self.node)
-		if self.node.startloc is not None:
-			s += " at {}".format(self.node.startloc)
-		s += " has EMPTY content model, but has content"
-		return s
+		return "{} doesn't allow content".format(self.path[-1]._str())
 
 
 class WrongElementWarning(SIMSWarning):
@@ -61,13 +57,13 @@ class WrongElementWarning(SIMSWarning):
 	certain type, but shouldn't.
 	"""
 
-	def __init__(self, node, badnode, elements):
-		self.node = node
+	def __init__(self, model, path, badnode):
+		self.model = model
+		self.path = path
 		self.badnode = badnode
-		self.elements = elements
 
 	def __str__(self):
-		return "element {!r} may not contain element {!r}".format(self.node, self.badnode)
+		return "{} may not contain {}".format(self.path[-1]._str(), self.badnode._str())
 
 
 class ElementWarning(SIMSWarning):
@@ -81,7 +77,7 @@ class ElementWarning(SIMSWarning):
 		self.badnode = badnode
 
 	def __str__(self):
-		return "element {!r} may not contain other elements".format(self.node)
+		return "{} may not contain other elements".format(self.node._str())
 
 
 class IllegalTextWarning(SIMSWarning):
@@ -94,7 +90,7 @@ class IllegalTextWarning(SIMSWarning):
 		self.badnode = badnode
 
 	def __str__(self):
-		return "element {!r} may not contain text nodes".format(self.node)
+		return "{} may not contain text".format(self.node._str())
 
 
 def badtext(node):
@@ -117,13 +113,25 @@ class Empty(object):
 	def __repr__(self):
 		return "Empty()"
 
-	def checkvalid(self, node):
-		"""
-		check that the content of :var:`node` is valid.
-		"""
+	def validate(self, path):
+		node = path[-1]
 		if isinstance(node, xsc.Element):
 			if len(node):
-				warnings.warn(EmptyElementWithContentWarning(node))
+				yield EmptyElementWithContentWarning(path)
+
+
+class Transparent(object):
+	"""
+	This validator implements the "transparent" content model of HTML5:
+	"""
+	def validate(self, path):
+		model = None
+		for parent in path[-2::-1]:
+			if isinstance(parent, xsc.Element) and parent.model is not None and not isinstance(parent.model, Transparent):
+				model = parent.model
+				break
+		if model is not None:
+			yield from model.validate(path)
 
 
 class NoElements(object):
@@ -136,14 +144,15 @@ class NoElements(object):
 	def __repr__(self):
 		return "NoElements()"
 
-	def checkvalid(self, node):
+	def validate(self, path):
 		"""
 		check that the content of :var:`node` is valid.
 		"""
+		node = path[-1]
 		if isinstance(node, xsc.Element):
 			for child in node.content:
 				if isinstance(child, xsc.Element) and node.xmlns is not None and child.xmlns is not None and child.xmlns == node.xmlns:
-					warnings.warn(ElementWarning(node, child))
+					yield ElementWarning(node, child)
 
 
 class NoElementsOrText(object):
@@ -156,16 +165,17 @@ class NoElementsOrText(object):
 	def __repr__(self):
 		return "NoElementsOrText()"
 
-	def checkvalid(self, node):
+	def validate(self, path):
 		"""
 		check that the content of :var:`node` is valid.
 		"""
+		node = path[-1]
 		if isinstance(node, xsc.Element):
 			for child in node.content:
 				if badtext(child):
-					warnings.warn(IllegalTextWarning(node, child))
+					yield IllegalTextWarning(node, child)
 				elif isinstance(child, xsc.Element) and node.xmlns is not None and child.xmlns is not None and child.xmlns == node.xmlns:
-					warnings.warn(ElementWarning(node, child))
+					yield ElementWarning(node, child)
 
 
 class Elements(object):
@@ -188,10 +198,11 @@ class Elements(object):
 	def __repr__(self):
 		return "Elements({})".format(", ".join("{0.__module__}.{0.__name__}".format(cls) for cls in self.elements))
 
-	def checkvalid(self, node):
+	def validate(self, path):
 		"""
 		check that the content of :var:`node` is valid.
 		"""
+		node = path[-1]
 		ns = None
 		if isinstance(node, xsc.Element):
 			for child in node.content:
@@ -201,7 +212,7 @@ class Elements(object):
 					if ns is None: # Calculate the first time we need it
 						ns = {el.xmlns for el in self.elements if el.xmlns is not None}
 					if child.xmlns in ns:
-						warnings.warn(WrongElementWarning(node, child, self.elements))
+						yield WrongElementWarning(self, path, child)
 
 
 class ElementsOrText(Elements):
@@ -222,10 +233,11 @@ class ElementsOrText(Elements):
 	def __repr__(self):
 		return "ElementsOrText({})".format(", ".join("{0.__module__}.{0.__name__}".format(cls) for cls in self.elements))
 
-	def checkvalid(self, node):
+	def validate(self, path):
 		"""
 		Check that the content of :var:`node` is valid.
 		"""
+		node = path[-1]
 		ns = None
 		if isinstance(node, xsc.Element):
 			for child in node.content:
@@ -233,7 +245,7 @@ class ElementsOrText(Elements):
 					if ns is None: # Calculate the first time we need it
 						ns = {el.xmlns for el in self.elements if el.xmlns is not None}
 					if child.xmlns in ns:
-						warnings.warn(WrongElementWarning(node, child, self.elements))
+						yield WrongElementWarning(self, path, child)
 
 
 class Any(object):
@@ -245,11 +257,12 @@ class Any(object):
 	def __repr__(self):
 		return "Any()"
 
-	def checkvalid(self, node):
+	def validate(self, path):
 		"""
 		Check that the content of :var:`node` is valid. This method does nothing
 		as anything is valid.
 		"""
+		yield from ()
 
 
 # always show warnings from sims errors
