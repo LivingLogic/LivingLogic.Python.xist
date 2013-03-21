@@ -187,8 +187,7 @@ class Warning(UserWarning):
 
 class IllegalAttrValueWarning(Warning):
 	"""
-	Warning that is issued when an attribute has an illegal value when parsing
-	or publishing.
+	Warning that is issued when an attribute has an illegal value.
 	"""
 
 	def __init__(self, attr):
@@ -200,8 +199,7 @@ class IllegalAttrValueWarning(Warning):
 
 class RequiredAttrMissingWarning(Warning):
 	"""
-	Warning that is issued when a required attribute is missing during parsing
-	or publishing.
+	Warning that is issued when a required attribute is missing.
 	"""
 
 	def __init__(self, attrs, attr):
@@ -210,6 +208,19 @@ class RequiredAttrMissingWarning(Warning):
 
 	def __str__(self):
 		return "Required attribute {} missing in {!r}".format(nsclark(self.attr), self.attrs)
+
+
+class UndeclaredAttrWarning(Warning):
+	"""
+	Warning that is issued when a local attribute is not declared.
+	"""
+
+	def __init__(self, attrs, attr):
+		self.attrs = attrs
+		self.attr = attr
+
+	def __str__(self):
+		return "Attribute {} is undeclared in {!r}".format(nsclark(self.attr), self.attrs)
 
 
 class IllegalPrefixError(Error, LookupError):
@@ -2822,7 +2833,8 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		path.append(None)
 		# Check each existing attribute and remove it from the list of required ones
 		for value in self.values():
-			path[-1] = (value.xmlns, value.xmlname)
+			path[-1] = value
+			yield from self.validateattr(path)
 			yield from value.validate(recursive, path)
 			try:
 				attrs.remove(value.__class__)
@@ -2831,7 +2843,12 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		path.pop()
 		# are there any required attributes remaining that haven't been specified? => issue warnings about it
 		for attr in attrs:
-			yield RequiredAttrMissingWarning(self, attr)
+			yield RequiredAttrMissingWarning(self.__class__, attr)
+
+	def validateattr(self, path):
+		node = path[-1]
+		if node.xmlns is None and not self.isdeclared(node):
+			yield UndeclaredAttrWarning(self.__class__, node)
 
 	def publish(self, publisher):
 		for value in sorted(self.values(), key=self._sortorder):

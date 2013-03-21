@@ -99,6 +99,11 @@ class GlobalAttrs(xsc.Attrs):
 	"""
 	Attributes that are common to and may be specified on all HTML elements
 	"""
+	def validateattr(self, path):
+		node = path[-1]
+		if node.xmlns is None and not self.isdeclared(node) and not node.xmlname.startswith(("data-", "aria-")):
+			yield xsc.UndeclaredAttrWarning(self.__class__, node)
+
 	class accesskey(xsc.TextAttr):
 		"""
 		This attribute's value is used by the user agent as a guide for creating a

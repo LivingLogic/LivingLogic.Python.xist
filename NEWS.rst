@@ -77,6 +77,11 @@ Changes in ?.?? (released ??/??/2013)
 	complete path instead of only the target node (this is used to implement
 	HTML5's transparent content model).
 
+*	Validating whether an attribute is allowed is now done in
+	:meth:`Attrs.validateattr`. The default implementation yields warnings about
+	undeclared local attributes. The HTML5 namespace extends this to also accept
+	any attribute whose name starts with ``data-`` or ``aria-``.
+
 *	Converter contexts now support string as keys (which must be hierarchical
 	dot-separated names similar to Java package names (e.g.
 	``"org.example.project.handler"``) to avoid name collisions.
