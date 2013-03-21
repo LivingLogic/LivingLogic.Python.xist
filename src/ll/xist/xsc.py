@@ -209,11 +209,7 @@ class RequiredAttrMissingWarning(Warning):
 		self.attr = attr
 
 	def __str__(self):
-		if self.attr.xmlns is None:
-			attrname = self.attr.xmlname
-		else:
-			attrname = "{{{}}}{}".format(self.attr.xmlns, self.attr.xmlname)
-		return "Required attribute {} missing".format(attrname)
+		return "Required attribute {} missing".format(nsclark(self.attr))
 
 
 class IllegalPrefixError(Error, LookupError):
