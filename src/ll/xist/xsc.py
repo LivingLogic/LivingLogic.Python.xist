@@ -2300,9 +2300,9 @@ class Attr(Frag, metaclass=_Attr_Meta):
 
 	def _str(self):
 		if self.xmlns is not None:
-			return "attr={{{}}}{}".format(self.xmlns, self.xmlname)
+			return "attr {{{}}}{}".format(self.xmlns, self.xmlname)
 		else:
-			return "attr={}".format(self.xmlname)
+			return "attr {}".format(self.xmlname)
 
 	def isfancy(self):
 		"""
