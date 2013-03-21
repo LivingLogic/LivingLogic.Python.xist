@@ -195,8 +195,7 @@ class IllegalAttrValueWarning(Warning):
 		self.attr = attr
 
 	def __str__(self):
-		attr = self.attr
-		return "Attribute value {!r} not allowed for {}".format(str(attr), attr._str())
+		return "Attribute value {!r} not allowed for {}".format(str(self.attr), nsclark(self.attr))
 
 
 class RequiredAttrMissingWarning(Warning):
