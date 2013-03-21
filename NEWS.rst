@@ -72,7 +72,7 @@ Changes in ?.?? (released ??/??/2013)
 	XML version of the name.
 
 *	The method :meth:`checkvalid` has been renamed to :meth:`validate`. It no
-	longer calls :func:`warnings.warn` itself, but is an iterator that returns
+	longer calls :func:`warnings.warn` itself, but is an generator that returns
 	the warning objects. Furthermore the ``model`` objects now get passed the
 	complete path instead of only the target node (this is used to implement
 	HTML5's transparent content model).
