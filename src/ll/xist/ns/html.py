@@ -1749,7 +1749,6 @@ class video(xsc.Element):
 	Used for playing videos or movies, and audio files with captions.
 	"""
 	xmlns = xmlns
-	model = sims.Any()
 	class Attrs(GlobalAttrs):
 		class src(xsc.URLAttr):
 			"""
@@ -1812,7 +1811,6 @@ class audio(xsc.Element):
 	A sound or audio stream.
 	"""
 	xmlns = xmlns
-	model = sims.Any()
 	class Attrs(GlobalAttrs):
 		class src(xsc.URLAttr):
 			"""
@@ -3290,8 +3288,8 @@ bdi.model = sims.ElementsOrText(*content_phrasing)
 bdo.model = sims.ElementsOrText(*content_phrasing)
 span.model = sims.ElementsOrText(*content_phrasing)
 object.model = sims.ElementsOrText(*((param,) + content_flow + content_interactive))
-# video.model = sims.ElementsOrText(*((source, track) + transparent - (video, audio)))
-# audio.model = sims.ElementsOrText(*((source, track) + transparent - (video, audio)))
+video.model = sims.All(sims.Any(sims.ElementsOrText(source, track), sims.Transparent()), sims.NotElements(video, audio))
+audio.model = sims.All(sims.Any(sims.ElementsOrText(source, track), sims.Transparent()), sims.NotElements(video, audio))
 table.model = sims.Elements(caption, colgroup, thead, tfoot, tbody, tr)
 caption.model = sims.ElementsOrText(*tuple(e for e in content_flow if e is not table))
 colgroup.model = sims.Elements(col)

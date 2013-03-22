@@ -37,6 +37,12 @@ class SIMSWarning(xsc.Warning):
 	Base class for all warning classes in this module.
 	"""
 
+	def __hash__(self):
+		return hash(str(self))
+
+	def __eq__(self, other):
+		return isinstance(other, self.__class__) and str(self) == str(other)
+
 
 class EmptyElementWithContentWarning(SIMSWarning):
 	"""
@@ -45,7 +51,7 @@ class EmptyElementWithContentWarning(SIMSWarning):
 	"""
 
 	def __init__(self, path):
-		self.path = path[:]
+		self.path = tuple(path)
 
 	def __str__(self):
 		return "{} doesn't allow content".format(self.path[-1]._str())
@@ -57,9 +63,8 @@ class WrongElementWarning(SIMSWarning):
 	certain type, but shouldn't.
 	"""
 
-	def __init__(self, model, path, badnode):
-		self.model = model
-		self.path = path
+	def __init__(self, path, badnode):
+		self.path = tuple(path)
 		self.badnode = badnode
 
 	def __str__(self):
@@ -72,12 +77,12 @@ class ElementWarning(SIMSWarning):
 	shouldn't contain any.
 	"""
 
-	def __init__(self, node, badnode):
-		self.node = node
+	def __init__(self, path, badnode):
+		self.path = tuple(node)
 		self.badnode = badnode
 
 	def __str__(self):
-		return "{} may not contain other elements".format(self.node._str())
+		return "{} may not contain other elements".format(self.path[-1]._str())
 
 
 class IllegalTextWarning(SIMSWarning):
@@ -85,12 +90,25 @@ class IllegalTextWarning(SIMSWarning):
 	Warning that is issued when an element contains a text node but shouldn't.
 	"""
 
-	def __init__(self, node, badnode):
-		self.node = node
+	def __init__(self, path, badnode):
+		self.path = tuple(path)
 		self.badnode = badnode
 
 	def __str__(self):
-		return "{} may not contain text".format(self.node._str())
+		return "{} may not contain text".format(self.path[-1]._str())
+
+
+class AnyWarning(SIMSWarning):
+	"""
+	Warning that is issued when an element contains a text node but shouldn't.
+	"""
+
+	def __init__(self, path, warnings):
+		self.path = tuple(path)
+		self.warnings = warnings
+
+	def __str__(self):
+		return " or ".join("{}".format(" and ".join("({})".format(warning) for warning in warnings)) for warnings in self.warnings)
 
 
 def badtext(node):
@@ -154,7 +172,7 @@ class NoElements(object):
 		if isinstance(node, xsc.Element):
 			for child in node.content:
 				if isinstance(child, xsc.Element) and node.xmlns is not None and child.xmlns is not None and child.xmlns == node.xmlns:
-					yield ElementWarning(node, child)
+					yield ElementWarning(path, child)
 
 
 class NoElementsOrText(object):
@@ -175,9 +193,9 @@ class NoElementsOrText(object):
 		if isinstance(node, xsc.Element):
 			for child in node.content:
 				if badtext(child):
-					yield IllegalTextWarning(node, child)
+					yield IllegalTextWarning(path, child)
 				elif isinstance(child, xsc.Element) and node.xmlns is not None and child.xmlns is not None and child.xmlns == node.xmlns:
-					yield ElementWarning(node, child)
+					yield ElementWarning(path, child)
 
 
 class Elements(object):
@@ -209,12 +227,12 @@ class Elements(object):
 		if isinstance(node, xsc.Element):
 			for child in node.content:
 				if badtext(child):
-					warnings.warn(IllegalTextWarning(node, child))
+					yield IllegalTextWarning(path, child)
 				elif isinstance(child, xsc.Element) and node.xmlns is not None and not isinstance(child, self.elements):
 					if ns is None: # Calculate the first time we need it
 						ns = {el.xmlns for el in self.elements if el.xmlns is not None}
 					if child.xmlns in ns:
-						yield WrongElementWarning(self, path, child)
+						yield WrongElementWarning(path, child)
 
 
 class ElementsOrText(Elements):
@@ -247,24 +265,92 @@ class ElementsOrText(Elements):
 					if ns is None: # Calculate the first time we need it
 						ns = {el.xmlns for el in self.elements if el.xmlns is not None}
 					if child.xmlns in ns:
-						yield WrongElementWarning(self, path, child)
+						yield WrongElementWarning(path, child)
+
+
+class NotElements(object):
+	"""
+	This validator checks that an element doesn't contain any of the specified
+	elements.
+	"""
+	empty = False
+
+	def __init__(self, *elements):
+		"""
+		Every element in :var:`elements` may not be in the content of the node to
+		which this validator is attached.
+		"""
+		self.elements = elements
+
+	def __repr__(self):
+		return "NotElements({})".format(", ".join("{0.__module__}.{0.__name__}".format(cls) for cls in self.elements))
+
+	def validate(self, path):
+		node = path[-1]
+		ns = None
+		if isinstance(node, xsc.Element):
+			for child in node.content:
+				if isinstance(child, self.elements):
+					yield WrongElementWarning(path, child)
+
+
+class All(object):
+	"""
+	This meta validator checks that all its child validators declare the content
+	of the element to be valid.
+	"""
+	empty = False
+
+	def __init__(self, *validators):
+		self.validators = validators
+
+	def __repr__(self):
+		return "<{0.__class__.__module__}:{0.__class__.__qualname__} {1} at {2:#x}>".format(self, " ".join(repr(validator) for validator in self.validators), id(self))
+
+	def validate(self, path):
+		seen = set()
+		for validator in self.validators:
+			for warning in validator.validate(path):
+				if warning not in seen:
+					yield warning
+					seen.add(warning)
 
 
 class Any(object):
 	"""
-	This validator declares any content to be valid.
+	This meta validator checks that at least one of its child validators declares
+	the content of the element to be valid.
 	"""
 	empty = False
 
+	def __init__(self, *validators):
+		self.validators = validators
+
 	def __repr__(self):
-		return "Any()"
+		return "<{0.__class__.__module__}:{0.__class__.__qualname__} {1} at {2:#x}>".format(self, " ".join(repr(validator) for validator in self.validators), id(self))
 
 	def validate(self, path):
-		"""
-		Check that the content of :var:`node` is valid. This method does nothing
-		as anything is valid.
-		"""
-		yield from ()
+		if self.validators:
+			allwarnings = []
+			for validator in self.validators:
+				warnings = list(validator.validate(path))
+				if not warnings:
+					return
+				allwarnings.append(warnings)
+			# Remove alls warning that are in all alternatives
+			restwarnings = allwarnings[1:]
+			for warning in allwarnings[0]:
+				if all(warning in warnings for warnings in restwarnings):
+					for warnings in allwarnings:
+						warnings.remove(warning)
+			# If any of the alternatives is empty now, remove it
+			allwarnings = [warnings for warnings in allwarnings if warnings]
+			if allwarnings:
+				# if we have only one alternative left, split it into individual warnings again
+				if len(allwarnings) == 1:
+					yield from allwarnings[0]
+				else:
+					yield AnyWarning(path, allwarnings)
 
 
 # always show warnings from sims errors
