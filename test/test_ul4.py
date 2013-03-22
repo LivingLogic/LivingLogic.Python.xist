@@ -3238,6 +3238,12 @@ def test_keepws():
 
 
 @pytest.mark.ul4
+def test_keepws_initialws(r):
+	assert " foo" == r("<?if True?> foo<?end if?>", keepws=False)
+	assert " foobar" == r("<?if True?> foo\n \tbar<?end if?>", keepws=False)
+
+
+@pytest.mark.ul4
 def test_keepws_nested(r):
 	s1 = "<?def nested1?>1n\n<?code second.render()?><?end def?>1\n<?code nested1.render(second=second)?>"
 	s2 = "<?def nested2?>2n\n<?end def?>2\n<?code nested2.render()?>"

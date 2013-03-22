@@ -451,12 +451,14 @@ class Text(AST):
 	AST node for literal text.
 	"""
 
+	_re_removewhitespace = re.compile(r"\r?\n\s*")
+
 	def text(self):
 		# If ``keepws`` is true, we output the literal text from the location info.
 		# Otherwise we have to strip linefeeds and indentation
 		text = self.location.code
 		if not self.location.root.keepws:
-			text = "".join(line.lstrip() for line in text.splitlines())
+			text = self._re_removewhitespace.sub("", text)
 		return text
 
 	def __repr__(self):
