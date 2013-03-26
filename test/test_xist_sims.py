@@ -9,6 +9,8 @@
 ## See ll/xist/__init__.py for the license
 
 
+import warnings
+
 from ll.xist import xsc, sims
 from ll.xist.ns import html, php
 
@@ -24,31 +26,39 @@ def test_empty1():
 	e.bytes()
 
 
-def test_empty2(recwarn):
+def test_empty2():
 	e = el1("gurk")
-	e.bytes()
-	w = recwarn.pop(sims.EmptyElementWithContentWarning)
+	with warnings.catch_warnings(record=True) as w:
+		e.bytes()
+	assert len(w) == 1
+	assert issubclass(w[-1].category, sims.EmptyElementWithContentWarning)
 
 
-def test_empty3(recwarn):
+def test_empty3():
 	e = el1(php.php("gurk"))
-	e.bytes()
-	w = recwarn.pop(sims.EmptyElementWithContentWarning)
+	with warnings.catch_warnings(record=True) as w:
+		e.bytes()
+	assert len(w) == 1
+	assert issubclass(w[-1].category, sims.EmptyElementWithContentWarning)
 
 
-def test_empty4(recwarn):
+def test_empty4():
 	e = el1(xsc.Comment("gurk"))
-	e.bytes()
-	w = recwarn.pop(sims.EmptyElementWithContentWarning)
+	with warnings.catch_warnings(record=True) as w:
+		e.bytes()
+	assert len(w) == 1
+	assert issubclass(w[-1].category, sims.EmptyElementWithContentWarning)
 
 
-def test_empty5(recwarn):
+def test_empty5():
 	e = el1(el1())
-	e.bytes()
-	w = recwarn.pop(sims.EmptyElementWithContentWarning)
+	with warnings.catch_warnings(record=True) as w:
+		e.bytes()
+	assert len(w) == 1
+	assert issubclass(w[-1].category, sims.EmptyElementWithContentWarning)
 
 
-def test_elements(recwarn):
+def test_elements():
 	with xsc.Pool():
 		class el11(xsc.Element):
 			xmlname = "el1"
@@ -69,8 +79,10 @@ def test_elements(recwarn):
 		e.bytes()
 
 		e = el11("foo")
-		e.bytes()
-		w = recwarn.pop(sims.IllegalTextWarning)
+		with warnings.catch_warnings(record=True) as w:
+			e.bytes()
+		assert len(w) == 1
+		assert issubclass(w[-1].category, sims.IllegalTextWarning)
 
 		e = el11(php.php("gurk"))
 		e.bytes()
@@ -85,15 +97,19 @@ def test_elements(recwarn):
 		e.bytes()
 
 		e = el11(el12())
-		e.bytes()
-		w = recwarn.pop(sims.WrongElementWarning)
+		with warnings.catch_warnings(record=True) as w:
+			e.bytes()
+		assert len(w) == 1
+		assert issubclass(w[-1].category, sims.WrongElementWarning)
 
 		e = el11(el22())
-		e.bytes()
-		w = recwarn.pop(sims.WrongElementWarning)
+		with warnings.catch_warnings(record=True) as w:
+			e.bytes()
+		assert len(w) == 1
+		assert issubclass(w[-1].category, sims.WrongElementWarning)
 
 
-def test_elementsortext(recwarn):
+def test_elementsortext():
 	with xsc.Pool():
 		class el11(xsc.Element):
 			xmlname = "el1"
@@ -129,15 +145,19 @@ def test_elementsortext(recwarn):
 		e.bytes()
 
 		e = el11(el12())
-		e.bytes()
-		w = recwarn.pop(sims.WrongElementWarning)
+		with warnings.catch_warnings(record=True) as w:
+			e.bytes()
+		assert len(w) == 1
+		assert issubclass(w[-1].category, sims.WrongElementWarning)
 
 		e = el11(el22())
-		e.bytes()
-		w = recwarn.pop(sims.WrongElementWarning)
+		with warnings.catch_warnings(record=True) as w:
+			e.bytes()
+		assert len(w) == 1
+		assert issubclass(w[-1].category, sims.WrongElementWarning)
 
 
-def test_noelements(recwarn):
+def test_noelements():
 	with xsc.Pool():
 		class el1(xsc.Element):
 			xmlns = "ns1"
@@ -158,15 +178,17 @@ def test_noelements(recwarn):
 		e.bytes()
 
 		e = el1(el1())
-		e.bytes()
-		w = recwarn.pop(sims.ElementWarning)
+		with warnings.catch_warnings(record=True) as w:
+			e.bytes()
+		assert len(w) == 1
+		assert issubclass(w[-1].category, sims.ElementWarning)
 
 		# Elements from a different namespace are OK
 		e = el1(el2())
 		e.bytes()
 
 
-def test_noelementsortext(recwarn):
+def test_noelementsortext():
 	with xsc.Pool():
 		class el1(xsc.Element):
 			xmlns = "ns1"
@@ -178,8 +200,10 @@ def test_noelementsortext(recwarn):
 		e.bytes()
 
 		e = el1("foo")
-		e.bytes()
-		w = recwarn.pop(sims.IllegalTextWarning)
+		with warnings.catch_warnings(record=True) as w:
+			e.bytes()
+		assert len(w) == 1
+		assert issubclass(w[-1].category, sims.IllegalTextWarning)
 
 		e = el1(php.php("gurk"))
 		e.bytes()
@@ -188,8 +212,10 @@ def test_noelementsortext(recwarn):
 		e.bytes()
 
 		e = el1(el1())
-		e.bytes()
-		w = recwarn.pop(sims.ElementWarning)
+		with warnings.catch_warnings(record=True) as w:
+			e.bytes()
+		assert len(w) == 1
+		assert issubclass(w[-1].category, sims.ElementWarning)
 
 		# Elements from a different namespace are OK
 		e = el1(el2())
