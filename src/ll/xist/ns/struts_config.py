@@ -59,7 +59,7 @@ class action(ElementWithID):
 		class suffix(xsc.TextAttr): pass
 		class type(xsc.TextAttr): pass
 		class unknown(xsc.TextAttr): values = ("true", "false", "yes", "no")
-		class validate(xsc.TextAttr): values = ("true", "false", "yes", "no")
+		class validate_(xsc.TextAttr): xmlname = "validate"; values = ("true", "false", "yes", "no")
 
 
 class action_mappings(ElementWithID):
