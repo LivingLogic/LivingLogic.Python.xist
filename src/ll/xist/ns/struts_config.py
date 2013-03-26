@@ -12,7 +12,6 @@
 Namespace module for Struts__ configuration files:
 http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd.
 
-
 __ http://jakarta.apache.org/struts/
 """
 
