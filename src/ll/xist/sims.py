@@ -78,7 +78,7 @@ class ElementWarning(SIMSWarning):
 	"""
 
 	def __init__(self, path, badnode):
-		self.path = tuple(node)
+		self.path = tuple(path)
 		self.badnode = badnode
 
 	def __str__(self):
@@ -359,4 +359,4 @@ class Any(object):
 
 
 # always show warnings from sims errors
-warnings.filterwarnings("always", category=SIMSWarning)
+warnings.simplefilter("always", category=SIMSWarning)
