@@ -331,16 +331,19 @@ class Any(object):
 
 	def validate(self, path):
 		if self.validators:
+			seen = set()
 			allwarnings = []
 			for validator in self.validators:
 				warnings = list(validator.validate(path))
 				if not warnings:
 					return
 				allwarnings.append(warnings)
-			# Remove alls warning that are in all alternatives
+			# If a warning is in all alternatives, we can report it as a separate warning and remove it from the alternatives
 			restwarnings = allwarnings[1:]
 			for warning in allwarnings[0]:
 				if all(warning in warnings for warnings in restwarnings):
+					seen.add(warning)
+					yield warning
 					for warnings in allwarnings:
 						warnings.remove(warning)
 			# If any of the alternatives is empty now, remove it
@@ -348,7 +351,9 @@ class Any(object):
 			if allwarnings:
 				# if we have only one alternative left, split it into individual warnings again
 				if len(allwarnings) == 1:
-					yield from allwarnings[0]
+					for warning in allwarnings[0]:
+						if warning not in seen:
+							yield warning
 				else:
 					yield AnyWarning(path, allwarnings)
 
