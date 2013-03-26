@@ -3053,7 +3053,7 @@ class Element(Node, metaclass=_Element_Meta):
 
 	Elements support the following class variables:
 
-	:attr:`model` : object with :meth:`checkvalid` method
+	:attr:`model` : object with :meth:`validate` method
 		This is an object that is used for validating the content of the element.
 		See the module :mod:`ll.xist.sims` for more info. If :attr:`model` is
 		:const:`None` validation will be skipped, otherwise it will be performed
