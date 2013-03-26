@@ -294,7 +294,7 @@ class IllegalProcInstFormatError(Error):
 		return "processing instruction with content {!r} is illegal, as it contains '?>'".format(self.procinst.content)
 
 
-warnings.filterwarnings("always", category=Warning)
+warnings.simplefilter("always", category=Warning)
 
 
 ###

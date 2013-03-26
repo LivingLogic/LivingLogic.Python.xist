@@ -76,7 +76,7 @@ def main(args=None):
 	args = p.parse_args(args)
 	if not args.verbose:
 		import warnings
-		warnings.filterwarnings("ignore", category=xsc.Warning)
+		warnings.simplefilter("ignore", category=xsc.Warning)
 	with url.Context():
 		if args.urls:
 			for u in args.urls:

@@ -2830,4 +2830,4 @@ class URL(object):
 			return iter(self.open())
 
 
-warnings.filterwarnings("always", module="url")
+warnings.simplefilter("always", module="url")
