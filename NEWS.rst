@@ -42,6 +42,12 @@ Changes in ?.?? (released ??/??/2013)
 	except when an attribute class or instance is used as the key. In this case
 	the attribute will be an instance of that class.
 
+*	The methods :meth:`convert`, :meth:`clone`, :meth:`__copy__`,
+	:meth:`__deepcopy__`, :meth:`compacted`, :meth:`withsep`, :meth:`reversed`,
+	:meth:`filtered`, :meth:`shuffled`, :meth:`mapped` and :meth:`normalized`
+	make sure that plain nodes are copied properly, i.e. they retain their custom
+	:attr:`xmlns` and :attr:`xmlname` attributes.
+
 *	Testing whether an attribute is declared for an element is now done with the
 	method :meth:`isdeclared`. This method accepts the same type of arguments as
 	:meth:`__getitem__` or :meth:`__setitem__`. For global attributes this will
