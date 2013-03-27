@@ -66,11 +66,11 @@ def tonode(value):
 	elif not isinstance(value, _Node_Meta): # avoid Node classes (whose __getitem__() returns an xfind selector)
 		# Maybe it's an iterator/generator?
 		try:
-			value = iter(value)
+			value = tuple(value)
 		except TypeError:
 			pass
 		else:
-			return Frag(*list(value))
+			return Frag(*value)
 	raise IllegalObjectError(value) # none of the above => bail out
 
 
