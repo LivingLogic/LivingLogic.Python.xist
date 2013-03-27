@@ -882,21 +882,35 @@ def test_with_addattr():
 	assert e == html.ul(id="gurk")
 
 
-def test_unknownelement_convert():
-	node = xsc.Element()
-	node.xmlname = "x"
-	node.xmlns = "foo"
+def test_plainelement_convert():
+	node = xsc.element("x", "foo")
 
 	node = node.conv()
 
 	assert node.__class__ is xsc.Element
-	assert (node.xmlname, node.xmlns) == ("x", "foo")
+	assert (node.xmlns, node.xmlname) == ("x", "foo")
 
 
-def test_unknownelement_mapped():
-	node = xsc.Element()
-	node.xmlname = "x"
-	node.xmlns = "foo"
+def test_plainentity_convert():
+	node = xsc.entity("foo")
+
+	node = node.conv()
+
+	assert node.__class__ is xsc.Entity
+	assert node.xmlname == "foo"
+
+
+def test_plainprocinst_convert():
+	node = xsc.procinst("foo")
+
+	node = node.conv()
+
+	assert node.__class__ is xsc.ProcInst
+	assert node.xmlname == "foo"
+
+
+def test_plainelement_mapped():
+	node = xsc.element("x", "foo")
 
 	def donothing(node, converter):
 		return node
@@ -904,4 +918,28 @@ def test_unknownelement_mapped():
 	node = node.mapped(donothing)
 
 	assert node.__class__ is xsc.Element
-	assert (node.xmlname, node.xmlns) == ("x", "foo")
+	assert (node.xmlns, node.xmlname) == ("x", "foo")
+
+
+def test_plainentity_mapped():
+	node = xsc.entity("foo")
+
+	def donothing(node, converter):
+		return node
+
+	node = node.mapped(donothing)
+
+	assert node.__class__ is xsc.Entity
+	assert node.xmlname == "foo"
+
+
+def test_plainprocinst_mapped():
+	node = xsc.procinst("foo")
+
+	def donothing(node, converter):
+		return node
+
+	node = node.mapped(donothing)
+
+	assert node.__class__ is xsc.ProcInst
+	assert node.xmlname == "foo"
