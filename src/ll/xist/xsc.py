@@ -4128,8 +4128,8 @@ class apos(CharRef): "apostrophe mark, U+0027 ISOnum"; codepoint = 39
 
 def element(xmlns, xmlname, *content, **attrs):
 	"""
-	Create a plain element object with the namespace name :var:`xmlns` and the
-	element name :var:`xmlname`. This object will be an instance of
+	Create a plain element object with the namespace name :var:`xmlns`
+	and the element name :var:`xmlname`. This object will be an instance of
 	:class:`Element` (not an instance of a subclass). :var:`content` and
 	:var:`attrs` will be used to initialize the content and attributes of the
 	element.
