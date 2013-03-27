@@ -4123,10 +4123,17 @@ class apos(CharRef): "apostrophe mark, U+0027 ISOnum"; codepoint = 39
 
 
 ###
-### Functions for creating custom elements, entities and processing instructions
+### Functions for creating plain elements, entities and processing instructions
 ###
 
 def element(xmlns, xmlname, *content, **attrs):
+	"""
+	Create a plain element object with the namespace name :var:`xmlns` and the
+	element name :var:`xmlname`. This object will be an instance of
+	:class:`Element` (not an instance of a subclass). :var:`content` and
+	:var:`attrs` will be used to initialize the content and attributes of the
+	element.
+	"""
 	element = Element(*content, **attrs)
 	element.xmlns = xmlns
 	element.xmlname = xmlname
@@ -4134,12 +4141,22 @@ def element(xmlns, xmlname, *content, **attrs):
 
 
 def entity(xmlname):
+	"""
+	Create a plain entity object with the entity name :var:`xmlname`. This
+	object will be an instance of :class:`Entity` (not an instance of a subclass).
+	"""
 	entity = Entity()
 	entity.xmlname = xmlname
 	return entity
 
 
 def procinst(xmlname, *content):
+	"""
+	Create a plain processing instruction object the target :var:`xmlname`.
+	This object will be an instance of :class:`ProcInsst` (not an instance of a
+	subclass). :var:`content` and :var:`attrs` will be used to initialize the
+	content of the processing instruction.
+	"""
 	procinst = ProcInst(*content)
 	procinst.xmlname = xmlname
 	return procinst
