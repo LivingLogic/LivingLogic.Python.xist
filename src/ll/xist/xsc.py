@@ -23,13 +23,6 @@ import cssutils
 
 from ll import misc, url as url_, xml_codec
 
-try:
-	import astyle
-except ImportError:
-	astyle = None
-
-__docformat__ = "reStructuredText"
-
 
 xml_xmlns = "http://www.w3.org/XML/1998/namespace"
 
