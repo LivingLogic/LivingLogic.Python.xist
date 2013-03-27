@@ -9,12 +9,8 @@
 ## See ll/xist/__init__.py for the license
 
 
-from ll.xist import xsc, parse
+from ll.xist import xsc
 from ll.xist.ns import html, abbr, ul4
-
-
-def parsexml(s):
-	return parse.tree(s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool()))
 
 
 def test_frageq():
@@ -36,7 +32,7 @@ def test_elementeq():
 	assert html.div(1, html.div(2, html.div(3))) == html.div(1, html.div(2, html.div(3)))
 
 	# Test plain element instances
-	plainelement = parsexml(b"<div xmlns='http://www.w3.org/1999/xhtml'/>")[0]
+	plainelement = xsc.element(html, "div")
 	assert plainelement.__class__ is xsc.Element
 	assert plainelement.xmlns == html.div.xmlns
 	assert plainelement.xmlname == html.div.xmlname
@@ -72,7 +68,7 @@ def test_entityeq():
 	assert abbr.sgml() != abbr.html()
 
 	# Test plain entity instances
-	plainentity = parsexml(b"<div xmlns='http://www.w3.org/1999/xhtml'>&html;</div>")[0][0]
+	plainentity = xsc.entity("html")
 	assert plainentity.__class__ is xsc.Entity
 	assert abbr.html() == plainentity
 
@@ -84,7 +80,7 @@ def test_procinsteq():
 	assert ul4.code("x") != ul4.return_("x")
 
 	# Test plain processing instruction instances
-	plainprocinst = parsexml(b"<div xmlns='http://www.w3.org/1999/xhtml'><?code x = 1?></div>")[0][0]
+	plainprocinst = xsc.procinst("code")
 	assert plainprocinst.__class__ is xsc.ProcInst
 	assert ul4.code("x = 1") == plainprocinst
 
