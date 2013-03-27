@@ -3663,6 +3663,9 @@ class Entity(Node, metaclass=_Entity_Meta):
 		if self.__class__ is Entity:
 			yield UndeclaredNodeWarning(self)
 
+	def convert(self, converter):
+		return self
+
 	def compacted(self):
 		return self
 
