@@ -96,7 +96,7 @@ Changes in ?.?? (released ??/??/2013)
 
 *	:class:`URL` objects are pickable now.
 
-*	When whitespace is remove in the literal text of UL4 templates (via the
+*	When whitespace is removed in the literal text of UL4 templates (via the
 	``keepws`` parameter), any initial spaces (before the first line feed) are
 	now no longer removed.
 
