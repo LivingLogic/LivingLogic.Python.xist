@@ -9,8 +9,8 @@
 
 
 """
-This module contains all the central XML tree classes, the namespace classes,
-exception and warning classes and a few helper classes and functions.
+This module contains all the central XML tree classes, exception and warning
+classes and a few helper classes and functions.
 """
 
 
