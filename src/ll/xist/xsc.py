@@ -216,9 +216,9 @@ class UndeclaredAttrWarning(Warning):
 		return "Attribute {} is undeclared in {!r}".format(nsclark(self.attr), self.attrs)
 
 
-class UndeclaredObjectWarning(Warning):
+class UndeclaredNodeWarning(Warning):
 	"""
-	Warning that is issued when an object (i.e. element, entity or processing
+	Warning that is issued when a node (i.e. element, entity or processing
 	instruction) is not declared.
 	"""
 
@@ -2169,6 +2169,10 @@ class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
 			return self.xmlname == other.xmlname and self._content == other._content
 		return NotImplemented
 
+	def validate(self, recursive=True, path=None):
+		if self.__class__ is ProcInst:
+			yield UndeclaredNodeWarning(self)
+
 	def convert(self, converter):
 		return self
 
@@ -3231,6 +3235,8 @@ class Element(Node, metaclass=_Element_Meta):
 	def validate(self, recursive=True, path=None):
 		if path is None:
 			path = [self]
+		if self.__class__ is Element:
+			yield UndeclaredNodeWarning(self)
 		if self.model is not None:
 			yield from self.model.validate(path)
 		yield from self.attrs.validate(recursive, path)
@@ -3646,6 +3652,10 @@ class Entity(Node, metaclass=_Entity_Meta):
 		if isinstance(other, Entity):
 			return self.xmlname == other.xmlname
 		return NotImplemented
+
+	def validate(self, recursive=True, path=None):
+		if self.__class__ is Entity:
+			yield UndeclaredNodeWarning(self)
 
 	def compacted(self):
 		return self

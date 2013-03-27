@@ -1487,23 +1487,14 @@ def tree(*pipeline, validate=True):
 			path.append(node)
 		elif evtype == "leaveelementnode":
 			if validate:
-				if node.__class__ is xsc.Element:
-					warnings.warn(xsc.UndeclaredObjectWarning(node))
 				for warning in node.validate(False, path):
 					warnings.warn(warning)
 			path.pop()
-		elif evtype == "entitynode":
-			if validate:
-				if node.__class__ is xsc.Entity:
-					warnings.warn(xsc.UndeclaredObjectWarning(node))
-			path[-1].append(node)
-		elif evtype == "procinstnode":
-			if validate:
-				if node.__class__ is xsc.ProcInst:
-					warnings.warn(xsc.UndeclaredObjectWarning(node))
-			path[-1].append(node)
 		else:
 			path[-1].append(node)
+			if validate:
+				for warning in node.validate(False, path):
+					warnings.warn(warning)
 	return path[0]
 
 
@@ -1564,8 +1555,6 @@ def itertree(*pipeline, entercontent=True, enterattrs=False, enterattr=False, en
 				skipcontent = cursor.node
 		elif evtype == "leaveelementnode":
 			if validate:
-				if node.__class__ is xsc.Element:
-					warnings.warn(xsc.UndeclaredObjectWarning(node))
 				for warning in node.validate(False, cursor.path):
 					warnings.warn(warning)
 			cursor.index.pop()
@@ -1578,12 +1567,12 @@ def itertree(*pipeline, entercontent=True, enterattrs=False, enterattr=False, en
 			cursor.node = cursor.path[-1]
 			cursor.index[-1] += 1
 		else:
-			if validate and evtype in ("entitynode", "procinstnode"):
-				if node.__class__ in (xsc.Entity, xsc.ProcInst):
-					warnings.warn(xsc.UndeclaredObjectWarning(node))
 			cursor.path[-1].append(node)
 			cursor.path.append(node)
 			cursor.node = node
+			if validate:
+				for warning in node.validate(False, cursor.path):
+					warnings.warn(warning)
 			if cursor.path in selector and skipcontent is None:
 				yield cursor
 				cursor.restore()
