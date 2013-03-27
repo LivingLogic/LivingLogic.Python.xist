@@ -53,7 +53,7 @@ __docformat__ = "reStructuredText"
 
 
 def makexnd(stream, encoding=None, shareattrs="dupes", model="simple"):
-	# :var:`stream` can be a stream, an :class:`URL` or ``str``/``bytes``
+	# :obj:`stream` can be a stream, an :class:`URL` or ``str``/``bytes``
 	encoding = None
 	if isinstance(stream, str):
 		encoding = "utf-8"

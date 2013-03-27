@@ -169,8 +169,8 @@ class LOBStream(object):
 
 	def read(self, size=None):
 		"""
-		Read :var:`size` bytes/characters from to stream and return them.
-		If :var:`size` is :const:`None`, all remaining data will be read.
+		Read :obj:`size` bytes/characters from to stream and return them.
+		If :obj:`size` is :const:`None`, all remaining data will be read.
 		"""
 		if size is None:
 			return self.readall()
@@ -191,7 +191,7 @@ class LOBStream(object):
 
 	def seek(self, offset, whence=0):
 		"""
-		Seek to the position :var:`offset` in the LOB. The :var:`whence` argument
+		Seek to the position :obj:`offset` in the LOB. The :obj:`whence` argument
 		is optional and defaults to ``0`` (absolute file positioning);
 		The other allowed value is ``1`` (seek relative to the current position).
 		"""
@@ -269,8 +269,8 @@ class Record(tuple):
 
 	def get(self, name, default=None):
 		"""
-		Return the value for the field named :var:`name`. If this field doesn't
-		exist in :var:`self`, return :var:`default` instead.
+		Return the value for the field named :obj:`name`. If this field doesn't
+		exist in :obj:`self`, return :obj:`default` instead.
 		"""
 		try:
 			index = self._name2index[name.lower()]
@@ -335,16 +335,16 @@ class Connection(Connection):
 		Create a new connection. In addition to the parameters supported by
 		:func:`cx_Oracle.connect` the following keyword argument is supported.
 
-		:var:`readlobs` : bool or integer
-			If :var:`readlobs` is :const:`False` all cursor fetches return
+		:obj:`readlobs` : bool or integer
+			If :obj:`readlobs` is :const:`False` all cursor fetches return
 			:class:`CLOBStream` or :class:`BLOBStream` objects for LOB object.
-			If :var:`readlobs` is an :class:`int` LOBs with a maximum size of
-			:var:`readlobs` will be returned as :class:`bytes`/:class:`str` objects.
-			If :var:`readlobs` is :const:`True` all LOB values will be
+			If :obj:`readlobs` is an :class:`int` LOBs with a maximum size of
+			:obj:`readlobs` will be returned as :class:`bytes`/:class:`str` objects.
+			If :obj:`readlobs` is :const:`True` all LOB values will be
 			returned as :class:`bytes`/:class:`str` objects.
 
 		Furthermore the ``clientinfo`` will be automatically set to the name
-		of the currently running script (except if the :var:`clientinfo` keyword
+		of the currently running script (except if the :obj:`clientinfo` keyword
 		argument is given and :const:`None`).
 		"""
 		if "readlobs" in kwargs:
@@ -369,7 +369,7 @@ class Connection(Connection):
 	def cursor(self, readlobs=None):
 		"""
 		Return a new cursor for this connection. For the meaning of
-		:var:`readlobs` see :meth:`__init__`.
+		:obj:`readlobs` see :meth:`__init__`.
 		"""
 		return Cursor(self, readlobs=readlobs)
 
@@ -379,7 +379,7 @@ class Connection(Connection):
 	def itertables(self, owner=ALL, mode="flat"):
 		"""
 		Generator that yields all table definitions in the current users schema
-		(or all users schemas). :var:`mode` specifies the order in which tables
+		(or all users schemas). :obj:`mode` specifies the order in which tables
 		will be yielded:
 
 		``"create"``
@@ -393,7 +393,7 @@ class Connection(Connection):
 		``"flat"``
 			Unordered.
 
- 		:var:`schema` specifies from which user tables should be yielded:
+ 		:obj:`schema` specifies from which user tables should be yielded:
 
 		``"user"``
 			Only tables belonging to the current user (and those objects these
@@ -439,21 +439,21 @@ class Connection(Connection):
 
 	def itersequences(self, owner=ALL):
 		"""
-		Generator that yields sequences. :var:`owner` can be :const:`None`,
+		Generator that yields sequences. :obj:`owner` can be :const:`None`,
 		:const:`ALL` (the default) or a user name.
 		"""
 		return Sequence.iterobjects(self, owner)
 
 	def iterfks(self, owner=ALL):
 		"""
-		Generator that yields all foreign key constraints. :var:`owner` can be
+		Generator that yields all foreign key constraints. :obj:`owner` can be
 		:const:`None`, :const:`ALL` (the default) or a user name.
 		"""
 		return ForeignKey.iterobjects(self, owner)
 
 	def iterprivileges(self, owner=ALL):
 		"""
-		Generator that yields object privileges. :var:`owner` can be :const:`None`,
+		Generator that yields object privileges. :obj:`owner` can be :const:`None`,
 		:const:`ALL` (the default) or a user name.
 		"""
 		return Privilege.iterobjects(self, owner)
@@ -471,7 +471,7 @@ class Connection(Connection):
 		packages and types in the current users schema (or all users schemas)
 		in a specified order.
 
-		:var:`mode` specifies the order in which objects will be yielded:
+		:obj:`mode` specifies the order in which objects will be yielded:
 
 		``"create"``
 			Create order, i.e. recreating the objects in this order will not lead
@@ -484,7 +484,7 @@ class Connection(Connection):
 		``"flat"``
 			Unordered.
 
-		:var:`schema` specifies from which schema objects should be yielded:
+		:obj:`schema` specifies from which schema objects should be yielded:
 
 		``"user"``
 			Only objects belonging to the current user (and those objects these
@@ -564,9 +564,9 @@ class Connection(Connection):
 
 	def getobject(self, name, owner=None):
 		"""
-		Return the object named :var:`name` from the schema. If :var:`owner` is
+		Return the object named :obj:`name` from the schema. If :obj:`owner` is
 		:const:`None` the current schema is queried, else the specified one is
-		used. :var:`name` and :var:`owner` are treated case insensitively.
+		used. :obj:`name` and :obj:`owner` are treated case insensitively.
 		"""
 		if isinstance(name, str):
 			name = str(name)
@@ -634,8 +634,8 @@ class Cursor(Cursor):
 	"""
 	def __init__(self, connection, readlobs=None):
 		"""
-		Return a new cursor for the connection :var:`connection`. For the meaning
-		of :var:`readlobs` see :meth:`Connection.__init__`.
+		Return a new cursor for the connection :obj:`connection`. For the meaning
+		of :obj:`readlobs` see :meth:`Connection.__init__`.
 		"""
 		super().__init__(connection)
 		self.readlobs = (readlobs if readlobs is not None else connection.readlobs)
@@ -888,15 +888,15 @@ class Object(object, metaclass=_Object_meta):
 	@misc.notimplemented
 	def fixname(cls, code):
 		"""
-		Replace the name of the object in the SQL code :var:`code` with
-		the name of :var:`self`.
+		Replace the name of the object in the SQL code :obj:`code` with
+		the name of :obj:`self`.
 		"""
 
 	@misc.notimplemented
 	def cdate(self, connection=None):
 		"""
 		Return a :class:`datetime.datetime` object with the creation date of
-		:var:`self` in the database specified by :var:`connection` (or
+		:obj:`self` in the database specified by :obj:`connection` (or
 		:const:`None` if such information is not available).
 		"""
 
@@ -904,17 +904,17 @@ class Object(object, metaclass=_Object_meta):
 	def udate(self, connection=None):
 		"""
 		Return a :class:`datetime.datetime` object with the last modification
-		date of :var:`self` in the database specified by :var:`connection`
+		date of :obj:`self` in the database specified by :obj:`connection`
 		(or :const:`None` if such information is not available).
 		"""
 
 	def iterreferences(self, connection=None):
 		"""
-		Objects directly used by :var:`self`.
+		Objects directly used by :obj:`self`.
 
-		If :var:`connection` is not :const:`None` it will be used as the database
-		connection from which to fetch data. If :var:`connection` is :const:`None`
-		the connection from which :var:`self` has been extracted will be used. If
+		If :obj:`connection` is not :const:`None` it will be used as the database
+		connection from which to fetch data. If :obj:`connection` is :const:`None`
+		the connection from which :obj:`self` has been extracted will be used. If
 		there is not such connection, you'll get an exception.
 		"""
 		(connection, cursor) = self.getcursor(connection)
@@ -929,11 +929,11 @@ class Object(object, metaclass=_Object_meta):
 
 	def iterreferencesall(self, connection=None, done=None):
 		"""
-		All objects used by :var:`self` (recursively).
+		All objects used by :obj:`self` (recursively).
 
-		For the meaning of :var:`connection` see :meth:`iterreferences`.
+		For the meaning of :obj:`connection` see :meth:`iterreferences`.
 
-		:var:`done` is used internally and shouldn't be passed.
+		:obj:`done` is used internally and shouldn't be passed.
 		"""
 		if done is None:
 			done = set()
@@ -945,9 +945,9 @@ class Object(object, metaclass=_Object_meta):
 
 	def iterreferencedby(self, connection=None):
 		"""
-		Objects using :var:`self`.
+		Objects using :obj:`self`.
 
-		For the meaning of :var:`connection` see :meth:`iterreferences`.
+		For the meaning of :obj:`connection` see :meth:`iterreferences`.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select type, decode(owner, user, null, owner) as owner, name from {}_dependencies where referenced_type=upper(:type) and referenced_name=:name and referenced_owner=nvl(:owner, user) and type != 'NON-EXISTENT'".format(cursor.ddprefix()), type=self.type, name=self.name, owner=self.owner)
@@ -961,11 +961,11 @@ class Object(object, metaclass=_Object_meta):
 
 	def iterreferencedbyall(self, connection=None, done=None):
 		"""
-		All objects depending on :var:`self` (recursively).
+		All objects depending on :obj:`self` (recursively).
 
-		For the meaning of :var:`connection` see :meth:`iterreferences`.
+		For the meaning of :obj:`connection` see :meth:`iterreferences`.
 
-		:var:`done` is used internally and shouldn't be passed.
+		:obj:`done` is used internally and shouldn't be passed.
 		"""
 		if done is None:
 			done = set()
@@ -996,7 +996,7 @@ class Object(object, metaclass=_Object_meta):
 	def iternames(cls, connection, owner=ALL):
 		"""
 		Generator that yields the names of all objects of this type. The argument
-		:var:`owner` specifies whose objects are yielded:
+		:obj:`owner` specifies whose objects are yielded:
 		
 			:const:`None`
 				All objects belonging to the current user (i.e. via the view
@@ -1022,7 +1022,7 @@ class Object(object, metaclass=_Object_meta):
 	def iterobjects(cls, connection, owner=ALL):
 		"""
 		Generator that yields all objects of this type in the current users schema.
-		The argument :var:`owner` specifies whose objects are yielded:
+		The argument :obj:`owner` specifies whose objects are yielded:
 		
 			:const:`None`
 				All objects belonging to the current user (i.e. via the view
@@ -1230,7 +1230,7 @@ class Table(MixinNormalDates, Object):
 
 	def itercolumns(self, connection=None):
 		"""
-		Generator that yields all column objects of the :class:`Table` :var:`self`.
+		Generator that yields all column objects of the :class:`Table` :obj:`self`.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select column_name from {}_tab_columns where owner=nvl(:owner, user) and table_name=:name order by column_id".format(cursor.ddprefix()), owner=self.owner, name=self.name)
@@ -1238,7 +1238,7 @@ class Table(MixinNormalDates, Object):
 
 	def iterrecords(self, connection=None):
 		"""
-		Generator that yields all records of the table :var:`self`.
+		Generator that yields all records of the table :obj:`self`.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		query = "select * from {}".format(self.getfullname())
@@ -1247,7 +1247,7 @@ class Table(MixinNormalDates, Object):
 
 	def itercomments(self, connection=None):
 		"""
-		Generator that yields all column comments of the table :var:`self`.
+		Generator that yields all column comments of the table :obj:`self`.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select column_name from {}_tab_columns where owner=nvl(:owner, user) and table_name=:name order by column_id".format(cursor.ddprefix()), owner=self.owner, name=self.name)
@@ -1392,7 +1392,7 @@ class PrimaryKey(Constraint):
 
 	def table(self, connection=None):
 		"""
-		Return the :class:`Table` :var:`self` belongs to.
+		Return the :class:`Table` :obj:`self` belongs to.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {}_constraints where constraint_type='P' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
@@ -1512,7 +1512,7 @@ class ForeignKey(Constraint):
 
 	def table(self, connection=None):
 		"""
-		Return the :class:`Table` :var:`self` belongs to.
+		Return the :class:`Table` :obj:`self` belongs to.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select table_name from {}_constraints where constraint_type='R' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
@@ -1521,7 +1521,7 @@ class ForeignKey(Constraint):
 
 	def pk(self, connection=None):
 		"""
-		Return the primary key referenced by :var:`self`.
+		Return the primary key referenced by :obj:`self`.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select decode(r_owner, user, null, r_owner) as r_owner, r_constraint_name from {}_constraints where constraint_type='R' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
@@ -1658,7 +1658,7 @@ class Index(MixinNormalDates, Object):
 
 	def table(self, connection=None):
 		"""
-		Return the :class:`Table` :var:`self` belongs to.
+		Return the :class:`Table` :obj:`self` belongs to.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select table_name, decode(table_owner, user, null, table_owner) as table_owner from {}_indexes where owner=nvl(:owner, user) and index_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
@@ -1721,7 +1721,7 @@ class UniqueConstraint(Constraint):
 
 	def table(self, connection=None):
 		"""
-		Return the :class:`Table` :var:`self` belongs to.
+		Return the :class:`Table` :obj:`self` belongs to.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select table_name from {}_constraints where constraint_type='U' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
@@ -1796,7 +1796,7 @@ class Synonym(Object):
 
 	def getobject(self, connection=None):
 		"""
-		Get the object for which :var:`self` is a synonym.
+		Get the object for which :obj:`self` is a synonym.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select table_owner, table_name, db_link from {}_synonyms where owner=nvl(:owner, user) and synonym_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
@@ -2052,7 +2052,7 @@ class Callable(MixinNormalDates, MixinCodeDDL, Object):
 
 	def iterarguments(self, connection=None):
 		"""
-		Generator that yields all arguments of the function/procedure :var:`self`.
+		Generator that yields all arguments of the function/procedure :obj:`self`.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		self._calcargs(cursor)
@@ -2069,8 +2069,8 @@ class Procedure(Callable):
 
 	def __call__(self, cursor, *args, **kwargs):
 		"""
-		Call the procedure with arguments :var:`args` and keyword arguments
-		:var:`kwargs`. :var:`cursor` must be a :mod:`ll.orasql` cursor. This will
+		Call the procedure with arguments :obj:`args` and keyword arguments
+		:obj:`kwargs`. :obj:`cursor` must be a :mod:`ll.orasql` cursor. This will
 		return a :class:`Record` object containing the result of the call (i.e.
 		this record will contain all specified and all out parameters).
 		"""
@@ -2099,8 +2099,8 @@ class Function(Callable):
 
 	def __call__(self, cursor, *args, **kwargs):
 		"""
-		Call the function with arguments :var:`args` and keyword arguments
-		:var:`kwargs`. :var:`cursor` must be an :mod:`ll.orasql` cursor.
+		Call the function with arguments :obj:`args` and keyword arguments
+		:obj:`kwargs`. :obj:`cursor` must be an :mod:`ll.orasql` cursor.
 		This will return a tuple containing the result and a :class:`Record`
 		object containing the modified parameters (i.e. this record will contain
 		all specified and out parameters).
@@ -2255,7 +2255,7 @@ class Privilege(object):
 	@classmethod
 	def iterobjects(cls, connection, owner=ALL):
 		"""
-		Generator that yields object privileges. For the meaning of :var:`owner`
+		Generator that yields object privileges. For the meaning of :obj:`owner`
 		see :meth:`Object.iternames`.
 		"""
 		cursor = connection.cursor() # can't use :meth:`getcursor` as we're in a classmethod
@@ -2275,11 +2275,11 @@ class Privilege(object):
 
 	def grantddl(self, connection=None, term=True, mapgrantee=True):
 		"""
-		Return SQL code to grant this privilege. If :var:`mapgrantee` is a list
+		Return SQL code to grant this privilege. If :obj:`mapgrantee` is a list
 		or a dictionary and ``self.grantee`` is not in this list (or dictionary)
 		no command will be returned. If it's a dictionary and ``self.grantee`` is
 		in it, the privilege will be granted to the user specified as the value
-		instead of the original one. If :var:`mapgrantee` is true (the default)
+		instead of the original one. If :obj:`mapgrantee` is true (the default)
 		the privilege will be granted to the original grantee.
 		"""
 		(connection, cursor) = self.getcursor(connection)

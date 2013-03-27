@@ -243,7 +243,7 @@ class Job(object):
 	def parseargs(self, args=None):
 		"""
 		Use the parser returned by :meth:`argparser` to parse the argument
-		sequence :var:`args`, modify :var:`self` accordingly and return
+		sequence :obj:`args`, modify :obj:`self` accordingly and return
 		the result of the parsers :meth:`parse_args` call.
 		"""
 		p = self.argparser()
@@ -370,7 +370,7 @@ class Job(object):
 	def strtimedelta(self, delta):
 		"""
 		Return a nicely formatted string for the :class:`datetime.timedelta`
-		value :var:`delta`. :var:`delta` may also be :const:`None` in with case
+		value :obj:`delta`. :obj:`delta` may also be :const:`None` in with case
 		``"0"`` will be returned.
 		"""
 		if delta is None:
@@ -421,7 +421,7 @@ class Job(object):
 	def prefix(self, prefix):
 		"""
 		:meth:`prefix` is a context manager. For the duration of the ``with`` block
-		:var:`prefix` will be prepended to all log lines. :meth:`prefix` calls can
+		:obj:`prefix` will be prepended to all log lines. :meth:`prefix` calls can
 		be nested.
 		"""
 		oldprefix = self._prefix
@@ -433,7 +433,7 @@ class Job(object):
 
 	def _log(self, tags, *texts):
 		"""
-		Log items in :var:`texts` to the log file using :var:`tags` as the list
+		Log items in :obj:`texts` to the log file using :obj:`tags` as the list
 		of tags.
 		"""
 		if self.log2file or self.log2stdout or self.log2stderr:
@@ -588,16 +588,16 @@ class AttrDict(dict):
 
 def execute(job):
 	"""
-	Execute the job :var:`job` once.
+	Execute the job :obj:`job` once.
 	"""
 	job._handleexecution()
 
 
 def executewithargs(job, args=None):
 	"""
-	Execute the job :var:`job` once with command line arguments.
+	Execute the job :obj:`job` once with command line arguments.
 
-	:var:`args` are the command line arguments (:const:`None` results in
+	:obj:`args` are the command line arguments (:const:`None` results in
 	``sys.argv`` being used)
 	"""
 	job.parseargs(args)

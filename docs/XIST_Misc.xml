@@ -31,7 +31,7 @@ call, this &url; will stay the same when publishing.</li>
 reverted for publishing. In most cases the base &url; should be a
 <lit>root</lit> &url; when you parse local files.</li>
 <li>When you parse remote web pages you can either
-omit the <var>base</var> argument, so it will default to the
+omit the <obj>base</obj> argument, so it will default to the
 &url; being parsing, so that links, images, etc. on the page
 will still point back to their original location, or you
 might want to use the empty &url; <lit>URL()</lit> as the
@@ -131,7 +131,7 @@ executed when the processing instruction node is converted.</p>
 for a <pyref module="ll.xist.ns.code" class="pyeval"><lit>pyeval</lit></pyref> processing instruction is whatever the
 Python code in the content returns. The processing instruction content is treated as the body
 of a function, so you can put multiple return statements there.
-The converter is available as the parameter <var>converter</var> inside
+The converter is available as the parameter <obj>converter</obj> inside
 the processing instruction. For example, consider the following &xml; file:</p>
 
 <prog>

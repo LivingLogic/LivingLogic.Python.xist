@@ -145,7 +145,7 @@ The following type of events are produced by parsers (in addition to the
 
 The following events are produced for elements and attributes in namespace mode
 (instead of those without the ``ns`` suffix). They are produced by :class:`NS`
-objects or by :class:`Expat` objects when :var:`ns` is true (i.e. the expat
+objects or by :class:`Expat` objects when :obj:`ns` is true (i.e. the expat
 parser does the namespace resolution):
 
 	``"enterstarttagns"``
@@ -291,8 +291,8 @@ class String(object):
 	"""
 	def __init__(self, data, url=None):
 		"""
-		Create a :class:`String` object. :var:`data` must be a byte or
-		unicode string. :var:`url` specifies the URL for the source (defaulting
+		Create a :class:`String` object. :obj:`data` must be a byte or
+		unicode string. :obj:`url` specifies the URL for the source (defaulting
 		to ``"STRING"``).
 		"""
 		self.url = url_.URL(url if url is not None else "STRING")
@@ -319,8 +319,8 @@ class Iter(object):
 
 	def __init__(self, iterable, url=None):
 		"""
-		Create a :class:`Iter` object. :var:`iterable` must be an iterable object
-		producing byte or unicode strings. :var:`url` specifies the URL for the
+		Create a :class:`Iter` object. :obj:`iterable` must be an iterable object
+		producing byte or unicode strings. :obj:`url` specifies the URL for the
 		source (defaulting to ``"ITER"``).
 		"""
 		self.url = url_.URL(url if url is not None else "ITER")
@@ -351,9 +351,9 @@ class Stream(object):
 
 	def __init__(self, stream, url=None, bufsize=8192):
 		"""
-		Create a :class:`Stream` object. :var:`stream` must have a :meth:`read`
-		method (with a ``size`` argument). :var:`url` specifies the URL for the
-		source (defaulting to ``"STREAM"``). :var:`bufsize` specifies the
+		Create a :class:`Stream` object. :obj:`stream` must have a :meth:`read`
+		method (with a ``size`` argument). :obj:`url` specifies the URL for the
+		source (defaulting to ``"STREAM"``). :obj:`bufsize` specifies the
 		chunksize for reads from the stream.
 		"""
 		self.url = url_.URL(url if url is not None else "STREAM")
@@ -386,9 +386,9 @@ class File(object):
 
 	def __init__(self, filename, bufsize=8192):
 		"""
-		Create a :class:`File` object. :var:`filename` is the name of the file
+		Create a :class:`File` object. :obj:`filename` is the name of the file
 		and may start with ``~`` or ``~user`` for the home directory of the
-		current or the specified user. :var:`bufsize` specifies the chunksize
+		current or the specified user. :obj:`bufsize` specifies the chunksize
 		for reads from the file.
 		"""
 		self.url = url_.File(filename)
@@ -417,9 +417,9 @@ class URL(object):
 
 	def __init__(self, name, bufsize=8192, *args, **kwargs):
 		"""
-		Create a :class:`URL` object. :var:`name` is the URL. :var:`bufsize`
-		specifies the chunksize for reads from the URL. :var:`args` and
-		:var:`kwargs` will be passed on to the :meth:`open` method of the URL
+		Create a :class:`URL` object. :obj:`name` is the URL. :obj:`bufsize`
+		specifies the chunksize for reads from the URL. :obj:`args` and
+		:obj:`kwargs` will be passed on to the :meth:`open` method of the URL
 		object.
 
 		The URL for the input will be the final URL for the resource (i.e. it will
@@ -458,13 +458,13 @@ class ETree(object):
 		"""
 		Create an :class:`ETree` object. Arguments have the following meaning:
 
-		:var:`data`
+		:obj:`data`
 			An object that supports the ElementTree API.
 
-		:var:`url`
+		:obj:`url`
 			The URL of the source. Defaults to ``"ETREE"``.
 
-		:var:`defaultxmlns`
+		:obj:`defaultxmlns`
 			The namespace name (or a namespace module containing a namespace name)
 			that will be used for all elements that don't have a namespace.
 		"""
@@ -505,7 +505,7 @@ class ETree(object):
 	def __iter__(self):
 		"""
 		Produces an event stream of namespaced parsing events for the ElementTree
-		object passed as :var:`data` to the constructor.
+		object passed as :obj:`data` to the constructor.
 		"""
 		yield ("url", self.url)
 		yield from self._asxist(self.data)
@@ -526,8 +526,8 @@ class Decoder(object):
 
 	def __init__(self, encoding=None):
 		"""
-		Create a :class:`Decoder` object. :var:`encoding` is the encoding of the
-		input. If :var:`encoding` is :const:`None` it will be automatically
+		Create a :class:`Decoder` object. :obj:`encoding` is the encoding of the
+		input. If :obj:`encoding` is :const:`None` it will be automatically
 		detected from the XML data.
 		"""
 		self.encoding = encoding
@@ -565,8 +565,8 @@ class Encoder(object):
 
 	def __init__(self, encoding=None):
 		"""
-		Create an :class:`Encoder` object. :var:`encoding` will be the encoding of
-		the output. If :var:`encoding` is :const:`None` it will be automatically
+		Create an :class:`Encoder` object. :obj:`encoding` will be the encoding of
+		the output. If :obj:`encoding` is :const:`None` it will be automatically
 		detected from the XML declaration in the data.
 		"""
 		self.encoding = encoding
@@ -603,8 +603,8 @@ class Transcoder(object):
 
 	def __init__(self, fromencoding=None, toencoding=None):
 		"""
-		Create a :class:`Transcoder` object. :var:`fromencoding` is the encoding
-		of the input. :var:`toencoding` is the encoding of the output. If any of
+		Create a :class:`Transcoder` object. :obj:`fromencoding` is the encoding
+		of the input. :obj:`toencoding` is the encoding of the output. If any of
 		them is :const:`None` the encoding will be detected from the data.
 		"""
 		self.fromencoding = fromencoding
@@ -669,25 +669,25 @@ class Expat(Parser):
 		"""
 		Create an :class:`Expat` parser. Arguments have the following meaning:
 
-		:var:`encoding` : string or :const:`None`
+		:obj:`encoding` : string or :const:`None`
 			Forces the parser to use the specified encoding. The default
 			:const:`None` results in the encoding being detected from the XML itself.
 
-		:var:`xmldecl` : bool
+		:obj:`xmldecl` : bool
 			Should the parser produce events for the XML declaration?
 
-		:var:`doctype` : bool
+		:obj:`doctype` : bool
 			Should the parser produce events for the document type?
 
-		:var:`loc` : bool
+		:obj:`loc` : bool
 			Should the parser produce ``"location"`` events?
 
-		:var:`cdata` : bool
+		:obj:`cdata` : bool
 			Should the parser output CDATA sections as ``"cdata"`` events? (If
-			:var:`cdata` is false output ``"text"`` events instead.)
+			:obj:`cdata` is false output ``"text"`` events instead.)
 
-		:var:`ns` : bool
-			If :var:`ns` is true, the parser does its own namespace processing,
+		:obj:`ns` : bool
+			If :obj:`ns` is true, the parser does its own namespace processing,
 			i.e. it will emit ``"enterstarttagns"``, ``"leavestarttagns"``,
 			``"endtagns"``, ``"enterattrns"`` and ``"leaveattrns"`` events instead
 			of ``"enterstarttag"``, ``"leavestarttag"``, ``"endtag"``,
@@ -718,7 +718,7 @@ class Expat(Parser):
 
 	def __call__(self, input):
 		"""
-		Return an iterator over the events produced by :var:`input`.
+		Return an iterator over the events produced by :obj:`input`.
 		"""
 		self._parser = expat.ParserCreate(self.encoding, "\x01" if self.ns else None)
 		self._parser.buffer_text = True
@@ -867,13 +867,13 @@ class SGMLOP(Parser):
 		"""
 		Create a :class:`SGMLOP` parser. Arguments have the following meaning:
 
-		:var:`encoding` : string or :const:`None`
+		:obj:`encoding` : string or :const:`None`
 			Forces the parser to use the specified encoding. The default
 			:const:`None` results in the encoding being detected from the XML itself.
 
-		:var:`cdata` : bool
+		:obj:`cdata` : bool
 			Should the parser output CDATA sections as ``"cdata"`` events? (If
-			:var:`cdata` is false output ``"text"`` events instead.)
+			:obj:`cdata` is false output ``"text"`` events instead.)
 		"""
 		self.encoding = encoding
 		self.cdata = cdata
@@ -883,7 +883,7 @@ class SGMLOP(Parser):
 
 	def __call__(self, input):
 		"""
-		Return an iterator over the events produced by :var:`input`.
+		Return an iterator over the events produced by :obj:`input`.
 		"""
 		self._decoder = codecs.getincrementaldecoder("xml")(encoding=self.encoding)
 		self._parser = sgmlop.XMLParser()
@@ -998,11 +998,11 @@ class NS(object):
 
 	def __init__(self, prefixes=None, **kwargs):
 		"""
-		Create an :class:`NS` object. :var:`prefixes` (if not :const:`None`) can
+		Create an :class:`NS` object. :obj:`prefixes` (if not :const:`None`) can
 		be a namespace name (or module), which will be used for the empty prefix,
 		or a dictionary that maps prefixes to namespace names (or modules).
-		:var:`kwargs` maps prefixes to namespaces names too. If a prefix is in both
-		:var:`prefixes` and :var:`kwargs`, :var:`kwargs` wins.
+		:obj:`kwargs` maps prefixes to namespaces names too. If a prefix is in both
+		:obj:`prefixes` and :obj:`kwargs`, :obj:`kwargs` wins.
 		"""
 		# the currently active prefix mapping (will be replaced once xmlns attributes are encountered)
 		newprefixes = {}
@@ -1365,8 +1365,8 @@ class Tidy(object):
 		"""
 		Create a new :class:`Tidy` object. Parameters have the following meaning:
 
-		:var:`encoding` : string or :const:`None`
-			The encoding of the input. If :var:`encoding` is :const:`None` it will
+		:obj:`encoding` : string or :const:`None`
+			The encoding of the input. If :obj:`encoding` is :const:`None` it will
 			be automatically detected by the HTML parser.
 		"""
 		self.encoding = encoding
@@ -1433,7 +1433,7 @@ class Tidy(object):
 def events(*pipeline):
 	"""
 	Return an iterator over the events produced by the pipeline objects in
-	:var:`pipeline`.
+	:obj:`pipeline`.
 	"""
 	source = pipeline[0]
 
@@ -1454,15 +1454,15 @@ def events(*pipeline):
 
 def tree(*pipeline, validate=True):
 	"""
-	Return a tree of XIST nodes from the event stream :var:`pipeline`.
+	Return a tree of XIST nodes from the event stream :obj:`pipeline`.
 
-	:var:`pipeline` must output only events that contain XIST nodes, i.e. the
+	:obj:`pipeline` must output only events that contain XIST nodes, i.e. the
 	event types ``"xmldeclnode"``, ``"doctypenode"``, ``"commentnode"``,
 	``"textnode"``, ``"enterelementnode"``, ``"leaveelementnode"``,
 	``"procinstnode"`` and ``"entitynode"``.
 
-	If :var:`validate` is true, the tree is validated, i.e. it is checked if
-	the structure of the tree is valid (according to the :var:`model` attribute
+	If :obj:`validate` is true, the tree is validated, i.e. it is checked if
+	the structure of the tree is valid (according to the :obj:`model` attribute
 	of each element node), if all required attributes are specified and all
 	attributes have allowed values.
 
@@ -1497,12 +1497,12 @@ def tree(*pipeline, validate=True):
 
 def itertree(*pipeline, entercontent=True, enterattrs=False, enterattr=False, enterelementnode=False, leaveelementnode=True, enterattrnode=True, leaveattrnode=False, selector=None, validate=True):
 	"""
-	Parse the event stream :var:`pipeline` iteratively.
+	Parse the event stream :obj:`pipeline` iteratively.
 
 	:func:`itertree` still builds a tree, but it returns a iterator of
 	:class:`xsc.Cursor` objects that tracks changes to the tree as it is built.
 
-	:var:`validate` specifies whether each node should be validated after it has
+	:obj:`validate` specifies whether each node should be validated after it has
 	been fully parsed.
 
 	The rest of the arguments can be used to control when :func:`itertree`

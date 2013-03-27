@@ -51,7 +51,7 @@ If you've been using :class:`TOXICAction` from :mod:`ll.make`, you have to use a
 :class:`DecodeAction` before the :class:`TOXICAction` to decode the :class:`str`
 object into a :class:`unicode` object and use a :class:`EncodeAction` afterwards
 to encode it again as the constructor of :class:`TOXICAction` no longer takes an
-:var:`encoding` argument, but operates on unicode strings directly.
+:obj:`encoding` argument, but operates on unicode strings directly.
 
 
 Migrating to ll-core 1.0

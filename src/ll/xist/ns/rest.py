@@ -48,11 +48,11 @@ else:
 	roles.register_generic_role("meth", meth)
 	en.roles["meth"] = "meth"
 
-	class var(nodes.literal):
+	class obj(nodes.literal):
 		pass
 
-	roles.register_generic_role("var", var)
-	en.roles["var"] = "var"
+	roles.register_generic_role("obj", obj)
+	en.roles["obj"] = "obj"
 
 	class exc(nodes.literal):
 		pass
@@ -641,11 +641,11 @@ class meth(BaseElement):
 		return e.convert(converter)
 
 
-class var(BaseElement):
+class obj(BaseElement):
 	model = sims.NoElements()
 
 	def convert(self, converter):
-		e = doc.var(self.content)
+		e = doc.obj(self.content)
 		return e.convert(converter)
 
 

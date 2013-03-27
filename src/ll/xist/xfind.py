@@ -64,9 +64,9 @@ def filter(iter, *selectors):
 
 def selector(*objs):
 	"""
-	Create a :class:`Selector` object from :var:`objs`.
+	Create a :class:`Selector` object from :obj:`objs`.
 
-	If :var:`objs` is empty (i.e. :func:`selector` is called without arguments)
+	If :obj:`objs` is empty (i.e. :func:`selector` is called without arguments)
 	``any`` is returned (which matches every node).
 
 	If more than one argument is passed (or the argument is a tuple), an
@@ -135,47 +135,47 @@ class Selector(object):
 
 	def __truediv__(self, other):
 		"""
-		Create a :class:`ChildCombinator` with :var:`self` as the left hand
-		selector and :var:`other` as the right hand selector.
+		Create a :class:`ChildCombinator` with :obj:`self` as the left hand
+		selector and :obj:`other` as the right hand selector.
 		"""
 		return ChildCombinator(self, selector(other))
 
 	def __floordiv__(self, other):
 		"""
-		Create a :class:`DescendantCombinator` with :var:`self` as the left hand
-		selector and :var:`other` as the right hand selector.
+		Create a :class:`DescendantCombinator` with :obj:`self` as the left hand
+		selector and :obj:`other` as the right hand selector.
 		"""
 		return DescendantCombinator(self, selector(other))
 
 	def __mul__(self, other):
 		"""
-		Create an :class:`AdjacentSiblingCombinator` with :var:`self` as the left
-		hand selector and :var:`other` as the right hand selector.
+		Create an :class:`AdjacentSiblingCombinator` with :obj:`self` as the left
+		hand selector and :obj:`other` as the right hand selector.
 		"""
 		return AdjacentSiblingCombinator(self, selector(other))
 
 	def __pow__(self, other):
 		"""
-		Create a :class:`GeneralSiblingCombinator` with :var:`self` as the left
-		hand selector and :var:`other` as the right hand selector.
+		Create a :class:`GeneralSiblingCombinator` with :obj:`self` as the left
+		hand selector and :obj:`other` as the right hand selector.
 		"""
 		return GeneralSiblingCombinator(self, selector(other))
 
 	def __and__(self, other):
 		"""
-		Create an :class:`AndCombinator` from :var:`self` and :var:`other`.
+		Create an :class:`AndCombinator` from :obj:`self` and :obj:`other`.
 		"""
 		return AndCombinator(self, selector(other))
 
 	def __or__(self, other):
 		"""
-		Create an :class:`OrCombinator` from :var:`self` and :var:`other`.
+		Create an :class:`OrCombinator` from :obj:`self` and :obj:`other`.
 		"""
 		return OrCombinator(self, selector(other))
 
 	def __invert__(self):
 		"""
-		Create a :class:`NotCombinator` inverting :var:`self`.
+		Create a :class:`NotCombinator` inverting :obj:`self`.
 		"""
 		return NotCombinator(self)
 
@@ -245,7 +245,7 @@ class IsInstanceSelector(Selector):
 
 	def __getitem__(self, index):
 		"""
-		Return an :class:`nthoftype` selector that uses :var:`index` as the
+		Return an :class:`nthoftype` selector that uses :obj:`index` as the
 		index and ``self.types`` as the types.
 		"""
 		return nthoftype(index, *self.types)

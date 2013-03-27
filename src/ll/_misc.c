@@ -224,13 +224,13 @@ static PyObject *item(PyObject *self, PyObject *args)
 
 
 PyDoc_STRVAR(item_doc,
-"Returns the :var:`index`'th element from the iterable. :var:`index` may be\n\
+"Returns the :obj:`index`'th element from the iterable. :obj:`index` may be\n\
 negative to count from the end. E.g. 0 returns the first element produced by\n\
-the iterator, 1 the second, -1 the last one etc. If :var:`index` is negative\n\
+the iterator, 1 the second, -1 the last one etc. If :obj:`index` is negative\n\
 the iterator will be completely exhausted, if it's positive it will be\n\
-exhausted up to the :var:`index`'th element. If the iterator doesn't produce\n\
+exhausted up to the :obj:`index`'th element. If the iterator doesn't produce\n\
 that many elements :exc:`IndexError` will be raised, except when\n\
-:var:`default` is given, in which case :var:`default` will be returned.");
+:obj:`default` is given, in which case :obj:`default` will be returned.");
 
 
 static PyObject *first(PyObject *self, PyObject *args)
@@ -267,8 +267,8 @@ static PyObject *first(PyObject *self, PyObject *args)
 
 PyDoc_STRVAR(first_doc,
 "Return the first element from the iterable. If the iterator doesn't produce\n\
-any elements :exc:`IndexError` will be raised, except when :var:`default` is\n\
-given, in which case :var:`default` will be returned.");
+any elements :exc:`IndexError` will be raised, except when :obj:`default` is\n\
+given, in which case :obj:`default` will be returned.");
 
 
 static PyObject *last(PyObject *self, PyObject *args)
@@ -317,8 +317,8 @@ static PyObject *last(PyObject *self, PyObject *args)
 
 PyDoc_STRVAR(last_doc,
 "Return the last element from the iterable. If the iterator doesn't produce\n\
-any elements :exc:`IndexError` will be raised, except when :var:`default` is\n\
-given, in which case :var:`default` will be returned.");
+any elements :exc:`IndexError` will be raised, except when :obj:`default` is\n\
+given, in which case :obj:`default` will be returned.");
 
 
 static PyObject *count(PyObject *self, PyObject *iterable)

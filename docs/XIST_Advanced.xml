@@ -127,7 +127,7 @@ name when instantiating the tree nodes.</p>
 
 <section><h>Conversion targets</h>
 
-<p>The <var>converter</var> argument passed to the <meth>convert</meth>
+<p>The <obj>converter</obj> argument passed to the <meth>convert</meth>
 method has an attribute <lit>target</lit> which is a module or pool and
 specifies the target namespace to which <self/> should be converted.</p>
 
@@ -158,7 +158,7 @@ class bold(xsc.Element):
 </example>
 
 <p>The default target for conversion is <mod>ll.xist.ns.html</mod>.
-Other targets can be specified via the <var>target</var> argument in the
+Other targets can be specified via the <obj>target</obj> argument in the
 <class>Converter</class> constructor or the <meth>conv</meth> method:</p>
 
 <tty>

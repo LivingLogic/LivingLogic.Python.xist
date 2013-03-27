@@ -79,7 +79,7 @@ def httpdate(dt):
 	"""
 	Return a string suitable for a "Last-Modified" and "Expires" header.
 
-	:var:`dt` is a :class:`datetime.datetime` object in UTC.
+	:obj:`dt` is a :class:`datetime.datetime` object in UTC.
 	"""
 	return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(dt, weekdayname[dt.weekday()], monthname[dt.month])
 
@@ -202,62 +202,62 @@ class Connection(object):
 	@misc.notimplemented
 	def stat(self, url):
 		"""
-		Return the result of a :func:`stat` call on the file :var:`url`.
+		Return the result of a :func:`stat` call on the file :obj:`url`.
 		"""
 
 	@misc.notimplemented
 	def lstat(self, url):
 		"""
-		Return the result of a :func:`stat` call on the file :var:`url`. Like
+		Return the result of a :func:`stat` call on the file :obj:`url`. Like
 		:meth:`stat`, but does not follow symbolic links.
 		"""
 
 	@misc.notimplemented
 	def chmod(self, url, mode):
 		"""
-		Set the access mode of the file :var:`url` to :var:`mode`.
+		Set the access mode of the file :obj:`url` to :obj:`mode`.
 		"""
 
 	@misc.notimplemented
 	def chown(self, url, owner=None, group=None):
 		"""
-		Change the owner and/or group of the file :var:`url`.
+		Change the owner and/or group of the file :obj:`url`.
 		"""
 
 	@misc.notimplemented
 	def lchown(self, url, owner=None, group=None):
 		"""
-		Change the owner and/or group of the file :var:`url`
+		Change the owner and/or group of the file :obj:`url`
 		(ignoring symbolic links).
 		"""
 
 	@misc.notimplemented
 	def uid(self, url):
 		"""
-		Return the user id of the owner of the file :var:`url`.
+		Return the user id of the owner of the file :obj:`url`.
 		"""
 
 	@misc.notimplemented
 	def gid(self, url):
 		"""
-		Return the group id the file :var:`url` belongs to.
+		Return the group id the file :obj:`url` belongs to.
 		"""
 
 	@misc.notimplemented
 	def owner(self, url):
 		"""
-		Return the name of the owner of the file :var:`url`.
+		Return the name of the owner of the file :obj:`url`.
 		"""
 
 	@misc.notimplemented
 	def group(self, url):
 		"""
-		Return the name of the group the file :var:`url` belongs to.
+		Return the name of the group the file :obj:`url` belongs to.
 		"""
 
 	def mimetype(self, url):
 		"""
-		Return the mimetype of the file :var:`url`.
+		Return the mimetype of the file :obj:`url`.
 		"""
 		name = self._url2filename(url)
 		mimetype = mimetypes.guess_type(name)[0]
@@ -266,48 +266,48 @@ class Connection(object):
 	@misc.notimplemented
 	def exists(self, url):
 		"""
-		Test whether the file :var:`url` exists.
+		Test whether the file :obj:`url` exists.
 		"""
 
 	@misc.notimplemented
 	def isfile(self, url):
 		"""
-		Test whether the resource :var:`url` is a file.
+		Test whether the resource :obj:`url` is a file.
 		"""
 
 	@misc.notimplemented
 	def isdir(self, url):
 		"""
-		Test whether the resource :var:`url` is a directory.
+		Test whether the resource :obj:`url` is a directory.
 		"""
 
 	@misc.notimplemented
 	def islink(self, url):
 		"""
-		Test whether the resource :var:`url` is a link.
+		Test whether the resource :obj:`url` is a link.
 		"""
 
 	@misc.notimplemented
 	def ismount(self, url):
 		"""
-		Test whether the resource :var:`url` is a mount point.
+		Test whether the resource :obj:`url` is a mount point.
 		"""
 
 	@misc.notimplemented
 	def access(self, url, mode):
 		"""
-		Test for access to the file/resource :var:`url`.
+		Test for access to the file/resource :obj:`url`.
 		"""
 
 	def size(self, url):
 		"""
-		Return the size of the file :var:`url`.
+		Return the size of the file :obj:`url`.
 		"""
 		return self.stat(url).st_size
 
 	def imagesize(self, url):
 		"""
-		Return the size of the image :var:`url` (if the resource is an image file)
+		Return the size of the image :obj:`url` (if the resource is an image file)
 		as a ``(width, height)`` tuple. This requires the PIL__.
 
 		__ http://www.pythonware.com/products/pil/
@@ -320,109 +320,109 @@ class Connection(object):
 
 	def cdate(self, url):
 		"""
-		Return the "metadate change" date of the file/resource :var:`url`
+		Return the "metadate change" date of the file/resource :obj:`url`
 		as a :class:`datetime.datetime` object in UTC.
 		"""
 		return datetime.datetime.utcfromtimestamp(self.stat(url).st_ctime)
 
 	def adate(self, url):
 		"""
-		Return the last access date of the file/resource :var:`url` as a
+		Return the last access date of the file/resource :obj:`url` as a
 		:class:`datetime.datetime` object in UTC.
 		"""
 		return datetime.datetime.utcfromtimestamp(self.stat(url).st_atime)
 
 	def mdate(self, url):
 		"""
-		Return the last modification date of the file/resource :var:`url`
+		Return the last modification date of the file/resource :obj:`url`
 		as a :class:`datetime.datetime` object in UTC.
 		"""
 		return datetime.datetime.utcfromtimestamp(self.stat(url).st_mtime)
 
 	def resheaders(self, url):
 		"""
-		Return the MIME headers for the file/resource :var:`url`.
+		Return the MIME headers for the file/resource :obj:`url`.
 		"""
 		return email.message_from_string("Content-Type: {}\nContent-Length: {}\nLast-modified: {}\n".format(self.mimetype(url), self.size(url), httpdate(self.mdate(url))))
 
 	@misc.notimplemented
 	def remove(self, url):
 		"""
-		Remove the file :var:`url`.
+		Remove the file :obj:`url`.
 		"""
 
 	@misc.notimplemented
 	def rmdir(self, url):
 		"""
-		Remove the directory :var:`url`.
+		Remove the directory :obj:`url`.
 		"""
 
 	@misc.notimplemented
 	def rename(self, url, target):
 		"""
-		Renames :var:`url` to :var:`target`. This might not work if :var:`target`
-		has a different scheme than :var:`url` (or is on a different server).
+		Renames :obj:`url` to :obj:`target`. This might not work if :obj:`target`
+		has a different scheme than :obj:`url` (or is on a different server).
 		"""
 
 	@misc.notimplemented
 	def link(self, url, target):
 		"""
-		Create a hard link from :var:`url` to :var:`target`. This will not work
-		if :var:`target` has a different scheme than :var:`url` (or is on a
+		Create a hard link from :obj:`url` to :obj:`target`. This will not work
+		if :obj:`target` has a different scheme than :obj:`url` (or is on a
 		different server).
 		"""
 
 	@misc.notimplemented
 	def symlink(self, url, target):
 		"""
-		Create a symbolic link from :var:`url` to :var:`target`. This will not
-		work if :var:`target` has a different scheme than :var:`url` (or is on a
+		Create a symbolic link from :obj:`url` to :obj:`target`. This will not
+		work if :obj:`target` has a different scheme than :obj:`url` (or is on a
 		different server).
 		"""
 
 	@misc.notimplemented
 	def chdir(self, url):
 		"""
-		Change the current directory to :var:`url`.
+		Change the current directory to :obj:`url`.
 		"""
 		os.chdir(self.name)
 
 	@misc.notimplemented
 	def mkdir(self, url, mode=0o777):
 		"""
-		Create the directory :var:`url`.
+		Create the directory :obj:`url`.
 		"""
 
 	@misc.notimplemented
 	def makedirs(self, url, mode=0o777):
 		"""
-		Create the directory :var:`url` and all intermediate ones.
+		Create the directory :obj:`url` and all intermediate ones.
 		"""
 
 	@misc.notimplemented
 	def listdir(self, url, pattern=None):
 		"""
-		Return a list of items in the directory :var:`url`. The elements of the
-		list are :class:`URL` objects relative to :var:`url`. With the optional
-		:var:`pattern` argument, this only lists items whose names match the
+		Return a list of items in the directory :obj:`url`. The elements of the
+		list are :class:`URL` objects relative to :obj:`url`. With the optional
+		:obj:`pattern` argument, this only lists items whose names match the
 		given pattern.
 		"""
 
 	@misc.notimplemented
 	def files(self, url, pattern=None):
 		"""
-		Return a list of files in the directory :var:`url`. The elements of the
-		list are :class:`URL` objects relative to :var:`url`. With the optional
-		:var:`pattern` argument, this only lists items whose names match the
+		Return a list of files in the directory :obj:`url`. The elements of the
+		list are :class:`URL` objects relative to :obj:`url`. With the optional
+		:obj:`pattern` argument, this only lists items whose names match the
 		given pattern.
 		"""
 
 	@misc.notimplemented
 	def dirs(self, url, pattern=None):
 		"""
-		Return a list of directories in the directory :var:`url`. The elements
-		of the list are :class:`URL` objects relative to :var:`url`. With the
-		optional :var:`pattern` argument, this only lists items whose names match
+		Return a list of directories in the directory :obj:`url`. The elements
+		of the list are :class:`URL` objects relative to :obj:`url`. With the
+		optional :obj:`pattern` argument, this only lists items whose names match
 		the given pattern.
 		"""
 
@@ -431,17 +431,17 @@ class Connection(object):
 		"""
 		Return a recursive iterator over files and subdirectories. The iterator
 		yields :class:`URL` objects naming each child URL of the directory
-		:var:`url` and its descendants relative to :var:`url`. This performs
+		:obj:`url` and its descendants relative to :obj:`url`. This performs
 		a depth-first traversal, returning each directory before all its children.
-		With the optional :var:`pattern` argument, only yield items whose
+		With the optional :obj:`pattern` argument, only yield items whose
 		names match the given pattern.
 		"""
 
 	@misc.notimplemented
 	def walkfiles(self, url, pattern=None):
 		"""
-		Return a recursive iterator over files in the directory :var:`url`. With
-		the optional :var:`pattern` argument, only yield files whose names match
+		Return a recursive iterator over files in the directory :obj:`url`. With
+		the optional :obj:`pattern` argument, only yield files whose names match
 		the given pattern.
 		"""
 
@@ -449,35 +449,35 @@ class Connection(object):
 	def walkdirs(self, url, pattern=None):
 		"""
 		Return a recursive iterator over subdirectories in the directory
-		:var:`url`. With the optional :var:`pattern` argument, only yield
+		:obj:`url`. With the optional :obj:`pattern` argument, only yield
 		directories whose names match the given pattern.
 		"""
 
 	@misc.notimplemented
 	def open(self, url, *args, **kwargs):
 		"""
-		Open :var:`url` for reading or writing. :meth:`open` returns a
+		Open :obj:`url` for reading or writing. :meth:`open` returns a
 		:class:`Resource` object.
 
 		Which additional parameters are supported depends on the actual
 		resource created. Some common parameters are:
 
-			:var:`mode` : string
+			:obj:`mode` : string
 				A string indicating how the file is to be opened (just like the
 				mode argument for the builtin :func:`open` (e.g. ``"rb"`` or
 				``"wb"``).
 
-			:var:`headers` : mapping
+			:obj:`headers` : mapping
 				Additional headers to use for an HTTP request.
 
-			:var:`data` : byte string
+			:obj:`data` : byte string
 				Request body to use for an HTTP POST request.
 
-			:var:`remotepython` : string or :const:`None`
+			:obj:`remotepython` : string or :const:`None`
 				Name of the Python interpreter to use on the remote side (used by
 				``ssh`` URLs)
 
-			:var:`nice` : int or :const:`None`
+			:obj:`nice` : int or :const:`None`
 				Nice level for the remote python (used by ``ssh`` URLs)
 		"""
 
@@ -1032,8 +1032,8 @@ def here(scheme="file"):
 
 def home(user="", scheme="file"):
 	"""
-	Return the home directory of the current user (or the user named :var:`user`,
-	if :var:`user` is specified) as an :class:`URL` object::
+	Return the home directory of the current user (or the user named :obj:`user`,
+	if :obj:`user` is specified) as an :class:`URL` object::
 
 		>>> url.home()
 		URL('file:/home/walter/')
@@ -1085,8 +1085,8 @@ def Dir(name, scheme="file"):
 
 def Ssh(user, host, path="~/"):
 	"""
-	Return a ssh :class:`URL` for the user :var:`user` on the host :var:`host`
-	with the path :var:`path`.:var:`path` (defaulting to the users home
+	Return a ssh :class:`URL` for the user :obj:`user` on the host :obj:`host`
+	with the path :obj:`path`.:obj:`path` (defaulting to the users home
 	directory) must be a path in URL notation (i.e. use ``/`` as directory
 	separator)::
 
@@ -1109,8 +1109,8 @@ def Ssh(user, host, path="~/"):
 
 def first(urls):
 	"""
-	Return the first URL from :var:`urls` that exists as a real file or
-	directory. :const:`None` entries in :var:`urls` will be skipped.
+	Return the first URL from :obj:`urls` that exists as a real file or
+	directory. :const:`None` entries in :obj:`urls` will be skipped.
 	"""
 	for url in urls:
 		if url is not None:
@@ -1120,8 +1120,8 @@ def first(urls):
 
 def firstdir(urls):
 	"""
-	Return the first URL from :var:`urls` that exists as a real directory.
-	:const:`None` entries in :var:`urls` will be skipped.
+	Return the first URL from :obj:`urls` that exists as a real directory.
+	:const:`None` entries in :obj:`urls` will be skipped.
 	"""
 	for url in urls:
 		if url is not None:
@@ -1131,8 +1131,8 @@ def firstdir(urls):
 
 def firstfile(urls):
 	"""
-	Return the first URL from :var:`urls` that exists as a real file.
-	:const:`None` entries in :var:`urls` will be skipped.
+	Return the first URL from :obj:`urls` that exists as a real file.
+	:const:`None` entries in :obj:`urls` will be skipped.
 	"""
 	for url in urls:
 		if url is not None:
@@ -1452,28 +1452,28 @@ class SchemeDefinition(object):
 		"""
 		Create a new :class:`SchemeDefinition` instance. Arguments are:
 
-		*	:var:`scheme`: The name of the scheme;
+		*	:obj:`scheme`: The name of the scheme;
 
-		*	:var:`usehierarchy`: Specifies whether this scheme uses hierarchical
+		*	:obj:`usehierarchy`: Specifies whether this scheme uses hierarchical
 			URLs or opaque URLs (i.e. whether ``hier_part`` or ``opaque_part``
 			from the BNF in :rfc:`2396` is used);
 
-		*	:var:`useserver`: Specifies whether this scheme uses an Internet-based
+		*	:obj:`useserver`: Specifies whether this scheme uses an Internet-based
 			server :prop:`authority` component or a registry of naming authorities
 			(only for hierarchical URLs);
 
-		*	:var:`usefrag`: Specifies whether this scheme uses fragments
+		*	:obj:`usefrag`: Specifies whether this scheme uses fragments
 			(according to the BNF in :rfc:`2396` every scheme does, but it doesn't
 			make sense for e.g. ``"javascript"``, ``"mailto"`` or ``"tel"``);
 
-		*	:var:`islocal`: Specifies whether URLs with this scheme refer to
+		*	:obj:`islocal`: Specifies whether URLs with this scheme refer to
 			local files;
 
-		*	:var:`isremote`: Specifies whether URLs with this scheme refer to
+		*	:obj:`isremote`: Specifies whether URLs with this scheme refer to
 			remote files (there may be schemes which are neither local nor remote,
 			e.g. ``"mailto"``);
 
-		*	:var:`defaultport`: The default port for this scheme (only for schemes
+		*	:obj:`defaultport`: The default port for this scheme (only for schemes
 			using server based authority).
 		"""
 		self.scheme = scheme
@@ -1486,8 +1486,8 @@ class SchemeDefinition(object):
 
 	def connect(self, url, context=None, **kwargs):
 		"""
-		Create a :class:`Connection` for the :class:`URL` :var:`url` (which must
-		have :var:`self` as the scheme).
+		Create a :class:`Connection` for the :class:`URL` :obj:`url` (which must
+		have :obj:`self` as the scheme).
 		"""
 		return self._connect(url, context, **kwargs)[0]
 
@@ -1505,7 +1505,7 @@ class SchemeDefinition(object):
 
 	def closeall(self, context):
 		"""
-		Close all connections active for this scheme in the context :var:`context`.
+		Close all connections active for this scheme in the context :obj:`context`.
 		"""
 
 	def __repr__(self):
@@ -1590,8 +1590,8 @@ class Path(object):
 
 	def startswith(self, prefix):
 		"""
-		Return whether :var:`self` starts with the path :var:`prefix`.
-		:var:`prefix` will be converted to a :class:`Path` if it isn't one.
+		Return whether :obj:`self` starts with the path :obj:`prefix`.
+		:obj:`prefix` will be converted to a :class:`Path` if it isn't one.
 		"""
 		if not isinstance(prefix, Path):
 			prefix = Path(prefix)
@@ -1605,8 +1605,8 @@ class Path(object):
 
 	def endswith(self, suffix):
 		"""
-		Return whether :var:`self` ends with the path :var:`suffix`. :var:`suffix`
-		will be converted to a :class:`Path` if it isn't one. If :var:`suffix` is
+		Return whether :obj:`self` ends with the path :obj:`suffix`. :obj:`suffix`
+		will be converted to a :class:`Path` if it isn't one. If :obj:`suffix` is
 		absolute a normal comparison will be done.
 		"""
 		if not isinstance(suffix, Path):
@@ -1818,7 +1818,7 @@ class Path(object):
 	def withext(self, ext):
 		"""
 		Return a new :class:`Path` where the filename extension has been replaced
-		with :var:`ext`.
+		with :obj:`ext`.
 		"""
 		path = self.clone()
 		path.ext = ext
@@ -1838,7 +1838,7 @@ class Path(object):
 	def withfile(self, file):
 		"""
 		Return a new :class:`Path` where the filename (i.e. the name of the last
-		component of :prop:`segments`) has been replaced with :var:`file`.
+		component of :prop:`segments`) has been replaced with :obj:`file`.
 		"""
 		path = self.clone()
 		path.file = file
@@ -1903,14 +1903,14 @@ class Path(object):
 
 	def relative(self, basepath):
 		"""
-		Return an relative :class:`Path` :var:`rel` such that
+		Return an relative :class:`Path` :obj:`rel` such that
 		``basepath/rel == self```, i.e. this is the inverse operation of
 		:meth:`__div__`.
 
-		If :var:`self` is relative, an identical copy of :var:`self` will be
+		If :obj:`self` is relative, an identical copy of :obj:`self` will be
 		returned.
 		"""
-		# if :var:`self` is relative don't do anything
+		# if :obj:`self` is relative don't do anything
 		if not self.isabs:
 			pass # FIXME return self.clone()
 		basepath = Path(basepath) # clone/coerce
@@ -1943,7 +1943,7 @@ class Path(object):
 
 	def local(self):
 		"""
-		Return :var:`self` converted to a filename using the file naming
+		Return :obj:`self` converted to a filename using the file naming
 		conventions of the OS. Parameters will be dropped in the resulting string.
 		"""
 		path = Path(self._prefix(self._path) + "/".join(segment for segment in self))
@@ -1955,7 +1955,7 @@ class Path(object):
 
 	def abs(self):
 		"""
-		Return an absolute version of :var:`self`.
+		Return an absolute version of :obj:`self`.
 		"""
 		path = os.path.abspath(self.local())
 		path = path.rstrip(os.sep)
@@ -1968,7 +1968,7 @@ class Path(object):
 
 	def real(self):
 		"""
-		Return the canonical version of :var:`self`, eliminating all symbolic
+		Return the canonical version of :obj:`self`, eliminating all symbolic
 		links.
 		"""
 		path = os.path.realpath(self.local())
@@ -2009,15 +2009,15 @@ class URL(object):
 	"""
 	def __init__(self, url=None):
 		"""
-		Create a new :class:`URL` instance. :var:`url` may be a :class:`str` or
+		Create a new :class:`URL` instance. :obj:`url` may be a :class:`str` or
 		:class:`unicode` instance, or an :class:`URL` (in which case you'll get a
-		copy of :var:`url`), or :const:`None` (which will create an :class:`URL`
+		copy of :obj:`url`), or :const:`None` (which will create an :class:`URL`
 		referring to the "current document").
 		"""
 		self.url = url
 
 	def _clear(self):
-		# internal helper method that makes :var:`self` empty.
+		# internal helper method that makes :obj:`self` empty.
 		self.reg = defaultreg
 		self._scheme = None
 		self._userinfo = None
@@ -2032,13 +2032,13 @@ class URL(object):
 
 	def clone(self):
 		"""
-		Return an identical copy :var:`self`.
+		Return an identical copy :obj:`self`.
 		"""
 		return URL(self)
 
 	@staticmethod
 	def _checkscheme(scheme):
-		# Check whether :var:`scheme` contains only legal characters.
+		# Check whether :obj:`scheme` contains only legal characters.
 		if scheme[0] not in schemecharfirst:
 			return False
 		for c in scheme[1:]:
@@ -2055,7 +2055,7 @@ class URL(object):
 			return self._scheme
 		def __set__(self, scheme):
 			"""
-			The scheme will be converted to lowercase on setting (if :var:`scheme`
+			The scheme will be converted to lowercase on setting (if :obj:`scheme`
 			is not :const:`None`, otherwise the scheme will be deleted).
 			"""
 			if scheme is None:
@@ -2373,7 +2373,7 @@ class URL(object):
 
 		def __set__(self, url):
 			"""
-			Setting :prop:`url` parses :var:`url` into the components. :var:`url`
+			Setting :prop:`url` parses :obj:`url` into the components. :obj:`url`
 			may also be an :class:`URL` instance, in which case the URL will be
 			copied.
 			"""
@@ -2440,7 +2440,7 @@ class URL(object):
 	def withext(self, ext):
 		"""
 		Return a new :class:`URL` where the filename extension has been replaced
-		with :var:`ext`.
+		with :obj:`ext`.
 		"""
 		url = URL(self)
 		url.path = url.path.withext(ext)
@@ -2458,7 +2458,7 @@ class URL(object):
 		"""
 		Return a new :class:`URL` where the filename (i.e. the name of last
 		component of :prop:`path_segments`) has been replaced with
-		:var:`file`.
+		:obj:`file`.
 		"""
 		url = URL(self)
 		url.path = url.path.withfile(file)
@@ -2472,7 +2472,7 @@ class URL(object):
 	def withfrag(self, frag):
 		"""
 		Return a new :class:`URL` where the fragment has been replaced with
-		:var:`frag`.
+		:obj:`frag`.
 		"""
 		url = URL(self)
 		url.frag = frag
@@ -2488,12 +2488,12 @@ class URL(object):
 
 	def __truediv__(self, other):
 		"""
-		Join :var:`self` with another (possible relative) :class:`URL`
-		:var:`other`, to form a new :class:`URL`.
+		Join :obj:`self` with another (possible relative) :class:`URL`
+		:obj:`other`, to form a new :class:`URL`.
 
-		:var:`other` may be a :class:`str`, :class:`unicode` or :class:`URL`
+		:obj:`other` may be a :class:`str`, :class:`unicode` or :class:`URL`
 		object. It may be :const:`None` (referring to the "current document")
-		in which case :var:`self` will be returned. It may also be a list or
+		in which case :obj:`self` will be returned. It may also be a list or
 		other iterable. For this case a list (or iterator) will be returned where
 		:meth:`__div__` will be applied to every item in the list/iterator. E.g.
 		the following expression returns all the files in the current directory
@@ -2556,15 +2556,15 @@ class URL(object):
 
 	def relative(self, baseurl):
 		"""
-		Return an relative :class:`URL` :var:`rel` such that
+		Return an relative :class:`URL` :obj:`rel` such that
 		``baseurl/rel == self``, i.e. this is the inverse operation of
 		:meth:`__div__`.
 
-		If :var:`self` is relative, has a different :prop:`scheme` or
-		:prop:`authority` than :var:`baseurl` or a non-hierarchical scheme, an
-		identical copy of :var:`self` will be returned.
+		If :obj:`self` is relative, has a different :prop:`scheme` or
+		:prop:`authority` than :obj:`baseurl` or a non-hierarchical scheme, an
+		identical copy of :obj:`self` will be returned.
 		"""
-		# if :var:`self` is relative don't do anything
+		# if :obj:`self` is relative don't do anything
 		if self.scheme is None:
 			return URL(self)
 		# javascript etc.
@@ -2648,7 +2648,7 @@ class URL(object):
 
 	def __hash__(self):
 		"""
-		Return a hash value for :var:`self`, to be able to use :class:`URL`
+		Return a hash value for :obj:`self`, to be able to use :class:`URL`
 		objects as dictionary keys. You must be careful not to modify an
 		:class:`URL` as soon as you use it as a dictionary key.
 		"""
@@ -2669,11 +2669,11 @@ class URL(object):
 
 	def abs(self, scheme=-1):
 		"""
-		Return an absolute version of :var:`self` (works only for local URLs).
+		Return an absolute version of :obj:`self` (works only for local URLs).
 
-		If the argument :var:`scheme` is specified, it will be used for the
+		If the argument :obj:`scheme` is specified, it will be used for the
 		resulting URL otherwise the result will have the same scheme as
-		:var:`self`.
+		:obj:`self`.
 		"""
 		self._checklocal()
 		new = self.clone()
@@ -2684,12 +2684,12 @@ class URL(object):
 
 	def real(self, scheme=-1):
 		"""
-		Return the canonical version of :var:`self`, eliminating all symbolic
+		Return the canonical version of :obj:`self`, eliminating all symbolic
 		links (works only for local URLs).
 
-		If the argument :var:`scheme` is specified, it will be used for the
+		If the argument :obj:`scheme` is specified, it will be used for the
 		resulting URL otherwise the result will have the same scheme as
-		:var:`self`.
+		:obj:`self`.
 		"""
 		self._checklocal()
 		new = self.clone()
@@ -2700,8 +2700,8 @@ class URL(object):
 
 	def islocal(self):
 		"""
-		Return whether :var:`self` refers to a local file, i.e. whether
-		:var:`self` is a relative :class:`URL` or the scheme is ``root`` or
+		Return whether :obj:`self` refers to a local file, i.e. whether
+		:obj:`self` is a relative :class:`URL` or the scheme is ``root`` or
 		``file``).
 		"""
 		return self.reg.islocal
@@ -2712,8 +2712,8 @@ class URL(object):
 
 	def local(self):
 		"""
-		Return :var:`self` as a local filename (which will only works if
-		:var:`self` is local (see :meth:`islocal`).
+		Return :obj:`self` as a local filename (which will only works if
+		:obj:`self` is local (see :meth:`islocal`).
 		"""
 		self._checklocal()
 		return self.path.local()
@@ -2724,42 +2724,42 @@ class URL(object):
 	def connect(self, context=None, **kwargs):
 		"""
 		Return a :class:`Connection` object for accessing and modifying the
-		metadata of :var:`self`.
+		metadata of :obj:`self`.
 
 		Whether you get a new connection object, or an existing one depends on
 		the scheme, the URL itself, and the context passed in (as the
-		:var:`context` argument).
+		:obj:`context` argument).
 		"""
 		return self._connect(context, **kwargs)[0]
 
 	def open(self, *args, **kwargs):
 		"""
-		Open :var:`self` for reading or writing. :meth:`open` returns a
+		Open :obj:`self` for reading or writing. :meth:`open` returns a
 		:class:`Resource` object.
 
 		Which additional parameters are supported depends on the actual resource
 		created. Some common parameters are:
 
-			:var:`mode` (supported by all resources)
+			:obj:`mode` (supported by all resources)
 				A string indicating how the file is to be opened (just like the
 				mode argument for the builtin :func:`open`; e.g. ``"rb"`` or
 				``"wb"``).
 
-			:var:`context` (supported by all resources)
+			:obj:`context` (supported by all resources)
 				:meth:`open` needs a :class:`Connection` for this URL which it gets
 				from a :class:`Context` object.
 
-			:var:`headers`
+			:obj:`headers`
 				Additional headers to use for an HTTP request.
 
-			:var:`data`
+			:obj:`data`
 				Request body to use for an HTTP POST request.
 
-			:var:`remotepython`
+			:obj:`remotepython`
 				Name of the Python interpreter to use on the remote side
 				(used by ``ssh`` URLs)
 
-			:var:`nice`
+			:obj:`nice`
 				Nice level for the remove python (used by ``ssh`` URLs)
 		"""
 		(connection, kwargs) = self._connect(**kwargs)
@@ -2808,9 +2808,9 @@ class URL(object):
 
 	def import_(self, name=None):
 		"""
-		Import the content of the URL :var:`self` as a Python module.
+		Import the content of the URL :obj:`self` as a Python module.
 
-		:var:`name` can be used the specify the module name (i.e. the ``__name__``
+		:obj:`name` can be used the specify the module name (i.e. the ``__name__``
 		attribute of the module). The default determines it from the URL.
 		"""
 		if self.islocal():

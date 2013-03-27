@@ -69,26 +69,26 @@ class Location(Object):
 		Create a new :class:`Location` object. The arguments have the following
 		meaning:
 
-			:var:`root`
+			:obj:`root`
 				The :class:`Template` object
 
-			:var:`source`
+			:obj:`source`
 				The complete source string
 
-			:var:`type`
+			:obj:`type`
 				The tag type (i.e. ``"for"``, ``"if"``, etc. or ``None`` for
 				literal text)
 
-			:var:`starttag`
+			:obj:`starttag`
 				The start position of the start delimiter.
 
-			:var:`endtag`
+			:obj:`endtag`
 				The end position of the end delimiter.
 
-			:var:`startcode`
+			:obj:`startcode`
 				The start position of the tag code.
 
-			:var:`endcode`
+			:obj:`endcode`
 				The end position of the tag code.
 		"""
 		self.root = root
@@ -400,7 +400,7 @@ class AST(Object):
 		return "".join(v)
 
 	def _str(self):
-		# Format :var:`self`.
+		# Format :obj:`self`.
 		# This is used by :meth:`__str__.
 		# ``_str`` is a generator an may output:
 		# ``None``, which means: "add a line feed and an indentation here"
@@ -1156,8 +1156,8 @@ class GetAttr(AST):
 	"""
 	AST node for getting an attribute from an object.
 
-	The object is loaded from the AST node :var:`obj` and the attribute name
-	is stored in the string :var:`attrname`.
+	The object is loaded from the AST node :obj:`obj` and the attribute name
+	is stored in the string :obj:`attrname`.
 	"""
 	fields = AST.fields.union({"obj", "attrname"})
 
@@ -1207,9 +1207,9 @@ class GetSlice(AST):
 	"""
 	AST node for getting a slice from a list or string object.
 
-	The object is loaded from the AST node :var:`obj` and the start and stop
-	indices from the AST node :var:`index1` and :var:`index2`. :var:`index1`
-	and :var:`index2` may also be :const:`None` (for missing slice indices,
+	The object is loaded from the AST node :obj:`obj` and the start and stop
+	indices from the AST node :obj:`index1` and :obj:`index2`. :obj:`index1`
+	and :obj:`index2` may also be :const:`None` (for missing slice indices,
 	which default to the 0 for the start index and the length of the sequence
 	for the end index).
 	"""
@@ -1446,7 +1446,7 @@ class GetItem(Binary):
 	AST node for subscripting operator.
 
 	The object (which must be a list, string or dict) is loaded from the AST
-	node :var:`obj1` and the index/key is loaded from the AST node :var:`obj2`.
+	node :obj:`obj1` and the index/key is loaded from the AST node :obj:`obj2`.
 	"""
 
 
@@ -1541,9 +1541,9 @@ class Contains(Binary):
 	"""
 	AST node for the binary containment testing operator.
 
-	The item/key object is loaded from the AST node :var:`obj1` and the container
+	The item/key object is loaded from the AST node :obj:`obj1` and the container
 	object (which must be a list, string or dict) is loaded from the AST node
-	:var:`obj2`.
+	:obj:`obj2`.
 	"""
 
 
@@ -1557,9 +1557,9 @@ class NotContains(Binary):
 	"""
 	AST node for the inverted containment testing operator.
 
-	The item/key object is loaded from the AST node :var:`obj1` and the container
+	The item/key object is loaded from the AST node :obj:`obj1` and the container
 	object (which must be a list, string or dict) is loaded from the AST node
-	:var:`obj2`.
+	:obj:`obj2`.
 	"""
 
 
@@ -1684,9 +1684,9 @@ class ChangeVar(AST):
 	"""
 	Baseclass for all AST nodes that store or modify a variable.
 
-	The variable name is stored in the string :var:`varname` and the value that
+	The variable name is stored in the string :obj:`varname` and the value that
 	will be stored or be used to modify the stored value is loaded from the
-	AST node :var:`value`.
+	AST node :obj:`value`.
 	"""
 
 	fields = AST.fields.union({"varname", "value"})
@@ -1814,9 +1814,9 @@ class CallFunc(AST):
 	"""
 	AST node for calling an function.
 
-	The object to be called is stored in the attribute :var:`obj`. The list of
-	positional arguments is loaded from the list of AST nodes :var:`args`.
-	Keyword arguments are in :var:`kwargs`. `var`:remargs` is the AST node
+	The object to be called is stored in the attribute :obj:`obj`. The list of
+	positional arguments is loaded from the list of AST nodes :obj:`args`.
+	Keyword arguments are in :obj:`kwargs`. `var`:remargs` is the AST node
 	for the ``*`` argument (and may by ``None`` if there is no ``*`` argument).
 	`var`:remkwargs` is the AST node for the ``**`` argument (and may by ``None``
 	if there is no ``**`` argument)
@@ -1909,10 +1909,10 @@ class CallMeth(AST):
 	"""
 	AST node for calling a method.
 
-	The method name is stored in the string :var:`methname`. The object for which
-	the method will be called is loaded from the AST node :var:`obj` and the list
-	of arguments is loaded from the list of AST nodes :var:`args`. Keyword
-	arguments are in :var:`kwargs`. `var`:remargs` is the AST node for the ``*``
+	The method name is stored in the string :obj:`methname`. The object for which
+	the method will be called is loaded from the AST node :obj:`obj` and the list
+	of arguments is loaded from the list of AST nodes :obj:`args`. Keyword
+	arguments are in :obj:`kwargs`. `var`:remargs` is the AST node for the ``*``
 	argument (and may by ``None`` if there is no ``*`` argument).
 	`var`:remkwargs` is the AST node for the ``**`` argument (and may by ``None``
 	if there is no ``**`` argument)
@@ -2033,15 +2033,15 @@ class Template(Block):
 
 	def __init__(self, source=None, name=None, keepws=True, startdelim="<?", enddelim="?>"):
 		"""
-		Create a :class:`Template` object. If :var:`source` is ``None``, the
-		:class:`Template` remains uninitialized, otherwise :var:`source` will be
-		compiled (using :var:`startdelim` and :var:`enddelim` as the tag
-		delimiters). :var:`name` is the name of the template. It will be used in
+		Create a :class:`Template` object. If :obj:`source` is ``None``, the
+		:class:`Template` remains uninitialized, otherwise :obj:`source` will be
+		compiled (using :obj:`startdelim` and :obj:`enddelim` as the tag
+		delimiters). :obj:`name` is the name of the template. It will be used in
 		exception messages and should be a valid Python identifier. If
-		:var:`keepws` is false linefeeds and indentation will be ignored in the
+		:obj:`keepws` is false linefeeds and indentation will be ignored in the
 		literal text in templates (i.e. the text between the tags). However
 		trailing whitespace at the end of the line will be honored regardless of
-		the value of :var:`keepws`. Output will always be ignored when calling
+		the value of :obj:`keepws`. Output will always be ignored when calling
 		a template as a function.
 		"""
 		# ``location``/``endlocation`` will remain ``None`` for a top level template
@@ -2127,7 +2127,7 @@ class Template(Block):
 	def loads(cls, data):
 		"""
 		The class method :meth:`loads` loads the template/function from string
-		:var:`data`. :var:`data` must contain the template/function in compiled
+		:obj:`data`. :obj:`data` must contain the template/function in compiled
 		UL4ON format.
 		"""
 		from ll import ul4on
@@ -2137,7 +2137,7 @@ class Template(Block):
 	def load(cls, stream):
 		"""
 		The class method :meth:`load` loads the template/function from the stream
-		:var:`stream`. The stream must contain the template/function in compiled
+		:obj:`stream`. The stream must contain the template/function in compiled
 		UL4ON format.
 		"""
 		from ll import ul4on
@@ -2146,7 +2146,7 @@ class Template(Block):
 	def dump(self, stream):
 		"""
 		:meth:`dump` dumps the template/function in compiled UL4ON format to the
-		stream :var:`stream`.
+		stream :obj:`stream`.
 		"""
 		from ll import ul4on
 		ul4on.dump(self, stream)
@@ -2162,7 +2162,7 @@ class Template(Block):
 	def render(self, **vars):
 		"""
 		Render the template iteratively (i.e. this is a generator).
-		:var:`vars` contains the top level variables available to the
+		:obj:`vars` contains the top level variables available to the
 		template code.
 		"""
 		try:
@@ -2172,7 +2172,7 @@ class Template(Block):
 
 	def renders(self, **vars):
 		"""
-		Render the template as a string. :var:`vars` contains the top level
+		Render the template as a string. :obj:`vars` contains the top level
 		variables available to the template code.
 		"""
 		return "".join(self.render(**vars))
@@ -2180,7 +2180,7 @@ class Template(Block):
 	def __call__(self, **vars):
 		"""
 		Call the template as a function and return the resulting value.
-		:var:`vars` contains the top level variables available to the template code.
+		:obj:`vars` contains the top level variables available to the template code.
 		"""
 		try:
 			for output in super().eval(vars): # Bypass ``self.eval()`` which simply stores the object as a local variable
@@ -2202,8 +2202,8 @@ class Template(Block):
 
 	def _tokenize(self, source, startdelim, enddelim):
 		"""
-		Tokenize the template/function source code :var:`source` into tags and
-		non-tag text. :var:`startdelim` and :var:`enddelim` are used as the tag
+		Tokenize the template/function source code :obj:`source` into tags and
+		non-tag text. :obj:`startdelim` and :obj:`enddelim` are used as the tag
 		delimiters.
 
 		This is a generator which produces :class:`Location` objects for each tag
@@ -2237,8 +2237,8 @@ class Template(Block):
 
 	def _compile(self, source, name, startdelim, enddelim):
 		"""
-		Compile the template source code :var:`source` into an AST.
-		:var:`startdelim` and :var:`enddelim` are used as the tag delimiters.
+		Compile the template source code :obj:`source` into an AST.
+		:obj:`startdelim` and :obj:`enddelim` are used as the tag delimiters.
 		"""
 		self.name = name
 		self.startdelim = startdelim

@@ -51,13 +51,13 @@ def getdoc(thing, format):
 	text = "\n".join(lines)
 
 	if inspect.ismethod(thing):
-		fmt = "METHOD-DOCSTRING({0}.{1.__class__.__name__}.{1.__name__})"
+		fmt = "METHOD-DOCSTRING({0}.{1.__class__.__name__}.{1.__qualname__})"
 	elif isinstance(thing, property):
 		fmt = "PROPERTY-DOCSTRING({0}.{1})"
 	elif inspect.isfunction(thing):
-		fmt = "FUNCTION-DOCSTRING({0}.{1.__name__})"
+		fmt = "FUNCTION-DOCSTRING({0}.{1.__qualname__})"
 	elif inspect.isclass(thing):
-		fmt = "CLASS-DOCSTRING({0}.{1.__name__})"
+		fmt = "CLASS-DOCSTRING({0}.{1.__qualname__})"
 	elif inspect.ismodule(thing):
 		fmt = "MODULE-DOCSTRING({0})"
 	else:
@@ -145,31 +145,31 @@ def _codeheader(thing, name, type):
 		if i == 0:
 			if issubclass(type, meth):
 				if arg == "self":
-					sig.append(var(self()))
+					sig.append(obj(self()))
 				elif arg == "cls":
-					sig.append(var(cls()))
+					sig.append(obj(cls()))
 				else:
-					sig.append(var(arg))
+					sig.append(obj(arg))
 			else:
-				sig.append(var(arg))
+				sig.append(obj(arg))
 		else:
 			if sig:
 				sig.append(", ")
-			sig.append(var(arg))
+			sig.append(obj(arg))
 		if i >= offset:
 			sig.append("=", lit(repr(spec.defaults[i-offset])))
 	if spec.varargs:
 		if sig:
 			sig.append(", ")
-		sig.append("*", var(spec.varargs))
+		sig.append("*", obj(spec.varargs))
 	if spec.varkw:
 		if sig:
 			sig.append(", ")
-		sig.append("**", var(spec.varkw))
+		sig.append("**", obj(spec.varkw))
 	for (i, arg) in enumerate(spec.kwonlyargs):
 		if sig:
 			sig.append(", ")
-		sig.append(var(arg))
+		sig.append(obj(arg))
 		if arg in spec.kwonlydefaults:
 			sig.append("=", lit(repr(spec.kwonlydefaults[arg])))
 	sig.insert(0, type(name), "\u200b(") # use "ZERO WIDTH SPACE" to allow linebreaks
@@ -191,16 +191,16 @@ class _stack(object):
 
 def explain(thing, name=None, format=None, context=[]):
 	"""
-	Return a XML representation of the doc string of :var:`thing`, which can be
+	Return a XML representation of the doc string of :obj:`thing`, which can be
 	a function, method, class or module.
 
-	If :var:`thing` is not a module, you must pass the context in :var:`context`,
-	i.e. a list of names of objects into which :var:`thing` is nested. This
+	If :obj:`thing` is not a module, you must pass the context in :obj:`context`,
+	i.e. a list of names of objects into which :obj:`thing` is nested. This
 	means the first entry will always be the module name, and the other entries
 	will be class names.
 	"""
 
-	def _append(all, obj, var):
+	def _append(all, obj, varname):
 		try:
 			all.append((_namekey(obj, varname), obj, varname))
 		except (IOError, TypeError):
@@ -818,15 +818,15 @@ class cls(inline):
 		return e.convert(converter)
 
 
-class var(code):
+class obj(code):
 	"""
-	The name of a function or method argument.
+	A object of unspecified type.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(rep, self, cls)
 
 	def convert_docbook(self, converter):
-		e = converter.target.parameter(self.content)
+		e = converter.target.varname(self.content)
 		return e.convert(converter)
 
 

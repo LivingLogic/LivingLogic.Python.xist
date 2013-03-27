@@ -69,7 +69,7 @@ for example.</p>
 <prog>
 __init__(self, *content, **attrs)
 </prog>
-<p>Positional arguments (i.e. items in <var>content</var>)
+<p>Positional arguments (i.e. items in <obj>content</obj>)
 will be the child nodes of the element node. Keyword arguments will be attributes.
 You can pass most of Python's builtin types to such a constructor.
 Strings and integers will be automatically converted to
@@ -200,7 +200,7 @@ b'&lt;b&gt;Python is cool!&lt;/b&gt;'
 <p><pyref module="ll.xist.xsc" class="Node" method="conv"><meth>conv</meth></pyref> simply
 calls
 <pyref module="ll.xist.xsc" class="Node" method="convert"><meth>convert</meth></pyref>
-with a default <pyref module="ll.xist.xsc" class="Converter"><var>converter</var></pyref>
+with a default <pyref module="ll.xist.xsc" class="Converter"><obj>converter</obj></pyref>
 argument. We'll come to converters in a minute.
 <pyref module="ll.xist.xsc" class="Node" method="bytes"><meth>bytes</meth></pyref>
 is a method that converts the node to a byte string. This method will be explained
@@ -262,28 +262,28 @@ node = node.convert(xsc.Converter())
 <p>You can pass the following arguments to the
 <pyref module="ll.xist.xsc" class="Converter"><class>Converter</class></pyref> constructor:</p>
 <dl>
-<dt><var>root</var></dt><dd><var>root</var> (which defaults to <lit>None</lit>) is the root &url;
+<dt><obj>root</obj></dt><dd><obj>root</obj> (which defaults to <lit>None</lit>) is the root &url;
 for the conversion process. When you want to resolve a link in some of your own <meth>convert</meth> methods,
 the &url; must be interpreted relative to this root &url; (You can use
 <pyref module="ll.xist.xsc" class="URLAttr" method="forInput"><meth>URLAttr.forInput</meth></pyref>
 for that).</dd>
-<dt><var>mode</var></dt><dd><var>mode</var> (which defaults to <lit>None</lit>) works the same way
+<dt><obj>mode</obj></dt><dd><obj>mode</obj> (which defaults to <lit>None</lit>) works the same way
 as modes in &xslt;. You can use this for implementing different conversion modes.</dd>
-<dt><var>stage</var></dt><dd><var>stage</var> (which defaults to <lit>"deliver"</lit>)
+<dt><obj>stage</obj></dt><dd><obj>stage</obj> (which defaults to <lit>"deliver"</lit>)
 allows you to implement multi stage conversion: Suppose that you want to deliver a dynamically
 constructed web page with &xist; that contains results from a database query and the current time.
 The data in the database changes infrequently, so it doesn't make sense to do the query on
 every request. The query is done every few minutes and the resulting &html; tree is
 stored in the servlet (using any of the available Python servlet technologies).
-For this conversion the <var>stage</var> would be <lit>"cache"</lit> and your database &xml;
-element would do the query when <lit><var>stage</var>=="cache"</lit>. Your time display element
-would do the conversion when <lit><var>stage</var>=="deliver"</lit> and simply returns itself
-when <lit><var>stage</var>=="cache"</lit>, so it would still be part of the cached &xml; tree
+For this conversion the <obj>stage</obj> would be <lit>"cache"</lit> and your database &xml;
+element would do the query when <lit><obj>stage</obj>=="cache"</lit>. Your time display element
+would do the conversion when <lit><obj>stage</obj>=="deliver"</lit> and simply returns itself
+when <lit><obj>stage</obj>=="cache"</lit>, so it would still be part of the cached &xml; tree
 and would be converted to &html; on every request.</dd>
-<dt><var>target</var></dt><dd><var>target</var> (which defaults to
+<dt><obj>target</obj></dt><dd><obj>target</obj> (which defaults to
 <pyref module="ll.xist.ns.html"><mod>ll.xist.ns.html</mod></pyref>) specifies what the output should be.
 Values must be namespace modules (see below for an explanation of namespaces).</dd>
-<dt><var>lang</var></dt><dd><p><var>lang</var> (which defaults to <lit>None</lit>) is the language
+<dt><obj>lang</obj></dt><dd><p><obj>lang</obj> (which defaults to <lit>None</lit>) is the language
 in which the result tree should be. This can be used in the <meth>convert</meth> method
 to implement different conversions for different languages, e.g.:</p>
 <prog>
@@ -756,7 +756,7 @@ returns the complete 8-bit &xml; string.</p>
 an instance of <pyref module="ll.xist.xsc" class="Publisher"><class>ll.xist.xsc.Publisher</class></pyref>.</p>
 
 <section><h>Specifying an encoding</h>
-<p>You can specify the encoding with the parameter <var>encoding</var>
+<p>You can specify the encoding with the parameter <obj>encoding</obj>
 (with the encoding specified in an &xml; declaration being the default, if there
 is no such declaration <lit>"utf-8"</lit> is used). Unencodable characters will
 be escaped with character references when possible (i.e. inside text nodes, for
@@ -793,7 +793,7 @@ or an <pyref module="ll.xist.ns.meta" class="contenttype">&html; meta header</py
 </section>
 
 <section><h>&html; compatibility</h>
-<p>Another useful parameter is <var>xhtml</var>,
+<p>Another useful parameter is <obj>xhtml</obj>,
 it specifies whether you want pure &html; or &xhtml; as output:</p>
 
 <dl>
@@ -814,7 +814,7 @@ element will be published with an empty tag (without an additional space):
 <section><h>Namespaces</h>
 
 <p>By default &xist; doesn't output any namespace declarations. The simplest
-way to change that, is to pass <lit>True</lit> for the <var>prefixdefault</var>
+way to change that, is to pass <lit>True</lit> for the <obj>prefixdefault</obj>
 argument when publishing:</p>
 
 <example><h>Publishing namespace info</h>
@@ -871,8 +871,8 @@ print e.bytes(prefixdefault=None)
 </html>]]></prog>
 
 <p>When elements from more than one namespace are present in the tree,
-<var>prefixdefault</var> is unreliable. The first namespace encountered will
-get the prefix specified by <var>prefixdefault</var>, all others will get a
+<obj>prefixdefault</obj> is unreliable. The first namespace encountered will
+get the prefix specified by <obj>prefixdefault</obj>, all others will get a
 different prefix. &xist; will never use the same prefix for different namespaces.
 &xist; will also refuse to use an empty prefix for global attributes:</p>
 
@@ -915,7 +915,7 @@ print e.bytes(prefixdefault=None)
 </html>]]>
 </prog>
 
-<p>In the case of multiple namespaces you can use the <var>prefixes</var>
+<p>In the case of multiple namespaces you can use the <obj>prefixes</obj>
 argument to specify an explicit prefix for each namespace. So we could change
 the publishing statement from our example above to:</p>
 
@@ -948,7 +948,7 @@ print(e.bytes(prefixes={html: None, xlink: "xl"}))
 </prog>
 
 <p>Furthermore it's possible to suppress output of namespace declarations
-for certain namespaces by using the <var>hidexmlns</var> argument:</p>
+for certain namespaces by using the <obj>hidexmlns</obj> argument:</p>
 
 <prog>
 print(e.bytes(prefixes={html: None, xlink: "xl"}, hidexmlns=(html, xlink)))
@@ -968,7 +968,7 @@ print(e.bytes(prefixes={html: None, xlink: "xl"}, hidexmlns=(html, xlink)))
 
 <p>Finally it's possible to force the output of namespace declarations
 for certain namespaces (even if elements from those namespaces are not in the
-tree) by using the <var>showxmlns</var> argument:</p>
+tree) by using the <obj>showxmlns</obj> argument:</p>
 
 <prog>
 print html.div().bytes(prefixes={html: None, xlink: "xl"}, showxmlns=(xlink,))

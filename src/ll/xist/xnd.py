@@ -101,9 +101,9 @@ class RedefinedCharRefError(Error):
 
 def findname(basename, names):
 	"""
-	Return a new valid Python identifier based on :var:`basename`, i.e. a name
-	that is based on :var:`basename`, a valid Python identifier and not in
-	:var:`names. Illegal characters in :var:`basename` are replaced with ``_``
+	Return a new valid Python identifier based on :obj:`basename`, i.e. a name
+	that is based on :obj:`basename`, a valid Python identifier and not in
+	:obj:`names. Illegal characters in :obj:`basename` are replaced with ``_``
 	and an ``_`` appendedwhen the name collides with a Python keyword.
 	"""
 	basename = "".join(c if "a" <= c <= "z" or "A" <= c <= "Z" or "0" <= c <= "9" or c == "_" else "_" for c in basename)
@@ -298,9 +298,9 @@ class Named(object):
 
 	def assignpyname(self, names, name=None):
 		"""
-		Assign a Python identifier to :var:`self` (using either :var:`name` or
-		:var:`self.name`). This uses :func:`findname` to create a valid Python
-		identifier that is not in :var:`names`.
+		Assign a Python identifier to :obj:`self` (using either :obj:`name` or
+		:obj:`self.name`). This uses :func:`findname` to create a valid Python
+		identifier that is not in :obj:`names`.
 		"""
 		if name is None:
 			name = self.name

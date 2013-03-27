@@ -142,11 +142,11 @@ def register(name):
 	This decorator can be used to register the decorated class with the
 	:mod:`ll.ul4on` serialization machinery.
 
-	:var:`name` must be a globally unique name for the class. To avoid
+	:obj:`name` must be a globally unique name for the class. To avoid
 	name collisions Java's class naming system should be used (i.e. an
 	inverted domain name like ``com.example.foo.bar``).
 
-	:var:`name` will be stored in the class attribute ``ul4onname``.
+	:obj:`name` will be stored in the class attribute ``ul4onname``.
 	"""
 	def registration(cls):
 		cls.ul4onname = name
@@ -158,9 +158,9 @@ def register(name):
 class Encoder:
 	def __init__(self, stream):
 		"""
-		Create an encoder for serializing objects to  :var:`self.stream`.
+		Create an encoder for serializing objects to  :obj:`self.stream`.
 
-		:var:`stream` must provide a :meth:`write` method.
+		:obj:`stream` must provide a :meth:`write` method.
 		"""
 		self.stream = stream
 		self._objects = []
@@ -173,7 +173,7 @@ class Encoder:
 
 	def dump(self, obj):
 		"""
-		Serialize :var:`obj` as an UL4ON formatted stream.
+		Serialize :obj:`obj` as an UL4ON formatted stream.
 		"""
 		# Have we written this object already?
 		if id(obj) in self._id2index:
@@ -230,9 +230,9 @@ class Encoder:
 class Decoder:
 	def __init__(self, stream):
 		"""
-		Create a decoder for deserializing objects from  :var:`self.stream`.
+		Create a decoder for deserializing objects from  :obj:`self.stream`.
 
-		:var:`stream` must provide a :meth:`read` method.
+		:obj:`stream` must provide a :meth:`read` method.
 		"""
 		self.stream = stream
 		self._objects = []
@@ -403,7 +403,7 @@ class StreamBuffer(object):
 
 def dumps(obj):
 	"""
-	Serialize :var:`obj` as an UL4ON formatted string.
+	Serialize :obj:`obj` as an UL4ON formatted string.
 	"""
 	stream = io.StringIO()
 	Encoder(stream).dump(obj)
@@ -412,19 +412,19 @@ def dumps(obj):
 
 def dump(obj, stream):
 	"""
-	Serialize :var:`obj` as an UL4ON formatted stream to :var:`stream`.
+	Serialize :obj:`obj` as an UL4ON formatted stream to :obj:`stream`.
 
-	:var:`stream` must provide a :meth:`write` method.
+	:obj:`stream` must provide a :meth:`write` method.
 	"""
 	Encoder(stream).dump(obj)
 
 
 def loadclob(clob, bufsize=1024*1024):
 	"""
-	Deserialize :var:`clob` (which must be an :mod:`cx_Oracle` ``CLOB`` variable
+	Deserialize :obj:`clob` (which must be an :mod:`cx_Oracle` ``CLOB`` variable
 	containing an UL4ON formatted object) to a Python object.
 
-	:var:`bufsize` specifies the chunk size for reading the underlying ``CLOB``
+	:obj:`bufsize` specifies the chunk size for reading the underlying ``CLOB``
 	object.
 	"""
 	return Decoder(StreamBuffer(clob, bufsize)).load()
@@ -432,7 +432,7 @@ def loadclob(clob, bufsize=1024*1024):
 
 def loads(string):
 	"""
-	Deserialize :var:`string` (which must be a string containing an UL4ON
+	Deserialize :obj:`string` (which must be a string containing an UL4ON
 	formatted object) to a Python object.
 	"""
 	return Decoder(io.StringIO(string)).load()
@@ -440,7 +440,7 @@ def loads(string):
 
 def load(stream):
 	"""
-	Deserialize :var:`stream` (which must be file-like object with a :meth:`read`
+	Deserialize :obj:`stream` (which must be file-like object with a :meth:`read`
 	method containing an UL4ON formatted object) to a Python object.
 	"""
 	return Decoder(stream).load()

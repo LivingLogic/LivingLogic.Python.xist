@@ -482,7 +482,7 @@ Changes in 4.0 (released 08/08/2012)
 *	:class:`ll.orasql.LOBStream` has a new method :meth:`seek`.
 
 *	:class:`ll.make.FileAction` supports encoding/decoding when writing/reading
-	the file. For this use the :var:`encoding` and :var:`errors` arguments.
+	the file. For this use the :obj:`encoding` and :obj:`errors` arguments.
 
 *	The XIST node method :meth:`sorted` has been removed, as it no longer makes
 	sense, because with Python 3 nodes might be uncomparable.
@@ -646,8 +646,8 @@ Changes in 3.20 (released 05/05/2011)
 
 	Supported are the values ``normal`` (the default), ``sysdba`` and ``sysoper``.
 
-*	The :var:`schema` argument used by various methods in :mod:`ll.orasql` has
-	been replaced by a :var:`owner` argument that can be :const:`None` (for the
+*	The :obj:`schema` argument used by various methods in :mod:`ll.orasql` has
+	been replaced by a :obj:`owner` argument that can be :const:`None` (for the
 	current user), the constant :const:`ALL` for all users (which uses the
 	``DBA_*`` variant of various meta data views if possible or the ``ALL_*``
 	variants otherwise) and a specific user name.
@@ -687,7 +687,7 @@ Changes in 3.19 (released 04/26/2011)
 
 *	:mod:`ll.orasql` now requires cx_Oracle 5.1.
 
-*	If the :var:`readlobs` option is false for :mod:`ll.orasql` cursors, the
+*	If the :obj:`readlobs` option is false for :mod:`ll.orasql` cursors, the
 	CLOBs/BLOBs returned will be wrapped into something that behaves like a
 	Python file.
 
@@ -748,7 +748,7 @@ Changes in 3.18 (released 04/08/2011)
 	``"heap"`` or normal tables and ``"index"`` for index organized tables.
 
 *	Pretty printing of XIST trees can now be customized with the class attributes
-	:var:`prettyindentbefore` and :var:`prettyindentafter`. The values will be
+	:obj:`prettyindentbefore` and :obj:`prettyindentafter`. The values will be
 	added to the current indentation level before and after the node in question.
 
 *	All scripts that are part of XIST (``uls``, ``ucp``, ``ucat``, ``db2ul4``,
@@ -1003,7 +1003,7 @@ Changes in 3.10 (released 09/24/2010)
 	resulted in a ISO-8859-1 encoded output).
 
 *	:class:`ll.xist.parse.Tidy` now supports an additional parameter: If
-	:var:`skipbad` is true, unknown elements and attributes will be skipped.
+	:obj:`skipbad` is true, unknown elements and attributes will be skipped.
 
 *	The random number functions ``random``, ``randrange`` and ``randchoice``
 	have been added to UL4.
@@ -1247,7 +1247,7 @@ Changes in 3.7 (released 09/10/2009)
 *	The new :class:`ll.make.PipeAction` pipes the input through an external
 	command.
 
-*	:class:`ll.make.FileAction` now automatically wraps the :var:`key` argument
+*	:class:`ll.make.FileAction` now automatically wraps the :obj:`key` argument
 	into an :class:`URL` object.
 
 *	:class:`ll.make.FileAction` has two new methods :meth:`chmod` and
@@ -1428,7 +1428,7 @@ Changes in 3.4.3 (released 09/09/2008)
 Changes in 3.4.2 (released 09/03/2008)
 --------------------------------------
 
-*	Parsing didn't work when :var:`tidy` was set to true and a :var:`base`
+*	Parsing didn't work when :obj:`tidy` was set to true and a :obj:`base`
 	argument was given. This has been fixed now.
 
 
@@ -1570,7 +1570,7 @@ Changes in 3.3 (released 07/11/2008)
 
 *	All actions in :mod:`ll.make` no longer check whether their inputs are
 	action objects. Non-action objects are simply treated as ancient input data.
-	This also means that most action classes have an :var:`input` parameter in
+	This also means that most action classes have an :obj:`input` parameter in
 	their constructor again, as this input could now be a constant.
 
 *	Most attributes of action objects in :mod:`ll.make` can now be action objects
@@ -1594,10 +1594,10 @@ Changes in 3.3 (released 07/11/2008)
 *	TOXIC has been split into a compiler module :mod:`ll.toxicc` and an XIST
 	namespace :mod:`ll.xist.ns.toxic`. TOXIC now supports output for
 	SQL Server. The function :func:`xml2ora` as been renamed to :func:`compile`
-	(and has a new :var:`mode` argument for specifying the database type).
+	(and has a new :obj:`mode` argument for specifying the database type).
 
-*	The :var:`targetroot` parameter for :meth:`ll.make.XISTConvertAction.__init__`
-	has been renamed to :var:`root`.
+*	The :obj:`targetroot` parameter for :meth:`ll.make.XISTConvertAction.__init__`
+	has been renamed to :obj:`root`.
 
 
 Changes in 3.2.7 (released 05/16/2008)
@@ -1657,11 +1657,11 @@ Changes in 3.2.4 (released 04/02/2008)
 *	The constructor for :class:`ll.xist.parsers.ExpatParser` now takes two
 	additional arguments:
 
-	:var:`xmldecl`
+	:obj:`xmldecl`
 		If this is true the XML declaration will appear in the resulting XIST
 		tree.
 
-	:var:`doctype`
+	:obj:`doctype`
 		If this is true the doctype declaration will appear in the resulting
 		XIST tree (however any internal DTD subset will be dropped).
 
@@ -1700,7 +1700,7 @@ Changes in 3.2.1 (released 02/05/2008)
 --------------------------------------
 
 *	It's now possible to force the publisher to output certain ``xmlns``
-	attributes via the :var:`showxmlns` argument to the :class:`Publisher`
+	attributes via the :obj:`showxmlns` argument to the :class:`Publisher`
 	constructor.
 
 
@@ -1723,7 +1723,7 @@ Changes in 3.2 (released 02/01/2008)
 	removes all registered objects.
 
 *	Fixed a bug in :func:`ll.xist.css.iterrules` that surfaced when a
-	:var:`base` argument was given.
+	:obj:`base` argument was given.
 
 *	Fixed a second bug in :func:`ll.xist.css.iterrules` where the ``href`` of a
 	:class:`link` element wasn't applied to the URLs in the stylesheet.
@@ -1870,7 +1870,7 @@ Changes in 3.0 (released 01/07/2008)
 *	The namespace module :mod:`ll.xist.ns.cond` has been removed.
 
 *	When calling the function :func:`ll.xist.parsers.parseURL` the arguments
-	:var:`headers` and :var:`data` are now passed along to the parser's method
+	:obj:`headers` and :obj:`data` are now passed along to the parser's method
 	only if they are specified. This makes it possible to pass ssh URLs to
 	:func:`ll.xist.parsers.parseURL`.
 
@@ -2005,9 +2005,9 @@ Changes in 2.13 (released 10/31/2005)
 
 *	:meth:`ll.xist.xsc.Namespace.tokenize` requires a :class:`unicode` object
 	as input now. This makes it possible to use encodings that are not ASCII
-	compatible (such as UTF-16). The :var:`encoding` argument is gone.
+	compatible (such as UTF-16). The :obj:`encoding` argument is gone.
 
-*	:meth:`ll.xist.xsc.Node.asString` uses the :var:`encoding` argument to
+*	:meth:`ll.xist.xsc.Node.asString` uses the :obj:`encoding` argument to
 	determine which characters have to be output as character references
 	now. (You'll still get a unicode object as the result.)
 
@@ -2041,8 +2041,8 @@ Changes in 2.11 (released 07/29/2005)
 
 *	Line number information is now added when parsing HTML.
 
-*	The :meth:`sorted` method now supports the same arguments (:var:`cmp`,
-	:var:`key` and :var:`reverse`) as :meth:`list.sort` and :func:`sorted`
+*	The :meth:`sorted` method now supports the same arguments (:obj:`cmp`,
+	:obj:`key` and :obj:`reverse`) as :meth:`list.sort` and :func:`sorted`
 	in Python 2.4.
 
 *	The :meth:`walk` doesn't yield the node directly, but yields a :class:`Cursor`
@@ -2100,7 +2100,7 @@ Changes in 2.10 (released 05/20/2005)
 
 *	The publishing API has changed again:
 	:meth:`ll.xist.publishers.Publisher.publish` no longer accepts an argument
-	:var:`stream` to which the byte strings are written, but it is a generator
+	:obj:`stream` to which the byte strings are written, but it is a generator
 	now. The publisher methods :meth:`write` and :meth:`writetext` have been
 	renamed to :meth:`encode` and :meth:`encodetext` and return the encoded
 	byte string, instead of writing it directly to the stream. There's a new
@@ -2128,9 +2128,9 @@ Changes in 2.9 (released 04/21/2005)
 	attributes must come from a namespace that has been turned into a module via
 	:meth:`makemod`, so that this module can be imported on unpickling.
 
-*	Two arguments of the :meth:`walk` method have been renamed: :var:`filtermode`
-	has been renamed to :var:`inmode` and :var:`walkmode` has been renamed to
-	:var:`outmode`. For these modes two new values are supported:
+*	Two arguments of the :meth:`walk` method have been renamed: :obj:`filtermode`
+	has been renamed to :obj:`inmode` and :obj:`walkmode` has been renamed to
+	:obj:`outmode`. For these modes two new values are supported:
 
 	:const:`ll.xist.xsc.walkindex`
 		The value passed to the filter function or yielded from the iterator is
@@ -2141,7 +2141,7 @@ Changes in 2.9 (released 04/21/2005)
 		The filter function will be called with two arguments: The first is the
 		root node of the tree (i.e. the node for which :meth:`walk` has been
 		called), the second one is an index path (just like for
-		``ll.xist.xsc.walkindex``). If used as an :var:`outmode` a tuple with
+		``ll.xist.xsc.walkindex``). If used as an :obj:`outmode` a tuple with
 		these two values will be yielded.
 
 * Attribute mappings now support :meth:`__getitem__`, :meth:`__setitem__` and
@@ -2285,7 +2285,7 @@ Changes in 2.6 (released 10/26/2004)
 
 *	Parsing broken HTML is now done with the HTML parser from libxml2_. The
 	parsing functions no longer accept options for tidy, only the boolean value
-	of the :var:`tidy` argument is used.
+	of the :obj:`tidy` argument is used.
 
 	.. _libxml2: http://www.xmlsoft.org/
 
@@ -2350,7 +2350,7 @@ Changes in 2.5 (released 06/30/2004)
 *	:class:`ll.xist.xsc.Frag` and :class:`ll.xist.xsc.Element` both have a
 	:meth:`__call__` method with the same arguments as their constructors.
 	Those methods will append content nodes (and set attributes for
-	:class:`ll.xist.xsc.Element`) and return :var:`self`, so they can be used
+	:class:`ll.xist.xsc.Element`) and return :obj:`self`, so they can be used
 	when creating an object tree. This makes it possible to put the attributes
 	close to the tag name, instead of putting them at the end after the content.
 
@@ -2511,7 +2511,7 @@ Changes in 2.3 (released 12/08/2003)
 	.. _uTidylib: http://utidylib.sf.net/
 
 *	It's possible now to pass arguments to tidy simple by passing an argument
-	dictionary for the :var:`tidy` argument in the parsing functions.
+	dictionary for the :obj:`tidy` argument in the parsing functions.
 
 *	The methods :meth:`parsed` and :meth:`checkvalid` have been separated.
 
@@ -2602,8 +2602,8 @@ Changes in 2.2 (released 07/31/2003)
 	done when there is a ``contentType`` attribute, as ``contentType`` is
 	optional.
 
-*	The converter has a new property :func:`node`. :var:`node` can't be passed
-	to :meth:`conv` but will be set to :var:`self` by :meth:`conv`
+*	The converter has a new property :func:`node`. :obj:`node` can't be passed
+	to :meth:`conv` but will be set to :obj:`self` by :meth:`conv`
 	automatically. This makes it possible to access the "document root" during
 	conversion.
 
@@ -2715,8 +2715,8 @@ Changes in 2.1 (released 12/09/2002)
 *	The namespace name for the :mod:`ll.xist.ns.struts_html` module has been
 	fixed.
 
-*	The argument :var:`defaultEncoding` for the various parsing functions has
-	been renamed to :var:`encoding`.
+*	The argument :obj:`defaultEncoding` for the various parsing functions has
+	been renamed to :obj:`encoding`.
 
 
 Changes in 2.0.8 (released 11/20/2002)
@@ -2773,7 +2773,7 @@ Changes in 2.0.2 (released 10/21/2002)
 	classes in ``exec`` processing instructions didn't work, because the
 	prefixes object used for parsing wouldn't be updated when the namespace
 	object is defined inside the processing instruction. Now using the default
-	for the :var:`prefixes` argument in calls to the parsing functions uses one
+	for the :obj:`prefixes` argument in calls to the parsing functions uses one
 	global shared :class:`Prefixes` instances where all the namespaces that are
 	newly defined will be registered too.
 
@@ -2998,7 +2998,7 @@ Changes in 1.4.2 (released 03/22/2002)
 Changes in 1.4.1 (released 03/21/2002)
 --------------------------------------
 
-*	Removed :class:`TidyURLInputSource`. Now it's possible to pass a :var:`tidy`
+*	Removed :class:`TidyURLInputSource`. Now it's possible to pass a :obj:`tidy`
 	flag to the remaining functions :func:`parseString`, :func:`parseFile` and
 	:func:`parseURL` to specify whether the source should be tidied.
 
@@ -3061,10 +3061,10 @@ Changes in 1.3 (released 02/12/2002)
 	a :meth:`convert` call and revert back to a previous state afterwards.
 
 *	:func:`parseURL` and :func:`parseTidyURL` now have an additional parameter
-	:var:`headers` which is a list of string pairs specifying additional
+	:obj:`headers` which is a list of string pairs specifying additional
 	headers to be passed in with the request.
 
-*	:func:`parseString` has an additional parameter :var:`systemId` which will
+*	:func:`parseString` has an additional parameter :obj:`systemId` which will
 	be the system id of the :class:`InputSource`.
 
 *	The distribution now includes the makefile and the XML source files so now
@@ -3231,7 +3231,7 @@ Changes in 1.1 (released 07/19/2001)
 
 	which will print ``en``.
 
-*	The option :var:`XHTML` for the publishers has been changed to lowercase.
+*	The option :obj:`XHTML` for the publishers has been changed to lowercase.
 
 *	:class:`xist.ns.html.html` will automatically generate a ``lang`` and
 	``xml:lang`` attribute when the converter has a language set.
@@ -3245,7 +3245,7 @@ Changes in 1.0 (released 06/18/2001)
 *	The publishing interface has changed internally and publishing should be
 	faster now.
 
-*	Publishers now support a new parameter: :var:`usePrefix`, which specifies
+*	Publishers now support a new parameter: :obj:`usePrefix`, which specifies
 	if namespace prefixes should be output for the element names.
 
 *	Part of the implementation of the publishing stuff has been moved to C, so
@@ -3255,7 +3255,7 @@ Changes in 1.0 (released 06/18/2001)
 	attributes.
 
 *	All the :meth:`asHTML` methods now have an additional argument
-	:var:`converter`. This makes it possible to implement different processing
+	:obj:`converter`. This makes it possible to implement different processing
 	modes or stages for new elements. All currently implemented elements and
 	entities ignore this argument, but pass it on in the call to their
 	childrens' :meth:`asHTML` method. As the name :meth:`asHTML` no longer
@@ -3469,7 +3469,7 @@ Changes in 0.4.3 (released 10/19/2000)
 
 *	The leaf nodes (:class:`Text`, :class:`Comment`, :class:`ProcInst`) are now
 	considered immutable. This means that their :meth:`asHTML` method can
-	simply return :var:`self`, because now those nodes can be shared between
+	simply return :obj:`self`, because now those nodes can be shared between
 	trees. Functionality for manipulation the objects is provided by a mixin
 	class very similar to :class:`UserString`. All this results in a speedup
 	of about 10% for the python-quotes example.
@@ -3514,7 +3514,7 @@ Changes in 0.4 (released 09/19/2000)
 	UTF-8, UTF-16, ...
 
 *	All publishers have been updated to support Unicode. The publishing
-	interface has been streamlined (:var:`encoding` and :var:`XHTML` parameters
+	interface has been streamlined (:obj:`encoding` and :obj:`XHTML` parameters
 	are now attributes of the publisher).
 
 *	:meth:`asString` will now always return a Unicode string. If you want a byte
@@ -3652,11 +3652,11 @@ Changes in 0.3.5 (released 07/02/2000)
 		URL(scheme='server', path=['bar'], file='baz', ext='gif')
 
 *	:meth:`findNodes` (which has been shortened to :meth:`find`) has an
-	additional argument :var:`test`, which can be a test function that will be
+	additional argument :obj:`test`, which can be a test function that will be
 	called when the node passes all other tests.
 
 *	:meth:`asString` no longer generates a string directly, but uses the new
-	method :meth:`publish`, which has an additional argument :var:`publisher`,
+	method :meth:`publish`, which has an additional argument :obj:`publisher`,
 	to which the strings to be output are passed.
 
 

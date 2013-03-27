@@ -172,9 +172,9 @@ class directive_page(directive):
 
 def fromul4(template, variables="variables", indent=0):
 	"""
-	Return the UL4 template :var:`template` as JSP source code. :var:`variables`
+	Return the UL4 template :obj:`template` as JSP source code. :obj:`variables`
 	is the variable name of the map object containing the top level variables.
-	:var:`indent` is the initial indentation of the source code.
+	:obj:`indent` is the initial indentation of the source code.
 
 	The code produced requires the `UL4 Java package`__.
 

@@ -108,7 +108,7 @@ Changes in 1.7.5 (released 03/09/2007)
 Changes in 1.7.4 (released 03/08/2007)
 ======================================
 
-*	:class:`ll.url.SshConnection` objects now supports the :var:`identity`
+*	:class:`ll.url.SshConnection` objects now supports the :obj:`identity`
 	parameter. This can be used to specify the filename to be used as the
 	identity file (private key) for authentication.
 
@@ -263,7 +263,7 @@ Changes in 1.1.1 (released 11/15/2005)
 Changes in 1.1 (released 10/31/2005)
 ====================================
 
-*	:class:`ll.make.TOXICAction` no longer takes an :var:`encoding` argument in
+*	:class:`ll.make.TOXICAction` no longer takes an :obj:`encoding` argument in
 	the constructor, but works on unicode strings directly.
 
 *	Two new actions (:class:`DecodeAction` and :class:`EncodeAction`) have been
@@ -653,7 +653,7 @@ Changes in ll-make 0.16 (released 05/31/2004)
 	``sys.argv[1:]`` and returns a tuple with ``(values, args)`` (just like
 	:meth:`optparse.OptionParser.parse_args` does).
 
-*	The arguments :var:`ignoreerrors`, :var:`color`, :var:`maxinputreport`
+*	The arguments :obj:`ignoreerrors`, :obj:`color`, :obj:`maxinputreport`
 	have been removed from the :class:`Project` constructor. If you really need
 	different values for these, simply change the attributes after creating the
 	:class:`Project` object.
@@ -1029,7 +1029,7 @@ Changes in ll-make 0.2.2 (released 01/25/2001)
 Changes in ll-make 0.2.1 (released 10/03/2001)
 ==============================================
 
-*	Support for the :var:`root` paramenter for the :meth:`convert` method in
+*	Support for the :obj:`root` paramenter for the :meth:`convert` method in
 	:class:`XISTAction`.
 
 
@@ -1074,8 +1074,8 @@ Changes in ll-sisyphus 0.9.1 (released 04/28/2004)
 Changes in ll-sisyphus 0.9 (released 11/13/2003)
 ================================================
 
-*	Lowercased the constructor arguments :var:`maxRuntime`, :var:`raiseErrors`
-	and :var:`printKills`.
+*	Lowercased the constructor arguments :obj:`maxRuntime`, :obj:`raiseErrors`
+	and :obj:`printKills`.
 
 *	When the job is started it checks whether it's predecessor is still running
 	(i.e. it checks whether the pid from the run file really exists).
@@ -1120,7 +1120,7 @@ Changes in ll-sisyphus 0.6.2 (released 12/03/2002)
 Changes in ll-sisyphus 0.6.1 (released 09/10/2002)
 ==================================================
 
-*	The :class:`Job` constructor has a new argument :var:`printKills` which
+*	The :class:`Job` constructor has a new argument :obj:`printKills` which
 	specifies whether killing a previous job should be printed (i.e. mailed
 	from cron).
 
@@ -1154,7 +1154,7 @@ Changes in ll-sisyphus 0.5.1 (released 04/12/2001)
 Changes in ll-sisyphus 0.5 (released 03/29/2001)
 ================================================
 
-*	The :class:`Job` constructor has a new parameter :var:`raiseErrors`. When
+*	The :class:`Job` constructor has a new parameter :obj:`raiseErrors`. When
 	set to true exceptions will not only be written to the logfile but raised,
 	which results in a output to the terminal and an email from the cron daemon.
 
@@ -1258,7 +1258,7 @@ Changes in ll-url 0.11.6 (released 12/06/2003)
 Changes in ll-url 0.11.5 (released 11/22/2003)
 ==============================================
 
-*	Fixed a bug with the :var:`scheme` argument of the methods :meth:`real`
+*	Fixed a bug with the :obj:`scheme` argument of the methods :meth:`real`
 	and :meth:`abs`.
 
 
@@ -1344,7 +1344,7 @@ Changes in ll-url 0.8 (released 06/04/2003)
 
 *	Added methods :meth:`abs` and :meth:`__rdiv__` to :class:`URL`.
 
-*	The method :meth:`real` now has an argument :var:`scheme` that specifies
+*	The method :meth:`real` now has an argument :obj:`scheme` that specifies
 	which scheme should the use for the resulting URL.
 
 *	Now the query part of an :class:`URL` will be parsed into the attribute
@@ -1371,7 +1371,7 @@ Changes in ll-url 0.7 (released 04/23/2003)
 	a file.
 
 *	The method :meth:`import_` uses a cache now. Different caching strategies
-	can be chosen through the :var:`mode` parameter.
+	can be chosen through the :obj:`mode` parameter.
 
 
 Changes in ll-url 0.6.2 (released 03/07/2002)
@@ -1634,7 +1634,7 @@ Changes in ll-orasql 1.26 (released 03/27/2009)
 	commandline.
 
 *	The :class:`Pool` constructor now supports the additional arguments
-	:var:`getmode` and :var:`homogeneous` from cx_Oracle 5.0.
+	:obj:`getmode` and :obj:`homogeneous` from cx_Oracle 5.0.
 
 *	Fix a typo in :meth:`Privilege.grantddl`.
 
@@ -1835,7 +1835,7 @@ Changes in ll-orasql 1.17.1 (released 03/02/2007)
 Changes in ll-orasql 1.17 (released 02/23/2007)
 ===============================================
 
-*	The :var:`readlobs` and :var:`unicode` parameters are now honored when
+*	The :obj:`readlobs` and :obj:`unicode` parameters are now honored when
 	calling procedures and functions via :class:`Procedure` and
 	:class:`Function` objects.
 
@@ -1843,7 +1843,7 @@ Changes in ll-orasql 1.17 (released 02/23/2007)
 Changes in ll-orasql 1.16 (released 02/21/2007)
 ===============================================
 
-*	A parameter :var:`unicode` has been added to various constructors and methods.
+*	A parameter :obj:`unicode` has been added to various constructors and methods.
 	This parameter can be used to get strings (i.e. ``VARCHAR2`` and ``CLOB``\s)
 	as :class:`unicode` object instead of :class:`str` objects.
 
@@ -1853,7 +1853,7 @@ Changes in ll-orasql 1.15 (released 02/17/2007)
 
 *	Fixed an output bug in ``oradiff.py`` when running in full output mode.
 
-*	A parameter :var:`readlobs` has been added to various constructors and
+*	A parameter :obj:`readlobs` has been added to various constructors and
 	methods that can be used to get small (or all) ``LOB`` values as strings in
 	cursor fetch calls.
 
@@ -2004,7 +2004,7 @@ Changes in ll-orasql 1.8 (released 07/14/2006)
 	recursively. The method :meth:`iterdependent` is gone now.
 
 *	The method :meth:`iterschema` of :class:`Connection` now has an additional
-	parameter :var:`schema`. Passing ``"all"`` for :var:`schema` will give you
+	parameter :obj:`schema`. Passing ``"all"`` for :obj:`schema` will give you
 	statistics for the complete database not just one schema.
 
 *	A new definition class :class:`MaterializedViewDefinition` has been added
@@ -2118,8 +2118,8 @@ Changes in ll-orasql 1.3 (released 11/24/2005)
 *	Added an option :option:`-i` to ``oracreate.py`` and ``oradrop.py`` to
 	ignore errors.
 
-*	The argument :var:`all` of the cursor method :meth:`iterobjects` is now
-	named :var:`schema` and may have three values: ``"own"``, ``"dep"`` and
+*	The argument :obj:`all` of the cursor method :meth:`iterobjects` is now
+	named :obj:`schema` and may have three values: ``"own"``, ``"dep"`` and
 	``"all"``.
 
 *	Added an script ``oramerge.py`` that does a three way merge of three database
@@ -2345,8 +2345,8 @@ Changes in ll-nightshade 0.8 (released 06/21/2007)
 	implementation of :meth:`__call__` has been fixed.
 
 *	:class:`Call` now needs a :class:`Connect` object as the second argument in
-	the constructor (instead of taking :var:`connectstring`, :var:`pool` and
-	:var:`retry` arguments).
+	the constructor (instead of taking :obj:`connectstring`, :obj:`pool` and
+	:obj:`retry` arguments).
 
 
 Changes in ll-nightshade 0.7.1 (released 05/12/2007)

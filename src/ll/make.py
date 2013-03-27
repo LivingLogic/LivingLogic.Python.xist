@@ -200,18 +200,18 @@ class UndefinedTargetError(KeyError):
 
 def getoutputs(project, since, input):
 	"""
-	Recursively iterate through the object :var:`input` (if it's a
+	Recursively iterate through the object :obj:`input` (if it's a
 	:class:`tuple`, :class:`list` or :class:`dict`) and return a tuple
 	containing:
 
-	*	An object (:var:`data`) of the same structure as :var:`input`, where every
+	*	An object (:obj:`data`) of the same structure as :obj:`input`, where every
 		action object encountered is replaced with the output of that action;
 
-	*	A timestamp (:var:`changed`) which the newest timestamp among all the
+	*	A timestamp (:obj:`changed`) which the newest timestamp among all the
 		change timestamps of the actions encountered.
 
-	If none of the actions has any data newer than :var:`since` (i.e. none of
-	the actions produced any new data) :var:`data` will be :const:`nodata`.
+	If none of the actions has any data newer than :obj:`since` (i.e. none of
+	the actions produced any new data) :obj:`data` will be :const:`nodata`.
 	"""
 	if isinstance(input, Action):
 		return (input.get(project, since), input.changed)
@@ -276,16 +276,16 @@ class Action(object):
 		"""
 		This method (i.e. the implementations in subclasses) is the workhorse of
 		:mod:`ll.make`. :meth:`get` must return the output data of the action if
-		this data has changed since :var:`since` (which is a
+		this data has changed since :obj:`since` (which is a
 		:class:`datetime.datetime` object in UTC). If the data hasn't changed
-		since :var:`since` the special object :const:`nodata` must be returned.
+		since :obj:`since` the special object :const:`nodata` must be returned.
 
 		In both cases the action must make sure that the data is internally
 		consistent, i.e. if the input data is the output data of other actions
-		:var:`self` has to ensure that those other actions update their data too,
+		:obj:`self` has to ensure that those other actions update their data too,
 		independent from the fact whether :meth:`get` will return new data or not.
 
-		Two special values can be passed for :var:`since`:
+		Two special values can be passed for :obj:`since`:
 
 		:const:`bigbang`
 			This timestamp is older than any timestamp that can appear in real
@@ -311,14 +311,14 @@ class Action(object):
 	@misc.notimplemented
 	def execute(self, project, *args, **kwargs):
 		"""
-		Execute the action: transform the input data in :var:`args` and
-		:var:`kwargs` and return the resulting output data. This method must be
+		Execute the action: transform the input data in :obj:`args` and
+		:obj:`kwargs` and return the resulting output data. This method must be
 		implemented in subclasses.
 		"""
 
 	def getkey(self):
 		"""
-		Get the nearest key from :var:`self` or its inputs. This is used by
+		Get the nearest key from :obj:`self` or its inputs. This is used by
 		:class:`ModuleAction` for the filename.
 		"""
 		return self.key
@@ -331,24 +331,24 @@ class Action(object):
 
 	def call(self, *args, **kwargs):
 		"""
-		Return a :class:`CallAction` for calling :var:`self`\s output with
-		positional arguments from :var:`args` and keyword arguments from
-		:var:`kwargs`.
+		Return a :class:`CallAction` for calling :obj:`self`\s output with
+		positional arguments from :obj:`args` and keyword arguments from
+		:obj:`kwargs`.
 		"""
 		return CallAction(self, *args, **kwargs)
 
 	def getattr(self, attrname):
 		"""
-		Return a :class:`GetAttrAction` for getting :var:`self`\s attribute
-		named :var:`attrname`.
+		Return a :class:`GetAttrAction` for getting :obj:`self`\s attribute
+		named :obj:`attrname`.
 		"""
 		return GetAttrAction(self, attrname)
 
 	def callattr(self, attrname, *args, **kwargs):
 		"""
-		Return a :class:`CallAttrAction` for calling :var:`self`\s attribute
-		named :var:`attrname` with positional arguments from :var:`args` and
-		keyword arguments from :var:`kwargs`.
+		Return a :class:`CallAttrAction` for calling :obj:`self`\s attribute
+		named :obj:`attrname` with positional arguments from :obj:`args` and
+		keyword arguments from :obj:`kwargs`.
 		"""
 		return CallAttrAction(self, attrname, *args, **kwargs)
 
@@ -378,12 +378,12 @@ class Action(object):
 	@misc.notimplemented
 	def __iter__(self):
 		"""
-		Return an iterator over the input actions of :var:`self`.
+		Return an iterator over the input actions of :obj:`self`.
 		"""
 
 	def iterallinputs(self):
 		"""
-		Return an iterator over all input actions of :var:`self`
+		Return an iterator over all input actions of :obj:`self`
 		(i.e. recursively).
 		"""
 		for input in self:
@@ -392,9 +392,9 @@ class Action(object):
 
 	def findpaths(self, input):
 		"""
-		Find dependency paths leading from :var:`self` to the other action
-		:var:`input`. I.e. if :var:`self` depends directly or indirectly on
-		:var:`input`, this generator will produce all paths ``p`` where
+		Find dependency paths leading from :obj:`self` to the other action
+		:obj:`input`. I.e. if :obj:`self` depends directly or indirectly on
+		:obj:`input`, this generator will produce all paths ``p`` where
 		``p[0] is self`` and ``p[-1] is input`` and ``p[i+1] in p[i]`` for all
 		``i`` in ``range(len(p)-1)``.
 		"""
@@ -454,8 +454,8 @@ class CollectAction(TransformAction):
 
 	def addinputs(self, *otherinputs):
 		"""
-		Register all actions in :var:`otherinputs` as additional actions that have
-		to be updated before :var:`self` is updated.
+		Register all actions in :obj:`otherinputs` as additional actions that have
+		to be updated before :obj:`self` is updated.
 		"""
 		self.otherinputs.extend(otherinputs)
 		return self
@@ -493,7 +493,7 @@ class PhonyAction(Action):
 	"""
 	def __init__(self, *inputs, **kwargs):
 		"""
-		Create a :class:`PhonyAction` object. :var:`doc` describes the action and
+		Create a :class:`PhonyAction` object. :obj:`doc` describes the action and
 		is printed by the method :meth:`Project.writephonytargets`.
 		"""
 		Action.__init__(self)
@@ -503,8 +503,8 @@ class PhonyAction(Action):
 
 	def addinputs(self, *inputs):
 		"""
-		Register all actions in :var:`inputs` as additional actions that have to
-		be updated once :var:`self` is updated.
+		Register all actions in :obj:`inputs` as additional actions that have to
+		be updated once :obj:`self` is updated.
 		"""
 		self.inputs.extend(inputs)
 		return self
@@ -547,12 +547,12 @@ class FileAction(TransformAction):
 	"""
 	def __init__(self, key, input=None, encoding=None, errors=None):
 		"""
-		Create a :class:`FileAction` object with :var:`key` as the "filename".
-		:var:`key` must be an object that provides a method :meth:`open` for
-		opening readable and writable streams to the file. :var:`input` is the
-		data written to the file (or the action producing the data). :var:`encoding`
-		is the encoding to be used from reading/writing. If :var:`encoding` is
-		:const:`None` binary i/o will be used. :var:`errors` is the codec error
+		Create a :class:`FileAction` object with :obj:`key` as the "filename".
+		:obj:`key` must be an object that provides a method :meth:`open` for
+		opening readable and writable streams to the file. :obj:`input` is the
+		data written to the file (or the action producing the data). :obj:`encoding`
+		is the encoding to be used from reading/writing. If :obj:`encoding` is
+		:const:`None` binary i/o will be used. :obj:`errors` is the codec error
 		handling name for encoding/decoding text.
 		"""
 		TransformAction.__init__(self, input)
@@ -569,7 +569,7 @@ class FileAction(TransformAction):
 
 	def write(self, project, data):
 		"""
-		Write :var:`data` to the file and return it.
+		Write :obj:`data` to the file and return it.
 		"""
 		project.writestep(self, "Writing ", format(len(data), ","), " ", ("bytes" if isinstance(data, bytes) else "chars"), " to ", project.strkey(self.key))
 		with contextlib.closing(self.key.open(mode="wb" if self.encoding is None else "w", encoding=self.encoding, errors=self.errors)) as file:
@@ -593,7 +593,7 @@ class FileAction(TransformAction):
 		"""
 		If a :class:`FileAction` object doesn't have an input action it reads the
 		input file and returns the content if the file has changed since
-		:var:`since` (otherwise :const:`nodata` is returned).
+		:obj:`since` (otherwise :const:`nodata` is returned).
 
 		If a :class:`FileAction` object does have an input action and the output
 		data from this input action is newer than the file ``self.key`` the data
@@ -621,14 +621,14 @@ class FileAction(TransformAction):
 	def chmod(self, mode=0o644):
 		"""
 		Return a :class:`ModeAction` that will change the file permissions of
-		:var:`self` to :var:`mode`.
+		:obj:`self` to :obj:`mode`.
 		"""
 		return ModeAction(self, mode)
 
 	def chown(self, user=None, group=None):
 		"""
 		Return an :class:`OwnerAction` that will change the user and/or group
-		ownership of :var:`self`.
+		ownership of :obj:`self`.
 		"""
 		return OwnerAction(self, user, group)
 
@@ -643,7 +643,7 @@ class MkDirAction(TransformAction):
 
 	def __init__(self, key, mode=0o777):
 		"""
-		Create a :class:`MkDirAction` instance. :var:`mode` (which defaults to
+		Create a :class:`MkDirAction` instance. :obj:`mode` (which defaults to
 		:const:`0777`) will be used as the permission bit pattern for the new
 		directory.
 		"""
@@ -670,7 +670,7 @@ class PipeAction(TransformAction):
 
 	def __init__(self, input, command):
 		"""
-		Create a :class:`PipeAction` instance. :var:`command` is the shell command
+		Create a :class:`PipeAction` instance. :obj:`command` is the shell command
 		to be executed (which must read it's input from stdin and write its output
 		to stdout).
 		"""
@@ -821,7 +821,7 @@ class CommandAction(TransformAction):
 
 	def __init__(self, command, input=None):
 		"""
-		Create a new :class:`CommandAction` object. :var:`command` is the command
+		Create a new :class:`CommandAction` object. :obj:`command` is the command
 		that will executed when :meth:`execute` is called.
 		"""
 		TransformAction.__init__(self, input)
@@ -842,7 +842,7 @@ class ModeAction(TransformAction):
 
 	def __init__(self, input=None, mode=0o644):
 		"""
-		Create an :class:`ModeAction` object. :var:`mode` (which defaults to
+		Create an :class:`ModeAction` object. :obj:`mode` (which defaults to
 		:const:`0644`) will be use as the permission bit pattern.
 		"""
 		TransformAction.__init__(self, input)
@@ -873,9 +873,9 @@ class OwnerAction(TransformAction):
 
 	def __init__(self, input=None, user=None, group=None):
 		"""
-		Create a new :class:`OwnerAction` object. :var:`user` can either be a
+		Create a new :class:`OwnerAction` object. :obj:`user` can either be a
 		numerical user id or a user name or :const:`None`. If it is :const:`None`
-		no user ownership will be changed. The same applies to :var:`group`.
+		no user ownership will be changed. The same applies to :obj:`group`.
 		"""
 		TransformAction.__init__(self, input)
 		self.id = id
@@ -919,7 +919,7 @@ class ModuleAction(TransformAction):
 
 	def addinputs(self, *inputs):
 		"""
-		Register all actions in :var:`inputs` as modules used by this module.
+		Register all actions in :obj:`inputs` as modules used by this module.
 		These actions must be :class:`ModuleAction` objects too.
 
 		Normally it isn't neccessary to call the method directly. Instead
@@ -1246,7 +1246,7 @@ class Project(dict):
 	def strtimedelta(self, delta):
 		"""
 		Return a nicely formatted and colored string for the
-		:class:`datetime.timedelta` value :var:`delta`. :var:`delta`
+		:class:`datetime.timedelta` value :obj:`delta`. :obj:`delta`
 		may also be :const:`None` in with case ``"0"`` will be returned.
 		"""
 		if delta is None:
@@ -1270,28 +1270,28 @@ class Project(dict):
 	def strdatetime(self, dt):
 		"""
 		Return a nicely formatted and colored string for the
-		:class:`datetime.datetime` value :var:`dt`.
+		:class:`datetime.datetime` value :obj:`dt`.
 		"""
 		return s4time(dt.strftime("%Y-%m-%d %H:%M:%S.%f"))
 
 	def strcounter(self, counter):
 		"""
 		Return a nicely formatted and colored string for the counter value
-		:var:`counter`.
+		:obj:`counter`.
 		"""
 		return s4counter("{}.".format(counter))
 
 	def strerror(self, text):
 		"""
 		Return a nicely formatted and colored string for the error text
-		:var:`text`.
+		:obj:`text`.
 		"""
 		return s4error(text)
 
 	def strkey(self, key):
 		"""
 		Return a nicely formatted and colored string for the action key
-		:var:`key`.
+		:obj:`key`.
 		"""
 		s = str(key)
 		if isinstance(key, url.URL) and key.islocal():
@@ -1310,7 +1310,7 @@ class Project(dict):
 	def straction(self, action):
 		"""
 		Return a nicely formatted and colored string for the action
-		:var:`action`.
+		:obj:`action`.
 		"""
 		name = action.__class__.__name__
 		if name.endswith("Action"):
@@ -1340,8 +1340,8 @@ class Project(dict):
 
 	def __setitem__(self, key, target):
 		"""
-		Add the action :var:`target` to :var:`self` as a target and register it
-		under the key :var:`key`.
+		Add the action :obj:`target` to :obj:`self` as a target and register it
+		under the key :obj:`key`.
 		"""
 		if isinstance(key, url.URL) and key.islocal():
 			key = key.abs(scheme="file")
@@ -1352,8 +1352,8 @@ class Project(dict):
 
 	def add(self, target, key=None):
 		"""
-		Add the action :var:`target` as a target to :var:`self`. If :var:`key`
-		is not :const:`None`, :var:`target` will be registered under this key,
+		Add the action :obj:`target` as a target to :obj:`self`. If :obj:`key`
+		is not :const:`None`, :obj:`target` will be registered under this key,
 		otherwise it will be registered under its own key (i.e. ``target.key``).
 		"""
 		if key is None: # Use the key from the target
@@ -1369,7 +1369,7 @@ class Project(dict):
 
 	def _candidates(self, key):
 		"""
-		Return candidates for alternative forms of :var:`key`. This is a
+		Return candidates for alternative forms of :obj:`key`. This is a
 		generator, so when the first suitable candidate is found, the rest of the
 		candidates won't have to be created at all.
 		"""
@@ -1386,9 +1386,9 @@ class Project(dict):
 
 	def __getitem__(self, key):
 		"""
-		Return the target with the key :var:`key`. If an key can't be found, it
+		Return the target with the key :obj:`key`. If an key can't be found, it
 		will be wrapped in a :class:`ll.url.URL` object and retried. If
-		:var:`key` still can't be found a :exc:`UndefinedTargetError` will be
+		:obj:`key` still can't be found a :exc:`UndefinedTargetError` will be
 		raised.
 		"""
 		for key2 in self._candidates(key):
@@ -1400,13 +1400,13 @@ class Project(dict):
 
 	def has_key(self, key):
 		"""
-		Return whether the target with the key :var:`key` exists in the project.
+		Return whether the target with the key :obj:`key` exists in the project.
 		"""
 		return key in self
 
 	def __contains__(self, key):
 		"""
-		Return whether the target with the key :var:`key` exists in the project.
+		Return whether the target with the key :obj:`key` exists in the project.
 		"""
 		return any(super(Project, self).__contains__(key2) for key2 in self._candidates(key))
 
@@ -1468,7 +1468,7 @@ class Project(dict):
 	def parseargs(self, args=None):
 		"""
 		Use the parser returned by :meth:`argparser` to parse the argument
-		sequence :var:`args`, modify :var:`self` accordingly and return
+		sequence :obj:`args`, modify :obj:`self` accordingly and return
 		the result of the parsers :meth:`parse_args` call.
 		"""
 		p = self.argparser()
@@ -1486,9 +1486,9 @@ class Project(dict):
 
 	def _get(self, target, since):
 		"""
-		:var:`target` must be an action registered in :var:`self` (or the id of
+		:obj:`target` must be an action registered in :obj:`self` (or the id of
 		one). For this target the :meth:`Action.get` will be called with
-		:var:`since` as the argument.
+		:obj:`since` as the argument.
 		"""
 		global currentproject
 
@@ -1505,16 +1505,16 @@ class Project(dict):
 
 	def get(self, target):
 		"""
-		Get up-to-date output data from the target :var:`target` (which must be
-		an action registered with :var:`self` (or the id of one). During the call
-		the global variable ``currentproject`` will be set to :var:`self`.
+		Get up-to-date output data from the target :obj:`target` (which must be
+		an action registered with :obj:`self` (or the id of one). During the call
+		the global variable ``currentproject`` will be set to :obj:`self`.
 		"""
 		return self._get(target, bigbang)
 
 	def build(self, *targets):
 		"""
-		Rebuild all targets in :var:`targets`. Items in :var:`targets` must be
-		actions registered with :var:`self` (or their ids).
+		Rebuild all targets in :obj:`targets`. Items in :obj:`targets` must be
+		actions registered with :obj:`self` (or their ids).
 		"""
 		global currentproject
 
@@ -1575,7 +1575,7 @@ class Project(dict):
 
 	def buildwithargs(self, args=None):
 		"""
-		For calling make scripts from the command line. :var:`args` defaults to
+		For calling make scripts from the command line. :obj:`args` defaults to
 		``sys.argv``. Any positional arguments in the command line will be treated
 		as target ids. If there are no positional arguments, a list of all
 		registered :class:`PhonyAction` objects will be output.
@@ -1655,7 +1655,7 @@ class Project(dict):
 
 	def writestacklevel(self, level, *texts):
 		"""
-		Output :var:`texts` indented :var:`level` levels.
+		Output :obj:`texts` indented :obj:`level` levels.
 		"""
 		self.write(s4indent(level*self.indent), *texts)
 		if self.showtime and self.starttime is not None:
@@ -1664,7 +1664,7 @@ class Project(dict):
 
 	def writestack(self, *texts):
 		"""
-		Output :var:`texts` indented properly for the current nesting of
+		Output :obj:`texts` indented properly for the current nesting of
 		action execution.
 		"""
 		count = misc.count(level for level in self.stack if level.reportable)
@@ -1683,8 +1683,8 @@ class Project(dict):
 
 	def writestep(self, action, *texts):
 		"""
-		Output :var:`texts` as the description of the data transformation
-		done by the action :var:`arction`.
+		Output :obj:`texts` as the description of the data transformation
+		done by the action :obj:`arction`.
 		"""
 		self.stepsexecuted += 1
 		if self.showstep is not None and isinstance(action, self.showstep):
@@ -1694,8 +1694,8 @@ class Project(dict):
 
 	def writenote(self, action, *texts):
 		"""
-		Output :var:`texts` as the note for the data transformation done by
-		the action :var:`action`.
+		Output :obj:`texts` as the note for the data transformation done by
+		the action :obj:`action`.
 		"""
 		self.stepsexecuted += 1
 		if self.shownote is not None and isinstance(action, self.shownote):
@@ -1730,8 +1730,8 @@ class Project(dict):
 
 	def findpaths(self, target, source):
 		"""
-		Find dependency paths leading from the action :var:`target` to the action
-		:var:`source`.
+		Find dependency paths leading from the action :obj:`target` to the action
+		:obj:`source`.
 		"""
 		return target.findpaths(source)
 

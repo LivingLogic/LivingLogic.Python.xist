@@ -201,8 +201,8 @@ Migrating to version 3.20
 Changes to :mod:`ll.orasql`
 ---------------------------
 
-*	The :var:`schema` argument used by various methods in :mod:`ll.orasql` has
-	been replaced by a :var:`owner` argument that can be :const:`None` (for the
+*	The :obj:`schema` argument used by various methods in :mod:`ll.orasql` has
+	been replaced by a :obj:`owner` argument that can be :const:`None` (for the
 	current user), the constant :const:`ALL` for all users (which uses the
 	``DBA_*`` variant of various meta data views if possible or the ``ALL_*``
 	variants otherwise) and a specific user name.
@@ -217,7 +217,7 @@ Changes to :mod:`ll.orasql`
 *	:mod:`ll.orasql` now requires cx_Oracle 5.1 (i.e. ``UNICODE`` mode is no
 	longer used).
 
-*	If the :var:`readlobs` option is false for :mod:`ll.orasql` cursors, the
+*	If the :obj:`readlobs` option is false for :mod:`ll.orasql` cursors, the
 	CLOBs/BLOBs returned will be wrapped into something that behaves like a
 	Python file. The original :class:`LOB` object is available as the ``value``
 	attribute of the returned wrapper object::
@@ -299,7 +299,7 @@ Changes to :mod:`ll.ul4c`
 *	Date constants now need a ``@`` as a prefix. I.e. chance ``2010-11-03T`` to
 	``@2010-11-03T`` etc.
 
-*	The :var:`function` argument for :meth:`ul4c.Template.pythonsource` is gone.
+*	The :obj:`function` argument for :meth:`ul4c.Template.pythonsource` is gone.
 	The output will always be a full function.
 
 
@@ -676,8 +676,8 @@ Changes to the make module
 
 		make.FileAction(key=url.File("foo.txt"))
 
-*	The :var:`targetroot` parameter for :meth:`ll.make.XISTConvertAction.__init__`
-	has been renamed to :var:`root`.
+*	The :obj:`targetroot` parameter for :meth:`ll.make.XISTConvertAction.__init__`
+	has been renamed to :obj:`root`.
 
 Changes to TOXIC
 ----------------
@@ -845,7 +845,7 @@ Migrating to version 2.13
 Changes to :mod:`ll.xist.xsc`
 -----------------------------
 
-:meth:`xsc.Namespace.tokenize` no longer has an :var:`encoding` argument, but
+:meth:`xsc.Namespace.tokenize` no longer has an :obj:`encoding` argument, but
 operates on a unicode string directly. You can either use the result of a
 :meth:`asString` call or decode the result of an :meth:`asBytes` call yourself.
 
@@ -948,8 +948,8 @@ use ``foo.__class__.__name__``.
 Changes to the methods :meth:`walk`, :meth:`find` and :meth:`findfirst`
 -----------------------------------------------------------------------
 
-The argument :var:`filtermode` has been renamed to :var:`inmode` and (for
-:meth:`walk`) :var:`walkmode` has been renamed to :var:`outmode`.
+The argument :obj:`filtermode` has been renamed to :obj:`inmode` and (for
+:meth:`walk`) :obj:`walkmode` has been renamed to :obj:`outmode`.
 
 
 Migrating to version 2.8
@@ -1024,7 +1024,7 @@ Parsing HTML
 
 Parsing HTML is now done via libxml2's HTML parser, instead of using µTidyLib of
 mxTidy. You can no longer pass arguments to tidy. Only the boolean values of the
-:var:`tidy` argument will be used. There are no other visible changes to the API
+:obj:`tidy` argument will be used. There are no other visible changes to the API
 but the result of parsing might have changed.
 
 Removed APIs and scripts
@@ -1065,17 +1065,17 @@ Parsing has changed internally, but the module level parsing functions in
 :mod:`ll.xist.parsers` are still available (and will create a parser on the
 fly), but a few arguments have changed:
 
-:var:`handler`
+:obj:`handler`
 	This argument is no longer available, if you need a special handler, you
 	have to subclass :class:`ll.xist.parsers.Parser` and call its parsing
 	methods.
 
-:var:`parser`
-	This argument has been renamed to :var:`saxparser` and is *not* a SAX2
+:obj:`parser`
+	This argument has been renamed to :obj:`saxparser` and is *not* a SAX2
 	parser instance any longer, but a callable that will create a SAX2 parser.
 
-:var:`sysid`
-	:var:`sysid` is now available for all parsing functions not just
+:obj:`sysid`
+	:obj:`sysid` is now available for all parsing functions not just
 	:func:`parseString`.
 
 Changes to converter contexts
@@ -1129,9 +1129,9 @@ can be simplified to::
 
 	prefixes = xsc.Prefixes(html, svg=svg)
 
-The three arguments :var:`elementmode`, :var:`entitymode` and
-:var:`procinstmode` for the publishing methods have been combined into
-:var:`prefixmode`, which is used for elements only.
+The three arguments :obj:`elementmode`, :obj:`entitymode` and
+:obj:`procinstmode` for the publishing methods have been combined into
+:obj:`prefixmode`, which is used for elements only.
 
 Changed namespaces
 ------------------
@@ -1173,7 +1173,7 @@ or::
 
 	NodeClass.isallowed("attr")
 
-Many :class:`Attrs` methods have gained an additional parameter :var:`xml`,
+Many :class:`Attrs` methods have gained an additional parameter :obj:`xml`,
 which specifies whether an attribute name should be treated as the XML or the
 Python name of the attribute. Make sure that you're not mixing up your arguments
 in the function call. The safest method for this is using keyword arguments,
@@ -1223,7 +1223,7 @@ with::
 		skiproot=True
 	)
 
-But one minor difference remains: when :var:`skiproot` is set to true in the new
+But one minor difference remains: when :obj:`skiproot` is set to true in the new
 :meth:`find` method, the attributes of the root element will *not* be traversed.
 With the old method they would be traversed.
 
@@ -1236,8 +1236,8 @@ Namespace changes
 -----------------
 
 Namespaces can no longer be instantiated. Instead you have to derive a class
-from :class:`Namespace`. The :var:`xmlprefix` argument from the constructor
-becomes a class attribute :attr:`xmlname` and the argument :var:`xmlname`
+from :class:`Namespace`. The :obj:`xmlprefix` argument from the constructor
+becomes a class attribute :attr:`xmlname` and the argument :obj:`xmlname`
 becomes :attr:`xmlurl`.
 
 Adding element classes to the namespace is now done with the :class:`Namespace`
@@ -1259,8 +1259,8 @@ Migrating to version 2.1
 
 The method :meth:`withSep` has been renamed to :meth:`withsep`.
 
-The argument :var:`defaultEncoding` for the various parsing functions has been
-renamed to :var:`encoding`.
+The argument :obj:`defaultEncoding` for the various parsing functions has been
+renamed to :obj:`encoding`.
 
 
 Migrating to version 2.0

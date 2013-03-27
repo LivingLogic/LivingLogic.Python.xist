@@ -36,13 +36,13 @@ except ImportError:
 
 	def item(iterator, index, default=_defaultitem):
 		"""
-		Returns the :var:`index`'th element from the iterable. :var:`index` may be
+		Returns the :obj:`index`'th element from the iterable. :obj:`index` may be
 		negative to count from the end. E.g. 0 returns the first element produced
-		by the iterator, 1 the second, -1 the last one etc. If :var:`index` is
+		by the iterator, 1 the second, -1 the last one etc. If :obj:`index` is
 		negative the iterator will be completely exhausted, if it's positive it
-		will be exhausted up to the :var:`index`'th element. If the iterator
+		will be exhausted up to the :obj:`index`'th element. If the iterator
 		doesn't produce that many elements :exc:`IndexError` will be raised,
-		except when :var:`default` is given, in which case :var:`default` will be
+		except when :obj:`default` is given, in which case :obj:`default` will be
 		returned.
 		"""
 		i = index
@@ -70,7 +70,7 @@ except ImportError:
 		"""
 		Return the first element from the iterable. If the iterator doesn't
 		produce any elements :exc:`IndexError` will be raised, except when
-		:var:`default` is given, in which case :var:`default` will be returned.
+		:obj:`default` is given, in which case :obj:`default` will be returned.
 		"""
 		return item(iterator, 0, default)
 
@@ -78,8 +78,8 @@ except ImportError:
 	def last(iterator, default=_defaultitem):
 		"""
 		Return the last element from the iterable. If the iterator doesn't produce
-		any elements :exc:`IndexError` will be raised, except when :var:`default`
-		is given, in which case :var:`default` will be returned.
+		any elements :exc:`IndexError` will be raised, except when :obj:`default`
+		is given, in which case :obj:`default` will be returned.
 		"""
 		return item(iterator, -1, default)
 
@@ -229,11 +229,11 @@ class Pool(object):
 
 	def register(self, object):
 		"""
-		Register :var:`object` in the pool. :var:`object` can be a module, a
+		Register :obj:`object` in the pool. :obj:`object` can be a module, a
 		dictionary or a :class:`Pool` objects (with registers the pool as a base
-		pool). If :var:`object` is a module and has an attribute :attr:`__bases__`
+		pool). If :obj:`object` is a module and has an attribute :attr:`__bases__`
 		(being a sequence of other modules) this attribute will be used to
-		initialize :var:`self` base pool.
+		initialize :obj:`self` base pool.
 		"""
 		if isinstance(object, types.ModuleType):
 			self.register(object.__dict__)
@@ -270,14 +270,14 @@ class Pool(object):
 
 	def clear(self):
 		"""
-		Make :var:`self` empty.
+		Make :obj:`self` empty.
 		"""
 		self._attrs.clear()
 		del self.bases[:]
 
 	def clone(self):
 		"""
-		Return a copy of :var:`self`.
+		Return a copy of :obj:`self`.
 		"""
 		copy = self.__class__()
 		copy._attrs = self._attrs.copy()
@@ -290,7 +290,7 @@ class Pool(object):
 
 def iterone(item):
 	"""
-	Return an iterator that will produce one item: :var:`item`.
+	Return an iterator that will produce one item: :obj:`item`.
 	"""
 	yield item
 
@@ -326,7 +326,7 @@ class Iterator(object):
 
 	def get(self, index, default=None):
 		"""
-		Return the :var:`index`\th item from the iterator (or :var:`default` if
+		Return the :obj:`index`\th item from the iterator (or :obj:`default` if
 		there's no such item).
 		"""
 		return item(self, index, default)
@@ -343,13 +343,13 @@ class Queue(object):
 
 	def write(self, chars):
 		"""
-		Write the string :var:`chars` to the buffer.
+		Write the string :obj:`chars` to the buffer.
 		"""
 		self._buffer += chars
 
 	def read(self, size=-1):
 		"""
-		Read up to :var:`size` character from the buffer (or all if :var:`size`
+		Read up to :obj:`size` character from the buffer (or all if :obj:`size`
 		is negative). Those characters will be removed from the buffer.
 		"""
 		if size<0:
@@ -407,7 +407,7 @@ class FlagAction(argparse.Action):
 
 def tokenizepi(string):
 	"""
-	Tokenize the string object :var:`string` according to the processing
+	Tokenize the string object :obj:`string` according to the processing
 	instructions in the string. :func:`tokenize` will generate tuples with the
 	first item being the processing instruction target and the second being the
 	PI data. "Text" content (i.e. anything other than PIs) will be returned as
@@ -444,8 +444,8 @@ def tokenizepi(string):
 
 def gzip(data, compresslevel=9):
 	"""
-	Compresses the byte string :var:`data` with gzip using the compression level
-	:var:`compresslevel`.
+	Compresses the byte string :obj:`data` with gzip using the compression level
+	:obj:`compresslevel`.
 	"""
 	stream = io.BytesIO()
 	compressor = gzip_.GzipFile(filename="", mode="wb", fileobj=stream, compresslevel=compresslevel)
@@ -456,7 +456,7 @@ def gzip(data, compresslevel=9):
 
 def gunzip(data):
 	"""
-	Uncompresses the byte string :var:`data` with gzip.
+	Uncompresses the byte string :obj:`data` with gzip.
 	"""
 	stream = io.BytesIO(data)
 	compressor = gzip_.GzipFile(filename="", mode="rb", fileobj=stream)
@@ -465,7 +465,7 @@ def gunzip(data):
 
 def itersplitat(string, positions):
 	"""
-	Split :var:`string` at the positions specified in :var:`positions`.
+	Split :obj:`string` at the positions specified in :obj:`positions`.
 
 	For example::
 
@@ -489,9 +489,9 @@ def itersplitat(string, positions):
 
 def module(code, filename="unnamed.py", name=None):
 	"""
-	Create a module from the Python source code :var:`code`. :var:`filename` will
-	be used as the filename for the module and :var:`name` as the module name
-	(defaulting to the filename part of :var:`filename`).
+	Create a module from the Python source code :obj:`code`. :obj:`filename` will
+	be used as the filename for the module and :obj:`name` as the module name
+	(defaulting to the filename part of :obj:`filename`).
 	"""
 	if name is None:
 		name = os.path.splitext(os.path.basename(filename))[0]
@@ -504,7 +504,7 @@ def module(code, filename="unnamed.py", name=None):
 
 def javaexpr(obj):
 	"""
-	Return a Java expression for the object :var:`obj`.
+	Return a Java expression for the object :obj:`obj`.
 	"""
 
 	from ll import ul4c
@@ -572,7 +572,7 @@ class SysInfo(object):
 	:class:`SysInfo` object also support a mimimal dictionary interface (i.e.
 	:meth:`__getitem__` and :meth:`__iter__`).
 
-	One module global instance named :var:`sysinfo` is created at module import
+	One module global instance named :obj:`sysinfo` is created at module import
 	time.
 	"""
 
@@ -856,10 +856,10 @@ class monthdelta(object):
 
 def prettycsv(rows, padding="   "):
 	"""
-	Format table :var:`rows`.
+	Format table :obj:`rows`.
 
-	:var:`rows` must be a list of lists of strings (e.g. as produced by the
-	:mod:`cvs` module). :var:`padding` is the padding between columns.
+	:obj:`rows` must be a list of lists of strings (e.g. as produced by the
+	:mod:`cvs` module). :obj:`padding` is the padding between columns.
 
 	:func:`prettycsv` is a generator.
 	"""
@@ -898,7 +898,7 @@ class JSMinUnterminatedRegularExpression(Exception):
 
 def jsmin(input):
 	"""
-	Minimizes the Javascript source :var:`input`.
+	Minimizes the Javascript source :obj:`input`.
 	"""
 	indata = iter(input.replace("\r", "\n"))
 

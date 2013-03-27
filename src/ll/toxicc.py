@@ -171,8 +171,8 @@ __all__ = ["compile", "prettify"]
 
 def _stringifyoracle(string, nchar=False):
 	"""
-	Format :var:`string` as multiple PL/SQL string constants or expressions.
-	:var:`nchar` specifies if a ``NVARCHAR`` constant should be generated or a
+	Format :obj:`string` as multiple PL/SQL string constants or expressions.
+	:obj:`nchar` specifies if a ``NVARCHAR`` constant should be generated or a
 	``VARCHAR``. This is a generator.
 	"""
 	current = []
@@ -342,9 +342,9 @@ def _compile_sqlserver(string):
 
 def compile(string, mode="oracle"):
 	"""
-	The :class:`unicode` object :var:`string` must be a string containing
+	The :class:`unicode` object :obj:`string` must be a string containing
 	embedded TOXIC processing instructions. :func:`compile` creates the body of
-	an Oracle or SQL Server function or procedure from it. :var:`mode` can be
+	an Oracle or SQL Server function or procedure from it. :obj:`mode` can be
 	either ``"oracle"`` or ``"sqlserver".
 	"""
 	if mode == "oracle":
@@ -356,7 +356,7 @@ def compile(string, mode="oracle"):
 
 def prettify(string, mode="oracle"):
 	"""
-	Try to fix the indentation of the PL/SQL snippet passed in. :var:`mode` can
+	Try to fix the indentation of the PL/SQL snippet passed in. :obj:`mode` can
 	be either ``"oracle"`` or ``"sqlserver"``.
 	"""
 	lines = [line.lstrip() for line in string.splitlines()]

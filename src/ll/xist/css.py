@@ -40,8 +40,8 @@ def _isstyle(path):
 
 def replaceurls(stylesheet, replacer):
 	"""
-	Replace all URLs appearing in the :class:`CSSStyleSheet` :var:`stylesheet`.
-	For each URL the function :var:`replacer` will be called and the URL will
+	Replace all URLs appearing in the :class:`CSSStyleSheet` :obj:`stylesheet`.
+	For each URL the function :obj:`replacer` will be called and the URL will
 	be replaced with the result.
 	"""
 	def newreplacer(u):
@@ -52,7 +52,7 @@ def replaceurls(stylesheet, replacer):
 def geturls(stylesheet):
 	"""
 	Return a list of all URLs appearing in the :class:`CSSStyleSheet`
-	:var:`stylesheet`.
+	:obj:`stylesheet`.
 	"""
 	return [url.URL(u) for u in cssutils.getUrls(stylesheet)] # This requires cssutils 0.9.5b1
 
@@ -95,24 +95,24 @@ def _doimport(wantmedia, parentsheet, base):
 
 def iterrules(node, base=None, media=None, title=None):
 	"""
-	Return an iterator for all CSS rules defined in the HTML tree :var:`node`.
+	Return an iterator for all CSS rules defined in the HTML tree :obj:`node`.
 	This will parse the CSS defined in any :class:`html.style` or
 	:class:`html.link` element (and recursively in those stylesheets imported
 	via the ``@import`` rule). The rules will be returned as
 	:class:`CSSStyleRule` objects from the :mod:`cssutils` package (so this
 	requires :mod:`cssutils`).
 
-	The :var:`base` argument will be used as the base URL for parsing the
+	The :obj:`base` argument will be used as the base URL for parsing the
 	stylesheet references in the tree (so :const:`None` means the URLs will be
 	used exactly as they appear in the tree). All URLs in the style properties
 	will be resolved.
 
-	If :var:`media` is given, only rules that apply to this media type will
+	If :obj:`media` is given, only rules that apply to this media type will
 	be produced.
 
-	:var:`title` can be used to specify which stylesheet group should be used.
-	If :var:`title` is :const:`None` only the persistent and preferred
-	stylesheets will be used. If :var:`title` is a string only the persistent
+	:obj:`title` can be used to specify which stylesheet group should be used.
+	If :obj:`title` is :const:`None` only the persistent and preferred
+	stylesheets will be used. If :obj:`title` is a string only the persistent
 	stylesheets and alternate stylesheets with that style name will be used.
 
 	For a description of "persistent", "preferred" and "alternate" stylesheets
@@ -159,12 +159,12 @@ def iterrules(node, base=None, media=None, title=None):
 
 def applystylesheets(node, base=None, media=None, title=None):
 	"""
-	:func:`applystylesheets` modifies the XIST tree :var:`node` by removing all
+	:func:`applystylesheets` modifies the XIST tree :obj:`node` by removing all
 	CSS (from :class:`html.link` and :class:`html.style` elements and their
 	``@import``\ed stylesheets) and puts the resulting style properties into
 	the ``style`` attribute of every affected element instead.
 
-	For the meaning of :var:`base`, :var:`media` and :var:`title` see
+	For the meaning of :obj:`base`, :obj:`media` and :obj:`title` see
 	:func:`iterrules`.
 	"""
 
@@ -209,7 +209,7 @@ def applystylesheets(node, base=None, media=None, title=None):
 ###
 
 def _is_nth_node(iterator, node, index):
-	# Return whether :var:`node` is the :var:`index`'th node in :var:`iterator` (starting at 1)
+	# Return whether :obj:`node` is the :obj:`index`'th node in :obj:`iterator` (starting at 1)
 	# index is an int or int string or "even" or "odd"
 	if index == "even":
 		for (i, child) in enumerate(iterator):
@@ -237,7 +237,7 @@ def _is_nth_node(iterator, node, index):
 
 
 def _is_nth_last_node(iterator, node, index):
-	# Return whether :var:`node` is the :var:`index`'th last node in :var:`iterator`
+	# Return whether :obj:`node` is the :obj:`index`'th last node in :obj:`iterator`
 	# index is an int or int string or "even" or "odd"
 	if index == "even":
 		pos = None
@@ -683,8 +683,8 @@ _function2class = {
 def selector(selectors, prefixes=None):
 	"""
 	Create a :class:`xfind.Selector` object that matches all nodes that match
-	the specified CSS selector expression. :var:`selectors` can be a string or a
-	:class:`cssutils.css.selector.Selector` object. :var:`prefixes`
+	the specified CSS selector expression. :obj:`selectors` can be a string or a
+	:class:`cssutils.css.selector.Selector` object. :obj:`prefixes`
 	may be a mapping mapping namespace prefixes to namespace names.
 	"""
 
@@ -786,8 +786,8 @@ def selector(selectors, prefixes=None):
 
 def parsestring(data, base=None, encoding=None):
 	"""
-	Parse the string :var:`data` into a :mod:`cssutils` stylesheet. :var:`base`
-	is the base URL for the parsing process, :var:`encoding` can be used to force
+	Parse the string :obj:`data` into a :mod:`cssutils` stylesheet. :obj:`base`
+	is the base URL for the parsing process, :obj:`encoding` can be used to force
 	the parser to use the specified encoding.
 	"""
 	if encoding is None:
@@ -807,8 +807,8 @@ def parsestring(data, base=None, encoding=None):
 
 def parsestream(stream, base=None, encoding=None):
 	"""
-	Parse a :mod:`cssutils` stylesheet from the stream :var:`stream`. :var:`base`
-	is the base URL for the parsing process, :var:`encoding` can be used to force
+	Parse a :mod:`cssutils` stylesheet from the stream :obj:`stream`. :obj:`base`
+	is the base URL for the parsing process, :obj:`encoding` can be used to force
 	the parser to use the specified encoding.
 	"""
 	return parsestring(stream.read(), base=base, encoding=None)
@@ -816,9 +816,9 @@ def parsestream(stream, base=None, encoding=None):
 
 def parsefile(filename, base=None, encoding=None):
 	"""
-	Parse a :mod:`cssutils` stylesheet from the file named :var:`filename`.
-	:var:`base` is the base URL for the parsing process (defaulting to the
-	filename itself), :var:`encoding` can be used to force the parser to use the
+	Parse a :mod:`cssutils` stylesheet from the file named :obj:`filename`.
+	:obj:`base` is the base URL for the parsing process (defaulting to the
+	filename itself), :obj:`encoding` can be used to force the parser to use the
 	specified encoding.
 	"""
 	filename = os.path.expanduser(filename)
@@ -830,10 +830,10 @@ def parsefile(filename, base=None, encoding=None):
 
 def parseurl(name, base=None, encoding=None, *args, **kwargs):
 	"""
-	Parse a :mod:`cssutils` stylesheet from the URL :var:`name`. :var:`base` is
+	Parse a :mod:`cssutils` stylesheet from the URL :obj:`name`. :obj:`base` is
 	the base URL for the parsing process (defaulting to the final URL of the
-	response, i.e. including redirects), :var:`encoding` can be used to force
-	the parser to use the specified encoding. :var:`arg` and :var:`kwargs` are
+	response, i.e. including redirects), :obj:`encoding` can be used to force
+	the parser to use the specified encoding. :obj:`arg` and :obj:`kwargs` are
 	passed on to :meth:`URL.openread`, so you can pass POST data and request
 	headers.
 	"""

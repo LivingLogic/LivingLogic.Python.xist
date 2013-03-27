@@ -113,7 +113,7 @@ class AnyWarning(SIMSWarning):
 
 def badtext(node):
 	"""
-	Return whether :var:`node` is a text node (i.e. :class:`ll.xist.xsc.Text`
+	Return whether :obj:`node` is a text node (i.e. :class:`ll.xist.xsc.Text`
 	that does not consist of whitespace only).
 	"""
 	if isinstance(node, xsc.Text):
@@ -166,7 +166,7 @@ class NoElements(object):
 
 	def validate(self, path):
 		"""
-		check that the content of :var:`node` is valid.
+		check that the content of :obj:`node` is valid.
 		"""
 		node = path[-1]
 		if isinstance(node, xsc.Element):
@@ -187,7 +187,7 @@ class NoElementsOrText(object):
 
 	def validate(self, path):
 		"""
-		check that the content of :var:`node` is valid.
+		check that the content of :obj:`node` is valid.
 		"""
 		node = path[-1]
 		if isinstance(node, xsc.Element):
@@ -208,7 +208,7 @@ class Elements(object):
 
 	def __init__(self, *elements):
 		"""
-		Every element in :var:`elements` may be in the content of the node to
+		Every element in :obj:`elements` may be in the content of the node to
 		which this validator is attached. Any other element from one of the
 		namespaces of those elements is invalid. Elements from other namespaces
 		are OK.
@@ -220,7 +220,7 @@ class Elements(object):
 
 	def validate(self, path):
 		"""
-		check that the content of :var:`node` is valid.
+		check that the content of :obj:`node` is valid.
 		"""
 		node = path[-1]
 		ns = None
@@ -243,7 +243,7 @@ class ElementsOrText(Elements):
 
 	def __init__(self, *elements):
 		"""
-		Every element in :var:`elements` may be in the content of the node to
+		Every element in :obj:`elements` may be in the content of the node to
 		which this validator is attached. Any other element from one of the
 		namespaces of those elements is invalid. Elements from other namespaces
 		are OK.
@@ -255,7 +255,7 @@ class ElementsOrText(Elements):
 
 	def validate(self, path):
 		"""
-		Check that the content of :var:`node` is valid.
+		Check that the content of :obj:`node` is valid.
 		"""
 		node = path[-1]
 		ns = None
@@ -277,7 +277,7 @@ class NotElements(object):
 
 	def __init__(self, *elements):
 		"""
-		Every element in :var:`elements` may not be in the content of the node to
+		Every element in :obj:`elements` may not be in the content of the node to
 		which this validator is attached.
 		"""
 		self.elements = elements

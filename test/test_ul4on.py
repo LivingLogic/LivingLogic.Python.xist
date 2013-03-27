@@ -81,7 +81,7 @@ def java_formatsource(string):
 
 def java_runsource(source):
 	"""
-	Compile the Java source :var:`source`, run it and return the output
+	Compile the Java source :obj:`source`, run it and return the output
 	"""
 	maincodetemplate = """
 	public class UL4ONTest

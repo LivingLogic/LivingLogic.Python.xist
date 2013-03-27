@@ -12,10 +12,10 @@
 An XIST namespace that contains definitions for all the elements in `HTML5`_ as
 well as some (deprecated) elements that were in use in previous HTML versions.
 
-__ http://www.w3.org/TR/2012/CR-html5-20121217/
+.. _HTML5: http://www.w3.org/TR/2012/CR-html5-20121217/
 
-For all deprecated elements and attributes the class attribute ``deprecated``
-is set to ``True``.
+For all deprecated elements and attributes the class attribute :obj:`deprecated`
+is set to :const:`True`.
 """
 
 import os, tempfile, subprocess
@@ -87,8 +87,8 @@ class DocTypeHTML5(xsc.DocType):
 class MediaAttr(xsc.TextAttr):
 	def hasmedia(self, media):
 		"""
-		Return whether :var:`self` contains the media type :var:`media`. Returns
-		``True`` if :var:`media` is :const:`None` or :var:`self` is empty.
+		Return whether :obj:`self` contains the media type :obj:`media`. Returns
+		``True`` if :obj:`media` is :const:`None` or :obj:`self` is empty.
 		"""
 		if media is not None and self:
 			return media in {m.strip() for m in str(self).split(",")}
@@ -2425,7 +2425,7 @@ class input(xsc.Element):
 			"""
 		class alt(xsc.TextAttr):
 			"""
-			For ``type="button": provides the textual label for the button for
+			For ``type="button"``: provides the textual label for the button for
 			users and user agents who cannot use the image.
 			"""
 		class autocomplete(xsc.TextAttr):
@@ -2556,11 +2556,11 @@ class input(xsc.Element):
 			"""
 		class width(xsc.TextAttr):
 			"""
-			The width of the button image (for ``type="image")
+			The width of the button image (for ``type="image"``)
 			"""
 		class height(xsc.TextAttr):
 			"""
-			The height of the button image (for ``type="image")
+			The height of the button image (for ``type="image"``)
 			"""
 		class usemap(xsc.URLAttr):
 			deprecated = True
@@ -3336,14 +3336,14 @@ nobr.model = sims.ElementsOrText(*content_flow)
 
 def astext(node, encoding="iso-8859-1", width=72):
 	"""
-	Return the node :var:`node` as a formatted string. :var:`node` must
+	Return the node :obj:`node` as a formatted string. :obj:`node` must
 	contain an HTML tree.
 
 	This requires that `links 2`__ is installed.
 
 		__ http://links.twibright.com/
 
-	:var:`encoding` specifies the output encoding. :var:`width` specifies the
+	:obj:`encoding` specifies the output encoding. :obj:`width` specifies the
 	output width.
 	"""
 
