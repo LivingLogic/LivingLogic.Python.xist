@@ -83,7 +83,7 @@ Changes in ?.?? (released ??/??/2013)
 	undeclared local attributes. The HTML5 namespace extends this to also accept
 	any attribute whose name starts with ``data-`` or ``aria-``.
 
-*	Node comparison is ignores the classes for elements, entities and processsing
+*	Node comparison now ignores the classes for elements, entities and processsing
 	instructions, so that plain nodes compare equal to instances of
 	:class:`Element`, :class:`Entity` or :class:`ProcInst` subclasses as long
 	as the name and content of the node matches.
