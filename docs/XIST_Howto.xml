@@ -866,7 +866,7 @@ print e.bytes(prefixdefault=None)
 <p>This will output (again rewrapped):</p>
 <prog><![CDATA[
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head><h>The page</h></head>
+<head><title>The page</title></head>
 <body><h1>The header</h1><p>The content</p></body>
 </html>]]></prog>
 
@@ -907,7 +907,7 @@ print e.bytes(prefixdefault=None)
 
 <prog><![CDATA[
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:ns="http://www.w3.org/1999/xlink">
-<head><h>The page</h></head>
+<head><title>The page</title></head>
 <body>
 <h1>The header</h1>
 <p>The <a ns:href="http://www.python.org/" ns:type="simple" ns:title="Python" href="http://www.python.org/">Python</a> homepage</p>
@@ -927,7 +927,7 @@ print(e.bytes(prefixes={"http://www.w3.org/1999/xhtml": None, "http://www.w3.org
 
 <prog><![CDATA[
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:xl="http://www.w3.org/1999/xlink">
-<head><h>The page</h></head>
+<head><title>The page</title></head>
 <body>
 <h1>The header</h1>
 <p>The <a xl:href="http://www.python.org/" xl:type="simple" xl:title="Python" href="http://www.python.org/">Python</a> homepage</p>
@@ -957,7 +957,7 @@ print(e.bytes(prefixes={html: None, xlink: "xl"}, hidexmlns=(html, xlink)))
 <p>This will output:</p>
 <prog><![CDATA[
 <html>
-<head><h>The page</h></head>
+<head><title>The page</title></head>
 <body>
 <h1>The header</h1>
 <p>The <a xl:href="http://www.python.org/" xl:type="simple" xl:title="Python" href="http://www.python.org/">Python</a> homepage</p>
