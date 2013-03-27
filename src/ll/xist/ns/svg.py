@@ -498,7 +498,7 @@ class to(xsc.Attrs):
 
 
 class values(xsc.Attrs):
-	class values(xsc.TextAttr): pass
+	class values_(xsc.TextAttr): xmlname = "values"
 
 
 class cx(xsc.Attrs):
