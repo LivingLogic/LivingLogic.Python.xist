@@ -13,10 +13,10 @@ Changes in ?.?? (released ??/??/2013)
 	parse any XML file, even if the pool object doesn't contain an element for
 	the element name, and even if an attribute name isn't declared for an element.
 
-	Undeclared elements will be instances of :class:`ll.xist.xsc.Element` with
-	the attributes ``xmlns`` and ``xmlname`` set accordingly and undeclared
-	attributes will be instances of :class:`ll.xist.xsc.Attr` (with proper
-	``xmlns`` and ``xmlname`` attributes).
+	Undeclared elements will be "plain" instances of :class:`ll.xist.xsc.Element`
+	with the attributes ``xmlns`` and ``xmlname`` set accordingly and undeclared
+	attributes will be "plain" instances of :class:`ll.xist.xsc.Attr` (with
+	proper ``xmlns`` and ``xmlname`` attributes).
 
 	This new feature requires several API changes which will be described below.
 
@@ -81,6 +81,11 @@ Changes in ?.?? (released ??/??/2013)
 	:meth:`Attrs.validateattr`. The default implementation yields warnings about
 	undeclared local attributes. The HTML5 namespace extends this to also accept
 	any attribute whose name starts with ``data-`` or ``aria-``.
+
+*	Node comparison is ignores the classes for elements, entities and processsing
+	instructions, so that plain nodes compare equal to instances of
+	:class:`Element`, :class:`Entity` or :class:`ProcInst` subclasses as long
+	as the name and content of the node matches.
 
 *	Converter contexts now support string as keys (which must be hierarchical
 	dot-separated names similar to Java package names (e.g.
