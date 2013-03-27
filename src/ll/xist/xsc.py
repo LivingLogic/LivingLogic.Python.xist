@@ -2154,6 +2154,9 @@ class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
 	def _str(self):
 		return "processing instruction {}".format(self.xmlname)
 
+	def __eq__(self, other):
+		return isinstance(other, ProcInst) and self.xmlname == other.xmlname and self.content == other.content
+
 	def convert(self, converter):
 		return self
 
