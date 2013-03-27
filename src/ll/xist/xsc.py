@@ -3013,7 +3013,10 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		in :obj:`names` are kept, all others are removed.
 		"""
 		def isok(node):
-			return (node.xmlns, node.xmlname) in names
+			if node.xmlns is None:
+				return (node.xmlns, node.xmlname) in names or node.xmlname in names
+			else:
+				return (node.xmlns, node.xmlname) in names
 
 		names = self._fixnames(names)
 		return self.filtered(isok)
@@ -3024,7 +3027,10 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		in :obj:`names` are removed.
 		"""
 		def isok(node):
-			return (node.xmlns, node.xmlname) not in names
+			if node.xmlns is None:
+				return (node.xmlns, node.xmlname) not in names and node.xmlname not in names
+			else:
+				return (node.xmlns, node.xmlname) not in names
 
 		names = self._fixnames(names)
 		return self.filtered(isok)
