@@ -226,24 +226,33 @@ def test_xmlns():
 	assert isinstance(e[0][0], ihtml.a)
 
 	s = "<a><a xmlns={!r}/></a>".format(ihtml.xmlns).encode("utf-8")
-	e  = parse.tree(s, parse.Expat(), parse.NS(html), parse.Node(pool=xsc.Pool(ihtml)))
+	with warnings.catch_warnings(record=True) as ws:
+		e  = parse.tree(s, parse.Expat(), parse.NS(html), parse.Node(pool=xsc.Pool(ihtml)))
 	assert e[0].__class__ is xsc.Element
 	assert e[0].xmlname == "a"
 	assert e[0].xmlns == html.xmlns
 	assert isinstance(e[0][0], ihtml.a)
+	assert len(ws) == 1
+	assert issubclass(ws[0].category, xsc.UndeclaredNodeWarning)
 
 	e = parse.tree(s, parse.Expat(), parse.NS(html), parse.Node(pool=xsc.Pool(html, ihtml)))
 	assert isinstance(e[0], html.a)
 	assert isinstance(e[0][0], ihtml.a)
 
 	s = "<z xmlns={!r}/>".format(doc.xmlns).encode("utf-8")
-	e = parse.tree(s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool(doc.z)))
+	with warnings.catch_warnings(record=True) as ws:
+		e = parse.tree(s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool(doc.z)))
 	assert isinstance(e[0], doc.z)
+	assert len(ws) == 1
+	assert issubclass(ws[0].category, xsc.UndeclaredNodeWarning)
 
-	e = parse.tree(s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool()))
+	with warnings.catch_warnings(record=True) as ws:
+		e = parse.tree(s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool()))
 	assert e[0].__class__ is xsc.Element
 	assert e[0].xmlname == "z"
 	assert e[0].xmlns == doc.xmlns
+	assert len(ws) == 1
+	assert issubclass(ws[0].category, xsc.UndeclaredNodeWarning)
 
 
 def test_parseemptyattribute():
@@ -433,7 +442,7 @@ def test_plain_element():
 	assert node.xmlname == "a"
 
 	assert len(ws) == 1
-	assert issubclass(w[0].category, sims.IllegalObjectWarning)
+	assert issubclass(w[0].category, xsc.IllegalObjectWarning)
 
 
 def test_plain_entity():
@@ -444,7 +453,7 @@ def test_plain_entity():
 	assert node.xmlname == "hurz"
 
 	assert len(ws) == 2
-	assert all(issubclass(w.category, sims.IllegalObjectWarning) for w in ws)
+	assert all(issubclass(w.category, xsc.IllegalObjectWarning) for w in ws)
 
 
 def test_plain_procinst():
@@ -456,4 +465,4 @@ def test_plain_procinst():
 	assert node.content == "text"
 
 	assert len(ws) == 2
-	assert all(issubclass(w.category, sims.IllegalObjectWarning) for w in ws)
+	assert all(issubclass(w.category, xsc.IllegalObjectWarning) for w in ws)
