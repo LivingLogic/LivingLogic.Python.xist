@@ -421,3 +421,23 @@ def test_sgmlop_no_multiple_text_events():
 	assert next(i) == ("endtag", "a")
 	with pytest.raises(StopIteration):
 		next(i)
+
+
+def test_plain_element():
+	node = parse.tree(b"<a xmlns='gurk'/>", parse.Expat(ns=True), parse.Node(pool=xsc.Pool()))[0]
+	assert node.__class__ is xsc.Element
+	assert node.xmlns == "gurk"
+	assert node.xmlname == "a"
+
+
+def test_plain_entity():
+	node = parse.tree(b"<a xmlns='gurk'>&hurz;</a>", parse.Expat(ns=True), parse.Node(pool=xsc.Pool()))[0][0]
+	assert node.__class__ is xsc.Entity
+	assert node.xmlname == "hurz"
+
+
+def test_plain_procinst():
+	node = parse.tree(b"<a xmlns='gurk'><?hurz text?></a>", parse.Expat(ns=True), parse.Node(pool=xsc.Pool()))[0][0]
+	assert node.__class__ is xsc.ProcInst
+	assert node.xmlname == "hurz"
+	assert node.content == "text"
