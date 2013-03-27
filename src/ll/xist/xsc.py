@@ -1505,7 +1505,9 @@ class CharacterData(Node):
 		return self._content.__hash__()
 
 	def __eq__(self, other):
-		return self.__class__ is other.__class__ and self._content == other._content
+		if self.__class__ is other.__class__:
+			return self._content == other._content
+		return NotImplemented
 
 	def __lt__(self, other):
 		if not issubclass(self.__class__, other.__class__) and not issubclass(other.__class__, self.__class__):
@@ -1780,7 +1782,9 @@ class Frag(Node, list):
 		return presenter.presentFrag(self) # return a generator-iterator
 
 	def __eq__(self, other):
-		return self.__class__ is other.__class__ and list.__eq__(self, other)
+		if self.__class__ is other.__class__:
+			return list.__eq__(self, other)
+		return NotImplemented
 
 	def validate(self, recursive=True, path=None):
 		if path is None:
@@ -2155,7 +2159,9 @@ class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
 		return "processing instruction {}".format(self.xmlname)
 
 	def __eq__(self, other):
-		return isinstance(other, ProcInst) and self.xmlname == other.xmlname and self.content == other.content
+		if isinstance(other, ProcInst):
+			return self.xmlname == other.xmlname and self._content == other._content
+		return NotImplemented
 
 	def convert(self, converter):
 		return self
@@ -2697,14 +2703,14 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		return "attrs"
 
 	def __eq__(self, other):
-		if not isinstance(other, Attrs):
-			return False
-		if len(self) != len(other):
-			return False
-		for (key, value) in self.items():
-			if other[key] != value:
+		if isinstance(other, Attrs):
+			if len(self) != len(other):
 				return False
-		return True
+			for (key, value) in self.items():
+				if other[key] != value:
+					return False
+			return True
+		return NotImplemented
 
 	@classmethod
 	def add(cls, value):
@@ -3211,7 +3217,10 @@ class Element(Node, metaclass=_Element_Meta):
 		return self
 
 	def __eq__(self, other):
-		return isinstance(other, Element) and self.xmlname == other.xmlname and self.xmlns == other.xmlns and self.content==other.content and self.attrs==other.attrs
+		if isinstance(other, Element):
+			return  self.xmlname == other.xmlname and self.xmlns == other.xmlns and self.content==other.content and self.attrs==other.attrs
+		return NotImplemented
+
 
 	def validate(self, recursive=True, path=None):
 		if path is None:
@@ -3628,7 +3637,9 @@ class Entity(Node, metaclass=_Entity_Meta):
 		return "entity {}".format(self.xmlname)
 
 	def __eq__(self, other):
-		return isinstance(other, Entity) and self.xmlname == other.xmlname
+		if isinstance(other, Entity):
+			return self.xmlname == other.xmlname
+		return NotImplemented
 
 	def compacted(self):
 		return self
@@ -4175,7 +4186,6 @@ class Location(object):
 		return "{0.__class__.__name__}({1})".format(self, ", ".join("{}={!r}".format(attr, getattr(self, attr)) for attr in ("url", "line", "col") if getattr(self, attr) is not None))
 
 	def __eq__(self, other):
-		return self.__class__ is other.__class__ and self.url==other.url and self.line==other.line and self.col==other.col
-
-	def __ne__(self, other):
-		return not self==other
+		if self.__class__ is other.__class__:
+			return self.url==other.url and self.line==other.line and self.col==other.col
+		return NotImplemented
