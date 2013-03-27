@@ -216,6 +216,19 @@ class UndeclaredAttrWarning(Warning):
 		return "Attribute {} is undeclared in {!r}".format(nsclark(self.attr), self.attrs)
 
 
+class UndeclaredObjectWarning(Warning):
+	"""
+	Warning that is issued when an object (i.e. element, entity or processing
+	instruction) is not declared.
+	"""
+
+	def __init__(self, obj):
+		self.obj = obj
+
+	def __str__(self):
+		return "{!r} is undeclared".format(self.obj)
+
+
 class IllegalPrefixError(Error, LookupError):
 	"""
 	Exception that is raised when a namespace prefix is undefined.
