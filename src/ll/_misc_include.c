@@ -11,14 +11,20 @@
 #ifdef STRINGLIB_NAME
 static PyObject *STRINGLIB_NAME(PyObject *str, int doquot, int doapos)
 {
-	Py_ssize_t i;
 	Py_ssize_t oldsize;
+	void *olddata;
+	int maxchar = 127;
+	Py_ssize_t i;
 	Py_ssize_t newsize = 0;
+	void *newdata;
+
+	STRINGLIB_INTRO
 
 	oldsize = STRINGLIB_LEN(str);
+	olddata = STRINGLIB_STR(str);
 	for (i = 0; i < oldsize; ++i)
 	{
-		STRINGLIB_CHAR ch = STRINGLIB_STR(str)[i];
+		STRINGLIB_CHAR ch = STRINGLIB_GET(olddata, i);
 		if (ch == ((STRINGLIB_CHAR)'<'))
 			newsize += 4; /* &lt; */
 		else if (ch == (STRINGLIB_CHAR)'>') /* Note that we always replace '>' with its entity, not just in case it is part of ']]>' */
@@ -36,7 +42,11 @@ static PyObject *STRINGLIB_NAME(PyObject *str, int doquot, int doapos)
 		else if ((ch >= 0x7F) && (ch <= 0x9F) && (ch != 0x85))
 			newsize += 6;
 		else
+		{
 			newsize++;
+			if (ch > maxchar)
+				maxchar = ch;
+		}
 	}
 	if (oldsize==newsize)
 	{
@@ -46,79 +56,79 @@ static PyObject *STRINGLIB_NAME(PyObject *str, int doquot, int doapos)
 	}
 	else
 	{
-		PyObject *result = STRINGLIB_NEW(NULL, newsize);
-		STRINGLIB_CHAR *p;
+		PyObject *result = STRINGLIB_NEW(newsize, maxchar);
+		newdata = STRINGLIB_STR(result);
+		int index = 0;
 		if (result == NULL)
 			return NULL;
-		p = STRINGLIB_STR(result);
 		for (i = 0; i < oldsize; ++i)
 		{
-			STRINGLIB_CHAR ch = STRINGLIB_STR(str)[i];
+			STRINGLIB_CHAR ch = STRINGLIB_GET(olddata, i);
 			if (ch == (STRINGLIB_CHAR)'<')
 			{
-				*p++ = (STRINGLIB_CHAR)'&';
-				*p++ = (STRINGLIB_CHAR)'l';
-				*p++ = (STRINGLIB_CHAR)'t';
-				*p++ = (STRINGLIB_CHAR)';';
+				STRINGLIB_SET(newdata, index++, '&');
+				STRINGLIB_SET(newdata, index++, 'l');
+				STRINGLIB_SET(newdata, index++, 't');
+				STRINGLIB_SET(newdata, index++, ';');
 			}
 			else if (ch == (STRINGLIB_CHAR)'>')
 			{
-				*p++ = (STRINGLIB_CHAR)'&';
-				*p++ = (STRINGLIB_CHAR)'g';
-				*p++ = (STRINGLIB_CHAR)'t';
-				*p++ = (STRINGLIB_CHAR)';';
+				STRINGLIB_SET(newdata, index++, '&');
+				STRINGLIB_SET(newdata, index++, 'g');
+				STRINGLIB_SET(newdata, index++, 't');
+				STRINGLIB_SET(newdata, index++, ';');
 			}
 			else if (ch == (STRINGLIB_CHAR)'&')
 			{
-				*p++ = (STRINGLIB_CHAR)'&';
-				*p++ = (STRINGLIB_CHAR)'a';
-				*p++ = (STRINGLIB_CHAR)'m';
-				*p++ = (STRINGLIB_CHAR)'p';
-				*p++ = (STRINGLIB_CHAR)';';
+				STRINGLIB_SET(newdata, index++, '&');
+				STRINGLIB_SET(newdata, index++, 'a');
+				STRINGLIB_SET(newdata, index++, 'm');
+				STRINGLIB_SET(newdata, index++, 'p');
+				STRINGLIB_SET(newdata, index++, ';');
 			}
 			else if ((ch == (STRINGLIB_CHAR)'"') && doquot)
 			{
-				*p++ = (STRINGLIB_CHAR)'&';
-				*p++ = (STRINGLIB_CHAR)'q';
-				*p++ = (STRINGLIB_CHAR)'u';
-				*p++ = (STRINGLIB_CHAR)'o';
-				*p++ = (STRINGLIB_CHAR)'t';
-				*p++ = (STRINGLIB_CHAR)';';
+				STRINGLIB_SET(newdata, index++, '&');
+				STRINGLIB_SET(newdata, index++, 'q');
+				STRINGLIB_SET(newdata, index++, 'u');
+				STRINGLIB_SET(newdata, index++, 'o');
+				STRINGLIB_SET(newdata, index++, 't');
+				STRINGLIB_SET(newdata, index++, ';');
 			}
 			else if ((ch == (STRINGLIB_CHAR)'\'') && doapos)
 			{
-				*p++ = (STRINGLIB_CHAR)'&';
-				*p++ = (STRINGLIB_CHAR)'#';
-				*p++ = (STRINGLIB_CHAR)'3';
-				*p++ = (STRINGLIB_CHAR)'9';
-				*p++ = (STRINGLIB_CHAR)';';
+				STRINGLIB_SET(newdata, index++, '&');
+				STRINGLIB_SET(newdata, index++, '#');
+				STRINGLIB_SET(newdata, index++, '3');
+				STRINGLIB_SET(newdata, index++, '9');
+				STRINGLIB_SET(newdata, index++, ';');
 			}
 			else if (ch <= 0x8)
 			{
-				*p++ = (STRINGLIB_CHAR)'&';
-				*p++ = (STRINGLIB_CHAR)'#';
-				*p++ = ((STRINGLIB_CHAR)'0')+ch;
-				*p++ = (STRINGLIB_CHAR)';';
+				STRINGLIB_SET(newdata, index++, '&');
+				STRINGLIB_SET(newdata, index++, '#');
+				STRINGLIB_SET(newdata, index++, '0'+ch);
+				STRINGLIB_SET(newdata, index++, ';');
 			}
 			else if ((ch >= 0xB) && (ch <= 0x1F) && (ch != 0xD))
 			{
-				*p++ = (STRINGLIB_CHAR)'&';
-				*p++ = (STRINGLIB_CHAR)'#';
-				*p++ = ((STRINGLIB_CHAR)'0')+ch/10;
-				*p++ = ((STRINGLIB_CHAR)'0')+ch%10;
-				*p++ = (STRINGLIB_CHAR)';';
+				STRINGLIB_SET(newdata, index++, '&');
+				STRINGLIB_SET(newdata, index++, '#');
+				STRINGLIB_SET(newdata, index++, '0'+ch/10);
+				STRINGLIB_SET(newdata, index++, '0'+ch%10);
+				STRINGLIB_SET(newdata, index++, ';');
 			}
 			else if ((ch >= 0x7F) && (ch <= 0x9F) && (ch != 0x85))
 			{
-				*p++ = (STRINGLIB_CHAR)'&';
-				*p++ = (STRINGLIB_CHAR)'#';
-				*p++ = ((STRINGLIB_CHAR)'0')+ch/100;
-				*p++ = ((STRINGLIB_CHAR)'0')+(ch/10)%10;
-				*p++ = ((STRINGLIB_CHAR)'0')+ch%10;
-				*p++ = (STRINGLIB_CHAR)';';
+				STRINGLIB_SET(newdata, index++, '&');
+				STRINGLIB_SET(newdata, index++, '#');
+				STRINGLIB_SET(newdata, index++, '0'+ch/100);
+				STRINGLIB_SET(newdata, index++, '0'+(ch/10)%10);
+				STRINGLIB_SET(newdata, index++, '0'+ch%10);
+				STRINGLIB_SET(newdata, index++, ';');
 			}
 			else
-				*p++ = ch;
+				STRINGLIB_SET(newdata, index++, ch);
 		}
 		return result;
 	}

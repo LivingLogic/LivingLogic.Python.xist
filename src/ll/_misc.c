@@ -12,35 +12,47 @@
 
 
 /* define unicode version of xmlescape */
-#define STRINGLIB_NAME xmlescape_unicode
-#define STRINGLIB_CHAR Py_UNICODE
-#define STRINGLIB_LEN  PyUnicode_GET_SIZE
-#define STRINGLIB_NEW  PyUnicode_FromUnicode
-#define STRINGLIB_STR  PyUnicode_AS_UNICODE
+#define STRINGLIB_NAME               xmlescape_unicode
+#define STRINGLIB_INTRO              int kind = PyUnicode_KIND(str);
+#define STRINGLIB_CHAR               Py_UCS4
+#define STRINGLIB_LEN(str)           PyUnicode_GET_LENGTH(str)
+#define STRINGLIB_STR(str)           PyUnicode_DATA(str)
+#define STRINGLIB_NEW(size, maxchar) PyUnicode_New(size, maxchar)
+#define STRINGLIB_GET(str, i)        PyUnicode_READ(kind, str, i)
+#define STRINGLIB_SET(str, i, c)     PyUnicode_WRITE(kind, str, i, c)
 
 #include "_misc_include.c"
 
 #undef STRINGLIB_NAME
+#undef STRINGLIB_INTRO
 #undef STRINGLIB_CHAR
+#undef STRINGLIB_STR
 #undef STRINGLIB_LEN
 #undef STRINGLIB_NEW
-#undef STRINGLIB_STR
+#undef STRINGLIB_GET
+#undef STRINGLIB_SET
 
 
 /* define str version of xmlescape */
-#define STRINGLIB_NAME xmlescape_str
-#define STRINGLIB_CHAR unsigned char
-#define STRINGLIB_LEN PyBytes_GET_SIZE
-#define STRINGLIB_NEW PyBytes_FromStringAndSize
-#define STRINGLIB_STR PyBytes_AS_STRING
+#define STRINGLIB_NAME               xmlescape_str
+#define STRINGLIB_INTRO
+#define STRINGLIB_CHAR               unsigned char
+#define STRINGLIB_LEN(str)           PyBytes_GET_SIZE(str)
+#define STRINGLIB_STR(str)           PyBytes_AS_STRING(str)
+#define STRINGLIB_NEW(size, maxchar) PyBytes_FromStringAndSize(NULL, size)
+#define STRINGLIB_GET(str, i)        (((unsigned char *)(str))[i])
+#define STRINGLIB_SET(str, i, c)     ((((unsigned char *)(str))[i]) = (c))
 
 #include "_misc_include.c"
 
 #undef STRINGLIB_NAME
+#undef STRINGLIB_INTRO
 #undef STRINGLIB_CHAR
+#undef STRINGLIB_STR
 #undef STRINGLIB_LEN
 #undef STRINGLIB_NEW
-#undef STRINGLIB_STR
+#undef STRINGLIB_GET
+#undef STRINGLIB_SET
 
 
 static PyObject *_xmlescape(PyObject *arg, int doquot, int doapos)
