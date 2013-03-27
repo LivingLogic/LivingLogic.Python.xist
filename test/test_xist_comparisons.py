@@ -80,7 +80,7 @@ def test_procinsteq():
 	assert ul4.code("x") != ul4.return_("x")
 
 	# Test plain processing instruction instances
-	plainprocinst = xsc.procinst("code")
+	plainprocinst = xsc.procinst("code", "x = 1")
 	assert plainprocinst.__class__ is xsc.ProcInst
 	assert ul4.code("x = 1") == plainprocinst
 
