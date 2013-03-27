@@ -433,7 +433,7 @@ def test_plain_element():
 	assert node.xmlname == "a"
 
 	assert len(ws) == 1
-	issubclass(w[0].category, sims.IllegalObjectWarning))
+	assert issubclass(w[0].category, sims.IllegalObjectWarning)
 
 
 def test_plain_entity():
