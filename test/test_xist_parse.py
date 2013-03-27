@@ -444,7 +444,7 @@ def test_plain_entity():
 	assert node.xmlname == "hurz"
 
 	assert len(ws) == 2
-	assert all(issubclass(w.category, sims.IllegalObjectWarning) for w in ws))
+	assert all(issubclass(w.category, sims.IllegalObjectWarning) for w in ws)
 
 
 def test_plain_procinst():
@@ -456,4 +456,4 @@ def test_plain_procinst():
 	assert node.content == "text"
 
 	assert len(ws) == 2
-	assert all(issubclass(w.category, sims.IllegalObjectWarning) for w in ws))
+	assert all(issubclass(w.category, sims.IllegalObjectWarning) for w in ws)
