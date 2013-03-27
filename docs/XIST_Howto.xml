@@ -639,7 +639,7 @@ attribute class instead of the attribute name like this:</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = html.div(u"foo", {Attrs.foo: u"bar")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.div(u"foo", {Attrs.foo: u"bar"})</input>
 <prompt>&gt;&gt;&gt; </prompt><input>str(node[Attrs.foo])</input>
 'bar'
 </tty>
