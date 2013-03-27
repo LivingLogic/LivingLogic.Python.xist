@@ -12,7 +12,6 @@
 import io, warnings
 
 from xml.etree import cElementTree
-from xml import sax
 from xml.parsers import expat
 
 import pytest
