@@ -14,7 +14,8 @@ Changes in ?.?? (released ??/??/2013)
 	the element name, and even if an attribute name isn't declared for an element.
 
 	Undeclared elements will be "plain" instances of :class:`ll.xist.xsc.Element`
-	with the attributes ``xmlns`` and ``xmlname`` set accordingly and undeclared
+	(i.e. not instances of a subclass of :class:`ll.xist.xsc.Element`) with the
+	attributes ``xmlns`` and ``xmlname`` set accordingly and undeclared
 	attributes will be "plain" instances of :class:`ll.xist.xsc.Attr` (with
 	proper ``xmlns`` and ``xmlname`` attributes).
 
