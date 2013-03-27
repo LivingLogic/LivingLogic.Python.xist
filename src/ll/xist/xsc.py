@@ -4112,6 +4112,29 @@ class apos(CharRef): "apostrophe mark, U+0027 ISOnum"; codepoint = 39
 
 
 ###
+### Functions for creating custom elements, entities and processing instructions
+###
+
+def element(xmlns, xmlname, *content, **attrs):
+	element = Element(*content, **attrs)
+	element.xmlns = xmlns
+	element.xmlname = xmlname
+	return element
+
+
+def entity(xmlname):
+	entity = Entity()
+	entity.xmlname = xmlname
+	return entity
+
+
+def procinst(xmlname, *content):
+	procinst = ProcInst(*content)
+	procinst.xmlname = xmlname
+	return procinst
+
+
+###
 ### Location information
 ###
 
