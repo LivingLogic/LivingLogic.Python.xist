@@ -35,12 +35,12 @@ def test_elementeq():
 	assert html.div("") != html.div("", "")
 	assert html.div(1, html.div(2, html.div(3))) == html.div(1, html.div(2, html.div(3)))
 
-	# Test custom element instances
-	customelement = parsexml(b"<div xmlns='http://www.w3.org/1999/xhtml'/>")[0]
-	assert customelement.__class__ is xsc.Element
-	assert customelement.xmlns == html.div.xmlns
-	assert customelement.xmlname == html.div.xmlname
-	assert html.div() == customelement
+	# Test plain element instances
+	plainelement = parsexml(b"<div xmlns='http://www.w3.org/1999/xhtml'/>")[0]
+	assert plainelement.__class__ is xsc.Element
+	assert plainelement.xmlns == html.div.xmlns
+	assert plainelement.xmlname == html.div.xmlname
+	assert html.div() == plainelement
 
 
 def test_texteq():
@@ -71,10 +71,10 @@ def test_entityeq():
 	assert abbr.html() == abbr.html()
 	assert abbr.sgml() != abbr.html()
 
-	# Test custom entity instances
-	customentity = parsexml(b"<div xmlns='http://www.w3.org/1999/xhtml'>&html;</div>")[0][0]
-	assert customentity.__class__ is xsc.Entity
-	assert abbr.html() == customentity
+	# Test plain entity instances
+	plainentity = parsexml(b"<div xmlns='http://www.w3.org/1999/xhtml'>&html;</div>")[0][0]
+	assert plainentity.__class__ is xsc.Entity
+	assert abbr.html() == plainentity
 
 
 def test_procinsteq():
@@ -83,10 +83,10 @@ def test_procinsteq():
 	assert ul4.code("x = 1") != ul4.code("x = 2")
 	assert ul4.code("x") != ul4.return_("x")
 
-	# Test custom processing instruction instances
-	customprocinst = parsexml(b"<div xmlns='http://www.w3.org/1999/xhtml'><?code x = 1?></div>")[0][0]
-	assert customprocinst.__class__ is xsc.ProcInst
-	assert ul4.code("x = 1") == customprocinst
+	# Test plain processing instruction instances
+	plainprocinst = parsexml(b"<div xmlns='http://www.w3.org/1999/xhtml'><?code x = 1?></div>")[0][0]
+	assert plainprocinst.__class__ is xsc.ProcInst
+	assert ul4.code("x = 1") == plainprocinst
 
 
 def test_mixeq():
