@@ -74,8 +74,8 @@ class contentscripttype(html.meta):
 
 	def convert(self, converter):
 		e = html.meta(self.attrs.withoutnames("type"))
-		e["http_equiv"] = "Content-Script-Type"
-		e["content"] = self["type"]
+		e.attrs["http-equiv"] = "Content-Script-Type"
+		e.attrs["content"] = self["type"]
 		return e.convert(converter)
 
 
@@ -94,8 +94,8 @@ class keywords(html.meta):
 
 	def convert(self, converter):
 		e = html.meta(self.attrs)
-		e["name"] = "keywords"
-		e["content"] = self.content
+		e.attrs["name"] = "keywords"
+		e.attrs["content"] = self.content
 		return e.convert(converter)
 
 
@@ -114,8 +114,8 @@ class description(html.meta):
 
 	def convert(self, converter):
 		e = html.meta(self.attrs)
-		e["name"] = "description"
-		e["content"] = self.content
+		e.attrs["name"] = "description"
+		e.attrs["content"] = self.content
 		return e.convert(converter)
 
 
@@ -165,9 +165,9 @@ class author(xsc.Element):
 	def convert(self, converter):
 		e = xsc.Frag()
 		if "name" in self.attrs:
-			e.append(html.meta(name="author", content=self["name"]))
+			e.append(html.meta(name="author", content=self.attrs["name"]))
 			if "lang" in self.attrs:
-				e[-1]["lang"] = self["lang"]
+				e[-1].attrs["lang"] = self["lang"]
 		if "email" in self.attrs:
 			e.append(html.link(rel="made", href=("mailto:", self["email"])))
 		return e.convert(converter)
@@ -185,5 +185,5 @@ class refresh(xsc.Element):
 		class href(xsc.URLAttr): pass
 
 	def convert(self, converter):
-		e = html.meta(http_equiv="Refresh", content=(self["secs"], "; url=", self["href"]))
+		e = html.meta(http_equiv="Refresh", content=(self.attrs["secs"], "; url=", self.attrs["href"]))
 		return e.convert(converter)
