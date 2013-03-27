@@ -9,7 +9,8 @@
 ## See ll/xist/__init__.py for the license
 
 
-import io
+import io, warnings
+
 from xml.etree import cElementTree
 from xml import sax
 from xml.parsers import expat
@@ -424,20 +425,35 @@ def test_sgmlop_no_multiple_text_events():
 
 
 def test_plain_element():
-	node = parse.tree(b"<a xmlns='gurk'/>", parse.Expat(ns=True), parse.Node(pool=xsc.Pool()))[0]
+	with warnings.catch_warnings(record=True) as ws:
+		node = parse.tree(b"<a xmlns='gurk'/>", parse.Expat(ns=True), parse.Node(pool=xsc.Pool()))[0]
+
 	assert node.__class__ is xsc.Element
 	assert node.xmlns == "gurk"
 	assert node.xmlname == "a"
 
+	assert len(ws) == 1
+	issubclass(w[0].category, sims.IllegalObjectWarning))
+
 
 def test_plain_entity():
-	node = parse.tree(b"<a xmlns='gurk'>&hurz;</a>", parse.Expat(ns=True), parse.Node(pool=xsc.Pool()))[0][0]
+	with warnings.catch_warnings(record=True) as ws:
+		node = parse.tree(b"<a xmlns='gurk'>&hurz;</a>", parse.Expat(ns=True), parse.Node(pool=xsc.Pool()))[0][0]
+
 	assert node.__class__ is xsc.Entity
 	assert node.xmlname == "hurz"
 
+	assert len(ws) == 2
+	assert all(issubclass(w.category, sims.IllegalObjectWarning) for w in ws))
+
 
 def test_plain_procinst():
-	node = parse.tree(b"<a xmlns='gurk'><?hurz text?></a>", parse.Expat(ns=True), parse.Node(pool=xsc.Pool()))[0][0]
+	with warnings.catch_warnings(record=True) as ws:
+		node = parse.tree(b"<a xmlns='gurk'><?hurz text?></a>", parse.Expat(ns=True), parse.Node(pool=xsc.Pool()))[0][0]
+
 	assert node.__class__ is xsc.ProcInst
 	assert node.xmlname == "hurz"
 	assert node.content == "text"
+
+	assert len(ws) == 2
+	assert all(issubclass(w.category, sims.IllegalObjectWarning) for w in ws))
