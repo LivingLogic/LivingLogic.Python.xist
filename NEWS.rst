@@ -85,11 +85,13 @@ Changes in 5.0 (released ??/??/2013)
 	:class:`Element`, :class:`Entity` or :class:`ProcInst` subclasses as long
 	as the name and content of the node matches.
 
+*	:class:`ll.xist.parse.Tidy` no longer has a ``skipbad`` argument.
+
 *	Converter contexts now support string as keys (which must be hierarchical
 	dot-separated names similar to Java package names (e.g.
 	``"org.example.project.handler"``) to avoid name collisions.
 
-*	:class:`ll.xist.parse.Tidy` no longer has a ``skipbad`` argument.
+*	The :mod:`docbook` module has been updated to support DocBook 5.0.
 
 *	:class:`URL` objects are pickable now.
 
