@@ -291,9 +291,9 @@ class String(object):
 	"""
 	def __init__(self, data, url=None):
 		"""
-		Create a :class:`String` object. :obj:`data` must be a byte or
-		unicode string. :obj:`url` specifies the URL for the source (defaulting
-		to ``"STRING"``).
+		Create a :class:`String` object. :obj:`data` must be a :class:`bytes` or
+		:class:`str` object. :obj:`url` specifies the URL for the source
+		(defaulting to ``"STRING"``).
 		"""
 		self.url = url_.URL(url if url is not None else "STRING")
 		self.data = data
@@ -309,7 +309,7 @@ class String(object):
 		elif isinstance(self.data, str):
 			yield ("str", self.data)
 		else:
-			raise TypeError("data must be str or unicode")
+			raise TypeError("data must be str or bytes")
 
 
 class Iter(object):
@@ -320,8 +320,8 @@ class Iter(object):
 	def __init__(self, iterable, url=None):
 		"""
 		Create a :class:`Iter` object. :obj:`iterable` must be an iterable object
-		producing byte or unicode strings. :obj:`url` specifies the URL for the
-		source (defaulting to ``"ITER"``).
+		producing :class:`bytes` or :class:`str` objects. :obj:`url` specifies the
+		URL for the source (defaulting to ``"ITER"``).
 		"""
 		self.url = url_.URL(url if url is not None else "ITER")
 		self.iterable = iterable
@@ -340,7 +340,7 @@ class Iter(object):
 			elif isinstance(data, str):
 				yield ("str", data)
 			else:
-				raise TypeError("data must be str or unicode")
+				raise TypeError("data must be str or bytes")
 
 
 class Stream(object):
@@ -374,7 +374,7 @@ class Stream(object):
 				elif isinstance(data, str):
 					yield ("str", data)
 				else:
-					raise TypeError("data must be str or unicode")
+					raise TypeError("data must be str or bytes")
 			else:
 				break
 
@@ -517,11 +517,11 @@ class ETree(object):
 
 class Decoder(object):
 	"""
-	Decode the byte strings produced by the previous object in the pipeline to
-	unicode strings.
+	Decode the :class:`bytes` object produced by the previous object in the
+	pipeline to :class:`str` object.
 
 	This input object can be a source object or any other pipeline object that
-	produces byte strings.
+	produces :class:`bytes` objects.
 	"""
 
 	def __init__(self, encoding=None):
@@ -556,8 +556,8 @@ class Decoder(object):
 
 class Encoder(object):
 	"""
-	Encode the unicode strings produced by the previous object in the pipeline to
-	byte strings.
+	Encode the :class:`str` objects produced by the previous object in the
+	pipeline to :class:`bytes` object.
 
 	This input object must be a pipeline object that produces unicode output
 	(e.g. a :class:`Decoder` object).
@@ -595,10 +595,10 @@ class Encoder(object):
 
 class Transcoder(object):
 	"""
-	Transcode the byte strings of the input object into another encoding.
+	Transcode the :class:`bytes` object of the input object into another encoding.
 
 	This input object can be a source object or any other pipeline object that
-	produces byte strings.
+	produces :class:`bytes` events.
 	"""
 
 	def __init__(self, fromencoding=None, toencoding=None):

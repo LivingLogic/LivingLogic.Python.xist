@@ -611,7 +611,7 @@ class Publisher(object):
 
 	def encodetext(self, text):
 		"""
-		Encode :obj:`test` as text data. :obj:`text` must be a :class:`unicode`
+		Encode :obj:`test` as text data. :obj:`text` must be a :class:`str`
 		object. The publisher will apply the configured encoding, error handling
 		and the current text filter (which escapes characters that can't appear
 		in text data (like ``<`` etc.)) and returns the resulting :class:`str`
@@ -812,7 +812,7 @@ class Publisher(object):
 
 	def bytes(self, node, base=None):
 		"""
-		Return a byte string in XML format for the XIST node :obj:`node`.
+		Return a :class:`bytes` object in XML format for the XIST node :obj:`node`.
 		"""
 		return b"".join(self.iterbytes(node, base))
 
@@ -831,7 +831,7 @@ class Publisher(object):
 
 	def string(self, node, base=None):
 		"""
-		Return a unicode string for :obj:`node`.
+		Return a string for :obj:`node`.
 		"""
 		decoder = codecs.getdecoder("xml")
 		result = self.bytes(node, base)
@@ -2241,7 +2241,7 @@ class _Attr_Meta(type(Frag)):
 		# convert the default to a Frag
 		if "default" in dict:
 			dict["default"] = Frag(dict["default"])
-		# convert the entries in values to unicode
+		# convert the entries in values to strings
 		if "values" in dict:
 			values = dict["values"]
 			if values is not None:

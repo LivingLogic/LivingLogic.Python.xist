@@ -226,7 +226,7 @@ static PyObject *normalizepath(PyObject *self, PyObject *path)
 
 		if (!PyUnicode_CheckExact(segment))
 		{
-			PyErr_SetString(PyExc_TypeError, "path entry directory must be unicode");
+			PyErr_SetString(PyExc_TypeError, "path entry directory must be str");
 			Py_DECREF(newpath);
 			return NULL;
 		}

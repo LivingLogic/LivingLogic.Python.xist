@@ -125,8 +125,8 @@ String constants
 ----------------
 
 Strings are delimited with single or double quotes and support all escape
-sequences that Python supports (except ``\N{}``). Strings constants are always
-unicode objects, so ``\uXXXX`` escaping is possible. Examples:
+sequences that Python supports (except ``\N{}``). Strings constants allow
+``\uXXXX`` escaping. Examples:
 
 * ``"abc"`` and ``'abc'``;
 

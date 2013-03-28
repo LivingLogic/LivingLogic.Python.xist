@@ -115,7 +115,7 @@ class IncrementalDecoder(codecs.IncrementalDecoder):
 			self.decoder = codecs.getincrementaldecoder(self.encoding)(self._errors)
 		if self.headerfixed:
 			return self.decoder.decode(input, final)
-		# If we haven't fixed the header yet, the content of ``self.buffer`` is a ``unicode`` object
+		# If we haven't fixed the header yet, the content of ``self.buffer`` is a :class:`str` object
 		buffer = self.buffer
 		if isinstance(buffer, bytes):
 			buffer = buffer.decode("ascii")

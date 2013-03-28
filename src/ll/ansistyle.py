@@ -96,7 +96,7 @@ class Colorizer(object):
 		with interspersed color switching escape sequences. Items in <arg>strings</arg>
 		can be the following:</p>
 		<dl>
-		<term>Strings (<class>str</class> and <class>unicode</class>)</term>
+		<term>Strings</term>
 		<item>Strings will be output by <meth>feed</meth> in the appropriate spot.</item>
 		<term>Numbers</term>
 		<item>A number in the argument sequence will switch to that color value.</item>

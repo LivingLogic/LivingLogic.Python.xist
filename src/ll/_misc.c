@@ -67,7 +67,7 @@ static PyObject *_xmlescape(PyObject *arg, int doquot, int doapos)
 	}
 	else
 	{
-		PyErr_SetString(PyExc_TypeError, "expected a str or unicode object");
+		PyErr_SetString(PyExc_TypeError, "expected a str or bytes object");
 		return NULL;
 	}
 }

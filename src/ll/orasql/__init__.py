@@ -623,14 +623,10 @@ def connect(*args, **kwargs):
 
 class Cursor(Cursor):
 	"""
-	A subclass of the cursor class in :mod:`cx_Oracle`. The "execute" methods
-	support a unicode statement and unicode parameters (they will be encoded in
-	the client encoding before being passed to the database). The "fetch" methods
-	will return records as :class:`Record` objects and string values and
-	``CLOB`` values, if the cursors :attr:`readlobs` attribute has the
-	appropriate value) will be returned as :class:`unicode` objects (except for
-	``BLOB`` values). (Note that strings in the national character set
-	(and ``NCLOB`` values) are not supported).
+	A subclass of the cursor class in :mod:`cx_Oracle`. The "fetch" methods
+	will return records as :class:`Record` objects and  ``LOB`` values will be
+	returned as stream objects or :class:`str`/:class:`bytes` (depending of the
+	the cursors :attr:`readlobs` attribute).
 	"""
 	def __init__(self, connection, readlobs=None):
 		"""

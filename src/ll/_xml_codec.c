@@ -464,7 +464,7 @@ PyObject *fixencoding(PyObject *self, PyObject *args)
 
 
 static char fixencoding__doc__[] =
-"fixencoding(unicode, encoding) -> unicode or None\n\
+"fixencoding(str, encoding) -> str or None\n\
 \n\
 Replaces the encoding specification in the XML declaration at the start of the\n\
 first argument with the encoding specified. If there's no XML declaration the\n\

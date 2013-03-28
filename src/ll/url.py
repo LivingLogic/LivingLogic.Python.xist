@@ -2009,10 +2009,10 @@ class URL(object):
 	"""
 	def __init__(self, url=None):
 		"""
-		Create a new :class:`URL` instance. :obj:`url` may be a :class:`str` or
-		:class:`unicode` instance, or an :class:`URL` (in which case you'll get a
-		copy of :obj:`url`), or :const:`None` (which will create an :class:`URL`
-		referring to the "current document").
+		Create a new :class:`URL` instance. :obj:`url` may be a :class:`str`
+		object, or an :class:`URL` (in which case you'll get a copy of :obj:`url`),
+		or :const:`None` (which will create an :class:`URL` referring to the
+			"current document").
 		"""
 		self.url = url
 
@@ -2491,10 +2491,10 @@ class URL(object):
 		Join :obj:`self` with another (possible relative) :class:`URL`
 		:obj:`other`, to form a new :class:`URL`.
 
-		:obj:`other` may be a :class:`str`, :class:`unicode` or :class:`URL`
-		object. It may be :const:`None` (referring to the "current document")
-		in which case :obj:`self` will be returned. It may also be a list or
-		other iterable. For this case a list (or iterator) will be returned where
+		:obj:`other` may be a :class:`str` or :class:`URL` object. It may be
+		:const:`None` (referring to the "current document") in which case
+		:obj:`self` will be returned. It may also be a list or other iterable.
+		For this case a list (or iterator) will be returned where
 		:meth:`__div__` will be applied to every item in the list/iterator. E.g.
 		the following expression returns all the files in the current directory
 		as absolute URLs (see the method :meth:`files` and the function
@@ -2502,7 +2502,7 @@ class URL(object):
 
 			>>> here = url.here()
 			>>> for f in here/here.files():
-			... 	print f
+			... 	print(f)
 		"""
 		if isinstance(other, str):
 			other = URL(other)

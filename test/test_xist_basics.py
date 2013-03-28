@@ -26,39 +26,39 @@ import xist_common as common
 present.reprtab = "  "
 
 
-def check_lenunicode(node, _len, content):
+def check_lenstr(node, _len, content):
 	assert len(node) == _len
 	assert str(node) == content
 
 
 def test_fraglen():
-	check_lenunicode(xsc.Frag(), 0, "")
-	check_lenunicode(xsc.Frag(1), 1, "1")
-	check_lenunicode(xsc.Frag(1, 2, 3), 3, "123")
-	check_lenunicode(xsc.Frag(None), 0, "")
-	check_lenunicode(xsc.Frag(None, None, None), 0, "")
-	check_lenunicode(xsc.Frag(1, None, 2, None, 3, None, 4), 4, "1234")
-	check_lenunicode(xsc.Frag(1, (2, 3)), 3, "123")
-	check_lenunicode(xsc.Frag(1, (None, None)), 1, "1")
+	check_lenstr(xsc.Frag(), 0, "")
+	check_lenstr(xsc.Frag(1), 1, "1")
+	check_lenstr(xsc.Frag(1, 2, 3), 3, "123")
+	check_lenstr(xsc.Frag(None), 0, "")
+	check_lenstr(xsc.Frag(None, None, None), 0, "")
+	check_lenstr(xsc.Frag(1, None, 2, None, 3, None, 4), 4, "1234")
+	check_lenstr(xsc.Frag(1, (2, 3)), 3, "123")
+	check_lenstr(xsc.Frag(1, (None, None)), 1, "1")
 
 
 def test_append():
 	for cls in (xsc.Frag, html.div):
 		node = cls()
 		node.append(1)
-		check_lenunicode(node, 1, "1")
+		check_lenstr(node, 1, "1")
 		node.append(2)
-		check_lenunicode(node, 2, "12")
+		check_lenstr(node, 2, "12")
 		node.append()
-		check_lenunicode(node, 2, "12")
+		check_lenstr(node, 2, "12")
 		node.append(3, 4)
-		check_lenunicode(node, 4, "1234")
+		check_lenstr(node, 4, "1234")
 		node.append(None)
-		check_lenunicode(node, 4, "1234")
+		check_lenstr(node, 4, "1234")
 		node.append((5, 6))
-		check_lenunicode(node, 6, "123456")
+		check_lenstr(node, 6, "123456")
 		node.append(html.p.Attrs.id(7))
-		check_lenunicode(node, 7, "1234567")
+		check_lenstr(node, 7, "1234567")
 		with pytest.raises(TypeError):
 			node.append(xml.Attrs(lang=8))
 
@@ -67,61 +67,61 @@ def test_extend():
 	for cls in (xsc.Frag, html.div):
 		node = cls()
 		node.extend([1])
-		check_lenunicode(node, 1, "1")
+		check_lenstr(node, 1, "1")
 		node.extend([2])
-		check_lenunicode(node, 2, "12")
+		check_lenstr(node, 2, "12")
 		node.extend([])
-		check_lenunicode(node, 2, "12")
+		check_lenstr(node, 2, "12")
 		node.extend([None])
-		check_lenunicode(node, 2, "12")
+		check_lenstr(node, 2, "12")
 		node.extend([3, 4])
-		check_lenunicode(node, 4, "1234")
+		check_lenstr(node, 4, "1234")
 		node.extend([[], [[], [5], []]])
-		check_lenunicode(node, 5, "12345")
+		check_lenstr(node, 5, "12345")
 
 
 def test_insert():
 	for cls in (xsc.Frag, html.div):
 		node = cls()
 		node.insert(0, 1)
-		check_lenunicode(node, 1, "1")
+		check_lenstr(node, 1, "1")
 		node.insert(0, 2)
-		check_lenunicode(node, 2, "21")
+		check_lenstr(node, 2, "21")
 		node.insert(0, 3, 4)
-		check_lenunicode(node, 4, "3421")
+		check_lenstr(node, 4, "3421")
 		node.insert(0, None)
-		check_lenunicode(node, 4, "3421")
+		check_lenstr(node, 4, "3421")
 		node.insert(0, (5, 6))
-		check_lenunicode(node, 6, "563421")
+		check_lenstr(node, 6, "563421")
 
 
 def test_iadd():
 	for cls in (xsc.Frag, html.div):
 		node = cls()
 		node += [1]
-		check_lenunicode(node, 1, "1")
+		check_lenstr(node, 1, "1")
 		node += [2]
-		check_lenunicode(node, 2, "12")
+		check_lenstr(node, 2, "12")
 		node += []
-		check_lenunicode(node, 2, "12")
+		check_lenstr(node, 2, "12")
 		node += [None]
-		check_lenunicode(node, 2, "12")
+		check_lenstr(node, 2, "12")
 		node += [3, 4]
-		check_lenunicode(node, 4, "1234")
+		check_lenstr(node, 4, "1234")
 		node += [[], [[], [5], []]]
-		check_lenunicode(node, 5, "12345")
+		check_lenstr(node, 5, "12345")
 
 
 def test_len():
 	for cls in (xsc.Frag, html.div):
-		check_lenunicode(cls(), 0, "")
-		check_lenunicode(cls(1), 1, "1")
-		check_lenunicode(cls(1, 2, 3), 3, "123")
-		check_lenunicode(cls(None), 0, "")
-		check_lenunicode(cls(None, None, None), 0, "")
-		check_lenunicode(cls(1, None, 2, None, 3, None, 4), 4, "1234")
-		check_lenunicode(cls(1, (2, 3)), 3, "123")
-		check_lenunicode(cls(1, (None, None)), 1, "1")
+		check_lenstr(cls(), 0, "")
+		check_lenstr(cls(1), 1, "1")
+		check_lenstr(cls(1, 2, 3), 3, "123")
+		check_lenstr(cls(None), 0, "")
+		check_lenstr(cls(None, None, None), 0, "")
+		check_lenstr(cls(1, None, 2, None, 3, None, 4), 4, "1234")
+		check_lenstr(cls(1, (2, 3)), 3, "123")
+		check_lenstr(cls(1, (None, None)), 1, "1")
 
 
 def test_standardmethods():

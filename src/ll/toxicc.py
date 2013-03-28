@@ -342,10 +342,10 @@ def _compile_sqlserver(string):
 
 def compile(string, mode="oracle"):
 	"""
-	The :class:`unicode` object :obj:`string` must be a string containing
-	embedded TOXIC processing instructions. :func:`compile` creates the body of
-	an Oracle or SQL Server function or procedure from it. :obj:`mode` can be
-	either ``"oracle"`` or ``"sqlserver".
+	The :class:`str` object :obj:`string` must be a string containing embedded
+	TOXIC processing instructions. :func:`compile` creates the body of an Oracle
+	or SQL Server function or procedure from it. :obj:`mode` can be either
+	``"oracle"`` or ``"sqlserver".
 	"""
 	if mode == "oracle":
 		return _compile_oracle(string)
