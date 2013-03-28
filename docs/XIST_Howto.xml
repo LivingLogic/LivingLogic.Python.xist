@@ -55,6 +55,189 @@ application, etc.).</li></ul>
 declarations (e.g. <markup>&lt;!DOCTYPE html PUBLIC <rep>...</rep>&gt;</markup>).</li>
 </ul>
 
+<section><h>Creating plain elements, processing instructions and entities</h>
+
+<section><h>Creating elements</h>
+
+<p>Creating an element can be done with the function
+<pyref module="ll.xist.xsc" function="element"><func>element</func></pyref>. Its signature looks
+like this:</p>
+<prog>
+element(xmlns, xmlname, *content, **attrs)
+</prog>
+
+<p><obj>xmlns</obj> is the namespace name (e.g. <lit>"http://www.w3.org/1999/xhtml"</lit>
+for HTML), and <obj>xmlname</obj> is the name of the element. Additional positional
+arguments (i.e. items in <obj>content</obj>) will be the child nodes of the
+element node. Keyword arguments will be attributes. You can pass most of Python's
+builtin types to <func>element</func>. Strings and integers will be automatically
+converted to <pyref module="ll.xist.xsc" class="Text"><class>Text</class></pyref>
+objects. Constructing an &html; element works like this:</p>
+
+<example><h>The first example</h>
+<prog>
+from ll.xist import xsc
+
+html_xmlns = "http://www.w3.org/1999/xhtml"
+
+node = xsc.element(
+	html_xmlns,
+	"div",
+	"Hello ",
+	xsc.element(
+		html_xmlns,
+		"a",
+		"Python",
+		href="http://www.python.org/"
+	),
+	" world!"
+)
+</prog>
+</example>
+
+<p>To output this element again, the method <pyref module="ll.xist.xsc" class="Node" method="bytes"><meth>bytes</meth></pyref> can be used:</p>
+
+<example><h>Output of the first example</h>
+<prog>
+<prompt>&gt;&gt;&gt; </prompt><input>node.bytes()</input>
+<![CDATA[b'<div>Hello <a href="http://www.python.org/">Python</a> world!</div>']]>
+</prog>
+</example>
+
+<p>If you want a namespace declaration you can use the <obj>prefixdefault</obj>
+argument:</p>
+
+<example><h>The first example with an <lit>xmlns</lit> declaration</h>
+<prog>
+<prompt>&gt;&gt;&gt; </prompt><input>node.bytes(prefixdefault=None)</input>
+<![CDATA[b'<div xmlns="http://www.w3.org/1999/xhtml">Hello <a href="http://www.python.org/">Python</a> world!</div>']]>
+</prog>
+</example>
+
+<p>For attribute names that collide with Python keywords
+or are not legal identifiers (most notably <lit>class</lit> in &html;)
+you can pass the attributes as a dictionary to <func>xsc.element</func>:</p>
+<example><h>Passing attributes as dictionaries</h>
+<prog>
+node = xsc.element(
+	html_xmlns,
+	"div",
+	"Hello world!",
+	{"class": "greeting", "id": 42, "title": "Greet the world"},
+)
+</prog>
+</example>
+
+</section>
+
+<section><h>Creating processsing instructions</h>
+
+<p>Processing instructions can be created with the function
+<pyref module="ll.xist.xsc" function="procinst"><func>procinst</func></pyref>. Its signature looks
+like this:</p>
+
+<prog>
+procinst(xmlname, *content)
+</prog>
+
+<p>So to create and print a processsing instruction named <lit>code</lit> with
+the content <lit>x = 42</lit>, you can do the following (the method
+<pyref module="ll.xist.xsc" class="Node" method="string"><meth>string</meth></pyref>
+is simliar to <meth>bytes</meth>, but returns a <class>str</class> object
+instead of a <class>bytes</class> object):</p>
+
+<example><h>Creating and printing a processsing instruction</h>
+<prog>
+from ll.xist import xsc
+
+node = xsc.procinst("code", "x = 42")
+print(node.string())
+</prog>
+</example>
+
+<p>This will output:</p>
+
+<prog>
+<![CDATA[<?code x = 42?>]]>
+</prog>
+
+</section>
+
+<section><h>Creating entity references</h>
+
+<p>Finally entity references can be created with the function
+<pyref module="ll.xist.xsc" function="entity"><func>entity</func></pyref>:</p>
+
+<example><h>Creating and printing an entity reference</h>
+<prog>
+from ll.xist import xsc
+
+node = xsc.entity("html")
+print(node.string())
+</prog>
+</example>
+
+<p>This will output:</p>
+
+<prog>
+<![CDATA[&html;]]>
+</prog>
+
+</section>
+
+
+<section><h>Creating &xml; trees with <lit>with</lit> blocks</h>
+
+<p>Furthermore it's possible to use <lit>with</lit> blocks to construct
+&xist; trees. Inside a <lit>with</lit> block the unary <lit>+</lit> operator
+or the <func>add</func> function can be used to add nodes or attributes
+to the current level of the tree:</p>
+<example><h>Using <lit>with</lit> blocks</h>
+<prog>
+from ll.xist import xsc
+
+html_xmlns = "http://www.w3.org/1999/xhtml"
+
+with xsc.build():
+	with xsc.element(html_xmlns, "div", {"class": "quote"}) as node:
+		with xsc.element(html_xmlns, "h1", "Confucius (551-479 BC)"):
+			xsc.add({"class": "author"})
+		with xsc.element(html_xmlns, "ol"):
+			+xsc.element(html_xmlns, "li", "I hear and I forget.")
+			+xsc.element(html_xmlns, "li", "I see and I believe.")
+			+xsc.element(html_xmlns, "li", "I do and I understand.")
+</prog>
+</example>
+
+<p><class>xsc.build</class> must be used as the top level with block, so that
+&xist; knows what to do with the nodes inside the block.</p>
+</section>
+
+<section><h>Creating &xml; trees from &xml; files</h>
+<p>&xml; trees can also be generated by parsing &xml; files.
+For this the module <pyref module="ll.xist.parse"><mod>ll.xist.parse</mod></pyref>
+provides several tools.</p>
+
+<p>For example, parsing a string can be done like this:</p>
+<example><h>Parsing a string</h>
+<prog><![CDATA[
+from ll.xist import parse
+
+node = parse.tree(
+	b"<p xmlns='http://www.w3.org/1999/xhtml'>Hello <a href='http://www.python.org/'>Python</a> world!</p>",
+	parse.Expat(ns=True),
+	parse.Node()
+)
+]]></prog>
+</example>
+
+<p>For further info about the arguments to the parsing functions, see the
+documentation for
+<pyref module="ll.xist.parse"><mod>ll.xist.parse</mod></pyref>.</p>
+</section>
+
+</section>
+
 <section><h>&xml; trees as Python objects</h>
 <p>&xist; works somewhat different from a normal &dom; &api;.
 Instead of only one element class, &xist; has one class for every element
@@ -157,6 +340,7 @@ node = parse.tree(
 documentation for
 <pyref module="ll.xist.parse"><mod>ll.xist.parse</mod></pyref>.</p>
 </section>
+
 </section>
 
 
