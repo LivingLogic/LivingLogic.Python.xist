@@ -119,7 +119,7 @@ def getelementname(node):
 	name = node.tag
 	if name.startswith("{"):
 		(xmlns, sep, name) = name[1:].partition("}")
-	return (name, xmlns)
+	return (xmlns, name)
 
 
 def addetree2xnd(ns, node, elements):
@@ -127,13 +127,13 @@ def addetree2xnd(ns, node, elements):
 	for path in iterpath(node):
 		node = path[-1]
 		if "Element" in type(node).__name__:
-			(name, xmlns) = getelementname(node)
-			if (name, xmlns) in ns.elements:
-				xndnode = ns.elements[(name, xmlns)]
+			(xmlns, name) = getelementname(node)
+			if (xmlns, name) in ns.elements:
+				xndnode = ns.elements[(xmlns, name)]
 			else:
-				xndnode = xnd.Element(name, xmlns=xmlns)
+				xndnode = xnd.Element(xmlns, name)
 				ns += xndnode
-				elements[(name, xmlns)] = set()
+				elements[(xmlns, name)] = set()
 			for attrname in node.keys():
 				if not attrname.startswith("{") and attrname not in xndnode.attrs:
 					xndnode += xnd.Attr(attrname, type=xsc.TextAttr)

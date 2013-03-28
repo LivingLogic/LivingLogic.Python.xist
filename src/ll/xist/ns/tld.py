@@ -163,7 +163,7 @@ class tag(xsc.Element):
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self, model="simple"):
-		e = xnd.Element(str(self[name][0].content))
+		e = xnd.Element(None, str(self[name][0].content))
 		empty = None
 		node = misc.first(self[bodycontent], None)
 		if node is not None:

@@ -35,8 +35,8 @@ def test_xmlns():
 
 def test_element():
 	ns = xnd.Module()
-	ns += xnd.Element("foo", xmlns="http://xmlns.foo.com")
-	ns += xnd.Element("foo", xmlns="http://xmlns.foo2.com")
+	ns += xnd.Element("http://xmlns.foo.com", "foo")
+	ns += xnd.Element("http://xmlns.foo2.com", "foo")
 	ns = xnd2ns(ns)
 	assert ns.foo.xmlname == "foo"
 	assert ns.foo.xmlns == "http://xmlns.foo.com"
@@ -90,11 +90,11 @@ def test_charref():
 
 def test_model():
 	ns = xnd.Module(xmlns)
-	ns += xnd.Element("foo", modeltype=True)
+	ns += xnd.Element(None, "foo", modeltype=True)
 	ns = xnd2ns(ns)
 	assert isinstance(ns.foo.model, sims.Any)
 
 	ns = xnd.Module()
-	ns += xnd.Element("foo", modeltype=False)
+	ns += xnd.Element(None, "foo", modeltype=False)
 	ns = xnd2ns(ns)
 	assert isinstance(ns.foo.model, sims.Empty)

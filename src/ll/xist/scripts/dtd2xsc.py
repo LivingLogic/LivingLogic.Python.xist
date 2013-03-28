@@ -149,7 +149,7 @@ def adddtd2xnd(ns, dtd):
 	# Add element info
 	elements = sorted(dtd.iterelements(), key=namegetter)
 	for elemdecl in elements:
-		e = xnd.Element(elemdecl.name, xmlns=xmlns)
+		e = xnd.Element(xmlns, elemdecl.name)
 
 		# Add attribute info for this element
 		attrs = sorted(elemdecl.iterattributes(), key=namegetter)
@@ -194,7 +194,7 @@ def adddtd2xnd(ns, dtd):
 				return content
 			elementcontent = extractcont(elemdecl.content)
 			if elementcontent:
-				modelargs = [ns.elements[(name, xmlns)] for name in elementcontent]
+				modelargs = [ns.elements[(xmlns, name)] for name in elementcontent]
 				if elemdecl.type == "mixed":
 					modeltype = "sims.ElementsOrText"
 				else:
@@ -205,7 +205,7 @@ def adddtd2xnd(ns, dtd):
 					modeltype = "sims.NoElements"
 				else:
 					modeltype = "sims.NoElementsOrText"
-		e = ns.elements[(elemdecl.name, xmlns)]
+		e = ns.elements[(xmlns, elemdecl.name)]
 		if ns.model == "simple":
 			modeltype = modeltype == "sims.Empty"
 			modelargs = None

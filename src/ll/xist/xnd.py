@@ -144,7 +144,7 @@ class Module(object):
 		self.defaults = defaults
 		self.model = model
 		self.duplicates = duplicates
-		self.elements = collections.OrderedDict() # Maps (element name, namespace name) to ``xnd.Element``
+		self.elements = collections.OrderedDict() # Maps (namespace name, element name) to ``xnd.Element``
 		self.procinsts = collections.OrderedDict() # Maps pi target to ``xnd.ProcInst``
 		self.entities = collections.OrderedDict() # Maps entity name to ``xnd.Entity``
 		self.charrefs = collections.OrderedDict() # Maps charref name to ``xnd.CharRef``
@@ -310,7 +310,7 @@ class Named(object):
 
 
 class Element(Named):
-	def __init__(self, name, xmlns=None, modeltype=None, modelargs=None, doc=None):
+	def __init__(self, xmlns, name, modeltype=None, modelargs=None, doc=None):
 		Named.__init__(self, name)
 		self.xmlns = xmlns
 		self.attrs = collections.OrderedDict()
@@ -333,7 +333,7 @@ class Element(Named):
 		return self
 
 	def _add(self, module):
-		key = (self.name, self.xmlns)
+		key = (self.xmlns, self.name)
 		if key in module.elements:
 			oldelement = module.elements[key]
 			if module.duplicates == "reject":
