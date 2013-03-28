@@ -527,7 +527,7 @@ class Publisher(object):
 	sequence.
 	"""
 
-	def __init__(self, encoding=None, xhtml=1, validate=True, prefixes={}, prefixdefault=False, hidexmlns=(), showxmlns=()):
+	def __init__(self, encoding=None, xhtml=1, validate=False, prefixes={}, prefixdefault=False, hidexmlns=(), showxmlns=()):
 		"""
 		Create a publisher. Arguments have the following meaning:
 

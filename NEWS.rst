@@ -1,5 +1,5 @@
-Changes in ?.?? (released ??/??/2013)
--------------------------------------
+Changes in 5.0 (released ??/??/2013)
+------------------------------------
 
 *	The HTML namespace (:mod:`ll.xist.ns.html`) has been updated to support the
 	current HTML5__ definition.
@@ -20,6 +20,11 @@ Changes in ?.?? (released ??/??/2013)
 	proper ``xmlns`` and ``xmlname`` attributes).
 
 	This new feature requires several API changes which will be described below.
+
+*	Validation is now off by default, to turn it on pass ``validate=True`` to
+	:func:`parse.tree` or :func:`parse.itertree` for parsing, or :meth:` to the
+	publisher object or the :meth:`bytes`, :meth:`iterbytes`, :meth:`string` or
+	:meth:`iterstring` methods for publishing.
 
 *	Accessing an attribute via :meth:`__getattr__` (i.e.
 	``htmlelement.attrs.class_``) only works for attributes that are declared
@@ -47,20 +52,6 @@ Changes in ?.?? (released ??/??/2013)
 	:meth:`filtered`, :meth:`shuffled`, :meth:`mapped` and :meth:`normalized`
 	make sure that plain nodes are copied properly, i.e. they retain their custom
 	:attr:`xmlns` and :attr:`xmlname` attributes.
-
-*	Testing whether an attribute is declared for an element is now done with the
-	method :meth:`isdeclared`. This method accepts the same type of arguments as
-	:meth:`__getitem__` or :meth:`__setitem__`. For global attributes this will
-	always return ``False``, except when it is called for an :class:`Attrs`
-	class for global attributes::
-
-		html.a.Attrs.isdeclared("{http://www.w3.org/XML/1998/namespace}lang")
-
-	returns ``False``, but::
-
-		xml.Attrs.isdeclared("{http://www.w3.org/XML/1998/namespace}lang")
-
-	returns ``True``.
 
 *	The keys in an attribute dictionary (i.e. an :class:`ll.xist.xsc.Attrs`
 	object) are no longer the attribute classes, but the (namespace name,

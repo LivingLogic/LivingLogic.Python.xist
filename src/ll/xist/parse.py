@@ -1452,7 +1452,7 @@ def events(*pipeline):
 	return output
 
 
-def tree(*pipeline, validate=True):
+def tree(*pipeline, validate=False):
 	"""
 	Return a tree of XIST nodes from the event stream :obj:`pipeline`.
 
@@ -1463,7 +1463,8 @@ def tree(*pipeline, validate=True):
 
 	If :obj:`validate` is true, the tree is validated, i.e. it is checked if
 	the structure of the tree is valid (according to the :obj:`model` attribute
-	of each element node), if all required attributes are specified and all
+	of each element node), if no undeclared elements or attributes have been
+	encountered, all required attributes are specified and all
 	attributes have allowed values.
 
 	The node returned from :func:`tree` will always be a :class:`Frag` object.
@@ -1478,7 +1479,11 @@ def tree(*pipeline, validate=True):
 		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
 		... )
 		>>> doc[0]
-		<ll.xist.ns.html.html element object (5 children/2 attrs) (from http://www.python.org/:3:0) at 0x1028eb3d0>
+		<element ll.xist.ns.html.html
+			xmlns='http://www.w3.org/1999/xhtml'
+			(5 children/2 attrs)
+			location='http://www.python.org/:3:0'
+			at 0x10af710>
 	"""
 	path = [xsc.Frag()]
 	for (evtype, node) in events(*pipeline):
@@ -1498,7 +1503,7 @@ def tree(*pipeline, validate=True):
 	return path[0]
 
 
-def itertree(*pipeline, entercontent=True, enterattrs=False, enterattr=False, enterelementnode=False, leaveelementnode=True, enterattrnode=True, leaveattrnode=False, selector=None, validate=True):
+def itertree(*pipeline, entercontent=True, enterattrs=False, enterattr=False, enterelementnode=False, leaveelementnode=True, enterattrnode=True, leaveattrnode=False, selector=None, validate=False):
 	"""
 	Parse the event stream :obj:`pipeline` iteratively.
 
@@ -1528,7 +1533,7 @@ def itertree(*pipeline, entercontent=True, enterattrs=False, enterattr=False, en
 		http://www.python.org/images/trans.gif --> http://www.python.org/#content%2Dbody
 		http://www.python.org/images/donate.png --> http://www.python.org/psf/donations/
 		http://www.python.org/images/worldmap.jpg --> http://wiki.python.org/moin/Languages
-		http://www.python.org/images/success/nasa.jpg --> http://www.python.org/about/success/usa/
+		http://www.python.org/images/success/standrews.jpg --> http://www.python.org/about/success/st-andrews/
 	"""
 	selector = xfind.selector(selector)
 	cursor = xsc.Cursor(xsc.Frag(), entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, enterelementnode=enterelementnode, leaveelementnode=leaveelementnode, enterattrnode=enterattrnode, leaveattrnode=leaveattrnode)

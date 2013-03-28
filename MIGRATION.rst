@@ -1,3 +1,27 @@
+Migrating to version 5.0
+========================
+
+Changes to XIST
+---------------
+
+*	Accessing attributes via :meth:`__getattr__`, :meth:`__setattr__` and
+	:meth:`__delattr__` now requires the XML name of the attribute instead of
+	the Python name. If you only have the Python name,  you can convert it to
+	the XML name with the method :meth:`Attrs._pyname2xmlname`.
+
+*	For all methods that existed in Python/XML pairs (e.g. :meth:`withnames` and
+	:meth:`withnames_xml` in :class:`xsc.Attrs` or :meth:`elementclass` and
+	:meth:`elementclass_xml` in :class:`xsc.Pool` etc.) there is only one version
+	now: A method without the ``_xml`` suffix in the name, that accepts the
+	XML version of the name. Again the method :meth:`Attrs._pyname2xmlname` if
+	conversion is required.
+
+*	Validation is now off by default, to turn it on pass ``validate=True`` to
+	:func:`parse.tree` or :func:`parse.itertree` for parsing, or :meth:` to the
+	publisher object or the :meth:`bytes`, :meth:`iterbytes`, :meth:`string` or
+	:meth:`iterstring` methods for publishing.
+
+
 Migrating to version 4.10
 =========================
 
