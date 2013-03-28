@@ -1514,10 +1514,10 @@ class pyref(inline):
 			prop = str(self.attrs.property.convert(converter))
 		else:
 			prop = None
-		if "class_" in self.attrs:
-			class__ = str(self.attrs.class_.convert(converter)).replace(".", "-")
+		if "class" in self.attrs:
+			class_ = str(self.attrs.class_.convert(converter)).replace(".", "-")
 		else:
-			class__ = None
+			class_ = None
 		if "module" in self.attrs:
 			module = str(self.attrs.module.convert(converter))
 			if module.startswith("ll."):
@@ -1535,14 +1535,14 @@ class pyref(inline):
 				if module is not None:
 					e = target.a(e, href=(context.base, module, "/index.html#", function))
 			elif method is not None:
-				if class__ is not None and module is not None:
-					e = target.a(e, href=(context.base, module, "/index.html#", class__, "-", method))
+				if class_ is not None and module is not None:
+					e = target.a(e, href=(context.base, module, "/index.html#", class_, "-", method))
 			elif prop is not None:
-				if class__ is not None and module is not None:
-					e = target.a(e, href=(context.base, module, "/index.html#", class__, "-", prop))
-			elif class__ is not None:
+				if class_ is not None and module is not None:
+					e = target.a(e, href=(context.base, module, "/index.html#", class_, "-", prop))
+			elif class_ is not None:
 				if module is not None:
-					e = target.a(e, href=(context.base, module, "/index.html#", class__))
+					e = target.a(e, href=(context.base, module, "/index.html#", class_))
 			elif module is not None:
 				e = target.a(e, href=(context.base, module, "/index.html"))
 		return e.convert(converter)
