@@ -29,7 +29,7 @@ class contenttype(html.meta):
 	"""
 	Can be used for a ``<meta http-equiv="Content-Type" content="text/html"/>``,
 	where the character set will be automatically inserted on a call to
-	:meth:`ll.xist.xsc.None.publish`.
+	:meth:`ll.xist.xsc.Node.publish`.
 
 	Usage is simple: ``meta.contenttype()``.
 	"""
