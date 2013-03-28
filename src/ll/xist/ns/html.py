@@ -18,7 +18,7 @@ For all deprecated elements and attributes the class attribute :obj:`deprecated`
 is set to :const:`True`.
 """
 
-import os, tempfile, subprocess
+import os, tempfile, subprocess, cgi
 
 from ll.xist import xsc, sims
 
@@ -580,7 +580,7 @@ class meta(xsc.Element):
 			xmlorder = "f"
 
 	def publish(self, publisher):
-		if "http_equiv" in self.attrs and not self.attrs.http_equiv.isfancy():
+		if "http-equiv" in self.attrs and not self.attrs.http_equiv.isfancy():
 			ctype = str(self.attrs.http_equiv).lower()
 			if ctype == "content-type" and "content" in self.attrs:
 				(contenttype, options) = cgi.parse_header(str(self.attrs.content))
