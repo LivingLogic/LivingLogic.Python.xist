@@ -13,8 +13,7 @@ Changes to XIST
 	:meth:`withnames_xml` in :class:`xsc.Attrs` or :meth:`elementclass` and
 	:meth:`elementclass_xml` in :class:`xsc.Pool` etc.) there is only one version
 	now: A method without the ``_xml`` suffix in the name, that accepts the
-	XML version of the name. Again the method :meth:`Attrs._pyname2xmlname` if
-	conversion is required.
+	XML version of the name.
 
 *	Validation is now off by default, to turn it on pass ``validate=True`` to
 	:func:`parse.tree` or :func:`parse.itertree` for parsing, or :meth:` to the
