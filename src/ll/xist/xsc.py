@@ -3318,7 +3318,7 @@ class Element(Node, metaclass=_Element_Meta):
 		else:
 			for attr in (heightattr, widthattr):
 				if attr is not None: # do something to the width/height
-					if not self.attrs.has(attr):
+					if attr not in self.attrs:
 						self[attr] = size[attr==heightattr]
 
 	def present(self, presenter):
