@@ -831,7 +831,7 @@ class SshConnection(Connection):
 			except StopIteration as exc:
 				channel.send((True, pickle.dumps(exc)))
 			except Exception as exc:
-				if exc.__class__.__module__ != "exceptions":
+				if exc.__class__.__module__ != "builtins":
 					raise
 				channel.send((True, pickle.dumps(exc)))
 			else:
