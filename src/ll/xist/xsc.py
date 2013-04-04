@@ -957,7 +957,7 @@ class Cursor(object):
 
 
 ###
-### The DOM classes
+### The DOM classes and their meta classes
 ###
 
 class _Node_Meta(type):
