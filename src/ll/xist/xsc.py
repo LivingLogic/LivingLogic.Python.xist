@@ -4195,7 +4195,7 @@ class Location(object):
 	"""
 	Represents a location in an XML entity.
 	"""
-	__slots__ = ("url", "line", "col", "char")
+	__slots__ = ("url", "line", "col")
 
 	def __init__(self, url=None, line=None, col=None):
 		"""
