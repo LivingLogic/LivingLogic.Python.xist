@@ -1380,7 +1380,7 @@ class Node(object, metaclass=_Node_Meta):
 		cursor = Cursor(self, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, enterelementnode=enterelementnode, leaveelementnode=leaveelementnode, enterattrnode=enterattrnode, leaveattrnode=leaveattrnode)
 		from ll.xist import xfind
 		selector = xfind.selector(*selectors)
-		return misc.Iterator(cursor.path[-1] for cursor in self._walk(cursor) if cursor.path in selector)
+		return misc.Iterator(c.path[-1] for c in self._walk(cursor) if c.path in selector)
 
 	def walkpaths(self, *selectors, entercontent=True, enterattrs=False, enterattr=False, enterelementnode=True, leaveelementnode=False, enterattrnode=True, leaveattrnode=False):
 		"""
@@ -1391,7 +1391,7 @@ class Node(object, metaclass=_Node_Meta):
 		cursor = Cursor(self, entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, enterelementnode=enterelementnode, leaveelementnode=leaveelementnode, enterattrnode=enterattrnode, leaveattrnode=leaveattrnode)
 		from ll.xist import xfind
 		selector = xfind.selector(*selectors)
-		return misc.Iterator(cursor.path[:] for cursor in self._walk(cursor) if cursor.path in selector)
+		return misc.Iterator(c.path[:] for c in self._walk(cursor) if c.path in selector)
 
 	def compacted(self):
 		"""
