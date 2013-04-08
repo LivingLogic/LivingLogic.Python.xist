@@ -161,7 +161,7 @@ class Error(Exception):
 			else:
 				return "in unnamed template"
 		else:
-			return "in {!r} in tag {}".format(str(self.node), self.node.location)
+			return "in tag {}".format(self.node.location)
 
 
 class BlockError(Exception):
