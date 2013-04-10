@@ -2012,7 +2012,7 @@ class URL(object):
 		Create a new :class:`URL` instance. :obj:`url` may be a :class:`str`
 		object, or an :class:`URL` (in which case you'll get a copy of :obj:`url`),
 		or :const:`None` (which will create an :class:`URL` referring to the
-			"current document").
+		"current document").
 		"""
 		self.url = url
 
