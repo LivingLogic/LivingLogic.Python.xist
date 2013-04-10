@@ -536,7 +536,7 @@ microseconds. Passing negative values or values that are out of bounds (e.g.
 24*60*60+1 seconds) is allowed. Arguments default to 0, i.e. ``timedelta()``
 returns the timespan for "0 days, 0 seconds, 0 microseconds". In a boolean
 context this object is treated as false (i.e. ``bool(timedelta()))`` returns
-``False``). The following arithmetic operations are supported::
+``False``). The following arithmetic operations are supported:
 
 *	``date`` + ``timedelta``
 *	``date`` - ``timedelta``
@@ -556,7 +556,7 @@ months. ``monthdelta`` allows zero or one arguments. With zero arguments
 ``monthdelta`` returns the timespan for "0 months". In a boolean context this
 object is treated as false (i.e. ``bool(monthdelta()))`` or
 ``bool(monthdelta(0)))`` return ``False``). The following arithmetic operations
-are supported::
+are supported:
 
 *	``date`` + ``monthdelta``
 *	``date`` - ``monthdelta``
