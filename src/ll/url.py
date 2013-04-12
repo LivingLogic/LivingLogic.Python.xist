@@ -877,7 +877,7 @@ class SshConnection(Connection):
 		data = self._send(filename, "stat")
 		return os.stat_result(data) # channel returned a tuple => wrap it
 
-	def lstat(self):
+	def lstat(self, url):
 		filename = self._url2filename(url)
 		data = self._send(filename, "lstat")
 		return os.stat_result(data) # channel returned a tuple => wrap it
@@ -1650,7 +1650,7 @@ class Path(object):
 	def __setitem__(self, index, value):
 		segments = self.segments
 		if isinstance(index, slice):
-			segments[index] = map(_unescape, seq)
+			segments[index] = map(_unescape, value)
 			self._path = self._prefix(self._path) + self._segments2path(segments)
 		else:
 			segments[index] = _unescape(value)
