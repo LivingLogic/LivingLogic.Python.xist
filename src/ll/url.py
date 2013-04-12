@@ -1650,7 +1650,7 @@ class Path(object):
 	def __setitem__(self, index, value):
 		segments = self.segments
 		if isinstance(index, slice):
-			segments[index1:index2] = map(_unescape, seq)
+			segments[index] = map(_unescape, seq)
 			self._path = self._prefix(self._path) + self._segments2path(segments)
 		else:
 			segments[index] = _unescape(value)
@@ -1659,7 +1659,7 @@ class Path(object):
 
 	def __delitem__(self, index):
 		if isinstance(index, slice):
-			del self.segments[index1:index2]
+			del self.segments[index]
 		else:
 			segments = self.segments
 			del segments[index]
