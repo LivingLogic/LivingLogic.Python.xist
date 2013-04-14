@@ -160,6 +160,8 @@ class Error(Exception):
 				return "in template named {}".format(self.node.name)
 			else:
 				return "in unnamed template"
+		elif isinstance(self.node, Location):
+			return "in tag {}".format(self.node)
 		else:
 			return "in tag {}".format(self.node.location)
 
@@ -2339,7 +2341,10 @@ class Template(Block):
 				else: # Can't happen
 					raise ValueError("unknown tag {!r}".format(location.type))
 			except Exception as exc:
-				raise Error(self) from exc
+				try:
+					raise Error(location) from exc
+				except Error as exc:
+					raise Error(self) from exc
 		if len(stack) > 1:
 			raise Error(stack[-1]) from BlockError("block unclosed")
 
