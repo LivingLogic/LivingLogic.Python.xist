@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+# cython: language_level=3
 
 # Setup script for XIST
 
@@ -8,6 +9,14 @@ try:
 	import setuptools as tools
 except ImportError:
 	from distutils import core as tools
+
+from distutils.extension import Extension
+
+try:
+	from Cython.Distutils import build_ext
+	havecython = True
+except ImportError:
+	havecython = False
 
 import textwrap, re
 
@@ -254,7 +263,6 @@ args = dict(
 	packages=["antlr3", "ll", "ll.scripts", "ll.xist", "ll.xist.ns", "ll.xist.scripts", "ll.orasql", "ll.orasql.scripts"],
 	package_data={"ll.xist": ["data/px/*.gif"]},
 	ext_modules=[
-		tools.Extension("ll._url", ["src/ll/_url.c"]),
 		tools.Extension("ll._ansistyle", ["src/ll/_ansistyle.c"]),
 		tools.Extension("ll._misc", ["src/ll/_misc.c", "src/ll/_misc_include.c"]),
 		tools.Extension("ll._xml_codec", ["src/ll/_xml_codec.c", "src/ll/_xml_codec_include.c"]),
@@ -310,6 +318,14 @@ args = dict(
 	],
 )
 
+if havecython:
+	args["cmdclass"] = {"build_ext": build_ext}
+	args["ext_modules"].extend([
+		tools.Extension("ll.xist.xsc", ["src/ll/xist/xsc.py"]),
+		tools.Extension("ll.url", ["src/ll/url.py"]),
+		# tools.Extension("ll.ul4c", ["src/ll/ul4c.py"]),
+		# tools.Extension("ll.misc", ["src/ll/misc.py"]),
+	])
 
 if __name__ == "__main__":
 	tools.setup(**args)

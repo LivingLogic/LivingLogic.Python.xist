@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# cython: language_level=3
+
 """
 ``astyle`` provides classes for adding style (foreground and background color;
 bold; blink; etc.) to terminal and curses output.

@@ -1,5 +1,6 @@
 #! /usr/bin/env/python
 # -*- coding: utf-8 -*-
+# cython: language_level=3
 
 ## Copyright 2009-2013 by LivingLogic AG, Bayreuth/Germany
 ## Copyright 2009-2013 by Walter Dörwald
@@ -394,10 +395,10 @@ all_renderers = [
 	("python", render_python),
 	("python_dumps", render_python_dumps),
 	("python_dump", render_python_dump),
-	("js", render_js),
+	# ("js", render_js),
 	# ("php", render_php),
-	("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
-	("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
+	# ("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
+	# ("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
 ]
 
 
@@ -405,10 +406,10 @@ all_callers = [
 	("python", call_python),
 	("python_dumps", call_python_dumps),
 	("python_dump", call_python_dump),
-	("js", call_js),
+	# ("js", call_js),
 	# ("php", call_php),
-	("java_interpreted_by_python", call_java_interpretedtemplate_by_python),
-	("java_interpreted_by_java", call_java_interpretedtemplate_by_java),
+	# ("java_interpreted_by_python", call_java_interpretedtemplate_by_python),
+	# ("java_interpreted_by_java", call_java_interpretedtemplate_by_java),
 ]
 
 

@@ -1,6 +1,6 @@
 #!/usr/local/bin/python
 # -*- coding: utf-8 -*-
-
+# cython: language_level=3
 
 ## Copyright 2007-2013 by LivingLogic AG, Bayreuth/Germany.
 ## Copyright 2007-2013 by Walter Dörwald

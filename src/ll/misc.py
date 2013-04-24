@@ -1,5 +1,5 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
+# cython: language_level=3
 
 ## Copyright 2004-2013 by LivingLogic AG, Bayreuth/Germany.
 ## Copyright 2004-2013 by Walter Dörwald
@@ -31,69 +31,6 @@ _curdir = os.getcwd()
 try:
 	from ll._misc import *
 except ImportError:
-	# Use Python implementations of those functions
-	_defaultitem = object()
-
-	def item(iterator, index, default=_defaultitem):
-		"""
-		Returns the :obj:`index`'th element from the iterable. :obj:`index` may be
-		negative to count from the end. E.g. 0 returns the first element produced
-		by the iterator, 1 the second, -1 the last one etc. If :obj:`index` is
-		negative the iterator will be completely exhausted, if it's positive it
-		will be exhausted up to the :obj:`index`'th element. If the iterator
-		doesn't produce that many elements :exc:`IndexError` will be raised,
-		except when :obj:`default` is given, in which case :obj:`default` will be
-		returned.
-		"""
-		i = index
-		if i>=0:
-			for item in iterator:
-				if not i:
-					return item
-				i -= 1
-		else:
-			i = -index
-			cache = collections.deque()
-			for item in iterator:
-				cache.append(item)
-				if len(cache)>i:
-					cache.popleft()
-			if len(cache)==i:
-				return cache.popleft()
-		if default is _defaultitem:
-			raise IndexError(index)
-		else:
-			return default
-
-
-	def first(iterator, default=_defaultitem):
-		"""
-		Return the first element from the iterable. If the iterator doesn't
-		produce any elements :exc:`IndexError` will be raised, except when
-		:obj:`default` is given, in which case :obj:`default` will be returned.
-		"""
-		return item(iterator, 0, default)
-
-
-	def last(iterator, default=_defaultitem):
-		"""
-		Return the last element from the iterable. If the iterator doesn't produce
-		any elements :exc:`IndexError` will be raised, except when :obj:`default`
-		is given, in which case :obj:`default` will be returned.
-		"""
-		return item(iterator, -1, default)
-
-
-	def count(iterator):
-		"""
-		Count the number of elements produced by the iterable. Calling this
-		function will exhaust the iterator.
-		"""
-		count = 0
-		for node in iterator:
-			count += 1
-		return count
-
 	def xmlescape(string):
 		"""
 		Return a copy of the argument string, where every occurrence of ``<``,
@@ -144,6 +81,70 @@ except ImportError:
 			for c in "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1f\x7f\x80\x81\x82\x83\x84\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f":
 				string = string.replace(c, "&#{};".format(ord(c)))
 			return string
+
+
+# Use Python implementations of those functions
+_defaultitem = object()
+
+def item(iterator, index, default=_defaultitem):
+	"""
+	Returns the :obj:`index`'th element from the iterable. :obj:`index` may be
+	negative to count from the end. E.g. 0 returns the first element produced
+	by the iterator, 1 the second, -1 the last one etc. If :obj:`index` is
+	negative the iterator will be completely exhausted, if it's positive it
+	will be exhausted up to the :obj:`index`'th element. If the iterator
+	doesn't produce that many elements :exc:`IndexError` will be raised,
+	except when :obj:`default` is given, in which case :obj:`default` will be
+	returned.
+	"""
+	i = index
+	if i>=0:
+		for item in iterator:
+			if not i:
+				return item
+			i -= 1
+	else:
+		i = -index
+		cache = collections.deque()
+		for item in iterator:
+			cache.append(item)
+			if len(cache)>i:
+				cache.popleft()
+		if len(cache)==i:
+			return cache.popleft()
+	if default is _defaultitem:
+		raise IndexError(index)
+	else:
+		return default
+
+
+def first(iterator, default=_defaultitem):
+	"""
+	Return the first element from the iterable. If the iterator doesn't
+	produce any elements :exc:`IndexError` will be raised, except when
+	:obj:`default` is given, in which case :obj:`default` will be returned.
+	"""
+	return item(iterator, 0, default)
+
+
+def last(iterator, default=_defaultitem):
+	"""
+	Return the last element from the iterable. If the iterator doesn't produce
+	any elements :exc:`IndexError` will be raised, except when :obj:`default`
+	is given, in which case :obj:`default` will be returned.
+	"""
+	return item(iterator, -1, default)
+
+
+def count(iterator):
+	"""
+	Count the number of elements produced by the iterable. Calling this
+	function will exhaust the iterator.
+	"""
+	count = 0
+	for node in iterator:
+		count += 1
+	return count
 
 
 def notimplemented(function):
@@ -487,17 +488,17 @@ def itersplitat(string, positions):
 		yield part
 
 
-def module(code, filename="unnamed.py", name=None):
+def module(source, filename="unnamed.py", name=None):
 	"""
-	Create a module from the Python source code :obj:`code`. :obj:`filename` will
-	be used as the filename for the module and :obj:`name` as the module name
-	(defaulting to the filename part of :obj:`filename`).
+	Create a module from the Python source code :obj:`source`. :obj:`filename`
+	will be used as the filename for the module and :obj:`name` as the module
+	name (defaulting to the filename part of :obj:`filename`).
 	"""
 	if name is None:
 		name = os.path.splitext(os.path.basename(filename))[0]
 	mod = types.ModuleType(name)
 	mod.__file__ = filename
-	code = compile(code, filename, "exec")
+	code = compile(source, filename, "exec")
 	exec(code, mod.__dict__)
 	return mod
 
@@ -883,7 +884,6 @@ def prettycsv(rows, padding="   "):
 				f = "{0:<{1}}".format(f, w)
 			yield f
 		yield "\n"
-
 
 
 class JSMinUnterminatedComment(Exception):

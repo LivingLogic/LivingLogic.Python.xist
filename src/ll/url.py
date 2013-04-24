@@ -1,5 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# cython: language_level=3
 
 ## Copyright 1999-2013 by LivingLogic AG, Bayreuth/Germany.
 ## Copyright 1999-2013 by Walter Dörwald
@@ -36,7 +36,7 @@ These three levels of functionality are implemented in three classes:
 """
 
 
-import sys, os, urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, types, mimetypes, io, warnings
+import sys, os, urllib.request, urllib.error, urllib.parse as urlparse, types, mimetypes, io, warnings
 import datetime, cgi, fnmatch, pickle, errno, threading
 import email
 from email import utils
@@ -84,36 +84,34 @@ def httpdate(dt):
 	return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(dt, weekdayname[dt.weekday()], monthname[dt.month])
 
 
-try:
-	from ._url import escape as _escape, unescape as _unescape, normalizepath as _normalizepath
-except ImportError:
-	def _normalizepath(path_segments):
-		new_path_segments = []
-		l = len(path_segments)
-		for i in range(l):
-			segment = path_segments[i]
-			if not segment:
-				if i==l-1:
-					new_path_segments.append("")
-			elif segment==".." and len(new_path_segments) and new_path_segments[-1] != "..":
-				new_path_segments.pop()
-				if i==l-1:
-					new_path_segments.append("")
-			else:
-				new_path_segments.append(segment)
-		return new_path_segments
+def _normalizepath(path_segments):
+	"""
+	Internal helper function for normalizing a path list.
 
-	def _escape(s, safe=""):
-		if not safe:
-			safe = "".join(chr(c) for c in range(128))
-		return urllib.parse.quote_plus(s.encode("utf-8"), safe)
+	Should be equivalent to RFC2396, Section 5.2 (6) (c)-(f) with the exception
+	of removing empty path_segments.
+	"""
+	new_path_segments = []
+	l = len(path_segments)
+	for i in range(l):
+		segment = path_segments[i]
+		if not segment or segment == ".":
+			if i==l-1:
+				new_path_segments.append("")
+		elif segment==".." and len(new_path_segments) and new_path_segments[-1] != "..":
+			new_path_segments.pop()
+			if i==l-1:
+				new_path_segments.append("")
+		else:
+			new_path_segments.append(segment)
+	return new_path_segments
 
-	def _unescape(s):
-		s = urllib.parse.unquote_plus(s)
-		try:
-			return s.decode("utf-8")
-		except UnicodeError:
-			return s.decode("latin-1")
+
+def _escape(s, safe="".join(chr(c) for c in range(128))):
+	return urlparse.quote_plus(s.encode("utf-8"), safe)
+
+
+_unescape = urlparse.unquote_plus
 
 
 alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -184,7 +182,6 @@ class ThreadLocalContext(threading.local):
 	context = Context()
 
 threadlocalcontext = ThreadLocalContext()
-
 
 def getcontext(context):
 	if context is None:
@@ -1355,7 +1352,7 @@ class URLResource(Resource):
 		self.reqdata = data
 		self._finalurl = None
 		if data is not None:
-			data = urllib.parse.urlencode(data)
+			data = urlparse.urlencode(data)
 		if headers is None:
 			headers = {}
 		req = urllib.request.Request(url=self.name, data=data, headers=headers)

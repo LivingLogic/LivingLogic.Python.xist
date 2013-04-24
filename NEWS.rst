@@ -99,6 +99,12 @@ Changes in 5.0 (released ??/??/2013)
 	``keepws`` parameter), any initial spaces (before the first line feed) are
 	now no longer removed.
 
+*	If you have Cython__ installed, serveral modules will now be compiled into
+	extensions modules (currently :mod:`ll.xist.xsc` and :mod:`ll.url` will be
+	compiled).
+
+	__ http://www.cython.org/
+
 
 Changes in 4.10 (released 03/04/2013)
 -------------------------------------
