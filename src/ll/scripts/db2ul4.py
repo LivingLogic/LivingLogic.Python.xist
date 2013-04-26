@@ -117,9 +117,9 @@ class Connection(object):
 		self.connection = connection
 
 	@ul4c.expose_method
-	def query(self, query):
+	def query(self, query, **parameters):
 		c = self.connection.cursor()
-		c.execute(query)
+		c.execute(query, **parameters)
 		return c
 
 
