@@ -1536,7 +1536,6 @@ def test_function_list(r):
 	assert "[]" == r("<?print list()?>")
 	assert "[1, 2]" == r("<?print list(data)?>", data=[1, 2])
 	assert "['g', 'u', 'r', 'k']" == r("<?print list(data)?>", data="gurk")
-	assert "['g', 'u', 'r', 'k']" == r("<?print list(data)?>", data="gurk")
 	assert "[['foo', 42]]" == r("<?print repr(list(data.items()))?>", data={"foo": 42})
 	assert "[0, 1, 2]" == r("<?print repr(list(range(3)))?>")
 
