@@ -128,8 +128,6 @@ This script outputs::
 
 import datetime, collections, io, contextlib
 
-from ll import color, misc
-
 
 __docformat__ = "reStructuredText"
 
@@ -180,7 +178,7 @@ class Encoder:
 			# Yes: Store a backreference to the object
 			self.stream.write("^{}|".format(self._id2index[id(obj)]))
 		else:
-			from ll import ul4c
+			from ll import ul4c, color, misc
 			# No: Write the object itself
 			# We're not using backreferences, if the object itself has a shorter dump
 			if obj is None:
@@ -257,6 +255,7 @@ class Decoder:
 		self._objects.append(obj)
 
 	def _load(self, typecode):
+		from ll import color, misc
 		if typecode is None:
 			typecode = self.stream.read(1)
 		if not typecode:
@@ -303,6 +302,7 @@ class Decoder:
 				self._loading(value)
 			return value
 		elif typecode in "cC":
+			from ll import color
 			data = self.stream.read(8)
 			value = color.Color(*(int(x, 16) for x in misc.itersplitat(data, (2, 4, 6))))
 			if typecode == "C":
@@ -323,6 +323,7 @@ class Decoder:
 				self._loading(value)
 			return value
 		elif typecode in "mM":
+			from ll import misc
 			months = self._readint()
 			value = misc.monthdelta(months)
 			if typecode == "M":

@@ -1530,6 +1530,21 @@ def test_function_bool(r):
 
 
 @pytest.mark.ul4
+def test_function_list(r):
+	with raises(argumentmismatchmessage):
+		r("<?print list(1, 2)?>")
+	assert "[]" == r("<?print list()?>")
+	assert "[1, 2]" == r("<?print list(data)?>", data=[1, 2])
+	assert "['g', 'u', 'r', 'k']" == r("<?print list(data)?>", data="gurk")
+	assert "['g', 'u', 'r', 'k']" == r("<?print list(data)?>", data="gurk")
+	assert "[['foo', 42]]" == r("<?print repr(list(data.items()))?>", data={"foo": 42})
+	assert "[0, 1, 2]" == r("<?print repr(list(range(3)))?>")
+
+	# Make sure that the parameters have the same name in all implementations
+	assert "['g', 'u', 'r', 'k']" == r("<?print list(iterable=data)?>", data="gurk")
+
+
+@pytest.mark.ul4
 def test_function_int(r):
 	with raises(argumentmismatchmessage):
 		r("<?print int(1, 2, 3)?>")
@@ -3282,6 +3297,48 @@ def test_function_closure(c):
 @pytest.mark.ul4
 def test_return_in_template(r):
 	assert "gurk" == r("gurk<?return 42?>hurz")
+
+
+@pytest.mark.ul4
+def test_customattributes():
+	class CustomAttribute:
+		ul4attrs = {"foo"}
+		def __init__(self, foo):
+			self.foo = foo
+
+	o = CustomAttribute(foo=42)
+	assert "42" == render_python("<?print o.foo?>", o=o)
+	assert "undefined" == render_python("<?print type(o.bar)?>", o=o)
+	assert "42" == render_python("<?print o['foo']?>", o=o)
+	assert "undefined" == render_python("<?print type(o['bar'])?>", o=o)
+	assert "True" == render_python("<?print 'foo' in o?>", o=o)
+	assert "False" == render_python("<?print 'bar' in o?>", o=o)
+	assert "[['foo', 42]]" == render_python("<?print repr(list(o.items()))?>", o=o)
+	assert "[42]" == render_python("<?print repr(list(o.values()))?>", o=o)
+	assert "foo" == render_python("<?for attr in o?><?print attr?><?end for?>", o=o)
+
+
+@pytest.mark.ul4
+def test_custommethods():
+	class CustomMethod:
+		@ul4c.expose_method
+		def foo(self):
+			return 42
+
+		@ul4c.expose_generatormethod
+		def bar(self):
+			yield "gurk"
+			yield "hurz"
+			return 42
+
+		def baz(self):
+			pass
+
+	o = CustomMethod()
+	assert "42" == render_python("<?print o.foo()?>", o=o)
+	assert "gurkhurz42" == render_python("<?print o.bar()?>", o=o)
+	with raises("baz"):
+		render_python("<?print o.baz()?>", o=o)
 
 
 @pytest.mark.ul4

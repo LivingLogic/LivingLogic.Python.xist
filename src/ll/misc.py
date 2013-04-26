@@ -17,7 +17,7 @@ LivingLogic modules and packages.
 
 import sys, os, types, datetime, collections, weakref, io, gzip as gzip_, csv, itertools, argparse
 
-from ll import color
+from ll import ul4c, color
 
 
 __docformat__ = "reStructuredText"
@@ -508,8 +508,6 @@ def javaexpr(obj):
 	Return a Java expression for the object :obj:`obj`.
 	"""
 
-	from ll import ul4c
-
 	if obj is None:
 		return "null"
 	elif obj is ul4c.Undefined:
@@ -745,49 +743,49 @@ class monthdelta(object):
 		datetime.date(2000, 2, 29)
 	"""
 
-	__slots__ = ("months",)
+	__slots__ = ("_months",)
 
 	def __init__(self, months=0):
-		self.months = months
+		self._months = months
 
 	def __bool__(self):
-		return self.months != 0
+		return self._months != 0
 
 	def __hash__(self):
-		return self.months
+		return self._months
 
 	def __eq__(self, other):
-		return isinstance(other, monthdelta) and self.months == other.months
+		return isinstance(other, monthdelta) and self._months == other._months
 
 	def __ne__(self, other):
-		return not isinstance(other, monthdelta) or self.months != other.months
+		return not isinstance(other, monthdelta) or self._months != other._months
 
 	def __lt__(self, other):
 		if not isinstance(other, monthdelta):
 			raise TypeError("unorderable types: {0.__class__.__module__}.{0.__class__.__qualname__}() < {1.__class__.__module__}.{1.__class__.__qualname__}()".format(self, other))
-		return self.months < other.months
+		return self._months < other._months
 
 	def __le__(self, other):
 		if not isinstance(other, monthdelta):
 			raise TypeError("unorderable types: {0.__class__.__module__}.{0.__class__.__qualname__}() <= {1.__class__.__module__}.{1.__class__.__qualname__}()".format(self, other))
-		return self.months <= other.months
+		return self._months <= other._months
 
 	def __gt__(self, other):
 		if not isinstance(other, monthdelta):
 			raise TypeError("unorderable types: {0.__class__.__module__}.{0.__class__.__qualname__}() > {1.__class__.__module__}.{1.__class__.__qualname__}()".format(self, other))
-		return self.months > other.months
+		return self._months > other._months
 
 	def __ge__(self, other):
 		if not isinstance(other, monthdelta):
 			raise TypeError("unorderable types: {0.__class__.__module__}.{0.__class__.__qualname__}() >= {1.__class__.__module__}.{1.__class__.__qualname__}()".format(self, other))
-		return self.months >= other.months
+		return self._months >= other._months
 
 	def __add__(self, other):
 		if isinstance(other, monthdelta):
-			return monthdelta(self.months+other.months)
+			return monthdelta(self._months+other._months)
 		elif isinstance(other, (datetime.datetime, datetime.date)):
 			year = other.year
-			month = other.month + self.months
+			month = other.month + self._months
 			(years_add, month) = divmod(month-1, 12)
 			month += 1
 			year += years_add
@@ -807,7 +805,7 @@ class monthdelta(object):
 
 	def __sub__(self, other):
 		if isinstance(other, monthdelta):
-			return monthdelta(self.months-other.months)
+			return monthdelta(self._months-other._months)
 		else:
 			return NotImplemented
 
@@ -815,14 +813,14 @@ class monthdelta(object):
 		return other + (-self)
 
 	def __neg__(self):
-		return monthdelta(-self.months)
+		return monthdelta(-self._months)
 
 	def __abs__(self):
-		return monthdelta(abs(self.months))
+		return monthdelta(abs(self._months))
 
 	def __mul__(self, other):
 		if isinstance(other, int) and not isinstance(other, monthdelta):
-			return monthdelta(self.months*other)
+			return monthdelta(self._months*other)
 		else:
 			return NotImplemented
 
@@ -831,28 +829,32 @@ class monthdelta(object):
 
 	def __floordiv__(self, other):
 		if isinstance(other, int):
-			return monthdelta(self.months//other)
+			return monthdelta(self._months//other)
 		elif isinstance(other, monthdelta):
-			return self.months//other.months
+			return self._months//other._months
 		else:
 			return NotImplemented
 
 	def __truediv__(self, other):
 		if isinstance(other, monthdelta):
-			return self.months/other.months
+			return self._months/other._months
 		else:
 			return NotImplemented
 
 	def __str__(self):
-		m = self.months
+		m = self._months
 		return "{} month{}".format(m, "s" if m != 1 and m != -1 else "")
 
 	def __repr__(self):
-		m = self.months
+		m = self._months
 		if m:
 			return "monthdelta({})".format(m)
 		else:
 			return "monthdelta()"
+
+	@ul4c.expose_method
+	def months(self):
+		return self._months
 
 
 def prettycsv(rows, padding="   "):

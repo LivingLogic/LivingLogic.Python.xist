@@ -99,11 +99,20 @@ Changes in 5.0 (released ??/??/2013)
 	``keepws`` parameter), any initial spaces (before the first line feed) are
 	now no longer removed.
 
-*	If you have Cython__ installed, serveral modules will now be compiled into
-	extensions modules (currently :mod:`ll.xist.xsc` and :mod:`ll.url` will be
-	compiled).
+*	If you have Cython__ installed, several modules will now be compiled into
+	extensions modules.
 
 	__ http://www.cython.org/
+
+*	It's now possible to expose attributes and methods of objects to UL4
+	templates. Exposing attributes can be done by setting a class or instance
+	attribute ``ul4attrs`` to a sequence of attribute names. Exposing methods can
+	be done with the decorators :func:`ul4c.expose_method` and
+	:func:`ul4c.expose_generatormethod`.
+
+*	A new UL4 function ``list`` has been added. This function works like the
+	Python function ``list``, creating a copy of a sequence or materialzing
+	an iterator.
 
 
 Changes in 4.10 (released 03/04/2013)

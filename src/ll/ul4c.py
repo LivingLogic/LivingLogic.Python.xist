@@ -27,8 +27,6 @@ import re, types, datetime, urllib.parse as urlparse, json, collections, locale,
 
 import antlr3
 
-from ll import color, misc
-
 
 # Regular expression used for splitting dates in isoformat
 datesplitter = re.compile("[-T:.]")
@@ -43,13 +41,20 @@ def register(name):
 	return registration
 
 
-class Object:
-	fields = {}
+def expose_method(f):
+	"""
+	Using the function as decorator for a method makes this method visible
+	to UL4 templates.
+	"""
+	f.__ul4methodtype__ = 1
+	return f
 
-	def __getitem__(self, key):
-		if key in self.fields:
-			return getattr(self, key)
-		raise KeyError(key)
+
+def expose_generatormethod(f):
+	"""
+	"""
+	f.__ul4methodtype__ = 2
+	return f
 
 
 ###
@@ -57,13 +62,12 @@ class Object:
 ###
 
 @register("location")
-class Location(Object):
+class Location:
 	"""
 	A :class:`Location` object contains information about the location of a
 	template tag.
 	"""
-	__slots__ = ("root", "source", "type", "starttag", "endtag", "startcode", "endcode")
-	fields = {"root", "source", "type", "starttag", "endtag", "startcode", "endcode", "tag", "code"}
+	ul4attrs = {"root", "source", "type", "starttag", "endtag", "startcode", "endcode", "tag", "code"}
 
 	def __init__(self, root=None, source=None, type=None, starttag=None, endtag=None, startcode=None, endcode=None):
 		"""
@@ -285,6 +289,7 @@ def _str(obj=""):
 
 
 def _repr(obj):
+	from ll import color
 	if isinstance(obj, str):
 		return repr(obj)
 	elif isinstance(obj, datetime.datetime):
@@ -316,6 +321,7 @@ def _repr(obj):
 
 
 def _asjson(obj):
+	from ll import color, misc
 	if obj is None:
 		return "null"
 	elif isinstance(obj, Undefined):
@@ -329,7 +335,7 @@ def _asjson(obj):
 	elif isinstance(obj, datetime.timedelta):
 		return "ul4.TimeDelta.create({}, {}, {})".format(obj.days, obj.seconds, obj.microseconds)
 	elif isinstance(obj, misc.monthdelta):
-		return "ul4.MonthDelta.create({})".format(obj.months)
+		return "ul4.MonthDelta.create({})".format(obj.months())
 	elif isinstance(obj, color.Color):
 		return "ul4.Color.create({}, {}, {}, {})".format(*obj)
 	elif isinstance(obj, collections.Mapping):
@@ -348,6 +354,7 @@ def _xmlescape(obj):
 	elif isinstance(obj, Undefined):
 		return ""
 	else:
+		from ll import misc
 		return misc.xmlescape(str(obj))
 
 
@@ -355,13 +362,13 @@ def _xmlescape(obj):
 ### Compiler stuff: Nodes for the AST
 ###
 
-class AST(Object):
+class AST:
 	"""
 	Base class for all syntax tree nodes.
 	"""
 
 	# Set of attributes available via :meth:`getitem`.
-	fields = {"type", "location", "start", "end"}
+	ul4attrs = {"type", "location", "start", "end"}
 
 	# "Global" functions and methods. Functions in ``functions`` will be exposed to UL4 code
 	functions = {}
@@ -371,11 +378,6 @@ class AST(Object):
 		self.location = location
 		self.start = start
 		self.end = end
-
-	def __getitem__(self, key):
-		if key in self.fields:
-			return getattr(self, key)
-		raise KeyError(key)
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} at {1:#x}>".format(self, id(self))
@@ -411,7 +413,6 @@ class AST(Object):
 		# a string, which means: add this string to the output
 		yield self.location.source[self.start:self.end].replace("\r\n", " ").replace("\n", " ")
 
-	@misc.notimplemented
 	def eval(self, vars):
 		"""
 		This evaluates the node.
@@ -420,6 +421,7 @@ class AST(Object):
 		node returns a value (as most nodes do), this is done as the value of a
 		:exc:`StopIteration` exception.
 		"""
+		yield from ()
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.location)
@@ -479,7 +481,7 @@ class Const(AST):
 	"""
 	Load a constant
 	"""
-	fields = AST.fields.union({"value"})
+	ul4attrs = AST.ul4attrs.union({"value"})
 
 	def __init__(self, location=None, start=None, end=None, value=None):
 		super().__init__(location, start, end)
@@ -507,7 +509,7 @@ class List(AST):
 	AST nodes for loading a list object.
 	"""
 
-	fields = AST.fields.union({"items"})
+	ul4attrs = AST.ul4attrs.union({"items"})
 
 	def __init__(self, location=None, start=None, end=None, *items):
 		super().__init__(location, start, end)
@@ -553,7 +555,7 @@ class ListComp(AST):
 	AST node for list comprehension.
 	"""
 
-	fields = AST.fields.union({"item", "varname", "container", "condition"})
+	ul4attrs = AST.ul4attrs.union({"item", "varname", "container", "condition"})
 
 
 	def __init__(self, location=None, start=None, end=None, item=None, varname=None, container=None, condition=None):
@@ -626,7 +628,7 @@ class Dict(AST):
 	AST node for loading a dict object.
 	"""
 
-	fields = AST.fields.union({"items"})
+	ul4attrs = AST.ul4attrs.union({"items"})
 
 	def __init__(self, location=None, start=None, end=None, *items):
 		super().__init__(location, start, end)
@@ -672,7 +674,7 @@ class DictComp(AST):
 	AST node for dictionary comprehension.
 	"""
 
-	fields = AST.fields.union({"key", "value", "varname", "container", "condition"})
+	ul4attrs = AST.ul4attrs.union({"key", "value", "varname", "container", "condition"})
 
 	def __init__(self, location=None, start=None, end=None, key=None, value=None, varname=None, container=None, condition=None):
 		super().__init__(location, start, end)
@@ -748,7 +750,7 @@ class GenExpr(AST):
 	AST node for a generator expression.
 	"""
 
-	fields = AST.fields.union({"item", "varname", "container", "condition"})
+	ul4attrs = AST.ul4attrs.union({"item", "varname", "container", "condition"})
 
 	def __init__(self, location=None, start=None, end=None, item=None, varname=None, container=None, condition=None):
 		super().__init__(location, start, end)
@@ -817,7 +819,7 @@ class Var(AST):
 	AST nodes for loading a variable.
 	"""
 
-	fields = AST.fields.union({"name"})
+	ul4attrs = AST.ul4attrs.union({"name"})
 
 	def __init__(self, location=None, start=None, end=None, name=None):
 		super().__init__(location, start, end)
@@ -855,7 +857,7 @@ class Block(AST):
 	(e.g. a ``<?for?>`` block).
 	"""
 
-	fields = AST.fields.union({"endlocation", "content"})
+	ul4attrs = AST.ul4attrs.union({"endlocation", "content"})
 
 	def __init__(self, location=None, start=None, end=None):
 		super().__init__(location, start, end)
@@ -944,7 +946,7 @@ class If(Block):
 	AST node for an ``<?if?>`` block.
 	"""
 
-	fields = Block.fields.union({"condition"})
+	ul4attrs = Block.ul4attrs.union({"condition"})
 
 	def __init__(self, location=None, start=None, end=None, condition=None):
 		super().__init__(location, start, end)
@@ -991,7 +993,7 @@ class ElIf(Block):
 	AST node for an ``<?elif?>`` block.
 	"""
 
-	fields = Block.fields.union({"condition"})
+	ul4attrs = Block.ul4attrs.union({"condition"})
 
 	def __init__(self, location=None, start=None, end=None, condition=None):
 		super().__init__(location, start, end)
@@ -1066,7 +1068,7 @@ class For(Block):
 	AST node for a ``<?for?>`` loop variable.
 	"""
 
-	fields = Block.fields.union({"varname", "container"})
+	ul4attrs = Block.ul4attrs.union({"varname", "container"})
 
 	def __init__(self, location=None, start=None, end=None, varname=None, container=None):
 		super().__init__(location, start, end)
@@ -1116,6 +1118,10 @@ class For(Block):
 	def eval(self, vars):
 		container = (yield from self.container.eval(vars))
 		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
+		try:
+			container = container.ul4attrs
+		except AttributeError:
+			pass
 		for item in container:
 			_unpackvar(vars, self.varname, item)
 			try:
@@ -1162,7 +1168,7 @@ class GetAttr(AST):
 	The object is loaded from the AST node :obj:`obj` and the attribute name
 	is stored in the string :obj:`attrname`.
 	"""
-	fields = AST.fields.union({"obj", "attrname"})
+	ul4attrs = AST.ul4attrs.union({"obj", "attrname"})
 
 	def __init__(self, location=None, start=None, end=None, obj=None, attrname=None):
 		super().__init__(location, start, end)
@@ -1190,9 +1196,16 @@ class GetAttr(AST):
 	def eval(self, vars):
 		obj = (yield from self.obj.eval(vars))
 		try:
-			return obj[self.attrname]
-		except KeyError:
-			return UndefinedKey(self.attrname)
+			hasattr = self.attrname in obj.ul4attrs
+		except (AttributeError, TypeError):
+			try:
+				return obj[self.attrname]
+			except KeyError:
+				pass
+		else:
+			if hasattr:
+				return getattr(obj, self.attrname)
+		return UndefinedKey(self.attrname)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1217,7 +1230,7 @@ class GetSlice(AST):
 	for the end index).
 	"""
 
-	fields = AST.fields.union({"obj", "index1", "index2"})
+	ul4attrs = AST.ul4attrs.union({"obj", "index1", "index2"})
 
 	def __init__(self, location=None, start=None, end=None, obj=None, index1=None, index2=None):
 		super().__init__(location, start, end)
@@ -1280,7 +1293,7 @@ class Unary(AST):
 	Base class for all AST nodes implementing unary operators.
 	"""
 
-	fields = AST.fields.union({"obj"})
+	ul4attrs = AST.ul4attrs.union({"obj"})
 
 	def __init__(self, location=None, start=None, end=None, obj=None):
 		super().__init__(location, start, end)
@@ -1396,7 +1409,7 @@ class Binary(AST):
 	Base class for all AST nodes implementing binary operators.
 	"""
 
-	fields = AST.fields.union({"obj1", "obj2"})
+	ul4attrs = AST.ul4attrs.union({"obj1", "obj2"})
 
 	def __init__(self, location=None, start=None, end=None, obj1=None, obj2=None):
 		super().__init__(location, start, end)
@@ -1452,15 +1465,20 @@ class GetItem(Binary):
 	node :obj:`obj1` and the index/key is loaded from the AST node :obj:`obj2`.
 	"""
 
-
-	@classmethod
-	def evaluate(cls, obj1, obj2):
-		return obj1[obj2]
-
 	@classmethod
 	def evalfold(cls, obj1, obj2):
 		try:
-			return obj1[obj2]
+			try:
+				hasattr = obj2 in obj1.ul4attrs
+			except (AttributeError, TypeError):
+				return obj1[obj2]
+			else:
+				if hasattr:
+					return getattr(obj1, obj2)
+				else:
+					return UndefinedKey(obj2)
+		except AttributeError:
+			return UndefinedKey(obj2)
 		except KeyError:
 			return UndefinedKey(obj2)
 		except IndexError:
@@ -1545,14 +1563,19 @@ class Contains(Binary):
 	AST node for the binary containment testing operator.
 
 	The item/key object is loaded from the AST node :obj:`obj1` and the container
-	object (which must be a list, string or dict) is loaded from the AST node
-	:obj:`obj2`.
+	object (which must be a list, string, dict or an object with a ``ul4attrs``
+	attribute) is loaded from the AST node :obj:`obj2`.
 	"""
 
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
-		return obj1 in obj2
+		try:
+			hasattr = obj1 in obj2.ul4attrs
+		except (AttributeError, TypeError):
+			return obj1 in obj2
+		else:
+			return hasattr
 
 
 @register("notcontains")
@@ -1561,14 +1584,19 @@ class NotContains(Binary):
 	AST node for the inverted containment testing operator.
 
 	The item/key object is loaded from the AST node :obj:`obj1` and the container
-	object (which must be a list, string or dict) is loaded from the AST node
-	:obj:`obj2`.
+	object (which must be a list, string, dict or an object with a ``ul4attrs``
+	attribute) is loaded from the AST node :obj:`obj2`.
 	"""
 
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
-		return obj1 not in obj2
+		try:
+			hasattr = obj1 in obj2.ul4attrs
+		except (AttributeError, TypeError):
+			return obj1 not in obj2
+		else:
+			return not hasattr
 
 
 @register("add")
@@ -1692,7 +1720,7 @@ class ChangeVar(AST):
 	AST node :obj:`value`.
 	"""
 
-	fields = AST.fields.union({"varname", "value"})
+	ul4attrs = AST.ul4attrs.union({"varname", "value"})
 
 	def __init__(self, location=None, start=None, end=None, varname=None, value=None):
 		super().__init__(location, start, end)
@@ -1825,7 +1853,7 @@ class CallFunc(AST):
 	if there is no ``**`` argument)
 	"""
 
-	fields = AST.fields.union({"obj", "args", "kwargs", "remargs", "remkwargs"})
+	ul4attrs = AST.ul4attrs.union({"obj", "args", "kwargs", "remargs", "remkwargs"})
 
 	def __init__(self, location=None, start=None, end=None, obj=None):
 		super().__init__(location, start, end)
@@ -1921,7 +1949,7 @@ class CallMeth(AST):
 	if there is no ``**`` argument)
 	"""
 
-	fields = AST.fields.union({"obj", "methname", "args", "kwargs", "remargs", "remkwargs"})
+	ul4attrs = AST.ul4attrs.union({"obj", "methname", "args", "kwargs", "remargs", "remkwargs"})
 
 	def __init__(self, location=None, start=None, end=None, obj=None, methname=None):
 		super().__init__(location, start, end)
@@ -1984,11 +2012,15 @@ class CallMeth(AST):
 			args.extend((yield from self.remargs.eval(vars)))
 		if self.remkwargs is not None:
 			kwargs.update((yield from self.remkwargs.eval(vars)))
-		result = self.methods[self.methname](obj, *args, **kwargs)
-		if isinstance(result, types.GeneratorType):
-			return (yield from result)
-		else:
-			return result
+		method = getattr(obj, self.methname, None)
+		if callable(method):
+			ul4methodtype = getattr(method, "__ul4methodtype__", None)
+			if ul4methodtype == 1:
+				yield from ()
+				return method(*args, **kwargs)
+			elif ul4methodtype == 2:
+				return (yield from method(*args, **kwargs))
+		return (yield from self.methods[self.methname](obj, *args, **kwargs))
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -2030,9 +2062,9 @@ class Template(Block):
 	of the first ``<?return?>`` tag encountered. In this case all output of the
 	template will be ignored.
 	"""
-	fields = Block.fields.union({"source", "name", "keepws", "startdelim", "enddelim"})
+	ul4attrs = Block.ul4attrs.union({"source", "name", "keepws", "startdelim", "enddelim"})
 
-	version = "24"
+	version = "25"
 
 	def __init__(self, source=None, name=None, keepws=True, startdelim="<?", enddelim="?>"):
 		"""
@@ -2162,6 +2194,7 @@ class Template(Block):
 		from ll import ul4on
 		return ul4on.dumps(self)
 
+	@expose_generatormethod
 	def render(self, **vars):
 		"""
 		Render the template iteratively (i.e. this is a generator).
@@ -2173,6 +2206,7 @@ class Template(Block):
 		except ReturnException:
 			pass
 
+	@expose_method
 	def renders(self, **vars):
 		"""
 		Render the template as a string. :obj:`vars` contains the top level
@@ -2201,6 +2235,7 @@ class Template(Block):
 		"""
 		Return the template as Java source code.
 		"""
+		from ll import misc
 		return "com.livinglogic.ul4.InterpretedTemplate.loads({})".format(misc.javaexpr(self.dumps()))
 
 	def _tokenize(self, source, startdelim, enddelim):
@@ -2413,6 +2448,7 @@ def function_timedelta(days=0, seconds=0, microseconds=0):
 
 @AST.makefunction
 def function_monthdelta(months=0):
+	from ll import misc
 	yield from ()
 	return misc.monthdelta(months)
 
@@ -2489,6 +2525,12 @@ def function_float(obj=0.0):
 def function_bool(obj=False):
 	yield from ()
 	return bool(obj)
+
+
+@AST.makefunction
+def function_list(iterable=()):
+	yield from ()
+	return list(iterable)
 
 
 @AST.makefunction
@@ -2657,12 +2699,14 @@ def function_istimedelta(obj):
 
 @AST.makefunction
 def function_ismonthdelta(obj):
+	from ll import misc
 	yield from ()
 	return isinstance(obj, misc.monthdelta)
 
 
 @AST.makefunction
 def function_islist(obj):
+	from ll import color
 	yield from ()
 	return isinstance(obj, collections.Sequence) and not isinstance(obj, str) and not isinstance(obj, color.Color)
 
@@ -2675,6 +2719,7 @@ def function_isdict(obj):
 
 @AST.makefunction
 def function_iscolor(obj):
+	from ll import color
 	yield from ()
 	return isinstance(obj, color.Color)
 
@@ -2747,6 +2792,7 @@ def function_range(*args):
 
 @AST.makefunction
 def function_type(obj):
+	from ll import color, misc
 	yield from ()
 	if obj is None:
 		return "none"
@@ -2843,18 +2889,21 @@ def function_urlunquote(string):
 
 @AST.makefunction
 def function_rgb(r, g, b, a=1.0):
+	from ll import color
 	yield from ()
 	return color.Color.fromrgb(r, g, b, a)
 
 
 @AST.makefunction
 def function_hls(h, l, s, a=1.0):
+	from ll import color
 	yield from ()
 	return color.Color.fromhls(h, l, s, a)
 
 
 @AST.makefunction
 def function_hsv(h, s, v, a=1.0):
+	from ll import color
 	yield from ()
 	return color.Color.fromhsv(h, s, v, a)
 
@@ -2957,60 +3006,6 @@ def method_replace(obj, old, new, count=None):
 
 
 @AST.makemethod
-def method_r(obj):
-	yield from ()
-	return obj.r()
-
-
-@AST.makemethod
-def method_g(obj):
-	yield from ()
-	return obj.g()
-
-
-@AST.makemethod
-def method_b(obj):
-	yield from ()
-	return obj.b()
-
-
-@AST.makemethod
-def method_a(obj):
-	yield from ()
-	return obj.a()
-
-
-@AST.makemethod
-def method_hls(obj):
-	yield from ()
-	return obj.hls()
-
-
-@AST.makemethod
-def method_hlsa(obj):
-	yield from ()
-	return obj.hlsa()
-
-
-@AST.makemethod
-def method_hsv(obj):
-	yield from ()
-	return obj.hsv()
-
-
-@AST.makemethod
-def method_hsva(obj):
-	yield from ()
-	return obj.hsva()
-
-
-@AST.makemethod
-def method_lum(obj):
-	yield from ()
-	return obj.lum()
-
-
-@AST.makemethod
 def method_weekday(obj):
 	yield from ()
 	return obj.weekday()
@@ -3037,30 +3032,35 @@ def method_week(obj, firstweekday=None):
 @AST.makemethod
 def method_items(obj):
 	yield from ()
-	return obj.items()
+	try:
+		attrs = obj.ul4attrs
+	except AttributeError:
+		return obj.items()
+	else:
+		def iterate(obj):
+			for attrname in attrs:
+				yield (attrname, getattr(obj, attrname, UndefinedKey(attrname)))
+		return iterate(obj)
 
 
 @AST.makemethod
 def method_values(obj):
 	yield from ()
-	return obj.values()
+	try:
+		attrs = obj.ul4attrs
+	except AttributeError:
+		return obj.values()
+	else:
+		def iterate(obj):
+			for attrname in attrs:
+				yield getattr(obj, attrname, UndefinedKey(attrname))
+		return iterate(obj)
 
 
 @AST.makemethod
 def method_join(obj, iterable):
 	yield from ()
 	return obj.join(iterable)
-
-
-@AST.makemethod
-def method_render(obj, **vars):
-	yield from obj.render(**vars)
-
-
-@AST.makemethod
-def method_renders(obj, **vars):
-	yield from ()
-	return obj.renders(**vars)
 
 
 @AST.makemethod
@@ -3094,18 +3094,6 @@ def method_get(obj, key, default=None):
 
 
 @AST.makemethod
-def method_withlum(obj, lum):
-	yield from ()
-	return obj.withlum(lum)
-
-
-@AST.makemethod
-def method_witha(obj, a):
-	yield from ()
-	return obj.witha(a)
-
-
-@AST.makemethod
 def method_day(obj):
 	yield from ()
 	return obj.day
@@ -3113,6 +3101,7 @@ def method_day(obj):
 
 @AST.makemethod
 def method_month(obj):
+	yield from ()
 	return obj.month
 
 
@@ -3165,12 +3154,6 @@ def method_microseconds(obj):
 
 
 @AST.makemethod
-def method_months(obj):
-	yield from ()
-	return obj.months
-
-
-@AST.makemethod
 def method_append(obj, *items):
 	yield from ()
 	obj.extend(items)
@@ -3196,8 +3179,8 @@ def method_update(obj, *others, **kwargs):
 	obj.update(**kwargs)
 
 
-class TemplateClosure(Object):
-	fields = {"location", "endlocation", "name", "source", "startdelim", "enddelim", "content"}
+class TemplateClosure:
+	ul4attrs = {"location", "endlocation", "name", "source", "startdelim", "enddelim", "content"}
 
 	def __init__(self, template, vars):
 		self.template = template
@@ -3206,9 +3189,11 @@ class TemplateClosure(Object):
 		# The template (i.e. the closure) itself should be visible in the parent variables
 		self.vars[template.name] = self
 
+	@expose_generatormethod
 	def render(self, **vars):
-		return self.template.render(**collections.ChainMap(vars, self.vars))
+		yield from self.template.render(**collections.ChainMap(vars, self.vars))
 
+	@expose_method
 	def renders(self, **vars):
 		return self.template.renders(**collections.ChainMap(vars, self.vars))
 

@@ -738,6 +738,13 @@ debugging proposes. The output looks that the UL constant that could be used to
 recreate the object.
 
 
+``list``
+""""""""
+
+``list(foo)`` converts ``foo`` to a list. This works for lists, strings and all
+iterable objects. Calling ``list`` without arguments returns an empty list.
+
+
 ``asjson``
 """"""""""
 
@@ -1302,6 +1309,91 @@ When no ``<?return?>`` tag is encountered, ``None`` will be returned.
 
 When a ``<?return?>`` tag is encountered when the template is used as a
 template, output will simply stop and the return value will be ignored.
+
+
+Custom attributes
+=================
+
+It is possible to expose attributes of an object to UL4 templates. This is done
+by setting the class attribute ``ul4attrs``::
+
+	from ll import ul4c
+
+	class Person:
+		ul4attrs = {"firstname", "lastname"}
+
+		def __init__(self, firstname, lastname, age):
+			self.firstname = firstname
+			self.lastname = lastname
+			self.age = age
+
+	p = Person("John", "Doe", 42)
+
+	template = ul4c.Template("<?print p.lastname?>, <?print p.firstname?>")
+	print(template.renders(p=p))
+
+This will output ``Doe, John``.
+
+Attributes not in ``ul4attrs`` will not be visible::
+
+	template = ul4c.Template("<?print type(p.age)?>")
+	print(template.renders(p=p))
+
+This will output ``undefined``. Exposing attributes via ``ul4attr`` also makes
+it possible to use dictionary access to the object, i.e. iterating over the
+object, using ``in`` and ``not in`` tests and using the methods ``items`` and
+``values``.
+
+
+Custom methods
+==============
+
+It is also possible to expose methods of an object to UL4 templates. This can be
+done with the two decorator functions :func:`ul4c.expose_method` and
+:func:`ul4c.expose_generatormethod`. :func:`ul4c.expose_method` is used for a
+normal method that returns a value::
+
+	from ll import ul4c
+
+	class Person:
+		def __init__(self, firstname, lastname):
+			self.firstname = firstname
+			self.lastname = lastname
+
+		@ul4c.expose_method
+		def fullname(self):
+			return self.firstname + " " + self.lastname
+
+	p = Person("John", "Doe")
+
+	template = ul4c.Template("<?print p.fullname()?>")
+	print(template.renders(p=p))
+
+This will output ``John Doe``.
+
+:func:`ul4c.expose_generatormethod` is used for methods that produce some output
+(and might return a value too)::
+
+	from ll import ul4c
+
+	class Person:
+		def __init__(self, firstname, lastname):
+			self.firstname = firstname
+			self.lastname = lastname
+
+		@ul4c.expose_generatormethod
+		def print_fullname(self):
+			yield self.firstname
+			yield " "
+			yield self.lastname
+			return 42
+
+	p = Person("John", "Doe")
+
+	template = ul4c.Template("<?code result = p.print_fullname()?>: result = <?print result?>")
+	print(template.renders(p=p))
+
+This outputs ``John Doe: result = 42``.
 
 
 Delimiters

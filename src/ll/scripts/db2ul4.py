@@ -36,32 +36,29 @@ Inside the template the following variables are available:
 		The output encoding.
 
 	``system``
-		A dict-like object that maps system commands to their output, e.g. the
-		template::
+		An object with an ``execute`` method that executes system commands and
+		returns their output, e.g. the template::
 
-			<?print system["whoami"]?>
+			<?print system.execute("whoami")?>
 
 		will output the user name.
 
 	``oracle``
-		A dict-like object that maps Oracle connect strings to connection objects.
+		An object with a ``connect`` method that returns a connection to an oracle
+		database.
 
 	``mysql``
-		A dict-like object that maps MySQL connect strings to connection objects.
-		A MySQL connect string is a string of the form ``user/pwd@host/db``.
+		An object with a ``connect`` method that return a MySQL connection for
+		the MySQL connect strings passed in. A MySQL connect string is a string
+		of the form ``user/pwd@host/db``.
 
 	``sqlite``
-		A dict-like object that maps SQLite connect strings to connection objects.
-		The connect string will be passed directly to :func:`sqlite3.connect`.
+		An object with a ``connect`` method that return a SQLite connection for
+		the connect strings passed in. The connect string will be passed directly
+		to :func:`sqlite3.connect`.
 
-All connection objects are itself dict-like objects providing two keys:
-
-	``iter``
-		A dict-like object that maps SQL queries to iterators over the
-		result records.
-
-	``list``
-		A dict-like object that maps SQL queries to a list of result records.
+All connection objects are have a ``query`` method that executes the query
+passed in and returns an iterator over the result records.
 
 A record in turn is a dict-like object mapping field names to field values.
 
@@ -84,9 +81,9 @@ Suppose we have a database table that looks like this::
 Then we can use the following template to output the table into an XML file::
 
 	<?xml version='1.0' encoding='<?print encoding?>'?>
-	<?code db = oracle["user/pwd@db"]?>
+	<?code db = oracle.connect("user/pwd@db")?>
 	<persons>
-		<?for p in db.iter["select id, firstname, lastname from person order by 2, 1"]?>
+		<?for p in db.query("select id, firstname, lastname from person order by 2, 1")?>
 			<person id="<?printx p.id?>">
 				<firstname><?printx p.firstname?></firstname>
 				<lastname><?printx p.lastname?></lastname>
@@ -110,51 +107,32 @@ __docformat__ = "reStructuredText"
 
 
 class System(object):
-	def __getitem__(self, cmd):
+	@ul4c.expose_method
+	def execute(self, cmd):
 		return os.popen(cmd).read()
-
-
-class QueryList(object):
-	def __init__(self, connection):
-		self.connection = connection
-
-	def __getitem__(self, query):
-		c = self.connection.cursor()
-		c.execute(query)
-		return list(c)
-
-
-class QueryIter(object):
-	def __init__(self, connection):
-		self.connection = connection
-
-	def __getitem__(self, query):
-		c = self.connection.cursor()
-		c.execute(query)
-		return c
 
 
 class Connection(object):
 	def __init__(self, connection):
 		self.connection = connection
 
-	def __getitem__(self, key):
-		if key == "iter":
-			return QueryIter(self.connection)
-		elif key == "list":
-			return QueryList(self.connection)
-		else:
-			raise KeyError(key)
+	@ul4c.expose_method
+	def query(self, query):
+		c = self.connection.cursor()
+		c.execute(query)
+		return c
 
 
 class Oracle(object):
-	def __getitem__(self, connectstring):
+	@ul4c.expose_method
+	def connect(self, connectstring):
 		from ll import orasql
 		return Connection(orasql.connect(connectstring, readlobs=True))
 
 
 class SQLite(object):
-	def __getitem__(self, connectstring):
+	@ul4c.expose_method
+	def connect(self, connectstring):
 		import sqlite3
 		connection = sqlite3.connect(connectstring)
 		class Row(sqlite3.Row):
@@ -167,7 +145,8 @@ class SQLite(object):
 
 
 class MySQL(object):
-	def __getitem__(self, connectstring):
+	@ul4c.expose_method
+	def connect(self, connectstring):
 		import MySQLdb
 		from MySQLdb import cursors
 		(user, host) = connectstring.split("@")
