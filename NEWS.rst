@@ -114,6 +114,21 @@ Changes in 5.0 (released ??/??/2013)
 	Python function ``list``, creating a copy of a sequence or materialzing
 	an iterator.
 
+*	The objects available to ``db2ul4`` scripts have been changed: ``oracle``,
+	``sqlite`` and ``mysql`` are now objects with a connect method that returns
+	a connection object. A connection object now has a method ``query`` that
+	executes the query and returns an iterator over the results. Furthermore
+	``query`` supports keyword arguments for parameterized queries, i.e. you
+	can now do::
+
+		<?code db = oracle.connect("user/pwd@db")?>
+		<?for row in db.query("select * from foo where bar = :bar", bar=42)?>
+			<?print row?>
+		<?end for?>
+
+	The ``system`` object now has an ``execute`` method that executes the system
+	command.
+
 
 Changes in 4.10 (released 03/04/2013)
 -------------------------------------
