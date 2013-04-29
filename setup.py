@@ -4,6 +4,7 @@
 
 # Setup script for XIST
 
+import os, textwrap, re
 
 try:
 	import setuptools as tools
@@ -12,13 +13,13 @@ except ImportError:
 
 from distutils.extension import Extension
 
-try:
-	from Cython.Distutils import build_ext
-	havecython = True
-except ImportError:
-	havecython = False
-
-import textwrap, re
+havecython = False
+if "LL_USE_CYTHON" in os.environ:
+	try:
+		from Cython.Distutils import build_ext
+		havecython = True
+	except ImportError:
+		pass
 
 
 DESCRIPTION = """

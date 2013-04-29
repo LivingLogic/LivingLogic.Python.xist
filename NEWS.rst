@@ -99,8 +99,9 @@ Changes in 5.0 (released ??/??/2013)
 	``keepws`` parameter), any initial spaces (before the first line feed) are
 	now no longer removed.
 
-*	If you have Cython__ installed, several modules will now be compiled into
-	extensions modules.
+*	If you have Cython__ installed and set the environment variable
+	``LL_USE_CYTHON``, several modules will now be compiled into extension
+	modules.
 
 	__ http://www.cython.org/
 
