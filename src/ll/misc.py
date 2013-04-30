@@ -536,7 +536,7 @@ def javaexpr(obj):
 	elif isinstance(obj, datetime.timedelta):
 		return "com.livinglogic.ul4.FunctionTimeDelta.call({0.days}, {0.seconds}, {0.microseconds})".format(obj)
 	elif isinstance(obj, monthdelta):
-		return "com.livinglogic.ul4.FunctionMonthDelta.call({0.months})".format(obj)
+		return "com.livinglogic.ul4.FunctionMonthDelta.call({0})".format(obj.months())
 	elif isinstance(obj, color.Color):
 		return "new com.livinglogic.ul4.Color({}, {}, {}, {})".format(*obj)
 	elif isinstance(obj, float):
