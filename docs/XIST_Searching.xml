@@ -330,7 +330,7 @@ is reentered:</p>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input> from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input> e = html.ul(html.li(i) for i in range(3))</input>
-<prompt>&gt;&gt;&gt; </prompt><input> for node in e.walkpaths():</input>
+<prompt>&gt;&gt;&gt; </prompt><input> for path in e.walkpaths():</input>
 <prompt>... </prompt><input> 	print(["{0.__module__}.{0.__qualname__}".format(n.__class__) for n in path])</input>
 <prompt>... </prompt><input></input>
 <![CDATA[['ll.xist.ns.html.ul']
