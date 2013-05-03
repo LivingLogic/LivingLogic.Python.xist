@@ -19,7 +19,7 @@ For all deprecated elements and attributes the class attribute :obj:`deprecated`
 is set to :const:`True`.
 """
 
-import os, tempfile, subprocess, cgi
+import os, tempfile, subprocess, cgi, textwrap
 
 from ll.xist import xsc, sims
 
@@ -3335,59 +3335,181 @@ nobr.model = sims.ElementsOrText(*content_flow)
 ### Functions
 ###
 
-def astext(node, encoding="iso-8859-1", width=72):
-	"""
-	Return the node :obj:`node` as a formatted string. :obj:`node` must
-	contain an HTML tree.
+def _node2stream(node):
+	lists = []
 
-	This requires that `links 2`__ is installed.
+	di = "   " # default indent
 
-		__ http://links.twibright.com/
+	for cursor in node.walk(xsc.Element | xsc.Text, enterelementnode=True, leaveelementnode=True):
+		node = cursor.node
+		# on most enter events, we flush any previous text as a block
+		# (this should handle ``<ul><li>foo<ul><li>bar</li></ul></li></ul>``)
+		if isinstance(node, xsc.Text):
+			yield ("text", str(cursor.node))
+		elif isinstance(node, h):
+			if cursor.event == "enterelementnode":
+				yield ("block", None) # Flush previous text as a block
+				yield ("blockspacing", 2)
+			else:
+				yield ("header", int(node.__class__.__name__[1:]))
+				yield ("blockspacing", 1)
+		elif isinstance(node, ul):
+			yield ("block", None) # Flush previous text/our own content as a block
+			yield ("blockspacing", 1)
+			if cursor.event == "enterelementnode":
+				lists.append(["ul", 0])
+			else:
+				lists.pop()
+		elif isinstance(node, ol):
+			yield ("block", None) # Flush previous text/our own content as a block
+			yield ("blockspacing", 1)
+			if cursor.event == "enterelementnode":
+				from ll import misc
+				lists.append(["ol", 0, misc.count(node[li])])
+			else:
+				lists.pop()
+		elif isinstance(node, dl):
+			yield ("block", None) # Flush previous text/our own content as a block
+			yield ("blockspacing", 1)
+			if cursor.event == "enterelementnode":
+				lists.append(["dl", 0])
+			else:
+				lists.pop()
+		elif isinstance(node, li):
+			yield ("block", None) # Flush previous text/our own content as a block
+			yield ("blockspacing", 1)
+			if cursor.event == "enterelementnode":
+				if lists:
+					lists[-1][1] += 1
+					if lists[-1][0] == "ol":
+						indent = "{:{}}. \n".format(lists[-1][1], len(str(lists[-1][2])))
+					else:
+						indent = "*  \n"
+				else:
+					indent = di
+				yield ("pushindent", indent)
+			else:
+				yield ("popindent", None)
+		elif isinstance(node, dt):
+			yield ("block", None) # Flush previous text/our own content as a block
+			if cursor.event == "enterelementnode":
+				yield ("blockspacing", 1)
+		elif isinstance(node, dd):
+			yield ("block", None) # Flush previous text/our own content as a block
+			if cursor.event == "enterelementnode":
+				yield ("pushindent", di)
+			else:
+				yield ("popindent", None)
+		elif isinstance(node, blockquote):
+			yield ("block", None) # Flush previous text/our own content as a block
+			if cursor.event == "enterelementnode":
+				yield ("pushindent", di)
+			else:
+				yield ("popindent", None)
+		elif isinstance(node, pre):
+			yield ("block", None) # Flush previous text/our own content as a block
+			if cursor.event == "enterelementnode":
+				yield ("pushpre", True) # Must be done first, so that the inner block is in pre mode
+				yield ("blockspacing", 1)
+				yield ("pushindent", di)
+			else:
+				yield ("popindent", None)
+				yield ("blockspacing", 1)
+				yield ("poppre", None)
+		elif isinstance(node, (div, p, hr, address, th, td)):
+			yield ("block", None) # Flush previous text/our own content as a block
+			if cursor.event == "leaveelementnode":
+				yield ("blockspacing", 1)
+		elif isinstance(node, script):
+			cursor.entercontent = False
 
-	:obj:`encoding` specifies the output encoding. :obj:`width` specifies the
-	output width.
-	"""
 
-	# Fix the HTML
-	def decorateheader(node, converter, c):
-		content = str(node)
-		l = len(content)
-		if c:
-			underline = ((c*l)[:l], br())
+def _stream2text(stream, width, headers):
+	inpre = [False]
+	indents = []
+	wantlines = 0
+	collecttext = []
+
+	def makeblockspacing():
+		nonlocal wantlines
+		if wantlines:
+			yield "\n"*wantlines
+		wantlines = 0
+
+	def makelines(lines):
+		for line in lines:
+			if line.strip():
+				yield "".join(indent[0] for indent in indents) + line
+			else:
+				yield ""
+			for indent in indents:
+				if len(indent) > 1:
+					del indent[0]
+
+	def dotext(wrap):
+		nonlocal collecttext
+
+		text = "".join(collecttext)
+		if inpre[-1]:
+			lines = text.strip("\n").splitlines(False)
 		else:
-			underline = None
-		return node.__class__(
-			br(),
-			node.content.mapped(decorate, converter), br(),
-			underline,
-			node.attrs,
-		)
+			text = " ".join(text.strip().split())
+			if width is not None and wrap:
+				lines = textwrap.wrap(text, max(width-sum(len(indent[0]) for indent in indents), 20))
+			else:
+				lines = [text]
+		text = "\n".join(makelines(lines))
+		collecttext = []
+		return text
 
-	def decorate(node, converter):
-		if isinstance(node, (h1, h2)):
-			node = decorateheader(node, converter, "=")
-		elif isinstance(node, (h3, h4, h5, h6)):
-			node = decorateheader(node, converter, "-")
-		return node
+	for (type, data) in stream:
+		if type == "block":
+			text = dotext(True)
+			if text.strip():
+				yield from makeblockspacing()
+				yield text
+				yield "\n"
+				for indent in indents:
+					if len(indent) > 1:
+						del indent[0]
+		elif type == "header":
+			text = dotext(False)
+			if text.strip():
+				yield from makeblockspacing()
+				yield text
+				yield "\n"
+				l = len(text)
+				yield "".join(indent[0] for indent in indents) + headers[data-1]*l + "\n"
+				for indent in indents:
+					if len(indent) > 1:
+						del indent[0]
+		elif type == "pushpre":
+			inpre.append(data)
+		elif type == "poppre":
+			inpre.pop()
+		elif type == "pushindent":
+			# Handle multiline indents
+			indent = data.split("\n")
+			# Pad each indentation line to the same length
+			maxlen = max(len(line) for line in indent)
+			indent = ["{:{}}".format(line, maxlen) for line in indent]
+			indents.append(indent)
+		elif type == "popindent":
+			indents.pop()
+		elif type == "blockspacing":
+			wantlines = max(wantlines, data)
+		else:
+			collecttext.append(data)
+	if collecttext:
+		text = dotext(True)
+		if text.strip():
+			yield text
+			yield "\n"
 
-	node = node.mapped(decorate)
 
-	options = [
-		"-codepage {}".format(encoding),
-		"-width {}".format(width),
-		"-force-html",
-		"-dump",
-	]
-
-	text = node.bytes(encoding=encoding)
-
-	f = tempfile.NamedTemporaryFile(suffix=".html", delete=False)
-	try:
-		f.write(text)
-		f.close()
-		p = subprocess.Popen("links -codepage {} -width {} -force-html -dump {}".format(encoding, width, f.name), shell=True, stdout=subprocess.PIPE, close_fds=True)
-		text = p.stdout.read().decode(encoding)
-		p.stdout.close()
-	finally:
-		os.remove(f.name)
+def astext(node, width=None, headers="=-\"'"):
+	if len(headers) < 6:
+		headers += (6-len(headers)) * headers[-1]
+	text = "".join(_stream2text(_node2stream(node), width=width, headers=headers))
+	text = text.lstrip("\n")
 	return text

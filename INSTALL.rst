@@ -13,9 +13,6 @@ To use XIST you need the following software packages:
 
 	*	`lxml`_ (if you want to parse "broken" HTML; at least version 3.0);
 
-	*	`links`_ (if you want to use the function
-		:func:`ll.xist.ns.html.astext`);
-
 	*	`cx_Oracle`_ (if you want to use :mod:`ll.orasql`);
 
 	*	`distribute`_ (if you want to install this package as an egg);
@@ -42,10 +39,14 @@ To use XIST you need the following software packages:
 Installation
 ============
 
-setuptools is used for installation so you can install this package with the
-following command::
+setuptools/distribute is used for installation so you can install this package
+with the following command::
 
 	$ easy_install ll-xist
+
+or::
+
+	$ pip install ll-xist
 
 If you want to install from source, you can download one of the
 `distribution archives`__, unpack it, enter the directory and execute the

@@ -115,6 +115,10 @@ Changes in 5.0 (released ??/??/2013)
 	Python function ``list``, creating a copy of a sequence or materialzing
 	an iterator.
 
+*	The function :func:`html.astext` that converts an XIST tree containing HTML
+	to plain text is now implemented in plain Python so it no longer requires
+	a text mode browser. The function also got more configurable.
+
 *	The objects available to ``db2ul4`` scripts have been changed: ``oracle``,
 	``sqlite`` and ``mysql`` are now objects with a connect method that returns
 	a connection object. A connection object now has a method ``query`` that
