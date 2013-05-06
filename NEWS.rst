@@ -22,9 +22,9 @@ Changes in 5.0 (released ??/??/2013)
 	This new feature requires several API changes which will be described below.
 
 *	Validation is now off by default, to turn it on pass ``validate=True`` to
-	:func:`parse.tree` or :func:`parse.itertree` for parsing, or :meth:` to the
-	publisher object or the :meth:`bytes`, :meth:`iterbytes`, :meth:`string` or
-	:meth:`iterstring` methods for publishing.
+	:func:`parse.tree` or :func:`parse.itertree` for parsing, or the
+	:meth:`bytes`, :meth:`iterbytes`, :meth:`string` or :meth:`iterstring`
+	methods for publishing.
 
 *	Accessing an attribute via :meth:`__getattr__` (i.e.
 	``htmlelement.attrs.class_``) only works for attributes that are declared
