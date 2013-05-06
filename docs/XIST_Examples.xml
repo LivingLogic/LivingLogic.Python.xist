@@ -363,4 +363,96 @@ print(document.conv().string())
 </tty>
 
 </section>
+
+
+<section><h>Formatting &html; as plain text</h>
+
+<p>The function <func>html.astext</func> can to used to format &html; into plain
+text:</p>
+
+<prog>
+from ll.xist.ns import html
+
+e = html.div(
+	html.h1("The Zen of Python, by Tim Peters"),
+	html.ul(
+		html.li("Beautiful is better than ugly."),
+		html.li("Explicit is better than implicit."),
+		html.li("Simple is better than complex."),
+		html.li("Complex is better than complicated."),
+		html.li("Flat is better than nested."),
+		html.li("Sparse is better than dense."),
+		html.li("Readability counts."),
+		html.li("Special cases aren't special enough to break the rules."),
+		html.li("Although practicality beats purity."),
+		html.li("Errors should never pass silently."),
+		html.li("Unless explicitly silenced."),
+		html.li("In the face of ambiguity, refuse the temptation to guess."),
+		html.li("There should be one-- and preferably only one --obvious way to do it."),
+		html.li("Although that way may not be obvious at first unless you're Dutch."),
+		html.li("Now is better than never."),
+		html.li("Although never is often better than *right* now."),
+		html.li("If the implementation is hard to explain, it's a bad idea."),
+		html.li("If the implementation is easy to explain, it may be a good idea."),
+		html.li("Namespaces are one honking great idea -- let's do more of those!"),
+	)
+)
+
+print(html.astext(e, width=40))
+</prog>
+
+<p>This will output:</p>
+
+<tty>
+The Zen of Python, by Tim Peters
+================================
+
+*  Beautiful is better than ugly.
+
+*  Explicit is better than implicit.
+
+*  Simple is better than complex.
+
+*  Complex is better than complicated.
+
+*  Flat is better than nested.
+
+*  Sparse is better than dense.
+
+*  Readability counts.
+
+*  Special cases aren't special enough
+   to break the rules.
+
+*  Although practicality beats purity.
+
+*  Errors should never pass silently.
+
+*  Unless explicitly silenced.
+
+*  In the face of ambiguity, refuse the
+   temptation to guess.
+
+*  There should be one-- and preferably
+   only one --obvious way to do it.
+
+*  Although that way may not be obvious
+   at first unless you're Dutch.
+
+*  Now is better than never.
+
+*  Although never is often better than
+   *right* now.
+
+*  If the implementation is hard to
+   explain, it's a bad idea.
+
+*  If the implementation is easy to
+   explain, it may be a good idea.
+
+*  Namespaces are one honking great idea
+   -- let's do more of those!
+</tty>
+</section>
+
 </spc:wrap>
