@@ -3368,14 +3368,13 @@ def _node2stream(node):
 
 	``pushindent``
 		Add an additional indentation to the left side of all blocks/headers that
-		will be output. The command data is the content of this left column.
-		If this indentation contains multiple lines, the first indentation line
-		will be used for the first content line, the second indentation line for
-		the second content line etc. If the content has more lines than the
-		indentation the last indentation line will be repeated. All indentation
-		lines will be padded to the longest line. For example the indentation for
-		a ``li`` element inside an ``ul`` element is ``"* \n"``, i.e. the first
-		line will be indented with ``* ``, all subsequent lines with two spaces.
+		will be output. The command data is the name of the indentation (normally
+		the name of the HTML element itself (``"ul"``, ``"dd"``, ``"pre"``,
+		``"blockquote"`` or ``"list"`` (for ``li`` elements outside of any ``ol``
+		or ``ul`` element) or (for ``ol`` elements e.g. ``"ol-2-12"`` for a ``li``
+		element that is the the second element of 12 ``li`` elements in an ``ol``
+		element. It's the job of the caller to use the appropriate indentation
+		for each indentation type.
 
 	``popindent``
 		Remove the innermost indentation done by a previous ``pushindent`` command.
@@ -3430,18 +3429,15 @@ def _node2stream(node):
 		elif isinstance(node, li):
 			yield ("block", None) # Flush previous text/our own content as a block
 			yield ("blockspacing", 1)
-			if cursor.event == "enterelementnode":
-				if lists:
-					lists[-1][1] += 1
-					if lists[-1][0] == "ol":
-						indent = "{:{}}. \n".format(lists[-1][1], len(str(lists[-1][2])))
-					else:
-						indent = "*  \n"
+			if lists:
+				if cursor.event == "enterelementnode":
+						lists[-1][1] += 1
+						if lists[-1][0] == "ol":
+							yield ("pushindent", "ol-{}-{}".format(lists[-1][1], lists[-1][2]))
+						else:
+							yield ("pushindent", "ul")
 				else:
-					indent = di
-				yield ("pushindent", indent)
-			else:
-				yield ("popindent", None)
+					yield ("popindent", None)
 		elif isinstance(node, dt):
 			yield ("block", None) # Flush previous text/our own content as a block
 			if cursor.event == "enterelementnode":
@@ -3449,13 +3445,13 @@ def _node2stream(node):
 		elif isinstance(node, dd):
 			yield ("block", None) # Flush previous text/our own content as a block
 			if cursor.event == "enterelementnode":
-				yield ("pushindent", di)
+				yield ("pushindent", "dd")
 			else:
 				yield ("popindent", None)
 		elif isinstance(node, blockquote):
 			yield ("block", None) # Flush previous text/our own content as a block
 			if cursor.event == "enterelementnode":
-				yield ("pushindent", di)
+				yield ("pushindent", "blockquote")
 			else:
 				yield ("popindent", None)
 		elif isinstance(node, pre):
@@ -3463,7 +3459,7 @@ def _node2stream(node):
 			if cursor.event == "enterelementnode":
 				yield ("pushpre", True) # Must be done first, so that the inner block is in pre mode
 				yield ("blockspacing", 1)
-				yield ("pushindent", di)
+				yield ("pushindent", "pre")
 			else:
 				yield ("popindent", None)
 				yield ("blockspacing", 1)
@@ -3476,7 +3472,7 @@ def _node2stream(node):
 			cursor.entercontent = False
 
 
-def _stream2text(stream, width, headers):
+def _stream2text(stream, width, headers, indent_ol, indent_ul, indent_dd, indent_blockquote, indent_pre, indent_default):
 	"""
 	Consume a command stream (like the one produced by :func`_stream2text) and
 	return the resuling formatted text.
@@ -3544,8 +3540,23 @@ def _stream2text(stream, width, headers):
 		elif type == "poppre":
 			inpre.pop()
 		elif type == "pushindent":
+
+			if data.startswith("ol"):
+				parts = data.split("-")
+				indent = indent_ol.format(i=int(parts[1]), max=int(parts[2]))
+			elif data == "ul":
+				indent = indent_ul
+			elif data == "dd":
+				indent = indent_dd
+			elif data == "blockquote":
+				indent = indent_blockquote
+			elif data == "pre":
+				indent = indent_pre
+			else:
+				indent = indent_default
+
 			# Handle multiline indents
-			indent = data.split("\n")
+			indent = indent.split("\n")
 			# Pad each indentation line to the same length
 			maxlen = max(len(line) for line in indent)
 			indent = ["{:{}}".format(line, maxlen) for line in indent]
@@ -3563,7 +3574,7 @@ def _stream2text(stream, width, headers):
 			yield "\n"
 
 
-def astext(node, width=None, headers="=-\"'"):
+def astext(node, width=None, headers="=-\"'", indent_ol="{i:{max}}. \n", indent_ul="*  \n", indent_dd="   ", indent_blockquote="   ", indent_pre="   ", indent_default="   "):
 	"""
 	Return the node :obj:`node` formatted as plain text. :obj:`node` must contain
 	an HTML tree.
@@ -3575,9 +3586,21 @@ def astext(node, width=None, headers="=-\"'"):
 	parameter specifies which character will be used for underlining each header
 	level. If :obj:`headers` is shorter than six characters the last character
 	will be used for the rest of the header levels.
+
+	The ``indent_`` parameters specify how various block are to be indented.
+
+	If an indentation parameter contains multiple lines, the first indentation
+	line will be used for the first content line, the second indentation line for
+	the second content line etc. If the content has more lines than the
+	indentation the last indentation line will be repeated. All indentation
+	lines will be padded to the longest line. For example the indentation for
+	a ``li`` element inside an ``ul`` element (i.e. :obj:`indent_ul`) is
+	``"* \n"``, i.e. the first line will be indented with ``* ``, all subsequent
+	lines with two spaces.
+
 	"""
 	if len(headers) < 6:
 		headers += (6-len(headers)) * headers[-1]
-	text = "".join(_stream2text(_node2stream(node), width=width, headers=headers))
+	text = "".join(_stream2text(_node2stream(node), width=width, headers=headers, indent_ol=indent_ol, indent_ul=indent_ul, indent_dd=indent_dd, indent_blockquote=indent_blockquote, indent_pre=indent_pre, indent_default=indent_default))
 	text = text.lstrip("\n")
 	return text
