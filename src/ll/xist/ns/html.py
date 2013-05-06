@@ -3336,6 +3336,55 @@ nobr.model = sims.ElementsOrText(*content_flow)
 ###
 
 def _node2stream(node):
+	r"""
+	A generator that returns formatting "commands" for the HTML node :obj:`node`.
+
+	Commands are tuples containing the command name and command data. The
+	following commands will be produced:
+
+	``text``
+		Text for the nodes (the text is the command data). All text should be
+		collected until a ``"block"`` or ``"header"`` command is encountered.
+
+	``block``
+		The end of a normal block. All text collected so far should be output
+		taking the current indentation, block spacing and "pre" mode into account.
+		After the text is output the block spacing is reset to 0. If there's no
+		collected text nothing will be out and the block spacing will not be reset.
+		The command data is always ``None``.
+
+	``header``
+		The end of a header. Work similar to ``block``, except that the text will
+		be underlined and not be wrapped. The command data is the header level
+		(1-6).
+
+	``blockspacing``
+		The command data is the number of empty lines after a block/header.
+		Successive ``blockspacing`` commands do not add up, instead the largest
+		of the values will be used.
+
+	``pushindent``
+		Add an additional indentation to the left side of all blocks/headers that
+		will be output. The command data is the content of this left column.
+		If this indentation contains multiple lines, the first indentation line
+		will be used for the first content line, the second indentation line for
+		the second content line etc. If the content has more lines than the
+		indentation the last indentation line will be repeated. All indentation
+		lines will be padded to the longest line. For example the indentation for
+		a ``li`` element inside an ``ul`` element is ``"* \n"``, i.e. the first
+		line will be indented with ``* ``, all subsequent lines with two spaces.
+
+	``popindent``
+		Remove the innermost indentation done by a previous ``pushindent`` command.
+
+	``pushpre``
+		Switch the preformatting mode. The command data is either ``True``
+		switching preformatting on, or ``False`` switching it off. In preformatted
+		mode block will not be word wrapped.
+
+	``poppre``
+		Return to the previously active preformatting mode.
+	"""
 	lists = []
 
 	di = "   " # default indent
