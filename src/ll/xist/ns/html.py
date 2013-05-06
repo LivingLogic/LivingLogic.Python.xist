@@ -3474,6 +3474,10 @@ def _node2stream(node):
 
 
 def _stream2text(stream, width, headers):
+	"""
+	Consume a command stream (like the one produced by :func`_stream2text) and
+	return the resuling formatted text.
+	"""
 	inpre = [False]
 	indents = []
 	wantlines = 0
@@ -3557,6 +3561,18 @@ def _stream2text(stream, width, headers):
 
 
 def astext(node, width=None, headers="=-\"'"):
+	"""
+	Return the node :obj:`node` formatted as plain text. :obj:`node` must contain
+	an HTML tree.
+
+	:obj:`width` is the maximum line length. If :obj:`width` is ``None`` line
+	length is unlimited (i.e. no word wrapping will be done).
+
+	Headers (i.e. ``h1``-``h6`` element) will be underlined. The :obj:`headers`
+	parameter specifies which character will be used for underlining each header
+	level. If :obj:`headers` is shorter than six characters the last character
+	will be used for the rest of the header levels.
+	"""
 	if len(headers) < 6:
 		headers += (6-len(headers)) * headers[-1]
 	text = "".join(_stream2text(_node2stream(node), width=width, headers=headers))
