@@ -40,9 +40,9 @@ Changes in 5.0 (released ??/??/2013)
 	``htmlelement.attrs[xml.Attr.lang('de')]``).
 
 *	Using :meth:`__setattr` to set attributes only works for declared attributes
-	too. using :meth:`__setitem` to set attributes supports the same kind of
-	arguments as :meth:`__getitem` does. For declared attributes the resulting
-	attribute object will always be an instance of the declared atrribute class.
+	too. using :meth:`__setitem__` to set attributes supports the same kind of
+	arguments as :meth:`__getitem__` does. For declared attributes the resulting
+	attribute object will always be an instance of the declared attribute class.
 	For all other attributes it will be an instance of :class:`ll.xist.xsc.Attr`
 	except when an attribute class or instance is used as the key. In this case
 	the attribute will be an instance of that class.
@@ -70,7 +70,7 @@ Changes in 5.0 (released ??/??/2013)
 	XML version of the name.
 
 *	The method :meth:`checkvalid` has been renamed to :meth:`validate`. It no
-	longer calls :func:`warnings.warn` itself, but is an generator that returns
+	longer calls :func:`warnings.warn` itself, but is a generator that returns
 	the warning objects. Furthermore the ``model`` objects now get passed the
 	complete path instead of only the target node (this is used to implement
 	HTML5's transparent content model).
