@@ -17,6 +17,9 @@ well as some (deprecated) elements that were in use in previous HTML versions.
 
 For all deprecated elements and attributes the class attribute :obj:`deprecated`
 is set to :const:`True`.
+
+The function :func:`astext` can be used to convert a HTML XIST tree into plain
+text.
 """
 
 import os, tempfile, subprocess, cgi, textwrap
