@@ -3339,7 +3339,7 @@ nobr.model = sims.ElementsOrText(*content_flow)
 ###
 
 def _node2stream(node):
-	r"""
+	"""
 	A generator that returns formatting "commands" for the HTML node :obj:`node`.
 
 	Commands are tuples containing the command name and command data. The
@@ -3431,11 +3431,11 @@ def _node2stream(node):
 			yield ("blockspacing", 1)
 			if lists:
 				if cursor.event == "enterelementnode":
-						lists[-1][1] += 1
-						if lists[-1][0] == "ol":
-							yield ("pushindent", "ol-{}-{}".format(lists[-1][1], lists[-1][2]))
-						else:
-							yield ("pushindent", "ul")
+					lists[-1][1] += 1
+					if lists[-1][0] == "ol":
+						yield ("pushindent", "ol-{}-{}".format(lists[-1][1], lists[-1][2]))
+					else:
+						yield ("pushindent", "ul")
 				else:
 					yield ("popindent", None)
 		elif isinstance(node, dt):
