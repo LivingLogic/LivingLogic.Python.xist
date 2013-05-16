@@ -484,18 +484,18 @@ class Connection(Connection):
 		``"flat"``
 			Unordered.
 
-		:obj:`schema` specifies from which schema objects should be yielded:
+		:obj:`owner` specifies from which schema objects should be yielded:
 
-		``"user"``
-			Only objects belonging to the current user (and those objects these
-			depend on) will be yielded.
+			:const:`None`
+				All objects belonging to the current user (i.e. via the view
+				``USER_OBJECTS``).
 
-		``"all"``
-			All objects accessible to the current user will be yielded.
+			:const:`ALL`
+				All objects for all users (via the views ``ALL_OBJECTS`` or
+				``DBA_OBJECTS``)
 
-		``"dba"``
-			All objects from all users will be yielded (this requires the
-			appropriate privileges).
+			username : string
+				All objects belonging to the specified user
 		"""
 		if mode not in ("create", "drop", "flat"):
 			raise UnknownModeError(mode)
@@ -993,7 +993,7 @@ class Object(object, metaclass=_Object_meta):
 		"""
 		Generator that yields the names of all objects of this type. The argument
 		:obj:`owner` specifies whose objects are yielded:
-		
+
 			:const:`None`
 				All objects belonging to the current user (i.e. via the view
 				``USER_OBJECTS``).
@@ -1019,7 +1019,7 @@ class Object(object, metaclass=_Object_meta):
 		"""
 		Generator that yields all objects of this type in the current users schema.
 		The argument :obj:`owner` specifies whose objects are yielded:
-		
+
 			:const:`None`
 				All objects belonging to the current user (i.e. via the view
 				``USER_OBJECTS``).
