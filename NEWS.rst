@@ -40,7 +40,7 @@ Changes in 5.0 (released ??/??/2013)
 	``htmlelement.attrs[xml.Attr.lang('de')]``).
 
 *	Using :meth:`__setattr` to set attributes only works for declared attributes
-	too. using :meth:`__setitem__` to set attributes supports the same kind of
+	too. Using :meth:`__setitem__` to set attributes supports the same kind of
 	arguments as :meth:`__getitem__` does. For declared attributes the resulting
 	attribute object will always be an instance of the declared attribute class.
 	For all other attributes it will be an instance of :class:`ll.xist.xsc.Attr`
@@ -66,8 +66,8 @@ Changes in 5.0 (released ??/??/2013)
 *	For all methods that existed in Python/XML pairs (e.g. :meth:`withnames` and
 	:meth:`withnames_xml` in :class:`xsc.Attrs` or :meth:`elementclass` and
 	:meth:`elementclass_xml` in :class:`xsc.Pool` etc.) there is only one version
-	now: A method without the ``_xml`` suffix in the name, that accepts the
-	XML version of the name.
+	now: A method without the ``_xml`` suffix that accepts the XML version of the
+	name.
 
 *	The method :meth:`checkvalid` has been renamed to :meth:`validate`. It no
 	longer calls :func:`warnings.warn` itself, but is a generator that returns
@@ -99,9 +99,8 @@ Changes in 5.0 (released ??/??/2013)
 	``keepws`` parameter), any initial spaces (before the first line feed) are
 	now no longer removed.
 
-*	If you have Cython__ installed and set the environment variable
-	``LL_USE_CYTHON``, several modules will now be compiled into extension
-	modules.
+*	If you have Cython__ installed and the environment variable ``LL_USE_CYTHON``
+	set, several modules will now be compiled into extension modules.
 
 	__ http://www.cython.org/
 
@@ -120,9 +119,9 @@ Changes in 5.0 (released ??/??/2013)
 	a text mode browser. The function also got more configurable.
 
 *	The objects available to ``db2ul4`` scripts have been changed: ``oracle``,
-	``sqlite`` and ``mysql`` are now objects with a connect method that returns
-	a connection object. A connection object now has a method ``query`` that
-	executes the query and returns an iterator over the results. Furthermore
+	``sqlite`` and ``mysql`` are now objects with a ``connect`` method that
+	returns a connection object. A connection object now has a method ``query``
+	that executes the query and returns an iterator over the results. Furthermore
 	``query`` supports keyword arguments for parameterized queries, i.e. you
 	can now do::
 
