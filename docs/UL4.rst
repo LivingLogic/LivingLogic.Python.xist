@@ -745,6 +745,14 @@ recreate the object.
 iterable objects. Calling ``list`` without arguments returns an empty list.
 
 
+``slice``
+"""""""""
+``slice`` returns a slice from a sequence or iterator. You can either pass the
+stop index (i.e. ``slice(foo, 10)`` is an iterator over the first 10 items from
+``foo``), or a start and stop index (``slice(foo, 10, 20)`` return the 11th upto
+to 20th item from ``foo``) or a start and stop index and a step size. If given
+start and stop must be non-negative and step must be positive.
+
 ``asjson``
 """"""""""
 
