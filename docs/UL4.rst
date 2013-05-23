@@ -379,7 +379,7 @@ For example the following template will output ``40``::
 ``def``
 -------
 
-The ```def`` tag defined a new template as a variable. Usage looks like this::
+The ``def`` tag defined a new template as a variable. Usage looks like this::
 
 	<?def quote?>"<?print text?>"<?end def?>
 
@@ -569,27 +569,6 @@ For operation involving ``date`` objects, if the resulting day falls out of the
 range of valid days for the target month, the last day for the target month
 will be used instead, i.e. ``<?print @(2000-01-31) + monthdelta(1)?>`` prints
 ``2000-02-29 00:00:00``.
-
-
-``random``
-""""""""""
-
-``random()`` returns a random float value between 0 (included) and 1 (excluded).
-
-
-``randrange``
-"""""""""""""
-
-``randrange(start, stop, step)`` returns a random integer value between ``start``
-(included) and ``stop`` (excluded). ``step`` specifies the step size (i.e.
-when ``r`` is the random value, ``(r-start) % step`` will always be ``0``.
-``step`` and ``start`` can be ommitted.
-
-
-``randchoice``
-""""""""""""""
-
-``randchoice(seq)`` returns a random item from the sequence ``seq``.
 
 
 ``isundefined``
@@ -1014,20 +993,22 @@ outputs::
 ``random``
 """"""""""
 
-``random`` returns a random floating point number between 0 and 1.
+``random()`` returns a random float value between 0 (included) and 1 (excluded).
+
+
+``randrange``
+"""""""""""""
+
+``randrange(start, stop, step)`` returns a random integer value between ``start``
+(included) and ``stop`` (excluded). ``step`` specifies the step size (i.e.
+when ``r`` is the random value, ``(r-start) % step`` will always be ``0``.
+``step`` and ``start`` can be ommitted.
 
 
 ``randchoice``
 """"""""""""""
 
-``randchoice`` returns a random item from its argument (which must be list or
-string)
-
-
-``randchoice``
-""""""""""""""
-
-``random`` returns a random item from its argument (which must be list or string).
+``randchoice(seq)`` returns a random item from the sequence ``seq``.
 
 
 Methods
