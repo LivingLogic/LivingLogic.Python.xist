@@ -3438,8 +3438,6 @@ def _stream2text(stream, width, **boxes):
 	A generator that consumes a command stream (like the one produced by
 	:func`_stream2text) and yields the resuling formatted text.
 	"""
-	wantlines = 0
-	collecttext = []
 
 	class Stack:
 		def __init__(self, width, **boxes):
@@ -3603,36 +3601,54 @@ def astext(
 	:obj:`width` is the maximum line length. If :obj:`width` is ``None`` line
 	length is unlimited (i.e. no word wrapping will be done).
 
-	Headers (i.e. ``h1``-``h6`` element) will be underlined. The :obj:`headers`
-	parameter specifies which character will be used for underlining each header
-	level. If :obj:`headers` is shorter than six characters the last character
-	will be used for the rest of the header levels.
+	The rest of the parameters specify the formatting styles for HTML elements.
+	The paramter names are the names of the HTML elements, except for ``ol_li``
+	which is used for ``li`` elements inside ``ol`` elements and ``ul_li`` which
+	is used for ``li`` elements inside ``ul`` elements. ``default`` is used if
+	the paramter for the HTML element is not passed.
 
-	The ``indents`` parameters specify how various block are to be indented.
+	The parameter value must be a dictionary which might contain any of the
+	following keys (if the key is missing a default value is used):
 
-	``indents`` must be a dictionary that contains at least the ``default`` key.
-	Other possible keys are ``ol``, ``ul``, ``dd``, ``blockquote`` and ``pre``.
-	If any of those keys doesn't exist the ``default`` indentation is used
-	instead.
+	``top``
+		The minimum number of empty lines before the block. (The default is ``0``)
 
-	The value of in item in ``indents`` specifies the margin of the block on the
-	left and right side and can be different for different nesting levels
-	(e.g. different "bullets" can be used for nested ``ul``\s). If the value is
-	a string it will be used as the indentation on the left side for all levels,
-	otherwise it must be a sequence with two items: the margins for the left side
-	and the margins for the right side. These margin can in turn be either a
-	string, in which case it will be used for all levels, or a list of string.
-	If the nesting of this element is deeper than the list, the last item in the
-	list will be used.
+	``bottom``
+		The minimum number of empty lines after the block. (The default is ``0``)
 
-	If a margin contains multiple lines, the first indentation line will be used
-	for the first content line, the second indentation line for the second
-	content line etc. If the content has more lines than the indentation the last
-	indentation line will be repeated. All indentation lines will be padded to
-	the longest line. For example the indentation for a ``li`` element inside an
-	``ul`` element on level 1 (i.e. :obj:`indents['ul'][0]`) is ``"*  \n"``,
-	i.e. the first line will be indented with ``*  ``, all subsequent lines with
-	three spaces.
+	``left``
+		The left margin for the block. This margin can be different for different
+		nesting levels (e. g. different "bullets" can be used for nested
+		``ul``\s). If the value is a string it will be used as the indentation on
+		the left side for all levels, otherwise it must be a list of strings.
+		If the nesting of this element is deeper than the list, the last item in
+		the list will be used.
+
+		If a margin contains multiple lines, the first indentation line will be
+		used for the first content line, the second indentation line for the
+		second content line etc. If the content has more lines than the
+		indentation the last indentation line will be repeated. All indentation
+		lines will be padded to the longest line. For example the indentation for
+		a ``li`` element inside an ``ul`` element on level 1 is ``"*  \n"``, i.e.
+		the first line will be indented with ``*  ``, all subsequent lines with
+		three spaces.
+
+	``right``
+		The right margin for the block. This supports the same semantic regarding
+		levels and multiple lines as the ``left`` argument.
+
+	``whitespace``
+		Specifies how lines in the block should be wrapped. ``"normal"`` collapses
+		consecutive whitespace and wrap the lines at the specified width.
+		``"nowrap"`` collapses consecutive whitespace but doesn't wrap and
+		``"pre"`` uses the lines as given.
+
+	``overline``
+		A character that is repeated for the width of the content as a rule before
+		the content. If ``None`` is used, no rule will be output.
+
+	``underline``
+		A rule after the content of the block.
 	"""
 	text = "".join(_stream2text(_node2stream(node), width=width, default=default, h1=h1, h2=h2, h3=h3, h4=h4, h5=h5, h6=h6, dl=dl, dt=dt, dd=dd, ol=ol, ol_li=ol_li, ul=ul, ul_li=ul_li, pre=pre, blockquote=blockquote, **kwargs))
 	text = text.lstrip("\n")
