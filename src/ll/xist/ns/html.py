@@ -22,7 +22,7 @@ The function :func:`astext` can be used to convert a HTML XIST tree into plain
 text.
 """
 
-import os, tempfile, subprocess, cgi, textwrap
+import os, tempfile, subprocess, cgi, textwrap, collections
 
 from ll.xist import xsc, sims
 
@@ -3389,8 +3389,6 @@ def _node2stream(node):
 	"""
 	lists = []
 
-	di = "   " # default indent
-
 	for cursor in node.walk(xsc.Element | xsc.Text, enterelementnode=True, leaveelementnode=True):
 		node = cursor.node
 		# on most enter events, we flush any previous text as a block
@@ -3472,15 +3470,83 @@ def _node2stream(node):
 			cursor.entercontent = False
 
 
-def _stream2text(stream, width, headers, indent_ol, indent_ul, indent_dd, indent_blockquote, indent_pre, indent_default):
+def _stream2text(stream, width, headers, indents):
 	"""
 	Consume a command stream (like the one produced by :func`_stream2text) and
 	return the resuling formatted text.
 	"""
-	inpre = [False]
-	indents = []
+	prestack = [False]
 	wantlines = 0
 	collecttext = []
+
+	class Stack:
+		def __init__(self, width, **margins):
+			self.width = width
+			self.margins = margins
+			self.stack = []
+			self.levels = collections.Counter()
+
+		def push(self, name, pos=None, last=None):
+			box = self.margins.get(name, self.margins["default"])
+			level = self.levels[name]
+			margins = box.margins(level, pos=pos, last=last)
+			self.stack.append((box, margins, margins.lefts(), margins.rights()))
+			self.levels[name] += 1
+
+		def pop(self):
+			(box, margins, lefts, rights) = self.stack.pop()
+			self.levels[box.name] -= 1
+
+		def marginwidth(self):
+			return sum(margins.leftwidth+margins.rightwidth for (box, margins, lefts, rights) in self.stack)
+
+		def lineswithmargins(self, lines):
+			if lines:
+				contentwidth = max(len(line) for line in lines)
+				if self.width is not None:
+					marginwidth = self.marginwidth()
+					contentwidth = max(self.width-marginwidth, contentwidth)
+				for line in lines:
+					left = "".join(next(lefts) for (box, margins, lefts, rights) in self.stack)
+					right = "".join(next(rights) for (box, margins, lefts, rights) in self.stack)
+					line = left + line.ljust(contentwidth) + right
+					yield line.rstrip() + "\n"
+
+	class Box:
+		def __init__(self, name, lefts=("",), rights=("",)):
+			self.name = name
+			self.lefts = lefts
+			self.rights = rights
+
+		def margins(self, level, pos=None, last=None):
+			left = self.lefts[level if level < len(self.lefts) else -1]
+			right = self.rights[level if level < len(self.rights) else -1]
+			return Margins(left, right, pos, last)
+
+	class Margins:
+		def __init__(self, left, right, pos, last):
+			if pos is not None:
+				width = len(str(last))
+				left = left.format(pos=pos, width=width)
+				right = right.format(pos=pos, width=width)
+			left = left.split("\n")
+			right = right.split("\n")
+			self.leftwidth = max(len(line) for line in left)
+			self.rightwidth = max(len(line) for line in right)
+			self.left = [line.rjust(self.leftwidth) for line in left]
+			self.right = [line.ljust(self.rightwidth) for line in right]
+
+		def lefts(self):
+			yield from self.left
+			while True:
+				yield self.left[-1]
+
+		def rights(self):
+			yield from self.right
+			while True:
+				yield self.right[-1]
+
+	stack = Stack(width=width, **{key: Box(key, *value) for (key, value) in indents.items()})
 
 	def makeblockspacing():
 		nonlocal wantlines
@@ -3488,29 +3554,20 @@ def _stream2text(stream, width, headers, indent_ol, indent_ul, indent_dd, indent
 			yield "\n"*wantlines
 		wantlines = 0
 
-	def makelines(lines):
-		for line in lines:
-			if line.strip():
-				yield "".join(indent[0] for indent in indents) + line
-			else:
-				yield ""
-			for indent in indents:
-				if len(indent) > 1:
-					del indent[0]
-
 	def dotext(wrap):
 		nonlocal collecttext
 
 		text = "".join(collecttext)
-		if inpre[-1]:
+		if prestack[-1]:
 			lines = text.strip("\n").splitlines(False)
 		else:
 			text = " ".join(text.strip().split())
 			if width is not None and wrap:
-				lines = textwrap.wrap(text, max(width-sum(len(indent[0]) for indent in indents), 20))
+				marginwidth = stack.marginwidth()
+				lines = textwrap.wrap(text, max(width-marginwidth, 20))
 			else:
 				lines = [text]
-		text = "\n".join(makelines(lines))
+		text = "".join(stack.lineswithmargins(lines))
 		collecttext = []
 		return text
 
@@ -3520,49 +3577,25 @@ def _stream2text(stream, width, headers, indent_ol, indent_ul, indent_dd, indent
 			if text.strip():
 				yield from makeblockspacing()
 				yield text
-				yield "\n"
-				for indent in indents:
-					if len(indent) > 1:
-						del indent[0]
 		elif type == "header":
 			text = dotext(False)
 			if text.strip():
 				yield from makeblockspacing()
 				yield text
-				yield "\n"
-				l = len(text)
-				yield "".join(indent[0] for indent in indents) + headers[data-1]*l + "\n"
-				for indent in indents:
-					if len(indent) > 1:
-						del indent[0]
+				l = len(text)-1
+				yield from stack.lineswithmargins([headers[data-1]*l])
 		elif type == "pushpre":
-			inpre.append(data)
+			prestack.append(data)
 		elif type == "poppre":
-			inpre.pop()
+			prestack.pop()
 		elif type == "pushindent":
-
-			if data.startswith("ol"):
+			if data.startswith("ol-"):
 				parts = data.split("-")
-				indent = indent_ol.format(i=int(parts[1]), max=int(parts[2]))
-			elif data == "ul":
-				indent = indent_ul
-			elif data == "dd":
-				indent = indent_dd
-			elif data == "blockquote":
-				indent = indent_blockquote
-			elif data == "pre":
-				indent = indent_pre
+				stack.push("ol", int(parts[1]), int(parts[2]))
 			else:
-				indent = indent_default
-
-			# Handle multiline indents
-			indent = indent.split("\n")
-			# Pad each indentation line to the same length
-			maxlen = max(len(line) for line in indent)
-			indent = ["{:{}}".format(line, maxlen) for line in indent]
-			indents.append(indent)
+				stack.push(data)
 		elif type == "popindent":
-			indents.pop()
+			stack.pop()
 		elif type == "blockspacing":
 			wantlines = max(wantlines, data)
 		else:
@@ -3571,10 +3604,9 @@ def _stream2text(stream, width, headers, indent_ol, indent_ul, indent_dd, indent
 		text = dotext(True)
 		if text.strip():
 			yield text
-			yield "\n"
 
 
-def astext(node, width=None, headers="=-\"'", indent_ol="{i:{max}}. \n", indent_ul="*  \n", indent_dd="   ", indent_blockquote="   ", indent_pre="   ", indent_default="   "):
+def astext(node, width=None, headers="=-\"'", indents=dict(ol="{pos:{width}}. \n", ul=(("*  \n", "-  \n"), ("",)), default="   ")):
 	"""
 	Return the node :obj:`node` formatted as plain text. :obj:`node` must contain
 	an HTML tree.
@@ -3587,20 +3619,47 @@ def astext(node, width=None, headers="=-\"'", indent_ol="{i:{max}}. \n", indent_
 	level. If :obj:`headers` is shorter than six characters the last character
 	will be used for the rest of the header levels.
 
-	The ``indent_`` parameters specify how various block are to be indented.
+	The ``indents`` parameters specify how various block are to be indented.
 
-	If an indentation parameter contains multiple lines, the first indentation
-	line will be used for the first content line, the second indentation line for
-	the second content line etc. If the content has more lines than the
-	indentation the last indentation line will be repeated. All indentation
-	lines will be padded to the longest line. For example the indentation for
-	a ``li`` element inside an ``ul`` element (i.e. :obj:`indent_ul`) is
-	``"* \n"``, i.e. the first line will be indented with ``* ``, all subsequent
-	lines with two spaces.
+	``indents`` must be a dictionary that contains at least the ``default`` key.
+	Other possible keys are ``ol``, ``ul``, ``dd``, ``blockquote`` and ``pre``.
+	If any of those keys doesn't exist the ``default`` indentation is used
+	instead.
 
+	The value of in item in ``indents`` specifies the margin of the block on the
+	left and right side and can be different for different nesting levels
+	(e.g. different "bullets" can be used for nested ``ul``\s). If the value is
+	a string it will be used as the indentation on the left side for all levels,
+	otherwise it must be a sequence with two items: the margins for the left side
+	and the margins for the right side. These margin can in turn be either a
+	string, in which case it will be used for all levels, or a list of string.
+	If the nesting of this element is deeper than the list, the last item in the
+	list will be used.
+
+	If a margin contains multiple lines, the first indentation line will be used
+	for the first content line, the second indentation line for the second
+	content line etc. If the content has more lines than the indentation the last
+	indentation line will be repeated. All indentation lines will be padded to
+	the longest line. For example the indentation for a ``li`` element inside an
+	``ul`` element on level 1 (i.e. :obj:`indents['ul'][0]`) is ``"*  \n"``,
+	i.e. the first line will be indented with ``*  ``, all subsequent lines with
+	three spaces.
 	"""
 	if len(headers) < 6:
 		headers += (6-len(headers)) * headers[-1]
-	text = "".join(_stream2text(_node2stream(node), width=width, headers=headers, indent_ol=indent_ol, indent_ul=indent_ul, indent_dd=indent_dd, indent_blockquote=indent_blockquote, indent_pre=indent_pre, indent_default=indent_default))
+	newindents = {}
+	for (key, value) in indents.items():
+		if isinstance(value, str):
+			margins = ((value,), ("",))
+		else:
+			left = value[0]
+			right = value[1]
+			if isinstance(left, str):
+				left = (left,)
+			if isinstance(right, str):
+				right = (right,)
+			margins = (left, right)
+		newindents[key] = margins
+	text = "".join(_stream2text(_node2stream(node), width=width, headers=headers, indents=newindents))
 	text = text.lstrip("\n")
 	return text
