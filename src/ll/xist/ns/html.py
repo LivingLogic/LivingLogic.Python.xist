@@ -3349,43 +3349,35 @@ def _node2stream(node):
 		Text for the nodes (the text is the command data). All text should be
 		collected until a ``"block"`` or ``"header"`` command is encountered.
 
-	``block``
+	``flush``
 		The end of a normal block. All text collected so far should be output
-		taking the current indentation, block spacing and "pre" mode into account.
-		After the text is output the block spacing is reset to 0. If there's no
-		collected text nothing will be out and the block spacing will not be reset.
-		The command data is always ``None``.
+		taking the current indentation, block spacing and whitespace mode into
+		account. After the text is output the block spacing is reset to 0. If
+		there's no collected text nothing will be out and the block spacing will
+		not be reset. The command data is always ``None``.
 
-	``header``
-		The end of a header. Work similar to ``block``, except that the text will
-		be underlined and not be wrapped. The command data is the header level
-		(1-6).
+	``push``
+		Add an additional box around any further text. The command data is the
+		name of the box (normally the name of the HTML element itself (``"ul"``,
+		``"dd"``, ``"pre"``, ``"blockquote"`` etc.) For ``li`` element inside
+		``ul`` elements the name is ``ul_li`` and for ``li`` elements inside ``ol``
+		elements it is something like ``ol_li_2_12`` for a ``li`` element that is
+		the second element of 12 ``li`` elements in an ``ol`` element.
 
-	``blockspacing``
-		The command data is the number of empty lines after a block/header.
-		Successive ``blockspacing`` commands do not add up, instead the largest
-		of the values will be used.
+		This additional box might also specify an additonal number of blank
+		lines before and after its content and it might also introduce a new
+		line wrapping mode and it might specify underlining (for ``h1``-``h6``
+		elements.)
 
-	``pushindent``
-		Add an additional indentation to the left side of all blocks/headers that
-		will be output. The command data is the name of the indentation (normally
-		the name of the HTML element itself (``"ul"``, ``"dd"``, ``"pre"``,
-		``"blockquote"`` or ``"list"`` (for ``li`` elements outside of any ``ol``
-		or ``ul`` element) or (for ``ol`` elements e.g. ``"ol-2-12"`` for a ``li``
-		element that is the the second element of 12 ``li`` elements in an ``ol``
-		element. It's the job of the caller to use the appropriate indentation
-		for each indentation type.
+		Consecutive blank lines (e.g. from the bottom of the previous box and
+		the top of this one), should not add up, instead the largest of the
+		values should be used.
 
-	``popindent``
-		Remove the innermost indentation done by a previous ``pushindent`` command.
+		It is the job of the caller to use the appropriate margins,  line wrapping
+		and underlining for each box type.
 
-	``pushpre``
-		Switch the preformatting mode. The command data is either ``True``
-		switching preformatting on, or ``False`` switching it off. In preformatted
-		mode block will not be word wrapped.
-
-	``poppre``
-		Return to the previously active preformatting mode.
+	``pop``
+		Remove the innermost box created by a previous ``push`` command.
 	"""
 	lists = []
 
@@ -3395,97 +3387,69 @@ def _node2stream(node):
 		# (this should handle ``<ul><li>foo<ul><li>bar</li></ul></li></ul>``)
 		if isinstance(node, xsc.Text):
 			yield ("text", str(cursor.node))
-		elif isinstance(node, h):
-			if cursor.event == "enterelementnode":
-				yield ("block", None) # Flush previous text as a block
-				yield ("blockspacing", 2)
-			else:
-				yield ("header", int(node.__class__.__name__[1:]))
-				yield ("blockspacing", 1)
 		elif isinstance(node, ul):
-			yield ("block", None) # Flush previous text/our own content as a block
-			yield ("blockspacing", 1)
+			yield ("flush", None) # Flush previous text/our own content as a block
 			if cursor.event == "enterelementnode":
 				lists.append(["ul", 0])
+				yield ("push", "ul")
 			else:
+				yield ("pop", None)
 				lists.pop()
 		elif isinstance(node, ol):
-			yield ("block", None) # Flush previous text/our own content as a block
-			yield ("blockspacing", 1)
+			yield ("flush", None) # Flush previous text/our own content as a block
 			if cursor.event == "enterelementnode":
 				from ll import misc
 				lists.append(["ol", 0, misc.count(node[li])])
+				yield ("push", "ol")
 			else:
-				lists.pop()
-		elif isinstance(node, dl):
-			yield ("block", None) # Flush previous text/our own content as a block
-			yield ("blockspacing", 1)
-			if cursor.event == "enterelementnode":
-				lists.append(["dl", 0])
-			else:
+				yield ("pop", None)
 				lists.pop()
 		elif isinstance(node, li):
-			yield ("block", None) # Flush previous text/our own content as a block
-			yield ("blockspacing", 1)
+			yield ("flush", None) # Flush previous text/our own content as a block
 			if lists:
 				if cursor.event == "enterelementnode":
 					lists[-1][1] += 1
 					if lists[-1][0] == "ol":
-						yield ("pushindent", "ol-{}-{}".format(lists[-1][1], lists[-1][2]))
+						yield ("push", "ol_li_{}_{}".format(lists[-1][1], lists[-1][2]))
+					elif lists[-1][0] == "li":
+						yield ("push", "ul_li")
 					else:
-						yield ("pushindent", "ul")
+						yield ("push", "li")
 				else:
-					yield ("popindent", None)
-		elif isinstance(node, dt):
-			yield ("block", None) # Flush previous text/our own content as a block
+					yield ("pop", None)
+		elif isinstance(node, dl):
+			yield ("flush", None) # Flush previous text/our own content as a block
 			if cursor.event == "enterelementnode":
-				yield ("blockspacing", 1)
-		elif isinstance(node, dd):
-			yield ("block", None) # Flush previous text/our own content as a block
-			if cursor.event == "enterelementnode":
-				yield ("pushindent", "dd")
+				lists.append(["dl", 0])
 			else:
-				yield ("popindent", None)
-		elif isinstance(node, blockquote):
-			yield ("block", None) # Flush previous text/our own content as a block
+				lists.pop()
+		elif isinstance(node, (h, dt, dd, blockquote, pre, div, p, hr, address, th, td)):
+			yield ("flush", None) # Flush previous text/our own content as a block
 			if cursor.event == "enterelementnode":
-				yield ("pushindent", "blockquote")
+				yield ("push", node.__class__.__name__)
 			else:
-				yield ("popindent", None)
-		elif isinstance(node, pre):
-			yield ("block", None) # Flush previous text/our own content as a block
-			if cursor.event == "enterelementnode":
-				yield ("blockspacing", 1)
-				yield ("pushindent", "pre")
-			else:
-				yield ("popindent", None)
-				yield ("blockspacing", 1)
-		elif isinstance(node, (div, p, hr, address, th, td)):
-			yield ("block", None) # Flush previous text/our own content as a block
-			if cursor.event == "leaveelementnode":
-				yield ("blockspacing", 1)
+				yield ("pop", None)
 		elif isinstance(node, script):
 			cursor.entercontent = False
 
 
-def _stream2text(stream, width, headers, indents):
+def _stream2text(stream, width, **boxes):
 	"""
 	Consume a command stream (like the one produced by :func`_stream2text) and
 	return the resuling formatted text.
 	"""
-	whitespace = ["normal"]
 	wantlines = 0
 	collecttext = []
 
 	class Stack:
-		def __init__(self, width, **margins):
+		def __init__(self, width, **boxes):
 			self.width = width
-			self.margins = margins
+			self.boxes = boxes
 			self.stack = []
 			self.levels = collections.Counter()
 
 		def push(self, name, pos=None, last=None):
-			box = self.margins.get(name, self.margins["default"])
+			box = self.boxes.get(name, self.boxes["default"])
 			level = self.levels[name]
 			margins = box.margins(level, pos=pos, last=last)
 			self.stack.append((name, margins, margins.lefts(), margins.rights()))
@@ -3494,21 +3458,10 @@ def _stream2text(stream, width, headers, indents):
 		def pop(self):
 			(name, margins, lefts, rights) = self.stack.pop()
 			self.levels[name] -= 1
+			return margins
 
 		def marginwidth(self):
 			return sum(margins.leftwidth+margins.rightwidth for (name, margins, lefts, rights) in self.stack)
-
-		def lineswithmargins(self, lines):
-			if lines:
-				contentwidth = max(len(line) for line in lines)
-				if self.width is not None:
-					marginwidth = self.marginwidth()
-					contentwidth = max(self.width-marginwidth, contentwidth)
-				for line in lines:
-					left = "".join(next(lefts) for (box, margins, lefts, rights) in self.stack)
-					right = "".join(next(rights) for (box, margins, lefts, rights) in self.stack)
-					line = left + line.ljust(contentwidth) + right
-					yield line.rstrip() + "\n"
 
 		def whitespace(self):
 			if self.stack:
@@ -3516,20 +3469,43 @@ def _stream2text(stream, width, headers, indents):
 			else:
 				return "normal"
 
+		def underline(self, width):
+			if self.stack:
+				underline = self.stack[-1][1].underline
+				if underline:
+					yield underline*width + "\n"
+
+		def lineswithmargins(self, lines):
+			if lines:
+				underlinewidth = contentwidth = max(len(line) for line in lines)
+				if self.width is not None:
+					marginwidth = self.marginwidth()
+					contentwidth = max(self.width-marginwidth, contentwidth)
+				for line in lines:
+					left = "".join(next(lefts) for (box, margins, lefts, rights) in self.stack)
+					right = "".join(next(rights) for (box, boxes, lefts, rights) in self.stack)
+					line = left + line.ljust(contentwidth) + right
+					yield line.rstrip() + "\n"
+				yield from self.underline(underlinewidth)
+
 	class Box:
-		def __init__(self, whitespace="normal", left=("",), right=("",)):
-			self.whitespace = whitespace
+		def __init__(self, top=0, bottom=0, left=("",), right=("",), whitespace="normal", underline=None):
+			self.top = top
+			self.bottom = bottom
 			self.left = (left,) if isinstance(left, str) else left
 			self.right = (right,) if isinstance(right, str) else right
+			self.whitespace = whitespace
+			self.underline = underline
 
 		def margins(self, level, pos=None, last=None):
 			left = self.left[level if level < len(self.left) else -1]
 			right = self.right[level if level < len(self.right) else -1]
-			return Margins(self.whitespace, left, right, pos, last)
+			return Margins(top=self.top, bottom=self.bottom, left=left, right=right, whitespace=self.whitespace, underline=self.underline, pos=pos, last=last)
 
 	class Margins:
-		def __init__(self, whitespace, left, right, pos, last):
-			self.whitespace = whitespace
+		def __init__(self, top, bottom, left, right, whitespace, underline, pos, last):
+			self.top = top
+			self.bottom = bottom
 			if pos is not None:
 				width = len(str(last))
 				left = left.format(pos=pos, width=width)
@@ -3540,6 +3516,8 @@ def _stream2text(stream, width, headers, indents):
 			self.rightwidth = max(len(line) for line in right)
 			self.left = [line.rjust(self.leftwidth) for line in left]
 			self.right = [line.ljust(self.rightwidth) for line in right]
+			self.whitespace = whitespace
+			self.underline = underline
 
 		def lefts(self):
 			yield from self.left
@@ -3551,7 +3529,7 @@ def _stream2text(stream, width, headers, indents):
 			while True:
 				yield self.right[-1]
 
-	stack = Stack(width=width, **{key: Box(**value) for (key, value) in indents.items()})
+	stack = Stack(width=width, **{key: Box(**value) for (key, value) in boxes.items()})
 
 	def makeblockspacing():
 		nonlocal wantlines
@@ -3573,6 +3551,9 @@ def _stream2text(stream, width, headers, indents):
 				lines = textwrap.wrap(text, max(width-marginwidth, 20))
 			else:
 				lines = [text]
+		elif whitespace == "nowrap":
+			text = " ".join(text.strip().split())
+			lines = [text]
 		else:
 			raise ValueError("unknown whitepace mode {!r}".format(whitespace))
 		text = "".join(stack.lineswithmargins(lines))
@@ -3580,29 +3561,23 @@ def _stream2text(stream, width, headers, indents):
 		return text
 
 	for (type, data) in stream:
-		if type == "block":
+		if type == "flush":
 			text = dotext(True)
 			if text.strip():
 				yield from makeblockspacing()
 				yield text
-		elif type == "header":
-			text = dotext(False)
-			if text.strip():
-				yield from makeblockspacing()
-				yield text
-				l = len(text)-1
-				yield from stack.lineswithmargins([headers[data-1]*l])
-		elif type == "pushindent":
-			if data.startswith("ol-"):
-				parts = data.split("-")
-				stack.push("ol", int(parts[1]), int(parts[2]))
+		elif type == "push":
+			if data.startswith("ol_li_"):
+				parts = data.split("_")
+				stack.push("ol_li", int(parts[2]), int(parts[3]))
 			else:
 				stack.push(data)
-		elif type == "popindent":
-			stack.pop()
-		elif type == "blockspacing":
-			wantlines = max(wantlines, data)
+			wantlines = max(wantlines, stack.stack[-1][1].top)
+		elif type == "pop":
+			margins = stack.pop()
+			wantlines = max(wantlines, margins.bottom)
 		else:
+			print(type)
 			collecttext.append(data)
 	if collecttext:
 		text = dotext(True)
@@ -3610,7 +3585,27 @@ def _stream2text(stream, width, headers, indents):
 			yield text
 
 
-def astext(node, width=None, headers="=-\"'", ol=dict(left="{pos:{width}}. \n"), ul=dict(right=("*  \n", "-  \n")), pre=dict(whitespace="pre", left="   "), default=dict(left="   ")):
+def astext(
+	node,
+	width=None,
+	default=dict(bottom=1),
+	h1=dict(top=2, bottom=1, whitespace="nowrap", underline="="),
+	h2=dict(top=2, bottom=1, whitespace="nowrap", underline="-"),
+	h3=dict(top=2, bottom=1, whitespace="nowrap", underline='"'),
+	h4=dict(top=2, bottom=1, whitespace="nowrap", underline="'"),
+	h5=dict(top=2, bottom=1, whitespace="nowrap", underline="'"),
+	h6=dict(top=2, bottom=1, whitespace="nowrap", underline="'"),
+	dl=dict(top=1, bottom=1),
+	dt=dict(top=1),
+	dd=dict(bottom=1),
+	ol=dict(top=1, bottom=1),
+	ol_li=dict(top=1, bottom=1, left="{pos:{width}}. \n"),
+	ul=dict(top=1, bottom=1),
+	ul_li=dict(top=1, bottom=1, left=("*  \n", "-  \n")),
+	pre=dict(top=1, bottom=1, left="   ", whitespace="pre"),
+	blockquote=dict(top=1, bottom=1, left="   "),
+	**kwargs
+	):
 	"""
 	Return the node :obj:`node` formatted as plain text. :obj:`node` must contain
 	an HTML tree.
@@ -3649,9 +3644,6 @@ def astext(node, width=None, headers="=-\"'", ol=dict(left="{pos:{width}}. \n"),
 	i.e. the first line will be indented with ``*  ``, all subsequent lines with
 	three spaces.
 	"""
-	if len(headers) < 6:
-		headers += (6-len(headers)) * headers[-1]
-	indents = dict(default=default, ol=ol, ul=ul, pre=pre)
-	text = "".join(_stream2text(_node2stream(node), width=width, headers=headers, indents=indents))
+	text = "".join(_stream2text(_node2stream(node), width=width, default=default, h1=h1, h2=h2, h3=h3, h4=h4, h5=h5, h6=h6, dl=dl, dt=dt, dd=dd, ol=ol, ol_li=ol_li, ul=ul, ul_li=ul_li, pre=pre, blockquote=blockquote, **kwargs))
 	text = text.lstrip("\n")
 	return text
