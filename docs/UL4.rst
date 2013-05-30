@@ -379,7 +379,7 @@ For example the following template will output ``40``::
 ``def``
 -------
 
-The ```def`` tag defined a new template as a variable. Usage looks like this::
+The ``def`` tag defined a new template as a variable. Usage looks like this::
 
 	<?def quote?>"<?print text?>"<?end def?>
 
@@ -571,27 +571,6 @@ will be used instead, i.e. ``<?print @(2000-01-31) + monthdelta(1)?>`` prints
 ``2000-02-29 00:00:00``.
 
 
-``random``
-""""""""""
-
-``random()`` returns a random float value between 0 (included) and 1 (excluded).
-
-
-``randrange``
-"""""""""""""
-
-``randrange(start, stop, step)`` returns a random integer value between ``start``
-(included) and ``stop`` (excluded). ``step`` specifies the step size (i.e.
-when ``r`` is the random value, ``(r-start) % step`` will always be ``0``.
-``step`` and ``start`` can be ommitted.
-
-
-``randchoice``
-""""""""""""""
-
-``randchoice(seq)`` returns a random item from the sequence ``seq``.
-
-
 ``isundefined``
 """""""""""""""
 
@@ -744,6 +723,14 @@ recreate the object.
 ``list(foo)`` converts ``foo`` to a list. This works for lists, strings and all
 iterable objects. Calling ``list`` without arguments returns an empty list.
 
+
+``slice``
+"""""""""
+``slice`` returns a slice from a sequence or iterator. You can either pass the
+stop index (i.e. ``slice(foo, 10)`` is an iterator over the first 10 items from
+``foo``), or a start and stop index (``slice(foo, 10, 20)`` return the 11th upto
+to 20th item from ``foo``) or a start and stop index and a step size. If given
+start and stop must be non-negative and step must be positive.
 
 ``asjson``
 """"""""""
@@ -1006,20 +993,22 @@ outputs::
 ``random``
 """"""""""
 
-``random`` returns a random floating point number between 0 and 1.
+``random()`` returns a random float value between 0 (included) and 1 (excluded).
+
+
+``randrange``
+"""""""""""""
+
+``randrange(start, stop, step)`` returns a random integer value between ``start``
+(included) and ``stop`` (excluded). ``step`` specifies the step size (i.e.
+when ``r`` is the random value, ``(r-start) % step`` will always be ``0``.
+``step`` and ``start`` can be ommitted.
 
 
 ``randchoice``
 """"""""""""""
 
-``randchoice`` returns a random item from its argument (which must be list or
-string)
-
-
-``randchoice``
-""""""""""""""
-
-``random`` returns a random item from its argument (which must be list or string).
+``randchoice(seq)`` returns a random item from the sequence ``seq``.
 
 
 Methods

@@ -114,6 +114,9 @@ Changes in 5.0 (released ??/??/2013)
 	Python function ``list``, creating a copy of a sequence or materialzing
 	an iterator.
 
+*	A new UL4 function ``slice`` has been added. It works like
+	:func:`itertools.slice`, i.e. returning a slice from an iterator.
+
 *	The function :func:`html.astext` that converts an XIST tree containing HTML
 	to plain text is now implemented in plain Python so it no longer requires
 	a text mode browser. The function also got more configurable.

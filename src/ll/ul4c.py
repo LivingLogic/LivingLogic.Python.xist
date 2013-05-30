@@ -2791,6 +2791,12 @@ def function_range(*args):
 
 
 @AST.makefunction
+def function_slice(*args):
+	yield from ()
+	return itertools.islice(*args)
+
+
+@AST.makefunction
 def function_type(obj):
 	from ll import color, misc
 	yield from ()
