@@ -3651,5 +3651,4 @@ def astext(
 		A rule after the content of the block.
 	"""
 	text = "".join(_stream2text(_node2stream(node), width=width, default=default, h1=h1, h2=h2, h3=h3, h4=h4, h5=h5, h6=h6, dl=dl, dt=dt, dd=dd, ol=ol, ol_li=ol_li, ul=ul, ul_li=ul_li, pre=pre, blockquote=blockquote, **kwargs))
-	text = text.lstrip("\n")
-	return text
+	return text.lstrip("\n")
