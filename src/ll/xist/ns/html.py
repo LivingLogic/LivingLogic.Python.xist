@@ -3455,13 +3455,11 @@ def _node2stream(node):
 		elif isinstance(node, pre):
 			yield ("block", None) # Flush previous text/our own content as a block
 			if cursor.event == "enterelementnode":
-				yield ("pushpre", True) # Must be done first, so that the inner block is in pre mode
 				yield ("blockspacing", 1)
 				yield ("pushindent", "pre")
 			else:
 				yield ("popindent", None)
 				yield ("blockspacing", 1)
-				yield ("poppre", None)
 		elif isinstance(node, (div, p, hr, address, th, td)):
 			yield ("block", None) # Flush previous text/our own content as a block
 			if cursor.event == "leaveelementnode":
@@ -3475,7 +3473,7 @@ def _stream2text(stream, width, headers, indents):
 	Consume a command stream (like the one produced by :func`_stream2text) and
 	return the resuling formatted text.
 	"""
-	prestack = [False]
+	whitespace = ["normal"]
 	wantlines = 0
 	collecttext = []
 
@@ -3512,18 +3510,26 @@ def _stream2text(stream, width, headers, indents):
 					line = left + line.ljust(contentwidth) + right
 					yield line.rstrip() + "\n"
 
+		def whitespace(self):
+			if self.stack:
+				return self.stack[-1][1].whitespace
+			else:
+				return "normal"
+
 	class Box:
-		def __init__(self, lefts=("",), rights=("",)):
-			self.lefts = lefts
-			self.rights = rights
+		def __init__(self, whitespace="normal", left=("",), right=("",)):
+			self.whitespace = whitespace
+			self.left = (left,) if isinstance(left, str) else left
+			self.right = (right,) if isinstance(right, str) else right
 
 		def margins(self, level, pos=None, last=None):
-			left = self.lefts[level if level < len(self.lefts) else -1]
-			right = self.rights[level if level < len(self.rights) else -1]
-			return Margins(left, right, pos, last)
+			left = self.left[level if level < len(self.left) else -1]
+			right = self.right[level if level < len(self.right) else -1]
+			return Margins(self.whitespace, left, right, pos, last)
 
 	class Margins:
-		def __init__(self, left, right, pos, last):
+		def __init__(self, whitespace, left, right, pos, last):
+			self.whitespace = whitespace
 			if pos is not None:
 				width = len(str(last))
 				left = left.format(pos=pos, width=width)
@@ -3545,7 +3551,7 @@ def _stream2text(stream, width, headers, indents):
 			while True:
 				yield self.right[-1]
 
-	stack = Stack(width=width, **{key: Box(*value) for (key, value) in indents.items()})
+	stack = Stack(width=width, **{key: Box(**value) for (key, value) in indents.items()})
 
 	def makeblockspacing():
 		nonlocal wantlines
@@ -3557,15 +3563,18 @@ def _stream2text(stream, width, headers, indents):
 		nonlocal collecttext
 
 		text = "".join(collecttext)
-		if prestack[-1]:
+		whitespace = stack.whitespace()
+		if whitespace == "pre":
 			lines = text.strip("\n").splitlines(False)
-		else:
+		elif whitespace == "normal":
 			text = " ".join(text.strip().split())
 			if width is not None and wrap:
 				marginwidth = stack.marginwidth()
 				lines = textwrap.wrap(text, max(width-marginwidth, 20))
 			else:
 				lines = [text]
+		else:
+			raise ValueError("unknown whitepace mode {!r}".format(whitespace))
 		text = "".join(stack.lineswithmargins(lines))
 		collecttext = []
 		return text
@@ -3583,10 +3592,6 @@ def _stream2text(stream, width, headers, indents):
 				yield text
 				l = len(text)-1
 				yield from stack.lineswithmargins([headers[data-1]*l])
-		elif type == "pushpre":
-			prestack.append(data)
-		elif type == "poppre":
-			prestack.pop()
 		elif type == "pushindent":
 			if data.startswith("ol-"):
 				parts = data.split("-")
@@ -3605,7 +3610,7 @@ def _stream2text(stream, width, headers, indents):
 			yield text
 
 
-def astext(node, width=None, headers="=-\"'", indents=dict(ol="{pos:{width}}. \n", ul=(("*  \n", "-  \n"), ("",)), default="   ")):
+def astext(node, width=None, headers="=-\"'", ol=dict(left="{pos:{width}}. \n"), ul=dict(right=("*  \n", "-  \n")), pre=dict(whitespace="pre", left="   "), default=dict(left="   ")):
 	"""
 	Return the node :obj:`node` formatted as plain text. :obj:`node` must contain
 	an HTML tree.
@@ -3646,19 +3651,7 @@ def astext(node, width=None, headers="=-\"'", indents=dict(ol="{pos:{width}}. \n
 	"""
 	if len(headers) < 6:
 		headers += (6-len(headers)) * headers[-1]
-	newindents = {}
-	for (key, value) in indents.items():
-		if isinstance(value, str):
-			margins = ((value,), ("",))
-		else:
-			left = value[0]
-			right = value[1]
-			if isinstance(left, str):
-				left = (left,)
-			if isinstance(right, str):
-				right = (right,)
-			margins = (left, right)
-		newindents[key] = margins
-	text = "".join(_stream2text(_node2stream(node), width=width, headers=headers, indents=newindents))
+	indents = dict(default=default, ol=ol, ul=ul, pre=pre)
+	text = "".join(_stream2text(_node2stream(node), width=width, headers=headers, indents=indents))
 	text = text.lstrip("\n")
 	return text
