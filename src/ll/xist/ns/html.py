@@ -3411,7 +3411,7 @@ def _node2stream(node):
 					lists[-1][1] += 1
 					if lists[-1][0] == "ol":
 						yield ("push", "ol_li_{}_{}".format(lists[-1][1], lists[-1][2]))
-					elif lists[-1][0] == "li":
+					elif lists[-1][0] == "ul":
 						yield ("push", "ul_li")
 					else:
 						yield ("push", "li")
@@ -3435,8 +3435,8 @@ def _node2stream(node):
 
 def _stream2text(stream, width, **boxes):
 	"""
-	Consume a command stream (like the one produced by :func`_stream2text) and
-	return the resuling formatted text.
+	A generator that consumes a command stream (like the one produced by
+	:func`_stream2text) and yields the resuling formatted text.
 	"""
 	wantlines = 0
 	collecttext = []
@@ -3445,6 +3445,8 @@ def _stream2text(stream, width, **boxes):
 		def __init__(self, width, **boxes):
 			self.width = width
 			self.boxes = boxes
+			self.texts = []
+			self.blockspacing = 0
 			self.stack = []
 			self.levels = collections.Counter()
 
@@ -3454,56 +3456,81 @@ def _stream2text(stream, width, **boxes):
 			margins = box.margins(level, pos=pos, last=last)
 			self.stack.append((name, margins, margins.lefts(), margins.rights()))
 			self.levels[name] += 1
+			self.blockspacing = max(self.blockspacing, margins.top)
 
 		def pop(self):
 			(name, margins, lefts, rights) = self.stack.pop()
 			self.levels[name] -= 1
-			return margins
+			self.blockspacing = max(self.blockspacing, margins.bottom)
 
-		def marginwidth(self):
-			return sum(margins.leftwidth+margins.rightwidth for (name, margins, lefts, rights) in self.stack)
+		def text(self, text):
+			self.texts.append(text)
 
-		def whitespace(self):
-			if self.stack:
-				return self.stack[-1][1].whitespace
+		def flush(self):
+			text = "".join(self.texts)
+
+			whitespace = self.stack[-1][1].whitespace if self.stack else "normal"
+
+			if whitespace == "pre":
+				lines = text.strip("\n").splitlines(False)
+			elif whitespace == "normal":
+				text = " ".join(text.strip().split())
+				if width is not None:
+					lines = textwrap.wrap(text, max(width-stack.marginwidth(), 20))
+				else:
+					lines = [text]
+			elif whitespace == "nowrap":
+				text = " ".join(text.strip().split())
+				lines = [text]
 			else:
-				return "normal"
+				raise ValueError("unknown whitepace mode {!r}".format(whitespace))
 
-		def underline(self, width):
-			if self.stack:
-				underline = self.stack[-1][1].underline
-				if underline:
-					yield underline*width + "\n"
-
-		def lineswithmargins(self, lines):
 			if lines:
-				underlinewidth = contentwidth = max(len(line) for line in lines)
+				for i in range(self.blockspacing):
+					yield "\n"
+				self.blockspacing = 0
+
+				borderlinewidth = contentwidth = max(len(line) for line in lines)
 				if self.width is not None:
-					marginwidth = self.marginwidth()
-					contentwidth = max(self.width-marginwidth, contentwidth)
+					contentwidth = max(self.width-self.marginwidth(), contentwidth)
+
+				if self.stack:
+					overline = self.stack[-1][1].overline
+					if overline:
+						yield borderlinewidth*overline + "\n"
+
 				for line in lines:
 					left = "".join(next(lefts) for (box, margins, lefts, rights) in self.stack)
 					right = "".join(next(rights) for (box, boxes, lefts, rights) in self.stack)
 					line = left + line.ljust(contentwidth) + right
 					yield line.rstrip() + "\n"
-				yield from self.underline(underlinewidth)
+
+				if self.stack:
+					underline = self.stack[-1][1].underline
+					if underline:
+						yield borderlinewidth*underline + "\n"
+			self.texts = []
+
+		def marginwidth(self):
+			return sum(margins.leftwidth+margins.rightwidth for (name, margins, lefts, rights) in self.stack)
 
 	class Box:
-		def __init__(self, top=0, bottom=0, left=("",), right=("",), whitespace="normal", underline=None):
+		def __init__(self, top=0, bottom=0, left=("",), right=("",), whitespace="normal", overline=None, underline=None):
 			self.top = top
 			self.bottom = bottom
 			self.left = (left,) if isinstance(left, str) else left
 			self.right = (right,) if isinstance(right, str) else right
 			self.whitespace = whitespace
+			self.overline = overline
 			self.underline = underline
 
 		def margins(self, level, pos=None, last=None):
 			left = self.left[level if level < len(self.left) else -1]
 			right = self.right[level if level < len(self.right) else -1]
-			return Margins(top=self.top, bottom=self.bottom, left=left, right=right, whitespace=self.whitespace, underline=self.underline, pos=pos, last=last)
+			return Margins(top=self.top, bottom=self.bottom, left=left, right=right, whitespace=self.whitespace, overline=self.overline, underline=self.underline, pos=pos, last=last)
 
 	class Margins:
-		def __init__(self, top, bottom, left, right, whitespace, underline, pos, last):
+		def __init__(self, top, bottom, left, right, whitespace, overline, underline, pos, last):
 			self.top = top
 			self.bottom = bottom
 			if pos is not None:
@@ -3517,6 +3544,7 @@ def _stream2text(stream, width, **boxes):
 			self.left = [line.rjust(self.leftwidth) for line in left]
 			self.right = [line.ljust(self.rightwidth) for line in right]
 			self.whitespace = whitespace
+			self.overline = overline
 			self.underline = underline
 
 		def lefts(self):
@@ -3531,65 +3559,27 @@ def _stream2text(stream, width, **boxes):
 
 	stack = Stack(width=width, **{key: Box(**value) for (key, value) in boxes.items()})
 
-	def makeblockspacing():
-		nonlocal wantlines
-		if wantlines:
-			yield "\n"*wantlines
-		wantlines = 0
-
-	def dotext(wrap):
-		nonlocal collecttext
-
-		text = "".join(collecttext)
-		whitespace = stack.whitespace()
-		if whitespace == "pre":
-			lines = text.strip("\n").splitlines(False)
-		elif whitespace == "normal":
-			text = " ".join(text.strip().split())
-			if width is not None and wrap:
-				marginwidth = stack.marginwidth()
-				lines = textwrap.wrap(text, max(width-marginwidth, 20))
-			else:
-				lines = [text]
-		elif whitespace == "nowrap":
-			text = " ".join(text.strip().split())
-			lines = [text]
-		else:
-			raise ValueError("unknown whitepace mode {!r}".format(whitespace))
-		text = "".join(stack.lineswithmargins(lines))
-		collecttext = []
-		return text
-
 	for (type, data) in stream:
 		if type == "flush":
-			text = dotext(True)
-			if text.strip():
-				yield from makeblockspacing()
-				yield text
+			yield from stack.flush()
 		elif type == "push":
 			if data.startswith("ol_li_"):
 				parts = data.split("_")
 				stack.push("ol_li", int(parts[2]), int(parts[3]))
 			else:
 				stack.push(data)
-			wantlines = max(wantlines, stack.stack[-1][1].top)
 		elif type == "pop":
-			margins = stack.pop()
-			wantlines = max(wantlines, margins.bottom)
+			stack.pop()
 		else:
-			print(type)
-			collecttext.append(data)
-	if collecttext:
-		text = dotext(True)
-		if text.strip():
-			yield text
+			stack.text(data)
+	yield from stack.flush()
 
 
 def astext(
 	node,
 	width=None,
 	default=dict(bottom=1),
-	h1=dict(top=2, bottom=1, whitespace="nowrap", underline="="),
+	h1=dict(top=2, bottom=1, whitespace="nowrap", overline="=", underline="="),
 	h2=dict(top=2, bottom=1, whitespace="nowrap", underline="-"),
 	h3=dict(top=2, bottom=1, whitespace="nowrap", underline='"'),
 	h4=dict(top=2, bottom=1, whitespace="nowrap", underline="'"),
