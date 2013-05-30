@@ -3490,15 +3490,15 @@ def _stream2text(stream, width, headers, indents):
 			box = self.margins.get(name, self.margins["default"])
 			level = self.levels[name]
 			margins = box.margins(level, pos=pos, last=last)
-			self.stack.append((box, margins, margins.lefts(), margins.rights()))
+			self.stack.append((name, margins, margins.lefts(), margins.rights()))
 			self.levels[name] += 1
 
 		def pop(self):
-			(box, margins, lefts, rights) = self.stack.pop()
-			self.levels[box.name] -= 1
+			(name, margins, lefts, rights) = self.stack.pop()
+			self.levels[name] -= 1
 
 		def marginwidth(self):
-			return sum(margins.leftwidth+margins.rightwidth for (box, margins, lefts, rights) in self.stack)
+			return sum(margins.leftwidth+margins.rightwidth for (name, margins, lefts, rights) in self.stack)
 
 		def lineswithmargins(self, lines):
 			if lines:
@@ -3513,8 +3513,7 @@ def _stream2text(stream, width, headers, indents):
 					yield line.rstrip() + "\n"
 
 	class Box:
-		def __init__(self, name, lefts=("",), rights=("",)):
-			self.name = name
+		def __init__(self, lefts=("",), rights=("",)):
 			self.lefts = lefts
 			self.rights = rights
 
@@ -3546,7 +3545,7 @@ def _stream2text(stream, width, headers, indents):
 			while True:
 				yield self.right[-1]
 
-	stack = Stack(width=width, **{key: Box(key, *value) for (key, value) in indents.items()})
+	stack = Stack(width=width, **{key: Box(*value) for (key, value) in indents.items()})
 
 	def makeblockspacing():
 		nonlocal wantlines
