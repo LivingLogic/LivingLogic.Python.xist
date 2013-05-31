@@ -3338,97 +3338,9 @@ nobr.model = sims.ElementsOrText(*content_flow)
 ### Functions
 ###
 
-def _node2stream(node):
+def _node2text(node, width, **styles):
 	"""
-	A generator that returns formatting "commands" for the HTML node :obj:`node`.
-
-	Commands are tuples containing the command name and command data. The
-	following commands will be produced:
-
-	``text``
-		Text for the nodes (the text is the command data). All text should be
-		collected until a ``"push"`` or ``"pop"`` command is encountered.
-
-	``push``
-		Add an additional box around any further text. The command data is the
-		name of the box (normally the name of the HTML element itself (``"ul"``,
-		``"dd"``, ``"pre"``, ``"blockquote"`` etc.) For ``li`` element inside
-		``ul`` elements the name is ``ul_li`` and for ``li`` elements inside ``ol``
-		elements it is something like ``ol_li_2_12`` for a ``li`` element that is
-		the second element of 12 ``li`` elements in an ``ol`` element.
-
-		This additional box might also specify an additonal number of blank
-		lines before and after its content and it might also introduce a new
-		line wrapping mode and it might specify underlining (for ``h1``-``h6``
-		elements.)
-
-		Consecutive blank lines (e.g. from the bottom of the previous box and
-		the top of this one), should not add up, instead the largest of the
-		values should be used.
-
-		It is the job of the caller to use the appropriate margins, line wrapping
-		and underlining for each box type.
-
-	``pop``
-		Remove the innermost box created by a previous ``push`` command. All text
-		collected so far should be output taking the current margins, block
-		spacing and whitespace mode into account. After the text is output the
-		block spacing is reset to 0. If there's no collected text nothing will be
-		out and the block spacing will not be reset. The command data is always
-		``None``.
-
-	"""
-	lists = []
-
-	for cursor in node.walk(xsc.Element | xsc.Text, enterelementnode=True, leaveelementnode=True):
-		node = cursor.node
-		if isinstance(node, xsc.Text):
-			yield ("text", str(cursor.node))
-		elif isinstance(node, ul):
-			if cursor.event == "enterelementnode":
-				lists.append(["ul", 0])
-				yield ("push", "ul")
-			else:
-				yield ("pop", None)
-				lists.pop()
-		elif isinstance(node, ol):
-			if cursor.event == "enterelementnode":
-				from ll import misc
-				lists.append(["ol", 0, misc.count(node[li])])
-				yield ("push", "ol")
-			else:
-				yield ("pop", None)
-				lists.pop()
-		elif isinstance(node, li):
-			if lists:
-				if cursor.event == "enterelementnode":
-					lists[-1][1] += 1
-					if lists[-1][0] == "ol":
-						yield ("push", "ol_li_{}_{}".format(lists[-1][1], lists[-1][2]))
-					elif lists[-1][0] == "ul":
-						yield ("push", "ul_li")
-					else:
-						yield ("push", "li")
-				else:
-					yield ("pop", None)
-		elif isinstance(node, dl):
-			if cursor.event == "enterelementnode":
-				lists.append(["dl", 0])
-			else:
-				lists.pop()
-		elif isinstance(node, (h, dt, dd, blockquote, pre, div, p, hr, address, th, td, b, code)):
-			if cursor.event == "enterelementnode":
-				yield ("push", node.__class__.__name__)
-			else:
-				yield ("pop", None)
-		elif isinstance(node, script):
-			cursor.entercontent = False
-
-
-def _stream2text(stream, width, **boxes):
-	"""
-	A generator that consumes a command stream (like the one produced by
-	:func`_stream2text) and yields the resuling formatted text.
+	A generator that converts an XIST node to text.
 	"""
 
 	class Stack:
@@ -3441,6 +3353,25 @@ def _stream2text(stream, width, **boxes):
 			self.levels = collections.Counter()
 
 		def push(self, name, pos=None, last=None):
+			"""
+			Add an additional box around any further text. :obj:`name` is the name
+			of the box (normally the name of the HTML element itself (``"ul"``,
+			``"dd"``, ``"pre"``, ``"blockquote"`` etc.) For ``li`` element inside
+			``ul`` elements the name is ``ul_li`` and for ``li`` elements inside
+			``ol`` elements it is ``ol_li``. For a ``li`` element inside an ``ol``
+			element :obj:`pos` specifies the index of the ``li`` element among its
+			siblings (starting at 1) and :obj:`last` specifies the index of the last
+			``li`` (i.e. the total number of ``li``\s inside the ``ol``).
+
+			This additional box might also specify an additonal number of blank
+			lines before and after its content and it might also introduce a new
+			line wrapping mode and it might specify underlining (for ``h1``-``h6``
+			elements.)
+
+			Consecutive blank lines (e.g. from the bottom of the previous box and
+			the top of this one), will add up, instead the largest of the values
+			will be used.
+			"""
 			style = self.styles.get(name, self.styles["default"])
 			level = self.levels[name]
 			margins = style.margins(level, pos=pos, last=last)
@@ -3454,6 +3385,13 @@ def _stream2text(stream, width, **boxes):
 				self.texts.append(margins.prefix)
 
 		def pop(self):
+			"""
+			Remove the innermost box created by a previous :meth:`push` call. All
+			text collected so far will be output taking the current margins, block
+			spacing and whitespace mode into account. After the text is output the
+			block spacing is reset to 0. If there's no collected text nothing will
+			be output and the block spacing will not be reset.
+			"""
 			(name, margins, lefts, rights) = self.stack[-1]
 			if margins.suffix:
 				self.texts.append(margins.suffix)
@@ -3464,6 +3402,10 @@ def _stream2text(stream, width, **boxes):
 			self.stack.pop()
 
 		def text(self, text):
+			"""
+			Add the text :obj:`text` to the output. All text will be collected
+			until a call to :meth:`push` or :meth:`pop` is done.
+			"""
 			self.texts.append(text)
 
 		def flush(self):
@@ -3580,19 +3522,55 @@ def _stream2text(stream, width, **boxes):
 			while True:
 				yield self.right[-1]
 
-	stack = Stack(width=width, **{key: Style(**value) for (key, value) in boxes.items()})
+	stack = Stack(width=width, **{key: Style(**value) for (key, value) in styles.items()})
 
-	for (type, data) in stream:
-		if type == "push":
-			if data.startswith("ol_li_"):
-				parts = data.split("_")
-				yield from stack.push("ol_li", int(parts[2]), int(parts[3]))
+	lists = []
+
+	for cursor in node.walk(xsc.Element | xsc.Text, enterelementnode=True, leaveelementnode=True):
+		node = cursor.node
+		if isinstance(node, xsc.Text):
+			stack.text(str(node))
+		elif isinstance(node, ul):
+			if cursor.event == "enterelementnode":
+				lists.append(["ul", 0])
+				yield from stack.push("ul")
 			else:
-				yield from stack.push(data)
-		elif type == "pop":
-			yield from stack.pop()
-		else:
-			stack.text(data)
+				yield from stack.pop()
+				lists.pop()
+		elif isinstance(node, ol):
+			if cursor.event == "enterelementnode":
+				from ll import misc
+				lists.append(["ol", 0, misc.count(node[li])])
+				yield from stack.push("ol")
+			else:
+				yield from stack.pop()
+				lists.pop()
+		elif isinstance(node, li):
+			if lists:
+				if cursor.event == "enterelementnode":
+					lists[-1][1] += 1
+					if lists[-1][0] == "ol":
+						yield from stack.push("ol_li", lists[-1][1], lists[-1][2])
+					elif lists[-1][0] == "ul":
+						yield from stack.push("ul_li")
+					else:
+						yield from stack.push("li")
+				else:
+					yield from stack.pop()
+		elif isinstance(node, dl):
+			if cursor.event == "enterelementnode":
+				lists.append(["dl", 0])
+				yield from stack.push("dl")
+			else:
+				yield from stack.pop()
+				lists.pop()
+		elif isinstance(node, (h, dt, dd, blockquote, pre, div, p, hr, address, th, td, b, code)):
+			if cursor.event == "enterelementnode":
+				yield from stack.push(node.__class__.__name__)
+			else:
+				yield from stack.pop()
+		elif isinstance(node, script):
+			cursor.entercontent = False
 	yield from stack.flush()
 
 
@@ -3695,5 +3673,5 @@ def astext(
 	``underline``
 		A rule after the content of the block.
 	"""
-	text = "".join(_stream2text(_node2stream(node), width=width, default=default, h1=h1, h2=h2, h3=h3, h4=h4, h5=h5, h6=h6, dl=dl, dt=dt, dd=dd, ol=ol, ol_li=ol_li, ul=ul, ul_li=ul_li, pre=pre, blockquote=blockquote, div=div, p=p, hr=hr, address=address, th=th, td=td, b=b, u=u, code=code, **kwargs))
+	text = "".join(_node2text(node, width=width, default=default, h1=h1, h2=h2, h3=h3, h4=h4, h5=h5, h6=h6, dl=dl, dt=dt, dd=dd, ol=ol, ol_li=ol_li, ul=ul, ul_li=ul_li, pre=pre, blockquote=blockquote, div=div, p=p, hr=hr, address=address, th=th, td=td, b=b, u=u, code=code, **kwargs))
 	return text.strip("\n")
