@@ -3335,144 +3335,10 @@ nobr.model = sims.ElementsOrText(*content_flow)
 
 
 ###
-### Functions
+### HTML to plain text conversion
 ###
 
-def _node2text(node, width, **styles):
-	"""
-	A generator that converts an XIST node to text.
-	"""
-
-	class Stack:
-		def __init__(self, width, **styles):
-			self.width = width
-			self.styles = styles
-			self.stack = []
-			self.blockspacing = 0
-			self.texts = []
-			self.levels = collections.Counter()
-
-		def push(self, name, pos=None, last=None):
-			"""
-			Add an additional box around any further text. :obj:`name` is the name
-			of the box (normally the name of the HTML element itself (``"ul"``,
-			``"dd"``, ``"pre"``, ``"blockquote"`` etc.) For ``li`` element inside
-			``ul`` elements the name is ``ul_li`` and for ``li`` elements inside
-			``ol`` elements it is ``ol_li``. For a ``li`` element inside an ``ol``
-			element :obj:`pos` specifies the index of the ``li`` element among its
-			siblings (starting at 1) and :obj:`last` specifies the index of the last
-			``li`` (i.e. the total number of ``li``\s inside the ``ol``).
-
-			This additional box might also specify an additonal number of blank
-			lines before and after its content and it might also introduce a new
-			line wrapping mode and it might specify underlining (for ``h1``-``h6``
-			elements.)
-
-			Consecutive blank lines (e.g. from the bottom of the previous box and
-			the top of this one), will add up, instead the largest of the values
-			will be used.
-			"""
-			style = self.styles.get(name, self.styles["default"])
-			level = self.levels[name]
-			margins = style.margins(level, pos=pos, last=last)
-			self.stack.append((name, margins, margins.lefts(), margins.rights()))
-			if style.display == "block":
-				# we flush any previous text as a block (this should handle ``<ul><li>foo<ul><li>bar</li></ul></li></ul>``)
-				yield from self.flush()
-				self.blockspacing = max(self.blockspacing, margins.top)
-			self.levels[name] += 1
-			if margins.prefix:
-				self.texts.append(margins.prefix)
-
-		def pop(self):
-			"""
-			Remove the innermost box created by a previous :meth:`push` call. All
-			text collected so far will be output taking the current margins, block
-			spacing and whitespace mode into account. After the text is output the
-			block spacing is reset to 0. If there's no collected text nothing will
-			be output and the block spacing will not be reset.
-			"""
-			(name, margins, lefts, rights) = self.stack[-1]
-			if margins.suffix:
-				self.texts.append(margins.suffix)
-			if margins.display == "block":
-				yield from self.flush()
-				self.blockspacing = max(self.blockspacing, margins.bottom)
-			self.levels[name] -= 1
-			self.stack.pop()
-
-		def text(self, text):
-			"""
-			Add the text :obj:`text` to the output. All text will be collected
-			until a call to :meth:`push` or :meth:`pop` is done.
-			"""
-			self.texts.append(text)
-
-		def flush(self):
-			text = "".join(self.texts)
-
-			# Find innermost block
-			for (name, margins, lefts, rights) in reversed(self.stack):
-				if margins.display == "block":
-					block = margins
-					break
-			else:
-				block = None
-
-			whitespace = block.whitespace if block else "normal"
-
-			leftmarginwidth = self.leftmarginwidth()
-			rightmarginwidth = self.rightmarginwidth()
-
-			# Perform line wrapping
-			if whitespace == "pre":
-				lines = text.strip("\n").splitlines(False)
-			elif whitespace == "normal":
-				text = " ".join(text.strip().split()).strip()
-				if text:
-					if width is not None:
-						lines = textwrap.wrap(text, max(width-leftmarginwidth-rightmarginwidth, 20))
-					else:
-						lines = [text]
-				else:
-					lines = []
-			elif whitespace == "nowrap":
-				text = " ".join(text.strip().split()).strip()
-				if text:
-					lines = [text]
-				else:
-					lines = []
-			else:
-				raise ValueError("unknown whitepace mode {!r}".format(whitespace))
-
-			if lines:
-				for i in range(self.blockspacing):
-					yield "\n"
-				self.blockspacing = 0
-
-				borderlinewidth = contentwidth = max(len(line) for line in lines)
-				if self.width is not None:
-					contentwidth = max(self.width-leftmarginwidth-rightmarginwidth, contentwidth)
-
-				if block and block.overline:
-					yield " "*leftmarginwidth + borderlinewidth*block.overline + "\n"
-
-				for line in lines:
-					left = "".join(next(lefts) for (name, margins, lefts, rights) in self.stack if margins.display == "block")
-					right = "".join(next(rights) for (name, margins, lefts, rights) in self.stack if margins.display == "block")
-					line = left + line.ljust(contentwidth) + right
-					yield line.rstrip() + "\n"
-
-				if block and block.underline:
-					yield " "*leftmarginwidth + borderlinewidth*block.underline + "\n"
-			self.texts = []
-
-		def leftmarginwidth(self):
-			return sum(margins.leftwidth for (name, margins, lefts, rights) in self.stack if margins.display == "block")
-
-		def rightmarginwidth(self):
-			return sum(margins.rightwidth for (name, margins, lefts, rights) in self.stack if margins.display == "block")
-
+class _PlainTextFormatter:
 	class Style:
 		def __init__(self, display="inline", top=0, bottom=0, left=("",), right=("",), whitespace="normal", overline=None, underline=None, prefix="", suffix=""):
 			self.display = display
@@ -3489,7 +3355,7 @@ def _node2text(node, width, **styles):
 		def margins(self, level, pos=None, last=None):
 			left = self.left[level if level < len(self.left) else -1]
 			right = self.right[level if level < len(self.right) else -1]
-			return Margins(display=self.display, top=self.top, bottom=self.bottom, left=left, right=right, whitespace=self.whitespace, overline=self.overline, underline=self.underline, prefix=self.prefix, suffix=self.suffix, pos=pos, last=last)
+			return _PlainTextFormatter.Margins(display=self.display, top=self.top, bottom=self.bottom, left=left, right=right, whitespace=self.whitespace, overline=self.overline, underline=self.underline, prefix=self.prefix, suffix=self.suffix, pos=pos, last=last)
 
 	class Margins:
 		def __init__(self, display, top, bottom, left, right, whitespace, overline, underline, pos, last, prefix, suffix):
@@ -3522,56 +3388,185 @@ def _node2text(node, width, **styles):
 			while True:
 				yield self.right[-1]
 
-	stack = Stack(width=width, **{key: Style(**value) for (key, value) in styles.items()})
+	def __init__(self, node, width=80, **styles):
+		self.node = node
+		self.width = width
+		self.styles = {key: self.Style(**value) for (key, value) in styles.items()}
+		self.stack = []
+		self.blockspacing = 0
+		self.texts = []
+		self.levels = collections.Counter()
 
-	lists = []
+	def push(self, name, pos=None, last=None):
+		"""
+		Add an additional box around any further text. :obj:`name` is the name
+		of the box (normally the name of the HTML element itself (``"ul"``,
+		``"dd"``, ``"pre"``, ``"blockquote"`` etc.) For ``li`` element inside
+		``ul`` elements the name is ``ul_li`` and for ``li`` elements inside
+		``ol`` elements it is ``ol_li``. For a ``li`` element inside an ``ol``
+		element :obj:`pos` specifies the index of the ``li`` element among its
+		siblings (starting at 1) and :obj:`last` specifies the index of the last
+		``li`` (i.e. the total number of ``li``\s inside the ``ol``).
 
-	for cursor in node.walk(xsc.Element | xsc.Text, enterelementnode=True, leaveelementnode=True):
-		node = cursor.node
-		if isinstance(node, xsc.Text):
-			stack.text(str(node))
-		elif isinstance(node, ul):
-			if cursor.event == "enterelementnode":
-				lists.append(["ul", 0])
-				yield from stack.push("ul")
-			else:
-				yield from stack.pop()
-				lists.pop()
-		elif isinstance(node, ol):
-			if cursor.event == "enterelementnode":
-				from ll import misc
-				lists.append(["ol", 0, misc.count(node[li])])
-				yield from stack.push("ol")
-			else:
-				yield from stack.pop()
-				lists.pop()
-		elif isinstance(node, li):
-			if lists:
-				if cursor.event == "enterelementnode":
-					lists[-1][1] += 1
-					if lists[-1][0] == "ol":
-						yield from stack.push("ol_li", lists[-1][1], lists[-1][2])
-					elif lists[-1][0] == "ul":
-						yield from stack.push("ul_li")
-					else:
-						yield from stack.push("li")
+		This additional box might also specify an additonal number of blank
+		lines before and after its content and it might also introduce a new
+		line wrapping mode and it might specify underlining (for ``h1``-``h6``
+		elements.)
+
+		Consecutive blank lines (e.g. from the bottom of the previous box and
+		the top of this one), will add up, instead the largest of the values
+		will be used.
+		"""
+		style = self.styles.get(name, self.styles["default"])
+		level = self.levels[name]
+		margins = style.margins(level, pos=pos, last=last)
+		self.stack.append((name, margins, margins.lefts(), margins.rights()))
+		if style.display == "block":
+			# we flush any previous text as a block (this should handle ``<ul><li>foo<ul><li>bar</li></ul></li></ul>``)
+			yield from self.flush()
+			self.blockspacing = max(self.blockspacing, margins.top)
+		self.levels[name] += 1
+		if margins.prefix:
+			self.texts.append(margins.prefix)
+
+	def pop(self):
+		"""
+		Remove the innermost box created by a previous :meth:`push` call. All
+		text collected so far will be output taking the current margins, block
+		spacing and whitespace mode into account. After the text is output the
+		block spacing is reset to 0. If there's no collected text nothing will
+		be output and the block spacing will not be reset.
+		"""
+		(name, margins, lefts, rights) = self.stack[-1]
+		if margins.suffix:
+			self.texts.append(margins.suffix)
+		if margins.display == "block":
+			yield from self.flush()
+			self.blockspacing = max(self.blockspacing, margins.bottom)
+		self.levels[name] -= 1
+		self.stack.pop()
+
+	def text(self, text):
+		"""
+		Add the text :obj:`text` to the output. All text will be collected
+		until a call to :meth:`push` or :meth:`pop` is done.
+		"""
+		self.texts.append(text)
+
+	def flush(self):
+		text = "".join(self.texts)
+
+		# Find innermost block
+		for (name, margins, lefts, rights) in reversed(self.stack):
+			if margins.display == "block":
+				block = margins
+				break
+		else:
+			block = None
+
+		whitespace = block.whitespace if block else "normal"
+
+		leftmarginwidth = self.leftmarginwidth()
+		rightmarginwidth = self.rightmarginwidth()
+
+		# Perform line wrapping
+		if whitespace == "pre":
+			lines = text.strip("\n").splitlines(False)
+		elif whitespace == "normal":
+			text = " ".join(text.strip().split()).strip()
+			if text:
+				if self.width is not None:
+					lines = textwrap.wrap(text, max(self.width-leftmarginwidth-rightmarginwidth, 20))
 				else:
-					yield from stack.pop()
-		elif isinstance(node, dl):
-			if cursor.event == "enterelementnode":
-				lists.append(["dl", 0])
-				yield from stack.push("dl")
+					lines = [text]
 			else:
-				yield from stack.pop()
-				lists.pop()
-		elif isinstance(node, (h, dt, dd, blockquote, pre, div, p, hr, address, th, td, b, code)):
-			if cursor.event == "enterelementnode":
-				yield from stack.push(node.__class__.__name__)
+				lines = []
+		elif whitespace == "nowrap":
+			text = " ".join(text.strip().split()).strip()
+			if text:
+				lines = [text]
 			else:
-				yield from stack.pop()
-		elif isinstance(node, script):
-			cursor.entercontent = False
-	yield from stack.flush()
+				lines = []
+		else:
+			raise ValueError("unknown whitepace mode {!r}".format(whitespace))
+
+		if lines:
+			for i in range(self.blockspacing):
+				yield "\n"
+			self.blockspacing = 0
+
+			borderlinewidth = contentwidth = max(len(line) for line in lines)
+			if self.width is not None:
+				contentwidth = max(self.width-leftmarginwidth-rightmarginwidth, contentwidth)
+
+			if block and block.overline:
+				yield " "*leftmarginwidth + borderlinewidth*block.overline + "\n"
+
+			for line in lines:
+				left = "".join(next(lefts) for (name, margins, lefts, rights) in self.stack if margins.display == "block")
+				right = "".join(next(rights) for (name, margins, lefts, rights) in self.stack if margins.display == "block")
+				line = left + line.ljust(contentwidth) + right
+				yield line.rstrip() + "\n"
+
+			if block and block.underline:
+				yield " "*leftmarginwidth + borderlinewidth*block.underline + "\n"
+		self.texts = []
+
+	def leftmarginwidth(self):
+		return sum(margins.leftwidth for (name, margins, lefts, rights) in self.stack if margins.display == "block")
+
+	def rightmarginwidth(self):
+		return sum(margins.rightwidth for (name, margins, lefts, rights) in self.stack if margins.display == "block")
+
+	def __iter__(self):
+		lists = []
+
+		for cursor in self.node.walk(xsc.Element | xsc.Text, enterelementnode=True, leaveelementnode=True):
+			node = cursor.node
+			if isinstance(node, xsc.Text):
+				self.text(str(node))
+			elif isinstance(node, ul):
+				if cursor.event == "enterelementnode":
+					lists.append(["ul", 0])
+					yield from self.push("ul")
+				else:
+					yield from self.pop()
+					lists.pop()
+			elif isinstance(node, ol):
+				if cursor.event == "enterelementnode":
+					from ll import misc
+					lists.append(["ol", 0, misc.count(node[li])])
+					yield from self.push("ol")
+				else:
+					yield from self.pop()
+					lists.pop()
+			elif isinstance(node, li):
+				if lists:
+					if cursor.event == "enterelementnode":
+						lists[-1][1] += 1
+						if lists[-1][0] == "ol":
+							yield from self.push("ol_li", lists[-1][1], lists[-1][2])
+						elif lists[-1][0] == "ul":
+							yield from self.push("ul_li")
+						else:
+							yield from self.push("li")
+					else:
+						yield from self.pop()
+			elif isinstance(node, dl):
+				if cursor.event == "enterelementnode":
+					lists.append(["dl", 0])
+					yield from self.push("dl")
+				else:
+					yield from self.pop()
+					lists.pop()
+			elif isinstance(node, (h, dt, dd, blockquote, pre, div, p, hr, address, th, td, b, code)):
+				if cursor.event == "enterelementnode":
+					yield from self.push(node.__class__.__name__)
+				else:
+					yield from self.pop()
+			elif isinstance(node, script):
+				cursor.entercontent = False
+		yield from self.flush()
 
 
 def astext(
@@ -3673,5 +3668,5 @@ def astext(
 	``underline``
 		A rule after the content of the block.
 	"""
-	text = "".join(_node2text(node, width=width, default=default, h1=h1, h2=h2, h3=h3, h4=h4, h5=h5, h6=h6, dl=dl, dt=dt, dd=dd, ol=ol, ol_li=ol_li, ul=ul, ul_li=ul_li, pre=pre, blockquote=blockquote, div=div, p=p, hr=hr, address=address, th=th, td=td, b=b, u=u, code=code, **kwargs))
-	return text.strip("\n")
+	formatter = _PlainTextFormatter(node, width=width, default=default, h1=h1, h2=h2, h3=h3, h4=h4, h5=h5, h6=h6, dl=dl, dt=dt, dd=dd, ol=ol, ol_li=ol_li, ul=ul, ul_li=ul_li, pre=pre, blockquote=blockquote, div=div, p=p, hr=hr, address=address, th=th, td=td, b=b, u=u, code=code, **kwargs)
+	return "".join(formatter).strip("\n")
