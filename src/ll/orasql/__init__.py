@@ -796,8 +796,7 @@ class MixinCodeDDL(object):
 			code += "\n"
 		return code
 
-	@classmethod
-	def fixname(cls, code):
+	def fixname(self, code):
 		if code:
 			code = code.split(None, 5)
 			code = "create or replace {} {}\n{}".format(code[3], self.getfullname(), code[5])
@@ -882,7 +881,7 @@ class Object(object, metaclass=_Object_meta):
 		"""
 
 	@misc.notimplemented
-	def fixname(cls, code):
+	def fixname(self, code):
 		"""
 		Replace the name of the object in the SQL code :obj:`code` with
 		the name of :obj:`self`.
@@ -1083,8 +1082,7 @@ class Sequence(MixinNormalDates, Object):
 			code += "\n"
 		return code
 
-	@classmethod
-	def fixname(cls, code):
+	def fixname(self, code):
 		code = code.split(None, 3)
 		code = "create sequence {}\n{}".format(self.getfullname(), code[3])
 		return code
@@ -1176,8 +1174,7 @@ class Table(MixinNormalDates, Object):
 			code += "\n"
 		return code
 
-	@classmethod
-	def fixname(cls, code):
+	def fixname(self, code):
 		code = code.split(None, 3)
 		code = "create table {}\n{}".format(self.getfullname(), code[3])
 		return code
@@ -1320,8 +1317,7 @@ class Constraint(Object):
 			cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type=:type and constraint_name not like 'BIN$%' and owner=:owner order by owner, constraint_name".format(cursor.ddprefix()), type=cls.constraint_type, owner=owner)
 		return ((row.constraint_name, row.owner) for row in cursor)
 
-	@classmethod
-	def fixname(cls, code):
+	def fixname(self, code):
 		code = code.split(None, 6)
 		code = "alter table {} add constraint {} {}".format(code[2], self.getfullname(), code[6])
 		return code
@@ -1425,8 +1421,7 @@ class Comment(Object):
 		# will be dropped with the table
 		return ""
 
-	@classmethod
-	def fixname(cls, code):
+	def fixname(self, code):
 		code = code.split(None, 5)
 		code = "comment on column {} is {}".format(self.getfullname(), code[5])
 		return code
@@ -1599,8 +1594,7 @@ class Index(MixinNormalDates, Object):
 			cursor.execute("select decode(owner, user, null, owner) as owner, index_name from (select owner, index_name from {0}_indexes where index_type not in ('LOB', 'IOT - TOP') and owner = :owner minus select index_owner, index_name from {0}_constraints where constraint_type in ('U', 'P') and index_owner = :owner) where index_name not like 'BIN$%' order by owner, index_name".format(cursor.ddprefix()), owner=owner)
 		return ((row.index_name, row.owner) for row in cursor)
 
-	@classmethod
-	def fixname(cls, code):
+	def fixname(self, code):
 		if code.lower().startswith("create unique"):
 			code = code.split(None, 5)
 			code = "create unique index {} {}".format(self.getfullname(), code[5])
@@ -1769,8 +1763,7 @@ class Synonym(Object):
 			code += "\n"
 		return code
 
-	@classmethod
-	def fixname(cls, code):
+	def fixname(self, code):
 		if code.lower().startswith("create or replace public"):
 			code = code.split(None, 6)
 			code = "create or replace public synonym {} {}".format(self.getfullname(), code[6])
@@ -1830,8 +1823,7 @@ class View(MixinNormalDates, Object):
 			code += "\n"
 		return code
 
-	@classmethod
-	def fixname(cls, code):
+	def fixname(self, code):
 		code = code.split(None, 6)
 		code = "create or replace force view {} {}".format(self.getfullname(), code[6])
 		return code
@@ -1871,8 +1863,7 @@ class MaterializedView(View):
 			code += "\n"
 		return code
 
-	@classmethod
-	def fixname(cls, code):
+	def fixname(self, code):
 		code = code.split(None, 4)
 		code = "create materialized view {} {}".format(self.getfullname(), code[4])
 		return code
@@ -1915,8 +1906,7 @@ class Library(Object):
 			code += "\n"
 		return code
 
-	@classmethod
-	def fixname(cls, code):
+	def fixname(self, code):
 		code = code.split(None, 5)
 		code = "create or replace library {} {}".format(self.getfullname(), code[5])
 		return code
@@ -2177,8 +2167,7 @@ class JavaSource(MixinNormalDates, Object):
 			code += "\n"
 		return code
 
-	@classmethod
-	def fixname(cls, code):
+	def fixname(self, code):
 		code = code.split(None, 9)
 		code = "create or replace and compile java source named {} {}".format(self.getfullname(), code[9])
 		return code
@@ -2189,7 +2178,7 @@ class Privilege(object):
 	Models a database object privilege (i.e. a grant).
 
 	A :class:`Privilege` object has the following attributes:
-	
+
 		``privilege`` : string
 			The type of the privilege (``EXECUTE`` etc.)
 
@@ -2801,7 +2790,7 @@ class OracleFileResource(url_.Resource):
 	def close(self):
 		if not self.closed:
 			if "w" in self.mode:
-				obj = self._objectfromurl()
+				obj = self.connection._objectfromurl(self.url)
 				code = self.stream.getvalue()
 				if isinstance(code, bytes):
 					code = code.decode("utf-8")

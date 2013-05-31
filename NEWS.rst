@@ -136,6 +136,9 @@ Changes in 5.0 (released ??/??/2013)
 	The ``system`` object now has an ``execute`` method that executes the system
 	command.
 
+*	Fixed a bug in :meth:`orasql.OracleFileResource.close` that surfaced when
+	writing to on Oracle object.
+
 
 Changes in 4.10 (released 03/04/2013)
 -------------------------------------
