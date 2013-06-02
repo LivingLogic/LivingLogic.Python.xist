@@ -3352,16 +3352,15 @@ class _PlainTextFormatter:
 			self.prefix = prefix
 			self.suffix = suffix
 
-		def margins(self, level, pos=None, last=None):
-			left = self.left[level if level < len(self.left) else -1]
-			right = self.right[level if level < len(self.right) else -1]
-			return _PlainTextFormatter.Margins(display=self.display, top=self.top, bottom=self.bottom, left=left, right=right, whitespace=self.whitespace, overline=self.overline, underline=self.underline, prefix=self.prefix, suffix=self.suffix, pos=pos, last=last)
+		def margins(self, name, level, pos=None, last=None):
+			return _PlainTextFormatter.Margins(self, name, level, pos, last)
 
 	class Margins:
-		def __init__(self, display, top, bottom, left, right, whitespace, overline, underline, pos, last, prefix, suffix):
-			self.display = display
-			self.top = top
-			self.bottom = bottom
+		def __init__(self, style, name, level, pos, last):
+			self.style = style
+			self.name = name
+			left = style.left[level if level < len(style.left) else -1]
+			right = style.right[level if level < len(style.right) else -1]
 			if pos is not None:
 				width = len(str(last))
 				left = left.format(pos=pos, width=width)
@@ -3370,23 +3369,15 @@ class _PlainTextFormatter:
 			right = right.split("\n")
 			self.leftwidth = max(len(line) for line in left)
 			self.rightwidth = max(len(line) for line in right)
-			self.left = [line.rjust(self.leftwidth) for line in left]
-			self.right = [line.ljust(self.rightwidth) for line in right]
-			self.whitespace = whitespace
-			self.overline = overline
-			self.underline = underline
-			self.prefix = prefix
-			self.suffix = suffix
+			self.margins = zip(
+				self.repeatlast([line.rjust(self.leftwidth) for line in left]),
+				self.repeatlast([line.ljust(self.rightwidth) for line in right])
+			)
 
-		def lefts(self):
-			yield from self.left
+		def repeatlast(self, items):
+			yield from items
 			while True:
-				yield self.left[-1]
-
-		def rights(self):
-			yield from self.right
-			while True:
-				yield self.right[-1]
+				yield items[-1]
 
 	def __init__(self, node, width=80, **styles):
 		self.node = node
@@ -3419,15 +3410,15 @@ class _PlainTextFormatter:
 		"""
 		style = self.styles.get(name, self.styles["default"])
 		level = self.levels[name]
-		margins = style.margins(level, pos=pos, last=last)
-		self.stack.append((name, margins, margins.lefts(), margins.rights()))
+		margins = style.margins(name, level, pos=pos, last=last)
+		self.stack.append(margins)
 		if style.display == "block":
 			# we flush any previous text as a block (this should handle ``<ul><li>foo<ul><li>bar</li></ul></li></ul>``)
 			yield from self.flush()
-			self.blockspacing = max(self.blockspacing, margins.top)
+			self.blockspacing = max(self.blockspacing, margins.style.top)
 		self.levels[name] += 1
-		if margins.prefix:
-			self.texts.append(margins.prefix)
+		if margins.style.prefix:
+			self.texts.append(margins.style.prefix)
 
 	def pop(self):
 		"""
@@ -3437,13 +3428,13 @@ class _PlainTextFormatter:
 		block spacing is reset to 0. If there's no collected text nothing will
 		be output and the block spacing will not be reset.
 		"""
-		(name, margins, lefts, rights) = self.stack[-1]
-		if margins.suffix:
-			self.texts.append(margins.suffix)
-		if margins.display == "block":
+		margins = self.stack[-1]
+		if margins.style.suffix:
+			self.texts.append(margins.style.suffix)
+		if margins.style.display == "block":
 			yield from self.flush()
-			self.blockspacing = max(self.blockspacing, margins.bottom)
-		self.levels[name] -= 1
+			self.blockspacing = max(self.blockspacing, margins.style.bottom)
+		self.levels[margins.name] -= 1
 		self.stack.pop()
 
 	def text(self, text):
@@ -3457,14 +3448,14 @@ class _PlainTextFormatter:
 		text = "".join(self.texts)
 
 		# Find innermost block
-		for (name, margins, lefts, rights) in reversed(self.stack):
-			if margins.display == "block":
+		for margins in reversed(self.stack):
+			if margins.style.display == "block":
 				block = margins
 				break
 		else:
 			block = None
 
-		whitespace = block.whitespace if block else "normal"
+		whitespace = block.style.whitespace if block else "normal"
 
 		leftmarginwidth = self.leftmarginwidth()
 		rightmarginwidth = self.rightmarginwidth()
@@ -3499,24 +3490,29 @@ class _PlainTextFormatter:
 			if self.width is not None:
 				contentwidth = max(self.width-leftmarginwidth-rightmarginwidth, contentwidth)
 
-			if block and block.overline:
-				yield " "*leftmarginwidth + borderlinewidth*block.overline + "\n"
+			if block and block.style.overline:
+				yield " "*leftmarginwidth + borderlinewidth*block.style.overline + "\n"
 
 			for line in lines:
-				left = "".join(next(lefts) for (name, margins, lefts, rights) in self.stack if margins.display == "block")
-				right = "".join(next(rights) for (name, margins, lefts, rights) in self.stack if margins.display == "block")
-				line = left + line.ljust(contentwidth) + right
+				leftstrings = []
+				rightstrings = []
+				for margins in self.stack:
+					if margins.style.display == "block":
+						nextmargin = next(margins.margins)
+						leftstrings.append(nextmargin[0])
+						rightstrings.append(nextmargin[1])
+				line = "".join(leftstrings) + line.ljust(contentwidth) + "".join(rightstrings)
 				yield line.rstrip() + "\n"
 
-			if block and block.underline:
-				yield " "*leftmarginwidth + borderlinewidth*block.underline + "\n"
+			if block and block.style.underline:
+				yield " "*leftmarginwidth + borderlinewidth*block.style.underline + "\n"
 		self.texts = []
 
 	def leftmarginwidth(self):
-		return sum(margins.leftwidth for (name, margins, lefts, rights) in self.stack if margins.display == "block")
+		return sum(margins.leftwidth for margins in self.stack if margins.style.display == "block")
 
 	def rightmarginwidth(self):
-		return sum(margins.rightwidth for (name, margins, lefts, rights) in self.stack if margins.display == "block")
+		return sum(margins.rightwidth for margins in self.stack if margins.style.display == "block")
 
 	def __iter__(self):
 		lists = []
