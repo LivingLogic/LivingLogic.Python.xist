@@ -3369,10 +3369,8 @@ class _PlainTextFormatter:
 			right = right.split("\n")
 			self.leftwidth = max(len(line) for line in left)
 			self.rightwidth = max(len(line) for line in right)
-			self.margins = zip(
-				self.repeatlast([line.rjust(self.leftwidth) for line in left]),
-				self.repeatlast([line.ljust(self.rightwidth) for line in right])
-			)
+			self.lefts = self.repeatlast([line.rjust(self.leftwidth) for line in left])
+			self.rights = self.repeatlast([line.ljust(self.rightwidth) for line in right])
 
 		def repeatlast(self, items):
 			yield from items
@@ -3494,14 +3492,9 @@ class _PlainTextFormatter:
 				yield " "*leftmarginwidth + borderlinewidth*block.style.overline + "\n"
 
 			for line in lines:
-				leftstrings = []
-				rightstrings = []
-				for margins in self.stack:
-					if margins.style.display == "block":
-						nextmargin = next(margins.margins)
-						leftstrings.append(nextmargin[0])
-						rightstrings.append(nextmargin[1])
-				line = "".join(leftstrings) + line.ljust(contentwidth) + "".join(rightstrings)
+				left = "".join(next(margins.lefts) for margins in self.stack if margins.style.display == "block")
+				right = "".join(next(margins.rights) for margins in self.stack if margins.style.display == "block")
+				line = left + line.ljust(contentwidth) + right
 				yield line.rstrip() + "\n"
 
 			if block and block.style.underline:
