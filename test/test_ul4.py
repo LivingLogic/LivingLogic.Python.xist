@@ -2523,8 +2523,11 @@ def test_function_slice(r):
 		r("<?print slice(1)?>")
 	with raises(argumentmismatchmessage):
 		r("<?print slice(1, 2, 3, 4, 5)?>")
+	assert "g;u;r;k;" == r(code2, data=("gurk", None))
 	assert "g;u;" == r(code2, data=("gurk", 2))
 	assert "u;r;" == r(code3, data=("gurk", 1, 3))
+	assert "u;r;k;" == r(code3, data=("gurk", 1, None))
+	assert "g;u;" == r(code3, data=("gurk", None, 2))
 	assert "u;u;" == r(code4, data=("gurkgurk", 1, 6, 4))
 
 
