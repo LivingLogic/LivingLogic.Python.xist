@@ -2514,6 +2514,21 @@ def test_function_range(r):
 
 
 @pytest.mark.ul4
+def test_function_slice(r):
+	code2 = "<?for i in slice(data[0], data[1])?><?print i?>;<?end for?>"
+	code3 = "<?for i in slice(data[0], data[1], data[2])?><?print i?>;<?end for?>"
+	code4 = "<?for i in slice(data[0], data[1], data[2], data[3])?><?print i?>;<?end for?>"
+
+	with raises(argumentmismatchmessage):
+		r("<?print slice(1)?>")
+	with raises(argumentmismatchmessage):
+		r("<?print slice(1, 2, 3, 4, 5)?>")
+	assert "g;u;" == r(code2, data=("gurk", 2))
+	assert "u;r;" == r(code3, data=("gurk", 1, 3))
+	assert "u;u;" == r(code4, data=("gurkgurk", 1, 6, 4))
+
+
+@pytest.mark.ul4
 def test_function_urlquote(r):
 	assert "gurk" == r("<?print urlquote('gurk')?>")
 	assert "%3C%3D%3E%2B%3F" == r("<?print urlquote('<=>+?')?>")
