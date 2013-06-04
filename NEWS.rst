@@ -89,7 +89,7 @@ Changes in 5.0 (released 06/04/2013)
 
 *	Converter contexts now support string as keys (which must be hierarchical
 	dot-separated names similar to Java package names (e.g.
-	``"org.example.project.handler"``) to avoid name collisions.
+	``"org.example.project.handler"``) to avoid name collisions).
 
 *	The :mod:`docbook` module has been updated to support DocBook 5.0.
 
