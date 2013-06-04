@@ -39,7 +39,7 @@ Changes in 5.0 (released 06/04/2013)
 	``htmlelement.attrs[xml.Attr.lang]`` or
 	``htmlelement.attrs[xml.Attr.lang('de')]``).
 
-*	Using :meth:`__setattr` to set attributes only works for declared attributes
+*	Using :meth:`__setattr__` to set attributes only works for declared attributes
 	too. Using :meth:`__setitem__` to set attributes supports the same kind of
 	arguments as :meth:`__getitem__` does. For declared attributes the resulting
 	attribute object will always be an instance of the declared attribute class.
