@@ -3597,7 +3597,7 @@ def astext(
 	code=dict(display="inline", prefix="``", suffix="``"),
 	**kwargs
 	):
-	"""
+	r"""
 	Return the node :obj:`node` formatted as plain text. :obj:`node` must contain
 	an HTML tree.
 
@@ -3608,7 +3608,7 @@ def astext(
 	The paramter names are the names of the HTML elements, except for ``ol_li``
 	which is used for ``li`` elements inside ``ol`` elements and ``ul_li`` which
 	is used for ``li`` elements inside ``ul`` elements. ``default`` is used if
-	the paramter for the HTML element is not passed.
+	the parameter for the HTML element is not passed.
 
 	The parameter value must be a dictionary which might contain any of the
 	following keys (if the key is missing a default value is used):
@@ -3645,7 +3645,7 @@ def astext(
 		indentation the last indentation line will be repeated. All indentation
 		lines will be padded to the longest line. For example the indentation for
 		a ``li`` element inside an ``ul`` element on level 1 is ``"*  \n"``, i.e.
-		the first line will be indented with ``*  ``, all subsequent lines with
+		the first line will be indented with ``"*  "``, all subsequent lines with
 		three spaces.
 
 	``right``
