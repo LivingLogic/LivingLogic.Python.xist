@@ -3654,7 +3654,7 @@ def astext(
 
 	``whitespace``
 		Specifies how lines in the block should be wrapped. ``"normal"`` collapses
-		consecutive whitespace and wrap the lines at the specified width.
+		consecutive whitespace and wraps the lines at the specified width.
 		``"nowrap"`` collapses consecutive whitespace but doesn't wrap and
 		``"pre"`` uses the lines as given.
 
