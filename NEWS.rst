@@ -1,4 +1,4 @@
-Changes in 5.0 (released ??/??/2013)
+Changes in 5.0 (released 06/04/2013)
 ------------------------------------
 
 *	The HTML namespace (:mod:`ll.xist.ns.html`) has been updated to support the
