@@ -170,7 +170,7 @@ Changes in 4.10 (released 03/04/2013)
 	any other expression. Of course this makes only sense for expressions that
 	have side effects (e.g. a call to the ``render`` method).
 
-*	The tag ``<?render?>`` has been removed. To update your code replace 
+*	The tag ``<?render?>`` has been removed. To update your code replace
 	``<?render r.render()?>`` with ``<?code r.render()?>``.
 
 *	UL4 functions ``print`` and ``printx`` have been added. They behave like the
