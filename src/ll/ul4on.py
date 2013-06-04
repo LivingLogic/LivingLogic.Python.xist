@@ -204,7 +204,7 @@ class Encoder:
 				self.stream.write("T{}|{}|{}|".format(obj.days, obj.seconds, obj.microseconds))
 			elif isinstance(obj, misc.monthdelta):
 				self._record(obj)
-				self.stream.write("M{}|".format(obj.months))
+				self.stream.write("M{}|".format(obj.months()))
 			elif isinstance(obj, collections.Sequence):
 				self._record(obj)
 				self.stream.write("L")
