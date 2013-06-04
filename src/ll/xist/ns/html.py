@@ -3660,10 +3660,12 @@ def astext(
 
 	``overline``
 		A character that is repeated for the width of the content as a rule before
-		the content. If ``None`` is used, no rule will be output.
+		the content. If ``None`` is used, no rule will be output. (Note that this
+		will only work on the innermost block level element.)
 
 	``underline``
-		A rule after the content of the block.
+		A rule after the content of the block. (Note that this will only work on
+		the innermost block level element.)
 	"""
 	formatter = _PlainTextFormatter(node, width=width, default=default, h1=h1, h2=h2, h3=h3, h4=h4, h5=h5, h6=h6, dl=dl, dt=dt, dd=dd, ol=ol, ol_li=ol_li, ul=ul, ul_li=ul_li, pre=pre, blockquote=blockquote, div=div, p=p, hr=hr, address=address, th=th, td=td, b=b, u=u, code=code, **kwargs)
 	return "".join(formatter).strip("\n")
