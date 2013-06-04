@@ -3213,8 +3213,11 @@ class nobr(xsc.Element):
 ###
 
 content_metadata = (base, command, link, meta, noscript, script, style, title)
+
 content_sectioning = (article, aside, nav, section)
+
 content_heading = (h1, h2, h3, h4, h5, h6, hgroup)
+
 content_phrasing = (
 	a, abbr, acronym, applet, area, audio, b, bdi, bdo, big, br, button, canvas,
 	center, cite, code, command, datalist, del_, dfn, em, embed, font, i, iframe,
@@ -3222,16 +3225,21 @@ content_phrasing = (
 	noscript, object, output, progress, q, ruby, s, samp, script, select, small,
 	span, strike, strong, sub, sup, textarea, time, tt, u, var, video, wbr,
 )
+
 content_flow = content_phrasing + (
 	address, article, aside, blockquote, details, dialog, dir, div, dl, fieldset,
 	figure, footer, form, h1, h2, h3, h4, h5, h6, header, hgroup, hr, menu, nav,
 	noframes, ol, p, pre, section, style, table, ul,
 )
+
 content_embedded = (audio, canvas, embed, iframe, img, object, video)
+
+# We don't include ``audio``, ``img``, ``input``, ``menu``, ``object`` and ``video``
+# here because they're only interactive under certain conditions.
 content_interactive = (
-	a, audio, button, details, embed, iframe, img, input, keygen, label, menu,
-	object, select, textarea, video,
+	a, button, details, embed, iframe, keygen, label, select, textarea,
 )
+
 content_palpable = (
 	a, abbr, acronym, address, applet, article, aside, audio, b, bdi, bdo, big,
 	blockquote, button, canvas, center, cite, code, details, dfn, dir, div, dl,
