@@ -33,7 +33,7 @@ Changes in 5.0 (released 06/04/2013)
 	the XML name of the attribute. :meth:`__getitem__` also allows an attribute
 	name for a global attribute in Clark notation (i.e.
 	``htmlelement.attrs["{http://www.w3.org/XML/1998/namespace}lang"]``). A global
-	attributes can also be accessed via a (namespace name, attribute name) tuple
+	attribute can also be accessed via a (namespace name, attribute name) tuple
 	(i.e. ``htmlelement.attrs[("http://www.w3.org/XML/1998/namespace", "lang")]``).
 	Using an attribute class or attribute object is also possible (i.e.
 	``htmlelement.attrs[xml.Attr.lang]`` or
