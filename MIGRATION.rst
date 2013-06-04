@@ -17,7 +17,7 @@ Changes to XIST
 
 *	Validation is now off by default, to turn it on pass ``validate=True`` to
 	:func:`parse.tree` or :func:`parse.itertree` for parsing, or to the publisher
-	 object or the :meth:`bytes`, :meth:`iterbytes`, :meth:`string` or
+	object or the :meth:`bytes`, :meth:`iterbytes`, :meth:`string` or
 	:meth:`iterstring` methods for publishing.
 
 
