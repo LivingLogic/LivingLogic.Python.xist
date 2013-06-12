@@ -407,7 +407,7 @@ class AST:
 	def _str(self):
 		# Format :obj:`self`.
 		# This is used by :meth:`__str__.
-		# ``_str`` is a generator an may output:
+		# ``_str`` is a generator and may output:
 		# ``None``, which means: "add a line feed and an indentation here"
 		# an int, which means: add the int to the indentation level
 		# a string, which means: add this string to the output
