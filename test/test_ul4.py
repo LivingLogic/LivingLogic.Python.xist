@@ -478,6 +478,11 @@ def test_text(r):
 
 
 @pytest.mark.ul4
+def test_whitespace(r):
+	assert "40"  == r("<?print\na\n+\nb\n?>", a=17, b=23)
+
+
+@pytest.mark.ul4
 def test_undefined(r):
 	assert '' == r('<?print Undefined?>')
 	assert 'no' == r('<?if Undefined?>yes<?else?>no<?end if?>')
