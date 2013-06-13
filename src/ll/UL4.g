@@ -120,8 +120,20 @@ STRING
 	;
 
 STRING3
-	: '"""' ( ESC_SEQ | ~('\\'|'"""') )* '"""'
-	| '\'\'\'' ( ESC_SEQ | ~('\\'|'\'\'\'') )* '\'\'\''
+	: '"""' (options {greedy=false;}:TRIQUOTE)* '"""'
+	|  '\'\'\'' (options {greedy=false;}:TRIAPOS)* '\'\'\''
+	;
+
+/** the two '"'? cause a warning -- is there a way to avoid that? */
+fragment
+TRIQUOTE
+	: '"'? '"'? (ESC_SEQ|~('\\'|'"'))+
+	;
+
+/** the two '\''? cause a warning -- is there a way to avoid that? */
+fragment
+TRIAPOS
+	: '\''? '\''? (ESC_SEQ|~('\\'|'\''))+
 	;
 
 fragment

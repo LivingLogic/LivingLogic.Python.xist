@@ -1,4 +1,4 @@
-# $ANTLR 3.4 src/ll/UL4.g 2013-06-13 14:22:44
+# $ANTLR 3.4 src/ll/UL4.g 2013-06-13 18:34:31
 
 import sys
 from antlr3 import *
@@ -14,8 +14,6 @@ HIDDEN = BaseRecognizer.HIDDEN
 
 # token types
 EOF=-1
-T__25=25
-T__26=26
 T__27=27
 T__28=28
 T__29=29
@@ -49,6 +47,8 @@ T__56=56
 T__57=57
 T__58=58
 T__59=59
+T__60=60
+T__61=61
 BIN_DIGIT=4
 COLOR=5
 DATE=6
@@ -65,11 +65,13 @@ OCT_DIGIT=16
 STRING=17
 STRING3=18
 TIME=19
-TRUE=20
-UNICODE1_ESC=21
-UNICODE2_ESC=22
-UNICODE4_ESC=23
-WS=24
+TRIAPOS=20
+TRIQUOTE=21
+TRUE=22
+UNICODE1_ESC=23
+UNICODE2_ESC=24
+UNICODE4_ESC=25
+WS=26
 
 
 class UL4Lexer(Lexer):
@@ -95,15 +97,15 @@ class UL4Lexer(Lexer):
             transition = self.DFA15_transition
             )
 
-        self.dfa28 = self.DFA28(
-            self, 28,
-            eot = self.DFA28_eot,
-            eof = self.DFA28_eof,
-            min = self.DFA28_min,
-            max = self.DFA28_max,
-            accept = self.DFA28_accept,
-            special = self.DFA28_special,
-            transition = self.DFA28_transition
+        self.dfa34 = self.DFA34(
+            self, 34,
+            eot = self.DFA34_eot,
+            eof = self.DFA34_eof,
+            min = self.DFA34_min,
+            max = self.DFA34_max,
+            accept = self.DFA34_accept,
+            special = self.DFA34_special,
+            transition = self.DFA34_transition
             )
 
 
@@ -115,61 +117,16 @@ class UL4Lexer(Lexer):
 
 
 
-    # $ANTLR start "T__25"
-    def mT__25(self, ):
-        try:
-            _type = T__25
-            _channel = DEFAULT_CHANNEL
-
-            # src/ll/UL4.g:15:7: ( '!=' )
-            # src/ll/UL4.g:15:9: '!='
-            pass 
-            self.match("!=")
-
-
-
-
-            self._state.type = _type
-            self._state.channel = _channel
-        finally:
-            pass
-
-    # $ANTLR end "T__25"
-
-
-
-    # $ANTLR start "T__26"
-    def mT__26(self, ):
-        try:
-            _type = T__26
-            _channel = DEFAULT_CHANNEL
-
-            # src/ll/UL4.g:16:7: ( '%' )
-            # src/ll/UL4.g:16:9: '%'
-            pass 
-            self.match(37)
-
-
-
-            self._state.type = _type
-            self._state.channel = _channel
-        finally:
-            pass
-
-    # $ANTLR end "T__26"
-
-
-
     # $ANTLR start "T__27"
     def mT__27(self, ):
         try:
             _type = T__27
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:17:7: ( '%=' )
-            # src/ll/UL4.g:17:9: '%='
+            # src/ll/UL4.g:15:7: ( '!=' )
+            # src/ll/UL4.g:15:9: '!='
             pass 
-            self.match("%=")
+            self.match("!=")
 
 
 
@@ -189,10 +146,10 @@ class UL4Lexer(Lexer):
             _type = T__28
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:18:7: ( '(' )
-            # src/ll/UL4.g:18:9: '('
+            # src/ll/UL4.g:16:7: ( '%' )
+            # src/ll/UL4.g:16:9: '%'
             pass 
-            self.match(40)
+            self.match(37)
 
 
 
@@ -211,10 +168,11 @@ class UL4Lexer(Lexer):
             _type = T__29
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:19:7: ( ')' )
-            # src/ll/UL4.g:19:9: ')'
+            # src/ll/UL4.g:17:7: ( '%=' )
+            # src/ll/UL4.g:17:9: '%='
             pass 
-            self.match(41)
+            self.match("%=")
+
 
 
 
@@ -233,10 +191,10 @@ class UL4Lexer(Lexer):
             _type = T__30
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:20:7: ( '*' )
-            # src/ll/UL4.g:20:9: '*'
+            # src/ll/UL4.g:18:7: ( '(' )
+            # src/ll/UL4.g:18:9: '('
             pass 
-            self.match(42)
+            self.match(40)
 
 
 
@@ -255,11 +213,10 @@ class UL4Lexer(Lexer):
             _type = T__31
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:21:7: ( '**' )
-            # src/ll/UL4.g:21:9: '**'
+            # src/ll/UL4.g:19:7: ( ')' )
+            # src/ll/UL4.g:19:9: ')'
             pass 
-            self.match("**")
-
+            self.match(41)
 
 
 
@@ -278,11 +235,10 @@ class UL4Lexer(Lexer):
             _type = T__32
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:22:7: ( '*=' )
-            # src/ll/UL4.g:22:9: '*='
+            # src/ll/UL4.g:20:7: ( '*' )
+            # src/ll/UL4.g:20:9: '*'
             pass 
-            self.match("*=")
-
+            self.match(42)
 
 
 
@@ -301,10 +257,11 @@ class UL4Lexer(Lexer):
             _type = T__33
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:23:7: ( '+' )
-            # src/ll/UL4.g:23:9: '+'
+            # src/ll/UL4.g:21:7: ( '**' )
+            # src/ll/UL4.g:21:9: '**'
             pass 
-            self.match(43)
+            self.match("**")
+
 
 
 
@@ -323,10 +280,10 @@ class UL4Lexer(Lexer):
             _type = T__34
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:24:7: ( '+=' )
-            # src/ll/UL4.g:24:9: '+='
+            # src/ll/UL4.g:22:7: ( '*=' )
+            # src/ll/UL4.g:22:9: '*='
             pass 
-            self.match("+=")
+            self.match("*=")
 
 
 
@@ -346,10 +303,10 @@ class UL4Lexer(Lexer):
             _type = T__35
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:25:7: ( ',' )
-            # src/ll/UL4.g:25:9: ','
+            # src/ll/UL4.g:23:7: ( '+' )
+            # src/ll/UL4.g:23:9: '+'
             pass 
-            self.match(44)
+            self.match(43)
 
 
 
@@ -368,10 +325,11 @@ class UL4Lexer(Lexer):
             _type = T__36
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:26:7: ( '-' )
-            # src/ll/UL4.g:26:9: '-'
+            # src/ll/UL4.g:24:7: ( '+=' )
+            # src/ll/UL4.g:24:9: '+='
             pass 
-            self.match(45)
+            self.match("+=")
+
 
 
 
@@ -390,11 +348,10 @@ class UL4Lexer(Lexer):
             _type = T__37
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:27:7: ( '-=' )
-            # src/ll/UL4.g:27:9: '-='
+            # src/ll/UL4.g:25:7: ( ',' )
+            # src/ll/UL4.g:25:9: ','
             pass 
-            self.match("-=")
-
+            self.match(44)
 
 
 
@@ -413,10 +370,10 @@ class UL4Lexer(Lexer):
             _type = T__38
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:28:7: ( '.' )
-            # src/ll/UL4.g:28:9: '.'
+            # src/ll/UL4.g:26:7: ( '-' )
+            # src/ll/UL4.g:26:9: '-'
             pass 
-            self.match(46)
+            self.match(45)
 
 
 
@@ -435,10 +392,11 @@ class UL4Lexer(Lexer):
             _type = T__39
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:29:7: ( '/' )
-            # src/ll/UL4.g:29:9: '/'
+            # src/ll/UL4.g:27:7: ( '-=' )
+            # src/ll/UL4.g:27:9: '-='
             pass 
-            self.match(47)
+            self.match("-=")
+
 
 
 
@@ -457,11 +415,10 @@ class UL4Lexer(Lexer):
             _type = T__40
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:30:7: ( '//' )
-            # src/ll/UL4.g:30:9: '//'
+            # src/ll/UL4.g:28:7: ( '.' )
+            # src/ll/UL4.g:28:9: '.'
             pass 
-            self.match("//")
-
+            self.match(46)
 
 
 
@@ -480,11 +437,10 @@ class UL4Lexer(Lexer):
             _type = T__41
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:31:7: ( '//=' )
-            # src/ll/UL4.g:31:9: '//='
+            # src/ll/UL4.g:29:7: ( '/' )
+            # src/ll/UL4.g:29:9: '/'
             pass 
-            self.match("//=")
-
+            self.match(47)
 
 
 
@@ -503,10 +459,10 @@ class UL4Lexer(Lexer):
             _type = T__42
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:32:7: ( '/=' )
-            # src/ll/UL4.g:32:9: '/='
+            # src/ll/UL4.g:30:7: ( '//' )
+            # src/ll/UL4.g:30:9: '//'
             pass 
-            self.match("/=")
+            self.match("//")
 
 
 
@@ -526,10 +482,11 @@ class UL4Lexer(Lexer):
             _type = T__43
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:33:7: ( ':' )
-            # src/ll/UL4.g:33:9: ':'
+            # src/ll/UL4.g:31:7: ( '//=' )
+            # src/ll/UL4.g:31:9: '//='
             pass 
-            self.match(58)
+            self.match("//=")
+
 
 
 
@@ -548,10 +505,11 @@ class UL4Lexer(Lexer):
             _type = T__44
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:34:7: ( '<' )
-            # src/ll/UL4.g:34:9: '<'
+            # src/ll/UL4.g:32:7: ( '/=' )
+            # src/ll/UL4.g:32:9: '/='
             pass 
-            self.match(60)
+            self.match("/=")
+
 
 
 
@@ -570,11 +528,10 @@ class UL4Lexer(Lexer):
             _type = T__45
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:35:7: ( '<=' )
-            # src/ll/UL4.g:35:9: '<='
+            # src/ll/UL4.g:33:7: ( ':' )
+            # src/ll/UL4.g:33:9: ':'
             pass 
-            self.match("<=")
-
+            self.match(58)
 
 
 
@@ -593,10 +550,10 @@ class UL4Lexer(Lexer):
             _type = T__46
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:36:7: ( '=' )
-            # src/ll/UL4.g:36:9: '='
+            # src/ll/UL4.g:34:7: ( '<' )
+            # src/ll/UL4.g:34:9: '<'
             pass 
-            self.match(61)
+            self.match(60)
 
 
 
@@ -615,10 +572,10 @@ class UL4Lexer(Lexer):
             _type = T__47
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:37:7: ( '==' )
-            # src/ll/UL4.g:37:9: '=='
+            # src/ll/UL4.g:35:7: ( '<=' )
+            # src/ll/UL4.g:35:9: '<='
             pass 
-            self.match("==")
+            self.match("<=")
 
 
 
@@ -638,10 +595,10 @@ class UL4Lexer(Lexer):
             _type = T__48
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:38:7: ( '>' )
-            # src/ll/UL4.g:38:9: '>'
+            # src/ll/UL4.g:36:7: ( '=' )
+            # src/ll/UL4.g:36:9: '='
             pass 
-            self.match(62)
+            self.match(61)
 
 
 
@@ -660,10 +617,10 @@ class UL4Lexer(Lexer):
             _type = T__49
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:39:7: ( '>=' )
-            # src/ll/UL4.g:39:9: '>='
+            # src/ll/UL4.g:37:7: ( '==' )
+            # src/ll/UL4.g:37:9: '=='
             pass 
-            self.match(">=")
+            self.match("==")
 
 
 
@@ -683,10 +640,10 @@ class UL4Lexer(Lexer):
             _type = T__50
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:40:7: ( '[' )
-            # src/ll/UL4.g:40:9: '['
+            # src/ll/UL4.g:38:7: ( '>' )
+            # src/ll/UL4.g:38:9: '>'
             pass 
-            self.match(91)
+            self.match(62)
 
 
 
@@ -705,10 +662,11 @@ class UL4Lexer(Lexer):
             _type = T__51
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:41:7: ( ']' )
-            # src/ll/UL4.g:41:9: ']'
+            # src/ll/UL4.g:39:7: ( '>=' )
+            # src/ll/UL4.g:39:9: '>='
             pass 
-            self.match(93)
+            self.match(">=")
+
 
 
 
@@ -727,11 +685,10 @@ class UL4Lexer(Lexer):
             _type = T__52
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:42:7: ( 'and' )
-            # src/ll/UL4.g:42:9: 'and'
+            # src/ll/UL4.g:40:7: ( '[' )
+            # src/ll/UL4.g:40:9: '['
             pass 
-            self.match("and")
-
+            self.match(91)
 
 
 
@@ -750,11 +707,10 @@ class UL4Lexer(Lexer):
             _type = T__53
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:43:7: ( 'for' )
-            # src/ll/UL4.g:43:9: 'for'
+            # src/ll/UL4.g:41:7: ( ']' )
+            # src/ll/UL4.g:41:9: ']'
             pass 
-            self.match("for")
-
+            self.match(93)
 
 
 
@@ -773,10 +729,10 @@ class UL4Lexer(Lexer):
             _type = T__54
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:44:7: ( 'if' )
-            # src/ll/UL4.g:44:9: 'if'
+            # src/ll/UL4.g:42:7: ( 'and' )
+            # src/ll/UL4.g:42:9: 'and'
             pass 
-            self.match("if")
+            self.match("and")
 
 
 
@@ -796,10 +752,10 @@ class UL4Lexer(Lexer):
             _type = T__55
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:45:7: ( 'in' )
-            # src/ll/UL4.g:45:9: 'in'
+            # src/ll/UL4.g:43:7: ( 'for' )
+            # src/ll/UL4.g:43:9: 'for'
             pass 
-            self.match("in")
+            self.match("for")
 
 
 
@@ -819,10 +775,10 @@ class UL4Lexer(Lexer):
             _type = T__56
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:46:7: ( 'not' )
-            # src/ll/UL4.g:46:9: 'not'
+            # src/ll/UL4.g:44:7: ( 'if' )
+            # src/ll/UL4.g:44:9: 'if'
             pass 
-            self.match("not")
+            self.match("if")
 
 
 
@@ -842,10 +798,10 @@ class UL4Lexer(Lexer):
             _type = T__57
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:47:7: ( 'or' )
-            # src/ll/UL4.g:47:9: 'or'
+            # src/ll/UL4.g:45:7: ( 'in' )
+            # src/ll/UL4.g:45:9: 'in'
             pass 
-            self.match("or")
+            self.match("in")
 
 
 
@@ -865,10 +821,11 @@ class UL4Lexer(Lexer):
             _type = T__58
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:48:7: ( '{' )
-            # src/ll/UL4.g:48:9: '{'
+            # src/ll/UL4.g:46:7: ( 'not' )
+            # src/ll/UL4.g:46:9: 'not'
             pass 
-            self.match(123)
+            self.match("not")
+
 
 
 
@@ -887,6 +844,51 @@ class UL4Lexer(Lexer):
             _type = T__59
             _channel = DEFAULT_CHANNEL
 
+            # src/ll/UL4.g:47:7: ( 'or' )
+            # src/ll/UL4.g:47:9: 'or'
+            pass 
+            self.match("or")
+
+
+
+
+            self._state.type = _type
+            self._state.channel = _channel
+        finally:
+            pass
+
+    # $ANTLR end "T__59"
+
+
+
+    # $ANTLR start "T__60"
+    def mT__60(self, ):
+        try:
+            _type = T__60
+            _channel = DEFAULT_CHANNEL
+
+            # src/ll/UL4.g:48:7: ( '{' )
+            # src/ll/UL4.g:48:9: '{'
+            pass 
+            self.match(123)
+
+
+
+            self._state.type = _type
+            self._state.channel = _channel
+        finally:
+            pass
+
+    # $ANTLR end "T__60"
+
+
+
+    # $ANTLR start "T__61"
+    def mT__61(self, ):
+        try:
+            _type = T__61
+            _channel = DEFAULT_CHANNEL
+
             # src/ll/UL4.g:49:7: ( '}' )
             # src/ll/UL4.g:49:9: '}'
             pass 
@@ -899,7 +901,7 @@ class UL4Lexer(Lexer):
         finally:
             pass
 
-    # $ANTLR end "T__59"
+    # $ANTLR end "T__61"
 
 
 
@@ -2105,7 +2107,7 @@ class UL4Lexer(Lexer):
             _type = STRING3
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:123:2: ( '\"\"\"' ( ESC_SEQ |~ ( '\\\\' | '\"\"\"' ) )* '\"\"\"' | '\\'\\'\\'' ( ESC_SEQ |~ ( '\\\\' | '\\'\\'\\'' ) )* '\\'\\'\\'' )
+            # src/ll/UL4.g:123:2: ( '\"\"\"' ( options {greedy=false; } : TRIQUOTE )* '\"\"\"' | '\\'\\'\\'' ( options {greedy=false; } : TRIAPOS )* '\\'\\'\\'' )
             alt26 = 2
             LA26_0 = self.input.LA(1)
 
@@ -2120,60 +2122,40 @@ class UL4Lexer(Lexer):
 
 
             if alt26 == 1:
-                # src/ll/UL4.g:123:4: '\"\"\"' ( ESC_SEQ |~ ( '\\\\' | '\"\"\"' ) )* '\"\"\"'
+                # src/ll/UL4.g:123:4: '\"\"\"' ( options {greedy=false; } : TRIQUOTE )* '\"\"\"'
                 pass 
                 self.match("\"\"\"")
 
 
-                # src/ll/UL4.g:123:10: ( ESC_SEQ |~ ( '\\\\' | '\"\"\"' ) )*
+                # src/ll/UL4.g:123:10: ( options {greedy=false; } : TRIQUOTE )*
                 while True: #loop24
-                    alt24 = 3
+                    alt24 = 2
                     LA24_0 = self.input.LA(1)
 
                     if (LA24_0 == 34) :
                         LA24_1 = self.input.LA(2)
 
                         if (LA24_1 == 34) :
-                            LA24_4 = self.input.LA(3)
+                            LA24_3 = self.input.LA(3)
 
-                            if (LA24_4 == 34) :
-                                LA24_5 = self.input.LA(4)
-
-                                if ((0 <= LA24_5 <= 65535)) :
-                                    alt24 = 2
-
-
-                            elif ((0 <= LA24_4 <= 33) or (35 <= LA24_4 <= 65535)) :
+                            if (LA24_3 == 34) :
                                 alt24 = 2
+                            elif ((0 <= LA24_3 <= 33) or (35 <= LA24_3 <= 65535)) :
+                                alt24 = 1
 
 
                         elif ((0 <= LA24_1 <= 33) or (35 <= LA24_1 <= 65535)) :
-                            alt24 = 2
+                            alt24 = 1
 
 
-                    elif (LA24_0 == 92) :
+                    elif ((0 <= LA24_0 <= 33) or (35 <= LA24_0 <= 65535)) :
                         alt24 = 1
-                    elif ((0 <= LA24_0 <= 33) or (35 <= LA24_0 <= 91) or (93 <= LA24_0 <= 65535)) :
-                        alt24 = 2
 
 
                     if alt24 == 1:
-                        # src/ll/UL4.g:123:12: ESC_SEQ
+                        # src/ll/UL4.g:123:35: TRIQUOTE
                         pass 
-                        self.mESC_SEQ()
-
-
-
-                    elif alt24 == 2:
-                        # src/ll/UL4.g:123:22: ~ ( '\\\\' | '\"\"\"' )
-                        pass 
-                        if (0 <= self.input.LA(1) <= 91) or (93 <= self.input.LA(1) <= 65535):
-                            self.input.consume()
-                        else:
-                            mse = MismatchedSetException(None, self.input)
-                            self.recover(mse)
-                            raise mse
-
+                        self.mTRIQUOTE()
 
 
 
@@ -2186,60 +2168,40 @@ class UL4Lexer(Lexer):
 
 
             elif alt26 == 2:
-                # src/ll/UL4.g:124:4: '\\'\\'\\'' ( ESC_SEQ |~ ( '\\\\' | '\\'\\'\\'' ) )* '\\'\\'\\''
+                # src/ll/UL4.g:124:5: '\\'\\'\\'' ( options {greedy=false; } : TRIAPOS )* '\\'\\'\\''
                 pass 
                 self.match("'''")
 
 
-                # src/ll/UL4.g:124:13: ( ESC_SEQ |~ ( '\\\\' | '\\'\\'\\'' ) )*
+                # src/ll/UL4.g:124:14: ( options {greedy=false; } : TRIAPOS )*
                 while True: #loop25
-                    alt25 = 3
+                    alt25 = 2
                     LA25_0 = self.input.LA(1)
 
                     if (LA25_0 == 39) :
                         LA25_1 = self.input.LA(2)
 
                         if (LA25_1 == 39) :
-                            LA25_4 = self.input.LA(3)
+                            LA25_3 = self.input.LA(3)
 
-                            if (LA25_4 == 39) :
-                                LA25_5 = self.input.LA(4)
-
-                                if ((0 <= LA25_5 <= 65535)) :
-                                    alt25 = 2
-
-
-                            elif ((0 <= LA25_4 <= 38) or (40 <= LA25_4 <= 65535)) :
+                            if (LA25_3 == 39) :
                                 alt25 = 2
+                            elif ((0 <= LA25_3 <= 38) or (40 <= LA25_3 <= 65535)) :
+                                alt25 = 1
 
 
                         elif ((0 <= LA25_1 <= 38) or (40 <= LA25_1 <= 65535)) :
-                            alt25 = 2
+                            alt25 = 1
 
 
-                    elif (LA25_0 == 92) :
+                    elif ((0 <= LA25_0 <= 38) or (40 <= LA25_0 <= 65535)) :
                         alt25 = 1
-                    elif ((0 <= LA25_0 <= 38) or (40 <= LA25_0 <= 91) or (93 <= LA25_0 <= 65535)) :
-                        alt25 = 2
 
 
                     if alt25 == 1:
-                        # src/ll/UL4.g:124:15: ESC_SEQ
+                        # src/ll/UL4.g:124:39: TRIAPOS
                         pass 
-                        self.mESC_SEQ()
-
-
-
-                    elif alt25 == 2:
-                        # src/ll/UL4.g:124:25: ~ ( '\\\\' | '\\'\\'\\'' )
-                        pass 
-                        if (0 <= self.input.LA(1) <= 91) or (93 <= self.input.LA(1) <= 65535):
-                            self.input.consume()
-                        else:
-                            mse = MismatchedSetException(None, self.input)
-                            self.recover(mse)
-                            raise mse
-
+                        self.mTRIAPOS()
 
 
 
@@ -2260,37 +2222,209 @@ class UL4Lexer(Lexer):
 
 
 
+    # $ANTLR start "TRIQUOTE"
+    def mTRIQUOTE(self, ):
+        try:
+            # src/ll/UL4.g:132:2: ( ( '\"' )? ( '\"' )? ( ESC_SEQ |~ ( '\\\\' | '\"' ) )+ )
+            # src/ll/UL4.g:132:4: ( '\"' )? ( '\"' )? ( ESC_SEQ |~ ( '\\\\' | '\"' ) )+
+            pass 
+            # src/ll/UL4.g:132:4: ( '\"' )?
+            alt27 = 2
+            LA27_0 = self.input.LA(1)
+
+            if (LA27_0 == 34) :
+                alt27 = 1
+            if alt27 == 1:
+                # src/ll/UL4.g:132:4: '\"'
+                pass 
+                self.match(34)
+
+
+
+
+            # src/ll/UL4.g:132:9: ( '\"' )?
+            alt28 = 2
+            LA28_0 = self.input.LA(1)
+
+            if (LA28_0 == 34) :
+                alt28 = 1
+            if alt28 == 1:
+                # src/ll/UL4.g:132:9: '\"'
+                pass 
+                self.match(34)
+
+
+
+
+            # src/ll/UL4.g:132:14: ( ESC_SEQ |~ ( '\\\\' | '\"' ) )+
+            cnt29 = 0
+            while True: #loop29
+                alt29 = 3
+                LA29_0 = self.input.LA(1)
+
+                if (LA29_0 == 92) :
+                    alt29 = 1
+                elif ((0 <= LA29_0 <= 33) or (35 <= LA29_0 <= 91) or (93 <= LA29_0 <= 65535)) :
+                    alt29 = 2
+
+
+                if alt29 == 1:
+                    # src/ll/UL4.g:132:15: ESC_SEQ
+                    pass 
+                    self.mESC_SEQ()
+
+
+
+                elif alt29 == 2:
+                    # src/ll/UL4.g:132:23: ~ ( '\\\\' | '\"' )
+                    pass 
+                    if (0 <= self.input.LA(1) <= 33) or (35 <= self.input.LA(1) <= 91) or (93 <= self.input.LA(1) <= 65535):
+                        self.input.consume()
+                    else:
+                        mse = MismatchedSetException(None, self.input)
+                        self.recover(mse)
+                        raise mse
+
+
+
+
+                else:
+                    if cnt29 >= 1:
+                        break #loop29
+
+                    eee = EarlyExitException(29, self.input)
+                    raise eee
+
+                cnt29 += 1
+
+
+
+
+
+        finally:
+            pass
+
+    # $ANTLR end "TRIQUOTE"
+
+
+
+    # $ANTLR start "TRIAPOS"
+    def mTRIAPOS(self, ):
+        try:
+            # src/ll/UL4.g:138:2: ( ( '\\'' )? ( '\\'' )? ( ESC_SEQ |~ ( '\\\\' | '\\'' ) )+ )
+            # src/ll/UL4.g:138:4: ( '\\'' )? ( '\\'' )? ( ESC_SEQ |~ ( '\\\\' | '\\'' ) )+
+            pass 
+            # src/ll/UL4.g:138:4: ( '\\'' )?
+            alt30 = 2
+            LA30_0 = self.input.LA(1)
+
+            if (LA30_0 == 39) :
+                alt30 = 1
+            if alt30 == 1:
+                # src/ll/UL4.g:138:4: '\\''
+                pass 
+                self.match(39)
+
+
+
+
+            # src/ll/UL4.g:138:10: ( '\\'' )?
+            alt31 = 2
+            LA31_0 = self.input.LA(1)
+
+            if (LA31_0 == 39) :
+                alt31 = 1
+            if alt31 == 1:
+                # src/ll/UL4.g:138:10: '\\''
+                pass 
+                self.match(39)
+
+
+
+
+            # src/ll/UL4.g:138:16: ( ESC_SEQ |~ ( '\\\\' | '\\'' ) )+
+            cnt32 = 0
+            while True: #loop32
+                alt32 = 3
+                LA32_0 = self.input.LA(1)
+
+                if (LA32_0 == 92) :
+                    alt32 = 1
+                elif ((0 <= LA32_0 <= 38) or (40 <= LA32_0 <= 91) or (93 <= LA32_0 <= 65535)) :
+                    alt32 = 2
+
+
+                if alt32 == 1:
+                    # src/ll/UL4.g:138:17: ESC_SEQ
+                    pass 
+                    self.mESC_SEQ()
+
+
+
+                elif alt32 == 2:
+                    # src/ll/UL4.g:138:25: ~ ( '\\\\' | '\\'' )
+                    pass 
+                    if (0 <= self.input.LA(1) <= 38) or (40 <= self.input.LA(1) <= 91) or (93 <= self.input.LA(1) <= 65535):
+                        self.input.consume()
+                    else:
+                        mse = MismatchedSetException(None, self.input)
+                        self.recover(mse)
+                        raise mse
+
+
+
+
+                else:
+                    if cnt32 >= 1:
+                        break #loop32
+
+                    eee = EarlyExitException(32, self.input)
+                    raise eee
+
+                cnt32 += 1
+
+
+
+
+
+        finally:
+            pass
+
+    # $ANTLR end "TRIAPOS"
+
+
+
     # $ANTLR start "ESC_SEQ"
     def mESC_SEQ(self, ):
         try:
-            # src/ll/UL4.g:130:2: ( '\\\\' ( 'a' | 'b' | 't' | 'n' | 'f' | 'r' | '\\\"' | '\\'' | '\\\\' ) | UNICODE1_ESC | UNICODE2_ESC | UNICODE4_ESC )
-            alt27 = 4
-            LA27_0 = self.input.LA(1)
+            # src/ll/UL4.g:142:2: ( '\\\\' ( 'a' | 'b' | 't' | 'n' | 'f' | 'r' | '\\\"' | '\\'' | '\\\\' ) | UNICODE1_ESC | UNICODE2_ESC | UNICODE4_ESC )
+            alt33 = 4
+            LA33_0 = self.input.LA(1)
 
-            if (LA27_0 == 92) :
-                LA27 = self.input.LA(2)
-                if LA27 == 34 or LA27 == 39 or LA27 == 92 or LA27 == 97 or LA27 == 98 or LA27 == 102 or LA27 == 110 or LA27 == 114 or LA27 == 116:
-                    alt27 = 1
-                elif LA27 == 120:
-                    alt27 = 2
-                elif LA27 == 117:
-                    alt27 = 3
-                elif LA27 == 85:
-                    alt27 = 4
+            if (LA33_0 == 92) :
+                LA33 = self.input.LA(2)
+                if LA33 == 34 or LA33 == 39 or LA33 == 92 or LA33 == 97 or LA33 == 98 or LA33 == 102 or LA33 == 110 or LA33 == 114 or LA33 == 116:
+                    alt33 = 1
+                elif LA33 == 120:
+                    alt33 = 2
+                elif LA33 == 117:
+                    alt33 = 3
+                elif LA33 == 85:
+                    alt33 = 4
                 else:
-                    nvae = NoViableAltException("", 27, 1, self.input)
+                    nvae = NoViableAltException("", 33, 1, self.input)
 
                     raise nvae
 
 
             else:
-                nvae = NoViableAltException("", 27, 0, self.input)
+                nvae = NoViableAltException("", 33, 0, self.input)
 
                 raise nvae
 
 
-            if alt27 == 1:
-                # src/ll/UL4.g:130:4: '\\\\' ( 'a' | 'b' | 't' | 'n' | 'f' | 'r' | '\\\"' | '\\'' | '\\\\' )
+            if alt33 == 1:
+                # src/ll/UL4.g:142:4: '\\\\' ( 'a' | 'b' | 't' | 'n' | 'f' | 'r' | '\\\"' | '\\'' | '\\\\' )
                 pass 
                 self.match(92)
 
@@ -2304,22 +2438,22 @@ class UL4Lexer(Lexer):
 
 
 
-            elif alt27 == 2:
-                # src/ll/UL4.g:131:4: UNICODE1_ESC
+            elif alt33 == 2:
+                # src/ll/UL4.g:143:4: UNICODE1_ESC
                 pass 
                 self.mUNICODE1_ESC()
 
 
 
-            elif alt27 == 3:
-                # src/ll/UL4.g:132:4: UNICODE2_ESC
+            elif alt33 == 3:
+                # src/ll/UL4.g:144:4: UNICODE2_ESC
                 pass 
                 self.mUNICODE2_ESC()
 
 
 
-            elif alt27 == 4:
-                # src/ll/UL4.g:133:4: UNICODE4_ESC
+            elif alt33 == 4:
+                # src/ll/UL4.g:145:4: UNICODE4_ESC
                 pass 
                 self.mUNICODE4_ESC()
 
@@ -2336,8 +2470,8 @@ class UL4Lexer(Lexer):
     # $ANTLR start "UNICODE1_ESC"
     def mUNICODE1_ESC(self, ):
         try:
-            # src/ll/UL4.g:138:2: ( '\\\\' 'x' HEX_DIGIT HEX_DIGIT )
-            # src/ll/UL4.g:138:4: '\\\\' 'x' HEX_DIGIT HEX_DIGIT
+            # src/ll/UL4.g:150:2: ( '\\\\' 'x' HEX_DIGIT HEX_DIGIT )
+            # src/ll/UL4.g:150:4: '\\\\' 'x' HEX_DIGIT HEX_DIGIT
             pass 
             self.match(92)
 
@@ -2362,8 +2496,8 @@ class UL4Lexer(Lexer):
     # $ANTLR start "UNICODE2_ESC"
     def mUNICODE2_ESC(self, ):
         try:
-            # src/ll/UL4.g:143:2: ( '\\\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT )
-            # src/ll/UL4.g:143:4: '\\\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+            # src/ll/UL4.g:155:2: ( '\\\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT )
+            # src/ll/UL4.g:155:4: '\\\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
             pass 
             self.match(92)
 
@@ -2394,8 +2528,8 @@ class UL4Lexer(Lexer):
     # $ANTLR start "UNICODE4_ESC"
     def mUNICODE4_ESC(self, ):
         try:
-            # src/ll/UL4.g:148:2: ( '\\\\' 'U' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT )
-            # src/ll/UL4.g:148:4: '\\\\' 'U' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+            # src/ll/UL4.g:160:2: ( '\\\\' 'U' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT )
+            # src/ll/UL4.g:160:4: '\\\\' 'U' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
             pass 
             self.match(92)
 
@@ -2436,325 +2570,325 @@ class UL4Lexer(Lexer):
 
 
     def mTokens(self):
-        # src/ll/UL4.g:1:8: ( T__25 | T__26 | T__27 | T__28 | T__29 | T__30 | T__31 | T__32 | T__33 | T__34 | T__35 | T__36 | T__37 | T__38 | T__39 | T__40 | T__41 | T__42 | T__43 | T__44 | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | NONE | TRUE | FALSE | NAME | INT | FLOAT | DATE | COLOR | WS | STRING | STRING3 )
-        alt28 = 46
-        alt28 = self.dfa28.predict(self.input)
-        if alt28 == 1:
-            # src/ll/UL4.g:1:10: T__25
-            pass 
-            self.mT__25()
-
-
-
-        elif alt28 == 2:
-            # src/ll/UL4.g:1:16: T__26
-            pass 
-            self.mT__26()
-
-
-
-        elif alt28 == 3:
-            # src/ll/UL4.g:1:22: T__27
+        # src/ll/UL4.g:1:8: ( T__27 | T__28 | T__29 | T__30 | T__31 | T__32 | T__33 | T__34 | T__35 | T__36 | T__37 | T__38 | T__39 | T__40 | T__41 | T__42 | T__43 | T__44 | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | NONE | TRUE | FALSE | NAME | INT | FLOAT | DATE | COLOR | WS | STRING | STRING3 )
+        alt34 = 46
+        alt34 = self.dfa34.predict(self.input)
+        if alt34 == 1:
+            # src/ll/UL4.g:1:10: T__27
             pass 
             self.mT__27()
 
 
 
-        elif alt28 == 4:
-            # src/ll/UL4.g:1:28: T__28
+        elif alt34 == 2:
+            # src/ll/UL4.g:1:16: T__28
             pass 
             self.mT__28()
 
 
 
-        elif alt28 == 5:
-            # src/ll/UL4.g:1:34: T__29
+        elif alt34 == 3:
+            # src/ll/UL4.g:1:22: T__29
             pass 
             self.mT__29()
 
 
 
-        elif alt28 == 6:
-            # src/ll/UL4.g:1:40: T__30
+        elif alt34 == 4:
+            # src/ll/UL4.g:1:28: T__30
             pass 
             self.mT__30()
 
 
 
-        elif alt28 == 7:
-            # src/ll/UL4.g:1:46: T__31
+        elif alt34 == 5:
+            # src/ll/UL4.g:1:34: T__31
             pass 
             self.mT__31()
 
 
 
-        elif alt28 == 8:
-            # src/ll/UL4.g:1:52: T__32
+        elif alt34 == 6:
+            # src/ll/UL4.g:1:40: T__32
             pass 
             self.mT__32()
 
 
 
-        elif alt28 == 9:
-            # src/ll/UL4.g:1:58: T__33
+        elif alt34 == 7:
+            # src/ll/UL4.g:1:46: T__33
             pass 
             self.mT__33()
 
 
 
-        elif alt28 == 10:
-            # src/ll/UL4.g:1:64: T__34
+        elif alt34 == 8:
+            # src/ll/UL4.g:1:52: T__34
             pass 
             self.mT__34()
 
 
 
-        elif alt28 == 11:
-            # src/ll/UL4.g:1:70: T__35
+        elif alt34 == 9:
+            # src/ll/UL4.g:1:58: T__35
             pass 
             self.mT__35()
 
 
 
-        elif alt28 == 12:
-            # src/ll/UL4.g:1:76: T__36
+        elif alt34 == 10:
+            # src/ll/UL4.g:1:64: T__36
             pass 
             self.mT__36()
 
 
 
-        elif alt28 == 13:
-            # src/ll/UL4.g:1:82: T__37
+        elif alt34 == 11:
+            # src/ll/UL4.g:1:70: T__37
             pass 
             self.mT__37()
 
 
 
-        elif alt28 == 14:
-            # src/ll/UL4.g:1:88: T__38
+        elif alt34 == 12:
+            # src/ll/UL4.g:1:76: T__38
             pass 
             self.mT__38()
 
 
 
-        elif alt28 == 15:
-            # src/ll/UL4.g:1:94: T__39
+        elif alt34 == 13:
+            # src/ll/UL4.g:1:82: T__39
             pass 
             self.mT__39()
 
 
 
-        elif alt28 == 16:
-            # src/ll/UL4.g:1:100: T__40
+        elif alt34 == 14:
+            # src/ll/UL4.g:1:88: T__40
             pass 
             self.mT__40()
 
 
 
-        elif alt28 == 17:
-            # src/ll/UL4.g:1:106: T__41
+        elif alt34 == 15:
+            # src/ll/UL4.g:1:94: T__41
             pass 
             self.mT__41()
 
 
 
-        elif alt28 == 18:
-            # src/ll/UL4.g:1:112: T__42
+        elif alt34 == 16:
+            # src/ll/UL4.g:1:100: T__42
             pass 
             self.mT__42()
 
 
 
-        elif alt28 == 19:
-            # src/ll/UL4.g:1:118: T__43
+        elif alt34 == 17:
+            # src/ll/UL4.g:1:106: T__43
             pass 
             self.mT__43()
 
 
 
-        elif alt28 == 20:
-            # src/ll/UL4.g:1:124: T__44
+        elif alt34 == 18:
+            # src/ll/UL4.g:1:112: T__44
             pass 
             self.mT__44()
 
 
 
-        elif alt28 == 21:
-            # src/ll/UL4.g:1:130: T__45
+        elif alt34 == 19:
+            # src/ll/UL4.g:1:118: T__45
             pass 
             self.mT__45()
 
 
 
-        elif alt28 == 22:
-            # src/ll/UL4.g:1:136: T__46
+        elif alt34 == 20:
+            # src/ll/UL4.g:1:124: T__46
             pass 
             self.mT__46()
 
 
 
-        elif alt28 == 23:
-            # src/ll/UL4.g:1:142: T__47
+        elif alt34 == 21:
+            # src/ll/UL4.g:1:130: T__47
             pass 
             self.mT__47()
 
 
 
-        elif alt28 == 24:
-            # src/ll/UL4.g:1:148: T__48
+        elif alt34 == 22:
+            # src/ll/UL4.g:1:136: T__48
             pass 
             self.mT__48()
 
 
 
-        elif alt28 == 25:
-            # src/ll/UL4.g:1:154: T__49
+        elif alt34 == 23:
+            # src/ll/UL4.g:1:142: T__49
             pass 
             self.mT__49()
 
 
 
-        elif alt28 == 26:
-            # src/ll/UL4.g:1:160: T__50
+        elif alt34 == 24:
+            # src/ll/UL4.g:1:148: T__50
             pass 
             self.mT__50()
 
 
 
-        elif alt28 == 27:
-            # src/ll/UL4.g:1:166: T__51
+        elif alt34 == 25:
+            # src/ll/UL4.g:1:154: T__51
             pass 
             self.mT__51()
 
 
 
-        elif alt28 == 28:
-            # src/ll/UL4.g:1:172: T__52
+        elif alt34 == 26:
+            # src/ll/UL4.g:1:160: T__52
             pass 
             self.mT__52()
 
 
 
-        elif alt28 == 29:
-            # src/ll/UL4.g:1:178: T__53
+        elif alt34 == 27:
+            # src/ll/UL4.g:1:166: T__53
             pass 
             self.mT__53()
 
 
 
-        elif alt28 == 30:
-            # src/ll/UL4.g:1:184: T__54
+        elif alt34 == 28:
+            # src/ll/UL4.g:1:172: T__54
             pass 
             self.mT__54()
 
 
 
-        elif alt28 == 31:
-            # src/ll/UL4.g:1:190: T__55
+        elif alt34 == 29:
+            # src/ll/UL4.g:1:178: T__55
             pass 
             self.mT__55()
 
 
 
-        elif alt28 == 32:
-            # src/ll/UL4.g:1:196: T__56
+        elif alt34 == 30:
+            # src/ll/UL4.g:1:184: T__56
             pass 
             self.mT__56()
 
 
 
-        elif alt28 == 33:
-            # src/ll/UL4.g:1:202: T__57
+        elif alt34 == 31:
+            # src/ll/UL4.g:1:190: T__57
             pass 
             self.mT__57()
 
 
 
-        elif alt28 == 34:
-            # src/ll/UL4.g:1:208: T__58
+        elif alt34 == 32:
+            # src/ll/UL4.g:1:196: T__58
             pass 
             self.mT__58()
 
 
 
-        elif alt28 == 35:
-            # src/ll/UL4.g:1:214: T__59
+        elif alt34 == 33:
+            # src/ll/UL4.g:1:202: T__59
             pass 
             self.mT__59()
 
 
 
-        elif alt28 == 36:
+        elif alt34 == 34:
+            # src/ll/UL4.g:1:208: T__60
+            pass 
+            self.mT__60()
+
+
+
+        elif alt34 == 35:
+            # src/ll/UL4.g:1:214: T__61
+            pass 
+            self.mT__61()
+
+
+
+        elif alt34 == 36:
             # src/ll/UL4.g:1:220: NONE
             pass 
             self.mNONE()
 
 
 
-        elif alt28 == 37:
+        elif alt34 == 37:
             # src/ll/UL4.g:1:225: TRUE
             pass 
             self.mTRUE()
 
 
 
-        elif alt28 == 38:
+        elif alt34 == 38:
             # src/ll/UL4.g:1:230: FALSE
             pass 
             self.mFALSE()
 
 
 
-        elif alt28 == 39:
+        elif alt34 == 39:
             # src/ll/UL4.g:1:236: NAME
             pass 
             self.mNAME()
 
 
 
-        elif alt28 == 40:
+        elif alt34 == 40:
             # src/ll/UL4.g:1:241: INT
             pass 
             self.mINT()
 
 
 
-        elif alt28 == 41:
+        elif alt34 == 41:
             # src/ll/UL4.g:1:245: FLOAT
             pass 
             self.mFLOAT()
 
 
 
-        elif alt28 == 42:
+        elif alt34 == 42:
             # src/ll/UL4.g:1:251: DATE
             pass 
             self.mDATE()
 
 
 
-        elif alt28 == 43:
+        elif alt34 == 43:
             # src/ll/UL4.g:1:256: COLOR
             pass 
             self.mCOLOR()
 
 
 
-        elif alt28 == 44:
+        elif alt34 == 44:
             # src/ll/UL4.g:1:262: WS
             pass 
             self.mWS()
 
 
 
-        elif alt28 == 45:
+        elif alt34 == 45:
             # src/ll/UL4.g:1:265: STRING
             pass 
             self.mSTRING()
 
 
 
-        elif alt28 == 46:
+        elif alt34 == 46:
             # src/ll/UL4.g:1:272: STRING3
             pass 
             self.mSTRING3()
@@ -2807,9 +2941,9 @@ class UL4Lexer(Lexer):
         pass
 
 
-    # lookup tables for DFA #28
+    # lookup tables for DFA #34
 
-    DFA28_eot = DFA.unpack(
+    DFA34_eot = DFA.unpack(
         "\2\uffff\1\44\2\uffff\1\47\1\51\1\uffff\1\53\1\54\1\60\1\uffff"
         "\1\62\1\64\1\66\2\uffff\5\33\2\uffff\3\33\1\uffff\2\100\20\uffff"
         "\1\105\10\uffff\2\33\1\110\1\111\1\33\1\113\3\33\1\uffff\1\102"
@@ -2817,11 +2951,11 @@ class UL4Lexer(Lexer):
         "\uffff\1\126\1\127\1\33\2\uffff\1\131\1\uffff"
         )
 
-    DFA28_eof = DFA.unpack(
+    DFA34_eof = DFA.unpack(
         "\132\uffff"
         )
 
-    DFA28_min = DFA.unpack(
+    DFA34_min = DFA.unpack(
         "\1\11\1\uffff\1\75\2\uffff\1\52\1\75\1\uffff\1\75\1\60\1\57\1\uffff"
         "\3\75\2\uffff\1\156\1\157\1\146\1\157\1\162\2\uffff\1\157\1\162"
         "\1\141\1\uffff\2\56\3\uffff\2\0\13\uffff\1\75\10\uffff\1\144\1"
@@ -2830,7 +2964,7 @@ class UL4Lexer(Lexer):
         "\2\uffff\1\60\1\uffff"
         )
 
-    DFA28_max = DFA.unpack(
+    DFA34_max = DFA.unpack(
         "\1\175\1\uffff\1\75\2\uffff\2\75\1\uffff\1\75\1\71\1\75\1\uffff"
         "\3\75\2\uffff\1\156\1\157\1\156\1\157\1\162\2\uffff\1\157\1\162"
         "\1\141\1\uffff\2\145\3\uffff\2\uffff\13\uffff\1\75\10\uffff\1\144"
@@ -2839,7 +2973,7 @@ class UL4Lexer(Lexer):
         "\172\1\145\2\uffff\1\172\1\uffff"
         )
 
-    DFA28_accept = DFA.unpack(
+    DFA34_accept = DFA.unpack(
         "\1\uffff\1\1\1\uffff\1\4\1\5\2\uffff\1\13\3\uffff\1\23\3\uffff"
         "\1\32\1\33\5\uffff\1\42\1\43\3\uffff\1\47\2\uffff\1\52\1\53\1\54"
         "\2\uffff\1\3\1\2\1\7\1\10\1\6\1\12\1\11\1\15\1\14\1\16\1\51\1\uffff"
@@ -2848,12 +2982,12 @@ class UL4Lexer(Lexer):
         "\1\56\1\34\1\35\1\40\3\uffff\1\44\1\45\1\uffff\1\46"
         )
 
-    DFA28_special = DFA.unpack(
+    DFA34_special = DFA.unpack(
         "\41\uffff\1\1\1\0\67\uffff"
         )
 
 
-    DFA28_transition = [
+    DFA34_transition = [
         DFA.unpack("\2\40\2\uffff\1\40\22\uffff\1\40\1\1\1\41\1\37\1\uffff"
         "\1\2\1\uffff\1\42\1\3\1\4\1\5\1\6\1\7\1\10\1\11\1\12\1\34\11\35"
         "\1\13\1\uffff\1\14\1\15\1\16\1\uffff\1\36\5\33\1\32\7\33\1\30\5"
@@ -2950,9 +3084,9 @@ class UL4Lexer(Lexer):
         DFA.unpack("")
     ]
 
-    # class definition for DFA #28
+    # class definition for DFA #34
 
-    class DFA28(DFA):
+    class DFA34(DFA):
         pass
 
 
@@ -2967,31 +3101,31 @@ class UL4Lexer(Lexer):
             _s = s
 
             if s == 0: 
-                LA28_34 = input.LA(1)
+                LA34_34 = input.LA(1)
 
                 s = -1
-                if (LA28_34 == 39):
+                if (LA34_34 == 39):
                     s = 67
 
-                elif ((0 <= LA28_34 <= 9) or (11 <= LA28_34 <= 12) or (14 <= LA28_34 <= 38) or (40 <= LA28_34 <= 65535)):
+                elif ((0 <= LA34_34 <= 9) or (11 <= LA34_34 <= 12) or (14 <= LA34_34 <= 38) or (40 <= LA34_34 <= 65535)):
                     s = 66
 
                 if s >= 0:
                     return s
             elif s == 1: 
-                LA28_33 = input.LA(1)
+                LA34_33 = input.LA(1)
 
                 s = -1
-                if (LA28_33 == 34):
+                if (LA34_33 == 34):
                     s = 65
 
-                elif ((0 <= LA28_33 <= 9) or (11 <= LA28_33 <= 12) or (14 <= LA28_33 <= 33) or (35 <= LA28_33 <= 65535)):
+                elif ((0 <= LA34_33 <= 9) or (11 <= LA34_33 <= 12) or (14 <= LA34_33 <= 33) or (35 <= LA34_33 <= 65535)):
                     s = 66
 
                 if s >= 0:
                     return s
 
-            nvae = NoViableAltException(self_.getDescription(), 28, _s, input)
+            nvae = NoViableAltException(self_.getDescription(), 34, _s, input)
             self_.error(nvae)
             raise nvae
 
