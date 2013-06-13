@@ -1,3 +1,10 @@
+Changes in 5.0.1 (released ??/??/2013)
+--------------------------------------
+
+*	Made checking for recoverable Oracle exceptions in :mod:`ll.nightshade` more
+	robust.
+
+
 Changes in 5.0 (released 06/04/2013)
 ------------------------------------
 

@@ -138,11 +138,12 @@ class Connect(object):
 		self.kwargs = kwargs
 
 	def _isbadoracleexception(self, exc):
-		if exc.args:
+		try:
 			code = getattr(exc.args[0], "code", 0)
-			if code in self._badoracleexceptions:
-				return True
-		return False
+		except Exception:
+			return False
+		else:
+			return code in self._badoracleexceptions
 
 	def _getconnection(self):
 		if self.pool is not None:
@@ -182,6 +183,10 @@ class Connect(object):
 				try:
 					# This only works if func is using the same connection
 					return func(*args, **kwargs)
+				except orasql.OperationalError as exc:
+					if i<self.retry-1:
+						# Drop bad connection and retry
+						self._dropconnection(connection)
 				except orasql.DatabaseError as exc:
 					if i<self.retry-1 and self._isbadoracleexception(exc):
 						# Drop bad connection and retry
