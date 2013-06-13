@@ -1,6 +1,8 @@
 Changes in 5.0.1 (released ??/??/2013)
 --------------------------------------
 
+*	Added support for triple quoted string to UL4 templates.
+
 *	Made checking for recoverable Oracle exceptions in :mod:`ll.nightshade` more
 	robust.
 

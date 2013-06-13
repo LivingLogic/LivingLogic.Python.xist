@@ -574,6 +574,10 @@ def test_string(r):
 	assert 'gu\trk' == r("<?print 'gu\trk'?>")
 	assert 'gu\t\\rk' == r(r"<?print 'gu\t\\rk'?>")
 
+	# Test triple quoted strings
+	assert 'gu\r\nrk' == r("<?print '''gu\r\nrk'''?>")
+	assert 'gu\r\nrk' == r('<?print """gu\r\nrk"""?>')
+
 	assert 'no' == r('<?if ""?>yes<?else?>no<?end if?>')
 	assert 'yes' == r('<?if "foo"?>yes<?else?>no<?end if?>')
 

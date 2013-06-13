@@ -119,6 +119,11 @@ STRING
 	| '\'' ( ESC_SEQ | ~('\\'|'\''|'\r'|'\n') )* '\''
 	;
 
+STRING3
+	: '"""' ( ESC_SEQ | ~('\\'|'"""') )* '"""'
+	| '\'\'\'' ( ESC_SEQ | ~('\\'|'\'\'\'') )* '\'\'\''
+	;
+
 fragment
 ESC_SEQ
 	: '\\' ('a'|'b'|'t'|'n'|'f'|'r'|'\"'|'\''|'\\')
@@ -166,6 +171,7 @@ float_ returns [node]
 
 string returns [node]
 	: STRING { $node = ul4c.Const(self.location, self.start($STRING), self.end($STRING), ast.literal_eval($STRING.text)) }
+	| STRING3 { $node = ul4c.Const(self.location, self.start($STRING3), self.end($STRING3), ast.literal_eval($STRING3.text)) }
 	;
 
 date returns [node]

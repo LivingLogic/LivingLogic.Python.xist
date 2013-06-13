@@ -138,6 +138,9 @@ sequences that Python supports (except ``\N{}``). Strings constants allow
 
 *	``"\x61"`` and ``"\u0061"`` are lowercase "a"s;
 
+Strings can also be delimited with triple single or double quotes like in Python.
+These strings supported embedded line feeds.
+
 
 Date constants
 --------------
