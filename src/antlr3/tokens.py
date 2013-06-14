@@ -287,13 +287,11 @@ class CommonToken(Token):
 
         txt = self.text
         if txt is not None:
-            txt = txt.replace("\n","\\\\n")
-            txt = txt.replace("\r","\\\\r")
-            txt = txt.replace("\t","\\\\t")
+            txt = repr(txt)
         else:
             txt = "<no text>"
 
-        return "[@%d,%d:%d=%r,<%d>%s,%d:%d]" % (
+        return "[@%d,%d:%d=%s,<%d>%s,%d:%d]" % (
             self.index,
             self.start, self.stop,
             txt,
