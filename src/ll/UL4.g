@@ -124,16 +124,14 @@ STRING3
 	|  '\'\'\'' (options {greedy=false;}:TRIAPOS)* '\'\'\''
 	;
 
-/** the two '"'? cause a warning -- is there a way to avoid that? */
 fragment
 TRIQUOTE
-	: '"'? '"'? (ESC_SEQ|~('\\'|'"'))+
+	: ('"'|'""')? (ESC_SEQ|~('\\'|'"'))+
 	;
 
-/** the two '\''? cause a warning -- is there a way to avoid that? */
 fragment
 TRIAPOS
-	: '\''? '\''? (ESC_SEQ|~('\\'|'\''))+
+	: ('\''|'\'\'')? (ESC_SEQ|~('\\'|'\''))+
 	;
 
 fragment
@@ -183,7 +181,7 @@ float_ returns [node]
 
 string returns [node]
 	: STRING { $node = ul4c.Const(self.location, self.start($STRING), self.end($STRING), ast.literal_eval($STRING.text)) }
-	| STRING3 { $node = ul4c.Const(self.location, self.start($STRING3), self.end($STRING3), ast.literal_eval($STRING3.text)) }
+	| STRING3 { $node = ul4c.Const(self.location, self.start($STRING3), self.end($STRING3), ast.literal_eval($STRING3.text.replace("\r", "\\r"))) }
 	;
 
 date returns [node]
