@@ -14,6 +14,17 @@ from ll.xist import xsc
 
 
 ###
+### Processing instruction for comments
+###
+
+class note(xsc.ProcInst):
+	"""
+	A :class:`note` processing instruction contains a comment (which will be
+	ignored when compiling the template).
+	"""
+
+
+###
 ### Processing instructions for output
 ###
 

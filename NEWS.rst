@@ -6,6 +6,8 @@ Changes in 5.0.1 (released ??/??/2013)
 *	Made checking for recoverable Oracle exceptions in :mod:`ll.nightshade` more
 	robust.
 
+*	Added missing processing instruction class :class:`ll.xist.ns.ul4.note`.
+
 
 Changes in 5.0 (released 06/04/2013)
 ------------------------------------
