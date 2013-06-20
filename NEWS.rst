@@ -8,6 +8,9 @@ Changes in 5.0.1 (released ??/??/2013)
 
 *	Added missing processing instruction class :class:`ll.xist.ns.ul4.note`.
 
+*	:mod:`ll.oradd` now prints the data object before trying to call the
+	procedure and can handle foreign keys that are ``NULL``.
+
 
 Changes in 5.0 (released 06/04/2013)
 ------------------------------------

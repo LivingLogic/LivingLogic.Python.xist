@@ -294,59 +294,66 @@ def load_ul4on(stream):
 			break
 
 
-def importdata(data, cursor):
+def _formatcall(record, allkeys):
+	args = []
+	keys = set(record.get("keys", []))
+	sqls = set(record.get("sqls", []))
+	for (argname, argvalue) in record["args"].items():
+		if argname in keys:
+			if argvalue is None:
+				args.append("{}=None".format(argname))
+			elif argvalue in allkeys:
+				args.append("{}={}".format(argname, allkeys[argvalue]))
+			else:
+				args.append("{}=?".format(argname))
+		elif argname in sqls:
+			args.append("{}={}".format(argname, argvalue))
+		else:
+			args.append("{}={!r}".format(argname, argvalue))
+	return "{}({})".format(record["name"], ", ".join(args))
+
+
+def importrecord(record, cursor, allkeys):
 	"""
 	Import the data ``data`` produced by :func:`loads_oradd`, :func:`load_oradd`,
 	:func:`loads_ulon` or :func:`load_ul4on` into the database. ``cursor`` must
 	be a :mod:`cx_Oracle` cursor.
-
-	:func:`importdata` is itself a generator. For each procedure call it produces
-	the original data import, plus two additional keys: ``newkeyvalues`` is
-	a dictionary containing the values of all keys that have been initialized
-	in this procedure call. ``oldkeyvalues`` contains the values of all keys
-	that have been reused for this procedure call.
 	"""
-	allkeys = {}
-	for record in data:
-		name = record["name"]
-		args = record["args"]
-		keys = set(record.get("keys", []))
-		sqls = set(record.get("sqls", []))
-		queryargvalues = {}
-		queryargvars = {}
-		for (argname, argvalue) in args.items():
-			if argname in keys:
-				queryargvalues[argname] = ":{}".format(argname)
-				if argvalue in allkeys:
-					queryargvars[argname] = allkeys[argvalue]
-				else:
-					queryargvars[argname] = cursor.var(int)
-			elif argname in sqls:
-				queryargvalues[argname] = argvalue
-				# no value
-			elif isinstance(argvalue, str) and len(argvalue) >= 4000:
-				queryargvalues[argname] = ":{}".format(argname)
-				var = cursor.var(cx_Oracle.CLOB)
-				var.setvalue(0, argvalue)
-				queryargvars[argname] = var
+	name = record["name"]
+	args = record["args"]
+	keys = set(record.get("keys", []))
+	sqls = set(record.get("sqls", []))
+	queryargvalues = {}
+	queryargvars = {}
+	for (argname, argvalue) in args.items():
+		if argname in keys:
+			queryargvalues[argname] = ":{}".format(argname)
+			if argvalue is None:
+				queryargvars[argname] = None
+			elif argvalue in allkeys:
+				queryargvars[argname] = allkeys[argvalue]
 			else:
-				queryargvalues[argname] = ":{}".format(argname)
-				queryargvars[argname] = argvalue
-		query = "begin {}({}); end;".format(name, ", ".join("{}=>{}".format(*argitem) for argitem in queryargvalues.items()))
-		cursor.execute(query, queryargvars)
+				queryargvars[argname] = cursor.var(int)
+		elif argname in sqls:
+			queryargvalues[argname] = argvalue
+			# no value
+		elif isinstance(argvalue, str) and len(argvalue) >= 4000:
+			queryargvalues[argname] = ":{}".format(argname)
+			var = cursor.var(cx_Oracle.CLOB)
+			var.setvalue(0, argvalue)
+			queryargvars[argname] = var
+		else:
+			queryargvalues[argname] = ":{}".format(argname)
+			queryargvars[argname] = argvalue
 
-		newkeyvalues = {}
-		oldkeyvalues = {}
-		for (argname, argvalue) in args.items():
-			if argname in keys:
-				if argvalue in allkeys:
-					oldkeyvalues[argname] = allkeys[argvalue]
-				else:
-					newkeyvalues[argname] = allkeys[argvalue] = queryargvars[argname].getvalue(0)
-		record = record.copy()
-		record["newkeyvalues"] = newkeyvalues
-		record["oldkeyvalues"] = oldkeyvalues
-		yield record
+	query = "begin {}({}); end;".format(name, ", ".join("{}=>{}".format(*argitem) for argitem in queryargvalues.items()))
+	cursor.execute(query, queryargvars)
+
+	newkeys = {}
+	for (argname, argvalue) in args.items():
+		if argname in keys and argvalue is not None and argvalue not in allkeys:
+			newkeys[argname] = allkeys[argvalue] = queryargvars[argname].getvalue(0)
+	return newkeys
 
 
 def main(args=None):
@@ -360,36 +367,29 @@ def main(args=None):
 
 	db = cx_Oracle.connect(args.connectstring)
 
-	def formatdata(data):
-		args = []
-		newkeys = []
-		for (argname, argvalue) in data["args"].items():
-			if argname in data["newkeyvalues"]:
-				args.append("{}=?".format(argname))
-				newkeys.append("{}={}".format(argname, data["newkeyvalues"][argname]))
-			elif argname in data["oldkeyvalues"]:
-				args.append("{}={}".format(argname, data["oldkeyvalues"][argname]))
-			else:
-				args.append("{}={!r}".format(argname, argvalue))
-		msg = "{}({})".format(data["name"], ", ".join(args))
-		if newkeys:
-			msg += " -> {}".format(", ".join(newkeys))
-		return msg
-
 	try:
+		allkeys = {}
 		counts = collections.Counter()
 		loader = dict(oradd=load_oradd, ul4on=load_ul4on)[args.format]
-		for (i, data) in enumerate(importdata(loader(args.file), db.cursor()), start=1):
+		cursor = db.cursor()
+		for (i, record) in enumerate(loader(args.file), 1):
 			if args.verbose >= 1:
 				if args.verbose >= 3:
-					print("#{}: {}".format(i, formatdata(data)))
+					sys.stdout.write("#{}: {}".format(i, _formatcall(record, allkeys)))
 				else:
 					sys.stdout.write(".")
-					sys.stdout.flush()
-			counts[data["name"]] += 1
+				sys.stdout.flush()
+			newkeys = importrecord(record, cursor, allkeys)
+			if args.verbose >= 3:
+				if newkeys:
+					sys.stdout.write(" -> {}\n".format(", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in newkeys.items())))
+				else:
+					sys.stdout.write("\n")
+				sys.stdout.flush()
+			counts[record["name"]] += 1
 		db.commit()
 	finally:
-		if 1 <= args.verbose <= 2:
+		if args.verbose >= 3:
 			print()
 
 	if args.verbose >= 2:

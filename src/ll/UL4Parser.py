@@ -1,11 +1,11 @@
-# $ANTLR 3.5 src/ll/UL4.g 2013-06-14 16:17:15
+# $ANTLR 3.5 src/ll/UL4.g 2013-06-17 19:08:17
 
 import sys
 from antlr3 import *
 from antlr3.compat import set, frozenset
 
 
-import datetime, ast
+import datetime, codecs
 from ll import ul4c, color
 
 
@@ -339,7 +339,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node = ul4c.Const(self.location, self.start(STRING6), self.end(STRING6), ast.literal_eval(STRING6.text)) 
+                        node = ul4c.Const(self.location, self.start(STRING6), self.end(STRING6), codecs.unicode_escape_decode(STRING6.text[1:-1])[0]) 
 
 
 
@@ -351,7 +351,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node = ul4c.Const(self.location, self.start(STRING37), self.end(STRING37), ast.literal_eval(STRING37.text.replace("\r", "\\r"))) 
+                        node = ul4c.Const(self.location, self.start(STRING37), self.end(STRING37), codecs.unicode_escape_decode(STRING37.text[3:-3])[0]) 
 
 
 
