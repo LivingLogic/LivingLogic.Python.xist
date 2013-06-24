@@ -267,7 +267,7 @@ class Color(tuple):
 		decreased with ``f==-1`` giving a luminocity of 0. ``f==0`` will leave
 		the luminocity unchanged.
 		"""
-		(h, l, s, a) = self.hlsa
+		(h, l, s, a) = self.hlsa()
 		if f > 0:
 			l += (1-l)*f
 		elif f < 0:
