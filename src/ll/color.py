@@ -250,6 +250,7 @@ class Color(tuple):
 		(h, l, s, a) = self.hlsa()
 		return self.fromhls(h, lum, s, a)
 
+	@ul4c.expose_method
 	def abslum(self, f):
 		"""
 		Return a copy of :obj:`self` with :obj:`f` added to the luminocity.
@@ -257,6 +258,7 @@ class Color(tuple):
 		(h, l, s, a) = self.hlsa()
 		return self.fromhlsa(h, l+f, s, a)
 
+	@ul4c.expose_method
 	def rellum(self, f):
 		"""
 		Return a copy of :obj:`self` where the luminocity has been modified:

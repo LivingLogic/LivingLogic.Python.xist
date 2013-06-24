@@ -11,6 +11,9 @@ Changes in 5.0.1 (released ??/??/2013)
 *	:mod:`ll.oradd` now prints the data object before trying to call the
 	procedure and can handle foreign keys that are ``NULL``.
 
+*	The methods :meth:`abslum` and :meth:`rellum` of :class:`Color` objects are
+	now exposed to UL4 templates.
+
 
 Changes in 5.0 (released 06/04/2013)
 ------------------------------------
