@@ -256,7 +256,7 @@ class Color(tuple):
 		Return a copy of :obj:`self` with :obj:`f` added to the luminocity.
 		"""
 		(h, l, s, a) = self.hlsa()
-		return self.fromhlsa(h, l+f, s, a)
+		return self.fromhls(h, l+f, s, a)
 
 	@ul4c.expose_method
 	def rellum(self, f):
@@ -272,7 +272,7 @@ class Color(tuple):
 			l += (1-l)*f
 		elif f < 0:
 			l += l*f
-		return self.fromhlsa(h, l, s, a)
+		return self.fromhls(h, l, s, a)
 
 	def __add__(self, other):
 		return self.__class__(0.5*(self[0]+other[0]), 0.5*(self[1]+other[1]), 0.5*(self[2]+other[2]), 255-(255-self[3])*(255-other[3])/255.)
