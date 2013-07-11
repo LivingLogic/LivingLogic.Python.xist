@@ -1117,7 +1117,6 @@ class For(Block):
 	@handleeval
 	def eval(self, vars):
 		container = (yield from self.container.eval(vars))
-		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
 		try:
 			container = container.ul4attrs
 		except AttributeError:

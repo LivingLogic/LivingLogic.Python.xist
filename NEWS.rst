@@ -3,6 +3,9 @@ Changes in 5.0.1 (released ??/??/2013)
 
 *	Added support for triple quoted string to UL4 templates.
 
+*	Loop variables in UL4 now leak into the surrounding scope (but not the loop
+	variables for list/dictionary comprehension or generator expressions).
+
 *	Made checking for recoverable Oracle exceptions in :mod:`ll.nightshade` more
 	robust.
 
