@@ -340,7 +340,7 @@ nestedname returns [varname]
 			n3=nestedname { $varname += ($n3.varname,) }
 		)*
 		','?
-		')' 
+		')'
 	;
 
 /* Function/method call, attribute access, item access, slice access */
