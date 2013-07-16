@@ -115,7 +115,9 @@ For type ``"procedure"`` the following additional keys are used:
 		the procedure will store the value of this key. On subsequent uses of this
 		key (i.e. a key that has the same identifier) oradd will pass the value
 		from the first use as a normal ``IN`` parameter. The ``keys`` key is
-		optional, without it no parameter will be treated as a key.
+		optional, without it no parameter will be treated as a key. ``keys`` may
+		also be a dictionary, wich the identifiers as the keys and values the names
+		of Python types. This can be used for out parameters that are not integers.
 
 	``sqls`` : list (optional)
 		A list of parameter names that should be treated as SQL expressions.
@@ -335,7 +337,14 @@ def importrecord(record, cursor, allkeys):
 	"""
 	name = record["name"]
 	args = record["args"]
-	keys = set(record.get("keys", []))
+	if "keys" in record:
+		keys = record["keys"]
+		if isinstance(keys, list):
+			keys = dict.fromkeys(keys, int)
+		else:
+			keys = {key: eval(value) for (key, value) in keys.items()}
+	else:
+		keys = {}
 	sqls = set(record.get("sqls", []))
 	queryargvalues = {}
 	queryargvars = {}
@@ -347,7 +356,7 @@ def importrecord(record, cursor, allkeys):
 			elif argvalue in allkeys:
 				queryargvars[argname] = allkeys[argvalue]
 			else:
-				queryargvars[argname] = cursor.var(int)
+				queryargvars[argname] = cursor.var(keys[argname])
 		elif argname in sqls:
 			queryargvalues[argname] = argvalue
 			# no value

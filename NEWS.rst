@@ -26,6 +26,8 @@ Changes in 5.0.1 (released ??/??/2013)
 *	``oradd`` can now copy files via ``scp``. Parts of the file names used may
 	depend on key values.
 
+*	``oradd`` now supports other out types than integers.
+
 
 Changes in 5.0 (released 06/04/2013)
 ------------------------------------
