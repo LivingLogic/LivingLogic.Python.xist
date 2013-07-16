@@ -386,7 +386,7 @@ def copyfile(name, content, allkeys):
 		tempname = f.name
 	try:
 		name = name.format(**allkeys)
-		return subprocess.call("scp -q {} {}".format(tempname, name, shell=True))
+		return subprocess.call(["scp", "-q", tempname, name])
 	finally:
 		os.remove(tempname)
 
