@@ -381,10 +381,10 @@ def importrecord(record, cursor, allkeys):
 
 
 def copyfile(name, content, allkeys):
-	with tempfile.NamedTemporaryFile(delete=False) as f:
-		f.write(content)
-		tempname = f.name
+	(f, tempname) = tempfile.mkstemp()
 	try:
+		os.write(f, content)
+		os.close(f)
 		name = name.format(**allkeys)
 		return subprocess.call("scp -q {} {}".format(tempname, name, shell=True))
 	finally:
