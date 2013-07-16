@@ -19,6 +19,10 @@ Changes in 5.0.1 (released ??/??/2013)
 *	The methods :meth:`abslum` and :meth:`rellum` of :class:`Color` objects are
 	now exposed to UL4 templates.
 
+*	The ``oradd`` script has a new option :option:`--dry-run` to rollback all
+	database changes instead of comitting them. This can be used to test whether
+	an ``oradd`` dump will work.
+
 
 Changes in 5.0 (released 06/04/2013)
 ------------------------------------
