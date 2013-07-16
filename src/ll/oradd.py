@@ -100,7 +100,8 @@ The keys in this dictionary have the following meaning:
 		created. In the case of a filename the filename may contain ``format()``
 		style specifications containing any key that appeared in the
 		``"procedure"`` record. These specifiers will be replaced be the correct
-		key values.
+		key values. These files will be copied via ``ssh``, so ssh file names can
+		be used.
 
 For type ``"procedure"`` the following additional keys are used:
 
