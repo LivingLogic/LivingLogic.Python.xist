@@ -374,7 +374,7 @@ def copyfile(name, content, allkeys):
 	with tempfile.NamedTemporaryFile(delete=True) as f:
 		f.write(content)
 		name = name.format(**allkeys)
-		return subprocess.call("scp {} {}".format(f.name, name, shell=True)
+		return subprocess.call("scp {} {}".format(f.name, name, shell=True))
 
 
 def main(args=None):
