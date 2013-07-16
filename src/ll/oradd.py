@@ -166,7 +166,7 @@ it supports the following command line options:
 """
 
 # We're importing ``datetime``, so that it's available to ``eval()``
-import sys, io, argparse, operator, collections, contextlib, datetime, tempfile, subprocess
+import sys, os, io, argparse, operator, collections, contextlib, datetime, tempfile, subprocess
 
 import cx_Oracle
 
@@ -381,10 +381,14 @@ def importrecord(record, cursor, allkeys):
 
 
 def copyfile(name, content, allkeys):
-	with tempfile.NamedTemporaryFile(delete=True) as f:
+	with tempfile.NamedTemporaryFile(delete=False) as f:
 		f.write(content)
+		tempname = f.name
+	try:
 		name = name.format(**allkeys)
-		return subprocess.call("scp {} {}".format(f.name, name, shell=True))
+		return subprocess.call("scp -q {} {}".format(tempname, name, shell=True))
+	finally:
+		os.remove(tempname)
 
 
 def main(args=None):
