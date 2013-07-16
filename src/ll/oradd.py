@@ -383,7 +383,7 @@ def main(args=None):
 	p.add_argument("file", nargs="?", help="Name of dump file (default: read from stdin)", type=argparse.FileType("r"), default=sys.stdin)
 	p.add_argument("-f", "--format", dest="format", help="Format of the dumpfile ('oradd' or 'ul4on') (default %(default)s)", default="oradd", choices=("oradd", "ul4on"))
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", type=int, default=2, choices=(0, 1, 2, 3))
-	p.add_argument("-c", "--commit", dest="commit", help="Do a rollback after all imports instead of a commit? (default %(default)s)", default=False, action=misc.FlagAction)
+	p.add_argument("-r", "--rollback", dest="rollback", help="Do a rollback after all imports instead of a commit? (default %(default)s)", default=False, action="store_true")
 
 	args = p.parse_args(args)
 
@@ -421,7 +421,7 @@ def main(args=None):
 					sys.stdout.write(" -> done\n")
 					sys.stdout.flush()
 				countfiles += 1
-		if args.dryrun:
+		if args.rollback:
 			db.rollback()
 		else:
 			db.commit()
