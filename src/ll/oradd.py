@@ -416,7 +416,7 @@ def main(args=None):
 					if type == "procedure":
 						sys.stdout.write("#{}: procedure {}".format(i, _formatcall(record, allkeys)))
 					else:
-						sys.stdout.write("#{}: file {} ({} bytes)".format(i, record["name"].format(**allkeys), len(record["content"])))
+						sys.stdout.write("#{}: file {}".format(i, record["name"].format(**allkeys)))
 				else:
 					sys.stdout.write(".")
 				sys.stdout.flush()
@@ -432,7 +432,7 @@ def main(args=None):
 			else:
 				copyfile(record["name"], record["content"], allkeys)
 				if args.verbose >= 3:
-					sys.stdout.write(" -> done\n")
+					sys.stdout.write(" -> {} bytes written\n".format(len(record["content"])))
 					sys.stdout.flush()
 				countfiles += 1
 		if args.rollback:
