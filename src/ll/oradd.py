@@ -39,11 +39,11 @@ Creating an ``oradd`` file can be done like this::
 
 The content of the generated file ``data.oradd`` will look like this::
 
-	{'keys': ['per_id'], 'args': {'per_id': 0, 'per_firstname': 'Max', 'per_lastname': 'Mustermann'}, 'name': 'person_insert'}
-	{'keys': ['per_id', 'con_id'], 'args': {'per_id': 0, 'con_id': 1, 'con_type': 'email', 'con_value': 'max@example.org'}, 'name': 'contact_insert'}
+	{'name': 'person_insert', 'keys': ['per_id'], 'args': {'per_id': 'max', 'per_firstname': 'Max', 'per_lastname': 'Mustermann'}}
+	{'name': 'contact_insert', 'keys': ['per_id', 'con_id'], 'args': {'per_id': 'max', 'con_id': 'max_mail', 'con_type': 'email', 'con_value': 'max@example.org'}}
+	{'type': 'file', 'name': 'protrait_{max}.png', 'content': b'\x89PNG\r\n\x1a\n...'}
 
-i.e. it's just one Python ``repr`` of a dictionary per line (there's also the
-option of using UL4ON as the output format).
+i.e. it's just one Python ``repr`` of a dictionary per line.
 
 This file can then be imported into an Oracle database with the following
 command::
@@ -81,7 +81,7 @@ printed for display purposes, the original format is on one line)::
 	{
 		'name': 'person_insert',
 		'args': {
-			'per_id': 0,
+			'per_id': 'max',
 			'per_firstname': 'Max',
 			'per_lastname': 'Mustermann',
 			per_created: 'sysdate'
@@ -92,8 +92,17 @@ printed for display purposes, the original format is on one line)::
 
 The keys in this dictionary have the following meaning:
 
+	``type`` : string (optional)
+		This is either ``"procedure"`` (the default) or ``"file"``.
+
 	``name`` : string (required)
-		The name of the procedure to be called.
+		The name of the procedure to be called or the name of the file to be
+		created. In the case of a filename the filename may contain ``format()``
+		style specifications containing any key that appeared in the
+		``"procedure"`` record. These specifiers will be replaced be the correct
+		key values.
+
+For type ``"procedure"`` the following additional keys are used:
 
 	``args`` : dictionary (required)
 		A dictionary with the names of the parameters as keys and the parameter
@@ -115,12 +124,17 @@ The keys in this dictionary have the following meaning:
 		The ``sqls`` key is optional, without it no parameter will be treated as
 		an SQL expression.
 
+For type ``"file"`` the following additional key is used:
+
+	``content``: bytes (required)
+		The content of the file to be created.
 
 An oradd file in UL4ON format contains the same dictionaries, but not as a
 Python repr output, but in UL4ON format. The UL4ON dump is *not* a list of
 dictionaries, but simple concatenated dumps of each dictionary. When importing
 this format ``oradd`` will simply read dumps from the file until the end of file
-is reached.
+is reached. UL4ON format does not support files (because UL4ON can't represent
+bytes).
 
 
 Usage as a script
@@ -149,7 +163,7 @@ it supports the following command line options:
 """
 
 # We're importing ``datetime``, so that it's available to ``eval()``
-import sys, io, argparse, operator, collections, contextlib, datetime
+import sys, io, argparse, operator, collections, contextlib, datetime, tempfile, subprocess
 
 import cx_Oracle
 
@@ -356,13 +370,20 @@ def importrecord(record, cursor, allkeys):
 	return newkeys
 
 
+def copyfile(name, content, allkeys):
+	with tempfile.NamedTemporaryFile(delete=True) as f:
+		f.write(content)
+		name = name.format(**allkeys)
+		return subprocess.call("scp {} {}".format(f.name, name, shell=True)
+
+
 def main(args=None):
 	p = argparse.ArgumentParser(description="Import an oradd dump to an Oracle database", epilog="For more info see http://www.livinglogic.de/Python/oradd/index.html")
 	p.add_argument("connectstring", help="Oracle connect string")
 	p.add_argument("file", nargs="?", help="Name of dump file (default: read from stdin)", type=argparse.FileType("r"), default=sys.stdin)
 	p.add_argument("-f", "--format", dest="format", help="Format of the dumpfile ('oradd' or 'ul4on') (default %(default)s)", default="oradd", choices=("oradd", "ul4on"))
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", type=int, default=2, choices=(0, 1, 2, 3))
-	p.add_argument("-n", "--dry-run", dest="dryrun", help="Do a rollback after all imports instead of a commit? (default %(default)s)", default=False, action=misc.FlagAction)
+	p.add_argument("-c", "--commit", dest="commit", help="Do a rollback after all imports instead of a commit? (default %(default)s)", default=False, action=misc.FlagAction)
 
 	args = p.parse_args(args)
 
@@ -371,23 +392,35 @@ def main(args=None):
 	try:
 		allkeys = {}
 		counts = collections.Counter()
+		countfiles = 0
 		loader = dict(oradd=load_oradd, ul4on=load_ul4on)[args.format]
 		cursor = db.cursor()
 		for (i, record) in enumerate(loader(args.file), 1):
+			type = record.get("type", "procedure")
 			if args.verbose >= 1:
 				if args.verbose >= 3:
-					sys.stdout.write("#{}: {}".format(i, _formatcall(record, allkeys)))
+					if type == "procedure":
+						sys.stdout.write("#{}: procedure {}".format(i, _formatcall(record, allkeys)))
+					else:
+						sys.stdout.write("#{}: file {} ({} bytes)".format(i, record["name"].format(**allkeys), len(record["content"])))
 				else:
 					sys.stdout.write(".")
 				sys.stdout.flush()
-			newkeys = importrecord(record, cursor, allkeys)
-			if args.verbose >= 3:
-				if newkeys:
-					sys.stdout.write(" -> {}\n".format(", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in newkeys.items())))
-				else:
-					sys.stdout.write("\n")
+			if type == "procedure":
+				newkeys = importrecord(record, cursor, allkeys)
+				if args.verbose >= 3:
+					if newkeys:
+						sys.stdout.write(" -> {}\n".format(", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in newkeys.items())))
+					else:
+						sys.stdout.write("\n")
 				sys.stdout.flush()
-			counts[record["name"]] += 1
+				counts[record["name"]] += 1
+			else:
+				copyfile(record["filename"], record["content"], allkeys)
+				if args.verbose >= 3:
+					sys.stdout.write(" -> done\n")
+					sys.stdout.flush()
+				countfiles += 1
 		if args.dryrun:
 			db.rollback()
 		else:
@@ -398,7 +431,7 @@ def main(args=None):
 
 	if args.verbose >= 2:
 		totalcount = sum(counts.values())
-		l1 = len(str(totalcount))
+		l1 = len(str(max(totalcount, countfiles)))
 		l2 = max(len(procname) for procname in counts)
 		print()
 		print("Summary")
@@ -409,6 +442,7 @@ def main(args=None):
 			print("{:>{}} {}".format(count, l1, procname))
 		print("{} {}".format("-"*l1, "-"*l2))
 		print("{:>{}} (total calls)".format(totalcount, l1))
+		print("{:>{}} (files)".format(countfiles, l1))
 
 
 if __name__ == "__main__":

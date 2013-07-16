@@ -23,6 +23,9 @@ Changes in 5.0.1 (released ??/??/2013)
 	database changes instead of comitting them. This can be used to test whether
 	an ``oradd`` dump will work.
 
+*	``oradd`` can now copy files via ``scp``. Parts of the file names used may
+	depend on key values.
+
 
 Changes in 5.0 (released 06/04/2013)
 ------------------------------------
