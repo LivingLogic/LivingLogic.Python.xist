@@ -425,7 +425,7 @@ def main(args=None):
 				sys.stdout.flush()
 				counts[record["name"]] += 1
 			else:
-				copyfile(record["filename"], record["content"], allkeys)
+				copyfile(record["name"], record["content"], allkeys)
 				if args.verbose >= 3:
 					sys.stdout.write(" -> done\n")
 					sys.stdout.flush()
