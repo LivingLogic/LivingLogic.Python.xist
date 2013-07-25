@@ -907,6 +907,13 @@ with one argument, this argument must be iterable and ``max`` returns the
 maximum value of this argument.
 
 
+``sum``
+"""""""
+
+``sum`` returns the sum of the values in the passed in iterable. The second
+argument specifies the starting value (defaulting to ``0``).
+
+
 ``sorted``
 """"""""""
 

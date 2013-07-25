@@ -394,10 +394,10 @@ all_renderers = [
 	("python", render_python),
 	("python_dumps", render_python_dumps),
 	("python_dump", render_python_dump),
-	("js", render_js),
+	# ("js", render_js),
 	# ("php", render_php),
-	("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
-	("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
+	# ("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
+	# ("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
 ]
 
 
@@ -405,10 +405,10 @@ all_callers = [
 	("python", call_python),
 	("python_dumps", call_python_dumps),
 	("python_dump", call_python_dump),
-	("js", call_js),
+	# ("js", call_js),
 	# ("php", call_php),
-	("java_interpreted_by_python", call_java_interpretedtemplate_by_python),
-	("java_interpreted_by_java", call_java_interpretedtemplate_by_java),
+	# ("java_interpreted_by_python", call_java_interpretedtemplate_by_python),
+	# ("java_interpreted_by_java", call_java_interpretedtemplate_by_java),
 ]
 
 
@@ -2655,6 +2655,18 @@ def test_function_max(r):
 	assert "1" == r("<?print max(0, False, 1, True)?>")
 	assert "True" == r("<?print max(False, 0, True, 1)?>")
 	assert "True" == r("<?print max([False, 0, True, 1])?>")
+
+@pytest.mark.ul4
+def test_function_sum(r):
+	with raises(argumentmismatchmessage):
+		r("<?print sum()?>")
+
+	assert "0" == r("<?print sum([])?>")
+	assert "6" == r("<?print sum([1, 2, 3])?>")
+	assert "12" == r("<?print sum([1, 2, 3], 6)?>")
+	assert "5050" == r("<?print sum(range(101))?>")
+
+	assert "12" == r("<?print sum(iterable=[1, 2, 3], start=6)?>")
 
 
 @pytest.mark.ul4
