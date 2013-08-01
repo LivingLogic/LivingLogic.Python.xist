@@ -1,5 +1,9 @@
-Changes in 5.11 (released ??/??/2013)
--------------------------------------
+Changes in 5.1 (released ??/??/2013)
+------------------------------------
+
+*	The HTML namespace (:mod:`ll.xist.ns.html`) now supports microdata__ attributes.
+
+	__ http://www.w3.org/html/wg/drafts/microdata/master/
 
 *	Added support for triple quoted string to UL4 templates.
 

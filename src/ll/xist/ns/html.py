@@ -13,13 +13,19 @@
 An XIST namespace that contains definitions for all the elements in `HTML5`_ as
 well as some (deprecated) elements that were in use in previous HTML versions.
 
-.. _HTML5: http://www.w3.org/TR/2012/CR-html5-20121217/
+This namespace also supports the elements and attributes from the `microdata
+specification`_.
 
 For all deprecated elements and attributes the class attribute :obj:`deprecated`
 is set to :const:`True`.
 
 The function :func:`astext` can be used to convert a HTML XIST tree into plain
 text.
+
+.. _HTML5: http://www.w3.org/TR/2012/CR-html5-20121217/
+
+.. _ microdata specification: http://www.w3.org/html/wg/drafts/microdata/master/
+
 """
 
 import os, tempfile, subprocess, cgi, textwrap, collections
@@ -421,6 +427,27 @@ class GlobalAttrs(xsc.Attrs):
 	class onwaiting(xsc.TextAttr):
 		"""
 		Event handler
+		"""
+
+	class itemscope(xsc.BoolAttr):
+		"""
+		Microdata attribute: Creates a new item, a group of name-value pairs.
+		"""
+	class itemtype(xsc.TextAttr):
+		"""
+		Microdata attribute: Space separated list of absolute URLs specifying the type of the item.
+		"""
+	class itemid(xsc.URLAttr):
+		"""
+		Microdata attribute: A global identifier for the item.
+		"""
+	class itemprop(xsc.TextAttr):
+		"""
+		Microdata attribute: The name of an item property.
+		"""
+	class itemref(xsc.TextAttr):
+		"""
+		Microdata attribute: List of additional element IDs to crawl to find the name-value pairs of the item.
 		"""
 
 
@@ -2979,6 +3006,23 @@ class dialog(xsc.Element):
 			"""
 			Indicates that the ``dialog`` element is active and that the user can
 			interact with it.
+			"""
+
+
+class data(xsc.Element):
+	"""
+	Microdata element: Contains the name and value of an item property.
+	"""
+	xmlns = xmlns
+	model = sims.Transparent()
+	class Attrs(xsc.Attrs):
+		class itemprop(xsc.TextAttr):
+			"""
+			Microdata attribute: The name of an item property.
+			"""
+		class value(xsc.TextAttr):
+			"""
+			Microdata attribute: The value of an item property.
 			"""
 
 
