@@ -3264,7 +3264,7 @@ content_heading = (h1, h2, h3, h4, h5, h6, hgroup)
 
 content_phrasing = (
 	a, abbr, acronym, applet, area, audio, b, bdi, bdo, big, br, button, canvas,
-	center, cite, code, command, datalist, del_, dfn, em, embed, font, i, iframe,
+	center, cite, code, command, data, datalist, del_, dfn, em, embed, font, i, iframe,
 	img, input, ins, kbd, keygen, label, map, mark, meter, nobr, noframes,
 	noscript, object, output, progress, q, ruby, s, samp, script, select, small,
 	span, strike, strong, sub, sup, textarea, time, tt, u, var, video, wbr,
@@ -3276,22 +3276,10 @@ content_flow = content_phrasing + (
 	noframes, ol, p, pre, section, style, table, ul,
 )
 
-content_embedded = (audio, canvas, embed, iframe, img, object, video)
-
 # We don't include ``audio``, ``img``, ``input``, ``menu``, ``object`` and ``video``
 # here because they're only interactive under certain conditions.
 content_interactive = (
 	a, button, details, embed, iframe, keygen, label, select, textarea,
-)
-
-content_palpable = (
-	a, abbr, acronym, address, applet, article, aside, audio, b, bdi, bdo, big,
-	blockquote, button, canvas, center, cite, code, details, dfn, dir, div, dl,
-	em, embed, fieldset, figure, font, footer, form, h1, h2, h3, h4, h5, h6,
-	header, hgroup, i, iframe, img, input, ins, kbd, keygen, label, map, mark,
-	menu, meter, nav, object, ol, output, p, pre, progress, q, ruby, s, samp,
-	section, select, small, span, strike, strong, sub, sup, table, textarea,
-	time, tt, u, ul, var, video,
 )
 
 html.model = sims.Elements(head, body, frameset)
