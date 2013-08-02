@@ -1,4 +1,4 @@
-Changes in 5.1 (released ??/??/2013)
+Changes in 5.1 (released 08/02/2013)
 ------------------------------------
 
 *	The HTML namespace (:mod:`ll.xist.ns.html`) now supports microdata__ attributes.
