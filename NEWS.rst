@@ -5,7 +5,7 @@ Changes in 5.1 (released 08/02/2013)
 
 	__ http://www.w3.org/html/wg/drafts/microdata/master/
 
-*	Added support for triple quoted string to UL4 templates.
+*	Added support for triple quoted strings to UL4 templates.
 
 *	Added an UL4 function ``sum`` that works like the Python function ``sum``.
 
@@ -26,7 +26,7 @@ Changes in 5.1 (released 08/02/2013)
 	now exposed to UL4 templates.
 
 *	The ``oradd`` script has a new option :option:`--dry-run` to rollback all
-	database changes instead of comitting them. This can be used to test whether
+	database changes instead of committing them. This can be used to test whether
 	an ``oradd`` dump will work.
 
 *	``oradd`` can now copy files via ``scp``. Parts of the file names used may
