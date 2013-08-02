@@ -428,7 +428,6 @@ class GlobalAttrs(xsc.Attrs):
 		"""
 		Event handler
 		"""
-
 	class itemscope(xsc.BoolAttr):
 		"""
 		Microdata attribute: Creates a new item, a group of name-value pairs.
