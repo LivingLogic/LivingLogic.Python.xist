@@ -57,10 +57,13 @@ Inside the template the following variables are available:
 		the connect strings passed in. The connect string will be passed directly
 		to :func:`sqlite3.connect`.
 
-All connection objects are have a ``query`` method that executes the query
-passed in and returns an iterator over the result records.
+All connection objects have a ``query`` method that executes the query passed in
+and returns an iterator over the resulting records. This ``query`` method
+requires at least one positional argument. Arguments alternate between fragments
+of the SQL query and parameters that will be embedded in the query.
 
-A record in turn is a dict-like object mapping field names to field values.
+The records returned from ``query`` are dict-like objects mapping field names to
+field values.
 
 
 Example
@@ -117,9 +120,18 @@ class Connection(object):
 		self.connection = connection
 
 	@ul4c.expose_method
-	def query(self, query, **parameters):
+	def query(self, *queryparts):
 		c = self.connection.cursor()
-		c.execute(query, **parameters)
+		query = []
+		params = {}
+		for (i, part) in enumerate(queryparts):
+			if i % 2:
+				name = "value{}".format((i+1)//2)
+				params[name] = part
+				query.append(":" + name)
+			else:
+				query.append(part)
+		c.execute("".join(query), **params)
 		return c
 
 

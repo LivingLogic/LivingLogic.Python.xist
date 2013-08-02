@@ -34,6 +34,20 @@ Changes in 5.1 (released ??/??/2013)
 
 *	``oradd`` now supports other out types than integers.
 
+*	The ``query`` method for database connections in ``db2ul4`` scripts has
+	changed: Instead of a query and a parameter dictionary, you have to pass in
+	positional arguments that alternate between fragments of the SQL query and
+	parameters. I.e.::
+
+		db.query("select * from table where x=:x and y=:y", x=23, y=42)
+
+	becomes::
+
+		db.query("select * from table where x=", 23, " and y=", 42)
+
+	This makes ``db2ul4`` independent from the parameter format of the database
+	driver.
+
 
 Changes in 5.0 (released 06/04/2013)
 ------------------------------------
