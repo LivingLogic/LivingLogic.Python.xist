@@ -29,7 +29,10 @@ import antlr3
 
 
 # Regular expression used for splitting dates in isoformat
-datesplitter = re.compile("[-T:.]")
+_datesplitter = re.compile("[-T:.]")
+
+
+_marker = object()
 
 
 def register(name):

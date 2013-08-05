@@ -185,7 +185,7 @@ string returns [node]
 	;
 
 date returns [node]
-	: DATE { $node = ul4c.Const(self.location, self.start($DATE), self.end($DATE), datetime.datetime(*map(int, [f for f in ul4c.datesplitter.split($DATE.text[2:-1]) if f]))) }
+	: DATE { $node = ul4c.Const(self.location, self.start($DATE), self.end($DATE), datetime.datetime(*map(int, [f for f in ul4c._datesplitter.split($DATE.text[2:-1]) if f]))) }
 	;
 
 color returns [node]
