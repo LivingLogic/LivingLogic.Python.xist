@@ -7,8 +7,8 @@ look.
 possible to implement renderers for these templates in multiple programming
 languages.
 
-Apart from this Python implementaion there are implementations for Java_ (both a
-compiler and renderer), Javascript_ (renderer only) and PHP_ (renderer only).
+Apart from this Python implementation there are implementations for Java_ (both
+a compiler and renderer), Javascript_ (renderer only) and PHP_ (renderer only).
 
 .. _Java: http://hg.livinglogic.de/LivingLogic.Java.ul4/
 .. _Javascript: http://hg.livinglogic.de/LivingLogic.Javascript.ul4/
