@@ -277,9 +277,9 @@ a string or the keys in a dictionary. The end of the loop body must be marked
 with an ``<?end for?>`` tag::
 
 	<ul>
-	<?for person in data.persons?>
-	<li><?print person.lastname?>, <?person.firstname?></li>
-	<?end for?>
+		<?for person in data.persons?>
+			<li><?print person.lastname?>, <?person.firstname?></li>
+		<?end for?>
 	</ul>
 
 In ``for`` loops variable unpacking is supported, so you can do the following::
