@@ -78,11 +78,6 @@ code:
 *	dictionaries
 *	UL4 templates
 
-This is similar to what JSON_ supports (except for date objects, color objects
-and UL4 templates).
-
-	.. _JSON: http://www.json.org/
-
 Note that depending on the implementation language of the renderer additional
 types might be supported, e.g. a Python renderer will probably support tuples
 and lists and anything supporting :meth:`__getitem__` (or :meth:`__iter__` when
