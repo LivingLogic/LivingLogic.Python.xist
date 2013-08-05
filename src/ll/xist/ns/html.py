@@ -24,7 +24,7 @@ text.
 
 .. _HTML5: http://www.w3.org/TR/2012/CR-html5-20121217/
 
-.. _ microdata specification: http://www.w3.org/html/wg/drafts/microdata/master/
+.. _microdata specification: http://www.w3.org/html/wg/drafts/microdata/master/
 
 """
 
