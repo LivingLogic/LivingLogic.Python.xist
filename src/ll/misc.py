@@ -83,10 +83,7 @@ except ImportError:
 			return string
 
 
-# Use Python implementations of those functions
-_defaultitem = object()
-
-def item(iterator, index, default=None):
+def item(iterable, index, default=None):
 	"""
 	Returns the :obj:`index`'th element from the iterable. :obj:`index` may be
 	negative to count from the end. E.g. 0 returns the first element produced
@@ -97,14 +94,14 @@ def item(iterator, index, default=None):
 	"""
 	i = index
 	if i>=0:
-		for item in iterator:
+		for item in iterable:
 			if not i:
 				return item
 			i -= 1
 	else:
 		i = -index
 		cache = collections.deque()
-		for item in iterator:
+		for item in iterable:
 			cache.append(item)
 			if len(cache)>i:
 				cache.popleft()
@@ -113,29 +110,34 @@ def item(iterator, index, default=None):
 	return default
 
 
-def first(iterator, default=None):
+def first(iterable, default=None):
 	"""
 	Return the first element from the iterable. If the iterator doesn't
 	produce any elements :obj:`default` will be returned.
 	"""
-	return item(iterator, 0, default)
+	for item in iterable:
+		return item
+	return default
 
 
-def last(iterator, default=None):
+def last(iterable, default=None):
 	"""
 	Return the last element from the iterable. If the iterator doesn't produce
 	any elements :obj:`default` will be returned.
 	"""
-	return item(iterator, -1, default)
+	item = default
+	for item in iterable:
+		pass
+	return item
 
 
-def count(iterator):
+def count(iterable):
 	"""
 	Count the number of elements produced by the iterable. Calling this
 	function will exhaust the iterator.
 	"""
 	count = 0
-	for node in iterator:
+	for node in iterable:
 		count += 1
 	return count
 

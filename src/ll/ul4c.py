@@ -2782,19 +2782,16 @@ def function_max(*args):
 
 @AST.makefunction
 def function_first(iterable, default=None):
+	from ll import misc
 	yield from ()
-	for item in iterable:
-		return item
-	return default
+	return misc.first(iterable, default)
 
 
 @AST.makefunction
 def function_last(iterable, default=None):
+	from ll import misc
 	yield from ()
-	item = default
-	for item in iterable:
-		pass
-	return item
+	return misc.last(iterable, default)
 
 
 @AST.makefunction
