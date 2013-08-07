@@ -869,6 +869,31 @@ prints::
 	[(f=0)(o=1)(o=2)]
 
 
+``first``
+"""""""""
+
+``first`` returns the first element produced by an iterable object. If the
+iterable is empty the default value (which is the second parameter and defaults
+to ``None``) is returned.
+
+
+``last``
+""""""""
+
+``last`` returns the last element produced by an iterable object. If the
+iterable is empty the default value (which is the second parameter and defaults
+to ``None``) is returned.
+
+
+``sum``
+"""""""
+
+``sum`` returns the sum of the number from the iterable passed in. The second
+parameter is the start value (i.e. the value that will be added to the total sum)
+and defaults to 0. For example the template ``<?print sum(range(101))?>`` will
+output ``5050``.
+
+
 ``xmlescape``
 """""""""""""
 

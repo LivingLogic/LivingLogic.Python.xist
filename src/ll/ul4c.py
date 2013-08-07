@@ -32,7 +32,7 @@ import antlr3
 _datesplitter = re.compile("[-T:.]")
 
 
-_marker = object()
+_defaultitem = object()
 
 
 def register(name):
@@ -2778,6 +2778,23 @@ def function_min(*args):
 def function_max(*args):
 	yield from ()
 	return max(*args)
+
+
+@AST.makefunction
+def function_first(iterable, default=None):
+	yield from ()
+	for item in iterable:
+		return item
+	return default
+
+
+@AST.makefunction
+def function_last(iterable, default=None):
+	yield from ()
+	item = default
+	for item in iterable:
+		pass
+	return item
 
 
 @AST.makefunction

@@ -1,3 +1,13 @@
+Changes in 5.2 (released ??/??/2013)
+------------------------------------
+
+*	Add UL4 functions ``first`` and ``last`` that return the first or last item
+	produced by an iterable.
+*	The default argument for the functions :func:`misc.first` and
+	:func:`misc.last` now defaults to ``None``. I.e. for empty iterators the
+	default value will always be returned instead of generating an exception.
+
+
 Changes in 5.1 (released 08/02/2013)
 ------------------------------------
 

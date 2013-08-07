@@ -86,16 +86,14 @@ except ImportError:
 # Use Python implementations of those functions
 _defaultitem = object()
 
-def item(iterator, index, default=_defaultitem):
+def item(iterator, index, default=None):
 	"""
 	Returns the :obj:`index`'th element from the iterable. :obj:`index` may be
 	negative to count from the end. E.g. 0 returns the first element produced
 	by the iterator, 1 the second, -1 the last one etc. If :obj:`index` is
 	negative the iterator will be completely exhausted, if it's positive it
 	will be exhausted up to the :obj:`index`'th element. If the iterator
-	doesn't produce that many elements :exc:`IndexError` will be raised,
-	except when :obj:`default` is given, in which case :obj:`default` will be
-	returned.
+	doesn't produce that many elements :obj:`default` will be returned.
 	"""
 	i = index
 	if i>=0:
@@ -112,26 +110,21 @@ def item(iterator, index, default=_defaultitem):
 				cache.popleft()
 		if len(cache)==i:
 			return cache.popleft()
-	if default is _defaultitem:
-		raise IndexError(index)
-	else:
-		return default
+	return default
 
 
-def first(iterator, default=_defaultitem):
+def first(iterator, default=None):
 	"""
 	Return the first element from the iterable. If the iterator doesn't
-	produce any elements :exc:`IndexError` will be raised, except when
-	:obj:`default` is given, in which case :obj:`default` will be returned.
+	produce any elements :obj:`default` will be returned.
 	"""
 	return item(iterator, 0, default)
 
 
-def last(iterator, default=_defaultitem):
+def last(iterator, default=None):
 	"""
 	Return the last element from the iterable. If the iterator doesn't produce
-	any elements :exc:`IndexError` will be raised, except when :obj:`default`
-	is given, in which case :obj:`default` will be returned.
+	any elements :obj:`default` will be returned.
 	"""
 	return item(iterator, -1, default)
 
