@@ -117,7 +117,7 @@ For type ``"procedure"`` the following additional keys are used:
 		key (i.e. a key that has the same identifier) oradd will pass the value
 		from the first use as a normal ``IN`` parameter. The ``keys`` key is
 		optional, without it no parameter will be treated as a key. ``keys`` may
-		also be a dictionary, wich the identifiers as the keys and values the names
+		also be a dictionary, with the identifiers as the keys and values the names
 		of Python types. This can be used for out parameters that are not integers.
 
 	``sqls`` : list (optional)
