@@ -10,6 +10,8 @@ Changes in 5.2 (released ??/??/2013)
 
 *	``oradd`` now outputs the keys in its logging output.
 
+*	``oradd`` can now be used to reset sequences.
+
 
 Changes in 5.1 (released 08/02/2013)
 ------------------------------------
