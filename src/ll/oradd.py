@@ -320,9 +320,9 @@ def _formatcall(record, allkeys):
 			if argvalue is None:
 				args.append("{}=None".format(argname))
 			elif argvalue in allkeys:
-				args.append("{}={}".format(argname, allkeys[argvalue]))
+				args.append("{}={}=<{}>".format(argname, allkeys[argvalue], argvalue))
 			else:
-				args.append("{}=?".format(argname))
+				args.append("{}=<{}>".format(argname, argvalue))
 		elif argname in sqls:
 			args.append("{}={}".format(argname, argvalue))
 		else:
