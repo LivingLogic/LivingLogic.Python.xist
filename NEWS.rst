@@ -12,6 +12,9 @@ Changes in 5.2 (released ??/??/2013)
 
 *	``oradd`` can now be used to reset sequences.
 
+*	Committing the transactions in ``oradd`` can now be done after each record
+	with the new option ``--commit``. ``--rollback`` has been removed.
+
 
 Changes in 5.1 (released 08/02/2013)
 ------------------------------------

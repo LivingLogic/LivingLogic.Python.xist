@@ -188,6 +188,11 @@ it supports the following command line options:
 		call), ``2`` (like ``1``, plus a summary of which procedure has been
 		called how often), ``3`` (detailed output for each procedure call, plus
 		summary)
+
+	``-c``, ``--commit``
+		Specifies when to commit database transactions. ``record`` commit after
+		every procedure call. ``once`` at the end of the script and ``never`` rolls
+		back the transaction after all imports.
 """
 
 # We're importing ``datetime``, so that it's available to ``eval()``
@@ -434,7 +439,7 @@ def main(args=None):
 	p.add_argument("file", nargs="?", help="Name of dump file (default: read from stdin)", type=argparse.FileType("r"), default=sys.stdin)
 	p.add_argument("-f", "--format", dest="format", help="Format of the dumpfile ('oradd' or 'ul4on') (default %(default)s)", default="oradd", choices=("oradd", "ul4on"))
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", type=int, default=2, choices=(0, 1, 2, 3))
-	p.add_argument("-r", "--rollback", dest="rollback", help="Do a rollback after all imports instead of a commit? (default %(default)s)", default=False, action="store_true")
+	p.add_argument("-c", "--commit", dest="commit", help="When should database transactions be committed? (default %(default)s)", default="once", choices=("record", "once", "never"))
 
 	args = p.parse_args(args)
 
@@ -464,6 +469,8 @@ def main(args=None):
 				sys.stdout.flush()
 			if type == "procedure":
 				newkeys = importrecord(record, cursor, allkeys)
+				if args.commit == "record":
+					db.commit()
 				if args.verbose >= 3:
 					if newkeys:
 						sys.stdout.write(" -> {}\n".format(", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in newkeys.items())))
@@ -483,10 +490,10 @@ def main(args=None):
 					sys.stdout.write(" -> reset to {}\n".format(newvalue))
 					sys.stdout.flush()
 				countsequences += 1
-		if args.rollback:
-			db.rollback()
-		else:
+		if args.commit == "once":
 			db.commit()
+		elif args.commit == "never":
+			db.rollback()
 	finally:
 		if args.verbose >= 3:
 			print()
