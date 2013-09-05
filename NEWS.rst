@@ -1,11 +1,8 @@
-<<<<<<< local
 Changes in 5.2 (released ??/??/2013)
-=======
-Changes in 5.1 (released ??/??/2013)
->>>>>>> other
 ------------------------------------
 
-<<<<<<< local
+*	Added support for bound methods to UL4 templates.
+
 *	Add UL4 functions ``first`` and ``last`` that return the first or last item
 	produced by an iterable.
 
@@ -31,11 +28,6 @@ Changes in 5.1 (released 08/02/2013)
 *	Added support for triple quoted strings to UL4 templates.
 
 *	Added an UL4 function ``sum`` that works like the Python function ``sum``.
-=======
-*	Added support for triple quoted string to UL4 templates.
->>>>>>> other
-
-*	Added support for bound methods to UL4 templates.
 
 *	Variables assigned in the body of a <?for?> loop in UL4 now survive the end
 	of the loop. As a consequence of this, loop variables now leak into the
