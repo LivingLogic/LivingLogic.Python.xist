@@ -1,7 +1,9 @@
-Changes in 5.0.1 (released ??/??/2013)
---------------------------------------
+Changes in 5.1 (released ??/??/2013)
+------------------------------------
 
 *	Added support for triple quoted string to UL4 templates.
+
+*	Added support for bound methods to UL4 templates.
 
 *	Variables assigned in the body of a <?for?> loop in UL4 now survive the end
 	of the loop. As a consequence of this, loop variables now leak into the

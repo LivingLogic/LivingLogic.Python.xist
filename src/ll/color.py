@@ -27,6 +27,8 @@ class Color(tuple):
 	A :class:`Color` object represents a color with red, green and blue
 	components.
 	"""
+	ul4attrs = {"r", "g", "b", "a", "hsv", "hsva", "hls", "hlsa", "lum", "witha", "withlum", "abslum", "rellum"}
+
 	def __new__(cls, r=0x0, g=0x0, b=0x0, a=0xff):
 		"""
 		Create a :class:`Color` with the 8 bit red, green, blue and alpha
@@ -137,28 +139,24 @@ class Color(tuple):
 				s = "#{}{}{}".format(s[1], s[3], s[5])
 		return s
 
-	@ul4c.expose_method
 	def r(self):
 		"""
 		The red value as an int between 0 and 255.
 		"""
 		return self[0]
 
-	@ul4c.expose_method
 	def g(self):
 		"""
 		The green value as an int between 0 and 255.
 		"""
 		return self[1]
 
-	@ul4c.expose_method
 	def b(self):
 		"""
 		The blue value as an int between 0 and 255.
 		"""
 		return self[2]
 
-	@ul4c.expose_method
 	def a(self):
 		"""
 		The alpha value as an int between 0 and 255.
@@ -179,7 +177,6 @@ class Color(tuple):
 		"""
 		return (self[0]/255., self[1]/255., self[2]/255., self[3]/255.)
 
-	@ul4c.expose_method
 	def hsv(self):
 		"""
 		:obj:`self` as a HSV ("hue, saturation, value") triple.
@@ -187,7 +184,6 @@ class Color(tuple):
 		"""
 		return colorsys.rgb_to_hsv(self[0]/255., self[1]/255., self[2]/255.)
 
-	@ul4c.expose_method
 	def hsva(self):
 		"""
 		:obj:`self` as a HSV+alpha ("hue, saturation, value, alpha") tuple.
@@ -195,7 +191,6 @@ class Color(tuple):
 		"""
 		return self.hsv() + (self[3]/255.,)
 
-	@ul4c.expose_method
 	def hls(self):
 		"""
 		:obj:`self` as a HLS ("hue, luminance, saturation") triple. All three
@@ -203,7 +198,6 @@ class Color(tuple):
 		"""
 		return colorsys.rgb_to_hls(self[0]/255., self[1]/255., self[2]/255.)
 
-	@ul4c.expose_method
 	def hlsa(self):
 		"""
 		:obj:`self` as a HLS+alpha ("hue, luminance, saturation, alpha") tuple.
@@ -211,7 +205,6 @@ class Color(tuple):
 		"""
 		return self.hls() + (self[3]/255.,)
 
-	@ul4c.expose_method
 	def lum(self):
 		"""
 		The luminance value from :meth:`hls`.
@@ -234,7 +227,6 @@ class Color(tuple):
 			channels[3] = a
 		return self.__class__(*channels)
 
-	@ul4c.expose_method
 	def witha(self, a):
 		"""
 		Return a copy of :obj:`self` with the alpha value replaced with :obj:`a`.
@@ -242,7 +234,6 @@ class Color(tuple):
 		(r, g, b, olda) = self
 		return self.__class__(r, g, b, a)
 
-	@ul4c.expose_method
 	def withlum(self, lum):
 		"""
 		Return a copy of :obj:`self` with the luminosity replaced with :obj:`lum`.
@@ -250,7 +241,6 @@ class Color(tuple):
 		(h, l, s, a) = self.hlsa()
 		return self.fromhls(h, lum, s, a)
 
-	@ul4c.expose_method
 	def abslum(self, f):
 		"""
 		Return a copy of :obj:`self` with :obj:`f` added to the luminocity.
@@ -258,7 +248,6 @@ class Color(tuple):
 		(h, l, s, a) = self.hlsa()
 		return self.fromhls(h, l+f, s, a)
 
-	@ul4c.expose_method
 	def rellum(self, f):
 		"""
 		Return a copy of :obj:`self` where the luminocity has been modified:

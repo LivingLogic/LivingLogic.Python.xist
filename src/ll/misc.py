@@ -744,6 +744,7 @@ class monthdelta(object):
 	"""
 
 	__slots__ = ("_months",)
+	ul4attrs = {"months"}
 
 	def __init__(self, months=0):
 		self._months = months
@@ -852,7 +853,6 @@ class monthdelta(object):
 		else:
 			return "monthdelta()"
 
-	@ul4c.expose_method
 	def months(self):
 		return self._months
 

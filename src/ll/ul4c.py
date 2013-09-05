@@ -41,19 +41,13 @@ def register(name):
 	return registration
 
 
-def expose_method(f):
+def generator(f):
 	"""
 	Using the function as decorator for a method makes this method visible
-	to UL4 templates.
+	to UL4 templates as a generator method (i.e. a method that can generate
+	output and return a value).
 	"""
-	f.__ul4methodtype__ = 1
-	return f
-
-
-def expose_generatormethod(f):
-	"""
-	"""
-	f.__ul4methodtype__ = 2
+	f.__ul4generator__ = True
 	return f
 
 
@@ -227,7 +221,7 @@ class UndefinedKey(Undefined):
 		self.__key = key
 
 	def __repr__(self):
-		return "undefined object for key {!r}".format(self.__key)
+		return "UndefinedKey({!r})".format(self.__key)
 
 
 class UndefinedVariable(Undefined):
@@ -235,7 +229,7 @@ class UndefinedVariable(Undefined):
 		self.__name = name
 
 	def __repr__(self):
-		return "undefined variable {!r}".format(self.__name)
+		return "UndefinedVariable({!r})".format(self.__name)
 
 
 class UndefinedIndex(Undefined):
@@ -243,7 +237,7 @@ class UndefinedIndex(Undefined):
 		self.__index = index
 
 	def __repr__(self):
-		return "undefined object at index {!r}".format(self.__index)
+		return "UndefinedIndex({!r})".format(self.__index)
 
 
 ###
@@ -1169,6 +1163,12 @@ class GetAttr(AST):
 	"""
 	ul4attrs = AST.ul4attrs.union({"obj", "attrname"})
 
+	# def method_dict(self, obj, methname):
+	# 	def method_items(obj):
+	# 	def method_values(obj):
+	# 	def method_get(obj, key, default=None):
+	# 	def method_update(obj, *others, **kwargs):
+
 	def __init__(self, location=None, start=None, end=None, obj=None, attrname=None):
 		super().__init__(location, start, end)
 		self.obj = obj
@@ -1197,6 +1197,16 @@ class GetAttr(AST):
 		try:
 			hasattr = self.attrname in obj.ul4attrs
 		except (AttributeError, TypeError):
+			if isinstance(obj, str):
+				return self.method_str(obj, self.attrname)
+			elif isinstance(obj, list):
+				return self.method_list(obj, self.attrname)
+			elif isinstance(obj, dict):
+				return self.method_dict(obj, self.attrname)
+			elif isinstance(obj, (datetime.datetime, datetime.date)):
+				return self.method_date(obj, self.attrname)
+			elif isinstance(obj, datetime.timedelta):
+				return self.method_timedelta(obj, self.attrname)
 			try:
 				return obj[self.attrname]
 			except KeyError:
@@ -1204,7 +1214,238 @@ class GetAttr(AST):
 		else:
 			if hasattr:
 				return getattr(obj, self.attrname)
+			if self.attrname in {"items", "values"}:
+				return self.method_dict(obj, self.attrname)
 		return UndefinedKey(self.attrname)
+
+	def method_str(self, obj, methname):
+		if methname == "split":
+			def split(sep=None, count=None):
+				return obj.split(sep, count if count is not None else -1)
+			result = split
+		elif methname == "rsplit":
+			def rsplit(sep=None, count=None):
+				return obj.rsplit(sep, count if count is not None else -1)
+			result = rsplit
+		elif methname == "strip":
+			def strip(chars=None):
+				return obj.strip(chars)
+			result = strip
+		elif methname == "lstrip":
+			def lstrip(chars=None):
+				return obj.lstrip(chars)
+			result = lstrip
+		elif methname == "rstrip":
+			def rstrip(chars=None):
+				return obj.rstrip(chars)
+			result = rstrip
+		elif methname == "find":
+			def find(sub, start=None, end=None):
+				return obj.find(sub, start, end)
+			result = find
+		elif methname == "rfind":
+			def rfind(sub, start=None, end=None):
+				return obj.rfind(sub, start, end)
+			result = rfind
+		elif methname == "startswith":
+			def startswith(prefix):
+				return obj.startswith(prefix)
+			result = startswith
+		elif methname == "endswith":
+			def endswith(suffix):
+				return obj.endswith(suffix)
+			result = endswith
+		elif methname == "upper":
+			def upper():
+				return obj.upper()
+			result = upper
+		elif methname == "lower":
+			def lower():
+				return obj.lower()
+			result = lower
+		elif methname == "capitalize":
+			def capitalize():
+				return obj.capitalize()
+			result = capitalize
+		elif methname == "replace":
+			def replace(old, new, count=None):
+				if count is None:
+					return obj.replace(old, new)
+				else:
+					return obj.replace(old, new, count)
+			result = replace
+		elif methname == "join":
+			def join(iterable):
+				return obj.join(iterable)
+			result = join
+		else:
+			result = UndefinedKey(methname)
+		return result
+
+	def method_list(self, obj, methname):
+		if methname == "append":
+			def append(*items):
+				obj.extend(items)
+			result = append
+		elif methname == "insert":
+			def insert(pos, *items):
+				obj[pos:pos] = items
+			result = insert
+		elif methname == "pop":
+			def pop(pos=-1):
+				return obj.pop(pos)
+			result = pop
+		elif methname == "find":
+			def find(sub, start=None, end=None):
+				try:
+					if end is None:
+						if start is None:
+							return obj.index(sub)
+						return obj.index(sub, start)
+					return obj.index(sub, start, end)
+				except ValueError:
+					return -1
+			result = find
+		elif methname == "rfind":
+			def rfind(sub, start=None, end=None):
+				for i in reversed(range(*slice(start, end).indices(len(obj)))):
+					if obj[i] == sub:
+						return i
+				return -1
+			result = rfind
+		else:
+			result = UndefinedKey(methname)
+		return result
+
+	def method_dict(self, obj, methname):
+		if methname == "items":
+			def items():
+				try:
+					attrs = obj.ul4attrs
+				except AttributeError:
+					return obj.items()
+				else:
+					def iterate(obj):
+						for attrname in attrs:
+							yield (attrname, getattr(obj, attrname, UndefinedKey(attrname)))
+					return iterate(obj)
+			result = items
+		elif methname == "values":
+			def values():
+				try:
+					attrs = obj.ul4attrs
+				except AttributeError:
+					return obj.values()
+				else:
+					def iterate(obj):
+						for attrname in attrs:
+							yield getattr(obj, attrname, UndefinedKey(attrname))
+					return iterate(obj)
+			result = values
+		elif methname == "update":
+			def update(*others, **kwargs):
+				for other in others:
+					obj.update(other)
+				obj.update(**kwargs)
+			result = update
+		elif methname == "get":
+			def get(key, default=None):
+				return obj.get(key, default)
+			result = get
+		else:
+			try:
+				result = obj[methname]
+			except KeyError:
+				result = UndefinedKey(methname)
+		return result
+
+	def method_date(self, obj, methname):
+		if methname == "weekday":
+			def weekday():
+				return obj.weekday()
+			result = weekday
+		elif methname == "week":
+			def week(firstweekday=None):
+				if firstweekday is None:
+					firstweekday = 0
+				else:
+					firstweekday %= 7
+				jan1 = obj.__class__(obj.year, 1, 1)
+				yearday = (obj - jan1).days+7
+				jan1weekday = jan1.weekday()
+				while jan1weekday != firstweekday:
+					yearday -= 1
+					jan1weekday += 1
+					if jan1weekday == 7:
+						jan1weekday = 0
+				return yearday//7
+			result = week
+		elif methname == "day":
+			def day():
+				return obj.day
+			result = day
+		elif methname == "month":
+			def month():
+				return obj.month
+			result = month
+		elif methname == "year":
+			def year():
+				return obj.year
+			result = year
+		elif methname == "hour":
+			def hour():
+				return obj.hour
+			result = hour
+		elif methname == "minute":
+			def minute():
+				return obj.minute
+			result = minute
+		elif methname == "second":
+			def second():
+				return obj.second
+			result = second
+		elif methname == "microsecond":
+			def microsecond():
+				return obj.microsecond
+			result = microsecond
+		elif methname == "mimeformat":
+			def mimeformat():
+				weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+				monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+				return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(obj, weekdayname[obj.weekday()], monthname[obj.month])
+			result = mimeformat
+		elif methname == "isoformat":
+			def isoformat():
+				result = obj.isoformat()
+				suffix = "T00:00:00"
+				if result.endswith(suffix):
+					return result[:-len(suffix)]
+				return result
+			result = isoformat
+		elif methname == "yearday":
+			def yearday():
+				return (obj - obj.__class__(obj.year, 1, 1)).days+1
+			result = yearday
+		else:
+			result = UndefinedKey(methname)
+		return result
+
+	def method_timedelta(self, obj, methname):
+		if methname == "days":
+			def days():
+				return obj.days
+			result = days
+		elif methname == "seconds":
+			def seconds():
+				return obj.seconds
+			result = seconds
+		elif methname == "microseconds":
+			def microseconds():
+				return obj.microseconds
+			result = microseconds
+		else:
+			result = UndefinedKey(methname)
+		return result
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1475,13 +1716,18 @@ class GetItem(Binary):
 				if hasattr:
 					return getattr(obj1, obj2)
 				else:
-					return UndefinedKey(obj2)
+					return obj1[obj2]
 		except AttributeError:
 			return UndefinedKey(obj2)
 		except KeyError:
 			return UndefinedKey(obj2)
 		except IndexError:
 			return UndefinedIndex(obj2)
+		except TypeError:
+			if isinstance(obj2, str):
+				return UndefinedKey(obj2)
+			else:
+				return UndefinedIndex(obj2)
 
 
 @register("eq")
@@ -1574,7 +1820,12 @@ class Contains(Binary):
 		except (AttributeError, TypeError):
 			return obj1 in obj2
 		else:
-			return hasattr
+			if hasattr:
+				return True
+			try:
+				return obj1 in obj2
+			except TypeError:
+				return False
 
 
 @register("notcontains")
@@ -1595,7 +1846,12 @@ class NotContains(Binary):
 		except (AttributeError, TypeError):
 			return obj1 not in obj2
 		else:
-			return not hasattr
+			if hasattr:
+				return False
+			try:
+				return obj1 not in obj2
+			except TypeError:
+				return True
 
 
 @register("add")
@@ -1839,10 +2095,10 @@ class ModVar(ChangeVar):
 		vars[self.varname] %= value
 
 
-@register("callfunc")
-class CallFunc(AST):
+@register("call")
+class Call(AST):
 	"""
-	AST node for calling an function.
+	AST node for calling an object.
 
 	The object to be called is stored in the attribute :obj:`obj`. The list of
 	positional arguments is loaded from the list of AST nodes :obj:`args`.
@@ -1911,11 +2167,14 @@ class CallFunc(AST):
 			args.extend((yield from self.remargs.eval(vars)))
 		if self.remkwargs is not None:
 			kwargs.update((yield from self.remkwargs.eval(vars)))
-		result = obj(*args, **kwargs)
-		if isinstance(obj, (Template, TemplateClosure)):
-			return result
+		if isinstance(obj, types.MethodType):
+			generator = getattr(obj.__func__, "__ul4generator__", False)
 		else:
-			return (yield from result)
+			generator = getattr(obj, "__ul4generator__", False)
+		if generator:
+			return (yield from obj(*args, **kwargs))
+		else:
+			return obj(*args, **kwargs)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1927,112 +2186,6 @@ class CallFunc(AST):
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
-		self.obj = decoder.load()
-		self.args = decoder.load()
-		self.kwargs = [tuple(arg) for arg in decoder.load()]
-		self.remargs = decoder.load()
-		self.remkwargs = decoder.load()
-
-
-@register("callmeth")
-class CallMeth(AST):
-	"""
-	AST node for calling a method.
-
-	The method name is stored in the string :obj:`methname`. The object for which
-	the method will be called is loaded from the AST node :obj:`obj` and the list
-	of arguments is loaded from the list of AST nodes :obj:`args`. Keyword
-	arguments are in :obj:`kwargs`. `var`:remargs` is the AST node for the ``*``
-	argument (and may by ``None`` if there is no ``*`` argument).
-	`var`:remkwargs` is the AST node for the ``**`` argument (and may by ``None``
-	if there is no ``**`` argument)
-	"""
-
-	ul4attrs = AST.ul4attrs.union({"obj", "methname", "args", "kwargs", "remargs", "remkwargs"})
-
-	def __init__(self, location=None, start=None, end=None, obj=None, methname=None):
-		super().__init__(location, start, end)
-		self.obj = obj
-		self.methname = methname
-		self.args = []
-		self.kwargs = []
-		self.remargs = None
-		self.remkwargs = None
-
-	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} methname={0.methname!r} obj={0.obj!r}{1}{2}{3}{4} at {5:#x}>".format(
-			self,
-			"".join(" {!r}".format(arg) for arg in self.args),
-			"".join(" {}={!r}".format(argname, argvalue) for (argname, argvalue) in self.kwargs),
-			" *{!r}".format(self.remargs) if self.remargs is not None else "",
-			" **{!r}".format(self.remkwargs) if self.remargs is not None else "",
-			id(self))
-
-	def _repr_pretty_(self, p, cycle):
-		if cycle:
-			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
-		else:
-			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
-				p.breakable()
-				p.text("methname=")
-				p.pretty(self.methname)
-				p.breakable()
-				p.text("obj=")
-				p.pretty(self.obj)
-				for arg in self.args:
-					p.breakable()
-					p.pretty(arg)
-				for (argname, arg) in self.kwargs:
-					p.breakable()
-					p.text("{}=".format(argname))
-					p.pretty(arg)
-				if self.remargs is not None:
-					p.breakable()
-					p.text("*")
-					p.pretty(self.remargs)
-				if self.remkwargs is not None:
-					p.breakable()
-					p.text("**")
-					p.pretty(self.remkwargs)
-				p.breakable()
-				p.text("at {:#x}".format(id(self)))
-
-	@handleeval
-	def eval(self, vars):
-		obj = (yield from self.obj.eval(vars))
-		args = []
-		for arg in self.args:
-			arg = (yield from arg.eval(vars))
-			args.append(arg)
-		kwargs = {}
-		for (argname, arg) in self.kwargs:
-			kwargs[argname] = (yield from arg.eval(vars))
-		if self.remargs is not None:
-			args.extend((yield from self.remargs.eval(vars)))
-		if self.remkwargs is not None:
-			kwargs.update((yield from self.remkwargs.eval(vars)))
-		method = getattr(obj, self.methname, None)
-		if callable(method):
-			ul4methodtype = getattr(method, "__ul4methodtype__", None)
-			if ul4methodtype == 1:
-				yield from ()
-				return method(*args, **kwargs)
-			elif ul4methodtype == 2:
-				return (yield from method(*args, **kwargs))
-		return (yield from self.methods[self.methname](obj, *args, **kwargs))
-
-	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
-		encoder.dump(self.methname)
-		encoder.dump(self.obj)
-		encoder.dump(self.args)
-		encoder.dump(self.kwargs)
-		encoder.dump(self.remargs)
-		encoder.dump(self.remkwargs)
-
-	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
-		self.methname = decoder.load()
 		self.obj = decoder.load()
 		self.args = decoder.load()
 		self.kwargs = [tuple(arg) for arg in decoder.load()]
@@ -2061,7 +2214,7 @@ class Template(Block):
 	of the first ``<?return?>`` tag encountered. In this case all output of the
 	template will be ignored.
 	"""
-	ul4attrs = Block.ul4attrs.union({"source", "name", "keepws", "startdelim", "enddelim"})
+	ul4attrs = Block.ul4attrs.union({"source", "name", "keepws", "startdelim", "enddelim", "render", "renders"})
 
 	version = "25"
 
@@ -2193,7 +2346,7 @@ class Template(Block):
 		from ll import ul4on
 		return ul4on.dumps(self)
 
-	@expose_generatormethod
+	@generator
 	def render(self, **vars):
 		"""
 		Render the template iteratively (i.e. this is a generator).
@@ -2205,7 +2358,6 @@ class Template(Block):
 		except ReturnException:
 			pass
 
-	@expose_method
 	def renders(self, **vars):
 		"""
 		Render the template as a string. :obj:`vars` contains the top level
@@ -2394,6 +2546,7 @@ class Template(Block):
 ###
 
 @AST.makefunction
+@generator
 def function_print(*values):
 	for (i, value) in enumerate(values):
 		if i:
@@ -2402,6 +2555,7 @@ def function_print(*values):
 
 
 @AST.makefunction
+@generator
 def function_printx(*values):
 	for (i, value) in enumerate(values):
 		if i:
@@ -2411,62 +2565,52 @@ def function_printx(*values):
 
 @AST.makefunction
 def function_str(obj=""):
-	yield from ()
 	return _str(obj)
 
 
 @AST.makefunction
 def function_repr(obj):
-	yield from ()
 	return _repr(obj)
 
 
 @AST.makefunction
 def function_now():
-	yield from ()
 	return datetime.datetime.now()
 
 
 @AST.makefunction
 def function_utcnow():
-	yield from ()
 	return datetime.datetime.utcnow()
 
 
 @AST.makefunction
 def function_date(year, month, day, hour=0, minute=0, second=0, microsecond=0):
-	yield from ()
 	return datetime.datetime(year, month, day, hour, minute, second, microsecond)
 
 
 @AST.makefunction
 def function_timedelta(days=0, seconds=0, microseconds=0):
-	yield from ()
 	return datetime.timedelta(days, seconds, microseconds)
 
 
 @AST.makefunction
 def function_monthdelta(months=0):
 	from ll import misc
-	yield from ()
 	return misc.monthdelta(months)
 
 
 @AST.makefunction
 def function_random():
-	yield from ()
 	return random.random()
 
 
 @AST.makefunction
 def function_xmlescape(obj):
-	yield from ()
 	return _xmlescape(obj)
 
 
 @AST.makefunction
 def function_csv(obj):
-	yield from ()
 	if obj is None:
 		return ""
 	elif isinstance(obj, Undefined):
@@ -2480,34 +2624,29 @@ def function_csv(obj):
 
 @AST.makefunction
 def function_asjson(obj):
-	yield from ()
 	return _asjson(obj)
 
 
 @AST.makefunction
 def function_fromjson(string):
 	from ll import ul4on
-	yield from ()
 	return json.loads(string)
 
 
 @AST.makefunction
 def function_asul4on(obj):
 	from ll import ul4on
-	yield from ()
 	return ul4on.dumps(obj)
 
 
 @AST.makefunction
 def function_fromul4on(string):
 	from ll import ul4on
-	yield from ()
 	return ul4on.loads(string)
 
 
 @AST.makefunction
 def function_int(obj=0, base=None):
-	yield from ()
 	if base is None:
 		return int(obj)
 	else:
@@ -2516,289 +2655,243 @@ def function_int(obj=0, base=None):
 
 @AST.makefunction
 def function_float(obj=0.0):
-	yield from ()
 	return float(obj)
 
 
 @AST.makefunction
 def function_bool(obj=False):
-	yield from ()
 	return bool(obj)
 
 
 @AST.makefunction
 def function_list(iterable=()):
-	yield from ()
 	return list(iterable)
 
 
 @AST.makefunction
 def function_len(sequence):
-	yield from ()
 	return len(sequence)
 
 
 @AST.makefunction
 def function_abs(number):
-	yield from ()
 	return abs(number)
 
 
 @AST.makefunction
 def function_any(iterable):
-	yield from ()
 	return any(iterable)
 
 
 @AST.makefunction
 def function_all(iterable):
-	yield from ()
 	return all(iterable)
 
 
 @AST.makefunction
 def function_enumerate(iterable, start=0):
-	yield from ()
 	return enumerate(iterable, start)
 
 
 @AST.makefunction
 def function_enumfl(iterable, start=0):
-	yield from ()
-	def result(iterable):
-		lastitem = None
-		first = True
-		i = start
-		it = iter(iterable)
+	lastitem = None
+	first = True
+	i = start
+	it = iter(iterable)
+	try:
+		item = next(it)
+	except StopIteration:
+		return
+	while True:
 		try:
-			item = next(it)
+			(lastitem, item) = (item, next(it))
 		except StopIteration:
+			yield (i, first, True, item) # Items haven't been swapped yet
 			return
-		while True:
-			try:
-				(lastitem, item) = (item, next(it))
-			except StopIteration:
-				yield (i, first, True, item) # Items haven't been swapped yet
-				return
-			else:
-				yield (i, first, False, lastitem)
-				first = False
-			i += 1
-	return result(iterable)
+		else:
+			yield (i, first, False, lastitem)
+			first = False
+		i += 1
 
 
 @AST.makefunction
 def function_isfirstlast(iterable):
-	yield from ()
-	def result(iterable):
-		lastitem = None
-		first = True
-		it = iter(iterable)
+	lastitem = None
+	first = True
+	it = iter(iterable)
+	try:
+		item = next(it)
+	except StopIteration:
+		return
+	while True:
 		try:
-			item = next(it)
+			(lastitem, item) = (item, next(it))
 		except StopIteration:
+			yield (first, True, item) # Items haven't been swapped yet
 			return
-		while True:
-			try:
-				(lastitem, item) = (item, next(it))
-			except StopIteration:
-				yield (first, True, item) # Items haven't been swapped yet
-				return
-			else:
-				yield (first, False, lastitem)
-				first = False
-	return result(iterable)
+		else:
+			yield (first, False, lastitem)
+			first = False
 
 
 @AST.makefunction
 def function_isfirst(iterable):
-	yield from ()
-	def result(iterable):
-		first = True
-		for item in iterable:
-			yield (first, item)
-			first = False
-	return result(iterable)
+	first = True
+	for item in iterable:
+		yield (first, item)
+		first = False
 
 
 @AST.makefunction
 def function_islast(iterable):
-	yield from ()
-	def result(iterable):
-		lastitem = None
-		it = iter(iterable)
+	lastitem = None
+	it = iter(iterable)
+	try:
+		item = next(it)
+	except StopIteration:
+		return
+	while True:
 		try:
-			item = next(it)
+			(lastitem, item) = (item, next(it))
 		except StopIteration:
+			yield (True, item) # Items haven't been swapped yet
 			return
-		while True:
-			try:
-				(lastitem, item) = (item, next(it))
-			except StopIteration:
-				yield (True, item) # Items haven't been swapped yet
-				return
-			else:
-				yield (False, lastitem)
-	return result(iterable)
+		else:
+			yield (False, lastitem)
 
 
 @AST.makefunction
 def function_isundefined(obj):
-	yield from ()
 	return isinstance(obj, Undefined)
 
 
 @AST.makefunction
 def function_isdefined(obj):
-	yield from ()
 	return not isinstance(obj, Undefined)
 
 
 @AST.makefunction
 def function_isnone(obj):
-	yield from ()
 	return obj is None
 
 
 @AST.makefunction
 def function_isstr(obj):
-	yield from ()
 	return isinstance(obj, str)
 
 
 @AST.makefunction
 def function_isint(obj):
-	yield from ()
 	return isinstance(obj, int) and not isinstance(obj, bool)
 
 
 @AST.makefunction
 def function_isfloat(obj):
-	yield from ()
 	return isinstance(obj, float)
 
 
 @AST.makefunction
 def function_isbool(obj):
-	yield from ()
 	return isinstance(obj, bool)
 
 
 @AST.makefunction
 def function_isdate(obj):
-	yield from ()
 	return isinstance(obj, (datetime.datetime, datetime.date))
 
 
 @AST.makefunction
 def function_istimedelta(obj):
-	yield from ()
 	return isinstance(obj, datetime.timedelta)
 
 
 @AST.makefunction
 def function_ismonthdelta(obj):
 	from ll import misc
-	yield from ()
 	return isinstance(obj, misc.monthdelta)
 
 
 @AST.makefunction
 def function_islist(obj):
 	from ll import color
-	yield from ()
 	return isinstance(obj, collections.Sequence) and not isinstance(obj, str) and not isinstance(obj, color.Color)
 
 
 @AST.makefunction
 def function_isdict(obj):
-	yield from ()
 	return isinstance(obj, collections.Mapping) and not isinstance(obj, Template)
 
 
 @AST.makefunction
 def function_iscolor(obj):
 	from ll import color
-	yield from ()
 	return isinstance(obj, color.Color)
 
 
 @AST.makefunction
 def function_istemplate(obj):
-	yield from ()
 	return isinstance(obj, (Template, TemplateClosure))
 
 
 @AST.makefunction
 def function_isfunction(obj):
-	yield from ()
 	return callable(obj)
 
 
 @AST.makefunction
 def function_chr(i):
-	yield from ()
 	return chr(i)
 
 
 @AST.makefunction
 def function_ord(c):
-	yield from ()
 	return ord(c)
 
 
 @AST.makefunction
 def function_hex(number):
-	yield from ()
 	return hex(number)
 
 
 @AST.makefunction
 def function_oct(number):
-	yield from ()
 	return oct(number)
 
 
 @AST.makefunction
 def function_bin(number):
-	yield from ()
 	return bin(number)
 
 
 @AST.makefunction
 def function_min(*args):
-	yield from ()
 	return min(*args)
 
 
 @AST.makefunction
 def function_max(*args):
-	yield from ()
 	return max(*args)
 
 
 @AST.makefunction
 def function_sorted(iterable):
-	yield from ()
 	return sorted(iterable)
 
 
 @AST.makefunction
 def function_range(*args):
-	yield from ()
 	return range(*args)
 
 
 @AST.makefunction
 def function_slice(*args):
-	yield from ()
 	return itertools.islice(*args)
 
 
 @AST.makefunction
 def function_type(obj):
 	from ll import color, misc
-	yield from ()
 	if obj is None:
 		return "none"
 	elif isinstance(obj, Undefined):
@@ -2834,25 +2927,21 @@ def function_type(obj):
 
 @AST.makefunction
 def function_reversed(sequence):
-	yield from ()
 	return reversed(sequence)
 
 
 @AST.makefunction
 def function_randrange(*args):
-	yield from ()
 	return random.randrange(*args)
 
 
 @AST.makefunction
 def function_randchoice(sequence):
-	yield from ()
 	return random.choice(sequence)
 
 
 @AST.makefunction
 def function_format(obj, fmt, lang=None):
-	yield from ()
 	if isinstance(obj, (datetime.date, datetime.time, datetime.timedelta)):
 		if lang is None:
 			lang = "en"
@@ -2876,76 +2965,64 @@ def function_format(obj, fmt, lang=None):
 
 @AST.makefunction
 def function_zip(*iterables):
-	yield from ()
 	return zip(*iterables)
 
 
 @AST.makefunction
 def function_urlquote(string):
-	yield from ()
 	return urlparse.quote_plus(string)
 
 
 @AST.makefunction
 def function_urlunquote(string):
-	yield from ()
 	return urlparse.unquote_plus(string)
 
 
 @AST.makefunction
 def function_rgb(r, g, b, a=1.0):
 	from ll import color
-	yield from ()
 	return color.Color.fromrgb(r, g, b, a)
 
 
 @AST.makefunction
 def function_hls(h, l, s, a=1.0):
 	from ll import color
-	yield from ()
 	return color.Color.fromhls(h, l, s, a)
 
 
 @AST.makefunction
 def function_hsv(h, s, v, a=1.0):
 	from ll import color
-	yield from ()
 	return color.Color.fromhsv(h, s, v, a)
 
 
 @AST.makemethod
 def method_split(obj, sep=None, count=None):
-	yield from ()
 	return obj.split(sep, count if count is not None else -1)
 
 
 @AST.makemethod
 def method_rsplit(obj, sep=None, count=None):
-	yield from ()
 	return obj.rsplit(sep, count if count is not None else -1)
 
 
 @AST.makemethod
 def method_strip(obj, chars=None):
-	yield from ()
 	return obj.strip(chars)
 
 
 @AST.makemethod
 def method_lstrip(obj, chars=None):
-	yield from ()
 	return obj.lstrip(chars)
 
 
 @AST.makemethod
 def method_rstrip(obj, chars=None):
-	yield from ()
 	return obj.rstrip(chars)
 
 
 @AST.makemethod
 def method_find(obj, sub, start=None, end=None):
-	yield from ()
 	if isinstance(obj, str):
 		return obj.find(sub, start, end)
 	else:
@@ -2961,7 +3038,6 @@ def method_find(obj, sub, start=None, end=None):
 
 @AST.makemethod
 def method_rfind(obj, sub, start=None, end=None):
-	yield from ()
 	if isinstance(obj, str):
 		return obj.rfind(sub, start, end)
 	else:
@@ -2973,37 +3049,31 @@ def method_rfind(obj, sub, start=None, end=None):
 
 @AST.makemethod
 def method_startswith(obj, prefix):
-	yield from ()
 	return obj.startswith(prefix)
 
 
 @AST.makemethod
 def method_endswith(obj, suffix):
-	yield from ()
 	return obj.endswith(suffix)
 
 
 @AST.makemethod
 def method_upper(obj):
-	yield from ()
 	return obj.upper()
 
 
 @AST.makemethod
 def method_lower(obj):
-	yield from ()
 	return obj.lower()
 
 
 @AST.makemethod
 def method_capitalize(obj):
-	yield from ()
 	return obj.capitalize()
 
 
 @AST.makemethod
 def method_replace(obj, old, new, count=None):
-	yield from ()
 	if count is None:
 		return obj.replace(old, new)
 	else:
@@ -3012,13 +3082,11 @@ def method_replace(obj, old, new, count=None):
 
 @AST.makemethod
 def method_weekday(obj):
-	yield from ()
 	return obj.weekday()
 
 
 @AST.makemethod
 def method_week(obj, firstweekday=None):
-	yield from ()
 	if firstweekday is None:
 		firstweekday = 0
 	else:
@@ -3036,7 +3104,6 @@ def method_week(obj, firstweekday=None):
 
 @AST.makemethod
 def method_items(obj):
-	yield from ()
 	try:
 		attrs = obj.ul4attrs
 	except AttributeError:
@@ -3050,7 +3117,6 @@ def method_items(obj):
 
 @AST.makemethod
 def method_values(obj):
-	yield from ()
 	try:
 		attrs = obj.ul4attrs
 	except AttributeError:
@@ -3064,13 +3130,11 @@ def method_values(obj):
 
 @AST.makemethod
 def method_join(obj, iterable):
-	yield from ()
 	return obj.join(iterable)
 
 
 @AST.makemethod
 def method_mimeformat(obj):
-	yield from ()
 	weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 	monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 	return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(obj, weekdayname[obj.weekday()], monthname[obj.month])
@@ -3078,7 +3142,6 @@ def method_mimeformat(obj):
 
 @AST.makemethod
 def method_isoformat(obj):
-	yield from ()
 	result = obj.isoformat()
 	suffix = "T00:00:00"
 	if result.endswith(suffix):
@@ -3088,104 +3151,88 @@ def method_isoformat(obj):
 
 @AST.makemethod
 def method_yearday(obj):
-	yield from ()
 	return (obj - obj.__class__(obj.year, 1, 1)).days+1
 
 
 @AST.makemethod
 def method_get(obj, key, default=None):
-	yield from ()
 	return obj.get(key, default)
 
 
 @AST.makemethod
 def method_day(obj):
-	yield from ()
 	return obj.day
 
 
 @AST.makemethod
 def method_month(obj):
-	yield from ()
 	return obj.month
 
 
 @AST.makemethod
 def method_year(obj):
-	yield from ()
 	return obj.year
 
 
 @AST.makemethod
 def method_hour(obj):
-	yield from ()
 	return obj.hour
 
 
 @AST.makemethod
 def method_minute(obj):
-	yield from ()
 	return obj.minute
 
 
 @AST.makemethod
 def method_second(obj):
-	yield from ()
 	return obj.second
 
 
 @AST.makemethod
 def method_microsecond(obj):
-	yield from ()
 	return obj.microsecond
 
 
 @AST.makemethod
 def method_days(obj):
-	yield from ()
 	return obj.days
 
 
 @AST.makemethod
 def method_seconds(obj):
-	yield from ()
 	return obj.seconds
 
 
 @AST.makemethod
 def method_microseconds(obj):
-	yield from ()
 	return obj.microseconds
 
 
 @AST.makemethod
 def method_append(obj, *items):
-	yield from ()
 	obj.extend(items)
 
 
 @AST.makemethod
 def method_insert(obj, pos, *items):
-	yield from ()
 	obj[pos:pos] = items
 
 
 @AST.makemethod
 def method_pop(obj, pos=-1):
-	yield from ()
 	return obj.pop(pos)
 
 
 @AST.makemethod
 def method_update(obj, *others, **kwargs):
-	yield from ()
 	for other in others:
 		obj.update(other)
 	obj.update(**kwargs)
 
 
 class TemplateClosure:
-	ul4attrs = {"location", "endlocation", "name", "source", "startdelim", "enddelim", "content"}
+	ul4attrs = {"location", "endlocation", "name", "source", "startdelim", "enddelim", "content", "render", "renders"}
 
 	def __init__(self, template, vars):
 		self.template = template
@@ -3194,11 +3241,10 @@ class TemplateClosure:
 		# The template (i.e. the closure) itself should be visible in the parent variables
 		self.vars[template.name] = self
 
-	@expose_generatormethod
+	@generator
 	def render(self, **vars):
 		yield from self.template.render(**collections.ChainMap(vars, self.vars))
 
-	@expose_method
 	def renders(self, **vars):
 		return self.template.renders(**collections.ChainMap(vars, self.vars))
 

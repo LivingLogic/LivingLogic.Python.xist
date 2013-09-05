@@ -360,7 +360,7 @@ expr9 returns [node]
 			n=name { $node = ul4c.GetAttr(self.location, $node.start, self.end($n.stop), $node, $n.text) }
 		|
 			/* Function/method call */
-			'(' { $node = ul4c.CallMeth(self.location, $node.start, None, $node.obj, $node.attrname) if isinstance($node, ul4c.GetAttr) else ul4c.CallFunc(self.location, $node.start, None, $node) }
+			'(' { $node = ul4c.Call(self.location, $node.start, None, $node) }
 			(
 				/* No arguments */
 			|

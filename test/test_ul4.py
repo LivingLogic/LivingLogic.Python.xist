@@ -394,10 +394,10 @@ all_renderers = [
 	("python", render_python),
 	("python_dumps", render_python_dumps),
 	("python_dump", render_python_dump),
-	("js", render_js),
+	# ("js", render_js),
 	# ("php", render_php),
-	("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
-	("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
+	# ("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
+	# ("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
 ]
 
 
@@ -405,10 +405,10 @@ all_callers = [
 	("python", call_python),
 	("python_dumps", call_python_dumps),
 	("python_dump", call_python_dump),
-	("js", call_js),
+	# ("js", call_js),
 	# ("php", call_php),
-	("java_interpreted_by_python", call_java_interpretedtemplate_by_python),
-	("java_interpreted_by_java", call_java_interpretedtemplate_by_java),
+	# ("java_interpreted_by_python", call_java_interpretedtemplate_by_python),
+	# ("java_interpreted_by_java", call_java_interpretedtemplate_by_java),
 ]
 
 
@@ -2687,22 +2687,26 @@ def test_function_hsv(r):
 @pytest.mark.ul4
 def test_method_upper(r):
 	assert "GURK" == r("<?print 'gurk'.upper()?>")
+	assert "GURK" == r("<?code m = 'gurk'.upper?><?print m()?>")
 
 
 @pytest.mark.ul4
 def test_method_lower(r):
 	assert "gurk" == r("<?print 'GURK'.lower()?>")
+	assert "gurk" == r("<?code m = 'GURK'.lower?><?print m()?>")
 
 
 @pytest.mark.ul4
 def test_method_capitalize(r):
 	assert "Gurk" == r("<?print 'gURK'.capitalize()?>")
+	assert "Gurk" == r("<?code m = 'gURK'.capitalize?><?print m()?>")
 
 
 @pytest.mark.ul4
 def test_method_startswith(r):
 	assert "True" == r("<?print 'gurkhurz'.startswith('gurk')?>")
 	assert "False" == r("<?print 'gurkhurz'.startswith('hurz')?>")
+	assert "False" == r("<?code m = 'gurkhurz'.startswith?><?print m('hurz')?>")
 
 	# Make sure that the parameters have the same name in all implementations
 	assert "True" == r("<?print 'gurkhurz'.startswith(prefix='gurk')?>")
@@ -2712,6 +2716,7 @@ def test_method_startswith(r):
 def test_method_endswith(r):
 	assert "True" == r("<?print 'gurkhurz'.endswith('hurz')?>")
 	assert "False" == r("<?print 'gurkhurz'.endswith('gurk')?>")
+	assert "False" == r("<?code m = 'gurkhurz'.endswith?><?print m('gurk')?>")
 
 	# Make sure that the parameters have the same name in all implementations
 	assert "True" == r("<?print 'gurkhurz'.endswith(suffix='hurz')?>")
@@ -2721,6 +2726,7 @@ def test_method_endswith(r):
 def test_method_strip(r):
 	assert "gurk" == r(r"<?print obj.strip()?>", obj=' \t\r\ngurk \t\r\n')
 	assert "gurk" == r(r"<?print obj.strip('xyz')?>", obj='xyzzygurkxyzzy')
+	assert "gurk" == r(r"<?code m = obj.strip?><?print m('xyz')?>", obj='xyzzygurkxyzzy')
 
 	# Make sure that the parameters have the same name in all implementations
 	assert "gurk" == r(r"<?print obj.strip(chars='xyz')?>", obj='xyzzygurkxyzzy')
@@ -2730,6 +2736,7 @@ def test_method_strip(r):
 def test_method_lstrip(r):
 	assert "gurk \t\r\n" == r("<?print obj.lstrip()?>", obj=" \t\r\ngurk \t\r\n")
 	assert "gurkxyzzy" == r("<?print obj.lstrip(arg)?>", obj="xyzzygurkxyzzy", arg="xyz")
+	assert "gurkxyzzy" == r("<?code m = obj.lstrip?><?print m(arg)?>", obj="xyzzygurkxyzzy", arg="xyz")
 
 	# Make sure that the parameters have the same name in all implementations
 	assert "gurkxyzzy" == r("<?print obj.lstrip(chars=arg)?>", obj="xyzzygurkxyzzy", arg="xyz")
@@ -2739,6 +2746,7 @@ def test_method_lstrip(r):
 def test_method_rstrip(r):
 	assert " \t\r\ngurk" == r("<?print obj.rstrip()?>", obj=" \t\r\ngurk \t\r\n")
 	assert "xyzzygurk" == r("<?print obj.rstrip(arg)?>", obj="xyzzygurkxyzzy", arg="xyz")
+	assert "xyzzygurk" == r("<?code m = obj.rstrip?><?print m(arg)?>", obj="xyzzygurkxyzzy", arg="xyz")
 
 	# Make sure that the parameters have the same name in all implementations
 	assert "xyzzygurk" == r("<?print obj.rstrip(chars=arg)?>", obj="xyzzygurkxyzzy", arg="xyz")
@@ -2750,6 +2758,7 @@ def test_method_split(r):
 	assert "(f)(o \t\r\no \t\r\n)" == r("<?for item in obj.split(None, 1)?>(<?print item?>)<?end for?>", obj=" \t\r\nf \t\r\no \t\r\no \t\r\n")
 	assert "()(f)(o)(o)()" == r("<?for item in obj.split(arg)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
 	assert "()(f)(oxxoxx)" == r("<?for item in obj.split(arg, 2)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
+	assert "()(f)(oxxoxx)" == r("<?code m = obj.split?><?for item in m(arg, 2)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
 
 	# Make sure that the parameters have the same name in all implementations
 	assert "()(f)(oxxoxx)" == r("<?for item in obj.split(sep=arg, count=2)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
@@ -2761,6 +2770,7 @@ def test_method_rsplit(r):
 	assert "( \t\r\nf \t\r\no)(o)" == r("<?for item in obj.rsplit(None, 1)?>(<?print item?>)<?end for?>", obj=" \t\r\nf \t\r\no \t\r\no \t\r\n")
 	assert "()(f)(o)(o)()" == r("<?for item in obj.rsplit(arg)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
 	assert "(xxfxxo)(o)()" == r("<?for item in obj.rsplit(arg, 2)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
+	assert "(xxfxxo)(o)()" == r("<?code m = obj.rsplit?><?for item in m(arg, 2)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
 
 	# Make sure that the parameters have the same name in all implementations
 	assert "(xxfxxo)(o)()" == r("<?for item in obj.rsplit(sep=arg, count=2)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
@@ -2771,6 +2781,7 @@ def test_method_replace(r):
 	assert 'goork' == r("<?print 'gurk'.replace('u', 'oo')?>")
 	assert 'fuuuu' == r("<?print 'foo'.replace('o', 'uu', None)?>")
 	assert 'fuuo' == r("<?print 'foo'.replace('o', 'uu', 1)?>")
+	assert 'fuuo' == r("<?code m = 'foo'.replace?><?print m('o', 'uu', 1)?>")
 
 	# Make sure that the parameters have the same name in all implementations
 	assert 'fuuo' == r("<?print 'foo'.replace(old='o', new='uu', count=1)?>")
@@ -2781,6 +2792,7 @@ def test_method_renders(r):
 	t = ul4c.Template('(<?print data?>)')
 	assert '(GURK)' == r("<?print t.renders(data='gurk').upper()?>", t=t)
 	assert '(GURK)' == r("<?print t.renders(**{'data': 'gurk'}).upper()?>", t=t)
+	assert '(GURK)' == r("<?code m = t.renders?><?print m(**{'data': 'gurk'}).upper()?>", t=t)
 
 	t = ul4c.Template('(gurk)')
 	assert '(GURK)' == r("<?print t.renders().upper()?>", t=t)
@@ -2790,17 +2802,20 @@ def test_method_renders(r):
 def test_method_mimeformat(r):
 	t = datetime.datetime(2010, 2, 22, 12, 34, 56)
 
-	assert 'Mon, 22 Feb 2010 12:34:56 GMT' == r(r"<?print data.mimeformat()?>", data=t)
+	assert 'Mon, 22 Feb 2010 12:34:56 GMT' == r("<?print data.mimeformat()?>", data=t)
+	assert 'Mon, 22 Feb 2010 12:34:56 GMT' == r("<?code m = data.mimeformat?><?print m()?>", data=t)
 
 
 @pytest.mark.ul4
 def test_method_items(r):
 	assert "a:42;b:17;c:23;" == r("<?for (key, value) in sorted(data.items())?><?print key?>:<?print value?>;<?end for?>", data=dict(a=42, b=17, c=23))
+	assert "a:42;b:17;c:23;" == r("<?code m = data.items?><?for (key, value) in sorted(m())?><?print key?>:<?print value?>;<?end for?>", data=dict(a=42, b=17, c=23))
 
 
 @pytest.mark.ul4
 def test_method_values(r):
 	assert "17;23;42;" == r("<?for value in sorted(data.values())?><?print value?>;<?end for?>", data=dict(a=42, b=17, c=23))
+	assert "17;23;42;" == r("<?code m = data.values?><?for value in sorted(m())?><?print value?>;<?end for?>", data=dict(a=42, b=17, c=23))
 
 
 @pytest.mark.ul4
@@ -2809,6 +2824,7 @@ def test_method_get(r):
 	assert "17" == r("<?print {'foo': 17}.get('foo', 42)?>")
 	assert "" == r("<?print {}.get('foo')?>")
 	assert "17" == r("<?print {'foo': 17}.get('foo')?>")
+	assert "17" == r("<?code m = {'foo': 17}.get?><?print m('foo')?>")
 
 	# Make sure that the parameters have the same name in all implementations
 	assert "17" == r("<?print {'foo': 17}.get(key='foo', default=42)?>")
@@ -2817,9 +2833,13 @@ def test_method_get(r):
 @pytest.mark.ul4
 def test_method_r_g_b_a(r):
 	assert '0x11' == r('<?code c = #123?><?print hex(c.r())?>')
+	assert '0x11' == r('<?code c = #123?><?code m = c.r?><?print hex(m())?>')
 	assert '0x22' == r('<?code c = #123?><?print hex(c.g())?>')
+	assert '0x22' == r('<?code c = #123?><?code m = c.g?><?print hex(m())?>')
 	assert '0x33' == r('<?code c = #123?><?print hex(c.b())?>')
+	assert '0x33' == r('<?code c = #123?><?code m = c.b?><?print hex(m())?>')
 	assert '0xff' == r('<?code c = #123?><?print hex(c.a())?>')
+	assert '0xff' == r('<?code c = #123?><?code m = c.a?><?print hex(m())?>')
 
 
 @pytest.mark.ul4
@@ -2827,6 +2847,7 @@ def test_method_hls(r):
 	assert '0' == r('<?code c = #fff?><?print int(c.hls()[0])?>')
 	assert '1' == r('<?code c = #fff?><?print int(c.hls()[1])?>')
 	assert '0' == r('<?code c = #fff?><?print int(c.hls()[2])?>')
+	assert '0' == r('<?code c = #fff?><?code m = c.hls?><?print int(m()[0])?>')
 
 
 @pytest.mark.ul4
@@ -2835,6 +2856,7 @@ def test_method_hlsa(r):
 	assert '1' == r('<?code c = #fff?><?print int(c.hlsa()[1])?>')
 	assert '0' == r('<?code c = #fff?><?print int(c.hlsa()[2])?>')
 	assert '1' == r('<?code c = #fff?><?print int(c.hlsa()[3])?>')
+	assert '0' == r('<?code c = #fff?><?code m = c.hlsa?><?print int(m()[0])?>')
 
 
 @pytest.mark.ul4
@@ -2842,6 +2864,7 @@ def test_method_hsv(r):
 	assert '0' == r('<?code c = #fff?><?print int(c.hsv()[0])?>')
 	assert '0' == r('<?code c = #fff?><?print int(c.hsv()[1])?>')
 	assert '1' == r('<?code c = #fff?><?print int(c.hsv()[2])?>')
+	assert '0' == r('<?code c = #fff?><?code m = c.hsv?><?print int(m()[0])?>')
 
 
 @pytest.mark.ul4
@@ -2850,16 +2873,19 @@ def test_method_hsva(r):
 	assert '0' == r('<?code c = #fff?><?print int(c.hsva()[1])?>')
 	assert '1' == r('<?code c = #fff?><?print int(c.hsva()[2])?>')
 	assert '1' == r('<?code c = #fff?><?print int(c.hsva()[3])?>')
+	assert '0' == r('<?code c = #fff?><?code m = c.hsva?><?print int(m()[0])?>')
 
 
 @pytest.mark.ul4
 def test_method_lum(r):
 	assert 'True' == r('<?print #fff.lum() == 1?>')
+	assert 'True' == r('<?code m = #fff.lum?><?print m() == 1?>')
 
 
 @pytest.mark.ul4
 def test_method_withlum(r):
 	assert '#fff' == r('<?print #000.withlum(1)?>')
+	assert '#fff' == r('<?code m = #000.withlum?><?print m(1)?>')
 
 	# Make sure that the parameters have the same name in all implementations
 	assert '#fff' == r('<?print #000.withlum(lum=1)?>')
@@ -2868,6 +2894,7 @@ def test_method_withlum(r):
 @pytest.mark.ul4
 def test_method_witha(r):
 	assert '#0063a82a' == r('<?print repr(#0063a8.witha(42))?>')
+	assert '#0063a82a' == r('<?code m = #0063a8.witha?><?print repr(m(42))?>')
 
 	# Make sure that the parameters have the same name in all implementations
 	assert '#0063a82a' == r('<?print repr(#0063a8.witha(a=42))?>')
@@ -2877,6 +2904,7 @@ def test_method_witha(r):
 def test_method_join(r):
 	assert '1,2,3,4' == r('<?print ",".join("1234")?>')
 	assert '1,2,3,4' == r('<?print ",".join(["1", "2", "3", "4"])?>')
+	assert '1,2,3,4' == r('<?code m = ",".join?><?print m("1234")?>')
 
 	# Make sure that the parameters have the same name in all implementations
 	assert '1,2,3,4' == r('<?print ",".join(iterable="1234")?>')
@@ -2894,6 +2922,7 @@ def test_method_find(r):
 	assert '5' == r('<?print s.find("ur", -4, -1)?>', s=s)
 	assert '-1' == r('<?print s.find("rk", 2, 3)?>', s=s)
 	assert '-1' == r('<?print s.find("rk", 7)?>', s=s)
+	assert '-1' == r('<?code m = s.find?><?print m("rk", 7)?>', s=s)
 	l = list("gurkgurk")
 	assert '-1' == r('<?print l.find("x")?>', l=l)
 	assert '2' == r('<?print l.find("r")?>', l=l)
@@ -2905,6 +2934,7 @@ def test_method_find(r):
 	assert '-1' == r('<?print l.find("r", 2, 2)?>', l=l)
 	assert '-1' == r('<?print l.find("r", 7)?>', l=l)
 	assert '1' == r('<?print l.find(None)?>', l=[0, None, 1, None, 2, None, 3, None])
+	assert '-1' == r('<?code m = l.find?><?print m("r", 7)?>', l=l)
 
 	# Make sure that the parameters have the same name in all implementations
 	assert '2' == r('<?print s.find(sub="rk", start=2, end=4)?>', s=s)
@@ -2922,6 +2952,7 @@ def test_method_rfind(r):
 	assert '5' == r('<?print s.rfind("ur", -4, -1)?>', s=s)
 	assert '-1' == r('<?print s.rfind("rk", 2, 3)?>', s=s)
 	assert '-1' == r('<?print s.rfind("rk", 7)?>', s=s)
+	assert '-1' == r('<?code m = s.rfind?><?print m("rk", 7)?>', s=s)
 	l = list("gurkgurk")
 	assert '-1' == r('<?print l.rfind("x")?>', l=l)
 	assert '6' == r('<?print l.rfind("r")?>', l=l)
@@ -2932,6 +2963,7 @@ def test_method_rfind(r):
 	assert '-1' == r('<?print l.rfind("r", 2, 2)?>', l=l)
 	assert '-1' == r('<?print l.rfind("r", 7)?>', l=l)
 	assert '7' == r('<?print l.rfind(None)?>', l=[0, None, 1, None, 2, None, 3, None])
+	assert '-1' == r('<?code m = l.rfind?><?print m("r", 7)?>', l=l)
 
 	# Make sure that the parameters have the same name in all implementations
 	assert '2' == r('<?print s.rfind(sub="rk", start=2, end=4)?>', s=s)
@@ -2941,36 +2973,42 @@ def test_method_rfind(r):
 def test_method_day(r):
 	assert '12' == r('<?print @(2010-05-12).day()?>')
 	assert '12' == r('<?print d.day()?>', d=datetime.date(2010, 5, 12))
+	assert '12' == r('<?code m = @(2010-05-12).day?><?print m()?>')
 
 
 @pytest.mark.ul4
 def test_method_month(r):
 	assert '5' == r('<?print @(2010-05-12).month()?>')
 	assert '5' == r('<?print d.month()?>', d=datetime.date(2010, 5, 12))
+	assert '5' == r('<?code m = @(2010-05-12).month?><?print m()?>')
 
 
 @pytest.mark.ul4
 def test_method_year(r):
 	assert '5' == r('<?print @(2010-05-12).month()?>')
 	assert '5' == r('<?print d.month()?>', d=datetime.date(2010, 5, 12))
+	assert '5' == r('<?code m = @(2010-05-12).month?><?print m()?>')
 
 
 @pytest.mark.ul4
 def test_method_hour(r):
 	assert '16' == r('<?print @(2010-05-12T16:47:56).hour()?>')
 	assert '16' == r('<?print d.hour()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
+	assert '16' == r('<?code m = @(2010-05-12T16:47:56).hour?><?print m()?>')
 
 
 @pytest.mark.ul4
 def test_method_minute(r):
 	assert '47' == r('<?print @(2010-05-12T16:47:56).minute()?>')
 	assert '47' == r('<?print d.minute()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
+	assert '47' == r('<?code m = @(2010-05-12T16:47:56).minute?><?print m()?>')
 
 
 @pytest.mark.ul4
 def test_method_second(r):
 	assert '56' == r('<?print @(2010-05-12T16:47:56).second()?>')
 	assert '56' == r('<?print d.second()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
+	assert '56' == r('<?code m = @(2010-05-12T16:47:56).second?><?print m()?>')
 
 
 @pytest.mark.ul4
@@ -2978,12 +3016,14 @@ def test_method_microsecond(r):
 	if r is not render_php:
 		assert '123000' == r('<?print @(2010-05-12T16:47:56.123000).microsecond()?>')
 		assert '123000' == r('<?print d.microsecond()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56, 123000))
+		assert '123000' == r('<?code m = @(2010-05-12T16:47:56.123000).microsecond?><?print m()?>')
 
 
 @pytest.mark.ul4
 def test_method_weekday(r):
 	assert '2' == r('<?print @(2010-05-12).weekday()?>')
 	assert '2' == r('<?print d.weekday()?>', d=datetime.date(2010, 5, 12))
+	assert '2' == r('<?code m = @(2010-05-12).weekday?><?print m()?>')
 
 
 @pytest.mark.ul4
@@ -2994,6 +3034,7 @@ def test_method_week(r):
 	assert '1' == r('<?print @(2012-01-02).week()?>')
 	assert '1' == r('<?print @(2012-01-02).week(0)?>')
 	assert '1' == r('<?print @(2012-01-02).week(6)?>')
+	assert '0' == r('<?code m = @(2012-01-01).week?><?print m()?>')
 
 	# Make sure that the parameters have the same name in all implementations
 	assert '1' == r('<?print @(2012-01-02).week(firstweekday=0)?>')
@@ -3008,41 +3049,49 @@ def test_method_yearday(r):
 	assert '132' == r('<?print @(2010-05-12T16:47:56).yearday()?>')
 	assert '132' == r('<?print d.yearday()?>', d=datetime.date(2010, 5, 12))
 	assert '132' == r('<?print d.yearday()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
+	assert '1' == r('<?code m = @(2010-01-01).yearday?><?print m()?>')
 
 
 @pytest.mark.ul4
 def test_method_days(r):
 	assert '1' == r('<?print timedelta(1).days()?>')
+	assert '1' == r('<?code m = timedelta(1).days?><?print m()?>')
 
 
 @pytest.mark.ul4
 def test_method_seconds(r):
 	assert '42' == r('<?print timedelta(0, 42).seconds()?>')
+	assert '42' == r('<?code m = timedelta(0, 42).seconds?><?print m()?>')
 
 
 @pytest.mark.ul4
 def test_method_microseconds(r):
 	assert '123000' == r('<?print timedelta(0, 0, 123000).microseconds()?>')
+	assert '123000' == r('<?code m = timedelta(0, 0, 123000).microseconds?><?print m()?>')
 
 
 @pytest.mark.ul4
 def test_method_months(r):
 	assert '17' == r('<?print monthdelta(17).months()?>')
+	assert '17' == r('<?code m = monthdelta(17).months?><?print m()?>')
 
 
 @pytest.mark.ul4
 def test_method_append(r):
 	assert '[17, 23, 42]' == r('<?code l = [17]?><?code l.append(23, 42)?><?print l?>')
+	assert '[17, 23, 42]' == r('<?code l = [17]?><?code m = l.append?><?code m(23, 42)?><?print l?>')
 
 
 @pytest.mark.ul4
 def test_method_insert(r):
 	assert '[1, 2, 3, 4]' == r('<?code l = [1,4]?><?code l.insert(1, 2, 3)?><?print l?>')
+	assert '[1, 2, 3, 4]' == r('<?code l = [1,4]?><?code m = l.insert?><?code m(1, 2, 3)?><?print l?>')
 
 
 @pytest.mark.ul4
 def test_method_pop(r):
 	assert '42;17;23;' == r('<?code l = [17, 23, 42]?><?print l.pop()?>;<?print l.pop(-2)?>;<?print l.pop(0)?>;')
+	assert '42;17;23;' == r('<?code l = [17, 23, 42]?><?code m = l.pop?><?print m()?>;<?print m(-2)?>;<?print m(0)?>;')
 
 
 @pytest.mark.ul4
@@ -3052,14 +3101,16 @@ def test_method_update(r):
 	assert '1' == r('<?code d = {}?><?code d.update({"one": 1})?><?print d.one?>')
 	assert '1' == r('<?code d = {}?><?code d.update(one=1)?><?print d.one?>')
 	assert '1' == r('<?code d = {}?><?code d.update([["one", 0]], {"one": 0}, one=1)?><?print d.one?>')
+	assert '1' == r('<?code d = {}?><?code m = d.update?><?code m(one=1)?><?print d.one?>')
 
 
 @pytest.mark.ul4
-def test_render(r):
+def test_method_render(r):
 	t = ul4c.Template('<?print prefix?><?print data?><?print suffix?>')
 
 	assert '(f)(o)(o)' == r('<?for c in data?><?code t.render(data=c, prefix="(", suffix=")")?><?end for?>', t=t, data='foo')
 	assert '(f)(o)(o)' == r('<?for c in data?><?code t.render(data=c, **{"prefix": "(", "suffix": ")"})?><?end for?>', t=t, data='foo')
+	assert '(f)(o)(o)' == r('<?code m = t.render?><?for c in data?><?code m(data=c, prefix="(", suffix=")")?><?end for?>', t=t, data='foo')
 
 
 @pytest.mark.ul4
@@ -3352,11 +3403,12 @@ def test_customattributes():
 @pytest.mark.ul4
 def test_custommethods():
 	class CustomMethod:
-		@ul4c.expose_method
+		ul4attrs = {"foo", "bar"}
+
 		def foo(self):
 			return 42
 
-		@ul4c.expose_generatormethod
+		@ul4c.generator
 		def bar(self):
 			yield "gurk"
 			yield "hurz"
