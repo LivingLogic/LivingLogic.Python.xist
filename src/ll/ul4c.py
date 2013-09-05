@@ -1166,12 +1166,6 @@ class GetAttr(AST):
 	"""
 	ul4attrs = AST.ul4attrs.union({"obj", "attrname"})
 
-	# def method_dict(self, obj, methname):
-	# 	def method_items(obj):
-	# 	def method_values(obj):
-	# 	def method_get(obj, key, default=None):
-	# 	def method_update(obj, *others, **kwargs):
-
 	def __init__(self, location=None, start=None, end=None, obj=None, attrname=None):
 		super().__init__(location, start, end)
 		self.obj = obj
