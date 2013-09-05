@@ -13,13 +13,19 @@
 An XIST namespace that contains definitions for all the elements in `HTML5`_ as
 well as some (deprecated) elements that were in use in previous HTML versions.
 
-.. _HTML5: http://www.w3.org/TR/2012/CR-html5-20121217/
+This namespace also supports the elements and attributes from the `microdata
+specification`_.
 
 For all deprecated elements and attributes the class attribute :obj:`deprecated`
 is set to :const:`True`.
 
 The function :func:`astext` can be used to convert a HTML XIST tree into plain
 text.
+
+.. _HTML5: http://www.w3.org/TR/2012/CR-html5-20121217/
+
+.. _microdata specification: http://www.w3.org/html/wg/drafts/microdata/master/
+
 """
 
 import os, tempfile, subprocess, cgi, textwrap, collections
@@ -421,6 +427,26 @@ class GlobalAttrs(xsc.Attrs):
 	class onwaiting(xsc.TextAttr):
 		"""
 		Event handler
+		"""
+	class itemscope(xsc.BoolAttr):
+		"""
+		Microdata attribute: Creates a new item, a group of name-value pairs.
+		"""
+	class itemtype(xsc.TextAttr):
+		"""
+		Microdata attribute: Space separated list of absolute URLs specifying the type of the item.
+		"""
+	class itemid(xsc.URLAttr):
+		"""
+		Microdata attribute: A global identifier for the item.
+		"""
+	class itemprop(xsc.TextAttr):
+		"""
+		Microdata attribute: The name of an item property.
+		"""
+	class itemref(xsc.TextAttr):
+		"""
+		Microdata attribute: List of additional element IDs to crawl to find the name-value pairs of the item.
 		"""
 
 
@@ -2982,6 +3008,23 @@ class dialog(xsc.Element):
 			"""
 
 
+class data(xsc.Element):
+	"""
+	Microdata element: Contains the name and value of an item property.
+	"""
+	xmlns = xmlns
+	model = sims.Transparent()
+	class Attrs(xsc.Attrs):
+		class itemprop(xsc.TextAttr):
+			"""
+			Microdata attribute: The name of an item property.
+			"""
+		class value(xsc.TextAttr):
+			"""
+			Microdata attribute: The value of an item property.
+			"""
+
+
 ###
 ### Deprecated elements
 ###
@@ -3220,7 +3263,7 @@ content_heading = (h1, h2, h3, h4, h5, h6, hgroup)
 
 content_phrasing = (
 	a, abbr, acronym, applet, area, audio, b, bdi, bdo, big, br, button, canvas,
-	center, cite, code, command, datalist, del_, dfn, em, embed, font, i, iframe,
+	center, cite, code, command, data, datalist, del_, dfn, em, embed, font, i, iframe,
 	img, input, ins, kbd, keygen, label, map, mark, meter, nobr, noframes,
 	noscript, object, output, progress, q, ruby, s, samp, script, select, small,
 	span, strike, strong, sub, sup, textarea, time, tt, u, var, video, wbr,
@@ -3232,22 +3275,10 @@ content_flow = content_phrasing + (
 	noframes, ol, p, pre, section, style, table, ul,
 )
 
-content_embedded = (audio, canvas, embed, iframe, img, object, video)
-
 # We don't include ``audio``, ``img``, ``input``, ``menu``, ``object`` and ``video``
 # here because they're only interactive under certain conditions.
 content_interactive = (
 	a, button, details, embed, iframe, keygen, label, select, textarea,
-)
-
-content_palpable = (
-	a, abbr, acronym, address, applet, article, aside, audio, b, bdi, bdo, big,
-	blockquote, button, canvas, center, cite, code, details, dfn, dir, div, dl,
-	em, embed, fieldset, figure, font, footer, form, h1, h2, h3, h4, h5, h6,
-	header, hgroup, i, iframe, img, input, ins, kbd, keygen, label, map, mark,
-	menu, meter, nav, object, ol, output, p, pre, progress, q, ruby, s, samp,
-	section, select, small, span, strike, strong, sub, sup, table, textarea,
-	time, tt, u, ul, var, video,
 )
 
 html.model = sims.Elements(head, body, frameset)

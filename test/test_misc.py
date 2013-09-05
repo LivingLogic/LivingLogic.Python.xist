@@ -156,27 +156,16 @@ def test_first():
 	e = iter(range(10))
 	assert misc.first(e) == 0
 	assert misc.first(e) == 1
-
-	e = iter([])
-	with pytest.raises(IndexError):
-		misc.first(e)
-
-	e = iter([])
-	assert misc.first(e, 42) == 42
+	assert misc.first([]) is None
+	assert misc.first([], 42) == 42
 
 
 def test_last():
 	e = iter(range(10))
 	assert misc.last(e) == 9
-	with pytest.raises(IndexError):
-		misc.last(e)
-
-	e = iter([])
-	with pytest.raises(IndexError):
-		misc.last(e)
-
-	e = iter([])
-	assert misc.last(e, 42) == 42
+	assert misc.last(e) is None
+	assert misc.last([]) is None
+	assert misc.last([], 42) == 42
 
 
 def test_count():

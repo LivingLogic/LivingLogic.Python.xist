@@ -7,8 +7,8 @@ look.
 possible to implement renderers for these templates in multiple programming
 languages.
 
-Apart from this Python implementaion there are implementations for Java_ (both a
-compiler and renderer), Javascript_ (renderer only) and PHP_ (renderer only).
+Apart from this Python implementation there are implementations for Java_ (both
+a compiler and renderer), Javascript_ (renderer only) and PHP_ (renderer only).
 
 .. _Java: http://hg.livinglogic.de/LivingLogic.Java.ul4/
 .. _Javascript: http://hg.livinglogic.de/LivingLogic.Javascript.ul4/
@@ -77,11 +77,6 @@ code:
 *	lists
 *	dictionaries
 *	UL4 templates
-
-This is similar to what JSON_ supports (except for date objects, color objects
-and UL4 templates).
-
-	.. _JSON: http://www.json.org/
 
 Note that depending on the implementation language of the renderer additional
 types might be supported, e.g. a Python renderer will probably support tuples
@@ -277,9 +272,9 @@ a string or the keys in a dictionary. The end of the loop body must be marked
 with an ``<?end for?>`` tag::
 
 	<ul>
-	<?for person in data.persons?>
-	<li><?print person.lastname?>, <?person.firstname?></li>
-	<?end for?>
+		<?for person in data.persons?>
+			<li><?print person.lastname?>, <?person.firstname?></li>
+		<?end for?>
 	</ul>
 
 In ``for`` loops variable unpacking is supported, so you can do the following::
@@ -325,33 +320,33 @@ condition is true. The end of the ``if`` block must be marked with an
 For example we can output the person list only if there are any persons::
 
 	<?if persons?>
-	<ul>
-	<?for person in persons?>
-	<li><?print person.lastname?>, <?person.firstname?></li>
-	<?end for?>
-	</ul>
+		<ul>
+			<?for person in persons?>
+				<li><?print person.lastname?>, <?person.firstname?></li>
+			<?end for?>
+		</ul>
 	<?end if?>
 
 ``elif`` and ``else`` are supported too::
 
 	<?if persons?>
-	<ul>
-	<?for person in persons?>
-	<li><?print person.lastname?>, <?person.firstname?></li>
-	<?end for?>
-	</ul>
+		<ul>
+			<?for person in persons?>
+				<li><?print person.lastname?>, <?person.firstname?></li>
+			<?end for?>
+		</ul>
 	<?else?>
-	<p>No persons found!</p>
+		<p>No persons found!</p>
 	<?end if?>
 
 or::
 
 	<?if len(persons)==0?>
-	No persons found!
+		No persons found!
 	<?elif len(persons)==1?>
-	One person found!
+		One person found!
 	<?else?>
-	<?print len(persons)?> persons found!
+		<?print len(persons)?> persons found!
 	<?end if?>
 
 
@@ -393,7 +388,7 @@ template::
 	<?code quote.render(text="foo")?>
 
 (Here an ``<?code?>`` tag is used. The expression in the ``<?code?>`` tag is
-evaluated for the side effect of generating output)
+evaluated for the side effect of generating output.)
 
 
 ``note``
@@ -454,9 +449,9 @@ The following binary operators are supported: ``+``, ``-``, ``*``, ``/`` (true
 division), ``//`` (truncating division) and ``&`` (modulo).
 
 The usual boolean operators ``not``, ``and`` and ``or`` are supported. ``and``
-and ``or`` work like in Python, i.e. they short-circuit, i.e. if they result is
-clear from the first operand the seconds won't be evaluated, Furthermore they
-always return one of the operands). For example, the following code will output
+and ``or`` work like in Python, i.e. they short-circuit, i.e. if their result is
+clear from the first operand the seconds won't be evaluated. Furthermore they
+always return one of the operands. For example, the following code will output
 the ``data.title`` object if it's true, else ``data.id`` will be output::
 
 	<?print xmlescape(data.title or data.id)?>
@@ -526,8 +521,9 @@ Functions
 """"""""
 
 ``date()`` creates a date object from the parameter passed in. ``date()``
-supports from three parameters (year, month, day) upto seven parameters
-(year, month, day, hour, minute, second, microsecond).
+supports from three parameters (``year``, ``month``, ``day``) upto seven
+parameters (``year``, ``month``, ``day``, ``hour``, ``minute``, ``second``,
+``microsecond``).
 
 
 ``timedelta``
@@ -568,7 +564,7 @@ are supported:
 *	``int`` * ``monthdelta``
 *	``monthdelta`` // ``int``
 
-For operation involving ``date`` objects, if the resulting day falls out of the
+For operations involving ``date`` objects, if the resulting day falls out of the
 range of valid days for the target month, the last day for the target month
 will be used instead, i.e. ``<?print @(2000-01-31) + monthdelta(1)?>`` prints
 ``2000-02-29 00:00:00``.
@@ -716,8 +712,8 @@ returns the empty string.
 """"""""
 
 ``repr(foo)`` converts ``foo`` to a string representation that is useful for
-debugging proposes. The output looks that the UL constant that could be used to
-recreate the object.
+debugging proposes. The output in most cases looks that the UL4 constant that
+could be used to recreate the object.
 
 
 ``list``
@@ -740,7 +736,7 @@ start and stop must be non-negative and step must be positive.
 
 ``asjson(foo)`` returns a JSON representation of the object ``foo``.
 (Date objects, color objects and templates are not supported by JSON, but
-``asjson`` will output the appropriate Javascript code for those objects)
+``asjson`` will output the appropriate Javascript code for those objects).
 
 
 ``fromjson``
@@ -873,6 +869,31 @@ prints::
 	[(f=0)(o=1)(o=2)]
 
 
+``first``
+"""""""""
+
+``first`` returns the first element produced by an iterable object. If the
+iterable is empty the default value (which is the second parameter and defaults
+to ``None``) is returned.
+
+
+``last``
+""""""""
+
+``last`` returns the last element produced by an iterable object. If the
+iterable is empty the default value (which is the second parameter and defaults
+to ``None``) is returned.
+
+
+``sum``
+"""""""
+
+``sum`` returns the sum of the number from the iterable passed in. The second
+parameter is the start value (i.e. the value that will be added to the total sum)
+and defaults to 0. For example the template ``<?print sum(range(101))?>`` will
+output ``5050``.
+
+
 ``xmlescape``
 """""""""""""
 
@@ -884,7 +905,7 @@ appropriate XML entity or character reference. For example::
 
 prints::
 
-	``&lt;&#39;foo&#39; &amp; ;&#39;bar&#39&gt;``
+	&lt;&#39;foo&#39; &amp; ;&#39;bar&#39&gt;
 
 If the argument is not a string, it will be converted to a string first.
 
@@ -905,6 +926,13 @@ minimum value of this argument.
 ``max`` returns the maximum value of its two or more arguments. If it's called
 with one argument, this argument must be iterable and ``max`` returns the
 maximum value of this argument.
+
+
+``sum``
+"""""""
+
+``sum`` returns the sum of the values in the passed in iterable. The second
+argument specifies the starting value (defaulting to ``0``).
 
 
 ``sorted``
@@ -933,9 +961,9 @@ outputs ``a``.
 ``ord``
 """""""
 
-The argument for ``ord`` must be a one-character string. ``ord`` returns the
-codepoint of that character as an integer. For example ``<?print ord('a')?>``
-outputs ``97``.
+This is the inverse function to ``chr`` The argument for ``ord`` must be a
+one-character string. ``ord`` returns the codepoint of that character as an
+integer. For example ``<?print ord('a')?>`` outputs ``97``.
 
 
 ``hex``
@@ -979,8 +1007,9 @@ outputs::
 
 ``type`` returns the type of the object as a string. Possible return values are
 ``"undefined"``, ``"none"``, ``"bool"``, ``"int"``, ``"float"``, ``"str"``,
-``"list"``, ``"dict"``, ``"date"``, ``"color"``, ``"template"`` and
-``"function"``. (If the type isn't recognized ``None`` is returned.)
+``"list"``, ``"dict"``, ``"date"``, ``"timedelta"``, ``"monthdelta"``,
+``"color"``, ``"template"`` and ``"function"``. (If the type isn't recognized
+``None`` is returned.)
 
 
 ``rgb``
@@ -991,6 +1020,13 @@ outputs::
 *	three arguments, the red, green and blue values. The alpha value will be
 	set to 255;
 *	four arguments, the red, green, blue and alpha values.
+
+Arguments are treated as values from 0 to 1 and will be clipped accordingly. For
+example::
+
+	<?print rgb(1, 1, 1)?>
+
+prints ``#fff```.
 
 
 ``random``
@@ -1004,8 +1040,8 @@ outputs::
 
 ``randrange(start, stop, step)`` returns a random integer value between ``start``
 (included) and ``stop`` (excluded). ``step`` specifies the step size (i.e.
-when ``r`` is the random value, ``(r-start) % step`` will always be ``0``.
-``step`` and ``start`` can be ommitted.
+when ``r`` is the random value, ``(r-start) % step`` will always be ``0``).
+``step`` and ``start`` can be omitted.
 
 
 ``randchoice``
@@ -1044,8 +1080,8 @@ which it's called.
 ``capitalize``
 """"""""""""""
 
-The ``capitalize`` method of strings returns a copy of the string for with its
-first letter capitalized.
+The ``capitalize`` method of strings returns a copy of the string with its first
+letter capitalized.
 
 
 ``startswith``
@@ -1269,9 +1305,9 @@ A negative index is treated as relative to the end of the list.
 ``update`` is a dictionary method. It supports an arbitrary number of positional
 and keyword arguments. Each positional argument may be a dictionary, all the
 items in the dictionary will be copied to the target dictionary. A positional
-argument may also be an iterable of (key, value) pairs. These will also be copied
-to the target dictionary. After each positional argument is copied over in a last
-step the keyword arguments will be copied to the target dictionary.
+argument may also be an iterable of ``(key, value)`` pairs. These will also be
+copied to the target dictionary. After each positional argument is copied over
+in a last step the keyword arguments will be copied to the target dictionary.
 
 
 Templates as functions

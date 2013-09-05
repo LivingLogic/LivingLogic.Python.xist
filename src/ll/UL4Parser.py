@@ -1,4 +1,4 @@
-# $ANTLR 3.4 src/ll/UL4.g 2013-07-21 13:10:24
+# $ANTLR 3.4 src/ll/UL4.g 2013-09-05 22:45:01
 
 import sys
 from antlr3 import *
@@ -386,7 +386,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node = ul4c.Const(self.location, self.start(DATE8), self.end(DATE8), datetime.datetime(*map(int, [f for f in ul4c.datesplitter.split(DATE8.text[2:-1]) if f]))) 
+                    node = ul4c.Const(self.location, self.start(DATE8), self.end(DATE8), datetime.datetime(*map(int, [f for f in ul4c._datesplitter.split(DATE8.text[2:-1]) if f]))) 
 
 
 

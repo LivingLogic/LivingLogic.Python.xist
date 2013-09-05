@@ -29,7 +29,10 @@ import antlr3
 
 
 # Regular expression used for splitting dates in isoformat
-datesplitter = re.compile("[-T:.]")
+_datesplitter = re.compile("[-T:.]")
+
+
+_defaultitem = object()
 
 
 def register(name):
@@ -2875,6 +2878,23 @@ def function_max(*args):
 
 
 @AST.makefunction
+def function_first(iterable, default=None):
+	from ll import misc
+	return misc.first(iterable, default)
+
+
+@AST.makefunction
+def function_last(iterable, default=None):
+	from ll import misc
+	return misc.last(iterable, default)
+
+
+@AST.makefunction
+def function_sum(iterable, start=0):
+	return sum(iterable, start)
+
+
+@AST.makefunction
 def function_sorted(iterable):
 	return sorted(iterable)
 
@@ -3058,41 +3078,41 @@ def method_endswith(obj, suffix):
 
 
 @AST.makemethod
-def method_upper(obj):
-	return obj.upper()
+def method_upper(self):
+	return self.upper()
 
 
 @AST.makemethod
-def method_lower(obj):
-	return obj.lower()
+def method_lower(self):
+	return self.lower()
 
 
 @AST.makemethod
-def method_capitalize(obj):
-	return obj.capitalize()
+def method_capitalize(self):
+	return self.capitalize()
 
 
 @AST.makemethod
-def method_replace(obj, old, new, count=None):
+def method_replace(self, old, new, count=None):
 	if count is None:
-		return obj.replace(old, new)
+		return self.replace(old, new)
 	else:
-		return obj.replace(old, new, count)
+		return self.replace(old, new, count)
 
 
 @AST.makemethod
-def method_weekday(obj):
-	return obj.weekday()
+def method_weekday(self):
+	return self.weekday()
 
 
 @AST.makemethod
-def method_week(obj, firstweekday=None):
+def method_week(self, firstweekday=None):
 	if firstweekday is None:
 		firstweekday = 0
 	else:
 		firstweekday %= 7
-	jan1 = obj.__class__(obj.year, 1, 1)
-	yearday = (obj - jan1).days+7
+	jan1 = self.__class__(self.year, 1, 1)
+	yearday = (self - jan1).days+7
 	jan1weekday = jan1.weekday()
 	while jan1weekday != firstweekday:
 		yearday -= 1
@@ -3103,46 +3123,46 @@ def method_week(obj, firstweekday=None):
 
 
 @AST.makemethod
-def method_items(obj):
+def method_items(self):
 	try:
-		attrs = obj.ul4attrs
+		attrs = self.ul4attrs
 	except AttributeError:
-		return obj.items()
+		return self.items()
 	else:
 		def iterate(obj):
 			for attrname in attrs:
 				yield (attrname, getattr(obj, attrname, UndefinedKey(attrname)))
-		return iterate(obj)
+		return iterate(self)
 
 
 @AST.makemethod
-def method_values(obj):
+def method_values(self):
 	try:
-		attrs = obj.ul4attrs
+		attrs = self.ul4attrs
 	except AttributeError:
-		return obj.values()
+		return self.values()
 	else:
 		def iterate(obj):
 			for attrname in attrs:
 				yield getattr(obj, attrname, UndefinedKey(attrname))
-		return iterate(obj)
+		return iterate(self)
 
 
 @AST.makemethod
-def method_join(obj, iterable):
-	return obj.join(iterable)
+def method_join(self, iterable):
+	return self.join(iterable)
 
 
 @AST.makemethod
-def method_mimeformat(obj):
+def method_mimeformat(self):
 	weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 	monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-	return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(obj, weekdayname[obj.weekday()], monthname[obj.month])
+	return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(self, weekdayname[self.weekday()], monthname[self.month])
 
 
 @AST.makemethod
-def method_isoformat(obj):
-	result = obj.isoformat()
+def method_isoformat(self):
+	result = self.isoformat()
 	suffix = "T00:00:00"
 	if result.endswith(suffix):
 		return result[:-len(suffix)]
@@ -3150,85 +3170,85 @@ def method_isoformat(obj):
 
 
 @AST.makemethod
-def method_yearday(obj):
-	return (obj - obj.__class__(obj.year, 1, 1)).days+1
+def method_yearday(self):
+	return (self - self.__class__(self.year, 1, 1)).days+1
 
 
 @AST.makemethod
-def method_get(obj, key, default=None):
-	return obj.get(key, default)
+def method_get(self, key, default=None):
+	return self.get(key, default)
 
 
 @AST.makemethod
-def method_day(obj):
-	return obj.day
+def method_day(self):
+	return self.day
 
 
 @AST.makemethod
-def method_month(obj):
-	return obj.month
+def method_month(self):
+	return self.month
 
 
 @AST.makemethod
-def method_year(obj):
-	return obj.year
+def method_year(self):
+	return self.year
 
 
 @AST.makemethod
-def method_hour(obj):
-	return obj.hour
+def method_hour(self):
+	return self.hour
 
 
 @AST.makemethod
-def method_minute(obj):
-	return obj.minute
+def method_minute(self):
+	return self.minute
 
 
 @AST.makemethod
-def method_second(obj):
-	return obj.second
+def method_second(self):
+	return self.second
 
 
 @AST.makemethod
-def method_microsecond(obj):
-	return obj.microsecond
+def method_microsecond(self):
+	return self.microsecond
 
 
 @AST.makemethod
-def method_days(obj):
-	return obj.days
+def method_days(self):
+	return self.days
 
 
 @AST.makemethod
-def method_seconds(obj):
-	return obj.seconds
+def method_seconds(self):
+	return self.seconds
 
 
 @AST.makemethod
-def method_microseconds(obj):
-	return obj.microseconds
+def method_microseconds(self):
+	return self.microseconds
 
 
 @AST.makemethod
-def method_append(obj, *items):
-	obj.extend(items)
+def method_append(self, *items):
+	self.extend(items)
 
 
 @AST.makemethod
-def method_insert(obj, pos, *items):
-	obj[pos:pos] = items
+def method_insert(self, pos, *items):
+	self[pos:pos] = items
 
 
 @AST.makemethod
-def method_pop(obj, pos=-1):
-	return obj.pop(pos)
+def method_pop(self, pos=-1):
+	return self.pop(pos)
 
 
 @AST.makemethod
-def method_update(obj, *others, **kwargs):
+def method_update(self, *others, **kwargs):
 	for other in others:
-		obj.update(other)
-	obj.update(**kwargs)
+		self.update(other)
+	self.update(**kwargs)
 
 
 class TemplateClosure:

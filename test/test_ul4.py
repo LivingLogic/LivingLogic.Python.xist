@@ -2658,6 +2658,37 @@ def test_function_max(r):
 
 
 @pytest.mark.ul4
+def test_function_sum(r):
+	with raises(argumentmismatchmessage):
+		r("<?print sum()?>")
+
+	assert "0" == r("<?print sum([])?>")
+	assert "6" == r("<?print sum([1, 2, 3])?>")
+	assert "12" == r("<?print sum([1, 2, 3], 6)?>")
+	assert "5050" == r("<?print sum(range(101))?>")
+
+	assert "12" == r("<?print sum(iterable=[1, 2, 3], start=6)?>")
+
+
+@pytest.mark.ul4
+def test_function_first(r):
+	assert "g" == r("<?print first('gurk')?>")
+	assert "None" == r("<?print repr(first(''))?>")
+	assert "x" == r("<?print first('', 'x')?>")
+
+	assert "x" == r("<?print first(iterable='', default='x')?>")
+
+
+@pytest.mark.ul4
+def test_function_last(r):
+	assert "k" == r("<?print last('gurk')?>")
+	assert "None" == r("<?print repr(last(''))?>")
+	assert "x" == r("<?print last('', 'x')?>")
+
+	assert "x" == r("<?print last(iterable='', default='x')?>")
+
+
+@pytest.mark.ul4
 def test_function_rgb(r):
 	assert "#369" == r("<?print repr(rgb(0.2, 0.4, 0.6))?>")
 	assert "#369c" == r("<?print repr(rgb(0.2, 0.4, 0.6, 0.8))?>")

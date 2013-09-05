@@ -1,7 +1,39 @@
+<<<<<<< local
+Changes in 5.2 (released ??/??/2013)
+=======
 Changes in 5.1 (released ??/??/2013)
+>>>>>>> other
 ------------------------------------
 
+<<<<<<< local
+*	Add UL4 functions ``first`` and ``last`` that return the first or last item
+	produced by an iterable.
+
+*	The default argument for the functions :func:`misc.first` and
+	:func:`misc.last` now defaults to ``None``. I.e. for empty iterators the
+	default value will always be returned instead of generating an exception.
+
+*	``oradd`` now outputs the keys in its logging output.
+
+*	``oradd`` can now be used to reset sequences.
+
+*	Committing the transactions in ``oradd`` can now be done after each record
+	with the new option ``--commit``. ``--rollback`` has been removed.
+
+
+Changes in 5.1 (released 08/02/2013)
+------------------------------------
+
+*	The HTML namespace (:mod:`ll.xist.ns.html`) now supports microdata__ attributes.
+
+	__ http://www.w3.org/html/wg/drafts/microdata/master/
+
+*	Added support for triple quoted strings to UL4 templates.
+
+*	Added an UL4 function ``sum`` that works like the Python function ``sum``.
+=======
 *	Added support for triple quoted string to UL4 templates.
+>>>>>>> other
 
 *	Added support for bound methods to UL4 templates.
 
@@ -22,13 +54,27 @@ Changes in 5.1 (released ??/??/2013)
 	now exposed to UL4 templates.
 
 *	The ``oradd`` script has a new option :option:`--dry-run` to rollback all
-	database changes instead of comitting them. This can be used to test whether
+	database changes instead of committing them. This can be used to test whether
 	an ``oradd`` dump will work.
 
 *	``oradd`` can now copy files via ``scp``. Parts of the file names used may
 	depend on key values.
 
 *	``oradd`` now supports other out types than integers.
+
+*	The ``query`` method for database connections in ``db2ul4`` scripts has
+	changed: Instead of a query and a parameter dictionary, you have to pass in
+	positional arguments that alternate between fragments of the SQL query and
+	parameters. I.e.::
+
+		db.query("select * from table where x=:x and y=:y", x=23, y=42)
+
+	becomes::
+
+		db.query("select * from table where x=", 23, " and y=", 42)
+
+	This makes ``db2ul4`` independent from the parameter format of the database
+	driver.
 
 
 Changes in 5.0 (released 06/04/2013)
