@@ -1,4 +1,4 @@
-# $ANTLR 3.4 src/ll/UL4.g 2013-09-06 09:46:46
+# $ANTLR 3.4 src/ll/UL4.g 2013-09-06 16:12:56
 
 import sys
 from antlr3 import *
@@ -850,7 +850,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "listcomprehension"
-    # src/ll/UL4.g:227:1: listcomprehension returns [node] : open= '[' item= expr_or 'for' n= nestedname 'in' container= expr_or ( 'if' condition= expr_or )? close= ']' ;
+    # src/ll/UL4.g:227:1: listcomprehension returns [node] : open= '[' item= expr_or 'for' n= nestedlvalue 'in' container= expr_or ( 'if' condition= expr_or )? close= ']' ;
     def listcomprehension(self, ):
         node = None
 
@@ -871,8 +871,8 @@ class UL4Parser(Parser):
         	
         try:
             try:
-                # src/ll/UL4.g:232:2: (open= '[' item= expr_or 'for' n= nestedname 'in' container= expr_or ( 'if' condition= expr_or )? close= ']' )
-                # src/ll/UL4.g:233:3: open= '[' item= expr_or 'for' n= nestedname 'in' container= expr_or ( 'if' condition= expr_or )? close= ']'
+                # src/ll/UL4.g:232:2: (open= '[' item= expr_or 'for' n= nestedlvalue 'in' container= expr_or ( 'if' condition= expr_or )? close= ']' )
+                # src/ll/UL4.g:233:3: open= '[' item= expr_or 'for' n= nestedlvalue 'in' container= expr_or ( 'if' condition= expr_or )? close= ']'
                 pass 
                 open = self.match(self.input, 52, self.FOLLOW_52_in_listcomprehension1145)
 
@@ -883,8 +883,8 @@ class UL4Parser(Parser):
 
                 self.match(self.input, 55, self.FOLLOW_55_in_listcomprehension1155)
 
-                self._state.following.append(self.FOLLOW_nestedname_in_listcomprehension1161)
-                n = self.nestedname()
+                self._state.following.append(self.FOLLOW_nestedlvalue_in_listcomprehension1161)
+                n = self.nestedlvalue()
 
                 self._state.following.pop()
 
@@ -924,7 +924,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node = ul4c.ListComp(self.location, self.start(open), self.end(close), item, ((n is not None) and [n.varname] or [None])[0], container, _condition) 
+                    node = ul4c.ListComp(self.location, self.start(open), self.end(close), item, ((n is not None) and [n.lvalue] or [None])[0], container, _condition) 
 
 
 
@@ -1146,7 +1146,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "dictcomprehension"
-    # src/ll/UL4.g:270:1: dictcomprehension returns [node] : open= '{' key= expr_or ':' value= expr_or 'for' n= nestedname 'in' container= expr_or ( 'if' condition= expr_or )? close= '}' ;
+    # src/ll/UL4.g:270:1: dictcomprehension returns [node] : open= '{' key= expr_or ':' value= expr_or 'for' n= nestedlvalue 'in' container= expr_or ( 'if' condition= expr_or )? close= '}' ;
     def dictcomprehension(self, ):
         node = None
 
@@ -1169,8 +1169,8 @@ class UL4Parser(Parser):
         	
         try:
             try:
-                # src/ll/UL4.g:275:2: (open= '{' key= expr_or ':' value= expr_or 'for' n= nestedname 'in' container= expr_or ( 'if' condition= expr_or )? close= '}' )
-                # src/ll/UL4.g:276:3: open= '{' key= expr_or ':' value= expr_or 'for' n= nestedname 'in' container= expr_or ( 'if' condition= expr_or )? close= '}'
+                # src/ll/UL4.g:275:2: (open= '{' key= expr_or ':' value= expr_or 'for' n= nestedlvalue 'in' container= expr_or ( 'if' condition= expr_or )? close= '}' )
+                # src/ll/UL4.g:276:3: open= '{' key= expr_or ':' value= expr_or 'for' n= nestedlvalue 'in' container= expr_or ( 'if' condition= expr_or )? close= '}'
                 pass 
                 open = self.match(self.input, 60, self.FOLLOW_60_in_dictcomprehension1345)
 
@@ -1188,8 +1188,8 @@ class UL4Parser(Parser):
 
                 self.match(self.input, 55, self.FOLLOW_55_in_dictcomprehension1365)
 
-                self._state.following.append(self.FOLLOW_nestedname_in_dictcomprehension1371)
-                n = self.nestedname()
+                self._state.following.append(self.FOLLOW_nestedlvalue_in_dictcomprehension1371)
+                n = self.nestedlvalue()
 
                 self._state.following.pop()
 
@@ -1229,7 +1229,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node = ul4c.DictComp(self.location, self.start(open), self.end(close), key, value, ((n is not None) and [n.varname] or [None])[0], container, _condition) 
+                    node = ul4c.DictComp(self.location, self.start(open), self.end(close), key, value, ((n is not None) and [n.lvalue] or [None])[0], container, _condition) 
 
 
 
@@ -1249,7 +1249,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "generatorexpression"
-    # src/ll/UL4.g:291:1: generatorexpression returns [node] : item= expr_or 'for' n= nestedname 'in' container= expr_or ( 'if' condition= expr_or )? ;
+    # src/ll/UL4.g:291:1: generatorexpression returns [node] : item= expr_or 'for' n= nestedlvalue 'in' container= expr_or ( 'if' condition= expr_or )? ;
     def generatorexpression(self, ):
         node = None
 
@@ -1269,8 +1269,8 @@ class UL4Parser(Parser):
         	
         try:
             try:
-                # src/ll/UL4.g:297:2: (item= expr_or 'for' n= nestedname 'in' container= expr_or ( 'if' condition= expr_or )? )
-                # src/ll/UL4.g:298:3: item= expr_or 'for' n= nestedname 'in' container= expr_or ( 'if' condition= expr_or )?
+                # src/ll/UL4.g:297:2: (item= expr_or 'for' n= nestedlvalue 'in' container= expr_or ( 'if' condition= expr_or )? )
+                # src/ll/UL4.g:298:3: item= expr_or 'for' n= nestedlvalue 'in' container= expr_or ( 'if' condition= expr_or )?
                 pass 
                 self._state.following.append(self.FOLLOW_expr_or_in_generatorexpression1438)
                 item = self.expr_or()
@@ -1285,8 +1285,8 @@ class UL4Parser(Parser):
 
                 self.match(self.input, 55, self.FOLLOW_55_in_generatorexpression1444)
 
-                self._state.following.append(self.FOLLOW_nestedname_in_generatorexpression1450)
-                n = self.nestedname()
+                self._state.following.append(self.FOLLOW_nestedlvalue_in_generatorexpression1450)
+                n = self.nestedlvalue()
 
                 self._state.following.pop()
 
@@ -1330,7 +1330,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node = ul4c.GenExpr(self.location, item.start, _end, item, ((n is not None) and [n.varname] or [None])[0], container, _condition) 
+                    node = ul4c.GenExpr(self.location, item.start, _end, item, ((n is not None) and [n.lvalue] or [None])[0], container, _condition) 
 
 
 
@@ -1573,20 +1573,20 @@ class UL4Parser(Parser):
     # $ANTLR end "atom"
 
 
-    class nestedname_return(ParserRuleReturnScope):
+    class nestedlvalue_return(ParserRuleReturnScope):
         def __init__(self):
-            super(UL4Parser.nestedname_return, self).__init__()
+            super(UL4Parser.nestedlvalue_return, self).__init__()
 
-            self.varname = None
-
-
+            self.lvalue = None
 
 
 
-    # $ANTLR start "nestedname"
-    # src/ll/UL4.g:328:1: nestedname returns [varname] : (n= name | '(' n0= nestedname ',' ')' | '(' n1= nestedname ',' n2= nestedname ( ',' n3= nestedname )* ( ',' )? ')' );
-    def nestedname(self, ):
-        retval = self.nestedname_return()
+
+
+    # $ANTLR start "nestedlvalue"
+    # src/ll/UL4.g:328:1: nestedlvalue returns [lvalue] : (n= expr_subscript | '(' n0= nestedlvalue ',' ')' | '(' n1= nestedlvalue ',' n2= nestedlvalue ( ',' n3= nestedlvalue )* ( ',' )? ')' );
+    def nestedlvalue(self, ):
+        retval = self.nestedlvalue_return()
         retval.start = self.input.LT(1)
 
 
@@ -1603,16 +1603,18 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:329:2: (n= name | '(' n0= nestedname ',' ')' | '(' n1= nestedname ',' n2= nestedname ( ',' n3= nestedname )* ( ',' )? ')' )
+                # src/ll/UL4.g:329:2: (n= expr_subscript | '(' n0= nestedlvalue ',' ')' | '(' n1= nestedlvalue ',' n2= nestedlvalue ( ',' n3= nestedlvalue )* ( ',' )? ')' )
                 alt15 = 3
                 LA15_0 = self.input.LA(1)
 
-                if (LA15_0 == NAME) :
+                if ((COLOR <= LA15_0 <= DATE) or (FALSE <= LA15_0 <= FLOAT) or (INT <= LA15_0 <= NONE) or (STRING <= LA15_0 <= STRING3) or LA15_0 == TRUE or LA15_0 == 52 or LA15_0 == 60) :
                     alt15 = 1
                 elif (LA15_0 == 30) :
-                    LA15_2 = self.input.LA(2)
+                    LA15_13 = self.input.LA(2)
 
-                    if (self.synpred26_UL4()) :
+                    if (self.synpred25_UL4()) :
+                        alt15 = 1
+                    elif (self.synpred26_UL4()) :
                         alt15 = 2
                     elif (True) :
                         alt15 = 3
@@ -1621,7 +1623,7 @@ class UL4Parser(Parser):
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 15, 2, self.input)
+                        nvae = NoViableAltException("", 15, 13, self.input)
 
                         raise nvae
 
@@ -1637,65 +1639,65 @@ class UL4Parser(Parser):
 
 
                 if alt15 == 1:
-                    # src/ll/UL4.g:330:3: n= name
+                    # src/ll/UL4.g:330:3: n= expr_subscript
                     pass 
-                    self._state.following.append(self.FOLLOW_name_in_nestedname1597)
-                    n = self.name()
+                    self._state.following.append(self.FOLLOW_expr_subscript_in_nestedlvalue1597)
+                    n = self.expr_subscript()
 
                     self._state.following.pop()
 
                     if self._state.backtracking == 0:
                         pass
-                        retval.varname =  ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0] 
+                        retval.lvalue =  ((n is not None) and [n.node] or [None])[0] 
 
 
 
 
                 elif alt15 == 2:
-                    # src/ll/UL4.g:332:3: '(' n0= nestedname ',' ')'
+                    # src/ll/UL4.g:332:3: '(' n0= nestedlvalue ',' ')'
                     pass 
-                    self.match(self.input, 30, self.FOLLOW_30_in_nestedname1606)
+                    self.match(self.input, 30, self.FOLLOW_30_in_nestedlvalue1606)
 
-                    self._state.following.append(self.FOLLOW_nestedname_in_nestedname1610)
-                    n0 = self.nestedname()
+                    self._state.following.append(self.FOLLOW_nestedlvalue_in_nestedlvalue1610)
+                    n0 = self.nestedlvalue()
 
                     self._state.following.pop()
 
-                    self.match(self.input, 37, self.FOLLOW_37_in_nestedname1612)
+                    self.match(self.input, 37, self.FOLLOW_37_in_nestedlvalue1612)
 
-                    self.match(self.input, 31, self.FOLLOW_31_in_nestedname1614)
+                    self.match(self.input, 31, self.FOLLOW_31_in_nestedlvalue1614)
 
                     if self._state.backtracking == 0:
                         pass
-                        retval.varname = (((n0 is not None) and [n0.varname] or [None])[0],) 
+                        retval.lvalue = (((n0 is not None) and [n0.lvalue] or [None])[0],) 
 
 
 
 
                 elif alt15 == 3:
-                    # src/ll/UL4.g:334:3: '(' n1= nestedname ',' n2= nestedname ( ',' n3= nestedname )* ( ',' )? ')'
+                    # src/ll/UL4.g:334:3: '(' n1= nestedlvalue ',' n2= nestedlvalue ( ',' n3= nestedlvalue )* ( ',' )? ')'
                     pass 
-                    self.match(self.input, 30, self.FOLLOW_30_in_nestedname1623)
+                    self.match(self.input, 30, self.FOLLOW_30_in_nestedlvalue1623)
 
-                    self._state.following.append(self.FOLLOW_nestedname_in_nestedname1629)
-                    n1 = self.nestedname()
+                    self._state.following.append(self.FOLLOW_nestedlvalue_in_nestedlvalue1629)
+                    n1 = self.nestedlvalue()
 
                     self._state.following.pop()
 
-                    self.match(self.input, 37, self.FOLLOW_37_in_nestedname1633)
+                    self.match(self.input, 37, self.FOLLOW_37_in_nestedlvalue1633)
 
-                    self._state.following.append(self.FOLLOW_nestedname_in_nestedname1639)
-                    n2 = self.nestedname()
+                    self._state.following.append(self.FOLLOW_nestedlvalue_in_nestedlvalue1639)
+                    n2 = self.nestedlvalue()
 
                     self._state.following.pop()
 
                     if self._state.backtracking == 0:
                         pass
-                        retval.varname = (((n1 is not None) and [n1.varname] or [None])[0], ((n2 is not None) and [n2.varname] or [None])[0]) 
+                        retval.lvalue = (((n1 is not None) and [n1.lvalue] or [None])[0], ((n2 is not None) and [n2.lvalue] or [None])[0]) 
 
 
 
-                    # src/ll/UL4.g:338:3: ( ',' n3= nestedname )*
+                    # src/ll/UL4.g:338:3: ( ',' n3= nestedlvalue )*
                     while True: #loop13
                         alt13 = 2
                         LA13_0 = self.input.LA(1)
@@ -1703,25 +1705,25 @@ class UL4Parser(Parser):
                         if (LA13_0 == 37) :
                             LA13_1 = self.input.LA(2)
 
-                            if (LA13_1 == NAME or LA13_1 == 30) :
+                            if ((COLOR <= LA13_1 <= DATE) or (FALSE <= LA13_1 <= FLOAT) or (INT <= LA13_1 <= NONE) or (STRING <= LA13_1 <= STRING3) or LA13_1 == TRUE or LA13_1 == 30 or LA13_1 == 52 or LA13_1 == 60) :
                                 alt13 = 1
 
 
 
 
                         if alt13 == 1:
-                            # src/ll/UL4.g:339:4: ',' n3= nestedname
+                            # src/ll/UL4.g:339:4: ',' n3= nestedlvalue
                             pass 
-                            self.match(self.input, 37, self.FOLLOW_37_in_nestedname1650)
+                            self.match(self.input, 37, self.FOLLOW_37_in_nestedlvalue1650)
 
-                            self._state.following.append(self.FOLLOW_nestedname_in_nestedname1657)
-                            n3 = self.nestedname()
+                            self._state.following.append(self.FOLLOW_nestedlvalue_in_nestedlvalue1657)
+                            n3 = self.nestedlvalue()
 
                             self._state.following.pop()
 
                             if self._state.backtracking == 0:
                                 pass
-                                retval.varname += (((n3 is not None) and [n3.varname] or [None])[0],) 
+                                retval.lvalue += (((n3 is not None) and [n3.lvalue] or [None])[0],) 
 
 
 
@@ -1739,12 +1741,12 @@ class UL4Parser(Parser):
                     if alt14 == 1:
                         # src/ll/UL4.g:342:3: ','
                         pass 
-                        self.match(self.input, 37, self.FOLLOW_37_in_nestedname1668)
+                        self.match(self.input, 37, self.FOLLOW_37_in_nestedlvalue1668)
 
 
 
 
-                    self.match(self.input, 31, self.FOLLOW_31_in_nestedname1673)
+                    self.match(self.input, 31, self.FOLLOW_31_in_nestedlvalue1673)
 
 
                 retval.stop = self.input.LT(-1)
@@ -1759,14 +1761,24 @@ class UL4Parser(Parser):
             pass
         return retval
 
-    # $ANTLR end "nestedname"
+    # $ANTLR end "nestedlvalue"
+
+
+    class expr_subscript_return(ParserRuleReturnScope):
+        def __init__(self):
+            super(UL4Parser.expr_subscript_return, self).__init__()
+
+            self.node = None
+
+
 
 
 
     # $ANTLR start "expr_subscript"
     # src/ll/UL4.g:347:1: expr_subscript returns [node] : e1= atom ( '.' n= name | '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) close= ')' | '[' ( ':' (e2= expr_or )? |e2= expr_or ( ':' (e3= expr_or )? )? ) close= ']' )* ;
     def expr_subscript(self, ):
-        node = None
+        retval = self.expr_subscript_return()
+        retval.start = self.input.LT(1)
 
 
         close = None
@@ -1800,15 +1812,14 @@ class UL4Parser(Parser):
 
 
          
-        callmeth = False
         index1 = None
         index2 = None
         slice = False
         	
         try:
             try:
-                # src/ll/UL4.g:355:2: (e1= atom ( '.' n= name | '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) close= ')' | '[' ( ':' (e2= expr_or )? |e2= expr_or ( ':' (e3= expr_or )? )? ) close= ']' )* )
-                # src/ll/UL4.g:356:3: e1= atom ( '.' n= name | '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) close= ')' | '[' ( ':' (e2= expr_or )? |e2= expr_or ( ':' (e3= expr_or )? )? ) close= ']' )*
+                # src/ll/UL4.g:354:2: (e1= atom ( '.' n= name | '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) close= ')' | '[' ( ':' (e2= expr_or )? |e2= expr_or ( ':' (e3= expr_or )? )? ) close= ']' )* )
+                # src/ll/UL4.g:355:3: e1= atom ( '.' n= name | '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) close= ')' | '[' ( ':' (e2= expr_or )? |e2= expr_or ( ':' (e3= expr_or )? )? ) close= ']' )*
                 pass 
                 self._state.following.append(self.FOLLOW_atom_in_expr_subscript1701)
                 e1 = self.atom()
@@ -1817,11 +1828,11 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node =  e1 
+                    retval.node =  e1 
 
 
 
-                # src/ll/UL4.g:357:3: ( '.' n= name | '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) close= ')' | '[' ( ':' (e2= expr_or )? |e2= expr_or ( ':' (e3= expr_or )? )? ) close= ']' )*
+                # src/ll/UL4.g:356:3: ( '.' n= name | '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) close= ')' | '[' ( ':' (e2= expr_or )? |e2= expr_or ( ':' (e3= expr_or )? )? ) close= ']' )*
                 while True: #loop33
                     alt33 = 4
                     LA33 = self.input.LA(1)
@@ -1833,7 +1844,7 @@ class UL4Parser(Parser):
                         alt33 = 3
 
                     if alt33 == 1:
-                        # src/ll/UL4.g:359:4: '.' n= name
+                        # src/ll/UL4.g:358:4: '.' n= name
                         pass 
                         self.match(self.input, 40, self.FOLLOW_40_in_expr_subscript1717)
 
@@ -1844,23 +1855,23 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            node = ul4c.GetAttr(self.location, node.start, self.end(n.stop), node, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0]) 
+                            retval.node = ul4c.GetAttr(self.location, retval.node.start, self.end(n.stop), retval.node, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0]) 
 
 
 
 
                     elif alt33 == 2:
-                        # src/ll/UL4.g:363:4: '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) close= ')'
+                        # src/ll/UL4.g:362:4: '(' (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? ) close= ')'
                         pass 
                         self.match(self.input, 30, self.FOLLOW_30_in_expr_subscript1740)
 
                         if self._state.backtracking == 0:
                             pass
-                            node = ul4c.Call(self.location, node.start, None, node) 
+                            retval.node = ul4c.Call(self.location, retval.node.start, None, retval.node) 
 
 
 
-                        # src/ll/UL4.g:364:4: (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? )
+                        # src/ll/UL4.g:363:4: (| '**' rkwargs= exprarg ( ',' )? | '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )? |a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? |an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )? )
                         alt28 = 5
                         LA28 = self.input.LA(1)
                         if LA28 == 31:
@@ -1899,11 +1910,11 @@ class UL4Parser(Parser):
 
 
                         if alt28 == 1:
-                            # src/ll/UL4.g:366:4: 
+                            # src/ll/UL4.g:365:4: 
                             pass 
 
                         elif alt28 == 2:
-                            # src/ll/UL4.g:368:5: '**' rkwargs= exprarg ( ',' )?
+                            # src/ll/UL4.g:367:5: '**' rkwargs= exprarg ( ',' )?
                             pass 
                             self.match(self.input, 33, self.FOLLOW_33_in_expr_subscript1770)
 
@@ -1914,18 +1925,18 @@ class UL4Parser(Parser):
 
                             if self._state.backtracking == 0:
                                 pass
-                                node.remkwargs = rkwargs; 
+                                retval.node.remkwargs = rkwargs; 
 
 
 
-                            # src/ll/UL4.g:369:5: ( ',' )?
+                            # src/ll/UL4.g:368:5: ( ',' )?
                             alt16 = 2
                             LA16_0 = self.input.LA(1)
 
                             if (LA16_0 == 37) :
                                 alt16 = 1
                             if alt16 == 1:
-                                # src/ll/UL4.g:369:5: ','
+                                # src/ll/UL4.g:368:5: ','
                                 pass 
                                 self.match(self.input, 37, self.FOLLOW_37_in_expr_subscript1782)
 
@@ -1934,7 +1945,7 @@ class UL4Parser(Parser):
 
 
                         elif alt28 == 3:
-                            # src/ll/UL4.g:372:5: '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )?
+                            # src/ll/UL4.g:371:5: '*' rargs= exprarg ( ',' '**' rkwargs= exprarg )? ( ',' )?
                             pass 
                             self.match(self.input, 32, self.FOLLOW_32_in_expr_subscript1800)
 
@@ -1945,11 +1956,11 @@ class UL4Parser(Parser):
 
                             if self._state.backtracking == 0:
                                 pass
-                                node.remargs = rargs; 
+                                retval.node.remargs = rargs; 
 
 
 
-                            # src/ll/UL4.g:373:5: ( ',' '**' rkwargs= exprarg )?
+                            # src/ll/UL4.g:372:5: ( ',' '**' rkwargs= exprarg )?
                             alt17 = 2
                             LA17_0 = self.input.LA(1)
 
@@ -1959,7 +1970,7 @@ class UL4Parser(Parser):
                                 if (LA17_1 == 33) :
                                     alt17 = 1
                             if alt17 == 1:
-                                # src/ll/UL4.g:374:6: ',' '**' rkwargs= exprarg
+                                # src/ll/UL4.g:373:6: ',' '**' rkwargs= exprarg
                                 pass 
                                 self.match(self.input, 37, self.FOLLOW_37_in_expr_subscript1819)
 
@@ -1972,21 +1983,21 @@ class UL4Parser(Parser):
 
                                 if self._state.backtracking == 0:
                                     pass
-                                    node.remkwargs = rkwargs; 
+                                    retval.node.remkwargs = rkwargs; 
 
 
 
 
 
 
-                            # src/ll/UL4.g:377:5: ( ',' )?
+                            # src/ll/UL4.g:376:5: ( ',' )?
                             alt18 = 2
                             LA18_0 = self.input.LA(1)
 
                             if (LA18_0 == 37) :
                                 alt18 = 1
                             if alt18 == 1:
-                                # src/ll/UL4.g:377:5: ','
+                                # src/ll/UL4.g:376:5: ','
                                 pass 
                                 self.match(self.input, 37, self.FOLLOW_37_in_expr_subscript1845)
 
@@ -1995,7 +2006,7 @@ class UL4Parser(Parser):
 
 
                         elif alt28 == 4:
-                            # src/ll/UL4.g:380:5: a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )?
+                            # src/ll/UL4.g:379:5: a1= exprarg ( ',' a2= exprarg )* ( ',' an3= name '=' av3= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )?
                             pass 
                             self._state.following.append(self.FOLLOW_exprarg_in_expr_subscript1865)
                             a1 = self.exprarg()
@@ -2004,11 +2015,11 @@ class UL4Parser(Parser):
 
                             if self._state.backtracking == 0:
                                 pass
-                                node.args.append(a1) 
+                                retval.node.args.append(a1) 
 
 
 
-                            # src/ll/UL4.g:381:5: ( ',' a2= exprarg )*
+                            # src/ll/UL4.g:380:5: ( ',' a2= exprarg )*
                             while True: #loop19
                                 alt19 = 2
                                 LA19_0 = self.input.LA(1)
@@ -2030,7 +2041,7 @@ class UL4Parser(Parser):
 
 
                                 if alt19 == 1:
-                                    # src/ll/UL4.g:382:6: ',' a2= exprarg
+                                    # src/ll/UL4.g:381:6: ',' a2= exprarg
                                     pass 
                                     self.match(self.input, 37, self.FOLLOW_37_in_expr_subscript1880)
 
@@ -2041,7 +2052,7 @@ class UL4Parser(Parser):
 
                                     if self._state.backtracking == 0:
                                         pass
-                                        node.args.append(a2) 
+                                        retval.node.args.append(a2) 
 
 
 
@@ -2050,7 +2061,7 @@ class UL4Parser(Parser):
                                     break #loop19
 
 
-                            # src/ll/UL4.g:385:5: ( ',' an3= name '=' av3= exprarg )*
+                            # src/ll/UL4.g:384:5: ( ',' an3= name '=' av3= exprarg )*
                             while True: #loop20
                                 alt20 = 2
                                 LA20_0 = self.input.LA(1)
@@ -2065,7 +2076,7 @@ class UL4Parser(Parser):
 
 
                                 if alt20 == 1:
-                                    # src/ll/UL4.g:386:6: ',' an3= name '=' av3= exprarg
+                                    # src/ll/UL4.g:385:6: ',' an3= name '=' av3= exprarg
                                     pass 
                                     self.match(self.input, 37, self.FOLLOW_37_in_expr_subscript1911)
 
@@ -2083,7 +2094,7 @@ class UL4Parser(Parser):
 
                                     if self._state.backtracking == 0:
                                         pass
-                                        node.kwargs.append((((an3 is not None) and [self.input.toString(an3.start,an3.stop)] or [None])[0], av3)) 
+                                        retval.node.kwargs.append((((an3 is not None) and [self.input.toString(an3.start,an3.stop)] or [None])[0], av3)) 
 
 
 
@@ -2092,7 +2103,7 @@ class UL4Parser(Parser):
                                     break #loop20
 
 
-                            # src/ll/UL4.g:389:5: ( ',' '*' rargs= exprarg )?
+                            # src/ll/UL4.g:388:5: ( ',' '*' rargs= exprarg )?
                             alt21 = 2
                             LA21_0 = self.input.LA(1)
 
@@ -2102,7 +2113,7 @@ class UL4Parser(Parser):
                                 if (LA21_1 == 32) :
                                     alt21 = 1
                             if alt21 == 1:
-                                # src/ll/UL4.g:390:6: ',' '*' rargs= exprarg
+                                # src/ll/UL4.g:389:6: ',' '*' rargs= exprarg
                                 pass 
                                 self.match(self.input, 37, self.FOLLOW_37_in_expr_subscript1948)
 
@@ -2115,14 +2126,14 @@ class UL4Parser(Parser):
 
                                 if self._state.backtracking == 0:
                                     pass
-                                    node.remargs = rargs; 
+                                    retval.node.remargs = rargs; 
 
 
 
 
 
 
-                            # src/ll/UL4.g:393:5: ( ',' '**' rkwargs= exprarg )?
+                            # src/ll/UL4.g:392:5: ( ',' '**' rkwargs= exprarg )?
                             alt22 = 2
                             LA22_0 = self.input.LA(1)
 
@@ -2132,7 +2143,7 @@ class UL4Parser(Parser):
                                 if (LA22_1 == 33) :
                                     alt22 = 1
                             if alt22 == 1:
-                                # src/ll/UL4.g:394:6: ',' '**' rkwargs= exprarg
+                                # src/ll/UL4.g:393:6: ',' '**' rkwargs= exprarg
                                 pass 
                                 self.match(self.input, 37, self.FOLLOW_37_in_expr_subscript1981)
 
@@ -2145,21 +2156,21 @@ class UL4Parser(Parser):
 
                                 if self._state.backtracking == 0:
                                     pass
-                                    node.remkwargs = rkwargs; 
+                                    retval.node.remkwargs = rkwargs; 
 
 
 
 
 
 
-                            # src/ll/UL4.g:397:5: ( ',' )?
+                            # src/ll/UL4.g:396:5: ( ',' )?
                             alt23 = 2
                             LA23_0 = self.input.LA(1)
 
                             if (LA23_0 == 37) :
                                 alt23 = 1
                             if alt23 == 1:
-                                # src/ll/UL4.g:397:5: ','
+                                # src/ll/UL4.g:396:5: ','
                                 pass 
                                 self.match(self.input, 37, self.FOLLOW_37_in_expr_subscript2007)
 
@@ -2168,7 +2179,7 @@ class UL4Parser(Parser):
 
 
                         elif alt28 == 5:
-                            # src/ll/UL4.g:400:5: an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )?
+                            # src/ll/UL4.g:399:5: an1= name '=' av1= exprarg ( ',' an2= name '=' av2= exprarg )* ( ',' '*' rargs= exprarg )? ( ',' '**' rkwargs= exprarg )? ( ',' )?
                             pass 
                             self._state.following.append(self.FOLLOW_name_in_expr_subscript2027)
                             an1 = self.name()
@@ -2184,11 +2195,11 @@ class UL4Parser(Parser):
 
                             if self._state.backtracking == 0:
                                 pass
-                                node.kwargs.append((((an1 is not None) and [self.input.toString(an1.start,an1.stop)] or [None])[0], av1)) 
+                                retval.node.kwargs.append((((an1 is not None) and [self.input.toString(an1.start,an1.stop)] or [None])[0], av1)) 
 
 
 
-                            # src/ll/UL4.g:401:5: ( ',' an2= name '=' av2= exprarg )*
+                            # src/ll/UL4.g:400:5: ( ',' an2= name '=' av2= exprarg )*
                             while True: #loop24
                                 alt24 = 2
                                 LA24_0 = self.input.LA(1)
@@ -2203,7 +2214,7 @@ class UL4Parser(Parser):
 
 
                                 if alt24 == 1:
-                                    # src/ll/UL4.g:402:6: ',' an2= name '=' av2= exprarg
+                                    # src/ll/UL4.g:401:6: ',' an2= name '=' av2= exprarg
                                     pass 
                                     self.match(self.input, 37, self.FOLLOW_37_in_expr_subscript2048)
 
@@ -2221,7 +2232,7 @@ class UL4Parser(Parser):
 
                                     if self._state.backtracking == 0:
                                         pass
-                                        node.kwargs.append((((an2 is not None) and [self.input.toString(an2.start,an2.stop)] or [None])[0], av2)) 
+                                        retval.node.kwargs.append((((an2 is not None) and [self.input.toString(an2.start,an2.stop)] or [None])[0], av2)) 
 
 
 
@@ -2230,7 +2241,7 @@ class UL4Parser(Parser):
                                     break #loop24
 
 
-                            # src/ll/UL4.g:405:5: ( ',' '*' rargs= exprarg )?
+                            # src/ll/UL4.g:404:5: ( ',' '*' rargs= exprarg )?
                             alt25 = 2
                             LA25_0 = self.input.LA(1)
 
@@ -2240,7 +2251,7 @@ class UL4Parser(Parser):
                                 if (LA25_1 == 32) :
                                     alt25 = 1
                             if alt25 == 1:
-                                # src/ll/UL4.g:406:6: ',' '*' rargs= exprarg
+                                # src/ll/UL4.g:405:6: ',' '*' rargs= exprarg
                                 pass 
                                 self.match(self.input, 37, self.FOLLOW_37_in_expr_subscript2085)
 
@@ -2253,14 +2264,14 @@ class UL4Parser(Parser):
 
                                 if self._state.backtracking == 0:
                                     pass
-                                    node.remargs = rargs; 
+                                    retval.node.remargs = rargs; 
 
 
 
 
 
 
-                            # src/ll/UL4.g:409:5: ( ',' '**' rkwargs= exprarg )?
+                            # src/ll/UL4.g:408:5: ( ',' '**' rkwargs= exprarg )?
                             alt26 = 2
                             LA26_0 = self.input.LA(1)
 
@@ -2270,7 +2281,7 @@ class UL4Parser(Parser):
                                 if (LA26_1 == 33) :
                                     alt26 = 1
                             if alt26 == 1:
-                                # src/ll/UL4.g:410:6: ',' '**' rkwargs= exprarg
+                                # src/ll/UL4.g:409:6: ',' '**' rkwargs= exprarg
                                 pass 
                                 self.match(self.input, 37, self.FOLLOW_37_in_expr_subscript2118)
 
@@ -2283,21 +2294,21 @@ class UL4Parser(Parser):
 
                                 if self._state.backtracking == 0:
                                     pass
-                                    node.remkwargs = rkwargs; 
+                                    retval.node.remkwargs = rkwargs; 
 
 
 
 
 
 
-                            # src/ll/UL4.g:413:5: ( ',' )?
+                            # src/ll/UL4.g:412:5: ( ',' )?
                             alt27 = 2
                             LA27_0 = self.input.LA(1)
 
                             if (LA27_0 == 37) :
                                 alt27 = 1
                             if alt27 == 1:
-                                # src/ll/UL4.g:413:5: ','
+                                # src/ll/UL4.g:412:5: ','
                                 pass 
                                 self.match(self.input, 37, self.FOLLOW_37_in_expr_subscript2144)
 
@@ -2311,17 +2322,17 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            node.end = self.end(close) 
+                            retval.node.end = self.end(close) 
 
 
 
 
                     elif alt33 == 3:
-                        # src/ll/UL4.g:418:4: '[' ( ':' (e2= expr_or )? |e2= expr_or ( ':' (e3= expr_or )? )? ) close= ']'
+                        # src/ll/UL4.g:417:4: '[' ( ':' (e2= expr_or )? |e2= expr_or ( ':' (e3= expr_or )? )? ) close= ']'
                         pass 
                         self.match(self.input, 52, self.FOLLOW_52_in_expr_subscript2173)
 
-                        # src/ll/UL4.g:419:4: ( ':' (e2= expr_or )? |e2= expr_or ( ':' (e3= expr_or )? )? )
+                        # src/ll/UL4.g:418:4: ( ':' (e2= expr_or )? |e2= expr_or ( ':' (e3= expr_or )? )? )
                         alt32 = 2
                         LA32_0 = self.input.LA(1)
 
@@ -2340,18 +2351,18 @@ class UL4Parser(Parser):
 
 
                         if alt32 == 1:
-                            # src/ll/UL4.g:420:5: ':' (e2= expr_or )?
+                            # src/ll/UL4.g:419:5: ':' (e2= expr_or )?
                             pass 
                             self.match(self.input, 45, self.FOLLOW_45_in_expr_subscript2184)
 
-                            # src/ll/UL4.g:421:5: (e2= expr_or )?
+                            # src/ll/UL4.g:420:5: (e2= expr_or )?
                             alt29 = 2
                             LA29_0 = self.input.LA(1)
 
                             if ((COLOR <= LA29_0 <= DATE) or (FALSE <= LA29_0 <= FLOAT) or (INT <= LA29_0 <= NONE) or (STRING <= LA29_0 <= STRING3) or LA29_0 == TRUE or LA29_0 == 30 or LA29_0 == 38 or LA29_0 == 52 or LA29_0 == 58 or LA29_0 == 60) :
                                 alt29 = 1
                             if alt29 == 1:
-                                # src/ll/UL4.g:422:6: e2= expr_or
+                                # src/ll/UL4.g:421:6: e2= expr_or
                                 pass 
                                 self._state.following.append(self.FOLLOW_expr_or_in_expr_subscript2199)
                                 e2 = self.expr_or()
@@ -2369,13 +2380,13 @@ class UL4Parser(Parser):
 
                             if self._state.backtracking == 0:
                                 pass
-                                node = ul4c.GetSlice(self.location, node.start, None, node, None, index2) 
+                                retval.node = ul4c.GetSlice(self.location, retval.node.start, None, retval.node, None, index2) 
 
 
 
 
                         elif alt32 == 2:
-                            # src/ll/UL4.g:425:5: e2= expr_or ( ':' (e3= expr_or )? )?
+                            # src/ll/UL4.g:424:5: e2= expr_or ( ':' (e3= expr_or )? )?
                             pass 
                             self._state.following.append(self.FOLLOW_expr_or_in_expr_subscript2223)
                             e2 = self.expr_or()
@@ -2388,14 +2399,14 @@ class UL4Parser(Parser):
 
 
 
-                            # src/ll/UL4.g:426:5: ( ':' (e3= expr_or )? )?
+                            # src/ll/UL4.g:425:5: ( ':' (e3= expr_or )? )?
                             alt31 = 2
                             LA31_0 = self.input.LA(1)
 
                             if (LA31_0 == 45) :
                                 alt31 = 1
                             if alt31 == 1:
-                                # src/ll/UL4.g:427:6: ':' (e3= expr_or )?
+                                # src/ll/UL4.g:426:6: ':' (e3= expr_or )?
                                 pass 
                                 self.match(self.input, 45, self.FOLLOW_45_in_expr_subscript2238)
 
@@ -2405,14 +2416,14 @@ class UL4Parser(Parser):
 
 
 
-                                # src/ll/UL4.g:428:6: (e3= expr_or )?
+                                # src/ll/UL4.g:427:6: (e3= expr_or )?
                                 alt30 = 2
                                 LA30_0 = self.input.LA(1)
 
                                 if ((COLOR <= LA30_0 <= DATE) or (FALSE <= LA30_0 <= FLOAT) or (INT <= LA30_0 <= NONE) or (STRING <= LA30_0 <= STRING3) or LA30_0 == TRUE or LA30_0 == 30 or LA30_0 == 38 or LA30_0 == 52 or LA30_0 == 58 or LA30_0 == 60) :
                                     alt30 = 1
                                 if alt30 == 1:
-                                    # src/ll/UL4.g:429:7: e3= expr_or
+                                    # src/ll/UL4.g:428:7: e3= expr_or
                                     pass 
                                     self._state.following.append(self.FOLLOW_expr_or_in_expr_subscript2257)
                                     e3 = self.expr_or()
@@ -2433,7 +2444,7 @@ class UL4Parser(Parser):
 
                             if self._state.backtracking == 0:
                                 pass
-                                node = ul4c.GetSlice(self.location, node.start, None, node, index1, index2) if slice else ul4c.GetItem(self.location, e1.start, None, node, index1) 
+                                retval.node = ul4c.GetSlice(self.location, retval.node.start, None, retval.node, index1, index2) if slice else ul4c.GetItem(self.location, e1.start, None, retval.node, index1) 
 
 
 
@@ -2444,7 +2455,7 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            node.end = self.end(close) 
+                            retval.node.end = self.end(close) 
 
 
 
@@ -2455,6 +2466,9 @@ class UL4Parser(Parser):
 
 
 
+                retval.stop = self.input.LT(-1)
+
+
 
                        
             except RecognitionException as e:
@@ -2462,14 +2476,14 @@ class UL4Parser(Parser):
 
         finally:
             pass
-        return node
+        return retval
 
     # $ANTLR end "expr_subscript"
 
 
 
     # $ANTLR start "expr_neg"
-    # src/ll/UL4.g:438:1: expr_neg returns [node] : (e1= expr_subscript |minus= '-' e2= expr_neg );
+    # src/ll/UL4.g:437:1: expr_neg returns [node] : (e1= expr_subscript |minus= '-' e2= expr_neg );
     def expr_neg(self, ):
         node = None
 
@@ -2482,7 +2496,7 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:439:2: (e1= expr_subscript |minus= '-' e2= expr_neg )
+                # src/ll/UL4.g:438:2: (e1= expr_subscript |minus= '-' e2= expr_neg )
                 alt34 = 2
                 LA34_0 = self.input.LA(1)
 
@@ -2501,7 +2515,7 @@ class UL4Parser(Parser):
 
 
                 if alt34 == 1:
-                    # src/ll/UL4.g:440:3: e1= expr_subscript
+                    # src/ll/UL4.g:439:3: e1= expr_subscript
                     pass 
                     self._state.following.append(self.FOLLOW_expr_subscript_in_expr_neg2316)
                     e1 = self.expr_subscript()
@@ -2510,13 +2524,13 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node =  e1 
+                        node =  ((e1 is not None) and [e1.node] or [None])[0] 
 
 
 
 
                 elif alt34 == 2:
-                    # src/ll/UL4.g:442:3: minus= '-' e2= expr_neg
+                    # src/ll/UL4.g:441:3: minus= '-' e2= expr_neg
                     pass 
                     minus = self.match(self.input, 38, self.FOLLOW_38_in_expr_neg2327)
 
@@ -2546,7 +2560,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "expr_mul"
-    # src/ll/UL4.g:446:1: expr_mul returns [node] : e1= expr_neg ( ( '*' | '/' | '//' | '%' ) e2= expr_neg )* ;
+    # src/ll/UL4.g:445:1: expr_mul returns [node] : e1= expr_neg ( ( '*' | '/' | '//' | '%' ) e2= expr_neg )* ;
     def expr_mul(self, ):
         node = None
 
@@ -2558,8 +2572,8 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:447:2: (e1= expr_neg ( ( '*' | '/' | '//' | '%' ) e2= expr_neg )* )
-                # src/ll/UL4.g:448:3: e1= expr_neg ( ( '*' | '/' | '//' | '%' ) e2= expr_neg )*
+                # src/ll/UL4.g:446:2: (e1= expr_neg ( ( '*' | '/' | '//' | '%' ) e2= expr_neg )* )
+                # src/ll/UL4.g:447:3: e1= expr_neg ( ( '*' | '/' | '//' | '%' ) e2= expr_neg )*
                 pass 
                 self._state.following.append(self.FOLLOW_expr_neg_in_expr_mul2354)
                 e1 = self.expr_neg()
@@ -2572,7 +2586,7 @@ class UL4Parser(Parser):
 
 
 
-                # src/ll/UL4.g:449:3: ( ( '*' | '/' | '//' | '%' ) e2= expr_neg )*
+                # src/ll/UL4.g:448:3: ( ( '*' | '/' | '//' | '%' ) e2= expr_neg )*
                 while True: #loop36
                     alt36 = 2
                     LA36_0 = self.input.LA(1)
@@ -2582,9 +2596,9 @@ class UL4Parser(Parser):
 
 
                     if alt36 == 1:
-                        # src/ll/UL4.g:450:4: ( '*' | '/' | '//' | '%' ) e2= expr_neg
+                        # src/ll/UL4.g:449:4: ( '*' | '/' | '//' | '%' ) e2= expr_neg
                         pass 
-                        # src/ll/UL4.g:450:4: ( '*' | '/' | '//' | '%' )
+                        # src/ll/UL4.g:449:4: ( '*' | '/' | '//' | '%' )
                         alt35 = 4
                         LA35 = self.input.LA(1)
                         if LA35 == 32:
@@ -2606,7 +2620,7 @@ class UL4Parser(Parser):
 
 
                         if alt35 == 1:
-                            # src/ll/UL4.g:451:5: '*'
+                            # src/ll/UL4.g:450:5: '*'
                             pass 
                             self.match(self.input, 32, self.FOLLOW_32_in_expr_mul2371)
 
@@ -2618,7 +2632,7 @@ class UL4Parser(Parser):
 
 
                         elif alt35 == 2:
-                            # src/ll/UL4.g:453:5: '/'
+                            # src/ll/UL4.g:452:5: '/'
                             pass 
                             self.match(self.input, 41, self.FOLLOW_41_in_expr_mul2384)
 
@@ -2630,7 +2644,7 @@ class UL4Parser(Parser):
 
 
                         elif alt35 == 3:
-                            # src/ll/UL4.g:455:5: '//'
+                            # src/ll/UL4.g:454:5: '//'
                             pass 
                             self.match(self.input, 42, self.FOLLOW_42_in_expr_mul2397)
 
@@ -2642,7 +2656,7 @@ class UL4Parser(Parser):
 
 
                         elif alt35 == 4:
-                            # src/ll/UL4.g:457:5: '%'
+                            # src/ll/UL4.g:456:5: '%'
                             pass 
                             self.match(self.input, 28, self.FOLLOW_28_in_expr_mul2410)
 
@@ -2687,7 +2701,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "expr_add"
-    # src/ll/UL4.g:464:1: expr_add returns [node] : e1= expr_mul ( ( '+' | '-' ) e2= expr_mul )* ;
+    # src/ll/UL4.g:463:1: expr_add returns [node] : e1= expr_mul ( ( '+' | '-' ) e2= expr_mul )* ;
     def expr_add(self, ):
         node = None
 
@@ -2699,8 +2713,8 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:465:2: (e1= expr_mul ( ( '+' | '-' ) e2= expr_mul )* )
-                # src/ll/UL4.g:466:3: e1= expr_mul ( ( '+' | '-' ) e2= expr_mul )*
+                # src/ll/UL4.g:464:2: (e1= expr_mul ( ( '+' | '-' ) e2= expr_mul )* )
+                # src/ll/UL4.g:465:3: e1= expr_mul ( ( '+' | '-' ) e2= expr_mul )*
                 pass 
                 self._state.following.append(self.FOLLOW_expr_mul_in_expr_add2452)
                 e1 = self.expr_mul()
@@ -2713,7 +2727,7 @@ class UL4Parser(Parser):
 
 
 
-                # src/ll/UL4.g:467:3: ( ( '+' | '-' ) e2= expr_mul )*
+                # src/ll/UL4.g:466:3: ( ( '+' | '-' ) e2= expr_mul )*
                 while True: #loop38
                     alt38 = 2
                     LA38_0 = self.input.LA(1)
@@ -2723,9 +2737,9 @@ class UL4Parser(Parser):
 
 
                     if alt38 == 1:
-                        # src/ll/UL4.g:468:4: ( '+' | '-' ) e2= expr_mul
+                        # src/ll/UL4.g:467:4: ( '+' | '-' ) e2= expr_mul
                         pass 
-                        # src/ll/UL4.g:468:4: ( '+' | '-' )
+                        # src/ll/UL4.g:467:4: ( '+' | '-' )
                         alt37 = 2
                         LA37_0 = self.input.LA(1)
 
@@ -2744,7 +2758,7 @@ class UL4Parser(Parser):
 
 
                         if alt37 == 1:
-                            # src/ll/UL4.g:469:5: '+'
+                            # src/ll/UL4.g:468:5: '+'
                             pass 
                             self.match(self.input, 35, self.FOLLOW_35_in_expr_add2469)
 
@@ -2756,7 +2770,7 @@ class UL4Parser(Parser):
 
 
                         elif alt37 == 2:
-                            # src/ll/UL4.g:471:5: '-'
+                            # src/ll/UL4.g:470:5: '-'
                             pass 
                             self.match(self.input, 38, self.FOLLOW_38_in_expr_add2482)
 
@@ -2801,7 +2815,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "expr_cmp"
-    # src/ll/UL4.g:478:1: expr_cmp returns [node] : e1= expr_add ( ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) e2= expr_add )* ;
+    # src/ll/UL4.g:477:1: expr_cmp returns [node] : e1= expr_add ( ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) e2= expr_add )* ;
     def expr_cmp(self, ):
         node = None
 
@@ -2813,8 +2827,8 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:479:2: (e1= expr_add ( ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) e2= expr_add )* )
-                # src/ll/UL4.g:480:3: e1= expr_add ( ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) e2= expr_add )*
+                # src/ll/UL4.g:478:2: (e1= expr_add ( ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) e2= expr_add )* )
+                # src/ll/UL4.g:479:3: e1= expr_add ( ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) e2= expr_add )*
                 pass 
                 self._state.following.append(self.FOLLOW_expr_add_in_expr_cmp2524)
                 e1 = self.expr_add()
@@ -2827,7 +2841,7 @@ class UL4Parser(Parser):
 
 
 
-                # src/ll/UL4.g:481:3: ( ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) e2= expr_add )*
+                # src/ll/UL4.g:480:3: ( ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) e2= expr_add )*
                 while True: #loop40
                     alt40 = 2
                     LA40_0 = self.input.LA(1)
@@ -2837,9 +2851,9 @@ class UL4Parser(Parser):
 
 
                     if alt40 == 1:
-                        # src/ll/UL4.g:482:4: ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) e2= expr_add
+                        # src/ll/UL4.g:481:4: ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) e2= expr_add
                         pass 
-                        # src/ll/UL4.g:482:4: ( '==' | '!=' | '<' | '<=' | '>' | '>=' )
+                        # src/ll/UL4.g:481:4: ( '==' | '!=' | '<' | '<=' | '>' | '>=' )
                         alt39 = 6
                         LA39 = self.input.LA(1)
                         if LA39 == 49:
@@ -2865,7 +2879,7 @@ class UL4Parser(Parser):
 
 
                         if alt39 == 1:
-                            # src/ll/UL4.g:483:5: '=='
+                            # src/ll/UL4.g:482:5: '=='
                             pass 
                             self.match(self.input, 49, self.FOLLOW_49_in_expr_cmp2541)
 
@@ -2877,7 +2891,7 @@ class UL4Parser(Parser):
 
 
                         elif alt39 == 2:
-                            # src/ll/UL4.g:485:5: '!='
+                            # src/ll/UL4.g:484:5: '!='
                             pass 
                             self.match(self.input, 27, self.FOLLOW_27_in_expr_cmp2554)
 
@@ -2889,7 +2903,7 @@ class UL4Parser(Parser):
 
 
                         elif alt39 == 3:
-                            # src/ll/UL4.g:487:5: '<'
+                            # src/ll/UL4.g:486:5: '<'
                             pass 
                             self.match(self.input, 46, self.FOLLOW_46_in_expr_cmp2567)
 
@@ -2901,7 +2915,7 @@ class UL4Parser(Parser):
 
 
                         elif alt39 == 4:
-                            # src/ll/UL4.g:489:5: '<='
+                            # src/ll/UL4.g:488:5: '<='
                             pass 
                             self.match(self.input, 47, self.FOLLOW_47_in_expr_cmp2580)
 
@@ -2913,7 +2927,7 @@ class UL4Parser(Parser):
 
 
                         elif alt39 == 5:
-                            # src/ll/UL4.g:491:5: '>'
+                            # src/ll/UL4.g:490:5: '>'
                             pass 
                             self.match(self.input, 50, self.FOLLOW_50_in_expr_cmp2593)
 
@@ -2925,7 +2939,7 @@ class UL4Parser(Parser):
 
 
                         elif alt39 == 6:
-                            # src/ll/UL4.g:493:5: '>='
+                            # src/ll/UL4.g:492:5: '>='
                             pass 
                             self.match(self.input, 51, self.FOLLOW_51_in_expr_cmp2606)
 
@@ -2970,7 +2984,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "expr_contain"
-    # src/ll/UL4.g:500:1: expr_contain returns [node] : e1= expr_cmp ( ( 'not' )? 'in' e2= expr_cmp )? ;
+    # src/ll/UL4.g:499:1: expr_contain returns [node] : e1= expr_cmp ( ( 'not' )? 'in' e2= expr_cmp )? ;
     def expr_contain(self, ):
         node = None
 
@@ -2982,8 +2996,8 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:501:2: (e1= expr_cmp ( ( 'not' )? 'in' e2= expr_cmp )? )
-                # src/ll/UL4.g:502:3: e1= expr_cmp ( ( 'not' )? 'in' e2= expr_cmp )?
+                # src/ll/UL4.g:500:2: (e1= expr_cmp ( ( 'not' )? 'in' e2= expr_cmp )? )
+                # src/ll/UL4.g:501:3: e1= expr_cmp ( ( 'not' )? 'in' e2= expr_cmp )?
                 pass 
                 self._state.following.append(self.FOLLOW_expr_cmp_in_expr_contain2648)
                 e1 = self.expr_cmp()
@@ -2996,14 +3010,14 @@ class UL4Parser(Parser):
 
 
 
-                # src/ll/UL4.g:503:3: ( ( 'not' )? 'in' e2= expr_cmp )?
+                # src/ll/UL4.g:502:3: ( ( 'not' )? 'in' e2= expr_cmp )?
                 alt42 = 2
                 LA42_0 = self.input.LA(1)
 
                 if ((57 <= LA42_0 <= 58)) :
                     alt42 = 1
                 if alt42 == 1:
-                    # src/ll/UL4.g:504:4: ( 'not' )? 'in' e2= expr_cmp
+                    # src/ll/UL4.g:503:4: ( 'not' )? 'in' e2= expr_cmp
                     pass 
                     if self._state.backtracking == 0:
                         pass
@@ -3011,14 +3025,14 @@ class UL4Parser(Parser):
 
 
 
-                    # src/ll/UL4.g:505:4: ( 'not' )?
+                    # src/ll/UL4.g:504:4: ( 'not' )?
                     alt41 = 2
                     LA41_0 = self.input.LA(1)
 
                     if (LA41_0 == 58) :
                         alt41 = 1
                     if alt41 == 1:
-                        # src/ll/UL4.g:506:5: 'not'
+                        # src/ll/UL4.g:505:5: 'not'
                         pass 
                         self.match(self.input, 58, self.FOLLOW_58_in_expr_contain2670)
 
@@ -3063,7 +3077,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "expr_not"
-    # src/ll/UL4.g:514:1: expr_not returns [node] : (e1= expr_contain |n= 'not' e2= expr_not );
+    # src/ll/UL4.g:513:1: expr_not returns [node] : (e1= expr_contain |n= 'not' e2= expr_not );
     def expr_not(self, ):
         node = None
 
@@ -3076,7 +3090,7 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:515:2: (e1= expr_contain |n= 'not' e2= expr_not )
+                # src/ll/UL4.g:514:2: (e1= expr_contain |n= 'not' e2= expr_not )
                 alt43 = 2
                 LA43_0 = self.input.LA(1)
 
@@ -3095,7 +3109,7 @@ class UL4Parser(Parser):
 
 
                 if alt43 == 1:
-                    # src/ll/UL4.g:516:3: e1= expr_contain
+                    # src/ll/UL4.g:515:3: e1= expr_contain
                     pass 
                     self._state.following.append(self.FOLLOW_expr_contain_in_expr_not2718)
                     e1 = self.expr_contain()
@@ -3110,7 +3124,7 @@ class UL4Parser(Parser):
 
 
                 elif alt43 == 2:
-                    # src/ll/UL4.g:518:3: n= 'not' e2= expr_not
+                    # src/ll/UL4.g:517:3: n= 'not' e2= expr_not
                     pass 
                     n = self.match(self.input, 58, self.FOLLOW_58_in_expr_not2729)
 
@@ -3140,7 +3154,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "expr_and"
-    # src/ll/UL4.g:523:1: expr_and returns [node] : e1= expr_not ( 'and' e2= expr_not )* ;
+    # src/ll/UL4.g:522:1: expr_and returns [node] : e1= expr_not ( 'and' e2= expr_not )* ;
     def expr_and(self, ):
         node = None
 
@@ -3152,8 +3166,8 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:524:2: (e1= expr_not ( 'and' e2= expr_not )* )
-                # src/ll/UL4.g:525:3: e1= expr_not ( 'and' e2= expr_not )*
+                # src/ll/UL4.g:523:2: (e1= expr_not ( 'and' e2= expr_not )* )
+                # src/ll/UL4.g:524:3: e1= expr_not ( 'and' e2= expr_not )*
                 pass 
                 self._state.following.append(self.FOLLOW_expr_not_in_expr_and2757)
                 e1 = self.expr_not()
@@ -3166,7 +3180,7 @@ class UL4Parser(Parser):
 
 
 
-                # src/ll/UL4.g:526:3: ( 'and' e2= expr_not )*
+                # src/ll/UL4.g:525:3: ( 'and' e2= expr_not )*
                 while True: #loop44
                     alt44 = 2
                     LA44_0 = self.input.LA(1)
@@ -3176,7 +3190,7 @@ class UL4Parser(Parser):
 
 
                     if alt44 == 1:
-                        # src/ll/UL4.g:527:4: 'and' e2= expr_not
+                        # src/ll/UL4.g:526:4: 'and' e2= expr_not
                         pass 
                         self.match(self.input, 54, self.FOLLOW_54_in_expr_and2768)
 
@@ -3212,7 +3226,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "expr_or"
-    # src/ll/UL4.g:533:1: expr_or returns [node] : e1= expr_and ( 'or' e2= expr_and )* ;
+    # src/ll/UL4.g:532:1: expr_or returns [node] : e1= expr_and ( 'or' e2= expr_and )* ;
     def expr_or(self, ):
         node = None
 
@@ -3224,8 +3238,8 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:534:2: (e1= expr_and ( 'or' e2= expr_and )* )
-                # src/ll/UL4.g:535:3: e1= expr_and ( 'or' e2= expr_and )*
+                # src/ll/UL4.g:533:2: (e1= expr_and ( 'or' e2= expr_and )* )
+                # src/ll/UL4.g:534:3: e1= expr_and ( 'or' e2= expr_and )*
                 pass 
                 self._state.following.append(self.FOLLOW_expr_and_in_expr_or2803)
                 e1 = self.expr_and()
@@ -3238,7 +3252,7 @@ class UL4Parser(Parser):
 
 
 
-                # src/ll/UL4.g:536:3: ( 'or' e2= expr_and )*
+                # src/ll/UL4.g:535:3: ( 'or' e2= expr_and )*
                 while True: #loop45
                     alt45 = 2
                     LA45_0 = self.input.LA(1)
@@ -3248,7 +3262,7 @@ class UL4Parser(Parser):
 
 
                     if alt45 == 1:
-                        # src/ll/UL4.g:537:4: 'or' e2= expr_and
+                        # src/ll/UL4.g:536:4: 'or' e2= expr_and
                         pass 
                         self.match(self.input, 59, self.FOLLOW_59_in_expr_or2814)
 
@@ -3284,7 +3298,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "exprarg"
-    # src/ll/UL4.g:542:1: exprarg returns [node] : (ege= generatorexpression |e1= expr_or );
+    # src/ll/UL4.g:541:1: exprarg returns [node] : (ege= generatorexpression |e1= expr_or );
     def exprarg(self, ):
         node = None
 
@@ -3296,7 +3310,7 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:543:2: (ege= generatorexpression |e1= expr_or )
+                # src/ll/UL4.g:542:2: (ege= generatorexpression |e1= expr_or )
                 alt46 = 2
                 LA46 = self.input.LA(1)
                 if LA46 == NONE:
@@ -3565,7 +3579,7 @@ class UL4Parser(Parser):
 
 
                 if alt46 == 1:
-                    # src/ll/UL4.g:543:4: ege= generatorexpression
+                    # src/ll/UL4.g:542:4: ege= generatorexpression
                     pass 
                     self._state.following.append(self.FOLLOW_generatorexpression_in_exprarg2845)
                     ege = self.generatorexpression()
@@ -3580,7 +3594,7 @@ class UL4Parser(Parser):
 
 
                 elif alt46 == 2:
-                    # src/ll/UL4.g:544:4: e1= expr_or
+                    # src/ll/UL4.g:543:4: e1= expr_or
                     pass 
                     self._state.following.append(self.FOLLOW_expr_or_in_exprarg2854)
                     e1 = self.expr_or()
@@ -3608,7 +3622,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "expression"
-    # src/ll/UL4.g:547:1: expression returns [node] : (ege= generatorexpression EOF |e= expr_or EOF );
+    # src/ll/UL4.g:546:1: expression returns [node] : (ege= generatorexpression EOF |e= expr_or EOF );
     def expression(self, ):
         node = None
 
@@ -3620,7 +3634,7 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:548:2: (ege= generatorexpression EOF |e= expr_or EOF )
+                # src/ll/UL4.g:547:2: (ege= generatorexpression EOF |e= expr_or EOF )
                 alt47 = 2
                 LA47 = self.input.LA(1)
                 if LA47 == NONE:
@@ -3889,7 +3903,7 @@ class UL4Parser(Parser):
 
 
                 if alt47 == 1:
-                    # src/ll/UL4.g:548:4: ege= generatorexpression EOF
+                    # src/ll/UL4.g:547:4: ege= generatorexpression EOF
                     pass 
                     self._state.following.append(self.FOLLOW_generatorexpression_in_expression2873)
                     ege = self.generatorexpression()
@@ -3906,7 +3920,7 @@ class UL4Parser(Parser):
 
 
                 elif alt47 == 2:
-                    # src/ll/UL4.g:549:4: e= expr_or EOF
+                    # src/ll/UL4.g:548:4: e= expr_or EOF
                     pass 
                     self._state.following.append(self.FOLLOW_expr_or_in_expression2884)
                     e = self.expr_or()
@@ -3936,7 +3950,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "for_"
-    # src/ll/UL4.g:555:1: for_ returns [node] : n= nestedname 'in' e= expr_or EOF ;
+    # src/ll/UL4.g:554:1: for_ returns [node] : n= nestedlvalue 'in' e= expr_or EOF ;
     def for_(self, ):
         node = None
 
@@ -3948,11 +3962,11 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:556:2: (n= nestedname 'in' e= expr_or EOF )
-                # src/ll/UL4.g:557:3: n= nestedname 'in' e= expr_or EOF
+                # src/ll/UL4.g:555:2: (n= nestedlvalue 'in' e= expr_or EOF )
+                # src/ll/UL4.g:556:3: n= nestedlvalue 'in' e= expr_or EOF
                 pass 
-                self._state.following.append(self.FOLLOW_nestedname_in_for_2911)
-                n = self.nestedname()
+                self._state.following.append(self.FOLLOW_nestedlvalue_in_for_2911)
+                n = self.nestedlvalue()
 
                 self._state.following.pop()
 
@@ -3965,7 +3979,7 @@ class UL4Parser(Parser):
 
                 if self._state.backtracking == 0:
                     pass
-                    node = ul4c.For(self.location, self.start(n.start), e.end, ((n is not None) and [n.varname] or [None])[0], e) 
+                    node = ul4c.For(self.location, self.start(n.start), e.end, ((n is not None) and [n.lvalue] or [None])[0], e) 
 
 
 
@@ -3987,7 +4001,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "statement"
-    # src/ll/UL4.g:566:1: statement returns [node] : (nn= nestedname '=' e= expr_or EOF |n= name '+=' e= expr_or EOF |n= name '-=' e= expr_or EOF |n= name '*=' e= expr_or EOF |n= name '/=' e= expr_or EOF |n= name '//=' e= expr_or EOF |n= name '%=' e= expr_or EOF |e= expression EOF );
+    # src/ll/UL4.g:565:1: statement returns [node] : (nn= nestedlvalue '=' e= expr_or EOF |n= expr_subscript '+=' e= expr_or EOF |n= expr_subscript '-=' e= expr_or EOF |n= expr_subscript '*=' e= expr_or EOF |n= expr_subscript '/=' e= expr_or EOF |n= expr_subscript '//=' e= expr_or EOF |n= expr_subscript '%=' e= expr_or EOF |e= expression EOF );
     def statement(self, ):
         node = None
 
@@ -4001,10 +4015,10 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:567:2: (nn= nestedname '=' e= expr_or EOF |n= name '+=' e= expr_or EOF |n= name '-=' e= expr_or EOF |n= name '*=' e= expr_or EOF |n= name '/=' e= expr_or EOF |n= name '//=' e= expr_or EOF |n= name '%=' e= expr_or EOF |e= expression EOF )
+                # src/ll/UL4.g:566:2: (nn= nestedlvalue '=' e= expr_or EOF |n= expr_subscript '+=' e= expr_or EOF |n= expr_subscript '-=' e= expr_or EOF |n= expr_subscript '*=' e= expr_or EOF |n= expr_subscript '/=' e= expr_or EOF |n= expr_subscript '//=' e= expr_or EOF |n= expr_subscript '%=' e= expr_or EOF |e= expression EOF )
                 alt48 = 8
                 LA48 = self.input.LA(1)
-                if LA48 == NAME:
+                if LA48 == NONE:
                     LA48_1 = self.input.LA(2)
 
                     if (self.synpred72_UL4()) :
@@ -4033,11 +4047,23 @@ class UL4Parser(Parser):
                         raise nvae
 
 
-                elif LA48 == 30:
+                elif LA48 == FALSE:
                     LA48_2 = self.input.LA(2)
 
                     if (self.synpred72_UL4()) :
                         alt48 = 1
+                    elif (self.synpred73_UL4()) :
+                        alt48 = 2
+                    elif (self.synpred74_UL4()) :
+                        alt48 = 3
+                    elif (self.synpred75_UL4()) :
+                        alt48 = 4
+                    elif (self.synpred76_UL4()) :
+                        alt48 = 5
+                    elif (self.synpred77_UL4()) :
+                        alt48 = 6
+                    elif (self.synpred78_UL4()) :
+                        alt48 = 7
                     elif (True) :
                         alt48 = 8
                     else:
@@ -4050,7 +4076,326 @@ class UL4Parser(Parser):
                         raise nvae
 
 
-                elif LA48 == COLOR or LA48 == DATE or LA48 == FALSE or LA48 == FLOAT or LA48 == INT or LA48 == NONE or LA48 == STRING or LA48 == STRING3 or LA48 == TRUE or LA48 == 38 or LA48 == 52 or LA48 == 58 or LA48 == 60:
+                elif LA48 == TRUE:
+                    LA48_3 = self.input.LA(2)
+
+                    if (self.synpred72_UL4()) :
+                        alt48 = 1
+                    elif (self.synpred73_UL4()) :
+                        alt48 = 2
+                    elif (self.synpred74_UL4()) :
+                        alt48 = 3
+                    elif (self.synpred75_UL4()) :
+                        alt48 = 4
+                    elif (self.synpred76_UL4()) :
+                        alt48 = 5
+                    elif (self.synpred77_UL4()) :
+                        alt48 = 6
+                    elif (self.synpred78_UL4()) :
+                        alt48 = 7
+                    elif (True) :
+                        alt48 = 8
+                    else:
+                        if self._state.backtracking > 0:
+                            raise BacktrackingFailed
+
+
+                        nvae = NoViableAltException("", 48, 3, self.input)
+
+                        raise nvae
+
+
+                elif LA48 == INT:
+                    LA48_4 = self.input.LA(2)
+
+                    if (self.synpred72_UL4()) :
+                        alt48 = 1
+                    elif (self.synpred73_UL4()) :
+                        alt48 = 2
+                    elif (self.synpred74_UL4()) :
+                        alt48 = 3
+                    elif (self.synpred75_UL4()) :
+                        alt48 = 4
+                    elif (self.synpred76_UL4()) :
+                        alt48 = 5
+                    elif (self.synpred77_UL4()) :
+                        alt48 = 6
+                    elif (self.synpred78_UL4()) :
+                        alt48 = 7
+                    elif (True) :
+                        alt48 = 8
+                    else:
+                        if self._state.backtracking > 0:
+                            raise BacktrackingFailed
+
+
+                        nvae = NoViableAltException("", 48, 4, self.input)
+
+                        raise nvae
+
+
+                elif LA48 == FLOAT:
+                    LA48_5 = self.input.LA(2)
+
+                    if (self.synpred72_UL4()) :
+                        alt48 = 1
+                    elif (self.synpred73_UL4()) :
+                        alt48 = 2
+                    elif (self.synpred74_UL4()) :
+                        alt48 = 3
+                    elif (self.synpred75_UL4()) :
+                        alt48 = 4
+                    elif (self.synpred76_UL4()) :
+                        alt48 = 5
+                    elif (self.synpred77_UL4()) :
+                        alt48 = 6
+                    elif (self.synpred78_UL4()) :
+                        alt48 = 7
+                    elif (True) :
+                        alt48 = 8
+                    else:
+                        if self._state.backtracking > 0:
+                            raise BacktrackingFailed
+
+
+                        nvae = NoViableAltException("", 48, 5, self.input)
+
+                        raise nvae
+
+
+                elif LA48 == STRING:
+                    LA48_6 = self.input.LA(2)
+
+                    if (self.synpred72_UL4()) :
+                        alt48 = 1
+                    elif (self.synpred73_UL4()) :
+                        alt48 = 2
+                    elif (self.synpred74_UL4()) :
+                        alt48 = 3
+                    elif (self.synpred75_UL4()) :
+                        alt48 = 4
+                    elif (self.synpred76_UL4()) :
+                        alt48 = 5
+                    elif (self.synpred77_UL4()) :
+                        alt48 = 6
+                    elif (self.synpred78_UL4()) :
+                        alt48 = 7
+                    elif (True) :
+                        alt48 = 8
+                    else:
+                        if self._state.backtracking > 0:
+                            raise BacktrackingFailed
+
+
+                        nvae = NoViableAltException("", 48, 6, self.input)
+
+                        raise nvae
+
+
+                elif LA48 == STRING3:
+                    LA48_7 = self.input.LA(2)
+
+                    if (self.synpred72_UL4()) :
+                        alt48 = 1
+                    elif (self.synpred73_UL4()) :
+                        alt48 = 2
+                    elif (self.synpred74_UL4()) :
+                        alt48 = 3
+                    elif (self.synpred75_UL4()) :
+                        alt48 = 4
+                    elif (self.synpred76_UL4()) :
+                        alt48 = 5
+                    elif (self.synpred77_UL4()) :
+                        alt48 = 6
+                    elif (self.synpred78_UL4()) :
+                        alt48 = 7
+                    elif (True) :
+                        alt48 = 8
+                    else:
+                        if self._state.backtracking > 0:
+                            raise BacktrackingFailed
+
+
+                        nvae = NoViableAltException("", 48, 7, self.input)
+
+                        raise nvae
+
+
+                elif LA48 == DATE:
+                    LA48_8 = self.input.LA(2)
+
+                    if (self.synpred72_UL4()) :
+                        alt48 = 1
+                    elif (self.synpred73_UL4()) :
+                        alt48 = 2
+                    elif (self.synpred74_UL4()) :
+                        alt48 = 3
+                    elif (self.synpred75_UL4()) :
+                        alt48 = 4
+                    elif (self.synpred76_UL4()) :
+                        alt48 = 5
+                    elif (self.synpred77_UL4()) :
+                        alt48 = 6
+                    elif (self.synpred78_UL4()) :
+                        alt48 = 7
+                    elif (True) :
+                        alt48 = 8
+                    else:
+                        if self._state.backtracking > 0:
+                            raise BacktrackingFailed
+
+
+                        nvae = NoViableAltException("", 48, 8, self.input)
+
+                        raise nvae
+
+
+                elif LA48 == COLOR:
+                    LA48_9 = self.input.LA(2)
+
+                    if (self.synpred72_UL4()) :
+                        alt48 = 1
+                    elif (self.synpred73_UL4()) :
+                        alt48 = 2
+                    elif (self.synpred74_UL4()) :
+                        alt48 = 3
+                    elif (self.synpred75_UL4()) :
+                        alt48 = 4
+                    elif (self.synpred76_UL4()) :
+                        alt48 = 5
+                    elif (self.synpred77_UL4()) :
+                        alt48 = 6
+                    elif (self.synpred78_UL4()) :
+                        alt48 = 7
+                    elif (True) :
+                        alt48 = 8
+                    else:
+                        if self._state.backtracking > 0:
+                            raise BacktrackingFailed
+
+
+                        nvae = NoViableAltException("", 48, 9, self.input)
+
+                        raise nvae
+
+
+                elif LA48 == NAME:
+                    LA48_10 = self.input.LA(2)
+
+                    if (self.synpred72_UL4()) :
+                        alt48 = 1
+                    elif (self.synpred73_UL4()) :
+                        alt48 = 2
+                    elif (self.synpred74_UL4()) :
+                        alt48 = 3
+                    elif (self.synpred75_UL4()) :
+                        alt48 = 4
+                    elif (self.synpred76_UL4()) :
+                        alt48 = 5
+                    elif (self.synpred77_UL4()) :
+                        alt48 = 6
+                    elif (self.synpred78_UL4()) :
+                        alt48 = 7
+                    elif (True) :
+                        alt48 = 8
+                    else:
+                        if self._state.backtracking > 0:
+                            raise BacktrackingFailed
+
+
+                        nvae = NoViableAltException("", 48, 10, self.input)
+
+                        raise nvae
+
+
+                elif LA48 == 52:
+                    LA48_11 = self.input.LA(2)
+
+                    if (self.synpred72_UL4()) :
+                        alt48 = 1
+                    elif (self.synpred73_UL4()) :
+                        alt48 = 2
+                    elif (self.synpred74_UL4()) :
+                        alt48 = 3
+                    elif (self.synpred75_UL4()) :
+                        alt48 = 4
+                    elif (self.synpred76_UL4()) :
+                        alt48 = 5
+                    elif (self.synpred77_UL4()) :
+                        alt48 = 6
+                    elif (self.synpred78_UL4()) :
+                        alt48 = 7
+                    elif (True) :
+                        alt48 = 8
+                    else:
+                        if self._state.backtracking > 0:
+                            raise BacktrackingFailed
+
+
+                        nvae = NoViableAltException("", 48, 11, self.input)
+
+                        raise nvae
+
+
+                elif LA48 == 60:
+                    LA48_12 = self.input.LA(2)
+
+                    if (self.synpred72_UL4()) :
+                        alt48 = 1
+                    elif (self.synpred73_UL4()) :
+                        alt48 = 2
+                    elif (self.synpred74_UL4()) :
+                        alt48 = 3
+                    elif (self.synpred75_UL4()) :
+                        alt48 = 4
+                    elif (self.synpred76_UL4()) :
+                        alt48 = 5
+                    elif (self.synpred77_UL4()) :
+                        alt48 = 6
+                    elif (self.synpred78_UL4()) :
+                        alt48 = 7
+                    elif (True) :
+                        alt48 = 8
+                    else:
+                        if self._state.backtracking > 0:
+                            raise BacktrackingFailed
+
+
+                        nvae = NoViableAltException("", 48, 12, self.input)
+
+                        raise nvae
+
+
+                elif LA48 == 30:
+                    LA48_13 = self.input.LA(2)
+
+                    if (self.synpred72_UL4()) :
+                        alt48 = 1
+                    elif (self.synpred73_UL4()) :
+                        alt48 = 2
+                    elif (self.synpred74_UL4()) :
+                        alt48 = 3
+                    elif (self.synpred75_UL4()) :
+                        alt48 = 4
+                    elif (self.synpred76_UL4()) :
+                        alt48 = 5
+                    elif (self.synpred77_UL4()) :
+                        alt48 = 6
+                    elif (self.synpred78_UL4()) :
+                        alt48 = 7
+                    elif (True) :
+                        alt48 = 8
+                    else:
+                        if self._state.backtracking > 0:
+                            raise BacktrackingFailed
+
+
+                        nvae = NoViableAltException("", 48, 13, self.input)
+
+                        raise nvae
+
+
+                elif LA48 == 38 or LA48 == 58:
                     alt48 = 8
                 else:
                     if self._state.backtracking > 0:
@@ -4063,10 +4408,10 @@ class UL4Parser(Parser):
 
 
                 if alt48 == 1:
-                    # src/ll/UL4.g:567:4: nn= nestedname '=' e= expr_or EOF
+                    # src/ll/UL4.g:566:4: nn= nestedlvalue '=' e= expr_or EOF
                     pass 
-                    self._state.following.append(self.FOLLOW_nestedname_in_statement2948)
-                    nn = self.nestedname()
+                    self._state.following.append(self.FOLLOW_nestedlvalue_in_statement2948)
+                    nn = self.nestedlvalue()
 
                     self._state.following.pop()
 
@@ -4081,16 +4426,16 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node = ul4c.StoreVar(self.location, self.start(nn.start), e.end, ((nn is not None) and [nn.varname] or [None])[0], e) 
+                        node = ul4c.SetVar(self.location, self.start(nn.start), e.end, ((nn is not None) and [nn.lvalue] or [None])[0], e) 
 
 
 
 
                 elif alt48 == 2:
-                    # src/ll/UL4.g:568:4: n= name '+=' e= expr_or EOF
+                    # src/ll/UL4.g:567:4: n= expr_subscript '+=' e= expr_or EOF
                     pass 
-                    self._state.following.append(self.FOLLOW_name_in_statement2965)
-                    n = self.name()
+                    self._state.following.append(self.FOLLOW_expr_subscript_in_statement2965)
+                    n = self.expr_subscript()
 
                     self._state.following.pop()
 
@@ -4105,16 +4450,16 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node = ul4c.AddVar(self.location, self.start(n.start), e.end, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], e) 
+                        node = ul4c.AddVar(self.location, self.start(n.start), e.end, ((n is not None) and [n.node] or [None])[0], e) 
 
 
 
 
                 elif alt48 == 3:
-                    # src/ll/UL4.g:569:4: n= name '-=' e= expr_or EOF
+                    # src/ll/UL4.g:568:4: n= expr_subscript '-=' e= expr_or EOF
                     pass 
-                    self._state.following.append(self.FOLLOW_name_in_statement2982)
-                    n = self.name()
+                    self._state.following.append(self.FOLLOW_expr_subscript_in_statement2982)
+                    n = self.expr_subscript()
 
                     self._state.following.pop()
 
@@ -4129,16 +4474,16 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node = ul4c.SubVar(self.location, self.start(n.start), e.end, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], e) 
+                        node = ul4c.SubVar(self.location, self.start(n.start), e.end, ((n is not None) and [n.node] or [None])[0], e) 
 
 
 
 
                 elif alt48 == 4:
-                    # src/ll/UL4.g:570:4: n= name '*=' e= expr_or EOF
+                    # src/ll/UL4.g:569:4: n= expr_subscript '*=' e= expr_or EOF
                     pass 
-                    self._state.following.append(self.FOLLOW_name_in_statement2999)
-                    n = self.name()
+                    self._state.following.append(self.FOLLOW_expr_subscript_in_statement2999)
+                    n = self.expr_subscript()
 
                     self._state.following.pop()
 
@@ -4153,16 +4498,16 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node = ul4c.MulVar(self.location, self.start(n.start), e.end, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], e) 
+                        node = ul4c.MulVar(self.location, self.start(n.start), e.end, ((n is not None) and [n.node] or [None])[0], e) 
 
 
 
 
                 elif alt48 == 5:
-                    # src/ll/UL4.g:571:4: n= name '/=' e= expr_or EOF
+                    # src/ll/UL4.g:570:4: n= expr_subscript '/=' e= expr_or EOF
                     pass 
-                    self._state.following.append(self.FOLLOW_name_in_statement3016)
-                    n = self.name()
+                    self._state.following.append(self.FOLLOW_expr_subscript_in_statement3016)
+                    n = self.expr_subscript()
 
                     self._state.following.pop()
 
@@ -4177,16 +4522,16 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node = ul4c.TrueDivVar(self.location, self.start(n.start), e.end, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], e) 
+                        node = ul4c.TrueDivVar(self.location, self.start(n.start), e.end, ((n is not None) and [n.node] or [None])[0], e) 
 
 
 
 
                 elif alt48 == 6:
-                    # src/ll/UL4.g:572:4: n= name '//=' e= expr_or EOF
+                    # src/ll/UL4.g:571:4: n= expr_subscript '//=' e= expr_or EOF
                     pass 
-                    self._state.following.append(self.FOLLOW_name_in_statement3033)
-                    n = self.name()
+                    self._state.following.append(self.FOLLOW_expr_subscript_in_statement3033)
+                    n = self.expr_subscript()
 
                     self._state.following.pop()
 
@@ -4201,16 +4546,16 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node = ul4c.FloorDivVar(self.location, self.start(n.start), e.end, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], e) 
+                        node = ul4c.FloorDivVar(self.location, self.start(n.start), e.end, ((n is not None) and [n.node] or [None])[0], e) 
 
 
 
 
                 elif alt48 == 7:
-                    # src/ll/UL4.g:573:4: n= name '%=' e= expr_or EOF
+                    # src/ll/UL4.g:572:4: n= expr_subscript '%=' e= expr_or EOF
                     pass 
-                    self._state.following.append(self.FOLLOW_name_in_statement3050)
-                    n = self.name()
+                    self._state.following.append(self.FOLLOW_expr_subscript_in_statement3050)
+                    n = self.expr_subscript()
 
                     self._state.following.pop()
 
@@ -4225,13 +4570,13 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node = ul4c.ModVar(self.location, self.start(n.start), e.end, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], e) 
+                        node = ul4c.ModVar(self.location, self.start(n.start), e.end, ((n is not None) and [n.node] or [None])[0], e) 
 
 
 
 
                 elif alt48 == 8:
-                    # src/ll/UL4.g:574:4: e= expression EOF
+                    # src/ll/UL4.g:573:4: e= expression EOF
                     pass 
                     self._state.following.append(self.FOLLOW_expression_in_statement3067)
                     e = self.expression()
@@ -4359,18 +4704,37 @@ class UL4Parser(Parser):
 
 
 
+    # $ANTLR start "synpred25_UL4"
+    def synpred25_UL4_fragment(self, ):
+        n = None
+
+
+        # src/ll/UL4.g:330:3: (n= expr_subscript )
+        # src/ll/UL4.g:330:3: n= expr_subscript
+        pass 
+        self._state.following.append(self.FOLLOW_expr_subscript_in_synpred25_UL41597)
+        n = self.expr_subscript()
+
+        self._state.following.pop()
+
+
+
+    # $ANTLR end "synpred25_UL4"
+
+
+
     # $ANTLR start "synpred26_UL4"
     def synpred26_UL4_fragment(self, ):
         n0 = None
 
 
-        # src/ll/UL4.g:332:3: ( '(' n0= nestedname ',' ')' )
-        # src/ll/UL4.g:332:3: '(' n0= nestedname ',' ')'
+        # src/ll/UL4.g:332:3: ( '(' n0= nestedlvalue ',' ')' )
+        # src/ll/UL4.g:332:3: '(' n0= nestedlvalue ',' ')'
         pass 
         self.match(self.input, 30, self.FOLLOW_30_in_synpred26_UL41606)
 
-        self._state.following.append(self.FOLLOW_nestedname_in_synpred26_UL41610)
-        n0 = self.nestedname()
+        self._state.following.append(self.FOLLOW_nestedlvalue_in_synpred26_UL41610)
+        n0 = self.nestedlvalue()
 
         self._state.following.pop()
 
@@ -4389,8 +4753,8 @@ class UL4Parser(Parser):
         ege = None
 
 
-        # src/ll/UL4.g:543:4: (ege= generatorexpression )
-        # src/ll/UL4.g:543:4: ege= generatorexpression
+        # src/ll/UL4.g:542:4: (ege= generatorexpression )
+        # src/ll/UL4.g:542:4: ege= generatorexpression
         pass 
         self._state.following.append(self.FOLLOW_generatorexpression_in_synpred70_UL42845)
         ege = self.generatorexpression()
@@ -4408,8 +4772,8 @@ class UL4Parser(Parser):
         ege = None
 
 
-        # src/ll/UL4.g:548:4: (ege= generatorexpression EOF )
-        # src/ll/UL4.g:548:4: ege= generatorexpression EOF
+        # src/ll/UL4.g:547:4: (ege= generatorexpression EOF )
+        # src/ll/UL4.g:547:4: ege= generatorexpression EOF
         pass 
         self._state.following.append(self.FOLLOW_generatorexpression_in_synpred71_UL42873)
         ege = self.generatorexpression()
@@ -4431,11 +4795,11 @@ class UL4Parser(Parser):
         e = None
 
 
-        # src/ll/UL4.g:567:4: (nn= nestedname '=' e= expr_or EOF )
-        # src/ll/UL4.g:567:4: nn= nestedname '=' e= expr_or EOF
+        # src/ll/UL4.g:566:4: (nn= nestedlvalue '=' e= expr_or EOF )
+        # src/ll/UL4.g:566:4: nn= nestedlvalue '=' e= expr_or EOF
         pass 
-        self._state.following.append(self.FOLLOW_nestedname_in_synpred72_UL42948)
-        nn = self.nestedname()
+        self._state.following.append(self.FOLLOW_nestedlvalue_in_synpred72_UL42948)
+        nn = self.nestedlvalue()
 
         self._state.following.pop()
 
@@ -4461,11 +4825,11 @@ class UL4Parser(Parser):
         e = None
 
 
-        # src/ll/UL4.g:568:4: (n= name '+=' e= expr_or EOF )
-        # src/ll/UL4.g:568:4: n= name '+=' e= expr_or EOF
+        # src/ll/UL4.g:567:4: (n= expr_subscript '+=' e= expr_or EOF )
+        # src/ll/UL4.g:567:4: n= expr_subscript '+=' e= expr_or EOF
         pass 
-        self._state.following.append(self.FOLLOW_name_in_synpred73_UL42965)
-        n = self.name()
+        self._state.following.append(self.FOLLOW_expr_subscript_in_synpred73_UL42965)
+        n = self.expr_subscript()
 
         self._state.following.pop()
 
@@ -4491,11 +4855,11 @@ class UL4Parser(Parser):
         e = None
 
 
-        # src/ll/UL4.g:569:4: (n= name '-=' e= expr_or EOF )
-        # src/ll/UL4.g:569:4: n= name '-=' e= expr_or EOF
+        # src/ll/UL4.g:568:4: (n= expr_subscript '-=' e= expr_or EOF )
+        # src/ll/UL4.g:568:4: n= expr_subscript '-=' e= expr_or EOF
         pass 
-        self._state.following.append(self.FOLLOW_name_in_synpred74_UL42982)
-        n = self.name()
+        self._state.following.append(self.FOLLOW_expr_subscript_in_synpred74_UL42982)
+        n = self.expr_subscript()
 
         self._state.following.pop()
 
@@ -4521,11 +4885,11 @@ class UL4Parser(Parser):
         e = None
 
 
-        # src/ll/UL4.g:570:4: (n= name '*=' e= expr_or EOF )
-        # src/ll/UL4.g:570:4: n= name '*=' e= expr_or EOF
+        # src/ll/UL4.g:569:4: (n= expr_subscript '*=' e= expr_or EOF )
+        # src/ll/UL4.g:569:4: n= expr_subscript '*=' e= expr_or EOF
         pass 
-        self._state.following.append(self.FOLLOW_name_in_synpred75_UL42999)
-        n = self.name()
+        self._state.following.append(self.FOLLOW_expr_subscript_in_synpred75_UL42999)
+        n = self.expr_subscript()
 
         self._state.following.pop()
 
@@ -4551,11 +4915,11 @@ class UL4Parser(Parser):
         e = None
 
 
-        # src/ll/UL4.g:571:4: (n= name '/=' e= expr_or EOF )
-        # src/ll/UL4.g:571:4: n= name '/=' e= expr_or EOF
+        # src/ll/UL4.g:570:4: (n= expr_subscript '/=' e= expr_or EOF )
+        # src/ll/UL4.g:570:4: n= expr_subscript '/=' e= expr_or EOF
         pass 
-        self._state.following.append(self.FOLLOW_name_in_synpred76_UL43016)
-        n = self.name()
+        self._state.following.append(self.FOLLOW_expr_subscript_in_synpred76_UL43016)
+        n = self.expr_subscript()
 
         self._state.following.pop()
 
@@ -4581,11 +4945,11 @@ class UL4Parser(Parser):
         e = None
 
 
-        # src/ll/UL4.g:572:4: (n= name '//=' e= expr_or EOF )
-        # src/ll/UL4.g:572:4: n= name '//=' e= expr_or EOF
+        # src/ll/UL4.g:571:4: (n= expr_subscript '//=' e= expr_or EOF )
+        # src/ll/UL4.g:571:4: n= expr_subscript '//=' e= expr_or EOF
         pass 
-        self._state.following.append(self.FOLLOW_name_in_synpred77_UL43033)
-        n = self.name()
+        self._state.following.append(self.FOLLOW_expr_subscript_in_synpred77_UL43033)
+        n = self.expr_subscript()
 
         self._state.following.pop()
 
@@ -4611,11 +4975,11 @@ class UL4Parser(Parser):
         e = None
 
 
-        # src/ll/UL4.g:573:4: (n= name '%=' e= expr_or EOF )
-        # src/ll/UL4.g:573:4: n= name '%=' e= expr_or EOF
+        # src/ll/UL4.g:572:4: (n= expr_subscript '%=' e= expr_or EOF )
+        # src/ll/UL4.g:572:4: n= expr_subscript '%=' e= expr_or EOF
         pass 
-        self._state.following.append(self.FOLLOW_name_in_synpred78_UL43050)
-        n = self.name()
+        self._state.following.append(self.FOLLOW_expr_subscript_in_synpred78_UL43050)
+        n = self.expr_subscript()
 
         self._state.following.pop()
 
@@ -4817,6 +5181,19 @@ class UL4Parser(Parser):
         self._state.backtracking -= 1
         return success
 
+    def synpred25_UL4(self):
+        self._state.backtracking += 1
+        start = self.input.mark()
+        try:
+            self.synpred25_UL4_fragment()
+        except BacktrackingFailed:
+            success = False
+        else:
+            success = True
+        self.input.rewind(start)
+        self._state.backtracking -= 1
+        return success
+
     def synpred74_UL4(self):
         self._state.backtracking += 1
         start = self.input.mark()
@@ -4863,8 +5240,8 @@ class UL4Parser(Parser):
     FOLLOW_53_in_list1117 = frozenset([1])
     FOLLOW_52_in_listcomprehension1145 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_listcomprehension1151 = frozenset([55])
-    FOLLOW_55_in_listcomprehension1155 = frozenset([14, 30])
-    FOLLOW_nestedname_in_listcomprehension1161 = frozenset([57])
+    FOLLOW_55_in_listcomprehension1155 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 52, 60])
+    FOLLOW_nestedlvalue_in_listcomprehension1161 = frozenset([57])
     FOLLOW_57_in_listcomprehension1165 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_listcomprehension1171 = frozenset([53, 56])
     FOLLOW_56_in_listcomprehension1180 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
@@ -4885,16 +5262,16 @@ class UL4Parser(Parser):
     FOLLOW_expr_or_in_dictcomprehension1351 = frozenset([45])
     FOLLOW_45_in_dictcomprehension1355 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_dictcomprehension1361 = frozenset([55])
-    FOLLOW_55_in_dictcomprehension1365 = frozenset([14, 30])
-    FOLLOW_nestedname_in_dictcomprehension1371 = frozenset([57])
+    FOLLOW_55_in_dictcomprehension1365 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 52, 60])
+    FOLLOW_nestedlvalue_in_dictcomprehension1371 = frozenset([57])
     FOLLOW_57_in_dictcomprehension1375 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_dictcomprehension1381 = frozenset([56, 61])
     FOLLOW_56_in_dictcomprehension1390 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_dictcomprehension1397 = frozenset([61])
     FOLLOW_61_in_dictcomprehension1410 = frozenset([1])
     FOLLOW_expr_or_in_generatorexpression1438 = frozenset([55])
-    FOLLOW_55_in_generatorexpression1444 = frozenset([14, 30])
-    FOLLOW_nestedname_in_generatorexpression1450 = frozenset([57])
+    FOLLOW_55_in_generatorexpression1444 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 52, 60])
+    FOLLOW_nestedlvalue_in_generatorexpression1450 = frozenset([57])
     FOLLOW_57_in_generatorexpression1454 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_generatorexpression1460 = frozenset([1, 56])
     FOLLOW_56_in_generatorexpression1471 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
@@ -4910,19 +5287,19 @@ class UL4Parser(Parser):
     FOLLOW_30_in_atom1566 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_atom1570 = frozenset([31])
     FOLLOW_31_in_atom1574 = frozenset([1])
-    FOLLOW_name_in_nestedname1597 = frozenset([1])
-    FOLLOW_30_in_nestedname1606 = frozenset([14, 30])
-    FOLLOW_nestedname_in_nestedname1610 = frozenset([37])
-    FOLLOW_37_in_nestedname1612 = frozenset([31])
-    FOLLOW_31_in_nestedname1614 = frozenset([1])
-    FOLLOW_30_in_nestedname1623 = frozenset([14, 30])
-    FOLLOW_nestedname_in_nestedname1629 = frozenset([37])
-    FOLLOW_37_in_nestedname1633 = frozenset([14, 30])
-    FOLLOW_nestedname_in_nestedname1639 = frozenset([31, 37])
-    FOLLOW_37_in_nestedname1650 = frozenset([14, 30])
-    FOLLOW_nestedname_in_nestedname1657 = frozenset([31, 37])
-    FOLLOW_37_in_nestedname1668 = frozenset([31])
-    FOLLOW_31_in_nestedname1673 = frozenset([1])
+    FOLLOW_expr_subscript_in_nestedlvalue1597 = frozenset([1])
+    FOLLOW_30_in_nestedlvalue1606 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 52, 60])
+    FOLLOW_nestedlvalue_in_nestedlvalue1610 = frozenset([37])
+    FOLLOW_37_in_nestedlvalue1612 = frozenset([31])
+    FOLLOW_31_in_nestedlvalue1614 = frozenset([1])
+    FOLLOW_30_in_nestedlvalue1623 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 52, 60])
+    FOLLOW_nestedlvalue_in_nestedlvalue1629 = frozenset([37])
+    FOLLOW_37_in_nestedlvalue1633 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 52, 60])
+    FOLLOW_nestedlvalue_in_nestedlvalue1639 = frozenset([31, 37])
+    FOLLOW_37_in_nestedlvalue1650 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 52, 60])
+    FOLLOW_nestedlvalue_in_nestedlvalue1657 = frozenset([31, 37])
+    FOLLOW_37_in_nestedlvalue1668 = frozenset([31])
+    FOLLOW_31_in_nestedlvalue1673 = frozenset([1])
     FOLLOW_atom_in_expr_subscript1701 = frozenset([1, 30, 40, 52])
     FOLLOW_40_in_expr_subscript1717 = frozenset([14])
     FOLLOW_name_in_expr_subscript1724 = frozenset([1, 30, 40, 52])
@@ -5012,35 +5389,35 @@ class UL4Parser(Parser):
     FOLLOW_EOF_in_expression2875 = frozenset([1])
     FOLLOW_expr_or_in_expression2884 = frozenset([])
     FOLLOW_EOF_in_expression2886 = frozenset([1])
-    FOLLOW_nestedname_in_for_2911 = frozenset([57])
+    FOLLOW_nestedlvalue_in_for_2911 = frozenset([57])
     FOLLOW_57_in_for_2915 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_for_2921 = frozenset([])
     FOLLOW_EOF_in_for_2927 = frozenset([1])
-    FOLLOW_nestedname_in_statement2948 = frozenset([48])
+    FOLLOW_nestedlvalue_in_statement2948 = frozenset([48])
     FOLLOW_48_in_statement2950 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_statement2954 = frozenset([])
     FOLLOW_EOF_in_statement2956 = frozenset([1])
-    FOLLOW_name_in_statement2965 = frozenset([36])
+    FOLLOW_expr_subscript_in_statement2965 = frozenset([36])
     FOLLOW_36_in_statement2967 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_statement2971 = frozenset([])
     FOLLOW_EOF_in_statement2973 = frozenset([1])
-    FOLLOW_name_in_statement2982 = frozenset([39])
+    FOLLOW_expr_subscript_in_statement2982 = frozenset([39])
     FOLLOW_39_in_statement2984 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_statement2988 = frozenset([])
     FOLLOW_EOF_in_statement2990 = frozenset([1])
-    FOLLOW_name_in_statement2999 = frozenset([34])
+    FOLLOW_expr_subscript_in_statement2999 = frozenset([34])
     FOLLOW_34_in_statement3001 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_statement3005 = frozenset([])
     FOLLOW_EOF_in_statement3007 = frozenset([1])
-    FOLLOW_name_in_statement3016 = frozenset([44])
+    FOLLOW_expr_subscript_in_statement3016 = frozenset([44])
     FOLLOW_44_in_statement3018 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_statement3022 = frozenset([])
     FOLLOW_EOF_in_statement3024 = frozenset([1])
-    FOLLOW_name_in_statement3033 = frozenset([43])
+    FOLLOW_expr_subscript_in_statement3033 = frozenset([43])
     FOLLOW_43_in_statement3035 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_statement3039 = frozenset([])
     FOLLOW_EOF_in_statement3041 = frozenset([1])
-    FOLLOW_name_in_statement3050 = frozenset([29])
+    FOLLOW_expr_subscript_in_statement3050 = frozenset([29])
     FOLLOW_29_in_statement3052 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_statement3056 = frozenset([])
     FOLLOW_EOF_in_statement3058 = frozenset([1])
@@ -5053,38 +5430,39 @@ class UL4Parser(Parser):
     FOLLOW_30_in_synpred24_UL41549 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_generatorexpression_in_synpred24_UL41553 = frozenset([31])
     FOLLOW_31_in_synpred24_UL41557 = frozenset([1])
-    FOLLOW_30_in_synpred26_UL41606 = frozenset([14, 30])
-    FOLLOW_nestedname_in_synpred26_UL41610 = frozenset([37])
+    FOLLOW_expr_subscript_in_synpred25_UL41597 = frozenset([1])
+    FOLLOW_30_in_synpred26_UL41606 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 52, 60])
+    FOLLOW_nestedlvalue_in_synpred26_UL41610 = frozenset([37])
     FOLLOW_37_in_synpred26_UL41612 = frozenset([31])
     FOLLOW_31_in_synpred26_UL41614 = frozenset([1])
     FOLLOW_generatorexpression_in_synpred70_UL42845 = frozenset([1])
     FOLLOW_generatorexpression_in_synpred71_UL42873 = frozenset([])
     FOLLOW_EOF_in_synpred71_UL42875 = frozenset([1])
-    FOLLOW_nestedname_in_synpred72_UL42948 = frozenset([48])
+    FOLLOW_nestedlvalue_in_synpred72_UL42948 = frozenset([48])
     FOLLOW_48_in_synpred72_UL42950 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_synpred72_UL42954 = frozenset([])
     FOLLOW_EOF_in_synpred72_UL42956 = frozenset([1])
-    FOLLOW_name_in_synpred73_UL42965 = frozenset([36])
+    FOLLOW_expr_subscript_in_synpred73_UL42965 = frozenset([36])
     FOLLOW_36_in_synpred73_UL42967 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_synpred73_UL42971 = frozenset([])
     FOLLOW_EOF_in_synpred73_UL42973 = frozenset([1])
-    FOLLOW_name_in_synpred74_UL42982 = frozenset([39])
+    FOLLOW_expr_subscript_in_synpred74_UL42982 = frozenset([39])
     FOLLOW_39_in_synpred74_UL42984 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_synpred74_UL42988 = frozenset([])
     FOLLOW_EOF_in_synpred74_UL42990 = frozenset([1])
-    FOLLOW_name_in_synpred75_UL42999 = frozenset([34])
+    FOLLOW_expr_subscript_in_synpred75_UL42999 = frozenset([34])
     FOLLOW_34_in_synpred75_UL43001 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_synpred75_UL43005 = frozenset([])
     FOLLOW_EOF_in_synpred75_UL43007 = frozenset([1])
-    FOLLOW_name_in_synpred76_UL43016 = frozenset([44])
+    FOLLOW_expr_subscript_in_synpred76_UL43016 = frozenset([44])
     FOLLOW_44_in_synpred76_UL43018 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_synpred76_UL43022 = frozenset([])
     FOLLOW_EOF_in_synpred76_UL43024 = frozenset([1])
-    FOLLOW_name_in_synpred77_UL43033 = frozenset([43])
+    FOLLOW_expr_subscript_in_synpred77_UL43033 = frozenset([43])
     FOLLOW_43_in_synpred77_UL43035 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_synpred77_UL43039 = frozenset([])
     FOLLOW_EOF_in_synpred77_UL43041 = frozenset([1])
-    FOLLOW_name_in_synpred78_UL43050 = frozenset([29])
+    FOLLOW_expr_subscript_in_synpred78_UL43050 = frozenset([29])
     FOLLOW_29_in_synpred78_UL43052 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 30, 38, 52, 58, 60])
     FOLLOW_expr_or_in_synpred78_UL43056 = frozenset([])
     FOLLOW_EOF_in_synpred78_UL43058 = frozenset([1])

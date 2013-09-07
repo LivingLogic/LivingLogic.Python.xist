@@ -233,14 +233,14 @@ listcomprehension returns [node]
 		open='['
 		item=expr_or
 		'for'
-		n=nestedname
+		n=nestedlvalue
 		'in'
 		container=expr_or
 		(
 			'if'
 			condition=expr_or { _condition = $condition.node; }
 		)?
-		close=']' { $node = ul4c.ListComp(self.location, self.start($open), self.end($close), $item.node, $n.varname, $container.node, _condition) }
+		close=']' { $node = ul4c.ListComp(self.location, self.start($open), self.end($close), $item.node, $n.lvalue, $container.node, _condition) }
 	;
 
 /* Dict literal */
@@ -278,14 +278,14 @@ dictcomprehension returns [node]
 		':'
 		value=expr_or
 		'for'
-		n=nestedname
+		n=nestedlvalue
 		'in'
 		container=expr_or
 		(
 			'if'
 			condition=expr_or { _condition = $condition.node; }
 		)?
-		close='}' { $node = ul4c.DictComp(self.location, self.start($open), self.end($close), $key.node, $value.node, $n.varname, $container.node, _condition) }
+		close='}' { $node = ul4c.DictComp(self.location, self.start($open), self.end($close), $key.node, $value.node, $n.lvalue, $container.node, _condition) }
 	;
 
 generatorexpression returns [node]
@@ -297,13 +297,13 @@ generatorexpression returns [node]
 	:
 		item=expr_or { _start = $item.node.start }
 		'for'
-		n=nestedname
+		n=nestedlvalue
 		'in'
 		container=expr_or { _end = $container.node.end }
 		(
 			'if'
 			condition=expr_or { _condition = $condition.node; _end = $condition.node.end }
-		)? { $node = ul4c.GenExpr(self.location, $item.node.start, _end, $item.node, $n.varname, $container.node, _condition) }
+		)? { $node = ul4c.GenExpr(self.location, $item.node.start, _end, $item.node, $n.lvalue, $container.node, _condition) }
 	;
 
 atom returns [node]
@@ -325,19 +325,19 @@ atom returns [node]
 	;
 
 /* For variable unpacking in assignments and for loops */
-nestedname returns [varname]
+nestedlvalue returns [lvalue]
 	:
-		n=name { $varname = $n.text; }
+		n=expr_subscript { $lvalue = $n.node; }
 	|
-		'(' n0=nestedname ',' ')' { $varname = ($n0.varname,) }
+		'(' n0=nestedlvalue ',' ')' { $lvalue = ($n0.lvalue,) }
 	|
 		'('
-		n1=nestedname
+		n1=nestedlvalue
 		','
-		n2=nestedname { $varname = ($n1.varname, $n2.varname) }
+		n2=nestedlvalue { $lvalue = ($n1.lvalue, $n2.lvalue) }
 		(
 			','
-			n3=nestedname { $varname += ($n3.varname,) }
+			n3=nestedlvalue { $lvalue += ($n3.lvalue,) }
 		)*
 		','?
 		')'
@@ -347,7 +347,6 @@ nestedname returns [varname]
 expr_subscript returns [node]
 	@init
 	{
-		callmeth = False
 		index1 = None
 		index2 = None
 		slice = False
@@ -554,9 +553,9 @@ expression returns [node]
 
 for_ returns [node]
 	:
-		n=nestedname
+		n=nestedlvalue
 		'in'
-		e=expr_or { $node = ul4c.For(self.location, self.start($n.start), $e.node.end, $n.varname, $e.node) }
+		e=expr_or { $node = ul4c.For(self.location, self.start($n.start), $e.node.end, $n.lvalue, $e.node) }
 		EOF
 	;
 
@@ -564,12 +563,12 @@ for_ returns [node]
 /* Additional rules for "code" tag */
 
 statement returns [node]
-	: nn=nestedname '=' e=expr_or EOF { $node = ul4c.StoreVar(self.location, self.start($nn.start), $e.node.end, $nn.varname, $e.node) }
-	| n=name '+=' e=expr_or EOF { $node = ul4c.AddVar(self.location, self.start($n.start), $e.node.end, $n.text, $e.node) }
-	| n=name '-=' e=expr_or EOF { $node = ul4c.SubVar(self.location, self.start($n.start), $e.node.end, $n.text, $e.node) }
-	| n=name '*=' e=expr_or EOF { $node = ul4c.MulVar(self.location, self.start($n.start), $e.node.end, $n.text, $e.node) }
-	| n=name '/=' e=expr_or EOF { $node = ul4c.TrueDivVar(self.location, self.start($n.start), $e.node.end, $n.text, $e.node) }
-	| n=name '//=' e=expr_or EOF { $node = ul4c.FloorDivVar(self.location, self.start($n.start), $e.node.end, $n.text, $e.node) }
-	| n=name '%=' e=expr_or EOF { $node = ul4c.ModVar(self.location, self.start($n.start), $e.node.end, $n.text, $e.node) }
+	: nn=nestedlvalue '=' e=expr_or EOF { $node = ul4c.SetVar(self.location, self.start($nn.start), $e.node.end, $nn.lvalue, $e.node) }
+	| n=expr_subscript '+=' e=expr_or EOF { $node = ul4c.AddVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
+	| n=expr_subscript '-=' e=expr_or EOF { $node = ul4c.SubVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
+	| n=expr_subscript '*=' e=expr_or EOF { $node = ul4c.MulVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
+	| n=expr_subscript '/=' e=expr_or EOF { $node = ul4c.TrueDivVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
+	| n=expr_subscript '//=' e=expr_or EOF { $node = ul4c.FloorDivVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
+	| n=expr_subscript '%=' e=expr_or EOF { $node = ul4c.ModVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
 	| e=expression EOF { $node = $e.node }
 	;

@@ -249,9 +249,9 @@ class UndefinedIndex(Undefined):
 
 
 def handleeval(f):
-	def wrapped(self, vars):
+	def wrapped(self, *args):
 		try:
-			return (yield from f(self, vars))
+			return (yield from f(self, *args))
 		except (BreakException, ContinueException, ReturnException) as ex:
 			raise
 		except Error as ex:
@@ -264,16 +264,16 @@ def handleeval(f):
 	return wrapped
 
 
-def _unpackvar(vars, name, value):
-	if isinstance(name, str):
-		vars[name] = value
+def _unpackvar(lvalue, value):
+	if isinstance(lvalue, AST):
+		yield (lvalue, value)
 	else:
-		if len(name) > len(value):
-			raise TypeError("too many values to unpack (expected {})".format(len(name)))
-		elif len(name) < len(value):
+		if len(lvalue) > len(value):
+			raise TypeError("too many values to unpack (expected {})".format(len(lvalue)))
+		elif len(lvalue) < len(value):
 			raise TypeError("need more than {} value{} to unpack)".format(len(values), "ss" if len(values) != 1 else ""))
-		for (name, value) in zip(name, value):
-			_unpackvar(vars, name, value)
+		for (lvalue, value) in zip(lvalue, value):
+			yield from _unpackvar(lvalue, value)
 
 
 def _str(obj=""):
@@ -598,7 +598,8 @@ class ListComp(AST):
 		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
 		result = []
 		for item in container:
-			_unpackvar(vars, self.varname, item)
+			for (lvalue, value) in _unpackvar(self.varname, item):
+				yield from lvalue.evalsetvar(vars, value)
 			if self.condition is None or (yield from self.condition.eval(vars)):
 				item = (yield from self.item.eval(vars))
 				result.append(item)
@@ -717,7 +718,8 @@ class DictComp(AST):
 		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
 		result = {}
 		for item in container:
-			_unpackvar(vars, self.varname, item)
+			for (lvalue, value) in _unpackvar(self.varname, item):
+				yield from lvalue.evalsetvar(vars, value)
 			if self.condition is None or (yield from self.condition.eval(vars)):
 				key = (yield from self.key.eval(vars))
 				value = (yield from self.value.eval(vars))
@@ -789,7 +791,8 @@ class GenExpr(AST):
 		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
 		def result():
 			for item in container:
-				_unpackvar(vars, self.varname, item)
+				for (lvalue, value) in _unpackvar(self.varname, item):
+					yield from lvalue.evalsetvar(vars, value)
 				if self.condition is None or (yield from self.condition.eval(vars)):
 					item = (yield from self.item.eval(vars))
 					yield item
@@ -835,6 +838,41 @@ class Var(AST):
 				return self.functions[self.name]
 			except KeyError:
 				return UndefinedVariable(self.name)
+
+	@handleeval
+	def evalsetvar(self, vars, value):
+		yield from ()
+		vars[self.name] = value
+
+	@handleeval
+	def evaladdvar(self, vars, value):
+		yield from ()
+		vars[self.name] += value
+
+	@handleeval
+	def evalsubvar(self, vars, value):
+		yield from ()
+		vars[self.name] -= value
+
+	@handleeval
+	def evalmulvar(self, vars, value):
+		yield from ()
+		vars[self.name] *= value
+
+	@handleeval
+	def evaltruedivvar(self, vars, value):
+		yield from ()
+		vars[self.name] /= value
+
+	@handleeval
+	def evalfloordivvar(self, vars, value):
+		yield from ()
+		vars[self.name] //= value
+
+	@handleeval
+	def evalmodvar(self, vars, value):
+		yield from ()
+		vars[self.name] %= value
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1119,7 +1157,8 @@ class For(Block):
 		except AttributeError:
 			pass
 		for item in container:
-			_unpackvar(vars, self.varname, item)
+			for (lvalue, value) in _unpackvar(self.varname, item):
+				yield from lvalue.evalsetvar(vars, value)
 			try:
 				yield from super().eval(vars)
 			except BreakException:
@@ -1444,6 +1483,76 @@ class GetAttr(AST):
 			result = UndefinedKey(methname)
 		return result
 
+	@handleeval
+	def evalsetvar(self, vars, value):
+		obj = (yield from self.obj.eval(vars))
+		try:
+			hasattr = self.attrname in obj.ul4attrs
+		except (AttributeError, TypeError):
+			obj[self.attrname] = value
+		else:
+			setattr(obj, self.attrname, value)
+
+	@handleeval
+	def evaladdvar(self, vars, value):
+		obj = (yield from self.obj.eval(vars))
+		try:
+			hasattr = self.attrname in obj.ul4attrs
+		except (AttributeError, TypeError):
+			obj[self.attrname] += value
+		else:
+			setattr(obj, self.attrname, getattr(obj, self.attrname) + value)
+
+	@handleeval
+	def evalsubvar(self, vars, value):
+		obj = (yield from self.obj.eval(vars))
+		try:
+			hasattr = self.attrname in obj.ul4attrs
+		except (AttributeError, TypeError):
+			obj[self.attrname] -= value
+		else:
+			setattr(obj, self.attrname, getattr(obj, self.attrname) - value)
+
+	@handleeval
+	def evalmulvar(self, vars, value):
+		obj = (yield from self.obj.eval(vars))
+		try:
+			hasattr = self.attrname in obj.ul4attrs
+		except (AttributeError, TypeError):
+			obj[self.attrname] *= value
+		else:
+			setattr(obj, self.attrname, getattr(obj, self.attrname) * value)
+
+	@handleeval
+	def evalfloordivvar(self, vars, value):
+		obj = (yield from self.obj.eval(vars))
+		try:
+			hasattr = self.attrname in obj.ul4attrs
+		except (AttributeError, TypeError):
+			obj[self.attrname] //= value
+		else:
+			setattr(obj, self.attrname, getattr(obj, self.attrname) // value)
+
+	@handleeval
+	def evaltruedivvar(self, vars, value):
+		obj = (yield from self.obj.eval(vars))
+		try:
+			hasattr = self.attrname in obj.ul4attrs
+		except (AttributeError, TypeError):
+			obj[self.attrname] /= value
+		else:
+			setattr(obj, self.attrname, getattr(obj, self.attrname) / value)
+
+	@handleeval
+	def evalmodvar(self, vars, value):
+		obj = (yield from self.obj.eval(vars))
+		try:
+			hasattr = self.attrname in obj.ul4attrs
+		except (AttributeError, TypeError):
+			obj[self.attrname] %= value
+		else:
+			setattr(obj, self.attrname, getattr(obj, self.attrname) % value)
+
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
 		encoder.dump(self.obj)
@@ -1498,19 +1607,48 @@ class GetSlice(AST):
 	@handleeval
 	def eval(self, vars):
 		obj = (yield from self.obj.eval(vars))
+		index1 = None
 		if self.index1 is not None:
 			index1 = (yield from self.index1.eval(vars))
-			if self.index2 is not None:
-				index2 = (yield from self.index2.eval(vars))
-				return obj[index1:index2]
-			else:
-				return obj[index1:]
-		else:
-			if self.index2 is not None:
-				index2 = (yield from self.index2.eval(vars))
-				return obj[:index2]
-			else:
-				return obj[:]
+		index2 = None
+		if self.index2 is not None:
+			index2 = (yield from self.index2.eval(vars))
+		return obj[slice(index1, index2)]
+
+	@handleeval
+	def evalsetvar(self, vars, value):
+		obj = (yield from self.obj.eval(vars))
+		index1 = None
+		if self.index1 is not None:
+			index1 = (yield from self.index1.eval(vars))
+		index2 = None
+		if self.index2 is not None:
+			index2 = (yield from self.index2.eval(vars))
+		obj[slice(index1, index2)] = value
+
+	@handleeval
+	def evaladdvar(self, vars, value):
+		raise TypeError("can't use += with slice")
+
+	@handleeval
+	def evalsubvar(self, vars, value):
+		raise TypeError("can't use -= with slice")
+
+	@handleeval
+	def evalmulvar(self, vars, value):
+		raise TypeError("can't use *= with slice")
+
+	@handleeval
+	def evalfloordivvar(self, vars, value):
+		raise TypeError("can't use //= with slice")
+
+	@handleeval
+	def evaltruedivvar(self, vars, value):
+		raise TypeError("can't use /= with slice")
+
+	@handleeval
+	def evalmodvar(self, vars, value):
+		raise TypeError("can't use %= with slice")
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1725,6 +1863,48 @@ class GetItem(Binary):
 				return UndefinedKey(obj2)
 			else:
 				return UndefinedIndex(obj2)
+
+	@handleeval
+	def evalsetvar(self, vars, value):
+		obj1 = (yield from self.obj1.eval(vars))
+		obj2 = (yield from self.obj2.eval(vars))
+		obj1[obj2] = value
+
+	@handleeval
+	def evaladdvar(self, vars, value):
+		obj1 = (yield from self.obj1.eval(vars))
+		obj2 = (yield from self.obj2.eval(vars))
+		obj1[obj2] += value
+
+	@handleeval
+	def evalsubvar(self, vars, value):
+		obj1 = (yield from self.obj1.eval(vars))
+		obj2 = (yield from self.obj2.eval(vars))
+		obj1[obj2] -= value
+
+	@handleeval
+	def evalmulvar(self, vars, value):
+		obj1 = (yield from self.obj1.eval(vars))
+		obj2 = (yield from self.obj2.eval(vars))
+		obj1[obj2] *= value
+
+	@handleeval
+	def evalfloordivvar(self, vars, value):
+		obj1 = (yield from self.obj1.eval(vars))
+		obj2 = (yield from self.obj2.eval(vars))
+		obj1[obj2] //= value
+
+	@handleeval
+	def evaltruedivvar(self, vars, value):
+		obj1 = (yield from self.obj1.eval(vars))
+		obj2 = (yield from self.obj2.eval(vars))
+		obj1[obj2] /= value
+
+	@handleeval
+	def evalmodvar(self, vars, value):
+		obj1 = (yield from self.obj1.eval(vars))
+		obj2 = (yield from self.obj2.eval(vars))
+		obj1[obj2] %= value
 
 
 @register("eq")
@@ -1974,13 +2154,13 @@ class ChangeVar(AST):
 
 	ul4attrs = AST.ul4attrs.union({"varname", "value"})
 
-	def __init__(self, location=None, start=None, end=None, varname=None, value=None):
+	def __init__(self, location=None, start=None, end=None, lvalue=None, value=None):
 		super().__init__(location, start, end)
-		self.varname = varname
+		self.lvalue = lvalue
 		self.value = value
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} varname={0.varname!r} value={0.value!r} at {1:#x}>".format(self, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} lvalue={0.lvalue!r} value={0.value!r} at {1:#x}>".format(self, id(self))
 
 	def _repr_pretty_(self, p, cycle):
 		if cycle:
@@ -1988,8 +2168,8 @@ class ChangeVar(AST):
 		else:
 			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
 				p.breakable()
-				p.text("varname=")
-				p.pretty(self.varname)
+				p.text("lvalue=")
+				p.pretty(self.lvalue)
 				p.breakable()
 				p.text("value=")
 				p.pretty(self.value)
@@ -1998,17 +2178,17 @@ class ChangeVar(AST):
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
-		encoder.dump(self.varname)
+		encoder.dump(self.lvalue)
 		encoder.dump(self.value)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
-		self.varname = decoder.load()
+		self.lvalue = decoder.load()
 		self.value = decoder.load()
 
 
 @register("storevar")
-class StoreVar(ChangeVar):
+class SetVar(ChangeVar):
 	"""
 	AST node that stores a value into a variable.
 	"""
@@ -2016,7 +2196,8 @@ class StoreVar(ChangeVar):
 	@handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
-		_unpackvar(vars, self.varname, value)
+		for (lvalue, value) in _unpackvar(self.lvalue, value):
+			yield from lvalue.evalsetvar(vars, value)
 
 
 @register("addvar")
@@ -2028,7 +2209,8 @@ class AddVar(ChangeVar):
 	@handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
-		vars[self.varname] += value
+		for (lvalue, value) in _unpackvar(self.lvalue, value):
+			yield from lvalue.evaladdvar(vars, value)
 
 
 @register("subvar")
@@ -2040,7 +2222,8 @@ class SubVar(ChangeVar):
 	@handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
-		vars[self.varname] -= value
+		for (lvalue, value) in _unpackvar(self.lvalue, value):
+			yield from lvalue.evalsubvar(vars, value)
 
 
 @register("mulvar")
@@ -2052,7 +2235,8 @@ class MulVar(ChangeVar):
 	@handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
-		vars[self.varname] *= value
+		for (lvalue, value) in _unpackvar(self.lvalue, value):
+			yield from lvalue.evalmulvar(vars, value)
 
 
 @register("floordivvar")
@@ -2065,7 +2249,8 @@ class FloorDivVar(ChangeVar):
 	@handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
-		vars[self.varname] //= value
+		for (lvalue, value) in _unpackvar(self.lvalue, value):
+			yield from lvalue.evalfloordivvar(vars, value)
 
 
 @register("truedivvar")
@@ -2077,7 +2262,8 @@ class TrueDivVar(ChangeVar):
 	@handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
-		vars[self.varname] /= value
+		for (lvalue, value) in _unpackvar(self.lvalue, value):
+			yield from lvalue.evaltruedivvar(vars, value)
 
 
 @register("modvar")
@@ -2089,7 +2275,8 @@ class ModVar(ChangeVar):
 	@handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
-		vars[self.varname] %= value
+		for (lvalue, value) in _unpackvar(self.lvalue, value):
+			yield from lvalue.evalmodvar(vars, value)
 
 
 @register("call")
@@ -2173,6 +2360,34 @@ class Call(AST):
 		else:
 			return obj(*args, **kwargs)
 
+	@handleeval
+	def evalsetvar(self, vars, value):
+		raise TypeError("can't use = on call result")
+
+	@handleeval
+	def evaladdvar(self, vars, value):
+		raise TypeError("can't use += on call result")
+
+	@handleeval
+	def evalsubvar(self, vars, value):
+		raise TypeError("can't use -= on call result")
+
+	@handleeval
+	def evalmulvar(self, vars, value):
+		raise TypeError("can't use *= on call result")
+
+	@handleeval
+	def evalfloordivvar(self, vars, value):
+		raise TypeError("can't use //= on call result")
+
+	@handleeval
+	def evaltruedivvar(self, vars, value):
+		raise TypeError("can't use /= on call result")
+
+	@handleeval
+	def evalmodvar(self, vars, value):
+		raise TypeError("can't use %= on call result")
+
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
 		encoder.dump(self.obj)
@@ -2213,7 +2428,7 @@ class Template(Block):
 	"""
 	ul4attrs = Block.ul4attrs.union({"source", "name", "keepws", "startdelim", "enddelim", "render", "renders"})
 
-	version = "25"
+	version = "26"
 
 	def __init__(self, source=None, name=None, keepws=True, startdelim="<?", enddelim="?>"):
 		"""

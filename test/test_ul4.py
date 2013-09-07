@@ -3456,6 +3456,83 @@ def test_custommethods():
 
 
 @pytest.mark.ul4
+def test_setlvalue(r):
+	assert "bar" == r("<?code d = {}?><?code d.foo = 'bar'?><?print d.foo?>")
+	assert "bar" == r("<?code d = {}?><?code d['foo'] = 'bar'?><?print d['foo']?>")
+	assert "bar" == r("<?code d = ['bar']?><?code d[0] = 'bar'?><?print d[0]?>")
+	assert "baz" == r("<?code d = {'foo': {}}?><?code d.foo.bar = 'baz'?><?print d.foo.bar?>")
+	assert "baz" == r("<?code d = {'foo': {}}?><?code d.foo['bar'] = 'baz'?><?print d.foo['bar']?>")
+	assert "baz" == r("<?code d = {'foo': ['bar']}?><?code d.foo[0] = 'baz'?><?print d.foo[0]?>")
+	assert "baz" == r("<?code d = ['bar']?><?def f?><?return d?><?end def?><?code f()[0] = 'baz'?><?print d[0]?>")
+
+
+@pytest.mark.ul4
+def test_addlvalue(r):
+	assert "barbaz" == r("<?code d = {'foo': 'bar'}?><?code d.foo += 'baz'?><?print d.foo?>")
+	assert "barbaz" == r("<?code d = {'foo': 'bar'}?><?code d['foo'] += 'baz'?><?print d['foo']?>")
+	assert "barbaz" == r("<?code d = ['bar']?><?code d[0] += 'baz'?><?print d[0]?>")
+	assert "barbaz" == r("<?code d = {'foo': {'bar' : 'bar'}}?><?code d.foo.bar += 'baz'?><?print d.foo.bar?>")
+	assert "barbaz" == r("<?code d = {'foo': {'bar' : 'bar'}}?><?code d.foo['bar'] += 'baz'?><?print d.foo['bar']?>")
+	assert "barbaz" == r("<?code d = {'foo': ['bar']}?><?code d.foo[0] += 'baz'?><?print d.foo[0]?>")
+	assert "barbaz" == r("<?code d = ['bar']?><?def f?><?return d?><?end def?><?code f()[0] += 'baz'?><?print d[0]?>")
+
+
+@pytest.mark.ul4
+def test_sublvalue(r):
+	assert "6" == r("<?code d = {'foo': 23}?><?code d.foo -= 17?><?print d.foo?>")
+	assert "6" == r("<?code d = {'foo': 23}?><?code d['foo'] -= 17?><?print d['foo']?>")
+	assert "6" == r("<?code d = [23]?><?code d[0] -= 17?><?print d[0]?>")
+	assert "6" == r("<?code d = {'foo': {'bar' : 23}}?><?code d.foo.bar -= 17?><?print d.foo.bar?>")
+	assert "6" == r("<?code d = {'foo': {'bar' : 23}}?><?code d.foo['bar'] -= 17?><?print d.foo['bar']?>")
+	assert "6" == r("<?code d = {'foo': [23]}?><?code d.foo[0] -= 17?><?print d.foo[0]?>")
+	assert "6" == r("<?code d = [23]?><?def f?><?return d?><?end def?><?code f()[0] -= 17?><?print d[0]?>")
+
+
+@pytest.mark.ul4
+def test_mullvalue(r):
+	assert "42" == r("<?code d = {'foo': 6}?><?code d.foo *= 7?><?print d.foo?>")
+	assert "42" == r("<?code d = {'foo': 6}?><?code d['foo'] *= 7?><?print d['foo']?>")
+	assert "42" == r("<?code d = [6]?><?code d[0] *= 7?><?print d[0]?>")
+	assert "42" == r("<?code d = {'foo': {'bar' : 6}}?><?code d.foo.bar *= 7?><?print d.foo.bar?>")
+	assert "42" == r("<?code d = {'foo': {'bar' : 6}}?><?code d.foo['bar'] *= 7?><?print d.foo['bar']?>")
+	assert "42" == r("<?code d = {'foo': [6]}?><?code d.foo[0] *= 7?><?print d.foo[0]?>")
+	assert "42" == r("<?code d = [6]?><?def f?><?return d?><?end def?><?code f()[0] *= 7?><?print d[0]?>")
+
+
+@pytest.mark.ul4
+def test_floordivlvalue(r):
+	assert "2" == r("<?code d = {'foo': 5}?><?code d.foo //= 2?><?print d.foo?>")
+	assert "2" == r("<?code d = {'foo': 5}?><?code d['foo'] //= 2?><?print d['foo']?>")
+	assert "2" == r("<?code d = [5]?><?code d[0] //= 2?><?print d[0]?>")
+	assert "2" == r("<?code d = {'foo': {'bar' : 5}}?><?code d.foo.bar //= 2?><?print d.foo.bar?>")
+	assert "2" == r("<?code d = {'foo': {'bar' : 5}}?><?code d.foo['bar'] //= 2?><?print d.foo['bar']?>")
+	assert "2" == r("<?code d = {'foo': [5]}?><?code d.foo[0] //= 2?><?print d.foo[0]?>")
+	assert "2" == r("<?code d = [5]?><?def f?><?return d?><?end def?><?code f()[0] //= 2?><?print d[0]?>")
+
+
+@pytest.mark.ul4
+def test_truedivlvalue(r):
+	assert "2.5" == r("<?code d = {'foo': 5}?><?code d.foo /= 2?><?print d.foo?>")
+	assert "2.5" == r("<?code d = {'foo': 5}?><?code d['foo'] /= 2?><?print d['foo']?>")
+	assert "2.5" == r("<?code d = [5]?><?code d[0] /= 2?><?print d[0]?>")
+	assert "2.5" == r("<?code d = {'foo': {'bar' : 5}}?><?code d.foo.bar /= 2?><?print d.foo.bar?>")
+	assert "2.5" == r("<?code d = {'foo': {'bar' : 5}}?><?code d.foo['bar'] /= 2?><?print d.foo['bar']?>")
+	assert "2.5" == r("<?code d = {'foo': [5]}?><?code d.foo[0] /= 2?><?print d.foo[0]?>")
+	assert "2.5" == r("<?code d = [5]?><?def f?><?return d?><?end def?><?code f()[0] /= 2?><?print d[0]?>")
+
+
+@pytest.mark.ul4
+def test_truedivlvalue(r):
+	assert "1" == r("<?code d = {'foo': 5}?><?code d.foo %= 2?><?print d.foo?>")
+	assert "1" == r("<?code d = {'foo': 5}?><?code d['foo'] %= 2?><?print d['foo']?>")
+	assert "1" == r("<?code d = [5]?><?code d[0] %= 2?><?print d[0]?>")
+	assert "1" == r("<?code d = {'foo': {'bar' : 5}}?><?code d.foo.bar %= 2?><?print d.foo.bar?>")
+	assert "1" == r("<?code d = {'foo': {'bar' : 5}}?><?code d.foo['bar'] %= 2?><?print d.foo['bar']?>")
+	assert "1" == r("<?code d = {'foo': [5]}?><?code d.foo[0] %= 2?><?print d.foo[0]?>")
+	assert "1" == r("<?code d = [5]?><?def f?><?return d?><?end def?><?code f()[0] %= 2?><?print d[0]?>")
+
+
+@pytest.mark.ul4
 def test_jssource():
 	t = universaltemplate()
 	t.jssource()

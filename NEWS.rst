@@ -3,6 +3,14 @@ Changes in 5.2 (released ??/??/2013)
 
 *	Added support for bound methods to UL4 templates.
 
+*	UL4 templates now support attribute, item and slice assignment, i.e. the
+	following code will work::
+
+		<?code d = {}?><?code d.foo = 'bar'?>
+		<?code d = {}?><?code d['foo'] = 'bar'?>
+		<?code d = [17]?><?code d[0] = 23?>
+		<?code d = [1, 7, 4]?><?code d[1:2] = [2, 3]?>
+
 *	Add UL4 functions ``first`` and ``last`` that return the first or last item
 	produced by an iterable.
 
