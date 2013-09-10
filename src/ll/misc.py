@@ -589,7 +589,6 @@ class SysInfo(object):
 	@property
 	def host_name(self):
 		if self._host_name is object:
-			print("debug host_name")
 			import socket
 			self._host_name = socket.gethostname()
 		return self._host_name
@@ -601,7 +600,6 @@ class SysInfo(object):
 	@property
 	def host_ip(self):
 		if self._host_ip is object:
-			print("debug host_ip")
 			import socket
 			self._host_ip = socket.gethostbyname(self.host_name)
 		return self._host_ip
