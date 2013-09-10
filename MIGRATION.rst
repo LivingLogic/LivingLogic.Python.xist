@@ -8,6 +8,9 @@ Changes to ``oradd``
 	with the new option ``--commit``. ``--rollback`` has been removed, so you
 	have to replace ``--rollback=1`` with ``--commit=never``.
 
+*	Renamed the attributes ``scriptname`` and ``shortscriptname`` of the
+	:obj:`misc.sysinfo` object to ``script_name`` and ``short_script_name``.
+
 
 Migrating to version 5.1
 ========================
