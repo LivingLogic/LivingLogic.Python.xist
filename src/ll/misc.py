@@ -561,7 +561,7 @@ class SysInfo(object):
 	``host_ip``, ``host_sysname``, ``host_nodename``, ``host_release``,
 	``host_version``, ``host_machine``, ``user_name``, ``user_uid``, ``user_gid``,
 	``user_gecos``, ``user_dir``, ``user_shell``, ``python_executable``,
-	``python_version``, ``pid``, ``scriptname`` and ``shortscriptname``.
+	``python_version``, ``pid``, ``script_name`` and ``short_script_name``.
 
 	:class:`SysInfo` object also support a mimimal dictionary interface (i.e.
 	:meth:`__getitem__` and :meth:`__iter__`).
@@ -570,7 +570,7 @@ class SysInfo(object):
 	time.
 	"""
 
-	_keys = {"host_name", "host_fqdn", "host_ip", "host_sysname", "host_nodename", "host_release", "host_version", "host_machine", "python_executable", "python_version", "pid", "scriptname", "shortscriptname"}
+	_keys = {"host_name", "host_fqdn", "host_ip", "host_sysname", "host_nodename", "host_release", "host_version", "host_machine", "user_name", "user_uid", "user_gid", "user_gecos", "user_dir", "user_shell", "python_executable", "python_version", "pid", "script_name", "short_script_name"}
 
 	def __init__(self):
 		# Use ``object`` as a marker for "not initialized"
@@ -582,9 +582,15 @@ class SysInfo(object):
 		self._host_release = object
 		self._host_version = object
 		self._host_machine = object
+		self._user_name = object
+		self._user_uid = object
+		self._user_gid = object
+		self._user_gecos = object
+		self._user_dir = object
+		self._user_shell = object
 		self._pid = object
-		self._scriptname = object
-		self._shortscriptname = object
+		self._script_name = object
+		self._short_script_name = object
 
 	@property
 	def host_name(self):
@@ -690,25 +696,25 @@ class SysInfo(object):
 		return os.getpid()
 
 	@property
-	def scriptname(self):
-		if self._scriptname is object:
+	def script_name(self):
+		if self._script_name is object:
 			main = sys.modules["__main__"]
 			if hasattr(main, "__file__"):
-				self._scriptname = os.path.join(_curdir, main.__file__)
+				self._script_name = os.path.join(_curdir, main.__file__)
 			else:
-				self._scriptname = "<shell>"
-		return self._scriptname
+				self._script_name = "<shell>"
+		return self._script_name
 
 	@property
-	def shortscriptname(self):
-		if self._shortscriptname is object:
-			scriptname = self.scriptname
-			if scriptname != "<shell>":
+	def short_script_name(self):
+		if self._short_script_name is object:
+			script_name = self.script_name
+			if script_name != "<shell>":
 				userhome = os.path.expanduser("~")
-				if scriptname.startswith(userhome+"/"):
-					scriptname = "~" + scriptname[len(userhome):]
-			self._shortscriptname = scriptname
-		return self._shortscriptname
+				if script_name.startswith(userhome+"/"):
+					script_name = "~" + script_name[len(userhome):]
+			self._short_script_name = script_name
+		return self._short_script_name
 
 	def __getitem__(self, key):
 		if key in self._keys:

@@ -1613,7 +1613,7 @@ class Project(dict):
 		cmd = [
 			"/Applications/terminal-notifier.app/Contents/MacOS/terminal-notifier",
 			"-remove",
-			misc.sysinfo.scriptname,
+			misc.sysinfo.script_name,
 		]
 
 		import subprocess
@@ -1640,7 +1640,7 @@ class Project(dict):
 			"-message",
 			"; ".join(msgs),
 			"-group",
-			misc.sysinfo.scriptname,
+			misc.sysinfo.script_name,
 		]
 
 		import subprocess

@@ -25,6 +25,11 @@ Changes in 5.2 (released ??/??/2013)
 *	Committing the transactions in ``oradd`` can now be done after each record
 	with the new option ``--commit``. ``--rollback`` has been removed.
 
+*	Renamed the attributes ``scriptname`` and ``shortscriptname`` of the
+	:obj:`misc.sysinfo` object to ``script_name`` and ``short_script_name``.
+
+*	Fixed the user related attributes of :obj:`misc.sysinfo`.
+
 
 Changes in 5.1 (released 08/02/2013)
 ------------------------------------

@@ -297,11 +297,17 @@ def test_sysinfo():
 	misc.sysinfo.host_release
 	misc.sysinfo.host_version
 	misc.sysinfo.host_machine
+	misc.sysinfo.user_name
+	misc.sysinfo.user_uid
+	misc.sysinfo.user_gid
+	misc.sysinfo.user_gecos
+	misc.sysinfo.user_dir
+	misc.sysinfo.user_shell
 	misc.sysinfo.python_executable
 	misc.sysinfo.python_version
 	misc.sysinfo.pid
-	misc.sysinfo.scriptname
-	misc.sysinfo.shortscriptname
+	misc.sysinfo.script_name
+	misc.sysinfo.short_script_name
 
 
 def test_prettycsv():

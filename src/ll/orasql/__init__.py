@@ -354,7 +354,7 @@ class Connection(Connection):
 			self.readlobs = False
 		if "clientinfo" not in kwargs:
 			kwargs = kwargs.copy()
-			kwargs["clientinfo"] = misc.sysinfo.shortscriptname[-64:]
+			kwargs["clientinfo"] = misc.sysinfo.short_script_name[-64:]
 		elif kwargs["clientinfo"] is None:
 			kwargs = kwargs.copy()
 			del kwargs["clientinfo"]
