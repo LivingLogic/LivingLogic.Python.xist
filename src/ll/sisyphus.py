@@ -322,7 +322,7 @@ class Job(object):
 			self._getcrontab() # Get crontab
 			self.lineno = 1 # Current line number
 			self.log = Tag(self._log) # Create tagged logger
-			self._formatlogline = ul4c.Template(self.formatlogline.replace("\n", "").replace("\r", "") + "\n", "formatlogline") # Log line formatting template
+			self._formatlogline = ul4c.Template(self.formatlogline, "formatlogline", keepws=False) # Log line formatting template
 			self._createlog() # Create log file and link
 
 			self.log.sisyphus.init("{} (max time {}; pid {})".format(misc.sysinfo.scriptname, self.getmaxtime(), misc.sysinfo.pid))
@@ -453,12 +453,15 @@ class Job(object):
 					text = self._formatlogline.renders(line=self._prefix+line, time=timestamp, tags=tags, **self.info)
 					if self.log2file:
 						self._logfile.write(text)
+						self._logfile.write("\n")
 						self._logfile.flush()
 					if self.log2stdout:
 						sys.stdout.write(text)
+						sys.stdout.write("\n")
 						sys.stdout.flush()
 					if self.log2stderr:
 						sys.stderr.write(text)
+						sys.stderr.write("\n")
 						sys.stderr.flush()
 					self.lineno += 1
 
