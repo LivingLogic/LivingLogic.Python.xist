@@ -12,9 +12,10 @@
 """
 :mod:`ll.sisyphus` simplifies running Python stuff as cron jobs.
 
-There will be no more than one sisyphus job of a certain name running at every
+There will be no more than one sisyphus job of a certain name running at any
 given time. A job has a maximum allowed runtime. If this maximum is exceeded,
-the job will kill itself. In addition to that, job execution can be logged.
+the job will kill itself. In addition to that, job execution can be logged and
+in case of job failure an email can be sent.
 
 To use this module, you must derive your own class from :class:`Job` and
 implement the :meth:`execute` method.
@@ -65,7 +66,9 @@ You will find the log files for this job in ``~/ll.sisyphus/ACME.FooBar/Fetch/``
 """
 
 
-import sys, os, signal, fcntl, codecs, traceback, errno, pprint, datetime, re, contextlib, argparse, tokenize
+import sys, os, signal, fcntl, codecs, traceback, errno, pprint, datetime, re, contextlib, argparse, tokenize, json, smtplib
+from email.mime import text, application, multipart
+from email import encoders
 
 from ll import url, ul4c, misc
 
@@ -100,6 +103,10 @@ class Job(object):
 		``init``
 			This tag is used for the log lines output at the start of the job
 
+		``email``
+			This tag will be added for all log messages related to sending the
+			failure report email.
+
 		``result``
 			This tag is used for final line it the log files that shows a summary
 			of what the job did (or why it failed)
@@ -124,8 +131,27 @@ class Job(object):
 		The name of the job itself (defaulting to the name of the class if none
 		is given).
 
+	``identifier`` : :option:`--identifier`
+		An additional identifier that will be added to the failure report email.
+
 	``argdescription`` : No command line equivalent
 		Description for help message of the command line argument parser.
+
+	``fromemail`` : :option:`--fromemail`
+		The sender email address for the failure report email.
+
+		This email will only be sent if the options :option:`--fromemail`,
+		:option:`--toemail` and :option:`--smtphost` are set (and any errors
+		occured).
+
+	``toemail`` : :option:`--toemail`
+		An email address where an email will be sent in case of a failure.
+
+	``smtphost`` : :option:`--smtphost`
+		The SMTP server to be used for sending the failure report email.
+
+	``smtpport`` : :option:`--smtpport`
+		The port number used for the connection to the SMTP server.
 
 	``maxtime`` : :option:`-m` or :option:`--maxtime`
 		Maximum allowed runtime for the job (as the number of seconds). If the job
@@ -138,7 +164,8 @@ class Job(object):
 		the runtime monitoring.
 
 	``noisykills`` : :option:`--noisykills`
-		Should a message be printed when the maximum runtime is exceeded?
+		Should a message be printed/a failure email be sent when the maximum
+		runtime is exceeded?
 
 	``notify`` : :option:`-n` or :option:`--notify`
 		Should a notification be issued to the OS X Notification center?
@@ -185,6 +212,13 @@ class Job(object):
 
 	argdescription = "execute the job"
 
+	fromemail = None
+	toemail = None
+	smtphost = None
+	smtpport = 0
+
+	identifier = None
+
 	maxtime = 5 * 60
 
 	fork = True
@@ -192,19 +226,189 @@ class Job(object):
 	noisykills = False
 	notify = False
 
-	logfilename = "~/ll.sisyphus/<?print projectname?>/<?print jobname?>/<?print format(starttime, '%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog"
-	loglinkname = "~/ll.sisyphus/<?print projectname?>/<?print jobname?>/current.sisyphuslog"
+	logfilename = "~/ll.sisyphus/<?print job.projectname?>/<?print job.jobname?>/<?print format(job.starttime, '%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog"
+	loglinkname = "~/ll.sisyphus/<?print job.projectname?>/<?print job.jobname?>/current.sisyphuslog"
 
 	log2file = True
 	log2stdout = False
 	log2stderr = False
 
-	formatlogline = "[<?print time?>]=[t+<?print time-starttime?>]<?for tag in tags?>[<?print tag?>]<?end for?>: <?print line?>"
+	formatlogline = r"""
+		[<?print time?>]
+		=
+		[t+<?print time-job.starttime?>]
+		<?for task in tasks?>
+			<?print " :: "?>
+			<?code desc = [task.type, task.name]?>
+			<?code desc = [d for d in desc if d]?>
+			<?if desc?>
+				<?print " ".join(desc)?>
+			<?end if?>
+			<?if not isnone(task.index)?>
+				<?if desc?> <?end if?>
+				(
+				<?print task.index+1?>
+				<?if not isnone(task.count)?>
+					/<?print task.count?>
+				<?end if?>
+				)
+			<?elif not desc?>
+				?
+			<?end if?>
+		<?end for?>
+		<?if tags?>
+			<?print " :: "?>
+			<?for tag in tags?>
+				{<?print tag?>}
+			<?end for?>
+		<?end if?>
+		<?print " >> "?>
+		<?print line?>
+	"""
+
+	formatemailsubject = r"""
+		<?print job.projectname?>/<?print job.jobname?> failed for <?print sysinfo.user_name?>@<?print sysinfo.host_fqdn?> (<?print sysinfo.host_ip?>)<?if errors?> with <?print len(errors)?> errors<?end if?>
+	"""
+
+	formatemailbodytext = r"""
+		Project:    <?print job.projectname?><?print "\n"?>
+		Job:        <?print job.jobname?><?print "\n"?>
+		Identifier: <?print job.identifier or "n/a"?><?print "\n"?>
+		Script:     <?print sysinfo.script_name?><?print "\n"?>
+		User:       <?print sysinfo.user_name?><?print "\n"?>
+		Python:     <?print sysinfo.python_executable?><?print "\n"?>
+		Version:    <?print sysinfo.python_version?><?print "\n"?>
+		Host:       <?print sysinfo.host_fqdn?><?print "\n"?>
+		IP:         <?print sysinfo.host_ip?><?print "\n"?>
+		PID:        <?print sysinfo.pid?><?print "\n"?>
+		Start:      <?print job.starttime?><?print "\n"?>
+		End:        <?print job.endtime?><?print "\n"?>
+		Duration:   <?print job.endtime-job.starttime?><?print "\n"?>
+		Errors:     <?print len(errors)?><?print "\n"?>
+
+		<?for (i, error) in enumerate(errors, 1)?>
+			<?print "-"*80?><?print "\n"?>
+			Error:     #<?print i?><?print "\n"?>
+			<?for task in error.tasks?>
+				Task:      <?code desc = [task.type, task.name]?>
+				<?code desc = [d for d in desc if d]?>
+				<?if desc?>
+					<?print " ".join(desc)?>
+				<?end if?>
+				<?if not isnone(task.index)?>
+					<?if desc?> <?end if?>
+					(
+					<?print task.index+1?>
+					<?if not isnone(task.count)?>
+						/<?print task.count?>
+					<?end if?>
+					)
+				<?elif not desc?>
+					?
+				<?end if?>
+				<?print "\n"?>
+			<?end for?>
+			<?if error.tasks?>
+				<?code starttime = error.tasks[-1].starttime?>
+				<?code endtime = error.tasks[-1].endtime?>
+				Start:     <?print starttime?><?print "\n"?>
+				End:       <?print endtime?><?print "\n"?>
+				Duration:  <?print endtime-starttime?><?print "\n"?>
+			<?end if?>
+			Type:      <?print error.error?><?print "\n"?>
+			<?if error.message?>
+				Message:   <?print error.message?><?print "\n"?>
+			<?end if?>
+			Traceback:<?print "\n"?>
+			<?print error.traceback.strip("\n")?><?print "\n"?>
+		<?end for?>
+	"""
+
+	formatemailbodyhtml = r"""
+		<?note Subtemplates?>
+		<?def table?>
+			<table>
+				<?for (label, value) in data?>
+					<tr><th style="text-align:right;"><?print label?></th><td style="padding-left: 1em;"><?printx value?></td></tr>
+				<?end for?>
+			</table>
+		<?end def?>
+		<?def tasklabel?>
+			<?code desc = [task.type, task.name]?>
+			<?code desc = [d for d in desc if d]?>
+			<?if desc?>
+				<?print " ".join(desc)?>
+			<?end if?>
+			<?if not isnone(task.index)?>
+				<?if desc?> <?end if?>
+				(
+				<?print task.index+1?>
+				<?if not isnone(task.count)?>
+					/<?print task.count?>
+				<?end if?>
+				)
+			<?elif not desc?>
+				?
+			<?end if?>
+		<?end def?>
+
+
+		<?xml version='1.0' encoding='utf-8'?>
+		<html>
+			<head>
+				<title><?printx job.projectname?>/<?printx job.jobname?> on <?printx sysinfo.user_name?>@<?printx sysinfo.host_fqdn?> (<?printx sysinfo.host_ip?>) failed</title>
+			</head>
+			<body style="font-family: monospace;">
+				<h1><?printx job.projectname?>/<?printx job.jobname?> on <?printx sysinfo.user_name?>@<?printx sysinfo.host_fqdn?> (<?printx sysinfo.host_ip?>) failed</h1>
+				<?code data = [
+					["Project", job.projectname],
+					["Job", job.jobname],
+					["Identifier", job.identifier or 'n/a'],
+					["Script", sysinfo.script_name],
+					["User", sysinfo.user_name],
+					["Python", sysinfo.python_executable],
+					["Version", sysinfo.python_version],
+					["Host", sysinfo.host_fqdn],
+					["IP", sysinfo.host_ip],
+					["PID", sysinfo.pid],
+					["Start", job.starttime],
+					["End", job.endtime],
+					["Duration", job.endtime-job.starttime],
+					["Errors", len(errors)],
+				]?>
+				<?code table.render(data=data)?>
+				<?for (i, error) in enumerate(errors, 1)?>
+					<hr/>
+					<h2>Error #<?print i?></h2>
+					<?code data = [["Task", tasklabel.renders(task=task)] for task in error.tasks]?>
+					<?if error.tasks?>
+						<?code starttime = error.tasks[-1].starttime?>
+						<?code endtime = error.tasks[-1].endtime?>
+						<?code data.append(["Start", starttime])?>
+						<?code data.append(["End", endtime])?>
+						<?code data.append(["Duration", endtime-starttime])?>
+					<?end if?>
+					<?code data.append(["Type", error.error])?>
+					<?if error.message?>
+						<?code data.append(["Message", error.message])?>
+					<?end if?>
+					<?code table.render(data=data)?>
+					<h3>Traceback<h3>
+					<pre style="font-weight:normal;">
+						<?printx error.traceback.strip("\n")?>
+					</pre>
+				<?end for?>
+			</pre>
+		</body>
+	</head>
+	"""
 
 	keepfilelogs = 30
 
 	encoding = "utf-8"
 	errors = "strict"
+
+	ul4attrs = {"sysinfo", "projectname", "jobname", "tasksep", "maxtime", "starttime", "endtime"}
 
 	def execute(self):
 		"""
@@ -228,6 +432,11 @@ class Job(object):
 		p = argparse.ArgumentParser(description=self.argdescription, epilog="For more info see http://www.livinglogic.de/Python/sisyphus/")
 		p.add_argument("-p", "--projectname", dest="projectname", metavar="NAME", help="The name of the project this job belongs to (default: %(default)s)", default=self.projectname)
 		p.add_argument("-j", "--jobname", dest="jobname", metavar="NAME", help="The name of the job (default: %(default)s)", default=self.jobname if self.jobname is not None else self.__class__.__name__)
+		p.add_argument(      "--fromemail", dest="fromemail", metavar="ADDRESS", help="The sender email address for the failure report email (default: %(default)s)", default=self.fromemail)
+		p.add_argument(      "--toemail", dest="toemail", metavar="ADDRESS", help="An email address where failure reports will be sent (default: %(default)s)", default=self.toemail)
+		p.add_argument(      "--smtphost", dest="smtphost", metavar="HOSTNAME", help="The SMTP server to use for sending the failure report email (default: %(default)s)", default=self.smtphost)
+		p.add_argument(      "--smtpport", dest="smtpport", metavar="PORT", help="The port number used for the connection to the SMTP server (default: %(default)s)", type=int, default=self.smtpport)
+		p.add_argument(      "--identifier", dest="identifier", metavar="IDENTIFIER", help="Additional identifier that will be added to the failure report mail (default: %(default)s)", default=self.identifier)
 		p.add_argument("-m", "--maxtime", dest="maxtime", metavar="SECONDS", help="Maximum number of seconds the job is allowed to run (default: %(default)s)", type=int, default=self.getmaxtime_seconds())
 		p.add_argument(      "--fork", dest="fork", help="Fork the process and do the work in the child process? (default: %(default)s)", action=misc.FlagAction, default=self.fork)
 		p.add_argument("-f", "--log2file", dest="log2file", help="Should the job log into a file? (default: %(default)s)", action=misc.FlagAction, default=self.log2file)
@@ -236,7 +445,7 @@ class Job(object):
 		p.add_argument(      "--keepfilelogs", dest="keepfilelogs", metavar="DAYS", help="Number of days log files are kept (default: %(default)s)", type=float, default=self.keepfilelogs)
 		p.add_argument(      "--encoding", dest="encoding", metavar="ENCODING", help="Encoding for the log file (default: %(default)s)", default=self.encoding)
 		p.add_argument(      "--errors", dest="errors", metavar="METHOD", help="Error handling method for encoding errors in log texts (default: %(default)s)", default=self.errors)
-		p.add_argument(      "--noisykills", dest="noisykills", help="Should a message be printed if the maximum runtime is exceeded? (default: %(default)s)", action=misc.FlagAction, default=self.noisykills)
+		p.add_argument(      "--noisykills", dest="noisykills", help="Should a message be printed/failure email be sent if the maximum runtime is exceeded? (default: %(default)s)", action=misc.FlagAction, default=self.noisykills)
 		p.add_argument("-n", "--notify", dest="notify", help="Should a notification be issued to the OS X notification center? (default: %(default)s)", action=misc.FlagAction, default=self.notify)
 		return p
 
@@ -250,6 +459,11 @@ class Job(object):
 		args = p.parse_args(args)
 		self.projectname = args.projectname
 		self.jobname = args.jobname
+		self.fromemail = args.fromemail
+		self.toemail = args.toemail
+		self.smtphost = args.smtphost
+		self.smtpport = args.smtpport
+		self.identifier = args.identifier
 		self.maxtime = args.maxtime
 		self.fork = args.fork
 		self.noisykills = args.noisykills
@@ -277,36 +491,43 @@ class Job(object):
 	def _alarm_fork(self, signum, frame):
 		os.kill(self.killpid, signal.SIGTERM) # Kill our child
 		maxtime = self.getmaxtime()
+		self.endtime = datetime.datetime.now()
+		if self.noisykills:
+			try:
+				raise RuntimeError("maximum runtime {} exceeded in forked child (pid {})".format(maxtime, misc.sysinfo.pid))
+			except Exception as exc:
+				self._exceptions.append((self._tasks[:], exc))
+			self._reporterrors()
 		if self._logfile is not None:
 			self.log.sisyphus.result.kill("Terminated child after {}".format(maxtime))
 			self._logfile.close()
-		if self.noisykills:
-			print("Terminated forked job {} (pid {}) after {}".format(misc.sysinfo.scriptname, misc.sysinfo.pid, maxtime))
 		os._exit(1)
 
 	def _alarm_nofork(self, signum, frame):
 		self._prefix = ""
 		maxtime = self.getmaxtime()
+		self.endtime = datetime.datetime.now()
+		if self.noisykills:
+			try:
+				raise RuntimeError("maximum runtime {} exceeded (pid {})".format(maxtime, misc.sysinfo.pid))
+			except Exception as exc:
+				self._exceptions.append((self._tasks[:], exc))
+			self._reporterrors()
 		if self._logfile is not None:
 			self.log.sisyphus.result.kill("Terminated after {}".format(maxtime))
 			self._logfile.close()
-		if self.noisykills:
-			print("Terminated job {} (pid {}) after {}".format(misc.sysinfo.scriptname, misc.sysinfo.pid, maxtime))
 		os._exit(1)
 
 	def _handleexecution(self):
 		"""
 		Handle executing the job including handling of duplicate or hanging jobs.
 		"""
-		self.info = AttrDict()
-		self.info.sysinfo = misc.sysinfo
-		self.info.projectname = self.projectname
-		self.info.jobname = self.jobname
-		self.info.maxtime = self.maxtime
 		self._prefix = ""
+		self._tasks = []
+		self._exceptions = []
 
 		# Obtain a lock on the script file to make sure we're the only one running
-		with open(misc.sysinfo.scriptname, "rb") as f:
+		with open(misc.sysinfo.script_name, "rb") as f:
 			try:
 				fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
 			except IOError as exc:
@@ -316,16 +537,20 @@ class Job(object):
 				return # Return without calling :meth:`execute`
 
 			# we were able to obtain the lock, so we are the only one running
-			self.info.starttime = datetime.datetime.now()
+			self.starttime = datetime.datetime.now()
+			self.endtime = None
 
 			self._getscriptsource() # Get source code
 			self._getcrontab() # Get crontab
 			self.lineno = 1 # Current line number
 			self.log = Tag(self._log) # Create tagged logger
 			self._formatlogline = ul4c.Template(self.formatlogline, "formatlogline", keepws=False) # Log line formatting template
+			self._formatemailsubject = ul4c.Template(self.formatemailsubject, "formatemailsubject", keepws=False) # Email subject formatting template
+			self._formatemailbodytext = ul4c.Template(self.formatemailbodytext, "formatemailbodytext", keepws=False) # Email body formatting template (plain text)
+			self._formatemailbodyhtml = ul4c.Template(self.formatemailbodyhtml, "formatemailbodyhtml", keepws=False) # Email body formatting template (HTML)
 			self._createlog() # Create log file and link
 
-			self.log.sisyphus.init("{} (max time {}; pid {})".format(misc.sysinfo.scriptname, self.getmaxtime(), misc.sysinfo.pid))
+			self.log.sisyphus.init("{} (max time {}; pid {})".format(misc.sysinfo.script_name, self.getmaxtime(), misc.sysinfo.pid))
 
 			if self.fork: # Forking mode?
 				# Fork the process; the child will do the work; the parent will monitor the maximum runtime
@@ -342,25 +567,30 @@ class Job(object):
 				signal.signal(signal.SIGALRM, self._alarm_nofork)
 				signal.alarm(self.getmaxtime_seconds())
 
-			if self.notify:
-				self.notifystart()
+			self.notifystart()
 			try:
 				with url.Context():
 					result = self.execute()
 				self._cleanupoldlogs() # Clean up old logfiles
 			except BaseException as exc:
+				self.endtime = datetime.datetime.now()
 				# log the error to the logfile, because the job probably didn't have a chance to do it
+				self._exceptions.append(([], exc))
 				self.log.sisyphus.exc(exc)
 				result = "failed with {}".format(self._exc(exc))
 				self.log.sisyphus.result.fail(result)
 				self.failed()
-				raise
 			else:
+				self.endtime = datetime.datetime.now()
 				# log the result
-				self.log.sisyphus.result.ok(result)
+				if self._exceptions:
+					self.log.sisyphus.result.errors(result)
+				else:
+					self.log.sisyphus.result.ok(result)
 			finally:
-				if self.notify:
-					self.notifyfinish(datetime.datetime.now()-self.info.starttime, result)
+				# Send the email before closing the logfile, so that if sending the email fails, it will be logged to the file
+				self._reporterrors()
+				self.notifyfinish(result)
 				if self._logfile is not None:
 					self._logfile.close()
 				fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
@@ -390,32 +620,34 @@ class Job(object):
 			return "{:.3f}s".format(secs)
 
 	def notifystart(self):
-		cmd = [
-			"/Applications/terminal-notifier.app/Contents/MacOS/terminal-notifier",
-			"-remove",
-			misc.sysinfo.scriptname,
-		]
+		if self.notify:
+			cmd = [
+				"/Applications/terminal-notifier.app/Contents/MacOS/terminal-notifier",
+				"-remove",
+				misc.sysinfo.script_name,
+			]
 
-		import subprocess
-		with open("/dev/null", "wb") as f:
-			status = subprocess.call(cmd, stdout=f)
+			import subprocess
+			with open("/dev/null", "wb") as f:
+				status = subprocess.call(cmd, stdout=f)
 
-	def notifyfinish(self, duration, result):
-		cmd = [
-			"/Applications/terminal-notifier.app/Contents/MacOS/terminal-notifier",
-			"-title",
-			"{} {}".format(self.projectname, self.jobname),
-			"-subtitle",
-			"finished after {}".format(self.strtimedelta(duration)),
-			"-message",
-			result,
-			"-group",
-			misc.sysinfo.scriptname,
-		]
+	def notifyfinish(self, result):
+		if self.notify:
+			cmd = [
+				"/Applications/terminal-notifier.app/Contents/MacOS/terminal-notifier",
+				"-title",
+				"{} {}".format(self.projectname, self.jobname),
+				"-subtitle",
+				"finished after {}".format(self.strtimedelta(self.endtime-self.starttime)),
+				"-message",
+				result,
+				"-group",
+				misc.sysinfo.script_name,
+			]
 
-		import subprocess
-		with open("/dev/null", "wb") as f:
-			status = subprocess.call(cmd, stdout=f)
+			import subprocess
+			with open("/dev/null", "wb") as f:
+				status = subprocess.call(cmd, stdout=f)
 
 	@contextlib.contextmanager
 	def prefix(self, prefix):
@@ -431,6 +663,85 @@ class Job(object):
 		finally:
 			self._prefix = oldprefix
 
+	@contextlib.contextmanager
+	def task(self, type=None, name=None, index=None, count=None, errors="raise", logbegin=False, logend=False):
+		"""
+		:meth:`task` is a context manager and can be used to specify subtasks.
+
+		Arguments have the following meaning:
+
+		``type`` : string or ``None``
+			The type of the task.
+
+		``name`` : string or ``None``
+			The name of the task.
+
+		``index`` : integer or ``None``
+			If this task is one in a sequence of similar tasks, ``index`` should
+			be the index of this task, i.e. the first task of this type has
+			``index==0``, the second one ``index==1`` etc.
+
+		``count`` : integer or ``None``
+			If this task is one in a sequence of similar tasks and the total number
+			of tasks is known, ``count`` should be the total number of tasks.
+
+		``errors`` : string
+			Specifies how exceptions occuring in the subtask will be handled:
+
+			``raise``
+				Raise the exception (which normally aborts the job, excepti when
+				an outer task swallows it)
+
+			``ignore``
+				Ignore the exception (but of course the rest of the subtask wills
+				*not* be executed)
+
+			``log``
+				Log the exception.
+
+			``logemail``
+				Log the exception and add it to the failure report email.
+
+			``email``
+				Add the exception to the failure report email.
+
+		``logbegin`` : bool
+			Should a line be logged at the start of the task?
+
+		``logend`` : bool
+			Should a line be logged at the end of the task?
+		"""
+		task = Task(type=type, name=name, index=index, count=count)
+		self._tasks.append(task)
+		if logbegin:
+			self.log("begin")
+		try:
+			yield
+		except BaseException as exc:
+			task.fail()
+			if errors == "raise":
+				raise
+			elif errors == "ignore":
+				pass
+			elif errors == "log":
+				self.log(exc)
+			elif errors == "logemail":
+				self._exceptions.append((self._tasks[:], exc))
+				self.log(exc)
+			elif errors == "email":
+				self._exceptions.append((self._tasks[:], exc))
+			else:
+				raise ValueError("unknown value for errors parameter: {!r}".format(errors))
+			if logend:
+				self.log("failed after {}".format(task.endtime-task.starttime))
+		else:
+			task.end()
+			if logend:
+				fmt = "done after {}" if logbegin else "done in {}"
+				self.log(fmt.format(task.endtime-task.starttime))
+		finally:
+			self._tasks.pop()
+
 	def _log(self, tags, *texts):
 		"""
 		Log items in :obj:`texts` to the log file using :obj:`tags` as the list
@@ -442,15 +753,15 @@ class Job(object):
 				if isinstance(text, BaseException):
 					if "exc" not in tags:
 						tags += ("exc",)
-					tb = "".join(traceback.format_tb(sys.exc_info()[-1]))
-					text = "{tb}\n{exc}".format(tb=tb, exc=self._exc(text))
+					tb = "".join(traceback.format_tb(text.__traceback__))
+					text = "{}\n{}".format(tb, self._exc(text))
 				elif not isinstance(text, str):
 					text = pprint.pformat(text)
 				lines = text.splitlines()
 				if lines and not lines[-1].strip():
 					del lines[-1]
 				for line in lines:
-					text = self._formatlogline.renders(line=self._prefix+line, time=timestamp, tags=tags, **self.info)
+					text = self._formatlogline.renders(line=self._prefix+line, time=timestamp, tags=tags, tasks=self._tasks, sysinfo=misc.sysinfo, job=self)
 					if self.log2file:
 						self._logfile.write(text)
 						self._logfile.write("\n")
@@ -469,7 +780,7 @@ class Job(object):
 		"""
 		Reads the source code of the script into ``self.source``.
 		"""
-		scriptname = misc.sysinfo.scriptname.rstrip("c")
+		scriptname = misc.sysinfo.script_name.rstrip("c")
 		try:
 			encoding = tokenize.detect_encoding(open(scriptname, "rb").readline)[0]
 			with open(scriptname, "r", encoding=encoding, errors="replace") as f:
@@ -493,14 +804,14 @@ class Job(object):
 		self._loglinkname = None
 		if self.log2file:
 			# Create the log file
-			logfilename = ul4c.Template(self.logfilename, "logfilename").renders(**self.info)
+			logfilename = ul4c.Template(self.logfilename, "logfilename").renders(job=self)
 			lf = self._logfilename = url.File(logfilename).abs()
 			self._logfile = lf.open(mode="w", encoding=self.encoding, errors=self.errors)
 			if self.loglinkname is not None:
 				# Create the log link
-				loglinkname = ul4c.Template(self.loglinkname, "loglinkname").renders(**self.info)
+				loglinkname = ul4c.Template(self.loglinkname, "loglinkname").renders(job=self)
 				ll = self._loglinkname = url.File(loglinkname).abs()
-				lf = self._logfilename
+				lf = self._logfilename.relative(ll)
 				try:
 					lf.symlink(ll)
 				except OSError as exc:
@@ -526,7 +837,7 @@ class Job(object):
 				# Never delete the current log file or link, even if keepfilelogs is 0
 				if fileurl == self._logfilename or fileurl == self._loglinkname:
 					continue
-				# If the file is to old, delete it (note that this might delete files that were not produced by sisyphus)
+				# If the file is too old, delete it (note that this might delete files that were not produced by sisyphus)
 				if fileurl.mdate() < threshold:
 					if not removedany: # Only log this line for the first logfile we remove
 						self.log.sisyphus.info("Removing logfiles older than {}".format(keepfilelogs))
@@ -534,25 +845,136 @@ class Job(object):
 					self.log.sisyphus.info("Removing logfile {}".format(fileurl.local()))
 					fileurl.remove()
 
+	def _reporterrors(self):
+		if self._exceptions:
+			ul4errors = []
+			jsonerrors = []
+			for (tasks, exc) in self._exceptions:
+				error = "{}.{}".format(exc.__class__.__module__, exc.__class__.__qualname__)
+				message = str(exc) or None
+				tb = "".join(traceback.format_tb(exc.__traceback__))
+				tb += self._exc(exc)
+				ul4errors.append(dict(tasks=tasks, error=error, message=message, traceback=tb))
+				jsonerrors.append(dict(tasks=[task.asjson() for task in tasks], error=error, message=message, traceback=tb))
+
+			jsondata = dict(
+				projectname=self.projectname,
+				jobname=self.jobname,
+				identifier=self.identifier,
+				errors=jsonerrors,
+				host_name=misc.sysinfo.host_name,
+				host_fqdn=misc.sysinfo.host_fqdn,
+				host_ip=misc.sysinfo.host_ip,
+				host_sysname=misc.sysinfo.host_sysname,
+				host_nodename=misc.sysinfo.host_nodename,
+				host_release=misc.sysinfo.host_release,
+				host_version=misc.sysinfo.host_version,
+				host_machine=misc.sysinfo.host_machine,
+				user_name=misc.sysinfo.user_name,
+				user_uid=misc.sysinfo.user_uid,
+				user_gid=misc.sysinfo.user_gid,
+				user_gecos=misc.sysinfo.user_gecos,
+				user_dir=misc.sysinfo.user_dir,
+				user_shell=misc.sysinfo.user_shell,
+				pid=misc.sysinfo.pid,
+				script_name=misc.sysinfo.script_name,
+				short_script_name=misc.sysinfo.short_script_name,
+			)
+			emailsubject = self._formatemailsubject.renders(job=self, sysinfo=misc.sysinfo, errors=ul4errors)
+			emailbodytext = self._formatemailbodytext.renders(job=self, sysinfo=misc.sysinfo, errors=ul4errors)
+			emailbodyhtml = self._formatemailbodyhtml.renders(job=self, sysinfo=misc.sysinfo, errors=ul4errors)
+
+			if self.toemail and self.fromemail and self.smtphost:
+				textpart = text.MIMEText(emailbodytext)
+				htmlpart = text.MIMEText(emailbodyhtml, _subtype="html")
+				jsonpart = application.MIMEApplication(json.dumps(jsondata).encode("utf-8"), _subtype="json", _encoder=encoders.encode_7or8bit)
+				jsonpart.add_header('Content-Disposition', 'attachment', filename="{}.{}.json".format(self.projectname, self.jobname))
+
+				msg = multipart.MIMEMultipart(
+					_subparts=[
+						multipart.MIMEMultipart(_subtype="alternative", _subparts=[textpart, htmlpart]),
+						jsonpart,
+					]
+				)
+
+				msg["To"] = self.toemail
+				msg["From"] = self.fromemail
+				msg["Subject"] = emailsubject
+				try:
+					server = smtplib.SMTP(self.smtphost, self.smtpport)
+					server.sendmail(self.fromemail, self.toemail, msg.as_string())
+					server.quit()
+					self.log.sisyphus.email("Sent email report to {}".format(self.toemail))
+				except smtplib.SMTPException as exc:
+					self.log.sisyphus.email.exc(exc)
+			else:
+				print(emailbodytext)
+
 	def _exc(self, exc):
 		"""
 		Format an exception object for logging.
 		"""
-		if exc.__class__.__module__ not in ("__builtin__", "exceptions"):
-			fmt = "{0.__class__.__module__}.{0.__class__.__name__}: {1}"
-		else:
-			fmt = "{0.__class__.__name__}: {1}"
 		try:
 			strexc = str(exc)
 		except UnicodeError:
 			strexc = "?"
+		if exc.__class__.__module__ not in ("builtins", "exceptions"):
+			fmt = "{0.__class__.__module__}.{0.__class__.__name__}"
+		else:
+			fmt = "{0.__class__.__name__}"
+		if strexc:
+			fmt += ": {1}"
 		return fmt.format(exc, strexc)
+
+
+class Task(object):
+	"""
+	A subtask of a :class:`Job`.
+	"""
+
+	ul4attrs = {"index", "count", "type", "name", "starttime", "endtime"}
+
+	def __init__(self, type=None, name=None, index=None, count=None, errors="raise"):
+		"""
+		Create a :class:`Task` object. For the meaning of the parameters see
+		:meth:`Job.task`.
+		"""
+		self.type = type
+		self.name = name
+		self.index = index
+		self.count = count
+		self.errors = errors
+		self.starttime = datetime.datetime.now()
+		self.endtime = None
+		self.success = None
+
+	def end(self):
+		self.endtime = datetime.datetime.now()
+		self.success = True
+
+	def fail(self):
+		self.endtime = datetime.datetime.now()
+		self.success = False
+
+	def asjson(self):
+		return dict(
+			type=self.type,
+			name=self.name,
+			index=self.index,
+			count=self.count,
+			starttime=self.starttime.isoformat(),
+			endtime=self.endtime.isoformat() if self.endtime else None,
+			success=self.success
+		)
+
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} type={0.type!r} name={0.name!r} at {1:#x}".format(self, id(self))
 
 
 class Tag(object):
 	"""
 	A :class:`Tag` object can be used to call a function with an additional list
-	of tags. Tags ca be added via :meth:`__getattr__` or :meth:`__getitem__` calls.
+	of tags. Tags can be added via :meth:`__getattr__` or :meth:`__getitem__` calls.
 	"""
 	def __init__(self, log, *tags):
 		self.log = log
@@ -573,20 +995,6 @@ class Tag(object):
 
 	def __call__(self, *texts, **kwargs):
 		self.log(self.tags, *texts, **kwargs)
-
-
-class AttrDict(dict):
-	"""
-	:class:`dict` subclass that makes keys available as attributes.
-	"""
-	def __getattr__(self, name):
-		try:
-			return self[name]
-		except KeyError:
-			raise AttributeError
-
-	def __setattr__(self, name, value):
-		self[name] = value
 
 
 def execute(job):

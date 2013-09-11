@@ -18,6 +18,16 @@ Changes in 5.2 (released ??/??/2013)
 	:func:`misc.last` now defaults to ``None``. I.e. for empty iterators the
 	default value will always be returned instead of generating an exception.
 
+*	:mod:`ll.sispyhus` can now send an email itself in case of a failure. This
+	email includes information about the failure in plain text, HTML and JSON
+	format.
+
+*	:mod:`ll.sispyhus` can supports subtask. Handling of exceptions in these
+	subtasks can be specified.
+
+*	:mod:`ll.sispyhus` no creates a relative symbolic link for the current
+	logfile.
+
 *	``oradd`` now outputs the keys in its logging output.
 
 *	``oradd`` can now be used to reset sequences.
