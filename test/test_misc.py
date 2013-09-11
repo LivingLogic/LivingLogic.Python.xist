@@ -94,16 +94,14 @@ def test_item():
 	assert misc.item(e, 0) == 0
 	assert misc.item(e, 0) == 1
 	assert misc.item(e, -1) == 9
-	with pytest.raises(IndexError):
-		misc.item(e, -1)
+	assert misc.item(e, -1) is None
 	assert misc.item(e, -1, 42) == 42
 
 	e = iter(range(10))
 	assert misc.item(e, 4) == 4
 
 	e = iter(range(10))
-	with pytest.raises(IndexError):
-		misc.item(e, 10)
+	assert misc.item(e, 10) is None
 
 	e = iter(range(10))
 	assert misc.item(e, 10, 42) == 42
@@ -115,8 +113,7 @@ def test_item():
 	assert misc.item(e, -10) == 0
 
 	e = iter(range(10))
-	with pytest.raises(IndexError):
-		misc.item(e, -11)
+	assert misc.item(e, -11) is None
 
 	e = iter(range(10))
 	assert misc.item(e, -11, 42) == 42
@@ -132,21 +129,19 @@ def test_item():
 		misc.item(42, 42)
 
 	# Non-negative index
-	assert misc.item(iterable, 0), 17
-	assert misc.item(iterable, 2), 37
-	with pytest.raises(IndexError):
-		misc.item(iterable, 3)
-	assert misc.item(iterable, 3, 42), 42
-	assert misc.item(err(10), 9), 9
+	assert misc.item(iterable, 0) == 17
+	assert misc.item(iterable, 2) == 37
+	assert misc.item(iterable, 3) is None
+	assert misc.item(iterable, 3, 42) == 42
+	assert misc.item(err(10), 9) == 9
 	with pytest.raises(SyntaxError):
 		misc.item(err(10), 10)
 
 	# Negative index
-	assert misc.item(iterable, -1), 37
-	assert misc.item(iterable, -3), 17
-	with pytest.raises(IndexError):
-		misc.item(iterable, -4)
-	assert misc.item(iterable, -4, 42), 42
+	assert misc.item(iterable, -1) == 37
+	assert misc.item(iterable, -3) == 17
+	assert misc.item(iterable, -4) is None
+	assert misc.item(iterable, -4, 42) == 42
 	# iterator is always exhausted
 	with pytest.raises(SyntaxError):
 		misc.item(err(10), -1)

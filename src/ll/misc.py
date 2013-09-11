@@ -304,7 +304,11 @@ class Iterator(object):
 	def __getitem__(self, index):
 		if isinstance(index, slice):
 			return list(self.iterator)[index]
-		return item(self, index)
+		default = object()
+		result = item(self, index, default)
+		if result is default:
+			raise IndexError(index)
+		return result
 
 	def __iter__(self):
 		return self
