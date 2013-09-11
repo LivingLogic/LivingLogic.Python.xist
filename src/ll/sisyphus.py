@@ -580,6 +580,8 @@ class Job(object):
 				result = "failed with {}".format(self._exc(exc))
 				self.log.sisyphus.result.fail(result)
 				self.failed()
+				# Make sure that exceptions at the top level get propagated (this mean that they might be reported twice)
+				raise
 			else:
 				self.endtime = datetime.datetime.now()
 				# log the result
@@ -909,6 +911,7 @@ class Job(object):
 					self.log.sisyphus.email.exc(exc)
 			else:
 				print(emailbodytext)
+				print("-"*80)
 
 	def _exc(self, exc):
 		"""
