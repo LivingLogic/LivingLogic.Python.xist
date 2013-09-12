@@ -153,6 +153,13 @@ class Job(object):
 	``smtpport`` : :option:`--smtpport`
 		The port number used for the connection to the SMTP server.
 
+	``smtpuser`` : :option:`--smtpuser`
+		The user name used to log into the SMTP server. (Login will only be done
+		if both :option:`--smtpuser` and :option:`--smtppassword` are given)
+
+	``smtppassword`` : :option:`--smtppassword`
+		The password used to log into the SMTP server.
+
 	``maxtime`` : :option:`-m` or :option:`--maxtime`
 		Maximum allowed runtime for the job (as the number of seconds). If the job
 		runs longer than that it will kill itself.
@@ -216,6 +223,8 @@ class Job(object):
 	toemail = None
 	smtphost = None
 	smtpport = 0
+	smtpuser = None
+	smtppassword = None
 
 	identifier = None
 
@@ -436,6 +445,8 @@ class Job(object):
 		p.add_argument(      "--toemail", dest="toemail", metavar="ADDRESS", help="An email address where failure reports will be sent (default: %(default)s)", default=self.toemail)
 		p.add_argument(      "--smtphost", dest="smtphost", metavar="HOSTNAME", help="The SMTP server to use for sending the failure report email (default: %(default)s)", default=self.smtphost)
 		p.add_argument(      "--smtpport", dest="smtpport", metavar="PORT", help="The port number used for the connection to the SMTP server (default: %(default)s)", type=int, default=self.smtpport)
+		p.add_argument(      "--smtpuser", dest="smtpuser", metavar="USER", help="The user name used to log into the SMTP server. (default: %(default)s)", default=self.smtpuser)
+		p.add_argument(      "--smtppassword", dest="smtppassword", metavar="PASSWORD", help="The password used to log into the SMTP server. (default: %(default)s)", default=self.smtppassword)
 		p.add_argument(      "--identifier", dest="identifier", metavar="IDENTIFIER", help="Additional identifier that will be added to the failure report mail (default: %(default)s)", default=self.identifier)
 		p.add_argument("-m", "--maxtime", dest="maxtime", metavar="SECONDS", help="Maximum number of seconds the job is allowed to run (default: %(default)s)", type=int, default=self.getmaxtime_seconds())
 		p.add_argument(      "--fork", dest="fork", help="Fork the process and do the work in the child process? (default: %(default)s)", action=misc.FlagAction, default=self.fork)
@@ -463,6 +474,8 @@ class Job(object):
 		self.toemail = args.toemail
 		self.smtphost = args.smtphost
 		self.smtpport = args.smtpport
+		self.smtpuser = args.smtpuser
+		self.smtppassword = args.smtppassword
 		self.identifier = args.identifier
 		self.maxtime = args.maxtime
 		self.fork = args.fork
@@ -904,6 +917,8 @@ class Job(object):
 				msg["Subject"] = emailsubject
 				try:
 					server = smtplib.SMTP(self.smtphost, self.smtpport)
+					if self.smtpuser and self.smtppassword:
+						server.login(self.smtpuser, self.smtppassword)
 					server.sendmail(self.fromemail, self.toemail, msg.as_string())
 					server.quit()
 					self.log.sisyphus.email("Sent email report to {}".format(self.toemail))
