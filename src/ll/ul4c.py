@@ -367,9 +367,8 @@ class AST:
 	# Set of attributes available via :meth:`getitem`.
 	ul4attrs = {"type", "location", "start", "end"}
 
-	# "Global" functions and methods. Functions in ``functions`` will be exposed to UL4 code
+	# "Global" functions. Will be exposed to UL4 code
 	functions = {}
-	methods = {}
 
 	def __init__(self, location=None, start=None, end=None):
 		self.location = location
@@ -436,14 +435,6 @@ class AST:
 		if name.startswith("function_"):
 			name = name[9:]
 		cls.functions[name] = f
-		return f
-
-	@classmethod
-	def makemethod(cls, f):
-		name = f.__name__
-		if name.startswith("method_"):
-			name = name[7:]
-		cls.methods[name] = f
 		return f
 
 
@@ -1488,72 +1479,91 @@ class GetAttr(AST):
 	@handleeval
 	def evalsetvar(self, vars, value):
 		obj = (yield from self.obj.eval(vars))
-		try:
-			hasattr = "+" + self.attrname in obj.ul4attrs
-		except (AttributeError, TypeError):
-			obj[self.attrname] = value
+		if hasattr(obj, "ul4attrs"):
+			if "+" + self.attrname in obj.ul4attrs:
+				setattr(obj, self.attrname, value)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
 		else:
-			setattr(obj, self.attrname, value)
+			obj[self.attrname] = value
 
 	@handleeval
 	def evaladdvar(self, vars, value):
 		obj = (yield from self.obj.eval(vars))
-		try:
-			hasattr = "+" + self.attrname in obj.ul4attrs
-		except (AttributeError, TypeError):
-			obj[self.attrname] += value
+		if hasattr(obj, "ul4attrs"):
+			if "+" + self.attrname in obj.ul4attrs:
+				attr = getattr(obj, self.attrname)
+				attr += value
+				setattr(obj, self.attrname, attr)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
 		else:
-			setattr(obj, self.attrname, getattr(obj, self.attrname) + value)
+			obj[self.attrname] += value
 
 	@handleeval
 	def evalsubvar(self, vars, value):
 		obj = (yield from self.obj.eval(vars))
-		try:
-			hasattr = "+" + self.attrname in obj.ul4attrs
-		except (AttributeError, TypeError):
-			obj[self.attrname] -= value
+		if hasattr(obj, "ul4attrs"):
+			if "+" + self.attrname in obj.ul4attrs:
+				attr = getattr(obj, self.attrname)
+				attr -= value
+				setattr(obj, self.attrname, attr)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
 		else:
-			setattr(obj, self.attrname, getattr(obj, self.attrname) - value)
+			obj[self.attrname] -= value
 
 	@handleeval
 	def evalmulvar(self, vars, value):
 		obj = (yield from self.obj.eval(vars))
-		try:
-			hasattr = "+" + self.attrname in obj.ul4attrs
-		except (AttributeError, TypeError):
-			obj[self.attrname] *= value
+		if hasattr(obj, "ul4attrs"):
+			if "+" + self.attrname in obj.ul4attrs:
+				attr = getattr(obj, self.attrname)
+				attr *= value
+				setattr(obj, self.attrname, attr)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
 		else:
-			setattr(obj, self.attrname, getattr(obj, self.attrname) * value)
+			obj[self.attrname] *= value
 
 	@handleeval
 	def evalfloordivvar(self, vars, value):
 		obj = (yield from self.obj.eval(vars))
-		try:
-			hasattr = "+" + self.attrname in obj.ul4attrs
-		except (AttributeError, TypeError):
-			obj[self.attrname] //= value
+		if hasattr(obj, "ul4attrs"):
+			if "+" + self.attrname in obj.ul4attrs:
+				attr = getattr(obj, self.attrname)
+				attr //= value
+				setattr(obj, self.attrname, attr)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
 		else:
-			setattr(obj, self.attrname, getattr(obj, self.attrname) // value)
+			obj[self.attrname] //= value
 
 	@handleeval
 	def evaltruedivvar(self, vars, value):
 		obj = (yield from self.obj.eval(vars))
-		try:
-			hasattr = "+" + self.attrname in obj.ul4attrs
-		except (AttributeError, TypeError):
-			obj[self.attrname] /= value
+		if hasattr(obj, "ul4attrs"):
+			if "+" + self.attrname in obj.ul4attrs:
+				attr = getattr(obj, self.attrname)
+				attr /= value
+				setattr(obj, self.attrname, attr)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
 		else:
-			setattr(obj, self.attrname, getattr(obj, self.attrname) / value)
+			obj[self.attrname] /= value
 
 	@handleeval
 	def evalmodvar(self, vars, value):
 		obj = (yield from self.obj.eval(vars))
-		try:
-			hasattr = "+" + self.attrname in obj.ul4attrs
-		except (AttributeError, TypeError):
-			obj[self.attrname] %= value
+		if hasattr(obj, "ul4attrs"):
+			if "+" + self.attrname in obj.ul4attrs:
+				attr = getattr(obj, self.attrname)
+				attr %= value
+				setattr(obj, self.attrname, attr)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
 		else:
-			setattr(obj, self.attrname, getattr(obj, self.attrname) % value)
+			obj[self.attrname] %= value
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -2731,7 +2741,7 @@ class Template(Block):
 
 
 ###
-### Functions & methods
+### Functions
 ###
 
 @AST.makefunction
@@ -3200,241 +3210,6 @@ def function_hls(h, l, s, a=1.0):
 def function_hsv(h, s, v, a=1.0):
 	from ll import color
 	return color.Color.fromhsv(h, s, v, a)
-
-
-@AST.makemethod
-def method_split(obj, sep=None, count=None):
-	return obj.split(sep, count if count is not None else -1)
-
-
-@AST.makemethod
-def method_rsplit(obj, sep=None, count=None):
-	return obj.rsplit(sep, count if count is not None else -1)
-
-
-@AST.makemethod
-def method_strip(obj, chars=None):
-	return obj.strip(chars)
-
-
-@AST.makemethod
-def method_lstrip(obj, chars=None):
-	return obj.lstrip(chars)
-
-
-@AST.makemethod
-def method_rstrip(obj, chars=None):
-	return obj.rstrip(chars)
-
-
-@AST.makemethod
-def method_find(obj, sub, start=None, end=None):
-	if isinstance(obj, str):
-		return obj.find(sub, start, end)
-	else:
-		try:
-			if end is None:
-				if start is None:
-					return obj.index(sub)
-				return obj.index(sub, start)
-			return obj.index(sub, start, end)
-		except ValueError:
-			return -1
-
-
-@AST.makemethod
-def method_rfind(obj, sub, start=None, end=None):
-	if isinstance(obj, str):
-		return obj.rfind(sub, start, end)
-	else:
-		for i in reversed(range(*slice(start, end).indices(len(obj)))):
-			if obj[i] == sub:
-				return i
-		return -1
-
-
-@AST.makemethod
-def method_startswith(obj, prefix):
-	return obj.startswith(prefix)
-
-
-@AST.makemethod
-def method_endswith(obj, suffix):
-	return obj.endswith(suffix)
-
-
-@AST.makemethod
-def method_upper(self):
-	return self.upper()
-
-
-@AST.makemethod
-def method_lower(self):
-	return self.lower()
-
-
-@AST.makemethod
-def method_capitalize(self):
-	return self.capitalize()
-
-
-@AST.makemethod
-def method_replace(self, old, new, count=None):
-	if count is None:
-		return self.replace(old, new)
-	else:
-		return self.replace(old, new, count)
-
-
-@AST.makemethod
-def method_weekday(self):
-	return self.weekday()
-
-
-@AST.makemethod
-def method_week(self, firstweekday=None):
-	if firstweekday is None:
-		firstweekday = 0
-	else:
-		firstweekday %= 7
-	jan1 = self.__class__(self.year, 1, 1)
-	yearday = (self - jan1).days+7
-	jan1weekday = jan1.weekday()
-	while jan1weekday != firstweekday:
-		yearday -= 1
-		jan1weekday += 1
-		if jan1weekday == 7:
-			jan1weekday = 0
-	return yearday//7
-
-
-@AST.makemethod
-def method_items(self):
-	try:
-		attrs = self.ul4attrs
-	except AttributeError:
-		return self.items()
-	else:
-		def iterate(obj):
-			for attrname in attrs:
-				yield (attrname, getattr(obj, attrname, UndefinedKey(attrname)))
-		return iterate(self)
-
-
-@AST.makemethod
-def method_values(self):
-	try:
-		attrs = self.ul4attrs
-	except AttributeError:
-		return self.values()
-	else:
-		def iterate(obj):
-			for attrname in attrs:
-				yield getattr(obj, attrname, UndefinedKey(attrname))
-		return iterate(self)
-
-
-@AST.makemethod
-def method_join(self, iterable):
-	return self.join(iterable)
-
-
-@AST.makemethod
-def method_mimeformat(self):
-	weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-	monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-	return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(self, weekdayname[self.weekday()], monthname[self.month])
-
-
-@AST.makemethod
-def method_isoformat(self):
-	result = self.isoformat()
-	suffix = "T00:00:00"
-	if result.endswith(suffix):
-		return result[:-len(suffix)]
-	return result
-
-
-@AST.makemethod
-def method_yearday(self):
-	return (self - self.__class__(self.year, 1, 1)).days+1
-
-
-@AST.makemethod
-def method_get(self, key, default=None):
-	return self.get(key, default)
-
-
-@AST.makemethod
-def method_day(self):
-	return self.day
-
-
-@AST.makemethod
-def method_month(self):
-	return self.month
-
-
-@AST.makemethod
-def method_year(self):
-	return self.year
-
-
-@AST.makemethod
-def method_hour(self):
-	return self.hour
-
-
-@AST.makemethod
-def method_minute(self):
-	return self.minute
-
-
-@AST.makemethod
-def method_second(self):
-	return self.second
-
-
-@AST.makemethod
-def method_microsecond(self):
-	return self.microsecond
-
-
-@AST.makemethod
-def method_days(self):
-	return self.days
-
-
-@AST.makemethod
-def method_seconds(self):
-	return self.seconds
-
-
-@AST.makemethod
-def method_microseconds(self):
-	return self.microseconds
-
-
-@AST.makemethod
-def method_append(self, *items):
-	self.extend(items)
-
-
-@AST.makemethod
-def method_insert(self, pos, *items):
-	self[pos:pos] = items
-
-
-@AST.makemethod
-def method_pop(self, pos=-1):
-	return self.pop(pos)
-
-
-@AST.makemethod
-def method_update(self, *others, **kwargs):
-	for other in others:
-		self.update(other)
-	self.update(**kwargs)
 
 
 class TemplateClosure:
