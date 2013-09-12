@@ -1,7 +1,8 @@
 Changes in 5.2 (released ??/??/2013)
 ------------------------------------
 
-*	Added support for bound methods to UL4 templates.
+*	Added support for bound methods to UL4 templates. This means that methods
+	that should be callable must be included in ``ul4attrs``.
 
 *	UL4 templates now support attribute, item and slice assignment, i.e. the
 	following code will work::
@@ -10,6 +11,9 @@ Changes in 5.2 (released ??/??/2013)
 		<?code d = {}?><?code d['foo'] = 'bar'?>
 		<?code d = [17]?><?code d[0] = 23?>
 		<?code d = [1, 7, 4]?><?code d[1:2] = [2, 3]?>
+
+*	For objects with attributes exposed to UL4, attributes can be specified as
+	being writable by prepending the name with a ``+`` in ``ul4attrs``.
 
 *	Add UL4 functions ``first`` and ``last`` that return the first or last item
 	produced by an iterable.
