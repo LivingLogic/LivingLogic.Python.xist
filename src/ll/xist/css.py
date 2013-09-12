@@ -211,7 +211,7 @@ def applystylesheets(node, base=None, media=None, title=None):
 
 def _is_nth_node(iterator, node, index):
 	# Return whether :obj:`node` is the :obj:`index`'th node in :obj:`iterator` (starting at 1)
-	# index is an int or int string or "even" or "odd"
+	# :obj:`index` is an int or int string or "even" or "odd"
 	if index == "even":
 		for (i, child) in enumerate(iterator):
 			if child is node:
@@ -239,7 +239,7 @@ def _is_nth_node(iterator, node, index):
 
 def _is_nth_last_node(iterator, node, index):
 	# Return whether :obj:`node` is the :obj:`index`'th last node in :obj:`iterator`
-	# index is an int or int string or "even" or "odd"
+	# :obj:`index` is an int or int string or "even" or "odd"
 	if index == "even":
 		pos = None
 		for (i, child) in enumerate(iterator):
