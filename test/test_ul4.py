@@ -3438,37 +3438,58 @@ def test_customattributes():
 	o = CustomAttributes(foo=42, bar=23)
 	with raises("readonly"):
 		render_python("<?code o.foo = 43?><?print o.foo?>", o=o)
+	with raises("readonly"):
+		render_python("<?code o['foo'] = 43?><?print o.foo?>", o=o)
 	assert "17" == render_python("<?code o.bar = 17?><?print o.bar?>", o=o)
+	assert "17" == render_python("<?code o['bar'] = 17?><?print o.bar?>", o=o)
 
 	o = CustomAttributes(foo=42, bar=23)
 	with raises("readonly"):
 		render_python("<?code o.foo += 1?><?print o.foo?>", o=o)
+	with raises("readonly"):
+		render_python("<?code o['foo'] += 1?><?print o.foo?>", o=o)
 	assert "24" == render_python("<?code o.bar += 1?><?print o.bar?>", o=o)
+	assert "25" == render_python("<?code o['bar'] += 1?><?print o.bar?>", o=o)
 
 	o = CustomAttributes(foo=42, bar=23)
 	with raises("readonly"):
 		render_python("<?code o.foo -= 1?><?print o.foo?>", o=o)
+	with raises("readonly"):
+		render_python("<?code o['foo'] -= 1?><?print o.foo?>", o=o)
 	assert "22" == render_python("<?code o.bar -= 1?><?print o.bar?>", o=o)
+	assert "21" == render_python("<?code o['bar'] -= 1?><?print o.bar?>", o=o)
 
 	o = CustomAttributes(foo=42, bar=23)
 	with raises("readonly"):
 		render_python("<?code o.foo *= 2?><?print o.foo?>", o=o)
+	with raises("readonly"):
+		render_python("<?code o['foo'] *= 2?><?print o.foo?>", o=o)
 	assert "46" == render_python("<?code o.bar *= 2?><?print o.bar?>", o=o)
+	assert "92" == render_python("<?code o['bar'] *= 2?><?print o.bar?>", o=o)
 
 	o = CustomAttributes(foo=42, bar=23)
 	with raises("readonly"):
 		render_python("<?code o.foo //= 2?><?print o.foo?>", o=o)
+	with raises("readonly"):
+		render_python("<?code o['foo'] //= 2?><?print o.foo?>", o=o)
 	assert "11" == render_python("<?code o.bar //= 2?><?print o.bar?>", o=o)
+	assert "5" == render_python("<?code o['bar'] //= 2?><?print o.bar?>", o=o)
 
 	o = CustomAttributes(foo=42, bar=23)
 	with raises("readonly"):
 		render_python("<?code o.foo /= 2?><?print o.foo?>", o=o)
+	with raises("readonly"):
+		render_python("<?code o['foo'] /= 2?><?print o.foo?>", o=o)
 	assert "11.5" == render_python("<?code o.bar /= 2?><?print o.bar?>", o=o)
+	assert "5.75" == render_python("<?code o['bar'] /= 2?><?print o.bar?>", o=o)
 
 	o = CustomAttributes(foo=42, bar=23)
 	with raises("readonly"):
 		render_python("<?code o.foo %= 2?><?print o.foo?>", o=o)
-	assert "1" == render_python("<?code o.bar %= 2?><?print o.bar?>", o=o)
+	with raises("readonly"):
+		render_python("<?code o['foo'] %= 2?><?print o.foo?>", o=o)
+	assert "3" == render_python("<?code o.bar %= 10?><?print o.bar?>", o=o)
+	assert "1" == render_python("<?code o['bar'] %= 2?><?print o.bar?>", o=o)
 
 
 @pytest.mark.ul4

@@ -1869,43 +1869,97 @@ class GetItem(Binary):
 	def evalsetvar(self, vars, value):
 		obj1 = (yield from self.obj1.eval(vars))
 		obj2 = (yield from self.obj2.eval(vars))
-		obj1[obj2] = value
+		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
+			if "+" + obj2 in obj1.ul4attrs:
+				setattr(obj1, obj2, value)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(obj2))
+		else:
+			obj1[obj2] = value
 
 	@handleeval
 	def evaladdvar(self, vars, value):
 		obj1 = (yield from self.obj1.eval(vars))
 		obj2 = (yield from self.obj2.eval(vars))
-		obj1[obj2] += value
+		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
+			if "+" + obj2 in obj1.ul4attrs:
+				attr = getattr(obj1, obj2)
+				attr += value
+				setattr(obj1, obj2, attr)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(obj2))
+		else:
+			obj1[obj2] += value
 
 	@handleeval
 	def evalsubvar(self, vars, value):
 		obj1 = (yield from self.obj1.eval(vars))
 		obj2 = (yield from self.obj2.eval(vars))
-		obj1[obj2] -= value
+		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
+			if "+" + obj2 in obj1.ul4attrs:
+				attr = getattr(obj1, obj2)
+				attr -= value
+				setattr(obj1, obj2, attr)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(obj2))
+		else:
+			obj1[obj2] -= value
 
 	@handleeval
 	def evalmulvar(self, vars, value):
 		obj1 = (yield from self.obj1.eval(vars))
 		obj2 = (yield from self.obj2.eval(vars))
-		obj1[obj2] *= value
+		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
+			if "+" + obj2 in obj1.ul4attrs:
+				attr = getattr(obj1, obj2)
+				attr *= value
+				setattr(obj1, obj2, attr)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(obj2))
+		else:
+			obj1[obj2] *= value
 
 	@handleeval
 	def evalfloordivvar(self, vars, value):
 		obj1 = (yield from self.obj1.eval(vars))
 		obj2 = (yield from self.obj2.eval(vars))
-		obj1[obj2] //= value
+		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
+			if "+" + obj2 in obj1.ul4attrs:
+				attr = getattr(obj1, obj2)
+				attr //= value
+				setattr(obj1, obj2, attr)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(obj2))
+		else:
+			obj1[obj2] //= value
 
 	@handleeval
 	def evaltruedivvar(self, vars, value):
 		obj1 = (yield from self.obj1.eval(vars))
 		obj2 = (yield from self.obj2.eval(vars))
-		obj1[obj2] /= value
+		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
+			if "+" + obj2 in obj1.ul4attrs:
+				attr = getattr(obj1, obj2)
+				attr /= value
+				setattr(obj1, obj2, attr)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(obj2))
+		else:
+			obj1[obj2] /= value
 
 	@handleeval
 	def evalmodvar(self, vars, value):
 		obj1 = (yield from self.obj1.eval(vars))
 		obj2 = (yield from self.obj2.eval(vars))
-		obj1[obj2] %= value
+		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
+			if "+" + obj2 in obj1.ul4attrs:
+				attr = getattr(obj1, obj2)
+				attr %= value
+				setattr(obj1, obj2, attr)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(obj2))
+		else:
+			obj1[obj2] %= value
 
 
 @register("eq")
