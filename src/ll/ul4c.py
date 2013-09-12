@@ -1152,10 +1152,8 @@ class For(Block):
 	@handleeval
 	def eval(self, vars):
 		container = (yield from self.container.eval(vars))
-		try:
-			container = container.ul4attrs
-		except AttributeError:
-			pass
+		if hasattr(container, "ul4attrs"):
+			container = (attrname.lstrip("+") for attrname in container.ul4attrs)
 		for item in container:
 			for (lvalue, value) in _unpackvar(self.varname, item):
 				yield from lvalue.evalsetvar(vars, value)
@@ -1230,29 +1228,31 @@ class GetAttr(AST):
 	@handleeval
 	def eval(self, vars):
 		obj = (yield from self.obj.eval(vars))
-		try:
-			hasattr = self.attrname in obj.ul4attrs
-		except (AttributeError, TypeError):
-			if isinstance(obj, str):
-				return self.method_str(obj, self.attrname)
-			elif isinstance(obj, list):
-				return self.method_list(obj, self.attrname)
-			elif isinstance(obj, dict):
-				return self.method_dict(obj, self.attrname)
-			elif isinstance(obj, (datetime.datetime, datetime.date)):
-				return self.method_date(obj, self.attrname)
-			elif isinstance(obj, datetime.timedelta):
-				return self.method_timedelta(obj, self.attrname)
-			try:
-				return obj[self.attrname]
-			except KeyError:
-				pass
-		else:
-			if hasattr:
-				return getattr(obj, self.attrname)
+		if hasattr(obj, "ul4attrs"):
 			if self.attrname in {"items", "values"}:
 				return self.method_dict(obj, self.attrname)
-		return UndefinedKey(self.attrname)
+			elif self.attrname in obj.ul4attrs or "+" + self.attrname in obj.ul4attrs:
+				return getattr(obj, self.attrname)
+			return UndefinedKey(self.attrname)
+		elif isinstance(obj, str):
+			return self.method_str(obj, self.attrname)
+		elif isinstance(obj, list):
+			return self.method_list(obj, self.attrname)
+		elif isinstance(obj, dict):
+			result = self.method_dict(obj, self.attrname)
+			if isinstance(result, Undefined):
+				try:
+					return obj[self.attrname]
+				except KeyError:
+					pass
+			return result
+		elif isinstance(obj, (datetime.datetime, datetime.date)):
+			return self.method_date(obj, self.attrname)
+		elif isinstance(obj, datetime.timedelta):
+			return self.method_timedelta(obj, self.attrname)
+		else:
+			# This will probably produce an exception
+			return obj[self.attrname]
 
 	def method_str(self, obj, methname):
 		if methname == "split":
@@ -1363,6 +1363,7 @@ class GetAttr(AST):
 				else:
 					def iterate(obj):
 						for attrname in attrs:
+							attrname = attrname.lstrip("+")
 							yield (attrname, getattr(obj, attrname, UndefinedKey(attrname)))
 					return iterate(obj)
 			result = items
@@ -1375,6 +1376,7 @@ class GetAttr(AST):
 				else:
 					def iterate(obj):
 						for attrname in attrs:
+							attrname = attrname.lstrip("+")
 							yield getattr(obj, attrname, UndefinedKey(attrname))
 					return iterate(obj)
 			result = values
@@ -1487,7 +1489,7 @@ class GetAttr(AST):
 	def evalsetvar(self, vars, value):
 		obj = (yield from self.obj.eval(vars))
 		try:
-			hasattr = self.attrname in obj.ul4attrs
+			hasattr = "+" + self.attrname in obj.ul4attrs
 		except (AttributeError, TypeError):
 			obj[self.attrname] = value
 		else:
@@ -1497,7 +1499,7 @@ class GetAttr(AST):
 	def evaladdvar(self, vars, value):
 		obj = (yield from self.obj.eval(vars))
 		try:
-			hasattr = self.attrname in obj.ul4attrs
+			hasattr = "+" + self.attrname in obj.ul4attrs
 		except (AttributeError, TypeError):
 			obj[self.attrname] += value
 		else:
@@ -1507,7 +1509,7 @@ class GetAttr(AST):
 	def evalsubvar(self, vars, value):
 		obj = (yield from self.obj.eval(vars))
 		try:
-			hasattr = self.attrname in obj.ul4attrs
+			hasattr = "+" + self.attrname in obj.ul4attrs
 		except (AttributeError, TypeError):
 			obj[self.attrname] -= value
 		else:
@@ -1517,7 +1519,7 @@ class GetAttr(AST):
 	def evalmulvar(self, vars, value):
 		obj = (yield from self.obj.eval(vars))
 		try:
-			hasattr = self.attrname in obj.ul4attrs
+			hasattr = "+" + self.attrname in obj.ul4attrs
 		except (AttributeError, TypeError):
 			obj[self.attrname] *= value
 		else:
@@ -1527,7 +1529,7 @@ class GetAttr(AST):
 	def evalfloordivvar(self, vars, value):
 		obj = (yield from self.obj.eval(vars))
 		try:
-			hasattr = self.attrname in obj.ul4attrs
+			hasattr = "+" + self.attrname in obj.ul4attrs
 		except (AttributeError, TypeError):
 			obj[self.attrname] //= value
 		else:
@@ -1537,7 +1539,7 @@ class GetAttr(AST):
 	def evaltruedivvar(self, vars, value):
 		obj = (yield from self.obj.eval(vars))
 		try:
-			hasattr = self.attrname in obj.ul4attrs
+			hasattr = "+" + self.attrname in obj.ul4attrs
 		except (AttributeError, TypeError):
 			obj[self.attrname] /= value
 		else:
@@ -1547,7 +1549,7 @@ class GetAttr(AST):
 	def evalmodvar(self, vars, value):
 		obj = (yield from self.obj.eval(vars))
 		try:
-			hasattr = self.attrname in obj.ul4attrs
+			hasattr = "+" + self.attrname in obj.ul4attrs
 		except (AttributeError, TypeError):
 			obj[self.attrname] %= value
 		else:
@@ -1842,27 +1844,16 @@ class GetItem(Binary):
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
-		try:
-			try:
-				hasattr = obj2 in obj1.ul4attrs
-			except (AttributeError, TypeError):
-				return obj1[obj2]
-			else:
-				if hasattr:
-					return getattr(obj1, obj2)
-				else:
-					return obj1[obj2]
-		except AttributeError:
+		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
+			if obj2 in obj1.ul4attrs or "+" + obj2 in obj1.ul4attrs:
+				return getattr(obj1, obj2)
 			return UndefinedKey(obj2)
+		try:
+			return obj1[obj2]
 		except KeyError:
 			return UndefinedKey(obj2)
 		except IndexError:
 			return UndefinedIndex(obj2)
-		except TypeError:
-			if isinstance(obj2, str):
-				return UndefinedKey(obj2)
-			else:
-				return UndefinedIndex(obj2)
 
 	@handleeval
 	def evalsetvar(self, vars, value):
@@ -1992,17 +1983,10 @@ class Contains(Binary):
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
-		try:
-			hasattr = obj1 in obj2.ul4attrs
-		except (AttributeError, TypeError):
-			return obj1 in obj2
+		if isinstance(obj1, str) and hasattr(obj2, "ul4attrs"):
+			return obj1 in obj2.ul4attrs or "+" + obj1 in obj2.ul4attrs
 		else:
-			if hasattr:
-				return True
-			try:
-				return obj1 in obj2
-			except TypeError:
-				return False
+			return obj1 in obj2
 
 
 @register("notcontains")
@@ -2018,17 +2002,10 @@ class NotContains(Binary):
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
-		try:
-			hasattr = obj1 in obj2.ul4attrs
-		except (AttributeError, TypeError):
-			return obj1 not in obj2
+		if isinstance(obj1, str) and hasattr(obj2, "ul4attrs"):
+			return obj1 not in obj2.ul4attrs and "+" + obj1 not in obj2.ul4attrs
 		else:
-			if hasattr:
-				return False
-			try:
-				return obj1 not in obj2
-			except TypeError:
-				return True
+			return obj1 not in obj2
 
 
 @register("add")

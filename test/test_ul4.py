@@ -3414,21 +3414,26 @@ def test_return_in_template(r):
 
 @pytest.mark.ul4
 def test_customattributes():
-	class CustomAttribute:
-		ul4attrs = {"foo"}
-		def __init__(self, foo):
+	class CustomAttributes:
+		ul4attrs = {"foo", "+bar"}
+		def __init__(self, foo, bar):
 			self.foo = foo
+			self.bar = bar
 
-	o = CustomAttribute(foo=42)
+	o = CustomAttributes(foo=42, bar=23)
 	assert "42" == render_python("<?print o.foo?>", o=o)
-	assert "undefined" == render_python("<?print type(o.bar)?>", o=o)
+	assert "23" == render_python("<?print o.bar?>", o=o)
+	assert "undefined" == render_python("<?print type(o.baz)?>", o=o)
 	assert "42" == render_python("<?print o['foo']?>", o=o)
-	assert "undefined" == render_python("<?print type(o['bar'])?>", o=o)
+	assert "23" == render_python("<?print o['bar']?>", o=o)
+	assert "undefined" == render_python("<?print type(o['baz'])?>", o=o)
 	assert "True" == render_python("<?print 'foo' in o?>", o=o)
-	assert "False" == render_python("<?print 'bar' in o?>", o=o)
-	assert "[['foo', 42]]" == render_python("<?print repr(list(o.items()))?>", o=o)
-	assert "[42]" == render_python("<?print repr(list(o.values()))?>", o=o)
-	assert "foo" == render_python("<?for attr in o?><?print attr?><?end for?>", o=o)
+	assert "True" == render_python("<?print 'bar' in o?>", o=o)
+	assert "False" == render_python("<?print 'baz' in o?>", o=o)
+	assert "[['bar', 23], ['foo', 42]]" == render_python("<?print repr(sorted(list(o.items())))?>", o=o)
+	assert "[23, 42]" == render_python("<?print repr(sorted(list(o.values())))?>", o=o)
+	assert "foo" == render_python("<?for attr in o?><?if attr == 'foo'?><?print attr?><?end if?><?end for?>", o=o)
+	assert "bar" == render_python("<?for attr in o?><?if attr == 'bar'?><?print attr?><?end if?><?end for?>", o=o)
 
 
 @pytest.mark.ul4
