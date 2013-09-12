@@ -4,6 +4,9 @@ Migrating to version 5.2
 Changes to ``oradd``
 --------------------
 
+*	The names of methods that should be callable for custom objects in UL4
+	templates must be added to the ``ul4attrs`` attributes.
+
 *	Committing the transactions in ``oradd`` can now be done after each record
 	with the new option ``--commit``. ``--rollback`` has been removed, so you
 	have to replace ``--rollback=1`` with ``--commit=never``.
