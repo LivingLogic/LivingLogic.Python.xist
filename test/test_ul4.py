@@ -396,8 +396,8 @@ all_renderers = [
 	("python_dump", render_python_dump),
 	# ("js", render_js),
 	# ("php", render_php),
-	# ("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
-	# ("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
+	("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
+	("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
 ]
 
 
@@ -407,8 +407,8 @@ all_callers = [
 	("python_dump", call_python_dump),
 	# ("js", call_js),
 	# ("php", call_php),
-	# ("java_interpreted_by_python", call_java_interpretedtemplate_by_python),
-	# ("java_interpreted_by_java", call_java_interpretedtemplate_by_java),
+	("java_interpreted_by_python", call_java_interpretedtemplate_by_python),
+	("java_interpreted_by_java", call_java_interpretedtemplate_by_java),
 ]
 
 
@@ -670,7 +670,7 @@ def test_printx(r):
 
 
 @pytest.mark.ul4
-def test_storevar(r):
+def test_setvar(r):
 	assert '42' == r('<?code x = 42?><?print x?>')
 	assert 'xyzzy' == r('<?code x = "xyzzy"?><?print x?>')
 	assert 'x,y' == r('<?code (x, y) = "xy"?><?print x?>,<?print y?>')
@@ -685,6 +685,7 @@ def test_addvar(r):
 		for y in (23, 23., False, True):
 			assert x + y == eval(r('<?code x = {}?><?code x += {}?><?print x?>'.format(x, y)))
 	assert 'xyzzy' == r('<?code x = "xyz"?><?code x += "zy"?><?print x?>')
+	assert '[1, 2, 3, 4]' == r('<?code x = [1, 2]?><?code x += [3, 4]?><?print x?>')
 
 
 @pytest.mark.ul4
@@ -859,6 +860,7 @@ def test_add(r):
 		for y in values:
 			assert x + y == eval(r(code, x=x, y=y)) # Using ``evaleq`` avoids problem with the nonexistant int/float distinction in JS
 	assert 'foobar' == r('<?code x="foo"?><?code y="bar"?><?print x+y?>')
+	assert '[1, 2, 3, 4]' == r('<?print x+y?>', x=[1, 2], y=[3, 4])
 	assert '(f)(o)(o)(b)(a)(r)' == r('<?for i in data.foo+data.bar?>(<?print i?>)<?end for?>', data=dict(foo="foo", bar="bar"))
 	assert "2012-10-18 00:00:00" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(1))
 	assert "2013-10-17 00:00:00" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(365))
@@ -3536,6 +3538,7 @@ def test_addlvalue(r):
 	assert "barbaz" == r("<?code d = {'foo': {'bar' : 'bar'}}?><?code d.foo['bar'] += 'baz'?><?print d.foo['bar']?>")
 	assert "barbaz" == r("<?code d = {'foo': ['bar']}?><?code d.foo[0] += 'baz'?><?print d.foo[0]?>")
 	assert "barbaz" == r("<?code d = ['bar']?><?def f?><?return d?><?end def?><?code f()[0] += 'baz'?><?print d[0]?>")
+	assert "[1, 2, 3, 4][1, 2, 3, 4]" == r("<?code d = {'foo': [1, 2]}?><?code l = d.foo?><?code d.foo += [3, 4]?><?print d.foo?><?print l?>")
 
 
 @pytest.mark.ul4

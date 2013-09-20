@@ -27,6 +27,7 @@ class attribute.
 To execute a job, use the module level function :func:`execute` (or
 :func:`executewithargs` when you want to support command line arguments).
 
+
 Example
 -------
 
@@ -42,7 +43,7 @@ The following example illustrates the use of this module::
 		projectname = "ACME.FooBar"
 		jobname = "Fetch"
 		argdescription = "fetch http://www.python.org/ and save it to a local file"
-		maxtime = 180
+		maxtime = 3 * 60
 
 		def __init__(self):
 			self.url = "http://www.python.org/"
@@ -63,6 +64,12 @@ The following example illustrates the use of this module::
 		sisyphus.executewithargs(Fetch())
 
 You will find the log files for this job in ``~/ll.sisyphus/ACME.FooBar/Fetch/``.
+
+
+Tags
+----
+It is possible to add tags to the logging call. This is done by accessing
+attributes of the ``log`` pseudo method.
 """
 
 
@@ -183,8 +190,8 @@ class Job(object):
 		The sender email address for the failure report email.
 
 		This email will only be sent if the options :option:`--fromemail`,
-		:option:`--toemail` and :option:`--smtphost` are set (and any errors
-		occured).
+		:option:`--toemail` and :option:`--smtphost` are set (and any error
+		or output to the email log occured).
 
 	``toemail`` : :option:`--toemail`
 		An email address where an email will be sent in case of a failure.

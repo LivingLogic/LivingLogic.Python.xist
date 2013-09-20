@@ -2228,7 +2228,7 @@ class ChangeVar(AST):
 		self.value = decoder.load()
 
 
-@register("storevar")
+@register("setvar")
 class SetVar(ChangeVar):
 	"""
 	AST node that stores a value into a variable.
