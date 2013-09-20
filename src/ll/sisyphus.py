@@ -76,6 +76,17 @@ from ll import url, ul4c, misc
 __docformat__ = "reStructuredText"
 
 
+def _formatexctype(exc):
+	"""
+	Format an exception class for logging.
+	"""
+	if exc.__class__.__module__ not in ("builtins", "exceptions"):
+		fmt = "{0.__class__.__module__}.{0.__class__.__name__}"
+	else:
+		fmt = "{0.__class__.__name__}"
+	return fmt.format(exc)
+
+
 def _formatexc(exc):
 	"""
 	Format an exception object for logging.
@@ -84,27 +95,22 @@ def _formatexc(exc):
 		strexc = str(exc)
 	except UnicodeError:
 		strexc = "?"
-	if exc.__class__.__module__ not in ("builtins", "exceptions"):
-		fmt = "{0.__class__.__module__}.{0.__class__.__name__}"
-	else:
-		fmt = "{0.__class__.__name__}"
+	fmt = "{}"
 	if strexc:
-		fmt += ": {1}"
-	return fmt.format(exc, strexc)
+		fmt += ": {}"
+	return fmt.format(_formatexctype(exc), strexc)
 
 
 def _formattraceback(exc):
-	tb = "".join(traceback.format_tb(exc.__traceback__))
-	tb = "Traceback (most recent call last):\n{}".format(tb).strip()
-	return "{}\n{}".format(tb, _formatexc(exc))
+	return "".join(traceback.format_exception(exc.__class__, exc, exc.__traceback__))
 
 
-def _formatlines(text):
-	if isinstance(text, BaseException):
-		text = _formattraceback(text)
-	elif not isinstance(text, str):
-		text = pprint.pformat(text)
-	lines = text.splitlines()
+def _formatlines(obj):
+	if isinstance(obj, BaseException):
+		obj = _formattraceback(obj)
+	elif not isinstance(obj, str):
+		obj = pprint.pformat(obj)
+	lines = obj.splitlines()
 	if lines and not lines[-1].strip():
 		del lines[-1]
 	return lines
@@ -310,7 +316,7 @@ class Job(object):
 	"""
 
 	formatemailsubject = r"""
-		<?print job.projectname?>/<?print job.jobname?> failed for <?print sysinfo.user_name?>@<?print sysinfo.host_fqdn?> (<?print sysinfo.host_ip?>)<?if errors?> with <?print len(errors)?> errors<?end if?>
+		<?print job.projectname?>/<?print job.jobname?> failed for <?print sysinfo.user_name?>@<?print sysinfo.host_fqdn?> (<?print sysinfo.host_ip?>)<?if log?> with <?print len(log)?> errors/messages<?end if?>
 	"""
 
 	formatemailbodytext = r"""
@@ -349,31 +355,46 @@ class Job(object):
 		<?if job.starttime and job.endtime?>
 			<?code line.render(label="Duration", value=job.endtime-job.starttime)?>
 		<?end if?>
-		<?code countexceptions = sum(e.type == "exception" for e in errors)?>
+		<?code countexceptions = sum(entry.type == "exception" for entry in log)?>
 		<?code line.render(label="Errors", value=countexceptions)?>
-		<?code countmessages = sum(e.type == "message" for e in errors)?>
+		<?code countmessages = sum(entry.type == "message" for entry in log)?>
 		<?code line.render(label="Messages", value=countmessages)?>
 
-		<?for (i, error) in enumerate(errors, 1)?>
+		<?for (i, entry) in enumerate(log, 1)?>
 			<?print "\n"?>
 			<?print "-"*80?><?print "\n"?>
 			<?print "\n"?>
-			#<?print i?>: <?if error.type == 'exception'?>Exception<?else?>Message<?end if?><?print "\n"?>
-			<?for task in error.tasks?>
-				<?code line.render(label="Task", value=tasklabel.renders(task=task))?>
-			<?end for?>
-			<?if error.tasks?>
-				<?code starttime = error.tasks[-1].starttime?>
-				<?code endtime = error.tasks[-1].endtime?>
-				<?code line.render(label="Start", value=starttime)?>
-				<?code line.render(label="End", value=endtime)?>
-				<?code line.render(label="Duration", value=endtime-starttime)?>
-			<?end if?>
-			<?code line.renders(label="Type", value=error.error)?>
-			<?code line.renders(label="Message", value=error.message)?>
-			<?if error.traceback?>
-				<?print "\n"?>
-				<?print error.traceback?><?print "\n"?>
+			<?if entry.type == "exception"?>
+				#<?print i?>: Exception<?print "\n"?>
+				<?for task in entry.tasks?>
+					<?code line.render(label="Task", value=tasklabel.renders(task=task))?>
+				<?end for?>
+				<?if entry.tasks?>
+					<?code starttime = entry.tasks[-1].starttime?>
+					<?code endtime = entry.tasks[-1].endtime?>
+					<?code line.render(label="Start", value=starttime)?>
+					<?code line.render(label="End", value=endtime)?>
+					<?code line.render(label="Duration", value=endtime-starttime)?>
+				<?end if?>
+				<?code line.renders(label="Exception", value=entry.exception)?>
+				<?code line.renders(label="Value", value=entry.value)?>
+				<?if entry.traceback?>
+					<?print "\n"?>
+					<?print entry.traceback?><?print "\n"?>
+				<?end if?>
+			<?elif entry.type == "message"?>
+				#<?print i?>: Message<?print "\n"?>
+				<?for task in entry.tasks?>
+					<?code line.render(label="Task", value=tasklabel.renders(task=task))?>
+				<?end for?>
+				<?if entry.tasks?>
+					<?code starttime = entry.tasks[-1].starttime?>
+					<?code endtime = entry.tasks[-1].endtime?>
+					<?code line.render(label="Start", value=starttime)?>
+					<?code line.render(label="End", value=endtime)?>
+					<?code line.render(label="Duration", value=endtime-starttime)?>
+				<?end if?>
+				<?code line.renders(label="Message", value=entry.message)?>
 			<?end if?>
 		<?end for?>
 	"""
@@ -427,33 +448,44 @@ class Job(object):
 					<?if job.starttime and job.endtime?>
 						<?code line.render(label="Duration", value=job.endtime-job.starttime)?>
 					<?end if?>
-					<?code countexceptions = sum(e.type == "exception" for e in errors)?>
+					<?code countexceptions = sum(entry.error == "exception" for entry in log)?>
 					<?code line.render(label="Errors", value=countexceptions])?>
-					<?code countmessages = sum(e.type == "message" for e in errors)?>
+					<?code countmessages = sum(entry.error == "message" for entry in log)?>
 					<?code line.render(label="Messages", value=countmessages)?>
 				</table>
-				<?for (i, error) in enumerate(errors, 1)?>
+				<?for (i, entry) in enumerate(log, 1)?>
 					<hr/>
-					<h2>#<?print i?>: <?if error.type == "exception"?>Exception<?else?>Message<?end if?></h2>
-					<table>
-						<?for task in error.tasks?>
-							<?code line.render(label="Task", value=tasklabel.renders(task=task))?>
-						<?end for?>
-						<?if error.tasks?>
-							<?code starttime = error.tasks[-1].starttime?>
-							<?code endtime = error.tasks[-1].endtime?>
-							<?code line.render(label="Start", value=starttime)?>
-							<?code line.render(label="End", value=endtime)?>
-							<?code line.render(label="Duration", value=endtime-starttime)?>
+					<?if entry.error == "exception"?>
+						<h2>#<?print i?>: Exception</h2>
+						<table>
+							<?for task in entry.tasks?>
+								<?code line.render(label="Task", value=tasklabel.renders(task=task))?>
+							<?end for?>
+							<?if entry.tasks?>
+								<?code starttime = entry.tasks[-1].starttime?>
+								<?code endtime = entry.tasks[-1].endtime?>
+								<?code line.render(label="Start", value=starttime)?>
+								<?code line.render(label="End", value=endtime)?>
+								<?code line.render(label="Duration", value=endtime-starttime)?>
+							<?end if?>
+							<?code line.render(label="Type", value=entry.type)?>
+							<?code line.render(label="Message", value=entry.value)?>
+						</table>
+						<?if entry.traceback?>
+							<h3>Traceback<h3>
+							<pre style="font-weight:normal;">
+								<?printx entry.traceback.strip("\n")?>
+							</pre>
 						<?end if?>
-						<?code line.render(label="Type", value=error.error)?>
-						<?code line.render(label="Message", value=error.message)?>
-					</table>
-					<?if error.traceback?>
-						<h3>Traceback<h3>
-						<pre style="font-weight:normal;">
-							<?printx error.traceback.strip("\n")?>
-						</pre>
+					<?else?>
+						<h2>#<?print i?>: Message</h2>
+						<table>
+							<?for task in entry.tasks?>
+								<?code line.render(label="Task", value=tasklabel.renders(task=task))?>
+							<?end for?>
+							<?code line.render(label="Timestamp", value=entry.timestamp)?>
+							<?code line.render(label="Message", value=entry.message)?>
+						</table>
 					<?end if?>
 				<?end for?>
 			</pre>
@@ -601,8 +633,7 @@ class Job(object):
 
 			self._getscriptsource() # Get source code
 			self._getcrontab() # Get crontab
-			self.log = Tag(self._log) # Create tagged logger
-			self.task = Tag(self._task) # Create tagged task context handler
+			self.log = Tag(self._log) # Create tagged logger for files
 			self._formatlogline = ul4c.Template(self.formatlogline, "formatlogline", keepws=False) # Log line formatting template
 			self._formatemailsubject = ul4c.Template(self.formatemailsubject, "formatemailsubject", keepws=False) # Email subject formatting template
 			self._formatemailbodytext = ul4c.Template(self.formatemailbodytext, "formatemailbodytext", keepws=False) # Email body formatting template (plain text)
@@ -711,7 +742,7 @@ class Job(object):
 			with open("/dev/null", "wb") as f:
 				status = subprocess.call(cmd, stdout=f)
 
-	def _task(self, tags, type=None, name=None, index=None, count=None, errors="raise"):
+	def task(self, type=None, name=None, index=None, count=None):
 		"""
 		:meth:`task` is a context manager and can be used to specify subtasks.
 
@@ -731,37 +762,18 @@ class Job(object):
 		``count`` : integer or ``None``
 			If this task is one in a sequence of similar tasks and the total number
 			of tasks is known, ``count`` should be the total number of tasks.
-
-		``errors`` : string
-			Specifies how exceptions occuring in the subtask will be handled:
-
-			``raise``
-				Raise the exception (which normally aborts the job, excepti when
-				an outer task swallows it)
-
-			``ignore``
-				Ignore the exception (but of course the rest of the subtask wills
-				*not* be executed)
-
-			``log``
-				Log the exception.
-
-			``logemail``
-				Log the exception and add it to the failure report email.
-
-			``email``
-				Add the exception to the failure report email.
 		"""
-		return Task(self, type=type, name=name, index=index, count=count, tags=tags)
+		return Task(self, type=type, name=name, index=index, count=count)
 
-	def _log(self, tags, text):
+	def _log(self, tags, obj):
 		"""
-		Log items in :obj:`texts` to the log file using :obj:`tags` as the list
-		of tags.
+		Log :obj:`obj` to the log file using :obj:`tags` as the list of tags.
 		"""
 		timestamp = datetime.datetime.now()
+		if isinstance(obj, BaseException) and "exc" not in tags:
+			tags += ("exc",)
 		for logger in self._loggers:
-			logger.log(timestamp, tags, self._tasks, text)
+			logger.log(timestamp, tags, self._tasks, obj)
 
 	def _getscriptsource(self):
 		"""
@@ -821,9 +833,9 @@ class Task(object):
 	A subtask of a :class:`Job`.
 	"""
 
-	ul4attrs = {"index", "count", "type", "name", "starttime", "endtime", "tags", "success"}
+	ul4attrs = {"index", "count", "type", "name", "starttime", "endtime", "success"}
 
-	def __init__(self, job, type=None, name=None, index=None, count=None, tags=(), errors="raise"):
+	def __init__(self, job, type=None, name=None, index=None, count=None):
 		"""
 		Create a :class:`Task` object. For the meaning of the parameters see
 		:meth:`Job.task`.
@@ -833,8 +845,6 @@ class Task(object):
 		self.name = name
 		self.index = index
 		self.count = count
-		self.tags = tags
-		self.errors = errors
 		self.starttime = None
 		self.endtime = None
 		self.success = None
@@ -844,7 +854,7 @@ class Task(object):
 		self.starttime = datetime.datetime.now()
 		self.job._tasks.append(self)
 		for logger in self.job._loggers:
-			logger.taskbegin(self.job._tasks)
+			logger.taskstart(self.job._tasks)
 		return self
 
 	def __exit__(self, type, value, traceback):
@@ -857,8 +867,6 @@ class Task(object):
 		for logger in self.job._loggers:
 			logger.taskend(self.job._tasks)
 		self.job._tasks.pop()
-
-		return not self.success and (self.errors == "raise" or not isinstance(exc, Exception))
 
 	def asjson(self):
 		return dict(
@@ -905,7 +913,7 @@ class Logger:
 	def log(self, timestamp, tags, tasks, text):
 		pass
 
-	def taskbegin(self, tasks):
+	def taskstart(self, tasks):
 		pass
 
 	def taskend(self, tasks):
@@ -923,19 +931,12 @@ class StreamLogger(Logger):
 		self.lineno = 1 # Current line number
 
 	def log(self, timestamp, tags, tasks, text):
-		if isinstance(text, BaseException) and "exc" not in tags:
-			tags += ("exc",)
 		for line in _formatlines(text):
 			line = self.linetemplate.renders(line=line, time=timestamp, tags=tags, tasks=tasks, sysinfo=misc.sysinfo, job=self.job)
 			self.stream.write(line)
 			self.stream.write("\n")
 			self.lineno += 1
 		self.stream.flush()
-
-	def taskend(self, tasks):
-		task = tasks[-1]
-		if not task.success:
-			self.log(task.endtime, (), tasks, "failed with {}".format(_formatexc(task.exc)))
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} stream={0.stream!r} at {1:#x}>".format(self, id(self))
@@ -979,39 +980,27 @@ class EmailLogger(Logger):
 		if "email" in tags:
 			self._log.append((timestamp, tags, tasks[:], text))
 
-	def taskend(self, tasks):
-		task = tasks[-1]
-		if not task.success:
-			self._log.append((task.endtime, (), tasks[:], task))
-
 	def close(self):
 		if self._log:
-			ul4errors = []
-			jsonerrors = []
+			ul4log = []
+			jsonlog = []
 			for (timestamp, tags, tasks, obj) in self._log:
 				if isinstance(obj, BaseException):
-					error = "{}.{}".format(obj.__class__.__module__, obj.__class__.__qualname__)
-					message = str(obj) or None
+					exception = _formatexctype(obj)
+					value = str(obj) or None
 					tb = _formattraceback(obj)
-					ul4errors.append(dict(type="exception", error=error, message=message, traceback=tb, tasks=tasks))
-					jsonerrors.append(dict(type="exception", error=error, message=message, traceback=tb, tasks=[task.asjson() for task in tasks]))
-				elif isinstance(obj, Task):
-					obj = obj.exc
-					error = "{}.{}".format(obj.__class__.__module__, obj.__class__.__qualname__)
-					message = str(obj) or None
-					tb = _formattraceback(obj)
-					ul4errors.append(dict(type="exception", error=error, message=message, traceback=tb, tasks=tasks))
-					jsonerrors.append(dict(type="exception", error=error, message=message, traceback=tb, tasks=[task.asjson() for task in tasks]))
+					ul4log.append(dict(error="exception", timestamp=timestamp, exception=exception, value=value, traceback=tb, tasks=tasks))
+					jsonlog.append(dict(error="exception", timestamp=timestamp.isoformat(), exception=exception, value=value, traceback=tb, tasks=[task.asjson() for task in tasks]))
 				else:
-					message = "\n".join(_formatlines(obj))
-					ul4errors.append(dict(type="message", message=message, tasks=tasks))
-					jsonerrors.append(dict(type="message", message=message, tasks=[task.asjson() for task in tasks]))
+					message = "".join(_formatlines(obj))
+					ul4log.append(dict(error="message", timestamp=timestamp, message=message, tasks=tasks))
+					jsonlog.append(dict(error="message", timestamp=timestamp.isoformat(), message=message, tasks=[task.asjson() for task in tasks]))
 
 			jsondata = dict(
 				projectname=self.job.projectname,
 				jobname=self.job.jobname,
 				identifier=self.job.identifier,
-				errors=jsonerrors,
+				log=jsonlog,
 				host_name=misc.sysinfo.host_name,
 				host_fqdn=misc.sysinfo.host_fqdn,
 				host_ip=misc.sysinfo.host_ip,
@@ -1030,9 +1019,9 @@ class EmailLogger(Logger):
 				script_name=misc.sysinfo.script_name,
 				short_script_name=misc.sysinfo.short_script_name,
 			)
-			emailsubject = self.job._formatemailsubject.renders(job=self.job, sysinfo=misc.sysinfo, errors=ul4errors)
-			emailbodytext = self.job._formatemailbodytext.renders(job=self.job, sysinfo=misc.sysinfo, errors=ul4errors)
-			emailbodyhtml = self.job._formatemailbodyhtml.renders(job=self.job, sysinfo=misc.sysinfo, errors=ul4errors)
+			emailsubject = self.job._formatemailsubject.renders(job=self.job, sysinfo=misc.sysinfo, log=ul4log)
+			emailbodytext = self.job._formatemailbodytext.renders(job=self.job, sysinfo=misc.sysinfo, log=ul4log)
+			emailbodyhtml = self.job._formatemailbodyhtml.renders(job=self.job, sysinfo=misc.sysinfo, log=ul4log)
 
 			textpart = text.MIMEText(emailbodytext)
 			htmlpart = text.MIMEText(emailbodyhtml, _subtype="html")
