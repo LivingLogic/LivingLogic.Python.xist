@@ -122,9 +122,20 @@ like this::
 Exceptions
 ----------
 
-When an exception object is passed to ``self.log`` the tag ``exc`` will be added to
-the log call automatically.
+When an exception object is passed to ``self.log`` the tag ``exc`` will be added
+to the log call automatically.
 
+
+Email
+-----
+
+It is possible to send an email when a job fails. For this the options
+:option:`--fromemail`, :option:`--toemail` and :option:`--smtphost` have to be
+set. If the job terminated because of an exception, or exceed its maximum
+runtime (and the option :option:`--noisykills` is set) or any of the calls to
+``self.log`` include the tag ``email``, the email will be sent. This email
+includes all logging calls and the final exception (if there is any) in plain
+text and HTML format as well as as a JSON attachement.
 """
 
 
