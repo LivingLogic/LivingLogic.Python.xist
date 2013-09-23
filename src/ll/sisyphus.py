@@ -68,8 +68,18 @@ You will find the log files for this job in ``~/ll.sisyphus/ACME.FooBar/Fetch/``
 
 Tags
 ----
+
 It is possible to add tags to the logging call. This is done by accessing
-attributes of the ``log`` pseudo method.
+attributes of the ``log`` pseudo method. I.e. to add the tags ``xml`` and ``warning``
+to a log call you can do the following::
+
+	self.log.xml.warning("can't parse XML file {}".format(filename))
+
+It's also possible to do this via ``__getitem__`` calls, i.e. the above can be written
+like this::
+
+	self.log['xml']['warning']("can't parse XML file {}".format(filename))
+
 """
 
 
