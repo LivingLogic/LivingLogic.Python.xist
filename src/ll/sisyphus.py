@@ -614,6 +614,7 @@ class Job(object):
 		"""
 		self._tasks = []
 		self._loggers = []
+		self._exceptioncount = 0
 
 		# Obtain a lock on the script file to make sure we're the only one running
 		with open(misc.sysinfo.script_name, "rb") as f:
@@ -675,7 +676,10 @@ class Job(object):
 			else:
 				self.endtime = datetime.datetime.now()
 				# log the result
-				self.log.sisyphus.result.ok(result)
+				if self._exceptioncount:
+					self.log.sisyphus.result.errors(result)
+				else:
+					self.log.sisyphus.result.ok(result)
 			finally:
 				for logger in self._loggers:
 					logger.close()
@@ -766,6 +770,7 @@ class Job(object):
 		timestamp = datetime.datetime.now()
 		if isinstance(obj, BaseException) and "exc" not in tags:
 			tags += ("exc",)
+			self._exceptioncount += 1
 		for logger in self._loggers:
 			logger.log(timestamp, tags, self._tasks, obj)
 
