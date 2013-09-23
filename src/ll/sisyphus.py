@@ -66,8 +66,14 @@ The following example illustrates the use of this module::
 You will find the log files for this job in ``~/ll.sisyphus/ACME.FooBar/Fetch/``.
 
 
-Tags
-----
+Logging and tags
+----------------
+
+Logging itself is done by calling ``self.log``::
+
+	self.log("can't parse XML file {}".format(filename))
+
+This logs the argument without tagging the line. 
 
 It is possible to add tags to the logging call. This is done by accessing
 attributes of the ``log`` pseudo method. I.e. to add the tags ``xml`` and ``warning``
@@ -79,6 +85,45 @@ It's also possible to do this via ``__getitem__`` calls, i.e. the above can be w
 like this::
 
 	self.log['xml']['warning']("can't parse XML file {}".format(filename))
+
+:mod:`ll.sisyphus` itself uses the following tags:
+
+	``sisyphus``
+		This tag will be added to all log lines produced by :mod:`ll.sisyphus`
+		itself.
+
+	``init``
+		This tag is used for the log lines output at the start of the job.
+
+	``report``
+		This tag will be added for all log messages related to sending the
+		failure report email.
+
+	``result``
+		This tag is used for final line it the log files that shows a summary
+		of what the job did (or why it failed).
+
+	``fail``
+		This tag is used in the result line if the job failed with a exception.
+
+	``errors``
+		This tag is used in the result line if the job ran to completion, but some
+		exceptions where logged.
+
+	``ok``
+		This tag is used in the result line if the job ran to completion without
+		any exceptions.
+
+	``kill``
+		This tag is used in the result line if the job was killed because it
+		exceeded the maximum allowed runtime.
+
+
+Exceptions
+----------
+
+When an exception object is passed to ``self.log`` the tag ``exc`` will be added to
+the log call automatically.
 
 """
 
@@ -141,41 +186,6 @@ class Job(object):
 
 	To use this class, derive your own class from it and overwrite the
 	:meth:`execute` method.
-
-	Logging itself is done by calling ``self.log``::
-
-		self.log("can't parse XML file {}".format(filename))
-
-	This logs the argument without tagging the line. To add tags to the logging
-	call, simply access attributes of ``self.log``::
-
-		self.log.xml.warning("can't parse XML file {}".format(filename))
-
-	This adds the tags ``"xml"`` and ``"warning"`` to the log line.
-
-	:mod:`ll.sisyphus` itself uses the following tags:
-
-		``sisyphus``
-			This tag will be added to all log lines produced by :mod:`ll.sisyphus`
-			itself
-
-		``init``
-			This tag is used for the log lines output at the start of the job
-
-		``report``
-			This tag will be added for all log messages related to sending the
-			failure report email.
-
-		``result``
-			This tag is used for final line it the log files that shows a summary
-			of what the job did (or why it failed)
-
-		``fail``
-			This tag is used in the result line if the job failed with a exception.
-
-		``kill``
-			This tag is used in the result line if the job was killed because it
-			exceeded the maximum allowed runtime.
 
 	The job con be configured in three ways. By class attributes in the
 	:class:`Job` subclass, by attributes of the :class:`Job` instance (e.g. set
