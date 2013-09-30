@@ -268,7 +268,7 @@ def _unpackvar(lvalue, value):
 	if isinstance(lvalue, AST):
 		yield (lvalue, value)
 	else:
-		if not isinstance(value, (tuple, list)):
+		if not isinstance(value, (tuple, list, str)):
 			# Protect against infinite iterators
 			# If we have at least one item more than required, we have an error
 			value = list(itertools.islice(value, len(lvalue)+1))
