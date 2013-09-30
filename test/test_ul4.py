@@ -677,6 +677,10 @@ def test_setvar(r):
 	assert '42' == r('<?code (x,) = [42]?><?print x?>')
 	assert '17,23' == r('<?code (x,y) = [17, 23]?><?print x?>,<?print y?>')
 	assert '17,23,37,42,105' == r('<?code ((v, w), (x,), (y,), z) = [[17, 23], [37], [42], 105]?><?print v?>,<?print w?>,<?print x?>,<?print y?>,<?print z?>')
+
+
+@pytest.mark.ul4
+def test_setvar_iterator(r):
 	assert 'g;k' == r("<?code (x,y) = (c for c in 'gurk' if c < 'r')?><?print x?>;<?print y?>")
 
 
