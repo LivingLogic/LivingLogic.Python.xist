@@ -268,6 +268,7 @@ def _unpackvar(lvalue, value):
 	if isinstance(lvalue, AST):
 		yield (lvalue, value)
 	else:
+		value = list(value)
 		if len(lvalue) > len(value):
 			raise TypeError("too many values to unpack (expected {})".format(len(lvalue)))
 		elif len(lvalue) < len(value):

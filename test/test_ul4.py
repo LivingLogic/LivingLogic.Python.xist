@@ -394,7 +394,7 @@ all_renderers = [
 	("python", render_python),
 	("python_dumps", render_python_dumps),
 	("python_dump", render_python_dump),
-	# ("js", render_js),
+	("js", render_js),
 	# ("php", render_php),
 	("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
 	("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
@@ -405,7 +405,7 @@ all_callers = [
 	("python", call_python),
 	("python_dumps", call_python_dumps),
 	("python_dump", call_python_dump),
-	# ("js", call_js),
+	("js", call_js),
 	# ("php", call_php),
 	("java_interpreted_by_python", call_java_interpretedtemplate_by_python),
 	("java_interpreted_by_java", call_java_interpretedtemplate_by_java),
@@ -677,6 +677,7 @@ def test_setvar(r):
 	assert '42' == r('<?code (x,) = [42]?><?print x?>')
 	assert '17,23' == r('<?code (x,y) = [17, 23]?><?print x?>,<?print y?>')
 	assert '17,23,37,42,105' == r('<?code ((v, w), (x,), (y,), z) = [[17, 23], [37], [42], 105]?><?print v?>,<?print w?>,<?print x?>,<?print y?>,<?print z?>')
+	assert 'g;k' == r("<?code (x,y) = (c for c in 'gurk' if c < 'r')?><?print x?>;<?print y?>")
 
 
 @pytest.mark.ul4
