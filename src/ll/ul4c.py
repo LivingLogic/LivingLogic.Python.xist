@@ -272,10 +272,8 @@ def _unpackvar(lvalue, value):
 			# Protect against infinite iterators
 			# If we have at least one item more than required, we have an error
 			value = list(itertools.islice(value, len(lvalue)+1))
-		if len(lvalue) > len(value):
-			raise TypeError("too many values to unpack (expected {})".format(len(lvalue)))
-		elif len(lvalue) < len(value):
-			raise TypeError("need {} value{} to unpack)".format(len(lvalue), "s" if len(lvalue) != 1 else ""))
+		if len(lvalue) != len(value):
+			raise TypeError("need {} value{} to unpack".format(len(lvalue), "s" if len(lvalue) != 1 else ""))
 		for (lvalue, value) in zip(lvalue, value):
 			yield from _unpackvar(lvalue, value)
 
