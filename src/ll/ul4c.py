@@ -268,11 +268,14 @@ def _unpackvar(lvalue, value):
 	if isinstance(lvalue, AST):
 		yield (lvalue, value)
 	else:
-		value = list(value)
+		if not isinstance(value, (tuple, list)):
+			# Protect against infinite iterators
+			# If we have at least one item more than required, we have an error
+			value = list(itertools.islice(value, len(lvalue)+1))
 		if len(lvalue) > len(value):
 			raise TypeError("too many values to unpack (expected {})".format(len(lvalue)))
 		elif len(lvalue) < len(value):
-			raise TypeError("need more than {} value{} to unpack)".format(len(values), "ss" if len(values) != 1 else ""))
+			raise TypeError("need {} value{} to unpack)".format(len(lalue), "s" if len(lvalue) != 1 else ""))
 		for (lvalue, value) in zip(lvalue, value):
 			yield from _unpackvar(lvalue, value)
 
