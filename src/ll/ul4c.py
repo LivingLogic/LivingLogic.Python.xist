@@ -275,7 +275,7 @@ def _unpackvar(lvalue, value):
 		if len(lvalue) > len(value):
 			raise TypeError("too many values to unpack (expected {})".format(len(lvalue)))
 		elif len(lvalue) < len(value):
-			raise TypeError("need {} value{} to unpack)".format(len(lalue), "s" if len(lvalue) != 1 else ""))
+			raise TypeError("need {} value{} to unpack)".format(len(lvalue), "s" if len(lvalue) != 1 else ""))
 		for (lvalue, value) in zip(lvalue, value):
 			yield from _unpackvar(lvalue, value)
 
