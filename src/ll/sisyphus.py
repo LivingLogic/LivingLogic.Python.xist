@@ -100,8 +100,8 @@ like this::
 		failure report email.
 
 	``result``
-		This tag is used for final line it the log files that shows a summary
-		of what the job did (or why it failed).
+		This tag is used for the final line written to the log files that shows a
+		summary of what the job did (or why it failed).
 
 	``fail``
 		This tag is used in the result line if the job failed with an exception.
