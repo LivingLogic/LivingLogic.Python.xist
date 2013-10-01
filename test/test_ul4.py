@@ -411,12 +411,12 @@ all_callers = dict(
 )
 
 
-@pytest.fixture(params=all_renderers.keys())
+@pytest.fixture(scope="module", params=all_renderers.keys())
 def r(request):
 	return all_renderers[request.param]
 
 
-@pytest.fixture(params=all_callers.keys())
+@pytest.fixture(scope="module", params=all_callers.keys())
 def c(request):
 	return all_callers[request.param]
 
