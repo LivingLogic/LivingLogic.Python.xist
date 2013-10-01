@@ -390,33 +390,35 @@ def call_java_interpretedtemplate_by_java(__, keepws=True, **variables):
 	return ul4on.loads(java_runsource(java))
 
 
-all_renderers = [
-	("python", render_python),
-	("python_dumps", render_python_dumps),
-	("python_dump", render_python_dump),
-	("js", render_js),
-	# ("php", render_php),
-	("java_interpreted_by_python", render_java_interpretedtemplate_by_python),
-	("java_interpreted_by_java", render_java_interpretedtemplate_by_java),
-]
+all_renderers = dict(
+	python=render_python,
+	python_dumps=render_python_dumps,
+	python_dump=render_python_dump,
+	js=render_js,
+	# php=render_php,
+	java_interpreted_by_python=render_java_interpretedtemplate_by_python,
+	java_interpreted_by_java=render_java_interpretedtemplate_by_java,
+)
+
+all_callers = dict(
+	python=call_python,
+	python_dumps=call_python_dumps,
+	python_dump=call_python_dump,
+	js=call_js,
+	# php=call_php,
+	java_interpreted_by_python=call_java_interpretedtemplate_by_python,
+	java_interpreted_by_java=call_java_interpretedtemplate_by_java,
+)
 
 
-all_callers = [
-	("python", call_python),
-	("python_dumps", call_python_dumps),
-	("python_dump", call_python_dump),
-	("js", call_js),
-	# ("php", call_php),
-	("java_interpreted_by_python", call_java_interpretedtemplate_by_python),
-	("java_interpreted_by_java", call_java_interpretedtemplate_by_java),
-]
+@pytest.fixture(params=all_renderers.keys())
+def r(request):
+	return all_renderers[request.param]
 
 
-def pytest_generate_tests(metafunc):
-	if "r" in metafunc.fixturenames:
-		metafunc.parametrize("r", [r for (id, r) in all_renderers], ids=[id for (id, r) in all_renderers])
-	if "c" in metafunc.fixturenames:
-		metafunc.parametrize("c", [c for (id, c) in all_callers], ids=[id for (id, c) in all_callers])
+@pytest.fixture(params=all_callers.keys())
+def c(request):
+	return all_callers[request.param]
 
 
 argumentmismatchmessage = [
