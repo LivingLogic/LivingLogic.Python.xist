@@ -3566,6 +3566,7 @@ def test_mullvalue(r):
 	assert "42" == r("<?code d = {'foo': {'bar' : 6}}?><?code d.foo['bar'] *= 7?><?print d.foo['bar']?>")
 	assert "42" == r("<?code d = {'foo': [6]}?><?code d.foo[0] *= 7?><?print d.foo[0]?>")
 	assert "42" == r("<?code d = [6]?><?def f?><?return d?><?end def?><?code f()[0] *= 7?><?print d[0]?>")
+	assert "[1, 2, 1, 2][1, 2, 1, 2]" == r("<?code d = {'foo': [1, 2]}?><?code l = d.foo?><?code d.foo *= 2?><?print d.foo?><?print l?>")
 
 
 @pytest.mark.ul4
