@@ -87,7 +87,7 @@ printed for display purposes, the original format is on one line)::
 			'per_id': 'max',
 			'per_firstname': 'Max',
 			'per_lastname': 'Mustermann',
-			per_created: 'sysdate'
+			'per_created': 'sysdate'
 		},
 		'keys': ['per_id'],
 		'sqls': ['per_created'],
