@@ -15,7 +15,7 @@ Changes in 5.2 (released 10/01/2013)
 *	For objects with attributes exposed to UL4, attributes can be specified as
 	being writable by prepending the name with a ``+`` in ``ul4attrs``.
 
-*	Add UL4 functions ``first`` and ``last`` that return the first or last item
+*	Added UL4 functions ``first`` and ``last`` that return the first or last item
 	produced by an iterable.
 
 *	The default argument for the functions :func:`misc.first` and
