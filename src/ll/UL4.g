@@ -356,7 +356,7 @@ expr_subscript returns [node]
 		(
 			/* Attribute access */
 			'.'
-			n=name { $node = ul4c.GetAttr(self.location, $node.start, self.end($n.stop), $node, $n.text) }
+			n=name { $node = ul4c.Attr(self.location, $node.start, self.end($n.stop), $node, $n.text) }
 		|
 			/* Function/method call */
 			'(' { $node = ul4c.Call(self.location, $node.start, None, $node) }
@@ -419,7 +419,7 @@ expr_subscript returns [node]
 				':'
 				(
 					e2=expr_or { index2 = $e2.node; }
-				)? { $node = ul4c.GetSlice(self.location, $node.start, None, $node, None, index2) }
+				)? { $node = ul4c.Slice(self.location, $node.start, None, $node, None, index2) }
 			|
 				e2=expr_or { index1 = $e2.node; }
 				(
@@ -427,7 +427,7 @@ expr_subscript returns [node]
 					(
 						e3=expr_or { index2 = $e3.node; }
 					)?
-				)? { $node = ul4c.GetSlice(self.location, $node.start, None, $node, index1, index2) if slice else ul4c.GetItem(self.location, $e1.node.start, None, $node, index1) }
+				)? { $node = ul4c.Slice(self.location, $node.start, None, $node, index1, index2) if slice else ul4c.Item(self.location, $e1.node.start, None, $node, index1) }
 			)
 			close=']' { $node.end = self.end($close) }
 		)*

@@ -1,4 +1,4 @@
-# $ANTLR 3.4 src/ll/UL4.g 2013-09-06 16:12:56
+# $ANTLR 3.5 src/ll/UL4.g 2013-10-01 14:35:25
 
 import sys
 from antlr3 import *
@@ -497,23 +497,14 @@ class UL4Parser(Parser):
 
 
         e_none = None
-
         e_false = None
-
         e_true = None
-
         e_int = None
-
         e_float = None
-
         e_string = None
-
         e_date = None
-
         e_color = None
-
         e_name = None
-
 
         try:
             try:
@@ -705,9 +696,7 @@ class UL4Parser(Parser):
         open = None
         close = None
         e1 = None
-
         e2 = None
-
 
         try:
             try:
@@ -858,13 +847,9 @@ class UL4Parser(Parser):
         open = None
         close = None
         item = None
-
         n = None
-
         container = None
-
         condition = None
-
 
          
         _condition = None;
@@ -950,9 +935,7 @@ class UL4Parser(Parser):
 
 
         k = None
-
         v = None
-
 
         try:
             try:
@@ -1001,9 +984,7 @@ class UL4Parser(Parser):
         open = None
         close = None
         i1 = None
-
         i2 = None
-
 
         try:
             try:
@@ -1154,15 +1135,10 @@ class UL4Parser(Parser):
         open = None
         close = None
         key = None
-
         value = None
-
         n = None
-
         container = None
-
         condition = None
-
 
          
         _condition = None;
@@ -1255,13 +1231,9 @@ class UL4Parser(Parser):
 
 
         item = None
-
         n = None
-
         container = None
-
         condition = None
-
 
          
         _condition = None
@@ -1358,19 +1330,12 @@ class UL4Parser(Parser):
         open = None
         close = None
         e_literal = None
-
         e_list = None
-
         e_listcomp = None
-
         e_dict = None
-
         e_dictcomp = None
-
         e_genexpr = None
-
         e_bracket = None
-
 
         try:
             try:
@@ -1591,15 +1556,10 @@ class UL4Parser(Parser):
 
 
         n = None
-
         n0 = None
-
         n1 = None
-
         n2 = None
-
         n3 = None
-
 
         try:
             try:
@@ -1783,33 +1743,19 @@ class UL4Parser(Parser):
 
         close = None
         e1 = None
-
         n = None
-
         rkwargs = None
-
         rargs = None
-
         a1 = None
-
         a2 = None
-
         an3 = None
-
         av3 = None
-
         an1 = None
-
         av1 = None
-
         an2 = None
-
         av2 = None
-
         e2 = None
-
         e3 = None
-
 
          
         index1 = None
@@ -1855,7 +1801,7 @@ class UL4Parser(Parser):
 
                         if self._state.backtracking == 0:
                             pass
-                            retval.node = ul4c.GetAttr(self.location, retval.node.start, self.end(n.stop), retval.node, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0]) 
+                            retval.node = ul4c.Attr(self.location, retval.node.start, self.end(n.stop), retval.node, ((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0]) 
 
 
 
@@ -2380,7 +2326,7 @@ class UL4Parser(Parser):
 
                             if self._state.backtracking == 0:
                                 pass
-                                retval.node = ul4c.GetSlice(self.location, retval.node.start, None, retval.node, None, index2) 
+                                retval.node = ul4c.Slice(self.location, retval.node.start, None, retval.node, None, index2) 
 
 
 
@@ -2444,7 +2390,7 @@ class UL4Parser(Parser):
 
                             if self._state.backtracking == 0:
                                 pass
-                                retval.node = ul4c.GetSlice(self.location, retval.node.start, None, retval.node, index1, index2) if slice else ul4c.GetItem(self.location, e1.start, None, retval.node, index1) 
+                                retval.node = ul4c.Slice(self.location, retval.node.start, None, retval.node, index1, index2) if slice else ul4c.Item(self.location, e1.start, None, retval.node, index1) 
 
 
 
@@ -2490,9 +2436,7 @@ class UL4Parser(Parser):
 
         minus = None
         e1 = None
-
         e2 = None
-
 
         try:
             try:
@@ -2566,9 +2510,7 @@ class UL4Parser(Parser):
 
 
         e1 = None
-
         e2 = None
-
 
         try:
             try:
@@ -2707,9 +2649,7 @@ class UL4Parser(Parser):
 
 
         e1 = None
-
         e2 = None
-
 
         try:
             try:
@@ -2821,9 +2761,7 @@ class UL4Parser(Parser):
 
 
         e1 = None
-
         e2 = None
-
 
         try:
             try:
@@ -2990,9 +2928,7 @@ class UL4Parser(Parser):
 
 
         e1 = None
-
         e2 = None
-
 
         try:
             try:
@@ -3084,9 +3020,7 @@ class UL4Parser(Parser):
 
         n = None
         e1 = None
-
         e2 = None
-
 
         try:
             try:
@@ -3160,9 +3094,7 @@ class UL4Parser(Parser):
 
 
         e1 = None
-
         e2 = None
-
 
         try:
             try:
@@ -3232,9 +3164,7 @@ class UL4Parser(Parser):
 
 
         e1 = None
-
         e2 = None
-
 
         try:
             try:
@@ -3304,9 +3234,7 @@ class UL4Parser(Parser):
 
 
         ege = None
-
         e1 = None
-
 
         try:
             try:
@@ -3628,9 +3556,7 @@ class UL4Parser(Parser):
 
 
         ege = None
-
         e = None
-
 
         try:
             try:
@@ -3956,9 +3882,7 @@ class UL4Parser(Parser):
 
 
         n = None
-
         e = None
-
 
         try:
             try:
@@ -4007,11 +3931,8 @@ class UL4Parser(Parser):
 
 
         nn = None
-
         e = None
-
         n = None
-
 
         try:
             try:
@@ -4607,7 +4528,6 @@ class UL4Parser(Parser):
     def synpred20_UL4_fragment(self, ):
         e_list = None
 
-
         # src/ll/UL4.g:311:4: (e_list= list )
         # src/ll/UL4.g:311:4: e_list= list
         pass 
@@ -4625,7 +4545,6 @@ class UL4Parser(Parser):
     # $ANTLR start "synpred21_UL4"
     def synpred21_UL4_fragment(self, ):
         e_listcomp = None
-
 
         # src/ll/UL4.g:312:4: (e_listcomp= listcomprehension )
         # src/ll/UL4.g:312:4: e_listcomp= listcomprehension
@@ -4645,7 +4564,6 @@ class UL4Parser(Parser):
     def synpred22_UL4_fragment(self, ):
         e_dict = None
 
-
         # src/ll/UL4.g:313:4: (e_dict= dict )
         # src/ll/UL4.g:313:4: e_dict= dict
         pass 
@@ -4663,7 +4581,6 @@ class UL4Parser(Parser):
     # $ANTLR start "synpred23_UL4"
     def synpred23_UL4_fragment(self, ):
         e_dictcomp = None
-
 
         # src/ll/UL4.g:314:4: (e_dictcomp= dictcomprehension )
         # src/ll/UL4.g:314:4: e_dictcomp= dictcomprehension
@@ -4684,7 +4601,6 @@ class UL4Parser(Parser):
         open = None
         close = None
         e_genexpr = None
-
 
         # src/ll/UL4.g:315:4: (open= '(' e_genexpr= generatorexpression close= ')' )
         # src/ll/UL4.g:315:4: open= '(' e_genexpr= generatorexpression close= ')'
@@ -4708,7 +4624,6 @@ class UL4Parser(Parser):
     def synpred25_UL4_fragment(self, ):
         n = None
 
-
         # src/ll/UL4.g:330:3: (n= expr_subscript )
         # src/ll/UL4.g:330:3: n= expr_subscript
         pass 
@@ -4726,7 +4641,6 @@ class UL4Parser(Parser):
     # $ANTLR start "synpred26_UL4"
     def synpred26_UL4_fragment(self, ):
         n0 = None
-
 
         # src/ll/UL4.g:332:3: ( '(' n0= nestedlvalue ',' ')' )
         # src/ll/UL4.g:332:3: '(' n0= nestedlvalue ',' ')'
@@ -4752,7 +4666,6 @@ class UL4Parser(Parser):
     def synpred70_UL4_fragment(self, ):
         ege = None
 
-
         # src/ll/UL4.g:542:4: (ege= generatorexpression )
         # src/ll/UL4.g:542:4: ege= generatorexpression
         pass 
@@ -4770,7 +4683,6 @@ class UL4Parser(Parser):
     # $ANTLR start "synpred71_UL4"
     def synpred71_UL4_fragment(self, ):
         ege = None
-
 
         # src/ll/UL4.g:547:4: (ege= generatorexpression EOF )
         # src/ll/UL4.g:547:4: ege= generatorexpression EOF
@@ -4791,9 +4703,7 @@ class UL4Parser(Parser):
     # $ANTLR start "synpred72_UL4"
     def synpred72_UL4_fragment(self, ):
         nn = None
-
         e = None
-
 
         # src/ll/UL4.g:566:4: (nn= nestedlvalue '=' e= expr_or EOF )
         # src/ll/UL4.g:566:4: nn= nestedlvalue '=' e= expr_or EOF
@@ -4821,9 +4731,7 @@ class UL4Parser(Parser):
     # $ANTLR start "synpred73_UL4"
     def synpred73_UL4_fragment(self, ):
         n = None
-
         e = None
-
 
         # src/ll/UL4.g:567:4: (n= expr_subscript '+=' e= expr_or EOF )
         # src/ll/UL4.g:567:4: n= expr_subscript '+=' e= expr_or EOF
@@ -4851,9 +4759,7 @@ class UL4Parser(Parser):
     # $ANTLR start "synpred74_UL4"
     def synpred74_UL4_fragment(self, ):
         n = None
-
         e = None
-
 
         # src/ll/UL4.g:568:4: (n= expr_subscript '-=' e= expr_or EOF )
         # src/ll/UL4.g:568:4: n= expr_subscript '-=' e= expr_or EOF
@@ -4881,9 +4787,7 @@ class UL4Parser(Parser):
     # $ANTLR start "synpred75_UL4"
     def synpred75_UL4_fragment(self, ):
         n = None
-
         e = None
-
 
         # src/ll/UL4.g:569:4: (n= expr_subscript '*=' e= expr_or EOF )
         # src/ll/UL4.g:569:4: n= expr_subscript '*=' e= expr_or EOF
@@ -4911,9 +4815,7 @@ class UL4Parser(Parser):
     # $ANTLR start "synpred76_UL4"
     def synpred76_UL4_fragment(self, ):
         n = None
-
         e = None
-
 
         # src/ll/UL4.g:570:4: (n= expr_subscript '/=' e= expr_or EOF )
         # src/ll/UL4.g:570:4: n= expr_subscript '/=' e= expr_or EOF
@@ -4941,9 +4843,7 @@ class UL4Parser(Parser):
     # $ANTLR start "synpred77_UL4"
     def synpred77_UL4_fragment(self, ):
         n = None
-
         e = None
-
 
         # src/ll/UL4.g:571:4: (n= expr_subscript '//=' e= expr_or EOF )
         # src/ll/UL4.g:571:4: n= expr_subscript '//=' e= expr_or EOF
@@ -4971,9 +4871,7 @@ class UL4Parser(Parser):
     # $ANTLR start "synpred78_UL4"
     def synpred78_UL4_fragment(self, ):
         n = None
-
         e = None
-
 
         # src/ll/UL4.g:572:4: (n= expr_subscript '%=' e= expr_or EOF )
         # src/ll/UL4.g:572:4: n= expr_subscript '%=' e= expr_or EOF

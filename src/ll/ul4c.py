@@ -1186,10 +1186,10 @@ class Continue(AST):
 		raise ContinueException()
 
 
-@register("getattr")
-class GetAttr(AST):
+@register("attr")
+class Attr(AST):
 	"""
-	AST node for getting an attribute from an object.
+	AST node for getting and setting an attribute of an object.
 
 	The object is loaded from the AST node :obj:`obj` and the attribute name
 	is stored in the string :obj:`attrname`.
@@ -1578,10 +1578,10 @@ class GetAttr(AST):
 		self.attrname = decoder.load()
 
 
-@register("getslice")
-class GetSlice(AST):
+@register("slice")
+class Slice(AST):
 	"""
-	AST node for getting a slice from a list or string object.
+	AST node for getting or setting a slice from a list (or string object).
 
 	The object is loaded from the AST node :obj:`obj` and the start and stop
 	indices from the AST node :obj:`index1` and :obj:`index2`. :obj:`index1`
@@ -1845,8 +1845,8 @@ class Binary(AST):
 		return cls(location, start, end, obj1, obj2)
 
 
-@register("getitem")
-class GetItem(Binary):
+@register("item")
+class Item(Binary):
 	"""
 	AST node for subscripting operator.
 
