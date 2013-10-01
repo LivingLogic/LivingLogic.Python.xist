@@ -8,7 +8,7 @@
 ##
 ## See LICENSE for the license
 
-"""
+r"""
 :mod:`oradd` can be used to import data into an Oracle database. The data is
 imported by calling stored procedures.
 
