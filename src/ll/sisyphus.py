@@ -73,7 +73,7 @@ Logging itself is done by calling ``self.log``::
 
 	self.log("can't parse XML file {}".format(filename))
 
-This logs the argument without tagging the line. 
+This logs the argument without tagging the line.
 
 It is possible to add tags to the logging call. This is done by accessing
 attributes of the ``log`` pseudo method. I.e. to add the tags ``xml`` and ``warning``
