@@ -23,6 +23,11 @@ Changes to ``oradd``
 Changes to ``misc``
 -------------------
 
+*	The default argument for the functions :func:`misc.first` and
+	:func:`misc.last` now defaults to ``None``. I.e. for empty iterators the
+	default value will always be returned instead of generating an exception.
+	To simulate the old behaviour use a unique guard object as the default.
+
 *	Renamed the attributes ``scriptname`` and ``shortscriptname`` of the
 	:obj:`misc.sysinfo` object to ``script_name`` and ``short_script_name``.
 
