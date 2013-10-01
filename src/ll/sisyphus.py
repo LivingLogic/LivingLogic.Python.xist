@@ -702,7 +702,7 @@ class Job(object):
 				self.log.sisyphus.email(exc)
 				self.log.sisyphus.result.fail(result)
 				self.failed()
-				# Make sure that exceptions at the top level get propagated (this mean that they might be reported twice)
+				# Make sure that exceptions at the top level get propagated (this means that they might be reported twice)
 				raise
 			else:
 				self.endtime = datetime.datetime.now()
