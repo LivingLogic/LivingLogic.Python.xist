@@ -1,15 +1,27 @@
 Migrating to version 5.2
 ========================
 
-Changes to ``oradd``
---------------------
+Changes to ``sisyphus``
+-----------------------
+
+*	The method :meth:`prefix` for :mod:`sisyphus` jobs has been replace with
+	:meth:`task` which does something similar.
+
+Changes to UL4
+--------------
 
 *	The names of methods that should be callable for custom objects in UL4
 	templates must be added to the ``ul4attrs`` attributes.
 
+Changes to ``oradd``
+--------------------
+
 *	Committing the transactions in ``oradd`` can now be done after each record
 	with the new option ``--commit``. ``--rollback`` has been removed, so you
 	have to replace ``--rollback=1`` with ``--commit=never``.
+
+Changes to ``misc``
+-------------------
 
 *	Renamed the attributes ``scriptname`` and ``shortscriptname`` of the
 	:obj:`misc.sysinfo` object to ``script_name`` and ``short_script_name``.
@@ -164,7 +176,7 @@ Changes to :mod:`ll.make`
 -------------------------
 
 *	The support for Growl notifications in :mod:`ll.make` on the Mac has been
-	replaced by support for Mountain Lions Notification Center. 
+	replaced by support for Mountain Lions Notification Center.
 
 	The option has been renamed from :option:`--growl` to :option:`--notify`.
 
