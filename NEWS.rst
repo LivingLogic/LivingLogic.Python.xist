@@ -1,4 +1,4 @@
-Changes in 5.2 (released ??/??/2013)
+Changes in 5.2 (released 10/01/2013)
 ------------------------------------
 
 *	Added support for bound methods to UL4 templates. This means that methods
