@@ -30,7 +30,7 @@ Changes in 5.2 (released ??/??/2013)
 	method.
 
 *	:mod:`ll.sispyhus` now creates a relative symbolic link for the current
-	logfile.
+	logfile instead of an absolute one.
 
 *	``oradd`` now outputs the keys in its logging output.
 
