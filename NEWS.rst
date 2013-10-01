@@ -26,10 +26,10 @@ Changes in 5.2 (released ??/??/2013)
 	email includes information about the failure in plain text, HTML and JSON
 	format.
 
-*	:mod:`ll.sispyhus` can supports subtask. Handling of exceptions in these
-	subtasks can be specified.
+*	:mod:`ll.sispyhus` now supports subtask. This replaces the :meth:`prefix`
+	method.
 
-*	:mod:`ll.sispyhus` no creates a relative symbolic link for the current
+*	:mod:`ll.sispyhus` now creates a relative symbolic link for the current
 	logfile.
 
 *	``oradd`` now outputs the keys in its logging output.
