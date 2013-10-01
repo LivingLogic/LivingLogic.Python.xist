@@ -46,9 +46,9 @@ def register(name):
 
 def generator(f):
 	"""
-	Decorating a function with :function:`generator` declares the decorated
-	function to UL4 templates as a generator method (i.e. a method that can
-	generate output and return a value).
+	Decorating a function with :func:`generator` declares the decorated function
+	to UL4 templates as a generator method (i.e. a method that can generate
+	output and return a value).
 	"""
 	f.__ul4generator__ = True
 	return f
