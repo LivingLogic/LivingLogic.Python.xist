@@ -26,8 +26,8 @@ Changes in 5.2 (released ??/??/2013)
 	email includes information about the failure in plain text, HTML and JSON
 	format.
 
-*	:mod:`ll.sispyhus` now supports subtask. This replaces the :meth:`prefix`
-	method.
+*	:mod:`ll.sispyhus` now supports subtasks via the method :meth:`task`.
+	This replaces the :meth:`prefix` method.
 
 *	:mod:`ll.sispyhus` now creates a relative symbolic link for the current
 	logfile instead of an absolute one.
