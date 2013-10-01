@@ -1202,6 +1202,8 @@ def test_getslice(r):
 @pytest.mark.ul4
 def test_setslice(r):
 	assert "[1, -2, -3, 4]" == r("<?code x = [1, 2, 3, 4]?><?code x[1:3] = [-2, -3]?><?print x?>")
+	assert "[1, -1, -4, -9, 4]" == r("<?code x = [1, 2, 3, 4]?><?code x[1:-1] = (-i*i for i in range(1, 4))?><?print x?>")
+	assert "[-1, -4, -9]" == r("<?code x = [1, 2, 3, 4]?><?code x[:] = (-i*i for i in range(1, 4))?><?print x?>")
 
 
 @pytest.mark.ul4
