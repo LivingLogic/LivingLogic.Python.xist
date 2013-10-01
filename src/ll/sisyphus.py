@@ -104,7 +104,7 @@ like this::
 		of what the job did (or why it failed).
 
 	``fail``
-		This tag is used in the result line if the job failed with a exception.
+		This tag is used in the result line if the job failed with an exception.
 
 	``errors``
 		This tag is used in the result line if the job ran to completion, but some
@@ -135,7 +135,7 @@ set. If the job terminates because of an exception, or exceeds its maximum
 runtime (and the option :option:`--noisykills` is set) or any of the calls to
 ``self.log`` include the tag ``email``, the email will be sent. This email
 includes all logging calls and the final exception (if there is any) in plain
-text and HTML format as well as as a JSON attachement.
+text and HTML format as well as as a JSON attachment.
 """
 
 
