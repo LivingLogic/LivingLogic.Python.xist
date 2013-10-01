@@ -110,16 +110,18 @@ __docformat__ = "reStructuredText"
 
 
 class System(object):
-	@ul4c.expose_method
+	ul4attrs = {"execute"}
+
 	def execute(self, cmd):
 		return os.popen(cmd).read()
 
 
 class Connection(object):
+	ul4attrs = {"query"}
+
 	def __init__(self, connection):
 		self.connection = connection
 
-	@ul4c.expose_method
 	def query(self, *queryparts):
 		c = self.connection.cursor()
 		query = []
@@ -136,14 +138,16 @@ class Connection(object):
 
 
 class Oracle(object):
-	@ul4c.expose_method
+	ul4attrs = {"connect"}
+
 	def connect(self, connectstring):
 		from ll import orasql
 		return Connection(orasql.connect(connectstring, readlobs=True))
 
 
 class SQLite(object):
-	@ul4c.expose_method
+	ul4attrs = {"connect"}
+
 	def connect(self, connectstring):
 		import sqlite3
 		connection = sqlite3.connect(connectstring)
@@ -157,7 +161,8 @@ class SQLite(object):
 
 
 class MySQL(object):
-	@ul4c.expose_method
+	ul4attrs = {"connect"}
+
 	def connect(self, connectstring):
 		import MySQLdb
 		from MySQLdb import cursors

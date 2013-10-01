@@ -1376,19 +1376,18 @@ object, using ``in`` and ``not in`` tests and using the methods ``items`` and
 Custom methods
 ==============
 
-It is also possible to expose methods of an object to UL4 templates. This can be
-done with the two decorator functions :func:`ul4c.expose_method` and
-:func:`ul4c.expose_generatormethod`. :func:`ul4c.expose_method` is used for a
-normal method that returns a value::
+It is also possible to expose methods of an object to UL4 templates. This is done
+by including the method name in the ``ul4attr`` class attribute::
 
 	from ll import ul4c
 
 	class Person:
+		ul4attrs = {"fullname"}
+
 		def __init__(self, firstname, lastname):
 			self.firstname = firstname
 			self.lastname = lastname
 
-		@ul4c.expose_method
 		def fullname(self):
 			return self.firstname + " " + self.lastname
 
@@ -1399,17 +1398,20 @@ normal method that returns a value::
 
 This will output ``John Doe``.
 
-:func:`ul4c.expose_generatormethod` is used for methods that produce some output
-(and might return a value too)::
+If the method should produce out in addition to returning a value, the decorator
+:func:`ul4c.generator` must be used (in addition to including the method name in
+``ul4attrs``::
 
 	from ll import ul4c
 
 	class Person:
+		ul4attrs = {"print_fullname"}
+
 		def __init__(self, firstname, lastname):
 			self.firstname = firstname
 			self.lastname = lastname
 
-		@ul4c.expose_generatormethod
+		@ul4c.generator
 		def print_fullname(self):
 			yield self.firstname
 			yield " "
