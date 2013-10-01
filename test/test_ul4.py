@@ -1167,7 +1167,7 @@ def test_getitem(r):
 
 
 @pytest.mark.ul4
-def test_getslice12(r):
+def test_getslice(r):
 	assert "ur" == r("<?print 'gurk'[1:3]?>")
 	assert "ur" == r("<?print x[1:3]?>", x="gurk")
 	assert "ur" == r("<?print 'gurk'[-3:-1]?>")
@@ -1176,10 +1176,6 @@ def test_getslice12(r):
 	assert "" == r("<?print x[4:10]?>", x="gurk")
 	assert "" == r("<?print 'gurk'[-10:-5]?>")
 	assert "" == r("<?print x[-10:-5]?>", x="gurk")
-
-
-@pytest.mark.ul4
-def test_getslice1(r):
 	assert "urk" == r("<?print 'gurk'[1:]?>")
 	assert "urk" == r("<?print x[1:]?>", x="gurk")
 	assert "urk" == r("<?print 'gurk'[-3:]?>")
@@ -1188,10 +1184,6 @@ def test_getslice1(r):
 	assert "" == r("<?print x[4:]?>", x="gurk")
 	assert "gurk" == r("<?print 'gurk'[-10:]?>")
 	assert "gurk" == r("<?print x[-10:]?>", x="gurk")
-
-
-@pytest.mark.ul4
-def test_getslice2(r):
 	assert "gur" == r("<?print 'gurk'[:3]?>")
 	assert "gur" == r("<?print x[:3]?>", x="gurk")
 	assert "gur" == r("<?print 'gurk'[:-1]?>")
@@ -1202,13 +1194,14 @@ def test_getslice2(r):
 	assert "" == r("<?print x[:-5]?>", x="gurk")
 	assert "05" == r("<?print ('0' + str(x))[-2:]?>", x=5)
 	assert "15" == r("<?print ('0' + str(x))[-2:]?>", x=15)
-
-
-@pytest.mark.ul4
-def test_getslice(r):
 	assert "gurk" == r("<?print 'gurk'[:]?>")
 	assert "gurk" == r("<?print x[:]?>", x="gurk")
 	assert "[1, 2]" == r("<?print x[:]?>", x=[1, 2])
+
+
+@pytest.mark.ul4
+def test_setslice(r):
+	assert "[1, -2, -3, 4]" == r("<?code x = [1, 2, 3, 4]?><?code x[1:3] = [-2, -3]?><?print x?>")
 
 
 @pytest.mark.ul4
