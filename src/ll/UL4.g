@@ -23,6 +23,9 @@ def reportError(self, e):
 }
 
 @members {
+def reportError(self, e):
+	raise e
+
 def mismatch(self, input, ttype, follow):
 	raise MismatchedTokenException(ttype, input)
 
