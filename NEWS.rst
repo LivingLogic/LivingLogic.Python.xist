@@ -1,3 +1,9 @@
+Changes in 5.2.1 (released 10/02/2013)
+--------------------------------------
+
+*	Fixed a bug in one of the UL4 templates for :mod:`sisyphus`.
+
+
 Changes in 5.2 (released 10/01/2013)
 ------------------------------------
 

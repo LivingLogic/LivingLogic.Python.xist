@@ -485,7 +485,7 @@ class Job(object):
 						<?code line.render(label="Duration", value=job.endtime-job.starttime)?>
 					<?end if?>
 					<?code countexceptions = sum(entry.type == "exception" for entry in log)?>
-					<?code line.render(label="Exceptions", value=countexceptions])?>
+					<?code line.render(label="Exceptions", value=countexceptions)?>
 					<?code countmessages = sum(entry.type == "message" for entry in log)?>
 					<?code line.render(label="Messages", value=countmessages)?>
 				</table>
