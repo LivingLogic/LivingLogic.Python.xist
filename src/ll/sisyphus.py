@@ -356,7 +356,7 @@ class Job(object):
 	"""
 
 	formatemailsubject = r"""
-		<?print job.projectname?>/<?print job.jobname?> failed for <?print sysinfo.user_name?>@<?print sysinfo.host_fqdn?> (<?print sysinfo.host_ip?>)<?if log?> with <?print len(log)?> exceptions/messages<?end if?>
+		<?print job.projectname?>/<?print job.jobname?> for <?print sysinfo.user_name?>@<?print sysinfo.host_fqdn?> (<?print sysinfo.host_ip?>)<?if log?> failed with <?print len(log)?> exceptions/messages<?end if?>
 	"""
 
 	formatemailbodytext = r"""
@@ -464,10 +464,10 @@ class Job(object):
 		<?xml version='1.0' encoding='utf-8'?>
 		<html>
 			<head>
-				<title><?printx job.projectname?>/<?printx job.jobname?> on <?printx sysinfo.user_name?>@<?printx sysinfo.host_fqdn?> (<?printx sysinfo.host_ip?>) failed</title>
+				<title><?printx job.projectname?>/<?printx job.jobname?> for <?printx sysinfo.user_name?>@<?printx sysinfo.host_fqdn?> (<?printx sysinfo.host_ip?>) failed</title>
 			</head>
 			<body style="font-family: monospace;">
-				<h1><?printx job.projectname?>/<?printx job.jobname?> on <?printx sysinfo.user_name?>@<?printx sysinfo.host_fqdn?> (<?printx sysinfo.host_ip?>) failed</h1>
+				<h1><?printx job.projectname?>/<?printx job.jobname?> for <?printx sysinfo.user_name?>@<?printx sysinfo.host_fqdn?> (<?printx sysinfo.host_ip?>) failed</h1>
 				<table>
 					<?code line.render(label="Project", value=job.projectname)?>
 					<?code line.render(label="Job", value=job.jobname)?>
