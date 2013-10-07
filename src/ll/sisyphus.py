@@ -695,15 +695,16 @@ class Job(object):
 			try:
 				with url.Context():
 					result = self.execute()
-			except BaseException as exc:
+			except Exception as exc:
 				self.endtime = datetime.datetime.now()
 				result = "failed with {}".format(_formatexc(exc))
 				# log the error to the logfile, because the job probably didn't have a chance to do it
 				self.log.sisyphus.email(exc)
 				self.log.sisyphus.result.fail(result)
 				self.failed()
-				# Make sure that exceptions at the top level get propagated (this means that they might be reported twice)
-				raise
+				# Make sure that exceptions at the top level get propagated if they are not reported by email
+				if not (self.toemail and self.fromemail and self.smtphost):
+					raise
 			else:
 				self.endtime = datetime.datetime.now()
 				# log the result

@@ -1,3 +1,15 @@
+Changes in 5.2.2 (released 10/07/2013)
+--------------------------------------
+
+*	:mod:`sisyphus` now doesn't reraise the exception if it was handled via email.
+	This means that you will only get one email: either from :mod:`sisyphus` or
+	from your cron daemon. Exceptions that are not instances of :exc:`Exception`
+	will not be handled by :mod:`sisyphus` (i.e. you won't get an email when you
+	press CTRL-C, but a normal stack trace).
+
+*	In case of a parse error in UL4 templates an exception will now be raised.
+
+
 Changes in 5.2.1 (released 10/02/2013)
 --------------------------------------
 
