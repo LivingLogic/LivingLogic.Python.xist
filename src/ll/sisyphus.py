@@ -692,6 +692,7 @@ class Job(object):
 				signal.alarm(self.getmaxtime_seconds())
 
 			self.notifystart()
+			result = None
 			try:
 				with url.Context():
 					result = self.execute()
