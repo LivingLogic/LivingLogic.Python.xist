@@ -1,3 +1,11 @@
+Changes in 5.2.3 (released 10/09/2013)
+--------------------------------------
+
+*	The :func:`task` container manager function in :mod:`sisyphus` now allows
+	any UL4 compatible object for the task type and name not just strings or
+	``None``.
+
+
 Changes in 5.2.2 (released 10/07/2013)
 --------------------------------------
 

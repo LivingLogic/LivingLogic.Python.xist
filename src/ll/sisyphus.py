@@ -329,10 +329,8 @@ class Job(object):
 		<?for task in tasks?>
 			<?print " :: "?>
 			<?code desc = [task.type, task.name]?>
-			<?code desc = [d for d in desc if d]?>
-			<?if desc?>
-				<?print " ".join(desc)?>
-			<?end if?>
+			<?code desc = " ".join(str(d) for d in desc if d)?>
+			<?print desc?>
 			<?if not isnone(task.index)?>
 				<?if desc?> <?end if?>
 				(
@@ -370,7 +368,7 @@ class Job(object):
 			<?end if?>
 		<?end def?>
 		<?def tasklabel?>
-			<?code desc = " ".join(part for part in [task.type, task.name] if part)?>
+			<?code desc = " ".join(str(part) for part in [task.type, task.name] if part)?>
 			<?print desc?>
 			<?if not isnone(task.index)?>
 				<?if desc?> <?end if?>
@@ -437,28 +435,26 @@ class Job(object):
 		<?note Subtemplates?>
 		<?def line?>
 			<?if value?>
-				<tr style="vertical-align: baseline;"><th style="text-align:right;"><?print label?></th><td style="padding-left: 1em;<?if whitespace?>white-space: <?print whitespace?>;<?end if?>"><?printx value?></td></tr>
+				<tr style="vertical-align: baseline;"><th style="text-align:right;"><?printx label?></th><td style="padding-left: 1em;<?if whitespace?>white-space: <?printx whitespace?>;<?end if?>"><?printx value?></td></tr>
 			<?end if?>
 		<?end def?>
 		<?def tasklabel?>
 			<?code desc = [task.type, task.name]?>
-			<?code desc = [d for d in desc if d]?>
-			<?if desc?>
-				<?print " ".join(desc)?>
-			<?end if?>
+			<?code desc = " ".join(str(d) for d in desc if d)?>
+			<?printx desc?>
 			<?if not isnone(task.index)?>
 				<?if desc?> <?end if?>
 				(
-				<?print task.index+1?>
+				<?printx task.index+1?>
 				<?if not isnone(task.count)?>
-					/<?print task.count?>
+					/<?printx task.count?>
 				<?end if?>
 				)
 			<?elif not desc?>
 				?
 			<?end if?>
 			<?print "\n@"?>
-			<?print task.starttime?>
+			<?printx task.starttime?>
 		<?end def?>
 
 		<?xml version='1.0' encoding='utf-8'?>
@@ -492,7 +488,7 @@ class Job(object):
 				<?for (i, entry) in enumerate(log, 1)?>
 					<hr/>
 					<?if entry.type == "exception"?>
-						<h2>#<?print i?>: Exception</h2>
+						<h2>#<?printx i?>: Exception</h2>
 						<table>
 							<?for task in entry.tasks?>
 								<?code line.render(label="Task", value=tasklabel.renders(task=task), whitespace="pre")?>
@@ -508,7 +504,7 @@ class Job(object):
 							</pre>
 						<?end if?>
 					<?else?>
-						<h2>#<?print i?>: Message</h2>
+						<h2>#<?printx i?>: Message</h2>
 						<table>
 							<?for task in entry.tasks?>
 								<?code line.render(label="Task", value=tasklabel.renders(task=task), whitespace="pre")?>
