@@ -2,7 +2,7 @@ Changes in 5.2.4 (released 10/09/2013)
 --------------------------------------
 
 *	``python_executable`` and ``python_version`` are now included in the JSON
-	data sent with the :mod:`sisyphus` faiure report email.
+	data sent with the :mod:`sisyphus` failure report email.
 
 
 Changes in 5.2.3 (released 10/09/2013)
