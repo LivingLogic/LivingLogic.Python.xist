@@ -1043,6 +1043,8 @@ class EmailLogger(Logger):
 				user_gecos=misc.sysinfo.user_gecos,
 				user_dir=misc.sysinfo.user_dir,
 				user_shell=misc.sysinfo.user_shell,
+				python_executable=misc.sysinfo.python_executable,
+				python_version=misc.sysinfo.python_version,
 				pid=misc.sysinfo.pid,
 				script_name=misc.sysinfo.script_name,
 				short_script_name=misc.sysinfo.short_script_name,
