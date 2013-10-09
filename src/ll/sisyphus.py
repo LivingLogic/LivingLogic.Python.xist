@@ -1048,6 +1048,8 @@ class EmailLogger(Logger):
 				pid=misc.sysinfo.pid,
 				script_name=misc.sysinfo.script_name,
 				short_script_name=misc.sysinfo.short_script_name,
+				starttime=self.job.starttime.isoformat() if self.job.starttime else None,
+				endtime=self.job.endtime.isoformat() if self.job.endtime else None,
 			)
 			emailsubject = self.job._formatemailsubject.renders(job=self.job, sysinfo=misc.sysinfo, log=ul4log)
 			emailbodytext = self.job._formatemailbodytext.renders(job=self.job, sysinfo=misc.sysinfo, log=ul4log)

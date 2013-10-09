@@ -1,3 +1,10 @@
+Changes in 5.2.5 (released 10/09/2013)
+--------------------------------------
+
+*	``starttime`` and ``endtime`` are now included in the JSON
+	data sent with the :mod:`sisyphus` failure report email too.
+
+
 Changes in 5.2.4 (released 10/09/2013)
 --------------------------------------
 
