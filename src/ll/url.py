@@ -192,7 +192,7 @@ def getcontext(context):
 class Connection(object):
 	"""
 	A :class:`Connection` object is used for accessing and modifying the
-	metadata associated with a file. It it created by calling the
+	metadata associated with a file. It is created by calling the
 	:meth:`connect` method on a :class:`URL` object.
 	"""
 
