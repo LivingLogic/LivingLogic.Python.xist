@@ -1229,16 +1229,10 @@ class Attr(AST):
 			return UndefinedKey(self.attrname)
 		elif isinstance(obj, str):
 			return self.method_str(obj, self.attrname)
+		elif isinstance(obj, collections.Mapping):
+			return self.method_dict(obj, self.attrname)
 		elif isinstance(obj, collections.Sequence):
 			return self.method_list(obj, self.attrname)
-		elif isinstance(obj, collections.Mapping):
-			result = self.method_dict(obj, self.attrname)
-			if isinstance(result, Undefined):
-				try:
-					return obj[self.attrname]
-				except KeyError:
-					pass
-			return result
 		elif isinstance(obj, (datetime.datetime, datetime.date)):
 			return self.method_date(obj, self.attrname)
 		elif isinstance(obj, datetime.timedelta):

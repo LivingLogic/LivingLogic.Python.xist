@@ -33,7 +33,7 @@ __ http://cx-oracle.sourceforge.net/
 """
 
 
-import os, urllib.request, urllib.parse, urllib.error, datetime, itertools, io, errno, re, fnmatch, unicodedata, codecs
+import os, urllib.request, urllib.parse, urllib.error, datetime, itertools, io, errno, re, fnmatch, unicodedata, codecs, collections
 
 from cx_Oracle import *
 
@@ -241,7 +241,7 @@ class RecordMaker(object):
 		return value
 
 
-class Record(tuple):
+class Record(tuple, collections.Mapping):
 	"""
 	A :class:`Record` is a subclass of :class:`tuple` that is used for storing
 	results of database fetches and procedure and function calls. Both item and

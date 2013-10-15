@@ -1,3 +1,10 @@
+Changes in 5.2.7 (released 10/15/2013)
+--------------------------------------
+
+*	:class:`orasql.Record` objects are now instances
+	of :class:`collections.Mapping` and are handled correctly by UL4 now.
+
+
 Changes in 5.2.6 (released 10/15/2013)
 --------------------------------------
 
