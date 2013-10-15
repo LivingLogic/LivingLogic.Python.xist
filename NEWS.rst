@@ -1,3 +1,11 @@
+Changes in 5.2.6 (released 10/15/2013)
+--------------------------------------
+
+*	Attribute access has been fixed in UL4: For objects that supported the
+	dictionary interface without being a dict, a :exc:`KeyError` was raised
+	before instead of returning an "undefined" object.
+
+
 Changes in 5.2.5 (released 10/09/2013)
 --------------------------------------
 

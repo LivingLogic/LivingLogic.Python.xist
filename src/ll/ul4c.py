@@ -1229,9 +1229,9 @@ class Attr(AST):
 			return UndefinedKey(self.attrname)
 		elif isinstance(obj, str):
 			return self.method_str(obj, self.attrname)
-		elif isinstance(obj, list):
+		elif isinstance(obj, collections.Sequence):
 			return self.method_list(obj, self.attrname)
-		elif isinstance(obj, dict):
+		elif isinstance(obj, collections.Mapping):
 			result = self.method_dict(obj, self.attrname)
 			if isinstance(result, Undefined):
 				try:
@@ -1244,8 +1244,10 @@ class Attr(AST):
 		elif isinstance(obj, datetime.timedelta):
 			return self.method_timedelta(obj, self.attrname)
 		else:
-			# This will probably produce an exception
-			return obj[self.attrname]
+			try:
+				return obj[self.attrname]
+			except KeyError:
+				return UndefinedKey(self.attrname)
 
 	def method_str(self, obj, methname):
 		if methname == "split":
