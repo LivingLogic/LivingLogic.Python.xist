@@ -3442,7 +3442,7 @@ class _PlainTextFormatter:
 		elements.)
 
 		Consecutive blank lines (e.g. from the bottom of the previous box and
-		the top of this one), will add up, instead the largest of the values
+		the top of this one), will not add up, instead the largest of the values
 		will be used.
 		"""
 		style = self.styles.get(name, self.styles["default"])
@@ -3636,7 +3636,7 @@ def astext(
 	length is unlimited (i.e. no line wrapping will be done).
 
 	The rest of the parameters specify the formatting styles for HTML elements.
-	The paramter names are the names of the HTML elements, except for ``ol_li``
+	The parameter names are the names of the HTML elements, except for ``ol_li``
 	which is used for ``li`` elements inside ``ol`` elements and ``ul_li`` which
 	is used for ``li`` elements inside ``ul`` elements. ``default`` is used if
 	the parameter for the HTML element is not passed.

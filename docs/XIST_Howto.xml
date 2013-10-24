@@ -505,7 +505,7 @@ b'&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt;'
 <prompt>&gt;&gt;&gt; </prompt><input>del node.attrs.href</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print(node.bytes())</input>
 b'&lt;a&gt;Python&lt;/a&gt;'
-<prompt>&gt;&gt;&gt; </prompt><input>node["href"] = "http://www.python.org"</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node.attrs["href"] = "http://www.python.org"</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print(node.bytes())</input>
 b'&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt;'
 </tty>
@@ -535,12 +535,12 @@ to use all the sequence methods on an attribute.</p>
 
 <example>
 <prog>
-del node["spam"]
-node["spam"].append("ham")
+del node.attrs["spam"]
+node.attrs["spam"].append("ham")
 </prog>
 </example>
 
-<p>This also means that after <lit>del node["spam"][:]</lit> the attribute
+<p>This also means that after <lit>del node.attrs["spam"][:]</lit> the attribute
 will be empty again and will be considered to be unset.
 Such attributes will be skipped when publishing.</p>
 
