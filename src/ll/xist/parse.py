@@ -1362,15 +1362,23 @@ class Tidy(object):
 	__ http://lxml.de/
 	"""
 
-	def __init__(self, encoding=None):
+	def __init__(self, encoding=None, xmldecl=False, doctype=False):
 		"""
 		Create a new :class:`Tidy` object. Parameters have the following meaning:
 
 		:obj:`encoding` : string or :const:`None`
 			The encoding of the input. If :obj:`encoding` is :const:`None` it will
 			be automatically detected by the HTML parser.
+
+		:obj:`xmldecl` : bool
+			Should the parser produce events for the XML declaration?
+
+		:obj:`doctype` : bool
+			Should the parser produce events for the document type?
 		"""
 		self.encoding = encoding
+		self.xmldecl = xmldecl
+		self.doctype = doctype
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
@@ -1379,6 +1387,11 @@ class Tidy(object):
 		from ll.xist.ns import html
 		name = type(node).__name__
 		if "ElementTree" in name:
+			if self.xmldecl:
+				yield ("xmldecl", {"version": node.docinfo.xml_version or "1.0", "encoding": node.docinfo.encoding, "standalone": node.docinfo.standalone})
+			if self.doctype:
+				yield ("begindoctype", {"name": node.docinfo.root_name, "publicid": node.docinfo.public_id, "systemid": node.docinfo.system_url})
+				yield ("enddoctype", None)
 			yield from self._asxist(node.getroot())
 		elif "Element" in name:
 			elementname = node.tag

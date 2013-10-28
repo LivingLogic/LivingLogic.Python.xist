@@ -1,3 +1,10 @@
+Changes in 5.3 (released 10/28/2013)
+------------------------------------
+
+*	:class:`xist.parse.Tidy` can now pass the XML declaration and the doctype
+	to the application (however internal DTD subsets will be ignored).
+
+
 Changes in 5.2.7 (released 10/15/2013)
 --------------------------------------
 
