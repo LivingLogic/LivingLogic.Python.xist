@@ -155,7 +155,7 @@ For type ``"resetsequence"`` the following additional key is used:
 		The minimum value for the sequence.
 
 	``increment``: integer (optional, default 10)
-		The increment (i.e. the steop size) for the sequence.
+		The increment (i.e. the stop size) for the sequence.
 
 An oradd file in UL4ON format contains the same dictionaries, but not as a
 Python repr output, but in UL4ON format. The UL4ON dump is *not* a list of
