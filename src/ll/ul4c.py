@@ -1966,7 +1966,6 @@ class EQ(Binary):
 	AST node for the binary ``==`` comparison operator.
 	"""
 
-
 	@classmethod
 	def evalfold(cls, obj1, obj2):
 		return obj1 == obj2
@@ -1977,7 +1976,6 @@ class NE(Binary):
 	"""
 	AST node for the binary ``!=`` comparison operator.
 	"""
-
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -1990,7 +1988,6 @@ class LT(Binary):
 	AST node for the binary ``<`` comparison operator.
 	"""
 
-
 	@classmethod
 	def evalfold(cls, obj1, obj2):
 		return obj1 < obj2
@@ -2001,7 +1998,6 @@ class LE(Binary):
 	"""
 	AST node for the binary ``<=`` comparison operator.
 	"""
-
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -2014,7 +2010,6 @@ class GT(Binary):
 	AST node for the binary ``>`` comparison operator.
 	"""
 
-
 	@classmethod
 	def evalfold(cls, obj1, obj2):
 		return obj1 > obj2
@@ -2025,7 +2020,6 @@ class GE(Binary):
 	"""
 	AST node for the binary ``>=`` comparison operator.
 	"""
-
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -2041,7 +2035,6 @@ class Contains(Binary):
 	object (which must be a list, string, dict or an object with a ``ul4attrs``
 	attribute) is loaded from the AST node :obj:`obj2`.
 	"""
-
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -2061,7 +2054,6 @@ class NotContains(Binary):
 	attribute) is loaded from the AST node :obj:`obj2`.
 	"""
 
-
 	@classmethod
 	def evalfold(cls, obj1, obj2):
 		if isinstance(obj1, str) and hasattr(obj2, "ul4attrs"):
@@ -2076,7 +2068,6 @@ class Add(Binary):
 	AST node for the binary addition operator.
 	"""
 
-
 	@classmethod
 	def evalfold(cls, obj1, obj2):
 		return obj1 + obj2
@@ -2087,7 +2078,6 @@ class Sub(Binary):
 	"""
 	AST node for the binary substraction operator.
 	"""
-
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -2100,7 +2090,6 @@ class Mul(Binary):
 	AST node for the binary multiplication operator.
 	"""
 
-
 	@classmethod
 	def evalfold(cls, obj1, obj2):
 		return obj1 * obj2
@@ -2111,7 +2100,6 @@ class FloorDiv(Binary):
 	"""
 	AST node for the binary truncating division operator.
 	"""
-
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -2124,7 +2112,6 @@ class TrueDiv(Binary):
 	AST node for the binary true division operator.
 	"""
 
-
 	@classmethod
 	def evalfold(cls, obj1, obj2):
 		return obj1 / obj2
@@ -2135,7 +2122,6 @@ class And(Binary):
 	"""
 	AST node for the binary ``and`` operator.
 	"""
-
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -2156,7 +2142,6 @@ class Or(Binary):
 	AST node for the binary ``or`` operator.
 	"""
 
-
 	@classmethod
 	def evalfold(cls, obj1, obj2):
 		# This is not called from ``eval``, as it doesn't short-circuit
@@ -2175,7 +2160,6 @@ class Mod(Binary):
 	"""
 	AST node for the binary modulo operator.
 	"""
-
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
