@@ -296,7 +296,7 @@ def loads_oradd(string):
 	"""
 	Load an oradd dump in oradd native format from the string ``string``.
 
-	This function is generator. It's output can be passed to :func:`importdata`.
+	This function is a generator. It's output can be passed to :func:`importdata`.
 	"""
 	for line in string.splitlines():
 		yield eval(line)
@@ -306,7 +306,7 @@ def load_oradd(stream):
 	"""
 	Load an oradd dump in oradd native format from the stream ``stream``.
 
-	This function is generator. It's output can be passed to :func:`importdata`.
+	This function is a generator. It's output can be passed to :func:`importdata`.
 	"""
 	for line in stream:
 		yield eval(line)
@@ -316,7 +316,7 @@ def loads_ul4on(string):
 	"""
 	Load an oradd dump in UL4ON format from the string ``string``.
 
-	This function is generator. It's output can be passed to :func:`importdata`.
+	This function is a generator. It's output can be passed to :func:`importdata`.
 	"""
 	from ll import ul4on
 	stream = io.StringIO(string)
@@ -331,7 +331,7 @@ def load_ul4on(stream):
 	"""
 	Load an oradd dump in UL4ON format from the stream ``stream``.
 
-	This function is generator. It's output can be passed to :func:`importdata`.
+	This function is a generator. It's output can be passed to :func:`importdata`.
 	"""
 	from ll import ul4on
 	while True:
