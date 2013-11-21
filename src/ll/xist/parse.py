@@ -246,11 +246,11 @@ This scripts outputs::
 """
 
 
-import sys, os, os.path, warnings, io, codecs, contextlib, types
+import os, os.path, warnings, io, codecs, contextlib
 
 from xml.parsers import expat
 
-from ll import url as url_, misc, xml_codec
+from ll import url as url_, xml_codec
 from ll.xist import xsc, xfind
 try:
 	from ll.xist import sgmlop

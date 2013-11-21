@@ -18,7 +18,7 @@ classes and a few helper classes and functions.
 __docformat__ = "reStructuredText"
 
 
-import sys, os, random, copy, warnings, pickle, threading, weakref, types, codecs
+import sys, random, copy, warnings, threading, weakref, types, codecs
 
 import cssutils
 
@@ -1827,6 +1827,7 @@ class Frag(Node, list):
 			return node
 		else:
 			from ll.xist import xfind
+
 			def iterate(selector):
 				path = [self, None]
 				for child in self:
@@ -1854,7 +1855,7 @@ class Frag(Node, list):
 			node[index[-1]] = value
 		elif isinstance(index, int):
 			value = Frag(value)
-			if index==-1:
+			if index == -1:
 				l = len(self)
 				list.__setitem__(self, slice(l-1, l), value)
 			else:
@@ -2312,9 +2313,9 @@ class Attr(Frag, metaclass=_Attr_Meta):
 			xmlns = ""
 
 		l = len(self)
-		if l==0:
+		if l == 0:
 			childcount = "no children"
-		elif l==1:
+		elif l == 1:
 			childcount = "1 child"
 		else:
 			childcount = "{} children".format(l)
@@ -2394,7 +2395,7 @@ class Attr(Frag, metaclass=_Attr_Meta):
 		return Frag.publish(self, publisher)
 
 	def publish(self, publisher):
-		if len(self)==1 and isinstance(self[0], AttrElement):
+		if len(self) == 1 and isinstance(self[0], AttrElement):
 			yield from self[0].publishattr(publisher, self)
 		else:
 			publisher.inattr += 1
@@ -2468,13 +2469,13 @@ class BoolAttr(Attr):
 
 	# We can't simply overwrite :meth:`_publishattrvalue`, because for ``xhtml==0`` we don't output a "proper" attribute
 	def publish(self, publisher):
-		if len(self)==1 and isinstance(self[0], AttrElement):
+		if len(self) == 1 and isinstance(self[0], AttrElement):
 			yield from self[0].publishboolattr(publisher, self)
 		else:
 			publisher.inattr += 1
 			name = self._publishname(publisher)
 			yield publisher.encode(" {}".format(name))
-			if publisher.xhtml>0:
+			if publisher.xhtml > 0:
 				yield publisher.encode('="')
 				publisher.pushtextfilter(misc.xmlescape)
 				yield publisher.encode(name)
@@ -2509,14 +2510,13 @@ class StyleAttr(Attr):
 
 	def parsed(self, parser, event):
 		if event == "leaveattrns" and not self.isfancy() and parser.base is not None:
-			from ll.xist import css
 			def prependbase(u):
 				return parser.base/u
 			self.replaceurls(prependbase)
 
 	def _publishattrvalue(self, publisher):
 		if not self.isfancy() and publisher.base is not None:
-			from ll.xist import css
+
 			def reltobase(u):
 				return u.relative(publisher.base)
 			yield from Frag(self._transform(reltobase)).publish(publisher)
@@ -2530,6 +2530,7 @@ class StyleAttr(Attr):
 		"""
 		from ll.xist import css
 		urls = []
+
 		def collect(u):
 			urls.append(u)
 			return u
@@ -2622,9 +2623,9 @@ class _Attrs_Meta(type(Node)):
 
 	def __repr__(self):
 		l = len(self._bypyname)
-		if l==0:
+		if l == 0:
 			attrcount = "no attrs"
-		elif l==1:
+		elif l == 1:
 			attrcount = "1 attr"
 		else:
 			attrcount = "{} attrs".format(l)
@@ -2673,9 +2674,9 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 
 	def __repr__(self):
 		l = len(self)
-		if l==0:
+		if l == 0:
 			attrcount = "no attrs"
-		elif l==1:
+		elif l == 1:
 			attrcount = "1 attr"
 		else:
 			attrcount = "{} attrs".format(l)
@@ -3136,16 +3137,16 @@ class Element(Node, metaclass=_Element_Meta):
 			xmlname = ""
 
 		lc = len(self.content)
-		if lc==0:
+		if lc == 0:
 			childcount = "no children"
-		elif lc==1:
+		elif lc == 1:
 			childcount = "1 child"
 		else:
 			childcount = "{} children".format(lc)
 		la = len(self.attrs)
-		if la==0:
+		if la == 0:
 			attrcount = "no attrs"
-		elif la==1:
+		elif la == 1:
 			attrcount = "1 attr"
 		else:
 			attrcount = "{} attrs".format(la)
@@ -3235,9 +3236,8 @@ class Element(Node, metaclass=_Element_Meta):
 
 	def __eq__(self, other):
 		if isinstance(other, Element):
-			return  self.xmlname == other.xmlname and self.xmlns == other.xmlns and self.content==other.content and self.attrs==other.attrs
+			return self.xmlname == other.xmlname and self.xmlns == other.xmlns and self.content == other.content and self.attrs == other.attrs
 		return NotImplemented
-
 
 	def validate(self, recursive=True, path=None):
 		if path is None:
@@ -3320,7 +3320,7 @@ class Element(Node, metaclass=_Element_Meta):
 			for attr in (heightattr, widthattr):
 				if attr is not None: # do something to the width/height
 					if attr not in self.attrs:
-						self[attr] = size[attr==heightattr]
+						self[attr] = size[attr == heightattr]
 
 	def present(self, presenter):
 		return presenter.presentElement(self) # return a generator-iterator
@@ -3364,7 +3364,7 @@ class Element(Node, metaclass=_Element_Meta):
 		else:
 			if publisher.xhtml in (0, 1):
 				if self.model is not None and self.model.empty:
-					if publisher.xhtml==1:
+					if publisher.xhtml == 1:
 						yield publisher.encode(" /")
 					yield publisher.encode(">")
 				else:
@@ -3408,6 +3408,7 @@ class Element(Node, metaclass=_Element_Meta):
 			return result
 		else:
 			from ll.xist import xfind
+
 			def iterate(selector):
 				path = [self, None]
 				for child in self:
@@ -3544,7 +3545,7 @@ class Element(Node, metaclass=_Element_Meta):
 					node.append("\n", child.pretty(level, indent))
 					level += child.prettyindentafter
 				node.append("\n", indent*orglevel)
-		if orglevel>0:
+		if orglevel > 0:
 			node = Frag(indent*orglevel, node)
 		return node
 
@@ -4213,7 +4214,7 @@ class Location(object):
 		Return a location where the line number is incremented by offset
 		(and the column number is reset to 0).
 		"""
-		if offset==0:
+		if offset == 0:
 			return self
 		elif self.line is None:
 			return Location(url=self.url, col=0)
@@ -4230,5 +4231,5 @@ class Location(object):
 
 	def __eq__(self, other):
 		if self.__class__ is other.__class__:
-			return self.url==other.url and self.line==other.line and self.col==other.col
+			return self.url == other.url and self.line == other.line and self.col == other.col
 		return NotImplemented
