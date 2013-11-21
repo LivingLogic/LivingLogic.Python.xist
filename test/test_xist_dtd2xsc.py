@@ -68,13 +68,13 @@ def test_convert():
 	assert "bar" not in ns.bar.Attrs
 
 	assert issubclass(ns.bar.Attrs.bar1, xsc.TextAttr)
-	assert ns.bar.Attrs.bar1.required == True
+	assert ns.bar.Attrs.bar1.required is True
 
 	assert issubclass(ns.bar.Attrs.bar2, xsc.BoolAttr)
-	assert ns.bar.Attrs.bar2.required == False
+	assert ns.bar.Attrs.bar2.required is False
 
 	assert issubclass(ns.bar.Attrs.bar3, xsc.TextAttr)
-	assert ns.bar.Attrs.bar3.required == False
+	assert ns.bar.Attrs.bar3.required is False
 	assert ns.bar.Attrs.bar3.values == ("bar3a", "bar3b", "bar3c")
 
 	# Attributes are alphabetically sorted
