@@ -1074,7 +1074,7 @@ class EmailLogger(Logger):
 				server = smtplib.SMTP(self.job.smtphost, self.job.smtpport)
 				if self.job.smtpuser and self.job.smtppassword:
 					server.login(self.job.smtpuser, self.job.smtppassword)
-				server.sendmail(self.job.fromemail, self.job.toemail, msg.as_string())
+				server.send_message(msg)
 				server.quit()
 				self.job.log.sisyphus.report("Sent email report to {}".format(self.job.toemail))
 			except smtplib.SMTPException as exc:
