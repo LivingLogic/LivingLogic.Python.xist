@@ -1979,7 +1979,8 @@ class Path(object):
 
 
 class Query(dict):
-	__slots__= ()
+	__slots__ = ()
+
 	def __init__(self, arg=None, **kwargs):
 		if arg is not None:
 			if isinstance(arg, dict):
