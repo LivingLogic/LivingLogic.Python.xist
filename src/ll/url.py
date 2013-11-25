@@ -643,7 +643,10 @@ class LocalConnection(Connection):
 class SshConnection(Connection):
 	remote_code = """
 		import os, pickle, fnmatch
-		from urllib import request
+		try:
+			from urllib import request
+		except ImportError:
+			import urllib2 as request
 
 		files = {}
 		iterators = {}
@@ -857,10 +860,13 @@ class SshConnection(Connection):
 
 	def _send(self, filename, cmd, *args, **kwargs):
 		if self._channel is None:
-			server = "ssh={}//python={}".format(self.server, self.remotepython if self.remotepython is not None else "python3")
+			server = "ssh={}".format(self.server)
+			if self.remotepython is not None:
+				server += "//remotepython={}".format(self.remotepython)
 			if self.nice is not None:
 				server += "//nice={}".format(self.nice)
 			gateway = execnet.makegateway(server) # This requires ``execnet`` (http://codespeak.net/execnet/)
+			gateway.reconfigure(py2str_as_py3str=False, py3str_as_py2str=False)
 			self._channel = gateway.remote_exec(self.remote_code)
 		self._channel.send((filename, cmd, args, kwargs))
 		(isexc, data) = self._channel.receive()
