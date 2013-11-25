@@ -4,7 +4,7 @@
 
 # Setup script for XIST
 
-import os, textwrap, re
+import os, re
 
 try:
 	import setuptools as tools
@@ -250,7 +250,7 @@ else:
 
 args = dict(
 	name="ll-xist",
-	version="5.3",
+	version="5.4",
 	description="Extensible HTML/XML generator, cross-platform templating language, Oracle utilities and various other tools",
 	long_description=description,
 	author="Walter Doerwald",
