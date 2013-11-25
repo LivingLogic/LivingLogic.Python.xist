@@ -470,7 +470,7 @@ class Connection(object):
 			:obj:`data` : byte string
 				Request body to use for an HTTP POST request.
 
-			:obj:`remotepython` : string or :const:`None`
+			:obj:`python` : string or :const:`None`
 				Name of the Python interpreter to use on the remote side (used by
 				``ssh`` URLs)
 
@@ -642,7 +642,7 @@ class LocalConnection(Connection):
 
 class SshConnection(Connection):
 	remote_code = """
-		import os, pickle, fnmatch
+		import sys, os, pickle, fnmatch
 		try:
 			from urllib import request
 		except ImportError:
@@ -652,6 +652,10 @@ class SshConnection(Connection):
 		except NameError:
 			def next(iter):
 				return iter.next()
+		try:
+			unicode
+		except NameError:
+			unicode = str
 
 		files = {}
 		iterators = {}
@@ -705,14 +709,15 @@ class SshConnection(Connection):
 
 		while True:
 			(filename, cmdname, args, kwargs) = channel.receive()
-			if isinstance(filename, str):
+			if isinstance(filename, unicode):
 				filename = os.path.expanduser(request.url2pathname(filename))
 			data = None
 			try:
 				if cmdname == "open":
 					try:
 						stream = open(filename, *args, **kwargs)
-					except IOError as exc:
+					except IOError:
+						exc = sys.exc_info()[1]
 						mode = args[0] if args else kwargs.get("mode", "rb")
 						if "w" not in mode or exc.errno != 2: # didn't work for some other reason than a non existing directory
 							raise
@@ -725,7 +730,7 @@ class SshConnection(Connection):
 					data = id(stream)
 					files[data] = stream
 				elif cmdname == "stat":
-					if isinstance(filename, str):
+					if isinstance(filename, unicode):
 						data = tuple(os.stat(filename))
 					else:
 						data = tuple(os.fstat(files[filename].fileno()))
@@ -812,13 +817,16 @@ class SshConnection(Connection):
 								data.append(f)
 				elif cmdname == "walk":
 					iterator = walk(filename, *args, **kwargs)
-					iterators[id(iterator)] = iterator
+					data = id(iterator)
+					iterators[data] = iterator
 				elif cmdname == "walkfiles":
 					iterator = walkfiles(filename, *args, **kwargs)
-					iterators[id(iterator)] = iterator
+					data = id(iterator)
+					iterators[data] = iterator
 				elif cmdname == "walkdirs":
 					iterator = walkdirs(filename, *args, **kwargs)
-					iterators[id(iterator)] = iterator
+					data = id(iterator)
+					iterators[data] = iterator
 				elif cmdname == "iteratornext":
 					try:
 						data = next(iterators[filename])
@@ -830,9 +838,11 @@ class SshConnection(Connection):
 				else:
 					data = getattr(files[filename], cmdname)
 					data = data(*args, **kwargs)
-			except StopIteration as exc:
+			except StopIteration:
+				exc = sys.exc_info()[1]
 				channel.send((True, pickle.dumps(exc)))
-			except Exception as exc:
+			except Exception:
+				exc = sys.exc_info()[1]
 				if exc.__class__.__module__ != "builtins":
 					raise
 				channel.send((True, pickle.dumps(exc)))
@@ -840,10 +850,10 @@ class SshConnection(Connection):
 				channel.send((False, data))
 	"""
 
-	def __init__(self, context, server, remotepython=None, nice=None):
+	def __init__(self, context, server, python=None, nice=None):
 		# We don't have to store the context (this avoids cycles)
 		self.server = server
-		self.remotepython = remotepython
+		self.python = python
 		self.nice = nice
 		self._channel = None
 
@@ -864,8 +874,8 @@ class SshConnection(Connection):
 	def _send(self, filename, cmd, *args, **kwargs):
 		if self._channel is None:
 			server = "ssh={}".format(self.server)
-			if self.remotepython is not None:
-				server += "//python={}".format(self.remotepython)
+			if self.python is not None:
+				server += "//python={}".format(self.python)
 			if self.nice is not None:
 				server += "//nice={}".format(self.nice)
 			gateway = execnet.makegateway(server) # This requires ``execnet`` (http://codespeak.net/execnet/)
@@ -1528,31 +1538,31 @@ class LocalSchemeDefinition(SchemeDefinition):
 
 class SshSchemeDefinition(SchemeDefinition):
 	def _connect(self, url, context=None, **kwargs):
-		if "remotepython" in kwargs or "nice" in kwargs:
+		if "python" in kwargs or "nice" in kwargs:
 			kwargs = kwargs.copy()
-			remotepython = kwargs.pop("remotepython", None)
+			python = kwargs.pop("python", None)
 			nice = kwargs.pop("nice", None)
 		else:
-			remotepython = None
+			python = None
 			nice = None
 
 		context = getcontext(context)
 		if context is threadlocalcontext.__class__.context:
 			raise ValueError("ssh URLs need a custom context")
-		# Use one :class:`SshConnection` for each user/host/remotepython combination
+		# Use one :class:`SshConnection` for each user/host/python combination
 		server = url.server
 		try:
 			connections = context.schemes["ssh"]
 		except KeyError:
 			connections = context.schemes["ssh"] = {}
 		try:
-			connection = connections[(server, remotepython, nice)]
+			connection = connections[(server, python, nice)]
 		except KeyError:
-			connection = connections[(server, remotepython, nice)] = SshConnection(context, server, remotepython, nice)
+			connection = connections[(server, python, nice)] = SshConnection(context, server, python, nice)
 		return (connection, kwargs)
 
-	def open(self, url, mode="rb", context=None, remotepython=None, nice=None):
-		(connection, kwargs) = self._connect(url, context=context, remotepython=remotepython, nice=nice)
+	def open(self, url, mode="rb", context=None, python=None, nice=None):
+		(connection, kwargs) = self._connect(url, context=context, python=python, nice=nice)
 		return RemoteFileResource(connection, url, mode, **kwargs)
 
 	def closeall(self, context):
@@ -2762,7 +2772,7 @@ class URL(object):
 			:obj:`data`
 				Request body to use for an HTTP POST request.
 
-			:obj:`remotepython`
+			:obj:`python`
 				Name of the Python interpreter to use on the remote side
 				(used by ``ssh`` URLs)
 

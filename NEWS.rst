@@ -1,7 +1,8 @@
 Changes in 5.4 (released 11/25/2013)
 ------------------------------------
 
-*	``ssh`` URLs now can handle any version of Python on the remote end.
+*	``ssh`` URLs now can handle any version of Python on the remote end. The
+	``remotepython`` parameter has been renamed to ``python``.
 
 
 Changes in 5.3 (released 10/28/2013)
