@@ -647,6 +647,11 @@ class SshConnection(Connection):
 			from urllib import request
 		except ImportError:
 			import urllib2 as request
+		try:
+			next
+		except NameError:
+			def next(iter):
+				return iter.next()
 
 		files = {}
 		iterators = {}
@@ -807,16 +812,13 @@ class SshConnection(Connection):
 								data.append(f)
 				elif cmdname == "walk":
 					iterator = walk(filename, *args, **kwargs)
-					data = id(iterator)
-					iterators[data] = iterator
+					iterators[id(iterator)] = iterator
 				elif cmdname == "walkfiles":
 					iterator = walkfiles(filename, *args, **kwargs)
-					data = id(iterator)
-					iterators[data] = iterator
+					iterators[id(iterator)] = iterator
 				elif cmdname == "walkdirs":
 					iterator = walkdirs(filename, *args, **kwargs)
-					data = id(iterator)
-					iterators[data] = iterator
+					iterators[id(iterator)] = iterator
 				elif cmdname == "iteratornext":
 					try:
 						data = next(iterators[filename])
@@ -837,6 +839,7 @@ class SshConnection(Connection):
 			else:
 				channel.send((False, data))
 	"""
+
 	def __init__(self, context, server, remotepython=None, nice=None):
 		# We don't have to store the context (this avoids cycles)
 		self.server = server
@@ -862,7 +865,7 @@ class SshConnection(Connection):
 		if self._channel is None:
 			server = "ssh={}".format(self.server)
 			if self.remotepython is not None:
-				server += "//remotepython={}".format(self.remotepython)
+				server += "//python={}".format(self.remotepython)
 			if self.nice is not None:
 				server += "//nice={}".format(self.nice)
 			gateway = execnet.makegateway(server) # This requires ``execnet`` (http://codespeak.net/execnet/)
