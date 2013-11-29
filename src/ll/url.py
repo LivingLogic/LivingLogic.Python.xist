@@ -45,6 +45,8 @@ from email import utils
 import _compat_pickle
 _compat_pickle.IMPORT_MAPPING["exceptions"] = "builtins"
 
+default_ssh_python = os.environ.get("LL_URL_SSH_PYTHON")
+
 # don't fail when :mod:`pwd` or :mod:`grp` can't be imported, because if this
 # doesn't work, we're probably on Windows and :func:`os.chown` won't work anyway.
 try:
@@ -880,8 +882,11 @@ class SshConnection(Connection):
 	def _send(self, filename, cmd, *args, **kwargs):
 		if self._channel is None:
 			server = "ssh={}".format(self.server)
-			if self.python is not None:
-				server += "//python={}".format(self.python)
+			python = self.python
+			if python is None:
+				python = default_ssh_python
+			if python is not None:
+				server += "//python={}".format(python)
 			if self.nice is not None:
 				server += "//nice={}".format(self.nice)
 			gateway = execnet.makegateway(server) # This requires ``execnet`` (http://codespeak.net/execnet/)
