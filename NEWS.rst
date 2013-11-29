@@ -1,4 +1,4 @@
-Changes in 5.4 (released 11/25/2013)
+Changes in 5.4 (released 11/29/2013)
 ------------------------------------
 
 *	``ssh`` URLs now can handle any version of Python on the remote end. The

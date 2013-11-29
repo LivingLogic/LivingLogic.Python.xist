@@ -41,6 +41,10 @@ import datetime, cgi, fnmatch, pickle, errno, threading
 import email
 from email import utils
 
+# Hotfix for unpickling exceptions pickled by Python 2
+import _compat_pickle
+_compat_pickle.IMPORT_MAPPING["exceptions"] = "builtins"
+
 # don't fail when :mod:`pwd` or :mod:`grp` can't be imported, because if this
 # doesn't work, we're probably on Windows and :func:`os.chown` won't work anyway.
 try:
@@ -646,7 +650,7 @@ class SshConnection(Connection):
 		try:
 			from urllib import request
 		except ImportError:
-			import urllib2 as request
+			import urllib as request
 		try:
 			next
 		except NameError:
@@ -663,19 +667,19 @@ class SshConnection(Connection):
 		def ownergroup(filename, owner=None, group=None):
 			if owner is not None or group is not None:
 				if owner is None or group is None:
-					if isinstance(filename, str):
+					if isinstance(filename, unicode):
 						stat = os.stat(filename)
 					else:
 						stat = os.fstat(files[filename].fileno())
 				if owner is None:
 					owner = stat.st_uid
-				elif isinstance(owner, str):
+				elif isinstance(owner, unicode):
 					import pwd
 					owner = pwd.getpwnam(owner)[2]
 
 				if group is None:
 					group = stat.st_gid
-				elif isinstance(group, str):
+				elif isinstance(group, unicode):
 					import grp
 					group = grp.getgrnam(group)[2]
 			return (owner, group)
@@ -691,6 +695,8 @@ class SshConnection(Connection):
 				isdir = os.path.isdir(ful4childname)
 				if (pattern is None or fnmatch.fnmatch(childname, pattern)) and which[isdir]:
 					url = request.pathname2url(relchildname)
+					if not isinstance(url, unicode):
+						url = unicode(url)
 					if isdir:
 						url += "/"
 					yield url
@@ -763,11 +769,11 @@ class SshConnection(Connection):
 				elif cmdname == "owner":
 					import pwd
 					stat = os.stat(filename)
-					data = pwd.getpwuid(stat.st_uid)[0]
+					data = unicode(pwd.getpwuid(stat.st_uid)[0])
 				elif cmdname == "group":
 					import grp
 					stat = os.stat(filename)
-					data = grp.getgrgid(stat.st_gid)[0]
+					data = unicode(grp.getgrgid(stat.st_gid)[0])
 				elif cmdname == "exists":
 					data = os.path.exists(filename)
 				elif cmdname == "isfile":
@@ -884,7 +890,7 @@ class SshConnection(Connection):
 		self._channel.send((filename, cmd, args, kwargs))
 		(isexc, data) = self._channel.receive()
 		if isexc:
-			raise pickle.loads(data)
+			raise pickle.loads(data, fix_imports=True)
 		else:
 			return data
 
