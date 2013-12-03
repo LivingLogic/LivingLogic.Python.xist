@@ -157,10 +157,7 @@ transforming it and printing the function body works like this::
 '''
 
 
-import io
-
 from ll import misc
-from ll.xist import xsc
 
 
 __docformat__ = "reStructuredText"

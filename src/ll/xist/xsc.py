@@ -1700,9 +1700,9 @@ class Frag(Node, list):
 
 	def __repr__(self):
 		l = len(self)
-		if l==0:
+		if l == 0:
 			childcount = "no children"
-		elif l==1:
+		elif l == 1:
 			childcount = "1 child"
 		else:
 			childcount = "{} children".format(l)

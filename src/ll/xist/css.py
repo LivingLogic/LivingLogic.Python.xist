@@ -710,11 +710,9 @@ def selector(selectors, prefixes=None):
 	orcombinators = []
 	for selector in selectors:
 		rule = root = CSSTypeSelector()
-		prefix = None
 		attributename = None
 		attributevalue = None
 		combinator = None
-		inattr = False
 		for item in selector.seq:
 			t = item.type
 			v = item.value
@@ -729,14 +727,12 @@ def selector(selectors, prefixes=None):
 			elif t == "class":
 				rule.selectors.append(xfind.hasclass(v.lstrip(".")))
 			elif t == "attribute-start":
-				inattr = True
 				combinator = None
 			elif t == "attribute-end":
 				if combinator is None:
 					rule.selectors.append(CSSHasAttributeSelector(attributename))
 				else:
 					rule.selectors.append(combinator(attributename, attributevalue))
-				inattr = False
 			elif t == "attribute-selector":
 				attributename = v
 			elif t == "equals":

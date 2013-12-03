@@ -18,8 +18,6 @@ generated.
 
 import sys, keyword, collections
 
-from ll.xist import xsc, sims
-
 
 __docformat__ = "reStructuredText"
 
@@ -120,9 +118,9 @@ def findname(basename, names):
 
 def _addlines(lines, newlines):
 	l = len(newlines)
-	if l==0:
+	if l == 0:
 		lines[-1][1] += " pass"
-	elif l==1:
+	elif l == 1:
 		lines[-1][1] += " {}".format(newlines[-1][1])
 	else:
 		lines.extend(newlines)
@@ -399,6 +397,7 @@ class Element(Named):
 
 class AttrGroup(Named):
 	id = 0
+
 	def __init__(self, name):
 		if name is None:
 			name = "attrgroup_{}".format(self.__class__.id)
@@ -531,6 +530,7 @@ class CharRef(Entity):
 	def _add(self, module):
 		if self.name in module.charrefs:
 			if module.duplicates == "reject":
+				oldcharref = module.charrefs[self.name]
 				raise RedefinedCharRefError(oldcharref, self, module.duplicates)
 			else: # duplicates in ("allow", "merge"):
 				oldcharref = module.charrefs[self.name]

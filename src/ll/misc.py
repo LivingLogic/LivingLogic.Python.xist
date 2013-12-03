@@ -15,7 +15,7 @@ LivingLogic modules and packages.
 """
 
 
-import sys, os, types, datetime, collections, weakref, io, gzip as gzip_, csv, itertools, argparse
+import sys, os, types, datetime, collections, io, gzip as gzip_, argparse
 
 from ll import ul4c, color
 
@@ -93,7 +93,7 @@ def item(iterable, index, default=None):
 	doesn't produce that many elements :obj:`default` will be returned.
 	"""
 	i = index
-	if i>=0:
+	if i >= 0:
 		for item in iterable:
 			if not i:
 				return item
@@ -103,9 +103,9 @@ def item(iterable, index, default=None):
 		cache = collections.deque()
 		for item in iterable:
 			cache.append(item)
-			if len(cache)>i:
+			if len(cache) > i:
 				cache.popleft()
-		if len(cache)==i:
+		if len(cache) == i:
 			return cache.popleft()
 	return default
 
@@ -352,7 +352,7 @@ class Queue(object):
 		Read up to :obj:`size` character from the buffer (or all if :obj:`size`
 		is negative). Those characters will be removed from the buffer.
 		"""
-		if size<0:
+		if size < 0:
 			s = self._buffer
 			self._buffer = ""
 			return s
@@ -417,13 +417,13 @@ def tokenizepi(string):
 	pos = 0
 	while True:
 		pos1 = string.find("<?", pos)
-		if pos1<0:
+		if pos1 < 0:
 			part = string[pos:]
 			if part:
 				yield (None, part)
 			return
 		pos2 = string.find("?>", pos1)
-		if pos2<0:
+		if pos2 < 0:
 			part = string[pos:]
 			if part:
 				yield (None, part)
@@ -894,8 +894,10 @@ def prettycsv(rows, padding="   "):
 class JSMinUnterminatedComment(Exception):
 	pass
 
+
 class JSMinUnterminatedStringLiteral(Exception):
 	pass
+
 
 class JSMinUnterminatedRegularExpression(Exception):
 	pass

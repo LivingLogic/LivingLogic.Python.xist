@@ -3,6 +3,7 @@ Changes in 5.4 (released 11/29/2013)
 
 *	``ssh`` URLs now can handle any version of Python on the remote end. The
 	``remotepython`` parameter has been renamed to ``python``.
+
 *	The default Python version for ``ssh`` URLs can now be specified with the
 	environment variable ``LL_URL_SSH_PYTHON``.
 

@@ -135,7 +135,7 @@ class Color(tuple):
 			return "rgba({},{},{},{:.3f})".format(self[0], self[1], self[2], self[3]/255.)
 		else:
 			s = "#{:02x}{:02x}{:02x}".format(self[0], self[1], self[2])
-			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6]:
+			if s[1] == s[2] and s[3] == s[4] and s[5] == s[6]:
 				s = "#{}{}{}".format(s[1], s[3], s[5])
 		return s
 

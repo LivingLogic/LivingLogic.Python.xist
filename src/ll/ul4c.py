@@ -23,7 +23,7 @@ possible to implement template renderers in multiple programming languages.
 __docformat__ = "reStructuredText"
 
 
-import re, types, datetime, urllib.parse as urlparse, json, collections, locale, itertools, random, datetime, unicodedata
+import re, types, datetime, urllib.parse as urlparse, json, collections, locale, itertools, random
 
 import antlr3
 
@@ -37,6 +37,7 @@ _defaultitem = object()
 
 def register(name):
 	from ll import ul4on
+
 	def registration(cls):
 		ul4on.register("de.livinglogic.ul4." + name)(cls)
 		cls.type = name
@@ -303,12 +304,12 @@ def _repr(obj):
 	elif isinstance(obj, color.Color):
 		if obj[3] == 0xff:
 			s = "#{:02x}{:02x}{:02x}".format(obj[0], obj[1], obj[2])
-			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6]:
+			if s[1] == s[2] and s[3] == s[4] and s[5] == s[6]:
 				return "#{}{}{}".format(s[1], s[3], s[5])
 			return s
 		else:
 			s = "#{:02x}{:02x}{:02x}{:02x}".format(*obj)
-			if s[1]==s[2] and s[3]==s[4] and s[5]==s[6] and s[7]==s[8]:
+			if s[1] == s[2] and s[3] == s[4] and s[5] == s[6] and s[7] == s[8]:
 				return "#{}{}{}{}".format(s[1], s[3], s[5], s[7])
 			return s
 	elif isinstance(obj, collections.Sequence):
@@ -547,7 +548,6 @@ class ListComp(AST):
 
 	ul4attrs = AST.ul4attrs.union({"item", "varname", "container", "condition"})
 
-
 	def __init__(self, location=None, start=None, end=None, item=None, varname=None, container=None, condition=None):
 		super().__init__(location, start, end)
 		self.item = item
@@ -782,6 +782,7 @@ class GenExpr(AST):
 	def eval(self, vars):
 		container = (yield from self.container.eval(vars))
 		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
+
 		def result():
 			for item in container:
 				for (lvalue, value) in _unpackvar(self.varname, item):
@@ -1725,7 +1726,6 @@ class Not(Unary):
 	AST node for the unary ``not`` operator.
 	"""
 
-
 	@classmethod
 	def evalfold(cls, obj):
 		return not obj
@@ -1736,7 +1736,6 @@ class Neg(Unary):
 	"""
 	AST node for the unary negation (i.e. "-") operator.
 	"""
-
 
 	@classmethod
 	def evalfold(cls, obj):
@@ -2864,7 +2863,6 @@ def function_asjson(obj):
 
 @AST.makefunction
 def function_fromjson(string):
-	from ll import ul4on
 	return json.loads(string)
 
 

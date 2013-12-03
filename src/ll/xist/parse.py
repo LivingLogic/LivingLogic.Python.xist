@@ -256,7 +256,7 @@ try:
 	from ll.xist import sgmlop
 except ImportError:
 	pass
-from ll.xist.ns import xml, html
+from ll.xist.ns import xml
 
 
 __docformat__ = "reStructuredText"
@@ -1259,7 +1259,7 @@ class Node(object):
 		if self._inattr:
 			self._stack[-1].append(node)
 		elif not self._indoctype:
-		 	return ("entitynode", node)
+			return ("entitynode", node)
 
 	def comment(self, data):
 		node = xsc.Comment(data)

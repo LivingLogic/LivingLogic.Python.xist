@@ -139,7 +139,7 @@ text and HTML format as well as as a JSON attachment.
 """
 
 
-import sys, os, signal, fcntl, codecs, traceback, errno, pprint, datetime, re, argparse, tokenize, json, smtplib
+import sys, os, signal, fcntl, traceback, errno, pprint, datetime, argparse, tokenize, json, smtplib
 from email.mime import text, application, multipart
 from email import encoders
 

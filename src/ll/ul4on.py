@@ -126,7 +126,7 @@ This script outputs::
 	Loaded: <Person firstname='John' lastname='Doe'>
 """
 
-import datetime, collections, io, contextlib
+import datetime, collections, io
 
 
 __docformat__ = "reStructuredText"
@@ -255,7 +255,7 @@ class Decoder:
 		self._objects.append(obj)
 
 	def _load(self, typecode):
-		from ll import color, misc
+		from ll import misc
 		if typecode is None:
 			typecode = self.stream.read(1)
 		if not typecode:

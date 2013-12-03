@@ -49,7 +49,7 @@ this::
 """
 
 
-import sys, os, os.path, argparse, warnings, re, datetime, io, errno, tempfile, operator, types, pickle, gc, contextlib, gzip
+import os, os.path, argparse, warnings, datetime, tempfile, operator, gc, contextlib
 
 from ll import misc, url, astyle
 
@@ -1543,7 +1543,6 @@ class Project(dict):
 					data = self._get(target, bigcrunch)
 
 				if self.showsummary:
-					args = []
 					self.write(
 						"built project ",
 						s4action(self.name),

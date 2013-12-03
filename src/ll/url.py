@@ -36,7 +36,7 @@ These three levels of functionality are implemented in three classes:
 """
 
 
-import sys, os, urllib.request, urllib.error, urllib.parse as urlparse, types, mimetypes, io, warnings
+import os, urllib.request, urllib.error, urllib.parse as urlparse, mimetypes, io, warnings
 import datetime, cgi, fnmatch, pickle, errno, threading
 import email
 from email import utils
@@ -64,7 +64,7 @@ try:
 except ImportError:
 	pass
 
-from ll import astyle, misc
+from ll import misc
 
 
 __docformat__ = "reStructuredText"
@@ -102,11 +102,11 @@ def _normalizepath(path_segments):
 	for i in range(l):
 		segment = path_segments[i]
 		if not segment or segment == ".":
-			if i==l-1:
+			if i == l-1:
 				new_path_segments.append("")
-		elif segment==".." and len(new_path_segments) and new_path_segments[-1] != "..":
+		elif segment == ".." and len(new_path_segments) and new_path_segments[-1] != "..":
 			new_path_segments.pop()
-			if i==l-1:
+			if i == l-1:
 				new_path_segments.append("")
 		else:
 			new_path_segments.append(segment)
@@ -1625,7 +1625,7 @@ class Path(object):
 		segments = prefix.segments
 		if self.isabs != prefix.isabs:
 			return False
-		if segments and not segments[-1] and len(self.segments)>len(segments):
+		if segments and not segments[-1] and len(self.segments) > len(segments):
 			return self.segments[:len(segments)-1] == segments[:-1]
 		else:
 			return self.segments[:len(segments)] == segments
@@ -1943,12 +1943,12 @@ class Path(object):
 		basepath = Path(basepath) # clone/coerce
 		self_segments = _normalizepath(self.segments)
 		base_segments = _normalizepath(basepath.segments)
-		while len(self_segments)>1 and len(base_segments)>1 and self_segments[0]==base_segments[0]:
+		while len(self_segments) > 1 and len(base_segments) > 1 and self_segments[0] == base_segments[0]:
 			del self_segments[0]
 			del base_segments[0]
 		# build a path from one file to the other
 		self_segments[:0] = [".."]*(len(base_segments)-1)
-		if not len(self_segments) or self_segments==[""]:
+		if not len(self_segments) or self_segments == [""]:
 			self_segments = [".", ""]
 		return Path(self._segments2path(self_segments))
 
@@ -2447,7 +2447,7 @@ class URL(object):
 						url = url[2:]
 						# find the authority part (RFC2396, Section 3.2)
 						pos = url.find("/")
-						if pos!=-1:
+						if pos != -1:
 							authority = url[:pos]
 							url = url[pos:] # keep the "/"
 						else:
@@ -2537,14 +2537,14 @@ class URL(object):
 		if isinstance(other, URL):
 			newurl = URL()
 			# RFC2396, Section 5.2 (2)
-			if other.scheme is None and other.authority is None and str(other.path)=="" and other.query is None:
+			if other.scheme is None and other.authority is None and not str(other.path) and other.query is None:
 				newurl = URL(self)
 				newurl.frag = other.frag
 				return newurl
 			if not self.reg.usehierarchy: # e.g. "mailto:x@y"/"file:foo"
 				return other
 			# In violation of RFC2396 we treat file URLs as relative ones (if the base is a local URL)
-			if other.scheme=="file" and self.islocal():
+			if other.scheme == "file" and self.islocal():
 				other = URL(other)
 				del other.scheme
 				del other.authority
@@ -2607,18 +2607,18 @@ class URL(object):
 		del newurl.authority
 		selfpath_segments = _normalizepath(self._path.segments)
 		basepath_segments = _normalizepath(baseurl._path.segments)
-		while len(selfpath_segments)>1 and len(basepath_segments)>1 and selfpath_segments[0]==basepath_segments[0]:
+		while len(selfpath_segments) > 1 and len(basepath_segments) > 1 and selfpath_segments[0] == basepath_segments[0]:
 			del selfpath_segments[0]
 			del basepath_segments[0]
 		# does the URL go to the same file?
-		if selfpath_segments==basepath_segments and self.query==baseurl.query:
+		if selfpath_segments == basepath_segments and self.query == baseurl.query:
 			# only return the frag
 			del newurl.path
 			del newurl.query
 		else:
 			# build a path from one file to the other
 			selfpath_segments[:0] = [".."]*(len(basepath_segments)-1)
-			if not len(selfpath_segments) or selfpath_segments==[""]:
+			if not len(selfpath_segments) or selfpath_segments == [""]:
 				selfpath_segments = [".", ""]
 			newurl._path.segments = selfpath_segments
 			newurl._path = self.path.relative(baseurl.path)
@@ -2672,7 +2672,7 @@ class URL(object):
 		"""
 		Return whether two :class:`URL` objects are *not* equal.
 		"""
-		return not self==other
+		return not self == other
 
 	def __hash__(self):
 		"""

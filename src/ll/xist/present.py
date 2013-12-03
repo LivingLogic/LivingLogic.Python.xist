@@ -18,10 +18,9 @@ trees into various formats.
 __docformat__ = "reStructuredText"
 
 
-import sys, os, keyword, codecs
+import os
 
-from ll import misc, url
-
+from ll import misc
 from ll.xist import xsc
 
 
@@ -479,7 +478,7 @@ class TreePresenter(Presenter):
 			head = s4procinst("<?", name, " ")
 			tail = s4procinst("?>")
 			lines = node.content.splitlines()
-			if len(lines)>1:
+			if len(lines) > 1:
 				lines.insert(0, "")
 			yield from self._domultiline(node, lines, 1, s4procinstcontent, head, tail)
 
@@ -565,12 +564,12 @@ class CodePresenter(Presenter):
 			self._level += 1
 			self._path.append(0)
 			for (i, child) in enumerate(node):
-				if i==len(node)-1:
+				if i == len(node)-1:
 					yield from child.present(self)
 				else:
 					lines = list(child.present(self))
 					for (j, line) in enumerate(lines):
-						if j==len(lines)-1:
+						if j == len(lines)-1:
 							line.content += ","
 						yield line
 				self._path[-1] += 1
@@ -584,7 +583,7 @@ class CodePresenter(Presenter):
 
 	def _formatattrvalue(self, attrvalue):
 		attrtext = astyle.Text()
-		if len(attrvalue)==1: # optimize away the tuple ()
+		if len(attrvalue) == 1: # optimize away the tuple ()
 			for part in attrvalue[0].present(self):
 				if attrtext:
 					attrtext.append(" ")
@@ -653,7 +652,7 @@ class CodePresenter(Presenter):
 			self._level += 1
 			self._path.append(0)
 			for (i, child) in enumerate(node):
-				if i==len(node)-1 and not node.attrs:
+				if i == len(node)-1 and not node.attrs:
 					yield from child.present(self)
 				else:
 					lines = list(child.present(self))

@@ -288,7 +288,6 @@ class NotElements(object):
 
 	def validate(self, path):
 		node = path[-1]
-		ns = None
 		if isinstance(node, xsc.Element):
 			for child in node.content:
 				if isinstance(child, self.elements):

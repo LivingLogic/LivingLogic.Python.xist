@@ -11,7 +11,6 @@ try:
 except ImportError:
 	from distutils import core as tools
 
-from distutils.extension import Extension
 
 havecython = False
 if "LL_USE_CYTHON" in os.environ:

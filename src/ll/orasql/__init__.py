@@ -33,7 +33,7 @@ __ http://cx-oracle.sourceforge.net/
 """
 
 
-import os, urllib.request, urllib.parse, urllib.error, datetime, itertools, io, errno, re, fnmatch, unicodedata, codecs, collections
+import urllib.request, urllib.parse, urllib.error, datetime, itertools, io, errno, re, fnmatch, unicodedata, collections
 
 from cx_Oracle import *
 
@@ -700,6 +700,7 @@ def formatstring(value, latin1=False):
 	else:
 		upper = 127
 	# Helper function: move the content of current to result
+
 	def shipcurrent(force=False):
 		if current and (force or (len(current) > 2000)):
 			if result:
@@ -710,7 +711,7 @@ def formatstring(value, latin1=False):
 		if c == "'":
 			current.append("''")
 			shipcurrent()
-		elif ord(c) < 32 or ord(c)>upper:
+		elif ord(c) < 32 or ord(c) > upper:
 			shipcurrent(True)
 			current = []
 			if result:
@@ -825,6 +826,7 @@ class _Object_meta(type):
 		if typename is not None:
 			Object.name2type[typename] = cls
 		return cls
+
 
 class Object(object, metaclass=_Object_meta):
 	"""
@@ -2671,7 +2673,7 @@ class OracleConnection(url_.Connection):
 			return bigbang
 		try:
 			obj = self._objectfromurl(url)
-		except SQLNoSuchObjectError as exc:
+		except SQLNoSuchObjectError:
 			raise IOError(errno.ENOENT, "no such file: {}".format(type, url))
 		return obj.cdate(self.dbconnection)
 
@@ -2680,7 +2682,7 @@ class OracleConnection(url_.Connection):
 			return bigbang
 		try:
 			obj = self._objectfromurl(url)
-		except SQLNoSuchObjectError as exc:
+		except SQLNoSuchObjectError:
 			raise IOError(errno.ENOENT, "no such file: {}".format(type, url))
 		return obj.udate(self.dbconnection)
 

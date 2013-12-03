@@ -39,7 +39,7 @@ Using this function as a CherryPy response handler can be done like this::
 	cherrypy.quickstart(HelloWorld())
 """
 
-import time, datetime, threading
+import time, datetime
 
 import cherrypy
 
@@ -184,11 +184,11 @@ class Connect(object):
 					# This only works if func is using the same connection
 					return func(*args, **kwargs)
 				except orasql.OperationalError as exc:
-					if i<self.retry-1:
+					if i < self.retry-1:
 						# Drop bad connection and retry
 						self._dropconnection(connection)
 				except orasql.DatabaseError as exc:
-					if i<self.retry-1 and self._isbadoracleexception(exc):
+					if i < self.retry-1 and self._isbadoracleexception(exc):
 						# Drop bad connection and retry
 						self._dropconnection(connection)
 					else:

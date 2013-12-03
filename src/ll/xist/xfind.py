@@ -420,7 +420,7 @@ class OnlyChildSelector(Selector):
 		if len(path) >= 2:
 			parent = path[-2]
 			if isinstance(parent, (xsc.Frag, xsc.Element)):
-				return len(parent)==1 and parent[0] is path[-1]
+				return len(parent) == 1 and parent[0] is path[-1]
 		return False
 
 	def __str__(self):
