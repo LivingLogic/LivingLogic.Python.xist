@@ -20,8 +20,11 @@ Options
 		of the files (i.e. ``foo.ul4`` will be ``templates.foo``; stdin will be
 		``templates.stdin``).
 
-	``-i``, ``--inputencoding``
+	``-e``, ``--encoding``
 		The encoding of the templates files (default ``utf-8``)
+
+	``-w``, ``--keepws`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Should line feeds and indentation be removed from the templates?
 
 
 Template variables
