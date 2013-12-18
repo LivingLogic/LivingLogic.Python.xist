@@ -1,3 +1,10 @@
+Changes in 5.4.1 (released 12/18/2013)
+--------------------------------------
+
+*	Use quoted printable encoding for the JSON attachment in the sisyphus
+	failure email.
+
+
 Changes in 5.4 (released 11/29/2013)
 ------------------------------------
 
