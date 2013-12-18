@@ -101,7 +101,7 @@ this::
 """
 
 
-import sys, os, argparse, codecs, keyword
+import sys, os, argparse, keyword
 
 from ll import ul4c, misc
 
