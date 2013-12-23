@@ -2154,6 +2154,62 @@ class Or(Binary):
 		return (yield from self.obj2.eval(vars))
 
 
+@register("ifexpr")
+class IfExpr(AST):
+	"""
+	AST node for the ternary inline ``if/else`` operator.
+	"""
+
+	def __init__(self, location=None, start=None, end=None, objif=None, objcond=None, objelse=None):
+		super().__init__(location, start, end)
+		self.objif = objif
+		self.objcond = objcond
+		self.objelse = objelse
+
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.objif!r} {0.objcond!r} {0.objelse!r} at {1:#x}>".format(self, id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				p.breakable()
+				p.pretty(self.objif)
+				p.breakable()
+				p.pretty(self.objcond)
+				p.breakable()
+				p.pretty(self.objelse)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.objif)
+		encoder.dump(self.objcond)
+		encoder.dump(self.objelse)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.objif = decoder.load()
+		self.objcond = decoder.load()
+		self.objelse = decoder.load()
+
+	@classmethod
+	def make(cls, location, start, end, objif, objcond, objelse):
+		if isinstance(objcond, Const) and not isinstance(objcond.value, Undefined):
+			return objif if objcond.value else objelse
+		return cls(location, start, end, objif, objcond, objelse)
+
+	@handleeval
+	def eval(self, vars):
+		objcond = (yield from self.objcond.eval(vars))
+		if objcond:
+			return (yield from self.objif.eval(vars))
+		else:
+			return (yield from self.objelse.eval(vars))
+
+
 @register("mod")
 class Mod(Binary):
 	"""

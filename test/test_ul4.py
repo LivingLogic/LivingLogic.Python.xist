@@ -394,7 +394,7 @@ all_renderers = dict(
 	python=render_python,
 	python_dumps=render_python_dumps,
 	python_dump=render_python_dump,
-	js=render_js,
+	# js=render_js,
 	# php=render_php,
 	java_interpreted_by_python=render_java_interpretedtemplate_by_python,
 	java_interpreted_by_java=render_java_interpretedtemplate_by_java,
@@ -404,7 +404,7 @@ all_callers = dict(
 	python=call_python,
 	python_dumps=call_python_dumps,
 	python_dump=call_python_dump,
-	js=call_js,
+	# js=call_js,
 	# php=call_php,
 	java_interpreted_by_python=call_java_interpretedtemplate_by_python,
 	java_interpreted_by_java=call_java_interpretedtemplate_by_java,
@@ -1154,6 +1154,14 @@ def test_or(r):
 def test_not(r):
 	assert "True" == r('<?print not x?>', x=False)
 	assert "False" == r('<?print not x?>', x=42)
+
+
+@pytest.mark.ul4
+def test_ifexpr(r):
+	assert "17" == r('<?print x if y else z?>', x=17, y=True, z=23)
+	assert "23" == r('<?print x if y else z?>', x=17, y=False, z=23)
+	assert "17" == r('<?print 17 if True else 23?>')
+	assert "23" == r('<?print 17 if False else 23?>')
 
 
 @pytest.mark.ul4

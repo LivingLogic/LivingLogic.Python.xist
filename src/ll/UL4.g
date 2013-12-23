@@ -218,10 +218,10 @@ list returns [node]
 		close=']' { $node = ul4c.List(self.location, self.start($open), self.end($close)) }
 	|
 		open='[' {$node = ul4c.List(self.location, self.start($open), None) }
-		e1=expr_or { $node.items.append($e1.node) }
+		e1=expr_if { $node.items.append($e1.node) }
 		(
 			','
-			e2=expr_or { $node.items.append($e2.node) }
+			e2=expr_if { $node.items.append($e2.node) }
 		)*
 		','?
 		close=']' { $node.end = self.end($close) }
@@ -234,14 +234,14 @@ listcomprehension returns [node]
 	}
 	:
 		open='['
-		item=expr_or
+		item=expr_if
 		'for'
 		n=nestedlvalue
 		'in'
-		container=expr_or
+		container=expr_if
 		(
 			'if'
-			condition=expr_or { _condition = $condition.node; }
+			condition=expr_if { _condition = $condition.node; }
 		)?
 		close=']' { $node = ul4c.ListComp(self.location, self.start($open), self.end($close), $item.node, $n.lvalue, $container.node, _condition) }
 	;
@@ -250,9 +250,9 @@ listcomprehension returns [node]
 fragment
 dictitem returns [node]
 	:
-		k=expr_or
+		k=expr_if
 		':'
-		v=expr_or { $node = ($k.node, $v.node) }
+		v=expr_if { $node = ($k.node, $v.node) }
 	;
 
 dict returns [node]
@@ -277,16 +277,16 @@ dictcomprehension returns [node]
 	}
 	:
 		open='{'
-		key=expr_or
+		key=expr_if
 		':'
-		value=expr_or
+		value=expr_if
 		'for'
 		n=nestedlvalue
 		'in'
-		container=expr_or
+		container=expr_if
 		(
 			'if'
-			condition=expr_or { _condition = $condition.node; }
+			condition=expr_if { _condition = $condition.node; }
 		)?
 		close='}' { $node = ul4c.DictComp(self.location, self.start($open), self.end($close), $key.node, $value.node, $n.lvalue, $container.node, _condition) }
 	;
@@ -298,14 +298,14 @@ generatorexpression returns [node]
 		_end = None
 	}
 	:
-		item=expr_or { _start = $item.node.start }
+		item=expr_if { _start = $item.node.start }
 		'for'
 		n=nestedlvalue
 		'in'
-		container=expr_or { _end = $container.node.end }
+		container=expr_if { _end = $container.node.end }
 		(
 			'if'
-			condition=expr_or { _condition = $condition.node; _end = $condition.node.end }
+			condition=expr_if { _condition = $condition.node; _end = $condition.node.end }
 		)? { $node = ul4c.GenExpr(self.location, $item.node.start, _end, $item.node, $n.lvalue, $container.node, _condition) }
 	;
 
@@ -320,7 +320,7 @@ atom returns [node]
 		$node.start = self.start($open)
 		$node.end = self.end($close)
 	}
-	| open='(' e_bracket=expr_or close=')' {
+	| open='(' e_bracket=expr_if close=')' {
 		$node = $e_bracket.node
 		$node.start = self.start($open)
 		$node.end = self.end($close)
@@ -421,14 +421,14 @@ expr_subscript returns [node]
 			(
 				':'
 				(
-					e2=expr_or { index2 = $e2.node; }
+					e2=expr_if { index2 = $e2.node; }
 				)? { $node = ul4c.Slice(self.location, $node.start, None, $node, None, index2) }
 			|
-				e2=expr_or { index1 = $e2.node; }
+				e2=expr_if { index1 = $e2.node; }
 				(
 					':' { slice = True; }
 					(
-						e3=expr_or { index2 = $e3.node; }
+						e3=expr_if { index2 = $e3.node; }
 					)?
 				)? { $node = ul4c.Slice(self.location, $node.start, None, $node, index1, index2) if slice else ul4c.Item(self.location, $e1.node.start, None, $node, index1) }
 			)
@@ -541,14 +541,26 @@ expr_or returns [node]
 		)*
 	;
 
+/* If expression operator */
+expr_if returns [AST node]
+	:
+		e1=expr_or { $node = $e1.node; }
+		(
+			'if'
+			e2=expr_or
+			'else'
+			e3=expr_or { $node = ul4c.IfExpr.make(self.location, $e1.node.start, $e3.node.end, $node, $e2.node, $e3.node); }
+		)?
+	;
+
 exprarg returns [node]
 	: ege=generatorexpression { $node = $ege.node; }
-	| e1=expr_or { $node = $e1.node; }
+	| e1=expr_if { $node = $e1.node; }
 	;
 
 expression returns [node]
 	: ege=generatorexpression EOF { $node = $ege.node; }
-	| e=expr_or EOF { $node = $e.node; }
+	| e=expr_if EOF { $node = $e.node; }
 	;
 
 
@@ -558,7 +570,7 @@ for_ returns [node]
 	:
 		n=nestedlvalue
 		'in'
-		e=expr_or { $node = ul4c.For(self.location, self.start($n.start), $e.node.end, $n.lvalue, $e.node) }
+		e=expr_if { $node = ul4c.For(self.location, self.start($n.start), $e.node.end, $n.lvalue, $e.node) }
 		EOF
 	;
 
@@ -566,12 +578,12 @@ for_ returns [node]
 /* Additional rules for "code" tag */
 
 statement returns [node]
-	: nn=nestedlvalue '=' e=expr_or EOF { $node = ul4c.SetVar(self.location, self.start($nn.start), $e.node.end, $nn.lvalue, $e.node) }
-	| n=expr_subscript '+=' e=expr_or EOF { $node = ul4c.AddVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
-	| n=expr_subscript '-=' e=expr_or EOF { $node = ul4c.SubVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
-	| n=expr_subscript '*=' e=expr_or EOF { $node = ul4c.MulVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
-	| n=expr_subscript '/=' e=expr_or EOF { $node = ul4c.TrueDivVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
-	| n=expr_subscript '//=' e=expr_or EOF { $node = ul4c.FloorDivVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
-	| n=expr_subscript '%=' e=expr_or EOF { $node = ul4c.ModVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
+	: nn=nestedlvalue '=' e=expr_if EOF { $node = ul4c.SetVar(self.location, self.start($nn.start), $e.node.end, $nn.lvalue, $e.node) }
+	| n=expr_subscript '+=' e=expr_if EOF { $node = ul4c.AddVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
+	| n=expr_subscript '-=' e=expr_if EOF { $node = ul4c.SubVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
+	| n=expr_subscript '*=' e=expr_if EOF { $node = ul4c.MulVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
+	| n=expr_subscript '/=' e=expr_if EOF { $node = ul4c.TrueDivVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
+	| n=expr_subscript '//=' e=expr_if EOF { $node = ul4c.FloorDivVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
+	| n=expr_subscript '%=' e=expr_if EOF { $node = ul4c.ModVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
 	| e=expression EOF { $node = $e.node }
 	;
