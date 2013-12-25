@@ -921,19 +921,19 @@ class Block(AST):
 		self.content = decoder.load()
 
 
-@register("ieie")
-class IfElIfElse(Block):
+@register("condblock")
+class CondBlock(Block):
 	"""
 	AST node for an conditional block.
 
-	The content of the :class:`IfElIfElse` block is one :class:`If` block
-	followed by zero or more :class:`ElIf` blocks followed by zero or one
-	:class:`Else` block.
+	The content of the :class:`CondBlock` block is one :class:`IfBlock` block
+	followed by zero or more :class:`ElIfBlock` blocks followed by zero or one
+	:class:`ElseBlock` block.
 	"""
 	def __init__(self, location=None, start=None, end=None, condition=None):
 		super().__init__(location, start, end)
 		if condition is not None:
-			self.newblock(If(location, start, end, condition))
+			self.newblock(IfBlock(location, start, end, condition))
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {1} at {2:#x}>".format(self, repr(self.content)[1:-1], id(self))
@@ -964,13 +964,13 @@ class IfElIfElse(Block):
 	@handleeval
 	def eval(self, vars):
 		for node in self.content:
-			if isinstance(node, Else) or (yield from node.condition.eval(vars)):
+			if isinstance(node, ElseBlock) or (yield from node.condition.eval(vars)):
 				yield from node.eval(vars)
 				break
 
 
-@register("if")
-class If(Block):
+@register("ifblock")
+class IfBlock(Block):
 	"""
 	AST node for an ``<?if?>`` block.
 	"""
@@ -1016,8 +1016,8 @@ class If(Block):
 		self.condition = decoder.load()
 
 
-@register("elif")
-class ElIf(Block):
+@register("elifblock")
+class ElIfBlock(Block):
 	"""
 	AST node for an ``<?elif?>`` block.
 	"""
@@ -1063,8 +1063,8 @@ class ElIf(Block):
 		self.condition = decoder.load()
 
 
-@register("else")
-class Else(Block):
+@register("elseblock")
+class ElseBlock(Block):
 	"""
 	AST node for an ``<?else?>`` block.
 	"""
@@ -1091,8 +1091,8 @@ class Else(Block):
 		yield -1
 
 
-@register("for")
-class For(Block):
+@register("forblock")
+class ForBlock(Block):
 	"""
 	AST node for a ``<?for?>`` loop variable.
 	"""
@@ -2154,8 +2154,8 @@ class Or(Binary):
 		return (yield from self.obj2.eval(vars))
 
 
-@register("ifexpr")
-class IfExpr(AST):
+@register("if")
+class If(AST):
 	"""
 	AST node for the ternary inline ``if/else`` operator.
 	"""
@@ -2506,7 +2506,7 @@ class Template(Block):
 	"""
 	ul4attrs = Block.ul4attrs.union({"source", "name", "keepws", "startdelim", "enddelim", "render", "renders"})
 
-	version = "26"
+	version = "27"
 
 	def __init__(self, source=None, name=None, keepws=True, startdelim="<?", enddelim="?>"):
 		"""
@@ -2751,31 +2751,31 @@ class Template(Block):
 				elif location.type == "code":
 					stack[-1].append(parsestmt(location))
 				elif location.type == "if":
-					block = IfElIfElse(location, location.startcode, location.endcode, parseexpr(location))
+					block = CondBlock(location, location.startcode, location.endcode, parseexpr(location))
 					stack[-1].append(block)
 					stack.append(block)
 				elif location.type == "elif":
-					if not isinstance(stack[-1], IfElIfElse):
+					if not isinstance(stack[-1], CondBlock):
 						raise BlockError("elif doesn't match and if")
-					elif isinstance(stack[-1].content[-1], Else):
+					elif isinstance(stack[-1].content[-1], ElseBlock):
 						raise BlockError("else already seen in if")
-					stack[-1].newblock(ElIf(location, location.startcode, location.endcode, parseexpr(location)))
+					stack[-1].newblock(ElIfBlock(location, location.startcode, location.endcode, parseexpr(location)))
 				elif location.type == "else":
-					if not isinstance(stack[-1], IfElIfElse):
+					if not isinstance(stack[-1], CondBlock):
 						raise BlockError("else doesn't match any if")
-					elif isinstance(stack[-1].content[-1], Else):
+					elif isinstance(stack[-1].content[-1], ElseBlock):
 						raise BlockError("else already seen in if")
-					stack[-1].newblock(Else(location, location.startcode, location.endcode))
+					stack[-1].newblock(ElseBlock(location, location.startcode, location.endcode))
 				elif location.type == "end":
 					if len(stack) <= 1:
 						raise BlockError("not in any block")
 					code = location.code
 					if code:
 						if code == "if":
-							if not isinstance(stack[-1], IfElIfElse):
+							if not isinstance(stack[-1], CondBlock):
 								raise BlockError("endif doesn't match any if")
 						elif code == "for":
-							if not isinstance(stack[-1], For):
+							if not isinstance(stack[-1], ForBlock):
 								raise BlockError("endfor doesn't match any for")
 						elif code == "def":
 							if not isinstance(stack[-1], Template):
@@ -2785,7 +2785,7 @@ class Template(Block):
 					last = stack.pop()
 					# Set ``endlocation`` of block
 					last.endlocation = location
-					if isinstance(last, IfElIfElse):
+					if isinstance(last, CondBlock):
 						last.content[-1].endlocation = location
 				elif location.type == "for":
 					block = parsefor(location)
@@ -2793,14 +2793,14 @@ class Template(Block):
 					stack.append(block)
 				elif location.type == "break":
 					for block in reversed(stack):
-						if isinstance(block, For):
+						if isinstance(block, ForBlock):
 							break
 						elif isinstance(block, Template):
 							raise BlockError("break outside of for loop")
 					stack[-1].append(Break(location, location.startcode, location.endcode))
 				elif location.type == "continue":
 					for block in reversed(stack):
-						if isinstance(block, For):
+						if isinstance(block, ForBlock):
 							break
 						elif isinstance(block, Template):
 							raise BlockError("continue outside of for loop")

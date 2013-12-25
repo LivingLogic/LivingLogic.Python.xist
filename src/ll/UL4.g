@@ -549,7 +549,7 @@ expr_if returns [AST node]
 			'if'
 			e2=expr_or
 			'else'
-			e3=expr_or { $node = ul4c.IfExpr.make(self.location, $e1.node.start, $e3.node.end, $node, $e2.node, $e3.node); }
+			e3=expr_or { $node = ul4c.If.make(self.location, $e1.node.start, $e3.node.end, $node, $e2.node, $e3.node); }
 		)?
 	;
 
@@ -570,7 +570,7 @@ for_ returns [node]
 	:
 		n=nestedlvalue
 		'in'
-		e=expr_if { $node = ul4c.For(self.location, self.start($n.start), $e.node.end, $n.lvalue, $e.node) }
+		e=expr_if { $node = ul4c.ForBlock(self.location, self.start($n.start), $e.node.end, $n.lvalue, $e.node) }
 		EOF
 	;
 
