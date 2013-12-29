@@ -394,7 +394,7 @@ all_renderers = dict(
 	python=render_python,
 	python_dumps=render_python_dumps,
 	python_dump=render_python_dump,
-	# js=render_js,
+	js=render_js,
 	# php=render_php,
 	java_interpreted_by_python=render_java_interpretedtemplate_by_python,
 	java_interpreted_by_java=render_java_interpretedtemplate_by_java,
@@ -404,7 +404,7 @@ all_callers = dict(
 	python=call_python,
 	python_dumps=call_python_dumps,
 	python_dump=call_python_dump,
-	# js=call_js,
+	js=call_js,
 	# php=call_php,
 	java_interpreted_by_python=call_java_interpretedtemplate_by_python,
 	java_interpreted_by_java=call_java_interpretedtemplate_by_java,
@@ -735,6 +735,34 @@ def test_modvar(r):
 
 
 @pytest.mark.ul4
+def test_shiftleftvar(r):
+	code = "<?code x <<= y?><?print x?>"
+
+	assert "1" == r(code, x=True, y=False)
+	assert "2" == r(code, x=True, y=True)
+	assert "0" == r(code, x=1, y=-1)
+	assert "2147483648" == r(code, x=1, y=31)
+	assert "4294967296" == r(code, x=1, y=32)
+	assert "9223372036854775808" == r(code, x=1, y=63)
+	assert "18446744073709551616" == r(code, x=1, y=64)
+	assert "340282366920938463463374607431768211456" == r(code, x=1, y=128)
+
+
+@pytest.mark.ul4
+def test_shiftrightvar(r):
+	code = "<?code x >>= y?><?print x?>"
+
+	assert "1" == r(code, x=True, y=False)
+	assert "0" == r(code, x=True, y=True)
+	assert "2" == r(code, x=1, y=-1)
+	assert "2147483648" == r(code, x=1, y=-31)
+	assert "1" == r(code, x=2147483648, y=31)
+	assert "0" == r(code, x=1, y=32)
+	assert "-1" == r(code, x=-1, y=10)
+	assert "-1" == r(code, x=-4, y=10)
+
+
+@pytest.mark.ul4
 def test_for_string(r):
 	assert '' == r('<?for c in data?>(<?print c?>)<?end for?>', data="")
 	assert '(g)(u)(r)(k)' == r('<?for c in data?>(<?print c?>)<?end for?>', data="gurk")
@@ -936,6 +964,7 @@ def test_neg(r):
 	assert "-2" == r("<?print -2?>")
 	assert "-2.5" == r("<?print -2.5?>")
 
+
 @pytest.mark.ul4
 def test_mul(r):
 	code = '<?print x * y?>'
@@ -998,6 +1027,38 @@ def test_mod(r):
 		for y in values:
 			assert x % y == eval(r('<?print {} % {}?>'.format(x, y)))
 			assert x % y == eval(r('<?print x % y?>', x=x, y=y))
+
+
+@pytest.mark.ul4
+def test_shiftleft(r):
+	code = "<?print x << y?>"
+
+	assert "16" == r("<?print 1 << 4?>")
+	assert "2" == r("<?print True << True?>")
+	assert "1" == r(code, x=True, y=False)
+	assert "2" == r(code, x=True, y=True)
+	assert "0" == r(code, x=1, y=-1)
+	assert "2147483648" == r(code, x=1, y=31)
+	assert "4294967296" == r(code, x=1, y=32)
+	assert "9223372036854775808" == r(code, x=1, y=63)
+	assert "18446744073709551616" == r(code, x=1, y=64)
+	assert "340282366920938463463374607431768211456" == r(code, x=1, y=128)
+
+
+@pytest.mark.ul4
+def test_shiftright(r):
+	code = "<?print x >> y?>"
+
+	assert "1" == r("<?print 16 >> 4?>")
+	assert "0" == r("<?print True >> True?>")
+	assert "1" == r(code, x=True, y=False)
+	assert "0" == r(code, x=True, y=True)
+	assert "2" == r(code, x=1, y=-1)
+	assert "2147483648" == r(code, x=1, y=-31)
+	assert "1" == r(code, x=2147483648, y=31)
+	assert "0" == r(code, x=1, y=32)
+	assert "-1" == r(code, x=-1, y=10)
+	assert "-1" == r(code, x=-4, y=10)
 
 
 @pytest.mark.ul4

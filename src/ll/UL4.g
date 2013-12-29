@@ -476,10 +476,24 @@ expr_add returns [node]
 		)*
 	;
 
+/* Binary shift */
+expr_bitshift returns [AST node]
+	:
+		e1=expr_add { $node = $e1.node; }
+		(
+			(
+				'<<' { cls = ul4c.ShiftLeft; }
+			|
+				'>>' { cls = ul4c.ShiftRight; }
+			)
+			e2=expr_add { $node = cls.make(self.location, $node.start, $e2.node.end, $node, $e2.node) }
+		)*
+	;
+
 /* Comparisons */
 expr_cmp returns [node]
 	:
-		e1=expr_add { $node = $e1.node; }
+		e1=expr_bitshift { $node = $e1.node; }
 		(
 			(
 				'==' { cls = ul4c.EQ; }
@@ -494,7 +508,7 @@ expr_cmp returns [node]
 			|
 				'>=' { cls = ul4c.GE; }
 			)
-			e2=expr_add { $node = cls.make(self.location, $node.start, $e2.node.end, $node, $e2.node) }
+			e2=expr_bitshift { $node = cls.make(self.location, $node.start, $e2.node.end, $node, $e2.node) }
 		)*
 	;
 
@@ -585,5 +599,7 @@ statement returns [node]
 	| n=expr_subscript '/=' e=expr_if EOF { $node = ul4c.TrueDivVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
 	| n=expr_subscript '//=' e=expr_if EOF { $node = ul4c.FloorDivVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
 	| n=expr_subscript '%=' e=expr_if EOF { $node = ul4c.ModVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
+	| n=expr_subscript '<<=' e=expr_if EOF { $node = ul4c.ShiftLeftVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
+	| n=expr_subscript '>>=' e=expr_if EOF { $node = ul4c.ShiftRightVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
 	| e=expression EOF { $node = $e.node }
 	;
