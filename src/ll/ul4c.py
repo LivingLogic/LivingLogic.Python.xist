@@ -868,6 +868,22 @@ class Var(AST):
 		yield from ()
 		vars[self.name] %= value
 
+	@handleeval
+	def evalshiftleftvar(self, vars, value):
+		yield from ()
+		if value >= 0:
+			vars[self.name] <<= value
+		else:
+			vars[self.name] >>= -value
+
+	@handleeval
+	def evalshiftrightvar(self, vars, value):
+		yield from ()
+		if value >= 0:
+			vars[self.name] >>= value
+		else:
+			vars[self.name] <<= -value
+
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
 		encoder.dump(self.name)
@@ -1564,6 +1580,44 @@ class Attr(AST):
 		else:
 			obj[self.attrname] %= value
 
+	@handleeval
+	def evalshiftleftvar(self, vars, value):
+		obj = (yield from self.obj.eval(vars))
+		if hasattr(obj, "ul4attrs"):
+			if "+" + self.attrname in obj.ul4attrs:
+				attr = getattr(obj, self.attrname)
+				if value >= 0:
+					attr <<= value
+				else:
+					attr >>= -value
+				setattr(obj, self.attrname, attr)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
+		else:
+			if value >= 0:
+				obj[self.attrname] <<= value
+			else:
+				obj[self.attrname] >>= -value
+
+	@handleeval
+	def evalshiftrightvar(self, vars, value):
+		obj = (yield from self.obj.eval(vars))
+		if hasattr(obj, "ul4attrs"):
+			if "+" + self.attrname in obj.ul4attrs:
+				attr = getattr(obj, self.attrname)
+				if value >= 0:
+					attr >>= value
+				else:
+					attr <<= -value
+				setattr(obj, self.attrname, attr)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
+		else:
+			if value >= 0:
+				obj[self.attrname] >>= value
+			else:
+				obj[self.attrname] <<= -value
+
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
 		encoder.dump(self.obj)
@@ -1660,6 +1714,14 @@ class Slice(AST):
 	@handleeval
 	def evalmodvar(self, vars, value):
 		raise TypeError("can't use %= with slice")
+
+	@handleeval
+	def evalshiftleftvar(self, vars, value):
+		raise TypeError("can't use <<= with slice")
+
+	@handleeval
+	def evalshiftrightvar(self, vars, value):
+		raise TypeError("can't use >>= with slice")
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1958,6 +2020,46 @@ class Item(Binary):
 		else:
 			obj1[obj2] %= value
 
+	@handleeval
+	def evalshiftleftvar(self, vars, value):
+		obj1 = (yield from self.obj1.eval(vars))
+		obj2 = (yield from self.obj2.eval(vars))
+		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
+			if "+" + obj2 in obj1.ul4attrs:
+				attr = getattr(obj1, obj2)
+				if value >= 0:
+					attr <<= value
+				else:
+					attr >>= -value
+				setattr(obj1, obj2, attr)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(obj2))
+		else:
+			if value >= 0:
+				obj1[obj2] <<= value
+			else:
+				obj1[obj2] >>= -value
+
+	@handleeval
+	def evalshiftrightvar(self, vars, value):
+		obj1 = (yield from self.obj1.eval(vars))
+		obj2 = (yield from self.obj2.eval(vars))
+		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
+			if "+" + obj2 in obj1.ul4attrs:
+				attr = getattr(obj1, obj2)
+				if value >= 0:
+					attr >>= value
+				else:
+					attr <<= -value
+				setattr(obj1, obj2, attr)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(obj2))
+		else:
+			if value >= 0:
+				obj1[obj2] >>= value
+			else:
+				obj1[obj2] <<= -value
+
 
 @register("eq")
 class EQ(Binary):
@@ -2116,6 +2218,39 @@ class TrueDiv(Binary):
 		return obj1 / obj2
 
 
+@register("mod")
+class Mod(Binary):
+	"""
+	AST node for the binary modulo operator.
+	"""
+
+	@classmethod
+	def evalfold(cls, obj1, obj2):
+		return obj1 % obj2
+
+
+@register("shiftleft")
+class ShiftLeft(Binary):
+	"""
+	AST node for the bitwise left shift operator.
+	"""
+
+	@classmethod
+	def evalfold(cls, obj1, obj2):
+		return obj1 << obj2 if obj2 >= 0 else obj1 >> -obj2
+
+
+@register("shiftright")
+class ShiftRight(Binary):
+	"""
+	AST node for the bitwise right shift operator.
+	"""
+
+	@classmethod
+	def evalfold(cls, obj1, obj2):
+		return obj1 >> obj2 if obj2 >= 0 else obj1 << -obj2
+
+
 @register("and")
 class And(Binary):
 	"""
@@ -2208,17 +2343,6 @@ class If(AST):
 			return (yield from self.objif.eval(vars))
 		else:
 			return (yield from self.objelse.eval(vars))
-
-
-@register("mod")
-class Mod(Binary):
-	"""
-	AST node for the binary modulo operator.
-	"""
-
-	@classmethod
-	def evalfold(cls, obj1, obj2):
-		return obj1 % obj2
 
 
 class ChangeVar(AST):
@@ -2357,6 +2481,32 @@ class ModVar(ChangeVar):
 			yield from lvalue.evalmodvar(vars, value)
 
 
+@register("shiftleftvar")
+class ShiftLeftVar(ChangeVar):
+	"""
+	AST node for the ``<<=`` operator.
+	"""
+
+	@handleeval
+	def eval(self, vars):
+		value = (yield from self.value.eval(vars))
+		for (lvalue, value) in _unpackvar(self.lvalue, value):
+			yield from lvalue.evalshiftleftvar(vars, value)
+
+
+@register("shiftrightvar")
+class ShiftRightVar(ChangeVar):
+	"""
+	AST node for the ``>>=`` operator.
+	"""
+
+	@handleeval
+	def eval(self, vars):
+		value = (yield from self.value.eval(vars))
+		for (lvalue, value) in _unpackvar(self.lvalue, value):
+			yield from lvalue.evalshiftrightvar(vars, value)
+
+
 @register("call")
 class Call(AST):
 	"""
@@ -2465,6 +2615,14 @@ class Call(AST):
 	@handleeval
 	def evalmodvar(self, vars, value):
 		raise TypeError("can't use %= on call result")
+
+	@handleeval
+	def evalshiftleftvar(self, vars, value):
+		raise TypeError("can't use <<= on call result")
+
+	@handleeval
+	def evalshiftrightvar(self, vars, value):
+		raise TypeError("can't use >>= on call result")
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
