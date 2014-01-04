@@ -1804,6 +1804,17 @@ class Neg(Unary):
 		return -obj
 
 
+@register("bitnot")
+class BitNot(Unary):
+	"""
+	AST node for the bitwise not operator.
+	"""
+
+	@classmethod
+	def evalfold(cls, obj):
+		return ~obj
+
+
 @register("print")
 class Print(Unary):
 	"""

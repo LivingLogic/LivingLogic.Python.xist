@@ -971,6 +971,18 @@ def test_neg(r):
 
 
 @pytest.mark.ul4
+def test_bitnot(r):
+	code = "<?print ~x?>"
+
+	assert "-1" == r(code, x=False)
+	assert "-2" == r(code, x=True)
+	assert "-1" == r(code, x=0)
+	assert "-256" == r(code, x=255)
+	assert "-4294967297" == r(code, x=1 << 32)
+	assert "-18446744073709551617" == r(code, x=1 << 64)
+
+
+@pytest.mark.ul4
 def test_mul(r):
 	code = '<?print x * y?>'
 	values = (17, 23, 1., -1.)

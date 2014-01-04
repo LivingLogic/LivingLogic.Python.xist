@@ -436,18 +436,20 @@ expr_subscript returns [node]
 		)*
 	;
 
-/* Negation */
-expr_neg returns [node]
+/* Negation/bitwise not */
+expr_unary returns [node]
 	:
 		e1=expr_subscript { $node = $e1.node; }
 	|
-		minus='-' e2=expr_neg { $node = ul4c.Neg.make(self.location, self.start($minus), $e2.node.end, $e2.node) }
+		minus='-' e2=expr_unary { $node = ul4c.Neg.make(self.location, self.start($minus), $e2.node.end, $e2.node) }
+	|
+		bitnot='~' e2=expr_unary { $node = ul4c.BitNot.make(self.location, self.start($bitnot), $e2.node.end, $e2.node) }
 	;
 
 /* Multiplication, division, modulo */
 expr_mul returns [node]
 	:
-		e1=expr_neg { $node = $e1.node; }
+		e1=expr_unary { $node = $e1.node; }
 		(
 			(
 				'*' { cls = ul4c.Mul; }
@@ -458,7 +460,7 @@ expr_mul returns [node]
 			|
 				'%' { cls = ul4c.Mod; }
 			)
-			e2=expr_neg { $node = cls.make(self.location, $node.start, $e2.node.end, $node, $e2.node) }
+			e2=expr_unary { $node = cls.make(self.location, $node.start, $e2.node.end, $node, $e2.node) }
 		)*
 	;
 
