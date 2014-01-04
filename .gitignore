@@ -1,0 +1,7 @@
+__pycache__
+build
+dist
+CVS
+*.pyc
+src/ll/xist/*.so
+src/*.egg-info
