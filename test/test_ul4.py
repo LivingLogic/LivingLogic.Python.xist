@@ -741,11 +741,16 @@ def test_shiftleftvar(r):
 	assert "1" == r(code, x=True, y=False)
 	assert "2" == r(code, x=True, y=True)
 	assert "0" == r(code, x=1, y=-1)
+	assert "-256" == r(code, x=-1, y=8)
 	assert "2147483648" == r(code, x=1, y=31)
 	assert "4294967296" == r(code, x=1, y=32)
-	assert "9223372036854775808" == r(code, x=1, y=63)
-	assert "18446744073709551616" == r(code, x=1, y=64)
-	assert "340282366920938463463374607431768211456" == r(code, x=1, y=128)
+	if r is render_js:
+		# Javascript numbers don't have enough precision
+		assert "18014398509481984" == r(code, x=1, y=54)
+	else:
+		assert "9223372036854775808" == r(code, x=1, y=63)
+		assert "18446744073709551616" == r(code, x=1, y=64)
+		assert "340282366920938463463374607431768211456" == r(code, x=1, y=128)
 
 
 @pytest.mark.ul4
@@ -1038,11 +1043,16 @@ def test_shiftleft(r):
 	assert "1" == r(code, x=True, y=False)
 	assert "2" == r(code, x=True, y=True)
 	assert "0" == r(code, x=1, y=-1)
+	assert "-256" == r(code, x=-1, y=8)
 	assert "2147483648" == r(code, x=1, y=31)
 	assert "4294967296" == r(code, x=1, y=32)
-	assert "9223372036854775808" == r(code, x=1, y=63)
-	assert "18446744073709551616" == r(code, x=1, y=64)
-	assert "340282366920938463463374607431768211456" == r(code, x=1, y=128)
+	if r is render_js:
+		# Javascript numbers don't have enough precision
+		assert "18014398509481984" == r(code, x=1, y=54)
+	else:
+		assert "9223372036854775808" == r(code, x=1, y=63)
+		assert "18446744073709551616" == r(code, x=1, y=64)
+		assert "340282366920938463463374607431768211456" == r(code, x=1, y=128)
 
 
 @pytest.mark.ul4
