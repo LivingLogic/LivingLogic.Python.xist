@@ -979,7 +979,11 @@ def test_bitnot(r):
 	assert "-1" == r(code, x=0)
 	assert "-256" == r(code, x=255)
 	assert "-4294967297" == r(code, x=1 << 32)
-	assert "-18446744073709551617" == r(code, x=1 << 64)
+	if r is render_js:
+		# Javascript numbers don't have enough precision
+		assert "-4503599627370497" == r(code, x=1 << 52)
+	else:
+		assert "-18446744073709551617" == r(code, x=1 << 64)
 
 
 @pytest.mark.ul4
@@ -1060,7 +1064,7 @@ def test_shiftleft(r):
 	assert "4294967296" == r(code, x=1, y=32)
 	if r is render_js:
 		# Javascript numbers don't have enough precision
-		assert "18014398509481984" == r(code, x=1, y=54)
+		assert "9007199254740992" == r(code, x=1, y=53)
 	else:
 		assert "9223372036854775808" == r(code, x=1, y=63)
 		assert "18446744073709551616" == r(code, x=1, y=64)
