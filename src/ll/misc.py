@@ -15,7 +15,7 @@ LivingLogic modules and packages.
 """
 
 
-import sys, os, types, datetime, collections, io, gzip as gzip_, argparse
+import sys, os, types, datetime, collections, io, gzip as gzip_, argparse, functools
 
 from ll import ul4c, color
 
@@ -148,12 +148,9 @@ def notimplemented(function):
 	This saves you the trouble of formatting the error message yourself for each
 	implementation.
 	"""
+	@functools.wraps(function)
 	def wrapper(self, *args, **kwargs):
 		raise NotImplementedError("method {}() not implemented in {!r}".format(function.__name__, self.__class__))
-	wrapper.__dict__.update(function.__dict__)
-	wrapper.__doc__ = function.__doc__
-	wrapper.__name__ = function.__name__
-	wrapper.__wrapped__ = function
 	return wrapper
 
 
@@ -366,7 +363,7 @@ class Const(object):
 	"""
 	This class can be used for singleton constants.
 	"""
-	__slots__ = ("_name")
+	__slots__ = ("_name",)
 
 	def __init__(self, name):
 		self._name = name

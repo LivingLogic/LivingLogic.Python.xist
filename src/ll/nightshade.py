@@ -39,7 +39,7 @@ Using this function as a CherryPy response handler can be done like this::
 	cherrypy.quickstart(HelloWorld())
 """
 
-import time, datetime
+import time, datetime, functools
 
 import cherrypy
 
@@ -177,6 +177,7 @@ class Connect(object):
 		self._getconnection().cancel()
 
 	def __call__(self, func):
+		@functools.wraps(func)
 		def wrapper(*args, **kwargs):
 			for i in range(self.retry):
 				connection = self._getconnection()

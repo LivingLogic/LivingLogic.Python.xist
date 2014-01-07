@@ -23,7 +23,7 @@ possible to implement template renderers in multiple programming languages.
 __docformat__ = "reStructuredText"
 
 
-import re, types, datetime, urllib.parse as urlparse, json, collections, locale, itertools, random
+import re, types, datetime, urllib.parse as urlparse, json, collections, locale, itertools, random, functools
 
 import antlr3
 
@@ -250,6 +250,7 @@ class UndefinedIndex(Undefined):
 
 
 def handleeval(f):
+	@functools.wraps(f)
 	def wrapped(self, *args):
 		try:
 			return (yield from f(self, *args))
