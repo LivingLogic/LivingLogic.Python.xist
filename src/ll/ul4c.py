@@ -2263,6 +2263,51 @@ class ShiftRight(Binary):
 		return obj1 >> obj2 if obj2 >= 0 else obj1 << -obj2
 
 
+@register("bitand")
+class BitAnd(Binary):
+	"""
+	AST node for the binary bitwise and operator (``&``).
+	"""
+
+	@classmethod
+	def evalfold(cls, obj1, obj2):
+		if isinstance(obj1, bool):
+			obj1 = int(obj1)
+		if isinstance(obj2, bool):
+			obj2 = int(obj2)
+		return obj1 & obj2
+
+
+@register("bitxor")
+class BitXOr(Binary):
+	"""
+	AST node for the binary bitwise exclusive or operator (``^``).
+	"""
+
+	@classmethod
+	def evalfold(cls, obj1, obj2):
+		if isinstance(obj1, bool):
+			obj1 = int(obj1)
+		if isinstance(obj2, bool):
+			obj2 = int(obj2)
+		return obj1 ^ obj2
+
+
+@register("bitor")
+class BitOr(Binary):
+	"""
+	AST node for the binary bitwise or operator (``|``).
+	"""
+
+	@classmethod
+	def evalfold(cls, obj1, obj2):
+		if isinstance(obj1, bool):
+			obj1 = int(obj1)
+		if isinstance(obj2, bool):
+			obj2 = int(obj2)
+		return obj1 | obj2
+
+
 @register("and")
 class And(Binary):
 	"""

@@ -495,10 +495,40 @@ expr_bitshift returns [AST node]
 		)*
 	;
 
+/* Bitwise and */
+expr_bitand returns [AST node]
+	:
+		e1=expr_bitshift { $node = $e1.node; }
+		(
+			'&'
+			e2=expr_bitshift { $node = ul4c.BitAnd.make(self.location, $node.start, $e2.node.end, $node, $e2.node) }
+		)*
+	;
+
+/* Bitwise exclusive or */
+expr_bitxor returns [AST node]
+	:
+		e1=expr_bitand { $node = $e1.node; }
+		(
+			'^'
+			e2=expr_bitand { $node = ul4c.BitXOr.make(self.location, $node.start, $e2.node.end, $node, $e2.node) }
+		)*
+	;
+
+/* Bitwise or */
+expr_bitor returns [AST node]
+	:
+		e1=expr_bitxor { $node = $e1.node; }
+		(
+			'|'
+			e2=expr_bitxor { $node = ul4c.BitOr.make(self.location, $node.start, $e2.node.end, $node, $e2.node) }
+		)*
+	;
+
 /* Comparisons */
 expr_cmp returns [node]
 	:
-		e1=expr_bitshift { $node = $e1.node; }
+		e1=expr_bitor { $node = $e1.node; }
 		(
 			(
 				'==' { cls = ul4c.EQ; }
@@ -513,7 +543,7 @@ expr_cmp returns [node]
 			|
 				'>=' { cls = ul4c.GE; }
 			)
-			e2=expr_bitshift { $node = cls.make(self.location, $node.start, $e2.node.end, $node, $e2.node) }
+			e2=expr_bitor { $node = cls.make(self.location, $node.start, $e2.node.end, $node, $e2.node) }
 		)*
 	;
 
