@@ -872,18 +872,27 @@ class Var(AST):
 	@handleeval
 	def evalshiftleftvar(self, vars, value):
 		yield from ()
-		if value >= 0:
-			vars[self.name] <<= value
-		else:
-			vars[self.name] >>= -value
+		vars[self.name] = ShiftLeft.evalfold(vars[self.name], value)
 
 	@handleeval
 	def evalshiftrightvar(self, vars, value):
 		yield from ()
-		if value >= 0:
-			vars[self.name] >>= value
-		else:
-			vars[self.name] <<= -value
+		vars[self.name] = ShiftRight.evalfold(vars[self.name], value)
+
+	@handleeval
+	def evalbitandvar(self, vars, value):
+		yield from ()
+		vars[self.name] = BitAnd.evalfold(vars[self.name], value)
+
+	@handleeval
+	def evalbitxorvar(self, vars, value):
+		yield from ()
+		vars[self.name] = BitXOr.evalfold(vars[self.name], value)
+
+	@handleeval
+	def evalbitorvar(self, vars, value):
+		yield from ()
+		vars[self.name] = BitOr.evalfold(vars[self.name], value)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1587,18 +1596,12 @@ class Attr(AST):
 		if hasattr(obj, "ul4attrs"):
 			if "+" + self.attrname in obj.ul4attrs:
 				attr = getattr(obj, self.attrname)
-				if value >= 0:
-					attr <<= value
-				else:
-					attr >>= -value
+				attr = ShiftLeft.evalfold(attr, value)
 				setattr(obj, self.attrname, attr)
 			else:
 				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
 		else:
-			if value >= 0:
-				obj[self.attrname] <<= value
-			else:
-				obj[self.attrname] >>= -value
+			obj[self.attrname] = ShiftLeft.evalfold(obj[self.attrname], value)
 
 	@handleeval
 	def evalshiftrightvar(self, vars, value):
@@ -1606,18 +1609,51 @@ class Attr(AST):
 		if hasattr(obj, "ul4attrs"):
 			if "+" + self.attrname in obj.ul4attrs:
 				attr = getattr(obj, self.attrname)
-				if value >= 0:
-					attr >>= value
-				else:
-					attr <<= -value
+				attr = ShiftRightVar.evalfold(attr, value)
 				setattr(obj, self.attrname, attr)
 			else:
 				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
 		else:
-			if value >= 0:
-				obj[self.attrname] >>= value
+			obj[self.attrname] = ShiftRight.evalfold(obj[self.attrname], value)
+
+	@handleeval
+	def evalbitandvar(self, vars, value):
+		obj = (yield from self.obj.eval(vars))
+		if hasattr(obj, "ul4attrs"):
+			if "+" + self.attrname in obj.ul4attrs:
+				attr = getattr(obj, self.attrname)
+				attr = BitAnd.evalfold(attr, value)
+				setattr(obj, self.attrname, attr)
 			else:
-				obj[self.attrname] <<= -value
+				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
+		else:
+			obj[self.attrname] = BitAnd.evalfold(obj[self.attrname], value)
+
+	@handleeval
+	def evalbitxorvar(self, vars, value):
+		obj = (yield from self.obj.eval(vars))
+		if hasattr(obj, "ul4attrs"):
+			if "+" + self.attrname in obj.ul4attrs:
+				attr = getattr(obj, self.attrname)
+				attr = BitXOr.evalfold(attr, value)
+				setattr(obj, self.attrname, attr)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
+		else:
+			obj[self.attrname] = BitXOr.evalfold(obj[self.attrname], value)
+
+	@handleeval
+	def evalbitorvar(self, vars, value):
+		obj = (yield from self.obj.eval(vars))
+		if hasattr(obj, "ul4attrs"):
+			if "+" + self.attrname in obj.ul4attrs:
+				attr = getattr(obj, self.attrname)
+				attr = BitOr.evalfold(attr, value)
+				setattr(obj, self.attrname, attr)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
+		else:
+			obj[self.attrname] = BitOr.evalfold(obj[self.attrname], value)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1723,6 +1759,18 @@ class Slice(AST):
 	@handleeval
 	def evalshiftrightvar(self, vars, value):
 		raise TypeError("can't use >>= with slice")
+
+	@handleeval
+	def evalbitandvar(self, vars, value):
+		raise TypeError("can't use &= with slice")
+
+	@handleeval
+	def evalbitxorvar(self, vars, value):
+		raise TypeError("can't use ^= with slice")
+
+	@handleeval
+	def evalbitorvar(self, vars, value):
+		raise TypeError("can't use |= with slice")
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -2039,18 +2087,12 @@ class Item(Binary):
 		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
 			if "+" + obj2 in obj1.ul4attrs:
 				attr = getattr(obj1, obj2)
-				if value >= 0:
-					attr <<= value
-				else:
-					attr >>= -value
+				attr = ShiftLeft.evalfold(attr, value)
 				setattr(obj1, obj2, attr)
 			else:
 				raise AttributeError("attribute {!r} is readonly".format(obj2))
 		else:
-			if value >= 0:
-				obj1[obj2] <<= value
-			else:
-				obj1[obj2] >>= -value
+			obj1[obj2] = ShiftLeft.evalfold(obj1[obj2], value)
 
 	@handleeval
 	def evalshiftrightvar(self, vars, value):
@@ -2059,18 +2101,54 @@ class Item(Binary):
 		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
 			if "+" + obj2 in obj1.ul4attrs:
 				attr = getattr(obj1, obj2)
-				if value >= 0:
-					attr >>= value
-				else:
-					attr <<= -value
+				attr = ShiftRight.evalfold(attr, value)
 				setattr(obj1, obj2, attr)
 			else:
 				raise AttributeError("attribute {!r} is readonly".format(obj2))
 		else:
-			if value >= 0:
-				obj1[obj2] >>= value
+			obj1[obj2] = ShiftRight.evalfold(obj1[obj2], value)
+
+	@handleeval
+	def evalbitandvar(self, vars, value):
+		obj1 = (yield from self.obj1.eval(vars))
+		obj2 = (yield from self.obj2.eval(vars))
+		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
+			if "+" + obj2 in obj1.ul4attrs:
+				attr = getattr(obj1, obj2)
+				attr = BitAnd.evalfold(attr, value)
+				setattr(obj1, obj2, attr)
 			else:
-				obj1[obj2] <<= -value
+				raise AttributeError("attribute {!r} is readonly".format(obj2))
+		else:
+			obj1[obj2] = BitAnd.evalfold(obj1[obj2], value)
+
+	@handleeval
+	def evalbitxorvar(self, vars, value):
+		obj1 = (yield from self.obj1.eval(vars))
+		obj2 = (yield from self.obj2.eval(vars))
+		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
+			if "+" + obj2 in obj1.ul4attrs:
+				attr = getattr(obj1, obj2)
+				attr = BitXor.evalfold(attr, value)
+				setattr(obj1, obj2, attr)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(obj2))
+		else:
+			obj1[obj2] = BitXor.evalfold(obj1[obj2], value)
+
+	@handleeval
+	def evalbitorvar(self, vars, value):
+		obj1 = (yield from self.obj1.eval(vars))
+		obj2 = (yield from self.obj2.eval(vars))
+		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
+			if "+" + obj2 in obj1.ul4attrs:
+				attr = getattr(obj1, obj2)
+				attr = BitOr.evalfold(attr, value)
+				setattr(obj1, obj2, attr)
+			else:
+				raise AttributeError("attribute {!r} is readonly".format(obj2))
+		else:
+			obj1[obj2] = BitOr.evalfold(obj1[obj2], value)
 
 
 @register("eq")
@@ -2564,6 +2642,45 @@ class ShiftRightVar(ChangeVar):
 			yield from lvalue.evalshiftrightvar(vars, value)
 
 
+@register("bitandvar")
+class BitAndVar(ChangeVar):
+	"""
+	AST node for the ``&=`` operator.
+	"""
+
+	@handleeval
+	def eval(self, vars):
+		value = (yield from self.value.eval(vars))
+		for (lvalue, value) in _unpackvar(self.lvalue, value):
+			yield from lvalue.evalbitandvar(vars, value)
+
+
+@register("bitxorvar")
+class BitXOrVar(ChangeVar):
+	"""
+	AST node for the ``^=`` operator.
+	"""
+
+	@handleeval
+	def eval(self, vars):
+		value = (yield from self.value.eval(vars))
+		for (lvalue, value) in _unpackvar(self.lvalue, value):
+			yield from lvalue.evalbitxorvar(vars, value)
+
+
+@register("bitorvar")
+class BitOrVar(ChangeVar):
+	"""
+	AST node for the ``|=`` operator.
+	"""
+
+	@handleeval
+	def eval(self, vars):
+		value = (yield from self.value.eval(vars))
+		for (lvalue, value) in _unpackvar(self.lvalue, value):
+			yield from lvalue.evalbitorvar(vars, value)
+
+
 @register("call")
 class Call(AST):
 	"""
@@ -2680,6 +2797,18 @@ class Call(AST):
 	@handleeval
 	def evalshiftrightvar(self, vars, value):
 		raise TypeError("can't use >>= on call result")
+
+	@handleeval
+	def evalbitandvar(self, vars, value):
+		raise TypeError("can't use &= on call result")
+
+	@handleeval
+	def evalbitxorvar(self, vars, value):
+		raise TypeError("can't use ^= on call result")
+
+	@handleeval
+	def evalbitorvar(self, vars, value):
+		raise TypeError("can't use |= on call result")
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)

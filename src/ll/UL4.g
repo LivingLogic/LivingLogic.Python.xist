@@ -627,5 +627,8 @@ statement returns [node]
 	| n=expr_subscript '%=' e=expr_if EOF { $node = ul4c.ModVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
 	| n=expr_subscript '<<=' e=expr_if EOF { $node = ul4c.ShiftLeftVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
 	| n=expr_subscript '>>=' e=expr_if EOF { $node = ul4c.ShiftRightVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
+	| n=expr_subscript '&=' e=expr_if EOF { $node = ul4c.BitAndVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
+	| n=expr_subscript '^=' e=expr_if EOF { $node = ul4c.BitXOrVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
+	| n=expr_subscript '|=' e=expr_if EOF { $node = ul4c.BitOrVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
 	| e=expression EOF { $node = $e.node }
 	;

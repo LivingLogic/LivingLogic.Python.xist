@@ -1,4 +1,4 @@
-# $ANTLR 3.5 src/ll/UL4.g 2014-01-08 09:15:29
+# $ANTLR 3.5 src/ll/UL4.g 2014-01-09 10:56:52
 
 import sys
 from antlr3 import *
@@ -58,6 +58,9 @@ T__67=67
 T__68=68
 T__69=69
 T__70=70
+T__71=71
+T__72=72
+T__73=73
 BIN_DIGIT=4
 COLOR=5
 DATE=6
@@ -222,10 +225,11 @@ class UL4Lexer(Lexer):
             _type = T__31
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:19:7: ( '(' )
-            # src/ll/UL4.g:19:9: '('
+            # src/ll/UL4.g:19:7: ( '&=' )
+            # src/ll/UL4.g:19:9: '&='
             pass 
-            self.match(40)
+            self.match("&=")
+
 
 
 
@@ -244,10 +248,10 @@ class UL4Lexer(Lexer):
             _type = T__32
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:20:7: ( ')' )
-            # src/ll/UL4.g:20:9: ')'
+            # src/ll/UL4.g:20:7: ( '(' )
+            # src/ll/UL4.g:20:9: '('
             pass 
-            self.match(41)
+            self.match(40)
 
 
 
@@ -266,10 +270,10 @@ class UL4Lexer(Lexer):
             _type = T__33
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:21:7: ( '*' )
-            # src/ll/UL4.g:21:9: '*'
+            # src/ll/UL4.g:21:7: ( ')' )
+            # src/ll/UL4.g:21:9: ')'
             pass 
-            self.match(42)
+            self.match(41)
 
 
 
@@ -288,11 +292,10 @@ class UL4Lexer(Lexer):
             _type = T__34
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:22:7: ( '**' )
-            # src/ll/UL4.g:22:9: '**'
+            # src/ll/UL4.g:22:7: ( '*' )
+            # src/ll/UL4.g:22:9: '*'
             pass 
-            self.match("**")
-
+            self.match(42)
 
 
 
@@ -311,10 +314,10 @@ class UL4Lexer(Lexer):
             _type = T__35
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:23:7: ( '*=' )
-            # src/ll/UL4.g:23:9: '*='
+            # src/ll/UL4.g:23:7: ( '**' )
+            # src/ll/UL4.g:23:9: '**'
             pass 
-            self.match("*=")
+            self.match("**")
 
 
 
@@ -334,10 +337,11 @@ class UL4Lexer(Lexer):
             _type = T__36
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:24:7: ( '+' )
-            # src/ll/UL4.g:24:9: '+'
+            # src/ll/UL4.g:24:7: ( '*=' )
+            # src/ll/UL4.g:24:9: '*='
             pass 
-            self.match(43)
+            self.match("*=")
+
 
 
 
@@ -356,11 +360,10 @@ class UL4Lexer(Lexer):
             _type = T__37
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:25:7: ( '+=' )
-            # src/ll/UL4.g:25:9: '+='
+            # src/ll/UL4.g:25:7: ( '+' )
+            # src/ll/UL4.g:25:9: '+'
             pass 
-            self.match("+=")
-
+            self.match(43)
 
 
 
@@ -379,10 +382,11 @@ class UL4Lexer(Lexer):
             _type = T__38
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:26:7: ( ',' )
-            # src/ll/UL4.g:26:9: ','
+            # src/ll/UL4.g:26:7: ( '+=' )
+            # src/ll/UL4.g:26:9: '+='
             pass 
-            self.match(44)
+            self.match("+=")
+
 
 
 
@@ -401,10 +405,10 @@ class UL4Lexer(Lexer):
             _type = T__39
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:27:7: ( '-' )
-            # src/ll/UL4.g:27:9: '-'
+            # src/ll/UL4.g:27:7: ( ',' )
+            # src/ll/UL4.g:27:9: ','
             pass 
-            self.match(45)
+            self.match(44)
 
 
 
@@ -423,11 +427,10 @@ class UL4Lexer(Lexer):
             _type = T__40
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:28:7: ( '-=' )
-            # src/ll/UL4.g:28:9: '-='
+            # src/ll/UL4.g:28:7: ( '-' )
+            # src/ll/UL4.g:28:9: '-'
             pass 
-            self.match("-=")
-
+            self.match(45)
 
 
 
@@ -446,10 +449,11 @@ class UL4Lexer(Lexer):
             _type = T__41
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:29:7: ( '.' )
-            # src/ll/UL4.g:29:9: '.'
+            # src/ll/UL4.g:29:7: ( '-=' )
+            # src/ll/UL4.g:29:9: '-='
             pass 
-            self.match(46)
+            self.match("-=")
+
 
 
 
@@ -468,10 +472,10 @@ class UL4Lexer(Lexer):
             _type = T__42
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:30:7: ( '/' )
-            # src/ll/UL4.g:30:9: '/'
+            # src/ll/UL4.g:30:7: ( '.' )
+            # src/ll/UL4.g:30:9: '.'
             pass 
-            self.match(47)
+            self.match(46)
 
 
 
@@ -490,11 +494,10 @@ class UL4Lexer(Lexer):
             _type = T__43
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:31:7: ( '//' )
-            # src/ll/UL4.g:31:9: '//'
+            # src/ll/UL4.g:31:7: ( '/' )
+            # src/ll/UL4.g:31:9: '/'
             pass 
-            self.match("//")
-
+            self.match(47)
 
 
 
@@ -513,10 +516,10 @@ class UL4Lexer(Lexer):
             _type = T__44
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:32:7: ( '//=' )
-            # src/ll/UL4.g:32:9: '//='
+            # src/ll/UL4.g:32:7: ( '//' )
+            # src/ll/UL4.g:32:9: '//'
             pass 
-            self.match("//=")
+            self.match("//")
 
 
 
@@ -536,10 +539,10 @@ class UL4Lexer(Lexer):
             _type = T__45
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:33:7: ( '/=' )
-            # src/ll/UL4.g:33:9: '/='
+            # src/ll/UL4.g:33:7: ( '//=' )
+            # src/ll/UL4.g:33:9: '//='
             pass 
-            self.match("/=")
+            self.match("//=")
 
 
 
@@ -559,10 +562,11 @@ class UL4Lexer(Lexer):
             _type = T__46
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:34:7: ( ':' )
-            # src/ll/UL4.g:34:9: ':'
+            # src/ll/UL4.g:34:7: ( '/=' )
+            # src/ll/UL4.g:34:9: '/='
             pass 
-            self.match(58)
+            self.match("/=")
+
 
 
 
@@ -581,10 +585,10 @@ class UL4Lexer(Lexer):
             _type = T__47
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:35:7: ( '<' )
-            # src/ll/UL4.g:35:9: '<'
+            # src/ll/UL4.g:35:7: ( ':' )
+            # src/ll/UL4.g:35:9: ':'
             pass 
-            self.match(60)
+            self.match(58)
 
 
 
@@ -603,11 +607,10 @@ class UL4Lexer(Lexer):
             _type = T__48
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:36:7: ( '<<' )
-            # src/ll/UL4.g:36:9: '<<'
+            # src/ll/UL4.g:36:7: ( '<' )
+            # src/ll/UL4.g:36:9: '<'
             pass 
-            self.match("<<")
-
+            self.match(60)
 
 
 
@@ -626,10 +629,10 @@ class UL4Lexer(Lexer):
             _type = T__49
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:37:7: ( '<<=' )
-            # src/ll/UL4.g:37:9: '<<='
+            # src/ll/UL4.g:37:7: ( '<<' )
+            # src/ll/UL4.g:37:9: '<<'
             pass 
-            self.match("<<=")
+            self.match("<<")
 
 
 
@@ -649,10 +652,10 @@ class UL4Lexer(Lexer):
             _type = T__50
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:38:7: ( '<=' )
-            # src/ll/UL4.g:38:9: '<='
+            # src/ll/UL4.g:38:7: ( '<<=' )
+            # src/ll/UL4.g:38:9: '<<='
             pass 
-            self.match("<=")
+            self.match("<<=")
 
 
 
@@ -672,10 +675,11 @@ class UL4Lexer(Lexer):
             _type = T__51
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:39:7: ( '=' )
-            # src/ll/UL4.g:39:9: '='
+            # src/ll/UL4.g:39:7: ( '<=' )
+            # src/ll/UL4.g:39:9: '<='
             pass 
-            self.match(61)
+            self.match("<=")
+
 
 
 
@@ -694,11 +698,10 @@ class UL4Lexer(Lexer):
             _type = T__52
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:40:7: ( '==' )
-            # src/ll/UL4.g:40:9: '=='
+            # src/ll/UL4.g:40:7: ( '=' )
+            # src/ll/UL4.g:40:9: '='
             pass 
-            self.match("==")
-
+            self.match(61)
 
 
 
@@ -717,10 +720,11 @@ class UL4Lexer(Lexer):
             _type = T__53
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:41:7: ( '>' )
-            # src/ll/UL4.g:41:9: '>'
+            # src/ll/UL4.g:41:7: ( '==' )
+            # src/ll/UL4.g:41:9: '=='
             pass 
-            self.match(62)
+            self.match("==")
+
 
 
 
@@ -739,11 +743,10 @@ class UL4Lexer(Lexer):
             _type = T__54
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:42:7: ( '>=' )
-            # src/ll/UL4.g:42:9: '>='
+            # src/ll/UL4.g:42:7: ( '>' )
+            # src/ll/UL4.g:42:9: '>'
             pass 
-            self.match(">=")
-
+            self.match(62)
 
 
 
@@ -762,10 +765,10 @@ class UL4Lexer(Lexer):
             _type = T__55
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:43:7: ( '>>' )
-            # src/ll/UL4.g:43:9: '>>'
+            # src/ll/UL4.g:43:7: ( '>=' )
+            # src/ll/UL4.g:43:9: '>='
             pass 
-            self.match(">>")
+            self.match(">=")
 
 
 
@@ -785,10 +788,10 @@ class UL4Lexer(Lexer):
             _type = T__56
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:44:7: ( '>>=' )
-            # src/ll/UL4.g:44:9: '>>='
+            # src/ll/UL4.g:44:7: ( '>>' )
+            # src/ll/UL4.g:44:9: '>>'
             pass 
-            self.match(">>=")
+            self.match(">>")
 
 
 
@@ -808,10 +811,11 @@ class UL4Lexer(Lexer):
             _type = T__57
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:45:7: ( '[' )
-            # src/ll/UL4.g:45:9: '['
+            # src/ll/UL4.g:45:7: ( '>>=' )
+            # src/ll/UL4.g:45:9: '>>='
             pass 
-            self.match(91)
+            self.match(">>=")
+
 
 
 
@@ -830,10 +834,10 @@ class UL4Lexer(Lexer):
             _type = T__58
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:46:7: ( ']' )
-            # src/ll/UL4.g:46:9: ']'
+            # src/ll/UL4.g:46:7: ( '[' )
+            # src/ll/UL4.g:46:9: '['
             pass 
-            self.match(93)
+            self.match(91)
 
 
 
@@ -852,10 +856,10 @@ class UL4Lexer(Lexer):
             _type = T__59
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:47:7: ( '^' )
-            # src/ll/UL4.g:47:9: '^'
+            # src/ll/UL4.g:47:7: ( ']' )
+            # src/ll/UL4.g:47:9: ']'
             pass 
-            self.match(94)
+            self.match(93)
 
 
 
@@ -874,11 +878,10 @@ class UL4Lexer(Lexer):
             _type = T__60
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:48:7: ( 'and' )
-            # src/ll/UL4.g:48:9: 'and'
+            # src/ll/UL4.g:48:7: ( '^' )
+            # src/ll/UL4.g:48:9: '^'
             pass 
-            self.match("and")
-
+            self.match(94)
 
 
 
@@ -897,10 +900,10 @@ class UL4Lexer(Lexer):
             _type = T__61
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:49:7: ( 'else' )
-            # src/ll/UL4.g:49:9: 'else'
+            # src/ll/UL4.g:49:7: ( '^=' )
+            # src/ll/UL4.g:49:9: '^='
             pass 
-            self.match("else")
+            self.match("^=")
 
 
 
@@ -920,10 +923,10 @@ class UL4Lexer(Lexer):
             _type = T__62
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:50:7: ( 'for' )
-            # src/ll/UL4.g:50:9: 'for'
+            # src/ll/UL4.g:50:7: ( 'and' )
+            # src/ll/UL4.g:50:9: 'and'
             pass 
-            self.match("for")
+            self.match("and")
 
 
 
@@ -943,10 +946,10 @@ class UL4Lexer(Lexer):
             _type = T__63
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:51:7: ( 'if' )
-            # src/ll/UL4.g:51:9: 'if'
+            # src/ll/UL4.g:51:7: ( 'else' )
+            # src/ll/UL4.g:51:9: 'else'
             pass 
-            self.match("if")
+            self.match("else")
 
 
 
@@ -966,10 +969,10 @@ class UL4Lexer(Lexer):
             _type = T__64
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:52:7: ( 'in' )
-            # src/ll/UL4.g:52:9: 'in'
+            # src/ll/UL4.g:52:7: ( 'for' )
+            # src/ll/UL4.g:52:9: 'for'
             pass 
-            self.match("in")
+            self.match("for")
 
 
 
@@ -989,10 +992,10 @@ class UL4Lexer(Lexer):
             _type = T__65
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:53:7: ( 'not' )
-            # src/ll/UL4.g:53:9: 'not'
+            # src/ll/UL4.g:53:7: ( 'if' )
+            # src/ll/UL4.g:53:9: 'if'
             pass 
-            self.match("not")
+            self.match("if")
 
 
 
@@ -1012,10 +1015,10 @@ class UL4Lexer(Lexer):
             _type = T__66
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:54:7: ( 'or' )
-            # src/ll/UL4.g:54:9: 'or'
+            # src/ll/UL4.g:54:7: ( 'in' )
+            # src/ll/UL4.g:54:9: 'in'
             pass 
-            self.match("or")
+            self.match("in")
 
 
 
@@ -1035,10 +1038,11 @@ class UL4Lexer(Lexer):
             _type = T__67
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:55:7: ( '{' )
-            # src/ll/UL4.g:55:9: '{'
+            # src/ll/UL4.g:55:7: ( 'not' )
+            # src/ll/UL4.g:55:9: 'not'
             pass 
-            self.match(123)
+            self.match("not")
+
 
 
 
@@ -1057,10 +1061,11 @@ class UL4Lexer(Lexer):
             _type = T__68
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:56:7: ( '|' )
-            # src/ll/UL4.g:56:9: '|'
+            # src/ll/UL4.g:56:7: ( 'or' )
+            # src/ll/UL4.g:56:9: 'or'
             pass 
-            self.match(124)
+            self.match("or")
+
 
 
 
@@ -1079,10 +1084,10 @@ class UL4Lexer(Lexer):
             _type = T__69
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:57:7: ( '}' )
-            # src/ll/UL4.g:57:9: '}'
+            # src/ll/UL4.g:57:7: ( '{' )
+            # src/ll/UL4.g:57:9: '{'
             pass 
-            self.match(125)
+            self.match(123)
 
 
 
@@ -1101,8 +1106,75 @@ class UL4Lexer(Lexer):
             _type = T__70
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:58:7: ( '~' )
-            # src/ll/UL4.g:58:9: '~'
+            # src/ll/UL4.g:58:7: ( '|' )
+            # src/ll/UL4.g:58:9: '|'
+            pass 
+            self.match(124)
+
+
+
+            self._state.type = _type
+            self._state.channel = _channel
+        finally:
+            pass
+
+    # $ANTLR end "T__70"
+
+
+
+    # $ANTLR start "T__71"
+    def mT__71(self, ):
+        try:
+            _type = T__71
+            _channel = DEFAULT_CHANNEL
+
+            # src/ll/UL4.g:59:7: ( '|=' )
+            # src/ll/UL4.g:59:9: '|='
+            pass 
+            self.match("|=")
+
+
+
+
+            self._state.type = _type
+            self._state.channel = _channel
+        finally:
+            pass
+
+    # $ANTLR end "T__71"
+
+
+
+    # $ANTLR start "T__72"
+    def mT__72(self, ):
+        try:
+            _type = T__72
+            _channel = DEFAULT_CHANNEL
+
+            # src/ll/UL4.g:60:7: ( '}' )
+            # src/ll/UL4.g:60:9: '}'
+            pass 
+            self.match(125)
+
+
+
+            self._state.type = _type
+            self._state.channel = _channel
+        finally:
+            pass
+
+    # $ANTLR end "T__72"
+
+
+
+    # $ANTLR start "T__73"
+    def mT__73(self, ):
+        try:
+            _type = T__73
+            _channel = DEFAULT_CHANNEL
+
+            # src/ll/UL4.g:61:7: ( '~' )
+            # src/ll/UL4.g:61:9: '~'
             pass 
             self.match(126)
 
@@ -1113,7 +1185,7 @@ class UL4Lexer(Lexer):
         finally:
             pass
 
-    # $ANTLR end "T__70"
+    # $ANTLR end "T__73"
 
 
 
@@ -2778,8 +2850,8 @@ class UL4Lexer(Lexer):
 
 
     def mTokens(self):
-        # src/ll/UL4.g:1:8: ( T__27 | T__28 | T__29 | T__30 | T__31 | T__32 | T__33 | T__34 | T__35 | T__36 | T__37 | T__38 | T__39 | T__40 | T__41 | T__42 | T__43 | T__44 | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | T__66 | T__67 | T__68 | T__69 | T__70 | NONE | TRUE | FALSE | NAME | INT | FLOAT | DATE | COLOR | WS | STRING | STRING3 )
-        alt32 = 55
+        # src/ll/UL4.g:1:8: ( T__27 | T__28 | T__29 | T__30 | T__31 | T__32 | T__33 | T__34 | T__35 | T__36 | T__37 | T__38 | T__39 | T__40 | T__41 | T__42 | T__43 | T__44 | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | T__66 | T__67 | T__68 | T__69 | T__70 | T__71 | T__72 | T__73 | NONE | TRUE | FALSE | NAME | INT | FLOAT | DATE | COLOR | WS | STRING | STRING3 )
+        alt32 = 58
         alt32 = self.dfa32.predict(self.input)
         if alt32 == 1:
             # src/ll/UL4.g:1:10: T__27
@@ -3090,77 +3162,98 @@ class UL4Lexer(Lexer):
 
 
         elif alt32 == 45:
-            # src/ll/UL4.g:1:274: NONE
+            # src/ll/UL4.g:1:274: T__71
+            pass 
+            self.mT__71()
+
+
+
+        elif alt32 == 46:
+            # src/ll/UL4.g:1:280: T__72
+            pass 
+            self.mT__72()
+
+
+
+        elif alt32 == 47:
+            # src/ll/UL4.g:1:286: T__73
+            pass 
+            self.mT__73()
+
+
+
+        elif alt32 == 48:
+            # src/ll/UL4.g:1:292: NONE
             pass 
             self.mNONE()
 
 
 
-        elif alt32 == 46:
-            # src/ll/UL4.g:1:279: TRUE
+        elif alt32 == 49:
+            # src/ll/UL4.g:1:297: TRUE
             pass 
             self.mTRUE()
 
 
 
-        elif alt32 == 47:
-            # src/ll/UL4.g:1:284: FALSE
+        elif alt32 == 50:
+            # src/ll/UL4.g:1:302: FALSE
             pass 
             self.mFALSE()
 
 
 
-        elif alt32 == 48:
-            # src/ll/UL4.g:1:290: NAME
+        elif alt32 == 51:
+            # src/ll/UL4.g:1:308: NAME
             pass 
             self.mNAME()
 
 
 
-        elif alt32 == 49:
-            # src/ll/UL4.g:1:295: INT
+        elif alt32 == 52:
+            # src/ll/UL4.g:1:313: INT
             pass 
             self.mINT()
 
 
 
-        elif alt32 == 50:
-            # src/ll/UL4.g:1:299: FLOAT
+        elif alt32 == 53:
+            # src/ll/UL4.g:1:317: FLOAT
             pass 
             self.mFLOAT()
 
 
 
-        elif alt32 == 51:
-            # src/ll/UL4.g:1:305: DATE
+        elif alt32 == 54:
+            # src/ll/UL4.g:1:323: DATE
             pass 
             self.mDATE()
 
 
 
-        elif alt32 == 52:
-            # src/ll/UL4.g:1:310: COLOR
+        elif alt32 == 55:
+            # src/ll/UL4.g:1:328: COLOR
             pass 
             self.mCOLOR()
 
 
 
-        elif alt32 == 53:
-            # src/ll/UL4.g:1:316: WS
+        elif alt32 == 56:
+            # src/ll/UL4.g:1:334: WS
             pass 
             self.mWS()
 
 
 
-        elif alt32 == 54:
-            # src/ll/UL4.g:1:319: STRING
+        elif alt32 == 57:
+            # src/ll/UL4.g:1:337: STRING
             pass 
             self.mSTRING()
 
 
 
-        elif alt32 == 55:
-            # src/ll/UL4.g:1:326: STRING3
+        elif alt32 == 58:
+            # src/ll/UL4.g:1:344: STRING3
             pass 
             self.mSTRING3()
 
@@ -3215,50 +3308,51 @@ class UL4Lexer(Lexer):
     # lookup tables for DFA #32
 
     DFA32_eot = DFA.unpack(
-        "\2\uffff\1\51\3\uffff\1\54\1\56\1\uffff\1\60\1\61\1\65\1\uffff"
-        "\1\70\1\72\1\75\3\uffff\6\40\4\uffff\3\40\1\uffff\2\110\20\uffff"
-        "\1\115\2\uffff\1\117\5\uffff\1\121\1\uffff\3\40\1\125\1\126\1\40"
-        "\1\130\3\40\1\uffff\1\112\1\uffff\1\112\6\uffff\1\135\1\40\1\137"
-        "\2\uffff\1\140\1\uffff\3\40\2\uffff\1\144\2\uffff\1\145\1\146\1"
-        "\40\3\uffff\1\150\1\uffff"
+        "\2\uffff\1\51\1\53\2\uffff\1\56\1\60\1\uffff\1\62\1\63\1\67\1\uffff"
+        "\1\72\1\74\1\77\2\uffff\1\101\6\40\1\uffff\1\112\2\uffff\3\40\1"
+        "\uffff\2\116\22\uffff\1\123\2\uffff\1\125\5\uffff\1\127\3\uffff"
+        "\3\40\1\133\1\134\1\40\1\136\2\uffff\3\40\1\uffff\1\120\1\uffff"
+        "\1\120\6\uffff\1\143\1\40\1\145\2\uffff\1\146\1\uffff\3\40\2\uffff"
+        "\1\152\2\uffff\1\153\1\154\1\40\3\uffff\1\156\1\uffff"
         )
 
     DFA32_eof = DFA.unpack(
-        "\151\uffff"
+        "\157\uffff"
         )
 
     DFA32_min = DFA.unpack(
-        "\1\11\1\uffff\1\75\3\uffff\1\52\1\75\1\uffff\1\75\1\60\1\57\1\uffff"
-        "\1\74\2\75\3\uffff\1\156\1\154\1\157\1\146\1\157\1\162\4\uffff"
-        "\1\157\1\162\1\141\1\uffff\2\56\3\uffff\2\0\13\uffff\1\75\2\uffff"
-        "\1\75\5\uffff\1\75\1\uffff\1\144\1\163\1\162\2\60\1\164\1\60\1"
-        "\156\1\165\1\154\1\uffff\1\42\1\uffff\1\47\6\uffff\1\60\1\145\1"
-        "\60\2\uffff\1\60\1\uffff\2\145\1\163\2\uffff\1\60\2\uffff\2\60"
-        "\1\145\3\uffff\1\60\1\uffff"
+        "\1\11\1\uffff\2\75\2\uffff\1\52\1\75\1\uffff\1\75\1\60\1\57\1\uffff"
+        "\1\74\2\75\2\uffff\1\75\1\156\1\154\1\157\1\146\1\157\1\162\1\uffff"
+        "\1\75\2\uffff\1\157\1\162\1\141\1\uffff\2\56\3\uffff\2\0\15\uffff"
+        "\1\75\2\uffff\1\75\5\uffff\1\75\3\uffff\1\144\1\163\1\162\2\60"
+        "\1\164\1\60\2\uffff\1\156\1\165\1\154\1\uffff\1\42\1\uffff\1\47"
+        "\6\uffff\1\60\1\145\1\60\2\uffff\1\60\1\uffff\2\145\1\163\2\uffff"
+        "\1\60\2\uffff\2\60\1\145\3\uffff\1\60\1\uffff"
         )
 
     DFA32_max = DFA.unpack(
-        "\1\176\1\uffff\1\75\3\uffff\2\75\1\uffff\1\75\1\71\1\75\1\uffff"
-        "\2\75\1\76\3\uffff\1\156\1\154\1\157\1\156\1\157\1\162\4\uffff"
-        "\1\157\1\162\1\141\1\uffff\2\145\3\uffff\2\uffff\13\uffff\1\75"
-        "\2\uffff\1\75\5\uffff\1\75\1\uffff\1\144\1\163\1\162\2\172\1\164"
-        "\1\172\1\156\1\165\1\154\1\uffff\1\42\1\uffff\1\47\6\uffff\1\172"
-        "\1\145\1\172\2\uffff\1\172\1\uffff\2\145\1\163\2\uffff\1\172\2"
-        "\uffff\2\172\1\145\3\uffff\1\172\1\uffff"
+        "\1\176\1\uffff\2\75\2\uffff\2\75\1\uffff\1\75\1\71\1\75\1\uffff"
+        "\2\75\1\76\2\uffff\1\75\1\156\1\154\1\157\1\156\1\157\1\162\1\uffff"
+        "\1\75\2\uffff\1\157\1\162\1\141\1\uffff\2\145\3\uffff\2\uffff\15"
+        "\uffff\1\75\2\uffff\1\75\5\uffff\1\75\3\uffff\1\144\1\163\1\162"
+        "\2\172\1\164\1\172\2\uffff\1\156\1\165\1\154\1\uffff\1\42\1\uffff"
+        "\1\47\6\uffff\1\172\1\145\1\172\2\uffff\1\172\1\uffff\2\145\1\163"
+        "\2\uffff\1\172\2\uffff\2\172\1\145\3\uffff\1\172\1\uffff"
         )
 
     DFA32_accept = DFA.unpack(
-        "\1\uffff\1\1\1\uffff\1\4\1\5\1\6\2\uffff\1\14\3\uffff\1\24\3\uffff"
-        "\1\37\1\40\1\41\6\uffff\1\51\1\52\1\53\1\54\3\uffff\1\60\2\uffff"
-        "\1\63\1\64\1\65\2\uffff\1\3\1\2\1\10\1\11\1\7\1\13\1\12\1\16\1"
-        "\15\1\17\1\62\1\uffff\1\23\1\20\1\uffff\1\30\1\25\1\32\1\31\1\34"
-        "\1\uffff\1\33\12\uffff\1\61\1\uffff\1\66\1\uffff\1\22\1\21\1\27"
-        "\1\26\1\36\1\35\3\uffff\1\45\1\46\1\uffff\1\50\3\uffff\1\67\1\42"
-        "\1\uffff\1\44\1\47\3\uffff\1\43\1\55\1\56\1\uffff\1\57"
+        "\1\uffff\1\1\2\uffff\1\6\1\7\2\uffff\1\15\3\uffff\1\25\3\uffff"
+        "\1\40\1\41\7\uffff\1\53\1\uffff\1\56\1\57\3\uffff\1\63\2\uffff"
+        "\1\66\1\67\1\70\2\uffff\1\3\1\2\1\5\1\4\1\11\1\12\1\10\1\14\1\13"
+        "\1\17\1\16\1\20\1\65\1\uffff\1\24\1\21\1\uffff\1\31\1\26\1\33\1"
+        "\32\1\35\1\uffff\1\34\1\43\1\42\7\uffff\1\55\1\54\3\uffff\1\64"
+        "\1\uffff\1\71\1\uffff\1\23\1\22\1\30\1\27\1\37\1\36\3\uffff\1\47"
+        "\1\50\1\uffff\1\52\3\uffff\1\72\1\44\1\uffff\1\46\1\51\3\uffff"
+        "\1\45\1\60\1\61\1\uffff\1\62"
         )
 
     DFA32_special = DFA.unpack(
-        "\46\uffff\1\1\1\0\101\uffff"
+        "\46\uffff\1\0\1\1\107\uffff"
         )
 
 
@@ -3270,103 +3364,109 @@ class UL4Lexer(Lexer):
         "\25\2\40\1\26\4\40\1\27\1\30\13\40\1\31\1\32\1\33\1\34"),
         DFA.unpack(""),
         DFA.unpack("\1\50"),
+        DFA.unpack("\1\52"),
         DFA.unpack(""),
         DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack("\1\52\22\uffff\1\53"),
-        DFA.unpack("\1\55"),
-        DFA.unpack(""),
+        DFA.unpack("\1\54\22\uffff\1\55"),
         DFA.unpack("\1\57"),
-        DFA.unpack("\12\62"),
-        DFA.unpack("\1\63\15\uffff\1\64"),
         DFA.unpack(""),
-        DFA.unpack("\1\66\1\67"),
-        DFA.unpack("\1\71"),
-        DFA.unpack("\1\73\1\74"),
+        DFA.unpack("\1\61"),
+        DFA.unpack("\12\64"),
+        DFA.unpack("\1\65\15\uffff\1\66"),
+        DFA.unpack(""),
+        DFA.unpack("\1\70\1\71"),
+        DFA.unpack("\1\73"),
+        DFA.unpack("\1\75\1\76"),
         DFA.unpack(""),
         DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack("\1\76"),
-        DFA.unpack("\1\77"),
         DFA.unpack("\1\100"),
-        DFA.unpack("\1\101\7\uffff\1\102"),
+        DFA.unpack("\1\102"),
         DFA.unpack("\1\103"),
         DFA.unpack("\1\104"),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack("\1\105"),
-        DFA.unpack("\1\106"),
+        DFA.unpack("\1\105\7\uffff\1\106"),
         DFA.unpack("\1\107"),
+        DFA.unpack("\1\110"),
         DFA.unpack(""),
-        DFA.unpack("\1\62\1\uffff\12\42\13\uffff\1\62\37\uffff\1\62"),
-        DFA.unpack("\1\62\1\uffff\12\42\13\uffff\1\62\37\uffff\1\62"),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack("\12\112\1\uffff\2\112\1\uffff\24\112\1\111\uffdd\112"),
-        DFA.unpack("\12\112\1\uffff\2\112\1\uffff\31\112\1\113\uffd8\112"),
+        DFA.unpack("\1\111"),
         DFA.unpack(""),
         DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack(""),
+        DFA.unpack("\1\113"),
         DFA.unpack("\1\114"),
+        DFA.unpack("\1\115"),
+        DFA.unpack(""),
+        DFA.unpack("\1\64\1\uffff\12\42\13\uffff\1\64\37\uffff\1\64"),
+        DFA.unpack("\1\64\1\uffff\12\42\13\uffff\1\64\37\uffff\1\64"),
         DFA.unpack(""),
         DFA.unpack(""),
-        DFA.unpack("\1\116"),
+        DFA.unpack(""),
+        DFA.unpack("\12\120\1\uffff\2\120\1\uffff\24\120\1\117\uffdd\120"),
+        DFA.unpack("\12\120\1\uffff\2\120\1\uffff\31\120\1\121\uffd8\120"),
         DFA.unpack(""),
         DFA.unpack(""),
         DFA.unpack(""),
         DFA.unpack(""),
         DFA.unpack(""),
-        DFA.unpack("\1\120"),
+        DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack(""),
         DFA.unpack(""),
         DFA.unpack("\1\122"),
-        DFA.unpack("\1\123"),
+        DFA.unpack(""),
+        DFA.unpack(""),
         DFA.unpack("\1\124"),
-        DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
-        DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
-        DFA.unpack("\1\127"),
-        DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
+        DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack("\1\126"),
+        DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack("\1\130"),
         DFA.unpack("\1\131"),
         DFA.unpack("\1\132"),
-        DFA.unpack("\1\133"),
-        DFA.unpack(""),
-        DFA.unpack("\1\134"),
-        DFA.unpack(""),
-        DFA.unpack("\1\134"),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack(""),
         DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
-        DFA.unpack("\1\136"),
+        DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
+        DFA.unpack("\1\135"),
         DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
         DFA.unpack(""),
         DFA.unpack(""),
-        DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
-        DFA.unpack(""),
+        DFA.unpack("\1\137"),
+        DFA.unpack("\1\140"),
         DFA.unpack("\1\141"),
+        DFA.unpack(""),
         DFA.unpack("\1\142"),
-        DFA.unpack("\1\143"),
+        DFA.unpack(""),
+        DFA.unpack("\1\142"),
         DFA.unpack(""),
         DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
+        DFA.unpack("\1\144"),
         DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
         DFA.unpack(""),
         DFA.unpack(""),
         DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
-        DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
+        DFA.unpack(""),
         DFA.unpack("\1\147"),
+        DFA.unpack("\1\150"),
+        DFA.unpack("\1\151"),
+        DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
+        DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
+        DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
+        DFA.unpack("\1\155"),
         DFA.unpack(""),
         DFA.unpack(""),
         DFA.unpack(""),
@@ -3391,26 +3491,26 @@ class UL4Lexer(Lexer):
             _s = s
 
             if s == 0: 
-                LA32_39 = input.LA(1)
-
-                s = -1
-                if (LA32_39 == 39):
-                    s = 75
-
-                elif ((0 <= LA32_39 <= 9) or (11 <= LA32_39 <= 12) or (14 <= LA32_39 <= 38) or (40 <= LA32_39 <= 65535)):
-                    s = 74
-
-                if s >= 0:
-                    return s
-            elif s == 1: 
                 LA32_38 = input.LA(1)
 
                 s = -1
                 if (LA32_38 == 34):
-                    s = 73
+                    s = 79
 
                 elif ((0 <= LA32_38 <= 9) or (11 <= LA32_38 <= 12) or (14 <= LA32_38 <= 33) or (35 <= LA32_38 <= 65535)):
-                    s = 74
+                    s = 80
+
+                if s >= 0:
+                    return s
+            elif s == 1: 
+                LA32_39 = input.LA(1)
+
+                s = -1
+                if (LA32_39 == 39):
+                    s = 81
+
+                elif ((0 <= LA32_39 <= 9) or (11 <= LA32_39 <= 12) or (14 <= LA32_39 <= 38) or (40 <= LA32_39 <= 65535)):
+                    s = 80
 
                 if s >= 0:
                     return s
