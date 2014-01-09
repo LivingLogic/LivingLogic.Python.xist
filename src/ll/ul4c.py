@@ -840,59 +840,9 @@ class Var(AST):
 		vars[self.name] = value
 
 	@handleeval
-	def evaladdvar(self, vars, value):
+	def evalmodifyvar(self, operator, vars, value):
 		yield from ()
-		vars[self.name] += value
-
-	@handleeval
-	def evalsubvar(self, vars, value):
-		yield from ()
-		vars[self.name] -= value
-
-	@handleeval
-	def evalmulvar(self, vars, value):
-		yield from ()
-		vars[self.name] *= value
-
-	@handleeval
-	def evaltruedivvar(self, vars, value):
-		yield from ()
-		vars[self.name] /= value
-
-	@handleeval
-	def evalfloordivvar(self, vars, value):
-		yield from ()
-		vars[self.name] //= value
-
-	@handleeval
-	def evalmodvar(self, vars, value):
-		yield from ()
-		vars[self.name] %= value
-
-	@handleeval
-	def evalshiftleftvar(self, vars, value):
-		yield from ()
-		vars[self.name] = ShiftLeft.evalfold(vars[self.name], value)
-
-	@handleeval
-	def evalshiftrightvar(self, vars, value):
-		yield from ()
-		vars[self.name] = ShiftRight.evalfold(vars[self.name], value)
-
-	@handleeval
-	def evalbitandvar(self, vars, value):
-		yield from ()
-		vars[self.name] = BitAnd.evalfold(vars[self.name], value)
-
-	@handleeval
-	def evalbitxorvar(self, vars, value):
-		yield from ()
-		vars[self.name] = BitXOr.evalfold(vars[self.name], value)
-
-	@handleeval
-	def evalbitorvar(self, vars, value):
-		yield from ()
-		vars[self.name] = BitOr.evalfold(vars[self.name], value)
+		vars[self.name] = operator.evalfoldaug(vars[self.name], value)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1513,147 +1463,17 @@ class Attr(AST):
 			obj[self.attrname] = value
 
 	@handleeval
-	def evaladdvar(self, vars, value):
+	def evalmodifyvar(self, operator, vars, value):
 		obj = (yield from self.obj.eval(vars))
 		if hasattr(obj, "ul4attrs"):
 			if "+" + self.attrname in obj.ul4attrs:
 				attr = getattr(obj, self.attrname)
-				attr += value
+				attr = operator.evalfoldaug(attr, value)
 				setattr(obj, self.attrname, attr)
 			else:
 				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
 		else:
-			obj[self.attrname] += value
-
-	@handleeval
-	def evalsubvar(self, vars, value):
-		obj = (yield from self.obj.eval(vars))
-		if hasattr(obj, "ul4attrs"):
-			if "+" + self.attrname in obj.ul4attrs:
-				attr = getattr(obj, self.attrname)
-				attr -= value
-				setattr(obj, self.attrname, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
-		else:
-			obj[self.attrname] -= value
-
-	@handleeval
-	def evalmulvar(self, vars, value):
-		obj = (yield from self.obj.eval(vars))
-		if hasattr(obj, "ul4attrs"):
-			if "+" + self.attrname in obj.ul4attrs:
-				attr = getattr(obj, self.attrname)
-				attr *= value
-				setattr(obj, self.attrname, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
-		else:
-			obj[self.attrname] *= value
-
-	@handleeval
-	def evalfloordivvar(self, vars, value):
-		obj = (yield from self.obj.eval(vars))
-		if hasattr(obj, "ul4attrs"):
-			if "+" + self.attrname in obj.ul4attrs:
-				attr = getattr(obj, self.attrname)
-				attr //= value
-				setattr(obj, self.attrname, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
-		else:
-			obj[self.attrname] //= value
-
-	@handleeval
-	def evaltruedivvar(self, vars, value):
-		obj = (yield from self.obj.eval(vars))
-		if hasattr(obj, "ul4attrs"):
-			if "+" + self.attrname in obj.ul4attrs:
-				attr = getattr(obj, self.attrname)
-				attr /= value
-				setattr(obj, self.attrname, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
-		else:
-			obj[self.attrname] /= value
-
-	@handleeval
-	def evalmodvar(self, vars, value):
-		obj = (yield from self.obj.eval(vars))
-		if hasattr(obj, "ul4attrs"):
-			if "+" + self.attrname in obj.ul4attrs:
-				attr = getattr(obj, self.attrname)
-				attr %= value
-				setattr(obj, self.attrname, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
-		else:
-			obj[self.attrname] %= value
-
-	@handleeval
-	def evalshiftleftvar(self, vars, value):
-		obj = (yield from self.obj.eval(vars))
-		if hasattr(obj, "ul4attrs"):
-			if "+" + self.attrname in obj.ul4attrs:
-				attr = getattr(obj, self.attrname)
-				attr = ShiftLeft.evalfold(attr, value)
-				setattr(obj, self.attrname, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
-		else:
-			obj[self.attrname] = ShiftLeft.evalfold(obj[self.attrname], value)
-
-	@handleeval
-	def evalshiftrightvar(self, vars, value):
-		obj = (yield from self.obj.eval(vars))
-		if hasattr(obj, "ul4attrs"):
-			if "+" + self.attrname in obj.ul4attrs:
-				attr = getattr(obj, self.attrname)
-				attr = ShiftRightVar.evalfold(attr, value)
-				setattr(obj, self.attrname, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
-		else:
-			obj[self.attrname] = ShiftRight.evalfold(obj[self.attrname], value)
-
-	@handleeval
-	def evalbitandvar(self, vars, value):
-		obj = (yield from self.obj.eval(vars))
-		if hasattr(obj, "ul4attrs"):
-			if "+" + self.attrname in obj.ul4attrs:
-				attr = getattr(obj, self.attrname)
-				attr = BitAnd.evalfold(attr, value)
-				setattr(obj, self.attrname, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
-		else:
-			obj[self.attrname] = BitAnd.evalfold(obj[self.attrname], value)
-
-	@handleeval
-	def evalbitxorvar(self, vars, value):
-		obj = (yield from self.obj.eval(vars))
-		if hasattr(obj, "ul4attrs"):
-			if "+" + self.attrname in obj.ul4attrs:
-				attr = getattr(obj, self.attrname)
-				attr = BitXOr.evalfold(attr, value)
-				setattr(obj, self.attrname, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
-		else:
-			obj[self.attrname] = BitXOr.evalfold(obj[self.attrname], value)
-
-	@handleeval
-	def evalbitorvar(self, vars, value):
-		obj = (yield from self.obj.eval(vars))
-		if hasattr(obj, "ul4attrs"):
-			if "+" + self.attrname in obj.ul4attrs:
-				attr = getattr(obj, self.attrname)
-				attr = BitOr.evalfold(attr, value)
-				setattr(obj, self.attrname, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
-		else:
-			obj[self.attrname] = BitOr.evalfold(obj[self.attrname], value)
+			obj[self.attrname] = operator.evalfoldaug(obj[self.attrname], value)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1729,48 +1549,8 @@ class Slice(AST):
 		obj[slice(index1, index2)] = value
 
 	@handleeval
-	def evaladdvar(self, vars, value):
-		raise TypeError("can't use += with slice")
-
-	@handleeval
-	def evalsubvar(self, vars, value):
-		raise TypeError("can't use -= with slice")
-
-	@handleeval
-	def evalmulvar(self, vars, value):
-		raise TypeError("can't use *= with slice")
-
-	@handleeval
-	def evalfloordivvar(self, vars, value):
-		raise TypeError("can't use //= with slice")
-
-	@handleeval
-	def evaltruedivvar(self, vars, value):
-		raise TypeError("can't use /= with slice")
-
-	@handleeval
-	def evalmodvar(self, vars, value):
-		raise TypeError("can't use %= with slice")
-
-	@handleeval
-	def evalshiftleftvar(self, vars, value):
-		raise TypeError("can't use <<= with slice")
-
-	@handleeval
-	def evalshiftrightvar(self, vars, value):
-		raise TypeError("can't use >>= with slice")
-
-	@handleeval
-	def evalbitandvar(self, vars, value):
-		raise TypeError("can't use &= with slice")
-
-	@handleeval
-	def evalbitxorvar(self, vars, value):
-		raise TypeError("can't use ^= with slice")
-
-	@handleeval
-	def evalbitorvar(self, vars, value):
-		raise TypeError("can't use |= with slice")
+	def evalmodifyvar(self, operator, vars, value):
+		raise TypeError("augmented assigment not allowed from slice")
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1997,158 +1777,19 @@ class Item(Binary):
 			obj1[obj2] = value
 
 	@handleeval
-	def evaladdvar(self, vars, value):
+	def evalmodifyvar(self, operator, vars, value):
 		obj1 = (yield from self.obj1.eval(vars))
 		obj2 = (yield from self.obj2.eval(vars))
 		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
 			if "+" + obj2 in obj1.ul4attrs:
 				attr = getattr(obj1, obj2)
+				attr = operator.evalfoldaug(obj1[obj2], value)
 				attr += value
 				setattr(obj1, obj2, attr)
 			else:
 				raise AttributeError("attribute {!r} is readonly".format(obj2))
 		else:
-			obj1[obj2] += value
-
-	@handleeval
-	def evalsubvar(self, vars, value):
-		obj1 = (yield from self.obj1.eval(vars))
-		obj2 = (yield from self.obj2.eval(vars))
-		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
-			if "+" + obj2 in obj1.ul4attrs:
-				attr = getattr(obj1, obj2)
-				attr -= value
-				setattr(obj1, obj2, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(obj2))
-		else:
-			obj1[obj2] -= value
-
-	@handleeval
-	def evalmulvar(self, vars, value):
-		obj1 = (yield from self.obj1.eval(vars))
-		obj2 = (yield from self.obj2.eval(vars))
-		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
-			if "+" + obj2 in obj1.ul4attrs:
-				attr = getattr(obj1, obj2)
-				attr *= value
-				setattr(obj1, obj2, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(obj2))
-		else:
-			obj1[obj2] *= value
-
-	@handleeval
-	def evalfloordivvar(self, vars, value):
-		obj1 = (yield from self.obj1.eval(vars))
-		obj2 = (yield from self.obj2.eval(vars))
-		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
-			if "+" + obj2 in obj1.ul4attrs:
-				attr = getattr(obj1, obj2)
-				attr //= value
-				setattr(obj1, obj2, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(obj2))
-		else:
-			obj1[obj2] //= value
-
-	@handleeval
-	def evaltruedivvar(self, vars, value):
-		obj1 = (yield from self.obj1.eval(vars))
-		obj2 = (yield from self.obj2.eval(vars))
-		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
-			if "+" + obj2 in obj1.ul4attrs:
-				attr = getattr(obj1, obj2)
-				attr /= value
-				setattr(obj1, obj2, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(obj2))
-		else:
-			obj1[obj2] /= value
-
-	@handleeval
-	def evalmodvar(self, vars, value):
-		obj1 = (yield from self.obj1.eval(vars))
-		obj2 = (yield from self.obj2.eval(vars))
-		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
-			if "+" + obj2 in obj1.ul4attrs:
-				attr = getattr(obj1, obj2)
-				attr %= value
-				setattr(obj1, obj2, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(obj2))
-		else:
-			obj1[obj2] %= value
-
-	@handleeval
-	def evalshiftleftvar(self, vars, value):
-		obj1 = (yield from self.obj1.eval(vars))
-		obj2 = (yield from self.obj2.eval(vars))
-		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
-			if "+" + obj2 in obj1.ul4attrs:
-				attr = getattr(obj1, obj2)
-				attr = ShiftLeft.evalfold(attr, value)
-				setattr(obj1, obj2, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(obj2))
-		else:
-			obj1[obj2] = ShiftLeft.evalfold(obj1[obj2], value)
-
-	@handleeval
-	def evalshiftrightvar(self, vars, value):
-		obj1 = (yield from self.obj1.eval(vars))
-		obj2 = (yield from self.obj2.eval(vars))
-		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
-			if "+" + obj2 in obj1.ul4attrs:
-				attr = getattr(obj1, obj2)
-				attr = ShiftRight.evalfold(attr, value)
-				setattr(obj1, obj2, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(obj2))
-		else:
-			obj1[obj2] = ShiftRight.evalfold(obj1[obj2], value)
-
-	@handleeval
-	def evalbitandvar(self, vars, value):
-		obj1 = (yield from self.obj1.eval(vars))
-		obj2 = (yield from self.obj2.eval(vars))
-		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
-			if "+" + obj2 in obj1.ul4attrs:
-				attr = getattr(obj1, obj2)
-				attr = BitAnd.evalfold(attr, value)
-				setattr(obj1, obj2, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(obj2))
-		else:
-			obj1[obj2] = BitAnd.evalfold(obj1[obj2], value)
-
-	@handleeval
-	def evalbitxorvar(self, vars, value):
-		obj1 = (yield from self.obj1.eval(vars))
-		obj2 = (yield from self.obj2.eval(vars))
-		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
-			if "+" + obj2 in obj1.ul4attrs:
-				attr = getattr(obj1, obj2)
-				attr = BitXor.evalfold(attr, value)
-				setattr(obj1, obj2, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(obj2))
-		else:
-			obj1[obj2] = BitXor.evalfold(obj1[obj2], value)
-
-	@handleeval
-	def evalbitorvar(self, vars, value):
-		obj1 = (yield from self.obj1.eval(vars))
-		obj2 = (yield from self.obj2.eval(vars))
-		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
-			if "+" + obj2 in obj1.ul4attrs:
-				attr = getattr(obj1, obj2)
-				attr = BitOr.evalfold(attr, value)
-				setattr(obj1, obj2, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(obj2))
-		else:
-			obj1[obj2] = BitOr.evalfold(obj1[obj2], value)
+			obj1[obj2] = operator.evalfoldaug(obj1[obj2], value)
 
 
 @register("eq")
@@ -2263,6 +1904,11 @@ class Add(Binary):
 	def evalfold(cls, obj1, obj2):
 		return obj1 + obj2
 
+	@classmethod
+	def evalfoldaug(cls, obj1, obj2):
+		obj1 += obj2
+		return obj1
+
 
 @register("sub")
 class Sub(Binary):
@@ -2273,6 +1919,11 @@ class Sub(Binary):
 	@classmethod
 	def evalfold(cls, obj1, obj2):
 		return obj1 - obj2
+
+	@classmethod
+	def evalfoldaug(cls, obj1, obj2):
+		obj1 -= obj2
+		return obj1
 
 
 @register("mul")
@@ -2285,6 +1936,11 @@ class Mul(Binary):
 	def evalfold(cls, obj1, obj2):
 		return obj1 * obj2
 
+	@classmethod
+	def evalfoldaug(cls, obj1, obj2):
+		obj1 *= obj2
+		return obj1
+
 
 @register("floordiv")
 class FloorDiv(Binary):
@@ -2295,6 +1951,11 @@ class FloorDiv(Binary):
 	@classmethod
 	def evalfold(cls, obj1, obj2):
 		return obj1 // obj2
+
+	@classmethod
+	def evalfoldaug(cls, obj1, obj2):
+		obj1 //= obj2
+		return obj1
 
 
 @register("truediv")
@@ -2307,6 +1968,11 @@ class TrueDiv(Binary):
 	def evalfold(cls, obj1, obj2):
 		return obj1 / obj2
 
+	@classmethod
+	def evalfoldaug(cls, obj1, obj2):
+		obj1 /= obj2
+		return obj1
+
 
 @register("mod")
 class Mod(Binary):
@@ -2317,6 +1983,11 @@ class Mod(Binary):
 	@classmethod
 	def evalfold(cls, obj1, obj2):
 		return obj1 % obj2
+
+	@classmethod
+	def evalfoldaug(cls, obj1, obj2):
+		obj1 %= obj2
+		return obj1
 
 
 @register("shiftleft")
@@ -2329,6 +2000,14 @@ class ShiftLeft(Binary):
 	def evalfold(cls, obj1, obj2):
 		return obj1 << obj2 if obj2 >= 0 else obj1 >> -obj2
 
+	@classmethod
+	def evalfoldaug(cls, obj1, obj2):
+		if obj2 >= 0:
+			obj1 <<= obj2
+		else:
+			obj1 >>= -obj2
+		return obj1
+
 
 @register("shiftright")
 class ShiftRight(Binary):
@@ -2339,6 +2018,14 @@ class ShiftRight(Binary):
 	@classmethod
 	def evalfold(cls, obj1, obj2):
 		return obj1 >> obj2 if obj2 >= 0 else obj1 << -obj2
+
+	@classmethod
+	def evalfoldaug(cls, obj1, obj2):
+		if obj2 >= 0:
+			obj1 >>= obj2
+		else:
+			obj1 <<= -obj2
+		return obj1
 
 
 @register("bitand")
@@ -2355,6 +2042,15 @@ class BitAnd(Binary):
 			obj2 = int(obj2)
 		return obj1 & obj2
 
+	@classmethod
+	def evalfoldaug(cls, obj1, obj2):
+		if isinstance(obj1, bool):
+			obj1 = int(obj1)
+		if isinstance(obj2, bool):
+			obj2 = int(obj2)
+		obj1 &= obj2
+		return obj1
+
 
 @register("bitxor")
 class BitXOr(Binary):
@@ -2370,6 +2066,15 @@ class BitXOr(Binary):
 			obj2 = int(obj2)
 		return obj1 ^ obj2
 
+	@classmethod
+	def evalfoldaug(cls, obj1, obj2):
+		if isinstance(obj1, bool):
+			obj1 = int(obj1)
+		if isinstance(obj2, bool):
+			obj2 = int(obj2)
+		obj1 ^= obj2
+		return obj1
+
 
 @register("bitor")
 class BitOr(Binary):
@@ -2384,6 +2089,15 @@ class BitOr(Binary):
 		if isinstance(obj2, bool):
 			obj2 = int(obj2)
 		return obj1 | obj2
+
+	@classmethod
+	def evalfoldaug(cls, obj1, obj2):
+		if isinstance(obj1, bool):
+			obj1 = int(obj1)
+		if isinstance(obj2, bool):
+			obj2 = int(obj2)
+		obj1 |= obj2
+		return obj1
 
 
 @register("and")
@@ -2547,7 +2261,7 @@ class AddVar(ChangeVar):
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evaladdvar(vars, value)
+			yield from lvalue.evalmodifyvar(Add, vars, value)
 
 
 @register("subvar")
@@ -2560,7 +2274,7 @@ class SubVar(ChangeVar):
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalsubvar(vars, value)
+			yield from lvalue.evalmodifyvar(Sub, vars, value)
 
 
 @register("mulvar")
@@ -2573,7 +2287,7 @@ class MulVar(ChangeVar):
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalmulvar(vars, value)
+			yield from lvalue.evalmodifyvar(Mul, vars, value)
 
 
 @register("floordivvar")
@@ -2587,7 +2301,7 @@ class FloorDivVar(ChangeVar):
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalfloordivvar(vars, value)
+			yield from lvalue.evalmodifyvar(FloorDiv, vars, value)
 
 
 @register("truedivvar")
@@ -2600,7 +2314,7 @@ class TrueDivVar(ChangeVar):
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evaltruedivvar(vars, value)
+			yield from lvalue.evalmodifyvar(TrueDiv, vars, value)
 
 
 @register("modvar")
@@ -2613,7 +2327,7 @@ class ModVar(ChangeVar):
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalmodvar(vars, value)
+			yield from lvalue.evalmodidyvar(Mod, vars, value)
 
 
 @register("shiftleftvar")
@@ -2626,7 +2340,7 @@ class ShiftLeftVar(ChangeVar):
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalshiftleftvar(vars, value)
+			yield from lvalue.evalmodifyvar(ShiftLeft, vars, value)
 
 
 @register("shiftrightvar")
@@ -2639,7 +2353,7 @@ class ShiftRightVar(ChangeVar):
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalshiftrightvar(vars, value)
+			yield from lvalue.evalmodifyvar(ShiftRight, vars, value)
 
 
 @register("bitandvar")
@@ -2652,7 +2366,7 @@ class BitAndVar(ChangeVar):
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalbitandvar(vars, value)
+			yield from lvalue.evalmodifyvar(BitAnd, vars, value)
 
 
 @register("bitxorvar")
@@ -2665,7 +2379,7 @@ class BitXOrVar(ChangeVar):
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalbitxorvar(vars, value)
+			yield from lvalue.evalmodifyvar(BitXOr, vars, value)
 
 
 @register("bitorvar")
@@ -2678,7 +2392,7 @@ class BitOrVar(ChangeVar):
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalbitorvar(vars, value)
+			yield from lvalue.evalmodifyvar(BitOr, vars, value)
 
 
 @register("call")
@@ -2767,48 +2481,8 @@ class Call(AST):
 		raise TypeError("can't use = on call result")
 
 	@handleeval
-	def evaladdvar(self, vars, value):
-		raise TypeError("can't use += on call result")
-
-	@handleeval
-	def evalsubvar(self, vars, value):
-		raise TypeError("can't use -= on call result")
-
-	@handleeval
-	def evalmulvar(self, vars, value):
-		raise TypeError("can't use *= on call result")
-
-	@handleeval
-	def evalfloordivvar(self, vars, value):
-		raise TypeError("can't use //= on call result")
-
-	@handleeval
-	def evaltruedivvar(self, vars, value):
-		raise TypeError("can't use /= on call result")
-
-	@handleeval
-	def evalmodvar(self, vars, value):
-		raise TypeError("can't use %= on call result")
-
-	@handleeval
-	def evalshiftleftvar(self, vars, value):
-		raise TypeError("can't use <<= on call result")
-
-	@handleeval
-	def evalshiftrightvar(self, vars, value):
-		raise TypeError("can't use >>= on call result")
-
-	@handleeval
-	def evalbitandvar(self, vars, value):
-		raise TypeError("can't use &= on call result")
-
-	@handleeval
-	def evalbitxorvar(self, vars, value):
-		raise TypeError("can't use ^= on call result")
-
-	@handleeval
-	def evalbitorvar(self, vars, value):
-		raise TypeError("can't use |= on call result")
+	def evalmodifyvar(self, operator, vars, value):
+		raise TypeError("augmented assigment not allowed for call result")
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
