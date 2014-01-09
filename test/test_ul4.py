@@ -396,8 +396,8 @@ all_renderers = dict(
 	python_dump=render_python_dump,
 	js=render_js,
 	# php=render_php,
-	# java_interpreted_by_python=render_java_interpretedtemplate_by_python,
-	# java_interpreted_by_java=render_java_interpretedtemplate_by_java,
+	java_interpreted_by_python=render_java_interpretedtemplate_by_python,
+	java_interpreted_by_java=render_java_interpretedtemplate_by_java,
 )
 
 all_callers = dict(
@@ -406,8 +406,8 @@ all_callers = dict(
 	python_dump=call_python_dump,
 	js=call_js,
 	# php=call_php,
-	# java_interpreted_by_python=call_java_interpretedtemplate_by_python,
-	# java_interpreted_by_java=call_java_interpretedtemplate_by_java,
+	java_interpreted_by_python=call_java_interpretedtemplate_by_python,
+	java_interpreted_by_java=call_java_interpretedtemplate_by_java,
 )
 
 
