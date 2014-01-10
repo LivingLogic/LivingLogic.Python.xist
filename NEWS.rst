@@ -1,3 +1,11 @@
+Changes in 5.5 (released ??/??/2014)
+------------------------------------
+
+*	The bitwise operators ``&``, ``|``, ``^``, ``~``, ``<<`` and ``>>``
+	(and their agumented counterparts ``&=``, ``|=``, ``^=``, ``<<=`` and ``>>=``)
+	have been added to UL4.
+
+
 Changes in 5.4.1 (released 12/18/2013)
 --------------------------------------
 
