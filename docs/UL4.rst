@@ -446,7 +446,11 @@ of bounds are simply clipped:
 *	``<?print "Hello, World!"[:-8]?>`` prints ``Hello``.
 
 The following binary operators are supported: ``+``, ``-``, ``*``, ``/`` (true
-division), ``//`` (truncating division) and ``&`` (modulo).
+division), ``//`` (truncating division), ``%`` (modulo), ``&`` (bitwise and),
+``^`` (bitwise exclusive or), ``|`` (bitwise or), ``<<`` (shifting bits left)
+and ``>>`` (shifting bits right).
+
+The bitwise operators work for integers and booleans and always return integers.
 
 The usual boolean operators ``not``, ``and`` and ``or`` are supported. ``and``
 and ``or`` work like in Python, i.e. they short-circuit, i.e. if their result is
@@ -458,6 +462,9 @@ the ``data.title`` object if it's true, else ``data.id`` will be output::
 
 The comparison operators ``==``, ``!=``, ``<``, ``<=``, ``>`` and ``>=`` are
 supported.
+
+The unary operator ``-`` is supported as well as the bitwise not operator ``~``
+that inverts all bits of an integer (or boolean).
 
 Containment test via the ``in`` operator can be done, in the expression
 ``a in b`` the following type combinations are supported:
