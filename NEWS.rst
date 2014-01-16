@@ -1,6 +1,8 @@
 Changes in 5.5 (released ??/??/2014)
 ------------------------------------
 
+*	If expressions (i.e. ``code if cond else code``) have been added to UL4.
+
 *	The bitwise operators ``&``, ``|``, ``^``, ``~``, ``<<`` and ``>>``
 	(and their agumented assigment counterparts ``&=``, ``|=``, ``^=``, ``<<=``
 	and ``>>=``) have been added to UL4.
