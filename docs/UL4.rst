@@ -478,6 +478,9 @@ Containment test via the ``in`` operator can be done, in the expression
 
 The inverted containment test (via ``not in``) is available too.
 
+If expressions are supported too: ``"foo" if cond else "bar"`` is ``"foo"``, if
+``cond`` is true, else ``"bar"``.
+
 Attribute access in the template code maps to dictionary style getitem access
 in the data object::
 
