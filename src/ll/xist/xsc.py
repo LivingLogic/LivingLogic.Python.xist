@@ -1014,7 +1014,7 @@ class _Node_Meta(type):
 
 class Node(object, metaclass=_Node_Meta):
 	"""
-	base class for nodes in the document tree. Derived classes may
+	Base class for nodes in the document tree. Derived classes may
 	overwrite :meth:`convert` or :meth:`publish`.
 	"""
 
