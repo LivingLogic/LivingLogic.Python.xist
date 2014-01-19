@@ -1489,34 +1489,29 @@ class Attr(AST):
 @register("slice")
 class Slice(AST):
 	"""
-	AST node for getting or setting a slice from a list (or string object).
+	AST node for creating a slice object (used in ``obj[index1:index2]``).
 
-	The object is loaded from the AST node :obj:`obj` and the start and stop
-	indices from the AST node :obj:`index1` and :obj:`index2`. :obj:`index1`
-	and :obj:`index2` may also be :const:`None` (for missing slice indices,
-	which default to the 0 for the start index and the length of the sequence
-	for the end index).
+	The start and stop indices are loaded from  the AST nodes :obj:`index1` and
+	:obj:`index2`. :obj:`index1` and :obj:`index2` may also be :const:`None`
+	(for missing slice indices, which default to the 0 for the start index and
+	the length of the sequence for the end index).
 	"""
 
-	ul4attrs = AST.ul4attrs.union({"obj", "index1", "index2"})
+	ul4attrs = AST.ul4attrs.union({"index1", "index2"})
 
-	def __init__(self, location=None, start=None, end=None, obj=None, index1=None, index2=None):
+	def __init__(self, location=None, start=None, end=None, index1=None, index2=None):
 		super().__init__(location, start, end)
-		self.obj = obj
 		self.index1 = index1
 		self.index2 = index2
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} obj={0.obj!r} index1={0.index1!r} index2={0.index2!r} at {1:#x}>".format(self, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} index1={0.index1!r} index2={0.index2!r} at {1:#x}>".format(self, id(self))
 
 	def _repr_pretty_(self, p, cycle):
 		if cycle:
 			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
 		else:
 			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
-				p.breakable()
-				p.text("obj=")
-				p.pretty(self.obj)
 				p.breakable()
 				p.text("index1=")
 				p.pretty(self.index1)
@@ -1528,39 +1523,21 @@ class Slice(AST):
 
 	@handleeval
 	def eval(self, vars):
-		obj = (yield from self.obj.eval(vars))
 		index1 = None
 		if self.index1 is not None:
 			index1 = (yield from self.index1.eval(vars))
 		index2 = None
 		if self.index2 is not None:
 			index2 = (yield from self.index2.eval(vars))
-		return obj[slice(index1, index2)]
-
-	@handleeval
-	def evalsetvar(self, vars, value):
-		obj = (yield from self.obj.eval(vars))
-		index1 = None
-		if self.index1 is not None:
-			index1 = (yield from self.index1.eval(vars))
-		index2 = None
-		if self.index2 is not None:
-			index2 = (yield from self.index2.eval(vars))
-		obj[slice(index1, index2)] = value
-
-	@handleeval
-	def evalmodifyvar(self, operator, vars, value):
-		raise TypeError("augmented assigment not allowed from slice")
+		return slice(index1, index2)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
-		encoder.dump(self.obj)
 		encoder.dump(self.index1)
 		encoder.dump(self.index2)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
-		self.obj = decoder.load()
 		self.index1 = decoder.load()
 		self.index2 = decoder.load()
 
@@ -1783,8 +1760,7 @@ class Item(Binary):
 		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
 			if "+" + obj2 in obj1.ul4attrs:
 				attr = getattr(obj1, obj2)
-				attr = operator.evalfoldaug(obj1[obj2], value)
-				attr += value
+				attr = operator.evalfoldaug(attr, value)
 				setattr(obj1, obj2, attr)
 			else:
 				raise AttributeError("attribute {!r} is readonly".format(obj2))
@@ -2327,7 +2303,7 @@ class ModVar(ChangeVar):
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalmodidyvar(Mod, vars, value)
+			yield from lvalue.evalmodifyvar(Mod, vars, value)
 
 
 @register("shiftleftvar")

@@ -346,14 +346,32 @@ nestedlvalue returns [lvalue]
 		')'
 	;
 
-/* Function/method call, attribute access, item access, slice access */
-expr_subscript returns [node]
+/* Slice/item expression */
+index returns [node]
 	@init
 	{
 		index1 = None
 		index2 = None
+		endpos = None
 		slice = False
 	}
+	:
+		colon=':' { endpos = self.end($colon); }
+		(
+			e2=expr_if { index2 = $e2.node; endpos = $e2.node.end; }
+		)? { $node = ul4c.Slice(self.location, self.start($colon), endpos, None, index2) }
+	|
+		e2=expr_if { index1 = $e2.node; endpos = $e2.node.end; }
+		(
+			colon=':' { slice = True; endpos = self.end($colon); }
+			(
+				e3=expr_if { index2 = $e3.node; endpos = $e3.node.end; }
+			)?
+		)? { $node = ul4c.Slice(self.location, $e2.node.start, endpos, index1, index2) if slice else $e2.node }
+	;
+
+/* Function/method call, attribute access, item access, slice access */
+expr_subscript returns [node]
 	:
 		e1=atom { $node = $e1.node; }
 		(
@@ -418,20 +436,7 @@ expr_subscript returns [node]
 		|
 			/* Item/slice access */
 			'['
-			(
-				':'
-				(
-					e2=expr_if { index2 = $e2.node; }
-				)? { $node = ul4c.Slice(self.location, $node.start, None, $node, None, index2) }
-			|
-				e2=expr_if { index1 = $e2.node; }
-				(
-					':' { slice = True; }
-					(
-						e3=expr_if { index2 = $e3.node; }
-					)?
-				)? { $node = ul4c.Slice(self.location, $node.start, None, $node, index1, index2) if slice else ul4c.Item(self.location, $e1.node.start, None, $node, index1) }
-			)
+			e2=index { $node = ul4c.Item(self.location, $e1.node.start, None, $node, $e2.node) }
 			close=']' { $node.end = self.end($close) }
 		)*
 	;
