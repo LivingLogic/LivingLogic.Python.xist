@@ -7,6 +7,8 @@ Changes in 5.5 (released ??/??/2014)
 	(and their agumented assigment counterparts ``&=``, ``|=``, ``^=``, ``<<=``
 	and ``>>=``) have been added to UL4.
 
+* UL4ON now supports ``slice`` objects.
+
 
 Changes in 5.4.1 (released 12/18/2013)
 --------------------------------------

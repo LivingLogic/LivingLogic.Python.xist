@@ -193,6 +193,9 @@ class Encoder:
 				self._record(obj)
 				self.stream.write("S{}|".format(len(obj)))
 				self.stream.write(obj)
+			elif isinstance(obj, slice):
+				self._record(obj)
+				self.stream.write("R{}|{}|".format(obj.start if obj.start is not None else "", obj.stop if obj.stop is not None else ""))
 			elif isinstance(obj, color.Color):
 				self._record(obj)
 				self.stream.write("C{:02x}{:02x}{:02x}{:02x}".format(obj.r(), obj.g(), obj.b(), obj.a()))
@@ -247,7 +250,8 @@ class Decoder:
 		while True:
 			c = self.stream.read(1)
 			if c == "|":
-				return int("".join(buffer))
+				s = "".join(buffer)
+				return int(s) if s else None
 			else:
 				buffer.append(c)
 
@@ -312,6 +316,13 @@ class Decoder:
 			data = self.stream.read(20)
 			value = datetime.datetime(*map(int, misc.itersplitat(data, (4, 6, 8, 10, 12, 14))))
 			if typecode == "Z":
+				self._loading(value)
+			return value
+		elif typecode in "rR":
+			start = self._readint()
+			stop = self._readint()
+			value = slice(start, stop)
+			if typecode == "R":
 				self._loading(value)
 			return value
 		elif typecode in "tT":
