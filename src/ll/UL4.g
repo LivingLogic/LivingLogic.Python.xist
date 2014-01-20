@@ -346,28 +346,27 @@ nestedlvalue returns [lvalue]
 		')'
 	;
 
-/* Slice/item expression */
-index returns [node]
+/* Slice expression */
+slice returns [node]
 	@init
 	{
 		index1 = None
 		index2 = None
+		startpos = None
 		endpos = None
-		slice = False
 	}
 	:
-		colon=':' { endpos = self.end($colon); }
+		(
+			e1=expr_if { index1 = $e1.node; startpos = $e1.node.start; }
+		)?
+		colon=':' {
+			if startpos is None:
+				startpos = self.start($colon)
+			endpos = self.end($colon)
+		}
 		(
 			e2=expr_if { index2 = $e2.node; endpos = $e2.node.end; }
-		)? { $node = ul4c.Slice(self.location, self.start($colon), endpos, None, index2) }
-	|
-		e2=expr_if { index1 = $e2.node; endpos = $e2.node.end; }
-		(
-			colon=':' { slice = True; endpos = self.end($colon); }
-			(
-				e3=expr_if { index2 = $e3.node; endpos = $e3.node.end; }
-			)?
-		)? { $node = ul4c.Slice(self.location, $e2.node.start, endpos, index1, index2) if slice else $e2.node }
+		)? { $node = ul4c.Slice(self.location, startpos, endpos, index1, index2) }
 	;
 
 /* Function/method call, attribute access, item access, slice access */
@@ -434,10 +433,15 @@ expr_subscript returns [node]
 			)
 			close=')' { $node.end = self.end($close) }
 		|
-			/* Item/slice access */
+			/* Item access */
 			'['
-			e2=index { $node = ul4c.Item(self.location, $e1.node.start, None, $node, $e2.node) }
-			close=']' { $node.end = self.end($close) }
+				e2=expr_if
+			close=']' { $node = ul4c.Item(self.location, $e1.node.start, self.end($close), $node, $e2.node) }
+		|
+			/* Slice access */
+			'['
+				e2=slice
+			close=']' { $node = ul4c.Item(self.location, $e1.node.start, self.end($close), $node, $e2.node) }
 		)*
 	;
 
