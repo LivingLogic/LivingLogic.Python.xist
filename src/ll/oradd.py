@@ -44,7 +44,8 @@ The content of the generated file ``data.oradd`` will look like this::
 	{'type': 'file', 'name': 'protrait_{max}.png', 'content': b'\x89PNG\r\n\x1a\n...'}
 	{'type': 'resetsequence', 'sequence': 'person_seq', 'table': 'person', 'field': 'per_id'}
 
-i.e. it's just one Python ``repr`` of a dictionary per line.
+i.e. it's just one Python ``repr`` of a dictionary per line. So instead of using
+the API mentioned above you can generate the output directly.
 
 This file can then be imported into an Oracle database with the following
 command::
