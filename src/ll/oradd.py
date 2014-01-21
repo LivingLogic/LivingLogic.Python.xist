@@ -25,16 +25,16 @@ Creating an ``oradd`` file can be done like this::
 			f,
 			"person_insert",
 			per_id=per_id,
-			per_firstname=u"Max",
-			per_lastname=u"Mustermann"
+			per_firstname="Max",
+			per_lastname="Mustermann"
 		)
 		oradd.dump_oradd(
 			f,
 			"contact_insert",
 			con_id=oradd.Key(),
 			per_id=per_id,
-			con_type=u"email",
-			con_value=u"max@example.org"
+			con_type="email",
+			con_value="max@example.org"
 		)
 
 The content of the generated file ``data.oradd`` will look like this::
