@@ -104,7 +104,7 @@ The keys in this dictionary have the following meaning:
 		The name of the procedure to be called or the name of the file to be
 		created. In the case of a filename the filename may contain ``format()``
 		style specifications containing any key that appeared in the
-		``"procedure"`` record. These specifiers will be replaced be the correct
+		``"procedure"`` record. These specifiers will be replaced by the correct
 		key values. These files will be copied via ``ssh``, so ssh file names can
 		be used.
 
