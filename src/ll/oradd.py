@@ -411,12 +411,12 @@ def importrecord(record, cursor, allkeys):
 	return newkeys
 
 
-def copyfile(name, content, allkeys):
+def copyfile(name, content, allkeys, directory):
 	with tempfile.NamedTemporaryFile(delete=False) as f:
 		f.write(content)
 		tempname = f.name
 	try:
-		name = name.format(**allkeys)
+		name = directory + name.format(**allkeys)
 		return subprocess.call(["scp", "-q", tempname, name])
 	finally:
 		os.remove(tempname)
@@ -441,6 +441,7 @@ def main(args=None):
 	p.add_argument("-f", "--format", dest="format", help="Format of the dumpfile ('oradd' or 'ul4on') (default %(default)s)", default="oradd", choices=("oradd", "ul4on"))
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", type=int, default=2, choices=(0, 1, 2, 3))
 	p.add_argument("-c", "--commit", dest="commit", help="When should database transactions be committed? (default %(default)s)", default="once", choices=("record", "once", "never"))
+	p.add_argument("-d", "--directory", dest="directory", metavar="DIR", help="Base directory for files to be copied via scp (default current directory)", default="")
 
 	args = p.parse_args(args)
 
@@ -480,7 +481,7 @@ def main(args=None):
 				sys.stdout.flush()
 				counts[record["name"]] += 1
 			elif type == "file":
-				copyfile(record["name"], record["content"], allkeys)
+				copyfile(record["name"], record["content"], allkeys, args.directory)
 				if args.verbose >= 3:
 					sys.stdout.write(" -> {} bytes written\n".format(len(record["content"])))
 					sys.stdout.flush()

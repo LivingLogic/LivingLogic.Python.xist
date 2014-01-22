@@ -7,7 +7,10 @@ Changes in 5.5 (released ??/??/2014)
 	(and their agumented assigment counterparts ``&=``, ``|=``, ``^=``, ``<<=``
 	and ``>>=``) have been added to UL4.
 
-* UL4ON now supports ``slice`` objects.
+*	UL4ON now supports ``slice`` objects.
+
+*	The ``oradd`` script has a new option :option:`-d`/:option:`--directory`
+	that is the base directory for file copy actions.
 
 
 Changes in 5.4.1 (released 12/18/2013)
