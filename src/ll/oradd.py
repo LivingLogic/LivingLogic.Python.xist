@@ -363,9 +363,8 @@ def _formatcall(record, allkeys):
 
 def importrecord(record, cursor, allkeys):
 	"""
-	Import the data ``data`` produced by :func:`loads_oradd`, :func:`load_oradd`,
-	:func:`loads_ulon` or :func:`load_ul4on` into the database. ``cursor`` must
-	be a :mod:`cx_Oracle` cursor.
+	Import the ``procedure`` record into the database. ``cursor`` must be a
+	:mod:`cx_Oracle` cursor.
 	"""
 	name = record["name"]
 	args = record["args"]
