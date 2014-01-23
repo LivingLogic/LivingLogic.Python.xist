@@ -12,6 +12,8 @@ Changes in 5.5 (released ??/??/2014)
 *	The ``oradd`` script has a new option :option:`-d`/:option:`--directory`
 	that is the base directory for file copy actions.
 
+*	``oradd`` now supports executing SQL directly.
+
 
 Changes in 5.4.1 (released 12/18/2013)
 --------------------------------------
