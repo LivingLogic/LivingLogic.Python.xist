@@ -2,15 +2,13 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3
 
-## Copyright 1999-2013 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2013 by Walter Dörwald
+## Copyright 1999-2014 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2014 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
 ## See ll/xist/__init__.py for the license
 
-
-import pytest
 
 from ll.xist import xsc
 from ll.xist.ns import html, php, chars, abbr
