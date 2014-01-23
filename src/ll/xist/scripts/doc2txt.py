@@ -13,7 +13,7 @@
 """
 ``doc2txt`` is a script that converts an XML files using XIST doc vocabulary
 (i.e. the :mod:`ll.xist.ns.doc` namespace module) into plain text (by using
-:func:`ll.xist.ns.html.astext`.
+:func:`ll.xist.ns.html.astext`).
 
 ``doc2txt`` supports the following options:
 
