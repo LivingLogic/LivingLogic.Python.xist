@@ -1,4 +1,4 @@
-Changes in 5.5 (released ??/??/2014)
+Changes in 5.5 (released 01/23/2014)
 ------------------------------------
 
 *	If expressions (i.e. ``code if cond else code``) have been added to UL4.
