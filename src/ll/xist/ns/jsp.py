@@ -179,6 +179,6 @@ def fromul4(template, variables="variables", indent=0):
 
 	The code produced requires the `UL4 Java package`__.
 
-	__ http://hg.livinglogic.de/LivingLogic.Java.ul4
+	__ https://github.com/LivingLogic/LivingLogic.Java.ul4
 	"""
 	return scriptlet(template.javasource(variables=variables, indent=indent))

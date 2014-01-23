@@ -19,9 +19,9 @@ input/output instead of bytes and with an eye towards cross-plattform support).
 There are implementations for Python (this module), Java_, Javascript_ and
 PHP_ (as part of the UL4 packages for those languages).
 
-.. _Java: http://hg.livinglogic.de/LivingLogic.Java.ul4/
-.. _Javascript: http://hg.livinglogic.de/LivingLogic.Javascript.ul4/
-.. _PHP: http://hg.livinglogic.de/LivingLogic.PHP.ul4/
+.. _Java: https://github.com/LivingLogic/LivingLogic.Java.ul4
+.. _Javascript: https://github.com/LivingLogic/LivingLogic.Javascript.ul4
+.. _PHP: https://github.com/LivingLogic/LivingLogic.PHP.ul4
 
 Basic usage follows the API design of :mod:`pickle`, :mod:`json`, etc. and
 supports most builtin Python types::

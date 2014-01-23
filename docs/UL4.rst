@@ -8,11 +8,11 @@ possible to implement renderers for these templates in multiple programming
 languages.
 
 Apart from this Python implementation there are implementations for Java_ (both
-a compiler and renderer), Javascript_ (renderer only) and PHP_ (renderer only).
+a compiler and renderer), Javascript_ (renderer only) and PHP (renderer only).
 
-.. _Java: http://hg.livinglogic.de/LivingLogic.Java.ul4/
-.. _Javascript: http://hg.livinglogic.de/LivingLogic.Javascript.ul4/
-.. _PHP: http://hg.livinglogic.de/LivingLogic.PHP.ul4/
+.. _Java: https://github.com/LivingLogic/LivingLogic.Java.ul4
+.. _Javascript: https://github.com/LivingLogic/LivingLogic.Javascript.ul4
+.. _PHP: https://github.com/LivingLogic/LivingLogic.PHP.ul4
 
 
 Embedding

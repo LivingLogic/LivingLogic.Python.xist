@@ -113,10 +113,9 @@ XIST is available via FTP_, HTTP_ or from the Cheeseshop_.
 Source
 ------
 
-Sourcecode is available in a `Mercurial repository`_ or via BitBucket_.
+Sourcecode is available on GitHub_.
 
-.. _Mercurial repository: http://hg.livinglogic.de/LivingLogic.Python.xist/
-.. _BitBucket: https://bitbucket.org/doerwalter/livinglogic.python.xist
+.. _GitHub: https://github.com/LivingLogic/LivingLogic.Python.xist
 
 
 Mailing lists
