@@ -68,7 +68,7 @@ def main(args=None):
 		node = node.pretty()
 		print(node.string(encoding=sys.stdout.encoding))
 
-	p = argparse.ArgumentParser(description="pretty print HTML files", epilog="For more info see http://www.livinglogic.de/Python/scripts/uhpp.html")
+	p = argparse.ArgumentParser(description="pretty print HTML files", epilog="For more info see http://www.livinglogic.de/Python/xist/scripts/uhpp.html")
 	p.add_argument("urls", metavar="url", help="URLs to be pretty printed", nargs="*", type=url.URL)
 	p.add_argument("-v", "--verbose", dest="verbose", help="Ouput parse warnings?", action=misc.FlagAction, default=False)
 	p.add_argument("-c", "--compact", dest="compact", help="Compact HTML before pretty printing (default: %(default)s)", action=misc.FlagAction, default=False)
