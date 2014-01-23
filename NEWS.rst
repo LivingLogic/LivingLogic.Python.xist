@@ -14,7 +14,7 @@ Changes in 5.5 (released 01/23/2014)
 
 *	``oradd`` now supports executing SQL directly.
 
-*	The project repository is hosted at GitHub_ now.
+*	The project repository is hosted on GitHub_ now.
 
 .. _GitHub: https://github.com/LivingLogic/LivingLogic.Python.xist
 
