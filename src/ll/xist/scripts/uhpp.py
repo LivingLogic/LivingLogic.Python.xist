@@ -50,7 +50,7 @@ Pretty print a remote HTML file::
 """
 
 
-import sys, re, argparse, contextlib, errno
+import sys, argparse
 
 from ll import misc, url
 from ll.xist import xsc, parse
