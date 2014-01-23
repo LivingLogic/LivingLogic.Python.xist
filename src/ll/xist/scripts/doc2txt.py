@@ -25,9 +25,6 @@
 
 The input is read from stdin and printed to stdout.
 
-Note that ``doc2txt`` needs an installed elinks_ browser.
-
-	.. _elinks: http://elinks.or.cz/
 
 Example
 -------
