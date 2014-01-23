@@ -62,7 +62,7 @@ __docformat__ = "reStructuredText"
 def main(args=None):
 	def printone(u):
 		source = parse.URL(u) if isinstance(u, url.URL) else parse.Stream(u)
-		node = parse.tree(source, parse.Tidy(skipbad=True), parse.NS(html), parse.Node(base="", pool=xsc.Pool(html, xml)))
+		node = parse.tree(source, parse.Tidy(), parse.NS(html), parse.Node(base="", pool=xsc.Pool(html, xml)))
 		if args.compact:
 			node = node.normalized().compacted()
 		node = node.pretty()
