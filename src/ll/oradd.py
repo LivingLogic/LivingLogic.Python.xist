@@ -10,47 +10,68 @@
 
 r"""
 :mod:`oradd` can be used to import data into an Oracle database. The data is
-imported by calling stored procedures.
+imported executing various "oradd commands" (like "execute a procedure",
+"copy a file" etc.) that as specified in the ``oradd`` file.
 
 Basic usage
 -----------
 
 Creating an ``oradd`` file can be done like this::
 
-	from ll import oradd
-
 	with open("data.oradd", "w", encoding="utf-8") as f:
-		per_id = oradd.Key()
-		oradd.dump_oradd(
-			f,
-			"person_insert",
-			per_id=per_id,
-			per_firstname="Max",
-			per_lastname="Mustermann"
+		data = dict(
+			type="procedure",
+			name="person_insert",
+			keys=["per_id"],
+			args=dict(
+				per_id="per_id_max",
+				per_firstname="Max",
+				per_lastname="Mustermann",
+			),
 		)
-		oradd.dump_oradd(
-			f,
-			"contact_insert",
-			con_id=oradd.Key(),
-			per_id=per_id,
-			con_type="email",
-			con_value="max@example.org"
+		print(repr(data), file=f)
+
+		data = dict(
+			type="procedure",
+			name="contact_insert",
+			keys=["per_id", "con_id"],
+			args=dict(
+				con_id="con_id_max",
+				per_id="per_id_max",
+				con_type="email",
+				con_value="max@example.org",
+			),
 		)
+		print(repr(data), file=f)
 
-The content of the generated file ``data.oradd`` will look like this::
+		data = dict(
+			type="file",
+			name="portrait_{per_id_max}.png",
+			content=open("max.png", "rb".read()),
+		)
+		print(repr(data), file=f)
 
-	{'name': 'person_insert', 'keys': ['per_id'], 'args': {'per_id': 'max', 'per_firstname': 'Max', 'per_lastname': 'Mustermann'}}
-	{'name': 'contact_insert', 'keys': ['per_id', 'con_id'], 'args': {'per_id': 'max', 'con_id': 'max_mail', 'con_type': 'email', 'con_value': 'max@example.org'}}
-	{'type': 'file', 'name': 'protrait_{max}.png', 'content': b'\x89PNG\r\n\x1a\n...'}
+		data = dict(
+			type="resetsequence",
+			sequence="person_seq",
+			table="person",
+			field="per_id",
+		)
+		print(repr(data), file=f)
+
+So the content of the generated file ``data.oradd`` will look like this::
+
+	{'name': 'person_insert', 'keys': ['per_id'], 'args': {'per_id': 'per_id_max', 'per_firstname': 'Max', 'per_lastname': 'Mustermann'}}
+	{'name': 'contact_insert', 'keys': ['per_id', 'con_id'], 'args': {'per_id': 'per_id_max', 'con_id': 'con_id_max', 'con_type': 'email', 'con_value': 'max@example.org'}}
+	{'type': 'file', 'name': 'portrait_{per_id_max}.png', 'content': b'\x89PNG\r\n\x1a\n...'}
 	{'type': 'resetsequence', 'sequence': 'person_seq', 'table': 'person', 'field': 'per_id'}
 
-i.e. it's just one Python ``repr`` of a dictionary per line. So instead of using
-the API mentioned above you can generate the output directly.
+i.e. it's just one Python ``repr`` of a dictionary per line.
 
 This file can then be imported into an Oracle database with the following
 command::
 
-	python oradd.py <data.pydd user/pwd@database
+	python oradd.py user/pwd@database data.pydd
 
 This will import two records, one by calling ``person_insert`` and one by
 calling ``contact_insert``. The PL/SQL equivalent of the above is::
@@ -72,20 +93,22 @@ calling ``contact_insert``. The PL/SQL equivalent of the above is::
 		)
 	end;
 
-Furthermore it will copy one file and reset the sequence ``person_seq``.
+Furthermore it will create one file (named something like ``portrait_42.png``)
+and reset the sequence ``person_seq`` to the maximum value of the field
+``per_id`` in the table ``person``.
 
 
 Data format
 -----------
 
-An oradd file (in its native format) contains one line for each procedure call.
-Each line is the ``repr`` output of a Python dictionary. For example (pretty
-printed for display purposes, the original format is on one line)::
+An oradd file contains one line for each "oradd command". Each line is the
+``repr`` output of a Python dictionary. For example (pretty printed for display
+purposes, the original format is on one line)::
 
 	{
 		'name': 'person_insert',
 		'args': {
-			'per_id': 'max',
+			'per_id': 'per_id_max',
 			'per_firstname': 'Max',
 			'per_lastname': 'Mustermann',
 			'per_created': 'sysdate'
@@ -94,21 +117,16 @@ printed for display purposes, the original format is on one line)::
 		'sqls': ['per_created'],
 	}
 
-The keys in this dictionary have the following meaning:
+The keys in the dictionary have the following meaning:
 
 	``type`` : string (optional)
-		This is either ``"procedure"`` (the default), ``"file"`` or
+		This is either ``"procedure"`` (the default), ``"sql"``, ``"file"`` or
 		``"resetsequence"``.
 
-	``name`` : string (required)
-		The name of the procedure to be called or the name of the file to be
-		created. In the case of a filename the filename may contain ``format()``
-		style specifications containing any key that appeared in the
-		``"procedure"`` record. These specifiers will be replaced by the correct
-		key values. These files will be copied via ``ssh``, so ssh file names can
-		be used.
-
 For type ``"procedure"`` the following additional keys are used:
+
+	``name`` : string (required)
+		The name of the procedure to be called.
 
 	``args`` : dictionary (required)
 		A dictionary with the names of the parameters as keys and the parameter
@@ -132,12 +150,41 @@ For type ``"procedure"`` the following additional keys are used:
 		The ``sqls`` key is optional, without it no parameter will be treated as
 		an SQL expression.
 
-For type ``"file"`` the following additional key is used:
+For type ``"sql"`` the following additional keys are used:
+
+	``sql`` : string (required)
+		The SQL to be executed. This may contain parameters in the form
+		``:paramname``. The values for those parameters will be taken from
+		``args``.
+
+	``args`` : dictionary (required)
+		A dictionary with the names of the parameters as keys and the parameter
+		values as values.
+
+	``keys`` : list (optional)
+		A list of parameter names that should be treated as keys. The value of the
+		parameter is an integer or string identifer that is unique for each use of
+		the key. On first use the parameter is used as an ``OUT`` parameter where
+		the procedure will store the value of this key. On subsequent uses of this
+		key (i.e. a key that has the same identifier) oradd will pass the value
+		from the first use as a normal ``IN`` parameter. The ``keys`` key is
+		optional, without it no parameter will be treated as a key. ``keys`` may
+		also be a dictionary, with the identifiers as the keys and values the names
+		of Python types. This can be used for out parameters that are not integers.
+
+For type ``"file"`` the following additional keys are used:
+
+	``name`` : string (required)
+		The name of the file to be created. It may contain ``format()`` style
+		specifications containing any key that appeared in a ``"procedure"`` or
+		``"sql"`` record. These specifiers will be replaced by the correct
+		key values. These files will be copied via ``ssh``, so ssh file names can
+		be used.
 
 	``content``: bytes (required)
 		The content of the file to be created.
 
-For type ``"resetsequence"`` the following additional key is used:
+For type ``"resetsequence"`` the following additional keys are used:
 
 	``sequence``: string (required)
 		The name of the sequence to reset. The sequence will be reset to the
@@ -197,7 +244,7 @@ it supports the following command line options:
 """
 
 # We're importing ``datetime``, so that it's available to ``eval()``
-import sys, os, io, argparse, operator, collections, contextlib, datetime, tempfile, subprocess
+import sys, os, io, argparse, operator, collections, datetime, tempfile, subprocess
 
 import cx_Oracle
 
@@ -300,7 +347,8 @@ def loads_oradd(string):
 	This function is a generator. It's output can be passed to :func:`importdata`.
 	"""
 	for line in string.splitlines():
-		yield eval(line)
+		if line != "\n":
+			yield eval(line)
 
 
 def load_oradd(stream):
@@ -310,7 +358,8 @@ def load_oradd(stream):
 	This function is a generator. It's output can be passed to :func:`importdata`.
 	"""
 	for line in stream:
-		yield eval(line)
+		if line != "\n":
+			yield eval(line)
 
 
 def loads_ul4on(string):
@@ -342,7 +391,7 @@ def load_ul4on(stream):
 			break
 
 
-def _formatcall(record, allkeys):
+def _formatprocedurecall(record, allkeys):
 	args = []
 	keys = set(record.get("keys", []))
 	sqls = set(record.get("sqls", []))
@@ -361,10 +410,57 @@ def _formatcall(record, allkeys):
 	return "{}({})".format(record["name"], ", ".join(args))
 
 
+def _formatsql(record, allkeys):
+	args = []
+	keys = set(record.get("keys", []))
+	sqls = set(record.get("sqls", []))
+	for (argname, argvalue) in record["args"].items():
+		if argname in keys:
+			if argvalue is None:
+				args.append("{}=None".format(argname))
+			elif argvalue in allkeys:
+				args.append("{}={}=<{}>".format(argname, allkeys[argvalue], argvalue))
+			else:
+				args.append("{}=<{}>".format(argname, argvalue))
+		elif argname in sqls:
+			args.append("{}={}".format(argname, argvalue))
+		else:
+			args.append("{}={!r}".format(argname, argvalue))
+	return "{!r} with args {}".format(record["sql"], ", ".join(args))
+
+
+def _executesql(sql, args, keys, sqls, cursor, allkeys):
+	queryargvars = {}
+	for (argname, argvalue) in args.items():
+		if argname in keys:
+			if argvalue is None:
+				queryargvars[argname] = None
+			elif argvalue in allkeys:
+				queryargvars[argname] = allkeys[argvalue]
+			else:
+				queryargvars[argname] = cursor.var(keys[argname])
+		elif argname in sqls:
+			pass # no value
+		elif isinstance(argvalue, str) and len(argvalue) >= 4000:
+			var = cursor.var(cx_Oracle.CLOB)
+			var.setvalue(0, argvalue)
+			queryargvars[argname] = var
+		else:
+			queryargvars[argname] = argvalue
+
+	cursor.execute(sql, queryargvars)
+
+	newkeys = {}
+	for (argname, argvalue) in args.items():
+		if argname in keys and argvalue is not None and argvalue not in allkeys:
+			newkeys[argname] = allkeys[argvalue] = queryargvars[argname].getvalue(0)
+	return newkeys
+
+
 def importrecord(record, cursor, allkeys):
 	"""
-	Import the ``procedure`` record into the database. ``cursor`` must be a
-	:mod:`cx_Oracle` cursor.
+	Import the ``procedure`` record :var:`record` into the database. ``cursor``
+	must be a :mod:`cx_Oracle` cursor.
 	"""
 	name = record["name"]
 	args = record["args"]
@@ -378,36 +474,19 @@ def importrecord(record, cursor, allkeys):
 		keys = {}
 	sqls = set(record.get("sqls", []))
 	queryargvalues = {}
-	queryargvars = {}
 	for (argname, argvalue) in args.items():
 		if argname in keys:
 			queryargvalues[argname] = ":{}".format(argname)
-			if argvalue is None:
-				queryargvars[argname] = None
-			elif argvalue in allkeys:
-				queryargvars[argname] = allkeys[argvalue]
-			else:
-				queryargvars[argname] = cursor.var(keys[argname])
 		elif argname in sqls:
 			queryargvalues[argname] = argvalue
 			# no value
 		elif isinstance(argvalue, str) and len(argvalue) >= 4000:
 			queryargvalues[argname] = ":{}".format(argname)
-			var = cursor.var(cx_Oracle.CLOB)
-			var.setvalue(0, argvalue)
-			queryargvars[argname] = var
 		else:
 			queryargvalues[argname] = ":{}".format(argname)
-			queryargvars[argname] = argvalue
 
-	query = "begin {}({}); end;".format(name, ", ".join("{}=>{}".format(*argitem) for argitem in queryargvalues.items()))
-	cursor.execute(query, queryargvars)
-
-	newkeys = {}
-	for (argname, argvalue) in args.items():
-		if argname in keys and argvalue is not None and argvalue not in allkeys:
-			newkeys[argname] = allkeys[argvalue] = queryargvars[argname].getvalue(0)
-	return newkeys
+	sql = "begin {}({}); end;".format(name, ", ".join("{}=>{}".format(*argitem) for argitem in queryargvalues.items()))
+	return _executesql(sql, args, keys, sqls, cursor, allkeys)
 
 
 def copyfile(name, content, allkeys, directory):
@@ -433,6 +512,25 @@ def resetsequence(cursor, sequence, table, field, minvalue, increment):
 	return seqvalue
 
 
+def importsql(record, cursor, allkeys):
+	"""
+	Execute the SQL from the ``sql`` record :var:`record`. ``cursor`` must
+	be a :mod:`cx_Oracle` cursor.
+	"""
+	sql = record["sql"]
+	args = record.get("args", {})
+	if "keys" in record:
+		keys = record["keys"]
+		if isinstance(keys, list):
+			keys = dict.fromkeys(keys, int)
+		else:
+			keys = {key: eval(value) for (key, value) in keys.items()}
+	else:
+		keys = {}
+	sqls = set(record.get("sqls", []))
+	return _executesql(sql, args, keys, sqls, cursor, allkeys)
+
+
 def main(args=None):
 	p = argparse.ArgumentParser(description="Import an oradd dump to an Oracle database", epilog="For more info see http://www.livinglogic.de/Python/oradd/index.html")
 	p.add_argument("connectstring", help="Oracle connect string")
@@ -451,6 +549,7 @@ def main(args=None):
 		counts = collections.Counter()
 		countfiles = 0
 		countsequences = 0
+		countsqls = 0
 		loader = dict(oradd=load_oradd, ul4on=load_ul4on)[args.format]
 		cursor = db.cursor()
 		for (i, record) in enumerate(loader(args.file), 1):
@@ -458,7 +557,9 @@ def main(args=None):
 			if args.verbose >= 1:
 				if args.verbose >= 3:
 					if type == "procedure":
-						sys.stdout.write("#{}: procedure {}".format(i, _formatcall(record, allkeys)))
+						sys.stdout.write("#{}: procedure {}".format(i, _formatprocedurecall(record, allkeys)))
+					elif type == "sql":
+						sys.stdout.write("#{}: sql {}".format(i, _formatsql(record, allkeys)))
 					elif type == "file":
 						sys.stdout.write("#{}: file {}".format(i, record["name"].format(**allkeys)))
 					elif type == "resetsequence":
@@ -479,6 +580,17 @@ def main(args=None):
 						sys.stdout.write("\n")
 				sys.stdout.flush()
 				counts[record["name"]] += 1
+			elif type == "sql":
+				newkeys = importsql(record, cursor, allkeys)
+				if args.commit == "record":
+					db.commit()
+				if args.verbose >= 3:
+					if newkeys:
+						sys.stdout.write(" -> {}\n".format(", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in newkeys.items())))
+					else:
+						sys.stdout.write("\n")
+				sys.stdout.flush()
+				countsqls += 1
 			elif type == "file":
 				copyfile(record["name"], record["content"], allkeys, args.directory)
 				if args.verbose >= 3:
@@ -501,19 +613,24 @@ def main(args=None):
 
 	if args.verbose >= 2:
 		totalcount = sum(counts.values())
-		l1 = len(str(max(totalcount, countfiles, countsequences)))
+		l1 = len(str(max(totalcount, countfiles, countsequences, countsqls)))
 		l2 = max(len(procname) for procname in counts) if counts else 0
 		print()
 		print("Summary")
-		print("="*(l1+1+l2))
-		print("{:>{}} procedure".format("#", l1))
-		print("{} {}".format("-"*l1, "-"*l2))
-		for (procname, count) in sorted(counts.items(), key=operator.itemgetter(1)):
-			print("{:>{}} {}".format(count, l1, procname))
-		print("{} {}".format("-"*l1, "-"*l2))
-		print("{:>{}} (total calls)".format(totalcount, l1))
-		print("{:>{}} (files)".format(countfiles, l1))
-		print("{:>{}} (sequences)".format(countsequences, l1))
+		print("=======")
+		if totalcount:
+			print("{:>{}} procedure".format("#", l1))
+			print("{} {}".format("-"*l1, "-"*l2))
+			for (procname, count) in sorted(counts.items(), key=operator.itemgetter(1)):
+				print("{:>{}} {}".format(count, l1, procname))
+			print("{} {}".format("-"*l1, "-"*l2))
+			print("{:>{}} (total calls)".format(totalcount, l1))
+		if countfiles:
+			print("{:>{}} (files)".format(countfiles, l1))
+		if countsequences:
+			print("{:>{}} (sequences)".format(countsequences, l1))
+		if countsqls:
+			print("{:>{}} (sqls)".format(countsqls, l1))
 
 
 if __name__ == "__main__":
