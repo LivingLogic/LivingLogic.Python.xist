@@ -398,7 +398,7 @@ def _formatargs(record, allkeys):
 	args = []
 	for (argname, argvalue) in record["args"].items():
 		if isinstance(argvalue, var) and argvalue.key in allkeys:
-			arg = "{}={!r}={!r}".format(argname, argvalue, allkeys[argvalue.key]))
+			arg = "{}={!r}={!r}".format(argname, argvalue, allkeys[argvalue.key])
 		else:
 			arg = "{}={!r}".format(argname, argvalue)
 		args.append(arg)
@@ -406,11 +406,11 @@ def _formatargs(record, allkeys):
 
 
 def _formatprocedurecall(record, allkeys):
-	return "{}({})".format(record["name"], _formatargs(record, allkeys)
+	return "{}({})".format(record["name"], _formatargs(record, allkeys))
 
 
 def _formatsql(record, allkeys):
-	return "{!r} with args {}".format(record["sql"], _formatargs(record, allkeys)
+	return "{!r} with args {}".format(record["sql"], _formatargs(record, allkeys))
 
 
 def _executesql(query, args, cursor, allkeys):
