@@ -18,13 +18,14 @@ Basic usage
 
 Creating an ``oradd`` file can be done like this::
 
+	from ll import oradd
+
 	with open("data.oradd", "w", encoding="utf-8") as f:
 		data = dict(
 			type="procedure",
 			name="person_insert",
-			keys=["per_id"],
 			args=dict(
-				per_id="per_id_max",
+				per_id=oradd.var("per_id_max"),
 				per_firstname="Max",
 				per_lastname="Mustermann",
 			),
@@ -34,10 +35,9 @@ Creating an ``oradd`` file can be done like this::
 		data = dict(
 			type="procedure",
 			name="contact_insert",
-			keys=["per_id", "con_id"],
 			args=dict(
-				con_id="con_id_max",
-				per_id="per_id_max",
+				con_id=oradd.var("con_id_max"),
+				per_id=oradd.var("per_id_max"),
 				con_type="email",
 				con_value="max@example.org",
 			),
@@ -59,10 +59,10 @@ Creating an ``oradd`` file can be done like this::
 		)
 		print(repr(data), file=f)
 
-So the content of the generated file ``data.oradd`` will look like this::
+The content of the generated file ``data.oradd`` will look like this::
 
-	{'name': 'person_insert', 'keys': ['per_id'], 'args': {'per_id': 'per_id_max', 'per_firstname': 'Max', 'per_lastname': 'Mustermann'}}
-	{'name': 'contact_insert', 'keys': ['per_id', 'con_id'], 'args': {'per_id': 'per_id_max', 'con_id': 'con_id_max', 'con_type': 'email', 'con_value': 'max@example.org'}}
+	{'name': 'person_insert', 'args': {'per_id': var('per_id_max'), 'per_firstname': 'Max', 'per_lastname': 'Mustermann'}}
+	{'name': 'contact_insert', 'args': {'per_id': var('per_id_max'), 'con_id': var('con_id_max'), 'con_type': 'email', 'con_value': 'max@example.org'}}
 	{'type': 'file', 'name': 'portrait_{per_id_max}.png', 'content': b'\x89PNG\r\n\x1a\n...'}
 	{'type': 'resetsequence', 'sequence': 'person_seq', 'table': 'person', 'field': 'per_id'}
 
@@ -77,17 +77,17 @@ This will import two records, one by calling ``person_insert`` and one by
 calling ``contact_insert``. The PL/SQL equivalent of the above is::
 
 	declare
-		v_per_id integer;
-		v_con_id integer;
+		v_per_id_max integer;
+		v_con_id_max integer;
 	begin
 		person_insert(
-			per_id=v_per_id,
+			per_id=v_per_id_max,
 			per_firstname='Max',
 			per_lastname='Mustermann'
 		);
 		contact_insert(
-			con_id=v_con_id,
-			per_id=v_per_id,
+			con_id=v_con_id_max,
+			per_id=v_per_id_max,
 			con_type='email',
 			con_value='max@example.org'
 		)
@@ -108,13 +108,11 @@ purposes, the original format is on one line)::
 	{
 		'name': 'person_insert',
 		'args': {
-			'per_id': 'per_id_max',
+			'per_id': var('per_id_max'),
 			'per_firstname': 'Max',
 			'per_lastname': 'Mustermann',
-			'per_created': 'sysdate'
-		},
-		'keys': ['per_id'],
-		'sqls': ['per_created'],
+			'per_created': sql('sysdate')
+		}
 	}
 
 The keys in the dictionary have the following meaning:
@@ -130,7 +128,7 @@ For type ``"procedure"`` the following additional keys are used:
 
 	``args`` : dictionary (required)
 		A dictionary with the names of the parameters as keys and the parameter
-		values as values.
+		values as values. Apart from the type
 
 	``keys`` : list (optional)
 		A list of parameter names that should be treated as keys. The value of the
@@ -246,43 +244,48 @@ it supports the following command line options:
 # We're importing ``datetime``, so that it's available to ``eval()``
 import sys, os, io, argparse, operator, collections, datetime, tempfile, subprocess
 
-import cx_Oracle
+#import cx_Oracle
 
 
 __docformat__ = "reStructuredText"
 
 
-class Key(object):
+class var(object):
 	"""
-	:class:`Key` instances are used to mark procedure values that are
+	:class:`var` instances are used to mark procedure values that are
 	primary/foreign keys. On first use the parameter is used as an ``OUT``
 	parameter and the procedure stores the value of the newly created primary key
-	in this parameter. When a :class:`Key` object is used a second time its value
-	will be passed to the procedure as normal ``IN`` parameters.
+	under the unique key specified in the constructor. When a :class:`var` object
+	is used a second time its value will be passed to the procedure as a normal
+	``IN`` parameters.
 	"""
 
-	seq = 0
+	def __init__(self, key, type=int):
+		self.key = key
+		self.type = type
 
-	def __init__(self):
-		self._value = self.__class__.seq
-		self.__class__.seq += 1
+	def __repr__(self):
+		if self.type is int:
+			fmt = "var({0.key!r})"
+		elif self.type.__module__ == "builtins":
+			fmt = "var({0.key!r}, {0.type.__qualname__})"
+		else:
+			fmt = "var({0.key!r}, {0.type.__module__}.{0.type.__qualname__})"
+		return fmt.format(self)
 
-	def value(self):
-		return self._value
 
-
-class SQL(object):
+class sql(object):
 	"""
-	An :class:`SQL` object can be used to specify an SQL expression as a
+	An :class:`sql` object can be used to specify an SQL expression as a
 	procedure parameter instead of a fixed value (e.g. passing the current
-	date (i.e. the date of the import) can be done with ``SQL("sysdate")``).
+	date (i.e. the date of the import) can be done with ``sql("sysdate")``).
 	"""
 
 	def __init__(self, expression):
 		self.expression = expression
 
-	def value(self):
-		return self.expression
+	def __repr__(self):
+		return "sql({!r})".format(self.expression)
 
 
 def dump(name, **kwargs):
@@ -391,69 +394,50 @@ def load_ul4on(stream):
 			break
 
 
-def _formatprocedurecall(record, allkeys):
+def _formatargs(record, allkeys):
 	args = []
-	keys = set(record.get("keys", []))
-	sqls = set(record.get("sqls", []))
 	for (argname, argvalue) in record["args"].items():
-		if argname in keys:
-			if argvalue is None:
-				args.append("{}=None".format(argname))
-			elif argvalue in allkeys:
-				args.append("{}={}=<{}>".format(argname, allkeys[argvalue], argvalue))
-			else:
-				args.append("{}=<{}>".format(argname, argvalue))
-		elif argname in sqls:
-			args.append("{}={}".format(argname, argvalue))
+		if isinstance(argvalue, var) and argvalue.key in allkeys:
+			arg = "{}={!r}={!r}".format(argname, argvalue, allkeys[argvalue.key]))
 		else:
-			args.append("{}={!r}".format(argname, argvalue))
-	return "{}({})".format(record["name"], ", ".join(args))
+			arg = "{}={!r}".format(argname, argvalue)
+		args.append(arg)
+	return ", ".join(args)
+
+
+def _formatprocedurecall(record, allkeys):
+	return "{}({})".format(record["name"], _formatargs(record, allkeys)
 
 
 def _formatsql(record, allkeys):
-	args = []
-	keys = set(record.get("keys", []))
-	sqls = set(record.get("sqls", []))
-	for (argname, argvalue) in record["args"].items():
-		if argname in keys:
-			if argvalue is None:
-				args.append("{}=None".format(argname))
-			elif argvalue in allkeys:
-				args.append("{}={}=<{}>".format(argname, allkeys[argvalue], argvalue))
-			else:
-				args.append("{}=<{}>".format(argname, argvalue))
-		elif argname in sqls:
-			args.append("{}={}".format(argname, argvalue))
-		else:
-			args.append("{}={!r}".format(argname, argvalue))
-	return "{!r} with args {}".format(record["sql"], ", ".join(args))
+	return "{!r} with args {}".format(record["sql"], _formatargs(record, allkeys)
 
 
-def _executesql(sql, args, keys, sqls, cursor, allkeys):
+def _executesql(query, args, cursor, allkeys):
 	queryargvars = {}
 	for (argname, argvalue) in args.items():
-		if argname in keys:
-			if argvalue is None:
+		if isinstance(argvalue, var):
+			if argvalue.key is None:
 				queryargvars[argname] = None
-			elif argvalue in allkeys:
-				queryargvars[argname] = allkeys[argvalue]
+			elif argvalue.key in allkeys:
+				queryargvars[argname] = allkeys[argvalue.key]
 			else:
-				queryargvars[argname] = cursor.var(keys[argname])
-		elif argname in sqls:
+				queryargvars[argname] = cursor.var(argvalue.type)
+		elif isinstance(argvalue, sql):
 			pass # no value
 		elif isinstance(argvalue, str) and len(argvalue) >= 4000:
-			var = cursor.var(cx_Oracle.CLOB)
-			var.setvalue(0, argvalue)
-			queryargvars[argname] = var
+			var_ = cursor.var(cx_Oracle.CLOB)
+			var_.setvalue(0, argvalue)
+			queryargvars[argname] = var_
 		else:
 			queryargvars[argname] = argvalue
 
-	cursor.execute(sql, queryargvars)
+	cursor.execute(query, queryargvars)
 
 	newkeys = {}
 	for (argname, argvalue) in args.items():
-		if argname in keys and argvalue is not None and argvalue not in allkeys:
-			newkeys[argname] = allkeys[argvalue] = queryargvars[argname].getvalue(0)
+		if isinstance(argvalue, var) and argvalue.key is not None and argvalue.key not in allkeys:
+			newkeys[argname] = allkeys[argvalue.key] = queryargvars[argname].getvalue(0)
 	return newkeys
 
 
@@ -463,30 +447,21 @@ def importrecord(record, cursor, allkeys):
 	must be a :mod:`cx_Oracle` cursor.
 	"""
 	name = record["name"]
-	args = record["args"]
-	if "keys" in record:
-		keys = record["keys"]
-		if isinstance(keys, list):
-			keys = dict.fromkeys(keys, int)
-		else:
-			keys = {key: eval(value) for (key, value) in keys.items()}
-	else:
-		keys = {}
-	sqls = set(record.get("sqls", []))
+	args = record.get("args", {})
 	queryargvalues = {}
 	for (argname, argvalue) in args.items():
-		if argname in keys:
+		if isinstance(argvalue, var):
 			queryargvalues[argname] = ":{}".format(argname)
-		elif argname in sqls:
-			queryargvalues[argname] = argvalue
+		elif isinstance(argvalue, sql):
+			queryargvalues[argname] = argvalue.expression
 			# no value
 		elif isinstance(argvalue, str) and len(argvalue) >= 4000:
 			queryargvalues[argname] = ":{}".format(argname)
 		else:
 			queryargvalues[argname] = ":{}".format(argname)
 
-	sql = "begin {}({}); end;".format(name, ", ".join("{}=>{}".format(*argitem) for argitem in queryargvalues.items()))
-	return _executesql(sql, args, keys, sqls, cursor, allkeys)
+	query = "begin {}({}); end;".format(name, ", ".join("{}=>{}".format(*argitem) for argitem in queryargvalues.items()))
+	return _executesql(query, args, cursor, allkeys)
 
 
 def copyfile(name, content, allkeys, directory):
@@ -512,23 +487,53 @@ def resetsequence(cursor, sequence, table, field, minvalue, increment):
 	return seqvalue
 
 
+def _fixargs(record):
+	if "args" in record:
+		if "keys" in record:
+			keys = record["keys"]
+			if isinstance(keys, (list, tuple)):
+				keys = dict.fromkeys(keys, int)
+			else:
+				keys = {key: eval(value) for (key, value) in keys.items()}
+		else:
+			keys = {}
+
+		if "sqls" in record:
+			sqls = set(record["sqls"])
+		else:
+			sqls = set()
+	
+		args = record["args"]
+		for (argname, argvalue) in args.items():
+			if argname in sqls:
+				if isinstance(argvalue, sql):
+					pass # Value already is an :class:`sql` instance
+				elif isinstance(argvalue, var):
+					raise TypeError("type mismatch: {!r}".format(argname))
+				elif not isinstance(argvalue, str):
+					raise TypeError("type mismatch: {!r}".format(argname))
+				else:
+					args[argvalue] = sql(argvalue)
+			if argname in keys:
+				if isinstance(argvalue, var):
+					pass # Value already is a :class:`var` instance
+				elif isinstance(argvalue, sql):
+					raise TypeError("type mismatch: {!r}".format(argname))
+				else:
+					args[argname] = var(argvalue, eval(keys[argname]))
+
+		if "keys" in record:
+			del record["keys"]
+		if "sqls" in record:
+			del record["sqls"]
+
+
 def importsql(record, cursor, allkeys):
 	"""
 	Execute the SQL from the ``sql`` record :var:`record`. ``cursor`` must
 	be a :mod:`cx_Oracle` cursor.
 	"""
-	sql = record["sql"]
-	args = record.get("args", {})
-	if "keys" in record:
-		keys = record["keys"]
-		if isinstance(keys, list):
-			keys = dict.fromkeys(keys, int)
-		else:
-			keys = {key: eval(value) for (key, value) in keys.items()}
-	else:
-		keys = {}
-	sqls = set(record.get("sqls", []))
-	return _executesql(sql, args, keys, sqls, cursor, allkeys)
+	return _executesql(record["sql"], record["args"], cursor, allkeys)
 
 
 def main(args=None):
@@ -553,6 +558,7 @@ def main(args=None):
 		loader = dict(oradd=load_oradd, ul4on=load_ul4on)[args.format]
 		cursor = db.cursor()
 		for (i, record) in enumerate(loader(args.file), 1):
+			_fixargs(record)
 			type = record.get("type", "procedure")
 			if args.verbose >= 1:
 				if args.verbose >= 3:
