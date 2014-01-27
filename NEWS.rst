@@ -1,3 +1,10 @@
+Changes in 5.5.1 (released 01/27/2014)
+--------------------------------------
+
+*	:mod:`ll.orasql` now unterstands type bodies (so the script ``oracreate``
+	will output them).
+
+
 Changes in 5.5 (released 01/23/2014)
 ------------------------------------
 

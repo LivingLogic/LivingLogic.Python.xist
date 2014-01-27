@@ -537,7 +537,7 @@ class Connection(Connection):
 					yield from do(table)
 
 		def dorest():
-			for type in (UniqueConstraint, ForeignKey, Preference, Index, Synonym, View, MaterializedView, Function, Procedure, Package, PackageBody, Type, Trigger, JavaSource):
+			for type in (UniqueConstraint, ForeignKey, Preference, Index, Synonym, View, MaterializedView, Function, Procedure, Package, PackageBody, Type, TypeBody, Trigger, JavaSource):
 				for obj in type.iterobjects(self, owner):
 					yield from do(obj)
 
@@ -2135,6 +2135,13 @@ class Type(MixinNormalDates, MixinCodeDDL, Object):
 	Models a type definition in the database.
 	"""
 	type = "type"
+
+
+class TypeBody(MixinNormalDates, MixinCodeDDL, Object):
+	"""
+	Models a type body in the database.
+	"""
+	type = "type body"
 
 
 class Trigger(MixinNormalDates, MixinCodeDDL, Object):
