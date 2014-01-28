@@ -214,6 +214,10 @@ it supports the following command line options:
 		Specifies when to commit database transactions. ``record`` commit after
 		every procedure call. ``once`` at the end of the script and ``never`` rolls
 		back the transaction after all imports.
+
+	``-d``, ``--directory``
+		The base directory for file copy commands. As files are copied via ``scp``
+		this can be a remote filename (like ``ssh:root@www.example.org:uploads/`.
 """
 
 # We're importing ``datetime``, so that it's available to ``eval()``
