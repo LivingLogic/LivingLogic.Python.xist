@@ -219,7 +219,7 @@ it supports the following command line options:
 
 	``-d``, ``--directory``
 		The base directory for file copy commands. As files are copied via ``scp``
-		this can be a remote filename (like ``ssh:root@www.example.org:uploads/`.
+		this can be a remote filename (like ``ssh:root@www.example.org:uploads/``).
 """
 
 # We're importing ``datetime``, so that it's available to ``eval()``
