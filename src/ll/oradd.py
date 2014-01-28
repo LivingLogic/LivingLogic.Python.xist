@@ -11,7 +11,7 @@
 r"""
 :mod:`oradd` can be used to import data into an Oracle database. The data is
 imported by executing various "oradd commands" (like "execute a procedure",
-"copy a file" etc.) that as specified in the ``oradd`` file.
+"copy a file" etc.) that are specified in the ``oradd`` file.
 
 Basic usage
 -----------
