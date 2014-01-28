@@ -13,8 +13,8 @@ r"""
 imported by executing various "oradd commands" (like "execute a procedure",
 "copy a file" etc.) that are specified in the ``oradd`` file.
 
-Basic usage
------------
+Creating an ``oradd`` dump
+--------------------------
 
 Creating an ``oradd`` file can be done like this::
 
@@ -106,6 +106,7 @@ An oradd file contains one line for each "oradd command". Each line is the
 purposes, the original format is on one line)::
 
 	{
+		'type': 'procedure',
 		'name': 'person_insert',
 		'args': {
 			'per_id': var('per_id_max'),
@@ -128,47 +129,31 @@ For type ``"procedure"`` the following additional keys are used:
 
 	``args`` : dictionary (required)
 		A dictionary with the names of the parameters as keys and the parameter
-		values as values. Apart from the type
-
-	``keys`` : list (optional)
-		A list of parameter names that should be treated as keys. The value of the
-		parameter is a integer or string identifer that is unique for each use of
-		the key. On first use the parameter is used as an ``OUT`` parameter where
-		the procedure will store the value of this key. On subsequent uses of this
-		key (i.e. a key that has the same identifier) oradd will pass the value
-		from the first use as a normal ``IN`` parameter. The ``keys`` key is
-		optional, without it no parameter will be treated as a key. ``keys`` may
-		also be a dictionary, with the identifiers as the keys and values the names
-		of Python types. This can be used for out parameters that are not integers.
-
-	``sqls`` : list (optional)
-		A list of parameter names that should be treated as SQL expressions.
-		In the example above the parameter ``per_created`` will not be the string
-		``"sysdate"``, but the result of the Oracle PL/SQL ``sysdate`` function.
-		The ``sqls`` key is optional, without it no parameter will be treated as
-		an SQL expression.
+		values as values. ``oradd`` supports all types as values that
+		:mod:`cx_Oracle` supports. In addition to those, two special classes are
+		supported: :class:`sql` objects can be used to specify that the paramater
+		should be literal SQL. So e.g. ``sql("sysdate")`` will be the date when
+		the ``oradd`` script was executed. :class:`var` objects can be used to
+		hold values that are ``OUT`` parameter of the procedure. For example
+		on first use of ``var("foo_10")`` the value of the ``OUT`` parameter will
+		be stored under the key ``"foo_10"``. The next time ``var("foo_10")`` is
+		encountered the value stored under the key ``"foo_10"`` will be passed to
+		the procedure. They type of the variable defaults to ``int``. If a
+		different type is required it can be passed as the second argument to
+		:class:`var`, e.g. ``var("foo_10", datetime.datetime)``.
 
 For type ``"sql"`` the following additional keys are used:
 
 	``sql`` : string (required)
-		The SQL to be executed. This may contain parameters in the form
+		The SQL to be executed. This may contain parameters in the form of
 		``:paramname``. The values for those parameters will be taken from
 		``args``.
 
 	``args`` : dictionary (required)
 		A dictionary with the names of the parameters as keys and the parameter
-		values as values.
-
-	``keys`` : list (optional)
-		A list of parameter names that should be treated as keys. The value of the
-		parameter is an integer or string identifer that is unique for each use of
-		the key. On first use the parameter is used as an ``OUT`` parameter where
-		the procedure will store the value of this key. On subsequent uses of this
-		key (i.e. a key that has the same identifier) oradd will pass the value
-		from the first use as a normal ``IN`` parameter. The ``keys`` key is
-		optional, without it no parameter will be treated as a key. ``keys`` may
-		also be a dictionary, with the identifiers as the keys and values the names
-		of Python types. This can be used for out parameters that are not integers.
+		values as values. Similar to procedure call :class:`var` objects are
+		supported to. However :class:`sql` objects are not supported (they will
+		be ignored).
 
 For type ``"file"`` the following additional keys are used:
 
@@ -211,8 +196,8 @@ is reached. UL4ON format does not support files (because UL4ON can't represent
 bytes).
 
 
-Usage as a script
------------------
+Importing an ``oradd`` dump
+---------------------------
 
 ``oradd.py`` has no external dependencies (except for :mod:`cx_Oracle`) and can
 be used as a script for importing an oradd dump into the database. As a script
