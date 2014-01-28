@@ -502,7 +502,7 @@ def _fixargs(record):
 			sqls = set(record["sqls"])
 		else:
 			sqls = set()
-	
+
 		args = record["args"]
 		for (argname, argvalue) in args.items():
 			if argname in sqls:
