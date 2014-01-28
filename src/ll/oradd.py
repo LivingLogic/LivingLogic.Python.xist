@@ -127,7 +127,7 @@ For type ``"procedure"`` the following additional keys are used:
 	``name`` : string (required)
 		The name of the procedure to be called.
 
-	``args`` : dictionary (required)
+	``args`` : dictionary (optional)
 		A dictionary with the names of the parameters as keys and the parameter
 		values as values. ``oradd`` supports all types as values that
 		:mod:`cx_Oracle` supports. In addition to those, two special classes are
@@ -149,7 +149,7 @@ For type ``"sql"`` the following additional keys are used:
 		``:paramname``. The values for those parameters will be taken from
 		``args``.
 
-	``args`` : dictionary (required)
+	``args`` : dictionary (optional)
 		A dictionary with the names of the parameters as keys and the parameter
 		values as values. Similar to procedure call :class:`var` objects are
 		supported to. However :class:`sql` objects are not supported (they will
@@ -298,12 +298,13 @@ def loads_oradd(string):
 
 def _formatargs(record, allkeys):
 	args = []
-	for (argname, argvalue) in record["args"].items():
-		if isinstance(argvalue, var) and argvalue.key in allkeys:
-			arg = "{}={!r}={!r}".format(argname, argvalue, allkeys[argvalue.key])
-		else:
-			arg = "{}={!r}".format(argname, argvalue)
-		args.append(arg)
+	if "args" in record:
+		for (argname, argvalue) in record["args"].items():
+			if isinstance(argvalue, var) and argvalue.key in allkeys:
+				arg = "{}={!r}={!r}".format(argname, argvalue, allkeys[argvalue.key])
+			else:
+				arg = "{}={!r}".format(argname, argvalue)
+			args.append(arg)
 	return ", ".join(args)
 
 
@@ -435,7 +436,7 @@ def importsql(record, cursor, allkeys):
 	Execute the SQL from the ``sql`` record :var:`record`. ``cursor`` must
 	be a :mod:`cx_Oracle` cursor.
 	"""
-	return _executesql(record["sql"], record["args"], cursor, allkeys)
+	return _executesql(record["sql"], record.get("args", {}), cursor, allkeys)
 
 
 def main(args=None):
