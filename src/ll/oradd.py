@@ -8,7 +8,7 @@
 ##
 ## See LICENSE for the license
 
-r"""
+"""
 :mod:`oradd` can be used to import data into an Oracle database. The data is
 imported by executing various "oradd commands" (like "execute a procedure",
 "copy a file" etc.) that are specified in the ``oradd`` file.
@@ -63,7 +63,7 @@ The content of the generated file ``data.oradd`` will look like this::
 
 	{'name': 'person_insert', 'args': {'per_id': var('per_id_max'), 'per_firstname': 'Max', 'per_lastname': 'Mustermann'}}
 	{'name': 'contact_insert', 'args': {'per_id': var('per_id_max'), 'con_id': var('con_id_max'), 'con_type': 'email', 'con_value': 'max@example.org'}}
-	{'type': 'file', 'name': 'portrait_{per_id_max}.png', 'content': b'\x89PNG\r\n\x1a\n...'}
+	{'type': 'file', 'name': 'portrait_{per_id_max}.png', 'content': b'\\x89PNG\\r\\n\\x1a\\n...'}
 	{'type': 'resetsequence', 'sequence': 'person_seq', 'table': 'person', 'field': 'per_id'}
 
 i.e. it's just one Python ``repr`` of a dictionary per line.
