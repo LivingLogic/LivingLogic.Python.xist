@@ -275,11 +275,10 @@ class sql(object):
 
 def load_oradd(iter):
 	"""
-	Load an oradd dump in oradd native format from :obj:`iter`. :obj:`iter` must
-	be an iterable producing string, that contain the ``repr`` output of
-	``oradd`` commands.
+	Load an oradd dump from :obj:`iter`. :obj:`iter` must be an iterable
+	producing strings, that contain the ``repr`` output of ``oradd`` commands.
 
-	This function is a generator. It's output are the ``oradd`` command
+	This function is a generator. Its output are the ``oradd`` command
 	dictionaries.
 	"""
 	for line in iter:
