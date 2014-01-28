@@ -337,7 +337,6 @@ def main(args=None):
 				filename2 = tempfile.mktemp(suffix=".sql", prefix="oramerge_2_")
 				filename3 = tempfile.mktemp(suffix=".sql", prefix="oramerge_3_")
 
-				lines = []
 				file1 = open(filename1, "wb")
 				try:
 					write(file1, ddl1)
