@@ -530,7 +530,7 @@ def main(args=None):
 			for (procname, count) in sorted(counts.items(), key=operator.itemgetter(1)):
 				print("{:>{}} {}".format(count, l1, procname))
 			print("{} {}".format("-"*l1, "-"*l2))
-			print("{:>{}} (total calls)".format(totalcount, l1))
+			print("{:>{}} (procedures)".format(totalcount, l1))
 		if countfiles:
 			print("{:>{}} (files)".format(countfiles, l1))
 		if countsequences:
