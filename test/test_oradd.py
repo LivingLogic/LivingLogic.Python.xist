@@ -10,8 +10,9 @@
 ## See ll/xist/__init__.py for the license
 
 
-import io, os
-from test import support
+import io, os, tempfile
+
+import cx_Oracle
 
 import pytest
 
@@ -22,19 +23,6 @@ dbname = os.environ.get("LL_ORASQL_TEST_CONNECT") # Need a connectstring as envi
 
 
 def commands():
-	yield dict(
-		type="sql",
-		sql="""
-		begin
-			execute immediate 'drop table oradd_test_table';
-		exception when others then
-			if sqlcode != -0942 then
-				raise;
-			end if;
-		end;
-		"""
-	)
-
 	yield dict(
 		type="sql",
 		sql="""
@@ -84,18 +72,36 @@ def execute_commands(commands):
 	for command in commands:
 		print(repr(command), file=s)
 
-	with support.captured_stdin() as stdin:
+	with tempfile.NamedTemporaryFile(delete=False) as f:
 		print(s.getvalue())
-		stdin.write(s.getvalue())
-		oradd.main([dbname, "-v3"])
+		f.write(s.getvalue().encode("utf-8"))
+		tempname = f.name
+
+	try:
+		oradd.main([dbname, tempname, "-v3"])
+	finally:
+		os.remove(tempname)
+
+
+def droptable():
+	with orasql.connect(dbname) as db:
+		c = db.cursor()
+		try:
+			c.execute("drop table oradd_test_table")
+		except cx_Oracle.DatabaseError:
+			pass
 
 
 @pytest.mark.db
 def test_oradd():
+	droptable()
+
 	execute_commands(commands())
 
-	db = orasql.connect(dbname)
-	c = db.cursor()
-	c.execute("select odtt_id from oradd_test_table order by odtt_id")
-	data = [int(r.odtt_id) for r in c]
-	assert data == [1, 101]
+	with orasql.connect(dbname) as db:
+		c = db.cursor()
+		c.execute("select odtt_id from oradd_test_table order by odtt_id")
+		data = [int(r.odtt_id) for r in c]
+		assert data == [1, 101]
+
+	droptable()
