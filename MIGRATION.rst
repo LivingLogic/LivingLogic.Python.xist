@@ -1,3 +1,49 @@
+Migrating to version 5.6
+========================
+
+Changes to ``ll.oradd``
+-----------------------
+
+*	Support for ``"keys"`` and ``"sqls" has been removed from :mod:`ll.oradd`.
+	So ::
+
+		{
+			"type": "procedure",
+			"name": "procname",
+			"args": {
+				"proc_id": "p_10",
+				"proc_date": "sysdate",
+				"keys": {"proc_id": "int"},
+				"sqls": ["proc_date"]
+			}
+		}
+
+	has to be replaced with ::
+
+		{
+			"type": "procedure",
+			"name": "procname",
+			"args": {
+				"proc_id": var("p_10", int),
+				"proc_date": sql("sysdate")
+			}
+		}
+
+*	UL4ON dumps are no longer supported by :mod:`ll.oradd`. They must be
+	reencoded as Python ``repr`` outputs, which can be done with code that looks
+	like this::
+
+		import sys
+
+		from ll import ul4on
+
+		while True:
+			try:
+				print(repr(ul4on.load(sys.stdin)))
+			except EOFError:
+				break
+
+
 Migrating to version 5.4
 ========================
 
