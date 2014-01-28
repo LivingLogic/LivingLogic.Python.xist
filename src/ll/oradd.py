@@ -520,7 +520,7 @@ def _fixargs(record):
 				elif isinstance(argvalue, sql):
 					raise TypeError("type mismatch: {!r}".format(argname))
 				else:
-					args[argname] = var(argvalue, eval(keys[argname]))
+					args[argname] = var(argvalue, keys[argname])
 
 		if "keys" in record:
 			del record["keys"]
