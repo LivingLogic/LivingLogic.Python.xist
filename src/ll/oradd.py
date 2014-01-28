@@ -188,13 +188,6 @@ For type ``"resetsequence"`` the following additional keys are used:
 	``increment``: integer (optional, default 10)
 		The increment (i.e. the stop size) for the sequence.
 
-An oradd file in UL4ON format contains the same dictionaries, but not as a
-Python repr output, but in UL4ON format. The UL4ON dump is *not* a list of
-dictionaries, but simple concatenated dumps of each dictionary. When importing
-this format ``oradd`` will simply read dumps from the file until the end of file
-is reached. UL4ON format does not support files (because UL4ON can't represent
-bytes).
-
 
 Importing an ``oradd`` dump
 ---------------------------
@@ -297,35 +290,6 @@ def load_oradd(stream):
 	for line in stream:
 		if line != "\n":
 			yield eval(line)
-
-
-def loads_ul4on(string):
-	"""
-	Load an oradd dump in UL4ON format from the string ``string``.
-
-	This function is a generator. It's output can be passed to :func:`importdata`.
-	"""
-	from ll import ul4on
-	stream = io.StringIO(string)
-	while True:
-		try:
-			yield ul4on.load(stream)
-		except EOFError:
-			break
-
-
-def load_ul4on(stream):
-	"""
-	Load an oradd dump in UL4ON format from the stream ``stream``.
-
-	This function is a generator. It's output can be passed to :func:`importdata`.
-	"""
-	from ll import ul4on
-	while True:
-		try:
-			yield ul4on.load(stream)
-		except EOFError:
-			break
 
 
 def _formatargs(record, allkeys):
@@ -474,7 +438,6 @@ def main(args=None):
 	p = argparse.ArgumentParser(description="Import an oradd dump to an Oracle database", epilog="For more info see http://www.livinglogic.de/Python/oradd/index.html")
 	p.add_argument("connectstring", help="Oracle connect string")
 	p.add_argument("file", nargs="?", help="Name of dump file (default: read from stdin)", type=argparse.FileType("r"), default=sys.stdin)
-	p.add_argument("-f", "--format", dest="format", help="Format of the dumpfile ('oradd' or 'ul4on') (default %(default)s)", default="oradd", choices=("oradd", "ul4on"))
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", type=int, default=2, choices=(0, 1, 2, 3))
 	p.add_argument("-c", "--commit", dest="commit", help="When should database transactions be committed? (default %(default)s)", default="once", choices=("record", "once", "never"))
 	p.add_argument("-d", "--directory", dest="directory", metavar="DIR", help="Base directory for files to be copied via scp (default current directory)", default="")
@@ -489,9 +452,8 @@ def main(args=None):
 		countfiles = 0
 		countsequences = 0
 		countsqls = 0
-		loader = dict(oradd=load_oradd, ul4on=load_ul4on)[args.format]
 		cursor = db.cursor()
-		for (i, record) in enumerate(loader(args.file), 1):
+		for (i, record) in enumerate(load_oradd(args.file), 1):
 			_fixargs(record)
 			type = record.get("type", "procedure")
 			if args.verbose >= 1:
