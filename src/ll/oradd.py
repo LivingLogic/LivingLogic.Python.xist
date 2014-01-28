@@ -227,7 +227,7 @@ it supports the following command line options:
 """
 
 # We're importing ``datetime``, so that it's available to ``eval()``
-import sys, os, io, argparse, operator, collections, datetime, tempfile, subprocess
+import sys, os, argparse, operator, collections, datetime, tempfile, subprocess
 
 import cx_Oracle
 
