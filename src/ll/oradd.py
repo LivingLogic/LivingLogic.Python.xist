@@ -237,15 +237,19 @@ __docformat__ = "reStructuredText"
 
 class var(object):
 	"""
-	:class:`var` instances are used to mark procedure values that are
-	primary/foreign keys. On first use the parameter is used as an ``OUT``
-	parameter and the procedure stores the value of the newly created primary key
-	under the unique key specified in the constructor. When a :class:`var` object
-	is used a second time its value will be passed to the procedure as a normal
-	``IN`` parameters.
+	:class:`var` instances are used to mark procedure values that are ``OUT``
+	parameters. On first use the parameter is used as an ``OUT`` parameter and
+	the procedure stores the value of the newly created primary key under the
+	unique key specified in the constructor. When a :class:`var` object is used
+	a second time its value will be passed to the procedure as a normal ``IN``
+	parameters.
 	"""
 
 	def __init__(self, key, type=int):
+		"""
+		Create a :class:`var` instance. :var:`key` is a unique name for the value.
+		:var:`type` is the type of the value (defaulting to :class:`int`).
+		"""
 		self.key = key
 		self.type = type
 
