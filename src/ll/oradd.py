@@ -203,9 +203,6 @@ it supports the following command line options:
 		The name of the file from which the oradd dump is read. If ``file`` isn't
 		specified the dump is read from ``stdin``.
 
-	``-f``, ``--format``
-		The format of the dump file: Either ``oradd`` (the default) or ``ul4on``.
-
 	``-v``, ``--verbose``
 		Gives different levels of output while data is imported to the database.
 		Possible levels are: ``0`` (no output), ``1`` (a dot for each procedure
