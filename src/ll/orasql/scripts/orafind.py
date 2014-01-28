@@ -32,7 +32,7 @@ Options
 	``tables``
 		Zero or more tables names. If any table name is specified the search will
 		be limited to those tables. Otherwise all tables will be searched.
-		
+
 	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		Produces output (on stderr) while to database is read or written.
 
