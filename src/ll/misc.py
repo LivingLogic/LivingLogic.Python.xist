@@ -27,7 +27,7 @@ __docformat__ = "reStructuredText"
 _curdir = os.getcwd()
 
 
-# fetch item, first, last, count and xmlescape
+# Try to fetch ``xmlescape`` from C implementation
 try:
 	from ll._misc import *
 except ImportError:
