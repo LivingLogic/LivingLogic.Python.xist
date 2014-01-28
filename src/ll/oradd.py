@@ -525,7 +525,7 @@ def main(args=None):
 		print("Summary")
 		print("=======")
 		if totalcount:
-			print("{:>{}} procedure".format("#", l1))
+			print("{:>{}} type".format("#", l1))
 			print("{} {}".format("-"*l1, "-"*l2))
 			for (procname, count) in sorted(counts.items(), key=operator.itemgetter(1)):
 				print("{:>{}} {}".format(count, l1, procname))
