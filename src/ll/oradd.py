@@ -273,61 +273,6 @@ class sql(object):
 		return "sql({!r})".format(self.expression)
 
 
-def dump(name, **kwargs):
-	"""
-	Return the dump format for calling the procedure ``name`` with the parameters
-	``kwargs``.
-
-	``kwargs`` may contain :class:`Key` and :class`SQL` instances.
-	"""
-	keys = [key for (key, value) in kwargs.items() if isinstance(value, Key)]
-	sqls = [key for (key, value) in kwargs.items() if isinstance(value, SQL)]
-	for (key, value) in kwargs.items():
-		if isinstance(value, (Key, SQL)):
-			kwargs[key] = value.value()
-	result = dict(name=name, args=kwargs)
-	if keys:
-		result["keys"] = keys
-	if sqls:
-		result["sqls"] = sqls
-	return result
-
-
-def dumps_oradd(name, **kwargs):
-	"""
-	Return the dump of a procedure call to the procedure named ``name`` with the
-	parameters ``kwargs`` in oradd native format as a string.
-	"""
-	return "{!r}\n".format(dump(name, **kwargs))
-
-
-def dump_oradd(stream, name, **kwargs):
-	"""
-	Dump a procedure call to the procedure named ``name`` with the parameters
-	``kwargs`` into the output stream ``stream`` in oradd native format.
-	"""
-	stream.write(repr(dump(name, **kwargs)))
-	stream.write("\n")
-
-
-def dumps_ul4on(name, **kwargs):
-	"""
-	Return the dump of a procedure call to the procedure named ``name`` with the
-	parameters ``kwargs`` in UL4ON format as a string.
-	"""
-	from ll import ul4on
-	return ul4on.dumps(dump(name, **kwargs))
-
-
-def dump_ul4on(stream, name, **kwargs):
-	"""
-	Dump a procedure call to the procedure named ``name`` with the parameters
-	``kwargs`` into the output stream ``stream`` in UL4ON format.
-	"""
-	from ll import ul4on
-	ul4on.dump(dump(name, **kwargs), stream)
-
-
 def loads_oradd(string):
 	"""
 	Load an oradd dump in oradd native format from the string ``string``.
