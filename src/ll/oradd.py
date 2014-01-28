@@ -513,7 +513,7 @@ def _fixargs(record):
 				elif not isinstance(argvalue, str):
 					raise TypeError("type mismatch: {!r}".format(argname))
 				else:
-					args[argvalue] = sql(argvalue)
+					args[argname] = sql(argvalue)
 			if argname in keys:
 				if isinstance(argvalue, var):
 					pass # Value already is a :class:`var` instance
