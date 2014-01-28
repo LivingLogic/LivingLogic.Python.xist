@@ -282,7 +282,7 @@ def load_oradd(iter):
 	This function is a generator. It's output are the ``oradd`` command
 	dictionaries.
 	"""
-	for line in input:
+	for line in iter:
 		if line != "\n" and not line.strip().startswith("#"):
 			yield eval(line)
 
