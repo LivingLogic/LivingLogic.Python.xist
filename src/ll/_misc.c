@@ -109,9 +109,9 @@ XML character entity or character reference.";
 
 
 static PyMethodDef _functions[] = {
-	{"xmlescape",      (PyCFunction)xmlescape, METH_O,            xmlescape_doc},
-	{"xmlescape_text", (PyCFunction)xmlescape_text, METH_O,       xmlescape_text_doc},
-	{"xmlescape_attr", (PyCFunction)xmlescape_attr, METH_O,       xmlescape_attr_doc},
+	{"xmlescape",      (PyCFunction)xmlescape, METH_O,      xmlescape_doc},
+	{"xmlescape_text", (PyCFunction)xmlescape_text, METH_O, xmlescape_text_doc},
+	{"xmlescape_attr", (PyCFunction)xmlescape_attr, METH_O, xmlescape_attr_doc},
 	{NULL,     NULL} /* sentinel */
 };
 
