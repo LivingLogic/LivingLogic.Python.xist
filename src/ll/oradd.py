@@ -243,8 +243,8 @@ class var(object):
 
 	def __init__(self, key, type=int):
 		"""
-		Create a :class:`var` instance. :var:`key` is a unique name for the value.
-		:var:`type` is the type of the value (defaulting to :class:`int`).
+		Create a :class:`var` instance. :obj:`key` is a unique name for the value.
+		:obj:`type` is the type of the value (defaulting to :class:`int`).
 		"""
 		self.key = key
 		self.type = type
@@ -275,7 +275,7 @@ class sql(object):
 
 def load_oradd(iter):
 	"""
-	Load an oradd dump in oradd native format from :var:`iter`. :var:`iter` must
+	Load an oradd dump in oradd native format from :obj:`iter`. :obj:`iter` must
 	be an iterable producing string, that contain the ``repr`` output of
 	``oradd`` commands.
 
@@ -346,7 +346,7 @@ def _executesql(query, args, cursor, allkeys):
 
 def importrecord(record, cursor, allkeys):
 	"""
-	Import the ``procedure`` record :var:`record` into the database. ``cursor``
+	Import the ``procedure`` record :obj:`record` into the database. ``cursor``
 	must be a :mod:`cx_Oracle` cursor.
 	"""
 	name = record["name"]
@@ -433,7 +433,7 @@ def _fixargs(record):
 
 def importsql(record, cursor, allkeys):
 	"""
-	Execute the SQL from the ``sql`` record :var:`record`. ``cursor`` must
+	Execute the SQL from the ``sql`` record :obj:`record`. ``cursor`` must
 	be a :mod:`cx_Oracle` cursor.
 	"""
 	return _executesql(record["sql"], record.get("args", {}), cursor, allkeys)
