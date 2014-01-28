@@ -5,7 +5,9 @@ Changes in 5.6 (released 01/28/2014)
 	a more direct way. However the old method (via ``"keys"`` and ``"sql"``) is
 	still supported, but will be removed in one of the next versions.
 
-* Support for oradd dumps in UL4ON format has been removed from :mod:`ll.oradd`.
+*	Support for oradd dumps in UL4ON format has been removed from :mod:`ll.oradd`.
+
+*	Lines in an ``oradd`` dump starting with ``#`` will now be ignored.
 
 
 Changes in 5.5.1 (released 01/27/2014)

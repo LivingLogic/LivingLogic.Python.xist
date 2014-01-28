@@ -188,6 +188,8 @@ For type ``"resetsequence"`` the following additional keys are used:
 	``increment``: integer (optional, default 10)
 		The increment (i.e. the stop size) for the sequence.
 
+A line in an ``oradd`` dump that starts with a ``#`` will be ignored.
+
 
 Importing an ``oradd`` dump
 ---------------------------
@@ -204,7 +206,7 @@ it supports the following command line options:
 		specified the dump is read from ``stdin``.
 
 	``-v``, ``--verbose``
-		Gives different levels of output while data is imported to the database.
+		Gives different levels of output while data is being imported to the database.
 		Possible levels are: ``0`` (no output), ``1`` (a dot for each procedure
 		call), ``2`` (like ``1``, plus a summary of which procedure has been
 		called how often), ``3`` (detailed output for each procedure call, plus
@@ -271,26 +273,27 @@ class sql(object):
 		return "sql({!r})".format(self.expression)
 
 
+def load_oradd(iter):
+	"""
+	Load an oradd dump in oradd native format from :var:`iter`. :var:`iter` must
+	be an iterable producing string, that contain the ``repr`` output of
+	``oradd`` commands.
+
+	This function is a generator. It's output are the ``oradd`` command
+	dictionaries.
+	"""
+	for line in input:
+		if line != "\n" and not line.strip().startswith("#"):
+			yield eval(line)
+
+
 def loads_oradd(string):
 	"""
 	Load an oradd dump in oradd native format from the string ``string``.
 
 	This function is a generator. It's output can be passed to :func:`importdata`.
 	"""
-	for line in string.splitlines():
-		if line != "\n":
-			yield eval(line)
-
-
-def load_oradd(stream):
-	"""
-	Load an oradd dump in oradd native format from the stream ``stream``.
-
-	This function is a generator. It's output can be passed to :func:`importdata`.
-	"""
-	for line in stream:
-		if line != "\n":
-			yield eval(line)
+	return load_oradd(string.splitlines())
 
 
 def _formatargs(record, allkeys):
