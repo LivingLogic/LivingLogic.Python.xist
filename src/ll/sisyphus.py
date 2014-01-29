@@ -1057,7 +1057,7 @@ class EmailLogger(Logger):
 
 			textpart = text.MIMEText(emailbodytext)
 			htmlpart = text.MIMEText(emailbodyhtml, _subtype="html")
-			jsonpart = application.MIMEApplication(json.dumps(jsondata).encode("utf-8"), _subtype="json", _encoder=encoders.encode_quopri)
+			jsonpart = application.MIMEApplication(json.dumps(jsondata).encode("utf-8"), _subtype="json", _encoder=encoders.encode_base64)
 			jsonpart.add_header('Content-Disposition', 'attachment', filename="{}.{}.json".format(self.job.projectname, self.job.jobname))
 
 			msg = multipart.MIMEMultipart(

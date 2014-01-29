@@ -1,3 +1,10 @@
+Changes in 5.7 (released 01/29/2014)
+------------------------------------
+
+*	The JSON payload of the :mod:`ll.sisyphus` failure email will now be encoded
+	in base64 format to work around a bug in the quoted-printable encoder.
+
+
 Changes in 5.6 (released 01/28/2014)
 ------------------------------------
 
