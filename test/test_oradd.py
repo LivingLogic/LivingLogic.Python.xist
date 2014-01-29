@@ -119,6 +119,8 @@ def test_oradd(tmpdir):
 
 	f = tmpdir.join("gurk_file.txt")
 	assert f.read() == "gurk"
+	stat = os.stat(str(f))
+	assert stat.st_mode & 0o777 == 0o644
 
 	f2 = tmpdir.join("gurk_scp.txt")
 	assert f2.read() == "gurk"
