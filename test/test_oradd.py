@@ -65,8 +65,21 @@ def commands():
 		)
 	)
 
+	yield dict(
+		type="file",
+		name="gurk.txt",
+		content=b"gurk",
+		mode=0o644,
+	)
 
-def execute_commands(commands):
+	yield dict(
+		type="scp",
+		name="gurk2.txt",
+		content=b"gurk",
+	)
+
+
+def execute_commands(commands, tmpdir):
 	s = io.StringIO()
 
 	for command in commands:
@@ -78,12 +91,12 @@ def execute_commands(commands):
 		tempname = f.name
 
 	try:
-		oradd.main([dbname, tempname, "-v3"])
+		oradd.main([dbname, tempname, "-v3", "--scpdirectory", tmpdir, "--filedirectory", tmpdir])
 	finally:
 		os.remove(tempname)
 
 
-def droptable():
+def cleanup():
 	with orasql.connect(dbname) as db:
 		c = db.cursor()
 		try:
@@ -93,10 +106,10 @@ def droptable():
 
 
 @pytest.mark.db
-def test_oradd():
-	droptable()
+def test_oradd(tmpdir):
+	cleanup()
 
-	execute_commands(commands())
+	execute_commands(commands(), "{}/".format(tmpdir))
 
 	with orasql.connect(dbname) as db:
 		c = db.cursor()
@@ -104,4 +117,10 @@ def test_oradd():
 		data = [int(r.odtt_id) for r in c]
 		assert data == [1, 101]
 
-	droptable()
+	f = tmpdir.join("gurk.txt")
+	assert f.read() == "gurk"
+
+	f2 = tmpdir.join("gurk2.txt")
+	assert f2.read() == "gurk"
+
+	cleanup()
