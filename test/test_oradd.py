@@ -68,14 +68,14 @@ def commands():
 	yield dict(
 		type="file",
 		name="gurk_file.txt",
-		content=b"gurk",
+		content=b"gurk_file",
 		mode=0o644,
 	)
 
 	yield dict(
 		type="scp",
 		name="gurk_scp.txt",
-		content=b"gurk",
+		content=b"gurk_scp",
 	)
 
 
@@ -118,11 +118,11 @@ def test_oradd(tmpdir):
 		assert data == [1, 101]
 
 	f = tmpdir.join("gurk_file.txt")
-	assert f.read() == "gurk"
+	assert f.read() == "gurk_file"
 	stat = os.stat(str(f))
 	assert stat.st_mode & 0o777 == 0o644
 
 	f2 = tmpdir.join("gurk_scp.txt")
-	assert f2.read() == "gurk"
+	assert f2.read() == "gurk_scp"
 
 	cleanup()
