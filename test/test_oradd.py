@@ -67,14 +67,14 @@ def commands():
 
 	yield dict(
 		type="file",
-		name="gurk.txt",
+		name="gurk_file.txt",
 		content=b"gurk",
 		mode=0o644,
 	)
 
 	yield dict(
 		type="scp",
-		name="gurk2.txt",
+		name="gurk_scp.txt",
 		content=b"gurk",
 	)
 
@@ -117,10 +117,10 @@ def test_oradd(tmpdir):
 		data = [int(r.odtt_id) for r in c]
 		assert data == [1, 101]
 
-	f = tmpdir.join("gurk.txt")
+	f = tmpdir.join("gurk_file.txt")
 	assert f.read() == "gurk"
 
-	f2 = tmpdir.join("gurk2.txt")
+	f2 = tmpdir.join("gurk_scp.txt")
 	assert f2.read() == "gurk"
 
 	cleanup()
