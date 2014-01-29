@@ -157,7 +157,21 @@ The following additional keys are used:
 		supported to. However :class:`sql` objects are not supported (they will
 		be ignored).
 
-The type ``"file"`` creates a file. The following additional keys are used:
+The type ``"scp"`` creates a file by copying it via the ``scp`` command.
+The following additional keys are used:
+
+	``name`` : string (required)
+		The name of the file to be created. It may contain ``format()`` style
+		specifications containing any key that appeared in a ``"procedure"`` or
+		``"sql"`` record. These specifiers will be replaced by the correct
+		key values. As these files will be copied via the ``scp`` command, so ssh
+		file names can be used.
+
+	``content``: bytes (required)
+		The content of the file to be created.
+
+The type ``"file"`` creates a file by directly saving it from Python.
+The following additional keys are used:
 
 	``name`` : string (required)
 		The name of the file to be created. It may contain ``format()`` style
@@ -180,19 +194,6 @@ The type ``"file"`` creates a file. The following additional keys are used:
 		The owning group of the file (as a group name or a gid).
 		If ``owner`` or ``group`` is given, :func:`os.chown` will be called on the
 		file.
-
-The type ``"scp"`` creates a file by copying it via the ``scp`` command.
-The following additional keys are used:
-
-	``name`` : string (required)
-		The name of the file to be created. It may contain ``format()`` style
-		specifications containing any key that appeared in a ``"procedure"`` or
-		``"sql"`` record. These specifiers will be replaced by the correct
-		key values. As these files will be copied via the ``scp`` command, so ssh
-		file names can be used.
-
-	``content``: bytes (required)
-		The content of the file to be created.
 
 The type ``"resetsequence"`` creset a sequence in the Oracle database to the
 maximum value of a field in a table. The following additional keys are used:
