@@ -119,10 +119,11 @@ purposes, the original format is on one line)::
 The keys in the dictionary have the following meaning:
 
 	``type`` : string (optional)
-		This is either ``"procedure"`` (the default), ``"sql"``, ``"file"`` or
-		``"resetsequence"``.
+		This is either ``"procedure"`` (the default), ``"sql"``, ``"file"``,
+		``"scp"`` or ``"resetsequence"``.
 
-For type ``"procedure"`` the following additional keys are used:
+The type ``"procedure"`` calls on Oracle procedure in the database.
+The following additional keys are used:
 
 	``name`` : string (required)
 		The name of the procedure to be called.
@@ -142,7 +143,8 @@ For type ``"procedure"`` the following additional keys are used:
 		different type is required it can be passed as the second argument to
 		:class:`var`, e.g. ``var("foo_10", datetime.datetime)``.
 
-For type ``"sql"`` the following additional keys are used:
+The type ``"sql"`` directly executes an SQL statement in the Oracle database.
+The following additional keys are used:
 
 	``sql`` : string (required)
 		The SQL to be executed. This may contain parameters in the form of
@@ -155,23 +157,48 @@ For type ``"sql"`` the following additional keys are used:
 		supported to. However :class:`sql` objects are not supported (they will
 		be ignored).
 
-For type ``"file"`` the following additional keys are used:
+The type ``"file"`` creates a file. The following additional keys are used:
 
 	``name`` : string (required)
 		The name of the file to be created. It may contain ``format()`` style
 		specifications containing any key that appeared in a ``"procedure"`` or
 		``"sql"`` record. These specifiers will be replaced by the correct
-		key values. These files will be copied via ``ssh``, so ssh file names can
+		key values. The file will be created by scopied via ``ssh``, so ssh file names can
 		be used.
 
 	``content``: bytes (required)
 		The content of the file to be created.
 
-For type ``"resetsequence"`` the following additional keys are used:
+	``mode``: integer (optional)
+		The file mode for the new file. If the mode is specified :func:`os.chmod`
+		will be called on the file.
+
+	``owner``: integer or string (optional)
+		The owner of the file (as a user name or a uid).
+
+	``group``: integer or string (optional)
+		The owning group of the file (as a group name or a gid).
+		If ``owner`` or ``group`` is given, :func:`os.chown` will be called on the
+		file.
+
+The type ``"scp"`` creates a file by copying it via the ``scp`` command.
+The following additional keys are used:
+
+	``name`` : string (required)
+		The name of the file to be created. It may contain ``format()`` style
+		specifications containing any key that appeared in a ``"procedure"`` or
+		``"sql"`` record. These specifiers will be replaced by the correct
+		key values. As these files will be copied via the ``scp`` command, so ssh
+		file names can be used.
+
+	``content``: bytes (required)
+		The content of the file to be created.
+
+The type ``"resetsequence"`` creset a sequence in the Oracle database to the
+maximum value of a field in a table. The following additional keys are used:
 
 	``sequence``: string (required)
-		The name of the sequence to reset. The sequence will be reset to the
-		maximum value of a field in a table.
+		The name of the sequence to reset.
 
 	``table``: string (required)
 		The name of the table that contains the field.
@@ -179,8 +206,8 @@ For type ``"resetsequence"`` the following additional keys are used:
 	``field``: string (required)
 		The name of the field in the table ``table``. The sequence will be reset
 		to a value, so that fetching the next value from the sequence will deliver
-		a value that is larger than the maximum value of the field ``field`` in the
-		table ``table``.
+		a value that is larger than the maximum value of the field ``field`` in
+		the table ``table``.
 
 	``minvalue``: integer (optional, default 10)
 		The minimum value for the sequence.
@@ -217,13 +244,18 @@ it supports the following command line options:
 		every procedure call. ``once`` at the end of the script and ``never`` rolls
 		back the transaction after all imports.
 
-	``-d``, ``--directory``
-		The base directory for file copy commands. As files are copied via ``scp``
-		this can be a remote filename (like ``ssh:root@www.example.org:uploads/``).
+	``-s``, ``--scpdirectory``
+		The base directory for ``scp`` file copy commands. As files are copied via
+		``scp`` this can be a remote filename (like
+		``ssh:root@www.example.org:uploads/``) and must include a trailing ``/``.
+
+	``-f``, ``--filedirectory``
+		The base directory for ``file`` file save commands. It must include
+		a trailing ``/``.
 """
 
 # We're importing ``datetime``, so that it's available to ``eval()``
-import sys, os, argparse, operator, collections, datetime, tempfile, subprocess
+import sys, os, pwd, grp, argparse, operator, collections, datetime, tempfile, subprocess
 
 import cx_Oracle
 
@@ -315,127 +347,177 @@ def _formatsql(record, allkeys):
 	return "{!r} with args {}".format(record["sql"], _formatargs(record, allkeys))
 
 
-def _executesql(query, args, cursor, allkeys):
-	queryargvars = {}
-	for (argname, argvalue) in args.items():
-		if isinstance(argvalue, var):
-			if argvalue.key is None:
-				queryargvars[argname] = None
-			elif argvalue.key in allkeys:
-				queryargvars[argname] = allkeys[argvalue.key]
-			else:
-				queryargvars[argname] = cursor.var(argvalue.type)
-		elif isinstance(argvalue, sql):
-			pass # no value
-		elif isinstance(argvalue, str) and len(argvalue) >= 4000:
-			var_ = cursor.var(cx_Oracle.CLOB)
-			var_.setvalue(0, argvalue)
-			queryargvars[argname] = var_
+class Executor:
+	def __init__(self, db, scpdirectory="", filedirectory="", commit="once", verbose=0):
+		self.keys = {}
+		self.db = db
+		self.cursor = db.cursor()
+		self.scpdirectory = scpdirectory
+		self.filedirectory = filedirectory
+		self.commit = commit
+		self.verbose = verbose
+
+	def execute(self, command):
+		self._fixargs(command)
+		type = command.get("type", "procedure")
+		if type == "procedure":
+			return self.callprocedure(command)
+		elif type == "sql":
+			return self.executesql(command)
+		elif type == "scp":
+			self.scpfile(command)
+		elif type == "file":
+			self.savefile(command)
+		elif type == "resetsequence":
+			return self.resetsequence(command)
 		else:
-			queryargvars[argname] = argvalue
+			raise ValueError("command type {!r} unknown".format(type))
 
-	cursor.execute(query, queryargvars)
-
-	newkeys = {}
-	for (argname, argvalue) in args.items():
-		if isinstance(argvalue, var) and argvalue.key is not None and argvalue.key not in allkeys:
-			newkeys[argname] = allkeys[argvalue.key] = queryargvars[argname].getvalue(0)
-	return newkeys
-
-
-def importrecord(record, cursor, allkeys):
-	"""
-	Import the ``procedure`` record :obj:`record` into the database. ``cursor``
-	must be a :mod:`cx_Oracle` cursor.
-	"""
-	name = record["name"]
-	args = record.get("args", {})
-	queryargvalues = {}
-	for (argname, argvalue) in args.items():
-		if isinstance(argvalue, var):
-			queryargvalues[argname] = ":{}".format(argname)
-		elif isinstance(argvalue, sql):
-			queryargvalues[argname] = argvalue.expression
-			# no value
-		elif isinstance(argvalue, str) and len(argvalue) >= 4000:
-			queryargvalues[argname] = ":{}".format(argname)
-		else:
-			queryargvalues[argname] = ":{}".format(argname)
-
-	query = "begin {}({}); end;".format(name, ", ".join("{}=>{}".format(*argitem) for argitem in queryargvalues.items()))
-	return _executesql(query, args, cursor, allkeys)
-
-
-def copyfile(name, content, allkeys, directory):
-	with tempfile.NamedTemporaryFile(delete=False) as f:
-		f.write(content)
-		tempname = f.name
-	try:
-		name = directory + name.format(**allkeys)
-		return subprocess.call(["scp", "-q", tempname, name])
-	finally:
-		os.remove(tempname)
-
-
-def resetsequence(cursor, sequence, table, field, minvalue, increment):
-	cursor.execute("select nvl(max({}), {}) from {}".format(field, minvalue, table))
-	tabvalue = cursor.fetchone()[0]
-	cursor.execute("select {}.nextval from dual".format(sequence))
-	seqvalue = cursor.fetchone()[0]
-	cursor.execute("alter sequence {} increment by {}".format(sequence, max(minvalue, tabvalue-seqvalue)))
-	cursor.execute("select {}.nextval from dual".format(sequence))
-	seqvalue = cursor.fetchone()[0]
-	cursor.execute("alter sequence {} increment by {}".format(sequence, increment))
-	return seqvalue
-
-
-def _fixargs(record):
-	if "args" in record:
-		if "keys" in record:
-			keys = record["keys"]
-			if isinstance(keys, (list, tuple)):
-				keys = dict.fromkeys(keys, int)
-			else:
-				keys = {key: eval(value) for (key, value) in keys.items()}
-		else:
-			keys = {}
-
-		if "sqls" in record:
-			sqls = set(record["sqls"])
-		else:
-			sqls = set()
-
-		args = record["args"]
+	def callprocedure(self, command):
+		"""
+		Import the ``procedure`` command :obj:`command` into the database.
+		"""
+		name = command["name"]
+		args = command.get("args", {})
+		queryargvalues = {}
 		for (argname, argvalue) in args.items():
-			if argname in sqls:
-				if isinstance(argvalue, sql):
-					pass # Value already is an :class:`sql` instance
-				elif isinstance(argvalue, var):
-					raise TypeError("type mismatch: {!r}".format(argname))
-				elif not isinstance(argvalue, str):
-					raise TypeError("type mismatch: {!r}".format(argname))
+			if isinstance(argvalue, var):
+				queryargvalues[argname] = ":{}".format(argname)
+			elif isinstance(argvalue, sql):
+				queryargvalues[argname] = argvalue.expression
+				# no value
+			elif isinstance(argvalue, str) and len(argvalue) >= 4000:
+				queryargvalues[argname] = ":{}".format(argname)
+			else:
+				queryargvalues[argname] = ":{}".format(argname)
+
+		query = "begin {}({}); end;".format(name, ", ".join("{}=>{}".format(*argitem) for argitem in queryargvalues.items()))
+		return self._executesql(query, args)
+
+	def executesql(self, command):
+		"""
+		Execute the SQL from the ``sql`` command :obj:`command`. ``cursor`` must
+		be a :mod:`cx_Oracle` cursor.
+		"""
+		result = self._executesql(command["sql"], command.get("args", {}))
+		if self.commit == "record":
+			self.db.commit()
+		return result
+
+	def scpfile(self, command):
+		name = command["name"]
+		with tempfile.NamedTemporaryFile(delete=False) as f:
+			f.write(command["content"])
+			tempname = f.name
+		try:
+			name = self.scpdirectory + name.format(**self.keys)
+			return subprocess.call(["scp", "-q", tempname, name])
+		finally:
+			os.remove(tempname)
+
+	def savefile(self, command):
+		name = self.filedirectory + command["name"]
+		with open(name, "wb") as f:
+			f.write(command["content"])
+		if "mode" in "command":
+			os.chmod(name, command["mode"])
+		if "owner" in "command" or "group" in command:
+			if "owner" in command:
+				uid = command["owner"]
+				if isinstance(uid, str):
+					uid = pwd.getpwnam(uid)[2]
+			else:
+				uid = -1
+			if "group" in command:
+				gid = command["group"]
+				if isinstance(gid, str):
+					gid = grp.getgrnam(gid)[2]
+			else:
+				gid = -1
+			os.chown(name, uid, gid)
+
+	def resetsequence(self, command):
+		sequence = command["sequence"]
+		table = command["table"]
+		field = command["field"]
+		minvalue = command.get("minvalue", 10)
+		increment = command.get("increment", 10)
+		self.cursor.execute("select nvl(max({}), {}) from {}".format(field, minvalue, table))
+		tabvalue = self.cursor.fetchone()[0]
+		self.cursor.execute("select {}.nextval from dual".format(sequence))
+		seqvalue = self.cursor.fetchone()[0]
+		self.cursor.execute("alter sequence {} increment by {}".format(sequence, max(minvalue, tabvalue-seqvalue)))
+		self.cursor.execute("select {}.nextval from dual".format(sequence))
+		seqvalue = self.cursor.fetchone()[0]
+		self.cursor.execute("alter sequence {} increment by {}".format(sequence, increment))
+		return seqvalue
+
+	def _executesql(self, query, args):
+		queryargvars = {}
+		for (argname, argvalue) in args.items():
+			if isinstance(argvalue, var):
+				if argvalue.key is None:
+					queryargvars[argname] = None
+				elif argvalue.key in self.keys:
+					queryargvars[argname] = self.keys[argvalue.key]
 				else:
-					args[argname] = sql(argvalue)
-			if argname in keys:
-				if isinstance(argvalue, var):
-					pass # Value already is a :class:`var` instance
-				elif isinstance(argvalue, sql):
-					raise TypeError("type mismatch: {!r}".format(argname))
+					queryargvars[argname] = self.cursor.var(argvalue.type)
+			elif isinstance(argvalue, sql):
+				pass # no value
+			elif isinstance(argvalue, str) and len(argvalue) >= 4000:
+				var_ = self.cursor.var(cx_Oracle.CLOB)
+				var_.setvalue(0, argvalue)
+				queryargvars[argname] = var_
+			else:
+				queryargvars[argname] = argvalue
+
+		self.cursor.execute(query, queryargvars)
+
+		newkeys = {}
+		for (argname, argvalue) in args.items():
+			if isinstance(argvalue, var) and argvalue.key is not None and argvalue.key not in self.keys:
+				newkeys[argname] = self.keys[argvalue.key] = queryargvars[argname].getvalue(0)
+		return newkeys
+
+	def _fixargs(self, command):
+		if "args" in command:
+			if "keys" in command:
+				keys = command["keys"]
+				if isinstance(keys, (list, tuple)):
+					keys = dict.fromkeys(keys, int)
 				else:
-					args[argname] = var(argvalue, keys[argname])
+					keys = {key: eval(value) for (key, value) in keys.items()}
+			else:
+				keys = {}
 
-		if "keys" in record:
-			del record["keys"]
-		if "sqls" in record:
-			del record["sqls"]
+			if "sqls" in command:
+				sqls = set(command["sqls"])
+			else:
+				sqls = set()
 
+			args = command["args"]
+			for (argname, argvalue) in args.items():
+				if argname in sqls:
+					if isinstance(argvalue, sql):
+						pass # Value already is an :class:`sql` instance
+					elif isinstance(argvalue, var):
+						raise TypeError("type mismatch: {!r}".format(argname))
+					elif not isinstance(argvalue, str):
+						raise TypeError("type mismatch: {!r}".format(argname))
+					else:
+						args[argname] = sql(argvalue)
+				if argname in keys:
+					if isinstance(argvalue, var):
+						pass # Value already is a :class:`var` instance
+					elif isinstance(argvalue, sql):
+						raise TypeError("type mismatch: {!r}".format(argname))
+					else:
+						args[argname] = var(argvalue, keys[argname])
 
-def importsql(record, cursor, allkeys):
-	"""
-	Execute the SQL from the ``sql`` record :obj:`record`. ``cursor`` must
-	be a :mod:`cx_Oracle` cursor.
-	"""
-	return _executesql(record["sql"], record.get("args", {}), cursor, allkeys)
+			if "keys" in command:
+				del command["keys"]
+			if "sqls" in command:
+				del command["sqls"]
 
 
 def main(args=None):
@@ -444,69 +526,69 @@ def main(args=None):
 	p.add_argument("file", nargs="?", help="Name of dump file (default: read from stdin)", type=argparse.FileType("r"), default=sys.stdin)
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", type=int, default=2, choices=(0, 1, 2, 3))
 	p.add_argument("-c", "--commit", dest="commit", help="When should database transactions be committed? (default %(default)s)", default="once", choices=("record", "once", "never"))
-	p.add_argument("-d", "--directory", dest="directory", metavar="DIR", help="Base directory for files to be copied via scp (default current directory)", default="")
+	p.add_argument("-s", "--scpdirectory", dest="scpdirectory", metavar="DIR", help="File name prefix for files to be copied via the 'scp' command (default: current directory)", default="")
+	p.add_argument("-f", "--filedirectory", dest="filedirectory", metavar="DIR", help="File name prefix for files to be copied via the 'file' command (default: current directory)", default="")
 
 	args = p.parse_args(args)
 
 	db = cx_Oracle.connect(args.connectstring)
 
 	try:
-		allkeys = {}
+		executor = Executor(db=db, scpdirectory=args.scpdirectory, filedirectory=args.filedirectory, commit=args.commit, verbose=args.verbose)
 		counts = collections.Counter()
+		countscps = 0
 		countfiles = 0
 		countsequences = 0
 		countsqls = 0
-		cursor = db.cursor()
-		for (i, record) in enumerate(load_oradd(args.file), 1):
-			_fixargs(record)
-			type = record.get("type", "procedure")
+		for (i, command) in enumerate(load_oradd(args.file), 1):
+			type = command.get("type", "procedure")
 			if args.verbose >= 1:
 				if args.verbose >= 3:
 					if type == "procedure":
-						sys.stdout.write("#{}: procedure {}".format(i, _formatprocedurecall(record, allkeys)))
+						sys.stdout.write("#{}: procedure {}".format(i, _formatprocedurecall(command, executor.keys)))
 					elif type == "sql":
-						sys.stdout.write("#{}: sql {}".format(i, _formatsql(record, allkeys)))
+						sys.stdout.write("#{}: sql {}".format(i, _formatsql(command, executor.keys)))
 					elif type == "file":
-						sys.stdout.write("#{}: file {}".format(i, record["name"].format(**allkeys)))
+						sys.stdout.write("#{}: file {}".format(i, command["name"].format(**executor.keys)))
+					elif type == "scp":
+						sys.stdout.write("#{}: scp {}".format(i, command["name"].format(**executor.keys)))
 					elif type == "resetsequence":
-						sys.stdout.write("#{}: resetting sequence {} to maximum value from {}.{}".format(i, record["sequence"], record["table"], record["field"]))
+						sys.stdout.write("#{}: resetting sequence {} to maximum value from {}.{}".format(i, command["sequence"], command["table"], command["field"]))
 					else:
 						raise ValueError("unknown command type {!r}".format(type))
 				else:
 					sys.stdout.write(".")
 				sys.stdout.flush()
+			result = executor.execute(command)
 			if type == "procedure":
-				newkeys = importrecord(record, cursor, allkeys)
-				if args.commit == "record":
-					db.commit()
 				if args.verbose >= 3:
-					if newkeys:
-						sys.stdout.write(" -> {}\n".format(", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in newkeys.items())))
+					if result:
+						sys.stdout.write(" -> {}\n".format(", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in result.items())))
 					else:
 						sys.stdout.write("\n")
 				sys.stdout.flush()
-				counts[record["name"]] += 1
+				counts[command["name"]] += 1
 			elif type == "sql":
-				newkeys = importsql(record, cursor, allkeys)
-				if args.commit == "record":
-					db.commit()
 				if args.verbose >= 3:
-					if newkeys:
-						sys.stdout.write(" -> {}\n".format(", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in newkeys.items())))
+					if result:
+						sys.stdout.write(" -> {}\n".format(", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in result.items())))
 					else:
 						sys.stdout.write("\n")
 				sys.stdout.flush()
 				countsqls += 1
 			elif type == "file":
-				copyfile(record["name"], record["content"], allkeys, args.directory)
 				if args.verbose >= 3:
-					sys.stdout.write(" -> {} bytes written\n".format(len(record["content"])))
+					sys.stdout.write(" -> {} bytes written\n".format(len(command["content"])))
 					sys.stdout.flush()
 				countfiles += 1
-			elif type == "resetsequence":
-				newvalue = resetsequence(cursor, sequence=record["sequence"], table=record["table"], field=record["field"], minvalue=record.get("minvalue", 10), increment=record.get("increment", 10))
+			elif type == "scp":
 				if args.verbose >= 3:
-					sys.stdout.write(" -> reset to {}\n".format(newvalue))
+					sys.stdout.write(" -> {} bytes written\n".format(len(command["content"])))
+					sys.stdout.flush()
+				countscps += 1
+			elif type == "resetsequence":
+				if args.verbose >= 3:
+					sys.stdout.write(" -> reset to {}\n".format(result))
 					sys.stdout.flush()
 				countsequences += 1
 		if args.commit == "once":
@@ -519,7 +601,7 @@ def main(args=None):
 
 	if args.verbose >= 2:
 		totalcount = sum(counts.values())
-		l1 = len(str(max(totalcount, countfiles, countsequences, countsqls)))
+		l1 = len(str(max(totalcount, countfiles, countscps, countsequences, countsqls)))
 		l2 = max(len(procname) for procname in counts) if counts else 0
 		print()
 		print("Summary")
@@ -533,6 +615,8 @@ def main(args=None):
 			print("{:>{}} (procedures)".format(totalcount, l1))
 		if countfiles:
 			print("{:>{}} (files)".format(countfiles, l1))
+		if countscps:
+			print("{:>{}} (scps)".format(countscps, l1))
 		if countsequences:
 			print("{:>{}} (sequences)".format(countsequences, l1))
 		if countsqls:

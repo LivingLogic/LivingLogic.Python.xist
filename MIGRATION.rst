@@ -1,3 +1,12 @@
+Migrating to version 5.7
+========================
+
+Changes to ``ll.oradd``
+-----------------------
+
+*	The ``file`` command has been renamed to ``scp``.
+
+
 Migrating to version 5.6
 ========================
 
