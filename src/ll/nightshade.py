@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
+# cython: language_level=3, always_allow_keywords=True
 
 """
 This module provides a class :class:`Call` that allows you to use Oracle PL/SQL

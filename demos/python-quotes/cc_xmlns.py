@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
+# cython: language_level=3, always_allow_keywords=True
 
 
 from ll.xist import xsc, sims

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# cython: language_level=3
+# cython: language_level=3, always_allow_keywords=True
 
 """
 ``db2ul4`` is a script that can be used for rendering database content into

@@ -1,6 +1,6 @@
 #! /usr/bin/env/python
 # -*- coding: utf-8 -*-
-# cython: language_level=3
+# cython: language_level=3, always_allow_keywords=True
 
 ## Copyright 1999-2014 by LivingLogic AG, Bayreuth/Germany
 ## Copyright 1999-2014 by Walter Dörwald
