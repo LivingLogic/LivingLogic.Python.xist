@@ -66,15 +66,31 @@ def commands():
 	)
 
 	yield dict(
+		type="sql",
+		sql="begin :filename_file := 'gurk_file.txt'; end;",
+		args=dict(
+			filename_file=oradd.var("filename_file", str),
+		)
+	)
+
+	yield dict(
+		type="sql",
+		sql="begin :filename_scp := 'gurk_scp.txt'; end;",
+		args=dict(
+			filename_scp=oradd.var("filename_scp", str),
+		)
+	)
+
+	yield dict(
 		type="file",
-		name="gurk_file.txt",
+		name="{filename_file}",
 		content=b"gurk_file",
 		mode=0o644,
 	)
 
 	yield dict(
 		type="scp",
-		name="gurk_scp.txt",
+		name="{filename_scp}",
 		content=b"gurk_scp",
 	)
 
