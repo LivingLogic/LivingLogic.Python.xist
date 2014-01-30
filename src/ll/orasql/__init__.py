@@ -281,25 +281,13 @@ class Record(tuple, collections.Mapping):
 	def __contains__(self, name):
 		return name.lower() in self._name2index
 
-	def iterkeys(self):
+	def keys(self):
 		"""
-		Return an iterator over field names
+		Return an iterator over field names.
 		"""
 		return iter(self._index2name)
 
-	def keys(self):
-		"""
-		Return a list of field names
-		"""
-		return self._index2name
-
 	def items(self):
-		"""
-		Return a list of (field name, field value) tuples.
-		"""
-		return [(key, tuple.__getitem__(self, index)) for (index, key) in enumerate(self._index2name)]
-
-	def iteritems(self):
 		"""
 		Return an iterator over (field name, field value) tuples.
 		"""
@@ -2458,8 +2446,9 @@ class Column(Object):
 
 class User(object):
 	"""
-	Models a user in the database
+	Models a user in the database.
 	"""
+
 	def __init__(self, name, connection=None):
 		self.name = name
 		self.connection = connection

@@ -6,6 +6,13 @@ Changes to ``ll.oradd``
 
 *	The ``file`` command has been renamed to ``scp``.
 
+Changes to ``ll.orasql``
+------------------------
+
+*	The methods :meth:`ll.orasql.Record.keys` and :meth:`ll.orasql.Record.values`
+	return iterators now. :meth:`ll.orasql.Record.iterkeys` and
+	:meth:`ll.orasql.Record.itervalues` have been removed.
+
 
 Migrating to version 5.6
 ========================
