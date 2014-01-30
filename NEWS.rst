@@ -1,4 +1,4 @@
-Changes in 5.7 (released 01/29/2014)
+Changes in 5.7 (released 01/30/2014)
 ------------------------------------
 
 *	The :mod:`ll.oradd` command ``file`` has been renamed to ``scp``.
