@@ -9,7 +9,7 @@ Changes in 5.7 (released 01/30/2014)
 *	The JSON payload of the :mod:`ll.sisyphus` failure email will now be encoded
 	in base64 format to work around a bug in the quoted-printable encoder.
 
-*	To conform to the Python 3 dictory interface :meth:`ll.orasql.Record.iterkeys`
+*	To conform to the Python 3 dictionary interface :meth:`ll.orasql.Record.iterkeys`
 	has been renamed to :meth:`ll.orasql.Record.keys` and
 	:meth:`ll.orasql.Record.itervalues` has been renamed to
 	:meth:`ll.orasql.Record.values`. The original methods
