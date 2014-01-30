@@ -13,7 +13,7 @@ Migrating to version 5.6
 Changes to ``ll.oradd``
 -----------------------
 
-*	Support for ``"keys"`` and ``"sqls" has been removed from :mod:`ll.oradd`.
+*	Support for ``"keys"`` and ``"sqls"`` has been removed from :mod:`ll.oradd`.
 	So ::
 
 		{
