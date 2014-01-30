@@ -170,7 +170,7 @@ class LOBStream(object):
 	def read(self, size=None):
 		"""
 		Read :obj:`size` bytes/characters from the stream and return them.
-		If :obj:`size` is :const:`None`, all remaining data will be read.
+		If :obj:`size` is :const:`None` all remaining data will be read.
 		"""
 		if size is None:
 			return self.readall()
@@ -184,7 +184,7 @@ class LOBStream(object):
 
 	def reset(self):
 		"""
-		Reset the stream, so that the next :meth:`read` call starts at the
+		Reset the stream so that the next :meth:`read` call starts at the
 		beginning of the LOB.
 		"""
 		self.pos = 0
