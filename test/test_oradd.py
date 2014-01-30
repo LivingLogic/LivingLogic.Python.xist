@@ -86,7 +86,6 @@ def execute_commands(commands, tmpdir):
 		print(repr(command), file=s)
 
 	with tempfile.NamedTemporaryFile(delete=False) as f:
-		print(s.getvalue())
 		f.write(s.getvalue().encode("utf-8"))
 		tempname = f.name
 
