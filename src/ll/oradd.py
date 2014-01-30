@@ -357,22 +357,29 @@ class Executor:
 		self.filedirectory = filedirectory
 		self.commit = commit
 		self.verbose = verbose
+		self.commandcounts = collections.Counter()
+		self.procedurecounts = collections.Counter()
 
 	def execute(self, command):
 		self._fixargs(command)
 		type = command.get("type", "procedure")
+		result = None
 		if type == "procedure":
-			return self.callprocedure(command)
+			result = self.callprocedure(command)
 		elif type == "sql":
-			return self.executesql(command)
+			result = self.executesql(command)
 		elif type == "scp":
 			self.scpfile(command)
 		elif type == "file":
 			self.savefile(command)
 		elif type == "resetsequence":
-			return self.resetsequence(command)
+			self.resetsequence(command)
 		else:
 			raise ValueError("command type {!r} unknown".format(type))
+		if type == "procedure":
+			self.procedurecounts[command["name"]] += 1
+		self.commandcounts[type] += 1
+		return result
 
 	def callprocedure(self, command):
 		"""
@@ -520,6 +527,23 @@ class Executor:
 			if "sqls" in command:
 				del command["sqls"]
 
+	def _printsummary(self):
+		if self.verbose >= 2:
+			l1 = len(str(max(self.commandcounts.values())))
+			l2 = max(len(procname) for procname in self.procedurecounts) if self.procedurecounts else 0
+			print()
+			print("Summary")
+			print("=======")
+			if self.commandcounts["procedure"]:
+				print("{:>{}} type".format("#", l1))
+				print("{} {}".format("-"*l1, "-"*l2))
+				for (procname, count) in sorted(self.procedurecounts.items(), key=operator.itemgetter(1)):
+					print("{:>{}} {}".format(count, l1, procname))
+				print("{} {}".format("-"*l1, "-"*l2))
+			for cmdtype in ("procedure", "sql", "file", "scp", "resetsequence"):
+				if self.commandcounts[cmdtype]:
+					print("{:>{}} ({}s)".format(self.commandcounts[cmdtype], l1, cmdtype))
+
 
 def main(args=None):
 	p = argparse.ArgumentParser(description="Import an oradd dump to an Oracle database", epilog="For more info see http://www.livinglogic.de/Python/oradd/index.html")
@@ -536,11 +560,6 @@ def main(args=None):
 
 	try:
 		executor = Executor(db=db, scpdirectory=args.scpdirectory, filedirectory=args.filedirectory, commit=args.commit, verbose=args.verbose)
-		counts = collections.Counter()
-		countscps = 0
-		countfiles = 0
-		countsequences = 0
-		countsqls = 0
 		for (i, command) in enumerate(load_oradd(args.file), 1):
 			type = command.get("type", "procedure")
 			if args.verbose >= 1:
@@ -568,7 +587,6 @@ def main(args=None):
 					else:
 						sys.stdout.write("\n")
 				sys.stdout.flush()
-				counts[command["name"]] += 1
 			elif type == "sql":
 				if args.verbose >= 3:
 					if result:
@@ -576,22 +594,18 @@ def main(args=None):
 					else:
 						sys.stdout.write("\n")
 				sys.stdout.flush()
-				countsqls += 1
 			elif type == "file":
 				if args.verbose >= 3:
 					sys.stdout.write(" -> {} bytes written\n".format(len(command["content"])))
 					sys.stdout.flush()
-				countfiles += 1
 			elif type == "scp":
 				if args.verbose >= 3:
 					sys.stdout.write(" -> {} bytes written\n".format(len(command["content"])))
 					sys.stdout.flush()
-				countscps += 1
 			elif type == "resetsequence":
 				if args.verbose >= 3:
 					sys.stdout.write(" -> reset to {}\n".format(result))
 					sys.stdout.flush()
-				countsequences += 1
 		if args.commit == "once":
 			db.commit()
 		elif args.commit == "never":
@@ -599,29 +613,7 @@ def main(args=None):
 	finally:
 		if args.verbose >= 3:
 			print()
-
-	if args.verbose >= 2:
-		totalcount = sum(counts.values())
-		l1 = len(str(max(totalcount, countfiles, countscps, countsequences, countsqls)))
-		l2 = max(len(procname) for procname in counts) if counts else 0
-		print()
-		print("Summary")
-		print("=======")
-		if totalcount:
-			print("{:>{}} type".format("#", l1))
-			print("{} {}".format("-"*l1, "-"*l2))
-			for (procname, count) in sorted(counts.items(), key=operator.itemgetter(1)):
-				print("{:>{}} {}".format(count, l1, procname))
-			print("{} {}".format("-"*l1, "-"*l2))
-			print("{:>{}} (procedures)".format(totalcount, l1))
-		if countfiles:
-			print("{:>{}} (files)".format(countfiles, l1))
-		if countscps:
-			print("{:>{}} (scps)".format(countscps, l1))
-		if countsequences:
-			print("{:>{}} (sequences)".format(countsequences, l1))
-		if countsqls:
-			print("{:>{}} (sqls)".format(countsqls, l1))
+	executor._printsummary()
 
 
 if __name__ == "__main__":
