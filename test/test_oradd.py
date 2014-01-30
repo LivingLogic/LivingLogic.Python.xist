@@ -154,6 +154,9 @@ def test_oradd(tmpdir):
 		c.execute("select odtt_id from oradd_test_table order by odtt_id")
 		data = [int(r.odtt_id) for r in c]
 		assert data == [1, 101]
+		c.execute("select oradd_test_sequence.nextval as nv from dual")
+		data = c.fetchone().nv
+		assert data == 111
 
 	f = tmpdir.join("gurk_file.txt")
 	assert f.read() == "gurk_file"
