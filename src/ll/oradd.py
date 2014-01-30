@@ -328,26 +328,6 @@ def loads_oradd(string):
 	return load_oradd(string.splitlines())
 
 
-def _formatargs(record, allkeys):
-	args = []
-	if "args" in record:
-		for (argname, argvalue) in record["args"].items():
-			if isinstance(argvalue, var) and argvalue.key in allkeys:
-				arg = "{}={!r}={!r}".format(argname, argvalue, allkeys[argvalue.key])
-			else:
-				arg = "{}={!r}".format(argname, argvalue)
-			args.append(arg)
-	return ", ".join(args)
-
-
-def _formatprocedurecall(record, allkeys):
-	return "{}({})".format(record["name"], _formatargs(record, allkeys))
-
-
-def _formatsql(record, allkeys):
-	return "{!r} with args {}".format(record["sql"], _formatargs(record, allkeys))
-
-
 class Executor:
 	def __init__(self, db, scpdirectory="", filedirectory="", commit="once", verbose=0):
 		self.keys = {}
@@ -357,8 +337,22 @@ class Executor:
 		self.filedirectory = filedirectory
 		self.commit = commit
 		self.verbose = verbose
+		self.count = 0
 		self.commandcounts = collections.Counter()
 		self.procedurecounts = collections.Counter()
+
+	def executeall(self, commands):
+		try:
+			for command in commands:
+				self.execute(command)
+			if self.commit == "once":
+				self.db.commit()
+			elif self.commit == "never":
+				self.db.rollback()
+		finally:
+			if self.verbose >= 3:
+				print()
+		self._printsummary()
 
 	def execute(self, command):
 		self._fixargs(command)
@@ -379,12 +373,19 @@ class Executor:
 		if type == "procedure":
 			self.procedurecounts[command["name"]] += 1
 		self.commandcounts[type] += 1
+		self.count += 1
 		return result
 
 	def callprocedure(self, command):
 		"""
 		Import the ``procedure`` command :obj:`command` into the database.
 		"""
+		if self.verbose >= 1:
+			if self.verbose >= 3:
+				print("#{}: procedure {}".format(self.count+1, self._formatprocedurecall(command)), end="", flush=True)
+			else:
+				print(".", end="", flush=True)
+
 		name = command["name"]
 		args = command.get("args", {})
 		queryargvalues = {}
@@ -400,31 +401,71 @@ class Executor:
 				queryargvalues[argname] = ":{}".format(argname)
 
 		query = "begin {}({}); end;".format(name, ", ".join("{}=>{}".format(*argitem) for argitem in queryargvalues.items()))
-		return self._executesql(query, args)
+		result = self._executesql(query, args)
+
+		if self.commit == "record":
+			self.db.commit()
+
+		if self.verbose >= 3:
+			if result:
+				print(" -> {}".format(", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in result.items())), flush=True)
+			else:
+				print(flush=True)
+		return result
 
 	def executesql(self, command):
 		"""
 		Execute the SQL from the ``sql`` command :obj:`command`. ``cursor`` must
 		be a :mod:`cx_Oracle` cursor.
 		"""
+		if self.verbose >= 1:
+			if self.verbose >= 3:
+				print("#{}: sql {}".format(self.count+1, self._formatsql(command)), end="", flush=True)
+			else:
+				print(".", end="", flush=True)
+
 		result = self._executesql(command["sql"], command.get("args", {}))
+
 		if self.commit == "record":
 			self.db.commit()
+
+		if self.verbose >= 3:
+			if result:
+				print(" -> {}".format(", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in result.items())), flush=True)
+			else:
+				print(flush=True)
+
 		return result
 
 	def scpfile(self, command):
-		name = command["name"]
+		name = self.scpdirectory + command["name"].format(**self.keys)
+
+		if self.verbose >= 1:
+			if self.verbose >= 3:
+				print("#{}: scp {}".format(self.count+1, name), end="", flush=True)
+			else:
+				print(".", end="", flush=True)
+
 		with tempfile.NamedTemporaryFile(delete=False) as f:
 			f.write(command["content"])
 			tempname = f.name
 		try:
-			name = self.scpdirectory + name.format(**self.keys)
 			return subprocess.call(["scp", "-q", tempname, name])
 		finally:
 			os.remove(tempname)
 
+		if self.verbose >= 3:
+			print(" -> {} bytes written".format(len(command["content"])), flush=True)
+
 	def savefile(self, command):
 		name = self.filedirectory + command["name"].format(**self.keys)
+
+		if self.verbose >= 1:
+			if self.verbose >= 3:
+				print("#{}: file {}".format(self.count+1, name), end="", flush=True)
+			else:
+				print(".", end="", flush=True)
+
 		with open(name, "wb") as f:
 			f.write(command["content"])
 		if "mode" in "command":
@@ -444,12 +485,27 @@ class Executor:
 				gid = -1
 			os.chown(name, uid, gid)
 
+		if self.verbose >= 3:
+			msg = " -> {} bytes written".format(len(command["content"]))
+			options = ("mode", "owner", "group")
+			optionmsg = ", ".join("{} {}".format(option, oct(command[option]) if option == "mode" else repr(command[option])) for option in options if option in command)
+			if optionmsg:
+				msg = "{} ({})".format(msg, optionmsg)
+			print(msg, flush=True)
+
 	def resetsequence(self, command):
 		sequence = command["sequence"]
 		table = command["table"]
 		field = command["field"]
 		minvalue = command.get("minvalue", 10)
 		increment = command.get("increment", 10)
+
+		if self.verbose >= 1:
+			if self.verbose >= 3:
+				print("#{}: resetting sequence {} to maximum value from {}.{}".format(self.count+1, sequence, table, field))
+			else:
+				print(".", end="", flush=True)
+
 		self.cursor.execute("select nvl(max({}), {}) from {}".format(field, minvalue, table))
 		tabvalue = self.cursor.fetchone()[0]
 		self.cursor.execute("select {}.nextval from dual".format(sequence))
@@ -458,6 +514,10 @@ class Executor:
 		self.cursor.execute("select {}.nextval from dual".format(sequence))
 		seqvalue = self.cursor.fetchone()[0]
 		self.cursor.execute("alter sequence {} increment by {}".format(sequence, increment))
+
+		if self.verbose >= 3:
+			print(" -> reset to {}".format(seqvalue), flush=True)
+
 		return seqvalue
 
 	def _executesql(self, query, args):
@@ -544,6 +604,25 @@ class Executor:
 				if self.commandcounts[cmdtype]:
 					print("{:>{}} ({}s)".format(self.commandcounts[cmdtype], l1, cmdtype))
 
+	def _formatargs(self, command):
+		args = []
+		if "args" in command:
+			for (argname, argvalue) in command["args"].items():
+				if isinstance(argvalue, var) and argvalue.key in self.keys:
+					arg = "{}={!r}={!r}".format(argname, argvalue, self.keys[argvalue.key])
+				else:
+					arg = "{}={!r}".format(argname, argvalue)
+				args.append(arg)
+		return ", ".join(args)
+
+	def _formatprocedurecall(self, command):
+		return "{}({})".format(command["name"], self._formatargs(command))
+
+	def _formatsql(self, command):
+		return "{!r} with args {}".format(command["sql"], self._formatargs(command))
+
+
+
 
 def main(args=None):
 	p = argparse.ArgumentParser(description="Import an oradd dump to an Oracle database", epilog="For more info see http://www.livinglogic.de/Python/oradd/index.html")
@@ -558,62 +637,8 @@ def main(args=None):
 
 	db = cx_Oracle.connect(args.connectstring)
 
-	try:
-		executor = Executor(db=db, scpdirectory=args.scpdirectory, filedirectory=args.filedirectory, commit=args.commit, verbose=args.verbose)
-		for (i, command) in enumerate(load_oradd(args.file), 1):
-			type = command.get("type", "procedure")
-			if args.verbose >= 1:
-				if args.verbose >= 3:
-					if type == "procedure":
-						sys.stdout.write("#{}: procedure {}".format(i, _formatprocedurecall(command, executor.keys)))
-					elif type == "sql":
-						sys.stdout.write("#{}: sql {}".format(i, _formatsql(command, executor.keys)))
-					elif type == "file":
-						sys.stdout.write("#{}: file {}".format(i, command["name"].format(**executor.keys)))
-					elif type == "scp":
-						sys.stdout.write("#{}: scp {}".format(i, command["name"].format(**executor.keys)))
-					elif type == "resetsequence":
-						sys.stdout.write("#{}: resetting sequence {} to maximum value from {}.{}".format(i, command["sequence"], command["table"], command["field"]))
-					else:
-						raise ValueError("unknown command type {!r}".format(type))
-				else:
-					sys.stdout.write(".")
-				sys.stdout.flush()
-			result = executor.execute(command)
-			if type == "procedure":
-				if args.verbose >= 3:
-					if result:
-						sys.stdout.write(" -> {}\n".format(", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in result.items())))
-					else:
-						sys.stdout.write("\n")
-				sys.stdout.flush()
-			elif type == "sql":
-				if args.verbose >= 3:
-					if result:
-						sys.stdout.write(" -> {}\n".format(", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in result.items())))
-					else:
-						sys.stdout.write("\n")
-				sys.stdout.flush()
-			elif type == "file":
-				if args.verbose >= 3:
-					sys.stdout.write(" -> {} bytes written\n".format(len(command["content"])))
-					sys.stdout.flush()
-			elif type == "scp":
-				if args.verbose >= 3:
-					sys.stdout.write(" -> {} bytes written\n".format(len(command["content"])))
-					sys.stdout.flush()
-			elif type == "resetsequence":
-				if args.verbose >= 3:
-					sys.stdout.write(" -> reset to {}\n".format(result))
-					sys.stdout.flush()
-		if args.commit == "once":
-			db.commit()
-		elif args.commit == "never":
-			db.rollback()
-	finally:
-		if args.verbose >= 3:
-			print()
-	executor._printsummary()
+	executor = Executor(db=db, scpdirectory=args.scpdirectory, filedirectory=args.filedirectory, commit=args.commit, verbose=args.verbose)
+	executor.executeall(load_oradd(args.file))
 
 
 if __name__ == "__main__":
