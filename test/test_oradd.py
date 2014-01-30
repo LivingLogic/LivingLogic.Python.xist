@@ -26,26 +26,38 @@ def commands():
 	yield dict(
 		type="sql",
 		sql="""
-		create table oradd_test_table(
-			odtt_id integer
-		)
+			create table oradd_test_table(
+				odtt_id integer
+			)
 		"""
 	)
 
 	yield dict(
 		type="sql",
 		sql="""
-		create or replace procedure oradd_test_procedure(
-			p_odtt_id in out integer
-		)
-		as
-		begin
-			if p_odtt_id is null then
-				p_odtt_id := 1;
-			end if;
-			insert into oradd_test_table (odtt_id) values (p_odtt_id);
-			p_odtt_id := p_odtt_id + 100;
-		end;
+			create or replace procedure oradd_test_procedure(
+				p_odtt_id in out integer
+			)
+			as
+			begin
+				if p_odtt_id is null then
+					p_odtt_id := 1;
+				end if;
+				insert into oradd_test_table (odtt_id) values (p_odtt_id);
+				p_odtt_id := p_odtt_id + 100;
+			end;
+		"""
+	)
+
+	yield dict(
+		type="sql",
+		sql="""
+			create sequence oradd_test_sequence
+				minvalue 10
+				maxvalue 9999999999999999999999999999
+				start with 30
+				increment by 10
+				cache 20
 		"""
 	)
 
@@ -63,6 +75,13 @@ def commands():
 		args=dict(
 			p_odtt_id=oradd.var("odtt_1"),
 		)
+	)
+
+	yield dict(
+		type="resetsequence",
+		sequence="oradd_test_sequence",
+		table="oradd_test_table",
+		field="odtt_id"
 	)
 
 	yield dict(
@@ -116,6 +135,10 @@ def cleanup():
 		c = db.cursor()
 		try:
 			c.execute("drop table oradd_test_table")
+		except cx_Oracle.DatabaseError:
+			pass
+		try:
+			c.execute("drop sequence oradd_test_sequence")
 		except cx_Oracle.DatabaseError:
 			pass
 
