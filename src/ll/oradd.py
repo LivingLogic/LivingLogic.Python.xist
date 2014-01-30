@@ -417,7 +417,7 @@ class Executor:
 			os.remove(tempname)
 
 	def savefile(self, command):
-		name = self.filedirectory + command["name"]
+		name = self.filedirectory + command["name"].format(**self.keys)
 		with open(name, "wb") as f:
 			f.write(command["content"])
 		if "mode" in "command":
