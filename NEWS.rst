@@ -3,7 +3,7 @@ Changes in 5.7 (released 01/30/2014)
 
 *	The :mod:`ll.oradd` command ``file`` has been renamed to ``scp``.
 
-*	The :mod:`ll.oradd` command ``file`` will now save the file directly from
+*	The new :mod:`ll.oradd` command ``file`` will now save the file directly from
 	Python. A file mode, owner and group can be set.
 
 *	The JSON payload of the :mod:`ll.sisyphus` failure email will now be encoded
