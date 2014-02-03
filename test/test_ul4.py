@@ -3787,7 +3787,15 @@ def test_truedivlvalue(r):
 @pytest.mark.ul4
 def test_endless_recursion(r):
 	with raises("maximum recursion depth exceeded|Maximum call stack size exceeded|StackOverflowError"):
-		r("<?def f?><?for child in container?><?code f(f=f, container=container)?><?end for?><?end def?><?code x = []?><?code x.append(x)?><?code f(f=f, container=x)?>")
+		r("""
+			<?def f?>
+				<?for child in container?>
+					<?code f(f=f, container=container)?>
+				<?end for?>
+			<?end def?>
+			<?code x = []?>
+			<?code x.append(x)?><?code f(f=f, container=x)?>
+		""")
 
 
 @pytest.mark.ul4
