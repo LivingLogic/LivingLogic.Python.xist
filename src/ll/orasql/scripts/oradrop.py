@@ -131,10 +131,10 @@ def main(args=None):
 		if obj.owner is not None:
 			if isinstance(obj, orasql.ForeignKey):
 				if args.fks == "disable":
-					ddl = obj.disableddl(cursor, term)
+					ddl = obj.disableddl(connection, term)
 					action = "disabled"
 				elif args.fks == "drop":
-					ddl = obj.dropddl(cursor, term)
+					ddl = obj.dropddl(connection, term)
 					action = None
 		elif keepdef:
 			ddl = obj.dropddl(connection, term)
