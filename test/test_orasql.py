@@ -35,7 +35,7 @@ class Data:
 		# get all definitions
 		# (this tests that :meth:`iterobjects`, :meth:`iterreferences` and :meth:`iterreferencedby` run to completion)
 		for obj in db.iterobjects(None):
-			if obj.owner is None:
+			if obj.owner is None and "$" not in obj.name:
 				self._objlist.append(obj)
 				references = [o for o in obj.iterreferences() if o.owner is None]
 				referencedby = [o for o in obj.iterreferencedby() if o.owner is None]
@@ -52,7 +52,9 @@ class Data:
 		return self._objdict
 
 
-data = Data(dbname)
+@pytest.fixture(scope="module")
+def db_data(request):
+	return Data(dbname)
 
 
 def readlob(value, size=None):
@@ -110,26 +112,26 @@ def test_connection_iterusers():
 
 
 @pytest.mark.db
-def test_referenceconsistency():
-	for (obj, (references, referencedby)) in data.objdict().items():
+def test_referenceconsistency(db_data):
+	for (obj, (references, referencedby)) in db_data.objdict().items():
 		for refobj in references:
 			# check that :meth:`iterobjects` returned everything from this schema
-			assert refobj.owner is not None or refobj in data.objdict()
+			assert refobj.owner is not None or refobj in db_data.objdict()
 			# check that the referenced object points back to this one (via referencedby)
 			if refobj.owner is None:
-				assert obj in data.objdict()[refobj][1]
+				assert obj in db_data.objdict()[refobj][1]
 
 		# do the inverted check
 		for refobj in referencedby:
-			assert refobj.owner is not None or refobj in data.objdict()
+			assert refobj.owner is not None or refobj in db_data.objdict()
 			if refobj.owner is None:
-				assert obj in data.objdict()[refobj][0]
+				assert obj in db_data.objdict()[refobj][0]
 
 
 @pytest.mark.db
-def test_ddl():
+def test_ddl(db_data):
 	# check various ddl methods
-	for obj in data.objdict():
+	for obj in db_data.objdict():
 		obj.createddl()
 		if isinstance(obj, orasql.Sequence):
 			obj.createddlcopy()
@@ -140,16 +142,16 @@ def test_ddl():
 
 
 @pytest.mark.db
-def test_repr():
+def test_repr(db_data):
 	# check that each repr method works
-	for obj in data.objdict():
+	for obj in db_data.objdict():
 		repr(obj)
 
 
 @pytest.mark.db
-def test_cudate():
+def test_cudate(db_data):
 	# check that cdate/udate method works
-	for obj in data.objdict():
+	for obj in db_data.objdict():
 		cdate = obj.cdate()
 		assert cdate is None or isinstance(cdate, datetime.datetime)
 		udate = obj.udate()
@@ -157,8 +159,8 @@ def test_cudate():
 
 
 @pytest.mark.db
-def test_table_columns():
-	for obj in data.objdict():
+def test_table_columns(db_data):
+	for obj in db_data.objdict():
 		if isinstance(obj, orasql.Table):
 			for col in obj.itercolumns():
 				# comments are not output by :meth:`iterobjects`, so we have to call :meth:`iterreferences`
@@ -177,8 +179,8 @@ def test_table_columns():
 
 
 @pytest.mark.db
-def test_table_comments():
-	for obj in data.objdict():
+def test_table_comments(db_data):
+	for obj in db_data.objdict():
 		if isinstance(obj, orasql.Table):
 			# comments are output by :meth:`iterobjects`, but not for materialized views
 			if obj.ismview():
@@ -186,20 +188,20 @@ def test_table_comments():
 					assert obj in com.iterreferences()
 			else:
 				for com in obj.itercomments():
-					assert obj in data.objdict()[com][0]
+					assert obj in db_data.objdict()[com][0]
 
 
 @pytest.mark.db
-def test_table_constraints():
-	for obj in data.objdict():
+def test_table_constraints(db_data):
+	for obj in db_data.objdict():
 		if isinstance(obj, orasql.Table):
 			for con in obj.iterconstraints():
-				assert obj in data.objdict()[con][0]
+				assert obj in db_data.objdict()[con][0]
 
 
 @pytest.mark.db
-def test_table_records():
-	for obj in data.objdict():
+def test_table_records(db_data):
+	for obj in db_data.objdict():
 		if isinstance(obj, orasql.Table):
 			# fetch only a few records
 			for (i, rec) in enumerate(obj.iterrecords()):
@@ -208,15 +210,15 @@ def test_table_records():
 
 
 @pytest.mark.db
-def test_table_mview():
-	for obj in data.objdict():
+def test_table_mview(db_data):
+	for obj in db_data.objdict():
 		if isinstance(obj, orasql.Table):
 			assert (obj.mview() is not None) == obj.ismview()
 
 
 @pytest.mark.db
-def test_constraints():
-	for obj in data.objdict():
+def test_constraints(db_data):
+	for obj in db_data.objdict():
 		if isinstance(obj, orasql.Constraint):
 			obj.table()
 			if isinstance(obj, orasql.ForeignKey):
@@ -225,8 +227,8 @@ def test_constraints():
 
 
 @pytest.mark.db
-def test_procedure_arguments():
-	for obj in data.objdict():
+def test_procedure_arguments(db_data):
+	for obj in db_data.objdict():
 		if isinstance(obj, orasql.Procedure):
 			list(obj.iterarguments())
 
@@ -240,11 +242,11 @@ def test_procedure_nonexistant():
 
 
 @pytest.mark.db
-def test_createorder():
+def test_createorder(db_data):
 	# check that the default output order of :meth:`iterobjects` (i.e. create order) works
 	done = set()
-	for obj in data.objlist():
-		for refobj in data.objdict()[obj][0]:
+	for obj in db_data.objlist():
+		for refobj in db_data.objdict()[obj][0]:
 			assert refobj in done
 		done.add(obj)
 
@@ -310,7 +312,7 @@ def test_callprocedure():
 		assert result.p_in == "abcäöü"
 		assert result.p_out == "ABCÄÖÜ"
 		assert result.p_inout == "ABC"*10000 + "abcäöü"
-	
+
 		result = proc(db.cursor(readlobs=False), c_user="pytest", p_in="abcäöü", p_inout="abc"*10000)
 		assert result.p_in == "abcäöü"
 		assert result.p_out == "ABCÄÖÜ"
@@ -353,8 +355,8 @@ def test_clob_fromprocedure():
 
 
 @pytest.mark.db
-def test_fetch():
-	for obj in data.objdict():
+def test_fetch(db_data):
+	for obj in db_data.objdict():
 		if isinstance(obj, orasql.Table):
 			# fetch only a few records
 			db = orasql.connect(dbname)
