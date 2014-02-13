@@ -288,7 +288,7 @@ def main(args=None):
 			elif args.mode == "udiff":
 				ddl = getcanonicalddl(obj.createddl(connection1), args.blank)
 				showudiff(stdout, obj, ddl, [], connection1, connection2, args.context)
-		count += 1
+			count += 1
 
 
 if __name__ == "__main__":
