@@ -4,6 +4,9 @@ Changes in 5.7.1 (released 02/13/2014)
 *	Fixed a bug in the script ``oradiff`` that resulting in the wrong order of
 	the output.
 
+*	The ``oradd`` command ``file`` will now create directories if they don't
+	exist.
+
 
 Changes in 5.7 (released 01/30/2014)
 ------------------------------------

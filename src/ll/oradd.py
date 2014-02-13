@@ -256,7 +256,7 @@ it supports the following command line options:
 """
 
 # We're importing ``datetime``, so that it's available to ``eval()``
-import sys, os, pwd, grp, argparse, operator, collections, datetime, tempfile, subprocess
+import sys, os, os.path, pwd, grp, argparse, operator, collections, datetime, tempfile, subprocess
 
 import cx_Oracle
 
@@ -466,8 +466,18 @@ class Executor:
 			else:
 				print(".", end="", flush=True)
 
-		with open(name, "wb") as f:
-			f.write(command["content"])
+		try:
+			with open(name, "wb") as f:
+				f.write(command["content"])
+		except FileNotFoundError: # probably the directory doesn't exist
+			(splitpath, splitname) = os.path.split(name)
+			if splitpath:
+				os.makedirs(splitpath)
+				with open(name, "wb") as f:
+					f.write(command["content"])
+			else:
+				raise # we don't have a directory to make so pass the error on
+
 		if "mode" in "command":
 			os.chmod(name, command["mode"])
 		if "owner" in "command" or "group" in command:
