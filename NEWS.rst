@@ -1,3 +1,10 @@
+Changes in 5.7.1 (released 02/13/2014)
+--------------------------------------
+
+*	Fixed a bug in the script ``oradiff`` that resulting in the wrong order of
+	the output.
+
+
 Changes in 5.7 (released 01/30/2014)
 ------------------------------------
 
