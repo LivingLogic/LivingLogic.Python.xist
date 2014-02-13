@@ -71,7 +71,7 @@ using unified diff mode with 5 context lines::
 """
 
 
-import sys, os, difflib, argparse
+import sys, difflib, argparse
 
 from ll import misc, orasql, astyle
 
