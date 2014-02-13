@@ -61,7 +61,7 @@ def geturls(stylesheet):
 def _getmedia(stylesheet):
 	while stylesheet is not None:
 		if stylesheet.media is not None:
-			return {mq.mediaType for mq in stylesheet.media}
+			return {mq.value.mediaType for mq in stylesheet.media}
 		stylesheet = stylesheet.parentStyleSheet
 	return None
 
@@ -88,7 +88,7 @@ def _doimport(wantmedia, parentsheet, base):
 				sheet.cssText = text
 				yield from _doimport(wantmedia, sheet, href)
 			elif rule.type == css.CSSRule.MEDIA_RULE:
-				if wantmedia in (mq.mediaType for mq in rule.media):
+				if wantmedia in (mq.value.mediaType for mq in rule.media):
 					yield from rule.cssRules
 			elif rule.type == css.CSSRule.STYLE_RULE:
 				yield rule
