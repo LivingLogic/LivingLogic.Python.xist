@@ -512,23 +512,26 @@ class Executor:
 
 		if self.verbose >= 1:
 			if self.verbose >= 3:
-				print("#{}: resetting sequence {} to maximum value from {}.{}".format(self.count+1, sequence, table, field))
+				print("#{}: resetting sequence {} to maximum value from {}.{}".format(self.count+1, sequence, table, field), end="", flush=True)
 			else:
 				print(".", end="", flush=True)
 
 		self.cursor.execute("select nvl(max({}), {}) from {}".format(field, minvalue, table))
 		tabvalue = self.cursor.fetchone()[0]
-		self.cursor.execute("select {}.nextval from dual".format(sequence))
+		self.cursor.execute("select {}.currval from dual".format(sequence))
 		seqvalue = self.cursor.fetchone()[0]
-		self.cursor.execute("alter sequence {} increment by {}".format(sequence, max(minvalue, tabvalue-seqvalue)))
-		self.cursor.execute("select {}.nextval from dual".format(sequence))
-		seqvalue = self.cursor.fetchone()[0]
-		self.cursor.execute("alter sequence {} increment by {}".format(sequence, increment))
-
-		if self.verbose >= 3:
-			print(" -> reset to {}".format(seqvalue), flush=True)
-
-		return seqvalue
+		if tabvalue != seqvalue:
+			self.cursor.execute("alter sequence {} increment by {}".format(sequence, tabvalue-seqvalue))
+			self.cursor.execute("select {}.nextval from dual".format(sequence))
+			seqvalue = self.cursor.fetchone()[0]
+			self.cursor.execute("alter sequence {} increment by {}".format(sequence, increment))
+			if self.verbose >= 3:
+				print(" -> reset to {}".format(seqvalue), flush=True)
+			return seqvalue
+		else:
+			if self.verbose >= 3:
+				print(" -> no reset required", flush=True)
+			return None
 
 	def _executesql(self, query, args):
 		queryargvars = {}

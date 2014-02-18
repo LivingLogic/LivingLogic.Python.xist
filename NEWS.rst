@@ -3,6 +3,9 @@ Changes in 5.8 (released ??/??/2014)
 
 *	Updated the required version of :mod:`cssutils` to 1.0.
 
+*	Fixed the :mod:`oradd`\s ``resetsequence`` command to really reset the
+	sequence.
+
 
 Changes in 5.7.1 (released 02/13/2014)
 --------------------------------------
