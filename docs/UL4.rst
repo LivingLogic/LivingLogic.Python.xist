@@ -412,7 +412,7 @@ will output ``1``::
 		<?print i?>
 	<?end def?>
 	<?code i = 2?>
-	<?render x.render()?>
+	<?code x.render()?>
 
 
 Expressions
