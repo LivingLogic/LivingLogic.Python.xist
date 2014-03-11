@@ -514,7 +514,7 @@ def javaexpr(obj):
 		return "false"
 	elif isinstance(obj, str):
 		if len(obj) > 10000: # Otherwise javac complains about ``constant string too long`` (the upper limit is 65535 UTF-8 bytes)
-			return "new StringBuilder(){}.toString()".format("".join(".append({})".format(javaexpr(obj[i:i+10000])) for i in range(0, len(obj), 10000)))
+			return "new StringBuilder({}){}.toString()".format(len(obj), "".join(".append({})".format(javaexpr(obj[i:i+10000])) for i in range(0, len(obj), 10000)))
 		else:
 			v = []
 			specialchars = {"\r": "\\r", "\n": "\\n", "\t": "\\t", "\f": "\\f", "\b": "\\b", '"': '\\"', "\\": "\\\\"}
