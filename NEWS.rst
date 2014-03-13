@@ -6,6 +6,8 @@ Changes in 5.8 (released ??/??/2014)
 *	Fixed the :mod:`oradd`\s ``resetsequence`` command to really reset the
 	sequence.
 
+*	UL4 supports ``while`` loops now.
+
 
 Changes in 5.7.1 (released 02/13/2014)
 --------------------------------------
