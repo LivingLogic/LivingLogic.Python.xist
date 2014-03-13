@@ -863,6 +863,16 @@ def test_for_nested_unpacking(r):
 
 
 @pytest.mark.ul4
+def test_while(r):
+	assert "0;1;2;" == r("<?code i = 0?><?while i < 3?><?print i?>;<?code i+=1?><?end while?>")
+
+
+@pytest.mark.ul4
+def test_while_break(r):
+	assert "0;1;2;" == r("<?code i = 0?><?while i < 30?><?print i?>;<?code i+=1?><?if i == 3?><?break?><?end if?><?end while?>")
+
+
+@pytest.mark.ul4
 def test_break(r):
 	assert '1, 2, ' == r('<?for i in [1,2,3]?><?print i?>, <?if i==2?><?break?><?end if?><?end for?>')
 

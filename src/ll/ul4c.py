@@ -1135,6 +1135,66 @@ class ForBlock(Block):
 				pass
 
 
+@register("whileblock")
+class WhileBlock(Block):
+	"""
+	AST node for a ``<?while?>`` loop.
+	"""
+
+	ul4attrs = Block.ul4attrs.union({"condition"})
+
+	def __init__(self, location=None, start=None, end=None, condition=None):
+		super().__init__(location, start, end)
+		self.condition = condition
+
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} condition={0.condition!r} {1} at {2:#x}>".format(self, " ..." if self.content else "", id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				p.breakable()
+				p.text("condition=")
+				p.pretty(self.condition)
+				for node in self.content:
+					p.breakable()
+					p.pretty(node)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.condition)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.condition = decoder.load()
+
+	def _str(self):
+		yield "while "
+		yield from AST._str(self)
+		yield ":"
+		yield None
+		yield +1
+		yield from super()._str()
+		yield -1
+
+	@handleeval
+	def eval(self, vars):
+		while 1:
+			condition = (yield from self.condition.eval(vars))
+			if not condition:
+				break
+			try:
+				yield from super().eval(vars)
+			except BreakException:
+				break
+			except ContinueException:
+				pass
+
+
 @register("break")
 class Break(AST):
 	"""
@@ -2682,7 +2742,7 @@ class Template(Block):
 		This is a generator which produces :class:`Location` objects for each tag
 		or non-tag text. It will be called by :meth:`_compile` internally.
 		"""
-		pattern = "{}(printx|print|code|for|if|elif|else|end|break|continue|def|return|note)(\s*((.|\\n)*?)\s*)?{}".format(re.escape(startdelim), re.escape(enddelim))
+		pattern = "{}(printx|print|code|for|while|if|elif|else|end|break|continue|def|return|note)(\s*((.|\\n)*?)\s*)?{}".format(re.escape(startdelim), re.escape(enddelim))
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
@@ -2771,6 +2831,9 @@ class Template(Block):
 						elif code == "for":
 							if not isinstance(stack[-1], ForBlock):
 								raise BlockError("endfor doesn't match any for")
+						elif code == "while":
+							if not isinstance(stack[-1], WhileBlock):
+								raise BlockError("endwhile doesn't match any while")
 						elif code == "def":
 							if not isinstance(stack[-1], Template):
 								raise BlockError("enddef doesn't match any def")
@@ -2785,16 +2848,20 @@ class Template(Block):
 					block = parsefor(location)
 					stack[-1].append(block)
 					stack.append(block)
+				elif location.type == "while":
+					block = WhileBlock(location, location.startcode, location.endcode, parseexpr(location))
+					stack[-1].append(block)
+					stack.append(block)
 				elif location.type == "break":
 					for block in reversed(stack):
-						if isinstance(block, ForBlock):
+						if isinstance(block, (ForBlock, WhileBlock)):
 							break
 						elif isinstance(block, Template):
 							raise BlockError("break outside of for loop")
 					stack[-1].append(Break(location, location.startcode, location.endcode))
 				elif location.type == "continue":
 					for block in reversed(stack):
-						if isinstance(block, ForBlock):
+						if isinstance(block, (ForBlock, WhileBlock)):
 							break
 						elif isinstance(block, Template):
 							raise BlockError("continue outside of for loop")
