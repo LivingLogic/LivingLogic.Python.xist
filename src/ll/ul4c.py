@@ -1070,7 +1070,7 @@ class ElseBlock(Block):
 @register("forblock")
 class ForBlock(Block):
 	"""
-	AST node for a ``<?for?>`` loop variable.
+	AST node for a ``<?for?>`` loop.
 	"""
 
 	ul4attrs = Block.ul4attrs.union({"varname", "container"})
