@@ -26,7 +26,7 @@ Parsing a simple HTML string might e.g. look like this::
 
 	>>> from ll.xist import xsc, parse
 	>>> from ll.xist.ns import html
-	>>> source = "<a href='http://www.python.org/'>Python</a>"
+	>>> source = b"<a href='http://www.python.org/'>Python</a>"
 	>>> doc = parse.tree(
 	... 	parse.String(source),
 	... 	parse.Expat(),
@@ -41,7 +41,7 @@ the parser (possibly in multiple chunks) (and information about the URL of the
 input)::
 
 	>>> from ll.xist import parse
-	>>> list(parse.String("<a href='http://www.python.org/'>Python</a>"))
+	>>> list(parse.String(b"<a href='http://www.python.org/'>Python</a>"))
 	[('url', URL('STRING')),
 	 ('bytes', "<a href='http://www.python.org/'>Python</a>")]
 
@@ -50,18 +50,18 @@ iterator as an argument and return an iterator over events themselves. The
 following code shows an example of an event stream::
 
 	>>> from ll.xist import parse
-	>>> source = "<a href='http://www.python.org/'>Python</a>"
+	>>> source = b"<a href='http://www.python.org/'>Python</a>"
 	>>> list(parse.events(parse.String(source), parse.Expat()))
 	[('url', URL('STRING')),
 	 ('position', (0, 0)),
-	 ('enterstarttag', u'a'),
-	 ('enterattr', u'href'),
-	 ('text', u'http://www.python.org/'),
-	 ('leaveattr', u'href'),
-	 ('leavestarttag', u'a'),
+	 ('enterstarttag', 'a'),
+	 ('enterattr', 'href'),
+	 ('text', 'http://www.python.org/'),
+	 ('leaveattr', 'href'),
+	 ('leavestarttag', 'a'),
 	 ('position', (0, 39)),
-	 ('text', u'Python'),
-	 ('endtag', u'a')]
+	 ('text', 'Python'),
+	 ('endtag', 'a')]
 
 An event is a tuple consisting of the event type and the event data. Different
 stages in the pipeline produce different event types. The following event types
@@ -187,8 +187,8 @@ following events are used:
 
 	``"enterelementnode"``
 		The beginning of an element. The event data is an instance of
-		:class:`ll.xist.xsc.Element` (or rather one of its subclasses). The
-		attributes of the element object are set, but the element has no content.
+		:class:`ll.xist.xsc.Element` (or one of its subclasses). The attributes
+		of the element object are set, but the element has no content yet.
 
 	``"leaveelementnode"``
 		The end of an element. The event data is an instance of
@@ -231,7 +231,7 @@ all element and attribute names::
 			yield (event, data)
 
 	e = parse.tree(
-		parse.String("<A HREF='gurk'><B>gurk</B></A>"),
+		parse.String(b"<A HREF='gurk'><B>gurk</B></A>"),
 		parse.Expat(),
 		lowertag,
 		parse.NS(html),
