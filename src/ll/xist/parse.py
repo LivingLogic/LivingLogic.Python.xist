@@ -1111,7 +1111,7 @@ class NS(object):
 			yield False
 
 	def enterattr(self, data):
-		if data=="xmlns" or data.startswith("xmlns:"):
+		if data == "xmlns" or data.startswith("xmlns:"):
 			prefix = data[6:] or None
 			self._newprefixes[prefix] = self._attr = []
 		else:
