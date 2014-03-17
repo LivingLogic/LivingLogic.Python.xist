@@ -560,7 +560,7 @@ class Encoder(object):
 	Encode the :class:`str` objects produced by the previous object in the
 	pipeline to :class:`bytes` object.
 
-	This input object must be a pipeline object that produces unicode output
+	This input object must be a pipeline object that produces string output
 	(e.g. a :class:`Decoder` object).
 	"""
 
