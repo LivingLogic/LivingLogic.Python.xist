@@ -1176,17 +1176,18 @@ class Node(object):
 		>>> from ll.xist import xsc, parse
 		>>> from ll.xist.ns import html
 		>>> list(parse.events(
-		... 	parse.String("<a href='http://www.python.org/'>Python</a>"),
+		... 	parse.String(b"<a href='http://www.python.org/'>Python</a>"),
 		... 	parse.Expat(),
 		... 	parse.NS(html),
 		... 	parse.Node(pool=xsc.Pool(html))
 		... ))
-		[(u'enterelementnode',
-		  <ll.xist.ns.html.a element object (no children/1 attr) (from STRING:0:0) at 0x1026e6a10>),
-		 (u'textnode',
-		  <ll.xist.xsc.Text content=u'Python' (from STRING:0:39) at 0x102566b48>),
-		 (u'leaveelementnode',
-		  <ll.xist.ns.html.a element object (no children/1 attr) (from STRING:0:0) at 0x1026e6a10>)]
+		[('enterelementnode',
+		  <element ll.xist.ns.html.a xmlns='http://www.w3.org/1999/xhtml' (no children/1 attr) location='STRING:0:0' at 0x10a683550>),
+		 ('textnode',
+		  <ll.xist.xsc.Text content='Python' location='STRING:0:39' at 0x10a5e1170>),
+		 ('leaveelementnode',
+		  <element ll.xist.ns.html.a xmlns='http://www.w3.org/1999/xhtml' (no children/1 attr) location='STRING:0:0' at 0x10a683550>)
+		]
 
 	The event data of all events are XIST nodes. The element node from the
 	``"enterelementnode"`` event already has all attributes set. There will be
