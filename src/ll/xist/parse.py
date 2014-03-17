@@ -562,6 +562,22 @@ class Encoder(object):
 
 	This input object must be a pipeline object that produces string output
 	(e.g. a :class:`Decoder` object).
+
+	This can e.g. be used to parse a :class:`str` object instead of a
+	:class:`bytes` object like this::
+
+		>>> from ll.xist import xsc, parse
+		>>> from ll.xist.ns import html
+		>>> source = "<a href='http://www.python.org/'>Python</a>"
+		>>> doc = parse.tree(
+		... 	parse.String(source),
+		... 	parse.Encoder(encoding="utf-8"),
+		... 	parse.Expat(encoding="utf-8"),
+		... 	parse.NS(html),
+		... 	parse.Node(pool=xsc.Pool(html)),
+		... )
+		>>> doc.string()
+		'<a href="http://www.python.org/">Python</a>'
 	"""
 
 	def __init__(self, encoding=None):
