@@ -1385,7 +1385,6 @@ class Tidy(object):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
 
 	def _asxist(self, node):
-		from ll.xist.ns import html
 		name = type(node).__name__
 		if "ElementTree" in name:
 			if self.xmldecl:
@@ -1396,7 +1395,6 @@ class Tidy(object):
 			yield from self._asxist(node.getroot())
 		elif "Element" in name:
 			elementname = node.tag
-			element = getattr(html, elementname, None)
 			yield ("enterstarttag", elementname)
 			for (attrname, attrvalue) in sorted(node.items()):
 				yield ("enterattr", attrname)
