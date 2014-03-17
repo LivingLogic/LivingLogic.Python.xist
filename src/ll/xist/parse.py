@@ -1488,15 +1488,17 @@ def tree(*pipeline, validate=False):
 		>>> from ll.xist.ns import xml, html, chars
 		>>> doc = parse.tree(
 		... 	parse.URL("http://www.python.org/"),
-		... 	parse.Expat(ns=True),
+		... 	parse.Tidy(),
+		... 	parse.NS(html),
 		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
 		... )
+
 		>>> doc[0]
 		<element ll.xist.ns.html.html
 			xmlns='http://www.w3.org/1999/xhtml'
-			(5 children/2 attrs)
-			location='http://www.python.org/:3:0'
-			at 0x10af710>
+			(7 children/3 attrs)
+			location='https://www.python.org/:?:?'
+			at 0x110a4ecd0>
 	"""
 	path = [xsc.Frag()]
 	for (evtype, node) in events(*pipeline):
