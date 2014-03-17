@@ -974,14 +974,14 @@ class NS(object):
 	namespaces. It replaces the ``"enterstarttag"``, ``"leavestarttag"``,
 	``"endtag"``, ``"enterattr"`` and ``"leaveattr"`` events with the appropriate
 	namespace version of the events (i.e. ``"enterstarttagns"`` etc.) where the
-	event data is a ``(name, namespace)`` tuple.
+	event data is a ``(namespace, name)`` tuple.
 
 	The output of an :class:`NS` object in the stream looks like this::
 
 		>>> from ll.xist import parse
 		>>> from ll.xist.ns import html
 		>>> list(parse.events(
-		... 	parse.String("<a href='http://www.python.org/'>Python</a>"),
+		... 	parse.String(b"<a href='http://www.python.org/'>Python</a>"),
 		... 	parse.Expat(),
 		... 	parse.NS(html)
 		... ))
