@@ -547,7 +547,7 @@ class Decoder(object):
 				yield ("url", data)
 			else:
 				raise UnknownEventError(self, (evtype, data))
-		data = decoder.decode("", True)
+		data = decoder.decode(b"", True)
 		if data:
 			yield ("str", data)
 
