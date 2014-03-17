@@ -1538,17 +1538,14 @@ def itertree(*pipeline, entercontent=True, enterattrs=False, enterattr=False, en
 		>>> from ll.xist.ns import xml, html, chars
 		>>> for c in parse.itertree(
 		... 	parse.URL("http://www.python.org/"),
-		... 	parse.Expat(ns=True),
+		... 	parse.Tidy(),
+		... 	parse.NS(html),
 		... 	parse.Node(pool=xsc.Pool(xml, html, chars)),
 		... 	selector=html.a/html.img
 		... ):
-		... 	print(c.path[-1].attrs.src, "-->", c.path[-2].attrs.href)
-		http://www.python.org/images/python-logo.gif --> http://www.python.org/
-		http://www.python.org/images/trans.gif --> http://www.python.org/#left%2Dhand%2Dnavigation
-		http://www.python.org/images/trans.gif --> http://www.python.org/#content%2Dbody
-		http://www.python.org/images/donate.png --> http://www.python.org/psf/donations/
-		http://www.python.org/images/worldmap.jpg --> http://wiki.python.org/moin/Languages
-		http://www.python.org/images/success/standrews.jpg --> http://www.python.org/about/success/st-andrews/
+		...	print(c.path[-1].attrs.src, "-->", c.path[-2].attrs.href)
+
+		https://www.python.org/static/img/python-logo.png --> https://www.python.org/
 	"""
 	selector = xfind.selector(selector)
 	cursor = xsc.Cursor(xsc.Frag(), entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, enterelementnode=enterelementnode, leaveelementnode=leaveelementnode, enterattrnode=enterattrnode, leaveattrnode=leaveattrnode)
