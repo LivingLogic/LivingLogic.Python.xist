@@ -80,7 +80,8 @@ can be produced by source objects:
 	``"str"``
 		The event data is a string. This event is produced by :class:`Decoder`
 		objects. Note that the only predefined pipeline objects that can handle
-		``"str"`` events are :class:`Encoder` objects.
+		``"str"`` events are :class:`Encoder` objects, i.e. normally a parser
+		can handle ``"str"`` events.
 
 The following type of events are produced by parsers (in addition to the
 ``"url"`` event from above):
