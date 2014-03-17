@@ -685,7 +685,7 @@ class Expat(Parser):
 
 		:obj:`cdata` : bool
 			Should the parser output CDATA sections as ``"cdata"`` events? (If
-			:obj:`cdata` is false output ``"text"`` events instead.)
+			:obj:`cdata` is false ``"text"`` events are output instead.)
 
 		:obj:`ns` : bool
 			If :obj:`ns` is true, the parser does its own namespace processing,
