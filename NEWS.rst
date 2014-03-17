@@ -8,6 +8,12 @@ Changes in 5.8 (released ??/??/2014)
 
 *	UL4 supports ``while`` loops now.
 
+*	Passing the ``clientinfo`` parameter to :func:`cx_Oracle.connect` doesn't
+	work with Oracle 11.2.0.4.0 (leading to an ``ORA-03113: end-of-file on
+	communication channel`` error). The method :meth:`orasql.connect` has been
+	changed to set the ``clientinfo`` parameter after the connection has been
+	established.
+
 
 Changes in 5.7.1 (released 02/13/2014)
 --------------------------------------

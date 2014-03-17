@@ -340,13 +340,11 @@ class Connection(Connection):
 			self.readlobs = kwargs.pop("readlobs", False)
 		else:
 			self.readlobs = False
-		if "clientinfo" not in kwargs:
-			kwargs = kwargs.copy()
-			kwargs["clientinfo"] = misc.sysinfo.short_script_name[-64:]
-		elif kwargs["clientinfo"] is None:
-			kwargs = kwargs.copy()
-			del kwargs["clientinfo"]
+		clientinfo = kwargs.pop("clientinfo", misc.sysinfo.short_script_name[-64:])
 		super().__init__(*args, **kwargs)
+		if clientinfo is not None:
+			self.clientinfo = clientinfo
+			self.commit()
 		self.mode = kwargs.get("mode")
 		self._ddprefix = None # Do we have access to the ``DBA_*`` views?
 		self._ddprefixargs = None # Do we have access to the ``DBA_ARGUMENTS`` view (which doesn't exist in Oracle 10)?
