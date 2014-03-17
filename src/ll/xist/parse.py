@@ -623,7 +623,7 @@ class Transcoder(object):
 				yield ("url", data)
 			else:
 				raise UnknownEventError(self, (evtype, data))
-		data = encoder.encode(decoder.decode("", True), True)
+		data = encoder.encode(decoder.decode(b"", True), True)
 		if data:
 			yield ("bytes", data)
 
