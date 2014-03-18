@@ -59,9 +59,9 @@ static PyObject *xmlescape_str(PyObject *str, int doquot, int doapos)
 	}
 	else
 	{
+		int index = 0;
 		PyObject *result = PyUnicode_New(newsize, maxchar);
 		newdata = PyUnicode_DATA(result);
-		int index = 0;
 		if (result == NULL)
 			return NULL;
 		for (i = 0; i < oldsize; ++i)
@@ -184,9 +184,9 @@ static PyObject *xmlescape_bytes(PyObject *str, int doquot, int doapos)
 	}
 	else
 	{
+		int index = 0;
 		PyObject *result = PyBytes_FromStringAndSize(NULL, newsize);
 		newdata = (unsigned char *)PyBytes_AS_STRING(result);
-		int index = 0;
 		if (result == NULL)
 			return NULL;
 		for (i = 0; i < oldsize; ++i)
