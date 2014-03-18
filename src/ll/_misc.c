@@ -12,58 +12,266 @@
 
 
 /* define unicode version of xmlescape */
-#define STRINGLIB_NAME               xmlescape_unicode
-#define STRINGLIB_INTRO              int kind = PyUnicode_KIND(str);
-#define STRINGLIB_CHAR               Py_UCS4
-#define STRINGLIB_LEN(str)           PyUnicode_GET_LENGTH(str)
-#define STRINGLIB_STR(str)           PyUnicode_DATA(str)
-#define STRINGLIB_NEW(size, maxchar) PyUnicode_New(size, maxchar)
-#define STRINGLIB_GET(str, i)        PyUnicode_READ(kind, str, i)
-#define STRINGLIB_SET(str, i, c)     PyUnicode_WRITE(kind, str, i, c)
+static PyObject *xmlescape_str(PyObject *str, int doquot, int doapos)
+{
+	Py_ssize_t oldsize;
+	void *olddata;
+	int maxchar = 127;
+	Py_ssize_t i;
+	Py_ssize_t newsize = 0;
+	void *newdata;
 
-#include "_misc_include.c"
+	int kind = PyUnicode_KIND(str);
 
-#undef STRINGLIB_NAME
-#undef STRINGLIB_INTRO
-#undef STRINGLIB_CHAR
-#undef STRINGLIB_STR
-#undef STRINGLIB_LEN
-#undef STRINGLIB_NEW
-#undef STRINGLIB_GET
-#undef STRINGLIB_SET
+	oldsize = PyUnicode_GET_LENGTH(str);
+	olddata = PyUnicode_DATA(str);
+	for (i = 0; i < oldsize; ++i)
+	{
+		Py_UCS4 ch = PyUnicode_READ(kind, olddata, i);
+		if (ch == ((Py_UCS4)'<'))
+			newsize += 4; /* &lt; */
+		else if (ch == (Py_UCS4)'>') /* Note that we always replace '>' with its entity, not just in case it is part of ']]>' */
+			newsize += 4; /* &gt; */
+		else if (ch == (Py_UCS4)'&')
+			newsize += 5; /* &amp; */
+		else if ((ch == (Py_UCS4)'"') && doquot)
+			newsize += 6; /* &quot; */
+		else if ((ch == (Py_UCS4)'\'') && doapos)
+			newsize += 5; /* &#39; */
+		else if (ch <= 0x8)
+			newsize += 4;
+		else if ((ch >= 0xB) && (ch <= 0x1F) && (ch != 0xD))
+			newsize += 5;
+		else if ((ch >= 0x7F) && (ch <= 0x9F) && (ch != 0x85))
+			newsize += 6;
+		else
+		{
+			newsize++;
+			if (ch > maxchar)
+				maxchar = ch;
+		}
+	}
+	if (oldsize==newsize)
+	{
+		/* nothing to replace => return original */
+		Py_INCREF(str);
+		return str;
+	}
+	else
+	{
+		PyObject *result = PyUnicode_New(newsize, maxchar);
+		newdata = PyUnicode_DATA(result);
+		int index = 0;
+		if (result == NULL)
+			return NULL;
+		for (i = 0; i < oldsize; ++i)
+		{
+			Py_UCS4 ch = PyUnicode_READ(kind, olddata, i);
+			if (ch == (Py_UCS4)'<')
+			{
+				PyUnicode_WRITE(kind, newdata, index++, '&');
+				PyUnicode_WRITE(kind, newdata, index++, 'l');
+				PyUnicode_WRITE(kind, newdata, index++, 't');
+				PyUnicode_WRITE(kind, newdata, index++, ';');
+			}
+			else if (ch == (Py_UCS4)'>')
+			{
+				PyUnicode_WRITE(kind, newdata, index++, '&');
+				PyUnicode_WRITE(kind, newdata, index++, 'g');
+				PyUnicode_WRITE(kind, newdata, index++, 't');
+				PyUnicode_WRITE(kind, newdata, index++, ';');
+			}
+			else if (ch == (Py_UCS4)'&')
+			{
+				PyUnicode_WRITE(kind, newdata, index++, '&');
+				PyUnicode_WRITE(kind, newdata, index++, 'a');
+				PyUnicode_WRITE(kind, newdata, index++, 'm');
+				PyUnicode_WRITE(kind, newdata, index++, 'p');
+				PyUnicode_WRITE(kind, newdata, index++, ';');
+			}
+			else if ((ch == (Py_UCS4)'"') && doquot)
+			{
+				PyUnicode_WRITE(kind, newdata, index++, '&');
+				PyUnicode_WRITE(kind, newdata, index++, 'q');
+				PyUnicode_WRITE(kind, newdata, index++, 'u');
+				PyUnicode_WRITE(kind, newdata, index++, 'o');
+				PyUnicode_WRITE(kind, newdata, index++, 't');
+				PyUnicode_WRITE(kind, newdata, index++, ';');
+			}
+			else if ((ch == (Py_UCS4)'\'') && doapos)
+			{
+				PyUnicode_WRITE(kind, newdata, index++, '&');
+				PyUnicode_WRITE(kind, newdata, index++, '#');
+				PyUnicode_WRITE(kind, newdata, index++, '3');
+				PyUnicode_WRITE(kind, newdata, index++, '9');
+				PyUnicode_WRITE(kind, newdata, index++, ';');
+			}
+			else if (ch <= 0x8)
+			{
+				PyUnicode_WRITE(kind, newdata, index++, '&');
+				PyUnicode_WRITE(kind, newdata, index++, '#');
+				PyUnicode_WRITE(kind, newdata, index++, '0'+ch);
+				PyUnicode_WRITE(kind, newdata, index++, ';');
+			}
+			else if ((ch >= 0xB) && (ch <= 0x1F) && (ch != 0xD))
+			{
+				PyUnicode_WRITE(kind, newdata, index++, '&');
+				PyUnicode_WRITE(kind, newdata, index++, '#');
+				PyUnicode_WRITE(kind, newdata, index++, '0'+ch/10);
+				PyUnicode_WRITE(kind, newdata, index++, '0'+ch%10);
+				PyUnicode_WRITE(kind, newdata, index++, ';');
+			}
+			else if ((ch >= 0x7F) && (ch <= 0x9F) && (ch != 0x85))
+			{
+				PyUnicode_WRITE(kind, newdata, index++, '&');
+				PyUnicode_WRITE(kind, newdata, index++, '#');
+				PyUnicode_WRITE(kind, newdata, index++, '0'+ch/100);
+				PyUnicode_WRITE(kind, newdata, index++, '0'+(ch/10)%10);
+				PyUnicode_WRITE(kind, newdata, index++, '0'+ch%10);
+				PyUnicode_WRITE(kind, newdata, index++, ';');
+			}
+			else
+				PyUnicode_WRITE(kind, newdata, index++, ch);
+		}
+		return result;
+	}
+}
 
 
-/* define str version of xmlescape */
-#define STRINGLIB_NAME               xmlescape_str
-#define STRINGLIB_INTRO
-#define STRINGLIB_CHAR               unsigned char
-#define STRINGLIB_LEN(str)           PyBytes_GET_SIZE(str)
-#define STRINGLIB_STR(str)           PyBytes_AS_STRING(str)
-#define STRINGLIB_NEW(size, maxchar) PyBytes_FromStringAndSize(NULL, size)
-#define STRINGLIB_GET(str, i)        (((unsigned char *)(str))[i])
-#define STRINGLIB_SET(str, i, c)     ((((unsigned char *)(str))[i]) = (c))
+/* define bytes version of xmlescape */
+static PyObject *xmlescape_bytes(PyObject *str, int doquot, int doapos)
+{
+	Py_ssize_t oldsize;
+	unsigned char *olddata;
+	int maxchar = 127;
+	Py_ssize_t i;
+	Py_ssize_t newsize = 0;
+	unsigned char *newdata;
 
-#include "_misc_include.c"
-
-#undef STRINGLIB_NAME
-#undef STRINGLIB_INTRO
-#undef STRINGLIB_CHAR
-#undef STRINGLIB_STR
-#undef STRINGLIB_LEN
-#undef STRINGLIB_NEW
-#undef STRINGLIB_GET
-#undef STRINGLIB_SET
+	oldsize = PyBytes_GET_SIZE(str);
+	olddata = (unsigned char *)PyBytes_AS_STRING(str);
+	for (i = 0; i < oldsize; ++i)
+	{
+		unsigned char ch = olddata[i];
+		if (ch == '<')
+			newsize += 4; /* &lt; */
+		else if (ch == '>') /* Note that we always replace '>' with its entity, not just in case it is part of ']]>' */
+			newsize += 4; /* &gt; */
+		else if (ch == '&')
+			newsize += 5; /* &amp; */
+		else if ((ch == '"') && doquot)
+			newsize += 6; /* &quot; */
+		else if ((ch == '\'') && doapos)
+			newsize += 5; /* &#39; */
+		else if (ch <= 0x8)
+			newsize += 4;
+		else if ((ch >= 0xB) && (ch <= 0x1F) && (ch != 0xD))
+			newsize += 5;
+		else if ((ch >= 0x7F) && (ch <= 0x9F) && (ch != 0x85))
+			newsize += 6;
+		else
+		{
+			newsize++;
+			if (ch > maxchar)
+				maxchar = ch;
+		}
+	}
+	if (oldsize==newsize)
+	{
+		/* nothing to replace => return original */
+		Py_INCREF(str);
+		return str;
+	}
+	else
+	{
+		PyObject *result = PyBytes_FromStringAndSize(NULL, newsize);
+		newdata = (unsigned char *)PyBytes_AS_STRING(result);
+		int index = 0;
+		if (result == NULL)
+			return NULL;
+		for (i = 0; i < oldsize; ++i)
+		{
+			unsigned char ch = olddata[i];
+			if (ch == '<')
+			{
+				newdata[index++] = '&';
+				newdata[index++] = 'l';
+				newdata[index++] = 't';
+				newdata[index++] = ';';
+			}
+			else if (ch == '>')
+			{
+				newdata[index++] = '&';
+				newdata[index++] = 'g';
+				newdata[index++] = 't';
+				newdata[index++] = ';';
+			}
+			else if (ch == '&')
+			{
+				newdata[index++] = '&';
+				newdata[index++] = 'a';
+				newdata[index++] = 'm';
+				newdata[index++] = 'p';
+				newdata[index++] = ';';
+			}
+			else if ((ch == '"') && doquot)
+			{
+				newdata[index++] = '&';
+				newdata[index++] = 'q';
+				newdata[index++] = 'u';
+				newdata[index++] = 'o';
+				newdata[index++] = 't';
+				newdata[index++] = ';';
+			}
+			else if ((ch == '\'') && doapos)
+			{
+				newdata[index++] = '&';
+				newdata[index++] = '#';
+				newdata[index++] = '3';
+				newdata[index++] = '9';
+				newdata[index++] = ';';
+			}
+			else if (ch <= 0x8)
+			{
+				newdata[index++] = '&';
+				newdata[index++] = '#';
+				newdata[index++] = '0'+ch;
+				newdata[index++] = ';';
+			}
+			else if ((ch >= 0xB) && (ch <= 0x1F) && (ch != 0xD))
+			{
+				newdata[index++] = '&';
+				newdata[index++] = '#';
+				newdata[index++] = '0'+ch/10;
+				newdata[index++] = '0'+ch%10;
+				newdata[index++] = ';';
+			}
+			else if ((ch >= 0x7F) && (ch <= 0x9F) && (ch != 0x85))
+			{
+				newdata[index++] = '&';
+				newdata[index++] = '#';
+				newdata[index++] = '0'+ch/100;
+				newdata[index++] = '0'+(ch/10)%10;
+				newdata[index++] = '0'+ch%10;
+				newdata[index++] = ';';
+			}
+			else
+				newdata[index++] = ch;
+		}
+		return result;
+	}
+}
 
 
 static PyObject *_xmlescape(PyObject *arg, int doquot, int doapos)
 {
 	if (PyUnicode_Check(arg))
 	{
-		return xmlescape_unicode(arg, doquot, doapos);
+		return xmlescape_str(arg, doquot, doapos);
 	}
 	else if (PyBytes_Check(arg))
 	{
-		return xmlescape_str(arg, doquot, doapos);
+		return xmlescape_bytes(arg, doquot, doapos);
 	}
 	else
 	{
