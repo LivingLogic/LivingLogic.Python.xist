@@ -14,6 +14,8 @@ Changes in 5.8 (released ??/??/2014)
 	changed to set the ``clientinfo`` parameter after the connection has been
 	established.
 
+*	Fixed cloning of plain XML attributes.
+
 *	Fixed a bug in the C source code that broke compiling with Visual C.
 	From now on we will have Windows installation packages again.
 

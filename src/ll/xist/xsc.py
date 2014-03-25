@@ -2351,6 +2351,13 @@ class Attr(Frag, metaclass=_Attr_Meta):
 		else:
 			return "attribute {}".format(self.xmlname)
 
+	def _create(self):
+		node = self.__class__()
+		if self.__class__ is Attr:
+			node.xmlname = self.xmlname
+			node.xmlns = self.xmlns
+		return node
+
 	def isfancy(self):
 		"""
 		Return whether :obj:`self` contains nodes other than :class:`Text`.

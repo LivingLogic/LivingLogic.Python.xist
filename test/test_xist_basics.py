@@ -944,3 +944,8 @@ def test_plainprocinst_mapped():
 
 	assert node.__class__ is xsc.ProcInst
 	assert node.xmlname == "foo"
+
+
+def test_clone_plain_attributes():
+	node = html.p({"data-id": 42})
+	assert node.clone().string() == '<p data-id="42"></p>'
