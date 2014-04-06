@@ -396,7 +396,7 @@ class FlagAction(argparse.Action):
 	def __init__(self, option_strings, dest, default=False, help=None):
 		super().__init__(option_strings=option_strings, dest=dest, default="yes" if default else "no", help=help, metavar="yes|no", const="no" if default else "yes", type=self.str2bool, nargs="?")
 
-	# implementing this prevents :meth:`__repr__` from generating in infinite recursion
+	# implementing this prevents :meth:`__repr__` from generating an infinite recursion
 	def _get_kwargs(self):
 		return [(key, getattr(self, key)) for key in ("option_strings", "dest", "default", "help")]
 
