@@ -62,7 +62,7 @@ def makexnd(stream, encoding=None, shareattrs="dupes", model="simple"):
 	node = parse.tree(stream, parse.Expat(encoding=encoding), parse.NS(tld), parse.Node())
 
 	# get and convert the taglib object
-	xnd = node.walknodes(tld.taglib)[0].asxnd(model=model)
+	xnd = misc.first(node.walknodes(tld.taglib)).asxnd(model=model)
 
 	if shareattrs=="dupes":
 		xnd.shareattrs(False)
