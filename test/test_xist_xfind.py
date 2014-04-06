@@ -302,13 +302,11 @@ def test_itemsslices():
 
 def test_item():
 	e = html.div(range(10))
-	assert str(e[xsc.Text][0]) == "0"
-	assert str(e[xsc.Text][9]) == "9"
-	assert str(e[xsc.Text][-1]) == "9"
-	assert str(e[xsc.Text][-10]) == "0"
-	with pytest.raises(IndexError):
-		e[xsc.Text][10]
-	with pytest.raises(IndexError):
-		e[xsc.Text][-11]
+	assert str(misc.item(e[xsc.Text], 0)) == "0"
+	assert str(misc.item(e[xsc.Text], 9)) == "9"
+	assert str(misc.item(e[xsc.Text], -1)) == "9"
+	assert str(misc.item(e[xsc.Text], -10)) == "0"
+	misc.item(e[xsc.Text], 10) is None
+	misc.item(e[xsc.Text], -11) is None
 	assert str(misc.item(e[xsc.Text], 10, "x")) == "x"
 	assert str(misc.item(e[xsc.Text], -11, "x")) == "x"

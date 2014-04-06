@@ -91,23 +91,34 @@ def item(iterable, index, default=None):
 	negative the iterator will be completely exhausted, if it's positive it
 	will be exhausted up to the :obj:`index`'th element. If the iterator
 	doesn't produce that many elements :obj:`default` will be returned.
+
+	:obj:`index` may also be an iterable of indexes, in which case :meth:`item`
+	will be applied recursively, i.e. ``item(["foo", "bar"], (1, -1))`` returns
+	``'r'``.
 	"""
-	i = index
-	if i >= 0:
-		for item in iterable:
-			if not i:
-				return item
-			i -= 1
-	else:
-		i = -index
-		cache = collections.deque()
-		for item in iterable:
-			cache.append(item)
-			if len(cache) > i:
-				cache.popleft()
-		if len(cache) == i:
-			return cache.popleft()
-	return default
+	if isinstance(index, int):
+		index = (index,)
+	for i in index:
+		if i >= 0:
+			for item in iterable:
+				if not i:
+					iterable = item
+					break
+				i -= 1
+			else:
+				return default
+		else:
+			i = -i
+			cache = collections.deque()
+			for item in iterable:
+				cache.append(item)
+				if len(cache) > i:
+					cache.popleft()
+			if len(cache) == i:
+				iterable = cache.popleft()
+			else:
+				return default
+	return iterable
 
 
 def first(iterable, default=None):

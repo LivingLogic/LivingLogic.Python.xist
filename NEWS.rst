@@ -1,12 +1,15 @@
 Changes in 5.8 (released ??/??/2014)
 ------------------------------------
 
+*	UL4 supports ``while`` loops now.
+
+*	:meth:`misc.item` now supports index sequences, which will be applied
+	recursively, so ``item(["foo", "bar"], (1, -1))`` return ``'r'``.
+
 *	Updated the required version of :mod:`cssutils` to 1.0.
 
 *	Fixed the :mod:`oradd`\s ``resetsequence`` command to really reset the
 	sequence.
-
-*	UL4 supports ``while`` loops now.
 
 *	Passing the ``clientinfo`` parameter to :func:`cx_Oracle.connect` doesn't
 	work with Oracle 11.2.0.4.0 (leading to an ``ORA-03113: end-of-file on

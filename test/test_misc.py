@@ -146,6 +146,9 @@ def test_item():
 	with pytest.raises(SyntaxError):
 		misc.item(err(10), -1)
 
+	# Check index lists
+	assert misc.item(["foo", "bar"], (1, -1)) == "r"
+
 
 def test_first():
 	e = iter(range(10))

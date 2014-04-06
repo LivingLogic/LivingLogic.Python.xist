@@ -11,6 +11,7 @@
 
 import pytest
 
+from ll import misc
 from ll.xist import xsc, xfind
 from ll.xist.ns import html, xml
 
@@ -104,17 +105,13 @@ def test_walkgetitem():
 	isdiv = xfind.selector(html.div)
 
 	# Test ``walknodes``
-	assert str(e.walknodes(isdiv)[0]) == "123"
-	assert str(e.walknodes(isdiv)[-1]) == "3"
-	with pytest.raises(IndexError):
-		e.walknodes(isdiv)[3]
-	with pytest.raises(IndexError):
-		e.walknodes(isdiv)[-4]
+	assert str(misc.first(e.walknodes(isdiv))) == "123"
+	assert str(misc.last(e.walknodes(isdiv))) == "3"
+	misc.item(e.walknodes(isdiv), 3) is None
+	misc.item(e.walknodes(isdiv), -4) is None
 
 	# Test ``walkpaths``
-	assert str(e.walkpaths(isdiv)[0][-1]) == "123"
-	assert str(e.walkpaths(isdiv)[-1][-1]) == "3"
-	with pytest.raises(IndexError):
-		e.walkpaths(isdiv)[3]
-	with pytest.raises(IndexError):
-		e.walkpaths(isdiv)[-4]
+	assert str(misc.item(e.walkpaths(isdiv), (0, -1))) == "123"
+	assert str(misc.item(e.walkpaths(isdiv), (-1, -1))) == "3"
+	misc.item(e.walkpaths(isdiv), 3) is None
+	misc.item(e.walkpaths(isdiv), -4) is None
