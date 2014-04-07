@@ -4,7 +4,7 @@ Changes in 5.8 (released ??/??/2014)
 *	UL4 supports ``while`` loops now.
 
 *	:meth:`misc.item` now supports index sequences, which will be applied
-	recursively, so ``item(["foo", "bar"], (1, -1))`` return ``'r'``.
+	recursively, so ``item(["foo", "bar"], (1, -1))`` returns ``'r'``.
 
 *	Updated the required version of :mod:`cssutils` to 1.0.
 
