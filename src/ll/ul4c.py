@@ -3038,9 +3038,7 @@ def function_all(iterable):
 	return all(iterable)
 
 
-@AST.makefunction
-def function_enumerate(iterable, start=0):
-	return enumerate(iterable, start)
+AST.makefunction(enumerate)
 
 
 @AST.makefunction
