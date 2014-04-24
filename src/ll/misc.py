@@ -15,7 +15,7 @@ LivingLogic modules and packages.
 """
 
 
-import sys, os, types, datetime, collections, io, gzip as gzip_, argparse, functools
+import sys, os, types, datetime, collections, io, gzip as gzip_, argparse, functools, signal, contextlib
 
 from ll import ul4c, color
 
@@ -866,6 +866,37 @@ class monthdelta(object):
 
 	def months(self):
 		return self._months
+
+
+class Timeout(Exception):
+	"""
+	Exception that is raised when a timeout in :func:`timeout` occurs.
+	"""
+	def __init__(self, seconds):
+		self.seconds = seconds
+
+	def __str__(self):
+		return "timed out after {} seconds".format(self.seconds)
+
+
+@contextlib.contextmanager
+def timeout(seconds):
+	"""
+	A context manager that limits the runtime of the wrapped code.
+
+	This doesn't work with threads and only on UNIX.
+	"""
+
+	def _timeouthandler(signum, frame):
+		raise Timeout(seconds)
+
+	oldsignal = signal.signal(signal.SIGALRM, _timeouthandler)
+	signal.alarm(seconds)
+	try:
+		yield
+	finally:
+		signal.alarm(0)
+		signal.signal(signal.SIGALRM, oldsignal)
 
 
 def prettycsv(rows, padding="   "):

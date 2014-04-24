@@ -6,6 +6,9 @@ Changes in 5.8 (released ??/??/2014)
 *	:meth:`misc.item` now supports index sequences, which will be applied
 	recursively, so ``item(["foo", "bar"], (1, -1))`` return ``'r'``.
 
+*	A new context manager :func:`misc.timeout` has been added, that uses
+	:func:`signal.alarm` to limit the runtime of the body of the ``with`` block.
+
 *	Updated the required version of :mod:`cssutils` to 1.0.
 
 *	Fixed the :mod:`oradd`\s ``resetsequence`` command to really reset the
