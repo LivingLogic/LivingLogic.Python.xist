@@ -2929,9 +2929,7 @@ def function_now():
 	return datetime.datetime.now()
 
 
-@AST.makefunction
-def function_utcnow():
-	return datetime.datetime.utcnow()
+AST.makefunction(datetime.datetime.utcnow)
 
 
 @AST.makefunction
@@ -2950,9 +2948,7 @@ def function_monthdelta(months=0):
 	return misc.monthdelta(months)
 
 
-@AST.makefunction
-def function_random():
-	return random.random()
+AST.makefunction(random.random)
 
 
 @AST.makefunction
