@@ -432,6 +432,7 @@ argumentmismatchmessage = [
 	"takes at most \\d+ (positional )?arguments?",
 	"takes at least \\d+ argument", #  < 3.3
 	"takes no arguments",
+	"takes no keyword arguments",
 	"expected at least \\d+ arguments?",
 	"expected at most \\d+ arguments?, got \\d+",
 	"missing \\d+ required positional arguments?", # 3.3
