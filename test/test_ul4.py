@@ -1628,6 +1628,8 @@ def test_function_asjson(r):
 	assert "42" == r("<?print asjson(data)?>", data=42)
 	# no check for float
 	assert '"abc"' == r("<?print asjson(data)?>", data="abc")
+	assert '"\'"' == r("<?print asjson(data)?>", data="'")
+	assert '"\\\""' == r("<?print asjson(data)?>", data='"')
 	assert '[1, 2, 3]' == r("<?print asjson(data)?>", data=[1, 2, 3])
 	assert '[1, 2, 3]' == r("<?print asjson(data)?>", data=PseudoList([1, 2, 3]))
 	assert '{"one": 1}' == r("<?print asjson(data)?>", data={"one": 1})
