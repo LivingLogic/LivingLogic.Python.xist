@@ -355,7 +355,7 @@ element class for an element named <lit>cool</lit> works like this:</p>
 <prog>
 class cool(xsc.Element):
 	def convert(self, converter):
-		node = html.b(self.content, u" is cool!")
+		node = html.b(self.content, " is cool!")
 		return node.convert(converter)
 </prog>
 </example>
@@ -397,7 +397,7 @@ might remain in the tree. Let's define a new element:</p>
 <prog>
 class python(xsc.Element):
 	def convert(self, converter):
-		return html.a(u"Python", href=u"http://www.python.org/")
+		return html.a("Python", href="http://www.python.org/")
 </prog>
 <p>Now we can do the following:</p>
 <tty>
@@ -473,9 +473,9 @@ to implement different conversions for different languages, e.g.:</p>
 <prog>
 class note(xsc.Element):
 	def convert(self, converter):
-		if converter.lang==u"de":
+		if converter.lang == "de":
 			title = "Anmerkung"
-		elif converter.lang==u"en":
+		elif converter.lang == "en":
 			title = "Note"
 		else:
 			title = "???"
@@ -588,7 +588,7 @@ class cool(xsc.Element):
 <p>and use it like this:</p>
 
 <tty>
-<prompt>&gt;&gt;&gt; </prompt><input>node = cool(python(), adj=u"totally")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = cool(python(), adj="totally")</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node.conv().bytes()</input>
 &lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is &lt;em&gt;totally&lt;/em&gt; cool!
 </tty>
@@ -671,7 +671,7 @@ so the warning will be printed only once (but of course
 you can change that with <func>warnings.filterwarnings</func>):</p>
 
 <tty>
-<prompt>&gt;&gt;&gt; </prompt><input>node = cool(python(), adj=u"pretty")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = cool(python(), adj="pretty")</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print(node.bytes())</input>
 /Users/walter/checkouts/LivingLogic.Python.xist/src/ll/xist/xsc.py:2368: \
 IllegalAttrValueWarning: Attribute value 'pretty' not allowed for __main__:cool.Attrs.adj
@@ -823,7 +823,7 @@ attribute class instead of the attribute name like this:</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = html.div(u"foo", {Attrs.foo: u"bar"})</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.div("foo", {Attrs.foo: "bar"})</input>
 <prompt>&gt;&gt;&gt; </prompt><input>str(node[Attrs.foo])</input>
 'bar'
 </tty>
@@ -833,7 +833,7 @@ like this:</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = html.div(u"foo", Attrs(foo=u"baz"))</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.div("foo", Attrs(foo="baz"))</input>
 <prompt>&gt;&gt;&gt; </prompt><input>str(node[Attrs.foo])</input>
 'baz'
 </tty>
@@ -970,7 +970,7 @@ or an <pyref module="ll.xist.ns.meta" class="contenttype">&html; meta header</py
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import xml, meta</input>
-<prompt>&gt;&gt;&gt; </prompt><input>e = xsc.Frag(xml.XML(), u"\n", meta.contenttype())</input>
+<prompt>&gt;&gt;&gt; </prompt><input>e = xsc.Frag(xml.XML(), "\n", meta.contenttype())</input>
 <prompt>&gt;&gt;&gt; </prompt><input>e.conv().bytes(encoding="iso-8859-15")</input>
 <![CDATA[b'<?xml version="1.0" encoding="iso-8859-15"?>\n<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15" />']]>
 </tty>
