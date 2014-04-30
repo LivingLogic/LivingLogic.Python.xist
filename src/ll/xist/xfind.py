@@ -10,7 +10,7 @@
 
 
 """
-This module contains XFind  selectors and related classes and functions.
+This module contains XFind selectors and related classes and functions.
 
 A selector specifies a condition that a node in an XIST tree must satisfy to
 match the selector. For example the method :meth:`Node.walk` will only output
