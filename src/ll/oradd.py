@@ -518,10 +518,10 @@ class Executor:
 
 		self.cursor.execute("select nvl(max({}), {}) from {}".format(field, minvalue, table))
 		tabvalue = self.cursor.fetchone()[0]
-		self.cursor.execute("select {}.currval from dual".format(sequence))
+		self.cursor.execute("select last_number from user_sequences where lower(sequence_name)=lower(:name)", name=sequence)
 		seqvalue = self.cursor.fetchone()[0]
 		if tabvalue != seqvalue:
-			self.cursor.execute("alter sequence {} increment by {}".format(sequence, tabvalue-seqvalue))
+			self.cursor.execute("alter sequence {} increment by {}".format(sequence, tabvalue-seqvalue+increment))
 			self.cursor.execute("select {}.nextval from dual".format(sequence))
 			seqvalue = self.cursor.fetchone()[0]
 			self.cursor.execute("alter sequence {} increment by {}".format(sequence, increment))
