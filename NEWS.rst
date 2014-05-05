@@ -11,7 +11,7 @@ Changes in 5.8 (released ??/??/2014)
 
 *	Updated the required version of :mod:`cssutils` to 1.0.
 
-*	Fixed the :mod:`oradd`\s ``resetsequence`` command to really reset the
+*	Fixed the :mod:`oradd`\ ``resetsequence`` command to really reset the
 	sequence.
 
 *	Passing the ``clientinfo`` parameter to :func:`cx_Oracle.connect` doesn't
