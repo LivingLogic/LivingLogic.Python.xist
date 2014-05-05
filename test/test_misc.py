@@ -313,3 +313,10 @@ def test_prettycsv():
 	assert "".join(misc.prettycsv([["a", "b "], ["abc", "def"]])) == "a     b\nabc   def\n"
 	assert "".join(misc.prettycsv([["a"], ["abc", "def"]])) == "a\nabc   def\n"
 	assert "".join(misc.prettycsv([["a", "b"], ["abc", "def"]], "..")) == "a  ..b\nabc..def\n"
+
+
+def test_timeout():
+	with pytest.raises(misc.Timeout):
+		with misc.timeout(3):
+			while True:
+				pass
