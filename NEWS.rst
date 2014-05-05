@@ -1,4 +1,4 @@
-Changes in 5.8 (released ??/??/2014)
+Changes in 5.8 (released 05/05/2014)
 ------------------------------------
 
 *	UL4 supports ``while`` loops now.
