@@ -75,7 +75,7 @@ Migrating to version 5.2
 Changes to ``sisyphus``
 -----------------------
 
-*	The method :meth:`prefix` for :mod:`sisyphus` jobs has been replace with
+*	The method :meth:`prefix` for :mod:`sisyphus` jobs has been replaced with
 	:meth:`task` which does something similar.
 
 Changes to UL4
