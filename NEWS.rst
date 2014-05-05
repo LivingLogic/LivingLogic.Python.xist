@@ -12,7 +12,8 @@ Changes in 5.8 (released ??/??/2014)
 *	Updated the required version of :mod:`cssutils` to 1.0.
 
 *	Fixed the :mod:`oradd`\ ``resetsequence`` command to really reset the
-	sequence.
+	sequence. The parameters ``minvalue`` and ``increment`` are now optional.
+	If missing they will be taken from the existing sequence.
 
 *	Passing the ``clientinfo`` parameter to :func:`cx_Oracle.connect` doesn't
 	work with Oracle 11.2.0.4.0 (leading to an ``ORA-03113: end-of-file on

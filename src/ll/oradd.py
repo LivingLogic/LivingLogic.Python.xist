@@ -210,10 +210,10 @@ maximum value of a field in a table. The following additional keys are used:
 		a value that is larger than the maximum value of the field ``field`` in
 		the table ``table``.
 
-	``minvalue``: integer (optional, default 10)
+	``minvalue``: integer (optional, default taken from sequence)
 		The minimum value for the sequence.
 
-	``increment``: integer (optional, default 10)
+	``increment``: integer (optional, default taken from sequence)
 		The increment (i.e. the stop size) for the sequence.
 
 A line in an ``oradd`` dump that starts with a ``#`` will be ignored.
@@ -507,8 +507,8 @@ class Executor:
 		sequence = command["sequence"]
 		table = command["table"]
 		field = command["field"]
-		minvalue = command.get("minvalue", 10)
-		increment = command.get("increment", 10)
+		minvalue = command.get("minvalue", None)
+		increment = command.get("increment", None)
 
 		if self.verbose >= 1:
 			if self.verbose >= 3:
@@ -516,10 +516,19 @@ class Executor:
 			else:
 				print(".", end="", flush=True)
 
+		# Fetch information about the sequence
+		self.cursor.execute("select min_value, increment_by, last_number from user_sequences where lower(sequence_name)=lower(:name)", name=sequence)
+		oldvalues = self.cursor.fetchone()
+		if increment is None:
+			increment = oldvalues[1]
+		if minvalue is None:
+			minvalue = oldvalues[0]
+		seqvalue = oldvalues[2]
+
+		# Fetch information about the table values
 		self.cursor.execute("select nvl(max({}), {}) from {}".format(field, minvalue, table))
 		tabvalue = self.cursor.fetchone()[0]
-		self.cursor.execute("select last_number from user_sequences where lower(sequence_name)=lower(:name)", name=sequence)
-		seqvalue = self.cursor.fetchone()[0]
+
 		if tabvalue != seqvalue:
 			self.cursor.execute("alter sequence {} increment by {}".format(sequence, tabvalue-seqvalue+increment))
 			self.cursor.execute("select {}.nextval from dual".format(sequence))
