@@ -1991,7 +1991,7 @@ class Path(object):
 		path = path.rstrip(os.sep)
 		if path.startswith("///"):
 			path = path[2:]
-		path = urllib.request.pathname2url(path.encode("utf-8"))
+		path = urllib.request.pathname2url(path)
 		if len(self) and not self.segments[-1]:
 			path += "/"
 		return Path(path)
@@ -2003,7 +2003,7 @@ class Path(object):
 		"""
 		path = os.path.realpath(self.local())
 		path = path.rstrip(os.sep)
-		path = urllib.request.pathname2url(path.encode("utf-8"))
+		path = urllib.request.pathname2url(path)
 		if path.startswith("///"):
 			path = path[2:]
 		if len(self) and not self.segments[-1]:
