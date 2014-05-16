@@ -10,7 +10,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-import sys, os, re, datetime, io, tempfile, collections, shutil, subprocess
+import sys, os, re, datetime, io, json, tempfile, collections, shutil, subprocess
 
 import pytest
 
@@ -75,7 +75,7 @@ def render_python_dump(__, *, keepws=True, **variables):
 	return template.renders(**variables)
 
 
-def render_js(__, *, keepws=True, **variables):
+def render_js_v8(__, *, keepws=True, **variables):
 	"""
 	Compile the template from the source ``__``, and generate Javascript source
 	from it that renders the template with the variables ``variables``.
@@ -84,12 +84,20 @@ def render_js(__, *, keepws=True, **variables):
 	"""
 	template = ul4c.Template(__, keepws=keepws)
 	js = template.jssource()
-	js = "template = {};\ndata = {};\nprint(template.renders(data));\n".format(js, ul4c._asjson(variables))
+	js = """
+		template = {};
+		data = ul4._map2object(ul4on.loads({}));
+		print(template.renders(data));
+	""".format(js, ul4c._asjson(ul4on.dumps(variables)))
+	f = sys._getframe(1)
+	print("Rendering UL4 template via V8 ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+	print(js)
 	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 		f.write(js.encode("utf-8"))
 		f.flush()
 		dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
-		proc = subprocess.Popen("d8 {dir}/ul4on.js {dir}/ul4.js {fn}".format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		fmt = "d8 {dir}/ul4on.js {dir}/ul4.js {fn}"
+		proc = subprocess.Popen(fmt.format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		(stdout, stderr) = proc.communicate()
 	stdout = stdout.decode("utf-8")
 	stderr = stderr.decode("utf-8")
@@ -99,6 +107,43 @@ def render_js(__, *, keepws=True, **variables):
 		print(stderr, file=sys.stderr)
 		raise RuntimeError((stderr or stdout).splitlines()[0])
 	return stdout[:-1] # Drop the "\n"
+
+
+def render_js_spidermonkey(__, *, keepws=True, **variables):
+	"""
+	Compile the template from the source ``__``, and generate Javascript source
+	from it that renders the template with the variables ``variables``.
+
+	(this requires an installed ``js`` shell from Spidermonkey
+	"""
+	template = ul4c.Template(__, keepws=keepws)
+	js = template.jssource()
+	# Output the result as JSON, as some characters (like '\00') don't survive being printed literally
+	js = """
+		template = {};
+		data = ul4._map2object(ul4on.loads({}));
+		print(JSON.stringify(template.renders(data)));
+	""".format(js, ul4c._asjson(ul4on.dumps(variables)))
+	f = sys._getframe(1)
+	print("Rendering UL4 template via Spidermonkey ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+	print(js)
+	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
+		f.write(js.encode("utf-8"))
+		f.flush()
+		dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
+		fmt = "js -f {dir}/ul4on.js -f {dir}/ul4.js -f {fn}"
+		proc = subprocess.Popen(fmt.format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		(stdout, stderr) = proc.communicate()
+	stdout = stdout.decode("utf-8")
+	stderr = stderr.decode("utf-8")
+	# Check if we have an exception
+	if proc.returncode:
+		print(stdout, file=sys.stdout)
+		print(stderr, file=sys.stderr)
+		raise RuntimeError((stderr or stdout).splitlines()[0])
+	return json.loads(stdout)
+
+
 
 
 def render_php(__, **variables):
@@ -318,7 +363,7 @@ def call_python_dump(__, *, keepws=True, **variables):
 	return template(**variables)
 
 
-def call_js(__, *, keepws=True, **variables):
+def call_js_v8(__, *, keepws=True, **variables):
 	"""
 	Compile the template from the source ``__``, and generate Javascript source
 	from it and call it as a function with the variables ``variables``.
@@ -327,12 +372,54 @@ def call_js(__, *, keepws=True, **variables):
 	"""
 	template = ul4c.Template(__, keepws=keepws)
 	js = template.jssource()
-	js = "template = {};\ndata = {};\nprint(ul4on.dumps(template.call(data)));\n".format(js, ul4c._asjson(variables))
+	js = """
+		template = {};
+		data = ul4._map2object(ul4on.loads({}));
+		print(ul4on.dumps(template.call(data)));
+	""".format(js, ul4c._asjson(ul4on.dumps(variables)))
+	f = sys._getframe(1)
+	print("Calling UL4 template via V8 ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+	print(js)
 	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 		f.write(js.encode("utf-8"))
 		f.flush()
 		dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
-		proc = subprocess.Popen("d8 {dir}/ul4on.js {dir}/ul4.js {fn}".format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		fmt = "d8 {dir}/ul4on.js {dir}/ul4.js {fn}"
+		proc = subprocess.Popen(fmt.format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		(stdout, stderr) = proc.communicate()
+	stdout = stdout.decode("utf-8")
+	stderr = stderr.decode("utf-8")
+	# Check if we have an exception
+	if proc.returncode:
+		print(stdout, file=sys.stdout)
+		print(stderr, file=sys.stderr)
+		raise RuntimeError((stderr or stdout).splitlines()[0])
+	return ul4on.loads(stdout)
+
+
+def call_js_spidermonkey(__, *, keepws=True, **variables):
+	"""
+	Compile the template from the source ``__``, and generate Javascript source
+	from it and call it as a function with the variables ``variables``.
+
+	(this requires an installed ``js`` shell from Spidermonkey
+	"""
+	template = ul4c.Template(__, keepws=keepws)
+	js = template.jssource()
+	js = """
+		template = {};
+		data = ul4._map2object(ul4on.loads({}));
+		print(ul4on.dumps(template.call(data)));
+	""".format(js, ul4c._asjson(ul4on.dumps(variables)))
+	f = sys._getframe(1)
+	print("Calling UL4 template via Spidermonkey ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+	print(js)
+	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
+		f.write(js.encode("utf-8"))
+		f.flush()
+		dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
+		fmt = "js -f {dir}/ul4on.js -f {dir}/ul4.js -f {fn}"
+		proc = subprocess.Popen(fmt.format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		(stdout, stderr) = proc.communicate()
 	stdout = stdout.decode("utf-8")
 	stderr = stderr.decode("utf-8")
@@ -391,23 +478,25 @@ def call_java_interpretedtemplate_by_java(__, keepws=True, **variables):
 
 
 all_renderers = dict(
-	python=render_python,
-	python_dumps=render_python_dumps,
-	python_dump=render_python_dump,
-	js=render_js,
+	# python=render_python,
+	# python_dumps=render_python_dumps,
+	# python_dump=render_python_dump,
+	js_v8=render_js_v8,
+	js_spidermonkey=render_js_spidermonkey,
 	# php=render_php,
-	java_interpreted_by_python=render_java_interpretedtemplate_by_python,
-	java_interpreted_by_java=render_java_interpretedtemplate_by_java,
+	# java_interpreted_by_python=render_java_interpretedtemplate_by_python,
+	# java_interpreted_by_java=render_java_interpretedtemplate_by_java,
 )
 
 all_callers = dict(
-	python=call_python,
-	python_dumps=call_python_dumps,
-	python_dump=call_python_dump,
-	js=call_js,
+	# python=call_python,
+	# python_dumps=call_python_dumps,
+	# python_dump=call_python_dump,
+	js_v8=call_js_v8,
+	js_spidermonkey=call_js_spidermonkey,
 	# php=call_php,
-	java_interpreted_by_python=call_java_interpretedtemplate_by_python,
-	java_interpreted_by_java=call_java_interpretedtemplate_by_java,
+	# java_interpreted_by_python=call_java_interpretedtemplate_by_python,
+	# java_interpreted_by_java=call_java_interpretedtemplate_by_java,
 )
 
 
@@ -511,7 +600,7 @@ def test_true(r):
 @pytest.mark.ul4
 def test_int(r):
 	values = (0, 42, -42, 0x7ffffff, 0x8000000, -0x8000000, -0x8000001)
-	if r is not render_js and r is not render_php:
+	if r not in (render_js_v8, render_js_spidermonkey, render_php):
 		# Since Javascript has no real integers the following would lead to rounding errors
 		# And PHP doesn't have any support for big integers (except for some GMP wrappers, that may not be installed)
 		values += (0x7ffffffffffffff, 0x800000000000000, -0x800000000000000, -0x800000000000001, 9999999999, -9999999999, 99999999999999999999, -99999999999999999999)
@@ -647,6 +736,8 @@ def test_dict(r):
 	assert '1:3\n' == r('<?for (key, value) in {1:2, 1: 3}.items()?><?print key?>:<?print value?>\n<?end for?>')
 	assert 'no' == r('<?if {}?>yes<?else?>no<?end if?>')
 	assert 'yes' == r('<?if {1:2}?>yes<?else?>no<?end if?>')
+	if r is not render_js_v8:
+		assert 'int' == r('<?for (key, value) in {1:2}.items()?><?print type(key)?><?end for?>')
 
 	# Make sure that the loop variables doesn't leak into the surrounding scope
 	assert "undefined" == r("<?code d = {i: 2*i for i in range(4)}?><?print type(i)?>")
@@ -658,6 +749,8 @@ def test_dictcomp(r):
 	assert "" == r("<?code d = {str(i):2*i for i in range(10) if i%2}?><?if '2' in d?><?print d['2']?><?end if?>")
 	assert "6" == r("<?code d = {str(i):2*i for i in range(10) if i%2}?><?if '3' in d?><?print d['3']?><?end if?>")
 	assert "6" == r("<?code d = {str(i):2*i for i in range(10)}?><?print d['3']?>")
+	if r is not render_js_v8:
+		assert '45' == r('<?code d = {i:2*i for i in range(10)}?><?print sum(d)?>')
 
 
 @pytest.mark.ul4
@@ -745,7 +838,7 @@ def test_shiftleftvar(r):
 	assert "-256" == r(code, x=-1, y=8)
 	assert "2147483648" == r(code, x=1, y=31)
 	assert "4294967296" == r(code, x=1, y=32)
-	if r is render_js:
+	if r in (render_js_v8, render_js_spidermonkey):
 		# Javascript numbers don't have enough precision
 		assert "18014398509481984" == r(code, x=1, y=54)
 	else:
@@ -1032,7 +1125,7 @@ def test_bitnot(r):
 	assert "-1" == r(code, x=0)
 	assert "-256" == r(code, x=255)
 	assert "-4294967297" == r(code, x=1 << 32)
-	if r is render_js:
+	if r in (render_js_v8, render_js_spidermonkey):
 		# Javascript numbers don't have enough precision
 		assert "-4503599627370497" == r(code, x=1 << 52)
 	else:
@@ -1115,7 +1208,7 @@ def test_shiftleft(r):
 	assert "-256" == r(code, x=-1, y=8)
 	assert "2147483648" == r(code, x=1, y=31)
 	assert "4294967296" == r(code, x=1, y=32)
-	if r is render_js:
+	if r in (render_js_v8, render_js_spidermonkey):
 		# Javascript numbers don't have enough precision
 		assert "9007199254740992" == r(code, x=1, y=53)
 	else:
@@ -1439,7 +1532,7 @@ def test_associativity(r):
 	assert "9" == r('<?print 2+3+4?>')
 	assert "-5" == r('<?print 2-3-4?>')
 	assert "24" == r('<?print 2*3*4?>')
-	if r is not render_js:
+	if r not in (render_js_v8, render_js_spidermonkey):
 		assert "2.0" == r('<?print 24/6/2?>')
 		assert "2" == r('<?print 24//6//2?>')
 	else:
@@ -1788,7 +1881,7 @@ def test_function_float(r):
 	with raises("float\\(\\) argument must be a string or a number|float\\(null\\) not supported"):
 		r(code, data=None)
 	assert "4.2" == r(code, data=4.2)
-	if r is not render_js:
+	if r not in (render_js_v8, render_js_spidermonkey):
 		assert "0.0" == r("<?print float()?>")
 		assert "1.0" == r(code, data=True)
 		assert "0.0" == r(code, data=False)
@@ -1846,6 +1939,9 @@ def test_function_any(r):
 	assert "True" == r("<?print any('foo')?>")
 	assert "True" == r("<?print any(i > 7 for i in range(10))?>")
 	assert "False" == r("<?print any(i > 17 for i in range(10))?>")
+	if r is not render_js_v8:
+		assert "False" == r("<?print any({None: 17, 0: 23})?>")
+		assert "True" == r("<?print any({None: 17, 0: 23, 42: 'foo'})?>")
 
 	# Make sure that the parameters have the same name in all implementations
 	assert "False" == r("<?print any(iterable=(i > 17 for i in range(10)))?>")
@@ -1863,6 +1959,9 @@ def test_function_all(r):
 	assert "True" == r("<?print all('foo')?>")
 	assert "False" == r("<?print all(i < 7 for i in range(10))?>")
 	assert "True" == r("<?print all(i < 17 for i in range(10))?>")
+	if r is not render_js_v8:
+		assert "False" == r("<?print any({None: 17, 0: 23})?>")
+		assert "True" == r("<?print any({17: 23, 42: 'foo'})?>")
 
 	# Make sure that the parameters have the same name in all implementations
 	assert "True" == r("<?print all(iterable=(i < 17 for i in range(10)))?>")
@@ -2462,7 +2561,7 @@ def test_function_repr(r):
 	assert 42.5 == eval(r(code, data=42.5))
 	assert r(code, data="foo") in ('"foo"', "'foo'")
 	assert [1, 2, 3] == eval(r(code, data=[1, 2, 3]))
-	if r is not render_js:
+	if r not in (render_js_v8, render_js_spidermonkey):
 		assert [1, 2, 3] == eval(r(code, data=(1, 2, 3)))
 	assert {"a": 1, "b": 2} == eval(r(code, data={"a": 1, "b": 2}))
 	if r is not render_php:
@@ -3799,7 +3898,7 @@ def test_truedivlvalue(r):
 
 @pytest.mark.ul4
 def test_endless_recursion(r):
-	with raises("maximum recursion depth exceeded|Maximum call stack size exceeded|StackOverflowError"):
+	with raises("maximum recursion depth exceeded|Maximum call stack size exceeded|too much recursion|StackOverflowError"):
 		r("""
 			<?def f?>
 				<?for child in container?>

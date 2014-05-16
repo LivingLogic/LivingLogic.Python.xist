@@ -10,7 +10,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-import sys, io, os, datetime, math, tempfile, shutil, subprocess
+import sys, io, os, json, datetime, math, tempfile, shutil, subprocess
 
 from ll import ul4on, ul4c, color, misc
 
@@ -19,7 +19,7 @@ def transport_python(obj):
 	return ul4on.loads(ul4on.dumps(obj))
 
 
-def transport_js(obj):
+def transport_js_v8(obj):
 	"""
 	Generate Javascript source that loads the dump done by Python, dumps it
 	again, and outputs this dump which is again loaded by Python.
@@ -29,13 +29,14 @@ def transport_js(obj):
 	dump = ul4on.dumps(obj)
 	js = "obj = ul4on.loads({});\nprint(ul4on.dumps(obj));\n".format(ul4c._asjson(dump))
 	f = sys._getframe(1)
-	print("Testing UL4ON via Javascript ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+	print("Testing UL4ON via V8 ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
 	print(js)
 	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 		f.write(js.encode("utf-8"))
 		f.flush()
 		dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
-		proc = subprocess.Popen("d8 {dir}/ul4on.js {dir}/ul4.js {fn}".format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		fmt = "d8 {dir}/ul4on.js {dir}/ul4.js {fn}"
+		proc = subprocess.Popen(fmt.format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		(stdout, stderr) = proc.communicate()
 	stdout = stdout.decode("utf-8")
 	stderr = stderr.decode("utf-8")
@@ -45,7 +46,38 @@ def transport_js(obj):
 		print(stderr, file=sys.stderr)
 		raise RuntimeError((stderr or stdout).splitlines()[0])
 	output = stdout[:-1] # Drop the "\n"
+	print("Got result {!r}".format(output))
 	return ul4on.loads(output)
+
+
+def transport_js_spidermonkey(obj):
+	"""
+	Generate Javascript source that loads the dump done by Python, dumps it
+	again, and outputs this dump which is again loaded by Python.
+
+	(this requires an installed ``js`` shell from Spidermonkey
+	"""
+	dump = ul4on.dumps(obj)
+	js = "obj = ul4on.loads({});\nprint(JSON.stringify(ul4on.dumps(obj)));\n".format(ul4c._asjson(dump))
+	f = sys._getframe(1)
+	print("Testing UL4ON via Spidermonkey ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+	print(js)
+	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
+		f.write(js.encode("utf-8"))
+		f.flush()
+		dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
+		fmt = "js -f {dir}/ul4on.js -f {dir}/ul4.js -f {fn}"
+		proc = subprocess.Popen(fmt.format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		(stdout, stderr) = proc.communicate()
+	stdout = stdout.decode("utf-8")
+	stderr = stderr.decode("utf-8")
+	# Check if we have an exception
+	if proc.returncode:
+		print(stdout, file=sys.stdout)
+		print(stderr, file=sys.stderr)
+		raise RuntimeError((stderr or stdout).splitlines()[0])
+	print("Got result {!r}".format(stdout))
+	return ul4on.loads(json.loads(stdout))
 
 
 def java_findexception(output):
@@ -149,7 +181,8 @@ def transport_java(obj):
 
 all_transports =  [
 	("python", transport_python),
-	("js", transport_js),
+	("js_v8", transport_js_v8),
+	("js_spidermonkey", transport_js_spidermonkey),
 	("java", transport_java),
 ]
 
@@ -218,7 +251,13 @@ def test_list(t):
 
 
 def test_dict(t):
-	assert {} == t({})
+	d = {}
+	assert d == t(d)
+	d = {"gurk": "hurz"}
+	assert d == t(d)
+	if t is not transport_js_v8:
+		d = {17: None, None: 23}
+		assert d == t(d)
 
 
 def test_template(t):
