@@ -928,7 +928,7 @@ def test_for_nested_loop(r):
 
 @pytest.mark.ul4
 def test_for_leak(r):
-	# Both loop variables and variables assigned in the block leak in the surrounding scope.
+	# Both loop variables and variables assigned in the block leak into the surrounding scope.
 	assert '4;4' == r('<?code x = 17?><?code y = 23?><?for x in range(5)?><?code y = x?><?end for?><?print x?>;<?print y?>')
 
 
