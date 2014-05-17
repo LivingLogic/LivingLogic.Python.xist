@@ -862,7 +862,7 @@ def test_shiftrightvar(r):
 
 
 @pytest.mark.ul4
-def test_bitanvard(r):
+def test_bitandvar(r):
 	code = "<?code x &= y?><?print x?>"
 
 	assert "0" == r(code, x=False, y=False)
@@ -876,7 +876,7 @@ def test_bitanvard(r):
 
 
 @pytest.mark.ul4
-def test_bitxovarr(r):
+def test_bitxorvar(r):
 	code = "<?code x ^= y?><?print x?>"
 
 	assert "0" == r(code, x=False, y=False)
