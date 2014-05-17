@@ -967,7 +967,7 @@ def test_while_break(r):
 
 
 @pytest.mark.ul4
-def test_break(r):
+def test_for_break(r):
 	assert '1, 2, ' == r('<?for i in [1,2,3]?><?print i?>, <?if i==2?><?break?><?end if?><?end for?>')
 
 
