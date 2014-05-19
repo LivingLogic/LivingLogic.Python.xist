@@ -862,7 +862,7 @@ def test_shiftrightvar(r):
 
 
 @pytest.mark.ul4
-def test_bitanvard(r):
+def test_bitandvar(r):
 	code = "<?code x &= y?><?print x?>"
 
 	assert "0" == r(code, x=False, y=False)
@@ -876,7 +876,7 @@ def test_bitanvard(r):
 
 
 @pytest.mark.ul4
-def test_bitxovarr(r):
+def test_bitxorvar(r):
 	code = "<?code x ^= y?><?print x?>"
 
 	assert "0" == r(code, x=False, y=False)
@@ -928,7 +928,7 @@ def test_for_nested_loop(r):
 
 @pytest.mark.ul4
 def test_for_leak(r):
-	# Both loop variables and variables assigned in the block leak in the surrounding scope.
+	# Both loop variables and variables assigned in the block leak into the surrounding scope.
 	assert '4;4' == r('<?code x = 17?><?code y = 23?><?for x in range(5)?><?code y = x?><?end for?><?print x?>;<?print y?>')
 
 
@@ -967,7 +967,7 @@ def test_while_break(r):
 
 
 @pytest.mark.ul4
-def test_break(r):
+def test_for_break(r):
 	assert '1, 2, ' == r('<?for i in [1,2,3]?><?print i?>, <?if i==2?><?break?><?end if?><?end for?>')
 
 
@@ -1397,10 +1397,12 @@ def test_contains(r):
 	assert "False" == r(code, x=4, y=[1, 2, 3])
 	assert "True" == r(code, x="ur", y="gurk")
 	assert "False" == r(code, x="un", y="gurk")
-	assert "True" == r(code, x="a", y={"a": 1, "b": 2})
-	assert "False" == r(code, x="c", y={"a": 1, "b": 2})
 	assert "True" == r(code, x=0xff, y=color.Color(0x00, 0x80, 0xff, 0x42))
 	assert "False" == r(code, x=0x23, y=color.Color(0x00, 0x80, 0xff, 0x42))
+	assert "True" == r(code, x="a", y={"a": 1, "b": 2})
+	assert "False" == r(code, x="c", y={"a": 1, "b": 2})
+	if r is not render_js_v8:
+		assert "True" == r(code, x=1, y={1: 2, 3: 4})
 
 
 @pytest.mark.ul4
@@ -1411,10 +1413,12 @@ def test_notcontains(r):
 	assert "True" == r(code, x=4, y=[1, 2, 3])
 	assert "False" == r(code, x="ur", y="gurk")
 	assert "True" == r(code, x="un", y="gurk")
-	assert "False" == r(code, x="a", y={"a": 1, "b": 2})
-	assert "True" == r(code, x="c", y={"a": 1, "b": 2})
 	assert "False" == r(code, x=0xff, y=color.Color(0x00, 0x80, 0xff, 0x42))
 	assert "True" == r(code, x=0x23, y=color.Color(0x00, 0x80, 0xff, 0x42))
+	assert "False" == r(code, x="a", y={"a": 1, "b": 2})
+	assert "True" == r(code, x="c", y={"a": 1, "b": 2})
+	if r is not render_js_v8:
+		assert "False" == r(code, x=1, y={1: 2, 3: 4})
 
 
 @pytest.mark.ul4
@@ -1845,7 +1849,10 @@ def test_function_list(r):
 	assert "[]" == r("<?print list()?>")
 	assert "[1, 2]" == r("<?print list(data)?>", data=[1, 2])
 	assert "g" == r("<?print list(data)[0]?>", data="gurk")
-	assert "foo42" == r("<?codex = list(data.items())?><?print x[0][0]?><?print x[0][1]?>", data={"foo": 42})
+	assert "gurk" == r("<?print list(data)[0]?>", data={"gurk": "hurz"})
+	if r is not render_js_v8:
+		assert "[1]" == r("<?print list(data)?>", data={1: 2})
+	assert "foo42" == r("<?code x = list(data.items())?><?print x[0][0]?><?print x[0][1]?>", data={"foo": 42})
 	assert "[0, 1, 2]" == r("<?print repr(list(range(3)))?>")
 
 	# Make sure that the parameters have the same name in all implementations
@@ -1942,6 +1949,7 @@ def test_function_any(r):
 	if r is not render_js_v8:
 		assert "False" == r("<?print any({None: 17, 0: 23})?>")
 		assert "True" == r("<?print any({None: 17, 0: 23, 42: 'foo'})?>")
+		assert "False" == r("<?print any({0: 17})?>")
 
 	# Make sure that the parameters have the same name in all implementations
 	assert "False" == r("<?print any(iterable=(i > 17 for i in range(10)))?>")
@@ -1962,6 +1970,7 @@ def test_function_all(r):
 	if r is not render_js_v8:
 		assert "False" == r("<?print any({None: 17, 0: 23})?>")
 		assert "True" == r("<?print any({17: 23, 42: 'foo'})?>")
+		assert "False" == r("<?print any({0: 17})?>")
 
 	# Make sure that the parameters have the same name in all implementations
 	assert "True" == r("<?print all(iterable=(i < 17 for i in range(10)))?>")
