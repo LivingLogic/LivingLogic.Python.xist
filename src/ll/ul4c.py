@@ -23,7 +23,7 @@ possible to implement template renderers in multiple programming languages.
 __docformat__ = "reStructuredText"
 
 
-import re, types, datetime, urllib.parse as urlparse, json, collections, locale, itertools, random, functools
+import re, types, datetime, urllib.parse as urlparse, json, collections, locale, itertools, random, functools, math
 
 import antlr3
 
@@ -3355,6 +3355,80 @@ def function_hls(h, l, s, a=1.0):
 def function_hsv(h, s, v, a=1.0):
 	from ll import color
 	return color.Color.fromhsv(h, s, v, a)
+
+
+@AST.makefunction
+def function_round(x, digits=0):
+	result = round(x, digits)
+	if digits <= 0:
+		result = int(result)
+	return result
+
+
+@AST.makefunction
+def function_floor(x, digits=0):
+	if digits:
+		threshhold = 10**digits
+		result = math.floor(x*threshhold)/threshhold
+		if digits < 0:
+			return int(result)
+		return result
+	else:
+		return math.floor(x)
+
+
+@AST.makefunction
+def function_ceil(x, digits=0):
+	if digits:
+		threshhold = 10**digits
+		result = math.ceil(x*threshhold)/threshhold
+		if digits < 0:
+			return int(result)
+		return result
+	else:
+		return math.ceil(x)
+
+
+AST.functions["pi"] = math.pi
+AST.functions["tau"] = 2*math.pi
+
+
+@AST.makefunction
+def function_sqrt(x):
+	return math.sqrt(x)
+
+
+@AST.makefunction
+def function_cos(x):
+	return math.cos(x)
+
+
+@AST.makefunction
+def function_sin(x):
+	return math.sin(x)
+
+
+@AST.makefunction
+def function_tan(x):
+	return math.tan(x)
+
+
+@AST.makefunction
+def function_exp(x):
+	return math.exp(x)
+
+
+@AST.makefunction
+def function_log(x, base=None):
+	if base is None:
+		return math.log(x)
+	else:
+		return math.log(x, base)
+
+
+@AST.makefunction
+def function_pow(x, y):
+	return math.pow(x, y)
 
 
 class TemplateClosure:

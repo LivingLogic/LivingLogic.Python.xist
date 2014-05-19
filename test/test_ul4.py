@@ -478,25 +478,25 @@ def call_java_interpretedtemplate_by_java(__, keepws=True, **variables):
 
 
 all_renderers = dict(
-	# python=render_python,
-	# python_dumps=render_python_dumps,
-	# python_dump=render_python_dump,
+	python=render_python,
+	python_dumps=render_python_dumps,
+	python_dump=render_python_dump,
 	js_v8=render_js_v8,
 	js_spidermonkey=render_js_spidermonkey,
 	# php=render_php,
-	# java_interpreted_by_python=render_java_interpretedtemplate_by_python,
-	# java_interpreted_by_java=render_java_interpretedtemplate_by_java,
+	java_interpreted_by_python=render_java_interpretedtemplate_by_python,
+	java_interpreted_by_java=render_java_interpretedtemplate_by_java,
 )
 
 all_callers = dict(
-	# python=call_python,
-	# python_dumps=call_python_dumps,
-	# python_dump=call_python_dump,
+	python=call_python,
+	python_dumps=call_python_dumps,
+	python_dump=call_python_dump,
 	js_v8=call_js_v8,
 	js_spidermonkey=call_js_spidermonkey,
 	# php=call_php,
-	# java_interpreted_by_python=call_java_interpretedtemplate_by_python,
-	# java_interpreted_by_java=call_java_interpretedtemplate_by_java,
+	java_interpreted_by_python=call_java_interpretedtemplate_by_python,
+	java_interpreted_by_java=call_java_interpretedtemplate_by_java,
 )
 
 
@@ -3014,6 +3014,40 @@ def test_function_hsv(r):
 
 	# Make sure that the parameters have the same name in all implementations
 	assert "#fff0" == r("<?print repr(hsv(h=0, s=0, v=1, a=0))?>")
+
+
+@pytest.mark.ul4
+def test_function_round(r):
+	with raises(argumentmismatchmessage):
+		r("<?print round()?>")
+	with raises(argumentmismatchmessage):
+		r("<?print round(1, 2, 3)?>")
+
+	assert "True" == r("<?print round(42) == 42?>")
+	assert "True" == r("<?print round(42, 1) == 42?>")
+	assert "True" == r("<?print round(42, -1) == 40?>")
+
+	assert "True" == r("<?print round(42.4) == 42?>")
+	assert "True" == r("<?print round(42.6) == 43?>")
+	assert "True" == r("<?print round(-42.4) == -42?>")
+	assert "True" == r("<?print round(-42.6) == -43?>")
+	assert "int" == r("<?print type(round(42.5))?>")
+
+	assert "True" == r("<?print round(42.4, -1) == 40?>")
+	assert "True" == r("<?print round(46.2, -1) == 50?>")
+	assert "True" == r("<?print round(-42.4, -1) == -40?>")
+	assert "True" == r("<?print round(-46.2, -1) == -50?>")
+	assert "int" == r("<?print type(round(42.5, -1))?>")
+
+	assert "True" == r("<?print round(42.987, 1) == 43.0?>")
+	assert "True" == r("<?print round(42.123, 1) == 42.1?>")
+	assert "True" == r("<?print round(-42.987, 1) == -43.0?>")
+	assert "True" == r("<?print round(-42.123, 1) == -42.1?>")
+	assert "True" == r("<?print round(42.589, 2) == 42.59?>")
+	assert "True" == r("<?print round(42.123, 2) == 42.12?>")
+	assert "True" == r("<?print round(-42.589, 2) == -42.59?>")
+	assert "True" == r("<?print round(-42.123, 2) == -42.12?>")
+	assert "float" == r("<?print type(round(42.5, 1))?>")
 
 
 @pytest.mark.ul4
