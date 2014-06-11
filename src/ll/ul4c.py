@@ -250,6 +250,13 @@ class UndefinedIndex(Undefined):
 
 
 def handleeval(f):
+	"""
+	Decorator for each implementation of the :meth:`eval` method.
+
+	This decorator is responsible for exception handling. An exception that
+	bubbles up the Python call stack will generate an exception chain that
+	follows the UL4 call stack.
+	"""
 	@functools.wraps(f)
 	def wrapped(self, *args):
 		try:
@@ -258,11 +265,15 @@ def handleeval(f):
 			# Pass those exception through to the AST nodes that will handle them (:class:`ForBlock` or :class:`Template`)
 			raise
 		except Error as ex:
+			# If the current AST node has a different location than the AST node where the exception came from
 			if ex.node.location is not self.location:
+				# ... wrap the exception in another exception that shows our location
 				raise Error(self) from ex
 			else:
+				# Reraise original exception, as we're still in the same location
 				raise
 		except Exception as ex:
+			# Wrap original exception in another exception that shows the location
 			raise Error(self) from ex
 	return wrapped
 
