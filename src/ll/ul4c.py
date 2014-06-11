@@ -249,7 +249,7 @@ class UndefinedIndex(Undefined):
 ###
 
 
-def handleeval(f):
+def _handleeval(f):
 	"""
 	Decorator for each implementation of the :meth:`eval` method.
 
@@ -536,7 +536,7 @@ class List(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		result = []
 		for item in self.items:
@@ -598,7 +598,7 @@ class ListComp(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		container = (yield from self.container.eval(vars))
 		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
@@ -654,7 +654,7 @@ class Dict(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		result = {}
 		for item in self.items:
@@ -718,7 +718,7 @@ class DictComp(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		container = (yield from self.container.eval(vars))
 		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
@@ -791,7 +791,7 @@ class GenExpr(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		container = (yield from self.container.eval(vars))
 		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
@@ -835,7 +835,7 @@ class Var(AST):
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.name!r} at {1:#x}>".format(self, id(self))
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		yield from ()
 		try:
@@ -846,12 +846,12 @@ class Var(AST):
 			except KeyError:
 				return UndefinedVariable(self.name)
 
-	@handleeval
+	@_handleeval
 	def evalsetvar(self, vars, value):
 		yield from ()
 		vars[self.name] = value
 
-	@handleeval
+	@_handleeval
 	def evalmodifyvar(self, operator, vars, value):
 		yield from ()
 		vars[self.name] = operator.evalfoldaug(vars[self.name], value)
@@ -893,7 +893,7 @@ class Block(AST):
 			yield "pass"
 			yield None
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		for node in self.content:
 			yield from node.eval(vars)
@@ -949,7 +949,7 @@ class CondBlock(Block):
 		for node in self.content:
 			yield from node._str()
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		for node in self.content:
 			if isinstance(node, ElseBlock) or (yield from node.condition.eval(vars)):
@@ -1131,7 +1131,7 @@ class ForBlock(Block):
 		yield from super()._str()
 		yield -1
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		container = (yield from self.container.eval(vars))
 		if hasattr(container, "ul4attrs"):
@@ -1193,7 +1193,7 @@ class WhileBlock(Block):
 		yield from super()._str()
 		yield -1
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		while 1:
 			condition = (yield from self.condition.eval(vars))
@@ -1267,7 +1267,7 @@ class Attr(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		obj = (yield from self.obj.eval(vars))
 		if hasattr(obj, "ul4attrs"):
@@ -1523,7 +1523,7 @@ class Attr(AST):
 			result = UndefinedKey(methname)
 		return result
 
-	@handleeval
+	@_handleeval
 	def evalsetvar(self, vars, value):
 		obj = (yield from self.obj.eval(vars))
 		if hasattr(obj, "ul4attrs"):
@@ -1534,7 +1534,7 @@ class Attr(AST):
 		else:
 			obj[self.attrname] = value
 
-	@handleeval
+	@_handleeval
 	def evalmodifyvar(self, operator, vars, value):
 		obj = (yield from self.obj.eval(vars))
 		if hasattr(obj, "ul4attrs"):
@@ -1593,7 +1593,7 @@ class Slice(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		index1 = None
 		if self.index1 is not None:
@@ -1646,7 +1646,7 @@ class Unary(AST):
 		super().ul4onload(decoder)
 		self.obj = decoder.load()
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		obj = (yield from self.obj.eval(vars))
 		return self.evalfold(obj)
@@ -1703,7 +1703,7 @@ class Print(Unary):
 		yield "print "
 		yield from super()._str()
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		yield _str((yield from self.obj.eval(vars)))
 
@@ -1718,7 +1718,7 @@ class PrintX(Unary):
 		yield "printx "
 		yield from super()._str()
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		yield _xmlescape((yield from self.obj.eval(vars)))
 
@@ -1733,7 +1733,7 @@ class Return(Unary):
 		yield "return "
 		yield from super()._str()
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		value = (yield from self.obj.eval(vars))
 		raise ReturnException(value)
@@ -1776,7 +1776,7 @@ class Binary(AST):
 		self.obj1 = decoder.load()
 		self.obj2 = decoder.load()
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		obj1 = (yield from self.obj1.eval(vars))
 		obj2 = (yield from self.obj2.eval(vars))
@@ -1813,7 +1813,7 @@ class Item(Binary):
 		except IndexError:
 			return UndefinedIndex(obj2)
 
-	@handleeval
+	@_handleeval
 	def evalsetvar(self, vars, value):
 		obj1 = (yield from self.obj1.eval(vars))
 		obj2 = (yield from self.obj2.eval(vars))
@@ -1825,7 +1825,7 @@ class Item(Binary):
 		else:
 			obj1[obj2] = value
 
-	@handleeval
+	@_handleeval
 	def evalmodifyvar(self, operator, vars, value):
 		obj1 = (yield from self.obj1.eval(vars))
 		obj2 = (yield from self.obj2.eval(vars))
@@ -2159,7 +2159,7 @@ class And(Binary):
 		# This is not called from ``eval``, as it doesn't short-circuit
 		return obj1 and obj2
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		obj1 = (yield from self.obj1.eval(vars))
 		if not obj1:
@@ -2178,7 +2178,7 @@ class Or(Binary):
 		# This is not called from ``eval``, as it doesn't short-circuit
 		return obj1 or obj2
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		obj1 = (yield from self.obj1.eval(vars))
 		if obj1:
@@ -2233,7 +2233,7 @@ class If(AST):
 			return objif if objcond.value else objelse
 		return cls(location, start, end, objif, objcond, objelse)
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		objcond = (yield from self.objcond.eval(vars))
 		if objcond:
@@ -2292,7 +2292,7 @@ class SetVar(ChangeVar):
 	AST node that stores a value into a variable.
 	"""
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
@@ -2305,7 +2305,7 @@ class AddVar(ChangeVar):
 	AST node that adds a value to a variable (i.e. the ``+=`` operator).
 	"""
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
@@ -2318,7 +2318,7 @@ class SubVar(ChangeVar):
 	AST node that substracts a value from a variable (i.e. the ``-=`` operator).
 	"""
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
@@ -2331,7 +2331,7 @@ class MulVar(ChangeVar):
 	AST node that multiplies a variable by a value (i.e. the ``*=`` operator).
 	"""
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
@@ -2345,7 +2345,7 @@ class FloorDivVar(ChangeVar):
 	i.e. the ``//=`` operator).
 	"""
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
@@ -2358,7 +2358,7 @@ class TrueDivVar(ChangeVar):
 	AST node that divides a variable by a value (i.e. the ``/=`` operator).
 	"""
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
@@ -2371,7 +2371,7 @@ class ModVar(ChangeVar):
 	AST node for the ``%=`` operator.
 	"""
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
@@ -2384,7 +2384,7 @@ class ShiftLeftVar(ChangeVar):
 	AST node for the ``<<=`` operator.
 	"""
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
@@ -2397,7 +2397,7 @@ class ShiftRightVar(ChangeVar):
 	AST node for the ``>>=`` operator.
 	"""
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
@@ -2410,7 +2410,7 @@ class BitAndVar(ChangeVar):
 	AST node for the ``&=`` operator.
 	"""
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
@@ -2423,7 +2423,7 @@ class BitXOrVar(ChangeVar):
 	AST node for the ``^=`` operator.
 	"""
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
@@ -2436,7 +2436,7 @@ class BitOrVar(ChangeVar):
 	AST node for the ``|=`` operator.
 	"""
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		value = (yield from self.value.eval(vars))
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
@@ -2501,7 +2501,7 @@ class Call(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		obj = (yield from self.obj.eval(vars))
 		args = []
@@ -2524,11 +2524,11 @@ class Call(AST):
 		else:
 			return obj(*args, **kwargs)
 
-	@handleeval
+	@_handleeval
 	def evalsetvar(self, vars, value):
 		raise TypeError("can't use = on call result")
 
-	@handleeval
+	@_handleeval
 	def evalmodifyvar(self, operator, vars, value):
 		raise TypeError("augmented assigment not allowed for call result")
 
@@ -2898,7 +2898,7 @@ class Template(Block):
 		if len(stack) > 1:
 			raise Error(stack[-1]) from BlockError("block unclosed")
 
-	@handleeval
+	@_handleeval
 	def eval(self, vars):
 		yield from ()
 		vars[self.name] = TemplateClosure(self, vars)
