@@ -1,3 +1,10 @@
+Changes in ?.? (released ??/??/2014)
+------------------------------------
+
+*	The UL4 function ``repr`` now handles recursive lists/dicts similar to
+	Python ``repr`` (i.e. it doesn't raise an exception for infinite recursion).
+
+
 Changes in 5.8 (released 05/05/2014)
 ------------------------------------
 

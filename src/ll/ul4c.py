@@ -311,7 +311,9 @@ def _str(obj=""):
 		return str(obj)
 
 
-def _repr(obj):
+def _repr(obj, memo=None):
+	if memo is None:
+		memo = set()
 	from ll import color
 	if isinstance(obj, str):
 		return repr(obj)
@@ -336,9 +338,17 @@ def _repr(obj):
 				return "#{}{}{}{}".format(s[1], s[3], s[5], s[7])
 			return s
 	elif isinstance(obj, collections.Sequence):
-		return "[{}]".format(", ".join(_repr(item) for item in obj))
+		if id(obj) in memo:
+			return "[...]"
+		else:
+			memo.add(id(obj))
+			return "[{}]".format(", ".join(_repr(item, memo) for item in obj))
 	elif isinstance(obj, collections.Mapping):
-		return "{{{}}}".format(", ".join("{}: {}".format(_repr(key), _repr(value)) for (key, value) in obj.items()))
+		if id(obj) in memo:
+			return "{...}"
+		else:
+			memo.add(id(obj))
+			return "{{{}}}".format(", ".join("{}: {}".format(_repr(key, memo), _repr(value, memo)) for (key, value) in obj.items()))
 	else:
 		return repr(obj)
 
