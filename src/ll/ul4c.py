@@ -279,14 +279,24 @@ def _handleeval(f):
 
 
 def _unpackvar(lvalue, value):
+	"""
+	A generator used for recursively unpacking values for assignment.
+
+	:obj:`lvalue` may be an :class:`AST` object (in which case the recursion ends)
+	or a (possible nested) sequence of :class:`AST` objects.
+
+	The values produced are (AST node, value) tuples.
+	"""
 	if isinstance(lvalue, AST):
 		yield (lvalue, value)
 	else:
+		# Materialize iterators on the right hand side, but protect against infinite iterators
 		if not isinstance(value, (tuple, list, str)):
-			# Protect against infinite iterators
-			# If we have at least one item more than required, we have an error
+			# If we get one item more than required, we have an error
+			# Also :func:`islice` might fail if the right hand side isn't iterable (e.g. ``(a, b) == 42``)
 			value = list(itertools.islice(value, len(lvalue)+1))
 		if len(lvalue) != len(value):
+			# The number of variables on the left hand side doesn't match the number of values on the right hand side
 			raise TypeError("need {} value{} to unpack".format(len(lvalue), "s" if len(lvalue) != 1 else ""))
 		for (lvalue, value) in zip(lvalue, value):
 			yield from _unpackvar(lvalue, value)
