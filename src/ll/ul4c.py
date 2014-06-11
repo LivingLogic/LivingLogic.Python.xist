@@ -255,6 +255,7 @@ def handleeval(f):
 		try:
 			return (yield from f(self, *args))
 		except (BreakException, ContinueException, ReturnException) as ex:
+			# Pass those exception through to the AST nodes that will handle them (:class:`ForBlock` or :class:`Template`)
 			raise
 		except Error as ex:
 			if ex.node.location is not self.location:
