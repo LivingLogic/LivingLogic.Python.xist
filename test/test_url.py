@@ -355,3 +355,8 @@ def test_relpathauthority():
 	del u2.scheme
 	del u2.authority
 	assert str(u2) == "BAR/BAZ;BAZ"
+
+
+def test_space_in_name():
+	assert url.URL("+").local() == " "
+	assert url.URL("%20").local() == " "
