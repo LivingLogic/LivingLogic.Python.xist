@@ -31,6 +31,7 @@ upload:
 
 
 livinglogic:
+	rm -rf dist/*
 	python$(PYVERSION) setup.py sdist --formats=bztar,gztar,zip
 	python$(PYVERSION) -mll.scripts.ucp -vyes dist/*.tar.gz dist/*.tar.bz2 dist/*.zip ssh://intranet@intranet.livinglogic.de/~/documentroot/intranet.livinglogic.de/python-downloads/
 
