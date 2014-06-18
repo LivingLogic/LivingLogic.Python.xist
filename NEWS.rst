@@ -4,6 +4,9 @@ Changes in ?.? (released ??/??/2014)
 *	The UL4 function ``repr`` now handles recursive lists/dicts similar to
 	Python ``repr`` (i.e. it doesn't raise an exception for infinite recursion).
 
+*	:class:`url.URL` now handles filenames containing space correctly when
+	converting between URLs and filenames.
+
 
 Changes in 5.8 (released 05/05/2014)
 ------------------------------------
