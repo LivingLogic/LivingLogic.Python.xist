@@ -523,14 +523,16 @@ class Executor:
 			increment = oldvalues[1]
 		if minvalue is None:
 			minvalue = oldvalues[0]
-		seqvalue = oldvalues[2]
+		self.cursor.execute("select {}.nextval from dual".format(sequence))
+		seqvalue = self.cursor.fetchone()[0]
 
 		# Fetch information about the table values
-		self.cursor.execute("select nvl(max({}), {}) from {}".format(field, minvalue, table))
+		self.cursor.execute("select nvl(max({}), 0) from {}".format(field, table))
 		tabvalue = self.cursor.fetchone()[0]
 
-		if tabvalue != seqvalue:
-			self.cursor.execute("alter sequence {} increment by {}".format(sequence, tabvalue-seqvalue+increment))
+		step = max(tabvalue, minvalue) - seqvalue
+		if step:
+			self.cursor.execute("alter sequence {} increment by {}".format(sequence, step))
 			self.cursor.execute("select {}.nextval from dual".format(sequence))
 			seqvalue = self.cursor.fetchone()[0]
 			self.cursor.execute("alter sequence {} increment by {}".format(sequence, increment))
