@@ -589,7 +589,7 @@ class LocalConnection(Connection):
 	def listdir(self, url, pattern=None):
 		name = self._url2filename(url)
 		result = []
-		for childname in os.listdir(name):
+		for childname in sorted(os.listdir(name)):
 			if pattern is None or fnmatch.fnmatch(childname, pattern):
 				if os.path.isdir(os.path.join(name, childname)):
 					result.append(Dir(childname, scheme=url.scheme))
@@ -600,7 +600,7 @@ class LocalConnection(Connection):
 	def files(self, url, pattern=None):
 		name = self._url2filename(url)
 		result = []
-		for childname in os.listdir(name):
+		for childname in sorted(os.listdir(name)):
 			if pattern is None or fnmatch.fnmatch(childname, pattern):
 				if os.path.isfile(os.path.join(name, childname)):
 					result.append(File(childname, scheme=url.scheme))
@@ -609,7 +609,7 @@ class LocalConnection(Connection):
 	def dirs(self, url, pattern=None):
 		name = self._url2filename(url)
 		result = []
-		for childname in os.listdir(name):
+		for childname in sorted(os.listdir(name)):
 			if pattern is None or fnmatch.fnmatch(childname, pattern):
 				if os.path.isdir(os.path.join(name, childname)):
 					result.append(Dir(childname, scheme=url.scheme))
