@@ -991,6 +991,8 @@ class Object(object, metaclass=_Object_meta):
 
 			username : string
 				All objects belonging to the specified user
+
+		Names will be in ascending order.
 		"""
 		cursor = connection.cursor()
 		if owner is None:
@@ -2469,7 +2471,7 @@ class User(object):
 	@classmethod
 	def iternames(cls, connection):
 		"""
-		Generator that yields the names of all users
+		Generator that yields the names of all users in ascending order
 		"""
 		cursor = connection.cursor()
 		cursor.execute("select username from {}_users order by username".format(cursor.ddprefix()))
@@ -2685,7 +2687,7 @@ class OracleConnection(url_.Connection):
 		type = self._type(url)
 		if type == "root": # directory of types for the current user
 			if dirs:
-				result = [url_.URL(name + "/") for name in Object.name2type]
+				result = [url_.URL(name + "/") for name in sorted(Object.name2type)]
 		elif type == "type": # directory of objects of the specified type for current user
 			if files:
 				path = url.path
@@ -2707,9 +2709,9 @@ class OracleConnection(url_.Connection):
 			if dirs:
 				path = url.path
 				if len(path) == 2:
-					result = [url_.URL("{}/{}/".format(path[1], name)) for name in Object.name2type]
+					result = [url_.URL("{}/{}/".format(path[1], name)) for name in sorted(Object.name2type)]
 				else:
-					result = [url_.URL("{}/".format(name)) for name in Object.name2type]
+					result = [url_.URL("{}/".format(name)) for name in sorted(Object.name2type)]
 		elif type == "usertype": # directory of objects of the specified type for a specific user
 			if files:
 				path = url.path

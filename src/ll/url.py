@@ -620,7 +620,7 @@ class LocalConnection(Connection):
 			fullname = os.path.join(base, name)
 		else:
 			fullname = base
-		for childname in os.listdir(fullname):
+		for childname in sorted(os.listdir(fullname)):
 			ful4childname = os.path.join(fullname, childname)
 			relchildname = os.path.join(name, childname)
 			isdir = os.path.isdir(ful4childname)
