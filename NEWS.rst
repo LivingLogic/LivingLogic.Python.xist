@@ -3,6 +3,9 @@ Changes in ?.? (released ??/??/2014)
 *	The various directory traversal method in :class:`ll.url.URL` will now output
 	URLs in sorted order.
 
+*	:meth:`URL.open` for Oracle URLs now supports the ``encoding`` and ``errors``
+	parameter.
+
 
 Changes in 5.8.1 (released 06/18/2014)
 --------------------------------------

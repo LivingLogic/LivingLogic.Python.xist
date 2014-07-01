@@ -2565,12 +2565,12 @@ class Preference(Object):
 ### Classes that add an ``oracle`` scheme to the urls supported by :mod:`ll.url`.
 ###
 
-class OracleConnection(url_.Connection):
+class OracleURLConnection(url_.Connection):
 	def __init__(self, context, connection, mode):
 		self.dbconnection = connect(connection, mode=mode) if mode is not None else connect(connection)
 
-	def open(self, url, mode="rb"):
-		return OracleFileResource(self, url, mode)
+	def open(self, url, mode="rb", encoding="utf-8", errors="strict"):
+		return OracleFileResource(self, url, mode, encoding, errors)
 
 	def close(self):
 		self.dbconnection.close()
@@ -2746,10 +2746,12 @@ class OracleFileResource(url_.Resource):
 	An :class:`OracleFileResource` wraps an Oracle database object (like a
 	table, view, function, procedure etc.) in a file-like API.
 	"""
-	def __init__(self, connection, url, mode="r"):
+	def __init__(self, connection, url, mode="r", encoding="utf-8", errors="strict"):
 		self.connection = connection
 		self.url = url
 		self.mode = mode
+		self.encoding = encoding
+		self.errors = errors
 		self.closed = False
 		self.name = str(self.url)
 
@@ -2761,7 +2763,7 @@ class OracleFileResource(url_.Resource):
 		else:
 			code = self.connection._objectfromurl(url).createddl(self.connection.dbconnection, term=False)
 			if "b" in self.mode:
-				code = code.encode("utf-8")
+				code = code.encode(self.encoding, self.errors)
 				self.stream = io.BytesIO(code)
 			else:
 				self.stream = io.StringIO(code)
@@ -2785,13 +2787,17 @@ class OracleFileResource(url_.Resource):
 	def mdate(self):
 		return self.connection.mdate(self.url)
 
+	def __iter__(self):
+		data = self.read()
+		return iter(data.splitlines(True))
+
 	def close(self):
 		if not self.closed:
 			if "w" in self.mode:
 				obj = self.connection._objectfromurl(self.url)
 				code = self.stream.getvalue()
 				if isinstance(code, bytes):
-					code = code.decode("utf-8")
+					code = code.decode(self.encoding, self.errors)
 				code = obj.fixname(code)
 				cursor = self.connection.dbconnection.cursor()
 				cursor.execute(code)
@@ -2802,7 +2808,7 @@ class OracleFileResource(url_.Resource):
 class OracleSchemeDefinition(url_.SchemeDefinition):
 	def _connect(self, url, context=None, **kwargs):
 		context = url_.getcontext(context)
-		# Use one :class:`OracleConnection` for each ``user@host`` combination
+		# Use one :class:`OracleURLConnection` for each ``user@host`` combination
 		server = url.server
 		try:
 			connections = context.schemes["oracle"]
@@ -2822,7 +2828,7 @@ class OracleSchemeDefinition(url_.SchemeDefinition):
 					raise ValueError("unknown connect mode {!r}".format(userinfo[2]))
 			else:
 				raise ValueError("illegal userinfo {!r}".format(url.userinfo))
-			connection = connections[server] = OracleConnection(context, "{}/{}@{}".format(userinfo[0], userinfo[1], url.host), mode)
+			connection = connections[server] = OracleURLConnection(context, "{}/{}@{}".format(userinfo[0], userinfo[1], url.host), mode)
 		return (connection, kwargs)
 
 	def open(self, url, mode="rb", context=None):
