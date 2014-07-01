@@ -621,9 +621,9 @@ class LocalConnection(Connection):
 		else:
 			fullname = base
 		for childname in sorted(os.listdir(fullname)):
-			ful4childname = os.path.join(fullname, childname)
+			fullchildname = os.path.join(fullname, childname)
 			relchildname = os.path.join(name, childname)
-			isdir = os.path.isdir(ful4childname)
+			isdir = os.path.isdir(fullchildname)
 			if (pattern is None or fnmatch.fnmatch(childname, pattern)) and which[isdir]:
 				url = urllib.request.pathname2url(relchildname)
 				if isdir:
@@ -692,9 +692,9 @@ class SshConnection(Connection):
 			else:
 				fullname = base
 			for childname in sorted(os.listdir(fullname)):
-				ful4childname = os.path.join(fullname, childname)
+				fullchildname = os.path.join(fullname, childname)
 				relchildname = os.path.join(name, childname)
-				isdir = os.path.isdir(ful4childname)
+				isdir = os.path.isdir(fullchildname)
 				if (pattern is None or fnmatch.fnmatch(childname, pattern)) and which[isdir]:
 					url = request.pathname2url(relchildname)
 					if not isinstance(url, unicode):
