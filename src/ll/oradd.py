@@ -643,7 +643,10 @@ class Executor:
 		return "{}({})".format(command["name"], self._formatargs(command))
 
 	def _formatsql(self, command):
-		return "{!r} with args {}".format(command["sql"], self._formatargs(command))
+		if "args" in command and command["args"]:
+			return "{!r} with args {}".format(command["sql"], self._formatargs(command))
+		else:
+			return repr(command["sql"])
 
 
 
