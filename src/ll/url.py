@@ -1739,8 +1739,7 @@ class Path(object):
 			self._segments = list(map(_unescape, path))
 			self._path = self._prefix(self._path) + self._segments2path(self._segments)
 		else:
-			if isinstance(path, str):
-				path = _escape(path)
+			path = _escape(path)
 			prefix = self._prefix(path)
 			if prefix:
 				path = path[1:]
@@ -2422,8 +2421,7 @@ class URL(object):
 				self.query = url.query
 				self.frag = url.frag
 			else:
-				if isinstance(url, str):
-					url = _escape(url)
+				url = _escape(url)
 				# find the scheme (RFC2396, Section 3.1)
 				pos = url.find(":")
 				if pos != -1:
