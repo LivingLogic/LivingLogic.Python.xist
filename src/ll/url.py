@@ -2805,38 +2805,6 @@ class URL(object):
 	def openwrite(self, *args, **kwargs):
 		return self.open(mode="wb", *args, **kwargs)
 
-	def __getattr__(self, name):
-		"""
-		:meth:`__getattr__` forwards every unresolved attribute access to the
-		appropriate connection. This makes it possible to call :class:`Connection`
-		methods directly on :class:`URL` objects::
-
-			>>> from ll import url
-			>>> u = url.URL("file:README")
-			>>> u.size()
-			1584L
-
-		instead of::
-
-			>>> from ll import url
-			>>> u = url.URL("file:README")
-			>>> u.connect().size(u)
-			1584L
-		"""
-		if name.startswith("__") and name.endswith("__"):
-			raise AttributeError(name)
-		def realattr(*args, **kwargs):
-			try:
-				context = kwargs["context"]
-			except KeyError:
-				context = None
-			else:
-				kwargs = kwargs.copy()
-				del kwargs["context"]
-			(connection, kwargs) = self._connect(context=context, **kwargs)
-			return getattr(connection, name)(self, *args, **kwargs)
-		return realattr
-
 	def import_(self, name=None):
 		"""
 		Import the content of the URL :obj:`self` as a Python module.
@@ -2860,5 +2828,92 @@ class URL(object):
 		else:
 			return iter(self.open())
 
+	# All the following methods need a connection and simply forward the operation to the connection
+	def stat(self, **kwargs):
+		return self.connect(**kwargs).stat(self)
+
+	def lstat(self, **kwargs):
+		return self.connect(**kwargs).lstat(self)
+
+	def chmod(self, mode, **kwargs):
+		return self.connect(**kwargs).chmod(self, mode)
+
+	def chown(self, owner=None, group=None, **kwargs):
+		return self.connect(**kwargs).chown(self, owner=owner, group=group)
+
+	def lchown(self, owner=None, group=None, **kwargs):
+		return self.connect(**kwargs).lchown(self, owner=owner, group=group)
+
+	def uid(self, **kwargs):
+		return self.connect(**kwargs).uid(self)
+
+	def gid(self, **kwargs):
+		return self.connect(**kwargs).gid(self)
+
+	def owner(self, **kwargs):
+		return self.connect(**kwargs).owner(self)
+
+	def group(self, **kwargs):
+		return self.connect(**kwargs).group(self)
+
+	def exists(self, **kwargs):
+		return self.connect(**kwargs).exists(self)
+
+	def isfile(self, **kwargs):
+		return self.connect(**kwargs).isfile(self)
+
+	def isdir(self, **kwargs):
+		return self.connect(**kwargs).isdir(self)
+
+	def islink(self, **kwargs):
+		return self.connect(**kwargs).islink(self)
+
+	def ismount(self, **kwargs):
+		return self.connect(**kwargs).ismount(self)
+
+	def access(self, mode, **kwargs):
+		return self.connect(**kwargs).access(self, mode)
+
+	def remove(self, **kwargs):
+		return self.connect(**kwargs).remove(self)
+
+	def rmdir(self, **kwargs):
+		return self.connect(**kwargs).rmdir(self)
+
+	def rename(self, target, **kwargs):
+		return self.connect(**kwargs).rename(self, target)
+
+	def link(self, target, **kwargs):
+		return self.connect(**kwargs).link(self, target)
+
+	def symlink(self, target, **kwargs):
+		return self.connect(**kwargs).symlink(self, target)
+
+	def chdir(self, **kwargs):
+		return self.connect(**kwargs).chdir(self)
+
+	def mkdir(self, mode=0o777, **kwargs):
+		return self.connect(**kwargs).mkdir(self, mode=mode)
+
+	def makedirs(self, mode=0o777, **kwargs):
+		return self.connect(**kwargs).makedirs(self, mode=mode)
+
+	def listdir(self, pattern=None, **kwargs):
+		return self.connect(**kwargs).listdir(self, pattern=pattern)
+
+	def files(self, pattern=None, **kwargs):
+		return self.connect(**kwargs).files(self, pattern=pattern)
+
+	def dirs(self, pattern=None, **kwargs):
+		return self.connect(**kwargs).dirs(self, pattern=pattern)
+
+	def walk(self, pattern=None, **kwargs):
+		return self.connect(**kwargs).walk(self, pattern=pattern)
+
+	def walkfiles(self, pattern=None, **kwargs):
+		return self.connect(**kwargs).walkfiles(self, pattern=pattern)
+
+	def walkdirs(self, pattern=None, **kwargs):
+		return self.connect(**kwargs).walkdirs(self, pattern=pattern)
 
 warnings.filterwarnings("always", module="url")
