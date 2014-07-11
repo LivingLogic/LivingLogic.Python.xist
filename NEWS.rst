@@ -6,6 +6,10 @@ Changes in ?.? (released ??/??/2014)
 *	:meth:`URL.open` for Oracle URLs now supports the ``encoding`` and ``errors``
 	parameter.
 
+*	All object in :mod:`ll.orasql` that represent objects in the database now
+	have a method :meth:`exists` that returns wether the object exists in the
+	target database.
+
 
 Changes in 5.8.1 (released 06/18/2014)
 --------------------------------------
