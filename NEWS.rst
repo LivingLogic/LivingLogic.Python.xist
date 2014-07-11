@@ -1,4 +1,4 @@
-Changes in ?.? (released ??/??/2014)
+Changes in 5.9 (released ??/??/2014)
 ------------------------------------
 *	The various directory traversal method in :class:`ll.url.URL` will now output
 	URLs in sorted order.
@@ -9,6 +9,10 @@ Changes in ?.? (released ??/??/2014)
 *	All object in :mod:`ll.orasql` that represent objects in the database now
 	have a method :meth:`exists` that returns wether the object exists in the
 	target database.
+
+*	URLs no longer forward attribute access to unknown attributes to the
+	connection to avoid problems with code that uses :func:`hasattr` to check
+	for the presence of an attribute.
 
 
 Changes in 5.8.1 (released 06/18/2014)
