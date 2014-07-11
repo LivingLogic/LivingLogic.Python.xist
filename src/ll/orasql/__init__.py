@@ -2729,13 +2729,10 @@ class OracleURLConnection(url_.Connection):
 		elif lp == 3:
 			if path[0] == "user":
 				return "usertype"
-			else:
-				raise ValueError("can't happen")
 		elif lp == 4:
 			if path[0] == "user":
 				return "userobject"
-			else:
-				raise ValueError("can't happen")
+		raise FileNotFoundError(errno.ENOENT, "no such file or directory: {!r}".format(url)) from None
 
 	def _infofromurl(self, url):
 		type = self._type(url)
@@ -2814,7 +2811,7 @@ class OracleURLConnection(url_.Connection):
 		try:
 			obj = self._objectfromurl(url)
 		except SQLNoSuchObjectError:
-			raise IOError(errno.ENOENT, "no such file: {}".format(type, url))
+			raise FileNotFoundError(errno.ENOENT, "no such file: {!r}".format(type, url))
 		return obj.cdate(self.dbconnection)
 
 	def mdate(self, url):
@@ -2823,7 +2820,7 @@ class OracleURLConnection(url_.Connection):
 		try:
 			obj = self._objectfromurl(url)
 		except SQLNoSuchObjectError:
-			raise IOError(errno.ENOENT, "no such file: {}".format(type, url))
+			raise FileNotFoundError(errno.ENOENT, "no such file: {!r}".format(type, url))
 		return obj.udate(self.dbconnection)
 
 	def _listdir(self, url, pattern=None, files=True, dirs=True):
@@ -2836,7 +2833,11 @@ class OracleURLConnection(url_.Connection):
 			if files:
 				path = url.path
 				type = path[0]
-				names = (name[0] for name in Object.name2type[type].iternames(self.dbconnection, None))
+				try:
+					class_ = Object.name2type[type]
+				except KeyError:
+					raise FileNotFoundError(errno.ENOENT, "no such file or directory: {!r}".format(url)) from None
+				names = (name[0] for name in class_.iternames(self.dbconnection, None))
 				if len(path) == 1:
 					result = [url_.URL("{}/{}.sql".format(type, makeurl(name))) for name in names]
 				else:
@@ -2860,13 +2861,17 @@ class OracleURLConnection(url_.Connection):
 			if files:
 				path = url.path
 				type = path[2]
-				names = (name[0] for name in Object.name2type[type].iternames(self.dbconnection, path[1]))
+				try:
+					class_ = Object.name2type[type]
+				except KeyError:
+					raise FileNotFoundError(errno.ENOENT, "no such file or directory: {!r}".format(url)) from None
+				names = (name[0] for name in class_.iternames(self.dbconnection, path[1]))
 				if len(path) == 3:
 					result = [url_.URL("{}/{}.sql".format(type, makeurl(name))) for name in names]
 				else:
 					result = [url_.URL("{}.sql".format(makeurl(name))) for name in names]
 		else:
-			raise IOError(errno.ENOTDIR, "Not a directory: {}".format(url))
+			raise NotADirectoryError(errno.ENOTDIR, "Not a directory: {}".format(url))
 		if pattern is not None:
 			pattern = pattern.lower()
 			result = [u for u in result if fnmatch.fnmatch(str(u).lower(), pattern)]
