@@ -2854,6 +2854,9 @@ class URL(object):
 	def group(self, **kwargs):
 		return self.connect(**kwargs).group(self)
 
+	def mimetype(self, **kwargs):
+		return self.connect(**kwargs).mimetype(self)
+
 	def exists(self, **kwargs):
 		return self.connect(**kwargs).exists(self)
 
@@ -2871,6 +2874,24 @@ class URL(object):
 
 	def access(self, mode, **kwargs):
 		return self.connect(**kwargs).access(self, mode)
+
+	def size(self, **kwargs):
+		return self.connect(**kwargs).size(self)
+
+	def imagesize(self, **kwargs):
+		return self.connect(**kwargs).imagesize(self)
+
+	def cdate(self, **kwargs):
+		return self.connect(**kwargs).cdate(self)
+
+	def adate(self, **kwargs):
+		return self.connect(**kwargs).adate(self)
+
+	def mdate(self, **kwargs):
+		return self.connect(**kwargs).mdate(self)
+
+	def resheaders(self, **kwargs):
+		return self.connect(**kwargs).resheaders(self)
 
 	def remove(self, **kwargs):
 		return self.connect(**kwargs).remove(self)
