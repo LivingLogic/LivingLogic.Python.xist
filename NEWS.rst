@@ -7,7 +7,7 @@ Changes in 5.9 (released ??/??/2014)
 	parameter.
 
 *	All object in :mod:`ll.orasql` that represent objects in the database now
-	have a method :meth:`exists` that returns wether the object exists in the
+	have a method :meth:`exists` that returns whether the object exists in the
 	target database.
 
 *	URLs no longer forward attribute access to unknown attributes to the
