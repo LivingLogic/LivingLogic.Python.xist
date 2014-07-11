@@ -1353,7 +1353,7 @@ class PrimaryKey(Constraint):
 	type = "pk"
 	constraint_type = "P"
 
-	def exits(self, connection=None):
+	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select 1 from {}_constraints where constraint_type='P' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
@@ -1427,7 +1427,7 @@ class Comment(Object):
 	"""
 	type = "comment"
 
-	def exits(self, connection=None):
+	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		tcname = self.name.split(".")
 		cursor.execute("select comments from {}_col_comments where owner=nvl(:owner, user) and table_name=:tname and column_name=:cname".format(cursor.ddprefix()), owner=self.owner, tname=tcname[0], cname=tcname[1])
@@ -1484,7 +1484,7 @@ class ForeignKey(Constraint):
 	type = "fk"
 	constraint_type = "R"
 
-	def exits(self, connection=None):
+	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		# Add constraint_type to the query, so we don't pick up another constraint by accident
 		cursor.execute("select 1 from {}_constraints where constraint_type='R' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
@@ -1587,7 +1587,7 @@ class Index(MixinNormalDates, Object):
 	"""
 	type = "index"
 
-	def exits(self, connection=None):
+	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		if self.isconstraint(connection):
 			return False
@@ -1714,7 +1714,7 @@ class UniqueConstraint(Constraint):
 	type = "unique"
 	constraint_type = "U"
 
-	def exits(self, connection=None):
+	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		# Add constraint_type to the query, so we don't pick up another constraint by accident
 		cursor.execute("select 1 from {}_constraints where constraint_type='U' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
@@ -1783,7 +1783,7 @@ class Synonym(Object):
 	"""
 	type = "synonym"
 
-	def exits(self, connection=None):
+	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select 1 from {}_synonyms where owner=nvl(:owner, user) and synonym_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
@@ -1865,7 +1865,7 @@ class View(MixinNormalDates, Object):
 	"""
 	type = "view"
 
-	def exits(self, connection=None):
+	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select 1 from {}_views where owner=nvl(:owner, user) and view_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
@@ -1911,7 +1911,7 @@ class MaterializedView(View):
 	"""
 	type = "materialized view"
 
-	def exits(self, connection=None):
+	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select 1 from {}_mviews where owner=nvl(:owner, user) and mview_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
@@ -1961,7 +1961,7 @@ class Library(Object):
 	"""
 	type = "library"
 
-	def exits(self, connection=None):
+	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select file_spec from {}_libraries where owner=nvl(:owner, user) and library_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
@@ -2237,7 +2237,7 @@ class JavaSource(MixinNormalDates, Object):
 	"""
 	type = "java source"
 
-	def exits(self, connection=None):
+	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select 1 from {}_source where type='JAVA SOURCE' and owner=nvl(:owner, user) and name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
@@ -2797,6 +2797,16 @@ class OracleURLConnection(url_.Connection):
 			c = self.dbconnection.cursor()
 			c.execute("select user from dual")
 			return c.fetchone()[0]
+
+	def exists(self, url):
+		try:
+			type = self._type(url)
+		except FileNotFoundError:
+			return False
+		if type.endswith("object"):
+			return self._objectfromurl(url).exists(self.dbconnection)
+		else:
+			return True
 
 	def cdate(self, url):
 		if self.isdir(url):
