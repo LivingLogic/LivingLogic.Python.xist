@@ -2886,6 +2886,26 @@ class OracleURLConnection(url_.Connection):
 	def dirs(self, url, pattern=None):
 		return self._listdir(url, pattern, False, True)
 
+	def _walk(self, base, name, pattern, files, dirs):
+		fullname = base/name
+		for childname in self._listdir(fullname, None, files, True):
+			relchildname = name/childname
+			isdir = not relchildname.path[-1]
+			if (pattern is None or fnmatch.fnmatch(childname, pattern)) and (dirs if isdir else files):
+				yield relchildname
+			if isdir:
+				for subchild in self._walk(base, relchildname, pattern, files, dirs):
+					yield subchild
+
+	def walk(self, url, pattern=None):
+		return self._walk(url, url_.URL(), pattern, True, True)
+
+	def walkfiles(self, url, pattern=None):
+		return self._walk(url, url_.URL(), pattern, True, False)
+
+	def walkdirs(self, url, pattern=None):
+		return self._walk(url, url_.URL(), pattern, False, True)
+
 	def __repr__(self):
 		return "<{}.{} to {!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.connection.connectstring(), id(self))
 
