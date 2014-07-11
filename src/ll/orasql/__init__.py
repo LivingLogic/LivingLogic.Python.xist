@@ -747,6 +747,12 @@ class MixinCodeDDL(object):
 	Mixin class that provides methods returning the create and drop statements
 	for various objects.
 	"""
+	def exists(self, connection=None, term=True):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select 1 from {}_source where lower(type)=lower(:type) and owner=nvl(:owner, user) and name=:name".format(cursor.ddprefix()), type=self.__class__.type, owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		return rec is not None
+
 	def createddl(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select text from {}_source where lower(type)=lower(:type) and owner=nvl(:owner, user) and name=:name order by line".format(cursor.ddprefix()), type=self.__class__.type, owner=self.owner, name=self.name)
@@ -873,6 +879,13 @@ class Object(object, metaclass=_Object_meta):
 		"""
 		Replace the name of the object in the SQL code :obj:`code` with
 		the name of :obj:`self`.
+		"""
+
+	@misc.notimplemented
+	def exists(self, connection=None):
+		"""
+		Return wether the object :obj:`self` really exists in the database
+		specified by :obj:`connection`.
 		"""
 
 	@misc.notimplemented
@@ -1055,6 +1068,12 @@ class Sequence(MixinNormalDates, Object):
 			code += "\n"
 		return code
 
+	def exists(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select 1 from {}_sequences where sequence_owner=nvl(:owner, user) and sequence_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		return rec is not None
+
 	def createddl(self, connection=None, term=True):
 		return self._createddl(connection, term, False)
 
@@ -1153,6 +1172,14 @@ class Table(MixinNormalDates, Object):
 		else:
 			code.append("\n)\n")
 		return "".join(code)
+
+	def exists(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		if self.ismview(connection):
+			return False
+		cursor.execute("select 1 from {}_tables where owner=nvl(:owner, user) and table_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		return rec is not None
 
 	def dropddl(self, connection=None, term=True):
 		if self.ismview(connection):
@@ -1279,22 +1306,28 @@ class Constraint(Object):
 	constraints and unique constraints).
 	"""
 
+	def exists(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select 0 from {}_constraints where constraint_type=:type and constraint_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), type=self.constraint_type, name=self.name, owner=self.owner)
+		rec = cursor.fetchone()
+		return rec is not None
+
 	def cdate(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select last_change, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from {}_constraints where constraint_type=:type and constraint_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), type=self.constraint_type, name=self.name, owner=self.owner)
-		row = cursor.fetchone()
-		if row is None:
+		rec = cursor.fetchone()
+		if rec is None:
 			raise SQLObjectNotFoundError(self)
 		return None
 
 	def udate(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select last_change, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from {}_constraints where constraint_type=:type and constraint_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), type=self.constraint_type, name=self.name, owner=self.owner)
-		row = cursor.fetchone()
-		if row is None:
+		rec = cursor.fetchone()
+		if rec is None:
 			raise SQLObjectNotFoundError(self)
 		# FIXME: This is only correct 50% of the time, but Oracle doesn't provide anything better
-		return row[0]-datetime.timedelta(seconds=60*(row[1]*60+row[2]))
+		return rec[0]-datetime.timedelta(seconds=60*(rec[1]*60+rec[2]))
 
 	@classmethod
 	def iternames(cls, connection, owner=ALL):
@@ -1305,7 +1338,7 @@ class Constraint(Object):
 			cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type=:type and constraint_name not like 'BIN$%' order by owner, constraint_name".format(cursor.ddprefix()), type=cls.constraint_type)
 		else:
 			cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type=:type and constraint_name not like 'BIN$%' and owner=:owner order by owner, constraint_name".format(cursor.ddprefix()), type=cls.constraint_type, owner=owner)
-		return ((row.constraint_name, row.owner) for row in cursor)
+		return ((rec.constraint_name, rec.owner) for rec in cursor)
 
 	def fixname(self, code):
 		code = code.split(None, 6)
@@ -1319,6 +1352,12 @@ class PrimaryKey(Constraint):
 	"""
 	type = "pk"
 	constraint_type = "P"
+
+	def exits(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select 1 from {}_constraints where constraint_type='P' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		return rec is not None
 
 	def itercolumns(self, connection=None):
 		"""
@@ -1388,17 +1427,24 @@ class Comment(Object):
 	"""
 	type = "comment"
 
+	def exits(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		tcname = self.name.split(".")
+		cursor.execute("select comments from {}_col_comments where owner=nvl(:owner, user) and table_name=:tname and column_name=:cname".format(cursor.ddprefix()), owner=self.owner, tname=tcname[0], cname=tcname[1])
+		rec = cursor.fetchone()
+		return rec is not None
+
 	def createddl(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
 		tcname = self.name.split(".")
 		cursor.execute("select comments from {}_col_comments where owner=nvl(:owner, user) and table_name=:tname and column_name=:cname".format(cursor.ddprefix()), owner=self.owner, tname=tcname[0], cname=tcname[1])
-		row = cursor.fetchone()
-		if row is None:
+		rec = cursor.fetchone()
+		if rec is None:
 			raise SQLObjectNotFoundError(self)
 
 		name = self.getfullname()
-		if row.comments:
-			code = "comment on column {} is {}".format(name, formatstring(row.comments, latin1=True))
+		if rec.comments:
+			code = "comment on column {} is {}".format(name, formatstring(rec.comments, latin1=True))
 		else:
 			code = "comment on column {} is ''".format(name)
 		if term:
@@ -1437,6 +1483,13 @@ class ForeignKey(Constraint):
 	"""
 	type = "fk"
 	constraint_type = "R"
+
+	def exits(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		# Add constraint_type to the query, so we don't pick up another constraint by accident
+		cursor.execute("select 1 from {}_constraints where constraint_type='R' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		return rec is not None
 
 	def createddl(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
@@ -1533,6 +1586,14 @@ class Index(MixinNormalDates, Object):
 	Models an index in the database.
 	"""
 	type = "index"
+
+	def exits(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		if self.isconstraint(connection):
+			return False
+		cursor.execute("select 1 from {}_indexes where owner=nvl(:owner, user) and index_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		return rec is not None
 
 	def createddl(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
@@ -1653,6 +1714,13 @@ class UniqueConstraint(Constraint):
 	type = "unique"
 	constraint_type = "U"
 
+	def exits(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		# Add constraint_type to the query, so we don't pick up another constraint by accident
+		cursor.execute("select 1 from {}_constraints where constraint_type='U' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		return rec is not None
+
 	def createddl(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
 		# Add constraint_type to the query, so we don't pick up another constraint by accident
@@ -1714,6 +1782,12 @@ class Synonym(Object):
 	Models a synonym in the database.
 	"""
 	type = "synonym"
+
+	def exits(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select 1 from {}_synonyms where owner=nvl(:owner, user) and synonym_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		return rec is not None
 
 	def createddl(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
@@ -1791,6 +1865,12 @@ class View(MixinNormalDates, Object):
 	"""
 	type = "view"
 
+	def exits(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select 1 from {}_views where owner=nvl(:owner, user) and view_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		return rec is not None
+
 	def createddl(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select text from {}_views where owner=nvl(:owner, user) and view_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
@@ -1830,6 +1910,12 @@ class MaterializedView(View):
 	Models a meterialized view in the database.
 	"""
 	type = "materialized view"
+
+	def exits(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select 1 from {}_mviews where owner=nvl(:owner, user) and mview_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		return rec is not None
 
 	def createddl(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
@@ -1874,6 +1960,12 @@ class Library(Object):
 	Models a library in the database.
 	"""
 	type = "library"
+
+	def exits(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select file_spec from {}_libraries where owner=nvl(:owner, user) and library_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		return rec is not None
 
 	def createddl(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
@@ -2145,6 +2237,12 @@ class JavaSource(MixinNormalDates, Object):
 	"""
 	type = "java source"
 
+	def exits(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select 1 from {}_source where type='JAVA SOURCE' and owner=nvl(:owner, user) and name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		return rec is not None
+
 	def createddl(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select text from {}_source where type='JAVA SOURCE' and owner=nvl(:owner, user) and name=:name order by line".format(cursor.ddprefix()), owner=self.owner, name=self.name)
@@ -2289,6 +2387,13 @@ class Column(Object):
 	``ALTER TABLE ...`` statements for adding, dropping and modifying columns.
 	"""
 	type = "column"
+
+	def exists(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		name = self.name.split(".")
+		cursor.execute("select 1 from {}_tab_columns where owner=nvl(:owner, user) and table_name=:table_name and column_name=:column_name".format(cursor.ddprefix()), owner=self.owner, table_name=name[0], column_name=name[1])
+		rec = cursor.fetchone()
+		return rec is not None
 
 	def _getcolumnrecord(self, cursor):
 		name = self.name.split(".")
@@ -2468,6 +2573,29 @@ class User(object):
 	def __hash__(self):
 		return hash(self.__class__.__name__) ^ hash(self.name)
 
+	def getconnection(self, connection):
+		if connection is None:
+			connection = self.connection
+		if connection is None:
+			raise TypeError("no connection available")
+		return connection
+
+	def getcursor(self, connection):
+		connection = self.getconnection(connection)
+		return (connection, connection.cursor())
+
+	def getconnectstring(self):
+		if self.connection:
+			return self.connection.connectstring()
+		return None
+	connectstring = property(getconnectstring)
+
+	def exists(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select 1 from {}_users where username=:username".format(cursor.ddprefix()), username=self.name)
+		rec = cursor.fetchone()
+		return rec is not None
+
 	@classmethod
 	def iternames(cls, connection):
 		"""
@@ -2490,6 +2618,12 @@ class Preference(Object):
 	Models a preference in the database.
 	"""
 	type = "preference"
+
+	def exists(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select 1 from ctx_preferences where pre_owner=nvl(:owner, user) and pre_name=:name", owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		return rec is not None
 
 	def createddl(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
