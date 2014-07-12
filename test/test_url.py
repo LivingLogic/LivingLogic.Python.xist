@@ -357,6 +357,10 @@ def test_relpathauthority():
 	assert str(u2) == "BAR/BAZ;BAZ"
 
 
-def test_space_in_name():
+def test_space_and_plus_in_name():
 	assert url.URL("+").local() == " "
+	assert url.URL(" ").local() == " "
 	assert url.URL("%20").local() == " "
+	assert url.File("+").local() == "+"
+	assert url.File(" ").local() == " "
+	assert str(url.File(" ")) in ("file:%20", "file:+")
