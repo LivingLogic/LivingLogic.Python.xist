@@ -1,21 +1,27 @@
 Changes in 5.9 (released ??/??/2014)
 ------------------------------------
-*	The various directory traversal method in :class:`ll.url.URL` will now output
-	URLs in sorted order.
 
-*	:meth:`URL.open` for Oracle URLs now supports the ``encoding`` and ``errors``
-	parameter.
+*	A script ``udiff`` has been added for doing line by line comparisons of
+	two files or directories. ``udiff`` supports all URLs that :mod:`ll.url`
+	supports (i.e. ``ssh`` and ``oracle`` URLs).
 
 *	All object in :mod:`ll.orasql` that represent objects in the database now
 	have a method :meth:`exists` that returns whether the object exists in the
 	target database.
 
+*	Oracle URLs now support the methods :meth:`walk`, :meth:`walkfiles` and
+	:meth:`walkdirs`.
+*	The various directory traversal methods in :class:`ll.url.URL` will now output
+	URLs in sorted order.
+
+*	:meth:`URL.open` for Oracle URLs now supports the ``encoding`` and ``errors``
+	parameter.
+
 *	URLs no longer forward attribute access to unknown attributes to the
 	connection to avoid problems with code that uses :func:`hasattr` to check
 	for the presence of an attribute.
 
-*	Oracle URLs now support the methods :meth:`walk`, :meth:`walkfiles` and
-	:meth:`walkdirs`.
+
 
 
 Changes in 5.8.1 (released 06/18/2014)
