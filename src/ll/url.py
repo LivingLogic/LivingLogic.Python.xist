@@ -114,7 +114,7 @@ def _normalizepath(path_segments):
 
 
 def _escape(s, safe="".join(chr(c) for c in range(128))):
-	return urlparse.quote(s.encode("utf-8"), safe)
+	return urlparse.quote_plus(s, safe)
 
 
 _unescape = urlparse.unquote_plus
