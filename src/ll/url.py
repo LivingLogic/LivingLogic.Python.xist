@@ -125,7 +125,7 @@ alphanum = alpha + "0123456789"
 mark = "-_.!~*'()"
 additionalsafe = "[]"
 safe = alphanum + mark + additionalsafe
-pathsafe = safe + ":@&=+$,;" + "|" # add "|" for Windows paths
+pathsafe = safe + ":@&=$,;" + "|" # add "|" for Windows paths, but remove "+"
 querysafe = alphanum
 fragsafe = alphanum
 
