@@ -1975,10 +1975,8 @@ class Path(object):
 		Return :obj:`self` converted to a filename using the file naming
 		conventions of the OS. Parameters will be dropped in the resulting string.
 		"""
-		path = Path(self._prefix(self._path) + "/".join(segment for segment in self))
-		path = path._path
-		localpath = urllib.request.url2pathname(path)
-		if path.endswith("/") and not (localpath.endswith(os.sep) or (os.altsep is not None and localpath.endswith(os.altsep))):
+		localpath = _unescape(self._path)
+		if self._path.endswith("/") and not (localpath.endswith(os.sep) or (os.altsep is not None and localpath.endswith(os.altsep))):
 			localpath += os.sep
 		return localpath
 
