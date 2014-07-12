@@ -14,6 +14,9 @@ Changes in 5.9 (released ??/??/2014)
 	connection to avoid problems with code that uses :func:`hasattr` to check
 	for the presence of an attribute.
 
+*	Oracle URLs now support the methods :meth:`walk`, :meth:`walkfiles` and
+	:meth:`walkdirs`.
+
 
 Changes in 5.8.1 (released 06/18/2014)
 --------------------------------------
