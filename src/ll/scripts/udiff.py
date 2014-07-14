@@ -228,8 +228,8 @@ def main(args=None):
 						stdout.writeln(s4addedline("+", line.originalline))
 
 	p = argparse.ArgumentParser(description="Compare files line by line", epilog="For more info see http://www.livinglogic.de/Python/scripts/udiff.html")
-	p.add_argument("url1", metavar="url1", help="first URL", type=url.URL)
-	p.add_argument("url2", metavar="url2", help="second URL", type=url.URL)
+	p.add_argument("url1", metavar="url1", help="first URL (directories require a trailing /)", type=url.URL)
+	p.add_argument("url2", metavar="url2", help="second URL (directories require a trailing /)", type=url.URL)
 	p.add_argument(      "--encoding", dest="encoding", help="Encoding to use for reading text files (default: %(default)s)", default="utf-8")
 	p.add_argument(      "--errors", dest="errors", help="Encoding error handling to use for reading text files (default: %(default)s)", default="replace")
 	p.add_argument("-c", "--color", dest="color", help="Color output (default: %(default)s)", default="auto", choices=("yes", "no", "auto"))
