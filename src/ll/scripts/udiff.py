@@ -185,7 +185,7 @@ def main(args=None):
 	p.add_argument(      "--encoding", dest="encoding", help="Encoding to use for reading text files (default: %(default)s)", default="utf-8")
 	p.add_argument(      "--errors", dest="errors", help="Encoding error handling to use for reading text files (default: %(default)s)", default="replace")
 	p.add_argument("-c", "--color", dest="color", help="Color output (default: %(default)s)", default="auto", choices=("yes", "no", "auto"))
-	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", default=False, action=misc.FlagAction)
+	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-r", "--recursive", dest="recursive", help="Recursively compare directories? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-i", "--include", dest="include", metavar="PATTERN", help="Include only URLs matching PATTERN (default: %(default)s)", type=re.compile)
 	p.add_argument("-e", "--exclude", dest="exclude", metavar="PATTERN", help="Exclude URLs matching PATTERN (default: %(default)s)", type=re.compile)
