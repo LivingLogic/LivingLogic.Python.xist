@@ -24,7 +24,55 @@ Options
 -------
 
 ``udiff`` supports the following options:
-...
+
+	``url1``
+		The first URL to be compared (Note that a trailing ``/`` is required for
+		directories.
+
+	``url2``
+		The second URL to be compared (Note that a trailing ``/`` is required for
+		directories.
+
+	``--encoding`` : encoding name
+		The encoding name to use for decoding files (default ``utf-8``).
+
+	``--errors`` : encoding error handler name
+		Encoding error handling to use for reading text files (e.g. ``strict``,
+		``replace``, ``ignore``, ``xmlcharrefreplace`` or ``backslashreplace``
+		(default ``replace``).
+
+	``--color``: ``yes``, ``no`` or ``auto``
+		Should the output of ``udiff`` be colored? The default ``auto`` uses
+		coloring if ``stdout`` supports it.
+
+	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Prints which files are compare before the comparison. Without ``-v1``
+		``udiff`` will be silent, if no differences are detected.
+
+	``-r``, ``--recursive`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Compare directories recursively.
+
+	``-i``, ``--include`` : regular expression
+		Only compares files that contain the regular expression in the filename.
+
+	``-e``, ``--exclude`` : regular expression
+		Doesn't compares files that contain the regular expression in the filename.
+
+	``-a``, ``--all`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Include dot files (i.e. files whose name starts with a ``.``). Not that
+		the content of directories whose name starts with a dot will still be
+		compared.
+
+	``-n``, ``--context`` : integer
+		How many lines of copied context to show (default 2).
+
+	``-b``, ``--blank`` : ``literal``, ``trail``, ``lead``, ``both`` or ``collapse``
+		How many compare whitespace within lines. ``literal`` compares whitespace
+		literally. ``trail`` ignores differences in trailing whitespace, ``lead``
+		ignores differences in leading whitespace, ``both`` ignores leading and
+		trailing whitespace and ``collapse`` collapses whitespace into a single
+		space before comparing lines.
+
 
 Examples
 --------
