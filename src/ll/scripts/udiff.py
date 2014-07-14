@@ -67,10 +67,10 @@ Options
 		How many lines of copied context to show (default 2).
 
 	``-b``, ``--blank`` : ``literal``, ``trail``, ``lead``, ``both`` or ``collapse``
-		How many compare whitespace within lines. ``literal`` compares whitespace
+		How to compare whitespace within lines. ``literal`` compares whitespace
 		literally. ``trail`` ignores differences in trailing whitespace, ``lead``
-		ignores differences in leading whitespace, ``both`` ignores leading and
-		trailing whitespace and ``collapse`` collapses whitespace into a single
+		ignores differences in leading whitespace, ``both`` ignores both leading
+		and trailing whitespace and ``collapse`` collapses whitespace into a single
 		space before comparing lines.
 
 
