@@ -896,6 +896,19 @@ class Task(object):
 			logger.taskend(self.job._tasks)
 		self.job._tasks.pop()
 
+	def __str__(self):
+		v = " ".join(str(d) for d in (task.type, task.name) if d)
+		if task.index is not None:
+			if v:
+				v += " "
+			v += "({}".format(task.index+1)
+			if task.count is not None:
+				v += "/{}".format(task.count)
+			v += ")"
+		if not v:
+			v = "?"
+		return v
+
 	def asjson(self):
 		return dict(
 			type=self.type,
