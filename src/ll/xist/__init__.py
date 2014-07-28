@@ -125,7 +125,7 @@ the XML tree (e.g. into HTML). XIST can be considered 'object oriented XSLT'.
 XIST was written as a replacement for the HTML preprocessor HSC__, and borrows
 some features and ideas from it.
 
-__ http://www.linguistik.uni-erlangen.de/~msbethke/software.html
+__ https://github.com/mbethke/hsc
 
 It also borrows the basic ideas (XML/HTML elements as Python objects) from
 HTMLgen_ and HyperText_.

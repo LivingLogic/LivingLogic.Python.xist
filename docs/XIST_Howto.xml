@@ -2,7 +2,7 @@
 <spc:wrap xmlns="http://xmlns.livinglogic.de/xist/ns/doc" xmlns:spc="http://xmlns.livinglogic.de/xist/ns/specials">
 <p>&xist; is an extensible &html;/&xml; generator written in Python.
 It was developed as a replacement for an &html; preprocessor named
-<app moreinfo="http://freecode.com/projects/hsc">HSC</app>
+<app moreinfo="https://github.com/mbethke/hsc">HSC</app>
 and borrows some features and ideas from it. It also borrows the basic ideas
 (&xml;/&html; elements as Python objects) from
 <app moreinfo="http://www.linuxjournal.com/article/2986">HTMLgen</app>
