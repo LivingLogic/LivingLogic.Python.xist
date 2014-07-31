@@ -905,9 +905,7 @@ class Task(object):
 			if task.count is not None:
 				v += "/{}".format(task.count)
 			v += ")"
-		if not v:
-			v = "?"
-		return v
+		return v or "?"
 
 	def asjson(self):
 		return dict(
