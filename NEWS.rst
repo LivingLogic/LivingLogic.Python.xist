@@ -21,7 +21,9 @@ Changes in 5.9 (released ??/??/2014)
 	connection to avoid problems with code that uses :func:`hasattr` to check
 	for the presence of an attribute.
 
-
+*	:class:`misc.SysInfo` has a new attribute: ``script_url`` return the name
+	of the running script as an ``ssh`` URL (e.g.
+	``ssh://user@www.example.org/~/project/script.py``)
 
 
 Changes in 5.8.1 (released 06/18/2014)

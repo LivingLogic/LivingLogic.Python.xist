@@ -582,7 +582,7 @@ class SysInfo(object):
 	time.
 	"""
 
-	_keys = {"host_name", "host_fqdn", "host_ip", "host_sysname", "host_nodename", "host_release", "host_version", "host_machine", "user_name", "user_uid", "user_gid", "user_gecos", "user_dir", "user_shell", "python_executable", "python_version", "pid", "script_name", "short_script_name"}
+	_keys = {"host_name", "host_fqdn", "host_ip", "host_sysname", "host_nodename", "host_release", "host_version", "host_machine", "user_name", "user_uid", "user_gid", "user_gecos", "user_dir", "user_shell", "python_executable", "python_version", "pid", "script_name", "short_script_name", "script_url"}
 
 	def __init__(self):
 		# Use ``object`` as a marker for "not initialized"
@@ -727,6 +727,11 @@ class SysInfo(object):
 					script_name = "~" + script_name[len(userhome):]
 			self._short_script_name = script_name
 		return self._short_script_name
+
+	@property
+	def script_url(self):
+		from ll import url
+		return "ssh://{}@{}/{}".format(self.user_name, self.host_fqdn or self.host_name, str(url.File(self.short_script_name).path))
 
 	def __getitem__(self, key):
 		if key in self._keys:
