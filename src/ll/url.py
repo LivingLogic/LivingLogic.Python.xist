@@ -403,57 +403,81 @@ class Connection(object):
 		"""
 
 	@misc.notimplemented
-	def listdir(self, url, pattern=None):
+	def listdir(self, url, include=None, exclude=None):
 		"""
 		Return a list of items in the directory :obj:`url`. The elements of the
 		list are :class:`URL` objects relative to :obj:`url`. With the optional
-		:obj:`pattern` argument, this only lists items whose names match the
-		given pattern.
+		:obj:`include` argument, this only lists items whose names match the
+		given pattern. Items matching the optional pattern :obj:`exclude` will
+		not be listed. :obj:`include` and :obj:`exclude` can be strings (which
+		will be interpreted as :mod:`fnmatch` style filename patterns) or lists
+		of strings.
 		"""
 
 	@misc.notimplemented
-	def files(self, url, pattern=None):
+	def files(self, url, include=None, exclude=None):
 		"""
 		Return a list of files in the directory :obj:`url`. The elements of the
 		list are :class:`URL` objects relative to :obj:`url`. With the optional
-		:obj:`pattern` argument, this only lists items whose names match the
-		given pattern.
+		:obj:`include` argument, this only lists files whose names match the
+		given pattern. Files matching the optional pattern :obj:`exclude` will
+		not be listed. :obj:`include` and :obj:`exclude` can be strings (which
+		will be interpreted as :mod:`fnmatch` style filename patterns) or lists
+		of strings.
 		"""
 
 	@misc.notimplemented
-	def dirs(self, url, pattern=None):
+	def dirs(self, url, include=None, exclude=None):
 		"""
 		Return a list of directories in the directory :obj:`url`. The elements
 		of the list are :class:`URL` objects relative to :obj:`url`. With the
-		optional :obj:`pattern` argument, this only lists items whose names match
-		the given pattern.
+		optional :obj:`include` argument, this only directories items whose names
+		match the given pattern. Directories matching the optional pattern
+		:obj:`exclude` will not be listed. :obj:`include` and :obj:`exclude` can
+		be strings (which will be interpreted as :mod:`fnmatch` style filename
+		patterns) or lists of strings.
 		"""
 
 	@misc.notimplemented
-	def walk(self, url, pattern=None):
+	def walk(self, url, include=None, exclude=None, enterdirs=None, skipdirs=None):
 		"""
 		Return a recursive iterator over files and subdirectories. The iterator
 		yields :class:`URL` objects naming each child URL of the directory
 		:obj:`url` and its descendants relative to :obj:`url`. This performs
 		a depth-first traversal, returning each directory before all its children.
-		With the optional :obj:`pattern` argument, only yield items whose
-		names match the given pattern.
+		With the optional :obj:`include` argument, only yield items whose
+		names match the given pattern. Items matching the optional pattern
+		:obj:`exclude` will not be listed. Directories that don't match the
+		optional pattern :obj:`enterdirs` or match the pattern :obj:`skipdirs`
+		will not be traversed. :obj:`include`, :obj:`exclude`, :obj:`enterdirs`
+		and :obj:`skipdirs` can be strings (which will be interpreted as
+		:mod:`fnmatch` style filename patterns) or lists of strings.
 		"""
 
 	@misc.notimplemented
-	def walkfiles(self, url, pattern=None):
+	def walkfiles(self, url, include=None, exclude=None, enterdirs=None, skipdirs=None):
 		"""
 		Return a recursive iterator over files in the directory :obj:`url`. With
-		the optional :obj:`pattern` argument, only yield files whose names match
-		the given pattern.
+		the optional :obj:`include` argument, only yield files whose names match
+		the given pattern. Files matching the optional pattern :obj:`exclude`
+		will not be listed. Directories that don't match the optional pattern
+		:obj:`enterdirs` or match the pattern :obj:`skipdirs` will not be
+		traversed. :obj:`include`, :obj:`exclude`, :obj:`enterdirs` and
+		:obj:`skipdirs` can be strings (which will be interpreted as
+		:mod:`fnmatch` style filename patterns) or lists of strings.
 		"""
 
 	@misc.notimplemented
-	def walkdirs(self, url, pattern=None):
+	def walkdirs(self, url, include=None, exclude=None, enterdirs=None, skipdirs=None):
 		"""
 		Return a recursive iterator over subdirectories in the directory
-		:obj:`url`. With the optional :obj:`pattern` argument, only yield
-		directories whose names match the given pattern.
+		:obj:`url`. With the optional :obj:`include` argument, only yield
+		directories whose names match the given pattern. Items matching the
+		optional pattern :obj:`exclude` will not be listed. Directories that don't
+		match the optional pattern :obj:`enterdirs` or match the pattern
+		:obj:`skipdirs` will not be traversed. :obj:`include`, :obj:`exclude`,
+		:obj:`enterdirs` and :obj:`skipdirs` can be strings (which will be
+		interpreted as :mod:`fnmatch` style filename patterns) or lists of strings.
 		"""
 
 	@misc.notimplemented
@@ -586,61 +610,81 @@ class LocalConnection(Connection):
 		target = self._url2filename(target)
 		os.symlink(name, target)
 
-	def listdir(self, url, pattern=None):
+	def _match(self, name, url, include, exclude):
+		if include is not None:
+			if isinstance(include, str):
+				if not fnmatch.fnmatch(name, include):
+					return False
+			else:
+				if not any(fnmatch.fnmatch(name, pattern) for pattern in include):
+					return False
+		if exclude is not None:
+			if isinstance(exclude, str):
+				if fnmatch.fnmatch(name, exclude):
+					return False
+			else:
+				if any(fnmatch.fnmatch(name, pattern) for pattern in exclude):
+					return False
+		return True
+
+	def listdir(self, url, include=None, exclude=None):
 		name = self._url2filename(url)
 		result = []
 		for childname in sorted(os.listdir(name)):
-			if pattern is None or fnmatch.fnmatch(childname, pattern):
-				if os.path.isdir(os.path.join(name, childname)):
-					result.append(Dir(childname, scheme=url.scheme))
-				else:
-					result.append(File(childname, scheme=url.scheme))
+			childpath = os.path.join(name, childname)
+			childurl = (Dir if os.path.isdir(childpath) else File)(childname, scheme=url.scheme)
+			if self._match(childname, childurl, include, exclude):
+				result.append(childurl)
 		return result
 
-	def files(self, url, pattern=None):
+	def files(self, url, include=None, exclude=None):
 		name = self._url2filename(url)
 		result = []
 		for childname in sorted(os.listdir(name)):
-			if pattern is None or fnmatch.fnmatch(childname, pattern):
-				if os.path.isfile(os.path.join(name, childname)):
-					result.append(File(childname, scheme=url.scheme))
+			childpath = os.path.join(name, childname)
+			if os.path.isfile(childpath):
+				childurl = File(childname, scheme=url.scheme)
+				if self._match(childname, childurl, include, exclude):
+					result.append(childurl)
 		return result
 
-	def dirs(self, url, pattern=None):
+	def dirs(self, url, include=None, exclude=None):
 		name = self._url2filename(url)
 		result = []
 		for childname in sorted(os.listdir(name)):
-			if pattern is None or fnmatch.fnmatch(childname, pattern):
-				if os.path.isdir(os.path.join(name, childname)):
-					result.append(Dir(childname, scheme=url.scheme))
+			childpath = os.path.join(name, childname)
+			if os.path.isdir(childpath):
+				childurl = Dir(childname, scheme=url.scheme)
+				if self._match(childname, childurl, include, exclude):
+					result.append(childurl)
 		return result
 
-	def _walk(self, base, name, pattern, which):
+	def _walk(self, base, name, include, exclude, enterdirs, skipdirs, which):
 		if name:
 			fullname = os.path.join(base, name)
 		else:
 			fullname = base
 		for childname in sorted(os.listdir(fullname)):
-			fullchildname = os.path.join(fullname, childname)
-			relchildname = os.path.join(name, childname)
-			isdir = os.path.isdir(fullchildname)
-			if (pattern is None or fnmatch.fnmatch(childname, pattern)) and which[isdir]:
-				url = urllib.request.pathname2url(relchildname)
-				if isdir:
-					url += "/"
-				yield URL(url)
+			fullchildpath = os.path.join(fullname, childname)
+			relchildpath = os.path.join(name, childname)
+			isdir = os.path.isdir(fullchildpath)
+			childurl = urllib.request.pathname2url(relchildpath)
 			if isdir:
-				for subchild in self._walk(base, relchildname, pattern, which):
-					yield subchild
+				childurl += "/"
+			childurl = URL(childurl)
+			if self._match(childname, childurl, include, exclude) and which[isdir]:
+				yield childurl
+			if isdir and self._match(childname, childurl, enterdirs, skipdirs):
+				yield from self._walk(base, relchildpath, include, exclude, enterdirs, skipdirs, which)
 
-	def walk(self, url, pattern=None):
-		return self._walk(self._url2filename(url), "", pattern, (True, True))
+	def walk(self, url, include=None, exclude=None, enterdirs=None, skipdirs=None):
+		return self._walk(self._url2filename(url), "", include, exclude, enterdirs, skipdirs, (True, True))
 
-	def walkfiles(self, url, pattern=None):
-		return self._walk(self._url2filename(url), "", pattern, (True, False))
+	def walkfiles(self, url, include=None, exclude=None, enterdirs=None, skipdirs=None):
+		return self._walk(self._url2filename(url), "", include, exclude, enterdirs, skipdirs, (True, False))
 
-	def walkdirs(self, url, pattern=None):
-		return self._walk(self._url2filename(url), "", pattern, (False, True))
+	def walkdirs(self, url, include=None, exclude=None, enterdirs=None, skipdirs=None):
+		return self._walk(self._url2filename(url), "", include, exclude, enterdirs, skipdirs, (False, True))
 
 	def open(self, url, *args, **kwargs):
 		return FileResource(url, *args, **kwargs)
@@ -686,7 +730,24 @@ class SshConnection(Connection):
 					group = grp.getgrnam(group)[2]
 			return (owner, group)
 
-		def _walk(base, name, pattern, which):
+		def _match(name, include, exclude):
+			if include is not None:
+				if isinstance(include, unicode):
+					if not fnmatch.fnmatch(name, include):
+						return False
+				else:
+					if not any(fnmatch.fnmatch(name, pattern) for pattern in include):
+						return False
+			if exclude is not None:
+				if isinstance(exclude, unicode):
+					if fnmatch.fnmatch(name, exclude):
+						return False
+				else:
+					if any(fnmatch.fnmatch(name, pattern) for pattern in exclude):
+						return False
+			return True
+
+		def _walk(base, name, include, exclude, enterdirs, skipdirs, which):
 			if name:
 				fullname = os.path.join(base, name)
 			else:
@@ -695,25 +756,25 @@ class SshConnection(Connection):
 				fullchildname = os.path.join(fullname, childname)
 				relchildname = os.path.join(name, childname)
 				isdir = os.path.isdir(fullchildname)
-				if (pattern is None or fnmatch.fnmatch(childname, pattern)) and which[isdir]:
+				if _match(childname, include, exclude) and which[isdir]:
 					url = request.pathname2url(relchildname)
 					if not isinstance(url, unicode):
 						url = unicode(url)
 					if isdir:
 						url += "/"
 					yield url
-				if isdir:
-					for subchild in _walk(base, relchildname, pattern, which):
+				if isdir and _match(childname, enterdirs, skipdirs):
+					for subchild in _walk(base, relchildname, include, exclude, enterdirs, skipdirs, which):
 						yield subchild
 
-		def walk(filename, pattern=None):
-			return _walk(filename, "", pattern, (True, True))
+		def walk(filename, include=None, exclude=None, enterdirs=None, skipdirs=None):
+			return _walk(filename, "", include, exclude, enterdirs, skipdirs, (True, True))
 
-		def walkfiles(filename, pattern=None):
-			return _walk(filename, "", pattern, (True, False))
+		def walkfiles(filename, include=None, exclude=None, enterdirs=None, skipdirs=None):
+			return _walk(filename, "", include, exclude, enterdirs, skipdirs, (True, False))
 
-		def walkdirs(filename, pattern=None):
-			return _walk(filename, "", pattern, (False, True))
+		def walkdirs(filename, include=None, exclude=None, enterdirs=None, skipdirs=None):
+			return _walk(filename, "", include, exclude, enterdirs, skipdirs, (False, True))
 
 		while True:
 			(filename, cmdname, args, kwargs) = channel.receive()
@@ -812,20 +873,20 @@ class SshConnection(Connection):
 				elif cmdname == "listdir":
 					data = []
 					for f in os.listdir(filename):
-						if args[0] is None or fnmatch.fnmatch(f, args[0]):
+						if _match(f, args[0], args[1]):
 							data.append((os.path.isdir(os.path.join(filename, f)), f))
 				elif cmdname == "files":
 					data = []
 					for f in os.listdir(filename):
-						if args[0] is None or fnmatch.fnmatch(f, args[0]):
-							if os.path.isfile(os.path.join(filename, f)):
-								data.append(f)
+						p = os.path.join(filename, f)
+						if os.path.isfile(p) and _match(f, args[0], args[1]):
+							data.append(f)
 				elif cmdname == "dirs":
 					data = []
 					for f in os.listdir(filename):
-						if args[0] is None or fnmatch.fnmatch(f, args[0]):
-							if os.path.isdir(os.path.join(filename, f)):
-								data.append(f)
+						p = os.path.join(filename, f)
+						if os.path.isdir(p) and _match(f, args[0], args[1]):
+							data.append(f)
 				elif cmdname == "walk":
 					iterator = walk(filename, *args, **kwargs)
 					data = id(iterator)
@@ -984,39 +1045,39 @@ class SshConnection(Connection):
 	def symlink(self, url, target):
 		return self._cmdwithtarget("symlink", url, target)
 
-	def listdir(self, url, pattern=None):
+	def listdir(self, url, include=None, exclude=None):
 		filename = self._url2filename(url)
 		result = []
-		for (isdir, name) in self._send(filename, "listdir", pattern):
+		for (isdir, name) in self._send(filename, "listdir", include, exclude):
 			name = urllib.request.pathname2url(name)
 			if isdir:
 				name += "/"
 			result.append(URL(name))
 		return result
 
-	def files(self, url, pattern=None):
+	def files(self, url, include=None, exclude=None):
 		filename = self._url2filename(url)
-		return [URL(urllib.request.pathname2url(name)) for name in self._send(filename, "files", pattern)]
+		return [URL(urllib.request.pathname2url(name)) for name in self._send(filename, "files", include, exclude)]
 
-	def dirs(self, url, pattern=None):
+	def dirs(self, url, include=None, exclude=None):
 		filename = self._url2filename(url)
-		return [URL(urllib.request.pathname2url(name)+"/") for name in self._send(filename, "dirs", pattern)]
+		return [URL(urllib.request.pathname2url(name)+"/") for name in self._send(filename, "dirs", include, exclude)]
 
-	def walk(self, url, pattern=None):
+	def walk(self, url, include=None, exclude=None, enterdirs=None, skipdirs=None):
 		filename = self._url2filename(url)
-		iterator = self._send(filename, "walk", pattern)
+		iterator = self._send(filename, "walk", include, exclude, enterdirs, skipdirs)
 		while True:
 			yield URL(self._send(iterator, "iteratornext"))
 
-	def walkfiles(self, url, pattern=None):
+	def walkfiles(self, url, include=None, exclude=None, enterdirs=None, skipdirs=None):
 		filename = self._url2filename(url)
-		iterator = self._send(filename, "walkfiles", pattern)
+		iterator = self._send(filename, "walkfiles", include, exclude, enterdirs, skipdirs)
 		while True:
 			yield URL(self._send(iterator, "iteratornext"))
 
-	def walkdirs(self, url, pattern=None):
+	def walkdirs(self, url, include=None, exclude=None, enterdirs=None, skipdirs=None):
 		filename = self._url2filename(url)
-		iterator = self._send(filename, "walkdirs", pattern)
+		iterator = self._send(filename, "walkdirs", include, exclude, enterdirs, skipdirs)
 		while True:
 			yield URL(self._send(iterator, "iteratornext"))
 
@@ -2915,22 +2976,22 @@ class URL(object):
 	def makedirs(self, mode=0o777, **kwargs):
 		return self.connect(**kwargs).makedirs(self, mode=mode)
 
-	def listdir(self, pattern=None, **kwargs):
-		return self.connect(**kwargs).listdir(self, pattern=pattern)
+	def listdir(self, include=None, exclude=None, **kwargs):
+		return self.connect(**kwargs).listdir(self, include=include, exclude=exclude)
 
-	def files(self, pattern=None, **kwargs):
-		return self.connect(**kwargs).files(self, pattern=pattern)
+	def files(self, include=None, exclude=None, **kwargs):
+		return self.connect(**kwargs).files(self, include=include, exclude=exclude)
 
-	def dirs(self, pattern=None, **kwargs):
-		return self.connect(**kwargs).dirs(self, pattern=pattern)
+	def dirs(self, include=None, exclude=None, **kwargs):
+		return self.connect(**kwargs).dirs(self, include=include, exclude=exclude)
 
-	def walk(self, pattern=None, **kwargs):
-		return self.connect(**kwargs).walk(self, pattern=pattern)
+	def walk(self, include=None, exclude=None, enterdirs=None, skipdirs=None, **kwargs):
+		return self.connect(**kwargs).walk(self, include=include, exclude=exclude, enterdirs=enterdirs, skipdirs=skipdirs)
 
-	def walkfiles(self, pattern=None, **kwargs):
-		return self.connect(**kwargs).walkfiles(self, pattern=pattern)
+	def walkfiles(self, include=None, exclude=None, enterdirs=None, skipdirs=None, **kwargs):
+		return self.connect(**kwargs).walkfiles(self, include=include, exclude=exclude, enterdirs=enterdirs, skipdirs=skipdirs)
 
-	def walkdirs(self, pattern=None, **kwargs):
-		return self.connect(**kwargs).walkdirs(self, pattern=pattern)
+	def walkdirs(self, include=None, exclude=None, enterdirs=None, skipdirs=None, **kwargs):
+		return self.connect(**kwargs).walkdirs(self, include=include, exclude=exclude, enterdirs=enterdirs, skipdirs=skipdirs)
 
 warnings.filterwarnings("always", module="url")

@@ -489,37 +489,39 @@ def test_makedirs():
 
 def test_dir():
 	@pytest.mark.net
-	def check(u, pu, isfile):
+	def check(u, pu, isfile, include=None, exclude=None):
 		with url.Context():
 			u = url.URL(u)
 			pu = url.URL(pu)
-			assert u in pu.listdir()
+			assert u in pu.listdir(include=include, exclude=exclude)
 			if isfile:
-				assert u in pu.files()
-				assert u not in pu.dirs()
+				assert u in pu.files(include=include, exclude=exclude)
+				assert u not in pu.dirs(include=include, exclude=exclude)
 			else:
-				assert u not in pu.files()
-				assert u in pu.dirs()
+				assert u not in pu.files(include=include, exclude=exclude)
+				assert u in pu.dirs(include=include, exclude=exclude)
 
 	yield check, os.path.basename(__file__), os.path.dirname(__file__), True
 	yield check, "lib/", "/usr/", False
 	yield check, "README.rst", "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", True
 	yield check, "LivingLogic/", "ssh://livpython@www.livinglogic.de/~/", False
+	yield check, "lib/", "/usr/", False, "lib"
+	yield check, "lib/", "/usr/", False, None, "nolib"
 
 
 def test_walk():
 	@pytest.mark.net
-	def check(u, pu, isfile):
+	def check(u, pu, isfile, include=None, exclude=None):
 		with url.Context():
 			u = url.URL(u)
 			pu = url.URL(pu)
-			assert any(u==wu for wu in pu.walk())
+			assert any(u==wu for wu in pu.walk(include=include, exclude=exclude))
 			if isfile:
-				assert any(u==wu for wu in pu.walkfiles())
-				assert all(u!=wu for wu in pu.walkdirs())
+				assert any(u==wu for wu in pu.walkfiles(include=include, exclude=exclude))
+				assert all(u!=wu for wu in pu.walkdirs(include=include, exclude=exclude))
 			else:
-				assert all(u!=wu for wu in pu.walkfiles())
-				assert any(u==wu for wu in pu.walkdirs())
+				assert all(u!=wu for wu in pu.walkfiles(include=include, exclude=exclude))
+				assert any(u==wu for wu in pu.walkdirs(include=include, exclude=exclude))
 
 	yield check, os.path.basename(__file__), os.path.dirname(__file__), True
 	yield check, "src/ll/xist/", url.Dir("~/checkouts/LivingLogic.Python.xist/"), False

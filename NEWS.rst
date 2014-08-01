@@ -5,14 +5,23 @@ Changes in 5.9 (released ??/??/2014)
 	two files or directories. ``udiff`` supports all URLs that :mod:`ll.url`
 	supports (i.e. ``ssh`` and ``oracle`` URLs).
 
-*	All object in :mod:`ll.orasql` that represent objects in the database now
+*	All objects in :mod:`ll.orasql` that represent objects in the database now
 	have a method :meth:`exists` that returns whether the object exists in the
 	target database.
 
+*	The argument ``pattern`` of the :class:`URL` methods :meth:`listdir`,
+	:meth:`files` and :meth:`dirs` has been replaced with two new arguments
+	``include`` and ``exclude``. These arguments may now be sequences of strings.
+	The methods :meth:`walk`, :meth:`walkfiles` and :meth:`walkdirs` gained these
+	arguments too. Furthermore the arguments ``enterdirs`` and ``skipdirs`` have
+	been added to those methods. These argument make it possible to skip
+	directories entirely.
+
 *	Oracle URLs now support the methods :meth:`walk`, :meth:`walkfiles` and
 	:meth:`walkdirs`.
-*	The various directory traversal methods in :class:`ll.url.URL` will now output
-	URLs in sorted order.
+
+*	The various directory traversal methods in :class:`ll.url.URL` will now
+	output URLs in sorted order.
 
 *	:meth:`URL.open` for Oracle URLs now supports the ``encoding`` and ``errors``
 	parameter.
@@ -21,7 +30,7 @@ Changes in 5.9 (released ??/??/2014)
 	connection to avoid problems with code that uses :func:`hasattr` to check
 	for the presence of an attribute.
 
-*	:class:`misc.SysInfo` has a new attribute: ``script_url`` return the name
+*	:class:`misc.SysInfo` has a new attribute: ``script_url`` returns the name
 	of the running script as an ``ssh`` URL (e.g.
 	``ssh://user@www.example.org/~/project/script.py``)
 
