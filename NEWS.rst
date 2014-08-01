@@ -9,6 +9,17 @@ Changes in 5.9 (released ??/??/2014)
 	have a method :meth:`exists` that returns whether the object exists in the
 	target database.
 
+*	Enhanced URL methods :meth:`listdir`, :meth:`files`, :meth:`dirs`,
+	:meth:`walk`, :meth:`walkfiles` and :meth:`walkdirs`:
+
+	:meth:`listdir`, :meth:`files` and :meth:`dirs` now have arguments
+	``include`` and ``exclude`` instead of ``pattern`` (which worked like
+	``include`` does now). Also patterns can now be lists of strings.
+
+	:meth:`walk`, :meth:`walkfiles` and :meth:`walkdirs` gained the same arguments.
+	Additionally the arguments ``enterdirs`` and ``skipdirs`` can be used to skip
+	directories during traversal.
+
 *	The argument ``pattern`` of the :class:`URL` methods :meth:`listdir`,
 	:meth:`files` and :meth:`dirs` has been replaced with two new arguments
 	``include`` and ``exclude``. These arguments may now be sequences of strings.

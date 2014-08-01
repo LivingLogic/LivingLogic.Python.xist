@@ -1,3 +1,14 @@
+Migrating to version 5.9
+========================
+
+Changes to ``ll.url``
+-----------------------
+
+*	The argument ``pattern`` of the URL methods :meth:`listdir`, :meth:`files`,
+	:meth:`dirs`, :meth:`walk`, :meth:`walkfiles` and :meth:`walkdirs` has been
+	renamed to ``include``.
+
+
 Migrating to version 5.7
 ========================
 
