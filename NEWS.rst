@@ -29,7 +29,9 @@ Changes in 5.9 (released ??/??/2014)
 	directories entirely.
 
 *	Oracle URLs now support the methods :meth:`walk`, :meth:`walkfiles` and
-	:meth:`walkdirs`.
+	:meth:`walkdirs` (with the new arguments ``include``, ``exclude``,
+	``enterdirs`` and ``skipdirs``). The methods :meth:`listdir`, :meth:`files`
+	and :meth:`dirs` support the arguments ``include`` and ``exclude``.
 
 *	The various directory traversal methods in :class:`ll.url.URL` will now
 	output URLs in sorted order.
