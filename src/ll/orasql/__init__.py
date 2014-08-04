@@ -2924,7 +2924,7 @@ class OracleURLConnection(url_.Connection):
 		for childname in self._listdir(fullname, None, None, (which[0], True)):
 			relchildname = name/childname
 			isdir = not relchildname.path[-1]
-			relname = relchildname.path[-2 is isdir else -1]
+			relname = relchildname.path[-2 if isdir else -1]
 			if which[isdir] and _match(relname, include, exclude):
 				yield relchildname
 			if isdir and _match(relname, enterdirs, skipdirs):
