@@ -194,8 +194,8 @@ class AnySelector(Selector):
 	"""
 	Selector that selects all nodes.
 
-	An instance of this class named ``any`` will be created, i.e. you can use
-	`xfind.any`.
+	An instance of this class named ``any`` is created as a module global, i.e.
+	you can use ``xfind.any``.
 	"""
 
 	def __contains__(self, path):
@@ -266,7 +266,7 @@ class IsInstanceSelector(Selector):
 class element(Selector):
 	"""
 	Selector that selects all elements that have a specified namespace name and
-	element name.::
+	element name::
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html, chars
@@ -358,6 +358,9 @@ class IsSelector(Selector):
 class IsRootSelector(Selector):
 	"""
 	Selector that selects the node that is the root of the traversal.
+
+	An instance of this class named ``isroot`` is created as a module global,
+	i.e. you can use ``xfind.isroot``.
 	"""
 	def __contains__(self, path):
 		return len(path) == 1
@@ -368,7 +371,10 @@ isroot = IsRootSelector()
 
 class IsEmptySelector(Selector):
 	"""
-	Selector that selects all empty elements or fragments::
+	Selector that selects all empty elements or fragments.
+
+	An instance of this class named ``empty`` is created as a module global,
+	i.e. you can use ``xfind.empty``::
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html, chars
@@ -400,7 +406,10 @@ empty = IsEmptySelector()
 
 class OnlyChildSelector(Selector):
 	"""
-	Selector that selects all nodes that are the only child of their parents::
+	Selector that selects all nodes that are the only child of their parents.
+
+	An instance of this class named ``onlychild`` is created as a module global,
+	i.e. you can use ``xfind.onlychild``::
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html, chars
@@ -437,7 +446,10 @@ onlychild = OnlyChildSelector()
 class OnlyOfTypeSelector(Selector):
 	"""
 	Selector that selects all nodes that are the only nodes of their type among
-	their siblings::
+	their siblings.
+
+	An instance of this class named ``onlyoftype`` is created as a module global,
+	i.e. you can use ``xfind.onlyoftype``::
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html, chars
@@ -824,7 +836,7 @@ class ChildCombinator(BinaryCombinator):
 	"""
 	A :class:`ChildCombinator` is a :class:`BinaryCombinator`. To match the
 	:class:`ChildCombinator` the node must match the right hand selector and
-	it's immediate parent must match the left hand selector (i.e. it works
+	its immediate parent must match the left hand selector (i.e. it works
 	similar to the ``>`` combinator in CSS or the ``/`` combinator in XPath).
 
 	:class:`ChildCombinator` objects can be created via the division operator
@@ -855,7 +867,7 @@ class DescendantCombinator(BinaryCombinator):
 	"""
 	A :class:`DescendantCombinator` is a :class:`BinaryCombinator`. To match the
 	:class:`DescendantCombinator` the node must match the right hand selector
-	and any of it's ancestor nodes must match the left hand selector (i.e. it
+	and any of its ancestor nodes must match the left hand selector (i.e. it
 	works similar to the descendant combinator in CSS or the ``//`` combinator
 	in XPath).
 
@@ -1072,7 +1084,7 @@ class NotCombinator(Combinator):
 		... 	parse.NS(html),
 		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
 		... )
-		>>> for node in doc.walknodes(html.script & ~xfind.hasattr("ssrc")):
+		>>> for node in doc.walknodes(html.script & ~xfind.hasattr("src")):
 		... 	print(node.string())
 		...
 		<script type="text/javascript">
