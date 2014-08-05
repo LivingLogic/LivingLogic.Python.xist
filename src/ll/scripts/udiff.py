@@ -52,16 +52,17 @@ Options
 	``-r``, ``--recursive`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		Compare directories recursively.
 
-	``-i``, ``--include`` : regular expression
-		Only compares files that contain the regular expression in the filename.
+	``-i``, ``--include`` : pattern(s)
+		Only compares files whose name matches one of the specified patterns.
 
-	``-e``, ``--exclude`` : regular expression
-		Doesn't compares files that contain the regular expression in the filename.
+	``-e``, ``--exclude`` : pattern(s)
+		Don't compares files whose name matches one of the specified patterns.
 
-	``-a``, ``--all`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Include dot files (i.e. files whose name starts with a ``.``). Not that
-		the content of directories whose name starts with a dot will still be
-		compared.
+	``--enterdir`` : pattern(s)
+		Only enter directories whose name matches one of the specified patterns.
+
+	``--skipdir`` : pattern(s)
+		Don't enter directories whose name matches one of the specified patterns.
 
 	``-n``, ``--context`` : integer
 		How many lines of copied context to show (default 2).
@@ -222,7 +223,6 @@ def main(args=None):
 	p.add_argument("-e", "--exclude", dest="exclude", metavar="PATTERN", help="Exclude URLs matching PATTERN", action="append")
 	p.add_argument(      "--enterdir", dest="enterdir", metavar="PATTERN", help="Only enter directories matching PATTERN", action="append")
 	p.add_argument(      "--skipdir", dest="skipdir", metavar="PATTERN", help="Skip directories matching PATTERN", action="append")
-	p.add_argument("-a", "--all", dest="all", help="Include dot files? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-n", "--context", dest="context", help="Number of context lines (default %(default)s)", type=int, default=2)
 	p.add_argument("-b", "--blank", dest="blank", help="How to treat whitespace (default %(default)s)", default="literal", choices=("literal", "trail", "lead", "both", "collapse"))
 
