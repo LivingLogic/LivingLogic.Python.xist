@@ -141,7 +141,7 @@ class Empty(object):
 
 class Transparent(object):
 	"""
-	This validator implements the "transparent" content model of HTML5:
+	This validator implements the "transparent" content model of HTML5.
 	"""
 	empty = False
 
