@@ -3,14 +3,14 @@ Changes in 5.9 (released ??/??/2014)
 
 *	A script ``udiff`` has been added for doing line by line comparisons of
 	two files or directories. ``udiff`` supports all URLs that :mod:`ll.url`
-	supports (i.e. ``ssh`` and ``oracle`` URLs).
+	supports (e.g. ``ssh`` and ``oracle`` URLs).
 
 *	All objects in :mod:`ll.orasql` that represent objects in the database now
 	have a method :meth:`exists` that returns whether the object exists in the
 	target database.
 
-*	Enhanced URL methods :meth:`listdir`, :meth:`files`, :meth:`dirs`,
-	:meth:`walk`, :meth:`walkfiles` and :meth:`walkdirs`:
+*	The URL methods :meth:`listdir`, :meth:`files`, :meth:`dirs`,
+	:meth:`walk`, :meth:`walkfiles` and :meth:`walkdirs` have been enhanced:
 
 	:meth:`listdir`, :meth:`files` and :meth:`dirs` now have arguments
 	``include`` and ``exclude`` instead of ``pattern`` (which worked like
@@ -19,14 +19,6 @@ Changes in 5.9 (released ??/??/2014)
 	:meth:`walk`, :meth:`walkfiles` and :meth:`walkdirs` gained the same arguments.
 	Additionally the arguments ``enterdirs`` and ``skipdirs`` can be used to skip
 	directories during traversal.
-
-*	The argument ``pattern`` of the :class:`URL` methods :meth:`listdir`,
-	:meth:`files` and :meth:`dirs` has been replaced with two new arguments
-	``include`` and ``exclude``. These arguments may now be sequences of strings.
-	The methods :meth:`walk`, :meth:`walkfiles` and :meth:`walkdirs` gained these
-	arguments too. Furthermore the arguments ``enterdirs`` and ``skipdirs`` have
-	been added to those methods. These argument make it possible to skip
-	directories entirely.
 
 *	Oracle URLs now support the methods :meth:`walk`, :meth:`walkfiles` and
 	:meth:`walkdirs` (with the new arguments ``include``, ``exclude``,
