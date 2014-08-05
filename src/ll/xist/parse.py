@@ -559,7 +559,7 @@ class Decoder(object):
 class Encoder(object):
 	"""
 	Encode the :class:`str` objects produced by the previous object in the
-	pipeline to :class:`bytes` object.
+	pipeline to :class:`bytes` objects.
 
 	This input object must be a pipeline object that produces string output
 	(e.g. a :class:`Decoder` object).
@@ -705,7 +705,7 @@ class Expat(Parser):
 			:obj:`cdata` is false ``"text"`` events are output instead.)
 
 		:obj:`ns` : bool
-			If :obj:`ns` is true, the parser does its own namespace processing,
+			If :obj:`ns` is true, the parser performs namespace processing itself,
 			i.e. it will emit ``"enterstarttagns"``, ``"leavestarttagns"``,
 			``"endtagns"``, ``"enterattrns"`` and ``"leaveattrns"`` events instead
 			of ``"enterstarttag"``, ``"leavestarttag"``, ``"endtag"``,
