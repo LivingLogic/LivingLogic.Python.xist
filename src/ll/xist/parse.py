@@ -1212,6 +1212,18 @@ class Node(object):
 	"""
 	def __init__(self, pool=None, base=None, loc=True):
 		"""
+		Create a :class:`Node` object.
+
+		:obj:`pool` may be ``None`` or a :class:`xsc.Pool` object and specifies
+		which classes used for creating element, entity and processsing
+		instruction instances.
+
+		:obj:`base` specifies the base URL for interpreting relative links in
+		the input.
+
+		:obj:`loc` specified whether location information should be attached to
+		the nodes that get generated (the :obj:`startloc` attribute (and
+		:obj:`endloc` attribute for elements))
 		"""
 		self.pool = (pool if pool is not None else xsc.threadlocalpool.pool)
 		if base is not None:
