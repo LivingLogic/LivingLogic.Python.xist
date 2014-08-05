@@ -138,30 +138,13 @@ class Line(object):
 
 
 def main(args=None):
-	def match(url):
-		strurl = str(url)
-		if args.include is not None and args.include.search(strurl) is None:
-			return False
-		if args.exclude is not None and args.exclude.search(strurl) is not None:
-			return False
-		if not args.all:
-			if url.file:
-				name = url.file
-			elif len(url.path) >=2:
-				name = url.path[-2]
-			else:
-				name = ""
-			if name.startswith("."):
-				return False
-		return True
-
 	def comparedirs(url1, url2):
 		if args.recursive:
-			iter1 = (u for u in url1.walkfiles() if match(u))
-			iter2 = (u for u in url2.walkfiles() if match(u))
+			iter1 = url1.walkfiles(include=args.include, exclude=args.exclude, enterdirs=args.enterdir, skipdirs=args.skipdir)
+			iter2 = url2.walkfiles(include=args.include, exclude=args.exclude, enterdirs=args.enterdir, skipdirs=args.skipdir)
 		else:
-			iter1 = (u for u in url1.files() if match(u))
-			iter2 = (u for u in url2.files() if match(u))
+			iter1 = iter(url1.files(include=args.include, exclude=args.exclude))
+			iter2 = iter(url2.files(include=args.include, exclude=args.exclude))
 
 		file1 = file2 = None
 		while True:
@@ -235,8 +218,10 @@ def main(args=None):
 	p.add_argument("-c", "--color", dest="color", help="Color output (default: %(default)s)", default="auto", choices=("yes", "no", "auto"))
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-r", "--recursive", dest="recursive", help="Recursively compare directories? (default: %(default)s)", action=misc.FlagAction, default=False)
-	p.add_argument("-i", "--include", dest="include", metavar="PATTERN", help="Include only URLs matching PATTERN (default: %(default)s)", type=re.compile)
-	p.add_argument("-e", "--exclude", dest="exclude", metavar="PATTERN", help="Exclude URLs matching PATTERN (default: %(default)s)", type=re.compile)
+	p.add_argument("-i", "--include", dest="include", metavar="PATTERN", help="Include only URLs matching PATTERN", action="append")
+	p.add_argument("-e", "--exclude", dest="exclude", metavar="PATTERN", help="Exclude URLs matching PATTERN", action="append")
+	p.add_argument(      "--enterdir", dest="enterdir", metavar="PATTERN", help="Only enter directories matching PATTERN", action="append")
+	p.add_argument(      "--skipdir", dest="skipdir", metavar="PATTERN", help="Skip directories matching PATTERN", action="append")
 	p.add_argument("-a", "--all", dest="all", help="Include dot files? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-n", "--context", dest="context", help="Number of context lines (default %(default)s)", type=int, default=2)
 	p.add_argument("-b", "--blank", dest="blank", help="How to treat whitespace (default %(default)s)", default="literal", choices=("literal", "trail", "lead", "both", "collapse"))
