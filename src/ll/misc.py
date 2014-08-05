@@ -603,6 +603,7 @@ class SysInfo(object):
 		self._pid = object
 		self._script_name = object
 		self._short_script_name = object
+		self._script_url = object
 
 	@property
 	def host_name(self):
@@ -730,8 +731,10 @@ class SysInfo(object):
 
 	@property
 	def script_url(self):
-		from ll import url
-		return "ssh://{}@{}/{}".format(self.user_name, self.host_fqdn or self.host_name, str(url.File(self.short_script_name).path))
+		if self._script_url is object:
+			from ll import url
+			self._script_url = "ssh://{}@{}/{}".format(self.user_name, self.host_fqdn or self.host_name, str(url.File(self.short_script_name).path))
+		return self._script_url
 
 	def __getitem__(self, key):
 		if key in self._keys:
