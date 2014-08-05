@@ -733,7 +733,7 @@ class SysInfo(object):
 	def script_url(self):
 		if self._script_url is object:
 			from ll import url
-			self._script_url = "ssh://{}@{}/{}".format(self.user_name, self.host_fqdn or self.host_name, str(url.File(self.short_script_name).path))
+			self._script_url = str(url.Ssh(self.user_name, self.host_fqdn or self.host_name, self.short_script_name))
 		return self._script_url
 
 	def __getitem__(self, key):
