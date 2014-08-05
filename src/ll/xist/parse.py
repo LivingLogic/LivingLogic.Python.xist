@@ -148,7 +148,7 @@ The following type of events are produced by parsers (in addition to the
 The following events are produced for elements and attributes in namespace mode
 (instead of those without the ``ns`` suffix). They are produced by :class:`NS`
 objects or by :class:`Expat` objects when :obj:`ns` is true (i.e. the expat
-parser does the namespace resolution):
+parser performs the namespace resolution):
 
 	``"enterstarttagns"``
 		The beginning of an element start tag in namespace mode.
