@@ -181,7 +181,7 @@ def main(args=None):
 					if file1 is not None:
 						yield (url1, file1, None, None)
 					for file1 in iter1:
-						yield (url2, file1, None, None)
+						yield (url1, file1, None, None)
 					break
 			str1 = str(file1)
 			str2 = str(file2)
