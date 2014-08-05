@@ -1539,7 +1539,7 @@ def itertree(*pipeline, entercontent=True, enterattrs=False, enterattr=False, en
 	"""
 	Parse the event stream :obj:`pipeline` iteratively.
 
-	:func:`itertree` still builds a tree, but it returns a iterator of
+	:func:`itertree` still builds a tree, but it returns an iterator of
 	:class:`xsc.Cursor` objects that tracks changes to the tree as it is built.
 
 	:obj:`validate` specifies whether each node should be validated after it has
