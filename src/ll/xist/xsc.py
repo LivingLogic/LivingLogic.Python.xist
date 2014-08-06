@@ -3196,13 +3196,12 @@ class Element(Node, metaclass=_Element_Meta):
 		return (self.content, attrs)
 
 	def __setstate__(self, data):
+		import importlib
 		(content, attrs) = data
 		self.content = content
 		self.attrs = self.Attrs()
 		for (key, value) in attrs.items():
-			obj = __import__(value[0])
-			for name in value[0].split(".")[1:]:
-				obj = getattr(obj, name)
+			obj = importlib.import_module((value[0])
 			for name in value[1].split("."):
 				obj = getattr(obj, name)
 			value = obj(value[2])
