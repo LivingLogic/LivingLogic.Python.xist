@@ -3201,7 +3201,7 @@ class Element(Node, metaclass=_Element_Meta):
 		self.content = content
 		self.attrs = self.Attrs()
 		for (key, value) in attrs.items():
-			obj = importlib.import_module((value[0])
+			obj = importlib.import_module(value[0])
 			for name in value[1].split("."):
 				obj = getattr(obj, name)
 			value = obj(value[2])
