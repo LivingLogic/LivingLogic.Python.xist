@@ -176,7 +176,7 @@ class MySQL(object):
 
 
 def fixname(name):
-	newname = "".join(c for (i, c) in enumerate(name) if (c.isalnum() if i else c.isalpha()))
+	newname = "".join(c for (i, c) in enumerate(name) if (c.isalnum() if i else c.isalpha()) or c == "_")
 	while keyword.iskeyword(newname):
 		newname += "_"
 	return newname
