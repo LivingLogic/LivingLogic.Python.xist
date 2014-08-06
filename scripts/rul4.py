@@ -6,5 +6,5 @@ import sys
 
 
 if __name__ == "__main__":
-	from ll.scripts import db2ul4
-	sys.exit(db2ul4.main())
+	from ll.scripts import rul4
+	sys.exit(rul4.main())

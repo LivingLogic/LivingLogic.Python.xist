@@ -3,7 +3,7 @@
 # cython: language_level=3, always_allow_keywords=True
 
 """
-``db2ul4`` is a script that can be used for rendering UL4 templates. Templates
+``rul4`` is a script that can be used for rendering UL4 templates. Templates
 have access to Oracle, MySQL and SQLite databases and can execute system
 commands.
 
@@ -11,7 +11,7 @@ commands.
 Options
 -------
 
-``db2ul4`` supports the following options:
+``rul4`` supports the following options:
 
 	``templates``
 		One or more template files. A file named ``-`` will be treated as
@@ -161,16 +161,16 @@ Then we can use the following template to output the table into an XML file::
 		<?end for?>
 	</persons>
 
-If we put the template into the file ``person.ul4`` we can call ``db2ul4`` like
+If we put the template into the file ``person.ul4`` we can call ``rul4`` like
 this::
 
-	db2ul4 person.ul4 >person.xml
+	rul4 person.ul4 >person.xml
 
 We could also pass the connection to our database via the ``-D`` option and
 disallow the script to make any database connections or execute any system
 commands::
 
-	db2ul4 person.ul4 -Ddb:oracle=user/pwd@database --oracle=0 --sqlite=0 --mysql=0 --system=0 >person.xml
+	rul4 person.ul4 -Ddb:oracle=user/pwd@database --oracle=0 --sqlite=0 --mysql=0 --system=0 >person.xml
 
 Then the template could use the Oracle connection object ``db`` directly.
 """
@@ -292,7 +292,7 @@ def define(arg):
 
 
 def main(args=None):
-	p = argparse.ArgumentParser(description="render UL4 templates with access to Oracle, MySQL or SQLite databases", epilog="For more info see http://www.livinglogic.de/Python/scripts/db2ul4.html")
+	p = argparse.ArgumentParser(description="render UL4 templates with access to Oracle, MySQL or SQLite databases", epilog="For more info see http://www.livinglogic.de/Python/scripts/rul4.html")
 	p.add_argument("templates", metavar="template", help="templates to be used", nargs="+")
 	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for template sources (default %(default)s)", default="utf-8", metavar="ENCODING")
 	p.add_argument("-w", "--keepws", dest="keepws", help="Keep linefeeds and indentation in template sources? (default %(default)s)", action=misc.FlagAction, default=True)

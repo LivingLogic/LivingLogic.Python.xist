@@ -1,6 +1,12 @@
 Migrating to version 5.9
 ========================
 
+Changes to ``db2ul4``
+-----------------------
+
+*	The script ``db2ul4`` has been renamed to ``rul4``.
+
+
 Changes to ``ll.url``
 -----------------------
 

@@ -11,10 +11,10 @@
 """
 This package contains the following scripts:
 
-	``db2ul4``
-		``db2ul4`` renders an UL4 template. The available template variables
+	``rul4``
+		``rul4`` renders an UL4 template. The available template variables
 		allow system commands and database access. Supported databases are Oracle,
-		sqllite and MySQL.
+		SQLite and MySQL.
 
 	``uls``
 		``uls`` is an URL-enabled version of the ``ls`` command for listing
@@ -32,11 +32,11 @@ This package contains the following scripts:
 
 These scripts can either be called via Pythons :option:`-m` option::
 
-	python -mll.scripts.db2ul4 --help
+	python -mll.scripts.rul4 --help
 
 or as a simple script installed in the search path::
 
-	db2ul4 --help
+	rul4 --help
 """
 
 

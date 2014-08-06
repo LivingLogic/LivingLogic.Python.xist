@@ -5,6 +5,13 @@ Changes in 5.9 (released ??/??/2014)
 	two files or directories. ``udiff`` supports all URLs that :mod:`ll.url`
 	supports (e.g. ``ssh`` and ``oracle`` URLs).
 
+*	The script ``db2ul4`` has been renamed to ``rul4``. The following new
+	features have been added: Additional variables can be passed to the UL4
+	template via the :option:`-D`/:option:`--define` option. Access to Oracle,
+	SQLite and MySQL databases can be disallowed with the options
+	:option:`--oracle`, :option:`--sqlite` and :option:`--mysql`. Executing
+	system commands can be disallowed with the option :option:`--system`.
+
 *	All objects in :mod:`ll.orasql` that represent objects in the database now
 	have a method :meth:`exists` that returns whether the object exists in the
 	target database.
