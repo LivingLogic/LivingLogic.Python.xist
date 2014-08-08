@@ -34,16 +34,17 @@ Options
 		Ignores file i/o errors occuring during the output process. (Otherwise
 		the script will be aborted.)
 
-	``-i``, ``--include`` : regular expression
-		Only print files that contain the regular expression.
+	``-i``, ``--include`` : pattern(s)
+		Only compares files whose name matches one of the specified patterns.
 
-	``-e``, ``--exclude`` : regular expression
-		Don't print files that contain the regular expression.
+	``-e``, ``--exclude`` : pattern(s)
+		Don't compares files whose name matches one of the specified patterns.
 
-	``-a``, ``--all`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Include dot files (i.e. files whose name starts with a ``.``). Not that
-		the content of directories whose name starts with a dot will still be
-		printed.
+	``--enterdir`` : pattern(s)
+		Only enter directories whose name matches one of the specified patterns.
+
+	``--skipdir`` : pattern(s)
+		Don't enter directories whose name matches one of the specified patterns.
 
 
 Examples
@@ -82,52 +83,35 @@ __docformat__ = "reStructuredText"
 
 
 def main(args=None):
-	def match(url):
-		strurl = str(url)
-		if args.include is not None and args.include.search(strurl) is None:
-			return False
-		if args.exclude is not None and args.exclude.search(strurl) is not None:
-			return False
-		if not args.all:
-			if url.file:
-				name = url.file
-			elif len(url.path) >=2:
-				name = url.path[-2]
-			else:
-				name = ""
-			if name.startswith("."):
-				return False
-		return True
-
 	def catone(urlread):
 		if urlread.isdir():
 			if args.recursive:
-				for u in urlread.listdir():
+				for u in urlread.walkfiles(include=args.include, exclude=args.exclude, enterdirs=args.enterdir, skipdirs=args.skipdir):
 					catone(urlread/u)
 			else:
 				raise IOError(errno.EISDIR, "Is a directory", str(urlread))
 		else:
-			if match(urlread):
-				try:
-					with contextlib.closing(urlread.open("rb")) as fileread:
-						size = 0
-						while True:
-							data = fileread.read(262144)
-							if data:
-								sys.stdout.buffer.write(data)
-							else:
-								break
-				except Exception:
-					if not args.ignoreerrors:
-						raise
+			try:
+				with contextlib.closing(urlread.open("rb")) as fileread:
+					size = 0
+					while True:
+						data = fileread.read(262144)
+						if data:
+							sys.stdout.buffer.write(data)
+						else:
+							break
+			except Exception:
+				if not args.ignoreerrors:
+					raise
 
 	p = argparse.ArgumentParser(description="print URL content on the screen", epilog="For more info see http://www.livinglogic.de/Python/scripts/ucat.html")
 	p.add_argument("urls", metavar="url", help="URLs to be printed", nargs="+", type=url.URL)
 	p.add_argument("-r", "--recursive", dest="recursive", help="Print stuff recursively? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-x", "--ignoreerrors", dest="ignoreerrors", help="Ignore errors? (default: %(default)s)", action=misc.FlagAction, default=False)
-	p.add_argument("-i", "--include", dest="include", metavar="PATTERN", help="Include only URLs matching PATTERN (default: %(default)s)", type=re.compile)
-	p.add_argument("-e", "--exclude", dest="exclude", metavar="PATTERN", help="Exclude URLs matching PATTERN (default: %(default)s)", type=re.compile)
-	p.add_argument("-a", "--all", dest="all", help="Include dot files? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-i", "--include", dest="include", metavar="PATTERN", help="Include only URLs matching PATTERN", action="append")
+	p.add_argument("-e", "--exclude", dest="exclude", metavar="PATTERN", help="Exclude URLs matching PATTERN", action="append")
+	p.add_argument(      "--enterdir", dest="enterdir", metavar="PATTERN", help="Only enter directories matching PATTERN", action="append")
+	p.add_argument(      "--skipdir", dest="skipdir", metavar="PATTERN", help="Skip directories matching PATTERN", action="append")
 
 	args = p.parse_args(args)
 	with url.Context():

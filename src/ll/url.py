@@ -37,7 +37,7 @@ These three levels of functionality are implemented in three classes:
 
 
 import os, urllib.request, urllib.error, urllib.parse as urlparse, mimetypes, io, warnings
-import datetime, cgi, fnmatch, pickle, errno, threading
+import datetime, cgi, re, fnmatch, pickle, errno, threading
 import email
 from email import utils
 
@@ -149,6 +149,23 @@ def _urlencode(query_parts):
 		return "&".join(res)
 	else:
 		return None
+
+
+def _compilepattern(pattern, ignorecase=False):
+	if pattern is None:
+		return None
+	elif isinstance(pattern, str):
+		return (re.compile(fnmatch.translate(pattern), re.I if ignorecase else 0).match,)
+	else:
+		return tuple(re.compile(fnmatch.translate(p), re.I if ignorecase else 0).match for p in pattern)
+
+
+def _matchpatterns(name, include, exclude):
+	if include and not any(matcher(name) is not None for matcher in include):
+		return False
+	if exclude and any(matcher(name) is not None for matcher in exclude):
+		return False
+	return True
 
 
 class Context(object):
@@ -403,81 +420,97 @@ class Connection(object):
 		"""
 
 	@misc.notimplemented
-	def listdir(self, url, include=None, exclude=None):
+	def listdir(self, url, include=None, exclude=None, ignorecase=False):
 		"""
 		Return a list of items in the directory :obj:`url`. The elements of the
-		list are :class:`URL` objects relative to :obj:`url`. With the optional
-		:obj:`include` argument, this only lists items whose names match the
-		given pattern. Items matching the optional pattern :obj:`exclude` will
-		not be listed. :obj:`include` and :obj:`exclude` can be strings (which
-		will be interpreted as :mod:`fnmatch` style filename patterns) or lists
-		of strings.
-		"""
+		list are :class:`URL` objects relative to :obj:`url`.
 
-	@misc.notimplemented
-	def files(self, url, include=None, exclude=None):
-		"""
-		Return a list of files in the directory :obj:`url`. The elements of the
-		list are :class:`URL` objects relative to :obj:`url`. With the optional
-		:obj:`include` argument, this only lists files whose names match the
-		given pattern. Files matching the optional pattern :obj:`exclude` will
-		not be listed. :obj:`include` and :obj:`exclude` can be strings (which
-		will be interpreted as :mod:`fnmatch` style filename patterns) or lists
-		of strings.
-		"""
-
-	@misc.notimplemented
-	def dirs(self, url, include=None, exclude=None):
-		"""
-		Return a list of directories in the directory :obj:`url`. The elements
-		of the list are :class:`URL` objects relative to :obj:`url`. With the
-		optional :obj:`include` argument, this only directories items whose names
-		match the given pattern. Directories matching the optional pattern
+		With the optional :obj:`include` argument, this only lists items whose
+		names match the given pattern. Items matching the optional pattern
 		:obj:`exclude` will not be listed. :obj:`include` and :obj:`exclude` can
 		be strings (which will be interpreted as :mod:`fnmatch` style filename
-		patterns) or lists of strings.
+		patterns) or lists of strings. If :obj:`ignorecase` is true
+		case-insensitive name matching will be performed.
 		"""
 
 	@misc.notimplemented
-	def walk(self, url, include=None, exclude=None, enterdirs=None, skipdirs=None):
+	def files(self, url, include=None, exclude=None, ignorecase=False):
+		"""
+		Return a list of files in the directory :obj:`url`. The elements of the
+		list are :class:`URL` objects relative to :obj:`url`.
+
+		With the optional :obj:`include` argument, this only lists files whose
+		names match the given pattern. Files matching the optional pattern
+		:obj:`exclude` will not be listed. :obj:`include` and :obj:`exclude` can
+		be strings (which will be interpreted as :mod:`fnmatch` style filename
+		patterns) or lists of strings. If :obj:`ignorecase` is true
+		case-insensitive name matching will be performed.
+		"""
+
+	@misc.notimplemented
+	def dirs(self, url, include=None, exclude=None, ignorecase=False):
+		"""
+		Return a list of directories in the directory :obj:`url`. The elements
+		of the list are :class:`URL` objects relative to :obj:`url`.
+
+		With the optional :obj:`include` argument, this only directories items
+		whose names match the given pattern. Directories matching the optional
+		pattern :obj:`exclude` will not be listed. :obj:`include` and
+		:obj:`exclude` can be strings (which will be interpreted as :mod:`fnmatch`
+		style filename patterns) or lists of strings.  If :obj:`ignorecase` is
+		true case-insensitive name matching will be performed.
+		"""
+
+	@misc.notimplemented
+	def walk(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
 		"""
 		Return a recursive iterator over files and subdirectories. The iterator
 		yields :class:`URL` objects naming each child URL of the directory
 		:obj:`url` and its descendants relative to :obj:`url`. This performs
 		a depth-first traversal, returning each directory before all its children.
+
 		With the optional :obj:`include` argument, only yield items whose
 		names match the given pattern. Items matching the optional pattern
 		:obj:`exclude` will not be listed. Directories that don't match the
-		optional pattern :obj:`enterdirs` or match the pattern :obj:`skipdirs`
-		will not be traversed. :obj:`include`, :obj:`exclude`, :obj:`enterdirs`
-		and :obj:`skipdirs` can be strings (which will be interpreted as
+		optional pattern :obj:`enterdir` or match the pattern :obj:`skipdir`
+		will not be traversed. :obj:`include`, :obj:`exclude`, :obj:`enterdir`
+		and :obj:`skipdir` can be strings (which will be interpreted as
 		:mod:`fnmatch` style filename patterns) or lists of strings.
+		If :obj:`ignorecase` is true case-insensitive name matching will be
+		performed.
 		"""
 
 	@misc.notimplemented
-	def walkfiles(self, url, include=None, exclude=None, enterdirs=None, skipdirs=None):
+	def walkfiles(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
 		"""
-		Return a recursive iterator over files in the directory :obj:`url`. With
-		the optional :obj:`include` argument, only yield files whose names match
-		the given pattern. Files matching the optional pattern :obj:`exclude`
-		will not be listed. Directories that don't match the optional pattern
-		:obj:`enterdirs` or match the pattern :obj:`skipdirs` will not be
-		traversed. :obj:`include`, :obj:`exclude`, :obj:`enterdirs` and
-		:obj:`skipdirs` can be strings (which will be interpreted as
+		Return a recursive iterator over files in the directory :obj:`url`.
+
+		With the optional :obj:`include` argument, only yield files whose names
+		match the given pattern. Files matching the optional pattern
+		:obj:`exclude` will not be listed. Directories that don't match the
+		optional pattern :obj:`enterdir` or match the pattern :obj:`skipdir`
+		will not be traversed. :obj:`include`, :obj:`exclude`, :obj:`enterdir`
+		and :obj:`skipdir` can be strings (which will be interpreted as
 		:mod:`fnmatch` style filename patterns) or lists of strings.
+		If :obj:`ignorecase` is true case-insensitive name matching will be
+		performed.
 		"""
 
 	@misc.notimplemented
-	def walkdirs(self, url, include=None, exclude=None, enterdirs=None, skipdirs=None):
+	def walkdirs(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
 		"""
 		Return a recursive iterator over subdirectories in the directory
-		:obj:`url`. With the optional :obj:`include` argument, only yield
-		directories whose names match the given pattern. Items matching the
-		optional pattern :obj:`exclude` will not be listed. Directories that don't
-		match the optional pattern :obj:`enterdirs` or match the pattern
-		:obj:`skipdirs` will not be traversed. :obj:`include`, :obj:`exclude`,
-		:obj:`enterdirs` and :obj:`skipdirs` can be strings (which will be
-		interpreted as :mod:`fnmatch` style filename patterns) or lists of strings.
+		:obj:`url`.
+
+		With the optional :obj:`include` argument, only yield directories whose
+		names match the given pattern. Items matching the optional pattern
+		:obj:`exclude` will not be listed. Directories that don't match the
+		optional pattern :obj:`enterdir` or match the pattern :obj:`skipdir`
+		will not be traversed. :obj:`include`, :obj:`exclude`, :obj:`enterdir`
+		and :obj:`skipdir` can be strings (which will be interpreted as
+		:mod:`fnmatch` style filename patterns) or lists of strings.
+		If :obj:`ignorecase` is true case-insensitive name matching will be
+		performed.
 		"""
 
 	@misc.notimplemented
@@ -610,56 +643,45 @@ class LocalConnection(Connection):
 		target = self._url2filename(target)
 		os.symlink(name, target)
 
-	def _match(self, name, url, include, exclude):
-		if include is not None:
-			if isinstance(include, str):
-				if not fnmatch.fnmatch(name, include):
-					return False
-			else:
-				if not any(fnmatch.fnmatch(name, pattern) for pattern in include):
-					return False
-		if exclude is not None:
-			if isinstance(exclude, str):
-				if fnmatch.fnmatch(name, exclude):
-					return False
-			else:
-				if any(fnmatch.fnmatch(name, pattern) for pattern in exclude):
-					return False
-		return True
-
-	def listdir(self, url, include=None, exclude=None):
+	def listdir(self, url, include=None, exclude=None, ignorecase=False):
 		name = self._url2filename(url)
+		include = _compilepattern(include, ignorecase)
+		exclude = _compilepattern(exclude, ignorecase)
 		result = []
 		for childname in sorted(os.listdir(name)):
 			childpath = os.path.join(name, childname)
 			childurl = (Dir if os.path.isdir(childpath) else File)(childname, scheme=url.scheme)
-			if self._match(childname, childurl, include, exclude):
+			if _matchpatterns(childname, include, exclude):
 				result.append(childurl)
 		return result
 
-	def files(self, url, include=None, exclude=None):
+	def files(self, url, include=None, exclude=None, ignorecase=False):
 		name = self._url2filename(url)
+		include = _compilepattern(include, ignorecase)
+		exclude = _compilepattern(exclude, ignorecase)
 		result = []
 		for childname in sorted(os.listdir(name)):
 			childpath = os.path.join(name, childname)
 			if os.path.isfile(childpath):
 				childurl = File(childname, scheme=url.scheme)
-				if self._match(childname, childurl, include, exclude):
+				if _matchpatterns(childname, include, exclude):
 					result.append(childurl)
 		return result
 
-	def dirs(self, url, include=None, exclude=None):
+	def dirs(self, url, include=None, exclude=None, ignorecase=False):
 		name = self._url2filename(url)
+		include = _compilepattern(include, ignorecase)
+		exclude = _compilepattern(exclude, ignorecase)
 		result = []
 		for childname in sorted(os.listdir(name)):
 			childpath = os.path.join(name, childname)
 			if os.path.isdir(childpath):
 				childurl = Dir(childname, scheme=url.scheme)
-				if self._match(childname, childurl, include, exclude):
+				if _matchpatterns(childname, include, exclude):
 					result.append(childurl)
 		return result
 
-	def _walk(self, base, name, include, exclude, enterdirs, skipdirs, which):
+	def _walk(self, base, name, include, exclude, enterdir, skipdir, which):
 		if name:
 			fullname = os.path.join(base, name)
 		else:
@@ -672,19 +694,31 @@ class LocalConnection(Connection):
 			if isdir:
 				childurl += "/"
 			childurl = URL(childurl)
-			if self._match(childname, childurl, include, exclude) and which[isdir]:
+			if _matchpatterns(childname, include, exclude) and which[isdir]:
 				yield childurl
-			if isdir and self._match(childname, childurl, enterdirs, skipdirs):
-				yield from self._walk(base, relchildpath, include, exclude, enterdirs, skipdirs, which)
+			if isdir and _matchpatterns(childname, enterdir, skipdir):
+				yield from self._walk(base, relchildpath, include, exclude, enterdir, skipdir, which)
 
-	def walk(self, url, include=None, exclude=None, enterdirs=None, skipdirs=None):
-		return self._walk(self._url2filename(url), "", include, exclude, enterdirs, skipdirs, (True, True))
+	def walk(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
+		include = _compilepattern(include, ignorecase)
+		exclude = _compilepattern(exclude, ignorecase)
+		enterdir = _compilepattern(enterdir, ignorecase)
+		skipdir = _compilepattern(skipdir, ignorecase)
+		return self._walk(self._url2filename(url), "", include, exclude, enterdir, skipdir, (True, True))
 
-	def walkfiles(self, url, include=None, exclude=None, enterdirs=None, skipdirs=None):
-		return self._walk(self._url2filename(url), "", include, exclude, enterdirs, skipdirs, (True, False))
+	def walkfiles(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
+		include = _compilepattern(include, ignorecase)
+		exclude = _compilepattern(exclude, ignorecase)
+		enterdir = _compilepattern(enterdir, ignorecase)
+		skipdir = _compilepattern(skipdir, ignorecase)
+		return self._walk(self._url2filename(url), "", include, exclude, enterdir, skipdir, (True, False))
 
-	def walkdirs(self, url, include=None, exclude=None, enterdirs=None, skipdirs=None):
-		return self._walk(self._url2filename(url), "", include, exclude, enterdirs, skipdirs, (False, True))
+	def walkdirs(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
+		include = _compilepattern(include, ignorecase)
+		exclude = _compilepattern(exclude, ignorecase)
+		enterdir = _compilepattern(enterdir, ignorecase)
+		skipdir = _compilepattern(skipdir, ignorecase)
+		return self._walk(self._url2filename(url), "", include, exclude, enterdir, skipdir, (False, True))
 
 	def open(self, url, *args, **kwargs):
 		return FileResource(url, *args, **kwargs)
@@ -692,7 +726,7 @@ class LocalConnection(Connection):
 
 class SshConnection(Connection):
 	remote_code = """
-		import sys, os, pickle, fnmatch
+		import sys, os, pickle, re, fnmatch
 		try:
 			from urllib import request
 		except ImportError:
@@ -730,24 +764,22 @@ class SshConnection(Connection):
 					group = grp.getgrnam(group)[2]
 			return (owner, group)
 
-		def _match(name, include, exclude):
-			if include is not None:
-				if isinstance(include, unicode):
-					if not fnmatch.fnmatch(name, include):
-						return False
-				else:
-					if not any(fnmatch.fnmatch(name, pattern) for pattern in include):
-						return False
-			if exclude is not None:
-				if isinstance(exclude, unicode):
-					if fnmatch.fnmatch(name, exclude):
-						return False
-				else:
-					if any(fnmatch.fnmatch(name, pattern) for pattern in exclude):
-						return False
+		def _compilepattern(pattern, ignorecase=False):
+			if pattern is None:
+				return None
+			elif isinstance(pattern, unicode):
+				return (re.compile(fnmatch.translate(pattern), re.I if ignorecase else 0).match,)
+			else:
+				return tuple(re.compile(fnmatch.translate(p), re.I if ignorecase else 0).match for p in pattern)
+
+		def _matchpatterns(name, include, exclude):
+			if include and not any(matcher(name) is not None for matcher in include):
+				return False
+			if exclude and any(matcher(name) is not None for matcher in exclude):
+				return False
 			return True
 
-		def _walk(base, name, include, exclude, enterdirs, skipdirs, which):
+		def _walk(base, name, include, exclude, enterdir, skipdir, which):
 			if name:
 				fullname = os.path.join(base, name)
 			else:
@@ -767,14 +799,26 @@ class SshConnection(Connection):
 					for subchild in _walk(base, relchildname, include, exclude, enterdirs, skipdirs, which):
 						yield subchild
 
-		def walk(filename, include=None, exclude=None, enterdirs=None, skipdirs=None):
-			return _walk(filename, "", include, exclude, enterdirs, skipdirs, (True, True))
+		def walk(filename, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
+			include = _compilepattern(include, ignorecase)
+			exclude = _compilepattern(exclude, ignorecase)
+			enterdir = _compilepattern(enterdir, ignorecase)
+			skipdir = _compilepattern(skipdir, ignorecase)
+			return _walk(filename, "", include, exclude, enterdir, skipdir, (True, True))
 
-		def walkfiles(filename, include=None, exclude=None, enterdirs=None, skipdirs=None):
-			return _walk(filename, "", include, exclude, enterdirs, skipdirs, (True, False))
+		def walkfiles(filename, include=None, exclude=None, enterdir=None, skipdir=None):
+			include = _compilepattern(include, ignorecase)
+			exclude = _compilepattern(exclude, ignorecase)
+			enterdir = _compilepattern(enterdir, ignorecase)
+			skipdir = _compilepattern(skipdir, ignorecase)
+			return _walk(filename, "", include, exclude, enterdir, skipdir, (True, False))
 
-		def walkdirs(filename, include=None, exclude=None, enterdirs=None, skipdirs=None):
-			return _walk(filename, "", include, exclude, enterdirs, skipdirs, (False, True))
+		def walkdirs(filename, include=None, exclude=None, enterdir=None, skipdir=None):
+			include = _compilepattern(include, ignorecase)
+			exclude = _compilepattern(exclude, ignorecase)
+			enterdir = _compilepattern(enterdir, ignorecase)
+			skipdir = _compilepattern(skipdir, ignorecase)
+			return _walk(filename, "", include, exclude, enterdir, skipdir, (False, True))
 
 		while True:
 			(filename, cmdname, args, kwargs) = channel.receive()
@@ -871,21 +915,27 @@ class SshConnection(Connection):
 				elif cmdname == "makefifo":
 					data = os.makefifo(filename)
 				elif cmdname == "listdir":
+					include = _compilepattern(args[0], args[2])
+					exclude = _compilepattern(args[1], args[2])
 					data = []
 					for f in os.listdir(filename):
-						if _match(f, args[0], args[1]):
+						if _matchpatterns(f, include, exclude):
 							data.append((os.path.isdir(os.path.join(filename, f)), f))
 				elif cmdname == "files":
+					include = _compilepattern(args[0], args[2])
+					exclude = _compilepattern(args[1], args[2])
 					data = []
 					for f in os.listdir(filename):
 						p = os.path.join(filename, f)
-						if os.path.isfile(p) and _match(f, args[0], args[1]):
+						if os.path.isfile(p) and _matchpatterns(f, include, exclude):
 							data.append(f)
 				elif cmdname == "dirs":
+					include = _compilepattern(args[0], args[2])
+					exclude = _compilepattern(args[1], args[2])
 					data = []
 					for f in os.listdir(filename):
 						p = os.path.join(filename, f)
-						if os.path.isdir(p) and _match(f, args[0], args[1]):
+						if os.path.isdir(p) and _matchpatterns(f, include, exclude):
 							data.append(f)
 				elif cmdname == "walk":
 					iterator = walk(filename, *args, **kwargs)
@@ -1045,39 +1095,39 @@ class SshConnection(Connection):
 	def symlink(self, url, target):
 		return self._cmdwithtarget("symlink", url, target)
 
-	def listdir(self, url, include=None, exclude=None):
+	def listdir(self, url, include=None, exclude=None, ignorecase=False):
 		filename = self._url2filename(url)
 		result = []
-		for (isdir, name) in self._send(filename, "listdir", include, exclude):
+		for (isdir, name) in self._send(filename, "listdir", include, exclude, ignorecase):
 			name = urllib.request.pathname2url(name)
 			if isdir:
 				name += "/"
 			result.append(URL(name))
 		return result
 
-	def files(self, url, include=None, exclude=None):
+	def files(self, url, include=None, exclude=None, ignorecase=False):
 		filename = self._url2filename(url)
-		return [URL(urllib.request.pathname2url(name)) for name in self._send(filename, "files", include, exclude)]
+		return [URL(urllib.request.pathname2url(name)) for name in self._send(filename, "files", include, exclude, ignorecase)]
 
-	def dirs(self, url, include=None, exclude=None):
+	def dirs(self, url, include=None, exclude=None, ignorecase=False):
 		filename = self._url2filename(url)
-		return [URL(urllib.request.pathname2url(name)+"/") for name in self._send(filename, "dirs", include, exclude)]
+		return [URL(urllib.request.pathname2url(name)+"/") for name in self._send(filename, "dirs", include, exclude, ignorecase)]
 
-	def walk(self, url, include=None, exclude=None, enterdirs=None, skipdirs=None):
+	def walk(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
 		filename = self._url2filename(url)
-		iterator = self._send(filename, "walk", include, exclude, enterdirs, skipdirs)
+		iterator = self._send(filename, "walk", include, exclude, enterdir, skipdir, ignorecase)
 		while True:
 			yield URL(self._send(iterator, "iteratornext"))
 
-	def walkfiles(self, url, include=None, exclude=None, enterdirs=None, skipdirs=None):
+	def walkfiles(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
 		filename = self._url2filename(url)
-		iterator = self._send(filename, "walkfiles", include, exclude, enterdirs, skipdirs)
+		iterator = self._send(filename, "walkfiles", include, exclude, enterdir, skipdir, ignorecase)
 		while True:
 			yield URL(self._send(iterator, "iteratornext"))
 
-	def walkdirs(self, url, include=None, exclude=None, enterdirs=None, skipdirs=None):
+	def walkdirs(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
 		filename = self._url2filename(url)
-		iterator = self._send(filename, "walkdirs", include, exclude, enterdirs, skipdirs)
+		iterator = self._send(filename, "walkdirs", include, exclude, enterdir, skipdir, ignorecase)
 		while True:
 			yield URL(self._send(iterator, "iteratornext"))
 
@@ -2979,19 +3029,19 @@ class URL(object):
 	def listdir(self, include=None, exclude=None, **kwargs):
 		return self.connect(**kwargs).listdir(self, include=include, exclude=exclude)
 
-	def files(self, include=None, exclude=None, **kwargs):
+	def files(self, include=None, exclude=None, ignorecase=False, **kwargs):
 		return self.connect(**kwargs).files(self, include=include, exclude=exclude)
 
-	def dirs(self, include=None, exclude=None, **kwargs):
+	def dirs(self, include=None, exclude=None, ignorecase=False, **kwargs):
 		return self.connect(**kwargs).dirs(self, include=include, exclude=exclude)
 
-	def walk(self, include=None, exclude=None, enterdirs=None, skipdirs=None, **kwargs):
-		return self.connect(**kwargs).walk(self, include=include, exclude=exclude, enterdirs=enterdirs, skipdirs=skipdirs)
+	def walk(self, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False, **kwargs):
+		return self.connect(**kwargs).walk(self, include=include, exclude=exclude, enterdir=enterdir, skipdir=skipdir)
 
-	def walkfiles(self, include=None, exclude=None, enterdirs=None, skipdirs=None, **kwargs):
-		return self.connect(**kwargs).walkfiles(self, include=include, exclude=exclude, enterdirs=enterdirs, skipdirs=skipdirs)
+	def walkfiles(self, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False, **kwargs):
+		return self.connect(**kwargs).walkfiles(self, include=include, exclude=exclude, enterdir=enterdir, skipdir=skipdir)
 
-	def walkdirs(self, include=None, exclude=None, enterdirs=None, skipdirs=None, **kwargs):
-		return self.connect(**kwargs).walkdirs(self, include=include, exclude=exclude, enterdirs=enterdirs, skipdirs=skipdirs)
+	def walkdirs(self, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False, **kwargs):
+		return self.connect(**kwargs).walkdirs(self, include=include, exclude=exclude, enterdir=enterdir, skipdir=skipdir)
 
 warnings.filterwarnings("always", module="url")

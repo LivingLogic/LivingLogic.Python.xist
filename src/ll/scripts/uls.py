@@ -265,16 +265,16 @@ def main(args=None):
 				url.path.segments.append("")
 			if not args.long and not args.one:
 				if args.recursive:
-					urls = [(url/child, str(child)) for child in url.files() if match(url/child)]
+					urls = [(url/child, str(child)) for child in url.files(include=args.include, exclude=args.exclude)]
 					if urls:
 						printblock(url, urls)
 					for child in url.dirs():
 						printall(base, url/child)
 				else:
-					urls = [(url/child, str(child)) for child in url.listdir() if match(url/child)]
+					urls = [(url/child, str(child)) for child in url.listdir(include=args.include, exclude=args.exclude)]
 					printblock(None, urls)
 			else:
-				for child in url.listdir():
+				for child in url.listdir(include=args.include, exclude=args.exclude):
 					child = url/child
 					if match(child):
 						if not args.recursive or child.isdir(): # For files the print call is done by the recursive call to ``printall``
@@ -282,8 +282,7 @@ def main(args=None):
 					if args.recursive:
 						printall(base, child)
 		else:
-			if match(url):
-				printone(url)
+			printone(url)
 
 	p = argparse.ArgumentParser(description="List the content of one or more URLs", epilog="For more info see http://www.livinglogic.de/Python/scripts/uls.html")
 	p.add_argument("urls", metavar="url", help="URLs to be listed (default: current dir)", nargs="*", default=[url.Dir("./", scheme=None)], type=url.URL)
@@ -295,9 +294,10 @@ def main(args=None):
 	p.add_argument("-w", "--spacing", dest="spacing", metavar="INTEGER", help="Space between columns (default: %(default)s)", type=int, default=3)
 	p.add_argument("-P", "--padding", dest="padding", metavar="CHARS", help="Characters used for column padding (default: %(default)s)", default=" ", type=str)
 	p.add_argument("-S", "--separator", dest="separator", metavar="CHARS", help="Characters used for separating columns in long format (default: %(default)s)", default="  ", type=str)
-	p.add_argument("-i", "--include", dest="include", metavar="PATTERN", help="Include only URLs matching PATTERN (default: %(default)s)", type=re.compile)
-	p.add_argument("-e", "--exclude", dest="exclude", metavar="PATTERN", help="Exclude URLs matching PATTERN (default: %(default)s)", type=re.compile)
-	p.add_argument("-a", "--all", dest="all", help="Include dot files? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-i", "--include", dest="include", metavar="PATTERN", help="Include only URLs matching PATTERN", action="append")
+	p.add_argument("-e", "--exclude", dest="exclude", metavar="PATTERN", help="Exclude URLs matching PATTERN", action="append")
+	p.add_argument(      "--enterdir", dest="enterdir", metavar="PATTERN", help="Only enter directories matching PATTERN", action="append")
+	p.add_argument(      "--skipdir", dest="skipdir", metavar="PATTERN", help="Skip directories matching PATTERN", action="append")
 
 	args = p.parse_args(args)
 

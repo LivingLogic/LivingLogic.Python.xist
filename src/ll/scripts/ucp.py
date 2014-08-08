@@ -134,49 +134,44 @@ def main(args=None):
 		strurlread = str(urlread)
 		if urlread.isdir():
 			if args.recursive:
-				for u in urlread.listdir():
+				for u in urlread.walkfiles(include=args.include, exclude=args.exclude, enterdirs=args.enterdir, skipdirs=args.skipdir):
 					copyone(urlread/u, urlwrite/u)
 			else:
 				if args.verbose:
 					msg = astyle.style_default("ucp: ", astyle.style_url(strurlread), astyle.style_warn(" (directory skipped)"))
 					stderr.writeln(msg)
 		else:
-			if match(urlread):
-				if args.verbose:
-					msg = astyle.style_default("ucp: ", astyle.style_url(strurlread), " -> ")
-					stderr.write(msg)
-				try:
-					with contextlib.closing(urlread.open("rb")) as fileread:
-						with contextlib.closing(urlwrite.open("wb")) as filewrite:
-							size = 0
-							while True:
-								data = fileread.read(262144)
-								if data:
-									filewrite.write(data)
-									size += len(data)
-								else:
-									break
-					if user or group:
-						urlwrite.chown(user, group)
-				except Exception as exc:
-					if args.ignoreerrors:
-						if args.verbose:
-							excname = exc.__class__.__name__
-							excmodule = exc.__class__.__module__
-							if excmodule != "exceptions":
-								excname = "{}.{}".format(excmodule, excname)
-							excmsg = str(exc).replace("\n", " ").strip()
-							msg = astyle.style_error(" (failed with {}: {})".format(excname, excmsg))
-							stderr.writeln(msg)
-					else:
-						raise
-				else:
+			if args.verbose:
+				msg = astyle.style_default("ucp: ", astyle.style_url(strurlread), " -> ")
+				stderr.write(msg)
+			try:
+				with contextlib.closing(urlread.open("rb")) as fileread:
+					with contextlib.closing(urlwrite.open("wb")) as filewrite:
+						size = 0
+						while True:
+							data = fileread.read(262144)
+							if data:
+								filewrite.write(data)
+								size += len(data)
+							else:
+								break
+				if user or group:
+					urlwrite.chown(user, group)
+			except Exception as exc:
+				if args.ignoreerrors:
 					if args.verbose:
-						msg = astyle.style_default(astyle.style_url(str(urlwrite)), " ({:,} bytes)".format(size))
+						excname = exc.__class__.__name__
+						excmodule = exc.__class__.__module__
+						if excmodule not in ("builtins", "exceptions"):
+							excname = "{}.{}".format(excmodule, excname)
+						excmsg = str(exc).replace("\n", " ").strip()
+						msg = astyle.style_error(" (failed with {}: {})".format(excname, excmsg))
 						stderr.writeln(msg)
+				else:
+					raise
 			else:
 				if args.verbose:
-					msg = astyle.style_default("ucp: ", astyle.style_url(strurlread), astyle.style_warn(" (skipped)"))
+					msg = astyle.style_default(astyle.style_url(str(urlwrite)), " ({:,} bytes)".format(size))
 					stderr.writeln(msg)
 
 	p = argparse.ArgumentParser(description="Copies URLs", epilog="For more info see http://www.livinglogic.de/Python/scripts/ucp.html")
@@ -187,9 +182,10 @@ def main(args=None):
 	p.add_argument("-g", "--group", dest="group", help="group id or name for target files")
 	p.add_argument("-r", "--recursive", dest="recursive", help="Copy stuff recursively? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-x", "--ignoreerrors", dest="ignoreerrors", help="Ignore errors? (default: %(default)s)", action=misc.FlagAction, default=False)
-	p.add_argument("-i", "--include", dest="include", metavar="PATTERN", help="Include only URLs matching PATTERN (default: %(default)s)", type=re.compile)
-	p.add_argument("-e", "--exclude", dest="exclude", metavar="PATTERN", help="Exclude URLs matching PATTERN (default: %(default)s)", type=re.compile)
-	p.add_argument("-a", "--all", dest="all", help="Include dot files? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument("-i", "--include", dest="include", metavar="PATTERN", help="Include only URLs matching PATTERN", action="append")
+	p.add_argument("-e", "--exclude", dest="exclude", metavar="PATTERN", help="Exclude URLs matching PATTERN", action="append")
+	p.add_argument(      "--enterdir", dest="enterdir", metavar="PATTERN", help="Only enter directories matching PATTERN", action="append")
+	p.add_argument(      "--skipdir", dest="skipdir", metavar="PATTERN", help="Skip directories matching PATTERN", action="append")
 
 	args = p.parse_args(args)
 	if len(args.urls) < 2:

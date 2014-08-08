@@ -24,12 +24,12 @@ Changes in 5.9 (released ??/??/2014)
 	``include`` does now). Also patterns can now be lists of strings.
 
 	:meth:`walk`, :meth:`walkfiles` and :meth:`walkdirs` gained the same arguments.
-	Additionally the arguments ``enterdirs`` and ``skipdirs`` can be used to skip
+	Additionally the arguments ``enterdir`` and ``skipdir`` can be used to skip
 	directories during traversal.
 
 *	Oracle URLs now support the methods :meth:`walk`, :meth:`walkfiles` and
 	:meth:`walkdirs` (with the new arguments ``include``, ``exclude``,
-	``enterdirs`` and ``skipdirs``). The methods :meth:`listdir`, :meth:`files`
+	``enterdir`` and ``skipdir``). The methods :meth:`listdir`, :meth:`files`
 	and :meth:`dirs` support the arguments ``include`` and ``exclude``.
 
 *	The various directory traversal methods in :class:`ll.url.URL` will now
