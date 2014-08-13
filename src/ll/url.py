@@ -681,6 +681,26 @@ class LocalConnection(Connection):
 					result.append(childurl)
 		return result
 
+	def _walk2(self, base, name):
+		if name:
+			fullname = os.path.join(base, name)
+		else:
+			fullname = base
+		dirs = []
+		files = []
+		for childname in sorted(os.listdir(fullname)):
+			isdir = os.path.isdir(os.path.join(fullname, childname))
+			if isdir:
+				dirs.append(Dir(childname, scheme=None))
+			else:
+				files.append(File(childname, scheme=None))
+		yield (Dir(name, scheme=None), dirs, files)
+		for dirname in dirs:
+			yield from self._walk2(base, os.path.join(name, dirname.path[-2]))
+
+	def walk2(self, url):
+		return self._walk2(self._url2filename(url), "")
+
 	def _walk(self, base, name, include, exclude, enterdir, skipdir, which):
 		if name:
 			fullname = os.path.join(base, name)
