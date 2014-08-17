@@ -1235,8 +1235,11 @@ def Dir(name, scheme="file"):
 		URL('file:a%23b/')
 	"""
 	name = urllib.request.pathname2url(os.path.expanduser(name))
-	if not name.endswith("/"):
-		name += "/"
+	if name:
+		if not name.endswith("/"):
+			name += "/"
+	else:
+		name = "./"
 	if name.startswith("///"):
 		name = name[2:]
 	url = URL(name)

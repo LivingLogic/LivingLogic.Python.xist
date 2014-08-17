@@ -42,6 +42,9 @@ Changes in 5.9 (released ??/??/2014)
 	connection to avoid problems with code that uses :func:`hasattr` to check
 	for the presence of an attribute.
 
+*	Fixed handling of the current directory in :func:`url.Dir`: ``url.Dir("")``
+	now returns ``URL('file:./')``.
+
 *	:class:`misc.SysInfo` has a new attribute: ``script_url`` returns the name
 	of the running script as an ``ssh`` URL (e.g.
 	``ssh://user@www.example.org/~/project/script.py``)
