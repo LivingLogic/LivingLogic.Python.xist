@@ -3560,7 +3560,7 @@ class Element(Node, metaclass=_Element_Meta):
 		if enterelementnode:
 			cursor.event = "enterelementnode"
 			yield cursor
-			# The user may have altered ``cursor`` attributes outside the generator
+			# The user may have altered ``cursor`` attributes outside the generator, so we refetch them
 			entercontent = cursor.entercontent
 			enterattrs = cursor.enterattrs
 			leaveelementnode = cursor.leaveelementnode

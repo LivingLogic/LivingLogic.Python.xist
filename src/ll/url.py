@@ -212,6 +212,86 @@ def getcontext(context):
 	return context
 
 
+###
+### Cursor for the :meth:`walk` method
+###
+
+class Cursor(object):
+	"""
+	A :class:`Cursor` object is used by the :meth:`walk` method during directory
+	traversal. It contains information about the state of the traversal and can
+	be used to influence which directories are traversed and in which order.
+
+	Information about the state of the traversal is provided in the following
+	attributes:
+
+	``rooturl``
+		The URL where traversal has been started (i.e. the object for which the
+		:meth:`walk` method has been called)
+
+	``url``
+		The current URL being traversed.
+
+	``event``
+		A string that specifies which event is currently handled. Possible values
+		are: ``"beforedir"``, ``"afterdir"`` and ``"file"``. A ``"beforedir"``
+		event is emitted before a directory is entered. ``"afterdir"``
+		is emitted after a directory has been entered. ``"file"`` is emitted when
+		a file is encountered.
+
+	``isdir``
+		True if ``url`` refers to a directory.
+
+	``isfile``
+		Tur if ``url`` refers to a regular file.
+
+	The following attributes specify which part of the tree should be traversed:
+
+	``beforedir``
+		Should the generator yield ``"beforedir"`` events?
+
+	``afterdir``
+		Should the generator yield ``"afterdir"`` events?
+
+	``file``
+		Should the generator yield ``"file"`` events?
+
+	``enterdir``
+		Should the directory be entered?
+
+	Note that if any of these attributes is changed by the code consuming the
+	generator, this new value will be used for the next traversal step once the
+	generator is resumed and will be reset to its initial value (specified in
+	the constructor) afterwards.
+	"""
+	def __init__(self, url, beforedir=True, afterdir=False, file=True, enterdir=False):
+		"""
+		Create a new :class:`Cursor` object for a tree traversal rooted at the node
+		:obj:`node`.
+
+		The arguments :obj:`beforedir`, :obj:`afterdir`, :obj:`file` and
+		:obj:`enterdir` are used as the initial values for the attributes of
+		the same name. (see the class docstring for info about their use).
+		"""
+		self.rooturl = self.url = url
+		self.event = None
+		self.beforedir = self._beforedir = beforedir
+		self.afterdir = self._afterdir = afterdir
+		self.file = self._file = file
+		self.enterdir = self._enterdir = enterdir
+		self.isdir = self.isfile = None
+
+	def restore(self):
+		"""
+		Restore the attributes ``beforedir``, ``afterdir``, ``file`` and
+		``enterdir`` to their initial value.
+		"""
+		self.beforedir = self._beforedir
+		self.afterdir = self._afterdir
+		self.file = self._file
+		self.enterdir = self._enterdir
+
+
 class Connection(object):
 	"""
 	A :class:`Connection` object is used for accessing and modifying the
@@ -420,6 +500,37 @@ class Connection(object):
 		"""
 
 	@misc.notimplemented
+	def walk(self, url, beforedir=True, afterdir=False, file=True, enterdir=True):
+		"""
+		Return an iterator for traversing the directory hierarchy rooted at
+		the directory :obj:`url`.
+
+		Each item produced by the iterator is a :class:`Cursor` object.
+		It contains information about the state of the traversal and can be used
+		to influence which parts of the directory hierarchy are traversed and in
+		which order.
+
+		The arguments :obj:`beforedir`, :obj:`afterdir`,
+		:obj:`file` and :obj:`enterdir` specify how the directory hierarchy should
+		be traversed. For more information see the :class:`Cursor` class.
+
+		Note that the :class:`Cursor` object is reused by :meth:`walk`, so you
+		can't rely on any attributes remaining the same across calls to
+		:func:`next`.
+
+		The following example shows how to traverse the current directory, print
+		all files except those in certain directories::
+
+			from ll import url
+
+			for cursor in url.here().walk(beforedir=True, afterdir=False, file=True):
+				if cursor.isdir:
+					if cursor.url.path[-2] in (".git", "build", "dist", "__pycache__"):
+						cursor.enterdir = False
+				else:
+					print(cursor.url)
+		"""
+
 	def listdir(self, url, include=None, exclude=None, ignorecase=False):
 		"""
 		Return a list of items in the directory :obj:`url`. The elements of the
@@ -432,8 +543,10 @@ class Connection(object):
 		patterns) or lists of strings. If :obj:`ignorecase` is true
 		case-insensitive name matching will be performed.
 		"""
+		include = _compilepattern(include, ignorecase)
+		exclude = _compilepattern(exclude, ignorecase)
+		return [cursor.url for cursor in self.walk(url, beforedir=True, afterdir=False, file=True, enterdir=False) if _matchpatterns(cursor.url.path[-1-cursor.isdir], include, exclude)]
 
-	@misc.notimplemented
 	def files(self, url, include=None, exclude=None, ignorecase=False):
 		"""
 		Return a list of files in the directory :obj:`url`. The elements of the
@@ -446,8 +559,10 @@ class Connection(object):
 		patterns) or lists of strings. If :obj:`ignorecase` is true
 		case-insensitive name matching will be performed.
 		"""
+		include = _compilepattern(include, ignorecase)
+		exclude = _compilepattern(exclude, ignorecase)
+		return [cursor.url for cursor in self.walk(url, beforedir=False, afterdir=False, file=True, enterdir=False) if cursor.isfile and _matchpatterns(cursor.url.path[-1], include, exclude)]
 
-	@misc.notimplemented
 	def dirs(self, url, include=None, exclude=None, ignorecase=False):
 		"""
 		Return a list of directories in the directory :obj:`url`. The elements
@@ -460,9 +575,12 @@ class Connection(object):
 		style filename patterns) or lists of strings.  If :obj:`ignorecase` is
 		true case-insensitive name matching will be performed.
 		"""
+		include = _compilepattern(include, ignorecase)
+		exclude = _compilepattern(exclude, ignorecase)
+		return [cursor.url for cursor in self.walk(url, beforedir=True, afterdir=False, file=False, enterdir=False) if cursor.isdir and _matchpatterns(cursor.url.path[-2], include, exclude)]
 
 	@misc.notimplemented
-	def walk(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
+	def walkall(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
 		"""
 		Return a recursive iterator over files and subdirectories. The iterator
 		yields :class:`URL` objects naming each child URL of the directory
@@ -643,65 +761,52 @@ class LocalConnection(Connection):
 		target = self._url2filename(target)
 		os.symlink(name, target)
 
-	def listdir(self, url, include=None, exclude=None, ignorecase=False):
-		name = self._url2filename(url)
-		include = _compilepattern(include, ignorecase)
-		exclude = _compilepattern(exclude, ignorecase)
-		result = []
-		for childname in sorted(os.listdir(name)):
-			childpath = os.path.join(name, childname)
-			childurl = (Dir if os.path.isdir(childpath) else File)(childname, scheme=url.scheme)
-			if _matchpatterns(childname, include, exclude):
-				result.append(childurl)
-		return result
+	def _walk(self, cursor, base, name):
+		def _event(url, event):
+			cursor.url = url
+			cursor.event = event
+			cursor.isdir = event != "file"
+			cursor.isfile = not cursor.isdir
+			return cursor
 
-	def files(self, url, include=None, exclude=None, ignorecase=False):
-		name = self._url2filename(url)
-		include = _compilepattern(include, ignorecase)
-		exclude = _compilepattern(exclude, ignorecase)
-		result = []
-		for childname in sorted(os.listdir(name)):
-			childpath = os.path.join(name, childname)
-			if os.path.isfile(childpath):
-				childurl = File(childname, scheme=url.scheme)
-				if _matchpatterns(childname, include, exclude):
-					result.append(childurl)
-		return result
-
-	def dirs(self, url, include=None, exclude=None, ignorecase=False):
-		name = self._url2filename(url)
-		include = _compilepattern(include, ignorecase)
-		exclude = _compilepattern(exclude, ignorecase)
-		result = []
-		for childname in sorted(os.listdir(name)):
-			childpath = os.path.join(name, childname)
-			if os.path.isdir(childpath):
-				childurl = Dir(childname, scheme=url.scheme)
-				if _matchpatterns(childname, include, exclude):
-					result.append(childurl)
-		return result
-
-	def _walk2(self, base, name):
 		if name:
 			fullname = os.path.join(base, name)
 		else:
 			fullname = base
-		dirs = []
-		files = []
 		for childname in sorted(os.listdir(fullname)):
-			isdir = os.path.isdir(os.path.join(fullname, childname))
+			fullchildname = os.path.join(fullname, childname)
+			isdir = os.path.isdir(fullchildname)
+			relchildname = os.path.join(name, childname) if name else childname
+			emitbeforedir = cursor.beforedir
+			emitafterdir = cursor.afterdir
+			emitfile = cursor.file
+			enterdir = cursor.enterdir
 			if isdir:
-				dirs.append(Dir(childname, scheme=None))
+				if emitbeforedir or emitafterdir:
+					dirurl = Dir(relchildname, scheme=None)
+				if emitbeforedir:
+					yield _event(dirurl, "beforedir")
+					# The user may have altered ``cursor`` attributes outside the generator, so we refetch them
+					emitbeforedir = cursor.beforedir
+					emitafterdir = cursor.afterdir
+					emitfile = cursor.file
+					emitenterdir = cursor.enterdir
+					cursor.restore()
+				if enterdir:
+					yield from self._walk(cursor, base, relchildname)
+				if emitafterdir:
+					yield _event(dirurl, "afterdir")
+					cursor.restore()
 			else:
-				files.append(File(childname, scheme=None))
-		yield (Dir(name, scheme=None), dirs, files)
-		for dirname in dirs:
-			yield from self._walk2(base, os.path.join(name, dirname.path[-2]))
+				if emitfile:
+					yield _event(File(relchildname, scheme=None), "file")
+					cursor.restore()
 
-	def walk2(self, url):
-		return self._walk2(self._url2filename(url), "")
+	def walk(self, url, beforedir=True, afterdir=False, file=True, enterdir=True):
+		cursor = Cursor(url, beforedir=beforedir, afterdir=afterdir, file=file, enterdir=enterdir)
+		return self._walk(cursor, url.local(), "")
 
-	def _walk(self, base, name, include, exclude, enterdir, skipdir, which):
+	def _walkall(self, base, name, include, exclude, enterdir, skipdir, which):
 		if name:
 			fullname = os.path.join(base, name)
 		else:
@@ -719,7 +824,7 @@ class LocalConnection(Connection):
 			if isdir and _matchpatterns(childname, enterdir, skipdir):
 				yield from self._walk(base, relchildpath, include, exclude, enterdir, skipdir, which)
 
-	def walk(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
+	def walkall(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
 		include = _compilepattern(include, ignorecase)
 		exclude = _compilepattern(exclude, ignorecase)
 		enterdir = _compilepattern(enterdir, ignorecase)
@@ -799,7 +904,7 @@ class SshConnection(Connection):
 				return False
 			return True
 
-		def _walk(base, name, include, exclude, enterdir, skipdir, which):
+		def _walkall(base, name, include, exclude, enterdir, skipdir, which):
 			if name:
 				fullname = os.path.join(base, name)
 			else:
@@ -819,7 +924,7 @@ class SshConnection(Connection):
 					for subchild in _walk(base, relchildname, include, exclude, enterdirs, skipdirs, which):
 						yield subchild
 
-		def walk(filename, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
+		def walkall(filename, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
 			include = _compilepattern(include, ignorecase)
 			exclude = _compilepattern(exclude, ignorecase)
 			enterdir = _compilepattern(enterdir, ignorecase)
@@ -1133,7 +1238,7 @@ class SshConnection(Connection):
 		filename = self._url2filename(url)
 		return [URL(urllib.request.pathname2url(name)+"/") for name in self._send(filename, "dirs", include, exclude, ignorecase)]
 
-	def walk(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
+	def walkall(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
 		filename = self._url2filename(url)
 		iterator = self._send(filename, "walk", include, exclude, enterdir, skipdir, ignorecase)
 		while True:
@@ -3049,6 +3154,9 @@ class URL(object):
 	def makedirs(self, mode=0o777, **kwargs):
 		return self.connect(**kwargs).makedirs(self, mode=mode)
 
+	def walk(self, beforedir=True, afterdir=False, file=True, enterdir=True, **kwargs):
+		return self.connect(**kwargs).walk(self, beforedir=beforedir, afterdir=afterdir, file=file, enterdir=enterdir)
+
 	def listdir(self, include=None, exclude=None, **kwargs):
 		return self.connect(**kwargs).listdir(self, include=include, exclude=exclude)
 
@@ -3058,8 +3166,8 @@ class URL(object):
 	def dirs(self, include=None, exclude=None, ignorecase=False, **kwargs):
 		return self.connect(**kwargs).dirs(self, include=include, exclude=exclude)
 
-	def walk(self, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False, **kwargs):
-		return self.connect(**kwargs).walk(self, include=include, exclude=exclude, enterdir=enterdir, skipdir=skipdir)
+	def walkall(self, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False, **kwargs):
+		return self.connect(**kwargs).walkall(self, include=include, exclude=exclude, enterdir=enterdir, skipdir=skipdir)
 
 	def walkfiles(self, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False, **kwargs):
 		return self.connect(**kwargs).walkfiles(self, include=include, exclude=exclude, enterdir=enterdir, skipdir=skipdir)
