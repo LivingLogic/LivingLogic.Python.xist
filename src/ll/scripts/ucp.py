@@ -53,16 +53,20 @@ Options
 		Ignores errors occuring during the copy process. (Otherwise the copy
 		process is aborted.)
 
-	``-i``, ``--include`` : regular expression
-		Only copy files that contain the regular expression.
+	``-i``, ``--include`` : pattern
+		Only copy files that match the pattern.
 
-	``-e``, ``--exclude`` : regular expression
-		Don't copy files that contain the regular expression.
+	``-e``, ``--exclude`` : pattern
+		Don't copy files that match the pattern.
 
-	``-a``, ``--all`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Include dot files (i.e. files whose name starts with a ``.``). Not that
-		the content of directories whose name starts with a dot will still be
-		copied.
+	``--enterdir`` : pattern
+		Only enter directories that match the pattern.
+
+	``--skipdir`` : pattern
+		Skip directories that match the pattern.
+
+	``--ignorecase`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Perform case-insensitive pattern matching.
 
 
 Examples
