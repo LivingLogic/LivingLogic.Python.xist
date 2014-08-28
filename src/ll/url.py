@@ -151,7 +151,7 @@ def _urlencode(query_parts):
 		return None
 
 
-def _compilepattern(pattern, ignorecase=False):
+def compilepattern(pattern, ignorecase=False):
 	if pattern is None:
 		return None
 	elif isinstance(pattern, str):
@@ -160,7 +160,7 @@ def _compilepattern(pattern, ignorecase=False):
 		return tuple(re.compile(fnmatch.translate(p), re.I if ignorecase else 0).match for p in pattern)
 
 
-def _matchpatterns(name, include, exclude):
+def matchpatterns(name, include, exclude):
 	if include and not any(matcher(name) is not None for matcher in include):
 		return False
 	if exclude and any(matcher(name) is not None for matcher in exclude):
@@ -544,10 +544,10 @@ class Connection(object):
 		patterns) or lists of strings. If :obj:`ignorecase` is true
 		case-insensitive name matching will be performed.
 		"""
-		include = _compilepattern(include, ignorecase)
-		exclude = _compilepattern(exclude, ignorecase)
+		include = compilepattern(include, ignorecase)
+		exclude = compilepattern(exclude, ignorecase)
 		for cursor in self.walk(url, beforedir=True, afterdir=False, file=True, enterdir=False):
-			if _matchpatterns(cursor.url.path[-1-cursor.isdir], include, exclude):
+			if matchpatterns(cursor.url.path[-1-cursor.isdir], include, exclude):
 				yield cursor.url
 
 	def files(self, url, include=None, exclude=None, ignorecase=False):
@@ -562,10 +562,10 @@ class Connection(object):
 		patterns) or lists of strings. If :obj:`ignorecase` is true
 		case-insensitive name matching will be performed.
 		"""
-		include = _compilepattern(include, ignorecase)
-		exclude = _compilepattern(exclude, ignorecase)
+		include = compilepattern(include, ignorecase)
+		exclude = compilepattern(exclude, ignorecase)
 		for cursor in self.walk(url, beforedir=False, afterdir=False, file=True, enterdir=False):
-			if cursor.isfile and _matchpatterns(cursor.url.path[-1], include, exclude):
+			if cursor.isfile and matchpatterns(cursor.url.path[-1], include, exclude):
 				yield cursor.url
 
 	def dirs(self, url, include=None, exclude=None, ignorecase=False):
@@ -580,10 +580,10 @@ class Connection(object):
 		style filename patterns) or lists of strings.  If :obj:`ignorecase` is
 		true case-insensitive name matching will be performed.
 		"""
-		include = _compilepattern(include, ignorecase)
-		exclude = _compilepattern(exclude, ignorecase)
+		include = compilepattern(include, ignorecase)
+		exclude = compilepattern(exclude, ignorecase)
 		for cursor in self.walk(url, beforedir=True, afterdir=False, file=False, enterdir=False):
-			if cursor.isdir and _matchpatterns(cursor.url.path[-2], include, exclude):
+			if cursor.isdir and matchpatterns(cursor.url.path[-2], include, exclude):
 				yield cursor.url
 
 	def walkall(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
@@ -603,16 +603,16 @@ class Connection(object):
 		If :obj:`ignorecase` is true case-insensitive name matching will be
 		performed.
 		"""
-		include = _compilepattern(include, ignorecase)
-		exclude = _compilepattern(exclude, ignorecase)
-		enterdir = _compilepattern(enterdir, ignorecase)
-		skipdir = _compilepattern(skipdir, ignorecase)
+		include = compilepattern(include, ignorecase)
+		exclude = compilepattern(exclude, ignorecase)
+		enterdir = compilepattern(enterdir, ignorecase)
+		skipdir = compilepattern(skipdir, ignorecase)
 		for cursor in self.walk(url, beforedir=True, afterdir=False, file=True, enterdir=True):
 			name = cursor.url.path[-1-cursor.isdir]
-			if _matchpatterns(name, include, exclude):
+			if matchpatterns(name, include, exclude):
 				yield cursor.url
 			if cursor.isdir:
-				cursor.enterdir = _matchpatterns(name, enterdir, skipdir)
+				cursor.enterdir = matchpatterns(name, enterdir, skipdir)
 
 	def walkfiles(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
 		"""
@@ -628,16 +628,16 @@ class Connection(object):
 		If :obj:`ignorecase` is true case-insensitive name matching will be
 		performed.
 		"""
-		include = _compilepattern(include, ignorecase)
-		exclude = _compilepattern(exclude, ignorecase)
-		enterdir = _compilepattern(enterdir, ignorecase)
-		skipdir = _compilepattern(skipdir, ignorecase)
+		include = compilepattern(include, ignorecase)
+		exclude = compilepattern(exclude, ignorecase)
+		enterdir = compilepattern(enterdir, ignorecase)
+		skipdir = compilepattern(skipdir, ignorecase)
 		for cursor in self.walk(url, beforedir=True, afterdir=False, file=True, enterdir=True):
 			if cursor.isfile:
-				if _matchpatterns(cursor.url.path[-1], include, exclude):
+				if matchpatterns(cursor.url.path[-1], include, exclude):
 					yield cursor.url
 			else:
-				cursor.enterdir = _matchpatterns(cursor.url.path[-2], enterdir, skipdir)
+				cursor.enterdir = matchpatterns(cursor.url.path[-2], enterdir, skipdir)
 
 	def walkdirs(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
 		"""
@@ -654,15 +654,15 @@ class Connection(object):
 		If :obj:`ignorecase` is true case-insensitive name matching will be
 		performed.
 		"""
-		include = _compilepattern(include, ignorecase)
-		exclude = _compilepattern(exclude, ignorecase)
-		enterdir = _compilepattern(enterdir, ignorecase)
-		skipdir = _compilepattern(skipdir, ignorecase)
+		include = compilepattern(include, ignorecase)
+		exclude = compilepattern(exclude, ignorecase)
+		enterdir = compilepattern(enterdir, ignorecase)
+		skipdir = compilepattern(skipdir, ignorecase)
 		for cursor in self.walk(url, beforedir=True, afterdir=False, file=False, enterdir=True):
 			name = cursor.url.path[-2]
-			if _matchpatterns(name, include, exclude):
+			if matchpatterns(name, include, exclude):
 				yield cursor.url
-			cursor.enterdir = _matchpatterns(name, enterdir, skipdir)
+			cursor.enterdir = matchpatterns(name, enterdir, skipdir)
 
 	@misc.notimplemented
 	def open(self, url, *args, **kwargs):
@@ -883,7 +883,7 @@ class SshConnection(Connection):
 					group = grp.getgrnam(group)[2]
 			return (owner, group)
 
-		def _compilepattern(pattern, ignorecase=False):
+		def compilepattern(pattern, ignorecase=False):
 			if pattern is None:
 				return None
 			elif isinstance(pattern, unicode):
@@ -891,7 +891,7 @@ class SshConnection(Connection):
 			else:
 				return tuple(re.compile(fnmatch.translate(p), re.I if ignorecase else 0).match for p in pattern)
 
-		def _matchpatterns(name, include, exclude):
+		def matchpatterns(name, include, exclude):
 			if include and not any(matcher(name) is not None for matcher in include):
 				return False
 			if exclude and any(matcher(name) is not None for matcher in exclude):
@@ -919,24 +919,24 @@ class SshConnection(Connection):
 						yield subchild
 
 		def walkall(filename, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
-			include = _compilepattern(include, ignorecase)
-			exclude = _compilepattern(exclude, ignorecase)
-			enterdir = _compilepattern(enterdir, ignorecase)
-			skipdir = _compilepattern(skipdir, ignorecase)
+			include = compilepattern(include, ignorecase)
+			exclude = compilepattern(exclude, ignorecase)
+			enterdir = compilepattern(enterdir, ignorecase)
+			skipdir = compilepattern(skipdir, ignorecase)
 			return _walk(filename, "", include, exclude, enterdir, skipdir, (True, True))
 
 		def walkfiles(filename, include=None, exclude=None, enterdir=None, skipdir=None):
-			include = _compilepattern(include, ignorecase)
-			exclude = _compilepattern(exclude, ignorecase)
-			enterdir = _compilepattern(enterdir, ignorecase)
-			skipdir = _compilepattern(skipdir, ignorecase)
+			include = compilepattern(include, ignorecase)
+			exclude = compilepattern(exclude, ignorecase)
+			enterdir = compilepattern(enterdir, ignorecase)
+			skipdir = compilepattern(skipdir, ignorecase)
 			return _walk(filename, "", include, exclude, enterdir, skipdir, (True, False))
 
 		def walkdirs(filename, include=None, exclude=None, enterdir=None, skipdir=None):
-			include = _compilepattern(include, ignorecase)
-			exclude = _compilepattern(exclude, ignorecase)
-			enterdir = _compilepattern(enterdir, ignorecase)
-			skipdir = _compilepattern(skipdir, ignorecase)
+			include = compilepattern(include, ignorecase)
+			exclude = compilepattern(exclude, ignorecase)
+			enterdir = compilepattern(enterdir, ignorecase)
+			skipdir = compilepattern(skipdir, ignorecase)
 			return _walk(filename, "", include, exclude, enterdir, skipdir, (False, True))
 
 		while True:
@@ -1034,27 +1034,27 @@ class SshConnection(Connection):
 				elif cmdname == "makefifo":
 					data = os.makefifo(filename)
 				elif cmdname == "listdir":
-					include = _compilepattern(args[0], args[2])
-					exclude = _compilepattern(args[1], args[2])
+					include = compilepattern(args[0], args[2])
+					exclude = compilepattern(args[1], args[2])
 					data = []
 					for f in os.listdir(filename):
-						if _matchpatterns(f, include, exclude):
+						if matchpatterns(f, include, exclude):
 							data.append((os.path.isdir(os.path.join(filename, f)), f))
 				elif cmdname == "files":
-					include = _compilepattern(args[0], args[2])
-					exclude = _compilepattern(args[1], args[2])
+					include = compilepattern(args[0], args[2])
+					exclude = compilepattern(args[1], args[2])
 					data = []
 					for f in os.listdir(filename):
 						p = os.path.join(filename, f)
-						if os.path.isfile(p) and _matchpatterns(f, include, exclude):
+						if os.path.isfile(p) and matchpatterns(f, include, exclude):
 							data.append(f)
 				elif cmdname == "dirs":
-					include = _compilepattern(args[0], args[2])
-					exclude = _compilepattern(args[1], args[2])
+					include = compilepattern(args[0], args[2])
+					exclude = compilepattern(args[1], args[2])
 					data = []
 					for f in os.listdir(filename):
 						p = os.path.join(filename, f)
-						if os.path.isdir(p) and _matchpatterns(f, include, exclude):
+						if os.path.isdir(p) and matchpatterns(f, include, exclude):
 							data.append(f)
 				elif cmdname == "walk":
 					iterator = walk(filename, *args, **kwargs)

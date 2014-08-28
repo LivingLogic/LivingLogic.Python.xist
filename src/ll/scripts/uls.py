@@ -54,19 +54,20 @@ Options
 	``-P``, ``--padding`` : characters
 		The characters used for padding output in multicolumn or long format.
 
-	``-S``, ``--separator`` : characters
-		The characters used for separating columns in long format.
+	``-i``, ``--include`` : pattern
+		Only copy files that match the pattern.
 
-	``-i``, ``--include`` : regular expression
-		Only URLs matching this regular expression will be output.
+	``-e``, ``--exclude`` : pattern
+		Don't copy files that match the pattern.
 
-	``-e``, ``--exclude`` : regular expression
-		URLs matching this regular expression will be not be output.
+	``--enterdir`` : pattern
+		Only enter directories that match the pattern.
 
-	``-a``, ``--all`` :  ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Output dot files (i.e. files and directories whose name starts with a
-		``.``). Note that the content of directories whose name start with a dot
-		will still be listed.
+	``--skipdir`` : pattern
+		Skip directories that match the pattern.
+
+	``--ignorecase`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Perform case-insensitive pattern matching.
 
 
 Examples
@@ -115,7 +116,7 @@ Recursively list the schema objects in an Oracle database::
 
 import sys, re, argparse, contextlib, datetime, pwd, grp, stat, curses
 
-from ll import misc, url
+from ll import misc, url as url_
 
 try:
 	import astyle
@@ -177,23 +178,6 @@ def main(args=None):
 			padding = (args.padding*repeats)[:size]
 			return astyle.style_default(style_pad(padding), s)
 		return s
-
-	def match(url):
-		strurl = str(url)
-		if args.include is not None and args.include.search(strurl) is None:
-			return False
-		if args.exclude is not None and args.exclude.search(strurl) is not None:
-			return False
-		if not args.all:
-			if url.file:
-				name = url.file
-			elif len(url.path) >=2:
-				name = url.path[-2]
-			else:
-				name = ""
-			if name.startswith("."):
-				return False
-		return True
 
 	def findcolcount(urls):
 		def width4cols(numcols):
@@ -265,27 +249,28 @@ def main(args=None):
 				url.path.segments.append("")
 			if not args.long and not args.one:
 				if args.recursive:
-					urls = [(url/child, str(child)) for child in url.files(include=args.include, exclude=args.exclude)]
+					urls = [(url/child, str(child)) for child in url.files(include=args.include, exclude=args.exclude, ignorecase=args.ignorecase)]
 					if urls:
 						printblock(url, urls)
 					for child in url.dirs():
-						printall(base, url/child)
+						if url_.matchpatterns(child.path[-2], enterdir, skipdir):
+							printall(base, url/child)
 				else:
-					urls = [(url/child, str(child)) for child in url.listdir(include=args.include, exclude=args.exclude)]
+					urls = [(url/child, str(child)) for child in url.listdir(include=args.include, exclude=args.exclude, ignorecase=args.ignorecase)]
 					printblock(None, urls)
 			else:
-				for child in url.listdir(include=args.include, exclude=args.exclude):
+				for child in url.listdir(include=args.include, exclude=args.exclude, ignorecase=args.ignorecase):
 					child = url/child
-					if match(child):
-						if not args.recursive or child.isdir(): # For files the print call is done by the recursive call to ``printall``
-							printone(child)
-					if args.recursive:
+					isdir = child.isdir()
+					if not args.recursive or isdir: # For files the print call is done by the recursive call to ``printall``
+						printone(child)
+					if args.recursive and (not isdir or url_.matchpatterns(child.path[-2], enterdir, skipdir)):
 						printall(base, child)
 		else:
 			printone(url)
 
 	p = argparse.ArgumentParser(description="List the content of one or more URLs", epilog="For more info see http://www.livinglogic.de/Python/scripts/uls.html")
-	p.add_argument("urls", metavar="url", help="URLs to be listed (default: current dir)", nargs="*", default=[url.Dir("./", scheme=None)], type=url.URL)
+	p.add_argument("urls", metavar="url", help="URLs to be listed (default: current dir)", nargs="*", default=[url_.Dir("./", scheme=None)], type=url_.URL)
 	p.add_argument("-c", "--color", dest="color", help="Color output (default: %(default)s)", default="auto", choices=("yes", "no", "auto"))
 	p.add_argument("-1", "--one", dest="one", help="One entry per line? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-l", "--long", dest="long", help="Long format? (default: %(default)s)", action=misc.FlagAction, default=False)
@@ -298,6 +283,7 @@ def main(args=None):
 	p.add_argument("-e", "--exclude", dest="exclude", metavar="PATTERN", help="Exclude URLs matching PATTERN", action="append")
 	p.add_argument(      "--enterdir", dest="enterdir", metavar="PATTERN", help="Only enter directories matching PATTERN", action="append")
 	p.add_argument(      "--skipdir", dest="skipdir", metavar="PATTERN", help="Skip directories matching PATTERN", action="append")
+	p.add_argument(      "--ignorecase", dest="ignorecase", help="Perform case-insensitive name matching? (default: %(default)s)", action=misc.FlagAction, default=False)
 
 	args = p.parse_args(args)
 
@@ -310,7 +296,10 @@ def main(args=None):
 	stdout = astyle.Stream(sys.stdout, color)
 	stderr = astyle.Stream(sys.stderr, color)
 
-	with url.Context():
+	enterdir = url_.compilepattern(args.enterdir, ignorecase=args.ignorecase)
+	skipdir = url_.compilepattern(args.skipdir, ignorecase=args.ignorecase)
+
+	with url_.Context():
 		for u in args.urls:
 			printall(u, u)
 
