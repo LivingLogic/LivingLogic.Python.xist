@@ -2823,104 +2823,73 @@ class OracleURLConnection(url_.Connection):
 			raise FileNotFoundError(errno.ENOENT, "no such file: {!r}".format(type, url))
 		return obj.udate(self.dbconnection)
 
-	def _listdir(self, url, include, exclude, files, dirs):
-		type = self._type(url)
+	def _walk(self, cursor, url):
+		def _event(url, event):
+			cursor.url = url
+			cursor.event = event
+			cursor.isdir = event != "file"
+			cursor.isfile = not cursor.isdir
+			return cursor
+
+		def _dir(childname):
+			emitbeforedir = cursor.beforedir
+			emitafterdir = cursor.afterdir
+			enterdir = cursor.enterdir
+			if emitbeforedir or enterdir or emitafterdir:
+				childurl = url / childname
+			if emitbeforedir:
+				yield _event(childurl, "beforedir")
+				emitbeforedir = cursor.beforedir
+				emitafterdir = cursor.afterdir
+				enterdir = cursor.enterdir
+				cursor.restore()
+			if enterdir:
+				yield from self._walk(cursor, childurl)
+			if emitafterdir:
+				yield _event(childurl, "afterdir")
+				cursor.restore()
+
+		absurl = cursor.rooturl / url
+		type = self._type(absurl)
 		if type == "root": # directory of types for the current user
-			if dirs:
-				return [url_.URL(name + "/") for name in sorted(Object.name2type) if url_._matchpatterns(name, include, exclude)]
-			else:
-				return []
+			for childname in sorted(Object.name2type):
+				yield from _dir("{}/".format(childname))
 		elif type == "type": # directory of objects of the specified type for current user
-			if files:
-				path = url.path
-				type = path[0]
-				try:
-					class_ = Object.name2type[type]
-				except KeyError:
-					raise FileNotFoundError(errno.ENOENT, "no such file or directory: {!r}".format(url)) from None
-				names = (name[0] for name in class_.iternames(self.dbconnection, None))
-				if len(path) == 1:
-					return [url_.URL("{}/{}.sql".format(type, makeurl(name))) for name in names if url_._matchpatterns(name, include, exclude)]
-				else:
-					return [url_.URL("{}.sql".format(makeurl(name))) for name in names if url_._matchpatterns(name, include, exclude)]
+			path = absurl.path
+			type = path[0]
+			try:
+				class_ = Object.name2type[type]
+			except KeyError:
+				raise FileNotFoundError(errno.ENOENT, "no such file or directory: {!r}".format(url)) from None
+			for (name, owner) in class_.iternames(self.dbconnection, None):
+				if cursor.file:
+					yield _event(url / "{}.sql".format(makeurl(name)), "file")
+					cursor.restore()
 		elif type == "allusers": # directory of all users
-			if dirs:
-				path = url.path
-				names = User.iternames(self.dbconnection)
-				if len(path) == 1:
-					return [url_.URL("user/{}/".format(makeurl(name))) for name in names if url_._matchpatterns(name, include, exclude)]
-				else:
-					return [url_.URL("{}/".format(makeurl(name))) for name in names if url_._matchpatterns(name, include, exclude)]
+			path = url.path
+			for name in User.iternames(self.dbconnection):
+				yield from _dir("{}/".format(makeurl(name)))
 		elif type == "user": # directory of types for a specific user
-			if dirs:
-				path = url.path
-				if len(path) == 2:
-					return [url_.URL("{}/{}/".format(path[1], name)) for name in sorted(Object.name2type) if url_._matchpatterns(name, include, exclude)]
-				else:
-					return [url_.URL("{}/".format(name)) for name in sorted(Object.name2type) if url_._matchpatterns(name, include, exclude)]
+			path = url.path
+			for name in sorted(Object.name2type):
+				yield from _dir("{}/".format(name))
 		elif type == "usertype": # directory of objects of the specified type for a specific user
-			if files:
-				path = url.path
-				type = path[2]
-				try:
-					class_ = Object.name2type[type]
-				except KeyError:
-					raise FileNotFoundError(errno.ENOENT, "no such file or directory: {!r}".format(url)) from None
-				names = (name[0] for name in class_.iternames(self.dbconnection, path[1]))
-				if len(path) == 3:
-					return [url_.URL("{}/{}.sql".format(type, makeurl(name))) for name in names if url_._matchpatterns(name, include, exclude)]
-				else:
-					return [url_.URL("{}.sql".format(makeurl(name))) for name in names if url_._matchpatterns(name, include, exclude)]
+			path = url.path
+			type = path[2]
+			try:
+				class_ = Object.name2type[type]
+			except KeyError:
+				raise FileNotFoundError(errno.ENOENT, "no such file or directory: {!r}".format(url)) from None
+			for (name, owner) in class_.iternames(self.dbconnection, path[1]):
+				if cursor.file:
+					yield _event(url / "{}.sql".format(makeurl(name)), "file")
+					cursor.restore()
 		else:
 			raise NotADirectoryError(errno.ENOTDIR, "Not a directory: {}".format(url))
 
-	def listdir(self, url, include=None, exclude=None, ignorecase=False):
-		include = url_._compilepattern(include, ignorecase)
-		exclude = url_._compilepattern(exclude, ignorecase)
-		return self._listdir(url, include, exclude, True, True)
-
-	def files(self, url, include=None, exclude=None, ignorecase=False):
-		include = url_._compilepattern(include, ignorecase)
-		exclude = url_._compilepattern(exclude, ignorecase)
-		return self._listdir(url, include, exclude, True, False)
-
-	def dirs(self, url, include=None, exclude=None, ignorecase=False):
-		include = url_._compilepattern(include, ignorecase)
-		exclude = url_._compilepattern(exclude, ignorecase)
-		return self._listdir(url, include, exclude, False, True)
-
-	def _walk(self, base, name, include, exclude, enterdir, skipdir, which):
-		fullname = base/name
-		for childname in self._listdir(fullname, None, None, which[0], True):
-			relchildname = name/childname
-			isdir = not relchildname.path[-1]
-			relname = relchildname.path[-2 if isdir else -1]
-			if which[isdir] and url_._matchpatterns(relname, include, exclude):
-				yield relchildname
-			if isdir and url_._matchpatterns(relname, enterdir, skipdir):
-				for subchild in self._walk(base, relchildname, include, exclude, enterdir, skipdir, which):
-					yield subchild
-
-	def walk(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
-		include = url_._compilepattern(include, ignorecase)
-		exclude = url_._compilepattern(exclude, ignorecase)
-		enterdir = url_._compilepattern(enterdir, ignorecase)
-		skipdir = url_._compilepattern(skipdir, ignorecase)
-		return self._walk(url, url_.URL(), include, exclude, enterdir, skipdir, (True, True))
-
-	def walkfiles(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
-		include = url_._compilepattern(include, ignorecase)
-		exclude = url_._compilepattern(exclude, ignorecase)
-		enterdir = url_._compilepattern(enterdir, ignorecase)
-		skipdir = url_._compilepattern(skipdir, ignorecase)
-		return self._walk(url, url_.URL(), include, exclude, enterdir, skipdir, (True, False))
-
-	def walkdirs(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
-		include = url_._compilepattern(include, ignorecase)
-		exclude = url_._compilepattern(exclude, ignorecase)
-		enterdir = url_._compilepattern(enterdir, ignorecase)
-		skipdir = url_._compilepattern(skipdir, ignorecase)
-		return self._walk(url, url_.URL(), include, exclude, enterdir, skipdir, (False, True))
+	def walk(self, url, beforedir=True, afterdir=False, file=True, enterdir=True):
+		cursor = url_.Cursor(url, beforedir=beforedir, afterdir=afterdir, file=file, enterdir=enterdir)
+		return self._walk(cursor, url_.URL())
 
 	def __repr__(self):
 		return "<{}.{} to {!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.connection.connectstring(), id(self))
