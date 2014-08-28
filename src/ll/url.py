@@ -170,15 +170,16 @@ def _matchpatterns(name, include, exclude):
 
 class Context(object):
 	"""
-	Calling :meth:`URL.open` or :meth:`URL.connect` :class:`Connection` object.
-	To avoid constantly creating new connections you can pass a :class:`Context`
-	object to those methods. Connections will be stored in the :class:`Context`
-	object and will be reused by those methods.
+	Working with URLs (e.g. calling :meth:`URL.open` or :meth:`URL.connect`)
+	involves :class:`Connection` objects. To avoid constantly creating new
+	connections you can pass a :class:`Context` object to those methods.
+	Connections will be stored in the :class:`Context` object and will be
+	reused by those methods.
 
-	A :class:`Context` object can also be used as a context manager
-	(see :pep:`346` for more info). This context object will be used for all
-	:meth:`open` and :meth:`connect` calls inside the ``with`` block. (Note that
-	after the end of the ``with`` block, all connections will be closed.)
+	A :class:`Context` object can also be used as a context manager. This context
+	object will be used for all :meth:`open` and :meth:`connect` calls inside the
+	``with`` block. (Note that after the end of the ``with`` block all
+	connections will be closed.)
 	"""
 	def __init__(self):
 		self.schemes = {}
