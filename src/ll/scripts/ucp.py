@@ -117,7 +117,7 @@ def main(args=None):
 		strurlread = str(urlread)
 		if urlread.isdir():
 			if args.recursive:
-				for u in urlread.walkfiles(include=args.include, exclude=args.exclude, enterdirs=args.enterdir, skipdirs=args.skipdir, ignorecase=args.ignorecase):
+				for u in urlread.walkfiles(include=args.include, exclude=args.exclude, enterdir=args.enterdir, skipdir=args.skipdir, ignorecase=args.ignorecase):
 					copyone(urlread/u, urlwrite/u)
 			else:
 				if args.verbose:
