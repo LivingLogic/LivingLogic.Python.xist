@@ -3163,22 +3163,22 @@ class URL(object):
 	def walk(self, beforedir=True, afterdir=False, file=True, enterdir=True, **kwargs):
 		return self.connect(**kwargs).walk(self, beforedir=beforedir, afterdir=afterdir, file=file, enterdir=enterdir)
 
-	def listdir(self, include=None, exclude=None, **kwargs):
-		return self.connect(**kwargs).listdir(self, include=include, exclude=exclude)
+	def listdir(self, include=None, exclude=None, ignorecase=False, **kwargs):
+		return self.connect(**kwargs).listdir(self, include=include, exclude=exclude, ignorecase=ignorecase)
 
 	def files(self, include=None, exclude=None, ignorecase=False, **kwargs):
-		return self.connect(**kwargs).files(self, include=include, exclude=exclude)
+		return self.connect(**kwargs).files(self, include=include, exclude=exclude, ignorecase=ignorecase)
 
 	def dirs(self, include=None, exclude=None, ignorecase=False, **kwargs):
-		return self.connect(**kwargs).dirs(self, include=include, exclude=exclude)
+		return self.connect(**kwargs).dirs(self, include=include, exclude=exclude, ignorecase=ignorecase)
 
 	def walkall(self, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False, **kwargs):
-		return self.connect(**kwargs).walkall(self, include=include, exclude=exclude, enterdir=enterdir, skipdir=skipdir)
+		return self.connect(**kwargs).walkall(self, include=include, exclude=exclude, enterdir=enterdir, skipdir=skipdir, ignorecase=ignorecase)
 
 	def walkfiles(self, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False, **kwargs):
-		return self.connect(**kwargs).walkfiles(self, include=include, exclude=exclude, enterdir=enterdir, skipdir=skipdir)
+		return self.connect(**kwargs).walkfiles(self, include=include, exclude=exclude, enterdir=enterdir, skipdir=skipdir, ignorecase=ignorecase)
 
 	def walkdirs(self, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False, **kwargs):
-		return self.connect(**kwargs).walkdirs(self, include=include, exclude=exclude, enterdir=enterdir, skipdir=skipdir)
+		return self.connect(**kwargs).walkdirs(self, include=include, exclude=exclude, enterdir=enterdir, skipdir=skipdir, ignorecase=ignorecase)
 
 warnings.filterwarnings("always", module="url")
