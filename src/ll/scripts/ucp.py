@@ -117,7 +117,7 @@ def main(args=None):
 		strurlread = str(urlread)
 		if urlread.isdir():
 			if args.recursive:
-				for u in urlread.walkfiles(include=args.include, exclude=args.exclude, enterdirs=args.enterdir, skipdirs=args.skipdir):
+				for u in urlread.walkfiles(include=args.include, exclude=args.exclude, enterdirs=args.enterdir, skipdirs=args.skipdir, ignorecase=args.ignorecase):
 					copyone(urlread/u, urlwrite/u)
 			else:
 				if args.verbose:
@@ -169,6 +169,7 @@ def main(args=None):
 	p.add_argument("-e", "--exclude", dest="exclude", metavar="PATTERN", help="Exclude URLs matching PATTERN", action="append")
 	p.add_argument(      "--enterdir", dest="enterdir", metavar="PATTERN", help="Only enter directories matching PATTERN", action="append")
 	p.add_argument(      "--skipdir", dest="skipdir", metavar="PATTERN", help="Skip directories matching PATTERN", action="append")
+	p.add_argument(      "--ignorecase", dest="ignorecase", help="Perform case-insensitive name matching? (default: %(default)s)", action=misc.FlagAction, default=False)
 
 	args = p.parse_args(args)
 	if len(args.urls) < 2:
