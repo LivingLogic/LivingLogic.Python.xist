@@ -16,6 +16,9 @@ Changes in 5.9 (released ??/??/2014)
 	have a method :meth:`exists` that returns whether the object exists in the
 	target database.
 
+*	The URL methods :meth:`listdir`, :meth:`files`, :meth:`dirs` are generators
+	now.
+
 *	The URL methods :meth:`listdir`, :meth:`files`, :meth:`dirs`,
 	:meth:`walk`, :meth:`walkfiles` and :meth:`walkdirs` have been enhanced:
 

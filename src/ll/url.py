@@ -534,8 +534,8 @@ class Connection(object):
 
 	def listdir(self, url, include=None, exclude=None, ignorecase=False):
 		"""
-		Return a list of items in the directory :obj:`url`. The elements of the
-		list are :class:`URL` objects relative to :obj:`url`.
+		Iterates over items in the directory :obj:`url`. The items produced are
+		:class:`URL` objects relative to :obj:`url`.
 
 		With the optional :obj:`include` argument, this only lists items whose
 		names match the given pattern. Items matching the optional pattern
@@ -546,12 +546,14 @@ class Connection(object):
 		"""
 		include = _compilepattern(include, ignorecase)
 		exclude = _compilepattern(exclude, ignorecase)
-		return [cursor.url for cursor in self.walk(url, beforedir=True, afterdir=False, file=True, enterdir=False) if _matchpatterns(cursor.url.path[-1-cursor.isdir], include, exclude)]
+		for cursor in self.walk(url, beforedir=True, afterdir=False, file=True, enterdir=False):
+			if _matchpatterns(cursor.url.path[-1-cursor.isdir], include, exclude):
+				yield cursor.url
 
 	def files(self, url, include=None, exclude=None, ignorecase=False):
 		"""
-		Return a list of files in the directory :obj:`url`. The elements of the
-		list are :class:`URL` objects relative to :obj:`url`.
+		Iterates over files in the directory :obj:`url`. The items produced
+		are :class:`URL` objects relative to :obj:`url`.
 
 		With the optional :obj:`include` argument, this only lists files whose
 		names match the given pattern. Files matching the optional pattern
@@ -562,12 +564,14 @@ class Connection(object):
 		"""
 		include = _compilepattern(include, ignorecase)
 		exclude = _compilepattern(exclude, ignorecase)
-		return [cursor.url for cursor in self.walk(url, beforedir=False, afterdir=False, file=True, enterdir=False) if cursor.isfile and _matchpatterns(cursor.url.path[-1], include, exclude)]
+		for cursor in self.walk(url, beforedir=False, afterdir=False, file=True, enterdir=False):
+			if cursor.isfile and _matchpatterns(cursor.url.path[-1], include, exclude):
+				yield cursor.url
 
 	def dirs(self, url, include=None, exclude=None, ignorecase=False):
 		"""
-		Return a list of directories in the directory :obj:`url`. The elements
-		of the list are :class:`URL` objects relative to :obj:`url`.
+		Iterates over directories in the directory :obj:`url`. The items produced
+		are :class:`URL` objects relative to :obj:`url`.
 
 		With the optional :obj:`include` argument, this only directories items
 		whose names match the given pattern. Directories matching the optional
@@ -578,12 +582,13 @@ class Connection(object):
 		"""
 		include = _compilepattern(include, ignorecase)
 		exclude = _compilepattern(exclude, ignorecase)
-		return [cursor.url for cursor in self.walk(url, beforedir=True, afterdir=False, file=False, enterdir=False) if cursor.isdir and _matchpatterns(cursor.url.path[-2], include, exclude)]
+		for cursor in self.walk(url, beforedir=True, afterdir=False, file=False, enterdir=False):
+			if cursor.isdir and _matchpatterns(cursor.url.path[-2], include, exclude):
+				yield cursor.url
 
-	@misc.notimplemented
 	def walkall(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
 		"""
-		Return a recursive iterator over files and subdirectories. The iterator
+		Recursively iterate over files and subdirectories. The iterator
 		yields :class:`URL` objects naming each child URL of the directory
 		:obj:`url` and its descendants relative to :obj:`url`. This performs
 		a depth-first traversal, returning each directory before all its children.
