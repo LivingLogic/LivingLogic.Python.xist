@@ -603,8 +603,17 @@ class Connection(object):
 		If :obj:`ignorecase` is true case-insensitive name matching will be
 		performed.
 		"""
+		include = _compilepattern(include, ignorecase)
+		exclude = _compilepattern(exclude, ignorecase)
+		enterdir = _compilepattern(enterdir, ignorecase)
+		skipdir = _compilepattern(skipdir, ignorecase)
+		for cursor in self.walk(url, beforedir=True, afterdir=False, file=True, enterdir=True):
+			name = cursor.url.path[-1-cursor.isdir]
+			if _matchpatterns(name, include, exclude):
+				yield cursor.url
+			if cursor.isdir:
+				cursor.enterdir = _matchpatterns(name, enterdir, skipdir)
 
-	@misc.notimplemented
 	def walkfiles(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
 		"""
 		Return a recursive iterator over files in the directory :obj:`url`.
@@ -619,8 +628,17 @@ class Connection(object):
 		If :obj:`ignorecase` is true case-insensitive name matching will be
 		performed.
 		"""
+		include = _compilepattern(include, ignorecase)
+		exclude = _compilepattern(exclude, ignorecase)
+		enterdir = _compilepattern(enterdir, ignorecase)
+		skipdir = _compilepattern(skipdir, ignorecase)
+		for cursor in self.walk(url, beforedir=True, afterdir=False, file=True, enterdir=True):
+			if cursor.isfile:
+				if _matchpatterns(cursor.url.path[-1], include, exclude):
+					yield cursor.url
+			else:
+				cursor.enterdir = _matchpatterns(cursor.url.path[-2], enterdir, skipdir)
 
-	@misc.notimplemented
 	def walkdirs(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
 		"""
 		Return a recursive iterator over subdirectories in the directory
@@ -636,6 +654,15 @@ class Connection(object):
 		If :obj:`ignorecase` is true case-insensitive name matching will be
 		performed.
 		"""
+		include = _compilepattern(include, ignorecase)
+		exclude = _compilepattern(exclude, ignorecase)
+		enterdir = _compilepattern(enterdir, ignorecase)
+		skipdir = _compilepattern(skipdir, ignorecase)
+		for cursor in self.walk(url, beforedir=True, afterdir=False, file=False, enterdir=True):
+			name = cursor.url.path[-2]
+			if _matchpatterns(name, include, exclude):
+				yield cursor.url
+			cursor.enterdir = _matchpatterns(name, enterdir, skipdir)
 
 	@misc.notimplemented
 	def open(self, url, *args, **kwargs):
@@ -811,45 +838,6 @@ class LocalConnection(Connection):
 	def walk(self, url, beforedir=True, afterdir=False, file=True, enterdir=True):
 		cursor = Cursor(url, beforedir=beforedir, afterdir=afterdir, file=file, enterdir=enterdir)
 		return self._walk(cursor, url.local(), "")
-
-	def _walkall(self, base, name, include, exclude, enterdir, skipdir, which):
-		if name:
-			fullname = os.path.join(base, name)
-		else:
-			fullname = base
-		for childname in sorted(os.listdir(fullname)):
-			fullchildpath = os.path.join(fullname, childname)
-			relchildpath = os.path.join(name, childname)
-			isdir = os.path.isdir(fullchildpath)
-			childurl = urllib.request.pathname2url(relchildpath)
-			if isdir:
-				childurl += "/"
-			childurl = URL(childurl)
-			if _matchpatterns(childname, include, exclude) and which[isdir]:
-				yield childurl
-			if isdir and _matchpatterns(childname, enterdir, skipdir):
-				yield from self._walk(base, relchildpath, include, exclude, enterdir, skipdir, which)
-
-	def walkall(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
-		include = _compilepattern(include, ignorecase)
-		exclude = _compilepattern(exclude, ignorecase)
-		enterdir = _compilepattern(enterdir, ignorecase)
-		skipdir = _compilepattern(skipdir, ignorecase)
-		return self._walk(self._url2filename(url), "", include, exclude, enterdir, skipdir, (True, True))
-
-	def walkfiles(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
-		include = _compilepattern(include, ignorecase)
-		exclude = _compilepattern(exclude, ignorecase)
-		enterdir = _compilepattern(enterdir, ignorecase)
-		skipdir = _compilepattern(skipdir, ignorecase)
-		return self._walk(self._url2filename(url), "", include, exclude, enterdir, skipdir, (True, False))
-
-	def walkdirs(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
-		include = _compilepattern(include, ignorecase)
-		exclude = _compilepattern(exclude, ignorecase)
-		enterdir = _compilepattern(enterdir, ignorecase)
-		skipdir = _compilepattern(skipdir, ignorecase)
-		return self._walk(self._url2filename(url), "", include, exclude, enterdir, skipdir, (False, True))
 
 	def open(self, url, *args, **kwargs):
 		return FileResource(url, *args, **kwargs)
