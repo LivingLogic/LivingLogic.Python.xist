@@ -113,23 +113,6 @@ __docformat__ = "reStructuredText"
 
 
 def main(args=None):
-	def match(url):
-		strurl = str(url)
-		if args.include is not None and args.include.search(strurl) is None:
-			return False
-		if args.exclude is not None and args.exclude.search(strurl) is not None:
-			return False
-		if not args.all:
-			if url.file:
-				name = url.file
-			elif len(url.path) >=2:
-				name = url.path[-2]
-			else:
-				name = ""
-			if name.startswith("."):
-				return False
-		return True
-
 	def copyone(urlread, urlwrite):
 		strurlread = str(urlread)
 		if urlread.isdir():
