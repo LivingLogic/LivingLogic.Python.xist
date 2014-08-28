@@ -796,7 +796,7 @@ class LocalConnection(Connection):
 					emitbeforedir = cursor.beforedir
 					emitafterdir = cursor.afterdir
 					emitfile = cursor.file
-					emitenterdir = cursor.enterdir
+					enterdir = cursor.enterdir
 					cursor.restore()
 				if enterdir:
 					yield from self._walk(cursor, base, relchildname)
