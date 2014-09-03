@@ -517,8 +517,6 @@ def javaexpr(obj):
 
 	if obj is None:
 		return "null"
-	elif obj is ul4c.Undefined:
-		return "com.livinglogic.ul4.Undefined.undefined"
 	elif obj is True:
 		return "true"
 	elif obj is False:
@@ -560,6 +558,12 @@ def javaexpr(obj):
 		return "java.util.Arrays.asList({})".format(", ".join(javaexpr(item) for item in obj))
 	elif isinstance(obj, collections.Mapping):
 		return "com.livinglogic.utils.MapUtils.makeMap({})".format(", ".join("{}, {}".format(javaexpr(key), javaexpr(value)) for (key, value) in obj.items()))
+	elif isinstance(obj, ul4c.UndefinedKey):
+		return "new com.livinglogic.ul4.UndefinedKey({})".format(javaexpr(obj._key))
+	elif isinstance(obj, ul4c.UndefinedVariable):
+		return "new com.livinglogic.ul4.UndefinedVariable({})".format(javaexpr(obj._name))
+	elif isinstance(obj, ul4c.UndefinedIndex):
+		return "new com.livinglogic.ul4.UndefinedIndex({})".format(javaexpr(obj._index))
 	elif isinstance(obj, ul4c.Template):
 		return obj.javasource()
 	else:
