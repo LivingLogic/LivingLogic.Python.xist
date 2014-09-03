@@ -222,26 +222,26 @@ class Undefined(object):
 
 class UndefinedKey(Undefined):
 	def __init__(self, key):
-		self.__key = key
+		self._key = key
 
 	def __repr__(self):
-		return "UndefinedKey({!r})".format(self.__key)
+		return "UndefinedKey({!r})".format(self._key)
 
 
 class UndefinedVariable(Undefined):
 	def __init__(self, name):
-		self.__name = name
+		self._name = name
 
 	def __repr__(self):
-		return "UndefinedVariable({!r})".format(self.__name)
+		return "UndefinedVariable({!r})".format(self._name)
 
 
 class UndefinedIndex(Undefined):
 	def __init__(self, index):
-		self.__index = index
+		self._index = index
 
 	def __repr__(self):
-		return "UndefinedIndex({!r})".format(self.__index)
+		return "UndefinedIndex({!r})".format(self._index)
 
 
 ###
