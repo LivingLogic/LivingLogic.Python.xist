@@ -258,7 +258,7 @@ def test_javaexpr():
 	assert str((1<<31)-1) == misc.javaexpr((1<<31)-1)
 	assert str(1<<31)+"L" == misc.javaexpr(1<<31)
 	assert str(-(1<<31)) == misc.javaexpr(-(1<<31))
-	assert str(-(1<<31)-1)+"L" == misc.javaexpr(-(1<<31)-1)
+	assert str(-(1<<31)-1) + "L" == misc.javaexpr(-(1<<31)-1)
 	assert str((1<<63)-1) + "L" == misc.javaexpr((1<<63)-1)
 	assert 'new java.math.BigInteger("{}")'.format(1<<64) == misc.javaexpr(1<<64)
 	# float
