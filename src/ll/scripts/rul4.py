@@ -176,7 +176,7 @@ Then the template could use the Oracle connection object ``db`` directly.
 """
 
 
-import sys, os, argparse, keyword
+import sys, os, argparse, datetime, keyword
 
 from ll import ul4c, misc
 
@@ -191,25 +191,124 @@ class System(object):
 		return os.popen(cmd).read()
 
 
+class Var:
+	ul4attrs = {"+value"}
+
+	def __init__(self, value=None):
+		self.value = value
+
+	@misc.notimplemented
+	def makevar(c, cursor):
+		pass
+
+
 class Connection(object):
-	ul4attrs = {"query"}
+	ul4attrs = {"query", "execute", "int", "number", "str", "clob", "date"}
 
 	def __init__(self, connection):
 		self.connection = connection
 
-	def query(self, *queryparts):
-		c = self.connection.cursor()
+	def _makesql(self, cursor, queryparts):
 		query = []
 		params = {}
+		vars = {}
 		for (i, part) in enumerate(queryparts):
 			if i % 2:
 				name = "value{}".format((i+1)//2)
-				params[name] = part
+				if isinstance(part, Var):
+					params[name] = part.makevar(cursor)
+					vars[name] = part
+				else:
+					params[name] = part
 				query.append(":" + name)
 			else:
 				query.append(part)
-		c.execute("".join(query), **params)
-		return c
+		return ("".join(query), params, vars)
+
+	def _fetch(self, params, vars):
+		for (name, var) in vars.items():
+			var.value = params[name].getvalue(0)
+
+	def query(self, *queryparts):
+		cursor = self.connection.cursor()
+		(query, params, vars) = self._makesql(cursor, queryparts)
+		cursor.execute(query, **params)
+		self._fetch(params, vars)
+		return cursor
+
+	def execute(self, *queryparts):
+		cursor = self.connection.cursor()
+		(query, params, vars) = self._makesql(cursor, queryparts)
+		cursor.execute(query, **params)
+		self._fetch(params, vars)
+
+	@misc.notimplemented
+	def str(self, value=None):
+		pass
+
+	@misc.notimplemented
+	def clob(self, value=None):
+		pass
+
+	@misc.notimplemented
+	def int(self, value=None):
+		pass
+
+	@misc.notimplemented
+	def number(self, value=None):
+		pass
+
+	@misc.notimplemented
+	def date(self, value=None):
+		pass
+
+
+class OracleConnection(Connection):
+	class IntVar(Var):
+		def makevar(self, c):
+			var = c.var(int)
+			var.setvalue(0, self.value)
+			return var
+
+	class NumberVar(Var):
+		def makevar(self, c):
+			var = c.var(float)
+			var.setvalue(0, self.value)
+			return var
+
+	class StrVar(Var):
+		def makevar(self, c):
+			var = c.var(str)
+			var.setvalue(0, self.value)
+			return var
+
+	class CLOBVar(Var):
+		def makevar(self, c):
+			from ll import orasql
+			var = c.var(orasql.CLOB)
+			var.setvalue(0, self.value)
+			return var
+
+	class DateVar(Var):
+		def makevar(self, c):
+			var = c.var(datetime.datetime)
+			var.setvalue(0, self.value)
+			return var
+
+	def str(self, value=None):
+		return self.StrVar(value)
+
+	def clob(self, value=None):
+		return self.CLOBVar(value)
+
+	def int(self, value=None):
+		return self.IntVar(value)
+
+	def number(self, value=None):
+		return self.NumberVar(value)
+
+	def date(self, value=None):
+		return self.DateVar(value)
 
 
 class Oracle(object):
@@ -217,7 +316,7 @@ class Oracle(object):
 
 	def connect(self, connectstring):
 		from ll import orasql
-		return Connection(orasql.connect(connectstring, readlobs=True))
+		return OracleConnection(orasql.connect(connectstring, readlobs=True))
 
 
 class SQLite(object):
@@ -245,6 +344,13 @@ class MySQL(object):
 		(user, passwd) = user.split("/")
 		(host, db) = host.split("/")
 		return Connection(MySQLdb.connect(user=user, passwd=passwd, host=host, db=db, use_unicode=True, cursorclass=cursors.DictCursor))
+
+
+# Instantiate all "handlers"
+system = System()
+oracle = Oracle()
+sqlite = SQLite()
+mysql = MySQL()
 
 
 def fixname(name):
@@ -281,11 +387,11 @@ def define(arg):
 			return (name, True)
 		raise argparse.ArgumentTypeError("{!r} is not a legal bool value".format(value))
 	elif type == "oracle":
-		return (name, Oracle().connect(value))
+		return (name, oracle.connect(value))
 	elif type == "sqlite":
-		return (name, SQLite().connect(value))
+		return (name, sqlite.connect(value))
 	elif type == "mysql":
-		return (name, MySQL().connect(value))
+		return (name, mysql.connect(value))
 	elif type and type != "str":
 		raise argparse.ArgumentTypeError("{!r} is not a legal type".format(type))
 	return (name, value)
@@ -324,13 +430,13 @@ def main(args=None):
 	vars = dict(templates=templates, encoding=sys.stdout.encoding)
 	vars.update(args.defines)
 	if args.oracle:
-		vars["oracle"] = Oracle()
+		vars["oracle"] = oracle
 	if args.mysql:
-		vars["mysql"] = MySQL()
+		vars["mysql"] = mysql
 	if args.sqlite:
-		vars["sqlite"] = SQLite()
+		vars["sqlite"] = sqlite
 	if args.system:
-		vars["system"] = System()
+		vars["system"] = system
 	for part in maintemplate.render(**vars):
 		sys.stdout.write(part)
 

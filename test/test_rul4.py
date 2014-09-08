@@ -1,0 +1,114 @@
+#! /usr/bin/env/python
+# -*- coding: utf-8 -*-
+# cython: language_level=3, always_allow_keywords=True
+
+## Copyright 2014 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 2014 by Walter Dörwald
+##
+## All Rights Reserved
+##
+## See ll/xist/__init__.py for the license
+
+
+import os
+
+from ll import ul4c, orasql
+from ll.scripts import rul4
+
+import pytest
+
+
+@pytest.fixture(scope="module")
+def db(request):
+	connectstring = os.environ.get("LL_ORASQL_TEST_CONNECT")
+	if connectstring:
+		return rul4.oracle.connect(connectstring)
+	else:
+		return None
+
+
+@pytest.mark.db
+def test_oracle_query(db):
+	if db:
+		template = ul4c.Template("""
+			<?code db.execute('''
+				create table ul4test(
+					ul4_int integer,
+					ul4_char varchar2(1000),
+					ul4_clob clob)
+			''')?>
+			<?code db.execute('insert into ul4test values(1, ', 'first', ', ', 10000*'first', ')')?>
+			<?code db.execute('insert into ul4test values(2, ', 'second', ', ', 10000*'second', ')')?>
+			<?code db.execute('insert into ul4test values(3, ', 'third', ', ', 10000*'third', ')')?>
+			<?code vin = db.int(2)?>
+			<?for row in db.query('select * from ul4test where ul4_int <= ', vin, ' order by ul4_int')?>
+				<?print row.ul4_int?>|
+				<?print row.ul4_char?>|
+				<?print row.ul4_clob?>|
+			<?end for?>
+			<?code db.execute('drop table ul4test')?>
+			""",
+			keepws=False
+		)
+		assert template.renders(db=db) == "1|first|{}|2|second|{}|".format(10000*"first", 10000*"second")
+
+
+@pytest.mark.db
+def test_oracle_execute_function(db):
+	if db:
+		template = ul4c.Template("""
+			<?code db.execute('''
+				create or replace function ul4test(p_arg integer)
+				return integer
+				as
+				begin
+					return 2*p_arg;
+				end;
+			''')?>
+			<?code vin = db.int(42)?>
+			<?code vout = db.int()?>
+			<?code db.execute('begin ', vout, ' := ul4test(', vin, '); end;')?>
+			<?print vout.value?>
+			<?code db.execute('drop function ul4test')?>
+			""",
+			keepws=False
+		)
+		assert template.renders(db=db) == "84"
+
+
+@pytest.mark.db
+def test_oracle_execute_procedure_out(db):
+	if db:
+		template = ul4c.Template("""
+			<?code db.execute('''
+				create or replace procedure ul4test(p_intarg out integer, p_numberarg out number, p_strarg out varchar2, p_clobarg out clob, p_datearg out timestamp)
+				as
+				begin
+					p_intarg := 42;
+					p_numberarg := 42.5;
+					p_strarg := 'foo';
+					dbms_lob.createtemporary(p_clobarg, true);
+					for i in 1..100000 loop
+						dbms_lob.writeappend(p_clobarg, 3, 'foo');
+					end loop; 
+					p_datearg := to_date('05.10.2014 16:17:18', 'DD.MM.YYYY HH24:MI:SS'); 
+				end; 
+			''')?>
+			<?code vint = db.int()?>
+			<?code vnumber = db.number()?>
+			<?code vstr = db.str()?>
+			<?code vclob = db.clob()?>
+			<?code vdate = db.date()?>
+			<?code db.execute('call ul4test(', vint, ', ', vnumber, ', ', vstr, ', ', vclob, ', ', vdate, ')')?>
+			<?print vint.value?>|<?print vnumber.value?>|<?print vstr.value?>|<?print vclob.value?>|<?print vdate.value?>
+			<?code db.execute('drop procedure ul4test')?>
+			""",
+			keepws=False
+		)
+		assert template.renders(db=db) == "42|42.5|foo|{}|2014-10-05 16:17:18".format(100000*"foo")
+
+
+
+test_oracle_query(db(None))
+test_oracle_execute_function(db(None))
+test_oracle_execute_procedure_out(db(None))

@@ -11,6 +11,10 @@ Changes in 5.9 (released ??/??/2014)
 	SQLite and MySQL databases can be disallowed with the options
 	:option:`--oracle`, :option:`--sqlite` and :option:`--mysql`. Executing
 	system commands can be disallowed with the option :option:`--system`.
+	SQL code that doesn't return results can be executed with the new method
+	:class:`Connection` method :meth:`execute`. "out" parameters can now be used
+	via variable objects that can be created with the :meth:`int`, :meth:`number`,
+	:meth:`str`, :meth:`clob` and :meth:`date` methods.
 
 *	All objects in :mod:`ll.orasql` that represent objects in the database now
 	have a method :meth:`exists` that returns whether the object exists in the
