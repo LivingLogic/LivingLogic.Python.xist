@@ -106,9 +106,3 @@ def test_oracle_execute_procedure_out(db):
 			keepws=False
 		)
 		assert template.renders(db=db) == "42|42.5|foo|{}|2014-10-05 16:17:18".format(100000*"foo")
-
-
-
-test_oracle_query(db(None))
-test_oracle_execute_function(db(None))
-test_oracle_execute_procedure_out(db(None))
