@@ -136,8 +136,10 @@ to call functions or procedures.
 
 Calling function or procedures with out parameters can be done with variable
 objects that can be created with the methods :meth:`int`, :meth:`number`,
-:meth:`str`, :meth:`clob` and :meth:`date`. The following example creates a
-function, call it to get at the result and drops it again::
+:meth:`str`, :meth:`clob` and :meth:`date`. The resulting value of the out
+parameter is available from the ``value`` attribute of the variable object.
+The following example creates a function, call it to get at the result and
+drops it again::
 
 	<?code db = oracle.connect('user/pwd@database')?>
 	<?code db.execute('''
