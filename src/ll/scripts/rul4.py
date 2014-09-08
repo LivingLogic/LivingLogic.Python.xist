@@ -130,6 +130,29 @@ of the SQL query and parameters that will be embedded in the query. For example:
 The records returned from ``query`` are dict-like objects mapping field names to
 field values.
 
+Connection objects also have an ``execute`` method that supports the same
+parameters as ``query` but doesn't return an iterable result. This can be used
+to call functions or procedures.
+
+Calling function or procedures with out parameters can be done with variable
+objects that can be created with the methods :meth:`int`, :meth:`number`,
+:meth:`str`, :meth:`clob` and :meth:`date`. The following example creates a
+function, call it to get at the result and drops it again::
+
+	<?code db = oracle.connect('user/pwd@database')?>
+	<?code db.execute('''
+		create or replace function ul4test(p_arg integer)
+		return integer
+		as
+		begin
+			return 2*p_arg;
+		end;
+	''')?>
+	<?code vout = db.int()?>
+	<?code db.execute('begin ', vout, ' := ul4test(42); end;')?>
+	<?print vout.value?>
+	<?code db.execute('drop function ul4test')?>
+
 Furthermore all variables defined via the :option:`-D`/:option:`--define` option
 will be available. (Note that you can't overwrite any of the predefined variables).
 
