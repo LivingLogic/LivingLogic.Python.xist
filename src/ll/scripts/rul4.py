@@ -137,7 +137,7 @@ The records returned from ``query`` are dict-like objects mapping field names to
 field values.
 
 Connection objects also have an ``execute`` method that supports the same
-parameters as ``query` but doesn't return an iterable result. This can be used
+parameters as ``query`` but doesn't return an iterable result. This can be used
 to call functions or procedures.
 
 Calling function or procedures with out parameters can be done with variable
