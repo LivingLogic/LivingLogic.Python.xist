@@ -9,7 +9,7 @@ commands.
 
 
 Options
--------
+=======
 
 ``rul4`` supports the following options:
 
@@ -85,7 +85,7 @@ Options
 
 
 Template variables
-------------------
+==================
 
 Inside the template the following variables are available (if enabled via
 the matching options):
@@ -159,7 +159,7 @@ Furthermore all variables defined via the :option:`-D`/:option:`--define` option
 will be available. (Note that you can't overwrite any of the predefined variables).
 
 Example
--------
+=======
 
 This example shows how to connect to an Oracle database and output the content
 of a ``person`` table into an XML file.
