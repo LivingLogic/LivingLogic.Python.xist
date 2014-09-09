@@ -118,6 +118,12 @@ the matching options):
 		the connect strings passed in. The connect string will be passed directly
 		to :func:`sqlite3.connect`.
 
+All variables defined via the :option:`-D`/:option:`--define` option will also
+be available. (Note that you can't overwrite any of the predefined variables).
+
+Database connections
+--------------------
+
 All connection objects have a ``query`` method that executes the query passed in
 and returns an iterator over the resulting records. This ``query`` method
 requires at least one positional argument. Arguments alternate between fragments
@@ -154,9 +160,6 @@ drops it again::
 	<?code db.execute('begin ', vout, ' := ul4test(42); end;')?>
 	<?print vout.value?>
 	<?code db.execute('drop function ul4test')?>
-
-Furthermore all variables defined via the :option:`-D`/:option:`--define` option
-will be available. (Note that you can't overwrite any of the predefined variables).
 
 Example
 =======
