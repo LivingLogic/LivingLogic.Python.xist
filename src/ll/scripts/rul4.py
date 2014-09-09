@@ -233,7 +233,7 @@ class Connection(object):
 	def __init__(self, connection):
 		self.connection = connection
 
-	def _makesql(self, cursor, queryparts):
+	def _execute(self, cursor, queryparts):
 		query = []
 		params = {}
 		vars = {}
@@ -248,24 +248,18 @@ class Connection(object):
 				query.append(":" + name)
 			else:
 				query.append(part)
-		return ("".join(query), params, vars)
-
-	def _fetch(self, params, vars):
+		cursor.execute("".join(query), **params)
 		for (name, var) in vars.items():
 			var.value = params[name].getvalue(0)
 
 	def query(self, *queryparts):
 		cursor = self.connection.cursor()
-		(query, params, vars) = self._makesql(cursor, queryparts)
-		cursor.execute(query, **params)
-		self._fetch(params, vars)
+		self._execute(cursor, queryparts)
 		return cursor
 
 	def execute(self, *queryparts):
 		cursor = self.connection.cursor()
-		(query, params, vars) = self._makesql(cursor, queryparts)
-		cursor.execute(query, **params)
-		self._fetch(params, vars)
+		self._execute(cursor, queryparts)
 
 	@misc.notimplemented
 	def str(self, value=None):
