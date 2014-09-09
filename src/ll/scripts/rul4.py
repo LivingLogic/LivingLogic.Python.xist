@@ -121,6 +121,7 @@ the matching options):
 All variables defined via the :option:`-D`/:option:`--define` option will also
 be available. (Note that you can't overwrite any of the predefined variables).
 
+
 Database connections
 --------------------
 
@@ -160,6 +161,7 @@ drops it again::
 	<?code db.execute('begin ', vout, ' := ul4test(42); end;')?>
 	<?print vout.value?>
 	<?code db.execute('drop function ul4test')?>
+
 
 Example
 =======
