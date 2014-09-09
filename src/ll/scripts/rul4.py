@@ -447,7 +447,8 @@ def main(args=None):
 		templates[templatename] = template
 
 	vars = dict(templates=templates, encoding=sys.stdout.encoding)
-	vars.update(args.defines)
+	if args.defines:
+		vars.update(args.defines)
 	if args.oracle:
 		vars["oracle"] = oracle
 	if args.mysql:
