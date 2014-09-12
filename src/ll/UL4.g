@@ -409,6 +409,10 @@ expr_subscript returns [node]
 					','
 					'*' rargs=exprarg { $node.remargs = $rargs.node; }
 				)?
+				/* Python allows keyword arguments after the '*' argument, but we don't.
+				 * To allow it we would have to track the order of the arguments that get passed, so that we can guarantee that they get
+				 * evaluated from left to right
+				 */
 				(
 					','
 					'**' rkwargs=exprarg { $node.remkwargs = $rkwargs.node; }
