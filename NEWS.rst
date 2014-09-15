@@ -56,7 +56,7 @@ Changes in 5.9 (released ??/??/2014)
 	of the running script as an ``ssh`` URL (e.g.
 	``ssh://user@www.example.org/~/project/script.py``)
 
-*	The evaluation order of keyword argument in call to UL4 functions/templates
+*	The evaluation order of keyword arguments in calls to UL4 functions/templates
 	has been fixed.
 
 
