@@ -1,4 +1,4 @@
-# $ANTLR 3.5 src/ll/UL4.g 2014-01-20 17:35:47
+# $ANTLR 3.5 src/ll/UL4.g 2014-09-12 17:32:20
 
 import sys
 from antlr3 import *
@@ -1989,7 +1989,7 @@ class UL4Parser(Parser):
 
                             if self._state.backtracking == 0:
                                 pass
-                                retval.node.remkwargs = rkwargs; 
+                                retval.node.args.append(("**", rkwargs)); 
 
 
 
@@ -2020,7 +2020,7 @@ class UL4Parser(Parser):
 
                             if self._state.backtracking == 0:
                                 pass
-                                retval.node.remargs = rargs; 
+                                retval.node.args.append(("*", rargs)); 
 
 
 
@@ -2047,7 +2047,7 @@ class UL4Parser(Parser):
 
                                 if self._state.backtracking == 0:
                                     pass
-                                    retval.node.remkwargs = rkwargs; 
+                                    retval.node.args.append(("**", rkwargs)); 
 
 
 
@@ -2079,7 +2079,7 @@ class UL4Parser(Parser):
 
                             if self._state.backtracking == 0:
                                 pass
-                                retval.node.args.append(a1) 
+                                retval.node.args.append((None, a1)); 
 
 
 
@@ -2116,7 +2116,7 @@ class UL4Parser(Parser):
 
                                     if self._state.backtracking == 0:
                                         pass
-                                        retval.node.args.append(a2) 
+                                        retval.node.args.append((None, a2)); 
 
 
 
@@ -2158,7 +2158,7 @@ class UL4Parser(Parser):
 
                                     if self._state.backtracking == 0:
                                         pass
-                                        retval.node.kwargs.append((((an3 is not None) and [self.input.toString(an3.start,an3.stop)] or [None])[0], av3)) 
+                                        retval.node.args.append((((an3 is not None) and [self.input.toString(an3.start,an3.stop)] or [None])[0], av3)); 
 
 
 
@@ -2190,7 +2190,7 @@ class UL4Parser(Parser):
 
                                 if self._state.backtracking == 0:
                                     pass
-                                    retval.node.remargs = rargs; 
+                                    retval.node.args.append(("*", rargs)); 
 
 
 
@@ -2220,7 +2220,7 @@ class UL4Parser(Parser):
 
                                 if self._state.backtracking == 0:
                                     pass
-                                    retval.node.remkwargs = rkwargs; 
+                                    retval.node.args.append(("**", rkwargs)); 
 
 
 
@@ -2259,7 +2259,7 @@ class UL4Parser(Parser):
 
                             if self._state.backtracking == 0:
                                 pass
-                                retval.node.kwargs.append((((an1 is not None) and [self.input.toString(an1.start,an1.stop)] or [None])[0], av1)) 
+                                retval.node.args.append((((an1 is not None) and [self.input.toString(an1.start,an1.stop)] or [None])[0], av1)); 
 
 
 
@@ -2296,7 +2296,7 @@ class UL4Parser(Parser):
 
                                     if self._state.backtracking == 0:
                                         pass
-                                        retval.node.kwargs.append((((an2 is not None) and [self.input.toString(an2.start,an2.stop)] or [None])[0], av2)) 
+                                        retval.node.args.append((((an2 is not None) and [self.input.toString(an2.start,an2.stop)] or [None])[0], av2)); 
 
 
 
@@ -2328,7 +2328,7 @@ class UL4Parser(Parser):
 
                                 if self._state.backtracking == 0:
                                     pass
-                                    retval.node.remargs = rargs; 
+                                    retval.node.args.append(("*", rargs)); 
 
 
 
@@ -2358,7 +2358,7 @@ class UL4Parser(Parser):
 
                                 if self._state.backtracking == 0:
                                     pass
-                                    retval.node.remkwargs = rkwargs; 
+                                    retval.node.args.append(("**", rkwargs)); 
 
 
 

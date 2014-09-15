@@ -384,54 +384,50 @@ expr_subscript returns [node]
 				/* No arguments */
 			|
 				/* "**" argument only */
-				'**' rkwargs=exprarg { $node.remkwargs = $rkwargs.node; }
+				'**' rkwargs=exprarg { $node.args.append(("**", $rkwargs.node)); }
 				','?
 			|
 				/* "*" argument only (and maybe **) */
-				'*' rargs=exprarg { $node.remargs = $rargs.node; }
+				'*' rargs=exprarg { $node.args.append(("*", $rargs.node)); }
 				(
 					','
-					'**' rkwargs=exprarg { $node.remkwargs = $rkwargs.node; }
+					'**' rkwargs=exprarg { $node.args.append(("**", $rkwargs.node)); }
 				)?
 				','?
 			|
 				/* At least one positional argument */
-				a1=exprarg { $node.args.append($a1.node) }
+				a1=exprarg { $node.args.append((None, $a1.node)); }
 				(
 					','
-					a2=exprarg { $node.args.append($a2.node) }
+					a2=exprarg { $node.args.append((None, $a2.node)); }
 				)*
 				(
 					','
-					an3=name '=' av3=exprarg { $node.kwargs.append(($an3.text, $av3.node)) }
+					an3=name '=' av3=exprarg { $node.args.append(($an3.text, $av3.node)); }
 				)*
 				(
 					','
-					'*' rargs=exprarg { $node.remargs = $rargs.node; }
+					'*' rargs=exprarg { $node.args.append(("*", $rargs.node)); }
 				)?
-				/* Python allows keyword arguments after the '*' argument, but we don't.
-				 * To allow it we would have to track the order of the arguments that get passed, so that we can guarantee that they get
-				 * evaluated from left to right
-				 */
 				(
 					','
-					'**' rkwargs=exprarg { $node.remkwargs = $rkwargs.node; }
+					'**' rkwargs=exprarg { $node.args.append(("**", $rkwargs.node)); }
 				)?
 				','?
 			|
 				/* Keyword arguments only */
-				an1=name '=' av1=exprarg { $node.kwargs.append(($an1.text, $av1.node)) }
+				an1=name '=' av1=exprarg { $node.args.append(($an1.text, $av1.node)); }
 				(
 					','
-					an2=name '=' av2=exprarg { $node.kwargs.append(($an2.text, $av2.node)) }
+					an2=name '=' av2=exprarg { $node.args.append(($an2.text, $av2.node)); }
 				)*
 				(
 					','
-					'*' rargs=exprarg { $node.remargs = $rargs.node; }
+					'*' rargs=exprarg { $node.args.append(("*", $rargs.node)); }
 				)?
 				(
 					','
-					'**' rkwargs=exprarg { $node.remkwargs = $rkwargs.node; }
+					'**' rkwargs=exprarg { $node.args.append(("**", $rkwargs.node)); }
 				)?
 				','?
 			)

@@ -547,11 +547,8 @@ class List(AST):
 			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
 		else:
 			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
-				for (i, item) in enumerate(self.items):
-					if i:
-						p.breakable()
-					else:
-						p.breakable("")
+				for item in self.items:
+					p.breakable()
 					p.pretty(item)
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
@@ -2469,31 +2466,30 @@ class Call(AST):
 	AST node for calling an object.
 
 	The object to be called is stored in the attribute :obj:`obj`. The list of
-	positional arguments is loaded from the list of AST nodes :obj:`args`.
-	Keyword arguments are in :obj:`kwargs`. `var`:remargs` is the AST node
-	for the ``*`` argument (and may by ``None`` if there is no ``*`` argument).
-	`var`:remkwargs` is the AST node for the ``**`` argument (and may by ``None``
-	if there is no ``**`` argument)
+	arguments is found in :obj:`args`.
 	"""
 
-	ul4attrs = AST.ul4attrs.union({"obj", "args", "kwargs", "remargs", "remkwargs"})
+	ul4attrs = AST.ul4attrs.union({"obj", "args"})
 
 	def __init__(self, location=None, start=None, end=None, obj=None):
 		super().__init__(location, start, end)
 		self.obj = obj
 		self.args = []
-		self.kwargs = []
-		self.remargs = None
-		self.remkwargs = None
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} obj={0.obj!r}{1}{2}{3}{4} at {5:#x}>".format(
-			self,
-			"".join(" {!r}".format(arg) for arg in self.args),
-			"".join(" {}={!r}".format(argname, argvalue) for (argname, argvalue) in self.kwargs),
-			" *{!r}".format(self.remargs) if self.remargs is not None else "",
-			" **{!r}".format(self.remkwargs) if self.remargs is not None else "",
-			id(self))
+		args = []
+		for (name, arg) in self.args:
+			if name is None:
+				fmt = " {arg!r}"
+			elif argname == "*":
+				fmt = " *{arg!1}"
+			elif argname == "**":
+				fmt = " **{arg!1}"
+			else:
+				fmt = " {name}={arg!1}"
+			args.append(fmt.format(name=name, arg=arg))
+
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} obj={0.obj!r}{1} at {2:#x}>".format(self, "".join(args), id(self))
 
 	def _repr_pretty_(self, p, cycle):
 		if cycle:
@@ -2503,21 +2499,16 @@ class Call(AST):
 				p.breakable()
 				p.text("obj=")
 				p.pretty(self.obj)
-				for arg in self.args:
+				for (name, arg) in self.args:
 					p.breakable()
-					p.pretty(arg)
-				for (argname, arg) in self.kwargs:
-					p.breakable()
-					p.text("{}=".format(argname))
-					p.pretty(arg)
-				if self.remargs is not None:
-					p.breakable()
-					p.text("*")
-					p.pretty(self.remargs)
-				if self.remkwargs is not None:
-					p.breakable()
-					p.text("**")
-					p.pretty(self.remkwargs)
+					if name is None:
+						p.pretty(arg)
+					elif name in ("*", "**"):
+						p.text(name)
+						p.pretty(arg)
+					else:
+						p.text("{}=".format(name))
+						p.pretty(arg)
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
@@ -2525,16 +2516,18 @@ class Call(AST):
 	def eval(self, vars):
 		obj = (yield from self.obj.eval(vars))
 		args = []
-		for arg in self.args:
-			arg = (yield from arg.eval(vars))
-			args.append(arg)
 		kwargs = {}
-		for (argname, arg) in self.kwargs:
-			kwargs[argname] = (yield from arg.eval(vars))
-		if self.remargs is not None:
-			args.extend((yield from self.remargs.eval(vars)))
-		if self.remkwargs is not None:
-			kwargs.update((yield from self.remkwargs.eval(vars)))
+		for (name, arg) in self.args:
+			arg = yield from arg.eval(vars)
+			if name is None:
+				args.append(arg)
+			elif name == "*":
+				args.extend(arg)
+			elif name == "**":
+				kwargs.update(arg)
+			else:
+				kwargs[name] = arg
+
 		if isinstance(obj, types.MethodType):
 			generator = getattr(obj.__func__, "__ul4generator__", False)
 		else:
@@ -2556,17 +2549,11 @@ class Call(AST):
 		super().ul4ondump(encoder)
 		encoder.dump(self.obj)
 		encoder.dump(self.args)
-		encoder.dump(self.kwargs)
-		encoder.dump(self.remargs)
-		encoder.dump(self.remkwargs)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
 		self.obj = decoder.load()
-		self.args = decoder.load()
-		self.kwargs = [tuple(arg) for arg in decoder.load()]
-		self.remargs = decoder.load()
-		self.remkwargs = decoder.load()
+		self.args = [tuple(arg) for arg in decoder.load()]
 
 
 @register("template")
