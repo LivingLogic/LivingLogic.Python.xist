@@ -1408,9 +1408,9 @@ by including the method name in the ``ul4attr`` class attribute::
 
 This will output ``John Doe``.
 
-If the method should produce out in addition to returning a value, the decorator
-:func:`ul4c.generator` must be used (in addition to including the method name in
-``ul4attrs``::
+If the method should produce output in addition to returning a value, the
+decorator :func:`ul4c.generator` must be used (in addition to including the
+method name in ``ul4attrs``::
 
 	from ll import ul4c
 
