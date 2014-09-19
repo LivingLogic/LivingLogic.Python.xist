@@ -14,6 +14,8 @@ Changes to ``ll.url``
 	:meth:`dirs`, :meth:`walk`, :meth:`walkfiles` and :meth:`walkdirs` has been
 	renamed to ``include``.
 
+*	The method :meth:`walk` has been renamed to :meth:`walkall`.
+
 
 Migrating to version 5.7
 ========================
