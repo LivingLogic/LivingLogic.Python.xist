@@ -515,7 +515,7 @@ def test_walk():
 		with url.Context():
 			u = url.URL(u)
 			pu = url.URL(pu)
-			assert any(u==wu for wu in pu.walk(include=include, exclude=exclude))
+			assert any(u==wu for wu in pu.walkall(include=include, exclude=exclude))
 			if isfile:
 				assert any(u==wu for wu in pu.walkfiles(include=include, exclude=exclude))
 				assert all(u!=wu for wu in pu.walkdirs(include=include, exclude=exclude))
