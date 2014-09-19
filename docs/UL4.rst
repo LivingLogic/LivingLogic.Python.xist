@@ -8,11 +8,10 @@ possible to implement renderers for these templates in multiple programming
 languages.
 
 Apart from this Python implementation there are implementations for Java_ (both
-a compiler and renderer), Javascript_ (renderer only) and PHP (renderer only).
+a compiler and renderer) and Javascript_ (renderer only).
 
 .. _Java: https://github.com/LivingLogic/LivingLogic.Java.ul4
 .. _Javascript: https://github.com/LivingLogic/LivingLogic.Javascript.ul4
-.. _PHP: https://github.com/LivingLogic/LivingLogic.PHP.ul4
 
 
 Embedding
@@ -60,11 +59,10 @@ the final rendered output as a string. Alternatively the method :meth:`render`
 can be used, which is a generator and returns the output piecewise.
 
 
-Supported data types
-====================
+Builtin types
+=============
 
-The following object types can be passed as variables to be used by the template
-code:
+The following object types can be created used insided templates:
 
 *	strings
 *	integers
@@ -73,7 +71,6 @@ code:
 *	color objects
 *	The "null" value (``None``)
 *	boolean values (``True`` and ``False``)
-*	the ``Undefined`` variable
 *	lists
 *	dictionaries
 *	UL4 templates
@@ -134,7 +131,7 @@ sequences that Python supports (except ``\N{}``). Strings constants allow
 *	``"\x61"`` and ``"\u0061"`` are lowercase "a"s;
 
 Strings can also be delimited with triple single or double quotes like in Python.
-These strings supported embedded line feeds.
+These strings support embedded line feeds.
 
 
 Date constants
@@ -377,7 +374,7 @@ For example the following template will output ``40``::
 ``def``
 -------
 
-The ``def`` tag defined a new template as a variable. Usage looks like this::
+The ``def`` tag defines a new template as a variable. Usage looks like this::
 
 	<?def quote?>"<?print text?>"<?end def?>
 
@@ -394,7 +391,8 @@ evaluated for the side effect of generating output.)
 ``note``
 --------
 
-A ``note`` tag is a comment, i.e. the content of the tag will be completely ignored.
+A ``note`` tag is a comment, i.e. the content of the tag will be completely
+ignored.
 
 
 Nested scopes
@@ -402,7 +400,7 @@ Nested scopes
 
 UL4 templates support lexical scopes. This means that a template that is defined
 (via ``<?def?>``) inside another template has access to the local variables
-of the outer template. The inner template sees that state of the variables at
+of the outer template. The inner template sees the state of the variables at
 the point in time when the ``<?def?>`` tag was executed (this includes the inner
 template itself, but no variables defined later). The following example
 will output ``1``::
@@ -414,13 +412,53 @@ will output ``1``::
 	<?code i = 2?>
 	<?code x.render()?>
 
+However the state that the template sees is a "shallow" copy of the state of the
+variables at the point in time when the inner template was defined. So::
+
+	<?code i = [1]?>
+	<?def x?>
+		<?print i?>
+	<?end def?>
+	<?code i.append(2)?>
+	<?code x.render()?>
+
+does output ``[1, 2]``.
+
 
 Expressions
 -----------
 
-:mod:`ll.ul4c` supports many of the operators supported by Python. Getitem style
-element access is available, i.e. in the expression ``a[b]`` the following type
-combinations are supported:
+:mod:`ll.ul4c` supports many of the operators supported by Python. The following
+subchapters describe all expression/operators that UL4 supports and are ordered
+from highest precedence to lowest.
+
+
+Generator expressions
+"""""""""""""""""""""
+
+UL4 supports generator expressions with look like list comprehensions without
+the square brackets. Generator expression do not create lists in memory but
+instead return an iterable that can be iterated once. Function and methods
+that require an iterable argument can directly consume such iterables::
+
+	<?print ", ".join("(" + c + ")" for c in "gurk")?>
+
+will output::
+
+	(g), (u), (r), (k)
+
+Outside of function/method arguments (or when more that one argument is passed)
+parentheses are required around generator expressions::
+
+	<?code ge = ("(" + c + ")" for c in "gurk")?>
+	<?print ", ".join(ge)?>
+
+
+Index/slice access
+""""""""""""""""""
+
+Index and slice access is available for all container types, i.e. in the
+expression ``a[b]`` the following type combinations are supported:
 
 *	string, integer: Returns the ``b``\th character from the string ``a``.
 	Note that negative ``b`` values are supported and are relative to the end,
@@ -431,10 +469,11 @@ combinations are supported:
 
 *	dict, string: Return the value from the dictionary ``a`` corresponding to
 	the key ``b``. Note that some implementations might support keys other
-	than strings too. (The Python and Java renderer do for example.)
+	than strings too. (The Python and Java implementations do for example.
+	The Javascript implementation does too, if ``Map`` is supported.)
 
 If the specified key doesn't exist or the index is out of range for the string
-or list, the special object ``Undefined`` is returned.
+or list, a special "undefined" object is returned.
 
 Slices are also supported (for list and string objects). As in Python one or
 both of the indexes may be missing to start at the first or end after the last
@@ -445,29 +484,223 @@ of bounds are simply clipped:
 
 *	``<?print "Hello, World!"[:-8]?>`` prints ``Hello``.
 
-The following binary operators are supported: ``+``, ``-``, ``*``, ``/`` (true
-division), ``//`` (truncating division), ``%`` (modulo), ``&`` (bitwise and),
-``^`` (bitwise exclusive or), ``|`` (bitwise or), ``<<`` (shifting bits left)
-and ``>>`` (shifting bits right).
 
-The bitwise operators work for integers and booleans and always return integers.
+Attribute access
+""""""""""""""""
 
-The usual boolean operators ``not``, ``and`` and ``or`` are supported. ``and``
-and ``or`` work like in Python, i.e. they short-circuit, i.e. if their result is
-clear from the first operand the seconds won't be evaluated. Furthermore they
-always return one of the operands. For example, the following code will output
-the ``data.title`` object if it's true, else ``data.id`` will be output::
+For string keys it's also possible to access dictionary entries via the
+attribute access operator ``.``, i.e. ``foo.key`` is the same as ``foo["key"]``
+if ``foo`` is a dictionary.
 
-	<?print xmlescape(data.title or data.id)?>
 
-The comparison operators ``==``, ``!=``, ``<``, ``<=``, ``>`` and ``>=`` are
-supported.
+Function calls
+""""""""""""""
 
-The unary operator ``-`` is supported as well as the bitwise not operator ``~``
-that inverts all bits of an integer (or boolean).
+A function call in UL4 looks like this: ``date(2014, 10, 9, 17, 29)``.
+(this returns the date object ``@(2014-10-09T17:29)``). Some of the trailing
+arguments in a function call might be optional and have default values.
+For example the first three arguments for the ``date`` function (``year``,
+``month`` and ``day``) are required, the remaining four arguments (``hour``,
+``minute``, ``second`` and ``microsecond``) are optional and default to ``0``.
 
-Containment test via the ``in`` operator can be done, in the expression
-``a in b`` the following type combinations are supported:
+Parameter values can also be passed via keyword arguments, i.e.
+``date(2014, 10, 9)`` could also be written as
+``date(day=9, month=10, year=2014)``.
+
+Furthermore Python's ``*`` and ``**`` syntax is supported for passing additional
+positional or keyword arguments. For example::
+
+	<?code args = [2014, 10, 9, 17, 29]?>
+	<?code d = date(*args)?>
+
+is the same as::
+
+	<?code d = date(2014, 10, 9, 17, 29)?>
+
+The same can also be done with a keyword dictionary and the ``**`` syntax::
+
+	<?code kwargs = {"day": 9, "month": 10, "year": 2014, "hour": 17: "minute": 29}?>
+	<?code d = date(**kwargs)?>
+
+Of course it's also possible to mix argument passing mechanics::
+
+	<?code d = date(2014, *[10, 9], **{"hour": 17, "minute": 29})?>
+
+or::
+
+	<?code d = date(2014, month=10, day=9, **{'hour': 17, 'minute': 29})?>
+
+However the ``*`` and ``**`` arguments can only be use at the end of the
+argument list and positional arguments must always be before keyword arguments.
+
+A list of builtin functions can be found in a later chapter.
+
+
+Unary operators
+"""""""""""""""
+
+Arithmetic negation
++++++++++++++++++++
+
+The unary operator ``-`` inverts the sign of its operand, which must be an
+integer, float of boolean value::
+
+	<?code x = 42?><?print -x?>
+
+prints ``-42``. For ``-`` boolean values are treated as the numbers ``0`` and
+``1``, i.e.::
+
+	<?code x = True?><?print -x?>
+
+prints ``-1``.
+
+
+Binary negation
++++++++++++++++
+
+The unary operator ``~`` inverts the bits of an integer or boolean value.
+Non-negative numbers are interpreted as having an unlimited number of leading
+``0`` bits and negative numbers are interpreted as having an unlimited number
+of leading ``1`` bits. The means that ``~x`` will be negative if ``x`` is
+non-negative and vice versa.
+
+
+Boolean negation
+++++++++++++++++
+
+The unary operator ``not`` inverts the truth value of its operand. I.e.
+``not x`` is ``True`` for ``None``, ``False``, the undefined value, ``0``,
+``0.0``, empty lists, strings, dictionaries and other empty container and
+``False`` for everything else.
+
+
+Multiplicative binary operators
+"""""""""""""""""""""""""""""""
+
+Multiplication
+++++++++++++++
+
+The multiplication operator ``*`` returns the arithmetic product of its
+operands (which must be integer, float or boolean values). Furthermore it's
+possible to multiply a sequence (i.e. a string or list) with a non-negative
+integer to get a new sequences that repeats the items of the original sequence a
+number of times, e.g. ``"foo" * 2`` returns ``"foofoo"`` and ``[1, 2, 3] * 3``
+return ``[1, 2, 3, 1, 2, 3, 1, 2, 3]``. Multiplying with ``0`` returns an empty
+string or list.
+
+True division
++++++++++++++
+
+The true division operator ``/`` returns the quotient of its operands (which
+must be integer, float or boolean values). The result is always a float value.
+``1/2`` returns ``0.5``.
+
+
+Floor division
+++++++++++++++
+
+The float division operator ``//`` returns the quotient of its operands (which
+must be integer, float or boolean values) rounded down to an integer. If any of
+the operands is a float the result is a float too, otherwise it's an integer.
+
+``1//2`` returns ``0``.
+
+
+Modulo
+++++++
+
+The modulo operator ``%`` returns the remainder from the division of the first
+operand by the second, e.g. ``15 % 7`` returns ``1``.
+
+
+Additive binary operators
+"""""""""""""""""""""""""
+
+Addition
+++++++++
+
+The addition operator ``+`` returns the sum of its operands (which must be
+integer, float or boolean values). Furthermore sequences of the same type can be
+added, so ``"foo" + "bar"`` returns ``"foobar"`` and ``[1, 2] + [3, 4]`` returns
+``[1, 2, 3, 4]``.
+
+
+Substraction
+++++++++++++
+
+The substraction operator ``-`` returns the difference of its operands (which
+must be integer, float or boolean values).
+
+
+Bit shift operators
+"""""""""""""""""""
+
+Binary left shift operator
+++++++++++++++++++++++++++
+
+The binary left shift operator ``<<`` shifts the bits of its first operand (an
+integer or boolean) to the left by the number of positions given by the second
+operand (which must also be an integer or boolean).
+
+Binary right shift operator
++++++++++++++++++++++++++++
+
+The binary right shift operator ``>>`` shifts the bits of its first operand (an
+integer or boolean) to the right by the number of positions given by the second
+operand (which must also be an integer or boolean).
+
+
+Binary bitwise and operator
+"""""""""""""""""""""""""""
+
+The bitwise and operator ``&`` returns the bitwise "and" combination of its
+operands (which must be integer of boolean values). E.g. ``6 & 3`` returns ``2``.
+
+As with the unary operator ``~``, negative numbers are interpreted as having an
+unlimited number of leading ``1`` bits.
+
+
+Binary bitwise exclusive or operator
+""""""""""""""""""""""""""""""""""""
+
+The bitwise exclusive or operator ``^`` returns the bitwise exclusive "or"
+combination of its operands (which must be integer of boolean values).
+E.g. ``6 ^ 3`` returns ``5``.
+
+Negative numbers are again interpreted as having an unlimited number of leading
+``1`` bits.
+
+
+Binary bitwise inclusive or operator
+""""""""""""""""""""""""""""""""""""
+
+The bitwise inclusive or operator ``|`` returns the bitwise inclusive "or"
+combination of its operands (which must be integer of boolean values).
+E.g. ``6 | 3`` returns ``7``.
+
+Negative numbers are again interpreted as having an unlimited number of leading
+``1`` bits.
+
+
+Binary comparison operators
+"""""""""""""""""""""""""""
+
+The comparison operators ``==``, ``!=``, ``<``, ``<=``, ``>`` and ``>=`` compare
+the value of the two operands. ``==`` and ``!=`` support comparison of all
+types of object. All others support comparsison of "compatible" objects, which
+means all "number" objects (integer, float and boolean) can be compared with
+each other, all other objects can only be compared to objects of the same type.
+
+
+Containment tests
+"""""""""""""""""
+
+The ``in`` operator
++++++++++++++++++++
+
+The ``in`` operator test whether the first operand is contained in the second
+operand. In the expression ``a in b`` the following type combinations are
+supported:
 
 *	string, string: Checks whether ``a`` is a substring of ``b``.
 *	any object, list: Checks whether the object ``a`` is in the list ``b``
@@ -476,37 +709,44 @@ Containment test via the ``in`` operator can be done, in the expression
 	(Note that some implementations might support keys other than strings too.
 	E.g. Python and Java do, Javascript doesn't.)
 
-The inverted containment test (via ``not in``) is available too.
+The ``not in`` operator
++++++++++++++++++++++++
 
-If expressions are supported too: ``"foo" if cond else "bar"`` is ``"foo"``, if
-``cond`` is true, else ``"bar"``.
+The ``not in`` operator returns the inverted result of the ``in`` operator, i.e.
+it tests whether the first operand is not contained in the second operand.
 
-Attribute access in the template code maps to dictionary style getitem access
-in the data object::
 
-	from ll import ul4c
-	tmpl = ul4c.Template("<?print data.foo?>")
-	print(tmpl.renders(data=dict(foo="bar")))
+Boolean "and" operator
+""""""""""""""""""""""
 
-However getitem style access in the template is still possible::
+The binary operator ``and`` returns whether both of its operands are true.
+It work like in Python by short-circuiting operand evaluation, i.e. if the
+result is clear from the first operand the seconds won't be evaluated.
 
-	from ll import ul4c
-	tmpl = ul4c.Template("<?print data['foo']?>")
-	print(tmpl.renders(data=dict(foo="bar")))
+Furthermore ``and``  always return one of the operands.
 
-UL4 also supports generator expressions::
+So ``a and b`` first evaluates ``a``; if ``a`` is false, its value is returned;
+otherwise, ``b`` is evaluated and the resulting value is returned.
 
-	<?print ", ".join("(" + c + ")" for c in "gurk")?>
 
-will output::
+Boolean "or" operator
+"""""""""""""""""""""
 
-	(g), (u), (r), (k)
+The binary operator ``or`` returns whether any of it's operands is true. Like
+``and`` evaluation is short-circuited and one of the operands is returned.
 
-Outside of function/method arguments brackets are required around generator
-expressions::
+For example, the following code will output the ``data.title`` object if it's
+true, else ``data.id`` will be output::
 
-	<?code ge = ("(" + c + ")" for c in "gurk")?>
-	<?print ", ".join(ge)?>
+	<?printx data.title or data.id?>
+
+
+Conditional expressions
+"""""""""""""""""""""""
+
+The conditional expression (also called an "inline if") ``a if c else b`` first
+evaluates the condition ``c``. If it is true ``a`` is evaluated and returned
+else ``b`` is evaluated and returned.
 
 
 Functions
@@ -1337,7 +1577,7 @@ the first ``<?return?>`` tag encountered::
 		<?end for?>
 	"""
 
-	function = ul4c.Function(code)
+	function = ul4c.Template(code)
 
 	output = function(data=["Python", "Java", "Javascript", "PHP"]))
 
