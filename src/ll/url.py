@@ -861,7 +861,6 @@ class SshConnection(Connection):
 			unicode = str
 
 		files = {}
-		iterators = {}
 
 		def ownergroup(filename, owner=None, group=None):
 			if owner is not None or group is not None:
@@ -898,46 +897,13 @@ class SshConnection(Connection):
 				return False
 			return True
 
-		def _walkall(base, name, include, exclude, enterdir, skipdir, which):
-			if name:
-				fullname = os.path.join(base, name)
-			else:
-				fullname = base
-			for childname in sorted(os.listdir(fullname)):
-				fullchildname = os.path.join(fullname, childname)
-				relchildname = os.path.join(name, childname)
+		def listdir(dirname):
+			result = []
+			for childname in sorted(os.listdir(dirname)):
+				fullchildname = os.path.join(dirname, childname)
 				isdir = os.path.isdir(fullchildname)
-				if _match(childname, include, exclude) and which[isdir]:
-					url = request.pathname2url(relchildname)
-					if not isinstance(url, unicode):
-						url = unicode(url)
-					if isdir:
-						url += "/"
-					yield url
-				if isdir and _match(childname, enterdirs, skipdirs):
-					for subchild in _walk(base, relchildname, include, exclude, enterdirs, skipdirs, which):
-						yield subchild
-
-		def walkall(filename, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
-			include = compilepattern(include, ignorecase)
-			exclude = compilepattern(exclude, ignorecase)
-			enterdir = compilepattern(enterdir, ignorecase)
-			skipdir = compilepattern(skipdir, ignorecase)
-			return _walk(filename, "", include, exclude, enterdir, skipdir, (True, True))
-
-		def walkfiles(filename, include=None, exclude=None, enterdir=None, skipdir=None):
-			include = compilepattern(include, ignorecase)
-			exclude = compilepattern(exclude, ignorecase)
-			enterdir = compilepattern(enterdir, ignorecase)
-			skipdir = compilepattern(skipdir, ignorecase)
-			return _walk(filename, "", include, exclude, enterdir, skipdir, (True, False))
-
-		def walkdirs(filename, include=None, exclude=None, enterdir=None, skipdir=None):
-			include = compilepattern(include, ignorecase)
-			exclude = compilepattern(exclude, ignorecase)
-			enterdir = compilepattern(enterdir, ignorecase)
-			skipdir = compilepattern(skipdir, ignorecase)
-			return _walk(filename, "", include, exclude, enterdir, skipdir, (False, True))
+				result.append((isdir, childname))
+			return result
 
 		while True:
 			(filename, cmdname, args, kwargs) = channel.receive()
@@ -1034,46 +1000,7 @@ class SshConnection(Connection):
 				elif cmdname == "makefifo":
 					data = os.makefifo(filename)
 				elif cmdname == "listdir":
-					include = compilepattern(args[0], args[2])
-					exclude = compilepattern(args[1], args[2])
-					data = []
-					for f in os.listdir(filename):
-						if matchpatterns(f, include, exclude):
-							data.append((os.path.isdir(os.path.join(filename, f)), f))
-				elif cmdname == "files":
-					include = compilepattern(args[0], args[2])
-					exclude = compilepattern(args[1], args[2])
-					data = []
-					for f in os.listdir(filename):
-						p = os.path.join(filename, f)
-						if os.path.isfile(p) and matchpatterns(f, include, exclude):
-							data.append(f)
-				elif cmdname == "dirs":
-					include = compilepattern(args[0], args[2])
-					exclude = compilepattern(args[1], args[2])
-					data = []
-					for f in os.listdir(filename):
-						p = os.path.join(filename, f)
-						if os.path.isdir(p) and matchpatterns(f, include, exclude):
-							data.append(f)
-				elif cmdname == "walk":
-					iterator = walk(filename, *args, **kwargs)
-					data = id(iterator)
-					iterators[data] = iterator
-				elif cmdname == "walkfiles":
-					iterator = walkfiles(filename, *args, **kwargs)
-					data = id(iterator)
-					iterators[data] = iterator
-				elif cmdname == "walkdirs":
-					iterator = walkdirs(filename, *args, **kwargs)
-					data = id(iterator)
-					iterators[data] = iterator
-				elif cmdname == "iteratornext":
-					try:
-						data = next(iterators[filename])
-					except StopIteration:
-						del iterators[filename]
-						raise
+					data = listdir(filename)
 				elif cmdname == "next":
 					data = next(files[filename])
 				else:
@@ -1214,41 +1141,49 @@ class SshConnection(Connection):
 	def symlink(self, url, target):
 		return self._cmdwithtarget("symlink", url, target)
 
-	def listdir(self, url, include=None, exclude=None, ignorecase=False):
-		filename = self._url2filename(url)
-		result = []
-		for (isdir, name) in self._send(filename, "listdir", include, exclude, ignorecase):
-			name = urllib.request.pathname2url(name)
+	def _walk(self, cursor, base, name):
+		def _event(url, event):
+			cursor.url = url
+			cursor.event = event
+			cursor.isdir = event != "file"
+			cursor.isfile = not cursor.isdir
+			return cursor
+
+		if name:
+			fullname = os.path.join(base, name)
+		else:
+			fullname = base
+		for (isdir, childname) in self._send(fullname, "listdir"):
+			fullchildname = os.path.join(fullname, childname)
+			relchildname = os.path.join(name, childname) if name else childname
+			emitbeforedir = cursor.beforedir
+			emitafterdir = cursor.afterdir
+			emitfile = cursor.file
+			enterdir = cursor.enterdir
 			if isdir:
-				name += "/"
-			result.append(URL(name))
-		return result
+				if emitbeforedir or emitafterdir:
+					dirurl = Dir(relchildname, scheme=None)
+				if emitbeforedir:
+					yield _event(dirurl, "beforedir")
+					# The user may have altered ``cursor`` attributes outside the generator, so we refetch them
+					emitbeforedir = cursor.beforedir
+					emitafterdir = cursor.afterdir
+					emitfile = cursor.file
+					enterdir = cursor.enterdir
+					cursor.restore()
+				if enterdir:
+					yield from self._walk(cursor, base, relchildname)
+				if emitafterdir:
+					yield _event(dirurl, "afterdir")
+					cursor.restore()
+			else:
+				if emitfile:
+					yield _event(File(relchildname, scheme=None), "file")
+					cursor.restore()
 
-	def files(self, url, include=None, exclude=None, ignorecase=False):
-		filename = self._url2filename(url)
-		return [URL(urllib.request.pathname2url(name)) for name in self._send(filename, "files", include, exclude, ignorecase)]
-
-	def dirs(self, url, include=None, exclude=None, ignorecase=False):
-		filename = self._url2filename(url)
-		return [URL(urllib.request.pathname2url(name)+"/") for name in self._send(filename, "dirs", include, exclude, ignorecase)]
-
-	def walkall(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
-		filename = self._url2filename(url)
-		iterator = self._send(filename, "walk", include, exclude, enterdir, skipdir, ignorecase)
-		while True:
-			yield URL(self._send(iterator, "iteratornext"))
-
-	def walkfiles(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
-		filename = self._url2filename(url)
-		iterator = self._send(filename, "walkfiles", include, exclude, enterdir, skipdir, ignorecase)
-		while True:
-			yield URL(self._send(iterator, "iteratornext"))
-
-	def walkdirs(self, url, include=None, exclude=None, enterdir=None, skipdir=None, ignorecase=False):
-		filename = self._url2filename(url)
-		iterator = self._send(filename, "walkdirs", include, exclude, enterdir, skipdir, ignorecase)
-		while True:
-			yield URL(self._send(iterator, "iteratornext"))
+	def walk(self, url, beforedir=True, afterdir=False, file=True, enterdir=True):
+		cursor = Cursor(url, beforedir=beforedir, afterdir=afterdir, file=file, enterdir=enterdir)
+		return self._walk(cursor, self._url2filename(url), "")
 
 	def open(self, url, *args, **kwargs):
 		return RemoteFileResource(self, url, *args, **kwargs)
