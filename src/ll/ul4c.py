@@ -3384,6 +3384,72 @@ def function_round(x, digits=0):
 	return result
 
 
+@AST.makefunction
+def function_floor(x, digits=0):
+	if digits:
+		threshhold = 10**digits
+		result = math.floor(x*threshhold)/threshhold
+		if digits < 0:
+			return int(result)
+		return result
+	else:
+		return math.floor(x)
+
+
+@AST.makefunction
+def function_ceil(x, digits=0):
+	if digits:
+		threshhold = 10**digits
+		result = math.ceil(x*threshhold)/threshhold
+		if digits < 0:
+			return int(result)
+		return result
+	else:
+		return math.ceil(x)
+
+
+AST.functions["pi"] = math.pi
+AST.functions["tau"] = 2*math.pi
+
+
+@AST.makefunction
+def function_sqrt(x):
+	return math.sqrt(x)
+
+
+@AST.makefunction
+def function_cos(x):
+	return math.cos(x)
+
+
+@AST.makefunction
+def function_sin(x):
+	return math.sin(x)
+
+
+@AST.makefunction
+def function_tan(x):
+	return math.tan(x)
+
+
+@AST.makefunction
+def function_exp(x):
+	return math.exp(x)
+
+
+@AST.makefunction
+def function_log(x, base=None):
+	if base is None:
+		return math.log(x)
+	else:
+		return math.log(x, base)
+
+
+@AST.makefunction
+def function_pow(x, y):
+	return math.pow(x, y)
+
+
 class TemplateClosure:
 	ul4attrs = {"location", "endlocation", "name", "source", "startdelim", "enddelim", "content", "render", "renders"}
 
