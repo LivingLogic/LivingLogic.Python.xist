@@ -11,7 +11,7 @@ Changes in 5.9 (released ??/??/2014)
 	SQLite and MySQL databases can be disallowed with the options
 	:option:`--oracle`, :option:`--sqlite` and :option:`--mysql`. Executing
 	system commands can be disallowed with the option :option:`--system`.
-	SQL code that doesn't return results can be executed with the new method
+	SQL code that doesn't return results can be executed with the new
 	:class:`Connection` method :meth:`execute`. "out" parameters can now be used
 	via variable objects that can be created with the :meth:`int`, :meth:`number`,
 	:meth:`str`, :meth:`clob` and :meth:`date` methods.
@@ -20,24 +20,32 @@ Changes in 5.9 (released ??/??/2014)
 	have a method :meth:`exists` that returns whether the object exists in the
 	target database.
 
+*	URLs have a new :meth:`walk` method that works similar to the :meth:`walk`
+	method for XIST trees: :meth:`walk` is a generator that returns a
+	:class:`Cursor` object that contains information about the state of the
+	directory traversal and can be used to influence which parts of the directory
+	hierarchy are traversed.
+
 *	The URL methods :meth:`listdir`, :meth:`files`, :meth:`dirs` are generators
 	now.
 
-*	The URL methods :meth:`listdir`, :meth:`files`, :meth:`dirs`,
-	:meth:`walk`, :meth:`walkfiles` and :meth:`walkdirs` have been enhanced:
+*	The old URL method :meth:`walk` has been renamed to :meth:`walkall` and
+	meth:`listdir`, :meth:`files`, :meth:`dirs`, :meth:`walkall`,
+	:meth:`walkfiles` and :meth:`walkdirs` have been enhanced:
 
 	:meth:`listdir`, :meth:`files` and :meth:`dirs` now have arguments
 	``include`` and ``exclude`` instead of ``pattern`` (which worked like
 	``include`` does now). Also patterns can now be lists of strings.
 
-	:meth:`walk`, :meth:`walkfiles` and :meth:`walkdirs` gained the same arguments.
-	Additionally the arguments ``enterdir`` and ``skipdir`` can be used to skip
-	directories during traversal.
+	:meth:`walkall`, :meth:`walkfiles` and :meth:`walkdirs` gained the same
+	arguments. Additionally the arguments ``enterdir`` and ``skipdir`` can be
+	used to skip directories during traversal.
 
-*	Oracle URLs now support the methods :meth:`walk`, :meth:`walkfiles` and
-	:meth:`walkdirs` (with the new arguments ``include``, ``exclude``,
-	``enterdir`` and ``skipdir``). The methods :meth:`listdir`, :meth:`files`
-	and :meth:`dirs` support the arguments ``include`` and ``exclude``.
+*	Oracle URLs now support the methods :meth:`walk`, :meth:`walkall`,
+	:meth:`walkfiles` and :meth:`walkdirs` (with the new arguments ``include``,
+	``exclude``, ``enterdir`` and ``skipdir``). The methods :meth:`listdir`,
+	:meth:`files` and :meth:`dirs` support the arguments ``include`` and
+	``exclude``.
 
 *	The various directory traversal methods in :class:`ll.url.URL` will now
 	output URLs in sorted order.
