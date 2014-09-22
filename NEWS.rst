@@ -1,4 +1,4 @@
-Changes in 5.9 (released 11/22/2014)
+Changes in 5.9 (released 09/22/2014)
 ------------------------------------
 
 *	A script ``udiff`` has been added for doing line by line comparisons of
