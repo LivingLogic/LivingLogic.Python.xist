@@ -379,19 +379,9 @@ class Connection(Connection):
 		``"flat"``
 			Unordered.
 
- 		:obj:`schema` specifies from which user tables should be yielded:
-
-		``"user"``
-			Only tables belonging to the current user (and those objects these
-			depend on) will be yielded (i.e. tables from the ``USER_TABLES`` view).
-
-		``"all"``
-			All tables accessible to the current user will be yielded (i.e. tables
-			from the ``ALL_TABLES`` views).
-
-		``"dba"``
-			All tables from all users will be yielded (i.e. tables from the
-			``DBA_TABLES`` view, this requires the appropriate privileges).
+		:obj:`owner` specifies from which user tables should be yielded. It can be
+		:const:`None` (for the current user), :const:`ALL` (for all users
+		(the default)) or a user name.
 
 		Tables that are materialized views will be skipped in all cases.
 		"""

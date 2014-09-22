@@ -14,7 +14,8 @@
 Purpose
 -------
 
-``orareindex`` recreates/rebuild all indexes in an Oracle database.
+``orareindex`` recreates/rebuild all indexes and unique constraints in an
+Oracle database schema.
 
 
 Options
@@ -38,7 +39,7 @@ Options
 		but is executed directly.
 
 	``-r``, ``--rebuild`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If given the script uses ``ALTER INDEX ... REBUILD`` to rebuild indexes
+		If given, the script uses ``ALTER INDEX ... REBUILD`` to rebuild indexes
 		instead of dropping and recreating them.
 """
 
