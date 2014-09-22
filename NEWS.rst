@@ -73,6 +73,12 @@ Changes in 5.9 (released ??/??/2014)
 *	The evaluation order of keyword arguments in calls to UL4 functions/templates
 	has been fixed.
 
+*	The test suite for UL4 now runs the Javascript versions of the templates not
+	only on V8__ but on Spidermonkey__ too.
+
+	__ https://en.wikipedia.org/wiki/V8_%28JavaScript_engine%29
+	__ https://en.wikipedia.org/wiki/SpiderMonkey_%28software%29
+
 
 Changes in 5.8.1 (released 06/18/2014)
 --------------------------------------
