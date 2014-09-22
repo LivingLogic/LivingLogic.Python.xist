@@ -392,8 +392,8 @@ def test_url():
 
 
 @pytest.mark.db
-def test_exits(db_data):
+def test_exists(db_data):
 	db = orasql.connect(db_data.dbname)
 
-	assert orasql.Procedure("ORASQL_TESTPROCEDURE").exits(db)
-	assert not orasql.Procedure("ORASQL_NOTTESTPROCEDURE").exits(db)
+	assert orasql.Procedure("ORASQL_TESTPROCEDURE").exists(db)
+	assert not orasql.Procedure("ORASQL_NOTTESTPROCEDURE").exists(db)
