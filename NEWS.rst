@@ -36,7 +36,7 @@ Changes in 5.9 (released ??/??/2014)
 	now.
 
 *	The old URL method :meth:`walk` has been renamed to :meth:`walkall` and
-	meth:`listdir`, :meth:`files`, :meth:`dirs`, :meth:`walkall`,
+	:meth:`listdir`, :meth:`files`, :meth:`dirs`, :meth:`walkall`,
 	:meth:`walkfiles` and :meth:`walkdirs` have been enhanced:
 
 	:meth:`listdir`, :meth:`files` and :meth:`dirs` now have arguments
