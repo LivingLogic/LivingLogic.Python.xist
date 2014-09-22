@@ -16,6 +16,9 @@ Changes in 5.9 (released ??/??/2014)
 	via variable objects that can be created with the :meth:`int`, :meth:`number`,
 	:meth:`str`, :meth:`clob` and :meth:`date` methods.
 
+*	A new script ``orareindex`` has been added that can be used to
+	rebuild/recreate all indexes and unique constraints in an Oracle database.
+
 *	All objects in :mod:`ll.orasql` that represent objects in the database now
 	have a method :meth:`exists` that returns whether the object exists in the
 	target database.
