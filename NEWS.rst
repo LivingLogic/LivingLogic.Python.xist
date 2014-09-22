@@ -20,6 +20,9 @@ Changes in 5.9 (released ??/??/2014)
 	have a method :meth:`exists` that returns whether the object exists in the
 	target database.
 
+*	:class:`ll.orasql.Index` has a new method :meth:`rebuildddl` that returns
+	SQL for rebuilding the index.
+
 *	URLs have a new :meth:`walk` method that works similar to the :meth:`walk`
 	method for XIST trees: :meth:`walk` is a generator that returns a
 	:class:`Cursor` object that contains information about the state of the
