@@ -15,7 +15,7 @@ import sys, os, datetime
 import pytest
 
 from ll import orasql, url
-from ll.orasql.scripts import oracreate, oradrop, oradiff, oramerge, oragrant, orafind
+from ll.orasql.scripts import oracreate, oradrop, oradiff, oramerge, oragrant, orafind, oradelete, orareindex
 
 
 dbname = os.environ.get("LL_ORASQL_TEST_CONNECT") # Need a connectstring as environment var
@@ -301,6 +301,22 @@ def test_scripts_orafind():
 		# Test orafind
 		args = "--ignore-case yes --color=yes {0} foo".format(dbname)
 		orafind.main(args.split())
+
+
+@pytest.mark.db
+def test_scripts_oradelete():
+	if dbname:
+		# Test oradelete without executing anything
+		args = "--color=yes --verbose=yes {}".format(dbname)
+		oradelete.main(args.split())
+
+
+@pytest.mark.db
+def test_scripts_orareindex():
+	if dbname:
+		# Test orareindex without executing anything
+		args = "--color=yes --verbose=yes {}".format(dbname)
+		orareindex.main(args.split())
 
 
 @pytest.mark.db
