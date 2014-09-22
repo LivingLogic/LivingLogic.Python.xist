@@ -174,5 +174,6 @@ def main(args=None):
 					sql = obj.dropddl(term=True) + obj.createddl(term=True)
 					stdout.write(sql)
 
+
 if __name__ == "__main__":
 	sys.exit(main())
