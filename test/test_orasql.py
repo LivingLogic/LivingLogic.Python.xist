@@ -37,8 +37,8 @@ class Data:
 		for obj in db.iterobjects(None):
 			if obj.owner is None and "$" not in obj.name:
 				self._objlist.append(obj)
-				references = [o for o in obj.iterreferences() if o.owner is None]
-				referencedby = [o for o in obj.iterreferencedby() if o.owner is None]
+				references = [o for o in obj.iterreferences() if o.owner is None and "$" not in o.name]
+				referencedby = [o for o in obj.iterreferencedby() if o.owner is None and "$" not in o.name]
 				self._objdict[obj] = (references, referencedby)
 
 	def objlist(self):
