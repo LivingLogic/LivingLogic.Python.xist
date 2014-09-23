@@ -190,7 +190,7 @@ def main(args=None):
 		lines2 = [Line(line[:-1], args.blank) for line in url2.open("r", encoding=args.encoding, errors=args.errors)]
 
 		if args.verbose:
-			stdout.writeln(header("", s4comment, "diff {} {}".format(url1, url2)))
+			stderr.writeln(header("", s4comment, "diff {} {}".format(url1, url2)))
 		started = False
 		for group in difflib.SequenceMatcher(None, lines1, lines2).get_grouped_opcodes(args.context):
 			if not started:
