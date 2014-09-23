@@ -38,7 +38,7 @@ XIST also includes the following modules and packages:
 
 	__ https://docs.djangoproject.com/en/1.5/topics/templates/
 
-	There are implementations for Python, Java, Javascript and PHP.
+	There are implementations for Python, Java and Javascript.
 
 *	:mod:`ll.ul4on` provides functions for encoding and decoding a lightweight
 	machine-readable text-based format for serializing the object types supported
