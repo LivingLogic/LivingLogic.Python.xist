@@ -3861,6 +3861,12 @@ def test_custommethods():
 
 
 @pytest.mark.ul4
+def test_keyword_evaluation_order(r):
+	assert "12;" == r("<?def t?><?print x?>;<?print y?><?end def?><?code t.render(x=print(1), y=print(2))?>")
+	assert "21;" == r("<?def t?><?print x?>;<?print y?><?end def?><?code t.render(y=print(2), x=print(1))?>")
+
+
+@pytest.mark.ul4
 def test_setlvalue(r):
 	assert "bar" == r("<?code d = {}?><?code d.foo = 'bar'?><?print d.foo?>")
 	assert "bar" == r("<?code d = {}?><?code d['foo'] = 'bar'?><?print d['foo']?>")
