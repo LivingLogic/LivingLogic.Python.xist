@@ -2,7 +2,7 @@ Changes in 5.9.1 (released 09/29/2014)
 --------------------------------------
 
 *	Fixed the precedence of the boolean ``not`` operator in UL4: Now it has a
-	lower precedence than the comparison operator. i.e. ``not x in y`` is parsed
+	lower precedence than the comparison operators. i.e. ``not x in y`` is parsed
 	as ``not (x in y)``.
 
 
