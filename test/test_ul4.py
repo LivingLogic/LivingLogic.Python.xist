@@ -3960,6 +3960,11 @@ def test_endless_recursion(r):
 
 
 @pytest.mark.ul4
+def test_not_containment_precedence(r):
+	assert "True" == r("<?print not 'x' in 'gurk'?>")
+
+
+@pytest.mark.ul4
 def test_jssource():
 	t = universaltemplate()
 	t.jssource()

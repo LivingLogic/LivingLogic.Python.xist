@@ -445,7 +445,7 @@ expr_subscript returns [node]
 		)*
 	;
 
-/* Negation/bitwise not/not */
+/* Negation/bitwise not */
 expr_unary returns [node]
 	:
 		e1=expr_subscript { $node = $e1.node; }
@@ -453,8 +453,6 @@ expr_unary returns [node]
 		minus='-' e2=expr_unary { $node = ul4c.Neg.make(self.location, self.start($minus), $e2.node.end, $e2.node) }
 	|
 		bitnot='~' e2=expr_unary { $node = ul4c.BitNot.make(self.location, self.start($bitnot), $e2.node.end, $e2.node) }
-	|
-		n='not' e2=expr_unary { $node = ul4c.Not.make(self.location, self.start($n), $e2.node.end, $e2.node) }
 	;
 
 
@@ -551,32 +549,31 @@ expr_cmp returns [node]
 				'>' { cls = ul4c.GT; }
 			|
 				'>=' { cls = ul4c.GE; }
+			|
+				'in' { cls = ul4c.Contains; }
+			|
+				'not' 'in' { cls = ul4c.NotContains; }
 			)
 			e2=expr_bitor { $node = cls.make(self.location, $node.start, $e2.node.end, $node, $e2.node) }
 		)*
 	;
 
-/* "in"/"not in" operator */
-expr_contain returns [node]
+/* Boolean not */
+expr_not returns [node]
 	:
-		e1=expr_cmp { $node = $e1.node }
-		(
-			{ cls = ul4c.Contains }
-			(
-				'not' { cls = ul4c.NotContains }
-			)?
-			'in'
-			e2=expr_cmp { $node = cls.make(self.location, $node.start, $e2.node.end, $node, $e2.node) }
-		)?
+		e1=expr_cmp { $node = $e1.node; }
+	|
+		n='not' e2=expr_not { $node = ul4c.Not.make(self.location, self.start($n), $e2.node.end, $e2.node) }
 	;
+
 
 /* And operator */
 expr_and returns [node]
 	:
-		e1=expr_contain { $node = $e1.node; }
+		e1=expr_not { $node = $e1.node; }
 		(
 			'and'
-			e2=expr_contain { $node = ul4c.And(self.location, $node.start, $e2.node.end, $node, $e2.node) }
+			e2=expr_not { $node = ul4c.And(self.location, $node.start, $e2.node.end, $node, $e2.node) }
 		)*
 	;
 

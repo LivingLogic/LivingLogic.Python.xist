@@ -565,15 +565,6 @@ of leading ``1`` bits. The means that ``~x`` will be negative if ``x`` is
 non-negative and vice versa.
 
 
-Boolean negation
-++++++++++++++++
-
-The unary operator ``not`` inverts the truth value of its operand. I.e.
-``not x`` is ``True`` for ``None``, ``False``, the undefined value, ``0``,
-``0.0``, empty lists, strings, dictionaries and other empty container and
-``False`` for everything else.
-
-
 Multiplicative binary operators
 """""""""""""""""""""""""""""""
 
@@ -714,6 +705,15 @@ The ``not in`` operator
 
 The ``not in`` operator returns the inverted result of the ``in`` operator, i.e.
 it tests whether the first operand is not contained in the second operand.
+
+
+Boolean negation
+""""""""""""""""
+
+The unary operator ``not`` inverts the truth value of its operand. I.e.
+``not x`` is ``True`` for ``None``, ``False``, the undefined value, ``0``,
+``0.0``, empty lists, strings, dictionaries and other empty container and
+``False`` for everything else.
 
 
 Boolean "and" operator
