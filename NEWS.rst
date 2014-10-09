@@ -1,3 +1,14 @@
+Changes in 5.10 (released 10/09/2014)
+-------------------------------------
+
+*	Old sisyphus logfiles can now be compressed automatically via ``gzip``,
+	``bzip2`` or ``lzma``.
+
+*	The functions :func:`misc.gzip` and :func:`misc.gunzip` have been removed
+	as Python 3.2 has the functions: :func:`gzip.compress` and
+	:func:`gzip.uncompress` which work the same.
+
+
 Changes in 5.9.1 (released 09/29/2014)
 --------------------------------------
 

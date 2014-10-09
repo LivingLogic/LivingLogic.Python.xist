@@ -1,14 +1,25 @@
+Migrating to version 5.10
+=========================
+
+Changes to ``misc``
+-------------------
+
+*	The functions :func:`misc.gzip` and :func:`misc.gunzip` have been removed
+	as Python 3.2 has the functions: :func:`gzip.compress` and
+	:func:`gzip.uncompress`, which do the same.
+
+
 Migrating to version 5.9
 ========================
 
 Changes to ``db2ul4``
------------------------
+---------------------
 
 *	The script ``db2ul4`` has been renamed to ``rul4``.
 
 
 Changes to ``ll.url``
------------------------
+---------------------
 
 *	The argument ``pattern`` of the URL methods :meth:`listdir`, :meth:`files`,
 	:meth:`dirs`, :meth:`walk`, :meth:`walkfiles` and :meth:`walkdirs` has been

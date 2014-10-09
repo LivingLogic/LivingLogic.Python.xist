@@ -140,6 +140,22 @@ text and HTML format as well as as a JSON attachment.
 
 
 import sys, os, signal, fcntl, traceback, errno, pprint, datetime, argparse, tokenize, json, smtplib
+
+try:
+	import gzip
+except ImportError:
+	gzip = None
+
+try:
+	import bz2
+except ImportError:
+	bz2 = None
+
+try:
+	import lzma
+except ImportError:
+	lzma = None
+
 from email.mime import text, application, multipart
 from email import encoders
 
@@ -279,9 +295,17 @@ class Job(object):
 		itself).
 
 	``keepfilelogs`` : :option:`--keepfilelogs`
-		The number of days the logfiles are kept. Old logfiles (i.e. any file in
-		the same directory as the current logfile that's more than
+		The number of days the logfiles are kept. Old logfiles (i.e. all files in
+		the same directory as the current logfile that are more than
 		``keepfilelogs`` days old) will be removed at the end of the job.
+
+	``compressfilelogs`` : :option:`--compressfilelogs`
+		The number of days after which log files are compressed (if they aren't
+		deleted via ``keepfilelogs``).
+
+	``compressmode`` : :option:`--compressmode`
+		How to compress the logfiles. Possible values are: ``"gzip"``, ``"bzip2"``
+		and ``"lzma"``.
 
 	``encoding`` : :option:`--encoding`
 		The encoding to be used for the logfile.
@@ -520,6 +544,8 @@ class Job(object):
 	"""
 
 	keepfilelogs = 30
+	compressfilelogs = 7
+	compressmode = "bzip2"
 
 	encoding = "utf-8"
 	errors = "strict"
@@ -561,6 +587,8 @@ class Job(object):
 		p.add_argument("-o", "--log2stdout", dest="log2stdout", help="Should the job log to stdout? (default: %(default)s)", action=misc.FlagAction, default=self.log2stdout)
 		p.add_argument("-e", "--log2stderr", dest="log2stderr", help="Should the job log to stderr? (default: %(default)s)", action=misc.FlagAction, default=self.log2stderr)
 		p.add_argument(      "--keepfilelogs", dest="keepfilelogs", metavar="DAYS", help="Number of days log files are kept (default: %(default)s)", type=float, default=self.keepfilelogs)
+		p.add_argument(      "--compressfilelogs", dest="compressfilelogs", metavar="DAYS", help="Number of days log after which log files are gzipped (default: %(default)s)", type=float, default=self.compressfilelogs)
+		p.add_argument(      "--compressmode", dest="compressmode", metavar="MODE", help="Method for compressing old log files (default: %(default)s)", choices=("gzip", "bzip2", "lzma"), default=self.compressmode)
 		p.add_argument(      "--encoding", dest="encoding", metavar="ENCODING", help="Encoding for the log file (default: %(default)s)", default=self.encoding)
 		p.add_argument(      "--errors", dest="errors", metavar="METHOD", help="Error handling method for encoding errors in log texts (default: %(default)s)", default=self.errors)
 		p.add_argument(      "--noisykills", dest="noisykills", help="Should a message be printed/failure email be sent if the maximum runtime is exceeded? (default: %(default)s)", action=misc.FlagAction, default=self.noisykills)
@@ -591,6 +619,8 @@ class Job(object):
 		self.log2stdout = args.log2stdout
 		self.log2stderr = args.log2stderr
 		self.keepfilelogs = datetime.timedelta(days=args.keepfilelogs)
+		self.compressfilelogs = datetime.timedelta(days=args.compressfilelogs)
+		self.compressmode = args.compressmode
 		self.encoding = args.encoding
 		self.errors = args.errors
 		self.notify = args.notify
@@ -988,26 +1018,72 @@ class URLResourceLogger(StreamLogger):
 
 	def close(self):
 		keepfilelogs = self.job.keepfilelogs
-		if keepfilelogs is not None:
-			removedany = False
+		compressfilelogs = self.job.compressfilelogs
+
+		if keepfilelogs is not None or compressfilelogs is not None:
 			if not isinstance(keepfilelogs, datetime.timedelta):
 				keepfilelogs = datetime.timedelta(days=keepfilelogs)
-			threshold = datetime.datetime.utcnow() - keepfilelogs # Files older that this will be deleted
+			if not isinstance(compressfilelogs, datetime.timedelta):
+				compressfilelogs = datetime.timedelta(days=compressfilelogs)
+			now = datetime.datetime.utcnow()
+			keepthreshold = now - keepfilelogs # Files older that this will be deleted
+			compressthreshold = now - compressfilelogs # Files older that this will be gzipped
 			logdir = self.stream.url.withoutfile()
+			removedany = False
+			compressedany = False
+			warnedcompressany = False
 			for fileurl in logdir/logdir.files():
 				fileurl = logdir/fileurl
-				# Never delete the current log file or link, even if keepfilelogs is 0
+				# Never delete/compress the current log file or link, even if keepfilelogs/compressfilelogs is 0
 				if fileurl in self.skipurls:
 					continue
-				# If the file is too old, delete it (note that this might delete files that were not produced by sisyphus)
-				if fileurl.mdate() < threshold:
+				# If the file is too old, delete/compress it (note that this might touch files that were not produced by sisyphus)
+				mdate = fileurl.mdate()
+				if mdate < keepthreshold:
 					if not removedany: # Only log this line for the first logfile we remove
 						# This will still work, as the file isn't closed yet.
 						self.job.log.sisyphus.info("Removing logfiles older than {}".format(keepfilelogs))
 						removedany = True
-					self.job.log.sisyphus.info("Removing logfile {}".format(fileurl.local()))
-					fileurl.remove()
-		self.stream.close()
+					self.remove(fileurl)
+				elif mdate < compressthreshold:
+					if not fileurl.file.endswith((".gz", ".bz2", ".xz")):
+						if (self.job.compressmode == "gzip" and gzip is None) or (self.job.compressmode == "gzip2" and bz2 is None) or (self.job.compressmode == "lzma" and lzma is None):
+							if not warnedcompressany:
+								self.job.log.sisyphus.warning("{} compression not available, leaving log files uncompressed".format(self.job.compressmode))
+								warnedcompressany = True
+						else:
+							if not compressedany:
+								self.job.log.sisyphus.info("Compressing logfiles older than {} via {}".format(compressfilelogs, self.job.compressmode))
+								compressedany = True
+							self.compress(fileurl)
+
+	def remove(self, fileurl):
+		self.job.log.sisyphus.info("Removing logfile {}".format(fileurl.local()))
+		fileurl.remove()
+
+	def compress(self, fileurl, bufsize=65536):
+		if self.job.compressmode == "gzip":
+			compressor = gzip.GzipFile
+			ext = ".gz"
+		elif self.job.compressmode == "bzip2":
+			compressor = bz2.BZ2File
+			ext = ".bz2"
+		elif self.job.compressmode == "lzma":
+			compressor = lzma.LZMAFile
+			ext = ".xz"
+		else:
+			raise ValueError("unknown compressmode {!r}".format(self.job.compressmode))
+
+		filename = fileurl.local()
+		self.job.log.sisyphus.info("Compressing logfile {}".format(fileurl.local()))
+		with open(filename, "rb") as logfile:
+			with compressor(filename + ext, mode="wb") as compressedlogfile:
+				while True:
+					data = logfile.read(bufsize)
+					if not data:
+						break
+					compressedlogfile.write(data)
+		fileurl.remove()
 
 
 class EmailLogger(Logger):

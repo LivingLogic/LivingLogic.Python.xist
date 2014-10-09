@@ -450,27 +450,6 @@ def tokenizepi(string):
 		pos = pos2+2
 
 
-def gzip(data, compresslevel=9):
-	"""
-	Compresses the byte string :obj:`data` with gzip using the compression level
-	:obj:`compresslevel`.
-	"""
-	stream = io.BytesIO()
-	compressor = gzip_.GzipFile(filename="", mode="wb", fileobj=stream, compresslevel=compresslevel)
-	compressor.write(data)
-	compressor.close()
-	return stream.getvalue()
-
-
-def gunzip(data):
-	"""
-	Uncompresses the byte string :obj:`data` with gzip.
-	"""
-	stream = io.BytesIO(data)
-	compressor = gzip_.GzipFile(filename="", mode="rb", fileobj=stream)
-	return compressor.read()
-
-
 def itersplitat(string, positions):
 	"""
 	Split :obj:`string` at the positions specified in :obj:`positions`.

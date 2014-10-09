@@ -228,11 +228,6 @@ def test_itersplitat():
 	assert tuple(misc.itersplitat("20090609172345", (-10, -8, -6, -4, -2))) == ("2009", "06", "09", "17", "23", "45")
 
 
-def test_gzip():
-	assert misc.gunzip(misc.gzip(b"gurk", 0)) == b"gurk"
-	assert misc.gunzip(misc.gzip(b"gurk", 9)) == b"gurk"
-
-
 def test_jsmin():
 	assert misc.jsmin("gurk \t = \t 42;") == "gurk=42;"
 
