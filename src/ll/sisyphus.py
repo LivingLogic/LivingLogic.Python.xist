@@ -36,7 +36,7 @@ The following example illustrates the use of this module::
 	#!/usr/bin/env python
 
 	import os
-	import urllib
+	import urllib.request
 	from ll import sisyphus
 
 	class Fetch(sisyphus.Job):
@@ -52,7 +52,7 @@ The following example illustrates the use of this module::
 
 		def execute(self):
 			self.log("fetching data from {!r}".format(self.url))
-			data = urllib.urlopen(self.url).read()
+			data = urllib.request.urlopen(self.url).read()
 			datasize = len(data)
 			self.log("writing file {!r} ({:,} bytes)".format(self.tmpname, datasize))
 			open(self.tmpname, "wb").write(data)
