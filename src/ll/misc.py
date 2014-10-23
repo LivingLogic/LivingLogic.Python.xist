@@ -537,6 +537,8 @@ def javaexpr(obj):
 		return "java.util.Arrays.asList({})".format(", ".join(javaexpr(item) for item in obj))
 	elif isinstance(obj, collections.Mapping):
 		return "com.livinglogic.utils.MapUtils.makeMap({})".format(", ".join("{}, {}".format(javaexpr(key), javaexpr(value)) for (key, value) in obj.items()))
+	elif isinstance(obj, collections.Set):
+		return "com.livinglogic.utils.SetUtils.makeSet({})".format(", ".join(javaexpr(item) for item in obj))
 	elif isinstance(obj, ul4c.UndefinedKey):
 		return "new com.livinglogic.ul4.UndefinedKey({})".format(javaexpr(obj._key))
 	elif isinstance(obj, ul4c.UndefinedVariable):
