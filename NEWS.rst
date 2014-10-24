@@ -5,14 +5,14 @@ Changes in 5.11 (released ??/??/2014)
 
 *	:func:`misc.javaexpr` now supports sets.
 
-*	Sisyphus jobs now have a new method :meth:`tasks` that loops over an iterable
+*	Sisyphus jobs have a new method :meth:`tasks` that loops over an iterable
 	and calls :meth:`task` for each item::
 
 		items = sys.modules.items()
 		for (name, module) in self.tasks(items, "module", lambda kv: kv[0]):
 			self.log("module is {}".format(module))
 
-*	A new options :option:`--maxemailerrors` has been added to sisyphus jobs:
+*	An options :option:`--maxemailerrors` has been added to sisyphus jobs:
 	This options limits the number of exceptions and errors messages that
 	will get attached to the failure email.
 
