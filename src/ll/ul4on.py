@@ -45,6 +45,10 @@ supports most builtin Python types::
 	'S3|foo'
 	>>> ul4on.loads('S3|foo')
 	'foo'
+	>>> ul4on.dumps({1, 2, 3})
+	'Yi1|i2|i3|}'
+	>>> ul4on.loads('Yi1|i2|i3|}')
+	{1, 2, 3}
 	>>> import datetime
 	>>> ul4on.dumps(datetime.datetime.now())
 	'T20120716170817230158'
