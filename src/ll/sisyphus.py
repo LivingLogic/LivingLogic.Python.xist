@@ -822,6 +822,31 @@ class Job(object):
 		"""
 		return Task(self, type=type, name=name, index=index, count=count)
 
+	def tasks(self, iterable, type=None, name=str):
+		"""
+		:meth:`tasks` iterates through :obj:`iterable` and calls :meth:`task` for
+		each item. :obj:`index` and :obj:`count` will be passed to :meth:`task`
+		automatically. :obj:`type` and :obj:`name` will be used for the type and
+		name of the task. They can either be constants (in which case they will
+		be passed as is) or callables (in which case they will be called with the
+		item to get the type/name).
+
+		Example::
+
+			import sys, operator
+
+			items = sys.modules.items()
+			for (name, module) in self.tasks(items, "module", operator.itemgetter(0)):
+				self.log("module is {}".format(module))
+		"""
+		try:
+			count = len(iterable)
+		except TypeError:
+			count = None
+		for (i, item) in enumerate(iterable):
+			with self.task(type(item) if callable(type) else type, name(item) if callable(name) else name, i, count):
+				yield item
+
 	def _log(self, tags, obj):
 		"""
 		Log :obj:`obj` to the log file using :obj:`tags` as the list of tags.
