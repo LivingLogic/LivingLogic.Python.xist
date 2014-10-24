@@ -223,6 +223,38 @@ will create the dictionary::
 	{ "H": "(h)", "R": "(r)", "U": "(u)", "Z": "(z)"}
 
 
+Sets
+----
+
+Sets can be created like this:
+
+*	``{/}`` (this is the empty set)
+
+*	``{1, 2, 3}``
+
+*	``{"foo", "bar"}``
+
+The empty set also be created with the function ``set``::
+
+	``set()``.
+
+It is also possible to create a set with a set comprehension::
+
+	{c.upper() for c in "hurz" if c < "u"}
+
+This will create the set::
+
+	{"H", "R"}
+
+The ``if`` condition is optional, i.e.::
+
+	{c.upper() for c in "hurz"}
+
+will create the dictionary::
+
+	{"H", "R", "U", "Z"}
+
+
 The ``Undefined`` object
 ------------------------
 
@@ -971,6 +1003,13 @@ could be used to recreate the object.
 
 ``list(foo)`` converts ``foo`` to a list. This works for lists, strings and all
 iterable objects. Calling ``list`` without arguments returns an empty list.
+
+
+``set``
+"""""""
+
+``set(foo)`` converts ``foo`` to a set. This works for lists, strings and all
+iterable objects. Calling ``set`` without arguments returns an empty set.
 
 
 ``slice``

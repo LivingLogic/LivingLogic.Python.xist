@@ -221,6 +221,12 @@ class Encoder:
 					self.dump(key)
 					self.dump(item)
 				self.stream.write("}")
+			elif isinstance(obj, collections.Set):
+				self._record(obj)
+				self.stream.write("Y")
+				for item in obj:
+					self.dump(item)
+				self.stream.write("}")
 			else:
 				self._record(obj)
 				self.stream.write("O")
@@ -367,12 +373,23 @@ class Decoder:
 						self._keycache[key] = key
 					item = self._load(None)
 					value[key] = item
+		elif typecode in "yY":
+			value = set()
+			if typecode == "Y":
+				self._loading(value)
+			while True:
+				c = self.stream.read(1)
+				if c == "}":
+					return value
+				else:
+					item = self._load(c)
+					value.add(item)
 		elif typecode in "oO":
 			if typecode == "O":
 				# We have a problem here:
 				# We have to record the object we're loading *now*, so that it is available for backreferences.
 				# However until we've read the UL4ON name of the class, we can't create the object.
-				# So we push null to the backreference list for now and put the right object in this spot,
+				# So we push ``None`` to the backreference list for now and put the right object in this spot,
 				# once we've created it (This shouldn't be a problem, because during the time the backreference
 				# is wrong, only the class name is read, so our object won't be referenced).
 				oldpos = len(self._objects)

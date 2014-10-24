@@ -307,50 +307,85 @@ def _str(obj=""):
 		return ""
 	elif isinstance(obj, Undefined):
 		return ""
+	elif isinstance(obj, str):
+		return obj
+	elif isinstance(obj, (collections.Sequence, collections.Set, collections.Mapping)):
+		return _repr(obj)
 	else:
 		return str(obj)
 
 
-def _repr(obj, memo=None):
-	if memo is None:
-		memo = set()
+def _repr_helper(obj, seen):
 	from ll import color
 	if isinstance(obj, str):
-		return repr(obj)
+		yield repr(obj)
 	elif isinstance(obj, datetime.datetime):
 		s = str(obj.isoformat())
 		if s.endswith("T00:00:00"):
 			s = s[:-9]
-		return "@({})".format(s)
+		yield "@({})".format(s)
 	elif isinstance(obj, datetime.date):
-		return "@({})".format(obj.isoformat())
+		yield "@({})".format(obj.isoformat())
 	elif isinstance(obj, datetime.timedelta):
-		return repr(obj).partition(".")[-1]
+		yield repr(obj).partition(".")[-1]
 	elif isinstance(obj, color.Color):
 		if obj[3] == 0xff:
 			s = "#{:02x}{:02x}{:02x}".format(obj[0], obj[1], obj[2])
 			if s[1] == s[2] and s[3] == s[4] and s[5] == s[6]:
-				return "#{}{}{}".format(s[1], s[3], s[5])
-			return s
+				s = "#{}{}{}".format(s[1], s[3], s[5])
+			yield s
 		else:
 			s = "#{:02x}{:02x}{:02x}{:02x}".format(*obj)
 			if s[1] == s[2] and s[3] == s[4] and s[5] == s[6] and s[7] == s[8]:
-				return "#{}{}{}{}".format(s[1], s[3], s[5], s[7])
-			return s
+				s = "#{}{}{}{}".format(s[1], s[3], s[5], s[7])
+			yield s
 	elif isinstance(obj, collections.Sequence):
-		if id(obj) in memo:
-			return "[...]"
+		if id(obj) in seen:
+			yield "..."
 		else:
-			memo.add(id(obj))
-			return "[{}]".format(", ".join(_repr(item, memo) for item in obj))
+			seen.add(id(obj))
+			yield "["
+			for (i, item) in enumerate(obj):
+				if i:
+					yield ", "
+				yield from _repr_helper(item, seen)
+			yield "]"
+			seen.discard(id(obj))
+	elif isinstance(obj, collections.Set):
+		if id(obj) in seen:
+			yield "..."
+		else:
+			if obj:
+				seen.add(id(obj))
+				yield "{"
+				for (i, item) in enumerate(obj):
+					if i:
+						yield ", "
+					yield from _repr_helper(item, seen)
+				yield "}"
+				seen.discard(id(obj))
+			else:
+				yield "{/}"
 	elif isinstance(obj, collections.Mapping):
-		if id(obj) in memo:
-			return "{...}"
+		if id(obj) in seen:
+			yield "..."
 		else:
-			memo.add(id(obj))
-			return "{{{}}}".format(", ".join("{}: {}".format(_repr(key, memo), _repr(value, memo)) for (key, value) in obj.items()))
+			seen.add(id(obj))
+			yield "{"
+			for (i, (key, value)) in enumerate(obj.items()):
+				if i:
+					yield ", "
+				yield from _repr_helper(key, seen)
+				yield ": "
+				yield from _repr_helper(value, seen)
+			yield "}"
+			seen.discard(id(obj))
 	else:
-		return repr(obj)
+		yield repr(obj)
+
+
+def _repr(obj):
+	return "".join(_repr_helper(obj, set()))
 
 
 def _asjson(obj):
@@ -626,6 +661,122 @@ class ListComp(AST):
 			if self.condition is None or (yield from self.condition.eval(vars)):
 				item = (yield from self.item.eval(vars))
 				result.append(item)
+		return result
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.item)
+		encoder.dump(self.varname)
+		encoder.dump(self.container)
+		encoder.dump(self.condition)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.item = decoder.load()
+		self.varname = decoder.load()
+		self.container = decoder.load()
+		self.condition = decoder.load()
+
+
+@register("set")
+class Set(AST):
+	"""
+	AST nodes for loading a set object.
+	"""
+
+	ul4attrs = AST.ul4attrs.union({"items"})
+
+	def __init__(self, location=None, start=None, end=None, *items):
+		super().__init__(location, start, end)
+		self.items = list(items)
+
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.items!r} at {1:#x}>".format(self, id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				for item in self.items:
+					p.breakable()
+					p.pretty(item)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
+
+	@_handleeval
+	def eval(self, vars):
+		result = set()
+		for item in self.items:
+			item = (yield from item.eval(vars))
+			result.add(item)
+		return result
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.items)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.items = decoder.load()
+
+
+@register("setcomp")
+class SetComp(AST):
+	"""
+	AST node for set comprehension.
+	"""
+
+	ul4attrs = AST.ul4attrs.union({"item", "varname", "container", "condition"})
+
+	def __init__(self, location=None, start=None, end=None, item=None, varname=None, container=None, condition=None):
+		super().__init__(location, start, end)
+		self.item = item
+		self.varname = varname
+		self.container = container
+		self.condition = condition
+
+	def __repr__(self):
+		s = "<{0.__class__.__module__}.{0.__class__.__qualname__} item={0.item!r} varname={0.varname!r} container={0.container!r}".format(self)
+		if self.condition is not None:
+			s += " condition={0.condition!r}".format(self)
+		return s + " at {:#x}>".format(id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("{0.__class__.__module__}.{0.__class__.__qualname__}(...)".format(self))
+		else:
+			with p.group(4, "{0.__class__.__module__}.{0.__class__.__qualname__}(".format(self), ")"):
+				p.breakable("")
+				p.text("item=")
+				p.pretty(self.item)
+				p.text(",")
+				p.breakable()
+				p.text("varname=")
+				p.pretty(self.varname)
+				p.text(",")
+				p.breakable()
+				p.text("container=")
+				p.pretty(self.container)
+				if self.condition is not None:
+					p.text(",")
+					p.breakable()
+					p.text("condition=")
+					p.pretty(self.condition)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
+
+	@_handleeval
+	def eval(self, vars):
+		container = (yield from self.container.eval(vars))
+		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
+		result = set()
+		for item in container:
+			for (lvalue, value) in _unpackvar(self.varname, item):
+				yield from lvalue.evalsetvar(vars, value)
+			if self.condition is None or (yield from self.condition.eval(vars)):
+				item = (yield from self.item.eval(vars))
+				result.add(item)
 		return result
 
 	def ul4ondump(self, encoder):
@@ -1297,6 +1448,8 @@ class Attr(AST):
 			return self.method_str(obj, self.attrname)
 		elif isinstance(obj, collections.Mapping):
 			return self.method_dict(obj, self.attrname)
+		elif isinstance(obj, collections.Set):
+			return self.method_set(obj, self.attrname)
 		elif isinstance(obj, collections.Sequence):
 			return self.method_list(obj, self.attrname)
 		elif isinstance(obj, (datetime.datetime, datetime.date)):
@@ -1404,6 +1557,15 @@ class Attr(AST):
 						return i
 				return -1
 			result = rfind
+		else:
+			result = UndefinedKey(methname)
+		return result
+
+	def method_set(self, obj, methname):
+		if methname == "add":
+			def add(*items):
+				obj.update(items)
+			result = add
 		else:
 			result = UndefinedKey(methname)
 		return result
@@ -2579,7 +2741,7 @@ class Template(Block):
 	"""
 	ul4attrs = Block.ul4attrs.union({"source", "name", "keepws", "startdelim", "enddelim", "render", "renders"})
 
-	version = "29"
+	version = "30"
 
 	def __init__(self, source=None, name=None, keepws=True, startdelim="<?", enddelim="?>"):
 		"""
@@ -3034,6 +3196,11 @@ def function_list(iterable=()):
 
 
 @AST.makefunction
+def function_set(iterable=()):
+	return set(iterable)
+
+
+@AST.makefunction
 def function_len(sequence):
 	return len(sequence)
 
@@ -3179,6 +3346,12 @@ def function_ismonthdelta(obj):
 def function_islist(obj):
 	from ll import color
 	return isinstance(obj, collections.Sequence) and not isinstance(obj, str) and not isinstance(obj, color.Color)
+
+
+@AST.makefunction
+def function_isset(obj):
+	from ll import color
+	return isinstance(obj, (set, frozenset))
 
 
 @AST.makefunction

@@ -246,6 +246,42 @@ listcomprehension returns [node]
 		close=']' { $node = ul4c.ListComp(self.location, self.start($open), self.end($close), $item.node, $n.lvalue, $container.node, _condition) }
 	;
 
+/* Set literals */
+set returns [node]
+	:
+		open='{'
+		'/'
+		close='}' { $node = ul4c.Set(self.location, self.start($open), self.end($close)) }
+	|
+		open='{' {$node = ul4c.Set(self.location, self.start($open), None) }
+		e1=expr_if { $node.items.append($e1.node) }
+		(
+			','
+			e2=expr_if { $node.items.append($e2.node) }
+		)*
+		','?
+		close='}' { $node.end = self.end($close) }
+	;
+
+setcomprehension returns [node]
+	@init
+	{
+		_condition = None;
+	}
+	:
+		open='{'
+		item=expr_if
+		'for'
+		n=nestedlvalue
+		'in'
+		container=expr_if
+		(
+			'if'
+			condition=expr_if { _condition = $condition.node; }
+		)?
+		close='}' { $node = ul4c.SetComp(self.location, self.start($open), self.end($close), $item.node, $n.lvalue, $container.node, _condition) }
+	;
+
 /* Dict literal */
 fragment
 dictitem returns [node]
@@ -313,6 +349,8 @@ atom returns [node]
 	: e_literal=literal { $node = $e_literal.node; }
 	| e_list=list { $node = $e_list.node; }
 	| e_listcomp=listcomprehension { $node = $e_listcomp.node; }
+	| e_set=set { $node = $e_set.node; }
+	| e_setcomp=setcomprehension { $node = $e_setcomp.node; }
 	| e_dict=dict { $node = $e_dict.node; }
 	| e_dictcomp=dictcomprehension { $node = $e_dictcomp.node; }
 	| open='(' e_genexpr=generatorexpression close=')' {

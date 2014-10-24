@@ -715,6 +715,19 @@ def test_listcomp(r):
 
 
 @pytest.mark.ul4
+def test_set(r):
+	assert '' == r('<?for item in {/}?><?print item?>!<?end for?>')
+	assert 'gurk!' == r('<?for item in {"gurk"}?><?print item?>!<?end for?>')
+	assert 'no' == r('<?if {/}?>yes<?else?>no<?end if?>')
+	assert 'yes' == r('<?if {"gurk"}?>yes<?else?>no<?end if?>')
+	if r is not render_js_v8:
+		assert 'int' == r('<?for item in {1}?><?print type(item)?><?end for?>')
+
+	# Make sure that the loop variables doesn't leak into the surrounding scope
+	assert "undefined" == r("<?code d = {str(2*i) for i in range(4)}?><?print type(i)?>")
+
+
+@pytest.mark.ul4
 def test_genexpr(r):
 	assert "2, 6:" == r("<?code ge = (str(2*i) for i in range(4) if i%2)?><?print ', '.join(ge)?>:<?print ', '.join(ge)?>")
 	assert "2, 6" == r("<?print ', '.join(str(2*i) for i in range(4) if i%2)?>")
@@ -728,6 +741,7 @@ def test_genexpr(r):
 
 @pytest.mark.ul4
 def test_dict(r):
+	assert '{}' == r('<?print {}?>')
 	assert '' == r('<?for (key, value) in {}.items()?><?print key?>:<?print value?>\n<?end for?>')
 	assert '1:2\n' == r('<?for (key, value) in {1:2}.items()?><?print key?>:<?print value?>\n<?end for?>')
 	assert '1:#fff\n' == r('<?for (key, value) in {1:#fff}.items()?><?print key?>:<?print value?>\n<?end for?>')
@@ -1531,6 +1545,7 @@ def test_precedence(r):
 	assert "42" == r('<?print data.value.value[0]?>', data=dict(value=dict(value=[42])))
 	assert "42" == r('<?print data.value.value[0].value.value[0]?>', data=dict(value=dict(value=[dict(value=dict(value=[42]))])))
 
+
 @pytest.mark.ul4
 def test_associativity(r):
 	assert "9" == r('<?print 2+3+4?>')
@@ -1542,6 +1557,7 @@ def test_associativity(r):
 	else:
 		assert 2.0 == eval(r('<?print 24/6/2?>'))
 		assert 2 == eval(r('<?print 24//6//2?>'))
+
 
 @pytest.mark.ul4
 def test_bracket(r):
@@ -1860,6 +1876,21 @@ def test_function_list(r):
 
 
 @pytest.mark.ul4
+def test_function_set(r):
+	with raises(argumentmismatchmessage):
+		r("<?print set(1, 2)?>")
+	assert "{/}" == r("<?print set()?>")
+	assert r("<?print set(data)?>", data=["1"]) in ("{'1'}", '{"1"}')
+	if r is not render_js_v8:
+		assert "{1}" == r("<?print set(data)?>", data={1: 2})
+		assert "{1}" == r("<?print set(data)?>", data=[1])
+	assert r("<?print repr(set(str(i) for i in range(1)))?>") in ("{'0'}", '{"0"}')
+
+	# Make sure that the parameters have the same name in all implementations
+	assert r("<?print set(iterable=data)?>", data=["1"]) in ("{'1'}", '{"1"}')
+
+
+@pytest.mark.ul4
 def test_function_int(r):
 	with raises(argumentmismatchmessage):
 		r("<?print int(1, 2, 3)?>")
@@ -2135,6 +2166,7 @@ def test_function_isundefined(r):
 	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
+	assert "False" == r(code, data=set())
 	assert "False" == r(code, data={})
 	assert "False" == r("<?print isundefined(repr)?>")
 	assert "False" == r(code, data=ul4c.Template(""))
@@ -2164,6 +2196,7 @@ def test_function_isdefined(r):
 	assert "True" == r(code, data=misc.monthdelta(1))
 	assert "True" == r(code, data=())
 	assert "True" == r(code, data=[])
+	assert "True" == r(code, data=set())
 	assert "True" == r(code, data={})
 	assert "True" == r(code, data=ul4c.Template(""))
 	assert "True" == r("<?print isdefined(repr)?>")
@@ -2193,6 +2226,7 @@ def test_function_isnone(r):
 	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
+	assert "False" == r(code, data=set())
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r("<?print isnone(repr)?>")
@@ -2222,6 +2256,7 @@ def test_function_isbool(r):
 	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
+	assert "False" == r(code, data=set())
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r("<?print isbool(repr)?>")
@@ -2251,6 +2286,7 @@ def test_function_isint(r):
 	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
+	assert "False" == r(code, data=set())
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r("<?print isint(repr)?>")
@@ -2280,6 +2316,7 @@ def test_function_isfloat(r):
 	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
+	assert "False" == r(code, data=set())
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r("<?print isfloat(repr)?>")
@@ -2309,6 +2346,7 @@ def test_function_isstr(r):
 	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
+	assert "False" == r(code, data=set())
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r("<?print isstr(repr)?>")
@@ -2338,6 +2376,7 @@ def test_function_isdate(r):
 	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
+	assert "False" == r(code, data=set())
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r("<?print isdate(repr)?>")
@@ -2368,6 +2407,39 @@ def test_function_islist(r):
 	assert "True" == r(code, data=())
 	assert "True" == r(code, data=[])
 	assert "True" == r(code, data=PseudoList([]))
+	assert "False" == r(code, data=set())
+	if r is not render_php:
+		assert "False" == r(code, data={})
+	assert "False" == r(code, data=ul4c.Template(""))
+	assert "False" == r("<?print islist(repr)?>")
+	assert "False" == r(code, data=color.red)
+
+	# Make sure that the parameters have the same name in all implementations
+	assert "False" == r("<?print islist(obj=data)?>", data=None)
+
+
+@pytest.mark.ul4
+def test_function_isset(r):
+	code = "<?print isset(data)?>"
+
+	with raises(argumentmismatchmessage):
+		r("<?print isset()?>")
+	with raises(argumentmismatchmessage):
+		r("<?print isset(1, 2)?>")
+	assert "False" == r(code)
+	assert "False" == r(code, data=None)
+	assert "False" == r(code, data=True)
+	assert "False" == r(code, data=False)
+	assert "False" == r(code, data=42)
+	assert "False" == r(code, data=4.2)
+	assert "False" == r(code, data="foo")
+	assert "False" == r(code, data=datetime.datetime.now())
+	assert "False" == r(code, data=datetime.timedelta(1))
+	assert "False" == r(code, data=misc.monthdelta(1))
+	assert "False" == r(code, data=())
+	assert "False" == r(code, data=[])
+	assert "True" == r(code, data=set())
+	assert "False" == r(code, data=PseudoList([]))
 	if r is not render_php:
 		assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
@@ -2399,6 +2471,7 @@ def test_function_isdict(r):
 	if r is not render_php:
 		assert "False" == r(code, data=())
 		assert "False" == r(code, data=[])
+	assert "False" == r(code, data=set())
 	assert "True" == r(code, data={})
 	assert "True" == r(code, data=PseudoDict({}))
 	assert "False" == r(code, data=ul4c.Template(""))
@@ -2429,6 +2502,7 @@ def test_function_istemplate(r):
 	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
+	assert "False" == r(code, data=set())
 	assert "False" == r(code, data={})
 	assert "True" == r(code, data=ul4c.Template(""))
 	assert "False" == r("<?print istemplate(repr)?>")
@@ -2458,6 +2532,7 @@ def test_function_isfunction(r):
 	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
+	assert "False" == r(code, data=set())
 	assert "False" == r(code, data={})
 	assert "True" == r(code, data=ul4c.Template(""))
 	assert "True" == r("<?print isfunction(repr)?>")
@@ -2488,6 +2563,7 @@ def test_function_iscolor(r):
 	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
+	assert "False" == r(code, data=set())
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r("<?print iscolor(repr)?>")
@@ -2517,6 +2593,7 @@ def test_function_istimedelta(r):
 	assert "False" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
+	assert "False" == r(code, data=set())
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r("<?print istimedelta(repr)?>")
@@ -2546,6 +2623,7 @@ def test_function_ismonthdelta(r):
 	assert "True" == r(code, data=misc.monthdelta(1))
 	assert "False" == r(code, data=())
 	assert "False" == r(code, data=[])
+	assert "False" == r(code, data=set())
 	assert "False" == r(code, data={})
 	assert "False" == r(code, data=ul4c.Template(""))
 	assert "False" == r("<?print ismonthdelta(repr)?>")
@@ -2572,6 +2650,11 @@ def test_function_repr(r):
 	assert [1, 2, 3] == eval(r(code, data=[1, 2, 3]))
 	if r not in (render_js_v8, render_js_spidermonkey):
 		assert [1, 2, 3] == eval(r(code, data=(1, 2, 3)))
+	assert "{/}" == r(code, data=set())
+	assert r(code, data={"1"}) in ("{'1'}", '{"1"}')
+	if r is not render_js_v8:
+		assert "{1}" == r(code, data={1})
+	assert "{}" == r(code, data={})
 	assert {"a": 1, "b": 2} == eval(r(code, data={"a": 1, "b": 2}))
 	if r is not render_php:
 		assert "@(2011-02-07T12:34:56.123000)" == r(code, data=datetime.datetime(2011, 2, 7, 12, 34, 56, 123000))

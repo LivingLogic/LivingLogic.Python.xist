@@ -179,7 +179,7 @@ def transport_java(obj):
 	return ul4on.loads(output)
 
 
-all_transports =  [
+all_transports = [
 	("python", transport_python),
 	("js_v8", transport_js_v8),
 	("js_spidermonkey", transport_js_spidermonkey),
@@ -258,6 +258,12 @@ def test_dict(t):
 	if t is not transport_js_v8:
 		d = {17: None, None: 23}
 		assert d == t(d)
+
+
+def test_set(t):
+	if t is not transport_js_v8:
+		assert set() == t(set())
+		assert {1, 2, 3} == t({1, 2, 3})
 
 
 def test_template(t):

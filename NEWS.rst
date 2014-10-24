@@ -1,3 +1,11 @@
+Changes in 5.11 (released ??/??/2014)
+-------------------------------------
+
+*	UL4 now supports sets, set literals and set comprehensions.
+
+*	:func:`misc.javaexpr` now supports sets.
+
+
 Changes in 5.10 (released 10/09/2014)
 -------------------------------------
 
