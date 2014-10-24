@@ -12,6 +12,10 @@ Changes in 5.11 (released ??/??/2014)
 		for (name, module) in self.tasks(items, "module", lambda kv: kv[0]):
 			self.log("module is {}".format(module))
 
+*	A new options :option:`--maxemailerrors` has been added to sisyphus jobs:
+	This options limits the number of exceptions and errors messages that
+	will get attached to the failure email.
+
 
 Changes in 5.10 (released 10/09/2014)
 -------------------------------------

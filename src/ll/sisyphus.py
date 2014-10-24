@@ -307,6 +307,10 @@ class Job(object):
 		How to compress the logfiles. Possible values are: ``"gzip"``, ``"bzip2"``
 		and ``"lzma"``.
 
+	``maxemailerrors`` : :option:`--maxemailerrors`
+		This options limits the number of exceptions and errors messages that
+		will get attached to the failure email. The default is 10.
+
 	``encoding`` : :option:`--encoding`
 		The encoding to be used for the logfile.
 
@@ -341,6 +345,9 @@ class Job(object):
 
 	logfilename = "~/ll.sisyphus/<?print job.projectname?>/<?print job.jobname?>/<?print format(job.starttime, '%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog"
 	loglinkname = "~/ll.sisyphus/<?print job.projectname?>/<?print job.jobname?>/current.sisyphuslog"
+
+	# URL of final log file (``None`` if no logging is done to a fiole)
+	logfileurl = None
 
 	log2file = True
 	log2stdout = False
@@ -423,16 +430,18 @@ class Job(object):
 		<?if job.starttime and job.endtime?>
 			<?code line.render(label="Duration", value=job.endtime-job.starttime)?>
 		<?end if?>
-		<?code countexceptions = sum(entry.type == "exception" for entry in log)?>
 		<?code line.render(label="Exceptions", value=countexceptions)?>
-		<?code countmessages = sum(entry.type == "message" for entry in log)?>
 		<?code line.render(label="Messages", value=countmessages)?>
+		<?code line.render(label="Logfile", value=job.logfileurl)?>
 
+		<?code reportedexceptions = 0?>
+		<?code reportedmessages = 0?>
 		<?for (i, entry) in enumerate(log, 1)?>
 			<?print "\n"?>
 			<?print "-"*80?><?print "\n"?>
 			<?print "\n"?>
 			<?if entry.type == "exception"?>
+				<?code reportedexceptions += 1?>
 				#<?print i?>: Exception<?print "\n"?>
 				<?print "\n"?>
 				<?for task in entry.tasks?>
@@ -445,6 +454,7 @@ class Job(object):
 					<?print entry.traceback?>
 				<?end if?>
 			<?elif entry.type == "message"?>
+				<?code reportedmessages += 1?>
 				#<?print i?>: Message<?print "\n"?>
 				<?print "\n"?>
 				<?for task in entry.tasks?>
@@ -453,6 +463,14 @@ class Job(object):
 				<?code line.render(label="Message", value=entry.message)?>
 			<?end if?>
 		<?end for?>
+		<?if countexceptions + countmessages > reportedexceptions + reportedmessages?>
+			<?print "\n"?>
+			<?print "-"*80?><?print "\n"?>
+			<?if countexceptions > reportedexceptions?><?print countexceptions - reportedexceptions?> more exceptions<?end if?>
+			<?if countexceptions > reportedexceptions and countmessages > reportedmessages?> and<?end if?>
+			<?if countmessages > reportedmessages?><?print countmessages - reportedmessages?> more messages<?end if?>
+			...<?print "\n"?>
+		<?end if?>
 	"""
 
 	formatemailbodyhtml = r"""
@@ -504,14 +522,16 @@ class Job(object):
 					<?if job.starttime and job.endtime?>
 						<?code line.render(label="Duration", value=job.endtime-job.starttime)?>
 					<?end if?>
-					<?code countexceptions = sum(entry.type == "exception" for entry in log)?>
 					<?code line.render(label="Exceptions", value=countexceptions)?>
-					<?code countmessages = sum(entry.type == "message" for entry in log)?>
 					<?code line.render(label="Messages", value=countmessages)?>
+					<?code line.render(label="Logfile", value=job.logfileurl)?>
 				</table>
+				<?code reportedexceptions = 0?>
+				<?code reportedmessages = 0?>
 				<?for (i, entry) in enumerate(log, 1)?>
 					<hr/>
 					<?if entry.type == "exception"?>
+						<?code reportedexceptions += 1?>
 						<h2>#<?printx i?>: Exception</h2>
 						<table>
 							<?for task in entry.tasks?>
@@ -528,6 +548,7 @@ class Job(object):
 							</pre>
 						<?end if?>
 					<?else?>
+						<?code reportedmessages += 1?>
 						<h2>#<?printx i?>: Message</h2>
 						<table>
 							<?for task in entry.tasks?>
@@ -538,19 +559,29 @@ class Job(object):
 						</table>
 					<?end if?>
 				<?end for?>
-			</pre>
-		</body>
-	</head>
+				<?if countexceptions + countmessages > reportedexceptions + reportedmessages?>
+					<hr/>
+					<p>
+						<?if countexceptions > reportedexceptions?><?print countexceptions - reportedexceptions?> more exceptions<?end if?>
+						<?if countexceptions > reportedexceptions and countmessages > reportedmessages?> and<?end if?>
+						<?if countmessages > reportedmessages?><?print countmessages - reportedmessages?> more messages<?end if?>
+						...
+					</p>
+				<?end if?>
+			</body>
+		</html>
 	"""
 
 	keepfilelogs = 30
 	compressfilelogs = 7
 	compressmode = "bzip2"
 
+	maxemailerrors = 10
+
 	encoding = "utf-8"
 	errors = "strict"
 
-	ul4attrs = {"sysinfo", "projectname", "jobname", "tasksep", "maxtime", "starttime", "endtime"}
+	ul4attrs = {"sysinfo", "projectname", "jobname", "maxtime", "starttime", "endtime", "maxemailerrors", "logfileurl"}
 
 	def execute(self):
 		"""
@@ -589,6 +620,7 @@ class Job(object):
 		p.add_argument(      "--keepfilelogs", dest="keepfilelogs", metavar="DAYS", help="Number of days log files are kept (default: %(default)s)", type=float, default=self.keepfilelogs)
 		p.add_argument(      "--compressfilelogs", dest="compressfilelogs", metavar="DAYS", help="Number of days log after which log files are gzipped (default: %(default)s)", type=float, default=self.compressfilelogs)
 		p.add_argument(      "--compressmode", dest="compressmode", metavar="MODE", help="Method for compressing old log files (default: %(default)s)", choices=("gzip", "bzip2", "lzma"), default=self.compressmode)
+		p.add_argument(      "--maxemailerrors", dest="maxemailerrors", metavar="INTEGER", help="Maximum number of errors or messages to report in the failure report (default: %(default)s)", default=self.maxemailerrors)
 		p.add_argument(      "--encoding", dest="encoding", metavar="ENCODING", help="Encoding for the log file (default: %(default)s)", default=self.encoding)
 		p.add_argument(      "--errors", dest="errors", metavar="METHOD", help="Error handling method for encoding errors in log texts (default: %(default)s)", default=self.errors)
 		p.add_argument(      "--noisykills", dest="noisykills", help="Should a message be printed/failure email be sent if the maximum runtime is exceeded? (default: %(default)s)", action=misc.FlagAction, default=self.noisykills)
@@ -621,6 +653,7 @@ class Job(object):
 		self.keepfilelogs = datetime.timedelta(days=args.keepfilelogs)
 		self.compressfilelogs = datetime.timedelta(days=args.compressfilelogs)
 		self.compressmode = args.compressmode
+		self.maxemailerrors = args.maxemailerrors
 		self.encoding = args.encoding
 		self.errors = args.errors
 		self.notify = args.notify
@@ -844,7 +877,11 @@ class Job(object):
 		except TypeError:
 			count = None
 		for (i, item) in enumerate(iterable):
-			with self.task(type(item) if callable(type) else type, name(item) if callable(name) else name, i, count):
+			if callable(type):
+				type = type(item)
+			if callable(name):
+				name = name(item)
+			with self.task(type, name, i, count):
 				yield item
 
 	def _log(self, tags, obj):
@@ -892,6 +929,7 @@ class Job(object):
 			# Create the log file
 			logfilename = ul4c.Template(self.logfilename, "logfilename").renders(job=self)
 			logfilename = url.File(logfilename).abs()
+			self.logfileurl = str(url.Ssh(misc.sysinfo.user_name, misc.sysinfo.host_fqdn or misc.sysinfo.host_name, logfilename.local()))
 			skipurls = [logfilename]
 			logfile = logfilename.open(mode="w", encoding=self.encoding, errors=self.errors)
 			if self.loglinkname is not None:
@@ -1115,10 +1153,17 @@ class EmailLogger(Logger):
 	def __init__(self, job):
 		self.job = job
 		self._log = []
+		self._countexceptions = 0
+		self._countmessages = 0
 
 	def log(self, timestamp, tags, tasks, text):
 		if "email" in tags:
-			self._log.append((timestamp, tags, tasks[:], text))
+			if len(self._log) < self.job.maxemailerrors:
+				self._log.append((timestamp, tags, tasks[:], text))
+			if isinstance(text, BaseException):
+				self._countexceptions += 1
+			else:
+				self._countmessages += 1
 
 	def close(self):
 		if self._log:
@@ -1141,6 +1186,8 @@ class EmailLogger(Logger):
 				jobname=self.job.jobname,
 				identifier=self.job.identifier,
 				log=jsonlog,
+				countexceptions=self._countexceptions,
+				countmessages=self._countmessages,
 				host_name=misc.sysinfo.host_name,
 				host_fqdn=misc.sysinfo.host_fqdn,
 				host_ip=misc.sysinfo.host_ip,
@@ -1162,10 +1209,18 @@ class EmailLogger(Logger):
 				short_script_name=misc.sysinfo.short_script_name,
 				starttime=self.job.starttime.isoformat() if self.job.starttime else None,
 				endtime=self.job.endtime.isoformat() if self.job.endtime else None,
+				logfileurl=self.job.logfileurl,
 			)
-			emailsubject = self.job._formatemailsubject.renders(job=self.job, sysinfo=misc.sysinfo, log=ul4log)
-			emailbodytext = self.job._formatemailbodytext.renders(job=self.job, sysinfo=misc.sysinfo, log=ul4log)
-			emailbodyhtml = self.job._formatemailbodyhtml.renders(job=self.job, sysinfo=misc.sysinfo, log=ul4log)
+			variables = dict(
+				job=self.job,
+				sysinfo=misc.sysinfo,
+				log=ul4log,
+				countexceptions=self._countexceptions,
+				countmessages=self._countmessages,
+			)
+			emailsubject = self.job._formatemailsubject.renders(**variables)
+			emailbodytext = self.job._formatemailbodytext.renders(**variables)
+			emailbodyhtml = self.job._formatemailbodyhtml.renders(**variables)
 
 			textpart = text.MIMEText(emailbodytext)
 			htmlpart = text.MIMEText(emailbodyhtml, _subtype="html")
