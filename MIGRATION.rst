@@ -5,7 +5,7 @@ Changes to ``misc``
 -------------------
 
 *	The functions :func:`misc.gzip` and :func:`misc.gunzip` have been removed
-	as Python 3.2 has the functions: :func:`gzip.compress` and
+	as Python 3.2 has the functions :func:`gzip.compress` and
 	:func:`gzip.uncompress`, which do the same.
 
 
