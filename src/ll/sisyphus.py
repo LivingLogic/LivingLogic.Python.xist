@@ -159,6 +159,11 @@ except ImportError:
 from email.mime import text, application, multipart
 from email import encoders
 
+try:
+	import setproctitle
+except ImportError:
+	setproctitle = None
+
 from ll import url, ul4c, misc
 
 
@@ -305,17 +310,23 @@ class Job(object):
 
 	``compressmode`` : :option:`--compressmode`
 		How to compress the logfiles. Possible values are: ``"gzip"``, ``"bzip2"``
-		and ``"lzma"``.
+		and ``"lzma"``. The default is ``"bzip2"``.
+
+	``encoding`` : :option:`--encoding`
+		The encoding to be used for the logfile. The default is ``"utf-8"``.
+
+	``errors`` : :option:`--errors`
+		Encoding error handler name (goes with ``encoding``). The default is
+		``"strict"``.
 
 	``maxemailerrors`` : :option:`--maxemailerrors`
 		This options limits the number of exceptions and errors messages that
 		will get attached to the failure email. The default is 10.
 
-	``encoding`` : :option:`--encoding`
-		The encoding to be used for the logfile.
-
-	``errors`` : :option:`--errors`
-		Encoding error handler name (goes with ``encoding``)
+	``setproctitle`` : :option:`--setproctitle`
+		When this options is specified, the process title will be modified during
+		execution of the job, so that the ``ps`` command shows what the processes
+		are doing. (This requires :mod:`setproctitle`.)
 
 	Command line arguments take precedence over instance attributes (if
 	:func:`executewithargs` is used) and those take precedence over class
@@ -578,6 +589,8 @@ class Job(object):
 
 	maxemailerrors = 10
 
+	setproctitle = True
+
 	encoding = "utf-8"
 	errors = "strict"
 
@@ -621,6 +634,7 @@ class Job(object):
 		p.add_argument(      "--compressfilelogs", dest="compressfilelogs", metavar="DAYS", help="Number of days log after which log files are gzipped (default: %(default)s)", type=float, default=self.compressfilelogs)
 		p.add_argument(      "--compressmode", dest="compressmode", metavar="MODE", help="Method for compressing old log files (default: %(default)s)", choices=("gzip", "bzip2", "lzma"), default=self.compressmode)
 		p.add_argument(      "--maxemailerrors", dest="maxemailerrors", metavar="INTEGER", help="Maximum number of errors or messages to report in the failure report (default: %(default)s)", default=self.maxemailerrors)
+		p.add_argument(      "--setproctitle", dest="setproctitle", help="Set the process title (default: %(default)s)", action=misc.FlagAction, default=self.setproctitle)
 		p.add_argument(      "--encoding", dest="encoding", metavar="ENCODING", help="Encoding for the log file (default: %(default)s)", default=self.encoding)
 		p.add_argument(      "--errors", dest="errors", metavar="METHOD", help="Error handling method for encoding errors in log texts (default: %(default)s)", default=self.errors)
 		p.add_argument(      "--noisykills", dest="noisykills", help="Should a message be printed/failure email be sent if the maximum runtime is exceeded? (default: %(default)s)", action=misc.FlagAction, default=self.noisykills)
@@ -654,6 +668,7 @@ class Job(object):
 		self.compressfilelogs = datetime.timedelta(days=args.compressfilelogs)
 		self.compressmode = args.compressmode
 		self.maxemailerrors = args.maxemailerrors
+		self.setproctitle = args.setproctitle
 		self.encoding = args.encoding
 		self.errors = args.errors
 		self.notify = args.notify
@@ -705,6 +720,7 @@ class Job(object):
 		self._tasks = []
 		self._loggers = []
 		self._exceptioncount = 0
+		self._originalproctitle = setproctitle.getproctitle() if self.setproctitle and setproctitle else None
 
 		# Obtain a lock on the script file to make sure we're the only one running
 		with open(misc.sysinfo.script_name, "rb") as f:
@@ -730,12 +746,16 @@ class Job(object):
 
 			self._createlog() # Create loggers
 
-			self.log.sisyphus.init("{} (max time {}; pid {})".format(misc.sysinfo.script_name, self.getmaxtime(), misc.sysinfo.pid))
+			maxtime = self.getmaxtime()
+			self.log.sisyphus.init("{} (max time {}; pid {})".format(misc.sysinfo.script_name, maxtime, misc.sysinfo.pid))
+			if self.setproctitle and setproctitle is None:
+				self.log.sisyphus.init.warning("Can't set process title (module setproctitle not available")
 
 			if self.fork: # Forking mode?
 				# Fork the process; the child will do the work; the parent will monitor the maximum runtime
 				self.killpid = pid = os.fork()
 				if pid: # We are the parent process
+					self._makeproctitle("parent", "{} (max time {})".format("logging to {}".format(self.logfileurl) if self.logfileurl else "no logging", maxtime))
 					# set a signal to kill the child process after the maximum runtime
 					signal.signal(signal.SIGALRM, self._alarm_fork)
 					signal.alarm(self.getmaxtime_seconds())
@@ -744,19 +764,23 @@ class Job(object):
 					except BaseException as exc:
 						pass
 					return # Exit normally
+				self._makeproctitle("child")
 				self.log.sisyphus.init("forked worker child (child pid {})".format(os.getpid()))
 			else: # We didn't fork
 				# set a signal to kill ourselves after the maximum runtime
 				signal.signal(signal.SIGALRM, self._alarm_nofork)
 				signal.alarm(self.getmaxtime_seconds())
 
+			self._makeproctitle("child", "Setting up")
 			self.notifystart()
 			result = None
 			try:
 				with url.Context():
+					self._makeproctitle("child", "Working")
 					result = self.execute()
 			except Exception as exc:
 				self.endtime = datetime.datetime.now()
+				self._makeproctitle("child", "Handling exception")
 				result = "failed with {}".format(_formatexc(exc))
 				# log the error to the logfile, because the job probably didn't have a chance to do it
 				self.log.sisyphus.email(exc)
@@ -767,12 +791,14 @@ class Job(object):
 					raise
 			else:
 				self.endtime = datetime.datetime.now()
+				self._makeproctitle("child", "Finishing")
 				# log the result
 				if self._exceptioncount:
 					self.log.sisyphus.result.errors(result)
 				else:
 					self.log.sisyphus.result.ok(result)
 			finally:
+				self._makeproctitle("child", "Cleaning up logs")
 				for logger in self._loggers:
 					logger.close()
 				self.notifyfinish(result)
@@ -857,6 +883,18 @@ class Job(object):
 		for (i, item) in enumerate(iterable):
 			with self.task(type(item) if callable(type) else type, name(item) if callable(name) else name, i, count):
 				yield item
+
+	def _makeproctitle(self, process, detail=None):
+		if self.setproctitle and setproctitle:
+			v = [self._originalproctitle]
+			if self.fork:
+				v.append(process)
+			for task in self._tasks:
+				v.append(str(task))
+			title = " :: ".join(v)
+			if detail:
+				title = "{} >> {}".format(title, detail)
+			setproctitle.setproctitle(title)
 
 	def _log(self, tags, obj):
 		"""
@@ -948,6 +986,7 @@ class Task(object):
 	def __enter__(self):
 		self.starttime = datetime.datetime.now()
 		self.job._tasks.append(self)
+		self.job._makeproctitle("child")
 		for logger in self.job._loggers:
 			logger.taskstart(self.job._tasks)
 		return self
@@ -962,15 +1001,16 @@ class Task(object):
 		for logger in self.job._loggers:
 			logger.taskend(self.job._tasks)
 		self.job._tasks.pop()
+		self.job._makeproctitle("child")
 
 	def __str__(self):
-		v = " ".join(str(d) for d in (task.type, task.name) if d)
-		if task.index is not None:
+		v = " ".join(str(d) for d in (self.type, self.name) if d)
+		if self.index is not None:
 			if v:
 				v += " "
-			v += "({}".format(task.index+1)
-			if task.count is not None:
-				v += "/{}".format(task.count)
+			v += "({}".format(self.index+1)
+			if self.count is not None:
+				v += "/{}".format(self.count)
 			v += ")"
 		return v or "?"
 

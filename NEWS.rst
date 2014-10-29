@@ -12,9 +12,14 @@ Changes in 5.11 (released ??/??/2014)
 		for (name, module) in self.tasks(items, "module", lambda kv: kv[0]):
 			self.log("module is {}".format(module))
 
-*	An options :option:`--maxemailerrors` has been added to sisyphus jobs:
+*	An option :option:`--maxemailerrors` has been added to sisyphus jobs:
 	This options limits the number of exceptions and errors messages that
 	will get attached to the failure email.
+
+*	An option :option:`--setproctitle` has been added to sisyphus jobs:
+	When this options is specified, the process title will be modified during
+	execution of the job, so that the ``ps`` command shows what the processes
+	are doing. (This requires :mod:`setproctitle` from the Cheeseshop.)
 
 
 Changes in 5.10 (released 10/09/2014)
