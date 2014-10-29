@@ -1,4 +1,4 @@
-Changes in 5.11 (released ??/??/2014)
+Changes in 5.11 (released 10/29/2014)
 -------------------------------------
 
 *	UL4 now supports sets, set literals and set comprehensions.
