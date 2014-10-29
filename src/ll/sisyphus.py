@@ -780,28 +780,6 @@ class Job(object):
 			if self.fork:
 				os._exit(0)
 
-	def strtimedelta(self, delta):
-		"""
-		Return a nicely formatted string for the :class:`datetime.timedelta`
-		value :obj:`delta`. :obj:`delta` may also be :const:`None` in with case
-		``"0"`` will be returned.
-		"""
-		if delta is None:
-			return "0"
-		rest = delta.seconds
-
-		(rest, secs) = divmod(rest, 60)
-		(rest, mins) = divmod(rest, 60)
-		rest += delta.days*24
-
-		secs += delta.microseconds/1000000.
-		if rest:
-			return "{:d}:{:02d}:{:06.3f}h".format(rest, mins, secs)
-		elif mins:
-			return "{:02d}:{:06.3f}m".format(mins, secs)
-		else:
-			return "{:.3f}s".format(secs)
-
 	def notifystart(self):
 		if self.notify:
 			cmd = [
@@ -821,7 +799,7 @@ class Job(object):
 				"-title",
 				"{} {}".format(self.projectname, self.jobname),
 				"-subtitle",
-				"finished after {}".format(self.strtimedelta(self.endtime-self.starttime)),
+				"finished after {}".format(self.endtime-self.starttime),
 				"-message",
 				result,
 				"-group",
