@@ -855,11 +855,7 @@ class Job(object):
 		except TypeError:
 			count = None
 		for (i, item) in enumerate(iterable):
-			if callable(type):
-				type = type(item)
-			if callable(name):
-				name = name(item)
-			with self.task(type, name, i, count):
+			with self.task(type(item) if callable(type) else type, name(item) if callable(name) else name, i, count):
 				yield item
 
 	def _log(self, tags, obj):
