@@ -749,7 +749,7 @@ class Job(object):
 			maxtime = self.getmaxtime()
 			self.log.sisyphus.init("{} (max time {}; pid {})".format(misc.sysinfo.script_name, maxtime, misc.sysinfo.pid))
 			if self.setproctitle and setproctitle is None:
-				self.log.sisyphus.init.warning("Can't set process title (module setproctitle not available")
+				self.log.sisyphus.init.warning("Can't set process title (module setproctitle not available)")
 
 			if self.fork: # Forking mode?
 				# Fork the process; the child will do the work; the parent will monitor the maximum runtime
