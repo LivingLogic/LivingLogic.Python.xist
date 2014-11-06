@@ -5,6 +5,11 @@ Changes in 5.12 (released 11/06/2014)
 	skipped when iterating a user "directory". Content in the ``user`` direcory
 	now works correctly.
 
+*	UL4ON has been reimplemented to be human-readable to be more robust
+	against modification of the dumped data. For generating UL4ON dumps
+	with Oracle a PL/SQL package is available at
+	https://github.com/LivingLogic/LivingLogic.Oracle.ul4
+
 
 Changes in 5.11 (released 10/29/2014)
 -------------------------------------

@@ -11,16 +11,22 @@
 
 """
 This module provides functions for encoding and decoding a lightweight
-machine-readable text-based format for serializing the object types supported
-by UL4. It is extensible to allow encoding/decoding arbitrary instances
-(i.e. it is basically a reimplementation of :mod:`pickle`, but with string
-input/output instead of bytes and with an eye towards cross-plattform support).
+text-based format for serializing the object types supported by UL4.
+
+It is extensible to allow encoding/decoding arbitrary instances (i.e. it is
+basically a reimplementation of :mod:`pickle`, but with string input/output
+instead of bytes and with an eye towards cross-plattform support).
 
 There are implementations for Python (this module), Java_ and Javascript_
 (as part of the UL4 packages for those languages).
 
 .. _Java: https://github.com/LivingLogic/LivingLogic.Java.ul4
 .. _Javascript: https://github.com/LivingLogic/LivingLogic.Javascript.ul4
+
+Furthermore there's an `Oracle package`_ that can be used for generating
+UL4on encoded data.
+
+.. _Oracle package: https://github.com/LivingLogic/LivingLogic.Oracle.ul4
 
 Basic usage follows the API design of :mod:`pickle`, :mod:`json`, etc. and
 supports most builtin Python types::
@@ -34,53 +40,53 @@ supports most builtin Python types::
 	>>> ul4on.loads('bF')
 	False
 	>>> ul4on.dumps(42)
-	'i42|'
-	>>> ul4on.loads('i42|')
+	'i42'
+	>>> ul4on.loads('i42')
 	42
 	>>> ul4on.dumps(42.5)
-	'f42.5|'
-	>>> ul4on.loads('f42.5|')
+	'f42.5'
+	>>> ul4on.loads('f42.5')
 	42.5
 	>>> ul4on.dumps('foo')
-	'S3|foo'
-	>>> ul4on.loads('S3|foo')
+	"S'foo'"
+	>>> ul4on.loads("S'foo'")
 	'foo'
-	>>> ul4on.dumps({1, 2, 3})
-	'Yi1|i2|i3|}'
-	>>> ul4on.loads('Yi1|i2|i3|}')
-	{1, 2, 3}
 	>>> import datetime
 	>>> ul4on.dumps(datetime.datetime.now())
-	'T20120716170817230158'
-	>>> ul4on.loads('T20120716170817230158')
-	datetime.datetime(2012, 7, 16, 17, 8, 17, 230158)
+	'Z i2014 i11 i3 i18 i16 i45 i314157'
+	>>> ul4on.loads('Z i2014 i11 i3 i18 i16 i45 i314157')
+	datetime.datetime(2014, 11, 3, 18, 16, 45, 314157)
 
 It also supports :class:`Color` objects from :mod:`ll.color`::
 
 	>>> from ll import color
 	>>> ul4on.dumps(color.red)
-	'Cff0000ff'
-	>>> ul4on.loads('Cff0000ff')
+	'C i255 i0 i0 i255'
+	>>> ul4on.loads('C i255 i0 i0 i255')
 	Color(0xff, 0x00, 0x00)
 
-Lists and dictionaries are also supported::
+Lists, dictionaries and sets are also supported::
 
 	>>> ul4on.dumps([1, 2, 3])
-	'Li1|i2|i3|]'
-	>>> ul4on.loads('Li1|i2|i3|]')
+	'L i1 i2 i3 ]'
+	>>> ul4on.loads('L i1 i2 i3 ]')
 	[1, 2, 3]
 	>>> ul4on.dumps(dict(one=1, two=2))
-	'DS3|twoi2|S3|onei1|}'
-	>>> ul4on.loads('DS3|twoi2|S3|onei1|}')
+	"D S'two' i2 S'one' i1 }"
+	>>> ul4on.loads("D S'two' i2 S'one' i1 }")
 	{'one': 1, 'two': 2}
+	>>> ul4on.dumps({1, 2, 3})
+	'Y i1 i2 i3 }'
+	>>> ul4on.loads('Y i1 i2 i3 }')
+	{1, 2, 3}
 
 :mod:`ll.ul4on` can also handle recursive data structures::
 
 	>>> r = []
 	>>> r.append(r)
 	>>> ul4on.dumps(r)
-	'L^0|]'
-	>>> r2 = ul4on.loads('L^0|]')
+	'L ^0 ]'
+	>>> r2 = ul4on.loads('L ^0 ]')
 	>>> r2
 	[[...]]
 	>>> r2 is r2[0]
@@ -88,8 +94,8 @@ Lists and dictionaries are also supported::
 	>>> r = {}
 	>>> r['recursive'] = r
 	>>> ul4on.dumps(r)
-	'DS9|recursive^0|}'
-	>>> r2 = ul4on.loads('DS9|recursive^0|}')
+	"D S'recursive' ^0 }"
+	>>> r2 = ul4on.loads("D S'recursive' ^0 }")
 	>>> r2
 	{'recursive': {...}}
 	>>> r2['recursive'] is r2
@@ -125,11 +131,11 @@ the class with the UL4ON serialization machinery::
 
 This script outputs::
 
-	Dump: OS18|com.example.personS4|JohnS3|Doe
+	Dump: O S'com.example.person' S'John' S'Doe' )
 	Loaded: <Person firstname='John' lastname='Doe'>
 """
 
-import datetime, collections, io
+import datetime, collections, io, ast
 
 
 __docformat__ = "reStructuredText"
@@ -157,13 +163,17 @@ def register(name):
 
 
 class Encoder:
-	def __init__(self, stream):
+	def __init__(self, stream, indent=None):
 		"""
 		Create an encoder for serializing objects to  :obj:`self.stream`.
 
 		:obj:`stream` must provide a :meth:`write` method.
 		"""
 		self.stream = stream
+		self._level = 0
+		self.indent = indent
+		self._lastwaslf = False
+		self._first = True # Remember whether we have dumped soemthing into the stream (so we have to write spearator whitespace/indentation) or not
 		self._objects = []
 		self._id2index = {}
 
@@ -172,6 +182,25 @@ class Encoder:
 		self._id2index[id(obj)] = len(self._objects)
 		self._objects.append(obj)
 
+	def _line(self, line, *items):
+		if self.indent:
+			self.stream.write(self.indent*self._level)
+		else:
+			if not self._first:
+				self.stream.write(" ")
+		self._first = False
+		self.stream.write(line)
+		if items:
+			oldindent = self.indent
+			try:
+				self.indent = ""
+				for item in items:
+					self.dump(item)
+			finally:
+				self.indent = oldindent
+		if self.indent:
+			self.stream.write("\n")
+
 	def dump(self, obj):
 		"""
 		Serialize :obj:`obj` as an UL4ON formatted stream.
@@ -179,62 +208,69 @@ class Encoder:
 		# Have we written this object already?
 		if id(obj) in self._id2index:
 			# Yes: Store a backreference to the object
-			self.stream.write("^{}|".format(self._id2index[id(obj)]))
+			self._line("^{}".format(self._id2index[id(obj)]))
 		else:
 			from ll import ul4c, color, misc
 			# No: Write the object itself
-			# We're not using backreferences, if the object itself has a shorter dump
+			# We're not using backreferences if the object itself has a shorter dump
 			if obj is None:
-				self.stream.write("n")
+				self._line("n")
 			elif isinstance(obj, bool):
-				self.stream.write("bT" if obj else "bF")
+				self._line("bT" if obj else "bF")
 			elif isinstance(obj, int):
-				self.stream.write("i{}|".format(obj))
+				self._line("i{}".format(obj))
 			elif isinstance(obj, float):
-				self.stream.write("f{!r}|".format(obj))
+				self._line("f{!r}".format(obj))
 			elif isinstance(obj, str):
 				self._record(obj)
-				self.stream.write("S{}|".format(len(obj)))
-				self.stream.write(obj)
+				self._line("S{!r}".format(obj))
 			elif isinstance(obj, slice):
 				self._record(obj)
-				self.stream.write("R{}|{}|".format(obj.start if obj.start is not None else "", obj.stop if obj.stop is not None else ""))
+				self._line("R", obj.start, obj.stop)
 			elif isinstance(obj, color.Color):
 				self._record(obj)
-				self.stream.write("C{:02x}{:02x}{:02x}{:02x}".format(obj.r(), obj.g(), obj.b(), obj.a()))
+				self._line("C", obj.r(), obj.g(), obj.b(), obj.a())
 			elif isinstance(obj, (datetime.datetime, datetime.date)):
 				self._record(obj)
-				self.stream.write(obj.strftime("Z%Y%m%d%H%M%S%f"))
+				self._line("Z", obj.year, obj.month, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond)
 			elif isinstance(obj, datetime.timedelta):
 				self._record(obj)
-				self.stream.write("T{}|{}|{}|".format(obj.days, obj.seconds, obj.microseconds))
+				self._line("T", obj.days, obj.seconds, obj.microseconds)
 			elif isinstance(obj, misc.monthdelta):
 				self._record(obj)
-				self.stream.write("M{}|".format(obj.months()))
+				self._line("M", obj.months())
 			elif isinstance(obj, collections.Sequence):
 				self._record(obj)
-				self.stream.write("L")
+				self._line("L")
+				self._level += 1
 				for item in obj:
 					self.dump(item)
-				self.stream.write("]")
+				self._level -= 1
+				self._line("]")
 			elif isinstance(obj, collections.Mapping):
 				self._record(obj)
-				self.stream.write("D")
+				self._line("D")
+				self._level += 1
 				for (key, item) in obj.items():
 					self.dump(key)
 					self.dump(item)
-				self.stream.write("}")
+				self._level -= 1
+				self._line("}")
 			elif isinstance(obj, collections.Set):
 				self._record(obj)
-				self.stream.write("Y")
+				self._line("Y")
+				self._level += 1
 				for item in obj:
 					self.dump(item)
-				self.stream.write("}")
+				self._level -= 1
+				self._line("}")
 			else:
 				self._record(obj)
-				self.stream.write("O")
-				self.dump(obj.ul4onname)
+				self._line("O", obj.ul4onname)
+				self._level += 1
 				obj.ul4ondump(self)
+				self._level -= 1
+				self._line(")")
 
 
 class Decoder:
@@ -246,7 +282,7 @@ class Decoder:
 		"""
 		self.stream = stream
 		self._objects = []
-		self._keycache = {}
+		self._keycache = {} # Used for "interning" dictionary keys
 
 	def load(self):
 		"""
@@ -258,22 +294,46 @@ class Decoder:
 		buffer = []
 		while True:
 			c = self.stream.read(1)
-			if c == "|":
-				s = "".join(buffer)
-				return int(s) if s else None
-			else:
+			if c and not c.isspace():
 				buffer.append(c)
+			else:
+				return int("".join(buffer))
 
 	def _loading(self, obj):
 		self._objects.append(obj)
 
+	def _nextchar(self, nextchar=None):
+		while True:
+			nextchar = self.stream.read(1)
+			if nextchar:
+				if not nextchar.isspace():
+					return nextchar
+			else:
+				raise EOFError()
+
+	def _beginfakeloading(self):
+		# For loading custom object or immutable objects that have attributes we have a problem:
+		# We have to record the object we're loading *now*, so that it is available for backreferences.
+		# However until we've read the UL4ON name of the class (for custom object) or the attributes
+		# of the object (for immutable objects with attributes), we can't create the object.
+		# So we push ``None`` to the backreference list for now and put the right object in this spot,
+		# once we've created it (via :meth:`_endfakeloading`). This shouldn't lead to problems,
+		# because during the time the backreference is wrong, only the class name is read,
+		# so our object won't be referenced. For immutable objects the attributes normally
+		# don't reference the object itself.
+		oldpos = len(self._objects)
+		self._loading(None)
+		return oldpos
+
+	def _endfakeloading(self, oldpos, value):
+		# Fix backreference in object list
+		self._objects[oldpos] = value
+
 	def _load(self, typecode):
 		from ll import misc
 		if typecode is None:
-			typecode = self.stream.read(1)
-		if not typecode:
-			raise EOFError()
-		elif typecode == "^":
+			typecode = self._nextchar()
+		if typecode == "^":
 			position = self._readint()
 			return self._objects[position]
 		elif typecode in "nN":
@@ -287,7 +347,7 @@ class Decoder:
 			elif value == "F":
 				value = False
 			else:
-				raise ValueError("broken stream: expected 'T' or 'F' for bool; got {!r}".format(value))
+				raise ValueError("broken stream at position {}: expected 'T' or 'F' for bool; got {!r}".format(self.stream.tell(), value))
 			if typecode == "B":
 				self._loading(value)
 			return value
@@ -300,80 +360,116 @@ class Decoder:
 			chars = []
 			while True:
 				c = self.stream.read(1)
-				if c == "|":
+				if c and not c.isspace():
+					chars.append(c)
+				else:
 					value = float("".join(chars))
 					break
-				else:
-					chars.append(c)
 			if typecode == "F":
 				self._loading(value)
 			return value
 		elif typecode in "sS":
-			size = self._readint()
-			value = self.stream.read(size)
+			delimiter = self.stream.read(1)
+			if not delimiter:
+				raise EOFError()
+			buffer = [delimiter]
+			while True:
+				c = self.stream.read(1)
+				if not c:
+					raise EOFError()
+				buffer.append(c)
+				if c == delimiter:
+					value = ast.literal_eval("".join(buffer))
+					break
+				elif c == "\\":
+					c2 = self.stream.read(1)
+					if not c2:
+						raise EOFError()
+					buffer.append(c2)
 			if typecode == "S":
 				self._loading(value)
 			return value
 		elif typecode in "cC":
 			from ll import color
-			data = self.stream.read(8)
-			value = color.Color(*(int(x, 16) for x in misc.itersplitat(data, (2, 4, 6))))
 			if typecode == "C":
-				self._loading(value)
+				oldpos = self._beginfakeloading()
+			r = self._load(None)
+			g = self._load(None)
+			b = self._load(None)
+			a = self._load(None)
+			value = color.Color(r, g, b, a)
+			if typecode == "C":
+				self._endfakeloading(oldpos, value)
 			return value
 		elif typecode in "zZ":
-			data = self.stream.read(20)
-			value = datetime.datetime(*map(int, misc.itersplitat(data, (4, 6, 8, 10, 12, 14))))
 			if typecode == "Z":
-				self._loading(value)
+				oldpos = self._beginfakeloading()
+			year = self._load(None)
+			month = self._load(None)
+			day = self._load(None)
+			hour = self._load(None)
+			minute = self._load(None)
+			second = self._load(None)
+			microsecond = self._load(None)
+			value = datetime.datetime(year, month, day, hour, minute, second, microsecond)
+			if typecode == "Z":
+				self._endfakeloading(oldpos, value)
 			return value
 		elif typecode in "rR":
-			start = self._readint()
-			stop = self._readint()
+			if typecode == "R":
+				oldpos = self._beginfakeloading()
+			self._loading(None)
+			start = self._load(None)
+			stop = self._load(None)
 			value = slice(start, stop)
 			if typecode == "R":
-				self._loading(value)
+				self._endfakeloading(oldpos, value)
 			return value
 		elif typecode in "tT":
-			days = self._readint()
-			seconds = self._readint()
-			microseconds = self._readint()
+			if typecode == "T":
+				oldpos = self._beginfakeloading()
+			days = self._load(None)
+			seconds = self._load(None)
+			microseconds = self._load(None)
 			value = datetime.timedelta(days, seconds, microseconds)
 			if typecode == "T":
-				self._loading(value)
+				self._endfakeloading(oldpos, value)
 			return value
 		elif typecode in "mM":
 			from ll import misc
-			months = self._readint()
+			if typecode == "M":
+				oldpos = self._beginfakeloading()
+			months = self._load(None)
 			value = misc.monthdelta(months)
 			if typecode == "M":
-				self._loading(value)
+				self._endfakeloading(oldpos, value)
 			return value
 		elif typecode in "lL":
 			value = []
 			if typecode == "L":
 				self._loading(value)
 			while True:
-				c = self.stream.read(1)
-				if c == "]":
+				typecode = self._nextchar()
+				if typecode == "]":
 					return value
 				else:
-					item = self._load(c)
+					item = self._load(typecode)
 					value.append(item)
 		elif typecode in "dD":
 			value = {}
 			if typecode == "D":
 				self._loading(value)
 			while True:
-				c = self.stream.read(1)
-				if c == "}":
+				typecode = self._nextchar()
+				if typecode == "}":
 					return value
 				else:
-					key = self._load(c)
-					if key in self._keycache:
-						key = self._keycache[key]
-					else:
-						self._keycache[key] = key
+					key = self._load(typecode)
+					if isinstance(key, str):
+						if key in self._keycache:
+							key = self._keycache[key]
+						else:
+							self._keycache[key] = key
 					item = self._load(None)
 					value[key] = item
 		elif typecode in "yY":
@@ -381,35 +477,30 @@ class Decoder:
 			if typecode == "Y":
 				self._loading(value)
 			while True:
-				c = self.stream.read(1)
-				if c == "}":
+				typecode = self._nextchar()
+				if typecode == "}":
 					return value
 				else:
-					item = self._load(c)
+					item = self._load(typecode)
 					value.add(item)
 		elif typecode in "oO":
 			if typecode == "O":
-				# We have a problem here:
-				# We have to record the object we're loading *now*, so that it is available for backreferences.
-				# However until we've read the UL4ON name of the class, we can't create the object.
-				# So we push ``None`` to the backreference list for now and put the right object in this spot,
-				# once we've created it (This shouldn't be a problem, because during the time the backreference
-				# is wrong, only the class name is read, so our object won't be referenced).
-				oldpos = len(self._objects)
-				self._loading(None)
+				oldpos = self._beginfakeloading()
 			name = self._load(None)
 			try:
 				cls = _registry[name]
 			except KeyError:
 				raise TypeError("can't decode object of type {}".format(name))
-			obj = cls()
-			# Fix object in backreference list
+			value = cls()
 			if typecode == "O":
-				self._objects[oldpos] = obj
-			obj.ul4onload(self)
-			return obj
+				self._endfakeloading(oldpos, value)
+			value.ul4onload(self)
+			typecode = self._nextchar()
+			if typecode != ")":
+				raise ValueError("broken stream at position {}: object terminator ')' expected, got {!r}".format(self.stream.tell(), typecode))
+			return value
 		else:
-			raise ValueError("broken stream: unknown typecode {!r}".format(typecode))
+			raise ValueError("broken stream at position {}: unknown typecode {!r}".format(self.stream.tell(), typecode))
 
 
 class StreamBuffer(object):
@@ -433,22 +524,22 @@ class StreamBuffer(object):
 			return result
 
 
-def dumps(obj):
+def dumps(obj, indent=None):
 	"""
 	Serialize :obj:`obj` as an UL4ON formatted string.
 	"""
 	stream = io.StringIO()
-	Encoder(stream).dump(obj)
+	Encoder(stream, indent=indent).dump(obj)
 	return stream.getvalue()
 
 
-def dump(obj, stream):
+def dump(obj, stream, indent=None):
 	"""
 	Serialize :obj:`obj` as an UL4ON formatted stream to :obj:`stream`.
 
 	:obj:`stream` must provide a :meth:`write` method.
 	"""
-	Encoder(stream).dump(obj)
+	Encoder(stream, indent=indent).dump(obj)
 
 
 def loadclob(clob, bufsize=1024*1024):

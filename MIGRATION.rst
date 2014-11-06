@@ -1,3 +1,15 @@
+Migrating to version 5.12
+=========================
+
+Changes to ``ul4on``
+--------------------
+
+*	The UL4ON serialization format has been reimplemented to be more
+	human-readable and robust. The new format is incompatible to the old.
+	If you update your XIST installation to 5.12 you should update the
+	corresponding UL4ON versions for Java/Javascript too.
+
+
 Migrating to version 5.10
 =========================
 
