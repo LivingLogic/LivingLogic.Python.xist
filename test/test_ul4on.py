@@ -276,6 +276,8 @@ def test_int(t):
 
 def test_float(t):
 	assert -42.5 == t(-42.5)
+	if t not in (transport_js_v8, transport_js_v8_pretty, transport_js_spidermonkey, transport_js_spidermonkey_pretty):
+		assert 1e42 == t(1e42)
 	assert math.pi == t(math.pi)
 
 
