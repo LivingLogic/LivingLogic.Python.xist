@@ -2856,7 +2856,8 @@ class OracleURLConnection(url_.Connection):
 		type = self._type(absurl)
 		if type == "root": # directory of types for the current user
 			for childname in sorted(Object.name2type):
-				yield from _dir("{}/".format(childname))
+				if childname not in ("comment", "column"):
+					yield from _dir("{}/".format(childname))
 		elif type == "type": # directory of objects of the specified type for current user
 			path = absurl.path
 			type = path[0]
@@ -2873,11 +2874,12 @@ class OracleURLConnection(url_.Connection):
 			for name in User.iternames(self.dbconnection):
 				yield from _dir("{}/".format(makeurl(name)))
 		elif type == "user": # directory of types for a specific user
-			path = url.path
-			for name in sorted(Object.name2type):
-				yield from _dir("{}/".format(name))
+			path = absurl.path
+			for childname in sorted(Object.name2type):
+				if childname not in ("comment", "column"):
+					yield from _dir("{}/".format(childname))
 		elif type == "usertype": # directory of objects of the specified type for a specific user
-			path = url.path
+			path = absurl.path
 			type = path[2]
 			try:
 				class_ = Object.name2type[type]

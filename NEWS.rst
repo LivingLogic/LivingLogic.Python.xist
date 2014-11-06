@@ -1,3 +1,11 @@
+Changes in 5.12 (released 11/06/2014)
+-------------------------------------
+
+*	Fixed bugs in oracle URLs: the type ``comment`` and ``column`` are now
+	skipped when iterating a user "directory". Content in the ``user`` direcory
+	now works correctly.
+
+
 Changes in 5.11 (released 10/29/2014)
 -------------------------------------
 
