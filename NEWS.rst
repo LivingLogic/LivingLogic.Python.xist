@@ -2,10 +2,10 @@ Changes in 5.12 (released 11/07/2014)
 -------------------------------------
 
 *	Fixed bugs in oracle URLs: the type ``comment`` and ``column`` are now
-	skipped when iterating a user "directory". Content in the ``user`` direcory
+	skipped when iterating a user "directory". Content in the ``user`` directory
 	now works correctly.
 
-*	UL4ON has been reimplemented to be human-readable to be more robust
+*	UL4ON has been reimplemented to be human-readable and more robust
 	against modification of the dumped data. For generating UL4ON dumps
 	with Oracle a PL/SQL package is available at
 	https://github.com/LivingLogic/LivingLogic.Oracle.ul4
