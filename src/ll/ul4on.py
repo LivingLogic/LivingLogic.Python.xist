@@ -230,9 +230,12 @@ class Encoder:
 			elif isinstance(obj, color.Color):
 				self._record(obj)
 				self._line("C", obj.r(), obj.g(), obj.b(), obj.a())
-			elif isinstance(obj, (datetime.datetime, datetime.date)):
+			elif isinstance(obj, datetime.datetime):
 				self._record(obj)
 				self._line("Z", obj.year, obj.month, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond)
+			elif isinstance(obj, datetime.date):
+				self._record(obj)
+				self._line("Z", obj.year, obj.month, obj.day, 0, 0, 0, 0)
 			elif isinstance(obj, datetime.timedelta):
 				self._record(obj)
 				self._line("T", obj.days, obj.seconds, obj.microseconds)
