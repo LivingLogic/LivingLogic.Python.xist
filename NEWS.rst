@@ -1,4 +1,4 @@
-Changes in 5.12 (released 11/06/2014)
+Changes in 5.12 (released 11/07/2014)
 -------------------------------------
 
 *	Fixed bugs in oracle URLs: the type ``comment`` and ``column`` are now
