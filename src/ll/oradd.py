@@ -195,7 +195,7 @@ The following additional keys are used:
 		If ``owner`` or ``group`` is given, :func:`os.chown` will be called on the
 		file.
 
-The type ``"resetsequence"`` creset a sequence in the Oracle database to the
+The type ``"resetsequence"`` resets a sequence in the Oracle database to the
 maximum value of a field in a table. The following additional keys are used:
 
 	``sequence``: string (required)
