@@ -493,7 +493,7 @@ class Converter(object):
 		*	:obj:`key` may be a string, in which case it should be a hierarchical
 			dot-separated name similar to Java package names (e.g.
 			``"org.example.project.handler"``). This helps avoid name collisions.
-			Context objects of this type must be explicitely created via
+			Context objects of this type must be explicitly created via
 			:meth:`__setitem__`.
 
 		*	:obj:`key` may be a :class:`ll.xist.xsc.Node` instance or subclass.

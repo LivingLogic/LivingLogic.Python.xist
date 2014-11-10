@@ -236,7 +236,7 @@ Migrating to ll-nightshade version 0.10
 When a :class:`Connect` object is used as a decorator the database connection is
 no longer passed to the decorated function. You have to store the
 :class:`Connect` object somewhere and call it's new :meth:`cursor` method
-explicitely.
+explicitly.
 
 
 Migrating to ll-nightshade version 0.8
