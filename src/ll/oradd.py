@@ -519,6 +519,8 @@ class Executor:
 		# Fetch information about the sequence
 		self.cursor.execute("select min_value, increment_by, last_number from user_sequences where lower(sequence_name)=lower(:name)", name=sequence)
 		oldvalues = self.cursor.fetchone()
+		if oldvalues is None:
+			raise ValueError("sequence {!r} unknown".format(sequence))
 		if increment is None:
 			increment = oldvalues[1]
 		if minvalue is None:
