@@ -1793,6 +1793,9 @@ def test_function_ul4on(r):
 	assert '[1, 2, 3]' == r(code, data=[1, 2, 3])
 	assert r(code, data={'one': 1}) in ('{"one": 1}', "{'one': 1}")
 
+	# Explicitely check to real output for at least one example
+	assert "i42" == r("<?print asul4on(42)?>")
+
 	# Make sure that the parameters have the same name in all implementations
 	assert "42" == r("<?print repr(fromul4on(string=asul4on(obj=data)))?>", data=42)
 
