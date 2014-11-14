@@ -992,7 +992,7 @@ class Task(object):
 	def __enter__(self):
 		self.starttime = datetime.datetime.now()
 		self.job._tasks.append(self)
-		self.job.setproctitle(self.job._makeproctitle("child"))
+		self.job.setproctitle("child")
 		for logger in self.job._loggers:
 			logger.taskstart(self.job._tasks)
 		return self
@@ -1007,7 +1007,7 @@ class Task(object):
 		for logger in self.job._loggers:
 			logger.taskend(self.job._tasks)
 		self.job._tasks.pop()
-		self.job.setproctitle(self.job._makeproctitle("child"))
+		self.job.setproctitle("child")
 
 	def __str__(self):
 		v = " ".join(str(d) for d in (self.type, self.name) if d)
