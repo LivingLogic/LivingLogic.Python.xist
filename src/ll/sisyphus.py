@@ -755,7 +755,7 @@ class Job(object):
 				# Fork the process; the child will do the work; the parent will monitor the maximum runtime
 				self.killpid = pid = os.fork()
 				if pid: # We are the parent process
-					self.setproctitle(self._makeproctitle("parent", "{} (max time {})".format("logging to {}".format(self.logfileurl) if self.logfileurl else "no logging", maxtime)))
+					self.setproctitle("parent", "{} (max time {})".format("logging to {}".format(self.logfileurl) if self.logfileurl else "no logging", maxtime))
 					# set a signal to kill the child process after the maximum runtime
 					signal.signal(signal.SIGALRM, self._alarm_fork)
 					signal.alarm(self.getmaxtime_seconds())
@@ -764,23 +764,23 @@ class Job(object):
 					except BaseException as exc:
 						pass
 					return # Exit normally
-				self.setproctitle(self._makeproctitle("child"))
+				self.setproctitle("child")
 				self.log.sisyphus.init("forked worker child (child pid {})".format(os.getpid()))
 			else: # We didn't fork
 				# set a signal to kill ourselves after the maximum runtime
 				signal.signal(signal.SIGALRM, self._alarm_nofork)
 				signal.alarm(self.getmaxtime_seconds())
 
-			self.setproctitle(self._makeproctitle("child", "Setting up"))
+			self.setproctitle("child", "Setting up")
 			self.notifystart()
 			result = None
 			try:
 				with url.Context():
-					self.setproctitle(self._makeproctitle("child", "Working"))
+					self.setproctitle("child", "Working")
 					result = self.execute()
 			except Exception as exc:
 				self.endtime = datetime.datetime.now()
-				self.setproctitle(self._makeproctitle("child", "Handling exception"))
+				self.setproctitle("child", "Handling exception")
 				result = "failed with {}".format(_formatexc(exc))
 				# log the error to the logfile, because the job probably didn't have a chance to do it
 				self.log.sisyphus.email(exc)
@@ -791,14 +791,14 @@ class Job(object):
 					raise
 			else:
 				self.endtime = datetime.datetime.now()
-				self.setproctitle(self._makeproctitle("child", "Finishing"))
+				self.setproctitle("child", "Finishing")
 				# log the result
 				if self._exceptioncount:
 					self.log.sisyphus.result.errors(result)
 				else:
 					self.log.sisyphus.result.ok(result)
 			finally:
-				self.setproctitle(self._makeproctitle("child", "Cleaning up logs"))
+				self.setproctitle("child", "Cleaning up logs")
 				for logger in self._loggers:
 					logger.close()
 				self.notifyfinish(result)
@@ -884,7 +884,7 @@ class Job(object):
 			with self.task(type(item) if callable(type) else type, name(item) if callable(name) else name, i, count):
 				yield item
 
-	def _makeproctitle(self, process, detail=None):
+	def makeproctitle(self, process, detail=None):
 		v = []
 		if self.fork:
 			v.append(process)
@@ -897,8 +897,9 @@ class Job(object):
 			return detail
 		return "{} >> {}".format(title, detail)
 
-	def setproctitle(self, title):
+	def setproctitle(self, process, detail):
 		if self.proctitle and setproctitle:
+			title = self.makeproctitle(process, detail)
 			setproctitle.setproctitle("{} :: {}".format(self._originalproctitle, title))
 
 	def _log(self, tags, obj):
