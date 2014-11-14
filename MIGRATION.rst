@@ -1,3 +1,16 @@
+Migrating to version 5.13
+=========================
+
+Changes to ``sisyphus``
+-----------------------
+
+*	The option :option:`setproctitle` for sisyphus jobs has been renamed to
+	:option:`proctitle`. 
+
+*	Locally defined UL4 templates no longer see themselves among the variables
+	of the parent template.
+
+
 Migrating to version 5.12
 =========================
 

@@ -5,6 +5,9 @@ Changes in 5.13 (released ??/??/2014)
 	:option:`proctitle`. The new method :meth:`setproctitle` sets the process
 	title and can be used to customize setting the process title.
 
+*	Locally defined UL4 templates no longer see themselves among the variables
+	of the parent template. This avoids cycles in the object graph.
+
 
 Changes in 5.12 (released 11/07/2014)
 -------------------------------------
