@@ -1133,6 +1133,8 @@ class URLResourceLogger(StreamLogger):
 								self.job.log.sisyphus.info("Compressing logfiles older than {} via {}".format(compressfilelogs, self.job.compressmode))
 								compressedany = True
 							self.compress(fileurl)
+			if removedany or compressedany:
+				self.job.log.sisyphus.info("Cleanup done")
 
 	def remove(self, fileurl):
 		self.job.log.sisyphus.info("Removing logfile {}".format(fileurl.local()))
