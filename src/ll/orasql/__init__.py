@@ -340,7 +340,7 @@ class Connection(Connection):
 			self.readlobs = kwargs.pop("readlobs", False)
 		else:
 			self.readlobs = False
-		clientinfo = kwargs.pop("clientinfo", misc.sysinfo.short_script_name[-64:])
+		clientinfo = kwargs.pop("clientinfo", misc.sysinfo.script_url[-64:])
 		super().__init__(*args, **kwargs)
 		if clientinfo is not None:
 			self.clientinfo = clientinfo
