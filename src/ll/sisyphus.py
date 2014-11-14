@@ -897,7 +897,7 @@ class Job(object):
 			return detail
 		return "{} >> {}".format(title, detail)
 
-	def setproctitle(self, process, detail):
+	def setproctitle(self, process, detail=None):
 		if self.proctitle and setproctitle:
 			title = self.makeproctitle(process, detail)
 			setproctitle.setproctitle("{} :: {}".format(self._originalproctitle, title))
