@@ -323,7 +323,7 @@ class Job(object):
 		This options limits the number of exceptions and errors messages that
 		will get attached to the failure email. The default is 10.
 
-	``setproctitle`` : :option:`--setproctitle`
+	``proctitle`` : :option:`--proctitle`
 		When this options is specified, the process title will be modified during
 		execution of the job, so that the ``ps`` command shows what the processes
 		are doing. (This requires :mod:`setproctitle`.)
@@ -589,7 +589,7 @@ class Job(object):
 
 	maxemailerrors = 10
 
-	setproctitle = True
+	proctitle = True
 
 	encoding = "utf-8"
 	errors = "strict"
@@ -634,7 +634,7 @@ class Job(object):
 		p.add_argument(      "--compressfilelogs", dest="compressfilelogs", metavar="DAYS", help="Number of days log after which log files are gzipped (default: %(default)s)", type=float, default=self.compressfilelogs)
 		p.add_argument(      "--compressmode", dest="compressmode", metavar="MODE", help="Method for compressing old log files (default: %(default)s)", choices=("gzip", "bzip2", "lzma"), default=self.compressmode)
 		p.add_argument(      "--maxemailerrors", dest="maxemailerrors", metavar="INTEGER", help="Maximum number of errors or messages to report in the failure report (default: %(default)s)", default=self.maxemailerrors)
-		p.add_argument(      "--setproctitle", dest="setproctitle", help="Set the process title (default: %(default)s)", action=misc.FlagAction, default=self.setproctitle)
+		p.add_argument(      "--proctitle", dest="proctitle", help="Set the process title (default: %(default)s)", action=misc.FlagAction, default=self.proctitle)
 		p.add_argument(      "--encoding", dest="encoding", metavar="ENCODING", help="Encoding for the log file (default: %(default)s)", default=self.encoding)
 		p.add_argument(      "--errors", dest="errors", metavar="METHOD", help="Error handling method for encoding errors in log texts (default: %(default)s)", default=self.errors)
 		p.add_argument(      "--noisykills", dest="noisykills", help="Should a message be printed/failure email be sent if the maximum runtime is exceeded? (default: %(default)s)", action=misc.FlagAction, default=self.noisykills)
@@ -668,7 +668,7 @@ class Job(object):
 		self.compressfilelogs = datetime.timedelta(days=args.compressfilelogs)
 		self.compressmode = args.compressmode
 		self.maxemailerrors = args.maxemailerrors
-		self.setproctitle = args.setproctitle
+		self.proctitle = args.proctitle
 		self.encoding = args.encoding
 		self.errors = args.errors
 		self.notify = args.notify
@@ -755,7 +755,7 @@ class Job(object):
 				# Fork the process; the child will do the work; the parent will monitor the maximum runtime
 				self.killpid = pid = os.fork()
 				if pid: # We are the parent process
-					self._makeproctitle("parent", "{} (max time {})".format("logging to {}".format(self.logfileurl) if self.logfileurl else "no logging", maxtime))
+					self.setproctitle(self._makeproctitle("parent", "{} (max time {})".format("logging to {}".format(self.logfileurl) if self.logfileurl else "no logging", maxtime)))
 					# set a signal to kill the child process after the maximum runtime
 					signal.signal(signal.SIGALRM, self._alarm_fork)
 					signal.alarm(self.getmaxtime_seconds())
@@ -764,23 +764,23 @@ class Job(object):
 					except BaseException as exc:
 						pass
 					return # Exit normally
-				self._makeproctitle("child")
+				self.setproctitle(self._makeproctitle("child"))
 				self.log.sisyphus.init("forked worker child (child pid {})".format(os.getpid()))
 			else: # We didn't fork
 				# set a signal to kill ourselves after the maximum runtime
 				signal.signal(signal.SIGALRM, self._alarm_nofork)
 				signal.alarm(self.getmaxtime_seconds())
 
-			self._makeproctitle("child", "Setting up")
+			self.setproctitle(self._makeproctitle("child", "Setting up"))
 			self.notifystart()
 			result = None
 			try:
 				with url.Context():
-					self._makeproctitle("child", "Working")
+					self.setproctitle(self._makeproctitle("child", "Working"))
 					result = self.execute()
 			except Exception as exc:
 				self.endtime = datetime.datetime.now()
-				self._makeproctitle("child", "Handling exception")
+				self.setproctitle(self._makeproctitle("child", "Handling exception"))
 				result = "failed with {}".format(_formatexc(exc))
 				# log the error to the logfile, because the job probably didn't have a chance to do it
 				self.log.sisyphus.email(exc)
@@ -791,14 +791,14 @@ class Job(object):
 					raise
 			else:
 				self.endtime = datetime.datetime.now()
-				self._makeproctitle("child", "Finishing")
+				self.setproctitle(self._makeproctitle("child", "Finishing"))
 				# log the result
 				if self._exceptioncount:
 					self.log.sisyphus.result.errors(result)
 				else:
 					self.log.sisyphus.result.ok(result)
 			finally:
-				self._makeproctitle("child", "Cleaning up logs")
+				self.setproctitle(self._makeproctitle("child", "Cleaning up logs"))
 				for logger in self._loggers:
 					logger.close()
 				self.notifyfinish(result)
@@ -885,16 +885,19 @@ class Job(object):
 				yield item
 
 	def _makeproctitle(self, process, detail=None):
-		if self.setproctitle and setproctitle:
-			v = [self._originalproctitle]
-			if self.fork:
-				v.append(process)
-			for task in self._tasks:
-				v.append(str(task))
-			title = " :: ".join(v)
-			if detail:
-				title = "{} >> {}".format(title, detail)
-			setproctitle.setproctitle(title)
+		v = []
+		if self.fork:
+			v.append(process)
+		for task in self._tasks:
+			v.append(str(task))
+		title = " :: ".join(v)
+		if detail:
+			title = "{} >> {}".format(title, detail)
+		return title
+
+	def setproctitle(self, title):
+		if self.proctitle and setproctitle:
+			setproctitle.setproctitle("{} :: {}".format(self._originalproctitle, title))
 
 	def _log(self, tags, obj):
 		"""
@@ -986,7 +989,7 @@ class Task(object):
 	def __enter__(self):
 		self.starttime = datetime.datetime.now()
 		self.job._tasks.append(self)
-		self.job._makeproctitle("child")
+		self.job.setproctitle(self.job._makeproctitle("child"))
 		for logger in self.job._loggers:
 			logger.taskstart(self.job._tasks)
 		return self
@@ -1001,7 +1004,7 @@ class Task(object):
 		for logger in self.job._loggers:
 			logger.taskend(self.job._tasks)
 		self.job._tasks.pop()
-		self.job._makeproctitle("child")
+		self.job.setproctitle(self.job._makeproctitle("child"))
 
 	def __str__(self):
 		v = " ".join(str(d) for d in (self.type, self.name) if d)

@@ -3630,8 +3630,6 @@ class TemplateClosure:
 		self.template = template
 		# Freeze variables of the currently running templates/functions
 		self.vars = vars.copy()
-		# The template (i.e. the closure) itself should be visible in the parent variables
-		self.vars[template.name] = self
 
 	@generator
 	def render(self, **vars):
