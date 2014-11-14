@@ -891,12 +891,11 @@ class Job(object):
 		for task in self._tasks:
 			v.append(str(task))
 		title = " :: ".join(v)
-		if detail:
-			if title:
-				title = "{} >> {}".format(title, detail)
-			else:
-				title = detail
-		return title
+		if not detail:
+			return title
+		if not title:
+			return detail
+		return "{} >> {}".format(title, detail)
 
 	def setproctitle(self, title):
 		if self.proctitle and setproctitle:
