@@ -892,7 +892,10 @@ class Job(object):
 			v.append(str(task))
 		title = " :: ".join(v)
 		if detail:
-			title = "{} >> {}".format(title, detail)
+			if title:
+				title = "{} >> {}".format(title, detail)
+			else:
+				title = detail
 		return title
 
 	def setproctitle(self, title):
