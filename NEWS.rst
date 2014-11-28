@@ -9,7 +9,7 @@ Changes in 5.13 (released ??/??/2014)
 	of the parent template. This avoids cycles in the object graph.
 
 *	The default for the name parameter in :meth:`tasks` for sisyphus jobs has
-	changed from ``str`` to ``None``, i.e. the it defaults to unnamed tasks now.
+	changed from ``str`` to ``None``, i.e. it defaults to unnamed tasks now.
 
 
 Changes in 5.12 (released 11/07/2014)
