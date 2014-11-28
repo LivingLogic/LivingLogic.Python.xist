@@ -8,6 +8,9 @@ Changes in 5.13 (released ??/??/2014)
 *	Locally defined UL4 templates no longer see themselves among the variables
 	of the parent template. This avoids cycles in the object graph.
 
+*	The default for the name parameter in :meth:`tasks` for sisyphus jobs has
+	changed from ``str`` to ``None``, i.e. the it defaults to unnamed taks now.
+
 
 Changes in 5.12 (released 11/07/2014)
 -------------------------------------

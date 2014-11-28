@@ -859,7 +859,7 @@ class Job(object):
 		"""
 		return Task(self, type=type, name=name, index=index, count=count)
 
-	def tasks(self, iterable, type=None, name=str):
+	def tasks(self, iterable, type=None, name=None):
 		"""
 		:meth:`tasks` iterates through :obj:`iterable` and calls :meth:`task` for
 		each item. :obj:`index` and :obj:`count` will be passed to :meth:`task`

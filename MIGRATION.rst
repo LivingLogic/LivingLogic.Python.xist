@@ -10,6 +10,9 @@ Changes to ``sisyphus``
 *	Locally defined UL4 templates no longer see themselves among the variables
 	of the parent template.
 
+*	The default for the name parameter in :meth:`tasks` for sisyphus jobs has
+	changed from ``str`` to ``None``, i.e. the it defaults to unnamed taks now.
+
 
 Migrating to version 5.12
 =========================
