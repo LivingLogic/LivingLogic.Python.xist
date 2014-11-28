@@ -11,7 +11,7 @@ Changes to ``sisyphus``
 	of the parent template.
 
 *	The default for the name parameter in :meth:`tasks` for sisyphus jobs has
-	changed from ``str`` to ``None``, i.e. the it defaults to unnamed taks now.
+	changed from ``str`` to ``None``, i.e. the it defaults to unnamed tasks now.
 
 
 Migrating to version 5.12
