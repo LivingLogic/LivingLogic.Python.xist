@@ -206,6 +206,97 @@ class TemplatePHP:
 		self.keepws = keepws
 		self.signature = signature
 
+	def maketemplate(self):
+		return ul4c.Template(self.source, name=self.name, keepws=self.keepws, signature=self.signature)
+
+	def phpexpr(self, obj):
+		if obj is None:
+			return "null"
+		elif isinstance(obj, bool):
+			return "true" if obj else "false"
+		elif isinstance(obj, int):
+			return str(obj)
+		elif isinstance(obj, float):
+			return str(obj)
+		elif isinstance(obj, str):
+			v = ['"']
+			for c in obj:
+				if c == '\n':
+					c = '\\n'
+				elif c == '\t':
+					c = '\\t'
+				elif c == '"':
+					c = '\\"'
+				elif ord(c) < 32:
+					c = '\\x{:02x}'.format(ord(c))
+				v.append(c)
+			v.append('"')
+			return "".join(v)
+		elif isinstance(obj, datetime.datetime):
+			return r"\com\livinglogic\ul4\Utils::date({}, {}, {}, {}, {}, {}, {})".format(obj.year, obj.month, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond)
+		elif isinstance(obj, datetime.date):
+			return r"\com\livinglogic\ul4\Utils::date({}, {}, {})".format(obj.year, obj.month, obj.day)
+		elif isinstance(obj, datetime.timedelta):
+			return r"new \com\livinglogic\ul4\TimeDelta({}, {}, {})".format(obj.days, obj.seconds, obj.microseconds)
+		elif isinstance(obj, misc.monthdelta):
+			return r"new \com\livinglogic\ul4\MonthDelta({})".format(obj.months)
+		elif isinstance(obj, color.Color):
+			return r"new \com\livinglogic\ul4\Color({}, {}, {}, {})".format(obj.r(), obj.g(), obj.b(), obj.a())
+		elif isinstance(obj, ul4c.Template):
+			return r"\com\livinglogic\ul4\InterpretedTemplate::loads({})".format(self.phpexpr(obj.dumps()))
+		elif isinstance(obj, collections.Mapping):
+			return "array({})".format(", ".join("{} => {}".format(self.phpexpr(key), self.phpexpr(value)) for (key, value) in obj.items()))
+		elif isinstance(obj, collections.Sequence):
+			return "array({})".format(", ".join(self.phpexpr(item) for item in obj))
+		else:
+			raise ValueError("Can't convert {!r} to PHP".format(obj))
+
+	def runcode(self, source):
+		f = sys._getframe(1)
+		print("Rendering UL4 template ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+		print(source)
+		with tempfile.NamedTemporaryFile(mode="wb", suffix=".php") as f:
+			f.write(source.encode("utf-8"))
+			f.flush()
+			dir = os.path.expanduser("~/checkouts/LivingLogic.PHP.ul4")
+		proc = subprocess.Popen("php -n -d include_path={dir} -d date.timezone=Europe/Berlin {fn}".format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+			(stdout, stderr) = proc.communicate()
+		stdout = stdout.decode("utf-8")
+		stderr = stderr.decode("utf-8")
+		# Check if we have an exception
+		if proc.returncode:
+			print(stdout, file=sys.stdout)
+			print(stderr, file=sys.stderr)
+			raise RuntimeError((stderr or stdout).strip().splitlines()[0])
+		return stdout
+
+	def renders(self, *args, **kwargs):
+		if args:
+			raise ValueError("*args not supported")
+
+		source = r"""<?php
+		include_once 'com/livinglogic/ul4/ul4.php';
+		$template = \com\livinglogic\ul4\InterpretedTemplate::loads({});
+		$variables = {};
+		print $template->renders($variables);
+		?>""".format(self.phpexpr(template.dumps()), self.phpexpr(kwargs))
+		return self.runcode(source)
+
+	def render(self, *args, **kwargs):
+		return self.renders(*args, **kwargs)
+
+	def __call__(self, *args, **kwargs):
+		if args:
+			raise ValueError("*args not supported")
+
+		source = r"""<?php
+		include_once 'com/livinglogic/ul4/ul4.php';
+		$template = \com\livinglogic\ul4\InterpretedTemplate::loads({});
+		$variables = {};
+		print $template->call($variables);
+		?>""".format(self.phpexpr(template.dumps()), self.phpexpr(kwargs))
+		return self.runcode(source)
+
 
 class TemplateJavascript:
 	def __init__(self, source, name=None, keepws=True, signature=None):
@@ -295,73 +386,6 @@ class TemplateJavascriptSpidermoney(TemplateJavascript):
 		""".format(self.template.jssource(), ul4c._asjson(ul4on.dumps(kwargs)))
 
 		return ul4on.loads(self.runcode("js -f {dir}/ul4on.js -f {dir}/ul4.js -f {fn}", source))
-
-
-def render_php(__, keepws=True, signature=None, **variables):
-	template = ul4c.Template(__, keepws=keepws, signature=signature)
-	php = r"""<?php
-	include_once 'com/livinglogic/ul4/ul4.php';
-	$template = \com\livinglogic\ul4\InterpretedTemplate::loads({});
-	$variables = {};
-	print $template->renders($variables);
-	?>""".format(phpexpr(template.dumps()), phpexpr(variables))
-	with tempfile.NamedTemporaryFile(mode="wb", suffix=".php") as f:
-		f.write(php.encode("utf-8"))
-		f.flush()
-		dir = os.path.expanduser("~/checkouts/LivingLogic.PHP.ul4")
-		proc = subprocess.Popen("php -n -d include_path={dir} -d date.timezone=Europe/Berlin {fn}".format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-		(stdout, stderr) = proc.communicate()
-	stdout = stdout.decode("utf-8")
-	stderr = stderr.decode("utf-8")
-	# Check if we have an exception
-	if proc.returncode:
-		print(stdout, file=sys.stdout)
-		print(stderr, file=sys.stderr)
-		raise RuntimeError((stderr.strip() or stdout.strip()).splitlines()[0])
-	return stdout
-
-
-def phpexpr(obj):
-	if obj is None:
-		return "null"
-	elif isinstance(obj, bool):
-		return "true" if obj else "false"
-	elif isinstance(obj, int):
-		return str(obj)
-	elif isinstance(obj, float):
-		return str(obj)
-	elif isinstance(obj, str):
-		v = ['"']
-		for c in obj:
-			if c == '\n':
-				c = '\\n'
-			elif c == '\t':
-				c = '\\t'
-			elif c == '"':
-				c = '\\"'
-			elif ord(c) < 32:
-				c = '\\x{:02x}'.format(ord(c))
-			v.append(c)
-		v.append('"')
-		return "".join(v)
-	elif isinstance(obj, datetime.datetime):
-		return r"\com\livinglogic\ul4\Utils::date({}, {}, {}, {}, {}, {}, {})".format(obj.year, obj.month, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond)
-	elif isinstance(obj, datetime.date):
-		return r"\com\livinglogic\ul4\Utils::date({}, {}, {})".format(obj.year, obj.month, obj.day)
-	elif isinstance(obj, datetime.timedelta):
-		return r"new \com\livinglogic\ul4\TimeDelta({}, {}, {})".format(obj.days, obj.seconds, obj.microseconds)
-	elif isinstance(obj, misc.monthdelta):
-		return r"new \com\livinglogic\ul4\MonthDelta({})".format(obj.months)
-	elif isinstance(obj, color.Color):
-		return r"new \com\livinglogic\ul4\Color({}, {}, {}, {})".format(obj.r(), obj.g(), obj.b(), obj.a())
-	elif isinstance(obj, ul4c.Template):
-		return r"\com\livinglogic\ul4\InterpretedTemplate::loads({})".format(phpexpr(obj.dumps()))
-	elif isinstance(obj, collections.Mapping):
-		return "array({})".format(", ".join("{} => {}".format(phpexpr(key), phpexpr(value)) for (key, value) in obj.items()))
-	elif isinstance(obj, collections.Sequence):
-		return "array({})".format(", ".join(phpexpr(item) for item in obj))
-	else:
-		raise ValueError("Can't convert {!r} to PHP".format(obj))
 
 
 all_templates = dict(
