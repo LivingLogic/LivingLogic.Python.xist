@@ -10,7 +10,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-import sys, os, re, datetime, io, json, tempfile, collections, shutil, subprocess
+import sys, os, re, datetime, io, json, tempfile, collections, shutil, subprocess, inspect, datetime
 
 import pytest
 
@@ -43,111 +43,262 @@ class PseudoList(collections.Sequence):
 		return len(self.list)
 
 
-def render_python(__, *, keepws=True, **variables):
-	"""
-	Compile the template from the source ``__`` and render it with the variables ``variables``.
-	"""
-	template = ul4c.Template(__, keepws=keepws)
-	return template.renders(**variables)
+class TemplatePython:
+	def __init__(self, source, name=None, keepws=True, signature=None):
+		self.source = source
+		self.name = name
+		self.keepws = keepws
+		self.signature = signature
+		self.template = self.maketemplate()
+
+	def maketemplate(self):
+		return ul4c.Template(self.source, name=self.name, keepws=self.keepws, signature=self.signature)
+
+	def render(self, *args, **kwargs):
+		return "".join(self.template.render(*args, **kwargs))
+
+	def renders(self, *args, **kwargs):
+		return self.template.renders(*args, **kwargs)
+
+	def __call__(self, *args, **kwargs):
+		return self.template(*args, **kwargs)
 
 
-def render_python_dumps(__, *, keepws=True, **variables):
-	"""
-	Compile the template from the source ``__``, create a string dump from it,
-	recreate the template from the dump string and render it with the variables
-	``variables``.
-	"""
-	template = ul4c.Template(__, keepws=keepws)
-	template = ul4c.Template.loads(template.dumps()) # Recreate the template from the binary dump
-	return template.renders(**variables)
+class TemplatePythonDumpS(TemplatePython):
+	def maketemplate(self):
+		template = ul4c.Template(self.source, name=self.name, keepws=self.keepws, signature=self.signature)
+		template = ul4c.Template.loads(template.dumps()) # Recreate the template from the binary dump
+		return template
 
 
-def render_python_dump(__, *, keepws=True, **variables):
-	"""
-	Compile the template from the source ``__``, dump it to a stream, recreate
-	the template from the dump and render it with the variables ``variables``.
-	"""
-	template = ul4c.Template(__, keepws=keepws)
-	stream = io.StringIO()
-	template.dump(stream)
-	stream.seek(0)
-	template = ul4c.Template.load(stream) # Recreate the template from the stream
-	return template.renders(**variables)
+class TemplatePythonDump(TemplatePython):
+	def maketemplate(self):
+		template = ul4c.Template(self.source, name=self.name, keepws=self.keepws, signature=self.signature)
+		stream = io.StringIO()
+		template.dump(stream)
+		stream.seek(0)
+		template = ul4c.Template.load(stream) # Recreate the template from the stream
+		return template
 
 
-def render_js_v8(__, *, keepws=True, **variables):
-	"""
-	Compile the template from the source ``__``, and generate Javascript source
-	from it that renders the template with the variables ``variables``.
+class TemplateJava:
+	def __init__(self, source, name=None, keepws=True, signature=None):
+		self.source = source
+		self.name = name
+		self.keepws = keepws
+		self.signature = signature
 
-	(this requires an installed ``d8`` shell from V8 (http://code.google.com/p/v8/))
-	"""
-	template = ul4c.Template(__, keepws=keepws)
-	js = template.jssource()
-	js = """
-		template = {};
-		data = ul4._map2object(ul4on.loads({}));
-		print(template.renders(data));
-	""".format(js, ul4c._asjson(ul4on.dumps(variables)))
-	f = sys._getframe(1)
-	print("Rendering UL4 template via V8 ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(js)
-	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
-		f.write(js.encode("utf-8"))
-		f.flush()
-		dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
-		fmt = "d8 {dir}/ul4on.js {dir}/ul4.js {fn}"
-		proc = subprocess.Popen(fmt.format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-		(stdout, stderr) = proc.communicate()
-	stdout = stdout.decode("utf-8")
-	stderr = stderr.decode("utf-8")
-	# Check if we have an exception
-	if proc.returncode:
-		print(stdout, file=sys.stdout)
-		print(stderr, file=sys.stderr)
-		raise RuntimeError((stderr or stdout).splitlines()[0])
-	return stdout[:-1] # Drop the "\n"
+	def findexception(self, output):
+		lines = output.splitlines()
+		msg = None
+		for line in lines:
+			prefix1 = 'Exception in thread "main"'
+			prefix2 = "Caused by:"
+			if line.startswith(prefix1):
+				msg = line[len(prefix1):].strip()
+			elif line.startswith(prefix2):
+				msg = line[len(prefix2):].strip()
+		if msg is not None:
+			print(output, file=sys.stderr)
+			raise RuntimeError(msg)
 
+	def run(self, data):
+		dump = ul4on.dumps(data).encode("utf-8")
+		proc = subprocess.Popen("java com.livinglogic.ul4.Tester", stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		(stdout, stderr) = proc.communicate(input=dump)
+		# Check if we have an exception
+		self.findexception(stderr.decode("utf-8"))
 
-def render_js_spidermonkey(__, *, keepws=True, **variables):
-	"""
-	Compile the template from the source ``__``, and generate Javascript source
-	from it that renders the template with the variables ``variables``.
-
-	(this requires an installed ``js`` shell from Spidermonkey
-	"""
-	template = ul4c.Template(__, keepws=keepws)
-	js = template.jssource()
-	# Output the result as JSON, as some characters (like '\00') don't survive being printed literally
-	js = """
-		template = {};
-		data = ul4._map2object(ul4on.loads({}));
-		print(JSON.stringify(template.renders(data)));
-	""".format(js, ul4c._asjson(ul4on.dumps(variables)))
-	f = sys._getframe(1)
-	print("Rendering UL4 template via Spidermonkey ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(js)
-	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
-		f.write(js.encode("utf-8"))
-		f.flush()
-		dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
-		fmt = "js -f {dir}/ul4on.js -f {dir}/ul4.js -f {fn}"
-		proc = subprocess.Popen(fmt.format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-		(stdout, stderr) = proc.communicate()
-	stdout = stdout.decode("utf-8")
-	stderr = stderr.decode("utf-8")
-	# Check if we have an exception
-	if proc.returncode:
-		print(stdout, file=sys.stdout)
-		print(stderr, file=sys.stderr)
-		raise RuntimeError((stderr or stdout).splitlines()[0])
-	return json.loads(stdout)
+		if stderr:
+			print(stderr, file=sys.stderr)
+		return stdout.decode("utf-8")
 
 
+class TemplateJavaCompiledByPython(TemplateJava):
+	def template(self):
+		return ul4c.Template(self.source, name=self.name, keepws=self.keepws, signature=self.signature)
+
+	def renders(self, *args, **kwargs):
+		if args:
+			raise ValueError("*args not supported")
+		data = dict(
+			command="renders",
+			template=self.template(),
+			name=None,
+			keepws=None,
+			signature=None,
+			variables=kwargs,
+		)
+		return self.run(data)
+
+	def render(self, *args, **kwargs):
+		if args:
+			raise ValueError("*args not supported")
+		data = dict(
+			command="render",
+			template=self.template(),
+			name=None,
+			keepws=None,
+			signature=None,
+			variables=kwargs,
+		)
+		return self.run(data)
+
+	def __call__(self, *args, **kwargs):
+		if args:
+			raise ValueError("*args not supported")
+		data = dict(
+			command="call",
+			template=self.template(),
+			name=None,
+			keepws=None,
+			signature=None,
+			variables=kwargs,
+		)
+		return ul4on.loads(self.run(data))
 
 
-def render_php(__, **variables):
-	template = ul4c.Template(__)
+class TemplateJavaCompiledByJava(TemplateJava):
+	def renders(self, *args, **kwargs):
+		if args:
+			raise ValueError("*args not supported")
+		data = dict(
+			command="renders",
+			template=self.source,
+			name=self.name,
+			keepws=self.keepws,
+			signature=self.signature,
+			variables=kwargs,
+		)
+		return self.run(data)
+
+	def render(self, *args, **kwargs):
+		if args:
+			raise ValueError("*args not supported")
+		data = dict(
+			command="render",
+			template=self.source,
+			name=self.name,
+			keepws=self.keepws,
+			signature=self.signature,
+			variables=kwargs,
+		)
+		return self.run(data)
+
+	def __call__(self, *args, **kwargs):
+		if args:
+			raise ValueError("*args not supported")
+		data = dict(
+			command="call",
+			template=self.source,
+			name=self.name,
+			keepws=self.keepws,
+			signature=self.signature,
+			variables=kwargs,
+		)
+		return ul4on.loads(self.run(data))
+
+
+class TemplatePHP:
+	def __init__(self, source, name=None, keepws=True, signature=None):
+		self.source = source
+		self.name = name
+		self.keepws = keepws
+		self.signature = signature
+
+
+class TemplateJavascript:
+	def __init__(self, source, name=None, keepws=True, signature=None):
+		self.source = source
+		self.name = name
+		self.keepws = keepws
+		self.signature = signature
+		self.template = self.maketemplate()
+
+	def maketemplate(self):
+		return ul4c.Template(self.source, name=self.name, keepws=self.keepws, signature=self.signature)
+
+	def runcode(self, command, source):
+		f = sys._getframe(1)
+		print("Rendering UL4 template ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+		print(source)
+		with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
+			f.write(source.encode("utf-8"))
+			f.flush()
+			dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
+			cmd = command.format(cmd=command, dir=dir, fn=f.name)
+			proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+			(stdout, stderr) = proc.communicate()
+		stdout = stdout.decode("utf-8")
+		stderr = stderr.decode("utf-8")
+		# Check if we have an exception
+		if proc.returncode:
+			print(stdout, file=sys.stdout)
+			print(stderr, file=sys.stderr)
+			raise RuntimeError((stderr or stdout).strip().splitlines()[0])
+		return stdout
+
+
+class TemplateJavascriptV8(TemplateJavascript):
+	def renders(self, *args, **kwargs):
+		if args:
+			raise ValueError("*args not supported")
+
+		source = """
+			template = {};
+			data = ul4._map2object(ul4on.loads({}));
+			print(JSON.stringify(template.renders(data)));
+		""".format(self.template.jssource(), ul4c._asjson(ul4on.dumps(kwargs)))
+
+		return json.loads(self.runcode("d8 {dir}/ul4on.js {dir}/ul4.js {fn}", source))
+
+	def render(self, *args, **kwargs):
+		return self.renders(*args, **kwargs)
+
+	def __call__(self, *args, **kwargs):
+		if args:
+			raise ValueError("*args not supported")
+
+		source = """
+			template = {};
+			data = ul4._map2object(ul4on.loads({}));
+			print(ul4on.dumps(template.call(data)));
+		""".format(self.template.jssource(), ul4c._asjson(ul4on.dumps(kwargs)))
+
+		return ul4on.loads(self.runcode("d8 {dir}/ul4on.js {dir}/ul4.js {fn}", source))
+
+
+class TemplateJavascriptSpidermoney(TemplateJavascript):
+	def renders(self, *args, **kwargs):
+		if args:
+			raise ValueError("*args not supported")
+
+		source = """
+			template = {};
+			data = ul4._map2object(ul4on.loads({}));
+			print(JSON.stringify(template.renders(data)));
+		""".format(self.template.jssource(), ul4c._asjson(ul4on.dumps(kwargs)))
+
+		return json.loads(self.runcode("js -f {dir}/ul4on.js -f {dir}/ul4.js -f {fn}", source))
+
+	def render(self, *args, **kwargs):
+		return self.renders(*args, **kwargs)
+
+	def __call__(self, *args, **kwargs):
+		if args:
+			raise ValueError("*args not supported")
+
+		source = """
+			template = {};
+			data = ul4._map2object(ul4on.loads({}));
+			print(ul4on.dumps(template.call(data)));
+		""".format(self.template.jssource(), ul4c._asjson(ul4on.dumps(kwargs)))
+
+		return ul4on.loads(self.runcode("js -f {dir}/ul4on.js -f {dir}/ul4.js -f {fn}", source))
+
+
+def render_php(__, keepws=True, signature=None, **variables):
+	template = ul4c.Template(__, keepws=keepws, signature=signature)
 	php = r"""<?php
 	include_once 'com/livinglogic/ul4/ul4.php';
 	$template = \com\livinglogic\ul4\InterpretedTemplate::loads({});
@@ -213,301 +364,21 @@ def phpexpr(obj):
 		raise ValueError("Can't convert {!r} to PHP".format(obj))
 
 
-def java_findexception(output):
-	lines = output.splitlines()
-	msg = None
-	for line in lines:
-		prefix1 = 'Exception in thread "main"'
-		prefix2 = "Caused by:"
-		if line.startswith(prefix1):
-			msg = line[len(prefix1):].strip()
-		elif line.startswith(prefix2):
-			msg = line[len(prefix2):].strip()
-	if msg is not None:
-		print(output, file=sys.stderr)
-		raise RuntimeError(msg)
-
-
-def java_formatsource(string):
-	"""
-	Reindents the Java source.
-	"""
-	indent = 0
-	newlines = []
-	for line in string.strip().splitlines(False):
-		line = line.strip()
-		if line in {"}", ")", "};", "},", ");", "),"}:
-			indent -= 1
-		if line:
-			newlines.append(indent*"\t" + line + "\n")
-		if line == "{" or line.endswith("("):
-			indent += 1
-	return "".join(newlines)
-
-
-def java_runsource(source):
-	"""
-	Compile the Java source :obj:`source`, run it and return the output
-	"""
-	maincodetemplate = """
-	public class UL4Test
-	{
-		@SuppressWarnings("unchecked")
-		public static void main(String[] args) throws java.io.IOException, java.io.UnsupportedEncodingException, org.antlr.runtime.RecognitionException
-		{
-			%(source)s
-		}
-	}
-	"""
-
-	tempdir = tempfile.mkdtemp()
-	try:
-		source = maincodetemplate % dict(source=source)
-		source = java_formatsource(source)
-		with open(os.path.join(tempdir, "UL4Test.java"), "wb") as f:
-			f.write(source.encode("utf-8"))
-		proc = subprocess.Popen("cd {}; javac -encoding utf-8 UL4Test.java".format(tempdir), stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-		(stdout, stderr) = proc.communicate()
-		if proc.returncode:
-			stderr = stderr.decode("utf-8")
-			print(stderr, file=sys.stderr)
-			raise RuntimeError(stderr.splitlines()[0])
-		proc = subprocess.Popen("cd {}; java UL4Test".format(tempdir), stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-		(stdout, stderr) = proc.communicate()
-		# Check if we have an exception
-		java_findexception(stderr.decode("utf-8"))
-	finally:
-		shutil.rmtree(tempdir)
-	if stderr:
-		print(stderr, file=sys.stderr)
-	return stdout.decode("utf-8")
-
-
-
-def render_java_interpretedtemplate_by_python(__, *, keepws=True, **variables):
-	"""
-	Compile the template from the source ``__``, and generate Java source that
-	recreates the template from the Python generated dump and renders the
-	template with the variables ``variables``.
-
-	(this requires an installed Java compiler and the Java UL4 jar)
-	"""
-
-	codetemplate = """
-	com.livinglogic.ul4.InterpretedTemplate template = %(template)s;
-	java.util.Map<String, Object> variables = %(variables)s;
-	String output = template.renders(variables);
-	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
-	// Use ``System.out.write`` to make sure the output is in UTF-8
-	byte[] outputBytes = output.getBytes("utf-8");
-	System.out.write(outputBytes, 0, outputBytes.length);
-	"""
-
-	templatesource = ul4c.Template(__, keepws=keepws).javasource()
-	java = codetemplate % dict(variables=misc.javaexpr(variables), template=templatesource)
-	return java_runsource(java)
-
-
-def render_java_interpretedtemplate_by_java(__, keepws=True, **variables):
-	"""
-	Generate Java source that compiles the template source ``__`` and renders the
-	template with the variables ``variables``.
-
-	(this requires an installed Java compiler and the Java UL4 jar)
-	"""
-
-	codetemplate = """
-	com.livinglogic.ul4.InterpretedTemplate template = new com.livinglogic.ul4.InterpretedTemplate(%(source)s, %(keepws)s);
-	java.util.Map<String, Object> variables = %(variables)s;
-	String output = template.renders(variables);
-	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
-	// Use ``System.out.write`` to make sure the output is in UTF-8
-	byte[] outputBytes = output.getBytes("utf-8");
-	System.out.write(outputBytes, 0, outputBytes.length);
-	"""
-
-	java = codetemplate % dict(source=misc.javaexpr(__), variables=misc.javaexpr(variables), keepws=misc.javaexpr(keepws))
-	return java_runsource(java)
-
-
-def call_python(__, *, keepws=True, **variables):
-	"""
-	Compile the template from the source ``__``, call it as a function with the variables ``variables`` and return the result.
-	"""
-	template = ul4c.Template(__, keepws=keepws)
-	return template(**variables)
-
-
-def call_python_dumps(__, *, keepws=True, **variables):
-	"""
-	Compile the template from the source ``__``, create a string dump from it,
-	recreate the template from the dump string, call it as a function with the
-	variables ``variables`` and return the result.
-	"""
-	template = ul4c.Template(__, keepws=keepws)
-	template = ul4c.Template.loads(template.dumps()) # Recreate the template from the binary dump
-	return template(**variables)
-
-
-def call_python_dump(__, *, keepws=True, **variables):
-	"""
-	Compile the template from the source ``__``, dump it to a stream, recreate
-	the template from the dump, call it as a function with the variables
-	``variables`` and return the result.
-	"""
-	template = ul4c.Template(__, keepws=keepws)
-	stream = io.StringIO()
-	template.dump(stream)
-	stream.seek(0)
-	template = ul4c.Template.load(stream) # Recreate the template from the stream
-	return template(**variables)
-
-
-def call_js_v8(__, *, keepws=True, **variables):
-	"""
-	Compile the template from the source ``__``, and generate Javascript source
-	from it and call it as a function with the variables ``variables``.
-
-	(this requires an installed ``d8`` shell from V8 (http://code.google.com/p/v8/))
-	"""
-	template = ul4c.Template(__, keepws=keepws)
-	js = template.jssource()
-	js = """
-		template = {};
-		data = ul4._map2object(ul4on.loads({}));
-		print(ul4on.dumps(template.call(data)));
-	""".format(js, ul4c._asjson(ul4on.dumps(variables)))
-	f = sys._getframe(1)
-	print("Calling UL4 template via V8 ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(js)
-	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
-		f.write(js.encode("utf-8"))
-		f.flush()
-		dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
-		fmt = "d8 {dir}/ul4on.js {dir}/ul4.js {fn}"
-		proc = subprocess.Popen(fmt.format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-		(stdout, stderr) = proc.communicate()
-	stdout = stdout.decode("utf-8")
-	stderr = stderr.decode("utf-8")
-	# Check if we have an exception
-	if proc.returncode:
-		print(stdout, file=sys.stdout)
-		print(stderr, file=sys.stderr)
-		raise RuntimeError((stderr or stdout).splitlines()[0])
-	return ul4on.loads(stdout)
-
-
-def call_js_spidermonkey(__, *, keepws=True, **variables):
-	"""
-	Compile the template from the source ``__``, and generate Javascript source
-	from it and call it as a function with the variables ``variables``.
-
-	(this requires an installed ``js`` shell from Spidermonkey
-	"""
-	template = ul4c.Template(__, keepws=keepws)
-	js = template.jssource()
-	js = """
-		template = {};
-		data = ul4._map2object(ul4on.loads({}));
-		print(ul4on.dumps(template.call(data)));
-	""".format(js, ul4c._asjson(ul4on.dumps(variables)))
-	f = sys._getframe(1)
-	print("Calling UL4 template via Spidermonkey ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	print(js)
-	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
-		f.write(js.encode("utf-8"))
-		f.flush()
-		dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
-		fmt = "js -f {dir}/ul4on.js -f {dir}/ul4.js -f {fn}"
-		proc = subprocess.Popen(fmt.format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-		(stdout, stderr) = proc.communicate()
-	stdout = stdout.decode("utf-8")
-	stderr = stderr.decode("utf-8")
-	# Check if we have an exception
-	if proc.returncode:
-		print(stdout, file=sys.stdout)
-		print(stderr, file=sys.stderr)
-		raise RuntimeError((stderr or stdout).splitlines()[0])
-	return ul4on.loads(stdout)
-
-
-def call_java_interpretedtemplate_by_python(__, *, keepws=True, **variables):
-	"""
-	Compile the function from the source ``__``, and generate Java source that
-	recreates the function from the Python generated dump and executes the
-	function with the variables ``variables``.
-
-	(this requires an installed Java compiler and the Java UL4 jar)
-	"""
-
-	codetemplate = """
-	com.livinglogic.ul4.InterpretedTemplate template = %(template)s;
-	java.util.Map<String, Object> variables = %(variables)s;
-	Object output = template.call(variables);
-	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
-	// Use ``System.out.write`` to make sure the output is in UTF-8
-	byte[] outputBytes = com.livinglogic.ul4on.Utils.dumps(output).getBytes("utf-8");
-	System.out.write(outputBytes, 0, outputBytes.length);
-	"""
-
-	templatesource = ul4c.Template(__, keepws=keepws).javasource()
-	java = codetemplate % dict(variables=misc.javaexpr(variables), template=templatesource)
-	return ul4on.loads(java_runsource(java))
-
-
-def call_java_interpretedtemplate_by_java(__, keepws=True, **variables):
-	"""
-	Generate Java source that compiles the function source ``__`` and executes the
-	function with the variables ``variables``.
-
-	(this requires an installed Java compiler and the Java UL4 jar)
-	"""
-
-	codetemplate = """
-	com.livinglogic.ul4.InterpretedTemplate template = new com.livinglogic.ul4.InterpretedTemplate(%(source)s, %(keepws)s);
-	java.util.Map<String, Object> variables = %(variables)s;
-	Object output = template.call(variables);
-	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
-	// Use ``System.out.write`` to make sure the output is in UTF-8
-	byte[] outputBytes = com.livinglogic.ul4on.Utils.dumps(output).getBytes("utf-8");
-	System.out.write(outputBytes, 0, outputBytes.length);
-	"""
-
-	java = codetemplate % dict(source=misc.javaexpr(__), variables=misc.javaexpr(variables), keepws=misc.javaexpr(keepws))
-	return ul4on.loads(java_runsource(java))
-
-
-all_renderers = dict(
-	python=render_python,
-	python_dumps=render_python_dumps,
-	python_dump=render_python_dump,
-	js_v8=render_js_v8,
-	js_spidermonkey=render_js_spidermonkey,
+all_templates = dict(
+	# python=TemplatePython,
+	# python_dumps=TemplatePythonDumpS,
+	# python_dump=TemplatePythonDump,
+	# java_compiled_by_python=TemplateJavaCompiledByPython,
+	# java_compiled_by_java=TemplateJavaCompiledByJava,
+	js_v8=TemplateJavascriptV8,
+	js_spidermonkey=TemplateJavascriptSpidermoney,
 	# php=render_php,
-	java_interpreted_by_python=render_java_interpretedtemplate_by_python,
-	java_interpreted_by_java=render_java_interpretedtemplate_by_java,
-)
-
-all_callers = dict(
-	python=call_python,
-	python_dumps=call_python_dumps,
-	python_dump=call_python_dump,
-	js_v8=call_js_v8,
-	js_spidermonkey=call_js_spidermonkey,
-	# php=call_php,
-	java_interpreted_by_python=call_java_interpretedtemplate_by_python,
-	java_interpreted_by_java=call_java_interpretedtemplate_by_java,
 )
 
 
-@pytest.fixture(scope="module", params=all_renderers.keys())
-def r(request):
-	return all_renderers[request.param]
-
-
-@pytest.fixture(scope="module", params=all_callers.keys())
-def c(request):
-	return all_callers[request.param]
+@pytest.fixture(scope="module", params=all_templates.keys())
+def T(request):
+	return all_templates[request.param]
 
 
 argumentmismatchmessage = [
@@ -529,9 +400,10 @@ argumentmismatchmessage = [
 	"takes from \\d+ to \\d+ positional arguments but \\d+ (was|were) given", # 3.3
 	# Javascript argument mismatch exception messages
 	"requires (at least \\d+|\\d+(-\\d+)?) arguments?, \\d+ given",
-	"required \\w+\\(\\) argument missing",
+	"required \\w+\\(\\) argument .\\w+. \\(position \\d+\\) missing",
 	# Java exception messages for argument mismatches
-	"required \\w+\\(\\) argument \"\\w+\" \\(position \\d+\\) missing",
+	"required argument \\w+ \\(position \\d+\\) missing",
+	"required \\w+\\(\\) argument missing",
 	"\\w+\\(\\) doesn't support an argument named \"\\w+\"",
 	"\\w+\\(\\) doesn't support keyword arguments",
 	"expects (at least \\d+|at most \\d+ positional|exactly \\d+|\\d+-\\d+) arguments?, \\d+ given",
@@ -561,962 +433,974 @@ class raises(object):
 
 
 @pytest.mark.ul4
-def test_text(r):
-	assert 'gurk' == r('gurk')
-	assert 'g\xfcrk' ==  r('g\xfcrk')
-	assert 'gurk' == r('gurk', keepws=False)
-	assert 'g\tu rk' == r('g\t\n\t u \n  r\n\t\tk', keepws=False)
+def test_text(T):
+	assert 'gurk' == T('gurk').renders()
+	assert 'g\xfcrk' ==  T('g\xfcrk').renders()
+	assert 'gurk' == T('gurk', keepws=False).renders()
+	assert 'g\tu rk' == T('g\t\n\t u \n  r\n\t\tk', keepws=False).renders()
 
 
 @pytest.mark.ul4
-def test_whitespace(r):
-	assert "40"  == r("<?print\na\n+\nb\n?>", a=17, b=23)
+def test_whitespace(T):
+	assert "40" == T("<?print\na\n+\nb\n?>").renders(a=17, b=23)
 
 
 @pytest.mark.ul4
-def test_undefined(r):
-	assert '' == r('<?print Undefined?>')
-	assert 'no' == r('<?if Undefined?>yes<?else?>no<?end if?>')
+def test_undefined(T):
+	assert '' == T('<?print Undefined?>').renders()
+	assert 'no' == T('<?if Undefined?>yes<?else?>no<?end if?>').renders()
 
 
 @pytest.mark.ul4
-def test_none(r):
-	assert '' == r('<?print None?>')
-	assert 'no' == r('<?if None?>yes<?else?>no<?end if?>')
+def test_none(T):
+	assert '' == T('<?print None?>').renders()
+	assert 'no' == T('<?if None?>yes<?else?>no<?end if?>').renders()
 
 
 @pytest.mark.ul4
-def test_false(r):
-	assert 'False' == r('<?print False?>')
-	assert 'no' == r('<?if False?>yes<?else?>no<?end if?>')
+def test_false(T):
+	assert 'False' == T('<?print False?>').renders()
+	assert 'no' == T('<?if False?>yes<?else?>no<?end if?>').renders()
 
 
 @pytest.mark.ul4
-def test_true(r):
-	assert 'True' == r('<?print True?>')
-	assert 'yes' == r('<?if True?>yes<?else?>no<?end if?>')
+def test_true(T):
+	assert 'True' == T('<?print True?>').renders()
+	assert 'yes' == T('<?if True?>yes<?else?>no<?end if?>').renders()
 
 
 @pytest.mark.ul4
-def test_int(r):
+def test_int(T):
 	values = (0, 42, -42, 0x7ffffff, 0x8000000, -0x8000000, -0x8000001)
-	if r not in (render_js_v8, render_js_spidermonkey, render_php):
+	if T not in (TemplateJavascriptV8, TemplateJavascriptSpidermoney, TemplatePHP):
 		# Since Javascript has no real integers the following would lead to rounding errors
 		# And PHP doesn't have any support for big integers (except for some GMP wrappers, that may not be installed)
 		values += (0x7ffffffffffffff, 0x800000000000000, -0x800000000000000, -0x800000000000001, 9999999999, -9999999999, 99999999999999999999, -99999999999999999999)
 	for value in values:
-		assert str(value) == r('<?print {}?>'.format(value))
-	assert '255' == r('<?print 0xff?>')
-	assert '255' == r('<?print 0Xff?>')
-	assert '-255' == r('<?print -0xff?>')
-	assert '-255' == r('<?print -0Xff?>')
-	assert '63' == r('<?print 0o77?>')
-	assert '63' == r('<?print 0O77?>')
-	assert '-63' == r('<?print -0o77?>')
-	assert '-63' == r('<?print -0O77?>')
-	assert '7' == r('<?print 0b111?>')
-	assert '7' == r('<?print 0B111?>')
-	assert '-7' == r('<?print -0b111?>')
-	assert '-7' == r('<?print -0B111?>')
+		assert str(value) == T('<?print {}?>'.format(value)).renders()
+	assert '255' == T('<?print 0xff?>').renders()
+	assert '255' == T('<?print 0Xff?>').renders()
+	assert '-255' == T('<?print -0xff?>').renders()
+	assert '-255' == T('<?print -0Xff?>').renders()
+	assert '63' == T('<?print 0o77?>').renders()
+	assert '63' == T('<?print 0O77?>').renders()
+	assert '-63' == T('<?print -0o77?>').renders()
+	assert '-63' == T('<?print -0O77?>').renders()
+	assert '7' == T('<?print 0b111?>').renders()
+	assert '7' == T('<?print 0B111?>').renders()
+	assert '-7' == T('<?print -0b111?>').renders()
+	assert '-7' == T('<?print -0B111?>').renders()
 
-	assert 'no' == r('<?if 0?>yes<?else?>no<?end if?>')
-	assert 'yes' == r('<?if 1?>yes<?else?>no<?end if?>')
-	assert 'yes' == r('<?if -1?>yes<?else?>no<?end if?>')
+	assert 'no' == T('<?if 0?>yes<?else?>no<?end if?>').renders()
+	assert 'yes' == T('<?if 1?>yes<?else?>no<?end if?>').renders()
+	assert 'yes' == T('<?if -1?>yes<?else?>no<?end if?>').renders()
 
 
 @pytest.mark.ul4
-def test_float(r):
+def test_float(T):
 	# str() output might differ slightly between Python and JS, so eval the output again for tests
-	assert 0.0 == eval(r('<?print 0.?>'))
-	assert 42.0 == eval(r('<?print 42.?>'))
-	assert -42.0 == eval(r('<?print -42.?>'))
-	assert -42.5 == eval(r('<?print -42.5?>'))
-	assert 1e42 == eval(r('<?print 1E42?>'))
-	assert 1e42 == eval(r('<?print 1e42?>'))
-	assert -1e42 == eval(r('<?print -1E42?>'))
-	assert -1e42 == eval(r('<?print -1e42?>'))
+	assert 0.0 == eval(T('<?print 0.?>').renders())
+	assert 42.0 == eval(T('<?print 42.?>').renders())
+	assert -42.0 == eval(T('<?print -42.?>').renders())
+	assert -42.5 == eval(T('<?print -42.5?>').renders())
+	assert 1e42 == eval(T('<?print 1E42?>').renders())
+	assert 1e42 == eval(T('<?print 1e42?>').renders())
+	assert -1e42 == eval(T('<?print -1E42?>').renders())
+	assert -1e42 == eval(T('<?print -1e42?>').renders())
 
-	assert 'no' == r('<?if 0.?>yes<?else?>no<?end if?>')
-	assert 'yes' == r('<?if 1.?>yes<?else?>no<?end if?>')
-	assert 'yes' == r('<?if -1.?>yes<?else?>no<?end if?>')
+	assert 'no' == T('<?if 0.?>yes<?else?>no<?end if?>').renders()
+	assert 'yes' == T('<?if 1.?>yes<?else?>no<?end if?>').renders()
+	assert 'yes' == T('<?if -1.?>yes<?else?>no<?end if?>').renders()
 
 
 @pytest.mark.ul4
-def test_string(r):
+def test_string(T):
 	with raises("Unterminated string|mismatched character|MismatchedTokenException|NoViableAltException"):
-		r('<?print "?>')
-	assert 'foo' == r('<?print "foo"?>')
-	assert '\n' == r('<?print "\\n"?>')
-	assert '\r' == r('<?print "\\r"?>')
-	assert '\t' == r('<?print "\\t"?>')
-	assert '\f' == r('<?print "\\f"?>')
-	assert '\b' == r('<?print "\\b"?>')
-	assert '\a' == r('<?print "\\a"?>')
-	assert '\x00' == r('<?print "\\x00"?>')
-	assert '"' == r('<?print "\\""?>')
-	assert "'" == r('<?print "\\\'"?>')
-	assert '\u20ac' == r('<?print "\u20ac"?>')
-	assert '\xff' == r('<?print "\\xff"?>')
-	assert '\u20ac' == r('''<?print "\\u20ac"?>''')
+		T('<?print "?>').renders()
+	assert 'foo' == T('<?print "foo"?>').renders()
+	assert '\n' == T('<?print "\\n"?>').renders()
+	assert '\r' == T('<?print "\\r"?>').renders()
+	assert '\t' == T('<?print "\\t"?>').renders()
+	assert '\f' == T('<?print "\\f"?>').renders()
+	assert '\b' == T('<?print "\\b"?>').renders()
+	assert '\a' == T('<?print "\\a"?>').renders()
+	assert '\x00' == T('<?print "\\x00"?>').renders()
+	assert '"' == T('<?print "\\""?>').renders()
+	assert "'" == T('<?print "\\\'"?>').renders()
+	assert '\u20ac' == T('<?print "\u20ac"?>').renders()
+	assert '\xff' == T('<?print "\\xff"?>').renders()
+	assert '\u20ac' == T('''<?print "\\u20ac"?>''').renders()
 	for c in "\x00\x80\u0100\u3042\n\r\t\f\b\a\"":
-		assert c == r('<?print obj?>', obj=c) # This tests :func:`misc.javaexpr` for Java and :func:`ul4c._asjson` for JS
+		assert c == T('<?print obj?>').renders(obj=c) # This tests :func:`misc.javaexpr` for Java and :func:`ul4c._asjson` for JS
 
 	# Test literal control characters (but '\r' and '\n' are not allowed)
-	assert 'gu\trk' == r("<?print 'gu\trk'?>")
-	assert 'gu\t\\rk' == r(r"<?print 'gu\t\\rk'?>")
+	assert 'gu\trk' == T("<?print 'gu\trk'?>").renders()
+	assert 'gu\t\\rk' == T(r"<?print 'gu\t\\rk'?>").renders()
 
 	# Test triple quoted strings
-	assert 'gu\r\nrk' == r("<?print '''gu\r\nrk'''?>")
-	assert 'gu\r\nrk' == r('<?print """gu\r\nrk"""?>')
+	assert 'gu\r\nrk' == T("<?print '''gu\r\nrk'''?>").renders()
+	assert 'gu\r\nrk' == T('<?print """gu\r\nrk"""?>').renders()
 
-	assert 'no' == r('<?if ""?>yes<?else?>no<?end if?>')
-	assert 'yes' == r('<?if "foo"?>yes<?else?>no<?end if?>')
-
-
-@pytest.mark.ul4
-def test_date(r):
-	assert '2000-02-29' == r('<?print @(2000-02-29).isoformat()?>')
-	assert '2000-02-29' == r('<?print @(2000-02-29T).isoformat()?>')
-	assert '2000-02-29T12:34:00' == r('<?print @(2000-02-29T12:34).isoformat()?>')
-	assert '2000-02-29T12:34:56' == r('<?print @(2000-02-29T12:34:56).isoformat()?>')
-	if r is not render_php:
-		assert '2000-02-29T12:34:56.987000' == r('<?print @(2000-02-29T12:34:56.987000).isoformat()?>') # JS and Java only supports milliseconds
-	assert 'yes' == r('<?if @(2000-02-29T12:34:56.987654)?>yes<?else?>no<?end if?>')
+	assert 'no' == T('<?if ""?>yes<?else?>no<?end if?>').renders()
+	assert 'yes' == T('<?if "foo"?>yes<?else?>no<?end if?>').renders()
 
 
 @pytest.mark.ul4
-def test_color(r):
-	assert '255,255,255,255' == r('<?code c = #fff?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
-	assert '255,255,255,255' == r('<?code c = #ffffff?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
-	assert '18,52,86,255' == r('<?code c = #123456?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
-	assert '17,34,51,68' == r('<?code c = #1234?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
-	assert '18,52,86,120' == r('<?code c = #12345678?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>')
-	assert 'yes' == r('<?if #fff?>yes<?else?>no<?end if?>')
+def test_date(T):
+	assert '2000-02-29' == T('<?print @(2000-02-29).isoformat()?>').renders()
+	assert '2000-02-29' == T('<?print @(2000-02-29T).isoformat()?>').renders()
+	assert '2000-02-29T12:34:00' == T('<?print @(2000-02-29T12:34).isoformat()?>').renders()
+	assert '2000-02-29T12:34:56' == T('<?print @(2000-02-29T12:34:56).isoformat()?>').renders()
+	if T is not TemplatePHP:
+		assert '2000-02-29T12:34:56.987000' == T('<?print @(2000-02-29T12:34:56.987000).isoformat()?>').renders() # JS and Java only supports milliseconds
+	assert 'yes' == T('<?if @(2000-02-29T12:34:56.987654)?>yes<?else?>no<?end if?>').renders()
 
 
 @pytest.mark.ul4
-def test_list(r):
-	assert '' == r('<?for item in []?><?print item?>;<?end for?>')
-	assert '1;' == r('<?for item in [1]?><?print item?>;<?end for?>')
-	assert '1;' == r('<?for item in [1,]?><?print item?>;<?end for?>')
-	assert '1;2;' == r('<?for item in [1, 2]?><?print item?>;<?end for?>')
-	assert '1;2;' == r('<?for item in [1, 2,]?><?print item?>;<?end for?>')
-	assert 'no' == r('<?if []?>yes<?else?>no<?end if?>')
-	assert 'yes' == r('<?if [1]?>yes<?else?>no<?end if?>')
+def test_color(T):
+	assert '255,255,255,255' == T('<?code c = #fff?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>').renders()
+	assert '255,255,255,255' == T('<?code c = #ffffff?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>').renders()
+	assert '18,52,86,255' == T('<?code c = #123456?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>').renders()
+	assert '17,34,51,68' == T('<?code c = #1234?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>').renders()
+	assert '18,52,86,120' == T('<?code c = #12345678?><?print c[0]?>,<?print c[1]?>,<?print c[2]?>,<?print c[3]?>').renders()
+	assert 'yes' == T('<?if #fff?>yes<?else?>no<?end if?>').renders()
 
 
 @pytest.mark.ul4
-def test_listcomp(r):
-	assert "[2, 6]" == r("<?code d = [2*i for i in range(4) if i%2]?><?print d?>")
-	assert "[0, 2, 4, 6]" == r("<?code d = [2*i for i in range(4)]?><?print d?>")
+def test_list(T):
+	assert '' == T('<?for item in []?><?print item?>;<?end for?>').renders()
+	assert '1;' == T('<?for item in [1]?><?print item?>;<?end for?>').renders()
+	assert '1;' == T('<?for item in [1,]?><?print item?>;<?end for?>').renders()
+	assert '1;2;' == T('<?for item in [1, 2]?><?print item?>;<?end for?>').renders()
+	assert '1;2;' == T('<?for item in [1, 2,]?><?print item?>;<?end for?>').renders()
+	assert 'no' == T('<?if []?>yes<?else?>no<?end if?>').renders()
+	assert 'yes' == T('<?if [1]?>yes<?else?>no<?end if?>').renders()
+
+
+@pytest.mark.ul4
+def test_listcomp(T):
+	assert "[2, 6]" == T("<?code d = [2*i for i in range(4) if i%2]?><?print d?>").renders()
+	assert "[0, 2, 4, 6]" == T("<?code d = [2*i for i in range(4)]?><?print d?>").renders()
 
 	# Make sure that the loop variables doesn't leak into the surrounding scope
-	assert "undefined" == r("<?code d = [2*i for i in range(4)]?><?print type(i)?>")
+	assert "undefined" == T("<?code d = [2*i for i in range(4)]?><?print type(i)?>").renders()
 
 
 @pytest.mark.ul4
-def test_set(r):
-	assert '' == r('<?for item in {/}?><?print item?>!<?end for?>')
-	assert 'gurk!' == r('<?for item in {"gurk"}?><?print item?>!<?end for?>')
-	assert 'no' == r('<?if {/}?>yes<?else?>no<?end if?>')
-	assert 'yes' == r('<?if {"gurk"}?>yes<?else?>no<?end if?>')
-	if r is not render_js_v8:
-		assert 'int' == r('<?for item in {1}?><?print type(item)?><?end for?>')
+def test_set(T):
+	assert '' == T('<?for item in {/}?><?print item?>!<?end for?>').renders()
+	assert 'gurk!' == T('<?for item in {"gurk"}?><?print item?>!<?end for?>').renders()
+	assert 'no' == T('<?if {/}?>yes<?else?>no<?end if?>').renders()
+	assert 'yes' == T('<?if {"gurk"}?>yes<?else?>no<?end if?>').renders()
+	if T is not TemplateJavascriptV8:
+		assert 'int' == T('<?for item in {1}?><?print type(item)?><?end for?>').renders()
 
 	# Make sure that the loop variables doesn't leak into the surrounding scope
-	assert "undefined" == r("<?code d = {str(2*i) for i in range(4)}?><?print type(i)?>")
+	assert "undefined" == T("<?code d = {str(2*i) for i in range(4)}?><?print type(i)?>").renders()
 
 
 @pytest.mark.ul4
-def test_genexpr(r):
-	assert "2, 6:" == r("<?code ge = (str(2*i) for i in range(4) if i%2)?><?print ', '.join(ge)?>:<?print ', '.join(ge)?>")
-	assert "2, 6" == r("<?print ', '.join(str(2*i) for i in range(4) if i%2)?>")
-	assert "0, 2, 4, 6" == r("<?print ', '.join(str(2*i) for i in range(4))?>")
-	assert "0, 2, 4, 6" == r("<?print ', '.join((str(2*i) for i in range(4)))?>")
-	assert "0:g; 1:r; 2:k" == r("<?for (i, c2) in enumerate(c for c in 'gurk' if c != 'u')?><?if i?>; <?end if?><?print i?>:<?print c2?><?end for?>")
+def test_genexpr(T):
+	assert "2, 6:" == T("<?code ge = (str(2*i) for i in range(4) if i%2)?><?print ', '.join(ge)?>:<?print ', '.join(ge)?>").renders()
+	assert "2, 6" == T("<?print ', '.join(str(2*i) for i in range(4) if i%2)?>").renders()
+	assert "0, 2, 4, 6" == T("<?print ', '.join(str(2*i) for i in range(4))?>").renders()
+	assert "0, 2, 4, 6" == T("<?print ', '.join((str(2*i) for i in range(4)))?>").renders()
+	assert "0:g; 1:r; 2:k" == T("<?for (i, c2) in enumerate(c for c in 'gurk' if c != 'u')?><?if i?>; <?end if?><?print i?>:<?print c2?><?end for?>").renders()
 
 	# Make sure that the loop variables doesn't leak into the surrounding scope
-	assert "undefined" == r("<?code d = (2*i for i in range(4))?><?print type(i)?>")
+	assert "undefined" == T("<?code d = (2*i for i in range(4))?><?print type(i)?>").renders()
 
 
 @pytest.mark.ul4
-def test_dict(r):
-	assert '{}' == r('<?print {}?>')
-	assert '' == r('<?for (key, value) in {}.items()?><?print key?>:<?print value?>\n<?end for?>')
-	assert '1:2\n' == r('<?for (key, value) in {1:2}.items()?><?print key?>:<?print value?>\n<?end for?>')
-	assert '1:#fff\n' == r('<?for (key, value) in {1:#fff}.items()?><?print key?>:<?print value?>\n<?end for?>')
-	assert '1:2\n' == r('<?for (key, value) in {1:2,}.items()?><?print key?>:<?print value?>\n<?end for?>')
+def test_dict(T):
+	assert '{}' == T('<?print {}?>').renders()
+	assert '' == T('<?for (key, value) in {}.items()?><?print key?>:<?print value?>\n<?end for?>').renders()
+	assert '1:2\n' == T('<?for (key, value) in {1:2}.items()?><?print key?>:<?print value?>\n<?end for?>').renders()
+	assert '1:#fff\n' == T('<?for (key, value) in {1:#fff}.items()?><?print key?>:<?print value?>\n<?end for?>').renders()
+	assert '1:2\n' == T('<?for (key, value) in {1:2,}.items()?><?print key?>:<?print value?>\n<?end for?>').renders()
 	# With duplicate keys, later ones simply overwrite earlier ones
-	assert '1:3\n' == r('<?for (key, value) in {1:2, 1: 3}.items()?><?print key?>:<?print value?>\n<?end for?>')
-	assert 'no' == r('<?if {}?>yes<?else?>no<?end if?>')
-	assert 'yes' == r('<?if {1:2}?>yes<?else?>no<?end if?>')
-	if r is not render_js_v8:
-		assert 'int' == r('<?for (key, value) in {1:2}.items()?><?print type(key)?><?end for?>')
+	assert '1:3\n' == T('<?for (key, value) in {1:2, 1: 3}.items()?><?print key?>:<?print value?>\n<?end for?>').renders()
+	assert 'no' == T('<?if {}?>yes<?else?>no<?end if?>').renders()
+	assert 'yes' == T('<?if {1:2}?>yes<?else?>no<?end if?>').renders()
+	if T is not TemplateJavascriptV8:
+		assert 'int' == T('<?for (key, value) in {1:2}.items()?><?print type(key)?><?end for?>').renders()
 
 	# Make sure that the loop variables doesn't leak into the surrounding scope
-	assert "undefined" == r("<?code d = {i: 2*i for i in range(4)}?><?print type(i)?>")
+	assert "undefined" == T("<?code d = {i: 2*i for i in range(4)}?><?print type(i)?>").renders()
 
 
 @pytest.mark.ul4
-def test_dictcomp(r):
-	# JS only supports string keys
-	assert "" == r("<?code d = {str(i):2*i for i in range(10) if i%2}?><?if '2' in d?><?print d['2']?><?end if?>")
-	assert "6" == r("<?code d = {str(i):2*i for i in range(10) if i%2}?><?if '3' in d?><?print d['3']?><?end if?>")
-	assert "6" == r("<?code d = {str(i):2*i for i in range(10)}?><?print d['3']?>")
-	if r is not render_js_v8:
-		assert '45' == r('<?code d = {i:2*i for i in range(10)}?><?print sum(d)?>')
+def test_dictcomp(T):
+	assert "" == T("<?code d = {str(i):2*i for i in range(10) if i%2}?><?if '2' in d?><?print d['2']?><?end if?>").renders()
+	assert "6" == T("<?code d = {str(i):2*i for i in range(10) if i%2}?><?if '3' in d?><?print d['3']?><?end if?>").renders()
+	assert "6" == T("<?code d = {str(i):2*i for i in range(10)}?><?print d['3']?>").renders()
+	if T is not TemplateJavascriptV8:
+		# V8 doesn't support Maps, so for dictionaries we're using plain objects (which only supports string keys)
+		assert '45' == T('<?code d = {i:2*i for i in range(10)}?><?print sum(d)?>').renders()
 
 
 @pytest.mark.ul4
-def test_print(r):
-	assert "" == r("<?print None?>")
-	assert "<foo>" == r("<?print '<foo>'?>")
+def test_print(T):
+	assert "" == T("<?print None?>").renders()
+	assert "<foo>" == T("<?print '<foo>'?>").renders()
 
 
 @pytest.mark.ul4
-def test_printx(r):
-	assert "" == r("<?printx None?>")
-	assert "&lt;foo&gt;" == r("<?printx '<foo>'?>")
+def test_printx(T):
+	assert "" == T("<?printx None?>").renders()
+	assert "&lt;foo&gt;" == T("<?printx '<foo>'?>").renders()
 
 
 @pytest.mark.ul4
-def test_setvar(r):
-	assert '42' == r('<?code x = 42?><?print x?>')
-	assert 'xyzzy' == r('<?code x = "xyzzy"?><?print x?>')
-	assert 'x,y' == r('<?code (x, y) = "xy"?><?print x?>,<?print y?>')
-	assert '42' == r('<?code (x,) = [42]?><?print x?>')
-	assert '17,23' == r('<?code (x,y) = [17, 23]?><?print x?>,<?print y?>')
-	assert '17,23,37,42,105' == r('<?code ((v, w), (x,), (y,), z) = [[17, 23], [37], [42], 105]?><?print v?>,<?print w?>,<?print x?>,<?print y?>,<?print z?>')
+def test_setvar(T):
+	assert '42' == T('<?code x = 42?><?print x?>').renders()
+	assert 'xyzzy' == T('<?code x = "xyzzy"?><?print x?>').renders()
+	assert 'x,y' == T('<?code (x, y) = "xy"?><?print x?>,<?print y?>').renders()
+	assert '42' == T('<?code (x,) = [42]?><?print x?>').renders()
+	assert '17,23' == T('<?code (x,y) = [17, 23]?><?print x?>,<?print y?>').renders()
+	assert '17,23,37,42,105' == T('<?code ((v, w), (x,), (y,), z) = [[17, 23], [37], [42], 105]?><?print v?>,<?print w?>,<?print x?>,<?print y?>,<?print z?>').renders()
 
 
 @pytest.mark.ul4
-def test_setvar_iterator(r):
-	assert 'g;k' == r("<?code (x,y) = (c for c in 'gurk' if c < 'r')?><?print x?>;<?print y?>")
+def test_setvar_iterator(T):
+	assert 'g;k' == T("<?code (x,y) = (c for c in 'gurk' if c < 'r')?><?print x?>;<?print y?>").renders()
 
 
 @pytest.mark.ul4
-def test_addvar(r):
+def test_addvar(T):
 	for x in (17, 17., False, True):
 		for y in (23, 23., False, True):
-			assert x + y == eval(r('<?code x = {}?><?code x += {}?><?print x?>'.format(x, y)))
-	assert 'xyzzy' == r('<?code x = "xyz"?><?code x += "zy"?><?print x?>')
-	assert '[1, 2, 3, 4]' == r('<?code x = [1, 2]?><?code x += [3, 4]?><?print x?>')
+			assert x + y == eval(T('<?code x = {}?><?code x += {}?><?print x?>'.format(x, y)).renders())
+	assert 'xyzzy' == T('<?code x = "xyz"?><?code x += "zy"?><?print x?>').renders()
+	assert '[1, 2, 3, 4]' == T('<?code x = [1, 2]?><?code x += [3, 4]?><?print x?>').renders()
 
 
 @pytest.mark.ul4
-def test_subvar(r):
+def test_subvar(T):
 	for x in (17, 17., False, True):
 		for y in (23, 23., False, True):
-			assert x - y == eval(r('<?code x = {}?><?code x -= {}?><?print x?>'.format(x, y)))
+			assert x - y == eval(T('<?code x = {}?><?code x -= {}?><?print x?>'.format(x, y)).renders())
 
 
 @pytest.mark.ul4
-def test_mulvar(r):
+def test_mulvar(T):
 	for x in (17, 17., False, True):
 		for y in (23, 23., False, True):
-			assert x * y == eval(r('<?code x = {}?><?code x *= {}?><?print x?>'.format(x, y)))
+			assert x * y == eval(T('<?code x = {}?><?code x *= {}?><?print x?>'.format(x, y)).renders())
 	for x in (17, False, True):
 		y = "xyzzy"
-		assert x * y == r('<?code x = {}?><?code x *= {!r}?><?print x?>'.format(x, y))
-	assert 17*"xyzzy" == r('<?code x = "xyzzy"?><?code x *= 17?><?print x?>')
+		assert x * y == T('<?code x = {}?><?code x *= {!r}?><?print x?>'.format(x, y)).renders()
+	assert 17*"xyzzy" == T('<?code x = "xyzzy"?><?code x *= 17?><?print x?>').renders()
 
 
 @pytest.mark.ul4
-def test_floordivvar(r):
+def test_floordivvar(T):
 	for x in (5, -5, 5.0, -5.0, 4, -4, 4.0, -4.0, False, True):
 		for y in (2, -2, 2.0, -2.0, True):
-			assert x // y == eval(r('<?code x = {}?><?code x //= {}?><?print x?>'.format(x, y)))
+			assert x // y == eval(T('<?code x = {}?><?code x //= {}?><?print x?>'.format(x, y)).renders())
 
 
 @pytest.mark.ul4
-def test_truedivvar(r):
+def test_truedivvar(T):
 	for x in (5, -5, 5.0, -5.0, 4, -4, 4.0, -4.0, False, True):
 		for y in (2, -2, 2.0, -2.0, True):
-			assert x / y == eval(r('<?code x = {}?><?code x /= {}?><?print x?>'.format(x, y)))
+			assert x / y == eval(T('<?code x = {}?><?code x /= {}?><?print x?>'.format(x, y)).renders())
 
 
 @pytest.mark.ul4
-def test_modvar(r):
+def test_modvar(T):
 	for x in (1729, 1729.0, -1729, -1729.0, False, True):
 		for y in (23, 23., -23, -23.0, True):
-			assert x % y == eval(r('<?code x = {}?><?code x %= {}?><?print x?>'.format(x, y)))
+			assert x % y == eval(T('<?code x = {}?><?code x %= {}?><?print x?>'.format(x, y)).renders())
 
 
 @pytest.mark.ul4
-def test_shiftleftvar(r):
-	code = "<?code x <<= y?><?print x?>"
+def test_shiftleftvar(T):
+	t = T("<?code x <<= y?><?print x?>")
 
-	assert "1" == r(code, x=True, y=False)
-	assert "2" == r(code, x=True, y=True)
-	assert "0" == r(code, x=1, y=-1)
-	assert "-256" == r(code, x=-1, y=8)
-	assert "2147483648" == r(code, x=1, y=31)
-	assert "4294967296" == r(code, x=1, y=32)
-	if r in (render_js_v8, render_js_spidermonkey):
+	assert "1" == t.renders(x=True, y=False)
+	assert "2" == t.renders(x=True, y=True)
+	assert "0" == t.renders(x=1, y=-1)
+	assert "-256" == t.renders(x=-1, y=8)
+	assert "2147483648" == t.renders(x=1, y=31)
+	assert "4294967296" == t.renders(x=1, y=32)
+	if T in (TemplateJavascriptV8, TemplateJavascriptSpidermoney):
 		# Javascript numbers don't have enough precision
-		assert "18014398509481984" == r(code, x=1, y=54)
+		assert "18014398509481984" == t.renders(x=1, y=54)
 	else:
-		assert "9223372036854775808" == r(code, x=1, y=63)
-		assert "18446744073709551616" == r(code, x=1, y=64)
-		assert "340282366920938463463374607431768211456" == r(code, x=1, y=128)
+		assert "9223372036854775808" == t.renders(x=1, y=63)
+		assert "18446744073709551616" == t.renders(x=1, y=64)
+		assert "340282366920938463463374607431768211456" == t.renders(x=1, y=128)
 
 
 @pytest.mark.ul4
-def test_shiftrightvar(r):
-	code = "<?code x >>= y?><?print x?>"
+def test_shiftrightvar(T):
+	t = T("<?code x >>= y?><?print x?>")
 
-	assert "1" == r(code, x=True, y=False)
-	assert "0" == r(code, x=True, y=True)
-	assert "2" == r(code, x=1, y=-1)
-	assert "2147483648" == r(code, x=1, y=-31)
-	assert "1" == r(code, x=2147483648, y=31)
-	assert "0" == r(code, x=1, y=32)
-	assert "-1" == r(code, x=-1, y=10)
-	assert "-1" == r(code, x=-4, y=10)
-
-
-@pytest.mark.ul4
-def test_bitandvar(r):
-	code = "<?code x &= y?><?print x?>"
-
-	assert "0" == r(code, x=False, y=False)
-	assert "0" == r(code, x=False, y=True)
-	assert "1" == r(code, x=True, y=True)
-	assert "1" == r(code, x=3, y=True)
-	assert "12" == r(code, x=15, y=60)
-	assert "0" == r(code, x=255, y=256)
-	assert "0" == r(code, x=255, y=-256)
-	assert "1" == r(code, x=255, y=-255)
+	assert "1" == t.renders(x=True, y=False)
+	assert "0" == t.renders(x=True, y=True)
+	assert "2" == t.renders(x=1, y=-1)
+	assert "2147483648" == t.renders(x=1, y=-31)
+	assert "1" == t.renders(x=2147483648, y=31)
+	assert "0" == t.renders(x=1, y=32)
+	assert "-1" == t.renders(x=-1, y=10)
+	assert "-1" == t.renders(x=-4, y=10)
 
 
 @pytest.mark.ul4
-def test_bitxorvar(r):
-	code = "<?code x ^= y?><?print x?>"
+def test_bitandvar(T):
+	t = T("<?code x &= y?><?print x?>")
 
-	assert "0" == r(code, x=False, y=False)
-	assert "1" == r(code, x=False, y=True)
-	assert "0" == r(code, x=True, y=True)
-	assert "2" == r(code, x=3, y=True)
-	assert "51" == r(code, x=15, y=60)
-	assert "511" == r(code, x=255, y=256)
-	assert "-1" == r(code, x=255, y=-256)
-	assert "-2" == r(code, x=255, y=-255)
-
-
-@pytest.mark.ul4
-def test_bitorvar(r):
-	code = "<?code x |= y?><?print x?>"
-
-	assert "0" == r(code, x=False, y=False)
-	assert "1" == r(code, x=False, y=True)
-	assert "1" == r(code, x=True, y=True)
-	assert "3" == r(code, x=3, y=True)
-	assert "63" == r(code, x=15, y=60)
-	assert "511" == r(code, x=255, y=256)
-	assert "-1" == r(code, x=255, y=-256)
-	assert "-1" == r(code, x=255, y=-255)
+	assert "0" == t.renders(x=False, y=False)
+	assert "0" == t.renders(x=False, y=True)
+	assert "1" == t.renders(x=True, y=True)
+	assert "1" == t.renders(x=3, y=True)
+	assert "12" == t.renders(x=15, y=60)
+	assert "0" == t.renders(x=255, y=256)
+	assert "0" == t.renders(x=255, y=-256)
+	assert "1" == t.renders(x=255, y=-255)
 
 
 @pytest.mark.ul4
-def test_for_string(r):
-	assert '' == r('<?for c in data?>(<?print c?>)<?end for?>', data="")
-	assert '(g)(u)(r)(k)' == r('<?for c in data?>(<?print c?>)<?end for?>', data="gurk")
+def test_bitxorvar(T):
+	t = T("<?code x ^= y?><?print x?>")
+
+	assert "0" == t.renders(x=False, y=False)
+	assert "1" == t.renders(x=False, y=True)
+	assert "0" == t.renders(x=True, y=True)
+	assert "2" == t.renders(x=3, y=True)
+	assert "51" == t.renders(x=15, y=60)
+	assert "511" == t.renders(x=255, y=256)
+	assert "-1" == t.renders(x=255, y=-256)
+	assert "-2" == t.renders(x=255, y=-255)
 
 
 @pytest.mark.ul4
-def test_for_list(r):
-	assert '' == r('<?for c in data?>(<?print c?>)<?end for?>', data="")
-	assert '(g)(u)(r)(k)' == r('<?for c in data?>(<?print c?>)<?end for?>', data=["g", "u", "r", "k"])
+def test_bitorvar(T):
+	t = T("<?code x |= y?><?print x?>")
+
+	assert "0" == t.renders(x=False, y=False)
+	assert "1" == t.renders(x=False, y=True)
+	assert "1" == t.renders(x=True, y=True)
+	assert "3" == t.renders(x=3, y=True)
+	assert "63" == t.renders(x=15, y=60)
+	assert "511" == t.renders(x=255, y=256)
+	assert "-1" == t.renders(x=255, y=-256)
+	assert "-1" == t.renders(x=255, y=-255)
 
 
 @pytest.mark.ul4
-def test_for_dict(r):
-	assert '' == r('<?for c in data?>(<?print c?>)<?end for?>', data={})
-	assert '(a)(b)(c)' == r('<?for c in sorted(data)?>(<?print c?>)<?end for?>', data=dict(a=1, b=2, c=3))
+def test_for_string(T):
+	assert '' == T('<?for c in data?>(<?print c?>)<?end for?>').renders(data="")
+	assert '(g)(u)(r)(k)' == T('<?for c in data?>(<?print c?>)<?end for?>').renders(data="gurk")
 
 
 @pytest.mark.ul4
-def test_for_nested_loop(r):
-	assert '[(1)(2)][(3)(4)]' == r('<?for list in data?>[<?for n in list?>(<?print n?>)<?end for?>]<?end for?>', data=[[1, 2], [3, 4]])
+def test_for_list(T):
+	assert '' == T('<?for c in data?>(<?print c?>)<?end for?>').renders(data="")
+	assert '(g)(u)(r)(k)' == T('<?for c in data?>(<?print c?>)<?end for?>').renders(data=["g", "u", "r", "k"])
 
 
 @pytest.mark.ul4
-def test_for_leak(r):
+def test_for_dict(T):
+	assert '' == T('<?for c in data?>(<?print c?>)<?end for?>').renders(data={})
+	assert '(a)(b)(c)' == T('<?for c in sorted(data)?>(<?print c?>)<?end for?>').renders(data=dict(a=1, b=2, c=3))
+
+
+@pytest.mark.ul4
+def test_for_nested_loop(T):
+	assert '[(1)(2)][(3)(4)]' == T('<?for list in data?>[<?for n in list?>(<?print n?>)<?end for?>]<?end for?>').renders(data=[[1, 2], [3, 4]])
+
+
+@pytest.mark.ul4
+def test_for_leak(T):
 	# Both loop variables and variables assigned in the block leak into the surrounding scope.
-	assert '4;4' == r('<?code x = 17?><?code y = 23?><?for x in range(5)?><?code y = x?><?end for?><?print x?>;<?print y?>')
+	assert '4;4' == T('<?code x = 17?><?code y = 23?><?for x in range(5)?><?code y = x?><?end for?><?print x?>;<?print y?>').renders()
 
 
 @pytest.mark.ul4
-def test_for_unpacking(r):
+def test_for_unpacking(T):
 	data = [
 		("spam", "eggs", 17),
 		("gurk", "hurz", 23),
 		("hinz", "kunz", 42),
 	]
 
-	assert '(spam)(gurk)(hinz)' == r('<?for (a,) in data?>(<?print a?>)<?end for?>', data=[item[:1] for item in data])
-	assert '(spam,eggs)(gurk,hurz)(hinz,kunz)' == r('<?for (a, b) in data?>(<?print a?>,<?print b?>)<?end for?>', data=[item[:2] for item in data])
-	assert '(spam,eggs,17)(gurk,hurz,23)(hinz,kunz,42)' == r('<?for (a, b, c) in data?>(<?print a?>,<?print b?>,<?print c?>)<?end for?>', data=data)
+	assert '(spam)(gurk)(hinz)' == T('<?for (a,) in data?>(<?print a?>)<?end for?>').renders(data=[item[:1] for item in data])
+	assert '(spam,eggs)(gurk,hurz)(hinz,kunz)' == T('<?for (a, b) in data?>(<?print a?>,<?print b?>)<?end for?>').renders(data=[item[:2] for item in data])
+	assert '(spam,eggs,17)(gurk,hurz,23)(hinz,kunz,42)' == T('<?for (a, b, c) in data?>(<?print a?>,<?print b?>,<?print c?>)<?end for?>').renders(data=data)
 
 
 @pytest.mark.ul4
-def test_for_nested_unpacking(r):
+def test_for_nested_unpacking(T):
 	data = [
 		(("spam", "eggs"), (17,), None),
 		(("gurk", "hurz"), (23,), False),
 		(("hinz", "kunz"), (42,), True),
 	]
 
-	assert '(spam,eggs,17,)(gurk,hurz,23,False)(hinz,kunz,42,True)' == r('<?for ((a, b), (c,), d) in data?>(<?print a?>,<?print b?>,<?print c?>,<?print d?>)<?end for?>', data=data)
+	assert '(spam,eggs,17,)(gurk,hurz,23,False)(hinz,kunz,42,True)' == T('<?for ((a, b), (c,), d) in data?>(<?print a?>,<?print b?>,<?print c?>,<?print d?>)<?end for?>').renders(data=data)
 
 
 @pytest.mark.ul4
-def test_while(r):
-	assert "0;1;2;" == r("<?code i = 0?><?while i < 3?><?print i?>;<?code i+=1?><?end while?>")
+def test_while(T):
+	assert "0;1;2;" == T("<?code i = 0?><?while i < 3?><?print i?>;<?code i+=1?><?end while?>").renders()
 
 
 @pytest.mark.ul4
-def test_while_break(r):
-	assert "0;1;2;" == r("<?code i = 0?><?while i < 30?><?print i?>;<?code i+=1?><?if i == 3?><?break?><?end if?><?end while?>")
+def test_while_break(T):
+	assert "0;1;2;" == T("<?code i = 0?><?while i < 30?><?print i?>;<?code i+=1?><?if i == 3?><?break?><?end if?><?end while?>").renders()
 
 
 @pytest.mark.ul4
-def test_for_break(r):
-	assert '1, 2, ' == r('<?for i in [1,2,3]?><?print i?>, <?if i==2?><?break?><?end if?><?end for?>')
+def test_for_break(T):
+	assert '1, 2, ' == T('<?for i in [1,2,3]?><?print i?>, <?if i==2?><?break?><?end if?><?end for?>').renders()
 
 
 @pytest.mark.ul4
-def test_break_nested(r):
-	assert '1, 1, 2, 1, 2, 3, ' == r('<?for i in [1,2,3,4]?><?for j in [1,2,3,4]?><?print j?>, <?if j>=i?><?break?><?end if?><?end for?><?if i>=3?><?break?><?end if?><?end for?>')
+def test_break_nested(T):
+	assert '1, 1, 2, 1, 2, 3, ' == T('<?for i in [1,2,3,4]?><?for j in [1,2,3,4]?><?print j?>, <?if j>=i?><?break?><?end if?><?end for?><?if i>=3?><?break?><?end if?><?end for?>').renders()
 
 
 @pytest.mark.ul4
-def test_continue(r):
-	assert '1, 3, ' == r('<?for i in [1,2,3]?><?if i==2?><?continue?><?end if?><?print i?>, <?end for?>')
+def test_continue(T):
+	assert '1, 3, ' == T('<?for i in [1,2,3]?><?if i==2?><?continue?><?end if?><?print i?>, <?end for?>').renders()
 
 
 @pytest.mark.ul4
-def test_continue_nested(r):
-	assert '1, 3, \n1, 3, \n' == r('<?for i in [1,2,3]?><?if i==2?><?continue?><?end if?><?for j in [1,2,3]?><?if j==2?><?continue?><?end if?><?print j?>, <?end for?>\n<?end for?>')
+def test_continue_nested(T):
+	assert '1, 3, \n1, 3, \n' == T('<?for i in [1,2,3]?><?if i==2?><?continue?><?end if?><?for j in [1,2,3]?><?if j==2?><?continue?><?end if?><?print j?>, <?end for?>\n<?end for?>').renders()
 
 
 @pytest.mark.ul4
-def test_if(r):
-	assert '42' == r('<?if data?><?print data?><?end if?>', data=42)
+def test_if(T):
+	assert '42' == T('<?if data?><?print data?><?end if?>').renders(data=42)
 
 
 @pytest.mark.ul4
-def test_else(r):
-	assert '42' == r('<?if data?><?print data?><?else?>no<?end if?>', data=42)
-	assert 'no' == r('<?if data?><?print data?><?else?>no<?end if?>', data=0)
+def test_else(T):
+	t = T('<?if data?><?print data?><?else?>no<?end if?>')
+	assert '42' == t.renders(data=42)
+	assert 'no' == t.renders(data=0)
 
 
 @pytest.mark.ul4
-def test_block_errors(r):
+def test_block_errors(T):
 	with raises("block unclosed"):
-		r('<?for x in data?>')
+		T('<?for x in data?>').renders()
 	with raises("for ended by endif|endif doesn't match any if"):
-		r('<?for x in data?><?end if?>')
+		T('<?for x in data?><?end if?>').renders()
 	with raises("not in any block"):
-		r('<?end?>')
+		T('<?end?>').renders()
 	with raises("not in any block"):
-		r('<?end for?>')
+		T('<?end for?>').renders()
 	with raises("not in any block"):
-		r('<?end if?>')
+		T('<?end if?>').renders()
 	with raises("else doesn't match any if"):
-		r('<?else?>')
+		T('<?else?>').renders()
 	with raises("block unclosed"):
-		r('<?if data?>')
+		T('<?if data?>').renders()
 	with raises("block unclosed"):
-		r('<?if data?><?else?>')
+		T('<?if data?><?else?>').renders()
 	with raises("duplicate else in if/elif/else chain|else already seen in if"):
-		r('<?if data?><?else?><?else?>')
+		T('<?if data?><?else?><?else?>').renders()
 	with raises("elif can't follow else in if/elif/else chain|else already seen in if"):
-		r('<?if data?><?else?><?elif data?>')
+		T('<?if data?><?else?><?elif data?>').renders()
 	with raises("elif can't follow else in if/elif/else chain|else already seen in if"):
-		r('<?if data?><?elif data?><?elif data?><?else?><?elif data?>')
+		T('<?if data?><?elif data?><?elif data?><?else?><?elif data?>').renders()
 
 
 @pytest.mark.ul4
 def test_empty():
 	with raises("expression required"):
-		render_python('<?print?>')
+		TemplatePython('<?print?>').renders()
 	with raises("expression required"):
-		render_python('<?if?>')
+		TemplatePython('<?if?>').renders()
 	with raises("expression required"):
-		render_python('<<?if x?><?elif?><?end if?>')
+		TemplatePython('<<?if x?><?elif?><?end if?>').renders()
 	with raises("loop expression required"):
-		render_python('<?for?>')
+		TemplatePython('<?for?>').renders()
 	with raises("statement required"):
-		render_python('<?code?>')
+		TemplatePython('<?code?>').renders()
 
 
 @pytest.mark.ul4
-def test_add(r):
-	code = '<?print x + y?>'
+def test_add(T):
+	t = T('<?print x + y?>')
 	values = (17, 23, 1., -1.)
 
 	for x in values:
 		for y in values:
-			assert x + y == eval(r(code, x=x, y=y)) # Using ``evaleq`` avoids problem with the nonexistant int/float distinction in JS
-	assert 'foobar' == r('<?code x="foo"?><?code y="bar"?><?print x+y?>')
-	assert '[1, 2, 3, 4]' == r('<?print x+y?>', x=[1, 2], y=[3, 4])
-	assert '(f)(o)(o)(b)(a)(r)' == r('<?for i in data.foo+data.bar?>(<?print i?>)<?end for?>', data=dict(foo="foo", bar="bar"))
-	assert "2012-10-18 00:00:00" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(1))
-	assert "2013-10-17 00:00:00" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(365))
-	assert "2012-10-17 12:00:00" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 12*60*60))
-	assert "2012-10-17 00:00:01" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 1))
-	if r is not render_php:
-		assert "2012-10-17 00:00:00.500000" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 0, 500000))
-		assert "2012-10-17 00:00:00.001000" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 0, 1000))
-	assert "2 days, 0:00:00" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(1))
-	assert "1 day, 0:00:01" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(0, 1))
-	assert "1 day, 0:00:00.000001" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(0, 0, 1))
-	assert "2 months" == r(code, x=misc.monthdelta(1), y=misc.monthdelta(1))
-	assert "2000-02-01 00:00:00" == r(code, x=datetime.datetime(2000, 1, 1), y=misc.monthdelta(1))
-	assert "1999-11-30 00:00:00" == r(code, x=datetime.datetime(2000, 1, 31), y=misc.monthdelta(-2))
-	assert "2000-03-29 00:00:00" == r(code, x=datetime.datetime(2000, 2, 29), y=misc.monthdelta(1))
-	assert "2001-02-28 00:00:00" == r(code, x=datetime.datetime(2000, 2, 29), y=misc.monthdelta(12))
-	assert "2001-02-28 00:00:00" == r(code, x=misc.monthdelta(12), y=datetime.datetime(2000, 2, 29))
+			assert x + y == eval(t.renders(x=x, y=y)) # Using ``eval`` avoids problem with the nonexistant int/float distinction in JS
+	assert 'foobar' == T('<?code x="foo"?><?code y="bar"?><?print x+y?>').renders()
+	assert '[1, 2, 3, 4]' == t.renders(x=[1, 2], y=[3, 4])
+	assert '(f)(o)(o)(b)(a)(r)' == T('<?for i in data.foo+data.bar?>(<?print i?>)<?end for?>').renders(data=dict(foo="foo", bar="bar"))
+	assert "2012-10-18 00:00:00" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(1))
+	assert "2013-10-17 00:00:00" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(365))
+	assert "2012-10-17 12:00:00" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 12*60*60))
+	assert "2012-10-17 00:00:01" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 1))
+	if T is not TemplatePHP:
+		assert "2012-10-17 00:00:00.500000" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 0, 500000))
+		assert "2012-10-17 00:00:00.001000" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 0, 1000))
+	assert "2 days, 0:00:00" == t.renders(x=datetime.timedelta(1), y=datetime.timedelta(1))
+	assert "1 day, 0:00:01" == t.renders(x=datetime.timedelta(1), y=datetime.timedelta(0, 1))
+	assert "1 day, 0:00:00.000001" == t.renders(x=datetime.timedelta(1), y=datetime.timedelta(0, 0, 1))
+	assert "2 months" == t.renders(x=misc.monthdelta(1), y=misc.monthdelta(1))
+	assert "2000-02-01 00:00:00" == t.renders(x=datetime.datetime(2000, 1, 1), y=misc.monthdelta(1))
+	assert "1999-11-30 00:00:00" == t.renders(x=datetime.datetime(2000, 1, 31), y=misc.monthdelta(-2))
+	assert "2000-03-29 00:00:00" == t.renders(x=datetime.datetime(2000, 2, 29), y=misc.monthdelta(1))
+	assert "2001-02-28 00:00:00" == t.renders(x=datetime.datetime(2000, 2, 29), y=misc.monthdelta(12))
+	assert "2001-02-28 00:00:00" == t.renders(x=misc.monthdelta(12), y=datetime.datetime(2000, 2, 29))
 
 
 @pytest.mark.ul4
-def test_sub(r):
-	code = '<?print x - y?>'
+def test_sub(T):
+	t = T('<?print x - y?>')
+
 	values = (17, 23, 1., -1.)
 
 	for x in values:
 		for y in values:
-			assert x - y == eval(r(code, x=x, y=y))
+			assert x - y == eval(t.renders(x=x, y=y))
 
-	assert "2012-10-16 00:00:00" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(1))
-	assert "2011-10-17 00:00:00" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(366))
-	assert "2012-10-16 12:00:00" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 12*60*60))
-	assert "2012-10-16 23:59:59" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 1))
-	if r is not render_php:
-		assert "2012-10-16 23:59:59.500000" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 0, 500000))
-		assert "2012-10-16 23:59:59.999000" == r(code, x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 0, 1000))
-	assert "0:00:00" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(1))
-	assert "1 day, 0:00:00" == r(code, x=datetime.timedelta(2), y=datetime.timedelta(1))
-	assert "23:59:59" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(0, 1))
-	assert "23:59:59.999999" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(0, 0, 1))
-	assert "-1 day, 23:59:59" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 1))
-	assert "-1 day, 23:59:59.999999" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 0, 1))
-	assert "2000-01-01 00:00:00" == r(code, x=datetime.datetime(2000, 2, 1), y=misc.monthdelta(1))
-	assert "2000-02-29 00:00:00" == r(code, x=datetime.datetime(1999, 12, 31), y=misc.monthdelta(-2))
-	assert "2000-02-29 00:00:00" == r(code, x=datetime.datetime(2000, 3, 29), y=misc.monthdelta(1))
-	assert "1999-02-28 00:00:00" == r(code, x=datetime.datetime(2000, 2, 29), y=misc.monthdelta(12))
-	assert "-1 month" == r(code, x=misc.monthdelta(2), y=misc.monthdelta(3))
+	assert "2012-10-16 00:00:00" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(1))
+	assert "2011-10-17 00:00:00" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(366))
+	assert "2012-10-16 12:00:00" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 12*60*60))
+	assert "2012-10-16 23:59:59" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 1))
+	if T is not TemplatePHP:
+		assert "2012-10-16 23:59:59.500000" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 0, 500000))
+		assert "2012-10-16 23:59:59.999000" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 0, 1000))
+	assert "0:00:00" == t.renders(x=datetime.timedelta(1), y=datetime.timedelta(1))
+	assert "1 day, 0:00:00" == t.renders(x=datetime.timedelta(2), y=datetime.timedelta(1))
+	assert "23:59:59" == t.renders(x=datetime.timedelta(1), y=datetime.timedelta(0, 1))
+	assert "23:59:59.999999" == t.renders(x=datetime.timedelta(1), y=datetime.timedelta(0, 0, 1))
+	assert "-1 day, 23:59:59" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0, 1))
+	assert "-1 day, 23:59:59.999999" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0, 0, 1))
+	assert "2000-01-01 00:00:00" == t.renders(x=datetime.datetime(2000, 2, 1), y=misc.monthdelta(1))
+	assert "2000-02-29 00:00:00" == t.renders(x=datetime.datetime(1999, 12, 31), y=misc.monthdelta(-2))
+	assert "2000-02-29 00:00:00" == t.renders(x=datetime.datetime(2000, 3, 29), y=misc.monthdelta(1))
+	assert "1999-02-28 00:00:00" == t.renders(x=datetime.datetime(2000, 2, 29), y=misc.monthdelta(12))
+	assert "-1 month" == t.renders(x=misc.monthdelta(2), y=misc.monthdelta(3))
 
 
 @pytest.mark.ul4
-def test_neg(r):
-	code = "<?print -x?>"
+def test_neg(T):
+	t = T("<?print -x?>")
 
-	assert "0" == r(code, x=False)
-	assert "-1" == r(code, x=True)
-	assert "-17" == r(code, x=17)
-	assert "-42.5" == r(code, x=42.5)
-	assert "0:00:00" == r(code, x=datetime.timedelta())
-	assert "-1 day, 0:00:00" == r(code, x=datetime.timedelta(1))
-	assert "-1 day, 23:59:59" == r(code, x=datetime.timedelta(0, 1))
-	assert "-1 day, 23:59:59.999999" == r(code, x=datetime.timedelta(0, 0, 1))
-	assert "0 months" == r(code, x=misc.monthdelta())
-	assert "-1 month" == r(code, x=misc.monthdelta(1))
+	assert "0" == t.renders(x=False)
+	assert "-1" == t.renders(x=True)
+	assert "-17" == t.renders(x=17)
+	assert "-42.5" == t.renders(x=42.5)
+	assert "0:00:00" == t.renders(x=datetime.timedelta())
+	assert "-1 day, 0:00:00" == t.renders(x=datetime.timedelta(1))
+	assert "-1 day, 23:59:59" == t.renders(x=datetime.timedelta(0, 1))
+	assert "-1 day, 23:59:59.999999" == t.renders(x=datetime.timedelta(0, 0, 1))
+	assert "0 months" == t.renders(x=misc.monthdelta())
+	assert "-1 month" == t.renders(x=misc.monthdelta(1))
 	# This checks constant folding
-	assert "0" == r("<?print -False?>")
-	assert "-1" == r("<?print -True?>")
-	assert "-2" == r("<?print -2?>")
-	assert "-2.5" == r("<?print -2.5?>")
+	assert "0" == T("<?print -False?>").renders()
+	assert "-1" == T("<?print -True?>").renders()
+	assert "-2" == T("<?print -2?>").renders()
+	assert "-2.5" == T("<?print -2.5?>").renders()
 
 
 @pytest.mark.ul4
-def test_bitnot(r):
-	code = "<?print ~x?>"
+def test_bitnot(T):
+	t = T("<?print ~x?>")
 
-	assert "-1" == r(code, x=False)
-	assert "-2" == r(code, x=True)
-	assert "-1" == r(code, x=0)
-	assert "-256" == r(code, x=255)
-	assert "-4294967297" == r(code, x=1 << 32)
-	if r in (render_js_v8, render_js_spidermonkey):
+	assert "-1" == t.renders(x=False)
+	assert "-2" == t.renders(x=True)
+	assert "-1" == t.renders(x=0)
+	assert "-256" == t.renders(x=255)
+	assert "-4294967297" == t.renders(x=1 << 32)
+	if T in (TemplateJavascriptV8, TemplateJavascriptSpidermoney):
 		# Javascript numbers don't have enough precision
-		assert "-4503599627370497" == r(code, x=1 << 52)
+		assert "-4503599627370497" == t.renders(x=1 << 52)
 	else:
-		assert "-18446744073709551617" == r(code, x=1 << 64)
+		assert "-18446744073709551617" == t.renders(x=1 << 64)
 
 
 @pytest.mark.ul4
-def test_mul(r):
-	code = '<?print x * y?>'
+def test_mul(T):
+	t = T('<?print x * y?>')
 	values = (17, 23, 1., -1.)
 
 	for x in values:
 		for y in values:
-			assert x * y == eval(r(code, x=x, y=y))
-	assert 17*"foo" == r('<?print 17*"foo"?>')
-	assert 17*"foo" == r('<?code x=17?><?code y="foo"?><?print x*y?>')
-	assert "foo"*17 == r('<?code x="foo"?><?code y=17?><?print x*y?>')
-	assert "foo"*17 == r('<?print "foo"*17?>')
-	assert "(foo)(bar)(foo)(bar)(foo)(bar)" == r('<?for i in 3*data?>(<?print i?>)<?end for?>', data=["foo", "bar"])
-	assert "0:00:00" == r(code, x=4, y=datetime.timedelta())
-	assert "4 days, 0:00:00" == r(code, x=4, y=datetime.timedelta(1))
-	assert "2 days, 0:00:00" == r(code, x=4, y=datetime.timedelta(0, 12*60*60))
-	assert "0:00:02" == r(code, x=4, y=datetime.timedelta(0, 0, 500000))
-	assert "12:00:00" == r(code, x=0.5, y=datetime.timedelta(1))
-	assert "0:00:00" == r(code, x=datetime.timedelta(), y=4)
-	assert "4 days, 0:00:00" == r(code, x=datetime.timedelta(1), y=4)
-	assert "2 days, 0:00:00" == r(code, x=datetime.timedelta(0, 12*60*60), y=4)
-	assert "0:00:02" == r(code, x=datetime.timedelta(0, 0, 500000), y=4)
-	assert "12:00:00" == r(code, x=datetime.timedelta(1), y=0.5)
-	assert "4 months" == r(code, x=4, y=misc.monthdelta(1))
-	assert "4 months" == r(code, x=misc.monthdelta(1), y=4)
+			assert x * y == eval(t.renders(x=x, y=y))
+	assert 17*"foo" == T('<?print 17*"foo"?>').renders()
+	assert 17*"foo" == T('<?code x=17?><?code y="foo"?><?print x*y?>').renders()
+	assert "foo"*17 == T('<?code x="foo"?><?code y=17?><?print x*y?>').renders()
+	assert "foo"*17 == T('<?print "foo"*17?>').renders()
+	assert "(foo)(bar)(foo)(bar)(foo)(bar)" == T('<?for i in 3*data?>(<?print i?>)<?end for?>').renders(data=["foo", "bar"])
+	assert "0:00:00" == t.renders(x=4, y=datetime.timedelta())
+	assert "4 days, 0:00:00" == t.renders(x=4, y=datetime.timedelta(1))
+	assert "2 days, 0:00:00" == t.renders(x=4, y=datetime.timedelta(0, 12*60*60))
+	assert "0:00:02" == t.renders(x=4, y=datetime.timedelta(0, 0, 500000))
+	assert "12:00:00" == t.renders(x=0.5, y=datetime.timedelta(1))
+	assert "0:00:00" == t.renders(x=datetime.timedelta(), y=4)
+	assert "4 days, 0:00:00" == t.renders(x=datetime.timedelta(1), y=4)
+	assert "2 days, 0:00:00" == t.renders(x=datetime.timedelta(0, 12*60*60), y=4)
+	assert "0:00:02" == t.renders(x=datetime.timedelta(0, 0, 500000), y=4)
+	assert "12:00:00" == t.renders(x=datetime.timedelta(1), y=0.5)
+	assert "4 months" == t.renders(x=4, y=misc.monthdelta(1))
+	assert "4 months" == t.renders(x=misc.monthdelta(1), y=4)
 
 
 @pytest.mark.ul4
-def test_truediv(r):
-	code = "<?print x / y?>"
+def test_truediv(T):
+	t = T("<?print x / y?>")
 
-	assert "0.5" == r('<?print 1/2?>')
-	assert "0.5" == r('<?code x=1?><?code y=2?><?print x/y?>')
-	assert "0:00:00" == r(code, x=datetime.timedelta(), y=4)
-	assert "2 days, 0:00:00" == r(code, x=datetime.timedelta(8), y=4)
-	assert "12:00:00" == r(code, x=datetime.timedelta(4), y=8)
-	assert "0:00:00.500000" == r(code, x=datetime.timedelta(0, 4), y=8)
-	assert "2 days, 0:00:00" == r(code, x=datetime.timedelta(1), y=0.5)
-	assert "9:36:00" == r(code, x=datetime.timedelta(1), y=2.5)
-	assert "0:00:00" == r(code, x=datetime.timedelta(), y=4)
-	assert "2 days, 0:00:00" == r(code, x=datetime.timedelta(8), y=4)
-	assert "12:00:00" == r(code, x=datetime.timedelta(4), y=8)
-	assert "0:00:00.500000" == r(code, x=datetime.timedelta(0, 4), y=8)
-	assert 2.0 == eval(r(code, x=datetime.timedelta(4), y=datetime.timedelta(2)))
-	assert 2.0 == eval(r(code, x=misc.monthdelta(4), y=misc.monthdelta(2)))
-
-
-@pytest.mark.ul4
-def test_floordiv(r):
-	assert "0" == r('<?print 1//2?>')
-	assert "0" == r('<?code x=1?><?code y=2?><?print x//y?>')
-	assert "1 month" == r('<?print x//y?>', x=misc.monthdelta(3), y=2)
+	assert "0.5" == T('<?print 1/2?>').renders()
+	assert "0.5" == T('<?code x=1?><?code y=2?><?print x/y?>').renders()
+	assert "0:00:00" == t.renders(x=datetime.timedelta(), y=4)
+	assert "2 days, 0:00:00" == t.renders(x=datetime.timedelta(8), y=4)
+	assert "12:00:00" == t.renders(x=datetime.timedelta(4), y=8)
+	assert "0:00:00.500000" == t.renders(x=datetime.timedelta(0, 4), y=8)
+	assert "2 days, 0:00:00" == t.renders(x=datetime.timedelta(1), y=0.5)
+	assert "9:36:00" == t.renders(x=datetime.timedelta(1), y=2.5)
+	assert "0:00:00" == t.renders(x=datetime.timedelta(), y=4)
+	assert "2 days, 0:00:00" == t.renders(x=datetime.timedelta(8), y=4)
+	assert "12:00:00" == t.renders(x=datetime.timedelta(4), y=8)
+	assert "0:00:00.500000" == t.renders(x=datetime.timedelta(0, 4), y=8)
+	assert 2.0 == eval(t.renders(x=datetime.timedelta(4), y=datetime.timedelta(2)))
+	assert 2.0 == eval(t.renders(x=misc.monthdelta(4), y=misc.monthdelta(2)))
 
 
 @pytest.mark.ul4
-def test_mod(r):
+def test_floordiv(T):
+	assert "0" == T('<?print 1//2?>').renders()
+	assert "0" == T('<?code x=1?><?code y=2?><?print x//y?>').renders()
+	assert "1 month" == T('<?print x//y?>').renders(x=misc.monthdelta(3), y=2)
+
+
+@pytest.mark.ul4
+def test_mod(T):
 	values = (17, 23, 17., 23.)
 
+	t = T('<?print x % y?>')
+
 	for x in values:
 		for y in values:
-			assert x % y == eval(r('<?print {} % {}?>'.format(x, y)))
-			assert x % y == eval(r('<?print x % y?>', x=x, y=y))
+			assert x % y == eval(T('<?print {} % {}?>'.format(x, y)).renders())
+			assert x % y == eval(t.renders(x=x, y=y))
 
 
 @pytest.mark.ul4
-def test_shiftleft(r):
-	code = "<?print x << y?>"
+def test_shiftleft(T):
+	t = T("<?print x << y?>")
 
-	assert "16" == r("<?print 1 << 4?>")
-	assert "2" == r("<?print True << True?>")
-	assert "1" == r(code, x=True, y=False)
-	assert "2" == r(code, x=True, y=True)
-	assert "0" == r(code, x=1, y=-1)
-	assert "-256" == r(code, x=-1, y=8)
-	assert "2147483648" == r(code, x=1, y=31)
-	assert "4294967296" == r(code, x=1, y=32)
-	if r in (render_js_v8, render_js_spidermonkey):
+	assert "16" == T("<?print 1 << 4?>").renders()
+	assert "2" == T("<?print True << True?>").renders()
+	assert "1" == t.renders(x=True, y=False)
+	assert "2" == t.renders(x=True, y=True)
+	assert "0" == t.renders(x=1, y=-1)
+	assert "-256" == t.renders(x=-1, y=8)
+	assert "2147483648" == t.renders(x=1, y=31)
+	assert "4294967296" == t.renders(x=1, y=32)
+	if T in (TemplateJavascriptV8, TemplateJavascriptSpidermoney):
 		# Javascript numbers don't have enough precision
-		assert "9007199254740992" == r(code, x=1, y=53)
+		assert "9007199254740992" == t.renders(x=1, y=53)
 	else:
-		assert "9223372036854775808" == r(code, x=1, y=63)
-		assert "18446744073709551616" == r(code, x=1, y=64)
-		assert "340282366920938463463374607431768211456" == r(code, x=1, y=128)
+		assert "9223372036854775808" == t.renders(x=1, y=63)
+		assert "18446744073709551616" == t.renders(x=1, y=64)
+		assert "340282366920938463463374607431768211456" == t.renders(x=1, y=128)
 
 
 @pytest.mark.ul4
-def test_shiftright(r):
-	code = "<?print x >> y?>"
+def test_shiftright(T):
+	t = T("<?print x >> y?>")
 
-	assert "1" == r("<?print 16 >> 4?>")
-	assert "0" == r("<?print True >> True?>")
-	assert "1" == r(code, x=True, y=False)
-	assert "0" == r(code, x=True, y=True)
-	assert "2" == r(code, x=1, y=-1)
-	assert "2147483648" == r(code, x=1, y=-31)
-	assert "1" == r(code, x=2147483648, y=31)
-	assert "0" == r(code, x=1, y=32)
-	assert "-1" == r(code, x=-1, y=10)
-	assert "-1" == r(code, x=-4, y=10)
-
-
-@pytest.mark.ul4
-def test_bitand(r):
-	code = "<?print x & y?>"
-
-	assert "2" == r("<?print 3 & 6?>")
-	assert "1" == r("<?print True & True?>")
-	assert "0" == r(code, x=False, y=False)
-	assert "0" == r(code, x=False, y=True)
-	assert "1" == r(code, x=True, y=True)
-	assert "1" == r(code, x=3, y=True)
-	assert "12" == r(code, x=15, y=60)
-	assert "0" == r(code, x=255, y=256)
-	assert "0" == r(code, x=255, y=-256)
-	assert "1" == r(code, x=255, y=-255)
+	assert "1" == T("<?print 16 >> 4?>").renders()
+	assert "0" == T("<?print True >> True?>").renders()
+	assert "1" == t.renders(x=True, y=False)
+	assert "0" == t.renders(x=True, y=True)
+	assert "2" == t.renders(x=1, y=-1)
+	assert "2147483648" == t.renders(x=1, y=-31)
+	assert "1" == t.renders(x=2147483648, y=31)
+	assert "0" == t.renders(x=1, y=32)
+	assert "-1" == t.renders(x=-1, y=10)
+	assert "-1" == t.renders(x=-4, y=10)
 
 
 @pytest.mark.ul4
-def test_bitxor(r):
-	code = "<?print x ^ y?>"
+def test_bitand(T):
+	t = T("<?print x & y?>")
 
-	assert "5" == r("<?print 3 ^ 6?>")
-	assert "0" == r("<?print True ^ True?>")
-	assert "0" == r(code, x=False, y=False)
-	assert "1" == r(code, x=False, y=True)
-	assert "0" == r(code, x=True, y=True)
-	assert "2" == r(code, x=3, y=True)
-	assert "51" == r(code, x=15, y=60)
-	assert "511" == r(code, x=255, y=256)
-	assert "-1" == r(code, x=255, y=-256)
-	assert "-2" == r(code, x=255, y=-255)
-
-
-@pytest.mark.ul4
-def test_bitor(r):
-	code = "<?print x | y?>"
-
-	assert "7" == r("<?print 3 | 6?>")
-	assert "1" == r("<?print False | True?>")
-	assert "0" == r(code, x=False, y=False)
-	assert "1" == r(code, x=False, y=True)
-	assert "1" == r(code, x=True, y=True)
-	assert "3" == r(code, x=3, y=True)
-	assert "63" == r(code, x=15, y=60)
-	assert "511" == r(code, x=255, y=256)
-	assert "-1" == r(code, x=255, y=-256)
-	assert "-1" == r(code, x=255, y=-255)
+	assert "2" == T("<?print 3 & 6?>").renders()
+	assert "1" == T("<?print True & True?>").renders()
+	assert "0" == t.renders(x=False, y=False)
+	assert "0" == t.renders(x=False, y=True)
+	assert "1" == t.renders(x=True, y=True)
+	assert "1" == t.renders(x=3, y=True)
+	assert "12" == t.renders(x=15, y=60)
+	assert "0" == t.renders(x=255, y=256)
+	assert "0" == t.renders(x=255, y=-256)
+	assert "1" == t.renders(x=255, y=-255)
 
 
 @pytest.mark.ul4
-def test_eq(r):
-	code = '<?print x == y?>'
+def test_bitxor(T):
+	t = T("<?print x ^ y?>")
+
+	assert "5" == T("<?print 3 ^ 6?>").renders()
+	assert "0" == T("<?print True ^ True?>").renders()
+	assert "0" == t.renders(x=False, y=False)
+	assert "1" == t.renders(x=False, y=True)
+	assert "0" == t.renders(x=True, y=True)
+	assert "2" == t.renders(x=3, y=True)
+	assert "51" == t.renders(x=15, y=60)
+	assert "511" == t.renders(x=255, y=256)
+	assert "-1" == t.renders(x=255, y=-256)
+	assert "-2" == t.renders(x=255, y=-255)
+
+
+@pytest.mark.ul4
+def test_bitor(T):
+	t = T("<?print x | y?>")
+
+	assert "7" == T("<?print 3 | 6?>").renders()
+	assert "1" == T("<?print False | True?>").renders()
+	assert "0" == t.renders(x=False, y=False)
+	assert "1" == t.renders(x=False, y=True)
+	assert "1" == t.renders(x=True, y=True)
+	assert "3" == t.renders(x=3, y=True)
+	assert "63" == t.renders(x=15, y=60)
+	assert "511" == t.renders(x=255, y=256)
+	assert "-1" == t.renders(x=255, y=-256)
+	assert "-1" == t.renders(x=255, y=-255)
+
+
+@pytest.mark.ul4
+def test_eq(T):
+	t = T('<?print x == y?>')
 	numbervalues = (17, 23, 17., 23.)
 
 	for x in numbervalues:
 		for y in numbervalues:
-			assert str(x == y) == r('<?print {} == {}?>'.format(x, y))
-			assert str(x == y) == r(code, x=x, y=y)
+			assert str(x == y) == T('<?print {} == {}?>'.format(x, y)).renders()
+			assert str(x == y) == t.renders(x=x, y=y)
 
-	assert "True" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0))
-	assert "False" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(1))
-	assert "False" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 1))
-	assert "False" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 0, 1))
-	assert "True" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(0))
-	assert "False" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(1))
+	assert "True" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0))
+	assert "False" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(1))
+	assert "False" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0, 1))
+	assert "False" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0, 0, 1))
+	assert "True" == t.renders(x=misc.monthdelta(0), y=misc.monthdelta(0))
+	assert "False" == t.renders(x=misc.monthdelta(0), y=misc.monthdelta(1))
 
 
 @pytest.mark.ul4
-def test_ne(r):
-	code = '<?print x != y?>'
+def test_ne(T):
+	t = T('<?print x != y?>')
 	values = (17, 23, 17., 23.)
 
 	for x in values:
 		for y in values:
-			assert str(x != y) == r('<?print {} != {}?>'.format(x, y))
-			assert str(x != y) == r(code, x=x, y=y)
+			assert str(x != y) == T('<?print {} != {}?>'.format(x, y)).renders()
+			assert str(x != y) == t.renders(x=x, y=y)
 
-	assert "False" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0))
-	assert "True" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(1))
-	assert "True" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 1))
-	assert "True" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 0, 1))
-	assert "False" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(0))
-	assert "True" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(1))
+	assert "False" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0))
+	assert "True" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(1))
+	assert "True" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0, 1))
+	assert "True" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0, 0, 1))
+	assert "False" == t.renders(x=misc.monthdelta(0), y=misc.monthdelta(0))
+	assert "True" == t.renders(x=misc.monthdelta(0), y=misc.monthdelta(1))
 
 
 @pytest.mark.ul4
-def test_lt(r):
-	code = '<?print x < y?>'
+def test_lt(T):
+	t = T('<?print x < y?>')
 	values = (17, 23, 17., 23.)
 
 	for x in values:
 		for y in values:
-			assert str(x < y) == r('<?print {} < {}?>'.format(x, y))
-			assert str(x < y) == r(code, x=x, y=y)
+			assert str(x < y) == T('<?print {} < {}?>'.format(x, y)).renders()
+			assert str(x < y) == t.renders(x=x, y=y)
 
-	assert "False" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0))
-	assert "True" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(1))
-	assert "True" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 1))
-	assert "True" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 0, 1))
-	assert "False" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(0))
-	assert "True" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(1))
+	assert "False" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0))
+	assert "True" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(1))
+	assert "True" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0, 1))
+	assert "True" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0, 0, 1))
+	assert "False" == t.renders(x=misc.monthdelta(0), y=misc.monthdelta(0))
+	assert "True" == t.renders(x=misc.monthdelta(0), y=misc.monthdelta(1))
 
 
 @pytest.mark.ul4
-def test_le(r):
-	code = '<?print x <= y?>'
+def test_le(T):
+	t = T('<?print x <= y?>')
 	values = (17, 23, 17., 23.)
 
 	for x in values:
 		for y in values:
-			assert str(x <= y) == r('<?print {} <= {}?>'.format(x, y))
-			assert str(x <= y) == r(code, x=x, y=y)
+			assert str(x <= y) == T('<?print {} <= {}?>'.format(x, y)).renders()
+			assert str(x <= y) == t.renders(x=x, y=y)
 
-	assert "True" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(1))
-	assert "False" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(0))
-	assert "False" == r(code, x=datetime.timedelta(0, 1), y=datetime.timedelta(0))
-	assert "False" == r(code, x=datetime.timedelta(0, 0, 1), y=datetime.timedelta(0))
-	assert "True" == r(code, x=misc.monthdelta(1), y=misc.monthdelta(1))
-	assert "False" == r(code, x=misc.monthdelta(1), y=misc.monthdelta(0))
+	assert "True" == t.renders(x=datetime.timedelta(1), y=datetime.timedelta(1))
+	assert "False" == t.renders(x=datetime.timedelta(1), y=datetime.timedelta(0))
+	assert "False" == t.renders(x=datetime.timedelta(0, 1), y=datetime.timedelta(0))
+	assert "False" == t.renders(x=datetime.timedelta(0, 0, 1), y=datetime.timedelta(0))
+	assert "True" == t.renders(x=misc.monthdelta(1), y=misc.monthdelta(1))
+	assert "False" == t.renders(x=misc.monthdelta(1), y=misc.monthdelta(0))
 
 
 @pytest.mark.ul4
-def test_gt(r):
-	code = '<?print x > y?>'
+def test_gt(T):
+	t = T('<?print x > y?>')
 	values = (17, 23, 17., 23.)
 
 	for x in values:
 		for y in values:
-			assert str(x > y) == r('<?print {} > {}?>'.format(x, y))
-			assert str(x > y) == r(code, x=x, y=y)
+			assert str(x > y) == T('<?print {} > {}?>'.format(x, y)).renders()
+			assert str(x > y) == t.renders(x=x, y=y)
 
-	assert "False" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(1))
-	assert "True" == r(code, x=datetime.timedelta(1), y=datetime.timedelta(0))
-	assert "True" == r(code, x=datetime.timedelta(0, 1), y=datetime.timedelta(0))
-	assert "True" == r(code, x=datetime.timedelta(0, 0, 1), y=datetime.timedelta(0))
-	assert "False" == r(code, x=misc.monthdelta(1), y=misc.monthdelta(1))
-	assert "True" == r(code, x=misc.monthdelta(1), y=misc.monthdelta(0))
+	assert "False" == t.renders(x=datetime.timedelta(1), y=datetime.timedelta(1))
+	assert "True" == t.renders(x=datetime.timedelta(1), y=datetime.timedelta(0))
+	assert "True" == t.renders(x=datetime.timedelta(0, 1), y=datetime.timedelta(0))
+	assert "True" == t.renders(x=datetime.timedelta(0, 0, 1), y=datetime.timedelta(0))
+	assert "False" == t.renders(x=misc.monthdelta(1), y=misc.monthdelta(1))
+	assert "True" == t.renders(x=misc.monthdelta(1), y=misc.monthdelta(0))
 
 
 @pytest.mark.ul4
-def test_ge(r):
-	code = '<?print x >= y?>'
+def test_ge(T):
+	t = T('<?print x >= y?>')
 	values = (17, 23, 17., 23.)
 
 	for x in values:
 		for y in values:
-			assert str(x >= y) == r('<?print {} >= {}?>'.format(x, y))
-			assert str(x >= y) == r(code, x=x, y=y)
+			assert str(x >= y) == T('<?print {} >= {}?>'.format(x, y)).renders()
+			assert str(x >= y) == t.renders(x=x, y=y)
 
-	assert "True" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0))
-	assert "False" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(1))
-	assert "False" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 1))
-	assert "False" == r(code, x=datetime.timedelta(0), y=datetime.timedelta(0, 0, 1))
-	assert "True" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(0))
-	assert "False" == r(code, x=misc.monthdelta(0), y=misc.monthdelta(1))
-
-
-@pytest.mark.ul4
-def test_contains(r):
-	code = '<?print x in y?>'
-
-	assert "True" == r(code, x=2, y=[1, 2, 3])
-	assert "False" == r(code, x=4, y=[1, 2, 3])
-	assert "True" == r(code, x="ur", y="gurk")
-	assert "False" == r(code, x="un", y="gurk")
-	assert "True" == r(code, x=0xff, y=color.Color(0x00, 0x80, 0xff, 0x42))
-	assert "False" == r(code, x=0x23, y=color.Color(0x00, 0x80, 0xff, 0x42))
-	assert "True" == r(code, x="a", y={"a": 1, "b": 2})
-	assert "False" == r(code, x="c", y={"a": 1, "b": 2})
-	if r is not render_js_v8:
-		assert "True" == r(code, x=1, y={1: 2, 3: 4})
+	assert "True" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0))
+	assert "False" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(1))
+	assert "False" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0, 1))
+	assert "False" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0, 0, 1))
+	assert "True" == t.renders(x=misc.monthdelta(0), y=misc.monthdelta(0))
+	assert "False" == t.renders(x=misc.monthdelta(0), y=misc.monthdelta(1))
 
 
 @pytest.mark.ul4
-def test_notcontains(r):
-	code = '<?print x not in y?>'
+def test_contains(T):
+	t = T('<?print x in y?>')
 
-	assert "False" == r(code, x=2, y=[1, 2, 3])
-	assert "True" == r(code, x=4, y=[1, 2, 3])
-	assert "False" == r(code, x="ur", y="gurk")
-	assert "True" == r(code, x="un", y="gurk")
-	assert "False" == r(code, x=0xff, y=color.Color(0x00, 0x80, 0xff, 0x42))
-	assert "True" == r(code, x=0x23, y=color.Color(0x00, 0x80, 0xff, 0x42))
-	assert "False" == r(code, x="a", y={"a": 1, "b": 2})
-	assert "True" == r(code, x="c", y={"a": 1, "b": 2})
-	if r is not render_js_v8:
-		assert "False" == r(code, x=1, y={1: 2, 3: 4})
-
-
-@pytest.mark.ul4
-def test_and(r):
-	assert "False" == r('<?print x and y?>', x=False, y=False)
-	assert "False" == r('<?print x and y?>', x=False, y=True)
-	assert "0" == r('<?print x and y?>', x=0, y=True)
+	assert "True" == t.renders(x=2, y=[1, 2, 3])
+	assert "False" == t.renders(x=4, y=[1, 2, 3])
+	assert "True" == t.renders(x="ur", y="gurk")
+	assert "False" == t.renders(x="un", y="gurk")
+	assert "True" == t.renders(x=0xff, y=color.Color(0x00, 0x80, 0xff, 0x42))
+	assert "False" == t.renders(x=0x23, y=color.Color(0x00, 0x80, 0xff, 0x42))
+	assert "True" == t.renders(x="a", y={"a": 1, "b": 2})
+	assert "False" == t.renders(x="c", y={"a": 1, "b": 2})
+	if T is not TemplateJavascriptV8:
+		assert "True" == t.renders(x=1, y={1: 2, 3: 4})
 
 
 @pytest.mark.ul4
-def test_or(r):
-	assert "False" == r('<?print x or y?>', x=False, y=False)
-	assert "True" == r('<?print x or y?>', x=False, y=True)
-	assert "42" == r('<?print x or y?>', x=42, y=True)
+def test_notcontains(T):
+	t = T('<?print x not in y?>')
+
+	assert "False" == t.renders(x=2, y=[1, 2, 3])
+	assert "True" == t.renders(x=4, y=[1, 2, 3])
+	assert "False" == t.renders(x="ur", y="gurk")
+	assert "True" == t.renders(x="un", y="gurk")
+	assert "False" == t.renders(x=0xff, y=color.Color(0x00, 0x80, 0xff, 0x42))
+	assert "True" == t.renders(x=0x23, y=color.Color(0x00, 0x80, 0xff, 0x42))
+	assert "False" == t.renders(x="a", y={"a": 1, "b": 2})
+	assert "True" == t.renders(x="c", y={"a": 1, "b": 2})
+	if T is not TemplateJavascriptV8:
+		assert "False" == t.renders(x=1, y={1: 2, 3: 4})
 
 
 @pytest.mark.ul4
-def test_not(r):
-	assert "True" == r('<?print not x?>', x=False)
-	assert "False" == r('<?print not x?>', x=42)
+def test_and(T):
+	t = T('<?print x and y?>')
+
+	assert "False" == t.renders(x=False, y=False)
+	assert "False" == t.renders(x=False, y=True)
+	assert "0" == t.renders(x=0, y=True)
 
 
 @pytest.mark.ul4
-def test_ifexpr(r):
-	assert "17" == r('<?print x if y else z?>', x=17, y=True, z=23)
-	assert "23" == r('<?print x if y else z?>', x=17, y=False, z=23)
-	assert "17" == r('<?print 17 if True else 23?>')
-	assert "23" == r('<?print 17 if False else 23?>')
+def test_or(T):
+	t = T('<?print x or y?>')
+
+	assert "False" == t.renders(x=False, y=False)
+	assert "True" == t.renders(x=False, y=True)
+	assert "42" == t.renders(x=42, y=True)
 
 
 @pytest.mark.ul4
-def test_getitem(r):
-	assert "u" == r("<?print 'gurk'[1]?>")
-	assert "u" == r("<?print x[1]?>", x="gurk")
-	assert "u" == r("<?print 'gurk'[-3]?>")
-	assert "u" == r("<?print x[-3]?>", x="gurk")
-	assert "" == r("<?print 'gurk'[4]?>")
-	assert "" == r("<?print x[4]?>", x="gurk")
-	assert "" == r("<?print 'gurk'[-5]?>")
-	assert "" == r("<?print x[-5]?>", x="gurk")
+def test_not(T):
+	t = T('<?print not x?>')
+
+	assert "True" == t.renders(x=False)
+	assert "False" == t.renders(x=42)
 
 
 @pytest.mark.ul4
-def test_getslice(r):
-	assert "ur" == r("<?print 'gurk'[1:3]?>")
-	assert "ur" == r("<?print x[1:3]?>", x="gurk")
-	assert "ur" == r("<?print 'gurk'[-3:-1]?>")
-	assert "ur" == r("<?print x[-3:-1]?>", x="gurk")
-	assert "" == r("<?print 'gurk'[4:10]?>")
-	assert "" == r("<?print x[4:10]?>", x="gurk")
-	assert "" == r("<?print 'gurk'[-10:-5]?>")
-	assert "" == r("<?print x[-10:-5]?>", x="gurk")
-	assert "urk" == r("<?print 'gurk'[1:]?>")
-	assert "urk" == r("<?print x[1:]?>", x="gurk")
-	assert "urk" == r("<?print 'gurk'[-3:]?>")
-	assert "urk" == r("<?print x[-3:]?>", x="gurk")
-	assert "" == r("<?print 'gurk'[4:]?>")
-	assert "" == r("<?print x[4:]?>", x="gurk")
-	assert "gurk" == r("<?print 'gurk'[-10:]?>")
-	assert "gurk" == r("<?print x[-10:]?>", x="gurk")
-	assert "gur" == r("<?print 'gurk'[:3]?>")
-	assert "gur" == r("<?print x[:3]?>", x="gurk")
-	assert "gur" == r("<?print 'gurk'[:-1]?>")
-	assert "gur" == r("<?print x[:-1]?>", x="gurk")
-	assert "gurk" == r("<?print 'gurk'[:10]?>")
-	assert "gurk" == r("<?print x[:10]?>", x="gurk")
-	assert "" == r("<?print 'gurk'[:-5]?>")
-	assert "" == r("<?print x[:-5]?>", x="gurk")
-	assert "05" == r("<?print ('0' + str(x))[-2:]?>", x=5)
-	assert "15" == r("<?print ('0' + str(x))[-2:]?>", x=15)
-	assert "gurk" == r("<?print 'gurk'[:]?>")
-	assert "gurk" == r("<?print x[:]?>", x="gurk")
-	assert "[1, 2]" == r("<?print x[:]?>", x=[1, 2])
+def test_ifexpr(T):
+	t = T('<?print x if y else z?>')
+
+	assert "17" == t.renders(x=17, y=True, z=23)
+	assert "23" == t.renders(x=17, y=False, z=23)
+	assert "17" == T('<?print 17 if True else 23?>').renders()
+	assert "23" == T('<?print 17 if False else 23?>').renders()
 
 
 @pytest.mark.ul4
-def test_setslice(r):
-	assert "[1, -2, -3, 4]" == r("<?code x = [1, 2, 3, 4]?><?code x[1:3] = [-2, -3]?><?print x?>")
-	assert "[1, -1, -4, -9, 4]" == r("<?code x = [1, 2, 3, 4]?><?code x[1:-1] = (-i*i for i in range(1, 4))?><?print x?>")
-	assert "[-1, -4, -9]" == r("<?code x = [1, 2, 3, 4]?><?code x[:] = (-i*i for i in range(1, 4))?><?print x?>")
+def test_getitem(T):
+	assert "u" == T("<?print 'gurk'[1]?>").renders()
+	assert "u" == T("<?print x[1]?>").renders(x="gurk")
+	assert "u" == T("<?print 'gurk'[-3]?>").renders()
+	assert "u" == T("<?print x[-3]?>").renders(x="gurk")
+	assert "" == T("<?print 'gurk'[4]?>").renders()
+	assert "" == T("<?print x[4]?>").renders(x="gurk")
+	assert "" == T("<?print 'gurk'[-5]?>").renders()
+	assert "" == T("<?print x[-5]?>").renders(x="gurk")
 
 
 @pytest.mark.ul4
-def test_nested(r):
+def test_getslice(T):
+	assert "ur" == T("<?print 'gurk'[1:3]?>").renders()
+	assert "ur" == T("<?print x[1:3]?>").renders(x="gurk")
+	assert "ur" == T("<?print 'gurk'[-3:-1]?>").renders()
+	assert "ur" == T("<?print x[-3:-1]?>").renders(x="gurk")
+	assert "" == T("<?print 'gurk'[4:10]?>").renders()
+	assert "" == T("<?print x[4:10]?>").renders(x="gurk")
+	assert "" == T("<?print 'gurk'[-10:-5]?>").renders()
+	assert "" == T("<?print x[-10:-5]?>").renders(x="gurk")
+	assert "urk" == T("<?print 'gurk'[1:]?>").renders()
+	assert "urk" == T("<?print x[1:]?>").renders(x="gurk")
+	assert "urk" == T("<?print 'gurk'[-3:]?>").renders()
+	assert "urk" == T("<?print x[-3:]?>").renders(x="gurk")
+	assert "" == T("<?print 'gurk'[4:]?>").renders()
+	assert "" == T("<?print x[4:]?>").renders(x="gurk")
+	assert "gurk" == T("<?print 'gurk'[-10:]?>").renders()
+	assert "gurk" == T("<?print x[-10:]?>").renders(x="gurk")
+	assert "gur" == T("<?print 'gurk'[:3]?>").renders()
+	assert "gur" == T("<?print x[:3]?>").renders(x="gurk")
+	assert "gur" == T("<?print 'gurk'[:-1]?>").renders()
+	assert "gur" == T("<?print x[:-1]?>").renders(x="gurk")
+	assert "gurk" == T("<?print 'gurk'[:10]?>").renders()
+	assert "gurk" == T("<?print x[:10]?>").renders(x="gurk")
+	assert "" == T("<?print 'gurk'[:-5]?>").renders()
+	assert "" == T("<?print x[:-5]?>").renders(x="gurk")
+	assert "05" == T("<?print ('0' + str(x))[-2:]?>").renders(x=5)
+	assert "15" == T("<?print ('0' + str(x))[-2:]?>").renders(x=15)
+	assert "gurk" == T("<?print 'gurk'[:]?>").renders()
+	assert "gurk" == T("<?print x[:]?>").renders(x="gurk")
+	assert "[1, 2]" == T("<?print x[:]?>").renders(x=[1, 2])
+
+
+@pytest.mark.ul4
+def test_setslice(T):
+	assert "[1, -2, -3, 4]" == T("<?code x = [1, 2, 3, 4]?><?code x[1:3] = [-2, -3]?><?print x?>").renders()
+	assert "[1, -1, -4, -9, 4]" == T("<?code x = [1, 2, 3, 4]?><?code x[1:-1] = (-i*i for i in range(1, 4))?><?print x?>").renders()
+	assert "[-1, -4, -9]" == T("<?code x = [1, 2, 3, 4]?><?code x[:] = (-i*i for i in range(1, 4))?><?print x?>").renders()
+
+
+@pytest.mark.ul4
+def test_nested(T):
 	sc = "4"
 	sv = "x"
 	n = 4
@@ -1527,1226 +1411,1231 @@ def test_nested(r):
 		sv = "({})+({})".format(sv, sv)
 		n = n + n
 
-	assert str(n) == r('<?print {}?>'.format(sc))
-	assert str(n) == r('<?code x=4?><?print {}?>'.format(sv))
+	assert str(n) == T('<?print {}?>'.format(sc)).renders()
+	assert str(n) == T('<?code x=4?><?print {}?>'.format(sv)).renders()
 
 
 @pytest.mark.ul4
-def test_precedence(r):
-	assert "14" == r('<?print 2+3*4?>')
-	assert "20" == r('<?print (2+3)*4?>')
-	assert "10" == r('<?print -2+-3*-4?>')
-	assert "14" == r('<?print --2+--3*--4?>')
-	assert "14" == r('<?print (-(-2))+(-((-3)*-(-4)))?>')
-	assert "42" == r('<?print 2*data.value?>', data=dict(value=21))
-	assert "42" == r('<?print data.value[0]?>', data=dict(value=[42]))
-	assert "42" == r('<?print data[0].value?>', data=[dict(value=42)])
-	assert "42" == r('<?print data[0][0][0]?>', data=[[[42]]])
-	assert "42" == r('<?print data.value.value[0]?>', data=dict(value=dict(value=[42])))
-	assert "42" == r('<?print data.value.value[0].value.value[0]?>', data=dict(value=dict(value=[dict(value=dict(value=[42]))])))
+def test_precedence(T):
+	assert "14" == T('<?print 2+3*4?>').renders()
+	assert "20" == T('<?print (2+3)*4?>').renders()
+	assert "10" == T('<?print -2+-3*-4?>').renders()
+	assert "14" == T('<?print --2+--3*--4?>').renders()
+	assert "14" == T('<?print (-(-2))+(-((-3)*-(-4)))?>').renders()
+	assert "42" == T('<?print 2*data.value?>').renders(data=dict(value=21))
+	assert "42" == T('<?print data.value[0]?>').renders(data=dict(value=[42]))
+	assert "42" == T('<?print data[0].value?>').renders(data=[dict(value=42)])
+	assert "42" == T('<?print data[0][0][0]?>').renders(data=[[[42]]])
+	assert "42" == T('<?print data.value.value[0]?>').renders(data=dict(value=dict(value=[42])))
+	assert "42" == T('<?print data.value.value[0].value.value[0]?>').renders(data=dict(value=dict(value=[dict(value=dict(value=[42]))])))
 
 
 @pytest.mark.ul4
-def test_associativity(r):
-	assert "9" == r('<?print 2+3+4?>')
-	assert "-5" == r('<?print 2-3-4?>')
-	assert "24" == r('<?print 2*3*4?>')
-	if r not in (render_js_v8, render_js_spidermonkey):
-		assert "2.0" == r('<?print 24/6/2?>')
-		assert "2" == r('<?print 24//6//2?>')
+def test_associativity(T):
+	assert "9" == T('<?print 2+3+4?>').renders()
+	assert "-5" == T('<?print 2-3-4?>').renders()
+	assert "24" == T('<?print 2*3*4?>').renders()
+	if T not in (TemplateJavascriptV8, TemplateJavascriptSpidermoney):
+		assert "2.0" == T('<?print 24/6/2?>').renders()
+		assert "2" == T('<?print 24//6//2?>').renders()
 	else:
-		assert 2.0 == eval(r('<?print 24/6/2?>'))
-		assert 2 == eval(r('<?print 24//6//2?>'))
+		assert 2.0 == eval(T('<?print 24/6/2?>').renders())
+		assert 2 == eval(T('<?print 24//6//2?>').renders())
 
 
 @pytest.mark.ul4
-def test_bracket(r):
+def test_bracket(T):
 	sc = "4"
 	sv = "x"
 	for i in range(10):
 		sc = "({})".format(sc)
 		sv = "({})".format(sv)
 
-	assert "4" == r('<?print {}?>'.format(sc))
-	assert "4" == r('<?code x=4?><?print {}?>'.format(sv))
+	assert "4" == T('<?print {}?>'.format(sc)).renders()
+	assert "4" == T('<?code x=4?><?print {}?>'.format(sv)).renders()
 
 
 @pytest.mark.ul4
-def test_callfunc_args(r):
-	assert "@(2013-01-07)" == r("<?print repr(date(2013, 1, 7))?>")
-	assert "@(2013-01-07)" == r("<?print repr(date(2013, 1, day=7))?>")
-	assert "@(2013-01-07)" == r("<?print repr(date(2013, month=1, day=7))?>")
-	assert "@(2013-01-07)" == r("<?print repr(date(year=2013, month=1, day=7))?>")
-	assert "@(2013-01-07)" == r("<?print repr(date(2013, *[1, 7]))?>")
-	assert "@(2013-01-07)" == r("<?print repr(date(*[2013, 1, 7]))?>")
-	assert "@(2013-01-07)" == r("<?print repr(date(year=2013, **{'month': 1, 'day': 7}))?>")
-	assert "@(2013-01-07)" == r("<?print repr(date(2013, *[1], **{'day': 7}))?>")
+def test_callfunc_args(T):
+	assert "@(2013-01-07)" == T("<?print repr(date(2013, 1, 7))?>").renders()
+	assert "@(2013-01-07)" == T("<?print repr(date(2013, 1, day=7))?>").renders()
+	assert "@(2013-01-07)" == T("<?print repr(date(2013, month=1, day=7))?>").renders()
+	assert "@(2013-01-07)" == T("<?print repr(date(year=2013, month=1, day=7))?>").renders()
+	assert "@(2013-01-07)" == T("<?print repr(date(2013, *[1, 7]))?>").renders()
+	assert "@(2013-01-07)" == T("<?print repr(date(*[2013, 1, 7]))?>").renders()
+	assert "@(2013-01-07)" == T("<?print repr(date(year=2013, **{'month': 1, 'day': 7}))?>").renders()
+	assert "@(2013-01-07)" == T("<?print repr(date(2013, *[1], **{'day': 7}))?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_now(r):
+def test_function_now(T):
 	now = str(datetime.datetime.now())
 
 	with raises(argumentmismatchmessage):
-		r("<?print now(1)?>")
+		T("<?print now(1)?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print now(1, 2)?>")
+		T("<?print now(1, 2)?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print now(foo=1)?>")
-	assert now <= r("<?print now()?>")
+		T("<?print now(foo=1)?>").renders()
+	assert now <= T("<?print now()?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_utcnow(r):
+def test_function_utcnow(T):
 	utcnow = str(datetime.datetime.utcnow())
 
 	with raises(argumentmismatchmessage):
-		r("<?print utcnow(1)?>")
+		T("<?print utcnow(1)?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print utcnow(1, 2)?>")
+		T("<?print utcnow(1, 2)?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print utcnow(foo=1)?>")
+		T("<?print utcnow(foo=1)?>").renders()
 	# JS and Java only have milliseconds precision, but this shouldn't lead to problems here, as rendering the template takes longer than a millisecond
-	assert utcnow <= r("<?print utcnow()?>")
+	assert utcnow <= T("<?print utcnow()?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_date(r):
-	assert "@(2012-10-06)" == r("<?print repr(date(2012, 10, 6))?>")
-	assert "@(2012-10-06T12:00:00)" == r("<?print repr(date(2012, 10, 6, 12))?>")
-	assert "@(2012-10-06T12:34:00)" == r("<?print repr(date(2012, 10, 6, 12, 34))?>")
-	assert "@(2012-10-06T12:34:56)" == r("<?print repr(date(2012, 10, 6, 12, 34, 56))?>")
-	if r is not render_php:
-		assert "@(2012-10-06T12:34:56.987000)" == r("<?print repr(date(2012, 10, 6, 12, 34, 56, 987000))?>")
+def test_function_date(T):
+	assert "@(2012-10-06)" == T("<?print repr(date(2012, 10, 6))?>").renders()
+	assert "@(2012-10-06T12:00:00)" == T("<?print repr(date(2012, 10, 6, 12))?>").renders()
+	assert "@(2012-10-06T12:34:00)" == T("<?print repr(date(2012, 10, 6, 12, 34))?>").renders()
+	assert "@(2012-10-06T12:34:56)" == T("<?print repr(date(2012, 10, 6, 12, 34, 56))?>").renders()
+	if T is not TemplatePHP:
+		assert "@(2012-10-06T12:34:56.987000)" == T("<?print repr(date(2012, 10, 6, 12, 34, 56, 987000))?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "@(2012-10-06T12:34:56)" == r("<?print repr(date(year=2012, month=10, day=6, hour=12, minute=34, second=56, microsecond=0))?>")
+	assert "@(2012-10-06T12:34:56)" == T("<?print repr(date(year=2012, month=10, day=6, hour=12, minute=34, second=56, microsecond=0))?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_timedelta(r):
+def test_function_timedelta(T):
 	with raises(argumentmismatchmessage):
-		r("<?print timedelta(1, 2, 3, 4)?>")
-	assert "1 day, 0:00:00" == r("<?print timedelta(1)?>")
-	assert "-1 day, 0:00:00" == r("<?print timedelta(-1)?>")
-	assert "2 days, 0:00:00" == r("<?print timedelta(2)?>")
-	assert "0:00:01" == r("<?print timedelta(0, 0, 1000000)?>")
-	assert "1 day, 0:00:00" == r("<?print timedelta(0, 0, 24*60*60*1000000)?>")
-	assert "1 day, 0:00:00" == r("<?print timedelta(0, 24*60*60)?>")
-	assert "12:00:00" == r("<?print timedelta(0.5)?>")
-	assert "0:00:00.500000" == r("<?print timedelta(0, 0.5)?>")
-	assert "0:00:00.500000" == r("<?print timedelta(0.5/(24*60*60))?>")
-	assert "-1 day, 12:00:00" == r("<?print timedelta(-0.5)?>")
-	assert "-1 day, 23:59:59.500000" == r("<?print timedelta(0, -0.5)?>")
-	assert "0:00:01" == r("<?print timedelta(0, 1)?>")
-	assert "0:01:00" == r("<?print timedelta(0, 60)?>")
-	assert "1:00:00" == r("<?print timedelta(0, 60*60)?>")
-	assert "1 day, 1:01:01.000001" == r("<?print timedelta(1, 60*60+60+1, 1)?>")
-	assert "0:00:00.000001" == r("<?print timedelta(0, 0, 1)?>")
-	assert "-1 day, 23:59:59" == r("<?print timedelta(0, -1)?>")
-	assert "-1 day, 23:59:59.999999" == r("<?print timedelta(0, 0, -1)?>")
+		T("<?print timedelta(1, 2, 3, 4)?>").renders()
+	assert "1 day, 0:00:00" == T("<?print timedelta(1)?>").renders()
+	assert "-1 day, 0:00:00" == T("<?print timedelta(-1)?>").renders()
+	assert "2 days, 0:00:00" == T("<?print timedelta(2)?>").renders()
+	assert "0:00:01" == T("<?print timedelta(0, 0, 1000000)?>").renders()
+	assert "1 day, 0:00:00" == T("<?print timedelta(0, 0, 24*60*60*1000000)?>").renders()
+	assert "1 day, 0:00:00" == T("<?print timedelta(0, 24*60*60)?>").renders()
+	assert "12:00:00" == T("<?print timedelta(0.5)?>").renders()
+	assert "0:00:00.500000" == T("<?print timedelta(0, 0.5)?>").renders()
+	assert "0:00:00.500000" == T("<?print timedelta(0.5/(24*60*60))?>").renders()
+	assert "-1 day, 12:00:00" == T("<?print timedelta(-0.5)?>").renders()
+	assert "-1 day, 23:59:59.500000" == T("<?print timedelta(0, -0.5)?>").renders()
+	assert "0:00:01" == T("<?print timedelta(0, 1)?>").renders()
+	assert "0:01:00" == T("<?print timedelta(0, 60)?>").renders()
+	assert "1:00:00" == T("<?print timedelta(0, 60*60)?>").renders()
+	assert "1 day, 1:01:01.000001" == T("<?print timedelta(1, 60*60+60+1, 1)?>").renders()
+	assert "0:00:00.000001" == T("<?print timedelta(0, 0, 1)?>").renders()
+	assert "-1 day, 23:59:59" == T("<?print timedelta(0, -1)?>").renders()
+	assert "-1 day, 23:59:59.999999" == T("<?print timedelta(0, 0, -1)?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "0:00:00.000001" == r("<?print timedelta(days=0, seconds=0, microseconds=1)?>")
+	assert "0:00:00.000001" == T("<?print timedelta(days=0, seconds=0, microseconds=1)?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_monthdelta(r):
+def test_function_monthdelta(T):
 	with raises(argumentmismatchmessage):
-		r("<?print monthdelta(1, 2)?>")
-	assert "0 months" == r("<?print monthdelta()?>")
-	assert "2 months" == r("<?print monthdelta(2)?>")
-	assert "1 month" == r("<?print monthdelta(1)?>")
-	assert "-1 month" == r("<?print monthdelta(-1)?>")
+		T("<?print monthdelta(1, 2)?>").renders()
+	assert "0 months" == T("<?print monthdelta()?>").renders()
+	assert "2 months" == T("<?print monthdelta(2)?>").renders()
+	assert "1 month" == T("<?print monthdelta(1)?>").renders()
+	assert "-1 month" == T("<?print monthdelta(-1)?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "1 month" == r("<?print monthdelta(months=1)?>")
+	assert "1 month" == T("<?print monthdelta(months=1)?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_random(r):
+def test_function_random(T):
 	with raises(argumentmismatchmessage):
-		r("<?print random(1)?>")
+		T("<?print random(1)?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print random(1, 2)?>")
+		T("<?print random(1, 2)?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print random(foo=1)?>")
-	assert "ok" == r("<?code r = random()?><?if r>=0 and r<1?>ok<?else?>fail<?end if?>")
+		T("<?print random(foo=1)?>").renders()
+	assert "ok" == T("<?code r = random()?><?if r>=0 and r<1?>ok<?else?>fail<?end if?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_randrange(r):
+def test_function_randrange(T):
 	with raises(argumentmismatchmessage):
-		r("<?print randrange()?>")
+		T("<?print randrange()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print randrange(foo=1)?>")
-	assert "ok" == r("<?code r = randrange(4)?><?if r>=0 and r<4?>ok<?else?>fail<?end if?>")
-	assert "ok" == r("<?code r = randrange(17, 23)?><?if r>=17 and r<23?>ok<?else?>fail<?end if?>")
-	assert "ok" == r("<?code r = randrange(17, 23, 2)?><?if r>=17 and r<23 and r%2?>ok<?else?>fail<?end if?>")
+		T("<?print randrange(foo=1)?>").renders()
+	assert "ok" == T("<?code r = randrange(4)?><?if r>=0 and r<4?>ok<?else?>fail<?end if?>").renders()
+	assert "ok" == T("<?code r = randrange(17, 23)?><?if r>=17 and r<23?>ok<?else?>fail<?end if?>").renders()
+	assert "ok" == T("<?code r = randrange(17, 23, 2)?><?if r>=17 and r<23 and r%2?>ok<?else?>fail<?end if?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_randchoice(r):
+def test_function_randchoice(T):
 	with raises(argumentmismatchmessage):
-		r("<?print randchoice()?>")
-	assert "ok" == r("<?code r = randchoice('abc')?><?if r in 'abc'?>ok<?else?>fail<?end if?>")
-	assert "ok" == r("<?code s = [17, 23, 42]?><?code r = randchoice(s)?><?if r in s?>ok<?else?>fail<?end if?>")
-	assert "ok" == r("<?code s = #12345678?><?code sl = [0x12, 0x34, 0x56, 0x78]?><?code r = randchoice(s)?><?if r in sl?>ok<?else?>fail<?end if?>")
+		T("<?print randchoice()?>").renders()
+	assert "ok" == T("<?code r = randchoice('abc')?><?if r in 'abc'?>ok<?else?>fail<?end if?>").renders()
+	assert "ok" == T("<?code s = [17, 23, 42]?><?code r = randchoice(s)?><?if r in s?>ok<?else?>fail<?end if?>").renders()
+	assert "ok" == T("<?code s = #12345678?><?code sl = [0x12, 0x34, 0x56, 0x78]?><?code r = randchoice(s)?><?if r in sl?>ok<?else?>fail<?end if?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "ok" == r("<?code s = [17, 23, 42]?><?code r = randchoice(sequence=s)?><?if r in s?>ok<?else?>fail<?end if?>")
+	assert "ok" == T("<?code s = [17, 23, 42]?><?code r = randchoice(sequence=s)?><?if r in s?>ok<?else?>fail<?end if?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_xmlescape(r):
+def test_function_xmlescape(T):
 	with raises(argumentmismatchmessage):
-		r("<?print xmlescape()?>")
+		T("<?print xmlescape()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print xmlescape(1, 2)?>")
-	assert "&lt;&lt;&gt;&gt;&amp;&#39;&quot;gurk" == r("<?print xmlescape(data)?>", data='<<>>&\'"gurk')
+		T("<?print xmlescape(1, 2)?>").renders()
+	assert "&lt;&lt;&gt;&gt;&amp;&#39;&quot;gurk" == T("<?print xmlescape(data)?>").renders(data='<<>>&\'"gurk')
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "42" == r("<?print xmlescape(obj=data)?>", data=42)
+	assert "42" == T("<?print xmlescape(obj=data)?>").renders(data=42)
 
 
 @pytest.mark.ul4
-def test_function_csv(r):
+def test_function_csv(T):
 	with raises(argumentmismatchmessage):
-		r("<?print csv()?>")
+		T("<?print csv()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print csv(1, 2)?>")
-	assert "" == r("<?print csv(data)?>", data=None)
-	assert "False" == r("<?print csv(data)?>", data=False)
-	assert "True" == r("<?print csv(data)?>", data=True)
-	assert "42" == r("<?print csv(data)?>", data=42)
+		T("<?print csv(1, 2)?>").renders()
+
+	t = T("<?print csv(data)?>")
+
+	assert "" == t.renders(data=None)
+	assert "False" == t.renders(data=False)
+	assert "True" == t.renders(data=True)
+	assert "42" == t.renders(data=42)
 	# no check for float
-	assert "abc" == r("<?print csv(data)?>", data="abc")
-	assert '"a,b,c"' == r("<?print csv(data)?>", data="a,b,c")
-	assert '"a""b""c"' == r("<?print csv(data)?>", data='a"b"c')
-	assert '"a\nb\nc"' == r("<?print csv(data)?>", data="a\nb\nc")
+	assert "abc" == t.renders(data="abc")
+	assert '"a,b,c"' == t.renders(data="a,b,c")
+	assert '"a""b""c"' == t.renders(data='a"b"c')
+	assert '"a\nb\nc"' == t.renders(data="a\nb\nc")
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "42" == r("<?print csv(obj=data)?>", data=42)
+	assert "42" == T("<?print csv(obj=data)?>").renders(data=42)
 
 
 @pytest.mark.ul4
-def test_function_asjson(r):
+def test_function_asjson(T):
 	with raises(argumentmismatchmessage):
-		r("<?print asjson()?>")
+		T("<?print asjson()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print asjson(1, 2)?>")
-	assert "null" == r("<?print asjson(data)?>", data=None)
-	assert "false" == r("<?print asjson(data)?>", data=False)
-	assert "true" == r("<?print asjson(data)?>", data=True)
-	assert "42" == r("<?print asjson(data)?>", data=42)
+		T("<?print asjson(1, 2)?>").renders()
+	t = T("<?print asjson(data)?>")
+	assert "null" == t.renders(data=None)
+	assert "false" == t.renders(data=False)
+	assert "true" == t.renders(data=True)
+	assert "42" == t.renders(data=42)
 	# no check for float
-	assert '"abc"' == r("<?print asjson(data)?>", data="abc")
-	assert '"\'"' == r("<?print asjson(data)?>", data="'")
-	assert '"\\\""' == r("<?print asjson(data)?>", data='"')
-	assert '[1, 2, 3]' == r("<?print asjson(data)?>", data=[1, 2, 3])
-	assert '[1, 2, 3]' == r("<?print asjson(data)?>", data=PseudoList([1, 2, 3]))
-	assert '{"one": 1}' == r("<?print asjson(data)?>", data={"one": 1})
-	assert '{"one": 1}' == r("<?print asjson(data)?>", data=PseudoDict({"one": 1}))
+	assert '"abc"' == t.renders(data="abc")
+	assert '"\'"' == t.renders(data="'")
+	assert '"\\\""' == t.renders(data='"')
+	assert '[1, 2, 3]' == t.renders(data=[1, 2, 3])
+	assert '[1, 2, 3]' == t.renders(data=PseudoList([1, 2, 3]))
+	assert '{"one": 1}' == t.renders(data={"one": 1})
+	assert '{"one": 1}' == t.renders(data=PseudoDict({"one": 1}))
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "42" == r("<?print asjson(obj=data)?>", data=42)
+	assert "42" == T("<?print asjson(obj=data)?>").renders(data=42)
 
 
 @pytest.mark.ul4
-def test_function_fromjson(r):
-	code = "<?print repr(fromjson(data))?>"
+def test_function_fromjson(T):
+	t = T("<?print repr(fromjson(data))?>")
 	with raises(argumentmismatchmessage):
-		r("<?print fromjson()?>")
+		T("<?print fromjson()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print fromjson(1, 2)?>")
-	assert "None" == r(code, data="null")
-	assert "False" == r(code, data="false")
-	assert "True" == r(code, data="true")
-	assert "42" == r(code, data="42")
+		T("<?print fromjson(1, 2)?>").renders()
+	assert "None" == t.renders(data="null")
+	assert "False" == t.renders(data="false")
+	assert "True" == t.renders(data="true")
+	assert "42" == t.renders(data="42")
 	# no check for float
-	assert r(code, data='"abc"') in ('"abc"', "'abc'")
-	assert '[1, 2, 3]' == r(code, data="[1, 2, 3]")
-	assert r(code, data='{"one": 1}') in ('{"one": 1}', "{'one': 1}")
+	assert t.renders(data='"abc"') in ('"abc"', "'abc'")
+	assert '[1, 2, 3]' == t.renders(data="[1, 2, 3]")
+	assert t.renders(data='{"one": 1}') in ('{"one": 1}', "{'one': 1}")
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "42" == r("<?print fromjson(string=data)?>", data="42")
+	assert "42" == T("<?print fromjson(string=data)?>").renders(data="42")
 
 
 @pytest.mark.ul4
-def test_function_ul4on(r):
-	code = "<?print repr(fromul4on(asul4on(data)))?>"
+def test_function_ul4on(T):
+	t = T("<?print repr(fromul4on(asul4on(data)))?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print asul4on()?>")
+		T("<?print asul4on()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print asul4on(1, 2)?>")
+		T("<?print asul4on(1, 2)?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print fromul4on()?>")
+		T("<?print fromul4on()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print fromul4on(1, 2)?>")
-	assert "None" == r(code, data=None)
-	assert "False" == r(code, data=False)
-	assert "True" == r(code, data=True)
-	assert "42" == r(code, data=42)
+		T("<?print fromul4on(1, 2)?>").renders()
+	assert "None" == t.renders(data=None)
+	assert "False" == t.renders(data=False)
+	assert "True" == t.renders(data=True)
+	assert "42" == t.renders(data=42)
 	# no check for float
-	assert r(code, data="abc") in ('"abc"', "'abc'")
-	assert '[1, 2, 3]' == r(code, data=[1, 2, 3])
-	assert r(code, data={'one': 1}) in ('{"one": 1}', "{'one': 1}")
+	assert t.renders(data="abc") in ('"abc"', "'abc'")
+	assert '[1, 2, 3]' == t.renders(data=[1, 2, 3])
+	assert t.renders(data={'one': 1}) in ('{"one": 1}', "{'one': 1}")
 
 	# Explicitly check to real output for at least one example
-	assert "i42" == r("<?print asul4on(42)?>")
+	assert "i42" == T("<?print asul4on(42)?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "42" == r("<?print repr(fromul4on(string=asul4on(obj=data)))?>", data=42)
+	assert "42" == T("<?print repr(fromul4on(string=asul4on(obj=data)))?>").renders(data=42)
 
 
 @pytest.mark.ul4
-def test_function_str(r):
-	code = "<?print str(data)?>"
+def test_function_str(T):
+	t = T("<?print str(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print str(1, 2)?>")
-	assert "" == r("<?print str()?>")
-	assert "" == r(code, data=None)
-	assert "True" == r(code, data=True)
-	assert "False" == r(code, data=False)
-	assert "42" == r(code, data=42)
-	assert "4.2" == r(code, data=4.2)
-	assert "foo" == r(code, data="foo")
-	assert "2011-02-09 00:00:00" == r(code, data=datetime.datetime(2011, 2, 9))
-	assert "2011-02-09 12:34:56" == r(code, data=datetime.datetime(2011, 2, 9, 12, 34, 56))
-	if r is not render_php:
-		assert "2011-02-09 12:34:56.987000" == r(code, data=datetime.datetime(2011, 2, 9, 12, 34, 56, 987000))
-	assert "0:00:00" == r(code, data=datetime.timedelta())
-	assert "1 day, 0:00:00" == r(code, data=datetime.timedelta(1))
-	assert "-1 day, 0:00:00" == r(code, data=datetime.timedelta(-1))
-	assert "2 days, 0:00:00" == r(code, data=datetime.timedelta(2))
-	assert "0:00:01" == r(code, data=datetime.timedelta(0, 1))
-	assert "0:01:00" == r(code, data=datetime.timedelta(0, 60))
-	assert "1:00:00" == r(code, data=datetime.timedelta(0, 60*60))
-	assert "1 day, 1:01:01.000001" == r(code, data=datetime.timedelta(1, 60*60+60+1, 1))
-	assert "0:00:00.000001" == r(code, data=datetime.timedelta(0, 0, 1))
-	assert "-1 day, 23:59:59" == r(code, data=datetime.timedelta(0, -1))
-	assert "-1 day, 23:59:59.999999" == r(code, data=datetime.timedelta(0, 0, -1))
+		T("<?print str(1, 2)?>").renders()
+	assert "" == T("<?print str()?>").renders()
+	assert "" == t.renders(data=None)
+	assert "True" == t.renders(data=True)
+	assert "False" == t.renders(data=False)
+	assert "42" == t.renders(data=42)
+	assert "4.2" == t.renders(data=4.2)
+	assert "foo" == t.renders(data="foo")
+	assert "2011-02-09 00:00:00" == t.renders(data=datetime.datetime(2011, 2, 9))
+	assert "2011-02-09 12:34:56" == t.renders(data=datetime.datetime(2011, 2, 9, 12, 34, 56))
+	if T is not TemplatePHP:
+		assert "2011-02-09 12:34:56.987000" == t.renders(data=datetime.datetime(2011, 2, 9, 12, 34, 56, 987000))
+	assert "0:00:00" == t.renders(data=datetime.timedelta())
+	assert "1 day, 0:00:00" == t.renders(data=datetime.timedelta(1))
+	assert "-1 day, 0:00:00" == t.renders(data=datetime.timedelta(-1))
+	assert "2 days, 0:00:00" == t.renders(data=datetime.timedelta(2))
+	assert "0:00:01" == t.renders(data=datetime.timedelta(0, 1))
+	assert "0:01:00" == t.renders(data=datetime.timedelta(0, 60))
+	assert "1:00:00" == t.renders(data=datetime.timedelta(0, 60*60))
+	assert "1 day, 1:01:01.000001" == t.renders(data=datetime.timedelta(1, 60*60+60+1, 1))
+	assert "0:00:00.000001" == t.renders(data=datetime.timedelta(0, 0, 1))
+	assert "-1 day, 23:59:59" == t.renders(data=datetime.timedelta(0, -1))
+	assert "-1 day, 23:59:59.999999" == t.renders(data=datetime.timedelta(0, 0, -1))
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "42" == r("<?print str(obj=data)?>", data=42)
+	assert "42" == T("<?print str(obj=data)?>").renders(data=42)
 
 
 @pytest.mark.ul4
-def test_function_bool(r):
+def test_function_bool(T):
 	with raises(argumentmismatchmessage):
-		r("<?print bool(1, 2)?>")
-	assert "False" == r("<?print bool()?>")
-	code = "<?print bool(data)?>"
-	assert "True" == r(code, data=True)
-	assert "False" == r(code, data=False)
-	assert "False" == r(code, data=0)
-	assert "True" == r(code, data=42)
-	assert "False" == r(code, data=0.0)
-	assert "True" == r(code, data=42.5)
-	assert "False" == r(code, data="")
-	assert "True" == r(code, data="gurk")
-	assert "False" == r(code, data=[])
-	assert "True" == r(code, data=["gurk"])
-	assert "False" == r(code, data={})
-	assert "True" == r(code, data={"gurk": "hurz"})
-	assert "True" == r(code, data=datetime.datetime.now())
-	assert "False" == r(code, data=datetime.timedelta())
-	assert "True" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=misc.monthdelta())
-	assert "True" == r(code, data=misc.monthdelta(1))
+		T("<?print bool(1, 2)?>").renders()
+	assert "False" == T("<?print bool()?>").renders()
+	t = T("<?print bool(data)?>")
+	assert "True" == t.renders(data=True)
+	assert "False" == t.renders(data=False)
+	assert "False" == t.renders(data=0)
+	assert "True" == t.renders(data=42)
+	assert "False" == t.renders(data=0.0)
+	assert "True" == t.renders(data=42.5)
+	assert "False" == t.renders(data="")
+	assert "True" == t.renders(data="gurk")
+	assert "False" == t.renders(data=[])
+	assert "True" == t.renders(data=["gurk"])
+	assert "False" == t.renders(data={})
+	assert "True" == t.renders(data={"gurk": "hurz"})
+	assert "True" == t.renders(data=datetime.datetime.now())
+	assert "False" == t.renders(data=datetime.timedelta())
+	assert "True" == t.renders(data=datetime.timedelta(1))
+	assert "False" == t.renders(data=misc.monthdelta())
+	assert "True" == t.renders(data=misc.monthdelta(1))
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "True" == r("<?print bool(obj=data)?>", data=42)
+	assert "True" == T("<?print bool(obj=data)?>").renders(data=42)
 
 
 @pytest.mark.ul4
-def test_function_list(r):
+def test_function_list(T):
 	with raises(argumentmismatchmessage):
-		r("<?print list(1, 2)?>")
-	assert "[]" == r("<?print list()?>")
-	assert "[1, 2]" == r("<?print list(data)?>", data=[1, 2])
-	assert "g" == r("<?print list(data)[0]?>", data="gurk")
-	assert "gurk" == r("<?print list(data)[0]?>", data={"gurk": "hurz"})
-	if r is not render_js_v8:
-		assert "[1]" == r("<?print list(data)?>", data={1: 2})
-	assert "foo42" == r("<?code x = list(data.items())?><?print x[0][0]?><?print x[0][1]?>", data={"foo": 42})
-	assert "[0, 1, 2]" == r("<?print repr(list(range(3)))?>")
+		T("<?print list(1, 2)?>").renders()
+	assert "[]" == T("<?print list()?>").renders()
+	assert "[1, 2]" == T("<?print list(data)?>").renders(data=[1, 2])
+	assert "g" == T("<?print list(data)[0]?>").renders(data="gurk")
+	assert "gurk" == T("<?print list(data)[0]?>").renders(data={"gurk": "hurz"})
+	if T is not TemplateJavascriptV8:
+		assert "[1]" == T("<?print list(data)?>").renders(data={1: 2})
+	assert "foo42" == T("<?code x = list(data.items())?><?print x[0][0]?><?print x[0][1]?>").renders(data={"foo": 42})
+	assert "[0, 1, 2]" == T("<?print repr(list(range(3)))?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "g" == r("<?print list(iterable=data)[0]?>", data="gurk")
+	assert "g" == T("<?print list(iterable=data)[0]?>").renders(data="gurk")
 
 
 @pytest.mark.ul4
-def test_function_set(r):
+def test_function_set(T):
 	with raises(argumentmismatchmessage):
-		r("<?print set(1, 2)?>")
-	assert "{/}" == r("<?print set()?>")
-	assert r("<?print set(data)?>", data=["1"]) in ("{'1'}", '{"1"}')
-	if r is not render_js_v8:
-		assert "{1}" == r("<?print set(data)?>", data={1: 2})
-		assert "{1}" == r("<?print set(data)?>", data=[1])
-	assert r("<?print repr(set(str(i) for i in range(1)))?>") in ("{'0'}", '{"0"}')
+		T("<?print set(1, 2)?>").renders()
+	assert "{/}" == T("<?print set()?>").renders()
+	assert T("<?print set(data)?>").renders(data=["1"]) in ("{'1'}", '{"1"}')
+	if T is not TemplateJavascriptV8:
+		assert "{1}" == T("<?print set(data)?>").renders(data={1: 2})
+		assert "{1}" == T("<?print set(data)?>").renders(data=[1])
+	assert T("<?print repr(set(str(i) for i in range(1)))?>").renders() in ("{'0'}", '{"0"}')
 
 	# Make sure that the parameters have the same name in all implementations
-	assert r("<?print set(iterable=data)?>", data=["1"]) in ("{'1'}", '{"1"}')
+	assert T("<?print set(iterable=data)?>").renders(data=["1"]) in ("{'1'}", '{"1"}')
 
 
 @pytest.mark.ul4
-def test_function_int(r):
+def test_function_int(T):
 	with raises(argumentmismatchmessage):
-		r("<?print int(1, 2, 3)?>")
+		T("<?print int(1, 2, 3)?>").renders()
 	with raises("int\\(\\) argument must be a string or a number|int\\(null\\) not supported"):
-		r("<?print int(data)?>", data=None)
+		T("<?print int(data)?>").renders(data=None)
 	with raises("invalid literal for int|NumberFormatException"):
-		r("<?print int(data)?>", data="foo")
-	assert "0" == r("<?print int()?>")
-	assert "1" == r("<?print int(data)?>", data=True)
-	assert "0" == r("<?print int(data)?>", data=False)
-	assert "42" == r("<?print int(data)?>", data=42)
-	assert "4" == r("<?print int(data)?>", data=4.2)
-	assert "42" == r("<?print int(data)?>", data="42")
-	assert "66" == r("<?print int(data, 16)?>", data="42")
+		T("<?print int(data)?>").renders(data="foo")
+	assert "0" == T("<?print int()?>").renders()
+	assert "1" == T("<?print int(data)?>").renders(data=True)
+	assert "0" == T("<?print int(data)?>").renders(data=False)
+	assert "42" == T("<?print int(data)?>").renders(data=42)
+	assert "4" == T("<?print int(data)?>").renders(data=4.2)
+	assert "42" == T("<?print int(data)?>").renders(data="42")
+	assert "66" == T("<?print int(data, 16)?>").renders(data="42")
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "42" == r("<?print int(obj=data, base=None)?>", data=42)
+	assert "42" == T("<?print int(obj=data, base=None)?>").renders(data=42)
 
 
 @pytest.mark.ul4
-def test_function_float(r):
-	code = "<?print float(data)?>"
+def test_function_float(T):
+	t = T("<?print float(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print float(1, 2, 3)?>")
+		T("<?print float(1, 2, 3)?>").renders()
 	with raises("float\\(\\) argument must be a string or a number|float\\(null\\) not supported"):
-		r(code, data=None)
-	assert "4.2" == r(code, data=4.2)
-	if r not in (render_js_v8, render_js_spidermonkey):
-		assert "0.0" == r("<?print float()?>")
-		assert "1.0" == r(code, data=True)
-		assert "0.0" == r(code, data=False)
-		assert "42.0" == r(code, data=42)
-		assert "42.0" == r(code, data="42")
+		t.renders(data=None)
+	assert "4.2" == t.renders(data=4.2)
+	if T not in (TemplateJavascriptV8, TemplateJavascriptSpidermoney):
+		assert "0.0" == T("<?print float()?>").renders()
+		assert "1.0" == t.renders(data=True)
+		assert "0.0" == t.renders(data=False)
+		assert "42.0" == t.renders(data=42)
+		assert "42.0" == t.renders(data="42")
 
 		# Make sure that the parameters have the same name in all implementations
-		assert "42.0" == r("<?print float(obj=data)?>", data=42)
+		assert "42.0" == T("<?print float(obj=data)?>").renders(data=42)
 	else:
-		assert 0.0 == eval(r("<?print float()?>"))
-		assert 1.0 == eval(r(code, data=True))
-		assert 0.0 == eval(r(code, data=False))
-		assert 42.0 == eval(r(code, data=42))
-		assert 42.0 == eval(r(code, data="42"))
+		assert 0.0 == eval(T("<?print float()?>").renders())
+		assert 1.0 == eval(t.renders(data=True))
+		assert 0.0 == eval(t.renders(data=False))
+		assert 42.0 == eval(t.renders(data=42))
+		assert 42.0 == eval(t.renders(data="42"))
 
 		# Make sure that the parameters have the same name in all implementations
-		assert 42.0 == eval(r("<?print float(obj=data)?>", data=42))
+		assert 42.0 == eval(T("<?print float(obj=data)?>").renders(data=42))
 
 
 @pytest.mark.ul4
-def test_function_len(r):
-	code = "<?print len(data)?>"
+def test_function_len(T):
+	t = T("<?print len(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print len()?>")
+		T("<?print len()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print len(1, 2)?>")
+		T("<?print len(1, 2)?>").renders()
 	with raises("has no len\\(\\)|len\\(.*\\) not supported"):
-		r(code, data=None)
+		t.renders(data=None)
 	with raises("has no len\\(\\)|len\\(.*\\) not supported"):
-		r(code, data=True)
+		t.renders(data=True)
 	with raises("has no len\\(\\)|len\\(.*\\) not supported"):
-		r(code, data=False)
+		t.renders(data=False)
 	with raises("has no len\\(\\)|len\\(.*\\) not supported"):
-		r(code, data=42)
+		t.renders(data=42)
 	with raises("has no len\\(\\)|len\\(.*\\) not supported"):
-		r(code, data=4.2)
-	assert "42" == r(code, data=42*"?")
-	assert "42" == r(code, data=42*[None])
-	assert "42" == r(code, data=dict.fromkeys(range(42)))
+		t.renders(data=4.2)
+	assert "42" == t.renders(data=42*"?")
+	assert "42" == t.renders(data=42*[None])
+	assert "42" == t.renders(data=dict.fromkeys(range(42)))
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "42" == r("<?print len(sequence=data)?>", data=42*"?")
+	assert "42" == T("<?print len(sequence=data)?>").renders(data=42*"?")
 
 
 @pytest.mark.ul4
-def test_function_any(r):
+def test_function_any(T):
 	with raises(argumentmismatchmessage):
-		r("<?print any()?>")
+		T("<?print any()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print any(1, 2)?>")
+		T("<?print any(1, 2)?>").renders()
 	with raises("is not iterable|any\\(.*\\) not supported"):
-		r("<?print any(data)?>", data=None)
-	assert "False" == r("<?print any('')?>")
-	assert "True" == r("<?print any('foo')?>")
-	assert "True" == r("<?print any(i > 7 for i in range(10))?>")
-	assert "False" == r("<?print any(i > 17 for i in range(10))?>")
-	if r is not render_js_v8:
-		assert "False" == r("<?print any({None: 17, 0: 23})?>")
-		assert "True" == r("<?print any({None: 17, 0: 23, 42: 'foo'})?>")
-		assert "False" == r("<?print any({0: 17})?>")
+		T("<?print any(data)?>").renders(data=None)
+	assert "False" == T("<?print any('')?>").renders()
+	assert "True" == T("<?print any('foo')?>").renders()
+	assert "True" == T("<?print any(i > 7 for i in range(10))?>").renders()
+	assert "False" == T("<?print any(i > 17 for i in range(10))?>").renders()
+	if T is not TemplateJavascriptV8:
+		assert "False" == T("<?print any({None: 17, 0: 23})?>").renders()
+		assert "True" == T("<?print any({None: 17, 0: 23, 42: 'foo'})?>").renders()
+		assert "False" == T("<?print any({0: 17})?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "False" == r("<?print any(iterable=(i > 17 for i in range(10)))?>")
+	assert "False" == T("<?print any(iterable=(i > 17 for i in range(10)))?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_all(r):
+def test_function_all(T):
 	with raises(argumentmismatchmessage):
-		r("<?print all()?>")
+		T("<?print all()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print all(1, 2)?>")
+		T("<?print all(1, 2)?>").renders()
 	with raises("is not iterable|all\\(.*\\) not supported"):
-		r("<?print all(data)?>", data=None)
-	assert "True" == r("<?print all('')?>")
-	assert "True" == r("<?print all('foo')?>")
-	assert "False" == r("<?print all(i < 7 for i in range(10))?>")
-	assert "True" == r("<?print all(i < 17 for i in range(10))?>")
-	if r is not render_js_v8:
-		assert "False" == r("<?print any({None: 17, 0: 23})?>")
-		assert "True" == r("<?print any({17: 23, 42: 'foo'})?>")
-		assert "False" == r("<?print any({0: 17})?>")
+		T("<?print all(data)?>").renders(data=None)
+	assert "True" == T("<?print all('')?>").renders()
+	assert "True" == T("<?print all('foo')?>").renders()
+	assert "False" == T("<?print all(i < 7 for i in range(10))?>").renders()
+	assert "True" == T("<?print all(i < 17 for i in range(10))?>").renders()
+	if T is not TemplateJavascriptV8:
+		assert "False" == T("<?print any({None: 17, 0: 23})?>").renders()
+		assert "True" == T("<?print any({17: 23, 42: 'foo'})?>").renders()
+		assert "False" == T("<?print any({0: 17})?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "True" == r("<?print all(iterable=(i < 17 for i in range(10)))?>")
+	assert "True" == T("<?print all(iterable=(i < 17 for i in range(10)))?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_enumerate(r):
-	code1 = "<?for (i, value) in enumerate(data)?>(<?print value?>=<?print i?>)<?end for?>"
-	code2 = "<?for (i, value) in enumerate(data, 42)?>(<?print value?>=<?print i?>)<?end for?>"
+def test_function_enumerate(T):
+	t1 = T("<?for (i, value) in enumerate(data)?>(<?print value?>=<?print i?>)<?end for?>")
+	t2 = T("<?for (i, value) in enumerate(data, 42)?>(<?print value?>=<?print i?>)<?end for?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print enumerate()?>")
+		T("<?print enumerate()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print enumerate(1, 2, 3)?>")
+		T("<?print enumerate(1, 2, 3)?>").renders()
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code1, data=None)
+		t1.renders(data=None)
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code1, data=True)
+		t1.renders(data=True)
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code1, data=False)
+		t1.renders(data=False)
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code1, data=42)
+		t1.renders(data=42)
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code1, data=4.2)
-	assert "(f=0)(o=1)(o=2)" == r(code1, data="foo")
-	assert "(foo=0)(bar=1)" == r(code1, data=["foo", "bar"])
-	assert "(foo=0)" == r(code1, data=dict(foo=True))
-	assert "" == r(code1, data="")
-	assert "(f=42)(o=43)(o=44)" == r(code2, data="foo")
+		t1.renders(data=4.2)
+	assert "(f=0)(o=1)(o=2)" == t1.renders(data="foo")
+	assert "(foo=0)(bar=1)" == t1.renders(data=["foo", "bar"])
+	assert "(foo=0)" == t1.renders(data=dict(foo=True))
+	assert "" == t1.renders(data="")
+	assert "(f=42)(o=43)(o=44)" == t2.renders(data="foo")
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "(f=42)(o=43)(o=44)" == r("<?for (i, value) in enumerate(iterable=data, start=42)?>(<?print value?>=<?print i?>)<?end for?>", data="foo")
+	assert "(f=42)(o=43)(o=44)" == T("<?for (i, value) in enumerate(iterable=data, start=42)?>(<?print value?>=<?print i?>)<?end for?>").renders(data="foo")
 
 
 @pytest.mark.ul4
-def test_function_enumfl(r):
-	code1 = "<?for (i, f, l, value) in enumfl(data)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>"
-	code2 = "<?for (i, f, l, value) in enumfl(data, 42)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>"
+def test_function_enumfl(T):
+	t1 = T("<?for (i, f, l, value) in enumfl(data)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>")
+	t2 = T("<?for (i, f, l, value) in enumfl(data, 42)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print enumfl()?>")
+		T("<?print enumfl()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print enumfl(1, 2, 3)?>")
+		T("<?print enumfl(1, 2, 3)?>").renders()
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code1, data=None)
+		t1.renders(data=None)
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code1, data=True)
+		t1.renders(data=True)
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code1, data=False)
+		t1.renders(data=False)
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code1, data=42)
+		t1.renders(data=42)
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code1, data=4.2)
-	assert "[(f=0)(o=1)(o=2)]" == r(code1, data="foo")
-	assert "[(foo=0)(bar=1)]" == r(code1, data=["foo", "bar"])
-	assert "[(foo=0)]" == r(code1, data=dict(foo=True))
-	assert "" == r(code1, data="")
-	assert "[(f=42)(o=43)(o=44)]" == r(code2, data="foo")
+		t1.renders(data=4.2)
+	assert "[(f=0)(o=1)(o=2)]" == t1.renders(data="foo")
+	assert "[(foo=0)(bar=1)]" == t1.renders(data=["foo", "bar"])
+	assert "[(foo=0)]" == t1.renders(data=dict(foo=True))
+	assert "" == t1.renders(data="")
+	assert "[(f=42)(o=43)(o=44)]" == t2.renders(data="foo")
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "[(f=42)(o=43)(o=44)]" == r("<?for (i, f, l, value) in enumfl(iterable=data, start=42)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>", data="foo")
+	assert "[(f=42)(o=43)(o=44)]" == T("<?for (i, f, l, value) in enumfl(iterable=data, start=42)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>").renders(data="foo")
 
 
 @pytest.mark.ul4
-def test_function_isfirstlast(r):
-	code = "<?for (f, l, value) in isfirstlast(data)?><?if f?>[<?end if?>(<?print value?>)<?if l?>]<?end if?><?end for?>"
+def test_function_isfirstlast(T):
+	t = T("<?for (f, l, value) in isfirstlast(data)?><?if f?>[<?end if?>(<?print value?>)<?if l?>]<?end if?><?end for?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print isfirstlast()?>")
+		T("<?print isfirstlast()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print isfirstlast(1, 2)?>")
+		T("<?print isfirstlast(1, 2)?>").renders()
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code, data=None)
+		t.renders(data=None)
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code, data=True)
+		t.renders(data=True)
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code, data=False)
+		t.renders(data=False)
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code, data=42)
+		t.renders(data=42)
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code, data=4.2)
-	assert "[(f)(o)(o)]" == r(code, data="foo")
-	assert "[(foo)(bar)]" == r(code, data=["foo", "bar"])
-	assert "[(foo)]" == r(code, data=dict(foo=True))
-	assert "" == r(code, data="")
+		t.renders(data=4.2)
+	assert "[(f)(o)(o)]" == t.renders(data="foo")
+	assert "[(foo)(bar)]" == t.renders(data=["foo", "bar"])
+	assert "[(foo)]" == t.renders(data=dict(foo=True))
+	assert "" == t.renders(data="")
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "[(f)(o)(o)]" == r("<?for (f, l, value) in isfirstlast(iterable=data)?><?if f?>[<?end if?>(<?print value?>)<?if l?>]<?end if?><?end for?>", data="foo")
+	assert "[(f)(o)(o)]" == T("<?for (f, l, value) in isfirstlast(iterable=data)?><?if f?>[<?end if?>(<?print value?>)<?if l?>]<?end if?><?end for?>").renders(data="foo")
 
 
 @pytest.mark.ul4
-def test_function_isfirst(r):
-	code = "<?for (f, value) in isfirst(data)?><?if f?>[<?end if?>(<?print value?>)<?end for?>"
+def test_function_isfirst(T):
+	t = T("<?for (f, value) in isfirst(data)?><?if f?>[<?end if?>(<?print value?>)<?end for?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print isfirst()?>")
+		T("<?print isfirst()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print isfirst(1, 2)?>")
+		T("<?print isfirst(1, 2)?>").renders()
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code, data=None)
+		t.renders(data=None)
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code, data=True)
+		t.renders(data=True)
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code, data=False)
+		t.renders(data=False)
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code, data=42)
+		t.renders(data=42)
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code, data=4.2)
-	assert "[(f)(o)(o)" == r(code, data="foo")
-	assert "[(foo)(bar)" == r(code, data=["foo", "bar"])
-	assert "[(foo)" == r(code, data=dict(foo=True))
-	assert "" == r(code, data="")
+		t.renders(data=4.2)
+	assert "[(f)(o)(o)" == t.renders(data="foo")
+	assert "[(foo)(bar)" == t.renders(data=["foo", "bar"])
+	assert "[(foo)" == t.renders(data=dict(foo=True))
+	assert "" == t.renders(data="")
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "[(f)(o)(o)" == r("<?for (f, value) in isfirst(iterable=data)?><?if f?>[<?end if?>(<?print value?>)<?end for?>", data="foo")
+	assert "[(f)(o)(o)" == T("<?for (f, value) in isfirst(iterable=data)?><?if f?>[<?end if?>(<?print value?>)<?end for?>").renders(data="foo")
 
 
 @pytest.mark.ul4
-def test_function_islast(r):
-	code = "<?for (l, value) in islast(data)?>(<?print value?>)<?if l?>]<?end if?><?end for?>"
+def test_function_islast(T):
+	t = T("<?for (l, value) in islast(data)?>(<?print value?>)<?if l?>]<?end if?><?end for?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print islast()?>")
+		T("<?print islast()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print islast(1, 2)?>")
+		T("<?print islast(1, 2)?>").renders()
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code, data=None)
+		t.renders(data=None)
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code, data=True)
+		t.renders(data=True)
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code, data=False)
+		t.renders(data=False)
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code, data=42)
+		t.renders(data=42)
 	with raises("is not iterable|iter\\(.*\\) not supported"):
-		r(code, data=4.2)
-	assert "(f)(o)(o)]" == r(code, data="foo")
-	assert "(foo)(bar)]" == r(code, data=["foo", "bar"])
-	assert "(foo)]" == r(code, data=dict(foo=True))
-	assert "" == r(code, data="")
+		t.renders(data=4.2)
+	assert "(f)(o)(o)]" == t.renders(data="foo")
+	assert "(foo)(bar)]" == t.renders(data=["foo", "bar"])
+	assert "(foo)]" == t.renders(data=dict(foo=True))
+	assert "" == t.renders(data="")
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "(f)(o)(o)]" == r("<?for (l, value) in islast(iterable=data)?>(<?print value?>)<?if l?>]<?end if?><?end for?>", data="foo")
+	assert "(f)(o)(o)]" == T("<?for (l, value) in islast(iterable=data)?>(<?print value?>)<?if l?>]<?end if?><?end for?>").renders(data="foo")
 
 
 @pytest.mark.ul4
-def test_function_isundefined(r):
-	code = "<?print isundefined(data)?>"
+def test_function_isundefined(T):
+	t = T("<?print isundefined(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print isundefined()?>")
+		T("<?print isundefined()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print isundefined(1, 2)?>")
-	assert "True" == r(code)
-	assert "False" == r(code, data=None)
-	assert "False" == r(code, data=True)
-	assert "False" == r(code, data=False)
-	assert "False" == r(code, data=42)
-	assert "False" == r(code, data=4.2)
-	assert "False" == r(code, data="foo")
-	assert "False" == r(code, data=datetime.datetime.now())
-	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=misc.monthdelta(1))
-	assert "False" == r(code, data=())
-	assert "False" == r(code, data=[])
-	assert "False" == r(code, data=set())
-	assert "False" == r(code, data={})
-	assert "False" == r("<?print isundefined(repr)?>")
-	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r(code, data=color.red)
+		T("<?print isundefined(1, 2)?>").renders()
+	assert "True" == t.renders()
+	assert "False" == t.renders(data=None)
+	assert "False" == t.renders(data=True)
+	assert "False" == t.renders(data=False)
+	assert "False" == t.renders(data=42)
+	assert "False" == t.renders(data=4.2)
+	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.datetime.now())
+	assert "False" == t.renders(data=datetime.timedelta(1))
+	assert "False" == t.renders(data=misc.monthdelta(1))
+	assert "False" == t.renders(data=())
+	assert "False" == t.renders(data=[])
+	assert "False" == t.renders(data=set())
+	assert "False" == t.renders(data={})
+	assert "False" == T("<?print isundefined(repr)?>").renders()
+	assert "False" == t.renders(data=ul4c.Template(""))
+	assert "False" == t.renders(data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "False" == r("<?print isundefined(obj=data)?>", data=None)
+	assert "False" == T("<?print isundefined(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
-def test_function_isdefined(r):
-	code = "<?print isdefined(data)?>"
+def test_function_isdefined(T):
+	t = T("<?print isdefined(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print isdefined()?>")
+		T("<?print isdefined()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print isdefined(1, 2)?>")
-	assert "False" == r(code)
-	assert "True" == r(code, data=None)
-	assert "True" == r(code, data=True)
-	assert "True" == r(code, data=False)
-	assert "True" == r(code, data=42)
-	assert "True" == r(code, data=4.2)
-	assert "True" == r(code, data="foo")
-	assert "True" == r(code, data=datetime.datetime.now())
-	assert "True" == r(code, data=datetime.timedelta(1))
-	assert "True" == r(code, data=misc.monthdelta(1))
-	assert "True" == r(code, data=())
-	assert "True" == r(code, data=[])
-	assert "True" == r(code, data=set())
-	assert "True" == r(code, data={})
-	assert "True" == r(code, data=ul4c.Template(""))
-	assert "True" == r("<?print isdefined(repr)?>")
-	assert "True" == r(code, data=color.red)
+		T("<?print isdefined(1, 2)?>").renders()
+	assert "False" == t.renders()
+	assert "True" == t.renders(data=None)
+	assert "True" == t.renders(data=True)
+	assert "True" == t.renders(data=False)
+	assert "True" == t.renders(data=42)
+	assert "True" == t.renders(data=4.2)
+	assert "True" == t.renders(data="foo")
+	assert "True" == t.renders(data=datetime.datetime.now())
+	assert "True" == t.renders(data=datetime.timedelta(1))
+	assert "True" == t.renders(data=misc.monthdelta(1))
+	assert "True" == t.renders(data=())
+	assert "True" == t.renders(data=[])
+	assert "True" == t.renders(data=set())
+	assert "True" == t.renders(data={})
+	assert "True" == t.renders(data=ul4c.Template(""))
+	assert "True" == T("<?print isdefined(repr)?>").renders()
+	assert "True" == t.renders(data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "True" == r("<?print isdefined(obj=data)?>", data=None)
+	assert "True" == T("<?print isdefined(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
-def test_function_isnone(r):
-	code = "<?print isnone(data)?>"
+def test_function_isnone(T):
+	t = T("<?print isnone(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print isnone()?>")
+		T("<?print isnone()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print isnone(1, 2)?>")
-	assert "False" == r(code)
-	assert "True" == r(code, data=None)
-	assert "False" == r(code, data=True)
-	assert "False" == r(code, data=False)
-	assert "False" == r(code, data=42)
-	assert "False" == r(code, data=4.2)
-	assert "False" == r(code, data="foo")
-	assert "False" == r(code, data=datetime.datetime.now())
-	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=misc.monthdelta(1))
-	assert "False" == r(code, data=())
-	assert "False" == r(code, data=[])
-	assert "False" == r(code, data=set())
-	assert "False" == r(code, data={})
-	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r("<?print isnone(repr)?>")
-	assert "False" == r(code, data=color.red)
+		T("<?print isnone(1, 2)?>").renders()
+	assert "False" == t.renders()
+	assert "True" == t.renders(data=None)
+	assert "False" == t.renders(data=True)
+	assert "False" == t.renders(data=False)
+	assert "False" == t.renders(data=42)
+	assert "False" == t.renders(data=4.2)
+	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.datetime.now())
+	assert "False" == t.renders(data=datetime.timedelta(1))
+	assert "False" == t.renders(data=misc.monthdelta(1))
+	assert "False" == t.renders(data=())
+	assert "False" == t.renders(data=[])
+	assert "False" == t.renders(data=set())
+	assert "False" == t.renders(data={})
+	assert "False" == t.renders(data=ul4c.Template(""))
+	assert "False" == T("<?print isnone(repr)?>").renders()
+	assert "False" == t.renders(data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "True" == r("<?print isnone(obj=data)?>", data=None)
+	assert "True" == T("<?print isnone(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
-def test_function_isbool(r):
-	code = "<?print isbool(data)?>"
+def test_function_isbool(T):
+	t = T("<?print isbool(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print isbool()?>")
+		T("<?print isbool()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print isbool(1, 2)?>")
-	assert "False" == r(code)
-	assert "False" == r(code, data=None)
-	assert "True" == r(code, data=True)
-	assert "True" == r(code, data=False)
-	assert "False" == r(code, data=42)
-	assert "False" == r(code, data=4.2)
-	assert "False" == r(code, data="foo")
-	assert "False" == r(code, data=datetime.datetime.now())
-	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=misc.monthdelta(1))
-	assert "False" == r(code, data=())
-	assert "False" == r(code, data=[])
-	assert "False" == r(code, data=set())
-	assert "False" == r(code, data={})
-	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r("<?print isbool(repr)?>")
-	assert "False" == r(code, data=color.red)
+		T("<?print isbool(1, 2)?>").renders()
+	assert "False" == t.renders()
+	assert "False" == t.renders(data=None)
+	assert "True" == t.renders(data=True)
+	assert "True" == t.renders(data=False)
+	assert "False" == t.renders(data=42)
+	assert "False" == t.renders(data=4.2)
+	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.datetime.now())
+	assert "False" == t.renders(data=datetime.timedelta(1))
+	assert "False" == t.renders(data=misc.monthdelta(1))
+	assert "False" == t.renders(data=())
+	assert "False" == t.renders(data=[])
+	assert "False" == t.renders(data=set())
+	assert "False" == t.renders(data={})
+	assert "False" == t.renders(data=ul4c.Template(""))
+	assert "False" == T("<?print isbool(repr)?>").renders()
+	assert "False" == t.renders(data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "False" == r("<?print isbool(obj=data)?>", data=None)
+	assert "False" == T("<?print isbool(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
-def test_function_isint(r):
-	code = "<?print isint(data)?>"
+def test_function_isint(T):
+	t = T("<?print isint(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print isint()?>")
+		T("<?print isint()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print isint(1, 2)?>")
-	assert "False" == r(code)
-	assert "False" == r(code, data=None)
-	assert "False" == r(code, data=True)
-	assert "False" == r(code, data=False)
-	assert "True" == r(code, data=42)
-	assert "False" == r(code, data=4.2)
-	assert "False" == r(code, data="foo")
-	assert "False" == r(code, data=datetime.datetime.now())
-	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=misc.monthdelta(1))
-	assert "False" == r(code, data=())
-	assert "False" == r(code, data=[])
-	assert "False" == r(code, data=set())
-	assert "False" == r(code, data={})
-	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r("<?print isint(repr)?>")
-	assert "False" == r(code, data=color.red)
+		T("<?print isint(1, 2)?>").renders()
+	assert "False" == t.renders()
+	assert "False" == t.renders(data=None)
+	assert "False" == t.renders(data=True)
+	assert "False" == t.renders(data=False)
+	assert "True" == t.renders(data=42)
+	assert "False" == t.renders(data=4.2)
+	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.datetime.now())
+	assert "False" == t.renders(data=datetime.timedelta(1))
+	assert "False" == t.renders(data=misc.monthdelta(1))
+	assert "False" == t.renders(data=())
+	assert "False" == t.renders(data=[])
+	assert "False" == t.renders(data=set())
+	assert "False" == t.renders(data={})
+	assert "False" == t.renders(data=ul4c.Template(""))
+	assert "False" == T("<?print isint(repr)?>").renders()
+	assert "False" == t.renders(data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "False" == r("<?print isint(obj=data)?>", data=None)
+	assert "False" == T("<?print isint(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
-def test_function_isfloat(r):
-	code = "<?print isfloat(data)?>"
+def test_function_isfloat(T):
+	t = T("<?print isfloat(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print isfloat()?>")
+		T("<?print isfloat()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print isfloat(1, 2)?>")
-	assert "False" == r(code)
-	assert "False" == r(code, data=None)
-	assert "False" == r(code, data=True)
-	assert "False" == r(code, data=False)
-	assert "False" == r(code, data=42)
-	assert "True" == r(code, data=4.2)
-	assert "False" == r(code, data="foo")
-	assert "False" == r(code, data=datetime.datetime.now())
-	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=misc.monthdelta(1))
-	assert "False" == r(code, data=())
-	assert "False" == r(code, data=[])
-	assert "False" == r(code, data=set())
-	assert "False" == r(code, data={})
-	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r("<?print isfloat(repr)?>")
-	assert "False" == r(code, data=color.red)
+		T("<?print isfloat(1, 2)?>").renders()
+	assert "False" == t.renders()
+	assert "False" == t.renders(data=None)
+	assert "False" == t.renders(data=True)
+	assert "False" == t.renders(data=False)
+	assert "False" == t.renders(data=42)
+	assert "True" == t.renders(data=4.2)
+	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.datetime.now())
+	assert "False" == t.renders(data=datetime.timedelta(1))
+	assert "False" == t.renders(data=misc.monthdelta(1))
+	assert "False" == t.renders(data=())
+	assert "False" == t.renders(data=[])
+	assert "False" == t.renders(data=set())
+	assert "False" == t.renders(data={})
+	assert "False" == t.renders(data=ul4c.Template(""))
+	assert "False" == T("<?print isfloat(repr)?>").renders()
+	assert "False" == t.renders(data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "False" == r("<?print isfloat(obj=data)?>", data=None)
+	assert "False" == T("<?print isfloat(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
-def test_function_isstr(r):
-	code = "<?print isstr(data)?>"
+def test_function_isstr(T):
+	t = T("<?print isstr(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print isstr()?>")
+		T("<?print isstr()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print isstr(1, 2)?>")
-	assert "False" == r(code)
-	assert "False" == r(code, data=None)
-	assert "False" == r(code, data=True)
-	assert "False" == r(code, data=False)
-	assert "False" == r(code, data=42)
-	assert "False" == r(code, data=4.2)
-	assert "True" == r(code, data="foo")
-	assert "False" == r(code, data=datetime.datetime.now())
-	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=misc.monthdelta(1))
-	assert "False" == r(code, data=())
-	assert "False" == r(code, data=[])
-	assert "False" == r(code, data=set())
-	assert "False" == r(code, data={})
-	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r("<?print isstr(repr)?>")
-	assert "False" == r(code, data=color.red)
+		T("<?print isstr(1, 2)?>").renders()
+	assert "False" == t.renders()
+	assert "False" == t.renders(data=None)
+	assert "False" == t.renders(data=True)
+	assert "False" == t.renders(data=False)
+	assert "False" == t.renders(data=42)
+	assert "False" == t.renders(data=4.2)
+	assert "True" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.datetime.now())
+	assert "False" == t.renders(data=datetime.timedelta(1))
+	assert "False" == t.renders(data=misc.monthdelta(1))
+	assert "False" == t.renders(data=())
+	assert "False" == t.renders(data=[])
+	assert "False" == t.renders(data=set())
+	assert "False" == t.renders(data={})
+	assert "False" == t.renders(data=ul4c.Template(""))
+	assert "False" == T("<?print isstr(repr)?>").renders()
+	assert "False" == t.renders(data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "False" == r("<?print isstr(obj=data)?>", data=None)
+	assert "False" == T("<?print isstr(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
-def test_function_isdate(r):
-	code = "<?print isdate(data)?>"
+def test_function_isdate(T):
+	t = T("<?print isdate(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print isdate()?>")
+		T("<?print isdate()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print isdate(1, 2)?>")
-	assert "False" == r(code)
-	assert "False" == r(code, data=None)
-	assert "False" == r(code, data=True)
-	assert "False" == r(code, data=False)
-	assert "False" == r(code, data=42)
-	assert "False" == r(code, data=4.2)
-	assert "False" == r(code, data="foo")
-	assert "True" == r(code, data=datetime.datetime.now())
-	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=misc.monthdelta(1))
-	assert "False" == r(code, data=())
-	assert "False" == r(code, data=[])
-	assert "False" == r(code, data=set())
-	assert "False" == r(code, data={})
-	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r("<?print isdate(repr)?>")
-	assert "False" == r(code, data=color.red)
+		T("<?print isdate(1, 2)?>").renders()
+	assert "False" == t.renders()
+	assert "False" == t.renders(data=None)
+	assert "False" == t.renders(data=True)
+	assert "False" == t.renders(data=False)
+	assert "False" == t.renders(data=42)
+	assert "False" == t.renders(data=4.2)
+	assert "False" == t.renders(data="foo")
+	assert "True" == t.renders(data=datetime.datetime.now())
+	assert "False" == t.renders(data=datetime.timedelta(1))
+	assert "False" == t.renders(data=misc.monthdelta(1))
+	assert "False" == t.renders(data=())
+	assert "False" == t.renders(data=[])
+	assert "False" == t.renders(data=set())
+	assert "False" == t.renders(data={})
+	assert "False" == t.renders(data=ul4c.Template(""))
+	assert "False" == T("<?print isdate(repr)?>").renders()
+	assert "False" == t.renders(data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "False" == r("<?print isdate(obj=data)?>", data=None)
+	assert "False" == T("<?print isdate(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
-def test_function_islist(r):
-	code = "<?print islist(data)?>"
+def test_function_islist(T):
+	t = T("<?print islist(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print islist()?>")
+		T("<?print islist()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print islist(1, 2)?>")
-	assert "False" == r(code)
-	assert "False" == r(code, data=None)
-	assert "False" == r(code, data=True)
-	assert "False" == r(code, data=False)
-	assert "False" == r(code, data=42)
-	assert "False" == r(code, data=4.2)
-	assert "False" == r(code, data="foo")
-	assert "False" == r(code, data=datetime.datetime.now())
-	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=misc.monthdelta(1))
-	assert "True" == r(code, data=())
-	assert "True" == r(code, data=[])
-	assert "True" == r(code, data=PseudoList([]))
-	assert "False" == r(code, data=set())
-	if r is not render_php:
-		assert "False" == r(code, data={})
-	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r("<?print islist(repr)?>")
-	assert "False" == r(code, data=color.red)
+		T("<?print islist(1, 2)?>").renders()
+	assert "False" == t.renders()
+	assert "False" == t.renders(data=None)
+	assert "False" == t.renders(data=True)
+	assert "False" == t.renders(data=False)
+	assert "False" == t.renders(data=42)
+	assert "False" == t.renders(data=4.2)
+	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.datetime.now())
+	assert "False" == t.renders(data=datetime.timedelta(1))
+	assert "False" == t.renders(data=misc.monthdelta(1))
+	assert "True" == t.renders(data=())
+	assert "True" == t.renders(data=[])
+	assert "True" == t.renders(data=PseudoList([]))
+	assert "False" == t.renders(data=set())
+	if T is not TemplatePHP:
+		assert "False" == t.renders(data={})
+	assert "False" == t.renders(data=ul4c.Template(""))
+	assert "False" == T("<?print islist(repr)?>").renders()
+	assert "False" == t.renders(data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "False" == r("<?print islist(obj=data)?>", data=None)
+	assert "False" == T("<?print islist(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
-def test_function_isset(r):
-	code = "<?print isset(data)?>"
+def test_function_isset(T):
+	t = T("<?print isset(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print isset()?>")
+		T("<?print isset()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print isset(1, 2)?>")
-	assert "False" == r(code)
-	assert "False" == r(code, data=None)
-	assert "False" == r(code, data=True)
-	assert "False" == r(code, data=False)
-	assert "False" == r(code, data=42)
-	assert "False" == r(code, data=4.2)
-	assert "False" == r(code, data="foo")
-	assert "False" == r(code, data=datetime.datetime.now())
-	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=misc.monthdelta(1))
-	assert "False" == r(code, data=())
-	assert "False" == r(code, data=[])
-	assert "True" == r(code, data=set())
-	assert "False" == r(code, data=PseudoList([]))
-	if r is not render_php:
-		assert "False" == r(code, data={})
-	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r("<?print islist(repr)?>")
-	assert "False" == r(code, data=color.red)
+		T("<?print isset(1, 2)?>").renders()
+	assert "False" == t.renders()
+	assert "False" == t.renders(data=None)
+	assert "False" == t.renders(data=True)
+	assert "False" == t.renders(data=False)
+	assert "False" == t.renders(data=42)
+	assert "False" == t.renders(data=4.2)
+	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.datetime.now())
+	assert "False" == t.renders(data=datetime.timedelta(1))
+	assert "False" == t.renders(data=misc.monthdelta(1))
+	assert "False" == t.renders(data=())
+	assert "False" == t.renders(data=[])
+	assert "True" == t.renders(data=set())
+	assert "False" == t.renders(data=PseudoList([]))
+	if T is not TemplatePHP:
+		assert "False" == t.renders(data={})
+	assert "False" == t.renders(data=ul4c.Template(""))
+	assert "False" == T("<?print islist(repr)?>").renders()
+	assert "False" == t.renders(data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "False" == r("<?print islist(obj=data)?>", data=None)
+	assert "False" == T("<?print islist(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
-def test_function_isdict(r):
-	code = "<?print isdict(data)?>"
+def test_function_isdict(T):
+	t = T("<?print isdict(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print isdict()?>")
+		T("<?print isdict()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print isdict(1, 2)?>")
-	assert "False" == r(code)
-	assert "False" == r(code, data=None)
-	assert "False" == r(code, data=True)
-	assert "False" == r(code, data=False)
-	assert "False" == r(code, data=42)
-	assert "False" == r(code, data=4.2)
-	assert "False" == r(code, data="foo")
-	assert "False" == r(code, data=datetime.datetime.now())
-	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=misc.monthdelta(1))
-	if r is not render_php:
-		assert "False" == r(code, data=())
-		assert "False" == r(code, data=[])
-	assert "False" == r(code, data=set())
-	assert "True" == r(code, data={})
-	assert "True" == r(code, data=PseudoDict({}))
-	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r("<?print isdict(repr)?>")
-	assert "False" == r(code, data=color.red)
+		T("<?print isdict(1, 2)?>").renders()
+	assert "False" == t.renders()
+	assert "False" == t.renders(data=None)
+	assert "False" == t.renders(data=True)
+	assert "False" == t.renders(data=False)
+	assert "False" == t.renders(data=42)
+	assert "False" == t.renders(data=4.2)
+	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.datetime.now())
+	assert "False" == t.renders(data=datetime.timedelta(1))
+	assert "False" == t.renders(data=misc.monthdelta(1))
+	if T is not TemplatePHP:
+		assert "False" == t.renders(data=())
+		assert "False" == t.renders(data=[])
+	assert "False" == t.renders(data=set())
+	assert "True" == t.renders(data={})
+	assert "True" == t.renders(data=PseudoDict({}))
+	assert "False" == t.renders(data=ul4c.Template(""))
+	assert "False" == T("<?print isdict(repr)?>").renders()
+	assert "False" == t.renders(data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "False" == r("<?print isdict(obj=data)?>", data=None)
+	assert "False" == T("<?print isdict(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
-def test_function_istemplate(r):
-	code = "<?print istemplate(data)?>"
+def test_function_istemplate(T):
+	t = T("<?print istemplate(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print istemplate()?>")
+		T("<?print istemplate()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print istemplate(1, 2)?>")
-	assert "False" == r(code)
-	assert "False" == r(code, data=None)
-	assert "False" == r(code, data=True)
-	assert "False" == r(code, data=False)
-	assert "False" == r(code, data=42)
-	assert "False" == r(code, data=4.2)
-	assert "False" == r(code, data="foo")
-	assert "False" == r(code, data=datetime.datetime.now())
-	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=misc.monthdelta(1))
-	assert "False" == r(code, data=())
-	assert "False" == r(code, data=[])
-	assert "False" == r(code, data=set())
-	assert "False" == r(code, data={})
-	assert "True" == r(code, data=ul4c.Template(""))
-	assert "False" == r("<?print istemplate(repr)?>")
-	assert "False" == r(code, data=color.red)
+		T("<?print istemplate(1, 2)?>").renders()
+	assert "False" == t.renders()
+	assert "False" == t.renders(data=None)
+	assert "False" == t.renders(data=True)
+	assert "False" == t.renders(data=False)
+	assert "False" == t.renders(data=42)
+	assert "False" == t.renders(data=4.2)
+	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.datetime.now())
+	assert "False" == t.renders(data=datetime.timedelta(1))
+	assert "False" == t.renders(data=misc.monthdelta(1))
+	assert "False" == t.renders(data=())
+	assert "False" == t.renders(data=[])
+	assert "False" == t.renders(data=set())
+	assert "False" == t.renders(data={})
+	assert "True" == t.renders(data=ul4c.Template(""))
+	assert "False" == T("<?print istemplate(repr)?>").renders()
+	assert "False" == t.renders(data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "False" == r("<?print istemplate(obj=data)?>", data=None)
+	assert "False" == T("<?print istemplate(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
-def test_function_isfunction(r):
-	code = "<?print isfunction(data)?>"
+def test_function_isfunction(T):
+	t = T("<?print isfunction(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print isfunction()?>")
+		T("<?print isfunction()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print isfunction(1, 2)?>")
-	assert "False" == r(code)
-	assert "False" == r(code, data=None)
-	assert "False" == r(code, data=True)
-	assert "False" == r(code, data=False)
-	assert "False" == r(code, data=42)
-	assert "False" == r(code, data=4.2)
-	assert "False" == r(code, data="foo")
-	assert "False" == r(code, data=datetime.datetime.now())
-	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=misc.monthdelta(1))
-	assert "False" == r(code, data=())
-	assert "False" == r(code, data=[])
-	assert "False" == r(code, data=set())
-	assert "False" == r(code, data={})
-	assert "True" == r(code, data=ul4c.Template(""))
-	assert "True" == r("<?print isfunction(repr)?>")
-	assert "True" == r("<?def f?><?return 42?><?end def?><?print isfunction(f)?>")
-	assert "False" == r(code, data=color.red)
+		T("<?print isfunction(1, 2)?>").renders()
+	assert "False" == t.renders()
+	assert "False" == t.renders(data=None)
+	assert "False" == t.renders(data=True)
+	assert "False" == t.renders(data=False)
+	assert "False" == t.renders(data=42)
+	assert "False" == t.renders(data=4.2)
+	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.datetime.now())
+	assert "False" == t.renders(data=datetime.timedelta(1))
+	assert "False" == t.renders(data=misc.monthdelta(1))
+	assert "False" == t.renders(data=())
+	assert "False" == t.renders(data=[])
+	assert "False" == t.renders(data=set())
+	assert "False" == t.renders(data={})
+	assert "True" == t.renders(data=ul4c.Template(""))
+	assert "True" == T("<?print isfunction(repr)?>").renders()
+	assert "True" == T("<?def f?><?return 42?><?end def?><?print isfunction(f)?>").renders()
+	assert "False" == t.renders(data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "False" == r("<?print istemplate(obj=data)?>", data=None)
+	assert "False" == T("<?print istemplate(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
-def test_function_iscolor(r):
-	code = "<?print iscolor(data)?>"
+def test_function_iscolor(T):
+	t = T("<?print iscolor(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print iscolor()?>")
+		T("<?print iscolor()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print iscolor(1, 2)?>")
-	assert "False" == r(code)
-	assert "False" == r(code, data=None)
-	assert "False" == r(code, data=True)
-	assert "False" == r(code, data=False)
-	assert "False" == r(code, data=42)
-	assert "False" == r(code, data=4.2)
-	assert "False" == r(code, data="foo")
-	assert "False" == r(code, data=datetime.datetime.now())
-	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=misc.monthdelta(1))
-	assert "False" == r(code, data=())
-	assert "False" == r(code, data=[])
-	assert "False" == r(code, data=set())
-	assert "False" == r(code, data={})
-	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r("<?print iscolor(repr)?>")
-	assert "True" == r(code, data=color.red)
+		T("<?print iscolor(1, 2)?>").renders()
+	assert "False" == t.renders()
+	assert "False" == t.renders(data=None)
+	assert "False" == t.renders(data=True)
+	assert "False" == t.renders(data=False)
+	assert "False" == t.renders(data=42)
+	assert "False" == t.renders(data=4.2)
+	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.datetime.now())
+	assert "False" == t.renders(data=datetime.timedelta(1))
+	assert "False" == t.renders(data=misc.monthdelta(1))
+	assert "False" == t.renders(data=())
+	assert "False" == t.renders(data=[])
+	assert "False" == t.renders(data=set())
+	assert "False" == t.renders(data={})
+	assert "False" == t.renders(data=ul4c.Template(""))
+	assert "False" == T("<?print iscolor(repr)?>").renders()
+	assert "True" == t.renders(data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "False" == r("<?print iscolor(obj=data)?>", data=None)
+	assert "False" == T("<?print iscolor(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
-def test_function_istimedelta(r):
-	code = "<?print istimedelta(data)?>"
+def test_function_istimedelta(T):
+	t = T("<?print istimedelta(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print istimedelta()?>")
+		T("<?print istimedelta()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print istimedelta(1, 2)?>")
-	assert "False" == r(code)
-	assert "False" == r(code, data=None)
-	assert "False" == r(code, data=True)
-	assert "False" == r(code, data=False)
-	assert "False" == r(code, data=42)
-	assert "False" == r(code, data=4.2)
-	assert "False" == r(code, data="foo")
-	assert "False" == r(code, data=datetime.datetime.now())
-	assert "True" == r(code, data=datetime.timedelta(1))
-	assert "False" == r(code, data=misc.monthdelta(1))
-	assert "False" == r(code, data=())
-	assert "False" == r(code, data=[])
-	assert "False" == r(code, data=set())
-	assert "False" == r(code, data={})
-	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r("<?print istimedelta(repr)?>")
-	assert "False" == r(code, data=color.red)
+		T("<?print istimedelta(1, 2)?>").renders()
+	assert "False" == t.renders()
+	assert "False" == t.renders(data=None)
+	assert "False" == t.renders(data=True)
+	assert "False" == t.renders(data=False)
+	assert "False" == t.renders(data=42)
+	assert "False" == t.renders(data=4.2)
+	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.datetime.now())
+	assert "True" == t.renders(data=datetime.timedelta(1))
+	assert "False" == t.renders(data=misc.monthdelta(1))
+	assert "False" == t.renders(data=())
+	assert "False" == t.renders(data=[])
+	assert "False" == t.renders(data=set())
+	assert "False" == t.renders(data={})
+	assert "False" == t.renders(data=ul4c.Template(""))
+	assert "False" == T("<?print istimedelta(repr)?>").renders()
+	assert "False" == t.renders(data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "False" == r("<?print istimedelta(obj=data)?>", data=None)
+	assert "False" == T("<?print istimedelta(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
-def test_function_ismonthdelta(r):
-	code = "<?print ismonthdelta(data)?>"
+def test_function_ismonthdelta(T):
+	t = T("<?print ismonthdelta(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print ismonthdelta()?>")
+		T("<?print ismonthdelta()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print ismonthdelta(1, 2)?>")
-	assert "False" == r(code)
-	assert "False" == r(code, data=None)
-	assert "False" == r(code, data=True)
-	assert "False" == r(code, data=False)
-	assert "False" == r(code, data=42)
-	assert "False" == r(code, data=4.2)
-	assert "False" == r(code, data="foo")
-	assert "False" == r(code, data=datetime.datetime.now())
-	assert "False" == r(code, data=datetime.timedelta(1))
-	assert "True" == r(code, data=misc.monthdelta(1))
-	assert "False" == r(code, data=())
-	assert "False" == r(code, data=[])
-	assert "False" == r(code, data=set())
-	assert "False" == r(code, data={})
-	assert "False" == r(code, data=ul4c.Template(""))
-	assert "False" == r("<?print ismonthdelta(repr)?>")
-	assert "False" == r(code, data=color.red)
+		T("<?print ismonthdelta(1, 2)?>").renders()
+	assert "False" == t.renders()
+	assert "False" == t.renders(data=None)
+	assert "False" == t.renders(data=True)
+	assert "False" == t.renders(data=False)
+	assert "False" == t.renders(data=42)
+	assert "False" == t.renders(data=4.2)
+	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.datetime.now())
+	assert "False" == t.renders(data=datetime.timedelta(1))
+	assert "True" == t.renders(data=misc.monthdelta(1))
+	assert "False" == t.renders(data=())
+	assert "False" == t.renders(data=[])
+	assert "False" == t.renders(data=set())
+	assert "False" == t.renders(data={})
+	assert "False" == t.renders(data=ul4c.Template(""))
+	assert "False" == T("<?print ismonthdelta(repr)?>").renders()
+	assert "False" == t.renders(data=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "False" == r("<?print ismonthdelta(obj=data)?>", data=None)
+	assert "False" == T("<?print ismonthdelta(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
-def test_function_repr(r):
-	code = "<?print repr(data)?>"
+def test_function_repr(T):
+	t = T("<?print repr(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print repr()?>")
+		T("<?print repr()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print repr(1, 2)?>")
-	assert "None" == r(code, data=None)
-	assert "True" == r(code, data=True)
-	assert "False" == r(code, data=False)
-	assert "42" == r(code, data=42)
-	assert 42.5 == eval(r(code, data=42.5))
-	assert r(code, data="foo") in ('"foo"', "'foo'")
-	assert [1, 2, 3] == eval(r(code, data=[1, 2, 3]))
-	if r not in (render_js_v8, render_js_spidermonkey):
-		assert [1, 2, 3] == eval(r(code, data=(1, 2, 3)))
-	assert "{/}" == r(code, data=set())
-	assert r(code, data={"1"}) in ("{'1'}", '{"1"}')
-	if r is not render_js_v8:
-		assert "{1}" == r(code, data={1})
-	assert "{}" == r(code, data={})
-	assert {"a": 1, "b": 2} == eval(r(code, data={"a": 1, "b": 2}))
-	if r is not render_php:
-		assert "@(2011-02-07T12:34:56.123000)" == r(code, data=datetime.datetime(2011, 2, 7, 12, 34, 56, 123000))
-	assert "@(2011-02-07T12:34:56)" == r(code, data=datetime.datetime(2011, 2, 7, 12, 34, 56))
-	assert "@(2011-02-07)" == r(code, data=datetime.datetime(2011, 2, 7))
-	assert "@(2011-02-07)" == r(code, data=datetime.date(2011, 2, 7))
-	assert "timedelta(1)" == r(code, data=datetime.timedelta(1))
-	assert "timedelta(0, 1)" == r(code, data=datetime.timedelta(0, 1))
-	assert "timedelta(0, 0, 1)" == r(code, data=datetime.timedelta(0, 0, 1))
-	assert "timedelta(-1)" == r(code, data=datetime.timedelta(-1))
-	assert "timedelta(-1, 86399)" == r(code, data=datetime.timedelta(0, -1))
-	assert "timedelta(-1, 86399, 999999)" == r(code, data=datetime.timedelta(0, 0, -1))
-	assert "timedelta(0, 43200)" == r(code, data=datetime.timedelta(0.5))
-	assert "timedelta(0, 0, 500000)" == r(code, data=datetime.timedelta(0, 0.5))
-	assert "timedelta(-1, 43200)" == r(code, data=datetime.timedelta(-0.5))
-	assert "timedelta(-1, 86399, 500000)" == r(code, data=datetime.timedelta(0, -0.5))
+		T("<?print repr(1, 2)?>").renders()
+	assert "None" == t.renders(data=None)
+	assert "True" == t.renders(data=True)
+	assert "False" == t.renders(data=False)
+	assert "42" == t.renders(data=42)
+	assert 42.5 == eval(t.renders(data=42.5))
+	assert t.renders(data="foo") in ('"foo"', "'foo'")
+	assert [1, 2, 3] == eval(t.renders(data=[1, 2, 3]))
+	if T not in (TemplateJavascriptV8, TemplateJavascriptSpidermoney):
+		assert [1, 2, 3] == eval(t.renders(data=(1, 2, 3)))
+	assert "{/}" == t.renders(data=set())
+	assert t.renders(data={"1"}) in ("{'1'}", '{"1"}')
+	if T is not TemplateJavascriptV8:
+		assert "{1}" == t.renders(data={1})
+	assert "{}" == t.renders(data={})
+	assert {"a": 1, "b": 2} == eval(t.renders(data={"a": 1, "b": 2}))
+	if T is not TemplatePHP:
+		assert "@(2011-02-07T12:34:56.123000)" == t.renders(data=datetime.datetime(2011, 2, 7, 12, 34, 56, 123000))
+	assert "@(2011-02-07T12:34:56)" == t.renders(data=datetime.datetime(2011, 2, 7, 12, 34, 56))
+	assert "@(2011-02-07)" == t.renders(data=datetime.datetime(2011, 2, 7))
+	assert "@(2011-02-07)" == t.renders(data=datetime.date(2011, 2, 7))
+	assert "timedelta(1)" == t.renders(data=datetime.timedelta(1))
+	assert "timedelta(0, 1)" == t.renders(data=datetime.timedelta(0, 1))
+	assert "timedelta(0, 0, 1)" == t.renders(data=datetime.timedelta(0, 0, 1))
+	assert "timedelta(-1)" == t.renders(data=datetime.timedelta(-1))
+	assert "timedelta(-1, 86399)" == t.renders(data=datetime.timedelta(0, -1))
+	assert "timedelta(-1, 86399, 999999)" == t.renders(data=datetime.timedelta(0, 0, -1))
+	assert "timedelta(0, 43200)" == t.renders(data=datetime.timedelta(0.5))
+	assert "timedelta(0, 0, 500000)" == t.renders(data=datetime.timedelta(0, 0.5))
+	assert "timedelta(-1, 43200)" == t.renders(data=datetime.timedelta(-0.5))
+	assert "timedelta(-1, 86399, 500000)" == t.renders(data=datetime.timedelta(0, -0.5))
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "None" == r("<?print repr(obj=data)?>", data=None)
+	assert "None" == T("<?print repr(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
-def test_function_print(r):
-	assert "gurk hurz hinz kunz" == r("<?code print('gurk', 'hurz', 'hinz', 'kunz')?>")
+def test_function_print(T):
+	assert "gurk hurz hinz kunz" == T("<?code print('gurk', 'hurz', 'hinz', 'kunz')?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_printx(r):
-	assert "&lt;gurk&gt; &lt;hurz&gt; &lt;hinz&gt; &lt;kunz&gt;" == r("<?code printx('<gurk>', '<hurz>', '<hinz>', '<kunz>')?>")
+def test_function_printx(T):
+	assert "&lt;gurk&gt; &lt;hurz&gt; &lt;hinz&gt; &lt;kunz&gt;" == T("<?code printx('<gurk>', '<hurz>', '<hinz>', '<kunz>')?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_format_date(r):
-	t = datetime.datetime(2011, 1, 25, 13, 34, 56, 987000)
-	code2 = "<?print format(data, fmt)?>"
-	code3 = "<?print format(data, fmt, lang)?>"
+def test_function_format_date(T):
+	dt = datetime.datetime(2011, 1, 25, 13, 34, 56, 987000)
 
-	assert "2011" == r(code2, fmt="%Y", data=t)
-	assert "01" == r(code2, fmt="%m", data=t)
-	assert "25" == r(code2, fmt="%d", data=t)
-	assert "13" == r(code2, fmt="%H", data=t)
-	assert "34" == r(code2, fmt="%M", data=t)
-	assert "56" == r(code2, fmt="%S", data=t)
-	assert "987000" == r(code2, fmt="%f", data=t)
-	assert "Tue" == r(code2, fmt="%a", data=t)
-	assert "Tue" == r(code3, fmt="%a", data=t, lang=None)
-	assert "Tue" == r(code3, fmt="%a", data=t, lang="en")
-	assert "Di" == r(code3, fmt="%a", data=t, lang="de")
-	assert "Di" == r(code3, fmt="%a", data=t, lang="de_DE")
-	assert "Tuesday" == r(code2, fmt="%A", data=t)
-	assert "Tuesday" == r(code3, fmt="%A", data=t, lang=None)
-	assert "Tuesday" == r(code3, fmt="%A", data=t, lang="en")
-	assert "Dienstag" == r(code3, fmt="%A", data=t, lang="de")
-	assert "Dienstag" == r(code3, fmt="%A", data=t, lang="de_DE")
-	assert "Jan" == r(code2, fmt="%b", data=t)
-	assert "Jan" == r(code3, fmt="%b", data=t, lang=None)
-	assert "Jan" == r(code3, fmt="%b", data=t, lang="en")
-	assert "Jan" == r(code3, fmt="%b", data=t, lang="de")
-	assert "Jan" == r(code3, fmt="%b", data=t, lang="de_DE")
-	assert "January" == r(code2, fmt="%B", data=t)
-	assert "January" == r(code3, fmt="%B", data=t, lang=None)
-	assert "January" == r(code3, fmt="%B", data=t, lang="en")
-	assert "Januar" == r(code3, fmt="%B", data=t, lang="de")
-	assert "Januar" == r(code3, fmt="%B", data=t, lang="de_DE")
-	assert "01" == r(code2, fmt="%I", data=t)
-	assert "025" == r(code2, fmt="%j", data=t)
-	assert "PM" == r(code2, fmt="%p", data=t)
-	assert "04" == r(code2, fmt="%U", data=t)
-	assert "2" == r(code2, fmt="%w", data=t)
-	assert "04" == r(code2, fmt="%W", data=t)
-	assert "11" == r(code2, fmt="%y", data=t)
-	assert r(code2, fmt="%c", data=t) in ("Tue Jan 25 13:34:56 2011", "Tue 25 Jan 2011 01:34:56 PM", "Tue 25 Jan 2011 01:34:56 PM ")
-	assert "01/25/2011" == r(code2, fmt="%x", data=t)
-	assert "01/25/2011" == r(code3, fmt="%x", data=t, lang=None)
-	assert "01/25/2011" == r(code3, fmt="%x", data=t, lang="en")
-	assert "25.01.2011" == r(code3, fmt="%x", data=t, lang="de")
-	assert "25.01.2011" == r(code3, fmt="%x", data=t, lang="de_DE")
-	assert r(code2, fmt="%X", data=t) in ("13:34:56", "01:34:56 PM")
-	assert r(code3, fmt="%X", data=t, lang=None) in ("13:34:56", "01:34:56 PM")
-	assert r(code3, fmt="%X", data=t, lang="en") in ("13:34:56", "01:34:56 PM")
-	assert "13:34:56" == r(code3, fmt="%X", data=t, lang="de")
-	assert "13:34:56" == r(code3, fmt="%X", data=t, lang="de_DE")
-	assert "%" == r(code2, fmt="%%", data=t)
+	t2 = T("<?print format(data, fmt)?>")
+	t3 = T("<?print format(data, fmt, lang)?>")
+
+	assert "2011" == t2.renders(fmt="%Y", data=dt)
+	assert "01" == t2.renders(fmt="%m", data=dt)
+	assert "25" == t2.renders(fmt="%d", data=dt)
+	assert "13" == t2.renders(fmt="%H", data=dt)
+	assert "34" == t2.renders(fmt="%M", data=dt)
+	assert "56" == t2.renders(fmt="%S", data=dt)
+	assert "987000" == t2.renders(fmt="%f", data=dt)
+	assert "Tue" == t2.renders(fmt="%a", data=dt)
+	assert "Tue" == t3.renders(fmt="%a", data=dt, lang=None)
+	assert "Tue" == t3.renders(fmt="%a", data=dt, lang="en")
+	assert "Di" == t3.renders(fmt="%a", data=dt, lang="de")
+	assert "Di" == t3.renders(fmt="%a", data=dt, lang="de_DE")
+	assert "Tuesday" == t2.renders(fmt="%A", data=dt)
+	assert "Tuesday" == t3.renders(fmt="%A", data=dt, lang=None)
+	assert "Tuesday" == t3.renders(fmt="%A", data=dt, lang="en")
+	assert "Dienstag" == t3.renders(fmt="%A", data=dt, lang="de")
+	assert "Dienstag" == t3.renders(fmt="%A", data=dt, lang="de_DE")
+	assert "Jan" == t2.renders(fmt="%b", data=dt)
+	assert "Jan" == t3.renders(fmt="%b", data=dt, lang=None)
+	assert "Jan" == t3.renders(fmt="%b", data=dt, lang="en")
+	assert "Jan" == t3.renders(fmt="%b", data=dt, lang="de")
+	assert "Jan" == t3.renders(fmt="%b", data=dt, lang="de_DE")
+	assert "January" == t2.renders(fmt="%B", data=dt)
+	assert "January" == t3.renders(fmt="%B", data=dt, lang=None)
+	assert "January" == t3.renders(fmt="%B", data=dt, lang="en")
+	assert "Januar" == t3.renders(fmt="%B", data=dt, lang="de")
+	assert "Januar" == t3.renders(fmt="%B", data=dt, lang="de_DE")
+	assert "01" == t2.renders(fmt="%I", data=dt)
+	assert "025" == t2.renders(fmt="%j", data=dt)
+	assert "PM" == t2.renders(fmt="%p", data=dt)
+	assert "04" == t2.renders(fmt="%U", data=dt)
+	assert "2" == t2.renders(fmt="%w", data=dt)
+	assert "04" == t2.renders(fmt="%W", data=dt)
+	assert "11" == t2.renders(fmt="%y", data=dt)
+	assert t2.renders(fmt="%c", data=dt) in ("Tue Jan 25 13:34:56 2011", "Tue 25 Jan 2011 01:34:56 PM", "Tue 25 Jan 2011 01:34:56 PM ")
+	assert "01/25/2011" == t2.renders(fmt="%x", data=dt)
+	assert "01/25/2011" == t3.renders(fmt="%x", data=dt, lang=None)
+	assert "01/25/2011" == t3.renders(fmt="%x", data=dt, lang="en")
+	assert "25.01.2011" == t3.renders(fmt="%x", data=dt, lang="de")
+	assert "25.01.2011" == t3.renders(fmt="%x", data=dt, lang="de_DE")
+	assert t2.renders(fmt="%X", data=dt) in ("13:34:56", "01:34:56 PM")
+	assert t3.renders(fmt="%X", data=dt, lang=None) in ("13:34:56", "01:34:56 PM")
+	assert t3.renders(fmt="%X", data=dt, lang="en") in ("13:34:56", "01:34:56 PM")
+	assert "13:34:56" == t3.renders(fmt="%X", data=dt, lang="de")
+	assert "13:34:56" == t3.renders(fmt="%X", data=dt, lang="de_DE")
+	assert "%" == t2.renders(fmt="%%", data=dt)
 
 
 @pytest.mark.ul4
-def test_function_format_int(r):
-	code2 = "<?print format(data, fmt)?>"
-	code3 = "<?print format(data, fmt, lang)?>"
+def test_function_format_int(T):
+	t2 = T("<?print format(data, fmt)?>")
+	t3 = T("<?print format(data, fmt, lang)?>")
 
 	formatstrings = [
 		"",
@@ -2769,878 +2658,878 @@ def test_function_format_int(r):
 	]
 
 	for f in formatstrings:
-		assert format(42, f) == r(code2, data=42, fmt=f)
+		assert format(42, f) == t2.renders(data=42, fmt=f)
 		if "c" not in f:
-			assert format(-42, f) == r(code2, data=-42, fmt=f)
-	assert format(True, "05") == r(code2, data=True, fmt="05")
+			assert format(-42, f) == t2.renders(data=-42, fmt=f)
+	assert format(True, "05") == t2.renders(data=True, fmt="05")
 
 
 @pytest.mark.ul4
-def test_function_format_kwargs(r):
-	assert "42" == r("<?print format(obj=data, fmt=fmt, lang=lang)?>", fmt="", data=42, lang="de")
+def test_function_format_kwargs(T):
+	assert "42" == T("<?print format(obj=data, fmt=fmt, lang=lang)?>").renders(fmt="", data=42, lang="de")
 
 
 @pytest.mark.ul4
-def test_function_chr(r):
-	code = "<?print chr(data)?>"
+def test_function_chr(T):
+	t = T("<?print chr(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print chr()?>")
+		T("<?print chr()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print chr(1, 2)?>")
-	assert "\x00" == r(code, data=0)
-	assert "a" == r(code, data=ord("a"))
-	assert "\u20ac" == r(code, data=0x20ac)
+		T("<?print chr(1, 2)?>").renders()
+	assert "\x00" == t.renders(data=0)
+	assert "a" == t.renders(data=ord("a"))
+	assert "\u20ac" == t.renders(data=0x20ac)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "\x00" == r("<?print chr(i=data)?>", data=0)
+	assert "\x00" == T("<?print chr(i=data)?>").renders(data=0)
 
 
 @pytest.mark.ul4
-def test_function_ord(r):
-	code = "<?print ord(data)?>"
+def test_function_ord(T):
+	t = T("<?print ord(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print ord()?>")
+		T("<?print ord()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print ord(1, 2)?>")
-	assert "0" == r(code, data="\x00")
-	assert str(ord("a")) == r(code, data="a")
-	assert str(0x20ac) == r(code, data="\u20ac")
+		T("<?print ord(1, 2)?>").renders()
+	assert "0" == t.renders(data="\x00")
+	assert str(ord("a")) == t.renders(data="a")
+	assert str(0x20ac) == t.renders(data="\u20ac")
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "0" == r("<?print ord(c=data)?>", data="\x00")
+	assert "0" == T("<?print ord(c=data)?>").renders(data="\x00")
 
 
 @pytest.mark.ul4
-def test_function_hex(r):
-	code = "<?print hex(data)?>"
+def test_function_hex(T):
+	t = T("<?print hex(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print hex()?>")
+		T("<?print hex()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print hex(1, 2)?>")
-	assert "0x0" == r(code, data=0)
-	assert "0xff" == r(code, data=0xff)
-	assert "0xffff" == r(code, data=0xffff)
-	assert "-0xffff" == r(code, data=-0xffff)
+		T("<?print hex(1, 2)?>").renders()
+	assert "0x0" == t.renders(data=0)
+	assert "0xff" == t.renders(data=0xff)
+	assert "0xffff" == t.renders(data=0xffff)
+	assert "-0xffff" == t.renders(data=-0xffff)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "0x0" == r("<?print hex(number=data)?>", data=0)
+	assert "0x0" == T("<?print hex(number=data)?>").renders(data=0)
 
 
 @pytest.mark.ul4
-def test_function_oct(r):
-	code = "<?print oct(data)?>"
+def test_function_oct(T):
+	t = T("<?print oct(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print oct()?>")
+		T("<?print oct()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print oct(1, 2)?>")
-	assert "0o0" == r(code, data=0)
-	assert "0o77" == r(code, data=0o77)
-	assert "0o7777" == r(code, data=0o7777)
-	assert "-0o7777" == r(code, data=-0o7777)
+		T("<?print oct(1, 2)?>").renders()
+	assert "0o0" == t.renders(data=0)
+	assert "0o77" == t.renders(data=0o77)
+	assert "0o7777" == t.renders(data=0o7777)
+	assert "-0o7777" == t.renders(data=-0o7777)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "0o0" == r("<?print oct(number=data)?>", data=0)
+	assert "0o0" == T("<?print oct(number=data)?>").renders(data=0)
 
 
 @pytest.mark.ul4
-def test_function_bin(r):
-	code = "<?print bin(data)?>"
+def test_function_bin(T):
+	t = T("<?print bin(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print bin()?>")
+		T("<?print bin()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print bin(1, 2)?>")
-	assert "0b0" == r(code, data=0b0)
-	assert "0b11" == r(code, data=0b11)
-	assert "-0b1111" == r(code, data=-0b1111)
+		T("<?print bin(1, 2)?>").renders()
+	assert "0b0" == t.renders(data=0b0)
+	assert "0b11" == t.renders(data=0b11)
+	assert "-0b1111" == t.renders(data=-0b1111)
 
 
 @pytest.mark.ul4
-def test_function_bin_kwargs(r):
-	assert "0b0" == r("<?print bin(number=data)?>", data=0)
+def test_function_bin_kwargs(T):
+	assert "0b0" == T("<?print bin(number=data)?>").renders(data=0)
 
 
 @pytest.mark.ul4
-def test_function_abs(r):
-	code = "<?print abs(data)?>"
+def test_function_abs(T):
+	t = T("<?print abs(data)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print abs()?>")
+		T("<?print abs()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print abs(1, 2)?>")
-	assert "0" == r(code, data=0)
-	assert "42" == r(code, data=42)
-	assert "42" == r(code, data=-42)
-	assert "1 month" == r(code, data=misc.monthdelta(-1))
-	assert "1 day, 0:00:01.000001" == r(code, data=datetime.timedelta(-1, -1, -1))
+		T("<?print abs(1, 2)?>").renders()
+	assert "0" == t.render(data=0)
+	assert "42" == t.render(data=42)
+	assert "42" == t.render(data=-42)
+	assert "1 month" == t.render(data=misc.monthdelta(-1))
+	assert "1 day, 0:00:01.000001" == t.render(data=datetime.timedelta(-1, -1, -1))
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "0" == r("<?print abs(number=data)?>", data=0)
+	assert "0" == T("<?print abs(number=data)?>").renders(data=0)
 
 
 @pytest.mark.ul4
-def test_function_sorted(r):
-	code = "<?for i in sorted(data)?><?print i?><?end for?>"
+def test_function_sorted(T):
+	t = T("<?for i in sorted(data)?><?print i?><?end for?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print sorted()?>")
-	assert "gkru" == r(code, data="gurk")
-	assert "24679" == r(code, data="92746")
-	assert "172342" == r(code, data=(42, 17, 23))
-	assert "012" == r(code, data={0: "zero", 1: "one", 2: "two"})
+		T("<?print sorted()?>").renders()
+	assert "gkru" == t.renders(data="gurk")
+	assert "24679" == t.renders(data="92746")
+	assert "172342" == t.renders(data=(42, 17, 23))
+	assert "012" == t.renders(data={0: "zero", 1: "one", 2: "two"})
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "123" == r("<?for i in sorted(iterable=data)?><?print i?><?end for?>", data="321")
+	assert "123" == T("<?for i in sorted(iterable=data)?><?print i?><?end for?>").renders(data="321")
 
 
 @pytest.mark.ul4
-def test_function_range(r):
-	code1 = "<?for i in range(data)?><?print i?>;<?end for?>"
-	code2 = "<?for i in range(data[0], data[1])?><?print i?>;<?end for?>"
-	code3 = "<?for i in range(data[0], data[1], data[2])?><?print i?>;<?end for?>"
+def test_function_range(T):
+	t1 = T("<?for i in range(data)?><?print i?>;<?end for?>")
+	t2 = T("<?for i in range(data[0], data[1])?><?print i?>;<?end for?>")
+	t3 = T("<?for i in range(data[0], data[1], data[2])?><?print i?>;<?end for?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print range()?>")
+		T("<?print range()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print range(1, 2, 3, 4)?>")
-	assert "" == r(code1, data=-10)
-	assert "" == r(code1, data=0)
-	assert "0;" == r(code1, data=1)
-	assert "0;1;2;3;4;" == r(code1, data=5)
-	assert "" == r(code2, data=[0, -10])
-	assert "" == r(code2, data=[0, 0])
-	assert "0;1;2;3;4;" == r(code2, data=[0, 5])
-	assert "-5;-4;-3;-2;-1;0;1;2;3;4;" == r(code2, data=[-5, 5])
-	assert "" == r(code3, data=[0, -10, 1])
-	assert "" == r(code3, data=[0, 0, 1])
-	assert "0;2;4;6;8;" == r(code3, data=[0, 10, 2])
-	assert "" == r(code3, data=[0, 10, -2])
-	assert "10;8;6;4;2;" == r(code3, data=[10, 0, -2])
-	assert "" == r(code3, data=[10, 0, 2])
+		T("<?print range(1, 2, 3, 4)?>").renders()
+	assert "" == t1.renders(data=-10)
+	assert "" == t1.renders(data=0)
+	assert "0;" == t1.renders(data=1)
+	assert "0;1;2;3;4;" == t1.renders(data=5)
+	assert "" == t2.renders(data=[0, -10])
+	assert "" == t2.renders(data=[0, 0])
+	assert "0;1;2;3;4;" == t2.renders(data=[0, 5])
+	assert "-5;-4;-3;-2;-1;0;1;2;3;4;" == t2.renders(data=[-5, 5])
+	assert "" == t3.renders(data=[0, -10, 1])
+	assert "" == t3.renders(data=[0, 0, 1])
+	assert "0;2;4;6;8;" == t3.renders(data=[0, 10, 2])
+	assert "" == t3.renders(data=[0, 10, -2])
+	assert "10;8;6;4;2;" == t3.renders(data=[10, 0, -2])
+	assert "" == t3.renders(data=[10, 0, 2])
 
 
 @pytest.mark.ul4
-def test_function_slice(r):
-	code2 = "<?for i in slice(data[0], data[1])?><?print i?>;<?end for?>"
-	code3 = "<?for i in slice(data[0], data[1], data[2])?><?print i?>;<?end for?>"
-	code4 = "<?for i in slice(data[0], data[1], data[2], data[3])?><?print i?>;<?end for?>"
+def test_function_slice(T):
+	t2 = T("<?for i in slice(data[0], data[1])?><?print i?>;<?end for?>")
+	t3 = T("<?for i in slice(data[0], data[1], data[2])?><?print i?>;<?end for?>")
+	t4 = T("<?for i in slice(data[0], data[1], data[2], data[3])?><?print i?>;<?end for?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print slice(1)?>")
+		T("<?print slice(1)?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print slice(1, 2, 3, 4, 5)?>")
-	assert "g;u;r;k;" == r(code2, data=("gurk", None))
-	assert "g;u;" == r(code2, data=("gurk", 2))
-	assert "u;r;" == r(code3, data=("gurk", 1, 3))
-	assert "u;r;k;" == r(code3, data=("gurk", 1, None))
-	assert "g;u;" == r(code3, data=("gurk", None, 2))
-	assert "u;u;" == r(code4, data=("gurkgurk", 1, 6, 4))
+		T("<?print slice(1, 2, 3, 4, 5)?>").renders()
+	assert "g;u;r;k;" == t2.renders(data=("gurk", None))
+	assert "g;u;" == t2.renders(data=("gurk", 2))
+	assert "u;r;" == t3.renders(data=("gurk", 1, 3))
+	assert "u;r;k;" == t3.renders(data=("gurk", 1, None))
+	assert "g;u;" == t3.renders(data=("gurk", None, 2))
+	assert "u;u;" == t4.renders(data=("gurkgurk", 1, 6, 4))
 
 
 @pytest.mark.ul4
-def test_function_urlquote(r):
-	assert "gurk" == r("<?print urlquote('gurk')?>")
-	assert "%3C%3D%3E%2B%3F" == r("<?print urlquote('<=>+?')?>")
-	assert "%7F%C3%BF%EF%BF%BF" == r("<?print urlquote('\u007f\u00ff\uffff')?>")
+def test_function_urlquote(T):
+	assert "gurk" == T("<?print urlquote('gurk')?>").renders()
+	assert "%3C%3D%3E%2B%3F" == T("<?print urlquote('<=>+?')?>").renders()
+	assert "%7F%C3%BF%EF%BF%BF" == T("<?print urlquote('\u007f\u00ff\uffff')?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "gurk" == r("<?print urlquote(string='gurk')?>")
+	assert "gurk" == T("<?print urlquote(string='gurk')?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_urlunquote(r):
-	assert "gurk" == r("<?print urlunquote('gurk')?>")
-	assert "<=>+?" == r("<?print urlunquote('%3C%3D%3E%2B%3F')?>")
-	assert "\u007f\u00ff\uffff" == r("<?print urlunquote('%7F%C3%BF%EF%BF%BF')?>")
+def test_function_urlunquote(T):
+	assert "gurk" == T("<?print urlunquote('gurk')?>").renders()
+	assert "<=>+?" == T("<?print urlunquote('%3C%3D%3E%2B%3F')?>").renders()
+	assert "\u007f\u00ff\uffff" == T("<?print urlunquote('%7F%C3%BF%EF%BF%BF')?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "gurk" == r("<?print urlunquote(string='gurk')?>")
+	assert "gurk" == T("<?print urlunquote(string='gurk')?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_zip(r):
-	code0 = "<?for i in zip()?><?print i?>;<?end for?>"
-	code1 = "<?for (ix, ) in zip(x)?><?print ix?>;<?end for?>"
-	code2 = "<?for (ix, iy) in zip(x, y)?><?print ix?>-<?print iy?>;<?end for?>"
-	code3 = "<?for (ix, iy, iz) in zip(x, y, z)?><?print ix?>-<?print iy?>+<?print iz?>;<?end for?>"
+def test_function_zip(T):
+	t0 = T("<?for i in zip()?><?print i?>;<?end for?>")
+	t1 = T("<?for (ix, ) in zip(x)?><?print ix?>;<?end for?>")
+	t2 = T("<?for (ix, iy) in zip(x, y)?><?print ix?>-<?print iy?>;<?end for?>")
+	t3 = T("<?for (ix, iy, iz) in zip(x, y, z)?><?print ix?>-<?print iy?>+<?print iz?>;<?end for?>")
 
-	assert "" == r(code0)
-	assert "1;2;" == r(code1, x=[1, 2])
-	assert "" == r(code2, x=[], y=[])
-	assert "1-3;2-4;" == r(code2, x=[1, 2], y=[3, 4])
-	assert "1-4;2-5;" == r(code2, x=[1, 2, 3], y=[4, 5])
-	assert "" == r(code3, x=[], y=[], z=[])
-	assert "1-3+5;2-4+6;" == r(code3, x=[1, 2], y=[3, 4], z=[5, 6])
-	assert "1-4+6;" == r(code3, x=[1, 2, 3], y=[4, 5], z=[6])
+	assert "" == t0.renders()
+	assert "1;2;" == t1.renders(x=[1, 2])
+	assert "" == t2.renders(x=[], y=[])
+	assert "1-3;2-4;" == t2.renders(x=[1, 2], y=[3, 4])
+	assert "1-4;2-5;" == t2.renders(x=[1, 2, 3], y=[4, 5])
+	assert "" == t3.renders(x=[], y=[], z=[])
+	assert "1-3+5;2-4+6;" == t3.renders(x=[1, 2], y=[3, 4], z=[5, 6])
+	assert "1-4+6;" == t3.renders(x=[1, 2, 3], y=[4, 5], z=[6])
 
 
 @pytest.mark.ul4
-def test_function_type(r):
-	code = "<?print type(x)?>"
+def test_function_type(T):
+	t = T("<?print type(x)?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print type()?>")
+		T("<?print type()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print type(1, 2)?>")
-	assert "undefined" == r(code)
-	assert "none" == r(code, x=None)
-	assert "bool" == r(code, x=False)
-	assert "bool" == r(code, x=True)
-	assert "int" == r(code, x=42)
-	assert "float" == r(code, x=4.2)
-	assert "str" == r(code, x="foo")
-	assert "date" == r(code, x=datetime.datetime.now())
-	assert "date" == r(code, x=datetime.date.today())
-	assert "timedelta" == r(code, x=datetime.timedelta())
-	assert "monthdelta" == r(code, x=misc.monthdelta())
-	assert "list" == r(code, x=(1, 2))
-	assert "list" == r(code, x=[1, 2])
-	assert "list" == r(code, x=PseudoList([1, 2]))
-	assert "dict" == r(code, x={1: 2})
-	assert "dict" == r(code, x=PseudoDict({1: 2}))
-	assert "template" == r(code, x=ul4c.Template(""))
-	assert "template" == r("<?def t?><?end def?><?print type(t)?>")
-	assert "function" == r("<?print type(repr)?>")
-	assert "color" == r(code, x=color.red)
+		T("<?print type(1, 2)?>").renders()
+	assert "undefined" == t.renders()
+	assert "none" == t.renders(x=None)
+	assert "bool" == t.renders(x=False)
+	assert "bool" == t.renders(x=True)
+	assert "int" == t.renders(x=42)
+	assert "float" == t.renders(x=4.2)
+	assert "str" == t.renders(x="foo")
+	assert "date" == t.renders(x=datetime.datetime.now())
+	assert "date" == t.renders(x=datetime.date.today())
+	assert "timedelta" == t.renders(x=datetime.timedelta())
+	assert "monthdelta" == t.renders(x=misc.monthdelta())
+	assert "list" == t.renders(x=(1, 2))
+	assert "list" == t.renders(x=[1, 2])
+	assert "list" == t.renders(x=PseudoList([1, 2]))
+	assert "dict" == t.renders(x={1: 2})
+	assert "dict" == t.renders(x=PseudoDict({1: 2}))
+	assert "template" == t.renders(x=ul4c.Template(""))
+	assert "template" == T("<?def t?><?end def?><?print type(t)?>").renders()
+	assert "function" == T("<?print type(repr)?>").renders()
+	assert "color" == t.renders(x=color.red)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "none" == r("<?print type(obj=x)?>", x=None)
+	assert "none" == T("<?print type(obj=x)?>").renders(x=None)
 
 
 @pytest.mark.ul4
-def test_function_reversed(r):
-	code = "<?for i in reversed(x)?>(<?print i?>)<?end for?>"
+def test_function_reversed(T):
+	t = T("<?for i in reversed(x)?>(<?print i?>)<?end for?>")
 
 	with raises(argumentmismatchmessage):
-		r("<?print reversed()?>")
+		T("<?print reversed()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print reversed(1, 2)?>")
-	assert "(3)(2)(1)" == r(code, x="123")
-	assert "(3)(2)(1)" == r(code, x=[1, 2, 3])
-	assert "(3)(2)(1)" == r(code, x=(1, 2, 3))
+		T("<?print reversed(1, 2)?>").renders()
+	assert "(3)(2)(1)" == t.renders(x="123")
+	assert "(3)(2)(1)" == t.renders(x=[1, 2, 3])
+	assert "(3)(2)(1)" == t.renders(x=(1, 2, 3))
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "(3)(2)(1)" == r("<?for i in reversed(sequence=x)?>(<?print i?>)<?end for?>", x=(1, 2, 3))
+	assert "(3)(2)(1)" == T("<?for i in reversed(sequence=x)?>(<?print i?>)<?end for?>").renders(x=(1, 2, 3))
 
 
 @pytest.mark.ul4
-def test_function_min(r):
+def test_function_min(T):
 	with raises(argumentmismatchmessage):
-		r("<?print min()?>")
+		T("<?print min()?>").renders()
 	with raises("empty sequence"):
-		r("<?print min([])?>")
-	assert "1" == r("<?print min('123')?>")
-	assert "1" == r("<?print min(1, 2, 3)?>")
-	assert "0" == r("<?print min(0, False, 1, True)?>")
-	assert "False" == r("<?print min(False, 0, True, 1)?>")
-	assert "False" == r("<?print min([False, 0, True, 1])?>")
+		T("<?print min([])?>").renders()
+	assert "1" == T("<?print min('123')?>").renders()
+	assert "1" == T("<?print min(1, 2, 3)?>").renders()
+	assert "0" == T("<?print min(0, False, 1, True)?>").renders()
+	assert "False" == T("<?print min(False, 0, True, 1)?>").renders()
+	assert "False" == T("<?print min([False, 0, True, 1])?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_max(r):
+def test_function_max(T):
 	with raises(argumentmismatchmessage):
-		r("<?print max()?>")
+		T("<?print max()?>").renders()
 	with raises("empty sequence"):
-		r("<?print max([])?>")
-	assert "3" == r("<?print max('123')?>")
-	assert "3" == r("<?print max(1, 2, 3)?>")
-	assert "1" == r("<?print max(0, False, 1, True)?>")
-	assert "True" == r("<?print max(False, 0, True, 1)?>")
-	assert "True" == r("<?print max([False, 0, True, 1])?>")
+		T("<?print max([])?>").renders()
+	assert "3" == T("<?print max('123')?>").renders()
+	assert "3" == T("<?print max(1, 2, 3)?>").renders()
+	assert "1" == T("<?print max(0, False, 1, True)?>").renders()
+	assert "True" == T("<?print max(False, 0, True, 1)?>").renders()
+	assert "True" == T("<?print max([False, 0, True, 1])?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_sum(r):
+def test_function_sum(T):
 	with raises(argumentmismatchmessage):
-		r("<?print sum()?>")
+		T("<?print sum()?>").renders()
 
-	assert "0" == r("<?print sum([])?>")
-	assert "6" == r("<?print sum([1, 2, 3])?>")
-	assert "12" == r("<?print sum([1, 2, 3], 6)?>")
-	assert "5050" == r("<?print sum(range(101))?>")
+	assert "0" == T("<?print sum([])?>").renders()
+	assert "6" == T("<?print sum([1, 2, 3])?>").renders()
+	assert "12" == T("<?print sum([1, 2, 3], 6)?>").renders()
+	assert "5050" == T("<?print sum(range(101))?>").renders()
 
-	assert "12" == r("<?print sum(iterable=[1, 2, 3], start=6)?>")
-
-
-@pytest.mark.ul4
-def test_function_first(r):
-	assert "g" == r("<?print first('gurk')?>")
-	assert "None" == r("<?print repr(first(''))?>")
-	assert "x" == r("<?print first('', 'x')?>")
-
-	assert "x" == r("<?print first(iterable='', default='x')?>")
+	assert "12" == T("<?print sum(iterable=[1, 2, 3], start=6)?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_last(r):
-	assert "k" == r("<?print last('gurk')?>")
-	assert "None" == r("<?print repr(last(''))?>")
-	assert "x" == r("<?print last('', 'x')?>")
+def test_function_first(T):
+	assert "g" == T("<?print first('gurk')?>").renders()
+	assert "None" == T("<?print repr(first(''))?>").renders()
+	assert "x" == T("<?print first('', 'x')?>").renders()
 
-	assert "x" == r("<?print last(iterable='', default='x')?>")
+	assert "x" == T("<?print first(iterable='', default='x')?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_rgb(r):
-	assert "#369" == r("<?print repr(rgb(0.2, 0.4, 0.6))?>")
-	assert "#369c" == r("<?print repr(rgb(0.2, 0.4, 0.6, 0.8))?>")
+def test_function_last(T):
+	assert "k" == T("<?print last('gurk')?>").renders()
+	assert "None" == T("<?print repr(last(''))?>").renders()
+	assert "x" == T("<?print last('', 'x')?>").renders()
+
+	assert "x" == T("<?print last(iterable='', default='x')?>").renders()
+
+
+@pytest.mark.ul4
+def test_function_rgb(T):
+	assert "#369" == T("<?print repr(rgb(0.2, 0.4, 0.6))?>").renders()
+	assert "#369c" == T("<?print repr(rgb(0.2, 0.4, 0.6, 0.8))?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "#369c" == r("<?print repr(rgb(r=0.2, g=0.4, b=0.6, a=0.8))?>")
+	assert "#369c" == T("<?print repr(rgb(r=0.2, g=0.4, b=0.6, a=0.8))?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_hls(r):
-	assert "#fff" == r("<?print repr(hls(0, 1, 0))?>")
-	assert "#fff0" == r("<?print repr(hls(0, 1, 0, 0))?>")
+def test_function_hls(T):
+	assert "#fff" == T("<?print repr(hls(0, 1, 0))?>").renders()
+	assert "#fff0" == T("<?print repr(hls(0, 1, 0, 0))?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "#fff0" == r("<?print repr(hls(h=0, l=1, s=0, a=0))?>")
+	assert "#fff0" == T("<?print repr(hls(h=0, l=1, s=0, a=0))?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_hsv(r):
-	assert "#fff" == r("<?print repr(hsv(0, 0, 1))?>")
-	assert "#fff0" == r("<?print repr(hsv(0, 0, 1, 0))?>")
+def test_function_hsv(T):
+	assert "#fff" == T("<?print repr(hsv(0, 0, 1))?>").renders()
+	assert "#fff0" == T("<?print repr(hsv(0, 0, 1, 0))?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "#fff0" == r("<?print repr(hsv(h=0, s=0, v=1, a=0))?>")
+	assert "#fff0" == T("<?print repr(hsv(h=0, s=0, v=1, a=0))?>").renders()
 
 
 @pytest.mark.ul4
-def test_function_round(r):
+def test_function_round(T):
 	with raises(argumentmismatchmessage):
-		r("<?print round()?>")
+		T("<?print round()?>").renders()
 	with raises(argumentmismatchmessage):
-		r("<?print round(1, 2, 3)?>")
+		T("<?print round(1, 2, 3)?>").renders()
 
-	assert "True" == r("<?print round(42) == 42?>")
-	assert "True" == r("<?print round(42, 1) == 42?>")
-	assert "True" == r("<?print round(42, -1) == 40?>")
+	assert "True" == T("<?print round(42) == 42?>").renders()
+	assert "True" == T("<?print round(42, 1) == 42?>").renders()
+	assert "True" == T("<?print round(42, -1) == 40?>").renders()
 
-	assert "True" == r("<?print round(42.4) == 42?>")
-	assert "True" == r("<?print round(42.6) == 43?>")
-	assert "True" == r("<?print round(-42.4) == -42?>")
-	assert "True" == r("<?print round(-42.6) == -43?>")
-	assert "int" == r("<?print type(round(42.5))?>")
+	assert "True" == T("<?print round(42.4) == 42?>").renders()
+	assert "True" == T("<?print round(42.6) == 43?>").renders()
+	assert "True" == T("<?print round(-42.4) == -42?>").renders()
+	assert "True" == T("<?print round(-42.6) == -43?>").renders()
+	assert "int" == T("<?print type(round(42.5))?>").renders()
 
-	assert "True" == r("<?print round(42.4, -1) == 40?>")
-	assert "True" == r("<?print round(46.2, -1) == 50?>")
-	assert "True" == r("<?print round(-42.4, -1) == -40?>")
-	assert "True" == r("<?print round(-46.2, -1) == -50?>")
-	assert "int" == r("<?print type(round(42.5, -1))?>")
+	assert "True" == T("<?print round(42.4, -1) == 40?>").renders()
+	assert "True" == T("<?print round(46.2, -1) == 50?>").renders()
+	assert "True" == T("<?print round(-42.4, -1) == -40?>").renders()
+	assert "True" == T("<?print round(-46.2, -1) == -50?>").renders()
+	assert "int" == T("<?print type(round(42.5, -1))?>").renders()
 
-	assert "True" == r("<?print round(42.987, 1) == 43.0?>")
-	assert "True" == r("<?print round(42.123, 1) == 42.1?>")
-	assert "True" == r("<?print round(-42.987, 1) == -43.0?>")
-	assert "True" == r("<?print round(-42.123, 1) == -42.1?>")
-	# assert "True" == r("<?print round(42.589, 2) == 42.59?>")
-	assert "True" == r("<?print round(42.123, 2) == 42.12?>")
-	# assert "True" == r("<?print round(-42.589, 2) == -42.59?>")
-	assert "True" == r("<?print round(-42.123, 2) == -42.12?>")
-	assert "float" == r("<?print type(round(42.5, 1))?>")
-
-
-@pytest.mark.ul4
-def test_method_upper(r):
-	assert "GURK" == r("<?print 'gurk'.upper()?>")
-	assert "GURK" == r("<?code m = 'gurk'.upper?><?print m()?>")
+	assert "True" == T("<?print round(42.987, 1) == 43.0?>").renders()
+	assert "True" == T("<?print round(42.123, 1) == 42.1?>").renders()
+	assert "True" == T("<?print round(-42.987, 1) == -43.0?>").renders()
+	assert "True" == T("<?print round(-42.123, 1) == -42.1?>").renders()
+	# assert "True" == T("<?print round(42.589, 2) == 42.59?>").renders()
+	assert "True" == T("<?print round(42.123, 2) == 42.12?>").renders()
+	# assert "True" == T("<?print round(-42.589, 2) == -42.59?>").renders()
+	assert "True" == T("<?print round(-42.123, 2) == -42.12?>").renders()
+	assert "float" == T("<?print type(round(42.5, 1))?>").renders()
 
 
 @pytest.mark.ul4
-def test_method_lower(r):
-	assert "gurk" == r("<?print 'GURK'.lower()?>")
-	assert "gurk" == r("<?code m = 'GURK'.lower?><?print m()?>")
+def test_method_upper(T):
+	assert "GURK" == T("<?print 'gurk'.upper()?>").renders()
+	assert "GURK" == T("<?code m = 'gurk'.upper?><?print m()?>").renders()
 
 
 @pytest.mark.ul4
-def test_method_capitalize(r):
-	assert "Gurk" == r("<?print 'gURK'.capitalize()?>")
-	assert "Gurk" == r("<?code m = 'gURK'.capitalize?><?print m()?>")
+def test_method_lower(T):
+	assert "gurk" == T("<?print 'GURK'.lower()?>").renders()
+	assert "gurk" == T("<?code m = 'GURK'.lower?><?print m()?>").renders()
 
 
 @pytest.mark.ul4
-def test_method_startswith(r):
-	assert "True" == r("<?print 'gurkhurz'.startswith('gurk')?>")
-	assert "False" == r("<?print 'gurkhurz'.startswith('hurz')?>")
-	assert "False" == r("<?code m = 'gurkhurz'.startswith?><?print m('hurz')?>")
+def test_method_capitalize(T):
+	assert "Gurk" == T("<?print 'gURK'.capitalize()?>").renders()
+	assert "Gurk" == T("<?code m = 'gURK'.capitalize?><?print m()?>").renders()
+
+
+@pytest.mark.ul4
+def test_method_startswith(T):
+	assert "True" == T("<?print 'gurkhurz'.startswith('gurk')?>").renders()
+	assert "False" == T("<?print 'gurkhurz'.startswith('hurz')?>").renders()
+	assert "False" == T("<?code m = 'gurkhurz'.startswith?><?print m('hurz')?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "True" == r("<?print 'gurkhurz'.startswith(prefix='gurk')?>")
+	assert "True" == T("<?print 'gurkhurz'.startswith(prefix='gurk')?>").renders()
 
 
 @pytest.mark.ul4
-def test_method_endswith(r):
-	assert "True" == r("<?print 'gurkhurz'.endswith('hurz')?>")
-	assert "False" == r("<?print 'gurkhurz'.endswith('gurk')?>")
-	assert "False" == r("<?code m = 'gurkhurz'.endswith?><?print m('gurk')?>")
+def test_method_endswith(T):
+	assert "True" == T("<?print 'gurkhurz'.endswith('hurz')?>").renders()
+	assert "False" == T("<?print 'gurkhurz'.endswith('gurk')?>").renders()
+	assert "False" == T("<?code m = 'gurkhurz'.endswith?><?print m('gurk')?>").renders()
+
+	# Make sure that the parameters have the same name in all implementatiTns
+	assert "True" == T("<?print 'gurkhurz'.endswith(suffix='hurz')?>").renders()
+
+
+@pytest.mark.ul4
+def test_method_strip(T):
+	assert "gurk" == T(r"<?print obj.strip()?>").renders(obj=' \t\r\ngurk \t\r\n')
+	assert "gurk" == T(r"<?print obj.strip('xyz')?>").renders(obj='xyzzygurkxyzzy')
+	assert "gurk" == T(r"<?code m = obj.strip?><?print m('xyz')?>").renders(obj='xyzzygurkxyzzy')
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "True" == r("<?print 'gurkhurz'.endswith(suffix='hurz')?>")
+	assert "gurk" == T(r"<?print obj.strip(chars='xyz')?>").renders(obj='xyzzygurkxyzzy')
 
 
 @pytest.mark.ul4
-def test_method_strip(r):
-	assert "gurk" == r(r"<?print obj.strip()?>", obj=' \t\r\ngurk \t\r\n')
-	assert "gurk" == r(r"<?print obj.strip('xyz')?>", obj='xyzzygurkxyzzy')
-	assert "gurk" == r(r"<?code m = obj.strip?><?print m('xyz')?>", obj='xyzzygurkxyzzy')
+def test_method_lstrip(T):
+	assert "gurk \t\r\n" == T("<?print obj.lstrip()?>").renders(obj=" \t\r\ngurk \t\r\n")
+	assert "gurkxyzzy" == T("<?print obj.lstrip(arg)?>").renders(obj="xyzzygurkxyzzy", arg="xyz")
+	assert "gurkxyzzy" == T("<?code m = obj.lstrip?><?print m(arg)?>").renders(obj="xyzzygurkxyzzy", arg="xyz")
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "gurk" == r(r"<?print obj.strip(chars='xyz')?>", obj='xyzzygurkxyzzy')
+	assert "gurkxyzzy" == T("<?print obj.lstrip(chars=arg)?>").renders(obj="xyzzygurkxyzzy", arg="xyz")
 
 
 @pytest.mark.ul4
-def test_method_lstrip(r):
-	assert "gurk \t\r\n" == r("<?print obj.lstrip()?>", obj=" \t\r\ngurk \t\r\n")
-	assert "gurkxyzzy" == r("<?print obj.lstrip(arg)?>", obj="xyzzygurkxyzzy", arg="xyz")
-	assert "gurkxyzzy" == r("<?code m = obj.lstrip?><?print m(arg)?>", obj="xyzzygurkxyzzy", arg="xyz")
+def test_method_rstrip(T):
+	assert " \t\r\ngurk" == T("<?print obj.rstrip()?>").renders(obj=" \t\r\ngurk \t\r\n")
+	assert "xyzzygurk" == T("<?print obj.rstrip(arg)?>").renders(obj="xyzzygurkxyzzy", arg="xyz")
+	assert "xyzzygurk" == T("<?code m = obj.rstrip?><?print m(arg)?>").renders(obj="xyzzygurkxyzzy", arg="xyz")
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "gurkxyzzy" == r("<?print obj.lstrip(chars=arg)?>", obj="xyzzygurkxyzzy", arg="xyz")
+	assert "xyzzygurk" == T("<?print obj.rstrip(chars=arg)?>").renders(obj="xyzzygurkxyzzy", arg="xyz")
 
 
 @pytest.mark.ul4
-def test_method_rstrip(r):
-	assert " \t\r\ngurk" == r("<?print obj.rstrip()?>", obj=" \t\r\ngurk \t\r\n")
-	assert "xyzzygurk" == r("<?print obj.rstrip(arg)?>", obj="xyzzygurkxyzzy", arg="xyz")
-	assert "xyzzygurk" == r("<?code m = obj.rstrip?><?print m(arg)?>", obj="xyzzygurkxyzzy", arg="xyz")
+def test_method_split(T):
+	assert "(f)(o)(o)" == T("<?for item in obj.split()?>(<?print item?>)<?end for?>").renders(obj=" \t\r\nf \t\r\no \t\r\no \t\r\n")
+	assert "(f)(o \t\r\no \t\r\n)" == T("<?for item in obj.split(None, 1)?>(<?print item?>)<?end for?>").renders(obj=" \t\r\nf \t\r\no \t\r\no \t\r\n")
+	assert "()(f)(o)(o)()" == T("<?for item in obj.split(arg)?>(<?print item?>)<?end for?>").renders(obj="xxfxxoxxoxx", arg="xx")
+	assert "()(f)(oxxoxx)" == T("<?for item in obj.split(arg, 2)?>(<?print item?>)<?end for?>").renders(obj="xxfxxoxxoxx", arg="xx")
+	assert "()(f)(oxxoxx)" == T("<?code m = obj.split?><?for item in m(arg, 2)?>(<?print item?>)<?end for?>").renders(obj="xxfxxoxxoxx", arg="xx")
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "xyzzygurk" == r("<?print obj.rstrip(chars=arg)?>", obj="xyzzygurkxyzzy", arg="xyz")
+	assert "()(f)(oxxoxx)" == T("<?for item in obj.split(sep=arg, count=2)?>(<?print item?>)<?end for?>").renders(obj="xxfxxoxxoxx", arg="xx")
 
 
 @pytest.mark.ul4
-def test_method_split(r):
-	assert "(f)(o)(o)" == r("<?for item in obj.split()?>(<?print item?>)<?end for?>", obj=" \t\r\nf \t\r\no \t\r\no \t\r\n")
-	assert "(f)(o \t\r\no \t\r\n)" == r("<?for item in obj.split(None, 1)?>(<?print item?>)<?end for?>", obj=" \t\r\nf \t\r\no \t\r\no \t\r\n")
-	assert "()(f)(o)(o)()" == r("<?for item in obj.split(arg)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
-	assert "()(f)(oxxoxx)" == r("<?for item in obj.split(arg, 2)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
-	assert "()(f)(oxxoxx)" == r("<?code m = obj.split?><?for item in m(arg, 2)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
+def test_method_rsplit(T):
+	assert "(f)(o)(o)" == T("<?for item in obj.rsplit()?>(<?print item?>)<?end for?>").renders(obj=" \t\r\nf \t\r\no \t\r\no \t\r\n")
+	assert "( \t\r\nf \t\r\no)(o)" == T("<?for item in obj.rsplit(None, 1)?>(<?print item?>)<?end for?>").renders(obj=" \t\r\nf \t\r\no \t\r\no \t\r\n")
+	assert "()(f)(o)(o)()" == T("<?for item in obj.rsplit(arg)?>(<?print item?>)<?end for?>").renders(obj="xxfxxoxxoxx", arg="xx")
+	assert "(xxfxxo)(o)()" == T("<?for item in obj.rsplit(arg, 2)?>(<?print item?>)<?end for?>").renders(obj="xxfxxoxxoxx", arg="xx")
+	assert "(xxfxxo)(o)()" == T("<?code m = obj.rsplit?><?for item in m(arg, 2)?>(<?print item?>)<?end for?>").renders(obj="xxfxxoxxoxx", arg="xx")
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "()(f)(oxxoxx)" == r("<?for item in obj.split(sep=arg, count=2)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
+	assert "(xxfxxo)(o)()" == T("<?for item in obj.rsplit(sep=arg, count=2)?>(<?print item?>)<?end for?>").renders(obj="xxfxxoxxoxx", arg="xx")
 
 
 @pytest.mark.ul4
-def test_method_rsplit(r):
-	assert "(f)(o)(o)" == r("<?for item in obj.rsplit()?>(<?print item?>)<?end for?>", obj=" \t\r\nf \t\r\no \t\r\no \t\r\n")
-	assert "( \t\r\nf \t\r\no)(o)" == r("<?for item in obj.rsplit(None, 1)?>(<?print item?>)<?end for?>", obj=" \t\r\nf \t\r\no \t\r\no \t\r\n")
-	assert "()(f)(o)(o)()" == r("<?for item in obj.rsplit(arg)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
-	assert "(xxfxxo)(o)()" == r("<?for item in obj.rsplit(arg, 2)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
-	assert "(xxfxxo)(o)()" == r("<?code m = obj.rsplit?><?for item in m(arg, 2)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
+def test_method_replace(T):
+	assert 'goork' == T("<?print 'gurk'.replace('u', 'oo')?>").renders()
+	assert 'fuuuu' == T("<?print 'foo'.replace('o', 'uu', None)?>").renders()
+	assert 'fuuo' == T("<?print 'foo'.replace('o', 'uu', 1)?>").renders()
+	assert 'fuuo' == T("<?code m = 'foo'.replace?><?print m('o', 'uu', 1)?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "(xxfxxo)(o)()" == r("<?for item in obj.rsplit(sep=arg, count=2)?>(<?print item?>)<?end for?>", obj="xxfxxoxxoxx", arg="xx")
+	assert 'fuuo' == T("<?print 'foo'.replace(old='o', new='uu', count=1)?>").renders()
 
 
 @pytest.mark.ul4
-def test_method_replace(r):
-	assert 'goork' == r("<?print 'gurk'.replace('u', 'oo')?>")
-	assert 'fuuuu' == r("<?print 'foo'.replace('o', 'uu', None)?>")
-	assert 'fuuo' == r("<?print 'foo'.replace('o', 'uu', 1)?>")
-	assert 'fuuo' == r("<?code m = 'foo'.replace?><?print m('o', 'uu', 1)?>")
-
-	# Make sure that the parameters have the same name in all implementations
-	assert 'fuuo' == r("<?print 'foo'.replace(old='o', new='uu', count=1)?>")
-
-
-@pytest.mark.ul4
-def test_method_renders(r):
+def test_method_renders(T):
 	t = ul4c.Template('(<?print data?>)')
-	assert '(GURK)' == r("<?print t.renders(data='gurk').upper()?>", t=t)
-	assert '(GURK)' == r("<?print t.renders(**{'data': 'gurk'}).upper()?>", t=t)
-	assert '(GURK)' == r("<?code m = t.renders?><?print m(**{'data': 'gurk'}).upper()?>", t=t)
+	assert '(GURK)' == T("<?print t.renders(data='gurk').upper()?>").renders(t=t)
+	assert '(GURK)' == T("<?print t.renders(**{'data': 'gurk'}).upper()?>").renders(t=t)
+	assert '(GURK)' == T("<?code m = t.renders?><?print m(**{'data': 'gurk'}).upper()?>").renders(t=t)
 
 	t = ul4c.Template('(gurk)')
-	assert '(GURK)' == r("<?print t.renders().upper()?>", t=t)
+	assert '(GURK)' == T("<?print t.renders().upper()?>").renders(t=t)
 
 
 @pytest.mark.ul4
-def test_method_mimeformat(r):
+def test_method_mimeformat(T):
 	t = datetime.datetime(2010, 2, 22, 12, 34, 56)
 
-	assert 'Mon, 22 Feb 2010 12:34:56 GMT' == r("<?print data.mimeformat()?>", data=t)
-	assert 'Mon, 22 Feb 2010 12:34:56 GMT' == r("<?code m = data.mimeformat?><?print m()?>", data=t)
+	assert 'Mon, 22 Feb 2010 12:34:56 GMT' == T("<?print data.mimeformat()?>").renders(data=t)
+	assert 'Mon, 22 Feb 2010 12:34:56 GMT' == T("<?code m = data.mimeformat?><?print m()?>").renders(data=t)
 
 
 @pytest.mark.ul4
-def test_method_items(r):
-	assert "a:42;b:17;c:23;" == r("<?for (key, value) in sorted(data.items())?><?print key?>:<?print value?>;<?end for?>", data=dict(a=42, b=17, c=23))
-	assert "a:42;b:17;c:23;" == r("<?code m = data.items?><?for (key, value) in sorted(m())?><?print key?>:<?print value?>;<?end for?>", data=dict(a=42, b=17, c=23))
+def test_method_items(T):
+	assert "a:42;b:17;c:23;" == T("<?for (key, value) in sorted(data.items())?><?print key?>:<?print value?>;<?end for?>").renders(data=dict(a=42, b=17, c=23))
+	assert "a:42;b:17;c:23;" == T("<?code m = data.items?><?for (key, value) in sorted(m())?><?print key?>:<?print value?>;<?end for?>").renders(data=dict(a=42, b=17, c=23))
 
 
 @pytest.mark.ul4
-def test_method_values(r):
-	assert "17;23;42;" == r("<?for value in sorted(data.values())?><?print value?>;<?end for?>", data=dict(a=42, b=17, c=23))
-	assert "17;23;42;" == r("<?code m = data.values?><?for value in sorted(m())?><?print value?>;<?end for?>", data=dict(a=42, b=17, c=23))
+def test_method_values(T):
+	assert "17;23;42;" == T("<?for value in sorted(data.values())?><?print value?>;<?end for?>").renders(data=dict(a=42, b=17, c=23))
+	assert "17;23;42;" == T("<?code m = data.values?><?for value in sorted(m())?><?print value?>;<?end for?>").renders(data=dict(a=42, b=17, c=23))
 
 
 @pytest.mark.ul4
-def test_method_get(r):
-	assert "42" == r("<?print {}.get('foo', 42)?>")
-	assert "17" == r("<?print {'foo': 17}.get('foo', 42)?>")
-	assert "" == r("<?print {}.get('foo')?>")
-	assert "17" == r("<?print {'foo': 17}.get('foo')?>")
-	assert "17" == r("<?code m = {'foo': 17}.get?><?print m('foo')?>")
+def test_method_get(T):
+	assert "42" == T("<?print {}.get('foo', 42)?>").renders()
+	assert "17" == T("<?print {'foo': 17}.get('foo', 42)?>").renders()
+	assert "" == T("<?print {}.get('foo')?>").renders()
+	assert "17" == T("<?print {'foo': 17}.get('foo')?>").renders()
+	assert "17" == T("<?code m = {'foo': 17}.get?><?print m('foo')?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "17" == r("<?print {'foo': 17}.get(key='foo', default=42)?>")
+	assert "17" == T("<?print {'foo': 17}.get(key='foo', default=42)?>").renders()
 
 
 @pytest.mark.ul4
-def test_method_r_g_b_a(r):
-	assert '0x11' == r('<?code c = #123?><?print hex(c.r())?>')
-	assert '0x11' == r('<?code c = #123?><?code m = c.r?><?print hex(m())?>')
-	assert '0x22' == r('<?code c = #123?><?print hex(c.g())?>')
-	assert '0x22' == r('<?code c = #123?><?code m = c.g?><?print hex(m())?>')
-	assert '0x33' == r('<?code c = #123?><?print hex(c.b())?>')
-	assert '0x33' == r('<?code c = #123?><?code m = c.b?><?print hex(m())?>')
-	assert '0xff' == r('<?code c = #123?><?print hex(c.a())?>')
-	assert '0xff' == r('<?code c = #123?><?code m = c.a?><?print hex(m())?>')
+def test_method_r_g_b_a(T):
+	assert '0x11' == T('<?code c = #123?><?print hex(c.r())?>').renders()
+	assert '0x11' == T('<?code c = #123?><?code m = c.r?><?print hex(m())?>').renders()
+	assert '0x22' == T('<?code c = #123?><?print hex(c.g())?>').renders()
+	assert '0x22' == T('<?code c = #123?><?code m = c.g?><?print hex(m())?>').renders()
+	assert '0x33' == T('<?code c = #123?><?print hex(c.b())?>').renders()
+	assert '0x33' == T('<?code c = #123?><?code m = c.b?><?print hex(m())?>').renders()
+	assert '0xff' == T('<?code c = #123?><?print hex(c.a())?>').renders()
+	assert '0xff' == T('<?code c = #123?><?code m = c.a?><?print hex(m())?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_hls(r):
-	assert '0' == r('<?code c = #fff?><?print int(c.hls()[0])?>')
-	assert '1' == r('<?code c = #fff?><?print int(c.hls()[1])?>')
-	assert '0' == r('<?code c = #fff?><?print int(c.hls()[2])?>')
-	assert '0' == r('<?code c = #fff?><?code m = c.hls?><?print int(m()[0])?>')
+def test_method_hls(T):
+	assert '0' == T('<?code c = #fff?><?print int(c.hls()[0])?>').renders()
+	assert '1' == T('<?code c = #fff?><?print int(c.hls()[1])?>').renders()
+	assert '0' == T('<?code c = #fff?><?print int(c.hls()[2])?>').renders()
+	assert '0' == T('<?code c = #fff?><?code m = c.hls?><?print int(m()[0])?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_hlsa(r):
-	assert '0' == r('<?code c = #fff?><?print int(c.hlsa()[0])?>')
-	assert '1' == r('<?code c = #fff?><?print int(c.hlsa()[1])?>')
-	assert '0' == r('<?code c = #fff?><?print int(c.hlsa()[2])?>')
-	assert '1' == r('<?code c = #fff?><?print int(c.hlsa()[3])?>')
-	assert '0' == r('<?code c = #fff?><?code m = c.hlsa?><?print int(m()[0])?>')
+def test_method_hlsa(T):
+	assert '0' == T('<?code c = #fff?><?print int(c.hlsa()[0])?>').renders()
+	assert '1' == T('<?code c = #fff?><?print int(c.hlsa()[1])?>').renders()
+	assert '0' == T('<?code c = #fff?><?print int(c.hlsa()[2])?>').renders()
+	assert '1' == T('<?code c = #fff?><?print int(c.hlsa()[3])?>').renders()
+	assert '0' == T('<?code c = #fff?><?code m = c.hlsa?><?print int(m()[0])?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_hsv(r):
-	assert '0' == r('<?code c = #fff?><?print int(c.hsv()[0])?>')
-	assert '0' == r('<?code c = #fff?><?print int(c.hsv()[1])?>')
-	assert '1' == r('<?code c = #fff?><?print int(c.hsv()[2])?>')
-	assert '0' == r('<?code c = #fff?><?code m = c.hsv?><?print int(m()[0])?>')
+def test_method_hsv(T):
+	assert '0' == T('<?code c = #fff?><?print int(c.hsv()[0])?>').renders()
+	assert '0' == T('<?code c = #fff?><?print int(c.hsv()[1])?>').renders()
+	assert '1' == T('<?code c = #fff?><?print int(c.hsv()[2])?>').renders()
+	assert '0' == T('<?code c = #fff?><?code m = c.hsv?><?print int(m()[0])?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_hsva(r):
-	assert '0' == r('<?code c = #fff?><?print int(c.hsva()[0])?>')
-	assert '0' == r('<?code c = #fff?><?print int(c.hsva()[1])?>')
-	assert '1' == r('<?code c = #fff?><?print int(c.hsva()[2])?>')
-	assert '1' == r('<?code c = #fff?><?print int(c.hsva()[3])?>')
-	assert '0' == r('<?code c = #fff?><?code m = c.hsva?><?print int(m()[0])?>')
+def test_method_hsva(T):
+	assert '0' == T('<?code c = #fff?><?print int(c.hsva()[0])?>').renders()
+	assert '0' == T('<?code c = #fff?><?print int(c.hsva()[1])?>').renders()
+	assert '1' == T('<?code c = #fff?><?print int(c.hsva()[2])?>').renders()
+	assert '1' == T('<?code c = #fff?><?print int(c.hsva()[3])?>').renders()
+	assert '0' == T('<?code c = #fff?><?code m = c.hsva?><?print int(m()[0])?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_lum(r):
-	assert 'True' == r('<?print #fff.lum() == 1?>')
-	assert 'True' == r('<?code m = #fff.lum?><?print m() == 1?>')
+def test_method_lum(T):
+	assert 'True' == T('<?print #fff.lum() == 1?>').renders()
+	assert 'True' == T('<?code m = #fff.lum?><?print m() == 1?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_withlum(r):
-	assert '#fff' == r('<?print #000.withlum(1)?>')
-	assert '#fff' == r('<?code m = #000.withlum?><?print m(1)?>')
+def test_method_withlum(T):
+	assert '#fff' == T('<?print #000.withlum(1)?>').renders()
+	assert '#fff' == T('<?code m = #000.withlum?><?print m(1)?>').renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert '#fff' == r('<?print #000.withlum(lum=1)?>')
+	assert '#fff' == T('<?print #000.withlum(lum=1)?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_witha(r):
-	assert '#0063a82a' == r('<?print repr(#0063a8.witha(42))?>')
-	assert '#0063a82a' == r('<?code m = #0063a8.witha?><?print repr(m(42))?>')
+def test_method_witha(T):
+	assert '#0063a82a' == T('<?print repr(#0063a8.witha(42))?>').renders()
+	assert '#0063a82a' == T('<?code m = #0063a8.witha?><?print repr(m(42))?>').renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert '#0063a82a' == r('<?print repr(#0063a8.witha(a=42))?>')
+	assert '#0063a82a' == T('<?print repr(#0063a8.witha(a=42))?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_join(r):
-	assert '1,2,3,4' == r('<?print ",".join("1234")?>')
-	assert '1,2,3,4' == r('<?print ",".join(["1", "2", "3", "4"])?>')
-	assert '1,2,3,4' == r('<?code m = ",".join?><?print m("1234")?>')
+def test_method_join(T):
+	assert '1,2,3,4' == T('<?print ",".join("1234")?>').renders()
+	assert '1,2,3,4' == T('<?print ",".join(["1", "2", "3", "4"])?>').renders()
+	assert '1,2,3,4' == T('<?code m = ",".join?><?print m("1234")?>').renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert '1,2,3,4' == r('<?print ",".join(iterable="1234")?>')
+	assert '1,2,3,4' == T('<?print ",".join(iterable="1234")?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_find(r):
+def test_method_find(T):
 	s = "gurkgurk"
-	assert '-1' == r('<?print s.find("ks")?>', s=s)
-	assert '2' == r('<?print s.find("rk")?>', s=s)
-	assert '2' == r('<?print s.find("rk", 2)?>', s=s)
-	assert '6' == r('<?print s.find("rk", -3)?>', s=s)
-	assert '2' == r('<?print s.find("rk", 2, 4)?>', s=s)
-	assert '6' == r('<?print s.find("rk", 4, 8)?>', s=s)
-	assert '5' == r('<?print s.find("ur", -4, -1)?>', s=s)
-	assert '-1' == r('<?print s.find("rk", 2, 3)?>', s=s)
-	assert '-1' == r('<?print s.find("rk", 7)?>', s=s)
-	assert '-1' == r('<?code m = s.find?><?print m("rk", 7)?>', s=s)
+	assert '-1' == T('<?print s.find("ks")?>').renders(s=s)
+	assert '2' == T('<?print s.find("rk")?>').renders(s=s)
+	assert '2' == T('<?print s.find("rk", 2)?>').renders(s=s)
+	assert '6' == T('<?print s.find("rk", -3)?>').renders(s=s)
+	assert '2' == T('<?print s.find("rk", 2, 4)?>').renders(s=s)
+	assert '6' == T('<?print s.find("rk", 4, 8)?>').renders(s=s)
+	assert '5' == T('<?print s.find("ur", -4, -1)?>').renders(s=s)
+	assert '-1' == T('<?print s.find("rk", 2, 3)?>').renders(s=s)
+	assert '-1' == T('<?print s.find("rk", 7)?>').renders(s=s)
+	assert '-1' == T('<?code m = s.find?><?print m("rk", 7)?>').renders(s=s)
 	l = list("gurkgurk")
-	assert '-1' == r('<?print l.find("x")?>', l=l)
-	assert '2' == r('<?print l.find("r")?>', l=l)
-	assert '2' == r('<?print l.find("r", 2)?>', l=l)
-	assert '6' == r('<?print l.find("r", -3)?>', l=l)
-	assert '2' == r('<?print l.find("r", 2, 4)?>', l=l)
-	assert '6' == r('<?print l.find("r", 4, 8)?>', l=l)
-	assert '6' == r('<?print l.find("r", -3, -1)?>', l=l)
-	assert '-1' == r('<?print l.find("r", 2, 2)?>', l=l)
-	assert '-1' == r('<?print l.find("r", 7)?>', l=l)
-	assert '1' == r('<?print l.find(None)?>', l=[0, None, 1, None, 2, None, 3, None])
-	assert '-1' == r('<?code m = l.find?><?print m("r", 7)?>', l=l)
+	assert '-1' == T('<?print l.find("x")?>').renders(l=l)
+	assert '2' == T('<?print l.find("r")?>').renders(l=l)
+	assert '2' == T('<?print l.find("r", 2)?>').renders(l=l)
+	assert '6' == T('<?print l.find("r", -3)?>').renders(l=l)
+	assert '2' == T('<?print l.find("r", 2, 4)?>').renders(l=l)
+	assert '6' == T('<?print l.find("r", 4, 8)?>').renders(l=l)
+	assert '6' == T('<?print l.find("r", -3, -1)?>').renders(l=l)
+	assert '-1' == T('<?print l.find("r", 2, 2)?>').renders(l=l)
+	assert '-1' == T('<?print l.find("r", 7)?>').renders(l=l)
+	assert '1' == T('<?print l.find(None)?>').renders(l=[0, None, 1, None, 2, None, 3, None])
+	assert '-1' == T('<?code m = l.find?><?print m("r", 7)?>').renders(l=l)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert '2' == r('<?print s.find(sub="rk", start=2, end=4)?>', s=s)
+	assert '2' == T('<?print s.find(sub="rk", start=2, end=4)?>').renders(s=s)
 
 
 @pytest.mark.ul4
-def test_method_rfind(r):
+def test_method_rfind(T):
 	s = "gurkgurk"
-	assert '-1' == r('<?print s.rfind("ks")?>', s=s)
-	assert '6' == r('<?print s.rfind("rk")?>', s=s)
-	assert '6' == r('<?print s.rfind("rk", 2)?>', s=s)
-	assert '6' == r('<?print s.rfind("rk", -3)?>', s=s)
-	assert '2' == r('<?print s.rfind("rk", 2, 4)?>', s=s)
-	assert '6' == r('<?print s.rfind("rk", 4, 8)?>', s=s)
-	assert '5' == r('<?print s.rfind("ur", -4, -1)?>', s=s)
-	assert '-1' == r('<?print s.rfind("rk", 2, 3)?>', s=s)
-	assert '-1' == r('<?print s.rfind("rk", 7)?>', s=s)
-	assert '-1' == r('<?code m = s.rfind?><?print m("rk", 7)?>', s=s)
+	assert '-1' == T('<?print s.rfind("ks")?>').renders(s=s)
+	assert '6' == T('<?print s.rfind("rk")?>').renders(s=s)
+	assert '6' == T('<?print s.rfind("rk", 2)?>').renders(s=s)
+	assert '6' == T('<?print s.rfind("rk", -3)?>').renders(s=s)
+	assert '2' == T('<?print s.rfind("rk", 2, 4)?>').renders(s=s)
+	assert '6' == T('<?print s.rfind("rk", 4, 8)?>').renders(s=s)
+	assert '5' == T('<?print s.rfind("ur", -4, -1)?>').renders(s=s)
+	assert '-1' == T('<?print s.rfind("rk", 2, 3)?>').renders(s=s)
+	assert '-1' == T('<?print s.rfind("rk", 7)?>').renders(s=s)
+	assert '-1' == T('<?code m = s.rfind?><?print m("rk", 7)?>').renders(s=s)
 	l = list("gurkgurk")
-	assert '-1' == r('<?print l.rfind("x")?>', l=l)
-	assert '6' == r('<?print l.rfind("r")?>', l=l)
-	assert '6' == r('<?print l.rfind("r", 2)?>', l=l)
-	assert '2' == r('<?print l.rfind("r", 2, 4)?>', l=l)
-	assert '6' == r('<?print l.rfind("r", 4, 8)?>', l=l)
-	assert '6' == r('<?print l.rfind("r", -3, -1)?>', l=l)
-	assert '-1' == r('<?print l.rfind("r", 2, 2)?>', l=l)
-	assert '-1' == r('<?print l.rfind("r", 7)?>', l=l)
-	assert '7' == r('<?print l.rfind(None)?>', l=[0, None, 1, None, 2, None, 3, None])
-	assert '-1' == r('<?code m = l.rfind?><?print m("r", 7)?>', l=l)
+	assert '-1' == T('<?print l.rfind("x")?>').renders(l=l)
+	assert '6' == T('<?print l.rfind("r")?>').renders(l=l)
+	assert '6' == T('<?print l.rfind("r", 2)?>').renders(l=l)
+	assert '2' == T('<?print l.rfind("r", 2, 4)?>').renders(l=l)
+	assert '6' == T('<?print l.rfind("r", 4, 8)?>').renders(l=l)
+	assert '6' == T('<?print l.rfind("r", -3, -1)?>').renders(l=l)
+	assert '-1' == T('<?print l.rfind("r", 2, 2)?>').renders(l=l)
+	assert '-1' == T('<?print l.rfind("r", 7)?>').renders(l=l)
+	assert '7' == T('<?print l.rfind(None)?>').renders(l=[0, None, 1, None, 2, None, 3, None])
+	assert '-1' == T('<?code m = l.rfind?><?print m("r", 7)?>').renders(l=l)
 
 	# Make sure that the parameters have the same name in all implementations
-	assert '2' == r('<?print s.rfind(sub="rk", start=2, end=4)?>', s=s)
+	assert '2' == T('<?print s.rfind(sub="rk", start=2, end=4)?>').renders(s=s)
 
 
 @pytest.mark.ul4
-def test_method_day(r):
-	assert '12' == r('<?print @(2010-05-12).day()?>')
-	assert '12' == r('<?print d.day()?>', d=datetime.date(2010, 5, 12))
-	assert '12' == r('<?code m = @(2010-05-12).day?><?print m()?>')
+def test_method_day(T):
+	assert '12' == T('<?print @(2010-05-12).day()?>').renders()
+	assert '12' == T('<?print d.day()?>').renders(d=datetime.date(2010, 5, 12))
+	assert '12' == T('<?code m = @(2010-05-12).day?><?print m()?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_month(r):
-	assert '5' == r('<?print @(2010-05-12).month()?>')
-	assert '5' == r('<?print d.month()?>', d=datetime.date(2010, 5, 12))
-	assert '5' == r('<?code m = @(2010-05-12).month?><?print m()?>')
+def test_method_month(T):
+	assert '5' == T('<?print @(2010-05-12).month()?>').renders()
+	assert '5' == T('<?print d.month()?>').renders(d=datetime.date(2010, 5, 12))
+	assert '5' == T('<?code m = @(2010-05-12).month?><?print m()?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_year(r):
-	assert '5' == r('<?print @(2010-05-12).month()?>')
-	assert '5' == r('<?print d.month()?>', d=datetime.date(2010, 5, 12))
-	assert '5' == r('<?code m = @(2010-05-12).month?><?print m()?>')
+def test_method_year(T):
+	assert '5' == T('<?print @(2010-05-12).month()?>').renders()
+	assert '5' == T('<?print d.month()?>').renders(d=datetime.date(2010, 5, 12))
+	assert '5' == T('<?code m = @(2010-05-12).month?><?print m()?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_hour(r):
-	assert '16' == r('<?print @(2010-05-12T16:47:56).hour()?>')
-	assert '16' == r('<?print d.hour()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
-	assert '16' == r('<?code m = @(2010-05-12T16:47:56).hour?><?print m()?>')
+def test_method_hour(T):
+	assert '16' == T('<?print @(2010-05-12T16:47:56).hour()?>').renders()
+	assert '16' == T('<?print d.hour()?>').renders(d=datetime.datetime(2010, 5, 12, 16, 47, 56))
+	assert '16' == T('<?code m = @(2010-05-12T16:47:56).hour?><?print m()?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_minute(r):
-	assert '47' == r('<?print @(2010-05-12T16:47:56).minute()?>')
-	assert '47' == r('<?print d.minute()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
-	assert '47' == r('<?code m = @(2010-05-12T16:47:56).minute?><?print m()?>')
+def test_method_minute(T):
+	assert '47' == T('<?print @(2010-05-12T16:47:56).minute()?>').renders()
+	assert '47' == T('<?print d.minute()?>').renders(d=datetime.datetime(2010, 5, 12, 16, 47, 56))
+	assert '47' == T('<?code m = @(2010-05-12T16:47:56).minute?><?print m()?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_second(r):
-	assert '56' == r('<?print @(2010-05-12T16:47:56).second()?>')
-	assert '56' == r('<?print d.second()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
-	assert '56' == r('<?code m = @(2010-05-12T16:47:56).second?><?print m()?>')
+def test_method_second(T):
+	assert '56' == T('<?print @(2010-05-12T16:47:56).second()?>').renders()
+	assert '56' == T('<?print d.second()?>').renders(d=datetime.datetime(2010, 5, 12, 16, 47, 56))
+	assert '56' == T('<?code m = @(2010-05-12T16:47:56).second?><?print m()?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_microsecond(r):
-	if r is not render_php:
-		assert '123000' == r('<?print @(2010-05-12T16:47:56.123000).microsecond()?>')
-		assert '123000' == r('<?print d.microsecond()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56, 123000))
-		assert '123000' == r('<?code m = @(2010-05-12T16:47:56.123000).microsecond?><?print m()?>')
+def test_method_microsecond(T):
+	if T is not render_php:
+		assert '123000' == T('<?print @(2010-05-12T16:47:56.123000).microsecond()?>').renders()
+		assert '123000' == T('<?print d.microsecond()?>').renders(d=datetime.datetime(2010, 5, 12, 16, 47, 56, 123000))
+		assert '123000' == T('<?code m = @(2010-05-12T16:47:56.123000).microsecond?><?print m()?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_weekday(r):
-	assert '2' == r('<?print @(2010-05-12).weekday()?>')
-	assert '2' == r('<?print d.weekday()?>', d=datetime.date(2010, 5, 12))
-	assert '2' == r('<?code m = @(2010-05-12).weekday?><?print m()?>')
+def test_method_weekday(T):
+	assert '2' == T('<?print @(2010-05-12).weekday()?>').renders()
+	assert '2' == T('<?print d.weekday()?>').renders(d=datetime.date(2010, 5, 12))
+	assert '2' == T('<?code m = @(2010-05-12).weekday?><?print m()?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_week(r):
-	assert '0' == r('<?print @(2012-01-01).week()?>')
-	assert '0' == r('<?print @(2012-01-01).week(0)?>')
-	assert '1' == r('<?print @(2012-01-01).week(6)?>')
-	assert '1' == r('<?print @(2012-01-02).week()?>')
-	assert '1' == r('<?print @(2012-01-02).week(0)?>')
-	assert '1' == r('<?print @(2012-01-02).week(6)?>')
-	assert '0' == r('<?code m = @(2012-01-01).week?><?print m()?>')
+def test_method_week(T):
+	assert '0' == T('<?print @(2012-01-01).week()?>').renders()
+	assert '0' == T('<?print @(2012-01-01).week(0)?>').renders()
+	assert '1' == T('<?print @(2012-01-01).week(6)?>').renders()
+	assert '1' == T('<?print @(2012-01-02).week()?>').renders()
+	assert '1' == T('<?print @(2012-01-02).week(0)?>').renders()
+	assert '1' == T('<?print @(2012-01-02).week(6)?>').renders()
+	assert '0' == T('<?code m = @(2012-01-01).week?><?print m()?>').renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert '1' == r('<?print @(2012-01-02).week(firstweekday=0)?>')
+	assert '1' == T('<?print @(2012-01-02).week(firstweekday=0)?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_yearday(r):
-	assert '1' == r('<?print @(2010-01-01).yearday()?>')
-	assert '366' == r('<?print @(2008-12-31).yearday()?>')
-	assert '365' == r('<?print @(2010-12-31).yearday()?>')
-	assert '132' == r('<?print @(2010-05-12).yearday()?>')
-	assert '132' == r('<?print @(2010-05-12T16:47:56).yearday()?>')
-	assert '132' == r('<?print d.yearday()?>', d=datetime.date(2010, 5, 12))
-	assert '132' == r('<?print d.yearday()?>', d=datetime.datetime(2010, 5, 12, 16, 47, 56))
-	assert '1' == r('<?code m = @(2010-01-01).yearday?><?print m()?>')
+def test_method_yearday(T):
+	assert '1' == T('<?print @(2010-01-01).yearday()?>').renders()
+	assert '366' == T('<?print @(2008-12-31).yearday()?>').renders()
+	assert '365' == T('<?print @(2010-12-31).yearday()?>').renders()
+	assert '132' == T('<?print @(2010-05-12).yearday()?>').renders()
+	assert '132' == T('<?print @(2010-05-12T16:47:56).yearday()?>').renders()
+	assert '132' == T('<?print d.yearday()?>').renders(d=datetime.date(2010, 5, 12))
+	assert '132' == T('<?print d.yearday()?>').renders(d=datetime.datetime(2010, 5, 12, 16, 47, 56))
+	assert '1' == T('<?code m = @(2010-01-01).yearday?><?print m()?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_days(r):
-	assert '1' == r('<?print timedelta(1).days()?>')
-	assert '1' == r('<?code m = timedelta(1).days?><?print m()?>')
+def test_method_days(T):
+	assert '1' == T('<?print timedelta(1).days()?>').renders()
+	assert '1' == T('<?code m = timedelta(1).days?><?print m()?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_seconds(r):
-	assert '42' == r('<?print timedelta(0, 42).seconds()?>')
-	assert '42' == r('<?code m = timedelta(0, 42).seconds?><?print m()?>')
+def test_method_seconds(T):
+	assert '42' == T('<?print timedelta(0, 42).seconds()?>').renders()
+	assert '42' == T('<?code m = timedelta(0, 42).seconds?><?print m()?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_microseconds(r):
-	assert '123000' == r('<?print timedelta(0, 0, 123000).microseconds()?>')
-	assert '123000' == r('<?code m = timedelta(0, 0, 123000).microseconds?><?print m()?>')
+def test_method_microseconds(T):
+	assert '123000' == T('<?print timedelta(0, 0, 123000).microseconds()?>').renders()
+	assert '123000' == T('<?code m = timedelta(0, 0, 123000).microseconds?><?print m()?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_months(r):
-	assert '17' == r('<?print monthdelta(17).months()?>')
-	assert '17' == r('<?code m = monthdelta(17).months?><?print m()?>')
+def test_method_months(T):
+	assert '17' == T('<?print monthdelta(17).months()?>').renders()
+	assert '17' == T('<?code m = monthdelta(17).months?><?print m()?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_append(r):
-	assert '[17, 23, 42]' == r('<?code l = [17]?><?code l.append(23, 42)?><?print l?>')
-	assert '[17, 23, 42]' == r('<?code l = [17]?><?code m = l.append?><?code m(23, 42)?><?print l?>')
+def test_method_append(T):
+	assert '[17, 23, 42]' == T('<?code l = [17]?><?code l.append(23, 42)?><?print l?>').renders()
+	assert '[17, 23, 42]' == T('<?code l = [17]?><?code m = l.append?><?code m(23, 42)?><?print l?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_insert(r):
-	assert '[1, 2, 3, 4]' == r('<?code l = [1,4]?><?code l.insert(1, 2, 3)?><?print l?>')
-	assert '[1, 2, 3, 4]' == r('<?code l = [1,4]?><?code m = l.insert?><?code m(1, 2, 3)?><?print l?>')
+def test_method_insert(T):
+	assert '[1, 2, 3, 4]' == T('<?code l = [1,4]?><?code l.insert(1, 2, 3)?><?print l?>').renders()
+	assert '[1, 2, 3, 4]' == T('<?code l = [1,4]?><?code m = l.insert?><?code m(1, 2, 3)?><?print l?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_pop(r):
-	assert '42;17;23;' == r('<?code l = [17, 23, 42]?><?print l.pop()?>;<?print l.pop(-2)?>;<?print l.pop(0)?>;')
-	assert '42;17;23;' == r('<?code l = [17, 23, 42]?><?code m = l.pop?><?print m()?>;<?print m(-2)?>;<?print m(0)?>;')
+def test_method_pop(T):
+	assert '42;17;23;' == T('<?code l = [17, 23, 42]?><?print l.pop()?>;<?print l.pop(-2)?>;<?print l.pop(0)?>;').renders()
+	assert '42;17;23;' == T('<?code l = [17, 23, 42]?><?code m = l.pop?><?print m()?>;<?print m(-2)?>;<?print m(0)?>;').renders()
 
 
 @pytest.mark.ul4
-def test_method_update(r):
-	assert '0' == r('<?code d = {}?><?code d.update()?><?print len(d)?>')
-	assert '1' == r('<?code d = {}?><?code d.update([["one", 1]])?><?print d.one?>')
-	assert '1' == r('<?code d = {}?><?code d.update({"one": 1})?><?print d.one?>')
-	assert '1' == r('<?code d = {}?><?code d.update(one=1)?><?print d.one?>')
-	assert '1' == r('<?code d = {}?><?code d.update([["one", 0]], {"one": 0}, one=1)?><?print d.one?>')
-	assert '1' == r('<?code d = {}?><?code m = d.update?><?code m(one=1)?><?print d.one?>')
+def test_method_update(T):
+	assert '0' == T('<?code d = {}?><?code d.update()?><?print len(d)?>').renders()
+	assert '1' == T('<?code d = {}?><?code d.update([["one", 1]])?><?print d.one?>').renders()
+	assert '1' == T('<?code d = {}?><?code d.update({"one": 1})?><?print d.one?>').renders()
+	assert '1' == T('<?code d = {}?><?code d.update(one=1)?><?print d.one?>').renders()
+	assert '1' == T('<?code d = {}?><?code d.update([["one", 0]], {"one": 0}, one=1)?><?print d.one?>').renders()
+	assert '1' == T('<?code d = {}?><?code m = d.update?><?code m(one=1)?><?print d.one?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_render(r):
+def test_method_render(T):
 	t = ul4c.Template('<?print prefix?><?print data?><?print suffix?>')
 
-	assert '(f)(o)(o)' == r('<?for c in data?><?code t.render(data=c, prefix="(", suffix=")")?><?end for?>', t=t, data='foo')
-	assert '(f)(o)(o)' == r('<?for c in data?><?code t.render(data=c, **{"prefix": "(", "suffix": ")"})?><?end for?>', t=t, data='foo')
-	assert '(f)(o)(o)' == r('<?code m = t.render?><?for c in data?><?code m(data=c, prefix="(", suffix=")")?><?end for?>', t=t, data='foo')
+	assert '(f)(o)(o)' == T('<?for c in data?><?code t.render(data=c, prefix="(", suffix=")")?><?end for?>').renders(t=t, data='foo')
+	assert '(f)(o)(o)' == T('<?for c in data?><?code t.render(data=c, **{"prefix": "(", "suffix": ")"})?><?end for?>').renders(t=t, data='foo')
+	assert '(f)(o)(o)' == T('<?code m = t.render?><?for c in data?><?code m(data=c, prefix="(", suffix=")")?><?end for?>').renders(t=t, data='foo')
 
 
 @pytest.mark.ul4
-def test_def(r):
-	assert 'foo' == r('<?def lower?><?print x.lower()?><?end def?><?print lower.renders(x="FOO")?>')
+def test_def(T):
+	assert 'foo' == T('<?def lower?><?print x.lower()?><?end def?><?print lower.renders(x="FOO")?>').renders()
 
 
 @pytest.mark.ul4
-def test_pass_function(r):
-	assert "&lt;" == r("<?def x?><?print xe('<')?><?end def?><?code x.render(xe=xmlescape)?>")
-	assert "&lt;" == r("<?def xe?><?return xmlescape(s)?><?end def?><?def x?><?print xe(s='<')?><?end def?><?code x.render(xe=xe)?>")
-	assert "&lt;" == r("<?def xe?><?return xmlescape(s)?><?end def?><?def x?><?print xe(s='<')?><?end def?><?code x.render()?>")
+def test_pass_function(T):
+	assert "&lt;" == T("<?def x?><?print xe('<')?><?end def?><?code x.render(xe=xmlescape)?>").renders()
+	assert "&lt;" == T("<?def xe?><?return xmlescape(s)?><?end def?><?def x?><?print xe(s='<')?><?end def?><?code x.render(xe=xe)?>").renders()
+	assert "&lt;" == T("<?def xe?><?return xmlescape(s)?><?end def?><?def x?><?print xe(s='<')?><?end def?><?code x.render()?>").renders()
 
 
 @pytest.mark.ul4
-def test_parse(r):
-	assert '42' == r('<?print data.Noner?>', data=dict(Noner=42))
+def test_parse(T):
+	assert '42' == T('<?print data.Noner?>').renders(data=dict(Noner=42))
 
 
 @pytest.mark.ul4
-def test_nested_exceptions(r):
+def test_nested_exceptions(T):
 	tmpl1 = ul4c.Template("<?print 2*x?>", "tmpl1")
 	tmpl2 = ul4c.Template("<?code tmpl1.render(x=x)?>", "tmpl2")
 	tmpl3 = ul4c.Template("<?code tmpl2.render(tmpl1=tmpl1, x=x)?>", "tmpl3")
 
 	with raises("unsupported operand type|not supported"):
-		r("<?code tmpl3.render(tmpl1=tmpl1, tmpl2=tmpl2, x=x)?>", tmpl1=tmpl1, tmpl2=tmpl2, tmpl3=tmpl3, x=None)
+		T("<?code tmpl3.render(tmpl1=tmpl1, tmpl2=tmpl2, x=x)?>").renders(tmpl1=tmpl1, tmpl2=tmpl2, tmpl3=tmpl3, x=None)
 
 
 @pytest.mark.ul4
-def test_note(r):
-	assert "foo" == r("f<?note This is?>o<?note a comment?>o")
+def test_note(T):
+	assert "foo" == T("f<?note This is?>o<?note a comment?>o").renders()
 
 
 @pytest.mark.ul4
-def test_templateattributes(r):
+def test_templateattributes(T):
 	s1 = "<?print x?>"
 	t1 = ul4c.Template(s1)
 
 	s2 = "<?printx 42?>"
 	t2 = ul4c.Template(s2)
 
-	assert "<?" == r("<?print template.startdelim?>", template=t1)
-	assert "?>" == r("<?print template.enddelim?>", template=t1)
-	assert s1 == r("<?print template.source?>", template=t1)
-	assert "1" == r("<?print len(template.content)?>", template=t1)
-	assert "print" == r("<?print template.content[0].type?>", template=t1)
-	assert s1 == r("<?print template.content[0].location.tag?>", template=t1)
-	assert "x" == r("<?print template.content[0].location.code?>", template=t1)
-	assert "var" == r("<?print template.content[0].obj.type?>", template=t1)
-	assert "x" == r("<?print template.content[0].obj.name?>", template=t1)
-	assert "printx" == r("<?print template.content[0].type?>", template=t2)
-	assert "const" == r("<?print template.content[0].obj.type?>", template=t2)
-	assert "42" == r("<?print template.content[0].obj.value?>", template=t2)
+	assert "<?" == T("<?print template.startdelim?>").renders(template=t1)
+	assert "?>" == T("<?print template.enddelim?>").renders(template=t1)
+	assert s1 == T("<?print template.source?>").renders(template=t1)
+	assert "1" == T("<?print len(template.content)?>").renders(template=t1)
+	assert "print" == T("<?print template.content[0].type?>").renders(template=t1)
+	assert s1 == T("<?print template.content[0].location.tag?>").renders(template=t1)
+	assert "x" == T("<?print template.content[0].location.code?>").renders(template=t1)
+	assert "var" == T("<?print template.content[0].obj.type?>").renders(template=t1)
+	assert "x" == T("<?print template.content[0].obj.name?>").renders(template=t1)
+	assert "printx" == T("<?print template.content[0].type?>").renders(template=t2)
+	assert "const" == T("<?print template.content[0].obj.type?>").renders(template=t2)
+	assert "42" == T("<?print template.content[0].obj.value?>").renders(template=t2)
 
 
 @pytest.mark.ul4
-def test_templateattributes_localtemplate(r):
+def test_templateattributes_localtemplate(T):
 	# This checks that template attributes work on a closure
 	source = "<?def lower?><?print t.lower()?><?end def?>"
 
-	assert source + "<?print lower.source?>" == r(source + "<?print lower.source?>")
-	assert source == r(source + "<?print lower.source[lower.location.starttag:lower.endlocation.endtag]?>")
-	assert "<?print t.lower()?>" == r(source + "<?print lower.source[lower.location.endtag:lower.endlocation.starttag]?>")
-	assert "lower" == r(source + "<?print lower.name?>")
+	assert source + "<?print lower.source?>" == T(source + "<?print lower.source?>").renders()
+	assert source == T(source + "<?print lower.source[lower.location.starttag:lower.endlocation.endtag]?>").renders()
+	assert "<?print t.lower()?>" == T(source + "<?print lower.source[lower.location.endtag:lower.endlocation.starttag]?>").renders()
+	assert "lower" == T(source + "<?print lower.name?>").renders()
 
 
 @pytest.mark.ul4
-def test_nestedscopes(r):
+def test_nestedscopes(T):
 	# Subtemplates can see the local variables from their parents
 	source = """
 	<?for i in range(3)?>
@@ -3650,7 +3539,7 @@ def test_nestedscopes(r):
 		<?code x.render()?>
 	<?end for?>
 	"""
-	assert "0!1!2!" == r(source, keepws=False)
+	assert "0!1!2!" == T(source, keepws=False).renders()
 
 	# Subtemplates see the state of the variable at the point after the ``<?def?>`` tag,
 	# so the following code will use ``i = 1`` instead of ``i = 2`` even if the subtemplate is called after the variable has been changed.
@@ -3662,7 +3551,7 @@ def test_nestedscopes(r):
 	<?code i = 2?>
 	<?code x.render()?>
 	"""
-	assert "1" == r(source, keepws=False)
+	assert "1" == T(source, keepws=False).renders()
 
 
 	# Subtemplates don't see themselves (i.e. the ``TemplateClosure`` object created for them)
@@ -3673,7 +3562,7 @@ def test_nestedscopes(r):
 	<?code y = 42?>
 	<?code x.render()?>
 	"""
-	assert "undefined;undefined" == r(source, keepws=False)
+	assert "undefined;undefined" == T(source, keepws=False).renders()
 
 	# This shows the difference between local variables and variables from the parent.
 	# ``x`` is passed to the subtemplate, so it will always be the current value instead of the one when it is defined
@@ -3699,7 +3588,7 @@ def test_nestedscopes(r):
 	<?print y?>!
 	"""
 
-	assert "45!43!44!43!43!43!" == r(source, keepws=False, x=42, y=42)
+	assert "45!43!44!43!43!43!" == T(source, keepws=False).renders(x=42, y=42)
 
 
 def universaltemplate(keepws=True):
@@ -3797,49 +3686,49 @@ def test_keepws():
 
 
 @pytest.mark.ul4
-def test_keepws_initialws(r):
-	assert " foo" == r("<?if True?> foo<?end if?>", keepws=False)
-	assert " foobar" == r("<?if True?> foo\n \tbar<?end if?>", keepws=False)
+def test_keepws_initialws(T):
+	assert " foo" == T("<?if True?> foo<?end if?>", keepws=False).renders()
+	assert " foobar" == T("<?if True?> foo\n \tbar<?end if?>", keepws=False).renders()
 
 
 @pytest.mark.ul4
-def test_keepws_nested(r):
+def test_keepws_nested(T):
 	s1 = "<?def nested1?>1n\n<?code second.render()?><?end def?>1\n<?code nested1.render(second=second)?>"
 	s2 = "<?def nested2?>2n\n<?end def?>2\n<?code nested2.render()?>"
 
-	assert "1\n1n\n22n" == r(s1, keepws=True, second=ul4c.Template(s2, keepws=False))
-	assert "11n2\n2n\n" == r(s1, keepws=False, second=ul4c.Template(s2, keepws=True))
+	assert "1\n1n\n22n" == T(s1, keepws=True).renders(second=ul4c.Template(s2, keepws=False))
+	assert "11n2\n2n\n" == T(s1, keepws=False).renders(second=ul4c.Template(s2, keepws=True))
 
 
 @pytest.mark.ul4
-def test_function(c):
-	assert 42 == c("<?return 42?>")
+def test_function(T):
+	assert 42 == T("<?return 42?>")()
 
 
 @pytest.mark.ul4
-def test_function_value(c):
-	assert 84 == c("<?return 2*x?>", x=42)
+def test_function_value(T):
+	assert 84 == T("<?return 2*x?>")(x=42)
 
 
 @pytest.mark.ul4
-def test_function_multiple_returnvalues(c):
-	assert 84 == c("<?return 2*x?><?return 3*x?>", x=42)
+def test_function_multiple_returnvalues(T):
+	assert 84 == T("<?return 2*x?><?return 3*x?>")(x=42)
 
 
 @pytest.mark.ul4
-def test_function_name(c):
-	assert "f" == c("<?def f?><?return f.name?><?end def?><?return f(f=f)?>")
+def test_function_name(T):
+	assert "f" == T("<?def f?><?return f.name?><?end def?><?return f(f=f)?>")()
 
 
 @pytest.mark.ul4
-def test_function_closure(c):
-	assert 24 == c("<?code y=3?><?def inner?><?return 2*x*y?><?end def?><?return inner(x=4)?>")
-	assert 24 == c("<?def outer?><?code y=3?><?def inner?><?return 2*x*y?><?end def?><?return inner?><?end def?><?return outer()(x=4)?>")
+def test_function_closure(T):
+	assert 24 == T("<?code y=3?><?def inner?><?return 2*x*y?><?end def?><?return inner(x=4)?>")()
+	assert 24 == T("<?def outer?><?code y=3?><?def inner?><?return 2*x*y?><?end def?><?return inner?><?end def?><?return outer()(x=4)?>")()
 
 
 @pytest.mark.ul4
-def test_return_in_template(r):
-	assert "gurk" == r("gurk<?return 42?>hurz")
+def test_return_in_template(T):
+	assert "gurk" == T("gurk<?return 42?>hurz").renders()
 
 
 @pytest.mark.ul4
@@ -3851,75 +3740,75 @@ def test_customattributes():
 			self.bar = bar
 
 	o = CustomAttributes(foo=42, bar=23)
-	assert "42" == render_python("<?print o.foo?>", o=o)
-	assert "23" == render_python("<?print o.bar?>", o=o)
-	assert "undefined" == render_python("<?print type(o.baz)?>", o=o)
-	assert "42" == render_python("<?print o['foo']?>", o=o)
-	assert "23" == render_python("<?print o['bar']?>", o=o)
-	assert "undefined" == render_python("<?print type(o['baz'])?>", o=o)
-	assert "True" == render_python("<?print 'foo' in o?>", o=o)
-	assert "True" == render_python("<?print 'bar' in o?>", o=o)
-	assert "False" == render_python("<?print 'baz' in o?>", o=o)
-	assert "[['bar', 23], ['foo', 42]]" == render_python("<?print repr(sorted(list(o.items())))?>", o=o)
-	assert "[23, 42]" == render_python("<?print repr(sorted(list(o.values())))?>", o=o)
-	assert "foo" == render_python("<?for attr in o?><?if attr == 'foo'?><?print attr?><?end if?><?end for?>", o=o)
-	assert "bar" == render_python("<?for attr in o?><?if attr == 'bar'?><?print attr?><?end if?><?end for?>", o=o)
+	assert "42" == TemplatePython("<?print o.foo?>").renders(o=o)
+	assert "23" == TemplatePython("<?print o.bar?>").renders(o=o)
+	assert "undefined" == TemplatePython("<?print type(o.baz)?>").renders(o=o)
+	assert "42" == TemplatePython("<?print o['foo']?>").renders(o=o)
+	assert "23" == TemplatePython("<?print o['bar']?>").renders(o=o)
+	assert "undefined" == TemplatePython("<?print type(o['baz'])?>").renders(o=o)
+	assert "True" == TemplatePython("<?print 'foo' in o?>").renders(o=o)
+	assert "True" == TemplatePython("<?print 'bar' in o?>").renders(o=o)
+	assert "False" == TemplatePython("<?print 'baz' in o?>").renders(o=o)
+	assert "[['bar', 23], ['foo', 42]]" == TemplatePython("<?print repr(sorted(list(o.items())))?>").renders(o=o)
+	assert "[23, 42]" == TemplatePython("<?print repr(sorted(list(o.values())))?>").renders(o=o)
+	assert "foo" == TemplatePython("<?for attr in o?><?if attr == 'foo'?><?print attr?><?end if?><?end for?>").renders(o=o)
+	assert "bar" == TemplatePython("<?for attr in o?><?if attr == 'bar'?><?print attr?><?end if?><?end for?>").renders(o=o)
 
 	o = CustomAttributes(foo=42, bar=23)
 	with raises("readonly"):
-		render_python("<?code o.foo = 43?><?print o.foo?>", o=o)
+		TemplatePython("<?code o.foo = 43?><?print o.foo?>").renders(o=o)
 	with raises("readonly"):
-		render_python("<?code o['foo'] = 43?><?print o.foo?>", o=o)
-	assert "17" == render_python("<?code o.bar = 17?><?print o.bar?>", o=o)
-	assert "17" == render_python("<?code o['bar'] = 17?><?print o.bar?>", o=o)
+		TemplatePython("<?code o['foo'] = 43?><?print o.foo?>").renders(o=o)
+	assert "17" == TemplatePython("<?code o.bar = 17?><?print o.bar?>").renders(o=o)
+	assert "17" == TemplatePython("<?code o['bar'] = 17?><?print o.bar?>").renders(o=o)
 
 	o = CustomAttributes(foo=42, bar=23)
 	with raises("readonly"):
-		render_python("<?code o.foo += 1?><?print o.foo?>", o=o)
+		TemplatePython("<?code o.foo += 1?><?print o.foo?>").renders(o=o)
 	with raises("readonly"):
-		render_python("<?code o['foo'] += 1?><?print o.foo?>", o=o)
-	assert "24" == render_python("<?code o.bar += 1?><?print o.bar?>", o=o)
-	assert "25" == render_python("<?code o['bar'] += 1?><?print o.bar?>", o=o)
+		TemplatePython("<?code o['foo'] += 1?><?print o.foo?>").renders(o=o)
+	assert "24" == TemplatePython("<?code o.bar += 1?><?print o.bar?>").renders(o=o)
+	assert "25" == TemplatePython("<?code o['bar'] += 1?><?print o.bar?>").renders(o=o)
 
 	o = CustomAttributes(foo=42, bar=23)
 	with raises("readonly"):
-		render_python("<?code o.foo -= 1?><?print o.foo?>", o=o)
+		TemplatePython("<?code o.foo -= 1?><?print o.foo?>").renders(o=o)
 	with raises("readonly"):
-		render_python("<?code o['foo'] -= 1?><?print o.foo?>", o=o)
-	assert "22" == render_python("<?code o.bar -= 1?><?print o.bar?>", o=o)
-	assert "21" == render_python("<?code o['bar'] -= 1?><?print o.bar?>", o=o)
+		TemplatePython("<?code o['foo'] -= 1?><?print o.foo?>").renders(o=o)
+	assert "22" == TemplatePython("<?code o.bar -= 1?><?print o.bar?>").renders(o=o)
+	assert "21" == TemplatePython("<?code o['bar'] -= 1?><?print o.bar?>").renders(o=o)
 
 	o = CustomAttributes(foo=42, bar=23)
 	with raises("readonly"):
-		render_python("<?code o.foo *= 2?><?print o.foo?>", o=o)
+		TemplatePython("<?code o.foo *= 2?><?print o.foo?>").renders(o=o)
 	with raises("readonly"):
-		render_python("<?code o['foo'] *= 2?><?print o.foo?>", o=o)
-	assert "46" == render_python("<?code o.bar *= 2?><?print o.bar?>", o=o)
-	assert "92" == render_python("<?code o['bar'] *= 2?><?print o.bar?>", o=o)
+		TemplatePython("<?code o['foo'] *= 2?><?print o.foo?>").renders(o=o)
+	assert "46" == TemplatePython("<?code o.bar *= 2?><?print o.bar?>").renders(o=o)
+	assert "92" == TemplatePython("<?code o['bar'] *= 2?><?print o.bar?>").renders(o=o)
 
 	o = CustomAttributes(foo=42, bar=23)
 	with raises("readonly"):
-		render_python("<?code o.foo //= 2?><?print o.foo?>", o=o)
+		TemplatePython("<?code o.foo //= 2?><?print o.foo?>").renders(o=o)
 	with raises("readonly"):
-		render_python("<?code o['foo'] //= 2?><?print o.foo?>", o=o)
-	assert "11" == render_python("<?code o.bar //= 2?><?print o.bar?>", o=o)
-	assert "5" == render_python("<?code o['bar'] //= 2?><?print o.bar?>", o=o)
+		TemplatePython("<?code o['foo'] //= 2?><?print o.foo?>").renders(o=o)
+	assert "11" == TemplatePython("<?code o.bar //= 2?><?print o.bar?>").renders(o=o)
+	assert "5" == TemplatePython("<?code o['bar'] //= 2?><?print o.bar?>").renders(o=o)
 
 	o = CustomAttributes(foo=42, bar=23)
 	with raises("readonly"):
-		render_python("<?code o.foo /= 2?><?print o.foo?>", o=o)
+		TemplatePython("<?code o.foo /= 2?><?print o.foo?>").renders(o=o)
 	with raises("readonly"):
-		render_python("<?code o['foo'] /= 2?><?print o.foo?>", o=o)
-	assert "11.5" == render_python("<?code o.bar /= 2?><?print o.bar?>", o=o)
-	assert "5.75" == render_python("<?code o['bar'] /= 2?><?print o.bar?>", o=o)
+		TemplatePython("<?code o['foo'] /= 2?><?print o.foo?>").renders(o=o)
+	assert "11.5" == TemplatePython("<?code o.bar /= 2?><?print o.bar?>").renders(o=o)
+	assert "5.75" == TemplatePython("<?code o['bar'] /= 2?><?print o.bar?>").renders(o=o)
 
 	o = CustomAttributes(foo=42, bar=23)
 	with raises("readonly"):
-		render_python("<?code o.foo %= 2?><?print o.foo?>", o=o)
+		TemplatePython("<?code o.foo %= 2?><?print o.foo?>").renders(o=o)
 	with raises("readonly"):
-		render_python("<?code o['foo'] %= 2?><?print o.foo?>", o=o)
-	assert "3" == render_python("<?code o.bar %= 10?><?print o.bar?>", o=o)
-	assert "1" == render_python("<?code o['bar'] %= 2?><?print o.bar?>", o=o)
+		TemplatePython("<?code o['foo'] %= 2?><?print o.foo?>").renders(o=o)
+	assert "3" == TemplatePython("<?code o.bar %= 10?><?print o.bar?>").renders(o=o)
+	assert "1" == TemplatePython("<?code o['bar'] %= 2?><?print o.bar?>").renders(o=o)
 
 
 @pytest.mark.ul4
@@ -3940,101 +3829,101 @@ def test_custommethods():
 			pass
 
 	o = CustomMethod()
-	assert "42" == render_python("<?print o.foo()?>", o=o)
-	assert "gurkhurz42" == render_python("<?print o.bar()?>", o=o)
+	assert "42" == TemplatePython("<?print o.foo()?>").renders(o=o)
+	assert "gurkhurz42" == TemplatePython("<?print o.bar()?>").renders(o=o)
 	with raises("baz"):
-		render_python("<?print o.baz()?>", o=o)
+		TemplatePython("<?print o.baz()?>").renders(o=o)
 
 
 @pytest.mark.ul4
-def test_keyword_evaluation_order(r):
-	assert "12;" == r("<?def t?><?print x?>;<?print y?><?end def?><?code t.render(x=print(1), y=print(2))?>")
-	assert "21;" == r("<?def t?><?print x?>;<?print y?><?end def?><?code t.render(y=print(2), x=print(1))?>")
+def test_keyword_evaluation_order(T):
+	assert "12;" == T("<?def t?><?print x?>;<?print y?><?end def?><?code t.render(x=print(1), y=print(2))?>").renders()
+	assert "21;" == T("<?def t?><?print x?>;<?print y?><?end def?><?code t.render(y=print(2), x=print(1))?>").renders()
 
 
 @pytest.mark.ul4
-def test_setlvalue(r):
-	assert "bar" == r("<?code d = {}?><?code d.foo = 'bar'?><?print d.foo?>")
-	assert "bar" == r("<?code d = {}?><?code d['foo'] = 'bar'?><?print d['foo']?>")
-	assert "bar" == r("<?code d = ['bar']?><?code d[0] = 'bar'?><?print d[0]?>")
-	assert "baz" == r("<?code d = {'foo': {}}?><?code d.foo.bar = 'baz'?><?print d.foo.bar?>")
-	assert "baz" == r("<?code d = {'foo': {}}?><?code d.foo['bar'] = 'baz'?><?print d.foo['bar']?>")
-	assert "baz" == r("<?code d = {'foo': ['bar']}?><?code d.foo[0] = 'baz'?><?print d.foo[0]?>")
-	assert "baz" == r("<?code d = ['bar']?><?def f?><?return d?><?end def?><?code f()[0] = 'baz'?><?print d[0]?>")
+def test_setlvalue(T):
+	assert "bar" == T("<?code d = {}?><?code d.foo = 'bar'?><?print d.foo?>").renders()
+	assert "bar" == T("<?code d = {}?><?code d['foo'] = 'bar'?><?print d['foo']?>").renders()
+	assert "bar" == T("<?code d = ['bar']?><?code d[0] = 'bar'?><?print d[0]?>").renders()
+	assert "baz" == T("<?code d = {'foo': {}}?><?code d.foo.bar = 'baz'?><?print d.foo.bar?>").renders()
+	assert "baz" == T("<?code d = {'foo': {}}?><?code d.foo['bar'] = 'baz'?><?print d.foo['bar']?>").renders()
+	assert "baz" == T("<?code d = {'foo': ['bar']}?><?code d.foo[0] = 'baz'?><?print d.foo[0]?>").renders()
+	assert "baz" == T("<?code d = ['bar']?><?def f?><?return d?><?end def?><?code f()[0] = 'baz'?><?print d[0]?>").renders()
 
 
 @pytest.mark.ul4
-def test_addlvalue(r):
-	assert "barbaz" == r("<?code d = {'foo': 'bar'}?><?code d.foo += 'baz'?><?print d.foo?>")
-	assert "barbaz" == r("<?code d = {'foo': 'bar'}?><?code d['foo'] += 'baz'?><?print d['foo']?>")
-	assert "barbaz" == r("<?code d = ['bar']?><?code d[0] += 'baz'?><?print d[0]?>")
-	assert "barbaz" == r("<?code d = {'foo': {'bar' : 'bar'}}?><?code d.foo.bar += 'baz'?><?print d.foo.bar?>")
-	assert "barbaz" == r("<?code d = {'foo': {'bar' : 'bar'}}?><?code d.foo['bar'] += 'baz'?><?print d.foo['bar']?>")
-	assert "barbaz" == r("<?code d = {'foo': ['bar']}?><?code d.foo[0] += 'baz'?><?print d.foo[0]?>")
-	assert "barbaz" == r("<?code d = ['bar']?><?def f?><?return d?><?end def?><?code f()[0] += 'baz'?><?print d[0]?>")
-	assert "[1, 2, 3, 4][1, 2, 3, 4]" == r("<?code d = {'foo': [1, 2]}?><?code l = d.foo?><?code d.foo += [3, 4]?><?print d.foo?><?print l?>")
+def test_addlvalue(T):
+	assert "barbaz" == T("<?code d = {'foo': 'bar'}?><?code d.foo += 'baz'?><?print d.foo?>").renders()
+	assert "barbaz" == T("<?code d = {'foo': 'bar'}?><?code d['foo'] += 'baz'?><?print d['foo']?>").renders()
+	assert "barbaz" == T("<?code d = ['bar']?><?code d[0] += 'baz'?><?print d[0]?>").renders()
+	assert "barbaz" == T("<?code d = {'foo': {'bar' : 'bar'}}?><?code d.foo.bar += 'baz'?><?print d.foo.bar?>").renders()
+	assert "barbaz" == T("<?code d = {'foo': {'bar' : 'bar'}}?><?code d.foo['bar'] += 'baz'?><?print d.foo['bar']?>").renders()
+	assert "barbaz" == T("<?code d = {'foo': ['bar']}?><?code d.foo[0] += 'baz'?><?print d.foo[0]?>").renders()
+	assert "barbaz" == T("<?code d = ['bar']?><?def f?><?return d?><?end def?><?code f()[0] += 'baz'?><?print d[0]?>").renders()
+	assert "[1, 2, 3, 4][1, 2, 3, 4]" == T("<?code d = {'foo': [1, 2]}?><?code l = d.foo?><?code d.foo += [3, 4]?><?print d.foo?><?print l?>").renders()
 
 
 @pytest.mark.ul4
-def test_sublvalue(r):
-	assert "6" == r("<?code d = {'foo': 23}?><?code d.foo -= 17?><?print d.foo?>")
-	assert "6" == r("<?code d = {'foo': 23}?><?code d['foo'] -= 17?><?print d['foo']?>")
-	assert "6" == r("<?code d = [23]?><?code d[0] -= 17?><?print d[0]?>")
-	assert "6" == r("<?code d = {'foo': {'bar' : 23}}?><?code d.foo.bar -= 17?><?print d.foo.bar?>")
-	assert "6" == r("<?code d = {'foo': {'bar' : 23}}?><?code d.foo['bar'] -= 17?><?print d.foo['bar']?>")
-	assert "6" == r("<?code d = {'foo': [23]}?><?code d.foo[0] -= 17?><?print d.foo[0]?>")
-	assert "6" == r("<?code d = [23]?><?def f?><?return d?><?end def?><?code f()[0] -= 17?><?print d[0]?>")
+def test_sublvalue(T):
+	assert "6" == T("<?code d = {'foo': 23}?><?code d.foo -= 17?><?print d.foo?>").renders()
+	assert "6" == T("<?code d = {'foo': 23}?><?code d['foo'] -= 17?><?print d['foo']?>").renders()
+	assert "6" == T("<?code d = [23]?><?code d[0] -= 17?><?print d[0]?>").renders()
+	assert "6" == T("<?code d = {'foo': {'bar' : 23}}?><?code d.foo.bar -= 17?><?print d.foo.bar?>").renders()
+	assert "6" == T("<?code d = {'foo': {'bar' : 23}}?><?code d.foo['bar'] -= 17?><?print d.foo['bar']?>").renders()
+	assert "6" == T("<?code d = {'foo': [23]}?><?code d.foo[0] -= 17?><?print d.foo[0]?>").renders()
+	assert "6" == T("<?code d = [23]?><?def f?><?return d?><?end def?><?code f()[0] -= 17?><?print d[0]?>").renders()
 
 
 @pytest.mark.ul4
-def test_mullvalue(r):
-	assert "42" == r("<?code d = {'foo': 6}?><?code d.foo *= 7?><?print d.foo?>")
-	assert "42" == r("<?code d = {'foo': 6}?><?code d['foo'] *= 7?><?print d['foo']?>")
-	assert "42" == r("<?code d = [6]?><?code d[0] *= 7?><?print d[0]?>")
-	assert "42" == r("<?code d = {'foo': {'bar' : 6}}?><?code d.foo.bar *= 7?><?print d.foo.bar?>")
-	assert "42" == r("<?code d = {'foo': {'bar' : 6}}?><?code d.foo['bar'] *= 7?><?print d.foo['bar']?>")
-	assert "42" == r("<?code d = {'foo': [6]}?><?code d.foo[0] *= 7?><?print d.foo[0]?>")
-	assert "42" == r("<?code d = [6]?><?def f?><?return d?><?end def?><?code f()[0] *= 7?><?print d[0]?>")
-	assert "[1, 2, 1, 2][1, 2, 1, 2]" == r("<?code d = {'foo': [1, 2]}?><?code l = d.foo?><?code d.foo *= 2?><?print d.foo?><?print l?>")
+def test_mullvalue(T):
+	assert "42" == T("<?code d = {'foo': 6}?><?code d.foo *= 7?><?print d.foo?>").renders()
+	assert "42" == T("<?code d = {'foo': 6}?><?code d['foo'] *= 7?><?print d['foo']?>").renders()
+	assert "42" == T("<?code d = [6]?><?code d[0] *= 7?><?print d[0]?>").renders()
+	assert "42" == T("<?code d = {'foo': {'bar' : 6}}?><?code d.foo.bar *= 7?><?print d.foo.bar?>").renders()
+	assert "42" == T("<?code d = {'foo': {'bar' : 6}}?><?code d.foo['bar'] *= 7?><?print d.foo['bar']?>").renders()
+	assert "42" == T("<?code d = {'foo': [6]}?><?code d.foo[0] *= 7?><?print d.foo[0]?>").renders()
+	assert "42" == T("<?code d = [6]?><?def f?><?return d?><?end def?><?code f()[0] *= 7?><?print d[0]?>").renders()
+	assert "[1, 2, 1, 2][1, 2, 1, 2]" == T("<?code d = {'foo': [1, 2]}?><?code l = d.foo?><?code d.foo *= 2?><?print d.foo?><?print l?>").renders()
 
 
 @pytest.mark.ul4
-def test_floordivlvalue(r):
-	assert "2" == r("<?code d = {'foo': 5}?><?code d.foo //= 2?><?print d.foo?>")
-	assert "2" == r("<?code d = {'foo': 5}?><?code d['foo'] //= 2?><?print d['foo']?>")
-	assert "2" == r("<?code d = [5]?><?code d[0] //= 2?><?print d[0]?>")
-	assert "2" == r("<?code d = {'foo': {'bar' : 5}}?><?code d.foo.bar //= 2?><?print d.foo.bar?>")
-	assert "2" == r("<?code d = {'foo': {'bar' : 5}}?><?code d.foo['bar'] //= 2?><?print d.foo['bar']?>")
-	assert "2" == r("<?code d = {'foo': [5]}?><?code d.foo[0] //= 2?><?print d.foo[0]?>")
-	assert "2" == r("<?code d = [5]?><?def f?><?return d?><?end def?><?code f()[0] //= 2?><?print d[0]?>")
+def test_floordivlvalue(T):
+	assert "2" == T("<?code d = {'foo': 5}?><?code d.foo //= 2?><?print d.foo?>").renders()
+	assert "2" == T("<?code d = {'foo': 5}?><?code d['foo'] //= 2?><?print d['foo']?>").renders()
+	assert "2" == T("<?code d = [5]?><?code d[0] //= 2?><?print d[0]?>").renders()
+	assert "2" == T("<?code d = {'foo': {'bar' : 5}}?><?code d.foo.bar //= 2?><?print d.foo.bar?>").renders()
+	assert "2" == T("<?code d = {'foo': {'bar' : 5}}?><?code d.foo['bar'] //= 2?><?print d.foo['bar']?>").renders()
+	assert "2" == T("<?code d = {'foo': [5]}?><?code d.foo[0] //= 2?><?print d.foo[0]?>").renders()
+	assert "2" == T("<?code d = [5]?><?def f?><?return d?><?end def?><?code f()[0] //= 2?><?print d[0]?>").renders()
 
 
 @pytest.mark.ul4
-def test_truedivlvalue(r):
-	assert "2.5" == r("<?code d = {'foo': 5}?><?code d.foo /= 2?><?print d.foo?>")
-	assert "2.5" == r("<?code d = {'foo': 5}?><?code d['foo'] /= 2?><?print d['foo']?>")
-	assert "2.5" == r("<?code d = [5]?><?code d[0] /= 2?><?print d[0]?>")
-	assert "2.5" == r("<?code d = {'foo': {'bar' : 5}}?><?code d.foo.bar /= 2?><?print d.foo.bar?>")
-	assert "2.5" == r("<?code d = {'foo': {'bar' : 5}}?><?code d.foo['bar'] /= 2?><?print d.foo['bar']?>")
-	assert "2.5" == r("<?code d = {'foo': [5]}?><?code d.foo[0] /= 2?><?print d.foo[0]?>")
-	assert "2.5" == r("<?code d = [5]?><?def f?><?return d?><?end def?><?code f()[0] /= 2?><?print d[0]?>")
+def test_truedivlvalue(T):
+	assert "2.5" == T("<?code d = {'foo': 5}?><?code d.foo /= 2?><?print d.foo?>").renders()
+	assert "2.5" == T("<?code d = {'foo': 5}?><?code d['foo'] /= 2?><?print d['foo']?>").renders()
+	assert "2.5" == T("<?code d = [5]?><?code d[0] /= 2?><?print d[0]?>").renders()
+	assert "2.5" == T("<?code d = {'foo': {'bar' : 5}}?><?code d.foo.bar /= 2?><?print d.foo.bar?>").renders()
+	assert "2.5" == T("<?code d = {'foo': {'bar' : 5}}?><?code d.foo['bar'] /= 2?><?print d.foo['bar']?>").renders()
+	assert "2.5" == T("<?code d = {'foo': [5]}?><?code d.foo[0] /= 2?><?print d.foo[0]?>").renders()
+	assert "2.5" == T("<?code d = [5]?><?def f?><?return d?><?end def?><?code f()[0] /= 2?><?print d[0]?>").renders()
 
 
 @pytest.mark.ul4
-def test_truedivlvalue(r):
-	assert "1" == r("<?code d = {'foo': 5}?><?code d.foo %= 2?><?print d.foo?>")
-	assert "1" == r("<?code d = {'foo': 5}?><?code d['foo'] %= 2?><?print d['foo']?>")
-	assert "1" == r("<?code d = [5]?><?code d[0] %= 2?><?print d[0]?>")
-	assert "1" == r("<?code d = {'foo': {'bar' : 5}}?><?code d.foo.bar %= 2?><?print d.foo.bar?>")
-	assert "1" == r("<?code d = {'foo': {'bar' : 5}}?><?code d.foo['bar'] %= 2?><?print d.foo['bar']?>")
-	assert "1" == r("<?code d = {'foo': [5]}?><?code d.foo[0] %= 2?><?print d.foo[0]?>")
-	assert "1" == r("<?code d = [5]?><?def f?><?return d?><?end def?><?code f()[0] %= 2?><?print d[0]?>")
+def test_truedivlvalue(T):
+	assert "1" == T("<?code d = {'foo': 5}?><?code d.foo %= 2?><?print d.foo?>").renders()
+	assert "1" == T("<?code d = {'foo': 5}?><?code d['foo'] %= 2?><?print d['foo']?>").renders()
+	assert "1" == T("<?code d = [5]?><?code d[0] %= 2?><?print d[0]?>").renders()
+	assert "1" == T("<?code d = {'foo': {'bar' : 5}}?><?code d.foo.bar %= 2?><?print d.foo.bar?>").renders()
+	assert "1" == T("<?code d = {'foo': {'bar' : 5}}?><?code d.foo['bar'] %= 2?><?print d.foo['bar']?>").renders()
+	assert "1" == T("<?code d = {'foo': [5]}?><?code d.foo[0] %= 2?><?print d.foo[0]?>").renders()
+	assert "1" == T("<?code d = [5]?><?def f?><?return d?><?end def?><?code f()[0] %= 2?><?print d[0]?>").renders()
 
 
 @pytest.mark.ul4
-def test_endless_recursion(r):
+def test_endless_recursion(T):
 	with raises("maximum recursion depth exceeded|Maximum call stack size exceeded|too much recursion|StackOverflowError"):
-		r("""
+		T("""
 			<?def f?>
 				<?for child in container?>
 					<?code f(f=f, container=container)?>
@@ -4042,12 +3931,56 @@ def test_endless_recursion(r):
 			<?end def?>
 			<?code x = []?>
 			<?code x.append(x)?><?code f(f=f, container=x)?>
-		""")
+		""").renders()
 
 
 @pytest.mark.ul4
-def test_not_containment_precedence(r):
-	assert "True" == r("<?print not 'x' in 'gurk'?>")
+def test_not_containment_precedence(T):
+	assert "True" == T("<?print not 'x' in 'gurk'?>").renders()
+
+
+@pytest.mark.ul4
+def test_function_signature(T):
+	assert 42 == T("<?return x?>", signature="x")(x=42)
+
+	with raises("required argument x \\(position 0\\) missing|'x' parameter lacking default value"):
+		T("<?return x?>", signature="x")()
+
+	with raises("doesn't support an argument named \"y\"|too many keyword arguments"):
+		T("<?return x?>", signature="x")(x=17, y=23)
+
+
+@pytest.mark.ul4
+def test_function_signature_default(T):
+	assert 42 == T("<?return x?>", signature="x=42")()
+
+
+@pytest.mark.ul4
+def test_function_signature_args(T):
+	# Calling a template with position arguments only works in Python (of course, inside a template this works in all implementations)
+	if T in (TemplatePython, TemplatePythonDumpS, TemplatePythonDump):
+		assert 40 == T("<?return sum(args)?>", signature="*args")(17, 23)
+
+
+@pytest.mark.ul4
+def test_function_signature_kwargs(T):
+	assert 40 == T("<?return sum(kwargs.values())?>", signature="**kwargs")(x=17, y=23)
+
+
+@pytest.mark.ul4
+def test_template_signature(T):
+	assert "42" == T("<?print x?>", signature="x").renders(x=42)
+
+	with raises("required argument x \\(position 0\\) missing|'x' parameter lacking default value"):
+		T("<?print x?>", signature="x").renders()
+
+	with raises("doesn't support an argument named \"y\"|too many keyword arguments"):
+		T("<?print x?>", signature="x").renders(x=17, y=23)
+
+
+@pytest.mark.ul4
+def test_template_signature_default(T):
+	assert "42" == T("<?print x?>", signature="x=42").renders()
 
 
 @pytest.mark.ul4
@@ -4063,21 +3996,21 @@ def test_javasource():
 
 
 @pytest.mark.ul4
-def test_attr_if(r):
+def test_attr_if(T):
 	cond = ul4.attr_if(html.a("gu'\"rk"), cond="cond")
 
 	s = html.div(class_=cond).conv().string()
-	assert '<div></div>' == r(s, cond=False)
-	assert '''<div class="gu'&quot;rk"></div>''' == r(s, cond=True)
+	assert '<div></div>' == T(s).renders(cond=False)
+	assert '''<div class="gu'&quot;rk"></div>''' == T(s).renders(cond=True)
 
 	s = html.div(class_=(cond, "hurz")).conv().string()
-	assert '<div class="hurz"></div>' == r(s, cond=False)
-	assert '''<div class="gu'&quot;rkhurz"></div>''' == r(s, cond=True)
+	assert '<div class="hurz"></div>' == T(s).renders(cond=False)
+	assert '''<div class="gu'&quot;rkhurz"></div>''' == T(s).renders(cond=True)
 
 	s = cond.conv().string()
-	assert '' == r(s, cond=False)
-	assert '''<a>gu'"rk</a>''' == r(s, cond=True)
+	assert '' == T(s).renders(cond=False)
+	assert '''<a>gu'"rk</a>''' == T(s).renders(cond=True)
 
 	s = html.ul(compact=ul4.attr_if(True, cond="cond")).conv().string()
-	assert '<ul></ul>' == r(s, cond=False)
-	assert '''<ul compact="compact"></ul>''' == r(s, cond=True)
+	assert '<ul></ul>' == T(s).renders(cond=False)
+	assert '''<ul compact="compact"></ul>''' == T(s).renders(cond=True)
