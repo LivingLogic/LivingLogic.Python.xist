@@ -626,7 +626,7 @@ expr_or returns [node]
 	;
 
 /* If expression operator */
-expr_if returns [AST node]
+expr_if returns [node]
 	:
 		e1=expr_or { $node = $e1.node; }
 		(
