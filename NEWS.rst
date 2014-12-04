@@ -1,6 +1,9 @@
 Changes in 5.13 (released ??/??/2014)
 -------------------------------------
 
+*	UL4 templates now support signatures. Signatures can be used for top level
+	templates and for subtemplates.
+
 *	The option :option:`setproctitle` for sisyphus jobs has been renamed to
 	:option:`proctitle`. The new method :meth:`setproctitle` sets the process
 	title and can be used to customize setting the process title.

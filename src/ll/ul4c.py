@@ -2732,12 +2732,12 @@ class Template(Block):
 	Rendering the template can be done with the methods :meth:`render` (which
 	is a generator) or :meth:`renders` (which returns a string).
 
-	A :class:`Template` object is itself an AST node. Evaluating it will store
-	the template object under its name in the local variables.
-
 	A :class:`Template` can also be called as a function (returning the result
 	of the first ``<?return?>`` tag encountered. In this case all output of the
 	template will be ignored.
+
+	A :class:`Template` object is itself an AST node. Evaluating it will store
+	the template object under its name in the local variables.
 	"""
 	ul4attrs = Block.ul4attrs.union({"source", "name", "keepws", "startdelim", "enddelim", "render", "renders"})
 
