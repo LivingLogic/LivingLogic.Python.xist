@@ -741,3 +741,15 @@ signature returns [node]
 	)
 	close=')' { $node.end = self.end($close) }
 ;
+
+
+/* Additional rules for "def" tag */
+
+definition returns [node]
+	:
+		n=name { $node = ($n.text, None); }
+		(
+			sig=signature { $node = ($node[0], $signature.node); }
+		)?
+		EOF
+	;

@@ -248,7 +248,6 @@ class UndefinedIndex(Undefined):
 ### Helper functions
 ###
 
-
 def _handleeval(f):
 	"""
 	Decorator for each implementation of the :meth:`eval` method.
@@ -300,6 +299,45 @@ def _unpackvar(lvalue, value):
 			raise TypeError("need {} value{} to unpack".format(len(lvalue), "s" if len(lvalue) != 1 else ""))
 		for (lvalue, value) in zip(lvalue, value):
 			yield from _unpackvar(lvalue, value)
+
+
+def _resultfromgenerator(iter):
+	"""
+	Exhaust a generator and return it return value
+	"""
+	try:
+		while True:
+			next(iter)
+	except StopIteration as ex:
+		return ex.value
+
+
+def _makevars(signature, args, kwargs):
+	"""
+	Bind :obj:`args` and :obj:`kwargs` to the :class:`inspect.Signature` object
+	:obj:`signature` and return the resulting argument dictionary.
+
+	:obj:`signature` may also be ``None`` in which case :obj:`args` must be empty
+	and :obj:kwargs is returned, i.e. the signature is treaded als accepting no
+	positional argument and any keyword argument.
+	"""
+	if signature is None:
+		if args:
+			raise TypeError("positional arguments not supported")
+		return kwargs
+	else:
+		vars = signature.bind(*args, **kwargs)
+
+		for param in signature.parameters.values():
+			if param.name not in vars.arguments:
+				if param.kind is inspect.Parameter.VAR_POSITIONAL:
+					default = ()
+				elif param.kind is inspect.Parameter.VAR_KEYWORD:
+					default = {}
+				else:
+					default = param.default
+				vars.arguments[param.name] = default
+		return vars.arguments
 
 
 def _str(obj=""):
@@ -2802,12 +2840,7 @@ class Template(Block):
 			signature = "({})".format(signature)
 			location = Location(self, signature, None, 0, len(signature), 0, len(signature))
 			ast = self._parsesignature(location)
-			gen = ast.eval({})
-			try:
-				while True:
-					output = next(gen)
-			except StopIteration as ex:
-				signature = ex.value
+			signature = _resultfromgenerator(ast.eval({}))
 		self.signature = signature
 
 		# If we have source code compile it
@@ -2972,18 +3005,12 @@ class Template(Block):
 		from ll import ul4on
 		return ul4on.dumps(self)
 
-	def _makevars(self, args, kwargs):
-		if self.signature is None:
-			if args:
-				raise TypeError("positional arguments no supported")
-			return kwargs
-		else:
-			vars = self.signature.bind(*args, **kwargs)
-
-			for param in self.signature.parameters.values():
-				if param.name not in vars.arguments:
-					vars.arguments[param.name] = param.default
-			return vars.arguments
+	def _renderbound(self, vars):
+		# Helper method used by :meth:`render` and :meth:`TemplateClosure.render` where arguments have already been bound
+		try:
+			yield from super().eval(vars) # Bypass ``self.eval()`` which simply stores the object as a local variable
+		except ReturnException:
+			pass
 
 	@generator
 	def render(self, *args, **kwargs):
@@ -2992,9 +3019,13 @@ class Template(Block):
 		:obj:`args` and :obj:`kwargs` contain the top level variables available
 		to the template code.
 		"""
-		vars = self._makevars(args, kwargs)
+		vars = _makevars(self.signature, args, kwargs)
+		return self._renderbound(vars)
+
+	def _rendersbound(self, vars):
+		# Helper method used by :meth:`renders` and :meth:`TemplateClosure.renders` where arguments have already been bound
 		try:
-			yield from super().eval(vars) # Bypass ``self.eval()`` which simply stores the object as a local variable
+			return "".join(self._renderbound(vars))
 		except ReturnException:
 			pass
 
@@ -3003,19 +3034,24 @@ class Template(Block):
 		Render the template as a string. :obj:`vars` contains the top level
 		variables available to the template code.
 		"""
-		return "".join(self.render(*args, **kwargs))
+		vars = _makevars(self.signature, args, kwargs)
+		return self._rendersbound(vars)
+
+	def _callbound(self, vars):
+		# Helper method used by :meth:`__call__` and :meth:`TemplateClosure.__call__` where arguments have already been bound
+		try:
+			for output in super().eval(vars): # Bypass ``self.eval()`` which simply stores the object as a local variable
+				pass # Ignore all output
+		except ReturnException as ex:
+			return ex.value
 
 	def __call__(self, *args, **kwargs):
 		"""
 		Call the template as a function and return the resulting value.
 		:obj:`vars` contains the top level variables available to the template code.
 		"""
-		vars = self._makevars(args, kwargs)
-		try:
-			for output in super().eval(vars): # Bypass ``self.eval()`` which simply stores the object as a local variable
-				pass # Ignore all output
-		except ReturnException as ex:
-			return ex.value
+		vars = _makevars(self.signature, args, kwargs)
+		return self._callbound(vars)
 
 	def jssource(self):
 		"""
@@ -3094,6 +3130,9 @@ class Template(Block):
 		def parsefor(location):
 			return self._parser(location, "loop expression required").for_()
 
+		def parsedef(location):
+			return self._parser(location, "definition required").definition()
+
 		for location in self._tokenize(source, startdelim, enddelim):
 			try:
 				if location.type is None:
@@ -3167,7 +3206,8 @@ class Template(Block):
 							raise BlockError("continue outside of for loop")
 					stack[-1].append(Continue(location, location.startcode, location.endcode))
 				elif location.type == "def":
-					block = Template(None, location.code, self.keepws, self.startdelim, self.enddelim)
+					(name, signature) = parsedef(location)
+					block = Template(None, name, keepws=self.keepws, startdelim=self.startdelim, enddelim=self.enddelim, signature=signature)
 					block.location = location # Set start ``location`` of sub template
 					block.source = self.source # The source of the top level template (so that the offsets in :class:`Location` are correct)
 					block.start = location.startcode
@@ -3188,8 +3228,11 @@ class Template(Block):
 
 	@_handleeval
 	def eval(self, vars):
-		yield from ()
-		vars[self.name] = TemplateClosure(self, vars)
+		signature = self.signature
+		# If our signature is an AST, we have the evaluate it to get the final :class:`inspect.Signature` object
+		if isinstance(signature, Signature):
+			signature = yield from signature.eval(vars)
+		vars[self.name] = TemplateClosure(self, vars, signature)
 
 
 ###
@@ -3827,22 +3870,32 @@ def function_pow(x, y):
 
 
 class TemplateClosure:
-	ul4attrs = {"location", "endlocation", "name", "source", "startdelim", "enddelim", "content", "render", "renders"}
+	ul4attrs = {"location", "endlocation", "name", "source", "startdelim", "enddelim", "signature", "content", "render", "renders"}
 
-	def __init__(self, template, vars):
+	def __init__(self, template, vars, signature):
 		self.template = template
 		# Freeze variables of the currently running templates/functions
 		self.vars = vars.copy()
+		self.signature = signature
 
 	@generator
-	def render(self, **vars):
-		yield from self.template.render(**collections.ChainMap(vars, self.vars))
+	def render(self, *args, **kwargs):
+		vars = _makevars(self.signature, args, kwargs)
+		# Call :meth:`_renderbound` to bypass binding the arguments again
+		# (which wouldn't work anyway as ``self.template.signature`` is an :class:`AST` object)
+		yield from self.template._renderbound(collections.ChainMap(vars, self.vars))
 
-	def renders(self, **vars):
-		return self.template.renders(**collections.ChainMap(vars, self.vars))
+	def renders(self, *args, **kwargs):
+		vars = _makevars(self.signature, args, kwargs)
+		# Call :meth:`_rendersbound` to bypass binding the arguments again
+		# (which wouldn't work anyway as ``self.template.signature`` is an :class:`AST` object)
+		return self.template._rendersbound(collections.ChainMap(vars, self.vars))
 
-	def __call__(self, **vars):
-		return self.template(**collections.ChainMap(vars, self.vars))
+	def __call__(self, *args, **kwargs):
+		vars = _makevars(self.signature, args, kwargs)
+		# Call :meth:`_callbound` to bypass binding the arguments again
+		# (which wouldn't work anyway as ``self.template.signature`` is an :class:`AST` object)
+		return self.template._callbound(collections.ChainMap(vars, self.vars))
 
 	def __getattr__(self, name):
 		return getattr(self.template, name)
@@ -3853,6 +3906,8 @@ class TemplateClosure:
 			s += " startdelim={0.startdelim!r}".format(self)
 		if self.enddelim != "?>":
 			s += " enddelim={0.enddelim!r}".format(self)
+		if self.signature is not None:
+			s += " {}".format(self.signature)
 		if self.content:
 			s + " ..."
 		return s + " at {:#x}>".format(id(self))
@@ -3876,6 +3931,9 @@ class TemplateClosure:
 					p.breakable()
 					p.text("enddelim=")
 					p.pretty(self.enddelim)
+				if self.signature is not None:
+					p.breakable()
+					p.text("signature={}".format(self.signature))
 				for node in self.content:
 					p.breakable()
 					p.pretty(node)

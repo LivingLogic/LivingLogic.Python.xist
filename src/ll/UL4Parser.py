@@ -1,4 +1,4 @@
-# $ANTLR 3.5 src/ll/UL4.g 2014-11-16 14:50:13
+# $ANTLR 3.5 src/ll/UL4.g 2014-12-04 16:45:10
 
 import sys
 from antlr3 import *
@@ -5962,6 +5962,71 @@ class UL4Parser(Parser):
 
     # $ANTLR end "signature"
 
+
+
+    # $ANTLR start "definition"
+    # src/ll/UL4.g:748:1: definition returns [node] : n= name (sig= signature )? EOF ;
+    def definition(self, ):
+        node = None
+
+
+        n = None
+        sig = None
+
+        try:
+            try:
+                # src/ll/UL4.g:749:2: (n= name (sig= signature )? EOF )
+                # src/ll/UL4.g:750:3: n= name (sig= signature )? EOF
+                pass 
+                self._state.following.append(self.FOLLOW_name_in_definition3953)
+                n = self.name()
+
+                self._state.following.pop()
+
+                if self._state.backtracking == 0:
+                    pass
+                    node =  (((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], None) 
+
+
+
+                # src/ll/UL4.g:751:3: (sig= signature )?
+                alt68 = 2
+                LA68_0 = self.input.LA(1)
+
+                if (LA68_0 == 32) :
+                    alt68 = 1
+                if alt68 == 1:
+                    # src/ll/UL4.g:752:4: sig= signature
+                    pass 
+                    self._state.following.append(self.FOLLOW_signature_in_definition3966)
+                    sig = self.signature()
+
+                    self._state.following.pop()
+
+                    if self._state.backtracking == 0:
+                        pass
+                        node =  (node[0], sig) 
+
+
+
+
+
+
+                self.match(self.input, EOF, self.FOLLOW_EOF_in_definition3977)
+
+
+
+
+                       
+            except RecognitionException as e:
+                raise
+
+        finally:
+            pass
+        return node
+
+    # $ANTLR end "definition"
+
     # $ANTLR start "synpred24_UL4"
     def synpred24_UL4_fragment(self, ):
         e_list = None
@@ -7239,6 +7304,9 @@ class UL4Parser(Parser):
     FOLLOW_name_in_signature3909 = frozenset([33, 39])
     FOLLOW_39_in_signature3920 = frozenset([33])
     FOLLOW_33_in_signature3929 = frozenset([1])
+    FOLLOW_name_in_definition3953 = frozenset([32])
+    FOLLOW_signature_in_definition3966 = frozenset([])
+    FOLLOW_EOF_in_definition3977 = frozenset([1])
     FOLLOW_list_in_synpred24_UL41684 = frozenset([1])
     FOLLOW_listcomprehension_in_synpred25_UL41693 = frozenset([1])
     FOLLOW_set_in_synpred26_UL41702 = frozenset([1])
