@@ -1,4 +1,4 @@
-# $ANTLR 3.5 src/ll/UL4.g 2014-10-23 14:53:09
+# $ANTLR 3.5 src/ll/UL4.g 2014-11-16 14:50:13
 
 import sys
 from antlr3 import *
@@ -3810,7 +3810,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "expr_if"
-    # src/ll/UL4.g:629:1: expr_if returns [AST node] : e1= expr_or ( 'if' e2= expr_or 'else' e3= expr_or )? ;
+    # src/ll/UL4.g:629:1: expr_if returns [node] : e1= expr_or ( 'if' e2= expr_or 'else' e3= expr_or )? ;
     def expr_if(self, ):
         node = None
 
@@ -5466,6 +5466,502 @@ class UL4Parser(Parser):
 
     # $ANTLR end "statement"
 
+
+
+    # $ANTLR start "signature"
+    # src/ll/UL4.g:682:1: signature returns [node] : open= '(' (| '**' rkwargsname= name ( ',' )? | '*' rargsname= name ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name '=' adefault1= exprarg ( ',' aname2= name '=' adefault2= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name ( ',' aname2= name )* ( ',' aname3= name '=' adefault3= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? ) close= ')' ;
+    def signature(self, ):
+        node = None
+
+
+        open = None
+        close = None
+        rkwargsname = None
+        rargsname = None
+        aname1 = None
+        adefault1 = None
+        aname2 = None
+        adefault2 = None
+        aname3 = None
+        adefault3 = None
+
+        try:
+            try:
+                # src/ll/UL4.g:683:2: (open= '(' (| '**' rkwargsname= name ( ',' )? | '*' rargsname= name ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name '=' adefault1= exprarg ( ',' aname2= name '=' adefault2= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name ( ',' aname2= name )* ( ',' aname3= name '=' adefault3= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? ) close= ')' )
+                # src/ll/UL4.g:684:2: open= '(' (| '**' rkwargsname= name ( ',' )? | '*' rargsname= name ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name '=' adefault1= exprarg ( ',' aname2= name '=' adefault2= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name ( ',' aname2= name )* ( ',' aname3= name '=' adefault3= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? ) close= ')'
+                pass 
+                open = self.match(self.input, 32, self.FOLLOW_32_in_signature3600)
+
+                if self._state.backtracking == 0:
+                    pass
+                    node = ul4c.Signature(self.location, self.start(open), None) 
+
+
+
+                # src/ll/UL4.g:685:2: (| '**' rkwargsname= name ( ',' )? | '*' rargsname= name ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name '=' adefault1= exprarg ( ',' aname2= name '=' adefault2= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name ( ',' aname2= name )* ( ',' aname3= name '=' adefault3= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? )
+                alt67 = 5
+                LA67 = self.input.LA(1)
+                if LA67 == 33:
+                    alt67 = 1
+                elif LA67 == 35:
+                    alt67 = 2
+                elif LA67 == 34:
+                    alt67 = 3
+                elif LA67 == NAME:
+                    LA67_4 = self.input.LA(2)
+
+                    if (LA67_4 == 52) :
+                        alt67 = 4
+                    elif (LA67_4 == 33 or LA67_4 == 39) :
+                        alt67 = 5
+                    else:
+                        if self._state.backtracking > 0:
+                            raise BacktrackingFailed
+
+
+                        nvae = NoViableAltException("", 67, 4, self.input)
+
+                        raise nvae
+
+
+                else:
+                    if self._state.backtracking > 0:
+                        raise BacktrackingFailed
+
+
+                    nvae = NoViableAltException("", 67, 0, self.input)
+
+                    raise nvae
+
+
+                if alt67 == 1:
+                    # src/ll/UL4.g:687:2: 
+                    pass 
+
+                elif alt67 == 2:
+                    # src/ll/UL4.g:689:3: '**' rkwargsname= name ( ',' )?
+                    pass 
+                    self.match(self.input, 35, self.FOLLOW_35_in_signature3620)
+
+                    self._state.following.append(self.FOLLOW_name_in_signature3624)
+                    rkwargsname = self.name()
+
+                    self._state.following.pop()
+
+                    if self._state.backtracking == 0:
+                        pass
+                        node.params.append(("**" + ((rkwargsname is not None) and [self.input.toString(rkwargsname.start,rkwargsname.stop)] or [None])[0], None)); 
+
+
+
+                    # src/ll/UL4.g:690:3: ( ',' )?
+                    alt55 = 2
+                    LA55_0 = self.input.LA(1)
+
+                    if (LA55_0 == 39) :
+                        alt55 = 1
+                    if alt55 == 1:
+                        # src/ll/UL4.g:690:3: ','
+                        pass 
+                        self.match(self.input, 39, self.FOLLOW_39_in_signature3630)
+
+
+
+
+
+                elif alt67 == 3:
+                    # src/ll/UL4.g:693:3: '*' rargsname= name ( ',' '**' rkwargsname= name )? ( ',' )?
+                    pass 
+                    self.match(self.input, 34, self.FOLLOW_34_in_signature3642)
+
+                    self._state.following.append(self.FOLLOW_name_in_signature3646)
+                    rargsname = self.name()
+
+                    self._state.following.pop()
+
+                    if self._state.backtracking == 0:
+                        pass
+                        node.params.append(("*" + ((rargsname is not None) and [self.input.toString(rargsname.start,rargsname.stop)] or [None])[0], None)); 
+
+
+
+                    # src/ll/UL4.g:694:3: ( ',' '**' rkwargsname= name )?
+                    alt56 = 2
+                    LA56_0 = self.input.LA(1)
+
+                    if (LA56_0 == 39) :
+                        LA56_1 = self.input.LA(2)
+
+                        if (LA56_1 == 35) :
+                            alt56 = 1
+                    if alt56 == 1:
+                        # src/ll/UL4.g:695:4: ',' '**' rkwargsname= name
+                        pass 
+                        self.match(self.input, 39, self.FOLLOW_39_in_signature3657)
+
+                        self.match(self.input, 35, self.FOLLOW_35_in_signature3662)
+
+                        self._state.following.append(self.FOLLOW_name_in_signature3666)
+                        rkwargsname = self.name()
+
+                        self._state.following.pop()
+
+                        if self._state.backtracking == 0:
+                            pass
+                            node.params.append(("**" + ((rkwargsname is not None) and [self.input.toString(rkwargsname.start,rkwargsname.stop)] or [None])[0], None)); 
+
+
+
+
+
+
+                    # src/ll/UL4.g:698:3: ( ',' )?
+                    alt57 = 2
+                    LA57_0 = self.input.LA(1)
+
+                    if (LA57_0 == 39) :
+                        alt57 = 1
+                    if alt57 == 1:
+                        # src/ll/UL4.g:698:3: ','
+                        pass 
+                        self.match(self.input, 39, self.FOLLOW_39_in_signature3677)
+
+
+
+
+
+                elif alt67 == 4:
+                    # src/ll/UL4.g:701:3: aname1= name '=' adefault1= exprarg ( ',' aname2= name '=' adefault2= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )?
+                    pass 
+                    self._state.following.append(self.FOLLOW_name_in_signature3691)
+                    aname1 = self.name()
+
+                    self._state.following.pop()
+
+                    self.match(self.input, 52, self.FOLLOW_52_in_signature3695)
+
+                    self._state.following.append(self.FOLLOW_exprarg_in_signature3701)
+                    adefault1 = self.exprarg()
+
+                    self._state.following.pop()
+
+                    if self._state.backtracking == 0:
+                        pass
+                        node.params.append((((aname1 is not None) and [self.input.toString(aname1.start,aname1.stop)] or [None])[0], adefault1)); 
+
+
+
+                    # src/ll/UL4.g:704:3: ( ',' aname2= name '=' adefault2= exprarg )*
+                    while True: #loop58
+                        alt58 = 2
+                        LA58_0 = self.input.LA(1)
+
+                        if (LA58_0 == 39) :
+                            LA58_1 = self.input.LA(2)
+
+                            if (LA58_1 == NAME) :
+                                alt58 = 1
+
+
+
+
+                        if alt58 == 1:
+                            # src/ll/UL4.g:705:4: ',' aname2= name '=' adefault2= exprarg
+                            pass 
+                            self.match(self.input, 39, self.FOLLOW_39_in_signature3712)
+
+                            self._state.following.append(self.FOLLOW_name_in_signature3719)
+                            aname2 = self.name()
+
+                            self._state.following.pop()
+
+                            self.match(self.input, 52, self.FOLLOW_52_in_signature3724)
+
+                            self._state.following.append(self.FOLLOW_exprarg_in_signature3731)
+                            adefault2 = self.exprarg()
+
+                            self._state.following.pop()
+
+                            if self._state.backtracking == 0:
+                                pass
+                                node.params.append((((aname2 is not None) and [self.input.toString(aname2.start,aname2.stop)] or [None])[0], adefault2)); 
+
+
+
+
+                        else:
+                            break #loop58
+
+
+                    # src/ll/UL4.g:710:3: ( ',' '*' rargsname= name )?
+                    alt59 = 2
+                    LA59_0 = self.input.LA(1)
+
+                    if (LA59_0 == 39) :
+                        LA59_1 = self.input.LA(2)
+
+                        if (LA59_1 == 34) :
+                            alt59 = 1
+                    if alt59 == 1:
+                        # src/ll/UL4.g:711:4: ',' '*' rargsname= name
+                        pass 
+                        self.match(self.input, 39, self.FOLLOW_39_in_signature3747)
+
+                        self.match(self.input, 34, self.FOLLOW_34_in_signature3752)
+
+                        self._state.following.append(self.FOLLOW_name_in_signature3756)
+                        rargsname = self.name()
+
+                        self._state.following.pop()
+
+                        if self._state.backtracking == 0:
+                            pass
+                            node.params.append(("*" + ((rargsname is not None) and [self.input.toString(rargsname.start,rargsname.stop)] or [None])[0], None)); 
+
+
+
+
+
+
+                    # src/ll/UL4.g:714:3: ( ',' '**' rkwargsname= name )?
+                    alt60 = 2
+                    LA60_0 = self.input.LA(1)
+
+                    if (LA60_0 == 39) :
+                        LA60_1 = self.input.LA(2)
+
+                        if (LA60_1 == 35) :
+                            alt60 = 1
+                    if alt60 == 1:
+                        # src/ll/UL4.g:715:4: ',' '**' rkwargsname= name
+                        pass 
+                        self.match(self.input, 39, self.FOLLOW_39_in_signature3772)
+
+                        self.match(self.input, 35, self.FOLLOW_35_in_signature3777)
+
+                        self._state.following.append(self.FOLLOW_name_in_signature3781)
+                        rkwargsname = self.name()
+
+                        self._state.following.pop()
+
+                        if self._state.backtracking == 0:
+                            pass
+                            node.params.append(("**" + ((rkwargsname is not None) and [self.input.toString(rkwargsname.start,rkwargsname.stop)] or [None])[0], None)); 
+
+
+
+
+
+
+                    # src/ll/UL4.g:718:3: ( ',' )?
+                    alt61 = 2
+                    LA61_0 = self.input.LA(1)
+
+                    if (LA61_0 == 39) :
+                        alt61 = 1
+                    if alt61 == 1:
+                        # src/ll/UL4.g:718:3: ','
+                        pass 
+                        self.match(self.input, 39, self.FOLLOW_39_in_signature3792)
+
+
+
+
+
+                elif alt67 == 5:
+                    # src/ll/UL4.g:721:3: aname1= name ( ',' aname2= name )* ( ',' aname3= name '=' adefault3= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )?
+                    pass 
+                    self._state.following.append(self.FOLLOW_name_in_signature3806)
+                    aname1 = self.name()
+
+                    self._state.following.pop()
+
+                    if self._state.backtracking == 0:
+                        pass
+                        node.params.append((((aname1 is not None) and [self.input.toString(aname1.start,aname1.stop)] or [None])[0], None)); 
+
+
+
+                    # src/ll/UL4.g:722:3: ( ',' aname2= name )*
+                    while True: #loop62
+                        alt62 = 2
+                        LA62_0 = self.input.LA(1)
+
+                        if (LA62_0 == 39) :
+                            LA62_1 = self.input.LA(2)
+
+                            if (LA62_1 == NAME) :
+                                LA62_3 = self.input.LA(3)
+
+                                if (LA62_3 == 33 or LA62_3 == 39) :
+                                    alt62 = 1
+
+
+
+
+
+
+                        if alt62 == 1:
+                            # src/ll/UL4.g:723:4: ',' aname2= name
+                            pass 
+                            self.match(self.input, 39, self.FOLLOW_39_in_signature3817)
+
+                            self._state.following.append(self.FOLLOW_name_in_signature3824)
+                            aname2 = self.name()
+
+                            self._state.following.pop()
+
+                            if self._state.backtracking == 0:
+                                pass
+                                node.params.append((((aname2 is not None) and [self.input.toString(aname2.start,aname2.stop)] or [None])[0], None)); 
+
+
+
+
+                        else:
+                            break #loop62
+
+
+                    # src/ll/UL4.g:726:3: ( ',' aname3= name '=' adefault3= exprarg )*
+                    while True: #loop63
+                        alt63 = 2
+                        LA63_0 = self.input.LA(1)
+
+                        if (LA63_0 == 39) :
+                            LA63_1 = self.input.LA(2)
+
+                            if (LA63_1 == NAME) :
+                                alt63 = 1
+
+
+
+
+                        if alt63 == 1:
+                            # src/ll/UL4.g:727:4: ',' aname3= name '=' adefault3= exprarg
+                            pass 
+                            self.match(self.input, 39, self.FOLLOW_39_in_signature3840)
+
+                            self._state.following.append(self.FOLLOW_name_in_signature3847)
+                            aname3 = self.name()
+
+                            self._state.following.pop()
+
+                            self.match(self.input, 52, self.FOLLOW_52_in_signature3852)
+
+                            self._state.following.append(self.FOLLOW_exprarg_in_signature3859)
+                            adefault3 = self.exprarg()
+
+                            self._state.following.pop()
+
+                            if self._state.backtracking == 0:
+                                pass
+                                node.params.append((((aname3 is not None) and [self.input.toString(aname3.start,aname3.stop)] or [None])[0], adefault3)); 
+
+
+
+
+                        else:
+                            break #loop63
+
+
+                    # src/ll/UL4.g:732:3: ( ',' '*' rargsname= name )?
+                    alt64 = 2
+                    LA64_0 = self.input.LA(1)
+
+                    if (LA64_0 == 39) :
+                        LA64_1 = self.input.LA(2)
+
+                        if (LA64_1 == 34) :
+                            alt64 = 1
+                    if alt64 == 1:
+                        # src/ll/UL4.g:733:4: ',' '*' rargsname= name
+                        pass 
+                        self.match(self.input, 39, self.FOLLOW_39_in_signature3875)
+
+                        self.match(self.input, 34, self.FOLLOW_34_in_signature3880)
+
+                        self._state.following.append(self.FOLLOW_name_in_signature3884)
+                        rargsname = self.name()
+
+                        self._state.following.pop()
+
+                        if self._state.backtracking == 0:
+                            pass
+                            node.params.append(("*" + ((rargsname is not None) and [self.input.toString(rargsname.start,rargsname.stop)] or [None])[0], None)); 
+
+
+
+
+
+
+                    # src/ll/UL4.g:736:3: ( ',' '**' rkwargsname= name )?
+                    alt65 = 2
+                    LA65_0 = self.input.LA(1)
+
+                    if (LA65_0 == 39) :
+                        LA65_1 = self.input.LA(2)
+
+                        if (LA65_1 == 35) :
+                            alt65 = 1
+                    if alt65 == 1:
+                        # src/ll/UL4.g:737:4: ',' '**' rkwargsname= name
+                        pass 
+                        self.match(self.input, 39, self.FOLLOW_39_in_signature3900)
+
+                        self.match(self.input, 35, self.FOLLOW_35_in_signature3905)
+
+                        self._state.following.append(self.FOLLOW_name_in_signature3909)
+                        rkwargsname = self.name()
+
+                        self._state.following.pop()
+
+                        if self._state.backtracking == 0:
+                            pass
+                            node.params.append(("**" + ((rkwargsname is not None) and [self.input.toString(rkwargsname.start,rkwargsname.stop)] or [None])[0], None)); 
+
+
+
+
+
+
+                    # src/ll/UL4.g:740:3: ( ',' )?
+                    alt66 = 2
+                    LA66_0 = self.input.LA(1)
+
+                    if (LA66_0 == 39) :
+                        alt66 = 1
+                    if alt66 == 1:
+                        # src/ll/UL4.g:740:3: ','
+                        pass 
+                        self.match(self.input, 39, self.FOLLOW_39_in_signature3920)
+
+
+
+
+
+
+
+                close = self.match(self.input, 33, self.FOLLOW_33_in_signature3929)
+
+                if self._state.backtracking == 0:
+                    pass
+                    node.end = self.end(close) 
+
+
+
+
+
+
+                       
+            except RecognitionException as e:
+                raise
+
+        finally:
+            pass
+        return node
+
+    # $ANTLR end "signature"
+
     # $ANTLR start "synpred24_UL4"
     def synpred24_UL4_fragment(self, ):
         e_list = None
@@ -6704,6 +7200,45 @@ class UL4Parser(Parser):
     FOLLOW_EOF_in_statement3566 = frozenset([1])
     FOLLOW_expression_in_statement3575 = frozenset([])
     FOLLOW_EOF_in_statement3577 = frozenset([1])
+    FOLLOW_32_in_signature3600 = frozenset([14, 33, 34, 35])
+    FOLLOW_35_in_signature3620 = frozenset([14])
+    FOLLOW_name_in_signature3624 = frozenset([33, 39])
+    FOLLOW_39_in_signature3630 = frozenset([33])
+    FOLLOW_34_in_signature3642 = frozenset([14])
+    FOLLOW_name_in_signature3646 = frozenset([33, 39])
+    FOLLOW_39_in_signature3657 = frozenset([35])
+    FOLLOW_35_in_signature3662 = frozenset([14])
+    FOLLOW_name_in_signature3666 = frozenset([33, 39])
+    FOLLOW_39_in_signature3677 = frozenset([33])
+    FOLLOW_name_in_signature3691 = frozenset([52])
+    FOLLOW_52_in_signature3695 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 32, 40, 58, 67, 69, 73])
+    FOLLOW_exprarg_in_signature3701 = frozenset([33, 39])
+    FOLLOW_39_in_signature3712 = frozenset([14])
+    FOLLOW_name_in_signature3719 = frozenset([52])
+    FOLLOW_52_in_signature3724 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 32, 40, 58, 67, 69, 73])
+    FOLLOW_exprarg_in_signature3731 = frozenset([33, 39])
+    FOLLOW_39_in_signature3747 = frozenset([34])
+    FOLLOW_34_in_signature3752 = frozenset([14])
+    FOLLOW_name_in_signature3756 = frozenset([33, 39])
+    FOLLOW_39_in_signature3772 = frozenset([35])
+    FOLLOW_35_in_signature3777 = frozenset([14])
+    FOLLOW_name_in_signature3781 = frozenset([33, 39])
+    FOLLOW_39_in_signature3792 = frozenset([33])
+    FOLLOW_name_in_signature3806 = frozenset([33, 39])
+    FOLLOW_39_in_signature3817 = frozenset([14])
+    FOLLOW_name_in_signature3824 = frozenset([33, 39])
+    FOLLOW_39_in_signature3840 = frozenset([14])
+    FOLLOW_name_in_signature3847 = frozenset([52])
+    FOLLOW_52_in_signature3852 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 32, 40, 58, 67, 69, 73])
+    FOLLOW_exprarg_in_signature3859 = frozenset([33, 39])
+    FOLLOW_39_in_signature3875 = frozenset([34])
+    FOLLOW_34_in_signature3880 = frozenset([14])
+    FOLLOW_name_in_signature3884 = frozenset([33, 39])
+    FOLLOW_39_in_signature3900 = frozenset([35])
+    FOLLOW_35_in_signature3905 = frozenset([14])
+    FOLLOW_name_in_signature3909 = frozenset([33, 39])
+    FOLLOW_39_in_signature3920 = frozenset([33])
+    FOLLOW_33_in_signature3929 = frozenset([1])
     FOLLOW_list_in_synpred24_UL41684 = frozenset([1])
     FOLLOW_listcomprehension_in_synpred25_UL41693 = frozenset([1])
     FOLLOW_set_in_synpred26_UL41702 = frozenset([1])

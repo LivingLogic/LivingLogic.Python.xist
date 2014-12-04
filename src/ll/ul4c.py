@@ -23,7 +23,7 @@ possible to implement template renderers in multiple programming languages.
 __docformat__ = "reStructuredText"
 
 
-import re, types, datetime, urllib.parse as urlparse, json, collections, locale, itertools, random, functools, math
+import re, types, datetime, urllib.parse as urlparse, json, collections, locale, itertools, random, functools, math, inspect
 
 import antlr3
 
@@ -2644,11 +2644,11 @@ class Call(AST):
 			if name is None:
 				fmt = " {arg!r}"
 			elif argname == "*":
-				fmt = " *{arg!1}"
+				fmt = " *{arg!r}"
 			elif argname == "**":
-				fmt = " **{arg!1}"
+				fmt = " **{arg!r}"
 			else:
-				fmt = " {name}={arg!1}"
+				fmt = " {name}={arg!r}"
 			args.append(fmt.format(name=name, arg=arg))
 
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} obj={0.obj!r}{1} at {2:#x}>".format(self, "".join(args), id(self))
@@ -2743,28 +2743,72 @@ class Template(Block):
 
 	version = "31"
 
-	def __init__(self, source=None, name=None, keepws=True, startdelim="<?", enddelim="?>"):
+	def __init__(self, source=None, name=None, keepws=True, startdelim="<?", enddelim="?>", signature=None):
 		"""
-		Create a :class:`Template` object. If :obj:`source` is ``None``, the
-		:class:`Template` remains uninitialized, otherwise :obj:`source` will be
-		compiled (using :obj:`startdelim` and :obj:`enddelim` as the tag
-		delimiters). :obj:`name` is the name of the template. It will be used in
-		exception messages and should be a valid Python identifier. If
-		:obj:`keepws` is false linefeeds and indentation will be ignored in the
+		Create a :class:`Template` object.
+
+		If :obj:`source` is ``None``, the :class:`Template` remains uninitialized,
+		otherwise :obj:`source` will be compiled (using :obj:`startdelim` and
+		:obj:`enddelim` as the tag delimiters).
+
+		:obj:`name` is the name of the template. It will be used in exception
+		messages and should be a valid Python identifier.
+
+		If :obj:`keepws` is false linefeeds and indentation will be ignored in the
 		literal text in templates (i.e. the text between the tags). However
 		trailing whitespace at the end of the line will be honored regardless of
 		the value of :obj:`keepws`. Output will always be ignored when calling
 		a template as a function.
+
+		:obj:`signature` is the signature of the template. For a top level
+		template it can be:
+
+			``None``
+				The template will accept all arguments.
+
+			A :class:`inspect.Signature` object
+				This signature will be used as the signature of the template.
+
+			A callable
+				The signature of the callable will be used.
+
+			A string
+				The signature as a string, i.e. something like
+				``"x, y=[42], *args, **kwargs"``. This string will be parsed and
+				evaluated to create the signature for the template.
+
+		If the template is a subtemplate (i.e. a template defined by another
+		template via ``<?def t?>...<?end def?>``), :obj:`signature` can be:
+
+			``None``
+				The template will accept all arguments.
+
+			A :class:`Signature`` object
+				This AST node will be evaluated at the point of definition of the
+				subtemplate to create to final signature of the subtemplate.
 		"""
 		# ``location``/``endlocation`` will remain ``None`` for a top level template
 		# For a subtemplate/subfunction ``location`` will be set to the location of the ``<?def?>`` tag in :meth:`_compile`
 		# and ``endlocation`` will be the location of the ``<?end def?>`` tag
 		super().__init__(None, 0, 0)
 		self.keepws = keepws
-		self.startdelim = startdelim
-		self.enddelim = enddelim
+		self.startdelim = startdelim or "<?"
+		self.enddelim = enddelim or "?>"
 		self.name = name
 		self.source = None
+		if callable(signature):
+			signature = inspect.signature(signature)
+		elif isinstance(signature, str):
+			signature = "({})".format(signature)
+			location = Location(self, signature, None, 0, len(signature), 0, len(signature))
+			ast = self._parsesignature(location)
+			gen = ast.eval({})
+			try:
+				while True:
+					output = next(gen)
+			except StopIteration as ex:
+				signature = ex.value
+		self.signature = signature
 
 		# If we have source code compile it
 		if source is not None:
@@ -2776,6 +2820,8 @@ class Template(Block):
 			s += " startdelim={0.startdelim!r}".format(self)
 		if self.enddelim != "?>":
 			s += " enddelim={0.enddelim!r}".format(self)
+		if self.signature is not None:
+			s += " {}".format(self.signature)
 		if self.content:
 			s + " ..."
 		return s + " at {:#x}>".format(id(self))
@@ -2808,11 +2854,23 @@ class Template(Block):
 					p.breakable()
 					p.text("enddelim=")
 					p.pretty(self.enddelim)
+				if self.signature is not None:
+					p.breakable()
+					if isinstance(self.signature, Signature):
+						p.text("signature=")
+						p.pretty(self.signature)
+					else:
+						p.text("signature={}".format(self.signature))
 				for node in self.content:
 					p.breakable()
 					p.pretty(node)
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
+
+				# for item in self.items:
+				# 	p.breakable()
+				# 	p.pretty(item)
+				# p.breakable()
 
 	def ul4ondump(self, encoder):
 		# Don't call ``super().ul4ondump()`` first, as we want the version to be first
@@ -2822,6 +2880,26 @@ class Template(Block):
 		encoder.dump(self.keepws)
 		encoder.dump(self.startdelim)
 		encoder.dump(self.enddelim)
+
+		if self.signature is None or isinstance(self.signature, Signature):
+			encoder.dump(self.signature)
+		else:
+			dump = []
+			for param in self.signature.parameters.values():
+				if param.kind is inspect.Parameter.POSITIONAL_OR_KEYWORD:
+					if param.default is inspect.Parameter.empty:
+						dump.append(param.name)
+					else:
+						dump.append(param.name + "=")
+						dump.append(param.default)
+				elif param.kind is inspect.Parameter.VAR_POSITIONAL:
+					dump.append("*" + param.name)
+				elif param.kind is inspect.Parameter.VAR_KEYWORD:
+					dump.append("**" + param.name)
+				else:
+					raise ValueError("can dump parameter {} of type {}".format(param.name, param.kind))
+			encoder.dump(dump)
+
 		super().ul4ondump(encoder)
 
 	def ul4onload(self, decoder):
@@ -2833,6 +2911,29 @@ class Template(Block):
 		self.keepws = decoder.load()
 		self.startdelim = decoder.load()
 		self.enddelim = decoder.load()
+
+		dump = decoder.load()
+		if dump is None or isinstance(dump, Signature):
+			self.signature = dump
+		else:
+			params = []
+			nextdefault = False
+			paramname = None
+			for param in dump:
+				if nextdefault:
+					params.append(inspect.Parameter(paramname, inspect.Parameter.POSITIONAL_OR_KEYWORD, default=param))
+					nextdefault = False
+				else:
+					if param.endswith("="):
+						paramname = param[:-1]
+						nextdefault = True # The next item is the default value
+					elif param.startswith("**"):
+						params.append(inspect.Parameter(param[2:], inspect.Parameter.VAR_KEYWORD))
+					elif param.startswith("*"):
+						params.append(inspect.Parameter(param[1:], inspect.Parameter.VAR_POSITIONAL))
+					else:
+						params.append(inspect.Parameter(param, inspect.Parameter.POSITIONAL_OR_KEYWORD))
+			self.signature = inspect.Signature(params)
 		super().ul4onload(decoder)
 
 	@classmethod
@@ -2871,30 +2972,45 @@ class Template(Block):
 		from ll import ul4on
 		return ul4on.dumps(self)
 
+	def _makevars(self, args, kwargs):
+		if self.signature is None:
+			if args:
+				raise TypeError("positional arguments no supported")
+			return kwargs
+		else:
+			vars = self.signature.bind(*args, **kwargs)
+
+			for param in self.signature.parameters.values():
+				if param.name not in vars.arguments:
+					vars.arguments[param.name] = param.default
+			return vars.arguments
+
 	@generator
-	def render(self, **vars):
+	def render(self, *args, **kwargs):
 		"""
 		Render the template iteratively (i.e. this is a generator).
-		:obj:`vars` contains the top level variables available to the
-		template code.
+		:obj:`args` and :obj:`kwargs` contain the top level variables available
+		to the template code.
 		"""
+		vars = self._makevars(args, kwargs)
 		try:
 			yield from super().eval(vars) # Bypass ``self.eval()`` which simply stores the object as a local variable
 		except ReturnException:
 			pass
 
-	def renders(self, **vars):
+	def renders(self, *args, **kwargs):
 		"""
 		Render the template as a string. :obj:`vars` contains the top level
 		variables available to the template code.
 		"""
-		return "".join(self.render(**vars))
+		return "".join(self.render(*args, **kwargs))
 
-	def __call__(self, **vars):
+	def __call__(self, *args, **kwargs):
 		"""
 		Call the template as a function and return the resulting value.
 		:obj:`vars` contains the top level variables available to the template code.
 		"""
+		vars = self._makevars(args, kwargs)
 		try:
 			for output in super().eval(vars): # Bypass ``self.eval()`` which simply stores the object as a local variable
 				pass # Ignore all output
@@ -2948,6 +3064,9 @@ class Template(Block):
 		parser = UL4Parser.UL4Parser(tokens)
 		parser.location = location
 		return parser
+
+	def _parsesignature(self, location):
+		return self._parser(location, "unused").signature()
 
 	def _compile(self, source, name, startdelim, enddelim):
 		"""
@@ -3071,6 +3190,90 @@ class Template(Block):
 	def eval(self, vars):
 		yield from ()
 		vars[self.name] = TemplateClosure(self, vars)
+
+
+###
+### Functions
+###
+
+@register("signature")
+class Signature(AST):
+	"""
+	AST node for the signature of a template.
+
+	The list of arguments is found in :obj:`params`.
+	"""
+
+	ul4attrs = AST.ul4attrs.union({"params"})
+
+	def __init__(self, location=None, start=None, end=None):
+		super().__init__(location, start, end)
+		self.params = []
+
+	def __repr__(self):
+		params = []
+		for (paramname, default) in self.params:
+			if default is None:
+				fmt = " {paramname}"
+			else:
+				fmt = " {paramname}={default!r}"
+			params.append(fmt.format(paramname=paramname, default=default))
+
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__}{1} at {2:#x}>".format(self, "".join(params), id(self))
+
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} ... at {1:#x}>".format(self, id(self)))
+		else:
+			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+				for (paramname, default) in self.params:
+					p.breakable()
+					if default is None:
+						p.text(paramname)
+					else:
+						p.text("{}=".format(paramname))
+						p.pretty(default)
+				p.breakable()
+				p.text("at {:#x}".format(id(self)))
+
+	@_handleeval
+	def eval(self, vars):
+		params = []
+		for (paramname, default) in self.params:
+			if default is None:
+				if paramname.startswith("**"):
+					paramname = paramname[2:]
+					kind = inspect.Parameter.VAR_KEYWORD
+				elif paramname.startswith("*"):
+					paramname = paramname[1:]
+					kind = inspect.Parameter.VAR_POSITIONAL
+				else:
+					kind = inspect.Parameter.POSITIONAL_OR_KEYWORD
+				default = inspect.Parameter.empty
+			else:
+				kind = inspect.Parameter.POSITIONAL_OR_KEYWORD
+				default = yield from default.eval(vars)
+			params.append(inspect.Parameter(paramname, kind, default=default))
+		return inspect.Signature(params)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		dump = []
+		for (paramname, default) in self.params:
+			if default is None:
+				dump.append(paramname)
+			else:
+				dump.append([paramname, default])
+		encoder.dump(dump)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		dump = decoder.load()
+		for param in dump:
+			if isinstance(param, str):
+				self.params.append((param, None))
+			else:
+				self.params.append(param)
 
 
 ###

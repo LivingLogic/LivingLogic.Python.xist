@@ -676,3 +676,68 @@ statement returns [node]
 	| n=expr_subscript '|=' e=expr_if EOF { $node = ul4c.BitOrVar(self.location, self.start($n.start), $e.node.end, $n.node, $e.node) }
 	| e=expression EOF { $node = $e.node }
 	;
+
+
+/* Used for parsing signatures */
+signature returns [node]
+	:
+	open='(' { $node = ul4c.Signature(self.location, self.start($open), None) }
+	(
+		/* No paramteers */
+	|
+		/* "**" parameter only */
+		'**' rkwargsname=name { $node.params.append(("**" + $rkwargsname.text, None)); }
+		','?
+	|
+		/* "*" parameter only (and maybe **) */
+		'*' rargsname=name { $node.params.append(("*" + $rargsname.text, None)); }
+		(
+			','
+			'**' rkwargsname=name { $node.params.append(("**" + $rkwargsname.text, None)); }
+		)?
+		','?
+	|
+		/* All parameters have a default */
+		aname1=name
+		'='
+		adefault1=exprarg { $node.params.append(($aname1.text, $adefault1.node)); }
+		(
+			','
+			aname2=name
+			'='
+			adefault2=exprarg { $node.params.append(($aname2.text, $adefault2.node)); }
+		)*
+		(
+			','
+			'*' rargsname=name { $node.params.append(("*" + $rargsname.text, None)); }
+		)?
+		(
+			','
+			'**' rkwargsname=name { $node.params.append(("**" + $rkwargsname.text, None)); }
+		)?
+		','?
+	|
+		/* At least one parameter without a default */
+		aname1=name { $node.params.append(($aname1.text, None)); }
+		(
+			','
+			aname2=name { $node.params.append(($aname2.text, None)); }
+		)*
+		(
+			','
+			aname3=name
+			'='
+			adefault3=exprarg { $node.params.append(($aname3.text, $adefault3.node)); }
+		)*
+		(
+			','
+			'*' rargsname=name { $node.params.append(("*" + $rargsname.text, None)); }
+		)?
+		(
+			','
+			'**' rkwargsname=name { $node.params.append(("**" + $rkwargsname.text, None)); }
+		)?
+		','?
+	)
+	close=')' { $node.end = self.end($close) }
+;
