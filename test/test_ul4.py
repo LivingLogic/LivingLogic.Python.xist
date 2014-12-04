@@ -259,7 +259,7 @@ class TemplatePHP:
 			f.write(source.encode("utf-8"))
 			f.flush()
 			dir = os.path.expanduser("~/checkouts/LivingLogic.PHP.ul4")
-		proc = subprocess.Popen("php -n -d include_path={dir} -d date.timezone=Europe/Berlin {fn}".format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+			proc = subprocess.Popen("php -n -d include_path={dir} -d date.timezone=Europe/Berlin {fn}".format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 			(stdout, stderr) = proc.communicate()
 		stdout = stdout.decode("utf-8")
 		stderr = stderr.decode("utf-8")
@@ -389,14 +389,14 @@ class TemplateJavascriptSpidermoney(TemplateJavascript):
 
 
 all_templates = dict(
-	# python=TemplatePython,
+	python=TemplatePython,
 	# python_dumps=TemplatePythonDumpS,
 	# python_dump=TemplatePythonDump,
 	# java_compiled_by_python=TemplateJavaCompiledByPython,
-	# java_compiled_by_java=TemplateJavaCompiledByJava,
-	js_v8=TemplateJavascriptV8,
-	js_spidermonkey=TemplateJavascriptSpidermoney,
-	# php=render_php,
+	java_compiled_by_java=TemplateJavaCompiledByJava,
+	# js_v8=TemplateJavascriptV8,
+	# js_spidermonkey=TemplateJavascriptSpidermoney,
+	# php=TemplatePHP,
 )
 
 
@@ -3387,7 +3387,7 @@ def test_method_second(T):
 
 @pytest.mark.ul4
 def test_method_microsecond(T):
-	if T is not render_php:
+	if T is not TemplatePHP:
 		assert '123000' == T('<?print @(2010-05-12T16:47:56.123000).microsecond()?>').renders()
 		assert '123000' == T('<?print d.microsecond()?>').renders(d=datetime.datetime(2010, 5, 12, 16, 47, 56, 123000))
 		assert '123000' == T('<?code m = @(2010-05-12T16:47:56.123000).microsecond?><?print m()?>').renders()
