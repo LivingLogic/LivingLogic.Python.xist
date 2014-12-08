@@ -551,7 +551,7 @@ class FileAction(TransformAction):
 		:obj:`key` must be an object that provides a method :meth:`open` for
 		opening readable and writable streams to the file. :obj:`input` is the
 		data written to the file (or the action producing the data). :obj:`encoding`
-		is the encoding to be used from reading/writing. If :obj:`encoding` is
+		is the encoding to be used for reading/writing. If :obj:`encoding` is
 		:const:`None` binary i/o will be used. :obj:`errors` is the codec error
 		handling name for encoding/decoding text.
 		"""
