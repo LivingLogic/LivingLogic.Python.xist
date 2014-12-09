@@ -15,6 +15,13 @@ Changes in 5.13 (released ??/??/2014)
 	changed from ``str`` to ``None``, i.e. it defaults to unnamed tasks now.
 
 
+Changes in 5.12.1 (released 12/09/2014)
+---------------------------------------
+
+*	Fixed a bug in :mod:`ll.oradd`: Printing the final report failed when no
+	commands where executed.
+
+
 Changes in 5.12 (released 11/07/2014)
 -------------------------------------
 
