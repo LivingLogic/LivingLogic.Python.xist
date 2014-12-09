@@ -613,12 +613,15 @@ class Executor:
 
 	def _printsummary(self):
 		if self.verbose >= 2:
-			l1 = len(str(max(self.commandcounts.values())))
+			commandcountvalues = self.commandcounts.values()
+			l1 = len(str(max(commandcountvalues))) if commandcountvalues else 0
 			l2 = max(len(procname) for procname in self.procedurecounts) if self.procedurecounts else 0
 			print()
 			print("Summary")
 			print("=======")
+			anyoutput = False
 			if self.commandcounts["procedure"]:
+				anyoutput = True
 				print("{:>{}} type".format("#", l1))
 				print("{} {}".format("-"*l1, "-"*l2))
 				for (procname, count) in sorted(self.procedurecounts.items(), key=operator.itemgetter(1)):
@@ -626,7 +629,10 @@ class Executor:
 				print("{} {}".format("-"*l1, "-"*l2))
 			for cmdtype in ("procedure", "sql", "file", "scp", "resetsequence"):
 				if self.commandcounts[cmdtype]:
+					anyoutput = True
 					print("{:>{}} ({}s)".format(self.commandcounts[cmdtype], l1, cmdtype))
+			if not anyoutput:
+				print("no commands executed")
 
 	def _formatargs(self, command):
 		args = []
