@@ -117,6 +117,9 @@ def _escape(s, safe="".join(chr(c) for c in range(128))):
 	return urlparse.quote_plus(s, safe)
 
 
+_unescape = urlparse.unquote_plus
+
+
 alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 alphanum = alpha + "0123456789"
 mark = "-_.!~*'()"
@@ -1780,7 +1783,7 @@ class Path(object):
 
 	def insert(self, index, *others):
 		segments = self.segments
-		segments[index:index] = map(urlparse.unquote_plus, others)
+		segments[index:index] = map(_unescape, others)
 		self.segments = segments
 
 	def startswith(self, prefix):
@@ -1845,10 +1848,10 @@ class Path(object):
 	def __setitem__(self, index, value):
 		segments = self.segments
 		if isinstance(index, slice):
-			segments[index] = map(urlparse.unquote_plus, value)
+			segments[index] = map(_unescape, value)
 			self._path = self._prefix(self._path) + self._segments2path(segments)
 		else:
-			segments[index] = urlparse.unquote_plus(value)
+			segments[index] = _unescape(value)
 			self._path = self._prefix(self._path) + self._segments2path(segments)
 		self._segments = segments
 
@@ -1862,7 +1865,7 @@ class Path(object):
 			self._segments = segments
 
 	def __contains__(self, item):
-		return urlparse.unquote_plus(item) in self.segments
+		return _unescape(item) in self.segments
 
 	class isabs(misc.propclass):
 		"""
@@ -1891,7 +1894,7 @@ class Path(object):
 	def _path2segments(cls, path):
 		if path.startswith("/"):
 			path = path[1:]
-		return list(map(urlparse.unquote_plus, path.split("/")))
+		return list(map(_unescape, path.split("/")))
 
 	def _setpathorsegments(self, path):
 		if path is None:
@@ -1901,7 +1904,7 @@ class Path(object):
 			self._path = path._path
 			self._segments = None
 		elif isinstance(path, (list, tuple)):
-			self._segments = list(map(urlparse.unquote_plus, path))
+			self._segments = list(map(_unescape, path))
 			self._path = self._prefix(self._path) + self._segments2path(self._segments)
 		else:
 			path = _escape(path)
@@ -2140,7 +2143,7 @@ class Path(object):
 		Return :obj:`self` converted to a filename using the file naming
 		conventions of the OS. Parameters will be dropped in the resulting string.
 		"""
-		localpath = urlparse.unquote_plus(self._path)
+		localpath = _unescape(self._path)
 		if self._path.endswith("/") and not (localpath.endswith(os.sep) or (os.altsep is not None and localpath.endswith(os.altsep))):
 			localpath += os.sep
 		return localpath
@@ -2333,7 +2336,7 @@ class URL(object):
 					if pos != len(hostport)-1:
 						self.port = hostport[pos+1:]
 					hostport = hostport[:pos]
-				self.host = urlparse.unquote_plus(hostport)
+				self.host = _unescape(hostport)
 		def __delete__(self):
 			del self.host
 			del self.port
@@ -2364,7 +2367,7 @@ class URL(object):
 				# find the userinfo (RFC2396, Section 3.2.2)
 				pos = server.find("@")
 				if pos != -1:
-					self.userinfo = urlparse.unquote_plus(server[:pos])
+					self.userinfo = _unescape(server[:pos])
 					server = server[pos+1:]
 				else:
 					del self.userinfo
@@ -2502,9 +2505,9 @@ class URL(object):
 				parts = {}
 				for part in query.split("&"):
 					namevalue = part.split("=", 1)
-					name = urlparse.unquote_plus(namevalue[0].replace("+", " "))
+					name = _unescape(namevalue[0].replace("+", " "))
 					if len(namevalue) == 2:
-						value = urlparse.unquote_plus(namevalue[1].replace("+", " "))
+						value = _unescape(namevalue[1].replace("+", " "))
 						parts.setdefault(name, []).append(value)
 					else:
 						parts = False
@@ -2598,7 +2601,7 @@ class URL(object):
 					# the fragment itself may not contain a "#", so find the last "#"
 					pos = url.rfind("#")
 					if pos != -1:
-						self.frag = urlparse.unquote_plus(url[pos+1:])
+						self.frag = _unescape(url[pos+1:])
 						url = url[:pos]
 
 				if self.reg.usehierarchy:
