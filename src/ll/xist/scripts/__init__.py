@@ -26,6 +26,11 @@ This package contains the following scripts:
 		``doc2txt`` creates a plain text file from a XML file using XISTs doc
 		XML vocabulary.
 
+	``uhpp``
+		``uhpp`` is a script for pretty printing HTML files. It is URL-enabled,
+		so you can specify local file names and URLs (and remote files via
+		``ssh`` URLs).
+
 These scripts can either be called via Pythons :option:`-m` option::
 
 	python -mll.xist.scripts.xml2xsc --help

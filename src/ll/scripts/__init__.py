@@ -34,11 +34,6 @@ This package contains the following scripts:
 		``udiff`` is an URL-enabled version of the ``diff`` command for showing
 		differences between two files or directories
 
-	``uhpp``
-		``uhpp`` is a script for pretty printing HTML files. It is URL-enabled,
-		so you can specify local file names and URLs (and remote files via
-		``ssh`` URLs).
-
 These scripts can either be called via Pythons :option:`-m` option::
 
 	python -mll.scripts.rul4 --help
