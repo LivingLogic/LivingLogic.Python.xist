@@ -12,8 +12,8 @@
 """
 :mod:`ll.orasql` contains utilities for working with cx_Oracle__:
 
-*	It allows calling procedures with keyword arguments (via the
-	:class:`Procedure` class).
+*	It allows calling procedures and functions with keyword arguments (via the
+	classes :class:`Procedure` and :class:`Function`).
 
 *	Query results will be put into :class:`Record` objects, where database
 	fields are accessible as object attributes.
@@ -325,11 +325,11 @@ class Connection(Connection):
 
 		:obj:`readlobs` : bool or integer
 			If :obj:`readlobs` is :const:`False` all cursor fetches return
-			:class:`CLOBStream` or :class:`BLOBStream` objects for LOB object.
-			If :obj:`readlobs` is an :class:`int` LOBs with a maximum size of
-			:obj:`readlobs` will be returned as :class:`bytes`/:class:`str` objects.
-			If :obj:`readlobs` is :const:`True` all LOB values will be
-			returned as :class:`bytes`/:class:`str` objects.
+			:class:`LOBStream` objects for LOB object. If :obj:`readlobs` is an
+			:class:`int` LOBs with a maximum size of :obj:`readlobs` will be
+			returned as :class:`bytes`/:class:`str` objects. If :obj:`readlobs`
+			is :const:`True` all LOB values will be returned as
+			:class:`bytes`/:class:`str` objects.
 
 		Furthermore the ``clientinfo`` will be automatically set to the name
 		of the currently running script (except if the :obj:`clientinfo` keyword
@@ -369,7 +369,7 @@ class Connection(Connection):
 		will be yielded:
 
 		``"create"``
-			Create order, deleting records from the table in this order will not
+			Create order, inserting records into the table in this order will not
 			violate foreign key constraints.
 
 		``"drop"``
@@ -451,11 +451,11 @@ class Connection(Connection):
 
 		``"create"``
 			Create order, i.e. recreating the objects in this order will not lead
-			to errors.
+			to errors;
 
 		``"drop"``
 			Drop order, i.e. dropping the objects in this order will not lead to
-			errors.
+			errors;
 
 		``"flat"``
 			Unordered.
@@ -464,11 +464,11 @@ class Connection(Connection):
 
 			:const:`None`
 				All objects belonging to the current user (i.e. via the view
-				``USER_OBJECTS``).
+				``USER_OBJECTS``);
 
 			:const:`ALL`
 				All objects for all users (via the views ``ALL_OBJECTS`` or
-				``DBA_OBJECTS``)
+				``DBA_OBJECTS``);
 
 			username : string
 				All objects belonging to the specified user
@@ -601,8 +601,8 @@ class Cursor(Cursor):
 	"""
 	A subclass of the cursor class in :mod:`cx_Oracle`. The "fetch" methods
 	will return records as :class:`Record` objects and  ``LOB`` values will be
-	returned as stream objects or :class:`str`/:class:`bytes` (depending of the
-	the cursors :attr:`readlobs` attribute).
+	returned as :class:`LOBStream` objects or :class:`str`/:class:`bytes` objects
+	(depending on the cursors :attr:`readlobs` attribute).
 	"""
 	def __init__(self, connection, readlobs=None):
 		"""
@@ -1230,7 +1230,7 @@ class Table(MixinNormalDates, Object):
 
 	def itercolumns(self, connection=None):
 		"""
-		Generator that yields all column objects of the :class:`Table` :obj:`self`.
+		Generator that yields all column objects of this table.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select column_name from {}_tab_columns where owner=nvl(:owner, user) and table_name=:name order by column_id".format(cursor.ddprefix()), owner=self.owner, name=self.name)
@@ -1238,7 +1238,7 @@ class Table(MixinNormalDates, Object):
 
 	def iterrecords(self, connection=None):
 		"""
-		Generator that yields all records of the table :obj:`self`.
+		Generator that yields all records of this table.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		query = "select * from {}".format(self.getfullname())
@@ -1247,7 +1247,7 @@ class Table(MixinNormalDates, Object):
 
 	def itercomments(self, connection=None):
 		"""
-		Generator that yields all column comments of the table :obj:`self`.
+		Generator that yields all column comments of this table.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select column_name from {}_tab_columns where owner=nvl(:owner, user) and table_name=:name order by column_id".format(cursor.ddprefix()), owner=self.owner, name=self.name)
@@ -2387,7 +2387,7 @@ class Privilege(object):
 class Column(Object):
 	"""
 	Models a single column of a table in the database. This is used to output
-	``ALTER TABLE ...`` statements for adding, dropping and modifying columns.
+	``ALTER TABLE`` statements for adding, dropping and modifying columns.
 	"""
 	type = "column"
 
@@ -2903,7 +2903,8 @@ class OracleURLConnection(url_.Connection):
 class OracleFileResource(url_.Resource):
 	"""
 	An :class:`OracleFileResource` wraps an Oracle database object (like a
-	table, view, function, procedure etc.) in a file-like API.
+	table, view, function, procedure etc.) in a file-like API for use with
+	:mod:`ll.url`.
 	"""
 	def __init__(self, connection, url, mode="r", encoding="utf-8", errors="strict"):
 		self.connection = connection
