@@ -139,7 +139,7 @@ The following additional keys are used:
 		on first use of ``var("foo_10")`` the value of the ``OUT`` parameter will
 		be stored under the key ``"foo_10"``. The next time ``var("foo_10")`` is
 		encountered the value stored under the key ``"foo_10"`` will be passed to
-		the procedure. They type of the variable defaults to ``int``. If a
+		the procedure. The type of the variable defaults to ``int``. If a
 		different type is required it can be passed as the second argument to
 		:class:`var`, e.g. ``var("foo_10", datetime.datetime)``.
 
@@ -153,7 +153,7 @@ The following additional keys are used:
 
 	``args`` : dictionary (optional)
 		A dictionary with the names of the parameters as keys and the parameter
-		values as values. Similar to procedure call :class:`var` objects are
+		values as values. Similar to procedure calls :class:`var` objects are
 		supported to. However :class:`sql` objects are not supported (they will
 		be ignored).
 
@@ -164,7 +164,7 @@ The following additional keys are used:
 		The name of the file to be created. It may contain ``format()`` style
 		specifications containing any key that appeared in a ``"procedure"`` or
 		``"sql"`` record. These specifiers will be replaced by the correct
-		key values. As these files will be copied via the ``scp`` command, so ssh
+		key values. As these files will be copied via the ``scp`` command, ssh
 		file names can be used.
 
 	``content``: bytes (required)
@@ -177,8 +177,7 @@ The following additional keys are used:
 		The name of the file to be created. It may contain ``format()`` style
 		specifications containing any key that appeared in a ``"procedure"`` or
 		``"sql"`` record. These specifiers will be replaced by the correct
-		key values. The file will be created by scopied via ``ssh``, so ssh file names can
-		be used.
+		key values.
 
 	``content``: bytes (required)
 		The content of the file to be created.
@@ -236,14 +235,14 @@ it supports the following command line options:
 	``-v``, ``--verbose``
 		Gives different levels of output while data is being imported to the database.
 		Possible levels are: ``0`` (no output), ``1`` (a dot for each procedure
-		call), ``2`` (like ``1``, plus a summary of which procedure has been
-		called how often), ``3`` (detailed output for each procedure call, plus
-		summary)
+		call), ``2`` (like ``1``, plus a summary of which command has been executed
+		how often and which procedure has been called how often), ``3`` (detailed
+		output for each command/procedure call, plus summary)
 
 	``-c``, ``--commit``
-		Specifies when to commit database transactions. ``record`` commit after
-		every procedure call. ``once`` at the end of the script and ``never`` rolls
-		back the transaction after all imports.
+		Specifies when to commit database transactions. ``record`` commits after
+		every command. ``once`` at the end of the script and ``never`` rolls back
+		the transaction after all imports.
 
 	``-s``, ``--scpdirectory``
 		The base directory for ``scp`` file copy commands. As files are copied via
@@ -251,7 +250,7 @@ it supports the following command line options:
 		``ssh:root@www.example.org:uploads/``) and must include a trailing ``/``.
 
 	``-f``, ``--filedirectory``
-		The base directory for ``file`` file save commands. It must include
+		The base directory for the ``file`` file save commands. It must include
 		a trailing ``/``.
 """
 
@@ -295,8 +294,8 @@ class var(object):
 class sql(object):
 	"""
 	An :class:`sql` object can be used to specify an SQL expression as a
-	procedure parameter instead of a fixed value (e.g. passing the current
-	date (i.e. the date of the import) can be done with ``sql("sysdate")``).
+	procedure parameter instead of a fixed value. For example passing the current
+	date (i.e. the date of the import) can be done with ``sql("sysdate")``.
 	"""
 
 	def __init__(self, expression):
@@ -323,7 +322,7 @@ def loads_oradd(string):
 	"""
 	Load an oradd dump in oradd native format from the string ``string``.
 
-	This function is a generator. It's output can be passed to :func:`importdata`.
+	This function is a generator.
 	"""
 	return load_oradd(string.splitlines())
 
