@@ -220,7 +220,7 @@ class Daemon(object):
 		Handle command line arguments and start or stop the daemon accordingly.
 
 		:obj:`args` must be a list of command line arguments (including the
-		program name in ``args[0]``). If :obj:`args` is :const`None` or
+		program name in ``args[0]``). If :obj:`args` is :const:`None` or
 		unspecified ``sys.argv`` is used.
 
 		The return value is true when a starting option has been specified as the
