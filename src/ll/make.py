@@ -61,7 +61,7 @@ __docformat__ = "reStructuredText"
 ### Constants and helpers
 ###
 
-nodata = misc.Const("nodata") # marker object for "no new data available"
+nodata = misc.Const("nodata", "ll.make") # marker object for "no new data available"
 
 bigbang = datetime.datetime(1900, 1, 1) # there can be no timestamp before this one
 bigcrunch = datetime.datetime(3000, 1, 1) # there can be no timestamp after this one

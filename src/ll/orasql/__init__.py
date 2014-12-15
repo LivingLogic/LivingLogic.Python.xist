@@ -46,7 +46,7 @@ __docformat__ = "reStructuredText"
 bigbang = datetime.datetime(1970, 1, 1, 0, 0, 0) # timestamp for Oracle "directories"
 
 
-ALL = object() # marker object for specifying a user
+ALL = misc.Const("ALL", "ll.orasql") # marker object for specifying a user
 
 
 class SQLObjectNotFoundError(IOError):
