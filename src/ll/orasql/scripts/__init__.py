@@ -17,7 +17,7 @@ This package contains the following scripts:
 		views, etc.)
 
 	``oradrop``
-		``oradrop`` print (or executes) drop statements for all objects in an
+		``oradrop`` prints (or executes) drop statements for all objects in an
 		Oracle database schema.
 
 	``oradelete``
@@ -25,7 +25,7 @@ This package contains the following scripts:
 		tables in an Oracle database schema.
 
 	``oragrant``
-		``oragrant`` prints (and executes) grants statements from an Oracle
+		``oragrant`` prints (or executes) grants statements from an Oracle
 		database schema.
 
 	``orafind``
