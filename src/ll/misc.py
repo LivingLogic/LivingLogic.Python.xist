@@ -123,8 +123,8 @@ def item(iterable, index, default=None):
 
 def first(iterable, default=None):
 	"""
-	Return the first element from the iterable. If the iterator doesn't
-	produce any elements :obj:`default` will be returned.
+	Return the first item from the iterable. If the iterator doesn't
+	produce any items :obj:`default` will be returned.
 	"""
 	for item in iterable:
 		return item
@@ -133,8 +133,8 @@ def first(iterable, default=None):
 
 def last(iterable, default=None):
 	"""
-	Return the last element from the iterable. If the iterator doesn't produce
-	any elements :obj:`default` will be returned.
+	Return the last item from the iterable. If the iterator doesn't produce any
+	items :obj:`default` will be returned.
 	"""
 	item = default
 	for item in iterable:
@@ -144,8 +144,8 @@ def last(iterable, default=None):
 
 def count(iterable):
 	"""
-	Count the number of elements produced by the iterable. Calling this
-	function will exhaust the iterator.
+	Count the number of items produced by the iterable. Calling this function
+	will exhaust the iterator.
 	"""
 	count = 0
 	for node in iterable:
