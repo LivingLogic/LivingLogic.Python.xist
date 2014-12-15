@@ -237,7 +237,7 @@ class Pool(object):
 		dictionary or a :class:`Pool` objects (with registers the pool as a base
 		pool). If :obj:`object` is a module and has an attribute :attr:`__bases__`
 		(being a sequence of other modules) this attribute will be used to
-		initialize :obj:`self` base pool.
+		initialize :obj:`self`\s base pool.
 		"""
 		if isinstance(object, types.ModuleType):
 			self.register(object.__dict__)
@@ -333,8 +333,8 @@ class Iterator(object):
 		return False
 
 	def get(self, index, default=None):
-		"""
-		Return the :obj:`index`\th item from the iterator (or :obj:`default` if
+		r"""
+		Return the :obj:`index`'th item from the iterator (or :obj:`default` if
 		there's no such item).
 		"""
 		return item(self, index, default)
@@ -558,7 +558,8 @@ class SysInfo(object):
 	``host_ip``, ``host_sysname``, ``host_nodename``, ``host_release``,
 	``host_version``, ``host_machine``, ``user_name``, ``user_uid``, ``user_gid``,
 	``user_gecos``, ``user_dir``, ``user_shell``, ``python_executable``,
-	``python_version``, ``pid``, ``script_name`` and ``short_script_name``.
+	``python_version``, ``pid``, ``script_name``, ``short_script_name`` and
+	``script_url``.
 
 	:class:`SysInfo` object also support a mimimal dictionary interface (i.e.
 	:meth:`__getitem__` and :meth:`__iter__`).
@@ -900,7 +901,7 @@ def prettycsv(rows, padding="   "):
 	Format table :obj:`rows`.
 
 	:obj:`rows` must be a list of lists of strings (e.g. as produced by the
-	:mod:`cvs` module). :obj:`padding` is the padding between columns.
+	:mod:`csv` module). :obj:`padding` is the padding between columns.
 
 	:func:`prettycsv` is a generator.
 	"""
