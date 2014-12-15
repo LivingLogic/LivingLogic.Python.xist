@@ -9,43 +9,38 @@
 ## See ll/xist/__init__.py for the license
 
 
-r"""
-<p><mod>ll.ansistyle</mod> is a module that helps colorize terminal output
-with &ansi; escape sequences.</p>
+"""
+:mod:`ll.ansistyle` is a module that helps colorize terminal output
+with ANSI escape sequences.
 
-<p>Color values are integers between -1 and 511 (octal 0777).
+Color values are integers between -1 and 511 (octal 0777).
 The lowest 3 bits are used for the background colors 0-7. Bits 3-5 are used for
 the foreground color. Bit 6 (0100) is used for bold (or other shades of the
 color 0-7, depending on your terminal). Bit 7 (0200) is used for underlined text
 and bit 8 (0400) is used for blinking text. The color value -1 means
-<z>don't change the color</z>.</p>
+"don't change the color".
 
-<p>To add color switching escape sequences to normal output test, use a
-<class>Colorizer</class> object like this:</p>
-<tty>
-<prompt>&gt;&gt;&gt; </prompt><input>from ll import ansistyle</input>
-<prompt>&gt;&gt;&gt; </prompt><input>c = ansistyle.Colorizer()</input>
-<prompt>&gt;&gt;&gt; </prompt><input>list(c.feed("spam", 0157, "eggs", None))</input>
-['spam', '\x1b[1;35;47m', 'eggs', '\x1b[0m']
-</tty>
+To add color switching escape sequences to normal output test, use a
+:class:`Colorizer` object like this::
 
-<p>For more info see the description of the
-<pyref class="Colorizer" method="feed"><meth>feed</meth></pyref>.</p>
+	>>> from ll import ansistyle
+	>>> c = ansistyle.Colorizer()
+	>>> list(c.feed("spam", 0157, "eggs", None))
+	['spam', '\x1b[1;35;47m', 'eggs', '\x1b[0m']
 
-<p>There is a second level &api; for <class>ansistyle.Colorizer</class>, which
-can be used like this:</p>
+For more info see the description of :meth:`Colorizer.feed`.
 
-<tty>
-<prompt>&gt;&gt;&gt; </prompt><input>from ll import ansistyle</input>
-<prompt>&gt;&gt;&gt; </prompt><input>list(ansistyle.Text("spam", 0157, "eggs").parts())</input>
-['spam', '\x1b[1;35;47m', 'eggs', '\x1b[0m']
-</tty>
+There is a second level API for :class:`ansistyle.Colorizer`, which
+can be used like this::
 
-<p>Furthermore you can print <class>ansistyle.Text</class> instances directly
-to get colored output.</p>
+	>>> from ll import ansistyle
+	>>> list(ansistyle.Text("spam", 0157, "eggs").parts())
+	['spam', '\x1b[1;35;47m', 'eggs', '\x1b[0m']
 
-<p>For more information see the documentation for
-<pyref class="Text"><class>ansistyle.Text</class></pyref>.</p>
+Furthermore you can print :class:`ansistyle.Text` instances directly
+to get colored output.
+
+For more information see the documentation for :class:`ansistyle.Text`.
 """
 
 
@@ -57,14 +52,14 @@ __docformat__ = "xist"
 
 class Colorizer(object):
 	"""
-	A <class>Colorizer</class> object manages the current color and style and will
-	intersperse normal output text with &ansi; escape sequences for switching
+	A :class:`Colorizer` object manages the current color and style and will
+	intersperse normal output text with ANSI escape sequences for switching
 	output color and style.
 	"""
 
 	def __init__(self, colored=True):
 		"""
-		Create a <class>Colorizer</class> instance. If <arg>colored</arg> is false,
+		Create a :class:`Colorizer` instance. If :obj:`colored` is false,
 		output will never contain any color/style switching escape sequences.
 		"""
 		self.colored = colored
@@ -73,7 +68,7 @@ class Colorizer(object):
 
 	def pushcolor(self, color):
 		"""
-		Push <arg>color</arg> onto the color stack
+		Push :obj:`color` onto the color stack
 		"""
 		self._colors.append(color)
 
@@ -92,23 +87,25 @@ class Colorizer(object):
 
 	def feed(self, *strings):
 		"""
-		<p>This method is a generator and will yield all the strings in <arg>strings</arg>
-		with interspersed color switching escape sequences. Items in <arg>strings</arg>
-		can be the following:</p>
-		<dl>
-		<term>Strings</term>
-		<item>Strings will be output by <meth>feed</meth> in the appropriate spot.</item>
-		<term>Numbers</term>
-		<item>A number in the argument sequence will switch to that color value.</item>
-		<term><lit>None</lit></term>
-		<item>This will switch back to the default color (This is different from
-		using the color number 0070, because 0070 will only switch colors if there
-		is some output string afterwards).</item>
-		<term>Sequences</term>
-		<item>Those will be recursively fed to <meth>feed</meth> with the following
-		added functionality: The color that was active before the start of the
-		sequence will be restored after the end.</item>
-		</dl>
+		This method is a generator and will yield all the strings in :obj:`strings`
+		with interspersed color switching escape sequences. Items in :obj:`strings`
+		can be the following:
+
+			Strings
+				Strings will be output by :meth:`feed` in the appropriate spot.
+
+			Numbers
+				A number in the argument sequence will switch to that color value.
+
+			``None``
+				This will switch back to the default color (This is different from
+				using the color number 0070, because 0070 will only switch colors
+				if there is some output string afterwards).
+
+			Sequences
+				Those will be recursively fed to :meth:`feed` with the following
+				added functionality: The color that was active before the start
+				of the sequence will be restored after the end.
 		"""
 		for string in strings:
 			if isinstance(string, int):
@@ -132,8 +129,8 @@ class Colorizer(object):
 
 class Text(list):
 	"""
-	A colored string. A <class>Text</class> object is a sequence, the sequence
-	items may either be strings or <class>Text</class> objects themselves.
+	A colored string. A :class:`Text` object is a sequence, the sequence
+	items may either be strings or :class:`Text` objects themselves.
 	"""
 
 	def __init__(self, *content):
@@ -161,22 +158,21 @@ class Text(list):
 
 	def string(self, colored=True):
 		"""
-		Return the resulting string (with escape sequences, if <arg>colored</arg> is true).
+		Return the resulting string (with escape sequences, if :obj:`colored` is true).
 		"""
 		return "".join(self.parts(colored))
 
 	def __str__(self):
 		"""
-		Return the resulting string with &ansi; color escape sequences.
+		Return the resulting string with ANSI color escape sequences.
 		"""
 		return self.string(True)
 
 
 class EscapedText(Text):
 	"""
-	An extension to the <class>Text</class> class. Special characters can be
-	replaced by customized <class>Text</class> objects via the
-	<meth>escapechar</meth> method.
+	An extension to the :class:`Text` class. Special characters can be replaced
+	by customized :class:`Text` objects via the :meth:`escapechar` method.
 	"""
 	def __init__(self, *content):
 		newcontent = []
@@ -197,8 +193,8 @@ class EscapedText(Text):
 
 	def escapechar(self, char):
 		"""
-		Return a replacement <class>Text</class> object for the character
-		<arg>char</arg> or <arg>char</arg> itself, if the character should be
-		used as is. This method should be overwritten by subclasses.
+		Return a replacement :class:`Text` object for the character :obj:`char`
+		or :obj:`char` itself, if the character should be used as is. This method
+		should be overwritten by subclasses.
 		"""
 		return char
