@@ -58,7 +58,7 @@ with xsc.build():
 
 <section><h>Printing &html;</h>
 
-<p>When you have an XIST tree you can print it with the <meth>print</meth> method like this:</p>
+<p>When you have an XIST tree you can print it with the <meth>string</meth> method like this:</p>
 
 <prog>
 from ll.xist import xsc
