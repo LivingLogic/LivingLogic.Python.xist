@@ -32,7 +32,7 @@ Options
 		Produces output (on stderr) while the database is read or written.
 
 	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
-		Should the output (when the ``-v`` option is used) be colored. If ``auto``
+		Should the output (when the ``-v`` option is used) be colored? If ``auto``
 		is specified (the default) then the output is colored if stderr is a
 		terminal.
 
@@ -50,8 +50,8 @@ Options
 		objects will be included in the output).
 
 	``-i``, ``--ignore`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If given, errors occuring while the database is read or written will be
-		ignored.
+		If true, any exception that occurs while the database is read or written
+		will be ignored.
 
 	``-t``, ``--truncate`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		If given the script uses the ``TRUNCATE`` command instead of the ``DELETE``

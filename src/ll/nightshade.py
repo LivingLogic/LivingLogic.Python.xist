@@ -224,7 +224,7 @@ class Call(object):
 		Oracle procedure/function arguments. On return from the procedure the
 		:obj:`c_out` parameter is mapped to the CherryPy response body, and the
 		parameters :obj:`p_expires` (the number of days from now),
-		:obj:`p_lastmodified` (a date in UTC), :obj:`p_mimetype`: (a string),
+		:obj:`p_lastmodified` (a date in UTC), :obj:`p_mimetype` (a string),
 		:obj:`p_encoding` (a string), :obj:`p_etag` (a string) and
 		:obj:`p_cachecontrol` (a string) are mapped to the appropriate CherryPy
 		response headers. If :obj:`p_etag` is not specified a value is calculated.

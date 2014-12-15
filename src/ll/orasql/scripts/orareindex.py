@@ -14,7 +14,7 @@
 Purpose
 -------
 
-``orareindex`` recreates/rebuild all indexes and unique constraints in an
+``orareindex`` recreates/rebuilds all indexes and unique constraints in an
 Oracle database schema.
 
 
@@ -30,7 +30,7 @@ Options
 		Produces output (on stderr) while the database is read or written.
 
 	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
-		Should the output (when the ``-v`` option is used) be colored. If ``auto``
+		Should the output (when the ``-v`` option is used) be colored? If ``auto``
 		is specified (the default) then the output is colored if stderr is a
 		terminal.
 

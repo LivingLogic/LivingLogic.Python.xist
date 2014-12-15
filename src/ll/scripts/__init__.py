@@ -32,7 +32,7 @@ This package contains the following scripts:
 
 	``udiff``
 		``udiff`` is an URL-enabled version of the ``diff`` command for showing
-		differences between two files or directories
+		differences between two files or directories.
 
 These scripts can either be called via Pythons :option:`-m` option::
 

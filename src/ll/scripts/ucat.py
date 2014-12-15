@@ -16,7 +16,7 @@ Purpose
 
 ``ucat`` is a script for printing files. It is an URL-enabled version of the
 ``cat`` system command. Via :mod:`ll.url` and :mod:`ll.orasql` ``ucat`` supports
-``ssh`` and ``oracle`` URLs too.
+``ssh`` and ``oracle`` URLs.
 
 
 Options
@@ -31,14 +31,14 @@ Options
 		Prints directory content recursively.
 
 	``-x``, ``--ignoreerrors`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Ignores file i/o errors occuring during the output process. (Otherwise
-		the script will be aborted.)
+		Ignores file i/o errors occuring during the output process (otherwise
+		the script will be aborted).
 
 	``-i``, ``--include`` : pattern(s)
-		Only compares files whose name matches one of the specified patterns.
+		Only print files whose name matches one of the specified patterns.
 
 	``-e``, ``--exclude`` : pattern(s)
-		Don't compares files whose name matches one of the specified patterns.
+		Don't print files whose name matches one of the specified patterns.
 
 	``--enterdir`` : pattern(s)
 		Only enter directories whose name matches one of the specified patterns.

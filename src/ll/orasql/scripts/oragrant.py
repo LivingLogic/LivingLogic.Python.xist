@@ -27,10 +27,10 @@ Options
 		An Oracle connectstring.
 
 	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Produces output (on stderr) while to database is read or written.
+		Produces output (on stderr) while the database is read or written.
 
 	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
-		Should the output (when the ``-v`` option is used) be colored. If ``auto``
+		Should the output (when the ``-v`` option is used) be colored? If ``auto``
 		is specified (the default) then the output is colored if stderr is a
 		terminal.
 
@@ -44,8 +44,8 @@ Options
 		objects will be included in the output).
 
 	``-i``, ``--ignore`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If true, errors occuring while the database is read or written will be
-		ignored.
+		If true, any exception that occurs while the database is read or written
+		will be ignored.
 
 	``-m``, ``--mapgrantee`` : Python expression: ``list`` or ``dict``
 		A Python ``dict`` or ``list`` literal which will be evaluated. If the

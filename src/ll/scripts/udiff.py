@@ -17,7 +17,7 @@ Purpose
 ``udiff`` is a script that can be used to show the differences between files
 or directories. It is an URL-enabled version of the ``diff`` system command.
 Via :mod:`ll.url` and :mod:`ll.orasql` ``udiff`` supports ``ssh`` and
-``oracle`` URLs too.
+``oracle`` URLs.
 
 
 Options
@@ -27,19 +27,19 @@ Options
 
 	``url1``
 		The first URL to be compared (Note that a trailing ``/`` is required for
-		directories.
+		directories).
 
 	``url2``
 		The second URL to be compared (Note that a trailing ``/`` is required for
-		directories.
+		directories).
 
 	``--encoding`` : encoding name
 		The encoding name to use for decoding files (default ``utf-8``).
 
 	``--errors`` : encoding error handler name
 		Encoding error handling to use for reading text files (e.g. ``strict``,
-		``replace``, ``ignore``, ``xmlcharrefreplace`` or ``backslashreplace``
-		(default ``replace``).
+		``replace``, ``ignore``, ``xmlcharrefreplace`` or ``backslashreplace``;
+		default ``replace``).
 
 	``--color``: ``yes``, ``no`` or ``auto``
 		Should the output of ``udiff`` be colored? The default ``auto`` uses
@@ -47,7 +47,7 @@ Options
 
 	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		Prints which files are compare before the comparison. Without ``-v1``
-		``udiff`` will be silent, if no differences are detected.
+		``udiff`` will be silent as long as no differences are detected.
 
 	``-r``, ``--recursive`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		Compare directories recursively.
@@ -78,7 +78,17 @@ Options
 Examples
 --------
 
-...
+Compare two files::
+
+	$ udiff foo.txt bar.txt
+
+Recursively compare two directories, but skip the ``.git`` directory::
+
+	$ udiff foo/ bar/ -r --skipdir=.git
+
+Recursively compare two Oracle schemas::
+
+	$ udiff oracle://user1:pwd@database1  oracle://user2:pwd@database2 -r
 """
 
 

@@ -3,6 +3,9 @@
 # cython: language_level=3, always_allow_keywords=True
 
 """
+Purpose
+=======
+
 ``rul4`` is a script that can be used for rendering UL4 templates. Templates
 have access to Oracle, MySQL and SQLite databases and can execute system
 commands.
@@ -44,17 +47,17 @@ Options
 		``-D`` can be specified multiple times. The following formats are supported:
 
 			``var``
-				Defines ``var`` as an empty string
+				Defines ``var`` as an empty string;
 
 			``var=value``
-				Defines ``var`` as the string ``value``
+				Defines ``var`` as the string ``value``;
 
 			``var:type``
-				Defines ``var`` as an empty variable of the type ``type``
+				Defines ``var`` as an empty variable of the type ``type``;
 
 			``var:type=value``
 				Defines ``var`` as a variable of the type ``type`` with the value
-				``value``
+				``value``.
 
 		``type`` can be any of the following:
 
@@ -65,12 +68,12 @@ Options
 				``value`` is a float value.
 
 			``bool``
-				``value`` is a boolean value. ``0`` ``no``, ``false``, ``False`` or
+				``value`` is a boolean value. ``0``, ``no``, ``false``, ``False`` or
 				the empty string will be recognized as false and ``1``, ``yes``,
 				``true`` or ``True`` will be recognized as true.
 
 			``str``
-				``value`` is string.
+				``value`` is a string.
 
 			``oracle``
 				``value`` will be a connection to an Oracle database, e.g.::
@@ -131,6 +134,7 @@ requires at least one positional argument. Arguments alternate between fragments
 of the SQL query and parameters that will be embedded in the query. For example::
 
 	<?code db = oracle.connect("user/pwd@db")?>
+	<?code name = "Bob"?>
 	<?for p in db.query("select * from person where firstname=", name, " or lastname=", name)?>
 		...
 
@@ -141,7 +145,7 @@ Connection objects also have an ``execute`` method that supports the same
 parameters as ``query`` but doesn't return an iterable result. This can be used
 to call functions or procedures.
 
-Calling function or procedures with out parameters can be done with variable
+Calling functions or procedures with out parameters can be done with variable
 objects that can be created with the methods :meth:`int`, :meth:`number`,
 :meth:`str`, :meth:`clob` and :meth:`date`. The resulting value of the out
 parameter is available from the ``value`` attribute of the variable object.

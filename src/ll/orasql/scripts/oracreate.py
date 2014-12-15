@@ -29,20 +29,20 @@ Options
 		An Oracle connectstring.
 
 	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Produces output (on stderr) while to database is read or written.
+		Produces output (on stderr) while the database is read or written.
 
 	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
-		Should the output (when the ``-v`` option is used) be colored. If ``auto``
+		Should the output (when the ``-v`` option is used) be colored? If ``auto``
 		is specified (the default) then the output is colored if stderr is a
 		terminal.
 
 	``-s``, ``--seqcopy`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		Outputs ``CREATE SEQUENCE`` statements for the existing sequences that have
-		the current value of the sequence as the starting value. (Otherwise the
-		sequences will restart with their initial value)
+		the current value of the sequence as the starting value (otherwise the
+		sequences will restart with their initial value).
 
 	``-x``, ``--execute`` : connectstring
-		When the ``-x`` argument is given the SQL script isn't printed on stdout,
+		When the ``-x`` argument is given the SQL script isn't printed on stdout
 		but executed in the database specfied as the ``-x`` argument.
 
 	``-k``, ``--keepjunk`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
@@ -50,8 +50,8 @@ Options
 		their name will be skipped (otherwise these objects will be included).
 
 	``-i``, ``--ignore`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If true, errors occuring while the database is read or written will be
-		ignored.
+		If true, any exception that occurs while the database is read or written
+		will be ignored.
 
 	``--include`` : regexp
 		Only include objects in the output if their name contains the regular

@@ -29,20 +29,20 @@ Options
 		Oracle connectstring for the second database schema.
 
 	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Produces output (on stderr) while to database is read.
+		Produces output (on stderr) while the database is read.
 
 	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
-		Should the output (when the ``-v`` option is used) be colored. If ``auto``
+		Should the output (when the ``-v`` option is used) be colored? If ``auto``
 		is specified (the default) then the output is colored if stderr is a
 		terminal.
 
 	``-m``, ``--mode`` : ``brief``, ``udiff`` or ``full``
 		Specifies how the differences should be shown. ``brief`` only prints
-		whether objects are different (or which ones exist in one of the databases);
-		``udiff`` outputs the differences in "unified diff" format and ``full``
-		outputs the object from the second schema if they differ (i.e. it outputs
-		the script that must be executed to copy the differences from schema 2
-		to schema 1).
+		whether objects are different (or which ones exist in only one of the
+		databases); ``udiff`` outputs the differences in "unified diff" format and
+		``full``	outputs the object from the second schema if they differ (i.e. it
+		outputs the script that must be executed to copy the differences from
+		schema 2 to schema 1).
 
 	``-n``, ``--context`` : integer
 		The number of context lines in unified diff mode (i.e. the number of

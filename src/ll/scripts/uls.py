@@ -16,7 +16,7 @@ Purpose
 
 ``uls`` is a script that lists the content of directories. It is an URL-enabled
 version of the ``ls`` system command. Via :mod:`ll.url` and :mod:`ll.orasql`
-``uls`` supports ``ssh`` and ``oracle`` URLs too.
+``uls`` supports ``ssh`` and ``oracle`` URLs.
 
 
 Options
@@ -28,7 +28,7 @@ Options
 		Zero or more URLs. If no URL is given the current directory is listed.
 
 	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
-		Should the output be colored. If ``auto`` is specified (the default) then
+		Should the output be colored? If ``auto`` is specified (the default) then
 		the output is colored if stdout is a terminal.
 
 	``-1``, ``--one`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
@@ -55,10 +55,10 @@ Options
 		The characters used for padding output in multicolumn or long format.
 
 	``-i``, ``--include`` : pattern
-		Only copy files that match the pattern.
+		Only list files that match the pattern.
 
 	``-e``, ``--exclude`` : pattern
-		Don't copy files that match the pattern.
+		Don't list files that match the pattern.
 
 	``--enterdir`` : pattern
 		Only enter directories that match the pattern.

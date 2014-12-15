@@ -29,16 +29,16 @@ Options
 		An Oracle connectstring.
 
 	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Produces output (on stderr) while to database is read or written.
+		Produces output (on stderr) while the database is read or written.
 
 	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
-		Should the output (when the ``-v`` option is used) be colored. If ``auto``
+		Should the output (when the ``-v`` option is used) be colored? If ``auto``
 		is specified (the default) then the output is colored if stderr is a
 		terminal.
 
 	``-f``, ``--fks`` : ``keep``, ``disable``, ``drop``
 		Specifies how foreign keys from other schemas pointing to this schema
-		should be treated: ``keep`` will now change the foreign keys in any way
+		should be treated: ``keep`` will not change the foreign keys in any way
 		(this *will* lead to errors); ``disable`` will disable the foreign keys
 		and ``drop`` will drop them completely.
 
@@ -53,8 +53,8 @@ Options
 		objects will be included in the output).
 
 	``-i``, ``--ignore`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If true, errors occuring while the database is read or written will be
-		ignored.
+		If true, any exception that occurs while the database is read or written
+		will be ignored.
 
 	``--include`` : regexp
 		Only include objects in the output if their name contains the regular
