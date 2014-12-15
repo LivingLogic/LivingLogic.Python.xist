@@ -374,7 +374,8 @@ def screen(c1, c2):
 def mix(*args):
 	"""
 	Calculates a weighted mix of the colors from :obj:`args`. Items in
-	:obj:`args` are either colors or weights::
+	:obj:`args` are either colors or weights. The following example mixes
+	two parts black with one part white::
 
 		>>> from ll import color
 		>>> color.mix(2, color.black, 1, color.white)
