@@ -85,12 +85,12 @@ except ImportError:
 
 def item(iterable, index, default=None):
 	"""
-	Returns the :obj:`index`'th element from the iterable. :obj:`index` may be
-	negative to count from the end. E.g. 0 returns the first element produced
-	by the iterator, 1 the second, -1 the last one etc. If :obj:`index` is
-	negative the iterator will be completely exhausted, if it's positive it
-	will be exhausted up to the :obj:`index`'th element. If the iterator
-	doesn't produce that many elements :obj:`default` will be returned.
+	Returns the :obj:`index`'th item from the iterable. :obj:`index` may be
+	negative to count from the end. E.g. 0 returns the first item produced by
+	the iterator, 1 the second, -1 the last one etc. If :obj:`index` is negative
+	the iterator will be completely exhausted, if it's positive it will be
+	exhausted up to the :obj:`index`'th item. If the iterator doesn't produce
+	that many items :obj:`default` will be returned.
 
 	:obj:`index` may also be an iterable of indexes, in which case :meth:`item`
 	will be applied recursively, i.e. ``item(["foo", "bar"], (1, -1))`` returns
