@@ -219,10 +219,10 @@ class Job(object):
 	To use this class, derive your own class from it and overwrite the
 	:meth:`execute` method.
 
-	The job con be configured in three ways. By class attributes in the
+	The job can be configured in three ways: By class attributes in the
 	:class:`Job` subclass, by attributes of the :class:`Job` instance (e.g. set
 	in :meth:`__init__`) and by command line arguments (if :func:`executewithargs`
-	is used). The following attributes are supported:
+	is used). The following attributes/arguments are supported:
 
 	``projectname`` : :option:`-p` or :option:`--projectname`
 		The name of the project this job belongs to. This might be a dot-separated
@@ -287,8 +287,8 @@ class Job(object):
 		``jobname`` and ``starttime``.
 
 	``loglinkname`` : :option:`--loglinkname`
-		A link that points to the currently active logfile (as an UL4 template).
-		If this is :const:`None` no link will be created.
+		The filename of a link that points to the currently active logfile
+		(as an UL4 template). If this is :const:`None` no link will be created.
 
 	``log2file`` : :option:`-f` or :option:`--log2file`
 		Should a logfile be written at all?
@@ -875,6 +875,24 @@ class Job(object):
 			items = sys.modules.items()
 			for (name, module) in self.tasks(items, "module", operator.itemgetter(0)):
 				self.log("module is {}".format(module))
+
+		The log output will look something like the following::
+
+			[2014-11-14 11:17:01.319291]=[t+0:00:00.342013] :: {sisyphus}{init} >> /Users/walter/test.py (max time 0:05:00; pid 33482)
+			[2014-11-14 11:17:01.321860]=[t+0:00:00.344582] :: {sisyphus}{init} >> forked worker child (child pid 33485)
+			[2014-11-14 11:17:01.324067]=[t+0:00:00.346789] :: module tokenize (1/212) :: {email} >> module is <module 'tokenize' from '/Users/walter/.local/lib/python3.4/tokenize.py'>
+			[2014-11-14 11:17:01.327711]=[t+0:00:03.350433] :: module heapq (2/212) :: {email} >> module is <module 'heapq' from '/Users/walter/.local/lib/python3.4/heapq.py'>
+			[2014-11-14 11:17:01.333471]=[t+0:00:09.356193] :: module marshal (3/212) :: {email} >> module is <module 'marshal' (built-in)>
+			[2014-11-14 11:17:01.340733]=[t+0:00:15.363455] :: module math (4/212) :: {email} >> module is <module 'math' from '/Users/walter/.local/lib/python3.4/lib-dynload/math.so'>
+			[2014-11-14 11:17:01.354177]=[t+0:00:18.366899] :: module urllib.parse (5/212) :: {email} >> module is <module 'urllib.parse' from '/Users/walter/.local/lib/python3.4/urllib/parse.py'>
+			[2014-11-14 11:17:01.368187]=[t+0:00:21.370909] :: module _posixsubprocess (6/212) :: {email} >> module is <module '_posixsubprocess' from '/Users/walter/.local/lib/python3.4/lib-dynload/_posixsubprocess.so'>
+			[2014-11-14 11:17:01.372633]=[t+0:00:33.385355] :: module pickle (7/212) :: {email} >> module is <module 'pickle' from '/Users/walter/.local/lib/python3.4/pickle.py'>
+			[...]
+			[2014-11-14 11:17:03.768065]=[t+0:00:39.790787] :: {sisyphus}{info} >> Compressing logfiles older than 7 days, 0:00:00 via bzip2
+			[2014-11-14 11:17:03.768588]=[t+0:00:39.791310] :: {sisyphus}{info} >> Compressing logfile /Users/walter/ll.sisyphus/ACME.FooBar/Test/2014-11-06-16-44-22-416878.sisyphuslog
+			[2014-11-14 11:17:03.772348]=[t+0:00:39.795070] :: {sisyphus}{info} >> Compressing logfile /Users/walter/ll.sisyphus/ACME.FooBar/Test/2014-11-06-16-44-37-839632.sisyphuslog
+			[2014-11-14 11:17:03.774178]=[t+0:00:39.796900] :: {sisyphus}{info} >> Cleanup done
+
 		"""
 		try:
 			count = len(iterable)
