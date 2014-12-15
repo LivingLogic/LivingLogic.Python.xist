@@ -179,28 +179,28 @@ class Color(tuple):
 
 	def hsv(self):
 		"""
-		:obj:`self` as a HSV ("hue, saturation, value") triple.
+		:obj:`self` as a HSV tuple ("hue, saturation, value").
 		All three values are between 0.0 and 1.0.
 		"""
 		return colorsys.rgb_to_hsv(self[0]/255., self[1]/255., self[2]/255.)
 
 	def hsva(self):
 		"""
-		:obj:`self` as a HSV+alpha ("hue, saturation, value, alpha") tuple.
+		:obj:`self` as a HSV+alpha tuple ("hue, saturation, value, alpha").
 		All four values are between 0.0 and 1.0.
 		"""
 		return self.hsv() + (self[3]/255.,)
 
 	def hls(self):
 		"""
-		:obj:`self` as a HLS ("hue, luminance, saturation") triple. All three
+		:obj:`self` as a HLS tuple ("hue, luminance, saturation"). All three
 		values are between 0.0 and 1.0.
 		"""
 		return colorsys.rgb_to_hls(self[0]/255., self[1]/255., self[2]/255.)
 
 	def hlsa(self):
 		"""
-		:obj:`self` as a HLS+alpha ("hue, luminance, saturation, alpha") tuple.
+		:obj:`self` as a HLS+alpha tuple ("hue, luminance, saturation, alpha").
 		All four values are between 0.0 and 1.0.
 		"""
 		return self.hls() + (self[3]/255.,)
