@@ -374,13 +374,14 @@ class Const(object):
 	"""
 	This class can be used for singleton constants.
 	"""
-	__slots__ = ("_name",)
+	__slots__ = ("_name", "_module")
 
-	def __init__(self, name):
+	def __init__(self, name, module=None):
 		self._name = name
+		self._module = module
 
 	def __repr__(self):
-		return "{}.{}".format(self.__module__, self._name)
+		return "{}.{}".format(self._module or self.__module__, self._name)
 
 
 class FlagAction(argparse.Action):

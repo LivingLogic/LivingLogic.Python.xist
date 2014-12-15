@@ -14,6 +14,8 @@ Changes in 5.13 (released ??/??/2014)
 *	The default for the name parameter in :meth:`tasks` for sisyphus jobs has
 	changed from ``str`` to ``None``, i.e. it defaults to unnamed tasks now.
 
+*	:class:`misc.Const` now allows to specify a module name.
+
 
 Changes in 5.12.1 (released 12/09/2014)
 ---------------------------------------
