@@ -328,7 +328,7 @@ from ll.xist import parse
 from ll.xist.ns import html
 
 node = parse.tree(
-	"<p>Hello <a href='http://www.python.org/'>Python</a> world!</p>",
+	b"<p>Hello <a href='http://www.python.org/'>Python</a> world!</p>",
 	parse.Expat(),
 	parse.NS(html),
 	parse.Node()
