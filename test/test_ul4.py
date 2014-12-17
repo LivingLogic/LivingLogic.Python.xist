@@ -3967,10 +3967,10 @@ def test_not_containment_precedence(T):
 def test_function_signature(T):
 	assert 42 == T("<?return x?>", signature="x")(x=42)
 
-	with raises("required argument x \\(position 0\\) missing|'x' parameter lacking default value"):
+	with raises("required argument .?x.? \\(position 0\\) missing|'x' parameter lacking default value"):
 		T("<?return x?>", signature="x")()
 
-	with raises("doesn't support an argument named \"y\"|too many keyword arguments"):
+	with raises("doesn't support an argument named .?y.?|an argument named .?y.? isn't supported|too many keyword arguments"):
 		T("<?return x?>", signature="x")(x=17, y=23)
 
 
@@ -3995,10 +3995,10 @@ def test_function_signature_kwargs(T):
 def test_template_signature(T):
 	assert "42" == T("<?print x?>", signature="x").renders(x=42)
 
-	with raises("required argument x \\(position 0\\) missing|'x' parameter lacking default value"):
+	with raises("required argument .?x.? \\(position 0\\) missing|'x' parameter lacking default value"):
 		T("<?print x?>", signature="x").renders()
 
-	with raises("doesn't support an argument named \"y\"|too many keyword arguments"):
+	with raises("doesn't support an argument named .?y.?|an argument named .?y.? isn't supported|too many keyword arguments"):
 		T("<?print x?>", signature="x").renders(x=17, y=23)
 
 
