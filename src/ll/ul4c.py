@@ -2914,9 +2914,12 @@ class Template(Block):
 		encoder.dump(self.startdelim)
 		encoder.dump(self.enddelim)
 
+		# Signature can be ``None`` or an instance of :class:`inspect.Signature` or :class:`Signature`
 		if self.signature is None or isinstance(self.signature, Signature):
 			encoder.dump(self.signature)
 		else:
+			# Serialize an instance of :class:`inspect.Signature` as a flat list
+			# e.g. ['x', 'y=', 42, '*args', '**kwargs'] for the signature ``(x, y=42, *args, **kwargs)``
 			dump = []
 			for param in self.signature.parameters.values():
 				if param.kind is inspect.Parameter.POSITIONAL_OR_KEYWORD:
