@@ -4008,6 +4008,19 @@ def test_template_signature_default(T):
 
 
 @pytest.mark.ul4
+def test_function_signature_default_from_parent(T):
+	s = """
+		<?code a = 42?>
+		<?def f(x=2*a)?>
+			<?return x?>
+		<?end def?>
+		<?code a = 17?>
+		<?return f()?>
+	"""
+	assert 84 == T(s)()
+
+
+@pytest.mark.ul4
 def test_jssource():
 	t = universaltemplate()
 	t.jssource()
