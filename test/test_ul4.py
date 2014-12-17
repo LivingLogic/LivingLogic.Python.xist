@@ -394,8 +394,8 @@ all_templates = dict(
 	python_dump=TemplatePythonDump,
 	java_compiled_by_python=TemplateJavaCompiledByPython,
 	java_compiled_by_java=TemplateJavaCompiledByJava,
-	# js_v8=TemplateJavascriptV8,
-	# js_spidermonkey=TemplateJavascriptSpidermoney,
+	js_v8=TemplateJavascriptV8,
+	js_spidermonkey=TemplateJavascriptSpidermoney,
 	# php=TemplatePHP,
 )
 
@@ -435,7 +435,7 @@ argumentmismatchmessage = [
 argumentmismatchmessage = "({})".format("|".join(argumentmismatchmessage))
 
 
-class raises(object):
+class raises:
 	def __init__(self, msg):
 		self.msg = re.compile(msg)
 

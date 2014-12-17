@@ -15,7 +15,7 @@ from ll.xist.ns import xml, html, doc, htmlspecials, meta
 
 cols = 6
 
-class Icons(object):
+class Icons:
 	def __init__(self, directory):
 		self.directory = directory
 

@@ -939,7 +939,7 @@ class ReSTConversionWarning(Warning):
 	pass
 
 
-class ReSTConverter(object):
+class ReSTConverter:
 	def __init__(self):
 		from ll.xist.ns import doc, abbr
 		self.namedrefs = collections.defaultdict(list)

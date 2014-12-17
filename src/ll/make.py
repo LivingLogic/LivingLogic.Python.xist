@@ -77,7 +77,7 @@ def filechanged(key):
 		return bigbang
 
 
-class Level(object):
+class Level:
 	"""
 	Stores information about the recursive execution of :class:`Action`\s.
 	"""
@@ -255,7 +255,7 @@ def getoutputs(project, since, input):
 		return (input if since is bigbang else nodata, bigbang)
 
 
-class Action(object):
+class Action:
 	"""
 	An :class:`Action` is responsible for transforming input data into output
 	data. It may have no, one or many inputs which themselves may be other actions.

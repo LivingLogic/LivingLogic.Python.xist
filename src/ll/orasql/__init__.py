@@ -138,7 +138,7 @@ class Args(dict):
 		return "{}.{}({})".format(self.__class__.__module__, self.__class__.__name__, ", ".join("{}={!r}".format(*item) for item in self.items()))
 
 
-class LOBStream(object):
+class LOBStream:
 	"""
 	A :class:`LOBStream` object provides streamlike access to a ``BLOB`` or ``CLOB``.
 	"""
@@ -217,7 +217,7 @@ def _decodelob(value, readlobs):
 	return value
 
 
-class RecordMaker(object):
+class RecordMaker:
 	def __init__(self, cursor):
 		self._readlobs = cursor.readlobs
 		self._index2name = tuple(d[0].lower() for d in cursor.description)
@@ -708,7 +708,7 @@ def makeurl(name):
 ### Classes used for database meta data
 ###
 
-class MixinNormalDates(object):
+class MixinNormalDates:
 	"""
 	Mixin class that provides methods for determining creation and modification
 	dates for objects.
@@ -732,7 +732,7 @@ class MixinNormalDates(object):
 		return row[0]-datetime.timedelta(seconds=60*(row[1]*60+row[2]))
 
 
-class MixinCodeDDL(object):
+class MixinCodeDDL:
 	"""
 	Mixin class that provides methods returning the create and drop statements
 	for various objects.
@@ -1290,7 +1290,7 @@ class Table(MixinNormalDates, Object):
 				yield obj
 
 
-class Constraint(Object):
+class Constraint:
 	"""
 	Base class of all constraints (primary key constraints, foreign key
 	constraints and unique constraints).
@@ -1411,7 +1411,7 @@ class PrimaryKey(Constraint):
 		return Table(rec.table_name, rec.owner, connection)
 
 
-class Comment(Object):
+class Comment:
 	"""
 	Models a column comment in the database.
 	"""
@@ -1780,7 +1780,7 @@ class UniqueConstraint(Constraint):
 		return Table(rec.table_name, self.owner, connection)
 
 
-class Synonym(Object):
+class Synonym:
 	"""
 	Models a synonym in the database.
 	"""
@@ -1958,7 +1958,7 @@ class MaterializedView(View):
 		yield Table(self.name, self.owner, connection)
 
 
-class Library(Object):
+class Library:
 	"""
 	Models a library in the database.
 	"""
@@ -1997,7 +1997,7 @@ class Library(Object):
 		return code
 
 
-class Argument(object):
+class Argument:
 	"""
 	:class:`Argument` objects hold information about the arguments of a
 	stored procedure.
@@ -2271,7 +2271,7 @@ class JavaSource(MixinNormalDates, Object):
 		return code
 
 
-class Privilege(object):
+class Privilege:
 	"""
 	Models a database object privilege (i.e. a grant).
 
@@ -2384,7 +2384,7 @@ class Privilege(object):
 		return code
 
 
-class Column(Object):
+class Column:
 	"""
 	Models a single column of a table in the database. This is used to output
 	``ALTER TABLE`` statements for adding, dropping and modifying columns.
@@ -2552,7 +2552,7 @@ class Column(Object):
 		return rec.comments or None
 
 
-class User(object):
+class User:
 	"""
 	Models a user in the database.
 	"""
@@ -2616,7 +2616,7 @@ class User(object):
 		return (cls(name[0], connection) for name in cls.iternames(connection))
 
 
-class Preference(Object):
+class Preference:
 	"""
 	Models a preference in the database.
 	"""

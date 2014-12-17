@@ -178,7 +178,7 @@ def _codeheader(thing, name, type):
 	return sig
 
 
-class _stack(object):
+class _stack:
 	def __init__(self, context, obj):
 		self.context = context
 		self.obj = obj

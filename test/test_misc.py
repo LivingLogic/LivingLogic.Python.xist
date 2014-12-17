@@ -233,7 +233,7 @@ def test_jsmin():
 
 
 def test_notimplemented():
-	class Bad(object):
+	class Bad:
 		@misc.notimplemented
 		def bad(self):
 			pass

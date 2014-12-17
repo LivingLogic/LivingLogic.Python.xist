@@ -121,7 +121,7 @@ def getcanonicalddl(ddl, blank):
 	return [Line(line, blank) for line in ddl.splitlines()]
 
 
-class Line(object):
+class Line:
 	__slots__ = ("originalline", "compareline")
 
 	def __init__(self, line, blank):

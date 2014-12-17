@@ -506,7 +506,7 @@ class Decoder:
 			raise ValueError("broken stream at position {}: unknown typecode {!r}".format(self.stream.tell(), typecode))
 
 
-class StreamBuffer(object):
+class StreamBuffer:
 	# Internal helper class that wraps a file-like object and provides buffering
 	def __init__(self, stream, bufsize=1024*1024):
 		self.stream = stream

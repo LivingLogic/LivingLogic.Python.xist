@@ -23,7 +23,7 @@ from ll.xist.ns import html
 __docformat__ = "reStructuredText"
 
 
-class Code(object):
+class Code:
 	def __init__(self, text, ignorefirst=False):
 		# get the individual lines; ignore "\r" as this would mess up whitespace handling later
 		# use list comprehension to get a list and not a Frag

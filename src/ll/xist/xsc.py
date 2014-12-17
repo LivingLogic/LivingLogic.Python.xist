@@ -74,7 +74,7 @@ class ThreadLocalNodeHander(threading.local):
 threadlocalnodehandler = ThreadLocalNodeHander()
 
 
-class build(object):
+class build:
 	"""
 	A :class:`build` object can be used as a context handler to create a new
 	XIST tree::
@@ -109,7 +109,7 @@ class build(object):
 		self.stack[-1](*args, **kwargs)
 
 
-class addattr(object):
+class addattr:
 	"""
 	An :class:`addattr` object can be used as a context handler to modify an
 	attribute of an element::
@@ -151,7 +151,7 @@ def add(*args, **kwargs):
 ### Conversion context
 ###
 
-class Context(object):
+class Context:
 	"""
 	This is an empty class that can be used by the :meth:`convert` method to
 	hold element or namespace specific data during the :meth:`convert` call.
@@ -308,7 +308,7 @@ warnings.simplefilter("always", category=Warning)
 ### Context containing state during :meth:`convert` calls
 ###
 
-class ConverterState(object):
+class ConverterState:
 	def __init__(self, node, root, mode, stage, target, lang, makeaction, makeproject):
 		self.node = node
 		self.root = root
@@ -323,7 +323,7 @@ class ConverterState(object):
 		self.makeproject = makeproject
 
 
-class Converter(object):
+class Converter:
 	"""
 	An instance of this class is passed around in calls to the :meth:`convert`
 	method. A :class:`Converter` object can be used when some element needs to
@@ -522,7 +522,7 @@ class Converter(object):
 ### Publisher for serializing XML trees to strings
 ###
 
-class Publisher(object):
+class Publisher:
 	"""
 	A :class:`Publisher` object is used for serializing an XIST tree into a byte
 	sequence.
@@ -851,7 +851,7 @@ class Publisher(object):
 ### Cursor for the :meth:`walk` method
 ###
 
-class Cursor(object):
+class Cursor:
 	"""
 	A :class:`Cursor` object is used by the :meth:`walk` method during tree
 	traversal. It contains information about the state of the traversal and can
@@ -4199,7 +4199,7 @@ def procinst(xmlname, *content):
 ### Location information
 ###
 
-class Location(object):
+class Location:
 	"""
 	Represents a location in an XML entity.
 	"""

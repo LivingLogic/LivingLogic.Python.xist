@@ -203,7 +203,7 @@ class ReturnException(Exception):
 ### Various versions of undefined objects
 ###
 
-class Undefined(object):
+class Undefined:
 	def __bool__(self):
 		return False
 

@@ -30,7 +30,7 @@ Using this function as a CherryPy response handler can be done like this::
 
 	proc = nightshade.Call(orasql.Function("helloworld"), connectstring="user/pwd")
 
-	class HelloWorld(object):
+	class HelloWorld:
 		@cherrypy.expose
 		def default(self, who="World"):
 			cherrypy.response.headers["Content-Type"] = "text/html"
@@ -92,7 +92,7 @@ def httpdate(dt):
 	return "{}, {:02d} {:3s} {:4d} {:02d}:{:02d}:{:02d} GMT".format(weekdayname[dt.weekday()], dt.day, monthname[dt.month], dt.year, dt.hour, dt.minute, dt.second)
 
 
-class Connect(object):
+class Connect:
 	"""
 	:class:`Connect` objects can be used as decorators that wraps a function
 	that needs a database connection.
@@ -200,7 +200,7 @@ class Connect(object):
 		return wrapper
 
 
-class Call(object):
+class Call:
 	"""
 	Wrap an Oracle procedure or function in a CherryPy handler.
 

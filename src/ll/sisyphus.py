@@ -212,7 +212,7 @@ def _formatlines(obj):
 	return lines
 
 
-class Job(object):
+class Job:
 	"""
 	A Job object executes a task once.
 
@@ -985,7 +985,7 @@ class Job(object):
 			self._loggers.append(URLResourceLogger(self, logfile, skipurls, self._formatlogline))
 
 
-class Task(object):
+class Task:
 	"""
 	A subtask of a :class:`Job`.
 	"""
@@ -1053,7 +1053,7 @@ class Task(object):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} type={0.type!r} name={0.name!r} at {1:#x}".format(self, id(self))
 
 
-class Tag(object):
+class Tag:
 	"""
 	A :class:`Tag` object can be used to call a function with an additional list
 	of tags. Tags can be added via :meth:`__getattr__` or :meth:`__getitem__` calls.

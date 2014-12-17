@@ -134,7 +134,7 @@ def _adddoc(lines, doc, level):
 		lines.append([level, '"""'])
 
 
-class Module(object):
+class Module:
 	def __init__(self, doc=None, defaultxmlns=None, indent="\t", encoding=None, defaults=False, model="fullonce", duplicates="reject"):
 		self.doc = doc
 		self.defaultxmlns = defaultxmlns
@@ -287,7 +287,7 @@ class Module(object):
 					attr.share(group)
 
 
-class Named(object):
+class Named:
 	def __init__(self, name):
 		self.name = name
 		self.pyname = None

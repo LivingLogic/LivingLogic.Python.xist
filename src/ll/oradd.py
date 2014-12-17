@@ -263,7 +263,7 @@ import cx_Oracle
 __docformat__ = "reStructuredText"
 
 
-class var(object):
+class var:
 	"""
 	:class:`var` instances are used to mark procedure values that are ``OUT``
 	parameters. On first use the parameter is used as an ``OUT`` parameter and
@@ -291,7 +291,7 @@ class var(object):
 		return fmt.format(self)
 
 
-class sql(object):
+class sql:
 	"""
 	An :class:`sql` object can be used to specify an SQL expression as a
 	procedure parameter instead of a fixed value. For example passing the current

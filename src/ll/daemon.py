@@ -48,12 +48,12 @@ import sys, os, signal, pwd, grp, argparse
 __docformat__ = "reStructuredText"
 
 
-class Options(object):
+class Options:
 	def __init__(self, **values):
 		self.__dict__.update(values)
 
 
-class Daemon(object):
+class Daemon:
 	"""
 	The :class:`Daemon` class provides methods for starting and stopping a
 	daemon process as well as handling command line arguments.

@@ -219,7 +219,7 @@ class propclass(property, metaclass=_propclass_Meta):
 	'''
 
 
-class Pool(object):
+class Pool:
 	"""
 	A :class:`Pool` object can be used as an inheritable alternative to modules.
 	The attributes of a module can be put into a pool and each pool can have
@@ -299,7 +299,7 @@ def iterone(item):
 	yield item
 
 
-class Iterator(object):
+class Iterator:
 	"""
 	:class:`Iterator` adds :meth:`__getitem__` support to an iterator. This is
 	done by calling :func:`item` internally.
@@ -340,7 +340,7 @@ class Iterator(object):
 		return item(self, index, default)
 
 
-class Queue(object):
+class Queue:
 	"""
 	:class:`Queue` provides FIFO queues: The method :meth:`write` writes to the
 	queue and the method :meth:`read` read from the other end of the queue and
@@ -370,7 +370,7 @@ class Queue(object):
 			return s
 
 
-class Const(object):
+class Const:
 	"""
 	This class can be used for singleton constants.
 	"""
@@ -552,7 +552,7 @@ def javaexpr(obj):
 		raise TypeError("can't handle object of type {}".format(type(obj)))
 
 
-class SysInfo(object):
+class SysInfo:
 	"""
 	A :class:`SysInfo` object contains information about the host, user, python
 	version and script. Available attributes are ``host_name``, ``host_fqdn``,
@@ -739,7 +739,7 @@ class SysInfo(object):
 sysinfo = SysInfo()
 
 
-class monthdelta(object):
+class monthdelta:
 	"""
 	:class:`monthdelta` objects can be used to add months/years to a
 	:class:`datetime.datetime` or :class:`datetime.date` object. If the resulting
@@ -951,7 +951,7 @@ def jsmin(input):
 	# replaced with spaces. Carriage returns will be replaced with linefeeds.
 	# Most spaces and linefeeds will be removed.
 
-	class var(object):
+	class var:
 		a = "\n"
 		b = None
 		lookahead = None

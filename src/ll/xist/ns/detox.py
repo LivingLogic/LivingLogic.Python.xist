@@ -282,7 +282,7 @@ DETOX_EXT = ".detox"
 
 
 def enable_import(suffixes=None):
-	class DetoxLoader(object):
+	class DetoxLoader:
 		def __init__(self, path=None):
 			if path and os.path.isdir(path):
 				self.path = path

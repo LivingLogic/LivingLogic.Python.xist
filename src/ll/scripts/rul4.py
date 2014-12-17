@@ -218,7 +218,7 @@ from ll import ul4c, misc
 __docformat__ = "reStructuredText"
 
 
-class System(object):
+class System:
 	ul4attrs = {"execute"}
 
 	def execute(self, cmd):
@@ -236,7 +236,7 @@ class Var:
 		pass
 
 
-class Connection(object):
+class Connection:
 	ul4attrs = {"query", "execute", "int", "number", "str", "clob", "date"}
 
 	def __init__(self, connection):
@@ -339,7 +339,7 @@ class OracleConnection(Connection):
 		return self.DateVar(value)
 
 
-class Oracle(object):
+class Oracle:
 	ul4attrs = {"connect"}
 
 	def connect(self, connectstring):
@@ -347,7 +347,7 @@ class Oracle(object):
 		return OracleConnection(orasql.connect(connectstring, readlobs=True))
 
 
-class SQLite(object):
+class SQLite:
 	ul4attrs = {"connect"}
 
 	def connect(self, connectstring):
@@ -362,7 +362,7 @@ class SQLite(object):
 		return Connection(connection)
 
 
-class MySQL(object):
+class MySQL:
 	ul4attrs = {"connect"}
 
 	def connect(self, connectstring):

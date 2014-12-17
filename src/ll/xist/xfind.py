@@ -125,7 +125,7 @@ def selector(*objs):
 ### Selectors for the :meth:`walk` method.
 ###
 
-class Selector(object):
+class Selector:
 	"""
 	A selector specifies a condition that a node in an XIST tree must satisfy
 	to match the selector.

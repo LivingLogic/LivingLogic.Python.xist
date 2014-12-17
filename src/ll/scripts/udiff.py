@@ -120,7 +120,7 @@ s4changedline = astyle.Style.fromstr("blue:black")
 s4pos = astyle.Style.fromstr("black:black:bold")
 
 
-class Line(object):
+class Line:
 	__slots__ = ("originalline", "compareline")
 
 	def __init__(self, line, blank):

@@ -287,7 +287,7 @@ class UnknownEventError(TypeError):
 ### Sources: Classes that create on event stream
 ###
 
-class String(object):
+class String:
 	"""
 	Provides parser input from a string.
 	"""
@@ -314,7 +314,7 @@ class String(object):
 			raise TypeError("data must be str or bytes")
 
 
-class Iter(object):
+class Iter:
 	"""
 	Provides parser input from an iterator over strings.
 	"""
@@ -345,7 +345,7 @@ class Iter(object):
 				raise TypeError("data must be str or bytes")
 
 
-class Stream(object):
+class Stream:
 	"""
 	Provides parser input from a stream (i.e. an object that provides a
 	:meth:`read` method).
@@ -381,7 +381,7 @@ class Stream(object):
 				break
 
 
-class File(object):
+class File:
 	"""
 	Provides parser input from a file.
 	"""
@@ -412,7 +412,7 @@ class File(object):
 					break
 
 
-class URL(object):
+class URL:
 	"""
 	Provides parser input from a URL.
 	"""
@@ -448,7 +448,7 @@ class URL(object):
 					break
 
 
-class ETree(object):
+class ETree:
 	"""
 	Produces a (namespaced) event stream from an object that supports the
 	ElementTree__ API.
@@ -517,7 +517,7 @@ class ETree(object):
 ### Transformers: Classes that transform the event stream.
 ###
 
-class Decoder(object):
+class Decoder:
 	"""
 	Decode the :class:`bytes` object produced by the previous object in the
 	pipeline to :class:`str` object.
@@ -556,7 +556,7 @@ class Decoder(object):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
 
 
-class Encoder(object):
+class Encoder:
 	"""
 	Encode the :class:`str` objects produced by the previous object in the
 	pipeline to :class:`bytes` objects.
@@ -611,7 +611,7 @@ class Encoder(object):
 		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
 
 
-class Transcoder(object):
+class Transcoder:
 	"""
 	Transcode the :class:`bytes` object of the input object into another encoding.
 
@@ -652,7 +652,7 @@ class Transcoder(object):
 ### Parsers
 ###
 
-class Parser(object):
+class Parser:
 	"""
 	Basic parser interface.
 	"""
@@ -985,7 +985,7 @@ class SGMLOP(Parser):
 		self._event(self.evendtag, name)
 
 
-class NS(object):
+class NS:
 	"""
 	An :class:`NS` object is used in a parsing pipeline to add support for XML
 	namespaces. It replaces the ``"enterstarttag"``, ``"leavestarttag"``,
@@ -1185,7 +1185,7 @@ class NS(object):
 		yield ("endtagns", data)
 
 
-class Node(object):
+class Node:
 	"""
 	A :class:`Node` object is used in a parsing pipeline to instantiate XIST
 	nodes. It consumes a namespaced event stream::
@@ -1369,7 +1369,7 @@ class Node(object):
 		self._position = data
 
 
-class Tidy(object):
+class Tidy:
 	"""
 	A :class:`Tidy` object parses (potentially ill-formed) HTML from a source
 	into a (non-namespaced) event stream by using lxml__'s HTML parser::

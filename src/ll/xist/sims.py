@@ -123,7 +123,7 @@ def badtext(node):
 	return False
 
 
-class Empty(object):
+class Empty:
 	"""
 	This validator checks that an element has no content.
 	"""
@@ -139,7 +139,7 @@ class Empty(object):
 				yield EmptyElementWithContentWarning(path)
 
 
-class Transparent(object):
+class Transparent:
 	"""
 	This validator implements the "transparent" content model of HTML5.
 	"""
@@ -155,7 +155,7 @@ class Transparent(object):
 			yield from model.validate(path)
 
 
-class NoElements(object):
+class NoElements:
 	"""
 	This validator checks that an element does not have child elements from the
 	same namespace.
@@ -176,7 +176,7 @@ class NoElements(object):
 					yield ElementWarning(path, child)
 
 
-class NoElementsOrText(object):
+class NoElementsOrText:
 	"""
 	This validator checks that an element does have neither child elements
 	from the same namespace nor real (i.e. not-whitespace) text nodes.
@@ -199,7 +199,7 @@ class NoElementsOrText(object):
 					yield ElementWarning(path, child)
 
 
-class Elements(object):
+class Elements:
 	"""
 	This validator checks that an element does have neither child elements
 	from any of the namespaces of those elements specified in the constructor
@@ -269,7 +269,7 @@ class ElementsOrText(Elements):
 						yield WrongElementWarning(path, child)
 
 
-class NotElements(object):
+class NotElements:
 	"""
 	This validator checks that an element doesn't contain any of the specified
 	elements.
@@ -294,7 +294,7 @@ class NotElements(object):
 					yield WrongElementWarning(path, child)
 
 
-class All(object):
+class All:
 	"""
 	This meta validator checks that all its child validators declare the content
 	of the element to be valid.
@@ -316,7 +316,7 @@ class All(object):
 					seen.add(warning)
 
 
-class Any(object):
+class Any:
 	"""
 	This meta validator checks that at least one of its child validators declares
 	the content of the element to be valid.

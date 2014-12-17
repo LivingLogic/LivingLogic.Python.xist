@@ -165,7 +165,7 @@ def strtext(text):
 	return s4text(s4quote('"'), text, s4quote('"'))
 
 
-class Presenter(object):
+class Presenter:
 	"""
 	This class is the base of the presenter classes. It is abstract and only
 	serves as documentation for the methods.
@@ -238,7 +238,7 @@ class Presenter(object):
 		"""
 
 
-class Line(object):
+class Line:
 	__slots__ = ("node", "loc", "path", "content")
 
 	def __init__(self, node, loc, path, content):
