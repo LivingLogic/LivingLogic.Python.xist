@@ -51,11 +51,18 @@ supports most builtin Python types::
 	"S'foo'"
 	>>> ul4on.loads("S'foo'")
 	'foo'
+
+:class:`datetime` and :class:`timedelta` objects are supported too::
+
 	>>> import datetime
 	>>> ul4on.dumps(datetime.datetime.now())
 	'Z i2014 i11 i3 i18 i16 i45 i314157'
 	>>> ul4on.loads('Z i2014 i11 i3 i18 i16 i45 i314157')
 	datetime.datetime(2014, 11, 3, 18, 16, 45, 314157)
+	>>> ul4on.dumps(datetime.timedelta(days=1))
+	'T i1 i0 i0'
+	>>> ul4on.loads('T i1 i0 i0')
+	datetime.timedelta(1)
 
 It also supports :class:`Color` objects from :mod:`ll.color`::
 
