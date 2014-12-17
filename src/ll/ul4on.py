@@ -64,7 +64,7 @@ supports most builtin Python types::
 	>>> ul4on.loads('T i1 i0 i0')
 	datetime.timedelta(1)
 
-It also supports :class:`Color` objects from :mod:`ll.color`::
+:mod:`ll.ul4on` also supports :class:`Color` objects from :mod:`ll.color`::
 
 	>>> from ll import color
 	>>> ul4on.dumps(color.red)

@@ -408,7 +408,9 @@ For example the following template will output ``40``::
 
 The ``def`` tag defines a new template as a variable. Usage looks like this::
 
-	<?def quote?>"<?print text?>"<?end def?>
+	<?def quote?>
+		"<?print text?>"
+	<?end def?>
 
 This defines a local variable ``quote`` that is a template object. This template
 can be called like any other template, that has been passed to the outermost
@@ -418,6 +420,26 @@ template::
 
 (Here an ``<?code?>`` tag is used. The expression in the ``<?code?>`` tag is
 evaluated for the side effect of generating output.)
+
+It's also possible to include a signature in the definition of the template.
+This makes it possible to define default values for template variables and to
+call templates with positional arguments::
+
+	<?def quote(text='foo')?>
+		"<?print text?>"
+	<?end def?>
+	<?code quote.render()?> and <?code quote.render("bar")?>
+
+This will output ``"foo" and "bar"``.
+
+``*`` and ``**`` arguments are also supported::
+
+	<?def weightedsum(*args)?>
+		<?print sum(i*arg for (i, arg) in enumerate(args, 1))?>
+	<?end def?>
+	<?code weightedsum.render(17, 23, 42)?>
+
+This will print ``189`` (i.e. ``1 * 17 + 2 * 23 + 3 * 42``).
 
 
 ``note``
