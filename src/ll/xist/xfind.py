@@ -138,8 +138,8 @@ class Selector(object):
 	@misc.notimplemented
 	def __contains__(self, path):
 		"""
-		Return whether ``path`` (which is a list of XIST nodes from the root of
-		the tree to the node in question) matches the selector.
+		Return whether :obj:`path` (which is a list of XIST nodes from the root
+		of the tree to the node in question) matches the selector.
 		"""
 
 	def __truediv__(self, other):
