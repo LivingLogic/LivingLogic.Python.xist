@@ -252,7 +252,7 @@ class TemplatePHP:
 			raise ValueError("Can't convert {!r} to PHP".format(obj))
 
 	def runcode(self, source):
-		f = sys._getframe(1)
+		f = sys._getframe(2)
 		print("Rendering UL4 template ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
 		print(source)
 		with tempfile.NamedTemporaryFile(mode="wb", suffix=".php") as f:
@@ -310,7 +310,7 @@ class TemplateJavascript:
 		return ul4c.Template(self.source, name=self.name, keepws=self.keepws, signature=self.signature)
 
 	def runcode(self, command, source):
-		f = sys._getframe(1)
+		f = sys._getframe(2)
 		print("Rendering UL4 template ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
 		print(source)
 		with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
