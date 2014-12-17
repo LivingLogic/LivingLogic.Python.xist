@@ -2771,7 +2771,7 @@ class Template(Block):
 	is a generator) or :meth:`renders` (which returns a string).
 
 	A :class:`Template` can also be called as a function (returning the result
-	of the first ``<?return?>`` tag encountered. In this case all output of the
+	of the first ``<?return?>`` tag encountered). In this case all output of the
 	template will be ignored.
 
 	A :class:`Template` object is itself an AST node. Evaluating it will store
@@ -2802,9 +2802,9 @@ class Template(Block):
 		template it can be:
 
 			``None``
-				The template will accept all arguments.
+				The template will accept all keyword arguments.
 
-			A :class:`inspect.Signature` object
+			An :class:`inspect.Signature` object
 				This signature will be used as the signature of the template.
 
 			A callable
@@ -2821,7 +2821,7 @@ class Template(Block):
 			``None``
 				The template will accept all arguments.
 
-			A :class:`Signature`` object
+			A :class:`Signature` object
 				This AST node will be evaluated at the point of definition of the
 				subtemplate to create to final signature of the subtemplate.
 		"""
