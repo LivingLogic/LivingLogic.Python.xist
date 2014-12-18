@@ -1,4 +1,4 @@
-Changes in 5.13 (released ??/??/2014)
+Changes in 5.13 (released 12/18/2014)
 -------------------------------------
 
 *	UL4 templates now support signatures. Signatures can be used for top level
