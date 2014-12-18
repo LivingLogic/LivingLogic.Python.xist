@@ -137,9 +137,9 @@ def test_size():
 			u = url.URL(u)
 			assert len(u.open("rb").read()) == u.open("rb").size() == u.size() == 601
 
-	yield check, "~/checkouts/LivingLogic.Python.WWW/site/images/favicon.gif"
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/images/favicon.gif"
-	yield check, "http://www.livinglogic.de/Python/images/favicon.gif"
+	yield check, "~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif"
+	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif"
+	yield check, "http://www.livinglogic.de/Python/static/favicon.gif"
 
 
 def test_imagesize():
@@ -149,9 +149,9 @@ def test_imagesize():
 			u = url.URL(u)
 			assert u.imagesize() == (16, 16)
 
-	yield check, "~/checkouts/LivingLogic.Python.WWW/site/images/favicon.gif"
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/images/favicon.gif"
-	yield check, "http://www.livinglogic.de/Python/images/favicon.gif"
+	yield check, "~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif"
+	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif"
+	yield check, "http://www.livinglogic.de/Python/static/favicon.gif"
 
 
 def test_mimetype():
@@ -248,8 +248,8 @@ def test_seek_tell():
 			assert r.tell() == 601
 			assert r.read() == b""
 
-	yield check, "~/checkouts/LivingLogic.Python.WWW/site/images/favicon.gif"
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/images/favicon.gif"
+	yield check, "~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif"
+	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif"
 
 
 def test_truncate():

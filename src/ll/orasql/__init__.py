@@ -1290,7 +1290,7 @@ class Table(MixinNormalDates, Object):
 				yield obj
 
 
-class Constraint:
+class Constraint(Object):
 	"""
 	Base class of all constraints (primary key constraints, foreign key
 	constraints and unique constraints).
@@ -1411,7 +1411,7 @@ class PrimaryKey(Constraint):
 		return Table(rec.table_name, rec.owner, connection)
 
 
-class Comment:
+class Comment(Object):
 	"""
 	Models a column comment in the database.
 	"""
@@ -1780,7 +1780,7 @@ class UniqueConstraint(Constraint):
 		return Table(rec.table_name, self.owner, connection)
 
 
-class Synonym:
+class Synonym(Object):
 	"""
 	Models a synonym in the database.
 	"""
@@ -1958,7 +1958,7 @@ class MaterializedView(View):
 		yield Table(self.name, self.owner, connection)
 
 
-class Library:
+class Library(Object):
 	"""
 	Models a library in the database.
 	"""
@@ -2384,7 +2384,7 @@ class Privilege:
 		return code
 
 
-class Column:
+class Column(Object):
 	"""
 	Models a single column of a table in the database. This is used to output
 	``ALTER TABLE`` statements for adding, dropping and modifying columns.
@@ -2616,7 +2616,7 @@ class User:
 		return (cls(name[0], connection) for name in cls.iternames(connection))
 
 
-class Preference:
+class Preference(Object):
 	"""
 	Models a preference in the database.
 	"""
