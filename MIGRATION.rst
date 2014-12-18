@@ -1,14 +1,17 @@
 Migrating to version 5.13
 =========================
 
+Changes to UL4
+--------------
+
+*	Locally defined UL4 templates no longer see themselves among the variables
+	of the parent template.
+
 Changes to ``sisyphus``
 -----------------------
 
 *	The option :option:`setproctitle` for sisyphus jobs has been renamed to
 	:option:`proctitle`. 
-
-*	Locally defined UL4 templates no longer see themselves among the variables
-	of the parent template.
 
 *	The default for the name parameter in :meth:`tasks` for sisyphus jobs has
 	changed from ``str`` to ``None``, i.e. it defaults to unnamed tasks now.
