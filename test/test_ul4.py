@@ -4021,6 +4021,61 @@ def test_function_signature_default_from_parent(T):
 
 
 @pytest.mark.ul4
+def test_function_signature_mutable_default(T):
+	s = """
+		<?def f(x=[])?>
+			<?code x.append(len(x))?>
+			<?return x?>
+		<?end def?>
+		<?note This returns the same list twice, the addition is done after both function calls?>
+		<?return f() + f()?>
+	"""
+	assert [0, 1, 0, 1] == T(s)()
+
+
+@pytest.mark.ul4
+def test_function_signature_mutable_default_copy(T):
+	s = """
+		<?def f(x=[])?>
+			<?code x.append(len(x))?>
+			<?return x?>
+		<?end def?>
+		<?return f()[:] + f()[:]?>
+	"""
+	assert [0, 0, 1] == T(s)()
+
+
+@pytest.mark.ul4
+def test_template_signature_default_in_loop(T):
+	s = """
+		<?code fs = []?>
+		<?for i in range(10)?>
+			<?def f(x=i)?>
+				<?return x?>
+			<?end def?>
+			<?code fs.append(f)?>
+		<?end for?>
+		<?print ", ".join(str(f()) for f in fs)?>
+	"""
+	assert "0, 1, 2, 3, 4, 5, 6, 7, 8, 9" == T(s, keepws=False).renders()
+
+
+@pytest.mark.ul4
+def test_template_signature_loop_return_parent_variable(T):
+	s = """
+		<?code fs = []?>
+		<?for i in range(10)?>
+			<?def f()?>
+				<?return i?>
+			<?end def?>
+			<?code fs.append(f)?>
+		<?end for?>
+		<?print ", ".join(str(f()) for f in fs)?>
+	"""
+	assert "0, 1, 2, 3, 4, 5, 6, 7, 8, 9" == T(s, keepws=False).renders()
+
+
+@pytest.mark.ul4
 def test_jssource():
 	t = universaltemplate()
 	t.jssource()
