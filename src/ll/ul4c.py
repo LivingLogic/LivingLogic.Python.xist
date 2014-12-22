@@ -2900,11 +2900,6 @@ class Template(Block):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
-				# for item in self.items:
-				# 	p.breakable()
-				# 	p.pretty(item)
-				# p.breakable()
-
 	def ul4ondump(self, encoder):
 		# Don't call ``super().ul4ondump()`` first, as we want the version to be first
 		encoder.dump(self.version)
