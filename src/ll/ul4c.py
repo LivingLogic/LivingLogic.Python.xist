@@ -3233,10 +3233,6 @@ class Template(Block):
 		vars[self.name] = TemplateClosure(self, vars, signature)
 
 
-###
-### Functions
-###
-
 @register("signature")
 class Signature(AST):
 	"""
