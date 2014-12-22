@@ -194,9 +194,6 @@ class Connect:
 						self._dropconnection(connection)
 					else:
 						raise
-		wrapper.__name__ = func.__name__
-		wrapper.__doc__ = func.__doc__
-		wrapper.__dict__.update(func.__dict__)
 		return wrapper
 
 
