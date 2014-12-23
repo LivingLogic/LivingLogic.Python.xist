@@ -3901,7 +3901,7 @@ class TemplateClosure:
 		if self.enddelim != "?>":
 			s += " enddelim={0.enddelim!r}".format(self)
 		if self.signature is not None:
-			s += " {}".format(self.signature)
+			s += " signature={}".format(self.signature)
 		if self.content:
 			s + " ..."
 		return s + " at {:#x}>".format(id(self))
