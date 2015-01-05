@@ -180,7 +180,7 @@ class Encoder:
 		self._level = 0
 		self.indent = indent
 		self._lastwaslf = False
-		self._first = True # Remember whether we have dumped soemthing into the stream (so we have to write separator whitespace/indentation) or not
+		self._first = True # Remember whether we have dumped something into the stream (so we have to write separator whitespace/indentation) or not
 		self._objects = []
 		self._id2index = {}
 
