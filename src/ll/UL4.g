@@ -33,10 +33,10 @@ def recoverFromMismatchedSet(self, input, e, follow):
 	raise e
 
 def start(self, token):
-	return self.location.startcode + token.start
+	return self.location.startposcode + token.start
 
 def end(self, token):
-	return self.location.startcode + token.stop + 1
+	return self.location.startposcode + token.stop + 1
 }
 
 @rulecatch {
@@ -678,6 +678,18 @@ statement returns [node]
 	;
 
 
+/* Additional rules for "def" and "ul4" tag */
+
+definition returns [node]
+	:
+		n=name { $node = ($n.text, None); }
+		(
+			sig=signature { $node = ($node[0], $signature.node); }
+		)?
+		EOF
+	;
+
+
 /* Used for parsing signatures */
 signature returns [node]
 	:
@@ -741,15 +753,3 @@ signature returns [node]
 	)
 	close=')' { $node.end = self.end($close) }
 ;
-
-
-/* Additional rules for "def" tag */
-
-definition returns [node]
-	:
-		n=name { $node = ($n.text, None); }
-		(
-			sig=signature { $node = ($node[0], $signature.node); }
-		)?
-		EOF
-	;

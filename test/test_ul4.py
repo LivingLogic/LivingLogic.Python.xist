@@ -44,15 +44,15 @@ class PseudoList(collections.Sequence):
 
 
 class TemplatePython:
-	def __init__(self, source, name=None, keepws=True, signature=None):
+	def __init__(self, source, name=None, whitespace="keep", signature=None):
 		self.source = source
 		self.name = name
-		self.keepws = keepws
+		self.whitespace = whitespace
 		self.signature = signature
 		self.template = self.maketemplate()
 
 	def maketemplate(self):
-		return ul4c.Template(self.source, name=self.name, keepws=self.keepws, signature=self.signature)
+		return ul4c.Template(self.source, name=self.name, whitespace=self.whitespace, signature=self.signature)
 
 	def render(self, *args, **kwargs):
 		return "".join(self.template.render(*args, **kwargs))
@@ -66,14 +66,14 @@ class TemplatePython:
 
 class TemplatePythonDumpS(TemplatePython):
 	def maketemplate(self):
-		template = ul4c.Template(self.source, name=self.name, keepws=self.keepws, signature=self.signature)
+		template = ul4c.Template(self.source, name=self.name, whitespace=self.whitespace, signature=self.signature)
 		template = ul4c.Template.loads(template.dumps()) # Recreate the template from the binary dump
 		return template
 
 
 class TemplatePythonDump(TemplatePython):
 	def maketemplate(self):
-		template = ul4c.Template(self.source, name=self.name, keepws=self.keepws, signature=self.signature)
+		template = ul4c.Template(self.source, name=self.name, whitespace=self.whitespace, signature=self.signature)
 		stream = io.StringIO()
 		template.dump(stream)
 		stream.seek(0)
@@ -82,10 +82,10 @@ class TemplatePythonDump(TemplatePython):
 
 
 class TemplateJava:
-	def __init__(self, source, name=None, keepws=True, signature=None):
+	def __init__(self, source, name=None, whitespace="keep", signature=None):
 		self.source = source
 		self.name = name
-		self.keepws = keepws
+		self.whitespace = whitespace
 		self.signature = signature
 
 	def findexception(self, output):
@@ -116,7 +116,7 @@ class TemplateJava:
 
 class TemplateJavaCompiledByPython(TemplateJava):
 	def template(self):
-		return ul4c.Template(self.source, name=self.name, keepws=self.keepws, signature=self.signature)
+		return ul4c.Template(self.source, name=self.name, whitespace=self.whitespace, signature=self.signature)
 
 	def renders(self, *args, **kwargs):
 		if args:
@@ -125,7 +125,7 @@ class TemplateJavaCompiledByPython(TemplateJava):
 			command="renders",
 			template=self.template(),
 			name=None,
-			keepws=None,
+			whitespace=None,
 			signature=None,
 			variables=kwargs,
 		)
@@ -138,7 +138,7 @@ class TemplateJavaCompiledByPython(TemplateJava):
 			command="render",
 			template=self.template(),
 			name=None,
-			keepws=None,
+			whitespace=None,
 			signature=None,
 			variables=kwargs,
 		)
@@ -151,7 +151,7 @@ class TemplateJavaCompiledByPython(TemplateJava):
 			command="call",
 			template=self.template(),
 			name=None,
-			keepws=None,
+			whitespace=None,
 			signature=None,
 			variables=kwargs,
 		)
@@ -166,7 +166,7 @@ class TemplateJavaCompiledByJava(TemplateJava):
 			command="renders",
 			template=self.source,
 			name=self.name,
-			keepws=self.keepws,
+			whitespace=self.whitespace,
 			signature=self.signature,
 			variables=kwargs,
 		)
@@ -179,7 +179,7 @@ class TemplateJavaCompiledByJava(TemplateJava):
 			command="render",
 			template=self.source,
 			name=self.name,
-			keepws=self.keepws,
+			whitespace=self.whitespace,
 			signature=self.signature,
 			variables=kwargs,
 		)
@@ -192,7 +192,7 @@ class TemplateJavaCompiledByJava(TemplateJava):
 			command="call",
 			template=self.source,
 			name=self.name,
-			keepws=self.keepws,
+			whitespace=self.whitespace,
 			signature=self.signature,
 			variables=kwargs,
 		)
@@ -200,14 +200,14 @@ class TemplateJavaCompiledByJava(TemplateJava):
 
 
 class TemplatePHP:
-	def __init__(self, source, name=None, keepws=True, signature=None):
+	def __init__(self, source, name=None, whitespace="keep", signature=None):
 		self.source = source
 		self.name = name
-		self.keepws = keepws
+		self.whitespace = whitespace
 		self.signature = signature
 
 	def maketemplate(self):
-		return ul4c.Template(self.source, name=self.name, keepws=self.keepws, signature=self.signature)
+		return ul4c.Template(self.source, name=self.name, whitespace=self.whitespace, signature=self.signature)
 
 	def phpexpr(self, obj):
 		if obj is None:
@@ -299,15 +299,15 @@ class TemplatePHP:
 
 
 class TemplateJavascript:
-	def __init__(self, source, name=None, keepws=True, signature=None):
+	def __init__(self, source, name=None, whitespace="keep", signature=None):
 		self.source = source
 		self.name = name
-		self.keepws = keepws
+		self.whitespace = whitespace
 		self.signature = signature
 		self.template = self.maketemplate()
 
 	def maketemplate(self):
-		return ul4c.Template(self.source, name=self.name, keepws=self.keepws, signature=self.signature)
+		return ul4c.Template(self.source, name=self.name, whitespace=self.whitespace, signature=self.signature)
 
 	def runcode(self, command, source):
 		f = sys._getframe(2)
@@ -392,10 +392,10 @@ all_templates = dict(
 	python=TemplatePython,
 	python_dumps=TemplatePythonDumpS,
 	python_dump=TemplatePythonDump,
-	java_compiled_by_python=TemplateJavaCompiledByPython,
-	java_compiled_by_java=TemplateJavaCompiledByJava,
-	js_v8=TemplateJavascriptV8,
-	js_spidermonkey=TemplateJavascriptSpidermoney,
+	# java_compiled_by_python=TemplateJavaCompiledByPython,
+	# java_compiled_by_java=TemplateJavaCompiledByJava,
+	# js_v8=TemplateJavascriptV8,
+	# js_spidermonkey=TemplateJavascriptSpidermoney,
 	# php=TemplatePHP,
 )
 
@@ -460,12 +460,12 @@ class raises:
 def test_text(T):
 	assert 'gurk' == T('gurk').renders()
 	assert 'g\xfcrk' ==  T('g\xfcrk').renders()
-	assert 'gurk' == T('gurk', keepws=False).renders()
-	assert 'g\tu rk' == T('g\t\n\t u \n  r\n\t\tk', keepws=False).renders()
+	assert 'gurk' == T('gurk', whitespace="strip").renders()
+	assert 'g\tu rk' == T('g\t\n\t u \n  r\n\t\tk', whitespace="strip").renders()
 
 
 @pytest.mark.ul4
-def test_whitespace(T):
+def test_linefeed_in_code(T):
 	assert "40" == T("<?print\na\n+\nb\n?>").renders(a=17, b=23)
 
 
@@ -3532,7 +3532,7 @@ def test_templateattributes(T):
 	assert s1 == T("<?print template.source?>").renders(template=t1)
 	assert "1" == T("<?print len(template.content)?>").renders(template=t1)
 	assert "print" == T("<?print template.content[0].type?>").renders(template=t1)
-	assert s1 == T("<?print template.content[0].location.tag?>").renders(template=t1)
+	assert s1 == T("<?print template.content[0].location.text?>").renders(template=t1)
 	assert "x" == T("<?print template.content[0].location.code?>").renders(template=t1)
 	assert "var" == T("<?print template.content[0].obj.type?>").renders(template=t1)
 	assert "x" == T("<?print template.content[0].obj.name?>").renders(template=t1)
@@ -3547,8 +3547,8 @@ def test_templateattributes_localtemplate(T):
 	source = "<?def lower?><?print t.lower()?><?end def?>"
 
 	assert source + "<?print lower.source?>" == T(source + "<?print lower.source?>").renders()
-	assert source == T(source + "<?print lower.source[lower.location.starttag:lower.endlocation.endtag]?>").renders()
-	assert "<?print t.lower()?>" == T(source + "<?print lower.source[lower.location.endtag:lower.endlocation.starttag]?>").renders()
+	assert source == T(source + "<?print lower.source[lower.location.startpos:lower.endlocation.endpos]?>").renders()
+	assert "<?print t.lower()?>" == T(source + "<?print lower.source[lower.location.endpos:lower.endlocation.startpos]?>").renders()
 	assert "lower" == T(source + "<?print lower.name?>").renders()
 
 
@@ -3563,7 +3563,7 @@ def test_nestedscopes(T):
 		<?code x.render()?>
 	<?end for?>
 	"""
-	assert "0!1!2!" == T(source, keepws=False).renders()
+	assert "0!1!2!" == T(source, whitespace="strip").renders()
 
 	# Subtemplates see the state of the variable at the point after the ``<?def?>`` tag,
 	# so the following code will use ``i = 1`` instead of ``i = 2`` even if the subtemplate is called after the variable has been changed.
@@ -3575,7 +3575,7 @@ def test_nestedscopes(T):
 	<?code i = 2?>
 	<?code x.render()?>
 	"""
-	assert "1" == T(source, keepws=False).renders()
+	assert "1" == T(source, whitespace="strip").renders()
 
 
 	# Subtemplates don't see themselves (i.e. the ``TemplateClosure`` object created for them)
@@ -3586,7 +3586,7 @@ def test_nestedscopes(T):
 	<?code y = 42?>
 	<?code x.render()?>
 	"""
-	assert "undefined;undefined" == T(source, keepws=False).renders()
+	assert "undefined;undefined" == T(source, whitespace="strip").renders()
 
 	# This shows the difference between local variables and variables from the parent.
 	# ``x`` is passed to the subtemplate, so it will always be the current value instead of the one when it is defined
@@ -3612,116 +3612,124 @@ def test_nestedscopes(T):
 	<?print y?>!
 	"""
 
-	assert "45!43!44!43!43!43!" == T(source, keepws=False).renders(x=42, y=42)
+	assert "45!43!44!43!43!43!" == T(source, whitespace="strip").renders(x=42, y=42)
 
 
-def universaltemplate(keepws=True):
-	return ul4c.Template("""
-		text
-		<?code x = 'gurk'?>
-		<?code x = 42?>
-		<?code x = 4.2?>
-		<?code x = Undefined?>
-		<?code x = ReallyUndefined?>
-		<?code x = None?>
-		<?code x = False?>
-		<?code x = True?>
-		<?code x = @(2009-01-04)?>
-		<?code x = #0063a8?>
-		<?code x = [42]?>
-		<?code x = {"fortytwo": 42}?>
-		<?code x = [x for x in range(10) if i % 2]?>
-		<?code x = {x : x*x for x in range(10) if i % 2}?>
-		<?code x = (x for x in range(10) if i % 2)?>
-		<?code x = y?>
-		<?code x += 42?>
-		<?code x -= 42?>
-		<?code x *= 42?>
-		<?code x /= 42?>
-		<?code x //= 42?>
-		<?code x %= 42?>
-		<?print x.gurk?>
-		<?print x["gurk"]?>
-		<?print x[1:2]?>
-		<?print x[1:]?>
-		<?print x[:2]?>
-		<?print x[:]?>
-		<?printx x?>
-		<?for x in "12"?><?print x?><?break?><?continue?><?end for?>
-		<?print not x?>
-		<?print -x?>
-		<?print x in y?>
-		<?print x not in y?>
-		<?print x==y?>
-		<?print x!=y?>
-		<?print x<y?>
-		<?print x<=y?>
-		<?print x>y?>
-		<?print x>=y?>
-		<?print x+y?>
-		<?print x*y?>
-		<?print x/y?>
-		<?print x//y?>
-		<?print x and y?>
-		<?print x or y?>
-		<?print x % y?>
-		<?print now()?>
-		<?print repr(1)?>
-		<?print range(1, 2)?>
-		<?print range(1, 2, 3)?>
-		<?print rgb(1, 2, 3, 4)?>
-		<?print repr(1, 2, x=17, y=23, *args, **kwargs)?>
-		<?print x.r()?>
-		<?print x.find(1)?>
-		<?print x.find(1, 2)?>
-		<?print x.find(1, 2, 3)?>
-		<?print x.find(1, 2, x=17, y=23, *args, **kwargs)?>
-		<?if x?>gurk<?elif y?>hurz<?else?>hinz<?end if?>
-		<?code x.render(a=1, b=2)?>
-		<?def x?>foo<?end def?>
-		<?def x?><?return x?><?end def?>
-		<?code x.render()?>
-	""")
+def universaltemplate(whitespace="keep"):
+	return ul4c.Template(
+		"""
+			text
+			<?code x = 'gurk'?>
+			<?code x = 42?>
+			<?code x = 4.2?>
+			<?code x = Undefined?>
+			<?code x = ReallyUndefined?>
+			<?code x = None?>
+			<?code x = False?>
+			<?code x = True?>
+			<?code x = @(2009-01-04)?>
+			<?code x = #0063a8?>
+			<?code x = [42]?>
+			<?code x = {"fortytwo": 42}?>
+			<?code x = [x for x in range(10) if i % 2]?>
+			<?code x = {x : x*x for x in range(10) if i % 2}?>
+			<?code x = (x for x in range(10) if i % 2)?>
+			<?code x = y?>
+			<?code x += 42?>
+			<?code x -= 42?>
+			<?code x *= 42?>
+			<?code x /= 42?>
+			<?code x //= 42?>
+			<?code x %= 42?>
+			<?print x.gurk?>
+			<?print x["gurk"]?>
+			<?print x[1:2]?>
+			<?print x[1:]?>
+			<?print x[:2]?>
+			<?print x[:]?>
+			<?printx x?>
+			<?for x in "12"?><?print x?><?break?><?continue?><?end for?>
+			<?print not x?>
+			<?print -x?>
+			<?print x in y?>
+			<?print x not in y?>
+			<?print x==y?>
+			<?print x!=y?>
+			<?print x<y?>
+			<?print x<=y?>
+			<?print x>y?>
+			<?print x>=y?>
+			<?print x+y?>
+			<?print x*y?>
+			<?print x/y?>
+			<?print x//y?>
+			<?print x and y?>
+			<?print x or y?>
+			<?print x % y?>
+			<?print now()?>
+			<?print repr(1)?>
+			<?print range(1, 2)?>
+			<?print range(1, 2, 3)?>
+			<?print rgb(1, 2, 3, 4)?>
+			<?print repr(1, 2, x=17, y=23, *args, **kwargs)?>
+			<?print x.r()?>
+			<?print x.find(1)?>
+			<?print x.find(1, 2)?>
+			<?print x.find(1, 2, 3)?>
+			<?print x.find(1, 2, x=17, y=23, *args, **kwargs)?>
+			<?if x?>gurk<?elif y?>hurz<?else?>hinz<?end if?>
+			<?code x.render(a=1, b=2)?>
+			<?def x?>foo<?end def?>
+			<?def x(arg)?>foo<?end def?>
+			<?def x?><?return x?><?end def?>
+			<?def x(arg)?><?return x?><?end def?>
+			<?code x.render()?>
+		""",
+		whitespace=whitespace
+	)
 
 
 @pytest.mark.ul4
 def test_strtemplate():
-	t1 = universaltemplate(True)
+	t1 = universaltemplate("keep")
 	str(t1)
 
-	t2 = universaltemplate(False)
+	t2 = universaltemplate("strip")
 	str(t2)
+
+	t3 = universaltemplate("smart")
+	str(t3)
 
 
 @pytest.mark.ul4
-def test_keepws():
+def test_whitespace():
 	s = """
 		<?for i in range(10)?>
 			<?print i?>
 			;
 		<?end for?>
 	"""
-	t = ul4c.Template(s, keepws=True)
-	output1 = t.renders()
-	t.keepws = False
-	output2 = t.renders()
+	t1 = ul4c.Template(s, whitespace="keep")
+	output1 = t1.renders()
+	t2 = ul4c.Template(s, whitespace="strip")
+	output2 = t2.renders()
 	assert output1 != output2
 	assert "".join(output1.split()) == output2
 
 
 @pytest.mark.ul4
-def test_keepws_initialws(T):
-	assert " foo" == T("<?if True?> foo<?end if?>", keepws=False).renders()
-	assert " foobar" == T("<?if True?> foo\n \tbar<?end if?>", keepws=False).renders()
+def test_whitespace_initialws(T):
+	assert " foo" == T("<?if True?> foo<?end if?>", whitespace="strip").renders()
+	assert " foobar" == T("<?if True?> foo\n \tbar<?end if?>", whitespace="strip").renders()
 
 
 @pytest.mark.ul4
-def test_keepws_nested(T):
+def test_whitespace_nested(T):
 	s1 = "<?def nested1?>1n\n<?code second.render()?><?end def?>1\n<?code nested1.render(second=second)?>"
 	s2 = "<?def nested2?>2n\n<?end def?>2\n<?code nested2.render()?>"
 
-	assert "1\n1n\n22n" == T(s1, keepws=True).renders(second=ul4c.Template(s2, keepws=False))
-	assert "11n2\n2n\n" == T(s1, keepws=False).renders(second=ul4c.Template(s2, keepws=True))
+	assert "1\n1n\n22n" == T(s1, whitespace="keep").renders(second=ul4c.Template(s2, whitespace="strip"))
+	assert "11n2\n2n\n" == T(s1, whitespace="strip").renders(second=ul4c.Template(s2, whitespace="keep"))
 
 
 @pytest.mark.ul4
@@ -4057,7 +4065,7 @@ def test_template_signature_default_in_loop(T):
 		<?end for?>
 		<?print ", ".join(str(f()) for f in fs)?>
 	"""
-	assert "0, 1, 2, 3, 4, 5, 6, 7, 8, 9" == T(s, keepws=False).renders()
+	assert "0, 1, 2, 3, 4, 5, 6, 7, 8, 9" == T(s, whitespace="strip").renders()
 
 
 @pytest.mark.ul4
@@ -4072,7 +4080,7 @@ def test_template_signature_loop_return_parent_variable(T):
 		<?end for?>
 		<?print ", ".join(str(f()) for f in fs)?>
 	"""
-	assert "0, 1, 2, 3, 4, 5, 6, 7, 8, 9" == T(s, keepws=False).renders()
+	assert "0, 1, 2, 3, 4, 5, 6, 7, 8, 9" == T(s, whitespace="strip").renders()
 
 
 @pytest.mark.ul4

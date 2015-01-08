@@ -442,11 +442,34 @@ This will output ``"foo" and "bar"``.
 This will print ``189`` (i.e. ``1 * 17 + 2 * 23 + 3 * 42``).
 
 
+``ul4``
+-------
+
+The ``ul4`` tag can be used to specify a name and a signature for the template
+itself. This overwrite the name and signature specified in the
+:class:`ul4c.Template` constructor::
+
+	>>> from ll import ul4c
+	>>> t = ul4c.Template("<?ul4 foo(x)?><?print x?>")
+	>>> t.name
+	'foo'
+	>>> t.signature
+	<inspect.Signature object at 0x108542d30>
+	>>> print(t.signature)
+	(x)
+
+
 ``note``
 --------
 
 A ``note`` tag is a comment, i.e. the content of the tag will be completely
 ignored.
+
+
+``whitespace``
+--------------
+The ``whitespace`` tag can be used to overwrite the handling of whitespace in
+the template. For more info see the chapter on whitespace handling at the end.
 
 
 Nested scopes
@@ -455,8 +478,8 @@ Nested scopes
 UL4 templates support lexical scopes. This means that a template that is defined
 (via ``<?def?>``) inside another template has access to the local variables
 of the outer template. The inner template sees the state of the variables at
-the point in time when the ``<?def?>`` tag was executed (this includes the inner
-template itself, but no variables defined later). The following example
+the point in time when the ``<?def?>`` tag was executed (this does not include
+the inner template itself or any variable defined later). The following example
 will output ``1``::
 
 	<?code i = 1?>
@@ -1755,21 +1778,56 @@ It is possible to specify alternative delimiters for the template tags::
 Whitespace
 ==========
 
-Normally the literal text between template tags will be output as it is. However
-it is possible to specify that linefeeds and the following indentation should be
-ignored. This is done with the parameter ``keepws``::
+Normally the literal text between template tags will be output as it is. This
+behaviour can be changed by passing a different value to the ``whitespace``
+parameter in the constructor. The possible values are:
 
-	>>> from ll import ul4c
-	>>> t = ul4c.Template("""
-	... 	<?for i in range(10)?>
-	... 		<?print i?>
-	... 		;
-	... 	<?end for?>
-	... """, keepws=False)
-	>>> t.renders()
-	'0;1;2;3;4;5;6;7;8;9;'
+``"keep"``
+	The default behaviour: literal text with be output as it is.
 
-Using ``keepws=True`` (the default) the output would include all the line feeds
-and whitespace::
+``"strip"``
+	Linefeeds and the following indentation in literal text will be ignored::
 
-	'\n\t\n\t\t0\n\t\t;\n\t\n\t\t1\n\t\t;\n\t\n\t\t2...
+		>>> from ll import ul4c
+		>>> t = ul4c.Template("""
+		... 	<?for i in range(10)?>
+		... 		<?print i?>
+		... 		;
+		... 	<?end for?>
+		... """, whitespace="strip")
+		>>> t.renders()
+		'0;1;2;3;4;5;6;7;8;9;'
+
+	However trailing whitespace at the end of the line will still be honored.
+
+``"smart"``
+	If a line contains only indentation and one tag that isn't a ``print`` or
+	``printx`` tag, the indentation and the linefeed after the tag will be
+	stripped from the text. Furthermore the additional indentation that might
+	be introduced by a ``for``, ``if``, ``elif``, ``else`` or ``def`` block
+	will be ignored. So for example the output of::
+
+		<?code langs = ["Python", "Java", "Javascript"]?>
+		<?if langs?>
+			<?for lang in langs?>
+				<?print lang?>
+			<?end for?>
+		<?end if?>
+
+	will simply be::
+
+		Python
+		Java
+		Javascript
+
+	without any additional empty lines or indentation.
+
+It is also possible to specify the whitespace behaviour in the template itself
+with the ``<?whitespace?>`` tag, so::
+
+	<?whitespace smart?>
+
+anywhere in the template source will switch on smart whitespace handling.
+
+A ``<?whitespace?>`` tag overwrites the ``whitespace`` parameter specified
+in the constructor.

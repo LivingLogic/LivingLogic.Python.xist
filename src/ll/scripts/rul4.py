@@ -429,7 +429,7 @@ def main(args=None):
 	p = argparse.ArgumentParser(description="render UL4 templates with access to Oracle, MySQL or SQLite databases", epilog="For more info see http://www.livinglogic.de/Python/scripts/rul4.html")
 	p.add_argument("templates", metavar="template", help="templates to be used", nargs="+")
 	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for template sources (default %(default)s)", default="utf-8", metavar="ENCODING")
-	p.add_argument("-w", "--keepws", dest="keepws", help="Keep linefeeds and indentation in template sources? (default %(default)s)", action=misc.FlagAction, default=True)
+	p.add_argument("-w", "--whitespace", dest="whitespace", help="How to treat whitespace in template sources? (default %(default)s)", choices=("keep", "strip", "smart"), default="keep")
 	p.add_argument(      "--oracle", dest="oracle", help="Allow the templates to connect to Oracle databases? (default %(default)s)", action=misc.FlagAction, default=True)
 	p.add_argument(      "--sqlite", dest="sqlite", help="Allow the templates to connect to SQLite databases? (default %(default)s)", action=misc.FlagAction, default=True)
 	p.add_argument(      "--mysql", dest="mysql", help="Allow the templates to connect to MySQL databases? (default %(default)s)", action=misc.FlagAction, default=True)
@@ -449,11 +449,11 @@ def main(args=None):
 			templatename = os.path.basename(templatename)
 			if os.path.extsep in templatename:
 				templatename = templatename.rpartition(os.extsep)[0]
-		template = ul4c.Template(templatestream.read(), fixname(templatename), keepws=args.keepws)
+		template = ul4c.Template(templatestream.read(), name=fixname(templatename), whitespace=args.whitespace)
 		# The first template is the main template
 		if maintemplate is None:
 			maintemplate = template
-		templates[templatename] = template
+		templates[template.name] = template
 
 	vars = dict(templates=templates, encoding=sys.stdout.encoding)
 	if args.defines:

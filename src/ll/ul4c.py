@@ -23,7 +23,7 @@ possible to implement template renderers in multiple programming languages.
 __docformat__ = "reStructuredText"
 
 
-import re, types, datetime, urllib.parse as urlparse, json, collections, locale, itertools, random, functools, math, inspect
+import sys, re, os.path, types, datetime, urllib.parse as urlparse, json, collections, locale, itertools, random, functools, math, inspect
 
 import antlr3
 
@@ -56,91 +56,152 @@ def generator(f):
 
 
 ###
-### Location information
+### Information about a location in the template source code
 ###
 
 @register("location")
 class Location:
 	"""
-	A :class:`Location` object contains information about the location of a
-	template tag.
+	A :class:`Location` object contains information about a part of the source
+	code of an UL4 template. This can either be literal text (implemented by the
+	subclass :class:`TextLocation`) or a template tag (implemented by the
+	subclass :class:`TagLocation`).
 	"""
-	ul4attrs = {"root", "source", "type", "starttag", "endtag", "startcode", "endcode", "tag", "code"}
+	ul4attrs = {"source", "startpos", "endpos", "text"}
 
-	def __init__(self, root=None, source=None, type=None, starttag=None, endtag=None, startcode=None, endcode=None):
+	def __init__(self, source=None, startpos=None, endpos=None):
 		"""
 		Create a new :class:`Location` object. The arguments have the following
 		meaning:
 
-			:obj:`root`
-				The :class:`Template` object
-
 			:obj:`source`
 				The complete source string
 
-			:obj:`type`
-				The tag type (i.e. ``"for"``, ``"if"``, etc. or ``None`` for
-				literal text)
-
-			:obj:`starttag`
-				The start position of the start delimiter.
-
-			:obj:`endtag`
-				The end position of the end delimiter.
-
-			:obj:`startcode`
-				The start position of the tag code.
-
-			:obj:`endcode`
-				The end position of the tag code.
+			:obj:`startpos`, :obj:`endpos`
+				The start and end position of the source string this location
+				represents.
 		"""
-		self.root = root
 		self.source = source
-		self.type = type
-		self.starttag = starttag
-		self.endtag = endtag
-		self.startcode = startcode
-		self.endcode = endcode
-
-	@property
-	def code(self):
-		return self.source[self.startcode:self.endcode]
-
-	@property
-	def tag(self):
-		return self.source[self.starttag:self.endtag]
+		self.startpos = startpos
+		self.endpos = endpos
 
 	def __repr__(self):
-		return "<{}.{} {} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self, id(self))
+		(line, col) = self.pos()
+		return "<{}.{} {!r} at {}:{} (line {}, col {}) at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.text, self.startpos, self.endpos, line, col, id(self))
+
+	@property
+	def text(self):
+		return self.source[self.startpos:self.endpos]
 
 	def pos(self):
-		lastlinefeed = self.source.rfind("\n", 0, self.starttag)
+		lastlinefeed = self.source.rfind("\n", 0, self.startpos)
 		if lastlinefeed >= 0:
-			return (self.source.count("\n", 0, self.starttag)+1, self.starttag-lastlinefeed)
+			return (self.source.count("\n", 0, self.startpos)+1, self.startpos-lastlinefeed)
 		else:
-			return (1, self.starttag + 1)
+			return (1, self.startpos + 1)
+
+	def ul4ondump(self, encoder):
+		encoder.dump(self.source)
+		encoder.dump(self.startpos)
+		encoder.dump(self.endpos)
+
+	def ul4onload(self, decoder):
+		self.source = decoder.load()
+		self.startpos = decoder.load()
+		self.endpos = decoder.load()
+
+
+@register("textlocation")
+class TextLocation(Location):
+	"""
+	A :class:`TextLocation` object is the location of literal text in a template.
+
+	The ``text`` property does not return the original slice of the template
+	source but the modified text (after whitespacing treatment).
+	"""
+	def __init__(self, source=None, startpos=None, endpos=None, text=None):
+		super().__init__(source, startpos, endpos)
+		self._text = text
 
 	def __str__(self):
 		(line, col) = self.pos()
-		return "{!r} at {}:{} (line {}, col {})".format(self.tag, self.starttag, self.endtag, line, col)
+		return "text {!r} at {}:{} (line {}, col {})".format(self.text, self.startpos, self.endpos, line, col)
+
+	@property
+	def text(self):
+		if self._text is None:
+			return self.source[self.startpos:self.endpos]
+		else:
+			return self._text
+
+	# We don't define a setter, because the template should *not* be able to
+	# set this attribute. However the attribute *will* be set by the code
+	# compiling the template
+	def _settext(self, text):
+		if text != self.source[self.startpos:self.endpos]:
+			self._text = text
 
 	def ul4ondump(self, encoder):
-		encoder.dump(self.root)
-		encoder.dump(self.source)
-		encoder.dump(self.type)
-		encoder.dump(self.starttag)
-		encoder.dump(self.endtag)
-		encoder.dump(self.startcode)
-		encoder.dump(self.endcode)
+		super().ul4ondump(encoder)
+		encoder.dump(self._text)
 
 	def ul4onload(self, decoder):
-		self.root = decoder.load()
-		self.source = decoder.load()
-		self.type = decoder.load()
-		self.starttag = decoder.load()
-		self.endtag = decoder.load()
-		self.startcode = decoder.load()
-		self.endcode = decoder.load()
+		super().ul4onload(decoder)
+		self._text = decoder.load()
+
+class LineEndLocation(TextLocation):
+	"""
+	A :class:`LineEndLocation` object is the location of a line terminator in the
+	literal text in a template.
+	"""
+	def __str__(self):
+		(line, col) = self.pos()
+		return "lineend {!r} at {}:{} (line {}, col {})".format(self.text, self.startpos, self.endpos, line, col)
+
+
+class IndentLocation(TextLocation):
+	"""
+	An :class:`IndentLocation` object is the location of an indentation in the
+	literal text in a template.
+	"""
+
+	def __str__(self):
+		(line, col) = self.pos()
+		return "indentation {!r} at {}:{} (line {}, col {})".format(self.text, self.startpos, self.endpos, line, col)
+
+
+@register("taglocation")
+class TagLocation(Location):
+	"""
+	A :class:`TagLocation` object is the location of a template tag in a template.
+	"""
+	ul4attrs = Location.ul4attrs.union({"tag", "startposcode", "endposcode", "code"})
+
+	def __init__(self, source=None, startpos=None, endpos=None, tag=None, startposcode=None, endposcode=None):
+		super().__init__(source, startpos, endpos)
+		self.tag = tag
+		self.startposcode = startposcode
+		self.endposcode = endposcode
+
+	def __str__(self):
+		(line, col) = self.pos()
+		return "{} tag {!r} at {}:{} (line {}, col {})".format(self.tag, self.text, self.startpos, self.endpos, line, col)
+
+	@property
+	def code(self):
+		return self.source[self.startposcode:self.endposcode]
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.tag)
+		encoder.dump(self.startposcode)
+		encoder.dump(self.endposcode)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.tag = decoder.load()
+		self.startposcode = decoder.load()
+		self.endposcode = decoder.load()
 
 
 ###
@@ -164,9 +225,9 @@ class Error(Exception):
 			else:
 				return "in unnamed template"
 		elif isinstance(self.node, Location):
-			return "in tag {}".format(self.node)
+			return "in {}".format(self.node)
 		else:
-			return "in tag {}".format(self.node.location)
+			return "in {}".format(self.node.location)
 
 
 class BlockError(Exception):
@@ -516,7 +577,7 @@ class AST:
 		# ``None``, which means: "add a line feed and an indentation here"
 		# an int, which means: add the int to the indentation level
 		# a string, which means: add this string to the output
-		yield self.location.source[self.start:self.end].replace("\r\n", " ").replace("\n", " ")
+		yield " ".join(self.location.source[self.start:self.end].splitlines(False))
 
 	def eval(self, vars):
 		"""
@@ -553,24 +614,14 @@ class Text(AST):
 	AST node for literal text.
 	"""
 
-	_re_removewhitespace = re.compile(r"\r?\n\s*")
-
-	def text(self):
-		# If ``keepws`` is true, we output the literal text from the location info.
-		# Otherwise we have to strip linefeeds and indentation
-		text = self.location.code
-		if not self.location.root.keepws:
-			text = self._re_removewhitespace.sub("", text)
-		return text
-
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {1!r} at {2:#x}>".format(self, self.text(), id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {1!r} at {2:#x}>".format(self, self.location.text, id(self))
 
 	def _str(self):
-		yield "text {!r}".format(self.text())
+		yield "text {!r}".format(self.location.text)
 
 	def eval(self, vars):
-		yield self.text()
+		yield self.location.text
 
 
 @register("const")
@@ -2777,11 +2828,11 @@ class Template(Block):
 	A :class:`Template` object is itself an AST node. Evaluating it will store
 	the template object under its name in the local variables.
 	"""
-	ul4attrs = Block.ul4attrs.union({"source", "name", "keepws", "startdelim", "enddelim", "render", "renders"})
+	ul4attrs = Block.ul4attrs.union({"source", "name", "whitespace", "startdelim", "enddelim", "render", "renders"})
 
-	version = "32"
+	version = "33"
 
-	def __init__(self, source=None, name=None, keepws=True, startdelim="<?", enddelim="?>", signature=None):
+	def __init__(self, source=None, name=None, whitespace="keep", startdelim="<?", enddelim="?>", signature=None):
 		"""
 		Create a :class:`Template` object.
 
@@ -2792,44 +2843,73 @@ class Template(Block):
 		:obj:`name` is the name of the template. It will be used in exception
 		messages and should be a valid Python identifier.
 
-		If :obj:`keepws` is false linefeeds and indentation will be ignored in the
-		literal text in templates (i.e. the text between the tags). However
-		trailing whitespace at the end of the line will be honored regardless of
-		the value of :obj:`keepws`. Output will always be ignored when calling
-		a template as a function.
+		:obj:`whitespace` specifies how whitespace is handled in the literal text
+		in templates (i.e. the text between the tags):
+
+		``"keep"``
+			Whitespace is kept as it is.
+
+		``"strip"``
+			Strip linefeeds and the following indentation from the text.
+			However trailing whitespace at the end of the line will still be
+			honored.
+
+		``"smart"``
+			If a line contains only indentation and one tag that isn't a ``print``
+			or ``printx`` tag, the indentation and the linefeed after the tag
+			will be stripped from the text. Furthermore the additional indentation
+			that might be introduced by a ``for``, ``if``, ``elif``, ``else`` or
+			``def`` block will be ignored. So for example the output of::
+
+				<?code langs = ["Python", "Java", "Javascript"]?>
+				<?if langs?>
+					<?for lang in langs?>
+						<?print lang?>
+					<?end for?>
+				<?end if?>
+
+			will simply be::
+
+				Python
+				Java
+				Javascript
+
+			without any additional empty lines or indentation.
+
+		(Output will always be ignored when calling a template as a function.)
 
 		:obj:`signature` is the signature of the template. For a top level
 		template it can be:
 
-			``None``
-				The template will accept all keyword arguments.
+		``None``
+			The template will accept all keyword arguments.
 
-			An :class:`inspect.Signature` object
-				This signature will be used as the signature of the template.
+		An :class:`inspect.Signature` object
+			This signature will be used as the signature of the template.
 
-			A callable
-				The signature of the callable will be used.
+		A callable
+			The signature of the callable will be used.
 
-			A string
-				The signature as a string, i.e. something like
-				``"x, y=[42], *args, **kwargs"``. This string will be parsed and
-				evaluated to create the signature for the template.
+		A string
+			The signature as a string, i.e. something like
+			``"x, y=42, *args, **kwargs"``. This string will be parsed and
+			evaluated to create the signature for the template.
 
 		If the template is a subtemplate (i.e. a template defined by another
 		template via ``<?def t?>...<?end def?>``), :obj:`signature` can be:
 
-			``None``
-				The template will accept all arguments.
+		``None``
+			The template will accept all arguments.
 
-			A :class:`Signature` object
-				This AST node will be evaluated at the point of definition of the
-				subtemplate to create the final signature of the subtemplate.
+		A :class:`Signature` object
+			This AST node will be evaluated at the point of definition of the
+			subtemplate to create the final signature of the subtemplate.
 		"""
 		# ``location``/``endlocation`` will remain ``None`` for a top level template
 		# For a subtemplate/subfunction ``location`` will be set to the location of the ``<?def?>`` tag in :meth:`_compile`
 		# and ``endlocation`` will be the location of the ``<?end def?>`` tag
 		super().__init__(None, 0, 0)
-		self.keepws = keepws
+		self.whitespace = whitespace
 		self.startdelim = startdelim or "<?"
 		self.enddelim = enddelim or "?>"
 		self.name = name
@@ -2838,7 +2918,7 @@ class Template(Block):
 			signature = inspect.signature(signature)
 		elif isinstance(signature, str):
 			signature = "({})".format(signature)
-			location = Location(self, signature, None, 0, len(signature), 0, len(signature))
+			location = TagLocation(signature, 0, len(signature), "signature", 0, len(signature))
 			ast = self._parsesignature(location)
 			signature = _resultfromgenerator(ast.eval({}))
 		self.signature = signature
@@ -2848,7 +2928,7 @@ class Template(Block):
 			self._compile(source, name, startdelim, enddelim)
 
 	def __repr__(self):
-		s = "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} keepws={0.keepws!r}".format(self)
+		s = "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} whitespace={0.whitespace!r}".format(self)
 		if self.startdelim != "<?":
 			s += " startdelim={0.startdelim!r}".format(self)
 		if self.enddelim != "?>":
@@ -2862,6 +2942,11 @@ class Template(Block):
 	def _str(self):
 		yield "def "
 		yield self.name if self.name is not None else "unnamed"
+		if self.signature is not None:
+			if isinstance(self.signature, Signature):
+				yield from self.signature._str()
+			else:
+				yield str(self.signature)
 		yield ":"
 		yield None
 		yield +1
@@ -2877,8 +2962,8 @@ class Template(Block):
 				p.text("name=")
 				p.pretty(self.name)
 				p.breakable()
-				p.text("keepws=")
-				p.pretty(self.keepws)
+				p.text("whitespace=")
+				p.pretty(self.whitespace)
 				if self.startdelim != "<?":
 					p.breakable()
 					p.text("startdelim=")
@@ -2905,7 +2990,7 @@ class Template(Block):
 		encoder.dump(self.version)
 		encoder.dump(self.source)
 		encoder.dump(self.name)
-		encoder.dump(self.keepws)
+		encoder.dump(self.whitespace)
 		encoder.dump(self.startdelim)
 		encoder.dump(self.enddelim)
 
@@ -2939,7 +3024,7 @@ class Template(Block):
 			raise ValueError("invalid version, expected {!r}, got {!r}".format(self.version, version))
 		self.source = decoder.load()
 		self.name = decoder.load()
-		self.keepws = decoder.load()
+		self.whitespace = decoder.load()
 		self.startdelim = decoder.load()
 		self.enddelim = decoder.load()
 
@@ -3073,18 +3158,184 @@ class Template(Block):
 		This is a generator which produces :class:`Location` objects for each tag
 		or non-tag text. It will be called by :meth:`_compile` internally.
 		"""
-		pattern = "{}(printx|print|code|for|while|if|elif|else|end|break|continue|def|return|note)(\s*((.|\\n)*?)\s*)?{}".format(re.escape(startdelim), re.escape(enddelim))
+		pattern = "{}(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|note)(\s*((.|\\n)*?)\s*)?{}".format(re.escape(startdelim), re.escape(enddelim))
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
-				yield Location(self, source, None, pos, match.start(), pos, match.start())
-			type = source[match.start(1):match.end(1)]
-			if type != "note":
-				yield Location(self, source, type, match.start(), match.end(), match.start(3), match.end(3))
+				yield TextLocation(source, pos, match.start())
+			tag = source[match.start(1):match.end(1)]
+			yield TagLocation(source, match.start(), match.end(), tag, match.start(3), match.end(3))
 			pos = match.end()
 		end = len(source)
 		if pos != end:
-			yield Location(self, source, None, pos, end, pos, end)
+			yield TextLocation(source, pos, end)
+
+	def _whitespace_strip(self, locations):
+		removewhitespace = re.compile(r"\r?\n\s*")
+		for location in locations:
+			if isinstance(location, TextLocation):
+				text = removewhitespace.sub("", location.text)
+				if text: # If no text remains, drop the location completely
+					location._settext(text)
+					yield location
+			else:
+				yield location
+
+	_whitespace_lineends = ("\r\n", "\n")
+
+	def _whitespace_smart(self, locations):
+		# a list of locations that are all part of one line
+		class Line(list):
+			def __init__(self):
+				list.__init__(self)
+				self.blocks = None
+
+			def indent(self):
+				# Return the indentation of the line
+				if self and isinstance(self[0], IndentLocation):
+					return self[0].text
+				return ""
+
+		# Records that starting and endline line number of a block and its indentation
+		class Block:
+			def __init__(self, start):
+				self.start = start
+				self.end = None
+				self.outerindentlen = None
+				self.innerindentlen = None
+
+		# Return the length of the longest common prefix of all strings in :obj:`indents`
+		def commonindentlen(indents):
+			if not indents:
+				return 0
+			indent1 = min(indents)
+			indent2 = max(indents)
+			for (i, c) in enumerate(indent1):
+				if c != indent2[i]:
+					return i
+			return len(indent1)
+
+		# Step 1: Create a list of lines by splitting literal text into multiple chunks (normal text, indentation and lineends)
+		lines = [Line()]
+		wastag = False
+		for location in locations:
+			if isinstance(location, TextLocation):
+				pos = location.startpos
+				for line in location.text.splitlines(True):
+					# Find out if the line ends with a lineend
+					linelen = len(line)
+					for lineend in self._whitespace_lineends:
+						if line.endswith(lineend):
+							lineendlen = len(lineend)
+							line = line[:-lineendlen]
+							linelen -= lineendlen
+							break
+					else:
+						lineendlen = 0
+
+					# Find out how the line is indented
+					if wastag:
+						lineindentlen = 0
+						wastag = False # Done inside the loop, because all lines after the first one must always be checked for indentation
+					else:
+						lineindentlen = len(line)-len(line.lstrip())
+						linelen -= lineindentlen
+
+					# Output the parts we found
+					if lineindentlen:
+						lines[-1].append(IndentLocation(location.source, pos, pos+lineindentlen))
+						pos += lineindentlen
+					if linelen:
+						lines[-1].append(TextLocation(location.source, pos, pos+linelen))
+						pos += linelen
+					if lineendlen:
+						lines[-1].append(LineEndLocation(location.source, pos, pos+lineendlen))
+						pos += lineendlen
+						lines.append(Line())
+			else:
+				lines[-1].append(location)
+				wastag = True
+
+		# Step 2: Determine the block structure of the lines
+		block = Block(0)
+		blocks = [block]
+		stack = [block]
+
+		for (i, line) in enumerate(lines):
+			tag = None
+			if len(line) == 2 and isinstance(line[0], TagLocation) and line[0].tag not in ("print", "printx") and isinstance(line[1], LineEndLocation):
+				tag = line[0]
+			elif len(line) == 3 and isinstance(line[0], IndentLocation) and isinstance(line[1], TagLocation) and line[1].tag not in ("print", "printx") and isinstance(line[2], LineEndLocation):
+				tag = line[1]
+			if tag is not None:
+				if tag.tag in ("for", "if", "def"):
+					line.blocks = stack[:]
+					block = Block(i+1)
+					stack.append(block)
+					blocks.append(block)
+				elif tag.tag in ("elif", "else"):
+					if len(stack) > 1:
+						stack[-1].end = i
+						stack.pop()
+					line.blocks = stack[:]
+					block = Block(i+1)
+					stack.append(block)
+					blocks.append(block)
+				elif tag.tag == "end":
+					if len(stack) > 1:
+						stack[-1].end = i
+						stack.pop()
+					line.blocks = stack[:]
+				else:
+					line.blocks = stack[:]
+			else:
+				line.blocks = stack[:]
+		# Close open blocks (shouldn't be neccessary for properly nested templates, except for the outermost block)
+		for block in stack:
+			block.end = len(lines)
+
+		# Step 3: Find the outer and inner indentation of all blocks
+		for block in blocks:
+			block.outerindentlen = len(lines[block.start-1].indent()) if block.start else 0
+			block.innerindentlen = commonindentlen([line.indent() for line in itertools.islice(lines, block.start, block.end)])
+
+		# Step 4: Fix the indentation
+		for line in lines:
+			if line and isinstance(line[0], IndentLocation):
+				# use all character for indentation, that are not part of the "artifical" indentation introduced in each block
+				newindent = "".join(c for (i, c) in enumerate(line[0].text) if not any(block.outerindentlen <= i < block.innerindentlen for block in line.blocks))
+				if newindent:
+					line[0]._settext(newindent)
+				else:
+					del line[0]
+
+		# Step 5: Drop whitespace from lines that only contain indentation and block tags
+		for line in lines:
+			if len(line) == 2 and isinstance(line[0], TagLocation) and line[0].tag not in ("print", "printx") and isinstance(line[1], LineEndLocation):
+				del line[1]
+			elif len(line) == 3 and isinstance(line[0], IndentLocation) and isinstance(line[1], TagLocation) and line[1].tag not in ("print", "printx") and isinstance(line[2], LineEndLocation):
+				del line[2]
+				del line[0]
+
+		# Step 6: Join :class`TextLocation` objects together again
+		literals = []
+		def join():
+			newlocation = TextLocation(literals[0].source, literals[0].startpos, literals[-1].endpos)
+			newlocation._settext("".join(location.text for location in literals))
+			literals.clear()
+			return newlocation
+
+		newlines = []
+		for line in lines:
+			for location in line:
+				if isinstance(location, TextLocation):
+					literals.append(location)
+				else:
+					if literals:
+						yield join()
+					yield location
+		if literals:
+			yield join()
 
 	def _parser(self, location, error):
 		from ll import UL4Lexer, UL4Parser
@@ -3100,7 +3351,13 @@ class Template(Block):
 		return parser
 
 	def _parsesignature(self, location):
-		return self._parser(location, "unused").signature()
+			try:
+				return self._parser(location, "unused").signature()
+			except Exception as exc:
+				try:
+					raise Error(location) from exc
+				except Error as exc:
+					raise Error(self) from exc
 
 	def _compile(self, source, name, startdelim, enddelim):
 		"""
@@ -3111,13 +3368,22 @@ class Template(Block):
 		self.startdelim = startdelim
 		self.enddelim = enddelim
 
-		# This stack stores the nested for/if/elif/else/def blocks
-		stack = [self]
-
 		self.source = source
 
 		if source is None:
 			return
+
+		# This stack stores the nested for/if/elif/else/def blocks
+		stack = [self]
+
+		def parsedeclaration(location):
+			try:
+				return self._parser(location, "declaration required").definition()
+			except Exception as exc:
+				try:
+					raise Error(location) from exc
+				except Error as exc:
+					raise Error(self) from exc
 
 		def parseexpr(location):
 			return self._parser(location, "expression required").expression()
@@ -3131,33 +3397,66 @@ class Template(Block):
 		def parsedef(location):
 			return self._parser(location, "definition required").definition()
 
-		for location in self._tokenize(source, startdelim, enddelim):
+		locations = list(self._tokenize(source, startdelim, enddelim))
+
+		# Find template declarations and whitespace specification
+		for location in locations:
+			if isinstance(location, TagLocation):
+				if location.tag == "ul4":
+					(name, signature) = parsedeclaration(locations[0])
+					self.name = name
+					if signature is not None:
+						signature = _resultfromgenerator(signature.eval({}))
+					self.signature = signature
+				elif location.tag == "whitespace":
+					whitespace = location.code
+					if whitespace in ("keep", "strip", "smart"):
+						self.whitespace = whitespace
+					else:
+						try:
+							raise ValueError("whitespace mode {!r} unknown".format(whitespace))
+						except Exception as exc:
+							try:
+								raise Error(location) from exc
+							except Exception as exc:
+								raise Error(self) from exc
+
+
+		# Update whitespace according to the whitespace mode specified
+		if self.whitespace == "strip":
+			locations = self._whitespace_strip(locations)
+		elif self.whitespace == "smart":
+			locations = self._whitespace_smart(locations)
+		elif self.whitespace != "keep":
+			raise ValueError("whitespace mode {!r} unknown".format(self.whitespace))
+
+		for location in locations:
 			try:
-				if location.type is None:
-					stack[-1].append(Text(location, location.startcode, location.endcode))
-				elif location.type == "print":
-					stack[-1].append(Print(location, location.startcode, location.endcode, parseexpr(location)))
-				elif location.type == "printx":
-					stack[-1].append(PrintX(location, location.startcode, location.endcode, parseexpr(location)))
-				elif location.type == "code":
+				if isinstance(location, TextLocation):
+					stack[-1].append(Text(location, location.startpos, location.endpos))
+				elif location.tag == "print":
+					stack[-1].append(Print(location, location.startposcode, location.endposcode, parseexpr(location)))
+				elif location.tag == "printx":
+					stack[-1].append(PrintX(location, location.startposcode, location.endposcode, parseexpr(location)))
+				elif location.tag == "code":
 					stack[-1].append(parsestmt(location))
-				elif location.type == "if":
-					block = CondBlock(location, location.startcode, location.endcode, parseexpr(location))
+				elif location.tag == "if":
+					block = CondBlock(location, location.startposcode, location.endposcode, parseexpr(location))
 					stack[-1].append(block)
 					stack.append(block)
-				elif location.type == "elif":
+				elif location.tag == "elif":
 					if not isinstance(stack[-1], CondBlock):
 						raise BlockError("elif doesn't match and if")
 					elif isinstance(stack[-1].content[-1], ElseBlock):
 						raise BlockError("else already seen in if")
-					stack[-1].newblock(ElIfBlock(location, location.startcode, location.endcode, parseexpr(location)))
-				elif location.type == "else":
+					stack[-1].newblock(ElIfBlock(location, location.startposcode, location.endposcode, parseexpr(location)))
+				elif location.tag == "else":
 					if not isinstance(stack[-1], CondBlock):
 						raise BlockError("else doesn't match any if")
 					elif isinstance(stack[-1].content[-1], ElseBlock):
 						raise BlockError("else already seen in if")
-					stack[-1].newblock(ElseBlock(location, location.startcode, location.endcode))
-				elif location.type == "end":
+					stack[-1].newblock(ElseBlock(location, location.startposcode, location.endposcode))
+				elif location.tag == "end":
 					if len(stack) <= 1:
 						raise BlockError("not in any block")
 					code = location.code
@@ -3181,41 +3480,44 @@ class Template(Block):
 					last.endlocation = location
 					if isinstance(last, CondBlock):
 						last.content[-1].endlocation = location
-				elif location.type == "for":
+				elif location.tag == "for":
 					block = parsefor(location)
 					stack[-1].append(block)
 					stack.append(block)
-				elif location.type == "while":
-					block = WhileBlock(location, location.startcode, location.endcode, parseexpr(location))
+				elif location.tag == "while":
+					block = WhileBlock(location, location.startposcode, location.endposcode, parseexpr(location))
 					stack[-1].append(block)
 					stack.append(block)
-				elif location.type == "break":
+				elif location.tag == "break":
 					for block in reversed(stack):
 						if isinstance(block, (ForBlock, WhileBlock)):
 							break
 						elif isinstance(block, Template):
 							raise BlockError("break outside of for loop")
-					stack[-1].append(Break(location, location.startcode, location.endcode))
-				elif location.type == "continue":
+					stack[-1].append(Break(location, location.startposcode, location.endposcode))
+				elif location.tag == "continue":
 					for block in reversed(stack):
 						if isinstance(block, (ForBlock, WhileBlock)):
 							break
 						elif isinstance(block, Template):
 							raise BlockError("continue outside of for loop")
-					stack[-1].append(Continue(location, location.startcode, location.endcode))
-				elif location.type == "def":
+					stack[-1].append(Continue(location, location.startposcode, location.endposcode))
+				elif location.tag == "def":
 					(name, signature) = parsedef(location)
-					block = Template(None, name, keepws=self.keepws, startdelim=self.startdelim, enddelim=self.enddelim, signature=signature)
+					block = Template(None, name, whitespace=self.whitespace, startdelim=self.startdelim, enddelim=self.enddelim, signature=signature)
 					block.location = location # Set start ``location`` of sub template
 					block.source = self.source # The source of the top level template (so that the offsets in :class:`Location` are correct)
-					block.start = location.startcode
-					block.end = location.endcode
+					block.start = location.startposcode
+					block.end = location.endpos
 					stack[-1].append(block)
 					stack.append(block)
-				elif location.type == "return":
-					stack[-1].append(Return(location, location.startcode, location.endcode, parseexpr(location)))
+				elif location.tag == "return":
+					stack[-1].append(Return(location, location.startposcode, location.endposcode, parseexpr(location)))
+				elif location.tag in ("ul4", "whitespace", "note"):
+					# Don't copy declarations, whitespace specification or comments over into the syntax tree
+					pass
 				else: # Can't happen
-					raise ValueError("unknown tag {!r}".format(location.type))
+					raise ValueError("unknown tag {!r}".format(location.tag))
 			except Exception as exc:
 				try:
 					raise Error(location) from exc
@@ -3273,6 +3575,17 @@ class Signature(AST):
 				p.breakable()
 				p.text("at {:#x}".format(id(self)))
 
+	def _str(self):
+		yield "("
+		for (i, (paramname, default)) in enumerate(self.params):
+			if i:
+				yield ", "
+			yield paramname
+			if default is not None:
+				yield "="
+				yield from default._str()
+		yield ")"
+
 	@_handleeval
 	def eval(self, vars):
 		params = []
@@ -3311,6 +3624,17 @@ class Signature(AST):
 				self.params.append((param, None))
 			else:
 				self.params.append(param)
+
+
+class Declaration:
+	"""
+	Stores the information contained in the ``<?ul4 ...?>`` declaration
+	"""
+	def __init__(self):
+		# All attributes will remain ``None`` if they aren't specified in the declaration
+		self.name = None
+		self.whitespace = None
+		self.signature = None # This might be a :class:`Signature` object or ``False`` if ``nosignature`` has been specified
 
 
 ###

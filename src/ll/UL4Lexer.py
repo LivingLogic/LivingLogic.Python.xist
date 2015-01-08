@@ -1,4 +1,4 @@
-# $ANTLR 3.5 src/ll/UL4.g 2014-12-04 16:45:10
+# $ANTLR 3.5 src/ll/UL4.g 2015-01-08 16:50:58
 
 import sys
 from antlr3 import *
@@ -61,6 +61,7 @@ T__70=70
 T__71=71
 T__72=72
 T__73=73
+T__74=74
 BIN_DIGIT=4
 COLOR=5
 DATE=6
@@ -1084,10 +1085,11 @@ class UL4Lexer(Lexer):
             _type = T__69
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:57:7: ( '{' )
-            # src/ll/UL4.g:57:9: '{'
+            # src/ll/UL4.g:57:7: ( 'whitespace' )
+            # src/ll/UL4.g:57:9: 'whitespace'
             pass 
-            self.match(123)
+            self.match("whitespace")
+
 
 
 
@@ -1106,10 +1108,10 @@ class UL4Lexer(Lexer):
             _type = T__70
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:58:7: ( '|' )
-            # src/ll/UL4.g:58:9: '|'
+            # src/ll/UL4.g:58:7: ( '{' )
+            # src/ll/UL4.g:58:9: '{'
             pass 
-            self.match(124)
+            self.match(123)
 
 
 
@@ -1128,11 +1130,10 @@ class UL4Lexer(Lexer):
             _type = T__71
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:59:7: ( '|=' )
-            # src/ll/UL4.g:59:9: '|='
+            # src/ll/UL4.g:59:7: ( '|' )
+            # src/ll/UL4.g:59:9: '|'
             pass 
-            self.match("|=")
-
+            self.match(124)
 
 
 
@@ -1151,10 +1152,11 @@ class UL4Lexer(Lexer):
             _type = T__72
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:60:7: ( '}' )
-            # src/ll/UL4.g:60:9: '}'
+            # src/ll/UL4.g:60:7: ( '|=' )
+            # src/ll/UL4.g:60:9: '|='
             pass 
-            self.match(125)
+            self.match("|=")
+
 
 
 
@@ -1173,8 +1175,30 @@ class UL4Lexer(Lexer):
             _type = T__73
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:61:7: ( '~' )
-            # src/ll/UL4.g:61:9: '~'
+            # src/ll/UL4.g:61:7: ( '}' )
+            # src/ll/UL4.g:61:9: '}'
+            pass 
+            self.match(125)
+
+
+
+            self._state.type = _type
+            self._state.channel = _channel
+        finally:
+            pass
+
+    # $ANTLR end "T__73"
+
+
+
+    # $ANTLR start "T__74"
+    def mT__74(self, ):
+        try:
+            _type = T__74
+            _channel = DEFAULT_CHANNEL
+
+            # src/ll/UL4.g:62:7: ( '~' )
+            # src/ll/UL4.g:62:9: '~'
             pass 
             self.match(126)
 
@@ -1185,7 +1209,7 @@ class UL4Lexer(Lexer):
         finally:
             pass
 
-    # $ANTLR end "T__73"
+    # $ANTLR end "T__74"
 
 
 
@@ -2850,8 +2874,8 @@ class UL4Lexer(Lexer):
 
 
     def mTokens(self):
-        # src/ll/UL4.g:1:8: ( T__27 | T__28 | T__29 | T__30 | T__31 | T__32 | T__33 | T__34 | T__35 | T__36 | T__37 | T__38 | T__39 | T__40 | T__41 | T__42 | T__43 | T__44 | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | T__66 | T__67 | T__68 | T__69 | T__70 | T__71 | T__72 | T__73 | NONE | TRUE | FALSE | NAME | INT | FLOAT | DATE | COLOR | WS | STRING | STRING3 )
-        alt32 = 58
+        # src/ll/UL4.g:1:8: ( T__27 | T__28 | T__29 | T__30 | T__31 | T__32 | T__33 | T__34 | T__35 | T__36 | T__37 | T__38 | T__39 | T__40 | T__41 | T__42 | T__43 | T__44 | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | T__66 | T__67 | T__68 | T__69 | T__70 | T__71 | T__72 | T__73 | T__74 | NONE | TRUE | FALSE | NAME | INT | FLOAT | DATE | COLOR | WS | STRING | STRING3 )
+        alt32 = 59
         alt32 = self.dfa32.predict(self.input)
         if alt32 == 1:
             # src/ll/UL4.g:1:10: T__27
@@ -3183,77 +3207,84 @@ class UL4Lexer(Lexer):
 
 
         elif alt32 == 48:
-            # src/ll/UL4.g:1:292: NONE
+            # src/ll/UL4.g:1:292: T__74
+            pass 
+            self.mT__74()
+
+
+
+        elif alt32 == 49:
+            # src/ll/UL4.g:1:298: NONE
             pass 
             self.mNONE()
 
 
 
-        elif alt32 == 49:
-            # src/ll/UL4.g:1:297: TRUE
+        elif alt32 == 50:
+            # src/ll/UL4.g:1:303: TRUE
             pass 
             self.mTRUE()
 
 
 
-        elif alt32 == 50:
-            # src/ll/UL4.g:1:302: FALSE
+        elif alt32 == 51:
+            # src/ll/UL4.g:1:308: FALSE
             pass 
             self.mFALSE()
 
 
 
-        elif alt32 == 51:
-            # src/ll/UL4.g:1:308: NAME
+        elif alt32 == 52:
+            # src/ll/UL4.g:1:314: NAME
             pass 
             self.mNAME()
 
 
 
-        elif alt32 == 52:
-            # src/ll/UL4.g:1:313: INT
+        elif alt32 == 53:
+            # src/ll/UL4.g:1:319: INT
             pass 
             self.mINT()
 
 
 
-        elif alt32 == 53:
-            # src/ll/UL4.g:1:317: FLOAT
+        elif alt32 == 54:
+            # src/ll/UL4.g:1:323: FLOAT
             pass 
             self.mFLOAT()
 
 
 
-        elif alt32 == 54:
-            # src/ll/UL4.g:1:323: DATE
+        elif alt32 == 55:
+            # src/ll/UL4.g:1:329: DATE
             pass 
             self.mDATE()
 
 
 
-        elif alt32 == 55:
-            # src/ll/UL4.g:1:328: COLOR
+        elif alt32 == 56:
+            # src/ll/UL4.g:1:334: COLOR
             pass 
             self.mCOLOR()
 
 
 
-        elif alt32 == 56:
-            # src/ll/UL4.g:1:334: WS
+        elif alt32 == 57:
+            # src/ll/UL4.g:1:340: WS
             pass 
             self.mWS()
 
 
 
-        elif alt32 == 57:
-            # src/ll/UL4.g:1:337: STRING
+        elif alt32 == 58:
+            # src/ll/UL4.g:1:343: STRING
             pass 
             self.mSTRING()
 
 
 
-        elif alt32 == 58:
-            # src/ll/UL4.g:1:344: STRING3
+        elif alt32 == 59:
+            # src/ll/UL4.g:1:350: STRING3
             pass 
             self.mSTRING3()
 
@@ -3308,103 +3339,104 @@ class UL4Lexer(Lexer):
     # lookup tables for DFA #32
 
     DFA32_eot = DFA.unpack(
-        "\2\uffff\1\51\1\53\2\uffff\1\56\1\60\1\uffff\1\62\1\63\1\67\1\uffff"
-        "\1\72\1\74\1\77\2\uffff\1\101\6\40\1\uffff\1\112\2\uffff\3\40\1"
-        "\uffff\2\116\22\uffff\1\123\2\uffff\1\125\5\uffff\1\127\3\uffff"
-        "\3\40\1\133\1\134\1\40\1\136\2\uffff\3\40\1\uffff\1\120\1\uffff"
-        "\1\120\6\uffff\1\143\1\40\1\145\2\uffff\1\146\1\uffff\3\40\2\uffff"
-        "\1\152\2\uffff\1\153\1\154\1\40\3\uffff\1\156\1\uffff"
+        "\2\uffff\1\52\1\54\2\uffff\1\57\1\61\1\uffff\1\63\1\64\1\70\1\uffff"
+        "\1\73\1\75\1\100\2\uffff\1\102\7\41\1\uffff\1\114\2\uffff\3\41"
+        "\1\uffff\2\120\22\uffff\1\125\2\uffff\1\127\5\uffff\1\131\3\uffff"
+        "\3\41\1\135\1\136\1\41\1\140\1\41\2\uffff\3\41\1\uffff\1\122\1"
+        "\uffff\1\122\6\uffff\1\146\1\41\1\150\2\uffff\1\151\1\uffff\4\41"
+        "\2\uffff\1\156\2\uffff\1\41\1\160\1\161\1\41\1\uffff\1\41\2\uffff"
+        "\1\164\1\41\1\uffff\3\41\1\171\1\uffff"
         )
 
     DFA32_eof = DFA.unpack(
-        "\157\uffff"
+        "\172\uffff"
         )
 
     DFA32_min = DFA.unpack(
         "\1\11\1\uffff\2\75\2\uffff\1\52\1\75\1\uffff\1\75\1\60\1\57\1\uffff"
-        "\1\74\2\75\2\uffff\1\75\1\156\1\154\1\157\1\146\1\157\1\162\1\uffff"
-        "\1\75\2\uffff\1\157\1\162\1\141\1\uffff\2\56\3\uffff\2\0\15\uffff"
-        "\1\75\2\uffff\1\75\5\uffff\1\75\3\uffff\1\144\1\163\1\162\2\60"
-        "\1\164\1\60\2\uffff\1\156\1\165\1\154\1\uffff\1\42\1\uffff\1\47"
-        "\6\uffff\1\60\1\145\1\60\2\uffff\1\60\1\uffff\2\145\1\163\2\uffff"
-        "\1\60\2\uffff\2\60\1\145\3\uffff\1\60\1\uffff"
+        "\1\74\2\75\2\uffff\1\75\1\156\1\154\1\157\1\146\1\157\1\162\1\150"
+        "\1\uffff\1\75\2\uffff\1\157\1\162\1\141\1\uffff\2\56\3\uffff\2"
+        "\0\15\uffff\1\75\2\uffff\1\75\5\uffff\1\75\3\uffff\1\144\1\163"
+        "\1\162\2\60\1\164\1\60\1\151\2\uffff\1\156\1\165\1\154\1\uffff"
+        "\1\42\1\uffff\1\47\6\uffff\1\60\1\145\1\60\2\uffff\1\60\1\uffff"
+        "\1\164\2\145\1\163\2\uffff\1\60\2\uffff\1\145\2\60\1\145\1\uffff"
+        "\1\163\2\uffff\1\60\1\160\1\uffff\1\141\1\143\1\145\1\60\1\uffff"
         )
 
     DFA32_max = DFA.unpack(
         "\1\176\1\uffff\2\75\2\uffff\2\75\1\uffff\1\75\1\71\1\75\1\uffff"
-        "\2\75\1\76\2\uffff\1\75\1\156\1\154\1\157\1\156\1\157\1\162\1\uffff"
-        "\1\75\2\uffff\1\157\1\162\1\141\1\uffff\2\145\3\uffff\2\uffff\15"
-        "\uffff\1\75\2\uffff\1\75\5\uffff\1\75\3\uffff\1\144\1\163\1\162"
-        "\2\172\1\164\1\172\2\uffff\1\156\1\165\1\154\1\uffff\1\42\1\uffff"
-        "\1\47\6\uffff\1\172\1\145\1\172\2\uffff\1\172\1\uffff\2\145\1\163"
-        "\2\uffff\1\172\2\uffff\2\172\1\145\3\uffff\1\172\1\uffff"
+        "\2\75\1\76\2\uffff\1\75\1\156\1\154\1\157\1\156\1\157\1\162\1\150"
+        "\1\uffff\1\75\2\uffff\1\157\1\162\1\141\1\uffff\2\145\3\uffff\2"
+        "\uffff\15\uffff\1\75\2\uffff\1\75\5\uffff\1\75\3\uffff\1\144\1"
+        "\163\1\162\2\172\1\164\1\172\1\151\2\uffff\1\156\1\165\1\154\1"
+        "\uffff\1\42\1\uffff\1\47\6\uffff\1\172\1\145\1\172\2\uffff\1\172"
+        "\1\uffff\1\164\2\145\1\163\2\uffff\1\172\2\uffff\1\145\2\172\1"
+        "\145\1\uffff\1\163\2\uffff\1\172\1\160\1\uffff\1\141\1\143\1\145"
+        "\1\172\1\uffff"
         )
 
     DFA32_accept = DFA.unpack(
         "\1\uffff\1\1\2\uffff\1\6\1\7\2\uffff\1\15\3\uffff\1\25\3\uffff"
-        "\1\40\1\41\7\uffff\1\53\1\uffff\1\56\1\57\3\uffff\1\63\2\uffff"
-        "\1\66\1\67\1\70\2\uffff\1\3\1\2\1\5\1\4\1\11\1\12\1\10\1\14\1\13"
-        "\1\17\1\16\1\20\1\65\1\uffff\1\24\1\21\1\uffff\1\31\1\26\1\33\1"
-        "\32\1\35\1\uffff\1\34\1\43\1\42\7\uffff\1\55\1\54\3\uffff\1\64"
-        "\1\uffff\1\71\1\uffff\1\23\1\22\1\30\1\27\1\37\1\36\3\uffff\1\47"
-        "\1\50\1\uffff\1\52\3\uffff\1\72\1\44\1\uffff\1\46\1\51\3\uffff"
-        "\1\45\1\60\1\61\1\uffff\1\62"
+        "\1\40\1\41\10\uffff\1\54\1\uffff\1\57\1\60\3\uffff\1\64\2\uffff"
+        "\1\67\1\70\1\71\2\uffff\1\3\1\2\1\5\1\4\1\11\1\12\1\10\1\14\1\13"
+        "\1\17\1\16\1\20\1\66\1\uffff\1\24\1\21\1\uffff\1\31\1\26\1\33\1"
+        "\32\1\35\1\uffff\1\34\1\43\1\42\10\uffff\1\56\1\55\3\uffff\1\65"
+        "\1\uffff\1\72\1\uffff\1\23\1\22\1\30\1\27\1\37\1\36\3\uffff\1\47"
+        "\1\50\1\uffff\1\52\4\uffff\1\73\1\44\1\uffff\1\46\1\51\4\uffff"
+        "\1\45\1\uffff\1\61\1\62\2\uffff\1\63\4\uffff\1\53"
         )
 
     DFA32_special = DFA.unpack(
-        "\46\uffff\1\0\1\1\107\uffff"
+        "\47\uffff\1\0\1\1\121\uffff"
         )
 
 
     DFA32_transition = [
-        DFA.unpack("\2\45\2\uffff\1\45\22\uffff\1\45\1\1\1\46\1\44\1\uffff"
-        "\1\2\1\3\1\47\1\4\1\5\1\6\1\7\1\10\1\11\1\12\1\13\1\41\11\42\1"
-        "\14\1\uffff\1\15\1\16\1\17\1\uffff\1\43\5\40\1\37\7\40\1\35\5\40"
-        "\1\36\6\40\1\20\1\uffff\1\21\1\22\1\40\1\uffff\1\23\3\40\1\24\1"
-        "\25\2\40\1\26\4\40\1\27\1\30\13\40\1\31\1\32\1\33\1\34"),
+        DFA.unpack("\2\46\2\uffff\1\46\22\uffff\1\46\1\1\1\47\1\45\1\uffff"
+        "\1\2\1\3\1\50\1\4\1\5\1\6\1\7\1\10\1\11\1\12\1\13\1\42\11\43\1"
+        "\14\1\uffff\1\15\1\16\1\17\1\uffff\1\44\5\41\1\40\7\41\1\36\5\41"
+        "\1\37\6\41\1\20\1\uffff\1\21\1\22\1\41\1\uffff\1\23\3\41\1\24\1"
+        "\25\2\41\1\26\4\41\1\27\1\30\7\41\1\31\3\41\1\32\1\33\1\34\1\35"),
         DFA.unpack(""),
-        DFA.unpack("\1\50"),
-        DFA.unpack("\1\52"),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack("\1\54\22\uffff\1\55"),
-        DFA.unpack("\1\57"),
-        DFA.unpack(""),
-        DFA.unpack("\1\61"),
-        DFA.unpack("\12\64"),
-        DFA.unpack("\1\65\15\uffff\1\66"),
-        DFA.unpack(""),
-        DFA.unpack("\1\70\1\71"),
-        DFA.unpack("\1\73"),
-        DFA.unpack("\1\75\1\76"),
+        DFA.unpack("\1\51"),
+        DFA.unpack("\1\53"),
         DFA.unpack(""),
         DFA.unpack(""),
-        DFA.unpack("\1\100"),
-        DFA.unpack("\1\102"),
+        DFA.unpack("\1\55\22\uffff\1\56"),
+        DFA.unpack("\1\60"),
+        DFA.unpack(""),
+        DFA.unpack("\1\62"),
+        DFA.unpack("\12\65"),
+        DFA.unpack("\1\66\15\uffff\1\67"),
+        DFA.unpack(""),
+        DFA.unpack("\1\71\1\72"),
+        DFA.unpack("\1\74"),
+        DFA.unpack("\1\76\1\77"),
+        DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack("\1\101"),
         DFA.unpack("\1\103"),
         DFA.unpack("\1\104"),
-        DFA.unpack("\1\105\7\uffff\1\106"),
-        DFA.unpack("\1\107"),
+        DFA.unpack("\1\105"),
+        DFA.unpack("\1\106\7\uffff\1\107"),
         DFA.unpack("\1\110"),
-        DFA.unpack(""),
         DFA.unpack("\1\111"),
-        DFA.unpack(""),
+        DFA.unpack("\1\112"),
         DFA.unpack(""),
         DFA.unpack("\1\113"),
-        DFA.unpack("\1\114"),
+        DFA.unpack(""),
+        DFA.unpack(""),
         DFA.unpack("\1\115"),
+        DFA.unpack("\1\116"),
+        DFA.unpack("\1\117"),
         DFA.unpack(""),
-        DFA.unpack("\1\64\1\uffff\12\42\13\uffff\1\64\37\uffff\1\64"),
-        DFA.unpack("\1\64\1\uffff\12\42\13\uffff\1\64\37\uffff\1\64"),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack("\12\120\1\uffff\2\120\1\uffff\24\120\1\117\uffdd\120"),
-        DFA.unpack("\12\120\1\uffff\2\120\1\uffff\31\120\1\121\uffd8\120"),
+        DFA.unpack("\1\65\1\uffff\12\43\13\uffff\1\65\37\uffff\1\65"),
+        DFA.unpack("\1\65\1\uffff\12\43\13\uffff\1\65\37\uffff\1\65"),
         DFA.unpack(""),
         DFA.unpack(""),
         DFA.unpack(""),
-        DFA.unpack(""),
+        DFA.unpack("\12\122\1\uffff\2\122\1\uffff\24\122\1\121\uffdd\122"),
+        DFA.unpack("\12\122\1\uffff\2\122\1\uffff\31\122\1\123\uffd8\122"),
         DFA.unpack(""),
         DFA.unpack(""),
         DFA.unpack(""),
@@ -3414,63 +3446,77 @@ class UL4Lexer(Lexer):
         DFA.unpack(""),
         DFA.unpack(""),
         DFA.unpack(""),
-        DFA.unpack("\1\122"),
+        DFA.unpack(""),
+        DFA.unpack(""),
         DFA.unpack(""),
         DFA.unpack(""),
         DFA.unpack("\1\124"),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack(""),
         DFA.unpack(""),
         DFA.unpack(""),
         DFA.unpack("\1\126"),
         DFA.unpack(""),
         DFA.unpack(""),
         DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack(""),
         DFA.unpack("\1\130"),
-        DFA.unpack("\1\131"),
+        DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack(""),
         DFA.unpack("\1\132"),
-        DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
-        DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
-        DFA.unpack("\1\135"),
-        DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
-        DFA.unpack(""),
-        DFA.unpack(""),
+        DFA.unpack("\1\133"),
+        DFA.unpack("\1\134"),
+        DFA.unpack("\12\41\7\uffff\32\41\4\uffff\1\41\1\uffff\32\41"),
+        DFA.unpack("\12\41\7\uffff\32\41\4\uffff\1\41\1\uffff\32\41"),
         DFA.unpack("\1\137"),
-        DFA.unpack("\1\140"),
+        DFA.unpack("\12\41\7\uffff\32\41\4\uffff\1\41\1\uffff\32\41"),
         DFA.unpack("\1\141"),
         DFA.unpack(""),
-        DFA.unpack("\1\142"),
         DFA.unpack(""),
         DFA.unpack("\1\142"),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
+        DFA.unpack("\1\143"),
         DFA.unpack("\1\144"),
-        DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
+        DFA.unpack(""),
+        DFA.unpack("\1\145"),
+        DFA.unpack(""),
+        DFA.unpack("\1\145"),
         DFA.unpack(""),
         DFA.unpack(""),
-        DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
         DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack("\12\41\7\uffff\32\41\4\uffff\1\41\1\uffff\32\41"),
         DFA.unpack("\1\147"),
-        DFA.unpack("\1\150"),
-        DFA.unpack("\1\151"),
+        DFA.unpack("\12\41\7\uffff\32\41\4\uffff\1\41\1\uffff\32\41"),
         DFA.unpack(""),
         DFA.unpack(""),
-        DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
+        DFA.unpack("\12\41\7\uffff\32\41\4\uffff\1\41\1\uffff\32\41"),
         DFA.unpack(""),
-        DFA.unpack(""),
-        DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
-        DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
+        DFA.unpack("\1\152"),
+        DFA.unpack("\1\153"),
+        DFA.unpack("\1\154"),
         DFA.unpack("\1\155"),
         DFA.unpack(""),
         DFA.unpack(""),
+        DFA.unpack("\12\41\7\uffff\32\41\4\uffff\1\41\1\uffff\32\41"),
         DFA.unpack(""),
-        DFA.unpack("\12\40\7\uffff\32\40\4\uffff\1\40\1\uffff\32\40"),
+        DFA.unpack(""),
+        DFA.unpack("\1\157"),
+        DFA.unpack("\12\41\7\uffff\32\41\4\uffff\1\41\1\uffff\32\41"),
+        DFA.unpack("\12\41\7\uffff\32\41\4\uffff\1\41\1\uffff\32\41"),
+        DFA.unpack("\1\162"),
+        DFA.unpack(""),
+        DFA.unpack("\1\163"),
+        DFA.unpack(""),
+        DFA.unpack(""),
+        DFA.unpack("\12\41\7\uffff\32\41\4\uffff\1\41\1\uffff\32\41"),
+        DFA.unpack("\1\165"),
+        DFA.unpack(""),
+        DFA.unpack("\1\166"),
+        DFA.unpack("\1\167"),
+        DFA.unpack("\1\170"),
+        DFA.unpack("\12\41\7\uffff\32\41\4\uffff\1\41\1\uffff\32\41"),
         DFA.unpack("")
     ]
 
@@ -3491,26 +3537,26 @@ class UL4Lexer(Lexer):
             _s = s
 
             if s == 0: 
-                LA32_38 = input.LA(1)
+                LA32_39 = input.LA(1)
 
                 s = -1
-                if (LA32_38 == 34):
-                    s = 79
+                if (LA32_39 == 34):
+                    s = 81
 
-                elif ((0 <= LA32_38 <= 9) or (11 <= LA32_38 <= 12) or (14 <= LA32_38 <= 33) or (35 <= LA32_38 <= 65535)):
-                    s = 80
+                elif ((0 <= LA32_39 <= 9) or (11 <= LA32_39 <= 12) or (14 <= LA32_39 <= 33) or (35 <= LA32_39 <= 65535)):
+                    s = 82
 
                 if s >= 0:
                     return s
             elif s == 1: 
-                LA32_39 = input.LA(1)
+                LA32_40 = input.LA(1)
 
                 s = -1
-                if (LA32_39 == 39):
-                    s = 81
+                if (LA32_40 == 39):
+                    s = 83
 
-                elif ((0 <= LA32_39 <= 9) or (11 <= LA32_39 <= 12) or (14 <= LA32_39 <= 38) or (40 <= LA32_39 <= 65535)):
-                    s = 80
+                elif ((0 <= LA32_40 <= 9) or (11 <= LA32_40 <= 12) or (14 <= LA32_40 <= 38) or (40 <= LA32_40 <= 65535)):
+                    s = 82
 
                 if s >= 0:
                     return s

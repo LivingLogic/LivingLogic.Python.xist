@@ -1,3 +1,15 @@
+Migrating to version 5.14
+=========================
+
+Changes to UL4
+--------------
+
+*	The boolean parameter ``keepws`` for :class:`ul4c.Template` has been renamed
+	to ``whitespace`` and requires a string value now. Pass ``whitespace="keep"``
+	for the old ``keepws=True`` and ``whitespace="strip"`` for the old
+	``keepws=False``.
+
+
 Migrating to version 5.13
 =========================
 
