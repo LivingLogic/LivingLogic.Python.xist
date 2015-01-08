@@ -3648,7 +3648,11 @@ def universaltemplate(whitespace="keep"):
 			<?print x[:2]?>
 			<?print x[:]?>
 			<?printx x?>
-			<?for x in "12"?><?print x?><?break?><?continue?><?end for?>
+			<?for x in "12"?>
+				<?print x?>
+				<?break?>
+				<?continue?>
+			<?end for?>
 			<?print not x?>
 			<?print -x?>
 			<?print x in y?>
@@ -3677,12 +3681,26 @@ def universaltemplate(whitespace="keep"):
 			<?print x.find(1, 2)?>
 			<?print x.find(1, 2, 3)?>
 			<?print x.find(1, 2, x=17, y=23, *args, **kwargs)?>
-			<?if x?>gurk<?elif y?>hurz<?else?>hinz<?end if?>
+			<?if x?>
+				gurk
+			<?elif y?>
+				hurz
+			<?else?>
+				hinz
+			<?end if?>
 			<?code x.render(a=1, b=2)?>
-			<?def x?>foo<?end def?>
-			<?def x(arg)?>foo<?end def?>
-			<?def x?><?return x?><?end def?>
-			<?def x(arg)?><?return x?><?end def?>
+			<?def x?>
+				foo
+			<?end def?>
+			<?def x(arg)?>
+				foo
+			<?end def?>
+			<?def x?>
+				<?return x?>
+			<?end def?>
+			<?def x(arg)?>
+				<?return x?>
+			<?end def?>
 			<?code x.render()?>
 		""",
 		whitespace=whitespace
