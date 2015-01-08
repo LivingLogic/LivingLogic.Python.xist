@@ -527,7 +527,7 @@ expr_add returns [node]
 	;
 
 /* Binary shift */
-expr_bitshift returns [AST node]
+expr_bitshift returns [node]
 	:
 		e1=expr_add { $node = $e1.node; }
 		(
@@ -541,7 +541,7 @@ expr_bitshift returns [AST node]
 	;
 
 /* Bitwise and */
-expr_bitand returns [AST node]
+expr_bitand returns [node]
 	:
 		e1=expr_bitshift { $node = $e1.node; }
 		(
@@ -551,7 +551,7 @@ expr_bitand returns [AST node]
 	;
 
 /* Bitwise exclusive or */
-expr_bitxor returns [AST node]
+expr_bitxor returns [node]
 	:
 		e1=expr_bitand { $node = $e1.node; }
 		(
@@ -561,7 +561,7 @@ expr_bitxor returns [AST node]
 	;
 
 /* Bitwise or */
-expr_bitor returns [AST node]
+expr_bitor returns [node]
 	:
 		e1=expr_bitxor { $node = $e1.node; }
 		(
