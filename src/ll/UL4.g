@@ -683,7 +683,7 @@ signature returns [node]
 	:
 	open='(' { $node = ul4c.Signature(self.location, self.start($open), None) }
 	(
-		/* No paramteers */
+		/* No parameters */
 	|
 		/* "**" parameter only */
 		'**' rkwargsname=name { $node.params.append(("**" + $rkwargsname.text, None)); }
