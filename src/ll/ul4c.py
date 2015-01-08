@@ -2823,7 +2823,7 @@ class Template(Block):
 
 			A :class:`Signature` object
 				This AST node will be evaluated at the point of definition of the
-				subtemplate to create to final signature of the subtemplate.
+				subtemplate to create the final signature of the subtemplate.
 		"""
 		# ``location``/``endlocation`` will remain ``None`` for a top level template
 		# For a subtemplate/subfunction ``location`` will be set to the location of the ``<?def?>`` tag in :meth:`_compile`
