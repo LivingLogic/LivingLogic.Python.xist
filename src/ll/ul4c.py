@@ -3201,8 +3201,7 @@ class Template(Block):
 			def __init__(self, start):
 				self.start = start
 				self.end = None
-				self.outerindentlen = None
-				self.innerindentlen = None
+				self.indent = None
 
 		# Return the length of the longest common prefix of all strings in :obj:`indents`
 		def commonindentlen(indents):
@@ -3296,14 +3295,18 @@ class Template(Block):
 
 		# Step 3: Find the outer and inner indentation of all blocks
 		for block in blocks:
-			block.outerindentlen = len(lines[block.start-1].indent()) if block.start else 0
-			block.innerindentlen = commonindentlen([line.indent() for line in itertools.islice(lines, block.start, block.end)])
+			block.indent = range(
+				# outer indent, i.e. the indentation of the start tag of the block
+				len(lines[block.start-1].indent()) if block.start else 0,
+				# inner indentation
+				commonindentlen([line.indent() for line in itertools.islice(lines, block.start, block.end)]),
+			)
 
 		# Step 4: Fix the indentation
 		for line in lines:
 			if line and isinstance(line[0], IndentLocation):
 				# use all character for indentation, that are not part of the "artifical" indentation introduced in each block
-				newindent = "".join(c for (i, c) in enumerate(line[0].text) if not any(block.outerindentlen <= i < block.innerindentlen for block in line.blocks))
+				newindent = "".join(c for (i, c) in enumerate(line[0].text) if not any(i in block.indent for block in line.blocks))
 				if newindent:
 					line[0]._settext(newindent)
 				else:
