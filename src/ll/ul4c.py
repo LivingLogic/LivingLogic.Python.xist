@@ -149,6 +149,7 @@ class TextLocation(Location):
 		super().ul4onload(decoder)
 		self._text = decoder.load()
 
+
 class LineEndLocation(TextLocation):
 	"""
 	A :class:`LineEndLocation` object is the location of a line terminator in the
