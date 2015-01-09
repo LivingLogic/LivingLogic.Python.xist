@@ -535,16 +535,16 @@ class AST:
 	Base class for all syntax tree nodes.
 	"""
 
-	# Set of attributes available via :meth:`getitem`.
-	ul4attrs = {"type", "location", "start", "end"}
+	# Set of attributes available via to UL4 templates
+	ul4attrs = {"type", "location", "startpos", "endpos"}
 
 	# "Global" functions. Will be exposed to UL4 code
 	functions = {}
 
-	def __init__(self, location=None, start=None, end=None):
+	def __init__(self, location=None, startpos=None, endpos=None):
 		self.location = location
-		self.start = start
-		self.end = end
+		self.startpos = startpos
+		self.endpos = endpos
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} at {1:#x}>".format(self, id(self))
@@ -578,7 +578,7 @@ class AST:
 		# ``None``, which means: "add a line feed and an indentation here"
 		# an int, which means: add the int to the indentation level
 		# a string, which means: add this string to the output
-		yield " ".join(self.location.source[self.start:self.end].splitlines(False))
+		yield " ".join(self.location.source[self.startpos:self.endpos].splitlines(False))
 
 	def eval(self, vars):
 		"""
@@ -592,13 +592,13 @@ class AST:
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.location)
-		encoder.dump(self.start)
-		encoder.dump(self.end)
+		encoder.dump(self.startpos)
+		encoder.dump(self.endpos)
 
 	def ul4onload(self, decoder):
 		self.location = decoder.load()
-		self.start = decoder.load()
-		self.end = decoder.load()
+		self.startpos = decoder.load()
+		self.endpos = decoder.load()
 
 	@classmethod
 	def makefunction(cls, f):
@@ -632,8 +632,8 @@ class Const(AST):
 	"""
 	ul4attrs = AST.ul4attrs.union({"value"})
 
-	def __init__(self, location=None, start=None, end=None, value=None):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None, value=None):
+		super().__init__(location, startpos, endpos)
 		self.value = value
 
 	def eval(self, vars):
@@ -660,8 +660,8 @@ class List(AST):
 
 	ul4attrs = AST.ul4attrs.union({"items"})
 
-	def __init__(self, location=None, start=None, end=None, *items):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None, *items):
+		super().__init__(location, startpos, endpos)
 		self.items = list(items)
 
 	def __repr__(self):
@@ -703,8 +703,8 @@ class ListComp(AST):
 
 	ul4attrs = AST.ul4attrs.union({"item", "varname", "container", "condition"})
 
-	def __init__(self, location=None, start=None, end=None, item=None, varname=None, container=None, condition=None):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None, item=None, varname=None, container=None, condition=None):
+		super().__init__(location, startpos, endpos)
 		self.item = item
 		self.varname = varname
 		self.container = container
@@ -776,8 +776,8 @@ class Set(AST):
 
 	ul4attrs = AST.ul4attrs.union({"items"})
 
-	def __init__(self, location=None, start=None, end=None, *items):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None, *items):
+		super().__init__(location, startpos, endpos)
 		self.items = list(items)
 
 	def __repr__(self):
@@ -819,8 +819,8 @@ class SetComp(AST):
 
 	ul4attrs = AST.ul4attrs.union({"item", "varname", "container", "condition"})
 
-	def __init__(self, location=None, start=None, end=None, item=None, varname=None, container=None, condition=None):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None, item=None, varname=None, container=None, condition=None):
+		super().__init__(location, startpos, endpos)
 		self.item = item
 		self.varname = varname
 		self.container = container
@@ -892,8 +892,8 @@ class Dict(AST):
 
 	ul4attrs = AST.ul4attrs.union({"items"})
 
-	def __init__(self, location=None, start=None, end=None, *items):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None, *items):
+		super().__init__(location, startpos, endpos)
 		self.items = list(items)
 
 	def __repr__(self):
@@ -938,8 +938,8 @@ class DictComp(AST):
 
 	ul4attrs = AST.ul4attrs.union({"key", "value", "varname", "container", "condition"})
 
-	def __init__(self, location=None, start=None, end=None, key=None, value=None, varname=None, container=None, condition=None):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None, key=None, value=None, varname=None, container=None, condition=None):
+		super().__init__(location, startpos, endpos)
 		self.key = key
 		self.value = value
 		self.varname = varname
@@ -1015,8 +1015,8 @@ class GenExpr(AST):
 
 	ul4attrs = AST.ul4attrs.union({"item", "varname", "container", "condition"})
 
-	def __init__(self, location=None, start=None, end=None, item=None, varname=None, container=None, condition=None):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None, item=None, varname=None, container=None, condition=None):
+		super().__init__(location, startpos, endpos)
 		self.item = item
 		self.varname = varname
 		self.container = container
@@ -1086,8 +1086,8 @@ class Var(AST):
 
 	ul4attrs = AST.ul4attrs.union({"name"})
 
-	def __init__(self, location=None, start=None, end=None, name=None):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None, name=None):
+		super().__init__(location, startpos, endpos)
 		self.name = name
 
 	def __repr__(self):
@@ -1134,8 +1134,8 @@ class Block(AST):
 
 	ul4attrs = AST.ul4attrs.union({"endlocation", "content"})
 
-	def __init__(self, location=None, start=None, end=None):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None):
+		super().__init__(location, startpos, endpos)
 		self.endlocation = None
 		self.content = []
 
@@ -1176,10 +1176,10 @@ class CondBlock(Block):
 	followed by zero or more :class:`ElIfBlock` blocks followed by zero or one
 	:class:`ElseBlock` block.
 	"""
-	def __init__(self, location=None, start=None, end=None, condition=None):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None, condition=None):
+		super().__init__(location, startpos, endpos)
 		if condition is not None:
-			self.newblock(IfBlock(location, start, end, condition))
+			self.newblock(IfBlock(location, startpos, endpos, condition))
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {1} at {2:#x}>".format(self, repr(self.content)[1:-1], id(self))
@@ -1223,8 +1223,8 @@ class IfBlock(Block):
 
 	ul4attrs = Block.ul4attrs.union({"condition"})
 
-	def __init__(self, location=None, start=None, end=None, condition=None):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None, condition=None):
+		super().__init__(location, startpos, endpos)
 		self.condition = condition
 
 	def __repr__(self):
@@ -1270,8 +1270,8 @@ class ElIfBlock(Block):
 
 	ul4attrs = Block.ul4attrs.union({"condition"})
 
-	def __init__(self, location=None, start=None, end=None, condition=None):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None, condition=None):
+		super().__init__(location, startpos, endpos)
 		self.condition = condition
 
 	def __repr__(self):
@@ -1345,8 +1345,8 @@ class ForBlock(Block):
 
 	ul4attrs = Block.ul4attrs.union({"varname", "container"})
 
-	def __init__(self, location=None, start=None, end=None, varname=None, container=None):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None, varname=None, container=None):
+		super().__init__(location, startpos, endpos)
 		self.varname = varname
 		self.container = container
 
@@ -1413,8 +1413,8 @@ class WhileBlock(Block):
 
 	ul4attrs = Block.ul4attrs.union({"condition"})
 
-	def __init__(self, location=None, start=None, end=None, condition=None):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None, condition=None):
+		super().__init__(location, startpos, endpos)
 		self.condition = condition
 
 	def __repr__(self):
@@ -1503,8 +1503,8 @@ class Attr(AST):
 	"""
 	ul4attrs = AST.ul4attrs.union({"obj", "attrname"})
 
-	def __init__(self, location=None, start=None, end=None, obj=None, attrname=None):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None, obj=None, attrname=None):
+		super().__init__(location, startpos, endpos)
 		self.obj = obj
 		self.attrname = attrname
 
@@ -1840,8 +1840,8 @@ class Slice(AST):
 
 	ul4attrs = AST.ul4attrs.union({"index1", "index2"})
 
-	def __init__(self, location=None, start=None, end=None, index1=None, index2=None):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None, index1=None, index2=None):
+		super().__init__(location, startpos, endpos)
 		self.index1 = index1
 		self.index2 = index2
 
@@ -1890,8 +1890,8 @@ class Unary(AST):
 
 	ul4attrs = AST.ul4attrs.union({"obj"})
 
-	def __init__(self, location=None, start=None, end=None, obj=None):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None, obj=None):
+		super().__init__(location, startpos, endpos)
 		self.obj = obj
 
 	def __repr__(self):
@@ -1921,12 +1921,12 @@ class Unary(AST):
 		return self.evalfold(obj)
 
 	@classmethod
-	def make(cls, location, start, end, obj):
+	def make(cls, location, startpos, endpos, obj):
 		if isinstance(obj, Const):
 			result = cls.evalfold(obj.value)
 			if not isinstance(result, Undefined):
-				return Const(location, start, end, result)
-		return cls(location, start, end, obj)
+				return Const(location, startpos, endpos, result)
+		return cls(location, startpos, endpos, obj)
 
 
 @register("not")
@@ -2015,8 +2015,8 @@ class Binary(AST):
 
 	ul4attrs = AST.ul4attrs.union({"obj1", "obj2"})
 
-	def __init__(self, location=None, start=None, end=None, obj1=None, obj2=None):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None, obj1=None, obj2=None):
+		super().__init__(location, startpos, endpos)
 		self.obj1 = obj1
 		self.obj2 = obj2
 
@@ -2052,12 +2052,12 @@ class Binary(AST):
 		return self.evalfold(obj1, obj2)
 
 	@classmethod
-	def make(cls, location, start, end, obj1, obj2):
+	def make(cls, location, startpos, endpos, obj1, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const):
 			result = cls.evalfold(obj1.value, obj2.value)
 			if not isinstance(result, Undefined):
-				return Const(location, start, end, result)
-		return cls(location, start, end, obj1, obj2)
+				return Const(location, startpos, endpos, result)
+		return cls(location, startpos, endpos, obj1, obj2)
 
 
 @register("item")
@@ -2461,8 +2461,8 @@ class If(AST):
 	AST node for the ternary inline ``if/else`` operator.
 	"""
 
-	def __init__(self, location=None, start=None, end=None, objif=None, objcond=None, objelse=None):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None, objif=None, objcond=None, objelse=None):
+		super().__init__(location, startpos, endpos)
 		self.objif = objif
 		self.objcond = objcond
 		self.objelse = objelse
@@ -2497,10 +2497,10 @@ class If(AST):
 		self.objelse = decoder.load()
 
 	@classmethod
-	def make(cls, location, start, end, objif, objcond, objelse):
+	def make(cls, location, startpos, endpos, objif, objcond, objelse):
 		if isinstance(objcond, Const) and not isinstance(objcond.value, Undefined):
 			return objif if objcond.value else objelse
-		return cls(location, start, end, objif, objcond, objelse)
+		return cls(location, startpos, endpos, objif, objcond, objelse)
 
 	@_handleeval
 	def eval(self, vars):
@@ -2522,8 +2522,8 @@ class ChangeVar(AST):
 
 	ul4attrs = AST.ul4attrs.union({"varname", "value"})
 
-	def __init__(self, location=None, start=None, end=None, lvalue=None, value=None):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None, lvalue=None, value=None):
+		super().__init__(location, startpos, endpos)
 		self.lvalue = lvalue
 		self.value = value
 
@@ -2723,8 +2723,8 @@ class Call(AST):
 
 	ul4attrs = AST.ul4attrs.union({"obj", "args"})
 
-	def __init__(self, location=None, start=None, end=None, obj=None):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None, obj=None):
+		super().__init__(location, startpos, endpos)
 		self.obj = obj
 		self.args = []
 
@@ -3511,8 +3511,8 @@ class Template(Block):
 					block = Template(None, name, whitespace=self.whitespace, startdelim=self.startdelim, enddelim=self.enddelim, signature=signature)
 					block.location = location # Set start ``location`` of sub template
 					block.source = self.source # The source of the top level template (so that the offsets in :class:`Location` are correct)
-					block.start = location.startposcode
-					block.end = location.endpos
+					block.startpos = location.startposcode
+					block.endpos = location.endpos
 					stack[-1].append(block)
 					stack.append(block)
 				elif location.tag == "return":
@@ -3549,8 +3549,8 @@ class Signature(AST):
 
 	ul4attrs = AST.ul4attrs.union({"params"})
 
-	def __init__(self, location=None, start=None, end=None):
-		super().__init__(location, start, end)
+	def __init__(self, location=None, startpos=None, endpos=None):
+		super().__init__(location, startpos, endpos)
 		self.params = []
 
 	def __repr__(self):
