@@ -3633,6 +3633,7 @@ def universaltemplate(whitespace="keep"):
 			<?code x = {"fortytwo": 42}?>
 			<?code x = [x for x in range(10) if i % 2]?>
 			<?code x = {x : x*x for x in range(10) if i % 2}?>
+			<?code x = {x*x for x in range(10) if i % 2}?>
 			<?code x = (x for x in range(10) if i % 2)?>
 			<?code x = y?>
 			<?code x += 42?>
