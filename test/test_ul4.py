@@ -394,8 +394,8 @@ all_templates = dict(
 	python_dump=TemplatePythonDump,
 	# java_compiled_by_python=TemplateJavaCompiledByPython,
 	# java_compiled_by_java=TemplateJavaCompiledByJava,
-	js_v8=TemplateJavascriptV8,
-	js_spidermonkey=TemplateJavascriptSpidermonkey,
+	# js_v8=TemplateJavascriptV8,
+	# js_spidermonkey=TemplateJavascriptSpidermonkey,
 	# php=TemplatePHP,
 )
 
@@ -3530,15 +3530,15 @@ def test_templateattributes(T):
 	assert "<?" == T("<?print template.startdelim?>").renders(template=t1)
 	assert "?>" == T("<?print template.enddelim?>").renders(template=t1)
 	assert s1 == T("<?print template.source?>").renders(template=t1)
-	assert "1" == T("<?print len(template.content)?>").renders(template=t1)
-	assert "print" == T("<?print template.content[0].type?>").renders(template=t1)
-	assert s1 == T("<?print template.content[0].location.text?>").renders(template=t1)
-	assert "x" == T("<?print template.content[0].location.code?>").renders(template=t1)
-	assert "var" == T("<?print template.content[0].obj.type?>").renders(template=t1)
-	assert "x" == T("<?print template.content[0].obj.name?>").renders(template=t1)
-	assert "printx" == T("<?print template.content[0].type?>").renders(template=t2)
-	assert "const" == T("<?print template.content[0].obj.type?>").renders(template=t2)
-	assert "42" == T("<?print template.content[0].obj.value?>").renders(template=t2)
+	assert "2" == T("<?print len(template.content)?>").renders(template=t1) # The template AST always contains an :class:`Indent` node at the start
+	assert "indent print" == T("<?print ' '.join(ast.type for ast in template.content)?>").renders(template=t1)
+	assert s1 == T("<?print template.content[1].tag.text?>").renders(template=t1)
+	assert "x" == T("<?print template.content[1].tag.code?>").renders(template=t1)
+	assert "var" == T("<?print template.content[1].obj.type?>").renders(template=t1)
+	assert "x" == T("<?print template.content[1].obj.name?>").renders(template=t1)
+	assert "printx" == T("<?print template.content[1].type?>").renders(template=t2)
+	assert "const" == T("<?print template.content[1].obj.type?>").renders(template=t2)
+	assert "42" == T("<?print template.content[1].obj.value?>").renders(template=t2)
 
 
 @pytest.mark.ul4
@@ -3547,8 +3547,8 @@ def test_templateattributes_localtemplate(T):
 	source = "<?def lower?><?print t.lower()?><?end def?>"
 
 	assert source + "<?print lower.source?>" == T(source + "<?print lower.source?>").renders()
-	assert source == T(source + "<?print lower.source[lower.location.startpos:lower.endlocation.endpos]?>").renders()
-	assert "<?print t.lower()?>" == T(source + "<?print lower.source[lower.location.endpos:lower.endlocation.startpos]?>").renders()
+	assert source == T(source + "<?print lower.source[lower.tag.startpos:lower.endtag.endpos]?>").renders()
+	assert "<?print t.lower()?>" == T(source + "<?print lower.tag.source[lower.tag.endpos:lower.endtag.startpos]?>").renders()
 	assert "lower" == T(source + "<?print lower.name?>").renders()
 
 

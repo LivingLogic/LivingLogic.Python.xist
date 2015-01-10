@@ -3080,59 +3080,18 @@ class Template(Block):
 		if pos != end:
 			yield Text(source, pos, end)
 
-	def _whitespace_strip(self, tags):
-		removewhitespace = re.compile(r"\r?\n\s*")
-		for tag in tags:
-			if isinstance(tag, Text):
-				text = removewhitespace.sub("", tag.text)
-				if text: # If no text remains, drop the tag completely
-					tag._settext(text)
-					yield tag
-			else:
-				yield tag
-
-	_whitespace_lineends = ("\r\n", "\n")
-
-	def _whitespace_smart(self, tags):
+	def _tags2lines(self, tags):
 		# a list of tags that are all part of one line
-		class Line(list):
-			def __init__(self):
-				list.__init__(self)
-				self.blocks = None
+		tagline = []
 
-			def append(self, tag):
-				# If this is a new line and it doesn't start with an indentation, add an empty indentation at the start
-				# (We always output indentation, as this is the spot where :meth:`renderindented` adds the additional indentation)
-				if not self and not isinstance(tag, Indent):
-					list.append(self, Indent(tag.source, tag.startpos, tag.startpos))
-				list.append(self, tag)
+		def append(tag):
+			# If this is a new line and it doesn't start with an indentation, add an empty indentation at the start
+			# (We always output indentation, as this is the spot where :meth:`renderindented` adds the additional indentation)
+			if not tagline and not isinstance(tag, Indent):
+				tagline.append(Indent(tag.source, tag.startpos, tag.startpos))
+			tagline.append(tag)
 
-			def indent(self):
-				# Return the indentation of the line
-				if self:
-					return self[0].text
-				return ""
-
-		# Records that starting and ending line number of a block and its indentation
-		class Block:
-			def __init__(self, start):
-				self.start = start
-				self.end = None
-				self.indent = None
-
-		# Return the length of the longest common prefix of all strings in :obj:`indents`
-		def commonindentlen(indents):
-			if not indents:
-				return 0
-			indent1 = min(indents)
-			indent2 = max(indents)
-			for (i, c) in enumerate(indent1):
-				if c != indent2[i]:
-					return i
-			return len(indent1)
-
-		# Step 1: Create a list of lines by splitting literal text into multiple chunks (normal text, indentation and lineends)
-		lines = [Line()]
+		# Yield lines by splitting literal text into multiple chunks (normal text, indentation and lineends)
 		wastag = False
 		for tag in tags:
 			if isinstance(tag, Text):
@@ -3159,30 +3118,73 @@ class Template(Block):
 
 					# Output the parts we found
 					if lineindentlen:
-						lines[-1].append(Indent(tag.source, pos, pos+lineindentlen))
+						append(Indent(tag.source, pos, pos+lineindentlen))
 						pos += lineindentlen
 					if linelen:
-						lines[-1].append(Text(tag.source, pos, pos+linelen))
+						append(Text(tag.source, pos, pos+linelen))
 						pos += linelen
 					if lineendlen:
-						lines[-1].append(LineEnd(tag.source, pos, pos+lineendlen))
+						append(LineEnd(tag.source, pos, pos+lineendlen))
 						pos += lineendlen
-						lines.append(Line())
+						yield tagline
+						tagline = []
 			else:
-				lines[-1].append(tag)
+				append(tag)
 				wastag = True
+		if tagline:
+			yield tagline
+
+	def _whitespace_keep(self, lines):
+		for line in lines:
+			yield from line
+
+	def _whitespace_strip(self, lines):
+		first = True
+		for line in lines:
+			for tag in line:
+				if first or not isinstance(tag, (Indent, LineEnd)):
+					yield tag
+					first = False
+
+	_whitespace_lineends = ("\r\n", "\n")
+
+	def _whitespace_smart(self, lines):
+		def indent(tagline):
+			# Return the indentation of the line
+			if tagline:
+				return tagline[0].text
+			return ""
+
+		# Records that starting and ending line number of a block and its indentation
+		class Block:
+			def __init__(self, start):
+				self.start = start
+				self.end = None
+				self.indent = None
+
+		# Return the length of the longest common prefix of all strings in :obj:`indents`
+		def commonindentlen(indents):
+			if not indents:
+				return 0
+			indent1 = min(indents)
+			indent2 = max(indents)
+			for (i, c) in enumerate(indent1):
+				if c != indent2[i]:
+					return i
+			return len(indent1)
 
 		# Step 2: Determine the block structure of the lines
 		block = Block(0)
 		blocks = [block]
 		stack = [block]
 
+		newlines = []
 		for (i, line) in enumerate(lines):
 			linelen = len(line)
 			if 2 <= linelen <= 3 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx") and (linelen == 2 or isinstance(line[2], LineEnd)):
 				tag = line[1]
 				if tag.tag in ("for", "if", "def"):
-					line.blocks = stack[:]
+					newlines.append((line, stack[:]))
 					block = Block(i+1)
 					stack.append(block)
 					blocks.append(block)
@@ -3190,7 +3192,7 @@ class Template(Block):
 					if len(stack) > 1:
 						stack[-1].end = i
 						stack.pop()
-					line.blocks = stack[:]
+					newlines.append((line, stack[:]))
 					block = Block(i+1)
 					stack.append(block)
 					blocks.append(block)
@@ -3198,11 +3200,11 @@ class Template(Block):
 					if len(stack) > 1:
 						stack[-1].end = i
 						stack.pop()
-					line.blocks = stack[:]
+					newlines.append((line, stack[:]))
 				else:
-					line.blocks = stack[:]
+					newlines.append((line, stack[:]))
 			else:
-				line.blocks = stack[:]
+				newlines.append((line, stack[:]))
 		# Close open blocks (shouldn't be neccessary for properly nested templates, except for the outermost block)
 		for block in stack:
 			block.end = len(lines)
@@ -3211,16 +3213,16 @@ class Template(Block):
 		for block in blocks:
 			block.indent = range(
 				# outer indent, i.e. the indentation of the start tag of the block
-				len(lines[block.start-1].indent()) if block.start else 0,
+				len(indent(lines[block.start-1])) if block.start else 0,
 				# inner indentation
-				commonindentlen([line.indent() for line in itertools.islice(lines, block.start, block.end)]),
+				commonindentlen([indent(line) for line in itertools.islice(lines, block.start, block.end)]),
 			)
 
 		# Step 4: Fix the indentation
-		for line in lines:
+		for (line, blocks) in newlines:
 			if line:
 				# use all character for indentation, that are not part of the "artificial" indentation introduced in each block
-				newindent = "".join(c for (i, c) in enumerate(line[0].text) if not any(i in block.indent for block in line.blocks))
+				newindent = "".join(c for (i, c) in enumerate(line[0].text) if not any(i in block.indent for block in blocks))
 				line[0]._settext(newindent)
 
 		# Step 5: Drop whitespace from lines that only contain indentation and block tags
@@ -3295,37 +3297,41 @@ class Template(Block):
 		def parsedef(tag):
 			return self._parser(tag, "definition required").definition()
 
-		tags = list(self._tokenize(source, startdelim, enddelim))
+		tags = self._tokenize(source, startdelim, enddelim)
+		lines = list(self._tags2lines(tags))
 
 		# Find template declarations and whitespace specification
-		for tag in tags:
-			if isinstance(tag, Tag):
-				if tag.tag == "ul4":
-					(name, signature) = parsedeclaration(tags[0])
-					self.name = name
-					if signature is not None:
-						signature = _resultfromgenerator(signature.eval({}))
-					self.signature = signature
-				elif tag.tag == "whitespace":
-					whitespace = tag.code
-					if whitespace in ("keep", "strip", "smart"):
-						self.whitespace = whitespace
-					else:
-						try:
-							raise ValueError("whitespace mode {!r} unknown".format(whitespace))
-						except Exception as exc:
+		for line in lines:
+			for tag in line:
+				if isinstance(tag, Tag):
+					if tag.tag == "ul4":
+						(name, signature) = parsedeclaration(tag)
+						self.name = name
+						if signature is not None:
+							signature = _resultfromgenerator(signature.eval({}))
+						self.signature = signature
+					elif tag.tag == "whitespace":
+						whitespace = tag.code
+						if whitespace in ("keep", "strip", "smart"):
+							self.whitespace = whitespace
+						else:
 							try:
-								raise Error(tag) from exc
+								raise ValueError("whitespace mode {!r} unknown".format(whitespace))
 							except Exception as exc:
-								raise Error(self) from exc
+								try:
+									raise Error(tag) from exc
+								except Exception as exc:
+									raise Error(self) from exc
 
 
-		# Update whitespace according to the whitespace mode specified
-		if self.whitespace == "strip":
-			tags = self._whitespace_strip(tags)
+		# Flatten lines and update whitespace according to the whitespace mode specified
+		if self.whitespace == "keep":
+			tags = self._whitespace_keep(lines)
+		elif self.whitespace == "strip":
+			tags = self._whitespace_strip(lines)
 		elif self.whitespace == "smart":
-			tags = self._whitespace_smart(tags)
-		elif self.whitespace != "keep":
+			tags = self._whitespace_smart(lines)
+		else:
 			raise ValueError("whitespace mode {!r} unknown".format(self.whitespace))
 
 		for tag in tags:
@@ -4069,7 +4075,7 @@ def function_pow(x, y):
 
 
 class TemplateClosure(Block):
-	ul4attrs = Block.ul4attrs.union({"name", "source", "startdelim", "enddelim", "signature", "content", "render", "renders"})
+	ul4attrs = Template.ul4attrs
 
 	def __init__(self, template, vars, signature):
 		self.template = template
