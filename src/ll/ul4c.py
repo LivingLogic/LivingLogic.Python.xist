@@ -4066,8 +4066,8 @@ def function_pow(x, y):
 	return math.pow(x, y)
 
 
-class TemplateClosure:
-	ul4attrs = {"tag", "endtag", "name", "source", "startdelim", "enddelim", "signature", "content", "render", "renders"}
+class TemplateClosure(Block):
+	ul4attrs = Block.ul4attrs.union({"name", "source", "startdelim", "enddelim", "signature", "content", "render", "renders"})
 
 	def __init__(self, template, vars, signature):
 		self.template = template
@@ -4097,42 +4097,34 @@ class TemplateClosure:
 	def __getattr__(self, name):
 		return getattr(self.template, name)
 
-	def __repr__(self):
-		s = "<{0.__class__.__module__}.{0.__class__.__qualname__} [{0.startpos:,}:{0.endpos:,}] name={0.name!r} whitespace={0.whitespace!r}".format(self)
+	def _repr(self):
+		yield "name={!r}".format(self.name)
+		yield "whitespace={!r}".format(self.whitespace)
 		if self.startdelim != "<?":
-			s += " startdelim={0.startdelim!r}".format(self)
+			yield "startdelim={!r}".format(self.startdelim)
 		if self.enddelim != "?>":
-			s += " enddelim={0.enddelim!r}".format(self)
+			yield "enddelim={!r}".format(self.enddelim)
 		if self.signature is not None:
-			s += " signature={}".format(self.signature)
-		if self.content:
-			s + " ..."
-		return s + " at {:#x}>".format(id(self))
+			yield " signature={}".format(self.signature)
 
-	def _repr_pretty_(self, p, cycle):
-		if cycle:
-			p.text("<{0.__class__.__module__}.{0.__class__.__qualname__} [{0.template.startpos:,}:{0.template.endpos:,}] ... at {1:#x}>".format(self, id(self)))
-		else:
-			with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__} [{0.template.startpos:,}:{0.template.endpos:,}]".format(self), ">"):
-				p.breakable()
-				p.text("name=")
-				p.pretty(self.name)
-				p.breakable()
-				p.text("keepws=")
-				p.pretty(self.keepws)
-				if self.startdelim != "<?":
-					p.breakable()
-					p.text("startdelim=")
-					p.pretty(self.startdelim)
-				if self.enddelim != "?>":
-					p.breakable()
-					p.text("enddelim=")
-					p.pretty(self.enddelim)
-				if self.signature is not None:
-					p.breakable()
-					p.text("signature={}".format(self.signature))
-				for node in self.content:
-					p.breakable()
-					p.pretty(node)
-				p.breakable()
-				p.text("at {:#x}".format(id(self)))
+	def _repr_pretty(self, p):
+		p.breakable()
+		p.text("name=")
+		p.pretty(self.name)
+		p.breakable()
+		p.text("keepws=")
+		p.pretty(self.keepws)
+		if self.startdelim != "<?":
+			p.breakable()
+			p.text("startdelim=")
+			p.pretty(self.startdelim)
+		if self.enddelim != "?>":
+			p.breakable()
+			p.text("enddelim=")
+			p.pretty(self.enddelim)
+		if self.signature is not None:
+			p.breakable()
+			p.text("signature={}".format(self.signature))
+		for node in self.content:
+			p.breakable()
+			p.pretty(node)
