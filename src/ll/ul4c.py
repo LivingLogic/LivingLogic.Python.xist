@@ -1225,7 +1225,7 @@ class IfBlock(Block):
 		yield ":"
 		yield None
 		yield +1
-		yield from super()._str()
+		yield from Block._str(self)
 		yield -1
 
 	def ul4ondump(self, encoder):
