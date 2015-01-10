@@ -70,12 +70,9 @@ class Error(Exception):
 		return "<{}.{} in {} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.node, id(self))
 
 	def __str__(self):
-		if isinstance(self.node, (Template, TemplateClosure)):
-			if self.node.name is not None:
-				return "in template named {}".format(self.node.name)
-			else:
-				return "in unnamed template"
-		elif isinstance(self.node, Tag):
+		if isinstance(self.node, Template):
+			return "in {!r}".format(self.node)
+		if isinstance(self.node, Tag):
 			return "in {}".format(self.node)
 		else:
 			return "in {}".format(self.node.tag)
@@ -176,8 +173,8 @@ def _handleeval(f):
 			# Pass those exception through to the AST nodes that will handle them (:class:`ForBlock` or :class:`Template`)
 			raise
 		except Error as ex:
-			# If the current AST node has a different location than the AST node where the exception came from
-			if ex.node.location is not self.location:
+			# If the current AST node comes from a different tag than the AST node where the exception came from
+			if ex.node.tag is not self.tag:
 				# ... wrap the exception in another exception that shows our location
 				raise Error(self) from ex
 			else:
