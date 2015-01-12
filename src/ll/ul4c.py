@@ -1475,8 +1475,18 @@ class Attr(Code):
 		if hasattr(obj, "ul4attrs"):
 			if self.attrname in {"items", "values"}:
 				return self.method_dict(obj, self.attrname)
-			elif self.attrname in obj.ul4attrs or "+" + self.attrname in obj.ul4attrs:
-				return getattr(obj, self.attrname)
+			if isinstance(obj.ul4attrs, dict):
+				if self.attrname in obj.ul4attrs:
+					try:
+						(realattrname, mode) = obj.ul4attrs[self.attrname]
+					except KeyError:
+						pass # fall through to the return statement below
+					else:
+						if "r" in mode:
+							return getattr(obj, realattrname, UndefinedKey(self.attrname))
+			else:
+				if self.attrname in obj.ul4attrs:
+					return getattr(obj, self.attrname, UndefinedKey(self.attrname))
 			return UndefinedKey(self.attrname)
 		elif isinstance(obj, str):
 			return self.method_str(obj, self.attrname)
@@ -1612,10 +1622,15 @@ class Attr(Code):
 				except AttributeError:
 					return obj.items()
 				else:
-					def iterate(obj):
-						for attrname in attrs:
-							attrname = attrname.lstrip("+")
-							yield (attrname, getattr(obj, attrname, UndefinedKey(attrname)))
+					if isinstance(attrs, dict):
+						def iterate(obj):
+							for (attrname, (realattrname, mode)) in attrs.items():
+								if "r" in mode:
+									yield (attrname, getattr(obj, realattrname, UndefinedKey(attrname)))
+					else:
+						def iterate(obj):
+							for attrname in attrs:
+								yield (attrname, getattr(obj, attrname, UndefinedKey(attrname)))
 					return iterate(obj)
 			result = items
 		elif methname == "values":
@@ -1625,10 +1640,14 @@ class Attr(Code):
 				except AttributeError:
 					return obj.values()
 				else:
-					def iterate(obj):
-						for attrname in attrs:
-							attrname = attrname.lstrip("+")
-							yield getattr(obj, attrname, UndefinedKey(attrname))
+					if isinstance(attrs, dict):
+						def iterate(obj):
+							for (attrname, (realattrname, mode)) in attrs.items():
+								yield getattr(obj, realattrname, UndefinedKey(attrname))
+					else:
+						def iterate(obj):
+							for attrname in attrs:
+								yield getattr(obj, attrname, UndefinedKey(attrname))
 					return iterate(obj)
 			result = values
 		elif methname == "update":
@@ -1740,10 +1759,16 @@ class Attr(Code):
 	def evalsetvar(self, vars, value):
 		obj = (yield from self.obj.eval(vars))
 		if hasattr(obj, "ul4attrs"):
-			if "+" + self.attrname in obj.ul4attrs:
-				setattr(obj, self.attrname, value)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
+			if isinstance(obj.ul4attrs, dict):
+				try:
+					(realattrname, mode) = obj.ul4attrs[self.attrname]
+				except KeyError:
+					pass # fall through to the raise statement below
+				else:
+					if "w" in mode:
+						setattr(obj, realattrname, value)
+						return
+			raise AttributeError("attribute {!r} is readonly".format(self.attrname))
 		else:
 			obj[self.attrname] = value
 
@@ -1751,12 +1776,18 @@ class Attr(Code):
 	def evalmodifyvar(self, operator, vars, value):
 		obj = (yield from self.obj.eval(vars))
 		if hasattr(obj, "ul4attrs"):
-			if "+" + self.attrname in obj.ul4attrs:
-				attr = getattr(obj, self.attrname)
-				attr = operator.evalfoldaug(attr, value)
-				setattr(obj, self.attrname, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(self.attrname))
+			if isinstance(obj.ul4attrs, dict):
+				try:
+					(realattrname, mode) = obj.ul4attrs[self.attrname]
+				except KeyError:
+					pass # fall through to the raise statement below
+				else:
+					if "r" in mode and "w" in mode:
+						attr = getattr(obj, realattrname)
+						attr = operator.evalfoldaug(attr, value)
+						setattr(obj, realattrname, attr)
+						return
+			raise AttributeError("attribute {!r} is readonly".format(self.attrname))
 		else:
 			obj[self.attrname] = operator.evalfoldaug(obj[self.attrname], value)
 
@@ -2004,8 +2035,16 @@ class Item(Binary):
 	@classmethod
 	def evalfold(cls, obj1, obj2):
 		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
-			if obj2 in obj1.ul4attrs or "+" + obj2 in obj1.ul4attrs:
-				return getattr(obj1, obj2)
+			if isinstance(obj1.ul4attrs, dict):
+				try:
+					(realattrname, mode) = obj1.ul4attrs[obj2]
+				except KeyError:
+					return UndefinedKey(obj2)
+				else:
+					if "r" in mode:
+						return getattr(obj1, realattrname, UndefinedKey(obj2))
+			else:
+				return getattr(obj1, obj2, UndefinedKey(obj2))
 			return UndefinedKey(obj2)
 		try:
 			return obj1[obj2]
@@ -2019,10 +2058,16 @@ class Item(Binary):
 		obj1 = (yield from self.obj1.eval(vars))
 		obj2 = (yield from self.obj2.eval(vars))
 		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
-			if "+" + obj2 in obj1.ul4attrs:
-				setattr(obj1, obj2, value)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(obj2))
+			if isinstance(obj1.ul4attrs, dict):
+				try:
+					(realattrname, mode) = obj1.ul4attrs[obj2]
+				except KeyError:
+					pass # fall through to the raise statement below
+				else:
+					if "w" in mode:
+						setattr(obj1, realattrname, value)
+						return
+			raise AttributeError("attribute {!r} is readonly".format(obj2))
 		else:
 			obj1[obj2] = value
 
@@ -2031,12 +2076,18 @@ class Item(Binary):
 		obj1 = (yield from self.obj1.eval(vars))
 		obj2 = (yield from self.obj2.eval(vars))
 		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
-			if "+" + obj2 in obj1.ul4attrs:
-				attr = getattr(obj1, obj2)
-				attr = operator.evalfoldaug(attr, value)
-				setattr(obj1, obj2, attr)
-			else:
-				raise AttributeError("attribute {!r} is readonly".format(obj2))
+			if isinstance(obj1.ul4attrs, dict):
+				try:
+					(realattrname, mode) = obj1.ul4attrs[obj2]
+				except KeyError:
+					pass # fall through to the raise statement below
+				else:
+					if "r" in mode and "w" in mode:
+						attr = getattr(obj1, realattrname)
+						attr = operator.evalfoldaug(attr, value)
+						setattr(obj1, realattrname, attr)
+						return
+			raise AttributeError("attribute {!r} is readonly".format(obj2))
 		else:
 			obj1[obj2] = operator.evalfoldaug(obj1[obj2], value)
 
@@ -2120,7 +2171,7 @@ class Contains(Binary):
 	@classmethod
 	def evalfold(cls, obj1, obj2):
 		if isinstance(obj1, str) and hasattr(obj2, "ul4attrs"):
-			return obj1 in obj2.ul4attrs or "+" + obj1 in obj2.ul4attrs
+			return obj1 in obj2.ul4attrs
 		else:
 			return obj1 in obj2
 
@@ -2138,7 +2189,7 @@ class NotContains(Binary):
 	@classmethod
 	def evalfold(cls, obj1, obj2):
 		if isinstance(obj1, str) and hasattr(obj2, "ul4attrs"):
-			return obj1 not in obj2.ul4attrs and "+" + obj1 not in obj2.ul4attrs
+			return obj1 not in obj2.ul4attrs
 		else:
 			return obj1 not in obj2
 

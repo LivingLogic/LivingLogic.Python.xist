@@ -3785,7 +3785,7 @@ def test_return_in_template(T):
 @pytest.mark.ul4
 def test_customattributes():
 	class CustomAttributes:
-		ul4attrs = {"foo", "+bar"}
+		ul4attrs = {"foo": ("foo", "r"), "bar": ("bar", "rw")}
 		def __init__(self, foo, bar):
 			self.foo = foo
 			self.bar = bar
