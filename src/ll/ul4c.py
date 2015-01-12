@@ -2852,7 +2852,7 @@ class Template(Block):
 		if self.enddelim != "?>":
 			yield "enddelim={!r}".format(self.enddelim)
 		if self.signature is not None:
-			yield " signature={}".format(self.signature)
+			yield "signature={}".format(self.signature)
 
 	def _repr_pretty(self, p):
 		p.breakable()
