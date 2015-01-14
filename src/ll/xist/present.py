@@ -113,7 +113,7 @@ s4entity = astyle.Style.fromenv("LL_XIST_STYLE_ENTITY", "magenta:black")
 s4entityname = astyle.Style.fromenv("LL_XIST_STYLE_ENTITYNAME", "magenta:black:bold")
 
 
-# style to be used for charref names or codepoints
+# style to be used for charref names or code points
 s4charrefname = astyle.Style.fromenv("LL_XIST_STYLE_CHARREFNAME", "magenta:black")
 
 

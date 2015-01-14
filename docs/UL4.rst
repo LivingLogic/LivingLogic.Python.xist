@@ -1288,7 +1288,7 @@ and colors.
 """""""
 
 ``chr(x)`` returns a one-character string containing the character with the
-codepoint ``x``. ``x`` must be an integer. For example ``<?print chr(0x61)?>``
+code point ``x``. ``x`` must be an integer. For example ``<?print chr(0x61)?>``
 outputs ``a``.
 
 
@@ -1296,7 +1296,7 @@ outputs ``a``.
 """""""
 
 This is the inverse function to ``chr`` The argument for ``ord`` must be a
-one-character string. ``ord`` returns the codepoint of that character as an
+one-character string. ``ord`` returns the code point of that character as an
 integer. For example ``<?print ord('a')?>`` outputs ``97``.
 
 

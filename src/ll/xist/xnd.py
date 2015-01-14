@@ -95,7 +95,7 @@ class RedefinedCharRefError(Error):
 		self.duplicates = duplicates
 
 	def __str__(self):
-		return "charref named {0.oldcharref.named} with codepoint {0.oldcharref.codepoint} redefined with codepoint {0.newcharref.codepoint}".format(self)
+		return "charref named {0.oldcharref.named} with code point {0.oldcharref.codepoint} redefined with codepoint {0.newcharref.codepoint}".format(self)
 
 
 def findname(basename, names):

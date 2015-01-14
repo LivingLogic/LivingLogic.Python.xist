@@ -3702,7 +3702,7 @@ class _CharRef_Meta(type(Entity)): # don't subclass type(Text), as this is redun
 
 class CharRef(Text, Entity, metaclass=_CharRef_Meta):
 	"""
-	A simple named character reference, the codepoint is in the class attribute
+	A simple named character reference, the code point is in the class attribute
 	:attr:`codepoint`.
 	"""
 	register = None
