@@ -739,10 +739,10 @@ class Job:
 			self._getscriptsource() # Get source code
 			self._getcrontab() # Get crontab
 			self.log = Tag(self._log) # Create tagged logger for files
-			self._formatlogline = ul4c.Template(self.formatlogline, "formatlogline", keepws=False) # Log line formatting template
-			self._formatemailsubject = ul4c.Template(self.formatemailsubject, "formatemailsubject", keepws=False) # Email subject formatting template
-			self._formatemailbodytext = ul4c.Template(self.formatemailbodytext, "formatemailbodytext", keepws=False) # Email body formatting template (plain text)
-			self._formatemailbodyhtml = ul4c.Template(self.formatemailbodyhtml, "formatemailbodyhtml", keepws=False) # Email body formatting template (HTML)
+			self._formatlogline = ul4c.Template(self.formatlogline, "formatlogline", whitespace="strip") # Log line formatting template
+			self._formatemailsubject = ul4c.Template(self.formatemailsubject, "formatemailsubject", whitespace="strip") # Email subject formatting template
+			self._formatemailbodytext = ul4c.Template(self.formatemailbodytext, "formatemailbodytext", whitespace="strip") # Email body formatting template (plain text)
+			self._formatemailbodyhtml = ul4c.Template(self.formatemailbodyhtml, "formatemailbodyhtml", whitespace="strip") # Email body formatting template (HTML)
 
 			self._createlog() # Create loggers
 
