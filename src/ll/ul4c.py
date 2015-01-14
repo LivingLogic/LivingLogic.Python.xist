@@ -2496,12 +2496,12 @@ class ChangeVar(Code):
 	"""
 	Baseclass for all AST nodes that store or modify a variable.
 
-	The variable name is stored in the string :obj:`varname` and the value that
+	The left hand side is loaded from the AST node :obj:`label` and the value that
 	will be stored or be used to modify the stored value is loaded from the
 	AST node :obj:`value`.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"varname", "value"})
+	ul4attrs = Code.ul4attrs.union({"lvalue", "value"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None, lvalue=None, value=None):
 		super().__init__(tag, startpos, endpos)
