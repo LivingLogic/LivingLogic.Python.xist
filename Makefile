@@ -18,8 +18,7 @@ test: install
 
 dist:
 	rm -rf dist/*
-	python$(PYVERSION) setup.py sdist --formats=bztar,gztar,zip
-	python$(PYVERSION) setup.py bdist_wheel
+	python$(PYVERSION) setup.py sdist --formats=bztar,gztar,zip bdist_wheel
 	LL_URL_SSH_PYTHON=python3.2 python$(PYVERSION) -mll.scripts.ucp -vyes -uftp -gftp dist/*.tar.gz dist/*.tar.bz2 dist/*.zip  dist/*.whl ssh://root@isar.livinglogic.de/~ftp/pub/livinglogic/xist/
 
 
@@ -28,8 +27,7 @@ register:
 
 
 upload:
-	python$(PYVERSION) setup.py sdist --formats=bztar,gztar,zip upload
-	python$(PYVERSION) setup.py bdist_wheel upload
+	python$(PYVERSION) setup.py sdist --formats=bztar,gztar,zip bdist_wheel upload
 
 
 livinglogic:
