@@ -19,7 +19,8 @@ test: install
 dist:
 	rm -rf dist/*
 	python$(PYVERSION) setup.py sdist --formats=bztar,gztar,zip
-	LL_URL_SSH_PYTHON=python3.2 python$(PYVERSION) -mll.scripts.ucp -vyes -uftp -gftp dist/*.tar.gz dist/*.tar.bz2 dist/*.zip ssh://root@isar.livinglogic.de/~ftp/pub/livinglogic/xist/
+	python$(PYVERSION) setup.py bdist_wheel
+	LL_URL_SSH_PYTHON=python3.2 python$(PYVERSION) -mll.scripts.ucp -vyes -uftp -gftp dist/*.tar.gz dist/*.tar.bz2 dist/*.zip  dist/*.whl ssh://root@isar.livinglogic.de/~ftp/pub/livinglogic/xist/
 
 
 register:
@@ -28,12 +29,14 @@ register:
 
 upload:
 	python$(PYVERSION) setup.py sdist --formats=bztar,gztar,zip upload
+	python$(PYVERSION) setup.py bdist_wheel upload
 
 
 livinglogic:
 	rm -rf dist/*
 	python$(PYVERSION) setup.py sdist --formats=bztar,gztar,zip
-	python$(PYVERSION) -mll.scripts.ucp -vyes dist/*.tar.gz dist/*.tar.bz2 dist/*.zip ssh://intranet@intranet.livinglogic.de/~/documentroot/intranet.livinglogic.de/python-downloads/
+	python$(PYVERSION) setup.py bdist_wheel
+	python$(PYVERSION) -mll.scripts.ucp -vyes dist/*.tar.gz dist/*.tar.bz2 dist/*.zip dist/*.whl ssh://intranet@intranet.livinglogic.de/~/documentroot/intranet.livinglogic.de/python-downloads/
 
 
 windist:
