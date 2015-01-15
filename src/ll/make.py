@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 2002-2014 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2002-2014 by Walter Dörwald
+## Copyright 2002-2015 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2002-2015 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
