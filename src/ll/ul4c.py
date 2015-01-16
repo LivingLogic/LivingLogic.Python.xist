@@ -552,6 +552,14 @@ class Indent(Text):
 	def _str(self):
 		yield "indent {!r}".format(self.text)
 
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self._text)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self._text = decoder.load()
+
 
 @register("lineend")
 class LineEnd(Text):
