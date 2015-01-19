@@ -3214,7 +3214,7 @@ class Template(Block):
 				return tagline[0].text
 			return ""
 
-		# Records that starting and ending line number of a block and its indentation
+		# Records the starting and ending line number of a block and its indentation
 		class Block:
 			def __init__(self, start):
 				self.start = start
