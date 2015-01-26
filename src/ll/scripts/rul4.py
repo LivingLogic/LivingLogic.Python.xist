@@ -323,6 +323,10 @@ class OracleConnection(Connection):
 			var.setvalue(0, self.value)
 			return var
 
+	def __repr__(self):
+		connectstring = "{}@{}".format(self.connection.username, self.connection.tnsentry)
+		return "<{}.{} schema={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, connectstring, id(self))
+
 	def str(self, value=None):
 		return self.StrVar(value)
 
