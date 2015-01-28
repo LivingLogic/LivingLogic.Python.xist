@@ -267,7 +267,7 @@ class System:
 		return os.popen(cmd).read()
 
 
-def import_(filename, encoding="utf-89"):
+def import_(filename, encoding="utf-8"):
 	with open(filename, "r", encoding=encoding) as f:
 		data = f.read()
 
