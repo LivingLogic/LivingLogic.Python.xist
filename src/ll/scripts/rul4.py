@@ -232,10 +232,10 @@ this::
 	rul4 person.ul4 >person.xml
 
 We could also pass the connection to our database via the ``-D`` option and
-disallow the script to make any database connections or execute any system
-commands::
+disallow the script to make any database connections itself or execute any
+system commands::
 
-	rul4 person.ul4 -Ddb:oracle=user/pwd@database --oracle=0 --sqlite=0 --mysql=0 --system=0 >person.xml
+	rul4 person.ul4 -Ddb:oracle=user/pwd@database --oracle=0 --sqlite=0 --mysql=0 --redis=0 --system=0 >person.xml
 
 Then the template could use the Oracle connection object ``db`` directly.
 """
