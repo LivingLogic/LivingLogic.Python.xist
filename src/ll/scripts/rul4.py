@@ -256,6 +256,15 @@ class System:
 		return os.popen(cmd).read()
 
 
+def import_(filename):
+	with open(filename, "r", encoding="utf-8") as f:
+		data = f.read()
+
+	template = ul4c.Template(data)
+
+	return template
+
+
 class Var:
 	ul4attrs = {"+value"}
 
@@ -537,6 +546,7 @@ def main(args=None):
 		vars["redis"] = redis
 	if args.system:
 		vars["system"] = system
+	vars["import"] = import_
 	for part in maintemplate.render(**vars):
 		sys.stdout.write(part)
 
