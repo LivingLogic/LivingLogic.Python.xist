@@ -470,6 +470,11 @@ def test_linefeed_in_code(T):
 
 
 @pytest.mark.ul4
+def test_whitespace_before_tag(T):
+	assert "42" == T("<? print 42 ?>").renders()
+
+
+@pytest.mark.ul4
 def test_undefined(T):
 	assert '' == T('<?print Undefined?>').renders()
 	assert 'no' == T('<?if Undefined?>yes<?else?>no<?end if?>').renders()

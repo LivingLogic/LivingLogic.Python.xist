@@ -15,6 +15,12 @@ Changes in 5.14 (released ??/??/2015)
 
 		<?whitespace smart?>
 
+*	In UL4 tags whitespace is allowed now before the tag name, i.e.::
+
+		<? for i in range(10) ?>
+			<? print i ?>
+		<? end for ?>
+
 *	The name and signature of an UL4 template can now be specified in the
 	template source too like this::
 
