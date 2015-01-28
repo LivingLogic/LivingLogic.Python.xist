@@ -29,6 +29,9 @@ Changes in 5.14 (released ??/??/2015)
 *	The ``rul4`` option :option:`--keepws` has been renamed to
 	:option:`--whitespace' and defaults to ``smart`` now.
 
+*	Templates used in ``rul4`` have access to a new function: ``import``, which
+	can be used to load templates from any file.
+
 
 Changes in 5.13 (released 12/18/2014)
 -------------------------------------

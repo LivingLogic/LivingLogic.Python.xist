@@ -39,6 +39,9 @@ Options
 	``--system`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		Provide the object ``system`` to the template or not (see below)?
 
+	``--import`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Provide the function ``import`` to the template or not (see below)?
+
 	``-e``, ``--encoding``
 		The encoding of the templates files (default ``utf-8``)
 
@@ -136,7 +139,15 @@ the matching options):
 	``redis``
 		An object with a ``connect`` method that return a Redis connection for
 		the connect strings passed in. The connectstring is of the form
-		``hostname:port/db``. ``port`` and ``db`` are potional.
+		``hostname:port/db``. ``port`` and ``db`` are optional.
+
+	``import``
+		``import`` is a function that read a file (containing an UL4 template)
+		from disk and returns the compiled UL4 template. Its first parameter is
+		the filename and its second parameter is the encoding of the file. The
+		encoding parameter is optional and defaults to ``"utf-8"``::
+
+			<?code template = import("/home/user/template/foo.ul4")?>
 
 All variables defined via the :option:`-D`/:option:`--define` option will also
 be available. (Note that you can't overwrite any of the predefined variables).
@@ -256,8 +267,8 @@ class System:
 		return os.popen(cmd).read()
 
 
-def import_(filename):
-	with open(filename, "r", encoding="utf-8") as f:
+def import_(filename, encoding="utf-89"):
+	with open(filename, "r", encoding=encoding) as f:
 		data = f.read()
 
 	template = ul4c.Template(data)
@@ -503,7 +514,7 @@ def define(arg):
 
 
 def main(args=None):
-	p = argparse.ArgumentParser(description="render UL4 templates with access to Oracle, MySQL or SQLite databases", epilog="For more info see http://www.livinglogic.de/Python/scripts/rul4.html")
+	p = argparse.ArgumentParser(description="render UL4 templates with access to Oracle, MySQL, SQLite or Redis databases", epilog="For more info see http://www.livinglogic.de/Python/scripts/rul4.html")
 	p.add_argument("templates", metavar="template", help="templates to be used", nargs="+")
 	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for template sources (default %(default)s)", default="utf-8", metavar="ENCODING")
 	p.add_argument("-w", "--whitespace", dest="whitespace", help="How to treat whitespace in template sources? (default %(default)s)", choices=("keep", "strip", "smart"), default="smart")
@@ -512,6 +523,7 @@ def main(args=None):
 	p.add_argument(      "--mysql", dest="mysql", help="Allow the templates to connect to MySQL databases? (default %(default)s)", action=misc.FlagAction, default=True)
 	p.add_argument(      "--redis", dest="redis", help="Allow the templates to connect to Redis databases? (default %(default)s)", action=misc.FlagAction, default=True)
 	p.add_argument(      "--system", dest="system", help="Allow the templates to execute system commands? (default %(default)s)", action=misc.FlagAction, default=True)
+	p.add_argument(      "--import", dest="import_", help="Allow the templates to import templates from arbitrary paths? (default %(default)s)", action=misc.FlagAction, default=True)
 	p.add_argument("-D", "--define", dest="defines", metavar="var=value", help="Pass additional parameters to the template (can be specified multiple times).", action="append", type=define)
 
 	args = p.parse_args(args)
@@ -546,7 +558,8 @@ def main(args=None):
 		vars["redis"] = redis
 	if args.system:
 		vars["system"] = system
-	vars["import"] = import_
+	if args.import_:
+		vars["import"] = import_
 	for part in maintemplate.render(**vars):
 		sys.stdout.write(part)
 
