@@ -20,6 +20,9 @@ Changes in 5.14 (released ??/??/2015)
 
 		<?ul4 name(x, y, *args, **kwargs)?>
 
+*	The ``rul4`` option :option:`--keepws` has been renamed to
+	:option:`--whitespace' and defaults to ``smart`` now.
+
 
 Changes in 5.13 (released 12/18/2014)
 -------------------------------------

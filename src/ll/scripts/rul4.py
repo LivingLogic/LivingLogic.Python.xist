@@ -33,14 +33,17 @@ Options
 	``--mysql`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		Provide the object ``mysql`` to the template or not (see below)?
 
+	``--redis`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Provide the object ``redis`` to the template or not (see below)?
+
 	``--system`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		Provide the object ``system`` to the template or not (see below)?
 
 	``-e``, ``--encoding``
 		The encoding of the templates files (default ``utf-8``)
 
-	``-w``, ``--keepws`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Should line feeds and indentation be kept in the templates or not?
+	``-w``, ``--whitespace`` : ``keep``, ``strip``, or ``smart``
+		Specifies how to handle whitespace in the template
 
 	``-D``, ``--define``
 		Defines an additional value that will be available inside the template.
@@ -86,6 +89,15 @@ Options
 			``mysql``
 				``value`` is a connection to a MySQL database.
 
+			``redis``
+				``value`` will be a connection to an Redis database, e.g.::
+
+					-Ddb:redis=192.168.123.1:6379/42
+
+				The port (i.e. the ``6379`` in the above value) is optional and
+				defaults to 6379. The database number (i.e. the ``42`` in the above
+				value) is also optional and defaults to 0.
+
 
 Template variables
 ==================
@@ -121,6 +133,11 @@ the matching options):
 		the connect strings passed in. The connect string will be passed directly
 		to :func:`sqlite3.connect`.
 
+	``redis``
+		An object with a ``connect`` method that return a Redis connection for
+		the connect strings passed in. The connectstring is of the form
+		``hostname:port/db``. ``port`` and ``db`` are potional.
+
 All variables defined via the :option:`-D`/:option:`--define` option will also
 be available. (Note that you can't overwrite any of the predefined variables).
 
@@ -128,10 +145,11 @@ be available. (Note that you can't overwrite any of the predefined variables).
 Database connections
 --------------------
 
-All connection objects have a ``query`` method that executes the query passed in
-and returns an iterator over the resulting records. This ``query`` method
-requires at least one positional argument. Arguments alternate between fragments
-of the SQL query and parameters that will be embedded in the query. For example::
+All connection objects (except ``redis``) have a ``query`` method that executes
+the query passed in and returns an iterator over the resulting records. This
+``query`` method requires at least one positional argument. Arguments alternate
+between fragments of the SQL query and parameters that will be embedded in the
+query. For example::
 
 	<?code db = oracle.connect("user/pwd@db")?>
 	<?code name = "Bob"?>
@@ -165,6 +183,15 @@ drops it again::
 	<?code db.execute('begin ', vout, ' := ul4test(42); end;')?>
 	<?print vout.value?>
 	<?code db.execute('drop function ul4test')?>
+
+
+Redis connections have a ``get`` and a ``put`` method::
+
+	<?code db = redis.connect("192.168.123.42/1")?>
+	<?code value = db.get("key")?>
+	<?if isnone(value)?>
+		<?code db.put("key", "foobar", timedelta(minutes=10))?>
+	<?end if?>
 
 
 Example
@@ -378,11 +405,42 @@ class MySQL:
 		return Connection(MySQLdb.connect(user=user, passwd=passwd, host=host, db=db, use_unicode=True, cursorclass=cursors.DictCursor))
 
 
+class RedisConnection:
+	ul4attrs = {"get", "put"}
+
+	def __init__(self, host, port, db):
+		import redis
+		self.connection = redis.StrictRedis(host=host, port=port, db=db, decode_responses=True)
+
+	def get(self, key):
+		return self.connection.get(key)
+
+	def set(self, key, data, timeout=None):
+		if timeout is None:
+			self.connection.set(key, data)
+		else:
+			self.connection.setex(key, timeout, data)
+
+
+class Redis:
+	ul4attrs = {"connect"}
+
+	def connect(self, connectstring):
+		(hostport, _, db) = connectstring.partition("/")
+		if not db:
+			db = 0
+		(host, _, port) = hostport.partition(":")
+		if not port:
+			port = 6379
+		return RedisConnection(host=host, port=port, db=db)
+
+
 # Instantiate all "handlers"
 system = System()
 oracle = Oracle()
 sqlite = SQLite()
 mysql = MySQL()
+redis = Redis()
 
 
 def fixname(name):
@@ -424,6 +482,8 @@ def define(arg):
 		return (name, sqlite.connect(value))
 	elif type == "mysql":
 		return (name, mysql.connect(value))
+	elif type == "redis":
+		return (name, redis.connect(value))
 	elif type and type != "str":
 		raise argparse.ArgumentTypeError("{!r} is not a legal type".format(type))
 	return (name, value)
@@ -433,10 +493,11 @@ def main(args=None):
 	p = argparse.ArgumentParser(description="render UL4 templates with access to Oracle, MySQL or SQLite databases", epilog="For more info see http://www.livinglogic.de/Python/scripts/rul4.html")
 	p.add_argument("templates", metavar="template", help="templates to be used", nargs="+")
 	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for template sources (default %(default)s)", default="utf-8", metavar="ENCODING")
-	p.add_argument("-w", "--whitespace", dest="whitespace", help="How to treat whitespace in template sources? (default %(default)s)", choices=("keep", "strip", "smart"), default="keep")
+	p.add_argument("-w", "--whitespace", dest="whitespace", help="How to treat whitespace in template sources? (default %(default)s)", choices=("keep", "strip", "smart"), default="smart")
 	p.add_argument(      "--oracle", dest="oracle", help="Allow the templates to connect to Oracle databases? (default %(default)s)", action=misc.FlagAction, default=True)
 	p.add_argument(      "--sqlite", dest="sqlite", help="Allow the templates to connect to SQLite databases? (default %(default)s)", action=misc.FlagAction, default=True)
 	p.add_argument(      "--mysql", dest="mysql", help="Allow the templates to connect to MySQL databases? (default %(default)s)", action=misc.FlagAction, default=True)
+	p.add_argument(      "--redis", dest="redis", help="Allow the templates to connect to Redis databases? (default %(default)s)", action=misc.FlagAction, default=True)
 	p.add_argument(      "--system", dest="system", help="Allow the templates to execute system commands? (default %(default)s)", action=misc.FlagAction, default=True)
 	p.add_argument("-D", "--define", dest="defines", metavar="var=value", help="Pass additional parameters to the template (can be specified multiple times).", action="append", type=define)
 
@@ -468,6 +529,8 @@ def main(args=None):
 		vars["mysql"] = mysql
 	if args.sqlite:
 		vars["sqlite"] = sqlite
+	if args.redis:
+		vars["redis"] = redis
 	if args.system:
 		vars["system"] = system
 	for part in maintemplate.render(**vars):

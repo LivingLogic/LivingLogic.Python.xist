@@ -9,6 +9,11 @@ Changes to UL4
 	for the old ``keepws=True`` and ``whitespace="strip"`` for the old
 	``keepws=False``.
 
+*	The ``rul4`` option :option:`--keepws` has been renamed to
+	:option:`--whitespace' and defaults to ``smart`` now. So instead of the old
+	``--keepws=1`` pass ``--whitespace=keep`` and for ``--keepws=0`` pass
+	``--whitespace=strip``.
+
 
 Migrating to version 5.13
 =========================
