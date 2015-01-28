@@ -190,8 +190,12 @@ Redis connections have a ``get`` and a ``put`` method::
 	<?code db = redis.connect("192.168.123.42/1")?>
 	<?code value = db.get("key")?>
 	<?if isnone(value)?>
-		<?code db.put("key", "foobar", timedelta(minutes=10))?>
+		<?code value = "foobar"?>
+		<?code db.put("key", value, timedelta(minutes=10))?>
 	<?end if?>
+
+The timeout value in the ``put`` method is optional. Without it the value will
+be stored indefinitely.
 
 
 Example
