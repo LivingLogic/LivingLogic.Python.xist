@@ -191,7 +191,7 @@ Redis connections have a ``get`` and a ``put`` method::
 	<?code value = db.get("key")?>
 	<?if isnone(value)?>
 		<?code value = "foobar"?>
-		<?code db.put("key", value, timedelta(minutes=10))?>
+		<?code db.put("key", value, timedelta(seconds=10*60))?>
 	<?end if?>
 
 The timeout value in the ``put`` method is optional. Without it the value will
