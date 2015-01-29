@@ -3214,6 +3214,9 @@ class Template(Block):
 				return tagline[0].text
 			return ""
 
+		def isempty(tagline):
+			return all(isinstance(tag, (Indent, LineEnd)) for tag in tagline)
+
 		# Records the starting and ending line number of a block and its indentation
 		class Block:
 			def __init__(self, start):
@@ -3234,8 +3237,8 @@ class Template(Block):
 
 		# Step 2: Determine the block structure of the lines
 		block = Block(0)
-		blocks = [block]
-		stack = [block]
+		blocks = [block] # List of all blocks
+		stack = [block] # Stack of currently "open" blocks
 
 		newlines = []
 		for (i, line) in enumerate(lines):
@@ -3273,14 +3276,14 @@ class Template(Block):
 			block.indent = range(
 				# outer indent, i.e. the indentation of the start tag of the block
 				len(indent(lines[block.start-1])) if block.start else 0,
-				# inner indentation
-				commonindentlen([indent(line) for line in itertools.islice(lines, block.start, block.end)]),
+				# inner indentation (ignoring lines that only contain whitespace)
+				commonindentlen([indent(line) for line in itertools.islice(lines, block.start, block.end) if not isempty(line)]),
 			)
 
 		# Step 4: Fix the indentation
 		for (line, blocks) in newlines:
 			if line:
-				# use all character for indentation, that are not part of the "artificial" indentation introduced in each block
+				# use all character for indentation that are not part of the "artificial" indentation introduced in each block
 				newindent = "".join(c for (i, c) in enumerate(line[0].text) if not any(i in block.indent for block in blocks))
 				line[0]._settext(newindent)
 
