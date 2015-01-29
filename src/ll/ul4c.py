@@ -3281,10 +3281,12 @@ class Template(Block):
 			)
 
 		# Step 4: Fix the indentation
+		allindents = {} # Use this for "interning" the indents
 		for (line, blocks) in newlines:
 			if line:
 				# use all character for indentation that are not part of the "artificial" indentation introduced in each block
 				newindent = "".join(c for (i, c) in enumerate(line[0].text) if not any(i in block.indent for block in blocks))
+				newindent = allindents.setdefault(newindent, newindent)
 				line[0]._settext(newindent)
 
 		# Step 5: Drop whitespace from lines that only contain indentation and block tags
