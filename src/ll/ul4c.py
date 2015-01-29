@@ -3281,11 +3281,12 @@ class Template(Block):
 			)
 
 		# Step 4: Fix the indentation
-		allindents = {} # Use this for "interning" the indents
+		allindents = {}
 		for (line, blocks) in newlines:
 			if line:
 				# use all character for indentation that are not part of the "artificial" indentation introduced in each block
 				newindent = "".join(c for (i, c) in enumerate(line[0].text) if not any(i in block.indent for block in blocks))
+				# Reuse previous indent string if we already have it (minizes memory usage and UL4ON dump size)
 				newindent = allindents.setdefault(newindent, newindent)
 				line[0]._settext(newindent)
 
