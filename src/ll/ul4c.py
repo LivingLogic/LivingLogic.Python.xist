@@ -3252,7 +3252,7 @@ class Template(Block):
 					blocks.append(block)
 				elif tag.tag in ("elif", "else"):
 					if len(stack) > 1:
-						stack[-1].end = i # Previous block ended before this line
+						stack[-1].end = i # Previous block ends before this line
 						stack.pop()
 					newlines.append((line, stack[1:]))
 					block = Block(i+1) # Block starts on the next line
@@ -3260,7 +3260,7 @@ class Template(Block):
 					blocks.append(block)
 				elif tag.tag == "end":
 					if len(stack) > 1:
-						stack[-1].end = i # Previous block ended before this line
+						stack[-1].end = i # Current block ends before this line
 						stack.pop()
 					newlines.append((line, stack[1:]))
 				else:
