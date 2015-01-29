@@ -3266,7 +3266,7 @@ class Template(Block):
 					newlines.append((line, stack[:]))
 			else:
 				newlines.append((line, stack[:]))
-		# Close open blocks (shouldn't be neccessary for properly nested templates, except for the outermost block)
+		# Close open blocks (shouldn't be neccessary for properly nested templates)
 		for block in stack:
 			block.end = len(lines)
 
