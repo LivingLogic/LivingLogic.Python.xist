@@ -358,7 +358,7 @@ def test_relpathauthority():
 
 
 def test_space_and_plus_in_name():
-	assert url.URL("+").local() == " "
+	assert url.URL("+").local() == "+"
 	assert url.URL(" ").local() == " "
 	assert url.URL("%20").local() == " "
 	assert url.File("+").local() == "+"
