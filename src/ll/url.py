@@ -114,10 +114,10 @@ def _normalizepath(path_segments):
 
 
 def _escape(s, safe="".join(chr(c) for c in range(128))):
-	return urlparse.quote_plus(s, safe)
+	return urlparse.quote(s, safe)
 
 
-_unescape = urlparse.unquote_plus
+_unescape = urlparse.unquote
 
 
 alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -125,7 +125,7 @@ alphanum = alpha + "0123456789"
 mark = "-_.!~*'()"
 additionalsafe = "[]"
 safe = alphanum + mark + additionalsafe
-pathsafe = safe + ":@&=$,;" + "|" # add "|" for Windows paths, but remove "+"
+pathsafe = safe + ":@&=$,;+" + "|" # add "|" for Windows paths
 querysafe = alphanum
 fragsafe = alphanum
 

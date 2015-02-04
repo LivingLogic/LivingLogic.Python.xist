@@ -32,6 +32,9 @@ Changes in 5.14 (released ??/??/2015)
 *	Templates used in ``rul4`` have access to a new function: ``import``, which
 	can be used to load templates from any file.
 
+*	``+`` in the path part of URLs are now considered safe characters. Spaces
+	will be escaped as ``%20`` and no longer as ``+``.
+
 
 Changes in 5.13 (released 12/18/2014)
 -------------------------------------
