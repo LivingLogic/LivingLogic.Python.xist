@@ -200,6 +200,16 @@ def test_iterator_getitem():
 		e[-1]
 
 
+def test_format_exception_type():
+	import http.client
+	assert "ValueError" == misc.format_exception_type(ValueError())
+	assert "http.client.HTTPException" == misc.format_exception_type(http.client.HTTPException())
+
+
+def test_format_exception():
+	assert "ValueError: bad value" == misc.format_exception(ValueError("  bad value  "))
+
+
 def test_pool():
 	pool = misc.Pool(misc)
 	assert pool.Pool is pool["Pool"] is misc.Pool
