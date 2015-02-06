@@ -67,7 +67,7 @@ class Error(Exception):
 		self.node = node
 
 	def __repr__(self):
-		return "<{}.{} in {} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.node, id(self))
+		return "<{}.{} in {} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.node, id(self))
 
 	def __str__(self):
 		if isinstance(self.node, Template):

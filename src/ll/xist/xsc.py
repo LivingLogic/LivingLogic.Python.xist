@@ -1483,7 +1483,7 @@ class CharacterData(Node):
 			loc = " location={!r}".format(str(self.startloc))
 		else:
 			loc = ""
-		return "<{self.__class__.__module__}.{self.__class__.__name__} content={self.content!r}{loc} at {id:#x}>".format(self=self, loc=loc, id=id(self))
+		return "<{self.__class__.__module__}.{self.__class__.__qualname__} content={self.content!r}{loc} at {id:#x}>".format(self=self, loc=loc, id=id(self))
 
 	def _repr_pretty_(self, p, cycle):
 		with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
@@ -1707,7 +1707,7 @@ class Frag(Node, list):
 		else:
 			childcount = "{} children".format(l)
 		loc = " location={!r}".format(str(self.startloc)) if self.startloc is not None else ""
-		return "<{self.__class__.__module__}.{self.__class__.__name__} object ({childcount}){loc} at {id:#x}>".format(self=self, childcount=childcount, loc=loc, id=id(self))
+		return "<{self.__class__.__module__}.{self.__class__.__qualname__} object ({childcount}){loc} at {id:#x}>".format(self=self, childcount=childcount, loc=loc, id=id(self))
 
 	def _repr_pretty_(self, p, cycle):
 		with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
@@ -2830,7 +2830,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		node = self._create()
 		for value in self.values():
 			newvalue = value.convert(converter)
-			assert isinstance(newvalue, Node), "the convert method returned the illegal object {0!r} (type {1!r}) when converting the attribute {2.__class__.__name__} with the value {2!r}".format(newvalue, type(newvalue), value)
+			assert isinstance(newvalue, Node), "the convert method returned the illegal object {0!r} (type {1!r}) when converting the attribute {2.__class__.__qualname__} with the value {2!r}".format(newvalue, type(newvalue), value)
 			node[value] = newvalue
 		return node
 
@@ -2838,7 +2838,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		node = self._create()
 		for value in self.values():
 			newvalue = value.compacted()
-			assert isinstance(newvalue, Node), "the compacted method returned the illegal object {0!r} (type {1!r}) when compacting the attribute {2.__class__.__name__} with the value {2!r}".format(newvalue, type(newvalue), value)
+			assert isinstance(newvalue, Node), "the compacted method returned the illegal object {0!r} (type {1!r}) when compacting the attribute {2.__class__.__qualname__} with the value {2!r}".format(newvalue, type(newvalue), value)
 			node[value] = newvalue
 		return node
 
@@ -2846,7 +2846,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		node = self._create()
 		for value in self.values():
 			newvalue = value.normalized()
-			assert isinstance(newvalue, Node), "the normalized method returned the illegal object {0!r} (type {1!r}) when normalizing the attribute {2.__class__.__name__} with the value {2!r}".format(newvalue, type(newvalue), value)
+			assert isinstance(newvalue, Node), "the normalized method returned the illegal object {0!r} (type {1!r}) when normalizing the attribute {2.__class__.__qualname__} with the value {2!r}".format(newvalue, type(newvalue), value)
 			node[value] = newvalue
 		return node
 
@@ -4233,7 +4233,7 @@ class Location:
 		return "{}:{}:{}".format(url, line, col)
 
 	def __repr__(self):
-		return "{0.__class__.__name__}({1})".format(self, ", ".join("{}={!r}".format(attr, getattr(self, attr)) for attr in ("url", "line", "col") if getattr(self, attr) is not None))
+		return "{0.__class__.__qualname__}({1})".format(self, ", ".join("{}={!r}".format(attr, getattr(self, attr)) for attr in ("url", "line", "col") if getattr(self, attr) is not None))
 
 	def __eq__(self, other):
 		if self.__class__ is other.__class__:

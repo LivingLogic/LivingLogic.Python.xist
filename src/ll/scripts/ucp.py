@@ -147,12 +147,9 @@ def main(args=None):
 			except Exception as exc:
 				if args.ignoreerrors:
 					if args.verbose:
-						excname = exc.__class__.__name__
-						excmodule = exc.__class__.__module__
-						if excmodule not in ("builtins", "exceptions"):
-							excname = "{}.{}".format(excmodule, excname)
+						exctype = misc.format_exception_type(exc)
 						excmsg = str(exc).replace("\n", " ").strip()
-						msg = astyle.style_error(" (failed with {}: {})".format(excname, excmsg))
+						msg = astyle.style_error(" (failed with {}: {})".format(exctype, excmsg))
 						stderr.writeln(msg)
 				else:
 					raise

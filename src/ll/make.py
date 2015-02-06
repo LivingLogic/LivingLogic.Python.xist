@@ -90,7 +90,7 @@ class Level:
 		self.reported = reported
 
 	def __repr__(self):
-		return "<{}.{} object action={!r} since={!r} reportable={!r} reported={} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.action, self.since, self.reportable, self.reported, id(self))
+		return "<{}.{} object action={!r} since={!r} reportable={!r} reported={} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.action, self.since, self.reportable, self.reported, id(self))
 
 
 def report(func):
@@ -355,7 +355,7 @@ class Action:
 	def __repr__(self):
 		def format(arg):
 			if isinstance(arg, Action):
-				return " from {}.{}".format(arg.__class__.__module__, arg.__class__.__name__)
+				return " from {}.{}".format(arg.__class__.__module__, arg.__class__.__qualname__)
 			elif isinstance(arg, tuple):
 				return "=(?)"
 			elif isinstance(arg, list):
@@ -373,7 +373,7 @@ class Action:
 			output = " with {}".format(", ".join(output))
 		else:
 			output = ""
-		return "<{}.{} object{} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, output, id(self))
+		return "<{}.{} object{} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, output, id(self))
 
 	@misc.notimplemented
 	def __iter__(self):
@@ -481,7 +481,7 @@ class CollectAction(TransformAction):
 		return data
 
 	def __repr__(self):
-		return "<{}.{} object at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, id(self))
+		return "<{}.{} object at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, id(self))
 
 
 class PhonyAction(Action):
@@ -533,7 +533,7 @@ class PhonyAction(Action):
 			return None if self.changed > since else nodata
 
 	def __repr__(self):
-		s = "<{}.{} object".format(self.__class__.__module__, self.__class__.__name__)
+		s = "<{}.{} object".format(self.__class__.__module__, self.__class__.__qualname__)
 		if self.key is not None:
 			s += " with key={!r}".format(self.key)
 		s += " at {:#x}>".format(id(self))
@@ -633,7 +633,7 @@ class FileAction(TransformAction):
 		return OwnerAction(self, user, group)
 
 	def __repr__(self):
-		return "<{}.{} object key={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.key, id(self))
+		return "<{}.{} object key={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.key, id(self))
 
 
 class MkDirAction(TransformAction):
@@ -660,7 +660,7 @@ class MkDirAction(TransformAction):
 		self.key.makedirs(self.mode)
 
 	def __repr__(self):
-		return "<{}.{} object with mode={:#03o} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.mode, id(self))
+		return "<{}.{} object with mode={:#03o} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.mode, id(self))
 
 
 class PipeAction(TransformAction):
@@ -691,7 +691,7 @@ class PipeAction(TransformAction):
 		return output
 
 	def __repr__(self):
-		return "<{}.{} object with command={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.command, id(self))
+		return "<{}.{} object with command={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.command, id(self))
 
 
 class CacheAction(TransformAction):
@@ -832,7 +832,7 @@ class CommandAction(TransformAction):
 		os.system(self.command)
 
 	def __repr__(self):
-		return "<{}.{} object command={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.command, id(self))
+		return "<{}.{} object command={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.command, id(self))
 
 
 class ModeAction(TransformAction):
@@ -1002,7 +1002,7 @@ class ModuleAction(TransformAction):
 		return nodata
 
 	def __repr__(self):
-		return "<{}.{} object key={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.getkey(), id(self))
+		return "<{}.{} object key={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.getkey(), id(self))
 
 
 class FOPAction(TransformAction):
@@ -1122,7 +1122,7 @@ class Project(dict):
 		self.notify = self._getenvbool("LL_MAKE_NOTIFY", False)
 
 	def __repr__(self):
-		return "<{}.{} with {} targets at {:#x}>".format(self.__module__, self.__class__.__name__, len(self), id(self))
+		return "<{}.{} with {} targets at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, len(self), id(self))
 
 	class showaction(misc.propclass):
 		"""
@@ -1312,7 +1312,7 @@ class Project(dict):
 		Return a nicely formatted and colored string for the action
 		:obj:`action`.
 		"""
-		name = action.__class__.__name__
+		name = action.__class__.__qualname__
 		if name.endswith("Action"):
 			name = name[:-6]
 

@@ -290,7 +290,7 @@ class element(Selector):
 		return isinstance(node, xsc.Element) and node.xmlns == self.xmlns and node.xmlname == self.xmlname
 
 	def __str__(self):
-		return "{0.__class__.__name__}({0.name!r}, {0.xmlns!r})".format(self)
+		return "{0.__class__.__qualname__}({0.name!r}, {0.xmlns!r})".format(self)
 
 
 class procinst(Selector):
@@ -305,7 +305,7 @@ class procinst(Selector):
 		return isinstance(node, xsc.ProcInst) and node.xmlname == self.xmlname
 
 	def __str__(self):
-		return "{0.__class__.__name__}({0.name!r})".format(self)
+		return "{0.__class__.__qualname__}({0.name!r})".format(self)
 
 
 class entity(Selector):
@@ -320,7 +320,7 @@ class entity(Selector):
 		return isinstance(node, xsc.Entity) and node.xmlname == self.xmlname
 
 	def __str__(self):
-		return "{0.__class__.__name__}({0.name!r})".format(self)
+		return "{0.__class__.__qualname__}({0.name!r})".format(self)
 
 
 class IsSelector(Selector):
@@ -352,7 +352,7 @@ class IsSelector(Selector):
 		return path[-1] is self.node
 
 	def __str__(self):
-		return "{0.__class__.__name__}({0.node!r})".format(self)
+		return "{0.__class__.__qualname__}({0.node!r})".format(self)
 
 
 class IsRootSelector(Selector):
@@ -524,7 +524,7 @@ class hasattr(Selector):
 		return False
 
 	def __str__(self):
-		return "{}({})".format(self.__class__.__name__, ", ".join(repr(attrname) for attrname in self.attrnames))
+		return "{}({})".format(self.__class__.__qualname__, ", ".join(repr(attrname) for attrname in self.attrnames))
 
 
 class attrhasvalue(Selector):
@@ -565,7 +565,7 @@ class attrhasvalue(Selector):
 		return False
 
 	def __str__(self):
-		return "{0.__class__.__name__}({0.attrname!r}, {1})".format(self, repr(self.attrvalues)[1:-1])
+		return "{0.__class__.__qualname__}({0.attrname!r}, {1})".format(self, repr(self.attrvalues)[1:-1])
 
 
 class attrcontains(Selector):
@@ -606,7 +606,7 @@ class attrcontains(Selector):
 		return False
 
 	def __str__(self):
-		return "{0.__class__.__name__}({0.attrname!1}, {0.attrvalue!r})".format(self)
+		return "{0.__class__.__qualname__}({0.attrname!1}, {0.attrvalue!r})".format(self)
 
 
 class attrstartswith(Selector):
@@ -650,7 +650,7 @@ class attrstartswith(Selector):
 		return False
 
 	def __str__(self):
-		return "{0.__class__.__name__}({0.attrname!1}, {0.attrvalue!r})".format(self)
+		return "{0.__class__.__qualname__}({0.attrname!1}, {0.attrvalue!r})".format(self)
 
 
 class attrendswith(Selector):
@@ -691,7 +691,7 @@ class attrendswith(Selector):
 		return False
 
 	def __str__(self):
-		return "{0.__class__.__name__}({0.attrname!1}, {0.attrvalue!r})".format(self)
+		return "{0.__class__.__qualname__}({0.attrname!1}, {0.attrvalue!r})".format(self)
 
 
 class hasid(Selector):
@@ -727,7 +727,7 @@ class hasid(Selector):
 		return False
 
 	def __str__(self):
-		return "{0.__class__.__name__}({0.id!r})".format(self)
+		return "{0.__class__.__qualname__}({0.id!r})".format(self)
 
 
 class hasclass(Selector):
@@ -768,7 +768,7 @@ class hasclass(Selector):
 		return False
 
 	def __str__(self):
-		return "{0.__class__.__name__}({0.classname!r})".format(self)
+		return "{0.__class__.__qualname__}({0.classname!r})".format(self)
 
 
 class InAttrSelector(Selector):
@@ -1153,7 +1153,7 @@ class CallableSelector(Selector):
 		return self.func(path)
 
 	def __str__(self):
-		return "{0.__class__.__name__}({0.func!r})".format(self)
+		return "{0.__class__.__qualname__}({0.func!r})".format(self)
 
 
 class nthchild(Selector):
@@ -1182,7 +1182,7 @@ class nthchild(Selector):
 		return False
 
 	def __str__(self):
-		return "{0.__class__.__name__}({0.index!r})".format(self)
+		return "{0.__class__.__qualname__}({0.index!r})".format(self)
 
 
 class nthoftype(Selector):
@@ -1236,6 +1236,6 @@ class nthoftype(Selector):
 
 	def __str__(self):
 		if self.types:
-			return "{0.__class__.__name__}({0.index!r}, {1})".format(self, ", ".join("{0.__module__}.{0.__name__}".format(type) for type in self.types))
+			return "{0.__class__.__qualname__}({0.index!r}, {1})".format(self, ", ".join("{0.__module__}.{0.__name__}".format(type) for type in self.types))
 		else:
-			return "{0.__class__.__name__}({0.index!r})".format(self)
+			return "{0.__class__.__qualname__}({0.index!r})".format(self)

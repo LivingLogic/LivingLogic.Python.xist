@@ -61,7 +61,7 @@ class SQLNoSuchObjectError(Exception):
 		self.owner = owner
 
 	def __repr__(self):
-		return "<{}.{} name={!r} owner={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.name, self.owner, id(self))
+		return "<{}.{} name={!r} owner={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.name, self.owner, id(self))
 
 	def __str__(self):
 		if self.owner is None:
@@ -75,7 +75,7 @@ class UnknownModeError(ValueError):
 		self.mode = mode
 
 	def __repr__(self):
-		return "<{}.{} mode={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.mode, id(self))
+		return "<{}.{} mode={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.mode, id(self))
 
 	def __str__(self):
 		return "unknown mode {!r}".format(self.mode)
@@ -87,7 +87,7 @@ class ConflictError(ValueError):
 		self.message = message
 
 	def __repr__(self):
-		return "<{}.{} object={!r} message={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.object, self.message, id(self))
+		return "<{}.{} object={!r} message={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.object, self.message, id(self))
 
 	def __str__(self):
 		return "conflict in {!r}: {}".format(self.object, self.message)
@@ -135,7 +135,7 @@ class Args(dict):
 			raise AttributeError(name)
 
 	def __repr__(self):
-		return "{}.{}({})".format(self.__class__.__module__, self.__class__.__name__, ", ".join("{}={!r}".format(*item) for item in self.items()))
+		return "{}.{}({})".format(self.__class__.__module__, self.__class__.__qualname__, ", ".join("{}={!r}".format(*item) for item in self.items()))
 
 
 class LOBStream:
@@ -264,7 +264,7 @@ class Record(tuple, collections.Mapping):
 		try:
 			index = self._name2index[name.lower()]
 		except KeyError:
-			raise AttributeError("'{}' object has no attribute {!r}".format(self.__class__.__name__, name))
+			raise AttributeError("'{}.{}' object has no attribute {!r}".format(self.__class__.__module__, self.__class__.__qualname__, name))
 		return tuple.__getitem__(self, index)
 
 	def get(self, name, default=None):
@@ -294,7 +294,7 @@ class Record(tuple, collections.Mapping):
 		return ((key, tuple.__getitem__(self, index)) for (index, key) in enumerate(self._index2name))
 
 	def __repr__(self):
-		return "<{}.{} {} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, ", ".join("{}={!r}".format(*item) for item in self.items()), id(self))
+		return "<{}.{} {} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, ", ".join("{}={!r}".format(*item) for item in self.items()), id(self))
 
 
 class SessionPool(SessionPool):
@@ -311,7 +311,7 @@ class SessionPool(SessionPool):
 		return "{}@{}".format(self.username, self.tnsentry)
 
 	def __repr__(self):
-		return "<{}.{} object db={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.connectstring(), id(self))
+		return "<{}.{} object db={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.connectstring(), id(self))
 
 
 class Connection(Connection):
@@ -360,7 +360,7 @@ class Connection(Connection):
 		return Cursor(self, readlobs=readlobs)
 
 	def __repr__(self):
-		return "<{}.{} object db={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.connectstring(), id(self))
+		return "<{}.{} object db={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.connectstring(), id(self))
 
 	def itertables(self, owner=ALL, mode="flat"):
 		"""
@@ -664,7 +664,7 @@ class Cursor(Cursor):
 		return result
 
 	def __repr__(self):
-		return "<{}.{} statement={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.statement, id(self))
+		return "<{}.{} statement={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.statement, id(self))
 
 
 def formatstring(value, latin1=False):
@@ -830,15 +830,15 @@ class Object(object, metaclass=_Object_meta):
 
 	def __repr__(self):
 		if self.owner is not None:
-			return "{}.{}({!r}, {!r})".format(self.__class__.__module__, self.__class__.__name__, self.name, self.owner)
+			return "{}.{}({!r}, {!r})".format(self.__class__.__module__, self.__class__.__qualname__, self.name, self.owner)
 		else:
-			return "{}.{}({!r})".format(self.__class__.__module__, self.__class__.__name__, self.name)
+			return "{}.{}({!r})".format(self.__class__.__module__, self.__class__.__qualname__, self.name)
 
 	def __str__(self):
 		if self.owner is not None:
-			return "{}({}, {})".format(self.__class__.__name__, self.name, self.owner)
+			return "{}({}, {})".format(self.__class__.__qualname__, self.name, self.owner)
 		else:
-			return "{}({})".format(self.__class__.__name__, self.name)
+			return "{}({})".format(self.__class__.__qualname__, self.name)
 
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and self.name == other.name and self.owner == other.owner
@@ -2010,7 +2010,7 @@ class Argument:
 		self.isout = isout
 
 	def __repr__(self):
-		return "<{}.{} name={!r} position={!r} datatype={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.name, self.position, self.datatype, id(self))
+		return "<{}.{} name={!r} position={!r} datatype={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.name, self.position, self.datatype, id(self))
 
 
 class Callable(MixinNormalDates, MixinCodeDDL, Object):
@@ -2308,15 +2308,15 @@ class Privilege:
 
 	def __repr__(self):
 		if self.owner is not None:
-			return "{}.{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__module__, self.__class__.__name__, self.privilege, self.name, self.grantee, self.owner)
+			return "{}.{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__module__, self.__class__.__qualname__, self.privilege, self.name, self.grantee, self.owner)
 		else:
-			return "{}.{}({!r}, {!r}, {!r})".format(self.__class__.__module__, self.__class__.__name__, self.privilege, self.name, self.grantee)
+			return "{}.{}({!r}, {!r}, {!r})".format(self.__class__.__module__, self.__class__.__qualname__, self.privilege, self.name, self.grantee)
 
 	def __str__(self):
 		if self.owner is not None:
-			return "{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__name__, self.privilege, self.name, self.grantee, self.owner)
+			return "{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__qualname__, self.privilege, self.name, self.grantee, self.owner)
 		else:
-			return "{}({!r}, {!r}, {!r})".format(self.__class__.__name__, self.privilege, self.name, self.grantee)
+			return "{}({!r}, {!r}, {!r})".format(self.__class__.__qualname__, self.privilege, self.name, self.grantee)
 
 	def getconnection(self, connection):
 		if connection is None:
@@ -2562,10 +2562,10 @@ class User:
 		self.connection = connection
 
 	def __repr__(self):
-		return "{}.{}({!r})".format(self.__class__.__module__, self.__class__.__name__, self.name)
+		return "{}.{}({!r})".format(self.__class__.__module__, self.__class__.__qualname__, self.name)
 
 	def __str__(self):
-		return "{}({})".format(self.__class__.__name__, self.name)
+		return "{}({})".format(self.__class__.__qualname__, self.name)
 
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and self.name == other.name
@@ -2897,7 +2897,7 @@ class OracleURLConnection(url_.Connection):
 		return self._walk(cursor, url_.URL())
 
 	def __repr__(self):
-		return "<{}.{} to {!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__name__, self.connection.connectstring(), id(self))
+		return "<{}.{} to {!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.connection.connectstring(), id(self))
 
 
 class OracleFileResource(url_.Resource):

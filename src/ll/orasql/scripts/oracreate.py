@@ -162,7 +162,7 @@ def main(args=None):
 					except orasql.DatabaseError as exc:
 						if not args.ignore or "ORA-01013" in str(exc):
 							raise
-						stderr.writeln("oracreate.py: ", s4error("{}: {}".format(exc.__class__.__name__, str(exc).strip())))
+						stderr.writeln("oracreate.py: ", s4error(misc.format_exception(exc)))
 				else:
 					stdout.writeln(ddl)
 					stdout.writeln()

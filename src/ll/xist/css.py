@@ -481,7 +481,7 @@ class CSSLinkSelector(CSSWeightedSelector):
 		return False
 
 	def __str__(self):
-		return "{}()".format(self.__class__.__name__)
+		return "{}()".format(self.__class__.__qualname__)
 
 
 class CSSInvalidPseudoSelector(CSSWeightedSelector):
@@ -489,7 +489,7 @@ class CSSInvalidPseudoSelector(CSSWeightedSelector):
 		return False
 
 	def __str__(self):
-		return "{}()".format(self.__class__.__name__)
+		return "{}()".format(self.__class__.__qualname__)
 
 
 class CSSHoverSelector(CSSInvalidPseudoSelector):
@@ -524,7 +524,7 @@ class CSSFunctionSelector(CSSWeightedSelector):
 		self.value = value
 
 	def __str__(self):
-		return "{}({!r})".format(self.__class__.__name__, self.value)
+		return "{}({!r})".format(self.__class__.__qualname__, self.value)
 
 
 class CSSNthChildSelector(CSSFunctionSelector):
@@ -631,7 +631,7 @@ class CSSAdjacentSiblingCombinator(xfind.BinaryCombinator):
 		return False
 
 	def __str__(self):
-		return "{}({}, {})".format(self.__class__.__name__, self.left, self.right)
+		return "{}({}, {})".format(self.__class__.__qualname__, self.left, self.right)
 
 
 class CSSGeneralSiblingCombinator(xfind.BinaryCombinator):
@@ -652,7 +652,7 @@ class CSSGeneralSiblingCombinator(xfind.BinaryCombinator):
 		return False
 
 	def __str__(self):
-		return "{}({}, {})".format(self.__class__.__name__, self.left, self.right)
+		return "{}({}, {})".format(self.__class__.__qualname__, self.left, self.right)
 
 
 _pseudoname2class = {

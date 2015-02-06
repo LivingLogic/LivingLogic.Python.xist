@@ -553,7 +553,7 @@ class Decoder:
 			yield ("str", data)
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
 
 
 class Encoder:
@@ -608,7 +608,7 @@ class Encoder:
 			yield ("bytes", data)
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
 
 
 class Transcoder:
@@ -645,7 +645,7 @@ class Transcoder:
 			yield ("bytes", data)
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__name__} object fromencoding={0.fromencoding!r} toencoding={0.toencoding!r} at {1:#x}>".format(self, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} object fromencoding={0.fromencoding!r} toencoding={0.toencoding!r} at {1:#x}>".format(self, id(self))
 
 
 ###
@@ -732,7 +732,7 @@ class Expat(Parser):
 			v.append(" cdata={!r}".format(self.cdata))
 		if self.ns is not None:
 			v.append(" ns={!r}".format(self.ns))
-		return "<{0.__class__.__module__}.{0.__class__.__name__} object{1} at {2:#x}>".format(self, "".join(v), id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} object{1} at {2:#x}>".format(self, "".join(v), id(self))
 
 	def __call__(self, input):
 		"""
@@ -897,7 +897,7 @@ class SGMLOP(Parser):
 		self.cdata = cdata
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
 
 	def __call__(self, input):
 		"""
@@ -1411,7 +1411,7 @@ class Tidy:
 		self.doctype = doctype
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__name__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
 
 	def _asxist(self, node):
 		name = type(node).__name__

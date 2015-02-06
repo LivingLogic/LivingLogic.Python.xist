@@ -149,7 +149,7 @@ class Module:
 		self.charrefs = collections.OrderedDict() # Maps charref name to ``xnd.CharRef``
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__name__} name={0.name!r} url={0.url!r} at {1:#x}>".format(self, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} url={0.url!r} at {1:#x}>".format(self, id(self))
 
 	def __iadd__(self, node):
 		node._add(self)
@@ -318,7 +318,7 @@ class Element(Named):
 		self.doc = doc
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__name__} name={0.name!r} xmlns={0.xmlns!r} attrs={0.attrs!r} at {1:#x}>".format(self, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} xmlns={0.xmlns!r} attrs={0.attrs!r} at {1:#x}>".format(self, id(self))
 
 	def __eq__(self, other):
 		# Don't compare the models
@@ -427,7 +427,7 @@ class Attr(Named):
 		self.shared = None # if this attribute is part of a group ``shared`` will point to the group
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__name__} name={0.name!r} type={0.type!r} at {1:#x}>".format(self, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} type={0.type!r} at {1:#x}>".format(self, id(self))
 
 	def __eq__(self, other):
 		return type(other) is Attr and self.name == other.name and self.type == other.type and self.required == other.required and self.default == other.default and self.values == other.values
@@ -471,7 +471,7 @@ class ProcInst(Named):
 		self.doc = doc
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__name__} name={0.name!r} at {1:#x}>".format(self, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} at {1:#x}>".format(self, id(self))
 
 	def _add(self, module):
 		if self.name in module.procinsts:
@@ -495,7 +495,7 @@ class Entity(Named):
 		self.doc = doc
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__name__} name={0.name!r} at {1:#x}>".format(self, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} at {1:#x}>".format(self, id(self))
 
 	def __eq__(self, other):
 		return type(other) is CharRef and self.name == other.name
@@ -522,7 +522,7 @@ class CharRef(Entity):
 		self.codepoint = codepoint
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__name__} name={0.name!r} codepoint={0.codepoint:#x} at {1:#x}>".format(self, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} codepoint={0.codepoint:#x} at {1:#x}>".format(self, id(self))
 
 	def __eq__(self, other):
 		return type(other) is CharRef and self.name == other.name and self.codepoint == other.codepoint

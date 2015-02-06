@@ -95,7 +95,7 @@ class Style(object):
 		attrs2name = ("blink", "bold", "dim", "reverse", "standout", "underline")
 
 		return "<%s fg=%s bg=%s attrs=%s>" % (
-			self.__class__.__name__, color2name[self.fg], color2name[self.bg],
+			self.__class__.__qualname__, color2name[self.fg], color2name[self.bg],
 			"|".join([attrs2name[b] for b in range(6) if self.attrs&(1<<b)]) or 0)
 
 	def fromstr(cls, value):
@@ -191,7 +191,7 @@ class Text(list):
 
 	def __repr__(self):
 		return "%s.%s(%s)" % (
-			self.__class__.__module__, self.__class__.__name__,
+			self.__class__.__module__, self.__class__.__qualname__,
 			list.__repr__(self)[1:-1])
 
 	def append(self, *args):
