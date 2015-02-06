@@ -513,6 +513,15 @@ def define(arg):
 	return (name, value)
 
 
+def print_exception_chain(exc):
+	chain = []
+	while exc is not None:
+		chain.insert(0, exc)
+		exc = exc.__cause__ if exc.__cause__ is not None else exc.__context__
+	for exc in chain:
+		print(misc.format_exception(exc), file=sys.stderr)
+
+
 def main(args=None):
 	p = argparse.ArgumentParser(description="render UL4 templates with access to Oracle, MySQL, SQLite or Redis databases", epilog="For more info see http://www.livinglogic.de/Python/scripts/rul4.html")
 	p.add_argument("templates", metavar="template", help="templates to be used", nargs="+")
@@ -540,7 +549,16 @@ def main(args=None):
 			templatename = os.path.basename(templatename)
 			if os.path.extsep in templatename:
 				templatename = templatename.rpartition(os.extsep)[0]
-		template = ul4c.Template(templatestream.read(), name=fixname(templatename), whitespace=args.whitespace)
+		templatesource = templatestream.read()
+		templatename = fixname(templatename)
+		if args.stacktrace == "short":
+			try:
+				template = ul4c.Template(templatesource, name=templatename, whitespace=args.whitespace)
+			except Exception as exc:
+				print_exception_chain(exc)
+				return 1
+		else:
+			template = ul4c.Template(templatesource, name=templatename, whitespace=args.whitespace)
 		# The first template is the main template
 		if maintemplate is None:
 			maintemplate = template
@@ -566,12 +584,7 @@ def main(args=None):
 			for part in maintemplate.render(**vars):
 				sys.stdout.write(part)
 		except Exception as exc:
-			chain = []
-			while exc is not None:
-				chain.insert(0, exc)
-				exc = exc.__cause__ if exc.__cause__ is not None else exc.__context__
-			for exc in chain:
-				print(misc.format_exception(exc), file=sys.stderr)
+			print_exception_chain(exc)
 			return 1
 	else:
 		for part in maintemplate.render(**vars):
