@@ -224,7 +224,7 @@ def format_exception_type(exc):
 	Format an exception class.
 	"""
 	if exc.__class__.__module__ not in ("builtins", "exceptions"):
-		fmt = "{0.__class__.__module__}.{0.__class__.__name__}"
+		fmt = "{0.__class__.__module__}.{0.__class__.__qualname__}"
 	else:
 		fmt = "{0.__class__.__name__}"
 	return fmt.format(exc)
