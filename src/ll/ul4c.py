@@ -72,7 +72,7 @@ class Error(Exception):
 	def __str__(self):
 		if isinstance(self.node, Template):
 			return "in {!r}".format(self.node)
-		if isinstance(self.node, Tag):
+		elif isinstance(self.node, Tag):
 			return "in {}".format(self.node)
 		else:
 			return "in {}".format(self.node.tag)
@@ -595,7 +595,7 @@ class Tag(AST):
 
 	def __str__(self):
 		(line, col) = self._linecol()
-		return "{} tag {!r} (offset {:,}:{:,}; line {:,}; col {:,})".format(self.tag, self.text, self.startpos, self.endpos, line, col)
+		return "{!r} (offset {:,}:{:,}; line {:,}; col {:,})".format(self.text, self.startpos, self.endpos, line, col)
 
 	@property
 	def text(self):
