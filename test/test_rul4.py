@@ -48,7 +48,7 @@ def test_oracle_query(db):
 			<?end for?>
 			<?code db.execute('drop table ul4test')?>
 			""",
-			keepws=False
+			whitespace="strip"
 		)
 		assert template.renders(db=db) == "1|first|{}|2|second|{}|".format(10000*"first", 10000*"second")
 
@@ -71,7 +71,7 @@ def test_oracle_execute_function(db):
 			<?print vout.value?>
 			<?code db.execute('drop function ul4test')?>
 			""",
-			keepws=False
+			whitespace="strip"
 		)
 		assert template.renders(db=db) == "84"
 
@@ -103,6 +103,6 @@ def test_oracle_execute_procedure_out(db):
 			<?print vint.value?>|<?print vnumber.value?>|<?print vstr.value?>|<?print vclob.value?>|<?print vdate.value?>
 			<?code db.execute('drop procedure ul4test')?>
 			""",
-			keepws=False
+			whitespace="strip"
 		)
 		assert template.renders(db=db) == "42|42.5|foo|{}|2014-10-05 16:17:18".format(100000*"foo")
