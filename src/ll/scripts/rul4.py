@@ -277,7 +277,7 @@ def import_(filename, encoding="utf-8"):
 
 
 class Var:
-	ul4attrs = {"+value"}
+	ul4attrs = {"value": ("value", "rw")}
 
 	def __init__(self, value=None):
 		self.value = value
