@@ -219,6 +219,34 @@ class propclass(property, metaclass=_propclass_Meta):
 	'''
 
 
+def format_exception_type(exc):
+	"""
+	Format an exception class.
+	"""
+	if exc.__class__.__module__ not in ("builtins", "exceptions"):
+		fmt = "{0.__class__.__module__}.{0.__class__.__name__}"
+	else:
+		fmt = "{0.__class__.__name__}"
+	return fmt.format(exc)
+
+
+def format_exception(exc):
+	"""
+	Format an exception object::
+
+		>>> misc.format_exception(ValueError("bad value"))
+		'ValueError: bad value'
+	"""
+	try:
+		strexc = str(exc).strip()
+	except UnicodeError:
+		strexc = "?"
+	fmt = "{}"
+	if strexc:
+		fmt += ": {}"
+	return fmt.format(format_exception_type(exc), strexc)
+
+
 class Pool:
 	"""
 	A :class:`Pool` object can be used as an inheritable alternative to modules.

@@ -518,6 +518,7 @@ def main(args=None):
 	p.add_argument("templates", metavar="template", help="templates to be used", nargs="+")
 	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for template sources (default %(default)s)", default="utf-8", metavar="ENCODING")
 	p.add_argument("-w", "--whitespace", dest="whitespace", help="How to treat whitespace in template sources? (default %(default)s)", choices=("keep", "strip", "smart"), default="smart")
+	p.add_argument("-t", "--stacktrace", dest="stacktrace", help="How to display stack traces in case of an error? (default %(default)s)", choices=("full", "short"), default="short")
 	p.add_argument(      "--oracle", dest="oracle", help="Allow the templates to connect to Oracle databases? (default %(default)s)", action=misc.FlagAction, default=True)
 	p.add_argument(      "--sqlite", dest="sqlite", help="Allow the templates to connect to SQLite databases? (default %(default)s)", action=misc.FlagAction, default=True)
 	p.add_argument(      "--mysql", dest="mysql", help="Allow the templates to connect to MySQL databases? (default %(default)s)", action=misc.FlagAction, default=True)
@@ -560,8 +561,21 @@ def main(args=None):
 		vars["system"] = system
 	if args.import_:
 		vars["import"] = import_
-	for part in maintemplate.render(**vars):
-		sys.stdout.write(part)
+	if args.stacktrace == "short":
+		try:
+			for part in maintemplate.render(**vars):
+				sys.stdout.write(part)
+		except Exception as exc:
+			chain = []
+			while exc is not None:
+				chain.insert(0, exc)
+				exc = exc.__cause__ if exc.__cause__ is not None else exc.__context__
+			for exc in chain:
+				print(misc.format_exception(exc), file=sys.stderr)
+			return 1
+	else:
+		for part in maintemplate.render(**vars):
+			sys.stdout.write(part)
 
 
 if __name__ == "__main__":

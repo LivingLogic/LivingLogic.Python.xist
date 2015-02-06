@@ -32,6 +32,18 @@ Changes in 5.14 (released ??/??/2015)
 *	Templates used in ``rul4`` have access to a new function: ``import``, which
 	can be used to load templates from any file.
 
+*	Two new helper functions were added to :mod:`ll.misc`:
+	:func:`format_exception_type` formats the class of an exception (e.g.
+	``ValueError`` or ``http.client.HTTPException``) and :func:`format_exception`
+	formats the exception itself::
+
+		>>> misc.format_exception(ValueError("bad value"))
+		'ValueError: bad value'
+
+*	``rul4`` got a new option :option:`--stacktrace`: ``full`` displays the full
+	Python stack trace, ``short`` only display the exception chain without
+	displaying any Python source.
+
 *	``+`` in the path part of URLs are now considered safe characters. Spaces
 	will be escaped as ``%20`` and no longer as ``+``.
 

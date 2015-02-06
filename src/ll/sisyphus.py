@@ -170,31 +170,6 @@ from ll import url, ul4c, misc
 __docformat__ = "reStructuredText"
 
 
-def _formatexctype(exc):
-	"""
-	Format an exception class for logging.
-	"""
-	if exc.__class__.__module__ not in ("builtins", "exceptions"):
-		fmt = "{0.__class__.__module__}.{0.__class__.__name__}"
-	else:
-		fmt = "{0.__class__.__name__}"
-	return fmt.format(exc)
-
-
-def _formatexc(exc):
-	"""
-	Format an exception object for logging.
-	"""
-	try:
-		strexc = str(exc)
-	except UnicodeError:
-		strexc = "?"
-	fmt = "{}"
-	if strexc:
-		fmt += ": {}"
-	return fmt.format(_formatexctype(exc), strexc)
-
-
 def _formattraceback(exc):
 	return "".join(traceback.format_exception(exc.__class__, exc, exc.__traceback__))
 
@@ -781,7 +756,7 @@ class Job:
 			except Exception as exc:
 				self.endtime = datetime.datetime.now()
 				self.setproctitle("child", "Handling exception")
-				result = "failed with {}".format(_formatexc(exc))
+				result = "failed with {}".format(misc.format_exception(exc))
 				# log the error to the logfile, because the job probably didn't have a chance to do it
 				self.log.sisyphus.email(exc)
 				self.log.sisyphus.result.fail(result)
@@ -1211,7 +1186,7 @@ class EmailLogger(Logger):
 			jsonlog = []
 			for (timestamp, tags, tasks, obj) in self._log:
 				if isinstance(obj, BaseException):
-					excclass = _formatexctype(obj)
+					excclass = misc.format_exception_type(obj)
 					value = str(obj) or None
 					tb = _formattraceback(obj)
 					ul4log.append({"type": "exception", "timestamp": timestamp, "class": excclass, "value": value, "traceback": tb, "tasks": tasks})
