@@ -329,8 +329,8 @@ class Job:
 	noisykills = False
 	notify = False
 
-	logfilename = "~/ll.sisyphus/<?print job.projectname?>/<?print job.jobname?>/<?print format(job.starttime, '%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog"
-	loglinkname = "~/ll.sisyphus/<?print job.projectname?>/<?print job.jobname?>/current.sisyphuslog"
+	logfilename = "~/ll.sisyphus/<?print job.projectname?>/<?print job.jobname?><?if job.identifier?>.<?print job.identifier?><?end if?>/<?print format(job.starttime, '%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog"
+	loglinkname = "~/ll.sisyphus/<?print job.projectname?>/<?print job.jobname?><?if job.identifier?>.<?print job.identifier?><?end if?>/current.sisyphuslog"
 
 	# URL of final log file (``None`` if no logging is done to a fiole)
 	logfileurl = None
@@ -569,7 +569,7 @@ class Job:
 	encoding = "utf-8"
 	errors = "strict"
 
-	ul4attrs = {"sysinfo", "projectname", "jobname", "maxtime", "starttime", "endtime", "maxemailerrors", "logfileurl"}
+	ul4attrs = {"sysinfo", "projectname", "jobname", "identifier", "maxtime", "starttime", "endtime", "maxemailerrors", "logfileurl"}
 
 	def execute(self):
 		"""

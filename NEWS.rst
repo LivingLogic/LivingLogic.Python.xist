@@ -32,6 +32,9 @@ Changes in 5.14 (released ??/??/2015)
 *	Templates used in ``rul4`` have access to a new function: ``import``, which
 	can be used to load templates from any file.
 
+*	If an identifier is given when invoking a :mod:`sisyphus` job it will be
+	included in the log file name now by default.
+
 *	Two new helper functions were added to :mod:`ll.misc`:
 	:func:`format_exception_type` formats the class of an exception (e.g.
 	``ValueError`` or ``http.client.HTTPException``) and :func:`format_exception`
