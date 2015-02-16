@@ -546,8 +546,7 @@ class Indent(Text):
 	# set this attribute. However the attribute *will* be set by the code
 	# compiling the template
 	def _settext(self, text):
-		if text != self.source[self.startpos:self.endpos]:
-			self._text = text
+		self._text = text if text != self.source[self.startpos:self.endpos] else None
 
 	def _str(self):
 		yield "indent {!r}".format(self.text)
