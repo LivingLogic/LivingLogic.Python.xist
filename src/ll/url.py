@@ -2235,7 +2235,7 @@ class URL(object):
 	@staticmethod
 	def _checkscheme(scheme):
 		# Check whether :obj:`scheme` contains only legal characters.
-		if scheme[0] not in schemecharfirst:
+		if not scheme or scheme[0] not in schemecharfirst:
 			return False
 		for c in scheme[1:]:
 			if c not in schemechar:
