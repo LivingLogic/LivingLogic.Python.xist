@@ -82,14 +82,18 @@ class Error(Exception):
 				templateprefix = "in unnamed template: "
 
 		node = self.node
-		tag = self.node.tag
 		(line, col) = node._linecol()
 
-		prefix = repr(tag.source[tag.startpos:node.startpos])[1:-1]
-		code = repr(tag.source[node.startpos:node.endpos])[1:-1]
-		suffix = repr(tag.source[node.endpos:tag.endpos])[1:-1]
+		if isinstance(node, Tag):
+			code = node.text
+			return "{}offset {:,}:{:,}; line {:,}; col {:,}\n{}\n{}".format(templateprefix, node.startpos, node.endpos, line, col, code, "~"*len(code))
+		else:
+			tag = self.node.tag
+			prefix = repr(tag.source[tag.startpos:node.startpos])[1:-1]
+			code = repr(tag.source[node.startpos:node.endpos])[1:-1]
+			suffix = repr(tag.source[node.endpos:tag.endpos])[1:-1]
 
-		return "{}offset {:,}:{:,}; line {:,}; col {:,}\n{}{}{}\n{}{}".format(templateprefix, node.startpos, node.endpos, line, col, prefix, code, suffix, " "*len(prefix), "~"*len(code))
+			return "{}offset {:,}:{:,}; line {:,}; col {:,}\n{}{}{}\n{}{}".format(templateprefix, node.startpos, node.endpos, line, col, prefix, code, suffix, " "*len(prefix), "~"*len(code))
 
 
 class BlockError(Exception):
@@ -639,6 +643,8 @@ class Code(AST):
 		self.tag = tag
 
 	def _linecol(self):
+		if self.tag is None:
+			return (1, 1)
 		return AST._linecol(self.tag.source, self.startpos, self.endpos)
 
 	@property
@@ -3401,10 +3407,7 @@ class Template(Block):
 							try:
 								raise ValueError("whitespace mode {!r} unknown".format(whitespace))
 							except Exception as exc:
-								try:
-									raise Error(tag) from exc
-								except Exception as exc:
-									raise Error(self) from exc
+								raise Error(tag, self) from exc
 
 
 		# Flatten lines and update whitespace according to the whitespace mode specified
@@ -3506,12 +3509,9 @@ class Template(Block):
 				else: # Can't happen
 					raise ValueError("unknown tag {!r}".format(tag.tag))
 			except Exception as exc:
-				try:
-					raise Error(tag) from exc
-				except Error as exc:
-					raise Error(self) from exc
+				raise Error(tag, self) from exc
 		if len(stack) > 1:
-			raise Error(stack[-1]) from BlockError("block unclosed")
+			raise Error(stack[-1], self) from BlockError("block unclosed")
 
 	@_handleeval
 	def eval(self, vars):
