@@ -15,16 +15,19 @@ Changes in 5.14 (released ??/??/2015)
 
 		<?whitespace smart?>
 
+*	The name and signature of an UL4 template can now be specified in the
+	template source too like this::
+
+		<?ul4 name(x, y, *args, **kwargs)?>
+
 *	In UL4 tags whitespace is allowed now before the tag name, i.e.::
 
 		<? for i in range(10) ?>
 			<? print i ?>
 		<? end for ?>
 
-*	The name and signature of an UL4 template can now be specified in the
-	template source too like this::
-
-		<?ul4 name(x, y, *args, **kwargs)?>
+*	Stacktraces produced by UL4 templates now include less chained exceptions
+	and are much mor informative.
 
 *	The ``rul4`` option :option:`--keepws` has been renamed to
 	:option:`--whitespace` and defaults to ``smart`` now.

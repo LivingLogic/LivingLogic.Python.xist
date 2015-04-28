@@ -63,19 +63,33 @@ class Error(Exception):
 	"""
 	Exception class that wraps another exception and provides a location.
 	"""
-	def __init__(self, node):
+	def __init__(self, node, template=None):
 		self.node = node
+		self.template = template
 
 	def __repr__(self):
 		return "<{}.{} in {} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.node, id(self))
 
 	def __str__(self):
-		if isinstance(self.node, Template):
-			return "in {!r}".format(self.node)
-		elif isinstance(self.node, Tag):
-			return "in {}".format(self.node)
-		else:
-			return "in {}".format(self.node.tag)
+		parts = []
+		templateprefix = ""
+		if self.template is not None:
+			if isinstance(self.template, TemplateClosure):
+				templateprefix = "in local template {!r}: ".format(self.template.name)
+			elif self.template.name:
+				templateprefix = "in template {!r}: ".format(self.template.name)
+			else:
+				templateprefix = "in unnamed template: "
+
+		node = self.node
+		tag = self.node.tag
+		(line, col) = node._linecol()
+
+		prefix = repr(tag.source[tag.startpos:node.startpos])[1:-1]
+		code = repr(tag.source[node.startpos:node.endpos])[1:-1]
+		suffix = repr(tag.source[node.endpos:tag.endpos])[1:-1]
+
+		return "{}offset {:,}:{:,}; line {:,}; col {:,}\n{}{}{}\n{}{}".format(templateprefix, node.startpos, node.endpos, line, col, prefix, code, suffix, " "*len(prefix), "~"*len(code))
 
 
 class BlockError(Exception):
@@ -159,7 +173,7 @@ class UndefinedIndex(Undefined):
 
 def _handleeval(f):
 	"""
-	Decorator for each implementation of the :meth:`eval` method.
+	Default decorator for each implementation of the :meth:`eval` method.
 
 	This decorator is responsible for exception handling. An exception that
 	bubbles up the Python call stack will generate an exception chain that
@@ -169,20 +183,14 @@ def _handleeval(f):
 	def wrapped(self, *args):
 		try:
 			return (yield from f(self, *args))
-		except (BreakException, ContinueException, ReturnException) as ex:
+		except (BreakException, ContinueException, ReturnException):
 			# Pass those exception through to the AST nodes that will handle them (:class:`ForBlock` or :class:`Template`)
 			raise
-		except Error as ex:
-			# If the current AST node comes from a different tag than the AST node where the exception came from
-			if ex.node.tag is not self.tag:
-				# ... wrap the exception in another exception that shows our location
-				raise Error(self) from ex
-			else:
-				# Reraise original exception, as we're still in the same location
-				raise
-		except Exception as ex:
+		except Error:
+			raise
+		except Exception as exc:
 			# Wrap original exception in another exception that shows the location
-			raise Error(self) from ex
+			raise Error(self) from exc
 	return wrapped
 
 
@@ -217,8 +225,8 @@ def _resultfromgenerator(iter):
 	try:
 		while True:
 			next(iter)
-	except StopIteration as ex:
-		return ex.value
+	except StopIteration as exc:
+		return exc.value
 
 
 def _makevars(signature, args, kwargs):
@@ -2758,10 +2766,19 @@ class Call(Code):
 			generator = getattr(obj.__func__, "__ul4generator__", False)
 		else:
 			generator = getattr(obj, "__ul4generator__", False)
-		if generator:
-			return (yield from obj(*args, **kwargs))
-		else:
-			return obj(*args, **kwargs)
+
+		try:
+			if generator:
+				return (yield from obj(*args, **kwargs))
+			else:
+				return obj(*args, **kwargs)
+		except Error as exc:
+			if isinstance(obj, (Template, TemplateClosure)):
+				raise Error(self) from exc
+			elif inspect.ismethod(obj) and isinstance(obj.__self__, (Template, TemplateClosure)):
+				raise Error(self) from exc
+			else:
+				raise
 
 	@_handleeval
 	def evalsetvar(self, vars, value):
@@ -3061,6 +3078,9 @@ class Template(Block):
 			yield from super().eval(vars) # Bypass ``self.eval()`` which simply stores the object as a local variable
 		except ReturnException:
 			pass
+		except Error as exc:
+			exc.template = self
+			raise
 
 	@generator
 	def render(self, *args, **kwargs):
@@ -3074,10 +3094,7 @@ class Template(Block):
 
 	def _rendersbound(self, vars):
 		# Helper method used by :meth:`renders` and :meth:`TemplateClosure.renders` where arguments have already been bound
-		try:
-			return "".join(self._renderbound(vars))
-		except ReturnException:
-			pass
+		return "".join(self._renderbound(vars))
 
 	def renders(self, *args, **kwargs):
 		"""
@@ -3092,8 +3109,11 @@ class Template(Block):
 		try:
 			for output in super().eval(vars): # Bypass ``self.eval()`` which simply stores the object as a local variable
 				pass # Ignore all output
-		except ReturnException as ex:
-			return ex.value
+		except ReturnException as exc:
+			return exc.value
+		except Error as exc:
+			exc.template = self
+			raise
 
 	def __call__(self, *args, **kwargs):
 		"""
@@ -4151,19 +4171,31 @@ class TemplateClosure(Block):
 		vars = _makevars(self.signature, args, kwargs)
 		# Call :meth:`_renderbound` to bypass binding the arguments again
 		# (which wouldn't work anyway as ``self.template.signature`` is an :class:`AST` object)
-		yield from self.template._renderbound(collections.ChainMap(vars, self.vars))
+		try:
+			yield from self.template._renderbound(collections.ChainMap(vars, self.vars))
+		except Error as exc:
+			exc.template = self
+			raise
 
 	def renders(self, *args, **kwargs):
 		vars = _makevars(self.signature, args, kwargs)
 		# Call :meth:`_rendersbound` to bypass binding the arguments again
 		# (which wouldn't work anyway as ``self.template.signature`` is an :class:`AST` object)
-		return self.template._rendersbound(collections.ChainMap(vars, self.vars))
+		try:
+			return self.template._rendersbound(collections.ChainMap(vars, self.vars))
+		except Error as exc:
+			exc.template = self
+			raise
 
 	def __call__(self, *args, **kwargs):
 		vars = _makevars(self.signature, args, kwargs)
 		# Call :meth:`_callbound` to bypass binding the arguments again
 		# (which wouldn't work anyway as ``self.template.signature`` is an :class:`AST` object)
-		return self.template._callbound(collections.ChainMap(vars, self.vars))
+		try:
+			return self.template._callbound(collections.ChainMap(vars, self.vars))
+		except Error as exc:
+			exc.template = self
+			raise
 
 	def __getattr__(self, name):
 		return getattr(self.template, name)
