@@ -516,9 +516,11 @@ def define(arg):
 def print_exception_chain(exc):
 	chain = []
 	while exc is not None:
-		chain.insert(0, exc)
+		chain.append(exc)
 		exc = exc.__cause__ if exc.__cause__ is not None else exc.__context__
-	for exc in chain:
+	for (i, exc) in enumerate(chain):
+		if i:
+			print()
 		print(misc.format_exception(exc), file=sys.stderr)
 
 
