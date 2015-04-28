@@ -3425,13 +3425,13 @@ class Template(Block):
 				if isinstance(tag, Text):
 					stack[-1].append(tag)
 				elif tag.tag == "print":
-					stack[-1].append(Print(tag, tag.startposcode, tag.endposcode, parseexpr(tag)))
+					stack[-1].append(Print(tag, tag.startpos, tag.endpos, parseexpr(tag)))
 				elif tag.tag == "printx":
-					stack[-1].append(PrintX(tag, tag.startposcode, tag.endposcode, parseexpr(tag)))
+					stack[-1].append(PrintX(tag, tag.startpos, tag.endpos, parseexpr(tag)))
 				elif tag.tag == "code":
 					stack[-1].append(parsestmt(tag))
 				elif tag.tag == "if":
-					block = CondBlock(tag, tag.startposcode, tag.endposcode, parseexpr(tag))
+					block = CondBlock(tag, tag.startpos, tag.endpos, parseexpr(tag))
 					stack[-1].append(block)
 					stack.append(block)
 				elif tag.tag == "elif":
@@ -3439,13 +3439,13 @@ class Template(Block):
 						raise BlockError("elif doesn't match and if")
 					elif isinstance(stack[-1].content[-1], ElseBlock):
 						raise BlockError("else already seen in if")
-					stack[-1].newblock(ElIfBlock(tag, tag.startposcode, tag.endposcode, parseexpr(tag)))
+					stack[-1].newblock(ElIfBlock(tag, tag.startpos, tag.endpos, parseexpr(tag)))
 				elif tag.tag == "else":
 					if not isinstance(stack[-1], CondBlock):
 						raise BlockError("else doesn't match any if")
 					elif isinstance(stack[-1].content[-1], ElseBlock):
 						raise BlockError("else already seen in if")
-					stack[-1].newblock(ElseBlock(tag, tag.startposcode, tag.endposcode))
+					stack[-1].newblock(ElseBlock(tag, tag.startpos, tag.endpos))
 				elif tag.tag == "end":
 					if len(stack) <= 1:
 						raise BlockError("not in any block")
@@ -3475,7 +3475,7 @@ class Template(Block):
 					stack[-1].append(block)
 					stack.append(block)
 				elif tag.tag == "while":
-					block = WhileBlock(tag, tag.startposcode, tag.endposcode, parseexpr(tag))
+					block = WhileBlock(tag, tag.startpos, tag.endpos, parseexpr(tag))
 					stack[-1].append(block)
 					stack.append(block)
 				elif tag.tag == "break":
@@ -3491,18 +3491,18 @@ class Template(Block):
 							break
 						elif isinstance(block, Template):
 							raise BlockError("continue outside of for loop")
-					stack[-1].append(Continue(tag, tag.startposcode, tag.endposcode))
+					stack[-1].append(Continue(tag, tag.startpos, tag.endpos))
 				elif tag.tag == "def":
 					(name, signature) = parsedef(tag)
 					block = Template(None, name=name, whitespace=self.whitespace, startdelim=self.startdelim, enddelim=self.enddelim, signature=signature)
 					block.tag = tag # Set start ``tag`` of sub template
 					block.source = self.source # The source of the top level template (so that the offsets in all :class:`Text`/:class:`Tag` objects are correct)
-					block.startpos = tag.startposcode
+					block.startpos = tag.startpos
 					block.endpos = tag.endpos
 					stack[-1].append(block)
 					stack.append(block)
 				elif tag.tag == "return":
-					stack[-1].append(Return(tag, tag.startposcode, tag.endposcode, parseexpr(tag)))
+					stack[-1].append(Return(tag, tag.startpos, tag.endpos, parseexpr(tag)))
 				elif tag.tag in ("ul4", "whitespace", "note"):
 					# Don't copy declarations, whitespace specification or comments over into the syntax tree
 					pass
