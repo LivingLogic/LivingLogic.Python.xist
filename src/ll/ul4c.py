@@ -2711,14 +2711,14 @@ class Call(Code):
 		self.obj = obj
 		self.args = []
 
-	def __repr__(self):
+	def _repr(self):
 		yield "obj={!r}".format(self.obj)
 		for (name, arg) in self.args:
 			if name is None:
 				yield repr(arg)
-			elif argname == "*":
+			elif name == "*":
 				yield "*{!r}".format(arg)
-			elif argname == "**":
+			elif name == "**":
 				yield "**{!r}".format(arg)
 			else:
 				yield "{}={!r}".format(name, arg)
