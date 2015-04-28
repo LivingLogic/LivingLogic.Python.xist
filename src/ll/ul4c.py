@@ -392,12 +392,13 @@ class AST:
 		self.startpos = startpos
 		self.endpos = endpos
 
-	def _linecol(self):
-		lastlinefeed = self.source.rfind("\n", 0, self.startpos)
+	@staticmethod
+	def _linecol(source, startpos, endpos):
+		lastlinefeed = source.rfind("\n", 0, startpos)
 		if lastlinefeed >= 0:
-			return (self.source.count("\n", 0, self.startpos)+1, self.startpos-lastlinefeed)
+			return (source.count("\n", 0, startpos)+1, startpos-lastlinefeed)
 		else:
-			return (1, self.startpos + 1)
+			return (1, startpos + 1)
 
 	def __repr__(self):
 		parts = ["<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self)]
@@ -492,11 +493,7 @@ class Text(AST):
 		self.source = source
 
 	def _linecol(self):
-		lastlinefeed = self.source.rfind("\n", 0, self.startpos)
-		if lastlinefeed >= 0:
-			return (self.source.count("\n", 0, self.startpos)+1, self.startpos-lastlinefeed)
-		else:
-			return (1, self.startpos + 1)
+		return AST._linecol(self.source, self.startpos, self.endpos)
 
 	def _repr(self):
 		yield repr(self.text)
@@ -592,6 +589,9 @@ class Tag(AST):
 		p.text("text=")
 		p.pretty(self.text)
 
+	def _linecol(self):
+		return AST._linecol(self.source, self.startpos, self.endpos)
+
 	def __str__(self):
 		(line, col) = self._linecol()
 		return "{!r} (offset {:,}:{:,}; line {:,}; col {:,})".format(self.text, self.startpos, self.endpos, line, col)
@@ -631,7 +631,7 @@ class Code(AST):
 		self.tag = tag
 
 	def _linecol(self):
-		return self.tag._linecol()
+		return AST._linecol(self.tag.source, self.startpos, self.endpos)
 
 	@property
 	def text(self):
