@@ -55,6 +55,9 @@ def generator(f):
 	return f
 
 
+error_underline = os.environ.get("LL_UL4_ERRORUNDERLINE", "~")[:1] or "~"
+
+
 ###
 ### Exceptions
 ###
@@ -86,14 +89,14 @@ class Error(Exception):
 
 		if isinstance(node, Tag):
 			code = node.text
-			return "{}offset {:,}:{:,}; line {:,}; col {:,}\n{}\n{}".format(templateprefix, node.startpos, node.endpos, line, col, code, "~"*len(code))
+			return "{}offset {:,}:{:,}; line {:,}; col {:,}\n{}\n{}".format(templateprefix, node.startpos, node.endpos, line, col, code, error_underline*len(code))
 		else:
 			tag = self.node.tag
 			prefix = repr(tag.source[tag.startpos:node.startpos])[1:-1]
 			code = repr(tag.source[node.startpos:node.endpos])[1:-1]
 			suffix = repr(tag.source[node.endpos:tag.endpos])[1:-1]
 
-			return "{}offset {:,}:{:,}; line {:,}; col {:,}\n{}{}{}\n{}{}".format(templateprefix, node.startpos, node.endpos, line, col, prefix, code, suffix, " "*len(prefix), "~"*len(code))
+			return "{}offset {:,}:{:,}; line {:,}; col {:,}\n{}{}{}\n{}{}".format(templateprefix, node.startpos, node.endpos, line, col, prefix, code, suffix, " "*len(prefix), error_underline*len(code))
 
 
 class BlockError(Exception):
