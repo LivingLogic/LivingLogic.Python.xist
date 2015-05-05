@@ -39,6 +39,13 @@ Changes in 5.14 (released ??/??/2015)
 *	Templates used in ``rul4`` have access to a new function: ``import``, which
 	can be used to load templates from any file.
 
+*	:mod:`oradd` has been renamed to :mod:`pysql`. The command are now no longer
+	limited to being one line. Instead they must be separated with a special
+	comment. Normal SQL commands are also supported. Three new commands have
+	been added: ``include`` includes another ``pysql`` file. ``compileall``
+	recompiles all objects in the schema and ``checkerrors`` raise an exception
+	if there are objects with compilation errors in the schema.
+
 *	If an identifier is given when invoking a :mod:`sisyphus` job it will be
 	included in the log file name now by default.
 
