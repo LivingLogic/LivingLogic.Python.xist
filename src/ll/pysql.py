@@ -9,72 +9,329 @@
 ## See LICENSE for the license
 
 """
-:mod:`oradd` can be used to import data into an Oracle database. The data is
-imported by executing various "oradd commands" (like "execute a procedure",
-"copy a file" etc.) that are specified in the ``oradd`` file.
+The module/script :mod:`pysql` can be used to import data into an Oracle
+database. It reads ``pysql`` files which are variant of normal Oracle SQL files.
 
-Creating an ``oradd`` dump
---------------------------
+There are two aspects to these files:
 
-Creating an ``oradd`` file can be done like this::
+*	A pysql file may contains normal SQL commands. For the :mod:`pysql` script
+	to be able to execute these commands they must be separated with a comment
+	line that starts with ``-- @@@``. :mod:`pysql` will strip of a trailing ``;``
+	or ``/`` from the command and execute it. Any exception that is raised as a
+	result of executing the command will stop the script and be reported. This
+	is in contrast to how ``sqlplus`` executes SQL command. ``sqlplus`` would
+	continue after an error and exit with status code 0 even if there were
+	errors. It is also possible to explicitely ignore any exception produced by
+	executing an SQL command by separating the command with ``-- !!!`` from the
+	command before (instead of ``-- @@@``).
 
-	from ll import oradd
+	A ``pysql`` file that only contains SQL commands is still a valid SQL file
+	from the perspective of Oracle, so it still can be executed via ``sqlplus``.
 
-	with open("data.oradd", "w", encoding="utf-8") as f:
-		data = dict(
-			type="procedure",
-			name="person_insert",
-			args=dict(
-				per_id=oradd.var("per_id_max"),
-				per_firstname="Max",
-				per_lastname="Mustermann",
-			),
+*	A pysql file may also contain PySQL commands. A PySQL command looks likes a
+	Python dictionary literal. The keys in the dictionary have the following
+	meaning:
+
+	``type`` : string (optional)
+		This is either ``"procedure"`` (the default), ``"sql"``, ``"file"``,
+		``"scp"``, ``"resetsequence"``, ``"include"``, ``"compileall"`` or
+		``"checkerrors"``.
+
+	The type ``"procedure"`` calls on Oracle procedure in the database.
+	The following additional keys are used:
+
+		``name`` : string (required)
+			The name of the procedure to be called.
+
+		``args`` : dictionary (optional)
+			A dictionary with the names of the parameters as keys and the parameter
+			values as values. ``pysql`` supports all types as values that
+			:mod:`cx_Oracle` supports. In addition to those, two special classes are
+			supported: :class:`sql` objects can be used to specify that the paramater
+			should be literal SQL. So e.g. ``sql("sysdate")`` will be the date when
+			the ``pysql`` script was executed. :class:`var` objects can be used to
+			hold values that are ``OUT`` parameter of the procedure. For example
+			on first use of ``var("foo_10")`` the value of the ``OUT`` parameter
+			will be stored under the key ``"foo_10"``. The next time
+			``var("foo_10")`` is encountered the value stored under the key
+			``"foo_10"`` will be passed to the procedure. The type of the variable
+			defaults to ``int``. If a different type is required it can be passed
+			as the second argument to :class:`var`, e.g.
+			``var("foo_10", datetime.datetime)``.
+
+	The type ``"sql"`` directly executes an SQL statement in the Oracle database.
+	The following additional keys are used:
+
+		``sql`` : string (required)
+			The SQL to be executed. This may contain parameters in the form of
+			``:paramname``. The values for those parameters will be taken from
+			``args``.
+
+		``args`` : dictionary (optional)
+			A dictionary with the names of the parameters as keys and the parameter
+			values as values. Similar to procedure calls :class:`var` objects are
+			supported to. However :class:`sql` objects are not supported (they will
+			be ignored).
+
+	The type ``"scp"`` creates a file by copying it via the ``scp`` command.
+	The following additional keys are used:
+
+		``name`` : string (required)
+			The name of the file to be created. It may contain ``format()`` style
+			specifications containing any key that appeared in a ``"procedure"`` or
+			``"sql"`` record. These specifiers will be replaced by the correct
+			key values. As these files will be copied via the ``scp`` command, ssh
+			file names can be used.
+
+		``content``: bytes (required)
+			The content of the file to be created.
+
+	The type ``"file"`` creates a file by directly saving it from Python.
+	The following additional keys are used:
+
+		``name`` : string (required)
+			The name of the file to be created. It may contain ``format()`` style
+			specifications containing any key that appeared in a ``"procedure"`` or
+			``"sql"`` record. These specifiers will be replaced by the correct
+			key values.
+
+		``content``: bytes (required)
+			The content of the file to be created.
+
+		``mode``: integer (optional)
+			The file mode for the new file. If the mode is specified
+			:func:`os.chmod` will be called on the file.
+
+		``owner``: integer or string (optional)
+			The owner of the file (as a user name or a uid).
+
+		``group``: integer or string (optional)
+			The owning group of the file (as a group name or a gid).
+			If ``owner`` or ``group`` is given, :func:`os.chown` will be called on
+			the file.
+
+	The type ``"resetsequence"`` resets a sequence in the Oracle database to the
+	maximum value of a field in a table. The following additional keys are used:
+
+		``sequence``: string (required)
+			The name of the sequence to reset.
+
+		``table``: string (required)
+			The name of the table that contains the field.
+
+		``field``: string (required)
+			The name of the field in the table ``table``. The sequence will be
+			reset to a value, so that fetching the next value from the sequence
+			will deliver a value that is larger than the maximum value of the field
+			``field`` in the table ``table``.
+
+		``minvalue``: integer (optional, default taken from sequence)
+			The minimum value for the sequence.
+
+		``increment``: integer (optional, default taken from sequence)
+			The increment (i.e. the stop size) for the sequence.
+
+	The type ``"setvar"`` sets a variable to a fixed value. The following
+	additional keys are used:
+
+		``var``: string (required)
+			The name of the variable to set.
+
+		``value``: (required)
+			The value of the variable.
+
+	The type ``"include"`` includes another pysql file. The filename is read
+	from the key ``"name"``. This name is interpreted as being relative to the
+	directory with the file containing the ``include`` command.
+
+	The type ``"checkerrors"`` checks that there are no compilation errors in the
+	target schema. If there are an exception will be raised.
+
+	The type ``"compileall"`` will recompile all objects in the schema.
+
+
+Example
+-------
+
+The following is a complete pysql file that will create a sequence, table and
+procedure and will call the procedure to insert data into the table:
+
+	-- @@@
+
+	create sequence person_seq
+		increment by 10
+		start with 10
+		maxvalue 1.0e28
+		minvalue 10
+		nocycle
+		cache 20
+		noorder
+	;
+
+	-- @@@
+
+	create sequence contact_seq
+		increment by 10
+		start with 10
+		maxvalue 1.0e28
+		minvalue 10
+		nocycle
+		cache 20
+		noorder
+	;
+
+	-- @@@ person: table
+
+	create table person
+	(
+		per_id integer not null,
+		per_firstnane varchar2(200),
+		per_lastnane varchar2(200)
+	);
+
+	-- @@@ person: primary key
+
+	alter table person add constraint person_pk primary key(per_id);
+
+	-- @@@ contact: table
+
+	create table contact
+	(
+		con_id integer not null,
+		per_id integer not null,
+		con_type varchar2(200),
+		con_value varchar2(200)
+	);
+
+	-- @@@ contact: primary key
+
+	alter table contact add constraint contact_pk primary key(con_id);
+
+	-- @@@ person: insert procedure
+
+	create or replace procedure person_insert
+	(
+		c_user in varchar2,
+		p_per_id in out integer,
+		p_per_firstnane in varchar2 := null,
+		p_per_lastnane in varchar2 := null
+	)
+	as
+	begin
+		if p_per_id is null then
+			select person_seq.nextval into p_per_id from dual;
+		end if;
+
+		insert into person
+		(
+			per_id,
+			per_firstnane,
+			per_lastnane
 		)
-		print(repr(data), file=f)
+		values
+		(
+			p_per_id,
+			p_per_firstnane,
+			p_per_lastnane
+		);
+	end;
+	/
 
-		data = dict(
-			type="procedure",
-			name="contact_insert",
-			args=dict(
-				con_id=oradd.var("con_id_max"),
-				per_id=oradd.var("per_id_max"),
-				con_type="email",
-				con_value="max@example.org",
-			),
+	-- @@@ contact: insert procedure
+
+	create or replace procedure contact_insert
+	(
+		c_user in varchar2,
+		p_con_id in out integer,
+		p_per_id in integer := null,
+		p_con_type in varchar2 := null,
+		p_con_value in varchar2 := null
+	)
+	as
+	begin
+		if p_con_id is null then
+			select contact_seq.nextval into p_con_id from dual;
+		end if;
+
+		insert into contact
+		(
+			con_id,
+			per_id,
+			con_type,
+			con_value
 		)
-		print(repr(data), file=f)
+		values
+		(
+			p_con_id,
+			p_per_id,
+			p_con_type,
+			p_con_value
+		);
+	end;
+	/
 
-		data = dict(
-			type="file",
-			name="portrait_{per_id_max}.png",
-			content=open("max.png", "rb".read()),
-		)
-		print(repr(data), file=f)
+	-- @@@ recompile everything
 
-		data = dict(
-			type="resetsequence",
-			sequence="person_seq",
-			table="person",
-			field="per_id",
-		)
-		print(repr(data), file=f)
+	{
+		'type': 'compileall'
+	}
 
-The content of the generated file ``data.oradd`` will look like this::
+	-- @@@ check that everything compiled OK
 
-	{'name': 'person_insert', 'args': {'per_id': var('per_id_max'), 'per_firstname': 'Max', 'per_lastname': 'Mustermann'}}
-	{'name': 'contact_insert', 'args': {'per_id': var('per_id_max'), 'con_id': var('con_id_max'), 'con_type': 'email', 'con_value': 'max@example.org'}}
-	{'type': 'file', 'name': 'portrait_{per_id_max}.png', 'content': b'\\x89PNG\\r\\n\\x1a\\n...'}
-	{'type': 'resetsequence', 'sequence': 'person_seq', 'table': 'person', 'field': 'per_id'}
+	{
+		'type': 'checkerrors'
+	}
 
-i.e. it's just one Python ``repr`` of a dictionary per line.
+	-- @@@ person: insert a person
+
+	{
+		'type': 'procedure',
+		'name': 'person_insert',
+		'args': {
+			'per_id': var('per_id_max'),
+			'per_firstname': 'Max',
+			'per_lastname': 'Mustermann',
+		}
+	}
+
+	-- @@@ contact: insert a contact for the person
+
+	{
+		'type': 'procedure',
+		'name': 'contact_insert',
+		'args': {
+			'per_id': var('per_id_max'),
+			'con_id': var('con_id_max'),
+			'con_type': 'email',
+			'con_value': 'max@example.org',
+		}
+	}
+
+	-- @@@ save a file for the person
+
+	{
+		'type': 'file',
+		'name': 'portrait_{per_id_max}.png',
+		'content': b'\\x89PNG\\r\\n\\x1a\\n...',
+	}
+
+	-- @@@ reset the sequence
+
+	{
+		'type': 'resetsequence',
+		'sequence': 'person_seq',
+		'table': 'person',
+		'field': 'per_id',
+	}
 
 This file can then be imported into an Oracle database with the following
 command::
 
-	python oradd.py user/pwd@database data.pydd
+	python pysql.py user/pwd@database data.pysql
 
-This will import two records, one by calling ``person_insert`` and one by
-calling ``contact_insert``. The PL/SQL equivalent of the above is::
+This will create two sequences, two tables and two procedures. Then it will
+import two records, one by calling ``person_insert`` and one by calling
+``contact_insert``. The PL/SQL equivalent of the above is::
 
 	declare
 		v_per_id_max integer;
@@ -98,146 +355,26 @@ and reset the sequence ``person_seq`` to the maximum value of the field
 ``per_id`` in the table ``person``.
 
 
-Data format
------------
+Importing a ``pysql`` file
+--------------------------
 
-An oradd file contains one line for each "oradd command". Each line is the
-``repr`` output of a Python dictionary. For example (pretty printed for display
-purposes, the original format is on one line)::
-
-	{
-		'type': 'procedure',
-		'name': 'person_insert',
-		'args': {
-			'per_id': var('per_id_max'),
-			'per_firstname': 'Max',
-			'per_lastname': 'Mustermann',
-			'per_created': sql('sysdate')
-		}
-	}
-
-The keys in the dictionary have the following meaning:
-
-	``type`` : string (optional)
-		This is either ``"procedure"`` (the default), ``"sql"``, ``"file"``,
-		``"scp"`` or ``"resetsequence"``.
-
-The type ``"procedure"`` calls on Oracle procedure in the database.
-The following additional keys are used:
-
-	``name`` : string (required)
-		The name of the procedure to be called.
-
-	``args`` : dictionary (optional)
-		A dictionary with the names of the parameters as keys and the parameter
-		values as values. ``oradd`` supports all types as values that
-		:mod:`cx_Oracle` supports. In addition to those, two special classes are
-		supported: :class:`sql` objects can be used to specify that the paramater
-		should be literal SQL. So e.g. ``sql("sysdate")`` will be the date when
-		the ``oradd`` script was executed. :class:`var` objects can be used to
-		hold values that are ``OUT`` parameter of the procedure. For example
-		on first use of ``var("foo_10")`` the value of the ``OUT`` parameter will
-		be stored under the key ``"foo_10"``. The next time ``var("foo_10")`` is
-		encountered the value stored under the key ``"foo_10"`` will be passed to
-		the procedure. The type of the variable defaults to ``int``. If a
-		different type is required it can be passed as the second argument to
-		:class:`var`, e.g. ``var("foo_10", datetime.datetime)``.
-
-The type ``"sql"`` directly executes an SQL statement in the Oracle database.
-The following additional keys are used:
-
-	``sql`` : string (required)
-		The SQL to be executed. This may contain parameters in the form of
-		``:paramname``. The values for those parameters will be taken from
-		``args``.
-
-	``args`` : dictionary (optional)
-		A dictionary with the names of the parameters as keys and the parameter
-		values as values. Similar to procedure calls :class:`var` objects are
-		supported to. However :class:`sql` objects are not supported (they will
-		be ignored).
-
-The type ``"scp"`` creates a file by copying it via the ``scp`` command.
-The following additional keys are used:
-
-	``name`` : string (required)
-		The name of the file to be created. It may contain ``format()`` style
-		specifications containing any key that appeared in a ``"procedure"`` or
-		``"sql"`` record. These specifiers will be replaced by the correct
-		key values. As these files will be copied via the ``scp`` command, ssh
-		file names can be used.
-
-	``content``: bytes (required)
-		The content of the file to be created.
-
-The type ``"file"`` creates a file by directly saving it from Python.
-The following additional keys are used:
-
-	``name`` : string (required)
-		The name of the file to be created. It may contain ``format()`` style
-		specifications containing any key that appeared in a ``"procedure"`` or
-		``"sql"`` record. These specifiers will be replaced by the correct
-		key values.
-
-	``content``: bytes (required)
-		The content of the file to be created.
-
-	``mode``: integer (optional)
-		The file mode for the new file. If the mode is specified :func:`os.chmod`
-		will be called on the file.
-
-	``owner``: integer or string (optional)
-		The owner of the file (as a user name or a uid).
-
-	``group``: integer or string (optional)
-		The owning group of the file (as a group name or a gid).
-		If ``owner`` or ``group`` is given, :func:`os.chown` will be called on the
-		file.
-
-The type ``"resetsequence"`` resets a sequence in the Oracle database to the
-maximum value of a field in a table. The following additional keys are used:
-
-	``sequence``: string (required)
-		The name of the sequence to reset.
-
-	``table``: string (required)
-		The name of the table that contains the field.
-
-	``field``: string (required)
-		The name of the field in the table ``table``. The sequence will be reset
-		to a value, so that fetching the next value from the sequence will deliver
-		a value that is larger than the maximum value of the field ``field`` in
-		the table ``table``.
-
-	``minvalue``: integer (optional, default taken from sequence)
-		The minimum value for the sequence.
-
-	``increment``: integer (optional, default taken from sequence)
-		The increment (i.e. the stop size) for the sequence.
-
-A line in an ``oradd`` dump that starts with a ``#`` will be ignored.
-
-
-Importing an ``oradd`` dump
----------------------------
-
-``oradd.py`` has no external dependencies (except for :mod:`cx_Oracle`) and can
-be used as a script for importing an oradd dump into the database. As a script
+``pysql.py`` has no external dependencies (except for :mod:`cx_Oracle`) and can
+be used as a script for importing a pysql file into the database. As a script
 it supports the following command line options:
 
 	``connectstring``
 		An Oracle connectstring.
 
 	``file``
-		The name of the file from which the oradd dump is read. If ``file`` isn't
-		specified the dump is read from ``stdin``.
+		The name of the pysql file that will be read and imported. If ``file``
+		isn't specified the commands are read from ``stdin``.
 
 	``-v``, ``--verbose``
-		Gives different levels of output while data is being imported to the database.
-		Possible levels are: ``0`` (no output), ``1`` (a dot for each procedure
-		call), ``2`` (like ``1``, plus a summary of which command has been executed
-		how often and which procedure has been called how often), ``3`` (detailed
-		output for each command/procedure call, plus summary)
+		Gives different levels of output while data is being imported to the
+		database. Possible levels are: ``0`` (no output), ``1`` (one letter for
+		each command), ``2`` (like ``1``, plus a summary of which command has been
+		executed how often and which procedures have been called how often), ``3``
+		(detailed output for each command/procedure call, plus summary)
 
 	``-c``, ``--commit``
 		Specifies when to commit database transactions. ``record`` commits after
@@ -245,13 +382,20 @@ it supports the following command line options:
 		the transaction after all imports.
 
 	``-s``, ``--scpdirectory``
-		The base directory for ``scp`` file copy commands. As files are copied via
-		``scp`` this can be a remote filename (like
+		The base directory for ``scp`` file copy commands. As files are copied
+		via ``scp`` this can be a remote filename (like
 		``ssh:root@www.example.org:uploads/``) and must include a trailing ``/``.
 
 	``-f``, ``--filedirectory``
 		The base directory for the ``file`` file save commands. It must include
 		a trailing ``/``.
+
+	``-d``, ``--delimiter``
+		The delimiter comment between each command (default ``-- @@@``).
+
+	``-D``, ``--delimiterignored``
+		The delimiter comment between each command where exceptions from
+		executing the following command will be ignored (default ``-- !!!``).
 """
 
 # We're importing ``datetime``, so that it's available to ``eval()``
@@ -305,45 +449,133 @@ class sql:
 		return "sql({!r})".format(self.expression)
 
 
-def load_oradd(iter):
-	"""
-	Load an oradd dump from :obj:`iter`. :obj:`iter` must be an iterable
-	producing strings, that contain the ``repr`` output of ``oradd`` commands.
+class Error(Exception):
+	def __init__(self, executor, pos, command):
+		self.filenames = executor.filenames()
+		self.pos = pos
+		self.command = command
 
-	This function is a generator. Its output are the ``oradd`` command
-	dictionaries.
-	"""
-	for line in iter:
-		if line != "\n" and not line.strip().startswith("#"):
-			yield eval(line)
+	def __str__(self):
+		if isinstance(self.command, str):
+			return "{}: in literal @ lines {:,}-{:,}".format(self.filenames, self.pos[0], self.pos[1])
+		elif self.command is None:
+			return "{}: in lines {:,}-{:,}".format(self.filenames, self.pos[0], self.pos[1])
+		else:
+			return "{}: in {} command @ lines {:,}-{:,}".format(self.filenames, self.command.get("type", "procedure"), self.pos[0], self.pos[1])
 
 
-def loads_oradd(string):
-	"""
-	Load an oradd dump in oradd native format from the string ``string``.
+class CompilationError(Exception):
+	def __init__(self, count):
+		self.count = count
 
-	This function is a generator.
-	"""
-	return load_oradd(string.splitlines())
+	def __str__(self):
+		if self.count == 1:
+			return "1 invalid object in the database"
+		else:
+			return "{:,} invalid objects in the database".format(self.count)
 
 
 class Executor:
-	def __init__(self, db, scpdirectory="", filedirectory="", commit="once", verbose=0):
+	def __init__(self, db, scpdirectory="", filedirectory="", commit="once", delimiter="-- @@@", delimiterignore="-- !!!", verbose=0):
 		self.keys = {}
 		self.db = db
 		self.cursor = db.cursor()
 		self.scpdirectory = scpdirectory
 		self.filedirectory = filedirectory
 		self.commit = commit
+		self.delimiter = delimiter
+		self.delimiterignore = delimiterignore
 		self.verbose = verbose
 		self.count = 0
 		self.commandcounts = collections.Counter()
 		self.procedurecounts = collections.Counter()
+		self.errorcount = 0
+		self.streams = []
+
+	def load(self, stream):
+		"""
+		Load a pysql file from :obj:`stream`. :obj:`stream` must be an iterable
+		producing strings, that contain the ``pysql`` commands.
+
+		This function is a generator. Its output are the ``pysql`` command
+		dictionaries/literal strings.
+		"""
+		ignoreerrors = False
+		lines = []
+
+		def makeblock():
+			# Drop empty lines at the start
+			while lines and not lines[0][1].strip():
+				del lines[0]
+			# Drop empty lines at the end
+			while lines and not lines[-1][1].strip():
+				del lines[-1]
+			block = "".join(line[1] for line in lines).strip()
+			if block:
+				pos = (lines[0][0], lines[-1][0])
+				lines.clear()
+				if block.endswith((";", "/")):
+					yield (pos, ignoreerrors, block[:-1])
+				elif block.endswith("}"):
+					try:
+						block = eval(block)
+					except Exception as exc:
+						raise Error(self, pos, block) from exc
+					if block.get("type", "procedure") == "include":
+						filename = block.get("name")
+						if filename:
+							if self.verbose in (1, 2):
+								print("(", end="", flush=True)
+							with open(self.relativefilename(filename), "r", encoding="utf-8") as f:
+								yield from self.load(f)
+							if self.verbose in (1, 2):
+								print(")", end="", flush=True)
+					else:
+						yield (pos, ignoreerrors, block)
+				else:
+					raise Error(self, pos, None) from ValueError("block terminator {!r} unknown".format(block[-1:]))
+
+		try:
+			self.streams.append(stream)
+			for (i, line) in enumerate(stream, 1):
+				if line.startswith(self.delimiter):
+					yield from makeblock()
+					ignoreerrors = False
+				elif line.startswith(self.delimiterignore):
+					yield from makeblock()
+					ignoreerrors = True
+				else:
+					# Collection line number and line
+					lines.append((i, line))
+			yield from makeblock()
+		finally:
+			self.streams.pop()
+
+	def filenames(self):
+		return " -> ".join(stream.name for stream in self.streams)
+
+	def relativefilename(self, filename):
+		return os.path.join(os.path.dirname(self.streams[-1].name), filename)
 
 	def executeall(self, commands):
 		try:
-			for command in commands:
-				self.execute(command)
+			for (pos, ignoreerrors, command) in commands:
+				try:
+					self.execute(pos, command)
+				except Exception as exc:
+					if ignoreerrors:
+						self.errorcount += 1
+						if self.verbose >= 1:
+							if self.verbose >= 3:
+								exctext = str(exc).replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
+								print(" -> ignored {}.{}: {}".format(exc.__class__.__module__, exc.__class__.__qualname__, exctext))
+							elif self.verbose >= 2:
+								print("!", end="", flush=True)
+					else:
+						raise Error(self, pos, command) from exc
+				else:
+					if self.verbose in (1, 2):
+						print(".", end="", flush=True)
 			if self.commit == "once":
 				self.db.commit()
 			elif self.commit == "never":
@@ -353,37 +585,63 @@ class Executor:
 				print()
 		self._printsummary()
 
-	def execute(self, command):
-		self._fixargs(command)
-		type = command.get("type", "procedure")
+	def execute(self, pos, command):
 		result = None
-		if type == "procedure":
-			result = self.callprocedure(command)
-		elif type == "sql":
-			result = self.executesql(command)
-		elif type == "scp":
-			self.scpfile(command)
-		elif type == "file":
-			self.savefile(command)
-		elif type == "resetsequence":
-			self.resetsequence(command)
+		if isinstance(command, str):
+			type = "literal"
+			self.literal(pos, command)
 		else:
-			raise ValueError("command type {!r} unknown".format(type))
-		if type == "procedure":
-			self.procedurecounts[command["name"]] += 1
+			type = command.get("type", "procedure")
+			if type == "procedure":
+				result = self.callprocedure(pos, command)
+			elif type == "sql":
+				result = self.executesql(pos, command)
+			elif type == "scp":
+				self.scpfile(pos, command)
+			elif type == "file":
+				self.savefile(pos, command)
+			elif type == "resetsequence":
+				self.resetsequence(pos, command)
+			elif type == "setvar":
+				self.setvar(pos, command)
+			elif type == "compileall":
+				self.compileall(pos, command)
+			elif type == "checkerrors":
+				self.checkerrors(pos, command)
+			else:
+				raise ValueError("command type {!r} unknown".format(type))
+			if type == "procedure":
+				self.procedurecounts[command["name"]] += 1
 		self.commandcounts[type] += 1
 		self.count += 1
 		return result
 
-	def callprocedure(self, command):
+	def literal(self, pos, command):
+		"""
+		Execute the SQL in :obj:`command`. ``cursor`` must
+		be a :mod:`cx_Oracle` cursor.
+		"""
+		if self.verbose >= 3:
+			if len(command) > 72:
+				text = "{!r}...".format(command[:72])
+			else:
+				text = repr(command)
+			print("#{:,} in {} @ lines {:,}-{:,}: literal {}".format(self.count+1, self.filenames(), pos[0], pos[1], text), end="", flush=True)
+
+		self.cursor.execute(command)
+
+		if self.commit == "record":
+			self.db.commit()
+
+		if self.verbose >= 3:
+			print(" -> done", flush=True)
+
+	def callprocedure(self, pos, command):
 		"""
 		Import the ``procedure`` command :obj:`command` into the database.
 		"""
-		if self.verbose >= 1:
-			if self.verbose >= 3:
-				print("#{}: procedure {}".format(self.count+1, self._formatprocedurecall(command)), end="", flush=True)
-			else:
-				print(".", end="", flush=True)
+		if self.verbose >= 3:
+			print("#{:,} in {} @ lines {:,}-{:,}: procedure {}".format(self.count+1, self.filenames(), pos[0], pos[1], self._formatprocedurecall(command)), end="", flush=True)
 
 		name = command["name"]
 		args = command.get("args", {})
@@ -412,16 +670,54 @@ class Executor:
 				print(flush=True)
 		return result
 
-	def executesql(self, command):
+	def setvar(self, pos, command):
 		"""
-		Execute the SQL from the ``sql`` command :obj:`command`. ``cursor`` must
-		be a :mod:`cx_Oracle` cursor.
+		Set a variable.
 		"""
-		if self.verbose >= 1:
-			if self.verbose >= 3:
-				print("#{}: sql {}".format(self.count+1, self._formatsql(command)), end="", flush=True)
-			else:
-				print(".", end="", flush=True)
+		var = command.get("var")
+		value = command.get("value")
+		if self.verbose >= 3:
+			print("#{:,} in {} @ lines {:,}-{:,}: set var {!r} to {!r}".format(self.count+1, self.filenames(), pos[0], pos[1], var, value), end="", flush=True)
+
+		self.keys[var] = value
+
+		if self.verbose >= 3:
+			print(" -> done", flush=True)
+
+	def checkerrors(self, pos, command):
+		"""
+		Check that we have no compilation errors in the target schema.
+		"""
+		if self.verbose >= 3:
+			print("#{:,} in {} @ lines {:,}-{:,}: check errors".format(self.count+1, self.filenames(), pos[0], pos[1]), end="", flush=True)
+
+		self.cursor.execute("select count(*) from (select name from user_errors group by name, type)")
+		count = self.cursor.fetchone()[0]
+
+		if count:
+			raise CompilationError(count)
+
+		if self.verbose >= 3:
+			print(" -> done", flush=True)
+
+	def compileall(self, pos, command):
+		"""
+		Recompile everything in the target schema.
+		"""
+		if self.verbose >= 3:
+			print("#{:,} in {} @ lines {:,}-{:,}: compile all".format(self.count+1, self.filenames(), pos[0], pos[1]), end="", flush=True)
+
+		self.cursor.execute("begin dbms_utility.compile_schema(user); end;")
+
+		if self.verbose >= 3:
+			print(" -> done", flush=True)
+
+	def executesql(self, pos, command):
+		"""
+		Execute the SQL from the ``sql`` command :obj:`command`
+		"""
+		if self.verbose >= 3:
+			print("#{:,} in {} @ lines {:,}-{:,}: sql {}".format(self.count+1, self.filenames(), pos[0], pos[1], self._formatsql(command)), end="", flush=True)
 
 		result = self._executesql(command["sql"], command.get("args", {}))
 
@@ -436,49 +732,43 @@ class Executor:
 
 		return result
 
-	def scpfile(self, command):
-		name = self.scpdirectory + command["name"].format(**self.keys)
+	def scpfile(self, pos, command):
+		filename = self.scpdirectory + command["name"].format(**self.keys)
 
-		if self.verbose >= 1:
-			if self.verbose >= 3:
-				print("#{}: scp {}".format(self.count+1, name), end="", flush=True)
-			else:
-				print(".", end="", flush=True)
+		if self.verbose >= 3:
+			print("#{:,} in {} @ lines {:,}-{:,}: scp {}".format(self.count+1, self.filenames(), pos[0], pos[1], filename), end="", flush=True)
 
 		with tempfile.NamedTemporaryFile(delete=False) as f:
 			f.write(command["content"])
 			tempname = f.name
 		try:
-			return subprocess.call(["scp", "-q", tempname, name])
+			return subprocess.call(["scp", "-q", tempname, filename])
 		finally:
 			os.remove(tempname)
 
 		if self.verbose >= 3:
 			print(" -> {} bytes written".format(len(command["content"])), flush=True)
 
-	def savefile(self, command):
-		name = self.filedirectory + command["name"].format(**self.keys)
+	def savefile(self, pos, command):
+		filename = self.filedirectory + command["name"].format(**self.keys)
 
-		if self.verbose >= 1:
-			if self.verbose >= 3:
-				print("#{}: file {}".format(self.count+1, name), end="", flush=True)
-			else:
-				print(".", end="", flush=True)
+		if self.verbose >= 3:
+			print("#{:,} in {} @ lines {:,}-{:,}: file {}".format(self.count+1, self.filenames(), pos[0], pos[1], name), end="", flush=True)
 
 		try:
-			with open(name, "wb") as f:
+			with open(filename, "wb") as f:
 				f.write(command["content"])
 		except FileNotFoundError: # probably the directory doesn't exist
 			(splitpath, splitname) = os.path.split(name)
 			if splitpath:
 				os.makedirs(splitpath)
-				with open(name, "wb") as f:
+				with open(filename, "wb") as f:
 					f.write(command["content"])
 			else:
 				raise # we don't have a directory to make so pass the error on
 
 		if "mode" in "command":
-			os.chmod(name, command["mode"])
+			os.chmod(filename, command["mode"])
 		if "owner" in "command" or "group" in command:
 			if "owner" in command:
 				uid = command["owner"]
@@ -492,7 +782,7 @@ class Executor:
 					gid = grp.getgrnam(gid)[2]
 			else:
 				gid = -1
-			os.chown(name, uid, gid)
+			os.chown(filename, uid, gid)
 
 		if self.verbose >= 3:
 			msg = " -> {} bytes written".format(len(command["content"]))
@@ -502,18 +792,15 @@ class Executor:
 				msg = "{} ({})".format(msg, optionmsg)
 			print(msg, flush=True)
 
-	def resetsequence(self, command):
+	def resetsequence(self, pos, command):
 		sequence = command["sequence"]
 		table = command["table"]
 		field = command["field"]
 		minvalue = command.get("minvalue", None)
 		increment = command.get("increment", None)
 
-		if self.verbose >= 1:
-			if self.verbose >= 3:
-				print("#{}: resetting sequence {} to maximum value from {}.{}".format(self.count+1, sequence, table, field), end="", flush=True)
-			else:
-				print(".", end="", flush=True)
+		if self.verbose >= 3:
+			print("#{:,} in {} @ lines {:,}-{:,}: resetting sequence {} to maximum value from {}.{}".format(self.count+1, self.filenames(), pos[0], pos[1], sequence, table, field), end="", flush=True)
 
 		# Fetch information about the sequence
 		self.cursor.execute("select min_value, increment_by, last_number from user_sequences where lower(sequence_name)=lower(:name)", name=sequence)
@@ -572,50 +859,11 @@ class Executor:
 				newkeys[argname] = self.keys[argvalue.key] = queryargvars[argname].getvalue(0)
 		return newkeys
 
-	def _fixargs(self, command):
-		if "args" in command:
-			if "keys" in command:
-				keys = command["keys"]
-				if isinstance(keys, (list, tuple)):
-					keys = dict.fromkeys(keys, int)
-				else:
-					keys = {key: eval(value) for (key, value) in keys.items()}
-			else:
-				keys = {}
-
-			if "sqls" in command:
-				sqls = set(command["sqls"])
-			else:
-				sqls = set()
-
-			args = command["args"]
-			for (argname, argvalue) in args.items():
-				if argname in sqls:
-					if isinstance(argvalue, sql):
-						pass # Value already is an :class:`sql` instance
-					elif isinstance(argvalue, var):
-						raise TypeError("type mismatch: {!r}".format(argname))
-					elif not isinstance(argvalue, str):
-						raise TypeError("type mismatch: {!r}".format(argname))
-					else:
-						args[argname] = sql(argvalue)
-				if argname in keys:
-					if isinstance(argvalue, var):
-						pass # Value already is a :class:`var` instance
-					elif isinstance(argvalue, sql):
-						raise TypeError("type mismatch: {!r}".format(argname))
-					else:
-						args[argname] = var(argvalue, keys[argname])
-
-			if "keys" in command:
-				del command["keys"]
-			if "sqls" in command:
-				del command["sqls"]
-
 	def _printsummary(self):
 		if self.verbose >= 2:
 			commandcountvalues = self.commandcounts.values()
 			l1 = len(str(max(commandcountvalues))) if commandcountvalues else 0
+			l1 = max(l1, len(str(self.errorcount)))
 			l2 = max(len(procname) for procname in self.procedurecounts) if self.procedurecounts else 0
 			print()
 			print("Summary")
@@ -628,10 +876,12 @@ class Executor:
 				for (procname, count) in sorted(self.procedurecounts.items(), key=operator.itemgetter(1)):
 					print("{:>{}} {}".format(count, l1, procname))
 				print("{} {}".format("-"*l1, "-"*l2))
-			for cmdtype in ("procedure", "sql", "file", "scp", "resetsequence"):
+			for cmdtype in ("literal", "procedure", "sql", "resetsequence", "setvar", "file", "scp"):
 				if self.commandcounts[cmdtype]:
 					anyoutput = True
 					print("{:>{}} ({}s)".format(self.commandcounts[cmdtype], l1, cmdtype))
+			if self.errorcount:
+				print("{:>{}} ignored errors".format(self.errorcount, l1))
 			if not anyoutput:
 				print("no commands executed")
 
@@ -656,23 +906,31 @@ class Executor:
 			return repr(command["sql"])
 
 
-
-
 def main(args=None):
-	p = argparse.ArgumentParser(description="Import an oradd dump to an Oracle database", epilog="For more info see http://www.livinglogic.de/Python/oradd/index.html")
+	p = argparse.ArgumentParser(description="Import a pysql file into an Oracle database", epilog="For more info see http://www.livinglogic.de/Python/pysql/index.html")
 	p.add_argument("connectstring", help="Oracle connect string")
-	p.add_argument("file", nargs="?", help="Name of dump file (default: read from stdin)", type=argparse.FileType("r"), default=sys.stdin)
+	p.add_argument("file", nargs="?", help="Name of the pysql file (default: read from stdin)", type=argparse.FileType("r"), default=sys.stdin)
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", type=int, default=2, choices=(0, 1, 2, 3))
 	p.add_argument("-c", "--commit", dest="commit", help="When should database transactions be committed? (default %(default)s)", default="once", choices=("record", "once", "never"))
 	p.add_argument("-s", "--scpdirectory", dest="scpdirectory", metavar="DIR", help="File name prefix for files to be copied via the 'scp' command (default: current directory)", default="")
 	p.add_argument("-f", "--filedirectory", dest="filedirectory", metavar="DIR", help="File name prefix for files to be copied via the 'file' command (default: current directory)", default="")
+	p.add_argument("-d", "--delimiter", dest="delimiter", metavar="STRING", help="Delimiter between each command (should be a valid SQL comment; default %(default)r)", default="-- @@@")
+	p.add_argument("-D", "--delimiterignore", dest="delimiterignore", metavar="STRING", help="Delimiter between each command that ignores errors (should be a valid SQL comment; default %(default)r)", default="-- !!!")
 
 	args = p.parse_args(args)
 
 	db = cx_Oracle.connect(args.connectstring)
 
-	executor = Executor(db=db, scpdirectory=args.scpdirectory, filedirectory=args.filedirectory, commit=args.commit, verbose=args.verbose)
-	executor.executeall(load_oradd(args.file))
+	executor = Executor(
+		db=db,
+		scpdirectory=args.scpdirectory,
+		filedirectory=args.filedirectory,
+		commit=args.commit,
+		delimiter=args.delimiter,
+		delimiterignore=args.delimiterignore,
+		verbose=args.verbose,
+	)
+	executor.executeall(executor.load(args.file))
 
 
 if __name__ == "__main__":

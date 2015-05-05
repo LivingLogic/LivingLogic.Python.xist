@@ -16,43 +16,38 @@ import cx_Oracle
 
 import pytest
 
-from ll import orasql, oradd
+from ll import orasql, pysql
 
 
 dbname = os.environ.get("LL_ORASQL_TEST_CONNECT") # Need a connectstring as environment var
 
 
 def commands():
-	yield dict(
-		type="sql",
-		sql="""
-			create table oradd_test_table(
-				odtt_id integer
-			)
-		"""
-	)
+	yield """
+		create table pysql_test_table(
+			odtt_id integer
+		);
+	"""
+
+	yield """
+		create or replace procedure pysql_test_procedure(
+			p_odtt_id in out integer
+		)
+		as
+		begin
+			if p_odtt_id is null then
+				p_odtt_id := 1;
+			end if;
+			insert into pysql_test_table (odtt_id) values (p_odtt_id);
+			p_odtt_id := p_odtt_id + 100;
+		end;
+		/
+	"""
 
 	yield dict(
 		type="sql",
 		sql="""
-			create or replace procedure oradd_test_procedure(
-				p_odtt_id in out integer
-			)
-			as
-			begin
-				if p_odtt_id is null then
-					p_odtt_id := 1;
-				end if;
-				insert into oradd_test_table (odtt_id) values (p_odtt_id);
-				p_odtt_id := p_odtt_id + 100;
-			end;
-		"""
-	)
-
-	yield dict(
-		type="sql",
-		sql="""
-			create sequence oradd_test_sequence
+			create sequence pysql_test_sequence
 				minvalue 10
 				maxvalue 9999999999999999999999999999
 				start with 30
@@ -63,24 +58,24 @@ def commands():
 
 	yield dict(
 		type="procedure",
-		name="oradd_test_procedure",
+		name="pysql_test_procedure",
 		args=dict(
-			p_odtt_id=oradd.var("odtt_1"),
+			p_odtt_id=pysql.var("odtt_1"),
 		)
 	)
 
 	yield dict(
 		type="procedure",
-		name="oradd_test_procedure",
+		name="pysql_test_procedure",
 		args=dict(
-			p_odtt_id=oradd.var("odtt_1"),
+			p_odtt_id=pysql.var("odtt_1"),
 		)
 	)
 
 	yield dict(
 		type="resetsequence",
-		sequence="oradd_test_sequence",
-		table="oradd_test_table",
+		sequence="pysql_test_sequence",
+		table="pysql_test_table",
 		field="odtt_id"
 	)
 
@@ -88,7 +83,7 @@ def commands():
 		type="sql",
 		sql="begin :filename_file := 'gurk_file.txt'; end;",
 		args=dict(
-			filename_file=oradd.var("filename_file", str),
+			filename_file=pysql.var("filename_file", str),
 		)
 	)
 
@@ -96,7 +91,7 @@ def commands():
 		type="sql",
 		sql="begin :filename_scp := 'gurk_scp.txt'; end;",
 		args=dict(
-			filename_scp=oradd.var("filename_scp", str),
+			filename_scp=pysql.var("filename_scp", str),
 		)
 	)
 
@@ -117,15 +112,15 @@ def commands():
 def execute_commands(commands, tmpdir):
 	s = io.StringIO()
 
-	for command in commands:
-		print(repr(command), file=s)
 
-	with tempfile.NamedTemporaryFile(delete=False) as f:
-		f.write(s.getvalue().encode("utf-8"))
+	with tempfile.NamedTemporaryFile(encoding="utf-8", delete=False) as f:
 		tempname = f.name
+		for command in commands:
+			fmt = "-- @@@\n\n{}\n\n" if isinstance(command, str) else "-- @@@\n\n{!r}\n\n"
+			print(fmt.format(command), file=f)
 
 	try:
-		oradd.main([dbname, tempname, "-v3", "--scpdirectory", tmpdir, "--filedirectory", tmpdir])
+		pysql.main([dbname, tempname, "-v3", "--scpdirectory", tmpdir, "--filedirectory", tmpdir])
 	finally:
 		os.remove(tempname)
 
@@ -134,27 +129,27 @@ def cleanup():
 	with orasql.connect(dbname) as db:
 		c = db.cursor()
 		try:
-			c.execute("drop table oradd_test_table")
+			c.execute("drop table pysql_test_table")
 		except cx_Oracle.DatabaseError:
 			pass
 		try:
-			c.execute("drop sequence oradd_test_sequence")
+			c.execute("drop sequence pysql_test_sequence")
 		except cx_Oracle.DatabaseError:
 			pass
 
 
 @pytest.mark.db
-def test_oradd(tmpdir):
+def test_pysql(tmpdir):
 	cleanup()
 
 	execute_commands(commands(), "{}/".format(tmpdir))
 
 	with orasql.connect(dbname) as db:
 		c = db.cursor()
-		c.execute("select odtt_id from oradd_test_table order by odtt_id")
+		c.execute("select odtt_id from pysql_test_table order by odtt_id")
 		data = [int(r.odtt_id) for r in c]
 		assert data == [1, 101]
-		c.execute("select oradd_test_sequence.nextval as nv from dual")
+		c.execute("select pysql_test_sequence.nextval as nv from dual")
 		data = c.fetchone().nv
 		assert data == 111
 
