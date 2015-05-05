@@ -27,10 +27,14 @@ Changes in 5.14 (released ??/??/2015)
 		<? end for ?>
 
 *	Stacktraces produced by UL4 templates now include less chained exceptions
-	and are much mor informative.
+	and are much more informative.
 
 *	The ``rul4`` option :option:`--keepws` has been renamed to
 	:option:`--whitespace` and defaults to ``smart`` now.
+
+*	``rul4`` got a new option :option:`--stacktrace`: ``full`` displays the full
+	Python stack trace, ``short`` only display the exception chain without
+	displaying any Python source.
 
 *	Templates used in ``rul4`` have access to a new function: ``import``, which
 	can be used to load templates from any file.
@@ -45,10 +49,6 @@ Changes in 5.14 (released ??/??/2015)
 
 		>>> misc.format_exception(ValueError("bad value"))
 		'ValueError: bad value'
-
-*	``rul4`` got a new option :option:`--stacktrace`: ``full`` displays the full
-	Python stack trace, ``short`` only display the exception chain without
-	displaying any Python source.
 
 *	``+`` in the path part of URLs are now considered safe characters. Spaces
 	will be escaped as ``%20`` and no longer as ``+``.
