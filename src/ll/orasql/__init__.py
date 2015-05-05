@@ -1424,7 +1424,10 @@ class Comment(Object):
 		rec = cursor.fetchone()
 		return rec is not None
 
-	def createddl(self, connection=None, term=True):
+	def comment(self, connection=None):
+		"""
+		Return the comment text for this column.
+		"""
 		(connection, cursor) = self.getcursor(connection)
 		tcname = self.name.split(".")
 		cursor.execute("select comments from {}_col_comments where owner=nvl(:owner, user) and table_name=:tname and column_name=:cname".format(cursor.ddprefix()), owner=self.owner, tname=tcname[0], cname=tcname[1])
@@ -1432,9 +1435,13 @@ class Comment(Object):
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
 
+		return rec.comments
+
+	def createddl(self, connection=None, term=True):
+		comment = self.comment(connection)
 		name = self.getfullname()
-		if rec.comments:
-			code = "comment on column {} is {}".format(name, formatstring(rec.comments, latin1=True))
+		if comment:
+			code = "comment on column {} is {}".format(name, formatstring(comment, latin1=True))
 		else:
 			code = "comment on column {} is ''".format(name)
 		if term:

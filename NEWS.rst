@@ -53,6 +53,9 @@ Changes in 5.14 (released ??/??/2015)
 *	``+`` in the path part of URLs are now considered safe characters. Spaces
 	will be escaped as ``%20`` and no longer as ``+``.
 
+*	:class:`ll.orasql.Comment` has a new method :meth:`comment` that returns the
+	text of the column comment itself.
+
 
 Changes in 5.13 (released 12/18/2014)
 -------------------------------------
