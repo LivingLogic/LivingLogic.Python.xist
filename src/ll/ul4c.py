@@ -88,7 +88,7 @@ class Error(Exception):
 		(line, col) = node._linecol()
 
 		if isinstance(node, Tag):
-			code = node.text
+			code = repr(node.text)[1:-1]
 			return "{}offset {:,}:{:,}; line {:,}; col {:,}\n{}\n{}".format(templateprefix, node.startpos, node.endpos, line, col, code, error_underline*len(code))
 		else:
 			tag = self.node.tag
