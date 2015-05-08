@@ -753,13 +753,13 @@ class Executor:
 		filename = self.filedirectory + command["name"].format(**self.keys)
 
 		if self.verbose >= 3:
-			print("#{:,} in {} @ lines {:,}-{:,}: file {}".format(self.count+1, self.filenames(), pos[0], pos[1], name), end="", flush=True)
+			print("#{:,} in {} @ lines {:,}-{:,}: file {}".format(self.count+1, self.filenames(), pos[0], pos[1], filename), end="", flush=True)
 
 		try:
 			with open(filename, "wb") as f:
 				f.write(command["content"])
 		except FileNotFoundError: # probably the directory doesn't exist
-			(splitpath, splitname) = os.path.split(name)
+			(splitpath, splitname) = os.path.split(filename)
 			if splitpath:
 				os.makedirs(splitpath)
 				with open(filename, "wb") as f:
