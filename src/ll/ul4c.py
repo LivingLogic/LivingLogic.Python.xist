@@ -138,16 +138,19 @@ class Undefined:
 		return False
 
 	def __iter__(self):
-		raise TypeError("{!r} doesn't support iteration".format(self))
+		raise TypeError("{!r} is not iterable".format(self))
 
 	def __len__(self):
 		raise AttributeError("{!r} has no len()".format(self))
+
+	def __call__(self, *args, **kwargs):
+		raise TypeError("{!r} is not callable".format(self))
 
 	def __getattr__(self, key):
 		raise AttributeError("{!r} has no attribute {!r}".format(self, key))
 
 	def __getitem__(self, key):
-		raise TypeError("{!r} doesn't support indexing (key={!r})".format(self, key))
+		raise TypeError("{!r} is not subscriptable (key={!r})".format(self, key))
 
 
 class UndefinedKey(Undefined):
