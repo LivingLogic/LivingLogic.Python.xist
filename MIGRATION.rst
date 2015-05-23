@@ -9,6 +9,15 @@ Changes to UL4
 	for the old ``keepws=True`` and ``whitespace="strip"`` for the old
 	``keepws=False``.
 
+*	Rendering an UL4 template from inside a UL4 template is now again done via
+	the ``<?render?>`` tag. So inside a template you have to replace the code::
+
+		<?code template.render(foo, bar)?>
+
+	with::
+
+		<?render template(foo, bar)?>
+
 *	The ``rul4`` option :option:`--keepws` has been renamed to
 	:option:`--whitespace' and defaults to ``smart`` now. So instead of the old
 	``--keepws=1`` pass ``--whitespace=keep`` and for ``--keepws=0`` pass

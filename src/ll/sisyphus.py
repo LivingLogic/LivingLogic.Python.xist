@@ -569,7 +569,7 @@ class Job:
 	encoding = "utf-8"
 	errors = "strict"
 
-	ul4attrs = {"sysinfo", "projectname", "jobname", "identifier", "maxtime", "starttime", "endtime", "maxemailerrors", "logfileurl"}
+	ul4attrs = ul4c.Attrs("sysinfo", "projectname", "jobname", "identifier", "maxtime", "starttime", "endtime", "maxemailerrors", "logfileurl")
 
 	def execute(self):
 		"""
@@ -965,7 +965,7 @@ class Task:
 	A subtask of a :class:`Job`.
 	"""
 
-	ul4attrs = {"index", "count", "type", "name", "starttime", "endtime", "success"}
+	ul4attrs = ul4.Attrs("index", "count", "type", "name", "starttime", "endtime", "success")
 
 	def __init__(self, job, type=None, name=None, index=None, count=None):
 		"""

@@ -23,7 +23,7 @@ possible to implement template renderers in multiple programming languages.
 __docformat__ = "reStructuredText"
 
 
-import sys, re, os.path, types, datetime, urllib.parse as urlparse, json, collections, locale, itertools, random, functools, math, inspect
+import sys, re, os.path, types, datetime, urllib.parse as urlparse, json, collections, locale, itertools, random, functools, math, inspect, contextlib
 
 import antlr3
 
@@ -45,14 +45,22 @@ def register(name):
 	return registration
 
 
-def generator(f):
+def ul4function(context=False):
 	"""
-	Decorating a function with :func:`generator` declares the decorated function
-	to UL4 templates as a generator method (i.e. a method that can generate
-	output and return a value).
+	Normally when a function is exposed to UL4 this function will be called
+	directly.
+
+	However when the function needs access to the rendering context (i.e. the
+	local variables or information about the call stack), the function must have
+	an additional first parameter, and UL4 must be told that this parmeter is
+	required.
+
+	This call be done with this decorator.
 	"""
-	f.__ul4generator__ = True
-	return f
+	def wrapper(f):
+		f.ul4context = context
+		return f
+	return wrapper
 
 
 error_underline = os.environ.get("LL_UL4_ERRORUNDERLINE", "~")[:1] or "~"
@@ -177,22 +185,270 @@ class UndefinedIndex(Undefined):
 		return "UndefinedIndex({!r})".format(self._index)
 
 
+class Context:
+	"""
+	A :class:`Context` object store sthe context of a call to a template. This
+	consists of the local variables and the call stack.
+	"""
+	# "Global" functions. Will be exposed to UL4 code
+	functions = {}
+
+	def __init__(self):
+		self.vars = {}
+
+	@classmethod
+	def makefunction(cls, f):
+		name = f.__name__
+		if name.startswith("function_"):
+			name = name[9:]
+		cls.functions[name] = f
+		return f
+
+	@contextlib.contextmanager
+	def replacevars(self, vars):
+		oldvars = self.vars
+		try:
+			self.vars = vars
+			yield
+		finally:
+			self.vars = oldvars
+
+	@contextlib.contextmanager
+	def chainvars(self):
+		oldvars = self.vars
+		try:
+			self.vars = collections.ChainMap({}, self.vars)
+			yield
+		finally:
+			self.vars = oldvars
+
+
+class Attrs:
+	"""
+	An :class:`Attrs` object can be used to customize which attributes of an
+	object are available to UL4 templates. This is done by setting the class
+	attribute ``ul4attrs`` to an instance of :class:`Attrs` like this::
+
+		class Person:
+			ul4attrs = ul4c.Attrs("firstname", "lastname")
+
+	This makes the attributes ``firstname`` and ``lastname`` of :class:`Person`
+	objects available to UL4 templates as readonly attributes.
+
+	It is also possible to expose attributes under a different name. This can be
+	done via keyword arguments::
+
+		class Person:
+			ul4attrs = ul4c.Attrs(firstname="_firstname", lastname="_lastname")
+
+	Here ``firstname`` is the name of the attribute visible to UL4 templates and
+	``_firstname`` is the real name of the attribute in Python.
+
+	Attributes can also be declared writable via the method :meth:`add`.
+	"""
+	def __init__(self, *args, **kwargs):
+		self._attrs = {}
+		self._call = None
+		self._render = None
+		for attrname in args:
+			if isinstance(attrname, Attrs):
+				self._attrs.update(attrname._attrs)
+				if attrname._call is not None:
+					self._call = attrname._call
+			else:
+				self.add(attrname)
+		for (attrname, realattrname) in kwargs.items():
+			self.add(attrname, realattrname)
+
+	def add(self, ul4name, realname=None, read=True, write=False):
+		"""
+		Adds another attribute to the attributes visible to UL4 templates.
+
+		:obj:`ul4name` is the name of the attribute. If :obj:`realname` is
+		specified :obj:`ul4name` is the name visible to UL4 and :obj:`realname`
+		is the real name of the Python attribute. :obj:`read` and :obj:`write`
+		can be used to declare whether the attribute is readable and/or writeable.
+		"""
+		self._attrs[ul4name] = (realname or ul4name, read, write)
+		return self
+
+	def addfunction(self, name=None, context=False):
+		"""
+		Used as a decorator on a method to expose this method to UL4 templates.
+
+		If :obj:`name` is specified it is the name under which the method will be
+		callable in UL4 (otherwise the original name will be used).
+
+		If :obj:`context` is true the :class:`Context` object will be passed
+		as the first argument to the method.
+
+		Example::
+
+			from ll import ul4c
+
+			class Language:
+				ul4attrs = ul4c.Attrs()
+
+				def __init__(self, name):
+					self._name = name
+
+				@ul4attrs.addfunction()
+				def name(self):
+					return self._name
+
+			langs = [
+				Language("Python"),
+				Language("Java"),
+				Language("Javascript"),
+			]
+
+			template = ul4c.Template('''
+				<?for lang in langs?>
+					<?print lang.name()?>
+				<?end for?>
+			''', whitespace="smart")
+
+			print(template.renders(langs=langs))
+
+		This outputs::
+
+			Python
+			Java
+			Javascript
+		"""
+		def wrapper(f):
+			self._attrs[name or f.__name__] = (f.__name__, True, False)
+			f.ul4context = context
+			return f
+		return wrapper
+
+	def addcall(self, context=False):
+		"""
+		Used as a decorator on a method to make an object callable from UL4 via
+		this method. (Normally an object is callable in UL4 if it is callable
+		in Python.)
+
+		If :obj:`context` is true the :class:`Context` object will be passed
+		as the first argument to the method.
+		"""
+		def wrapper(f):
+			self._call = f.__name__
+			f.ul4context = context
+			return f
+		return wrapper
+
+	def addrender(self, context=False):
+		"""
+		Used as a decorator on a method to make an object "renderable" from UL4
+		via this method. For example::
+
+			from ll import ul4c
+
+			class Language:
+				ul4attrs = ul4c.Attrs()
+
+				def __init__(self, name):
+					self.name = name
+
+				@ul4attrs.addrender(context=True)
+				def render(self, context):
+					yield "language="
+					yield self.name
+
+			langs = [
+				Language("Python"),
+				Language("Java"),
+				Language("Javascript"),
+			]
+
+			template = ul4c.Template('''
+				<?for lang in langs?>
+					<?render lang()?>
+				<?end for?>
+			''', whitespace="smart")
+
+			print(template.renders(langs=langs))
+
+		This outputs:
+
+			language=Python
+			language=Java
+			language=Javascript
+
+		If :obj:`context` is true the :class:`Context` object will be passed
+		as the first argument to the method.
+		"""
+		def wrapper(f):
+			self._render = f.__name__
+			f.ul4context = context
+			return f
+		return wrapper
+
+	def __contains__(self, name):
+		return name in self._attrs
+
+	def __iter__(self):
+		return iter(self._attrs)
+
+	def get(self, obj, name):
+		try:
+			(realname, read, write) = self._attrs[name]
+		except KeyError:
+			return UndefinedKey(name)
+		if not read:
+			raise AttributeError("attribute {!r} of {} object is not readable".format(name, type(obj)))
+		return getattr(obj, realname)
+
+	def set(self, obj, name, value):
+		try:
+			(realname, read, write) = self._attrs[name]
+		except KeyError:
+			raise AttributeError("attribute {!r} of {} object is not writable".format(name, type(obj)))
+		if not write:
+			raise AttributeError("attribute {!r} of {} object is not writable".format(name, type(obj)))
+		setattr(obj, realname, value)
+
 ###
 ### Helper functions
 ###
 
-def _handleeval(f):
+def _handleexpressioneval(f):
 	"""
-	Default decorator for each implementation of the :meth:`eval` method.
+	Decorator for an implementation of the :meth:`eval` method that does not
+	do output (so it is a normal method).
 
 	This decorator is responsible for exception handling. An exception that
 	bubbles up the Python call stack will generate an exception chain that
 	follows the UL4 call stack.
 	"""
 	@functools.wraps(f)
-	def wrapped(self, *args):
+	def wrapped(self, *args, **kwargs):
 		try:
-			return (yield from f(self, *args))
+			return f(self, *args, **kwargs)
+		except (BreakException, ContinueException, ReturnException):
+			# Pass those exception through to the AST nodes that will handle them (:class:`ForBlock` or :class:`Template`)
+			raise
+		except Error:
+			raise
+		except Exception as exc:
+			# Wrap original exception in another exception that shows the location
+			raise Error(self) from exc
+	return wrapped
+
+
+def _handleoutputeval(f):
+	"""
+	Decorator for an implementation of the :meth:`eval` method that does output
+	(so it is a generator).
+
+	This decorator is responsible for exception handling. An exception that
+	bubbles up the Python call stack will generate an exception chain that
+	follows the UL4 call stack.
+	"""
+	@functools.wraps(f)
+	def wrapped(self, *args, **kwargs):
+		try:
+			yield from f(self, *args, **kwargs)
 		except (BreakException, ContinueException, ReturnException):
 			# Pass those exception through to the AST nodes that will handle them (:class:`ForBlock` or :class:`Template`)
 			raise
@@ -219,7 +475,7 @@ def _unpackvar(lvalue, value):
 		# Materialize iterators on the right hand side, but protect against infinite iterators
 		if not isinstance(value, (tuple, list, str)):
 			# If we get one item more than required, we have an error
-			# Also :func:`islice` might fail if the right hand side isn't iterable (e.g. ``(a, b) == 42``)
+			# Also :func:`islice` might fail if the right hand side isn't iterable (e.g. ``(a, b) = 42``)
 			value = list(itertools.islice(value, len(lvalue)+1))
 		if len(lvalue) != len(value):
 			# The number of variables on the left hand side doesn't match the number of values on the right hand side
@@ -228,21 +484,11 @@ def _unpackvar(lvalue, value):
 			yield from _unpackvar(lvalue, value)
 
 
-def _resultfromgenerator(iter):
-	"""
-	Exhaust a generator and return it return value
-	"""
-	try:
-		while True:
-			next(iter)
-	except StopIteration as exc:
-		return exc.value
-
-
 def _makevars(signature, args, kwargs):
 	"""
 	Bind :obj:`args` and :obj:`kwargs` to the :class:`inspect.Signature` object
-	:obj:`signature` and return the resulting argument dictionary.
+	:obj:`signature` and return the resulting argument dictionary. (This differs
+	from :meth:`inspect.Signature.bind` in that it handles default values too.)
 
 	:obj:`signature` may also be ``None`` in which case :obj:`args` must be empty
 	and :obj:kwargs is returned, i.e. the signature is treaded als accepting no
@@ -266,6 +512,10 @@ def _makevars(signature, args, kwargs):
 				vars.arguments[param.name] = default
 		return vars.arguments
 
+
+###
+### Helper functions for the various UL4 functions
+###
 
 def _str(obj=""):
 	if obj is None:
@@ -392,7 +642,7 @@ def _xmlescape(obj):
 
 
 ###
-### Compiler stuff: Nodes for the AST
+### Node classes for the abstract syntax tree
 ###
 
 class AST:
@@ -400,11 +650,12 @@ class AST:
 	Base class for all syntax tree nodes.
 	"""
 
-	# Set of attributes available via to UL4 templates
-	ul4attrs = {"type", "startpos", "endpos"}
+	# Set of attributes available to UL4 templates
+	ul4attrs = Attrs("type", "startpos", "endpos")
 
-	# "Global" functions. Will be exposed to UL4 code
-	functions = {}
+	# Specifies whether the node does output (so :meth:`eval` is a generator)
+	# or not (so :meth:`eval` is a normal method).
+	output = False
 
 	def __init__(self, startpos=None, endpos=None):
 		self.startpos = startpos
@@ -471,15 +722,19 @@ class AST:
 			v.append("\n")
 		return "".join(v)
 
-	def eval(self, vars):
+	def eval(self, context):
 		"""
 		This evaluates the node.
 
-		This is a generator, which yields the text output of the node. If the
-		node returns a value (as most nodes do), this is done as the value of a
-		:exc:`StopIteration` exception.
+		For most nodes this is a normal function that returns the result of
+		evaluating the node. (For these nodes the class attribute :obj:`output`
+		is false.). For nodes that produce output (like literal text,
+		:class:`Print`, :class:`PrintX` or :class:`Render`) it is a generator
+		which yields the text output of the node. For blocks (which might contain
+		nodes which produce output) this is also a generator. (For these nodes
+		the class attribute :obj:`output` is true.)
 		"""
-		yield from ()
+		pass
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.startpos)
@@ -489,13 +744,6 @@ class AST:
 		self.startpos = decoder.load()
 		self.endpos = decoder.load()
 
-	@classmethod
-	def makefunction(cls, f):
-		name = f.__name__
-		if name.startswith("function_"):
-			name = name[9:]
-		cls.functions[name] = f
-		return f
 
 
 @register("text")
@@ -504,7 +752,9 @@ class Text(AST):
 	AST node for literal text.
 	"""
 
-	ul4attrs = AST.ul4attrs.union({"source", "text"})
+	ul4attrs = Attrs(AST.ul4attrs, "source", "text")
+
+	output = True
 
 	def __init__(self, source=None, startpos=None, endpos=None):
 		super().__init__(startpos, endpos)
@@ -536,7 +786,7 @@ class Text(AST):
 		super().ul4onload(decoder)
 		self.source = decoder.load()
 
-	def eval(self, vars):
+	def eval(self, context):
 		yield self.text
 
 
@@ -590,7 +840,7 @@ class Tag(AST):
 	"""
 	A :class:`Tag` object is the location of a template tag in a template.
 	"""
-	ul4attrs = AST.ul4attrs.union({"source", "tag", "startposcode", "endposcode", "text", "code"})
+	ul4attrs = Attrs(AST.ul4attrs, "source", "tag", "startposcode", "endposcode", "text", "code")
 
 	def __init__(self, source=None, tag=None, startpos=None, endpos=None, startposcode=None, endposcode=None):
 		super().__init__(startpos, endpos)
@@ -642,7 +892,7 @@ class Code(AST):
 	The base class of all AST nodes that appear inside a :class:`Tag`.
 	"""
 
-	ul4attrs = AST.ul4attrs.union({"tag"})
+	ul4attrs = Attrs(AST.ul4attrs, "tag")
 
 	def __init__(self, tag=None, startpos=None, endpos=None):
 		super().__init__(startpos, endpos)
@@ -674,14 +924,14 @@ class Const(Code):
 	"""
 	Load a constant
 	"""
-	ul4attrs = Code.ul4attrs.union({"value"})
+	ul4attrs = Attrs(Code.ul4attrs, "value")
 
 	def __init__(self, tag=None, startpos=None, endpos=None, value=None):
 		super().__init__(tag, startpos, endpos)
 		self.value = value
 
-	def eval(self, vars):
-		yield from ()
+	def eval(self, context):
+		# We don't need a decorator, because this can't fail anyway.
 		return self.value
 
 	def ul4ondump(self, encoder):
@@ -707,7 +957,7 @@ class List(Code):
 	AST nodes for loading a list object.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"items"})
+	ul4attrs = Attrs(Code.ul4attrs, "items")
 
 	def __init__(self, tag=None, startpos=None, endpos=None, *items):
 		super().__init__(tag, startpos, endpos)
@@ -721,13 +971,9 @@ class List(Code):
 			p.breakable()
 			p.pretty(item)
 
-	@_handleeval
-	def eval(self, vars):
-		result = []
-		for item in self.items:
-			item = (yield from item.eval(vars))
-			result.append(item)
-		return result
+	@_handleexpressioneval
+	def eval(self, context):
+		return [item.eval(context) for item in self.items]
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -744,7 +990,7 @@ class ListComp(Code):
 	AST node for list comprehension.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"item", "varname", "container", "condition"})
+	ul4attrs = Attrs(Code.ul4attrs, "item", "varname", "container", "condition")
 
 	def __init__(self, tag=None, startpos=None, endpos=None, item=None, varname=None, container=None, condition=None):
 		super().__init__(tag, startpos, endpos)
@@ -778,18 +1024,17 @@ class ListComp(Code):
 			p.text("condition=")
 			p.pretty(self.condition)
 
-	@_handleeval
-	def eval(self, vars):
-		container = (yield from self.container.eval(vars))
-		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
-		result = []
-		for item in container:
-			for (lvalue, value) in _unpackvar(self.varname, item):
-				yield from lvalue.evalsetvar(vars, value)
-			if self.condition is None or (yield from self.condition.eval(vars)):
-				item = (yield from self.item.eval(vars))
-				result.append(item)
-		return result
+	@_handleexpressioneval
+	def eval(self, context):
+		container = self.container.eval(context)
+		with context.chainvars(): # Don't let loop variables leak into the surrounding scope
+			result = []
+			for item in container:
+				for (lvalue, value) in _unpackvar(self.varname, item):
+					lvalue.evalset(context, value)
+				if self.condition is None or self.condition.eval(context):
+					result.append(self.item.eval(context))
+			return result
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -812,7 +1057,7 @@ class Set(Code):
 	AST nodes for loading a set object.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"items"})
+	ul4attrs = Attrs(Code.ul4attrs, "items")
 
 	def __init__(self, tag=None, startpos=None, endpos=None, *items):
 		super().__init__(tag, startpos, endpos)
@@ -826,13 +1071,9 @@ class Set(Code):
 			p.breakable()
 			p.pretty(item)
 
-	@_handleeval
-	def eval(self, vars):
-		result = set()
-		for item in self.items:
-			item = (yield from item.eval(vars))
-			result.add(item)
-		return result
+	@_handleexpressioneval
+	def eval(self, context):
+		return {item.eval(context) for item in self.items}
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -849,7 +1090,7 @@ class SetComp(Code):
 	AST node for set comprehension.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"item", "varname", "container", "condition"})
+	ul4attrs = Attrs(Code.ul4attrs, "item", "varname", "container", "condition")
 
 	def __init__(self, tag=None, startpos=None, endpos=None, item=None, varname=None, container=None, condition=None):
 		super().__init__(tag, startpos, endpos)
@@ -883,17 +1124,16 @@ class SetComp(Code):
 			p.text("condition=")
 			p.pretty(self.condition)
 
-	@_handleeval
-	def eval(self, vars):
-		container = (yield from self.container.eval(vars))
-		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
-		result = set()
-		for item in container:
-			for (lvalue, value) in _unpackvar(self.varname, item):
-				yield from lvalue.evalsetvar(vars, value)
-			if self.condition is None or (yield from self.condition.eval(vars)):
-				item = (yield from self.item.eval(vars))
-				result.add(item)
+	@_handleexpressioneval
+	def eval(self, context):
+		container = self.container.eval(context)
+		with context.chainvars(): # Don't let loop variables leak into the surrounding scope
+			result = set()
+			for item in container:
+				for (lvalue, value) in _unpackvar(self.varname, item):
+					lvalue.evalset(context, value)
+				if self.condition is None or self.condition.eval(context):
+					result.add(self.item.eval(context))
 		return result
 
 	def ul4ondump(self, encoder):
@@ -917,7 +1157,7 @@ class Dict(Code):
 	AST node for loading a dict object.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"items"})
+	ul4attrs = Attrs(Code.ul4attrs, "items")
 
 	def __init__(self, tag=None, startpos=None, endpos=None, *items):
 		super().__init__(tag, startpos, endpos)
@@ -933,14 +1173,9 @@ class Dict(Code):
 			p.text("=")
 			p.pretty(item[1])
 
-	@_handleeval
-	def eval(self, vars):
-		result = {}
-		for item in self.items:
-			key = (yield from item[0].eval(vars))
-			value = (yield from item[1].eval(vars))
-			result[key] = value
-		return result
+	@_handleexpressioneval
+	def eval(self, context):
+		return {key.eval(context): value.eval(context) for (key, value) in self.items}
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -957,7 +1192,7 @@ class DictComp(Code):
 	AST node for dictionary comprehension.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"key", "value", "varname", "container", "condition"})
+	ul4attrs = Attrs(Code.ul4attrs, "key", "value", "varname", "container", "condition")
 
 	def __init__(self, tag=None, startpos=None, endpos=None, key=None, value=None, varname=None, container=None, condition=None):
 		super().__init__(tag, startpos, endpos)
@@ -993,19 +1228,17 @@ class DictComp(Code):
 			p.text("condition=")
 			p.pretty(self.condition)
 
-	@_handleeval
-	def eval(self, vars):
-		container = (yield from self.container.eval(vars))
-		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
-		result = {}
-		for item in container:
-			for (lvalue, value) in _unpackvar(self.varname, item):
-				yield from lvalue.evalsetvar(vars, value)
-			if self.condition is None or (yield from self.condition.eval(vars)):
-				key = (yield from self.key.eval(vars))
-				value = (yield from self.value.eval(vars))
-				result[key] = value
-		return result
+	@_handleexpressioneval
+	def eval(self, context):
+		container = self.container.eval(context)
+		with context.chainvars(): # Don't let loop variables leak into the surrounding scope
+			result = {}
+			for item in container:
+				for (lvalue, value) in _unpackvar(self.varname, item):
+					lvalue.evalset(context, value)
+				if self.condition is None or self.condition.eval(context):
+					result[self.key.eval(context)] = self.value.eval(context)
+			return result
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1030,7 +1263,7 @@ class GenExpr(Code):
 	AST node for a generator expression.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"item", "varname", "container", "condition"})
+	ul4attrs = Attrs(Code.ul4attrs, "item", "varname", "container", "condition")
 
 	def __init__(self, tag=None, startpos=None, endpos=None, item=None, varname=None, container=None, condition=None):
 		super().__init__(tag, startpos, endpos)
@@ -1061,19 +1294,21 @@ class GenExpr(Code):
 			p.text("condition=")
 			p.pretty(self.condition)
 
-	@_handleeval
-	def eval(self, vars):
-		container = (yield from self.container.eval(vars))
-		vars = collections.ChainMap({}, vars) # Don't let loop variables leak into the surrounding scope
+	def eval(self, context):
+		container = self.container.eval(context)
 
-		def result():
-			for item in container:
-				for (lvalue, value) in _unpackvar(self.varname, item):
-					yield from lvalue.evalsetvar(vars, value)
-				if self.condition is None or (yield from self.condition.eval(vars)):
-					item = (yield from self.item.eval(vars))
-					yield item
-		return result()
+		try:
+			with context.chainvars(): # Don't let loop variables leak into the surrounding scope
+				for item in container:
+					for (lvalue, value) in _unpackvar(self.varname, item):
+						lvalue.evalset(context, value)
+					if self.condition is None or self.condition.eval(context):
+						yield self.item.eval(context)
+		except Error:
+			raise
+		except Exception as exc:
+			# Wrap original exception in another exception that shows the location
+			raise Error(self) from exc
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1096,7 +1331,7 @@ class Var(Code):
 	AST nodes for loading a variable.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"name"})
+	ul4attrs = Attrs(Code.ul4attrs, "name")
 
 	def __init__(self, tag=None, startpos=None, endpos=None, name=None):
 		super().__init__(tag, startpos, endpos)
@@ -1110,26 +1345,23 @@ class Var(Code):
 		p.text("name=")
 		p.pretty(self.name)
 
-	@_handleeval
-	def eval(self, vars):
-		yield from ()
+	@_handleexpressioneval
+	def eval(self, context):
 		try:
-			return vars[self.name]
+			return context.vars[self.name]
 		except KeyError:
 			try:
-				return self.functions[self.name]
+				return context.functions[self.name]
 			except KeyError:
 				return UndefinedVariable(self.name)
 
-	@_handleeval
-	def evalsetvar(self, vars, value):
-		yield from ()
-		vars[self.name] = value
+	@_handleexpressioneval
+	def evalset(self, context, value):
+		context.vars[self.name] = value
 
-	@_handleeval
-	def evalmodifyvar(self, operator, vars, value):
-		yield from ()
-		vars[self.name] = operator.evalfoldaug(vars[self.name], value)
+	@_handleexpressioneval
+	def evalmodify(self, operator, context, value):
+		context.vars[self.name] = operator.evalfoldaug(context.vars[self.name], value)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1149,7 +1381,9 @@ class Block(Code):
 	(e.g. a ``<?for?>`` block).
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"endtag", "content"})
+	output = True
+
+	ul4attrs = Attrs(Code.ul4attrs, "endtag", "content")
 
 	def __init__(self, tag=None, startpos=None, endpos=None):
 		super().__init__(tag, startpos, endpos)
@@ -1168,10 +1402,12 @@ class Block(Code):
 			yield "pass"
 			yield None
 
-	@_handleeval
-	def eval(self, vars):
+	@_handleoutputeval
+	def eval(self, context):
 		for node in self.content:
-			yield from node.eval(vars)
+			result = node.eval(context)
+			if node.output:
+				yield from result
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1215,11 +1451,11 @@ class CondBlock(Block):
 		for node in self.content:
 			yield from node._str()
 
-	@_handleeval
-	def eval(self, vars):
+	@_handleoutputeval
+	def eval(self, context):
 		for node in self.content:
-			if isinstance(node, ElseBlock) or (yield from node.condition.eval(vars)):
-				yield from node.eval(vars)
+			if isinstance(node, ElseBlock) or node.condition.eval(context):
+				yield from node.eval(context)
 				break
 
 
@@ -1229,7 +1465,7 @@ class IfBlock(Block):
 	AST node for an ``<?if?>`` block.
 	"""
 
-	ul4attrs = Block.ul4attrs.union({"condition"})
+	ul4attrs = Attrs(Block.ul4attrs, "condition")
 
 	def __init__(self, tag=None, startpos=None, endpos=None, condition=None):
 		super().__init__(tag, startpos, endpos)
@@ -1270,7 +1506,7 @@ class ElIfBlock(Block):
 	AST node for an ``<?elif?>`` block.
 	"""
 
-	ul4attrs = Block.ul4attrs.union({"condition"})
+	ul4attrs = Attrs(Block.ul4attrs, "condition")
 
 	def __init__(self, tag=None, startpos=None, endpos=None, condition=None):
 		super().__init__(tag, startpos, endpos)
@@ -1330,7 +1566,7 @@ class ForBlock(Block):
 	AST node for a ``<?for?>`` loop.
 	"""
 
-	ul4attrs = Block.ul4attrs.union({"varname", "container"})
+	ul4attrs = Attrs(Block.ul4attrs, "varname", "container")
 
 	def __init__(self, tag=None, startpos=None, endpos=None, varname=None, container=None):
 		super().__init__(tag, startpos, endpos)
@@ -1371,16 +1607,16 @@ class ForBlock(Block):
 		yield from super()._str()
 		yield -1
 
-	@_handleeval
-	def eval(self, vars):
-		container = (yield from self.container.eval(vars))
+	@_handleoutputeval
+	def eval(self, context):
+		container = self.container.eval(context)
 		if hasattr(container, "ul4attrs"):
-			container = (attrname.lstrip("+") for attrname in container.ul4attrs)
+			container = container.ul4attrs
 		for item in container:
 			for (lvalue, value) in _unpackvar(self.varname, item):
-				yield from lvalue.evalsetvar(vars, value)
+				lvalue.evalset(context, value)
 			try:
-				yield from super().eval(vars)
+				yield from super().eval(context)
 			except BreakException:
 				break
 			except ContinueException:
@@ -1393,7 +1629,7 @@ class WhileBlock(Block):
 	AST node for a ``<?while?>`` loop.
 	"""
 
-	ul4attrs = Block.ul4attrs.union({"condition"})
+	ul4attrs = Attrs(Block.ul4attrs, "condition")
 
 	def __init__(self, tag=None, startpos=None, endpos=None, condition=None):
 		super().__init__(tag, startpos, endpos)
@@ -1427,14 +1663,14 @@ class WhileBlock(Block):
 		yield from super()._str()
 		yield -1
 
-	@_handleeval
-	def eval(self, vars):
+	@_handleoutputeval
+	def eval(self, context):
 		while 1:
-			condition = (yield from self.condition.eval(vars))
+			condition = self.condition.eval(context)
 			if not condition:
 				break
 			try:
-				yield from super().eval(vars)
+				yield from super().eval(context)
 			except BreakException:
 				break
 			except ContinueException:
@@ -1450,8 +1686,8 @@ class Break(Code):
 	def _str(self):
 		yield "break"
 
-	def eval(self, vars):
-		yield from ()
+	@_handleexpressioneval
+	def eval(self, context):
 		raise BreakException()
 
 
@@ -1464,8 +1700,8 @@ class Continue(Code):
 	def _str(self):
 		yield "continue"
 
-	def eval(self, vars):
-		yield from ()
+	@_handleexpressioneval
+	def eval(self, context):
 		raise ContinueException()
 
 
@@ -1477,7 +1713,7 @@ class Attr(Code):
 	The object is loaded from the AST node :obj:`obj` and the attribute name
 	is stored in the string :obj:`attrname`.
 	"""
-	ul4attrs = AST.ul4attrs.union({"obj", "attrname"})
+	ul4attrs = Attrs(AST.ul4attrs, "obj", "attrname")
 
 	def __init__(self, tag=None, startpos=None, endpos=None, obj=None, attrname=None):
 		super().__init__(tag, startpos, endpos)
@@ -1496,24 +1732,14 @@ class Attr(Code):
 		p.text("attrname=")
 		p.pretty(self.attrname)
 
-	@_handleeval
-	def eval(self, vars):
-		obj = (yield from self.obj.eval(vars))
+	@_handleexpressioneval
+	def eval(self, context):
+		obj = self.obj.eval(context)
 		if hasattr(obj, "ul4attrs"):
 			if self.attrname in {"items", "values"}:
 				return self.method_dict(obj, self.attrname)
-			if isinstance(obj.ul4attrs, dict):
-				if self.attrname in obj.ul4attrs:
-					try:
-						(realattrname, mode) = obj.ul4attrs[self.attrname]
-					except KeyError:
-						pass # fall through to the return statement below
-					else:
-						if "r" in mode:
-							return getattr(obj, realattrname, UndefinedKey(self.attrname))
-			else:
-				if self.attrname in obj.ul4attrs:
-					return getattr(obj, self.attrname, UndefinedKey(self.attrname))
+			if hasattr(obj, "ul4attrs"):
+				return obj.ul4attrs.get(obj, self.attrname)
 			return UndefinedKey(self.attrname)
 		elif isinstance(obj, str):
 			return self.method_str(obj, self.attrname)
@@ -1782,39 +2008,21 @@ class Attr(Code):
 			result = UndefinedKey(methname)
 		return result
 
-	@_handleeval
-	def evalsetvar(self, vars, value):
-		obj = (yield from self.obj.eval(vars))
+	@_handleexpressioneval
+	def evalset(self, context, value):
+		obj = self.obj.eval(context)
 		if hasattr(obj, "ul4attrs"):
-			if isinstance(obj.ul4attrs, dict):
-				try:
-					(realattrname, mode) = obj.ul4attrs[self.attrname]
-				except KeyError:
-					pass # fall through to the raise statement below
-				else:
-					if "w" in mode:
-						setattr(obj, realattrname, value)
-						return
-			raise AttributeError("attribute {!r} is readonly".format(self.attrname))
+			obj.ul4attrs.set(obj, self.attrname, value)
 		else:
 			obj[self.attrname] = value
 
-	@_handleeval
-	def evalmodifyvar(self, operator, vars, value):
-		obj = (yield from self.obj.eval(vars))
+	@_handleexpressioneval
+	def evalmodify(self, operator, context, value):
+		obj = self.obj.eval(context)
 		if hasattr(obj, "ul4attrs"):
-			if isinstance(obj.ul4attrs, dict):
-				try:
-					(realattrname, mode) = obj.ul4attrs[self.attrname]
-				except KeyError:
-					pass # fall through to the raise statement below
-				else:
-					if "r" in mode and "w" in mode:
-						attr = getattr(obj, realattrname)
-						attr = operator.evalfoldaug(attr, value)
-						setattr(obj, realattrname, attr)
-						return
-			raise AttributeError("attribute {!r} is readonly".format(self.attrname))
+			oldvalue = obj.ul4attrs.get(obj, self.attrname)
+			newvalue = operator.evalfoldaug(oldvalue, value)
+			obj.ul4attrs.set(obj, self.attrname, newvalue)
 		else:
 			obj[self.attrname] = operator.evalfoldaug(obj[self.attrname], value)
 
@@ -1840,7 +2048,7 @@ class Slice(Code):
 	the length of the sequence for the end index).
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"index1", "index2"})
+	ul4attrs = Attrs(Code.ul4attrs, "index1", "index2")
 
 	def __init__(self, tag=None, startpos=None, endpos=None, index1=None, index2=None):
 		super().__init__(tag, startpos, endpos)
@@ -1863,14 +2071,14 @@ class Slice(Code):
 			p.text("index2=")
 			p.pretty(self.index2)
 
-	@_handleeval
-	def eval(self, vars):
+	@_handleexpressioneval
+	def eval(self, context):
 		index1 = None
 		if self.index1 is not None:
-			index1 = (yield from self.index1.eval(vars))
+			index1 = self.index1.eval(context)
 		index2 = None
 		if self.index2 is not None:
-			index2 = (yield from self.index2.eval(vars))
+			index2 = self.index2.eval(context)
 		return slice(index1, index2)
 
 	def ul4ondump(self, encoder):
@@ -1889,7 +2097,7 @@ class Unary(Code):
 	Base class for all AST nodes implementing unary operators.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"obj"})
+	ul4attrs = Attrs(Code.ul4attrs, "obj")
 
 	def __init__(self, tag=None, startpos=None, endpos=None, obj=None):
 		super().__init__(tag, startpos, endpos)
@@ -1910,9 +2118,9 @@ class Unary(Code):
 		super().ul4onload(decoder)
 		self.obj = decoder.load()
 
-	@_handleeval
-	def eval(self, vars):
-		obj = (yield from self.obj.eval(vars))
+	@_handleexpressioneval
+	def eval(self, context):
+		obj = self.obj.eval(context)
 		return self.evalfold(obj)
 
 	@classmethod
@@ -1963,13 +2171,15 @@ class Print(Unary):
 	AST node for a ``<?print?>`` tag.
 	"""
 
+	output = True
+
 	def _str(self):
 		yield "print "
 		yield from super()._str()
 
-	@_handleeval
-	def eval(self, vars):
-		yield _str((yield from self.obj.eval(vars)))
+	@_handleoutputeval
+	def eval(self, context):
+		yield _str(self.obj.eval(context))
 
 
 @register("printx")
@@ -1978,13 +2188,15 @@ class PrintX(Unary):
 	AST node for a ``<?printx?>`` tag.
 	"""
 
+	output = True
+
 	def _str(self):
 		yield "printx "
 		yield from super()._str()
 
-	@_handleeval
-	def eval(self, vars):
-		yield _xmlescape((yield from self.obj.eval(vars)))
+	@_handleoutputeval
+	def eval(self, context):
+		yield _xmlescape(self.obj.eval(context))
 
 
 @register("return")
@@ -1997,9 +2209,9 @@ class Return(Unary):
 		yield "return "
 		yield from super()._str()
 
-	@_handleeval
-	def eval(self, vars):
-		value = (yield from self.obj.eval(vars))
+	@_handleexpressioneval
+	def eval(self, context):
+		value = self.obj.eval(context)
 		raise ReturnException(value)
 
 
@@ -2008,7 +2220,7 @@ class Binary(Code):
 	Base class for all AST nodes implementing binary operators.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"obj1", "obj2"})
+	ul4attrs = Attrs(Code.ul4attrs, "obj1", "obj2")
 
 	def __init__(self, tag=None, startpos=None, endpos=None, obj1=None, obj2=None):
 		super().__init__(tag, startpos, endpos)
@@ -2035,10 +2247,10 @@ class Binary(Code):
 		self.obj1 = decoder.load()
 		self.obj2 = decoder.load()
 
-	@_handleeval
-	def eval(self, vars):
-		obj1 = (yield from self.obj1.eval(vars))
-		obj2 = (yield from self.obj2.eval(vars))
+	@_handleexpressioneval
+	def eval(self, context):
+		obj1 = self.obj1.eval(context)
+		obj2 = self.obj2.eval(context)
 		return self.evalfold(obj1, obj2)
 
 	@classmethod
@@ -2062,17 +2274,7 @@ class Item(Binary):
 	@classmethod
 	def evalfold(cls, obj1, obj2):
 		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
-			if isinstance(obj1.ul4attrs, dict):
-				try:
-					(realattrname, mode) = obj1.ul4attrs[obj2]
-				except KeyError:
-					return UndefinedKey(obj2)
-				else:
-					if "r" in mode:
-						return getattr(obj1, realattrname, UndefinedKey(obj2))
-			else:
-				return getattr(obj1, obj2, UndefinedKey(obj2))
-			return UndefinedKey(obj2)
+			return obj1.ul4attrs.get(obj1, obj2)
 		try:
 			return obj1[obj2]
 		except KeyError:
@@ -2080,41 +2282,23 @@ class Item(Binary):
 		except IndexError:
 			return UndefinedIndex(obj2)
 
-	@_handleeval
-	def evalsetvar(self, vars, value):
-		obj1 = (yield from self.obj1.eval(vars))
-		obj2 = (yield from self.obj2.eval(vars))
+	@_handleexpressioneval
+	def evalset(self, context, value):
+		obj1 = self.obj1.eval(context)
+		obj2 = self.obj2.eval(context)
 		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
-			if isinstance(obj1.ul4attrs, dict):
-				try:
-					(realattrname, mode) = obj1.ul4attrs[obj2]
-				except KeyError:
-					pass # fall through to the raise statement below
-				else:
-					if "w" in mode:
-						setattr(obj1, realattrname, value)
-						return
-			raise AttributeError("attribute {!r} is readonly".format(obj2))
+			obj1.ul4attrs.set(obj1, obj2, value)
 		else:
 			obj1[obj2] = value
 
-	@_handleeval
-	def evalmodifyvar(self, operator, vars, value):
-		obj1 = (yield from self.obj1.eval(vars))
-		obj2 = (yield from self.obj2.eval(vars))
+	@_handleexpressioneval
+	def evalmodify(self, operator, context, value):
+		obj1 = self.obj1.eval(context)
+		obj2 = self.obj2.eval(context)
 		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
-			if isinstance(obj1.ul4attrs, dict):
-				try:
-					(realattrname, mode) = obj1.ul4attrs[obj2]
-				except KeyError:
-					pass # fall through to the raise statement below
-				else:
-					if "r" in mode and "w" in mode:
-						attr = getattr(obj1, realattrname)
-						attr = operator.evalfoldaug(attr, value)
-						setattr(obj1, realattrname, attr)
-						return
-			raise AttributeError("attribute {!r} is readonly".format(obj2))
+			oldvalue = obj1.ul4attrs.get(obj1, obj2)
+			newvalue = operator.evalfoldaug(oldvalue, value)
+			obj1.ul4attrs.set(obj1, obj2, newvalue)
 		else:
 			obj1[obj2] = operator.evalfoldaug(obj1[obj2], value)
 
@@ -2438,12 +2622,12 @@ class And(Binary):
 		# This is not called from ``eval``, as it doesn't short-circuit
 		return obj1 and obj2
 
-	@_handleeval
-	def eval(self, vars):
-		obj1 = (yield from self.obj1.eval(vars))
+	@_handleexpressioneval
+	def eval(self, context):
+		obj1 = self.obj1.eval(context)
 		if not obj1:
 			return obj1
-		return (yield from self.obj2.eval(vars))
+		return self.obj2.eval(context)
 
 
 @register("or")
@@ -2457,12 +2641,12 @@ class Or(Binary):
 		# This is not called from ``eval``, as it doesn't short-circuit
 		return obj1 or obj2
 
-	@_handleeval
-	def eval(self, vars):
-		obj1 = (yield from self.obj1.eval(vars))
+	@_handleexpressioneval
+	def eval(self, context):
+		obj1 = self.obj1.eval(context)
 		if obj1:
 			return obj1
-		return (yield from self.obj2.eval(vars))
+		return self.obj2.eval(context)
 
 
 @register("if")
@@ -2471,7 +2655,7 @@ class If(Code):
 	AST node for the ternary inline ``if/else`` operator.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"objif", "objcond", "objelse"})
+	ul4attrs = Attrs(Code.ul4attrs, "objif", "objcond", "objelse")
 
 	def __init__(self, tag=None, startpos=None, endpos=None, objif=None, objcond=None, objelse=None):
 		super().__init__(tag, startpos, endpos)
@@ -2510,13 +2694,12 @@ class If(Code):
 			return objif if objcond.value else objelse
 		return cls(startpos, endpos, tag, objif, objcond, objelse)
 
-	@_handleeval
-	def eval(self, vars):
-		objcond = (yield from self.objcond.eval(vars))
-		if objcond:
-			return (yield from self.objif.eval(vars))
+	@_handleexpressioneval
+	def eval(self, context):
+		if self.objcond.eval(context):
+			return self.objif.eval(context)
 		else:
-			return (yield from self.objelse.eval(vars))
+			return self.objelse.eval(context)
 
 
 class ChangeVar(Code):
@@ -2528,7 +2711,7 @@ class ChangeVar(Code):
 	AST node :obj:`value`.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"lvalue", "value"})
+	ul4attrs = Attrs(Code.ul4attrs, "lvalue", "value")
 
 	def __init__(self, tag=None, startpos=None, endpos=None, lvalue=None, value=None):
 		super().__init__(tag, startpos, endpos)
@@ -2564,11 +2747,11 @@ class SetVar(ChangeVar):
 	AST node that stores a value into a variable.
 	"""
 
-	@_handleeval
-	def eval(self, vars):
-		value = (yield from self.value.eval(vars))
+	@_handleexpressioneval
+	def eval(self, context):
+		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalsetvar(vars, value)
+			lvalue.evalset(context, value)
 
 
 @register("addvar")
@@ -2577,11 +2760,11 @@ class AddVar(ChangeVar):
 	AST node that adds a value to a variable (i.e. the ``+=`` operator).
 	"""
 
-	@_handleeval
-	def eval(self, vars):
-		value = (yield from self.value.eval(vars))
+	@_handleexpressioneval
+	def eval(self, context):
+		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalmodifyvar(Add, vars, value)
+			lvalue.evalmodify(Add, context, value)
 
 
 @register("subvar")
@@ -2590,11 +2773,11 @@ class SubVar(ChangeVar):
 	AST node that substracts a value from a variable (i.e. the ``-=`` operator).
 	"""
 
-	@_handleeval
-	def eval(self, vars):
-		value = (yield from self.value.eval(vars))
+	@_handleexpressioneval
+	def eval(self, context):
+		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalmodifyvar(Sub, vars, value)
+			lvalue.evalmodify(Sub, context, value)
 
 
 @register("mulvar")
@@ -2603,11 +2786,11 @@ class MulVar(ChangeVar):
 	AST node that multiplies a variable by a value (i.e. the ``*=`` operator).
 	"""
 
-	@_handleeval
-	def eval(self, vars):
-		value = (yield from self.value.eval(vars))
+	@_handleexpressioneval
+	def eval(self, context):
+		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalmodifyvar(Mul, vars, value)
+			lvalue.evalmodify(Mul, context, value)
 
 
 @register("floordivvar")
@@ -2617,11 +2800,11 @@ class FloorDivVar(ChangeVar):
 	i.e. the ``//=`` operator).
 	"""
 
-	@_handleeval
-	def eval(self, vars):
-		value = (yield from self.value.eval(vars))
+	@_handleexpressioneval
+	def eval(self, context):
+		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalmodifyvar(FloorDiv, vars, value)
+			lvalue.evalmodify(FloorDiv, context, value)
 
 
 @register("truedivvar")
@@ -2630,11 +2813,11 @@ class TrueDivVar(ChangeVar):
 	AST node that divides a variable by a value (i.e. the ``/=`` operator).
 	"""
 
-	@_handleeval
-	def eval(self, vars):
-		value = (yield from self.value.eval(vars))
+	@_handleexpressioneval
+	def eval(self, context):
+		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalmodifyvar(TrueDiv, vars, value)
+			lvalue.evalmodify(TrueDiv, context, value)
 
 
 @register("modvar")
@@ -2643,11 +2826,11 @@ class ModVar(ChangeVar):
 	AST node for the ``%=`` operator.
 	"""
 
-	@_handleeval
-	def eval(self, vars):
-		value = (yield from self.value.eval(vars))
+	@_handleexpressioneval
+	def eval(self, context):
+		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalmodifyvar(Mod, vars, value)
+			lvalue.evalmodify(Mod, context, value)
 
 
 @register("shiftleftvar")
@@ -2656,11 +2839,11 @@ class ShiftLeftVar(ChangeVar):
 	AST node for the ``<<=`` operator.
 	"""
 
-	@_handleeval
-	def eval(self, vars):
-		value = (yield from self.value.eval(vars))
+	@_handleexpressioneval
+	def eval(self, context):
+		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalmodifyvar(ShiftLeft, vars, value)
+			lvalue.evalmodify(ShiftLeft, context, value)
 
 
 @register("shiftrightvar")
@@ -2669,11 +2852,11 @@ class ShiftRightVar(ChangeVar):
 	AST node for the ``>>=`` operator.
 	"""
 
-	@_handleeval
-	def eval(self, vars):
-		value = (yield from self.value.eval(vars))
+	@_handleexpressioneval
+	def eval(self, context):
+		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalmodifyvar(ShiftRight, vars, value)
+			lvalue.evalmodify(ShiftRight, context, value)
 
 
 @register("bitandvar")
@@ -2682,11 +2865,11 @@ class BitAndVar(ChangeVar):
 	AST node for the ``&=`` operator.
 	"""
 
-	@_handleeval
-	def eval(self, vars):
-		value = (yield from self.value.eval(vars))
+	@_handleexpressioneval
+	def eval(self, context):
+		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalmodifyvar(BitAnd, vars, value)
+			lvalue.evalmodify(BitAnd, context, value)
 
 
 @register("bitxorvar")
@@ -2695,11 +2878,11 @@ class BitXOrVar(ChangeVar):
 	AST node for the ``^=`` operator.
 	"""
 
-	@_handleeval
-	def eval(self, vars):
-		value = (yield from self.value.eval(vars))
+	@_handleexpressioneval
+	def eval(self, context):
+		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalmodifyvar(BitXOr, vars, value)
+			lvalue.evalmodify(BitXOr, context, value)
 
 
 @register("bitorvar")
@@ -2708,11 +2891,11 @@ class BitOrVar(ChangeVar):
 	AST node for the ``|=`` operator.
 	"""
 
-	@_handleeval
-	def eval(self, vars):
-		value = (yield from self.value.eval(vars))
+	@_handleexpressioneval
+	def eval(self, context):
+		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			yield from lvalue.evalmodifyvar(BitOr, vars, value)
+			lvalue.evalmodify(BitOr, context, value)
 
 
 @register("call")
@@ -2724,7 +2907,7 @@ class Call(Code):
 	arguments is found in :obj:`args`.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"obj", "args"})
+	ul4attrs = Attrs(Code.ul4attrs, "obj", "args")
 
 	def __init__(self, tag=None, startpos=None, endpos=None, obj=None):
 		super().__init__(tag, startpos, endpos)
@@ -2758,13 +2941,12 @@ class Call(Code):
 				p.text("{}=".format(name))
 				p.pretty(arg)
 
-	@_handleeval
-	def eval(self, vars):
-		obj = (yield from self.obj.eval(vars))
+	def eval(self, context):
+		obj = self.obj.eval(context)
 		args = []
 		kwargs = {}
 		for (name, arg) in self.args:
-			arg = yield from arg.eval(vars)
+			arg = arg.eval(context)
 			if name is None:
 				args.append(arg)
 			elif name == "*":
@@ -2774,16 +2956,26 @@ class Call(Code):
 			else:
 				kwargs[name] = arg
 
-		if isinstance(obj, types.MethodType):
-			generator = getattr(obj.__func__, "__ul4generator__", False)
+		if hasattr(obj, "ul4attrs"):
+			if obj.ul4attrs._call is not None:
+				callobj = getattr(obj, obj.ul4attrs._call)
+				testobj = callobj
+			else:
+				raise TypeError("{} object is not callable".format(type(obj)))
+		elif isinstance(obj, types.MethodType):
+			callobj = obj
+			testobj = obj.__func__
 		else:
-			generator = getattr(obj, "__ul4generator__", False)
+			callobj = obj
+			testobj = callobj
+
+		needscontext = getattr(testobj, "ul4context", False)
 
 		try:
-			if generator:
-				return (yield from obj(*args, **kwargs))
+			if needscontext:
+				return callobj(context, *args, **kwargs)
 			else:
-				return obj(*args, **kwargs)
+				return callobj(*args, **kwargs)
 		except Error as exc:
 			if isinstance(obj, (Template, TemplateClosure)):
 				raise Error(self) from exc
@@ -2791,13 +2983,16 @@ class Call(Code):
 				raise Error(self) from exc
 			else:
 				raise
+		except Exception as exc:
+			# Wrap original exception in another exception that shows the location
+			raise Error(self) from exc
 
-	@_handleeval
-	def evalsetvar(self, vars, value):
+	@_handleexpressioneval
+	def evalset(self, context, value):
 		raise TypeError("can't use = on call result")
 
-	@_handleeval
-	def evalmodifyvar(self, operator, vars, value):
+	@_handleexpressioneval
+	def evalmodify(self, operator, context, value):
 		raise TypeError("augmented assigment not allowed for call result")
 
 	def ul4ondump(self, encoder):
@@ -2809,6 +3004,47 @@ class Call(Code):
 		super().ul4onload(decoder)
 		self.obj = decoder.load()
 		self.args = [tuple(arg) for arg in decoder.load()]
+
+
+@register("render")
+class Render(Call):
+	"""
+	AST node for rendering a template.
+
+	The template to be rendered is stored in the attribute :obj:`obj`. The list
+	of arguments is found in :obj:`args`.
+	"""
+
+	output = True
+
+	def eval(self, context):
+		obj = self.obj.eval(context)
+		args = []
+		kwargs = {}
+		for (name, arg) in self.args:
+			arg = arg.eval(context)
+			if name is None:
+				args.append(arg)
+			elif name == "*":
+				args.extend(arg)
+			elif name == "**":
+				kwargs.update(arg)
+			else:
+				kwargs[name] = arg
+
+		try:
+			if hasattr(obj, "ul4attrs") and obj.ul4attrs._render is not None:
+				renderobj = getattr(obj, obj.ul4attrs._render)
+				needscontext = getattr(renderobj, "ul4context", False)
+				if needscontext:
+					yield from renderobj(context, *args, **kwargs)
+				else:
+					yield from renderobj(*args, **kwargs)
+			else:
+				raise TypeError("{} object can't be rendered".format(type(obj)))
+		except Exception as exc:
+			# Wrap original exception in another exception that shows the location
+			raise Error(self) from exc
 
 
 @register("template")
@@ -2832,9 +3068,11 @@ class Template(Block):
 	A :class:`Template` object is itself an AST node. Evaluating it will store
 	the template object under its name in the local variables.
 	"""
-	ul4attrs = Block.ul4attrs.union({"source", "name", "whitespace", "startdelim", "enddelim", "render", "renders"})
+	ul4attrs = Attrs(Block.ul4attrs, "source", "name", "whitespace", "startdelim", "enddelim")
 
 	version = "33"
+
+	output = False # Evaluation a template doesn't produce output, but simply stores it in a local variable
 
 	def __init__(self, source=None, name=None, whitespace="keep", startdelim="<?", enddelim="?>", signature=None):
 		"""
@@ -2924,7 +3162,7 @@ class Template(Block):
 			signature = "({})".format(signature)
 			tag = Tag(signature, "signature", 0, len(signature), 0, len(signature))
 			ast = self._parsesignature(tag)
-			signature = _resultfromgenerator(ast.eval({}))
+			signature = ast.eval({})
 		self.signature = signature
 
 		# If we have source code compile it
@@ -3084,42 +3322,61 @@ class Template(Block):
 		from ll import ul4on
 		return ul4on.dumps(self)
 
-	def _renderbound(self, vars):
+	def _renderbound(self, context):
 		# Helper method used by :meth:`render` and :meth:`TemplateClosure.render` where arguments have already been bound
 		try:
-			yield from super().eval(vars) # Bypass ``self.eval()`` which simply stores the object as a local variable
+			yield from super().eval(context) # Bypass ``self.eval()`` which simply stores the object as a local variable
 		except ReturnException:
 			pass
 		except Error as exc:
 			exc.template = self
 			raise
 
-	@generator
-	def render(self, *args, **kwargs):
+	@ul4attrs.addrender(context=True)
+	def _render(*args, **kwargs):
+		self = args[0]
+		context = args[1]
+		args = args[2:]
+		vars = _makevars(self.signature, args, kwargs)
+		with context.replacevars(vars):
+			yield from self._renderbound(context)
+
+	def render(*args, **kwargs):
 		"""
 		Render the template iteratively (i.e. this is a generator).
-		:obj:`args` and :obj:`kwargs` contain the top level variables available
-		to the template code.
+		:obj:`args[1:]` and :obj:`kwargs` contain the top level variables available
+		to the template code. (:obj:`args[0]` is the ``self`` parameter, but
+		:meth:`render` is defined in this way, to allow a keyword argument named
+		``self``).
 		"""
-		vars = _makevars(self.signature, args, kwargs)
-		return self._renderbound(vars)
+		context = Context()
+		yield from args[0]._render(context, *args[1:], **kwargs)
 
-	def _rendersbound(self, vars):
+	def _rendersbound(self, context):
 		# Helper method used by :meth:`renders` and :meth:`TemplateClosure.renders` where arguments have already been bound
-		return "".join(self._renderbound(vars))
+		return "".join(self._renderbound(context))
 
-	def renders(self, *args, **kwargs):
+	@ul4attrs.addfunction(name="renders", context=True)
+	def _renders(*args, **kwargs):
+		self = args[0]
+		context = args[1]
+		args = args[2:]
+		vars = _makevars(self.signature, args, kwargs)
+		with context.replacevars(vars):
+			return self._rendersbound(context)
+
+	def renders(*args, **kwargs):
 		"""
 		Render the template as a string. :obj:`vars` contains the top level
 		variables available to the template code.
 		"""
-		vars = _makevars(self.signature, args, kwargs)
-		return self._rendersbound(vars)
+		context = Context()
+		return args[0]._renders(context, *args[1:], **kwargs)
 
-	def _callbound(self, vars):
+	def _callbound(self, context):
 		# Helper method used by :meth:`__call__` and :meth:`TemplateClosure.__call__` where arguments have already been bound
 		try:
-			for output in super().eval(vars): # Bypass ``self.eval()`` which simply stores the object as a local variable
+			for output in super().eval(context): # Bypass ``self.eval()`` which simply stores the object as a local variable
 				pass # Ignore all output
 		except ReturnException as exc:
 			return exc.value
@@ -3127,13 +3384,26 @@ class Template(Block):
 			exc.template = self
 			raise
 
-	def __call__(self, *args, **kwargs):
+	@ul4attrs.addcall(context=True)
+	def _call(*args, **kwargs):
 		"""
 		Call the template as a function and return the resulting value.
 		:obj:`vars` contains the top level variables available to the template code.
 		"""
+		self = args[0]
+		context = args[1]
+		args = args[2:]
 		vars = _makevars(self.signature, args, kwargs)
-		return self._callbound(vars)
+		with context.replacevars(vars):
+			return self._callbound(context)
+
+	def __call__(*args, **kwargs):
+		"""
+		Call the template as a function and return the resulting value.
+		:obj:`vars` contains the top level variables available to the template code.
+		"""
+		context = Context()
+		return args[0]._call(context, *args[1:], **kwargs)
 
 	def jssource(self):
 		"""
@@ -3158,7 +3428,7 @@ class Template(Block):
 		for each tag or non-tag text. It will be called by :meth:`_compile`
 		internally.
 		"""
-		pattern = "{}\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|note)(\s*((.|\\n)*?)\s*)?{}".format(re.escape(startdelim), re.escape(enddelim))
+		pattern = "{}\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|render|note)(\s*((.|\\n)*?)\s*)?{}".format(re.escape(startdelim), re.escape(enddelim))
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
@@ -3273,7 +3543,7 @@ class Template(Block):
 		newlines = []
 		for (i, line) in enumerate(lines):
 			linelen = len(line)
-			if 2 <= linelen <= 3 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx") and (linelen == 2 or isinstance(line[2], LineEnd)):
+			if 2 <= linelen <= 3 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render") and (linelen == 2 or isinstance(line[2], LineEnd)):
 				tag = line[1]
 				if tag.tag in ("for", "if", "def"):
 					newlines.append((line, stack[:]))
@@ -3322,9 +3592,9 @@ class Template(Block):
 
 		# Step 5: Drop whitespace from lines that only contain indentation and block tags
 		for line in lines:
-			if len(line) == 2 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx"):
+			if len(line) == 2 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render"):
 				del line[0]
-			elif len(line) == 3 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx") and isinstance(line[2], LineEnd):
+			elif len(line) == 3 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render") and isinstance(line[2], LineEnd):
 				del line[2]
 				del line[0]
 
@@ -3392,6 +3662,9 @@ class Template(Block):
 		def parsedef(tag):
 			return self._parser(tag, "definition required").definition()
 
+		def parserender(tag):
+			return self._parser(tag, "render call required").render()
+
 		tags = self._tokenize(source, startdelim, enddelim)
 		lines = list(self._tags2lines(tags))
 
@@ -3403,7 +3676,7 @@ class Template(Block):
 						(name, signature) = parsedeclaration(tag)
 						self.name = name
 						if signature is not None:
-							signature = _resultfromgenerator(signature.eval({}))
+							signature = signature.eval({})
 						self.signature = signature
 					elif tag.tag == "whitespace":
 						whitespace = tag.code
@@ -3509,6 +3782,8 @@ class Template(Block):
 					stack.append(block)
 				elif tag.tag == "return":
 					stack[-1].append(Return(tag, tag.startpos, tag.endpos, parseexpr(tag)))
+				elif tag.tag == "render":
+					stack[-1].append(parserender(tag))
 				elif tag.tag in ("ul4", "whitespace", "note"):
 					# Don't copy declarations, whitespace specification or comments over into the syntax tree
 					pass
@@ -3519,13 +3794,13 @@ class Template(Block):
 		if len(stack) > 1:
 			raise Error(stack[-1], self) from BlockError("block unclosed")
 
-	@_handleeval
-	def eval(self, vars):
+	@_handleexpressioneval
+	def eval(self, context):
 		signature = self.signature
 		# If our signature is an AST, we have the evaluate it to get the final :class:`inspect.Signature` object
 		if isinstance(signature, Signature):
-			signature = yield from signature.eval(vars)
-		vars[self.name] = TemplateClosure(self, vars, signature)
+			signature = signature.eval(context)
+		context.vars[self.name] = TemplateClosure(self, context, signature)
 
 
 @register("signature")
@@ -3536,7 +3811,7 @@ class Signature(Code):
 	The list of arguments is found in :obj:`params`.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"params"})
+	ul4attrs = Attrs(Code.ul4attrs, "params")
 
 	def __init__(self, tag=None, startpos=None, endpos=None):
 		super().__init__(tag, startpos, endpos)
@@ -3573,8 +3848,8 @@ class Signature(Code):
 				yield from default._str()
 		yield ")"
 
-	@_handleeval
-	def eval(self, vars):
+	@_handleexpressioneval
+	def eval(self, context):
 		params = []
 		for (paramname, default) in self.params:
 			if default is None:
@@ -3589,7 +3864,7 @@ class Signature(Code):
 				default = inspect.Parameter.empty
 			else:
 				kind = inspect.Parameter.POSITIONAL_OR_KEYWORD
-				default = yield from default.eval(vars)
+				default = default.eval(context)
 			params.append(inspect.Parameter(paramname, kind, default=default))
 		return inspect.Signature(params)
 
@@ -3617,67 +3892,49 @@ class Signature(Code):
 ### Functions
 ###
 
-@AST.makefunction
-@generator
-def function_print(*values):
-	for (i, value) in enumerate(values):
-		if i:
-			yield " "
-		yield _str(value)
-
-
-@AST.makefunction
-@generator
-def function_printx(*values):
-	for (i, value) in enumerate(values):
-		if i:
-			yield " "
-		yield _xmlescape(value)
-
-
-@AST.makefunction
+@Context.makefunction
 def function_str(obj=""):
 	return _str(obj)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_repr(obj):
 	return _repr(obj)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_now():
 	return datetime.datetime.now()
 
 
-AST.makefunction(datetime.datetime.utcnow)
+Context.makefunction(datetime.datetime.utcnow)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_date(year, month, day, hour=0, minute=0, second=0, microsecond=0):
 	return datetime.datetime(year, month, day, hour, minute, second, microsecond)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_timedelta(days=0, seconds=0, microseconds=0):
 	return datetime.timedelta(days, seconds, microseconds)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_monthdelta(months=0):
 	from ll import misc
 	return misc.monthdelta(months)
 
 
-AST.makefunction(random.random)
+Context.makefunction(random.random)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_xmlescape(obj):
 	return _xmlescape(obj)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_csv(obj):
 	if obj is None:
 		return ""
@@ -3690,29 +3947,29 @@ def function_csv(obj):
 	return obj
 
 
-@AST.makefunction
+@Context.makefunction
 def function_asjson(obj):
 	return _asjson(obj)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_fromjson(string):
 	return json.loads(string)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_asul4on(obj):
 	from ll import ul4on
 	return ul4on.dumps(obj)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_fromul4on(string):
 	from ll import ul4on
 	return ul4on.loads(string)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_int(obj=0, base=None):
 	if base is None:
 		return int(obj)
@@ -3720,50 +3977,50 @@ def function_int(obj=0, base=None):
 		return int(obj, base)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_float(obj=0.0):
 	return float(obj)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_bool(obj=False):
 	return bool(obj)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_list(iterable=()):
 	return list(iterable)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_set(iterable=()):
 	return set(iterable)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_len(sequence):
 	return len(sequence)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_abs(number):
 	return abs(number)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_any(iterable):
 	return any(iterable)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_all(iterable):
 	return all(iterable)
 
 
-AST.makefunction(enumerate)
+Context.makefunction(enumerate)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_enumfl(iterable, start=0):
 	lastitem = None
 	first = True
@@ -3785,7 +4042,7 @@ def function_enumfl(iterable, start=0):
 		i += 1
 
 
-@AST.makefunction
+@Context.makefunction
 def function_isfirstlast(iterable):
 	lastitem = None
 	first = True
@@ -3805,7 +4062,7 @@ def function_isfirstlast(iterable):
 			first = False
 
 
-@AST.makefunction
+@Context.makefunction
 def function_isfirst(iterable):
 	first = True
 	for item in iterable:
@@ -3813,7 +4070,7 @@ def function_isfirst(iterable):
 		first = False
 
 
-@AST.makefunction
+@Context.makefunction
 def function_islast(iterable):
 	lastitem = None
 	it = iter(iterable)
@@ -3831,158 +4088,158 @@ def function_islast(iterable):
 			yield (False, lastitem)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_isundefined(obj):
 	return isinstance(obj, Undefined)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_isdefined(obj):
 	return not isinstance(obj, Undefined)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_isnone(obj):
 	return obj is None
 
 
-@AST.makefunction
+@Context.makefunction
 def function_isstr(obj):
 	return isinstance(obj, str)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_isint(obj):
 	return isinstance(obj, int) and not isinstance(obj, bool)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_isfloat(obj):
 	return isinstance(obj, float)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_isbool(obj):
 	return isinstance(obj, bool)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_isdate(obj):
 	return isinstance(obj, (datetime.datetime, datetime.date))
 
 
-@AST.makefunction
+@Context.makefunction
 def function_istimedelta(obj):
 	return isinstance(obj, datetime.timedelta)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_ismonthdelta(obj):
 	from ll import misc
 	return isinstance(obj, misc.monthdelta)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_islist(obj):
 	from ll import color
 	return isinstance(obj, collections.Sequence) and not isinstance(obj, str) and not isinstance(obj, color.Color)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_isset(obj):
 	from ll import color
 	return isinstance(obj, (set, frozenset))
 
 
-@AST.makefunction
+@Context.makefunction
 def function_isdict(obj):
 	return isinstance(obj, collections.Mapping) and not isinstance(obj, Template)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_iscolor(obj):
 	from ll import color
 	return isinstance(obj, color.Color)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_istemplate(obj):
 	return isinstance(obj, (Template, TemplateClosure))
 
 
-@AST.makefunction
+@Context.makefunction
 def function_isfunction(obj):
-	return callable(obj)
+	return (callable(obj) and not isinstance(obj, Undefined)) or (hasattr(obj, "ul4attrs") and obj.ul4attrs._call is not None)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_chr(i):
 	return chr(i)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_ord(c):
 	return ord(c)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_hex(number):
 	return hex(number)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_oct(number):
 	return oct(number)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_bin(number):
 	return bin(number)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_min(*args):
 	return min(*args)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_max(*args):
 	return max(*args)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_first(iterable, default=None):
 	from ll import misc
 	return misc.first(iterable, default)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_last(iterable, default=None):
 	from ll import misc
 	return misc.last(iterable, default)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_sum(iterable, start=0):
 	return sum(iterable, start)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_sorted(iterable):
 	return sorted(iterable)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_range(*args):
 	return range(*args)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_slice(*args):
 	return itertools.islice(*args)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_type(obj):
 	from ll import color, misc
 	if obj is None:
@@ -4018,22 +4275,22 @@ def function_type(obj):
 	return None
 
 
-@AST.makefunction
+@Context.makefunction
 def function_reversed(sequence):
 	return reversed(sequence)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_randrange(*args):
 	return random.randrange(*args)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_randchoice(sequence):
 	return random.choice(sequence)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_format(obj, fmt, lang=None):
 	if isinstance(obj, (datetime.date, datetime.time, datetime.timedelta)):
 		if lang is None:
@@ -4056,40 +4313,40 @@ def function_format(obj, fmt, lang=None):
 		return format(obj, fmt)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_zip(*iterables):
 	return zip(*iterables)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_urlquote(string):
 	return urlparse.quote_plus(string)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_urlunquote(string):
 	return urlparse.unquote_plus(string)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_rgb(r, g, b, a=1.0):
 	from ll import color
 	return color.Color.fromrgb(r, g, b, a)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_hls(h, l, s, a=1.0):
 	from ll import color
 	return color.Color.fromhls(h, l, s, a)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_hsv(h, s, v, a=1.0):
 	from ll import color
 	return color.Color.fromhsv(h, s, v, a)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_round(x, digits=0):
 	result = round(x, digits)
 	if digits <= 0:
@@ -4097,7 +4354,7 @@ def function_round(x, digits=0):
 	return result
 
 
-@AST.makefunction
+@Context.makefunction
 def function_floor(x, digits=0):
 	if digits:
 		threshhold = 10**digits
@@ -4109,7 +4366,7 @@ def function_floor(x, digits=0):
 		return math.floor(x)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_ceil(x, digits=0):
 	if digits:
 		threshhold = 10**digits
@@ -4121,36 +4378,36 @@ def function_ceil(x, digits=0):
 		return math.ceil(x)
 
 
-AST.functions["pi"] = math.pi
-AST.functions["tau"] = 2*math.pi
+Context.functions["pi"] = math.pi
+Context.functions["tau"] = 2*math.pi
 
 
-@AST.makefunction
+@Context.makefunction
 def function_sqrt(x):
 	return math.sqrt(x)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_cos(x):
 	return math.cos(x)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_sin(x):
 	return math.sin(x)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_tan(x):
 	return math.tan(x)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_exp(x):
 	return math.exp(x)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_log(x, base=None):
 	if base is None:
 		return math.log(x)
@@ -4158,50 +4415,67 @@ def function_log(x, base=None):
 		return math.log(x, base)
 
 
-@AST.makefunction
+@Context.makefunction
 def function_pow(x, y):
 	return math.pow(x, y)
 
 
 class TemplateClosure(Block):
-	ul4attrs = Template.ul4attrs
+	ul4attrs = Attrs(Template.ul4attrs)
 
-	def __init__(self, template, vars, signature):
+	def __init__(self, template, context, signature):
 		self.template = template
 		# Freeze variables of the currently running templates/functions
-		self.vars = vars.copy()
+		self.vars = context.vars.copy()
 		self.signature = signature
 
-	@generator
-	def render(self, *args, **kwargs):
+	@ul4attrs.addrender(context=True)
+	def _render(*args, **kwargs):
+		self = args[0]
+		context = args[1]
+		args = args[2:]
 		vars = _makevars(self.signature, args, kwargs)
-		# Call :meth:`_renderbound` to bypass binding the arguments again
-		# (which wouldn't work anyway as ``self.template.signature`` is an :class:`AST` object)
-		try:
-			yield from self.template._renderbound(collections.ChainMap(vars, self.vars))
-		except Error as exc:
-			exc.template = self
-			raise
+		vars = collections.ChainMap(vars, self.vars)
+		with context.replacevars(vars):
+			# Call :meth:`_renderbound` to bypass binding the arguments again
+			# (which wouldn't work anyway as ``self.template.signature`` is an :class:`AST` object)
+			try:
+				yield from self.template._renderbound(context)
+			except Error as exc:
+				exc.template = self
+				raise
 
-	def renders(self, *args, **kwargs):
+	@ul4attrs.addfunction(context=True)
+	def _renders(*args, **kwargs):
+		self = args[0]
+		context = args[1]
+		args = args[2:]
 		vars = _makevars(self.signature, args, kwargs)
-		# Call :meth:`_rendersbound` to bypass binding the arguments again
-		# (which wouldn't work anyway as ``self.template.signature`` is an :class:`AST` object)
-		try:
-			return self.template._rendersbound(collections.ChainMap(vars, self.vars))
-		except Error as exc:
-			exc.template = self
-			raise
+		vars = collections.ChainMap(vars, self.vars)
+		with context.replacevars(vars):
+			# Call :meth:`_renderbound` to bypass binding the arguments again
+			# (which wouldn't work anyway as ``self.template.signature`` is an :class:`AST` object)
+			try:
+				return self.template._rendersbound(context)
+			except Error as exc:
+				exc.template = self
+				raise
 
-	def __call__(self, *args, **kwargs):
+	@ul4attrs.addcall(context=True)
+	def _call(*args, **kwargs):
+		self = args[0]
+		context = args[1]
+		args = args[2:]
 		vars = _makevars(self.signature, args, kwargs)
-		# Call :meth:`_callbound` to bypass binding the arguments again
-		# (which wouldn't work anyway as ``self.template.signature`` is an :class:`AST` object)
-		try:
-			return self.template._callbound(collections.ChainMap(vars, self.vars))
-		except Error as exc:
-			exc.template = self
-			raise
+		vars = collections.ChainMap(vars, self.vars)
+		with context.replacevars(vars):
+			# Call :meth:`_renderbound` to bypass binding the arguments again
+			# (which wouldn't work anyway as ``self.template.signature`` is an :class:`AST` object)
+			try:
+				return self.template._callbound(context)
+			except Error as exc:
+				exc.template = self
+				raise
 
 	def __getattr__(self, name):
 		return getattr(self.template, name)

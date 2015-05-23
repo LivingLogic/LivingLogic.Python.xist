@@ -27,7 +27,7 @@ class Color(tuple):
 	A :class:`Color` object represents a color with red, green and blue
 	components.
 	"""
-	ul4attrs = {"r", "g", "b", "a", "hsv", "hsva", "hls", "hlsa", "lum", "witha", "withlum", "abslum", "rellum"}
+	ul4attrs = ul4c.Attrs("r", "g", "b", "a", "hsv", "hsva", "hls", "hlsa", "lum", "witha", "withlum", "abslum", "rellum")
 
 	def __new__(cls, r=0x0, g=0x0, b=0x0, a=0xff):
 		"""

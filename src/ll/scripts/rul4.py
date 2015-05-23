@@ -261,7 +261,7 @@ __docformat__ = "reStructuredText"
 
 
 class System:
-	ul4attrs = {"execute"}
+	ul4attrs = ul4.Attrs("execute")
 
 	def execute(self, cmd):
 		return os.popen(cmd).read()
@@ -277,7 +277,7 @@ def import_(filename, encoding="utf-8"):
 
 
 class Var:
-	ul4attrs = {"value": ("value", "rw")}
+	ul4attrs = ul4c.Attrs().add("value", write=True)
 
 	def __init__(self, value=None):
 		self.value = value
@@ -288,7 +288,7 @@ class Var:
 
 
 class Connection:
-	ul4attrs = {"query", "execute", "int", "number", "str", "clob", "date"}
+	ul4attrs = ul4c.Attrs("query", "execute", "int", "number", "str", "clob", "date")
 
 	def __init__(self, connection):
 		self.connection = connection
@@ -395,7 +395,7 @@ class OracleConnection(Connection):
 
 
 class Oracle:
-	ul4attrs = {"connect"}
+	ul4attrs = ul4c.Attrs("connect")
 
 	def connect(self, connectstring):
 		from ll import orasql
@@ -403,7 +403,7 @@ class Oracle:
 
 
 class SQLite:
-	ul4attrs = {"connect"}
+	ul4attrs = ul4c.Attrs("connect")
 
 	def connect(self, connectstring):
 		import sqlite3
@@ -418,7 +418,7 @@ class SQLite:
 
 
 class MySQL:
-	ul4attrs = {"connect"}
+	ul4attrs = ul4c.Attrs("connect")
 
 	def connect(self, connectstring):
 		import MySQLdb
@@ -430,7 +430,7 @@ class MySQL:
 
 
 class RedisConnection:
-	ul4attrs = {"get", "put"}
+	ul4attrs = ul4c.Attrs("get", "put")
 
 	def __init__(self, host, port, db):
 		import redis
@@ -447,7 +447,7 @@ class RedisConnection:
 
 
 class Redis:
-	ul4attrs = {"connect"}
+	ul4attrs = ul4c.Attrs("connect")
 
 	def connect(self, connectstring):
 		(hostport, _, db) = connectstring.partition("/")

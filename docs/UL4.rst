@@ -403,6 +403,49 @@ For example the following template will output ``40``::
 	<?print x?>
 
 
+``render``
+
+The ``render`` tag allows one template to call other templates. The following
+Python code demonstrates this::
+
+	from ll import ul4c
+
+	# Template 1
+	source1 = """\
+	<?if data?>\
+	<ul>
+	<?for i in data?><?render itemtmpl(item=i)?><?end for?>\
+	</ul>
+	<?end if?>\
+	"""
+
+	tmpl1 = ul4c.Template(source1)
+
+	# Template 2
+	source2 = "<li><?print xmlescape(item)?></li>\n"
+
+	tmpl2 = ul4c.Template(source2)
+
+	# Data object for the outer template
+	data = ["Python", "Java", "Javascript", "PHP"]
+
+	print(tmpl1.renders(itemtmpl=tmpl2, data=data))
+
+This will output::
+
+	<ul>
+	<li>Python</li>
+	<li>Java</li>
+	<li>Javascript</li>
+	<li>PHP</li>
+	</ul>
+
+I.e. templates can be passed just like any other object as a variable.
+``<?render itemtmpl(item=i)?>`` renders the ``itemtmpl`` template and passes
+the ``i`` variable, which will be available in the inner template under the
+name ``item``.
+
+
 ``def``
 -------
 
@@ -413,13 +456,10 @@ The ``def`` tag defines a new template as a variable. Usage looks like this::
 	<?end def?>
 
 This defines a local variable ``quote`` that is a template object. This template
-can be called like any other template, that has been passed to the outermost
+can be rendered like any other template, that has been passed to the outermost
 template::
 
-	<?code quote.render(text="foo")?>
-
-(Here an ``<?code?>`` tag is used. The expression in the ``<?code?>`` tag is
-evaluated for the side effect of generating output.)
+	<?render quote(text="foo")?>
 
 It's also possible to include a signature in the definition of the template.
 This makes it possible to define default values for template variables and to
@@ -428,7 +468,7 @@ call templates with positional arguments::
 	<?def quote(text='foo')?>
 		"<?print text?>"
 	<?end def?>
-	<?code quote.render()?> and <?code quote.render("bar")?>
+	<?render quote()?> and <?render quote("bar")?>
 
 This will output ``"foo" and "bar"``.
 
@@ -437,7 +477,7 @@ This will output ``"foo" and "bar"``.
 	<?def weightedsum(*args)?>
 		<?print sum(i*arg for (i, arg) in enumerate(args, 1))?>
 	<?end def?>
-	<?code weightedsum.render(17, 23, 42)?>
+	<?render weightedsum(17, 23, 42)?>
 
 This will print ``189`` (i.e. ``1 * 17 + 2 * 23 + 3 * 42``).
 
@@ -446,7 +486,7 @@ This will print ``189`` (i.e. ``1 * 17 + 2 * 23 + 3 * 42``).
 -------
 
 The ``ul4`` tag can be used to specify a name and a signature for the template
-itself. This overwrite the name and signature specified in the
+itself. This overwrites the name and signature specified in the
 :class:`ul4c.Template` constructor::
 
 	>>> from ll import ul4c
@@ -487,7 +527,7 @@ will output ``1``::
 		<?print i?>
 	<?end def?>
 	<?code i = 2?>
-	<?code x.render()?>
+	<?render x()?>
 
 However the state that the template sees is a "shallow" copy of the state of the
 variables at the point in time when the inner template was defined. So::
@@ -497,7 +537,7 @@ variables at the point in time when the inner template was defined. So::
 		<?print i?>
 	<?end def?>
 	<?code i.append(2)?>
-	<?code x.render()?>
+	<?render x()?>
 
 does output ``[1, 2]``.
 
@@ -1682,7 +1722,7 @@ by setting the class attribute ``ul4attrs``::
 	from ll import ul4c
 
 	class Person:
-		ul4attrs = {"firstname", "lastname"}
+		ul4attrs = ul4c.Attrs("firstname", "lastname")
 
 		def __init__(self, firstname, lastname, age):
 			self.firstname = firstname
@@ -1701,7 +1741,7 @@ Attributes not in ``ul4attrs`` will not be visible::
 	template = ul4c.Template("<?print type(p.age)?>")
 	print(template.renders(p=p))
 
-This will output ``undefined``. Exposing attributes via ``ul4attr`` also makes
+This will output ``undefined``. Exposing attributes via ``ul4attrs`` also makes
 it possible to use dictionary access to the object, i.e. iterating over the
 object, using ``in`` and ``not in`` tests and using the methods ``items`` and
 ``values``.
@@ -1710,13 +1750,13 @@ object, using ``in`` and ``not in`` tests and using the methods ``items`` and
 Custom methods
 ==============
 
-It is also possible to expose methods of an object to UL4 templates. This is done
-by including the method name in the ``ul4attr`` class attribute::
+It is also possible to expose methods of an object to UL4 templates. This is
+done by including the method name in the ``ul4attrs`` class attribute::
 
 	from ll import ul4c
 
 	class Person:
-		ul4attrs = {"fullname"}
+		ul4attrs = ul4c.Attrs("fullname")
 
 		def __init__(self, firstname, lastname):
 			self.firstname = firstname
@@ -1732,32 +1772,35 @@ by including the method name in the ``ul4attr`` class attribute::
 
 This will output ``John Doe``.
 
-If the method should produce output in addition to returning a value, the
-decorator :func:`ul4c.generator` must be used (in addition to including the
-method name in ``ul4attrs``::
+It is also possible to expose methods by using a decorator::
 
 	from ll import ul4c
 
 	class Person:
-		ul4attrs = {"print_fullname"}
+		ul4attrs = ul4c.Attrs()
 
 		def __init__(self, firstname, lastname):
 			self.firstname = firstname
 			self.lastname = lastname
 
-		@ul4c.generator
-		def print_fullname(self):
-			yield self.firstname
-			yield " "
-			yield self.lastname
-			return 42
+		@ul4attrs.addfunction()
+		def fullname(self):
+			return self.firstname + " " + self.lastname
 
-	p = Person("John", "Doe")
+This also makes it possible to expose the method under a different name::
 
-	template = ul4c.Template("<?code result = p.print_fullname()?>: result = <?print result?>")
-	print(template.renders(p=p))
+	@ul4attrs.addfunction(name="fullname")
+	def _fullname(self):
+		return self.firstname + " " + self.lastname
 
-This outputs ``John Doe: result = 42``.
+This exposes the method ``_fullname`` under the name ``fullname``.
+
+Furthermore it's possible to specify that the method needs access to the
+rendering context (which stores the local variables and the UL4 call stack)::
+
+	@ul4attrs.addfunction(context=True)
+	def varcount(self):
+		return len(context.vars)
 
 
 Delimiters
@@ -1801,11 +1844,11 @@ parameter in the constructor. The possible values are:
 	However trailing whitespace at the end of the line will still be honored.
 
 ``"smart"``
-	If a line contains only indentation and one tag that isn't a ``print`` or
-	``printx`` tag, the indentation and the linefeed after the tag will be
-	stripped from the text. Furthermore the additional indentation that might
-	be introduced by a ``for``, ``if``, ``elif``, ``else`` or ``def`` block
-	will be ignored. So for example the output of::
+	If a line contains only indentation and one tag that isn't a ``print``,
+	``printx`` or ``render`` tag, the indentation and the linefeed after the tag
+	will be stripped from the text. Furthermore the additional indentation that
+	might be introduced by a ``for``, ``if``, ``elif``, ``else`` or ``def``
+	block will be ignored. So for example the output of::
 
 		<?code langs = ["Python", "Java", "Javascript"]?>
 		<?if langs?>

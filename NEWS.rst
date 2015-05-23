@@ -5,10 +5,16 @@ Changes in 5.14 (released ??/??/2015)
 	possible whitespace handling modes now (specified via the new ``whitespace``
 	parameter): ``"keep"`` (the old ``keepws=True``) ``"strip"`` (the old
 	``keepws=False``) and the new ``"smart"``. In smart mode if a line contains
-	only indentation and one tag that isn't a ``print`` or ``printx`` tag,
-	the indentation and the linefeed after the tag will be stripped from the
-	text. Furthermore the additional indentation that might be introduced by a
-	``for``, ``if``, ``elif``, ``else`` or ``def`` block will be ignored.
+	only indentation and one tag that doesn't produce output, the indentation
+	and the linefeed after the tag will be stripped from the text. Furthermore
+	the additional indentation that might be introduced by a ``for``, ``if``,
+	``elif``, ``else`` or ``def`` block will be ignored.
+
+*	Rendering an UL4 template from inside a UL4 template is now again done via
+	the ``<?render?>`` tag.
+
+*	Exposing attributes of objects to UL4 templates is now done via the new
+	class :class:`ul4c.Attrs` (instead of using a set).
 
 *	Whitespace handling mode for UL4 templates can now be specified in the
 	template source itself via the ``<?whitepace?>`` tag::

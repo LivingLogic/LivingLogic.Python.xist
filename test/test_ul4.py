@@ -394,8 +394,8 @@ all_templates = dict(
 	python_dump=TemplatePythonDump,
 	# java_compiled_by_python=TemplateJavaCompiledByPython,
 	# java_compiled_by_java=TemplateJavaCompiledByJava,
-	js_v8=TemplateJavascriptV8,
-	js_spidermonkey=TemplateJavascriptSpidermonkey,
+	# js_v8=TemplateJavascriptV8,
+	# js_spidermonkey=TemplateJavascriptSpidermonkey,
 	# php=TemplatePHP,
 )
 
@@ -2597,16 +2597,6 @@ def test_function_repr(T):
 
 
 @pytest.mark.ul4
-def test_function_print(T):
-	assert "gurk hurz hinz kunz" == T("<?code print('gurk', 'hurz', 'hinz', 'kunz')?>").renders()
-
-
-@pytest.mark.ul4
-def test_function_printx(T):
-	assert "&lt;gurk&gt; &lt;hurz&gt; &lt;hinz&gt; &lt;kunz&gt;" == T("<?code printx('<gurk>', '<hurz>', '<hinz>', '<kunz>')?>").renders()
-
-
-@pytest.mark.ul4
 def test_function_format_date(T):
 	dt = datetime.datetime(2011, 1, 25, 13, 34, 56, 987000)
 
@@ -3484,24 +3474,23 @@ def test_method_update(T):
 
 
 @pytest.mark.ul4
-def test_method_render(T):
-	t = ul4c.Template('<?print prefix?><?print data?><?print suffix?>')
-
-	assert '(f)(o)(o)' == T('<?for c in data?><?code t.render(data=c, prefix="(", suffix=")")?><?end for?>').renders(t=t, data='foo')
-	assert '(f)(o)(o)' == T('<?for c in data?><?code t.render(data=c, **{"prefix": "(", "suffix": ")"})?><?end for?>').renders(t=t, data='foo')
-	assert '(f)(o)(o)' == T('<?code m = t.render?><?for c in data?><?code m(data=c, prefix="(", suffix=")")?><?end for?>').renders(t=t, data='foo')
-
-
-@pytest.mark.ul4
 def test_def(T):
 	assert 'foo' == T('<?def lower?><?print x.lower()?><?end def?><?print lower.renders(x="FOO")?>').renders()
 
 
 @pytest.mark.ul4
+def test_render(T):
+	t = ul4c.Template('<?print prefix?><?print data?><?print suffix?>')
+
+	assert '(f)(o)(o)' == T('<?for c in data?><?render t(data=c, prefix="(", suffix=")")?><?end for?>').renders(t=t, data='foo')
+	assert '(f)(o)(o)' == T('<?for c in data?><?render t(data=c, **{"prefix": "(", "suffix": ")"})?><?end for?>').renders(t=t, data='foo')
+
+
+@pytest.mark.ul4
 def test_pass_function(T):
-	assert "&lt;" == T("<?def x?><?print xe('<')?><?end def?><?code x.render(xe=xmlescape)?>").renders()
-	assert "&lt;" == T("<?def xe?><?return xmlescape(s)?><?end def?><?def x?><?print xe(s='<')?><?end def?><?code x.render(xe=xe)?>").renders()
-	assert "&lt;" == T("<?def xe?><?return xmlescape(s)?><?end def?><?def x?><?print xe(s='<')?><?end def?><?code x.render()?>").renders()
+	assert "&lt;" == T("<?def x?><?print xe('<')?><?end def?><?render x(xe=xmlescape)?>").renders()
+	assert "&lt;" == T("<?def xe?><?return xmlescape(s)?><?end def?><?def x?><?print xe(s='<')?><?end def?><?render x(xe=xe)?>").renders()
+	assert "&lt;" == T("<?def xe?><?return xmlescape(s)?><?end def?><?def x?><?print xe(s='<')?><?end def?><?render x()?>").renders()
 
 
 @pytest.mark.ul4
@@ -3512,11 +3501,11 @@ def test_parse(T):
 @pytest.mark.ul4
 def test_nested_exceptions(T):
 	tmpl1 = ul4c.Template("<?print 2*x?>", "tmpl1")
-	tmpl2 = ul4c.Template("<?code tmpl1.render(x=x)?>", "tmpl2")
-	tmpl3 = ul4c.Template("<?code tmpl2.render(tmpl1=tmpl1, x=x)?>", "tmpl3")
+	tmpl2 = ul4c.Template("<?render tmpl1(x=x)?>", "tmpl2")
+	tmpl3 = ul4c.Template("<?render tmpl2(tmpl1=tmpl1, x=x)?>", "tmpl3")
 
 	with raises("unsupported operand type|not supported"):
-		T("<?code tmpl3.render(tmpl1=tmpl1, tmpl2=tmpl2, x=x)?>").renders(tmpl1=tmpl1, tmpl2=tmpl2, tmpl3=tmpl3, x=None)
+		T("<?render tmpl3(tmpl1=tmpl1, tmpl2=tmpl2, x=x)?>").renders(tmpl1=tmpl1, tmpl2=tmpl2, tmpl3=tmpl3, x=None)
 
 
 @pytest.mark.ul4
@@ -3565,7 +3554,7 @@ def test_nestedscopes(T):
 		<?def x?>
 			<?print i?>!
 		<?end def?>
-		<?code x.render()?>
+		<?render x()?>
 	<?end for?>
 	"""
 	assert "0!1!2!" == T(source, whitespace="strip").renders()
@@ -3578,7 +3567,7 @@ def test_nestedscopes(T):
 		<?print i?>
 	<?end def?>
 	<?code i = 2?>
-	<?code x.render()?>
+	<?render x()?>
 	"""
 	assert "1" == T(source, whitespace="strip").renders()
 
@@ -3589,7 +3578,7 @@ def test_nestedscopes(T):
 		<?print type(x)?>;<?print type(y)?>
 	<?end def?>
 	<?code y = 42?>
-	<?code x.render()?>
+	<?render x()?>
 	"""
 	assert "undefined;undefined" == T(source, whitespace="strip").renders()
 
@@ -3606,13 +3595,13 @@ def test_nestedscopes(T):
 		<?end def?>
 		<?code x += 1?>
 		<?code y += 1?>
-		<?code inner.render(x=x)?>
+		<?render inner(x=x)?>
 		<?print x?>!
 		<?print y?>!
 	<?end def?>
 	<?code x += 1?>
 	<?code y += 1?>
-	<?code outer.render(x=x)?>
+	<?render outer(x=x)?>
 	<?print x?>!
 	<?print y?>!
 	"""
@@ -3694,7 +3683,7 @@ def universaltemplate(whitespace="keep"):
 			<?else?>
 				hinz
 			<?end if?>
-			<?code x.render(a=1, b=2)?>
+			<?render x(a=1, b=2)?>
 			<?def x?>
 				foo
 			<?end def?>
@@ -3707,7 +3696,7 @@ def universaltemplate(whitespace="keep"):
 			<?def x(arg)?>
 				<?return x?>
 			<?end def?>
-			<?code x.render()?>
+			<?render x()?>
 		""",
 		whitespace=whitespace
 	)
@@ -3749,8 +3738,8 @@ def test_whitespace_initialws(T):
 
 @pytest.mark.ul4
 def test_whitespace_nested(T):
-	s1 = "<?def nested1?>1n\n<?code second.render()?><?end def?>1\n<?code nested1.render(second=second)?>"
-	s2 = "<?def nested2?>2n\n<?end def?>2\n<?code nested2.render()?>"
+	s1 = "<?def nested1?>1n\n<?render second()?><?end def?>1\n<?render nested1(second=second)?>"
+	s2 = "<?def nested2?>2n\n<?end def?>2\n<?render nested2()?>"
 
 	assert "1\n1n\n22n" == T(s1, whitespace="keep").renders(second=ul4c.Template(s2, whitespace="strip"))
 	assert "11n2\n2n\n" == T(s1, whitespace="strip").renders(second=ul4c.Template(s2, whitespace="keep"))
@@ -3790,7 +3779,10 @@ def test_return_in_template(T):
 @pytest.mark.ul4
 def test_customattributes():
 	class CustomAttributes:
-		ul4attrs = {"foo": ("foo", "r"), "bar": ("bar", "rw")}
+		ul4attrs = ul4c.Attrs()
+		ul4attrs.add("foo")
+		ul4attrs.add("bar", write=True)
+
 		def __init__(self, foo, bar):
 			self.foo = foo
 			self.bar = bar
@@ -3810,58 +3802,60 @@ def test_customattributes():
 	assert "foo" == TemplatePython("<?for attr in o?><?if attr == 'foo'?><?print attr?><?end if?><?end for?>").renders(o=o)
 	assert "bar" == TemplatePython("<?for attr in o?><?if attr == 'bar'?><?print attr?><?end if?><?end for?>").renders(o=o)
 
+	readonlymessage = "not writable"
+
 	o = CustomAttributes(foo=42, bar=23)
-	with raises("readonly"):
+	with raises(readonlymessage):
 		TemplatePython("<?code o.foo = 43?><?print o.foo?>").renders(o=o)
-	with raises("readonly"):
+	with raises(readonlymessage):
 		TemplatePython("<?code o['foo'] = 43?><?print o.foo?>").renders(o=o)
 	assert "17" == TemplatePython("<?code o.bar = 17?><?print o.bar?>").renders(o=o)
 	assert "17" == TemplatePython("<?code o['bar'] = 17?><?print o.bar?>").renders(o=o)
 
 	o = CustomAttributes(foo=42, bar=23)
-	with raises("readonly"):
+	with raises(readonlymessage):
 		TemplatePython("<?code o.foo += 1?><?print o.foo?>").renders(o=o)
-	with raises("readonly"):
+	with raises(readonlymessage):
 		TemplatePython("<?code o['foo'] += 1?><?print o.foo?>").renders(o=o)
 	assert "24" == TemplatePython("<?code o.bar += 1?><?print o.bar?>").renders(o=o)
 	assert "25" == TemplatePython("<?code o['bar'] += 1?><?print o.bar?>").renders(o=o)
 
 	o = CustomAttributes(foo=42, bar=23)
-	with raises("readonly"):
+	with raises(readonlymessage):
 		TemplatePython("<?code o.foo -= 1?><?print o.foo?>").renders(o=o)
-	with raises("readonly"):
+	with raises(readonlymessage):
 		TemplatePython("<?code o['foo'] -= 1?><?print o.foo?>").renders(o=o)
 	assert "22" == TemplatePython("<?code o.bar -= 1?><?print o.bar?>").renders(o=o)
 	assert "21" == TemplatePython("<?code o['bar'] -= 1?><?print o.bar?>").renders(o=o)
 
 	o = CustomAttributes(foo=42, bar=23)
-	with raises("readonly"):
+	with raises(readonlymessage):
 		TemplatePython("<?code o.foo *= 2?><?print o.foo?>").renders(o=o)
-	with raises("readonly"):
+	with raises(readonlymessage):
 		TemplatePython("<?code o['foo'] *= 2?><?print o.foo?>").renders(o=o)
 	assert "46" == TemplatePython("<?code o.bar *= 2?><?print o.bar?>").renders(o=o)
 	assert "92" == TemplatePython("<?code o['bar'] *= 2?><?print o.bar?>").renders(o=o)
 
 	o = CustomAttributes(foo=42, bar=23)
-	with raises("readonly"):
+	with raises(readonlymessage):
 		TemplatePython("<?code o.foo //= 2?><?print o.foo?>").renders(o=o)
-	with raises("readonly"):
+	with raises(readonlymessage):
 		TemplatePython("<?code o['foo'] //= 2?><?print o.foo?>").renders(o=o)
 	assert "11" == TemplatePython("<?code o.bar //= 2?><?print o.bar?>").renders(o=o)
 	assert "5" == TemplatePython("<?code o['bar'] //= 2?><?print o.bar?>").renders(o=o)
 
 	o = CustomAttributes(foo=42, bar=23)
-	with raises("readonly"):
+	with raises(readonlymessage):
 		TemplatePython("<?code o.foo /= 2?><?print o.foo?>").renders(o=o)
-	with raises("readonly"):
+	with raises(readonlymessage):
 		TemplatePython("<?code o['foo'] /= 2?><?print o.foo?>").renders(o=o)
 	assert "11.5" == TemplatePython("<?code o.bar /= 2?><?print o.bar?>").renders(o=o)
 	assert "5.75" == TemplatePython("<?code o['bar'] /= 2?><?print o.bar?>").renders(o=o)
 
 	o = CustomAttributes(foo=42, bar=23)
-	with raises("readonly"):
+	with raises(readonlymessage):
 		TemplatePython("<?code o.foo %= 2?><?print o.foo?>").renders(o=o)
-	with raises("readonly"):
+	with raises(readonlymessage):
 		TemplatePython("<?code o['foo'] %= 2?><?print o.foo?>").renders(o=o)
 	assert "3" == TemplatePython("<?code o.bar %= 10?><?print o.bar?>").renders(o=o)
 	assert "1" == TemplatePython("<?code o['bar'] %= 2?><?print o.bar?>").renders(o=o)
@@ -3870,31 +3864,67 @@ def test_customattributes():
 @pytest.mark.ul4
 def test_custommethods():
 	class CustomMethod:
-		ul4attrs = {"foo", "bar"}
+		ul4attrs = ul4c.Attrs("foo")
 
 		def foo(self):
 			return 42
 
-		@ul4c.generator
-		def bar(self):
-			yield "gurk"
-			yield "hurz"
-			return 42
+		@ul4attrs.addfunction(context=True)
+		def bar(self, context):
+			return len(context.vars)
 
 		def baz(self):
 			pass
 
 	o = CustomMethod()
 	assert "42" == TemplatePython("<?print o.foo()?>").renders(o=o)
-	assert "gurkhurz42" == TemplatePython("<?print o.bar()?>").renders(o=o)
+	assert "1" == TemplatePython("<?print o.bar()?>").renders(o=o)
 	with raises("baz"):
 		TemplatePython("<?print o.baz()?>").renders(o=o)
 
 
 @pytest.mark.ul4
+def test_customrender():
+	class CustomRenderNoContext:
+		ul4attrs = ul4c.Attrs()
+
+		@ul4attrs.addrender()
+		def _render(self, *args):
+			yield "w/o context="
+			for (i, arg) in enumerate(args):
+				if i:
+					yield ","
+				yield arg
+
+	class CustomRenderContext:
+		ul4attrs = ul4c.Attrs()
+
+		@ul4attrs.addrender(context=True)
+		def _render(self, context, *args):
+			yield "w/ context="
+			for (i, arg) in enumerate(args):
+				if i:
+					yield ","
+				yield arg
+
+	assert "w/o context=foo,bar" == TemplatePython("<?render o('foo', 'bar')?>").renders(o=CustomRenderNoContext())
+	assert "w/ context=foo,bar" == TemplatePython("<?render o('foo', 'bar')?>").renders(o=CustomRenderContext())
+
+
+@pytest.mark.ul4
 def test_keyword_evaluation_order(T):
-	assert "12;" == T("<?def t?><?print x?>;<?print y?><?end def?><?code t.render(x=print(1), y=print(2))?>").renders()
-	assert "21;" == T("<?def t?><?print x?>;<?print y?><?end def?><?code t.render(y=print(2), x=print(1))?>").renders()
+	globalvar = 0
+	def makevar(localvar):
+		nonlocal globalvar
+		result = globalvar + localvar
+		globalvar = localvar
+		return result
+
+	globalvar = 0
+	assert "1;3" == T("<?def t?><?print x?>;<?print y?><?end def?><?render t(x=makevar(1), y=makevar(2))?>").renders(makevar=makevar)
+
+	globalvar = 0
+	assert "3;2" == T("<?def t?><?print x?>;<?print y?><?end def?><?render t(y=makevar(2), x=makevar(1))?>").renders(makevar=makevar)
 
 
 @pytest.mark.ul4
