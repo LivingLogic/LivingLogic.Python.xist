@@ -1186,7 +1186,7 @@ class EmailLogger(Logger):
 			jsonlog = []
 			for (timestamp, tags, tasks, obj) in self._log:
 				if isinstance(obj, BaseException):
-					excclass = misc.format_exception_type(obj)
+					excclass = misc.format_class(obj)
 					value = str(obj) or None
 					tb = _formattraceback(obj)
 					ul4log.append({"type": "exception", "timestamp": timestamp, "class": excclass, "value": value, "traceback": tb, "tasks": tasks})

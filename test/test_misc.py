@@ -200,10 +200,10 @@ def test_iterator_getitem():
 		e[-1]
 
 
-def test_format_exception_type():
+def test_format_class():
 	import http.client
-	assert "ValueError" == misc.format_exception_type(ValueError())
-	assert "http.client.HTTPException" == misc.format_exception_type(http.client.HTTPException())
+	assert "ValueError" == misc.format_class(ValueError())
+	assert "http.client.HTTPException" == misc.format_class(http.client.HTTPException())
 
 
 def test_format_exception():

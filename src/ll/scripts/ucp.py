@@ -147,7 +147,7 @@ def main(args=None):
 			except Exception as exc:
 				if args.ignoreerrors:
 					if args.verbose:
-						exctype = misc.format_exception_type(exc)
+						exctype = misc.format_class(exc)
 						excmsg = str(exc).replace("\n", " ").strip()
 						msg = astyle.style_error(" (failed with {}: {})".format(exctype, excmsg))
 						stderr.writeln(msg)

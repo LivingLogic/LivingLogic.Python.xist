@@ -219,15 +219,20 @@ class propclass(property, metaclass=_propclass_Meta):
 	'''
 
 
-def format_exception_type(exc):
+def format_class(obj):
 	"""
-	Format an exception class.
+	Format the name of the class of obj:`obj`::
+
+		>>> misc.format_class(42)
+		'int'
+		>>> misc.format_class(open('README.rst', 'rb'))
+		'_io.BufferedReader'
 	"""
-	if exc.__class__.__module__ not in ("builtins", "exceptions"):
+	if obj.__class__.__module__ not in ("builtins", "exceptions"):
 		fmt = "{0.__class__.__module__}.{0.__class__.__qualname__}"
 	else:
 		fmt = "{0.__class__.__qualname__}"
-	return fmt.format(exc)
+	return fmt.format(obj)
 
 
 def format_exception(exc):
@@ -244,7 +249,7 @@ def format_exception(exc):
 	fmt = "{}"
 	if strexc:
 		fmt += ": {}"
-	return fmt.format(format_exception_type(exc), strexc)
+	return fmt.format(format_class(exc), strexc)
 
 
 class Pool:
