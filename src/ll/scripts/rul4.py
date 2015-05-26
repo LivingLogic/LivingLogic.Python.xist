@@ -261,7 +261,7 @@ __docformat__ = "reStructuredText"
 
 
 class System:
-	ul4attrs = ul4.Attrs("execute")
+	ul4attrs = ul4c.Attrs("execute")
 
 	def execute(self, cmd):
 		return os.popen(cmd).read()

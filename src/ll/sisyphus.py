@@ -965,7 +965,7 @@ class Task:
 	A subtask of a :class:`Job`.
 	"""
 
-	ul4attrs = ul4.Attrs("index", "count", "type", "name", "starttime", "endtime", "success")
+	ul4attrs = ul4c.Attrs("index", "count", "type", "name", "starttime", "endtime", "success")
 
 	def __init__(self, job, type=None, name=None, index=None, count=None):
 		"""
