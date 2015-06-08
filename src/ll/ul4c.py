@@ -3041,7 +3041,8 @@ class Render(Call):
 				else:
 					yield from renderobj(*args, **kwargs)
 			else:
-				raise TypeError("{} object can't be rendered".format(type(obj)))
+				from ll import misc
+				raise TypeError("{} object can't be rendered".format(misc.format_class(obj)))
 		except Exception as exc:
 			# Wrap original exception in another exception that shows the location
 			raise Error(self) from exc
