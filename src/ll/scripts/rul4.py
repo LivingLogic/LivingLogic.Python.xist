@@ -7,7 +7,7 @@ Purpose
 =======
 
 ``rul4`` is a script that can be used for rendering UL4 templates. Templates
-have access to Oracle, MySQL and SQLite databases and can execute system
+have access to Oracle, MySQL, SQLite and Redis databases and can execute system
 commands.
 
 
