@@ -4,11 +4,16 @@ Changes in 5.14 (released ??/??/2015)
 *	Whitespace handling for UL4 templates has been extended. There are three
 	possible whitespace handling modes now (specified via the new ``whitespace``
 	parameter): ``"keep"`` (the old ``keepws=True``) ``"strip"`` (the old
-	``keepws=False``) and the new ``"smart"``. In smart mode if a line contains
-	only indentation and one tag that doesn't produce output, the indentation
-	and the linefeed after the tag will be stripped from the text. Furthermore
-	the additional indentation that might be introduced by a ``for``, ``if``,
-	``elif``, ``else`` or ``def`` block will be ignored.
+	``keepws=False``) and the new ``"smart"``.
+
+	In smart mode if a line contains only indentation and one tag that doesn't
+	produce output, the indentation and the linefeed after the tag will be
+	stripped from the text. Furthermore the additional indentation that might be
+	introduced by a ``for``, ``if``, ``elif``, ``else`` or ``def`` block will be
+	ignored.
+
+	Rendering a template from within another template will reindent the output
+	of the inner template to the indentation of the outer template.
 
 *	Rendering an UL4 template from inside a UL4 template is now again done via
 	the ``<?render?>`` tag.

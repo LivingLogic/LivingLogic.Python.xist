@@ -693,7 +693,7 @@ definition returns [node]
 /* Additional rules for "render" tag */
 render returns [node]
 	:
-		e1=atom { $node = $e1.node; }
+		e1=expression { $node = $e1.node; }
 		'(' { $node = ul4c.Render(self.tag, $node.startpos, None, $node) }
 		(
 			/* No arguments */
@@ -747,6 +747,7 @@ render returns [node]
 			','?
 		)
 		close=')' { $node.endpos = self.endpos($close) }
+		EOF
 	;
 
 /* Used for parsing signatures */
@@ -811,4 +812,5 @@ signature returns [node]
 		','?
 	)
 	close=')' { $node.endpos = self.endpos($close) }
+	EOF
 ;

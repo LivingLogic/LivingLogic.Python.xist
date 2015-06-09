@@ -187,14 +187,15 @@ class UndefinedIndex(Undefined):
 
 class Context:
 	"""
-	A :class:`Context` object store sthe context of a call to a template. This
-	consists of the local variables and the call stack.
+	A :class:`Context` object stores the context of a call to a template. This
+	consists of the local variables and the indent stack.
 	"""
 	# "Global" functions. Will be exposed to UL4 code
 	functions = {}
 
 	def __init__(self):
 		self.vars = {}
+		self.indents = [] # Stack of additional indentations for the ``<?render?>`` tag
 
 	@classmethod
 	def makefunction(cls, f):
@@ -823,6 +824,10 @@ class Indent(Text):
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
 		self._text = decoder.load()
+
+	def eval(self, context):
+		yield from context.indents
+		yield self.text
 
 
 @register("lineend")
@@ -3015,6 +3020,10 @@ class Render(Call):
 	of arguments is found in :obj:`args`.
 	"""
 
+	def __init__(self, tag=None, startpos=None, endpos=None, obj=None):
+		super().__init__(tag, startpos, endpos, obj)
+		self.indent = None # The indentation before this ``<?render?>`` tag, i.e. the sibling AST node before ``self``
+
 	output = True
 
 	def eval(self, context):
@@ -3034,18 +3043,33 @@ class Render(Call):
 
 		try:
 			if hasattr(obj, "ul4attrs") and obj.ul4attrs._render is not None:
+				if self.indent is not None:
+					context.indents.append(self.indent.text)
 				renderobj = getattr(obj, obj.ul4attrs._render)
 				needscontext = getattr(renderobj, "ul4context", False)
 				if needscontext:
 					yield from renderobj(context, *args, **kwargs)
 				else:
 					yield from renderobj(*args, **kwargs)
+				if self.indent is not None:
+					context.indents.pop()
 			else:
 				from ll import misc
 				raise TypeError("{} object can't be rendered".format(misc.format_class(obj)))
 		except Exception as exc:
 			# Wrap original exception in another exception that shows the location
 			raise Error(self) from exc
+
+	def _str(self):
+		yield "render {}".format(" ".join(self.text.splitlines(False)))
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.indent)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.indent = decoder.load()
 
 
 @register("template")
@@ -3442,12 +3466,24 @@ class Template(Block):
 			yield Text(source, pos, end)
 
 	def _tags2lines(self, tags):
+		"""
+		Transforms an iterable of tags into an iterable of lines by splitting the
+		literal text between the tags into lines.
+
+		A line is a list of nodes and will start with an :class:`Indent` node
+		(containing the indenting whitespace if the line is indented, or an empty
+		indentation if it isn't) and might end with a :class:`LineEnd` node
+		(containing the line feed if the line is terminated (which most lines
+		(except maybe the last one) are)).
+		"""
 		# a list of tags that are all part of one line
 		tagline = []
 
 		def append(tag):
-			# If this is a new line and it doesn't start with an indentation, add an empty indentation at the start
-			# (We always output indentation, as this is the spot where :meth:`renderindented` adds the additional indentation)
+			# If this is a new line and it doesn't start with an indentation,
+			# add an empty indentation at the start (We always add indentation,
+			# as this is used by :class:`Render` to reindent the output of one
+			# template when called from inside another template
 			if not tagline and not isinstance(tag, Indent):
 				tagline.append(Indent(tag.source, tag.startpos, tag.startpos))
 			tagline.append(tag)
@@ -3664,7 +3700,13 @@ class Template(Block):
 			return self._parser(tag, "definition required").definition()
 
 		def parserender(tag):
-			return self._parser(tag, "render call required").render()
+			call = self._parser(tag, "render call required").expression()
+			if not isinstance(call, Call):
+				raise TypeError("render call required")
+			render = Render(tag=call.tag, startpos=call.startpos, endpos=call.endpos, obj=call.obj)
+			render.obj = call.obj
+			render.args = call.args
+			return render
 
 		tags = self._tokenize(source, startdelim, enddelim)
 		lines = list(self._tags2lines(tags))
@@ -3784,12 +3826,26 @@ class Template(Block):
 				elif tag.tag == "return":
 					stack[-1].append(Return(tag, tag.startpos, tag.endpos, parseexpr(tag)))
 				elif tag.tag == "render":
-					stack[-1].append(parserender(tag))
+					render = parserender(tag)
+					# Find innermost block
+					innerblock = stack[-1]
+					if isinstance(innerblock, CondBlock):
+						innerblock = innerblock.content[-1]
+					innerblock = innerblock.content
+					# If we have an indentation before the ``<?render?>`` tag, move it
+					# into the ``indent`` attribute of the :class`Render` object,
+					# because this indentation must be added to every line that the
+					# rendered template outputs.
+					if innerblock and isinstance(innerblock[-1], Indent):
+						render.indent = innerblock[-1]
+						innerblock.pop()
+					stack[-1].append(render)
 				elif tag.tag in ("ul4", "whitespace", "note"):
 					# Don't copy declarations, whitespace specification or comments over into the syntax tree
 					pass
 				else: # Can't happen
 					raise ValueError("unknown tag {!r}".format(tag.tag))
+				lasttag = tag
 			except Exception as exc:
 				raise Error(tag, self) from exc
 		if len(stack) > 1:
@@ -3798,7 +3854,7 @@ class Template(Block):
 	@_handleexpressioneval
 	def eval(self, context):
 		signature = self.signature
-		# If our signature is an AST, we have the evaluate it to get the final :class:`inspect.Signature` object
+		# If our signature is an AST, we have to evaluate it to get the final :class:`inspect.Signature` object
 		if isinstance(signature, Signature):
 			signature = signature.eval(context)
 		context.vars[self.name] = TemplateClosure(self, context, signature)
