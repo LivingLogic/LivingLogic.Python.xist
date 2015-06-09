@@ -3573,7 +3573,7 @@ class Template(Block):
 					return i
 			return len(indent1)
 
-		# Step 2: Determine the block structure of the lines
+		# Step 1: Determine the block structure of the lines
 		blocks = [] # List of all blocks
 		stack = [] # Stack of currently "open" blocks
 
@@ -3608,7 +3608,7 @@ class Template(Block):
 		for block in stack:
 			block.end = len(lines)
 
-		# Step 3: Find the outer and inner indentation of all blocks
+		# Step 2: Find the outer and inner indentation of all blocks
 		for block in blocks:
 			block.indent = range(
 				# outer indent, i.e. the indentation of the start tag of the block
@@ -3617,7 +3617,7 @@ class Template(Block):
 				commonindentlen([indent(line) for line in itertools.islice(lines, block.start, block.end) if not isempty(line)]),
 			)
 
-		# Step 4: Fix the indentation
+		# Step 3: Fix the indentation
 		allindents = {}
 		for (line, blocks) in newlines:
 			if line:
@@ -3627,15 +3627,19 @@ class Template(Block):
 				newindent = allindents.setdefault(newindent, newindent)
 				line[0]._settext(newindent)
 
-		# Step 5: Drop whitespace from lines that only contain indentation and block tags
+		# Step 4: Drop whitespace from lines that only contain indentation and block tags
 		for line in lines:
-			if len(line) == 2 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render"):
+			if len(line) == 2 and isinstance(line[0], Indent) and isinstance(line[1], LineEnd):
+				del line[0]
+			elif len(line) == 2 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render"):
 				del line[0]
 			elif len(line) == 3 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render") and isinstance(line[2], LineEnd):
 				del line[2]
 				del line[0]
+			elif len(line) == 3 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag == "render" and isinstance(line[2], LineEnd):
+				del line[2]
 
-		# Step 6: Yield the individual :class:`Tag`/:class:`Text` objects
+		# Step 5: Yield the individual :class:`Tag`/:class:`Text` objects
 		for line in lines:
 			yield from line
 
