@@ -690,66 +690,6 @@ definition returns [node]
 	;
 
 
-/* Additional rules for "render" tag */
-render returns [node]
-	:
-		e1=expression { $node = $e1.node; }
-		'(' { $node = ul4c.Render(self.tag, $node.startpos, None, $node) }
-		(
-			/* No arguments */
-		|
-			/* "**" argument only */
-			'**' rkwargs=exprarg { $node.args.append(("**", $rkwargs.node)); }
-			','?
-		|
-			/* "*" argument only (and maybe **) */
-			'*' rargs=exprarg { $node.args.append(("*", $rargs.node)); }
-			(
-				','
-				'**' rkwargs=exprarg { $node.args.append(("**", $rkwargs.node)); }
-			)?
-			','?
-		|
-			/* At least one positional argument */
-			a1=exprarg { $node.args.append((None, $a1.node)); }
-			(
-				','
-				a2=exprarg { $node.args.append((None, $a2.node)); }
-			)*
-			(
-				','
-				an3=name '=' av3=exprarg { $node.args.append(($an3.text, $av3.node)); }
-			)*
-			(
-				','
-				'*' rargs=exprarg { $node.args.append(("*", $rargs.node)); }
-			)?
-			(
-				','
-				'**' rkwargs=exprarg { $node.args.append(("**", $rkwargs.node)); }
-			)?
-			','?
-		|
-			/* Keyword arguments only */
-			an1=name '=' av1=exprarg { $node.args.append(($an1.text, $av1.node)); }
-			(
-				','
-				an2=name '=' av2=exprarg { $node.args.append(($an2.text, $av2.node)); }
-			)*
-			(
-				','
-				'*' rargs=exprarg { $node.args.append(("*", $rargs.node)); }
-			)?
-			(
-				','
-				'**' rkwargs=exprarg { $node.args.append(("**", $rkwargs.node)); }
-			)?
-			','?
-		)
-		close=')' { $node.endpos = self.endpos($close) }
-		EOF
-	;
-
 /* Used for parsing signatures */
 signature returns [node]
 	:
