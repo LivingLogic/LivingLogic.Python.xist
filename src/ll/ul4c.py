@@ -3627,7 +3627,7 @@ class Template(Block):
 				newindent = allindents.setdefault(newindent, newindent)
 				line[0]._settext(newindent)
 
-		# Step 4: Drop whitespace from lines that only contain indentation and block tags
+		# Step 4: Drop whitespace from empty lines or lines that only contain indentation and block tags
 		for line in lines:
 			if len(line) == 2 and isinstance(line[0], Indent) and isinstance(line[1], LineEnd):
 				del line[0]
