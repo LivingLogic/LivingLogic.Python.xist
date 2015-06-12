@@ -250,11 +250,7 @@ else:
 
 args = dict(
 	name="ll-xist",
-<<<<<<< HEAD
 	version="5.14",
-=======
-	version="5.13.1",
->>>>>>> rel-5-13-maint
 	description="Extensible HTML/XML generator, cross-platform templating language, Oracle utilities and various other tools",
 	long_description=description,
 	author="Walter Doerwald",
