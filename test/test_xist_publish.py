@@ -181,3 +181,23 @@ def test_doctype_in_attr():
 def test_attribute_order():
 	node = html.div(xml.Attrs(lang="de"), id="id42", align="right", class_="foo")
 	assert node.bytes() == b"""<div xml:lang="de" align="right" class="foo" id="id42"></div>"""
+
+
+def test_allowschemerelurls():
+	node = html.a(href="http://www.example.org/index.html")
+	assert node.bytes() == b'<a href="http://www.example.org/index.html"></a>'
+	assert node.bytes(base="http://www.example.org") == b'<a href="index.html"></a>'
+	assert node.bytes(base="http://www.example.com") == b'<a href="http://www.example.org/index.html"></a>'
+	assert node.bytes(base="http://www.example.com", allowschemerelurls=True) == b'<a href="//www.example.org/index.html"></a>'
+
+	node = specials.url("http://www.example.org/index.html")
+	assert node.bytes() == b'http://www.example.org/index.html'
+	assert node.bytes(base="http://www.example.org") == b'index.html'
+	assert node.bytes(base="http://www.example.com") == b'http://www.example.org/index.html'
+	assert node.bytes(base="http://www.example.com", allowschemerelurls=True) == b'//www.example.org/index.html'
+
+	node = html.span(style="background: url(http://www.example.org/index.html)")
+	assert node.bytes() == b'<span style="background: url(http://www.example.org/index.html)"></span>'
+	assert node.bytes(base="http://www.example.org") == b'<span style="background: url(index.html)"></span>'
+	assert node.bytes(base="http://www.example.com") == b'<span style="background: url(http://www.example.org/index.html)"></span>'
+	assert node.bytes(base="http://www.example.com", allowschemerelurls=True) == b'<span style="background: url(//www.example.org/index.html)"></span>'

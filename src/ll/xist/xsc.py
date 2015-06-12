@@ -592,6 +592,7 @@ class Publisher:
 			no elements from this namespace in the tree.
 		"""
 		self.base = None
+		self.allowschemerelurls = False
 		self.encoding = encoding
 		self.encoder = None
 		self.xhtml = xhtml
@@ -753,7 +754,7 @@ class Publisher:
 					self._prefix2ns[prefix] = xmlns
 		return prefix
 
-	def iterbytes(self, node, base=None):
+	def iterbytes(self, node, base=None, allowschemerelurls=False):
 		"""
 		Output the node :obj:`node`. This method is a generator that will yield
 		the resulting XML byte sequence in fragments.
@@ -789,6 +790,7 @@ class Publisher:
 		self.__errors = [ "xmlcharrefreplace" ]
 
 		self.base = url_.URL(base)
+		self.allowschemerelurls = allowschemerelurls
 		self.node = node
 
 		self.encoder = codecs.getincrementalencoder("xml")(encoding=self.encoding)
@@ -811,18 +813,18 @@ class Publisher:
 
 		self.encoder = None
 
-	def bytes(self, node, base=None):
+	def bytes(self, node, base=None, allowschemerelurls=False):
 		"""
 		Return a :class:`bytes` object in XML format for the XIST node :obj:`node`.
 		"""
-		return b"".join(self.iterbytes(node, base))
+		return b"".join(self.iterbytes(node, base, allowschemerelurls))
 
-	def iterstring(self, node, base=None):
+	def iterstring(self, node, base=None, allowschemerelurls=False):
 		"""
 		A generator that will produce a serialized string of :obj:`node`.
 		"""
 		decoder = codecs.getincrementaldecoder("xml")(encoding=self.encoding)
-		for part in self.iterbytes(node, base):
+		for part in self.iterbytes(node, base, allowschemerelurls):
 			part = decoder.decode(part, False)
 			if part:
 				yield part
@@ -830,20 +832,20 @@ class Publisher:
 		if part:
 			yield part
 
-	def string(self, node, base=None):
+	def string(self, node, base=None, allowschemerelurls=False):
 		"""
 		Return a string for :obj:`node`.
 		"""
 		decoder = codecs.getdecoder("xml")
-		result = self.bytes(node, base)
+		result = self.bytes(node, base, allowschemerelurls)
 		return decoder(result, encoding=self.encoding)[0]
 
-	def write(self, stream, node, base=None):
+	def write(self, stream, node, base=None, allowschemerelurls=False):
 		"""
 		Write :obj:`node` to the file-like object :obj:`stream` (which must
 		provide a :meth:`write` method).
 		"""
-		for part in self.iterbytes(node, base):
+		for part in self.iterbytes(node, base, allowschemerelurls):
 			stream.write(part)
 
 
@@ -1226,7 +1228,7 @@ class Node(object, metaclass=_Node_Meta):
 		The encoding and xhtml specification are taken from the :obj:`publisher`.
 		"""
 
-	def iterbytes(self, base=None, publisher=None, **publishargs):
+	def iterbytes(self, base=None, allowschemerelurls=False, publisher=None, **publishargs):
 		"""
 		A generator that will produce this node as a serialized byte string. (i.e.
 		it will output what the method :meth:`bytes` outputs, but incremetally).
@@ -1237,9 +1239,9 @@ class Node(object, metaclass=_Node_Meta):
 		if publisher is None:
 			publisher = Publisher(**publishargs)
 
-		return publisher.iterbytes(self, base) # return a generator-iterator
+		return publisher.iterbytes(self, base, allowschemerelurls) # return a generator-iterator
 
-	def bytes(self, base=None, publisher=None, **publishargs):
+	def bytes(self, base=None, allowschemerelurls=False, publisher=None, **publishargs):
 		"""
 		Return :obj:`self` as a serialized bytes object.
 
@@ -1259,9 +1261,9 @@ class Node(object, metaclass=_Node_Meta):
 		if publisher is None:
 			publisher = Publisher(**publishargs)
 
-		return publisher.bytes(self, base)
+		return publisher.bytes(self, base, allowschemerelurls)
 
-	def iterstring(self, base=None, publisher=None, **publishargs):
+	def iterstring(self, base=None, allowschemerelurls=False, publisher=None, **publishargs):
 		"""
 		A generator that will produce a serialized string of :obj:`self` (i.e.
 		it will output what the method :meth:`string` outputs, but incremetally).
@@ -1272,9 +1274,9 @@ class Node(object, metaclass=_Node_Meta):
 		if publisher is None:
 			publisher = Publisher(**publishargs)
 
-		return publisher.iterstring(self, base) # return a generator-iterator
+		return publisher.iterstring(self, base, allowschemerelurls) # return a generator-iterator
 
-	def string(self, base=None, publisher=None, **publishargs):
+	def string(self, base=None, allowschemerelurls=False, publisher=None, **publishargs):
 		"""
 		Return a serialized (unicode) string for :obj:`self`.
 
@@ -1293,9 +1295,9 @@ class Node(object, metaclass=_Node_Meta):
 		"""
 		if publisher is None:
 			publisher = Publisher(**publishargs)
-		return publisher.string(self, base)
+		return publisher.string(self, base, allowschemerelurls)
 
-	def write(self, stream, base=None, publisher=None, **publishargs):
+	def write(self, stream, base=None, allowschemerelurls=False, publisher=None, **publishargs):
 		"""
 		Write :obj:`self` to the file-like object :obj:`stream` (which must provide
 		a :meth:`write` method).
@@ -1305,7 +1307,7 @@ class Node(object, metaclass=_Node_Meta):
 		"""
 		if publisher is None:
 			publisher = Publisher(**publishargs)
-		return publisher.write(stream, self, base)
+		return publisher.write(stream, self, base, allowschemerelurls)
 
 	def _walk(self, cursor):
 		yield cursor
@@ -2523,9 +2525,8 @@ class StyleAttr(Attr):
 
 	def _publishattrvalue(self, publisher):
 		if not self.isfancy() and publisher.base is not None:
-
 			def reltobase(u):
-				return u.relative(publisher.base)
+				return u.relative(publisher.base, publisher.allowschemerelurls)
 			yield from Frag(self._transform(reltobase)).publish(publisher)
 		else:
 			yield from super(StyleAttr, self)._publishattrvalue(publisher)
@@ -2560,7 +2561,7 @@ class URLAttr(Attr):
 		if self.isfancy():
 			return Attr._publishattrvalue(self, publisher)
 		else:
-			new = Attr(url_.URL(str(self)).relative(publisher.base))
+			new = Attr(url_.URL(str(self)).relative(publisher.base, publisher.allowschemerelurls))
 			return new._publishattrvalue(publisher)
 
 	def asURL(self):

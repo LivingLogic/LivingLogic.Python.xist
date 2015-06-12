@@ -369,12 +369,12 @@ def test_space_and_plus_in_name():
 def test_schemerelurls():
 	u1 = url.URL("http://www.example.org/about/index.html")
 	u2 = url.URL("http://www.example.com/images/logo.png")
-	u3 = u2.relative(u1, schemerel=True)
+	u3 = u2.relative(u1, allowschemerel=True)
 	assert u3.scheme is None
 	assert str(u3) == "//www.example.com/images/logo.png"
 
 	u1 = url.URL("http://www.example.org/about/index.html")
 	u2 = url.URL("http://www.example.org/images/logo.png")
-	u3 = u2.relative(u1, schemerel=True)
+	u3 = u2.relative(u1, allowschemerel=True)
 	assert u3.scheme is None
 	assert str(u3) == "../images/logo.png"

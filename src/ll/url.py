@@ -2749,7 +2749,7 @@ class URL(object):
 		else:
 			return (item/self for item in other)
 
-	def relative(self, baseurl, schemerel=False):
+	def relative(self, baseurl, allowschemerel=False):
 		"""
 		Return an relative :class:`URL` :obj:`rel` such that
 		``baseurl/rel == self``, i.e. this is the inverse operation of
@@ -2758,6 +2758,11 @@ class URL(object):
 		If :obj:`self` is relative, has a different :prop:`scheme` or
 		:prop:`authority` than :obj:`baseurl` or a non-hierarchical scheme, an
 		identical copy of :obj:`self` will be returned.
+
+		If :obj:`allowschemerel` is true, scheme relative URLs are allowed, i.e.
+		if both :obj:`self` and :obj:`baseurl` use the same hierarchical scheme,
+		both a different authority (i.e. server), a scheme relative url
+		(``//server/path/file.html``) will be returned.
 		"""
 		# if :obj:`self` is relative don't do anything
 		if self.scheme is None:
@@ -2769,7 +2774,7 @@ class URL(object):
 		newurl = URL(self) # clone
 		# only calculate a new URL if to the same scheme/server, else use the original (or a scheme relative one)
 		if self.authority != baseurl.authority:
-			if self.scheme == baseurl.scheme and schemerel:
+			if self.scheme == baseurl.scheme and allowschemerel:
 				del newurl.scheme
 			return newurl
 		elif self.scheme != baseurl.scheme:

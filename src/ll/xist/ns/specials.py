@@ -204,7 +204,8 @@ class url(xsc.ProcInst):
 			return self
 
 	def publish(self, publisher):
-		yield publisher.encodetext(str(url_.URL(self.content).relative(publisher.base)))
+		url = url_.URL(self.content).relative(publisher.base, publisher.allowschemerelurls)
+		yield publisher.encodetext(str(url))
 
 
 # Control characters (not part of HTML)
