@@ -342,7 +342,7 @@ def test_without():
 	u3 = url.URL("x#")
 	assert u1a.withoutfrag() == u2
 	assert u1a.withoutfrag() != u3
-	assert u1a == u1b # make sure withfrag created a new URL
+	assert u1a == u1b # make sure withoutfrag created a new URL
 
 
 def test_relpathauthority():
@@ -364,3 +364,17 @@ def test_space_and_plus_in_name():
 	assert url.File("+").local() == "+"
 	assert url.File(" ").local() == " "
 	assert str(url.File(" ")) in ("file:%20", "file:+")
+
+
+def test_schemerelurls():
+	u1 = url.URL("http://www.example.org/about/index.html")
+	u2 = url.URL("http://www.example.com/images/logo.png")
+	u3 = u2.relative(u1, schemerel=True)
+	assert u3.scheme is None
+	assert str(u3) == "//www.example.com/images/logo.png"
+
+	u1 = url.URL("http://www.example.org/about/index.html")
+	u2 = url.URL("http://www.example.org/images/logo.png")
+	u3 = u2.relative(u1, schemerel=True)
+	assert u3.scheme is None
+	assert str(u3) == "../images/logo.png"

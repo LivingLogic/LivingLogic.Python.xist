@@ -1,3 +1,15 @@
+Changes in 5.13.1 (released 06/12/2015)
+---------------------------------------
+
+*	:mod:`ll.url.URL.relative` can now produce "scheme relative" URLs if
+	requested via the parameter ``schemerel``, i.e.
+
+		>>> u1 = url.URL("http://www.example.org/about/index.html")
+		>>> u2 = url.URL("http://www.example.com/images/logo.png")
+		>>> u2.relative(u1, schemerel=True)
+		URL('//www.example.com/images/logo.png')
+
+
 Changes in 5.13 (released 12/18/2014)
 -------------------------------------
 

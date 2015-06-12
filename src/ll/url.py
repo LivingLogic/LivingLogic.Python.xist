@@ -2749,7 +2749,7 @@ class URL(object):
 		else:
 			return (item/self for item in other)
 
-	def relative(self, baseurl):
+	def relative(self, baseurl, schemerel=False):
 		"""
 		Return an relative :class:`URL` :obj:`rel` such that
 		``baseurl/rel == self``, i.e. this is the inverse operation of
@@ -2766,10 +2766,14 @@ class URL(object):
 		if not self.reg.usehierarchy:
 			return URL(self)
 		baseurl = URL(baseurl) # clone/coerce
-		# only calculate a new URL if to the same server, else use the original
-		if self.scheme != baseurl.scheme or self.authority != baseurl.authority:
-			return URL(self)
 		newurl = URL(self) # clone
+		# only calculate a new URL if to the same scheme/server, else use the original (or a scheme relative one)
+		if self.authority != baseurl.authority:
+			if self.scheme == baseurl.scheme and schemerel:
+				del newurl.scheme
+			return newurl
+		elif self.scheme != baseurl.scheme:
+			return newurl
 		del newurl.scheme
 		del newurl.authority
 		selfpath_segments = _normalizepath(self._path.segments)
