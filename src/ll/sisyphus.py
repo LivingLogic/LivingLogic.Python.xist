@@ -1275,7 +1275,7 @@ def executewithargs(job, args=None):
 	Execute the job :obj:`job` once with command line arguments.
 
 	:obj:`args` are the command line arguments (:const:`None` results in
-	``sys.argv`` being used)
+	``sys.argv`` being used).
 	"""
 	job.parseargs(args)
 	job._handleexecution()

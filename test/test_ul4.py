@@ -4026,6 +4026,33 @@ def test_not_containment_precedence(T):
 
 
 @pytest.mark.ul4
+def test_whitespace_tag():
+	t1 = ul4c.Template("<?whitespace keep?>")
+	assert t1.whitespace == "keep"
+
+	t2 = ul4c.Template("<?whitespace strip?>")
+	assert t2.whitespace == "strip"
+
+	t3 = ul4c.Template("<?whitespace smart?>")
+	assert t3.whitespace == "smart"
+
+
+@pytest.mark.ul4
+def test_ul4_tag():
+	t1 = ul4c.Template("<?ul4 foo?>")
+	assert t1.name == "foo"
+	assert t1.signature is None
+
+	t2 = ul4c.Template("<?ul4 foo2(bar)?>")
+	assert t2.name == "foo2"
+	assert str(t2.signature) == "(bar)"
+
+	t3 = ul4c.Template("<?ul4 foo3(bar=17, baz=23)?>")
+	assert t3.name == "foo3"
+	assert str(t3.signature) == "(bar=17, baz=23)"
+
+
+@pytest.mark.ul4
 def test_function_signature(T):
 	assert 42 == T("<?return x?>", signature="x")(x=42)
 
