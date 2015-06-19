@@ -4038,6 +4038,49 @@ def test_whitespace_tag():
 
 
 @pytest.mark.ul4
+def test_smart_whitespace(T):
+	# Without linefeeds the text will be output as-is.
+	assert "\tTrue" == T("<?if True?>\tTrue<?end if?>", whitespace="smart").renders()
+
+	# Line feeds will be removed from lines containing only a "control flow" tag.
+	assert "True\n" == T("<?if True?>\nTrue\n<?end if?>\n", whitespace="smart").renders()
+
+	# Indentation will also be removed from those lines.
+	assert "True\n" == T("    <?if True?>\nTrue\n         <?end if?>\n", whitespace="smart").renders()
+
+	# Additional text (before and after tag) will leave the line feeds intact.
+	assert "x\nTrue\n" == T("x<?if True?>\nTrue\n<?end if?>\n", whitespace="smart").renders()
+	assert " \nTrue\n" == T("<?if True?> \nTrue\n<?end if?>\n", whitespace="smart").renders()
+
+	# Multiple tags will also leave the line feeds intact.
+	assert "\nTrue\n\n" == T("<?if True?><?if True?>\nTrue\n<?end if?><?end if?>\n", whitespace="smart").renders()
+
+	# For <?print?> and <?printx?> tags the indentation and line feed will not be stripped
+	assert " 42\n" == T(" <?print 42?>\n", whitespace="smart").renders()
+	assert " 42\n" == T(" <?printx 42?>\n", whitespace="smart").renders()
+
+	# For <?render?> tags the line feed will be stripped, but the indentation will be reused for each line rendered by the call
+	assert "   x\r\n" == T("<?def x?>\nx\r\n<?end def?>\n   <?render x()?>\n", whitespace="smart").renders()
+
+	# But of course "common" indentation will be ignored
+	assert "x\r\n" == T("<?if True?>\n   <?def x?>\n   x\r\n   <?end def?>\n   <?render x()?>\n<?end if?>\n", whitespace="smart").renders()
+
+	# But not on the outermost level, which leads to an esoteric corner case:
+	# The indentation will be output twice (once by the text itself, and once by the render call).
+	assert "      x\r\n" == T("   <?def x?>\n   x\r\n   <?end def?>\n   <?render x()?>\n", whitespace="smart").renders()
+
+	# Additional indentation in the block will be removed.
+	assert "True\n" == T("<?if True?>\n\tTrue\n<?end if?>\n", whitespace="smart").renders()
+
+	# Outer indentation will be kept.
+	assert " True\n" == T(" <?if True?>\n \tTrue\n <?end if?>\n", whitespace="smart").renders()
+
+	# Mixed indentation will not be recognized as indentation.
+	assert "\tTrue\n" == T(" <?if True?>\n\tTrue\n <?end if?>\n", whitespace="smart").renders()
+
+
+
+@pytest.mark.ul4
 def test_ul4_tag():
 	t1 = ul4c.Template("<?ul4 foo?>")
 	assert t1.name == "foo"
