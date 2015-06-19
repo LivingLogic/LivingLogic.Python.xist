@@ -518,9 +518,9 @@ def print_exception_chain(exc):
 	while exc is not None:
 		chain.append(exc)
 		exc = exc.__cause__ if exc.__cause__ is not None else exc.__context__
+	print("UL4 traceback (most recent call last):", file=sys.stderr)
 	for (i, exc) in enumerate(chain):
-		if i:
-			print()
+		print()
 		print(misc.format_exception(exc), file=sys.stderr)
 
 
