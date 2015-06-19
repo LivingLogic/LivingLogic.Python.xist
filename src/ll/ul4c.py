@@ -3026,6 +3026,37 @@ class Render(Call):
 
 	output = True
 
+	def _repr(self):
+		yield "indent={!r}".format(self.indent)
+		yield "obj={!r}".format(self.obj)
+		for (name, arg) in self.args:
+			if name is None:
+				yield repr(arg)
+			elif name == "*":
+				yield "*{!r}".format(arg)
+			elif name == "**":
+				yield "**{!r}".format(arg)
+			else:
+				yield "{}={!r}".format(name, arg)
+
+	def _repr_pretty(self, p):
+		p.breakable()
+		p.text("indent=")
+		p.pretty(self.indent)
+		p.breakable()
+		p.text("obj=")
+		p.pretty(self.obj)
+		for (name, arg) in self.args:
+			p.breakable()
+			if name is None:
+				p.pretty(arg)
+			elif name in ("*", "**"):
+				p.text(name)
+				p.pretty(arg)
+			else:
+				p.text("{}=".format(name))
+				p.pretty(arg)
+
 	def eval(self, context):
 		obj = self.obj.eval(context)
 		args = []
