@@ -516,12 +516,14 @@ def define(arg):
 def print_exception_chain(exc):
 	chain = []
 
-	while exc is not None:
+	while True:
 		chain.append(exc)
-		exc = exc.__cause__ if exc.__cause__ is not None else exc.__context__
-	# Workaround for http://bugs.python.org/24474
-	if isinstance(chain[-1], StopIteration):
-		chain = chain[:-1]
+		if exc.__cause__ is not None:
+			exc = exc.__cause__
+		elif exc.__context__ is not None and not exc.__suppress_context__:
+			exc = exc.__context__
+		else:
+			break
 	print("UL4 traceback (most recent call last):", file=sys.stderr)
 	for (i, exc) in enumerate(chain):
 		print()
