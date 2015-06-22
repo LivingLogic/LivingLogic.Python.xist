@@ -252,6 +252,20 @@ def format_exception(exc):
 	return fmt.format(format_class(exc), strexc)
 
 
+def exception_chain(exc):
+	"""
+	Traverses the chain of exceptions. This is a generator.
+	"""
+	while True:
+		yield exc
+		if exc.__cause__ is not None:
+			exc = exc.__cause__
+		elif exc.__context__ is not None and not exc.__suppress_context__:
+			exc = exc.__context__
+		else:
+			break
+
+
 class Pool:
 	"""
 	A :class:`Pool` object can be used as an inheritable alternative to modules.

@@ -514,18 +514,8 @@ def define(arg):
 
 
 def print_exception_chain(exc):
-	chain = []
-
-	while True:
-		chain.append(exc)
-		if exc.__cause__ is not None:
-			exc = exc.__cause__
-		elif exc.__context__ is not None and not exc.__suppress_context__:
-			exc = exc.__context__
-		else:
-			break
 	print("UL4 traceback (most recent call last):", file=sys.stderr)
-	for (i, exc) in enumerate(chain):
+	for exc in misc.exception_chain(exc):
 		print()
 		print(misc.format_exception(exc), file=sys.stderr)
 

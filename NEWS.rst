@@ -44,8 +44,8 @@ Changes in 5.14 (released ??/??/2015)
 	:option:`--whitespace` and defaults to ``smart`` now.
 
 *	``rul4`` got a new option :option:`--stacktrace`: ``full`` displays the full
-	Python stack trace, ``short`` only display the exception chain without
-	displaying any Python source.
+	Python stack trace, ``short`` (the new default) only displays the exception
+	chain without displaying any Python source.
 
 *	Templates used in ``rul4`` have access to a new function: ``import``, which
 	can be used to load templates from any file.
@@ -60,13 +60,16 @@ Changes in 5.14 (released ??/??/2015)
 *	If an identifier is given when invoking a :mod:`sisyphus` job it will be
 	included in the log file name now by default.
 
-*	Two new helper functions were added to :mod:`ll.misc`:
+*	Three new helper functions were added to :mod:`ll.misc`:
 	:func:`format_class` formats the name of a class object (e.g. ``ValueError``
-	or ``http.client.HTTPException``) and :func:`format_exception`
+	or ``http.client.HTTPException``). :func:`format_exception`
 	formats an exception::
 
 		>>> misc.format_exception(ValueError("bad value"))
 		'ValueError: bad value'
+
+	:func`:exception_chain` treaverses the chain of exception (via the
+	``__cause__`` and ``__context__`` attributes).
 
 *	``+`` in the path part of URLs are now considered safe characters. Spaces
 	will be escaped as ``%20`` and no longer as ``+``.
