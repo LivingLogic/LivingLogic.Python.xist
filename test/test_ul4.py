@@ -3912,7 +3912,7 @@ def test_customrender():
 
 
 @pytest.mark.ul4
-def test_keyword_evaluation_order(T):
+def test_keyword_evaluation_order():
 	globalvar = 0
 	def makevar(localvar):
 		nonlocal globalvar
@@ -3921,10 +3921,10 @@ def test_keyword_evaluation_order(T):
 		return result
 
 	globalvar = 0
-	assert "1;3" == T("<?def t?><?print x?>;<?print y?><?end def?><?render t(x=makevar(1), y=makevar(2))?>").renders(makevar=makevar)
+	assert "1;3" == TemplatePython("<?def t?><?print x?>;<?print y?><?end def?><?render t(x=makevar(1), y=makevar(2))?>").renders(makevar=makevar)
 
 	globalvar = 0
-	assert "3;2" == T("<?def t?><?print x?>;<?print y?><?end def?><?render t(y=makevar(2), x=makevar(1))?>").renders(makevar=makevar)
+	assert "3;2" == TemplatePython("<?def t?><?print x?>;<?print y?><?end def?><?render t(y=makevar(2), x=makevar(1))?>").renders(makevar=makevar)
 
 
 @pytest.mark.ul4
