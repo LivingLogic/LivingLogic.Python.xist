@@ -394,8 +394,8 @@ all_templates = dict(
 	python_dump=TemplatePythonDump,
 	# java_compiled_by_python=TemplateJavaCompiledByPython,
 	# java_compiled_by_java=TemplateJavaCompiledByJava,
-	# js_v8=TemplateJavascriptV8,
-	# js_spidermonkey=TemplateJavascriptSpidermonkey,
+	js_v8=TemplateJavascriptV8,
+	js_spidermonkey=TemplateJavascriptSpidermonkey,
 	# php=TemplatePHP,
 )
 
