@@ -357,7 +357,7 @@ class Decoder:
 			elif value == "F":
 				value = False
 			else:
-				raise ValueError("broken stream at position {}: expected 'T' or 'F' for bool; got {!r}".format(self.stream.tell(), value))
+				raise ValueError("broken UL4ON stream at position {}: expected 'T' or 'F' for bool; got {!r}".format(self.stream.tell(), value))
 			if typecode == "B":
 				self._loading(value)
 			return value
@@ -507,10 +507,10 @@ class Decoder:
 			value.ul4onload(self)
 			typecode = self._nextchar()
 			if typecode != ")":
-				raise ValueError("broken stream at position {}: object terminator ')' expected, got {!r}".format(self.stream.tell(), typecode))
+				raise ValueError("broken UL4ON stream at position {}: object terminator ')' expected, got {!r}".format(self.stream.tell(), typecode))
 			return value
 		else:
-			raise ValueError("broken stream at position {}: unknown typecode {!r}".format(self.stream.tell(), typecode))
+			raise ValueError("broken UL4ON stream at position {}: unknown typecode {!r}".format(self.stream.tell(), typecode))
 
 
 class StreamBuffer:
