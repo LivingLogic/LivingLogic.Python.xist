@@ -10,12 +10,22 @@
 ## See ll/xist/__init__.py for the license
 
 
-import sys, os, re, datetime, io, json, tempfile, collections, shutil, subprocess, inspect, datetime
+import sys, os, re, datetime, io, json, tempfile, collections, shutil, subprocess, inspect, datetime, codecs
 
 import pytest
 
 from ll import ul4c, color, misc, ul4on
 from ll.xist.ns import html, ul4
+
+
+def passbytes(exc):
+	if isinstance(exc, UnicodeDecodeError):
+		return (exc.object[exc.start:exc.end].decode("iso-8859-1"), exc.end)
+	else:
+		raise TypeError("don't know how to handle {!r}".format(exc))
+
+
+codecs.register_error("passbytes", passbytes)
 
 
 class PseudoDict(collections.Mapping):
@@ -107,11 +117,11 @@ class TemplateJava:
 		proc = subprocess.Popen("java com.livinglogic.ul4.Tester", stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		(stdout, stderr) = proc.communicate(input=dump)
 		# Check if we have an exception
-		self.findexception(stderr.decode("utf-8"))
+		self.findexception(stderr.decode("utf-8", "passbytes"))
 
 		if stderr:
 			print(stderr, file=sys.stderr)
-		return stdout.decode("utf-8")
+		return stdout.decode("utf-8", "passbytes")
 
 
 class TemplateJavaCompiledByPython(TemplateJava):
@@ -261,8 +271,8 @@ class TemplatePHP:
 			dir = os.path.expanduser("~/checkouts/LivingLogic.PHP.ul4")
 			proc = subprocess.Popen("php -n -d include_path={dir} -d date.timezone=Europe/Berlin {fn}".format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 			(stdout, stderr) = proc.communicate()
-		stdout = stdout.decode("utf-8")
-		stderr = stderr.decode("utf-8")
+		stdout = stdout.decode("utf-8", "passbytes")
+		stderr = stderr.decode("utf-8", "passbytes")
 		# Check if we have an exception
 		if proc.returncode:
 			print(stdout, file=sys.stdout)
