@@ -3092,7 +3092,10 @@ class Render(Call):
 			raise Error(self) from exc
 
 	def _str(self):
-		yield "render {}".format(" ".join(self.text.splitlines(False)))
+		yield "render "
+		yield from super()._str()
+		if self.indent is not None:
+			yield " with indent {!r}".format(self.indent.text)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
