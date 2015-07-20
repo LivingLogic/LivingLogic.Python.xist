@@ -320,13 +320,13 @@ class TemplateJavascript:
 			cmd = command.format(cmd=command, dir=dir, fn=f.name)
 			proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 			(stdout, stderr) = proc.communicate()
-		stdout = stdout.decode("utf-8")
-		stderr = stderr.decode("utf-8")
+		stdout = stdout.decode("utf-8", "passbytes")
+		stderr = stderr.decode("utf-8", "passbytes")
 		# Check if we have an exception
 		if proc.returncode:
 			print(stdout, file=sys.stdout)
 			print(stderr, file=sys.stderr)
-			raise RuntimeError((stderr or stdout).strip().splitlines()[0])
+			raise RuntimeError((stderr or stdout).strip())
 		return stdout
 
 
