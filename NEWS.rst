@@ -77,6 +77,10 @@ Changes in 5.14 (released ??/??/2015)
 *	:class:`ll.orasql.Comment` has a new method :meth:`comment` that returns the
 	text of the column comment itself.
 
+*	The database objects output by :meth:`ll.orasql.Object.iterreferences` and
+	:meth:`ll.orasql.Oracle.iterreferencedby` are now sorted by name to get a
+	stable order of dependencies.
+
 
 Changes in 5.13.1 (released 06/12/2015)
 ---------------------------------------
