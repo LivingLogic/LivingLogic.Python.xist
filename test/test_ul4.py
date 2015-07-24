@@ -351,7 +351,7 @@ class TemplateJavascriptV8(TemplateJavascript):
 			print(JSON.stringify(template.renders(data)));
 		""".format(self.template.jssource(), ul4c._asjson(ul4on.dumps(kwargs)))
 
-		return json.loads(self.runcode("d8 {dir}/ul4on.js {dir}/ul4.js {fn}", source))
+		return json.loads(self.runcode("d8 {dir}/ul4.js {fn}", source))
 
 	def render(self, *args, **kwargs):
 		return self.renders(*args, **kwargs)
@@ -366,7 +366,7 @@ class TemplateJavascriptV8(TemplateJavascript):
 			print(ul4on.dumps(template.call(data)));
 		""".format(self.template.jssource(), ul4c._asjson(ul4on.dumps(kwargs)))
 
-		return ul4on.loads(self.runcode("d8 {dir}/ul4on.js {dir}/ul4.js {fn}", source))
+		return ul4on.loads(self.runcode("d8 {dir}/ul4.js {fn}", source))
 
 
 class TemplateJavascriptSpidermonkey(TemplateJavascript):
@@ -380,7 +380,7 @@ class TemplateJavascriptSpidermonkey(TemplateJavascript):
 			print(JSON.stringify(template.renders(data)));
 		""".format(self.template.jssource(), ul4c._asjson(ul4on.dumps(kwargs)))
 
-		return json.loads(self.runcode("js -f {dir}/ul4on.js -f {dir}/ul4.js -f {fn}", source))
+		return json.loads(self.runcode("js -f {dir}/ul4.js -f {fn}", source))
 
 	def render(self, *args, **kwargs):
 		return self.renders(*args, **kwargs)
@@ -395,7 +395,7 @@ class TemplateJavascriptSpidermonkey(TemplateJavascript):
 			print(ul4on.dumps(template.call(data)));
 		""".format(self.template.jssource(), ul4c._asjson(ul4on.dumps(kwargs)))
 
-		return ul4on.loads(self.runcode("js -f {dir}/ul4on.js -f {dir}/ul4.js -f {fn}", source))
+		return ul4on.loads(self.runcode("js -f {dir}/ul4.js -f {fn}", source))
 
 
 all_templates = dict(
