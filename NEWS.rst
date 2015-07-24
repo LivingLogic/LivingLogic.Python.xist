@@ -31,6 +31,10 @@ Changes in 5.14 (released ??/??/2015)
 
 		<?ul4 name(x, y, *args, **kwargs)?>
 
+*	Closures in UL4 templates no longer see the state of the variables at the
+	time when the local template was defined, but at the time when it is called.
+	This is similar to most other languages that support closures.
+
 *	In UL4 tags whitespace is allowed now before the tag name, i.e.::
 
 		<? for i in range(10) ?>

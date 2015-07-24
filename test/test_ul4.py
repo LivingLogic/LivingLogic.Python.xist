@@ -3569,8 +3569,8 @@ def test_nestedscopes(T):
 	"""
 	assert "0!1!2!" == T(source, whitespace="strip").renders()
 
-	# Subtemplates see the state of the variable at the point after the ``<?def?>`` tag,
-	# so the following code will use ``i = 1`` instead of ``i = 2`` even if the subtemplate is called after the variable has been changed.
+	# Subtemplates see the final state of the variable at the point were they are called,
+	# so the following code will use ``i = 2`` as the call happens after the variable reassignment
 	source = """
 	<?code i = 1?>
 	<?def x?>
@@ -3579,10 +3579,10 @@ def test_nestedscopes(T):
 	<?code i = 2?>
 	<?render x()?>
 	"""
-	assert "1" == T(source, whitespace="strip").renders()
+	assert "2" == T(source, whitespace="strip").renders()
 
 
-	# Subtemplates don't see themselves (i.e. the ``TemplateClosure`` object created for them)
+	# Subtemplates see themselves (i.e. the ``TemplateClosure`` object created for them)
 	source = """
 	<?def x?>
 		<?print type(x)?>;<?print type(y)?>
@@ -3590,11 +3590,8 @@ def test_nestedscopes(T):
 	<?code y = 42?>
 	<?render x()?>
 	"""
-	assert "undefined;undefined" == T(source, whitespace="strip").renders()
+	assert "template;int" == T(source, whitespace="strip").renders()
 
-	# This shows the difference between local variables and variables from the parent.
-	# ``x`` is passed to the subtemplate, so it will always be the current value instead of the one when it is defined
-	# (Furthermore ``y += 1`` will load the variable from the parent but store it as a local variable)
 	source = """
 	<?def outer?>
 		<?def inner?>
@@ -3616,7 +3613,7 @@ def test_nestedscopes(T):
 	<?print y?>!
 	"""
 
-	assert "45!43!44!43!43!43!" == T(source, whitespace="strip").renders(x=42, y=42)
+	assert "45!45!44!44!43!43!" == T(source, whitespace="strip").renders(x=42, y=42)
 
 
 def universaltemplate(whitespace="keep"):
@@ -4204,6 +4201,7 @@ def test_template_signature_default_in_loop(T):
 
 @pytest.mark.ul4
 def test_template_signature_loop_return_parent_variable(T):
+	# The function sees the state of the variables at the point in time when it is called, not when it is defined.
 	s = """
 		<?code fs = []?>
 		<?for i in range(10)?>
@@ -4213,6 +4211,21 @@ def test_template_signature_loop_return_parent_variable(T):
 			<?code fs.append(f)?>
 		<?end for?>
 		<?print ", ".join(str(f()) for f in fs)?>
+	"""
+	assert "9, 9, 9, 9, 9, 9, 9, 9, 9, 9" == T(s, whitespace="strip").renders()
+
+
+@pytest.mark.ul4
+def test_template_signature_loop_call_local_template(T):
+	s = """
+		<?code is = []?>
+		<?for i in range(10)?>
+			<?def f()?>
+				<?return i?>
+			<?end def?>
+			<?code is.append(f())?>
+		<?end for?>
+		<?print ", ".join(str(i) for i in is)?>
 	"""
 	assert "0, 1, 2, 3, 4, 5, 6, 7, 8, 9" == T(s, whitespace="strip").renders()
 

@@ -4520,8 +4520,7 @@ class TemplateClosure(Block):
 
 	def __init__(self, template, context, signature):
 		self.template = template
-		# Freeze variables of the currently running templates/functions
-		self.vars = context.vars.copy()
+		self.vars = context.vars
 		self.signature = signature
 
 	@ul4attrs.addrender(context=True)
