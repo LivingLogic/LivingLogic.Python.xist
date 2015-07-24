@@ -23,6 +23,13 @@ Changes to UL4
 
 		<?render template(foo, bar)?>
 
+*	Closures in UL4 templates no longer see the state of the variables at the
+	time when the local template was defined, but at the time when it is called.
+	This is similar to most other languages that support closures.
+
+	To emulate the old behaviour pass the variables you want to "freeze" to a
+	locally defined template and define the original template there.
+
 
 Migrating to version 5.13
 =========================
