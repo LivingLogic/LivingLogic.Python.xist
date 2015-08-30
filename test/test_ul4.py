@@ -4101,6 +4101,10 @@ def test_ul4_tag():
 	assert t3.name == "foo3"
 	assert str(t3.signature) == "(bar=17, baz=23)"
 
+	t4 = ul4c.Template("<?ul4 foo4(bar=baz)?>")
+	assert t4.name == "foo4"
+	assert str(t4.signature) == "(bar=UndefinedVariable('baz'))"
+
 
 @pytest.mark.ul4
 def test_function_signature(T):
