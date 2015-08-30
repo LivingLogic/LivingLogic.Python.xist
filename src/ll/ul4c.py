@@ -3757,7 +3757,7 @@ class Template(Block):
 						(name, signature) = parsedeclaration(tag)
 						self.name = name
 						if signature is not None:
-							signature = signature.eval({})
+							signature = signature.eval(Context())
 						self.signature = signature
 					elif tag.tag == "whitespace":
 						whitespace = tag.code
