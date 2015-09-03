@@ -34,8 +34,8 @@ There are two aspects to these files:
 
 	``type`` : string (optional)
 		This is either ``"procedure"`` (the default), ``"sql"``, ``"file"``,
-		``"scp"``, ``"resetsequence"``, ``"include"``, ``"compileall"`` or
-		``"checkerrors"``.
+		``"scp"``, ``"resetsequence"``, ``"setvar"``, ``"include"``,
+		``"compileall"`` or ``"checkerrors"``.
 
 	The type ``"procedure"`` calls on Oracle procedure in the database.
 	The following additional keys are used:
