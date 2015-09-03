@@ -465,14 +465,14 @@ class Error(Exception):
 
 
 class CompilationError(Exception):
-	def __init__(self, count):
-		self.count = count
+	def __init__(self, objects):
+		self.objects = objects
 
 	def __str__(self):
-		if self.count == 1:
-			return "1 invalid object in the database"
+		if len(self.objects) == 1:
+			return "one invalid db object: {} {}".format(*self.objects[0])
 		else:
-			return "{:,} invalid objects in the database".format(self.count)
+			return "{:,} invalid db objects: {}".format(len(self.objects), ", ".join("{} {}".format(*object) for object in self.objects))
 
 
 class Executor:
@@ -691,11 +691,11 @@ class Executor:
 		if self.verbose >= 3:
 			print("#{:,} in {} @ lines {:,}-{:,}: check errors".format(self.count+1, self.filenames(), pos[0], pos[1]), end="", flush=True)
 
-		self.cursor.execute("select count(*) from (select name from user_errors group by name, type)")
-		count = self.cursor.fetchone()[0]
+		self.cursor.execute("select lower(type), name from user_errors group by lower(type), name")
+		invalid_objects = [tuple(r) for r in self.cursor]
 
-		if count:
-			raise CompilationError(count)
+		if invalid_objects:
+			raise CompilationError(invalid_objects)
 
 		if self.verbose >= 3:
 			print(" -> done", flush=True)
