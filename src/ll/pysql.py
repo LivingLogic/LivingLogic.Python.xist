@@ -99,8 +99,8 @@ There are two aspects to these files:
 			The content of the file to be created.
 
 		``mode``: integer (optional)
-			The file mode for the new file. If the mode is specified
-			:func:`os.chmod` will be called on the file.
+			The file mode for the new file. If the mode is specified :func:`os.chmod`
+			will be called on the file.
 
 		``owner``: integer or string (optional)
 			The owner of the file (as a user name or a uid).
@@ -145,7 +145,7 @@ There are two aspects to these files:
 	directory with the file containing the ``include`` command.
 
 	The type ``"checkerrors"`` checks that there are no compilation errors in the
-	target schema. If there are an exception will be raised.
+	target schema. If there are, an exception will be raised.
 
 	The type ``"compileall"`` will recompile all objects in the schema.
 
@@ -358,7 +358,7 @@ and reset the sequence ``person_seq`` to the maximum value of the field
 Importing a ``pysql`` file
 --------------------------
 
-``pysql.py`` has no external dependencies (except for :mod:`cx_Oracle`) and can
+``pysql.py`` has no external dependencies except for :mod:`cx_Oracle` and can
 be used as a script for importing a pysql file into the database. As a script
 it supports the following command line options:
 
@@ -367,13 +367,13 @@ it supports the following command line options:
 
 	``file``
 		The name of the pysql file that will be read and imported. If ``file``
-		isn't specified the commands are read from ``stdin``.
+		isn't specified the comamnds are read from ``stdin``.
 
 	``-v``, ``--verbose``
 		Gives different levels of output while data is being imported to the
 		database. Possible levels are: ``0`` (no output), ``1`` (one letter for
 		each command), ``2`` (like ``1``, plus a summary of which command has been
-		executed how often and which procedures have been called how often), ``3``
+		executed how often and which procedure has been called how often), ``3``
 		(detailed output for each command/procedure call, plus summary)
 
 	``-c``, ``--commit``
