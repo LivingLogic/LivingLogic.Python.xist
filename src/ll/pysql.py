@@ -407,6 +407,18 @@ import cx_Oracle
 __docformat__ = "reStructuredText"
 
 
+char_literal = os.environ.get("LL_PYSQL_CHAR_LITERAL", "l")
+char_procedure = os.environ.get("LL_PYSQL_CHAR_PROCEDURE", "p")
+char_sql = os.environ.get("LL_PYSQL_CHAR_SQL", "s")
+char_resetsequence = os.environ.get("LL_PYSQL_CHAR_RESETSEQUENCE", "s")
+char_setvar = os.environ.get("LL_PYSQL_CHAR_SETVAR", "v")
+char_scp = os.environ.get("LL_PYSQL_CHAR_SCP", "c")
+char_file = os.environ.get("LL_PYSQL_CHAR_FILE", "f")
+char_error = os.environ.get("LL_PYSQL_CHAR_ERROR", "!")
+char_checkerrors = os.environ.get("LL_PYSQL_CHAR_CHECKERRORS", "e")
+char_compileall = os.environ.get("LL_PYSQL_CHAR_COMPILEALL", "r")
+
+
 class var:
 	"""
 	:class:`var` instances are used to mark procedure values that are ``OUT``
@@ -475,6 +487,15 @@ class CompilationError(Exception):
 			return "{:,} invalid db objects: {}".format(len(self.objects), ", ".join("{} {}".format(*object) for object in self.objects))
 
 
+class MissingKeyError(Exception):
+	def __init__(self, type, key):
+		self.type = type
+		self.key = key
+
+	def __str__(self):
+		return "missing {!r} in {!r} command".format(self.key, self.type)
+
+
 class Executor:
 	def __init__(self, db, scpdirectory="", filedirectory="", commit="once", delimiter="-- @@@", delimiterignore="-- !!!", verbose=0):
 		self.keys = {}
@@ -523,13 +544,10 @@ class Executor:
 						raise Error(self, pos, block) from exc
 					if block.get("type", "procedure") == "include":
 						filename = block.get("name")
-						if filename:
-							if self.verbose in (1, 2):
-								print("(", end="", flush=True)
-							with open(self.relativefilename(filename), "r", encoding="utf-8") as f:
-								yield from self.load(f)
-							if self.verbose in (1, 2):
-								print(")", end="", flush=True)
+						if not filename:
+							raise Error(self, pos, None) from MissingKeyError("include", "name")
+						with open(self.relativefilename(filename), "r", encoding="utf-8") as f:
+							yield from self.load(f)
 					else:
 						yield (pos, ignoreerrors, block)
 				else:
@@ -573,9 +591,6 @@ class Executor:
 								print("!", end="", flush=True)
 					else:
 						raise Error(self, pos, command) from exc
-				else:
-					if self.verbose in (1, 2):
-						print(".", end="", flush=True)
 			if self.commit == "once":
 				self.db.commit()
 			elif self.commit == "never":
@@ -616,17 +631,25 @@ class Executor:
 		self.count += 1
 		return result
 
+	def _getkey(self, command, key):
+		if key in command:
+			return command[key]
+		raise MissingKeyError(command.get("type", "procedure"), key)
+
 	def literal(self, pos, command):
 		"""
 		Execute the SQL in :obj:`command`. ``cursor`` must
 		be a :mod:`cx_Oracle` cursor.
 		"""
-		if self.verbose >= 3:
-			if len(command) > 72:
-				text = "{!r}...".format(command[:72])
+		if self.verbose >= 1:
+			if self.verbose >= 3:
+				if len(command) > 72:
+					text = "{!r}...".format(command[:72])
+				else:
+					text = repr(command)
+				print("#{:,} in {} @ lines {:,}-{:,}: literal {}".format(self.count+1, self.filenames(), pos[0], pos[1], text), end="", flush=True)
 			else:
-				text = repr(command)
-			print("#{:,} in {} @ lines {:,}-{:,}: literal {}".format(self.count+1, self.filenames(), pos[0], pos[1], text), end="", flush=True)
+				print(char_literal, end="", flush=True)
 
 		self.cursor.execute(command)
 
@@ -640,10 +663,14 @@ class Executor:
 		"""
 		Import the ``procedure`` command :obj:`command` into the database.
 		"""
-		if self.verbose >= 3:
-			print("#{:,} in {} @ lines {:,}-{:,}: procedure {}".format(self.count+1, self.filenames(), pos[0], pos[1], self._formatprocedurecall(command)), end="", flush=True)
+		name = self._getkey(command, "name")
 
-		name = command["name"]
+		if self.verbose >= 1:
+			if self.verbose >= 3:
+				print("#{:,} in {} @ lines {:,}-{:,}: procedure {}".format(self.count+1, self.filenames(), pos[0], pos[1], self._formatprocedurecall(command)), end="", flush=True)
+			else:
+				print(char_procedure, end="", flush=True)
+
 		args = command.get("args", {})
 		queryargvalues = {}
 		for (argname, argvalue) in args.items():
@@ -674,10 +701,14 @@ class Executor:
 		"""
 		Set a variable.
 		"""
-		var = command.get("var")
-		value = command.get("value")
-		if self.verbose >= 3:
-			print("#{:,} in {} @ lines {:,}-{:,}: set var {!r} to {!r}".format(self.count+1, self.filenames(), pos[0], pos[1], var, value), end="", flush=True)
+		var = self._getkey(command, "var")
+		value = self._getkey(command, "value")
+
+		if self.verbose >= 1:
+			if self.verbose >= 3:
+				print("#{:,} in {} @ lines {:,}-{:,}: set var {!r} to {!r}".format(self.count+1, self.filenames(), pos[0], pos[1], var, value), end="", flush=True)
+			else:
+				print(char_setvar, end="", flush=True)
 
 		self.keys[var] = value
 
@@ -688,8 +719,11 @@ class Executor:
 		"""
 		Check that we have no compilation errors in the target schema.
 		"""
-		if self.verbose >= 3:
-			print("#{:,} in {} @ lines {:,}-{:,}: check errors".format(self.count+1, self.filenames(), pos[0], pos[1]), end="", flush=True)
+		if self.verbose >= 1:
+			if self.verbose >= 3:
+				print("#{:,} in {} @ lines {:,}-{:,}: check errors".format(self.count+1, self.filenames(), pos[0], pos[1]), end="", flush=True)
+			else:
+				print(char_checkerrors, end="", flush=True)
 
 		self.cursor.execute("select lower(type), name from user_errors group by lower(type), name")
 		invalid_objects = [tuple(r) for r in self.cursor]
@@ -704,8 +738,11 @@ class Executor:
 		"""
 		Recompile everything in the target schema.
 		"""
-		if self.verbose >= 3:
-			print("#{:,} in {} @ lines {:,}-{:,}: compile all".format(self.count+1, self.filenames(), pos[0], pos[1]), end="", flush=True)
+		if self.verbose >= 1:
+			if self.verbose >= 3:
+				print("#{:,} in {} @ lines {:,}-{:,}: compile all".format(self.count+1, self.filenames(), pos[0], pos[1]), end="", flush=True)
+			else:
+				print(char_compileall, end="", flush=True)
 
 		self.cursor.execute("begin dbms_utility.compile_schema(user); end;")
 
@@ -716,10 +753,15 @@ class Executor:
 		"""
 		Execute the SQL from the ``sql`` command :obj:`command`
 		"""
-		if self.verbose >= 3:
-			print("#{:,} in {} @ lines {:,}-{:,}: sql {}".format(self.count+1, self.filenames(), pos[0], pos[1], self._formatsql(command)), end="", flush=True)
+		sql = self._getkey(command, "sql")
 
-		result = self._executesql(command["sql"], command.get("args", {}))
+		if self.verbose >= 1:
+			if self.verbose >= 3:
+				print("#{:,} in {} @ lines {:,}-{:,}: sql {}".format(self.count+1, self.filenames(), pos[0], pos[1], self._formatsql(command)), end="", flush=True)
+			else:
+				print(char_sql, end="", flush=True)
+
+		result = self._executesql(sql, command.get("args", {}))
 
 		if self.commit == "record":
 			self.db.commit()
@@ -733,13 +775,19 @@ class Executor:
 		return result
 
 	def scpfile(self, pos, command):
-		filename = self.scpdirectory + command["name"].format(**self.keys)
+		name = self._getkey(command, "name")
+		content = self._getkey(command, "content")
 
-		if self.verbose >= 3:
-			print("#{:,} in {} @ lines {:,}-{:,}: scp {}".format(self.count+1, self.filenames(), pos[0], pos[1], filename), end="", flush=True)
+		filename = self.scpdirectory + name.format(**self.keys)
+
+		if self.verbose >= 1:
+			if self.verbose >= 3:
+				print("#{:,} in {} @ lines {:,}-{:,}: scp {}".format(self.count+1, self.filenames(), pos[0], pos[1], filename), end="", flush=True)
+			else:
+				print(char_scp, end="", flush=True)
 
 		with tempfile.NamedTemporaryFile(delete=False) as f:
-			f.write(command["content"])
+			f.write(content)
 			tempname = f.name
 		try:
 			return subprocess.call(["scp", "-q", tempname, filename])
@@ -750,10 +798,15 @@ class Executor:
 			print(" -> {} bytes written".format(len(command["content"])), flush=True)
 
 	def savefile(self, pos, command):
-		filename = self.filedirectory + command["name"].format(**self.keys)
+		name = self._getkey(command, "name")
 
-		if self.verbose >= 3:
-			print("#{:,} in {} @ lines {:,}-{:,}: file {}".format(self.count+1, self.filenames(), pos[0], pos[1], filename), end="", flush=True)
+		filename = self.filedirectory + name.format(**self.keys)
+
+		if self.verbose >= 1:
+			if self.verbose >= 3:
+				print("#{:,} in {} @ lines {:,}-{:,}: file {}".format(self.count+1, self.filenames(), pos[0], pos[1], filename), end="", flush=True)
+			else:
+				print(char_file, end="", flush=True)
 
 		try:
 			with open(filename, "wb") as f:
@@ -793,14 +846,17 @@ class Executor:
 			print(msg, flush=True)
 
 	def resetsequence(self, pos, command):
-		sequence = command["sequence"]
-		table = command["table"]
-		field = command["field"]
+		sequence = self._getkey(command, "sequence")
+		table = self._getkey(command, "table")
+		field = self._getkey(command, "field")
 		minvalue = command.get("minvalue", None)
 		increment = command.get("increment", None)
 
-		if self.verbose >= 3:
-			print("#{:,} in {} @ lines {:,}-{:,}: resetting sequence {} to maximum value from {}.{}".format(self.count+1, self.filenames(), pos[0], pos[1], sequence, table, field), end="", flush=True)
+		if self.verbose >= 1:
+			if self.verbose >= 3:
+				print("#{:,} in {} @ lines {:,}-{:,}: resetting sequence {} to maximum value from {}.{}".format(self.count+1, self.filenames(), pos[0], pos[1], sequence, table, field), end="", flush=True)
+			else:
+				print(char_resetsequence, end="", flush=True)
 
 		# Fetch information about the sequence
 		self.cursor.execute("select min_value, increment_by, last_number from user_sequences where lower(sequence_name)=lower(:name)", name=sequence)
