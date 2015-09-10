@@ -1020,6 +1020,14 @@ def test_sub(T):
 	assert "2000-02-29 00:00:00" == t.renders(x=datetime.datetime(2000, 3, 29), y=misc.monthdelta(1))
 	assert "1999-02-28 00:00:00" == t.renders(x=datetime.datetime(2000, 2, 29), y=misc.monthdelta(12))
 	assert "-1 month" == t.renders(x=misc.monthdelta(2), y=misc.monthdelta(3))
+	assert "365 days, 0:00:00" == t.renders(x=datetime.datetime(2015, 1, 1), y=datetime.datetime(2014, 1, 1))
+	assert "-365 days, 0:00:00" == t.renders(x=datetime.datetime(2014, 1, 1), y=datetime.datetime(2015, 1, 1))
+	assert "135 days, 0:00:00" == t.renders(x=datetime.datetime(2015, 10, 10), y=datetime.datetime(2015, 5, 28))
+	assert "1 day, 0:00:00" == t.renders(x=datetime.datetime(2015, 1, 2, 1), y=datetime.datetime(2015, 1, 1, 1))
+	assert "1 day, 1:00:00" == t.renders(x=datetime.datetime(2015, 1, 2, 2), y=datetime.datetime(2015, 1, 1, 1))
+	assert "1 day, 1:01:00" == t.renders(x=datetime.datetime(2015, 1, 2, 2, 1), y=datetime.datetime(2015, 1, 1, 1))
+	assert "1 day, 1:01:01" == t.renders(x=datetime.datetime(2015, 1, 2, 2, 1, 1), y=datetime.datetime(2015, 1, 1, 1))
+	assert "1 day, 1:01:01.001000" == t.renders(x=datetime.datetime(2015, 1, 2, 2, 1, 1, 1000), y=datetime.datetime(2015, 1, 1, 1))
 
 
 @pytest.mark.ul4
