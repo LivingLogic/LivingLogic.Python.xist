@@ -1023,11 +1023,25 @@ def test_sub(T):
 	assert "365 days, 0:00:00" == t.renders(x=datetime.datetime(2015, 1, 1), y=datetime.datetime(2014, 1, 1))
 	assert "-365 days, 0:00:00" == t.renders(x=datetime.datetime(2014, 1, 1), y=datetime.datetime(2015, 1, 1))
 	assert "135 days, 0:00:00" == t.renders(x=datetime.datetime(2015, 10, 10), y=datetime.datetime(2015, 5, 28))
-	assert "1 day, 0:00:00" == t.renders(x=datetime.datetime(2015, 1, 2, 1), y=datetime.datetime(2015, 1, 1, 1))
-	assert "1 day, 1:00:00" == t.renders(x=datetime.datetime(2015, 1, 2, 2), y=datetime.datetime(2015, 1, 1, 1))
-	assert "1 day, 1:01:00" == t.renders(x=datetime.datetime(2015, 1, 2, 2, 1), y=datetime.datetime(2015, 1, 1, 1))
-	assert "1 day, 1:01:01" == t.renders(x=datetime.datetime(2015, 1, 2, 2, 1, 1), y=datetime.datetime(2015, 1, 1, 1))
-	assert "1 day, 1:01:01.001000" == t.renders(x=datetime.datetime(2015, 1, 2, 2, 1, 1, 1000), y=datetime.datetime(2015, 1, 1, 1))
+
+	base = datetime.datetime(2015, 1, 1, 1)
+	dates = (
+		datetime.datetime(2015, 1, 2, 1),
+		datetime.datetime(2015, 1, 2, 2),
+		datetime.datetime(2015, 1, 2, 2, 1),
+		datetime.datetime(2015, 1, 2, 2, 1, 1),
+		datetime.datetime(2015, 1, 2, 2, 1, 1, 1000),
+	)
+	assert "1 day, 0:00:00" == t.renders(x=dates[0], y=base)
+	assert "1 day, 1:00:00" == t.renders(x=dates[1], y=base)
+	assert "1 day, 1:01:00" == t.renders(x=dates[2], y=base)
+	assert "1 day, 1:01:01" == t.renders(x=dates[3], y=base)
+	assert "1 day, 1:01:01.001000" == t.renders(x=dates[4], y=base)
+	assert "-1 day, 0:00:00" == t.renders(x=base, y=dates[0])
+	assert "-2 days, 23:00:00" == t.renders(x=base, y=dates[1])
+	assert "-2 days, 22:59:00" == t.renders(x=base, y=dates[2])
+	assert "-2 days, 22:58:59" == t.renders(x=base, y=dates[3])
+	assert "-2 days, 22:58:58.999000" == t.renders(x=base, y=dates[4])
 
 
 @pytest.mark.ul4
