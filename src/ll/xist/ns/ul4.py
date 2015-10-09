@@ -14,6 +14,30 @@ from ll.xist import xsc
 
 
 ###
+### Processing instructions of global stuff: name/signature and whitespace
+### handling
+###
+
+class ul4(xsc.ProcInst):
+	"""
+	A :class:`ul4` processing instruction can be used to overweite the template
+	name and specify a signature. For example::
+
+		<?ul4 f(a, b)?>
+	"""
+
+
+class whitespace(xsc.ProcInst):
+	"""
+	A :class:`whitespace` processing instruction can be used to specify the
+	whitespace handling mode for the template. Allowed values are: ``keep``,
+	``strip`` and ``smart``, e.g.::
+
+		<?whitespace smart?>
+	"""
+
+
+###
 ### Processing instruction for comments
 ###
 
