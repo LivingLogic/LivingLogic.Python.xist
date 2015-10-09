@@ -1610,7 +1610,7 @@ class Project(dict):
 
 	def notifystart(self):
 		cmd = [
-			"/Applications/terminal-notifier.app/Contents/MacOS/terminal-notifier",
+			"/usr/local/bin/terminal-notifier",
 			"-remove",
 			misc.sysinfo.script_name,
 		]
@@ -1631,7 +1631,7 @@ class Project(dict):
 			msgs.append("nothing to do")
 
 		cmd = [
-			"/Applications/terminal-notifier.app/Contents/MacOS/terminal-notifier",
+			"/usr/local/bin/terminal-notifier",
 			"-title",
 			self.name,
 			"-subtitle",

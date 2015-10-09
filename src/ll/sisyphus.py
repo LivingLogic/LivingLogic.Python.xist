@@ -784,7 +784,7 @@ class Job:
 	def notifystart(self):
 		if self.notify:
 			cmd = [
-				"/Applications/terminal-notifier.app/Contents/MacOS/terminal-notifier",
+				"/usr/local/bin/terminal-notifier",
 				"-remove",
 				misc.sysinfo.script_name,
 			]
@@ -796,7 +796,7 @@ class Job:
 	def notifyfinish(self, result):
 		if self.notify:
 			cmd = [
-				"/Applications/terminal-notifier.app/Contents/MacOS/terminal-notifier",
+				"/usr/local/bin/terminal-notifier",
 				"-title",
 				"{} {}".format(self.projectname, self.jobname),
 				"-subtitle",
