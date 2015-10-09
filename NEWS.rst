@@ -85,6 +85,9 @@ Changes in 5.14 (released ??/??/2015)
 	:meth:`ll.orasql.Oracle.iterreferencedby` are now sorted by name to get a
 	stable order of dependencies.
 
+*	:mod:`ll.misc` has two new functions: :func:`notifystart` and
+	:func:`notifyfinish`. The can be used for issuing Mac OS X notifications.
+
 
 Changes in 5.13.1 (released 06/12/2015)
 ---------------------------------------

@@ -1609,15 +1609,7 @@ class Project(dict):
 		self.write(*texts)
 
 	def notifystart(self):
-		cmd = [
-			"/usr/local/bin/terminal-notifier",
-			"-remove",
-			misc.sysinfo.script_name,
-		]
-
-		import subprocess
-		with open("/dev/null", "wb") as f:
-			status = subprocess.call(cmd, stdout=f)
+		misc.notifystart()
 
 	def notifyfinish(self, duration, success):
 		msgs = []
@@ -1630,21 +1622,11 @@ class Project(dict):
 		if not msgs:
 			msgs.append("nothing to do")
 
-		cmd = [
-			"/usr/local/bin/terminal-notifier",
-			"-title",
+		misc.notifyfinish(
 			self.name,
-			"-subtitle",
-			"{} after {}".format("finished" if success else "failed", self.strtimedelta(duration)),
-			"-message",
+			"{} after {}".format("finished" if success else "failed", self.strtimedelta(duration),
 			"; ".join(msgs),
-			"-group",
-			misc.sysinfo.script_name,
-		]
-
-		import subprocess
-		with open("/dev/null", "wb") as f:
-			status = subprocess.call(cmd, stdout=f)
+		)
 
 	def warn(self, warning, stacklevel):
 		"""

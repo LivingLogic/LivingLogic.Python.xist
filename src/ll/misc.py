@@ -15,7 +15,7 @@ LivingLogic modules and packages.
 """
 
 
-import sys, os, types, datetime, collections, io, gzip as gzip_, argparse, functools, signal, contextlib
+import sys, os, types, datetime, collections, io, gzip as gzip_, argparse, functools, signal, contextlib, subprocess
 
 from ll import ul4c, color
 
@@ -25,6 +25,9 @@ __docformat__ = "reStructuredText"
 
 # get the current directory as early as possible to minimize the chance that someone has called ``os.chdir()``
 _curdir = os.getcwd()
+
+
+notifycmd = os.environ.get("LL_MISC_NOTIFY", "/usr/local/bin/terminal-notifier")
 
 
 # Try to fetch ``xmlescape`` from C implementation
@@ -942,6 +945,26 @@ def timeout(seconds):
 	finally:
 		signal.alarm(0)
 		signal.signal(signal.SIGALRM, oldsignal)
+
+
+def notifystart():
+	"""
+	Notify OS X of the start of a process by removing the previous notification.
+	"""
+	cmd = [notifycmd, "-remove", sysinfo.script_name]
+
+	with open("/dev/null", "wb") as f:
+		status = subprocess.call(cmd, stdout=f)
+
+
+def notifyfinish(title, subtitle, message):
+	"""
+	Notify OS X of the end of a process.
+	"""
+	cmd = [notifycmd, "-title", title, "-subtitle", subtitle, "-message", message, "-group", misc.sysinfo.script_name]
+
+	with open("/dev/null", "wb") as f:
+		status = subprocess.call(cmd, stdout=f)
 
 
 def prettycsv(rows, padding="   "):

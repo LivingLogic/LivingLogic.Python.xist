@@ -783,33 +783,15 @@ class Job:
 
 	def notifystart(self):
 		if self.notify:
-			cmd = [
-				"/usr/local/bin/terminal-notifier",
-				"-remove",
-				misc.sysinfo.script_name,
-			]
-
-			import subprocess
-			with open("/dev/null", "wb") as f:
-				status = subprocess.call(cmd, stdout=f)
+			misc.notifystart()
 
 	def notifyfinish(self, result):
 		if self.notify:
-			cmd = [
-				"/usr/local/bin/terminal-notifier",
-				"-title",
+			misc.notifyfinish(
 				"{} {}".format(self.projectname, self.jobname),
-				"-subtitle",
 				"finished after {}".format(self.endtime-self.starttime),
-				"-message",
 				result,
-				"-group",
-				misc.sysinfo.script_name,
-			]
-
-			import subprocess
-			with open("/dev/null", "wb") as f:
-				status = subprocess.call(cmd, stdout=f)
+			)
 
 	def task(self, type=None, name=None, index=None, count=None):
 		"""
