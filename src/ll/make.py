@@ -1624,7 +1624,7 @@ class Project(dict):
 
 		misc.notifyfinish(
 			self.name,
-			"{} after {}".format("finished" if success else "failed", self.strtimedelta(duration),
+			"{} after {}".format("finished" if success else "failed", self.strtimedelta(duration)),
 			"; ".join(msgs),
 		)
 
