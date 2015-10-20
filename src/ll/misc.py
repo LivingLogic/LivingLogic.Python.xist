@@ -961,7 +961,7 @@ def notifyfinish(title, subtitle, message):
 	"""
 	Notify OS X of the end of a process.
 	"""
-	cmd = [notifycmd, "-title", title, "-subtitle", subtitle, "-message", message, "-group", misc.sysinfo.script_name]
+	cmd = [notifycmd, "-title", title, "-subtitle", subtitle, "-message", message, "-group", sysinfo.script_name]
 
 	with open("/dev/null", "wb") as f:
 		status = subprocess.call(cmd, stdout=f)
