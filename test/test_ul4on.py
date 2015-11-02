@@ -75,7 +75,7 @@ def _transport_js_v8(obj, indent):
 		f.write(js.encode("utf-8"))
 		f.flush()
 		dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
-		fmt = "d8 {dir}/ul4on.js {dir}/ul4.js {fn}"
+		fmt = "d8 {dir}/ul4.js {fn}"
 		proc = subprocess.Popen(fmt.format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		(stdout, stderr) = proc.communicate()
 	stdout = stdout.decode("utf-8")
@@ -114,7 +114,7 @@ def _transport_js_spidermonkey(obj, indent):
 		f.write(js.encode("utf-8"))
 		f.flush()
 		dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
-		fmt = "js -f {dir}/ul4on.js -f {dir}/ul4.js -f {fn}"
+		fmt = "js -f {dir}/ul4.js -f {fn}"
 		proc = subprocess.Popen(fmt.format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		(stdout, stderr) = proc.communicate()
 	stdout = stdout.decode("utf-8")
