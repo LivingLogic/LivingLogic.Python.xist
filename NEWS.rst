@@ -55,11 +55,17 @@ Changes in 5.14 (released ??/??/2015)
 	can be used to load templates from any file.
 
 *	:mod:`oradd` has been renamed to :mod:`pysql`. The commands are now no longer
-	limited to being on one line. Instead they must be separated with a special
-	comment. Normal SQL commands are also supported. Three new commands have
-	been added: ``include`` includes another ``pysql`` file. ``compileall``
-	recompiles all objects in the schema and ``checkerrors`` raise an exception
-	if there are objects with compilation errors in the schema.
+	limited to being on one line. Normal SQL commands are now also supported.
+	Normal SQL commands must be terminated with a comment line starting with
+	``-- @@@`` and PySQL commands must be either on one line, or start with a
+	line containing only ``{`` and end with a line containing only ``}``.
+
+	Three new commands have been added: ``include`` includes another ``pysql``
+	file. ``compileall`` recompiles all objects in the schema and ``checkerrors``
+	raises an exception if there are objects with compilation errors in the schema.
+
+	Also ``str``/``bytes`` values can be loaded from external files via the
+	:class:`load` class.
 
 *	If an identifier is given when invoking a :mod:`sisyphus` job it will be
 	included in the log file name now by default.
@@ -72,7 +78,7 @@ Changes in 5.14 (released ??/??/2015)
 		>>> misc.format_exception(ValueError("bad value"))
 		'ValueError: bad value'
 
-	:func`:exception_chain` treaverses the chain of exception (via the
+	:func`:exception_chain` traverses the chain of exceptions (via the
 	``__cause__`` and ``__context__`` attributes).
 
 *	``+`` in the path part of URLs are now considered safe characters. Spaces
