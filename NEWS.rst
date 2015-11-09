@@ -1120,7 +1120,7 @@ Changes in 4.0 (released 08/08/2012)
 	of the template files. For printing the result Pythons output encoding is
 	used.
 
-*	The options :option:`--inputencoding`,/:option:`--inputerrors` and
+*	The options :option:`--inputencoding`/:option:`--inputerrors` and
 	:option:`--outputencoding`/:option:`--outputerrors` of
 	:class:`ll.sisyphus.Job` have been replaced with option
 	:option:`--encoding`/:option:`--errors` for the encoding of the log files.
