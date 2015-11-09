@@ -30,6 +30,13 @@ Changes to UL4
 	To emulate the old behaviour pass the variables you want to "freeze" to a
 	locally defined template and define the original template there.
 
+Changes to ``pysql``
+--------------------
+
+*	SQL command must be terminated with a ``-- @@@`` (or ``-- !!!``) comment
+	line now, i.e. now the comment *after* the command determines wether
+	exceptions will be ignored, instead of the comment before the command.
+
 
 Migrating to version 5.13
 =========================
