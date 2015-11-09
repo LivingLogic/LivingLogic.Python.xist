@@ -33,8 +33,8 @@ Changes to UL4
 Changes to ``pysql``
 --------------------
 
-*	SQL command must be terminated with a ``-- @@@`` (or ``-- !!!``) comment
-	line now, i.e. now the comment *after* the command determines wether
+*	SQL commands must be terminated with a ``-- @@@`` (or ``-- !!!``) comment
+	line now, i.e. now the comment *after* the command determines whether
 	exceptions will be ignored, instead of the comment before the command.
 
 
