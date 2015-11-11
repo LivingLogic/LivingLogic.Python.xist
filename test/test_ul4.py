@@ -1846,7 +1846,7 @@ def test_function_set(T):
 def test_function_int(T):
 	with raises(argumentmismatchmessage):
 		T("<?print int(1, 2, 3)?>").renders()
-	with raises("int\\(\\) argument must be a string or a number|int\\(null\\) not supported"):
+	with raises("int\\(\\) argument must be a string, a bytes-like object or a number, not|int\\(\\) argument must be a string or a number|int\\(null\\) not supported"):
 		T("<?print int(data)?>").renders(data=None)
 	with raises("invalid literal for int|NumberFormatException"):
 		T("<?print int(data)?>").renders(data="foo")
@@ -4132,10 +4132,10 @@ def test_ul4_tag():
 def test_function_signature(T):
 	assert 42 == T("<?return x?>", signature="x")(x=42)
 
-	with raises("required argument .?x.? \\(position 0\\) missing|'x' parameter lacking default value"):
+	with raises("missing a required argument: .?x.?|required argument .?x.? \\(position 0\\) missing|'x' parameter lacking default value"):
 		T("<?return x?>", signature="x")()
 
-	with raises("doesn't support an argument named .?y.?|an argument named .?y.? isn't supported|too many keyword arguments"):
+	with raises("got an unexpected keyword argument .?y.?|doesn't support an argument named .?y.?|an argument named .?y.? isn't supported|too many keyword arguments"):
 		T("<?return x?>", signature="x")(x=17, y=23)
 
 
@@ -4160,10 +4160,10 @@ def test_function_signature_kwargs(T):
 def test_template_signature(T):
 	assert "42" == T("<?print x?>", signature="x").renders(x=42)
 
-	with raises("required argument .?x.? \\(position 0\\) missing|'x' parameter lacking default value"):
+	with raises("missing a required argument: .?x.?|required argument .?x.? \\(position 0\\) missing|'x' parameter lacking default value"):
 		T("<?print x?>", signature="x").renders()
 
-	with raises("doesn't support an argument named .?y.?|an argument named .?y.? isn't supported|too many keyword arguments"):
+	with raises("got an unexpected keyword argument .?y.?|doesn't support an argument named .?y.?|an argument named .?y.? isn't supported|too many keyword arguments"):
 		T("<?print x?>", signature="x").renders(x=17, y=23)
 
 
