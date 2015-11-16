@@ -401,24 +401,24 @@ class Job:
 			<?print "\n@"?>
 			<?print task.starttime?>
 		<?end def?>
-		<?code line.render(label="Project", value=job.projectname)?>
-		<?code line.render(label="Job", value=job.jobname)?>
-		<?code line.render(label="Identifier", value=job.identifier)?>
-		<?code line.render(label="Script", value=sysinfo.script_name)?>
-		<?code line.render(label="User", value=sysinfo.user_name)?>
-		<?code line.render(label="Python", value=sysinfo.python_executable)?>
-		<?code line.render(label="Version", value=sysinfo.python_version)?>
-		<?code line.render(label="Host", value=sysinfo.host_fqdn)?>
-		<?code line.render(label="IP", value=sysinfo.host_ip)?>
-		<?code line.render(label="PID", value=sysinfo.pid)?>
-		<?code line.render(label="Start", value=job.starttime)?>
-		<?code line.render(label="End", value=job.endtime)?>
+		<?render line(label="Project", value=job.projectname)?>
+		<?render line(label="Job", value=job.jobname)?>
+		<?render line(label="Identifier", value=job.identifier)?>
+		<?render line(label="Script", value=sysinfo.script_name)?>
+		<?render line(label="User", value=sysinfo.user_name)?>
+		<?render line(label="Python", value=sysinfo.python_executable)?>
+		<?render line(label="Version", value=sysinfo.python_version)?>
+		<?render line(label="Host", value=sysinfo.host_fqdn)?>
+		<?render line(label="IP", value=sysinfo.host_ip)?>
+		<?render line(label="PID", value=sysinfo.pid)?>
+		<?render line(label="Start", value=job.starttime)?>
+		<?render line(label="End", value=job.endtime)?>
 		<?if job.starttime and job.endtime?>
-			<?code line.render(label="Duration", value=job.endtime-job.starttime)?>
+			<?render line(label="Duration", value=job.endtime-job.starttime)?>
 		<?end if?>
-		<?code line.render(label="Exceptions", value=countexceptions)?>
-		<?code line.render(label="Messages", value=countmessages)?>
-		<?code line.render(label="Logfile", value=job.logfileurl)?>
+		<?render line(label="Exceptions", value=countexceptions)?>
+		<?render line(label="Messages", value=countmessages)?>
+		<?render line(label="Logfile", value=job.logfileurl)?>
 
 		<?code reportedexceptions = 0?>
 		<?code reportedmessages = 0?>
@@ -431,10 +431,10 @@ class Job:
 				#<?print i?>: Exception<?print "\n"?>
 				<?print "\n"?>
 				<?for task in entry.tasks?>
-					<?code line.render(label="Task", value=tasklabel.renders(task=task))?>
+					<?render line(label="Task", value=tasklabel.renders(task=task))?>
 				<?end for?>
-				<?code line.render(label="Class", value=entry.class)?>
-				<?code line.render(label="Value", value=entry.value)?>
+				<?render line(label="Class", value=entry.class)?>
+				<?render line(label="Value", value=entry.value)?>
 				<?if entry.traceback?>
 					<?print "\n"?>
 					<?print entry.traceback?>
@@ -444,9 +444,9 @@ class Job:
 				#<?print i?>: Message<?print "\n"?>
 				<?print "\n"?>
 				<?for task in entry.tasks?>
-					<?code line.render(label="Task", value=tasklabel.renders(task=task))?>
+					<?render line(label="Task", value=tasklabel.renders(task=task))?>
 				<?end for?>
-				<?code line.render(label="Message", value=entry.message)?>
+				<?render line(label="Message", value=entry.message)?>
 			<?end if?>
 		<?end for?>
 		<?if countexceptions + countmessages > reportedexceptions + reportedmessages?>
@@ -493,24 +493,24 @@ class Job:
 			<body style="font-family: monospace;">
 				<h1><?printx job.projectname?>/<?printx job.jobname?> for <?printx sysinfo.user_name?>@<?printx sysinfo.host_fqdn?> (<?printx sysinfo.host_ip?>) failed</h1>
 				<table>
-					<?code line.render(label="Project", value=job.projectname)?>
-					<?code line.render(label="Job", value=job.jobname)?>
-					<?code line.render(label="Identifier", value=job.identifier)?>
-					<?code line.render(label="Script", value=sysinfo.script_name)?>
-					<?code line.render(label="User", value=sysinfo.user_name)?>
-					<?code line.render(label="Python", value=sysinfo.python_executable)?>
-					<?code line.render(label="Version", value=sysinfo.python_version)?>
-					<?code line.render(label="Host", value=sysinfo.host_fqdn)?>
-					<?code line.render(label="IP", value=sysinfo.host_ip)?>
-					<?code line.render(label="PID", value=sysinfo.pid)?>
-					<?code line.render(label="Start", value=job.starttime)?>
-					<?code line.render(label="End", value=job.endtime)?>
+					<?render line(label="Project", value=job.projectname)?>
+					<?render line(label="Job", value=job.jobname)?>
+					<?render line(label="Identifier", value=job.identifier)?>
+					<?render line(label="Script", value=sysinfo.script_name)?>
+					<?render line(label="User", value=sysinfo.user_name)?>
+					<?render line(label="Python", value=sysinfo.python_executable)?>
+					<?render line(label="Version", value=sysinfo.python_version)?>
+					<?render line(label="Host", value=sysinfo.host_fqdn)?>
+					<?render line(label="IP", value=sysinfo.host_ip)?>
+					<?render line(label="PID", value=sysinfo.pid)?>
+					<?render line(label="Start", value=job.starttime)?>
+					<?render line(label="End", value=job.endtime)?>
 					<?if job.starttime and job.endtime?>
-						<?code line.render(label="Duration", value=job.endtime-job.starttime)?>
+						<?render line(label="Duration", value=job.endtime-job.starttime)?>
 					<?end if?>
-					<?code line.render(label="Exceptions", value=countexceptions)?>
-					<?code line.render(label="Messages", value=countmessages)?>
-					<?code line.render(label="Logfile", value=job.logfileurl)?>
+					<?render line(label="Exceptions", value=countexceptions)?>
+					<?render line(label="Messages", value=countmessages)?>
+					<?render line(label="Logfile", value=job.logfileurl)?>
 				</table>
 				<?code reportedexceptions = 0?>
 				<?code reportedmessages = 0?>
@@ -521,11 +521,11 @@ class Job:
 						<h2>#<?printx i?>: Exception</h2>
 						<table>
 							<?for task in entry.tasks?>
-								<?code line.render(label="Task", value=tasklabel.renders(task=task), whitespace="pre")?>
+								<?render line(label="Task", value=tasklabel.renders(task=task), whitespace="pre")?>
 							<?end for?>
-							<?code line.render(label="Timestamp", value=entry.timestamp)?>
-							<?code line.render(label="Class", value=entry.class)?>
-							<?code line.render(label="Value", value=entry.value)?>
+							<?render line(label="Timestamp", value=entry.timestamp)?>
+							<?render line(label="Class", value=entry.class)?>
+							<?render line(label="Value", value=entry.value)?>
 						</table>
 						<?if entry.traceback?>
 							<h3>Traceback<h3>
@@ -538,10 +538,10 @@ class Job:
 						<h2>#<?printx i?>: Message</h2>
 						<table>
 							<?for task in entry.tasks?>
-								<?code line.render(label="Task", value=tasklabel.renders(task=task), whitespace="pre")?>
+								<?render line(label="Task", value=tasklabel.renders(task=task), whitespace="pre")?>
 							<?end for?>
-							<?code line.render(label="Timestamp", value=entry.timestamp)?>
-							<?code line.render(label="Message", value=entry.message, whitespace="pre")?>
+							<?render line(label="Timestamp", value=entry.timestamp)?>
+							<?render line(label="Message", value=entry.message, whitespace="pre")?>
 						</table>
 					<?end if?>
 				<?end for?>
