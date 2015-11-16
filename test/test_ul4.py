@@ -1242,12 +1242,53 @@ def test_eq(T):
 			assert str(x == y) == T('<?print {} == {}?>'.format(x, y)).renders()
 			assert str(x == y) == t.renders(x=x, y=y)
 
+	assert "True" == t.renders(x=None, y=None)
 	assert "True" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0))
 	assert "False" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(1))
 	assert "False" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0, 1))
 	assert "False" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0, 0, 1))
 	assert "True" == t.renders(x=misc.monthdelta(0), y=misc.monthdelta(0))
 	assert "False" == t.renders(x=misc.monthdelta(0), y=misc.monthdelta(1))
+	assert "True" == t.renders(x=True, y=True)
+	assert "False" == t.renders(x=True, y=False)
+	assert "True" == t.renders(x=True, y=1)
+	assert "True" == t.renders(x=False, y=0)
+	assert "False" == t.renders(x=False, y=1)
+	assert "True" == t.renders(x=1, y=1.0)
+	assert "False" == t.renders(x=1, y=-1.0)
+	assert "True" == t.renders(x=True, y=1.0)
+	assert "False" == t.renders(x=True, y=-1.0)
+	assert "True" == t.renders(x="foo", y="foo")
+	assert "False" == t.renders(x="foobar", y="foobaz")
+	assert "True" == t.renders(x=datetime.date(2015, 11, 12), y=datetime.date(2015, 11, 12))
+	assert "False" == t.renders(x=datetime.date(2015, 11, 12), y=datetime.date(2015, 11, 13))
+	assert "True" == t.renders(x=color.Color(0x12, 0x34, 0x56, 0x78), y=color.Color(0x12, 0x34, 0x56, 0x78))
+	assert "False" == t.renders(x=color.Color(0x12, 0x34, 0x56, 0x78), y=color.Color(0x11, 0x34, 0x56, 0x78))
+	assert "False" == t.renders(x=color.Color(0x12, 0x34, 0x56, 0x78), y=color.Color(0x12, 0x33, 0x56, 0x78))
+	assert "False" == t.renders(x=color.Color(0x12, 0x34, 0x56, 0x78), y=color.Color(0x12, 0x34, 0x55, 0x78))
+	assert "False" == t.renders(x=color.Color(0x12, 0x34, 0x56, 0x78), y=color.Color(0x12, 0x34, 0x56, 0x77))
+	assert "True" == t.renders(x=[], y=[])
+	assert "True" == t.renders(x=[1, 2, 3], y=[1, 2, 3])
+	assert "True" == t.renders(x=[1, [2, [3]]], y=[1, [2, [3]]])
+	assert "False" == t.renders(x=[1, [2, [3]]], y=[1, [2, [4]]])
+	assert "False" == t.renders(x=[1, 2, 3], y=[1, 2, 4])
+	assert "False" == t.renders(x=[1, 2, 3], y=[1, 2, 3, 4])
+	assert "True" == t.renders(x={}, y={})
+	assert "True" == t.renders(x={1: 2, "foo": "bar"}, y={1: 2, "foo": "bar"})
+	assert "False" == t.renders(x={1: 2, "foo": "bar"}, y={1: 2, "foo": "baz"})
+	assert "False" == t.renders(x={1: 2, "foo": "bar", 3: 4}, y={1: 2, "foo": "bar", 5: 6})
+	assert "True" == t.renders(x=set(), y=set())
+	assert "True" == t.renders(x={1, "foo"}, y={1, "foo"})
+	assert "False" == t.renders(x={1, "foo"}, y={1, "bar"})
+	assert "False" == t.renders(x={1, 2}, y={1, 2, 3})
+
+	# Mixed type comparisons
+	assert "False" == t.renders(x=None, y=True)
+	assert "False" == t.renders(x=None, y=42)
+	assert "False" == t.renders(x=42, y="foo")
+	assert "False" == t.renders(x="foo", y=[])
+	assert "False" == t.renders(x=[], y={})
+	assert "False" == t.renders(x={}, y=set())
 
 
 @pytest.mark.ul4
@@ -1260,12 +1301,53 @@ def test_ne(T):
 			assert str(x != y) == T('<?print {} != {}?>'.format(x, y)).renders()
 			assert str(x != y) == t.renders(x=x, y=y)
 
+	assert "False" == t.renders(x=None, y=None)
 	assert "False" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0))
 	assert "True" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(1))
 	assert "True" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0, 1))
 	assert "True" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0, 0, 1))
 	assert "False" == t.renders(x=misc.monthdelta(0), y=misc.monthdelta(0))
 	assert "True" == t.renders(x=misc.monthdelta(0), y=misc.monthdelta(1))
+	assert "False" == t.renders(x=True, y=True)
+	assert "True" == t.renders(x=True, y=False)
+	assert "False" == t.renders(x=True, y=1)
+	assert "False" == t.renders(x=False, y=0)
+	assert "True" == t.renders(x=False, y=1)
+	assert "False" == t.renders(x=1, y=1.0)
+	assert "True" == t.renders(x=1, y=-1.0)
+	assert "False" == t.renders(x=True, y=1.0)
+	assert "True" == t.renders(x=True, y=-1.0)
+	assert "False" == t.renders(x="foo", y="foo")
+	assert "True" == t.renders(x="foobar", y="foobaz")
+	assert "False" == t.renders(x=datetime.date(2015, 11, 12), y=datetime.date(2015, 11, 12))
+	assert "True" == t.renders(x=datetime.date(2015, 11, 12), y=datetime.date(2015, 11, 13))
+	assert "False" == t.renders(x=color.Color(0x12, 0x34, 0x56, 0x78), y=color.Color(0x12, 0x34, 0x56, 0x78))
+	assert "True" == t.renders(x=color.Color(0x12, 0x34, 0x56, 0x78), y=color.Color(0x11, 0x34, 0x56, 0x78))
+	assert "True" == t.renders(x=color.Color(0x12, 0x34, 0x56, 0x78), y=color.Color(0x12, 0x33, 0x56, 0x78))
+	assert "True" == t.renders(x=color.Color(0x12, 0x34, 0x56, 0x78), y=color.Color(0x12, 0x34, 0x55, 0x78))
+	assert "True" == t.renders(x=color.Color(0x12, 0x34, 0x56, 0x78), y=color.Color(0x12, 0x34, 0x56, 0x77))
+	assert "False" == t.renders(x=[], y=[])
+	assert "False" == t.renders(x=[1, 2, 3], y=[1, 2, 3])
+	assert "False" == t.renders(x=[1, [2, [3]]], y=[1, [2, [3]]])
+	assert "True" == t.renders(x=[1, [2, [3]]], y=[1, [2, [4]]])
+	assert "True" == t.renders(x=[1, 2, 3], y=[1, 2, 4])
+	assert "True" == t.renders(x=[1, 2, 3], y=[1, 2, 3, 4])
+	assert "False" == t.renders(x={}, y={})
+	assert "False" == t.renders(x={1: 2, "foo": "bar"}, y={1: 2, "foo": "bar"})
+	assert "True" == t.renders(x={1: 2, "foo": "bar"}, y={1: 2, "foo": "baz"})
+	assert "True" == t.renders(x={1: 2, "foo": "bar", 3: 4}, y={1: 2, "foo": "bar", 5: 6})
+	assert "False" == t.renders(x=set(), y=set())
+	assert "False" == t.renders(x={1, "foo"}, y={1, "foo"})
+	assert "True" == t.renders(x={1, "foo"}, y={1, "bar"})
+	assert "True" == t.renders(x={1, 2}, y={1, 2, 3})
+
+	# Mixed type comparisons
+	assert "True" == t.renders(x=None, y=True)
+	assert "True" == t.renders(x=None, y=42)
+	assert "True" == t.renders(x=42, y="foo")
+	assert "True" == t.renders(x="foo", y=[])
+	assert "True" == t.renders(x=[], y={})
+	assert "True" == t.renders(x={}, y=set())
 
 
 @pytest.mark.ul4
@@ -1284,6 +1366,30 @@ def test_lt(T):
 	assert "True" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0, 0, 1))
 	assert "False" == t.renders(x=misc.monthdelta(0), y=misc.monthdelta(0))
 	assert "True" == t.renders(x=misc.monthdelta(0), y=misc.monthdelta(1))
+	assert "True" == t.renders(x=False, y=True)
+	assert "False" == t.renders(x=True, y=False)
+	assert "False" == t.renders(x=True, y=1)
+	assert "True" == t.renders(x=False, y=1)
+	assert "True" == t.renders(x=1, y=2.3)
+	assert "False" == t.renders(x=1, y=-1.0)
+	assert "True" == t.renders(x=True, y=2.0)
+	assert "False" == t.renders(x=True, y=-1.0)
+	assert "True" == t.renders(x="bar", y="foo")
+	assert "False" == t.renders(x="foo", y="foo")
+	assert "True" == t.renders(x="foobar", y="foobaz")
+	assert "True" == t.renders(x=[1, 2], y=[1, 2, 3])
+	assert "False" == t.renders(x=[1, 3], y=[1, 2])
+	assert "True" == t.renders(x=[1, 2, "bar"], y=[1, 2, "foo"])
+	assert "True" == t.renders(x=[1, 2, [3, "bar"]], y=[1, 2, [3, "foo"]])
+
+	with raises("unorderable types"):
+		t.renders(x=None, y=None)
+
+	with raises("unorderable types"):
+		t.renders(x=1, y="foo")
+
+	with raises("unorderable types"):
+		t.renders(x={}, y=[])
 
 
 @pytest.mark.ul4
@@ -1302,6 +1408,32 @@ def test_le(T):
 	assert "False" == t.renders(x=datetime.timedelta(0, 0, 1), y=datetime.timedelta(0))
 	assert "True" == t.renders(x=misc.monthdelta(1), y=misc.monthdelta(1))
 	assert "False" == t.renders(x=misc.monthdelta(1), y=misc.monthdelta(0))
+	assert "True" == t.renders(x=False, y=False)
+	assert "False" == t.renders(x=True, y=False)
+	assert "True" == t.renders(x=True, y=1)
+	assert "True" == t.renders(x=False, y=1)
+	assert "True" == t.renders(x=1, y=2.3)
+	assert "False" == t.renders(x=1, y=-1.0)
+	assert "True" == t.renders(x=True, y=2.0)
+	assert "False" == t.renders(x=True, y=-1.0)
+	assert "True" == t.renders(x="bar", y="foo")
+	assert "True" == t.renders(x="foo", y="foo")
+	assert "True" == t.renders(x="foobar", y="foobaz")
+	assert "True" == t.renders(x=[1, 2], y=[1, 2])
+	assert "True" == t.renders(x=[1, 2], y=[1, 2, 3])
+	assert "False" == t.renders(x=[1, 3], y=[1, 2])
+	assert "True" == t.renders(x=[1, 2, "foo"], y=[1, 2, "foo"])
+	assert "True" == t.renders(x=[1, 2, "bar"], y=[1, 2, "foo"])
+	assert "True" == t.renders(x=[1, 2, [3, "bar"]], y=[1, 2, [3, "foo"]])
+
+	with raises("unorderable types"):
+		t.renders(x=None, y=None)
+
+	with raises("unorderable types"):
+		t.renders(x=1, y="foo")
+
+	with raises("unorderable types"):
+		t.renders(x={}, y=[])
 
 
 @pytest.mark.ul4
@@ -1321,6 +1453,31 @@ def test_gt(T):
 	assert "False" == t.renders(x=misc.monthdelta(1), y=misc.monthdelta(1))
 	assert "True" == t.renders(x=misc.monthdelta(1), y=misc.monthdelta(0))
 
+	assert "True" == t.renders(x=True, y=False)
+	assert "False" == t.renders(x=False, y=True)
+	assert "False" == t.renders(x=1, y=True)
+	assert "True" == t.renders(x=1, y=False)
+	assert "True" == t.renders(x=2.3, y=1)
+	assert "False" == t.renders(x=-1.0, y=1)
+	assert "True" == t.renders(x=2.0, y=True)
+	assert "False" == t.renders(x=-1.0, y=True)
+	assert "True" == t.renders(x="foo", y="bar")
+	assert "False" == t.renders(x="foo", y="foo")
+	assert "True" == t.renders(x="foobaz", y="foobar")
+	assert "True" == t.renders(x=[1, 2, 3], y=[1, 2])
+	assert "False" == t.renders(x=[1, 2], y=[1, 3])
+	assert "True" == t.renders(x=[1, 2, "foo"], y=[1, 2, "bar"])
+	assert "True" == t.renders(x=[1, 2, [3, "foo"]], y=[1, 2, [3, "bar"]])
+
+	with raises("unorderable types"):
+		t.renders(x=None, y=None)
+
+	with raises("unorderable types"):
+		t.renders(x=1, y="foo")
+
+	with raises("unorderable types"):
+		t.renders(x={}, y=[])
+
 
 @pytest.mark.ul4
 def test_ge(T):
@@ -1338,6 +1495,32 @@ def test_ge(T):
 	assert "False" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0, 0, 1))
 	assert "True" == t.renders(x=misc.monthdelta(0), y=misc.monthdelta(0))
 	assert "False" == t.renders(x=misc.monthdelta(0), y=misc.monthdelta(1))
+	assert "True" == t.renders(x=False, y=False)
+	assert "False" == t.renders(x=False, y=True)
+	assert "True" == t.renders(x=1, y=True)
+	assert "True" == t.renders(x=1, y=False)
+	assert "True" == t.renders(x=2.3, y=1)
+	assert "False" == t.renders(x=False, y=1)
+	assert "True" == t.renders(x=2.0, y=True)
+	assert "False" == t.renders(x=-1.0, y=True)
+	assert "True" == t.renders(x="foo", y="bar")
+	assert "True" == t.renders(x="foo", y="foo")
+	assert "True" == t.renders(x="foobaz", y="foobar")
+	assert "True" == t.renders(x=[1, 2], y=[1, 2])
+	assert "True" == t.renders(x=[1, 2, 3], y=[1, 2])
+	assert "False" == t.renders(x=[1, 2], y=[1, 3])
+	assert "True" == t.renders(x=[1, 2, "foo"], y=[1, 2, "foo"])
+	assert "True" == t.renders(x=[1, 2, "foo"], y=[1, 2, "bar"])
+	assert "True" == t.renders(x=[1, 2, [3, "foo"]], y=[1, 2, [3, "bar"]])
+
+	with raises("unorderable types"):
+		t.renders(x=None, y=None)
+
+	with raises("unorderable types"):
+		t.renders(x=1, y="foo")
+
+	with raises("unorderable types"):
+		t.renders(x={}, y=[])
 
 
 @pytest.mark.ul4
