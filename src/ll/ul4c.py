@@ -3209,7 +3209,7 @@ class Template(Block):
 		# ``tag``/``endtag`` will remain ``None`` for a top level template
 		# For a subtemplate/subfunction ``tag`` will be set to the ``<?def?>`` tag in :meth:`_compile`
 		# and ``endtag`` will be the ``<?end def?>`` tag
-		super().__init__(None, None, None)
+		super().__init__(None, 0, 0)
 		self.whitespace = whitespace
 		self.startdelim = startdelim or "<?"
 		self.enddelim = enddelim or "?>"
@@ -3713,6 +3713,8 @@ class Template(Block):
 		if source is None:
 			return
 
+		self.startpos = 0
+		self.endpos = len(source)
 		# This stack stores the nested for/if/elif/else/def blocks
 		stack = [self]
 
