@@ -449,19 +449,14 @@ class raises:
 	def __init__(self, msg):
 		self.msg = re.compile(msg)
 
-	def exceptionchain(self, exc):
-		while exc is not None:
-			yield exc
-			exc = exc.__cause__
-
 	def __enter__(self):
 		pass
 
 	def __exit__(self, type, value, traceback):
 		if value is None:
 			pytest.fail("failed to raise exception")
-		# Check that any exception in the ``__cause__`` chain of the raised one matches a regexp
-		exceptionmsgs = [str(exc) for exc in self.exceptionchain(value)]
+		# Check that any exception in the exception chain of the raised one matches a regexp
+		exceptionmsgs = [str(exc) for exc in misc.exception_chain(value)]
 		assert any(self.msg.search(msg) is not None for msg in exceptionmsgs)
 		return True # Don't propagate exception
 
