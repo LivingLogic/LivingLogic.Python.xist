@@ -492,7 +492,7 @@ def _makevars(signature, args, kwargs):
 	from :meth:`inspect.Signature.bind` in that it handles default values too.)
 
 	:obj:`signature` may also be ``None`` in which case :obj:`args` must be empty
-	and :obj:kwargs is returned, i.e. the signature is treaded als accepting no
+	and :obj:kwargs is returned, i.e. the signature is treated als accepting no
 	positional argument and any keyword argument.
 	"""
 	if signature is None:
