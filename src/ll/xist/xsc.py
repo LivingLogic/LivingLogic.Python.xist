@@ -864,14 +864,14 @@ class Cursor:
 
 	``root``
 		The node where traversal has been started (i.e. the object for which the
-		:meth:`walk` method has been called)
+		:meth:`walk` method has been called).
 
 	``node``
 		The current node being traversed.
 
 	``path``
 		A list of nodes that contains the path through the tree from the root to
-		the current node (i.e. ``path[0] is root`` and ``path[-1] is node``)
+		the current node (i.e. ``path[0] is root`` and ``path[-1] is node``).
 
 	``index``
 		A path of indices (e.g. ``[0, 1]`` if the current node is the second child
