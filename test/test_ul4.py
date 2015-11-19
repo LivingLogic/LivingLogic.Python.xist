@@ -3979,6 +3979,11 @@ def test_function_closure(T):
 
 
 @pytest.mark.ul4
+def test_template_closure(T):
+	assert "24" == T("<?code f = []?><?def outer()?><?code y=3?><?def inner(x)?><?print 2*x*y?><?end def?><?code f.append(inner)?><?end def?><?code outer()?><?render f[0](x=4)?>").renders()
+
+
+@pytest.mark.ul4
 def test_return_in_template(T):
 	assert "gurk" == T("gurk<?return 42?>hurz").renders()
 
