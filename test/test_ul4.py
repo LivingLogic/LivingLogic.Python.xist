@@ -1018,6 +1018,7 @@ def test_sub(T):
 	assert "365 days, 0:00:00" == t.renders(x=datetime.datetime(2015, 1, 1), y=datetime.datetime(2014, 1, 1))
 	assert "-365 days, 0:00:00" == t.renders(x=datetime.datetime(2014, 1, 1), y=datetime.datetime(2015, 1, 1))
 	assert "135 days, 0:00:00" == t.renders(x=datetime.datetime(2015, 10, 10), y=datetime.datetime(2015, 5, 28))
+	assert "1:00:00" == t.renders(x=datetime.datetime(2015, 1, 1, 13), y=datetime.datetime(2015, 1, 1, 12))
 
 	base = datetime.datetime(2015, 1, 1, 1)
 	dates = (
