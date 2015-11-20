@@ -444,6 +444,12 @@ argumentmismatchmessage = [
 ]
 argumentmismatchmessage = "({})".format("|".join(argumentmismatchmessage))
 
+unorderabletypesmessage = [
+	"unorderable types",
+	"UnorderableTypesException"
+]
+unorderabletypesmessage = "({})".format("|".join(unorderabletypesmessage))
+
 
 class raises:
 	def __init__(self, msg):
@@ -1378,13 +1384,13 @@ def test_lt(T):
 	assert "True" == t.renders(x=[1, 2, "bar"], y=[1, 2, "foo"])
 	assert "True" == t.renders(x=[1, 2, [3, "bar"]], y=[1, 2, [3, "foo"]])
 
-	with raises("unorderable types"):
+	with raises(unorderabletypesmessage):
 		t.renders(x=None, y=None)
 
-	with raises("unorderable types"):
+	with raises(unorderabletypesmessage):
 		t.renders(x=1, y="foo")
 
-	with raises("unorderable types"):
+	with raises(unorderabletypesmessage):
 		t.renders(x={}, y=[])
 
 
@@ -1422,13 +1428,13 @@ def test_le(T):
 	assert "True" == t.renders(x=[1, 2, "bar"], y=[1, 2, "foo"])
 	assert "True" == t.renders(x=[1, 2, [3, "bar"]], y=[1, 2, [3, "foo"]])
 
-	with raises("unorderable types"):
+	with raises(unorderabletypesmessage):
 		t.renders(x=None, y=None)
 
-	with raises("unorderable types"):
+	with raises(unorderabletypesmessage):
 		t.renders(x=1, y="foo")
 
-	with raises("unorderable types"):
+	with raises(unorderabletypesmessage):
 		t.renders(x={}, y=[])
 
 
