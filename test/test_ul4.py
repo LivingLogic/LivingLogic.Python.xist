@@ -1236,6 +1236,14 @@ def test_bitor(T):
 
 @pytest.mark.ul4
 def test_is(T):
+	assert "True" == T("<?print None is None?>").renders()
+
+	assert "False" == T("<?print 42 is None?>").renders()
+
+	assert "True" == T("<?print x is None?>").renders(x=None)
+
+	assert "False" == T("<?print x is None?>").renders(x=False)
+
 	t = T('<?print x is y?>')
 
 	assert "True" == t.renders(x=None, y=None)
@@ -1251,6 +1259,14 @@ def test_is(T):
 
 @pytest.mark.ul4
 def test_isnot(T):
+	assert "False" == T("<?print None is not None?>").renders()
+
+	assert "True" == T("<?print 42 is not None?>").renders()
+
+	assert "False" == T("<?print x is not None?>").renders(x=None)
+
+	assert "True" == T("<?print x is not None?>").renders(x=False)
+
 	t = T('<?print x is not y?>')
 
 	assert "False" == t.renders(x=None, y=None)
