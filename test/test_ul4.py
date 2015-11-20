@@ -1471,13 +1471,13 @@ def test_gt(T):
 	assert "True" == t.renders(x=[1, 2, "foo"], y=[1, 2, "bar"])
 	assert "True" == t.renders(x=[1, 2, [3, "foo"]], y=[1, 2, [3, "bar"]])
 
-	with raises("unorderable types"):
+	with raises(unorderabletypesmessage):
 		t.renders(x=None, y=None)
 
-	with raises("unorderable types"):
+	with raises(unorderabletypesmessage):
 		t.renders(x=1, y="foo")
 
-	with raises("unorderable types"):
+	with raises(unorderabletypesmessage):
 		t.renders(x={}, y=[])
 
 
@@ -1515,13 +1515,13 @@ def test_ge(T):
 	assert "True" == t.renders(x=[1, 2, "foo"], y=[1, 2, "bar"])
 	assert "True" == t.renders(x=[1, 2, [3, "foo"]], y=[1, 2, [3, "bar"]])
 
-	with raises("unorderable types"):
+	with raises(unorderabletypesmessage):
 		t.renders(x=None, y=None)
 
-	with raises("unorderable types"):
+	with raises(unorderabletypesmessage):
 		t.renders(x=1, y="foo")
 
-	with raises("unorderable types"):
+	with raises(unorderabletypesmessage):
 		t.renders(x={}, y=[])
 
 
