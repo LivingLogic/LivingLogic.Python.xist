@@ -2308,6 +2308,28 @@ class Item(Binary):
 			obj1[obj2] = operator.evalfoldaug(obj1[obj2], value)
 
 
+@register("is")
+class Is(Binary):
+	"""
+	AST node for the binary ``is`` comparison operator.
+	"""
+
+	@classmethod
+	def evalfold(cls, obj1, obj2):
+		return obj1 is obj2
+
+
+@register("isnot")
+class IsNot(Binary):
+	"""
+	AST node for the binary ``is not`` comparison operator.
+	"""
+
+	@classmethod
+	def evalfold(cls, obj1, obj2):
+		return obj1 is not obj2
+
+
 @register("eq")
 class EQ(Binary):
 	"""

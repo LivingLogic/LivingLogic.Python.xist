@@ -402,8 +402,8 @@ all_templates = dict(
 	python=TemplatePython,
 	python_dumps=TemplatePythonDumpS,
 	python_dump=TemplatePythonDump,
-	# java_compiled_by_python=TemplateJavaCompiledByPython,
-	# java_compiled_by_java=TemplateJavaCompiledByJava,
+	java_compiled_by_python=TemplateJavaCompiledByPython,
+	java_compiled_by_java=TemplateJavaCompiledByJava,
 	js_v8=TemplateJavascriptV8,
 	js_spidermonkey=TemplateJavascriptSpidermonkey,
 	# php=TemplatePHP,
@@ -1232,6 +1232,36 @@ def test_bitor(T):
 	assert "511" == t.renders(x=255, y=256)
 	assert "-1" == t.renders(x=255, y=-256)
 	assert "-1" == t.renders(x=255, y=-255)
+
+
+@pytest.mark.ul4
+def test_is(T):
+	t = T('<?print x is y?>')
+
+	assert "True" == t.renders(x=None, y=None)
+
+	obj = 42
+	assert "True" == t.renders(x=obj, y=obj)
+
+	obj = [1, 2, 3]
+	assert "True" == t.renders(x=obj, y=obj)
+
+	assert "False" == t.renders(x=[1, 2, 3], y=[1, 2, 3])
+
+
+@pytest.mark.ul4
+def test_isnot(T):
+	t = T('<?print x is not y?>')
+
+	assert "False" == t.renders(x=None, y=None)
+
+	obj = 42
+	assert "False" == t.renders(x=obj, y=obj)
+
+	obj = [1, 2, 3]
+	assert "False" == t.renders(x=obj, y=obj)
+
+	assert "True" == t.renders(x=[1, 2, 3], y=[1, 2, 3])
 
 
 @pytest.mark.ul4

@@ -800,6 +800,16 @@ means all "number" objects (integer, float and boolean) can be compared with
 each other, all other objects can only be compared to objects of the same type.
 
 
+Identify comparison operators
+"""""""""""""""""""""""""""""
+
+The comparison operators ``is`` and ``is not`` test whether both operands refer
+to the same object or not.
+
+Note that the behaviour of these operators for "atomic" immutable objects
+(like integers, floats and strings) is implementation defined.
+
+
 Containment tests
 """""""""""""""""
 

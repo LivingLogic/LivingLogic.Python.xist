@@ -591,6 +591,10 @@ expr_cmp returns [node]
 				'in' { cls = ul4c.Contains; }
 			|
 				'not' 'in' { cls = ul4c.NotContains; }
+			|
+				'is' { cls = ul4c.Is; }
+			|
+				'is' 'not' { cls = ul4c.IsNot; }
 			)
 			e2=expr_bitor { $node = cls.make(self.tag, $node.startpos, $e2.node.endpos, $node, $e2.node) }
 		)*

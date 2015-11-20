@@ -54,6 +54,9 @@ Changes in 5.14 (released ??/??/2015)
 *	Templates used in ``rul4`` have access to a new function: ``import``, which
 	can be used to load templates from any file.
 
+*	UL4 got two new comparison operators: ``is`` and ``is not`` for checking
+	for object identity.
+
 *	:mod:`oradd` has been renamed to :mod:`pysql`. The commands are now no longer
 	limited to being on one line. Normal SQL commands are now also supported.
 	Normal SQL commands must be terminated with a comment line starting with
