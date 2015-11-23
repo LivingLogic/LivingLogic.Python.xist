@@ -4482,14 +4482,14 @@ def test_template_signature_loop_return_parent_variable(T):
 @pytest.mark.ul4
 def test_template_signature_loop_call_local_template(T):
 	s = """
-		<?code is = []?>
+		<?code allis = []?>
 		<?for i in range(10)?>
 			<?def f()?>
 				<?return i?>
 			<?end def?>
-			<?code is.append(f())?>
+			<?code allis.append(f())?>
 		<?end for?>
-		<?print ", ".join(str(i) for i in is)?>
+		<?print ", ".join(str(i) for i in allis)?>
 	"""
 	assert "0, 1, 2, 3, 4, 5, 6, 7, 8, 9" == T(s, whitespace="strip").renders()
 
