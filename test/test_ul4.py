@@ -445,7 +445,9 @@ argumentmismatchmessage = [
 argumentmismatchmessage = "({})".format("|".join(argumentmismatchmessage))
 
 unorderabletypesmessage = [
+	# Python and Javascript
 	"unorderable types",
+	# Java
 	"UnorderableTypesException"
 ]
 unorderabletypesmessage = "({})".format("|".join(unorderabletypesmessage))
