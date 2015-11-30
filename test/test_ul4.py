@@ -4309,7 +4309,7 @@ def test_smart_whitespace(T):
 	# Without linefeeds the text will be output as-is.
 	assert "\tTrue" == T("<?if True?>\tTrue<?end if?>", whitespace="smart").renders()
 
-	# Line feeds will be removed from lines containing only a "control flow" tag.
+	# Line feeds will be removed from lines containing only a "control flow" tags.
 	assert "True\n" == T("<?if True?>\nTrue\n<?end if?>\n", whitespace="smart").renders()
 
 	# Indentation will also be removed from those lines.
