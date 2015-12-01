@@ -3638,26 +3638,17 @@ class Template(Block):
 			linelen = len(line)
 			if 2 <= linelen <= 3 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render") and (linelen == 2 or isinstance(line[2], LineEnd)):
 				tag = line[1]
-				if tag.tag in ("for", "if", "def"):
-					newlines.append((line, stack[:]))
-					block = Block(i+1) # Block starts on the next line
-					stack.append(block)
-					blocks.append(block)
-				elif tag.tag in ("elif", "else"):
+				# Tags closing a block
+				if tag.tag in ("elif", "else", "end"):
 					if stack:
 						stack[-1].end = i # Previous block ends before this line
 						stack.pop()
-					newlines.append((line, stack[:]))
+				newlines.append((line, stack[:]))
+				# Tags opening a block
+				if tag.tag in ("for", "if", "def", "elif", "else"):
 					block = Block(i+1) # Block starts on the next line
 					stack.append(block)
 					blocks.append(block)
-				elif tag.tag == "end":
-					if stack:
-						stack[-1].end = i # Current block ends before this line
-						stack.pop()
-					newlines.append((line, stack[:]))
-				else:
-					newlines.append((line, stack[:]))
 			else:
 				newlines.append((line, stack[:]))
 		# Close open blocks (shouldn't be neccessary for properly nested templates)
