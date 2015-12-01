@@ -1488,14 +1488,14 @@ class RemoteFileResource(Resource):
 	def closed(self):
 		return self.connection is None
 
-	def read(self, size=-1):
-		return self._send(self.remoteid, "read", size)
+	def read(self, size=None):
+		return self._send(self.remoteid, "read", size) if size is not None else self._send(self.remoteid, "read")
 
 	def readline(self, size=-1):
-		return self._send(self.remoteid, "readline", size)
+		return self._send(self.remoteid, "readline", size) if size is not None else self._send(self.remoteid, "readline")
 
 	def readlines(self, size=-1):
-		return self._send(self.remoteid, "readlines", size)
+		return self._send(self.remoteid, "readlines", size) if size is not None else self._send(self.remoteid, "readlines")
 
 	def __iter__(self):
 		return self
@@ -1611,13 +1611,13 @@ class URLResource(Resource):
 	def size(self):
 		return self._size
 
-	def read(self, size=-1):
-		data = self._stream.read(size)
+	def read(self, size=None):
+		data = self._stream.read(size) if size is not None else self._stream.read()
 		self._buffer.write(data)
 		return data
 
-	def readline(self, size=-1):
-		data = self._stream.readline(size)
+	def readline(self, size=None):
+		data = self._stream.readline(size) if size is not None else self._stream.readline()
 		self._buffer.write(data)
 		return data
 
