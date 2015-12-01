@@ -113,11 +113,11 @@ def execute_commands(commands, tmpdir):
 	s = io.StringIO()
 
 
-	with tempfile.NamedTemporaryFile(encoding="utf-8", delete=False) as f:
+	with tempfile.NamedTemporaryFile(delete=False) as f:
 		tempname = f.name
 		for command in commands:
-			fmt = "-- @@@\n\n{}\n\n" if isinstance(command, str) else "-- @@@\n\n{!r}\n\n"
-			print(fmt.format(command), file=f)
+			fmt = "{}\n\n-- @@@" if isinstance(command, str) else "\n\n{!r}"
+			f.write(fmt.format(command).encode("utf-8"))
 
 	try:
 		pysql.main([dbname, tempname, "-v3", "--scpdirectory", tmpdir, "--filedirectory", tmpdir])
