@@ -66,6 +66,12 @@ class printx(xsc.ProcInst):
 	"""
 
 
+class render(xsc.ProcInst):
+	"""
+	Renders a template.
+	"""
+
+
 ###
 ### Processing instruction for statements
 ###
