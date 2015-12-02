@@ -803,7 +803,7 @@ class monthdelta:
 	"""
 
 	__slots__ = ("_months",)
-	ul4attrs = ul4c.Attrs("months")
+	ul4attrs = {"months"}
 
 	def __init__(self, months=0):
 		self._months = months

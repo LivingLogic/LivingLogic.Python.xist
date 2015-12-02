@@ -1723,8 +1723,8 @@ When a ``<?return?>`` tag is encountered when the template is used as a
 template, output will simply stop and the return value will be ignored.
 
 
-Custom attributes
-=================
+Exposing attributes
+===================
 
 It is possible to expose attributes of an object to UL4 templates. This is done
 by setting the class attribute ``ul4attrs``::
@@ -1732,7 +1732,7 @@ by setting the class attribute ``ul4attrs``::
 	from ll import ul4c
 
 	class Person:
-		ul4attrs = ul4c.Attrs("firstname", "lastname")
+		ul4attrs = {"firstname", "lastname"}
 
 		def __init__(self, firstname, lastname, age):
 			self.firstname = firstname
@@ -1757,8 +1757,8 @@ object, using ``in`` and ``not in`` tests and using the methods ``items`` and
 ``values``.
 
 
-Custom methods
-==============
+Exposing methods
+================
 
 It is also possible to expose methods of an object to UL4 templates. This is
 done by including the method name in the ``ul4attrs`` class attribute::
@@ -1766,7 +1766,7 @@ done by including the method name in the ``ul4attrs`` class attribute::
 	from ll import ul4c
 
 	class Person:
-		ul4attrs = ul4c.Attrs("fullname")
+		ul4attrs = {"fullname"}
 
 		def __init__(self, firstname, lastname):
 			self.firstname = firstname
@@ -1782,35 +1782,76 @@ done by including the method name in the ``ul4attrs`` class attribute::
 
 This will output ``John Doe``.
 
-It is also possible to expose methods by using a decorator::
+Furthermore it's possible to specify that the method needs access to the
+rendering context (which stores the local variables and the UL4 call stack)::
+
+	class Person:
+		ul4attrs = {"fullname", "varcount"}
+
+		@ul4c.withcontext
+		def varcount(self):
+			return len(context.vars)
+
+
+Custom attributes
+=================
+
+To customize getting and setting object attributes from UL4 templates the
+methods :meth:`ul4getattr` and :meth:`ul4setattr` can be implemented::
 
 	from ll import ul4c
 
 	class Person:
-		ul4attrs = ul4c.Attrs()
+		ul4attrs = {"firstname", "lastname"}
 
-		def __init__(self, firstname, lastname):
+		def __init__(self, firstname, lastname, age):
 			self.firstname = firstname
 			self.lastname = lastname
+			self.age = age
 
-		@ul4attrs.addfunction()
-		def fullname(self):
-			return self.firstname + " " + self.lastname
+		def ul4getattr(self, name):
+			return getattr(self, name).upper()
 
-This also makes it possible to expose the method under a different name::
+	p = Person("John", "Doe", 42)
 
-	@ul4attrs.addfunction(name="fullname")
-	def _fullname(self):
-		return self.firstname + " " + self.lastname
+	template = ul4c.Template("<?print p.lastname?>, <?print p.firstname?>")
+	print(template.renders(p=p))
 
-This exposes the method ``_fullname`` under the name ``fullname``.
+This will output ``DOE, JOHN``.
 
-Furthermore it's possible to specify that the method needs access to the
-rendering context (which stores the local variables and the UL4 call stack)::
+If the object has an attribute ``ul4attrs`` :meth:`ul4getattr` will only be
+called for the attributes in ``ul4attrs``, otherwise :meth:`ul4getattr` will
+be called for all attributes (and should raise an :exc:`AttributeError` for
+non-existant attributes)
 
-	@ul4attrs.addfunction(context=True)
-	def varcount(self):
-		return len(context.vars)
+Attributes can be made writable by implemention the method :meth:`ul4setattr`::
+
+	from ll import ul4c
+
+	class Person:
+		ul4attrs = {"firstname", "lastname"}
+
+		def __init__(self, firstname, lastname, age):
+			self.firstname = firstname
+			self.lastname = lastname
+			self.age = age
+
+		def ul4setattr(self, name, value):
+			return setattr(self, name, value.upper())
+
+	p = Person("John", "Doe", 42)
+
+	template = ul4c.Template("<?code p.lastname = 'Doe'?><?print p.lastname?>, <?print p.firstname?>")
+	print(template.renders(p=p))
+
+This will output ``DOE, John``.
+
+If the object has an attribute ``ul4attrs`` :meth:`ul4setattr` will only be
+called for the attributes in ``ul4attrs``, otherwise :meth:`ul4setattr` will
+be called for all attributes (and should raise an :exc:`AttributeError` for
+non-existant or readonly attributes)
+
+Without a :meth:`ul4setattr` method, attributes will never be made writable.
 
 
 Delimiters

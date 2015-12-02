@@ -45,7 +45,7 @@ def register(name):
 	return registration
 
 
-def ul4function(context=False):
+def withcontext(f):
 	"""
 	Normally when a function is exposed to UL4 this function will be called
 	directly.
@@ -57,10 +57,8 @@ def ul4function(context=False):
 
 	This call be done with this decorator.
 	"""
-	def wrapper(f):
-		f.ul4context = context
-		return f
-	return wrapper
+	f.ul4context = True
+	return f
 
 
 error_underline = os.environ.get("LL_UL4_ERRORUNDERLINE", "~")[:1] or "~"
@@ -224,191 +222,6 @@ class Context:
 			self.vars = oldvars
 
 
-class Attrs:
-	"""
-	An :class:`Attrs` object can be used to customize which attributes of an
-	object are available to UL4 templates. This is done by setting the class
-	attribute ``ul4attrs`` to an instance of :class:`Attrs` like this::
-
-		class Person:
-			ul4attrs = ul4c.Attrs("firstname", "lastname")
-
-	This makes the attributes ``firstname`` and ``lastname`` of :class:`Person`
-	objects available to UL4 templates as readonly attributes.
-
-	It is also possible to expose attributes under a different name. This can be
-	done via keyword arguments::
-
-		class Person:
-			ul4attrs = ul4c.Attrs(firstname="_firstname", lastname="_lastname")
-
-	Here ``firstname`` is the name of the attribute visible to UL4 templates and
-	``_firstname`` is the real name of the attribute in Python.
-
-	Attributes can also be declared writable via the method :meth:`add`.
-	"""
-	def __init__(self, *args, **kwargs):
-		self._attrs = {}
-		self._call = None
-		self._render = None
-		for attrname in args:
-			if isinstance(attrname, Attrs):
-				self._attrs.update(attrname._attrs)
-				if attrname._call is not None:
-					self._call = attrname._call
-			else:
-				self.add(attrname)
-		for (attrname, realattrname) in kwargs.items():
-			self.add(attrname, realattrname)
-
-	def add(self, ul4name, realname=None, read=True, write=False):
-		"""
-		Adds another attribute to the attributes visible to UL4 templates.
-
-		:obj:`ul4name` is the name of the attribute. If :obj:`realname` is
-		specified :obj:`ul4name` is the name visible to UL4 and :obj:`realname`
-		is the real name of the Python attribute. :obj:`read` and :obj:`write`
-		can be used to declare whether the attribute is readable and/or writeable.
-		"""
-		self._attrs[ul4name] = (realname or ul4name, read, write)
-		return self
-
-	def addfunction(self, name=None, context=False):
-		"""
-		Used as a decorator on a method to expose this method to UL4 templates.
-
-		If :obj:`name` is specified it is the name under which the method will be
-		callable in UL4 (otherwise the original name will be used).
-
-		If :obj:`context` is true the :class:`Context` object will be passed
-		as the first argument to the method.
-
-		Example::
-
-			from ll import ul4c
-
-			class Language:
-				ul4attrs = ul4c.Attrs()
-
-				def __init__(self, name):
-					self._name = name
-
-				@ul4attrs.addfunction()
-				def name(self):
-					return self._name
-
-			langs = [
-				Language("Python"),
-				Language("Java"),
-				Language("Javascript"),
-			]
-
-			template = ul4c.Template('''
-				<?for lang in langs?>
-					<?print lang.name()?>
-				<?end for?>
-			''', whitespace="smart")
-
-			print(template.renders(langs=langs))
-
-		This outputs::
-
-			Python
-			Java
-			Javascript
-		"""
-		def wrapper(f):
-			self._attrs[name or f.__name__] = (f.__name__, True, False)
-			f.ul4context = context
-			return f
-		return wrapper
-
-	def addcall(self, context=False):
-		"""
-		Used as a decorator on a method to make an object callable from UL4 via
-		this method. (Normally an object is callable in UL4 if it is callable
-		in Python.)
-
-		If :obj:`context` is true the :class:`Context` object will be passed
-		as the first argument to the method.
-		"""
-		def wrapper(f):
-			self._call = f.__name__
-			f.ul4context = context
-			return f
-		return wrapper
-
-	def addrender(self, context=False):
-		"""
-		Used as a decorator on a method to make an object "renderable" from UL4
-		via this method. For example::
-
-			from ll import ul4c
-
-			class Language:
-				ul4attrs = ul4c.Attrs()
-
-				def __init__(self, name):
-					self.name = name
-
-				@ul4attrs.addrender(context=True)
-				def render(self, context):
-					yield "language="
-					yield self.name
-
-			langs = [
-				Language("Python"),
-				Language("Java"),
-				Language("Javascript"),
-			]
-
-			template = ul4c.Template('''
-				<?for lang in langs?>
-					<?render lang()?>
-				<?end for?>
-			''', whitespace="smart")
-
-			print(template.renders(langs=langs))
-
-		This outputs:
-
-			language=Python
-			language=Java
-			language=Javascript
-
-		If :obj:`context` is true the :class:`Context` object will be passed
-		as the first argument to the method.
-		"""
-		def wrapper(f):
-			self._render = f.__name__
-			f.ul4context = context
-			return f
-		return wrapper
-
-	def __contains__(self, name):
-		return name in self._attrs
-
-	def __iter__(self):
-		return iter(self._attrs)
-
-	def get(self, obj, name):
-		try:
-			(realname, read, write) = self._attrs[name]
-		except KeyError:
-			return UndefinedKey(name)
-		if not read:
-			raise AttributeError("attribute {!r} of {} object is not readable".format(name, type(obj)))
-		return getattr(obj, realname)
-
-	def set(self, obj, name, value):
-		try:
-			(realname, read, write) = self._attrs[name]
-		except KeyError:
-			raise AttributeError("attribute {!r} of {} object is not writable".format(name, type(obj)))
-		if not write:
-			raise AttributeError("attribute {!r} of {} object is not writable".format(name, type(obj)))
-		setattr(obj, realname, value)
-
 ###
 ### Helper functions
 ###
@@ -512,6 +325,47 @@ def _makevars(signature, args, kwargs):
 					default = param.default
 				vars.arguments[param.name] = default
 		return vars.arguments
+
+
+def _ul4getattr(obj, name):
+	"""
+	Return the attribute :obj:`name` of the object :obj`obj` and honor 
+	``ul4getattr`` and ``ul4attrs``.
+	"""
+	ul4attrs = getattr(obj, "ul4attrs", None)
+	ul4getattr = getattr(obj, "ul4getattr", None)
+	if callable(ul4getattr):
+		if ul4attrs is None or name in ul4attrs:
+			try:
+				return ul4getattr(name)
+			except AttributeError:
+				pass
+	elif ul4attrs is not None:
+		if name in ul4attrs:
+			return getattr(obj, name)
+	else:
+		try:
+			return obj[name]
+		except KeyError:
+			pass
+	return UndefinedKey(name)
+
+
+def _ul4setattr(obj, name, value):
+	"""
+	Set the attribute :obj:`name` of the object :obj`obj` to :obj:`value` and
+	honor  ``ul4setattr`` and ``ul4attrs``.
+	"""
+	ul4setattr = getattr(obj, "ul4setattr", None)
+	if callable(ul4setattr):
+		ul4attrs = getattr(obj, "ul4attrs", None)
+		if ul4attrs is None or name in ul4attrs:
+			ul4setattr(name, value)
+		else:
+			raise AttributeError("attribute {!r} is readonly".format(name))
+	else:
+		# An ``ul4attrs`` attribute without ``ul4setattr`` will *not* make the attribute writable
+		obj[name] = value
 
 
 ###
@@ -652,7 +506,7 @@ class AST:
 	"""
 
 	# Set of attributes available to UL4 templates
-	ul4attrs = Attrs("type", "startpos", "endpos")
+	ul4attrs = {"type", "startpos", "endpos"}
 
 	# Specifies whether the node does output (so :meth:`eval` is a generator)
 	# or not (so :meth:`eval` is a normal method).
@@ -753,7 +607,7 @@ class Text(AST):
 	AST node for literal text.
 	"""
 
-	ul4attrs = Attrs(AST.ul4attrs, "source", "text")
+	ul4attrs = AST.ul4attrs.union({"source", "text"})
 
 	output = True
 
@@ -845,7 +699,7 @@ class Tag(AST):
 	"""
 	A :class:`Tag` object is the location of a template tag in a template.
 	"""
-	ul4attrs = Attrs(AST.ul4attrs, "source", "tag", "startposcode", "endposcode", "text", "code")
+	ul4attrs = AST.ul4attrs.union({"source", "tag", "startposcode", "endposcode", "text", "code"})
 
 	def __init__(self, source=None, tag=None, startpos=None, endpos=None, startposcode=None, endposcode=None):
 		super().__init__(startpos, endpos)
@@ -897,7 +751,7 @@ class Code(AST):
 	The base class of all AST nodes that appear inside a :class:`Tag`.
 	"""
 
-	ul4attrs = Attrs(AST.ul4attrs, "tag")
+	ul4attrs = AST.ul4attrs.union({"tag"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None):
 		super().__init__(startpos, endpos)
@@ -929,7 +783,7 @@ class Const(Code):
 	"""
 	Load a constant
 	"""
-	ul4attrs = Attrs(Code.ul4attrs, "value")
+	ul4attrs = Code.ul4attrs.union({"value"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None, value=None):
 		super().__init__(tag, startpos, endpos)
@@ -962,7 +816,7 @@ class List(Code):
 	AST nodes for loading a list object.
 	"""
 
-	ul4attrs = Attrs(Code.ul4attrs, "items")
+	ul4attrs = Code.ul4attrs.union({"items"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None, *items):
 		super().__init__(tag, startpos, endpos)
@@ -995,7 +849,7 @@ class ListComp(Code):
 	AST node for list comprehension.
 	"""
 
-	ul4attrs = Attrs(Code.ul4attrs, "item", "varname", "container", "condition")
+	ul4attrs = Code.ul4attrs.union({"item", "varname", "container", "condition"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None, item=None, varname=None, container=None, condition=None):
 		super().__init__(tag, startpos, endpos)
@@ -1062,7 +916,7 @@ class Set(Code):
 	AST nodes for loading a set object.
 	"""
 
-	ul4attrs = Attrs(Code.ul4attrs, "items")
+	ul4attrs = Code.ul4attrs.union({"items"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None, *items):
 		super().__init__(tag, startpos, endpos)
@@ -1095,7 +949,7 @@ class SetComp(Code):
 	AST node for set comprehension.
 	"""
 
-	ul4attrs = Attrs(Code.ul4attrs, "item", "varname", "container", "condition")
+	ul4attrs = Code.ul4attrs.union({"item", "varname", "container", "condition"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None, item=None, varname=None, container=None, condition=None):
 		super().__init__(tag, startpos, endpos)
@@ -1162,7 +1016,7 @@ class Dict(Code):
 	AST node for loading a dict object.
 	"""
 
-	ul4attrs = Attrs(Code.ul4attrs, "items")
+	ul4attrs = Code.ul4attrs.union({"items"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None, *items):
 		super().__init__(tag, startpos, endpos)
@@ -1197,7 +1051,7 @@ class DictComp(Code):
 	AST node for dictionary comprehension.
 	"""
 
-	ul4attrs = Attrs(Code.ul4attrs, "key", "value", "varname", "container", "condition")
+	ul4attrs = Code.ul4attrs.union({"key", "value", "varname", "container", "condition"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None, key=None, value=None, varname=None, container=None, condition=None):
 		super().__init__(tag, startpos, endpos)
@@ -1268,7 +1122,7 @@ class GenExpr(Code):
 	AST node for a generator expression.
 	"""
 
-	ul4attrs = Attrs(Code.ul4attrs, "item", "varname", "container", "condition")
+	ul4attrs = Code.ul4attrs.union({"item", "varname", "container", "condition"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None, item=None, varname=None, container=None, condition=None):
 		super().__init__(tag, startpos, endpos)
@@ -1336,7 +1190,7 @@ class Var(Code):
 	AST nodes for loading a variable.
 	"""
 
-	ul4attrs = Attrs(Code.ul4attrs, "name")
+	ul4attrs = Code.ul4attrs.union({"name"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None, name=None):
 		super().__init__(tag, startpos, endpos)
@@ -1388,7 +1242,7 @@ class Block(Code):
 
 	output = True
 
-	ul4attrs = Attrs(Code.ul4attrs, "endtag", "content")
+	ul4attrs = Code.ul4attrs.union({"endtag", "content"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None):
 		super().__init__(tag, startpos, endpos)
@@ -1470,7 +1324,7 @@ class IfBlock(Block):
 	AST node for an ``<?if?>`` block.
 	"""
 
-	ul4attrs = Attrs(Block.ul4attrs, "condition")
+	ul4attrs = Block.ul4attrs.union({"condition"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None, condition=None):
 		super().__init__(tag, startpos, endpos)
@@ -1511,7 +1365,7 @@ class ElIfBlock(Block):
 	AST node for an ``<?elif?>`` block.
 	"""
 
-	ul4attrs = Attrs(Block.ul4attrs, "condition")
+	ul4attrs = Block.ul4attrs.union({"condition"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None, condition=None):
 		super().__init__(tag, startpos, endpos)
@@ -1571,7 +1425,7 @@ class ForBlock(Block):
 	AST node for a ``<?for?>`` loop.
 	"""
 
-	ul4attrs = Attrs(Block.ul4attrs, "varname", "container")
+	ul4attrs = Block.ul4attrs.union({"varname", "container"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None, varname=None, container=None):
 		super().__init__(tag, startpos, endpos)
@@ -1634,7 +1488,7 @@ class WhileBlock(Block):
 	AST node for a ``<?while?>`` loop.
 	"""
 
-	ul4attrs = Attrs(Block.ul4attrs, "condition")
+	ul4attrs = Block.ul4attrs.union({"condition"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None, condition=None):
 		super().__init__(tag, startpos, endpos)
@@ -1718,7 +1572,7 @@ class Attr(Code):
 	The object is loaded from the AST node :obj:`obj` and the attribute name
 	is stored in the string :obj:`attrname`.
 	"""
-	ul4attrs = Attrs(AST.ul4attrs, "obj", "attrname")
+	ul4attrs = AST.ul4attrs.union({"obj", "attrname"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None, obj=None, attrname=None):
 		super().__init__(tag, startpos, endpos)
@@ -1742,10 +1596,10 @@ class Attr(Code):
 		obj = self.obj.eval(context)
 		if hasattr(obj, "ul4attrs"):
 			if self.attrname in {"items", "values"}:
-				return self.method_dict(obj, self.attrname)
-			if hasattr(obj, "ul4attrs"):
-				return obj.ul4attrs.get(obj, self.attrname)
-			return UndefinedKey(self.attrname)
+				return self.method_ul4attrs(obj, self.attrname)
+			return _ul4getattr(obj, self.attrname)
+		elif hasattr(obj, "ul4getattr"):
+			return _ul4getattr(obj, self.attrname)
 		elif isinstance(obj, str):
 			return self.method_str(obj, self.attrname)
 		elif isinstance(obj, collections.Mapping):
@@ -1759,10 +1613,7 @@ class Attr(Code):
 		elif isinstance(obj, datetime.timedelta):
 			return self.method_timedelta(obj, self.attrname)
 		else:
-			try:
-				return obj[self.attrname]
-			except KeyError:
-				return UndefinedKey(self.attrname)
+			return _ul4getattr(obj, self.attrname)
 
 	def method_str(self, obj, methname):
 		if methname == "split":
@@ -1872,42 +1723,23 @@ class Attr(Code):
 			result = UndefinedKey(methname)
 		return result
 
-	def method_dict(self, obj, methname):
+	def method_ul4attrs(self, obj, methname):
 		if methname == "items":
 			def items():
-				try:
-					attrs = obj.ul4attrs
-				except AttributeError:
-					return obj.items()
-				else:
-					if isinstance(attrs, dict):
-						def iterate(obj):
-							for (attrname, (realattrname, mode)) in attrs.items():
-								if "r" in mode:
-									yield (attrname, getattr(obj, realattrname, UndefinedKey(attrname)))
-					else:
-						def iterate(obj):
-							for attrname in attrs:
-								yield (attrname, getattr(obj, attrname, UndefinedKey(attrname)))
-					return iterate(obj)
-			result = items
+				for attrname in obj.ul4attrs:
+					yield (attrname, _ul4getattr(obj, attrname))
+			return items
 		elif methname == "values":
 			def values():
-				try:
-					attrs = obj.ul4attrs
-				except AttributeError:
-					return obj.values()
-				else:
-					if isinstance(attrs, dict):
-						def iterate(obj):
-							for (attrname, (realattrname, mode)) in attrs.items():
-								yield getattr(obj, realattrname, UndefinedKey(attrname))
-					else:
-						def iterate(obj):
-							for attrname in attrs:
-								yield getattr(obj, attrname, UndefinedKey(attrname))
-					return iterate(obj)
-			result = values
+				for attrname in obj.ul4attrs:
+					yield _ul4getattr(obj, attrname)
+			return values
+
+	def method_dict(self, obj, methname):
+		if methname == "items":
+			return obj.items
+		elif methname == "values":
+			return obj.values
 		elif methname == "update":
 			def update(*others, **kwargs):
 				for other in others:
@@ -2016,20 +1848,15 @@ class Attr(Code):
 	@_handleexpressioneval
 	def evalset(self, context, value):
 		obj = self.obj.eval(context)
-		if hasattr(obj, "ul4attrs"):
-			obj.ul4attrs.set(obj, self.attrname, value)
-		else:
-			obj[self.attrname] = value
+		_ul4setattr(obj, self.attrname, value)
 
 	@_handleexpressioneval
 	def evalmodify(self, operator, context, value):
 		obj = self.obj.eval(context)
-		if hasattr(obj, "ul4attrs"):
-			oldvalue = obj.ul4attrs.get(obj, self.attrname)
-			newvalue = operator.evalfoldaug(oldvalue, value)
-			obj.ul4attrs.set(obj, self.attrname, newvalue)
-		else:
-			obj[self.attrname] = operator.evalfoldaug(obj[self.attrname], value)
+
+		oldvalue = _ul4getattr(obj, self.attrname)
+		newvalue = operator.evalfoldaug(oldvalue, value)
+		_ul4setattr(obj, self.attrname, newvalue)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -2053,7 +1880,7 @@ class Slice(Code):
 	the length of the sequence for the end index).
 	"""
 
-	ul4attrs = Attrs(Code.ul4attrs, "index1", "index2")
+	ul4attrs = Code.ul4attrs.union({"index1", "index2"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None, index1=None, index2=None):
 		super().__init__(tag, startpos, endpos)
@@ -2102,7 +1929,7 @@ class Unary(Code):
 	Base class for all AST nodes implementing unary operators.
 	"""
 
-	ul4attrs = Attrs(Code.ul4attrs, "obj")
+	ul4attrs = Code.ul4attrs.union({"obj"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None, obj=None):
 		super().__init__(tag, startpos, endpos)
@@ -2225,7 +2052,7 @@ class Binary(Code):
 	Base class for all AST nodes implementing binary operators.
 	"""
 
-	ul4attrs = Attrs(Code.ul4attrs, "obj1", "obj2")
+	ul4attrs = Code.ul4attrs.union({"obj1", "obj2"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None, obj1=None, obj2=None):
 		super().__init__(tag, startpos, endpos)
@@ -2278,10 +2105,8 @@ class Item(Binary):
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
-		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
-			return obj1.ul4attrs.get(obj1, obj2)
 		try:
-			return obj1[obj2]
+			return _ul4getattr(obj1, obj2) if isinstance(obj2, str) else obj1[obj2]
 		except KeyError:
 			return UndefinedKey(obj2)
 		except IndexError:
@@ -2291,21 +2116,18 @@ class Item(Binary):
 	def evalset(self, context, value):
 		obj1 = self.obj1.eval(context)
 		obj2 = self.obj2.eval(context)
-		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
-			obj1.ul4attrs.set(obj1, obj2, value)
-		else:
-			obj1[obj2] = value
+		_ul4setattr(obj1, obj2, value)
 
 	@_handleexpressioneval
 	def evalmodify(self, operator, context, value):
 		obj1 = self.obj1.eval(context)
 		obj2 = self.obj2.eval(context)
-		if isinstance(obj2, str) and hasattr(obj1, "ul4attrs"):
-			oldvalue = obj1.ul4attrs.get(obj1, obj2)
-			newvalue = operator.evalfoldaug(oldvalue, value)
-			obj1.ul4attrs.set(obj1, obj2, newvalue)
+		oldvalue = _ul4getattr(obj1, obj2) if isinstance(obj2, str) else obj1[obj2]
+		newvalue = operator.evalfoldaug(oldvalue, value)
+		if isinstance(obj2, str):
+			_ul4setattr(obj1, obj2, newvalue)
 		else:
-			obj1[obj2] = operator.evalfoldaug(obj1[obj2], value)
+			obj1[obj2] = newvalue
 
 
 @register("is")
@@ -2682,7 +2504,7 @@ class If(Code):
 	AST node for the ternary inline ``if/else`` operator.
 	"""
 
-	ul4attrs = Attrs(Code.ul4attrs, "objif", "objcond", "objelse")
+	ul4attrs = Code.ul4attrs.union({"objif", "objcond", "objelse"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None, objif=None, objcond=None, objelse=None):
 		super().__init__(tag, startpos, endpos)
@@ -2738,7 +2560,7 @@ class ChangeVar(Code):
 	AST node :obj:`value`.
 	"""
 
-	ul4attrs = Attrs(Code.ul4attrs, "lvalue", "value")
+	ul4attrs = Code.ul4attrs.union({"lvalue", "value"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None, lvalue=None, value=None):
 		super().__init__(tag, startpos, endpos)
@@ -2934,7 +2756,7 @@ class Call(Code):
 	arguments is found in :obj:`args`.
 	"""
 
-	ul4attrs = Attrs(Code.ul4attrs, "obj", "args")
+	ul4attrs = Code.ul4attrs.union({"obj", "args"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None, obj=None):
 		super().__init__(tag, startpos, endpos)
@@ -2983,26 +2805,17 @@ class Call(Code):
 			else:
 				kwargs[name] = arg
 
-		if hasattr(obj, "ul4attrs"):
-			if obj.ul4attrs._call is not None:
-				callobj = getattr(obj, obj.ul4attrs._call)
-				testobj = callobj
-			else:
-				raise TypeError("{} object is not callable".format(type(obj)))
-		elif isinstance(obj, types.MethodType):
-			callobj = obj
-			testobj = obj.__func__
-		else:
-			callobj = obj
-			testobj = callobj
+		ul4call = getattr(obj, "ul4call", None)
+		if callable(ul4call):
+			obj = ul4call
 
-		needscontext = getattr(testobj, "ul4context", False)
+		needscontext = getattr(obj, "ul4context", False)
 
 		try:
 			if needscontext:
-				return callobj(context, *args, **kwargs)
+				return obj(context, *args, **kwargs)
 			else:
-				return callobj(*args, **kwargs)
+				return obj(*args, **kwargs)
 		except Error as exc:
 			if isinstance(obj, (Template, TemplateClosure)):
 				raise Error(self) from exc
@@ -3095,15 +2908,15 @@ class Render(Call):
 				kwargs[name] = arg
 
 		try:
-			if hasattr(obj, "ul4attrs") and obj.ul4attrs._render is not None:
+			ul4render = getattr(obj, "ul4render", None)
+			if callable(ul4render):
 				if self.indent is not None:
 					context.indents.append(self.indent.text)
-				renderobj = getattr(obj, obj.ul4attrs._render)
-				needscontext = getattr(renderobj, "ul4context", False)
+				needscontext = getattr(ul4render, "ul4context", False)
 				if needscontext:
-					yield from renderobj(context, *args, **kwargs)
+					yield from ul4render(context, *args, **kwargs)
 				else:
-					yield from renderobj(*args, **kwargs)
+					yield from ul4render(*args, **kwargs)
 				if self.indent is not None:
 					context.indents.pop()
 			else:
@@ -3149,7 +2962,7 @@ class Template(Block):
 	A :class:`Template` object is itself an AST node. Evaluating it will store
 	the template object under its name in the local variables.
 	"""
-	ul4attrs = Attrs(Block.ul4attrs, "source", "name", "whitespace", "startdelim", "enddelim")
+	ul4attrs = Block.ul4attrs.union({"source", "name", "whitespace", "startdelim", "enddelim", "renders"})
 
 	version = "33"
 
@@ -3300,6 +3113,12 @@ class Template(Block):
 		yield from super()._str()
 		yield -1
 
+	def ul4getattr(self, name):
+		if name == "renders":
+			return self.ul4renders
+		else:
+			return getattr(self, name)
+
 	def ul4ondump(self, encoder):
 		# Don't call ``super().ul4ondump()`` first, as we want the version to be first
 		encoder.dump(self.version)
@@ -3413,8 +3232,8 @@ class Template(Block):
 			exc.template = self
 			raise
 
-	@ul4attrs.addrender(context=True)
-	def _render(*args, **kwargs):
+	@withcontext
+	def ul4render(*args, **kwargs):
 		self = args[0]
 		context = args[1]
 		args = args[2:]
@@ -3431,14 +3250,14 @@ class Template(Block):
 		``self``).
 		"""
 		context = Context()
-		yield from args[0]._render(context, *args[1:], **kwargs)
+		yield from args[0].ul4render(context, *args[1:], **kwargs)
 
 	def _rendersbound(self, context):
 		# Helper method used by :meth:`renders` and :meth:`TemplateClosure.renders` where arguments have already been bound
 		return "".join(self._renderbound(context))
 
-	@ul4attrs.addfunction(name="renders", context=True)
-	def _renders(*args, **kwargs):
+	@withcontext
+	def ul4renders(*args, **kwargs): # This will be exposed to UL4 as ``renders``
 		self = args[0]
 		context = args[1]
 		args = args[2:]
@@ -3452,7 +3271,7 @@ class Template(Block):
 		variables available to the template code.
 		"""
 		context = Context()
-		return args[0]._renders(context, *args[1:], **kwargs)
+		return args[0].ul4renders(context, *args[1:], **kwargs)
 
 	def _callbound(self, context):
 		# Helper method used by :meth:`__call__` and :meth:`TemplateClosure.__call__` where arguments have already been bound
@@ -3465,8 +3284,8 @@ class Template(Block):
 			exc.template = self
 			raise
 
-	@ul4attrs.addcall(context=True)
-	def _call(*args, **kwargs):
+	@withcontext
+	def ul4call(*args, **kwargs):
 		"""
 		Call the template as a function and return the resulting value.
 		:obj:`vars` contains the top level variables available to the template code.
@@ -3484,7 +3303,7 @@ class Template(Block):
 		:obj:`vars` contains the top level variables available to the template code.
 		"""
 		context = Context()
-		return args[0]._call(context, *args[1:], **kwargs)
+		return args[0].ul4call(context, *args[1:], **kwargs)
 
 	def jssource(self):
 		"""
@@ -3921,7 +3740,7 @@ class Signature(Code):
 	The list of arguments is found in :obj:`params`.
 	"""
 
-	ul4attrs = Attrs(Code.ul4attrs, "params")
+	ul4attrs = Code.ul4attrs.union({"params"})
 
 	def __init__(self, tag=None, startpos=None, endpos=None):
 		super().__init__(tag, startpos, endpos)
@@ -4279,7 +4098,7 @@ def function_istemplate(obj):
 
 @Context.makefunction
 def function_isfunction(obj):
-	return (callable(obj) and not isinstance(obj, Undefined)) or (hasattr(obj, "ul4attrs") and obj.ul4attrs._call is not None)
+	return (callable(obj) and not isinstance(obj, Undefined)) or callable(getattr(obj, "ul4call", None))
 
 
 @Context.makefunction
@@ -4531,15 +4350,15 @@ def function_pow(x, y):
 
 
 class TemplateClosure(Block):
-	ul4attrs = Attrs(Template.ul4attrs)
+	ul4attrs = Template.ul4attrs
 
 	def __init__(self, template, context, signature):
 		self.template = template
 		self.vars = context.vars
 		self.signature = signature
 
-	@ul4attrs.addrender(context=True)
-	def _render(*args, **kwargs):
+	@withcontext
+	def ul4render(*args, **kwargs):
 		self = args[0]
 		context = args[1]
 		args = args[2:]
@@ -4554,8 +4373,8 @@ class TemplateClosure(Block):
 				exc.template = self
 				raise
 
-	@ul4attrs.addfunction(context=True)
-	def _renders(*args, **kwargs):
+	@withcontext
+	def renders(*args, **kwargs):
 		self = args[0]
 		context = args[1]
 		args = args[2:]
@@ -4570,8 +4389,8 @@ class TemplateClosure(Block):
 				exc.template = self
 				raise
 
-	@ul4attrs.addcall(context=True)
-	def _call(*args, **kwargs):
+	@withcontext
+	def ul4call(*args, **kwargs):
 		self = args[0]
 		context = args[1]
 		args = args[2:]

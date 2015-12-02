@@ -4046,13 +4046,20 @@ def test_return_in_template(T):
 @pytest.mark.ul4
 def test_customattributes():
 	class CustomAttributes:
-		ul4attrs = ul4c.Attrs()
-		ul4attrs.add("foo")
-		ul4attrs.add("bar", write=True)
+		ul4attrs = {"foo", "bar"}
 
 		def __init__(self, foo, bar):
 			self.foo = foo
 			self.bar = bar
+
+		def ul4getattr(self, name):
+			return getattr(self, name)
+
+		def ul4setattr(self, name, value):
+			if name == "bar":
+				self.bar = value
+			else:
+				raise AttributeError("readonly attribute {!r}".format(name))
 
 	o = CustomAttributes(foo=42, bar=23)
 	assert "42" == TemplatePython("<?print o.foo?>").renders(o=o)
@@ -4069,7 +4076,7 @@ def test_customattributes():
 	assert "foo" == TemplatePython("<?for attr in o?><?if attr == 'foo'?><?print attr?><?end if?><?end for?>").renders(o=o)
 	assert "bar" == TemplatePython("<?for attr in o?><?if attr == 'bar'?><?print attr?><?end if?><?end for?>").renders(o=o)
 
-	readonlymessage = "not writable"
+	readonlymessage = "readonly"
 
 	o = CustomAttributes(foo=42, bar=23)
 	with raises(readonlymessage):
@@ -4131,17 +4138,20 @@ def test_customattributes():
 @pytest.mark.ul4
 def test_custommethods():
 	class CustomMethod:
-		ul4attrs = ul4c.Attrs("foo")
-
 		def foo(self):
 			return 42
 
-		@ul4attrs.addfunction(context=True)
+		@ul4c.withcontext
 		def bar(self, context):
 			return len(context.vars)
 
 		def baz(self):
 			pass
+
+		def ul4getattr(self, name):
+			if name in {"foo", "bar"}:
+				return getattr(self, name)
+			return ul4c.UndefinedKey(name)
 
 	o = CustomMethod()
 	assert "42" == TemplatePython("<?print o.foo()?>").renders(o=o)
@@ -4153,10 +4163,8 @@ def test_custommethods():
 @pytest.mark.ul4
 def test_customrender():
 	class CustomRenderNoContext:
-		ul4attrs = ul4c.Attrs()
 
-		@ul4attrs.addrender()
-		def _render(self, *args):
+		def ul4render(self, *args):
 			yield "w/o context="
 			for (i, arg) in enumerate(args):
 				if i:
@@ -4164,10 +4172,8 @@ def test_customrender():
 				yield arg
 
 	class CustomRenderContext:
-		ul4attrs = ul4c.Attrs()
-
-		@ul4attrs.addrender(context=True)
-		def _render(self, context, *args):
+		@ul4c.withcontext
+		def ul4render(self, context, *args):
 			yield "w/ context="
 			for (i, arg) in enumerate(args):
 				if i:

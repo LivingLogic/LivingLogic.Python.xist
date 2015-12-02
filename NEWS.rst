@@ -18,9 +18,6 @@ Changes in 5.14 (released ??/??/2015)
 *	Rendering an UL4 template from inside a UL4 template is now again done via
 	the ``<?render?>`` tag.
 
-*	Exposing attributes of objects to UL4 templates is now done via the new
-	class :class:`ul4c.Attrs` (instead of using a set).
-
 *	Whitespace handling mode for UL4 templates can now be specified in the
 	template source itself via the ``<?whitepace?>`` tag::
 
@@ -40,6 +37,17 @@ Changes in 5.14 (released ??/??/2015)
 		<? for i in range(10) ?>
 			<? print i ?>
 		<? end for ?>
+
+*	Exposing attributes of objects to UL4 templates can now be customized via
+	the methods :meth:`ul4getattr` and :meth:`ul4setattr`. Support for making
+	attributes writable or exposing them under a different name via ``ul4attrs``
+	has been removed.
+
+*	An object can now be made renderable by UL4 templates by implementing the
+	method :meth:`ul4render`.
+
+*	An object can now be made callable by UL4 templates by implementing the
+	method :meth:`ul4call` (:meth:`__call__` is still supported).
 
 *	Stacktraces produced by UL4 templates now include less chained exceptions
 	and are much more informative.
