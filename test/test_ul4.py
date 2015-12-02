@@ -4299,6 +4299,11 @@ def test_not_containment_precedence(T):
 
 
 @pytest.mark.ul4
+def test_ul4_tag(T):
+	assert "42" == T("<?ul4 template(foo=42)?><?print foo?>").renders()
+
+
+@pytest.mark.ul4
 def test_whitespace_tag():
 	t1 = ul4c.Template("<?whitespace keep?>")
 	assert t1.whitespace == "keep"
