@@ -89,7 +89,7 @@ Changes in 5.14 (released 12/02/2015)
 		>>> misc.format_exception(ValueError("bad value"))
 		'ValueError: bad value'
 
-	:func`:exception_chain` traverses the chain of exceptions (via the
+	:func`exception_chain` traverses the chain of exceptions (via the
 	``__cause__`` and ``__context__`` attributes).
 
 *	``+`` in the path part of URLs are now considered safe characters. Spaces
