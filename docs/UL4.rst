@@ -1916,6 +1916,10 @@ parameter in the constructor. The possible values are:
 
 	without any additional empty lines or indentation.
 
+	Rendering a template ``B`` inside an template ``A`` will reindent the output
+	of ``B`` to the indentation level of the ``<?render?>`` tag in the template
+	``A``.
+
 It is also possible to specify the whitespace behaviour in the template itself
 with the ``<?whitespace?>`` tag, so::
 
