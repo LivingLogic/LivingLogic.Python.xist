@@ -47,7 +47,7 @@ XIST also includes the following modules and packages:
 	input/output instead of bytes and with an eye towards cross-plattform
 	support).
 
-	There are implementations for Python, Java, Javascript and PHP.
+	There are implementations for Python, Java and Javascript.
 
 *	:mod:`ll.orasql` provides utilities for working with cx_Oracle_:
 
