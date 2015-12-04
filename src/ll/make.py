@@ -644,7 +644,7 @@ class MkDirAction(TransformAction):
 	def __init__(self, key, mode=0o777):
 		"""
 		Create a :class:`MkDirAction` instance. :obj:`mode` (which defaults to
-		:const:`0777`) will be used as the permission bit pattern for the new
+		:const:`0o777`) will be used as the permission bit pattern for the new
 		directory.
 		"""
 		TransformAction.__init__(self)
