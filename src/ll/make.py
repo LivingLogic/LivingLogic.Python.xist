@@ -234,7 +234,7 @@ def getoutputs(project, since, input):
 		elif isinstance(input, tuple):
 			resultdata = tuple(resultdata)
 		return (resultdata, resultchanged)
-	elif isinstance(input, dict):
+	elif isinstance(input, dict) and not isinstance(input, Project):
 		resultdata = {}
 		havedata = False
 		resultchanged = bigbang
