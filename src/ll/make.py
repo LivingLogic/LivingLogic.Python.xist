@@ -418,6 +418,9 @@ class ObjectAction(Action):
 		Action.__init__(self)
 		self.object = object
 
+	def __iter__(self):
+		yield from ()
+
 	@report
 	def get(self, project, since):
 		(data, self.changed) = getoutputs(project, since, self.object)
