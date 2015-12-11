@@ -29,7 +29,7 @@ as a result of executing the command will stop the script and be reported.
 This is in contrast to how ``sqlplus`` executes SQL command. ``sqlplus``
 would continue after an error and exit with status code 0 even if there were
 errors. It is also possible to explicitely ignore any exception raised by the
-command by terminating the command with ``-- !!!`` (instead of ``-- @@@``).
+command by specifying an exception handling mode (either globally or per command).
 
 A PySQL file that only contains SQL commands is still a valid SQL file from
 the perspective of Oracle, so it still can be executed via ``sqlplus``.
@@ -38,7 +38,7 @@ the perspective of Oracle, so it still can be executed via ``sqlplus``.
 PySQL commands
 --------------
 
-A pysql file may also contain PySQL commands. A PySQL command looks like a
+A PySQL file may also contain PySQL commands. A PySQL command looks like a
 Python dictionary literal. This literal must either be contained in a single
 line or it must start with a line that only contains ``{`` and end at a
 line that only contains ``}``.
@@ -274,10 +274,6 @@ it supports the following command line options:
 	``-t``, ``--terminator``
 		The terminator after an SQL command (should be a valid SQL comment;
 		default ``-- @@@``).
-
-	``-T``, ``--terminatorignored``
-		The error ignoring terminator after an SQL command (should be a valid
-		SQL comment; default ``-- !!!``).
 """
 
 # We're importing ``datetime``, so that it's available to ``eval()``
@@ -294,7 +290,7 @@ class Context:
 	A :class:`Context` objects contains the configuration and run time information
 	required for importing a PySQL file.
 	"""
-	def __init__(self, db=None, scpdirectory="", filedirectory="", commit="once", terminator="-- @@@", terminatorignore="-- !!!", verbose=0):
+	def __init__(self, db=None, scpdirectory="", filedirectory="", commit="once", terminator="-- @@@", raiseexceptions=True, verbose=0):
 		self.keys = {}
 		self.db = db
 		self.cursor = db.cursor() if db is not None else None
@@ -302,7 +298,7 @@ class Context:
 		self.filedirectory = filedirectory
 		self.commit = commit
 		self.terminator = terminator
-		self.terminatorignore = terminatorignore
+		self.raiseexceptions = raiseexceptions
 		self.verbose = verbose
 		self.count = 0
 		self.commandcounts = collections.Counter()
@@ -317,7 +313,6 @@ class Context:
 		This function is a generator. Its output are the PySQL command objects
 		(i.e. instances of :class:`Command`).
 		"""
-		reporterrors = True
 		lines = []
 
 		def makeblock():
@@ -349,7 +344,9 @@ class Context:
 							raise ValueError("block terminator {!r} unknown".format(text[-1:]))
 
 						type = args.pop("type")
-						command = Command.fromdict(type, location, reporterrors, args)
+						if "raiseexceptions" not in args:
+							args["raiseexceptions"] = self.raiseexceptions
+						command = Command.fromdict(type, location, args)
 						if isinstance(command, IncludeCommand):
 							if not command.name:
 								raise MissingKeyError("include", "name")
@@ -371,7 +368,7 @@ class Context:
 						yield from makeblock()
 					else:
 						state = "py"
-				elif line.startswith(self.terminator) or line.startswith(self.terminatorignore):
+				elif line.startswith(self.terminator):
 					pass # Still outside the block
 				elif line.strip():
 					lines.append((i, line))
@@ -383,11 +380,6 @@ class Context:
 					state = None
 			elif state == "sql":
 				if line.startswith(self.terminator):
-					reporterrors = True
-					yield from makeblock()
-					state = None
-				elif line.startswith(self.terminatorignore):
-					reporterrors = False
 					yield from makeblock()
 					state = None
 				else:
@@ -406,7 +398,7 @@ class Context:
 				try:
 					command.execute(self)
 				except Exception as exc:
-					if command.reporterrors:
+					if command.raiseexceptions:
 						if self.verbose == 2:
 							print("(error)", flush=True)
 						raise Error(command) from exc
@@ -422,7 +414,7 @@ class Context:
 					if isinstance(command, ProcedureCommand):
 						self.procedurecounts[command.name] += 1
 					self.commandcounts[command.type] += 1
-					self.count += 1
+				self.count += 1
 			if self.commit == "once":
 				self.db.commit()
 			elif self.commit == "never":
@@ -437,7 +429,7 @@ class Context:
 			commandcountvalues = self.commandcounts.values()
 			l1 = len(str(max(commandcountvalues))) if commandcountvalues else 0
 			l1 = max(l1, len(str(self.errorcount)))
-			l2 = max(len(procname) for procname in self.procedurecounts) if self.procedurecounts else 0
+			l2 = max(len("procedure ") + len(procname) for procname in self.procedurecounts) if self.procedurecounts else 0
 			print()
 			print("Summary")
 			print("=======")
@@ -447,14 +439,14 @@ class Context:
 				print("{:>{}} type".format("#", l1))
 				print("{} {}".format("-"*l1, "-"*l2))
 				for (procname, count) in sorted(self.procedurecounts.items(), key=operator.itemgetter(1)):
-					print("{:>{}} {}".format(count, l1, procname))
+					print("{:>{}} procedure {}".format(count, l1, procname))
 				print("{} {}".format("-"*l1, "-"*l2))
 			for cmdtype in ("procedure", "sql", "resetsequence", "setvar", "file", "scp", "compileall", "checkerrors"):
 				if self.commandcounts[cmdtype]:
 					anyoutput = True
-					print("{:>{}} ({})".format(self.commandcounts[cmdtype], l1, cmdtype))
+					print("{:>{}} {}".format(self.commandcounts[cmdtype], l1, cmdtype))
 			if self.errorcount:
-				print("{:>{}} error{} ignored".format(self.errorcount, l1, "s" if self.errorcount != 1 else ""))
+				print("{:>{}} exception{} ignored".format(self.errorcount, l1, "s" if self.errorcount != 1 else ""))
 			if not anyoutput:
 				print("no commands executed")
 
@@ -475,21 +467,21 @@ class Command:
 			``"compileall"`` or ``"checkerrors"`` and specifies the type of the
 			PySQL command.
 
-		``reporterrors`` : bool (optional)
+		``raiseexceptions`` : bool (optional)
 			Specifies whether exceptions that happen during the execution of the
 			command should be reported and terminate the script (``True``,
 			the default), or should be ignored (``False``).
 	"""
-	def __init__(self, location, reporterrors):
+	def __init__(self, location, raiseexceptions):
 		self.location = location
-		self.reporterrors = reporterrors
+		self.raiseexceptions = raiseexceptions
 
 	commands = {}
 
 	@classmethod
-	def fromdict(cls, type, location, reporterrors, d):
+	def fromdict(cls, type, location, d):
 		if type in cls.commands:
-			return cls.commands[type](location, reporterrors, **d)
+			return cls.commands[type](location, **d)
 		raise ValueError("command type {!r} unknown".format(type))
 
 	def __str__(self):
@@ -523,8 +515,8 @@ class IncludeCommand(Command):
 	"""
 	type = "include"
 
-	def __init__(self, location, reporterrors, name):
-		super().__init__(location=location, reporterrors=reporterrors)
+	def __init__(self, location, raiseexceptions, name):
+		super().__init__(location=location, raiseexceptions=raiseexceptions)
 		self.name = name
 
 	def __repr__(self):
@@ -583,7 +575,7 @@ class _SQLCommand(Command):
 class ProcedureCommand(_SQLCommand):
 	"""
 	A ``"procedure"`` command calls an Oracle procedure in the database.
-	In addition to ``"type"`` and ``"reporterrors"`` the following keys are
+	In addition to ``"type"`` and ``"raiseexceptions"`` the following keys are
 	supported in the command dictionary:
 
 		``name`` : string (required)
@@ -621,13 +613,17 @@ class ProcedureCommand(_SQLCommand):
 
 	type = "procedure"
 
-	def __init__(self, location, reporterrors, name, args=None):
-		super().__init__(location=location, reporterrors=reporterrors)
+	def __init__(self, location, raiseexceptions, name, args=None):
+		super().__init__(location=location, raiseexceptions=raiseexceptions)
 		self.name = name
 		self.args = args or {}
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} args={0.args!r} {0.location} at {1:#x}>".format(self, id(self))
+		if self.args:
+			fmt = "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} args={0.args!r} {0.location} at {1:#x}>"
+		else:
+			fmt = "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} {0.location} at {1:#x}>"
+		return fmt.format(self, id(self))
 
 	def __str__(self):
 		return "procedure command {}".format(self.location)
@@ -672,7 +668,7 @@ class ProcedureCommand(_SQLCommand):
 class SQLCommand(_SQLCommand):
 	"""
 	An ``"sql"`` command directly executes an SQL statement in the Oracle database.
-	In addition to ``"type"`` and ``"reporterrors"`` the following keys are
+	In addition to ``"type"`` and ``"raiseexceptions"`` the following keys are
 	supported in the command dictionary:
 
 		``sql`` : string (required)
@@ -690,13 +686,17 @@ class SQLCommand(_SQLCommand):
 	"""
 	type = "sql"
 
-	def __init__(self, location, reporterrors, sql, args=None):
-		super().__init__(location=location, reporterrors=reporterrors)
+	def __init__(self, location, raiseexceptions, sql, args=None):
+		super().__init__(location=location, raiseexceptions=raiseexceptions)
 		self.sql = sql
 		self.args = args or {}
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} sql={0.sql!r} args={0.args!r} {0.location} at {1:#x}>".format(self, id(self))
+		if self.args:
+			fmt = "<{0.__class__.__module__}.{0.__class__.__qualname__} sql={0.sql!r} args={0.args!r} {0.location} at {1:#x}>"
+		else:
+			fmt = "<{0.__class__.__module__}.{0.__class__.__qualname__} sql={0.sql!r} {0.location} at {1:#x}>"
+		return fmt.format(self, id(self))
 
 	def __str__(self):
 		return "sql command {}".format(self.location)
@@ -723,7 +723,7 @@ class SQLCommand(_SQLCommand):
 			if result:
 				print(" -> {}".format(", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in result.items())), flush=True)
 			else:
-				print(flush=True)
+				print(" -> done", flush=True)
 
 		return result
 
@@ -732,7 +732,7 @@ class SQLCommand(_SQLCommand):
 class SetVarCommand(Command):
 	"""
 	The ``"setvar"`` command sets a variable to a fixed value. In addition to
-	``"type"`` and ``"reporterrors"`` the following keys are supported in the
+	``"type"`` and ``"raiseexceptions"`` the following keys are supported in the
 	command dictionary:
 
 		``name``: string (required)
@@ -743,8 +743,8 @@ class SetVarCommand(Command):
 	"""
 	type = "setvar"
 
-	def __init__(self, location, reporterrors, name, value):
-		super().__init__(location=location, reporterrors=reporterrors)
+	def __init__(self, location, raiseexceptions, name, value):
+		super().__init__(location=location, raiseexceptions=raiseexceptions)
 		self.name = name
 		self.value = value
 
@@ -768,16 +768,60 @@ class SetVarCommand(Command):
 
 
 @register
+class RaiseExceptionsCommand(Command):
+	"""
+	The ``"raiseexceptions"`` command changes the global error reporting mode
+	for all subsequent commands. After::
+
+		{"type": "raiseexceptions", "value": False}
+
+	for all subsequent commands any exception will be reported and command
+	execution will continue with the next command. ::
+
+		{"type": "raiseexceptions", "value": True}
+
+	will switch back to aborting the execution of the PySQL script once an
+	exception is encountered.
+
+	Note that the global configuration will only be relavant for commands that
+	don't specify the ``"raiseexceptions"`` key themselves.
+	"""
+	type = "raiseexceptions"
+
+	def __init__(self, location, raiseexceptions, value):
+		super().__init__(location=location, raiseexceptions=raiseexceptions)
+		self.value = bool(value)
+
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} value={0.value!r} {0.location} at {1:#x}>".format(self, id(self))
+
+	def __str__(self):
+		return "raiseexceptions command {}".format(self.location)
+
+	def execute(self, context):
+		if context.verbose >= 1:
+			if context.verbose >= 3:
+				print("#{:,} {}: raiseexceptions={!r}".format(context.count+1, self.location, self.value), end="", flush=True)
+			else:
+				print(" " + self.type, end="", flush=True)
+
+		context.raiseexceptions = self.value
+
+		if context.verbose >= 3:
+			print(" -> done", flush=True)
+
+
+@register
 class CheckErrorsCommand(Command):
 	"""
 	The ``"checkerrors"`` command checks that there are no compilation errors in
 	the target schema. If there are, an exception will be raised. (The
-	``reporterrors`` key is supported, but its value will be ignored).
+	``raiseexceptions`` key is supported, but its value will be ignored).
 	"""
 	type = "checkerrors"
 
-	def __init__(self, location, reporterrors):
-		super().__init__(location=location, reporterrors=reporterrors)
+	def __init__(self, location, raiseexceptions):
+		super().__init__(location=location, raiseexceptions=raiseexceptions)
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.location} at {1:#x}>".format(self, id(self))
@@ -809,8 +853,8 @@ class CompileAllCommand(Command):
 	"""
 	type = "compileall"
 
-	def __init__(self, location, reporterrors):
-		super().__init__(location=location, reporterrors=reporterrors)
+	def __init__(self, location, raiseexceptions):
+		super().__init__(location=location, raiseexceptions=raiseexceptions)
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.location} at {1:#x}>".format(self, id(self))
@@ -835,7 +879,7 @@ class CompileAllCommand(Command):
 class SCPCommand(Command):
 	"""
 	The ``"scp"`` command creates a file by copying it via the ``scp`` command.
-	In addition to ``"type"`` and ``"reporterrors"`` the following keys are
+	In addition to ``"type"`` and ``"raiseexceptions"`` the following keys are
 	supported in the command dictionary:
 
 		``name`` : string (required)
@@ -851,8 +895,8 @@ class SCPCommand(Command):
 	"""
 	type = "scp"
 
-	def __init__(self, location, reporterrors, name, content):
-		super().__init__(location=location, reporterrors=reporterrors)
+	def __init__(self, location, raiseexceptions, name, content):
+		super().__init__(location=location, raiseexceptions=raiseexceptions)
 		self.name = name
 		self.content = content
 
@@ -890,7 +934,7 @@ class SCPCommand(Command):
 class FileCommand(Command):
 	"""
 	The ``"file"`` command creates a file by directly saving it from Python.
-	In addition to ``"type"`` and ``"reporterrors"`` the following keys are
+	In addition to ``"type"`` and ``"raiseexceptions"`` the following keys are
 	supported in the command dictionary:
 
 		``name`` : string (required)
@@ -917,8 +961,8 @@ class FileCommand(Command):
 	"""
 	type = "file"
 
-	def __init__(self, location, reporterrors, name, content, mode=None, owner=None, group=None):
-		super().__init__(location=location, reporterrors=reporterrors)
+	def __init__(self, location, raiseexceptions, name, content, mode=None, owner=None, group=None):
+		super().__init__(location=location, raiseexceptions=raiseexceptions)
 		self.name = name
 		self.content = content
 		self.mode = mode
@@ -988,9 +1032,10 @@ class FileCommand(Command):
 @register
 class ResetSequenceCommand(Command):
 	"""
-	The ``"resetsequence"`` command resets a sequence in the Oracle database to the
-	maximum value of a field in a table. In addition to ``"type"`` and
-	``"reporterrors`` the following keys are supported in the command dictionary:
+	The ``"resetsequence"`` command resets a sequence in the Oracle database to
+	the maximum value of a field in a table. In addition to ``"type"`` and
+	``"raiseexceptions"`` the following keys are supported in the command
+	dictionary:
 
 		``sequence``: string (required)
 			The name of the sequence to reset.
@@ -1012,8 +1057,8 @@ class ResetSequenceCommand(Command):
 	"""
 	type = "resetsequence"
 
-	def __init__(self, location, reporterrors, sequence, table, field, minvalue=None, increment=None):
-		super().__init__(location=location, reporterrors=reporterrors)
+	def __init__(self, location, raiseexceptions, sequence, table, field, minvalue=None, increment=None):
+		super().__init__(location=location, raiseexceptions=raiseexceptions)
 		self.sequence = sequence
 		self.table = table
 		self.field = field
@@ -1225,7 +1270,6 @@ def main(args=None):
 	p.add_argument("-s", "--scpdirectory", dest="scpdirectory", metavar="DIR", help="File name prefix for files to be copied via the 'scp' command (default: current directory)", default="")
 	p.add_argument("-f", "--filedirectory", dest="filedirectory", metavar="DIR", help="File name prefix for files to be copied via the 'file' command (default: current directory)", default="")
 	p.add_argument("-t", "--terminator", dest="terminator", metavar="STRING", help="Terminator after an SQL command (should be a valid SQL comment; default %(default)r)", default="-- @@@")
-	p.add_argument("-T", "--terminatorignore", dest="terminatorignore", metavar="STRING", help="Terminator after an SQL command that ignores errors (should be a valid SQL comment; default %(default)r)", default="-- !!!")
 
 	args = p.parse_args(args)
 
@@ -1235,7 +1279,6 @@ def main(args=None):
 		filedirectory=args.filedirectory,
 		commit=args.commit,
 		terminator=args.terminator,
-		terminatorignore=args.terminatorignore,
 		verbose=args.verbose,
 	)
 	context.executeall(context.load(args.file))

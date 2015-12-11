@@ -1,6 +1,9 @@
 Changes in 5.15 (released ??/??/2015)
 -------------------------------------
 
+*	PySQL no longer supports the ``-- !!!`` command terminator. Use the
+	``raiseexceptions`` command instead to specify error handling.
+
 *	The PySQL command ``setvar`` now uses the ``name`` key as the variable name
 	instead of the ``var`` key.
 
