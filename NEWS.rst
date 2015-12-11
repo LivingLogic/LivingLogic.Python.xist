@@ -1,3 +1,10 @@
+Changes in 5.15 (released ??/??/2015)
+-------------------------------------
+
+*	The PySQL command ``setvar`` now uses the ``name`` key as the variable name
+	instead of the ``var`` key.
+
+
 Changes in 5.14.1 (released 12/04/2015)
 ---------------------------------------
 

@@ -735,7 +735,7 @@ class SetVarCommand(Command):
 	``"type"`` and ``"reporterrors"`` the following keys are supported in the
 	command dictionary:
 
-		``var``: string (required)
+		``name``: string (required)
 			The name of the variable to set.
 
 		``value``: (required)
@@ -743,13 +743,13 @@ class SetVarCommand(Command):
 	"""
 	type = "setvar"
 
-	def __init__(self, location, reporterrors, var, value):
+	def __init__(self, location, reporterrors, name, value):
 		super().__init__(location=location, reporterrors=reporterrors)
-		self.var = var
+		self.name = name
 		self.value = value
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} var={0.var!r} value={0.value!r} {0.location} at {1:#x}>".format(self, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} value={0.value!r} {0.location} at {1:#x}>".format(self, id(self))
 
 	def __str__(self):
 		return "setvar command {}".format(self.location)
@@ -757,11 +757,11 @@ class SetVarCommand(Command):
 	def execute(self, context):
 		if context.verbose >= 1:
 			if context.verbose >= 3:
-				print("#{:,} {}: set var {!r} to {!r}".format(context.count+1, self.location, self.var, self.value), end="", flush=True)
+				print("#{:,} {}: set var {!r} to {!r}".format(context.count+1, self.location, self.name, self.value), end="", flush=True)
 			else:
 				print(" " + self.type, end="", flush=True)
 
-		context.keys[self.var] = self.value
+		context.keys[self.name] = self.value
 
 		if context.verbose >= 3:
 			print(" -> done", flush=True)
