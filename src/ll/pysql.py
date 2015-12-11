@@ -768,6 +768,38 @@ class SetVarCommand(Command):
 
 
 @register
+class UnsetVarCommand(Command):
+	"""
+	The ``"unsetvar"`` command deletes a variable. In addition to ``"type"`` and
+	``"raiseexceptions"`` the key ``name`` is supported and must contain the
+	name of the variable.
+	"""
+	type = "unsetvar"
+
+	def __init__(self, location, raiseexceptions, name):
+		super().__init__(location=location, raiseexceptions=raiseexceptions)
+		self.name = name
+
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} {0.location} at {1:#x}>".format(self, id(self))
+
+	def __str__(self):
+		return "unsetvar command {}".format(self.location)
+
+	def execute(self, context):
+		if context.verbose >= 1:
+			if context.verbose >= 3:
+				print("#{:,} {}: unset var {!r}".format(context.count+1, self.location, self.name), end="", flush=True)
+			else:
+				print(" " + self.type, end="", flush=True)
+
+		context.keys.pop(self.name, None)
+
+		if context.verbose >= 3:
+			print(" -> done", flush=True)
+
+
+@register
 class RaiseExceptionsCommand(Command):
 	"""
 	The ``"raiseexceptions"`` command changes the global error reporting mode
