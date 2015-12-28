@@ -431,12 +431,12 @@ argumentmismatchmessage = [
 	# Javascript argument mismatch exception messages
 	"requires (at least \\d+|\\d+(-\\d+)?) arguments?, \\d+ given",
 	"required \\w+\\(\\) argument .\\w+. \\(position \\d+\\) missing",
-	# Java exception messages for argument mismatches
-	"required argument \\w+ \\(position \\d+\\) missing",
-	"required \\w+\\(\\) argument missing",
-	"\\w+\\(\\) doesn't support an argument named \"\\w+\"",
-	"\\w+\\(\\) doesn't support keyword arguments",
-	"expects (at least \\d+|at most \\d+ positional|exactly \\d+|\\d+-\\d+) arguments?, \\d+ given",
+	# Java exception classes for argument mismatches
+	"com.livinglogic.ul4.TooManyArgumentsException",
+	"com.livinglogic.ul4.MissingArgumentException",
+	"com.livinglogic.ul4.ArgumentCountMismatchException",
+	"com.livinglogic.ul4.UnsupportedArgumentNameException",
+	"com.livinglogic.ul4.KeywordArgumentsNotSupportedException",
 ]
 argumentmismatchmessage = "({})".format("|".join(argumentmismatchmessage))
 
@@ -444,7 +444,7 @@ unorderabletypesmessage = [
 	# Python and Javascript
 	"unorderable types",
 	# Java
-	"UnorderableTypesException"
+	"com.livinglogic.ul4.UnorderableTypesException",
 ]
 unorderabletypesmessage = "({})".format("|".join(unorderabletypesmessage))
 
@@ -460,7 +460,7 @@ class raises:
 		if value is None:
 			pytest.fail("failed to raise exception")
 		# Check that any exception in the exception chain of the raised one matches a regexp
-		exceptionmsgs = [str(exc) for exc in misc.exception_chain(value)]
+		exceptionmsgs = [misc.format_exception(exc) for exc in misc.exception_chain(value)]
 		assert any(self.msg.search(msg) is not None for msg in exceptionmsgs)
 		return True # Don't propagate exception
 
