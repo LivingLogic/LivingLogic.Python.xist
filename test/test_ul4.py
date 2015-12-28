@@ -3062,8 +3062,20 @@ def test_function_sorted(T):
 	assert "172342" == t.renders(data=(42, 17, 23))
 	assert "012" == t.renders(data={0: "zero", 1: "one", 2: "two"})
 
+	# Test reverse argument
+	assert "urkg" == T("<?for i in sorted(data, reverse=True)?><?print i?><?end for?>").renders(data="gurk")
+
+	# Test key function
+	assert "0;31;62;93;24;55;86;17;48;79;" == T("<?def key(v)?><?return v % 10?><?end def?><?for i in sorted(data, key)?><?print i?>;<?end for?>").renders(data=[0, 17, 24, 31, 48, 55, 62, 79, 86, 93])
+	# Stability
+	assert "20;10;0;31;41;51;72;62;82;" == T("<?def key(v)?><?return v % 10?><?end def?><?for i in sorted(data, key)?><?print i?>;<?end for?>").renders(data=[72, 31, 20, 62, 41, 10, 0, 82, 51])
+	# reverse=True does not invert the runs of items that compare equal
+	assert "72;62;82;31;41;51;20;10;0;" == T("<?def key(v)?><?return v % 10?><?end def?><?for i in sorted(data, key, True)?><?print i?>;<?end for?>").renders(data=[72, 31, 20, 62, 41, 10, 0, 82, 51])
+
 	# Make sure that the parameters have the same name in all implementations
 	assert "123" == T("<?for i in sorted(iterable=data)?><?print i?><?end for?>").renders(data="321")
+	assert "cba" == T("<?for i in sorted(iterable=data, reverse=True)?><?print i?><?end for?>").renders(data="bca")
+	assert "123;12;1;" == T("<?def key(v)?><?return -len(str(v))?><?end def?><?for i in sorted(iterable=data, key=key)?><?print i?>;<?end for?>").renders(data=[1, 12, 123])
 
 
 @pytest.mark.ul4

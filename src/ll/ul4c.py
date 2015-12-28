@@ -4154,8 +4154,16 @@ def function_sum(iterable, start=0):
 
 
 @Context.makefunction
-def function_sorted(iterable):
-	return sorted(iterable)
+@withcontext
+def function_sorted(context, iterable, key=None, reverse=False):
+	if key is not None:
+		if callable(getattr(key, "ul4call", None)):
+			key = key.ul4call
+		elif callable(key):
+			key = key.__call__
+		if getattr(key, "ul4context", False):
+			key = functools.partial(key, context)
+	return sorted(iterable, key=key, reverse=reverse)
 
 
 @Context.makefunction

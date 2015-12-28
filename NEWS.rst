@@ -10,6 +10,8 @@ Changes in 5.15 (released ??/??/2015)
 *	A new PySQL command ``unsetvar`` has been added for deleting an existing
 	variable.
 
+*	The UL4 function ``sorted`` now supports a ``key`` and ``reverse`` argument.
+
 
 Changes in 5.14.1 (released 12/04/2015)
 ---------------------------------------
