@@ -114,14 +114,10 @@ class TemplateJava:
 
 	def run(self, data):
 		dump = ul4on.dumps(data).encode("utf-8")
-		proc = subprocess.Popen("java com.livinglogic.ul4.Tester", stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-		(stdout, stderr) = proc.communicate(input=dump)
+		result = subprocess.run("java com.livinglogic.ul4.Tester", input=dump, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		# Check if we have an exception
-		self.findexception(stderr.decode("utf-8", "passbytes"))
-
-		if stderr:
-			print(stderr, file=sys.stderr)
-		return stdout.decode("utf-8", "passbytes")
+		self.findexception(result.stderr.decode("utf-8", "passbytes"))
+		return result.stdout.decode("utf-8", "passbytes")
 
 
 class TemplateJavaCompiledByPython(TemplateJava):
