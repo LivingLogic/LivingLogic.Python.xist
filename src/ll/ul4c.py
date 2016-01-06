@@ -2790,6 +2790,19 @@ class Call(Code):
 				p.text("{}=".format(name))
 				p.pretty(arg)
 
+	@staticmethod
+	def _call(context, obj, args, kwargs):
+		ul4call = getattr(obj, "ul4call", None)
+		if callable(ul4call):
+			obj = ul4call
+
+		needscontext = getattr(obj, "ul4context", False)
+
+		if needscontext:
+			return obj(context, *args, **kwargs)
+		else:
+			return obj(*args, **kwargs)
+
 	def eval(self, context):
 		obj = self.obj.eval(context)
 		args = []
@@ -2805,17 +2818,8 @@ class Call(Code):
 			else:
 				kwargs[name] = arg
 
-		ul4call = getattr(obj, "ul4call", None)
-		if callable(ul4call):
-			obj = ul4call
-
-		needscontext = getattr(obj, "ul4context", False)
-
 		try:
-			if needscontext:
-				return obj(context, *args, **kwargs)
-			else:
-				return obj(*args, **kwargs)
+			return self._call(context, obj, args, kwargs)
 		except Error as exc:
 			if isinstance(obj, (Template, TemplateClosure)):
 				raise Error(self) from exc
