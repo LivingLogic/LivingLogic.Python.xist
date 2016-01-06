@@ -76,12 +76,11 @@ def _transport_js_v8(obj, indent):
 		f.flush()
 		dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
 		fmt = "d8 {dir}/ul4.js {fn}"
-		proc = subprocess.Popen(fmt.format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-		(stdout, stderr) = proc.communicate()
-	stdout = stdout.decode("utf-8")
-	stderr = stderr.decode("utf-8")
+		result = subprocess.run(fmt.format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+	stdout = result.stdout.decode("utf-8")
+	stderr = result.stderr.decode("utf-8")
 	# Check if we have an exception
-	if proc.returncode:
+	if result.returncode:
 		print(stdout, file=sys.stdout)
 		print(stderr, file=sys.stderr)
 		raise RuntimeError((stderr or stdout).splitlines()[0])
@@ -115,12 +114,11 @@ def _transport_js_spidermonkey(obj, indent):
 		f.flush()
 		dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
 		fmt = "js -f {dir}/ul4.js -f {fn}"
-		proc = subprocess.Popen(fmt.format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-		(stdout, stderr) = proc.communicate()
-	stdout = stdout.decode("utf-8")
-	stderr = stderr.decode("utf-8")
+		result = subprocess.run(fmt.format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+	stdout = result.stdout.decode("utf-8")
+	stderr = result.stderr.decode("utf-8")
 	# Check if we have an exception
-	if proc.returncode:
+	if result.returncode:
 		print(stdout, file=sys.stdout)
 		print(stderr, file=sys.stderr)
 		raise RuntimeError((stderr or stdout).splitlines()[0])
@@ -186,27 +184,27 @@ def java_runsource(source):
 	"""
 
 	tempdir = tempfile.mkdtemp()
+	stderr = stdout = None
 	try:
 		source = maincodetemplate % dict(source=source)
 		source = java_formatsource(source)
 		print(source)
 		with open(os.path.join(tempdir, "UL4ONTest.java"), "wb") as f:
 			f.write(source.encode("utf-8"))
-		proc = subprocess.Popen("cd {}; javac -encoding utf-8 UL4ONTest.java".format(tempdir), stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-		(stdout, stderr) = proc.communicate()
-		if proc.returncode:
-			stderr = stderr.decode("utf-8")
+		result = subprocess.run("cd {}; javac -encoding utf-8 UL4ONTest.java".format(tempdir), stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		if result.returncode:
+			stderr = result.stderr.decode("utf-8")
 			print(stderr, file=sys.stderr)
 			raise RuntimeError(stderr.splitlines()[0])
-		proc = subprocess.Popen("cd {}; java UL4ONTest".format(tempdir), stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-		(stdout, stderr) = proc.communicate()
+		result = subprocess.run("cd {}; java UL4ONTest".format(tempdir), stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		stdout = result.stdout.decode("utf-8")
 		# Check if we have an exception
-		java_findexception(stderr.decode("utf-8"))
+		java_findexception(result.stderr.decode("utf-8"))
 	finally:
 		shutil.rmtree(tempdir)
 	if stderr:
 		print(stderr, file=sys.stderr)
-	return stdout.decode("utf-8")
+	return stdout
 
 
 def _transport_java(obj, indent):

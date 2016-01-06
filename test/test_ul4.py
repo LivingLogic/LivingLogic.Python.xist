@@ -265,12 +265,11 @@ class TemplatePHP:
 			f.write(source.encode("utf-8"))
 			f.flush()
 			dir = os.path.expanduser("~/checkouts/LivingLogic.PHP.ul4")
-			proc = subprocess.Popen("php -n -d include_path={dir} -d date.timezone=Europe/Berlin {fn}".format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-			(stdout, stderr) = proc.communicate()
-		stdout = stdout.decode("utf-8", "passbytes")
-		stderr = stderr.decode("utf-8", "passbytes")
+			result = subprocess.run("php -n -d include_path={dir} -d date.timezone=Europe/Berlin {fn}".format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		stdout = result.stdout.decode("utf-8", "passbytes")
+		stderr = result.stderr.decode("utf-8", "passbytes")
 		# Check if we have an exception
-		if proc.returncode:
+		if result.returncode:
 			print(stdout, file=sys.stdout)
 			print(stderr, file=sys.stderr)
 			raise RuntimeError((stderr or stdout).strip().splitlines()[0])
@@ -324,12 +323,11 @@ class TemplateJavascript:
 			f.flush()
 			dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
 			cmd = command.format(cmd=command, dir=dir, fn=f.name)
-			proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-			(stdout, stderr) = proc.communicate()
-		stdout = stdout.decode("utf-8", "passbytes")
-		stderr = stderr.decode("utf-8", "passbytes")
+			result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		stdout = result.stdout.decode("utf-8", "passbytes")
+		stderr = result.stderr.decode("utf-8", "passbytes")
 		# Check if we have an exception
-		if proc.returncode:
+		if result.returncode:
 			print(stdout, file=sys.stdout)
 			print(stderr, file=sys.stderr)
 			raise RuntimeError((stderr or stdout).strip())
