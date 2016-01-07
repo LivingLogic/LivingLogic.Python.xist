@@ -1,4 +1,4 @@
-Changes in 5.15 (released ??/??/2015)
+Changes in 5.15 (released ??/??/2016)
 -------------------------------------
 
 *	PySQL no longer supports the ``-- !!!`` command terminator. Use the
