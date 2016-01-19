@@ -26,7 +26,7 @@ to be able to execute these commands they must be terminated with a comment
 line that starts with ``-- @@@``. :mod:`pysql` will strip off a trailing
 ``;`` or ``/`` from the command and execute it. Any exception that is raised
 as a result of executing the command will stop the script and be reported.
-This is in contrast to how ``sqlplus`` executes SQL command. ``sqlplus``
+This is in contrast to how ``sqlplus`` executes SQL commands. ``sqlplus``
 would continue after an error and exit with status code 0 even if there were
 errors. It is also possible to explicitely ignore any exception raised by the
 command by specifying an exception handling mode (either globally or per command).
