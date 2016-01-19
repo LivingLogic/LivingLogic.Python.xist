@@ -142,7 +142,7 @@ the matching options):
 		``hostname:port/db``. ``port`` and ``db`` are optional.
 
 	``import``
-		``import`` is a function that read a file (containing an UL4 template)
+		``import`` is a function that reads a file (containing an UL4 template)
 		from disk and returns the compiled UL4 template. Its first parameter is
 		the filename and its second parameter is the encoding of the file. The
 		encoding parameter is optional and defaults to ``"utf-8"``::
