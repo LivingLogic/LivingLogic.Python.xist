@@ -1716,6 +1716,19 @@ class Index(MixinNormalDates, Object):
 		rec = cursor.fetchone()
 		return Table(rec.table_name, rec.table_owner, connection)
 
+	def itercolumns(self, connection=None):
+		"""
+		Return an iterator over the columns this index consists of.
+		"""
+		(connection, cursor) = self.getcursor(connection)
+		table = self.table(connection)
+		cursor.execute("select aie.column_expression, aic.column_name from {0}_ind_columns aic, {0}_ind_expressions aie where aic.index_owner=aie.index_owner(+) and aic.index_name=aie.index_name(+) and aic.column_position=aie.column_position(+) and aic.index_owner=nvl(:owner, user) and aic.index_name=:name order by aic.column_position".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+
+		for rec in cursor:
+			if rec.column_expression is not None:
+				raise TypeError("{!r} contains an index expression".format(self))
+			yield Column("{}.{}".format(table.name, rec.column_name), owner=table.owner)
+
 
 class UniqueConstraint(Constraint):
 	"""

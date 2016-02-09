@@ -12,6 +12,9 @@ Changes in 5.15 (released ??/??/2016)
 
 *	The UL4 function ``sorted`` now supports a ``key`` and ``reverse`` argument.
 
+*	:class:`orasql.Index` now has a method :meth:`itercolumns` for iterating
+	through the columns of the index.
+
 
 Changes in 5.14.1 (released 12/04/2015)
 ---------------------------------------
