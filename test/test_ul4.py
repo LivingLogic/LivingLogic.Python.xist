@@ -396,10 +396,10 @@ all_templates = dict(
 	python=TemplatePython,
 	python_dumps=TemplatePythonDumpS,
 	python_dump=TemplatePythonDump,
-	java_compiled_by_python=TemplateJavaCompiledByPython,
-	java_compiled_by_java=TemplateJavaCompiledByJava,
+	# java_compiled_by_python=TemplateJavaCompiledByPython,
+	# java_compiled_by_java=TemplateJavaCompiledByJava,
 	js_v8=TemplateJavascriptV8,
-	js_spidermonkey=TemplateJavascriptSpidermonkey,
+	# js_spidermonkey=TemplateJavascriptSpidermonkey,
 	# php=TemplatePHP,
 )
 
@@ -427,8 +427,11 @@ argumentmismatchmessage = [
 	"takes \\d+ positional arguments? but \\d+ (was|were) given", # 3.3
 	"takes from \\d+ to \\d+ positional arguments but \\d+ (was|were) given", # 3.3
 	# Javascript argument mismatch exception messages
+	"\\w+\\(\\) expects at most \\d+ positional arguments?, \\d+ given",
 	"requires (at least \\d+|\\d+(-\\d+)?) arguments?, \\d+ given",
 	"required \\w+\\(\\) argument .\\w+. \\(position \\d+\\) missing",
+	"required \\w+\\(\\) argument missing",
+	"\\w+\\(\\) doesn't support an argument named .\\w+.",
 	# Java exception classes for argument mismatches
 	"com.livinglogic.ul4.TooManyArgumentsException",
 	"com.livinglogic.ul4.MissingArgumentException",
@@ -446,9 +449,16 @@ unorderabletypesmessage = [
 ]
 unorderabletypesmessage = "({})".format("|".join(unorderabletypesmessage))
 
+duplicatekeywordargument = [
+	# Python
+	"duplicate keyword argument"
+]
+duplicatekeywordargument = "({})".format("|".join(duplicatekeywordargument))
+
 
 class raises:
 	def __init__(self, msg):
+		self._msg = msg
 		self.msg = re.compile(msg)
 
 	def __enter__(self):
@@ -614,6 +624,15 @@ def test_list(T):
 
 
 @pytest.mark.ul4
+def test_unpacklist(T):
+	assert '[]' == T('<?print [*[]]?>').renders()
+	assert '[0, 1, 2]' == T('<?print [*range(3)]?>').renders()
+	assert '[0, 1, 2]' == T('<?print [*{0, 1, 2}]?>').renders()
+	assert '[-1, 0, 1, 2, -2, 3, 4, 5]' == T('<?print [-1, *range(3), -2, *range(3, 6)]?>').renders()
+	assert '[0]' == T('<?print [*{0: 1}]?>').renders()
+
+
+@pytest.mark.ul4
 def test_listcomp(T):
 	assert "[2, 6]" == T("<?code d = [2*i for i in range(4) if i%2]?><?print d?>").renders()
 	assert "[0, 2, 4, 6]" == T("<?code d = [2*i for i in range(4)]?><?print d?>").renders()
@@ -633,6 +652,16 @@ def test_set(T):
 
 	# Make sure that the loop variables doesn't leak into the surrounding scope
 	assert "undefined" == T("<?code d = {str(2*i) for i in range(4)}?><?print type(i)?>").renders()
+
+
+@pytest.mark.ul4
+def test_unpackset(T):
+	assert '{/}' == T('<?print {*{/}}?>').renders()
+	assert '{/}' == T('<?print {*[]}?>').renders()
+	assert '[0, 1, 2]' == T('<?print sorted({*range(3)})?>').renders()
+	assert '[0, 1, 2]' == T('<?print sorted({*{0, 1, 2}})?>').renders()
+	assert '[-2, -1, 0, 1, 2, 3, 4, 5]' == T('<?print sorted({-1, *range(3), -2, *range(3, 6)})?>').renders()
+	assert '{0}' == T('<?print {*{0: 1}}?>').renders()
 
 
 @pytest.mark.ul4
@@ -663,6 +692,13 @@ def test_dict(T):
 
 	# Make sure that the loop variables doesn't leak into the surrounding scope
 	assert "undefined" == T("<?code d = {i: 2*i for i in range(4)}?><?print type(i)?>").renders()
+
+
+@pytest.mark.ul4
+def test_unpackdict(T):
+	assert '{}' == T('<?print {**{}}?>').renders()
+	assert '0:zero;1:one;2:two;' == T('<?code a = {0: "zero", 1: "one"}?><?code b = {2: "two", **a}?><?for (k, v) in sorted(b.items())?><?print k?>:<?print v?>;<?end for?>').renders()
+	assert '0:zero;1:one;2:two;3:three;' == T('<?code a = {0: "zero", 1: "one"}?><?code b = {2: "two"}?><?code c = {3: "three", **a, **b.items()}?><?for (k, v) in sorted(c.items())?><?print k?>:<?print v?>;<?end for?>').renders()
 
 
 @pytest.mark.ul4
@@ -1753,6 +1789,14 @@ def test_callfunc_args(T):
 	assert "@(2013-01-07)" == T("<?print repr(date(*[2013, 1, 7]))?>").renders()
 	assert "@(2013-01-07)" == T("<?print repr(date(year=2013, **{'month': 1, 'day': 7}))?>").renders()
 	assert "@(2013-01-07)" == T("<?print repr(date(2013, *[1], **{'day': 7}))?>").renders()
+	assert "@(2013-01-07)" == T("<?print repr(date(*[2013], *[1], *[7]))?>").renders()
+	assert "@(2013-01-07)" == T("<?print repr(date(year=2013, **{'month': 1}, **{'day': 7}))?>").renders()
+	with raises(duplicatekeywordargument):
+		T("<?print repr(date(year=2013, year=2013))?>").renders()
+	with raises(duplicatekeywordargument):
+		T("<?print repr(date(year=2013, **{'year': 2013}))?>").renders()
+	with raises(duplicatekeywordargument):
+		T("<?print repr(date(**{'year': 2013}, **{'year': 2013}))?>").renders()
 
 
 @pytest.mark.ul4

@@ -178,6 +178,14 @@ Lists can be created like this:
 
 *	``[None, 42, "foo", [False, True]]``
 
+``*`` expressions can be used to expand other lists inplace, so::
+
+	[1, *[2, 3], 4, *[5, 6]]
+
+is equivalent to
+
+	[1, 2, 3, 4, 5, 6]
+
 It is also possible to create a list with a list comprehension::
 
 	["(" + c.upper() + ")" for c in "hurz" if c < "u"]
@@ -205,6 +213,20 @@ Dictionaries can be created like this:
 *	``{1: 2, 3: 4}``
 
 *	``{"foo": 17, "bar": 23}``
+
+``**`` expressions can be used to expand other dictionaries inplace, so::
+
+	{"foo": 17, **{"bar": 23, "baz": 42}}
+
+is equivalent to::
+
+	{"foo": 17, "bar": 23, "baz": 42}
+
+The ``**`` must be a dictonary or a list of key/value pairs.
+
+It is also possible to create a list with a list comprehension::
+
+	["(" + c.upper() + ")" for c in "hurz" if c < "u"]
 
 It is also possible to create a dictionary with a dictionary comprehension::
 
@@ -237,6 +259,10 @@ Sets can be created like this:
 The empty set also be created with the function ``set``::
 
 	``set()``.
+
+``*`` expressions are also supported::
+
+	{1, *[2, 3], 4, *[5, 6]}
 
 It is also possible to create a set with a set comprehension::
 

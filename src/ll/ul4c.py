@@ -810,6 +810,337 @@ class Const(Code):
 		p.pretty(self.value)
 
 
+### AST nodes for items in list, set and dict "literals"
+
+@register("seqitem")
+class SeqItem(Code):
+	"""
+	AST node for an item in a list/set "literal"
+	"""
+
+	ul4attrs = Code.ul4attrs.union({"value"})
+
+	def __init__(self, tag=None, startpos=None, endpos=None, value=None):
+		super().__init__(tag, startpos, endpos)
+		self.value = value
+
+	def _repr(self):
+		yield "{!r}".format(self.value)
+
+	def _repr_pretty(self, p):
+		p.breakable()
+		p.text("value=")
+		p.pretty(self.value)
+
+	@_handleexpressioneval
+	def eval_list(self, context, result):
+		result.append(self.value.eval(context))
+
+	@_handleexpressioneval
+	def eval_set(self, context, result):
+		result.add(self.value.eval(context))
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.value)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.value = decoder.load()
+
+
+@register("unpackseqitem")
+class UnpackSeqItem(Code):
+	"""
+	AST nodes for '*' unpacking expressions in a list/ set "literal".
+	"""
+
+	ul4attrs = Code.ul4attrs.union({"value"})
+
+	def __init__(self, tag=None, startpos=None, endpos=None, value=None):
+		super().__init__(tag, startpos, endpos)
+		self.value = value
+
+	def _repr(self):
+		yield "*{!r}".format(self.value)
+
+	def _repr_pretty(self, p):
+		p.breakable()
+		p.text("value=")
+		p.pretty(self.value)
+
+	@_handleexpressioneval
+	def eval_list(self, context, result):
+		# We're updating the result list here to get a proper location when the ``*`` argument isn't iterable
+		for item in self.value.eval(context):
+			result.append(item)
+
+	@_handleexpressioneval
+	def eval_set(self, context, result):
+		# We're updating the result set here to get a proper location when the ``*`` argument isn't iterable
+		for item in self.value.eval(context):
+			result.add(item)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.value)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.value = decoder.load()
+
+
+@register("dictitem")
+class DictItem(Code):
+	"""
+	AST node for a dictionary key
+	"""
+
+	ul4attrs = Code.ul4attrs.union({"key", "value"})
+
+	def __init__(self, tag=None, startpos=None, endpos=None, key=None, value=None):
+		super().__init__(tag, startpos, endpos)
+		self.key = key
+		self.value = value
+
+	def _repr(self):
+		yield "{!r}={!r}".format(self.key, self.value)
+
+	def _repr_pretty(self, p):
+		p.breakable()
+		p.text("key=")
+		p.pretty(self.key)
+		p.breakable("")
+		p.text("value=")
+		p.pretty(self.value)
+
+	@_handleexpressioneval
+	def eval_dict(self, context, result):
+		key = self.key.eval(context)
+		value = self.value.eval(context)
+		result[key] = value
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.key)
+		encoder.dump(self.value)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.key = decoder.load()
+		self.value = decoder.load()
+
+
+@register("unpackdictitem")
+class UnpackDictItem(Code):
+	"""
+	AST nodes for '**' unpacking expressions in dict "literal".
+	"""
+
+	ul4attrs = Code.ul4attrs.union({"item"})
+
+	def __init__(self, tag=None, startpos=None, endpos=None, item=None):
+		super().__init__(tag, startpos, endpos)
+		self.item = item
+
+	def _repr(self):
+		yield "**{!r}".format(self.item)
+
+	def _repr_pretty(self, p):
+		p.breakable()
+		p.text("item=")
+		p.pretty(self.item)
+
+	@_handleexpressioneval
+	def eval_dict(self, context, result):
+		result.update(self.item.eval(context))
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.item)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.item = decoder.load()
+
+
+### AST nodes for call arguments
+
+@register("posarg")
+class PosArg(Code):
+	"""
+	AST node for a positional argument
+	"""
+
+	ul4attrs = Code.ul4attrs.union({"value"})
+
+	def __init__(self, tag=None, startpos=None, endpos=None, value=None):
+		super().__init__(tag, startpos, endpos)
+		self.value = value
+
+	def _repr(self):
+		yield "{!r}".format(self.value)
+
+	def _repr_pretty(self, p):
+		p.breakable()
+		p.text("value=")
+		p.pretty(self.value)
+
+	@_handleexpressioneval
+	def append(self, call):
+		for arg in call.args:
+			if isinstance(arg, KeywordArg):
+				raise SyntaxError("positional argument follows keyword argument")
+			elif isinstance(arg, UnpackDictArg):
+				raise SyntaxError("positional argument follows keyword argument unpacking")
+		call.args.append(self)
+
+	@_handleexpressioneval
+	def eval_call(self, context, args, kwargs):
+		args.append(self.value.eval(context))
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.value)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.value = decoder.load()
+
+
+@register("keywordarg")
+class KeywordArg(Code):
+	"""
+	AST node for a keyword argument
+	"""
+
+	ul4attrs = Code.ul4attrs.union({"name", "value"})
+
+	def __init__(self, tag=None, startpos=None, endpos=None, name=None, value=None):
+		super().__init__(tag, startpos, endpos)
+		self.name = name
+		self.value = value
+
+	def _repr(self):
+		yield "{}={!r}".format(self.name, self.value)
+
+	def _repr_pretty(self, p):
+		p.breakable()
+		p.text("name=")
+		p.pretty(self.name)
+		p.breakable("")
+		p.text("value=")
+		p.pretty(self.value)
+
+	@_handleexpressioneval
+	def append(self, call):
+		call.args.append(self)
+
+	@_handleexpressioneval
+	def eval_call(self, context, args, kwargs):
+		if self.name in kwargs:
+			raise SyntaxError("duplicate keyword argument {!r}".format(self.name))
+		kwargs[self.name] = self.value.eval(context)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.name)
+		encoder.dump(self.value)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.name = decoder.load()
+		self.value = decoder.load()
+
+
+@register("unpacklistarg")
+class UnpackListArg(Code):
+	"""
+	AST nodes for '*' unpacking expressions in calls.
+	"""
+
+	ul4attrs = Code.ul4attrs.union({"item"})
+
+	def __init__(self, tag=None, startpos=None, endpos=None, item=None):
+		super().__init__(tag, startpos, endpos)
+		self.item = item
+
+	def _repr(self):
+		yield "*{!r}".format(self.item)
+
+	def _repr_pretty(self, p):
+		p.breakable()
+		p.text("item=")
+		p.pretty(self.item)
+
+	@_handleexpressioneval
+	def append(self, call):
+		for arg in call.args:
+			if isinstance(arg, UnpackDictArg):
+				raise SyntaxError("iterable argument unpacking follows keyword argument unpacking")
+		call.args.append(self)
+
+	@_handleexpressioneval
+	def eval_call(self, context, args, kwargs):
+		for item in self.item.eval(context):
+			args.append(item)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.item)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.item = decoder.load()
+
+
+@register("unpackdictarg")
+class UnpackDictArg(Code):
+	"""
+	AST nodes for '**' unpacking expressions in calls.
+	"""
+
+	ul4attrs = Code.ul4attrs.union({"item"})
+
+	def __init__(self, tag=None, startpos=None, endpos=None, item=None):
+		super().__init__(tag, startpos, endpos)
+		self.item = item
+
+	def _repr(self):
+		yield "**{!r}".format(self.item)
+
+	def _repr_pretty(self, p):
+		p.breakable()
+		p.text("item=")
+		p.pretty(self.item)
+
+	@_handleexpressioneval
+	def append(self, call):
+		call.args.append(self)
+
+	@_handleexpressioneval
+	def eval_call(self, context, args, kwargs):
+		item = self.item.eval(context)
+		if hasattr(item, "keys"):
+			for key in item:
+				if key in kwargs:
+					raise SyntaxError("duplicate keyword argument {!r}".format(key))
+				kwargs[key] = item[key]
+		else:
+			for (key, value) in item:
+				if key in kwargs:
+					raise SyntaxError("duplicate keyword argument {!r}".format(key))
+				kwargs[key] = value
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.item)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.item = decoder.load()
+
+
 @register("list")
 class List(Code):
 	"""
@@ -832,7 +1163,10 @@ class List(Code):
 
 	@_handleexpressioneval
 	def eval(self, context):
-		return [item.eval(context) for item in self.items]
+		result = []
+		for item in self.items:
+			item.eval_list(context, result)
+		return result
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -932,7 +1266,10 @@ class Set(Code):
 
 	@_handleexpressioneval
 	def eval(self, context):
-		return {item.eval(context) for item in self.items}
+		result = set()
+		for item in self.items:
+			item.eval_set(context, result)
+		return result
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1028,13 +1365,14 @@ class Dict(Code):
 	def _repr_pretty(self, p):
 		for item in self.items:
 			p.breakable()
-			p.pretty(item[0])
-			p.text("=")
-			p.pretty(item[1])
+			p.pretty(item)
 
 	@_handleexpressioneval
 	def eval(self, context):
-		return {key.eval(context): value.eval(context) for (key, value) in self.items}
+		result = {}
+		for item in self.items:
+			item.eval_dict(context, result)
+		return result
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1042,7 +1380,7 @@ class Dict(Code):
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
-		self.items = [tuple(item) for item in decoder.load()]
+		self.items = decoder.load()
 
 
 @register("dictcomp")
@@ -2765,30 +3103,19 @@ class Call(Code):
 
 	def _repr(self):
 		yield "obj={!r}".format(self.obj)
-		for (name, arg) in self.args:
-			if name is None:
-				yield repr(arg)
-			elif name == "*":
-				yield "*{!r}".format(arg)
-			elif name == "**":
-				yield "**{!r}".format(arg)
-			else:
-				yield "{}={!r}".format(name, arg)
+		for arg in self.args:
+			yield from arg._repr()
 
 	def _repr_pretty(self, p):
 		p.breakable()
 		p.text("obj=")
 		p.pretty(self.obj)
-		for (name, arg) in self.args:
+		for arg in self.args:
 			p.breakable()
-			if name is None:
-				p.pretty(arg)
-			elif name in ("*", "**"):
-				p.text(name)
-				p.pretty(arg)
-			else:
-				p.text("{}=".format(name))
-				p.pretty(arg)
+			p.pretty(arg)
+
+	def append(self, node):
+		self.args.append(node)
 
 	@staticmethod
 	def _call(context, obj, args, kwargs):
@@ -2807,16 +3134,8 @@ class Call(Code):
 		obj = self.obj.eval(context)
 		args = []
 		kwargs = {}
-		for (name, arg) in self.args:
-			arg = arg.eval(context)
-			if name is None:
-				args.append(arg)
-			elif name == "*":
-				args.extend(arg)
-			elif name == "**":
-				kwargs.update(arg)
-			else:
-				kwargs[name] = arg
+		for arg in self.args:
+			arg.eval_call(context, args, kwargs)
 
 		try:
 			return self._call(context, obj, args, kwargs)
@@ -2847,7 +3166,7 @@ class Call(Code):
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
 		self.obj = decoder.load()
-		self.args = [tuple(arg) for arg in decoder.load()]
+		self.args = decoder.load()
 
 
 @register("render")
@@ -2868,15 +3187,8 @@ class Render(Call):
 	def _repr(self):
 		yield "indent={!r}".format(self.indent)
 		yield "obj={!r}".format(self.obj)
-		for (name, arg) in self.args:
-			if name is None:
-				yield repr(arg)
-			elif name == "*":
-				yield "*{!r}".format(arg)
-			elif name == "**":
-				yield "**{!r}".format(arg)
-			else:
-				yield "{}={!r}".format(name, arg)
+		for arg in self.args:
+			yield from arg._repr()
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -2885,31 +3197,16 @@ class Render(Call):
 		p.breakable()
 		p.text("obj=")
 		p.pretty(self.obj)
-		for (name, arg) in self.args:
+		for arg in self.args:
 			p.breakable()
-			if name is None:
-				p.pretty(arg)
-			elif name in ("*", "**"):
-				p.text(name)
-				p.pretty(arg)
-			else:
-				p.text("{}=".format(name))
-				p.pretty(arg)
+			p.pretty(arg)
 
 	def eval(self, context):
 		obj = self.obj.eval(context)
 		args = []
 		kwargs = {}
-		for (name, arg) in self.args:
-			arg = arg.eval(context)
-			if name is None:
-				args.append(arg)
-			elif name == "*":
-				args.extend(arg)
-			elif name == "**":
-				kwargs.update(arg)
-			else:
-				kwargs[name] = arg
+		for arg in self.args:
+			arg.eval_call(context, args, kwargs)
 
 		try:
 			ul4render = getattr(obj, "ul4render", None)

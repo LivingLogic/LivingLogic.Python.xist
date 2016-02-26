@@ -212,16 +212,25 @@ literal returns [node]
 	;
 
 /* List literals */
+fragment
+seqitem returns [node]
+	:
+		e=expr_if { $node = ul4c.SeqItem(self.tag, $e.node.startpos, $e.node.endpos, $e.node) }
+	|
+		star='*'
+		es=expr_if { $node = ul4c.UnpackSeqItem(self.tag, self.startpos($star), $es.node.endpos, $es.node) }
+	;
+
 list returns [node]
 	:
 		open='['
 		close=']' { $node = ul4c.List(self.tag, self.startpos($open), self.endpos($close)) }
 	|
 		open='[' {$node = ul4c.List(self.tag, self.startpos($open), None) }
-		e1=expr_if { $node.items.append($e1.node) }
+		i1=seqitem { $node.items.append($i1.node) }
 		(
 			','
-			e2=expr_if { $node.items.append($e2.node) }
+			i2=seqitem { $node.items.append($i2.node) }
 		)*
 		','?
 		close=']' { $node.endpos = self.endpos($close) }
@@ -254,10 +263,10 @@ set returns [node]
 		close='}' { $node = ul4c.Set(self.tag, self.startpos($open), self.endpos($close)) }
 	|
 		open='{' {$node = ul4c.Set(self.tag, self.startpos($open), None) }
-		e1=expr_if { $node.items.append($e1.node) }
+		i1=seqitem { $node.items.append($i1.node) }
 		(
 			','
-			e2=expr_if { $node.items.append($e2.node) }
+			i2=seqitem { $node.items.append($i2.node) }
 		)*
 		','?
 		close='}' { $node.endpos = self.endpos($close) }
@@ -288,7 +297,10 @@ dictitem returns [node]
 	:
 		k=expr_if
 		':'
-		v=expr_if { $node = ($k.node, $v.node) }
+		v=expr_if { $node = ul4c.DictItem(self.tag, $k.node.startpos, $v.node.startpos, $k.node, $v.node) }
+	|
+		star='**'
+		e=expr_if { $node = ul4c.UnpackDictItem(self.tag, self.startpos($star), $e.node.endpos, $e.node) }
 	;
 
 dict returns [node]
@@ -408,6 +420,20 @@ slice returns [node]
 	;
 
 /* Function/method call, attribute access, item access, slice access */
+fragment
+argument returns [node]
+	:
+		e=exprarg { $node = ul4c.PosArg(self.tag, $e.node.startpos, $e.node.endpos, $e.node) }
+	|
+		en=name '=' ev=exprarg { $node = ul4c.KeywordArg(self.tag, $en.node.startpos, $ev.node.endpos, $en.text, $ev.node) }
+	|
+		star='*'
+		es=exprarg { $node = ul4c.UnpackListArg(self.tag, self.startpos($star), $es.node.endpos, $es.node) }
+	|
+		star='**'
+		es=exprarg { $node = ul4c.UnpackDictArg(self.tag, self.startpos($star), $es.node.endpos, $es.node) }
+	;
+
 expr_subscript returns [node]
 	:
 		e1=atom { $node = $e1.node; }
@@ -419,56 +445,13 @@ expr_subscript returns [node]
 			/* Function/method call */
 			'(' { $node = ul4c.Call(self.tag, $node.startpos, None, $node) }
 			(
-				/* No arguments */
-			|
-				/* "**" argument only */
-				'**' rkwargs=exprarg { $node.args.append(("**", $rkwargs.node)); }
-				','?
-			|
-				/* "*" argument only (and maybe **) */
-				'*' rargs=exprarg { $node.args.append(("*", $rargs.node)); }
+				a1=argument { $a1.node.append($node) }
 				(
 					','
-					'**' rkwargs=exprarg { $node.args.append(("**", $rkwargs.node)); }
-				)?
-				','?
-			|
-				/* At least one positional argument */
-				a1=exprarg { $node.args.append((None, $a1.node)); }
-				(
-					','
-					a2=exprarg { $node.args.append((None, $a2.node)); }
+					a2=argument { $a2.node.append($node) }
 				)*
-				(
-					','
-					an3=name '=' av3=exprarg { $node.args.append(($an3.text, $av3.node)); }
-				)*
-				(
-					','
-					'*' rargs=exprarg { $node.args.append(("*", $rargs.node)); }
-				)?
-				(
-					','
-					'**' rkwargs=exprarg { $node.args.append(("**", $rkwargs.node)); }
-				)?
 				','?
-			|
-				/* Keyword arguments only */
-				an1=name '=' av1=exprarg { $node.args.append(($an1.text, $av1.node)); }
-				(
-					','
-					an2=name '=' av2=exprarg { $node.args.append(($an2.text, $av2.node)); }
-				)*
-				(
-					','
-					'*' rargs=exprarg { $node.args.append(("*", $rargs.node)); }
-				)?
-				(
-					','
-					'**' rkwargs=exprarg { $node.args.append(("**", $rkwargs.node)); }
-				)?
-				','?
-			)
+			)*
 			close=')' { $node.endpos = self.endpos($close) }
 		|
 			/* Item access */

@@ -1,6 +1,14 @@
 Changes in 5.15 (released ??/??/2016)
 -------------------------------------
 
+*	Calls to UL4 functions and templates now support specifying a ``*`` or
+	``**`` argument multiple times (similar to Python's PEP 448).
+
+*	Also ``*`` and ``**`` expressions are now allowed in list, set and dict
+	"literals".
+
+*	The UL4 function ``sorted`` now supports a ``key`` and ``reverse`` argument.
+
 *	PySQL no longer supports the ``-- !!!`` command terminator. Use the
 	``raiseexceptions`` command instead to specify error handling.
 
@@ -9,8 +17,6 @@ Changes in 5.15 (released ??/??/2016)
 
 *	A new PySQL command ``unsetvar`` has been added for deleting an existing
 	variable.
-
-*	The UL4 function ``sorted`` now supports a ``key`` and ``reverse`` argument.
 
 *	:class:`orasql.Index` now has a method :meth:`itercolumns` for iterating
 	through the columns of the index.
