@@ -373,12 +373,15 @@ def _ul4setattr(obj, name, value):
 ###
 
 def _str(obj=""):
+	from ll import color
 	if obj is None:
 		return ""
 	elif isinstance(obj, Undefined):
 		return ""
 	elif isinstance(obj, str):
 		return obj
+	elif isinstance(obj, color.Color):
+		return str(obj)
 	elif isinstance(obj, (collections.Sequence, collections.Set, collections.Mapping)):
 		return _repr(obj)
 	else:
