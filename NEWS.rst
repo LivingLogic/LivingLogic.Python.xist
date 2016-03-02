@@ -1,3 +1,10 @@
+Changes in 5.14.2 (released 03/02/2016)
+---------------------------------------
+
+*	Fixed color blending in :class:`color.Color` to use "premultiplied alpha"
+	values. With this change blending colors gives the same result as CSS.
+
+
 Changes in 5.14.1 (released 12/04/2015)
 ---------------------------------------
 
