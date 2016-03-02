@@ -18,6 +18,13 @@ Changes in 5.15 (released ??/??/2016)
 *	A new PySQL command ``unsetvar`` has been added for deleting an existing
 	variable.
 
+*	PySQL variables can now be used in expressions, e.g.::
+
+		var('foo_10', 'str').upper()
+
+*	The PySQL function ``load`` has been replaced by two functions ``loadstr``
+	for loading strings and ``loadbytes`` for loading bytes.
+
 *	:class:`orasql.Index` now has a method :meth:`itercolumns` for iterating
 	through the columns of the index.
 

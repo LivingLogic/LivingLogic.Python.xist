@@ -1,3 +1,27 @@
+Migrating to version 5.15
+=========================
+
+Changes to PySQL
+----------------
+
+The function ``load`` has been replaced by two functions ``loadstr`` for
+loading strings and ``loadbytes`` for loading bytes, i.e. replace::
+
+	load('foo.txt', 'utf-8', 'replace')
+
+with::
+
+	loadstr('foo.txt', 'utf-8', 'replace')
+
+and::
+
+	load('foo.png')
+
+with::
+
+	loadbytes('foo.png')
+
+
 Migrating to version 5.14
 =========================
 
