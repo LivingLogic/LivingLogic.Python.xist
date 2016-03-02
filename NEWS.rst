@@ -1,7 +1,7 @@
 Changes in 5.14.1 (released 12/04/2015)
 ---------------------------------------
 
-*	Fixed a bug in :mod:`ll.make` so that :class:`Projekt` objects can now
+*	Fixed a bug in :mod:`ll.make` so that :class:`Project` objects can now
 	be used as arguments in :class:`CallAction` objects.
 
 
