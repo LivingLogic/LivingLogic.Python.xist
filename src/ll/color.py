@@ -279,13 +279,52 @@ class Color(tuple):
 	def __mod__(self, other):
 		"""
 		Blends :obj:`self` with the background color :obj:`other` according to the
-		`SVG specification`__
+		`CSS specification`__
 
-		__ http://www.w3.org/TR/2003/REC-SVG11-20030114/masking.html#SimpleAlphaBlending
+		__ https://www.w3.org/TR/2013/WD-compositing-1-20131010/#simplealphacompositing
 		"""
-		sa = self[3]/255.
-		rsa = 1.-sa
-		return self.__class__(self[0]*sa+rsa*other[0], self[1]*sa+rsa*other[1], self[2]*sa+rsa*other[2], 255-rsa*(255-other[3]))
+		# Scale our values to the range [0, 1]
+		rt = self[0]/255.
+		gt = self[1]/255.
+		bt = self[2]/255.
+		at = self[3]/255.
+
+		# Convert to premultiplied alpha
+		rt *= at
+		gt *= at
+		bt *= at
+
+		# Scale other values to the range [0, 1]
+		ro = other[0]/255.
+		go = other[1]/255.
+		bo = other[2]/255.
+		ao = other[3]/255.
+
+		# Convert to premultiplied alpha
+		ro *= ao
+		go *= ao
+		bo *= ao
+
+		# Blend colors
+		rf = rt + ro * (1 - at)
+		gf = gt + go * (1 - at)
+		bf = bt + bo * (1 - at)
+		af = at + ao * (1 - at)
+
+		# Unmultiply alpha
+		if af:
+			rf /= af
+			gf /= af
+			bf /= af
+
+		# Scale back to [0, 255]
+		r = int(255*rf)
+		g = int(255*gf)
+		b = int(255*bf)
+		a = int(255*af)
+
+		# create final color
+		return self.__class__(r, g, b, a)
 
 
 ###

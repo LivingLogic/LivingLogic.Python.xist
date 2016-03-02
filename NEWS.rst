@@ -29,10 +29,17 @@ Changes in 5.15 (released ??/??/2016)
 	through the columns of the index.
 
 
+Changes in 5.14.2 (released 03/02/2016)
+---------------------------------------
+
+*	Fixed color blending in :class:`color.Color` to use "premultiplied alpha"
+	values. With this change blending colors gives the same result as CSS.
+
+
 Changes in 5.14.1 (released 12/04/2015)
 ---------------------------------------
 
-*	Fixed a bug in :mod:`ll.make` so that :class:`Projekt` objects can now
+*	Fixed a bug in :mod:`ll.make` so that :class:`Project` objects can now
 	be used as arguments in :class:`CallAction` objects.
 
 
