@@ -1460,6 +1460,30 @@ when ``r`` is the random value, ``(r-start) % step`` will always be ``0``).
 ``randchoice(seq)`` returns a random item from the sequence ``seq``.
 
 
+``urlquote``
+""""""""""""
+
+``urlquote`` escaped special characters for including the output in URLs. For
+example::
+
+	<?print urlquote("/\xff")?>
+
+outputs::
+
+	%2F%C3%BC
+
+``urlunquote``
+""""""""""""""
+
+``urlunquote`` is the inverse function to ``urlquote``. So::
+
+	<?print urlunquote("%2F%C3%BC")?>
+
+outputs::
+
+	/ü
+
+
 Methods
 -------
 
