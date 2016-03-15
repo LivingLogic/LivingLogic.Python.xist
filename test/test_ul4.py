@@ -452,6 +452,9 @@ unorderabletypesmessage = "({})".format("|".join(unorderabletypesmessage))
 duplicatekeywordargument = [
 	# Python
 	"duplicate keyword argument"
+	"duplicate keyword argument",
+	# Java
+	"com.livinglogic.ul4.DuplicateArgumentException"
 ]
 duplicatekeywordargument = "({})".format("|".join(duplicatekeywordargument))
 
