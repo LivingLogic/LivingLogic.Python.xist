@@ -314,7 +314,7 @@ def _makevars(signature, args, kwargs):
 		return kwargs
 	else:
 		vars = signature.bind(*args, **kwargs)
-
+		# FIXME: use signature.app_defaults in Python 3.6
 		for param in signature.parameters.values():
 			if param.name not in vars.arguments:
 				if param.kind is inspect.Parameter.VAR_POSITIONAL:
