@@ -1838,6 +1838,9 @@ def test_function_date(T):
 	# Make sure that the parameters have the same name in all implementations
 	assert "@(2012-10-06T12:34:56)" == T("<?print repr(date(year=2012, month=10, day=6, hour=12, minute=34, second=56, microsecond=0))?>").renders()
 
+	# Test mixed argument passing
+	assert "@(2012-10-06T12:34:56)" == T("<?print repr(date(2012, *[10], *[6], hour=12, **{'minute': 34}, **{'second': 56}))?>").renders()
+
 
 @pytest.mark.ul4
 def test_function_timedelta(T):
