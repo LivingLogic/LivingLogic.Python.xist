@@ -4,22 +4,25 @@ Migrating to version 5.15
 Changes to PySQL
 ----------------
 
-The function ``load`` has been replaced by two functions ``loadstr`` for
-loading strings and ``loadbytes`` for loading bytes, i.e. replace::
+*	The function ``load`` has been replaced by two functions ``loadstr`` for
+	loading strings and ``loadbytes`` for loading bytes, i.e. replace::
 
-	load('foo.txt', 'utf-8', 'replace')
+		load('foo.txt', 'utf-8', 'replace')
 
-with::
+	with::
 
-	loadstr('foo.txt', 'utf-8', 'replace')
+		loadstr('foo.txt', 'utf-8', 'replace')
 
-and::
+	and::
 
-	load('foo.png')
+		load('foo.png')
 
-with::
+	with::
 
-	loadbytes('foo.png')
+		loadbytes('foo.png')
+
+*	PySQL no longer supports the ``-- !!!`` command terminator. Use the
+	``raiseexceptions`` command instead to specify error handling.
 
 
 Migrating to version 5.14
