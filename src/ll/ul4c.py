@@ -388,10 +388,10 @@ def _str(obj=""):
 		return str(obj)
 
 
-def _repr_helper(obj, seen, ascii):
+def _repr_helper(obj, seen, forceascii):
 	from ll import color
 	if isinstance(obj, str):
-		if ascii:
+		if forceascii:
 			yield ascii(obj)
 		else:
 			yield repr(obj)
@@ -424,7 +424,7 @@ def _repr_helper(obj, seen, ascii):
 			for (i, item) in enumerate(obj):
 				if i:
 					yield ", "
-				yield from _repr_helper(item, seen, ascii)
+				yield from _repr_helper(item, seen, forceascii)
 			yield "]"
 			seen.discard(id(obj))
 	elif isinstance(obj, collections.Set):
@@ -437,7 +437,7 @@ def _repr_helper(obj, seen, ascii):
 				for (i, item) in enumerate(obj):
 					if i:
 						yield ", "
-					yield from _repr_helper(item, seen, ascii)
+					yield from _repr_helper(item, seen, forceascii)
 				yield "}"
 				seen.discard(id(obj))
 			else:
@@ -451,13 +451,13 @@ def _repr_helper(obj, seen, ascii):
 			for (i, (key, value)) in enumerate(obj.items()):
 				if i:
 					yield ", "
-				yield from _repr_helper(key, seen, ascii)
+				yield from _repr_helper(key, seen, forceascii)
 				yield ": "
-				yield from _repr_helper(value, seen, ascii)
+				yield from _repr_helper(value, seen, forceascii)
 			yield "}"
 			seen.discard(id(obj))
 	else:
-		if ascii:
+		if forceascii:
 			yield ascii(obj)
 		else:
 			yield repr(obj)

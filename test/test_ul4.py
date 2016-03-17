@@ -2861,14 +2861,14 @@ def test_function_ismonthdelta(T):
 	assert "False" == T("<?print ismonthdelta(obj=data)?>").renders(data=None)
 
 
-@pytest.mark.ul4
-def test_function_repr(T):
-	t = T("<?print repr(data)?>")
+def repr_ascii(T, ascii):
+	name = "ascii" if ascii else "repr"
+	t = T("<?print {}(data)?>".format(name))
 
 	with raises(argumentmismatchmessage):
-		T("<?print repr()?>").renders()
+		T("<?print {}()?>".format(name)).renders()
 	with raises(argumentmismatchmessage):
-		T("<?print repr(1, 2)?>").renders()
+		T("<?print {}(1, 2)?>".format(name)).renders()
 	assert "None" == t.renders(data=None)
 	assert "True" == t.renders(data=True)
 	assert "False" == t.renders(data=False)
@@ -2887,14 +2887,21 @@ def test_function_repr(T):
 	assert "'\\x9f'" == t.renders(data="\x9f")
 	assert "'\\xa0'" == t.renders(data="\xa0") # category Zs
 	assert "'\\xad'" == t.renders(data="\xad") # category Cf
-	assert "'\u00ff'" == t.renders(data="\xff")
-	assert "'\u0100'" == t.renders(data="\u0100")
+	if ascii:
+		assert "'\\xff'" == t.renders(data="\xff")
+		assert "'\\u0100'" == t.renders(data="\u0100")
+	else:
+		assert "'\xff'" == t.renders(data="\xff")
+		assert "'\u0100'" == t.renders(data="\u0100")
 	assert "'\\u0378'" == t.renders(data="\u0378") # category Cn
 	assert "'\\u2028'" == t.renders(data="\u2028") # category Zl
 	assert "'\\u2029'" == t.renders(data="\u2029") # category Zp
 	assert "'\\ud800'" == t.renders(data="\ud800") # category Cs
 	assert "'\\ue000'" == t.renders(data="\ue000") # category Co
-	assert "'\u3042'" == t.renders(data="\u3042")
+	if ascii:
+		assert "'\\u3042'" == t.renders(data="\u3042")
+	else:
+		assert "'\u3042'" == t.renders(data="\u3042")
 	assert "'\\uffff'" == t.renders(data="\uffff")
 
 	assert [1, 2, 3] == eval(t.renders(data=[1, 2, 3]))
@@ -2923,7 +2930,17 @@ def test_function_repr(T):
 	assert "timedelta(-1, 86399, 500000)" == t.renders(data=datetime.timedelta(0, -0.5))
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "None" == T("<?print repr(obj=data)?>").renders(data=None)
+	assert "None" == T("<?print {}(obj=data)?>".format(name)).renders(data=None)
+
+
+@pytest.mark.ul4
+def test_function_repr(T):
+	repr_ascii(T, False)
+
+
+@pytest.mark.ul4
+def test_function_ascii(T):
+	repr_ascii(T, True)
 
 
 @pytest.mark.ul4
