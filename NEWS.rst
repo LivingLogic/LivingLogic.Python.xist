@@ -9,6 +9,10 @@ Changes in 5.15 (released ??/??/2016)
 
 *	The UL4 function ``sorted`` now supports a ``key`` and ``reverse`` argument.
 
+*	Strings in UL4 now support the ``splitlines`` method.
+
+*	An UL4 function ``ascii`` has been added.
+
 *	PySQL no longer supports the ``-- !!!`` command terminator. Use the
 	``raiseexceptions`` command instead to specify error handling.
 

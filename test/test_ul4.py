@@ -2874,7 +2874,29 @@ def test_function_repr(T):
 	assert "False" == t.renders(data=False)
 	assert "42" == t.renders(data=42)
 	assert 42.5 == eval(t.renders(data=42.5))
-	assert t.renders(data="foo") in ('"foo"', "'foo'")
+	assert "'foo'" == t.renders(data="foo")
+	assert "\"'\"" == t.renders(data="'")
+	assert "'\"'" == t.renders(data="\"")
+	assert "'\\'\"'" == t.renders(data="'\"")
+	assert "'\\r'" == t.renders(data="\r")
+	assert "'\\t'" == t.renders(data="\t")
+	assert "'\\n'" == t.renders(data="\n")
+	assert "'\\x00'" == t.renders(data="\x00") # category Cc
+	assert "'\\x7f'" == t.renders(data="\x7f")
+	assert "'\\x80'" == t.renders(data="\x80")
+	assert "'\\x9f'" == t.renders(data="\x9f")
+	assert "'\\xa0'" == t.renders(data="\xa0") # category Zs
+	assert "'\\xad'" == t.renders(data="\xad") # category Cf
+	assert "'\u00ff'" == t.renders(data="\xff")
+	assert "'\u0100'" == t.renders(data="\u0100")
+	assert "'\\u0378'" == t.renders(data="\u0378") # category Cn
+	assert "'\\u2028'" == t.renders(data="\u2028") # category Zl
+	assert "'\\u2029'" == t.renders(data="\u2029") # category Zp
+	assert "'\\ud800'" == t.renders(data="\ud800") # category Cs
+	assert "'\\ue000'" == t.renders(data="\ue000") # category Co
+	assert "'\u3042'" == t.renders(data="\u3042")
+	assert "'\\uffff'" == t.renders(data="\uffff")
+
 	assert [1, 2, 3] == eval(t.renders(data=[1, 2, 3]))
 	if T not in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey):
 		assert [1, 2, 3] == eval(t.renders(data=(1, 2, 3)))
@@ -3463,6 +3485,33 @@ def test_method_rsplit(T):
 
 	# Make sure that the parameters have the same name in all implementations
 	assert "(xxfxxo)(o)()" == T("<?for item in obj.rsplit(sep=arg, count=2)?>(<?print item?>)<?end for?>").renders(obj="xxfxxoxxoxx", arg="xx")
+
+
+@pytest.mark.ul4
+def test_method_splitlines(T):
+	lineends = (
+		"\n",
+		"\r",
+		"\r\n",
+		"\x0b",
+		"\x0c",
+		"\x1c",
+		"\x1d",
+		"\x1e",
+		"\x85",
+		"\u2028",
+		"\u2029",
+	)
+
+	text = "".join("{}{}".format(chr(i), le) for (i, le) in enumerate(lineends, ord('a')))
+
+	source = "<?for item in obj.splitlines(keepends)?>(<?print repr(item)?>)<?end for?>"
+
+	expected1 = "('a')('b')('c')('d')('e')('f')('g')('h')('i')('j')('k')"
+	assert expected1 == T(source).renders(obj=text, keepends=False).replace('"', "'")
+
+	expected2 = "".join("({!r})".format(chr(i) + le) for (i, le) in enumerate(lineends, ord('a')))
+	assert expected2 == T(source).renders(obj=text, keepends=True).replace('"', "'")
 
 
 @pytest.mark.ul4

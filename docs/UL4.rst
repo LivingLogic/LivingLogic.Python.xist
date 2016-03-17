@@ -1119,6 +1119,13 @@ debugging proposes. The output in most cases looks that the UL4 constant that
 could be used to recreate the object.
 
 
+``ascii``
+"""""""""
+
+``ascii(foo)`` produces the same output as ``repr(foo)`` except that all
+non-ASCII characters in the output for strings will be escaped.
+
+
 ``list``
 """"""""
 
@@ -1569,6 +1576,16 @@ second optional argument specifies the maximum number of splits to do.
 The string method ``rsplit`` works like ``split``, except that splitting starts
 from the end (which is only relevant when the maximum number of splits is
 given).
+
+
+``splitlines``
+""""""""""""""
+The string method ``splitlines`` splits the string into a list of lines,
+using Unicode line ending characters, i.e. the following character sequences
+terminate a line:  ``"\n"``, ``"\r"``, ``"\r\n"``, ``"\x0b"``, ``"\x0c"``,
+``"\x1c"``, ``"\x1d"``, ``"\x1e"``, ``"\x85"``, ``"\u2028"`` and ``"\u2029"``.
+Line breaks are not included in the resulting list unless a second parameter is
+given and true.
 
 
 ``find``

@@ -388,10 +388,13 @@ def _str(obj=""):
 		return str(obj)
 
 
-def _repr_helper(obj, seen):
+def _repr_helper(obj, seen, ascii):
 	from ll import color
 	if isinstance(obj, str):
-		yield repr(obj)
+		if ascii:
+			yield ascii(obj)
+		else:
+			yield repr(obj)
 	elif isinstance(obj, datetime.datetime):
 		s = str(obj.isoformat())
 		if s.endswith("T00:00:00"):
@@ -421,7 +424,7 @@ def _repr_helper(obj, seen):
 			for (i, item) in enumerate(obj):
 				if i:
 					yield ", "
-				yield from _repr_helper(item, seen)
+				yield from _repr_helper(item, seen, ascii)
 			yield "]"
 			seen.discard(id(obj))
 	elif isinstance(obj, collections.Set):
@@ -434,7 +437,7 @@ def _repr_helper(obj, seen):
 				for (i, item) in enumerate(obj):
 					if i:
 						yield ", "
-					yield from _repr_helper(item, seen)
+					yield from _repr_helper(item, seen, ascii)
 				yield "}"
 				seen.discard(id(obj))
 			else:
@@ -448,17 +451,24 @@ def _repr_helper(obj, seen):
 			for (i, (key, value)) in enumerate(obj.items()):
 				if i:
 					yield ", "
-				yield from _repr_helper(key, seen)
+				yield from _repr_helper(key, seen, ascii)
 				yield ": "
-				yield from _repr_helper(value, seen)
+				yield from _repr_helper(value, seen, ascii)
 			yield "}"
 			seen.discard(id(obj))
 	else:
-		yield repr(obj)
+		if ascii:
+			yield ascii(obj)
+		else:
+			yield repr(obj)
 
 
 def _repr(obj):
-	return "".join(_repr_helper(obj, set()))
+	return "".join(_repr_helper(obj, set(), False))
+
+
+def _ascii(obj):
+	return "".join(_repr_helper(obj, set(), True))
 
 
 def _asjson(obj):
@@ -1965,6 +1975,10 @@ class Attr(Code):
 			def rsplit(sep=None, count=None):
 				return obj.rsplit(sep, count if count is not None else -1)
 			result = rsplit
+		elif methname == "splitlines":
+			def splitlines(keepends=False):
+				return obj.splitlines(keepends)
+			result = splitlines
 		elif methname == "strip":
 			def strip(chars=None):
 				return obj.strip(chars)
@@ -4133,6 +4147,11 @@ def function_str(obj=""):
 @Context.makefunction
 def function_repr(obj):
 	return _repr(obj)
+
+
+@Context.makefunction
+def function_ascii(obj):
+	return _ascii(obj)
 
 
 @Context.makefunction
