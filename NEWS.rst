@@ -1,4 +1,4 @@
-Changes in 5.15 (released ??/??/2016)
+Changes in 5.15 (released 03/18/2016)
 -------------------------------------
 
 *	Calls to UL4 functions and templates now support specifying a ``*`` or
