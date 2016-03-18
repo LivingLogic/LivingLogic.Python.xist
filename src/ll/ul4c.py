@@ -3282,7 +3282,7 @@ class Template(Block):
 	"""
 	ul4attrs = Block.ul4attrs.union({"source", "name", "whitespace", "startdelim", "enddelim", "renders"})
 
-	version = "33"
+	version = "34"
 
 	output = False # Evaluation a template doesn't produce output, but simply stores it in a local variable
 
