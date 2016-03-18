@@ -2908,7 +2908,7 @@ def repr_ascii(T, ascii):
 	if T not in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey):
 		assert [1, 2, 3] == eval(t.renders(data=(1, 2, 3)))
 	assert "{/}" == t.renders(data=set())
-	assert t.renders(data={"1"}) in ("{'1'}", '{"1"}')
+	assert "{'1'}" == t.renders(data={"1"})
 	if T is not TemplateJavascriptV8:
 		assert "{1}" == t.renders(data={1})
 	assert "{}" == t.renders(data={})
