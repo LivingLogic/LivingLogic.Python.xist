@@ -1991,7 +1991,7 @@ def test_function_fromjson(T):
 	# no check for float
 	assert t.renders(data='"abc"') in ('"abc"', "'abc'")
 	assert '[1, 2, 3]' == t.renders(data="[1, 2, 3]")
-	assert t.renders(data='{"one": 1}') in ('{"one": 1}', "{'one': 1}")
+	assert "{'one': 1}" == t.renders(data='{"one": 1}')
 
 	# Make sure that the parameters have the same name in all implementations
 	assert "42" == T("<?print fromjson(string=data)?>").renders(data="42")
