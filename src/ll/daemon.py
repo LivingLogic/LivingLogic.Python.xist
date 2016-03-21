@@ -48,11 +48,6 @@ import sys, os, signal, pwd, grp, argparse
 __docformat__ = "reStructuredText"
 
 
-class Options:
-	def __init__(self, **values):
-		self.__dict__.update(values)
-
-
 class Daemon:
 	"""
 	The :class:`Daemon` class provides methods for starting and stopping a
@@ -78,23 +73,21 @@ class Daemon:
 		In the same way :obj:`group` can be the name or gid of a group.
 		:meth:`start` will switch to this group.
 		"""
-		self.options = Options(
-			stdin=stdin,
-			stdout=stdout,
-			stderr=stderr,
-			pidfile=pidfile,
-			user=user,
-			group=group,
-		)
+		self.stdin = stdin
+		self.stdout = stdout
+		self.stderr = stderr
+		self.pidfile = pidfile
+		self.user = user
+		self.group = group
 
 	def openstreams(self):
 		"""
 		Open the standard file descriptors stdin, stdout and stderr as specified
 		in the constructor.
 		"""
-		si = open(self.options.stdin, "r")
-		so = open(self.options.stdout, "a+")
-		se = open(self.options.stderr, "a+", 0)
+		si = open(self.stdin, "rb")
+		so = open(self.stdout, "ab+")
+		se = open(self.stderr, "ab+", 0)
 		os.dup2(si.fileno(), sys.stdin.fileno())
 		os.dup2(so.fileno(), sys.stdout.fileno())
 		os.dup2(se.fileno(), sys.stderr.fileno())
@@ -109,9 +102,9 @@ class Daemon:
 		"""
 		Handle a ``SIG_TERM`` signal: Remove the pid file and exit.
 		"""
-		if self.options.pidfile is not None:
+		if self.pidfile is not None:
 			try:
-				os.remove(self.options.pidfile)
+				os.remove(self.pidfile)
 			except Exception:
 				pass
 		sys.exit(0)
@@ -167,14 +160,15 @@ class Daemon:
 		# Now I am a daemon!
 
 		# Switch user
-		self.switchuser(self.options.user, self.options.group)
+		self.switchuser(self.user, self.group)
 
 		# Redirect standard file descriptors (will belong to the new user)
 		self.openstreams()
 
 		# Write pid file (will belong to the new user)
-		if self.options.pidfile is not None:
-			open(self.options.pidfile, "wb").write(str(os.getpid()))
+		if self.pidfile is not None:
+			with open(self.pidfile, "wb") as f:
+				f.write(str(os.getpid()).encode("utf-8"))
 
 		# Reopen file descriptors on SIGHUP
 		signal.signal(signal.SIGHUP, self.handlesighup)
@@ -187,17 +181,16 @@ class Daemon:
 		Send a ``SIGTERM`` signal to a running daemon. The pid of the daemon
 		will be read from the pidfile specified in the constructor.
 		"""
-		if self.options.pidfile is None:
+		if self.pidfile is None:
 			sys.exit("no pidfile specified")
 		try:
-			pidfile = open(self.options.pidfile, "rb")
+			with open(self.pidfile, "rb") as f:
+				data = f.read()
+				pid = int(data.decode("utf-8"))
 		except IOError as exc:
-			sys.exit("can't open pidfile {}: {}".format(self.options.pidfile, str(exc)))
-		data = pidfile.read()
-		try:
-			pid = int(data)
+			sys.exit("can't open pidfile {}: {}".format(self.pidfile, str(exc)))
 		except ValueError:
-			sys.exit("mangled pidfile {}: {}".format(self.options.pidfile, data))
+			sys.exit("mangled pidfile {}: {}".format(self.pidfile, data))
 		os.kill(pid, signal.SIGTERM)
 
 	def argparser(self):
@@ -207,13 +200,28 @@ class Daemon:
 		"""
 		p = argparse.ArgumentParser(description="Start, stop or restart a daemon process")
 		p.add_argument("action", help="Action to execute", choices=("start", "stop", "restart", "run"))
-		p.add_argument("--pidfile", dest="pidfile", help="PID filename (default %(default)s)", default=self.options.pidfile)
-		p.add_argument("--stdin", dest="stdin", help="stdin filename (default %(default)s)", default=self.options.stdin)
-		p.add_argument("--stdout", dest="stdout", help="stdout filename (default %(default)s)", default=self.options.stdout)
-		p.add_argument("--stderr", dest="stderr", help="stderr filename (default %(default)s)", default=self.options.stderr)
-		p.add_argument("--user", dest="user", help="user name or id (default %(default)s)", default=self.options.user)
-		p.add_argument("--group", dest="group", help="group name or id (default %(default)s)", default=self.options.group)
+		p.add_argument("--pidfile", dest="pidfile", help="PID filename (default %(default)s)", default=self.pidfile)
+		p.add_argument("--stdin", dest="stdin", help="stdin filename (default %(default)s)", default=self.stdin)
+		p.add_argument("--stdout", dest="stdout", help="stdout filename (default %(default)s)", default=self.stdout)
+		p.add_argument("--stderr", dest="stderr", help="stderr filename (default %(default)s)", default=self.stderr)
+		p.add_argument("--user", dest="user", help="user name or id (default %(default)s)", default=self.user)
+		p.add_argument("--group", dest="group", help="group name or id (default %(default)s)", default=self.group)
 		return p
+
+	def parseargs(self, parser, args=None):
+		"""
+		Use the parser returned by :meth:`argparser` to parse the argument
+		sequence :obj:`args`, modify :obj:`self` accordingly and return
+		the result of the parsers :meth:`parse_args` call.
+		"""
+		args = parser.parse_args(args)
+		self.stdin = args.stdin
+		self.stdout = args.stdout
+		self.stderr = args.stderr
+		self.pidfile = args.pidfile
+		self.user = args.user
+		self.group = args.group
+		return args
 
 	def service(self, args=None):
 		"""
@@ -229,16 +237,16 @@ class Daemon:
 		The :mod:`argparse` arguments are available afterwards as ``self.args``.
 		"""
 		p = self.argparser()
-		self.args = p.parse_args(args)
-		if self.args.action == "run":
+		args = self.parseargs(p, args)
+		if args.action == "run":
 			return True
-		elif self.args.action == "restart":
+		elif args.action == "restart":
 			self.stop()
 			self.start()
 			return True
-		elif self.args.action == "start":
+		elif args.action == "start":
 			self.start()
 			return True
-		elif self.args.action == "stop":
+		elif args.action == "stop":
 			self.stop()
 			return False

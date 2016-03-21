@@ -1,3 +1,10 @@
+Changes in 5.15.1 (released 03/21/2016)
+---------------------------------------
+
+*	Fixed some Python 3 compatibility problems in the module :mod:`ll.daemon`
+	and updated the command line argument parsing to make it extensible.
+
+
 Changes in 5.15 (released 03/18/2016)
 -------------------------------------
 
