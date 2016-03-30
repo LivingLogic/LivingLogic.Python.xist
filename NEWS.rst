@@ -11,6 +11,10 @@ Changes in 5.15.2 (released ??/??/2016)
 *	:class:`orasql.Comment` objects now work, even if the comment contains
 	linefeeds.
 
+*	Importing :mod:`pysql` now doesn't fail if the module :mod:`pwd` or
+	:mod:`grp` doesn't exist (e.g. on Windows). (However the PySQL ``file``
+	command will still fail if a user/group name is given.)
+
 
 Changes in 5.15.1 (released 03/21/2016)
 ---------------------------------------

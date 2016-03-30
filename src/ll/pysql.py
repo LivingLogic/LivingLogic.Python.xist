@@ -327,7 +327,17 @@ it supports the following command line options:
 """
 
 # We're importing ``datetime`` to make it available to ``eval()``
-import sys, os, os.path, pwd, grp, argparse, operator, collections, datetime, tempfile, subprocess
+import sys, os, os.path, argparse, operator, collections, datetime, tempfile, subprocess
+
+try:
+	import pwd
+except ImportError:
+	pwd = None
+
+try:
+	import grp
+except ImportError:
+	grp = None
 
 import cx_Oracle
 
