@@ -5,6 +5,8 @@ Changes in 5.15.2 (released ??/??/2016)
 	``orareindex`` have a new option :option:`--format`. The option value
 	``pysql`` switches the output format to PySQL output.
 
+*	:mod:`orasql` now supports check constraints.
+
 *	Prodecure and function source code created by :mod:`ll.orasql` will now
 	no longer have a linefeed introduced before the parameter list.
 

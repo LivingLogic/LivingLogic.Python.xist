@@ -513,7 +513,7 @@ class Connection(Connection):
 					yield from do(table)
 
 		def dorest():
-			for type in (UniqueConstraint, ForeignKey, Preference, Index, Synonym, View, MaterializedView, Function, Procedure, Package, PackageBody, Type, TypeBody, Trigger, JavaSource):
+			for type in (CheckConstraint, UniqueConstraint, ForeignKey, Preference, Index, Synonym, View, MaterializedView, Function, Procedure, Package, PackageBody, Type, TypeBody, Trigger, JavaSource):
 				for obj in type.iterobjects(self, owner):
 					yield from do(obj)
 
@@ -1255,14 +1255,14 @@ class Table(MixinNormalDates, Object):
 	def _iterconstraints(self, connection, cond):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select decode(owner, user, null, owner) as owner, constraint_type, constraint_name from {}_constraints where constraint_type {} and owner=nvl(:owner, user) and table_name=:name".format(cursor.ddprefix(), cond), owner=self.owner, name=self.name)
-		types = {"P": PrimaryKey, "U": UniqueConstraint, "R": ForeignKey}
+		types = {"P": PrimaryKey, "U": UniqueConstraint, "R": ForeignKey, "C": CheckConstraint}
 		return (types[rec.constraint_type](rec.constraint_name, rec.owner, connection) for rec in cursor)
 
 	def iterconstraints(self, connection=None):
 		"""
 		Generator that yields all constraints for this table.
 		"""
-		return self._iterconstraints(connection, "in ('P', 'U', 'R')")
+		return self._iterconstraints(connection, "in ('P', 'U', 'R', 'C')")
 
 	def pk(self, connection=None):
 		"""
@@ -1287,127 +1287,6 @@ class Table(MixinNormalDates, Object):
 			# skip the materialized view
 			if not isinstance(obj, MaterializedView) or obj.name != self.name or obj.owner != self.owner:
 				yield obj
-
-
-class Constraint(Object):
-	"""
-	Base class of all constraints (primary key constraints, foreign key
-	constraints and unique constraints).
-	"""
-
-	def exists(self, connection=None):
-		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select 0 from {}_constraints where constraint_type=:type and constraint_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), type=self.constraint_type, name=self.name, owner=self.owner)
-		rec = cursor.fetchone()
-		return rec is not None
-
-	def cdate(self, connection=None):
-		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select last_change, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from {}_constraints where constraint_type=:type and constraint_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), type=self.constraint_type, name=self.name, owner=self.owner)
-		rec = cursor.fetchone()
-		if rec is None:
-			raise SQLObjectNotFoundError(self)
-		return None
-
-	def udate(self, connection=None):
-		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select last_change, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from {}_constraints where constraint_type=:type and constraint_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), type=self.constraint_type, name=self.name, owner=self.owner)
-		rec = cursor.fetchone()
-		if rec is None:
-			raise SQLObjectNotFoundError(self)
-		# FIXME: This is only correct 50% of the time, but Oracle doesn't provide anything better
-		return rec[0]-datetime.timedelta(seconds=60*(rec[1]*60+rec[2]))
-
-	@classmethod
-	def iternames(cls, connection, owner=ALL):
-		cursor = connection.cursor()
-		if owner is None:
-			cursor.execute("select null as owner, constraint_name from user_constraints where constraint_type=:type and constraint_name not like 'BIN$%' order by constraint_name", type=cls.constraint_type)
-		elif owner is ALL:
-			cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type=:type and constraint_name not like 'BIN$%' order by owner, constraint_name".format(cursor.ddprefix()), type=cls.constraint_type)
-		else:
-			cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type=:type and constraint_name not like 'BIN$%' and owner=:owner order by owner, constraint_name".format(cursor.ddprefix()), type=cls.constraint_type, owner=owner)
-		return ((rec.constraint_name, rec.owner) for rec in cursor)
-
-	def fixname(self, code):
-		code = code.split(None, 6)
-		code = "alter table {} add constraint {} {}".format(code[2], self.getfullname(), code[6])
-		return code
-
-
-class PrimaryKey(Constraint):
-	"""
-	Models a primary key constraint in the database.
-	"""
-	type = "pk"
-	constraint_type = "P"
-
-	def exists(self, connection=None):
-		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select 1 from {}_constraints where constraint_type='P' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		rec = cursor.fetchone()
-		return rec is not None
-
-	def itercolumns(self, connection=None):
-		"""
-		Return an iterator over the columns this primary key consists of.
-		"""
-		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name, table_name, r_owner, r_constraint_name from {}_constraints where constraint_type='P' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		rec2 = cursor.fetchone()
-		if rec2 is None:
-			raise SQLObjectNotFoundError(self)
-		tablename = getfullname(rec2.table_name, rec2.owner)
-		cursor.execute("select column_name from {}_cons_columns where owner=nvl(:owner, user) and constraint_name=:name order by position".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		return (Column("{}.{}".format(tablename, rec.column_name)) for rec in cursor)
-
-	def createddl(self, connection=None, term=True):
-		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name, table_name, r_owner, r_constraint_name from {}_constraints where constraint_type='P' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		rec2 = cursor.fetchone()
-		if rec2 is None:
-			raise SQLObjectNotFoundError(self)
-		cursor.execute("select column_name from {}_cons_columns where owner=nvl(:owner, user) and constraint_name=:name order by position".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		tablename = getfullname(rec2.table_name, rec2.owner)
-		pkname = getfullname(self.name, None)
-		code = "alter table {} add constraint {} primary key({})".format(tablename, pkname, ", ".join(r.column_name for r in cursor))
-		if term:
-			code += ";\n"
-		else:
-			code += "\n"
-		return code
-
-	def dropddl(self, connection=None, term=True):
-		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {}_constraints where owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		rec = cursor.fetchone()
-		tablename = getfullname(rec.table_name, rec.owner)
-		pkname = getfullname(self.name, None)
-		code = "alter table {} drop constraint {}".format(tablename, pkname)
-		if term:
-			code += ";\n"
-		else:
-			code += "\n"
-		return code
-
-	def iterreferencedby(self, connection=None):
-		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type='R' and r_owner=nvl(:owner, user) and r_constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		for rec in cursor.fetchall():
-			yield ForeignKey(rec.constraint_name, rec.owner, connection)
-		# Normally there is an index for this primary key, but we ignore it, as for the purpose of :mod:`orasql` this index doesn't exist
-
-	def iterreferences(self, connection=None):
-		yield self.table(connection)
-
-	def table(self, connection=None):
-		"""
-		Return the :class:`Table` :obj:`self` belongs to.
-		"""
-		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {}_constraints where constraint_type='P' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		rec = cursor.fetchone()
-		return Table(rec.table_name, rec.owner, connection)
 
 
 class Comment(Object):
@@ -1470,19 +1349,147 @@ class Comment(Object):
 			yield None
 
 
+class Constraint(Object):
+	"""
+	Base class of all constraints (primary key constraints, foreign key
+	constraints, unique constraints and check constraints).
+	"""
+
+	def exists(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select 1 from {}_constraints where constraint_type=:type and constraint_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), type=self.constraint_type, name=self.name, owner=self.owner)
+		rec = cursor.fetchone()
+		return rec is not None
+
+	def cdate(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select last_change, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from {}_constraints where constraint_type=:type and constraint_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), type=self.constraint_type, name=self.name, owner=self.owner)
+		rec = cursor.fetchone()
+		if rec is None:
+			raise SQLObjectNotFoundError(self)
+		return None
+
+	def udate(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select last_change, to_number(to_char(systimestamp, 'TZH')), to_number(to_char(systimestamp, 'TZM')) from {}_constraints where constraint_type=:type and constraint_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), type=self.constraint_type, name=self.name, owner=self.owner)
+		rec = cursor.fetchone()
+		if rec is None:
+			raise SQLObjectNotFoundError(self)
+		# FIXME: This is only correct 50% of the time, but Oracle doesn't provide anything better
+		return rec[0]-datetime.timedelta(seconds=60*(rec[1]*60+rec[2]))
+
+	def _ddl(self, connection, term, command):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select table_name from {}_constraints where constraint_type=:type and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), type=self.constraint_type, owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		if rec is None:
+			raise SQLObjectNotFoundError(self)
+		tablename = getfullname(rec.table_name, self.owner)
+		checkname = getfullname(self.name, None)
+		code = "alter table {} {} constraint {}".format(tablename, command, checkname)
+		if term:
+			code += ";\n"
+		else:
+			code += "\n"
+		return code
+
+	def dropddl(self, connection=None, term=True):
+		return self._ddl(connection, term, "drop")
+
+	def enableddl(self, connection=None, term=True):
+		return self._ddl(connection, term, "enable")
+
+	def disableddl(self, connection=None, term=True):
+		return self._ddl(connection, term, "disable")
+
+	def isenabled(self, connection=None):
+		"""
+		Return whether this constraint is enabled.
+		"""
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select status from {}_constraints where constraint_type=:type and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), type=self.constraint_type, owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		return rec[0] == "ENABLED"
+
+	@classmethod
+	def iternames(cls, connection, owner=ALL):
+		cursor = connection.cursor()
+		if owner is None:
+			cursor.execute("select null as owner, constraint_name from user_constraints where constraint_type=:type and constraint_name not like 'BIN$%' order by constraint_name", type=cls.constraint_type)
+		elif owner is ALL:
+			cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type=:type and constraint_name not like 'BIN$%' order by owner, constraint_name".format(cursor.ddprefix()), type=cls.constraint_type)
+		else:
+			cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type=:type and constraint_name not like 'BIN$%' and owner=:owner order by owner, constraint_name".format(cursor.ddprefix()), type=cls.constraint_type, owner=owner)
+		return ((rec.constraint_name, rec.owner) for rec in cursor)
+
+	def fixname(self, code):
+		code = code.split(None, 6)
+		code = "alter table {} add constraint {} {}".format(code[2], self.getfullname(), code[6])
+		return code
+
+	def table(self, connection=None):
+		"""
+		Return the :class:`Table` :obj:`self` belongs to.
+		"""
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select table_name from {}_constraints where constraint_type=:type and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), type=self.constraint_type, owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		return Table(rec.table_name, self.owner, connection)
+
+
+class PrimaryKey(Constraint):
+	"""
+	Models a primary key constraint in the database.
+	"""
+	type = "pk"
+	constraint_type = "P"
+
+	def itercolumns(self, connection=None):
+		"""
+		Return an iterator over the columns this primary key consists of.
+		"""
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name, table_name, r_owner, r_constraint_name from {}_constraints where constraint_type='P' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		rec2 = cursor.fetchone()
+		if rec2 is None:
+			raise SQLObjectNotFoundError(self)
+		tablename = getfullname(rec2.table_name, rec2.owner)
+		cursor.execute("select column_name from {}_cons_columns where owner=nvl(:owner, user) and constraint_name=:name order by position".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		return (Column("{}.{}".format(tablename, rec.column_name)) for rec in cursor)
+
+	def createddl(self, connection=None, term=True):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name, table_name, r_owner, r_constraint_name from {}_constraints where constraint_type='P' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		rec2 = cursor.fetchone()
+		if rec2 is None:
+			raise SQLObjectNotFoundError(self)
+		cursor.execute("select column_name from {}_cons_columns where owner=nvl(:owner, user) and constraint_name=:name order by position".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		tablename = getfullname(rec2.table_name, rec2.owner)
+		pkname = getfullname(self.name, None)
+		code = "alter table {} add constraint {} primary key({})".format(tablename, pkname, ", ".join(r.column_name for r in cursor))
+		if term:
+			code += ";\n"
+		else:
+			code += "\n"
+		return code
+
+	def iterreferencedby(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type='R' and r_owner=nvl(:owner, user) and r_constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		for rec in cursor.fetchall():
+			yield ForeignKey(rec.constraint_name, rec.owner, connection)
+		# Normally there is an index for this primary key, but we ignore it, as for the purpose of :mod:`orasql` this index doesn't exist
+
+	def iterreferences(self, connection=None):
+		yield self.table(connection)
+
+
 class ForeignKey(Constraint):
 	"""
 	Models a foreign key constraint in the database.
 	"""
 	type = "fk"
 	constraint_type = "R"
-
-	def exists(self, connection=None):
-		(connection, cursor) = self.getcursor(connection)
-		# Add constraint_type to the query, so we don't pick up another constraint by accident
-		cursor.execute("select 1 from {}_constraints where constraint_type='R' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		rec = cursor.fetchone()
-		return rec is not None
 
 	def createddl(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
@@ -1504,30 +1511,6 @@ class ForeignKey(Constraint):
 			code += "\n"
 		return code
 
-	def _ddl(self, connection, cmd, term):
-		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select table_name from {}_constraints where owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		rec = cursor.fetchone()
-		if rec is None:
-			raise SQLObjectNotFoundError(self)
-		tablename = getfullname(rec.table_name, self.owner)
-		fkname = getfullname(self.name, None)
-		code = "alter table {} {} constraint {}".format(tablename, cmd, fkname)
-		if term:
-			code += ";\n"
-		else:
-			code += "\n"
-		return code
-
-	def dropddl(self, connection=None, term=True):
-		return self._ddl(connection, "drop", term)
-
-	def enableddl(self, connection=None, term=True):
-		return self._ddl(connection, "enable", term)
-
-	def disableddl(self, connection=None, term=True):
-		return self._ddl(connection, "disable", term)
-
 	def iterreferencedby(self, connection=None):
 		# Shortcut: Nobody references a foreign key
 		if False:
@@ -1536,15 +1519,6 @@ class ForeignKey(Constraint):
 	def iterreferences(self, connection=None):
 		yield self.table(connection)
 		yield self.pk(connection)
-
-	def table(self, connection=None):
-		"""
-		Return the :class:`Table` :obj:`self` belongs to.
-		"""
-		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select table_name from {}_constraints where constraint_type='R' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		rec = cursor.fetchone()
-		return Table(rec.table_name, self.owner, connection)
 
 	def pk(self, connection=None):
 		"""
@@ -1564,14 +1538,79 @@ class ForeignKey(Constraint):
 		for r in cursor:
 			yield Column("{}.{}".format(r.table_name, r.column_name), r.owner)
 
-	def isenabled(self, connection=None):
-		"""
-		Return whether this constraint is enabled.
-		"""
+
+class UniqueConstraint(Constraint):
+	"""
+	Models a unique constraint in the database.
+	"""
+	type = "unique"
+	constraint_type = "U"
+
+	def createddl(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select status from {}_constraints where constraint_type='R' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		# Add constraint_type to the query, so we don't pick up another constraint by accident
+		cursor.execute("select table_name from {}_constraints where constraint_type='U' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
-		return rec[0] == "ENABLED"
+		if rec is None:
+			raise SQLObjectNotFoundError(self)
+		tablename = getfullname(rec.table_name, self.owner)
+		uniquename = getfullname(self.name, None)
+		cursor.execute("select column_name from all_cons_columns where owner=nvl(:owner, user) and constraint_name=:name", owner=self.owner, name=self.name)
+		code = "alter table {} add constraint {} unique({})".format(tablename, uniquename, ", ".join(r.column_name for r in cursor))
+		if term:
+			code += ";\n"
+		else:
+			code += "\n"
+		return code
+
+	def iterreferencedby(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type='R' and r_owner=nvl(:owner, user) and r_constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		for rec in cursor.fetchall():
+			yield ForeignKey(rec.constraint_name, rec.owner, connection)
+
+		# Normally there is an index for this constraint, but we ignore it, as for the purpose of :mod:`orasql` this index doesn't exist
+
+	def iterreferences(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {}_constraints where constraint_type='U' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		for rec in cursor.fetchall():
+			yield Table(rec.table_name, rec.owner, connection)
+
+
+class CheckConstraint(Constraint):
+	"""
+	Models a check constraint in the database.
+	"""
+	type = "check"
+	constraint_type = "C"
+
+	def createddl(self, connection=None, term=True):
+		(connection, cursor) = self.getcursor(connection)
+		# Add constraint_type to the query, so we don't pick up another constraint by accident
+		cursor.execute("select table_name, search_condition from {}_constraints where constraint_type='C' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		if rec is None:
+			raise SQLObjectNotFoundError(self)
+		tablename = getfullname(rec.table_name, self.owner)
+		checkname = getfullname(self.name, None)
+		code = "alter table {} add constraint {} check ({})".format(tablename, checkname, rec.search_condition)
+		if term:
+			code += ";\n"
+		else:
+			code += "\n"
+		return code
+
+	def iterreferencedby(self, connection=None):
+		# Shortcut: Nobody references a check constraint
+		if False:
+			yield None
+
+	def iterreferences(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {}_constraints where constraint_type='C' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		for rec in cursor.fetchall():
+			yield Table(rec.table_name, rec.owner, connection)
 
 
 class Index(MixinNormalDates, Object):
@@ -1724,76 +1763,6 @@ class Index(MixinNormalDates, Object):
 			if rec.column_expression is not None:
 				raise TypeError("{!r} contains an index expression".format(self))
 			yield Column("{}.{}".format(table.name, rec.column_name), owner=table.owner)
-
-
-class UniqueConstraint(Constraint):
-	"""
-	Models a unique constraint in the database.
-	"""
-	type = "unique"
-	constraint_type = "U"
-
-	def exists(self, connection=None):
-		(connection, cursor) = self.getcursor(connection)
-		# Add constraint_type to the query, so we don't pick up another constraint by accident
-		cursor.execute("select 1 from {}_constraints where constraint_type='U' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		rec = cursor.fetchone()
-		return rec is not None
-
-	def createddl(self, connection=None, term=True):
-		(connection, cursor) = self.getcursor(connection)
-		# Add constraint_type to the query, so we don't pick up another constraint by accident
-		cursor.execute("select table_name from {}_constraints where constraint_type='U' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		rec = cursor.fetchone()
-		if rec is None:
-			raise SQLObjectNotFoundError(self)
-		tablename = getfullname(rec.table_name, self.owner)
-		uniquename = getfullname(self.name, None)
-		cursor.execute("select column_name from all_cons_columns where owner=nvl(:owner, user) and constraint_name=:name", owner=self.owner, name=self.name)
-		code = "alter table {} add constraint {} unique({})".format(tablename, uniquename, ", ".join(r.column_name for r in cursor))
-		if term:
-			code += ";\n"
-		else:
-			code += "\n"
-		return code
-
-	def dropddl(self, connection=None, term=True):
-		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select table_name from {}_constraints where constraint_type='U' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		rec = cursor.fetchone()
-		if rec is None:
-			raise SQLObjectNotFoundError(self)
-		tablename = getfullname(rec.table_name, self.owner)
-		uniquename = getfullname(self.name, None)
-		code = "alter table {} drop constraint {}".format(tablename, uniquename)
-		if term:
-			code += ";\n"
-		else:
-			code += "\n"
-		return code
-
-	def iterreferencedby(self, connection=None):
-		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type='R' and r_owner=nvl(:owner, user) and r_constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		for rec in cursor.fetchall():
-			yield ForeignKey(rec.constraint_name, rec.owner, connection)
-
-		# Normally there is an index for this constraint, but we ignore it, as for the purpose of :mod:`orasql` this index doesn't exist
-
-	def iterreferences(self, connection=None):
-		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {}_constraints where constraint_type='U' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		for rec in cursor.fetchall():
-			yield Table(rec.table_name, rec.owner, connection)
-
-	def table(self, connection=None):
-		"""
-		Return the :class:`Table` :obj:`self` belongs to.
-		"""
-		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select table_name from {}_constraints where constraint_type='U' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		rec = cursor.fetchone()
-		return Table(rec.table_name, self.owner, connection)
 
 
 class Synonym(Object):
