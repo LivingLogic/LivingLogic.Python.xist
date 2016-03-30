@@ -41,6 +41,10 @@ Options
 	``-r``, ``--rebuild`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		If given, the script uses ``ALTER INDEX ... REBUILD`` to rebuild indexes
 		instead of dropping and recreating them.
+
+	``--format`` : ``sql`` or ``pysql``
+		If ``--execute`` is not given, this determines the output format: Plain
+		SQL, or PySQL which can be piped into :mod:`ll.pysql`.
 """
 
 
@@ -63,6 +67,7 @@ def main(args=None):
 	p.add_argument("-c", "--color", dest="color", help="Color output (default %(default)s)", default="auto", choices=("yes", "no", "auto"))
 	p.add_argument("-r", "--rebuild", dest="rebuild", help="Rebuild indexes instead of recreating them? (default %(default)s)", default=False, action=misc.FlagAction)
 	p.add_argument("-x", "--execute", dest="execute", action=misc.FlagAction, help="immediately execute the commands instead of printing them? (default %(default)s)")
+	p.add_argument(      "--format", dest="format", help="The output format (default %(default)s)", choices=("sql", "pysql"), default="sql")
 
 	args = p.parse_args(args)
 
@@ -90,15 +95,27 @@ def main(args=None):
 			if args.execute:
 				cursor.execute(obj.rebuildddl(term=False))
 			else:
-				stdout.write(obj.rebuildddl(term=True))
+				stdout.writeln(obj.rebuildddl(term=True).strip())
+				if args.format == "pysql":
+					stdout.writeln()
+					stdout.writeln("-- @@@")
+					stdout.writeln()
 		else:
 			if args.execute:
 				sql = obj.createddl(term=False)
 				cursor.execute(obj.dropddl(term=False))
 				cursor.execute(sql)
 			else:
-				stdout.write(obj.dropddl(term=True))
-				stdout.write(obj.createddl(term=True))
+				stdout.writeln(obj.dropddl(term=True).strip())
+				if args.format == "pysql":
+					stdout.writeln()
+					stdout.writeln("-- @@@")
+					stdout.writeln()
+				stdout.writeln(obj.createddl(term=True).strip())
+				if args.format == "pysql":
+					stdout.writeln()
+					stdout.writeln("-- @@@")
+					stdout.writeln()
 
 
 if __name__ == "__main__":

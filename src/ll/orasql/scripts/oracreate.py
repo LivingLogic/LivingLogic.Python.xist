@@ -53,6 +53,10 @@ Options
 		If true, any exception that occurs while the database is read or written
 		will be ignored.
 
+	``--format`` : ``sql`` or ``pysql``
+		If ``--execute`` is not given, this determines the output format: Plain
+		SQL, or PySQL which can be piped into :mod:`ll.pysql`.
+
 	``--include`` : regexp
 		Only include objects in the output if their name contains the regular
 		expression.
@@ -97,6 +101,7 @@ def main(args=None):
 	p.add_argument("-x", "--execute", metavar="CONNECTSTRING2", dest="execute", help="Execute in target database")
 	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' or 'SYS_EXPORT_SCHEMA_' in their name? (default %(default)s)", default=False, action=misc.FlagAction)
 	p.add_argument("-i", "--ignore", dest="ignore", help="Ignore errors? (default %(default)s)", default=False, action=misc.FlagAction)
+	p.add_argument(      "--format", dest="format", help="The output format (default %(default)s)", choices=("sql", "pysql"), default="sql")
 	p.add_argument(      "--include", dest="include", metavar="REGEXP", help="Include only objects whose name contains PATTERN (default: %(default)s)", type=re.compile)
 	p.add_argument(      "--exclude", dest="exclude", metavar="REGEXP", help="Exclude objects whose name contains PATTERN (default: %(default)s)", type=re.compile)
 
@@ -164,8 +169,11 @@ def main(args=None):
 							raise
 						stderr.writeln("oracreate.py: ", s4error(misc.format_exception(exc)))
 				else:
-					stdout.writeln(ddl)
+					stdout.writeln(ddl.strip())
 					stdout.writeln()
+					if args.format == "pysql":
+						stdout.writeln("-- @@@")
+						stdout.writeln()
 
 
 if __name__ == "__main__":

@@ -57,6 +57,10 @@ Options
 		If given the script uses the ``TRUNCATE`` command instead of the ``DELETE``
 		command.
 
+	``--format`` : ``sql`` or ``pysql``
+		If ``--execute`` is not given, this determines the output format: Plain
+		SQL, or PySQL which can be piped into :mod:`ll.pysql`.
+
 	``--include`` : regexp
 		Only include objects in the output if their name contains the regular
 		expression.
@@ -91,6 +95,7 @@ def main(args=None):
 	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' or 'SYS_EXPORT_SCHEMA_' in their name? (default %(default)s)", default=False, action="store_true")
 	p.add_argument("-i", "--ignore", dest="ignore", help="Ignore errors? (default %(default)s)", default=False, action=misc.FlagAction)
 	p.add_argument("-t", "--truncate", dest="truncate", help="Truncate tables (instead of deleting)? (default %(default)s)", default=False, action=misc.FlagAction)
+	p.add_argument(      "--format", dest="format", help="The output format (default %(default)s)", choices=("sql", "pysql"), default="sql")
 	p.add_argument(      "--include", dest="include", metavar="REGEXP", help="Include only objects whose name contains PATTERN (default: %(default)s)", type=re.compile)
 	p.add_argument(      "--exclude", dest="exclude", metavar="REGEXP", help="Exclude objects whose name contains PATTERN (default: %(default)s)", type=re.compile)
 
@@ -142,10 +147,14 @@ def main(args=None):
 					stderr.writeln("oradelete.py: ", s4error("{}: {}".format(exc.__class__, str(exc).strip())))
 			else:
 				if args.truncate:
-					sql = "truncate table {};\n".format(obj.name)
+					sql = "truncate table {};".format(obj.name)
 				else:
-					sql = "delete from {};\n".format(obj.name)
-				stdout.write(sql)
+					sql = "delete from {};".format(obj.name)
+				stdout.writeln(sql)
+				stdout.writeln()
+				if args.format == "pysql":
+					stdout.writeln("-- @@@")
+					stdout.writeln()
 	if not args.truncate:
 		connection.commit()
 
@@ -171,8 +180,16 @@ def main(args=None):
 							raise
 						stderr.writeln("oradelete.py: ", s4error("{}: {}".format(exc.__class__, str(exc).strip())))
 				else:
-					sql = obj.dropddl(term=True) + obj.createddl(term=True)
-					stdout.write(sql)
+					stdout.writeln(obj.dropddl(term=True).strip())
+					stdout.writeln()
+					if args.format == "pysql":
+						stdout.writeln("-- @@@")
+						stdout.writeln()
+					stdout.writeln(obj.createddl(term=True).strip())
+					stdout.writeln()
+					if args.format == "pysql":
+						stdout.writeln("-- @@@")
+						stdout.writeln()
 
 
 if __name__ == "__main__":
