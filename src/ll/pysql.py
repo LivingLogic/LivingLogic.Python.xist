@@ -957,6 +957,8 @@ class CheckErrorsCommand(Command):
 		invalid_objects = [tuple(r) for r in context.cursor]
 
 		if invalid_objects:
+			if context.verbose:
+				print()
 			raise CompilationError(invalid_objects)
 
 		if context.verbose == 3:
