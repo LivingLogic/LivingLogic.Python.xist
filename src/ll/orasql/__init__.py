@@ -759,8 +759,7 @@ class MixinCodeDDL:
 		else:
 			while code and (code[0].isalnum() or code[0] in "_$."):
 				code = code[1:]
-		code = code.strip()
-		code = "create or replace {} {}\n{}\n".format(type, self.getfullname(), code)
+		code = "create or replace {} {}{}\n".format(type, self.getfullname(), code)
 		if term:
 			code += "\n/\n"
 		else:
