@@ -8,6 +8,9 @@ Changes in 5.15.2 (released ??/??/2016)
 *	Prodecure and function source code created by :mod:`ll.orasql` will now
 	no longer have a linefeed introduced before the parameter list.
 
+*	:class:`orasql.Comment` objects now work, even if the comment contains
+	linefeeds.
+
 
 Changes in 5.15.1 (released 03/21/2016)
 ---------------------------------------

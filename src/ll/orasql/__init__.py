@@ -1437,12 +1437,9 @@ class Comment(Object):
 		return rec.comments
 
 	def createddl(self, connection=None, term=True):
-		comment = self.comment(connection)
+		comment = self.comment(connection) or ""
 		name = self.getfullname()
-		if comment:
-			code = "comment on column {} is {}".format(name, formatstring(comment, latin1=True))
-		else:
-			code = "comment on column {} is ''".format(name)
+		code = "comment on column {} is '{}'".format(name, comment.replace("'", "''"))
 		if term:
 			code += ";\n"
 		else:
