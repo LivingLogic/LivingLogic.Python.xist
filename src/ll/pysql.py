@@ -245,8 +245,8 @@ SQL statements. A variable object can be specified like this ``var("foo")``.
 to a procedure the first time (i.e. the variable object is uninitialized),
 a ``cx_Oracle`` ``var`` object will be passed and the resulting value after
 the call will be stored under the name of the variable. When the variable is
-used in a later comment the stored value will be used instead. (Note that it's
-not possible the use the same variable twice in the same procedure call,
+used in a later command the stored value will be used instead. (Note that it's
+not possible to use the same variable twice in the same procedure call,
 if it hasn't been used before, however in later commands this is no problem).
 
 The type of the variable defaults to ``int``, but a different type can be passed
@@ -254,7 +254,7 @@ when creating the object like this: ``var("foo", str)``.
 
 It is also possible to create variable objects via command line parameter.
 
-As a PySQL command is a Python literal, it is possible to use Python expression
+As a PySQL command is a Python literal, it is possible to use Python expressions
 inside a PySQL command. A variable object that has a value will be replaced by
 that value in such an expression, so stuff like ``2*var("foo")`` can be used.
 
@@ -267,21 +267,21 @@ to default to another value if a variable is uninitialized::
 External files
 ==============
 
-Inside a PySQL command it is possible to load value from external files.
+Inside a PySQL command it is possible to load values from external files.
 The ``loadbytes`` function loads a ``bytes`` object from an external file
 like this::
 
-	load("path/to/file.png")
+	loadbytes("path/to/file.png")
 
 A string can be loaded with the ``loadstr`` function like this::
 
-	load("path/to/file.txt", "utf-8", "replace")
+	loadstr("path/to/file.txt", "utf-8", "replace")
 
 The second and third argument are the encoding and error handling name
 respectively.
 
-The filename is treated as being relativ to the file containing the
-``loadbytes`` ir ``loadstr`` call.
+The filename is treated as being relative to the file containing the
+``loadbytes`` or ``loadstr`` call.
 
 
 Command line usage
@@ -301,7 +301,7 @@ it supports the following command line options:
 	``-v``, ``--verbose``
 		Gives different levels of output while data is being imported to the
 		database. Possible levels are: ``0`` (no output), ``1`` (one dot for
-		each command), ``2`` (each comamnd name) or ``3`` (detailed output for
+		each command), ``2`` (each command name) or ``3`` (detailed output for
 		each command/procedure call)
 
 	``-z``, ``--summary``
