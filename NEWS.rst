@@ -1,5 +1,5 @@
-Changes in 5.16 (released ??/??/2016)
--------------------------------------
+Changes in 5.15.2 (released ??/??/2016)
+---------------------------------------
 
 * The scripts ``oracreate``, ``oradelete``, ``oradrop``, ``oragrant`` and
 	``orareindex`` have a new option :option:`--format`. The option value
