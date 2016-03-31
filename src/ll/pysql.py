@@ -324,6 +324,27 @@ it supports the following command line options:
 	``-t``, ``--terminator``
 		The terminator after an SQL command (should be a valid SQL comment;
 		default ``-- @@@``).
+
+	``-D``, ``--define``
+		Can be used multiple times to define variables. Supported formats are:
+
+		``name``
+			Defines a string variable named ``name`` and sets the value to the
+			empty string.
+
+		``name=value``
+			Defines a string variable named ``name`` and sets the value to
+			``value``.
+
+		``name:type``
+			Defines a variable named ``name`` of type ``type`` and sets the value
+			to ``False``, ``0``, ``0.0`` or the empty string depending on the type.
+			Supported types are ``str``, ``bool``, ``int`` and ``float``.
+
+		``name:type=value``
+			Defines a variable named ``name`` of type ``type`` and sets the value
+			to ``value``. For type ``bool`` supprted values are ``0``, ``no``,
+			``false``, ``False``, ``1``, ``yes``, ``true`` and ``True``.
 """
 
 # We're importing ``datetime`` to make it available to ``eval()``
@@ -1541,7 +1562,7 @@ def main(args=None):
 	p.add_argument("-f", "--filedirectory", dest="filedirectory", metavar="DIR", help="File name prefix for files to be copied via the 'file' command (default: current directory)", default="")
 	p.add_argument("-t", "--terminator", dest="terminator", metavar="STRING", help="Terminator after an SQL command (should be a valid SQL comment; default %(default)r)", default="-- @@@")
 	p.add_argument("-z", "--summary", dest="summary", help="Output a summary after executing all commands", default=False, action="store_true")
-	p.add_argument("-D", "--define", dest="defines", metavar="var=value", help="Set variables before executing the script (can be specified multiple times).", default=[], action="append", type=define)
+	p.add_argument("-D", "--define", dest="defines", metavar="VARSPEC", help="Set variables before executing the script (can be specified multiple times). The format for VARSPEC is: 'name' or 'name=value' or 'name:type' or 'name:type=value'. Type may be 'str', 'bool', 'int' or 'float'.", default=[], action="append", type=define)
 
 	args = p.parse_args(args)
 
