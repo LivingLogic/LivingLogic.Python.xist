@@ -1,7 +1,13 @@
-Changes in 5.15.2 (released ??/??/2016)
----------------------------------------
+Changes in 5.16 (released ??/??/2016)
+-------------------------------------
 
 *	:mod:`orasql` now supports check constraints.
+
+*	:mod:`orasql` no longer hides database objects that are created by Oracle
+	automatically when other objects are created (i.e. the table for a
+	materialized view or the index for a primary key constraint). Instead all
+	objects have a new method :meth:`generated` that returns whether this object
+	was automatically generated or not.
 
 * The scripts ``oracreate``, ``oradelete``, ``oradrop``, ``oragrant`` and
 	``orareindex`` have a new option :option:`--format`. The option value
@@ -10,8 +16,11 @@ Changes in 5.15.2 (released ??/??/2016)
 *	Prodecure and function source code created by :mod:`ll.orasql` will now
 	no longer have a linefeed introduced before the parameter list.
 
-*	:class:`orasql.Comment` objects now work, even if the comment contains
+*	:class:`orasql.Comment` objects now work even if the comment contains
 	linefeeds.
+
+*	:class:`orasql.Comment` objects now have a method :meth:`table` that returns
+	the table to which the comment belongs.
 
 *	Importing :mod:`pysql` now doesn't fail if the module :mod:`pwd` or
 	:mod:`grp` doesn't exist (e.g. on Windows). (However the PySQL ``file``

@@ -813,12 +813,6 @@ class Object(object, metaclass=_Object_meta):
 	"""
 	The base class for all Python classes modelling schema objects in the
 	database.
-
-	Subclasses are: :class:`Sequence`, :class:`Table`, :class:`PrimaryKey`,
-	:class:`Comment`, :class:`ForeignKey`, :class:`Index`, :class:`Unique`,
-	:class:`Synonym`, :class:`View`, :class:`MaterializedView`, :class:`Library`,
-	:class:`Function`, :class:`Package`, :class:`Type`, :class:`Trigger`,
-	:class:`JavaSource` and :class:`Column`.
 	"""
 	name2type = {} # maps the Oracle type name to the Python class (populated by the metaclass)
 
@@ -873,9 +867,18 @@ class Object(object, metaclass=_Object_meta):
 	@misc.notimplemented
 	def exists(self, connection=None):
 		"""
-		Return wether the object :obj:`self` really exists in the database
+		Return whether the object :obj:`self` really exists in the database
 		specified by :obj:`connection`.
 		"""
+
+	def generated(self, connection=None):
+		"""
+		Return whether the object :obj:`self` was generated automatically by
+		another object (like an index that gets generated for a primary key or
+		a "not null" check constraint that gets generated for a ``not null``
+		clause in a ``create table ...`` statement.
+		"""
+		return False
 
 	@misc.notimplemented
 	def cdate(self, connection=None):
@@ -1141,8 +1144,15 @@ class Table(MixinNormalDates, Object):
 
 	def createddl(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
-		if self.ismview(connection):
-			return ""
+
+		# Find the fields that where used for an inline primary key constraint, as we want to regenerate it as part of the create table statement
+		pkfields = set()
+		cursor.execute("select owner, constraint_name from {}_constraints where constraint_type='P' and owner=nvl(:owner, user) and table_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		if rec is not None:
+			cursor.execute("select column_name from {}_cons_columns where owner=:owner and constraint_name=:name order by position".format(cursor.ddprefix()), owner=rec.owner, name=rec.constraint_name)
+			pkfields = {rec.column_name for rec in cursor}
+
 		organization = self.organization(connection)
 		cursor.execute("select * from {}_tab_columns where owner=nvl(:owner, user) and table_name=:name order by column_id asc".format(cursor.ddprefix()), owner=self.owner, name=self.name)
 		recs = cursor.fetchall()
@@ -1156,6 +1166,8 @@ class Table(MixinNormalDates, Object):
 				code.append(" default {}".format(default))
 			if rec.nullable == "N":
 				code.append(" not null")
+			if rec.column_name in pkfields:
+				code.append(" primary key")
 		if term:
 			code.append("\n);\n")
 		else:
@@ -1164,15 +1176,11 @@ class Table(MixinNormalDates, Object):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		if self.ismview(connection):
-			return False
 		cursor.execute("select 1 from {}_tables where owner=nvl(:owner, user) and table_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def dropddl(self, connection=None, term=True):
-		if self.ismview(connection):
-			return ""
 		code = "drop table {}".format(self.getfullname())
 		if term:
 			code += ";\n"
@@ -1185,23 +1193,24 @@ class Table(MixinNormalDates, Object):
 		code = "create table {}\n{}".format(self.getfullname(), code[3])
 		return code
 
+	def generated(self, connection=None):
+		"""
+		Is this table a materialized view?
+		"""
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select mview_name from {}_mviews where owner=nvl(:owner, user) and mview_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		return rec is not None
+
 	def mview(self, connection=None):
 		"""
 		The materialized view this table belongs to (or :const:`None` if it's a
 		real table).
 		"""
-		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select mview_name from {}_mviews where owner=nvl(:owner, user) and mview_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-		rec = cursor.fetchone()
-		if rec is not None:
-			rec = MaterializedView(self.name, self.owner, connection)
-		return rec
-
-	def ismview(self, connection=None):
-		"""
-		Is this table a materialized view?
-		"""
-		return self.mview(connection) is not None
+		connection = self.getconnection(connection)
+		if self.generated(connection):
+			return MaterializedView(self.name, self.owner, connection)
+		return None
 
 	def organization(self, connection=None):
 		"""
@@ -1254,7 +1263,7 @@ class Table(MixinNormalDates, Object):
 
 	def _iterconstraints(self, connection, cond):
 		(connection, cursor) = self.getcursor(connection)
-		cursor.execute("select decode(owner, user, null, owner) as owner, constraint_type, constraint_name from {}_constraints where constraint_type {} and owner=nvl(:owner, user) and table_name=:name".format(cursor.ddprefix(), cond), owner=self.owner, name=self.name)
+		cursor.execute("select decode(owner, user, null, owner) as owner, constraint_type, constraint_name from {}_constraints where {} and owner=nvl(:owner, user) and table_name=:name".format(cursor.ddprefix(), cond), owner=self.owner, name=self.name)
 		types = {"P": PrimaryKey, "U": UniqueConstraint, "R": ForeignKey, "C": CheckConstraint}
 		return (types[rec.constraint_type](rec.constraint_name, rec.owner, connection) for rec in cursor)
 
@@ -1262,17 +1271,16 @@ class Table(MixinNormalDates, Object):
 		"""
 		Generator that yields all constraints for this table.
 		"""
-		return self._iterconstraints(connection, "in ('P', 'U', 'R', 'C')")
+		return self._iterconstraints(connection, "constraint_type in ('P', 'U', 'R', 'C')")
 
 	def pk(self, connection=None):
 		"""
 		Return the primary key constraint for this table (or :const:`None` if the
 		table has no primary key constraint).
 		"""
-		return misc.first(self._iterconstraints(connection, "= 'P'"), None)
+		return misc.first(self._iterconstraints(connection, "constraint_type = 'P'"), None)
 
 	def iterreferences(self, connection=None):
-		connection = self.getconnection(connection)
 		# A table doesn't depend on anything ...
 		mview = self.mview(connection)
 		if mview is not None:
@@ -1280,7 +1288,7 @@ class Table(MixinNormalDates, Object):
 			yield mview
 
 	def iterreferencedby(self, connection=None):
-		if not self.ismview(connection):
+		if not self.generated(connection):
 			yield from self.itercomments(connection)
 			yield from self.iterconstraints(connection)
 		for obj in super().iterreferencedby(connection):
@@ -1340,9 +1348,12 @@ class Comment(Object):
 	def udate(self, connection=None):
 		return None
 
-	def iterreferences(self, connection=None):
+	def table(self, connection=None):
 		connection = self.getconnection(connection)
-		yield Table(self.name.split(".")[0], self.owner, connection)
+		return Table(self.name.split(".")[0], self.owner, connection)
+
+	def iterreferences(self, connection=None):
+		yield self.table(connection)
 
 	def iterreferencedby(self, connection=None):
 		if False:
@@ -1360,6 +1371,14 @@ class Constraint(Object):
 		cursor.execute("select 1 from {}_constraints where constraint_type=:type and constraint_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), type=self.constraint_type, name=self.name, owner=self.owner)
 		rec = cursor.fetchone()
 		return rec is not None
+
+	def generated(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		cursor.execute("select generated from {}_constraints where constraint_type=:type and constraint_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), type=self.constraint_type, name=self.name, owner=self.owner)
+		rec = cursor.fetchone()
+		if rec is None:
+			raise SQLObjectNotFoundError(self)
+		return rec.generated == "GENERATED NAME"
 
 	def cdate(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
@@ -1409,6 +1428,8 @@ class Constraint(Object):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select status from {}_constraints where constraint_type=:type and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), type=self.constraint_type, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
+		if rec is None:
+			raise SQLObjectNotFoundError(self)
 		return rec[0] == "ENABLED"
 
 	@classmethod
@@ -1434,6 +1455,8 @@ class Constraint(Object):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select table_name from {}_constraints where constraint_type=:type and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), type=self.constraint_type, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
+		if rec is None:
+			raise SQLObjectNotFoundError(self)
 		return Table(rec.table_name, self.owner, connection)
 
 
@@ -1621,16 +1644,12 @@ class Index(MixinNormalDates, Object):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		if self.isconstraint(connection):
-			return False
 		cursor.execute("select 1 from {}_indexes where owner=nvl(:owner, user) and index_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def createddl(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
-		if self.isconstraint(connection):
-			return ""
 		cursor.execute("select index_name, table_name, uniqueness, index_type, ityp_owner, ityp_name, parameters from {}_indexes where owner=nvl(:owner, user) and index_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		if rec is None:
@@ -1656,8 +1675,6 @@ class Index(MixinNormalDates, Object):
 		return code
 
 	def dropddl(self, connection=None, term=True):
-		if self.isconstraint(connection):
-			return ""
 		code = "drop index {}".format(self.getfullname())
 		if term:
 			code += ";\n"
@@ -1669,8 +1686,6 @@ class Index(MixinNormalDates, Object):
 		"""
 		Return SQL code to rebuild this index.
 		"""
-		if self.isconstraint(connection):
-			return ""
 		code = "alter index {} rebuild".format(self.getfullname())
 		if term:
 			code += ";\n"
@@ -1711,36 +1726,33 @@ class Index(MixinNormalDates, Object):
 			rec = {"U": UniqueConstraint, "P": PrimaryKey}[rec.constraint_type](self.name, self.owner, connection)
 		return rec
 
-	def isconstraint(self, connection=None):
+	def generated(self, connection=None):
 		"""
 		Is this index generated by a constraint?
 		"""
 		return self.constraint(connection) is not None
 
 	def iterreferences(self, connection=None):
-		constraint = self.constraint(connection)
-		# if self is generated by a constraint (i.e. ``constraint`` is not :const:`None`), we ignore all dependencies (such an index is never produced be :meth:`iterobjects`)
-		if constraint is None:
-			(connection, cursor) = self.getcursor(connection)
-			# If this is a domain index, reference the preferences defined there
-			cursor.execute("select index_type, parameters from {}_indexes where owner=nvl(:owner, user) and index_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
-			rec = cursor.fetchone()
-			if rec.index_type == "DOMAIN":
-				parameters = re.split('\\b(datastore|memory|lexer|stoplist|wordlist)\\b', rec.parameters, flags=re.IGNORECASE)
-				foundparameter = None
-				for parameter in parameters:
-					if foundparameter:
-						if foundparameter.lower() in ("datastore", "lexer", "stoplist", "wordlist"):
-							(prefowner, sep, prefname) = parameter.strip().partition(".")
-							if sep:
-								yield Preference(prefname.upper(), prefowner)
-							else:
-								yield Preference(prefowner.upper())
-						foundparameter = None
-					elif parameter.lower() in ("datastore", "lexer", "stoplist", "wordlist"):
-						foundparameter = parameter
+		(connection, cursor) = self.getcursor(connection)
+		# If this is a domain index, reference the preferences defined there
+		cursor.execute("select index_type, parameters from {}_indexes where owner=nvl(:owner, user) and index_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		if rec.index_type == "DOMAIN":
+			parameters = re.split('\\b(datastore|memory|lexer|stoplist|wordlist)\\b', rec.parameters, flags=re.IGNORECASE)
+			foundparameter = None
+			for parameter in parameters:
+				if foundparameter:
+					if foundparameter.lower() in ("datastore", "lexer", "stoplist", "wordlist"):
+						(prefowner, sep, prefname) = parameter.strip().partition(".")
+						if sep:
+							yield Preference(prefname.upper(), prefowner)
+						else:
+							yield Preference(prefowner.upper())
+					foundparameter = None
+				elif parameter.lower() in ("datastore", "lexer", "stoplist", "wordlist"):
+					foundparameter = parameter
 
-			yield from super().iterreferences(connection)
+		yield from super().iterreferences(connection)
 
 	def table(self, connection=None):
 		"""

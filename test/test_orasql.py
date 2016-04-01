@@ -183,7 +183,7 @@ def test_table_comments(db_data):
 	for obj in db_data.objdict():
 		if isinstance(obj, orasql.Table):
 			# comments are output by :meth:`iterobjects`, but not for materialized views
-			if obj.ismview():
+			if obj.generated():
 				for com in obj.itercomments():
 					assert obj in com.iterreferences()
 			else:
@@ -213,7 +213,7 @@ def test_table_records(db_data):
 def test_table_mview(db_data):
 	for obj in db_data.objdict():
 		if isinstance(obj, orasql.Table):
-			assert (obj.mview() is not None) == obj.ismview()
+			assert (obj.mview() is not None) == obj.generated()
 
 
 @pytest.mark.db
