@@ -2355,7 +2355,7 @@ class form(xsc.Element):
 			"""
 		class autocomplete(xsc.TextAttr):
 			"""
-			Specifies wether autocompletion should be done for this form.
+			Specifies whether autocompletion should be done for this form.
 			"""
 			values = ("off", "on")
 		class enctype(xsc.TextAttr):
