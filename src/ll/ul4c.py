@@ -3156,7 +3156,13 @@ class Call(Code):
 
 		try:
 			return self._call(context, obj, args, kwargs)
-		# note that we don't have to handle control flow exceptions (i.e. :exc:`BreakException` etc.) here, as the compiler prevents any illegal AST structure
+		except Error as exc:
+			if isinstance(obj, (Template, TemplateClosure)):
+				raise Error(self) from exc
+			elif inspect.ismethod(obj) and isinstance(obj.__self__, (Template, TemplateClosure)):
+				raise Error(self) from exc
+			else:
+				raise
 		except Exception as exc:
 			# Always wrap the original exception in another exception so that we see the location of the call
 			raise Error(self) from exc
