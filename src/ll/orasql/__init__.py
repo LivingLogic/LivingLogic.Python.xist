@@ -839,8 +839,6 @@ class Object(object, metaclass=_Object_meta):
 		self.connection = connection
 		self._exists = None
 		self._generated = False
-		if name.startswith("BIN$"):
-			raise ValueError
 		if connection is not None:
 			self._fetch(connection.cursor())
 
