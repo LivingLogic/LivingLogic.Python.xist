@@ -1751,7 +1751,7 @@ class Constraint(Object):
 
 	def _fetch(self, cursor):
 		cursor = self.getcursor()
-		cursor.execute("select table_name, r_owner, r_constraint_name, generated, status, search_condition, last_change, to_number(to_char(systimestamp, 'TZH')) tzh, to_number(to_char(systimestamp, 'TZM')) tzm from {}_constraints where constraint_type=:type and constraint_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), type=self.constraint_type, name=self.name, owner=self.owner)
+		cursor.execute("select table_name, decode(r_owner, user, null, r_owner) as r_owner, r_constraint_name, generated, status, search_condition, last_change, to_number(to_char(systimestamp, 'TZH')) tzh, to_number(to_char(systimestamp, 'TZM')) tzm from {}_constraints where constraint_type=:type and constraint_name=:name and owner=nvl(:owner, user)".format(cursor.ddprefix()), type=self.constraint_type, name=self.name, owner=self.owner)
 		rec = cursor.fetchone()
 		if rec is None:
 			self._exists = False
