@@ -218,6 +218,8 @@ def main(args=None):
 				return True
 			if "$" in obj.name or obj.name.startswith("SYS_EXPORT_SCHEMA_"):
 				return False
+			if obj.generated():
+				return False
 			return True
 
 		for (i, obj) in enumerate(connection.iterobjects(owner=None, mode=mode)):
@@ -236,7 +238,7 @@ def main(args=None):
 	(objectset2, objectlist2) = fetch(connection2, mode="create")
 
 	# If we output in full mode the resulting SQL script should be usable, so
-	# we try to iterate the object in approprate order
+	# we try to iterate the object in the appropriate order
 
 	allobjects = objectset1 | objectset2
 	count = 1
@@ -250,17 +252,17 @@ def main(args=None):
 				stdout.writeln(df(obj), ": only in ", cs(connection2))
 			elif args.mode == "full":
 				stdout.writeln(comment(df(obj), ": only in ", cs(connection2)))
-				ddl = obj.createddl(connection2, term=True)
+				ddl = obj.fromconnection(connection2).createddl(term=True)
 				if ddl:
 					stdout.write(ddl)
 			elif args.mode == "udiff":
-				ddl = getcanonicalddl(obj.createddl(connection2), args.blank)
+				ddl = getcanonicalddl(obj.fromconnection(connection2).createddl(), args.blank)
 				showudiff(stdout, obj, [], ddl, connection1, connection2, args.context)
 		else:
 			if args.verbose:
 				stderr.writeln("oradiff.py: diffing #{}/{} ".format(count, len(allobjects)), df(obj))
-			ddl1 = obj.createddl(connection1)
-			ddl2 = obj.createddl(connection2)
+			ddl1 = obj.fromconnection(connection1).createddl()
+			ddl2 = obj.fromconnection(connection2).createddl()
 			ddl1c = getcanonicalddl(ddl1, args.blank)
 			ddl2c = getcanonicalddl(ddl2, args.blank)
 			if ddl1c != ddl2c:
@@ -268,7 +270,7 @@ def main(args=None):
 					stdout.writeln(df(obj), ": different")
 				elif args.mode == "full":
 					stdout.writeln(comment(df(obj), ": different"))
-					stdout.write(obj.createddl(connection2))
+					stdout.write(ddl2)
 				elif args.mode == "udiff":
 					showudiff(stdout, obj, ddl1c, ddl2c, connection1, connection2, args.context)
 		count += 1
@@ -282,11 +284,11 @@ def main(args=None):
 				stdout.writeln(df(obj), ": only in ", cs(connection1))
 			elif args.mode == "full":
 				stdout.writeln(comment(df(obj), ": only in ", cs(connection1)))
-				ddl = obj.dropddl(connection1, term=True)
+				ddl = obj.fromconnection(connection1).dropddl(term=True)
 				if ddl:
 					stdout.write(ddl)
 			elif args.mode == "udiff":
-				ddl = getcanonicalddl(obj.createddl(connection1), args.blank)
+				ddl = getcanonicalddl(obj.fromconnection(connection1).createddl(), args.blank)
 				showudiff(stdout, obj, ddl, [], connection1, connection2, args.context)
 			count += 1
 

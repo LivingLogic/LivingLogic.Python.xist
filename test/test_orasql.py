@@ -35,10 +35,10 @@ class Data:
 		# get all definitions
 		# (this tests that :meth:`iterobjects`, :meth:`iterreferences` and :meth:`iterreferencedby` run to completion)
 		for obj in db.iterobjects(None):
-			if obj.owner is None and "$" not in obj.name:
+			if obj.owner is None and "$" not in obj.name and not obj.generated():
 				self._objlist.append(obj)
-				references = [o for o in obj.iterreferences() if o.owner is None and "$" not in o.name]
-				referencedby = [o for o in obj.iterreferencedby() if o.owner is None and "$" not in o.name]
+				references = [o for o in obj.iterreferences() if o.owner is None and "$" not in o.name and not o.generated()]
+				referencedby = [o for o in obj.iterreferencedby() if o.owner is None and "$" not in o.name and not o.generated()]
 				self._objdict[obj] = (references, referencedby)
 
 	def objlist(self):
@@ -196,7 +196,8 @@ def test_table_constraints(db_data):
 	for obj in db_data.objdict():
 		if isinstance(obj, orasql.Table):
 			for con in obj.iterconstraints():
-				assert obj in db_data.objdict()[con][0]
+				if not con.generated():
+					assert obj in db_data.objdict()[con][0]
 
 
 @pytest.mark.db
@@ -411,5 +412,5 @@ def test_url():
 def test_exists(db_data):
 	db = orasql.connect(db_data.dbname)
 
-	assert orasql.Procedure("ORASQL_TESTPROCEDURE").exists(db)
-	assert not orasql.Procedure("ORASQL_NOTTESTPROCEDURE").exists(db)
+	assert orasql.Procedure("ORASQL_TESTPROCEDURE").fromconnection(db).exists()
+	assert not orasql.Procedure("ORASQL_NOTTESTPROCEDURE").fromconnection(db).exists()

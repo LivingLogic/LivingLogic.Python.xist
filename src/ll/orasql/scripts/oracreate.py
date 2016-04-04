@@ -141,6 +141,8 @@ def main(args=None):
 			return False
 		if args.exclude is not None and args.exclude.search(obj.name) is not None:
 			return False
+		if obj.generated():
+			return False
 		return True
 
 	for (i, obj) in enumerate(connection.iterobjects(owner=None, mode="create")):
@@ -157,9 +159,9 @@ def main(args=None):
 
 		if keepobj:
 			if isinstance(obj, orasql.Sequence) and args.seqcopy:
-				ddl = obj.createddlcopy(connection, term)
+				ddl = obj.createddlcopy(term)
 			else:
-				ddl = obj.createddl(connection, term)
+				ddl = obj.createddl(term)
 			if ddl:
 				if args.execute:
 					try:

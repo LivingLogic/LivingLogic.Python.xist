@@ -125,6 +125,8 @@ def main(args=None):
 			return False
 		if args.exclude is not None and args.exclude.search(obj.name) is not None:
 			return False
+		if obj.generated():
+			return False
 		return True
 
 	ddls = []
@@ -136,13 +138,13 @@ def main(args=None):
 		if obj.owner is not None:
 			if isinstance(obj, orasql.ForeignKey):
 				if args.fks == "disable":
-					ddl = obj.disableddl(connection, term)
+					ddl = obj.disableddl(term)
 					action = "disabled"
 				elif args.fks == "drop":
-					ddl = obj.dropddl(connection, term)
+					ddl = obj.dropddl(term)
 					action = None
 		elif keepdef:
-			ddl = obj.dropddl(connection, term)
+			ddl = obj.dropddl(term)
 			action = None
 
 		# Progress report
