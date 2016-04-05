@@ -364,8 +364,6 @@ def test_clob_fromprocedure():
 			result = proc(db.cursor(readlobs=False), c_user="pytest", p_in="abcäöü", p_inout="abc"*10000)
 			assert readlob(result.p_inout, sizearg) == "ABC"*10000 + "abcäöü"
 			assert result.p_inout.read() == ""
-		yield check, 1
-		yield check, 2
 		yield check, 8192
 		yield check, 0
 		yield check, None
