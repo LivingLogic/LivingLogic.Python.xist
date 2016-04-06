@@ -9,7 +9,7 @@ Changes in 5.16 (released ??/??/2016)
 	objects have a new method :meth:`generated` that returns whether this object
 	was automatically generated or not.
 
-* The scripts ``oracreate``, ``oradelete``, ``oradrop``, ``oragrant`` and
+*	The scripts ``oracreate``, ``oradelete``, ``oradrop``, ``oragrant`` and
 	``orareindex`` have a new option :option:`--format`. The option value
 	``pysql`` switches the output format to PySQL output.
 
