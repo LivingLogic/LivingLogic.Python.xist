@@ -153,17 +153,17 @@ def main(args=None):
 			stderr.writeln(msg)
 
 		if keepobj:
-			ddl = obj.grantddl(connection, term, mapgrantee=mapgrantee)
-			if ddl:
+			sql = obj.grantsql(connection, term, mapgrantee=mapgrantee)
+			if sql:
 				if args.execute:
 					try:
-						cursor2.execute(ddl)
+						cursor2.execute(sql)
 					except orasql.DatabaseError as exc:
 						if not args.ignore or "ORA-01013" in str(exc):
 							raise
 						stderr.writeln("oragrant.py: ", s4error(misc.format_exception(exc)))
 				else:
-					stdout.writeln(ddl.strip())
+					stdout.writeln(sql.strip())
 					if args.format == "pysql":
 						stdout.writeln()
 						stdout.writeln("-- @@@")

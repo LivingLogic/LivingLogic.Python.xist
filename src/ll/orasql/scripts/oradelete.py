@@ -172,20 +172,20 @@ def main(args=None):
 				# Print or execute SQL
 				if args.execute:
 					try:
-						sql = obj.createddl(term=False)
-						cursor.execute(obj.dropddl(term=False))
+						sql = obj.createsql(term=False)
+						cursor.execute(obj.dropsql(term=False))
 						cursor.execute(sql)
 					except orasql.DatabaseError as exc:
 						if not args.ignore or "ORA-01013" in str(exc):
 							raise
 						stderr.writeln("oradelete.py: ", s4error("{}: {}".format(exc.__class__, str(exc).strip())))
 				else:
-					stdout.writeln(obj.dropddl(term=True).strip())
+					stdout.writeln(obj.dropsql(term=True).strip())
 					stdout.writeln()
 					if args.format == "pysql":
 						stdout.writeln("-- @@@")
 						stdout.writeln()
-					stdout.writeln(obj.createddl(term=True).strip())
+					stdout.writeln(obj.createsql(term=True).strip())
 					stdout.writeln()
 					if args.format == "pysql":
 						stdout.writeln("-- @@@")

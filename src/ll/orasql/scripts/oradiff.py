@@ -117,8 +117,8 @@ def gettimestamp(obj, connection, format):
 	return timestamp
 
 
-def getcanonicalddl(ddl, blank):
-	return [Line(line, blank) for line in ddl.splitlines()]
+def getcanonicalsql(sql, blank):
+	return [Line(line, blank) for line in sql.splitlines()]
 
 
 class Line:
@@ -149,12 +149,12 @@ class Line:
 		return hash(self.compareline)
 
 
-def showudiff(out, obj, ddl1, ddl2, connection1, connection2, context=3, timeformat="%c"):
+def showudiff(out, obj, sql1, sql2, connection1, connection2, context=3, timeformat="%c"):
 	def header(prefix, style, connection):
 		return style("{} {!r} in {}: {}".format(prefix, obj, connection.connectstring(), gettimestamp(obj, connection, timeformat)))
 
 	started = False
-	for group in difflib.SequenceMatcher(None, ddl1, ddl2).get_grouped_opcodes(context):
+	for group in difflib.SequenceMatcher(None, sql1, sql2).get_grouped_opcodes(context):
 		if not started:
 			out.writeln(header("---", s4removedfile, connection1))
 			out.writeln(header("+++", s4addedfile, connection2))
@@ -163,14 +163,14 @@ def showudiff(out, obj, ddl1, ddl2, connection1, connection2, context=3, timefor
 		out.writeln(s4pos("@@ -{},{} +{},{} @@".format(i1+1, i2-i1, j1+1, j2-j1)))
 		for (tag, i1, i2, j1, j2) in group:
 			if tag == "equal":
-				for line in ddl1[i1:i2]:
+				for line in sql1[i1:i2]:
 					out.writeln(" {}".format(line.originalline))
 				continue
 			if tag == "replace" or tag == "delete":
-				for line in ddl1[i1:i2]:
+				for line in sql1[i1:i2]:
 					out.writeln(s4removedline("-", line.originalline))
 			if tag == "replace" or tag == "insert":
-				for line in ddl2[j1:j2]:
+				for line in sql2[j1:j2]:
 					out.writeln(s4addedline("+", line.originalline))
 
 
@@ -250,27 +250,27 @@ def main(args=None):
 				stdout.writeln(df(obj), ": only in ", cs(connection2))
 			elif args.mode == "full":
 				stdout.writeln(comment(df(obj), ": only in ", cs(connection2)))
-				ddl = obj.createddl(connection2, term=True)
-				if ddl:
-					stdout.write(ddl)
+				sql = obj.createsql(connection2, term=True)
+				if sql:
+					stdout.write(sql)
 			elif args.mode == "udiff":
-				ddl = getcanonicalddl(obj.createddl(connection2), args.blank)
-				showudiff(stdout, obj, [], ddl, connection1, connection2, args.context)
+				sql = getcanonicalsql(obj.createsql(connection2), args.blank)
+				showudiff(stdout, obj, [], sql, connection1, connection2, args.context)
 		else:
 			if args.verbose:
 				stderr.writeln("oradiff.py: diffing #{}/{} ".format(count, len(allobjects)), df(obj))
-			ddl1 = obj.createddl(connection1)
-			ddl2 = obj.createddl(connection2)
-			ddl1c = getcanonicalddl(ddl1, args.blank)
-			ddl2c = getcanonicalddl(ddl2, args.blank)
-			if ddl1c != ddl2c:
+			sql1 = obj.createsql(connection1)
+			sql2 = obj.createsql(connection2)
+			sql1c = getcanonicalsql(sql1, args.blank)
+			sql2c = getcanonicalsql(sql2, args.blank)
+			if sql1c != sql2c:
 				if args.mode == "brief":
 					stdout.writeln(df(obj), ": different")
 				elif args.mode == "full":
 					stdout.writeln(comment(df(obj), ": different"))
-					stdout.write(obj.createddl(connection2))
+					stdout.write(obj.createsql(connection2))
 				elif args.mode == "udiff":
-					showudiff(stdout, obj, ddl1c, ddl2c, connection1, connection2, args.context)
+					showudiff(stdout, obj, sql1c, sql2c, connection1, connection2, args.context)
 		count += 1
 
 	# Objects only in database 1
@@ -282,12 +282,12 @@ def main(args=None):
 				stdout.writeln(df(obj), ": only in ", cs(connection1))
 			elif args.mode == "full":
 				stdout.writeln(comment(df(obj), ": only in ", cs(connection1)))
-				ddl = obj.dropddl(connection1, term=True)
-				if ddl:
-					stdout.write(ddl)
+				sql = obj.dropsql(connection1, term=True)
+				if sql:
+					stdout.write(sql)
 			elif args.mode == "udiff":
-				ddl = getcanonicalddl(obj.createddl(connection1), args.blank)
-				showudiff(stdout, obj, ddl, [], connection1, connection2, args.context)
+				sql = getcanonicalsql(obj.createsql(connection1), args.blank)
+				showudiff(stdout, obj, sql, [], connection1, connection2, args.context)
 			count += 1
 
 

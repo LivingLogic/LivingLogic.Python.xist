@@ -14,7 +14,7 @@
 Purpose
 -------
 
-``oracreate`` prints the DDL of all objects in an Oracle database schema in a
+``oracreate`` prints the SQL of all objects in an Oracle database schema in a
 way that can be used to recreate the schema (i.e. objects will be ordered so
 that no errors happen for non-existant objects during script execution).
 ``oracreate`` can also be used to actually recreate the schema.
@@ -93,7 +93,7 @@ s4object = astyle.Style.fromenv("LL_ORASQL_REPRANSI_OBJECT", "green:black")
 
 
 def main(args=None):
-	p = argparse.ArgumentParser(description="Print (or execute) the DDL of all objects in an Oracle database schema", epilog="For more info see http://www.livinglogic.de/Python/orasql/scripts/oracreate.html")
+	p = argparse.ArgumentParser(description="Print (or execute) the SQL of all objects in an Oracle database schema", epilog="For more info see http://www.livinglogic.de/Python/orasql/scripts/oracreate.html")
 	p.add_argument("connectstring", help="Oracle connect string")
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", default=False, action=misc.FlagAction)
 	p.add_argument("-c", "--color", dest="color", help="Color output (default %(default)s)", default="auto", choices=("yes", "no", "auto"))
@@ -157,19 +157,19 @@ def main(args=None):
 
 		if keepobj:
 			if isinstance(obj, orasql.Sequence) and args.seqcopy:
-				ddl = obj.createddlcopy(connection, term)
+				sql = obj.createsqlcopy(connection, term)
 			else:
-				ddl = obj.createddl(connection, term)
-			if ddl:
+				sql = obj.createsql(connection, term)
+			if sql:
 				if args.execute:
 					try:
-						cursor2.execute(ddl)
+						cursor2.execute(sql)
 					except orasql.DatabaseError as exc:
 						if not args.ignore or "ORA-01013" in str(exc):
 							raise
 						stderr.writeln("oracreate.py: ", s4error(misc.format_exception(exc)))
 				else:
-					stdout.writeln(ddl.strip())
+					stdout.writeln(sql.strip())
 					stdout.writeln()
 					if args.format == "pysql":
 						stdout.writeln("-- @@@")

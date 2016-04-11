@@ -229,7 +229,7 @@ def main(args=None):
 				countcreate += 1
 				action = "create"
 			elif not in1 and in2 and in3: # added in both in2 and in3 => collision?
-				if obj.createddl(connection2) != obj.createddl(connection3):
+				if obj.createsql(connection2) != obj.createsql(connection3):
 					if args.verbose:
 						stderr.writeln(" => ", s4error("collision"))
 					countcollision += 1
@@ -249,14 +249,14 @@ def main(args=None):
 			else:
 				raise ValueError("the boolean world is about to end")
 		elif in1 and in2 and in3: # in all three => merge it
-			ddl1 = obj.createddl(connection1)
-			ddl2 = obj.createddl(connection2)
-			ddl3 = obj.createddl(connection3)
+			sql1 = obj.createsql(connection1)
+			sql2 = obj.createsql(connection2)
+			sql3 = obj.createsql(connection3)
 
 			if args.verbose:
 				stderr.write(" => diffing")
 
-			if ddl1 != ddl2: # ignore changes between ddl2 and ddl3 here too
+			if sql1 != sql2: # ignore changes between sql2 and sql3 here too
 				# If it's a table, we do not output a merged "create table" statement, but the appropriate "alter table" statements
 				if isinstance(obj, orasql.Table):
 					fields1 = set(obj.itercolumns(connection1))
@@ -276,7 +276,7 @@ def main(args=None):
 								fieldcountcreate += 1
 								countcreate += 1
 								showcomment(stdout, "add ", df(field))
-								stdout.writeln(field.addddl(connection2))
+								stdout.writeln(field.addsql(connection2))
 							elif not in1 and in2 and in3: # added in both in2 and in3 => collision?
 								fieldcountcollision += 1
 								countcollision += 1
@@ -288,14 +288,14 @@ def main(args=None):
 								fieldcountdrop += 1
 								countdrop += 1
 								showcomment(stdout, "drop ", df(field))
-								stdout.writeln(field.dropddl(connection3))
+								stdout.writeln(field.dropsql(connection3))
 						elif in1 and in2 and in3: # in all three => modify field
-							ddl1 = field.addddl(connection1)
-							ddl2 = field.addddl(connection2)
-							ddl3 = field.addddl(connection3)
-							if ddl1 != ddl2 or ddl2 != ddl3:
+							sql1 = field.addsql(connection1)
+							sql2 = field.addsql(connection2)
+							sql3 = field.addsql(connection3)
+							if sql1 != sql2 or sql2 != sql3:
 								try:
-									ddl = field.modifyddl(connection3, connection1.cursor(), connection2.cursor()) # add changes from db1 to db2
+									sql = field.modifysql(connection3, connection1.cursor(), connection2.cursor()) # add changes from db1 to db2
 								except orasql.ConflictError as exc:
 									fieldcountmergeconflict += 1
 									countmergeconflict += 1
@@ -305,7 +305,7 @@ def main(args=None):
 									fieldcountmerge += 1
 									countmerge += 1
 									showcomment(stdout, "merged ", df(field))
-									stdout.writeln(ddl)
+									stdout.writeln(sql)
 					if args.verbose:
 						showreport(stderr, "field", fieldcountcreate, fieldcountdrop, fieldcountcollision, fieldcountmerge, fieldcountmergeconflict)
 				else:
@@ -328,10 +328,10 @@ def main(args=None):
 				stdout.writeln(conflictmarker(7*"<", "added in ", cs(connection2), " and ", cs(connection3), " with different content"))
 			elif action == "create":
 				showcomment(stdout, "create ", df(obj))
-				stdout.writeln(obj.createddl(connection2, term=True))
+				stdout.writeln(obj.createsql(connection2, term=True))
 			elif action == "drop":
 				showcomment(stdout, "drop ", df(obj))
-				stdout.writeln(obj.dropddl(connection3, term=True))
+				stdout.writeln(obj.dropsql(connection3, term=True))
 			elif action == "merge":
 				filename1 = tempfile.mktemp(suffix=".sql", prefix="oramerge_1_")
 				filename2 = tempfile.mktemp(suffix=".sql", prefix="oramerge_2_")
@@ -339,15 +339,15 @@ def main(args=None):
 
 				file1 = open(filename1, "wb")
 				try:
-					write(file1, ddl1)
+					write(file1, sql1)
 
 					file2 = open(filename2, "wb")
 					try:
-						write(file2, ddl2)
+						write(file2, sql2)
 
 						file3 = open(filename3, "wb")
 						try:
-							write(file3, ddl3)
+							write(file3, sql3)
 
 							# do the diffing
 							proc = subprocess.Popen(["diff3", "-m", filename3, filename1, filename2], stdout=subprocess.PIPE)
@@ -371,12 +371,12 @@ def main(args=None):
 							if diffretcode == 0: # no conflict
 								showcomment(stdout, "merge ", df(obj))
 								# Check if anything has changed
-								finalddl = data
+								finalsql = data
 								# diff3 seems to append a "\n"
-								if finalddl != ddl3 and (not finalddl.endswith("\n") or finalddl[:-1] != ddl3):
+								if finalsql != sql3 and (not finalsql.endswith("\n") or finalsql[:-1] != sql3):
 									if args.verbose:
 										stderr.writeln(" => ", s4action("merged"))
-									stdout.write(finalddl)
+									stdout.write(finalsql)
 							elif diffretcode == 1: # conflict
 								showcomment(stdout, "merge conflict ", df(obj))
 								if args.verbose:

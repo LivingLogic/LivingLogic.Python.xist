@@ -129,16 +129,16 @@ def test_referenceconsistency(db_data):
 
 
 @pytest.mark.db
-def test_ddl(db_data):
-	# check various ddl methods
+def test_sql(db_data):
+	# check various sql methods
 	for obj in db_data.objdict():
-		obj.createddl()
+		obj.createsql()
 		if isinstance(obj, orasql.Sequence):
-			obj.createddlcopy()
-		obj.dropddl()
+			obj.createsqlcopy()
+		obj.dropsql()
 		if isinstance(obj, orasql.ForeignKey):
-			obj.enableddl()
-			obj.disableddl()
+			obj.enablesql()
+			obj.disablesql()
 
 
 @pytest.mark.db
@@ -166,9 +166,9 @@ def test_table_columns(db_data):
 				# comments are not output by :meth:`iterobjects`, so we have to call :meth:`iterreferences`
 				assert obj in col.iterreferences()
 				# check various methods
-				# calling :meth:`modifyddl` doesn't make sense
-				col.addddl()
-				col.dropddl()
+				# calling :meth:`modifysql` doesn't make sense
+				col.addsql()
+				col.dropsql()
 				col.cdate()
 				col.udate()
 				col.datatype()

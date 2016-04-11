@@ -93,25 +93,25 @@ def main(args=None):
 			stderr.writeln("orareindex.py: ", cs, ": {} #{} ".format("Rebuilding" if rebuild else "Recreating", i+1), s4object(str(obj)))
 		if rebuild:
 			if args.execute:
-				cursor.execute(obj.rebuildddl(term=False))
+				cursor.execute(obj.rebuildsql(term=False))
 			else:
-				stdout.writeln(obj.rebuildddl(term=True).strip())
+				stdout.writeln(obj.rebuildsql(term=True).strip())
 				if args.format == "pysql":
 					stdout.writeln()
 					stdout.writeln("-- @@@")
 					stdout.writeln()
 		else:
 			if args.execute:
-				sql = obj.createddl(term=False)
-				cursor.execute(obj.dropddl(term=False))
+				sql = obj.createsql(term=False)
+				cursor.execute(obj.dropsql(term=False))
 				cursor.execute(sql)
 			else:
-				stdout.writeln(obj.dropddl(term=True).strip())
+				stdout.writeln(obj.dropsql(term=True).strip())
 				if args.format == "pysql":
 					stdout.writeln()
 					stdout.writeln("-- @@@")
 					stdout.writeln()
-				stdout.writeln(obj.createddl(term=True).strip())
+				stdout.writeln(obj.createsql(term=True).strip())
 				if args.format == "pysql":
 					stdout.writeln()
 					stdout.writeln("-- @@@")

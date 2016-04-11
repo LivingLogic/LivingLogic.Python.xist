@@ -12,7 +12,7 @@
 This package contains the following scripts:
 
 	``oracreate``
-		``oracreate`` prints (or executes in another schema) the DDL of all objects
+		``oracreate`` prints (or executes in another schema) the SQL of all objects
 		in an Oracle database schema (i.e. all tables, procedures, functions,
 		views, etc.)
 

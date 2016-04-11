@@ -127,22 +127,22 @@ def main(args=None):
 			return False
 		return True
 
-	ddls = []
+	sqls = []
 	for (i, obj) in enumerate(connection.iterobjects(owner=None, mode="drop")):
 		keepdef = keep(obj)
-		# Get DDL
-		ddl = ""
+		# Get SQL
+		sql = ""
 		action = "skipped"
 		if obj.owner is not None:
 			if isinstance(obj, orasql.ForeignKey):
 				if args.fks == "disable":
-					ddl = obj.disableddl(connection, term)
+					sql = obj.disablesql(connection, term)
 					action = "disabled"
 				elif args.fks == "drop":
-					ddl = obj.dropddl(connection, term)
+					sql = obj.dropsql(connection, term)
 					action = None
 		elif keepdef:
-			ddl = obj.dropddl(connection, term)
+			sql = obj.dropsql(connection, term)
 			action = None
 
 		# Progress report
@@ -152,25 +152,25 @@ def main(args=None):
 				msg = astyle.style_default(msg, " ", s4warning("({})".format(action)))
 			stderr.writeln(msg)
 
-		if ddl:
-			# Print or execute DDL
+		if sql:
+			# Print or execute sql
 			if args.execute:
-				ddls.append((obj, ddl))
+				sqls.append((obj, sql))
 			else:
-				stdout.writeln(ddl.strip())
+				stdout.writeln(sql.strip())
 				if args.format == "pysql":
 					stdout.writeln()
 					stdout.writeln("-- @@@")
 					stdout.writeln()
 
-	# Execute DDL
+	# Execute SQL
 	if args.execute:
 		cursor = connection.cursor()
-		for (i, (obj, ddl)) in enumerate(ddls):
+		for (i, (obj, sql)) in enumerate(sqls):
 			if args.verbose:
-				stderr.writeln("oradrop.py: ", cs, ": dropping #{}/{} ".format(i+1, len(ddls)), s4object(str(obj)))
+				stderr.writeln("oradrop.py: ", cs, ": dropping #{}/{} ".format(i+1, len(sqls)), s4object(str(obj)))
 			try:
-				cursor.execute(ddl)
+				cursor.execute(sql)
 			except orasql.DatabaseError as exc:
 				if not args.ignore or "ORA-01013" in str(exc):
 					raise
