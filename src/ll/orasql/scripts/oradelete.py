@@ -123,8 +123,6 @@ def main(args=None):
 			return False
 		if args.exclude is not None and args.exclude.search(obj.name) is not None:
 			return False
-		if obj.generated():
-			return False
 		return True
 
 	for (i, obj) in enumerate(connection.itertables(owner=None, mode="drop")):

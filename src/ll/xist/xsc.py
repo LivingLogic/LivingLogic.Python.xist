@@ -2974,7 +2974,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 	@classmethod
 	def _pyname2xmlname(cls, name):
 		# using ``cls.xmlns`` makes sure, that ``element(xml.Attrs(lang='de'))`` really creates a global attribute
-		# (because ``xml.Attrs`` and ``xml.Attrs.lang`` have ``xmlns`` set approprately)
+		# (because ``xml.Attrs`` and ``xml.Attrs.lang`` have ``xmlns`` set appropriately)
 		if (cls.xmlns, name) in cls._bypyname:
 			return cls._bypyname[(cls.xmlns, name)]
 		return name

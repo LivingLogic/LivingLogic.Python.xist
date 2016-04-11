@@ -357,7 +357,7 @@ Changes to :mod:`ll.xist`
 			...
 
 	If you want to enter an element only when a condition is true, you can do
-	that by modifying the approprate cursor attribute inside your loop::
+	that by modifying the appropriate cursor attribute inside your loop::
 
 		for cursor in doc.walk(entercontent=True, enterattrs=True):
 			if isinstance(cursor.node, html.script, html.textarea):

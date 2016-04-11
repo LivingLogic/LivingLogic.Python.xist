@@ -138,8 +138,6 @@ def main(args=None):
 			return False
 		if args.exclude is not None and args.exclude.search(obj.name) is not None:
 			return False
-		if obj.generated():
-			return False
 		return True
 
 	for (i, obj) in enumerate(connection.iterprivileges(None)):
@@ -155,7 +153,7 @@ def main(args=None):
 			stderr.writeln(msg)
 
 		if keepobj:
-			ddl = obj.grantddl(term, mapgrantee=mapgrantee)
+			ddl = obj.grantddl(connection, term, mapgrantee=mapgrantee)
 			if ddl:
 				if args.execute:
 					try:
