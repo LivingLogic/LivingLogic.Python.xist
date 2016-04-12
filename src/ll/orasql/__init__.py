@@ -813,12 +813,6 @@ class Object(object, metaclass=_Object_meta):
 	"""
 	The base class for all Python classes modelling schema objects in the
 	database.
-
-	Subclasses are: :class:`Sequence`, :class:`Table`, :class:`PrimaryKey`,
-	:class:`Comment`, :class:`ForeignKey`, :class:`Index`, :class:`Unique`,
-	:class:`Synonym`, :class:`View`, :class:`MaterializedView`, :class:`Library`,
-	:class:`Function`, :class:`Package`, :class:`Type`, :class:`Trigger`,
-	:class:`JavaSource` and :class:`Column`.
 	"""
 	name2type = {} # maps the Oracle type name to the Python class (populated by the metaclass)
 
