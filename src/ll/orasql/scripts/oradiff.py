@@ -44,6 +44,10 @@ Options
 		outputs the script that must be executed to copy the differences from
 		schema 2 to schema 1).
 
+	``--format`` : ``sql`` or ``pysql``
+		If ``--mode`` is ``full``, this determines the output format: Plain
+		SQL, or PySQL which can be piped into :mod:`ll.pysql`.
+
 	``-n``, ``--context`` : integer
 		The number of context lines in unified diff mode (i.e. the number of
 		unchanged lines above and below each block of changes; the default is 2)
@@ -189,6 +193,7 @@ def main(args=None):
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", default=False, action=misc.FlagAction)
 	p.add_argument("-c", "--color", dest="color", help="Color output (default %(default)s)", default="auto", choices=("yes", "no", "auto"))
 	p.add_argument("-m", "--mode", dest="mode", help="Output mode (default %(default)s)", default="udiff", choices=("brief", "udiff", "full"))
+	p.add_argument(      "--format", dest="format", help="The output format for 'full' mode (default %(default)s)", choices=("sql", "pysql"), default="sql")
 	p.add_argument("-n", "--context", dest="context", help="Number of context lines (default %(default)s)", type=int, default=2)
 	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' or 'SYS_EXPORT_SCHEMA_' in their name? (default %(default)s)", default=False, action=misc.FlagAction)
 	p.add_argument("-b", "--blank", dest="blank", help="How to treat whitespace (default %(default)s)", default="literal", choices=("literal", "trail", "lead", "both", "collapse"))
@@ -250,9 +255,13 @@ def main(args=None):
 				stdout.writeln(df(obj), ": only in ", cs(connection2))
 			elif args.mode == "full":
 				stdout.writeln(comment(df(obj), ": only in ", cs(connection2)))
-				sql = obj.createsql(connection2, term=True)
+				sql = obj.createsql(connection2, term=True).strip()
 				if sql:
-					stdout.write(sql)
+					stdout.writeln(sql)
+					stdout.writeln()
+					if args.format == "pysql":
+						stdout.writeln()
+						stdout.writeln("-- @@@")
 			elif args.mode == "udiff":
 				sql = getcanonicalsql(obj.createsql(connection2), args.blank)
 				showudiff(stdout, obj, [], sql, connection1, connection2, args.context)
@@ -268,7 +277,12 @@ def main(args=None):
 					stdout.writeln(df(obj), ": different")
 				elif args.mode == "full":
 					stdout.writeln(comment(df(obj), ": different"))
-					stdout.write(obj.createsql(connection2))
+					sql = obj.createsql(connection2).strip()
+					stdout.writeln(sql)
+					stdout.writeln()
+					if args.format == "pysql":
+						stdout.writeln()
+						stdout.writeln("-- @@@")
 				elif args.mode == "udiff":
 					showudiff(stdout, obj, sql1c, sql2c, connection1, connection2, args.context)
 		count += 1
@@ -282,9 +296,13 @@ def main(args=None):
 				stdout.writeln(df(obj), ": only in ", cs(connection1))
 			elif args.mode == "full":
 				stdout.writeln(comment(df(obj), ": only in ", cs(connection1)))
-				sql = obj.dropsql(connection1, term=True)
+				sql = obj.dropsql(connection1, term=True).strip()
 				if sql:
-					stdout.write(sql)
+					stdout.writeln(sql)
+					stdout.writeln()
+					if args.format == "pysql":
+						stdout.writeln()
+						stdout.writeln("-- @@@")
 			elif args.mode == "udiff":
 				sql = getcanonicalsql(obj.createsql(connection1), args.blank)
 				showudiff(stdout, obj, sql, [], connection1, connection2, args.context)
