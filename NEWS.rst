@@ -3,12 +3,6 @@ Changes in 5.16 (released ??/??/2016)
 
 *	:mod:`orasql` now supports check constraints.
 
-*	:mod:`orasql` no longer hides database objects that are created by Oracle
-	automatically when other objects are created (i.e. the table for a
-	materialized view or the index for a primary key constraint). Instead all
-	objects have a new method :meth:`generated` that returns whether this object
-	was automatically generated or not.
-
 *	The scripts ``oracreate``, ``oradelete``, ``oradrop``, ``oragrant`` and
 	``orareindex`` have a new option :option:`--format`. The option value
 	``pysql`` switches the output format to PySQL output.
@@ -21,6 +15,11 @@ Changes in 5.16 (released ??/??/2016)
 
 *	:class:`orasql.Comment` objects now have a method :meth:`table` that returns
 	the table to which the comment belongs.
+
+*	Some methods in :mod:`orasql` have been renamed: Iterating methods no longer
+	have ``iter`` in their name (e.g. :meth:`itertables` is now simply called
+	:meth:`tables`). The ``ddl`` part of some method names has been changed to
+	``sql`` (e.g. :meth:`createddl` is now called :meth:`createsql`).
 
 *	Importing :mod:`pysql` now doesn't fail if the module :mod:`pwd` or
 	:mod:`grp` doesn't exist (e.g. on Windows). (However the PySQL ``file``
