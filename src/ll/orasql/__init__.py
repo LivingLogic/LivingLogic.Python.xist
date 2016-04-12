@@ -829,15 +829,29 @@ class Object(object, metaclass=_Object_meta):
 
 	def __repr__(self):
 		if self.owner is not None:
-			return "{}.{}({!r}, {!r})".format(self.__class__.__module__, self.__class__.__qualname__, self.name, self.owner)
+			if self.connection is not None:
+				fmt = "<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} owner={self.owner!r} connection={self.connectstring!r} at {id:#x}>"
+			else:
+				fmt = "<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} owner={self.owner!r} at {id:#x}>"
 		else:
-			return "{}.{}({!r})".format(self.__class__.__module__, self.__class__.__qualname__, self.name)
+			if self.connection is not None:
+				fmt = "<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} connection={self.connectstring!r} at {id:#x}>"
+			else:
+				fmt = "<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} at {id:#x}>"
+		return fmt.format(self=self, id=id(self))
 
 	def __str__(self):
 		if self.owner is not None:
-			return "{}({}, {})".format(self.__class__.__qualname__, self.name, self.owner)
+			if self.connection is not None:
+				fmt = "{self.type} {self.name} @ {self.owner} ({self.connectstring})"
+			else:
+				fmt = "{self.type} {self.name} @ {self.owner}"
 		else:
-			return "{}({})".format(self.__class__.__qualname__, self.name)
+			if self.connection is not None:
+				fmt = "{self.type} {self.name} ({self.connectstring})"
+			else:
+				fmt = "{self.type} {self.name}"
+		return fmt.format(self=self)
 
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and self.name == other.name and self.owner == other.owner
