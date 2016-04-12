@@ -836,15 +836,9 @@ class Object(object, metaclass=_Object_meta):
 
 	def __str__(self):
 		if self.owner is not None:
-			if self.connection is not None:
-				fmt = "{self.type} {self.name} @ {self.owner} ({self.connectstring})"
-			else:
-				fmt = "{self.type} {self.name} @ {self.owner}"
+			fmt = "{self.type} {self.name} @ {self.owner}"
 		else:
-			if self.connection is not None:
-				fmt = "{self.type} {self.name} ({self.connectstring})"
-			else:
-				fmt = "{self.type} {self.name}"
+			fmt = "{self.type} {self.name}"
 		return fmt.format(self=self)
 
 	def __eq__(self, other):

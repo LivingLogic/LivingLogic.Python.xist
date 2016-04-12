@@ -130,7 +130,7 @@ def main(args=None):
 		# Progress report
 		if args.verbose:
 			msg = "truncating" if args.truncate else "deleting from"
-			msg = astyle.style_default("oradelete.py: ", cs, ": {} #{} ".format(msg, i+1), s4object(str(obj)))
+			msg = astyle.style_default("oradelete.py: ", cs, ": {} #{:,} ".format(msg, i+1), s4object(str(obj)))
 			if not keepobj:
 				msg = astyle.style_default(msg, " ", s4warning("(skipped)"))
 			stderr.writeln(msg)
@@ -163,7 +163,7 @@ def main(args=None):
 			keepobj = keep(obj)
 			# Progress report
 			if args.verbose:
-				msg = astyle.style_default("oradelete.py: ", cs, ": recreating #{} ".format(i+1), s4object(str(obj)))
+				msg = astyle.style_default("oradelete.py: ", cs, ": recreating #{:,} ".format(i+1), s4object(str(obj)))
 				if not keepobj:
 					msg = astyle.style_default(msg, " ", s4warning("(skipped)"))
 				stderr.writeln(msg)

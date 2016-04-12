@@ -155,7 +155,7 @@ class Line:
 
 def showudiff(out, obj, sql1, sql2, connection1, connection2, context=3, timeformat="%c"):
 	def header(prefix, style, connection):
-		return style("{} {!r} in {}: {}".format(prefix, obj, connection.connectstring(), gettimestamp(obj, connection, timeformat)))
+		return style("{} {} in {}: {}".format(prefix, obj, connection.connectstring(), gettimestamp(obj, connection, timeformat)))
 
 	started = False
 	for group in difflib.SequenceMatcher(None, sql1, sql2).get_grouped_opcodes(context):
@@ -228,7 +228,7 @@ def main(args=None):
 		for (i, obj) in enumerate(connection.objects(owner=None, mode=mode)):
 			keepdef = keep(obj)
 			if args.verbose:
-				msg = astyle.style_default("oradiff.py: ", cs(connection), ": fetching #{} ".format(i+1), df(obj))
+				msg = astyle.style_default("oradiff.py: ", cs(connection), ": fetching #{:,} ".format(i+1), df(obj))
 				if not keepdef:
 					msg = astyle.style_default(msg, " ", s4warning("(skipped)"))
 				stderr.writeln(msg)
@@ -250,7 +250,7 @@ def main(args=None):
 		# Objects only in database 2
 		if obj not in objectset1:
 			if args.verbose:
-				stderr.writeln("oradiff.py: only in ", cs(connection2), " #{}/{} ".format(count, len(allobjects)), df(obj))
+				stderr.writeln("oradiff.py: only in ", cs(connection2), " #{:,}/{:,} ".format(count, len(allobjects)), df(obj))
 			if args.mode == "brief":
 				stdout.writeln(df(obj), ": only in ", cs(connection2))
 			elif args.mode == "full":
@@ -267,7 +267,7 @@ def main(args=None):
 				showudiff(stdout, obj, [], sql, connection1, connection2, args.context)
 		else:
 			if args.verbose:
-				stderr.writeln("oradiff.py: diffing #{}/{} ".format(count, len(allobjects)), df(obj))
+				stderr.writeln("oradiff.py: diffing #{:,}/{:,} ".format(count, len(allobjects)), df(obj))
 			sql1 = obj.createsql(connection1)
 			sql2 = obj.createsql(connection2)
 			sql1c = getcanonicalsql(sql1, args.blank)
@@ -291,7 +291,7 @@ def main(args=None):
 	for obj in objectlist1:
 		if obj not in objectset2:
 			if args.verbose:
-				stderr.writeln("oradiff.py: only in ", cs(connection1), " #{}/{} ".format(count, len(allobjects)), df(obj))
+				stderr.writeln("oradiff.py: only in ", cs(connection1), " #{:,}/{:,} ".format(count, len(allobjects)), df(obj))
 			if args.mode == "brief":
 				stdout.writeln(df(obj), ": only in ", cs(connection1))
 			elif args.mode == "full":

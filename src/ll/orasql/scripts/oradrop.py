@@ -147,7 +147,7 @@ def main(args=None):
 
 		# Progress report
 		if args.verbose:
-			msg = astyle.style_default("oradrop.py: ", cs, ": fetching #{} ".format(i+1), s4object(str(obj)))
+			msg = astyle.style_default("oradrop.py: ", cs, ": fetching #{:,} ".format(i+1), s4object(str(obj)))
 			if action is not None:
 				msg = astyle.style_default(msg, " ", s4warning("({})".format(action)))
 			stderr.writeln(msg)
@@ -168,7 +168,7 @@ def main(args=None):
 		cursor = connection.cursor()
 		for (i, (obj, sql)) in enumerate(sqls):
 			if args.verbose:
-				stderr.writeln("oradrop.py: ", cs, ": dropping #{}/{} ".format(i+1, len(sqls)), s4object(str(obj)))
+				stderr.writeln("oradrop.py: ", cs, ": dropping #{:,}/{:,} ".format(i+1, len(sqls)), s4object(str(obj)))
 			try:
 				cursor.execute(sql)
 			except orasql.DatabaseError as exc:

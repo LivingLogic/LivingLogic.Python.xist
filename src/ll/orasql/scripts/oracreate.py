@@ -147,9 +147,9 @@ def main(args=None):
 		keepobj = keep(obj)
 		if args.verbose:
 			if args.execute:
-				msg = astyle.style_default("oracreate.py: ", cs1, " -> ", cs2, ": fetching/creating #{}".format(i+1))
+				msg = astyle.style_default("oracreate.py: ", cs1, " -> ", cs2, ": fetching/creating #{:,}".format(i+1))
 			else:
-				msg = astyle.style_default("oracreate.py: ", cs1, " fetching #{}".format(i+1))
+				msg = astyle.style_default("oracreate.py: ", cs1, " fetching #{:,}".format(i+1))
 			msg = astyle.style_default(msg, " ", s4object(str(obj)))
 			if not keepobj:
 				msg = astyle.style_default(msg, " ", s4warning("(skipped)"))

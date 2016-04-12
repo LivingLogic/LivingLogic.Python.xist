@@ -90,7 +90,7 @@ def main(args=None):
 		rebuild = args.rebuild and isinstance(obj, orasql.Index)
 		# Progress report
 		if args.verbose:
-			stderr.writeln("orareindex.py: ", cs, ": {} #{} ".format("Rebuilding" if rebuild else "Recreating", i+1), s4object(str(obj)))
+			stderr.writeln("orareindex.py: ", cs, ": {} #{:,} ".format("Rebuilding" if rebuild else "Recreating", i+1), s4object(str(obj)))
 		if rebuild:
 			if args.execute:
 				cursor.execute(obj.rebuildsql(term=False))

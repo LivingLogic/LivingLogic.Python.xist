@@ -172,7 +172,7 @@ def main(args=None):
 		for (i, obj) in enumerate(connection.objects(owner=None, mode="flat")):
 			keep = ("$" not in obj.name and not obj.name.startswith("SYS_EXPORT_SCHEMA_")) or args.keepjunk
 			if args.verbose:
-				msg = astyle.style_default("oramerge.py: ", cs(connection), connid(name), " fetching #{} ".format(i+1), df(obj))
+				msg = astyle.style_default("oramerge.py: ", cs(connection), connid(name), " fetching #{:,} ".format(i+1), df(obj))
 				if not keep:
 					msg += s4error(" (skipped)")
 				stderr.writeln(msg)
