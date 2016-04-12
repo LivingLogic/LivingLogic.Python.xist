@@ -3,9 +3,9 @@ Changes in 5.16 (released ??/??/2016)
 
 *	:mod:`orasql` now supports check constraints.
 
-*	The scripts ``oracreate``, ``oradelete``, ``oradrop``, ``oragrant`` and
-	``orareindex`` have a new option :option:`--format`. The option value
-	``pysql`` switches the output format to PySQL.
+*	The scripts ``oracreate``, ``oradelete``, ``oradrop``, ``oragrant``,
+	``orareindex`` and ``oradiff`` have a new option :option:`--format`.
+	The option value ``pysql`` switches the output format to PySQL.
 
 *	Prodecure and function source code created by :mod:`ll.orasql` will now
 	no longer have a linefeed introduced before the parameter list.
