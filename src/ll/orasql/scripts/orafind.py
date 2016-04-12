@@ -168,7 +168,7 @@ def main(args=None):
 	connection = orasql.connect(args.connectstring, readlobs=args.readlobs)
 	c = connection.cursor()
 
-	tables = list(connection.itertables(None))
+	tables = list(connection.tables(None))
 	for (i, table) in enumerate(tables):
 		skip = tablenames and table.name.lower() not in tablenames
 		if args.verbose:
@@ -176,7 +176,7 @@ def main(args=None):
 			stderr.writeln("orafind.py: ", df(table), " #", str(i+1), "/", str(len(tables)), ": ", msg)
 		if not skip:
 			where = []
-			for col in table.itercolumns():
+			for col in table.columns():
 				datatype = col.datatype()
 				if datatype == "clob" or datatype.startswith("varchar2"):
 					if args.ignorecase:

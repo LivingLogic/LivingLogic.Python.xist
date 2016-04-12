@@ -360,9 +360,9 @@ class Connection(Connection):
 		return Cursor(self, readlobs=readlobs)
 
 	def __repr__(self):
-		return "<{}.{} object db={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.connectstring(), id(self))
+		return "<{}.{} db={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.connectstring(), id(self))
 
-	def itertables(self, owner=ALL, mode="flat"):
+	def tables(self, owner=ALL, mode="flat"):
 		"""
 		Generator that yields all table definitions in the current users schema
 		(or all users schemas). :obj:`mode` specifies the order in which tables
@@ -390,7 +390,7 @@ class Connection(Connection):
 
 		cursor = self.cursor()
 
-		tables = Table.iterobjects(self, owner)
+		tables = Table.objects(self, owner)
 
 		if mode == "flat":
 			yield from tables
@@ -413,34 +413,34 @@ class Connection(Connection):
 			for table in tables.values():
 				yield from do(table)
 
-	def itersequences(self, owner=ALL):
+	def sequences(self, owner=ALL):
 		"""
 		Generator that yields sequences. :obj:`owner` can be :const:`None`,
 		:const:`ALL` (the default) or a user name.
 		"""
-		return Sequence.iterobjects(self, owner)
+		return Sequence.objects(self, owner)
 
-	def iterfks(self, owner=ALL):
+	def fks(self, owner=ALL):
 		"""
 		Generator that yields all foreign key constraints. :obj:`owner` can be
 		:const:`None`, :const:`ALL` (the default) or a user name.
 		"""
-		return ForeignKey.iterobjects(self, owner)
+		return ForeignKey.objects(self, owner)
 
-	def iterprivileges(self, owner=ALL):
+	def privileges(self, owner=ALL):
 		"""
 		Generator that yields object privileges. :obj:`owner` can be :const:`None`,
 		:const:`ALL` (the default) or a user name.
 		"""
-		return Privilege.iterobjects(self, owner)
+		return Privilege.objects(self, owner)
 
-	def iterusers(self):
+	def users(self):
 		"""
 		Generator that yields all users.
 		"""
-		return User.iterobjects(self)
+		return User.objects(self)
 
-	def iterobjects(self, owner=ALL, mode="create"):
+	def objects(self, owner=ALL, mode="create"):
 		"""
 		Generator that yields the sequences, tables, primary keys, foreign keys,
 		comments, unique constraints, indexes, views, functions, procedures,
@@ -482,20 +482,20 @@ class Connection(Connection):
 
 		def do(obj):
 			if mode == "create":
-				yield from obj.iterreferencesall(self, done)
+				yield from obj.referencesall(self, done)
 			elif mode == "drop":
-				yield from obj.iterreferencedbyall(self, done)
+				yield from obj.referencedbyall(self, done)
 			else:
 				if obj not in done:
 					done.add(obj)
 					yield obj
 
 		def dosequences():
-			for sequence in Sequence.iterobjects(self, owner):
+			for sequence in Sequence.objects(self, owner):
 				yield from do(sequence)
 
 		def dotables():
-			for table in Table.iterobjects(self, owner):
+			for table in Table.objects(self, owner):
 				if mode == "create" or mode == "flat":
 					yield from do(table)
 
@@ -505,7 +505,7 @@ class Connection(Connection):
 					yield from do(pk)
 
 				# Comments
-				for comment in table.itercomments():
+				for comment in table.comments():
 					# No dependency checks neccessary, but use ``do`` anyway
 					yield from do(comment)
 
@@ -514,7 +514,7 @@ class Connection(Connection):
 
 		def dorest():
 			for type in (CheckConstraint, UniqueConstraint, ForeignKey, Preference, Index, Synonym, View, MaterializedView, Function, Procedure, Package, PackageBody, Type, TypeBody, Trigger, JavaSource):
-				for obj in type.iterobjects(self, owner):
+				for obj in type.objects(self, owner):
 					yield from do(obj)
 
 		funcs = [dosequences, dotables, dorest]
@@ -901,7 +901,7 @@ class Object(object, metaclass=_Object_meta):
 		(or :const:`None` if such information is not available).
 		"""
 
-	def iterreferences(self, connection=None):
+	def references(self, connection=None):
 		"""
 		Objects directly used by :obj:`self`.
 
@@ -920,7 +920,7 @@ class Object(object, metaclass=_Object_meta):
 			else:
 				yield cls(rec.referenced_name, rec.referenced_owner, connection)
 
-	def iterreferencesall(self, connection=None, done=None):
+	def referencesall(self, connection=None, done=None):
 		"""
 		All objects used by :obj:`self` (recursively).
 
@@ -932,11 +932,11 @@ class Object(object, metaclass=_Object_meta):
 			done = set()
 		if self not in done:
 			done.add(self)
-			for obj in self.iterreferences(connection):
-				yield from obj.iterreferencesall(connection, done)
+			for obj in self.references(connection):
+				yield from obj.referencesall(connection, done)
 			yield self
 
-	def iterreferencedby(self, connection=None):
+	def referencedby(self, connection=None):
 		"""
 		Objects using :obj:`self`.
 
@@ -952,7 +952,7 @@ class Object(object, metaclass=_Object_meta):
 			else:
 				yield type(rec.name, rec.owner, connection)
 
-	def iterreferencedbyall(self, connection=None, done=None):
+	def referencedbyall(self, connection=None, done=None):
 		"""
 		All objects depending on :obj:`self` (recursively).
 
@@ -964,8 +964,8 @@ class Object(object, metaclass=_Object_meta):
 			done = set()
 		if self not in done:
 			done.add(self)
-			for obj in self.iterreferencedby(connection):
-				yield from obj.iterreferencedbyall(connection, done)
+			for obj in self.referencedby(connection):
+				yield from obj.referencedbyall(connection, done)
 			yield self
 
 	def getconnection(self, connection):
@@ -986,7 +986,7 @@ class Object(object, metaclass=_Object_meta):
 	connectstring = property(getconnectstring)
 
 	@classmethod
-	def iternames(cls, connection, owner=ALL):
+	def names(cls, connection, owner=ALL):
 		"""
 		Generator that yields the names of all objects of this type. The argument
 		:obj:`owner` specifies whose objects are yielded:
@@ -1014,7 +1014,7 @@ class Object(object, metaclass=_Object_meta):
 		return ((row.object_name, row.owner) for row in cursor)
 
 	@classmethod
-	def iterobjects(cls, connection, owner=ALL):
+	def objects(cls, connection, owner=ALL):
 		"""
 		Generator that yields all objects of this type in the current users schema.
 		The argument :obj:`owner` specifies whose objects are yielded:
@@ -1030,7 +1030,7 @@ class Object(object, metaclass=_Object_meta):
 			username : string
 				All objects belonging to the specified user
 		"""
-		return (cls(name[0], name[1], connection) for name in cls.iternames(connection, owner))
+		return (cls(name[0], name[1], connection) for name in cls.names(connection, owner))
 
 
 class Sequence(MixinNormalDates, Object):
@@ -1093,7 +1093,7 @@ class Sequence(MixinNormalDates, Object):
 		code = "create sequence {}\n{}".format(self.getfullname(), code[3])
 		return code
 
-	def iterreferences(self, connection=None, done=None):
+	def references(self, connection=None, done=None):
 		# Shortcut: a sequence doesn't depend on anything
 		if False:
 			yield None
@@ -1224,7 +1224,7 @@ class Table(MixinNormalDates, Object):
 		return "heap" if rec.iot_type is None else "index"
 
 	@classmethod
-	def iternames(cls, connection, owner=ALL):
+	def names(cls, connection, owner=ALL):
 		# Skip tables that are materialized views
 		cursor = connection.cursor()
 		if owner is None:
@@ -1235,7 +1235,7 @@ class Table(MixinNormalDates, Object):
 			cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {0}_tables where table_name not like 'BIN$%' and table_name not like 'DR$%' and owner=:owner minus select decode(owner, user, null, owner) as owner, mview_name as table_name from {0}_mviews where owner=:owner order by table_name".format(cursor.ddprefix()), owner=owner)
 		return ((row.table_name, row.owner) for row in cursor)
 
-	def itercolumns(self, connection=None):
+	def columns(self, connection=None):
 		"""
 		Generator that yields all column objects of this table.
 		"""
@@ -1243,7 +1243,7 @@ class Table(MixinNormalDates, Object):
 		cursor.execute("select column_name from {}_tab_columns where owner=nvl(:owner, user) and table_name=:name order by column_id".format(cursor.ddprefix()), owner=self.owner, name=self.name)
 		return (Column("{}.{}".format(self.name, rec.column_name), self.owner, connection) for rec in cursor)
 
-	def iterrecords(self, connection=None):
+	def records(self, connection=None):
 		"""
 		Generator that yields all records of this table.
 		"""
@@ -1252,7 +1252,7 @@ class Table(MixinNormalDates, Object):
 		cursor.execute(query)
 		return iter(cursor)
 
-	def itercomments(self, connection=None):
+	def comments(self, connection=None):
 		"""
 		Generator that yields all column comments of this table.
 		"""
@@ -1266,7 +1266,7 @@ class Table(MixinNormalDates, Object):
 		types = {"P": PrimaryKey, "U": UniqueConstraint, "R": ForeignKey, "C": CheckConstraint}
 		return (types[rec.constraint_type](rec.constraint_name, rec.owner, connection) for rec in cursor)
 
-	def iterconstraints(self, connection=None):
+	def constraints(self, connection=None):
 		"""
 		Generator that yields all constraints for this table.
 		"""
@@ -1279,7 +1279,7 @@ class Table(MixinNormalDates, Object):
 		"""
 		return misc.first(self._iterconstraints(connection, "= 'P'"), None)
 
-	def iterreferences(self, connection=None):
+	def references(self, connection=None):
 		connection = self.getconnection(connection)
 		# A table doesn't depend on anything ...
 		mview = self.mview(connection)
@@ -1287,11 +1287,11 @@ class Table(MixinNormalDates, Object):
 			# ... unless it was created by a materialized view, in which case it depends on the view
 			yield mview
 
-	def iterreferencedby(self, connection=None):
+	def referencedby(self, connection=None):
 		if not self.ismview(connection):
-			yield from self.itercomments(connection)
-			yield from self.iterconstraints(connection)
-		for obj in super().iterreferencedby(connection):
+			yield from self.comments(connection)
+			yield from self.constraints(connection)
+		for obj in super().referencedby(connection):
 			# skip the materialized view
 			if not isinstance(obj, MaterializedView) or obj.name != self.name or obj.owner != self.owner:
 				yield obj
@@ -1348,11 +1348,11 @@ class Comment(Object):
 	def udate(self, connection=None):
 		return None
 
-	def iterreferences(self, connection=None):
+	def references(self, connection=None):
 		connection = self.getconnection(connection)
 		yield Table(self.name.split(".")[0], self.owner, connection)
 
-	def iterreferencedby(self, connection=None):
+	def referencedby(self, connection=None):
 		if False:
 			yield None
 
@@ -1420,7 +1420,7 @@ class Constraint(Object):
 		return rec[0] == "ENABLED"
 
 	@classmethod
-	def iternames(cls, connection, owner=ALL):
+	def names(cls, connection, owner=ALL):
 		cursor = connection.cursor()
 		if owner is None:
 			cursor.execute("select null as owner, constraint_name from user_constraints where generated='USER NAME' and constraint_type=:type and constraint_name not like 'BIN$%' order by constraint_name", type=cls.constraint_type)
@@ -1452,7 +1452,7 @@ class PrimaryKey(Constraint):
 	type = "pk"
 	constraint_type = "P"
 
-	def itercolumns(self, connection=None):
+	def columns(self, connection=None):
 		"""
 		Return an iterator over the columns this primary key consists of.
 		"""
@@ -1481,14 +1481,14 @@ class PrimaryKey(Constraint):
 			code += "\n"
 		return code
 
-	def iterreferencedby(self, connection=None):
+	def referencedby(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type='R' and r_owner=nvl(:owner, user) and r_constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
 		for rec in cursor.fetchall():
 			yield ForeignKey(rec.constraint_name, rec.owner, connection)
 		# Normally there is an index for this primary key, but we ignore it, as for the purpose of :mod:`orasql` this index doesn't exist
 
-	def iterreferences(self, connection=None):
+	def references(self, connection=None):
 		yield self.table(connection)
 
 
@@ -1519,12 +1519,12 @@ class ForeignKey(Constraint):
 			code += "\n"
 		return code
 
-	def iterreferencedby(self, connection=None):
+	def referencedby(self, connection=None):
 		# Shortcut: Nobody references a foreign key
 		if False:
 			yield None
 
-	def iterreferences(self, connection=None):
+	def references(self, connection=None):
 		yield self.table(connection)
 		yield self.pk(connection)
 
@@ -1537,7 +1537,7 @@ class ForeignKey(Constraint):
 		rec = cursor.fetchone()
 		return PrimaryKey(rec.r_constraint_name, rec.r_owner, connection)
 
-	def itercolumns(self, connection=None):
+	def columns(self, connection=None):
 		"""
 		Return an iterator over the columns this foreign key consists of.
 		"""
@@ -1571,7 +1571,7 @@ class UniqueConstraint(Constraint):
 			code += "\n"
 		return code
 
-	def iterreferencedby(self, connection=None):
+	def referencedby(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select decode(owner, user, null, owner) as owner, constraint_name from {}_constraints where constraint_type='R' and r_owner=nvl(:owner, user) and r_constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
 		for rec in cursor.fetchall():
@@ -1579,7 +1579,7 @@ class UniqueConstraint(Constraint):
 
 		# Normally there is an index for this constraint, but we ignore it, as for the purpose of :mod:`orasql` this index doesn't exist
 
-	def iterreferences(self, connection=None):
+	def references(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {}_constraints where constraint_type='U' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
 		for rec in cursor.fetchall():
@@ -1609,12 +1609,12 @@ class CheckConstraint(Constraint):
 			code += "\n"
 		return code
 
-	def iterreferencedby(self, connection=None):
+	def referencedby(self, connection=None):
 		# Shortcut: Nobody references a check constraint
 		if False:
 			yield None
 
-	def iterreferences(self, connection=None):
+	def references(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		cursor.execute("select decode(owner, user, null, owner) as owner, table_name from {}_constraints where constraint_type='C' and owner=nvl(:owner, user) and constraint_name=:name".format(cursor.ddprefix()), owner=self.owner, name=self.name)
 		for rec in cursor.fetchall():
@@ -1687,7 +1687,7 @@ class Index(MixinNormalDates, Object):
 		return code
 
 	@classmethod
-	def iternames(cls, connection, owner=ALL):
+	def names(cls, connection, owner=ALL):
 		# We skip those indexes that are generated by a constraint
 		cursor = connection.cursor()
 		if owner is None:
@@ -1725,7 +1725,7 @@ class Index(MixinNormalDates, Object):
 		"""
 		return self.constraint(connection) is not None
 
-	def iterreferences(self, connection=None):
+	def references(self, connection=None):
 		constraint = self.constraint(connection)
 		# if self is generated by a constraint (i.e. ``constraint`` is not :const:`None`), we ignore all dependencies (such an index is never produced be :meth:`iterobjects`)
 		if constraint is None:
@@ -1748,7 +1748,7 @@ class Index(MixinNormalDates, Object):
 					elif parameter.lower() in ("datastore", "lexer", "stoplist", "wordlist"):
 						foundparameter = parameter
 
-			yield from super().iterreferences(connection)
+			yield from super().references(connection)
 
 	def table(self, connection=None):
 		"""
@@ -1759,7 +1759,7 @@ class Index(MixinNormalDates, Object):
 		rec = cursor.fetchone()
 		return Table(rec.table_name, rec.table_owner, connection)
 
-	def itercolumns(self, connection=None):
+	def columns(self, connection=None):
 		"""
 		Return an iterator over the columns this index consists of.
 		"""
@@ -1838,7 +1838,7 @@ class Synonym(Object):
 	def udate(self, connection=None):
 		return None
 
-	def iterreferences(self, connection=None, done=None):
+	def references(self, connection=None, done=None):
 		# Shortcut: a synonym doesn't depend on anything
 		if False:
 			yield None
@@ -1894,7 +1894,7 @@ class View(MixinNormalDates, Object):
 		code = "create or replace force view {} {}".format(self.getfullname(), code[6])
 		return code
 
-	def iterrecords(self, connection=None):
+	def records(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		query = "select * from {}".format(self.getfullname())
 		cursor.execute(query)
@@ -1940,13 +1940,13 @@ class MaterializedView(View):
 		code = "create materialized view {} {}".format(self.getfullname(), code[4])
 		return code
 
-	def iterreferences(self, connection=None):
+	def references(self, connection=None):
 		# skip the table
-		for obj in super().iterreferences(connection):
+		for obj in super().references(connection):
 			if not isinstance(obj, Table) or obj.name != self.name or obj.owner != self.owner:
 				yield obj
 
-	def iterreferencedby(self, connection=None):
+	def referencedby(self, connection=None):
 		connection = self.getconnection(connection)
 		yield Table(self.name, self.owner, connection)
 
@@ -2114,7 +2114,7 @@ class Callable(MixinNormalDates, MixinCodeSQL, Object):
 		name2index = dict(zip(index2name, itertools.count()))
 		return Record(index2name, name2index, values)
 
-	def iterarguments(self, connection=None):
+	def arguments(self, connection=None):
 		"""
 		Generator that yields all arguments of the function/procedure :obj:`self`.
 		"""
@@ -2329,10 +2329,10 @@ class Privilege:
 	connectstring = property(getconnectstring)
 
 	@classmethod
-	def iterobjects(cls, connection, owner=ALL):
+	def objects(cls, connection, owner=ALL):
 		"""
 		Generator that yields object privileges. For the meaning of :obj:`owner`
-		see :meth:`Object.iternames`.
+		see :meth:`Object.names`.
 		"""
 		cursor = connection.cursor() # can't use :meth:`getcursor` as we're in a classmethod
 
@@ -2499,12 +2499,12 @@ class Column(Object):
 		# The column modification date is the table modification date
 		return self.table().udate(connection)
 
-	def iterreferences(self, connection=None):
+	def references(self, connection=None):
 		connection = self.getconnection(connection)
 		name = self.name.split(".")
 		yield Table(name[0], self.owner, connection)
 
-	def iterreferencedby(self, connection=None):
+	def referencedby(self, connection=None):
 		if False:
 			yield None
 
@@ -2593,7 +2593,7 @@ class User:
 		return rec is not None
 
 	@classmethod
-	def iternames(cls, connection):
+	def names(cls, connection):
 		"""
 		Generator that yields the names of all users in ascending order
 		"""
@@ -2602,11 +2602,11 @@ class User:
 		return (row.username for row in cursor)
 
 	@classmethod
-	def iterobjects(cls, connection):
+	def objects(cls, connection):
 		"""
 		Generator that yields all user objects.
 		"""
-		return (cls(name[0], connection) for name in cls.iternames(connection))
+		return (cls(name[0], connection) for name in cls.names(connection))
 
 
 class Preference(Object):
@@ -2653,17 +2653,17 @@ class Preference(Object):
 	def udate(self, connection=None):
 		return None
 
-	def iterreferencedby(self, connection=None):
+	def referencedby(self, connection=None):
 		# FIXME: Parse the parameters of all domain indexes and output those indexes here that reference us in any of their parameters
 		if False:
 			yield None
 
-	def iterreferences(self, connection=None, done=None):
+	def references(self, connection=None, done=None):
 		if False:
 			yield None
 
 	@classmethod
-	def iternames(cls, connection, owner=ALL):
+	def names(cls, connection, owner=ALL):
 		"""
 		Generator that yields the names of all preferences.
 		"""
@@ -2684,11 +2684,11 @@ class Preference(Object):
 			return ((row.pre_name, row.owner) for row in cursor)
 
 	@classmethod
-	def iterobjects(cls, connection, owner=ALL):
+	def objects(cls, connection, owner=ALL):
 		"""
 		Generator that yields all preferences.
 		"""
-		return (cls(name[0], name[1], connection) for name in cls.iternames(connection, owner=owner))
+		return (cls(name[0], name[1], connection) for name in cls.names(connection, owner=owner))
 
 
 ###
@@ -2858,13 +2858,13 @@ class OracleURLConnection(url_.Connection):
 				class_ = Object.name2type[type]
 			except KeyError:
 				raise FileNotFoundError(errno.ENOENT, "no such file or directory: {!r}".format(url)) from None
-			for (name, owner) in class_.iternames(self.dbconnection, None):
+			for (name, owner) in class_.names(self.dbconnection, None):
 				if cursor.file:
 					yield _event(url / "{}.sql".format(makeurl(name)), "file")
 					cursor.restore()
 		elif type == "allusers": # directory of all users
 			path = url.path
-			for name in User.iternames(self.dbconnection):
+			for name in User.names(self.dbconnection):
 				yield from _dir("{}/".format(makeurl(name)))
 		elif type == "user": # directory of types for a specific user
 			path = absurl.path
@@ -2878,7 +2878,7 @@ class OracleURLConnection(url_.Connection):
 				class_ = Object.name2type[type]
 			except KeyError:
 				raise FileNotFoundError(errno.ENOENT, "no such file or directory: {!r}".format(url)) from None
-			for (name, owner) in class_.iternames(self.dbconnection, path[1]):
+			for (name, owner) in class_.names(self.dbconnection, path[1]):
 				if cursor.file:
 					yield _event(url / "{}.sql".format(makeurl(name)), "file")
 					cursor.restore()

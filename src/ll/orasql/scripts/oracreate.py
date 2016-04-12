@@ -143,7 +143,7 @@ def main(args=None):
 			return False
 		return True
 
-	for (i, obj) in enumerate(connection.iterobjects(owner=None, mode="create")):
+	for (i, obj) in enumerate(connection.objects(owner=None, mode="create")):
 		keepobj = keep(obj)
 		if args.verbose:
 			if args.execute:

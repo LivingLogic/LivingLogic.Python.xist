@@ -86,7 +86,7 @@ def main(args=None):
 
 	cs = s4connectstring(connection.connectstring())
 
-	for (i, obj) in enumerate(itertools.chain(orasql.Index.iterobjects(connection, owner=None), orasql.UniqueConstraint.iterobjects(connection, owner=None))):
+	for (i, obj) in enumerate(itertools.chain(orasql.Index.objects(connection, owner=None), orasql.UniqueConstraint.objects(connection, owner=None))):
 		rebuild = args.rebuild and isinstance(obj, orasql.Index)
 		# Progress report
 		if args.verbose:

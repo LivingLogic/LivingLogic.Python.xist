@@ -169,7 +169,7 @@ def main(args=None):
 	def fetch(connection, name):
 		objects = set()
 
-		for (i, obj) in enumerate(connection.iterobjects(owner=None, mode="flat")):
+		for (i, obj) in enumerate(connection.objects(owner=None, mode="flat")):
 			keep = ("$" not in obj.name and not obj.name.startswith("SYS_EXPORT_SCHEMA_")) or args.keepjunk
 			if args.verbose:
 				msg = astyle.style_default("oramerge.py: ", cs(connection), connid(name), " fetching #{} ".format(i+1), df(obj))
@@ -259,9 +259,9 @@ def main(args=None):
 			if sql1 != sql2: # ignore changes between sql2 and sql3 here too
 				# If it's a table, we do not output a merged "create table" statement, but the appropriate "alter table" statements
 				if isinstance(obj, orasql.Table):
-					fields1 = set(obj.itercolumns(connection1))
-					fields2 = set(obj.itercolumns(connection2))
-					fields3 = set(obj.itercolumns(connection3))
+					fields1 = set(obj.columns(connection1))
+					fields2 = set(obj.columns(connection2))
+					fields3 = set(obj.columns(connection3))
 					fieldcountcreate = 0
 					fieldcountdrop = 0
 					fieldcountmerge = 0

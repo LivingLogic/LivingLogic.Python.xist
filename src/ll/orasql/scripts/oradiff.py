@@ -220,7 +220,7 @@ def main(args=None):
 				return False
 			return True
 
-		for (i, obj) in enumerate(connection.iterobjects(owner=None, mode=mode)):
+		for (i, obj) in enumerate(connection.objects(owner=None, mode=mode)):
 			keepdef = keep(obj)
 			if args.verbose:
 				msg = astyle.style_default("oradiff.py: ", cs(connection), ": fetching #{} ".format(i+1), df(obj))

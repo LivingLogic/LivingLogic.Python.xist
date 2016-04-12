@@ -128,7 +128,7 @@ def main(args=None):
 		return True
 
 	sqls = []
-	for (i, obj) in enumerate(connection.iterobjects(owner=None, mode="drop")):
+	for (i, obj) in enumerate(connection.objects(owner=None, mode="drop")):
 		keepdef = keep(obj)
 		# Get SQL
 		sql = ""

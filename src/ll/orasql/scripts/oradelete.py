@@ -125,7 +125,7 @@ def main(args=None):
 			return False
 		return True
 
-	for (i, obj) in enumerate(connection.itertables(owner=None, mode="drop")):
+	for (i, obj) in enumerate(connection.tables(owner=None, mode="drop")):
 		keepobj = keep(obj)
 		# Progress report
 		if args.verbose:
@@ -159,7 +159,7 @@ def main(args=None):
 		connection.commit()
 
 	if args.sequences:
-		for (i, obj) in enumerate(connection.itersequences(owner=None)):
+		for (i, obj) in enumerate(connection.sequences(owner=None)):
 			keepobj = keep(obj)
 			# Progress report
 			if args.verbose:
