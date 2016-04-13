@@ -4,25 +4,10 @@ Migrating to version 5.16
 Changes to :mod:`orasql`
 ------------------------
 
-:mod:`orasql` no longer hides database objects that are created by Oracle
-automatically when other objects are created (i.e. the table for a
-materialized view or the index for a primary key constraint). Instead all
-objects have a new method :meth:`generated` that returns whether this object
-was automatically generated or not. To update your code replace::
-
-	db.iterobjects(...)
-
-with::
-
-	(o for o in db.iterobjects(...) if not o.generated())
-
-Most methods of :mod:`orasql` object no longer have a ``connection`` argument,
-instead the always produce the SQL for the object in the database from which the
-object was created (and cache that SQL). If the object was created without
-a database connection (or the SQL from a different database is needed), the
-method :meth:`connect` can be used to connect to a diffenent database, or the
-method :meth:`fromconnection` can be used to create a new object that is
-connected to a different database.
+Some methods in :mod:`orasql` have been renamed: Iterating methods no longer
+have ``iter`` in their name (e.g. :meth:`itertables` is now simply called
+:meth:`tables`). The ``ddl`` part of some method names has been changed to
+``sql`` (e.g. :meth:`createddl` is now called :meth:`createsql`).
 
 
 Migrating to version 5.15
