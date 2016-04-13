@@ -1145,8 +1145,15 @@ class Table(MixinNormalDates, Object):
 		(connection, cursor) = self.getcursor(connection)
 		if self.ismview(connection):
 			return ""
+
+		ddprefix = cursor.ddprefix()
+
+		# Find the fields that where used for an inline primary key constraint, as we want to regenerate it as part of the create table statement
+		cursor.execute("select column_name from {ddprefix}_constraints c, {ddprefix}_cons_columns cc where c.constraint_type='P' and c.generated = 'GENERATED NAME' and c.owner=nvl(:owner, user) and c.table_name=:name and c.constraint_name=cc.constraint_name".format(ddprefix=ddprefix), owner=self.owner, name=self.name)
+		_inlinepkfields = {rec.column_name for rec in cursor}
+
 		organization = self.organization(connection)
-		cursor.execute("select * from {}_tab_columns where owner=nvl(:owner, user) and table_name=:name order by column_id asc".format(cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute("select * from {}_tab_columns where owner=nvl(:owner, user) and table_name=:name order by column_id asc".format(ddprefix), owner=self.owner, name=self.name)
 		recs = cursor.fetchall()
 		code = ["create table {}\n(\n".format(self.getfullname())]
 		for (i, rec) in enumerate(recs):
@@ -1158,6 +1165,8 @@ class Table(MixinNormalDates, Object):
 				code.append(" default {}".format(default))
 			if rec.nullable == "N":
 				code.append(" not null")
+			if rec.column_name in _inlinepkfields:
+				code.append(" primary key")
 		if term:
 			code.append("\n);\n")
 		else:

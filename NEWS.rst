@@ -3,6 +3,8 @@ Changes in 5.16 (released ??/??/2016)
 
 *	:mod:`orasql` now supports check constraints.
 
+*	:mod:`orasql` now handles inline primary key constraints properly.
+
 *	The scripts ``oracreate``, ``oradelete``, ``oradrop``, ``oragrant``,
 	``orareindex`` and ``oradiff`` have a new option :option:`--format`.
 	The option value ``pysql`` switches the output format to PySQL.
