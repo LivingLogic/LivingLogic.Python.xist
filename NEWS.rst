@@ -9,7 +9,7 @@ Changes in 5.16 (released 04/13/2016)
 	``orareindex`` and ``oradiff`` have a new option :option:`--format`.
 	The option value ``pysql`` switches the output format to PySQL.
 
-*	Prodecure and function source code created by :mod:`ll.orasql` will now
+*	Procedure and function source code created by :mod:`ll.orasql` will now
 	no longer have a linefeed introduced before the parameter list.
 
 *	:class:`orasql.Comment` objects now work even if the comment contains
