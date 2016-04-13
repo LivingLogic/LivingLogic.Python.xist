@@ -1,4 +1,4 @@
-Changes in 5.16 (released ??/??/2016)
+Changes in 5.16 (released 04/13/2016)
 -------------------------------------
 
 *	:mod:`orasql` now supports check constraints.
