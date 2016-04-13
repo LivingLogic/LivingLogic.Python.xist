@@ -94,6 +94,7 @@ s4changedfile = astyle.Style.fromenv("LL_ORASQL_REPRANSI_CHANGEDFILE", "black:bl
 s4changedline = astyle.Style.fromenv("LL_ORASQL_REPRANSI_CHANGEDLINE", "blue:black")
 s4pos = astyle.Style.fromenv("LL_ORASQL_REPRANSI_POS", "black:black:bold")
 s4connectstring = astyle.Style.fromenv("LL_ORASQL_REPRANSI_CONNECTSTRING", "yellow:black")
+s4connid = astyle.Style.fromenv("LL_ORASQL_REPRANSI_NOTE", "yellow:black:bold")
 s4object = astyle.Style.fromenv("LL_ORASQL_REPRANSI_OBJECT", "green:black")
 
 
@@ -107,6 +108,10 @@ def df(obj):
 
 def comment(*texts):
 	return s4comment("-- ", *texts)
+
+
+def connid(name):
+	return s4connid("[{}]".format(name))
 
 
 def gettimestamp(obj, connection, format):
@@ -212,7 +217,7 @@ def main(args=None):
 	connection1 = orasql.connect(args.connectstring1)
 	connection2 = orasql.connect(args.connectstring2)
 
-	def fetch(connection, mode="flat"):
+	def fetch(connection, name, mode="flat"):
 		objectset = set()
 		objectlist = []
 
@@ -228,7 +233,7 @@ def main(args=None):
 		for (i, obj) in enumerate(connection.objects(owner=None, mode=mode)):
 			keepdef = keep(obj)
 			if args.verbose:
-				msg = astyle.style_default("oradiff.py: ", cs(connection), ": fetching #{:,} ".format(i+1), df(obj))
+				msg = astyle.style_default("oradiff.py: ", cs(connection), connid(name), ": fetching #{:,} ".format(i+1), df(obj))
 				if not keepdef:
 					msg = astyle.style_default(msg, " ", s4warning("(skipped)"))
 				stderr.writeln(msg)
@@ -237,8 +242,8 @@ def main(args=None):
 				objectlist.append(obj)
 		return (objectset, objectlist)
 
-	(objectset1, objectlist1) = fetch(connection1, mode="drop")
-	(objectset2, objectlist2) = fetch(connection2, mode="create")
+	(objectset1, objectlist1) = fetch(connection1, 1, mode="drop")
+	(objectset2, objectlist2) = fetch(connection2, 2, mode="create")
 
 	# If we output in full mode the resulting SQL script should be usable, so
 	# we try to iterate the object in the appropriate order
