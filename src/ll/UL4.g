@@ -41,7 +41,7 @@ def endpos(self, token):
 
 @rulecatch {
 except RecognitionException as e:
-    raise
+	raise
 }
 
 NONE
