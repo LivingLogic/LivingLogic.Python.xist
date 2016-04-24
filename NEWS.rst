@@ -1,3 +1,10 @@
+Changes in 5.17 (released ??/??/2016)
+-------------------------------------
+
+*	Changed the internal structure of UL4 templates to simplify exception
+	handling.
+
+
 Changes in 5.16 (released 04/13/2016)
 -------------------------------------
 

@@ -669,7 +669,10 @@ statement returns [node]
 
 definition returns [node]
 	:
-		n=name { $node = ($n.text, None); }
+		{ $node = (None, None); }
+		(
+			n=name { $node = ($n.text, None); }
+		)?
 		(
 			sig=signature { $node = ($node[0], $signature.node); }
 		)?

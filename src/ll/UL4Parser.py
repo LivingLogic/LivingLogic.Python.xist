@@ -1,4 +1,4 @@
-# $ANTLR 3.5 src/ll/UL4.g 2016-02-15 18:06:10
+# $ANTLR 3.5 src/ll/UL4.g 2016-04-24 14:10:42
 
 import sys
 from antlr3 import *
@@ -178,7 +178,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -214,7 +214,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -250,7 +250,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -286,7 +286,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -322,7 +322,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -388,7 +388,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -424,7 +424,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -460,7 +460,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -509,7 +509,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -706,7 +706,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -781,7 +781,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -932,7 +932,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -1022,7 +1022,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -1175,7 +1175,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -1265,7 +1265,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -1348,7 +1348,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -1499,7 +1499,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -1597,7 +1597,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -1694,7 +1694,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -1948,7 +1948,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -2134,7 +2134,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -2234,7 +2234,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -2245,7 +2245,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "argument"
-    # src/ll/UL4.g:424:1: fragment argument returns [node] : (e= exprarg |en= name '=' ev= exprarg |star= '**' es= exprarg |star= '*' es= exprarg );
+    # src/ll/UL4.g:424:1: fragment argument returns [node] : (e= exprarg |en= name '=' ev= exprarg |star= '*' es= exprarg |star= '**' es= exprarg );
     def argument(self, ):
         node = None
 
@@ -2258,7 +2258,7 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:425:2: (e= exprarg |en= name '=' ev= exprarg |star= '**' es= exprarg |star= '*' es= exprarg )
+                # src/ll/UL4.g:425:2: (e= exprarg |en= name '=' ev= exprarg |star= '*' es= exprarg |star= '**' es= exprarg )
                 alt24 = 4
                 LA24 = self.input.LA(1)
                 if LA24 == COLOR or LA24 == DATE or LA24 == FALSE or LA24 == FLOAT or LA24 == INT or LA24 == NONE or LA24 == STRING or LA24 == STRING3 or LA24 == TRUE or LA24 == 32 or LA24 == 40 or LA24 == 58 or LA24 == 68 or LA24 == 70 or LA24 == 74:
@@ -2280,9 +2280,9 @@ class UL4Parser(Parser):
                         raise nvae
 
 
-                elif LA24 == 35:
-                    alt24 = 3
                 elif LA24 == 34:
+                    alt24 = 3
+                elif LA24 == 35:
                     alt24 = 4
                 else:
                     if self._state.backtracking > 0:
@@ -2332,28 +2332,11 @@ class UL4Parser(Parser):
 
 
                 elif alt24 == 3:
-                    # src/ll/UL4.g:430:3: star= '**' es= exprarg
+                    # src/ll/UL4.g:430:3: star= '*' es= exprarg
                     pass 
-                    star = self.match(self.input, 35, self.FOLLOW_35_in_argument2038)
+                    star = self.match(self.input, 34, self.FOLLOW_34_in_argument2038)
 
                     self._state.following.append(self.FOLLOW_exprarg_in_argument2044)
-                    es = self.exprarg()
-
-                    self._state.following.pop()
-
-                    if self._state.backtracking == 0:
-                        pass
-                        node = ul4c.UnpackDictArg(self.tag, self.startpos(star), es.endpos, es) 
-
-
-
-
-                elif alt24 == 4:
-                    # src/ll/UL4.g:433:3: star= '*' es= exprarg
-                    pass 
-                    star = self.match(self.input, 34, self.FOLLOW_34_in_argument2055)
-
-                    self._state.following.append(self.FOLLOW_exprarg_in_argument2061)
                     es = self.exprarg()
 
                     self._state.following.pop()
@@ -2365,10 +2348,27 @@ class UL4Parser(Parser):
 
 
 
+                elif alt24 == 4:
+                    # src/ll/UL4.g:433:3: star= '**' es= exprarg
+                    pass 
+                    star = self.match(self.input, 35, self.FOLLOW_35_in_argument2055)
+
+                    self._state.following.append(self.FOLLOW_exprarg_in_argument2061)
+                    es = self.exprarg()
+
+                    self._state.following.pop()
+
+                    if self._state.backtracking == 0:
+                        pass
+                        node = ul4c.UnpackDictArg(self.tag, self.startpos(star), es.endpos, es) 
+
+
+
+
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -2585,7 +2585,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -2679,7 +2679,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -2720,7 +2720,7 @@ class UL4Parser(Parser):
                     LA31_0 = self.input.LA(1)
 
                     if (LA31_0 == 34) :
-                        LA31_42 = self.input.LA(2)
+                        LA31_41 = self.input.LA(2)
 
                         if (self.synpred54_UL4()) :
                             alt31 = 1
@@ -2825,7 +2825,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -2944,7 +2944,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -3056,7 +3056,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -3126,7 +3126,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -3196,7 +3196,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -3266,7 +3266,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -3513,7 +3513,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -3588,7 +3588,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -3658,7 +3658,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -3728,7 +3728,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -3804,7 +3804,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -4143,7 +4143,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -4486,7 +4486,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -4535,7 +4535,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -5387,7 +5387,7 @@ class UL4Parser(Parser):
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -5398,7 +5398,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "definition"
-    # src/ll/UL4.g:670:1: definition returns [node] : n= name (sig= signature )? EOF ;
+    # src/ll/UL4.g:670:1: definition returns [node] : (n= name )? (sig= signature )? EOF ;
     def definition(self, ):
         node = None
 
@@ -5408,30 +5408,48 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:671:2: (n= name (sig= signature )? EOF )
-                # src/ll/UL4.g:672:3: n= name (sig= signature )? EOF
+                # src/ll/UL4.g:671:2: ( (n= name )? (sig= signature )? EOF )
+                # src/ll/UL4.g:672:3: (n= name )? (sig= signature )? EOF
                 pass 
-                self._state.following.append(self.FOLLOW_name_in_definition3412)
-                n = self.name()
-
-                self._state.following.pop()
-
                 if self._state.backtracking == 0:
                     pass
-                    node =  (((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], None) 
+                    node =  (None, None) 
 
 
 
-                # src/ll/UL4.g:673:3: (sig= signature )?
+                # src/ll/UL4.g:673:3: (n= name )?
                 alt48 = 2
                 LA48_0 = self.input.LA(1)
 
-                if (LA48_0 == 32) :
+                if (LA48_0 == NAME) :
                     alt48 = 1
                 if alt48 == 1:
-                    # src/ll/UL4.g:674:4: sig= signature
+                    # src/ll/UL4.g:674:4: n= name
                     pass 
-                    self._state.following.append(self.FOLLOW_signature_in_definition3425)
+                    self._state.following.append(self.FOLLOW_name_in_definition3421)
+                    n = self.name()
+
+                    self._state.following.pop()
+
+                    if self._state.backtracking == 0:
+                        pass
+                        node =  (((n is not None) and [self.input.toString(n.start,n.stop)] or [None])[0], None) 
+
+
+
+
+
+
+                # src/ll/UL4.g:676:3: (sig= signature )?
+                alt49 = 2
+                LA49_0 = self.input.LA(1)
+
+                if (LA49_0 == 32) :
+                    alt49 = 1
+                if alt49 == 1:
+                    # src/ll/UL4.g:677:4: sig= signature
+                    pass 
+                    self._state.following.append(self.FOLLOW_signature_in_definition3439)
                     sig = self.signature()
 
                     self._state.following.pop()
@@ -5445,14 +5463,14 @@ class UL4Parser(Parser):
 
 
 
-                self.match(self.input, EOF, self.FOLLOW_EOF_in_definition3436)
+                self.match(self.input, EOF, self.FOLLOW_EOF_in_definition3450)
 
 
 
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -5463,7 +5481,7 @@ class UL4Parser(Parser):
 
 
     # $ANTLR start "signature"
-    # src/ll/UL4.g:681:1: signature returns [node] : open= '(' (| '**' rkwargsname= name ( ',' )? | '*' rargsname= name ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name '=' adefault1= exprarg ( ',' aname2= name '=' adefault2= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name ( ',' aname2= name )* ( ',' aname3= name '=' adefault3= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? ) close= ')' EOF ;
+    # src/ll/UL4.g:684:1: signature returns [node] : open= '(' (| '**' rkwargsname= name ( ',' )? | '*' rargsname= name ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name '=' adefault1= exprarg ( ',' aname2= name '=' adefault2= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name ( ',' aname2= name )* ( ',' aname3= name '=' adefault3= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? ) close= ')' EOF ;
     def signature(self, ):
         node = None
 
@@ -5481,10 +5499,10 @@ class UL4Parser(Parser):
 
         try:
             try:
-                # src/ll/UL4.g:682:2: (open= '(' (| '**' rkwargsname= name ( ',' )? | '*' rargsname= name ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name '=' adefault1= exprarg ( ',' aname2= name '=' adefault2= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name ( ',' aname2= name )* ( ',' aname3= name '=' adefault3= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? ) close= ')' EOF )
-                # src/ll/UL4.g:683:2: open= '(' (| '**' rkwargsname= name ( ',' )? | '*' rargsname= name ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name '=' adefault1= exprarg ( ',' aname2= name '=' adefault2= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name ( ',' aname2= name )* ( ',' aname3= name '=' adefault3= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? ) close= ')' EOF
+                # src/ll/UL4.g:685:2: (open= '(' (| '**' rkwargsname= name ( ',' )? | '*' rargsname= name ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name '=' adefault1= exprarg ( ',' aname2= name '=' adefault2= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name ( ',' aname2= name )* ( ',' aname3= name '=' adefault3= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? ) close= ')' EOF )
+                # src/ll/UL4.g:686:2: open= '(' (| '**' rkwargsname= name ( ',' )? | '*' rargsname= name ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name '=' adefault1= exprarg ( ',' aname2= name '=' adefault2= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name ( ',' aname2= name )* ( ',' aname3= name '=' adefault3= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? ) close= ')' EOF
                 pass 
-                open = self.match(self.input, 32, self.FOLLOW_32_in_signature3457)
+                open = self.match(self.input, 32, self.FOLLOW_32_in_signature3471)
 
                 if self._state.backtracking == 0:
                     pass
@@ -5492,28 +5510,28 @@ class UL4Parser(Parser):
 
 
 
-                # src/ll/UL4.g:684:2: (| '**' rkwargsname= name ( ',' )? | '*' rargsname= name ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name '=' adefault1= exprarg ( ',' aname2= name '=' adefault2= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name ( ',' aname2= name )* ( ',' aname3= name '=' adefault3= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? )
-                alt61 = 5
-                LA61 = self.input.LA(1)
-                if LA61 == 33:
-                    alt61 = 1
-                elif LA61 == 35:
-                    alt61 = 2
-                elif LA61 == 34:
-                    alt61 = 3
-                elif LA61 == NAME:
-                    LA61_4 = self.input.LA(2)
+                # src/ll/UL4.g:687:2: (| '**' rkwargsname= name ( ',' )? | '*' rargsname= name ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name '=' adefault1= exprarg ( ',' aname2= name '=' adefault2= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? |aname1= name ( ',' aname2= name )* ( ',' aname3= name '=' adefault3= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )? )
+                alt62 = 5
+                LA62 = self.input.LA(1)
+                if LA62 == 33:
+                    alt62 = 1
+                elif LA62 == 35:
+                    alt62 = 2
+                elif LA62 == 34:
+                    alt62 = 3
+                elif LA62 == NAME:
+                    LA62_4 = self.input.LA(2)
 
-                    if (LA61_4 == 52) :
-                        alt61 = 4
-                    elif (LA61_4 == 33 or LA61_4 == 39) :
-                        alt61 = 5
+                    if (LA62_4 == 52) :
+                        alt62 = 4
+                    elif (LA62_4 == 33 or LA62_4 == 39) :
+                        alt62 = 5
                     else:
                         if self._state.backtracking > 0:
                             raise BacktrackingFailed
 
 
-                        nvae = NoViableAltException("", 61, 4, self.input)
+                        nvae = NoViableAltException("", 62, 4, self.input)
 
                         raise nvae
 
@@ -5523,21 +5541,21 @@ class UL4Parser(Parser):
                         raise BacktrackingFailed
 
 
-                    nvae = NoViableAltException("", 61, 0, self.input)
+                    nvae = NoViableAltException("", 62, 0, self.input)
 
                     raise nvae
 
 
-                if alt61 == 1:
-                    # src/ll/UL4.g:686:2: 
+                if alt62 == 1:
+                    # src/ll/UL4.g:689:2: 
                     pass 
 
-                elif alt61 == 2:
-                    # src/ll/UL4.g:688:3: '**' rkwargsname= name ( ',' )?
+                elif alt62 == 2:
+                    # src/ll/UL4.g:691:3: '**' rkwargsname= name ( ',' )?
                     pass 
-                    self.match(self.input, 35, self.FOLLOW_35_in_signature3477)
+                    self.match(self.input, 35, self.FOLLOW_35_in_signature3491)
 
-                    self._state.following.append(self.FOLLOW_name_in_signature3481)
+                    self._state.following.append(self.FOLLOW_name_in_signature3495)
                     rkwargsname = self.name()
 
                     self._state.following.pop()
@@ -5548,27 +5566,27 @@ class UL4Parser(Parser):
 
 
 
-                    # src/ll/UL4.g:689:3: ( ',' )?
-                    alt49 = 2
-                    LA49_0 = self.input.LA(1)
+                    # src/ll/UL4.g:692:3: ( ',' )?
+                    alt50 = 2
+                    LA50_0 = self.input.LA(1)
 
-                    if (LA49_0 == 39) :
-                        alt49 = 1
-                    if alt49 == 1:
-                        # src/ll/UL4.g:689:3: ','
+                    if (LA50_0 == 39) :
+                        alt50 = 1
+                    if alt50 == 1:
+                        # src/ll/UL4.g:692:3: ','
                         pass 
-                        self.match(self.input, 39, self.FOLLOW_39_in_signature3487)
+                        self.match(self.input, 39, self.FOLLOW_39_in_signature3501)
 
 
 
 
 
-                elif alt61 == 3:
-                    # src/ll/UL4.g:692:3: '*' rargsname= name ( ',' '**' rkwargsname= name )? ( ',' )?
+                elif alt62 == 3:
+                    # src/ll/UL4.g:695:3: '*' rargsname= name ( ',' '**' rkwargsname= name )? ( ',' )?
                     pass 
-                    self.match(self.input, 34, self.FOLLOW_34_in_signature3499)
+                    self.match(self.input, 34, self.FOLLOW_34_in_signature3513)
 
-                    self._state.following.append(self.FOLLOW_name_in_signature3503)
+                    self._state.following.append(self.FOLLOW_name_in_signature3517)
                     rargsname = self.name()
 
                     self._state.following.pop()
@@ -5579,23 +5597,23 @@ class UL4Parser(Parser):
 
 
 
-                    # src/ll/UL4.g:693:3: ( ',' '**' rkwargsname= name )?
-                    alt50 = 2
-                    LA50_0 = self.input.LA(1)
+                    # src/ll/UL4.g:696:3: ( ',' '**' rkwargsname= name )?
+                    alt51 = 2
+                    LA51_0 = self.input.LA(1)
 
-                    if (LA50_0 == 39) :
-                        LA50_1 = self.input.LA(2)
+                    if (LA51_0 == 39) :
+                        LA51_1 = self.input.LA(2)
 
-                        if (LA50_1 == 35) :
-                            alt50 = 1
-                    if alt50 == 1:
-                        # src/ll/UL4.g:694:4: ',' '**' rkwargsname= name
+                        if (LA51_1 == 35) :
+                            alt51 = 1
+                    if alt51 == 1:
+                        # src/ll/UL4.g:697:4: ',' '**' rkwargsname= name
                         pass 
-                        self.match(self.input, 39, self.FOLLOW_39_in_signature3514)
+                        self.match(self.input, 39, self.FOLLOW_39_in_signature3528)
 
-                        self.match(self.input, 35, self.FOLLOW_35_in_signature3519)
+                        self.match(self.input, 35, self.FOLLOW_35_in_signature3533)
 
-                        self._state.following.append(self.FOLLOW_name_in_signature3523)
+                        self._state.following.append(self.FOLLOW_name_in_signature3537)
                         rkwargsname = self.name()
 
                         self._state.following.pop()
@@ -5609,32 +5627,32 @@ class UL4Parser(Parser):
 
 
 
-                    # src/ll/UL4.g:697:3: ( ',' )?
-                    alt51 = 2
-                    LA51_0 = self.input.LA(1)
+                    # src/ll/UL4.g:700:3: ( ',' )?
+                    alt52 = 2
+                    LA52_0 = self.input.LA(1)
 
-                    if (LA51_0 == 39) :
-                        alt51 = 1
-                    if alt51 == 1:
-                        # src/ll/UL4.g:697:3: ','
+                    if (LA52_0 == 39) :
+                        alt52 = 1
+                    if alt52 == 1:
+                        # src/ll/UL4.g:700:3: ','
                         pass 
-                        self.match(self.input, 39, self.FOLLOW_39_in_signature3534)
+                        self.match(self.input, 39, self.FOLLOW_39_in_signature3548)
 
 
 
 
 
-                elif alt61 == 4:
-                    # src/ll/UL4.g:700:3: aname1= name '=' adefault1= exprarg ( ',' aname2= name '=' adefault2= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )?
+                elif alt62 == 4:
+                    # src/ll/UL4.g:703:3: aname1= name '=' adefault1= exprarg ( ',' aname2= name '=' adefault2= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )?
                     pass 
-                    self._state.following.append(self.FOLLOW_name_in_signature3548)
+                    self._state.following.append(self.FOLLOW_name_in_signature3562)
                     aname1 = self.name()
 
                     self._state.following.pop()
 
-                    self.match(self.input, 52, self.FOLLOW_52_in_signature3552)
+                    self.match(self.input, 52, self.FOLLOW_52_in_signature3566)
 
-                    self._state.following.append(self.FOLLOW_exprarg_in_signature3558)
+                    self._state.following.append(self.FOLLOW_exprarg_in_signature3572)
                     adefault1 = self.exprarg()
 
                     self._state.following.pop()
@@ -5645,33 +5663,33 @@ class UL4Parser(Parser):
 
 
 
-                    # src/ll/UL4.g:703:3: ( ',' aname2= name '=' adefault2= exprarg )*
-                    while True: #loop52
-                        alt52 = 2
-                        LA52_0 = self.input.LA(1)
+                    # src/ll/UL4.g:706:3: ( ',' aname2= name '=' adefault2= exprarg )*
+                    while True: #loop53
+                        alt53 = 2
+                        LA53_0 = self.input.LA(1)
 
-                        if (LA52_0 == 39) :
-                            LA52_1 = self.input.LA(2)
+                        if (LA53_0 == 39) :
+                            LA53_1 = self.input.LA(2)
 
-                            if (LA52_1 == NAME) :
-                                alt52 = 1
-
-
+                            if (LA53_1 == NAME) :
+                                alt53 = 1
 
 
-                        if alt52 == 1:
-                            # src/ll/UL4.g:704:4: ',' aname2= name '=' adefault2= exprarg
+
+
+                        if alt53 == 1:
+                            # src/ll/UL4.g:707:4: ',' aname2= name '=' adefault2= exprarg
                             pass 
-                            self.match(self.input, 39, self.FOLLOW_39_in_signature3569)
+                            self.match(self.input, 39, self.FOLLOW_39_in_signature3583)
 
-                            self._state.following.append(self.FOLLOW_name_in_signature3576)
+                            self._state.following.append(self.FOLLOW_name_in_signature3590)
                             aname2 = self.name()
 
                             self._state.following.pop()
 
-                            self.match(self.input, 52, self.FOLLOW_52_in_signature3581)
+                            self.match(self.input, 52, self.FOLLOW_52_in_signature3595)
 
-                            self._state.following.append(self.FOLLOW_exprarg_in_signature3588)
+                            self._state.following.append(self.FOLLOW_exprarg_in_signature3602)
                             adefault2 = self.exprarg()
 
                             self._state.following.pop()
@@ -5684,26 +5702,26 @@ class UL4Parser(Parser):
 
 
                         else:
-                            break #loop52
+                            break #loop53
 
 
-                    # src/ll/UL4.g:709:3: ( ',' '*' rargsname= name )?
-                    alt53 = 2
-                    LA53_0 = self.input.LA(1)
+                    # src/ll/UL4.g:712:3: ( ',' '*' rargsname= name )?
+                    alt54 = 2
+                    LA54_0 = self.input.LA(1)
 
-                    if (LA53_0 == 39) :
-                        LA53_1 = self.input.LA(2)
+                    if (LA54_0 == 39) :
+                        LA54_1 = self.input.LA(2)
 
-                        if (LA53_1 == 34) :
-                            alt53 = 1
-                    if alt53 == 1:
-                        # src/ll/UL4.g:710:4: ',' '*' rargsname= name
+                        if (LA54_1 == 34) :
+                            alt54 = 1
+                    if alt54 == 1:
+                        # src/ll/UL4.g:713:4: ',' '*' rargsname= name
                         pass 
-                        self.match(self.input, 39, self.FOLLOW_39_in_signature3604)
+                        self.match(self.input, 39, self.FOLLOW_39_in_signature3618)
 
-                        self.match(self.input, 34, self.FOLLOW_34_in_signature3609)
+                        self.match(self.input, 34, self.FOLLOW_34_in_signature3623)
 
-                        self._state.following.append(self.FOLLOW_name_in_signature3613)
+                        self._state.following.append(self.FOLLOW_name_in_signature3627)
                         rargsname = self.name()
 
                         self._state.following.pop()
@@ -5717,23 +5735,23 @@ class UL4Parser(Parser):
 
 
 
-                    # src/ll/UL4.g:713:3: ( ',' '**' rkwargsname= name )?
-                    alt54 = 2
-                    LA54_0 = self.input.LA(1)
+                    # src/ll/UL4.g:716:3: ( ',' '**' rkwargsname= name )?
+                    alt55 = 2
+                    LA55_0 = self.input.LA(1)
 
-                    if (LA54_0 == 39) :
-                        LA54_1 = self.input.LA(2)
+                    if (LA55_0 == 39) :
+                        LA55_1 = self.input.LA(2)
 
-                        if (LA54_1 == 35) :
-                            alt54 = 1
-                    if alt54 == 1:
-                        # src/ll/UL4.g:714:4: ',' '**' rkwargsname= name
+                        if (LA55_1 == 35) :
+                            alt55 = 1
+                    if alt55 == 1:
+                        # src/ll/UL4.g:717:4: ',' '**' rkwargsname= name
                         pass 
-                        self.match(self.input, 39, self.FOLLOW_39_in_signature3629)
+                        self.match(self.input, 39, self.FOLLOW_39_in_signature3643)
 
-                        self.match(self.input, 35, self.FOLLOW_35_in_signature3634)
+                        self.match(self.input, 35, self.FOLLOW_35_in_signature3648)
 
-                        self._state.following.append(self.FOLLOW_name_in_signature3638)
+                        self._state.following.append(self.FOLLOW_name_in_signature3652)
                         rkwargsname = self.name()
 
                         self._state.following.pop()
@@ -5747,25 +5765,25 @@ class UL4Parser(Parser):
 
 
 
-                    # src/ll/UL4.g:717:3: ( ',' )?
-                    alt55 = 2
-                    LA55_0 = self.input.LA(1)
+                    # src/ll/UL4.g:720:3: ( ',' )?
+                    alt56 = 2
+                    LA56_0 = self.input.LA(1)
 
-                    if (LA55_0 == 39) :
-                        alt55 = 1
-                    if alt55 == 1:
-                        # src/ll/UL4.g:717:3: ','
+                    if (LA56_0 == 39) :
+                        alt56 = 1
+                    if alt56 == 1:
+                        # src/ll/UL4.g:720:3: ','
                         pass 
-                        self.match(self.input, 39, self.FOLLOW_39_in_signature3649)
+                        self.match(self.input, 39, self.FOLLOW_39_in_signature3663)
 
 
 
 
 
-                elif alt61 == 5:
-                    # src/ll/UL4.g:720:3: aname1= name ( ',' aname2= name )* ( ',' aname3= name '=' adefault3= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )?
+                elif alt62 == 5:
+                    # src/ll/UL4.g:723:3: aname1= name ( ',' aname2= name )* ( ',' aname3= name '=' adefault3= exprarg )* ( ',' '*' rargsname= name )? ( ',' '**' rkwargsname= name )? ( ',' )?
                     pass 
-                    self._state.following.append(self.FOLLOW_name_in_signature3663)
+                    self._state.following.append(self.FOLLOW_name_in_signature3677)
                     aname1 = self.name()
 
                     self._state.following.pop()
@@ -5776,31 +5794,31 @@ class UL4Parser(Parser):
 
 
 
-                    # src/ll/UL4.g:721:3: ( ',' aname2= name )*
-                    while True: #loop56
-                        alt56 = 2
-                        LA56_0 = self.input.LA(1)
+                    # src/ll/UL4.g:724:3: ( ',' aname2= name )*
+                    while True: #loop57
+                        alt57 = 2
+                        LA57_0 = self.input.LA(1)
 
-                        if (LA56_0 == 39) :
-                            LA56_1 = self.input.LA(2)
+                        if (LA57_0 == 39) :
+                            LA57_1 = self.input.LA(2)
 
-                            if (LA56_1 == NAME) :
-                                LA56_3 = self.input.LA(3)
+                            if (LA57_1 == NAME) :
+                                LA57_3 = self.input.LA(3)
 
-                                if (LA56_3 == 33 or LA56_3 == 39) :
-                                    alt56 = 1
-
-
+                                if (LA57_3 == 33 or LA57_3 == 39) :
+                                    alt57 = 1
 
 
 
 
-                        if alt56 == 1:
-                            # src/ll/UL4.g:722:4: ',' aname2= name
+
+
+                        if alt57 == 1:
+                            # src/ll/UL4.g:725:4: ',' aname2= name
                             pass 
-                            self.match(self.input, 39, self.FOLLOW_39_in_signature3674)
+                            self.match(self.input, 39, self.FOLLOW_39_in_signature3688)
 
-                            self._state.following.append(self.FOLLOW_name_in_signature3681)
+                            self._state.following.append(self.FOLLOW_name_in_signature3695)
                             aname2 = self.name()
 
                             self._state.following.pop()
@@ -5813,36 +5831,36 @@ class UL4Parser(Parser):
 
 
                         else:
-                            break #loop56
+                            break #loop57
 
 
-                    # src/ll/UL4.g:725:3: ( ',' aname3= name '=' adefault3= exprarg )*
-                    while True: #loop57
-                        alt57 = 2
-                        LA57_0 = self.input.LA(1)
+                    # src/ll/UL4.g:728:3: ( ',' aname3= name '=' adefault3= exprarg )*
+                    while True: #loop58
+                        alt58 = 2
+                        LA58_0 = self.input.LA(1)
 
-                        if (LA57_0 == 39) :
-                            LA57_1 = self.input.LA(2)
+                        if (LA58_0 == 39) :
+                            LA58_1 = self.input.LA(2)
 
-                            if (LA57_1 == NAME) :
-                                alt57 = 1
-
-
+                            if (LA58_1 == NAME) :
+                                alt58 = 1
 
 
-                        if alt57 == 1:
-                            # src/ll/UL4.g:726:4: ',' aname3= name '=' adefault3= exprarg
+
+
+                        if alt58 == 1:
+                            # src/ll/UL4.g:729:4: ',' aname3= name '=' adefault3= exprarg
                             pass 
-                            self.match(self.input, 39, self.FOLLOW_39_in_signature3697)
+                            self.match(self.input, 39, self.FOLLOW_39_in_signature3711)
 
-                            self._state.following.append(self.FOLLOW_name_in_signature3704)
+                            self._state.following.append(self.FOLLOW_name_in_signature3718)
                             aname3 = self.name()
 
                             self._state.following.pop()
 
-                            self.match(self.input, 52, self.FOLLOW_52_in_signature3709)
+                            self.match(self.input, 52, self.FOLLOW_52_in_signature3723)
 
-                            self._state.following.append(self.FOLLOW_exprarg_in_signature3716)
+                            self._state.following.append(self.FOLLOW_exprarg_in_signature3730)
                             adefault3 = self.exprarg()
 
                             self._state.following.pop()
@@ -5855,26 +5873,26 @@ class UL4Parser(Parser):
 
 
                         else:
-                            break #loop57
+                            break #loop58
 
 
-                    # src/ll/UL4.g:731:3: ( ',' '*' rargsname= name )?
-                    alt58 = 2
-                    LA58_0 = self.input.LA(1)
+                    # src/ll/UL4.g:734:3: ( ',' '*' rargsname= name )?
+                    alt59 = 2
+                    LA59_0 = self.input.LA(1)
 
-                    if (LA58_0 == 39) :
-                        LA58_1 = self.input.LA(2)
+                    if (LA59_0 == 39) :
+                        LA59_1 = self.input.LA(2)
 
-                        if (LA58_1 == 34) :
-                            alt58 = 1
-                    if alt58 == 1:
-                        # src/ll/UL4.g:732:4: ',' '*' rargsname= name
+                        if (LA59_1 == 34) :
+                            alt59 = 1
+                    if alt59 == 1:
+                        # src/ll/UL4.g:735:4: ',' '*' rargsname= name
                         pass 
-                        self.match(self.input, 39, self.FOLLOW_39_in_signature3732)
+                        self.match(self.input, 39, self.FOLLOW_39_in_signature3746)
 
-                        self.match(self.input, 34, self.FOLLOW_34_in_signature3737)
+                        self.match(self.input, 34, self.FOLLOW_34_in_signature3751)
 
-                        self._state.following.append(self.FOLLOW_name_in_signature3741)
+                        self._state.following.append(self.FOLLOW_name_in_signature3755)
                         rargsname = self.name()
 
                         self._state.following.pop()
@@ -5888,23 +5906,23 @@ class UL4Parser(Parser):
 
 
 
-                    # src/ll/UL4.g:735:3: ( ',' '**' rkwargsname= name )?
-                    alt59 = 2
-                    LA59_0 = self.input.LA(1)
+                    # src/ll/UL4.g:738:3: ( ',' '**' rkwargsname= name )?
+                    alt60 = 2
+                    LA60_0 = self.input.LA(1)
 
-                    if (LA59_0 == 39) :
-                        LA59_1 = self.input.LA(2)
+                    if (LA60_0 == 39) :
+                        LA60_1 = self.input.LA(2)
 
-                        if (LA59_1 == 35) :
-                            alt59 = 1
-                    if alt59 == 1:
-                        # src/ll/UL4.g:736:4: ',' '**' rkwargsname= name
+                        if (LA60_1 == 35) :
+                            alt60 = 1
+                    if alt60 == 1:
+                        # src/ll/UL4.g:739:4: ',' '**' rkwargsname= name
                         pass 
-                        self.match(self.input, 39, self.FOLLOW_39_in_signature3757)
+                        self.match(self.input, 39, self.FOLLOW_39_in_signature3771)
 
-                        self.match(self.input, 35, self.FOLLOW_35_in_signature3762)
+                        self.match(self.input, 35, self.FOLLOW_35_in_signature3776)
 
-                        self._state.following.append(self.FOLLOW_name_in_signature3766)
+                        self._state.following.append(self.FOLLOW_name_in_signature3780)
                         rkwargsname = self.name()
 
                         self._state.following.pop()
@@ -5918,16 +5936,16 @@ class UL4Parser(Parser):
 
 
 
-                    # src/ll/UL4.g:739:3: ( ',' )?
-                    alt60 = 2
-                    LA60_0 = self.input.LA(1)
+                    # src/ll/UL4.g:742:3: ( ',' )?
+                    alt61 = 2
+                    LA61_0 = self.input.LA(1)
 
-                    if (LA60_0 == 39) :
-                        alt60 = 1
-                    if alt60 == 1:
-                        # src/ll/UL4.g:739:3: ','
+                    if (LA61_0 == 39) :
+                        alt61 = 1
+                    if alt61 == 1:
+                        # src/ll/UL4.g:742:3: ','
                         pass 
-                        self.match(self.input, 39, self.FOLLOW_39_in_signature3777)
+                        self.match(self.input, 39, self.FOLLOW_39_in_signature3791)
 
 
 
@@ -5935,7 +5953,7 @@ class UL4Parser(Parser):
 
 
 
-                close = self.match(self.input, 33, self.FOLLOW_33_in_signature3786)
+                close = self.match(self.input, 33, self.FOLLOW_33_in_signature3800)
 
                 if self._state.backtracking == 0:
                     pass
@@ -5943,14 +5961,14 @@ class UL4Parser(Parser):
 
 
 
-                self.match(self.input, EOF, self.FOLLOW_EOF_in_signature3791)
+                self.match(self.input, EOF, self.FOLLOW_EOF_in_signature3805)
 
 
 
 
                        
             except RecognitionException as e:
-                raise
+            	raise
 
         finally:
             pass
@@ -6164,15 +6182,15 @@ class UL4Parser(Parser):
         self.match(self.input, 32, self.FOLLOW_32_in_synpred46_UL42121)
 
         # src/ll/UL4.g:447:4: (a1= argument ( ',' a2= argument )* ( ',' )? )*
-        while True: #loop66
-            alt66 = 2
-            LA66_0 = self.input.LA(1)
+        while True: #loop67
+            alt67 = 2
+            LA67_0 = self.input.LA(1)
 
-            if ((COLOR <= LA66_0 <= DATE) or (FALSE <= LA66_0 <= FLOAT) or (INT <= LA66_0 <= NONE) or (STRING <= LA66_0 <= STRING3) or LA66_0 == TRUE or LA66_0 == 32 or (34 <= LA66_0 <= 35) or LA66_0 == 40 or LA66_0 == 58 or LA66_0 == 68 or LA66_0 == 70 or LA66_0 == 74) :
-                alt66 = 1
+            if ((COLOR <= LA67_0 <= DATE) or (FALSE <= LA67_0 <= FLOAT) or (INT <= LA67_0 <= NONE) or (STRING <= LA67_0 <= STRING3) or LA67_0 == TRUE or LA67_0 == 32 or (34 <= LA67_0 <= 35) or LA67_0 == 40 or LA67_0 == 58 or LA67_0 == 68 or LA67_0 == 70 or LA67_0 == 74) :
+                alt67 = 1
 
 
-            if alt66 == 1:
+            if alt67 == 1:
                 # src/ll/UL4.g:448:5: a1= argument ( ',' a2= argument )* ( ',' )?
                 pass 
                 self._state.following.append(self.FOLLOW_argument_in_synpred46_UL42136)
@@ -6181,20 +6199,20 @@ class UL4Parser(Parser):
                 self._state.following.pop()
 
                 # src/ll/UL4.g:449:5: ( ',' a2= argument )*
-                while True: #loop64
-                    alt64 = 2
-                    LA64_0 = self.input.LA(1)
+                while True: #loop65
+                    alt65 = 2
+                    LA65_0 = self.input.LA(1)
 
-                    if (LA64_0 == 39) :
-                        LA64_1 = self.input.LA(2)
+                    if (LA65_0 == 39) :
+                        LA65_1 = self.input.LA(2)
 
                         if (self.synpred43_UL4()) :
-                            alt64 = 1
+                            alt65 = 1
 
 
 
 
-                    if alt64 == 1:
+                    if alt65 == 1:
                         # src/ll/UL4.g:450:6: ',' a2= argument
                         pass 
                         self.match(self.input, 39, self.FOLLOW_39_in_synpred46_UL42151)
@@ -6206,16 +6224,16 @@ class UL4Parser(Parser):
 
 
                     else:
-                        break #loop64
+                        break #loop65
 
 
                 # src/ll/UL4.g:453:5: ( ',' )?
-                alt65 = 2
-                LA65_0 = self.input.LA(1)
+                alt66 = 2
+                LA66_0 = self.input.LA(1)
 
-                if (LA65_0 == 39) :
-                    alt65 = 1
-                if alt65 == 1:
+                if (LA66_0 == 39) :
+                    alt66 = 1
+                if alt66 == 1:
                     # src/ll/UL4.g:453:5: ','
                     pass 
                     self.match(self.input, 39, self.FOLLOW_39_in_synpred46_UL42175)
@@ -6225,7 +6243,7 @@ class UL4Parser(Parser):
 
 
             else:
-                break #loop66
+                break #loop67
 
 
         close = self.match(self.input, 33, self.FOLLOW_33_in_synpred46_UL42189)
@@ -7425,9 +7443,9 @@ class UL4Parser(Parser):
     FOLLOW_name_in_argument2021 = frozenset([52])
     FOLLOW_52_in_argument2023 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 32, 40, 58, 68, 70, 74])
     FOLLOW_exprarg_in_argument2027 = frozenset([1])
-    FOLLOW_35_in_argument2038 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 32, 40, 58, 68, 70, 74])
+    FOLLOW_34_in_argument2038 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 32, 40, 58, 68, 70, 74])
     FOLLOW_exprarg_in_argument2044 = frozenset([1])
-    FOLLOW_34_in_argument2055 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 32, 40, 58, 68, 70, 74])
+    FOLLOW_35_in_argument2055 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 32, 40, 58, 68, 70, 74])
     FOLLOW_exprarg_in_argument2061 = frozenset([1])
     FOLLOW_atom_in_expr_subscript2082 = frozenset([1, 32, 42, 58])
     FOLLOW_42_in_expr_subscript2098 = frozenset([14])
@@ -7560,49 +7578,49 @@ class UL4Parser(Parser):
     FOLLOW_EOF_in_statement3376 = frozenset([1])
     FOLLOW_expression_in_statement3385 = frozenset([])
     FOLLOW_EOF_in_statement3387 = frozenset([1])
-    FOLLOW_name_in_definition3412 = frozenset([32])
-    FOLLOW_signature_in_definition3425 = frozenset([])
-    FOLLOW_EOF_in_definition3436 = frozenset([1])
-    FOLLOW_32_in_signature3457 = frozenset([14, 33, 34, 35])
-    FOLLOW_35_in_signature3477 = frozenset([14])
-    FOLLOW_name_in_signature3481 = frozenset([33, 39])
-    FOLLOW_39_in_signature3487 = frozenset([33])
-    FOLLOW_34_in_signature3499 = frozenset([14])
-    FOLLOW_name_in_signature3503 = frozenset([33, 39])
-    FOLLOW_39_in_signature3514 = frozenset([35])
-    FOLLOW_35_in_signature3519 = frozenset([14])
-    FOLLOW_name_in_signature3523 = frozenset([33, 39])
-    FOLLOW_39_in_signature3534 = frozenset([33])
-    FOLLOW_name_in_signature3548 = frozenset([52])
-    FOLLOW_52_in_signature3552 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 32, 40, 58, 68, 70, 74])
-    FOLLOW_exprarg_in_signature3558 = frozenset([33, 39])
-    FOLLOW_39_in_signature3569 = frozenset([14])
-    FOLLOW_name_in_signature3576 = frozenset([52])
-    FOLLOW_52_in_signature3581 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 32, 40, 58, 68, 70, 74])
-    FOLLOW_exprarg_in_signature3588 = frozenset([33, 39])
-    FOLLOW_39_in_signature3604 = frozenset([34])
-    FOLLOW_34_in_signature3609 = frozenset([14])
-    FOLLOW_name_in_signature3613 = frozenset([33, 39])
-    FOLLOW_39_in_signature3629 = frozenset([35])
-    FOLLOW_35_in_signature3634 = frozenset([14])
-    FOLLOW_name_in_signature3638 = frozenset([33, 39])
-    FOLLOW_39_in_signature3649 = frozenset([33])
-    FOLLOW_name_in_signature3663 = frozenset([33, 39])
-    FOLLOW_39_in_signature3674 = frozenset([14])
-    FOLLOW_name_in_signature3681 = frozenset([33, 39])
-    FOLLOW_39_in_signature3697 = frozenset([14])
-    FOLLOW_name_in_signature3704 = frozenset([52])
-    FOLLOW_52_in_signature3709 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 32, 40, 58, 68, 70, 74])
-    FOLLOW_exprarg_in_signature3716 = frozenset([33, 39])
-    FOLLOW_39_in_signature3732 = frozenset([34])
-    FOLLOW_34_in_signature3737 = frozenset([14])
-    FOLLOW_name_in_signature3741 = frozenset([33, 39])
-    FOLLOW_39_in_signature3757 = frozenset([35])
-    FOLLOW_35_in_signature3762 = frozenset([14])
-    FOLLOW_name_in_signature3766 = frozenset([33, 39])
-    FOLLOW_39_in_signature3777 = frozenset([33])
-    FOLLOW_33_in_signature3786 = frozenset([])
-    FOLLOW_EOF_in_signature3791 = frozenset([1])
+    FOLLOW_name_in_definition3421 = frozenset([32])
+    FOLLOW_signature_in_definition3439 = frozenset([])
+    FOLLOW_EOF_in_definition3450 = frozenset([1])
+    FOLLOW_32_in_signature3471 = frozenset([14, 33, 34, 35])
+    FOLLOW_35_in_signature3491 = frozenset([14])
+    FOLLOW_name_in_signature3495 = frozenset([33, 39])
+    FOLLOW_39_in_signature3501 = frozenset([33])
+    FOLLOW_34_in_signature3513 = frozenset([14])
+    FOLLOW_name_in_signature3517 = frozenset([33, 39])
+    FOLLOW_39_in_signature3528 = frozenset([35])
+    FOLLOW_35_in_signature3533 = frozenset([14])
+    FOLLOW_name_in_signature3537 = frozenset([33, 39])
+    FOLLOW_39_in_signature3548 = frozenset([33])
+    FOLLOW_name_in_signature3562 = frozenset([52])
+    FOLLOW_52_in_signature3566 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 32, 40, 58, 68, 70, 74])
+    FOLLOW_exprarg_in_signature3572 = frozenset([33, 39])
+    FOLLOW_39_in_signature3583 = frozenset([14])
+    FOLLOW_name_in_signature3590 = frozenset([52])
+    FOLLOW_52_in_signature3595 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 32, 40, 58, 68, 70, 74])
+    FOLLOW_exprarg_in_signature3602 = frozenset([33, 39])
+    FOLLOW_39_in_signature3618 = frozenset([34])
+    FOLLOW_34_in_signature3623 = frozenset([14])
+    FOLLOW_name_in_signature3627 = frozenset([33, 39])
+    FOLLOW_39_in_signature3643 = frozenset([35])
+    FOLLOW_35_in_signature3648 = frozenset([14])
+    FOLLOW_name_in_signature3652 = frozenset([33, 39])
+    FOLLOW_39_in_signature3663 = frozenset([33])
+    FOLLOW_name_in_signature3677 = frozenset([33, 39])
+    FOLLOW_39_in_signature3688 = frozenset([14])
+    FOLLOW_name_in_signature3695 = frozenset([33, 39])
+    FOLLOW_39_in_signature3711 = frozenset([14])
+    FOLLOW_name_in_signature3718 = frozenset([52])
+    FOLLOW_52_in_signature3723 = frozenset([5, 6, 10, 11, 13, 14, 15, 17, 18, 22, 32, 40, 58, 68, 70, 74])
+    FOLLOW_exprarg_in_signature3730 = frozenset([33, 39])
+    FOLLOW_39_in_signature3746 = frozenset([34])
+    FOLLOW_34_in_signature3751 = frozenset([14])
+    FOLLOW_name_in_signature3755 = frozenset([33, 39])
+    FOLLOW_39_in_signature3771 = frozenset([35])
+    FOLLOW_35_in_signature3776 = frozenset([14])
+    FOLLOW_name_in_signature3780 = frozenset([33, 39])
+    FOLLOW_39_in_signature3791 = frozenset([33])
+    FOLLOW_33_in_signature3800 = frozenset([])
+    FOLLOW_EOF_in_signature3805 = frozenset([1])
     FOLLOW_list_in_synpred26_UL41741 = frozenset([1])
     FOLLOW_listcomprehension_in_synpred27_UL41750 = frozenset([1])
     FOLLOW_set_in_synpred28_UL41759 = frozenset([1])

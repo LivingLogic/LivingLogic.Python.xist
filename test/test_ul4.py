@@ -396,10 +396,10 @@ all_templates = dict(
 	python=TemplatePython,
 	python_dumps=TemplatePythonDumpS,
 	python_dump=TemplatePythonDump,
-	java_compiled_by_python=TemplateJavaCompiledByPython,
-	java_compiled_by_java=TemplateJavaCompiledByJava,
-	js_v8=TemplateJavascriptV8,
-	js_spidermonkey=TemplateJavascriptSpidermonkey,
+	# java_compiled_by_python=TemplateJavaCompiledByPython,
+	# java_compiled_by_java=TemplateJavaCompiledByJava,
+	# js_v8=TemplateJavascriptV8,
+	# js_spidermonkey=TemplateJavascriptSpidermonkey,
 	# php=TemplatePHP,
 )
 
@@ -3928,7 +3928,7 @@ def test_templateattributes_localtemplate(T):
 
 	assert source + "<?print lower.source?>" == T(source + "<?print lower.source?>").renders()
 	assert source == T(source + "<?print lower.source[lower.tag.startpos:lower.endtag.endpos]?>").renders()
-	assert "<?print t.lower()?>" == T(source + "<?print lower.tag.source[lower.tag.endpos:lower.endtag.startpos]?>").renders()
+	assert "<?print t.lower()?>" == T(source + "<?print lower.source[lower.tag.endpos:lower.endtag.startpos]?>").renders()
 	assert "lower" == T(source + "<?print lower.name?>").renders()
 
 

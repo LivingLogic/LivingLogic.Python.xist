@@ -72,37 +72,42 @@ class Error(Exception):
 	"""
 	Exception class that wraps another exception and provides a location.
 	"""
-	def __init__(self, node, template=None):
+	def __init__(self, node):
 		self.node = node
-		self.template = template
 
 	def __repr__(self):
 		return "<{}.{} in {} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.node, id(self))
 
-	def __str__(self):
-		parts = []
-		templateprefix = ""
-		if self.template is not None:
-			if isinstance(self.template, TemplateClosure):
-				templateprefix = "in local template {!r}: ".format(self.template.name)
-			elif self.template.name:
-				templateprefix = "in template {!r}: ".format(self.template.name)
-			else:
-				templateprefix = "in unnamed template: "
+	def _templateprefix(self, template):
+		if template.parenttemplate is not None:
+			return "in local template {!r}".format(template.name)
+		elif template.name:
+			return "in template {!r}".format(template.name)
+		else:
+			return "in unnamed template"
 
+	def __str__(self):
 		node = self.node
 		(line, col) = node._linecol()
 
 		if isinstance(node, Tag):
 			code = repr(node.text)[1:-1]
-			return "{}offset {:,}:{:,}; line {:,}; col {:,}\n{}\n{}".format(templateprefix, node.startpos, node.endpos, line, col, code, error_underline*len(code))
+			return "{}: offset {:,}:{:,}; line {:,}; col {:,}\n{}\n{}".format(self._templateprefix(node.template), node.startpos, node.endpos, line, col, code, error_underline*len(code))
 		else:
-			tag = self.node.tag
-			prefix = repr(tag.source[tag.startpos:node.startpos])[1:-1]
-			code = repr(tag.source[node.startpos:node.endpos])[1:-1]
-			suffix = repr(tag.source[node.endpos:tag.endpos])[1:-1]
+			if self.node.tag is None:
+				# ``self.node`` is a top level template
+				template = self.node
+				startpos = 0
+				endpos = len(template.source)
+			else:
+				template = self.node.tag.template
+				startpos = self.node.tag.startpos
+				endpos = self.node.tag.endpos
+			prefix = repr(template.source[startpos:node.startpos])[1:-1]
+			code = repr(template.source[node.startpos:node.endpos])[1:-1]
+			suffix = repr(template.source[node.endpos:endpos])[1:-1]
 
-			return "{}offset {:,}:{:,}; line {:,}; col {:,}\n{}{}{}\n{}{}".format(templateprefix, node.startpos, node.endpos, line, col, prefix, code, suffix, " "*len(prefix), error_underline*len(code))
+			return "{}: offset {:,}:{:,}; line {:,}; col {:,}\n{}{}{}\n{}{}".format(self._templateprefix(template), node.startpos, node.endpos, line, col, prefix, code, suffix, " "*len(prefix), error_underline*len(code))
 
 
 class BlockError(Exception):
@@ -194,6 +199,7 @@ class Context:
 	def __init__(self):
 		self.vars = {}
 		self.indents = [] # Stack of additional indentations for the ``<?render?>`` tag
+		self.asts = [] # Call stack (of :class:`AST` objects)
 
 	@classmethod
 	def makefunction(cls, f):
@@ -236,9 +242,10 @@ def _handleexpressioneval(f):
 	follows the UL4 call stack.
 	"""
 	@functools.wraps(f)
-	def wrapped(self, *args, **kwargs):
+	def wrapped(self, context, *args, **kwargs):
+		context.asts.append(self)
 		try:
-			return f(self, *args, **kwargs)
+			return f(self, context, *args, **kwargs)
 		except (BreakException, ContinueException, ReturnException):
 			# Pass those exception through to the AST nodes that will handle them (:class:`ForBlock` or :class:`Template`)
 			raise
@@ -247,6 +254,8 @@ def _handleexpressioneval(f):
 		except Exception as exc:
 			# Wrap original exception in another exception that shows the location
 			raise Error(self) from exc
+		finally:
+			context.asts.pop()
 	return wrapped
 
 
@@ -260,9 +269,10 @@ def _handleoutputeval(f):
 	follows the UL4 call stack.
 	"""
 	@functools.wraps(f)
-	def wrapped(self, *args, **kwargs):
+	def wrapped(self, context, *args, **kwargs):
+		context.asts.append(self)
 		try:
-			yield from f(self, *args, **kwargs)
+			yield from f(self, context, *args, **kwargs)
 		except (BreakException, ContinueException, ReturnException):
 			# Pass those exception through to the AST nodes that will handle them (:class:`ForBlock` or :class:`Template`)
 			raise
@@ -271,6 +281,8 @@ def _handleoutputeval(f):
 		except Exception as exc:
 			# Wrap original exception in another exception that shows the location
 			raise Error(self) from exc
+		finally:
+			context.asts.pop()
 	return wrapped
 
 
@@ -314,7 +326,7 @@ def _makevars(signature, args, kwargs):
 		return kwargs
 	else:
 		vars = signature.bind(*args, **kwargs)
-		# FIXME: use signature.app_defaults in Python 3.6
+		# FIXME: use signature.apply_defaults in Python 3.6
 		for param in signature.parameters.values():
 			if param.name not in vars.arguments:
 				if param.kind is inspect.Parameter.VAR_POSITIONAL:
@@ -519,7 +531,7 @@ class AST:
 	"""
 
 	# Set of attributes available to UL4 templates
-	ul4attrs = {"type", "startpos", "endpos"}
+	ul4attrs = {"type", "template", "startpos", "endpos"}
 
 	# Specifies whether the node does output (so :meth:`eval` is a generator)
 	# or not (so :meth:`eval` is a normal method).
@@ -613,23 +625,22 @@ class AST:
 		self.endpos = decoder.load()
 
 
-
 @register("text")
 class Text(AST):
 	"""
 	AST node for literal text.
 	"""
 
-	ul4attrs = AST.ul4attrs.union({"source", "text"})
+	ul4attrs = AST.ul4attrs.union({"template", "text"})
 
 	output = True
 
-	def __init__(self, source=None, startpos=None, endpos=None):
+	def __init__(self, template=None, startpos=None, endpos=None):
 		super().__init__(startpos, endpos)
-		self.source = source
+		self.template = template
 
 	def _linecol(self):
-		return AST._linecol(self.source, self.startpos, self.endpos)
+		return AST._linecol(self.template.source, self.startpos, self.endpos)
 
 	def _repr(self):
 		yield repr(self.text)
@@ -641,21 +652,21 @@ class Text(AST):
 
 	@property
 	def text(self):
-		return self.source[self.startpos:self.endpos]
+		return self.template.source[self.startpos:self.endpos]
 
 	def _str(self):
 		yield "text {!r}".format(self.text)
 
+	def eval(self, context):
+		yield self.text
+
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
-		encoder.dump(self.source)
+		encoder.dump(self.template)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
-		self.source = decoder.load()
-
-	def eval(self, context):
-		yield self.text
+		self.template = decoder.load()
 
 
 @register("indent")
@@ -664,14 +675,14 @@ class Indent(Text):
 	AST node for literal text that is an indentation at the start of the line.
 	"""
 
-	def __init__(self, source=None, startpos=None, endpos=None, text=None):
-		super().__init__(source, startpos, endpos)
+	def __init__(self, template=None, startpos=None, endpos=None, text=None):
+		super().__init__(template, startpos, endpos)
 		self._text = text
 
 	@property
 	def text(self):
 		if self._text is None:
-			return self.source[self.startpos:self.endpos]
+			return self.template.source[self.startpos:self.endpos]
 		else:
 			return self._text
 
@@ -679,7 +690,7 @@ class Indent(Text):
 	# set this attribute. However the attribute *will* be set by the code
 	# compiling the template
 	def _settext(self, text):
-		self._text = text if text != self.source[self.startpos:self.endpos] else None
+		self._text = text if text != self.template.source[self.startpos:self.endpos] else None
 
 	def _str(self):
 		yield "indent {!r}".format(self.text)
@@ -712,11 +723,11 @@ class Tag(AST):
 	"""
 	A :class:`Tag` object is the location of a template tag in a template.
 	"""
-	ul4attrs = AST.ul4attrs.union({"source", "tag", "startposcode", "endposcode", "text", "code"})
+	ul4attrs = AST.ul4attrs.union({"template", "tag", "startposcode", "endposcode", "text", "code"})
 
-	def __init__(self, source=None, tag=None, startpos=None, endpos=None, startposcode=None, endposcode=None):
+	def __init__(self, template=None, tag=None, startpos=None, endpos=None, startposcode=None, endposcode=None):
 		super().__init__(startpos, endpos)
-		self.source = source
+		self.template = template
 		self.tag = tag
 		self.startposcode = startposcode
 		self.endposcode = endposcode
@@ -730,7 +741,7 @@ class Tag(AST):
 		p.pretty(self.text)
 
 	def _linecol(self):
-		return AST._linecol(self.source, self.startpos, self.endpos)
+		return AST._linecol(self.template.source, self.startpos, self.endpos)
 
 	def __str__(self):
 		(line, col) = self._linecol()
@@ -738,22 +749,22 @@ class Tag(AST):
 
 	@property
 	def text(self):
-		return self.source[self.startpos:self.endpos]
+		return self.template.source[self.startpos:self.endpos]
 
 	@property
 	def code(self):
-		return self.source[self.startposcode:self.endposcode]
+		return self.template.source[self.startposcode:self.endposcode]
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
-		encoder.dump(self.source)
+		encoder.dump(self.template)
 		encoder.dump(self.tag)
 		encoder.dump(self.startposcode)
 		encoder.dump(self.endposcode)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
-		self.source = decoder.load()
+		self.template = decoder.load()
 		self.tag = decoder.load()
 		self.startposcode = decoder.load()
 		self.endposcode = decoder.load()
@@ -773,11 +784,11 @@ class Code(AST):
 	def _linecol(self):
 		if self.tag is None:
 			return (1, 1)
-		return AST._linecol(self.tag.source, self.startpos, self.endpos)
+		return AST._linecol(self.tag.template.source, self.startpos, self.endpos)
 
 	@property
 	def text(self):
-		return self.tag.source[self.startpos:self.endpos]
+		return self.tag.template.source[self.startpos:self.endpos]
 
 	def _str(self):
 		yield " ".join(self.text.splitlines(False))
@@ -999,7 +1010,6 @@ class PosArg(Code):
 		p.text("value=")
 		p.pretty(self.value)
 
-	@_handleexpressioneval
 	def append(self, call):
 		for arg in call.args:
 			if isinstance(arg, KeywordArg):
@@ -1045,7 +1055,6 @@ class KeywordArg(Code):
 		p.text("value=")
 		p.pretty(self.value)
 
-	@_handleexpressioneval
 	def append(self, call):
 		call.args.append(self)
 
@@ -1086,7 +1095,6 @@ class UnpackListArg(Code):
 		p.text("item=")
 		p.pretty(self.item)
 
-	@_handleexpressioneval
 	def append(self, call):
 		for arg in call.args:
 			if isinstance(arg, UnpackDictArg):
@@ -1127,7 +1135,6 @@ class UnpackDictArg(Code):
 		p.text("item=")
 		p.pretty(self.item)
 
-	@_handleexpressioneval
 	def append(self, call):
 		call.args.append(self)
 
@@ -1570,7 +1577,7 @@ class Var(Code):
 		context.vars[self.name] = value
 
 	@_handleexpressioneval
-	def evalmodify(self, operator, context, value):
+	def evalmodify(self, context, operator, value):
 		context.vars[self.name] = operator.evalfoldaug(context.vars[self.name], value)
 
 	def ul4ondump(self, encoder):
@@ -2206,7 +2213,7 @@ class Attr(Code):
 		_ul4setattr(obj, self.attrname, value)
 
 	@_handleexpressioneval
-	def evalmodify(self, operator, context, value):
+	def evalmodify(self, context, operator, value):
 		obj = self.obj.eval(context)
 
 		oldvalue = _ul4getattr(obj, self.attrname)
@@ -2474,7 +2481,7 @@ class Item(Binary):
 		_ul4setattr(obj1, obj2, value)
 
 	@_handleexpressioneval
-	def evalmodify(self, operator, context, value):
+	def evalmodify(self, context, operator, value):
 		obj1 = self.obj1.eval(context)
 		obj2 = self.obj2.eval(context)
 		oldvalue = _ul4getattr(obj1, obj2) if isinstance(obj2, str) else obj1[obj2]
@@ -2968,7 +2975,7 @@ class AddVar(ChangeVar):
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(Add, context, value)
+			lvalue.evalmodify(context, Add, value)
 
 
 @register("subvar")
@@ -2981,7 +2988,7 @@ class SubVar(ChangeVar):
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(Sub, context, value)
+			lvalue.evalmodify(context, Sub, value)
 
 
 @register("mulvar")
@@ -2994,7 +3001,7 @@ class MulVar(ChangeVar):
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(Mul, context, value)
+			lvalue.evalmodify(context, Mul, value)
 
 
 @register("floordivvar")
@@ -3008,7 +3015,7 @@ class FloorDivVar(ChangeVar):
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(FloorDiv, context, value)
+			lvalue.evalmodify(context, FloorDiv, value)
 
 
 @register("truedivvar")
@@ -3021,7 +3028,7 @@ class TrueDivVar(ChangeVar):
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(TrueDiv, context, value)
+			lvalue.evalmodify(context, TrueDiv, value)
 
 
 @register("modvar")
@@ -3034,7 +3041,7 @@ class ModVar(ChangeVar):
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(Mod, context, value)
+			lvalue.evalmodify(context, Mod, value)
 
 
 @register("shiftleftvar")
@@ -3047,7 +3054,7 @@ class ShiftLeftVar(ChangeVar):
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(ShiftLeft, context, value)
+			lvalue.evalmodify(context, ShiftLeft, value)
 
 
 @register("shiftrightvar")
@@ -3060,7 +3067,7 @@ class ShiftRightVar(ChangeVar):
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(ShiftRight, context, value)
+			lvalue.evalmodify(context, ShiftRight, value)
 
 
 @register("bitandvar")
@@ -3073,7 +3080,7 @@ class BitAndVar(ChangeVar):
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(BitAnd, context, value)
+			lvalue.evalmodify(context, BitAnd, value)
 
 
 @register("bitxorvar")
@@ -3086,7 +3093,7 @@ class BitXOrVar(ChangeVar):
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(BitXOr, context, value)
+			lvalue.evalmodify(context, BitXOr, value)
 
 
 @register("bitorvar")
@@ -3099,7 +3106,7 @@ class BitOrVar(ChangeVar):
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(BitOr, context, value)
+			lvalue.evalmodify(context, BitOr, value)
 
 
 @register("call")
@@ -3172,7 +3179,7 @@ class Call(Code):
 		raise TypeError("can't use = on call result")
 
 	@_handleexpressioneval
-	def evalmodify(self, operator, context, value):
+	def evalmodify(self, context, operator, value):
 		raise TypeError("augmented assigment not allowed for call result")
 
 	def ul4ondump(self, encoder):
@@ -3368,18 +3375,19 @@ class Template(Block):
 		self.enddelim = enddelim or "?>"
 		self.name = name
 		self.source = None
-		if callable(signature):
+		self.parenttemplate = None
+		if isinstance(signature, str):
+			# The parser needs a tag, and each tag references its template which contains the source.
+			# So to make the source of the signature available in the source, we prepend an ``<?ul4?>`` tag
+			source = "{}ul4 {}({}){}{}".format(self.startdelim, name or "", signature, self.enddelim, source)
+			signature = None
+		elif callable(signature):
 			signature = inspect.signature(signature)
-		elif isinstance(signature, str):
-			signature = "({})".format(signature)
-			tag = Tag(signature, "signature", 0, len(signature), 0, len(signature))
-			ast = self._parsesignature(tag)
-			signature = ast.eval({})
 		self.signature = signature
 
 		# If we have source code compile it
 		if source is not None:
-			self._compile(source, name, startdelim, enddelim)
+			self._compile(source, startdelim, enddelim)
 
 	def _repr(self):
 		yield "name={!r}".format(self.name)
@@ -3440,8 +3448,8 @@ class Template(Block):
 	def ul4ondump(self, encoder):
 		# Don't call ``super().ul4ondump()`` first, as we want the version to be first
 		encoder.dump(self.version)
-		encoder.dump(self.source)
 		encoder.dump(self.name)
+		encoder.dump(self.source)
 		encoder.dump(self.whitespace)
 		encoder.dump(self.startdelim)
 		encoder.dump(self.enddelim)
@@ -3474,8 +3482,8 @@ class Template(Block):
 		version = decoder.load()
 		if version != self.version:
 			raise ValueError("invalid version, expected {!r}, got {!r}".format(self.version, version))
-		self.source = decoder.load()
 		self.name = decoder.load()
+		self.source = decoder.load()
 		self.whitespace = decoder.load()
 		self.startdelim = decoder.load()
 		self.enddelim = decoder.load()
@@ -3546,9 +3554,6 @@ class Template(Block):
 			yield from super().eval(context) # Bypass ``self.eval()`` which simply stores the object as a local variable
 		except ReturnException:
 			pass
-		except Error as exc:
-			exc.template = self
-			raise
 
 	@withcontext
 	def ul4render(*args, **kwargs):
@@ -3598,9 +3603,6 @@ class Template(Block):
 				pass # Ignore all output
 		except ReturnException as exc:
 			return exc.value
-		except Error as exc:
-			exc.template = self
-			raise
 
 	@withcontext
 	def ul4call(*args, **kwargs):
@@ -3638,9 +3640,9 @@ class Template(Block):
 
 	def _tokenize(self, source, startdelim, enddelim):
 		"""
-		Tokenize the template/function source code :obj:`source` into tags and
-		non-tag text. :obj:`startdelim` and :obj:`enddelim` are used as the tag
-		delimiters.
+		Tokenize the template/function source code in :obj:`source` into tags
+		and non-tag text. :obj:`startdelim` and :obj:`enddelim` are used as the
+		tag delimiters.
 
 		This is a generator which produces :class:`Text`/:class:`Tag` objects
 		for each tag or non-tag text. It will be called by :meth:`_compile`
@@ -3650,13 +3652,13 @@ class Template(Block):
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
-				yield Text(source, pos, match.start())
+				yield Text(self, pos, match.start())
 			tag = source[match.start(1):match.end(1)]
-			yield Tag(source, tag, match.start(), match.end(), match.start(3), match.end(3))
+			yield Tag(self, tag, match.start(), match.end(), match.start(3), match.end(3))
 			pos = match.end()
 		end = len(source)
 		if pos != end:
-			yield Text(source, pos, end)
+			yield Text(self, pos, end)
 
 	def _tags2lines(self, tags):
 		"""
@@ -3676,9 +3678,9 @@ class Template(Block):
 			# If this is a new line and it doesn't start with an indentation,
 			# add an empty indentation at the start (We always add indentation,
 			# as this is used by :class:`Render` to reindent the output of one
-			# template when called from inside another template
+			# template when called from inside another template)
 			if not tagline and not isinstance(tag, Indent):
-				tagline.append(Indent(tag.source, tag.startpos, tag.startpos))
+				tagline.append(Indent(tag.template, tag.startpos, tag.startpos))
 			tagline.append(tag)
 
 		# Yield lines by splitting literal text into multiple chunks (normal text, indentation and lineends)
@@ -3708,13 +3710,13 @@ class Template(Block):
 
 					# Output the parts we found
 					if lineindentlen:
-						append(Indent(tag.source, pos, pos+lineindentlen))
+						append(Indent(tag.template, pos, pos+lineindentlen))
 						pos += lineindentlen
 					if linelen:
-						append(Text(tag.source, pos, pos+linelen))
+						append(Text(tag.template, pos, pos+linelen))
 						pos += linelen
 					if lineendlen:
-						append(LineEnd(tag.source, pos, pos+lineendlen))
+						append(LineEnd(tag.template, pos, pos+lineendlen))
 						pos += lineendlen
 						yield tagline
 						tagline = []
@@ -3840,42 +3842,28 @@ class Template(Block):
 		parser.tag = tag
 		return parser
 
-	def _parsesignature(self, tag):
-			try:
-				return self._parser(tag, "unused").signature()
-			except Exception as exc:
-				try:
-					raise Error(tag) from exc
-				except Error as exc:
-					raise Error(self) from exc
-
-	def _compile(self, source, name, startdelim, enddelim):
+	def _compile(self, source, startdelim, enddelim):
 		"""
 		Compile the template source code :obj:`source` into an AST.
 		:obj:`startdelim` and :obj:`enddelim` are used as the tag delimiters.
 		"""
-		self.name = name
+		self.source = source
 		self.startdelim = startdelim
 		self.enddelim = enddelim
-
-		self.source = source
 
 		if source is None:
 			return
 
 		self.startpos = 0
 		self.endpos = len(source)
-		# This stack stores the nested for/if/elif/else/def blocks
-		stack = [self]
+		blockstack = [self] # This stack stores the nested for/if/elif/else/def blocks
+		templatestack = [self] # This stack store the nested templates
 
 		def parsedeclaration(tag):
 			try:
 				return self._parser(tag, "declaration required").definition()
 			except Exception as exc:
-				try:
-					raise Error(tag) from exc
-				except Error as exc:
-					raise Error(self) from exc
+				raise Error(tag) from exc
 
 		def parseexpr(tag):
 			return self._parser(tag, "expression required").expression()
@@ -3913,14 +3901,13 @@ class Template(Block):
 						self.signature = signature
 					elif tag.tag == "whitespace":
 						whitespace = tag.code
-						if whitespace in ("keep", "strip", "smart"):
+						if whitespace in {"keep", "strip", "smart"}:
 							self.whitespace = whitespace
 						else:
 							try:
 								raise ValueError("whitespace mode {!r} unknown".format(whitespace))
 							except Exception as exc:
-								raise Error(tag, self) from exc
-
+								raise Error(tag) from exc
 
 		# Flatten lines and update whitespace according to the whitespace mode specified
 		if self.whitespace == "keep":
@@ -3935,90 +3922,95 @@ class Template(Block):
 		for tag in tags:
 			try:
 				if isinstance(tag, Text):
-					stack[-1].append(tag)
+					blockstack[-1].append(tag)
 				elif tag.tag == "print":
-					stack[-1].append(Print(tag, tag.startposcode, tag.endposcode, parseexpr(tag)))
+					blockstack[-1].append(Print(tag, tag.startposcode, tag.endposcode, parseexpr(tag)))
 				elif tag.tag == "printx":
-					stack[-1].append(PrintX(tag, tag.startposcode, tag.endposcode, parseexpr(tag)))
+					blockstack[-1].append(PrintX(tag, tag.startposcode, tag.endposcode, parseexpr(tag)))
 				elif tag.tag == "code":
-					stack[-1].append(parsestmt(tag))
+					blockstack[-1].append(parsestmt(tag))
 				elif tag.tag == "if":
 					block = CondBlock(tag, tag.startposcode, tag.endposcode, parseexpr(tag))
-					stack[-1].append(block)
-					stack.append(block)
+					blockstack[-1].append(block)
+					blockstack.append(block)
 				elif tag.tag == "elif":
-					if not isinstance(stack[-1], CondBlock):
+					if not isinstance(blockstack[-1], CondBlock):
 						raise BlockError("elif doesn't match and if")
-					elif isinstance(stack[-1].content[-1], ElseBlock):
+					elif isinstance(blockstack[-1].content[-1], ElseBlock):
 						raise BlockError("else already seen in if")
-					stack[-1].newblock(ElIfBlock(tag, tag.startposcode, tag.endposcode, parseexpr(tag)))
+					blockstack[-1].newblock(ElIfBlock(tag, tag.startposcode, tag.endposcode, parseexpr(tag)))
 				elif tag.tag == "else":
-					if not isinstance(stack[-1], CondBlock):
+					if not isinstance(blockstack[-1], CondBlock):
 						raise BlockError("else doesn't match any if")
-					elif isinstance(stack[-1].content[-1], ElseBlock):
+					elif isinstance(blockstack[-1].content[-1], ElseBlock):
 						raise BlockError("else already seen in if")
-					stack[-1].newblock(ElseBlock(tag, tag.startposcode, tag.endposcode))
+					blockstack[-1].newblock(ElseBlock(tag, tag.startposcode, tag.endposcode))
 				elif tag.tag == "end":
-					if len(stack) <= 1:
+					if len(blockstack) <= 1:
 						raise BlockError("not in any block")
 					code = tag.code
 					if code:
 						if code == "if":
-							if not isinstance(stack[-1], CondBlock):
+							if not isinstance(blockstack[-1], CondBlock):
 								raise BlockError("endif doesn't match any if")
 						elif code == "for":
-							if not isinstance(stack[-1], ForBlock):
+							if not isinstance(blockstack[-1], ForBlock):
 								raise BlockError("endfor doesn't match any for")
 						elif code == "while":
-							if not isinstance(stack[-1], WhileBlock):
+							if not isinstance(blockstack[-1], WhileBlock):
 								raise BlockError("endwhile doesn't match any while")
 						elif code == "def":
-							if not isinstance(stack[-1], Template):
+							if not isinstance(blockstack[-1], Template):
 								raise BlockError("enddef doesn't match any def")
+							templatestack.pop()
 						else:
 							raise BlockError("illegal end value {!r}".format(code))
-					last = stack.pop()
+					last = blockstack.pop()
 					# Set ``endtag`` of block
 					last.endtag = tag
 					if isinstance(last, CondBlock):
 						last.content[-1].endtag = tag
 				elif tag.tag == "for":
 					block = parsefor(tag)
-					stack[-1].append(block)
-					stack.append(block)
+					blockstack[-1].append(block)
+					blockstack.append(block)
 				elif tag.tag == "while":
 					block = WhileBlock(tag, tag.startposcode, tag.endposcode, parseexpr(tag))
-					stack[-1].append(block)
-					stack.append(block)
+					blockstack[-1].append(block)
+					blockstack.append(block)
 				elif tag.tag == "break":
-					for block in reversed(stack):
+					for block in reversed(blockstack):
 						if isinstance(block, (ForBlock, WhileBlock)):
 							break
 						elif isinstance(block, Template):
 							raise BlockError("break outside of for loop")
-					stack[-1].append(Break(tag, tag.startposcode, tag.endposcode))
+					blockstack[-1].append(Break(tag, tag.startposcode, tag.endposcode))
 				elif tag.tag == "continue":
-					for block in reversed(stack):
+					for block in reversed(blockstack):
 						if isinstance(block, (ForBlock, WhileBlock)):
 							break
 						elif isinstance(block, Template):
 							raise BlockError("continue outside of for loop")
-					stack[-1].append(Continue(tag, tag.startposcode, tag.endposcode))
+					blockstack[-1].append(Continue(tag, tag.startposcode, tag.endposcode))
 				elif tag.tag == "def":
 					(name, signature) = parsedef(tag)
 					block = Template(None, name=name, whitespace=self.whitespace, startdelim=self.startdelim, enddelim=self.enddelim, signature=signature)
 					block.tag = tag # Set start ``tag`` of sub template
-					block.source = self.source # The source of the top level template (so that the offsets in all :class:`Text`/:class:`Tag` objects are correct)
+					block.parenttemplate = templatestack[-1]
+					templatestack.append(block)
+					# The source is always the complete source of the top level template
+					# (so that the offsets in all :class:`Text`/:class:`Tag` objects are correct)
+					block.source = self.source
 					block.startpos = tag.startposcode
 					block.endpos = tag.endposcode
-					stack[-1].append(block)
-					stack.append(block)
+					blockstack[-1].append(block)
+					blockstack.append(block)
 				elif tag.tag == "return":
-					stack[-1].append(Return(tag, tag.startposcode, tag.endposcode, parseexpr(tag)))
+					blockstack[-1].append(Return(tag, tag.startposcode, tag.endposcode, parseexpr(tag)))
 				elif tag.tag == "render":
 					render = parserender(tag)
 					# Find innermost block
-					innerblock = stack[-1]
+					innerblock = blockstack[-1]
 					if isinstance(innerblock, CondBlock):
 						innerblock = innerblock.content[-1]
 					innerblock = innerblock.content
@@ -4029,7 +4021,7 @@ class Template(Block):
 					if innerblock and isinstance(innerblock[-1], Indent):
 						render.indent = innerblock[-1]
 						innerblock.pop()
-					stack[-1].append(render)
+					blockstack[-1].append(render)
 				elif tag.tag in ("ul4", "whitespace", "note"):
 					# Don't copy declarations, whitespace specification or comments over into the syntax tree
 					pass
@@ -4037,9 +4029,9 @@ class Template(Block):
 					raise ValueError("unknown tag {!r}".format(tag.tag))
 				lasttag = tag
 			except Exception as exc:
-				raise Error(tag, self) from exc
-		if len(stack) > 1:
-			raise Error(stack[-1], self) from BlockError("block unclosed")
+				raise Error(tag) from exc
+		if len(blockstack) > 1:
+			raise Error(blockstack[-1]) from BlockError("block unclosed")
 
 	@_handleexpressioneval
 	def eval(self, context):
@@ -4698,11 +4690,7 @@ class TemplateClosure(Block):
 		with context.replacevars(vars):
 			# Call :meth:`_renderbound` to bypass binding the arguments again
 			# (which wouldn't work anyway as ``self.template.signature`` is an :class:`AST` object)
-			try:
-				yield from self.template._renderbound(context)
-			except Error as exc:
-				exc.template = self
-				raise
+			yield from self.template._renderbound(context)
 
 	@withcontext
 	def renders(*args, **kwargs):
@@ -4714,11 +4702,7 @@ class TemplateClosure(Block):
 		with context.replacevars(vars):
 			# Call :meth:`_renderbound` to bypass binding the arguments again
 			# (which wouldn't work anyway as ``self.template.signature`` is an :class:`AST` object)
-			try:
-				return self.template._rendersbound(context)
-			except Error as exc:
-				exc.template = self
-				raise
+			return self.template._rendersbound(context)
 
 	@withcontext
 	def ul4call(*args, **kwargs):
@@ -4730,11 +4714,7 @@ class TemplateClosure(Block):
 		with context.replacevars(vars):
 			# Call :meth:`_renderbound` to bypass binding the arguments again
 			# (which wouldn't work anyway as ``self.template.signature`` is an :class:`AST` object)
-			try:
-				return self.template._callbound(context)
-			except Error as exc:
-				exc.template = self
-				raise
+			return self.template._callbound(context)
 
 	def __getattr__(self, name):
 		return getattr(self.template, name)
